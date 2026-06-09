@@ -855,7 +855,7 @@ _INDICATOR_FORMULAS = {
 
 
 def _persist_raster_asset(
-    req: "ProcessRequest", cog_url: str, meta: dict, bounds: list, stats: dict
+    req: ProcessRequest, cog_url: str, meta: dict, bounds: list, stats: dict
 ) -> None:
     """يُدرج صفّاً في raster_assets (best-effort). يُغلّف كلّ خطأ.
 
@@ -1076,7 +1076,8 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
 
 def _process_pixels(req: ProcessRequest, layer_id: str):
     """المعالجة الفعليّة للبكسلات (تعمل عند توفّر rasterio). تُرجع
-    (stats, bounds_4326, resolution_m)."""
+    (stats, bounds_4326, resolution_m, meta) حيث meta يحوي cog_url/cog_crs/
+    srid/nodata. تطبّق القصّ على الحقل + قناع الغيوم + إعادة إسقاط الحدود."""
     import numpy as np
     import rasterio
 
@@ -1128,8 +1129,12 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
                 return None
             if clip_geom_src is not None:
                 arr_b, t = _rio_mask(
-                    src, [clip_geom_src], crop=True, filled=True,
-                    nodata=nodata_val, indexes=[idx],
+                    src,
+                    [clip_geom_src],
+                    crop=True,
+                    filled=True,
+                    nodata=nodata_val,
+                    indexes=[idx],
                 )
                 _out["transform"] = t
                 a = arr_b[0].astype("float32")
@@ -1147,8 +1152,12 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
                 return None
             if clip_geom_src is not None:
                 arr_b, _t = _rio_mask(
-                    src, [clip_geom_src], crop=True, filled=True,
-                    nodata=0, indexes=[idx],
+                    src,
+                    [clip_geom_src],
+                    crop=True,
+                    filled=True,
+                    nodata=0,
+                    indexes=[idx],
                 )
                 return arr_b[0]
             return src.read(idx)
@@ -1564,11 +1573,10 @@ def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None
     المناطق، ويبني عقد الشبكة الحقيقي (real_data=True). يُرجِع None عند
     تعذّر القراءة (لا rasterio / ملفّ مفقود / لا شبكة)."""
     try:
+        import indicator_grid as ig
         import numpy as np
         import rasterio
         from rasterio.warp import transform_bounds
-
-        import indicator_grid as ig
     except Exception:  # noqa: BLE001 — rasterio غير متوفّر → fallback محاكاة
         return None
 

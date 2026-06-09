@@ -16,12 +16,11 @@ import math
 import os
 import tempfile
 
+import main
 import numpy as np
 import rasterio
-from rasterio.transform import from_origin
-
-import main
 from main import BandMapping, IndicatorKind, ProcessRequest, SourceFormat
+from rasterio.transform import from_origin
 
 # منطقة الجوف (اليمن) تقع في UTM zone 38N (EPSG:32638).
 UTM = "EPSG:32638"
@@ -119,7 +118,7 @@ def test_clip_index_bounds_and_grid():
     # يجب أن تكون قرب lon~44, lat~16 (الجوف)
     assert 43.0 < bounds[0] < 45.0, f"minlon متوقّع ~44، وجد {bounds[0]}"
     assert 15.0 < bounds[1] < 17.0, f"minlat متوقّع ~16، وجد {bounds[1]}"
-    print(f"(ج) حدود 4326 معقولة: {[round(x,4) for x in bounds]}")
+    print(f"(ج) حدود 4326 معقولة: {[round(x, 4) for x in bounds]}")
 
     # ── (أ) بكسلات خارج المضلّع = NaN ────────────────────────────────
     # نعيد فتح COG المكتوب ونتحقّق أنّ النصف الأيمن NaN والأيسر = 0.5
@@ -138,8 +137,7 @@ def test_clip_index_bounds_and_grid():
     # النسبة المقصوصة معقولة (~نصف المساحة خارج المضلّع تقريباً)
     frac_outside = n_nan / out.size
     print(
-        f"(أ) القصّ مطبَّق: داخل={n_finite} NaN={n_nan} "
-        f"(خارج={frac_outside:.0%} من شبكة COG المقصوصة)"
+        f"(أ) القصّ مطبَّق: داخل={n_finite} NaN={n_nan} (خارج={frac_outside:.0%} من شبكة COG المقصوصة)"
     )
     assert frac_outside > 0.2, "متوقّع جزء كبير NaN خارج النصف الأيسر"
 
@@ -168,8 +166,17 @@ def test_clip_index_bounds_and_grid():
     body = resp.json()
 
     required = {
-        "field_id", "index", "date", "bbox", "rows", "cols",
-        "grid", "stats", "zones", "source", "real_data",
+        "field_id",
+        "index",
+        "date",
+        "bbox",
+        "rows",
+        "cols",
+        "grid",
+        "stats",
+        "zones",
+        "source",
+        "real_data",
     }
     assert required.issubset(body.keys()), f"حقول ناقصة: {required - set(body.keys())}"
     assert body["real_data"] is True, "متوقّع real_data=True (COG حقيقي موجود)"
