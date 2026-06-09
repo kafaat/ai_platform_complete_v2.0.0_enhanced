@@ -42,6 +42,7 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
 import httpx
+import object_store
 import salinity_calibration as _sal
 from fastapi import BackgroundTasks, FastAPI, File, Form, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -399,6 +400,8 @@ async def _stac_search_dem(bbox: list[float]) -> dict:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("raster-service starting (Element84 Earth Search)")
+    # اضبط GDAL لـ/vsis3 عند ضبط S3 (no-op إن لم يُضبط) — تخزين COG قابل للتوسّع.
+    object_store.gdal_configure()
     yield
     logger.info("raster-service stopping")
 
@@ -1248,14 +1251,19 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
         try:
             import cog_writer
 
-            cog_path = os.path.join(UPLOAD_DIR, f"{req.indicator.value}_{uuid.uuid4().hex[:8]}.tif")
+            cog_uid = uuid.uuid4().hex[:8]
+            cog_path = os.path.join(UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
             cog_info = cog_writer.write_cog(
                 arr, cog_path, _out["transform"], crs=cog_crs, nodata=float("nan")
             )
             stats["cog"] = cog_info
             if cog_info.get("written"):
-                # (٤) خزّن مسار COG كـURI كي يجده tilejson + شبكة المؤشّر
-                cog_url = f"file://{cog_path}"
+                # (٤) خزّن مسار COG كـURI كي يجده tilejson + شبكة المؤشّر.
+                # عند ضبط S3 يُرفع الـCOG ويُخزَّن s3://؛ وإلّا يبقى file:// كما هو.
+                cog_url = object_store.upload_cog(
+                    cog_path,
+                    f"{req.field_id or 'nofield'}/{req.indicator.value}_{cog_uid}.tif",
+                )
         except Exception as _e:  # noqa: BLE001 — حفظ COG اختياري لا يُفشل الحساب
             stats["cog"] = {"written": False, "reason": str(_e)}
         _ = formula  # موثّق أعلاه
@@ -1581,7 +1589,7 @@ def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None
         return None
 
     cog_url = layer["cog_url"]
-    path = cog_url.replace("file://", "")
+    path = object_store.to_gdal_path(cog_url)
     try:
         with rasterio.open(path) as src:
             arr = src.read(1).astype("float64")
@@ -1630,10 +1638,11 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
         asset = await db_persist.fetch_latest_asset(field_id, internal, date)
         if not asset or not asset.get("cog_url"):
             return None
-        cog_path = asset["cog_url"].replace("file://", "")
-        # الصفّ موجود في DB لكنّ ملفّ COG غير متاح على هذا المضيف (تخزين غير مشترك)
-        if not os.path.exists(cog_path):
-            logger.warning("raster_assets hit but COG missing on host: %s", cog_path)
+        # لـfile:// نفحص القرص؛ لـs3:// نؤجّل الوجود إلى rasterio (لا نرفضه هنا).
+        if not object_store.exists_locally(asset["cog_url"]):
+            logger.warning(
+                "raster_assets hit but COG missing on host: %s", asset["cog_url"]
+            )
             return None
         lid = f"db_{field_id}_{internal}"
         _layers[lid] = {
@@ -1708,7 +1717,7 @@ async def field_tile(
         try:
             import tile_render
 
-            cog_path = layer["cog_url"].replace("file://", "")
+            cog_path = object_store.to_gdal_path(layer["cog_url"])
             internal = _GRID_INDEX_ALIASES.get(index, index)
             png = tile_render.render_tile_png(cog_path, z, x, y, internal)
             if png:

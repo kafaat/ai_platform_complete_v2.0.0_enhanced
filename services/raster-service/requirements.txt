@@ -7,3 +7,6 @@ python-multipart>=0.0.9
 rasterio>=1.3.0
 numpy>=1.26.0
 redis>=5.0.0
+# تخزين كائنات اختياري (S3/MinIO) لـCOGs — مطلوب فقط عند ضبط S3_*؛
+# مسار file:// يعمل دونه (الاستيراد محروس داخل object_store.py):
+boto3>=1.34.0
