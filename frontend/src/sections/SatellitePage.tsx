@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI } from '../hooks/useApi';
+import { useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI, useIndicatorGrid, type GridIndex } from '../hooks/useApi';
+
+// أي مؤشر من طبقات الواجهة يملك شبكة per-pixel حقيقيّة في raster-service؟
+const GRID_INDEX_MAP: Record<string, GridIndex> = { ndvi: 'ndvi', ndwi: 'ndwi' };
 
 const FIELDS = [
   { id:'field_01', name:'حقل وادي سبأ',        lat:15.05, lon:45.55, area:23.5, crop:'قمح صلب' },
@@ -46,7 +49,7 @@ export default function SatellitePage() {
   const [opacity,      setOpacity]      = useState(75);
   const [days,         setDays]         = useState(30);
   const [showLayers,   setShowLayers]   = useState(true);
-  const [pixelInfo,    setPixelInfo]    = useState<{lat:number;lon:number;ndvi:number}|null>(null);
+  const [pixelInfo,    setPixelInfo]    = useState<{lat:number;lon:number;ndvi:number;real:boolean}|null>(null);
 
   const field = FIELDS.find(f => f.id === fieldId) || FIELDS[0];
   const idx   = INDICES.find(i => i.id === activeIndex) || INDICES[0];
@@ -55,19 +58,44 @@ export default function SatellitePage() {
   const { data: ndviNow, isLoading: ndviLoading } = useCurrentNDVI(fieldId);
   const { mutateAsync: analyze, isPending: analyzing } = useAnalyzeVegetation();
 
+  // شبكة المؤشر الحقيقيّة لكل بكسل (Sentinel-2 / Element84) — للقراءة عند النقر
+  const gridIndex = GRID_INDEX_MAP[activeIndex] ?? 'ndvi';
+  const { data: gridResp } = useIndicatorGrid(fieldId, gridIndex, 'latest');
+  const hasGrid = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
+
   const ts: any[] = tsData?.timeseries || (tsData as { data?: any[] } | undefined)?.data || [];
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length-1]?.ndvi ?? null;
   const thumbs = ts.filter((_,i) => i % Math.max(1,Math.floor(ts.length/8)) === 0).slice(0,8);
 
   const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top)  / rect.height;
+    const x = (e.clientX - rect.left) / rect.width;   // 0=يسار, 1=يمين
+    const y = (e.clientY - rect.top)  / rect.height;  // 0=أعلى, 1=أسفل
+
+    // قراءة قيمة البكسل الحقيقيّة من الشبكة: تطبيع موضع النقر داخل bbox → grid[r][c]
+    if (hasGrid && gridResp) {
+      const [minLon, minLat, maxLon, maxLat] = gridResp.bbox;
+      const lon = minLon + x * (maxLon - minLon);
+      const lat = maxLat - y * (maxLat - minLat); // الصف 0 = أعلى الحقل (أقصى خط عرض)
+      const c = Math.min(gridResp.cols - 1, Math.max(0, Math.floor(x * gridResp.cols)));
+      const r = Math.min(gridResp.rows - 1, Math.max(0, Math.floor(y * gridResp.rows)));
+      const cell = gridResp.grid[r]?.[c];
+      if (cell != null) {
+        setPixelInfo({ lat, lon, ndvi: cell, real: true });
+        return;
+      }
+      // خلية خارج الحقل / لا بيانات → أبلغ بصدق بدل تلفيق قيمة
+      setPixelInfo({ lat, lon, ndvi: NaN, real: true });
+      return;
+    }
+
+    // سقوط آمن: تقدير توضيحي عند غياب الشبكة الحقيقيّة (موسوم بوضوح في الواجهة)
     const mockNdvi = 0.35 + Math.sin(x*5+y*3)*0.25 + Math.cos(x*3+y*5)*0.15;
     setPixelInfo({
       lat: field.lat + (0.5-y)*0.1,
       lon: field.lon + (x-0.5)*0.1,
       ndvi: Math.max(-1, Math.min(1, mockNdvi)),
+      real: false,
     });
   };
 
@@ -124,24 +152,36 @@ export default function SatellitePage() {
               {idx.icon} {idx.name}
             </div>
             {/* Pixel info */}
-            {pixelInfo && (
-              <div className="absolute top-3 left-3 z-10 rounded-xl p-3 text-xs"
-                style={{ background:'#0f1117dd', border:'1px solid #334155', backdropFilter:'blur(8px)' }}>
-                <div className="text-slate-400 mb-1 flex items-center gap-1"><Info className="w-3 h-3" /> قيمة تقديرية للعرض</div>
-                {[['NDVI (تقديري)',(pixelInfo.ndvi).toFixed(2),ndviColor(pixelInfo.ndvi)],
-                  ['الحالة',ndviLabel(pixelInfo.ndvi),ndviColor(pixelInfo.ndvi)],
-                  ['lat',pixelInfo.lat.toFixed(5),'#94a3b8'],
-                  ['lon',pixelInfo.lon.toFixed(5),'#94a3b8']].map(([k,v,c],i)=>(
-                  <div key={i} className="flex justify-between gap-6">
-                    <span className="text-slate-500">{k}</span>
-                    <span className="font-bold" style={{ color:c as string }}>{v}</span>
+            {pixelInfo && (() => {
+              const noData = Number.isNaN(pixelInfo.ndvi);
+              const valLabel = pixelInfo.real
+                ? `${gridIndex.toUpperCase()} (حقيقي)`
+                : 'NDVI (تقديري)';
+              const valColor = noData ? '#94a3b8' : ndviColor(pixelInfo.ndvi);
+              return (
+                <div className="absolute top-3 left-3 z-10 rounded-xl p-3 text-xs"
+                  style={{ background:'#0f1117dd', border:'1px solid #334155', backdropFilter:'blur(8px)' }}>
+                  <div className="mb-1 flex items-center gap-1"
+                    style={{ color: pixelInfo.real ? '#4ade80' : '#94a3b8' }}>
+                    <Info className="w-3 h-3" /> {pixelInfo.real ? 'قيمة حقيقية · Sentinel-2 (Element84)' : 'قيمة تقديرية للعرض'}
                   </div>
-                ))}
-              </div>
-            )}
+                  {[[valLabel, noData ? 'لا بيانات' : pixelInfo.ndvi.toFixed(2), valColor],
+                    ['الحالة', noData ? 'خارج الحقل' : ndviLabel(pixelInfo.ndvi), valColor],
+                    ['lat', pixelInfo.lat.toFixed(5), '#94a3b8'],
+                    ['lon', pixelInfo.lon.toFixed(5), '#94a3b8']].map(([k,v,c],i)=>(
+                    <div key={i} className="flex justify-between gap-6">
+                      <span className="text-slate-500">{k}</span>
+                      <span className="font-bold" style={{ color:c as string }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
             {!pixelInfo && (
               <div className="absolute bottom-3 left-3 z-10 px-2 py-1 rounded text-[10px] text-slate-400"
-                style={{ background:'#0f1117cc' }}>انقر لعرض قيمة تقديرية (للعرض فقط)</div>
+                style={{ background:'#0f1117cc' }}>
+                {hasGrid ? 'انقر لقراءة قيمة البكسل الحقيقيّة' : 'انقر لعرض قيمة تقديرية (للعرض فقط)'}
+              </div>
             )}
             {/* Attribution */}
             <div className="absolute bottom-2 right-2 text-[10px] text-slate-600">Sentinel-2 © Copernicus</div>
@@ -170,7 +210,7 @@ export default function SatellitePage() {
                   const v = t.ndvi||0; const c = ndviColor(v);
                   return (
                     <div key={i} className="flex-shrink-0 w-18 cursor-pointer" style={{width:72}}
-                      onClick={()=>setPixelInfo({lat:field.lat,lon:field.lon,ndvi:v})}>
+                      onClick={()=>setPixelInfo({lat:field.lat,lon:field.lon,ndvi:v,real:false})}>
                       <div className="h-10 rounded-lg mb-1 border" style={{
                         borderColor:'#334155',
                         background:`linear-gradient(135deg,${c}44,${c}88,${c}44)`

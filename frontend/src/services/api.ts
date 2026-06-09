@@ -23,6 +23,7 @@ const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL         || 'http://local
 const SOIL_URL       = import.meta.env.VITE_SOIL_URL            || 'http://localhost:8094';
 const INDICATORS_URL = import.meta.env.VITE_INDICATORS_URL      || 'http://localhost:8091';
 const VEGETATION_URL = import.meta.env.VITE_VEGETATION_URL      || 'http://localhost:8090';
+const RASTER_URL     = import.meta.env.VITE_RASTER_URL          || 'http://localhost:8099';
 const AUTH_URL       = import.meta.env.VITE_AUTH_URL            || 'http://localhost:8120';
 const MOCK_MODE      = import.meta.env.VITE_MOCK_MODE === 'true' || false;
 
@@ -56,6 +57,7 @@ export const weatherApi    = makeClient(WEATHER_URL);
 export const soilApi       = makeClient(SOIL_URL);
 export const indicatorsApi = makeClient(INDICATORS_URL);
 export const vegetationApi = makeClient(VEGETATION_URL);
+export const rasterApi     = makeClient(RASTER_URL);
 export const authApi       = makeClient(AUTH_URL);
 
 // ── Helper: real data, with mock ONLY in explicit MOCK_MODE ───────

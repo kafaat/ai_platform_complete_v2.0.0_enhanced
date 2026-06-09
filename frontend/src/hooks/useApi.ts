@@ -5,7 +5,7 @@ import {
 } from '@tanstack/react-query';
 import {
   kongApi, indicatorsApi, vegetationApi,
-  weatherApi, soilApi, authApi,
+  weatherApi, soilApi, authApi, rasterApi,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -24,6 +24,7 @@ export const QK = {
   fields:           (tid: string)        => ['fields', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   alerts:           (tid: string)        => ['alerts', tid],
+  indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
   health:                                   ['health', 'all'],
 } as const;
 
@@ -60,6 +61,30 @@ export interface GuardrailsResult {
   requires_human_approval: boolean;
   arabic_explanation: string;
   diff?: Record<string, unknown>;
+}
+
+// ── Indicator Grid (raster-service per-pixel grid) ──────────────
+export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity';
+
+export interface IndicatorGridZone {
+  id: string;
+  severity: 'low' | 'medium' | 'high';
+  mean: number;
+  cells: [number, number][];
+}
+
+export interface IndicatorGridResponse {
+  field_id: string;
+  index: string;
+  date: string;
+  bbox: [number, number, number, number]; // [minlon, minlat, maxlon, maxlat]
+  rows: number;
+  cols: number;
+  grid: (number | null)[][]; // rows x cols; null = nodata/outside field
+  stats: { min: number; max: number; mean: number };
+  zones: IndicatorGridZone[];
+  source: string;
+  real_data: boolean;
 }
 
 // ── Service Health ─────────────────────────────────────────────
@@ -145,6 +170,24 @@ export function useIndicators(fieldId: string) {
     queryFn:  () => indicatorsApi.get(`/v1/indicators/${fieldId}`).then(r => r.data),
     staleTime:5 * 60_000,
     enabled:  !!fieldId,
+  });
+}
+
+// Real per-pixel indicator grid from raster-service (Sentinel-2 / Element84).
+export function useIndicatorGrid(
+  fieldId: string,
+  index: GridIndex,
+  date: string = 'latest',
+  grid = 32,
+) {
+  return useQuery<IndicatorGridResponse>({
+    queryKey: QK.indicatorGrid(fieldId, index, date),
+    queryFn:  () => rasterApi
+      .get(`/v1/fields/${fieldId}/indicator-grid`, { params: { index, date, grid } })
+      .then(r => r.data),
+    staleTime: 10 * 60_000,
+    enabled:   !!fieldId,
+    retry:     false,
   });
 }
 
