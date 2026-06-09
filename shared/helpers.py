@@ -58,10 +58,26 @@ async def init_db(dsn: str | None = None, min_size: int = 2, max_size: int = 10)
     # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم؛ تمريره في
     # server_settings يجعل asyncpg ينفّذ SET statement_cache_size فيفشل الاتصال
     # بـ"unrecognized configuration parameter" ضد أي Postgres. (=0 لتوافق pgbouncer.)
-    _db_pool = await asyncpg.create_pool(
-        url, min_size=min_size, max_size=max_size, command_timeout=30, statement_cache_size=0
-    )
-    return _db_pool
+    # FIX (تسابق الإقلاع المتزامن): حزام أمان فوق depends_on:service_healthy —
+    # عند تشغيل كل الحاويات معاً قد تتأخّر Postgres لحظةً؛ أعد المحاولة بتراجع
+    # أسّي بدل تعطّل الخدمة فوراً. (URL خطأ/مرفوض دائماً ⇒ يرمي بعد المحاولات.)
+    last_err: Exception | None = None
+    for attempt in range(6):
+        try:
+            _db_pool = await asyncpg.create_pool(
+                url, min_size=min_size, max_size=max_size,
+                command_timeout=30, statement_cache_size=0,
+            )
+            return _db_pool
+        except (OSError, asyncpg.PostgresError) as e:
+            last_err = e
+            delay = min(2**attempt, 20)
+            logging.warning(
+                "init_db: Postgres غير جاهز (محاولة %d/6): %s — إعادة بعد %ds",
+                attempt + 1, e, delay,
+            )
+            await asyncio.sleep(delay)
+    raise RuntimeError(f"init_db: تعذّر الاتصال بـPostgres بعد 6 محاولات: {last_err}")
 
 
 async def get_pool() -> asyncpg.Pool:

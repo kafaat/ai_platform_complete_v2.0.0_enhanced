@@ -100,8 +100,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U sahool_user -d sahool"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 40s
 
   # ═══════════════════════════════════════════════════════════════
   # 3. Redis (FIX: بدون كلمة سر → requirepass)
@@ -133,11 +133,11 @@ services:
     healthcheck:
       # FIX: redis runs with --requirepass, so an unauthenticated PING returns
       # NOAUTH and the check fails. Authenticate with -a before PING.
-      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
       interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   # ═══════════════════════════════════════════════════════════════
   # 4. NATS JetStream (FIX: بدون persistence → JetStream store)
@@ -161,10 +161,10 @@ services:
       # port 8222 (enabled via --http_port 8222), not the 4222 client port.
       # Use -qO- instead of --spider (BusyBox --spider is unreliable).
       test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
-      interval: 15s
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 8
+      start_period: 25s
 
   # ═══════════════════════════════════════════════════════════════
   # 5. MinIO (FIX: كلمة سر جذرية مكشوفة → env var)
