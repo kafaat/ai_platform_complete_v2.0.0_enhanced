@@ -9,3 +9,8 @@ python-multipart>=0.0.9
 
 opentelemetry-instrumentation-fastapi>=0.44b0
 opentelemetry-instrumentation-asyncpg>=0.44b0
+
+# FIX (إقلاع الحاوية): shared/helpers.py يستورد هذين على المستوى الأعلى؛
+# غيابهما ⇒ ModuleNotFoundError وتعطّل sentinel-hub/weather/wofost/market-mcp.
+prometheus-client>=0.20.0
+asyncpg>=0.30.0,<0.32.0

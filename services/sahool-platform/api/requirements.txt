@@ -10,3 +10,9 @@ python-multipart==0.0.9   # for form data
 
 # Open-Meteo integration
 httpx==0.27.0
+
+# FIX (إقلاع الحاوية): api/main.py يستورد trial_engine→numpy؛ وzones_kmeans/
+# core.spatial يستوردان numpy/scipy. غيابها ⇒ ModuleNotFoundError وتعطّل المنصّة.
+numpy>=1.24.0
+scipy>=1.10.0
+PyYAML>=6.0  # FIX: core/crop_cards/loader.py + core/learning/calibration_loop.py يستوردان yaml
