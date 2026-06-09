@@ -1561,7 +1561,9 @@ def generate_share_key(
         try:
             tp_type = ThirdPartyType(req.third_party_type)
         except ValueError:
-            raise HTTPException(status_code=422, detail=f"نوع طرف غير صالح: {req.third_party_type}") from None
+            raise HTTPException(
+                status_code=422, detail=f"نوع طرف غير صالح: {req.third_party_type}"
+            ) from None
 
     plaintext = generate_key_plaintext()
     now = datetime.now(UTC)

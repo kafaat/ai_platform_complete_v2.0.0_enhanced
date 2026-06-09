@@ -37,6 +37,10 @@ select = [
 ignore = [
     "E501",  # طول السطر (نتركه لـformat)
     "B008",  # استدعاء دالّة في قيمة افتراضيّة (شائع وآمن في FastAPI: Depends/Query)
+    # UP042: تحويل `class X(str, Enum)` إلى `StrEnum`. مقصود تركه: المزج مع str
+    # ضروري لتسلسل القيم (JSON/Pydantic/DB)، وStrEnum يغيّر دلالة str(member)
+    # و__format__ (من "X.MEMBER" إلى القيمة) ⇒ قد يكسر تسلسلاً قائماً بصمت.
+    "UP042",
 ]
 
 [lint.per-file-ignores]
