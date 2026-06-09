@@ -2,9 +2,9 @@
 # ============================
 # Minimal pinned deps. PyJWT for HS256 (dev). pydantic for type validation.
 
-fastapi==0.115.0
+fastapi==0.136.3
 uvicorn[standard]==0.30.6
-pydantic==2.8.2
+pydantic==2.13.4
 PyJWT==2.8.0
 python-multipart==0.0.9   # for form data
 

@@ -28,6 +28,7 @@ import logging
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from typing import Optional  # OpenAPI FIX: مُستخدَم في التعليقات (Optional[...]) لكن لم يكن مُستورَداً؛ مع __future__ annotations لا يظهر الخطأ وقت التشغيل لكنّه يكسر توليد مخطّط OpenAPI
 from pathlib import Path
 
 # جعل النواة قابلة للاستيراد
@@ -3225,3 +3226,23 @@ def field_intelligence_analyze(
         "governance": result.governance,
         "_persistable_event": event_row,  # جاهز للإدراج في events table
     }
+
+
+# ── OpenAPI FIX: إعادة بناء نماذج pydantic ذات التعليقات المؤجّلة ──────────
+# مع `from __future__ import annotations` تصبح كل التعليقات نصوصاً مؤجّلة، فبعض
+# النماذج (forward refs) تحتاج model_rebuild() وإلّا يفشل توليد مخطّط OpenAPI
+# بـ500 (مثل OnboardingSubmitRequest) ويتعطّل /openapi.json وexport_openapi.py.
+# نُعيد بناء كل نماذج هذه الوحدة بأمان بعد تعريفها جميعاً.
+def _rebuild_pydantic_models() -> None:
+    import sys as _sys
+    _mod = _sys.modules[__name__]
+    for _name in dir(_mod):
+        _obj = getattr(_mod, _name, None)
+        try:
+            if isinstance(_obj, type) and issubclass(_obj, BaseModel) and _obj is not BaseModel:
+                _obj.model_rebuild()
+        except Exception:  # noqa: BLE001 — إعادة البناء أفضل-جهد، لا تُفشل الإقلاع
+            pass
+
+
+_rebuild_pydantic_models()

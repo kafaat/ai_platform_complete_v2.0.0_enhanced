@@ -19,6 +19,10 @@ with TestClient(app, raise_server_exceptions=False) as c:
     r = c.get("/healthz"); ck("GET /healthz = 200", r.status_code == 200, f"{r.status_code}")
     ck("healthz body is dict", isinstance(r.json(), dict))
     r = c.get("/readyz"); ck("GET /readyz = 200 (DB pool ready)", r.status_code == 200, f"{r.status_code}")
+    r = c.get("/openapi.json")
+    ck("GET /openapi.json = 200 [OpenAPI fix: model_rebuild]", r.status_code == 200, f"{r.status_code}")
+    if r.status_code == 200:
+        ck("OpenAPI exposes routes (>50)", len(r.json().get("paths", {})) > 50, str(len(r.json().get("paths", {}))))
 
     print("\n── E2E: auth (dev) → token → protected ──")
     r = c.post("/api/v1/auth/login", json={"user_id":"u-e2e","tenant_id":"11111111-1111-1111-1111-111111111111","role":"owner","name_ar":"مختبِر"})
