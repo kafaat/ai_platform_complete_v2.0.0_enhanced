@@ -1305,6 +1305,69 @@ async def process_raster(
     }
 
 
+class ProcessFromStacRequest(BaseModel):
+    """مدخل المعالجة من مشهد STAC متعدّد الملفّات (COG لكلّ نطاق)."""
+
+    tenant_id: str | None = None
+    indicator: IndicatorKind = IndicatorKind.ndvi
+    band_hrefs: dict[str, str]  # {"red": url, "nir": url, "scl": url, ...}
+    scene_id: str | None = None
+    capture_datetime: str | None = None
+    apply_cloud_mask: bool = True
+    clip_polygon_geojson: dict | None = None
+    source_format: SourceFormat = SourceFormat.sentinel2_l2a
+
+
+@app.post("/v1/fields/{field_id}/process-from-stac")
+async def process_from_stac(
+    field_id: str,
+    req: ProcessFromStacRequest,
+    background_tasks: BackgroundTasks,
+    x_agent_token: str = Header(None),
+):
+    """يجسر الاستيراد→المعالجة: يكدّس COGs المنفصلة لنطاقات STAC في VRT
+    (عبر /vsicurl/ للبعيد) ثم يشغّل نفس مسار /process (قصّ→مؤشّر→COG→persist).
+
+    مناسب للمزوّد بلا مفتاح (Element84): استدعِ /imagery/best لجلب band hrefs،
+    ثمّ مرّرها هنا. خلفيّة — يُرجِع job_id.
+    """
+    _require_service_token(x_agent_token)
+    import stac_vrt
+
+    try:
+        vrt_path, index_map = stac_vrt.build_band_vrt(req.band_hrefs)
+    except Exception as e:  # noqa: BLE001 — مدخل غير صالح/نطاق غير مقروء
+        raise HTTPException(400, f"تعذّر بناء VRT من نطاقات STAC: {e}") from e
+
+    band_kwargs = {k: v for k, v in index_map.items() if k in BandMapping.model_fields}
+    preq = ProcessRequest(
+        raster_url=vrt_path,
+        indicator=req.indicator,
+        bands=BandMapping(**band_kwargs),
+        field_id=field_id,
+        tenant_id=req.tenant_id,
+        source_format=req.source_format,
+        scene_id=req.scene_id,
+        capture_datetime=req.capture_datetime,
+        apply_cloud_mask=req.apply_cloud_mask,
+        clip_polygon_geojson=req.clip_polygon_geojson,
+    )
+    job_id = f"stac_{uuid.uuid4().hex[:12]}"
+    _jobs[job_id] = {
+        "job_id": job_id,
+        "status": JobStatus.pending,
+        "progress_pct": 0,
+        "created_at": datetime.now(UTC).isoformat(),
+    }
+    background_tasks.add_task(_run_processing, job_id, preq)
+    return {
+        "job_id": job_id,
+        "status": JobStatus.pending,
+        "bands": index_map,
+        "raster_url": vrt_path,
+    }
+
+
 @app.post("/process/batch")
 async def process_batch(
     req: BatchProcessRequest, background_tasks: BackgroundTasks, x_agent_token: str = Header(None)
@@ -1640,9 +1703,7 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
             return None
         # لـfile:// نفحص القرص؛ لـs3:// نؤجّل الوجود إلى rasterio (لا نرفضه هنا).
         if not object_store.exists_locally(asset["cog_url"]):
-            logger.warning(
-                "raster_assets hit but COG missing on host: %s", asset["cog_url"]
-            )
+            logger.warning("raster_assets hit but COG missing on host: %s", asset["cog_url"])
             return None
         lid = f"db_{field_id}_{internal}"
         _layers[lid] = {
