@@ -196,6 +196,8 @@ class SearchRequest(BaseModel):
 # ─── حالة في الذاكرة (للإنتاج: Redis/DB) ──────────────────────────
 _jobs: dict[str, dict] = {}
 _layers: dict[str, dict] = {}
+# فهرس حقل→قائمة معرّفات الطبقات (لإيجاد أحدث COG لحقل في شبكة المؤشّر)
+_field_layers: dict[str, list[str]] = {}
 
 
 # ─── بحث الصور عبر Element84 STAC ─────────────────────────────────
@@ -852,6 +854,68 @@ _INDICATOR_FORMULAS = {
 }
 
 
+def _persist_raster_asset(
+    req: "ProcessRequest", cog_url: str, meta: dict, bounds: list, stats: dict
+) -> None:
+    """يُدرج صفّاً في raster_assets (best-effort). يُغلّف كلّ خطأ.
+
+    _run_processing يعمل في threadpool (مهمّة خلفيّة متزامنة) فلا حلقة
+    أحداث في خيطه؛ لذا asyncio.run آمن هنا. غياب القاعدة (لا DATABASE_URL/
+    لا جدول/لا شبكة) يُبتلع بصدق ولا يُفشل المعالجة.
+    """
+    try:
+        import asyncio
+
+        import db_persist
+
+        # footprint كـbbox polygon بـ4326 (الحدود معاد إسقاطها)
+        minlon, minlat, maxlon, maxlat = bounds[0], bounds[1], bounds[2], bounds[3]
+        footprint = {
+            "type": "Polygon",
+            "coordinates": [
+                [
+                    [minlon, minlat],
+                    [maxlon, minlat],
+                    [maxlon, maxlat],
+                    [minlon, maxlat],
+                    [minlon, minlat],
+                ]
+            ],
+        }
+
+        async def _do():
+            return await db_persist.insert_raster_asset(
+                field_id=req.field_id,
+                tenant_id=req.tenant_id,
+                scene_id=req.scene_id,
+                acquisition_date=req.capture_datetime,
+                satellite=req.source_format.value,
+                index_name=req.indicator.value,
+                cloud_pct=stats.get("cloud_pct"),
+                srid=meta.get("srid"),
+                cog_uri=cog_url,
+                bands=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
+                nodata=meta.get("nodata"),
+                footprint=footprint,
+                provenance={"stats": {k: stats.get(k) for k in ("min", "max", "mean", "std")}},
+            )
+
+        try:
+            asyncio.run(_do())
+        except RuntimeError:
+            # حلقة أحداث قائمة بالفعل (نادر هنا) — شغّلها في خيط مستقلّ
+            import threading
+
+            def _runner():
+                asyncio.run(_do())
+
+            t = threading.Thread(target=_runner, daemon=True)
+            t.start()
+            t.join(timeout=10)
+    except Exception as _dbe:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
+        logger.warning("raster_assets persist skipped: %s", _dbe)
+
+
 def _run_processing(job_id: str, req: ProcessRequest):
     """ينفّذ معالجة المؤشّر. البنية كاملة؛ حساب البكسلات الفعلي يتمّ عند
     توفّر rasterio في بيئة التشغيل (يُحقن هنا)."""
@@ -876,9 +940,10 @@ def _run_processing(job_id: str, req: ProcessRequest):
             _has_raster_libs = False
 
         layer_id = f"layer_{uuid.uuid4().hex[:12]}"
+        meta: dict = {}
         if _has_raster_libs and req.raster_url:
             # المعالجة الفعليّة (تتمّ في بيئة التشغيل مع rasterio)
-            stats, bounds, res_m = _process_pixels(req, layer_id)
+            stats, bounds, res_m, meta = _process_pixels(req, layer_id)
         else:
             # بنية بلا حساب فعلي (البيئة بلا rasterio) — ترجع هيكلاً صحيحاً
             stats = {
@@ -909,17 +974,32 @@ def _run_processing(job_id: str, req: ProcessRequest):
             band_mapping=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
             clip_polygon=req.clip_polygon_geojson,
         )
+        cog_url = meta.get("cog_url")
         _layers[layer_id] = {
             "layer_id": layer_id,
+            "field_id": req.field_id,
+            "tenant_id": req.tenant_id,
+            "index": req.indicator.value,
             "source_format": req.source_format.value,
             "width": 0,
             "height": 0,
             "band_count": 1,
-            "crs": "EPSG:4326",
+            # CRS الطبقة الفعلي = CRS الـCOG (UTM للـSentinel-2)؛ الحدود معاد
+            # إسقاطها إلى 4326 لعرض الخريطة.
+            "crs": meta.get("cog_crs", "EPSG:4326"),
             "bounds_4326": bounds,
             "resolution_m": res_m,
+            "cog_url": cog_url,  # (٤) كي يجده tilejson + شبكة المؤشّر
+            "acquisition_date": req.capture_datetime,
+            "created_at": now,
             "provenance": provenance,
         }
+        # فهرس حقل→طبقات (للبحث عن أحدث COG لحقل+مؤشّر في شبكة المؤشّر)
+        if req.field_id:
+            _field_layers.setdefault(req.field_id, []).append(layer_id)
+        # (٦) حفظ في raster_assets (best-effort — غياب القاعدة لا يُفشل المعالجة)
+        if cog_url:
+            _persist_raster_asset(req, cog_url, meta, bounds, stats)
         job["result"] = {
             "job_id": job_id,
             "layer_id": layer_id,
@@ -1002,13 +1082,76 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
 
     formula = _INDICATOR_FORMULAS[req.indicator.value]
     with rasterio.open(req.raster_url.replace("file://", "")) as src:
-        bounds = list(src.bounds)  # (left, bottom, right, top)
         res_m = abs(src.res[0])
         b = req.bands
 
-        # اقرأ النطاقات المطلوبة حسب المؤشّر
+        # ── (٣) إعادة إسقاط الحدود إلى WGS84 الحقيقي ──────────────────
+        # المصدر غالباً UTM (Sentinel-2 L2A). نحوّل حدوده الفعليّة من CRS
+        # المصدر إلى EPSG:4326 بدل تمرير إحداثيّات UTM كأنّها درجات.
+        from rasterio.warp import transform_bounds
+
+        src_crs = src.crs
+        if src_crs is not None:
+            bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
+        else:
+            bounds = list(src.bounds)
+
+        # ── (١) قصّ على حدود الحقل (clip-to-field) ────────────────────
+        # عند توفّر مضلّع الحقل (GeoJSON بـEPSG:4326) نعيد إسقاطه إلى CRS
+        # المصدر ونطبّق rasterio.mask.mask(crop=True) فنقرأ بكسلات الحقل
+        # فقط؛ البكسلات خارج المضلّع تصبح nodata (→ NaN لاحقاً).
+        nodata_val = src.nodata if src.nodata is not None else -9999.0
+        clip_geom_src = None
+        _out = {"transform": src.transform}  # حاوية قابلة للتعديل من band()
+        if req.clip_polygon_geojson:
+            from rasterio.warp import transform_geom
+
+            geojson = req.clip_polygon_geojson
+            # اقبل Feature / FeatureCollection / Geometry
+            geom_in = geojson
+            if geojson.get("type") == "Feature":
+                geom_in = geojson["geometry"]
+            elif geojson.get("type") == "FeatureCollection":
+                geom_in = geojson["features"][0]["geometry"]
+            # تحقّق من صلاحيّة المضلّع عبر shapely (يرمي عند فساده)
+            from shapely.geometry import shape as _shape
+
+            _ = _shape(geom_in)  # يتحقّق من البنية الهندسيّة
+            target_crs = src_crs if src_crs is not None else "EPSG:4326"
+            clip_geom_src = transform_geom("EPSG:4326", target_crs, geom_in)
+
+        from rasterio.mask import mask as _rio_mask
+
         def band(idx):
-            return src.read(idx).astype("float32") if idx else None
+            """يقرأ نطاقاً كـfloat32 مع قصّ اختياري على مضلّع الحقل."""
+            if not idx:
+                return None
+            if clip_geom_src is not None:
+                arr_b, t = _rio_mask(
+                    src, [clip_geom_src], crop=True, filled=True,
+                    nodata=nodata_val, indexes=[idx],
+                )
+                _out["transform"] = t
+                a = arr_b[0].astype("float32")
+            else:
+                a = src.read(idx).astype("float32")
+            # حوّل nodata إلى NaN كي لا يلوّث حساب المؤشّر
+            if src.nodata is not None:
+                a = np.where(a == src.nodata, np.nan, a)
+            a = np.where(a == nodata_val, np.nan, a)
+            return a
+
+        def band_raw(idx):
+            """يقرأ نطاقاً (مثل SCL) دون تحويل nodata→NaN، مع نفس القصّ."""
+            if not idx:
+                return None
+            if clip_geom_src is not None:
+                arr_b, _t = _rio_mask(
+                    src, [clip_geom_src], crop=True, filled=True,
+                    nodata=0, indexes=[idx],
+                )
+                return arr_b[0]
+            return src.read(idx)
 
         red = band(b.red)
         nir = band(b.nir)
@@ -1067,6 +1210,17 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
         else:  # fapar تقريب من ndvi
             ndvi = (nir - red) / (nir + red)
             arr = np.clip(1.24 * ndvi - 0.168, 0, 1)
+
+        # ── (٢) قناع الغيوم (SCL) ─────────────────────────────────────
+        # Sentinel-2 L2A: نطاق Scene Classification (SCL). أصناف الغيوم/
+        # الظلال = {3 ظلّ غيمة, 8 غيمة متوسّطة الاحتمال, 9 عالية, 10 سيرس,
+        # 11 ثلج}. نضع المؤشّر NaN عندها كي لا تفسد الإحصاء.
+        if req.apply_cloud_mask and b.scl is not None:
+            scl = band_raw(b.scl)
+            if scl is not None and scl.shape == arr.shape:
+                cloud_classes = np.isin(scl, [3, 8, 9, 10, 11])
+                arr = np.where(cloud_classes, np.nan, arr)
+
         valid = np.isfinite(arr)
         vals = arr[valid]
         stats = {
@@ -1078,19 +1232,31 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             "nodata_pixels": int((~valid).sum()),
         }
         # احفظ المؤشّر المحسوب كـCOG محسّن (ضغط + بلاطات + أهرامات) — تحسين
-        # التخزين: حجم أصغر + قراءة جزئيّة أسرع (TiTiler/MapLibre).
+        # التخزين: حجم أصغر + قراءة جزئيّة أسرع (TiTiler/MapLibre). نحفظ المؤشّر
+        # المقصوص بـtransform المقصوص (out) وبـCRS المصدر الأصلي (UTM غالباً).
+        cog_url = None
+        cog_crs = str(src_crs or "EPSG:4326")
         try:
             import cog_writer
 
             cog_path = os.path.join(UPLOAD_DIR, f"{req.indicator.value}_{uuid.uuid4().hex[:8]}.tif")
             cog_info = cog_writer.write_cog(
-                arr, cog_path, src.transform, crs=str(src.crs or "EPSG:4326")
+                arr, cog_path, _out["transform"], crs=cog_crs, nodata=float("nan")
             )
             stats["cog"] = cog_info
+            if cog_info.get("written"):
+                # (٤) خزّن مسار COG كـURI كي يجده tilejson + شبكة المؤشّر
+                cog_url = f"file://{cog_path}"
         except Exception as _e:  # noqa: BLE001 — حفظ COG اختياري لا يُفشل الحساب
             stats["cog"] = {"written": False, "reason": str(_e)}
         _ = formula  # موثّق أعلاه
-        return stats, bounds, res_m
+        meta = {
+            "cog_url": cog_url,
+            "cog_crs": cog_crs,
+            "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+            "nodata": float("nan"),
+        }
+        return stats, bounds, res_m, meta
 
 
 @app.post("/process")
@@ -1359,6 +1525,114 @@ async def layer_tilejson(
         "note": "بلاطات ثابتة مُولَّدة مسبقاً (TiTiler غير مضبوط). للديناميكي: "
         "اضبط TITILER_URL ووفّر cog_url للطبقة.",
     }
+
+
+# ─── (٥) شبكة المؤشّر لكلّ بكسل (per-pixel grid) للموبايل ──────────────
+# اسم مؤشّر الملوحة في الواجهة "salinity"؛ داخليّاً يُحسب كـNDSI.
+_GRID_INDEX_ALIASES = {"salinity": "ndsi"}
+
+
+def _find_field_layer(field_id: str, index: str, date: str) -> dict | None:
+    """يجد أحدث طبقة (لها COG) لحقل+مؤشّر، اختياريّاً بتاريخ محدّد.
+
+    date="latest" → أحدث طبقة؛ "YYYY-MM-DD" → مطابقة acquisition_date.
+    يُرجِع سجلّ الطبقة أو None (لا COG حقيقي متاح).
+    """
+    layer_ids = _field_layers.get(field_id, [])
+    internal = _GRID_INDEX_ALIASES.get(index, index)
+    cands = []
+    for lid in layer_ids:
+        lyr = _layers.get(lid)
+        if not lyr or not lyr.get("cog_url"):
+            continue
+        if lyr.get("index") != internal:
+            continue
+        cands.append(lyr)
+    if not cands:
+        return None
+    if date and date != "latest":
+        dated = [c for c in cands if (c.get("acquisition_date") or "").startswith(date)]
+        if dated:
+            cands = dated
+    # أحدث حسب created_at
+    cands.sort(key=lambda c: c.get("created_at") or "", reverse=True)
+    return cands[0]
+
+
+def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None:
+    """يقرأ COG الطبقة، يصغّره grid×grid (block-mean متجاهلاً NaN)، يصنّف
+    المناطق، ويبني عقد الشبكة الحقيقي (real_data=True). يُرجِع None عند
+    تعذّر القراءة (لا rasterio / ملفّ مفقود / لا شبكة)."""
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.warp import transform_bounds
+
+        import indicator_grid as ig
+    except Exception:  # noqa: BLE001 — rasterio غير متوفّر → fallback محاكاة
+        return None
+
+    cog_url = layer["cog_url"]
+    path = cog_url.replace("file://", "")
+    try:
+        with rasterio.open(path) as src:
+            arr = src.read(1).astype("float64")
+            if src.nodata is not None:
+                arr = np.where(arr == src.nodata, np.nan, arr)
+            # bbox بـ4326 من حدود الـCOG الأصليّة (UTM غالباً)
+            if src.crs is not None:
+                bb = list(transform_bounds(src.crs, "EPSG:4326", *src.bounds))
+            else:
+                bb = list(src.bounds)
+    except Exception:  # noqa: BLE001 — قراءة فشلت (مثلاً شبكة /vsicurl محجوبة)
+        return None
+
+    part = ig.grid_from_array(arr, index, grid)
+    return {
+        "field_id": layer.get("field_id") or "",
+        "index": index,
+        "date": (layer.get("acquisition_date") or date),
+        "bbox": [round(float(x), 6) for x in bb],
+        "rows": part["rows"],
+        "cols": part["cols"],
+        "grid": part["grid"],
+        "stats": part["stats"],
+        "zones": part["zones"],
+        "source": layer.get("source_format") or "raster",
+        "real_data": True,
+    }
+
+
+@app.get("/v1/fields/{field_id}/indicator-grid")
+async def field_indicator_grid(
+    field_id: str,
+    index: str = Query("ndvi"),
+    date: str = Query("latest"),
+    grid: int = Query(32, ge=2, le=256),
+):
+    """شبكة المؤشّر لكلّ بكسل (per-pixel) لخريطة الموبايل.
+
+    إن وُجد COG مقصوص للحقل (من /process مع clip_polygon) → يُقرأ ويُصغّر
+    إلى grid×grid مع تصنيف مناطق الشدّة (real_data=True). وإلّا → شبكة محاكاة
+    مُعلَّمة بصدق (real_data=False, source="simulation") — نفس شكل العقد دائماً.
+    """
+    import indicator_grid as ig
+
+    # تطبيع اسم المؤشّر المعروض (salinity مقبول للواجهة)
+    out_index = index
+
+    layer = _find_field_layer(field_id, index, date)
+    if layer is not None:
+        real = _grid_from_cog(layer, out_index, date, grid)
+        if real is not None:
+            return real
+
+    # fallback: شبكة محاكاة (لا COG حقيقي / لا rasterio / لا شبكة) — مُعلَّمة بصدق
+    # bbox افتراضي حول اليمن (الجوف) إن لم تتوفّر حدود حقيقيّة.
+    bbox = [44.0, 16.0, 44.01, 16.01]
+    if layer is not None and layer.get("bounds_4326"):
+        bbox = [round(float(x), 6) for x in layer["bounds_4326"]]
+    return ig.synthetic_grid(field_id, out_index, date, bbox, grid)
 
 
 # ─── معايرة الملوحة (البند ٢) ────────────────────────────────────
