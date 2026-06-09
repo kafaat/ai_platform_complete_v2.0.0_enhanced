@@ -1,0 +1,95 @@
+# ════════════════════════════════════════════════════════════════
+# SAHOOL — مصفوفة المراصد (Observation Matrix)
+# 62 مرصداً فعلياً (59 منطقي + R8 مقسوم درون/Landsat) | 10 مجموعات | المرحلة صفر: Raw Ingestion
+# المصدر الوحيد للحقيقة لتعريفات المراصد. مشتقات (LR/GR/WP/FVI) ليست هنا.
+# الحقول: id | group | name_ar | source | unit | error | ground_truth
+#         | type (governing/modifying/diagnostic/calibration) | tier | criticality (A/B/C)
+# ════════════════════════════════════════════════════════════════
+version: "1.0"
+total_observables: 62  # 59 logical + R8 split (a/b) + reconciliation
+groups: 10
+
+observables:
+  # ── ١. المناخ (Climate) ──────────────────────────────────
+  - { id: C1, group: climate, name_ar: حرارة الهواء (عظمى/صغرى), source: محطة/حساس, unit: "°C", error: 0.5, ground_truth: محطة معايرة, type: modifying, tier: 1, criticality: A }
+  - { id: C2, group: climate, name_ar: الرطوبة النسبية, source: حساس سعوي, unit: "%", error: 0.03, ground_truth: معايرة موسمية, type: diagnostic, tier: 1, criticality: B }
+  - { id: C3, group: climate, name_ar: سرعة الرياح, source: أنيمومتر, unit: m/s, error: 0.5, ground_truth: نفق رياح, type: modifying, tier: 2, criticality: B }
+  - { id: C4, group: climate, name_ar: الإشعاع الشمسي, source: بيرانوميتر, unit: MJ/m2, error: 0.05, ground_truth: معيار WMO, type: modifying, tier: 2, criticality: B }
+  - { id: C5, group: climate, name_ar: هطول الأمطار, source: مقياس قلاب, unit: mm, error: 0.05, ground_truth: مقياس يدوي, type: modifying, tier: 1, criticality: A }
+  - { id: C6, group: climate, name_ar: غطاء السحب, source: Sentinel/محطة, unit: "%", error: 0.05, ground_truth: رصد بصري, type: diagnostic, tier: 1, criticality: C }
+  - { id: C7, group: climate, name_ar: DTR تباين حراري, source: محسوب C1, unit: "°C", error: 0.5, ground_truth: "-", type: diagnostic, tier: 1, criticality: C }
+  - { id: C8, group: climate, name_ar: الرطوبة الورقية, source: حساس مقاومي, unit: "%", error: 0.10, ground_truth: "معايرة متكررة (حساس غير مستقر)", type: diagnostic, tier: 2, criticality: C }
+
+  # ── ٢. التربة (Soil) ─────────────────────────────────────
+  - { id: S1, group: soil, name_ar: رطوبة التربة الحجمية, source: TDR/سعوي, unit: "%VWC", error: 0.03, ground_truth: تجفيف فرن, type: modifying, tier: 2, criticality: B }
+  - { id: S2, group: soil, name_ar: حرارة التربة, source: ثرمستور, unit: "°C", error: 0.5, ground_truth: مقياس معاير, type: modifying, tier: 2, criticality: C }
+  - { id: S3, group: soil, name_ar: ملوحة التربة EC, source: حساس/مختبر, unit: dS/m, error: 0.10, ground_truth: عجينة مشبعة مخبرية, type: governing, tier: 1, criticality: A }
+  - { id: S4, group: soil, name_ar: pH التربة, source: حساس/مختبر, unit: "-", error: 0.3, ground_truth: مخبري 1:1, type: governing, tier: 1, criticality: A }
+  - { id: S5, group: soil, name_ar: SAR نسبة الصوديوم, source: مختبر, unit: "-", error: 0.05, ground_truth: تحليل أيوني, type: governing, tier: 2, criticality: B }
+  - { id: S6, group: soil, name_ar: NPK, source: حساس ISE/مختبر, unit: kg/ha, error: 0.25, ground_truth: Kjeldahl مخبري, type: modifying, tier: 2, criticality: C }
+  - { id: S7, group: soil, name_ar: المادة العضوية, source: مختبر Walkley-Black, unit: "%", error: 0.20, ground_truth: حرق, type: modifying, tier: 2, criticality: C }
+  - { id: S8, group: soil, name_ar: نسيج التربة, source: مختبر hydrometer, unit: "%", error: 0.03, ground_truth: غربلة, type: governing_trees, tier: 2, criticality: B }
+  - { id: S9, group: soil, name_ar: العمق الفعّال للتربة, source: حفر/مسبار, unit: cm, error: 5.0, ground_truth: حفرة ملف, type: governing_trees, tier: 2, criticality: C }
+  - { id: S10, group: soil, name_ar: نسبة C:N, source: مختبر, unit: ratio, error: 0.10, ground_truth: تحليل C/N, type: modifying, tier: 3, criticality: C }
+
+  # ── ٣. الاستشعار عن بعد (Remote Sensing) ─────────────────
+  - { id: R1, group: remote, name_ar: NDVI, source: S2 B8/B4, unit: index, error: 0.05, ground_truth: مقياس طيفي أرضي, type: diagnostic, tier: 1, criticality: B }
+  - { id: R2, group: remote, name_ar: NDRE, source: S2 B8A/B5, unit: index, error: 0.03, ground_truth: تحليل N ورقي, type: diagnostic, tier: 1, criticality: C }
+  - { id: R3, group: remote, name_ar: NDMI, source: S2 B8/B11, unit: index, error: 0.05, ground_truth: TDR, type: diagnostic, tier: 1, criticality: C }
+  - { id: R4, group: remote, name_ar: SAVI/MSAVI, source: S2 B8/B4/L, unit: index, error: 0.04, ground_truth: LAI أرضي, type: diagnostic, tier: 1, criticality: C }
+  - { id: R5, group: remote, name_ar: SI مؤشر ملوحة, source: S2 Blue/Red/SWIR, unit: index, error: 0.10, ground_truth: EC مخبري, type: diagnostic, tier: 1, criticality: C }
+  - { id: R6, group: remote, name_ar: SAR VV/VH, source: Sentinel-1, unit: dB, error: 0.10, ground_truth: حساس رطوبة, type: diagnostic, tier: 1, criticality: C, note: "يحتاج Terrain Correction إلزامي" }
+  - { id: R7, group: remote, name_ar: RSMI ملوحة رادار, source: Sentinel-1, unit: index, error: 0.15, ground_truth: EC مخبري, type: diagnostic, tier: 2, criticality: C }
+  - { id: R8a, group: remote, name_ar: CWSI درون, source: حراري درون, unit: index, error: 0.12, ground_truth: غرفة ضغط, type: diagnostic, tier: 3, criticality: B, note: "صالح للحقل (دقة عالية)" }
+  - { id: R8b, group: remote, name_ar: CWSI Landsat, source: TIRS 100m, unit: index, error: 0.12, ground_truth: غرفة ضغط, type: diagnostic, tier: 2, criticality: C, note: "مديريةي فقط — لا للحقل الفردي" }
+  - { id: R9, group: remote, name_ar: LST حرارة السطح, source: Landsat/ECOSTRESS, unit: "°C", error: 2.0, ground_truth: حساس أرضي, type: diagnostic, tier: 2, criticality: C }
+  - { id: R10, group: remote, name_ar: ETa تبخر فعلي, source: SEBAL/MODIS, unit: mm, error: 0.22, ground_truth: lysimeter/معايرة أرضية, type: calibration, tier: 2, criticality: C, note: "±20-25% للحقل الصغير (دقة 100م)" }
+
+  # ── ٤. النبات (Plant) ────────────────────────────────────
+  - { id: P1, group: plant, name_ar: مرحلة النمو الفعلية, source: مهندس بصري, unit: days, error: 3.0, ground_truth: GDD محسوب, type: diagnostic, tier: 1, criticality: B }
+  - { id: P2, group: plant, name_ar: الإصابة الحشرية/المرضية, source: مهندس+صور, unit: "%", error: 0.15, ground_truth: تعداد يدوي, type: diagnostic, tier: 1, criticality: C }
+  - { id: P3, group: plant, name_ar: الكلوروفيل SPAD, source: SPAD meter, unit: SPAD, error: 1.5, ground_truth: تحليل مخبري, type: diagnostic, tier: 3, criticality: C }
+  - { id: P4, group: plant, name_ar: LAI مساحة الورق, source: LAI meter, unit: m2/m2, error: 0.10, ground_truth: تدمير عينة, type: calibration, tier: 3, criticality: C }
+  - { id: P5, group: plant, name_ar: ارتفاع/كثافة النبات, source: قياس/درون, unit: "cm,n/m2", error: 0.05, ground_truth: عدّ يدوي, type: calibration, tier: 3, criticality: C }
+
+  # ── ٥. الري والموارد (Irrigation) ────────────────────────
+  - { id: I1, group: irrigation, name_ar: كمية المياه المنصرفة, source: عداد تدفق, unit: m3, error: 0.02, ground_truth: معايرة المصنع, type: modifying, tier: 1, criticality: A }
+  - { id: I2, group: irrigation, name_ar: ضغط شبكة الري, source: حساس ضغط, unit: bar, error: 0.01, ground_truth: معايرة دورية, type: diagnostic, tier: 2, criticality: C }
+  - { id: I3, group: irrigation, name_ar: جودة مياه الري EC, source: مختبر شهري, unit: dS/m, error: 0.02, ground_truth: جهاز معتمد, type: governing, tier: 1, criticality: A }
+  - { id: I4, group: irrigation, name_ar: جودة مياه الري pH, source: مختبر شهري, unit: "-", error: 0.1, ground_truth: جهاز معتمد, type: modifying, tier: 1, criticality: C }
+  - { id: I5, group: irrigation, name_ar: عمق البئر, source: سجل حفر, unit: m, error: 2.0, ground_truth: قياس مباشر, type: modifying, tier: 1, criticality: C }
+  - { id: I6, group: irrigation, name_ar: مصدر الطاقة, source: معاينة, unit: category, error: 0.0, ground_truth: سجل, type: modifying, tier: 1, criticality: C }
+  - { id: I7, group: irrigation, name_ar: منسوب المياه الجوفية, source: مسبار, unit: m, error: 0.5, ground_truth: قياس, type: diagnostic, tier: 2, criticality: C }
+  - { id: I8, group: irrigation, name_ar: حرارة مياه الري, source: حساس, unit: "°C", error: 0.5, ground_truth: مقياس معاير, type: diagnostic, tier: 2, criticality: C, note: "أولوية منخفضة، أثر هامشي" }
+
+  # ── ٦. السياق التشغيلي (Operational) ─────────────────────
+  - { id: O1, group: operational, name_ar: صنف المحصول, source: المزارع, unit: category, error: 0.0, ground_truth: "DNA (للتراثي)", type: governing, tier: 1, criticality: A, note: "خطأ إدخال بشري وارد — ليس حقيقة مطلقة. يُدقّق بتعارض P1" }
+  - { id: O2, group: operational, name_ar: تاريخ الزراعة, source: المزارع, unit: date, error: 5.0, ground_truth: رصد الإنبات, type: modifying, tier: 1, criticality: A, note: "±3-7 أيام (بذر/إنبات؟) يزحزح منحنى Kc" }
+  - { id: O3, group: operational, name_ar: عمليات الخدمة, source: سجل/جرار, unit: "kg,L", error: 0.05, ground_truth: الاستهلاك الفعلي, type: modifying, tier: 1, criticality: C }
+  - { id: O4, group: operational, name_ar: تاريخ التربة, source: سجل+NDVI تاريخي, unit: category, error: 0.0, ground_truth: سجل المزارع, type: diagnostic, tier: 1, criticality: C }
+  - { id: O5, group: operational, name_ar: مساحة المنطقة, source: PostGIS/GPS, unit: ha, error: 0.01, ground_truth: مسح, type: calibration, tier: 1, criticality: C }
+
+  # ── ٧. مصدر الحقيقة الأعلى (Ground Truth) ────────────────
+  - { id: G1, group: ground_truth, name_ar: الإنتاج الفعلي الغلة, source: حصاد موزون, unit: t/ha, error: 0.05, ground_truth: "ذاتي (الأعلى)", type: calibration, tier: 1, criticality: A, note: "يُعاير عليه كل النماذج" }
+  - { id: G2, group: ground_truth, name_ar: الوزن الرطب/الجاف+الرطوبة, source: ميزان, unit: kg, error: 0.01, ground_truth: ذاتي, type: calibration, tier: 1, criticality: B }
+  - { id: G3, group: ground_truth, name_ar: مساحة العينة, source: قياس, unit: m2, error: 0.02, ground_truth: ذاتي, type: calibration, tier: 1, criticality: B }
+
+  # ── ٨. السوق (Market) ────────────────────────────────────
+  - { id: M1, group: market, name_ar: سعر البيع المحلي, source: سوق/واتساب, unit: currency, error: -1, ground_truth: مسح ميداني, type: modifying, tier: 2, criticality: C }
+  - { id: M2, group: market, name_ar: سعر الاستيراد المنافس, source: جمارك/سوق, unit: currency, error: -1, ground_truth: بيانات استيراد, type: modifying, tier: 2, criticality: C }
+  - { id: M3, group: market, name_ar: تقلّب السعر CV, source: محسوب M1, unit: ratio, error: -1, ground_truth: "-", type: diagnostic, tier: 2, criticality: C }
+
+  # ── ٩. الطاقة الشمسية (Solar) ────────────────────────────
+  - { id: E1, group: solar, name_ar: إنتاج الألواح الفعلي, source: عداد inverter, unit: kWh, error: 0.02, ground_truth: معايرة المصنع, type: diagnostic, tier: 2, criticality: B }
+  - { id: E2, group: solar, name_ar: الطاقة المثبّتة, source: لوحة النظام, unit: kW, error: 0.0, ground_truth: سجل التركيب, type: modifying, tier: 1, criticality: B }
+  - { id: E3, group: solar, name_ar: تراكم الغبار derate, source: قياس/بصري, unit: "%", error: 0.05, ground_truth: تنظيف ومقارنة, type: modifying, tier: 2, criticality: C, note: "يُضرب مع E1 لا منفرداً" }
+  - { id: E4, group: solar, name_ar: كفاءة المضخة, source: لوحة/قياس, unit: "%", error: 0.05, ground_truth: اختبار تدفق, type: modifying, tier: 2, criticality: C }
+  - { id: E5, group: solar, name_ar: ساعات التشغيل الفعلية, source: عداد, unit: h/day, error: 0.02, ground_truth: سجل inverter, type: diagnostic, tier: 2, criticality: C }
+
+  # ── ١٠. اللوجستيات (Logistics) ───────────────────────────
+  - { id: L1, group: logistics, name_ar: إمكانية الوصول للحقل, source: إدخال بشري/مطر, unit: category, error: 0.0, ground_truth: معاينة, type: feasibility, tier: 2, criticality: C }
+  - { id: L2, group: logistics, name_ar: توفر الموارد البشرية/الآلية, source: إدخال بشري, unit: count, error: 0.0, ground_truth: جرد, type: feasibility, tier: 2, criticality: C }
+  - { id: L3, group: logistics, name_ar: فترة أمان المبيد PHI, source: نوع المبيد+تاريخ الرش, unit: days, error: 0.0, ground_truth: نشرة المبيد, type: governing_strict, tier: 1, criticality: A, note: "حاكم صارم بلا مرونة — سلامة المستهلك" }
+
+  # ── معرفة المزارع (Farmer Knowledge) ─────────────────────
+  - { id: FK1, group: operational, name_ar: تصحيح المزارع المكاني, source: رسم/وصف المزارع, unit: map, error: -1, ground_truth: "خبرة محلية (Bayesian prior)", type: diagnostic, tier: 1, criticality: C, note: "اختياري — prior لاستيفاء Kriging" }

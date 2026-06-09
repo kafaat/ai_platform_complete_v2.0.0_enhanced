@@ -1,0 +1,20 @@
+# Tenant 001 — مزرعة الجوف المتكاملة (بيانات خاصة بالمستأجر)
+# This is REAL FARM DATA. Lives in tenant layer, NEVER in core.
+tenant_id: "001-aljawf-142ha"
+name_ar: مزرعة الجوف المتكاملة
+district_id: al_jawf          # links to districts/al_jawf/ calibration
+governorate: al_jawf
+country: yemen
+total_area_ha: 142
+energy_source: solar
+irrigation_systems: [center_pivot, sprinkler, flood, drip]
+
+zones:
+  Z1: { name_ar: محوري ١, area_ha: 51, irrigation: center_pivot, crop: wheat, wells: [W1, W2] }
+  Z2: { name_ar: محوري ٢, area_ha: 51, irrigation: center_pivot, crop: wheat, wells: [W3, W4] }
+  Z3: { name_ar: أعلاف,   area_ha: 10, irrigation: sprinkler,    crop: alfalfa, wells: [W5],
+        water_warning: "البرسيم ~1200مم/سنة — استهلاك هائل في منطقة شحّ" }
+  Z4: { name_ar: غمر تجارب, area_ha: 5, irrigation: flood, crop: experimental }
+  Z5: { name_ar: تقطير,   area_ha: 10, irrigation: drip, crop: high_value_tbd, wells: [W6, W7] }
+  Z6: { name_ar: أشجار,   area_ha: 15, irrigation: drip, crop: trees, wells: [W8],
+        tree_species: [citrus, grape, pomegranate, papaya], permanence: perennial }

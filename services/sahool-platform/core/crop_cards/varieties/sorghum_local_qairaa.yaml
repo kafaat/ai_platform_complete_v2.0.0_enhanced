@@ -1,0 +1,32 @@
+# بطاقة صنف — ذرة رفيعة محلّية (نمط Qaira'a الموثّق)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الذرة الرفيعة.
+variety_id: sorghum_local_qairaa
+parent_crop_id: sorghum
+name_ar: ذرة رفيعة محلّية (نمط قيرعة)
+name_en: Local sorghum (Qaira'a type)
+
+passport:
+  origin_type: landrace
+  source_ar: "NGRC اليمن — الذرة الرفيعة أكبر مجموعة (2500+ عيّنة)"
+  upov_code: "SORGH_BIC"          # Sorghum bicolor
+  collection_note_ar: "سلالة محلّية يمنية، موثّقة في دراسات AREA (تحسين بالانتخاب)"
+
+distinctness:
+  morphology_ar: "عرجون متوسط، حبّة محلّية، تأقلم مع الجفاف"
+  maturity_class: medium
+  plant_height_cm: 200
+
+uniformity_note_ar: "سلالة محلّية — تنوّع وراثي داخلي (مصدر مرونة)"
+stability_note_ar: "مستقرّة، متوارثة عبر قرون من الزراعة اليمنية"
+
+variety_traits:
+  drought_tolerance: high          # الذرة الرفيعة متحمّلة، والمحلّية أكثر
+  salt_tolerance_modifier: 0.0     # كعتبة السورغم (6.8)
+  disease_resistance_ar: [تحمّل ذبابة العرجون المحلّية]
+  special_quality_ar: "غذاء وعلف؛ متحمّل للجفاف والحرارة، أساسي للأمن الغذائي"
+  source: "AREA دراسات الانتخاب (صنف قيرعة المحلّي)"
+
+adaptation:
+  altitude_range_m: [200, 2200]
+  agro_ecological_zone_ar: "واسع — من تهامة للمرتفعات"
+  note_ar: "مرونة عالية؛ ركيزة الزراعة المطرية اليمنية"

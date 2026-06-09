@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── SAHOOL v8 Design System ── */
+:root {
+  --sahool-green:     #16a34a;
+  --sahool-green-light: #4ade80;
+  --sahool-green-dark:  #15803d;
+  --sahool-bg:        #0f1117;
+  --sahool-surface:   #1e293b;
+  --sahool-border:    #334155;
+  --sahool-text:      #e2e8f0;
+  --sahool-muted:     #64748b;
+  --sahool-accent:    #38bdf8;
+  --font-ar: 'Cairo', 'Tajawal', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-family: var(--font-ar); }
+
+body {
+  background: var(--sahool-bg);
+  color: var(--sahool-text);
+  font-family: var(--font-ar);
+  direction: rtl;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #0f1117; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ── SAHOOL Card ── */
+.sahool-card {
+  background: var(--sahool-surface);
+  border: 1px solid var(--sahool-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* ── Status colors ── */
+.status-excellent { color: #16a34a; }
+.status-good      { color: #65a30d; }
+.status-fair      { color: #ca8a04; }
+.status-poor      { color: #f97316; }
+.status-critical  { color: #dc2626; }
+
+/* ── Map containers ── */
+.maplibregl-map, .leaflet-container {
+  font-family: var(--font-ar) !important;
+  border-radius: 12px;
+}
+
+/* ── Animations ── */
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+.animate-pulse-green { animation: pulse-green 2s ease-in-out infinite; }
+
+@keyframes slide-in-right {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.animate-slide-in { animation: slide-in-right 0.25s ease-out; }
+
+/* ── Recharts Arabic RTL fix ── */
+.recharts-text { font-family: var(--font-ar) !important; }

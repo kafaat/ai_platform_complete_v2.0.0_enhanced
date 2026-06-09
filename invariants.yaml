@@ -1,0 +1,97 @@
+# ============================================================
+# SAHOOL v9 — Invariant Manifest (مصدر واحد للحقيقة)
+# ------------------------------------------------------------
+# يربط كلّ invariant فعلي في SAHOOL بالمتحقّق الفعلي منه. ليس DSL
+# عامّاً مجرّداً — كلّ قاعدة تشير لاختبار/فحص موجود حقيقةً.
+#
+# المستويات (مكيّفة لبنية SAHOOL الفعليّة: tenant_id / app.current_tenant
+# / raw SQL migrations — لا account_id/alembic/SDK كما في القوالب العامّة):
+#   static  → offline (py_compile, roadmap, chaos logic) — متاح الآن
+#   live    → يحتاج postgres/docker (test_tenant_isolation.sql) — جهازك
+# ============================================================
+system: sahool-v9
+version: "1.0"
+
+layers:
+  - id: L0_SYNTAX
+    name: Syntax Truth
+    type: static
+    verifier: "py_compile (Makefile: verify-syntax)"
+    rules:
+      - id: all_python_compiles
+        desc: "كلّ ملفّات Python تُترجَم بلا خطأ"
+        check: "py_compile على services/ + tests_v9/"
+
+  - id: L1_LOGIC
+    name: Structural + Logic Truth
+    type: static
+    depends_on: L0_SYNTAX
+    verifier: "tests_v9/test_roadmap_phase*.py (376 فحص)"
+    rules:
+      - id: tenant_connection_wired
+        desc: "endpoints الحسّاسة عبر tenant_connection (RLS)"
+        check: "رو, onboarding, edge/sync, lineage تستخدم tenant_connection"
+      - id: soil_indices_present
+        desc: "7 مؤشّرات تربة + classifier"
+        check: "test_soil_indices"
+      - id: sync_idempotency
+        desc: "sync يحمل idempotency_key + occurred_at"
+        check: "test_sync_idempotency + test_chaos (sync_replay_dedup)"
+      - id: temporal_monotonic
+        desc: "lifecycle يرفض regression الوقت (occurred_at + seq)"
+        check: "test_temporal_invariant"
+      - id: raster_provenance
+        desc: "كلّ نتيجة راستر قابلة لإعادة الإنتاج (provenance_hash)"
+        check: "test_raster_provenance"
+      - id: rs256_ready
+        desc: "auth يوقّع RS256، المتحقّقون يدعمون public key"
+        check: "test_rs256_migration"
+
+  - id: L2_FAIL_CLOSED
+    name: Fail-Closed Truth (static)
+    type: static
+    depends_on: L1_LOGIC
+    verifier: "tests_v9/test_chaos_resilience.py"
+    rules:
+      - id: jwt_fail_closed
+        desc: "JWT_SECRET قصير/غائب → الخدمة ترفض البدء (503)"
+        check: "test_fail_closed_on_missing_secret"
+      - id: firmware_hmac_fail_closed
+        desc: "سرّ HMAC فارغ → الجهاز يرفض كلّ الأوامر"
+        check: "test_fail_closed (firmware)"
+      - id: approval_locked
+        desc: "approve/reject بـFOR UPDATE (لا double-approval)"
+        check: "test_concurrent_approval_guard"
+      - id: edge_dedup
+        desc: "edge/sync بـON CONFLICT DO NOTHING"
+        check: "test_edge_sync_handler_dedup"
+
+  - id: L3_DB_LIVE
+    name: Database Enforcement Truth
+    type: live          # يحتاج postgres حيّ (جهازك)
+    depends_on: L2_FAIL_CLOSED
+    verifier: "scripts_v9/test_tenant_isolation.sql (non-superuser)"
+    rules:
+      - id: rls_force_enabled
+        desc: "FORCE ROW LEVEL SECURITY على الجداول الحسّاسة"
+        check: "test_tenant_isolation.sql (positive)"
+      - id: rls_cross_tenant_blocked
+        desc: "مستأجر لا يرى صفوف آخر (IDOR محظور)"
+        check: "test_tenant_isolation.sql (negative)"
+      - id: no_guc_zero_rows
+        desc: "بلا app.current_tenant → صفر صفوف (fail-closed)"
+        check: "test_tenant_isolation.sql (no-GUC)"
+
+  - id: FREEZE
+    name: Correctness Lock
+    type: final
+    depends_on: L3_DB_LIVE
+    rules:
+      - id: rls_contract_frozen
+        desc: "عقد RLS مجمّد — أيّ تغيير يحتاج مراجعة معماريّة"
+      - id: temporal_authority_frozen
+        desc: "occurred_at = المرجع السببي (TEMPORAL_AUTHORITY.md)"
+
+# ملاحظة صدق: المستويات static تعمل offline (make verify-static). المستوى
+# live يحتاج جهازك (postgres + non-superuser). لا يوجد L_AST منفصل في
+# SAHOOL (لا verify_wiring.py) — الفحص البنيوي مدموج في الاختبارات.

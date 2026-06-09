@@ -1,0 +1,38 @@
+# دليل ترتيب الـmigrations (MANIFEST)
+#
+# المشكلة: الترتيب الأبجدي يضع v10/v11/v12 قبل v9 — خطأ (الاعتماديّات تنكسر).
+# الحلّ: ترتيب صريح. كل سطر = ملفّ يُطبَّق بالتسلسل. الأسطر الفارغة و# تُتجاهَل.
+#
+# C2 FIX: أُكملت الملفّات الناقصة (كان MANIFEST يسرد 11 من 18 — أخطرها
+# v9_rls_tenant_isolation الغائب ⇒ قاعدة إنتاج بلا عزل مستأجرين).
+# ملفّات .down (التراجع) لا تُدرَج هنا — تُطبَّق يدويّاً عند الحاجة فقط.
+#
+# الترتيب مبنيّ على الاعتماديّات:
+#   init_v8         → الأساس (extensions: postgis, uuid-ossp, pgcrypto + جداول core)
+#   v9_foundation   → جداول v9 الأساسيّة (مُشار إليها بـFK لاحقاً)
+#   v9_*            → إضافات v9 (auth/market/automation/odoo/new_tables/onboarding)
+#   v9_rls_*        → عزل المستأجرين (RLS) — بعد إنشاء الجداول، حرج للأمان
+#   v9_append_only  → فرض append-only على الأحداث (سلامة البيانات)
+#   v10             → command_store + field_lifecycle
+#   v11             → events_bus (يعتمد على pgcrypto من init_v8)
+#   v12             → trueup + sharing keys
+#   v13             → geospatial core
+
+init_v8.sql
+v9_foundation.sql
+v9_auth_improvements.sql
+v9_new_tables.sql
+v9_onboarding.sql
+v9_market.sql
+v9_automation.sql
+v9_automation_persistence.sql
+v9_odoo_bridge.sql
+v9_edge_idempotency.sql
+v9_edge_occurred_at.sql
+v9_lifecycle_occurred_at.sql
+v9_rls_tenant_isolation.sql
+v9_append_only_enforcement.sql
+v10_command_store_lifecycle.sql
+v11_events_bus.sql
+v12_trueup_sharing.sql
+v13_geospatial_core.sql

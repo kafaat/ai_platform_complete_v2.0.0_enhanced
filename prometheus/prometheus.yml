@@ -1,0 +1,68 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'production'
+    project:     'sahool-v9'
+
+rule_files: []
+
+scrape_configs:
+  # ── Backend Services ──────────────────────────────────────────
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['sahool-auth:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'indicators-service'
+    static_configs:
+      - targets: ['sahool-indicators:8000']
+
+  - job_name: 'vegetation-service'
+    static_configs:
+      - targets: ['sahool-vegetation:8000']
+
+  - job_name: 'weather-service'
+    static_configs:
+      - targets: ['sahool-weather:8000']
+
+  - job_name: 'soil-service'
+    static_configs:
+      - targets: ['sahool-soil:8000']
+
+  # ── v9 New Services ───────────────────────────────────────────
+  - job_name: 'supervisor-agent'
+    static_configs:
+      - targets: ['sahool-supervisor:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'guardrails-engine'
+    static_configs:
+      - targets: ['sahool-guardrails:8000']
+
+  - job_name: 'edge-inference'
+    static_configs:
+      - targets: ['sahool-edge:8000']
+
+  - job_name: 'notification-agent'
+    static_configs:
+      - targets: ['sahool-notification-agent:8123']
+    metrics_path: '/metrics'
+
+  # ── Infrastructure ────────────────────────────────────────────
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['sahool-pg-exporter:9187']
+
+  - job_name: 'nats-exporter'
+    static_configs:
+      - targets: ['sahool-nats:8222']
+    metrics_path: '/metrics'
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['sahool-nginx:9113']
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

@@ -1,0 +1,16 @@
+# توأم المصفوفة — صحة المراصد (ISO 19157-inspired)
+# لكل مرصد قابل للتدهور: آخر معايرة، الفترة القصوى، عتبة الإيقاف.
+# إن تجاوز مرصد الفترة → النظام يخفّض ثقته أو يستبدله عبر fallback.
+version: "1.0"
+note: "حالة افتراضية. تُحدّث من الميدان. المراصد غير المذكورة لا تتدهور (محسوبة/بشرية)."
+
+sensors:
+  C1:  { max_days_between_calibration: 180, last_calibration: null, stop_threshold_days: 365 }
+  C2:  { max_days_between_calibration: 90,  last_calibration: null, stop_threshold_days: 180 }
+  C8:  { max_days_between_calibration: 30,  last_calibration: null, stop_threshold_days: 60,  note: "حساس مقاومي غير مستقر — معايرة متكررة" }
+  S1:  { max_days_between_calibration: 90,  last_calibration: null, stop_threshold_days: 180 }
+  S3:  { max_days_between_calibration: 60,  last_calibration: null, stop_threshold_days: 120, note: "حاكم — تدهوره خطير" }
+  S4:  { max_days_between_calibration: 60,  last_calibration: null, stop_threshold_days: 120, note: "حاكم" }
+  S6:  { max_days_between_calibration: 30,  last_calibration: null, stop_threshold_days: 60,  note: "NPK حساس ضعيف أصلاً" }
+  I1:  { max_days_between_calibration: 365, last_calibration: null, stop_threshold_days: 730 }
+  E1:  { max_days_between_calibration: 180, last_calibration: null, stop_threshold_days: 365 }

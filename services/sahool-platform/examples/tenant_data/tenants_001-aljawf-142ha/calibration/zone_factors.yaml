@@ -1,0 +1,10 @@
+tenant_id: 001-aljawf-142ha
+district_id: al_jawf
+indicative_zone_factor: 0.885
+scope: tenant_only
+confidence: low
+basis:
+  records: 3
+  farms: 1
+  seasons: 3
+note: استرشادي — لا يُعمّم على المديرية حتى يكتمل حد المزارع

@@ -1,0 +1,53 @@
+# SAHOOL CORE crop card — Wheat (القمح)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: wheat
+name_ar: القمح
+name_en: Wheat
+crop_family: cereal_C3
+
+kc:
+  initial: 0.30
+  mid: 1.15
+  end: 0.40
+  stage_days: [15, 25, 50, 30]
+  source: "FAO-56 Table 12 (Winter/Spring Wheat)"
+
+salinity:
+  threshold_ece_ds_m: 6.0       # القمح متحمّل نسبياً (Maas-Hoffman)
+  slope_pct_per_ds_m: 7.1
+  sar_max: 12.0
+  germination_ece_max: 4.5      # حسّاس أثناء الإنبات (NRCS: لا يتجاوز 4-5)
+  source: "Maas & Hoffman 1977; FAO-56 T23; NRCS germination note"
+
+thermal:
+  gdd_base_c: 0.0               # قمح: حرارة أساس منخفضة (محصول بارد C3)
+  gdd_to_maturity: 2000
+  flowering_safe_max_c: 31.0
+  chilling_hours_required: 0
+  source: "Wheat agronomy; GDD base 0C standard for wheat"
+
+governing:
+  ph:        { min: 5.5, max: 8.5, error: 0.1, source: "ECOCROP wheat" }
+  ece_ds_m:  { min: 0.0, max: 10.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.3            # عتبة الإشباع: SOC 12.7-13.4 g/kg ≈ 1.3% OM
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    # العتبة المثلى من تحليل 13,662 تجربة حقلية (Nature Geoscience 2023).
+    # فوق ~1.3% لا زيادة معنوية في إنتاج القمح. عامل خصوبة (modifying)
+    # لا حاكم: تخزين الكربون أقلّ فعالية 80% من التسميد النيتروجيني.
+    source: "Nature Geoscience 2023 (s41561-023-01302-3): wheat SOC optimum 12.7-13.4 g/kg"
+    note_ar: "تقدير طيفي لـ OM يبقى قرينة (R²=0.65-0.84)؛ المختبر يحكم"
+  nitrogen_kg_ha_required: 120
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 40
+
+pest_susceptibility:
+  pests: [rust, aphids, hessian_fly]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"

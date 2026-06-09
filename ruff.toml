@@ -1,0 +1,47 @@
+# إعداد ruff لمشروع SAHOOL
+# لتشغيله على جهازك (بيئة التطوير تملك شبكة، عكس بيئة المساعد):
+#   pip install ruff
+#   ruff check .                # فحص
+#   ruff check . --fix          # إصلاح آلي لما يمكن إصلاحه
+#   ruff format .               # تنسيق
+#
+# ملاحظة صدق: المساعد لم يشغّل ruff (شبكته معطّلة وruff غير مثبّت لديه).
+# اعتمد المساعد على py_compile الذي كشف ووصّح خطأ __future__ في
+# video-processor، لكنّ py_compile لا يكشف ما يكشفه ruff (استيرادات
+# غير مستخدمة، متغيّرات ميتة، إلخ). شغّل ruff للتحقّق الكامل.
+
+target-version = "py311"
+line-length = 100
+
+# تجاهل مجلّدات غير مصدريّة
+extend-exclude = [
+    "__pycache__",
+    "node_modules",
+    "*/migrations/backups",
+    "*/backups",
+    ".git",
+    "frontend/dist",
+]
+
+[lint]
+# مجموعة قواعد متوازنة (ليست صارمة جدّاً تُغرق بالضجيج)
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes (استيرادات/متغيّرات غير مستخدمة، أسماء غير معرّفة)
+    "I",    # isort (ترتيب الاستيرادات)
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear (أخطاء شائعة)
+    "W",    # pycodestyle warnings
+]
+
+ignore = [
+    "E501",  # طول السطر (نتركه لـformat)
+    "B008",  # استدعاء دالّة في قيمة افتراضيّة (شائع وآمن في FastAPI: Depends/Query)
+]
+
+[lint.per-file-ignores]
+# ملفّات الاختبارات: نسامح الاستيرادات غير المستخدمة (fixtures)
+"tests_v9/*" = ["F401", "F811"]
+"**/test_*.py" = ["F401", "F811"]
+# __init__.py: استيرادات إعادة التصدير
+"**/__init__.py" = ["F401"]

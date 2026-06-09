@@ -1,0 +1,23 @@
+# SAHOOL v9.1.0
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+dist/
+build/
+.dart_tool/
+.flutter-plugins
+*.log
+*.key
+*.pem
+*.crt
+volumes/
+data/
+backups/
+.coverage
+htmlcov/
+.pytest_cache/
+build/

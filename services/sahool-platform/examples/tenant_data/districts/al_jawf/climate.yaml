@@ -1,0 +1,21 @@
+# معايرة المديرية — — الجوف (مناخ)
+# zone_factor is an OUTPUT of calibration on >=5 farms, NOT a fabricated input.
+district_id: al_jawf
+name_ar: الجوف — صحراوي جاف
+climate_class: hot_arid_continental
+traits: [high_DTR, saline_alkaline, low_rainfall, dust]
+
+reference:
+  latitude_deg: 16.15
+  elevation_m: 1100
+  typical_summer_tmax_c: 42
+  typical_summer_tmin_c: 22
+  annual_rainfall_mm: 90        # arid
+
+calibration:
+  status: PENDING               # needs >=5 farms (currently 1)
+  farms_calibrated: 1           # tenant 001 only
+  farms_required: 5             # adjustable threshold (team's discretion)
+  zone_factor: null             # OUTPUT of calibration — null until done
+  method: null                  # records the approved method when run
+  note: "نواة عامة فقط حتى تكتمل المعايرة على 5 مزارع. الترتيب تقدير الفريق."

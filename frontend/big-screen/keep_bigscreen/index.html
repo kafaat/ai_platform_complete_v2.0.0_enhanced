@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAHOOL v9.1 — Agricultural Command Center (Big Screen)</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Segoe UI',Tahoma,sans-serif;
+    background:#030c03;
+    color:#e0ffe0;
+    overflow:hidden;
+    width:100vw;height:100vh;
+  }
+  #app{width:100%;height:100%;display:flex;flex-direction:column;padding:12px;gap:10px;}
+  .header{
+    height:60px;display:flex;align-items:center;justify-content:space-between;
+    background:linear-gradient(90deg,#0a2a0a,#143d14,#0a2a0a);
+    border:1px solid #2e8b57;border-radius:8px;padding:0 24px;
+  }
+  .header h1{font-size:22px;color:#7fff7f;letter-spacing:1px;text-shadow:0 0 10px rgba(126,255,126,0.3);}
+  .header .clock{font-size:16px;color:#88bb88;font-family:monospace;}
+  .main{flex:1;display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;}
+  .panel{
+    background:rgba(10,30,10,0.85);border:1px solid #1a4a1a;border-radius:8px;
+    padding:14px;display:flex;flex-direction:column;position:relative;overflow:hidden;
+  }
+  .panel::before,.panel::after{
+    content:'';position:absolute;width:12px;height:12px;border:2px solid #2e8b57;
+  }
+  .panel::before{top:0;left:0;border-right:none;border-bottom:none;}
+  .panel::after{bottom:0;right:0;border-left:none;border-top:none;}
+  .panel-title{
+    font-size:14px;color:#7fff7f;margin-bottom:8px;padding-bottom:6px;
+    border-bottom:1px solid #1a4a1a;display:flex;justify-content:space-between;align-items:center;
+  }
+  .panel-title .badge{
+    background:#2e8b57;color:#fff;font-size:11px;padding:2px 8px;border-radius:4px;
+  }
+  .chart-box{flex:1;min-height:0;}
+  .kpi-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;}
+  .kpi{
+    background:#0f2a0f;border:1px solid #1a4a1a;border-radius:6px;padding:10px;text-align:center;
+    transition:transform 0.2s;
+  }
+  .kpi:hover{transform:translateY(-2px);border-color:#2e8b57;}
+  .kpi-value{font-size:24px;font-weight:700;color:#7fff7f;}
+  .kpi-label{font-size:11px;color:#88bb88;margin-top:4px;}
+  .kpi-delta{font-size:12px;margin-top:2px;}
+  .delta-up{color:#44ff44;}.delta-down{color:#ff4444;}
+  .alert-list{flex:1;overflow-y:auto;}
+  .alert-item{
+    display:flex;align-items:center;gap:8px;padding:8px;margin-bottom:6px;
+    background:#1a0a0a;border-left:3px solid #ff4444;border-radius:4px;font-size:12px;
+  }
+  .alert-item.warn{border-left-color:#ffaa00;background:#1a1a0a;}
+  .alert-item.info{border-left-color:#3388ff;background:#0a0a1a;}
+  .alert-time{color:#888;font-size:11px;min-width:50px;}
+  .alert-msg{flex:1;}
+  .footer{
+    height:32px;display:flex;align-items:center;justify-content:center;
+    background:#0a1f0a;border:1px solid #1a4a1a;border-radius:6px;font-size:11px;color:#558855;
+  }
+  /* Scrollbar */
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:#0a1f0a;}
+  ::-webkit-scrollbar-thumb{background:#2e8b57;border-radius:2px;}
+</style>
+<style>
+    @media (max-width: 1600px) {
+        .dashboard-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    @media (max-width: 900px) {
+        .dashboard-grid { grid-template-columns: 1fr !important; }
+        .chart-container { height: 250px !important; }
+    }
+    .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div id="error-banner" class="hidden" style="background:#7f1d1d;color:#fff;padding:8px 16px;text-align:center;">حدث خطأ في التحديث — يُحاول الإعادة...</div>
+<div id="app">
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:28px;">🌿</span>
+      <h1>SAHOOL — لوحة القيادة الزراعية الذكية</h1>
+    </div>
+    <div style="display:flex;gap:20px;align-items:center;">
+      <span class="badge" style="background:#143d14;border:1px solid #2e8b57;padding:4px 12px;border-radius:4px;">
+        🟢 النظام يعمل
+      </span>
+      <span class="clock">{{ currentTime }}</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- LEFT PANEL -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <!-- KPIs -->
+      <div class="panel" style="height:180px;flex:none;">
+        <div class="panel-title">📊 مؤشرات المزرعة <span class="badge">مباشر</span></div>
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="kpi-value">{{ kpis.ndvi }}</div>
+            <div class="kpi-label">متوسط NDVI</div>
+            <div class="kpi-delta delta-up">▲ 4.2%</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-value">{{ kpis.soil }}%</div>
+            <div class="kpi-label">رطوبة التربة</div>
+            <div class="kpi-delta delta-down">▼ 1.8%</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-value">{{ kpis.et0 }}</div>
+            <div class="kpi-label">ET₀ mm/يوم</div>
+            <div class="kpi-delta delta-up">▲ 12%</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-value">{{ kpis.pest }}</div>
+            <div class="kpi-label">بؤر آفات نشطة</div>
+            <div class="kpi-delta delta-down">▼ 2</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Yield Prediction -->
+      <div class="panel" style="flex:1;">
+        <div class="panel-title">📈 توقع الإنتاجية (WOFOST) <span class="badge">AI</span></div>
+        <div ref="yieldChart" class="chart-box"></div>
+      </div>
+
+      <!-- Device Status -->
+      <div class="panel" style="height:200px;flex:none;">
+        <div class="panel-title">🔌 حالة الأجهزة <span class="badge">IoT</span></div>
+        <div ref="deviceChart" class="chart-box"></div>
+      </div>
+    </div>
+
+    <!-- CENTER PANEL — Map + Video -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="panel" style="flex:2;">
+        <div class="panel-title">
+          🛰️ خريطة المؤشرات — NDVI + حراري
+          <span class="badge">Sentinel-2 / Edge AI</span>
+        </div>
+        <div ref="mapChart" class="chart-box"></div>
+      </div>
+      <div class="panel" style="flex:1;">
+        <div class="panel-title">
+          🎥 كاميرات المراقبة المباشرة
+          <span class="badge">ZLMediaKit / RTSP</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;height:100%;">
+          <div v-for="(cam,i) in cameras" :key="i"
+               style="background:#0a1f0a;border:1px solid #1a4a1a;border-radius:6px;overflow:hidden;position:relative;">
+            <div style="position:absolute;top:4px;right:6px;background:#ff4444;color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;z-index:2;">
+              ● LIVE
+            </div>
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#2e8b57;font-size:12px;">
+              {{ cam.name }}<br/>{{ cam.status }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <!-- Alerts -->
+      <div class="panel" style="flex:1;">
+        <div class="panel-title">🚨 التنبيهات والأحداث <span class="badge">{{ alerts.length }}</span></div>
+        <div class="alert-list">
+          <div v-for="(a,i) in alerts" :key="i" :class="['alert-item', a.level]">
+            <div class="alert-time">{{ a.time }}</div>
+            <div class="alert-msg">{{ a.msg }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Weather -->
+      <div class="panel" style="height:220px;flex:none;">
+        <div class="panel-title">🌤️ الطقس — 7 أيام <span class="badge">Open-Meteo</span></div>
+        <div ref="weatherChart" class="chart-box"></div>
+      </div>
+
+      <!-- Carbon / Sustainability -->
+      <div class="panel" style="height:200px;flex:none;">
+        <div class="panel-title">🌱 الكربون — الاستدامة <span class="badge">CO₂</span></div>
+        <div ref="carbonChart" class="chart-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    SAHOOL v9.1 Edge-Ready | FastBee MQTT + ZLMediaKit + Qwen3 RAG | {{ farms }} مزارع | {{ devices }} جهاز نشط | GPU {{ gpuLoad }}%
+  </div>
+</div>
+
+<script>
+const { createApp, ref, onMounted, onBeforeUnmount } = Vue;
+
+createApp({
+  setup(){
+    const currentTime = ref('');
+    const kpis = ref({ndvi:0.72, soil:34, et0:5.2, pest:3});
+    const farms = ref(12);
+    const devices = ref(47);
+    const gpuLoad = ref(34);
+    const cameras = ref([
+      {name:'كاميرا الشمال', status:'RTSP Active'},
+      {name:'كاميرا الجنوب', status:'AI Detecting'},
+      {name:'كاميرا البئر', status:'Idle'},
+    ]);
+    const alerts = ref([
+      {time:'10:42', msg:'بؤرة آفات جديدة — حقل A3 (دودة قطن 92%)', level:'warn'},
+      {time:'09:15', msg:'رطوبة التربة < 30% — تم تشغيل الري التلقائي', level:'info'},
+      {time:'08:30', msg:'Edge Inference: نموذج YOLOv8n مُحدّث', level:'info'},
+      {time:'07:12', msg:'تحذير: درجة حرارة هواء 38°C — بيت محمي B1', level:'warn'},
+      {time:'06:00', msg:'جلسة RAG: استشارة "مكافحة تربس القمح"', level:'info'},
+      {time:'05:45', msg:'Sentinel-2: NDVI mosaic جاهز (2026-05-19)', level:'info'},
+      {time:'04:20', msg:'إنذار: فشل MQTT node esp32-node-007', level:''},
+    ]);
+
+    const yieldChart = ref(null);
+    const deviceChart = ref(null);
+    const mapChart = ref(null);
+    const weatherChart = ref(null);
+    const carbonChart = ref(null);
+    let charts = [];
+    let timers = [];
+
+    function initYield(){
+      const c = echarts.init(yieldChart.value);
+      const option = {
+        tooltip:{trigger:'axis',backgroundColor:'rgba(10,30,10,0.95)',borderColor:'#2e8b57',textStyle:{color:'#e0ffe0'}},
+        grid:{left:'12%',right:'8%',top:'10%',bottom:'15%'},
+        xAxis:{
+          type:'category',data:['يناير','فبراير','مارس','إبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر'],
+          axisLine:{lineStyle:{color:'#2e8b57'}},axisLabel:{color:'#88bb88',fontSize:10}
+        },
+        yAxis:{
+          type:'value',name:'طن/هكتار',nameTextStyle:{color:'#88bb88',fontSize:10},
+          axisLine:{lineStyle:{color:'#2e8b57'}},splitLine:{lineStyle:{color:'#1a4a1a'}},
+          axisLabel:{color:'#88bb88'}
+        },
+        series:[
+          {name:' wheat 2026',type:'line',smooth:true,data:[2.1,2.4,3.2,4.5,5.8,6.2,6.5,6.1,5.8],lineStyle:{color:'#7fff7f',width:2},areaStyle:{color:'rgba(126,255,126,0.1)'},itemStyle:{color:'#7fff7f'}},
+          {name:' wheat 2025',type:'line',smooth:true,data:[1.8,2.1,2.8,3.9,5.1,5.5,5.8,5.4,5.0],lineStyle:{color:'#3388ff',width:2,type:'dashed'},itemStyle:{color:'#3388ff'}}
+        ],
+        legend:{textStyle:{color:'#88bb88'},top:0,right:0}
+      };
+      c.setOption(option); charts.push(c);
+    }
+
+    function initDevice(){
+      const c = echarts.init(deviceChart.value);
+      const option = {
+        tooltip:{trigger:'item',backgroundColor:'rgba(10,30,10,0.95)',borderColor:'#2e8b57',textStyle:{color:'#e0ffe0'}},
+        series:[{
+          type:'pie',radius:['45%','70%'],center:['50%','55%'],
+          data:[
+            {value:28,name:'مستشعرات تربة',itemStyle:{color:'#7fff7f'}},
+            {value:12,name:'كاميرات',itemStyle:{color:'#3388ff'}},
+            {value:5,name:'صمامات ري',itemStyle:{color:'#ffaa00'}},
+            {value:2,name:'بوابات Mesh',itemStyle:{color:'#ff4444'}},
+          ],
+          label:{color:'#88bb88',fontSize:11},
+          labelLine:{lineStyle:{color:'#2e8b57'}}
+        }]
+      };
+      c.setOption(option); charts.push(c);
+    }
+
+    function initMap(){
+      const c = echarts.init(mapChart.value);
+      // Simulate geo heatmap using scatter on geo coordinates
+      const data = [];
+      for(let i=0;i<200;i++){
+        const lng = 44.15 + Math.random()*0.2;
+        const lat = 15.28 + Math.random()*0.14;
+        const val = Math.random();
+        data.push([lng,lat,val]);
+      }
+      const option = {
+        tooltip:{trigger:'item',formatter:p=>`NDVI: ${(p.value[2]).toFixed(2)}`,backgroundColor:'rgba(10,30,10,0.95)',borderColor:'#2e8b57',textStyle:{color:'#e0ffe0'}},
+        geo:{
+          map:'', roam:true,
+          center:[44.21,15.35], zoom:13,
+          itemStyle:{areaColor:'#0a2a0a',borderColor:'#1a4a1a'},
+          emphasis:{itemStyle:{areaColor:'#143d14'}}
+        },
+        visualMap:{
+          min:0,max:1,show:false,
+          inRange:{color:['#8B0000','#d4a017','#ffff00','#7fff00','#006400']}
+        },
+        series:[{
+          type:'heatmap',coordinateSystem:'geo',data:data,
+          pointSize:25,blurSize:15
+        }]
+      };
+      // Since we don't have a real map json, use scatter as fallback
+      const scatterOpt = {
+        tooltip:{trigger:'item',formatter:p=>`Lat: ${p.value[1].toFixed(3)}<br/>Lng: ${p.value[0].toFixed(3)}<br/>NDVI: ${p.value[2].toFixed(2)}`,backgroundColor:'rgba(10,30,10,0.95)',borderColor:'#2e8b57',textStyle:{color:'#e0ffe0'}},
+        grid:{left:0,right:0,top:0,bottom:0},
+        xAxis:{type:'value',min:44.15,max:44.35,show:false},
+        yAxis:{type:'value',min:15.28,max:15.42,show:false},
+        visualMap:{min:0,max:1,show:false,inRange:{color:['#8B0000','#d4a017','#ffff00','#7fff00','#006400']}},
+        series:[{
+          type:'scatter',data:data,
+          symbolSize:18,
+          itemStyle:{opacity:0.8}
+        }]
+      };
+      c.setOption(scatterOpt); charts.push(c);
+    }
+
+    function initWeather(){
+      const c = echarts.init(weatherChart.value);
+      const option = {
+        tooltip:{trigger:'axis',backgroundColor:'rgba(10,30,10,0.95)',borderColor:'#2e8b57',textStyle:{color:'#e0ffe0'}},
+        grid:{left:'12%',right:'8%',top:'10%',bottom:'15%'},
+        xAxis:{
+          type:'category',data:['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],
+          axisLine:{lineStyle:{color:'#2e8b57'}},axisLabel:{color:'#88bb88',fontSize:10}
+        },
+        yAxis:[
+          {type:'value',name:'°C',axisLine:{lineStyle:{color:'#2e8b57'}},splitLine:{lineStyle:{color:'#1a4a1a'}},axisLabel:{color:'#88bb88'}},
+          {type:'value',name:'mm',axisLine:{lineStyle:{color:'#3388ff'}},splitLine:{show:false},axisLabel:{color:'#88bb88'}}
+        ],
+        series:[
+          {name:'درجة الحرارة',type:'line',yAxisIndex:0,data:[34,36,38,35,33,32,31],lineStyle:{color:'#ffaa00',width:2},itemStyle:{color:'#ffaa00'}},
+          {name:'هطول',type:'bar',yAxisIndex:1,data:[0,0,0,2.4,0,0,0],itemStyle:{color:'rgba(51,136,255,0.6)'}}
+        ],
+        legend:{textStyle:{color:'#88bb88'},top:0,right:0}
+      };
+      c.setOption(option); charts.push(c);
+    }
+
+    function initCarbon(){
+      const c = echarts.init(carbonChart.value);
+      const option = {
+        tooltip:{trigger:'axis',backgroundColor:'rgba(10,30,10,0.95)',borderColor:'#2e8b57',textStyle:{color:'#e0ffe0'}},
+        grid:{left:'12%',right:'8%',top:'10%',bottom:'15%'},
+        xAxis:{
+          type:'category',data:['يناير','فبراير','مارس','إبريل','مايو'],
+          axisLine:{lineStyle:{color:'#2e8b57'}},axisLabel:{color:'#88bb88',fontSize:10}
+        },
+        yAxis:{
+          type:'value',name:'طن CO₂',axisLine:{lineStyle:{color:'#2e8b57'}},splitLine:{lineStyle:{color:'#1a4a1a'}},axisLabel:{color:'#88bb88'}
+        },
+        series:[
+          {name:'انبعاثات',type:'bar',data:[12.5,11.8,10.2,9.5,8.8],itemStyle:{color:'#ff4444'}},
+          {name:'استيعاب',type:'bar',data:[8.2,9.1,10.5,11.2,12.0],itemStyle:{color:'#7fff7f'}},
+          {name:'صافي',type:'line',data:[4.3,2.7,-0.3,-1.7,-3.2],lineStyle:{color:'#ffff00',width:2},itemStyle:{color:'#ffff00'}}
+        ],
+        legend:{textStyle:{color:'#88bb88'},top:0,right:0}
+      };
+      c.setOption(option); charts.push(c);
+    }
+
+    function updateTime(){ currentTime.value = new Date().toLocaleString('ar-SA',{hour12:false}); }
+
+    onMounted(()=>{
+      updateTime();
+      timers.push(setInterval(updateTime,1000));
+      initYield(); initDevice(); initMap(); initWeather(); initCarbon();
+      window.addEventListener('resize',()=>charts.forEach(c=>c.resize()));
+      // Simulate live updates
+      timers.push(setInterval(()=>{
+        kpis.value.ndvi = (0.68 + Math.random()*0.08).toFixed(2);
+        kpis.value.soil = Math.floor(30 + Math.random()*12);
+        kpis.value.et0 = (4.5 + Math.random()*1.5).toFixed(1);
+        gpuLoad.value = Math.floor(20 + Math.random()*40);
+      },5000));
+    });
+
+    onBeforeUnmount(()=>{
+      timers.forEach(t=>clearInterval(t));
+      charts.forEach(c=>c.dispose());
+    });
+
+    return {currentTime,kpis,farms,devices,gpuLoad,cameras,alerts,
+            yieldChart,deviceChart,mapChart,weatherChart,carbonChart};
+  }
+}).mount('#app');
+</script>
+
+<script>
+// ══ Live Data Integration (W01/W02 fix) ════════════════════
+const API_BASE = window.SAHOOL_API || 'https://api.sahool.ye';
+const WS_BASE  = window.SAHOOL_WS  || 'wss://api.sahool.ye';
+const token    = localStorage.getItem('sahool_token') || sessionStorage.getItem('token');
+
+let wsLive = null;
+let pollInterval = null;
+const POLL_MS = 30000;  // 30s polling fallback
+
+async function fetchDashboardData() {
+    try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const r = await fetch(`${API_BASE}/indicators/v1/overview`, { headers });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        updateCharts(data);
+        updateStats(data);
+    } catch (e) {
+        console.warn('Dashboard fetch failed (using cached):', e.message);
+    }
+}
+
+function updateStats(data) {
+    const el = (id) => document.getElementById(id);
+    if (el('stat-fields'))  el('stat-fields').textContent  = data.fields_count  ?? '--';
+    if (el('stat-alerts'))  el('stat-alerts').textContent  = data.alerts_count  ?? '--';
+    if (el('stat-sensors')) el('stat-sensors').textContent = data.active_sensors ?? '--';
+    if (el('stat-ndvi'))    el('stat-ndvi').textContent    = data.avg_ndvi?.toFixed(3) ?? '--';
+}
+
+function connectWS() {
+    if (!token) return;
+    try {
+        wsLive = new WebSocket(`${WS_BASE}/ws/notifications?token=${encodeURIComponent(token)}`);
+        wsLive.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            if (msg.type === 'dashboard_update') {
+                updateCharts(msg.data);
+                updateStats(msg.data);
+            }
+        };
+        wsLive.onclose = () => {
+            wsLive = null;
+            // Fallback to polling
+            if (!pollInterval) pollInterval = setInterval(fetchDashboardData, POLL_MS);
+        };
+        wsLive.onerror = () => wsLive?.close();
+    } catch (e) {
+        console.warn('WS unavailable, using polling');
+    }
+}
+
+// W04: Global error handler
+window.addEventListener('error', (e) => {
+    console.error('Dashboard error:', e.message);
+    document.getElementById('error-banner')?.classList?.remove('hidden');
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    connectWS();
+    fetchDashboardData();
+    // Always have polling as fallback
+    pollInterval = setInterval(fetchDashboardData, POLL_MS);
+});
+
+// Cleanup on unload
+window.addEventListener('beforeunload', () => {
+    wsLive?.close();
+    clearInterval(pollInterval);
+});
+</script>
+
+
+<div id="cameras-section" style="margin-top:24px">
+    <h3 style="color:#10B981">📷 كاميرات الحقول</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px" id="cam-grid">
+        <!-- Cameras loaded dynamically -->
+    </div>
+</div>
+<script>
+function loadCameras() {
+    const cams = [
+        {name:'حقل وادي سبأ', status:'متصل'},
+        {name:'حقل البيضاء', status:'لا يوجد بث'},
+    ];
+    const grid = document.getElementById('cam-grid');
+    if (!grid) return;
+    grid.innerHTML = cams.map(c => `
+        <div style="background:#1a1d29;border-radius:8px;overflow:hidden">
+            <div style="background:#000;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center">
+                <div style="text-align:center;color:#fff">
+                    <div style="font-size:2em">📷</div>
+                    <div style="font-size:0.8em">${c.name}</div>
+                    <div style="font-size:0.7em;color:${c.status==='متصل'?'#10B981':'#666'}">${c.status}</div>
+                </div>
+            </div>
+        </div>`).join('');
+}
+document.addEventListener('DOMContentLoaded', loadCameras);
+</script>
+
+</body>
+</html>

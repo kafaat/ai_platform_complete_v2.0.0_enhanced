@@ -1,0 +1,46 @@
+{
+  "name": "sahool-v8-frontend",
+  "version": "8.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext ts,tsx",
+    "format": "prettier --write src/**/*.{ts,tsx}",
+    "build:docker": "vite build"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.28.0",
+    "@turf/area": "^6.5.0",
+    "@turf/helpers": "^6.5.0",
+    "@turf/length": "^6.5.0",
+    "axios": "^1.6.8",
+    "framer-motion": "^11.1.7",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.376.0",
+    "maplibre-gl": "^4.1.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-leaflet": "^4.2.1",
+    "recharts": "^2.12.3",
+    "zustand": "^4.5.2",
+    "react-leaflet-draw": "^0.20.4",
+    "@types/leaflet-draw": "^0.4.6",
+    "leaflet-draw": "^1.0.4",
+    "react-router-dom": "^6.23.0"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.12",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.10",
+    "prettier": "^3.2.5"
+  }
+}

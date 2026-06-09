@@ -1,0 +1,32 @@
+# بطاقة صنف — قمح محلّي للمرتفعات (landrace)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات القمح.
+variety_id: wheat_local_highland
+parent_crop_id: wheat
+name_ar: قمح محلّي (مرتفعات)
+name_en: Highland landrace wheat
+
+passport:
+  origin_type: landrace
+  source_ar: "NGRC اليمن (هيئة البحوث الزراعية) — أصناف محلّية"
+  upov_code: "TRITI_AES"          # Triticum aestivum
+  collection_note_ar: "سلالة محلّية متأقلمة مع المرتفعات، حُفظت في بنك NGRC"
+
+distinctness:
+  morphology_ar: "سنبلة متوسطة، تأقلم مع البرودة الليلية للمرتفعات"
+  maturity_class: medium
+  plant_height_cm: 95
+
+uniformity_note_ar: "سلالة محلّية — تجانس متوسط (طبيعة الـlandrace)"
+stability_note_ar: "مستقرّة عبر أجيال الزراعة المحلّية الطويلة"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0     # كعتبة القمح القياسية (6.0)
+  disease_resistance_ar: [تحمّل نسبي للصدأ المحلّي]
+  special_quality_ar: "متأقلم مع تذبذب المرتفعات، جودة خبز محلّية مقبولة"
+  source: "NGRC/AREA توصيف الأصناف المحلّية"
+
+adaptation:
+  altitude_range_m: [1500, 2800]
+  agro_ecological_zone_ar: "المرتفعات اليمنية"
+  note_ar: "يفضّل المرتفعات الباردة؛ أقل ملاءمة للسهول الحارة"

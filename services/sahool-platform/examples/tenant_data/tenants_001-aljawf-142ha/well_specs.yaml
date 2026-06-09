@@ -1,0 +1,11 @@
+# Tenant 001 — مواصفات الآبار (8 آبار شمسية)
+tenant_id: "001-aljawf-142ha"
+wells:
+  - { id: W1, zone: Z1, depth_m: 140, energy: solar }
+  - { id: W2, zone: Z1, depth_m: 140, energy: solar }
+  - { id: W3, zone: Z2, depth_m: 140, energy: solar }
+  - { id: W4, zone: Z2, depth_m: 140, energy: solar }
+  - { id: W5, zone: Z3, depth_m: 95,  energy: solar }
+  - { id: W6, zone: Z5, depth_m: 95,  energy: solar }
+  - { id: W7, zone: Z5, depth_m: 95,  energy: solar }
+  - { id: W8, zone: Z6, depth_m: 140, energy: solar }

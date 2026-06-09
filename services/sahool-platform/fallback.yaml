@@ -1,0 +1,21 @@
+# سيناريوهات السقوط — أفضل ممارسات الأنظمة الحرجة (Graceful Degradation)
+# عند غياب مرصد، النظام لا ينهار: يتحوّل لبديل بثقة أقل.
+version: "1.0"
+
+fallbacks:
+  S1:  { missing: رطوبة التربة, alternative: "ميزان مائي نموذجي (ETc - مطر) فقط", confidence_penalty: 0.15 }
+  C3:  { missing: سرعة الرياح, alternative: "قيمة افتراضية 2 m/s حسب المنطقة", confidence_set: low }
+  C4:  { missing: الإشعاع الشمسي, alternative: "Hargreaves من الحرارة", confidence_set: medium }
+  R1:  { missing: NDVI, alternative: "Kc قياسي FAO بلا تصحيح", confidence_set: medium }
+  R8a: { missing: CWSI درون, alternative: "لا تنبيه إجهاد — ري بالجدول", note: "يفقد الكشف المبكر" }
+  P1:  { missing: مرحلة النمو, alternative: "GDD فقط", confidence_penalty: 0.10 }
+  E1:  { missing: إنتاج الطاقة, alternative: "افتراض 80% من E2 المثبّتة", note: "تقدير تكلفة الضخ" }
+
+# قاعدة صارمة: لا fallback للحاكمات الحرجة A
+no_fallback_allowed:
+  - L3   # PHI — لا توصية كيميائية بدونه إطلاقاً (سلامة)
+  - S3   # ملوحة — لا توصية محصول بدونها (قد يموت)
+  - S4   # pH
+  - I3   # ملوحة مياه الري
+  - O1   # صنف المحصول
+  - O2   # تاريخ الزراعة

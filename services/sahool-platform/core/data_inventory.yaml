@@ -1,0 +1,378 @@
+# core/data_inventory.yaml
+# ============================================================================
+# سجلّ المصادر بالموضوع (Theme-based registry)
+# ============================================================================
+#
+# المرجع الفكري:
+#   "موجز مجموعات بيانات الزراعة المواضيعية في الولايات المتحدة"
+#   ٩٠ مجموعة بيانات، ١٣ موضوعاً (لا ١٣ مؤسّسة).
+#   "إعادة رسم الخريطة حسب الموضوع، وليس حسب المؤسسة."
+#
+# لماذا هذا التنظيم؟
+#   • يسمح بتبديل المصدر دون تغيير منطق التحليل
+#   • يكشف الفجوات بوضوح (موضوع بلا مصدر = ثغرة)
+#   • يوحّد لغة الـsource_of_truth بين المهندس والمزارع
+#
+# البنية:
+#   themes/
+#     {theme_id}/
+#       name_ar, name_en
+#       sources: [list of source registrations]
+#         {id, type, license, online, ground_truth, criticality, status}
+#
+# الحالة:
+#   ✅ active        — مُنفَّذ ومُختبَر
+#   🟡 partial       — مُنفَّذ جزئياً
+#   ⏳ planned       — مُخطَّط له، trigger موجود
+#   ❌ rejected      — مرفوض بمبرّر صريح
+
+version: 1
+generated_for: "Yemen agriculture decision platform (sahool)"
+last_updated: "2026-06-02"
+
+themes:
+
+  # ─── ١. غطاء نباتي ────────────────────────────────────────────
+  vegetation:
+    name_ar: الغطاء النباتي
+    name_en: Vegetation Cover
+    sources:
+      - id: sentinel2_optical
+        type: satellite
+        connector: raster-service (Element84 STAC)
+        indicators: [NDVI, EVI, SAVI, NDWI, NDMI, GNDVI, FAPAR]
+        license: "Copernicus open"
+        online: required
+        ground_truth: drone_orthomosaic
+        criticality: B
+        status: active
+      - id: drone_rgb
+        type: drone
+        connector: raster-service (manual upload)
+        indicators: [VARI, GLI, TGI]
+        license: "user-owned"
+        online: optional
+        ground_truth: manual_scouting
+        criticality: B
+        status: active
+      - id: red_edge_indices
+        type: satellite (S2 specific)
+        indicators: [NDRE, CI_REDEDGE, MCARI]
+        notes: "يكشف نقص N قبل NDVI بـ١-٢ أسبوع"
+        criticality: B
+        status: active
+
+  # ─── ٢. فينولوجيا (مراحل النمو) ───────────────────────────────
+  phenology:
+    name_ar: مراحل النمو
+    name_en: Phenology
+    sources:
+      - id: bbch_stages
+        type: knowledge_base
+        connector: core/crop_cards/*.yaml
+        coverage: [wheat, barley, millet, sorghum, cranberry]
+        license: "Lancashire et al. 1991 BBCH Monograph"
+        online: never
+        ground_truth: farmer_observation
+        criticality: A
+        status: active
+      - id: fao56_kc_stages
+        type: knowledge_base
+        connector: core/engines/fao56.py
+        notes: "stage_days [initial, dev, mid, late]"
+        license: "Allen et al. 1998 FAO-56"
+        online: never
+        criticality: A
+        status: active
+      - id: ndvi_phenology_detection
+        type: derived
+        notes: "اكتشاف بداية الموسم من S2 time-series"
+        status: planned
+        trigger: "٢+ مواسم Sentinel-2 من نفس الحقل"
+
+  # ─── ٣. التربة ──────────────────────────────────────────────────
+  soil:
+    name_ar: التربة
+    name_en: Soil
+    sources:
+      - id: soil_lab_analysis
+        type: lab
+        connector: core/source_of_truth (priority 1)
+        params: [pH, OM, EC, texture, N, P, K]
+        license: "user lab reports"
+        online: never
+        criticality: A
+        status: active
+      - id: bsi_satellite
+        type: satellite_derived
+        connector: core/spatial/indicators
+        notes: "Bare Soil Index من S2 (قرينة فقط، لا حاكم)"
+        criticality: C
+        status: active
+      - id: texture_estimation
+        type: combined
+        connector: core/spatial/texture
+        notes: "ratio of BSI + visual observation"
+        criticality: C
+        status: active
+
+  # ─── ٤. الطقس والمناخ ──────────────────────────────────────────
+  weather:
+    name_ar: الطقس والمناخ
+    name_en: Weather & Climate
+    sources:
+      - id: open_meteo_forecast
+        type: weather_service
+        connector: api/connectors/openmeteo.py
+        params: [temp, humidity, wind, precip, ET0_FAO56]
+        license: "CC BY 4.0 (non-commercial)"
+        online: required
+        ground_truth: local_weather_station
+        criticality: B
+        status: active
+      - id: open_meteo_historical
+        type: reanalysis
+        notes: "ERA5 من ١٩٤٠ — لـGDD المتراكم"
+        connector: api/connectors/openmeteo.py
+        online: required
+        criticality: C
+        status: active
+      - id: local_weather_station
+        type: ground_sensor
+        connector: core/sensor_intake
+        notes: "محطّة محليّة (في الإنشاء)"
+        criticality: A
+        status: planned
+        trigger: "محطّة فعليّة في الميدان"
+
+  # ─── ٥. المياه والريّ ──────────────────────────────────────────
+  water:
+    name_ar: المياه والريّ
+    name_en: Water & Irrigation
+    sources:
+      - id: irrigation_scheduling
+        type: model
+        connector: core/engines/fao56.py + supplemental_irrigation.py
+        notes: "Kc × ETo - rainfall"
+        criticality: A
+        status: active
+      - id: deficit_irrigation
+        type: model
+        connector: core/engines/deficit_irrigation.py
+        notes: "مقايضة عجز الري ↔ الملوحة"
+        criticality: A
+        status: active
+      - id: spate_irrigation
+        type: traditional
+        notes: "الريّ السيلي اليمني (تراث)"
+        status: planned
+        trigger: "مزرعة فعليّة تستخدم spate"
+      - id: groundwater_depletion_alert
+        type: monitoring
+        notes: "اليمن: hadirs 2-6 م/سنة"
+        status: planned
+        trigger: "well log data من tenant"
+
+  # ─── ٦. المحاصيل والإنتاج ──────────────────────────────────────
+  crops:
+    name_ar: المحاصيل
+    name_en: Crops & Production
+    sources:
+      - id: crop_cards
+        type: knowledge_base
+        connector: core/crop_cards/
+        coverage: [wheat, barley, millet, sorghum, cranberry]
+        criticality: A
+        status: active
+      - id: wofost_simulation
+        type: model
+        connector: core/engines/suitability.py
+        notes: "WOFOST mechanistic crop growth"
+        license: "Wageningen — open"
+        criticality: B
+        status: active
+      - id: crop_portfolio_advisor
+        type: analysis
+        connector: core/crop_portfolio.py
+        notes: "تأثير المحفظة (Renard & Tilman 2019 Nature)"
+        criticality: C
+        status: active
+
+  # ─── ٧. الآفات والأمراض ───────────────────────────────────────
+  pests:
+    name_ar: الآفات والأمراض
+    name_en: Pests & Diseases
+    sources:
+      - id: phi_database
+        type: knowledge_base
+        connector: core/pesticide module
+        notes: "Pre-Harvest Interval حاكم"
+        criticality: A
+        status: active
+      - id: scouting_observations
+        type: ground_truth
+        connector: core/source_of_truth (priority 2)
+        notes: "ملاحظات المزارع/المهندس"
+        criticality: A
+        status: active
+      - id: locust_advisory
+        type: external_feed
+        notes: "FAO eLocust3"
+        status: planned
+        trigger: "FAO API access"
+      - id: wheat_rust_alert
+        type: external_feed
+        notes: "Yemen on Ug99 transit path"
+        status: planned
+        trigger: "regional alert feed"
+
+  # ─── ٨. الاقتصاد ───────────────────────────────────────────────
+  economy:
+    name_ar: الاقتصاد
+    name_en: Economy
+    sources:
+      - id: farm_ledger
+        type: user_input
+        connector: core/farm_ledger.py
+        notes: "دفتر حسابات بسيط (expenses + income + break-even)"
+        criticality: B
+        status: active
+      - id: market_price_feed
+        type: external
+        notes: "أسعار الأسواق المحلّيّة"
+        status: planned
+        trigger: "تعاون مع وزارة الزراعة أو منظّمة"
+
+  # ─── ٩. الحقول والمساحة ───────────────────────────────────────
+  spatial:
+    name_ar: الحقول والمساحة
+    name_en: Field Geometry
+    sources:
+      - id: manual_drawing
+        type: user_input
+        connector: sahool_mobile/FieldDrawingScreen
+        notes: "polygon + pivot circle + sectors + towers"
+        criticality: A
+        status: active
+      - id: pivot_geometry
+        type: derived
+        connector: sahool_mobile/utils/geometry.ts
+        notes: "Haversine + Spherical excess"
+        criticality: A
+        status: active
+
+  # ─── ١٠. الأنشطة والمهام ──────────────────────────────────────
+  activities:
+    name_ar: الأنشطة الزراعيّة
+    name_en: Farm Activities
+    sources:
+      - id: activity_log
+        type: user_input
+        connector: core/activity_log
+        notes: "planned → completed → skipped + Geo-tag"
+        criticality: B
+        status: active
+      - id: anwa_calendar
+        type: traditional_knowledge
+        connector: core/anwa_calendar
+        notes: "الأنواء النجميّة (قرينة توقيت مجتمعيّة)"
+        criticality: C
+        status: active
+
+  # ─── ١١. المعرفة الجماعيّة ─────────────────────────────────────
+  collective_knowledge:
+    name_ar: المعرفة الجماعيّة
+    name_en: Collective Knowledge
+    sources:
+      - id: district_baseline
+        type: aggregated
+        connector: core/district_baseline
+        notes: "متوسّط المديريّة (anonymized)"
+        criticality: B
+        status: active
+      - id: practice_promotion
+        type: ML_pipeline
+        connector: core/practice_promotion
+        notes: "سلّم الترقية (سقف 0.65، رفض PHI breach)"
+        criticality: B
+        status: active
+      - id: cross_reference_finder
+        type: analysis
+        connector: core/cross_reference_finder
+        notes: "كشف الأنماط التاريخيّة (Karpathy connection finder)"
+        criticality: C
+        status: active
+
+  # ─── ١٢. التحقّق والمعايرة ────────────────────────────────────
+  validation:
+    name_ar: التحقّق والمعايرة
+    name_en: Validation & Calibration
+    sources:
+      - id: source_of_truth_arbitration
+        type: framework
+        connector: core/source_of_truth.py
+        notes: "lab > manual > sensor > satellite"
+        criticality: A
+        status: active
+      - id: calibration_loop
+        type: workflow
+        connector: core/learn_from_harvest
+        notes: "حلقة المعايرة"
+        criticality: A
+        status: active
+      - id: yield_metrics
+        type: pending
+        notes: "RMSE/R² per zone"
+        status: planned
+        trigger: "٥٠+ harvest outcome"
+
+  # ─── ١٣. الحوكمة (Governance) ──────────────────────────────────
+  governance:
+    name_ar: الحوكمة والأمان
+    name_en: Governance & Safety
+    sources:
+      - id: rbac_authorization
+        type: framework
+        connector: core/authorization
+        notes: "٥ أدوار + farm hierarchy + tenant isolation"
+        criticality: A
+        status: active
+      - id: red_lines_guardrails
+        type: framework
+        connector: core/guardrails
+        notes: "الخطوط الحمراء توقف، الحراسة تَغلِب النجاح"
+        criticality: A
+        status: active
+      - id: ecp_execution_control
+        type: framework
+        connector: core/execution_control_plane
+        notes: "Observability + Convention (لا structural enforcement)"
+        criticality: B
+        status: active
+
+
+# ─── خلاصة الحالة ─────────────────────────────────────────────────
+summary:
+  total_themes: 13
+  total_sources_registered: 43
+  status_breakdown:
+    active: 32
+    planned: 11
+    rejected: 0
+  rejected_with_rationale:
+    - source: "Google Earth Engine"
+      reason: "يكسر offline-first"
+    - source: "DSSAT/APSIM"
+      reason: "ازدواجيّة مع WOFOST"
+    - source: "Digital Twin"
+      reason: "farm_memory يحلّ نفس الحاجة بـComposition"
+    - source: "ARIMA/Prophet"
+      reason: "ML سحرية، الـtime_series الحالي شفّاف"
+    - source: "ERA5 direct"
+      reason: "Open-Meteo /historical يُغطّيه"
+    - source: "GNSS/Edge/Tractor"
+      reason: "لا machinery تلقائيّة في السياق اليمني"
+    - source: "SEBAL/METRIC"
+      reason: "يتطلّب thermal بديل ET₀ من Open-Meteo"
+    - source: "Deep learning models (EfficientNetV2)"
+      reason: "يتطلّب GPU + dataset مُعلَّم — يكسر offline-first"

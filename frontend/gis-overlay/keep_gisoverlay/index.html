@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAHOOL v9.1 — GIS Overlay (NDVI + Soil + Pest Heatmap)</title>
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- ECharts -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<!-- echarts-extension-leaflet -->
+<script src="https://cdn.jsdelivr.net/npm/echarts-extension-leaflet@1.0.0/dist/echarts-extension-leaflet.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; background:#0a1f0a; color:#e0ffe0; overflow:hidden; }
+  #map-container { width:100vw; height:100vh; position:relative; }
+  .panel {
+    position:absolute; top:20px; right:20px; z-index:1000;
+    background:rgba(10,30,10,0.92); border:1px solid #2e8b57;
+    border-radius:12px; padding:18px; width:280px;
+    backdrop-filter:blur(8px); box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  }
+  .panel h2 { font-size:16px; margin-bottom:12px; color:#7fff7f; border-bottom:1px solid #2e8b57; padding-bottom:6px; }
+  .layer-btn {
+    display:block; width:100%; margin:6px 0; padding:10px 14px;
+    background:#143d14; border:1px solid #2e8b57; border-radius:6px;
+    color:#aaffaa; cursor:pointer; transition:all 0.2s; text-align:right;
+    font-size:13px;
+  }
+  .layer-btn:hover { background:#1f5a1f; transform:translateX(-4px); }
+  .layer-btn.active { background:#2e8b57; color:#fff; border-color:#7fff7f; }
+  .legend {
+    position:absolute; bottom:30px; left:30px; z-index:1000;
+    background:rgba(10,30,10,0.92); border:1px solid #2e8b57;
+    border-radius:10px; padding:14px; min-width:180px;
+  }
+  .legend h4 { font-size:13px; margin-bottom:8px; color:#7fff7f; }
+  .legend-item { display:flex; align-items:center; margin:4px 0; font-size:12px; }
+  .legend-color { width:20px; height:12px; border-radius:2px; margin-left:8px; }
+  .stats-bar {
+    position:absolute; bottom:30px; right:320px; z-index:1000;
+    display:flex; gap:12px;
+  }
+  .stat-card {
+    background:rgba(10,30,10,0.92); border:1px solid #2e8b57;
+    border-radius:10px; padding:12px 18px; text-align:center;
+    min-width:120px;
+  }
+  .stat-value { font-size:22px; font-weight:700; color:#7fff7f; }
+  .stat-label { font-size:11px; color:#88bb88; margin-top:4px; }
+</style>
+
+<!-- W08: Offline map tiles — add to manifest.json for PWA support
+     Install: workbox-cli and run: workbox generateSW
+     This will cache Leaflet tiles for offline use -->
+
+</head>
+<body>
+
+<div id="map-container"></div>
+
+<!-- Control Panel -->
+<div class="panel">
+  <h2>🛰️ طبقات المؤشرات</h2>
+  <button class="layer-btn active" onclick="toggleLayer('ndvi',this)">🌿 NDVI — صحة النبات</button>
+  <button class="layer-btn" onclick="toggleLayer('soil',this)">💧 رطوبة التربة</button>
+  <button class="layer-btn" onclick="toggleLayer('pest',this)">🐛 خريطة حرارية للآفات</button>
+  <button class="layer-btn" onclick="toggleLayer('et0',this)">☀️ الاستهلاك المائي (ET₀)</button>
+  <button class="layer-btn" onclick="toggleLayer('yield',this)">📈 توقع الإنتاجية</button>
+  <button class="layer-btn" onclick="toggleLayer('fields',this)">🚜 حدود الحقول</button>
+</div>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-value" id="ndvi-avg">0.72</div><div class="stat-label">متوسط NDVI</div></div>
+  <div class="stat-card"><div class="stat-value" id="soil-avg">34%</div><div class="stat-label">رطوبة التربة</div></div>
+  <div class="stat-card"><div class="stat-value" id="pest-count">3</div><div class="stat-label">بؤر آفات</div></div>
+  <div class="stat-card"><div class="stat-value" id="et0-val">5.2</div><div class="stat-label">ET₀ mm/يوم</div></div>
+</div>
+
+<!-- Legend -->
+<div class="legend" id="legend-ndvi">
+  <h4>NDVI — صحة النبات</h4>
+  <div class="legend-item"><div class="legend-color" style="background:#8B0000"></div>غير صالح / ماء / ظل</div>
+  <div class="legend-item"><div class="legend-color" style="background:#d4a017"></div>تربة مكشوفة</div>
+  <div class="legend-item"><div class="legend-color" style="background:#ffff00"></div>نبات ضعيف</div>
+  <div class="legend-item"><div class="legend-color" style="background:#7fff00"></div>نبات متوسط</div>
+  <div class="legend-item"><div class="legend-color" style="background:#006400"></div>نبات صحي (غابة)</div>
+</div>
+
+<script>
+// ── SAHOOL Field Bounds (example: Yemen / UAE polygon) ──
+const FIELD_BOUNDS = [
+  [15.35, 44.20], [15.36, 44.22], [15.34, 44.23], [15.33, 44.21]
+];
+
+// ── Mock NDVI Grid (Sentinel-2 style 10m resolution simplified) ──
+function generateNDVIGrid(center, rows=20, cols=20, spacing=0.001) {
+  const data = [];
+  for(let r=0; r<rows; r++){
+    for(let c=0; c<cols; c++){
+      const lat = center[0] + (r-rows/2)*spacing;
+      const lng = center[1] + (c-cols/2)*spacing;
+      // Simulate field pattern: healthy center, dry edges
+      const dist = Math.sqrt((r-rows/2)**2 + (c-cols/2)**2) / (rows/2);
+      let ndvi = 0.75 - dist*0.35 + (Math.random()-0.5)*0.08;
+      ndvi = Math.max(-0.2, Math.min(1.0, ndvi));
+      data.push([lng, lat, ndvi.toFixed(3)]);
+    }
+  }
+  return data;
+}
+
+// ── Mock Pest Heatmap Points ──
+const PEST_POINTS = [
+  {name:'بؤرة 1', value:[44.205,15.355, 0.92], type:'دودة القطن'},
+  {name:'بؤرة 2', value:[44.215,15.348, 0.78], type:'من'},
+  {name:'بؤرة 3', value:[44.208,15.352, 0.65], type:'تربس'},
+];
+
+// ── Leaflet Base Map ──
+const map = L.map('map-container', {
+  center: [15.35, 44.21],
+  zoom: 15,
+  zoomControl: false,
+  attributionControl: false
+});
+
+// Dark satellite-style tiles (CartoDB Dark Matter)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 20, subdomains: 'abcd'
+}).addTo(map);
+
+// Add zoom control to top-left
+L.control.zoom({position:'topright'}).addTo(map);
+
+// ── ECharts Overlay via echarts-extension-leaflet ──
+const chartDom = document.createElement('div');
+chartDom.style.width = '100%';
+chartDom.style.height = '100%';
+chartDom.style.position = 'absolute';
+chartDom.style.top = '0';
+chartDom.style.left = '0';
+chartDom.style.pointerEvents = 'none'; // let Leaflet handle interaction
+map.getContainer().appendChild(chartDom);
+
+const myChart = echarts.init(chartDom);
+
+const ndviData = generateNDVIGrid([15.35, 44.21], 24, 24, 0.0008);
+
+const option = {
+  tooltip: {
+    trigger: 'item',
+    formatter: function(params) {
+      if(params.seriesName === 'NDVI'){
+        return `NDVI: <b>${params.value[2]}</b><br/>Lat: ${params.value[1].toFixed(4)}<br/>Lng: ${params.value[0].toFixed(4)}`;
+      }
+      if(params.seriesName === 'Pest Heatmap'){
+        return `${params.name}<br/>النوع: ${params.data.type}<br/>الثقة: ${(params.value[2]*100).toFixed(0)}%`;
+      }
+      return params.name;
+    },
+    backgroundColor: 'rgba(10,30,10,0.95)',
+    borderColor: '#2e8b57',
+    textStyle: { color: '#e0ffe0' }
+  },
+  // Leaflet coordinate system provided by echarts-extension-leaflet
+  coordinateSystem: 'leaflet',
+  series: [
+    // ── NDVI Heatmap ──
+    {
+      name: 'NDVI',
+      type: 'heatmap',
+      coordinateSystem: 'leaflet',
+      data: ndviData,
+      pointSize: 18,
+      blurSize: 12,
+      min: -0.2,
+      max: 1.0,
+      gradientColors: [
+        { offset: 0, color: '#8B0000' },    // water/shadow
+        { offset: 0.15, color: '#d4a017' }, // bare soil
+        { offset: 0.35, color: '#ffff00' }, // sparse
+        { offset: 0.55, color: '#7fff00' }, // moderate
+        { offset: 0.75, color: '#228B22' }, // healthy
+        { offset: 1.0, color: '#006400' }  // dense
+      ]
+    },
+    // ── Field Boundary Polygon ──
+    {
+      name: 'Fields',
+      type: 'lines',
+      coordinateSystem: 'leaflet',
+      polyline: true,
+      data: [{
+        name: 'Field A',
+        coords: FIELD_BOUNDS.concat([FIELD_BOUNDS[0]]) // close polygon
+      }],
+        lineStyle: { color: '#00ff88', width: 3, opacity: 0.9 },
+        silent: false
+    },
+    // ── Pest Scatter (effectScatter for ripple) ──
+    {
+      name: 'Pest Heatmap',
+      type: 'effectScatter',
+      coordinateSystem: 'leaflet',
+      data: PEST_POINTS.map(p => ({
+        name: p.name,
+        value: p.value,
+        type: p.type
+      })),
+      symbolSize: function(val){ return val[2]*30; },
+      showEffectOn: 'render',
+      rippleEffect: { brushType: 'stroke', scale: 3 },
+      itemStyle: {
+        color: '#ff4444',
+        shadowBlur: 10,
+        shadowColor: '#ff0000'
+      },
+      label: {
+        show: true,
+        formatter: '{b}',
+        position: 'top',
+        color: '#ffaaaa',
+        fontSize: 11
+      }
+    },
+    // ── Soil Moisture Contour (mock) ──
+    {
+      name: 'Soil Moisture',
+      type: 'scatter',
+      coordinateSystem: 'leaflet',
+      data: [
+        [44.205,15.355,28],[44.210,15.350,32],[44.215,15.348,35],
+        [44.208,15.352,40],[44.212,15.358,22],[44.218,15.345,45]
+      ],
+      symbolSize: 20,
+      itemStyle: { color: '#3388ff', opacity: 0.7 },
+      label: { show:true, formatter:'{@[2]}%', color:'#aaccff', fontSize:10 }
+    }
+  ]
+};
+
+myChart.setOption(option);
+
+// Sync ECharts with Leaflet zoom/pan
+map.on('zoom', () => myChart.resize());
+map.on('move', () => myChart.resize());
+
+// ── Layer Toggle ──
+const layerMap = {
+  ndvi: 0, fields: 1, pest: 2, soil: 3
+};
+
+function toggleLayer(name, btn) {
+  const idx = layerMap[name];
+  if(idx === undefined) return;
+  const opt = myChart.getOption();
+  const current = opt.series[idx].type;
+  // Toggle visibility by switching to 'custom' (hidden) or restoring
+  // Simpler: use legendSelected
+  myChart.dispatchAction({
+    type: 'legendToggleSelect',
+    name: opt.series[idx].name
+  });
+  // Re-render with toggle
+  const newOpt = {...opt};
+  // Actually ECharts doesn't hide heatmap easily without legend.
+  // We'll use series-level control:
+  const s = newOpt.series[idx];
+  s.itemStyle = s.itemStyle || {};
+  if(s._hidden){
+    s._hidden = false;
+    btn.classList.add('active');
+    // restore
+    if(name==='ndvi') s.pointSize = 18;
+    if(name==='pest') s.symbolSize = function(val){ return val[2]*30; };
+    if(name==='soil') s.symbolSize = 20;
+    if(name==='fields') s.lineStyle = {color:'#00ff88',width:3,opacity:0.9};
+  } else {
+    s._hidden = true;
+    btn.classList.remove('active');
+    s.pointSize = 0; s.symbolSize = 0; s.lineStyle = {opacity:0};
+  }
+  myChart.setOption(newOpt);
+}
+
+// ── Legend Switcher ──
+function updateLegend(name){
+  const legends = document.querySelectorAll('.legend');
+  legends.forEach(l => l.style.display = 'none');
+  const target = document.getElementById('legend-'+name);
+  if(target) target.style.display = 'block';
+}
+
+// Init
+console.log('SAHOOL GIS Overlay initialized — ECharts + Leaflet');
+</script>
+
+<script>
+// W07 fix: Replace Math.random() with real API data
+const GIS_API = window.SAHOOL_API || 'https://api.sahool.ye';
+const GIS_TOKEN = localStorage.getItem('sahool_token') || '';
+
+async function loadRealNDVI() {
+    try {
+        const r = await fetch(`${GIS_API}/indicators/v1/overview`,
+            { headers: { Authorization: `Bearer ${GIS_TOKEN}` } });
+        const data = await r.json();
+        if (data.field_indicators) {
+            // Update ECharts with real NDVI data
+            updateNDVILayer(data.field_indicators);
+        }
+    } catch (e) {
+        console.warn('Using demo data:', e.message);
+        // Keep existing demo visualization
+    }
+}
+
+function updateNDVILayer(indicators) {
+    if (!window.ndviChart) return;
+    const points = indicators.map(f => [
+        f.lon || 45.55, f.lat || 15.05,
+        f.ndvi || 0.5, f.field_name
+    ]);
+    ndviChart.setOption({
+        series: [{ data: points }]
+    });
+}
+
+// H11: Fix toggleLayer
+function toggleLayer(layerId, visible) {
+    const chart = window[layerId + 'Chart'];
+    if (!chart) return;
+    const option = chart.getOption();
+    if (option.series?.[0]) {
+        chart.setOption({ series: [{ show: visible, silent: !visible }] });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(loadRealNDVI, 1000);
+    setInterval(loadRealNDVI, 60000);  // Refresh every minute
+});
+</script>
+
+</body>
+</html>

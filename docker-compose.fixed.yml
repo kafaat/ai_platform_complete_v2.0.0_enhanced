@@ -1,0 +1,879 @@
+# ═══════════════════════════════════════════════════════════════════
+# SAHOOL v9.1.0 — docker-compose.fixed.yml
+# إصلاح 14 خطأ حرج في البنية التحتية
+# التاريخ: 2026-05-20
+# ═══════════════════════════════════════════════════════════════════
+
+version: "3.8"
+
+# ── المتطلبات البيئية (ضعها في .env) ─────────────────────────────
+# JWT_SECRET=your-min-32-char-secret-here
+# SAHOOL_AGENT_TOKEN=your-agent-token-here
+# DATABASE_URL=postgresql://sahool_user:${DB_PASSWORD}@sahool-postgres:5432/sahool
+# REDIS_PASSWORD=your-redis-password-here
+# MINIO_ROOT_PASSWORD=your-minio-password-here
+# ODOO_PASSWORD=your-odoo-password-here
+# TELEGRAM_BOT_TOKEN=your-telegram-token-here
+# QDRANT_API_KEY=your-qdrant-api-key-here
+# SMTP_PASSWORD=your-smtp-password-here
+# SH_CLIENT_ID=your-sentinel-hub-id
+# SH_CLIENT_SECRET=your-sentinel-hub-secret
+# COPERNICUS_USER=your-copernicus-user
+# COPERNICUS_PASSWORD=your-copernicus-password
+# ═══════════════════════════════════════════════════════════════════
+
+services:
+  # ═══════════════════════════════════════════════════════════════
+  # 1. REVERSE PROXY (Nginx)
+  # ═══════════════════════════════════════════════════════════════
+  sahool-nginx:
+    image: nginx:alpine
+    container_name: sahool-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+    depends_on:
+      sahool-auth:
+        condition: service_healthy
+      sahool-supervisor-agent:
+        condition: service_healthy
+      sahool-guardrails-engine:
+        condition: service_healthy
+      sahool-vegetation-analysis:
+        condition: service_healthy
+      sahool-indicators-service:
+        condition: service_healthy
+      sahool-weather-service:
+        condition: service_healthy
+      sahool-market-mcp:
+        condition: service_healthy
+      sahool-odoo-bridge:
+        condition: service_healthy
+      sahool-local-ai-rag:
+        condition: service_healthy
+    networks:
+      - sahool-public
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 2. PostgreSQL + PostGIS (FIX: was postgres:15, now postgis)
+  # FIX-01: استبدل postgres:15 بـ postgis/postgis:15-3.4
+  # FIX-02: منفذ مكشوف 0.0.0.0 → 127.0.0.1 فقط (أو أزل ports)
+  # ═══════════════════════════════════════════════════════════════
+  sahool-postgres:
+    image: postgis/postgis:15-3.4
+    container_name: sahool-postgres
+    restart: unless-stopped
+    # منفذ مكشوف للمضيف فقط — إذا لم تحتاجه من الخارج، أزل السطر التالي
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: sahool
+      POSTGRES_USER: sahool_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sahool_user -d sahool"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ═══════════════════════════════════════════════════════════════
+  # 3. Redis (FIX: بدون كلمة سر → requirepass)
+  # FIX-03: Redis محمي بكلمة سر
+  # ═══════════════════════════════════════════════════════════════
+  sahool-redis:
+    image: redis:7-alpine
+    container_name: sahool-redis
+    restart: unless-stopped
+    # FIX: لا تكشف Redis للمضيف إلا إذا احتجت debugging
+    # ports:
+    #   - "127.0.0.1:6379:6379"
+    command: >
+      sh -c '
+        echo "requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD required}" > /usr/local/etc/redis/redis.conf &&
+        echo "maxmemory 256mb" >> /usr/local/etc/redis/redis.conf &&
+        echo "maxmemory-policy allkeys-lru" >> /usr/local/etc/redis/redis.conf &&
+        redis-server /usr/local/etc/redis/redis.conf
+      '
+    volumes:
+      - redis-data:/data
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ═══════════════════════════════════════════════════════════════
+  # 4. NATS JetStream (FIX: بدون persistence → JetStream store)
+  # FIX-04: JetStream store دائم
+  # ═══════════════════════════════════════════════════════════════
+  sahool-nats:
+    image: nats:2-alpine
+    container_name: sahool-nats
+    restart: unless-stopped
+    command: >
+      --js
+      --store_dir /data/jetstream
+      --http_port 8222
+    volumes:
+      - nats-js:/data/jetstream
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8222/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 5. MinIO (FIX: كلمة سر جذرية مكشوفة → env var)
+  # FIX-05: MINIO_ROOT_PASSWORD من .env
+  # ═══════════════════════════════════════════════════════════════
+  sahool-minio:
+    image: minio/minio:latest
+    container_name: sahool-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: sahool-admin
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 6. Qdrant (FIX: بدون API key → مُحمي)
+  # FIX-06: Qdrant API Key
+  # ═══════════════════════════════════════════════════════════════
+  sahool-qdrant:
+    image: qdrant/qdrant:latest
+    container_name: sahool-qdrant
+    restart: unless-stopped
+    # لا تكشف Qdrant للمضيف إلا إذا احتجت debugging
+    # ports:
+    #   - "127.0.0.1:6333:6333"
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?QDRANT_API_KEY required}
+    volumes:
+      - qdrant-storage:/qdrant/storage
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-H", "api-key: ${QDRANT_API_KEY}", "http://localhost:6333/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 7. Ollama (FIX: مفقود للـ RAG)
+  # FIX-07: أضف Ollama لخدمة local-ai-rag
+  # ═══════════════════════════════════════════════════════════════
+  sahool-ollama:
+    image: ollama/ollama:latest
+    container_name: sahool-ollama
+    restart: unless-stopped
+    # GPU اختياري — أزل deploy.resources إذا لم تكن بحاجة لها
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    volumes:
+      - ollama-models:/root/.ollama
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ═══════════════════════════════════════════════════════════════
+  # 8. Auth Service (FIX: JWT_SECRET فارغ → required)
+  # FIX-08: JWT_SECRET مطلوب
+  # ═══════════════════════════════════════════════════════════════
+  sahool-auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: sahool-auth
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
+      JWT_EXPIRE_MINUTES: 60
+      REFRESH_EXPIRE_DAYS: 30
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@sahool.ye}
+      FRONTEND_URL: ${FRONTEND_URL:-https://app.sahool.ye}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-redis:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 9. Supervisor Agent (FIX: SAHOOL_AGENT_TOKEN فارغ → required)
+  # FIX-09: SAHOOL_AGENT_TOKEN مطلوب
+  # ═══════════════════════════════════════════════════════════════
+  sahool-supervisor-agent:
+    build:
+      context: .
+      dockerfile: services/supervisor-agent/Dockerfile
+    container_name: sahool-supervisor-agent
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000/mcp/v1
+      MCP_WEATHER_URL: http://sahool-weather-mcp:8000/mcp/v1
+      MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
+      MCP_MARKET_URL: http://sahool-market-mcp:8000/mcp/v1
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      sahool-auth:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 10. Guardrails Engine
+  # ═══════════════════════════════════════════════════════════════
+  sahool-guardrails-engine:
+    build:
+      context: .
+      dockerfile: services/guardrails-engine/Dockerfile
+    container_name: sahool-guardrails-engine
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-redis:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 11. MCP Servers (4 خدمات — منافذ داخلية مختلفة ليست ضرورية)
+  # ═══════════════════════════════════════════════════════════════
+  sahool-sentinel-hub-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-sentinel-hub-mcp
+    restart: unless-stopped
+    environment:
+      SH_CLIENT_ID: ${SH_CLIENT_ID:?SH_CLIENT_ID required}
+      SH_CLIENT_SECRET: ${SH_CLIENT_SECRET:?SH_CLIENT_SECRET required}
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  sahool-weather-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-weather-mcp
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  sahool-wofost-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-wofost-mcp
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  sahool-market-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-market-mcp
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      ODOO_BRIDGE_URL: http://sahool-odoo-bridge:8126
+      SAHOOL_API_URL: http://sahool-auth:8000
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 12. Vegetation Analysis
+  # ═══════════════════════════════════════════════════════════════
+  sahool-vegetation-analysis:
+    build:
+      context: .
+      dockerfile: services/vegetation-analysis-service/Dockerfile
+    container_name: sahool-vegetation-analysis
+    restart: unless-stopped
+    environment:
+      NATS_URL: nats://sahool-nats:4222
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      SH_CLIENT_ID: ${SH_CLIENT_ID}
+      SH_CLIENT_SECRET: ${SH_CLIENT_SECRET}
+      COPERNICUS_USER: ${COPERNICUS_USER}
+      COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD}
+    depends_on:
+      sahool-nats:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 12b. Raster Service (الصور الجوّية + المؤشّرات + البلاطات) — port 8001
+  #      يخدم تطبيق الجوال (imagery.ts + raster.ts) عبر Element84 Earth Search
+  # ═══════════════════════════════════════════════════════════════
+  sahool-raster-service:
+    build:
+      context: .
+      dockerfile: services/raster-service/Dockerfile
+    container_name: sahool-raster-service
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      RASTER_UPLOAD_DIR: /data/rasters
+    volumes:
+      - raster-data:/data/rasters
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8001/healthz')"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 13. Indicators Service
+  # ═══════════════════════════════════════════════════════════════
+  sahool-indicators-service:
+    build:
+      context: .
+      dockerfile: services/indicators-service/Dockerfile
+    container_name: sahool-indicators-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      NATS_URL: nats://sahool-nats:4222
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-redis:
+        condition: service_healthy
+      sahool-nats:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 14. Weather Service
+  # ═══════════════════════════════════════════════════════════════
+  sahool-weather-service:
+    build:
+      context: .
+      dockerfile: services/weather-service/Dockerfile
+    container_name: sahool-weather-service
+    restart: unless-stopped
+    environment:
+      NATS_URL: nats://sahool-nats:4222
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    depends_on:
+      sahool-nats:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 15. Actuator Service
+  # ═══════════════════════════════════════════════════════════════
+  sahool-actuator-service:
+    build:
+      context: .
+      dockerfile: services/actuator-service/Dockerfile
+    container_name: sahool-actuator-service
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 16. Edge Inference (FIX: صورة عامة → build)
+  # FIX-10: build context بدل image عامة
+  # ═══════════════════════════════════════════════════════════════
+  sahool-edge:
+    build:
+      context: .
+      dockerfile: services/edge-inference/Dockerfile.arm64
+    container_name: sahool-edge
+    restart: unless-stopped
+    environment:
+      SAHOOL_CLOUD_URL: https://api.sahool.local
+      EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:-}
+      EDGE_DEVICE: ${EDGE_DEVICE:-rpi5}
+      OFFLINE_MODE: ${OFFLINE_MODE:-false}
+      SYNC_INTERVAL: ${SYNC_INTERVAL:-3600}
+      MODEL_CACHE: /models
+    volumes:
+      - edge-models:/models
+      - edge-sync:/data/sync_queue
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 17. Video Processor (FIX: ملف مقطوع → مُعلق حتى الإصلاح)
+  # FIX-11: مُعلق — أكمل services/video-processor/main.py أولاً
+  # ═══════════════════════════════════════════════════════════════
+  # sahool-video-processor:
+  #   build:
+  #     context: .
+  #     dockerfile: services/video-processor/Dockerfile
+  #   container_name: sahool-video-processor
+  #   restart: unless-stopped
+  #   environment:
+  #     MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+  #     EDGE_INFERENCE_URL: http://sahool-edge:8100
+  #     ZLMEDIA_API_URL: http://sahool-zlmediakit:8080
+  #   networks:
+  #     - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
+  # 18. Local AI RAG (FIX: Ollama URL داخل Docker)
+  # FIX-12: EMBEDDING_URL و LLM_URL يشيران إلى sahool-ollama
+  # ═══════════════════════════════════════════════════════════════
+  sahool-local-ai-rag:
+    build:
+      context: .
+      dockerfile: services/local-ai-rag/Dockerfile
+    container_name: sahool-local-ai-rag
+    restart: unless-stopped
+    environment:
+      QDRANT_HOST: sahool-qdrant
+      QDRANT_PORT: 6333
+      QDRANT_API_KEY: ${QDRANT_API_KEY}
+      EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
+      LLM_URL: http://sahool-ollama:11434/api/generate
+      EMBEDDING_MODEL: nomic-embed-text
+      LLM_MODEL: llama3.2:3b
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      sahool-qdrant:
+        condition: service_healthy
+      sahool-ollama:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 19. Qdrant Seed (FIX: restart دائم → "no")
+  # FIX-13: لا يُعاد تشغيله تلقائيًا
+  # ═══════════════════════════════════════════════════════════════
+  sahool-qdrant-seed:
+    build:
+      context: .
+      dockerfile: services/qdrant-seed/Dockerfile
+    container_name: sahool-qdrant-seed
+    restart: "no"
+    environment:
+      QDRANT_HOST: sahool-qdrant
+      QDRANT_PORT: 6333
+      QDRANT_API_KEY: ${QDRANT_API_KEY}
+      EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
+      EMBEDDING_MODEL: nomic-embed-text
+    depends_on:
+      sahool-qdrant:
+        condition: service_healthy
+      sahool-ollama:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
+  # 20. Odoo Bridge (FIX: ODOO_PASSWORD فارغ → required)
+  # FIX-14: ODOO_PASSWORD مطلوب
+  # ═══════════════════════════════════════════════════════════════
+  sahool-odoo-bridge:
+    build:
+      context: .
+      dockerfile: services/odoo-bridge/Dockerfile
+    container_name: sahool-odoo-bridge
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
+      ODOO_DB: ${ODOO_DB:-sahool}
+      ODOO_USER: ${ODOO_USER:-admin}
+      ODOO_PASSWORD: ${ODOO_PASSWORD:?ODOO_PASSWORD required}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-odoo:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8126/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 21. Odoo ERP (FIX: مفقود في unified.yml → أضفه)
+  # FIX-15: Odoo service مُضاف
+  # ═══════════════════════════════════════════════════════════════
+  sahool-odoo:
+    image: odoo:17.0
+    container_name: sahool-odoo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8069:8069"
+    environment:
+      HOST: sahool-postgres
+      USER: sahool_user
+      PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${ODOO_DB:-sahool}
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - odoo-config:/etc/odoo
+      - odoo-addons:/mnt/extra-addons
+      - odoo-filestore:/var/lib/odoo/filestore
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/login"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ═══════════════════════════════════════════════════════════════
+  # 22. Telegram Bot (FIX: TELEGRAM_BOT_TOKEN فارغ → required)
+  # FIX-16: TELEGRAM_BOT_TOKEN مطلوب
+  # ═══════════════════════════════════════════════════════════════
+  sahool-telegram-bot:
+    build:
+      context: .
+      dockerfile: bots/telegram/Dockerfile
+    container_name: sahool-telegram-bot
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN required}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET required}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      NATS_URL: nats://sahool-nats:4222
+      EDGE_INFERENCE_URL: http://sahool-edge:8100
+      SUPERVISOR_AGENT_URL: http://sahool-supervisor-agent:8000
+      SAHOOL_API_URL: http://sahool-auth:8000
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-redis:
+        condition: service_healthy
+      sahool-nats:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 23. Notification Agent
+  # ═══════════════════════════════════════════════════════════════
+  sahool-notification-agent:
+    build:
+      context: .
+      dockerfile: agents/notification/Dockerfile
+    container_name: sahool-notification-agent
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      NATS_URL: nats://sahool-nats:4222
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM: ${SMTP_FROM}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-redis:
+        condition: service_healthy
+      sahool-nats:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 24. Frontend React (FIX: npm install كـ root)
+  # FIX-17: build multi-stage مع user node
+  # ═══════════════════════════════════════════════════════════════
+  sahool-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sahool-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-https://api.sahool.ye}
+      REACT_APP_WS_URL: ${REACT_APP_WS_URL:-wss://api.sahool.ye/ws}
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
+  # 25. Prometheus + Grafana (Observability)
+  # ═══════════════════════════════════════════════════════════════
+  sahool-prometheus:
+    image: prom/prometheus:latest
+    container_name: sahool-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - sahool-internal
+
+  sahool-grafana:
+    image: grafana/grafana:latest
+    container_name: sahool-grafana
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_PASSWORD:?must be set in .env}"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
+  # 26. Jaeger (Tracing)
+  # ═══════════════════════════════════════════════════════════════
+  sahool-jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: sahool-jaeger
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:16686:16686"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    volumes:
+      - jaeger-data:/badger
+    networks:
+      - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
+  # 27. Soil Service (FIX: ملف فارغ → مُعلق)
+  # FIX-18: مُعلق حتى تُكمل services/soil-service/main.py
+  # ═══════════════════════════════════════════════════════════════
+  # sahool-soil-service:
+  #   build:
+  #     context: .
+  #     dockerfile: services/soil-service/Dockerfile
+  #   container_name: sahool-soil-service
+  #   restart: unless-stopped
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL}
+  #     NATS_URL: nats://sahool-nats:4222
+  #   networks:
+  #     - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
+  # 28. AgriAI Engine (FIX: لا يوجد كود → مُعلق)
+  # FIX-19: مُعلق حتى تُكمل services/agriai-engine/main.py
+  # ═══════════════════════════════════════════════════════════════
+  # sahool-agriai-engine:
+  #   build:
+  #     context: .
+  #     dockerfile: services/agriai-engine/Dockerfile
+  #   container_name: sahool-agriai-engine
+  #   restart: unless-stopped
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL}
+  #   networks:
+  #     - sahool-internal
+
+# ═══════════════════════════════════════════════════════════════════
+# NETWORKS
+# ═══════════════════════════════════════════════════════════════════
+networks:
+  sahool-public:
+    driver: bridge
+  sahool-internal:
+    driver: bridge
+    internal: false   # true إذا أردت عزل تام (لكن Jaeger/Prometheus تحتاج access)
+
+# ═══════════════════════════════════════════════════════════════════
+# VOLUMES (Persistent)
+# ═══════════════════════════════════════════════════════════════════
+volumes:
+  postgres-data:
+  redis-data:
+  raster-data:
+  nats-js:
+  minio-data:
+  qdrant-storage:
+  ollama-models:
+  edge-models:
+  edge-sync:
+  odoo-web-data:
+  odoo-config:
+  odoo-addons:
+  odoo-filestore:
+  prometheus-data:
+  grafana-data:
+  jaeger-data:
+  nginx-cache:

@@ -1,0 +1,49 @@
+# SAHOOL CORE crop card — Barley (الشعير)
+# REGION-AGNOSTIC. الأكثر تحمّلاً للملوحة بين الحبوب.
+crop_id: barley
+name_ar: الشعير
+name_en: Barley
+crop_family: cereal_C3
+
+kc:
+  initial: 0.30
+  mid: 1.15
+  end: 0.25
+  stage_days: [15, 25, 50, 30]
+  source: "FAO-56 Table 12 (Barley)"
+
+salinity:
+  threshold_ece_ds_m: 8.0       # الأعلى بين الحبوب (US Salinity Lab)
+  slope_pct_per_ds_m: 5.0
+  sar_max: 16.0
+  germination_ece_max: 5.0      # حسّاس أثناء الإنبات (NRCS)
+  source: "Maas & Hoffman 1977; US Salinity Lab; FAO-56 T23"
+
+thermal:
+  gdd_base_c: 0.0
+  gdd_to_maturity: 1700
+  flowering_safe_max_c: 30.0
+  chilling_hours_required: 0
+  source: "Barley agronomy; GDD base 0C"
+
+governing:
+  ph:        { min: 6.0, max: 8.5, error: 0.1, source: "ECOCROP barley" }
+  ece_ds_m:  { min: 0.0, max: 16.0, error: 0.02, source: "FAO-56 T23 (tolerant)" }
+  drainage:  { needs: any }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.5
+    optimal_min: 1.0
+    optimal_max: 2.2
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Barley OM thresholds"
+  nitrogen_kg_ha_required: 90
+  phosphorus_kg_ha_required: 40
+  potassium_kg_ha_required: 40
+
+pest_susceptibility:
+  pests: [aphids, net_blotch]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"

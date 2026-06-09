@@ -1,0 +1,40 @@
+# docker-compose.web.yml — تشغيل تطبيق الويب وحده (frontend)
+# الاستخدام:
+#   docker compose -f docker-compose.web.yml up --build
+# للإنتاج خلف الـAPI gateway، استخدم نفس شبكة sahool.
+services:
+  sahool-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # في الإنتاج المسارات نسبيّة (يوجّهها nginx proxy للـKong)
+        VITE_API_URL: "${VITE_API_URL:-/api}"
+        VITE_MOCK_MODE: "${VITE_MOCK_MODE:-false}"
+    image: sahool-web:latest
+    container_name: sahool-web
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    restart: unless-stopped
+    # موارد محدودة (نفس نمط بقيّة الخدمات)
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - sahool
+    # لو الـAPI gateway يعمل، يُربَط هنا:
+    # depends_on:
+    #   - sahool-kong
+
+networks:
+  sahool:
+    name: sahool
+    external: false

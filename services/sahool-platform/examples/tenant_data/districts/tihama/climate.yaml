@@ -1,0 +1,10 @@
+district_id: tihama
+name_ar: تهامة — ساحلي رطب
+climate_class: hot_humid_coastal
+traits: [high_humidity, fungal_pressure, coastal_salinity]
+calibration:
+  status: NOT_STARTED
+  farms_calibrated: 0
+  farms_required: 5
+  zone_factor: null
+  note: "النقيض المناخي للجوف. لم تبدأ المعايرة بعد."

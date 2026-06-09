@@ -1,0 +1,140 @@
+name: SAHOOL v9.1.0 CI
+
+on: [push, pull_request]
+
+jobs:
+  structural-lint:
+    name: Repository Structural Lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect bash glob artifacts in paths
+        run: |
+          # المراجعة الخارجيّة كشفت ١٤ مجلد بأسماء {bots, {services, {migrations,services...}
+          # كان السبب: mkdir -p '{a,b}' بدون quoting صحيح
+          # هذا الـcheck يمنع التكرار
+          set -e
+          ARTIFACTS=$(find . -name '*{*' -o -name '*}*' 2>/dev/null | grep -v node_modules | grep -v '.git/' || true)
+          if [ -n "$ARTIFACTS" ]; then
+            echo "❌ Bash glob artifacts detected (likely from unquoted mkdir):"
+            echo "$ARTIFACTS"
+            echo ""
+            echo "Fix: rm -rf the offending paths, ensure mkdir uses quotes: mkdir -p \"a/b\""
+            exit 1
+          fi
+          echo "✓ No bash glob artifacts found"
+      - name: Detect empty directories (potential scaffold leftovers)
+        run: |
+          # تحذير (ليس fatal) للـempty dirs
+          EMPTY=$(find . -type d -empty 2>/dev/null | grep -v node_modules | grep -v '.git/' | grep -v __pycache__ || true)
+          if [ -n "$EMPTY" ]; then
+            echo "⚠ Empty directories found (consider removing):"
+            echo "$EMPTY"
+          else
+            echo "✓ No empty directories"
+          fi
+
+  compose-validate:
+    name: Validate Docker Compose
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate all compose files
+        run: |
+          set -e
+          for f in docker-compose*.yml; do
+            echo "─── Validating $f ───"
+            # 1. YAML syntax
+            python3 -c "import yaml; yaml.safe_load(open('$f'))"
+            # 2. Compose schema (docker compose config)
+            docker compose -f "$f" config --quiet || {
+              echo "❌ $f failed compose schema validation"
+              exit 1
+            }
+            echo "✓ $f valid"
+          done
+      - name: Check for orphaned depends_on blocks
+        run: |
+          # Defensive: catch the "nats: { condition... }" outside services pattern
+          # that broke v9.yml previously.
+          if grep -E '^  [a-z_-]+:\s*\{ condition:' docker-compose*.yml | \
+             grep -v "depends_on" > /tmp/orphaned.txt; then
+            if [ -s /tmp/orphaned.txt ]; then
+              echo "❌ Orphaned depends_on entries detected:"
+              cat /tmp/orphaned.txt
+              exit 1
+            fi
+          fi
+          echo "✓ No orphaned depends_on entries"
+
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install ruff black isort mypy
+      - run: ruff check services/ bots/ agents/ tests_v9/
+      - run: black --check services/ bots/ agents/ tests_v9/
+      - run: isort --check-only services/ bots/ agents/ tests_v9/
+      - run: mypy services/auth/ services/guardrails-engine/ --ignore-missing-imports
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r tests_v9/requirements-test.txt
+      - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
+      # بوّابة تغطية: تفشل إن هبطت دون العتبة (توصية المراجعة).
+      # 50% عتبة واقعيّة حاليّاً (التغطية ~53%)، تُرفع تدريجيّاً للخدمات الحرجة.
+      - name: Coverage gate (fail-under)
+        run: pytest -m unit --cov=services --cov-fail-under=50 -q || (echo "التغطية دون 50% — راجع الخدمات غير المغطّاة" && exit 1)
+      - uses: codecov/codecov-action@v4
+        with: {files: coverage.xml}
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_DB: sahool_test
+          POSTGRES_USER: sahool_test
+          POSTGRES_PASSWORD: test_password
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ["6380:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r tests_v9/requirements-test.txt
+      - env:
+          TEST_DATABASE_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_REDIS_URL: redis://localhost:6380/0
+          JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
+        run: pytest -v -m integration --tb=short
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install bandit safety pytest python-jose httpx pytest-asyncio
+      - run: bandit -r services/ bots/ agents/ -ll
+      # M12 FIX: الملف اسمه requirements_real.txt — السابق (requirements.txt)
+      # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.
+      - run: pip install -r requirements_real.txt
+        continue-on-error: true
+      - run: pytest -v -m security tests_v9/test_security.py tests_v9/test_auth_service.py -k "security"

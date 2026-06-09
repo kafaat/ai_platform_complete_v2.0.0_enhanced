@@ -1,0 +1,213 @@
+# ═══════════════════════════════════════════════════════════════════
+# docker-compose.erpnext.yml — ERPNext كبديل ERP لـSAHOOL
+#
+# معماريّة Frappe الصحيحة (متعدّدة الخدمات، حسب توثيق frappe_docker):
+#   mariadb · redis-cache · redis-queue · configurator · backend ·
+#   frontend (nginx) · websocket · queue workers · scheduler · create-site
+#
+# الاستخدام:
+#   1) اضبط .env: ERPNEXT_VERSION + DB_PASSWORD (+ ERP_PROVIDER=erpnext)
+#   2) docker compose -f docker-compose.erpnext.yml --env-file .env up -d
+#   3) أوّل تشغيل: خدمة create-site تُنشئ الموقع وتثبّت erpnext (مرّة واحدة)
+#   4) بعد الإنشاء: ولّد API key/secret من واجهة ERPNext، ضعهما في .env
+#
+# يشارك شبكة sahool-internal مع النظام الرئيسي ليصله الجسر (odoo-bridge).
+# صدق: هذا الإعداد قياسي من توثيق Frappe — يحتاج اختباراً حيّاً على جهازك.
+# ═══════════════════════════════════════════════════════════════════
+
+x-erpnext-image: &erpnext_image
+  image: frappe/erpnext:${ERPNEXT_VERSION:-v15.45.5}
+
+x-backend-defaults: &backend_defaults
+  <<: *erpnext_image
+  restart: unless-stopped
+  volumes:
+    - erpnext-sites:/home/frappe/frappe-bench/sites
+    - erpnext-logs:/home/frappe/frappe-bench/logs
+  networks:
+    - sahool-internal
+
+services:
+  # ─── قاعدة البيانات (MariaDB — ERPNext يتطلّبها، ليس PostgreSQL) ───
+  erpnext-db:
+    image: mariadb:10.6
+    container_name: sahool-erpnext-db
+    restart: unless-stopped
+    mem_limit: 1g
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --skip-innodb-read-only-compressed
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ERPNEXT_DB_PASSWORD:?ERPNEXT_DB_PASSWORD required}
+    volumes:
+      - erpnext-db-data:/var/lib/mysql
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost",
+             "--password=${ERPNEXT_DB_PASSWORD}"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  # ─── Redis (cache + queue منفصلان كما يوصي Frappe) ───
+  erpnext-redis-cache:
+    image: redis:7-alpine
+    container_name: sahool-erpnext-redis-cache
+    restart: unless-stopped
+    mem_limit: 256m
+    networks:
+      - sahool-internal
+
+  erpnext-redis-queue:
+    image: redis:7-alpine
+    container_name: sahool-erpnext-redis-queue
+    restart: unless-stopped
+    mem_limit: 256m
+    networks:
+      - sahool-internal
+
+  # ─── المُهيّئ (configurator): يكتب common_site_config ثمّ يخرج ───
+  erpnext-configurator:
+    <<: *backend_defaults
+    container_name: sahool-erpnext-configurator
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        bench set-config -g db_host erpnext-db &&
+        bench set-config -gp db_port 3306 &&
+        bench set-config -g redis_cache "redis://erpnext-redis-cache:6379" &&
+        bench set-config -g redis_queue "redis://erpnext-redis-queue:6379" &&
+        bench set-config -g redis_socketio "redis://erpnext-redis-queue:6379" &&
+        bench set-config -gp socketio_port 9000
+    depends_on:
+      erpnext-db:
+        condition: service_healthy
+      erpnext-redis-cache:
+        condition: service_started
+      erpnext-redis-queue:
+        condition: service_started
+
+  # ─── إنشاء الموقع + تثبيت erpnext (مرّة واحدة عند أوّل تشغيل) ───
+  erpnext-create-site:
+    <<: *backend_defaults
+    container_name: sahool-erpnext-create-site
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        wait-for-it erpnext-db:3306 -t 120 &&
+        wait-for-it erpnext-redis-cache:6379 -t 120 &&
+        wait-for-it erpnext-redis-queue:6379 -t 120 &&
+        bench new-site ${ERPNEXT_SITE:-sahool.localhost}
+        --no-mariadb-socket
+        --admin-password=${ERPNEXT_ADMIN_PASSWORD:?ERPNEXT_ADMIN_PASSWORD required}
+        --db-root-password=${ERPNEXT_DB_PASSWORD}
+        --install-app erpnext
+        --set-default ${ERPNEXT_SITE:-sahool.localhost} || echo "Site قد يكون موجوداً مسبقاً (تخطٍّ آمن)"
+    depends_on:
+      erpnext-configurator:
+        condition: service_completed_successfully
+
+  # ─── الخادم الخلفي (Werkzeug/gunicorn) ───
+  erpnext-backend:
+    <<: *backend_defaults
+    container_name: sahool-erpnext-backend
+    mem_limit: 2g
+    depends_on:
+      erpnext-create-site:
+        condition: service_completed_successfully
+
+  # ─── الواجهة (nginx) — منفذ الوصول 8000 ───
+  erpnext-frontend:
+    <<: *erpnext_image
+    container_name: sahool-erpnext
+    restart: unless-stopped
+    mem_limit: 512m
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: erpnext-backend:8000
+      SOCKETIO: erpnext-websocket:9000
+      FRAPPE_SITE_NAME_HEADER: ${ERPNEXT_SITE:-sahool.localhost}
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: "120"
+      CLIENT_MAX_BODY_SIZE: "50m"
+    volumes:
+      - erpnext-sites:/home/frappe/frappe-bench/sites
+      - erpnext-logs:/home/frappe/frappe-bench/logs
+    ports:
+      - "127.0.0.1:8000:8080"
+    networks:
+      - sahool-internal
+    depends_on:
+      erpnext-backend:
+        condition: service_started
+      erpnext-websocket:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/method/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # ─── websocket (Socket.IO، Node) ───
+  erpnext-websocket:
+    <<: *erpnext_image
+    container_name: sahool-erpnext-websocket
+    restart: unless-stopped
+    mem_limit: 256m
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    volumes:
+      - erpnext-sites:/home/frappe/frappe-bench/sites
+      - erpnext-logs:/home/frappe/frappe-bench/logs
+    networks:
+      - sahool-internal
+    depends_on:
+      erpnext-backend:
+        condition: service_started
+
+  # ─── عمّال الطابور (queue workers) ───
+  erpnext-queue-short:
+    <<: *backend_defaults
+    container_name: sahool-erpnext-queue-short
+    mem_limit: 512m
+    command: ["bench", "worker", "--queue", "short,default"]
+    depends_on:
+      erpnext-backend:
+        condition: service_started
+
+  erpnext-queue-long:
+    <<: *backend_defaults
+    container_name: sahool-erpnext-queue-long
+    mem_limit: 512m
+    command: ["bench", "worker", "--queue", "long,default,short"]
+    depends_on:
+      erpnext-backend:
+        condition: service_started
+
+  # ─── المجدول (scheduler) ───
+  erpnext-scheduler:
+    <<: *backend_defaults
+    container_name: sahool-erpnext-scheduler
+    mem_limit: 256m
+    command: ["bench", "schedule"]
+    depends_on:
+      erpnext-backend:
+        condition: service_started
+
+volumes:
+  erpnext-db-data:
+  erpnext-sites:
+  erpnext-logs:
+
+networks:
+  sahool-internal:
+    external: true
+    name: sahool_v9_production_sahool-internal

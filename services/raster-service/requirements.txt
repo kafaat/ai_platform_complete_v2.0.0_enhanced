@@ -1,0 +1,9 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.8.2
+httpx>=0.27.0
+python-multipart>=0.0.9
+# معالجة الراستر الفعليّة (ثقيلة — تُثبّت في بيئة التشغيل):
+rasterio>=1.3.0
+numpy>=1.26.0
+redis>=5.0.0

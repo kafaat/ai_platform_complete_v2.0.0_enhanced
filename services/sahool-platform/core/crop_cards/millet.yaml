@@ -1,0 +1,49 @@
+# SAHOOL CORE crop card — Pearl Millet (الدخن)
+# REGION-AGNOSTIC. محصول يمني تقليدي، متحمّل للجفاف والحرارة.
+crop_id: millet
+name_ar: الدخن
+name_en: Pearl Millet
+crop_family: cereal_C4
+
+kc:
+  initial: 0.30
+  mid: 1.00
+  end: 0.30
+  stage_days: [15, 25, 40, 25]
+  source: "FAO-56 Table 12 (Millet)"
+
+salinity:
+  threshold_ece_ds_m: 6.5
+  slope_pct_per_ds_m: 8.4
+  sar_max: 12.0
+  germination_ece_max: 4.5
+  source: "FAO-56 T23; Maas & Hoffman 1977"
+
+thermal:
+  gdd_base_c: 10.0              # C4 محصول حارّ
+  gdd_to_maturity: 1500
+  flowering_safe_max_c: 40.0    # متحمّل للحرارة العالية
+  chilling_hours_required: 0
+  source: "Pearl millet agronomy; GDD base 10C (C4)"
+
+governing:
+  ph:        { min: 5.5, max: 8.0, error: 0.1, source: "ECOCROP millet" }
+  ece_ds_m:  { min: 0.0, max: 11.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: any }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.4
+    optimal_min: 0.8
+    optimal_max: 1.6
+    max_acceptable: 4.0
+    weight: 0.3
+    error: 0.05
+    source: "Millet OM thresholds"
+  nitrogen_kg_ha_required: 60
+  phosphorus_kg_ha_required: 30
+  potassium_kg_ha_required: 30
+
+pest_susceptibility:
+  pests: [downy_mildew, stem_borer]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"

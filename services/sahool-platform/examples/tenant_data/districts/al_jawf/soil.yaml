@@ -1,0 +1,9 @@
+# معايرة المديرية — الجوف (تربة)
+district_id: al_jawf
+prevailing_soil:
+  textures: [sandy, loam, mixed]   # Al-Jawf is NOT one soil
+  ph_range: [7.5, 8.5]             # alkaline
+  ece_range_ds_m: [3.0, 7.0]       # saline tendency
+  sar_range: [8, 15]               # sodicity risk
+  source: "districts survey — refine with farm lab data"
+note: "نطاقات سائدة استرشادية. القيم الدقيقة من تحاليل المزارع."

@@ -1,0 +1,4 @@
+season_year,zone_id,crop,variety,area_ha,planting_date,harvest_date,yield_t_ha,source,verified
+2023,Z1,wheat,sakha,51,2023-11-15,2024-04-10,2.6,weighed_harvest,true
+2024,Z1,wheat,sakha,51,2024-11-12,2025-04-08,4.5,weighed_harvest,true
+2025,Z1,wheat,sakha,51,2025-11-10,2026-04-05,6.17,weighed_harvest,true

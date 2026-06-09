@@ -1,0 +1,76 @@
+# ══════════════════════════════════════════════════════════════
+# SAHOOL — Frontend (Web) Dockerfile
+# Multi-stage: Node.js build → Nginx serve (non-root)
+# ══════════════════════════════════════════════════════════════
+
+# ── Stage 1: Build ──────────────────────────────────────────
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# ── مرآة npm صينيّة (registry محجوب/بطيء) — قابلة للتجاوز بـ--build-arg ──
+ARG NPM_REGISTRY=https://registry.npmmirror.com
+RUN npm config set registry ${NPM_REGISTRY}
+
+# تثبيت الاعتماديات أوّلاً (للاستفادة من Docker layer caching)
+# npm ci يحتاج package-lock.json؛ لو غاب نقع على npm install
+COPY package.json package-lock.json* ./
+RUN if [ -f package-lock.json ]; then \
+      npm ci --legacy-peer-deps; \
+    else \
+      echo "⚠ لا package-lock.json — نستخدم npm install" && \
+      npm install --legacy-peer-deps; \
+    fi
+
+# نسخ الكود وبناء المشروع
+COPY . .
+
+# متغيّرات البناء (تُمرَّر عبر --build-arg أو compose)
+ARG VITE_API_URL=/api
+ARG VITE_AUTH_URL=/api
+ARG VITE_INDICATORS_URL=/api
+ARG VITE_SOIL_URL=/api
+ARG VITE_VEGETATION_URL=/api
+ARG VITE_WEATHER_URL=/api
+ARG VITE_WS_URL=/ws
+ARG VITE_MOCK_MODE=false
+
+ENV VITE_API_URL=$VITE_API_URL \
+    VITE_AUTH_URL=$VITE_AUTH_URL \
+    VITE_INDICATORS_URL=$VITE_INDICATORS_URL \
+    VITE_SOIL_URL=$VITE_SOIL_URL \
+    VITE_VEGETATION_URL=$VITE_VEGETATION_URL \
+    VITE_WEATHER_URL=$VITE_WEATHER_URL \
+    VITE_WS_URL=$VITE_WS_URL \
+    VITE_MOCK_MODE=$VITE_MOCK_MODE
+
+RUN npm run build:docker
+
+# ── Stage 2: Serve (non-root nginx) ─────────────────────────
+FROM nginx:1.27-alpine
+
+# نسخ ملفّات البناء
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# إعداد Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# ── تشغيل non-root ──
+# nginx:alpine فيه مستخدم 'nginx' (uid 101). نهيّئ المجلّدات لتعمل بلا root،
+# ونستخدم منفذ 8080 (>1024 لا يحتاج صلاحيّات root).
+RUN sed -i 's/listen 80;/listen 8080;/' /etc/nginx/conf.d/default.conf \
+ && sed -i '/user  nginx;/d' /etc/nginx/nginx.conf \
+ && sed -i 's#pid        /run/nginx.pid;#pid /tmp/nginx.pid;#' /etc/nginx/nginx.conf \
+ && touch /tmp/nginx.pid \
+ && chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /tmp/nginx.pid \
+ && chmod -R g+w /var/cache/nginx
+
+USER nginx
+
+# صحّة الحاوية — endpoint مخصّص (موثوق أكثر من grep على المحتوى)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8080/healthz || exit 1
+
+EXPOSE 8080
+
+CMD ["nginx", "-g", "daemon off;"]

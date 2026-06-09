@@ -1,0 +1,112 @@
+name: sahool_app
+description: SAHOOL v9.0 — Agricultural Intelligence Platform
+
+publish_to: 'none'
+
+version: 9.0.0+900
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # UI
+  cupertino_icons: ^1.0.8
+  flutter_map: ^7.0.0
+  latlong2: ^0.9.1
+  # خرائط offline (سدّ فجوة بيئة اليمن ضعيفة الشبكة): MBTiles + PMTiles
+  flutter_map_mbtiles: ^2.0.0
+  flutter_map_pmtiles: ^1.0.0
+  mbtiles: ^0.5.0
+  path_provider: ^2.1.3
+  flutter_svg: ^2.0.10
+  shimmer: ^3.0.0
+  fl_chart: ^0.68.0
+  cached_network_image: ^3.3.1
+  image_picker: ^1.1.2
+  photo_view: ^0.15.0
+
+  # State Management
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+
+  # Networking
+  dio: ^5.4.3
+  json_annotation: ^4.9.0
+  web_socket_channel: ^2.4.5
+  connectivity_plus: ^6.0.3
+
+  # Storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.2.3
+
+  # Maps & Location
+  geolocator: ^12.0.0
+  geocoding: ^3.0.0
+
+  # Notifications
+  flutter_local_notifications: ^17.2.1
+  # NOTE: requires google-services.json (Android) + GoogleService-Info.plist (iOS)
+  # Download from Firebase Console before building
+  firebase_messaging: ^15.0.2
+
+  # Utilities
+  intl: ^0.19.0
+  logger: ^2.3.0
+  package_info_plus: ^8.0.0
+  device_info_plus: ^10.1.0
+  permission_handler: ^11.3.1
+  url_launcher: ^6.3.0
+  share_plus: ^9.0.0
+
+  # Arabic/RTL
+
+  # Charts
+
+  # AI/ML (Edge)
+  image: ^4.2.0
+
+  # QR/Barcode
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.1.1
+
+dependency_overrides:
+  # Resolve conflicts if any
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/fonts/
+    - assets/models/
+
+  fonts:
+    - family: Cairo
+      fonts:
+        - asset: assets/fonts/Cairo-Regular.ttf
+        - asset: assets/fonts/Cairo-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Cairo-Light.ttf
+          weight: 300
+    - family: Tajawal
+      fonts:
+        - asset: assets/fonts/Tajawal-Regular.ttf
+        - asset: assets/fonts/Tajawal-Bold.ttf
+          weight: 700
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.0
+  json_serializable: ^6.8.0
+  very_good_analysis: ^6.0.0
+  mockito: ^5.4.4

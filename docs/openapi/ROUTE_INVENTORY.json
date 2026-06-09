@@ -1,0 +1,195 @@
+{
+  "actuator-service": {
+    "routes": [
+      "POST /command",
+      "GET /commands",
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz"
+    ],
+    "routers": 0
+  },
+  "agriai-engine": {
+    "routes": [
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz",
+      "GET /metrics",
+      "POST /recommend"
+    ],
+    "routers": 0
+  },
+  "auth": {
+    "routes": [
+      "POST /auth/register",
+      "POST /auth/login",
+      "POST /auth/refresh",
+      "POST /auth/logout",
+      "POST /auth/password-reset/request",
+      "POST /auth/password-reset/confirm",
+      "POST /auth/change-password",
+      "GET /auth/verify",
+      "GET /auth/me",
+      "GET /auth/users",
+      "PATCH /auth/users/{user_id}/role",
+      "PATCH /auth/users/{user_id}/deactivate",
+      "GET /metrics",
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz"
+    ],
+    "routers": 0
+  },
+  "edge-inference": {
+    "routes": [
+      "GET /healthz",
+      "POST /inference/pest-detect",
+      "POST /inference/yield-estimate",
+      "POST /sync/trigger",
+      "GET /readyz"
+    ],
+    "routers": 0
+  },
+  "guardrails-engine": {
+    "routes": [
+      "POST /validate",
+      "POST /approve/{workflow_id}",
+      "GET /workflow/{workflow_id}",
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz",
+      "GET /metrics"
+    ],
+    "routers": 0
+  },
+  "local-ai-rag": {
+    "routes": [
+      "POST /query",
+      "POST /ingest",
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz"
+    ],
+    "routers": 0
+  },
+  "odoo-bridge": {
+    "routes": [
+      "GET /healthz",
+      "GET /health",
+      "GET /erp/provider",
+      "GET /config",
+      "POST /sync",
+      "POST /webhook/odoo",
+      "GET /logs",
+      "GET /products",
+      "GET /suppliers",
+      "GET /readyz"
+    ],
+    "routers": 0
+  },
+  "raster-service": {
+    "routes": [
+      "GET /imagery/search/recent",
+      "GET /imagery/search/season",
+      "GET /imagery/best",
+      "POST /imagery/search",
+      "GET /imagery/timeseries",
+      "POST /imagery/timeseries/analyze",
+      "POST /zones/classify",
+      "GET /imagery/search/radar",
+      "GET /imagery/search/landsat",
+      "GET /imagery/dem",
+      "POST /terrain/slope",
+      "GET /healthz",
+      "GET /metrics",
+      "GET /readyz",
+      "POST /upload/raster",
+      "POST /upload/drone",
+      "POST /process",
+      "POST /process/batch",
+      "GET /jobs/{job_id}",
+      "GET /jobs/{job_id}/result",
+      "GET /info/{layer_id}",
+      "GET /tiles/{layer_id}/{z}/{x}/{y}.png",
+      "GET /cog/validate",
+      "POST /imagery/timeseries/parallel",
+      "GET /storage/stats",
+      "POST /storage/cleanup",
+      "GET /offline/packs",
+      "GET /offline/packs/{pack_name}",
+      "GET /layers/{layer_id}/tilejson",
+      "POST /salinity/classify",
+      "POST /salinity/calibrate"
+    ],
+    "routers": 0
+  },
+  "soil-service": {
+    "routes": [
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz",
+      "GET /metrics",
+      "GET /soil/readings/{field_id}",
+      "POST /soil/ingest"
+    ],
+    "routers": 0
+  },
+  "supervisor-agent": {
+    "routes": [
+      "POST /agent/query",
+      "POST /agent/optimize",
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz",
+      "GET /agent/tools",
+      "GET /agent/journal/{invocation_id}",
+      "GET /agent/actuator-audit"
+    ],
+    "routers": 0
+  },
+  "tts-service": {
+    "routes": [
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz",
+      "GET /metrics",
+      "GET /tts/voices",
+      "POST /tts/synthesize",
+      "POST /tts/stream"
+    ],
+    "routers": 0
+  },
+  "vegetation-analysis-service": {
+    "routes": [
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz",
+      "GET /metrics",
+      "GET /v1/analyze",
+      "GET /v1/timeseries/{field_id}"
+    ],
+    "routers": 0
+  },
+  "video-processor": {
+    "routes": [
+      "POST /streams",
+      "DELETE /streams/{stream_id}",
+      "GET /streams/{stream_id}",
+      "GET /streams",
+      "POST /streams/{stream_id}/snapshot",
+      "GET /healthz",
+      "GET /health",
+      "GET /readyz"
+    ],
+    "routers": 0
+  },
+  "weather-service": {
+    "routes": [
+      "GET /healthz",
+      "GET /readyz",
+      "GET /",
+      "GET /weather/{path:path}"
+    ],
+    "routers": 0
+  }
+}

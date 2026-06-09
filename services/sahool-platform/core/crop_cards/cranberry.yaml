@@ -1,0 +1,56 @@
+# SAHOOL crop card — Cranberry (التوت البري)
+# The COUNTER-EXAMPLE: the system must say "N — not suitable" for Al-Jawf
+# with documented reasons (acidic soil, salt-sensitive, needs chilling, humid).
+crop_id: cranberry
+name_ar: التوت البري
+name_en: Cranberry
+crop_family: ericaceous_berry
+
+kc:
+  initial: 0.50
+  mid: 1.00
+  end: 0.85
+  stage_days: [30, 40, 60, 30]
+  source: "FAO-56 analogous berry values (approximate)"
+
+salinity:
+  threshold_ece_ds_m: 1.0        # VERY salt-sensitive
+  slope_pct_per_ds_m: 18.0
+  sar_max: 3.0
+  source: "Ericaceous crops salt sensitivity literature"
+
+thermal:
+  gdd_base_c: 7.0
+  gdd_to_maturity: 2500
+  flowering_safe_max_c: 28.0
+  chilling_hours_required: 800   # NEEDS 800-1200 h cold (vernalization)
+  source: "Cranberry/blueberry chilling requirement (Vaccinium)"
+
+# ── Governing factors that FAIL in Al-Jawf ───────────────────
+governing:
+  # Al-Jawf soil is alkaline (pH ~7.5-8.5); cranberry needs ACIDIC 4.0-5.5
+  ph:        { min: 4.0, max: 6.0, error: 0.1,  source: "Vaccinium req. acidic" }
+  # Al-Jawf groundwater often saline; cranberry threshold is 1-2 dS/m
+  ece_ds_m:  { min: 0.0, max: 2.0, error: 0.02, source: "salt-sensitive" }
+  drainage:  { needs: high }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 3.0          # needs HIGH organic peat-like soil
+    optimal_min: 5.0
+    optimal_max: 10.0
+    max_acceptable: 20.0
+    weight: 0.4
+    error: 0.05
+    source: "Cranberry peat/bog requirement"
+  nitrogen_kg_ha_required: 50
+
+pest_risk: {}
+
+# COUNTER-EXAMPLE NOTE (region-agnostic):
+# This card exists to PROVE the engine rejects unsuitable crops.
+# In hot, arid, alkaline, saline, no-chill environments the gate
+# funnel must return N (not suitable) with documented reasons:
+# alkaline pH vs required acidic, salt-sensitive, needs chilling hours,
+# needs humid climate. The WHERE (which district) is decided in
+# districts/ — never here. The card only carries the physiology.

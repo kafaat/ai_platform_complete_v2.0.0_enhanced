@@ -1,0 +1,73 @@
+# ════════════════════════════════════════════════════════════════
+# قالب بطاقة محصول SAHOOL — TEMPLATE
+# ════════════════════════════════════════════════════════════════
+# انسخ هذا القالب لإضافة محصول جديد. كل حقل موثّق بمصدره.
+#
+# مبدأ حاكم: البطاقة محايدة الموقع تماماً (REGION-AGNOSTIC).
+#   • فيزياء وفسيولوجيا المحصول فقط — لا تعرف مزرعة ولا مديرية.
+#   • لا معايرة (zone_factor)، لا إنتاج متوقّع، لا أرقام محلّية.
+#   • المعايرة والإنتاج مخرجات تعيش في districts/ و tenants/ — لا هنا.
+#
+# مصادر البيانات الموثوقة (قرينة معرفية — تُقترن بتحليل الحقل للحسم):
+#   • FAO-56 (Kc, ET): fao.org/4/x0490e/x0490e00.htm
+#   • Maas-Hoffman / FAO-56 T23 (الملوحة): عتبات EC لكل محصول
+#   • ECOCROP (FAO): متطلّبات pH/حرارة/أمطار — gaez.fao.org/pages/ecocrop
+#   • مصادر يمنية: NGRC/AREA (هيئة البحوث الزراعية، ذمار) — أصناف محلّية
+#   • جنوب السعودية (عسير/ظهران الجنوب): نفس البيئة الزراعية، تقاويم نجمية
+# ════════════════════════════════════════════════════════════════
+
+crop_id: <معرّف_إنجليزي_فريد>          # مثل: wheat
+name_ar: <الاسم بالعربية>              # مثل: القمح
+name_en: <English name>                # مثل: Wheat
+crop_family: <العائلة>                 # مثل: cereal_C3 / cereal_C4 / legume / tree
+
+# ── معاملات المحصول المائية (FAO-56) ──
+kc:
+  initial: 0.00      # Kc مرحلة البداية (إنبات)
+  mid: 0.00          # Kc منتصف الموسم (الذروة)
+  end: 0.00          # Kc نهاية الموسم (نضج)
+  stage_days: [0, 0, 0, 0]   # أيام كل مرحلة [بداية, نمو, منتصف, نهاية]
+  source: "FAO-56 Table 11/12 (<المحصول>)"
+
+# ── تحمّل الملوحة (Maas-Hoffman — حاكم S3، يتطلّب EC مخبري للحسم) ──
+salinity:
+  threshold_ece_ds_m: 0.0    # عتبة EC التي يبدأ بعدها الإنتاج بالانخفاض (dS/m)
+  slope_pct_per_ds_m: 0.0    # نسبة انخفاض الإنتاج لكل وحدة EC فوق العتبة
+  sar_max: 0.0               # أقصى نسبة امتصاص صوديوم
+  germination_ece_max: 0.0   # عتبة الإنبات (أقل من العتبة العامة — مرحلة حسّاسة!)
+  source: "FAO-56 Table 23; Maas & Hoffman 1977"
+
+# ── المتطلّبات الحرارية ──
+thermal:
+  gdd_base_c: 0.0            # حرارة الأساس لحساب GDD
+  gdd_to_maturity: 0         # وحدات حرارية للنضج
+  flowering_safe_max_c: 0.0  # أقصى حرارة آمنة للإزهار
+  chilling_hours_required: 0 # ساعات البرودة المطلوبة (للأشجار)
+  source: "<مصدر agronomy>"
+
+# ── العوامل الحاكمة (تتطلّب أدلّة مخبرية للحسم) ──
+governing:
+  ph:        { min: 0.0, max: 0.0, error: 0.1, source: "ECOCROP / FAO crop req." }
+  ece_ds_m:  { min: 0.0, max: 0.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: any }   # any / good / well_drained
+
+# ── العوامل المُعدِّلة (ترجّح، لا تحكم) ──
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.0
+    optimal_min: 0.0
+    optimal_max: 0.0
+    max_acceptable: 0.0
+    weight: 0.3
+    error: 0.05
+    source: "<مصدر>"
+  nitrogen_kg_ha_required: 0
+  phosphorus_kg_ha_required: 0
+  potassium_kg_ha_required: 0
+
+# ── القابلية للآفات (نوافذ الخطر المحلّية في districts/) ──
+pest_susceptibility:
+  pests: []
+  note: "نوافذ الخطر الإقليمية تعيش في districts/<region>/pests.yaml"
+
+# ملاحظة: لا كتلة معايرة، لا إنتاج، لا zone_factor. تلك مخرجات districts/tenant.

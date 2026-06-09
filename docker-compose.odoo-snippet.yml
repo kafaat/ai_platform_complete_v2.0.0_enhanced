@@ -1,0 +1,31 @@
+  # ── Odoo Bridge (NEW v9.1) ─────────────────────────────────
+  odoo-bridge:
+    build:
+      context: .
+      dockerfile: services/odoo-bridge/Dockerfile
+    container_name: sahool-odoo-bridge
+    restart: unless-stopped
+    ports: ["8126:8000"]
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@sahool-postgis:5432/sahool"
+      ODOO_URL: "${ODOO_URL:-http://odoo:8069}"
+      ODOO_DB: "${ODOO_DB:-sahool_erp}"
+      ODOO_USER: "${ODOO_USER:-admin}"
+      ODOO_PASSWORD: "${ODOO_PASSWORD:?must be set in .env}"
+      ODOO_API_KEY: "${ODOO_API_KEY}"
+      SAHOOL_API_URL: "http://sahool-auth:8000"
+      SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN}"
+      SYNC_INTERVAL_SEC: "300"
+      WEBHOOK_SECRET: "${WEBHOOK_SECRET}"
+    depends_on:
+      postgis: { condition: service_healthy }
+      auth-service: { condition: service_healthy }
+    networks: [sahool-net]
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "3" }
+    healthcheck:
+      test: ["CMD", "curl", "-qO-", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

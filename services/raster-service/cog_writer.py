@@ -1,0 +1,103 @@
+"""
+cog_writer.py — كتابة Cloud-Optimized GeoTIFF محسّنة (تحسين تخزين القلب).
+
+الممارسة العالميّة لـCOG جيّد: مبلّط داخليّاً + أهرامات (overviews) داخل
+الملفّ + ضغط. هذا يقلّل الحجم بشدّة ويسرّع القراءة الجزئيّة (windowed) التي
+يعتمد عليها TiTiler/MapLibre. بلا تحسين، COG "يفتح لكن يتصرّف كقرص بطيء".
+
+إعدادات مختارة وفق توصيات COG:
+  - ضغط DEFLATE (بلا فقد، جيّد للمؤشّرات float) أو ZSTD إن توفّر
+  - PREDICTOR=2/3 (يحسّن الضغط للبيانات المتدرّجة)
+  - بلاطات داخليّة 512×512
+  - أهرامات (overviews) داخل الملفّ (2,4,8,16) بإعادة عيّنة average
+
+⚠ يتطلّب rasterio في بيئة التشغيل. عند غيابه، يُبلّغ بصدق.
+"""
+from __future__ import annotations
+
+import os
+from typing import Optional
+
+
+# إعدادات COG محسّنة (وفق أفضل الممارسات)
+COG_PROFILE = {
+    "driver": "GTiff",
+    "dtype": "float32",
+    "compress": "DEFLATE",      # بلا فقد — مهمّ للمؤشّرات (NDVI دقيق)
+    "predictor": 3,             # 3 للعائم (floating point) — يحسّن الضغط
+    "tiled": True,
+    "blockxsize": 512,
+    "blockysize": 512,
+    "BIGTIFF": "IF_SAFER",
+}
+
+OVERVIEW_LEVELS = [2, 4, 8, 16]
+
+
+def write_cog(
+    array,
+    output_path: str,
+    transform,
+    crs: str = "EPSG:4326",
+    nodata: float = float("nan"),
+) -> dict:
+    """يكتب مصفوفة مؤشّر كـCOG محسّن (ضغط + بلاطات + أهرامات داخليّة).
+
+    يُرجِع {written, path, size_bytes, compression, overviews}. صدق: يكتب
+    فعليّاً عند توفّر rasterio؛ وإلّا يُبلّغ بأنّه غير متاح (لا يدّعي كتابة).
+    """
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.enums import Resampling
+    except ImportError:
+        return {"written": False, "reason": "rasterio غير متوفّر — يُكتب في التشغيل"}
+
+    h, w = array.shape
+    profile = {
+        **COG_PROFILE,
+        "height": h,
+        "width": w,
+        "count": 1,
+        "crs": crs,
+        "transform": transform,
+        "nodata": nodata,
+    }
+
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with rasterio.open(output_path, "w", **profile) as dst:
+        dst.write(array.astype("float32"), 1)
+        # أهرامات داخليّة (overviews) — قراءة سريعة عند التكبير/التصغير
+        dst.build_overviews(OVERVIEW_LEVELS, Resampling.average)
+        dst.update_tags(ns="rio_overview", resampling="average")
+
+    size = os.path.getsize(output_path)
+    return {
+        "written": True,
+        "path": output_path,
+        "size_bytes": size,
+        "size_mb": round(size / 1e6, 2),
+        "compression": "DEFLATE+predictor3",
+        "overviews": OVERVIEW_LEVELS,
+        "block_size": "512x512",
+    }
+
+
+def validate_cog(path: str) -> dict:
+    """يتحقّق أنّ ملفّاً COG صالح (مبلّط + له أهرامات). للتدقيق بعد الكتابة."""
+    try:
+        import rasterio
+    except ImportError:
+        return {"valid": None, "reason": "rasterio غير متوفّر"}
+    if not os.path.exists(path):
+        return {"valid": False, "reason": "الملفّ غير موجود"}
+    with rasterio.open(path) as src:
+        is_tiled = src.profile.get("tiled", False)
+        has_overviews = len(src.overviews(1)) > 0
+        return {
+            "valid": bool(is_tiled and has_overviews),
+            "tiled": is_tiled,
+            "overviews": src.overviews(1),
+            "compression": str(src.profile.get("compress", "none")),
+            "note": "COG جيّد = مبلّط + أهرامات داخليّة (قراءة جزئيّة سريعة)",
+        }

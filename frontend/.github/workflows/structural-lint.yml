@@ -1,0 +1,15 @@
+name: Structural Lint
+on: [push, pull_request]
+jobs:
+  no-bash-artifacts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect bash glob artifacts
+        run: |
+          # يمنع تكرار مجلّدات مثل {src أو {a,b} من mkdir بلا quoting
+          ART=$(find . -name '*{*' -o -name '*}*' 2>/dev/null | grep -v node_modules | grep -v '.git/' || true)
+          if [ -n "$ART" ]; then
+            echo "❌ Bash glob artifacts detected:"; echo "$ART"; exit 1
+          fi
+          echo "✓ نظيف من artifacts"

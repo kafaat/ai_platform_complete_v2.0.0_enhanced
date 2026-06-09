@@ -1,0 +1,650 @@
+"""
+SAHOOL v9.1 — services/auth/main.py (المُحسَّن)
+═════════════════════════════════════════════════════════════════
+التحسينات الجديدة:
+  ✅ Refresh Tokens (Redis-backed, 30 يوم)
+  ✅ jti claim + JWT Blacklist (إبطال فردي)
+  ✅ Password Reset عبر البريد الإلكتروني
+  ✅ Account Lockout (5 محاولات → 15 دقيقة)
+  ✅ X-Tenant-ID header في كل responses
+  ✅ Logout endpoint (يُبطل access + refresh)
+  ✅ RBAC roles: admin / expert / farmer / viewer
+  ✅ audit_log table for sensitive operations
+"""
+from __future__ import annotations
+
+import logging
+import os
+import secrets
+from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Literal, Optional
+from uuid import uuid4
+
+import asyncpg
+import bcrypt
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from starlette.responses import Response
+
+# تسجيل منظّم موحّد (JSON) — يهرّب الاقتباسات/العربي صحيحاً (لا JSON مكسور).
+# fallback آمن لو لم تتوفّر الحزمة المشتركة (لا يكسر الخدمة).
+try:
+    from shared.logging_config import setup_logging
+    logger = setup_logging("auth")
+except ImportError:
+    logging.basicConfig(level=logging.INFO,
+        format='{"time":"%(asctime)s","svc":"auth","level":"%(levelname)s","msg":"%(message)s"}')
+    logger = logging.getLogger("auth")
+
+# ── Config ─────────────────────────────────────────────────────
+JWT_SECRET          = os.getenv("JWT_SECRET", "")
+# RS256 (غير متماثل) لإنهاء shared trust domain: auth يوقّع بالمفتاح الخاصّ،
+# الخدمات تتحقّق بالمفتاح العامّ (آمن للتوزيع). fallback لـHS256 لو لم تُضبط
+# المفاتيح بعد (ترحيل آمن بلا flag-day). المفاتيح عبر env (PEM).
+JWT_PRIVATE_KEY     = os.getenv("JWT_PRIVATE_KEY", "")   # PEM (auth فقط)
+JWT_PUBLIC_KEY      = os.getenv("JWT_PUBLIC_KEY", "")    # PEM (للتحقّق)
+JWT_ALGORITHM       = "RS256" if JWT_PRIVATE_KEY else "HS256"
+JWT_SIGNING_KEY     = JWT_PRIVATE_KEY if JWT_PRIVATE_KEY else JWT_SECRET
+JWT_VERIFY_KEY      = JWT_PUBLIC_KEY if JWT_PUBLIC_KEY else JWT_SECRET
+JWT_EXPIRE_MINUTES  = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))      # 1 hour
+REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))     # 30 days
+DATABASE_URL        = os.getenv("DATABASE_URL", "")
+REDIS_URL           = os.getenv("REDIS_URL", "redis://sahool-redis:6379/0")
+CORS_ORIGINS        = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+SMTP_HOST           = os.getenv("SMTP_HOST", "")
+SMTP_PORT           = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER           = os.getenv("SMTP_USER", "")
+SMTP_PASS           = os.getenv("SMTP_PASSWORD", "")
+SMTP_FROM           = os.getenv("SMTP_FROM", "noreply@sahool.ye")
+BCRYPT_ROUNDS       = 12
+MAX_LOGIN_ATTEMPTS  = 5
+LOCKOUT_MINUTES     = 15
+
+# ── Prometheus ─────────────────────────────────────────────────
+LOGIN_COUNTER   = Counter("sahool_auth_logins_total",   "Login attempts", ["status"])
+REGISTER_COUNTER= Counter("sahool_auth_register_total", "Registration attempts", ["status"])
+RESET_COUNTER   = Counter("sahool_auth_resets_total",   "Password reset requests")
+
+# ── DB + Redis ─────────────────────────────────────────────────
+_pool: Optional[asyncpg.Pool] = None
+_redis = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _pool, _redis
+    # fail-closed: إمّا مفتاحا RS256 (موصى به) أو سرّ HS256 صالح (≥32 حرف)
+    if JWT_PRIVATE_KEY:
+        if not JWT_PUBLIC_KEY:
+            raise RuntimeError("JWT_PRIVATE_KEY مضبوط بلا JWT_PUBLIC_KEY — كلاهما مطلوب لـRS256")
+        # RS256 مفعّل — لا حاجة لـJWT_SECRET
+    else:
+        # وضع HS256 (fallback) — يتطلّب سرّاً قويّاً
+        if not JWT_SECRET:
+            raise RuntimeError("لا JWT_PRIVATE_KEY (RS256) ولا JWT_SECRET (HS256) — المصادقة معطّلة بأمان")
+        if len(JWT_SECRET) < 32:
+            # P3-2: فرض الطول — سرّ قصير = أمان ضعيف، نفشل بأمان
+            raise RuntimeError("JWT_SECRET too short — يجب ألّا يقلّ عن 32 حرفاً")
+
+    _pool = await asyncpg.create_pool(
+        DATABASE_URL, min_size=2, max_size=10,
+        server_settings={"statement_cache_size": "0"},
+    )
+    try:
+        import redis.asyncio as aioredis
+        _redis = aioredis.from_url(REDIS_URL, encoding="utf-8", decode_responses=True)
+        await _redis.ping()
+        logger.info("✅ Redis connected")
+    except Exception as e:
+        logger.warning(f"Redis unavailable: {e} — refresh tokens disabled")
+        _redis = None
+
+    await _ensure_admin_user()
+    logger.info("✅ auth-service started")
+    yield
+    if _pool: await _pool.close()
+    if _redis: await _redis.close()
+
+
+app = FastAPI(title="SAHOOL Auth Service", version="9.1.0", lifespan=lifespan)
+app.add_middleware(CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_methods=["GET","POST","PUT","PATCH","DELETE","OPTIONS"],
+    allow_headers=["Authorization","Content-Type","X-Tenant-ID"],
+    expose_headers=["X-Tenant-ID"],
+    allow_credentials=True,
+)
+
+# ── Middleware: add X-Tenant-ID to responses ──────────────────
+@app.middleware("http")
+async def tenant_header_middleware(request: Request, call_next):
+    response = await call_next(request)
+    # Extract tenant from JWT if present
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        try:
+            payload = jwt.decode(auth[7:], JWT_VERIFY_KEY, algorithms=[JWT_ALGORITHM])
+            response.headers["X-Tenant-ID"] = payload.get("tenant_id", "")
+        except Exception as e:  # noqa: BLE001
+            # توكن غير صالح/منتهٍ — لا نضيف رأس tenant (سلوك مقصود، نسجّل للتتبّع)
+            logger.debug("تعذّر استخراج tenant من التوكن: %s", type(e).__name__)
+    return response
+
+
+# ── Models ─────────────────────────────────────────────────────
+ValidRole = Literal["admin", "expert", "farmer", "viewer"]
+
+class RegisterRequest(BaseModel):
+    email:     EmailStr
+    password:  str = Field(min_length=8, max_length=128)
+    full_name: str = Field(min_length=2, max_length=100)
+    # ملاحظة أمنيّة: لا حقل role هنا عمداً. التسجيل يُنشئ 'farmer' دائماً.
+    # الترقية عبر /auth/users/{id}/role المحمي فقط (منع تصعيد الصلاحيات).
+
+    @field_validator("password")
+    @classmethod
+    def strong_password(cls, v: str) -> str:
+        if not any(c.isupper() for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
+        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على رمز خاص")
+        return v
+
+class LoginRequest(BaseModel):
+    email:    EmailStr
+    password: str
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+class PasswordResetConfirm(BaseModel):
+    token:        str
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def strong_password(cls, v: str) -> str:
+        if not any(c.isupper() for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
+        return v
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password:     str = Field(min_length=8, max_length=128)
+
+class TokenResponse(BaseModel):
+    access_token:  str
+    refresh_token: Optional[str] = None
+    token_type:    str = "bearer"
+    expires_in:    int   # seconds
+    user_id:       int
+    role:          str
+    full_name:     str
+    tenant_id:     str
+
+
+# ── JWT Helpers ────────────────────────────────────────────────
+def create_access_token(user_id: int, email: str, role: str,
+                         full_name: str, tenant_id: str) -> tuple[str, str]:
+    """Returns (token, jti)"""
+    now = datetime.now(timezone.utc)
+    jti = str(uuid4())
+    payload = {
+        "sub":       str(user_id),
+        "email":     email,
+        "role":      role,
+        "full_name": full_name,
+        "tenant_id": tenant_id,
+        "jti":       jti,                                    # ✅ JWT ID for revocation
+        "iss":       "sahool-auth",                          # ✅ issuer
+        "aud":       "sahool",                               # ✅ audience
+        "nbf":       int(now.timestamp()),                   # ✅ not before
+        "iat":       int(now.timestamp()),
+        "exp":       int((now + timedelta(minutes=JWT_EXPIRE_MINUTES)).timestamp()),
+    }
+    return jwt.encode(payload, JWT_SIGNING_KEY, algorithm=JWT_ALGORITHM), jti
+
+async def create_refresh_token(user_id: int, tenant_id: str) -> Optional[str]:
+    """Create refresh token stored in Redis. Returns None if Redis unavailable."""
+    if not _redis:
+        return None
+    token = secrets.token_urlsafe(48)
+    key   = f"sahool:refresh:{token}"
+    await _redis.setex(key, REFRESH_EXPIRE_DAYS * 86400, f"{user_id}:{tenant_id}")
+    return token
+
+async def revoke_jti(jti: str, exp: int) -> None:
+    """Add JTI to blacklist in Redis until it expires."""
+    if not _redis:
+        return
+    ttl = max(0, exp - int(datetime.now(timezone.utc).timestamp()))
+    await _redis.setex(f"sahool:jti:revoked:{jti}", ttl, "1")
+
+async def is_jti_revoked(jti: str) -> bool:
+    if not _redis:
+        return False
+    return await _redis.exists(f"sahool:jti:revoked:{jti}") > 0
+
+async def revoke_refresh_token(token: str) -> None:
+    if _redis:
+        await _redis.delete(f"sahool:refresh:{token}")
+
+# ── Security ───────────────────────────────────────────────────
+security = HTTPBearer(auto_error=False)
+
+async def get_current_user(
+    credentials: Annotated[Optional[HTTPAuthorizationCredentials], Depends(security)]
+) -> dict:
+    if not credentials:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No token")
+    try:
+        payload = jwt.decode(
+            credentials.credentials, JWT_VERIFY_KEY,
+            algorithms=[JWT_ALGORITHM],
+            audience="sahool",
+        )
+    except JWTError as e:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {e}")
+
+    jti = payload.get("jti")
+    if jti and await is_jti_revoked(jti):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
+    return payload
+
+def require_role(*roles: str):
+    async def _check(user: dict = Depends(get_current_user)):
+        if user.get("role") not in roles:
+            raise HTTPException(status.HTTP_403_FORBIDDEN,
+                                f"مطلوب أحد الأدوار: {', '.join(roles)}")
+        return user
+    return _check
+
+# ── Account Lockout (Redis-backed) ────────────────────────────
+async def check_lockout(email: str) -> None:
+    """Raise 429 if account is locked."""
+    if not _redis:
+        return
+    key = f"sahool:lockout:{email}"
+    if await _redis.exists(key):
+        ttl = await _redis.ttl(key)
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS,
+                            f"الحساب مقفل {ttl//60} دقيقة — حاول لاحقاً")
+
+async def record_failed_login(email: str) -> int:
+    """Record failed attempt. Returns total attempts."""
+    if not _redis:
+        return 0
+    key   = f"sahool:attempts:{email}"
+    count = await _redis.incr(key)
+    await _redis.expire(key, LOCKOUT_MINUTES * 60)
+    if count >= MAX_LOGIN_ATTEMPTS:
+        await _redis.setex(f"sahool:lockout:{email}", LOCKOUT_MINUTES * 60, "1")
+        await _redis.delete(key)
+        logger.warning(f"Account locked: {email} after {count} attempts")
+    return count
+
+async def clear_failed_logins(email: str) -> None:
+    if _redis:
+        await _redis.delete(f"sahool:attempts:{email}")
+        await _redis.delete(f"sahool:lockout:{email}")
+
+# ── IP Rate Limiting ───────────────────────────────────────────
+async def check_ip_rate(ip: str) -> None:
+    if not _redis:
+        return
+    key   = f"sahool:ip_rate:{ip}"
+    count = await _redis.incr(key)
+    if count == 1:
+        await _redis.expire(key, 60)
+    if count > 20:  # 20 requests/minute per IP
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "طلبات كثيرة")
+
+# ── Audit Log ─────────────────────────────────────────────────
+async def audit_log(action: str, user_id: Optional[int], ip: str,
+                     details: Optional[str] = None) -> None:
+    if not _pool:
+        return
+    try:
+        async with _pool.acquire() as conn:
+            await conn.execute("""
+                INSERT INTO audit_log (action, user_id, ip_address, details, created_at)
+                VALUES ($1, $2, $3, $4, NOW())
+                -- HIGH-01 FIX: removed  (no UNIQUE constraint on audit_log)
+            """, action, user_id, ip, details)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("فشل كتابة سجلّ التدقيق (غير قاتل): %s", type(e).__name__)
+
+# ── Password Reset Helpers ─────────────────────────────────────
+async def send_reset_email(email: str, token: str) -> bool:
+    """Send password reset email via SMTP."""
+    if not SMTP_HOST or not SMTP_USER:
+        logger.warning("SMTP not configured — cannot send reset email")
+        return False
+    try:
+        import aiosmtplib
+        from email.mime.text import MIMEText
+        reset_url = f"{os.getenv('FRONTEND_URL','https://app.sahool.ye')}/reset-password?token={token}"
+        body = f"""
+مرحباً،
+
+طلبت إعادة تعيين كلمة المرور لحساب SAHOOL المرتبط بـ {email}.
+
+رابط إعادة التعيين (صالح 30 دقيقة):
+{reset_url}
+
+إذا لم تطلب ذلك، تجاهل هذا البريد.
+
+فريق SAHOOL — منصة الزراعة الذكية اليمنية
+"""
+        msg = MIMEText(body, "plain", "utf-8")
+        msg["Subject"] = "SAHOOL — إعادة تعيين كلمة المرور"
+        msg["From"]    = SMTP_FROM
+        msg["To"]      = email
+
+        await aiosmtplib.send(msg, hostname=SMTP_HOST, port=SMTP_PORT,
+                               username=SMTP_USER, password=SMTP_PASS,
+                               start_tls=True)
+        logger.info(f"Reset email sent to {email}")
+        return True
+    except Exception as e:
+        logger.error(f"Email send failed: {e}")
+        return False
+
+
+# ── Admin User ─────────────────────────────────────────────────
+async def _ensure_admin_user():
+    admin_pass = os.getenv("ADMIN_PASSWORD", "")
+    if not admin_pass:
+        logger.warning("ADMIN_PASSWORD not set — admin login disabled")
+        return
+    hashed = bcrypt.hashpw(admin_pass.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+    async with _pool.acquire() as conn:
+        await conn.execute("SELECT set_config('app.current_tenant', '', true)")
+        await conn.execute("""
+            INSERT INTO users (email, password_hash, full_name, role)
+            VALUES ('admin@sahool.ye', $1, 'مدير النظام', 'admin')
+            ON CONFLICT (email) DO NOTHING
+        """, hashed)
+    logger.info("✅ Admin user ensured")
+
+
+# ══════════════════════════════════════════════════════════════
+# ENDPOINTS
+# ══════════════════════════════════════════════════════════════
+
+@app.post("/auth/register", response_model=TokenResponse, status_code=201)
+async def register(req: RegisterRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+
+    hashed = bcrypt.hashpw(req.password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+    async with _pool.acquire() as conn:
+        try:
+            row = await conn.fetchrow("""
+                INSERT INTO users (email, password_hash, full_name, role)
+                VALUES ($1, $2, $3, 'farmer')
+                RETURNING id, email, role, full_name, tenant_id
+            """, req.email, hashed, req.full_name)
+            # الأمان: الدور مثبّت 'farmer' خادم-جانبيّاً. الترقية لأدوار أعلى
+            # تتمّ فقط عبر /auth/users/{id}/role المحمي بـrequire_role("admin").
+            # الدور المُرسَل من العميل يُتجاهَل تماماً لمنع تصعيد الصلاحيات.
+        except asyncpg.UniqueViolationError:
+            REGISTER_COUNTER.labels(status="conflict").inc()
+            raise HTTPException(status.HTTP_409_CONFLICT, "البريد الإلكتروني مسجّل مسبقاً")
+
+    tid   = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
+    token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)
+    refresh    = await create_refresh_token(row["id"], tid)
+
+    await audit_log("register", row["id"], ip)
+    REGISTER_COUNTER.labels(status="success").inc()
+
+    return TokenResponse(
+        access_token=token, refresh_token=refresh,
+        expires_in=JWT_EXPIRE_MINUTES*60,
+        user_id=row["id"], role=row["role"],
+        full_name=row["full_name"], tenant_id=tid,
+    )
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+async def login(req: LoginRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+    await check_lockout(req.email)  # ✅ account lockout check
+
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, password_hash, role, full_name, tenant_id, active FROM users WHERE email=$1",
+            req.email)
+
+    if not row or not row["active"] or not bcrypt.checkpw(
+            req.password.encode(),
+            row["password_hash"] if isinstance(row["password_hash"], bytes)
+            else row["password_hash"].encode()
+        ):
+        attempts = await record_failed_login(req.email)  # ✅ track failed attempts
+        LOGIN_COUNTER.labels(status="failed").inc()
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "بيانات غير صحيحة")
+
+    await clear_failed_logins(req.email)  # ✅ reset on success
+    tid   = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
+    token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)
+    refresh    = await create_refresh_token(row["id"], tid)
+
+    logger.info(f"Login OK: user={row['id']} role={row['role']} ip={ip}")
+    await audit_log("login", row["id"], ip)
+    LOGIN_COUNTER.labels(status="success").inc()
+
+    return TokenResponse(
+        access_token=token, refresh_token=refresh,
+        expires_in=JWT_EXPIRE_MINUTES*60,
+        user_id=row["id"], role=row["role"],
+        full_name=row["full_name"], tenant_id=tid,
+    )
+
+
+@app.post("/auth/refresh", response_model=TokenResponse)
+async def refresh_token(req: RefreshRequest):
+    """✅ NEW: Refresh access token using refresh token."""
+    if not _redis:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE,
+                            "Refresh tokens require Redis")
+    key = f"sahool:refresh:{req.refresh_token}"
+    value = await _redis.get(key)
+    if not value:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Refresh token غير صالح أو منتهي")
+
+    user_id_str, tenant_id = value.split(":", 1)
+    user_id = int(user_id_str)
+
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, role, full_name, tenant_id, active FROM users WHERE id=$1",
+            user_id)
+    if not row or not row["active"]:
+        await revoke_refresh_token(req.refresh_token)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "المستخدم غير نشط")
+
+    # Rotate refresh token
+    await revoke_refresh_token(req.refresh_token)
+    new_refresh = await create_refresh_token(user_id, tenant_id)
+    token, jti  = create_access_token(row["id"], row["email"], row["role"],
+                                       row["full_name"], tenant_id)
+
+    return TokenResponse(
+        access_token=token, refresh_token=new_refresh,
+        expires_in=JWT_EXPIRE_MINUTES*60,
+        user_id=row["id"], role=row["role"],
+        full_name=row["full_name"], tenant_id=tenant_id,
+    )
+
+
+@app.post("/auth/logout")
+async def logout(
+    request: Request,
+    credentials: Annotated[Optional[HTTPAuthorizationCredentials], Depends(security)],
+):
+    """✅ NEW: Invalidate access token (JTI blacklist) + refresh token."""
+    ip = request.client.host if request.client else "unknown"
+    if credentials:
+        try:
+            payload = jwt.decode(credentials.credentials, JWT_VERIFY_KEY,
+                                  algorithms=[JWT_ALGORITHM], audience="sahool")
+            jti = payload.get("jti")
+            exp = payload.get("exp", 0)
+            if jti:
+                await revoke_jti(jti, exp)
+        except JWTError:
+            # توكن غير صالح عند الخروج — لا شيء لإبطاله (نسجّل للتدقيق)
+            logger.debug("logout: توكن غير صالح، لا jti لإبطاله")
+
+    # Also revoke refresh token if provided in body
+    body = {}
+    try:
+        body = await request.json()
+    except Exception as e:  # noqa: BLE001
+        # لا جسم JSON (خروج بلا refresh token) — سلوك مقبول، نسجّل
+        logger.debug("logout: لا جسم JSON في الطلب: %s", type(e).__name__)
+    if rt := body.get("refresh_token"):
+        await revoke_refresh_token(rt)
+
+    await audit_log("logout", None, ip)
+    return {"message": "تم تسجيل الخروج بنجاح"}
+
+
+@app.post("/auth/password-reset/request")
+async def request_password_reset(req: PasswordResetRequest, request: Request):
+    """✅ NEW: Request password reset via email."""
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+    RESET_COUNTER.inc()
+
+    # Always return success (prevent email enumeration)
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT id FROM users WHERE email=$1", req.email)
+
+    if row and _redis:
+        token = secrets.token_urlsafe(32)
+        await _redis.setex(f"sahool:reset:{token}", 1800, str(row["id"]))  # 30 min
+        await send_reset_email(req.email, token)
+        await audit_log("password_reset_request", row["id"], ip)
+
+    return {"message": "إذا كان البريد مسجلاً، ستصلك رسالة إعادة التعيين"}
+
+
+@app.post("/auth/password-reset/confirm")
+async def confirm_password_reset(req: PasswordResetConfirm):
+    """✅ NEW: Confirm password reset with token."""
+    if not _redis:
+        raise HTTPException(503, "Password reset requires Redis")
+
+    user_id_str = await _redis.get(f"sahool:reset:{req.token}")
+    if not user_id_str:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صالح أو منتهي")
+
+    user_id = int(user_id_str)
+    hashed  = bcrypt.hashpw(req.new_password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+
+    async with _pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2",
+            hashed, user_id
+        )
+
+    await _redis.delete(f"sahool:reset:{req.token}")
+    await audit_log("password_reset_confirm", user_id, "system")
+    return {"message": "تم تغيير كلمة المرور بنجاح"}
+
+
+@app.post("/auth/change-password")
+async def change_password(
+    req: ChangePasswordRequest,
+    user: dict = Depends(get_current_user),
+):
+    """✅ NEW: Change password for authenticated user."""
+    user_id = int(user["sub"])
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT password_hash FROM users WHERE id=$1", user_id)
+    if not row or not bcrypt.checkpw(req.current_password.encode(), row["password_hash"].encode()):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "كلمة المرور الحالية غير صحيحة")
+
+    hashed = bcrypt.hashpw(req.new_password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+    async with _pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2",
+            hashed, user_id
+        )
+    await audit_log("change_password", user_id, "authenticated")
+    return {"message": "تم تغيير كلمة المرور بنجاح"}
+
+
+@app.get("/auth/verify")
+async def verify(user: Annotated[dict, Depends(get_current_user)]):
+    return {"valid": True, "user_id": user["sub"],
+            "role": user["role"], "tenant_id": user["tenant_id"]}
+
+
+@app.get("/auth/me")
+async def me(user: Annotated[dict, Depends(get_current_user)]):
+    return {k: user[k] for k in ("sub","email","role","full_name","tenant_id")}
+
+
+# ── Admin endpoints ───────────────────────────────────────────
+@app.get("/auth/users", dependencies=[Depends(require_role("admin"))])
+async def list_users():
+    async with _pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT id, email, full_name, role, active, created_at, tenant_id FROM users ORDER BY id"
+        )
+    return [dict(r) for r in rows]
+
+
+@app.patch("/auth/users/{user_id}/role", dependencies=[Depends(require_role("admin"))])
+async def change_role(user_id: int, role: ValidRole):
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "UPDATE users SET role=$1 WHERE id=$2 RETURNING id, email, role",
+            role, user_id)
+    if not row:
+        raise HTTPException(404, "المستخدم غير موجود")
+    return dict(row)
+
+
+@app.patch("/auth/users/{user_id}/deactivate", dependencies=[Depends(require_role("admin"))])
+async def deactivate_user(user_id: int):
+    async with _pool.acquire() as conn:
+        await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
+    return {"message": "تم إلغاء تفعيل الحساب"}
+
+
+# ── Observability ─────────────────────────────────────────────
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+@app.get("/healthz")
+@app.get("/health")
+async def health():
+    return {"status": "alive", "service": "auth", "version": "9.1.0"}
+
+@app.get("/readyz")
+async def readyz():
+    try:
+        async with _pool.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        return {"status": "ready", "redis": _redis is not None}
+    except Exception as e:
+        raise HTTPException(503, f"DB not ready: {e}")

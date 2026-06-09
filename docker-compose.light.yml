@@ -1,0 +1,410 @@
+x-limits: &default-limits
+  deploy:
+    resources:
+      limits: {cpus: '1.0', memory: 512M}
+      reservations: {memory: 128M}
+
+# version removed (deprecated in Compose v2)
+# SAHOOL v9.1 — Lightweight Edge-Ready Compose (FIXED)
+# FIX: healthchecks use curl (not wget)
+
+networks:
+  sahool-net:
+    driver: bridge
+    ipam:
+      config: [{ subnet: "172.20.0.0/16" }]
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  zlmediakit_data:
+  fastbee_data:
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+x-db-env: &db-env
+  DATABASE_URL: "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@sahool-postgis:5432/sahool"
+  REDIS_URL: "redis://sahool-redis:6379/0"
+  NATS_URL: "nats://sahool-nats:4222"
+  MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: sahool-nginx-light
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/nginx.light.conf:/etc/nginx/nginx.conf:ro
+    depends_on: [auth-service, supervisor-agent, frontend]
+    networks: [sahool-net]
+    <<: *logging
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: sahool-auth
+    restart: unless-stopped
+    ports: ["8120:8000"]
+    environment:
+      <<: *db-env
+      JWT_SECRET: "${JWT_SECRET}"
+      SAHOOL_ENV: "production"
+    depends_on:
+      postgis: { condition: service_healthy }
+      redis:   { condition: service_healthy }
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  supervisor-agent:
+    build:
+      context: .
+      dockerfile: services/supervisor-agent/Dockerfile
+    container_name: sahool-supervisor
+    restart: unless-stopped
+    ports: ["8096:8000"]
+    environment:
+      SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN}"
+      MCP_SENTINEL_HUB_URL: "http://sahool-sentinel-hub-mcp:8000/mcp/v1"
+      MCP_WEATHER_URL: "http://sahool-weather-mcp:8000/mcp/v1"
+      MCP_WOFOST_URL: "http://sahool-wofost-mcp:8000/mcp/v1"
+      MCP_MARKET_URL: "http://sahool-market-mcp:8000/mcp/v1"
+      GUARDRAILS_URL: "http://sahool-guardrails:8000"
+      REDIS_URL: "redis://sahool-redis:6379/0"
+      JWT_SECRET: "${JWT_SECRET}"
+    depends_on:
+      sentinel-hub-mcp: { condition: service_healthy }
+      weather-mcp:       { condition: service_healthy }
+      wofost-mcp:        { condition: service_healthy }
+      market-mcp:        { condition: service_healthy }
+      guardrails:        { condition: service_healthy }
+      redis:             { condition: service_healthy }
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  sentinel-hub-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-sentinel-hub-mcp
+    restart: unless-stopped
+    ports: ["8091:8000"]
+    environment:
+      SH_CLIENT_ID: "${SH_CLIENT_ID}"
+      SH_CLIENT_SECRET: "${SH_CLIENT_SECRET}"
+      JWT_SECRET: "${JWT_SECRET}"
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  weather-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-weather-mcp
+    restart: unless-stopped
+    command: python weather_server.py
+    ports: ["8092:8000"]
+    environment:
+      JWT_SECRET: "${JWT_SECRET}"
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  wofost-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-wofost-mcp
+    restart: unless-stopped
+    command: python wofost_server.py
+    ports: ["8093:8000"]
+    environment:
+      JWT_SECRET: "${JWT_SECRET}"
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  market-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    container_name: sahool-market-mcp
+    restart: unless-stopped
+    command: python market_server.py
+    ports: ["8094:8000"]
+    environment:
+      JWT_SECRET: "${JWT_SECRET}"
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  guardrails:
+    build:
+      context: .
+      dockerfile: services/guardrails-engine/Dockerfile
+    container_name: sahool-guardrails
+    restart: unless-stopped
+    ports: ["8097:8000"]
+    environment:
+      JWT_SECRET: "${JWT_SECRET}"
+      <<: *db-env
+    depends_on:
+      postgis:   { condition: service_healthy }
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  edge-inference:
+    build:
+      context: .
+      dockerfile: services/edge-inference/Dockerfile.arm64
+    container_name: sahool-edge
+    restart: unless-stopped
+    ports: ["8100:8000"]
+    environment:
+      EDGE_DEVICE: "${EDGE_DEVICE:-rpi5}"
+      OFFLINE_MODE: "${OFFLINE_MODE:-false}"
+      SAHOOL_CLOUD_URL: "http://sahool-supervisor:8000"
+      EDGE_SYNC_TOKEN: "${EDGE_SYNC_TOKEN}"
+      AUTO_DOWNLOAD_MODELS: "true"
+    volumes:
+      - edge_data:/data
+      - ./models:/models:ro
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  video-processor:
+    build:
+      context: .
+      dockerfile: services/video-processor/Dockerfile
+    container_name: sahool-video-processor
+    restart: unless-stopped
+    ports: ["8110:8000"]
+    environment:
+      MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
+      EDGE_INFERENCE_URL: "http://sahool-edge:8000"
+      ZLMEDIA_API_URL: "http://sahool-zlmediakit:8080"
+      REDIS_URL: "redis://sahool-redis:6379/3"
+    depends_on:
+      - fastbee
+      - edge-inference
+      - redis
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  actuator-service:
+    build:
+      context: .
+      dockerfile: services/actuator-service/Dockerfile
+    container_name: sahool-actuator
+    restart: unless-stopped
+    ports: ["8111:8000"]
+    environment:
+      <<: *db-env
+      MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
+      JWT_SECRET: "${JWT_SECRET}"
+    depends_on:
+      - fastbee
+      - postgis
+      - redis
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  fastbee:
+    image: fastbeeiot/fastbee:latest  # C06 FIX: use Docker Hub instead of CN registry
+    container_name: sahool-fastbee
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "8081:8080"
+    environment:
+      - DB_HOST=sahool-postgis
+      - DB_PORT=5432
+      - DB_NAME=fastbee
+      - DB_USER=postgres
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - MQTT_ENABLED=true
+      - MQTT_PORT=1883
+    volumes:
+      - fastbee_data:/app/data
+    depends_on:
+      postgis: { condition: service_healthy }
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  zlmediakit:
+    image: panjjo/zlmediakit:v6.0.0  # C07 FIX: pinned tag
+    container_name: sahool-zlmediakit
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+      - "554:554"
+      - "10000:10000/udp"
+    volumes:
+      - zlmediakit_data:/zlmediakit/data
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: bots/telegram/Dockerfile
+    container_name: sahool-telegram-bot
+    restart: unless-stopped
+    environment:
+      TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
+      SUPERVISOR_AGENT_URL: "http://sahool-supervisor:8000"
+      AUTH_SERVICE_URL: "http://sahool-auth:8000"
+      JWT_SECRET: "${JWT_SECRET}"
+      REDIS_URL: "redis://sahool-redis:6379/2"
+    depends_on:
+      supervisor-agent: { condition: service_healthy }
+      redis:             { condition: service_healthy }
+    networks: [sahool-net]
+    <<: *logging
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    container_name: sahool-frontend
+    restart: unless-stopped
+    expose: ["80"]
+    depends_on: [auth-service, supervisor-agent]
+    networks: [sahool-net]
+    <<: *logging
+
+  postgis:
+    image: postgis/postgis:15-3.4
+    container_name: sahool-postgis
+    restart: unless-stopped
+    ports: ["127.0.0.1:5432:5432"]  # HIGH-DOCKER-01: localhost only
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: sahool
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sahool"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: sahool-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:?must be set in .env}  # C-04 FIX
+    restart: unless-stopped
+    ports: ["127.0.0.1:6379:6379"]  # HIGH-DOCKER-01: localhost only
+    command: >
+      redis-server --appendonly yes
+        --maxmemory 512mb
+        --maxmemory-policy allkeys-lru
+    volumes: [redis_data:/data]
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    container_name: sahool-minio
+    restart: unless-stopped
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-sahool}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:?must be set in .env}"
+    command: server /data --console-address ":9001"
+    volumes: [minio_data:/data]
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nats:
+    image: nats:2-alpine
+    container_name: sahool-nats
+    restart: unless-stopped
+    ports: ["127.0.0.1:4222:4222"]  # HIGH-DOCKER-01: localhost only, "8222:8222"
+    command: "--js --store_dir /data/jetstream --http_port 8222"
+    networks: [sahool-net]
+    <<: *logging
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8222/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
