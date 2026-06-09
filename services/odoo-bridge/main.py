@@ -22,7 +22,7 @@ from typing import Any
 
 import asyncpg
 import httpx
-from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException
 from jose import JWTError as _JE
 from jose import jwt as _jwt
 from pydantic import BaseModel, Field
@@ -561,6 +561,24 @@ def verify_token(token: str) -> dict:
         raise ValueError(f"Invalid token: {e}") from e
 
 
+def require_auth(authorization: str = Header(None)) -> dict:
+    """Reusable JWT auth dependency — نفس منطق مصادقة /sync.
+
+    الأمان: نقاط القراءة كانت تكشف بيانات ERP بلا أيّ مصادقة
+    (products/suppliers/config/logs/erp.provider). هذه التبعيّة تُطبّق
+    نفس فحص /sync: سرّ JWT مضبوط + توكن Bearer صالح بجمهور sahool.
+    تُرجِع حمولة التوكن عند النجاح، وترفع HTTPException عند الفشل.
+    """
+    if not _JWT_SECRET or len(_JWT_SECRET) < 32:
+        raise HTTPException(503, "JWT_SECRET غير مضبوط — الوصول معطّل بأمان")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "توكن مطلوب")
+    try:
+        return verify_token(authorization.split(" ", 1)[1])
+    except ValueError as e:
+        raise HTTPException(401, "توكن غير صالح") from e
+
+
 app = FastAPI(title="SAHOOL Odoo Bridge", version="9.1.0", lifespan=lifespan)
 
 
@@ -621,7 +639,7 @@ async def health():
 
 
 @app.get("/erp/provider")
-async def erp_provider_status():
+async def erp_provider_status(_auth: dict = Depends(require_auth)):
     """يكشف مزوّد ERP النشط (مفتاح التبديل) وحالته.
 
     ERP_PROVIDER = odoo | erpnext | none — يحدّد المزوّد دون تغيير الكود.
@@ -641,7 +659,7 @@ async def erp_provider_status():
 
 
 @app.get("/config", response_model=OdooConfigResponse)
-async def get_config():
+async def get_config(_auth: dict = Depends(require_auth)):
     odoo = get_odoo()
     connected = False
     uid = odoo.uid
@@ -661,18 +679,15 @@ async def get_config():
 
 @app.post("/sync")
 async def trigger_sync(
-    req: SyncRequest, background_tasks: BackgroundTasks, authorization: str = Header(None)
+    req: SyncRequest,
+    background_tasks: BackgroundTasks,
+    _auth: dict = Depends(require_auth),
 ):
-    """Trigger manual sync — يتطلّب توكناً صالحاً (كان مكشوفاً)."""
-    # الأمان: المزامنة تكتب لـERP — تتطلّب مصادقة
-    if not _JWT_SECRET or len(_JWT_SECRET) < 32:
-        raise HTTPException(503, "JWT_SECRET غير مضبوط — المزامنة معطّلة بأمان")
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(401, "توكن مطلوب للمزامنة")
-    try:
-        verify_token(authorization.split(" ", 1)[1])
-    except ValueError as e:
-        raise HTTPException(401, "توكن غير صالح") from e
+    """Trigger manual sync — يتطلّب توكناً صالحاً (كان مكشوفاً).
+
+    الأمان: المزامنة تكتب لـERP — تتطلّب مصادقة (نفس require_auth المطبَّقة
+    على نقاط القراءة).
+    """
     if req.entity == "all" or req.entity == "products":
         background_tasks.add_task(sync_products)
     if req.entity == "all" or req.entity == "suppliers":
@@ -712,7 +727,9 @@ async def odoo_webhook(payload: WebhookPayload, x_webhook_secret: str = Header(N
 
 
 @app.get("/logs")
-async def get_logs(limit: int = 50, entity: str | None = None):
+async def get_logs(
+    limit: int = 50, entity: str | None = None, _auth: dict = Depends(require_auth)
+):
     pool = await get_pool()
     if not pool:
         return {"logs": []}
@@ -731,7 +748,7 @@ async def get_logs(limit: int = 50, entity: str | None = None):
 
 
 @app.get("/products")
-async def list_odoo_products(limit: int = 20):
+async def list_odoo_products(limit: int = 20, _auth: dict = Depends(require_auth)):
     odoo = get_odoo()
     products = await odoo.search_read(
         "product.product",
@@ -743,7 +760,7 @@ async def list_odoo_products(limit: int = 20):
 
 
 @app.get("/suppliers")
-async def list_odoo_suppliers(limit: int = 20):
+async def list_odoo_suppliers(limit: int = 20, _auth: dict = Depends(require_auth)):
     odoo = get_odoo()
     suppliers = await odoo.search_read(
         "res.partner",

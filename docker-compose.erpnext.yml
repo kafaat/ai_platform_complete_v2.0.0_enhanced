@@ -121,6 +121,15 @@ services:
     depends_on:
       erpnext-create-site:
         condition: service_completed_successfully
+    # فحص صحّة: التابعون (websocket/queue/scheduler/frontend) ينتظرون
+    # service_healthy حتّى لا يبدؤوا قبل أن يصبح الخلفي جاهزاً والموقع مُرحَّلاً.
+    # frappe.ping نقطة خفيفة تُرجِع "pong" دون مصادقة.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/api/method/frappe.ping || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
 
   # ─── الواجهة (nginx) — منفذ الوصول 8000 ───
   erpnext-frontend:
@@ -147,11 +156,11 @@ services:
       - sahool-internal
     depends_on:
       erpnext-backend:
-        condition: service_started
+        condition: service_healthy
       erpnext-websocket:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/api/method/ping"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/method/frappe.ping"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -171,7 +180,7 @@ services:
       - sahool-internal
     depends_on:
       erpnext-backend:
-        condition: service_started
+        condition: service_healthy
 
   # ─── عمّال الطابور (queue workers) ───
   erpnext-queue-short:
@@ -181,7 +190,7 @@ services:
     command: ["bench", "worker", "--queue", "short,default"]
     depends_on:
       erpnext-backend:
-        condition: service_started
+        condition: service_healthy
 
   erpnext-queue-long:
     <<: *backend_defaults
@@ -190,7 +199,7 @@ services:
     command: ["bench", "worker", "--queue", "long,default,short"]
     depends_on:
       erpnext-backend:
-        condition: service_started
+        condition: service_healthy
 
   # ─── المجدول (scheduler) ───
   erpnext-scheduler:
@@ -200,7 +209,7 @@ services:
     command: ["bench", "schedule"]
     depends_on:
       erpnext-backend:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   erpnext-db-data:

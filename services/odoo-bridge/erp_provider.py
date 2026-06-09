@@ -144,11 +144,21 @@ class ERPNextProvider(ERPProvider):
             return []
 
     async def authenticate(self) -> bool:
-        # Frappe token-based: لا جلسة، نختبر بنداء خفيف
+        # Frappe token-based: لا جلسة، نختبر بنداء خفيف.
+        # صدق مهمّ: frappe.auth.get_logged_user يُرجِع HTTP 200 مع body="Guest"
+        # عند توكن خاطئ/فارغ (لا يُرجِع 401)؛ فالاكتفاء بـstatus_code==200
+        # إيجابيّة كاذبة. الشرط الصحيح: المستخدم مسجَّل وليس Guest.
         try:
             client = await self._get_client()
             r = await client.get(f"{self.url}/api/method/frappe.auth.get_logged_user")
-            return r.status_code == 200
+            if r.status_code != 200:
+                return False
+            try:
+                user = r.json().get("message")
+            except Exception as je:  # noqa: BLE001 — صدق: JSON غير صالح → فشل لا اختراع
+                logger.warning(f"ERPNext auth: استجابة غير JSON ({je})")
+                return False
+            return user not in (None, "", "Guest")
         except Exception as e:  # noqa: BLE001
             logger.warning(f"ERPNext auth تعذّر: {e}")
             return False
@@ -187,20 +197,24 @@ class ERPNextProvider(ERPProvider):
         return [{"name": w.get("warehouse_name"), "code": w.get("name")} for w in whs]
 
     async def push_field_cost(self, cost: dict) -> bool:
-        """ينشئ قيد مصروف (Journal Entry / Expense Claim) في ERPNext."""
-        try:
-            client = await self._get_client()
-            # مبسّط: ينشئ مستند تكلفة؛ المخطّط الفعلي يعتمد إعداد جهازك
-            payload = {
-                "doctype": "Journal Entry",
-                "voucher_type": "Journal Entry",
-                "user_remark": cost.get("description", "SAHOOL field cost"),
-            }
-            r = await client.post(f"{self.url}/api/resource/Journal Entry", json=payload)
-            return r.status_code in (200, 201)
-        except Exception as e:  # noqa: BLE001 — صدق: فشل يُعلَن لا يُخفى
-            logger.warning(f"ERPNext push_field_cost تعذّر: {e}")
-            return False
+        """دفع تكلفة حقل إلى ERPNext كقيد محاسبيّ (Journal Entry).
+
+        صدق: قيد اليوميّة (Journal Entry) الصالح في Frappe يتطلّب سطور حسابات
+        (accounts[] مع debit/credit وربط بحسابات مُعرَّفة في دليل الحسابات
+        ومركز تكلفة)، وهذه ربوط خاصّة بكلّ تثبيت ولا يمكن استنتاجها عموميّاً.
+        إرسال payload بلا حسابات/مبلغ يرفضه Frappe دائماً (كان يفشل صامتاً
+        ولا يقرأ cost["amount"] أصلاً). فبدل خداع المتّصل بمحاولة فاشلة دوماً
+        أو اختراع أرقام حسابات، نُعلن الحدّ بصراحة عبر NotImplementedError.
+
+        لتفعيل هذه الميزة: أضِف ربط الحسابات (الحساب المدين/الدائن ومركز
+        التكلفة والشركة) عبر متغيّرات بيئة، ثم ابنِ accounts[] قبل POST.
+        """
+        raise NotImplementedError(
+            "ERPNext push_field_cost: ربط حسابات قيد اليوميّة غير مُعدّ. "
+            "Journal Entry يتطلّب accounts[] (مدين/دائن + مركز تكلفة + شركة) "
+            "خاصّة بهذا التثبيت — لم تُفبرك أرقام حسابات. "
+            f"(amount={cost.get('amount')}, description={cost.get('description')!r})"
+        )
 
     async def health(self) -> dict:
         ok = await self.authenticate()
