@@ -19,6 +19,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel, Field
+from shared.oauth_middleware import require_scope  # FIX(أمان): حارس نطاق لنقاط MCP
 
 logger = logging.getLogger("market-mcp")
 logging.basicConfig(
@@ -503,7 +504,7 @@ class MCPCallRequest(BaseModel):
     arguments: dict = Field(default_factory=dict)
 
 
-@app.get("/mcp/v1/tools/list")
+@app.get("/mcp/v1/tools/list", dependencies=[Depends(require_scope("market:read"))])
 async def mcp_tools_list():
     return {
         "tools": [
@@ -525,7 +526,7 @@ async def mcp_tools_list():
     }
 
 
-@app.post("/mcp/v1/tools/call")
+@app.post("/mcp/v1/tools/call", dependencies=[Depends(require_scope("market:read"))])
 async def mcp_tools_call(req: MCPCallRequest):
     handlers = {
         "market_search_products": tool_search_products,
