@@ -296,13 +296,13 @@ BEGIN
         'field_indicators','wofost_seasons','crop_stages',
         'drone_missions','soil_readings'
     ] LOOP
-        EXECUTE format('
+        EXECUTE format($ddl$
             DROP POLICY IF EXISTS tenant_isolation ON %I;
             CREATE POLICY tenant_isolation ON %I
             USING (
                 tenant_id IS NULL
-                OR tenant_id = NULLIF(current_setting(''app.current_tenant'', TRUE), '''')::UUID
-            )', tbl, tbl);
+                OR tenant_id = NULLIF(current_setting('app.current_tenant', TRUE), '')::UUID
+            )$ddl$, tbl, tbl);
     END LOOP;
 END
 $$;

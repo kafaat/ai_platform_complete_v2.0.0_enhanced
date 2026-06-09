@@ -14,13 +14,21 @@ class TestSQLSyntax:
     @pytest.mark.unit
     def test_no_syntax_errors_init_v8(self):
         import sqlparse
-        sql = read_sql(os.path.join(IMP, "migrations/init_v8.sql"))
+        # FIX: الملف يقع في migrations/ داخل المستودع (المسار القديم
+        # ../../sahool_improvements لم يَعُد موجوداً ⇒ read_sql='' ⇒ فشل زائف).
+        sql = read_sql(os.path.join(BASE, "migrations/init_v8.sql"))
         statements = sqlparse.parse(sql)
         assert len(statements) > 0
 
     @pytest.mark.unit
     def test_no_8quote_rls_bypass(self):
-        """RLS policies must not have 8-quote bypass pattern."""
+        """سياسات RLS يجب ألّا تحوي تهريباً مضاعفاً (over-escaping).
+
+        النمط الخطير ("8-quote bypass") ينشأ من لفّ سياسة داخل سلسلة مفردة
+        داخل أخرى فتتضاعف الاقتباسات (''''، 4+ متتالية) ويسهل أن تتحوّل
+        خطأً إلى شرط دائم الصدق. الحلّ الصحيح: dollar-quoting ($ddl$...$ddl$).
+        ملاحظة: السلسلة الفارغة '' (اقتباسان) شرعيّة (NULLIF(x, ''))، فلا تُحسب.
+        """
         sql_files = [
             "migrations/v9_foundation.sql",
             "migrations/v9_new_tables.sql",
@@ -30,9 +38,10 @@ class TestSQLSyntax:
         ]
         for f in sql_files:
             sql = read_sql(os.path.join(BASE, f))
-            active_8q = [l for l in sql.split("\n")
-                         if "''" in l and not l.strip().startswith("--")]
-            assert len(active_8q) == 0, f"8-quote bypass in {f}: {active_8q}"
+            # 4+ اقتباسات متتالية = تهريب مضاعف (وليس مجرّد '' فارغة شرعيّة)
+            over_escaped = [l for l in sql.split("\n")
+                            if re.search(r"'{4,}", l) and not l.strip().startswith("--")]
+            assert len(over_escaped) == 0, f"over-escaped quotes (bypass risk) in {f}: {over_escaped}"
 
     @pytest.mark.unit
     def test_no_pg_has_role_bypass(self):

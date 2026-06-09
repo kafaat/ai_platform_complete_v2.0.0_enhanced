@@ -32,13 +32,16 @@ class TestTTSConfig:
 
     @pytest.mark.unit
     def test_rate_validation(self):
-        """Rate must be in format ±N%."""
+        """Rate must be in format ±N% (يطابق regex مُحقّق الخدمة)."""
+        import re
+        # نفس النمط الذي تفرضه الخدمة (field_validator) — يرفض '+abc%'/'+%'
+        rate_re = re.compile(r"[+-]\d+%")
         valid = ["+0%", "-20%", "+50%"]
-        invalid = ["50", "20%", "+abc%"]
+        invalid = ["50", "20%", "+abc%", "+%", "20", "+10"]
         for v in valid:
-            assert v.endswith("%") and (v.startswith("+") or v.startswith("-"))
+            assert rate_re.fullmatch(v), f"يجب قبول {v}"
         for v in invalid:
-            assert not (v.endswith("%") and (v.startswith("+") or v.startswith("-")))
+            assert not rate_re.fullmatch(v), f"يجب رفض {v}"
 
 
 class TestTTSEndpoints:

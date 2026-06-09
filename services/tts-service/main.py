@@ -14,6 +14,7 @@ import hashlib
 import io
 import logging
 import os
+import re
 from contextlib import asynccontextmanager
 from typing import Optional
 
@@ -135,7 +136,9 @@ class TTSRequest(BaseModel):
     @field_validator("rate", "volume")
     @classmethod
     def validate_percent(cls, v: str) -> str:
-        if not (v.endswith("%") and (v.startswith("+") or v.startswith("-"))):
+        # FIX: الفحص السابق (بادئة +/- ولاحقة % فقط) كان يقبل قيماً مشوّهة مثل
+        # '+abc%' أو '+%' فتُمرَّر إلى محرّك TTS. نفرض الصيغة الكاملة ±عدد%.
+        if not re.fullmatch(r"[+-]\d+%", v):
             raise ValueError("rate/volume must be like '+10%' or '-20%'")
         return v
 

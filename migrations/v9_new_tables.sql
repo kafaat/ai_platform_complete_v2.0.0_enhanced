@@ -113,11 +113,11 @@ BEGIN
         EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
         EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', tbl);
         EXECUTE format(
-            'CREATE POLICY tenant_isolation ON %I USING (
-                tenant_id::TEXT = current_setting(''app.current_tenant'', true)
+            $ddl$CREATE POLICY tenant_isolation ON %I USING (
+                tenant_id::TEXT = current_setting('app.current_tenant', true)
                 -- Removed: empty tenant bypass (C14 security fix)
                 -- System services must use explicit tenant_id or service account
-            )', tbl
+            )$ddl$, tbl
         );
     END LOOP;
 END $$;

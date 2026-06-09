@@ -19,9 +19,9 @@ BEGIN
     -- سياسة العزل (تُسقط القديمة أوّلاً للـidempotency)
     EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', p_table);
     EXECUTE format(
-        'CREATE POLICY tenant_isolation ON %I USING ('
-        '  tenant_id::TEXT = NULLIF(current_setting(''app.current_tenant'', true), '''')'
-        ')', p_table
+        $ddl$CREATE POLICY tenant_isolation ON %I USING (
+          tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', true), '')
+        )$ddl$, p_table
     );
 END;
 $$ LANGUAGE plpgsql;

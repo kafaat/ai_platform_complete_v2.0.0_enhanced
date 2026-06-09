@@ -245,20 +245,20 @@ BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'users') THEN
         EXECUTE 'ALTER TABLE users ENABLE ROW LEVEL SECURITY';
         EXECUTE 'DROP POLICY IF EXISTS user_self ON users';
-        EXECUTE 'CREATE POLICY user_self ON users USING (
-            id::TEXT = NULLIF(current_setting(''app.current_user_id'', true), '''')
-            OR tenant_id::TEXT = NULLIF(current_setting(''app.current_tenant'', true), '''')
-            OR current_setting(''app.current_role'', true) = ''admin''
-        )';
+        EXECUTE $ddl$CREATE POLICY user_self ON users USING (
+            id::TEXT = NULLIF(current_setting('app.current_user_id', true), '')
+            OR tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', true), '')
+            OR current_setting('app.current_role', true) = 'admin'
+        )$ddl$;
     END IF;
 
     -- notification_preferences: each user sees their own
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notification_preferences') THEN
         EXECUTE 'ALTER TABLE notification_preferences ENABLE ROW LEVEL SECURITY';
         EXECUTE 'DROP POLICY IF EXISTS user_own_prefs ON notification_preferences';
-        EXECUTE 'CREATE POLICY user_own_prefs ON notification_preferences USING (
-            user_id::TEXT = NULLIF(current_setting(''app.current_user_id'', true), '''')
-            OR tenant_id::TEXT = NULLIF(current_setting(''app.current_tenant'', true), '''')
-        )';
+        EXECUTE $ddl$CREATE POLICY user_own_prefs ON notification_preferences USING (
+            user_id::TEXT = NULLIF(current_setting('app.current_user_id', true), '')
+            OR tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', true), '')
+        )$ddl$;
     END IF;
 END $$;
