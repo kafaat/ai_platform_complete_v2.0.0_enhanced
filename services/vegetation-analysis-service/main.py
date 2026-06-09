@@ -347,7 +347,7 @@ async def fetch_from_cdse(field_id: str, date_from: str, date_to: str) -> dict |
 
 def _deterministic_seed(field_id: str, acquisition_date: str) -> int:
     key = f"{field_id}:{acquisition_date}"
-    return int(hashlib.md5(key.encode()).hexdigest()[:8], 16)
+    return int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest()[:8], 16)
 
 
 def _realistic_bands(field_id: str, acquisition_date: str) -> dict[str, float]:

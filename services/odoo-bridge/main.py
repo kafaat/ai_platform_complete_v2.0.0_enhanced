@@ -110,7 +110,9 @@ class OdooClient:
                     kwargs or {},
                 ],
             },
-            "id": hashlib.md5(f"{model}:{method}:{datetime.now()}".encode()).hexdigest()[:8],
+            "id": hashlib.md5(
+                f"{model}:{method}:{datetime.now()}".encode(), usedforsecurity=False
+            ).hexdigest()[:8],
         }
         r = await self._session.post(f"{self.url}/jsonrpc", json=payload)
         r.raise_for_status()
@@ -727,9 +729,7 @@ async def odoo_webhook(payload: WebhookPayload, x_webhook_secret: str = Header(N
 
 
 @app.get("/logs")
-async def get_logs(
-    limit: int = 50, entity: str | None = None, _auth: dict = Depends(require_auth)
-):
+async def get_logs(limit: int = 50, entity: str | None = None, _auth: dict = Depends(require_auth)):
     pool = await get_pool()
     if not pool:
         return {"logs": []}

@@ -155,7 +155,7 @@ class EdgePestDetector:
         import hashlib as _hl
         import random
 
-        seed = int(_hl.md5(image.tobytes()).hexdigest(), 16) % (2**31)
+        seed = int(_hl.md5(image.tobytes(), usedforsecurity=False).hexdigest(), 16) % (2**31)
         random.seed(seed)
 
         # Determine likely pests based on image hash (simulated crop context)

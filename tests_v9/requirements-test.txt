@@ -13,3 +13,9 @@ sqlparse>=0.5.0
 asyncpg>=0.30.0,<0.32.0
 redis>=5.0.0
 python-jose[cryptography]>=3.3.0
+# تبعيّات وقت تشغيل تستوردها الاختبارات (كانت مفقودة ⇒ ModuleNotFoundError في CI):
+# test_tts/test_auth_service تستوردان pydantic؛ auth يستخدم bcrypt وEmailStr؛
+# الخدمات تستورد prometheus_client.
+pydantic[email]>=2.8.0
+bcrypt>=4.1.0
+prometheus-client>=0.20.0
