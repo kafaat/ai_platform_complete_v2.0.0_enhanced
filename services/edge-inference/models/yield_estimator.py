@@ -1,17 +1,18 @@
-import logging
-
-logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Edge-Optimized Yield Estimator
 MobileViT / EfficientNet-Lite quantized for ARM64
 Extracts phenotypic features from field images
 """
+
 import io
+import logging
 import os
 
 import numpy as np
 from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 
 class EdgeYieldEstimator:

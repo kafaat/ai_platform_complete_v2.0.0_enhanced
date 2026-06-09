@@ -19,7 +19,11 @@ from datetime import UTC, datetime
 import httpx
 import numpy as np
 from aiomqtt import Client as MQTTClient
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials as _Creds
+from fastapi.security import HTTPBearer as _Bearer
+from jose import JWTError as _v_JE
+from jose import jwt as _v_jwt
 from pydantic import BaseModel, Field
 
 try:
@@ -237,12 +241,6 @@ async def lifespan(app: FastAPI):
 
 
 # HIGH-VIDEO-01 FIX: JWT authentication
-from fastapi import Depends
-from fastapi.security import HTTPAuthorizationCredentials as _Creds
-from fastapi.security import HTTPBearer as _Bearer
-from jose import JWTError as _v_JE
-from jose import jwt as _v_jwt
-
 _v_bearer = _Bearer(auto_error=False)
 
 

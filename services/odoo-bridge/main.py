@@ -23,6 +23,8 @@ from typing import Any
 import asyncpg
 import httpx
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
+from jose import JWTError as _JE
+from jose import jwt as _jwt
 from pydantic import BaseModel, Field
 
 try:
@@ -546,13 +548,8 @@ async def lifespan(app: FastAPI):
 
 
 # C-08 FIX: JWT verification with audience
-import os as _os
-
-from jose import JWTError as _JE
-from jose import jwt as _jwt
-
-_JWT_PUBLIC = _os.getenv("JWT_PUBLIC_KEY", "")
-_JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else _os.getenv("JWT_SECRET", "")
+_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
+_JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
 
 

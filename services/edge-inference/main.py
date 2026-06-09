@@ -2,6 +2,7 @@
 """
 SAHOOL Edge Inference Service v9.1 (FIXED)
 """
+
 import asyncio
 import logging
 import os
@@ -209,9 +210,7 @@ async def estimate_yield(
         try:
             features = estimator.extract_features(image_bytes)
         except Exception as e:
-            raise HTTPException(
-                400, "تعذّر معالجة إحدى الصور — تأكّد أنّها صور صالحة"
-            ) from e
+            raise HTTPException(400, "تعذّر معالجة إحدى الصور — تأكّد أنّها صور صالحة") from e
         all_features.append(features)
     start = time.time()
     yield_prediction = estimator.predict_yield(

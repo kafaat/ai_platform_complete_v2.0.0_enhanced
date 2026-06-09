@@ -1,18 +1,19 @@
-import logging
-
-logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Cloud Sync Service for Edge Inference
 Queues results locally, syncs when connection available
 """
+
 import hashlib
 import json
+import logging
 import os
 import uuid
 from datetime import UTC, datetime
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 
 class CloudSyncService:

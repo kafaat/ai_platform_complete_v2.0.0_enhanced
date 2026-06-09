@@ -463,9 +463,7 @@ async def register(req: RegisterRequest, request: Request):
             # الدور المُرسَل من العميل يُتجاهَل تماماً لمنع تصعيد الصلاحيات.
         except asyncpg.UniqueViolationError as e:
             REGISTER_COUNTER.labels(status="conflict").inc()
-            raise HTTPException(
-                status.HTTP_409_CONFLICT, "البريد الإلكتروني مسجّل مسبقاً"
-            ) from e
+            raise HTTPException(status.HTTP_409_CONFLICT, "البريد الإلكتروني مسجّل مسبقاً") from e
 
     tid = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
     token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)

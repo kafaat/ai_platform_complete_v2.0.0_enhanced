@@ -3,6 +3,7 @@ Agricultural AI Engine — crop recommendations and yield optimization.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Header, HTTPException
@@ -54,9 +55,7 @@ class RecommendRequest(BaseModel):
     soil_ph: float = Field(7.0, ge=0, le=14)
 
 
-import os as _os_guard
-
-AGENT_TOKEN = _os_guard.getenv("SAHOOL_AGENT_TOKEN", "")
+AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
