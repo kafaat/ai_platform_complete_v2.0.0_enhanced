@@ -145,6 +145,28 @@ def _scoped_token(scope: str | None = None, *, aud: str = "sahool") -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm="HS256")
 
 
+@pytest.fixture(autouse=True)
+def _restore_import_state():
+    """يستعيد sys.path وsys.modules['shared*'] بعد كلّ اختبار mcp.
+
+    FIX (عزل الاختبارات): _ensure_mcp_path يُخلي حزمة shared الجذريّة من
+    sys.modules ويضع mcp_servers أوّلاً على sys.path؛ لولا الاستعادة لتسرّب هذا
+    إلى ملفّات اختبار لاحقة تستورد shared.logging_config/helpers الجذريّة
+    فتفشل بـModuleNotFoundError (تلوّث ترتيب الاستيراد).
+    """
+    path_before = list(sys.path)
+    shared_before = {
+        k: v for k, v in sys.modules.items() if k == "shared" or k.startswith("shared.")
+    }
+    try:
+        yield
+    finally:
+        sys.path[:] = path_before
+        for k in [k for k in sys.modules if k == "shared" or k.startswith("shared.")]:
+            sys.modules.pop(k, None)
+        sys.modules.update(shared_before)
+
+
 # ── market_server (imports cleanly) ─────────────────────────────────────────
 
 
