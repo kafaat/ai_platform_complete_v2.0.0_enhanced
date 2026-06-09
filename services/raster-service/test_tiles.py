@@ -1,0 +1,190 @@
+"""
+test_tiles.py — تحقّق ذاتيّ (synthetic) لبلاطات XYZ الديناميكيّة (TiTiler-style).
+
+البيئة هنا تحجب الشبكة، لذا نبني COG صناعيّاً في الذاكرة/قرص مؤقّت بـUTM
+ونسجّل طبقة لحقل اختباري، ثمّ عبر TestClient نتحقّق:
+  (أ) بلاطة تتقاطع حدودها (3857) مع بيانات الحقل → PNG يفكّ تشفيره وفيه
+      بكسلات غير شفّافة (alpha>0) بألوان معقولة (تدرّج NDVI: أخضر للقيم العالية).
+  (ب) بلاطة بعيدة خارج الحقل → PNG شفّاف تماماً (كلّ alpha=0).
+  (ج) /tilejson صالح: فيه tiles[] وbounds وminzoom/maxzoom.
+"""
+
+import io
+import os
+import struct
+import tempfile
+import zlib
+
+import main
+import numpy as np
+import rasterio
+import tile_render
+from fastapi.testclient import TestClient
+from rasterio.transform import from_origin
+
+# الجوف (اليمن) ضمن UTM zone 38N
+UTM = "EPSG:32638"
+ORIGIN_X = 393000.0  # easting (أعلى يسار)
+ORIGIN_Y = 1773000.0  # northing
+RES = 10.0  # 10 م/بكسل (Sentinel-2)
+W = H = 100
+
+
+def _make_synthetic_cog(path: str):
+    """يكتب COG صناعي أحادي النطاق بـNDVI معروف (0.7 ثابت) في UTM.
+
+    NDVI=0.7 يقع في الجزء الأخضر من التدرّج (نبات قويّ). يُرجِع حدود COG بـ4326.
+    """
+    ndvi = np.full((H, W), 0.7, dtype="float32")
+    transform = from_origin(ORIGIN_X, ORIGIN_Y, RES, RES)
+    profile = {
+        "driver": "GTiff",
+        "dtype": "float32",
+        "count": 1,
+        "height": H,
+        "width": W,
+        "crs": UTM,
+        "transform": transform,
+        "nodata": float("nan"),
+        "tiled": True,
+        "blockxsize": 256,
+        "blockysize": 256,
+    }
+    with rasterio.open(path, "w", **profile) as dst:
+        dst.write(ndvi, 1)
+    from rasterio.warp import transform_bounds
+
+    left, right = ORIGIN_X, ORIGIN_X + W * RES
+    top, bottom = ORIGIN_Y, ORIGIN_Y - H * RES
+    bounds_4326 = list(transform_bounds(UTM, "EPSG:4326", left, bottom, right, top))
+    return bounds_4326
+
+
+def _decode_png_rgba(png_bytes: bytes) -> np.ndarray:
+    """يفكّ تشفير PNG (RGBA، color type 6، filter 0) بـzlib — بلا PIL.
+
+    يدعم تحديداً المخرجات من tile_render.encode_png_rgba (filter=0 لكلّ صفّ).
+    """
+    assert png_bytes[:8] == b"\x89PNG\r\n\x1a\n", "ليس PNG"
+    pos = 8
+    width = height = None
+    idat = bytearray()
+    while pos < len(png_bytes):
+        (length,) = struct.unpack(">I", png_bytes[pos : pos + 4])
+        tag = png_bytes[pos + 4 : pos + 8]
+        data = png_bytes[pos + 8 : pos + 8 + length]
+        if tag == b"IHDR":
+            width, height, bit_depth, color_type = struct.unpack(">IIBB", data[:10])
+            assert bit_depth == 8 and color_type == 6, "متوقّع 8-bit RGBA"
+        elif tag == b"IDAT":
+            idat.extend(data)
+        elif tag == b"IEND":
+            break
+        pos += 12 + length
+    raw = zlib.decompress(bytes(idat))
+    stride = width * 4
+    out = np.zeros((height, width, 4), dtype=np.uint8)
+    rp = 0
+    for r in range(height):
+        ftype = raw[rp]
+        assert ftype == 0, f"filter type {ftype} غير مدعوم (متوقّع 0)"
+        rp += 1
+        row = np.frombuffer(raw[rp : rp + stride], dtype=np.uint8)
+        out[r] = row.reshape(width, 4)
+        rp += stride
+    return out
+
+
+def test_dynamic_tiles():
+    tmpdir = tempfile.mkdtemp(prefix="tile_test_")
+    cog_path = os.path.join(tmpdir, "ndvi_cog.tif")
+    bounds_4326 = _make_synthetic_cog(cog_path)
+    print(f"COG bounds_4326: {[round(b, 5) for b in bounds_4326]}")
+
+    # سجّل طبقة لحقل اختباري (كما يفعل _run_processing)
+    main._layers["tile_layer"] = {
+        "layer_id": "tile_layer",
+        "field_id": "field_tiles",
+        "index": "ndvi",
+        "cog_url": f"file://{cog_path}",
+        "acquisition_date": "2026-05-01T08:30:00Z",
+        "created_at": "2026-05-01T09:00:00Z",
+        "source_format": "sentinel2_l2a",
+        "bounds_4326": bounds_4326,
+    }
+    main._field_layers.setdefault("field_tiles", []).append("tile_layer")
+
+    client = TestClient(main.app)
+
+    # ── احسب z/x/y لبلاطة تغطّي مركز الحقل ──────────────────────────
+    minlon, minlat, maxlon, maxlat = bounds_4326
+    clon = (minlon + maxlon) / 2.0
+    clat = (minlat + maxlat) / 2.0
+    z = 14
+    tx, ty = tile_render._lonlat_to_tile(clon, clat, z)
+    print(f"بلاطة مركز الحقل: z={z} x={tx} y={ty}")
+
+    # ── (أ) بلاطة فوق الحقل → بكسلات غير شفّافة بألوان معقولة ─────────
+    resp = client.get(
+        f"/v1/fields/field_tiles/tiles/{z}/{tx}/{ty}.png",
+        params={"index": "ndvi", "date": "latest"},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.headers["content-type"] == "image/png"
+    rgba = _decode_png_rgba(resp.content)
+    assert rgba.shape == (256, 256, 4), f"شكل غير متوقّع: {rgba.shape}"
+    alpha = rgba[..., 3]
+    n_opaque = int((alpha > 0).sum())
+    assert n_opaque > 0, "متوقّع بكسلات غير شفّافة فوق الحقل"
+    # ألوان معقولة: NDVI=0.7 → الجزء الأخضر (green > red للبكسلات المعتمة)
+    opaque = alpha > 0
+    mean_r = float(rgba[..., 0][opaque].mean())
+    mean_g = float(rgba[..., 1][opaque].mean())
+    mean_b = float(rgba[..., 2][opaque].mean())
+    assert mean_g > mean_b, f"متوقّع لون مائل للأخضر (g>{mean_b}), وجد g={mean_g}"
+    print(
+        f"(أ) بلاطة فوق الحقل: opaque={n_opaque}/65536 "
+        f"لون متوسّط RGB=({mean_r:.0f},{mean_g:.0f},{mean_b:.0f})"
+    )
+
+    # ── (ب) بلاطة بعيدة خارج الحقل → شفّافة تماماً ───────────────────
+    fx, fy = tile_render._lonlat_to_tile(clon + 10.0, clat + 10.0, z)
+    resp_out = client.get(
+        f"/v1/fields/field_tiles/tiles/{z}/{fx}/{fy}.png",
+        params={"index": "ndvi", "date": "latest"},
+    )
+    assert resp_out.status_code == 200, resp_out.text
+    rgba_out = _decode_png_rgba(resp_out.content)
+    assert int((rgba_out[..., 3] > 0).sum()) == 0, "متوقّع بلاطة شفّافة تماماً خارج الحقل"
+    print(f"(ب) بلاطة خارج الحقل (z={z} x={fx} y={fy}): شفّافة تماماً (alpha كلّه=0)")
+
+    # ── (ج) TileJSON صالح ────────────────────────────────────────────
+    tj = client.get("/v1/fields/field_tiles/tilejson", params={"index": "ndvi", "date": "latest"})
+    assert tj.status_code == 200, tj.text
+    body = tj.json()
+    assert body["tilejson"] == "2.2.0"
+    assert isinstance(body["tiles"], list) and len(body["tiles"]) >= 1
+    assert "/v1/fields/field_tiles/tiles/" in body["tiles"][0]
+    assert "{z}" in body["tiles"][0] and "{x}" in body["tiles"][0] and "{y}" in body["tiles"][0]
+    assert isinstance(body["bounds"], list) and len(body["bounds"]) == 4
+    assert body["minzoom"] < body["maxzoom"]
+    assert isinstance(body["center"], list) and len(body["center"]) == 3
+    # bounds تطابق حدود COG (لا حدود افتراضيّة)
+    assert abs(body["bounds"][0] - round(minlon, 6)) < 1e-3, body["bounds"]
+    print(
+        f"(ج) TileJSON صالح: tiles={body['tiles']} "
+        f"bounds={body['bounds']} zoom={body['minzoom']}-{body['maxzoom']}"
+    )
+
+    # ── (د) حقل بلا COG → بلاطة شفّافة لا 500 ─────────────────────────
+    resp_none = client.get(f"/v1/fields/no_such_field/tiles/{z}/{tx}/{ty}.png")
+    assert resp_none.status_code == 200
+    rgba_none = _decode_png_rgba(resp_none.content)
+    assert int((rgba_none[..., 3] > 0).sum()) == 0
+    print("(د) حقل بلا COG: بلاطة شفّافة (لا 500)")
+
+    print("\nALL TILE ASSERTIONS PASSED")
+
+
+if __name__ == "__main__":
+    test_dynamic_tiles()

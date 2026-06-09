@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useIndicatorGrid, type GridIndex, type IndicatorGridResponse } from "../hooks/useApi";
+import FieldIndicatorMap from "../components/FieldIndicatorMap";
 
 // ════════════════════════════════════════════════════════════
 // SAHOOL — صفحة المؤشرات المكانية (Spatial Indicators View)
@@ -151,6 +152,7 @@ export default function SpatialView() {
   const [indexKey, setIndexKey] = useState<IndexKey>("ndvi");
   const [tIdx, setTIdx] = useState(0);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
   const apiDate = tIdx === 0 ? "latest" : TIMELINE[tIdx].date;
   const { data: gridResp, isLoading, isError } = useIndicatorGrid(
@@ -190,6 +192,16 @@ export default function SpatialView() {
 
   const zoneCells = new Set<string>();
   zones.forEach((z) => z.comp.forEach(([r, c]) => zoneCells.add(`${r},${c}`)));
+
+  // ── إطار الحقل لعرض الخريطة (بلاطات المؤشر) ──
+  // نفضّل bbox الحقيقي من الـ backend، وإلا الإطار الثابت للحقل التجريبي.
+  const bbox = hasReal && gridResp ? gridResp.bbox : ([
+    FIELD_BBOX.minLon, FIELD_BBOX.minLat, FIELD_BBOX.maxLon, FIELD_BBOX.maxLat,
+  ] as [number, number, number, number]);
+  // مضلع تقريبي من الإطار (يُستخدم لحدّ الحقل والـ fitBounds في عرض الخريطة)
+  const fieldPolygon: [number, number][] = [
+    [bbox[1], bbox[0]], [bbox[1], bbox[2]], [bbox[3], bbox[2]], [bbox[3], bbox[0]],
+  ];
 
   return (
     <div dir="rtl" style={{
@@ -249,7 +261,49 @@ export default function SpatialView() {
             ))}
           </div>
 
-          {/* الشبكة فوق الخريطة */}
+          {/* مبدّل العرض: شبكة البكسل (Grid) ↔ خريطة حقيقية ببلاطات المؤشر (Map) */}
+          <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+            {([
+              { k: "grid" as const, label: "🔲 شبكة البكسل" },
+              { k: "map" as const, label: "🗺 خريطة (بلاطات)" },
+            ]).map(({ k, label }) => (
+              <button key={k} onClick={() => setViewMode(k)}
+                style={{
+                  flex: 1, padding: "8px 10px", borderRadius: 8, cursor: "pointer",
+                  border: viewMode === k ? "2px solid #5cbf6e" : "1px solid #2d4a37",
+                  background: viewMode === k ? "#1f3a2a" : "transparent",
+                  color: viewMode === k ? "#fff" : "#9cb8a3", fontWeight: 600,
+                  fontFamily: "inherit", fontSize: 13, transition: "all .2s",
+                }}>
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {viewMode === "map" ? (
+            <>
+              {/* خريطة حقيقية ببلاطات المؤشر مقصوصة فوق الحقل */}
+              <FieldIndicatorMap
+                fieldId={FIELD_ID}
+                index={indexKey === "salinity" ? "salinity" : (indexKey as GridIndex)}
+                date={apiDate}
+                fieldPolygon={fieldPolygon}
+                fallbackBounds={bbox}
+                basemap="satellite"
+              />
+              {!hasReal && (
+                <div style={{
+                  marginTop: 10, padding: "10px 14px", borderRadius: 10,
+                  background: "#3a2e14", border: "1px solid #7a5a1a", color: "#f0d68a",
+                  fontSize: 12, fontWeight: 600,
+                }}>
+                  ⚠️ لا توجد بيانات حقيقية لهذا المؤشر/التاريخ — قد تظهر البلاطات فارغة.
+                  العرض أعلاه للتوضيح فقط؛ لا تتّخذ قرارات ميدانية بناءً عليه.
+                </div>
+              )}
+            </>
+          ) : (
+          /* الشبكة فوق الخريطة */
           <div style={{
             position: "relative", borderRadius: 14, overflow: "hidden",
             border: "1px solid #2d4a37", background: "#0d1611",
@@ -282,6 +336,7 @@ export default function SpatialView() {
               borderRadius: 8, padding: "4px 10px", fontSize: 11, color: "#7fae8c",
             }}>ش ↑ · {(hasReal && gridResp ? gridResp.bbox[3] : FIELD_BBOX.maxLat).toFixed(3)}°N</div>
           </div>
+          )}
 
           {/* مفتاح الألوان */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, fontSize: 12, color: "#9cb8a3" }}>

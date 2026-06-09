@@ -1643,6 +1643,102 @@ async def field_indicator_grid(
     return ig.synthetic_grid(field_id, out_index, date, bbox, grid)
 
 
+# ─── بلاطات XYZ ديناميكيّة (TiTiler-style) من COG الحقل المقصوص ────────
+@app.get("/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png")
+async def field_tile(
+    field_id: str,
+    z: int,
+    x: int,
+    y: int,
+    index: str = Query("ndvi"),
+    date: str = Query("latest"),
+):
+    """بلاطة slippy-map (XYZ) مصيَّرة فعليّاً من COG المؤشّر المقصوص للحقل.
+
+    يجد أحدث COG للحقل+المؤشّر (نفس بحث الشبكة؛ salinity→ndsi)، يحسب حدود
+    البلاطة في EPSG:3857، يعيد إسقاط COG (UTM غالباً) إلى 256×256 لتلك البقعة،
+    يلوّنها بتدرّج المؤشّر، ويُرجِع PNG. البكسلات خارج الحقل/NaN → شفّافة.
+
+    صدق + لا 500: عند غياب COG/rasterio/تقاطع البيانات → بلاطة شفّافة (الخريطة
+    لا تُظهر شيئاً فوق الحقل) بدل خطأ خادم.
+    """
+    layer = _find_field_layer(field_id, index, date)
+    if layer is not None and layer.get("cog_url"):
+        try:
+            import tile_render
+
+            cog_path = layer["cog_url"].replace("file://", "")
+            internal = _GRID_INDEX_ALIASES.get(index, index)
+            png = tile_render.render_tile_png(cog_path, z, x, y, internal)
+            if png:
+                return Response(
+                    content=png,
+                    media_type="image/png",
+                    headers={"Cache-Control": "public, max-age=3600"},
+                )
+        except Exception as e:  # noqa: BLE001 — لا نُفشل الخريطة، نخدم شفّافاً
+            logger.warning("field_tile render skipped (%s): %s", field_id, e)
+    # لا COG/بيانات/rasterio → بلاطة شفّافة (لا 500)
+    return Response(
+        content=_TRANSPARENT_PNG,
+        media_type="image/png",
+        headers={"Cache-Control": "public, max-age=60"},
+    )
+
+
+@app.get("/v1/fields/{field_id}/tilejson")
+async def field_tilejson(
+    field_id: str,
+    index: str = Query("ndvi"),
+    date: str = Query("latest"),
+):
+    """TileJSON 2.2.0 للحقل — يستهلكه Leaflet/MapLibre مباشرة.
+
+    tiles[] يشير إلى مسار التصيير الذاتي (يعمل بلا TiTiler). bounds من حدود
+    COG بـ4326. إن ضُبط TITILER_URL ووُجد cog_url نعرض رابط TiTiler إضافيّاً
+    (اختياري)، لكنّ البلاطات الذاتيّة تعمل دائماً.
+    """
+    layer = _find_field_layer(field_id, index, date)
+    bounds = None
+    if layer is not None and layer.get("bounds_4326"):
+        b = layer["bounds_4326"]
+        if b and len(b) == 4 and any(v != 0.0 for v in b):
+            bounds = [round(float(v), 6) for v in b]
+    if bounds is None:
+        # حدود افتراضيّة (الجوف، اليمن) عند غياب COG — TileJSON يبقى صالحاً
+        bounds = [44.0, 16.0, 44.01, 16.01]
+
+    center = [
+        round((bounds[0] + bounds[2]) / 2.0, 6),
+        round((bounds[1] + bounds[3]) / 2.0, 6),
+        14,
+    ]
+    qs = f"index={index}&date={date}"
+    self_tiles = f"/v1/fields/{field_id}/tiles/{{z}}/{{x}}/{{y}}.png?{qs}"
+
+    tj = {
+        "tilejson": "2.2.0",
+        "name": f"field-{field_id}-{index}",
+        "description": "بلاطات مؤشّر مصيَّرة ذاتيّاً من COG الحقل المقصوص",
+        "scheme": "xyz",
+        "tiles": [self_tiles],
+        "minzoom": 8,
+        "maxzoom": 20,
+        "bounds": bounds,
+        "center": center,
+        "source": "self-rendered",
+    }
+    # اختياري: رابط TiTiler الديناميكي إن توفّر (لا يُلغي الذاتي)
+    cog_url = layer.get("cog_url") if layer else None
+    if TITILER_URL and cog_url:
+        internal = _GRID_INDEX_ALIASES.get(index, index)
+        colormap = "RdYlGn_r" if internal in ("ndsi", "salinity") else "RdYlGn"
+        tj["titiler_tiles"] = [
+            f"{TITILER_URL}/cog/tiles/{{z}}/{{x}}/{{y}}.png?url={cog_url}&colormap_name={colormap}"
+        ]
+    return tj
+
+
 # ─── معايرة الملوحة (البند ٢) ────────────────────────────────────
 class SalinityClassifyRequest(BaseModel):
     ndsi: float

@@ -19,3 +19,4 @@ python-jose[cryptography]>=3.3.0
 pydantic[email]>=2.8.0
 bcrypt>=4.1.0
 prometheus-client>=0.20.0
+PyJWT>=2.8.0
