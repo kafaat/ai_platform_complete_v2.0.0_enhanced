@@ -43,6 +43,19 @@ def _endpoint_host() -> str:
     return ep.rstrip("/")
 
 
+def _endpoint_url() -> str:
+    """URL كامل بمخطّط (http/https) لـboto3 — يتطلّب scheme، عكس GDAL.
+
+    FIX: تمرير S3_ENDPOINT الخام (host:port بلا scheme) إلى boto3 endpoint_url
+    يرمي 'Invalid endpoint' فيسقط الرفع لـfile://. نبني المخطّط من S3_USE_SSL.
+    """
+    host = _endpoint_host()
+    if not host:
+        return ""
+    scheme = "https" if _use_ssl() else "http"
+    return f"{scheme}://{host}"
+
+
 def enabled() -> bool:
     """True فقط إذا ضُبط كلٌّ من S3_BUCKET و S3_ENDPOINT."""
     return bool(S3_BUCKET) and bool(S3_ENDPOINT)
@@ -84,7 +97,7 @@ def upload_cog(local_path: str, key: str) -> str:
 
         client = boto3.client(
             "s3",
-            endpoint_url=S3_ENDPOINT,
+            endpoint_url=_endpoint_url(),
             aws_access_key_id=S3_ACCESS_KEY or None,
             aws_secret_access_key=S3_SECRET_KEY or None,
             region_name=S3_REGION,
