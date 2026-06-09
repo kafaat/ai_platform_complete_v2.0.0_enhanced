@@ -220,6 +220,7 @@ CREATE TABLE IF NOT EXISTS drone_missions (
 CREATE INDEX IF NOT EXISTS idx_drone_field      ON drone_missions(field_id);
 CREATE INDEX IF NOT EXISTS idx_drone_status     ON drone_missions(status);
 CREATE INDEX IF NOT EXISTS idx_drone_path       ON drone_missions USING GIST(flight_path);
+CREATE INDEX IF NOT EXISTS idx_drone_coverage   ON drone_missions USING GIST(coverage_geom);
 CREATE INDEX IF NOT EXISTS idx_drone_tenant     ON drone_missions(tenant_id);
 
 -- ── Soil Readings IoT (قراءات التربة من المستشعرات) ───────────────
@@ -294,14 +295,13 @@ BEGIN
     FOREACH tbl IN ARRAY ARRAY[
         'field_boundaries','ndvi_timeseries','processing_jobs',
         'field_indicators','wofost_seasons','crop_stages',
-        'drone_missions','soil_readings'
+        'drone_missions','soil_readings','weather_observations'
     ] LOOP
         EXECUTE format($ddl$
             DROP POLICY IF EXISTS tenant_isolation ON %I;
             CREATE POLICY tenant_isolation ON %I
             USING (
-                tenant_id IS NULL
-                OR tenant_id = NULLIF(current_setting('app.current_tenant', TRUE), '')::UUID
+                tenant_id = NULLIF(current_setting('app.current_tenant', TRUE), '')::UUID
             )$ddl$, tbl, tbl);
     END LOOP;
 END

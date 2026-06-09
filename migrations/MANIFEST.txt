@@ -38,6 +38,9 @@ v9_lifecycle_occurred_at.sql
 v11_events_bus.sql
 v12_trueup_sharing.sql
 v13_geospatial_core.sql
+# v14: تخزين الصور (raster_assets / management_zones / zonal_stats) — قبل
+# v9_rls_force_all ليُفرَض RLS على جداوله الجديدة.
+v14_imagery_storage.sql
 # FIX (أمان): يُطبَّق أخيراً — يفرض RLS على كلّ الجداول المُفعّلة (كان 7/26 فقط
 # تُفرض، فالباقي يتسرّب لمالك الجدول). يحتاج كلّ الجداول منشأة قبله.
 v9_rls_force_all.sql
