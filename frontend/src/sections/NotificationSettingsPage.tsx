@@ -173,7 +173,7 @@ export default function NotificationSettingsPage() {
 
       {/* Channels */}
       <Channel icon={Mail} title="البريد الإلكتروني" desc="SMTP — مرسل لكل تنبيه حرج"
-        enabled={prefs.email_enabled} onToggle={v => update('email_enabled', v)}>
+        enabled={prefs.email_enabled} onToggle={(v: boolean) => update('email_enabled', v)}>
         <div className="pt-3">
           <label className="block text-xs text-slate-400 mb-1">عنوان البريد</label>
           <input value={prefs.email_address} onChange={e => update('email_address', e.target.value)}
@@ -184,7 +184,7 @@ export default function NotificationSettingsPage() {
       </Channel>
 
       <Channel icon={Send} title="Telegram" desc="بوت مجاني وفوري"
-        enabled={prefs.telegram_enabled} onToggle={v => update('telegram_enabled', v)}>
+        enabled={prefs.telegram_enabled} onToggle={(v: boolean) => update('telegram_enabled', v)}>
         <div className="pt-3 space-y-2">
           <label className="block text-xs text-slate-400 mb-1">
             Chat ID — احصل عليه من <a href="https://t.me/userinfobot" target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">@userinfobot</a>
@@ -197,7 +197,7 @@ export default function NotificationSettingsPage() {
       </Channel>
 
       <Channel icon={Smartphone} title="تطبيق الجوال (Push)" desc="Firebase FCM"
-        enabled={prefs.push_enabled} onToggle={v => update('push_enabled', v)}>
+        enabled={prefs.push_enabled} onToggle={(v: boolean) => update('push_enabled', v)}>
         <div className="pt-3">
           <label className="block text-xs text-slate-400 mb-1">رمز الجهاز (Device Token)</label>
           <input value={prefs.push_device_token} onChange={e => update('push_device_token', e.target.value)}
@@ -208,7 +208,7 @@ export default function NotificationSettingsPage() {
       </Channel>
 
       <Channel icon={Globe} title="Webhook (للمطورين)" desc="HTTP POST عند كل حدث"
-        enabled={prefs.webhook_enabled} onToggle={v => update('webhook_enabled', v)}>
+        enabled={prefs.webhook_enabled} onToggle={(v: boolean) => update('webhook_enabled', v)}>
         <div className="pt-3">
           <label className="block text-xs text-slate-400 mb-1">عنوان Webhook</label>
           <input value={prefs.webhook_url} onChange={e => update('webhook_url', e.target.value)}

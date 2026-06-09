@@ -90,9 +90,11 @@ async def lifespan(app: FastAPI):
             # P3-2: فرض الطول — سرّ قصير = أمان ضعيف، نفشل بأمان
             raise RuntimeError("JWT_SECRET too short — يجب ألّا يقلّ عن 32 حرفاً")
 
+    # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم — في
+    # server_settings يفشل الاتصال بـ"unrecognized configuration parameter".
     _pool = await asyncpg.create_pool(
         DATABASE_URL, min_size=2, max_size=10,
-        server_settings={"statement_cache_size": "0"},
+        statement_cache_size=0,
     )
     try:
         import redis.asyncio as aioredis

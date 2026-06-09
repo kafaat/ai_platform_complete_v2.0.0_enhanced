@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
+
+type IrrigationKey = keyof typeof IRRIGATION;
 
 // ════════════════════════════════════════════════════════════
 // SAHOOL — معالج إعداد الحقل الكامل (6 خطوات)
@@ -11,7 +13,7 @@ import { useState } from "react";
 
 const YEMEN = { lat: [12, 19], lon: [42, 55] };
 const SOIL_TYPES = ["طينية (Clay)", "رملية (Sandy)", "طميية (Loam)", "طينية رملية", "طميية طينية", "غرينية (Silt)"];
-const IRRIGATION = {
+const IRRIGATION: Record<string, { label: string; extra: string[] }> = {
   pivot: { label: "محوري (Pivot)", extra: ["length", "controller", "flow", "runtime"] },
   drip: { label: "تنقيط (Drip)", extra: ["flow", "spacing"] },
   sprinkler: { label: "رش (Sprinkler)", extra: ["flow"] },
@@ -134,10 +136,10 @@ export default function FieldSetupWizard() {
         {step === 5 && (<div>
           <H icon="💧" t="نظام الري" s="النوع يحدّد الحقول المطلوبة (كشف شرطي)" />
           <F label="نوع النظام" e={touched.irrigation && err.irrigation}><select value={d.irrigation} onChange={(e) => { set("irrigation", e.target.value); touch("irrigation"); }} style={inp(touched.irrigation && err.irrigation)}><option value="">— اختر —</option>{Object.entries(IRRIGATION).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select></F>
-          {d.irrigation && IRRIGATION[d.irrigation].extra.includes("length") && <F label="طول المحوري (متر)"><input value={d.length} onChange={(e) => set("length", e.target.value)} placeholder="125" inputMode="decimal" style={inp(false)} /></F>}
-          {d.irrigation && IRRIGATION[d.irrigation].extra.includes("controller") && <F label="نوع التحكّم"><select value={d.controller} onChange={(e) => set("controller", e.target.value)} style={inp(false)}><option value="">—</option><option>Valley</option><option>Lindsay</option><option>Reinke</option></select></F>}
-          {d.irrigation && IRRIGATION[d.irrigation].extra.includes("flow") && <F label="معدل التدفّق (لتر/ثانية)"><input value={d.flow} onChange={(e) => set("flow", e.target.value)} placeholder="38" inputMode="decimal" style={inp(false)} /></F>}
-          {d.irrigation && IRRIGATION[d.irrigation].extra.includes("runtime") && <F label="زمن الدورة الكاملة (ساعة)"><input value={d.runtime} onChange={(e) => set("runtime", e.target.value)} placeholder="9" inputMode="decimal" style={inp(false)} /></F>}
+          {d.irrigation && IRRIGATION[d.irrigation as IrrigationKey].extra.includes("length") && <F label="طول المحوري (متر)"><input value={d.length} onChange={(e) => set("length", e.target.value)} placeholder="125" inputMode="decimal" style={inp(false)} /></F>}
+          {d.irrigation && IRRIGATION[d.irrigation as IrrigationKey].extra.includes("controller") && <F label="نوع التحكّم"><select value={d.controller} onChange={(e) => set("controller", e.target.value)} style={inp(false)}><option value="">—</option><option>Valley</option><option>Lindsay</option><option>Reinke</option></select></F>}
+          {d.irrigation && IRRIGATION[d.irrigation as IrrigationKey].extra.includes("flow") && <F label="معدل التدفّق (لتر/ثانية)"><input value={d.flow} onChange={(e) => set("flow", e.target.value)} placeholder="38" inputMode="decimal" style={inp(false)} /></F>}
+          {d.irrigation && IRRIGATION[d.irrigation as IrrigationKey].extra.includes("runtime") && <F label="زمن الدورة الكاملة (ساعة)"><input value={d.runtime} onChange={(e) => set("runtime", e.target.value)} placeholder="9" inputMode="decimal" style={inp(false)} /></F>}
           {d.irrigation === "none" && <div style={hint}>زراعة بعلية — التوصيات تعتمد على الأمطار ورطوبة التربة.</div>}
         </div>)}
 
@@ -166,7 +168,7 @@ export default function FieldSetupWizard() {
           })()}
           <Row k="الحقل" v={d.name || "—"} /><Row k="الموقع" v={d.lat && d.lon ? `${d.lat}°N, ${d.lon}°E` : "—"} />
           <Row k="الموسم" v={d.season || "—"} /><Row k="المحصول" v={d.crop || "—"} />
-          <Row k="نوع التربة" v={d.soilType || "—"} /><Row k="نظام الري" v={d.irrigation ? IRRIGATION[d.irrigation].label : "—"} />
+          <Row k="نوع التربة" v={d.soilType || "—"} /><Row k="نظام الري" v={d.irrigation ? IRRIGATION[d.irrigation as IrrigationKey].label : "—"} />
           <div style={{ height: 1, background: "#2d4a37", margin: "12px 0" }} />
           <Row k="التحاليل الحاكمة" v={soilComplete ? "✅ كاملة" : "⚠️ ناقصة"} c={soilComplete ? "#5cbf6e" : "#d4a017"} />
           <div style={{ background: "#1a2b3a", borderRadius: 10, padding: 14, marginTop: 16, border: "1px solid #2d3f4a" }}>
@@ -187,11 +189,11 @@ export default function FieldSetupWizard() {
   );
 }
 
-function H({ icon, t, s }) { return <div style={{ marginBottom: 18 }}><div style={{ fontSize: 19, fontWeight: 800, color: "#fff" }}>{icon} {t}</div><div style={{ fontSize: 13, color: "#9cb8a3", marginTop: 4 }}>{s}</div></div>; }
+function H({ icon, t, s }: { icon: ReactNode; t: ReactNode; s: ReactNode }) { return <div style={{ marginBottom: 18 }}><div style={{ fontSize: 19, fontWeight: 800, color: "#fff" }}>{icon} {t}</div><div style={{ fontSize: 13, color: "#9cb8a3", marginTop: 4 }}>{s}</div></div>; }
 function F({ label, e, children }: { label: string; e?: any; children: any }) { return <div style={{ marginBottom: 16, flex: 1 }}><label style={{ fontSize: 13, color: "#9cb8a3", display: "block", marginBottom: 6 }}>{label}</label>{children}{e && <div style={{ fontSize: 11, color: "#d4593a", marginTop: 4 }}>⚠ {e}</div>}</div>; }
-function Row({ k, v, c = "#e8eee9" }) { return <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 14 }}><span style={{ color: "#9cb8a3" }}>{k}</span><span style={{ color: c, fontWeight: 600 }}>{v}</span></div>; }
-const inp = (e) => ({ width: "100%", padding: "12px 14px", borderRadius: 10, boxSizing: "border-box", background: "#0d1611", color: "#e8eee9", fontSize: 15, border: `1px solid ${e ? "#d4593a" : "#2d4a37"}`, outline: "none" });
-const hint = { fontSize: 12, color: "#7fae8c", background: "#0d1611", borderRadius: 8, padding: "10px 14px", marginTop: 8, lineHeight: 1.6 };
-const cBtn = (on) => ({ width: "100%", padding: "14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", border: on ? "2px solid #5cbf6e" : "1px solid #2d4a37", background: on ? "#1f3a2a" : "transparent", color: on ? "#fff" : "#9cb8a3", fontWeight: 600 });
-const btn1 = (on) => ({ flex: 2, padding: "14px", borderRadius: 12, border: "none", background: on ? "#5cbf6e" : "#2d4a37", color: on ? "#0d1611" : "#5a7263", fontSize: 15, fontWeight: 700, cursor: on ? "pointer" : "not-allowed", fontFamily: "inherit" });
-const btn2 = { flex: 1, padding: "14px", borderRadius: 12, border: "1px solid #2d4a37", background: "transparent", color: "#9cb8a3", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" };
+function Row({ k, v, c = "#e8eee9" }: { k: ReactNode; v: ReactNode; c?: string }) { return <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 14 }}><span style={{ color: "#9cb8a3" }}>{k}</span><span style={{ color: c, fontWeight: 600 }}>{v}</span></div>; }
+const inp = (e: unknown): CSSProperties => ({ width: "100%", padding: "12px 14px", borderRadius: 10, boxSizing: "border-box", background: "#0d1611", color: "#e8eee9", fontSize: 15, border: `1px solid ${e ? "#d4593a" : "#2d4a37"}`, outline: "none" });
+const hint: CSSProperties = { fontSize: 12, color: "#7fae8c", background: "#0d1611", borderRadius: 8, padding: "10px 14px", marginTop: 8, lineHeight: 1.6 };
+const cBtn = (on: boolean): CSSProperties => ({ width: "100%", padding: "14px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit", fontSize: 14, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center", border: on ? "2px solid #5cbf6e" : "1px solid #2d4a37", background: on ? "#1f3a2a" : "transparent", color: on ? "#fff" : "#9cb8a3", fontWeight: 600 });
+const btn1 = (on: boolean): CSSProperties => ({ flex: 2, padding: "14px", borderRadius: 12, border: "none", background: on ? "#5cbf6e" : "#2d4a37", color: on ? "#0d1611" : "#5a7263", fontSize: 15, fontWeight: 700, cursor: on ? "pointer" : "not-allowed", fontFamily: "inherit" });
+const btn2: CSSProperties = { flex: 1, padding: "14px", borderRadius: 12, border: "1px solid #2d4a37", background: "transparent", color: "#9cb8a3", fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" };

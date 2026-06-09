@@ -47,8 +47,8 @@ const FieldManagementPage = lazy(() => import('./sections/FieldManagementPage'))
 const AnalyticsPage       = lazy(() => import('./sections/AnalyticsPage'));
 const AlertSystemPage     = lazy(() => import('./sections/AlertSystemPage'));
 const ReportsPage         = lazy(() => import('./sections/ReportsPage'));
-const ChatbotPage         = lazy(() => import('./sections/ChatbotPage'));
-const HybridIndexPage     = lazy(() => import('./sections/HybridIndexPage'));
+const ChatbotPage         = lazy(() => import('./sections/ChatbotPage').then(m => ({ default: m.ChatbotPage })));
+const HybridIndexPage     = lazy(() => import('./sections/HybridIndexPage').then(m => ({ default: m.HybridIndexPage })));
 const SettingsPage        = lazy(() => import('./sections/SettingsPage'));
 const TasksPage           = lazy(() => import('./sections/TasksPage'));
 const RecommendationPage  = lazy(() => import('./sections/RecommendationPage'));

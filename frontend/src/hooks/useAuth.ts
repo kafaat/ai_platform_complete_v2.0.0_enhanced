@@ -10,6 +10,7 @@ interface AuthUser {
   email: string;
   full_name?: string;
   role: string;
+  tenant_id?: string;
 }
 
 interface AuthState {

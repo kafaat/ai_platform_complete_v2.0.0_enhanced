@@ -76,9 +76,9 @@ export default function NotificationCenter() {
     return true;
   });
 
-  const markRead = (id) => setItems((xs) => xs.map((i) => i.id === id ? { ...i, unread: false } : i));
+  const markRead = (id: number) => setItems((xs) => xs.map((i) => i.id === id ? { ...i, unread: false } : i));
   const markAllRead = () => setItems((xs) => xs.map((i) => ({ ...i, unread: false })));
-  const dismiss = (id) => setItems((xs) => xs.filter((i) => i.id !== id));
+  const dismiss = (id: number) => setItems((xs) => xs.filter((i) => i.id !== id));
 
   return (
     <div dir="rtl" style={{

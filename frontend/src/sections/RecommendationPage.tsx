@@ -60,7 +60,7 @@ const SCENARIOS = {
 };
 
 export default function RecommendationView() {
-  const [scen, setScen] = useState("blocked");
+  const [scen, setScen] = useState<keyof typeof SCENARIOS>("blocked");
   const [showBackend, setShowBackend] = useState(false);
   const s = SCENARIOS[scen];
 
@@ -84,7 +84,7 @@ export default function RecommendationView() {
 
       {/* مبدّل السيناريو (للتوضيح) */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        {Object.entries(SCENARIOS).map(([k, v]) => (
+        {(Object.entries(SCENARIOS) as [keyof typeof SCENARIOS, typeof SCENARIOS[keyof typeof SCENARIOS]][]).map(([k, v]) => (
           <button key={k} onClick={() => setScen(k)}
             style={{
               padding: "8px 16px", borderRadius: 20, cursor: "pointer", fontFamily: "inherit",
@@ -195,7 +195,7 @@ export default function RecommendationView() {
   );
 }
 
-function Row({ k, v, c = "#cdddd2" }) {
+function Row({ k, v, c = "#cdddd2" }: { k: React.ReactNode; v: React.ReactNode; c?: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", padding: "5px 0" }}>
       <span style={{ color: "#7fae8c", fontFamily: "'Noto Kufi Arabic'" }}>{k}</span>

@@ -37,8 +37,11 @@ async def init_db(dsn: Optional[str] = None, min_size: int = 2, max_size: int = 
     if _db_pool is not None: return _db_pool
     url = dsn or os.getenv("DATABASE_URL", "")
     if not url: raise RuntimeError("DATABASE_URL not set")
+    # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم؛ تمريره في
+    # server_settings يجعل asyncpg ينفّذ SET statement_cache_size فيفشل الاتصال
+    # بـ"unrecognized configuration parameter" ضد أي Postgres. (=0 لتوافق pgbouncer.)
     _db_pool = await asyncpg.create_pool(url, min_size=min_size, max_size=max_size,
-        command_timeout=30, server_settings={"statement_cache_size": "0"})
+        command_timeout=30, statement_cache_size=0)
     return _db_pool
 
 async def get_pool() -> asyncpg.Pool:

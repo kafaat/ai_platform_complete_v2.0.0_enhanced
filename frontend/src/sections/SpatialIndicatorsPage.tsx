@@ -20,17 +20,24 @@ const INDICES = {
   salinity: { name: "SI", label: "مؤشر الملوحة", lowIsProblem: false, healthy: 0.2 },
 };
 
+type IndexKey = keyof typeof INDICES;
+type Grid = number[][];
+type Zone = {
+  lon: string; lat: string; pixels: number; meanVal: string;
+  fieldMean: string; severity: keyof typeof SEV_AR; comp: number[][];
+};
+
 // توليد شبكة محاكاة (الحقل صحي + بقعة شمالية ضعيفة — كمعرفة المزارع)
-function genGrid(indexKey, seed) {
+function genGrid(indexKey: IndexKey, seed: number): Grid {
   const idx = INDICES[indexKey];
   const base = idx.healthy;
-  const g = [];
+  const g: Grid = [];
   let s = seed;
   const rand = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
   for (let r = 0; r < GRID; r++) {
-    const row = [];
+    const row: number[] = [];
     for (let c = 0; c < GRID; c++) {
-      let v;
+      let v: number;
       // بقعة اهتمام في الشمال الغربي (صفوف 2-7، أعمدة 2-8)
       const inPatch = r >= 2 && r <= 7 && c >= 2 && c <= 8;
       if (idx.lowIsProblem) {
@@ -46,7 +53,7 @@ function genGrid(indexKey, seed) {
 }
 
 // إحصاء الحقل
-function stats(grid) {
+function stats(grid: Grid) {
   const flat = grid.flat();
   const mean = flat.reduce((a, b) => a + b, 0) / flat.length;
   const sd = Math.sqrt(flat.reduce((a, b) => a + (b - mean) ** 2, 0) / flat.length);
@@ -54,7 +61,7 @@ function stats(grid) {
 }
 
 // كشف مناطق الاهتمام (يطابق detect_zones_of_interest في الـ backend)
-function detectZones(grid, indexKey, thresholdStd = 1.0, minCluster = 3) {
+function detectZones(grid: Grid, indexKey: IndexKey, thresholdStd = 1.0, minCluster = 3): Zone[] {
   const idx = INDICES[indexKey];
   const { mean, sd } = stats(grid);
   if (sd === 0) return [];
@@ -62,11 +69,11 @@ function detectZones(grid, indexKey, thresholdStd = 1.0, minCluster = 3) {
     idx.lowIsProblem ? v < mean - thresholdStd * sd : v > mean + thresholdStd * sd
   ));
   // connected components (BFS)
-  const seen = new Set();
-  const clusters = [];
+  const seen = new Set<string>();
+  const clusters: number[][][] = [];
   for (let r = 0; r < GRID; r++) for (let c = 0; c < GRID; c++) {
     if (mask[r][c] && !seen.has(`${r},${c}`)) {
-      const stack = [[r, c]], comp = [];
+      const stack: number[][] = [[r, c]], comp: number[][] = [];
       while (stack.length) {
         const popped = stack.pop();
         if (!popped) break;
@@ -88,7 +95,7 @@ function detectZones(grid, indexKey, thresholdStd = 1.0, minCluster = 3) {
     const vals = comp.map(([r, c]) => grid[r][c]);
     const mv = vals.reduce((a, b) => a + b, 0) / vals.length;
     const dev = Math.abs(mv - mean) / sd;
-    const sev = dev >= 2 ? "high" : dev >= 1.5 ? "medium" : "low";
+    const sev: Zone["severity"] = dev >= 2 ? "high" : dev >= 1.5 ? "medium" : "low";
     return {
       lon: lon.toFixed(5), lat: lat.toFixed(5),
       pixels: comp.length, meanVal: mv.toFixed(3), fieldMean: mean.toFixed(3),
@@ -98,7 +105,7 @@ function detectZones(grid, indexKey, thresholdStd = 1.0, minCluster = 3) {
 }
 
 // لون البكسل حسب القيمة والمؤشر
-function pixelColor(v, indexKey) {
+function pixelColor(v: number, indexKey: IndexKey) {
   const idx = INDICES[indexKey];
   let t = idx.lowIsProblem ? v : 1 - v; // t: 1=صحي, 0=مشكلة
   t = Math.max(0, Math.min(1, t));
@@ -119,22 +126,22 @@ const TIMELINE = [
 ];
 
 export default function SpatialView() {
-  const [indexKey, setIndexKey] = useState("ndvi");
+  const [indexKey, setIndexKey] = useState<IndexKey>("ndvi");
   const [tIdx, setTIdx] = useState(0);
-  const [selectedZone, setSelectedZone] = useState(null);
+  const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
 
   const grid = useMemo(() => genGrid(indexKey, 42 + tIdx * 7), [indexKey, tIdx]);
   const zones = useMemo(() => detectZones(grid, indexKey), [grid, indexKey]);
   const fieldStats = useMemo(() => stats(grid), [grid]);
   const idx = INDICES[indexKey];
 
-  const interp = (k) => ({
+  const interp = (k: IndexKey) => ({
     ndvi: "غطاء نباتي ضعيف — فرضيات: ملوحة، نقص ري، نقص تغذية، أو إصابة. يحتاج تحقّقاً ميدانياً.",
     ndmi: "رطوبة منخفضة — منطقة جافة محتملة. راجع توزيع الري.",
     salinity: "مؤشر ملوحة مرتفع — بقعة مالحة محتملة. خذ عينة تربة (S3).",
   }[k]);
 
-  const zoneCells = new Set();
+  const zoneCells = new Set<string>();
   zones.forEach((z, zi) => z.comp.forEach(([r, c]) => zoneCells.add(`${r},${c}`)));
 
   return (
@@ -170,7 +177,7 @@ export default function SpatialView() {
         <div>
           {/* اختيار المؤشر */}
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            {Object.entries(INDICES).map(([k, v]) => (
+            {(Object.entries(INDICES) as [IndexKey, typeof INDICES[IndexKey]][]).map(([k, v]) => (
               <button key={k} onClick={() => { setIndexKey(k); setSelectedZone(null); }}
                 style={{
                   flex: 1, padding: "10px 8px", borderRadius: 10, cursor: "pointer",

@@ -70,7 +70,10 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
   const fields  = dashboard?.fields_summary || [];
   const alerts  = alertsData?.alerts || dashboard?.alerts || [];
   const weather = weatherData?.current;
-  const natsOk  = natsData?.nats_connected ?? false;
+  // natsData is a ServiceHealth[]; these aggregate fields are read defensively
+  // (undefined at runtime) — typed via a narrow optional shape to match usage.
+  const natsInfo = natsData as unknown as { nats_connected?: boolean; events_processed?: number } | undefined;
+  const natsOk  = natsInfo?.nats_connected ?? false;
 
   // Inject live temperature
   const enrichedKpis = kpis.map((k: any) =>
@@ -104,7 +107,7 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
         <div className="flex items-center gap-2">
           <span className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] border ${natsOk ? 'bg-emerald-950 text-emerald-400 border-emerald-900' : 'bg-slate-800 text-slate-500 border-slate-700'}`}>
             {natsOk ? <Wifi className="w-3 h-3"/> : <WifiOff className="w-3 h-3"/>}
-            NATS {natsOk ? `✓ (${natsData?.events_processed||0})` : 'offline'}
+            NATS {natsOk ? `✓ (${natsInfo?.events_processed||0})` : 'offline'}
           </span>
           <button onClick={() => refetch()} className="p-2 rounded-lg hover:bg-slate-800 text-slate-400">
             <RefreshCw className={`w-4 h-4 ${loadDash ? 'animate-spin' : ''}`} />

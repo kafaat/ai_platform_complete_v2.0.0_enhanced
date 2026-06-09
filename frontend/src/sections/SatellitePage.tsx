@@ -55,7 +55,7 @@ export default function SatellitePage() {
   const { data: ndviNow, isLoading: ndviLoading } = useCurrentNDVI(fieldId);
   const { mutateAsync: analyze, isPending: analyzing } = useAnalyzeVegetation();
 
-  const ts: any[] = tsData?.timeseries || tsData?.data || [];
+  const ts: any[] = tsData?.timeseries || (tsData as { data?: any[] } | undefined)?.data || [];
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length-1]?.ndvi ?? null;
   const thumbs = ts.filter((_,i) => i % Math.max(1,Math.floor(ts.length/8)) === 0).slice(0,8);
 

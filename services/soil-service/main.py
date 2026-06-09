@@ -41,9 +41,11 @@ _pool = None
 async def lifespan(app: FastAPI):
     global _pool
     if DATABASE_URL:
+        # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم — في
+        # server_settings يفشل الاتصال بـ"unrecognized configuration parameter".
         _pool = await asyncpg.create_pool(
             DATABASE_URL, min_size=1, max_size=5,
-            server_settings={"statement_cache_size": "0"}
+            statement_cache_size=0
         )
     logger.info("✅ soil-service started")
     yield

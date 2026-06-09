@@ -139,9 +139,9 @@ export function HybridIndexPage() {
   const [showExportMenu, setExport]   = useState(false);
   const { data, isLoading, error, refetch } = useDashboardKPIs();
 
-  const kpis    = data?.kpis    || [];
-  const alerts  = data?.alerts  || [];
-  const fields  = data?.fields_summary || [];
+  const kpis    = (data?.kpis    || []) as Record<string, unknown>[];
+  const alerts  = (data?.alerts  || []) as Record<string, unknown>[];
+  const fields  = (data?.fields_summary || []) as Record<string, unknown>[];
 
   // enrich KPIs with catalog metadata + sparklines
   const enriched = useMemo(() =>
@@ -297,7 +297,7 @@ export function HybridIndexPage() {
       </div>
 
       {/* ── Alerts ── */}
-      <AlertBanner alerts={alerts} />
+      <AlertBanner alerts={alerts as { id: string; [key: string]: unknown }[]} />
 
       {/* ── Category filter ── */}
       <div className="flex items-center gap-2 flex-wrap">

@@ -200,7 +200,7 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
             zoom={10}
             style={{ height:'100%', width:'100%' }}
             doubleClickZoom={false}
-            whenCreated={m => { mapRef.current = m; }}
+            ref={(m: L.Map | null) => { mapRef.current = m; }}
           >
             <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
               attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
