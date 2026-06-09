@@ -1611,6 +1611,47 @@ def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None
     }
 
 
+async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | None:
+    """يجد طبقة COG للحقل: من الذاكرة أوّلاً، وإلّا يُعيد الترطيب من raster_assets.
+
+    يسدّ ثغرة «persistence مكتوب لا مقروء»: بعد إعادة التشغيل/على worker آخر،
+    فهرس الذاكرة فارغ ⇒ نستعيد cog_uri+الحدود من القاعدة ونُعيد بناء الفهرس،
+    فيعمل العرض على COG الموجود على القرص (UPLOAD_DIR كـvolume دائم).
+    """
+    layer = _find_field_layer(field_id, index, date)
+    if layer is not None:
+        return layer
+    try:
+        import time as _t
+
+        import db_persist
+
+        internal = _GRID_INDEX_ALIASES.get(index, index)
+        asset = await db_persist.fetch_latest_asset(field_id, internal, date)
+        if not asset or not asset.get("cog_url"):
+            return None
+        cog_path = asset["cog_url"].replace("file://", "")
+        # الصفّ موجود في DB لكنّ ملفّ COG غير متاح على هذا المضيف (تخزين غير مشترك)
+        if not os.path.exists(cog_path):
+            logger.warning("raster_assets hit but COG missing on host: %s", cog_path)
+            return None
+        lid = f"db_{field_id}_{internal}"
+        _layers[lid] = {
+            "cog_url": asset["cog_url"],
+            "index": internal,
+            "acquisition_date": asset.get("acquisition_date"),
+            "bounds_4326": asset.get("bounds_4326"),
+            "created_at": asset.get("acquisition_date") or _t.strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+        _field_layers.setdefault(field_id, [])
+        if lid not in _field_layers[field_id]:
+            _field_layers[field_id].append(lid)
+        return _layers[lid]
+    except Exception as e:  # noqa: BLE001 — غياب القاعدة لا يُفشل القراءة
+        logger.warning("DB rehydrate skipped (%s): %s", field_id, e)
+        return None
+
+
 @app.get("/v1/fields/{field_id}/indicator-grid")
 async def field_indicator_grid(
     field_id: str,
@@ -1629,7 +1670,7 @@ async def field_indicator_grid(
     # تطبيع اسم المؤشّر المعروض (salinity مقبول للواجهة)
     out_index = index
 
-    layer = _find_field_layer(field_id, index, date)
+    layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None:
         real = _grid_from_cog(layer, out_index, date, grid)
         if real is not None:
@@ -1662,7 +1703,7 @@ async def field_tile(
     صدق + لا 500: عند غياب COG/rasterio/تقاطع البيانات → بلاطة شفّافة (الخريطة
     لا تُظهر شيئاً فوق الحقل) بدل خطأ خادم.
     """
-    layer = _find_field_layer(field_id, index, date)
+    layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None and layer.get("cog_url"):
         try:
             import tile_render
@@ -1698,7 +1739,7 @@ async def field_tilejson(
     COG بـ4326. إن ضُبط TITILER_URL ووُجد cog_url نعرض رابط TiTiler إضافيّاً
     (اختياري)، لكنّ البلاطات الذاتيّة تعمل دائماً.
     """
-    layer = _find_field_layer(field_id, index, date)
+    layer = await _resolve_field_layer(field_id, index, date)
     bounds = None
     if layer is not None and layer.get("bounds_4326"):
         b = layer["bounds_4326"]
