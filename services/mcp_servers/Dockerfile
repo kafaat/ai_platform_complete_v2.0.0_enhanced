@@ -17,7 +17,14 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Merge BOTH shared packages into a single importable `shared.*` package:
+#   - project-root shared/      → helpers.py, logging_config.py, __init__.py
+#   - services/mcp_servers/shared/ → oauth_middleware.py, streamable_http.py
+# The servers import `from shared.helpers ...` AND
+# `from shared.oauth_middleware ...` / `from shared.streamable_http ...`,
+# so all four modules must live under one /app/shared/ package.
 COPY shared/ /app/shared/
+COPY services/mcp_servers/shared/ /app/shared/
 COPY services/mcp_servers/sentinel_hub_server.py /app/
 COPY services/mcp_servers/weather_server.py /app/
 COPY services/mcp_servers/wofost_server.py /app/

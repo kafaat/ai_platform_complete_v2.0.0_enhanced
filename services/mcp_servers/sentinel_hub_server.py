@@ -143,15 +143,14 @@ async def get_field_bbox(field_id: str) -> tuple:
 async def fetch_sentinel_hub_token() -> str:
     async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await retry_request(
-            client.post(
-                f"{SH_BASE_URL}/oauth/token",
-                data={
-                    "grant_type": "client_credentials",
-                    "client_id": SH_CLIENT_ID,
-                    "client_secret": SH_CLIENT_SECRET,
-                },
-                headers={"Content-Type": "application/x-www-form-urlencoded"},
-            )
+            client.post,
+            f"{SH_BASE_URL}/oauth/token",
+            data={
+                "grant_type": "client_credentials",
+                "client_id": SH_CLIENT_ID,
+                "client_secret": SH_CLIENT_SECRET,
+            },
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
         resp.raise_for_status()
         return resp.json()["access_token"]
@@ -283,14 +282,13 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
         }
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await retry_request(
-                client.post(
-                    f"{SH_BASE_URL}/api/v1/process",
-                    json=payload,
-                    headers={
-                        "Authorization": f"Bearer {token}",
-                        "Content-Type": "application/json",
-                    },
-                )
+                client.post,
+                f"{SH_BASE_URL}/api/v1/process",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
             )
             resp.raise_for_status()
         return {
@@ -336,11 +334,10 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
         }
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await retry_request(
-                client.post(
-                    f"{SH_BASE_URL}/api/v1/process",
-                    json=payload,
-                    headers={"Authorization": f"Bearer {token}"},
-                )
+                client.post,
+                f"{SH_BASE_URL}/api/v1/process",
+                json=payload,
+                headers={"Authorization": f"Bearer {token}"},
             )
             resp.raise_for_status()
         return {
@@ -365,11 +362,10 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
         req = NDVIRequest(**args)
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await retry_request(
-                client.post(
-                    "http://sahool-vegetation:8000/v1/analyze",
-                    json={"field_id": req.field_id, "date": req.date},
-                    timeout=60.0,
-                )
+                client.post,
+                "http://sahool-vegetation:8000/v1/analyze",
+                json={"field_id": req.field_id, "date": req.date},
+                timeout=60.0,
             )
             resp.raise_for_status()
             ndvi_data = resp.json()

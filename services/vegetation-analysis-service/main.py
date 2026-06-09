@@ -6,6 +6,22 @@ SAHOOL v9.1 — vegetation-analysis-service/main.py (FULLY FIXED)
   ✅ أزل field_id من Prometheus labels (cardinality explosion)
   ✅ استبدل datetime.now(timezone.utc) بـ datetime.now(timezone.utc)
   ✅ أضف auth dependency على endpoints الحساسة
+
+NOTE ON DATA PROVENANCE (honesty):
+  This service does NOT decode satellite raster pixels. It deliberately
+  avoids heavy geospatial dependencies (rasterio/GDAL). It may make REAL
+  authenticated calls to Sentinel Hub / CDSE to confirm provider reachability
+  and acquisition metadata, but the returned GeoTIFF bytes are NOT decoded
+  here. The vegetation indices returned by this service are therefore
+  FIELD-MEAN ESTIMATES computed from deterministic synthetic bands (seeded by
+  field + date), NOT from real per-pixel reflectance.
+
+  Real per-pixel raster processing (decoding the GeoTIFF, masking via SCL,
+  averaging real reflectance) lives in the raster-service, which ships
+  rasterio. Accordingly, this service ALWAYS reports `real_data: false` and
+  labels `data_source`/`source` as a simulation/estimate. A
+  `provider_reachable` flag indicates whether the live API responded, but it
+  never upgrades the indices to "real".
 """
 
 from __future__ import annotations
@@ -247,15 +263,18 @@ async def fetch_from_sentinel_hub(field_id: str, date_from: str, date_to: str) -
                 content=json.dumps(payload),
             )
             if r.status_code == 200:
+                # HONESTY FIX: the GeoTIFF bytes are NOT decoded here (no rasterio
+                # in this service). We therefore do NOT derive an NDVI from the
+                # response byte size (that number was meaningless). We only record
+                # that the provider was reachable; indices remain simulated.
                 size_kb = len(r.content) / 1024
-                ndvi_est = min(0.85, 0.3 + size_kb / 500)
                 return {
-                    "source": "sentinel-hub-real",
+                    "source": "sentinel-hub-unavailable",
                     "acquisition_date": date_from,
                     "cloud_pct": 0.0,
-                    "ndvi": round(ndvi_est, 3),
                     "response_kb": round(size_kb, 1),
-                    "real_data": True,
+                    "provider_reachable": True,
+                    "real_data": False,
                 }
             else:
                 logger.warning(f"SH API error {r.status_code}: {r.text[:200]}")
@@ -304,15 +323,21 @@ async def fetch_from_cdse(field_id: str, date_from: str, date_to: str) -> dict |
                         ),
                         50.0,
                     )
+                    # HONESTY FIX: the catalogue gives us REAL acquisition
+                    # metadata (product id, date, cloud cover), but we do NOT
+                    # download/decode the product raster here, so the indices
+                    # remain simulated. `real_data` stays False;
+                    # `provider_reachable` records the live catalogue hit.
                     return {
-                        "source": "copernicus-cdse",
+                        "source": "cdse-metadata-only",
                         "product_id": prod.get("Id"),
                         "product_name": prod.get("Name"),
                         "acquisition_date": prod.get("ContentDate", {}).get("Start", date_from)[
                             :10
                         ],
                         "cloud_pct": float(cloud_pct),
-                        "real_data": True,
+                        "provider_reachable": True,
+                        "real_data": False,
                         "download_url": f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products({prod.get('Id')})/$value",
                     }
     except Exception as e:
@@ -486,9 +511,17 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         cdse_meta = None
         if not sh_meta:
             cdse_meta = await fetch_from_cdse(field_id, date_from, date_to)
-        source = "sentinel-hub" if sh_meta else "cdse" if cdse_meta else "simulation"
-        acq_date = (sh_meta or cdse_meta or {}).get("acquisition_date", date_to)
-        cloud_pct = (sh_meta or cdse_meta or {}).get("cloud_pct", 0.0)
+        meta = sh_meta or cdse_meta or {}
+        # HONESTY FIX: indices below are computed from deterministic synthetic
+        # bands (no GeoTIFF decode here), so the data is ALWAYS a simulation.
+        # `data_source` is taken from the provider metadata when a live API
+        # responded ("sentinel-hub-unavailable" / "cdse-metadata-only"),
+        # otherwise "simulation". `provider_reachable` records whether the live
+        # API actually answered. `real_data` is never True in this service.
+        source = meta.get("source", "simulation")
+        provider_reachable = bool(meta.get("provider_reachable", False))
+        acq_date = meta.get("acquisition_date", date_to)
+        cloud_pct = meta.get("cloud_pct", 0.0)
         bands = _realistic_bands(field_id, acq_date)
         indices = _compute_indices(bands)
         health = _health_classification(indices["ndvi"], indices["cwsi"])
@@ -504,7 +537,15 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         "acquisition_date": acq_date,
         "cloud_coverage_pct": cloud_pct,
         "data_source": source,
-        "real_data": source != "simulation",
+        # HONESTY: indices are field-mean estimates from synthetic bands, never
+        # decoded pixels — so this is always False. provider_reachable tells the
+        # caller whether the live SH/CDSE API responded (metadata only).
+        "real_data": False,
+        "provider_reachable": provider_reachable,
+        "estimate_note": (
+            "Indices are field-mean estimates from deterministic synthetic bands; "
+            "no satellite pixels were decoded. Real per-pixel processing lives in raster-service."
+        ),
         "indices": {k: {"value": v, "unit": "dimensionless"} for k, v in indices.items()},
         "raw_bands": bands,
         "health": health,
