@@ -22,6 +22,8 @@ volumes:
   fastbee_data:
   ollama_models:
   qdrant_data:
+  edge_data:  # FIX: مُستخدَم في edge-inference (- edge_data:/data) لكنه لم يكن مُعلَناً
+  odoo-filestore:  # FIX: مُستخدَم في sahool-odoo لكنه لم يكن مُعلَناً
 
 x-logging: &logging
   logging:
@@ -435,7 +437,7 @@ services:
     volumes:
       - odoo-filestore:/var/lib/odoo
     depends_on:
-      sahool-postgres: { condition: service_healthy }
+      postgis: { condition: service_healthy }  # FIX: كان sahool-postgres (خدمة غير معرّفة) — اسم خدمة قاعدة البيانات هنا 'postgis'
     networks: [sahool-net]
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8069/web/health"]

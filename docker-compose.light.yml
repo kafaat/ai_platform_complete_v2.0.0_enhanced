@@ -20,6 +20,7 @@ volumes:
   minio_data:
   zlmediakit_data:
   fastbee_data:
+  edge_data:  # FIX: مُستخدَم في edge-inference (- edge_data:/data) لكنه لم يكن مُعلَناً
 
 x-logging: &logging
   logging:
