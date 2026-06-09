@@ -17,8 +17,10 @@ CREATE TABLE IF NOT EXISTS workflow_states (
 CREATE TABLE IF NOT EXISTS workflow_transitions (
     transition_id   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workflow_name   VARCHAR(50) NOT NULL,
-    from_state  INTEGER  (50) NOT NULL REFERENCES workflow_states(state_id) ON DELETE CASCADE,
-    to_state    INTEGER  (50) NOT NULL REFERENCES workflow_states(state_id) ON DELETE CASCADE,
+    -- FIX: from/to_state أسماء حالات نصيّة (الـINSERT يضع 'proc_draft'...) لا
+    -- state_id عدديّ — كان INTEGER(50) صياغة غير صالحة + تعارض نوع مع البيانات.
+    from_state  VARCHAR(50) NOT NULL,
+    to_state    VARCHAR(50) NOT NULL,
     required_role   VARCHAR(50),
     condition_json  JSONB DEFAULT '{}',
     notify_users    BOOLEAN DEFAULT true,
@@ -49,6 +51,15 @@ BEGIN
         'workflow_states','workflow_transitions','workflow_instances','workflow_logs'
     ]
     LOOP
+        -- FIX: طبّق عزل المستأجر فقط على جدول موجود **ولديه عمود tenant_id**.
+        -- بعض الجداول المُدرجة تُنشأ في مجموعة أوسع (odoo_sync_*/inventory_*)،
+        -- وبعضها (workflow_states/transitions) بلا tenant_id — تخطّيها يمنع
+        -- "relation does not exist" و"column tenant_id does not exist".
+        CONTINUE WHEN to_regclass(tbl) IS NULL;
+        CONTINUE WHEN NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = tbl AND column_name = 'tenant_id'
+        );
         EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
         EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', tbl);
         EXECUTE format(
@@ -61,8 +72,16 @@ BEGIN
     END LOOP;
 END $$;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_market_products_odoo_product_id ON market_products(odoo_product_id);  -- HIGH-ODOO-02 FIX
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_market_suppliers_odoo_partner_id ON market_suppliers(odoo_partner_id);  -- HIGH-ODOO-02 FIX
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_inventory_locations_odoo_warehouse_id ON inventory_locations(odoo_warehouse_id);  -- HIGH-ODOO-02 FIX
+-- FIX: فهارس odoo على جداول قد لا تُنشأ في هذه المجموعة — احرسها بوجود الجدول.
+DO $$
+BEGIN
+    IF to_regclass('market_products') IS NOT NULL THEN
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_market_products_odoo_product_id ON market_products(odoo_product_id);
+    END IF;
+    IF to_regclass('market_suppliers') IS NOT NULL THEN
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_market_suppliers_odoo_partner_id ON market_suppliers(odoo_partner_id);
+    END IF;
+    IF to_regclass('inventory_locations') IS NOT NULL THEN
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_inventory_locations_odoo_warehouse_id ON inventory_locations(odoo_warehouse_id);
+    END IF;
+END $$;

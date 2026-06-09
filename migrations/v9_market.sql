@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS market_sales_listings (
     variety         VARCHAR(100),
     quantity_kg     NUMERIC(12,2) NOT NULL,
     price_per_kg_usd NUMERIC(10,4) NOT NULL,
-    total_value_usd NUMERIC(18,4) GENERATED ALWAYS AS (quantity_kg * price_per_kg_usd) STORED  -- C7 FIX: was NUMERIC(12,2),
+    total_value_usd NUMERIC(18,4) GENERATED ALWAYS AS (quantity_kg * price_per_kg_usd) STORED,  -- C7 FIX: was NUMERIC(12,2)
     currency        VARCHAR(3) DEFAULT 'USD',
     quality_grade   VARCHAR(20) DEFAULT 'A',
     moisture_pct    NUMERIC(5,2),
@@ -43,6 +43,9 @@ BEGIN
         'market_sales_listings','market_analytics_snapshots'
     ]
     LOOP
+        -- FIX: تخطَّ الجداول غير الموجودة (بعضها يُنشأ في مجموعة أوسع/خدمات
+        -- منفصلة) بدل الفشل بـ"relation does not exist" وكسر التمهيد.
+        CONTINUE WHEN to_regclass(tbl) IS NULL;
         EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
         EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', tbl);
         EXECUTE format(

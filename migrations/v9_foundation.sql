@@ -136,11 +136,12 @@ END $$;
 -- دالة مساعدة تُستخدم في auth service
 CREATE OR REPLACE FUNCTION set_tenant_context(p_tenant_id TEXT)
 RETURNS void AS $$
-    SET search_path = public, pg_catalog;  -- Prevent search_path injection
 BEGIN
     PERFORM set_config('app.current_tenant', p_tenant_id, true);
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- FIX: SET search_path يجب أن يكون في ترويسة الدالّة (لا داخل الجسم قبل BEGIN)
+-- وإلّا "syntax error at or near SET". يمنع حقن search_path لدالّة SECURITY DEFINER.
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog;
 
 -- ── FIX 11: تصحيح RLS policies (بدون pg_has_role bypass) ─────
 -- يُطبَّق بعد v9_new_tables.sql إذا احتجنا إعادة تعريف policies

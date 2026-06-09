@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS field_tasks (
     task_id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    field_id             VARCHAR(50)  NOT NULL REFERENCES field_boundaries(field_id) ON DELETE CASCADE  -- C2 FIX: FK to TABLE not VIEW,
+    field_id             VARCHAR(50)  NOT NULL REFERENCES field_boundaries(field_id) ON DELETE CASCADE,  -- C2 FIX: FK to TABLE not VIEW
     tenant_id            UUID,
     task_type            VARCHAR(50)  NOT NULL,
     priority             SMALLINT     DEFAULT 3,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS guardrails_log (
     tenant_id       UUID,
     user_id         INTEGER,
     action_type     VARCHAR(50)  NOT NULL,
-    overall_risk    VARCHAR(20)  NOT NULL CHECK (UPPER(overall_risk) IN ('LOW','MEDIUM','HIGH','CRITICAL'))  -- H01 FIX: case-insensitive,
+    overall_risk    VARCHAR(20)  NOT NULL CHECK (UPPER(overall_risk) IN ('LOW','MEDIUM','HIGH','CRITICAL')),  -- H01 FIX: case-insensitive
     allowed         BOOLEAN      NOT NULL,
     tier_checks     JSONB        DEFAULT '[]',
     action_data     JSONB        DEFAULT '{}',
@@ -67,7 +67,7 @@ CREATE INDEX IF NOT EXISTS idx_workflow_pending   ON approval_workflows(status, 
 
 CREATE TABLE IF NOT EXISTS edge_results (
     id              BIGSERIAL PRIMARY KEY,
-    field_id        VARCHAR(50)  NOT NULL REFERENCES field_boundaries(field_id) ON DELETE CASCADE  -- C2 FIX: FK to TABLE not VIEW,
+    field_id        VARCHAR(50)  NOT NULL REFERENCES field_boundaries(field_id) ON DELETE CASCADE,  -- C2 FIX: FK to TABLE not VIEW
     tenant_id       UUID,
     result_type     VARCHAR(50)  NOT NULL,
     device          VARCHAR(50),
@@ -108,6 +108,8 @@ DECLARE tbl TEXT;
 BEGIN
     FOREACH tbl IN ARRAY ARRAY['field_tasks','inventory_stock','guardrails_log','approval_workflows','edge_results','agent_queries']
     LOOP
+        -- FIX: تخطَّ الجداول غير الموجودة (inventory_stock يُنشأ في مجموعة أوسع) بدل الفشل.
+        CONTINUE WHEN to_regclass(tbl) IS NULL;
         EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
         EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', tbl);
         EXECUTE format(
@@ -125,13 +127,18 @@ DECLARE tbl TEXT;
 BEGIN
     FOREACH tbl IN ARRAY ARRAY['field_tasks','inventory_stock']
     LOOP
-        EXECUTE format(
-            'CREATE TRIGGER trg_%s_updated_at
-             BEFORE UPDATE ON %I
-             FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()',
-            replace(tbl, '-', '_'), tbl
-        );
-    EXCEPTION WHEN duplicate_object OR undefined_table OR undefined_column THEN NULL;  -- C6 FIX
+        -- FIX: EXCEPTION يجب أن يكون داخل بلوك BEGIN...END فرعيّ (لا مباشرةً في
+        -- LOOP) وإلّا "syntax error at or near EXCEPTION". + تخطّي الجداول الغائبة.
+        CONTINUE WHEN to_regclass(tbl) IS NULL;
+        BEGIN
+            EXECUTE format(
+                'CREATE TRIGGER trg_%s_updated_at
+                 BEFORE UPDATE ON %I
+                 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()',
+                replace(tbl, '-', '_'), tbl
+            );
+        EXCEPTION WHEN duplicate_object OR undefined_table OR undefined_column THEN NULL;  -- C6 FIX
+        END;
     END LOOP;
 END $$;
 
@@ -143,13 +150,24 @@ BEGIN
 END $$;
 
 -- H09 FIX: Missing performance indexes
-CREATE INDEX IF NOT EXISTS idx_market_listings_crop_status
-    ON market_sales_listings(crop_type, status);
-CREATE INDEX IF NOT EXISTS idx_market_listings_tenant_status
-    ON market_sales_listings(tenant_id, status);
-CREATE INDEX IF NOT EXISTS idx_market_price_history_crop_date
-    ON market_price_history(crop_type, recorded_at DESC);
+-- FIX: market_*/workflow_instances تُنشأ في مجموعات لاحقة/أوسع — احرس كلّ
+-- فهرس بوجود جدوله بدل الفشل بـ"relation does not exist" وكسر التمهيد.
 CREATE INDEX IF NOT EXISTS idx_guardrails_tenant_date
     ON guardrails_log(tenant_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_workflow_instances_tenant_status
-    ON workflow_instances(tenant_id, status) WHERE status != 'completed';
+DO $$
+BEGIN
+    IF to_regclass('market_sales_listings') IS NOT NULL THEN
+        CREATE INDEX IF NOT EXISTS idx_market_listings_crop_status
+            ON market_sales_listings(crop_type, status);
+        CREATE INDEX IF NOT EXISTS idx_market_listings_tenant_status
+            ON market_sales_listings(tenant_id, status);
+    END IF;
+    IF to_regclass('market_price_history') IS NOT NULL THEN
+        CREATE INDEX IF NOT EXISTS idx_market_price_history_crop_date
+            ON market_price_history(crop_type, recorded_at DESC);
+    END IF;
+    IF to_regclass('workflow_instances') IS NOT NULL THEN
+        CREATE INDEX IF NOT EXISTS idx_workflow_instances_tenant_status
+            ON workflow_instances(tenant_id, status) WHERE status != 'completed';
+    END IF;
+END $$;

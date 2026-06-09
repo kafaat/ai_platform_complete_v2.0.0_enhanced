@@ -29,10 +29,12 @@ v9_automation_persistence.sql
 v9_odoo_bridge.sql
 v9_edge_idempotency.sql
 v9_edge_occurred_at.sql
-v9_lifecycle_occurred_at.sql
 v9_rls_tenant_isolation.sql
 v9_append_only_enforcement.sql
 v10_command_store_lifecycle.sql
+# FIX: v9_lifecycle_occurred_at يُعدّل field_lifecycle_transitions المُنشأ في
+# v10 — لذا يجب أن يأتي بعده (كان قبله ⇒ "relation does not exist").
+v9_lifecycle_occurred_at.sql
 v11_events_bus.sql
 v12_trueup_sharing.sql
 v13_geospatial_core.sql

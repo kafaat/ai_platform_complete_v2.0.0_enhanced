@@ -26,7 +26,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- ── Field Boundaries ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS field_boundaries (
     id          SERIAL PRIMARY KEY,
-    field_id    VARCHAR(50)  NOT NULL,
+    field_id    VARCHAR(50)  NOT NULL UNIQUE,  -- FIX: قيد فريد لازم لأنّ FKs تشير إلى field_boundaries(field_id)
     field_name  VARCHAR(100) NOT NULL,
     geom        GEOMETRY(POLYGON, 4326),
     area_ha     NUMERIC(10, 2),

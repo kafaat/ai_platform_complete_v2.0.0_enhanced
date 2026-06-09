@@ -12,6 +12,8 @@ BEGIN
         'suppliers','video_streams'
     ]
     LOOP
+        -- FIX: تخطَّ الجداول غير الموجودة في مجموعة الترحيل بدل الفشل.
+        CONTINUE WHEN to_regclass(tbl) IS NULL;
         EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
         EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', tbl);
         EXECUTE format(
