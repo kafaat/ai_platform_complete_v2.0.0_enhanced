@@ -17,20 +17,21 @@ api/cultural_calendar.py — التقويم الزراعي الثقافي (عر�
 لذا: العرض هنا منفصل تماماً. الدالّة لا تُرجِع أيّ "توصية" — فقط سياق ثقافي
 موسوم صراحةً بأنّه غير مُستخدَم في القرار.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 
 @dataclass
 class CulturalNote:
     """ملاحظة تقويم ثقافي (عرض فقط)."""
+
     name_ar: str
     period_ar: str
     traditional_practice_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "name_ar": self.name_ar,
             "period_ar": self.period_ar,
@@ -40,17 +41,18 @@ class CulturalNote:
 
 # تقويم نجمي يمني تقليدي (للعرض الثقافي فقط — لا يدخل أيّ قرار)
 # مرجع ثقافي عامّ؛ ليس مصدر توصية زراعيّة.
-YEMENI_STAR_CALENDAR: List[CulturalNote] = [
-    CulturalNote("سهيل", "أواخر الصيف (أغسطس)",
-                 "يربطه المزارعون تقليديّاً ببدء اعتدال الحرّ وقرب موسم الزراعة"),
-    CulturalNote("الثريّا", "مواقيت متعدّدة عبر السنة",
-                 "تُستخدم تقليديّاً لتقدير مواعيد بعض الأعمال الزراعيّة"),
-    CulturalNote("مراحل القمر", "شهريّة",
-                 "يفضّل بعض المزارعين أعمالاً معيّنة في أطوار قمريّة محدّدة"),
+YEMENI_STAR_CALENDAR: list[CulturalNote] = [
+    CulturalNote(
+        "سهيل", "أواخر الصيف (أغسطس)", "يربطه المزارعون تقليديّاً ببدء اعتدال الحرّ وقرب موسم الزراعة"
+    ),
+    CulturalNote(
+        "الثريّا", "مواقيت متعدّدة عبر السنة", "تُستخدم تقليديّاً لتقدير مواعيد بعض الأعمال الزراعيّة"
+    ),
+    CulturalNote("مراحل القمر", "شهريّة", "يفضّل بعض المزارعين أعمالاً معيّنة في أطوار قمريّة محدّدة"),
 ]
 
 
-def get_cultural_calendar(governorate: Optional[str] = None) -> Dict:
+def get_cultural_calendar(governorate: str | None = None) -> dict:
     """يُرجع التقويم الثقافي للعرض فقط — مع وسم صريح أنّه خارج محرّك القرار.
 
     لا يُرجِع أيّ توصية أو وزن أو قرار. سياق ثقافي بحت.

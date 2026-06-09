@@ -13,18 +13,17 @@ cog_writer.py — كتابة Cloud-Optimized GeoTIFF محسّنة (تحسين ت
 
 ⚠ يتطلّب rasterio في بيئة التشغيل. عند غيابه، يُبلّغ بصدق.
 """
+
 from __future__ import annotations
 
 import os
-from typing import Optional
-
 
 # إعدادات COG محسّنة (وفق أفضل الممارسات)
 COG_PROFILE = {
     "driver": "GTiff",
     "dtype": "float32",
-    "compress": "DEFLATE",      # بلا فقد — مهمّ للمؤشّرات (NDVI دقيق)
-    "predictor": 3,             # 3 للعائم (floating point) — يحسّن الضغط
+    "compress": "DEFLATE",  # بلا فقد — مهمّ للمؤشّرات (NDVI دقيق)
+    "predictor": 3,  # 3 للعائم (floating point) — يحسّن الضغط
     "tiled": True,
     "blockxsize": 512,
     "blockysize": 512,
@@ -47,7 +46,6 @@ def write_cog(
     فعليّاً عند توفّر rasterio؛ وإلّا يُبلّغ بأنّه غير متاح (لا يدّعي كتابة).
     """
     try:
-        import numpy as np
         import rasterio
         from rasterio.enums import Resampling
     except ImportError:

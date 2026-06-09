@@ -13,10 +13,10 @@ api/disease_diagnosis.py — تشخيص بقواعد الأعراض (لا تعل
 ⚠ هذه قواعد أعراض عامّة من أدبيّات وقاية النبات — ليست تشخيصاً قاطعاً.
 كلّ نتيجة تنتهي بتوصية تأكيد (صورة عالية الدقّة / مهندس / مختبر).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Set
 
 
 # قواعد الأعراض: كلّ قاعدة تربط مجموعة أعراض → كود مرض/آفة/نقص + ثقة أساس
@@ -25,62 +25,86 @@ from typing import Dict, List, Set
 class SymptomRule:
     issue_code: str
     name_ar: str
-    category: str               # disease | pest | nutrient | water_stress
-    required_symptoms: Set[str]  # يجب توفّرها كلّها
-    supporting_symptoms: Set[str]  # تزيد الثقة
-    crops: Set[str]             # المحاصيل التي تنطبق عليها (فارغة = الكلّ)
-    base_confidence: float       # 0-1 عند تطابق الأعراض المطلوبة
+    category: str  # disease | pest | nutrient | water_stress
+    required_symptoms: set[str]  # يجب توفّرها كلّها
+    supporting_symptoms: set[str]  # تزيد الثقة
+    crops: set[str]  # المحاصيل التي تنطبق عليها (فارغة = الكلّ)
+    base_confidence: float  # 0-1 عند تطابق الأعراض المطلوبة
 
 
 # قاعدة المعرفة (أعراض → مرشّحين). رموز الأعراض موحّدة.
-SYMPTOM_RULES: List[SymptomRule] = [
+SYMPTOM_RULES: list[SymptomRule] = [
     SymptomRule(
-        "wheat.rust", "صدأ القمح", "disease",
+        "wheat.rust",
+        "صدأ القمح",
+        "disease",
         required_symptoms={"orange_pustules"},
         supporting_symptoms={"leaf_yellowing", "powder_on_touch"},
-        crops={"wheat", "barley"}, base_confidence=0.7,
+        crops={"wheat", "barley"},
+        base_confidence=0.7,
     ),
     SymptomRule(
-        "wheat.fe_deficiency", "نقص حديد", "nutrient",
+        "wheat.fe_deficiency",
+        "نقص حديد",
+        "nutrient",
         required_symptoms={"interveinal_chlorosis", "young_leaves_affected"},
         supporting_symptoms={"alkaline_soil"},
-        crops={"wheat", "barley", "coffee"}, base_confidence=0.6,
+        crops={"wheat", "barley", "coffee"},
+        base_confidence=0.6,
     ),
     SymptomRule(
-        "wheat.n_deficiency", "نقص نيتروجين", "nutrient",
+        "wheat.n_deficiency",
+        "نقص نيتروجين",
+        "nutrient",
         required_symptoms={"general_yellowing", "old_leaves_affected"},
         supporting_symptoms={"stunted_growth"},
-        crops=set(), base_confidence=0.6,
+        crops=set(),
+        base_confidence=0.6,
     ),
     SymptomRule(
-        "coffee.zn_deficiency", "نقص زنك", "nutrient",
+        "coffee.zn_deficiency",
+        "نقص زنك",
+        "nutrient",
         required_symptoms={"interveinal_chlorosis", "small_leaves"},
         supporting_symptoms={"short_internodes"},
-        crops={"coffee", "citrus"}, base_confidence=0.55,
+        crops={"coffee", "citrus"},
+        base_confidence=0.55,
     ),
     SymptomRule(
-        "wheat.aphid", "منّ", "pest",
+        "wheat.aphid",
+        "منّ",
+        "pest",
         required_symptoms={"insects_on_leaves"},
         supporting_symptoms={"sticky_honeydew", "curled_leaves", "ants_present"},
-        crops=set(), base_confidence=0.65,
+        crops=set(),
+        base_confidence=0.65,
     ),
     SymptomRule(
-        "coffee.leaf_rust", "صدأ أوراق البنّ", "disease",
+        "coffee.leaf_rust",
+        "صدأ أوراق البنّ",
+        "disease",
         required_symptoms={"orange_powder_underside"},
         supporting_symptoms={"leaf_drop", "yellow_spots_upperside"},
-        crops={"coffee"}, base_confidence=0.7,
+        crops={"coffee"},
+        base_confidence=0.7,
     ),
     SymptomRule(
-        "qat.water_stress", "إجهاد مائي", "water_stress",
+        "qat.water_stress",
+        "إجهاد مائي",
+        "water_stress",
         required_symptoms={"wilting"},
         supporting_symptoms={"leaf_curl", "dry_soil", "midday_drooping"},
-        crops=set(), base_confidence=0.6,
+        crops=set(),
+        base_confidence=0.6,
     ),
     SymptomRule(
-        "generic.salinity", "إجهاد ملوحة", "water_stress",
+        "generic.salinity",
+        "إجهاد ملوحة",
+        "water_stress",
         required_symptoms={"leaf_tip_burn"},
         supporting_symptoms={"white_soil_crust", "stunted_growth"},
-        crops=set(), base_confidence=0.55,
+        crops=set(),
+        base_confidence=0.55,
     ),
 ]
 
@@ -93,7 +117,7 @@ class DiagnosisCandidate:
     confidence: float
     matched_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "issue_code": self.issue_code,
             "name_ar": self.name_ar,
@@ -106,11 +130,11 @@ class DiagnosisCandidate:
 @dataclass
 class DiagnosisResult:
     crop: str
-    observed_symptoms: List[str]
-    candidates: List[DiagnosisCandidate]
+    observed_symptoms: list[str]
+    candidates: list[DiagnosisCandidate]
     next_step_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "crop": self.crop,
             "observed_symptoms": self.observed_symptoms,
@@ -119,13 +143,13 @@ class DiagnosisResult:
         }
 
 
-def diagnose(crop: str, symptoms: List[str]) -> DiagnosisResult:
+def diagnose(crop: str, symptoms: list[str]) -> DiagnosisResult:
     """يطابق الأعراض المرصودة مع قواعد المعرفة ويرتّب المرشّحين.
 
     لا يدّعي يقيناً — يعيد قائمة احتمالات + خطوة تأكيد.
     """
-    observed: Set[str] = set(symptoms)
-    candidates: List[DiagnosisCandidate] = []
+    observed: set[str] = set(symptoms)
+    candidates: list[DiagnosisCandidate] = []
 
     for rule in SYMPTOM_RULES:
         # تحقّق المحصول
@@ -139,11 +163,15 @@ def diagnose(crop: str, symptoms: List[str]) -> DiagnosisResult:
         support_bonus = 0.1 * support_hits
         conf = min(0.95, rule.base_confidence + support_bonus)
         matched = rule.required_symptoms | (rule.supporting_symptoms & observed)
-        candidates.append(DiagnosisCandidate(
-            issue_code=rule.issue_code, name_ar=rule.name_ar,
-            category=rule.category, confidence=conf,
-            matched_ar=f"تطابق: {', '.join(sorted(matched))}",
-        ))
+        candidates.append(
+            DiagnosisCandidate(
+                issue_code=rule.issue_code,
+                name_ar=rule.name_ar,
+                category=rule.category,
+                confidence=conf,
+                matched_ar=f"تطابق: {', '.join(sorted(matched))}",
+            )
+        )
 
     candidates.sort(key=lambda c: c.confidence, reverse=True)
 
@@ -166,12 +194,14 @@ def diagnose(crop: str, symptoms: List[str]) -> DiagnosisResult:
             )
 
     return DiagnosisResult(
-        crop=crop, observed_symptoms=sorted(observed),
-        candidates=candidates, next_step_ar=next_step,
+        crop=crop,
+        observed_symptoms=sorted(observed),
+        candidates=candidates,
+        next_step_ar=next_step,
     )
 
 
-def list_symptoms() -> List[Dict[str, str]]:
+def list_symptoms() -> list[dict[str, str]]:
     """قائمة الأعراض المتاحة للاختيار (واجهة الموبايل)."""
     catalog = {
         "orange_pustules": "بثور برتقاليّة على الأوراق",

@@ -18,33 +18,36 @@ Suitability classes follow FAO land evaluation (FAO, 1976, Bulletin 32):
 Confidence is CATEGORICAL (high/medium/low) tied to measurement error,
 never a fabricated percentage.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
 
-from core.engines.fuzzy import (
-    TrapezoidParams, trapezoidal_score, descending_score, ascending_score,
-)
 from core.engines.fusion import Confidence
+from core.engines.fuzzy import (
+    TrapezoidParams,
+    trapezoidal_score,
+)
 
 
 class SuitabilityClass(str, Enum):
     S1 = "S1"  # excellent
     S2 = "S2"  # suitable
     S3 = "S3"  # marginal
-    N = "N"    # not suitable
+    N = "N"  # not suitable
 
 
 @dataclass
 class GoverningFactor:
     """Knock-out factor. Outside acceptable => crop fails (N)."""
+
     name: str
     name_ar: str
     value: float
     min_acceptable: float
     max_acceptable: float
-    measurement_error: float        # for confidence
+    measurement_error: float  # for confidence
     source: str
 
     def passes(self) -> bool:
@@ -54,6 +57,7 @@ class GoverningFactor:
 @dataclass
 class ModifyingFactor:
     """Weighted, treatable factor scored by fuzzy membership."""
+
     name: str
     name_ar: str
     value: float
@@ -70,7 +74,7 @@ class ModifyingFactor:
 class SuitabilityResult:
     crop_id: str
     suitability: SuitabilityClass
-    score: float                    # 0-100 (from modifying factors)
+    score: float  # 0-100 (from modifying factors)
     confidence: Confidence
     failed_governing: list[str] = field(default_factory=list)
     breakdown: list[dict] = field(default_factory=list)
@@ -101,7 +105,8 @@ def evaluate_suitability(
         # find the specific failing values for the reason
         details = [
             f"{g.name_ar}={g.value} (المطلوب {g.min_acceptable}-{g.max_acceptable})"
-            for g in governing if not g.passes()
+            for g in governing
+            if not g.passes()
         ]
         conf = _confidence_from_errors([g.measurement_error for g in governing])
         return SuitabilityResult(
@@ -120,14 +125,16 @@ def evaluate_suitability(
     for m in modifying:
         s = m.score()
         score += s * m.weight
-        breakdown.append({
-            "factor": m.name_ar,
-            "value": m.value,
-            "score": round(s, 2),
-            "weight": m.weight,
-            "error": m.measurement_error,
-            "source": m.source,
-        })
+        breakdown.append(
+            {
+                "factor": m.name_ar,
+                "value": m.value,
+                "score": round(s, 2),
+                "weight": m.weight,
+                "error": m.measurement_error,
+                "source": m.source,
+            }
+        )
     final = (score / total_w) * 100.0
 
     if final >= 85:
@@ -139,10 +146,7 @@ def evaluate_suitability(
     else:
         cls = SuitabilityClass.N
 
-    all_errors = (
-        [g.measurement_error for g in governing]
-        + [m.measurement_error for m in modifying]
-    )
+    all_errors = [g.measurement_error for g in governing] + [m.measurement_error for m in modifying]
     conf = _confidence_from_errors(all_errors)
 
     return SuitabilityResult(

@@ -19,6 +19,7 @@ sahool_core.spatial.map_layer
   fc = zones_to_geojson(zones, indicator='ndvi')
   L.geoJSON(fc, {style: styleByValue}).addTo(map)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -27,21 +28,21 @@ from dataclasses import dataclass
 # يطابق مبدأ "الثقة فئة لا نسبة"
 _INDICATOR_BANDS = {
     "ndvi": [
-        (0.0, 0.2, "low",    "#8B4513", "نباتي ضعيف/أرض عارية"),
+        (0.0, 0.2, "low", "#8B4513", "نباتي ضعيف/أرض عارية"),
         (0.2, 0.4, "medium", "#DAA520", "نباتي متوسّط"),
-        (0.4, 0.7, "good",   "#90EE90", "نباتي جيّد"),
-        (0.7, 1.0, "high",   "#228B22", "كثيف"),
+        (0.4, 0.7, "good", "#90EE90", "نباتي جيّد"),
+        (0.7, 1.0, "high", "#228B22", "كثيف"),
     ],
-    "ndmi": [   # الرطوبة النباتية
-        (-1.0, 0.0,  "dry",       "#D2691E", "جفاف نباتي"),
-        ( 0.0, 0.2,  "moderate",  "#F4A460", "رطوبة متوسّطة"),
-        ( 0.2, 0.4,  "good",      "#87CEEB", "رطوبة جيّدة"),
-        ( 0.4, 1.0,  "high",      "#4682B4", "رطوبة مرتفعة"),
+    "ndmi": [  # الرطوبة النباتية
+        (-1.0, 0.0, "dry", "#D2691E", "جفاف نباتي"),
+        (0.0, 0.2, "moderate", "#F4A460", "رطوبة متوسّطة"),
+        (0.2, 0.4, "good", "#87CEEB", "رطوبة جيّدة"),
+        (0.4, 1.0, "high", "#4682B4", "رطوبة مرتفعة"),
     ],
-    "salinity_si": [   # مؤشّر الملوحة الطيفي (قرينة سقف منخفض)
-        (0.0,  0.1,  "low",      "#90EE90", "ملوحة طيفية منخفضة"),
-        (0.1,  0.3,  "moderate", "#FFD700", "ملوحة طيفية متوسّطة — يلزم EC مخبري"),
-        (0.3,  1.0,  "high",     "#DC143C", "ملوحة طيفية مرتفعة — يلزم EC مخبري"),
+    "salinity_si": [  # مؤشّر الملوحة الطيفي (قرينة سقف منخفض)
+        (0.0, 0.1, "low", "#90EE90", "ملوحة طيفية منخفضة"),
+        (0.1, 0.3, "moderate", "#FFD700", "ملوحة طيفية متوسّطة — يلزم EC مخبري"),
+        (0.3, 1.0, "high", "#DC143C", "ملوحة طيفية مرتفعة — يلزم EC مخبري"),
     ],
 }
 
@@ -59,8 +60,7 @@ def classify_value(indicator: str, value: float | None) -> MapFeatureStyle | Non
         return MapFeatureStyle("unknown", "#808080", "قيمة غير متوفّرة")
     bands = _INDICATOR_BANDS.get(indicator)
     if not bands:
-        return MapFeatureStyle("unknown", "#808080",
-                               f"المؤشّر '{indicator}' غير مصنّف")
+        return MapFeatureStyle("unknown", "#808080", f"المؤشّر '{indicator}' غير مصنّف")
     for lo, hi, name, color, desc in bands:
         if lo <= value <= hi:
             return MapFeatureStyle(name, color, desc)
@@ -92,8 +92,9 @@ def _polygon_to_geojson_coords(polygon: list) -> list:
     return coords
 
 
-def zone_to_feature(zone, *, indicator: str, value: float | None = None,
-                    extra_props: dict | None = None) -> dict | None:
+def zone_to_feature(
+    zone, *, indicator: str, value: float | None = None, extra_props: dict | None = None
+) -> dict | None:
     """يحوّل ZoneOfInterest واحد إلى GeoJSON Feature.
 
     zone يجب أن يكون له .geometry (قائمة نقاط) و(اختياراً) .value و.reason_ar."""
@@ -101,7 +102,7 @@ def zone_to_feature(zone, *, indicator: str, value: float | None = None,
     if not geom:
         return None
     coords = _polygon_to_geojson_coords(geom)
-    if len(coords) < 4:   # GeoJSON Polygon يحتاج ≥3 نقاط + إغلاق
+    if len(coords) < 4:  # GeoJSON Polygon يحتاج ≥3 نقاط + إغلاق
         return None
 
     val = value if value is not None else getattr(zone, "value", None)
@@ -130,8 +131,7 @@ def zone_to_feature(zone, *, indicator: str, value: float | None = None,
     }
 
 
-def zones_to_geojson(zones: list, *, indicator: str,
-                     metadata: dict | None = None) -> dict:
+def zones_to_geojson(zones: list, *, indicator: str, metadata: dict | None = None) -> dict:
     """يحوّل قائمة ZoneOfInterest إلى FeatureCollection معياري.
 
     النتيجة جاهزة للعرض المباشر في Leaflet (L.geoJSON) أو Mapbox.
@@ -159,7 +159,6 @@ def legend_for_indicator(indicator: str) -> list[dict]:
     if not bands:
         return []
     return [
-        {"band": name, "color": color, "range": [lo, hi],
-         "description_ar": desc}
+        {"band": name, "color": color, "range": [lo, hi], "description_ar": desc}
         for lo, hi, name, color, desc in bands
     ]

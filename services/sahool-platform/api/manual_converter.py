@@ -20,18 +20,19 @@ api/manual_converter.py — محوّل وحدات التطبيق اليدوي
 ⚠ القيم الافتراضيّة للمعدّات (وزن الغطاء، سعة الخزّان) تقديريّة وتُمرَّر من
 المستخدم؛ المعادلات نفسها صحيحة هندسيّاً (تحويل وحدات لا أكثر).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional
 
 
 class ApplicationMethod(str, Enum):
     """طريقة التطبيق اليدوي."""
-    BROADCAST_TERRACE = "broadcast_terrace"   # نثر يدوي على مصطبة/قطعة
-    BACKPACK_SPRAY = "backpack_spray"         # رشّ ظهري (خزّان)
-    PER_TREE = "per_tree"                     # لكلّ شجرة (سقاية/جرعة)
+
+    BROADCAST_TERRACE = "broadcast_terrace"  # نثر يدوي على مصطبة/قطعة
+    BACKPACK_SPRAY = "backpack_spray"  # رشّ ظهري (خزّان)
+    PER_TREE = "per_tree"  # لكلّ شجرة (سقاية/جرعة)
 
 
 # ثوابت هندسيّة (ليست زراعيّة — تحويل وحدات صرف)
@@ -41,44 +42,54 @@ M2_PER_HECTARE = 10_000.0
 @dataclass
 class EquipmentSpec:
     """مواصفات المعدّات اليدويّة (يُدخلها المستخدم — ليست ثوابت علميّة)."""
+
     # للنثر على مصطبة
-    terrace_area_m2: Optional[float] = None       # مساحة المصطبة الواحدة
+    terrace_area_m2: float | None = None  # مساحة المصطبة الواحدة
     # للرشّ الظهري
-    cap_weight_kg: Optional[float] = None         # وزن الغطاء/المكيال (كمعيار جرعة)
-    tank_capacity_l: Optional[float] = None       # سعة الخزّان (لتر)
+    cap_weight_kg: float | None = None  # وزن الغطاء/المكيال (كمعيار جرعة)
+    tank_capacity_l: float | None = None  # سعة الخزّان (لتر)
     # للأشجار
-    tree_spacing_m2: Optional[float] = None       # المساحة المخصّصة لكلّ شجرة
-    can_capacity_l: Optional[float] = None        # سعة السقاية (لتر)
-    concentration_kg_l: Optional[float] = None    # تركيز المحلول (كغ منتج/لتر)
+    tree_spacing_m2: float | None = None  # المساحة المخصّصة لكلّ شجرة
+    can_capacity_l: float | None = None  # سعة السقاية (لتر)
+    concentration_kg_l: float | None = None  # تركيز المحلول (كغ منتج/لتر)
 
 
 @dataclass
 class ManualDose:
     """الجرعة اليدويّة المحوّلة لزون واحدة."""
+
     zone_id: str
     rate_kg_ha: float
     method: ApplicationMethod
     # المخرجات المحوّلة (حسب الطريقة)
-    kg_total: float                               # إجمالي الكمّيّة للزون
-    kg_per_terrace: Optional[float] = None
-    terraces_count: Optional[float] = None
-    caps_per_terrace: Optional[float] = None
-    tanks_needed: Optional[float] = None
-    watering_cans_per_tree: Optional[float] = None
-    trees_count: Optional[float] = None
+    kg_total: float  # إجمالي الكمّيّة للزون
+    kg_per_terrace: float | None = None
+    terraces_count: float | None = None
+    caps_per_terrace: float | None = None
+    tanks_needed: float | None = None
+    watering_cans_per_tree: float | None = None
+    trees_count: float | None = None
     instruction_ar: str = ""
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "zone_id": self.zone_id,
             "rate_kg_ha": round(self.rate_kg_ha, 2),
             "method": self.method.value,
             "kg_total": round(self.kg_total, 3),
-            "kg_per_terrace": round(self.kg_per_terrace, 3) if self.kg_per_terrace is not None else None,
-            "terraces_count": round(self.terraces_count, 1) if self.terraces_count is not None else None,
-            "caps_per_terrace": round(self.caps_per_terrace, 1) if self.caps_per_terrace is not None else None,
+            "kg_per_terrace": round(self.kg_per_terrace, 3)
+            if self.kg_per_terrace is not None
+            else None,
+            "terraces_count": round(self.terraces_count, 1)
+            if self.terraces_count is not None
+            else None,
+            "caps_per_terrace": round(self.caps_per_terrace, 1)
+            if self.caps_per_terrace is not None
+            else None,
             "tanks_needed": round(self.tanks_needed, 1) if self.tanks_needed is not None else None,
-            "watering_cans_per_tree": round(self.watering_cans_per_tree, 2) if self.watering_cans_per_tree is not None else None,
+            "watering_cans_per_tree": round(self.watering_cans_per_tree, 2)
+            if self.watering_cans_per_tree is not None
+            else None,
             "trees_count": round(self.trees_count, 0) if self.trees_count is not None else None,
             "instruction_ar": self.instruction_ar,
         }
@@ -103,8 +114,10 @@ def convert_zone(
     kg_total = rate_kg_ha * zone_area_ha  # kg/ha × ha = kg
 
     dose = ManualDose(
-        zone_id=zone_id, rate_kg_ha=rate_kg_ha,
-        method=method, kg_total=kg_total,
+        zone_id=zone_id,
+        rate_kg_ha=rate_kg_ha,
+        method=method,
+        kg_total=kg_total,
     )
 
     if method == ApplicationMethod.BROADCAST_TERRACE:
@@ -119,13 +132,10 @@ def convert_zone(
         if equip.cap_weight_kg and equip.cap_weight_kg > 0:
             dose.caps_per_terrace = per_terrace / equip.cap_weight_kg
             dose.instruction_ar = (
-                f"انثر {dose.caps_per_terrace:.1f} غطاء على كلّ مصطبة "
-                f"({terraces:.0f} مصطبة)"
+                f"انثر {dose.caps_per_terrace:.1f} غطاء على كلّ مصطبة ({terraces:.0f} مصطبة)"
             )
         else:
-            dose.instruction_ar = (
-                f"انثر {per_terrace:.2f} كغ على كلّ مصطبة ({terraces:.0f} مصطبة)"
-            )
+            dose.instruction_ar = f"انثر {per_terrace:.2f} كغ على كلّ مصطبة ({terraces:.0f} مصطبة)"
 
     elif method == ApplicationMethod.BACKPACK_SPRAY:
         if not equip.tank_capacity_l or equip.tank_capacity_l <= 0:
@@ -145,8 +155,7 @@ def convert_zone(
                 )
             else:
                 dose.instruction_ar = (
-                    f"ضع {kg_per_tank:.2f} كغ في كلّ خزّان، "
-                    f"وارشّ {dose.tanks_needed:.1f} خزّان"
+                    f"ضع {kg_per_tank:.2f} كغ في كلّ خزّان، وارشّ {dose.tanks_needed:.1f} خزّان"
                 )
         else:
             raise ValueError("الرشّ الظهري يحتاج تركيز المحلول (concentration_kg_l)")
@@ -158,16 +167,20 @@ def convert_zone(
         trees = zone_area_m2 / equip.tree_spacing_m2
         kg_per_tree = rate_kg_ha * equip.tree_spacing_m2 / M2_PER_HECTARE
         dose.trees_count = trees
-        if equip.can_capacity_l and equip.can_capacity_l > 0 and equip.concentration_kg_l and equip.concentration_kg_l > 0:
+        if (
+            equip.can_capacity_l
+            and equip.can_capacity_l > 0
+            and equip.concentration_kg_l
+            and equip.concentration_kg_l > 0
+        ):
             # سقايات لكلّ شجرة = كغ للشجرة / (سعة السقاية × التركيز)
-            dose.watering_cans_per_tree = kg_per_tree / (equip.can_capacity_l * equip.concentration_kg_l)
+            dose.watering_cans_per_tree = kg_per_tree / (
+                equip.can_capacity_l * equip.concentration_kg_l
+            )
             dose.instruction_ar = (
-                f"اسقِ {dose.watering_cans_per_tree:.2f} سقاية لكلّ شجرة "
-                f"({trees:.0f} شجرة)"
+                f"اسقِ {dose.watering_cans_per_tree:.2f} سقاية لكلّ شجرة ({trees:.0f} شجرة)"
             )
         else:
-            dose.instruction_ar = (
-                f"ضع {kg_per_tree:.3f} كغ لكلّ شجرة ({trees:.0f} شجرة)"
-            )
+            dose.instruction_ar = f"ضع {kg_per_tree:.3f} كغ لكلّ شجرة ({trees:.0f} شجرة)"
 
     return dose

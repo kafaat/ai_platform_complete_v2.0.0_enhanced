@@ -1,49 +1,103 @@
 """tests/test_farm_ledger.py — تستثبت farm_ledger المنطق المحاسبي."""
-import sys, os
+
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import date
+
 from core.farm_ledger import (
-    LedgerEntry, LedgerKind, summarize_season,
-    cost_per_hectare, break_even_yield, compare_seasons,
-    format_summary_ar, top_expense_categories,
-    EXPENSE_KINDS, INCOME_KINDS,
+    EXPENSE_KINDS,
+    INCOME_KINDS,
+    LedgerEntry,
+    LedgerKind,
+    break_even_yield,
+    compare_seasons,
+    cost_per_hectare,
+    format_summary_ar,
+    summarize_season,
+    top_expense_categories,
 )
 
 
 class TestFarmLedger:
-
     def _sample_entries(self):
         """قيود نموذجيّة لموسم قمح في حقل واحد."""
         return [
             # مصروفات
-            LedgerEntry("e1", "T1", "F1", "FLD1", "2025-W",
-                       LedgerKind.SEED, 50000, "YER",
-                       quantity=100, unit="kg",
-                       description_ar="بذور قمح Sids 14"),
-            LedgerEntry("e2", "T1", "F1", "FLD1", "2025-W",
-                       LedgerKind.FERTILIZER, 80000, "YER",
-                       description_ar="DAP + Urea"),
-            LedgerEntry("e3", "T1", "F1", "FLD1", "2025-W",
-                       LedgerKind.LABOR, 120000, "YER",
-                       description_ar="أجور موسم"),
-            LedgerEntry("e4", "T1", "F1", "FLD1", "2025-W",
-                       LedgerKind.FUEL, 40000, "YER",
-                       description_ar="ديزل مضخّة"),
-            LedgerEntry("e5", "T1", "F1", "FLD1", "2025-W",
-                       LedgerKind.WATER, 30000, "YER"),
+            LedgerEntry(
+                "e1",
+                "T1",
+                "F1",
+                "FLD1",
+                "2025-W",
+                LedgerKind.SEED,
+                50000,
+                "YER",
+                quantity=100,
+                unit="kg",
+                description_ar="بذور قمح Sids 14",
+            ),
+            LedgerEntry(
+                "e2",
+                "T1",
+                "F1",
+                "FLD1",
+                "2025-W",
+                LedgerKind.FERTILIZER,
+                80000,
+                "YER",
+                description_ar="DAP + Urea",
+            ),
+            LedgerEntry(
+                "e3",
+                "T1",
+                "F1",
+                "FLD1",
+                "2025-W",
+                LedgerKind.LABOR,
+                120000,
+                "YER",
+                description_ar="أجور موسم",
+            ),
+            LedgerEntry(
+                "e4",
+                "T1",
+                "F1",
+                "FLD1",
+                "2025-W",
+                LedgerKind.FUEL,
+                40000,
+                "YER",
+                description_ar="ديزل مضخّة",
+            ),
+            LedgerEntry("e5", "T1", "F1", "FLD1", "2025-W", LedgerKind.WATER, 30000, "YER"),
             # إيراد
-            LedgerEntry("e6", "T1", "F1", "FLD1", "2025-W",
-                       LedgerKind.HARVEST_SALE, 450000, "YER",
-                       quantity=2000, unit="kg",
-                       description_ar="بيع ٢ طن قمح"),
+            LedgerEntry(
+                "e6",
+                "T1",
+                "F1",
+                "FLD1",
+                "2025-W",
+                LedgerKind.HARVEST_SALE,
+                450000,
+                "YER",
+                quantity=2000,
+                unit="kg",
+                description_ar="بيع ٢ طن قمح",
+            ),
         ]
 
     def test_summarize_basic(self):
         """يجمع المصروفات والإيرادات الصحيحة."""
         entries = self._sample_entries()
         summary = summarize_season(
-            entries, "T1", "F1", "2025-W", field_id="FLD1",
+            entries,
+            "T1",
+            "F1",
+            "2025-W",
+            field_id="FLD1",
         )
         assert summary.total_expenses == 50000 + 80000 + 120000 + 40000 + 30000
         assert summary.total_income == 450000
@@ -75,7 +129,7 @@ class TestFarmLedger:
         # نفترض الحقل ٢ هكتار
         per_ha = cost_per_hectare(summary, area_ha=2.0)
         assert per_ha["expense_per_ha"] == 160000  # 320000 / 2
-        assert per_ha["profit_per_ha"] == 65000     # 130000 / 2
+        assert per_ha["profit_per_ha"] == 65000  # 130000 / 2
 
     def test_break_even(self):
         """break-even yield calculation."""
@@ -90,12 +144,11 @@ class TestFarmLedger:
         """يرفض القيود بعملات مختلفة في موسم واحد."""
         entries = self._sample_entries()
         entries.append(
-            LedgerEntry("e7", "T1", "F1", "FLD1", "2025-W",
-                       LedgerKind.OTHER_EXPENSE, 100, "USD")
+            LedgerEntry("e7", "T1", "F1", "FLD1", "2025-W", LedgerKind.OTHER_EXPENSE, 100, "USD")
         )
         try:
             summarize_season(entries, "T1", "F1", "2025-W", "FLD1")
-            assert False, "يجب أن يفشل عند currencies مختلفة"
+            raise AssertionError("يجب أن يفشل عند currencies مختلفة")
         except ValueError as e:
             assert "عملات متعدّدة" in str(e)
 
@@ -113,10 +166,8 @@ class TestFarmLedger:
         e1 = self._sample_entries()
         # موسم سابق بـربح أقلّ
         e2 = [
-            LedgerEntry("p1", "T1", "F1", "FLD1", "2024-W",
-                       LedgerKind.FERTILIZER, 60000, "YER"),
-            LedgerEntry("p2", "T1", "F1", "FLD1", "2024-W",
-                       LedgerKind.HARVEST_SALE, 100000, "YER"),
+            LedgerEntry("p1", "T1", "F1", "FLD1", "2024-W", LedgerKind.FERTILIZER, 60000, "YER"),
+            LedgerEntry("p2", "T1", "F1", "FLD1", "2024-W", LedgerKind.HARVEST_SALE, 100000, "YER"),
         ]
         s1 = summarize_season(e1, "T1", "F1", "2025-W", "FLD1")
         s2 = summarize_season(e2, "T1", "F1", "2024-W", "FLD1")
@@ -130,8 +181,7 @@ class TestFarmLedger:
         entries = self._sample_entries()
         # إضافة قيد لـحقل آخر
         entries.append(
-            LedgerEntry("other", "T1", "F1", "FLD2", "2025-W",
-                       LedgerKind.SEED, 999999, "YER")
+            LedgerEntry("other", "T1", "F1", "FLD2", "2025-W", LedgerKind.SEED, 999999, "YER")
         )
         # فلترة لـFLD1 فقط — يجب أن لا يحتسب القيد المُضاف
         summary = summarize_season(entries, "T1", "F1", "2025-W", "FLD1")

@@ -10,26 +10,36 @@ test_chaos_resilience.py — اختبارات الفشل/الصمود (Hardening
 
 تعمل في بيئة offline (stubs حيث تلزم؛ لا DB/شبكة).
 """
-import os, sys, json, tempfile, types
 
-BASE = os.path.join(os.path.dirname(__file__), '..')
+import json
+import os
+import sys
+import tempfile
+import types
+
+BASE = os.path.join(os.path.dirname(__file__), "..")
 
 
 def test_sync_replay_dedup():
     """تكرار المزامنة: نفس العنصر يُرسَل مرّتين → نفس idempotency_key للـretry."""
-    sys.path.insert(0, os.path.join(BASE, 'services/edge-inference'))
-    if 'httpx' not in sys.modules:
-        fh = types.ModuleType('httpx'); fh.AsyncClient = lambda **k: None
-        sys.modules['httpx'] = fh
+    sys.path.insert(0, os.path.join(BASE, "services/edge-inference"))
+    if "httpx" not in sys.modules:
+        fh = types.ModuleType("httpx")
+        fh.AsyncClient = lambda **k: None
+        sys.modules["httpx"] = fh
     r = []
     import sync_service as ss
+
     d = tempfile.mkdtemp()
     svc = ss.CloudSyncService("http://x", "t", sync_dir=d)
     # نفس المحتوى مرّتين عبر queue → مفتاحان مختلفان (عنصران مستقلّان)
     svc.queue_result("ndvi", {"f": "f1"})
     svc.queue_result("ndvi", {"f": "f1"})
-    keys = [json.load(open(os.path.join(d, f)))["idempotency_key"]
-            for f in os.listdir(d) if f.endswith(".json")]
+    keys = [
+        json.load(open(os.path.join(d, f)))["idempotency_key"]
+        for f in os.listdir(d)
+        if f.endswith(".json")
+    ]
     if len(set(keys)) == 2:
         r.append(("✓", "عنصران بنفس المحتوى → مفتاحان (لا dedup زائف)"))
     # كلّها 32 حرف (صيغة ثابتة)
@@ -45,8 +55,9 @@ def test_sync_replay_dedup():
 def test_concurrent_approval_guard():
     """تعارض الموافقات: الكود يمنع موافقة الخبير نفسه مرّتين + يستخدم FOR UPDATE."""
     r = []
-    src = open(os.path.join(BASE, 'services/guardrails-engine/human_in_loop.py'),
-               encoding='utf-8').read()
+    src = open(
+        os.path.join(BASE, "services/guardrails-engine/human_in_loop.py"), encoding="utf-8"
+    ).read()
     if "FOR UPDATE" in src and "conn.transaction()" in src:
         r.append(("✓", "approve/reject داخل معاملة + قفل صفّي (FOR UPDATE)"))
     if 'a.get("expert_id") == expert_id' in src:
@@ -60,13 +71,12 @@ def test_concurrent_approval_guard():
 def test_edge_sync_handler_dedup():
     """معالج edge/sync: ON CONFLICT DO NOTHING → التكرار يُتجاهل بأمان."""
     r = []
-    src = open(os.path.join(BASE, 'services/sahool-platform/api/main.py'),
-               encoding='utf-8').read()
+    src = open(os.path.join(BASE, "services/sahool-platform/api/main.py"), encoding="utf-8").read()
     if "ON CONFLICT (idempotency_key)" in src and "DO NOTHING" in src:
         r.append(("✓", "edge/sync يستخدم ON CONFLICT DO NOTHING (dedup خادمي)"))
     if "duplicate_ignored" in src:
         r.append(("✓", "التكرار يُرجع نجاحاً idempotent (لا خطأ)"))
-    if 'tenant_connection' in src and 'edge_sync_receive' in src:
+    if "tenant_connection" in src and "edge_sync_receive" in src:
         r.append(("✓", "edge/sync عبر tenant_connection (RLS) + هويّة من التوكن"))
     return r
 
@@ -74,9 +84,10 @@ def test_edge_sync_handler_dedup():
 def test_corrupt_payload_resilience():
     """payload فاسد: تحقّق العقود يرفض الهندسة الفاسدة (لا corruption صامت)."""
     r = []
-    sys.path.insert(0, os.path.join(BASE, 'services/sahool-platform/api'))
+    sys.path.insert(0, os.path.join(BASE, "services/sahool-platform/api"))
     try:
         from geospatial_integrity import validate_field_geometry
+
         # مضلّع فاسد (نقطتان فقط — لا يكفي لمضلّع)
         bad = {"type": "Polygon", "coordinates": [[[44.0, 16.0], [44.1, 16.0]]]}
         res = validate_field_geometry(bad)
@@ -86,8 +97,10 @@ def test_corrupt_payload_resilience():
             r.append(("✓", "validate_field_geometry موجود ويفحص الهندسة"))
     except Exception:
         # إن لم تتوفّر التبعيّات، نتحقّق بنيويّاً
-        src = open(os.path.join(BASE, 'services/sahool-platform/api/geospatial_integrity.py'),
-                   encoding='utf-8').read()
+        src = open(
+            os.path.join(BASE, "services/sahool-platform/api/geospatial_integrity.py"),
+            encoding="utf-8",
+        ).read()
         if "def validate_field_geometry" in src:
             r.append(("✓", "validate_field_geometry موجود (تحقّق الهندسة بنيويّاً)"))
     return r
@@ -97,18 +110,19 @@ def test_fail_closed_on_missing_secret():
     """fail-closed: غياب JWT_SECRET/الهويّة → رفض لا تجاوز."""
     r = []
     # actuator: JWT فارغ → 503
-    act = open(os.path.join(BASE, 'services/actuator-service/main.py'),
-               encoding='utf-8').read()
+    act = open(os.path.join(BASE, "services/actuator-service/main.py"), encoding="utf-8").read()
     if "len(JWT_SECRET) < 32" in act and "503" in act:
         r.append(("✓", "actuator يرفض البدء بـJWT_SECRET قصير (503 fail-closed)"))
     # RLS: بلا app.current_tenant → صفر صفوف
-    rls = open(os.path.join(BASE, 'migrations/v9_rls_tenant_isolation.sql'),
-               encoding='utf-8').read()
+    rls = open(
+        os.path.join(BASE, "migrations/v9_rls_tenant_isolation.sql"), encoding="utf-8"
+    ).read()
     if "NULLIF(current_setting('app.current_tenant'" in rls:
         r.append(("✓", "RLS fail-closed: بلا tenant → صفر صفوف"))
     # firmware: سرّ HMAC فارغ → رفض كلّ الأوامر
-    fw = open(os.path.join(BASE, 'firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino'),
-              encoding='utf-8').read()
+    fw = open(
+        os.path.join(BASE, "firmware/esp32_mesh_gateway/esp32_mesh_gateway.ino"), encoding="utf-8"
+    ).read()
     if "strlen(CMD_HMAC_SECRET) == 0) return false" in fw:
         r.append(("✓", "firmware يرفض كلّ الأوامر بسرّ HMAC فارغ (fail-closed)"))
     return r
@@ -141,4 +155,4 @@ def run_all():
 
 if __name__ == "__main__":
     p, f = run_all()
-    print(f"\n  Passed: {p}/{p+f}")
+    print(f"\n  Passed: {p}/{p + f}")

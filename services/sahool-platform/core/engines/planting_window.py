@@ -18,6 +18,7 @@ sahool_core.engines.planting_window
 الصدق: السقف MEDIUM لا HIGH — الطقس متوقّع لا مضمون. والتحيّز الناجي
 ("نجح بعض المزارعين") لا يعني "الأفضل" — نعرضه "خياراً مجرّباً" لا "الأمثل".
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -28,7 +29,7 @@ class PlantingWindowResult:
     safe_window_found: bool
     recommended_sowing_offset_days: int | None  # إزاحة عن تاريخ مرجعي
     flowering_max_temp_c: float | None
-    confidence: str                  # medium / low
+    confidence: str  # medium / low
     frost_risk: bool
     warnings_ar: list[str] = field(default_factory=list)
     note_ar: str = ""
@@ -47,10 +48,10 @@ def days_to_accumulate_gdd(target_gdd: float, daily_gdd: list[float]) -> int | N
 def find_planting_window(
     *,
     flowering_gdd: float,
-    daily_gdd_by_sowing: dict[int, list[float]],     # offset → سلسلة GDD
-    daily_tmax_by_sowing: dict[int, list[float]],    # offset → سلسلة tmax
+    daily_gdd_by_sowing: dict[int, list[float]],  # offset → سلسلة GDD
+    daily_tmax_by_sowing: dict[int, list[float]],  # offset → سلسلة tmax
     heat_threshold_c: float,
-    frost_risk_offset_days: int | None = None,       # آخر تاريخ صقيع (إزاحة)
+    frost_risk_offset_days: int | None = None,  # آخر تاريخ صقيع (إزاحة)
     flowering_window_days: int = 10,
 ) -> PlantingWindowResult:
     """يبحث عن موعد زراعة يقع الإزهار فيه تحت عتبة الحرارة.
@@ -65,7 +66,7 @@ def find_planting_window(
         flower_day = days_to_accumulate_gdd(flowering_gdd, gdd_series)
         if flower_day is None:
             continue  # لا يبلغ الإزهار في الأفق المتاح
-        window = tmax_series[flower_day: flower_day + flowering_window_days]
+        window = tmax_series[flower_day : flower_day + flowering_window_days]
         if not window:
             continue
         max_t = max(window)
@@ -75,10 +76,14 @@ def find_planting_window(
 
     if best is None:
         return PlantingWindowResult(
-            safe_window_found=False, recommended_sowing_offset_days=None,
-            flowering_max_temp_c=None, confidence="low", frost_risk=False,
+            safe_window_found=False,
+            recommended_sowing_offset_days=None,
+            flowering_max_temp_c=None,
+            confidence="low",
+            frost_risk=False,
             note_ar="لا نافذة زراعة آمنة من الإجهاد الحراري في الأفق المتاح — "
-                    "استشر خبيراً أو فكّر بمحصول أكثر تحمّلاً للحرارة")
+            "استشر خبيراً أو فكّر بمحصول أكثر تحمّلاً للحرارة",
+        )
 
     offset, max_t = best
     warnings = [
@@ -92,12 +97,16 @@ def find_planting_window(
         warnings.append(
             f"⚠️ تحذير المقايضة: هذا الموعد ({offset} يوم) يسبق آخر صقيع متوقّع "
             f"({frost_risk_offset_days} يوم) — تجنّب الحرارة يُنشئ خطر الصقيع. "
-            "وازِن بين الخطرين أو أخّر قليلاً.")
+            "وازِن بين الخطرين أو أخّر قليلاً."
+        )
 
     return PlantingWindowResult(
-        safe_window_found=True, recommended_sowing_offset_days=offset,
+        safe_window_found=True,
+        recommended_sowing_offset_days=offset,
         flowering_max_temp_c=round(max_t, 1),
-        confidence="medium",   # سقف MEDIUM: الطقس متوقّع
-        frost_risk=frost, warnings_ar=warnings,
+        confidence="medium",  # سقف MEDIUM: الطقس متوقّع
+        frost_risk=frost,
+        warnings_ar=warnings,
         note_ar=f"موعد مرشّح: إزاحة {offset} يوم — يقع الإزهار تحت "
-                f"{heat_threshold_c}°م (أقصى متوقّع {round(max_t,1)}°م)")
+        f"{heat_threshold_c}°م (أقصى متوقّع {round(max_t, 1)}°م)",
+    )

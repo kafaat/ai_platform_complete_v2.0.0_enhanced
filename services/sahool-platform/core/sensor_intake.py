@@ -21,25 +21,25 @@ sahool_core.sensor_intake
 التكامل: ingest_reading() يحوّل القراءة إلى observation جاهز للحفظ
 في الجدول الموجود (نمط EAV)، مع source='sensor' وثقة معقّلة.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-
+from datetime import UTC, datetime
 
 # نطاقات فيزيائية معقولة (حسب نوع المستشعر)
 # قيمة خارج النطاق = خلل في الحسّاس، لا قياس صحيح
 _SENSOR_RANGES = {
-    "soil_moisture":      (0.0,   100.0, "%"),      # نسبة مئوية
-    "soil_temperature":   (-10.0, 70.0,  "°C"),
-    "air_temperature":    (-20.0, 60.0,  "°C"),
-    "air_humidity":       (0.0,   100.0, "%"),
-    "soil_ec":            (0.0,   30.0,  "dS/m"),
-    "soil_ph":            (3.0,   11.0,  "pH"),
-    "leaf_wetness":       (0.0,   100.0, "%"),
-    "rainfall":           (0.0,   500.0, "mm"),     # يومي
-    "solar_radiation":    (0.0,   1400.0, "W/m²"),
-    "wind_speed":         (0.0,   60.0,  "m/s"),
+    "soil_moisture": (0.0, 100.0, "%"),  # نسبة مئوية
+    "soil_temperature": (-10.0, 70.0, "°C"),
+    "air_temperature": (-20.0, 60.0, "°C"),
+    "air_humidity": (0.0, 100.0, "%"),
+    "soil_ec": (0.0, 30.0, "dS/m"),
+    "soil_ph": (3.0, 11.0, "pH"),
+    "leaf_wetness": (0.0, 100.0, "%"),
+    "rainfall": (0.0, 500.0, "mm"),  # يومي
+    "solar_radiation": (0.0, 1400.0, "W/m²"),
+    "wind_speed": (0.0, 60.0, "m/s"),
 }
 
 # ربط نوع المستشعر بـobservable_id في الجدول
@@ -60,7 +60,7 @@ _OBSERVABLE_MAP = {
 @dataclass
 class IntakeResult:
     accepted: bool
-    observation: dict | None = None   # جاهز للحفظ في observations
+    observation: dict | None = None  # جاهز للحفظ في observations
     rejection_reason_ar: str | None = None
     warnings_ar: list[str] = field(default_factory=list)
 
@@ -86,14 +86,14 @@ def ingest_reading(
     # ١. القيمة موجودة؟
     if value is None:
         return IntakeResult(
-            accepted=False,
-            rejection_reason_ar="قراءة فارغة (None) — حسّاس معطّل أو انقطاع اتصال")
+            accepted=False, rejection_reason_ar="قراءة فارغة (None) — حسّاس معطّل أو انقطاع اتصال"
+        )
 
     # ٢. نوع المستشعر معروف؟
     if sensor_type not in _SENSOR_RANGES:
         return IntakeResult(
-            accepted=False,
-            rejection_reason_ar=f"نوع المستشعر '{sensor_type}' غير مدعوم")
+            accepted=False, rejection_reason_ar=f"نوع المستشعر '{sensor_type}' غير مدعوم"
+        )
 
     # ٣. القيمة ضمن النطاق الفيزيائي؟
     lo, hi, expected_unit = _SENSOR_RANGES[sensor_type]
@@ -102,20 +102,22 @@ def ingest_reading(
             accepted=False,
             rejection_reason_ar=(
                 f"القيمة {value} {unit or expected_unit} خارج النطاق الفيزيائي "
-                f"[{lo}, {hi}] {expected_unit} — راجع المستشعر"))
+                f"[{lo}, {hi}] {expected_unit} — راجع المستشعر"
+            ),
+        )
 
     warnings: list[str] = []
 
     # ٤. الوحدة تطابق المتوقّع؟ (تحذير لا رفض — قد يكون اختلاف صياغة)
     if unit and unit.lower() not in (expected_unit.lower(), expected_unit.replace("°", "").lower()):
         warnings.append(
-            f"الوحدة المرسلة '{unit}' لا تطابق المتوقّعة '{expected_unit}' — "
-            "تحقّق من معايرة الحسّاس")
+            f"الوحدة المرسلة '{unit}' لا تطابق المتوقّعة '{expected_unit}' — تحقّق من معايرة الحسّاس"
+        )
 
     # ٥. الطابع الزمني (إن لم يُرسل، نستخدم الآن — لكن نحذّر)
     ts = timestamp_iso
     if not ts:
-        ts = datetime.now(timezone.utc).isoformat()
+        ts = datetime.now(UTC).isoformat()
         warnings.append("لا طابع زمني — استُخدم وقت الاستقبال (قد يفقد دقّة)")
 
     # ٦. ابنِ observation جاهزة للجدول الموجود
@@ -125,11 +127,11 @@ def ingest_reading(
         "observable_id": _OBSERVABLE_MAP[sensor_type],
         "value": value,
         "unit": expected_unit,
-        "source": "sensor",                  # ميّز عن manual/lab/satellite
+        "source": "sensor",  # ميّز عن manual/lab/satellite
         "method": f"sensor:{sensor_type}",
         "device_id": device_id,
         "measured_at": ts,
-        "confidence": "medium",              # الحسّاس قرينة قويّة، سقف medium
+        "confidence": "medium",  # الحسّاس قرينة قويّة، سقف medium
         "lon": lon,
         "lat": lat,
     }
@@ -150,13 +152,16 @@ def ingest_batch(readings: list[dict]) -> dict:
     for i, r in enumerate(readings):
         try:
             result = ingest_reading(
-                tenant_id=r["tenant_id"], field_id=r["field_id"],
+                tenant_id=r["tenant_id"],
+                field_id=r["field_id"],
                 sensor_type=r.get("sensor_type") or r.get("type"),
                 value=r.get("value"),
                 unit=r.get("unit"),
                 device_id=r.get("device_id"),
                 timestamp_iso=r.get("timestamp") or r.get("ts"),
-                lon=r.get("lon"), lat=r.get("lat"))
+                lon=r.get("lon"),
+                lat=r.get("lat"),
+            )
         except KeyError as e:
             rejections.append({"index": i, "reason": f"حقل ناقص: {e}"})
             continue
@@ -173,6 +178,7 @@ def ingest_batch(readings: list[dict]) -> dict:
         "observations": accepted_obs,
         "rejections": rejections,
         "warnings": all_warnings,
-        "summary_ar": (f"قُبل {len(accepted_obs)} قراءة، رُفض {len(rejections)} "
-                       f"(تحذيرات: {len(all_warnings)})"),
+        "summary_ar": (
+            f"قُبل {len(accepted_obs)} قراءة، رُفض {len(rejections)} (تحذيرات: {len(all_warnings)})"
+        ),
     }

@@ -1,17 +1,29 @@
 """Tests for source_of_truth arbitration.
 The 'sources of truth conflict' problem from Digital Agriculture OS document."""
+
 from datetime import datetime, timedelta
-from core.source_of_truth import (
-    Observation, arbitrate, arbitrate_summary,
-    ConflictSeverity, set_source_priority, get_source_priority,
-    reset_priorities_to_default)
+
 from core.canonical_schemas import ObservationSource
+from core.source_of_truth import (
+    ConflictSeverity,
+    Observation,
+    arbitrate,
+    arbitrate_summary,
+    get_source_priority,
+    reset_priorities_to_default,
+    set_source_priority,
+)
 
 
 def _obs(value, source, confidence="medium", days_ago=1, observable_id="ndvi"):
     measured = (datetime.now() - timedelta(days=days_ago)).isoformat()
-    return Observation(value=value, source=source, confidence=confidence,
-                      measured_at=measured, observable_id=observable_id)
+    return Observation(
+        value=value,
+        source=source,
+        confidence=confidence,
+        measured_at=measured,
+        observable_id=observable_id,
+    )
 
 
 class TestSinglePath:
@@ -30,9 +42,15 @@ class TestSinglePath:
         assert "لا مشاهدات" in result.reasoning_ar
 
     def test_all_none_values_rejected(self):
-        obs = [Observation(value=None, source=ObservationSource.SENSOR,
-                          confidence="low", measured_at="2026-01-01",
-                          observable_id="ndvi")]
+        obs = [
+            Observation(
+                value=None,
+                source=ObservationSource.SENSOR,
+                confidence="low",
+                measured_at="2026-01-01",
+                observable_id="ndvi",
+            )
+        ]
         result = arbitrate(obs)
         assert result.canonical_value is None
 
@@ -76,8 +94,8 @@ class TestAgeDecay:
     def test_recent_beats_old_same_source(self):
         # نفس المصدر، فرق العمر يحسم
         obs = [
-            _obs(0.50, ObservationSource.SENSOR, days_ago=60),   # شهران
-            _obs(0.55, ObservationSource.SENSOR, days_ago=1),    # حديث
+            _obs(0.50, ObservationSource.SENSOR, days_ago=60),  # شهران
+            _obs(0.55, ObservationSource.SENSOR, days_ago=1),  # حديث
         ]
         result = arbitrate(obs)
         # حديث = أعلى score بسبب decay
@@ -86,9 +104,13 @@ class TestAgeDecay:
     def test_invalid_date_no_penalty(self):
         # صفر اختراع: لو التاريخ غير قابل للفهم، لا decay
         obs = [
-            Observation(value=0.55, source=ObservationSource.SENSOR,
-                       confidence="medium", measured_at="not-a-date",
-                       observable_id="ndvi"),
+            Observation(
+                value=0.55,
+                source=ObservationSource.SENSOR,
+                confidence="medium",
+                measured_at="not-a-date",
+                observable_id="ndvi",
+            ),
         ]
         result = arbitrate(obs)
         # يجب أن يعمل، لا exception
@@ -127,13 +149,13 @@ class TestCriticalSpread:
         ]
         result = arbitrate(obs)
         assert result.severity == ConflictSeverity.AGREEMENT
-        assert result.canonical_confidence == "high"   # كما هي
+        assert result.canonical_confidence == "high"  # كما هي
 
     def test_major_spread_drops_confidence(self):
         # تباين major (30-50%) → الثقة تنخفض لـlow
         obs = [
             _obs(0.45, ObservationSource.SENSOR, confidence="high"),
-            _obs(0.75, ObservationSource.LAB, confidence="high"),   # 40% فرق
+            _obs(0.75, ObservationSource.LAB, confidence="high"),  # 40% فرق
         ]
         result = arbitrate(obs)
         assert result.severity == ConflictSeverity.MAJOR

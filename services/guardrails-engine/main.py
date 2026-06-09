@@ -1,4 +1,3 @@
-from fastapi import FastAPI, HTTPException, Depends
 #!/usr/bin/env python3
 """
 SAHOOL Guardrails Engine — Multi-Tier Safety System
@@ -14,38 +13,46 @@ Features:
   - Diff generation for rejected vs accepted actions
   - Arabic explanation of all rejections
 """
-from datetime import datetime, timezone
-from typing import Literal, Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+import os
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
+from typing import Any, Literal
 
-from tiers.chemical_tier import ChemicalSafetyTier
-from tiers.environmental_tier import EnvironmentalSafetyTier
-from tiers.economic_tier import EconomicSafetyTier
-from human_in_loop import HumanApprovalWorkflow
+import jwt as _jwt
 from diff_generator import ActionDiffGenerator
+from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Header as _Header
+from fastapi.middleware.cors import CORSMiddleware
+from human_in_loop import HumanApprovalWorkflow
+from pydantic import BaseModel, Field
+from tiers.chemical_tier import ChemicalSafetyTier
+from tiers.economic_tier import EconomicSafetyTier
+from tiers.environmental_tier import EnvironmentalSafetyTier
 
 
 class GuardrailsRequest(BaseModel):
-    action_type: Literal["irrigation","fertilization","pesticide","harvest","contract","investment","loan"]
-    action_data: Dict[str, Any] = Field(..., description="Action parameters")
-    farm_context: Dict[str, Any] = Field(..., description="Current farm state")
+    action_type: Literal[
+        "irrigation", "fertilization", "pesticide", "harvest", "contract", "investment", "loan"
+    ]
+    action_data: dict[str, Any] = Field(..., description="Action parameters")
+    farm_context: dict[str, Any] = Field(..., description="Current farm state")
     user_id: str
     tenant_id: str
-    request_source: Literal["agent","user","system","edge"] = "agent"
+    request_source: Literal["agent", "user", "system", "edge"] = "agent"
     auto_approve_low_risk: bool = Field(default=True)
 
 
 class GuardrailsResult(BaseModel):
     allowed: bool
-    tier_checks: List[Dict[str, Any]]
-    overall_risk: Literal["LOW","MEDIUM","HIGH","CRITICAL"]
+    tier_checks: list[dict[str, Any]]
+    overall_risk: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
     requires_human_approval: bool
-    approval_workflow_id: Optional[str] = None
-    diff: Optional[Dict[str, Any]] = None  # Diff vs safe alternative
+    approval_workflow_id: str | None = None
+    diff: dict[str, Any] | None = None  # Diff vs safe alternative
     arabic_explanation: str
-    english_explanation: Optional[str] = None
-    suggested_modifications: List[Dict[str, Any]] = Field(default_factory=list)
+    english_explanation: str | None = None
+    suggested_modifications: list[dict[str, Any]] = Field(default_factory=list)
     processing_time_ms: int
 
 
@@ -62,18 +69,14 @@ class SAHOOLGuardrailsEngine:
         self.diff_generator = ActionDiffGenerator()
 
         # Risk scoring weights
-        self.tier_weights = {
-            "chemical": 0.4,
-            "environmental": 0.3,
-            "economic": 0.3
-        }
+        self.tier_weights = {"chemical": 0.4, "environmental": 0.3, "economic": 0.3}
 
         # Auto-approve thresholds
         self.auto_approve_risk = ["LOW"]
         self.human_required_risk = ["HIGH", "CRITICAL"]
 
     async def validate(self, request: GuardrailsRequest) -> GuardrailsResult:
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         checks = []
 
@@ -82,7 +85,7 @@ class SAHOOLGuardrailsEngine:
             chem_check = await self.chemical_tier.validate(
                 action_type=request.action_type,
                 action_data=request.action_data,
-                farm_context=request.farm_context
+                farm_context=request.farm_context,
             )
             checks.append(chem_check)
 
@@ -90,7 +93,7 @@ class SAHOOLGuardrailsEngine:
         env_check = await self.environmental_tier.validate(
             action_type=request.action_type,
             action_data=request.action_data,
-            farm_context=request.farm_context
+            farm_context=request.farm_context,
         )
         checks.append(env_check)
 
@@ -99,7 +102,7 @@ class SAHOOLGuardrailsEngine:
             econ_check = await self.economic_tier.validate(
                 action_type=request.action_type,
                 action_data=request.action_data,
-                farm_context=request.farm_context
+                farm_context=request.farm_context,
             )
             checks.append(econ_check)
 
@@ -120,16 +123,12 @@ class SAHOOLGuardrailsEngine:
         diff = None
         if not allowed and requires_human:
             workflow_id = await self.human_workflow.create(
-                request=request,
-                checks=checks,
-                risk_level=overall_risk
+                request=request, checks=checks, risk_level=overall_risk
             )
         elif not allowed:
             # Generate diff: rejected vs safe alternative
             diff = await self.diff_generator.generate(
-                original=request.action_data,
-                checks=checks,
-                farm_context=request.farm_context
+                original=request.action_data, checks=checks, farm_context=request.farm_context
             )
 
         # Generate Arabic explanation
@@ -138,13 +137,13 @@ class SAHOOLGuardrailsEngine:
             checks=checks,
             overall_risk=overall_risk,
             requires_human=requires_human,
-            action_type=request.action_type
+            action_type=request.action_type,
         )
 
         # Suggest modifications
         suggestions = self._suggest_modifications(checks, request.action_data)
 
-        elapsed = int((datetime.now(timezone.utc) - start_time).total_seconds() * 1000)
+        elapsed = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
 
         return GuardrailsResult(
             allowed=allowed,
@@ -155,10 +154,10 @@ class SAHOOLGuardrailsEngine:
             diff=diff,
             arabic_explanation=arabic_exp,
             suggested_modifications=suggestions,
-            processing_time_ms=elapsed
+            processing_time_ms=elapsed,
         )
 
-    def _calculate_overall_risk(self, checks: List[Dict]) -> str:
+    def _calculate_overall_risk(self, checks: list[dict]) -> str:
         """Calculate weighted risk score from tier checks."""
         if not checks:
             return "LOW"
@@ -185,10 +184,10 @@ class SAHOOLGuardrailsEngine:
     def _generate_arabic_explanation(
         self,
         allowed: bool,
-        checks: List[Dict],
+        checks: list[dict],
         overall_risk: str,
         requires_human: bool,
-        action_type: str
+        action_type: str,
     ) -> str:
         """Generate natural Arabic explanation of guardrails decision."""
 
@@ -199,7 +198,7 @@ class SAHOOLGuardrailsEngine:
             "harvest": "الحصاد",
             "contract": "العقد",
             "investment": "الاستثمار",
-            "loan": "القرض"
+            "loan": "القرض",
         }
         action_name = action_names.get(action_type, action_type)
 
@@ -214,38 +213,43 @@ class SAHOOLGuardrailsEngine:
 
         return f"❌ **تم الرفض**\n\nإجراء {action_name} مرفوض لأسباب السلامة.\n\n**الأسباب:**\n{self._format_findings(checks)}\n\n**البدائل المقترحة:**\n{self._format_suggestions(checks)}"
 
-    def _format_findings(self, checks: List[Dict]) -> str:
+    def _format_findings(self, checks: list[dict]) -> str:
         lines = []
         for check in checks:
             tier_name = check.get("tier", "")
             for finding in check.get("findings", []):
                 if finding.get("severity") in ["CRITICAL", "HIGH"]:
-                    lines.append(f"• [{tier_name}] {finding.get('message_ar', finding.get('message', ''))}")
+                    lines.append(
+                        f"• [{tier_name}] {finding.get('message_ar', finding.get('message', ''))}"
+                    )
         return "\n".join(lines) if lines else "• لا توجد مخالفات حرجة."
 
-    def _format_suggestions(self, checks: List[Dict]) -> str:
+    def _format_suggestions(self, checks: list[dict]) -> str:
         lines = []
         for check in checks:
             for suggestion in check.get("suggestions", []):
                 lines.append(f"• {suggestion.get('text_ar', suggestion.get('text', ''))}")
         return "\n".join(lines) if lines else "• لا توجد اقتراحات محددة."
 
-    def _suggest_modifications(self, checks: List[Dict], action_data: Dict) -> List[Dict]:
+    def _suggest_modifications(self, checks: list[dict], action_data: dict) -> list[dict]:
         suggestions = []
         for check in checks:
             for suggestion in check.get("suggestions", []):
-                suggestions.append({
-                    "field": suggestion.get("field", ""),
-                    "current_value": action_data.get(suggestion.get("field", "")),
-                    "suggested_value": suggestion.get("value"),
-                    "reason_ar": suggestion.get("text_ar", ""),
-                    "reason_en": suggestion.get("text", "")
-                })
+                suggestions.append(
+                    {
+                        "field": suggestion.get("field", ""),
+                        "current_value": action_data.get(suggestion.get("field", "")),
+                        "suggested_value": suggestion.get("value"),
+                        "reason_ar": suggestion.get("text_ar", ""),
+                        "reason_en": suggestion.get("text", ""),
+                    }
+                )
         return suggestions
 
 
 # Singleton instance
-_guardrails_engine: Optional[SAHOOLGuardrailsEngine] = None
+_guardrails_engine: SAHOOLGuardrailsEngine | None = None
+
 
 def get_guardrails_engine() -> SAHOOLGuardrailsEngine:
     global _guardrails_engine
@@ -257,12 +261,11 @@ def get_guardrails_engine() -> SAHOOLGuardrailsEngine:
 # ══════════════════════════════════════════════════════════
 # FastAPI Application (FIXED: was missing)
 # ══════════════════════════════════════════════════════════
-from contextlib import asynccontextmanager
-
 @asynccontextmanager
 async def lifespan(app):
     get_guardrails_engine()  # warm up
     yield
+
 
 app = FastAPI(
     title="SAHOOL Guardrails Engine",
@@ -271,18 +274,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-from fastapi.middleware.cors import CORSMiddleware
-import os
-app.add_middleware(CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS","http://localhost:3000").split(","),
-    allow_methods=["GET","POST","OPTIONS"],
-    allow_headers=["Authorization","Content-Type"],
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
     allow_credentials=True,
 )
 
 # ── مصادقة بوابة الموافقة البشريّة (أمان) ──
-import jwt as _jwt
-from fastapi import Header as _Header
 _GR_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _GR_JWT_SECRET = _GR_JWT_PUBLIC if _GR_JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _GR_JWT_ALG = "RS256" if _GR_JWT_PUBLIC else "HS256"
@@ -299,6 +299,7 @@ def _require_service_token(x_agent_token: str = _Header(None)):
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — /validate معطّل بأمان")
     # L5 FIX: مقارنة بزمن ثابت (كـodoo-bridge) لإغلاق قناة توقيت جانبيّة.
     import hmac as _hmac
+
     if not x_agent_token or not _hmac.compare_digest(x_agent_token, _GR_AGENT_TOKEN):
         raise HTTPException(401, "توكن خدمة غير صالح لـ/validate")
     return True
@@ -311,10 +312,11 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "توكن مطلوب للموافقة")
     try:
-        payload = _jwt.decode(authorization.split(" ",1)[1], _GR_JWT_SECRET,
-                              algorithms=[_GR_JWT_ALG])
+        payload = _jwt.decode(
+            authorization.split(" ", 1)[1], _GR_JWT_SECRET, algorithms=[_GR_JWT_ALG]
+        )
     except Exception:
-        raise HTTPException(401, "توكن غير صالح")
+        raise HTTPException(401, "توكن غير صالح") from None
     # الموافقة تتطلّب دور expert أو admin (بوابة بشريّة)
     if payload.get("role") not in ("expert", "admin"):
         raise HTTPException(403, "الموافقة تتطلّب صلاحيّة خبير أو مدير")
@@ -324,8 +326,7 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
 
 
 @app.post("/validate", response_model=GuardrailsResult)
-async def validate_action(request: GuardrailsRequest,
-                          _svc: bool = Depends(_require_service_token)):
+async def validate_action(request: GuardrailsRequest, _svc: bool = Depends(_require_service_token)):
     """Main validation endpoint — checks action against 3 tiers.
 
     أمان: يتطلّب توكن خدمة (X-Agent-Token) — لا يُقبل من جهة غير موثوقة.
@@ -335,9 +336,11 @@ async def validate_action(request: GuardrailsRequest,
     engine = get_guardrails_engine()
     return await engine.validate(request)
 
+
 @app.post("/approve/{workflow_id}")
-async def approve_workflow(workflow_id: str, approved: bool, reason: str = "",
-                           claims: dict = Depends(_gr_verify)):
+async def approve_workflow(
+    workflow_id: str, approved: bool, reason: str = "", claims: dict = Depends(_gr_verify)
+):
     """Human-in-the-Loop approval — الهويّة من التوكن المُتحقَّق لا من الطلب."""
     # الأمان: expert_id يُشتقّ من التوكن (لا يُقبل من العميل) — منع انتحال الخبير
     expert_id = str(claims["sub"])
@@ -347,20 +350,27 @@ async def approve_workflow(workflow_id: str, approved: bool, reason: str = "",
     else:
         return await hil.reject(workflow_id, expert_id, reason)
 
+
 @app.get("/workflow/{workflow_id}")
 async def get_workflow(workflow_id: str):
     hil = HumanApprovalWorkflow()
     return hil.get_status(workflow_id)
 
+
 @app.get("/healthz")
 @app.get("/health")
-async def healthz(): return {"status": "alive", "service": "guardrails-engine", "tiers": 3}
+async def healthz():
+    return {"status": "alive", "service": "guardrails-engine", "tiers": 3}
+
 
 @app.get("/readyz")
-async def readyz(): return {"status": "ready"}
+async def readyz():
+    return {"status": "ready"}
+
 
 @app.get("/metrics")
 async def metrics_endpoint():
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
     from starlette.responses import Response
+
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)

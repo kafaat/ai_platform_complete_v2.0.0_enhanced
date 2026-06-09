@@ -37,27 +37,29 @@ sahool_core.offline_first
   • Background sync workers (يحتاج runtime محدّد)
   → هذه wrappers خفيفة فوق ما يُبنى هنا
 """
+
 from __future__ import annotations
 
-import json
 from collections import defaultdict, deque
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 
 
 class SyncStatus(str, Enum):
     """حالة عملية معلّقة للـsync."""
-    QUEUED = "queued"            # تنتظر sync
-    SYNCING = "syncing"          # قيد المزامنة
-    SYNCED = "synced"            # تمّت بنجاح
-    FAILED = "failed"            # فشلت (سبب صريح)
-    SUPERSEDED = "superseded"    # حلّت محلّها عملية أحدث
-    CONFLICTED = "conflicted"    # تضارب مع server data
+
+    QUEUED = "queued"  # تنتظر sync
+    SYNCING = "syncing"  # قيد المزامنة
+    SYNCED = "synced"  # تمّت بنجاح
+    FAILED = "failed"  # فشلت (سبب صريح)
+    SUPERSEDED = "superseded"  # حلّت محلّها عملية أحدث
+    CONFLICTED = "conflicted"  # تضارب مع server data
 
 
 class OperationKind(str, Enum):
     """أنواع العمليات القابلة للـqueue."""
+
     OBSERVATION_CREATE = "observation_create"
     ACTIVITY_COMPLETE = "activity_complete"
     ACTIVITY_SKIP = "activity_skip"
@@ -68,12 +70,13 @@ class OperationKind(str, Enum):
 @dataclass
 class PendingOperation:
     """عملية تنتظر sync. خفيفة، self-contained."""
-    op_id: str                       # UUID داخلي
+
+    op_id: str  # UUID داخلي
     tenant_id: str
     kind: OperationKind
     payload: dict
-    created_at: str                  # ISO، حين أُنشئت offline
-    user_id: str                     # من أنشأها
+    created_at: str  # ISO، حين أُنشئت offline
+    user_id: str  # من أنشأها
     status: SyncStatus = SyncStatus.QUEUED
     retry_count: int = 0
     last_attempt_at: str | None = None
@@ -85,6 +88,7 @@ class PendingOperation:
 @dataclass
 class SyncResult:
     """نتيجة دورة sync كاملة."""
+
     total_pending: int
     synced_count: int
     failed_count: int
@@ -95,6 +99,7 @@ class SyncResult:
 
 
 # ─── Queue Management (per-tenant) ───────────────────────────────
+
 
 class OfflineQueue:
     """طابور عمليّات معلّقة. multi-tenant by design.
@@ -110,8 +115,7 @@ class OfflineQueue:
     def __init__(self, max_per_tenant: int = 1000):
         self.max_per_tenant = max_per_tenant
         # tenant_id → deque[PendingOperation]
-        self._queues: dict[str, deque] = defaultdict(
-            lambda: deque(maxlen=max_per_tenant))
+        self._queues: dict[str, deque] = defaultdict(lambda: deque(maxlen=max_per_tenant))
 
     def enqueue(self, op: PendingOperation) -> bool:
         """يضيف عملية للـqueue. يرفض إن تجاوز الحدّ."""
@@ -121,14 +125,12 @@ class OfflineQueue:
         q.append(op)
         return True
 
-    def peek_pending(self, tenant_id: str,
-                    limit: int = 100) -> list[PendingOperation]:
+    def peek_pending(self, tenant_id: str, limit: int = 100) -> list[PendingOperation]:
         """يعرض العمليات المعلّقة دون إخراجها."""
         q = self._queues.get(tenant_id)
         if not q:
             return []
-        return [op for op in q
-                if op.status == SyncStatus.QUEUED][:limit]
+        return [op for op in q if op.status == SyncStatus.QUEUED][:limit]
 
     def queue_size(self, tenant_id: str) -> int:
         return len(self._queues.get(tenant_id, []))
@@ -137,9 +139,9 @@ class OfflineQueue:
         q = self._queues.get(tenant_id, deque())
         return sum(1 for op in q if op.status == SyncStatus.QUEUED)
 
-    def mark_status(self, tenant_id: str, op_id: str,
-                   status: SyncStatus,
-                   error: str | None = None) -> bool:
+    def mark_status(
+        self, tenant_id: str, op_id: str, status: SyncStatus, error: str | None = None
+    ) -> bool:
         """يحدّث حالة عمليّة معيّنة."""
         q = self._queues.get(tenant_id, deque())
         for op in q:
@@ -154,23 +156,23 @@ class OfflineQueue:
                 return True
         return False
 
-    def clear_synced(self, tenant_id: str,
-                    older_than_hours: int = 24) -> int:
+    def clear_synced(self, tenant_id: str, older_than_hours: int = 24) -> int:
         """ينظّف العمليّات المُنجزة. retention للـaudit."""
-        cutoff = (datetime.utcnow() -
-                 timedelta(hours=older_than_hours)).isoformat()
+        cutoff = (datetime.utcnow() - timedelta(hours=older_than_hours)).isoformat()
         q = self._queues.get(tenant_id)
         if not q:
             return 0
         before = len(q)
         # rebuild deque بدون العمليّات المُتقادمة
         kept = deque(
-            (op for op in q
-             if not (op.status == SyncStatus.SYNCED
-                    and op.synced_at and op.synced_at < cutoff)),
+            (
+                op
+                for op in q
+                if not (op.status == SyncStatus.SYNCED and op.synced_at and op.synced_at < cutoff)
+            ),
             maxlen=self.max_per_tenant,
         )
-        self._queues[op.tenant_id if q else tenant_id] = kept
+        self._queues[tenant_id] = kept
         return before - len(kept)
 
     def reset(self, tenant_id: str | None = None) -> None:
@@ -182,6 +184,7 @@ class OfflineQueue:
 
 
 # ─── Supersession Logic ──────────────────────────────────────────
+
 
 def detect_superseded(
     queue: list[PendingOperation],
@@ -201,9 +204,11 @@ def detect_superseded(
     for op in queue:
         if op.status != SyncStatus.QUEUED:
             continue
-        key = (op.kind, op.payload.get("field_id"),
-              op.payload.get("activity_id") or
-              op.payload.get("observable_id"))
+        key = (
+            op.kind,
+            op.payload.get("field_id"),
+            op.payload.get("activity_id") or op.payload.get("observable_id"),
+        )
         if None in key:
             continue
         prev = by_key.get(key)
@@ -223,19 +228,19 @@ def apply_supersession(
     pairs = detect_superseded(pending)
     count = 0
     for old_id, new_id in pairs:
-        if queue.mark_status(tenant_id, old_id, SyncStatus.SUPERSEDED,
-                            error=f"حلّت محلّها {new_id}"):
+        if queue.mark_status(tenant_id, old_id, SyncStatus.SUPERSEDED, error=f"حلّت محلّها {new_id}"):
             count += 1
     return count
 
 
 # ─── Sync Cycle ──────────────────────────────────────────────────
 
+
 def sync_cycle(
     queue: OfflineQueue,
     tenant_id: str,
     *,
-    sync_handler,    # callable(op: PendingOperation) -> bool
+    sync_handler,  # callable(op: PendingOperation) -> bool
     max_batch: int = 50,
 ) -> SyncResult:
     """ينفّذ دورة sync واحدة.
@@ -265,19 +270,18 @@ def sync_cycle(
                 queue.mark_status(tenant_id, op.op_id, SyncStatus.SYNCED)
                 synced += 1
             else:
-                queue.mark_status(tenant_id, op.op_id, SyncStatus.FAILED,
-                                 error="handler returned False")
+                queue.mark_status(
+                    tenant_id, op.op_id, SyncStatus.FAILED, error="handler returned False"
+                )
                 failed += 1
         except Exception as e:
             err_msg = str(e)[:200]
             # تمييز conflict عن failure عادي
             if "conflict" in err_msg.lower() or "duplicate" in err_msg.lower():
-                queue.mark_status(tenant_id, op.op_id,
-                                 SyncStatus.CONFLICTED, error=err_msg)
+                queue.mark_status(tenant_id, op.op_id, SyncStatus.CONFLICTED, error=err_msg)
                 conflicted += 1
             else:
-                queue.mark_status(tenant_id, op.op_id,
-                                 SyncStatus.FAILED, error=err_msg)
+                queue.mark_status(tenant_id, op.op_id, SyncStatus.FAILED, error=err_msg)
                 failed += 1
 
     duration = (datetime.utcnow() - start).total_seconds() * 1000
@@ -288,8 +292,7 @@ def sync_cycle(
     elif failed == 0 and conflicted == 0:
         reason = f"✅ {synced} عمليّة sync بنجاح"
     elif conflicted > 0:
-        reason = (f"⚠️ {synced} sync، {conflicted} تضارب يحتاج مراجعة، "
-                 f"{failed} فشل")
+        reason = f"⚠️ {synced} sync، {conflicted} تضارب يحتاج مراجعة، {failed} فشل"
     else:
         reason = f"⚠️ {synced} sync، {failed} فشل (سيُعاد لاحقاً)"
 
@@ -309,9 +312,11 @@ def sync_cycle(
 
 # ─── Offline-Aware Helpers للـClient ──────────────────────────────
 
+
 @dataclass
 class ConnectivityState:
     """حالة الاتصال الحالية — يضبطها client بناءً على ping أو network event."""
+
     is_online: bool
     last_check_at: str
     consecutive_failures: int = 0
@@ -334,6 +339,7 @@ def record_operation_offline(
       • لو online: يستدعي API مباشرة، fallback لـoffline عند فشل
     """
     import uuid as uuid_mod
+
     op = PendingOperation(
         op_id=str(uuid_mod.uuid4()),
         tenant_id=tenant_id,

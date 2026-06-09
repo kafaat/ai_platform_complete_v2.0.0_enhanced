@@ -1,8 +1,13 @@
 """Tests for the unified knowledge-level matrix: each source's epistemic ceiling,
 and the unified fusion rule (confidence <= min ceiling). Guards matrix consistency."""
+
 from core.knowledge_levels import (
-    fuse_confidence, ceiling_for_source, level_of_source,
-    KnowledgeLevel, level_info)
+    KnowledgeLevel,
+    ceiling_for_source,
+    fuse_confidence,
+    level_info,
+    level_of_source,
+)
 
 
 class TestCeilings:
@@ -64,6 +69,7 @@ class TestMatrixConsistency:
     def test_matches_evidence_class_indication_ceiling(self):
         # الاتساق مع evidence_class: القرينة الطيفية سقفها منخفض هناك أيضاً
         from core.evidence_class import classify_evidence
+
         # المؤشّر الطيفي = قرينة (INDICATION) سقفها low/medium، لا high
         ec = classify_evidence("R5", "satellite")
         assert ec.max_confidence in ("low", "medium")

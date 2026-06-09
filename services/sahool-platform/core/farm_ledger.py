@@ -26,40 +26,49 @@ core/farm_ledger.py — دفتر حسابات بسيط للمزرعة
   ✗ loan/credit scoring (خارج النطاق — bank's job)
   ✗ tax calculation (yemen-specific tax code خارج عن سهول)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date as date_type
 from enum import Enum
-from typing import Optional
 
 
 class LedgerKind(str, Enum):
     """نوع القيد المحاسبي."""
+
     # مصروفات (expenses)
-    SEED = "seed"                # بذور
-    FERTILIZER = "fertilizer"    # أسمدة
-    PESTICIDE = "pesticide"      # مبيدات
-    LABOR = "labor"              # عمالة
-    FUEL = "fuel"                # وقود (مضخّات/جرارات)
-    WATER = "water"              # ريّ
-    EQUIPMENT = "equipment"      # معدّات
-    TRANSPORT = "transport"      # نقل للسوق
+    SEED = "seed"  # بذور
+    FERTILIZER = "fertilizer"  # أسمدة
+    PESTICIDE = "pesticide"  # مبيدات
+    LABOR = "labor"  # عمالة
+    FUEL = "fuel"  # وقود (مضخّات/جرارات)
+    WATER = "water"  # ريّ
+    EQUIPMENT = "equipment"  # معدّات
+    TRANSPORT = "transport"  # نقل للسوق
     OTHER_EXPENSE = "other_expense"
     # إيرادات (income)
     HARVEST_SALE = "harvest_sale"  # بيع المحصول
-    SUBSIDY = "subsidy"            # دعم حكومي/منظّمات
+    SUBSIDY = "subsidy"  # دعم حكومي/منظّمات
     OTHER_INCOME = "other_income"
 
 
 EXPENSE_KINDS = {
-    LedgerKind.SEED, LedgerKind.FERTILIZER, LedgerKind.PESTICIDE,
-    LedgerKind.LABOR, LedgerKind.FUEL, LedgerKind.WATER,
-    LedgerKind.EQUIPMENT, LedgerKind.TRANSPORT, LedgerKind.OTHER_EXPENSE,
+    LedgerKind.SEED,
+    LedgerKind.FERTILIZER,
+    LedgerKind.PESTICIDE,
+    LedgerKind.LABOR,
+    LedgerKind.FUEL,
+    LedgerKind.WATER,
+    LedgerKind.EQUIPMENT,
+    LedgerKind.TRANSPORT,
+    LedgerKind.OTHER_EXPENSE,
 }
 
 INCOME_KINDS = {
-    LedgerKind.HARVEST_SALE, LedgerKind.SUBSIDY, LedgerKind.OTHER_INCOME,
+    LedgerKind.HARVEST_SALE,
+    LedgerKind.SUBSIDY,
+    LedgerKind.OTHER_INCOME,
 }
 
 KIND_NAMES_AR = {
@@ -81,33 +90,35 @@ KIND_NAMES_AR = {
 @dataclass(frozen=True)
 class LedgerEntry:
     """قيد محاسبي واحد. immutable لـauditability."""
+
     entry_id: str
     tenant_id: str
     farm_id: str
-    field_id: Optional[str]      # قد يكون farm-level (وقود مشترك)
-    season_id: Optional[str]     # ٢٠٢٥-قمح-صعدة
+    field_id: str | None  # قد يكون farm-level (وقود مشترك)
+    season_id: str | None  # ٢٠٢٥-قمح-صعدة
     kind: LedgerKind
-    amount: float                # موجب دائماً، الـsign من kind
-    currency: str = "YER"        # Yemeni Rial default
-    quantity: Optional[float] = None   # اختياري (مثلاً 50 كغ بذور)
-    unit: Optional[str] = None
+    amount: float  # موجب دائماً، الـsign من kind
+    currency: str = "YER"  # Yemeni Rial default
+    quantity: float | None = None  # اختياري (مثلاً 50 كغ بذور)
+    unit: str | None = None
     description_ar: str = ""
     entry_date: date_type = field(default_factory=date_type.today)
-    invoice_ref: Optional[str] = None   # رقم فاتورة لو موجود
+    invoice_ref: str | None = None  # رقم فاتورة لو موجود
 
 
 @dataclass(frozen=True)
 class SeasonSummary:
     """ملخّص موسم لـحقل/مزرعة."""
+
     tenant_id: str
     farm_id: str
-    field_id: Optional[str]
+    field_id: str | None
     season_id: str
     currency: str
 
     total_expenses: float
     total_income: float
-    net_profit: float            # موجب = ربح، سالب = خسارة
+    net_profit: float  # موجب = ربح، سالب = خسارة
     expense_breakdown: dict[str, float]  # kind → sum
     income_breakdown: dict[str, float]
     entry_count: int
@@ -115,12 +126,13 @@ class SeasonSummary:
 
 # ─── منطق ─────────────────────────────────────────────────────────
 
+
 def summarize_season(
     entries: list[LedgerEntry],
     tenant_id: str,
     farm_id: str,
     season_id: str,
-    field_id: Optional[str] = None,
+    field_id: str | None = None,
 ) -> SeasonSummary:
     """يحسب ملخّص اقتصادي للموسم.
 
@@ -129,7 +141,8 @@ def summarize_season(
         field_id: إن أردنا حقل واحد فقط (None = كل الحقول)
     """
     filtered = [
-        e for e in entries
+        e
+        for e in entries
         if e.tenant_id == tenant_id
         and e.farm_id == farm_id
         and e.season_id == season_id
@@ -152,14 +165,10 @@ def summarize_season(
 
     for e in filtered:
         if e.kind in EXPENSE_KINDS:
-            expense_breakdown[e.kind.value] = (
-                expense_breakdown.get(e.kind.value, 0.0) + e.amount
-            )
+            expense_breakdown[e.kind.value] = expense_breakdown.get(e.kind.value, 0.0) + e.amount
             total_expenses += e.amount
         elif e.kind in INCOME_KINDS:
-            income_breakdown[e.kind.value] = (
-                income_breakdown.get(e.kind.value, 0.0) + e.amount
-            )
+            income_breakdown[e.kind.value] = income_breakdown.get(e.kind.value, 0.0) + e.amount
             total_income += e.amount
 
     net_profit = total_income - total_expenses
@@ -232,14 +241,14 @@ def compare_seasons(
             "total_income": s.total_income,
             "net_profit": s.net_profit,
             "profit_margin_pct": (
-                (s.net_profit / s.total_income * 100)
-                if s.total_income > 0 else 0.0
+                (s.net_profit / s.total_income * 100) if s.total_income > 0 else 0.0
             ),
         }
     return out
 
 
 # ─── Helpers لتقديم النتائج للمزارع ─────────────────────────────────
+
 
 def format_summary_ar(summary: SeasonSummary) -> str:
     """يولّد نصّ عربي مفهوم للمزارع."""
@@ -255,7 +264,8 @@ def format_summary_ar(summary: SeasonSummary) -> str:
 
 
 def top_expense_categories(
-    summary: SeasonSummary, top_n: int = 3,
+    summary: SeasonSummary,
+    top_n: int = 3,
 ) -> list[tuple[str, float, float]]:
     """يُرجع أعلى ٣ فئات مصروفات.
 
@@ -266,7 +276,8 @@ def top_expense_categories(
         return []
     sorted_items = sorted(
         summary.expense_breakdown.items(),
-        key=lambda x: x[1], reverse=True,
+        key=lambda x: x[1],
+        reverse=True,
     )[:top_n]
     return [
         (

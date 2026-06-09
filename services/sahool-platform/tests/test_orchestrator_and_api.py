@@ -3,30 +3,43 @@
 - HTTP-like adapter framework-neutral
 - Rate limiting (AI Workaholic guard)
 - Tenant isolation at HTTP boundary"""
-from core.canonical_schemas import UserSchema, UserRole
-from core.internal_orchestrator import (
-    orchestrate_recommendation, orchestrator_summary)
+
 from core.api_adapter import (
-    ApiRequest, ApiResponse, RateLimiter,
-    handle_recommendation_request, handle_healthz, handle_readyz,
-    _reset_rate_limiter)
+    ApiRequest,
+    ApiResponse,
+    RateLimiter,
+    _reset_rate_limiter,
+    handle_healthz,
+    handle_readyz,
+    handle_recommendation_request,
+)
+from core.canonical_schemas import UserRole, UserSchema
+from core.internal_orchestrator import orchestrate_recommendation, orchestrator_summary
 
 
 def _user(role=UserRole.AGRONOMIST, tenant="tnt_001", active=True):
-    return UserSchema(user_id=f"u_{role.value}", tenant_id=tenant,
-                     role=role, name_ar="x", is_active=active)
+    return UserSchema(
+        user_id=f"u_{role.value}", tenant_id=tenant, role=role, name_ar="x", is_active=active
+    )
 
 
 def _validation():
-    return {"quality_grade": "READY", "blocked": False,
-            "missing_blockers": [], "missing_observables": [],
-            "field_state": "ready"}
+    return {
+        "quality_grade": "READY",
+        "blocked": False,
+        "missing_blockers": [],
+        "missing_observables": [],
+        "field_state": "ready",
+    }
 
 
 def _payload(**overrides):
     base = {
-        "tenant_id": "tnt_001", "field_id": "fld_03", "farm_id": "frm_01",
-        "crop": "wheat", "validation": _validation(),
+        "tenant_id": "tnt_001",
+        "field_id": "fld_03",
+        "farm_id": "frm_01",
+        "crop": "wheat",
+        "validation": _validation(),
         "current_indicators": {"ndvi": 0.55},
         "district_id": "al_bayda",
     }
@@ -37,9 +50,13 @@ def _payload(**overrides):
 class TestInternalOrchestrator:
     def test_authorized_user_gets_delivery(self):
         result = orchestrate_recommendation(
-            user=_user(), tenant_id="tnt_001", farm_id="frm_01",
-            field_id="fld_03", crop="wheat",
-            validation=_validation(), field_state="ready",
+            user=_user(),
+            tenant_id="tnt_001",
+            farm_id="frm_01",
+            field_id="fld_03",
+            crop="wheat",
+            validation=_validation(),
+            field_state="ready",
             current_indicators={"ndvi": 0.55},
             district_id="al_bayda",
         )
@@ -48,18 +65,26 @@ class TestInternalOrchestrator:
     def test_provenance_filled_with_versions(self):
         # CRITICAL: model_versions يُحفظ في كل توصية (forensic)
         result = orchestrate_recommendation(
-            user=_user(), tenant_id="tnt_001", farm_id="frm_01",
-            field_id="fld_03", crop="wheat",
-            validation=_validation(), field_state="ready",
+            user=_user(),
+            tenant_id="tnt_001",
+            farm_id="frm_01",
+            field_id="fld_03",
+            crop="wheat",
+            validation=_validation(),
+            field_state="ready",
         )
         assert len(result.provenance.get("model_versions", {})) >= 16
 
     def test_worker_fail_fast_no_engine_run(self):
         # CRITICAL: WORKER يُرفض قبل تشغيل المحرّك
         result = orchestrate_recommendation(
-            user=_user(UserRole.WORKER), tenant_id="tnt_001",
-            farm_id="frm_01", field_id="fld_03", crop="wheat",
-            validation=_validation(), field_state="ready",
+            user=_user(UserRole.WORKER),
+            tenant_id="tnt_001",
+            farm_id="frm_01",
+            field_id="fld_03",
+            crop="wheat",
+            validation=_validation(),
+            field_state="ready",
         )
         assert not result.delivered
         # base_recommendation فارغ (لم يُشغَّل المحرّك)
@@ -69,25 +94,35 @@ class TestInternalOrchestrator:
         # حتى OWNER لا يعبر tenant
         result = orchestrate_recommendation(
             user=_user(UserRole.OWNER, tenant="tnt_001"),
-            tenant_id="tnt_OTHER", farm_id="f", field_id="f",
-            crop="wheat", validation=_validation(),
+            tenant_id="tnt_OTHER",
+            farm_id="f",
+            field_id="f",
+            crop="wheat",
+            validation=_validation(),
         )
         assert not result.delivered
         assert "عزل tenant" in result.reason_ar
 
     def test_inactive_user_rejected(self):
         result = orchestrate_recommendation(
-            user=_user(active=False), tenant_id="tnt_001",
-            farm_id="frm_01", field_id="fld_03", crop="wheat",
+            user=_user(active=False),
+            tenant_id="tnt_001",
+            farm_id="frm_01",
+            field_id="fld_03",
+            crop="wheat",
             validation=_validation(),
         )
         assert not result.delivered
 
     def test_summary_includes_essential_fields(self):
         result = orchestrate_recommendation(
-            user=_user(), tenant_id="tnt_001", farm_id="frm_01",
-            field_id="fld_03", crop="wheat",
-            validation=_validation(), field_state="ready",
+            user=_user(),
+            tenant_id="tnt_001",
+            farm_id="frm_01",
+            field_id="fld_03",
+            crop="wheat",
+            validation=_validation(),
+            field_state="ready",
         )
         summary = orchestrator_summary(result)
         assert "delivered" in summary
@@ -133,8 +168,7 @@ class TestApiAdapter:
 
     def test_cross_tenant_returns_403(self):
         # CRITICAL: tenant آخر → 403
-        req = ApiRequest(user=_user(tenant="tnt_001"),
-                        payload=_payload(tenant_id="tnt_OTHER"))
+        req = ApiRequest(user=_user(tenant="tnt_001"), payload=_payload(tenant_id="tnt_OTHER"))
         r = handle_recommendation_request(req)
         assert r.status_code == 403
         assert "عزل" in r.body.get("reason_ar", "")
@@ -196,6 +230,7 @@ class TestRateLimitEndToEnd:
     def test_default_limit_is_20_per_hour(self):
         # default rate limiter في api_adapter
         from core.api_adapter import _rate_limiter
+
         assert _rate_limiter.max_requests == 20
         assert _rate_limiter.window_seconds == 3600
 
@@ -205,7 +240,7 @@ class TestRateLimitEndToEnd:
         for i in range(20):
             req = ApiRequest(user=user, payload=_payload())
             r = handle_recommendation_request(req)
-            assert r.status_code == 200, f"Request #{i+1} should pass"
+            assert r.status_code == 200, f"Request #{i + 1} should pass"
         # الطلب 21
         req = ApiRequest(user=user, payload=_payload())
         r = handle_recommendation_request(req)

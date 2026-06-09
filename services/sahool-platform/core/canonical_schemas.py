@@ -29,29 +29,28 @@ HistoricalRow في historical_loader). لا وثيقة موحّدة. التوس�
   6. Observation     — مشاهدة/قياس (EAV الموجود)
   7. Recommendation  — توصية (موجود في learning/، يُوحّد)
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
-
 
 # ─── إصدارات schemas ─────────────────────────────────────────────
 # كل تغيير في حقول إلزامية = bump version
 # توافق خلفي: قراءة v1 ممكنة من v2 (defaults للحقول الجديدة)
 SCHEMA_VERSIONS = {
-    "Tenant":         "1.0",
-    "User":           "1.0",
-    "Farm":           "1.0",
-    "Field":          "1.0",
-    "CropSeason":     "1.0",
-    "Observation":    "1.0",
-    "Recommendation": "2.0",   # 2.0 بسبب إضافة provenance
+    "Tenant": "1.0",
+    "User": "1.0",
+    "Farm": "1.0",
+    "Field": "1.0",
+    "CropSeason": "1.0",
+    "Observation": "1.0",
+    "Recommendation": "2.0",  # 2.0 بسبب إضافة provenance
 }
 
 
 # ─── Enums مشتركة ────────────────────────────────────────────────
+
 
 class TenantStatus(str, Enum):
     ACTIVE = "active"
@@ -61,15 +60,17 @@ class TenantStatus(str, Enum):
 
 class UserRole(str, Enum):
     """خمسة أدوار من المراجعة الاستراتيجية. ترتيب الصلاحيات تنازلي."""
-    OWNER = "owner"             # كل الصلاحيات + إدارة الفريق
-    MANAGER = "manager"         # إدارة الحقول والتوصيات
-    AGRONOMIST = "agronomist"   # توصيات + معايرة + بحث، لا إدارة
-    WORKER = "worker"           # تنفيذ الأنشطة، تسجيل القياسات
-    VIEWER = "viewer"           # قراءة فقط
+
+    OWNER = "owner"  # كل الصلاحيات + إدارة الفريق
+    MANAGER = "manager"  # إدارة الحقول والتوصيات
+    AGRONOMIST = "agronomist"  # توصيات + معايرة + بحث، لا إدارة
+    WORKER = "worker"  # تنفيذ الأنشطة، تسجيل القياسات
+    VIEWER = "viewer"  # قراءة فقط
 
 
 class FieldQuality(str, Enum):
     """من field_lifecycle الموجود — يُوحَّد هنا للمرجعية."""
+
     BLOCKED = "BLOCKED"
     LIMITED = "LIMITED"
     PENDING_LAB = "PENDING_LAB"
@@ -81,7 +82,7 @@ class IrrigationMethod(str, Enum):
     DRIP = "drip"
     SPRINKLER = "sprinkler"
     RAINFED = "rainfed"
-    SUPPLEMENTAL = "supplemental"   # تكميلي (موجود في supplemental_irrigation)
+    SUPPLEMENTAL = "supplemental"  # تكميلي (موجود في supplemental_irrigation)
     PIVOT = "pivot"
 
 
@@ -95,20 +96,22 @@ class SeasonStatus(str, Enum):
 
 # ─── 1. Tenant ────────────────────────────────────────────────────
 
+
 @dataclass
 class TenantSchema:
     """حاوية المستأجر (شركة/جمعية/فرد).
 
     العزل التشغيلي: كل tenant معزول كلّياً عن غيره.
     لا يوجد cross-tenant queries في النواة (مُحرَّس آلياً)."""
-    tenant_id: str                          # دائم، لا يتغيّر
-    name_ar: str                            # الاسم العربي
+
+    tenant_id: str  # دائم، لا يتغيّر
+    name_ar: str  # الاسم العربي
     name_en: str | None = None
     contact_email: str | None = None
     contact_phone: str | None = None
     status: TenantStatus = TenantStatus.ACTIVE
-    created_at: str = ""                    # ISO datetime
-    id_uuid: str | None = None              # Dual-ID
+    created_at: str = ""  # ISO datetime
+    id_uuid: str | None = None  # Dual-ID
     schema_version: str = SCHEMA_VERSIONS["Tenant"]
 
     @staticmethod
@@ -118,14 +121,16 @@ class TenantSchema:
 
 # ─── 2. User ──────────────────────────────────────────────────────
 
+
 @dataclass
 class UserSchema:
     """مستخدم — أساس RBAC.
 
     user_id + tenant_id يحدّد العضوية. مستخدم في عدّة tenants =
     سجلات منفصلة (تجنّب complexity الـmany-to-many في النواة)."""
+
     user_id: str
-    tenant_id: str                          # عضوية tenant
+    tenant_id: str  # عضوية tenant
     role: UserRole
     name_ar: str
     email: str | None = None
@@ -144,20 +149,22 @@ class UserSchema:
 
 # ─── 3. Farm (Farm Hierarchy) ─────────────────────────────────────
 
+
 @dataclass
 class FarmSchema:
     """المزرعة — حاوية الحقول (Farm Hierarchy التالي).
 
     لا geometry مطلوبة على مستوى المزرعة (الحدود على الحقول).
     Property الكبير في Cropwise = مزرعة لدينا (نطاق سهول أبسط)."""
+
     farm_id: str
     tenant_id: str
     name_ar: str
-    district_id: str | None = None          # المديرية الإدارية
-    governorate_id: str | None = None       # المحافظة
-    centroid_lon: float | None = None       # نقطة تعريفية فقط
+    district_id: str | None = None  # المديرية الإدارية
+    governorate_id: str | None = None  # المحافظة
+    centroid_lon: float | None = None  # نقطة تعريفية فقط
     centroid_lat: float | None = None
-    owner_user_id: str | None = None        # المالك في tenant_id
+    owner_user_id: str | None = None  # المالك في tenant_id
     created_at: str = ""
     id_uuid: str | None = None
     schema_version: str = SCHEMA_VERSIONS["Farm"]
@@ -169,20 +176,22 @@ class FarmSchema:
 
 # ─── 4. Field ─────────────────────────────────────────────────────
 
+
 @dataclass
 class FieldSchema:
     """الحقل — الكيان المكاني الأساسي.
 
     boundary GeoJSON (لا PostGIS مطلوبة في النواة). area_ha
     محسوب لكن يُحفظ (مرجعية سريعة بدون geometry parsing)."""
+
     field_id: str
     tenant_id: str
-    farm_id: str                            # ينتمي لمزرعة (Farm hierarchy)
+    farm_id: str  # ينتمي لمزرعة (Farm hierarchy)
     name_ar: str
-    boundary_geojson: dict | None = None    # GeoJSON Polygon
+    boundary_geojson: dict | None = None  # GeoJSON Polygon
     area_ha: float | None = None
     quality_state: FieldQuality = FieldQuality.BLOCKED
-    soil_type: str | None = None            # من تحليل أو تقدير
+    soil_type: str | None = None  # من تحليل أو تقدير
     water_source: str | None = None
     notes_ar: str | None = None
     created_at: str = ""
@@ -196,19 +205,21 @@ class FieldSchema:
 
 # ─── 5. CropSeason (Crop Zone القياسي) ────────────────────────────
 
+
 @dataclass
 class CropSeasonSchema:
     """ربط حقل بمحصول لموسم. القيد العالمي: (field_id, season_id) فريد.
 
     يجسّد Crop Zone من Cropwise بشكل مبسّط مناسب لسياقنا."""
+
     season_id: str
     tenant_id: str
     field_id: str
-    crop_id: str                            # من crop_cards/
-    season_name_ar: str                     # "صيف 2026"، "شتاء 2025-2026"
+    crop_id: str  # من crop_cards/
+    season_name_ar: str  # "صيف 2026"، "شتاء 2025-2026"
     season_year: int
     variety_id: str | None = None
-    planting_date: str | None = None        # ISO
+    planting_date: str | None = None  # ISO
     estimated_harvest_date: str | None = None
     actual_harvest_date: str | None = None
     irrigation_method: IrrigationMethod = IrrigationMethod.RAINFED
@@ -219,19 +230,19 @@ class CropSeasonSchema:
 
     @staticmethod
     def required_fields() -> set[str]:
-        return {"season_id", "tenant_id", "field_id", "crop_id",
-                "season_name_ar", "season_year"}
+        return {"season_id", "tenant_id", "field_id", "crop_id", "season_name_ar", "season_year"}
 
 
 # ─── 6. Observation (EAV الموجود) ─────────────────────────────────
 
+
 class ObservationSource(str, Enum):
-    MANUAL = "manual"           # إدخال يدوي
-    SENSOR = "sensor"           # من مستشعر (sensor_intake)
-    LAB = "lab"                 # تحليل مخبري (دليل)
-    SATELLITE = "satellite"     # قمر صناعي (NDVI)
+    MANUAL = "manual"  # إدخال يدوي
+    SENSOR = "sensor"  # من مستشعر (sensor_intake)
+    LAB = "lab"  # تحليل مخبري (دليل)
+    SATELLITE = "satellite"  # قمر صناعي (NDVI)
     DRONE = "drone"
-    HISTORICAL = "historical"   # من historical_loader
+    HISTORICAL = "historical"  # من historical_loader
 
 
 @dataclass
@@ -240,15 +251,16 @@ class ObservationSchema:
 
     observable_id من ontology محدّدة (soil_ec_ds_m، ndvi، ...).
     قيمة مفردة + وحدة + ثقة + مصدر + موقع اختياري."""
+
     observation_id: str
     tenant_id: str
     field_id: str
-    observable_id: str                      # المتغيّر المُقاس
+    observable_id: str  # المتغيّر المُقاس
     value: float
-    unit: str                               # SI canonical
+    unit: str  # SI canonical
     source: ObservationSource
-    confidence: str                         # low/medium/high
-    measured_at: str                        # ISO
+    confidence: str  # low/medium/high
+    measured_at: str  # ISO
     method: str | None = None
     device_id: str | None = None
     lon: float | None = None
@@ -259,12 +271,21 @@ class ObservationSchema:
 
     @staticmethod
     def required_fields() -> set[str]:
-        return {"observation_id", "tenant_id", "field_id",
-                "observable_id", "value", "unit", "source",
-                "confidence", "measured_at"}
+        return {
+            "observation_id",
+            "tenant_id",
+            "field_id",
+            "observable_id",
+            "value",
+            "unit",
+            "source",
+            "confidence",
+            "measured_at",
+        }
 
 
 # ─── 7. Recommendation (مع Provenance v2.0) ──────────────────────
+
 
 @dataclass
 class RecommendationSchema:
@@ -272,9 +293,10 @@ class RecommendationSchema:
 
     التوصيات قبل v2.0 لا تحوي provenance — تُعامَل بشكل صريح
     في recommendation_replay (declared honestly، not invented)."""
+
     rec_id: str
     tenant_id: str
-    field_id: str | None = None             # null = توصية مستوى مزرعة
+    field_id: str | None = None  # null = توصية مستوى مزرعة
     season_id: str | None = None
     crop: str | None = None
     issued_date: str = ""
@@ -284,7 +306,7 @@ class RecommendationSchema:
     predicted_unit: str | None = None
     confidence: str = "low"
     # forensic (v2.0)
-    provenance: dict | None = None          # RecommendationProvenance
+    provenance: dict | None = None  # RecommendationProvenance
     # outcome (يُملأ لاحقاً)
     actual_value: float | None = None
     outcome_date: str | None = None
@@ -298,6 +320,7 @@ class RecommendationSchema:
 
 
 # ─── Validation Hooks (تُستدعى عند الحدود) ───────────────────────
+
 
 @dataclass
 class ValidationResult:
@@ -331,8 +354,7 @@ def validate_entity(entity_data: dict, schema_class) -> ValidationResult:
 
     # تحذيرات ناعمة
     if "schema_version" not in entity_data:
-        result.warnings_ar.append(
-            "schema_version غير محدّد — يُفترض الافتراضي الحالي")
+        result.warnings_ar.append("schema_version غير محدّد — يُفترض الافتراضي الحالي")
 
     return result
 

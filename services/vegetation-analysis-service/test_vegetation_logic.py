@@ -8,6 +8,7 @@
   pytest services/vegetation-analysis-service/test_vegetation_logic.py -v
   أو offline: python3 services/vegetation-analysis-service/test_vegetation_logic.py
 """
+
 import math
 import os
 import sys
@@ -15,16 +16,27 @@ import sys
 # استيراد دوالّ المنطق من main (بلا تشغيل الخادم)
 sys.path.insert(0, os.path.dirname(__file__))
 from main import (  # noqa: E402
-    _compute_indices, _health_classification, _recommendations_ar,
-    _deterministic_seed, _realistic_bands,
+    _compute_indices,
+    _deterministic_seed,
+    _health_classification,
+    _realistic_bands,
+    _recommendations_ar,
 )
 
 
 # ── ١. حساب المؤشّرات الطيفيّة ──
 def test_ndvi_formula_correct():
     """NDVI = (NIR-RED)/(NIR+RED) — التحقّق من الصيغة الأساسيّة."""
-    bands = {"B02": 0.04, "B03": 0.06, "B04": 0.05, "B05": 0.2,
-             "B06": 0.22, "B08": 0.5, "B11": 0.18, "B12": 0.15}
+    bands = {
+        "B02": 0.04,
+        "B03": 0.06,
+        "B04": 0.05,
+        "B05": 0.2,
+        "B06": 0.22,
+        "B08": 0.5,
+        "B11": 0.18,
+        "B12": 0.15,
+    }
     idx = _compute_indices(bands)
     expected_ndvi = (0.5 - 0.05) / (0.5 + 0.05)
     assert abs(idx["ndvi"] - round(expected_ndvi, 3)) < 0.01
@@ -32,30 +44,53 @@ def test_ndvi_formula_correct():
 
 def test_indices_within_valid_ranges():
     """كلّ المؤشّرات ضمن نطاقاتها الفيزيائيّة الصحيحة."""
-    bands = {"B02": 0.04, "B03": 0.06, "B04": 0.05, "B05": 0.2,
-             "B06": 0.22, "B08": 0.5, "B11": 0.18, "B12": 0.15}
+    bands = {
+        "B02": 0.04,
+        "B03": 0.06,
+        "B04": 0.05,
+        "B05": 0.2,
+        "B06": 0.22,
+        "B08": 0.5,
+        "B11": 0.18,
+        "B12": 0.15,
+    }
     idx = _compute_indices(bands)
     assert -1.0 <= idx["ndvi"] <= 1.0
     assert -1.0 <= idx["ndwi"] <= 1.0
     assert -1.0 <= idx["ndmi"] <= 1.0
-    assert 0.0 <= idx["cwsi"] <= 1.0   # CWSI مقيّد [0,1]
-    assert idx["lai"] >= 0.0           # LAI لا يكون سالباً
+    assert 0.0 <= idx["cwsi"] <= 1.0  # CWSI مقيّد [0,1]
+    assert idx["lai"] >= 0.0  # LAI لا يكون سالباً
 
 
 def test_compute_indices_returns_all_keys():
     """يُعيد كلّ المؤشّرات المتوقّعة."""
-    bands = {"B02": 0.04, "B03": 0.06, "B04": 0.05, "B05": 0.2,
-             "B06": 0.22, "B08": 0.5, "B11": 0.18, "B12": 0.15}
+    bands = {
+        "B02": 0.04,
+        "B03": 0.06,
+        "B04": 0.05,
+        "B05": 0.2,
+        "B06": 0.22,
+        "B08": 0.5,
+        "B11": 0.18,
+        "B12": 0.15,
+    }
     idx = _compute_indices(bands)
-    for key in ("ndvi", "evi", "savi", "ndwi", "ndmi", "gndvi",
-                "recl", "lai", "cwsi"):
+    for key in ("ndvi", "evi", "savi", "ndwi", "ndmi", "gndvi", "recl", "lai", "cwsi"):
         assert key in idx
 
 
 def test_high_nir_gives_high_ndvi():
     """نبات صحّي (NIR عالٍ، RED منخفض) → NDVI عالٍ."""
-    bands = {"B02": 0.03, "B03": 0.05, "B04": 0.04, "B05": 0.2,
-             "B06": 0.22, "B08": 0.6, "B11": 0.18, "B12": 0.15}
+    bands = {
+        "B02": 0.03,
+        "B03": 0.05,
+        "B04": 0.04,
+        "B05": 0.2,
+        "B06": 0.22,
+        "B08": 0.6,
+        "B11": 0.18,
+        "B12": 0.15,
+    }
     idx = _compute_indices(bands)
     assert idx["ndvi"] > 0.7
 
@@ -76,11 +111,11 @@ def test_health_critical():
 def test_health_thresholds_ordered():
     """درجات الصحّة تنازليّة مع تدهور NDVI."""
     scores = [
-        _health_classification(0.75, 0.2)["score"],   # excellent
-        _health_classification(0.60, 0.4)["score"],   # good
-        _health_classification(0.45, 0.6)["score"],   # fair
-        _health_classification(0.25, 0.5)["score"],   # poor
-        _health_classification(0.10, 0.5)["score"],   # critical
+        _health_classification(0.75, 0.2)["score"],  # excellent
+        _health_classification(0.60, 0.4)["score"],  # good
+        _health_classification(0.45, 0.6)["score"],  # fair
+        _health_classification(0.25, 0.5)["score"],  # poor
+        _health_classification(0.10, 0.5)["score"],  # critical
     ]
     assert scores == sorted(scores, reverse=True)
 
@@ -160,8 +195,7 @@ def test_bands_feed_indices_consistently():
 
 
 if __name__ == "__main__":
-    fns = [v for k, v in sorted(globals().items())
-           if k.startswith("test_") and callable(v)]
+    fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     passed = 0
     for fn in fns:
         try:

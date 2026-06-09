@@ -17,13 +17,15 @@ core.spatial.indicators
 التخزين الفعلي للـ raster (PostGIS) ومعالجة GeoTIFF = المرحلة ٣
 (عند توفّر الصور الحقيقية). هذا المنطق يعمل عليها حين تصل.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 try:
     import numpy as np
+
     _HAS_NUMPY = True
 except ImportError:
     _HAS_NUMPY = False
@@ -31,11 +33,12 @@ except ImportError:
 
 class SpatialIndex(str, Enum):
     """المؤشرات القابلة للعرض المكاني (لكل بكسل)."""
-    NDVI = "ndvi"      # صحة الغطاء — منخفض = ضعف/إجهاد
-    NDMI = "ndmi"      # رطوبة المحتوى — منخفض = جفاف
-    NDWI = "ndwi"      # ماء — منخفض = جفاف
-    SI = "salinity"    # ملوحة — مرتفع = بقعة مالحة
-    CWSI = "cwsi"      # إجهاد مائي — مرتفع = إجهاد
+
+    NDVI = "ndvi"  # صحة الغطاء — منخفض = ضعف/إجهاد
+    NDMI = "ndmi"  # رطوبة المحتوى — منخفض = جفاف
+    NDWI = "ndwi"  # ماء — منخفض = جفاف
+    SI = "salinity"  # ملوحة — مرتفع = بقعة مالحة
+    CWSI = "cwsi"  # إجهاد مائي — مرتفع = إجهاد
     BSI = "bare_soil"  # نسيج/نوع التربة العارية — موجّه لا حاكم (S8)
 
 
@@ -48,6 +51,7 @@ _HIGH_IS_PROBLEM = {SpatialIndex.SI, SpatialIndex.CWSI}
 @dataclass
 class GeoBBox:
     """الإطار الجغرافي للـ grid (لتحويل البكسل لإحداثية)."""
+
     min_lon: float
     min_lat: float
     max_lon: float
@@ -70,24 +74,25 @@ class Severity(str, Enum):
 @dataclass
 class ZoneOfInterest:
     """منطقة اهتمام مكتشفة — بإحداثية يمكن الوصول لها."""
+
     index: SpatialIndex
     center_lon: float
     center_lat: float
     pixel_count: int
     mean_value: float
-    field_mean: float            # متوسط الحقل (للمقارنة)
+    field_mean: float  # متوسط الحقل (للمقارنة)
     severity: Severity
     interpretation_ar: str
-    farmer_knowledge_match: str = ""   # معرفة المزارع المؤكِّدة (إن وُجدت)
-    directs_sampling: bool = False     # هل يوجّه أخذ عينة (يسدّ BLOCKED)?
+    farmer_knowledge_match: str = ""  # معرفة المزارع المؤكِّدة (إن وُجدت)
+    directs_sampling: bool = False  # هل يوجّه أخذ عينة (يسدّ BLOCKED)?
 
 
 def detect_zones_of_interest(
-    grid: "list[list[float]]",   # قيم المؤشر (raster مبسّط)
+    grid: list[list[float]],  # قيم المؤشر (raster مبسّط)
     index: SpatialIndex,
     bbox: GeoBBox,
     threshold_std: float = 1.0,  # كم انحراف معياري عن المتوسط = منطقة اهتمام
-    min_cluster: int = 3,        # أقل عدد بكسلات متجاورة
+    min_cluster: int = 3,  # أقل عدد بكسلات متجاورة
 ) -> list[ZoneOfInterest]:
     """يكشف مناطق القيم الشاذّة (أعلى/أقل من المتوسط بانحراف معياري).
 
@@ -103,7 +108,7 @@ def detect_zones_of_interest(
     field_mean = float(np.mean(valid))
     field_std = float(np.std(valid))
     if field_std == 0:
-        return []   # الحقل متجانس — لا منطقة اهتمام
+        return []  # الحقل متجانس — لا منطقة اهتمام
 
     n_rows, n_cols = arr.shape
     low_problem = index in _LOW_IS_PROBLEM
@@ -127,17 +132,27 @@ def detect_zones_of_interest(
         mean_val = float(np.mean(vals))
 
         deviation = abs(mean_val - field_mean) / field_std
-        severity = (Severity.HIGH if deviation >= 2.0
-                    else Severity.MEDIUM if deviation >= 1.5
-                    else Severity.LOW)
+        severity = (
+            Severity.HIGH
+            if deviation >= 2.0
+            else Severity.MEDIUM
+            if deviation >= 1.5
+            else Severity.LOW
+        )
 
-        zones.append(ZoneOfInterest(
-            index=index, center_lon=lon, center_lat=lat,
-            pixel_count=len(cluster), mean_value=round(mean_val, 3),
-            field_mean=round(field_mean, 3), severity=severity,
-            interpretation_ar=_interpret(index, mean_val, field_mean),
-            directs_sampling=(index in (SpatialIndex.NDVI, SpatialIndex.SI)),
-        ))
+        zones.append(
+            ZoneOfInterest(
+                index=index,
+                center_lon=lon,
+                center_lat=lat,
+                pixel_count=len(cluster),
+                mean_value=round(mean_val, 3),
+                field_mean=round(field_mean, 3),
+                severity=severity,
+                interpretation_ar=_interpret(index, mean_val, field_mean),
+                directs_sampling=(index in (SpatialIndex.NDVI, SpatialIndex.SI)),
+            )
+        )
     return sorted(zones, key=lambda z: -z.pixel_count)
 
 
@@ -162,7 +177,7 @@ def _connected_components(mask, min_size: int) -> list[list[tuple]]:
                         continue
                     visited.add((cr, cc))
                     comp.append((cr, cc))
-                    stack += [(cr+1, cc), (cr-1, cc), (cr, cc+1), (cr, cc-1)]
+                    stack += [(cr + 1, cc), (cr - 1, cc), (cr, cc + 1), (cr, cc - 1)]
                 if len(comp) >= min_size:
                     clusters.append(comp)
     return clusters
@@ -171,8 +186,10 @@ def _connected_components(mask, min_size: int) -> list[list[tuple]]:
 def _interpret(index: SpatialIndex, val: float, field_mean: float) -> str:
     """تفسير محتمل (فرضية، لا تشخيص قاطع)."""
     if index == SpatialIndex.NDVI:
-        return ("غطاء نباتي ضعيف — فرضيات محتملة: ملوحة، نقص ري، "
-                "نقص تغذية، أو إصابة. يحتاج تحقّقاً ميدانياً.")
+        return (
+            "غطاء نباتي ضعيف — فرضيات محتملة: ملوحة، نقص ري، "
+            "نقص تغذية، أو إصابة. يحتاج تحقّقاً ميدانياً."
+        )
     if index == SpatialIndex.SI:
         return "مؤشر ملوحة مرتفع — بقعة مالحة محتملة. خذ عينة تربة (S3)."
     if index in (SpatialIndex.NDMI, SpatialIndex.NDWI):
@@ -184,7 +201,7 @@ def _interpret(index: SpatialIndex, val: float, field_mean: float) -> str:
 
 def link_farmer_knowledge(
     zones: list[ZoneOfInterest],
-    farmer_knowledge: list,      # FarmerKnowledge مكانية مُتحقَّقة
+    farmer_knowledge: list,  # FarmerKnowledge مكانية مُتحقَّقة
 ) -> list[ZoneOfInterest]:
     """يربط منطقة الاهتمام بمعرفة المزارع المكانية (إن طابقت النطاق)."""
     for z in zones:
@@ -199,20 +216,21 @@ def link_farmer_knowledge(
 @dataclass
 class SoilZone:
     """منطقة تربة مصنّفة من BSI — لخريطة تنوّع النسيج (موجّه لا حاكم)."""
+
     center_lon: float
     center_lat: float
     pixel_count: int
-    texture_class: str           # رملي / طمي-رملي / طميي / طيني (تقديري)
+    texture_class: str  # رملي / طمي-رملي / طميي / طيني (تقديري)
     mean_bsi: float
-    confidence: str = "low"      # دائماً low — استشعار لا مختبر
+    confidence: str = "low"  # دائماً low — استشعار لا مختبر
     directs_sampling: bool = True  # دائماً يوجّه لعيّنة تأكيد
     note_ar: str = ""
 
 
 def classify_soil_zones(
-    bsi_grid: "list[list[float]]",
-    ndvi_grid: "list[list[float]]",
-    bbox: "GeoBBox",
+    bsi_grid: list[list[float]],
+    ndvi_grid: list[list[float]],
+    bbox: GeoBBox,
     min_cluster: int = 3,
 ) -> list[SoilZone]:
     """يقسّم الحقل لمناطق نسيج تربة من شبكة BSI — خريطة تنوّع التربة.
@@ -232,12 +250,20 @@ def classify_soil_zones(
 
     # صنّف كل بكسل عارٍ (NDVI<=0.4) لفئة نسيج برمز رقمي
     def texture_code(b: float) -> int:
-        if b >= 0.3: return 4   # رملي
-        if b >= 0.1: return 3   # طمي-رملي
-        if b >= -0.1: return 2  # طميي
-        return 1                # طيني/رطب
-    _CODE_AR = {4: "رملي (تقديري)", 3: "طمي-رملي (تقديري)",
-                2: "طميي (تقديري)", 1: "طيني/رطب (تقديري)"}
+        if b >= 0.3:
+            return 4  # رملي
+        if b >= 0.1:
+            return 3  # طمي-رملي
+        if b >= -0.1:
+            return 2  # طميي
+        return 1  # طيني/رطب
+
+    _CODE_AR = {
+        4: "رملي (تقديري)",
+        3: "طمي-رملي (تقديري)",
+        2: "طميي (تقديري)",
+        1: "طيني/رطب (تقديري)",
+    }
 
     # شبكة الفئات (0 = مُتخطّى: غطاء نباتي أو NaN)
     codes = np.zeros((n_rows, n_cols), dtype=int)
@@ -252,14 +278,20 @@ def classify_soil_zones(
     for cls in (1, 2, 3, 4):
         mask = codes == cls
         for cluster in _connected_components(mask, min_cluster):
-            rows = [r for r, c in cluster]; cols = [c for r, c in cluster]
+            rows = [r for r, c in cluster]
+            cols = [c for r, c in cluster]
             cr, cc = int(np.mean(rows)), int(np.mean(cols))
             lon, lat = bbox.pixel_to_lonlat(cr, cc, n_rows, n_cols)
             mean_b = float(np.mean([bsi[r, c] for r, c in cluster]))
             tex = _CODE_AR[cls]
-            zones.append(SoilZone(
-                center_lon=lon, center_lat=lat, pixel_count=len(cluster),
-                texture_class=tex, mean_bsi=round(mean_b, 3),
-                note_ar=f"{tex} — تقدير استشعاري. للتأكيد: عيّنة حقلية أو مختبر.",
-            ))
+            zones.append(
+                SoilZone(
+                    center_lon=lon,
+                    center_lat=lat,
+                    pixel_count=len(cluster),
+                    texture_class=tex,
+                    mean_bsi=round(mean_b, 3),
+                    note_ar=f"{tex} — تقدير استشعاري. للتأكيد: عيّنة حقلية أو مختبر.",
+                )
+            )
     return sorted(zones, key=lambda z: -z.pixel_count)

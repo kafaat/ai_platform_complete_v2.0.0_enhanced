@@ -18,46 +18,50 @@ api/field_operational_state.py — الحالة التشغيليّة الموح�
 مبنيّ على: ConfidenceLevel (confidence_engine) + ConsistencyResult
 (agronomic_consistency) + فحص النضارة. تركيب شفّاف بقواعد صريحة.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
-from .confidence_engine import ConfidenceLevel
 from .agronomic_consistency import (
-    ConsistencyResult, ConflictSeverity,
-    check_irrigation_consistency, check_decision_freshness,
+    ConflictSeverity,
+    ConsistencyResult,
+    check_decision_freshness,
+    check_irrigation_consistency,
 )
 
 
-class DecisionValidity(str, Enum):
+class DecisionValidity(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     """الحالة التشغيليّة الرسميّة للقرار — تركيب موحّد للعوامل."""
-    VALID = "valid"            # ثقة كافية + بيانات حديثة + لا تناقض → نفّذ
-    DEGRADED = "degraded"      # ثقة/نضارة منقوصة → نفّذ بحذر أو راجع
+
+    VALID = "valid"  # ثقة كافية + بيانات حديثة + لا تناقض → نفّذ
+    DEGRADED = "degraded"  # ثقة/نضارة منقوصة → نفّذ بحذر أو راجع
     CONFLICTED = "conflicted"  # تناقض زراعي → مراجعة بشريّة قبل التنفيذ
     INSUFFICIENT = "insufficient"  # بيانات ناقصة لاتّخاذ قرار موثوق
 
 
-class ExecutionMode(str, Enum):
+class ExecutionMode(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     """كيف يُعامَل القرار تنفيذيّاً (Policy Enforcement)."""
-    AUTO = "auto"                  # يمكن عرضه/تنفيذه مباشرة
+
+    AUTO = "auto"  # يمكن عرضه/تنفيذه مباشرة
     HUMAN_REVIEW = "human_review"  # يتطلّب تأكيد المهندس/المزارع
-    BLOCKED = "blocked"            # لا يُنفّذ حتّى تُحلّ المشكلة
+    BLOCKED = "blocked"  # لا يُنفّذ حتّى تُحلّ المشكلة
 
 
 @dataclass
 class FieldOperationalState:
     """الحالة التشغيليّة الموحّدة — تجمع كلّ العوامل في كيان واحد."""
+
     field_id: str
     validity: DecisionValidity
     execution_mode: ExecutionMode
-    confidence_level: Optional[str] = None
-    reasons_ar: List[str] = field(default_factory=list)
-    conflicts: List[Dict] = field(default_factory=list)
-    freshness_warnings: List[Dict] = field(default_factory=list)
+    confidence_level: str | None = None
+    reasons_ar: list[str] = field(default_factory=list)
+    conflicts: list[dict] = field(default_factory=list)
+    freshness_warnings: list[dict] = field(default_factory=list)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "field_id": self.field_id,
             "validity": self.validity.value,
@@ -79,14 +83,14 @@ _CONFIDENCE_OK = {"high", "medium"}
 
 def resolve_field_state(
     field_id: str,
-    confidence_level: Optional[str] = None,
-    irrigation_delta_pct: Optional[float] = None,
-    rain_forecast_mm: Optional[float] = None,
-    soil_moisture_ratio: Optional[float] = None,
-    et0_mm: Optional[float] = None,
-    ndvi_age_days: Optional[float] = None,
-    soil_age_days: Optional[float] = None,
-    weather_age_hours: Optional[float] = None,
+    confidence_level: str | None = None,
+    irrigation_delta_pct: float | None = None,
+    rain_forecast_mm: float | None = None,
+    soil_moisture_ratio: float | None = None,
+    et0_mm: float | None = None,
+    ndvi_age_days: float | None = None,
+    soil_age_days: float | None = None,
+    weather_age_hours: float | None = None,
 ) -> FieldOperationalState:
     """يركّب العوامل في حالة تشغيليّة واحدة رسميّة.
 
@@ -96,19 +100,26 @@ def resolve_field_state(
       ثقة منخفضة أو نضارة متدهورة أو تحذير → DEGRADED/HUMAN_REVIEW
       غير ذلك → VALID/AUTO
     """
-    reasons: List[str] = []
+    reasons: list[str] = []
 
     # ١. افحص التناقض الزراعي (الموجود)
     consistency: ConsistencyResult = check_irrigation_consistency(
-        irrigation_delta_pct, rain_forecast_mm, soil_moisture_ratio,
-        et0_mm, _level_to_scalar(confidence_level))
+        irrigation_delta_pct,
+        rain_forecast_mm,
+        soil_moisture_ratio,
+        et0_mm,
+        _level_to_scalar(confidence_level),
+    )
     # ٢. افحص النضارة (الموجود)
     freshness: ConsistencyResult = check_decision_freshness(
-        ndvi_age_days, soil_age_days, weather_age_hours)
+        ndvi_age_days, soil_age_days, weather_age_hours
+    )
 
     has_block = any(c.severity == ConflictSeverity.BLOCK for c in consistency.conflicts)
-    has_warn = (any(c.severity == ConflictSeverity.WARN for c in consistency.conflicts)
-                or len(freshness.conflicts) > 0)
+    has_warn = (
+        any(c.severity == ConflictSeverity.WARN for c in consistency.conflicts)
+        or len(freshness.conflicts) > 0
+    )
     conf_ok = confidence_level in _CONFIDENCE_OK if confidence_level else None
 
     # ٣. ركّب الحالة (الأخطر يحكم)
@@ -143,6 +154,6 @@ def resolve_field_state(
     )
 
 
-def _level_to_scalar(level: Optional[str]) -> Optional[float]:
+def _level_to_scalar(level: str | None) -> float | None:
     """يحوّل مستوى الثقة النصّي لتقدير عددي (للفحص الداخلي فقط)."""
     return {"high": 0.85, "medium": 0.65, "low": 0.45, "very_low": 0.25}.get(level or "")

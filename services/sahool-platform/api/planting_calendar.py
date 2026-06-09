@@ -13,18 +13,16 @@ api/planting_calendar.py — تقويم مواعيد الزراعة المثلى
 (المرتفعات أبرد، تهامة أحرّ) والصنف. توجّه لا تفرض — المزارع يعرف دقائق أرضه.
 السياق اليمني: الزراعة البعليّة تتبع الأمطار الموسميّة، والمرويّة أكثر مرونة.
 """
+
 from __future__ import annotations
-
-from typing import Dict, List, Optional
-
 
 # نوافذ الزراعة (بالأشهر الميلاديّة) لمحاصيل اليمن الرئيسيّة
 # month_window = (شهر البداية، شهر النهاية)؛ optimal = الأشهر المثلى داخلها
-_PLANTING: Dict[str, Dict] = {
+_PLANTING: dict[str, dict] = {
     "wheat": {
         "name_ar": "القمح",
         "season_ar": "شتوي",
-        "window_months": [11, 12, 1],        # نوفمبر–يناير
+        "window_months": [11, 12, 1],  # نوفمبر–يناير
         "optimal_months": [11, 12],
         "harvest_months": [4, 5],
         "early_risk_ar": "التبكير قبل نوفمبر: حرارة عالية قد تضرّ الإنبات.",
@@ -44,7 +42,7 @@ _PLANTING: Dict[str, Dict] = {
     "maize": {
         "name_ar": "الذرة الشاميّة",
         "season_ar": "صيفي",
-        "window_months": [3, 4, 5, 6],       # مارس–يونيو
+        "window_months": [3, 4, 5, 6],  # مارس–يونيو
         "optimal_months": [4, 5],
         "harvest_months": [7, 8, 9],
         "early_risk_ar": "التبكير (مارس): فرص إصابة مرضيّة وحشرات (المنّ).",
@@ -77,46 +75,68 @@ _PLANTING: Dict[str, Dict] = {
 }
 
 _ALIASES = {
-    "قمح": "wheat", "شعير": "barley", "ذرة شامية": "maize", "ذرة شاميّة": "maize",
-    "ذرة رفيعة": "sorghum", "دخن": "millet",
+    "قمح": "wheat",
+    "شعير": "barley",
+    "ذرة شامية": "maize",
+    "ذرة شاميّة": "maize",
+    "ذرة رفيعة": "sorghum",
+    "دخن": "millet",
 }
 
 _MONTH_AR = {
-    1: "يناير", 2: "فبراير", 3: "مارس", 4: "أبريل", 5: "مايو", 6: "يونيو",
-    7: "يوليو", 8: "أغسطس", 9: "سبتمبر", 10: "أكتوبر", 11: "نوفمبر", 12: "ديسمبر",
+    1: "يناير",
+    2: "فبراير",
+    3: "مارس",
+    4: "أبريل",
+    5: "مايو",
+    6: "يونيو",
+    7: "يوليو",
+    8: "أغسطس",
+    9: "سبتمبر",
+    10: "أكتوبر",
+    11: "نوفمبر",
+    12: "ديسمبر",
 }
 
 
-def _resolve(crop: str) -> Optional[str]:
+def _resolve(crop: str) -> str | None:
     c = crop.strip().lower()
     if c in _PLANTING:
         return c
     return _ALIASES.get(crop.strip())
 
 
-def _months_ar(months: List[int]) -> str:
+def _months_ar(months: list[int]) -> str:
     return "، ".join(_MONTH_AR[m] for m in months)
 
 
-def supported_crops() -> List[Dict]:
+def supported_crops() -> list[dict]:
     return [
-        {"crop": k, "name_ar": v["name_ar"], "season_ar": v["season_ar"],
-         "window_ar": _months_ar(v["window_months"])}
+        {
+            "crop": k,
+            "name_ar": v["name_ar"],
+            "season_ar": v["season_ar"],
+            "window_ar": _months_ar(v["window_months"]),
+        }
         for k, v in _PLANTING.items()
     ]
 
 
-def planting_window(crop: str) -> Dict:
+def planting_window(crop: str) -> dict:
     """نافذة الزراعة الكاملة لمحصول + المخاطر + السياق اليمني."""
     key = _resolve(crop)
     if not key:
-        return {"supported": False,
-                "message_ar": f"لا تقويم زراعة لـ«{crop}». المدعوم: "
-                              + "، ".join(v["name_ar"] for v in _PLANTING.values())}
+        return {
+            "supported": False,
+            "message_ar": f"لا تقويم زراعة لـ«{crop}». المدعوم: "
+            + "، ".join(v["name_ar"] for v in _PLANTING.values()),
+        }
     c = _PLANTING[key]
     return {
         "supported": True,
-        "crop": key, "crop_ar": c["name_ar"], "season_ar": c["season_ar"],
+        "crop": key,
+        "crop_ar": c["name_ar"],
+        "season_ar": c["season_ar"],
         "window_months": c["window_months"],
         "window_ar": _months_ar(c["window_months"]),
         "optimal_ar": _months_ar(c["optimal_months"]),
@@ -125,13 +145,12 @@ def planting_window(crop: str) -> Dict:
         "late_risk_ar": c["late_risk_ar"],
         "yemen_note_ar": c["yemen_note_ar"],
         "disclaimer_ar": (
-            "نوافذ تقريبيّة تختلف حسب الارتفاع (المرتفعات أبرد، تهامة أحرّ) "
-            "والصنف. توجّه لا تفرض."
+            "نوافذ تقريبيّة تختلف حسب الارتفاع (المرتفعات أبرد، تهامة أحرّ) والصنف. توجّه لا تفرض."
         ),
     }
 
 
-def check_planting_date(crop: str, month: int) -> Dict:
+def check_planting_date(crop: str, month: int) -> dict:
     """يقيّم: هل الشهر الحالي مناسب لزراعة هذا المحصول؟"""
     key = _resolve(crop)
     if not key:
@@ -147,22 +166,24 @@ def check_planting_date(crop: str, month: int) -> Dict:
         advice = f"{_MONTH_AR[month]} ضمن النافذة المثلى لزراعة {c['name_ar']}."
     elif month in window:
         status, status_ar = "acceptable", "مقبول"
-        advice = f"{_MONTH_AR[month]} ضمن النافذة لكن ليس الأمثل. النافذة المثلى: {_months_ar(optimal)}."
+        advice = (
+            f"{_MONTH_AR[month]} ضمن النافذة لكن ليس الأمثل. النافذة المثلى: {_months_ar(optimal)}."
+        )
     else:
         status, status_ar = "off_window", "⚠ خارج النافذة"
         # حدّد إن كان تبكيراً أم تأخيراً (تقريبي عبر القرب من البداية/النهاية)
         before = month < window[0]
         risk = c["early_risk_ar"] if before else c["late_risk_ar"]
         advice = (
-            f"{_MONTH_AR[month]} خارج نافذة زراعة {c['name_ar']} ({_months_ar(window)}). "
-            + risk
+            f"{_MONTH_AR[month]} خارج نافذة زراعة {c['name_ar']} ({_months_ar(window)}). " + risk
         )
 
     return {
         "supported": True,
         "crop_ar": c["name_ar"],
         "month_ar": _MONTH_AR[month],
-        "status": status, "status_ar": status_ar,
+        "status": status,
+        "status_ar": status_ar,
         "advice_ar": advice,
         "optimal_ar": _months_ar(optimal),
         "yemen_note_ar": c["yemen_note_ar"],

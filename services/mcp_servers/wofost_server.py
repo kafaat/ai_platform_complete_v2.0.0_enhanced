@@ -1,17 +1,16 @@
-import logging
 #!/usr/bin/env python3
 """
 SAHOOL WOFOST MCP Server
 Crop simulation via WOFOST-RUE with MCP interface
 """
+
 import json
-import math
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional
+import logging
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel, Field
-
 from shared.oauth_middleware import require_scope
 from shared.streamable_http import StreamableHTTPTransport
 
@@ -19,10 +18,11 @@ app = FastAPI(title="SAHOOL WOFOST MCP Server", version="2026.1")
 # ✅ OTEL
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
     FastAPIInstrumentor.instrument_app(app)
 except ImportError:
     logging.getLogger(__name__).debug("OTEL غير مثبّت (اختياري)")
-IDEMPOTENCY_CACHE: Dict[str, Any] = {}
+IDEMPOTENCY_CACHE: dict[str, Any] = {}
 CACHE_TTL = 300
 
 
@@ -30,7 +30,7 @@ class WOFOSTRequest(BaseModel):
     crop: str = Field(default="wheat", pattern="^(wheat|barley|maize|sorghum|millet|rice|potato)$")
     planting_date: str  # YYYY-MM-DD
     soil_type: str = Field(default="medium", pattern="^(light|medium|heavy)$")
-    weather_data: Optional[List[dict]] = None
+    weather_data: list[dict] | None = None
     latitude: float = 15.0
     longitude: float = 45.0
     co2_ppm: float = 420.0
@@ -42,7 +42,7 @@ class WOFOSTResult(BaseModel):
     biomass_kg_ha: float
     total_water_mm: float
     harvest_date: str
-    phenology: Dict[str, str]
+    phenology: dict[str, str]
     gdd_total: float
     stress_days: int
 
@@ -57,17 +57,32 @@ async def list_tools():
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "crop": {"type": "string", "enum": ["wheat", "barley", "maize", "sorghum", "millet", "rice", "potato"]},
+                        "crop": {
+                            "type": "string",
+                            "enum": [
+                                "wheat",
+                                "barley",
+                                "maize",
+                                "sorghum",
+                                "millet",
+                                "rice",
+                                "potato",
+                            ],
+                        },
                         "planting_date": {"type": "string", "format": "date"},
-                        "soil_type": {"type": "string", "enum": ["light", "medium", "heavy"], "default": "medium"},
+                        "soil_type": {
+                            "type": "string",
+                            "enum": ["light", "medium", "heavy"],
+                            "default": "medium",
+                        },
                         "weather_data": {"type": "array", "items": {"type": "object"}},
                         "latitude": {"type": "number", "default": 15.0},
                         "longitude": {"type": "number", "default": 45.0},
                         "co2_ppm": {"type": "number", "default": 420.0},
-                        "irrigation": {"type": "boolean", "default": True}
+                        "irrigation": {"type": "boolean", "default": True},
                     },
-                    "required": ["crop", "planting_date"]
-                }
+                    "required": ["crop", "planting_date"],
+                },
             },
             {
                 "name": "get_crop_parameters",
@@ -75,11 +90,22 @@ async def list_tools():
                 "inputSchema": {
                     "type": "object",
                     "properties": {
-                        "crop": {"type": "string", "enum": ["wheat", "barley", "maize", "sorghum", "millet", "rice", "potato"]}
+                        "crop": {
+                            "type": "string",
+                            "enum": [
+                                "wheat",
+                                "barley",
+                                "maize",
+                                "sorghum",
+                                "millet",
+                                "rice",
+                                "potato",
+                            ],
+                        }
                     },
-                    "required": ["crop"]
-                }
-            }
+                    "required": ["crop"],
+                },
+            },
         ]
     }
 
@@ -92,7 +118,7 @@ async def call_tool(request: dict):
 
     if req_id and req_id in IDEMPOTENCY_CACHE:
         cached = IDEMPOTENCY_CACHE[req_id]
-        if datetime.now(timezone.utc) < cached["expires"]:
+        if datetime.now(UTC) < cached["expires"]:
             return cached["result"]
 
     result = await _execute(name, args)
@@ -100,7 +126,7 @@ async def call_tool(request: dict):
     if req_id:
         IDEMPOTENCY_CACHE[req_id] = {
             "result": result,
-            "expires": datetime.now(timezone.utc) + timedelta(seconds=CACHE_TTL)
+            "expires": datetime.now(UTC) + timedelta(seconds=CACHE_TTL),
         }
 
     return result
@@ -112,36 +138,101 @@ async def _execute(name: str, args: dict) -> dict:
         result = _simulate_wofost(req)
 
         return {
-            "content": [{"type": "text", "text": json.dumps({
-                "model": "WOFOST-RUE",
-                "version": "2026.1",
-                "crop": req.crop,
-                "planting_date": req.planting_date,
-                "soil_type": req.soil_type,
-                "location": {"lat": req.latitude, "lon": req.longitude},
-                "results": result.model_dump(),
-                "simulated_at": datetime.now(timezone.utc).isoformat()
-            }, ensure_ascii=False)}]
+            "content": [
+                {
+                    "type": "text",
+                    "text": json.dumps(
+                        {
+                            "model": "WOFOST-RUE",
+                            "version": "2026.1",
+                            "crop": req.crop,
+                            "planting_date": req.planting_date,
+                            "soil_type": req.soil_type,
+                            "location": {"lat": req.latitude, "lon": req.longitude},
+                            "results": result.model_dump(),
+                            "simulated_at": datetime.now(UTC).isoformat(),
+                        },
+                        ensure_ascii=False,
+                    ),
+                }
+            ]
         }
 
     elif name == "get_crop_parameters":
         crop = args["crop"]
         params = {
-            "wheat": {"tsum1": 200, "tsum2": 600, "tdwi": 50, "rgrlai": 0.012, "span": 30, "wlv": 0.5},
-            "barley": {"tsum1": 180, "tsum2": 550, "tdwi": 45, "rgrlai": 0.014, "span": 28, "wlv": 0.45},
-            "maize": {"tsum1": 300, "tsum2": 800, "tdwi": 70, "rgrlai": 0.010, "span": 35, "wlv": 0.6},
-            "sorghum": {"tsum1": 250, "tsum2": 700, "tdwi": 60, "rgrlai": 0.011, "span": 32, "wlv": 0.55},
-            "millet": {"tsum1": 220, "tsum2": 650, "tdwi": 40, "rgrlai": 0.013, "span": 25, "wlv": 0.4},
-            "rice": {"tsum1": 350, "tsum2": 900, "tdwi": 80, "rgrlai": 0.009, "span": 40, "wlv": 0.7},
-            "potato": {"tsum1": 150, "tsum2": 400, "tdwi": 100, "rgrlai": 0.015, "span": 20, "wlv": 0.8}
+            "wheat": {
+                "tsum1": 200,
+                "tsum2": 600,
+                "tdwi": 50,
+                "rgrlai": 0.012,
+                "span": 30,
+                "wlv": 0.5,
+            },
+            "barley": {
+                "tsum1": 180,
+                "tsum2": 550,
+                "tdwi": 45,
+                "rgrlai": 0.014,
+                "span": 28,
+                "wlv": 0.45,
+            },
+            "maize": {
+                "tsum1": 300,
+                "tsum2": 800,
+                "tdwi": 70,
+                "rgrlai": 0.010,
+                "span": 35,
+                "wlv": 0.6,
+            },
+            "sorghum": {
+                "tsum1": 250,
+                "tsum2": 700,
+                "tdwi": 60,
+                "rgrlai": 0.011,
+                "span": 32,
+                "wlv": 0.55,
+            },
+            "millet": {
+                "tsum1": 220,
+                "tsum2": 650,
+                "tdwi": 40,
+                "rgrlai": 0.013,
+                "span": 25,
+                "wlv": 0.4,
+            },
+            "rice": {
+                "tsum1": 350,
+                "tsum2": 900,
+                "tdwi": 80,
+                "rgrlai": 0.009,
+                "span": 40,
+                "wlv": 0.7,
+            },
+            "potato": {
+                "tsum1": 150,
+                "tsum2": 400,
+                "tdwi": 100,
+                "rgrlai": 0.015,
+                "span": 20,
+                "wlv": 0.8,
+            },
         }
 
         return {
-            "content": [{"type": "text", "text": json.dumps({
-                "crop": crop,
-                "parameters": params.get(crop, {}),
-                "source": "WOFOST Parameter Library SAHOOL v9"
-            }, ensure_ascii=False)}]
+            "content": [
+                {
+                    "type": "text",
+                    "text": json.dumps(
+                        {
+                            "crop": crop,
+                            "parameters": params.get(crop, {}),
+                            "source": "WOFOST Parameter Library SAHOOL v9",
+                        },
+                        ensure_ascii=False,
+                    ),
+                }
+            ]
         }
 
     else:
@@ -156,7 +247,7 @@ def _simulate_wofost(req: WOFOSTRequest) -> WOFOSTResult:
         "sorghum": {"tsum1": 250, "tsum2": 700, "hi": 0.48, "rue": 3.2, "max_lai": 6.5},
         "millet": {"tsum1": 220, "tsum2": 650, "hi": 0.35, "rue": 2.5, "max_lai": 4.0},
         "rice": {"tsum1": 350, "tsum2": 900, "hi": 0.52, "rue": 3.8, "max_lai": 8.0},
-        "potato": {"tsum1": 150, "tsum2": 400, "hi": 0.75, "rue": 2.0, "max_lai": 5.0}
+        "potato": {"tsum1": 150, "tsum2": 400, "hi": 0.75, "rue": 2.0, "max_lai": 5.0},
     }
 
     cp = crop_params.get(req.crop, crop_params["wheat"])
@@ -182,34 +273,44 @@ def _simulate_wofost(req: WOFOSTRequest) -> WOFOSTResult:
         total_water_mm=round(total_water, 2),
         harvest_date=harvest.strftime("%Y-%m-%d"),
         phenology={
-            "emergence": (planting + timedelta(days=int(cp["tsum1"]/15))).strftime("%Y-%m-%d"),
-            "anthesis": (planting + timedelta(days=int((cp["tsum1"]+cp["tsum2"]*0.5)/15))).strftime("%Y-%m-%d"),
-            "maturity": harvest.strftime("%Y-%m-%d")
+            "emergence": (planting + timedelta(days=int(cp["tsum1"] / 15))).strftime("%Y-%m-%d"),
+            "anthesis": (
+                planting + timedelta(days=int((cp["tsum1"] + cp["tsum2"] * 0.5) / 15))
+            ).strftime("%Y-%m-%d"),
+            "maturity": harvest.strftime("%Y-%m-%d"),
         },
         gdd_total=round(gdd_total, 2),
-        stress_days=stress_days
+        stress_days=stress_days,
     )
 
 
 transport = StreamableHTTPTransport(app, path="/mcp/v1/stream")
 
+
 @app.get("/healthz")
 @app.get("/health")
-async def healthz(): return {"status": "alive"}
+async def healthz():
+    return {"status": "alive"}
+
 
 @app.get("/readyz")
-async def readyz(): return {"status": "ready"}
+async def readyz():
+    return {"status": "ready"}
 
 
-import signal as _signal
+import signal as _signal  # noqa: E402
+
 
 def _handle_sigterm(signum, frame):
     """Graceful shutdown on SIGTERM."""
     import sys
+
     sys.exit(0)
+
 
 _signal.signal(_signal.SIGTERM, _handle_sigterm)
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

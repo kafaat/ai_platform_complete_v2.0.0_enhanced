@@ -1,6 +1,6 @@
 """Tests for data completeness + motivational messaging."""
-from core.data_completeness import (
-    compute_completeness, build_notification, NotificationTrigger)
+
+from core.data_completeness import NotificationTrigger, build_notification, compute_completeness
 
 
 class TestCompleteness:
@@ -44,6 +44,7 @@ class TestWheatOMThreshold:
     def test_wheat_om_optimal_is_verified_value(self):
         # verified from Nature Geoscience 2023 (13,662 trials): wheat SOC optimum ~1.3%
         import yaml
+
         card = yaml.safe_load(open("core/crop_cards/wheat.yaml", encoding="utf-8"))
         om = card["modifying"]["organic_matter_pct"]
         assert om["optimal_min"] == 1.3

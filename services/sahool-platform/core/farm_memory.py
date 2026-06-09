@@ -37,54 +37,58 @@ sahool_core.farm_memory
   → يُغذّي الواجهة (timeline view)
   → يُغذّي feedback_closure حين يُفعَّل
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
 
 
 class EventKind(str, Enum):
     """نوع الحدث في timeline المزرعة."""
-    ACTIVITY = "activity"               # من activity_log
-    OBSERVATION = "observation"         # قياس
-    RECOMMENDATION = "recommendation"   # توصية صادرة
-    OUTCOME = "outcome"                  # نتيجة (حصاد، إلخ)
-    CALIBRATION = "calibration"         # معايرة zone_factor
-    ALERT = "alert"                      # تنبيه (drift، ملوحة، ...)
+
+    ACTIVITY = "activity"  # من activity_log
+    OBSERVATION = "observation"  # قياس
+    RECOMMENDATION = "recommendation"  # توصية صادرة
+    OUTCOME = "outcome"  # نتيجة (حصاد، إلخ)
+    CALIBRATION = "calibration"  # معايرة zone_factor
+    ALERT = "alert"  # تنبيه (drift، ملوحة، ...)
 
 
 @dataclass
 class MemoryEvent:
     """حدث واحد في timeline. خفيف، composable."""
+
     event_id: str
     kind: EventKind
-    occurred_at: str                    # ISO datetime
+    occurred_at: str  # ISO datetime
     tenant_id: str
     farm_id: str | None
     field_id: str | None
-    summary_ar: str                     # وصف بشري
-    payload: dict = field(default_factory=dict)   # تفاصيل كاملة
-    source_module: str = ""             # من أيّ وحدة جاء
+    summary_ar: str  # وصف بشري
+    payload: dict = field(default_factory=dict)  # تفاصيل كاملة
+    source_module: str = ""  # من أيّ وحدة جاء
 
 
 @dataclass
 class FarmMemorySnapshot:
     """لقطة كاملة لذاكرة مزرعة في لحظة معيّنة."""
+
     tenant_id: str
     farm_id: str
     field_ids: list[str]
     period_from: str
     period_to: str
     total_events: int
-    events_by_kind: dict                # {ActivityKind.X: count}
+    events_by_kind: dict  # {ActivityKind.X: count}
     timeline: list[MemoryEvent]
-    open_questions: list[str]           # ما لا نعرفه بعد
+    open_questions: list[str]  # ما لا نعرفه بعد
     summary_ar: str
 
 
 # ─── Composition من الوحدات الموجودة ─────────────────────────────
+
 
 def _activities_to_events(
     activities: list,
@@ -102,23 +106,23 @@ def _activities_to_events(
         kind = getattr(a, "kind", "unknown")
         status = getattr(a, "status", "planned")
         # تفسير صريح، لا "AI describes"
-        summary = (f"نشاط {kind}: {status}"
-                  + (f" — {a.notes_ar}" if getattr(a, "notes_ar", None)
-                     else ""))
+        summary = f"نشاط {kind}: {status}" + (
+            f" — {a.notes_ar}" if getattr(a, "notes_ar", None) else ""
+        )
 
-        events.append(MemoryEvent(
-            event_id=getattr(a, "activity_id", f"act_{id(a)}"),
-            kind=EventKind.ACTIVITY,
-            occurred_at=getattr(a, "planned_for", "") or
-                       getattr(a, "completed_at", ""),
-            tenant_id=tenant_id,
-            farm_id=getattr(a, "farm_id", None),
-            field_id=getattr(a, "field_id", None),
-            summary_ar=summary,
-            payload={"kind": kind, "status": status,
-                    "notes": getattr(a, "notes_ar", "")},
-            source_module="activity_log",
-        ))
+        events.append(
+            MemoryEvent(
+                event_id=getattr(a, "activity_id", f"act_{id(a)}"),
+                kind=EventKind.ACTIVITY,
+                occurred_at=getattr(a, "planned_for", "") or getattr(a, "completed_at", ""),
+                tenant_id=tenant_id,
+                farm_id=getattr(a, "farm_id", None),
+                field_id=getattr(a, "field_id", None),
+                summary_ar=summary,
+                payload={"kind": kind, "status": status, "notes": getattr(a, "notes_ar", "")},
+                source_module="activity_log",
+            )
+        )
     return events
 
 
@@ -144,19 +148,25 @@ def _observations_to_events(
 
         summary = f"{obs_id} = {value} {unit} ({source})"
 
-        events.append(MemoryEvent(
-            event_id=getattr(o, "observation_id", f"obs_{id(o)}"),
-            kind=EventKind.OBSERVATION,
-            occurred_at=getattr(o, "measured_at", ""),
-            tenant_id=tenant_id,
-            farm_id=getattr(o, "farm_id", None),
-            field_id=getattr(o, "field_id", None),
-            summary_ar=summary,
-            payload={"observable_id": obs_id, "value": value,
-                    "unit": unit, "source": source,
-                    "confidence": getattr(o, "confidence", "?")},
-            source_module="observations",
-        ))
+        events.append(
+            MemoryEvent(
+                event_id=getattr(o, "observation_id", f"obs_{id(o)}"),
+                kind=EventKind.OBSERVATION,
+                occurred_at=getattr(o, "measured_at", ""),
+                tenant_id=tenant_id,
+                farm_id=getattr(o, "farm_id", None),
+                field_id=getattr(o, "field_id", None),
+                summary_ar=summary,
+                payload={
+                    "observable_id": obs_id,
+                    "value": value,
+                    "unit": unit,
+                    "source": source,
+                    "confidence": getattr(o, "confidence", "?"),
+                },
+                source_module="observations",
+            )
+        )
     return events
 
 
@@ -172,49 +182,53 @@ def _recommendations_to_events(
 
         crop = getattr(r, "crop", "?")
         grade = getattr(r, "quality_grade", "?")
-        summary = (f"توصية {crop} ({grade}): "
-                  + (getattr(r, "recommendation_ar", "")[:60] or "—"))
+        summary = f"توصية {crop} ({grade}): " + (getattr(r, "recommendation_ar", "")[:60] or "—")
 
         # نوعان من الأحداث: توصية صادرة + نتيجة (إن وُجدت)
-        events.append(MemoryEvent(
-            event_id=getattr(r, "rec_id", f"rec_{id(r)}"),
-            kind=EventKind.RECOMMENDATION,
-            occurred_at=getattr(r, "issued_date", ""),
-            tenant_id=tenant_id,
-            farm_id=getattr(r, "farm_id", None),
-            field_id=getattr(r, "zone_id", None) or
-                    getattr(r, "field_id", None),
-            summary_ar=summary,
-            payload={"crop": crop, "grade": grade,
-                    "predicted_yield_t_ha": getattr(
-                        r, "predicted_yield_t_ha", None)},
-            source_module="recommendation_log",
-        ))
+        events.append(
+            MemoryEvent(
+                event_id=getattr(r, "rec_id", f"rec_{id(r)}"),
+                kind=EventKind.RECOMMENDATION,
+                occurred_at=getattr(r, "issued_date", ""),
+                tenant_id=tenant_id,
+                farm_id=getattr(r, "farm_id", None),
+                field_id=getattr(r, "zone_id", None) or getattr(r, "field_id", None),
+                summary_ar=summary,
+                payload={
+                    "crop": crop,
+                    "grade": grade,
+                    "predicted_yield_t_ha": getattr(r, "predicted_yield_t_ha", None),
+                },
+                source_module="recommendation_log",
+            )
+        )
 
         # نتيجة الحصاد (إن اكتملت) كحدث منفصل
         actual = getattr(r, "actual_yield_t_ha", None)
         if actual is not None:
-            outcome_date = (getattr(r, "outcome_date", None) or
-                          getattr(r, "issued_date", ""))
-            events.append(MemoryEvent(
-                event_id=f"{getattr(r, 'rec_id', 'rec')}_outcome",
-                kind=EventKind.OUTCOME,
-                occurred_at=outcome_date,
-                tenant_id=tenant_id,
-                farm_id=getattr(r, "farm_id", None),
-                field_id=getattr(r, "zone_id", None) or
-                        getattr(r, "field_id", None),
-                summary_ar=f"حصاد {crop}: {actual} ط/هـ",
-                payload={"actual_yield_t_ha": actual,
-                        "predicted_yield_t_ha": getattr(
-                            r, "predicted_yield_t_ha", None),
-                        "error_pct": getattr(r, "error_pct", None)},
-                source_module="recommendation_log",
-            ))
+            outcome_date = getattr(r, "outcome_date", None) or getattr(r, "issued_date", "")
+            events.append(
+                MemoryEvent(
+                    event_id=f"{getattr(r, 'rec_id', 'rec')}_outcome",
+                    kind=EventKind.OUTCOME,
+                    occurred_at=outcome_date,
+                    tenant_id=tenant_id,
+                    farm_id=getattr(r, "farm_id", None),
+                    field_id=getattr(r, "zone_id", None) or getattr(r, "field_id", None),
+                    summary_ar=f"حصاد {crop}: {actual} ط/هـ",
+                    payload={
+                        "actual_yield_t_ha": actual,
+                        "predicted_yield_t_ha": getattr(r, "predicted_yield_t_ha", None),
+                        "error_pct": getattr(r, "error_pct", None),
+                    },
+                    source_module="recommendation_log",
+                )
+            )
     return events
 
 
 # ─── الـAPI العامّ ───────────────────────────────────────────────
+
 
 def build_farm_memory(
     *,
@@ -239,27 +253,24 @@ def build_farm_memory(
     if observations:
         all_events.extend(_observations_to_events(observations, tenant_id))
     if recommendations:
-        all_events.extend(_recommendations_to_events(recommendations,
-                                                     tenant_id))
+        all_events.extend(_recommendations_to_events(recommendations, tenant_id))
 
     # فلتر farm_id (لو حُدّد field_ids، نفلتر بها أيضاً)
     if field_ids:
         # نقبل: الحدث في farm_id، أو فيه field_id معروف
         all_events = [
-            e for e in all_events
-            if e.farm_id == farm_id or
-            (e.field_id and e.field_id in field_ids)
+            e
+            for e in all_events
+            if e.farm_id == farm_id or (e.field_id and e.field_id in field_ids)
         ]
     else:
         all_events = [e for e in all_events if e.farm_id == farm_id]
 
     # فلتر زمني (إن طُلب)
     if period_from:
-        all_events = [e for e in all_events
-                     if e.occurred_at and e.occurred_at >= period_from]
+        all_events = [e for e in all_events if e.occurred_at and e.occurred_at >= period_from]
     if period_to:
-        all_events = [e for e in all_events
-                     if e.occurred_at and e.occurred_at <= period_to]
+        all_events = [e for e in all_events if e.occurred_at and e.occurred_at <= period_to]
 
     # رتّب زمنياً
     all_events.sort(key=lambda e: e.occurred_at)
@@ -286,9 +297,9 @@ def build_farm_memory(
     period_str = ""
     if period_from and period_to:
         period_str = f" بين {period_from[:10]} و {period_to[:10]}"
-    summary = (f"المزرعة {farm_id} — {len(all_events)} حدثاً{period_str}. "
-              + (f"⚠️ {len(open_q)} سؤال مفتوح" if open_q
-                 else "✅ سجلّ مكتمل ضمن النطاق المعروف"))
+    summary = f"المزرعة {farm_id} — {len(all_events)} حدثاً{period_str}. " + (
+        f"⚠️ {len(open_q)} سؤال مفتوح" if open_q else "✅ سجلّ مكتمل ضمن النطاق المعروف"
+    )
 
     return FarmMemorySnapshot(
         tenant_id=tenant_id,
@@ -309,8 +320,7 @@ def field_timeline(
     field_id: str,
 ) -> list[MemoryEvent]:
     """يستخرج timeline حقل واحد من snapshot المزرعة."""
-    return [e for e in snapshot.timeline
-            if e.field_id == field_id]
+    return [e for e in snapshot.timeline if e.field_id == field_id]
 
 
 def events_around_recommendation(
@@ -328,9 +338,14 @@ def events_around_recommendation(
       • ما النتيجة (outcome)"""
     from datetime import timedelta
 
-    rec = next((e for e in snapshot.timeline
-               if e.event_id == rec_id and e.kind == EventKind.RECOMMENDATION),
-              None)
+    rec = next(
+        (
+            e
+            for e in snapshot.timeline
+            if e.event_id == rec_id and e.kind == EventKind.RECOMMENDATION
+        ),
+        None,
+    )
     if rec is None:
         return []
 
@@ -342,9 +357,11 @@ def events_around_recommendation(
     before = (anchor - timedelta(days=days_before)).isoformat()
     after = (anchor + timedelta(days=days_after)).isoformat()
 
-    return [e for e in snapshot.timeline
-            if before <= e.occurred_at <= after
-            and (e.field_id == rec.field_id or e.event_id == rec_id)]
+    return [
+        e
+        for e in snapshot.timeline
+        if before <= e.occurred_at <= after and (e.field_id == rec.field_id or e.event_id == rec_id)
+    ]
 
 
 def memory_density_report(snapshot: FarmMemorySnapshot) -> dict:

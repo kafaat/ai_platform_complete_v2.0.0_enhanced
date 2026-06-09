@@ -26,41 +26,43 @@ sahool_core.multi_season_analytics
   → يُغذّي transfer_learning (يبني عليه)
   → يُغذّي recommendation_engine (سياق متعدّد المواسم)
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 
 class TrendDirection(str, Enum):
-    IMPROVING = "improving"      # تحسّن إيجابي
-    DECLINING = "declining"      # تراجع
-    STABLE = "stable"            # مستقرّ ضمن النطاق الطبيعي
+    IMPROVING = "improving"  # تحسّن إيجابي
+    DECLINING = "declining"  # تراجع
+    STABLE = "stable"  # مستقرّ ضمن النطاق الطبيعي
     INSUFFICIENT = "insufficient"  # بيانات قليلة جدّاً
 
 
 @dataclass
 class SeasonTrend:
     """اتجاه مقياس عبر مواسم متعدّدة."""
-    metric: str                  # "yield" / "salinity" / "ndvi_peak"
+
+    metric: str  # "yield" / "salinity" / "ndvi_peak"
     direction: TrendDirection
-    seasons_analyzed: int        # عدد المواسم في التحليل
+    seasons_analyzed: int  # عدد المواسم في التحليل
     first_value: float | None
     last_value: float | None
-    change_per_season: float | None   # المعدّل
-    change_pct_total: float | None    # النسبة الإجمالية
+    change_per_season: float | None  # المعدّل
+    change_pct_total: float | None  # النسبة الإجمالية
     reason_ar: str
-    confidence: str = "low"      # low/medium/high
+    confidence: str = "low"  # low/medium/high
 
 
 @dataclass
 class CropRotationPattern:
     """نمط تناوب المحاصيل المكتشف."""
+
     field_id: str
     seasons: int
-    crops_sequence: list[str]     # ["wheat", "fallow", "barley", ...]
-    diversity_index: float        # 0.0 (monoculture) → 1.0 (max diversity)
+    crops_sequence: list[str]  # ["wheat", "fallow", "barley", ...]
+    diversity_index: float  # 0.0 (monoculture) → 1.0 (max diversity)
     most_used_crop: str | None
     most_used_pct: float | None
     reason_ar: str
@@ -74,25 +76,28 @@ def analyze_yield_trend(
     """يحلّل اتجاه الإنتاجية عبر المواسم.
 
     season_yields: [{"season_year": 2024, "yield_t_ha": 3.5}, ...]
-    
+
     مبدأ "صفر اختراع":
       - <2 موسم → INSUFFICIENT (لا "stable" مزيّفة)
       - بيانات شاذّة (None) → تُتجاهَل بصراحة
       - الاتجاه يُحسب من linear fit بسيط، لا "ML سحرية"
     """
     # تنظيف صريح: لا اختراع
-    valid = [(s["season_year"], s["yield_t_ha"])
-             for s in season_yields
-             if s.get("yield_t_ha") is not None
-             and isinstance(s.get("season_year"), int)]
+    valid = [
+        (s["season_year"], s["yield_t_ha"])
+        for s in season_yields
+        if s.get("yield_t_ha") is not None and isinstance(s.get("season_year"), int)
+    ]
 
     if len(valid) < min_seasons:
         return SeasonTrend(
             metric="yield_t_ha",
             direction=TrendDirection.INSUFFICIENT,
             seasons_analyzed=len(valid),
-            first_value=None, last_value=None,
-            change_per_season=None, change_pct_total=None,
+            first_value=None,
+            last_value=None,
+            change_per_season=None,
+            change_pct_total=None,
             reason_ar=f"بيانات غير كافية ({len(valid)} موسم، الحدّ الأدنى {min_seasons})",
             confidence="low",
         )
@@ -121,15 +126,18 @@ def analyze_yield_trend(
         reason = "القيمة الأولى صفر أو غير صالحة"
     elif abs(change_pct) < 5.0:
         direction = TrendDirection.STABLE
-        reason = f"الإنتاج مستقرّ (تغيّر {change_pct:.1f}% عبر {span+1} موسم)"
+        reason = f"الإنتاج مستقرّ (تغيّر {change_pct:.1f}% عبر {span + 1} موسم)"
     elif change_pct > 0:
         direction = TrendDirection.IMPROVING
-        reason = (f"تحسّن إيجابي: {change_pct:+.1f}% من {first_y:.1f} "
-                 f"إلى {last_y:.1f} ط/هـ عبر {span+1} موسم")
+        reason = (
+            f"تحسّن إيجابي: {change_pct:+.1f}% من {first_y:.1f} "
+            f"إلى {last_y:.1f} ط/هـ عبر {span + 1} موسم"
+        )
     else:
         direction = TrendDirection.DECLINING
-        reason = (f"تراجع: {change_pct:+.1f}% من {first_y:.1f} "
-                 f"إلى {last_y:.1f} ط/هـ — يستحقّ المراجعة")
+        reason = (
+            f"تراجع: {change_pct:+.1f}% من {first_y:.1f} إلى {last_y:.1f} ط/هـ — يستحقّ المراجعة"
+        )
 
     # الثقة: 2 موسم = low، 3 = medium، 4+ = high (مبدأ Conformal-style)
     confidence_map = {2: "low", 3: "medium"}
@@ -159,17 +167,19 @@ def analyze_salinity_trend(
     تزايد الملوحة 10%/سنة = إنذار حقيقي (تربة قيد التدهور).
     salinity_history: [{"season_year": 2024, "ec_ds_m": 1.2}, ...]
     """
-    valid = [(s["season_year"], s["ec_ds_m"])
-             for s in salinity_history
-             if s.get("ec_ds_m") is not None]
+    valid = [
+        (s["season_year"], s["ec_ds_m"]) for s in salinity_history if s.get("ec_ds_m") is not None
+    ]
 
     if len(valid) < min_seasons:
         return SeasonTrend(
             metric="ec_ds_m",
             direction=TrendDirection.INSUFFICIENT,
             seasons_analyzed=len(valid),
-            first_value=None, last_value=None,
-            change_per_season=None, change_pct_total=None,
+            first_value=None,
+            last_value=None,
+            change_per_season=None,
+            change_pct_total=None,
             reason_ar=f"بيانات ملوحة غير كافية ({len(valid)} موسم)",
             confidence="low",
         )
@@ -179,14 +189,15 @@ def analyze_salinity_trend(
     last_year, last_ec = valid[-1]
     span = max(last_year - first_year, 1)
 
-    pct_per_year = ((last_ec - first_ec) / first_ec * 100 / span
-                   if first_ec > 0 else 0.0)
+    pct_per_year = (last_ec - first_ec) / first_ec * 100 / span if first_ec > 0 else 0.0
 
     if pct_per_year > alert_threshold_pct_year:
-        direction = TrendDirection.DECLINING   # ملوحة أعلى = تربة أسوأ
-        reason = (f"⚠️ ملوحة متزايدة بـ{pct_per_year:.1f}%/سنة "
-                 f"(من {first_ec:.2f} إلى {last_ec:.2f} dS/m) — "
-                 f"تحتاج برنامج غسيل")
+        direction = TrendDirection.DECLINING  # ملوحة أعلى = تربة أسوأ
+        reason = (
+            f"⚠️ ملوحة متزايدة بـ{pct_per_year:.1f}%/سنة "
+            f"(من {first_ec:.2f} إلى {last_ec:.2f} dS/m) — "
+            f"تحتاج برنامج غسيل"
+        )
     elif pct_per_year < -5.0:
         direction = TrendDirection.IMPROVING
         reason = f"تحسّن ملوحي: {pct_per_year:.1f}%/سنة"
@@ -217,8 +228,7 @@ def detect_rotation_pattern(
 
     diversity_index: Shannon-style مبسّط (0=monoculture، 1=max diversity).
     """
-    crops = [s["crop_id"] for s in season_crops
-            if s.get("crop_id")]
+    crops = [s["crop_id"] for s in season_crops if s.get("crop_id")]
 
     if not crops:
         return CropRotationPattern(
@@ -242,14 +252,13 @@ def detect_rotation_pattern(
 
     # تفسير زراعي
     if diversity < 0.3:
-        reason = (f"زراعة أحادية: {most_used} في {most_pct:.0f}% من "
-                 f"المواسم ({len(crops)}). يستحقّ تنويع.")
+        reason = (
+            f"زراعة أحادية: {most_used} في {most_pct:.0f}% من المواسم ({len(crops)}). يستحقّ تنويع."
+        )
     elif diversity > 0.7:
-        reason = (f"تنويع جيّد: {len(unique_crops)} محاصيل في "
-                 f"{len(crops)} مواسم")
+        reason = f"تنويع جيّد: {len(unique_crops)} محاصيل في {len(crops)} مواسم"
     else:
-        reason = (f"تنويع متوسّط: {most_used} يهيمن "
-                 f"({most_pct:.0f}%)")
+        reason = f"تنويع متوسّط: {most_used} يهيمن ({most_pct:.0f}%)"
 
     return CropRotationPattern(
         field_id=field_id,
@@ -285,6 +294,7 @@ def multi_season_summary(
         "rotation": rotation,
         "alerts_count": len(alerts),
         "alerts_ar": alerts,
-        "summary_ar": ("⚠️ " + "؛ ".join(alerts) if alerts
-                      else "✅ لا تنبيهات استدامة على المدى المتعدّد"),
+        "summary_ar": (
+            "⚠️ " + "؛ ".join(alerts) if alerts else "✅ لا تنبيهات استدامة على المدى المتعدّد"
+        ),
     }

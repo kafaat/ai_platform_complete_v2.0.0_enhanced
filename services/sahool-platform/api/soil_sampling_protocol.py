@@ -18,12 +18,11 @@ BUL 915، UC Davis) — مبادئ عامّة معتمدة دوليّاً.
 ⚠ إرشاد عامّ. اتبع تعليمات مختبرك المحدّد (قد تختلف). توجّه لا يفرض.
 السياق اليمني: عيّنة صحيحة = توصية تسميد/ملاءمة صحيحة = توفير مال وتربة.
 """
+
 from __future__ import annotations
 
-from typing import Dict, Optional
 
-
-def subsamples_for_area(area_ha: float) -> Dict:
+def subsamples_for_area(area_ha: float) -> dict:
     """يحسب عدد العيّنات الفرعيّة الموصى بها حسب مساحة الحقل."""
     if area_ha <= 0:
         return {"supported": False, "message_ar": "أدخل مساحة صحيحة بالهكتار."}
@@ -51,12 +50,15 @@ def subsamples_for_area(area_ha: float) -> Dict:
 _DEPTH_GUIDE = {
     "general": {"depth_ar": "15-30 سم", "purpose_ar": "احتياجات الأسمدة العامّة (عمق نشاط الجذور)"},
     "nitrate": {"depth_ar": "30 سم", "purpose_ar": "نترات التربة"},
-    "no_till": {"depth_ar": "متدرّج: 0-5 سم ثمّ 5-15 سم", "purpose_ar": "حقل غير محروث (التجريف/العناصر)"},
+    "no_till": {
+        "depth_ar": "متدرّج: 0-5 سم ثمّ 5-15 سم",
+        "purpose_ar": "حقل غير محروث (التجريف/العناصر)",
+    },
     "orchard": {"depth_ar": "15-30 سم داخل منطقة الترطيب", "purpose_ar": "البساتين/الأشجار"},
 }
 
 
-def sampling_depth(purpose: str = "general") -> Dict:
+def sampling_depth(purpose: str = "general") -> dict:
     """العمق المناسب لأخذ العيّنة حسب الغرض."""
     g = _DEPTH_GUIDE.get(purpose.strip().lower(), _DEPTH_GUIDE["general"])
     return {
@@ -74,10 +76,9 @@ def sampling_depth(purpose: str = "general") -> Dict:
     }
 
 
-def sampling_protocol(area_ha: Optional[float] = None,
-                      purpose: str = "general") -> Dict:
+def sampling_protocol(area_ha: float | None = None, purpose: str = "general") -> dict:
     """البروتوكول الكامل لأخذ عيّنة تربة صحيحة (الخطوات + التحذيرات)."""
-    out: Dict = {"supported": True}
+    out: dict = {"supported": True}
 
     if area_ha is not None:
         out["subsamples"] = subsamples_for_area(area_ha)

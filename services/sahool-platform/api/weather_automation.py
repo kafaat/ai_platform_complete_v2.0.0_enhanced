@@ -16,12 +16,12 @@ api/weather_automation.py — أتمتة سحب الطقس من Open-Meteo
 
 مبدأ الصدق: لو لم تُسجَّل إحداثيّات، المهمّة لا تفعل شيئاً (لا تخمّن مواقع).
 """
+
 from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
 
 logger = logging.getLogger("sahool.weather_automation")
 
@@ -33,7 +33,7 @@ WEATHER_TTL_SECONDS = 3600.0
 class CachedWeather:
     lat: float
     lon: float
-    data: Dict
+    data: dict
     fetched_at: float  # epoch seconds
 
     @property
@@ -44,7 +44,7 @@ class CachedWeather:
     def is_stale(self) -> bool:
         return self.age_seconds > WEATHER_TTL_SECONDS
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "lat": self.lat,
             "lon": self.lon,
@@ -65,8 +65,8 @@ class WeatherAutomation:
 
     def __init__(self) -> None:
         # مفتاح: (round(lat,3), round(lon,3)) لتجنّب ازدواج طفيف
-        self._locations: Dict[Tuple[float, float], Dict] = {}
-        self._cache: Dict[Tuple[float, float], CachedWeather] = {}
+        self._locations: dict[tuple[float, float], dict] = {}
+        self._cache: dict[tuple[float, float], CachedWeather] = {}
         self._pool = None  # asyncpg pool — يُضبط عبر set_pool
 
     def set_pool(self, pool) -> None:
@@ -74,7 +74,7 @@ class WeatherAutomation:
         self._pool = pool
 
     @staticmethod
-    def _key(lat: float, lon: float) -> Tuple[float, float]:
+    def _key(lat: float, lon: float) -> tuple[float, float]:
         return (round(lat, 3), round(lon, 3))
 
     @staticmethod
@@ -92,13 +92,14 @@ class WeatherAutomation:
         try:
             async with self._pool.acquire() as conn:
                 rows = await conn.fetch(
-                    "SELECT location_key, lat, lon, field_id "
-                    "FROM weather_automation_locations"
+                    "SELECT location_key, lat, lon, field_id FROM weather_automation_locations"
                 )
                 for r in rows:
                     k = self._key(r["lat"], r["lon"])
                     self._locations[k] = {
-                        "lat": r["lat"], "lon": r["lon"], "field_id": r["field_id"],
+                        "lat": r["lat"],
+                        "lon": r["lon"],
+                        "field_id": r["field_id"],
                     }
                     loaded += 1
                 # حمّل آخر cache (إن وُجد)
@@ -110,19 +111,23 @@ class WeatherAutomation:
                     "  ON l.location_key = c.location_key"
                 )
                 import json as _json
+
                 for r in crows:
                     k = self._key(r["lat"], r["lon"])
                     data = r["data_json"]
                     if isinstance(data, str):
                         data = _json.loads(data)
                     self._cache[k] = CachedWeather(
-                        r["lat"], r["lon"], data, float(r["fetched_epoch"]),
+                        r["lat"],
+                        r["lon"],
+                        data,
+                        float(r["fetched_epoch"]),
                     )
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل تحميل أتمتة الطقس من القاعدة: %s", e)
         return loaded
 
-    async def _persist_location(self, lat: float, lon: float, field_id: Optional[str]) -> None:
+    async def _persist_location(self, lat: float, lon: float, field_id: str | None) -> None:
         if self._pool is None:
             return
         try:
@@ -132,34 +137,39 @@ class WeatherAutomation:
                     "(location_key, lat, lon, field_id) VALUES ($1,$2,$3,$4) "
                     "ON CONFLICT (location_key) DO UPDATE SET "
                     "lat=EXCLUDED.lat, lon=EXCLUDED.lon, field_id=EXCLUDED.field_id",
-                    self._key_str(lat, lon), lat, lon, field_id,
+                    self._key_str(lat, lon),
+                    lat,
+                    lon,
+                    field_id,
                 )
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل حفظ إحداثيّة الطقس: %s", e)
 
-    async def _persist_cache(self, lat: float, lon: float, payload: Dict) -> None:
+    async def _persist_cache(self, lat: float, lon: float, payload: dict) -> None:
         if self._pool is None:
             return
         try:
             import json as _json
+
             async with self._pool.acquire() as conn:
                 await conn.execute(
                     "INSERT INTO weather_automation_cache "
                     "(location_key, data_json, fetched_at) VALUES ($1,$2,NOW()) "
                     "ON CONFLICT (location_key) DO UPDATE SET "
                     "data_json=EXCLUDED.data_json, fetched_at=NOW()",
-                    self._key_str(lat, lon), _json.dumps(payload),
+                    self._key_str(lat, lon),
+                    _json.dumps(payload),
                 )
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل حفظ cache الطقس: %s", e)
 
-    def register_location(self, lat: float, lon: float, field_id: Optional[str] = None) -> None:
+    def register_location(self, lat: float, lon: float, field_id: str | None = None) -> None:
         """يسجّل إحداثيّة لسحب طقسها دوريّاً (بالذاكرة فوراً)."""
         k = self._key(lat, lon)
         self._locations[k] = {"lat": lat, "lon": lon, "field_id": field_id}
 
     async def register_location_persistent(
-        self, lat: float, lon: float, field_id: Optional[str] = None
+        self, lat: float, lon: float, field_id: str | None = None
     ) -> None:
         """يسجّل + يحفظ في القاعدة (لو توفّر pool)."""
         self.register_location(lat, lon, field_id)
@@ -172,14 +182,14 @@ class WeatherAutomation:
         self._cache.pop(k, None)
         return existed
 
-    def get_cached(self, lat: float, lon: float) -> Optional[CachedWeather]:
+    def get_cached(self, lat: float, lon: float) -> CachedWeather | None:
         """يقرأ من الـcache (قد يكون stale — على الـcaller الفحص)."""
         return self._cache.get(self._key(lat, lon))
 
     def registered_count(self) -> int:
         return len(self._locations)
 
-    def status(self) -> Dict:
+    def status(self) -> dict:
         return {
             "registered_locations": len(self._locations),
             "cached_entries": len(self._cache),
@@ -187,7 +197,7 @@ class WeatherAutomation:
             "entries": [c.to_dict() for c in self._cache.values()],
         }
 
-    async def refresh_all(self) -> Dict:
+    async def refresh_all(self) -> dict:
         """يسحب الطقس لكلّ الإحداثيّات المسجّلة (تُستدعى من scheduler).
 
         معزول: فشل إحداثيّة لا يوقف البقيّة. يُرجع ملخّص النجاح/الفشل.
@@ -197,11 +207,11 @@ class WeatherAutomation:
             return {"refreshed": 0, "failed": 0, "note": "لا إحداثيّات مسجّلة"}
 
         # استيراد متأخّر — connector قد يحتاج httpx (متاح في الحاوية)
-        from api.connectors.openmeteo import fetch_current, describe_weather_ar
+        from api.connectors.openmeteo import describe_weather_ar, fetch_current
 
         refreshed = 0
         failed = 0
-        errors: List[str] = []
+        errors: list[str] = []
         for k, loc in list(self._locations.items()):
             try:
                 d = await fetch_current(loc["lat"], loc["lon"])

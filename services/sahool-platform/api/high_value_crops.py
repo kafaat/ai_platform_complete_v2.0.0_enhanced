@@ -19,10 +19,8 @@ api/high_value_crops.py — محاصيل عالية القيمة قليلة ال
 استوائيّان رطبان (لا يناسبان الصحراء الجافّة). الزعفران للمرتفعات. السدر
 للعسل أفضل في المرتفعات. نصنّف بثلاث طبقات صدق.
 """
+
 from __future__ import annotations
-
-from typing import Dict, Optional
-
 
 # الطبقة الأولى: مثبتة للجوف الصحراوي (دليل قويّ)
 _PROVEN_DESERT = {
@@ -76,7 +74,7 @@ _CONDITIONAL = {
     },
     "السدر (للعسل)": {
         "note_ar": "عسل السدر 150-500$/كجم — لكن يزدهر للعسل في المرتفعات "
-                   "(1500-2800م) والأودية أكثر من الحزم (~1100م)",
+        "(1500-2800م) والأودية أكثر من الحزم (~1100م)",
         "fit_ar": "الشجرة تنمو في الجوف، لكن إنتاج العسل الفاخر أفضل في المرتفعات/الأودية",
     },
     "البقوليات المتحمّلة": {
@@ -94,7 +92,7 @@ _NOT_SUITED = {
 }
 
 
-def list_high_value_crops(tier: Optional[str] = None) -> Dict:
+def list_high_value_crops(tier: str | None = None) -> dict:
     """محاصيل عالية القيمة قليلة الانتشار، مصنّفة بصدق حسب ملاءمة الجوف."""
     if tier == "proven" or tier == "مثبتة":
         return {"tier_ar": "مثبتة للجوف الصحراوي", "crops": _PROVEN_DESERT}
@@ -115,9 +113,11 @@ def list_high_value_crops(tier: Optional[str] = None) -> Dict:
             "intro_ar": "⚠ غير مناسبة للجوف رغم قيمتها (صدق — لا نوصي بها):",
             "crops": _NOT_SUITED,
         },
-        "top_3_for_jawf_ar": ["الجوجوبا (صناعي تصديري)",
-                              "المورينجا (أسرع عائد)",
-                              "الألوفيرا (سوق سريع)"],
+        "top_3_for_jawf_ar": [
+            "الجوجوبا (صناعي تصديري)",
+            "المورينجا (أسرع عائد)",
+            "الألوفيرا (سوق سريع)",
+        ],
         "principle_ar": (
             "القيمة العالية وحدها لا تكفي — الملاءمة المناخيّة شرط. الكاجو/"
             "المكاديميا/الزعفران عالية القيمة لكنّها لا تناسب صحراء الجوف؛ "
@@ -136,7 +136,7 @@ def list_high_value_crops(tier: Optional[str] = None) -> Dict:
     }
 
 
-def high_value_crop_detail(crop_ar: str) -> Dict:
+def high_value_crop_detail(crop_ar: str) -> dict:
     """تفصيل محصول عالي القيمة محدّد."""
     kw = crop_ar.strip()
     for name, info in _PROVEN_DESERT.items():
@@ -147,10 +147,14 @@ def high_value_crop_detail(crop_ar: str) -> Dict:
             return {"supported": True, "name_ar": name, "tier_ar": "بحذر", **info}
     for name, reason in _NOT_SUITED.items():
         if kw in name or name in kw:
-            return {"supported": True, "name_ar": name,
-                    "tier_ar": "غير مناسب للجوف", "reason_ar": reason}
+            return {
+                "supported": True,
+                "name_ar": name,
+                "tier_ar": "غير مناسب للجوف",
+                "reason_ar": reason,
+            }
     return {
         "supported": False,
         "message_ar": f"لا تفصيل لـ«{crop_ar}». المتاح: "
-                      + "، ".join(list(_PROVEN_DESERT) + list(_CONDITIONAL)),
+        + "، ".join(list(_PROVEN_DESERT) + list(_CONDITIONAL)),
     }

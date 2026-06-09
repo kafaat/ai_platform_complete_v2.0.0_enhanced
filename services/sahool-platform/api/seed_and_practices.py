@@ -12,26 +12,46 @@ api/seed_and_practices.py — اختيار البذور المحسّنة + ال�
 ⚠ إرشاد عامّ. الأصناف المعتمدة وأرقامها تُؤخذ من الجهة الرسميّة المحلّيّة.
 الأساليب تُكيَّف للظروف المحلّيّة. توجّه لا يفرض — خبرة المزارع تتفوّق.
 """
-from __future__ import annotations
 
-from typing import Dict, List, Optional
+from __future__ import annotations
 
 
 # ════════════════════════════════════════════════════════════════
 # أ. معايير اختيار البذور المحسّنة
 # ════════════════════════════════════════════════════════════════
-def seed_selection_criteria() -> Dict:
+def seed_selection_criteria() -> dict:
     """المعايير التي يوازنها المزارع عند اختيار صنف/بذور محسّنة."""
     return {
         "criteria_ar": [
             {"factor_ar": "الإنتاجيّة", "detail_ar": "غلّة الصنف (طن/هكتار) تحت ظروف مشابهة لأرضك."},
-            {"factor_ar": "التكيّف المناخي", "detail_ar": "ملاءمة الصنف لمناخ منطقتك (حرارة المرتفعات/تهامة، الجفاف)."},
-            {"factor_ar": "مقاومة الأمراض والآفات", "detail_ar": "أصناف مقاومة للصدأ مثلاً تقلّل الحاجة للمبيدات."},
-            {"factor_ar": "تحمّل الجفاف/الملوحة", "detail_ar": "مهمّ في المناطق الجافّة أو المتأثّرة بالملوحة."},
-            {"factor_ar": "النقاوة الصنفيّة", "detail_ar": "بذار معتمد بنقاوة عالية (~98%) يضمن صفات الصنف."},
-            {"factor_ar": "نسبة الإنبات", "detail_ar": "قدرة إنبات عالية (~85%+) تعني كثافة نباتيّة جيّدة."},
-            {"factor_ar": "طول الموسم", "detail_ar": "أصناف مبكّرة النضج تفيد حيث الموسم قصير أو الماء شحيح."},
-            {"factor_ar": "جودة المنتج", "detail_ar": "صفات الحبّة (بروتين القمح، جودة الخبز) حسب الغرض."},
+            {
+                "factor_ar": "التكيّف المناخي",
+                "detail_ar": "ملاءمة الصنف لمناخ منطقتك (حرارة المرتفعات/تهامة، الجفاف).",
+            },
+            {
+                "factor_ar": "مقاومة الأمراض والآفات",
+                "detail_ar": "أصناف مقاومة للصدأ مثلاً تقلّل الحاجة للمبيدات.",
+            },
+            {
+                "factor_ar": "تحمّل الجفاف/الملوحة",
+                "detail_ar": "مهمّ في المناطق الجافّة أو المتأثّرة بالملوحة.",
+            },
+            {
+                "factor_ar": "النقاوة الصنفيّة",
+                "detail_ar": "بذار معتمد بنقاوة عالية (~98%) يضمن صفات الصنف.",
+            },
+            {
+                "factor_ar": "نسبة الإنبات",
+                "detail_ar": "قدرة إنبات عالية (~85%+) تعني كثافة نباتيّة جيّدة.",
+            },
+            {
+                "factor_ar": "طول الموسم",
+                "detail_ar": "أصناف مبكّرة النضج تفيد حيث الموسم قصير أو الماء شحيح.",
+            },
+            {
+                "factor_ar": "جودة المنتج",
+                "detail_ar": "صفات الحبّة (بروتين القمح، جودة الخبز) حسب الغرض.",
+            },
         ],
         "improved_seed_benefit_ar": (
             "البذور المحسّنة المعتمدة ثمرة أبحاث طويلة: إنتاجيّة أعلى، تكيّف محلّي، "
@@ -52,10 +72,11 @@ def seed_selection_criteria() -> Dict:
     }
 
 
-def evaluate_seed_source(certified: bool, purity_pct: Optional[float] = None,
-                         germination_pct: Optional[float] = None) -> Dict:
+def evaluate_seed_source(
+    certified: bool, purity_pct: float | None = None, germination_pct: float | None = None
+) -> dict:
     """يقيّم جودة مصدر بذار بناءً على الاعتماد والنقاوة والإنبات."""
-    flags: List[str] = []
+    flags: list[str] = []
     ok = True
 
     if not certified:
@@ -93,7 +114,7 @@ def evaluate_seed_source(certified: bool, purity_pct: Optional[float] = None,
 # ════════════════════════════════════════════════════════════════
 # ب. الأساليب الزراعيّة المحسّنة
 # ════════════════════════════════════════════════════════════════
-_PRACTICES: Dict[str, Dict] = {
+_PRACTICES: dict[str, dict] = {
     "intercropping": {
         "name_ar": "التحميل (الزراعة البينيّة)",
         "what_ar": "زراعة محصولين معاً في الأرض نفسها (مثل بقولي مع ذرة).",
@@ -141,23 +162,29 @@ _PRACTICES: Dict[str, Dict] = {
 }
 
 
-def supported_practices() -> List[Dict]:
-    return [{"practice": k, "name_ar": v["name_ar"], "what_ar": v["what_ar"]}
-            for k, v in _PRACTICES.items()]
+def supported_practices() -> list[dict]:
+    return [
+        {"practice": k, "name_ar": v["name_ar"], "what_ar": v["what_ar"]}
+        for k, v in _PRACTICES.items()
+    ]
 
 
-def practice_guide(practice: str) -> Dict:
+def practice_guide(practice: str) -> dict:
     """دليل أسلوب زراعي محسّن (الفائدة + التحذير + السياق اليمني)."""
     p = _PRACTICES.get(practice.strip().lower())
     if not p:
-        return {"supported": False,
-                "message_ar": f"لا دليل لـ«{practice}». المدعوم: "
-                              + "، ".join(v["name_ar"] for v in _PRACTICES.values())}
+        return {
+            "supported": False,
+            "message_ar": f"لا دليل لـ«{practice}». المدعوم: "
+            + "، ".join(v["name_ar"] for v in _PRACTICES.values()),
+        }
     return {
         "supported": True,
         "practice": practice,
-        "name_ar": p["name_ar"], "what_ar": p["what_ar"],
-        "benefits_ar": p["benefits_ar"], "caution_ar": p["caution_ar"],
+        "name_ar": p["name_ar"],
+        "what_ar": p["what_ar"],
+        "benefits_ar": p["benefits_ar"],
+        "caution_ar": p["caution_ar"],
         "yemen_note_ar": p["yemen_note_ar"],
         "disclaimer_ar": "إرشاد عامّ — يُكيَّف للظروف المحلّيّة. خبرة المزارع تتفوّق.",
     }
@@ -165,7 +192,8 @@ def practice_guide(practice: str) -> Dict:
 
 # ─── إضافات من مقال "بذور النجاح" (Wikifarmer, Dr Ahmed Abdalla) ──
 
-def germination_rate(sprouted: int, total: int) -> Dict:
+
+def germination_rate(sprouted: int, total: int) -> dict:
     """يحسب معدّل الإنبات من اختبار عيّنة (مثلاً 86 من 100 = 86%).
 
     اختبار بسيط يجريه المزارع: ضع عدداً معروفاً من البذور في وسط رطب،
@@ -182,7 +210,8 @@ def germination_rate(sprouted: int, total: int) -> Dict:
         verdict_ar = "⚠ إنبات ضعيف — قد لا تصلح للبذار؛ فكّر في مصدر بذور أفضل."
     return {
         "supported": True,
-        "sprouted": sprouted, "total": total,
+        "sprouted": sprouted,
+        "total": total,
         "germination_pct": round(rate, 1),
         "verdict_ar": verdict_ar,
         "method_ar": (
@@ -193,7 +222,7 @@ def germination_rate(sprouted: int, total: int) -> Dict:
     }
 
 
-def storage_check(temp_f: float, humidity_pct: float) -> Dict:
+def storage_check(temp_f: float, humidity_pct: float) -> dict:
     """قاعدة تخزين البذور: مجموع الحرارة (°ف) + الرطوبة النسبيّة% < 100.
 
     قاعدة عمليّة بسيطة من المقال للحفاظ على حيويّة البذور أطول.
@@ -207,8 +236,8 @@ def storage_check(temp_f: float, humidity_pct: float) -> Dict:
         "good_storage": ok,
         "verdict_ar": (
             "✓ تخزين جيّد (المجموع < 100) — يحافظ على حيويّة البذور."
-            if ok else
-            "⚠ تخزين غير مثالي (المجموع ≥ 100) — خفّض الحرارة أو الرطوبة. "
+            if ok
+            else "⚠ تخزين غير مثالي (المجموع ≥ 100) — خفّض الحرارة أو الرطوبة. "
             "استخدم حاوية محكمة في مكان بارد جافّ."
         ),
         "rule_ar": (
@@ -216,14 +245,13 @@ def storage_check(temp_f: float, humidity_pct: float) -> Dict:
             "يجب أن يقلّ عن 100. بارد + جافّ = حيويّة أطول."
         ),
         "tip_ar": (
-            "البذور في الثلاجة: ضعها في حاوية محكمة الإغلاق (الثلاجة باردة لكن "
-            "رطوبتها عالية)."
+            "البذور في الثلاجة: ضعها في حاوية محكمة الإغلاق (الثلاجة باردة لكن رطوبتها عالية)."
         ),
         "disclaimer_ar": "قاعدة إرشادية عامّة؛ بعض البذور لها متطلّبات خاصّة.",
     }
 
 
-def sowing_depth(seed_size_mm: float, precision: bool = False) -> Dict:
+def sowing_depth(seed_size_mm: float, precision: bool = False) -> dict:
     """عمق البذر المناسب: ~5× حجم البذرة (أو 2× للزراعة الدقيقة)."""
     if seed_size_mm <= 0:
         return {"supported": False, "message_ar": "أدخل حجم بذرة صحيحاً (مم)."}

@@ -21,6 +21,7 @@ null إلى الأبد بانتظار "موسم جديد"، رغم وجود مو
   CSV تاريخي → historical_loader → yield_history → calibration_loop
   → zone_factor (محسوب من التاريخ، لا null!) → توصيات أدقّ فوراً
 """
+
 from __future__ import annotations
 
 import csv
@@ -28,32 +29,31 @@ import io
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
-
 
 # نطاقات فيزيائية معقولة للإنتاجية (طن/هكتار) — رفض الجنون
 # مصدر: متوسطات عالمية × 3 (لقبول أعلى منتج معقول)
 _YIELD_RANGES = {
-    "wheat":    (0.3, 12.0),
-    "barley":   (0.3, 10.0),
-    "sorghum":  (0.5, 15.0),
-    "millet":   (0.2, 6.0),
-    "maize":    (0.5, 18.0),
-    "cotton":   (0.2, 6.0),
-    "tomato":   (5.0, 150.0),    # خضراوات أعلى
-    "potato":   (5.0, 80.0),
-    "default":  (0.1, 200.0),    # حدّ علوي بعيد للسلامة
+    "wheat": (0.3, 12.0),
+    "barley": (0.3, 10.0),
+    "sorghum": (0.5, 15.0),
+    "millet": (0.2, 6.0),
+    "maize": (0.5, 18.0),
+    "cotton": (0.2, 6.0),
+    "tomato": (5.0, 150.0),  # خضراوات أعلى
+    "potato": (5.0, 80.0),
+    "default": (0.1, 200.0),  # حدّ علوي بعيد للسلامة
 }
 
 
 @dataclass
 class HistoricalRow:
     """صفّ صالح جاهز لـcalibration_loop."""
+
     tenant_id: str
     field_id: str
-    season: str                  # "2024", "2024_winter"، إلخ
+    season: str  # "2024", "2024_winter"، إلخ
     crop_id: str
-    actual_yield_t_ha: float     # الإنتاجية الفعلية الموزونة
+    actual_yield_t_ha: float  # الإنتاجية الفعلية الموزونة
     planted_area_ha: float | None = None
     planting_date: str | None = None
     harvest_date: str | None = None
@@ -64,6 +64,7 @@ class HistoricalRow:
 @dataclass
 class LoadResult:
     """نتيجة استيراد دفعة — مقبول/مرفوض بشفافية."""
+
     accepted_rows: list[HistoricalRow] = field(default_factory=list)
     rejections: list[dict] = field(default_factory=list)
     warnings_ar: list[str] = field(default_factory=list)
@@ -78,18 +79,18 @@ class LoadResult:
 
     @property
     def summary_ar(self) -> str:
-        return (f"قُبل {self.accepted_count}، رُفض {self.rejected_count}"
-                + (f" (تحذيرات: {len(self.warnings_ar)})"
-                   if self.warnings_ar else ""))
+        return f"قُبل {self.accepted_count}، رُفض {self.rejected_count}" + (
+            f" (تحذيرات: {len(self.warnings_ar)})" if self.warnings_ar else ""
+        )
 
 
-def _validate_row(row: dict, line_no: int, source: str | None = None
-                  ) -> tuple[HistoricalRow | None, str | None]:
+def _validate_row(
+    row: dict, line_no: int, source: str | None = None
+) -> tuple[HistoricalRow | None, str | None]:
     """يتحقّق من صفّ واحد. يُرجع (الصفّ المُهيكَل، سبب الرفض إن وُجد)."""
 
     # ١. الحقول الإلزامية
-    for required in ("tenant_id", "field_id", "season",
-                     "crop_id", "actual_yield_t_ha"):
+    for required in ("tenant_id", "field_id", "season", "crop_id", "actual_yield_t_ha"):
         if not row.get(required):
             return None, f"حقل ناقص: {required}"
 
@@ -106,8 +107,10 @@ def _validate_row(row: dict, line_no: int, source: str | None = None
     crop_key = str(row["crop_id"]).lower()
     lo, hi = _YIELD_RANGES.get(crop_key, _YIELD_RANGES["default"])
     if not (lo <= yield_val <= hi):
-        return None, (f"إنتاجية {yield_val} ط/هـ خارج النطاق الفيزيائي "
-                      f"[{lo}, {hi}] للمحصول {crop_key} — راجع الإدخال")
+        return None, (
+            f"إنتاجية {yield_val} ط/هـ خارج النطاق الفيزيائي "
+            f"[{lo}, {hi}] للمحصول {crop_key} — راجع الإدخال"
+        )
 
     # ٤. المساحة (اختيارية لكن إن وُجدت يجب أن تكون منطقية)
     planted_area = None
@@ -125,8 +128,7 @@ def _validate_row(row: dict, line_no: int, source: str | None = None
             try:
                 datetime.strptime(row[date_field], "%Y-%m-%d")
             except ValueError:
-                return None, (f"{date_field} ليس بصيغة ISO (YYYY-MM-DD): "
-                              f"'{row[date_field]}'")
+                return None, (f"{date_field} ليس بصيغة ISO (YYYY-MM-DD): '{row[date_field]}'")
 
     return HistoricalRow(
         tenant_id=str(row["tenant_id"]),
@@ -158,14 +160,14 @@ def load_csv(csv_text: str, source_file: str | None = None) -> LoadResult:
         if validated:
             result.accepted_rows.append(validated)
         else:
-            result.rejections.append({"line": line_no, "reason": error,
-                                      "row_snippet": dict(list(row.items())[:3])})
+            result.rejections.append(
+                {"line": line_no, "reason": error, "row_snippet": dict(list(row.items())[:3])}
+            )
 
     if not result.accepted_rows and result.rejections:
         result.warnings_ar.append("لم يُقبل أي صفّ — راجع تنسيق الملف وأسماء الأعمدة")
     elif result.rejections:
-        result.warnings_ar.append(
-            f"{result.rejected_count} صفوف رُفضت — البيانات المقبولة سليمة")
+        result.warnings_ar.append(f"{result.rejected_count} صفوف رُفضت — البيانات المقبولة سليمة")
 
     return result
 
@@ -180,14 +182,12 @@ def load_json(json_text: str, source_file: str | None = None) -> LoadResult:
         return result
 
     if not isinstance(data, list):
-        result.rejections.append({"line": 0,
-            "reason": "JSON يجب أن يكون قائمة من السجلات"})
+        result.rejections.append({"line": 0, "reason": "JSON يجب أن يكون قائمة من السجلات"})
         return result
 
     for idx, row in enumerate(data):
         if not isinstance(row, dict):
-            result.rejections.append({"line": idx,
-                "reason": "كل سجلّ يجب أن يكون object"})
+            result.rejections.append({"line": idx, "reason": "كل سجلّ يجب أن يكون object"})
             continue
         validated, error = _validate_row(row, idx, source_file)
         if validated:
@@ -200,20 +200,24 @@ def load_json(json_text: str, source_file: str | None = None) -> LoadResult:
 
 # ── الجسر إلى calibration_loop ──
 
+
 def to_calibration_records(rows: list[HistoricalRow]) -> list[dict]:
     """يحوّل الصفوف المقبولة إلى تنسيق calibration_loop المتوقّع.
 
     calibration_loop.read_yield_history يقرأ list[dict] بمفاتيح
     {field_id, season, actual_yield, crop_id}. هذا الجسر يضمن
     التوافق دون تعديل calibration_loop."""
-    return [{
-        "field_id": r.field_id,
-        "season": r.season,
-        "actual_yield": r.actual_yield_t_ha,
-        "crop_id": r.crop_id,
-        "planted_area_ha": r.planted_area_ha,
-        "source": r.source_file or "imported",
-    } for r in rows]
+    return [
+        {
+            "field_id": r.field_id,
+            "season": r.season,
+            "actual_yield": r.actual_yield_t_ha,
+            "crop_id": r.crop_id,
+            "planted_area_ha": r.planted_area_ha,
+            "source": r.source_file or "imported",
+        }
+        for r in rows
+    ]
 
 
 def group_by_tenant(rows: list[HistoricalRow]) -> dict[str, list[HistoricalRow]]:

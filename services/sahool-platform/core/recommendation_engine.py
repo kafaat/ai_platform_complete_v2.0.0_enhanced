@@ -15,23 +15,24 @@ core.recommendation_engine
 القاعدة الذهبية مطبّقة: الثقة = أضعف حلقة. لا توصية إن BLOCKED.
 الفصل الصارم: المزارع يرى القرار+السبب+الثقة. الـ backend يحمل التفاصيل.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
 
 
 class RecommendationStatus(str, Enum):
-    ISSUED = "issued"            # توصية دقيقة صادرة (READY)
-    LIMITED = "limited"          # توصيات عامة (تخطّى الفحوصات)
+    ISSUED = "issued"  # توصية دقيقة صادرة (READY)
+    LIMITED = "limited"  # توصيات عامة (تخطّى الفحوصات)
     PENDING_LAB = "pending_lab"  # ينتظر نتائج المعمل — توصيات عامة مؤقتاً
-    BLOCKED = "blocked"          # حاكم صارم غائب — لا توصية
+    BLOCKED = "blocked"  # حاكم صارم غائب — لا توصية
     PENDING_DATA = "pending_data"  # بيانات ناقصة (غير حاكمة)
 
 
 class FarmerSignal(str, Enum):
     """إشارة بصرية بسيطة للمزارع — لا أرقام معقّدة."""
+
     GOOD = "🟢 جيد"
     CAUTION = "🟡 انتبه"
     DANGER = "🔴 خطر"
@@ -42,6 +43,7 @@ class FarmerSignal(str, Enum):
 @dataclass
 class BackendDetail:
     """كل المؤشرات الخام والوسيطة. للمهندس/المطوّر/التدقيق فقط."""
+
     et0_mm: float | None = None
     etc_mm: float | None = None
     kc: float | None = None
@@ -62,12 +64,13 @@ class BackendDetail:
 @dataclass
 class FarmerView:
     """ما يراه المزارع. لا معادلات، لا نسب خطأ — قرار قابل للتنفيذ."""
+
     signal: FarmerSignal
-    headline_ar: str             # "اروِ المحوري ١ بـ ٣٥ مم غداً"
-    reason_ar: str               # "الطقس حار والتربة جفّت"
-    confidence_ar: str           # "ثقة متوسطة (لا حساس رطوبة)"
-    alerts_ar: list[str] = field(default_factory=list)   # تنبيهات الحاكمات
-    next_action_ar: str = ""     # ما يفتح توصية أدق
+    headline_ar: str  # "اروِ المحوري ١ بـ ٣٥ مم غداً"
+    reason_ar: str  # "الطقس حار والتربة جفّت"
+    confidence_ar: str  # "ثقة متوسطة (لا حساس رطوبة)"
+    alerts_ar: list[str] = field(default_factory=list)  # تنبيهات الحاكمات
+    next_action_ar: str = ""  # ما يفتح توصية أدق
 
 
 @dataclass
@@ -91,12 +94,12 @@ class Recommendation:
 
 # ── المايسترو ────────────────────────────────────────────────
 def generate_recommendation(
-    validation: dict,            # من validate_observations.validate()
-    irrigation=None,             # IrrigationResult من fao56 (أو None)
-    suitability=None,            # SuitabilityResult من suitability (أو None)
+    validation: dict,  # من validate_observations.validate()
+    irrigation=None,  # IrrigationResult من fao56 (أو None)
+    suitability=None,  # SuitabilityResult من suitability (أو None)
     zone_factor: float | None = None,
     zone_factor_status: str = "pending",
-    local_knowledge: list | None = None,   # FarmerKnowledge مُتحقَّقة
+    local_knowledge: list | None = None,  # FarmerKnowledge مُتحقَّقة
     field_state: str | None = None,  # حالة الحقل: limited/pending_lab/ready (من field_lifecycle)
 ) -> Recommendation:
     """يولّف كل المخرجات في توصية واحدة، مع فصل backend عن المزارع."""
@@ -116,17 +119,24 @@ def generate_recommendation(
         if field_state in ("limited", "pending_lab"):
             is_pending = field_state == "pending_lab"
             return Recommendation(
-                status=(RecommendationStatus.PENDING_LAB if is_pending
-                        else RecommendationStatus.LIMITED),
+                status=(
+                    RecommendationStatus.PENDING_LAB if is_pending else RecommendationStatus.LIMITED
+                ),
                 backend=backend,
                 farmer_view=FarmerView(
                     signal=FarmerSignal.CAUTION,
-                    headline_ar=("توصيات عامة — بانتظار نتائج المعمل" if is_pending
-                                 else "توصيات عامة (محدودة)"),
-                    reason_ar=("طلبت تحليلاً مخبرياً؛ توصيات الري والطقس متاحة الآن، "
-                               "وتُفعّل الدقيقة عند وصول النتائج." if is_pending
-                               else "تخطّيت الفحوصات؛ توصيات الري والطقس متاحة، "
-                               "لا توصيات دقيقة للملوحة أو المبيدات."),
+                    headline_ar=(
+                        "توصيات عامة — بانتظار نتائج المعمل"
+                        if is_pending
+                        else "توصيات عامة (محدودة)"
+                    ),
+                    reason_ar=(
+                        "طلبت تحليلاً مخبرياً؛ توصيات الري والطقس متاحة الآن، "
+                        "وتُفعّل الدقيقة عند وصول النتائج."
+                        if is_pending
+                        else "تخطّيت الفحوصات؛ توصيات الري والطقس متاحة، "
+                        "لا توصيات دقيقة للملوحة أو المبيدات."
+                    ),
                     confidence_ar="عامة 🟡",
                     alerts_ar=["🛑 توصيات المبيدات محجوبة حتى تكتمل التحاليل (سلامة المستهلك)"],
                     next_action_ar="أكمل تحاليل التربة (S3·S4·I3) لتوصيات دقيقة قيّمة",
@@ -181,11 +191,13 @@ def generate_recommendation(
         for fk in local_knowledge:
             w = getattr(fk, "prior_weight", 0)
             if w > 0:
-                backend.local_knowledge_applied.append({
-                    "content": getattr(fk, "content_ar", ""),
-                    "weight": w,
-                    "scope": getattr(fk, "spatial_scope", ""),
-                })
+                backend.local_knowledge_applied.append(
+                    {
+                        "content": getattr(fk, "content_ar", ""),
+                        "weight": w,
+                        "scope": getattr(fk, "spatial_scope", ""),
+                    }
+                )
 
     # الثقة (محكومة بأضعف حلقة + حالة المعايرة)
     conf, conf_ar = _compute_confidence(validation, zone_factor_status)
@@ -211,16 +223,23 @@ def generate_recommendation(
             alerts_ar=alerts,
             next_action_ar=next_action,
         ),
-        predicted_yield_t_ha=None,   # null حتى المعايرة — لا رقم وهمي
+        predicted_yield_t_ha=None,  # null حتى المعايرة — لا رقم وهمي
         confidence=conf,
     )
 
 
 # ── مساعدات ──────────────────────────────────────────────────
 _OBS_AR = {
-    "S3": "ملوحة التربة", "S4": "حموضة التربة pH", "I3": "ملوحة مياه الري",
-    "L3": "فترة أمان المبيد", "O1": "صنف المحصول", "O2": "تاريخ الزراعة",
-    "C1": "حرارة الهواء", "C5": "هطول الأمطار", "I1": "كمية المياه", "G1": "الإنتاج",
+    "S3": "ملوحة التربة",
+    "S4": "حموضة التربة pH",
+    "I3": "ملوحة مياه الري",
+    "L3": "فترة أمان المبيد",
+    "O1": "صنف المحصول",
+    "O2": "تاريخ الزراعة",
+    "C1": "حرارة الهواء",
+    "C5": "هطول الأمطار",
+    "I1": "كمية المياه",
+    "G1": "الإنتاج",
 }
 
 
@@ -231,7 +250,6 @@ def _observable_names_ar(ids: list[str]) -> str:
 def _compute_confidence(validation: dict, zone_factor_status: str) -> tuple[str, str]:
     """الثقة = أضعف حلقة. تنخفض مع نقص المراصد أو غياب المعايرة."""
     grade = validation.get("quality_grade", "UNKNOWN")
-    missing_b = validation.get("missing_B_count", 0)
     if grade == "HIGH" and zone_factor_status == "calibrated":
         return "high", "ثقة عالية (بيانات كاملة ومعايرة)"
     if grade in ("HIGH", "MEDIUM"):

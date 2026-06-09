@@ -9,6 +9,7 @@
 
 ملاحظة: يحتاج pydantic (متوفّر في بيئتك). يستورد SoilReading من main.
 """
+
 import os
 import sys
 
@@ -25,9 +26,16 @@ except ImportError:  # حماية للبيئات بلا pydantic
 
 # ── ١. قراءات صحيحة ──
 def test_valid_reading_accepted():
-    r = SoilReading(field_id="F1", sensor_id="S1", temperature=25.0,
-                    humidity=40.0, moisture_pct=30.0, ph_level=7.5,
-                    ec_level=3.2, tenant_id="T1")
+    r = SoilReading(
+        field_id="F1",
+        sensor_id="S1",
+        temperature=25.0,
+        humidity=40.0,
+        moisture_pct=30.0,
+        ph_level=7.5,
+        ec_level=3.2,
+        tenant_id="T1",
+    )
     assert r.field_id == "F1"
     assert r.ph_level == 7.5
 
@@ -108,8 +116,8 @@ def test_field_id_too_long_rejected():
 if __name__ == "__main__":
     # تشغيل offline بلا pytest (إن لزم)
     import traceback
-    fns = [v for k, v in sorted(globals().items())
-           if k.startswith("test_") and callable(v)]
+
+    fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     passed = 0
     for fn in fns:
         try:

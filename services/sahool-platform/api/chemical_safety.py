@@ -16,22 +16,22 @@ api/chemical_safety.py — حاجز سلامة المدخلات الكيميائ
 ⚠ القوائم من مصادر دوليّة (اتفاقيّة استكهولم، بروتوكول مونتريال). الجرعات
 القصوى قيم مرجعيّة — تحتاج مطابقة مع التسجيل المحلّي اليمني قبل الإنتاج.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, Optional
 
 
 class ChemicalStatus(str, Enum):
-    OK = "ok"              # ضمن الحدود الآمنة
-    BLOCKED = "blocked"    # محظور دوليّاً — لا يُستخدم
-    WARNING = "warning"    # مقيّد أو تجاوز الجرعة — يحتاج مراجعة
+    OK = "ok"  # ضمن الحدود الآمنة
+    BLOCKED = "blocked"  # محظور دوليّاً — لا يُستخدم
+    WARNING = "warning"  # مقيّد أو تجاوز الجرعة — يحتاج مراجعة
 
 
 # المواد المحظورة/المقيّدة دوليّاً (اتفاقيّة استكهولم + مونتريال + EU + EPA)
 # ⚠ مصادر دوليّة موثّقة — تحتاج مطابقة مع التسجيل المحلّي اليمني
-_BANNED_CHEMICALS: Dict[str, Dict] = {
+_BANNED_CHEMICALS: dict[str, dict] = {
     "methyl_bromide": {"reason_ar": "محظور بموجب بروتوكول مونتريال", "severity": "CRITICAL"},
     "ddt": {"reason_ar": "محظور بموجب اتفاقية استكهولم", "severity": "CRITICAL"},
     "aldrin": {"reason_ar": "مبيد عضوي كلوري محظور", "severity": "CRITICAL"},
@@ -50,7 +50,7 @@ _BANNED_CHEMICALS: Dict[str, Dict] = {
 
 # الجرعة القصوى الآمنة (kg مادّة فعّالة/هكتار) + قيود التطبيق
 # ⚠ قيم مرجعيّة دوليّة — تحتاج معايرة محلّيّة
-_MAX_DOSAGES: Dict[str, Dict] = {
+_MAX_DOSAGES: dict[str, dict] = {
     "glyphosate": {"max_kg_ha": 2.0, "buffer_zone_m": 5, "reentry_hours": 4},
     "copper_sulfate": {"max_kg_ha": 3.0, "buffer_zone_m": 10, "reentry_hours": 24},
     "sulfur": {"max_kg_ha": 5.0, "buffer_zone_m": 5, "reentry_hours": 12},
@@ -63,12 +63,12 @@ class ChemicalCheck:
     status_ar: str
     chemical: str
     message_ar: str
-    severity: Optional[str] = None
-    max_kg_ha: Optional[float] = None
-    buffer_zone_m: Optional[int] = None
-    reentry_hours: Optional[int] = None
+    severity: str | None = None
+    max_kg_ha: float | None = None
+    buffer_zone_m: int | None = None
+    reentry_hours: int | None = None
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "status": self.status.value,
             "status_ar": self.status_ar,
@@ -90,7 +90,7 @@ _STATUS_AR = {
 
 def check_chemical(
     chemical: str,
-    dose_kg_ha: Optional[float] = None,
+    dose_kg_ha: float | None = None,
 ) -> ChemicalCheck:
     """يفحص مادّة كيميائيّة ضدّ الحظر الدولي والجرعة القصوى.
 
@@ -107,7 +107,9 @@ def check_chemical(
         # CRITICAL/HIGH → محجوب؛ MEDIUM → تحذير شديد
         status = ChemicalStatus.BLOCKED if sev in ("CRITICAL", "HIGH") else ChemicalStatus.WARNING
         return ChemicalCheck(
-            status=status, status_ar=_STATUS_AR[status], chemical=chemical,
+            status=status,
+            status_ar=_STATUS_AR[status],
+            chemical=chemical,
             message_ar=f"{info['reason_ar']}. {'لا تستخدمه.' if status == ChemicalStatus.BLOCKED else 'استخدامه يحتاج مبرّراً ومراجعة.'}",
             severity=sev,
         )
@@ -117,7 +119,8 @@ def check_chemical(
         limits = _MAX_DOSAGES[key]
         if dose_kg_ha is not None and dose_kg_ha > limits["max_kg_ha"]:
             return ChemicalCheck(
-                status=ChemicalStatus.WARNING, status_ar=_STATUS_AR[ChemicalStatus.WARNING],
+                status=ChemicalStatus.WARNING,
+                status_ar=_STATUS_AR[ChemicalStatus.WARNING],
                 chemical=chemical,
                 message_ar=(
                     f"الجرعة {dose_kg_ha} kg/ha تتجاوز الحدّ الآمن "
@@ -129,7 +132,8 @@ def check_chemical(
             )
         # ضمن الحدّ
         return ChemicalCheck(
-            status=ChemicalStatus.OK, status_ar=_STATUS_AR[ChemicalStatus.OK],
+            status=ChemicalStatus.OK,
+            status_ar=_STATUS_AR[ChemicalStatus.OK],
             chemical=chemical,
             message_ar=(
                 f"ضمن الحدّ الآمن. احترم المنطقة العازلة {limits['buffer_zone_m']}م "
@@ -142,7 +146,8 @@ def check_chemical(
 
     # ٣. مادّة غير معروفة في قوائمنا → تحذير محايد (لا نؤكّد سلامتها)
     return ChemicalCheck(
-        status=ChemicalStatus.WARNING, status_ar=_STATUS_AR[ChemicalStatus.WARNING],
+        status=ChemicalStatus.WARNING,
+        status_ar=_STATUS_AR[ChemicalStatus.WARNING],
         chemical=chemical,
         message_ar=(
             "هذه المادّة غير موجودة في قوائم السلامة لدينا — لا نؤكّد سلامتها. "
@@ -151,7 +156,7 @@ def check_chemical(
     )
 
 
-def list_banned() -> Dict:
+def list_banned() -> dict:
     """يُرجع قائمة المواد المحظورة/المقيّدة (للعرض والشفافيّة)."""
     return {
         "source_ar": "اتفاقيّة استكهولم، بروتوكول مونتريال، EU، EPA",

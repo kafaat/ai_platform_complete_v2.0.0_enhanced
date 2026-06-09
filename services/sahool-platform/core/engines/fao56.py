@@ -30,31 +30,31 @@ Sources (cite explicitly per the critique's requirement):
   - Salinity stress (Ks): FAO-56 Chapter 8, yield-salinity relationship.
   - Leaching requirement: FAO-56 Chapter 8, Eq. 82.
 """
+
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import date
 from enum import Enum
-from typing import Optional
 
 
 # ── Growth stages (FAO-56 Ch.6) ──────────────────────────────────────
 class GrowthStage(str, Enum):
-    INITIAL = "initial"           # planting -> ~10% ground cover
-    DEVELOPMENT = "development"   # 10% cover -> effective full cover
-    MID_SEASON = "mid_season"     # full cover -> start of maturity
-    LATE_SEASON = "late_season"   # maturity -> harvest
+    INITIAL = "initial"  # planting -> ~10% ground cover
+    DEVELOPMENT = "development"  # 10% cover -> effective full cover
+    MID_SEASON = "mid_season"  # full cover -> start of maturity
+    LATE_SEASON = "late_season"  # maturity -> harvest
 
 
 @dataclass
 class WeatherDay:
     """Daily weather inputs for ET0. All from weather-service."""
+
     temp_max_c: float
     temp_min_c: float
-    humidity_pct: float            # mean relative humidity
-    wind_speed_m_s: float          # at 2m height
-    solar_radiation_mj_m2: float   # MJ/m2/day
+    humidity_pct: float  # mean relative humidity
+    wind_speed_m_s: float  # at 2m height
+    solar_radiation_mj_m2: float  # MJ/m2/day
     latitude_deg: float
     elevation_m: float
     day_of_year: int
@@ -75,14 +75,15 @@ class CropKcProfile:
     """The CONSTANT — biological water fingerprint of a crop.
     Loaded from YAML crop card. Values per FAO-56 Table 11/12.
     """
+
     crop_id: str
     kc_initial: float
     kc_mid: float
     kc_end: float
     # stage lengths in days [initial, development, mid, late]
     stage_days: list[int]
-    salt_tolerance_ece: float      # EC threshold dS/m (FAO-56 Table 23)
-    salt_slope_pct: float          # % yield loss per dS/m above threshold
+    salt_tolerance_ece: float  # EC threshold dS/m (FAO-56 Table 23)
+    salt_slope_pct: float  # % yield loss per dS/m above threshold
     source: str = "FAO-56 Table 11/12/23"
 
     @property
@@ -118,9 +119,14 @@ def penman_monteith_et0(w: WeatherDay) -> float:
     dr = 1.0 + 0.033 * math.cos(2 * math.pi * w.day_of_year / 365.0)
     decl = 0.409 * math.sin(2 * math.pi * w.day_of_year / 365.0 - 1.39)
     ws = math.acos(max(-1.0, min(1.0, -math.tan(lat_rad) * math.tan(decl))))
-    ra = (24 * 60 / math.pi) * 0.0820 * dr * (
-        ws * math.sin(lat_rad) * math.sin(decl)
-        + math.cos(lat_rad) * math.cos(decl) * math.sin(ws)
+    ra = (
+        (24 * 60 / math.pi)
+        * 0.0820
+        * dr
+        * (
+            ws * math.sin(lat_rad) * math.sin(decl)
+            + math.cos(lat_rad) * math.cos(decl) * math.sin(ws)
+        )
     )
     rso = (0.75 + 2e-5 * w.elevation_m) * ra
     rs = w.solar_radiation_mj_m2
@@ -130,19 +136,21 @@ def penman_monteith_et0(w: WeatherDay) -> float:
     tmaxk = w.temp_max_c + 273.16
     tmink = w.temp_min_c + 273.16
     rs_rso = min(1.0, rs / rso) if rso > 0 else 0.5
-    rnl = sigma * ((tmaxk ** 4 + tmink ** 4) / 2.0) * (
-        0.34 - 0.14 * math.sqrt(ea)
-    ) * (1.35 * rs_rso - 0.35)
+    rnl = (
+        sigma
+        * ((tmaxk**4 + tmink**4) / 2.0)
+        * (0.34 - 0.14 * math.sqrt(ea))
+        * (1.35 * rs_rso - 0.35)
+    )
     rn = rns - rnl
 
     # Soil heat flux (daily ~ 0)
     g = 0.0
 
     # FAO-56 Penman-Monteith — Eq. 6
-    numerator = (
-        0.408 * delta * (rn - g)
-        + gamma * (900.0 / (w.temp_mean_c + 273.0)) * w.wind_speed_m_s * (es - ea)
-    )
+    numerator = 0.408 * delta * (rn - g) + gamma * (
+        900.0 / (w.temp_mean_c + 273.0)
+    ) * w.wind_speed_m_s * (es - ea)
     denominator = delta + gamma * (1.0 + 0.34 * w.wind_speed_m_s)
     et0 = numerator / denominator
     return max(0.0, et0)
@@ -204,12 +212,13 @@ class SoilZone:
     """A management zone. A field is NOT one soil — sandy/loam/mixed.
     Discussed: same weather, same Kc, but soil differs per zone.
     """
+
     zone_id: str
-    texture: str                   # sandy | loam | clay | mixed
-    taw_mm_per_m: float            # total available water
-    raw_fraction: float            # readily available fraction (p)
-    ke_factor: float               # surface evaporation multiplier
-    drainage: str                  # fast | medium | slow
+    texture: str  # sandy | loam | clay | mixed
+    taw_mm_per_m: float  # total available water
+    raw_fraction: float  # readily available fraction (p)
+    ke_factor: float  # surface evaporation multiplier
+    drainage: str  # fast | medium | slow
     area_ha: float
     source: str = "FAO-56 Table 19 (TAW by texture)"
 
@@ -270,8 +279,7 @@ def compute_irrigation(
     etc_adj = etc_zone * ks
     if ks < 1.0:
         notes.append(
-            f"إجهاد ملحي: EC={soil_ece} يتجاوز عتبة {crop.salt_tolerance_ece} "
-            f"(Ks={ks:.2f})"
+            f"إجهاد ملحي: EC={soil_ece} يتجاوز عتبة {crop.salt_tolerance_ece} (Ks={ks:.2f})"
         )
 
     # 6. net irrigation (minus effective rainfall)

@@ -27,20 +27,22 @@ services/sahool-platform/api/yield_heuristics.py — Yield Estimation Heuristics
    نرفضه في v0.1 — حتّى نختبر ميدانياً مع >50 حقل.
    البديل: نولّد suggestion، يعرضها المزارع، يقرّر هو.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import List, Dict, Optional, Any
 import logging
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import StrEnum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 # ─── Types ──────────────────────────────────────────────────────
 
-class StressLevel(str, Enum):
+
+class StressLevel(StrEnum):
     NONE = "none"
     LOW = "low"
     MEDIUM = "medium"
@@ -51,6 +53,7 @@ class StressLevel(str, Enum):
 @dataclass
 class LifecycleFeatures:
     """Features مُستخلَصة من lifecycle events لحقل."""
+
     field_id: str
     crop: str
     days_in_growing: int = 0
@@ -58,9 +61,9 @@ class LifecycleFeatures:
     moisture_stress_events: int = 0
     pest_alerts: int = 0
     fertilizer_applications: int = 0
-    avg_ndvi_growing: Optional[float] = None
-    avg_ndvi_mature: Optional[float] = None
-    drought_streak_days: int = 0       # أطول فترة بدون ري
+    avg_ndvi_growing: float | None = None
+    avg_ndvi_mature: float | None = None
+    drought_streak_days: int = 0  # أطول فترة بدون ري
     rain_events: int = 0
 
 
@@ -69,12 +72,12 @@ class YieldEstimate:
     field_id: str
     crop: str
     estimated_yield_kg_ha: float
-    yield_score: float                  # 0-1 (نسبيّ للحقل الأمثل)
-    confidence: float                   # 0-1
+    yield_score: float  # 0-1 (نسبيّ للحقل الأمثل)
+    confidence: float  # 0-1
     stress_level: StressLevel
     rationale_ar: str
-    contributors: List[str] = field(default_factory=list)   # ما رفع/خفّض التقدير
-    warnings: List[str] = field(default_factory=list)
+    contributors: list[str] = field(default_factory=list)  # ما رفع/خفّض التقدير
+    warnings: list[str] = field(default_factory=list)
     created_at: str = ""
 
 
@@ -85,15 +88,15 @@ class YieldEstimate:
 # القيم أدناه تقديريّة ومنطقيّة لكنّها لم تُتحقَّق من مصدر علمي/ميداني موثَّق.
 # يجب مراجعتها مع مهندس زراعي يمني قبل الاعتماد عليها في قرارات حقيقيّة.
 CROP_TARGET_YIELDS = {
-    "wheat":     2_800,
-    "barley":    2_400,
-    "corn":      6_000,
-    "tomato":    50_000,
-    "potato":    25_000,
-    "onion":     30_000,
-    "cotton":    2_200,
-    "alfalfa":   12_000,   # fresh, multi-cut
-    "sorghum":   3_200,
+    "wheat": 2_800,
+    "barley": 2_400,
+    "corn": 6_000,
+    "tomato": 50_000,
+    "potato": 25_000,
+    "onion": 30_000,
+    "cotton": 2_200,
+    "alfalfa": 12_000,  # fresh, multi-cut
+    "sorghum": 3_200,
 }
 
 # Days in "GROWING" stage (typical for Yemen, varies by season)
@@ -101,24 +104,25 @@ CROP_TARGET_YIELDS = {
 # القيم أدناه تقديريّة ومنطقيّة لكنّها لم تُتحقَّق من مصدر علمي/ميداني موثَّق.
 # يجب مراجعتها مع مهندس زراعي يمني قبل الاعتماد عليها في قرارات حقيقيّة.
 CROP_TYPICAL_GROWING_DAYS = {
-    "wheat":   90,
-    "barley":  75,
-    "corn":    100,
-    "tomato":  80,
-    "potato":  95,
-    "onion":   120,
-    "cotton":  150,
+    "wheat": 90,
+    "barley": 75,
+    "corn": 100,
+    "tomato": 80,
+    "potato": 95,
+    "onion": 120,
+    "cotton": 150,
     "sorghum": 110,
 }
 
 
 # ─── Feature builder (from events) ──────────────────────────────
 
+
 def build_features_from_events(
     field_id: str,
     crop: str,
-    events: List[Dict[str, Any]],
-    ndvi_history: Optional[List[Dict[str, Any]]] = None,
+    events: list[dict[str, Any]],
+    ndvi_history: list[dict[str, Any]] | None = None,
 ) -> LifecycleFeatures:
     """
     Events list من field_lifecycle_transitions + events أخرى.
@@ -170,10 +174,16 @@ def build_features_from_events(
 
     # NDVI averages from history
     if ndvi_history:
-        growing_ndvi = [n["ndvi_mean"] for n in ndvi_history
-                        if n.get("stage") == "GROWING" and n.get("ndvi_mean") is not None]
-        mature_ndvi = [n["ndvi_mean"] for n in ndvi_history
-                       if n.get("stage") == "MATURE" and n.get("ndvi_mean") is not None]
+        growing_ndvi = [
+            n["ndvi_mean"]
+            for n in ndvi_history
+            if n.get("stage") == "GROWING" and n.get("ndvi_mean") is not None
+        ]
+        mature_ndvi = [
+            n["ndvi_mean"]
+            for n in ndvi_history
+            if n.get("stage") == "MATURE" and n.get("ndvi_mean") is not None
+        ]
         if growing_ndvi:
             f.avg_ndvi_growing = sum(growing_ndvi) / len(growing_ndvi)
         if mature_ndvi:
@@ -182,7 +192,7 @@ def build_features_from_events(
     return f
 
 
-def _parse_ts(ts_str: Optional[str]) -> Optional[datetime]:
+def _parse_ts(ts_str: str | None) -> datetime | None:
     if not ts_str:
         return None
     try:
@@ -194,6 +204,7 @@ def _parse_ts(ts_str: Optional[str]) -> Optional[datetime]:
 
 
 # ─── Yield estimation (rule-based) ──────────────────────────────
+
 
 def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
     """
@@ -217,23 +228,29 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
         )
 
     yield_score = 1.0
-    contributors: List[str] = []
-    warnings: List[str] = []
-    confidence_factors: List[float] = []
+    contributors: list[str] = []
+    warnings: list[str] = []
+    confidence_factors: list[float] = []
 
     # ١. Moisture stress (penalty)
     stress_penalty = features.moisture_stress_events * 0.04
     if stress_penalty > 0:
         yield_score -= stress_penalty
-        contributors.append(f"−{stress_penalty:.0%} بسبب {features.moisture_stress_events} حالات إجهاد مائي")
+        contributors.append(
+            f"−{stress_penalty:.0%} بسبب {features.moisture_stress_events} حالات إجهاد مائي"
+        )
 
     # ٢. Drought streak (penalty if long)
     if features.drought_streak_days > 7:
         drought_penalty = min(0.20, (features.drought_streak_days - 7) * 0.02)
         yield_score -= drought_penalty
-        contributors.append(f"−{drought_penalty:.0%} بسبب فترة جفاف ({features.drought_streak_days} يوم بلا ري)")
+        contributors.append(
+            f"−{drought_penalty:.0%} بسبب فترة جفاف ({features.drought_streak_days} يوم بلا ري)"
+        )
         if features.drought_streak_days > 14:
-            warnings.append(f"فترة جفاف طويلة جدّاً ({features.drought_streak_days} يوم) — الإنتاج قد يكون أقلّ كثيراً")
+            warnings.append(
+                f"فترة جفاف طويلة جدّاً ({features.drought_streak_days} يوم) — الإنتاج قد يكون أقلّ كثيراً"
+            )
 
     # ٣. Pest alerts (penalty)
     if features.pest_alerts > 0:
@@ -249,10 +266,14 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
         ratio = features.days_in_growing / typical
         if ratio < 0.7:
             yield_score -= 0.15
-            warnings.append(f"فترة النموّ قصيرة جدّاً ({features.days_in_growing} مقابل {typical} يوم متوقّع)")
+            warnings.append(
+                f"فترة النموّ قصيرة جدّاً ({features.days_in_growing} مقابل {typical} يوم متوقّع)"
+            )
         elif ratio > 1.3:
             yield_score -= 0.08
-            contributors.append(f"−٨٪ تأخّر في النضج ({features.days_in_growing} مقابل {typical} يوم)")
+            contributors.append(
+                f"−٨٪ تأخّر في النضج ({features.days_in_growing} مقابل {typical} يوم)"
+            )
 
     # ٥. NDVI bonus/penalty
     if features.avg_ndvi_growing is not None:
@@ -302,7 +323,7 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
         base_confidence += 0.10
     if features.irrigation_count > 0:
         base_confidence += 0.05
-    confidence = min(0.92, base_confidence)   # cap عند ٩٢٪ — لا "100% confident" بدون ground truth
+    confidence = min(0.92, base_confidence)  # cap عند ٩٢٪ — لا "100% confident" بدون ground truth
 
     rationale = (
         f"تقدير الإنتاج: {estimated_kg_ha:.0f} kg/ha من {target} (نسبة {yield_score:.0%}). "
@@ -327,62 +348,71 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
 
 # ─── Anomaly detection (simple) ─────────────────────────────────
 
+
 @dataclass
 class Anomaly:
     field_id: str
     type: str
-    severity: str           # "low" | "medium" | "high"
+    severity: str  # "low" | "medium" | "high"
     message_ar: str
     suggested_action_ar: str
 
 
-def detect_anomalies(features: LifecycleFeatures) -> List[Anomaly]:
+def detect_anomalies(features: LifecycleFeatures) -> list[Anomaly]:
     """يكشف الـpatterns الخطيرة. لا "AI" — قواعد مباشرة."""
-    anomalies: List[Anomaly] = []
+    anomalies: list[Anomaly] = []
 
     # Chronic water stress
     if features.moisture_stress_events >= 5:
-        anomalies.append(Anomaly(
-            field_id=features.field_id,
-            type="water_stress_chronic",
-            severity="high",
-            message_ar=f"إجهاد مائي مزمن: {features.moisture_stress_events} حالة في الموسم",
-            suggested_action_ar="راجع جدولة الري + تحقّق من نظام الري (تسرّب؟ توزيع غير متساوٍ؟)",
-        ))
+        anomalies.append(
+            Anomaly(
+                field_id=features.field_id,
+                type="water_stress_chronic",
+                severity="high",
+                message_ar=f"إجهاد مائي مزمن: {features.moisture_stress_events} حالة في الموسم",
+                suggested_action_ar="راجع جدولة الري + تحقّق من نظام الري (تسرّب؟ توزيع غير متساوٍ؟)",
+            )
+        )
 
     # Long drought
     if features.drought_streak_days > 14:
-        anomalies.append(Anomaly(
-            field_id=features.field_id,
-            type="drought_streak",
-            severity="high",
-            message_ar=f"فترة جفاف طويلة: {features.drought_streak_days} يوم بلا ري",
-            suggested_action_ar="ريّ عاجل قبل وصول الإجهاد إلى مرحلة لا رجعة فيها",
-        ))
+        anomalies.append(
+            Anomaly(
+                field_id=features.field_id,
+                type="drought_streak",
+                severity="high",
+                message_ar=f"فترة جفاف طويلة: {features.drought_streak_days} يوم بلا ري",
+                suggested_action_ar="ريّ عاجل قبل وصول الإجهاد إلى مرحلة لا رجعة فيها",
+            )
+        )
 
     # Pest pressure
     if features.pest_alerts >= 3:
-        anomalies.append(Anomaly(
-            field_id=features.field_id,
-            type="pest_pressure",
-            severity="medium",
-            message_ar=f"ضغط آفات/أمراض متكرّر: {features.pest_alerts} تنبيهات",
-            suggested_action_ar="جولة scouting ميدانيّة، أو استشارة مهندس زراعي",
-        ))
+        anomalies.append(
+            Anomaly(
+                field_id=features.field_id,
+                type="pest_pressure",
+                severity="medium",
+                message_ar=f"ضغط آفات/أمراض متكرّر: {features.pest_alerts} تنبيهات",
+                suggested_action_ar="جولة scouting ميدانيّة، أو استشارة مهندس زراعي",
+            )
+        )
 
     # Delayed maturity
     typical = CROP_TYPICAL_GROWING_DAYS.get(features.crop)
     if typical and features.days_in_growing > typical * 1.4:
-        anomalies.append(Anomaly(
-            field_id=features.field_id,
-            type="delayed_maturity",
-            severity="medium",
-            message_ar=f"النموّ متأخّر: {features.days_in_growing} يوم بدلاً من {typical}",
-            suggested_action_ar="تحقّق من النيتروجين + درجات الحرارة + المياه",
-        ))
+        anomalies.append(
+            Anomaly(
+                field_id=features.field_id,
+                type="delayed_maturity",
+                severity="medium",
+                message_ar=f"النموّ متأخّر: {features.days_in_growing} يوم بدلاً من {typical}",
+                suggested_action_ar="تحقّق من النيتروجين + درجات الحرارة + المياه",
+            )
+        )
 
     return anomalies
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()

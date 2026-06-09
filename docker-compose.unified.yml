@@ -368,6 +368,15 @@ services:
       - ollama_models:/root/.ollama
     networks: [sahool-net]
     <<: *logging
+    healthcheck:
+      # The ollama/ollama image bundles the `ollama` CLI (no curl). `ollama list`
+      # talks to the local API and exits 0 once the server is ready.
+      # Generous start_period: the server can be slow to come up on first run.
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   qdrant:
     image: qdrant/qdrant:v1.11.0  # HIGH-DOCKER-03: pinned
@@ -380,6 +389,12 @@ services:
       - qdrant_data:/qdrant/storage
     networks: [sahool-net]
     <<: *logging
+    # NOTE: the official qdrant/qdrant image is DISTROLESS — no curl/wget/sh —
+    # so an in-container HTTP healthcheck cannot run and would mark the
+    # container permanently "unhealthy". We deliberately define NO healthcheck
+    # here; dependents use plain depends_on (service_started). For a true
+    # readiness gate, build a wrapper image adding a static healthcheck binary
+    # (see report).
 
   agriai-engine:
     build:
@@ -500,21 +515,31 @@ services:
   redis:
     image: redis:7-alpine
     container_name: sahool-redis
-    command: redis-server --requirepass ${REDIS_PASSWORD:?must be set in .env}  # C-04 FIX
     restart: unless-stopped
     ports: ["127.0.0.1:6379:6379"]  # HIGH-DOCKER-01: localhost only
+    environment:
+      # expose the password inside the container so the healthcheck can
+      # authenticate (redis-cli -a) and avoid NOAUTH failures.
+      REDIS_PASSWORD: "${REDIS_PASSWORD:?must be set in .env}"
+    # FIX: there were two `command:` keys — the second silently overrode the
+    # first, so --requirepass was DROPPED and redis ran unauthenticated.
+    # Merge persistence + auth into a single command.
     command: >
-      redis-server --appendonly yes
+      redis-server --requirepass "${REDIS_PASSWORD:?must be set in .env}"
+        --appendonly yes
         --maxmemory 512mb
         --maxmemory-policy allkeys-lru
     volumes: [redis_data:/data]
     networks: [sahool-net]
     <<: *logging
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      # FIX: redis runs with --requirepass, so an unauthenticated PING returns
+      # NOAUTH → unhealthy. Authenticate with -a before PING.
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 5
+      start_period: 10s
 
   minio:
     image: minio/minio:RELEASE.2024-11-07T00-52-20Z
@@ -543,7 +568,11 @@ services:
     networks: [sahool-net]
     <<: *logging
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8222/healthz"]
+      # FIX: nats:2-alpine ships BusyBox wget, NOT curl — the old curl test
+      # could never run → permanently unhealthy. Hit the monitoring port 8222
+      # (enabled via --http_port 8222), not the 4222 client port.
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
+      start_period: 10s

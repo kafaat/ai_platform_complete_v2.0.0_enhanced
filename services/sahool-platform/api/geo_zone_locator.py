@@ -20,74 +20,161 @@ api/geo_zone_locator.py — تحديد الإقليم المناخي من إحد
 الأطراف. الارتفاع يحسم. للحدود الدقيقة: تكامل مع طبقة PostGIS الفعليّة
 (ST_Contains على مضلّعات الحدود الرسميّة) في النشر. توجّه لا يفرض.
 """
+
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
-
-from api.agro_climate_zones import zone_profile, zone_by_elevation
-
+from api.agro_climate_zones import zone_by_elevation, zone_profile
 
 # ─── صناديق إحداثيّة تقريبيّة للمحافظات (lat_min, lat_max, lon_min, lon_max) ──
 # مرتّبة بحيث تُفحص المحافظات الأصغر/الأدقّ أوّلاً. إحداثيّات من بيانات موثّقة.
-_GOVERNORATE_BOXES: List[Dict] = [
+_GOVERNORATE_BOXES: list[dict] = [
     # ── الساحل الغربي (تهامة) ──
-    {"gov_ar": "الحديدة", "box": (13.5, 16.5, 42.5, 43.9), "default_zone": "tihama",
-     "elevation_hint_m": 50},
+    {
+        "gov_ar": "الحديدة",
+        "box": (13.5, 16.5, 42.5, 43.9),
+        "default_zone": "tihama",
+        "elevation_hint_m": 50,
+    },
     # ── الساحل الجنوبي ──
-    {"gov_ar": "عدن", "box": (12.7, 13.1, 44.8, 45.2), "default_zone": "southern_coast",
-     "elevation_hint_m": 10},
-    {"gov_ar": "أبين", "box": (13.0, 14.3, 44.8, 46.6), "default_zone": "southern_coast",
-     "elevation_hint_m": 100},
-    {"gov_ar": "لحج", "box": (12.9, 13.9, 44.2, 45.4), "default_zone": "southern_coast",
-     "elevation_hint_m": 200, "multi_zone": True},
-    {"gov_ar": "المهرة", "box": (14.0, 17.5, 51.0, 53.1), "default_zone": "southern_coast",
-     "elevation_hint_m": 100},
+    {
+        "gov_ar": "عدن",
+        "box": (12.7, 13.1, 44.8, 45.2),
+        "default_zone": "southern_coast",
+        "elevation_hint_m": 10,
+    },
+    {
+        "gov_ar": "أبين",
+        "box": (13.0, 14.3, 44.8, 46.6),
+        "default_zone": "southern_coast",
+        "elevation_hint_m": 100,
+    },
+    {
+        "gov_ar": "لحج",
+        "box": (12.9, 13.9, 44.2, 45.4),
+        "default_zone": "southern_coast",
+        "elevation_hint_m": 200,
+        "multi_zone": True,
+    },
+    {
+        "gov_ar": "المهرة",
+        "box": (14.0, 17.5, 51.0, 53.1),
+        "default_zone": "southern_coast",
+        "elevation_hint_m": 100,
+    },
     # ── المرتفعات الغربيّة الممطرة ──
-    {"gov_ar": "تعز", "box": (13.2, 14.1, 43.0, 44.3), "default_zone": "western_highlands",
-     "elevation_hint_m": 1400, "multi_zone": True},
-    {"gov_ar": "إب", "box": (13.8, 14.5, 43.7, 44.4), "default_zone": "western_highlands",
-     "elevation_hint_m": 2000},
-    {"gov_ar": "ريمة", "box": (14.4, 14.9, 43.3, 43.8), "default_zone": "western_highlands",
-     "elevation_hint_m": 1800},
-    {"gov_ar": "المحويت", "box": (15.0, 15.7, 43.3, 43.9), "default_zone": "western_highlands",
-     "elevation_hint_m": 2000},
+    {
+        "gov_ar": "تعز",
+        "box": (13.2, 14.1, 43.0, 44.3),
+        "default_zone": "western_highlands",
+        "elevation_hint_m": 1400,
+        "multi_zone": True,
+    },
+    {
+        "gov_ar": "إب",
+        "box": (13.8, 14.5, 43.7, 44.4),
+        "default_zone": "western_highlands",
+        "elevation_hint_m": 2000,
+    },
+    {
+        "gov_ar": "ريمة",
+        "box": (14.4, 14.9, 43.3, 43.8),
+        "default_zone": "western_highlands",
+        "elevation_hint_m": 1800,
+    },
+    {
+        "gov_ar": "المحويت",
+        "box": (15.0, 15.7, 43.3, 43.9),
+        "default_zone": "western_highlands",
+        "elevation_hint_m": 2000,
+    },
     # ── المرتفعات الوسطى (الهضبة الداخليّة) ──
-    {"gov_ar": "صنعاء", "box": (14.9, 16.2, 43.7, 44.7), "default_zone": "central_highlands",
-     "elevation_hint_m": 2300},
-    {"gov_ar": "أمانة العاصمة", "box": (15.2, 15.5, 44.1, 44.3), "default_zone": "central_highlands",
-     "elevation_hint_m": 2250},
-    {"gov_ar": "ذمار", "box": (14.3, 15.0, 43.9, 44.7), "default_zone": "central_highlands",
-     "elevation_hint_m": 2400},
-    {"gov_ar": "عمران", "box": (15.5, 16.5, 43.6, 44.4), "default_zone": "central_highlands",
-     "elevation_hint_m": 2200},
-    {"gov_ar": "صعدة", "box": (16.3, 17.5, 43.2, 44.4), "default_zone": "central_highlands",
-     "elevation_hint_m": 1800},
-    {"gov_ar": "البيضاء", "box": (13.6, 14.8, 44.5, 45.9), "default_zone": "central_highlands",
-     "elevation_hint_m": 2000},
-    {"gov_ar": "الضالع", "box": (13.4, 14.2, 44.4, 45.0), "default_zone": "central_highlands",
-     "elevation_hint_m": 1500},
-    {"gov_ar": "حجة", "box": (15.5, 16.8, 42.8, 43.8), "default_zone": "western_highlands",
-     "elevation_hint_m": 1700, "multi_zone": True},
+    {
+        "gov_ar": "صنعاء",
+        "box": (14.9, 16.2, 43.7, 44.7),
+        "default_zone": "central_highlands",
+        "elevation_hint_m": 2300,
+    },
+    {
+        "gov_ar": "أمانة العاصمة",
+        "box": (15.2, 15.5, 44.1, 44.3),
+        "default_zone": "central_highlands",
+        "elevation_hint_m": 2250,
+    },
+    {
+        "gov_ar": "ذمار",
+        "box": (14.3, 15.0, 43.9, 44.7),
+        "default_zone": "central_highlands",
+        "elevation_hint_m": 2400,
+    },
+    {
+        "gov_ar": "عمران",
+        "box": (15.5, 16.5, 43.6, 44.4),
+        "default_zone": "central_highlands",
+        "elevation_hint_m": 2200,
+    },
+    {
+        "gov_ar": "صعدة",
+        "box": (16.3, 17.5, 43.2, 44.4),
+        "default_zone": "central_highlands",
+        "elevation_hint_m": 1800,
+    },
+    {
+        "gov_ar": "البيضاء",
+        "box": (13.6, 14.8, 44.5, 45.9),
+        "default_zone": "central_highlands",
+        "elevation_hint_m": 2000,
+    },
+    {
+        "gov_ar": "الضالع",
+        "box": (13.4, 14.2, 44.4, 45.0),
+        "default_zone": "central_highlands",
+        "elevation_hint_m": 1500,
+    },
+    {
+        "gov_ar": "حجة",
+        "box": (15.5, 16.8, 42.8, 43.8),
+        "default_zone": "western_highlands",
+        "elevation_hint_m": 1700,
+        "multi_zone": True,
+    },
     # ── الهضبة الشرقيّة شبه الصحراويّة ──
-    {"gov_ar": "حضرموت", "box": (14.0, 19.0, 47.0, 51.5), "default_zone": "eastern_plateau",
-     "elevation_hint_m": 900, "multi_zone": True},
-    {"gov_ar": "شبوة", "box": (13.8, 16.2, 45.5, 47.5), "default_zone": "eastern_plateau",
-     "elevation_hint_m": 900, "multi_zone": True},
+    {
+        "gov_ar": "حضرموت",
+        "box": (14.0, 19.0, 47.0, 51.5),
+        "default_zone": "eastern_plateau",
+        "elevation_hint_m": 900,
+        "multi_zone": True,
+    },
+    {
+        "gov_ar": "شبوة",
+        "box": (13.8, 16.2, 45.5, 47.5),
+        "default_zone": "eastern_plateau",
+        "elevation_hint_m": 900,
+        "multi_zone": True,
+    },
     # ── الصحراء الداخليّة ──
-    {"gov_ar": "مأرب", "box": (15.0, 15.9, 44.9, 46.3), "default_zone": "inland_desert",
-     "elevation_hint_m": 1000},
-    {"gov_ar": "الجوف", "box": (15.9, 17.8, 44.3, 46.5), "default_zone": "inland_desert",
-     "elevation_hint_m": 1100},
+    {
+        "gov_ar": "مأرب",
+        "box": (15.0, 15.9, 44.9, 46.3),
+        "default_zone": "inland_desert",
+        "elevation_hint_m": 1000,
+    },
+    {
+        "gov_ar": "الجوف",
+        "box": (15.9, 17.8, 44.3, 46.5),
+        "default_zone": "inland_desert",
+        "elevation_hint_m": 1100,
+    },
 ]
 
 # عتبات ارتفاع لترجيح الإقليم (متّسقة مع zone_by_elevation)
-_ELEV_COASTAL_MAX = 300       # ≤300م → ساحلي
-_ELEV_LOWLAND_MAX = 1000      # ≤1000م → صحراء/هضبة منخفضة
-_ELEV_PLATEAU_MAX = 1500      # ≤1500م → هضبة شرقيّة
+_ELEV_COASTAL_MAX = 300  # ≤300م → ساحلي
+_ELEV_LOWLAND_MAX = 1000  # ≤1000م → صحراء/هضبة منخفضة
+_ELEV_PLATEAU_MAX = 1500  # ≤1500م → هضبة شرقيّة
 # >1500م → مرتفعات
 
 
-def _point_in_box(lat: float, lon: float, box: Tuple) -> bool:
+def _point_in_box(lat: float, lon: float, box: tuple) -> bool:
     lat_min, lat_max, lon_min, lon_max = box
     return lat_min <= lat <= lat_max and lon_min <= lon <= lon_max
 
@@ -97,8 +184,7 @@ def _is_western(lon: float) -> bool:
     return lon < 44.5
 
 
-def locate_field(lat: float, lon: float,
-                 elevation_m: Optional[float] = None) -> Dict:
+def locate_field(lat: float, lon: float, elevation_m: float | None = None) -> dict:
     """يحدّد المحافظة + الإقليم المناخي + المناخ من إحداثيّات الحقل.
 
     elevation_m اختياري لكن يُنصح به بشدّة (يحسم التصنيف في المحافظات الجبليّة).
@@ -124,6 +210,7 @@ def locate_field(lat: float, lon: float,
         def box_area(g):
             b = g["box"]
             return (b[1] - b[0]) * (b[3] - b[2])
+
         best = min(matched, key=box_area)
         gov_ar = best["gov_ar"]
         is_multi = best.get("multi_zone", False)
@@ -197,8 +284,7 @@ def locate_field(lat: float, lon: float,
     return out
 
 
-def locate_and_recommend(lat: float, lon: float,
-                         elevation_m: Optional[float] = None) -> Dict:
+def locate_and_recommend(lat: float, lon: float, elevation_m: float | None = None) -> dict:
     """تحديد الموقع + توصية مباشرة بالمحاصيل الملائمة (تدفّق كامل للمزارع)."""
     loc = locate_field(lat, lon, elevation_m)
     if not loc.get("supported"):
@@ -207,6 +293,7 @@ def locate_and_recommend(lat: float, lon: float,
     rainfed = rain_max >= 400
     # ربط المناطق المشابهة (للصحراء الداخليّة فقط)
     from api.climate_analogs import analogs_for_zone
+
     analogs = analogs_for_zone(loc.get("zone") or "")
     return {
         **loc,
@@ -215,8 +302,9 @@ def locate_and_recommend(lat: float, lon: float,
             "avoid_ar": loc.get("avoid_ar"),
             "rainfed_possible": rainfed,
             "water_note_ar": (
-                "زراعة بعليّة ممكنة (أمطار كافية)." if rainfed else
-                "زراعة مرويّة ضروريّة — راجع وحدتي حصاد المياه وحساسيّة الريّ."
+                "زراعة بعليّة ممكنة (أمطار كافية)."
+                if rainfed
+                else "زراعة مرويّة ضروريّة — راجع وحدتي حصاد المياه وحساسيّة الريّ."
             ),
             "global_analogs_ar": analogs if analogs.get("applicable") else None,
             "next_step_ar": (

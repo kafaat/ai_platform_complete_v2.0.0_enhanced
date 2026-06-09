@@ -23,17 +23,15 @@ sahool_core.spatial.bivariate_raster
   • التصنيف فئوي (4×4 = 16 فئة بألوان مختارة بدقّة)
   • متّسق مع raster_export (نفس فئات NDVI الأربع)
 """
+
 from __future__ import annotations
 
 import io
 from dataclasses import dataclass
 
-
 # عتبات كلّ مؤشّر — متطابقة مع raster_export._BAND_COLORS
-_NDVI_BANDS = [(0.0, 0.2, "low"), (0.2, 0.4, "med"),
-               (0.4, 0.7, "good"), (0.7, 1.0, "high")]
-_NDMI_BANDS = [(-1.0, 0.0, "dry"), (0.0, 0.2, "med"),
-               (0.2, 0.4, "good"), (0.4, 1.0, "wet")]
+_NDVI_BANDS = [(0.0, 0.2, "low"), (0.2, 0.4, "med"), (0.4, 0.7, "good"), (0.7, 1.0, "high")]
+_NDMI_BANDS = [(-1.0, 0.0, "dry"), (0.0, 0.2, "med"), (0.2, 0.4, "good"), (0.4, 1.0, "wet")]
 
 
 # مصفوفة الألوان الثنائية 4×4 — مختارة لتعكس التركيبة التشخيصية
@@ -41,49 +39,46 @@ _NDMI_BANDS = [(-1.0, 0.0, "dry"), (0.0, 0.2, "med"),
 # الفكرة: تركيبة الإجهاد (low+dry) حمراء، الصحّة (high+good/wet) خضراء
 _BIVARIATE_PALETTE = {
     # NDVI low (نباتي ضعيف)
-    ("low",  "dry"):  (165,  42,  42, 200),    # أحمر داكن — إجهاد جفاف
-    ("low",  "med"):  (210, 105,  30, 200),    # بنّي محروق — جفاف خفيف
-    ("low",  "good"): (218, 165,  32, 200),    # ذهبي — نبات سيّء رغم الماء (آفة/تربة؟)
-    ("low",  "wet"):  (138,  43, 226, 200),    # بنفسجي — غمر/مرض (تشخيص نادر)
-
+    ("low", "dry"): (165, 42, 42, 200),  # أحمر داكن — إجهاد جفاف
+    ("low", "med"): (210, 105, 30, 200),  # بنّي محروق — جفاف خفيف
+    ("low", "good"): (218, 165, 32, 200),  # ذهبي — نبات سيّء رغم الماء (آفة/تربة؟)
+    ("low", "wet"): (138, 43, 226, 200),  # بنفسجي — غمر/مرض (تشخيص نادر)
     # NDVI med (متوسّط)
-    ("med",  "dry"):  (205, 133,  63, 200),    # بنّي فاتح
-    ("med",  "med"):  (222, 184, 135, 200),    # رمل
-    ("med",  "good"): (189, 183, 107, 200),    # كاكي
-    ("med",  "wet"):  (143, 188, 143, 200),    # أخضر فاتح — يميل للماء
-
+    ("med", "dry"): (205, 133, 63, 200),  # بنّي فاتح
+    ("med", "med"): (222, 184, 135, 200),  # رمل
+    ("med", "good"): (189, 183, 107, 200),  # كاكي
+    ("med", "wet"): (143, 188, 143, 200),  # أخضر فاتح — يميل للماء
     # NDVI good (جيّد)
-    ("good", "dry"):  (240, 230, 140, 200),    # خاكي فاتح — يحتاج ريّاً قريباً
-    ("good", "med"):  (152, 251, 152, 200),    # أخضر شاحب
-    ("good", "good"): (144, 238, 144, 200),    # أخضر فاتح
-    ("good", "wet"):  ( 60, 179, 113, 200),    # أخضر بحري
-
+    ("good", "dry"): (240, 230, 140, 200),  # خاكي فاتح — يحتاج ريّاً قريباً
+    ("good", "med"): (152, 251, 152, 200),  # أخضر شاحب
+    ("good", "good"): (144, 238, 144, 200),  # أخضر فاتح
+    ("good", "wet"): (60, 179, 113, 200),  # أخضر بحري
     # NDVI high (كثيف)
-    ("high", "dry"):  (255, 215,   0, 200),    # ذهبي — مخالف للتوقّع (تحقّق)
-    ("high", "med"):  ( 50, 205,  50, 200),    # أخضر ليموني
-    ("high", "good"): ( 34, 139,  34, 200),    # أخضر داكن
-    ("high", "wet"):  (  0, 100,   0, 200),    # أخضر غاية — صحّة كاملة
+    ("high", "dry"): (255, 215, 0, 200),  # ذهبي — مخالف للتوقّع (تحقّق)
+    ("high", "med"): (50, 205, 50, 200),  # أخضر ليموني
+    ("high", "good"): (34, 139, 34, 200),  # أخضر داكن
+    ("high", "wet"): (0, 100, 0, 200),  # أخضر غاية — صحّة كاملة
 }
 
 
 # التشخيص النصّي لكل تركيبة (للنقر على البكسل في الواجهة)
 _DIAGNOSTIC_AR = {
-    ("low",  "dry"):  "إجهاد جفاف شديد — أولوية ريّ",
-    ("low",  "med"):  "نباتي ضعيف + ماء محدود — افحص الجذور",
-    ("low",  "good"): "نباتي ضعيف رغم الماء — آفة/مرض/ملوحة محتملة",
-    ("low",  "wet"):  "نباتي ضعيف + ماء زائد — غمر أو مرض جذور",
-    ("med",  "dry"):  "نموّ متوسّط مع نقص ماء",
-    ("med",  "med"):  "وضع متوسّط — راقب",
-    ("med",  "good"): "نموّ متوسّط مع ماء كافٍ",
-    ("med",  "wet"):  "نموّ متوسّط مع ماء وفير",
-    ("good", "dry"):  "نموّ جيّد لكن الماء ينضب — اروِ قريباً",
-    ("good", "med"):  "نموّ جيّد مع ماء متوسّط",
+    ("low", "dry"): "إجهاد جفاف شديد — أولوية ريّ",
+    ("low", "med"): "نباتي ضعيف + ماء محدود — افحص الجذور",
+    ("low", "good"): "نباتي ضعيف رغم الماء — آفة/مرض/ملوحة محتملة",
+    ("low", "wet"): "نباتي ضعيف + ماء زائد — غمر أو مرض جذور",
+    ("med", "dry"): "نموّ متوسّط مع نقص ماء",
+    ("med", "med"): "وضع متوسّط — راقب",
+    ("med", "good"): "نموّ متوسّط مع ماء كافٍ",
+    ("med", "wet"): "نموّ متوسّط مع ماء وفير",
+    ("good", "dry"): "نموّ جيّد لكن الماء ينضب — اروِ قريباً",
+    ("good", "med"): "نموّ جيّد مع ماء متوسّط",
     ("good", "good"): "صحّة جيّدة",
-    ("good", "wet"):  "نموّ جيّد مع رطوبة عالية",
-    ("high", "dry"):  "نمو كثيف مع نقص ماء — تحقّق ميدانياً",
-    ("high", "med"):  "نمو كثيف مع ماء متوسّط",
+    ("good", "wet"): "نموّ جيّد مع رطوبة عالية",
+    ("high", "dry"): "نمو كثيف مع نقص ماء — تحقّق ميدانياً",
+    ("high", "med"): "نمو كثيف مع ماء متوسّط",
     ("high", "good"): "صحّة قويّة",
-    ("high", "wet"):  "صحّة كاملة",
+    ("high", "wet"): "صحّة كاملة",
 }
 
 
@@ -94,7 +89,7 @@ def _classify(value: float | None, bands: list) -> str | None:
     for lo, hi, name in bands:
         if lo <= value <= hi:
             return name
-    return None   # خارج النطاق المتوقّع — كأنه مجهول
+    return None  # خارج النطاق المتوقّع — كأنه مجهول
 
 
 @dataclass
@@ -107,7 +102,7 @@ class BivariateExport:
     indicator_y: str
     transparent_pixels: int
     total_pixels: int
-    class_counts: dict        # {("low","dry"): n_pixels, ...}
+    class_counts: dict  # {("low","dry"): n_pixels, ...}
 
 
 def combine_grids_to_png(
@@ -137,7 +132,8 @@ def combine_grids_to_png(
         raise ValueError(
             f"أبعاد الشبكتين متختلفة: NDVI={h}×{w} مقابل "
             f"NDMI={len(grid_ndmi)}×{len(grid_ndmi[0])} — إعادة العيّنة "
-            "خارج نطاق هذه الوحدة (تجنّب الاختراع)")
+            "خارج نطاق هذه الوحدة (تجنّب الاختراع)"
+        )
 
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     pixels = img.load()
@@ -169,9 +165,11 @@ def combine_grids_to_png(
 
     return BivariateExport(
         png_bytes=buf.getvalue(),
-        width_px=w, height_px=h,
+        width_px=w,
+        height_px=h,
         bounds={"south": south, "west": west, "north": north, "east": east},
-        indicator_x="ndvi", indicator_y="ndmi",
+        indicator_x="ndvi",
+        indicator_y="ndmi",
         transparent_pixels=transparent,
         total_pixels=w * h,
         class_counts=counts,
@@ -182,12 +180,14 @@ def bivariate_legend() -> list[dict]:
     """وسيلة إيضاح للوحة الثنائية — جاهزة للعرض في الواجهة."""
     legend = []
     for (ndvi_cls, ndmi_cls), rgba in _BIVARIATE_PALETTE.items():
-        legend.append({
-            "ndvi_class": ndvi_cls,
-            "ndmi_class": ndmi_cls,
-            "color_rgba": rgba,
-            "diagnostic_ar": _DIAGNOSTIC_AR[(ndvi_cls, ndmi_cls)],
-        })
+        legend.append(
+            {
+                "ndvi_class": ndvi_cls,
+                "ndmi_class": ndmi_cls,
+                "color_rgba": rgba,
+                "diagnostic_ar": _DIAGNOSTIC_AR[(ndvi_cls, ndmi_cls)],
+            }
+        )
     return legend
 
 
@@ -197,13 +197,16 @@ def diagnose_pixel(value_ndvi: float | None, value_ndmi: float | None) -> dict:
     cls_ndmi = _classify(value_ndmi, _NDMI_BANDS)
     if cls_ndvi is None or cls_ndmi is None:
         return {
-            "ndvi": value_ndvi, "ndmi": value_ndmi,
+            "ndvi": value_ndvi,
+            "ndmi": value_ndmi,
             "class": None,
             "diagnostic_ar": "بيانات ناقصة — لا تشخيص ممكن",
         }
     return {
-        "ndvi": value_ndvi, "ndmi": value_ndmi,
-        "ndvi_class": cls_ndvi, "ndmi_class": cls_ndmi,
+        "ndvi": value_ndvi,
+        "ndmi": value_ndmi,
+        "ndvi_class": cls_ndvi,
+        "ndmi_class": cls_ndmi,
         "color_rgba": _BIVARIATE_PALETTE[(cls_ndvi, cls_ndmi)],
         "diagnostic_ar": _DIAGNOSTIC_AR[(cls_ndvi, cls_ndmi)],
     }

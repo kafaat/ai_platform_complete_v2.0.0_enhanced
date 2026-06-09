@@ -20,56 +20,58 @@ services/sahool-platform/api/failure_modes.py — Explicit Failure Taxonomy
 
 هذا ليس "AI Failure Detection" — هو قاموس صريح للحالات الزراعيّة الواقعيّة.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import List, Dict, Optional, Any
-
+from typing import Any
 
 # ─── Failure categories ─────────────────────────────────────────
 
-class FailureCategory(str, Enum):
+
+class FailureCategory(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     DATA_UNAVAILABLE = "data_unavailable"
-    DATA_DEGRADED = "data_degraded"          # موجود لكن ضعيف
-    DATA_STALE = "data_stale"                # قديم جدّاً
-    DATA_CORRUPTED = "data_corrupted"        # invalid syntax/range
-    SOURCE_OFFLINE = "source_offline"        # API/sensor down
+    DATA_DEGRADED = "data_degraded"  # موجود لكن ضعيف
+    DATA_STALE = "data_stale"  # قديم جدّاً
+    DATA_CORRUPTED = "data_corrupted"  # invalid syntax/range
+    SOURCE_OFFLINE = "source_offline"  # API/sensor down
     INFERENCE_FAILURE = "inference_failure"  # model crashed/timeout
-    POLICY_VIOLATION = "policy_violation"    # guardrails rejected
+    POLICY_VIOLATION = "policy_violation"  # guardrails rejected
     USER_INPUT_INVALID = "user_input_invalid"
     UNKNOWN = "unknown"
 
 
-class FailureSeverity(str, Enum):
-    INFO = "info"          # log only
-    WARNING = "warning"    # show to user, continue with reduced confidence
+class FailureSeverity(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
+    INFO = "info"  # log only
+    WARNING = "warning"  # show to user, continue with reduced confidence
     DEGRADED = "degraded"  # show fallback, partial functionality
     CRITICAL = "critical"  # halt operation, require user attention
 
 
-class FallbackStrategy(str, Enum):
-    NONE = "none"                          # no fallback, fail loudly
-    USE_CACHED = "use_cached"              # last-known-good value
-    USE_HISTORICAL = "use_historical"      # 30-day average
+class FallbackStrategy(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
+    NONE = "none"  # no fallback, fail loudly
+    USE_CACHED = "use_cached"  # last-known-good value
+    USE_HISTORICAL = "use_historical"  # 30-day average
     USE_NEARBY_FIELD = "use_nearby_field"  # spatial fallback
-    USE_RULE_BASED = "use_rule_based"      # disable AI, use rules
-    DEFER_DECISION = "defer_decision"      # don't decide, prompt user
-    SAFE_DEFAULT = "safe_default"          # most-conservative action
+    USE_RULE_BASED = "use_rule_based"  # disable AI, use rules
+    DEFER_DECISION = "defer_decision"  # don't decide, prompt user
+    SAFE_DEFAULT = "safe_default"  # most-conservative action
 
 
-class RetryPolicy(str, Enum):
-    NO_RETRY = "no_retry"                  # corrupt data, banned chems
-    IMMEDIATE = "immediate"                # transient (rare)
-    EXP_BACKOFF = "exp_backoff"            # network/API timeouts
-    WAIT_NEXT_CYCLE = "wait_next_cycle"    # wait for next Sentinel pass
-    MANUAL_INTERVENTION = "manual"         # user/operator must act
+class RetryPolicy(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
+    NO_RETRY = "no_retry"  # corrupt data, banned chems
+    IMMEDIATE = "immediate"  # transient (rare)
+    EXP_BACKOFF = "exp_backoff"  # network/API timeouts
+    WAIT_NEXT_CYCLE = "wait_next_cycle"  # wait for next Sentinel pass
+    MANUAL_INTERVENTION = "manual"  # user/operator must act
 
 
 @dataclass
 class RetryHint:
     """retry guidance machine-readable للـclient/worker."""
+
     policy: RetryPolicy
     max_attempts: int = 3
     initial_delay_sec: int = 1
@@ -78,25 +80,26 @@ class RetryHint:
 
 
 # Default retry hints per category
-DEFAULT_RETRY: Dict["FailureCategory", RetryHint] = {}   # populated after class def
+DEFAULT_RETRY: dict[FailureCategory, RetryHint] = {}  # populated after class def
 
 
 # ─── Known failure modes (catalog) ──────────────────────────────
 
+
 @dataclass
 class FailureMode:
-    code: str                        # machine-readable
+    code: str  # machine-readable
     category: FailureCategory
     severity: FailureSeverity
     message_ar: str
-    user_action_ar: str              # ماذا يفعل المزارع؟
+    user_action_ar: str  # ماذا يفعل المزارع؟
     fallback: FallbackStrategy
-    retry: Optional[RetryHint] = None  # ← retry-aware
-    technical_details: Optional[str] = None
+    retry: RetryHint | None = None  # ← retry-aware
+    technical_details: str | None = None
 
 
 # المرجع: كل failure mode تمّت رؤيتها أو متوقّعتها في ميدان السياق اليمني
-FAILURE_CATALOG: Dict[str, FailureMode] = {
+FAILURE_CATALOG: dict[str, FailureMode] = {
     # ── Satellite / Remote Sensing ──
     "sentinel.cloud_high": FailureMode(
         code="sentinel.cloud_high",
@@ -114,8 +117,9 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         message_ar="خدمة الأقمار الصناعيّة غير متاحة حالياً",
         user_action_ar="استمرّ في العمل — البيانات السابقة لا تزال قيد التحميل",
         fallback=FallbackStrategy.USE_CACHED,
-        retry=RetryHint(policy=RetryPolicy.EXP_BACKOFF, max_attempts=5,
-                        initial_delay_sec=60, max_delay_sec=3600),
+        retry=RetryHint(
+            policy=RetryPolicy.EXP_BACKOFF, max_attempts=5, initial_delay_sec=60, max_delay_sec=3600
+        ),
     ),
     "sentinel.stale": FailureMode(
         code="sentinel.stale",
@@ -126,7 +130,6 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         fallback=FallbackStrategy.USE_HISTORICAL,
         retry=RetryHint(policy=RetryPolicy.WAIT_NEXT_CYCLE, max_attempts=1),
     ),
-
     # ── Weather ──
     "weather.api_offline": FailureMode(
         code="weather.api_offline",
@@ -146,7 +149,6 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         fallback=FallbackStrategy.USE_HISTORICAL,
         retry=RetryHint(policy=RetryPolicy.IMMEDIATE, max_attempts=1),
     ),
-
     # ── Soil / Lab ──
     "soil.no_recent_lab": FailureMode(
         code="soil.no_recent_lab",
@@ -166,7 +168,6 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         fallback=FallbackStrategy.NONE,
         retry=RetryHint(policy=RetryPolicy.NO_RETRY, max_attempts=0),
     ),
-
     # ── AI / Inference ──
     "ai.confidence_too_low": FailureMode(
         code="ai.confidence_too_low",
@@ -184,8 +185,7 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         message_ar="انتهت مهلة معالجة الذكاء الاصطناعي",
         user_action_ar="تمّ استخدام القواعد المباشرة بدلاً من الـAI",
         fallback=FallbackStrategy.USE_RULE_BASED,
-        retry=RetryHint(policy=RetryPolicy.EXP_BACKOFF, max_attempts=2,
-                        initial_delay_sec=2),
+        retry=RetryHint(policy=RetryPolicy.EXP_BACKOFF, max_attempts=2, initial_delay_sec=2),
     ),
     "ai.unknown_crop": FailureMode(
         code="ai.unknown_crop",
@@ -196,7 +196,6 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         fallback=FallbackStrategy.DEFER_DECISION,
         retry=RetryHint(policy=RetryPolicy.MANUAL_INTERVENTION, max_attempts=0),
     ),
-
     # ── Policy / Guardrails ──
     "policy.banned_chemical": FailureMode(
         code="policy.banned_chemical",
@@ -216,7 +215,6 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         fallback=FallbackStrategy.SAFE_DEFAULT,
         retry=RetryHint(policy=RetryPolicy.NO_RETRY, max_attempts=0),
     ),
-
     # ── User input ──
     "field.polygon_invalid": FailureMode(
         code="field.polygon_invalid",
@@ -236,7 +234,6 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         fallback=FallbackStrategy.NONE,
         retry=RetryHint(policy=RetryPolicy.MANUAL_INTERVENTION, max_attempts=0),
     ),
-
     # ── Sync / Network ──
     "sync.queue_overflow": FailureMode(
         code="sync.queue_overflow",
@@ -245,24 +242,25 @@ FAILURE_CATALOG: Dict[str, FailureMode] = {
         message_ar="عمليّات كثيرة في طابور المزامنة (>١٠٠)",
         user_action_ar="حاول الاتّصال بشبكة قويّة لمزامنة سريعة",
         fallback=FallbackStrategy.USE_CACHED,
-        retry=RetryHint(policy=RetryPolicy.EXP_BACKOFF, max_attempts=10,
-                        initial_delay_sec=10),
+        retry=RetryHint(policy=RetryPolicy.EXP_BACKOFF, max_attempts=10, initial_delay_sec=10),
     ),
 }
 
 
 # ─── Result type ────────────────────────────────────────────────
 
+
 @dataclass
 class FailureReport:
     """ما يُرجَع لكل عمليّة تعرف بالـfailure modes."""
+
     failure_mode: FailureMode
     detected_at: str
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
     fallback_applied: bool = False
-    fallback_value: Optional[Any] = None
+    fallback_value: Any | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = {
             "code": self.failure_mode.code,
             "category": self.failure_mode.category.value,
@@ -287,6 +285,7 @@ class FailureReport:
 
 # ─── Detector functions ─────────────────────────────────────────
 
+
 def detect(code: str, **context) -> FailureReport:
     """يُرجع FailureReport بـcode معروف."""
     mode = FAILURE_CATALOG.get(code)
@@ -302,14 +301,15 @@ def detect(code: str, **context) -> FailureReport:
 
     return FailureReport(
         failure_mode=mode,
-        detected_at=datetime.now(timezone.utc).isoformat(),
+        detected_at=datetime.now(UTC).isoformat(),
         context=context,
     )
 
 
 def detect_sentinel_issues(
-    cloud_pct: float, days_since_observation: int,
-) -> Optional[FailureReport]:
+    cloud_pct: float,
+    days_since_observation: int,
+) -> FailureReport | None:
     """يفحص حالة قراءة Sentinel ويُرجع failure إن وجد."""
     if cloud_pct > 80:
         return detect("sentinel.cloud_high", cloud_pct=cloud_pct)
@@ -318,13 +318,13 @@ def detect_sentinel_issues(
     return None
 
 
-def detect_weather_issues(hours_since_update: int) -> Optional[FailureReport]:
+def detect_weather_issues(hours_since_update: int) -> FailureReport | None:
     if hours_since_update > 48:
         return detect("weather.stale", hours=hours_since_update)
     return None
 
 
-def detect_soil_issues(soil_data: Dict[str, Any]) -> List[FailureReport]:
+def detect_soil_issues(soil_data: dict[str, Any]) -> list[FailureReport]:
     """يفحص قيم soil ويُرجع كل المشاكل."""
     failures = []
 
@@ -352,7 +352,7 @@ def severity_rank(severity: FailureSeverity) -> int:
     }[severity]
 
 
-def highest_severity(failures: List[FailureReport]) -> Optional[FailureSeverity]:
+def highest_severity(failures: list[FailureReport]) -> FailureSeverity | None:
     if not failures:
         return None
     return max(failures, key=lambda f: severity_rank(f.failure_mode.severity)).failure_mode.severity

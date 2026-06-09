@@ -9,17 +9,17 @@ circuit_breaker.py — قاطع دائرة بسيط لمكالمات MCP (مرو
 منطق صرف (لا بنية تحتيّة): قابل للاختبار بالكامل بلا شبكة/خدمات.
 لكلّ خدمة MCP قاطعها المستقلّ (عزل الفشل).
 """
+
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Dict
+from dataclasses import dataclass
+from enum import StrEnum
 
 
-class CircuitState(str, Enum):
-    CLOSED = "closed"        # طبيعي
-    OPEN = "open"            # مفتوح (يرفض) بعد فشل متكرّر
+class CircuitState(StrEnum):
+    CLOSED = "closed"  # طبيعي
+    OPEN = "open"  # مفتوح (يرفض) بعد فشل متكرّر
     HALF_OPEN = "half_open"  # اختبار التعافي
 
 
@@ -35,6 +35,7 @@ class CircuitBreaker:
     recovery_timeout: ثوانٍ قبل السماح بطلب اختباري (HALF_OPEN).
     success_threshold: نجاحات في HALF_OPEN قبل العودة لـCLOSED.
     """
+
     name: str
     failure_threshold: int = 5
     recovery_timeout: float = 30.0
@@ -56,8 +57,8 @@ class CircuitBreaker:
             if self._now() - self._opened_at >= self.recovery_timeout:
                 self.state = CircuitState.HALF_OPEN
                 self._successes = 0
-                return True   # طلب اختباري واحد
-            return False      # ما زال مفتوحاً → fail-fast
+                return True  # طلب اختباري واحد
+            return False  # ما زال مفتوحاً → fail-fast
         # HALF_OPEN: نسمح بطلبات الاختبار
         return True
 
@@ -84,15 +85,14 @@ class CircuitBreaker:
             self._opened_at = self._now()
 
     def status(self) -> dict:
-        return {"name": self.name, "state": self.state.value,
-                "failures": self._failures}
+        return {"name": self.name, "state": self.state.value, "failures": self._failures}
 
 
 class CircuitBreakerRegistry:
     """سجلّ قواطع — قاطع مستقلّ لكلّ خدمة MCP (عزل الفشل)."""
 
     def __init__(self, **defaults):
-        self._breakers: Dict[str, CircuitBreaker] = {}
+        self._breakers: dict[str, CircuitBreaker] = {}
         self._defaults = defaults
 
     def get(self, name: str) -> CircuitBreaker:
@@ -106,4 +106,5 @@ class CircuitBreakerRegistry:
 
 # سجلّ مشترك لمكالمات MCP (عتبات محافظة)
 mcp_breakers = CircuitBreakerRegistry(
-    failure_threshold=5, recovery_timeout=30.0, success_threshold=2)
+    failure_threshold=5, recovery_timeout=30.0, success_threshold=2
+)

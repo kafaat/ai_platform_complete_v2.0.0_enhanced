@@ -1,7 +1,7 @@
 """Tests for measurement principle: unit harmonization (reject ambiguous local units)
 and spatial decay (neighbor validity by correlation length). Soil≠Water."""
-from core.measurement import (
-    harmonize_unit, spatial_substitution_validity)
+
+from core.measurement import harmonize_unit, spatial_substitution_validity
 
 
 class TestUnitHarmonization:

@@ -15,25 +15,26 @@ api/scenario_whatif.py — محرّك سيناريوهات "ماذا لو" ال�
 
 المبدأ: human-in-the-loop — يعرض المقارنة، والمزارع يقرّر. لا تنفيذ آلي.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
 
+from api.gdd_tracker import GDD_CROP_PARAMS, DailyTemp, track_gdd
 from api.water_balance import WeatherInput, water_balance
-from api.gdd_tracker import DailyTemp, track_gdd, GDD_CROP_PARAMS
 
 
 @dataclass
 class ScenarioComparison:
     """مقارنة سيناريو أساس مقابل بديل."""
+
     metric_ar: str
     baseline: float
     scenario: float
     delta: float
     unit: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "metric_ar": self.metric_ar,
             "baseline": round(self.baseline, 2),
@@ -49,7 +50,7 @@ def whatif_temperature_shift(
     stage: str,
     temp_shift_c: float,
     rain_mm: float = 0.0,
-) -> Dict:
+) -> dict:
     """ماذا لو ارتفعت/انخفضت الحرارة بمقدار temp_shift_c؟
 
     يحسب أثر التغيّر على ET0 والاحتياج المائي الصافي (حساب فيزيائي بحت).
@@ -57,23 +58,35 @@ def whatif_temperature_shift(
     base = water_balance(w, crop, stage, rain_mm=rain_mm)
 
     w2 = WeatherInput(
-        t_min_c=w.t_min_c + temp_shift_c, t_max_c=w.t_max_c + temp_shift_c,
-        solar_rad_mj_m2=w.solar_rad_mj_m2, rh_mean_pct=w.rh_mean_pct,
-        wind_2m_ms=w.wind_2m_ms, latitude_deg=w.latitude_deg,
-        elevation_m=w.elevation_m, day_of_year=w.day_of_year,
+        t_min_c=w.t_min_c + temp_shift_c,
+        t_max_c=w.t_max_c + temp_shift_c,
+        solar_rad_mj_m2=w.solar_rad_mj_m2,
+        rh_mean_pct=w.rh_mean_pct,
+        wind_2m_ms=w.wind_2m_ms,
+        latitude_deg=w.latitude_deg,
+        elevation_m=w.elevation_m,
+        day_of_year=w.day_of_year,
     )
     scen = water_balance(w2, crop, stage, rain_mm=rain_mm)
 
     comparisons = [
-        ScenarioComparison("ET0 المرجعي", base.et0_mm, scen.et0_mm,
-                           scen.et0_mm - base.et0_mm, "مم/يوم"),
-        ScenarioComparison("الاحتياج المائي الصافي", base.net_irrigation_mm,
-                           scen.net_irrigation_mm,
-                           scen.net_irrigation_mm - base.net_irrigation_mm, "مم"),
+        ScenarioComparison(
+            "ET0 المرجعي", base.et0_mm, scen.et0_mm, scen.et0_mm - base.et0_mm, "مم/يوم"
+        ),
+        ScenarioComparison(
+            "الاحتياج المائي الصافي",
+            base.net_irrigation_mm,
+            scen.net_irrigation_mm,
+            scen.net_irrigation_mm - base.net_irrigation_mm,
+            "مم",
+        ),
     ]
     direction = "ارتفاع" if temp_shift_c > 0 else "انخفاض"
-    pct = ((scen.net_irrigation_mm - base.net_irrigation_mm) / base.net_irrigation_mm * 100
-           if base.net_irrigation_mm > 0 else 0)
+    pct = (
+        (scen.net_irrigation_mm - base.net_irrigation_mm) / base.net_irrigation_mm * 100
+        if base.net_irrigation_mm > 0
+        else 0
+    )
     summary = (
         f"{direction} الحرارة {abs(temp_shift_c)}° يغيّر الاحتياج المائي بـ"
         f"{pct:+.0f}٪ ({base.net_irrigation_mm:.1f} → {scen.net_irrigation_mm:.1f} مم). "
@@ -88,9 +101,9 @@ def whatif_temperature_shift(
 
 def whatif_planting_date(
     crop: str,
-    temps_baseline: List[DailyTemp],
-    temps_scenario: List[DailyTemp],
-) -> Dict:
+    temps_baseline: list[DailyTemp],
+    temps_scenario: list[DailyTemp],
+) -> dict:
     """ماذا لو غيّرتُ تاريخ الزراعة؟ (سلسلة حرارة مختلفة من تاريخ مختلف).
 
     يقارن تراكم GDD وبلوغ المرحلة بين موعدَي زراعة.
@@ -102,8 +115,13 @@ def whatif_planting_date(
     scen = track_gdd(crop, temps_scenario)
 
     comparisons = [
-        ScenarioComparison("GDD المتراكم", base.cumulative_gdd, scen.cumulative_gdd,
-                           scen.cumulative_gdd - base.cumulative_gdd, "°C·يوم"),
+        ScenarioComparison(
+            "GDD المتراكم",
+            base.cumulative_gdd,
+            scen.cumulative_gdd,
+            scen.cumulative_gdd - base.cumulative_gdd,
+            "°C·يوم",
+        ),
     ]
     if base.current_stage != scen.current_stage:
         stage_note = (
@@ -133,17 +151,26 @@ def whatif_rainfall_change(
     stage: str,
     rain_baseline_mm: float,
     rain_scenario_mm: float,
-) -> Dict:
+) -> dict:
     """ماذا لو تغيّر المطر الموسمي؟ أثر على صافي الريّ المطلوب."""
     base = water_balance(w, crop, stage, rain_mm=rain_baseline_mm)
     scen = water_balance(w, crop, stage, rain_mm=rain_scenario_mm)
 
     comparisons = [
-        ScenarioComparison("المطر الفعّال", base.effective_rain_mm, scen.effective_rain_mm,
-                           scen.effective_rain_mm - base.effective_rain_mm, "مم"),
-        ScenarioComparison("الاحتياج المائي الصافي", base.net_irrigation_mm,
-                           scen.net_irrigation_mm,
-                           scen.net_irrigation_mm - base.net_irrigation_mm, "مم"),
+        ScenarioComparison(
+            "المطر الفعّال",
+            base.effective_rain_mm,
+            scen.effective_rain_mm,
+            scen.effective_rain_mm - base.effective_rain_mm,
+            "مم",
+        ),
+        ScenarioComparison(
+            "الاحتياج المائي الصافي",
+            base.net_irrigation_mm,
+            scen.net_irrigation_mm,
+            scen.net_irrigation_mm - base.net_irrigation_mm,
+            "مم",
+        ),
     ]
     saved = base.net_irrigation_mm - scen.net_irrigation_mm
     summary = (

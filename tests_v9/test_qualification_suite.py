@@ -22,6 +22,7 @@ tests_v9/test_qualification_suite.py — Platform Qualification Suite
 
 الفلسفة: invariant واحد ينكسر = فشل certification. الإثبات الجزئي ليس إثباتاً.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -46,9 +47,11 @@ def _db_available() -> tuple[bool, str]:
 # القسم أ: invariants ثابتة (تعمل offline دائماً — لا تحتاج قاعدة)
 # ═══════════════════════════════════════════════════════════════════
 
+
 def test_temporal_coherence_invariant() -> list:
     """Invariant ٤: المحرّكات الزمنيّة على مرجع واحد (يكشف Semantic Drift)."""
-    from api.temporal_coherence import make_temporal_context, check_temporal_coherence
+    from api.temporal_coherence import check_temporal_coherence, make_temporal_context
+
     r = []
     ctx = make_temporal_context("2025-12-10", "2025-11-01")
     # المرجع الموحّد يشتقّ كلّ التمثيلات
@@ -67,10 +70,11 @@ def test_temporal_coherence_invariant() -> list:
 
 def test_provenance_chain_invariant() -> list:
     """Invariant: السلسلة لا ترتفع ثقتها فوق أضعف مصدر (القاعدة الذهبية)."""
-    from core.provenance import Provenance, Stage, Status, Confidence, confidence_from_error
+    from core.provenance import Confidence, Provenance, Stage, Status, confidence_from_error
+
     r = []
     # قيمة مشتقّة من مصدر ضعيف لا ترتفع ثقتها
-    weak = confidence_from_error(0.5)    # خطأ كبير → ثقة منخفضة
+    weak = confidence_from_error(0.5)  # خطأ كبير → ثقة منخفضة
     strong = confidence_from_error(0.02)  # خطأ صغير → ثقة عالية
     if weak != strong and weak == Confidence.LOW:
         r.append(("✓", "الثقة تُشتقّ من الخطأ النسبي (لا نسبة وهميّة)"))
@@ -81,7 +85,7 @@ def test_geospatial_derivation_invariant() -> list:
     """Invariant ٥: area_ha مشتقّ من الهندسة (ثابت — صحّة الصيغة)."""
     r = []
     # صيغة التحويل: ST_Area(geography) م² / 10000 = هكتار
-    area_m2 = 100.0 * 100.0   # مربّع 100م
+    area_m2 = 100.0 * 100.0  # مربّع 100م
     area_ha = round(area_m2 / 10000.0, 2)
     if area_ha == 1.0:
         r.append(("✓", "صيغة اشتقاق المساحة صحيحة (100م² → 1 هكتار)"))
@@ -97,6 +101,7 @@ def test_geospatial_derivation_invariant() -> list:
 # ═══════════════════════════════════════════════════════════════════
 # القسم ب: invariants تشغيليّة (تحتاج قاعدة حيّة — تتخطّى offline)
 # ═══════════════════════════════════════════════════════════════════
+
 
 async def _test_no_cross_tenant_leak(pool) -> list:
     """Invariant ١: RLS يمنع تسرّب بيانات مستأجر لآخر."""
@@ -160,8 +165,12 @@ async def _test_derived_area(pool) -> list:
 
 async def _run_live_invariants() -> list:
     import asyncpg
+
     pool = await asyncpg.create_pool(
-        os.environ["DATABASE_URL"], statement_cache_size=0, min_size=1, max_size=4,
+        os.environ["DATABASE_URL"],
+        statement_cache_size=0,
+        min_size=1,
+        max_size=4,
     )
     results = []
     try:
@@ -191,8 +200,10 @@ def run_all() -> tuple[int, int]:
         print(f"\n  [{name}]")
         for sym, msg in fn():
             print(f"    {sym} {msg}")
-            if sym == "✓": passed += 1
-            else: failed += 1
+            if sym == "✓":
+                passed += 1
+            else:
+                failed += 1
 
     # القسم ب: حيّ (يحتاج قاعدة)
     ok, reason = _db_available()
@@ -203,8 +214,10 @@ def run_all() -> tuple[int, int]:
     else:
         for sym, msg in asyncio.run(_run_live_invariants()):
             print(f"    {sym} {msg}")
-            if sym == "✓": passed += 1
-            elif sym == "✗": failed += 1
+            if sym == "✓":
+                passed += 1
+            elif sym == "✗":
+                failed += 1
 
     print("\n" + "═" * 55)
     verdict = "✓ CERTIFIED" if failed == 0 else "✗ NOT CERTIFIED"

@@ -1,22 +1,37 @@
 """Tests for crowd-practice promotion ladder. Guards: 0.65 ceiling never exceeded,
 PHI/FAO conflict = permanent rejection, high-variance = frozen, physics > community."""
+
 from core.practice_promotion import (
-    evaluate_practice, PracticeEvidence, PhysicalCompat, FSI_CEILING_COMMUNITY)
+    FSI_CEILING_COMMUNITY,
+    PhysicalCompat,
+    PracticeEvidence,
+    evaluate_practice,
+)
 
 
 class TestCeiling:
     def test_never_exceeds_community_ceiling(self):
         # CRITICAL: أقصى ممارسة لا تتجاوز 0.65 (لا تبلغ الفيزياء 0.95)
-        ev = PracticeEvidence(n_farmers=1000, spatial_fields=50,
-            temporal_success_seasons=20, physical_compat=PhysicalCompat.COMPATIBLE,
-            has_full_dataset=True, adoption_rate=1.0)
+        ev = PracticeEvidence(
+            n_farmers=1000,
+            spatial_fields=50,
+            temporal_success_seasons=20,
+            physical_compat=PhysicalCompat.COMPATIBLE,
+            has_full_dataset=True,
+            adoption_rate=1.0,
+        )
         r = evaluate_practice(ev)
         assert r.fsi <= FSI_CEILING_COMMUNITY
 
     def test_strong_practice_reaches_medium(self):
-        ev = PracticeEvidence(n_farmers=150, spatial_fields=5,
-            temporal_success_seasons=8, physical_compat=PhysicalCompat.COMPATIBLE,
-            has_full_dataset=True, adoption_rate=0.65)
+        ev = PracticeEvidence(
+            n_farmers=150,
+            spatial_fields=5,
+            temporal_success_seasons=8,
+            physical_compat=PhysicalCompat.COMPATIBLE,
+            has_full_dataset=True,
+            adoption_rate=0.65,
+        )
         r = evaluate_practice(ev)
         assert r.ceiling == "medium"
         assert r.show_in_farmer_view
@@ -49,10 +64,16 @@ class TestPermanentBlockers:
 class TestAccumulation:
     def test_more_evidence_higher_fsi(self):
         weak = evaluate_practice(PracticeEvidence(n_farmers=10))
-        strong = evaluate_practice(PracticeEvidence(n_farmers=200,
-            spatial_fields=20, temporal_success_seasons=10,
-            physical_compat=PhysicalCompat.COMPATIBLE, has_full_dataset=True,
-            adoption_rate=0.7))
+        strong = evaluate_practice(
+            PracticeEvidence(
+                n_farmers=200,
+                spatial_fields=20,
+                temporal_success_seasons=10,
+                physical_compat=PhysicalCompat.COMPATIBLE,
+                has_full_dataset=True,
+                adoption_rate=0.7,
+            )
+        )
         assert strong.fsi > weak.fsi
 
     def test_oral_only_stays_guess(self):

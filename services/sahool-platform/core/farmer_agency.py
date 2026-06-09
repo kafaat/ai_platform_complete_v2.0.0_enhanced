@@ -20,34 +20,39 @@ sahool_core.farmer_agency
 هذا يتسق مع مبدأ النواة: "في اليقين المنخفض لا تتظاهر باليقين"
 (درس الزنجبيل: حتى لو لم يُحدَّد اسم المرض، يُقال 'مشتبه' لا 'طبيعي').
 """
+
 from __future__ import annotations
-from dataclasses import dataclass, field
+
+from dataclasses import dataclass
 from enum import Enum
 
 
 class FarmerResponse(str, Enum):
-    PENDING = "pending"         # لم يردّ بعد
-    ACCEPTED = "accepted"       # وافق
-    REJECTED = "rejected"       # رفض
-    MODIFIED = "modified"       # عدّل
+    PENDING = "pending"  # لم يردّ بعد
+    ACCEPTED = "accepted"  # وافق
+    REJECTED = "rejected"  # رفض
+    MODIFIED = "modified"  # عدّل
 
 
 @dataclass
 class AdvisoryDecision:
     """توصية مع احتفاظ المزارع بقراره النهائي."""
+
     recommendation_ar: str
-    confidence: str                          # من نظام القرينة/الدليل
+    confidence: str  # من نظام القرينة/الدليل
     response: FarmerResponse = FarmerResponse.PENDING
-    why_rejected_ar: str | None = None       # سبب الرفض (للتعلّم)
+    why_rejected_ar: str | None = None  # سبب الرفض (للتعلّم)
     farmer_modification_ar: str | None = None
-    framed_as_advice: bool = True            # دائماً اقتراح لا أمر
+    framed_as_advice: bool = True  # دائماً اقتراح لا أمر
 
     def to_farmer_prompt(self) -> str:
         """صياغة التوصية كاقتراح ينتهي بسؤال — لا أمر."""
-        return (f"اقتراح: {self.recommendation_ar}\n"
-                f"(ثقة: {self.confidence})\n"
-                f"هل توافق؟ يمكنك القبول أو التعديل أو الرفض. "
-                f"قرارك النهائي — نحن نساعد لا نأمر.")
+        return (
+            f"اقتراح: {self.recommendation_ar}\n"
+            f"(ثقة: {self.confidence})\n"
+            f"هل توافق؟ يمكنك القبول أو التعديل أو الرفض. "
+            f"قرارك النهائي — نحن نساعد لا نأمر."
+        )
 
 
 def record_farmer_response(
@@ -68,6 +73,7 @@ def record_farmer_response(
 @dataclass
 class RejectionPattern:
     """نمط رفض متكرّر = إشارة أن الخوارزمية قد تخطئ محلياً."""
+
     recommendation_type_ar: str
     total: int
     rejected: int
@@ -88,8 +94,10 @@ def analyze_rejection_pattern(
     if total < 5:
         signal = "عيّنة صغيرة — لا نمط موثوق بعد"
     elif rate >= 0.4:
-        signal = ("⚠️ رفض متكرّر (≥40%) — الخوارزمية قد لا تناسب السياق المحلّي. "
-                  "راجع التوصية واسمع تعليل المزارعين (حكمتهم الموروثة)")
+        signal = (
+            "⚠️ رفض متكرّر (≥40%) — الخوارزمية قد لا تناسب السياق المحلّي. "
+            "راجع التوصية واسمع تعليل المزارعين (حكمتهم الموروثة)"
+        )
     elif rate >= 0.2:
         signal = "رفض متوسّط — راقب أسباب الرفض"
     else:

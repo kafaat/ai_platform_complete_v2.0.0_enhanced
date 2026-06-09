@@ -1,7 +1,12 @@
 """Tests for map_layer (ZoneOfInterest → GeoJSON FeatureCollection).
 RFC 7946 compliant, categorical (not rainbow) classification, honest null handling."""
+
 from core.spatial.map_layer import (
-    zones_to_geojson, zone_to_feature, classify_value, legend_for_indicator)
+    classify_value,
+    legend_for_indicator,
+    zone_to_feature,
+    zones_to_geojson,
+)
 
 
 class FakeZone:
@@ -39,8 +44,12 @@ class TestClassification:
 
 class TestGeoJsonConversion:
     def test_basic_feature_structure(self):
-        z = FakeZone([(44.0, 16.0), (44.1, 16.0), (44.1, 16.1), (44.0, 16.1)],
-                    value=0.6, reason="جيّد", zone_id="z1")
+        z = FakeZone(
+            [(44.0, 16.0), (44.1, 16.0), (44.1, 16.1), (44.0, 16.1)],
+            value=0.6,
+            reason="جيّد",
+            zone_id="z1",
+        )
         f = zone_to_feature(z, indicator="ndvi")
         assert f["type"] == "Feature"
         assert f["geometry"]["type"] == "Polygon"
@@ -54,18 +63,19 @@ class TestGeoJsonConversion:
 
     def test_feature_collection_compliant(self):
         zones = [
-            FakeZone([(44.0, 16.0), (44.1, 16.0), (44.1, 16.1), (44.0, 16.1)],
-                    value=0.6, zone_id="z1"),
-            FakeZone([(44.2, 16.0), (44.3, 16.0), (44.3, 16.1), (44.2, 16.1)],
-                    value=0.2, zone_id="z2"),
+            FakeZone(
+                [(44.0, 16.0), (44.1, 16.0), (44.1, 16.1), (44.0, 16.1)], value=0.6, zone_id="z1"
+            ),
+            FakeZone(
+                [(44.2, 16.0), (44.3, 16.0), (44.3, 16.1), (44.2, 16.1)], value=0.2, zone_id="z2"
+            ),
         ]
         fc = zones_to_geojson(zones, indicator="ndvi")
         assert fc["type"] == "FeatureCollection"
         assert len(fc["features"]) == 2
 
     def test_metadata_attached(self):
-        fc = zones_to_geojson([], indicator="ndvi",
-                              metadata={"measured_at": "2026-05-27"})
+        fc = zones_to_geojson([], indicator="ndvi", metadata={"measured_at": "2026-05-27"})
         assert fc["metadata"]["measured_at"] == "2026-05-27"
 
     def test_accepts_lon_lat_dict_format(self):

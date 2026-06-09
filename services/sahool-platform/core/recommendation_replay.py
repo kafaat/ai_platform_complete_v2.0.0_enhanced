@@ -26,25 +26,25 @@ Forensic Agriculture — لماذا خرجت التوصية؟
   ← يقارن ضدّ التشغيل الحالي عبر "replay simulation"
   → يكشف الانحرافات (model drift) للمراجعة البشرية
 """
+
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
-from datetime import datetime
 
 
 @dataclass
 class ReplayReport:
     """تقرير forensic — لماذا خرجت التوصية؟ هل ما زالت متّسقة؟"""
+
     rec_id: str
     issued_date: str
-    has_provenance: bool             # هل التوصية كانت موثّقة كاملاً؟
-    model_versions: dict             # نسخة كل محرّك وقت التوصية
+    has_provenance: bool  # هل التوصية كانت موثّقة كاملاً؟
+    model_versions: dict  # نسخة كل محرّك وقت التوصية
     weather_source: str | None
-    input_snapshot: dict             # قيم المدخلات وقت التوصية
+    input_snapshot: dict  # قيم المدخلات وقت التوصية
     engines_used: list
-    consistency_check: dict          # هل تنتج نفس النتيجة الآن؟
-    drift_detected: bool             # هل اختلف شيء؟
+    consistency_check: dict  # هل تنتج نفس النتيجة الآن؟
+    drift_detected: bool  # هل اختلف شيء؟
     drift_reasons_ar: list[str] = field(default_factory=list)
     summary_ar: str = ""
 
@@ -58,8 +58,7 @@ def explain_recommendation(rec_record) -> dict:
         return {
             "rec_id": rec_record.rec_id,
             "has_provenance": False,
-            "explanation_ar": ("هذه التوصية صدرت قبل تفعيل التتبّع — "
-                               "لا يمكن إعادة بنائها بدقّة"),
+            "explanation_ar": ("هذه التوصية صدرت قبل تفعيل التتبّع — لا يمكن إعادة بنائها بدقّة"),
             "issued_date": rec_record.issued_date,
             "recommendation_ar": rec_record.recommendation_ar,
         }
@@ -122,15 +121,19 @@ def detect_drift(rec_record, current_model_versions: dict) -> ReplayReport:
             weather_source=None,
             input_snapshot={},
             engines_used=[],
-            consistency_check={"status": "unknown",
-                               "reason_ar": "لا تتبّع — التوصية أقدم من النظام"},
-            drift_detected=False,   # لا نُعلن drift بدون مرجع
+            consistency_check={
+                "status": "unknown",
+                "reason_ar": "لا تتبّع — التوصية أقدم من النظام",
+            },
+            drift_detected=False,  # لا نُعلن drift بدون مرجع
             drift_reasons_ar=[],
-            summary_ar="توصية بلا تتبّع — لا يمكن كشف الانحراف")
+            summary_ar="توصية بلا تتبّع — لا يمكن كشف الانحراف",
+        )
 
     prov = rec_record.provenance
-    historical_versions = prov.get("model_versions", {}) if isinstance(prov, dict) \
-        else prov.model_versions
+    historical_versions = (
+        prov.get("model_versions", {}) if isinstance(prov, dict) else prov.model_versions
+    )
 
     # قارن بين النسخ التاريخية والحالية لكل محرّك مشترك
     drift_reasons = []
@@ -139,15 +142,18 @@ def detect_drift(rec_record, current_model_versions: dict) -> ReplayReport:
         if current and current != hist_version:
             drift_reasons.append(
                 f"المحرّك '{engine}': النسخة وقت التوصية {hist_version}، "
-                f"الحالية {current} — أعد التشغيل للتحقّق")
+                f"الحالية {current} — أعد التشغيل للتحقّق"
+            )
 
     drift = len(drift_reasons) > 0
     consistency = {
         "status": "drift_detected" if drift else "stable",
         "checked_engines": list(historical_versions.keys()),
         "reason_ar": (
-            "النموذج تطوّر منذ إصدار التوصية" if drift
-            else "النسخ متطابقة — التوصية قابلة لإعادة الإنتاج"),
+            "النموذج تطوّر منذ إصدار التوصية"
+            if drift
+            else "النسخ متطابقة — التوصية قابلة لإعادة الإنتاج"
+        ),
     }
 
     if isinstance(prov, dict):
@@ -170,13 +176,14 @@ def detect_drift(rec_record, current_model_versions: dict) -> ReplayReport:
         consistency_check=consistency,
         drift_detected=drift,
         drift_reasons_ar=drift_reasons,
-        summary_ar=(f"التوصية صادرة في {rec_record.issued_date}. "
-                    + ("⚠️ انحراف نموذج مكتشف — راجع التفاصيل"
-                       if drift else "✅ النموذج مستقرّ منذ الإصدار")))
+        summary_ar=(
+            f"التوصية صادرة في {rec_record.issued_date}. "
+            + ("⚠️ انحراف نموذج مكتشف — راجع التفاصيل" if drift else "✅ النموذج مستقرّ منذ الإصدار")
+        ),
+    )
 
 
-def audit_chain(rec_records: list, current_model_versions: dict
-                ) -> dict:
+def audit_chain(rec_records: list, current_model_versions: dict) -> dict:
     """تقرير شامل: كم نسبة التوصيات المُتتبَّعة؟ كم منها بانحراف؟
 
     مقياس صحّي للنظام — يكشف 'الديون التتبّعية' المتراكمة."""
@@ -194,10 +201,12 @@ def audit_chain(rec_records: list, current_model_versions: dict
             report = detect_drift(r, current_model_versions)
             if report.drift_detected:
                 drift_count += 1
-                drift_details.append({
-                    "rec_id": report.rec_id,
-                    "reasons": report.drift_reasons_ar,
-                })
+                drift_details.append(
+                    {
+                        "rec_id": report.rec_id,
+                        "reasons": report.drift_reasons_ar,
+                    }
+                )
 
     trace_rate = round(traced / total, 2)
     return {
@@ -207,8 +216,13 @@ def audit_chain(rec_records: list, current_model_versions: dict
         "trace_rate": trace_rate,
         "drift_detected_count": drift_count,
         "drift_details_preview": drift_details[:5],
-        "summary_ar": (f"إجمالي {total} توصية، {traced} متتبَّعة "
-                       f"({trace_rate:.0%})، {drift_count} منها بانحراف نموذج. "
-                       + (f"{untraced} توصية قديمة بلا تتبّع — لا يمكن مراجعتها."
-                          if untraced else "كل التوصيات قابلة للمراجعة.")),
+        "summary_ar": (
+            f"إجمالي {total} توصية، {traced} متتبَّعة "
+            f"({trace_rate:.0%})، {drift_count} منها بانحراف نموذج. "
+            + (
+                f"{untraced} توصية قديمة بلا تتبّع — لا يمكن مراجعتها."
+                if untraced
+                else "كل التوصيات قابلة للمراجعة."
+            )
+        ),
     }

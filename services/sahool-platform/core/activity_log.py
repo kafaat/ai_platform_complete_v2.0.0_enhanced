@@ -23,6 +23,7 @@ implementation_verification يطلب سجلّ تنفيذ موضوعياً — ه
   → يغذّي calibration_loop حين يكتمل الحصاد
   → يغذّي farmer_agency حين يُتجاهَل (skip_reason إشارة تعلّم)
 """
+
 from __future__ import annotations
 
 import uuid
@@ -48,7 +49,7 @@ class ActivityStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
-    SKIPPED = "skipped"   # المزارع تجاوزها عمداً → إشارة لـfarmer_agency
+    SKIPPED = "skipped"  # المزارع تجاوزها عمداً → إشارة لـfarmer_agency
 
 
 @dataclass
@@ -58,15 +59,15 @@ class Activity:
     field_id: str
     activity_type: ActivityType
     status: ActivityStatus
-    rec_id: str | None = None              # ربط بالتوصية
-    planned_date: str | None = None        # ISO date
+    rec_id: str | None = None  # ربط بالتوصية
+    planned_date: str | None = None  # ISO date
     completed_date: str | None = None
     quantity: float | None = None
     unit: str | None = None
     notes_ar: str | None = None
     skip_reason: str | None = None
-    lon: float | None = None               # Geo-tag اختياري (farmOS pattern)
-    lat: float | None = None               # ربط النشاط بزاوية الحقل لا كلّه
+    lon: float | None = None  # Geo-tag اختياري (farmOS pattern)
+    lat: float | None = None  # ربط النشاط بزاوية الحقل لا كلّه
 
 
 def new_activity_id() -> str:
@@ -97,15 +98,28 @@ def plan_activity_from_recommendation(
     except ValueError:
         atype = ActivityType.OTHER
     return Activity(
-        activity_id=new_activity_id(), tenant_id=tenant_id, field_id=field_id,
-        rec_id=rec_id, activity_type=atype, status=ActivityStatus.PLANNED,
-        planned_date=planned_date, quantity=quantity, unit=unit,
-        notes_ar=notes_ar, lon=lon, lat=lat)
+        activity_id=new_activity_id(),
+        tenant_id=tenant_id,
+        field_id=field_id,
+        rec_id=rec_id,
+        activity_type=atype,
+        status=ActivityStatus.PLANNED,
+        planned_date=planned_date,
+        quantity=quantity,
+        unit=unit,
+        notes_ar=notes_ar,
+        lon=lon,
+        lat=lat,
+    )
 
 
-def mark_completed(activity: Activity, *, completed_date: str | None = None,
-                   actual_quantity: float | None = None,
-                   notes_ar: str | None = None) -> Activity:
+def mark_completed(
+    activity: Activity,
+    *,
+    completed_date: str | None = None,
+    actual_quantity: float | None = None,
+    notes_ar: str | None = None,
+) -> Activity:
     """يُحدّث المهمّة لمنفّذة. يحفظ الكمّية الفعلية (قد تختلف عن المخطّطة)."""
     activity.status = ActivityStatus.COMPLETED
     activity.completed_date = completed_date or datetime.now().date().isoformat()
@@ -128,17 +142,18 @@ def mark_skipped(activity: Activity, *, reason_ar: str) -> Activity:
 
 # ── الاستعلامات (وظيفية، لا تخمين، لا اختراع) ──
 
-def overdue_activities(activities: list[Activity], *, today: str | None = None
-                       ) -> list[Activity]:
+
+def overdue_activities(activities: list[Activity], *, today: str | None = None) -> list[Activity]:
     """مهام متأخّرة (planned + planned_date < اليوم). مفيد للتذكير."""
     today = today or datetime.now().date().isoformat()
-    return [a for a in activities
-            if a.status == ActivityStatus.PLANNED
-            and a.planned_date and a.planned_date < today]
+    return [
+        a
+        for a in activities
+        if a.status == ActivityStatus.PLANNED and a.planned_date and a.planned_date < today
+    ]
 
 
-def activities_for_recommendation(activities: list[Activity], rec_id: str
-                                   ) -> list[Activity]:
+def activities_for_recommendation(activities: list[Activity], rec_id: str) -> list[Activity]:
     """كل الأنشطة المرتبطة بتوصية واحدة (لتغذية implementation_verification)."""
     return [a for a in activities if a.rec_id == rec_id]
 
@@ -148,19 +163,24 @@ def adoption_summary(activities: list[Activity]) -> dict:
 
     يغذّي farmer_agency: نسبة skip عالية لنوع → إشارة لإعادة النظر."""
     if not activities:
-        return {"total": 0, "completed": 0, "skipped": 0, "pending": 0,
-                "adoption_rate": None}
+        return {"total": 0, "completed": 0, "skipped": 0, "pending": 0, "adoption_rate": None}
     total = len(activities)
     completed = sum(1 for a in activities if a.status == ActivityStatus.COMPLETED)
     skipped = sum(1 for a in activities if a.status == ActivityStatus.SKIPPED)
-    pending = sum(1 for a in activities
-                  if a.status in (ActivityStatus.PLANNED, ActivityStatus.IN_PROGRESS))
+    pending = sum(
+        1 for a in activities if a.status in (ActivityStatus.PLANNED, ActivityStatus.IN_PROGRESS)
+    )
     completed_or_skipped = completed + skipped
     rate = round(completed / completed_or_skipped, 2) if completed_or_skipped else None
     return {
-        "total": total, "completed": completed, "skipped": skipped,
-        "pending": pending, "adoption_rate": rate,
-        "note_ar": (f"نُفّذ {completed}/{completed + skipped} نشاطاً "
-                    f"(معدّل التبنّي {rate:.0%})" if rate is not None
-                    else f"{pending} نشاطاً ينتظر التنفيذ"),
+        "total": total,
+        "completed": completed,
+        "skipped": skipped,
+        "pending": pending,
+        "adoption_rate": rate,
+        "note_ar": (
+            f"نُفّذ {completed}/{completed + skipped} نشاطاً (معدّل التبنّي {rate:.0%})"
+            if rate is not None
+            else f"{pending} نشاطاً ينتظر التنفيذ"
+        ),
     }

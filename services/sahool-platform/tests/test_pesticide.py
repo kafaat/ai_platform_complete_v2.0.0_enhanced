@@ -1,8 +1,14 @@
 """Tests for pesticide safety gates: PHI binary governor, RRI precautionary indication, economic warning.
 CRITICAL: RRI must NEVER authorize harvest alone — only the lab governs (food safety = red line)."""
+
 from core.engines.pesticide import (
-    evaluate_pesticide_safety, phi_gate, residue_risk_index, predict_residue,
-    economic_warning, PesticideGate)
+    PesticideGate,
+    economic_warning,
+    evaluate_pesticide_safety,
+    phi_gate,
+    predict_residue,
+    residue_risk_index,
+)
 
 
 class TestPHIGate:
@@ -45,15 +51,17 @@ class TestSafetyInvariants:
 
     def test_phi_blocks_even_with_low_rri(self):
         # CRITICAL: PHI لم يمضِ → BLOCKED حتى لو RRI منخفض جداً
-        d = evaluate_pesticide_safety(days_since_spray=2, phi_days=14,
-            initial_deposit=1.0, decay_k=0.5, mrl=100.0)  # RRI ضئيل
+        d = evaluate_pesticide_safety(
+            days_since_spray=2, phi_days=14, initial_deposit=1.0, decay_k=0.5, mrl=100.0
+        )  # RRI ضئيل
         assert d.gate == PesticideGate.BLOCKED
         assert d.confidence == "none"
 
     def test_rri_never_authorizes_harvest_alone(self):
         # CRITICAL: حتى RRI منخفض بعد PHI لا يقول "آمن" — يحيل للمختبر
-        d = evaluate_pesticide_safety(days_since_spray=20, phi_days=14,
-            initial_deposit=1.0, decay_k=0.5, mrl=100.0)
+        d = evaluate_pesticide_safety(
+            days_since_spray=20, phi_days=14, initial_deposit=1.0, decay_k=0.5, mrl=100.0
+        )
         assert d.gate == PesticideGate.CLEARED_PHI
         assert "المختبر يحكم" in d.recommendation_ar or "المؤكّد" in d.requires_lab_ar
 
@@ -64,8 +72,9 @@ class TestSafetyInvariants:
 
     def test_high_rri_after_phi_raises_caution(self):
         # مضى PHI لكن RRI≥100% → حذر + إحالة مخبرية إلزامية
-        d = evaluate_pesticide_safety(days_since_spray=15, phi_days=14,
-            initial_deposit=100.0, decay_k=0.01, mrl=5.0)
+        d = evaluate_pesticide_safety(
+            days_since_spray=15, phi_days=14, initial_deposit=100.0, decay_k=0.01, mrl=5.0
+        )
         assert d.gate == PesticideGate.CAUTION
         assert "إلزامي" in d.requires_lab_ar
 

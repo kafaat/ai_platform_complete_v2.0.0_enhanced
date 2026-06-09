@@ -17,30 +17,36 @@ services/supervisor-agent/tool_contracts.py — Formal Tool Contracts
 المرجع:
     AI Orchestration review — "Execution Contract Engine"
 """
+
 from __future__ import annotations
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Set
-from enum import Enum
+
 import asyncio
 import hashlib
 import json
 import logging
 import time
 import uuid
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import UTC
+from enum import StrEnum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 # ─── Types ──────────────────────────────────────────────────────
 
-class SideEffectClass(str, Enum):
+
+class SideEffectClass(StrEnum):
     """تصنيف الـside-effects لكل tool."""
-    PURE = "pure"                  # لا side effects (read-only، deterministic)
-    READ_DB = "read_db"            # يقرأ من DB لكن لا يكتب
-    WRITE_DB = "write_db"          # يكتب في DB
+
+    PURE = "pure"  # لا side effects (read-only، deterministic)
+    READ_DB = "read_db"  # يقرأ من DB لكن لا يكتب
+    WRITE_DB = "write_db"  # يكتب في DB
     EXTERNAL_API = "external_api"  # يستدعي API خارجي (weather, satellite)
     NOTIFICATION = "notification"  # يرسل SMS/email/push
-    ACTUATOR = "actuator"          # يشغّل/يوقف مضخّة/أجهزة (CRITICAL)
+    ACTUATOR = "actuator"  # يشغّل/يوقف مضخّة/أجهزة (CRITICAL)
 
 
 @dataclass(frozen=True)
@@ -61,15 +67,16 @@ class ToolContract:
         retry_policy: إن فشل، هل نُعيد المحاولة؟
         idempotent: هل الاستدعاء مرّتَين = استدعاء مرّة واحدة؟
     """
+
     tool_id: str
     version: str
     description: str
-    input_schema: Dict[str, Any]
-    output_schema: Dict[str, Any]
+    input_schema: dict[str, Any]
+    output_schema: dict[str, Any]
     side_effects: SideEffectClass
     timeout_ms: int = 5000
     deterministic: bool = True
-    required_capabilities: List[str] = field(default_factory=list)
+    required_capabilities: list[str] = field(default_factory=list)
     cost_estimate_tokens: int = 0
     retry_policy: str = "exponential_backoff"
     max_retries: int = 3
@@ -80,18 +87,20 @@ class ToolContract:
         assert "/" not in self.tool_id, "tool_id لا يجب أن يحتوي /"
         assert self.timeout_ms > 0, "timeout_ms يجب أن يكون موجباً"
         if self.side_effects in (SideEffectClass.WRITE_DB, SideEffectClass.ACTUATOR):
-            assert self.idempotent or self.max_retries == 0, \
+            assert self.idempotent or self.max_retries == 0, (
                 f"{self.tool_id}: write/actuator يجب أن يكون idempotent أو max_retries=0"
+            )
 
 
 @dataclass
 class ToolExecutionResult:
     """نتيجة استدعاء tool."""
+
     tool_id: str
     invocation_id: str
     success: bool
-    output: Optional[Any] = None
-    error: Optional[str] = None
+    output: Any | None = None
+    error: str | None = None
     duration_ms: int = 0
     timed_out: bool = False
     side_effects_recorded: bool = False
@@ -99,14 +108,16 @@ class ToolExecutionResult:
 
 # ─── Registry ───────────────────────────────────────────────────
 
+
 class ToolRegistry:
     """
     سجلّ الـtools الرسمي.
     Singleton-like — يُملأ عند bootstrap الـsupervisor-agent.
     """
+
     def __init__(self):
-        self._contracts: Dict[str, ToolContract] = {}
-        self._implementations: Dict[str, Callable] = {}
+        self._contracts: dict[str, ToolContract] = {}
+        self._implementations: dict[str, Callable] = {}
 
     def register(
         self,
@@ -123,22 +134,22 @@ class ToolRegistry:
             f"({contract.side_effects.value})"
         )
 
-    def get_contract(self, tool_id: str) -> Optional[ToolContract]:
+    def get_contract(self, tool_id: str) -> ToolContract | None:
         return self._contracts.get(tool_id)
 
-    def list_tools(self) -> List[str]:
+    def list_tools(self) -> list[str]:
         return sorted(self._contracts.keys())
 
-    def list_by_side_effect(self, sec: SideEffectClass) -> List[str]:
+    def list_by_side_effect(self, sec: SideEffectClass) -> list[str]:
         return [tid for tid, c in self._contracts.items() if c.side_effects == sec]
 
     async def invoke(
         self,
         tool_id: str,
-        input_data: Dict[str, Any],
-        actor_capabilities: Set[str],
-        tenant_id: Optional[str] = None,
-        journal: Optional['ExecutionJournal'] = None,
+        input_data: dict[str, Any],
+        actor_capabilities: set[str],
+        tenant_id: str | None = None,
+        journal: ExecutionJournal | None = None,
     ) -> ToolExecutionResult:
         """
         يستدعي tool مع جميع الـenforcement:
@@ -155,8 +166,10 @@ class ToolRegistry:
         # ١. tool exists?
         if not contract:
             return ToolExecutionResult(
-                tool_id=tool_id, invocation_id=invocation_id,
-                success=False, error=f"tool {tool_id} غير مسجّل",
+                tool_id=tool_id,
+                invocation_id=invocation_id,
+                success=False,
+                error=f"tool {tool_id} غير مسجّل",
             )
 
         # ٢. capabilities check
@@ -166,15 +179,19 @@ class ToolRegistry:
             if journal:
                 await journal.record_denial(invocation_id, tool_id, err, tenant_id)
             return ToolExecutionResult(
-                tool_id=tool_id, invocation_id=invocation_id,
-                success=False, error=err,
+                tool_id=tool_id,
+                invocation_id=invocation_id,
+                success=False,
+                error=err,
             )
 
         # ٣. input validation (basic — full JSON Schema لاحقاً)
         if not self._validate_input(input_data, contract.input_schema):
             return ToolExecutionResult(
-                tool_id=tool_id, invocation_id=invocation_id,
-                success=False, error="input لا يطابق الـschema",
+                tool_id=tool_id,
+                invocation_id=invocation_id,
+                success=False,
+                error="input لا يطابق الـschema",
             )
 
         # ٤. journal — قبل التنفيذ (للـreplay)
@@ -203,37 +220,53 @@ class ToolRegistry:
                 err = "output لا يطابق الـschema"
                 if journal:
                     await journal.record_complete(
-                        invocation_id, success=False, error=err,
+                        invocation_id,
+                        success=False,
+                        error=err,
                         duration_ms=duration_ms,
                     )
                 return ToolExecutionResult(
-                    tool_id=tool_id, invocation_id=invocation_id,
-                    success=False, error=err, duration_ms=duration_ms,
+                    tool_id=tool_id,
+                    invocation_id=invocation_id,
+                    success=False,
+                    error=err,
+                    duration_ms=duration_ms,
                 )
 
             # success
             if journal:
                 await journal.record_complete(
-                    invocation_id, success=True, output=output,
+                    invocation_id,
+                    success=True,
+                    output=output,
                     duration_ms=duration_ms,
                 )
             return ToolExecutionResult(
-                tool_id=tool_id, invocation_id=invocation_id,
-                success=True, output=output, duration_ms=duration_ms,
+                tool_id=tool_id,
+                invocation_id=invocation_id,
+                success=True,
+                output=output,
+                duration_ms=duration_ms,
                 side_effects_recorded=journal is not None,
             )
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             duration_ms = contract.timeout_ms
             err = f"timeout after {contract.timeout_ms}ms"
             if journal:
                 await journal.record_complete(
-                    invocation_id, success=False, error=err,
-                    duration_ms=duration_ms, timed_out=True,
+                    invocation_id,
+                    success=False,
+                    error=err,
+                    duration_ms=duration_ms,
+                    timed_out=True,
                 )
             return ToolExecutionResult(
-                tool_id=tool_id, invocation_id=invocation_id,
-                success=False, error=err, duration_ms=duration_ms,
+                tool_id=tool_id,
+                invocation_id=invocation_id,
+                success=False,
+                error=err,
+                duration_ms=duration_ms,
                 timed_out=True,
             )
 
@@ -242,15 +275,20 @@ class ToolRegistry:
             err = f"{type(e).__name__}: {str(e)[:200]}"
             if journal:
                 await journal.record_complete(
-                    invocation_id, success=False, error=err,
+                    invocation_id,
+                    success=False,
+                    error=err,
                     duration_ms=duration_ms,
                 )
             return ToolExecutionResult(
-                tool_id=tool_id, invocation_id=invocation_id,
-                success=False, error=err, duration_ms=duration_ms,
+                tool_id=tool_id,
+                invocation_id=invocation_id,
+                success=False,
+                error=err,
+                duration_ms=duration_ms,
             )
 
-    def _validate_input(self, data: Any, schema: Dict[str, Any]) -> bool:
+    def _validate_input(self, data: Any, schema: dict[str, Any]) -> bool:
         """تحقّق أساسي من الـinput shape (للـMVP — JSON Schema كامل لاحقاً)."""
         if schema.get("type") == "object":
             if not isinstance(data, dict):
@@ -261,7 +299,7 @@ class ToolRegistry:
                     return False
         return True
 
-    def _validate_output(self, output: Any, schema: Dict[str, Any]) -> bool:
+    def _validate_output(self, output: Any, schema: dict[str, Any]) -> bool:
         """تحقّق أساسي من الـoutput."""
         if schema.get("type") == "object" and not isinstance(output, dict):
             return False
@@ -270,14 +308,15 @@ class ToolRegistry:
 
 # ─── Execution Journal (append-only) ─────────────────────────────
 
+
 @dataclass
 class JournalEntry:
     invocation_id: str
     tool_id: str
-    event: str                  # "start" | "complete" | "denial"
+    event: str  # "start" | "complete" | "denial"
     timestamp: str
-    tenant_id: Optional[str]
-    payload: Dict[str, Any]
+    tenant_id: str | None
+    payload: dict[str, Any]
 
 
 class ExecutionJournal:
@@ -291,38 +330,42 @@ class ExecutionJournal:
        - audit: من استدعى actuator متى؟
        - replay: أعد بناء الـstate من history
     """
+
     def __init__(self):
-        self._entries: List[JournalEntry] = []
+        self._entries: list[JournalEntry] = []
         self._lock = asyncio.Lock()
 
     async def record_start(
         self,
-        invocation_id: str, tool_id: str,
-        input_data: Dict[str, Any],
-        actor_capabilities: List[str],
-        tenant_id: Optional[str],
+        invocation_id: str,
+        tool_id: str,
+        input_data: dict[str, Any],
+        actor_capabilities: list[str],
+        tenant_id: str | None,
         contract_version: str,
     ):
         async with self._lock:
-            self._entries.append(JournalEntry(
-                invocation_id=invocation_id,
-                tool_id=tool_id,
-                event="start",
-                timestamp=_now_iso(),
-                tenant_id=tenant_id,
-                payload={
-                    "input_hash": _hash_payload(input_data),
-                    "actor_capabilities": actor_capabilities,
-                    "contract_version": contract_version,
-                },
-            ))
+            self._entries.append(
+                JournalEntry(
+                    invocation_id=invocation_id,
+                    tool_id=tool_id,
+                    event="start",
+                    timestamp=_now_iso(),
+                    tenant_id=tenant_id,
+                    payload={
+                        "input_hash": _hash_payload(input_data),
+                        "actor_capabilities": actor_capabilities,
+                        "contract_version": contract_version,
+                    },
+                )
+            )
 
     async def record_complete(
         self,
         invocation_id: str,
         success: bool,
         output: Any = None,
-        error: Optional[str] = None,
+        error: str | None = None,
         duration_ms: int = 0,
         timed_out: bool = False,
     ):
@@ -331,47 +374,56 @@ class ExecutionJournal:
             # invocation. السابق كتب "" فلم يُملأ أبداً ⇒ get_entries(tool_id)
             # وتدقيق المُشغّلات لا يطابقان أحداث الإكمال (تُسقَط بصمت).
             _start = next(
-                (e for e in reversed(self._entries)
-                 if e.invocation_id == invocation_id and e.event == "start"),
+                (
+                    e
+                    for e in reversed(self._entries)
+                    if e.invocation_id == invocation_id and e.event == "start"
+                ),
                 None,
             )
-            self._entries.append(JournalEntry(
-                invocation_id=invocation_id,
-                tool_id=(_start.tool_id if _start else ""),
-                event="complete",
-                timestamp=_now_iso(),
-                tenant_id=(_start.tenant_id if _start else None),
-                payload={
-                    "success": success,
-                    "error": error,
-                    "duration_ms": duration_ms,
-                    "timed_out": timed_out,
-                    "output_hash": _hash_payload(output) if output else None,
-                },
-            ))
+            self._entries.append(
+                JournalEntry(
+                    invocation_id=invocation_id,
+                    tool_id=(_start.tool_id if _start else ""),
+                    event="complete",
+                    timestamp=_now_iso(),
+                    tenant_id=(_start.tenant_id if _start else None),
+                    payload={
+                        "success": success,
+                        "error": error,
+                        "duration_ms": duration_ms,
+                        "timed_out": timed_out,
+                        "output_hash": _hash_payload(output) if output else None,
+                    },
+                )
+            )
 
     async def record_denial(
         self,
-        invocation_id: str, tool_id: str,
-        reason: str, tenant_id: Optional[str],
+        invocation_id: str,
+        tool_id: str,
+        reason: str,
+        tenant_id: str | None,
     ):
         async with self._lock:
-            self._entries.append(JournalEntry(
-                invocation_id=invocation_id,
-                tool_id=tool_id,
-                event="denial",
-                timestamp=_now_iso(),
-                tenant_id=tenant_id,
-                payload={"reason": reason},
-            ))
+            self._entries.append(
+                JournalEntry(
+                    invocation_id=invocation_id,
+                    tool_id=tool_id,
+                    event="denial",
+                    timestamp=_now_iso(),
+                    tenant_id=tenant_id,
+                    payload={"reason": reason},
+                )
+            )
 
-    async def get_entries(self, tool_id: Optional[str] = None) -> List[JournalEntry]:
+    async def get_entries(self, tool_id: str | None = None) -> list[JournalEntry]:
         async with self._lock:
             if tool_id:
                 return [e for e in self._entries if e.tool_id == tool_id]
             return list(self._entries)
 
-    async def replay(self, invocation_id: str) -> List[JournalEntry]:
+    async def replay(self, invocation_id: str) -> list[JournalEntry]:
         """يستخرج كل الأحداث المتعلّقة بـinvocation معيّن."""
         async with self._lock:
             return [e for e in self._entries if e.invocation_id == invocation_id]
@@ -379,9 +431,11 @@ class ExecutionJournal:
 
 # ─── Helpers ────────────────────────────────────────────────────
 
+
 def _now_iso() -> str:
-    from datetime import datetime, timezone
-    return datetime.now(timezone.utc).isoformat()
+    from datetime import datetime
+
+    return datetime.now(UTC).isoformat()
 
 
 def _hash_payload(data: Any) -> str:
@@ -396,6 +450,7 @@ def _hash_payload(data: Any) -> str:
 
 
 # ─── Example: تسجيل tools حقيقيّة ────────────────────────────────
+
 
 def bootstrap_default_tools(registry: ToolRegistry) -> None:
     """يسجّل أمثلة من الـtools الحقيقيّة في سهول."""
@@ -424,7 +479,7 @@ def bootstrap_default_tools(registry: ToolRegistry) -> None:
             },
             side_effects=SideEffectClass.EXTERNAL_API,
             timeout_ms=5000,
-            deterministic=False,    # weather يتغيّر
+            deterministic=False,  # weather يتغيّر
             required_capabilities=["weather.read"],
             idempotent=True,
         ),
@@ -454,7 +509,7 @@ def bootstrap_default_tools(registry: ToolRegistry) -> None:
             deterministic=False,
             required_capabilities=["actuator.pump.control"],
             cost_estimate_tokens=0,
-            max_retries=0,    # ⚠ لا retry للـactuators
+            max_retries=0,  # ⚠ لا retry للـactuators
             idempotent=False,
         ),
         implementation=_dummy_pump_impl,

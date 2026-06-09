@@ -16,11 +16,11 @@ NDVI يحدّد المنطقة، لكنّ المعدّل يبقى BLOCKED حتى
 ⚠ القيم الإرشاديّة من أدبيّات التربة الكلسيّة (FAO + مراجع)، لكنّها تحتاج
 معايرة محلّيّة. موسومة. هذا محرّك قواعد لا ثوابت إنتاج.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class Nutrient(str, Enum):
@@ -32,34 +32,36 @@ class Nutrient(str, Enum):
 
 
 class RecommendationStatus(str, Enum):
-    OK = "ok"                  # توصية جاهزة
-    BLOCKED = "blocked"        # محجوبة — تحتاج تحليل مختبر
-    ADVISORY = "advisory"      # إرشاد عام بلا معدّل دقيق
+    OK = "ok"  # توصية جاهزة
+    BLOCKED = "blocked"  # محجوبة — تحتاج تحليل مختبر
+    ADVISORY = "advisory"  # إرشاد عام بلا معدّل دقيق
 
 
 @dataclass
 class SoilContext:
     """سياق التربة (من تحليل مختبري لو متاح)."""
-    caco3_pct: Optional[float] = None       # كربونات الكالسيوم
-    ph: Optional[float] = None
-    p_ppm: Optional[float] = None           # فوسفور متاح
-    fe_ppm: Optional[float] = None
-    zn_ppm: Optional[float] = None
-    om_pct: Optional[float] = None          # مادة عضويّة
+
+    caco3_pct: float | None = None  # كربونات الكالسيوم
+    ph: float | None = None
+    p_ppm: float | None = None  # فوسفور متاح
+    fe_ppm: float | None = None
+    zn_ppm: float | None = None
+    om_pct: float | None = None  # مادة عضويّة
 
 
 @dataclass
 class FourRRecommendation:
     """توصية 4R لعنصر واحد."""
+
     nutrient: Nutrient
     status: RecommendationStatus
-    source_ar: str        # right Source
-    rate_ar: str          # right Rate
-    timing_ar: str        # right Time
-    placement_ar: str     # right Place
-    warnings_ar: List[str] = field(default_factory=list)
+    source_ar: str  # right Source
+    rate_ar: str  # right Rate
+    timing_ar: str  # right Time
+    placement_ar: str  # right Place
+    warnings_ar: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "nutrient": self.nutrient.value,
             "status": self.status.value,
@@ -106,8 +108,10 @@ def recommend_phosphorus(soil: SoilContext) -> FourRRecommendation:
         return FourRRecommendation(
             nutrient=Nutrient.P,
             status=RecommendationStatus.BLOCKED,
-            source_ar="—", rate_ar="محجوب: يلزم تحليل مختبري للفوسفور المتاح (Olsen-P)",
-            timing_ar="—", placement_ar="—",
+            source_ar="—",
+            rate_ar="محجوب: يلزم تحليل مختبري للفوسفور المتاح (Olsen-P)",
+            timing_ar="—",
+            placement_ar="—",
             warnings_ar=["لا توصية بمعدّل P دون تحليل مختبر — الفوسفور يُثبَّت بشدّة في التربة الكلسيّة"],
         )
 
@@ -130,14 +134,20 @@ def recommend_micronutrient(soil: SoilContext, nutrient: Nutrient) -> FourRRecom
     """قاعدة Fe/Zn: غير متاحَين في التربة الكلسيّة → تصحيح ورقي."""
     val = soil.fe_ppm if nutrient == Nutrient.FE else soil.zn_ppm
     name = "الحديد" if nutrient == Nutrient.FE else "الزنك"
-    chelate = "مخلّبي (Fe-EDDHA يقاوم التربة الكلسيّة)" if nutrient == Nutrient.FE else "كبريتات الزنك أو مخلّبي"
+    chelate = (
+        "مخلّبي (Fe-EDDHA يقاوم التربة الكلسيّة)"
+        if nutrient == Nutrient.FE
+        else "كبريتات الزنك أو مخلّبي"
+    )
 
     if val is None:
         return FourRRecommendation(
             nutrient=nutrient,
             status=RecommendationStatus.BLOCKED,
-            source_ar="—", rate_ar=f"محجوب: يلزم تحليل {name}",
-            timing_ar="—", placement_ar="—",
+            source_ar="—",
+            rate_ar=f"محجوب: يلزم تحليل {name}",
+            timing_ar="—",
+            placement_ar="—",
             warnings_ar=[f"{name} شائع النقص في التربة الكلسيّة لكن لا معدّل دون تحليل"],
         )
 
@@ -152,7 +162,7 @@ def recommend_micronutrient(soil: SoilContext, nutrient: Nutrient) -> FourRRecom
     )
 
 
-def full_4r_plan(soil: SoilContext, nutrients: Optional[List[str]] = None) -> List[Dict]:
+def full_4r_plan(soil: SoilContext, nutrients: list[str] | None = None) -> list[dict]:
     """خطة 4R كاملة لقائمة عناصر (افتراضي: N, P, Fe, Zn — شائعة النقص يمنيّاً)."""
     if nutrients is None:
         nutrients = ["nitrogen", "phosphorus", "iron", "zinc"]

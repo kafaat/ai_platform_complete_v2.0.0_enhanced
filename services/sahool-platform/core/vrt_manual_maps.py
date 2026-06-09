@@ -36,6 +36,7 @@ Variable Rate Treatment — Manual Execution Maps.
   • GPS-guided execution (يحتاج جهاز ميداني)
   → كلّها wrappers خفيفة فوق هذه البنية
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -44,31 +45,33 @@ from enum import Enum
 
 class TreatmentColor(str, Enum):
     """ترميز لوني قياسي — حسّ بشري بصري سريع."""
-    RED = "#D32F2F"        # تركيز عالي / منطقة حرجة
-    ORANGE = "#F57C00"     # تركيز متوسّط-عالي
-    YELLOW = "#FBC02D"     # تركيز متوسّط
-    GREEN = "#388E3C"      # تركيز منخفض / سليم
-    BLUE = "#1976D2"       # لا تطبيق (skip zone)
-    GRAY = "#757575"       # بيانات غير كافية
+
+    RED = "#D32F2F"  # تركيز عالي / منطقة حرجة
+    ORANGE = "#F57C00"  # تركيز متوسّط-عالي
+    YELLOW = "#FBC02D"  # تركيز متوسّط
+    GREEN = "#388E3C"  # تركيز منخفض / سليم
+    BLUE = "#1976D2"  # لا تطبيق (skip zone)
+    GRAY = "#757575"  # بيانات غير كافية
 
 
 class TreatmentType(str, Enum):
-    NITROGEN = "nitrogen"           # تسميد نيتروجيني
+    NITROGEN = "nitrogen"  # تسميد نيتروجيني
     PHOSPHORUS = "phosphorus"
     POTASSIUM = "potassium"
     IRRIGATION = "irrigation"
-    PESTICIDE = "pesticide"          # SAFETY CRITICAL
-    HERBICIDE = "herbicide"          # SAFETY CRITICAL
+    PESTICIDE = "pesticide"  # SAFETY CRITICAL
+    HERBICIDE = "herbicide"  # SAFETY CRITICAL
     SOIL_AMENDMENT = "soil_amendment"
 
 
 @dataclass
 class ZoneTreatment:
     """توصية لمنطقة واحدة داخل حقل."""
+
     zone_id: str
     treatment_type: TreatmentType
     rate_per_ha: float | None
-    rate_unit: str                  # "kg/ha" / "L/ha" / "mm"
+    rate_unit: str  # "kg/ha" / "L/ha" / "mm"
     product_name_ar: str | None = None
     color: TreatmentColor = TreatmentColor.GRAY
     area_ha: float | None = None
@@ -81,24 +84,25 @@ class ZoneTreatment:
 @dataclass
 class ManualExecutionMap:
     """خريطة تنفيذ قابلة للطباعة — البديل البشري لـISOXML."""
+
     field_id: str
     field_name_ar: str
-    map_id: str                      # للتتبّع: "vrt_2026_05_31_001"
+    map_id: str  # للتتبّع: "vrt_2026_05_31_001"
     treatment_type: TreatmentType
     total_area_ha: float
     zones: list[ZoneTreatment]
     total_product_needed: float
     total_product_unit: str
-    legend_ar: dict                  # color → meaning
-    execution_steps_ar: list[str]    # تعليمات مرتّبة للعامل
-    safety_warnings_ar: list[str]    # PHI، حماية شخصية، إلخ
+    legend_ar: dict  # color → meaning
+    execution_steps_ar: list[str]  # تعليمات مرتّبة للعامل
+    safety_warnings_ar: list[str]  # PHI، حماية شخصية، إلخ
     created_at: str = ""
 
 
 # ─── ترميز لوني للجرعات ──────────────────────────────────────────
 
-def _rate_to_color(rate: float | None, rate_range: tuple[float, float]
-                  ) -> TreatmentColor:
+
+def _rate_to_color(rate: float | None, rate_range: tuple[float, float]) -> TreatmentColor:
     """يحوّل جرعة إلى لون حسب موقعها في النطاق.
 
     rate_range: (min_typical, max_typical) للمحصول/المنطقة.
@@ -109,7 +113,7 @@ def _rate_to_color(rate: float | None, rate_range: tuple[float, float]
     if max_r <= min_r:
         return TreatmentColor.GRAY
     if rate <= 0:
-        return TreatmentColor.BLUE   # skip
+        return TreatmentColor.BLUE  # skip
     normalized = (rate - min_r) / (max_r - min_r)
     if normalized <= 0.2:
         return TreatmentColor.GREEN
@@ -130,7 +134,7 @@ def build_zone_treatment(
     *,
     product_name_ar: str | None = None,
     rate_range_for_color: tuple[float, float] | None = None,
-    phi_status: str | None = None,        # "safe" / "blocked" / None
+    phi_status: str | None = None,  # "safe" / "blocked" / None
     days_to_safe: int | None = None,
 ) -> ZoneTreatment:
     """يبني توصية منطقة واحدة. يفرض السلامة قبل المبيدات."""
@@ -142,10 +146,8 @@ def build_zone_treatment(
         if phi_status == "blocked":
             # لا توصية حتى لو طُلبت
             rate_per_ha = None
-            safety.append(f"⛔ بوّابة PHI: لا رشّ — يجب الانتظار "
-                         f"{days_to_safe or '؟'} يوماً")
-            instructions = ("لا تنفّذ — في فترة الأمان قبل الحصاد. "
-                          "راجع المهندس الزراعي.")
+            safety.append(f"⛔ بوّابة PHI: لا رشّ — يجب الانتظار {days_to_safe or '؟'} يوماً")
+            instructions = "لا تنفّذ — في فترة الأمان قبل الحصاد. راجع المهندس الزراعي."
         elif phi_status != "safe":
             rate_per_ha = None
             safety.append("⚠️ حالة PHI غير محدّدة — تحقّق قبل الرشّ")
@@ -160,8 +162,7 @@ def build_zone_treatment(
         color = _rate_to_color(rate_per_ha, rate_range_for_color)
 
     # الكمّيّة المتوقّعة
-    expected = (rate_per_ha * area_ha
-               if rate_per_ha is not None else None)
+    expected = rate_per_ha * area_ha if rate_per_ha is not None else None
     expected_unit = rate_unit.replace("/ha", "") if rate_unit else None
 
     # تعليمات عربية للعامل
@@ -172,9 +173,11 @@ def build_zone_treatment(
             instructions = "تخطّى هذه المنطقة (لا حاجة)"
         else:
             product_text = f" من {product_name_ar}" if product_name_ar else ""
-            instructions = (f"طبّق {rate_per_ha}{rate_unit}{product_text} "
-                          f"على {area_ha} هكتار "
-                          f"(الإجمالي: {expected:.1f}{expected_unit or ''})")
+            instructions = (
+                f"طبّق {rate_per_ha}{rate_unit}{product_text} "
+                f"على {area_ha} هكتار "
+                f"(الإجمالي: {expected:.1f}{expected_unit or ''})"
+            )
 
     return ZoneTreatment(
         zone_id=zone_id,
@@ -204,10 +207,8 @@ def build_execution_map(
 
     # الإجماليات (تخطّي None بصراحة)
     total_area = sum(z.area_ha for z in zone_treatments if z.area_ha)
-    total_product = sum(z.expected_amount for z in zone_treatments
-                       if z.expected_amount is not None)
-    common_unit = next((z.expected_unit for z in zone_treatments
-                       if z.expected_unit), "")
+    total_product = sum(z.expected_amount for z in zone_treatments if z.expected_amount is not None)
+    common_unit = next((z.expected_unit for z in zone_treatments if z.expected_unit), "")
 
     # Legend
     legend = {
@@ -221,14 +222,16 @@ def build_execution_map(
 
     # خطوات التنفيذ المرتّبة (أحمر→برتقالي→أصفر→أخضر)
     color_order = {
-        TreatmentColor.RED: 0, TreatmentColor.ORANGE: 1,
-        TreatmentColor.YELLOW: 2, TreatmentColor.GREEN: 3,
-        TreatmentColor.BLUE: 4, TreatmentColor.GRAY: 5,
+        TreatmentColor.RED: 0,
+        TreatmentColor.ORANGE: 1,
+        TreatmentColor.YELLOW: 2,
+        TreatmentColor.GREEN: 3,
+        TreatmentColor.BLUE: 4,
+        TreatmentColor.GRAY: 5,
     }
-    ordered_zones = sorted(zone_treatments,
-                          key=lambda z: color_order[z.color])
+    ordered_zones = sorted(zone_treatments, key=lambda z: color_order[z.color])
     steps = [
-        f"{i+1}. منطقة {z.zone_id} ({z.color.value}): {z.worker_instructions_ar}"
+        f"{i + 1}. منطقة {z.zone_id} ({z.color.value}): {z.worker_instructions_ar}"
         for i, z in enumerate(ordered_zones)
     ]
 
@@ -243,8 +246,7 @@ def build_execution_map(
         warnings.append("⚠️ ابعد الأطفال والحيوانات أثناء الرشّ")
         warnings.append("⚠️ تحقّق من سرعة الرياح (<15 km/h)")
 
-    map_id = (f"vrt_{datetime.now().strftime('%Y%m%d')}"
-             f"_{map_id_suffix or field_id}")
+    map_id = f"vrt_{datetime.now().strftime('%Y%m%d')}_{map_id_suffix or field_id}"
 
     return ManualExecutionMap(
         field_id=field_id,

@@ -14,22 +14,21 @@ api/water_harvesting.py — حصاد مياه الأمطار (للمناطق ش�
 ⚠ تقدير إرشادي. الكميّة الفعليّة تعتمد على شدّة المطر والتسرّب والتبخّر.
 توجّه لا يفرض. السياق: الحصاد يكمّل لا يُغني عن إدارة الطلب (محاصيل أقلّ شرهاً).
 """
+
 from __future__ import annotations
-
-from typing import Dict, Optional
-
 
 # معامل الجريان حسب نوع السطح (كسر المطر الذي يُحصد فعليّاً)
 _RUNOFF_COEFF = {
-    "roof": 0.85,           # سطح صلب (مبنى) — كفاءة عالية
-    "compacted": 0.55,      # أرض مدكوكة/ممهّدة لحصاد السيول
-    "natural": 0.30,        # أرض طبيعيّة (تسرّب أعلى)
-    "terrace": 0.45,        # مدرّجات (تحجز جزءاً وتسرّب جزءاً للتربة)
+    "roof": 0.85,  # سطح صلب (مبنى) — كفاءة عالية
+    "compacted": 0.55,  # أرض مدكوكة/ممهّدة لحصاد السيول
+    "natural": 0.30,  # أرض طبيعيّة (تسرّب أعلى)
+    "terrace": 0.45,  # مدرّجات (تحجز جزءاً وتسرّب جزءاً للتربة)
 }
 
 
-def harvest_potential(catchment_area_m2: float, annual_rain_mm: float,
-                      surface: str = "roof") -> Dict:
+def harvest_potential(
+    catchment_area_m2: float, annual_rain_mm: float, surface: str = "roof"
+) -> dict:
     """يقدّر كميّة مياه الأمطار القابلة للحصاد سنويّاً.
 
     الحجم (لتر) = المساحة (م²) × المطر (مم) × معامل الجريان
@@ -54,14 +53,13 @@ def harvest_potential(catchment_area_m2: float, annual_rain_mm: float,
             "تكميلي في فترات الجفاف."
         ),
         "note_ar": (
-            "تقدير إرشادي — الكميّة الفعليّة تقلّ بالتبخّر والتسرّب. كلّما صلب "
-            "السطح زاد الجريان المحصود."
+            "تقدير إرشادي — الكميّة الفعليّة تقلّ بالتبخّر والتسرّب. كلّما صلب السطح زاد الجريان المحصود."
         ),
     }
 
 
 # طرق حصاد المياه المناسبة لليمن
-_METHODS: Dict[str, Dict] = {
+_METHODS: dict[str, dict] = {
     "terraces": {
         "name_ar": "المدرّجات الجبليّة",
         "what_ar": "مصاطب أفقيّة على المنحدرات تحجز مياه الأمطار والتربة.",
@@ -109,11 +107,15 @@ _METHODS: Dict[str, Dict] = {
 }
 
 
-def harvesting_methods(surface_or_terrain: Optional[str] = None) -> Dict:
+def harvesting_methods(surface_or_terrain: str | None = None) -> dict:
     """طرق حصاد المياه المناسبة (كلّها أو مفلترة بالتضاريس)."""
     methods = [
-        {"method": k, "name_ar": v["name_ar"], "what_ar": v["what_ar"],
-         "best_for_ar": v["best_for_ar"]}
+        {
+            "method": k,
+            "name_ar": v["name_ar"],
+            "what_ar": v["what_ar"],
+            "best_for_ar": v["best_for_ar"],
+        }
         for k, v in _METHODS.items()
     ]
     return {
@@ -129,23 +131,25 @@ def harvesting_methods(surface_or_terrain: Optional[str] = None) -> Dict:
     }
 
 
-def method_guide(method: str) -> Dict:
+def method_guide(method: str) -> dict:
     """دليل طريقة حصاد مياه محدّدة."""
     m = _METHODS.get(method.strip().lower())
     if not m:
-        return {"supported": False,
-                "message_ar": f"لا دليل لـ«{method}». المتاح: "
-                              + "، ".join(v["name_ar"] for v in _METHODS.values())}
+        return {
+            "supported": False,
+            "message_ar": f"لا دليل لـ«{method}». المتاح: "
+            + "، ".join(v["name_ar"] for v in _METHODS.values()),
+        }
     return {
         "supported": True,
         "method": method,
-        "name_ar": m["name_ar"], "what_ar": m["what_ar"],
+        "name_ar": m["name_ar"],
+        "what_ar": m["what_ar"],
         "benefits_ar": m["benefits_ar"],
         "best_for_ar": m["best_for_ar"],
         "caution_ar": m["caution_ar"],
         "disclaimer_ar": (
-            "إرشاد عامّ + تراث يمني. التصميم الفعلي (خاصّةً السدود) يحتاج خبرة "
-            "فنّيّة. توجّه لا يفرض."
+            "إرشاد عامّ + تراث يمني. التصميم الفعلي (خاصّةً السدود) يحتاج خبرة فنّيّة. توجّه لا يفرض."
         ),
     }
 
@@ -154,7 +158,8 @@ def method_guide(method: str) -> Dict:
 # الحزم/الجوف منطقة تجمّع سيول من أحواض أعلى (صعدة/عمران/صنعاء) — الماء
 # المتاح للزراعة أكبر من المطر النقطي المحلّي (~80-95مم). موثّق رسميّاً.
 
-def upstream_flood_water(local_rain_mm: float, catchment_note: str = "") -> Dict:
+
+def upstream_flood_water(local_rain_mm: float, catchment_note: str = "") -> dict:
     """يوضّح مورد السيول الواردة كمصدر ماء إضافي يتجاوز المطر المحلّي.
 
     مناطق التجمّع (كالحزم) تستقبل سيولاً موسميّة من أحواض جبليّة أعلى،
@@ -187,7 +192,6 @@ def upstream_flood_water(local_rain_mm: float, catchment_note: str = "") -> Dict
             "تغسل الأملاح — ميزة) + المخاطر الموسميّة (السيول المفاجئة خطر)."
         ),
         "disclaimer_ar": (
-            "توجّه مفاهيمي — قياس الجريان الفعلي يحتاج بيانات هيدرولوجيّة "
-            "للأحواض. استشر هيئة المياه."
+            "توجّه مفاهيمي — قياس الجريان الفعلي يحتاج بيانات هيدرولوجيّة للأحواض. استشر هيئة المياه."
         ),
     }

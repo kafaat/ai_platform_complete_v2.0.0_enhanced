@@ -12,18 +12,18 @@ core.learning.recommendation_log
 كل سجلّ يحمل: التوصية + أساسها (provenance) + درجة الجودة وقتها +
 ثم النتيجة الفعلية حين تتوفّر. لا أرقام تُكتب قبل توفّرها.
 """
+
 from __future__ import annotations
 
 import csv
-import json
-import os
+
 try:
     import fcntl  # POSIX file locking
+
     _HAS_FCNTL = True
 except ImportError:
     _HAS_FCNTL = False
-from dataclasses import dataclass, asdict
-from datetime import date
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 
@@ -38,13 +38,14 @@ class RecommendationProvenance:
       • snapshot للمدخلات الحرجة في لحظة التوصية
       • قائمة المحرّكات المشاركة (engines_used)
     """
-    model_versions: dict      # {"fao56":"v1", "wofost":"7.2", ...}
-    weather_source: str       # "open-meteo" / "copernicus" / "manual"
-    weather_data_date: str    # ISO date للقراءة الطقسية المستخدمة
-    input_snapshot: dict      # {"ndvi":0.55, "ec":1.2, ...} — قيم اللحظة
-    engines_used: list        # ["fao56","fertility","fuzzy",...]
-    calibration_set_id: str | None = None   # أيّ مجموعة معايرة استُخدمت
-    knowledge_snippets_ids: list | None = None   # KB IDs المُستحضَرة
+
+    model_versions: dict  # {"fao56":"v1", "wofost":"7.2", ...}
+    weather_source: str  # "open-meteo" / "copernicus" / "manual"
+    weather_data_date: str  # ISO date للقراءة الطقسية المستخدمة
+    input_snapshot: dict  # {"ndvi":0.55, "ec":1.2, ...} — قيم اللحظة
+    engines_used: list  # ["fao56","fertility","fuzzy",...]
+    calibration_set_id: str | None = None  # أيّ مجموعة معايرة استُخدمت
+    knowledge_snippets_ids: list | None = None  # KB IDs المُستحضَرة
 
 
 @dataclass
@@ -56,15 +57,15 @@ class RecommendationRecord:
     crop: str
     issued_date: str
     recommendation_ar: str
-    quality_grade: str           # من validate_observations
-    predicted_yield_t_ha: float | None   # null إن قيد المعايرة
+    quality_grade: str  # من validate_observations
+    predicted_yield_t_ha: float | None  # null إن قيد المعايرة
     confidence: str
     # filled later when outcome arrives:
     actual_yield_t_ha: float | None = None
     outcome_date: str | None = None
-    error_pct: float | None = None       # |actual-predicted|/actual
+    error_pct: float | None = None  # |actual-predicted|/actual
     # forensic provenance (اختياري للتوافق الخلفي، مُوصى به للتوصيات الجديدة):
-    provenance: dict | None = None       # serialized RecommendationProvenance
+    provenance: dict | None = None  # serialized RecommendationProvenance
 
 
 def log_recommendation(log_path: Path, rec: RecommendationRecord) -> None:
@@ -76,7 +77,10 @@ def log_recommendation(log_path: Path, rec: RecommendationRecord) -> None:
 
 
 def record_outcome(
-    log_path: Path, rec_id: str, actual_yield: float, outcome_date: str,
+    log_path: Path,
+    rec_id: str,
+    actual_yield: float,
+    outcome_date: str,
 ) -> bool:
     """Bind an actual harvest result to a prior recommendation.
     يستخدم قفل ملف (POSIX) ليلفّ القراءة+التعديل+الكتابة، فيمنع فقدان
@@ -112,16 +116,10 @@ def compute_mape(log_path: Path) -> dict:
 
     Honest: reports n, and warns if too few / single-farm."""
     records = load_log(log_path)
-    paired = [
-        r for r in records
-        if r.predicted_yield_t_ha and r.actual_yield_t_ha
-    ]
+    paired = [r for r in records if r.predicted_yield_t_ha and r.actual_yield_t_ha]
     if not paired:
         return {"mape": None, "n": 0, "note_ar": "لا أزواج توقّع/نتيجة بعد"}
-    errs = [
-        abs(r.actual_yield_t_ha - r.predicted_yield_t_ha) / r.actual_yield_t_ha
-        for r in paired
-    ]
+    errs = [abs(r.actual_yield_t_ha - r.predicted_yield_t_ha) / r.actual_yield_t_ha for r in paired]
     mape = round(sum(errs) / len(errs) * 100, 1)
     farms = len({r.tenant_id for r in paired})
     note = f"MAPE={mape}% على {len(paired)} أزواج، {farms} مزارع"

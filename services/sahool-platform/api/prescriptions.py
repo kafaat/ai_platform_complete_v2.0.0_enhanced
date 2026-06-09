@@ -24,17 +24,19 @@ services/sahool-platform/api/prescriptions.py — Variable Rate Prescriptions
   لا نحتاج ML model لتقول "المنطقة الأفقر تحتاج نيتروجين أكثر" — هذه قاعدة
   زراعيّة مُؤسَّسة منذ ١٠٠ سنة. الـAI زيادة لاحقة، ليست الأساس.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Dict, Optional
 import logging
+from dataclasses import dataclass, field
+from datetime import UTC
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
 # ─── Types ──────────────────────────────────────────────────────
+
 
 class PrescriptionType(str, Enum):
     SEED = "seed"
@@ -49,50 +51,54 @@ class PrescriptionType(str, Enum):
 
 class ZoneClass(str, Enum):
     """Zone classification based on NDVI + soil indicators."""
-    LOW = "low"           # NDVI < 0.4، تربة فقيرة
-    MEDIUM = "medium"     # NDVI 0.4-0.6، متوسّط
-    HIGH = "high"         # NDVI > 0.6، خصب
-    PROBLEM = "problem"   # ملوحة عالية أو pH متطرّف
+
+    LOW = "low"  # NDVI < 0.4، تربة فقيرة
+    MEDIUM = "medium"  # NDVI 0.4-0.6، متوسّط
+    HIGH = "high"  # NDVI > 0.6، خصب
+    PROBLEM = "problem"  # ملوحة عالية أو pH متطرّف
 
 
 @dataclass
 class ZoneCharacteristics:
     """ما نعرفه عن zone واحدة."""
+
     zone_id: str
     zone_class: ZoneClass
     area_ha: float
-    ndvi_mean: Optional[float] = None
-    soil_ph: Optional[float] = None
-    soil_ec: Optional[float] = None         # ملوحة dS/m
-    soil_om: Optional[float] = None         # عضويّة %
-    soil_n_ppm: Optional[float] = None
-    soil_p_ppm: Optional[float] = None
-    soil_k_ppm: Optional[float] = None
-    soil_texture: Optional[str] = None      # "sandy", "loamy", "clayey"
-    soil_depth_cm: Optional[int] = None
+    ndvi_mean: float | None = None
+    soil_ph: float | None = None
+    soil_ec: float | None = None  # ملوحة dS/m
+    soil_om: float | None = None  # عضويّة %
+    soil_n_ppm: float | None = None
+    soil_p_ppm: float | None = None
+    soil_k_ppm: float | None = None
+    soil_texture: str | None = None  # "sandy", "loamy", "clayey"
+    soil_depth_cm: int | None = None
 
 
 @dataclass
 class ZonePrescription:
     """التطبيق الموصى به لكل zone."""
+
     zone_id: str
-    rate: float                              # kg/ha أو seeds/m²
-    unit: str                                # "kg/ha", "seeds/m2", "L/ha"
-    confidence: float                        # 0-1
-    rationale_ar: str                        # لماذا هذه القيمة بالعربيّة
+    rate: float  # kg/ha أو seeds/m²
+    unit: str  # "kg/ha", "seeds/m2", "L/ha"
+    confidence: float  # 0-1
+    rationale_ar: str  # لماذا هذه القيمة بالعربيّة
     rationale_en: str
-    warnings: List[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
 
 
 @dataclass
 class Prescription:
     """الوصفة الكاملة لحقل."""
+
     field_id: str
     prescription_type: PrescriptionType
-    crop: str                                # "wheat", "tomato", إلخ
+    crop: str  # "wheat", "tomato", إلخ
     season_id: str
-    zones: List[ZonePrescription]
-    total_amount: float                      # إجمالي كل الـzones
+    zones: list[ZonePrescription]
+    total_amount: float  # إجمالي كل الـzones
     total_amount_unit: str
     average_rate: float
     created_at: str
@@ -107,43 +113,44 @@ class Prescription:
 # القيم أدناه تقديريّة ومنطقيّة لكنّها لم تُتحقَّق من مصدر علمي/ميداني موثَّق.
 # يجب مراجعتها مع مهندس زراعي يمني قبل الاعتماد عليها في قرارات حقيقيّة.
 CROP_BASE_NITROGEN = {
-    "wheat":     {"low": 80,  "medium": 120, "high": 150},
-    "barley":    {"low": 60,  "medium": 90,  "high": 110},
-    "corn":      {"low": 120, "medium": 180, "high": 220},
-    "tomato":    {"low": 150, "medium": 200, "high": 250},
-    "potato":    {"low": 120, "medium": 160, "high": 200},
-    "onion":     {"low": 100, "medium": 130, "high": 160},
-    "cotton":    {"low": 100, "medium": 140, "high": 180},
-    "alfalfa":   {"low": 30,  "medium": 50,  "high": 60},
-    "sorghum":   {"low": 60,  "medium": 90,  "high": 120},
+    "wheat": {"low": 80, "medium": 120, "high": 150},
+    "barley": {"low": 60, "medium": 90, "high": 110},
+    "corn": {"low": 120, "medium": 180, "high": 220},
+    "tomato": {"low": 150, "medium": 200, "high": 250},
+    "potato": {"low": 120, "medium": 160, "high": 200},
+    "onion": {"low": 100, "medium": 130, "high": 160},
+    "cotton": {"low": 100, "medium": 140, "high": 180},
+    "alfalfa": {"low": 30, "medium": 50, "high": 60},
+    "sorghum": {"low": 60, "medium": 90, "high": 120},
 }
 
 # Phosphorus (P2O5 kg/ha)
 CROP_BASE_PHOSPHORUS = {
-    "wheat":     {"low": 60,  "medium": 80,  "high": 100},
-    "tomato":    {"low": 100, "medium": 140, "high": 180},
-    "corn":      {"low": 70,  "medium": 100, "high": 130},
-    "alfalfa":   {"low": 80,  "medium": 120, "high": 150},
+    "wheat": {"low": 60, "medium": 80, "high": 100},
+    "tomato": {"low": 100, "medium": 140, "high": 180},
+    "corn": {"low": 70, "medium": 100, "high": 130},
+    "alfalfa": {"low": 80, "medium": 120, "high": 150},
 }
 
 # Potassium (K2O kg/ha)
 CROP_BASE_POTASSIUM = {
-    "wheat":     {"low": 40,  "medium": 60,  "high": 80},
-    "tomato":    {"low": 150, "medium": 200, "high": 280},
-    "corn":      {"low": 60,  "medium": 90,  "high": 120},
+    "wheat": {"low": 40, "medium": 60, "high": 80},
+    "tomato": {"low": 150, "medium": 200, "high": 280},
+    "corn": {"low": 60, "medium": 90, "high": 120},
 }
 
 # Seeding rates (seeds/m² لمعظم الحبوب، plants/m² للخضار)
 CROP_BASE_SEEDING = {
-    "wheat":     {"low": 350, "medium": 450, "high": 550},   # seeds/m²
-    "barley":    {"low": 300, "medium": 400, "high": 500},
-    "corn":      {"low": 5,   "medium": 7,   "high": 9},      # plants/m²
-    "tomato":    {"low": 2.5, "medium": 3,   "high": 3.5},
-    "sorghum":   {"low": 12,  "medium": 18,  "high": 24},
+    "wheat": {"low": 350, "medium": 450, "high": 550},  # seeds/m²
+    "barley": {"low": 300, "medium": 400, "high": 500},
+    "corn": {"low": 5, "medium": 7, "high": 9},  # plants/m²
+    "tomato": {"low": 2.5, "medium": 3, "high": 3.5},
+    "sorghum": {"low": 12, "medium": 18, "high": 24},
 }
 
 
 # ─── Generators ─────────────────────────────────────────────────
+
 
 class PrescriptionGenerator:
     """يولّد prescriptions zone-based."""
@@ -156,7 +163,7 @@ class PrescriptionGenerator:
         field_id: str,
         season_id: str,
         crop: str,
-        zones: List[ZoneCharacteristics],
+        zones: list[ZoneCharacteristics],
     ) -> Prescription:
         """N prescription حسب الزون + tests."""
         crop = crop.lower()
@@ -164,7 +171,7 @@ class PrescriptionGenerator:
         if not base_rates:
             raise ValueError(f"crop '{crop}' not in knowledge base for nitrogen")
 
-        zone_rxs: List[ZonePrescription] = []
+        zone_rxs: list[ZonePrescription] = []
         total_n = 0.0
 
         for zone in zones:
@@ -173,9 +180,9 @@ class PrescriptionGenerator:
             base_key = zclass.value if zclass.value in base_rates else "low"
             base = base_rates[base_key]
             rate = float(base)
-            warnings: List[str] = []
-            adjustments: List[str] = []
-            confidence = 0.75    # baseline من crop tables
+            warnings: list[str] = []
+            adjustments: list[str] = []
+            confidence = 0.75  # baseline من crop tables
 
             # تعديل ١: لو لدينا N test (لاب) — هذا أدقّ
             if zone.soil_n_ppm is not None:
@@ -184,7 +191,7 @@ class PrescriptionGenerator:
                 required_total = base + 30  # crop need + buffer
                 rate = max(20, required_total - existing_n_kg)
                 adjustments.append(f"خُصِم ٤×{zone.soil_n_ppm}={existing_n_kg:.0f} kg/ha من الفحص")
-                confidence = 0.90    # ثقة أعلى مع lab data
+                confidence = 0.90  # ثقة أعلى مع lab data
 
             # تعديل ٢: لو منطقة "problem" (ملوحة)، خفّض
             if zone.zone_class == ZoneClass.PROBLEM:
@@ -207,15 +214,17 @@ class PrescriptionGenerator:
             rationale_parts = [f"محصول {crop} في منطقة {zclass.value}: أساس {base} kg/ha"]
             rationale_parts.extend(adjustments)
 
-            zone_rxs.append(ZonePrescription(
-                zone_id=zone.zone_id,
-                rate=rate,
-                unit="kg/ha (N)",
-                confidence=round(confidence, 2),
-                rationale_ar=" · ".join(rationale_parts),
-                rationale_en=f"crop:{crop} zone:{zclass.value}",
-                warnings=warnings,
-            ))
+            zone_rxs.append(
+                ZonePrescription(
+                    zone_id=zone.zone_id,
+                    rate=rate,
+                    unit="kg/ha (N)",
+                    confidence=round(confidence, 2),
+                    rationale_ar=" · ".join(rationale_parts),
+                    rationale_en=f"crop:{crop} zone:{zclass.value}",
+                    warnings=warnings,
+                )
+            )
 
         return Prescription(
             field_id=field_id,
@@ -226,7 +235,9 @@ class PrescriptionGenerator:
             total_amount=round(total_n, 1),
             total_amount_unit="kg N",
             # M1 FIX: احرس المساحة الكليّة لا مجرّد وجود zones — مناطق بمساحة 0 تقسم على صفر.
-            average_rate=round(total_n / _total_area, 1) if (_total_area := sum(z.area_ha for z in zones)) > 0 else 0,
+            average_rate=round(total_n / _total_area, 1)
+            if (_total_area := sum(z.area_ha for z in zones)) > 0
+            else 0,
             created_at=_now_iso(),
             notes_ar="تطبيق متغيّر — راجع الـzones قبل التنفيذ. قد تحتاج تحاليل تربة حديثة للزونات الفقيرة.",
         )
@@ -236,7 +247,7 @@ class PrescriptionGenerator:
         field_id: str,
         season_id: str,
         crop: str,
-        zones: List[ZoneCharacteristics],
+        zones: list[ZoneCharacteristics],
     ) -> Prescription:
         """Seeding rate (variable seeding) — أعلى في الـzones الخصبة."""
         crop = crop.lower()
@@ -244,7 +255,7 @@ class PrescriptionGenerator:
         if not base_rates:
             raise ValueError(f"crop '{crop}' not in knowledge base for seeding")
 
-        zone_rxs: List[ZonePrescription] = []
+        zone_rxs: list[ZonePrescription] = []
         total = 0.0
 
         for zone in zones:
@@ -252,7 +263,7 @@ class PrescriptionGenerator:
             base_key = zclass.value if zclass.value in base_rates else "low"
             base = base_rates[base_key]
             rate = float(base)
-            warnings: List[str] = []
+            warnings: list[str] = []
 
             # تعديل: shallow soil → خفّض
             if zone.soil_depth_cm and zone.soil_depth_cm < 30:
@@ -264,15 +275,17 @@ class PrescriptionGenerator:
                 rate *= 0.92
 
             rate = round(rate, 2)
-            zone_rxs.append(ZonePrescription(
-                zone_id=zone.zone_id,
-                rate=rate,
-                unit="seeds/m²" if crop in {"wheat", "barley"} else "plants/m²",
-                confidence=0.78,
-                rationale_ar=f"محصول {crop}، منطقة {zclass.value}",
-                rationale_en=f"{crop}/{zclass.value}",
-                warnings=warnings,
-            ))
+            zone_rxs.append(
+                ZonePrescription(
+                    zone_id=zone.zone_id,
+                    rate=rate,
+                    unit="seeds/m²" if crop in {"wheat", "barley"} else "plants/m²",
+                    confidence=0.78,
+                    rationale_ar=f"محصول {crop}، منطقة {zclass.value}",
+                    rationale_en=f"{crop}/{zclass.value}",
+                    warnings=warnings,
+                )
+            )
             total += rate * zone.area_ha * 10000  # m² → ha
 
         return Prescription(
@@ -284,7 +297,9 @@ class PrescriptionGenerator:
             total_amount=round(total, 0),
             total_amount_unit="seeds",
             # M1 FIX: احرس المساحة الكليّة (مناطق بمساحة 0 ⇒ قسمة على صفر).
-            average_rate=round(total / (_area_m2), 2) if (_area_m2 := sum(z.area_ha for z in zones) * 10000) > 0 else 0,
+            average_rate=round(total / (_area_m2), 2)
+            if (_area_m2 := sum(z.area_ha for z in zones) * 10000) > 0
+            else 0,
             created_at=_now_iso(),
             notes_ar="كثافة بذر متغيّرة. الـzones الخصبة تستوعب كثافة أعلى.",
         )
@@ -312,11 +327,13 @@ class PrescriptionGenerator:
 
 
 def _now_iso() -> str:
-    from datetime import datetime, timezone
-    return datetime.now(timezone.utc).isoformat()
+    from datetime import datetime
+
+    return datetime.now(UTC).isoformat()
 
 
 # ─── Export to CSV / Shapefile (FieldView "Easy Export") ────────
+
 
 def prescription_to_csv(prescription: Prescription) -> str:
     """تحويل لـCSV قابل للتحميل لمعدّات الـapplicator."""
@@ -337,7 +354,7 @@ def prescription_to_csv(prescription: Prescription) -> str:
     return "\n".join(lines)
 
 
-def prescription_to_dict(prescription: Prescription) -> Dict:
+def prescription_to_dict(prescription: Prescription) -> dict:
     """JSON-friendly dict (للـAPI response)."""
     return {
         "field_id": prescription.field_id,

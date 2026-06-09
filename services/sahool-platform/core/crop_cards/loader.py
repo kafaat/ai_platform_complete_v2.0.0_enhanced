@@ -7,9 +7,12 @@ sahool_core.crop_cards.loader
 وفسيولوجيا فقط، بمصادر موثّقة (FAO-56, Maas-Hoffman, ECOCROP, NGRC).
 المعايرة والإنتاج ممنوعة في البطاقة (مخرجات districts/tenant).
 """
+
 from __future__ import annotations
+
 import re
 from pathlib import Path
+
 import yaml
 
 CARDS_DIR = Path(__file__).parent
@@ -22,14 +25,23 @@ def _safe_id(card_id: str) -> str | None:
         return None
     return card_id
 
+
 # الحقول الإلزامية في كل بطاقة (المعيار المتّبع)
-REQUIRED_TOP = {"crop_id", "name_ar", "name_en", "crop_family",
-                "kc", "salinity", "thermal", "governing", "modifying"}
+REQUIRED_TOP = {
+    "crop_id",
+    "name_ar",
+    "name_en",
+    "crop_family",
+    "kc",
+    "salinity",
+    "thermal",
+    "governing",
+    "modifying",
+}
 REQUIRED_KC = {"initial", "mid", "end", "stage_days", "source"}
 REQUIRED_SALINITY = {"threshold_ece_ds_m", "slope_pct_per_ds_m", "source"}
 # حقول ممنوعة (تكسر حياد الموقع)
-FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration",
-             "region", "farm", "tenant"}
+FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration", "region", "farm", "tenant"}
 
 
 def load_crop_card(crop_id: str) -> dict | None:
@@ -45,8 +57,7 @@ def load_crop_card(crop_id: str) -> dict | None:
 
 def list_crop_cards() -> list[str]:
     """يُرجع معرّفات كل البطاقات المتاحة (عدا القالب)."""
-    return sorted(p.stem for p in CARDS_DIR.glob("*.yaml")
-                  if not p.stem.startswith("_"))
+    return sorted(p.stem for p in CARDS_DIR.glob("*.yaml") if not p.stem.startswith("_"))
 
 
 def validate_crop_card(card: dict) -> dict:
@@ -67,8 +78,7 @@ def validate_crop_card(card: dict) -> dict:
     for block in ("kc", "salinity"):
         if block in card and "source" not in card[block]:
             errors.append(f"{block} بلا مصدر موثّق")
-    return {"valid": len(errors) == 0, "errors": errors,
-            "crop_id": card.get("crop_id", "?")}
+    return {"valid": len(errors) == 0, "errors": errors, "crop_id": card.get("crop_id", "?")}
 
 
 # ════════════════════════════════════════════════════════════
@@ -76,8 +86,15 @@ def validate_crop_card(card: dict) -> dict:
 # ════════════════════════════════════════════════════════════
 VARIETIES_DIR = CARDS_DIR / "varieties"
 
-REQUIRED_VARIETY = {"variety_id", "parent_crop_id", "name_ar", "name_en",
-                    "passport", "distinctness", "variety_traits"}
+REQUIRED_VARIETY = {
+    "variety_id",
+    "parent_crop_id",
+    "name_ar",
+    "name_en",
+    "passport",
+    "distinctness",
+    "variety_traits",
+}
 
 
 def load_variety_card(variety_id: str) -> dict | None:
@@ -95,8 +112,7 @@ def list_variety_cards() -> list[str]:
     """يُرجع معرّفات كل الأصناف المتاحة."""
     if not VARIETIES_DIR.exists():
         return []
-    return sorted(p.stem for p in VARIETIES_DIR.glob("*.yaml")
-                  if not p.stem.startswith("_"))
+    return sorted(p.stem for p in VARIETIES_DIR.glob("*.yaml") if not p.stem.startswith("_"))
 
 
 def varieties_of_crop(crop_id: str) -> list[str]:
@@ -129,5 +145,4 @@ def validate_variety_card(card: dict) -> dict:
     forbidden = FORBIDDEN & set(card.keys())
     if forbidden:
         errors.append(f"حقول تكسر حياد الموقع: {forbidden}")
-    return {"valid": len(errors) == 0, "errors": errors,
-            "variety_id": card.get("variety_id", "?")}
+    return {"valid": len(errors) == 0, "errors": errors, "variety_id": card.get("variety_id", "?")}

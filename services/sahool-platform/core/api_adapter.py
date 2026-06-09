@@ -18,8 +18,8 @@ dict. النواة تُختبر بـdicts عاديّة، الإطار الخار
   • Error semantics: HTTP-like status codes + structured response
 
 التكامل:
-  HTTP request → JWT decode → UserSchema → 
-  handle_recommendation_request → orchestrate_recommendation → 
+  HTTP request → JWT decode → UserSchema →
+  handle_recommendation_request → orchestrate_recommendation →
   ApiResponse → JSON
 
 ما لم يُبنَ هنا (مُؤجَّل بمبرّر):
@@ -28,24 +28,25 @@ dict. النواة تُختبر بـdicts عاديّة، الإطار الخار
   • Database integration (يحتاج SQLite/PostgreSQL adapter)
   → كلّها wrappers خفيفة فوق هذه الطبقة
 """
+
 from __future__ import annotations
 
 import time
 from collections import defaultdict, deque
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, field
 
 from core.canonical_schemas import UserSchema
-from core.internal_orchestrator import (
-    orchestrate_recommendation, orchestrator_summary)
-
+from core.internal_orchestrator import orchestrate_recommendation
 
 # ─── Request/Response Types ──────────────────────────────────────
+
 
 @dataclass
 class ApiRequest:
     """طلب HTTP-like محايد عن الإطار."""
+
     user: UserSchema
-    payload: dict           # body المستخدم
+    payload: dict  # body المستخدم
     path: str = "/"
     method: str = "POST"
     headers: dict = field(default_factory=dict)
@@ -54,12 +55,14 @@ class ApiRequest:
 @dataclass
 class ApiResponse:
     """استجابة HTTP-like محايدة."""
-    status_code: int        # 200, 400, 401, 403, 404, 429, 500
+
+    status_code: int  # 200, 400, 401, 403, 404, 429, 500
     body: dict
     headers: dict = field(default_factory=dict)
 
 
 # ─── Rate Limiter (AI Workaholic Guard) ──────────────────────────
+
 
 class RateLimiter:
     """حدّ التوصيات للمستخدم — يحرس ضدّ recommendation spam.
@@ -135,9 +138,11 @@ def handle_recommendation_request(
     if missing:
         return ApiResponse(
             status_code=400,
-            body={"error": "payload incomplete",
-                  "missing_fields": sorted(missing),
-                  "ar": f"الحقول الإلزامية الناقصة: {sorted(missing)}"},
+            body={
+                "error": "payload incomplete",
+                "missing_fields": sorted(missing),
+                "ar": f"الحقول الإلزامية الناقصة: {sorted(missing)}",
+            },
         )
 
     # 2. rate limit (قبل أيّ حساب)
@@ -145,10 +150,11 @@ def handle_recommendation_request(
     if not allowed:
         return ApiResponse(
             status_code=429,
-            body={"error": "rate_limit_exceeded",
-                  "ar": "تجاوزت حدّ التوصيات في الساعة (20). "
-                        "هذا يحرس ضدّ الإفراط في الطلب.",
-                  "retry_after_seconds": _rate_limiter.window_seconds},
+            body={
+                "error": "rate_limit_exceeded",
+                "ar": "تجاوزت حدّ التوصيات في الساعة (20). هذا يحرس ضدّ الإفراط في الطلب.",
+                "retry_after_seconds": _rate_limiter.window_seconds,
+            },
             headers={"X-RateLimit-Remaining": "0"},
         )
 
@@ -156,8 +162,7 @@ def handle_recommendation_request(
     if not req.user.is_active:
         return ApiResponse(
             status_code=401,
-            body={"error": "user_inactive",
-                  "ar": f"المستخدم {req.user.user_id} غير نشط"},
+            body={"error": "user_inactive", "ar": f"المستخدم {req.user.user_id} غير نشط"},
         )
 
     # 4. delegate to المايسترو الداخلي
@@ -187,8 +192,11 @@ def handle_recommendation_request(
     except Exception as e:
         return ApiResponse(
             status_code=500,
-            body={"error": "internal_error", "detail": str(e)[:200],
-                  "ar": "خطأ داخلي — تواصل مع الدعم"},
+            body={
+                "error": "internal_error",
+                "detail": str(e)[:200],
+                "ar": "خطأ داخلي — تواصل مع الدعم",
+            },
         )
 
     # 5. حوّل النتيجة لـHTTP response
@@ -214,10 +222,8 @@ def handle_recommendation_request(
             "rec_id": result.rec_id,
             "recommendation": result.base_recommendation,
             "cross_reference_count": result.cross_reference.get("count", 0),
-            "cross_reference_note_ar": result.cross_reference.get(
-                "note_ar", ""),
-            "model_versions_count": len(
-                result.provenance.get("model_versions", {})),
+            "cross_reference_note_ar": result.cross_reference.get("note_ar", ""),
+            "model_versions_count": len(result.provenance.get("model_versions", {})),
             "timestamp": result.timestamp,
         },
         headers={"X-RateLimit-Remaining": str(remaining)},
@@ -226,13 +232,12 @@ def handle_recommendation_request(
 
 # ─── Health Endpoints ────────────────────────────────────────────
 
+
 def handle_healthz() -> ApiResponse:
     """فحص حياة بسيط (Kubernetes liveness probe)."""
     return ApiResponse(
         status_code=200,
-        body={"status": "alive",
-              "service": "sahool-core",
-              "timestamp": time.time()},
+        body={"status": "alive", "service": "sahool-core", "timestamp": time.time()},
     )
 
 
@@ -241,12 +246,14 @@ def handle_readyz() -> ApiResponse:
     checks = {}
     try:
         from core.skills_registry import all_skills
+
         checks["skills_registry"] = {"ok": True, "count": len(all_skills())}
     except Exception as e:
         checks["skills_registry"] = {"ok": False, "error": str(e)}
 
     try:
         from core.canonical_schemas import entities_catalog
+
         checks["schemas"] = {"ok": True, "count": len(entities_catalog())}
     except Exception as e:
         checks["schemas"] = {"ok": False, "error": str(e)}
@@ -254,12 +261,12 @@ def handle_readyz() -> ApiResponse:
     all_ok = all(c.get("ok") for c in checks.values())
     return ApiResponse(
         status_code=200 if all_ok else 503,
-        body={"status": "ready" if all_ok else "degraded",
-              "checks": checks},
+        body={"status": "ready" if all_ok else "degraded", "checks": checks},
     )
 
 
 # ─── Reset (لاختبارات؛ لا للإنتاج) ────────────────────────────────
+
 
 def _reset_rate_limiter() -> None:
     """إعادة تعيين الـrate limiter — للاختبارات فقط."""

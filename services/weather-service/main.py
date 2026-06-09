@@ -11,6 +11,7 @@ weather-service/main.py — خدمة طقس (stub رفيع صادق)
   لا يدّعي تقديم بيانات طقس — يُرجع 501 لأيّ مسار طقس فعلي، بصدق،
   بدل إيهام بوظيفة غير موجودة.
 """
+
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 

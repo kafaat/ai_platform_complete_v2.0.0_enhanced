@@ -21,21 +21,21 @@ core.connectors.copernicus
 الاتصال الفعلي (OAuth + Statistical/Process API) في السيرفر المحلي
 المزوّد بـ GPU. هنا الواجهة، evalscripts، ومنطق المعالجة.
 """
+
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
 
-from core.connectors.base import (BaseConnector, ConnectorResult, FetchStatus,
-                                  CLOUD_THRESHOLD_PCT)
+from core.connectors.base import CLOUD_THRESHOLD_PCT, BaseConnector, ConnectorResult, FetchStatus
 
 # عناوين CDSE — قابلة للضبط من البيئة (افتراضات CDSE الرسميّة).
 # المفاتيح (CLIENT_ID/SECRET) من البيئة فقط — لا تُكتب في الكود أبداً.
 CDSE_SH_URL = os.getenv("SH_BASE_URL", "https://sh.dataspace.copernicus.eu")
 CDSE_TOKEN_URL = os.getenv(
     "SH_TOKEN_URL",
-    "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/"
-    "protocol/openid-connect/token")
+    "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token",
+)
 
 
 # evalscript لحساب NDVI سحابياً (يُرسل لـ Sentinel Hub)
@@ -66,17 +66,18 @@ function evaluatePixel(s) {
 @dataclass
 class ImageryRequest:
     """طلب صورة لحقل (AOI) في فترة زمنية."""
-    field_polygon: list           # حدود الحقل (lon,lat)
+
+    field_polygon: list  # حدود الحقل (lon,lat)
     date_from: str
     date_to: str
-    index: str = "ndvi"           # ndvi | salinity | ndmi
-    max_cloud_pct: float = CLOUD_THRESHOLD_PCT   # بوابة السحب (C6) — ثابت مشترك
+    index: str = "ndvi"  # ndvi | salinity | ndmi
+    max_cloud_pct: float = CLOUD_THRESHOLD_PCT  # بوابة السحب (C6) — ثابت مشترك
 
 
 class CopernicusConnector(BaseConnector):
     source_name = "copernicus-cdse"
     requires_key = True
-    key_env_var = "CDSE_CLIENT_SECRET"   # + CDSE_CLIENT_ID — من البيئة فقط
+    key_env_var = "CDSE_CLIENT_SECRET"  # + CDSE_CLIENT_ID — من البيئة فقط
 
     _EVALSCRIPTS = {
         "ndvi": NDVI_EVALSCRIPT,
@@ -84,9 +85,9 @@ class CopernicusConnector(BaseConnector):
     }
 
     _ERROR_MARGINS = {
-        "ndvi": 0.05,       # R1
-        "salinity": 0.10,   # R5 — استرشادي
-        "ndmi": 0.05,       # R3
+        "ndvi": 0.05,  # R1
+        "salinity": 0.10,  # R5 — استرشادي
+        "ndmi": 0.05,  # R3
     }
 
     def build_statistical_request(self, req: ImageryRequest) -> dict:
@@ -117,35 +118,45 @@ class CopernicusConnector(BaseConnector):
             return {"ok": False, "reason": "httpx غير متوفّر — يُنفَّذ في بيئة التشغيل"}
         try:
             with httpx.Client(timeout=20.0) as client:
-                resp = client.post(CDSE_TOKEN_URL, data={
-                    "grant_type": "client_credentials",
-                    "client_id": client_id,
-                    "client_secret": client_secret,
-                })
+                resp = client.post(
+                    CDSE_TOKEN_URL,
+                    data={
+                        "grant_type": "client_credentials",
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                    },
+                )
                 resp.raise_for_status()
                 tok = resp.json()
-            return {"ok": True, "access_token": tok.get("access_token"),
-                    "expires_in": tok.get("expires_in"),
-                    "token_url": CDSE_TOKEN_URL}
+            return {
+                "ok": True,
+                "access_token": tok.get("access_token"),
+                "expires_in": tok.get("expires_in"),
+                "token_url": CDSE_TOKEN_URL,
+            }
         except Exception as e:  # noqa: BLE001 — صدق: نُبلّغ بالفشل لا نخترع
             return {"ok": False, "reason": f"فشل جلب توكن CDSE: {e}"}
 
-    def fetch(self, request: ImageryRequest | None = None,
-              _live_response: dict | None = None, **kwargs) -> ConnectorResult:
+    def fetch(
+        self, request: ImageryRequest | None = None, _live_response: dict | None = None, **kwargs
+    ) -> ConnectorResult:
         """يجلب إحصاءات/raster المؤشر. _live_response من السيرفر (الاتصال الفعلي)."""
         if not self.is_configured():
             return ConnectorResult(
-                source=self.source_name, status=FetchStatus.UNAVAILABLE,
+                source=self.source_name,
+                status=FetchStatus.UNAVAILABLE,
                 note_ar="يتطلب CDSE_CLIENT_ID/SECRET في بيئة السيرفر (لا مفاتيح بالكود)",
             )
         if _live_response is None:
             return ConnectorResult(
-                source=self.source_name, status=FetchStatus.UNAVAILABLE,
+                source=self.source_name,
+                status=FetchStatus.UNAVAILABLE,
                 note_ar="يتطلب اتصال السيرفر بـ Copernicus (لا اختراع صور)",
             )
         idx = request.index if request else "ndvi"
         return ConnectorResult(
-            source=f"{self.source_name}:{idx}", status=FetchStatus.OK,
+            source=f"{self.source_name}:{idx}",
+            status=FetchStatus.OK,
             data=_live_response,
             error_margin=self._ERROR_MARGINS.get(idx, 0.05),
             note_ar=f"مؤشر {idx} من Sentinel — جاهز لكشف مناطق الاهتمام",

@@ -1,20 +1,59 @@
+#!/usr/bin/env python3
+"""
+SAHOOL Telegram Bot — "مزرعتك في جيبك"
+Full-featured farmer assistant bot with AI Agent integration
+Commands:
+  /start     — Registration & field linking
+  /ndvi      — Request NDVI report
+  /weather   — 7-day weather forecast
+  /pest      — Pest/disease diagnosis (photo)
+  /market    — Current market prices
+  /contract  — Create forward contract
+  /community — Join crop-specific group
+  /advice    — Ask AI agricultural advisor
+  /optimize  — Optimize farm (Pareto analysis)
+  /help      — Command list
+  /settings  — Language & preferences
+"""
 
-# ── Logging (إصلاح F821: logger كان يُستخدم بلا تعريف) ──────────
+import asyncio
 import logging
+import os
+import time as _time_module
+from datetime import UTC, datetime
+
+import httpx
+from aiogram import Bot, Dispatcher, F, Router
+from aiogram.enums import ParseMode
+from aiogram.filters import Command, CommandStart
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.redis import RedisStorage as _RedisStorage
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    Message,
+    ReplyKeyboardMarkup,
+)
+
 logger = logging.getLogger("sahool.telegram")
 
-# ── Redis-backed ThrottlingMiddleware (T01-T07 fix) ────────────
-import time as _time_module
 
+# ── Redis-backed ThrottlingMiddleware (T01-T07 fix) ────────────
 class RedisThrottlingMiddleware:
     """
     Token Bucket throttling backed by Redis for distributed rate limiting.
     Fixes: T01(shared state), T02(TTL), T07(Redis), T08(role tiers).
     """
-    def __init__(self, redis_client=None, rate: float = 1.0, burst: int = 3,
-                 admin_exempt: bool = True):
+
+    def __init__(
+        self, redis_client=None, rate: float = 1.0, burst: int = 3, admin_exempt: bool = True
+    ):
         self._redis = redis_client
-        self._rate  = rate
+        self._rate = rate
         self._burst = burst
         self._admin_exempt = admin_exempt
         # Fallback in-memory with bounded size (T02 fix)
@@ -42,7 +81,7 @@ class RedisThrottlingMiddleware:
             if len(self._local) >= self._local_max:
                 # Evict oldest 10% (T02 fix)
                 sorted_keys = sorted(self._local, key=lambda k: self._local[k][1])
-                for k in sorted_keys[:self._local_max//10]:
+                for k in sorted_keys[: self._local_max // 10]:
                     del self._local[k]
             self._local[key] = (self._burst - 1, now)
             return True
@@ -56,8 +95,8 @@ class RedisThrottlingMiddleware:
 
     async def __call__(self, handler, event, data):
         from aiogram.types import Message
-        user = getattr(getattr(event, "from_user", None), None, None)
-        uid  = getattr(event.from_user, "id", None) if hasattr(event, "from_user") else None
+
+        uid = getattr(event.from_user, "id", None) if hasattr(event, "from_user") else None
         if not uid:
             return await handler(event, data)
 
@@ -80,49 +119,9 @@ class RedisThrottlingMiddleware:
 
         return await handler(event, data)
 
-#!/usr/bin/env python3
-"""
-SAHOOL Telegram Bot — "مزرعتك في جيبك"
-Full-featured farmer assistant bot with AI Agent integration
-Commands:
-  /start     — Registration & field linking
-  /ndvi      — Request NDVI report
-  /weather   — 7-day weather forecast
-  /pest      — Pest/disease diagnosis (photo)
-  /market    — Current market prices
-  /contract  — Create forward contract
-  /community — Join crop-specific group
-  /advice    — Ask AI agricultural advisor
-  /optimize  — Optimize farm (Pareto analysis)
-  /help      — Command list
-  /settings  — Language & preferences
-"""
-import asyncio
-import json
-import os
-from datetime import datetime, timedelta, timezone
-from typing import Optional
-
-from aiogram import Bot, Dispatcher, F, Router
-from aiogram.filters import Command, CommandStart
-from aiogram.types import (
-    Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton,
-    ReplyKeyboardMarkup, KeyboardButton, FSInputFile
-)
-from aiogram.enums import ParseMode
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.redis import RedisStorage as _RedisStorage
-from aiogram.fsm.storage.memory import MemoryStorage
-import httpx
-# ══ FIX: Rate Limiting Middleware ══════════════════════════════
-import time as _time
-from aiogram import BaseMiddleware
-from aiogram.types import TelegramObject
-
 
 # ─── Configuration ─────────────────────────────────────────
-BOT_TOKEN      = os.getenv("TELEGRAM_BOT_TOKEN", "")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 # B4 fix: compose يمرّر TELEGRAM_WEBHOOK_SECRET — اقرأ الاسم الصحيح (مع fallback)
 WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", os.getenv("WEBHOOK_SECRET", ""))
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/2")
@@ -135,6 +134,7 @@ if not BOT_TOKEN:
     # crash-loop لا نهائي حين يكون التوكن اختياريّاً/فارغاً. الآن يسجّل ويخرج.
     logger.warning("TELEGRAM_BOT_TOKEN غير مضبوط — البوت معطّل (خروج نظيف، لا crash-loop)")
     import sys as _sys
+
     _sys.exit(0)
 
 # ─── Bot Setup ─────────────────────────────────────────────
@@ -155,9 +155,11 @@ def _md2(text: str) -> str:
         out = out.replace(ch, "\\" + ch)
     return out
 
+
 # ── TTS Voice Helper (Yemeni Arabic) ────────────────────────────
 TTS_URL = os.getenv("TTS_URL", "http://sahool-tts:8000")
 TTS_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")  # service-to-service token
+
 
 async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") -> bool:
     """
@@ -168,6 +170,7 @@ async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") 
         return False
     import httpx
     from aiogram.types import BufferedInputFile
+
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -185,9 +188,11 @@ async def send_voice_alert(chat_id: int, text: str, voice: str = "yemeni_male") 
         logger.error(f"TTS send failed: {e}")
         return False
 
+
 # FIXED: use RedisStorage in production for persistence across restarts
 try:
     import redis.asyncio as _aioredis
+
     _redis_fsm = _aioredis.from_url(REDIS_URL)
     storage = _RedisStorage(redis=_redis_fsm)
 except Exception:
@@ -204,9 +209,11 @@ class RegistrationStates(StatesGroup):
     waiting_field_id = State()
     waiting_crop = State()
 
+
 class PestDiagnosisStates(StatesGroup):
     waiting_photo = State()
     waiting_crop_confirm = State()
+
 
 class ContractStates(StatesGroup):
     waiting_crop = State()
@@ -215,15 +222,19 @@ class ContractStates(StatesGroup):
     waiting_min_price = State()
     confirm = State()
 
+
 class LinkStates(StatesGroup):
     """ربط حساب تيليجرام بحساب SAHOOL (إصلاح B5 — مصادقة فعليّة)."""
+
     waiting_email = State()
     waiting_password = State()
+
 
 # ─── User Data Cache (production: Redis/DB) ──────────────────
 user_cache: dict = {}
 
-async def get_user_token(user_id: int) -> Optional[str]:
+
+async def get_user_token(user_id: int) -> str | None:
     """يُرجع توكن المستخدم المُصادَق فعليّاً (لا يصكّ توكناً اعتباطيّاً).
 
     إصلاح ثغرة B5 الأمنيّة الخطيرة:
@@ -249,6 +260,7 @@ async def link_account(user_id: int, email: str, password: str) -> bool:
     البوت لا يملك سرّ التوقيع — يحصل على توكن شرعيّ من auth/login.
     """
     import httpx
+
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.post(
@@ -267,21 +279,26 @@ async def link_account(user_id: int, email: str, password: str) -> bool:
         logger.warning("فشل ربط حساب تيليجرام %s: %s", user_id, e)
         return False
 
-async def call_supervisor(user_id: int, query: str, field_id: Optional[str] = None,
-                          context: Optional[dict] = None, objectives: Optional[list] = None) -> dict:
+
+async def call_supervisor(
+    user_id: int,
+    query: str,
+    field_id: str | None = None,
+    context: dict | None = None,
+    objectives: list | None = None,
+) -> dict:
     """Call SAHOOL Supervisor Agent."""
     token = await get_user_token(user_id)
     if not token:
         # المستخدم لم يربط حسابه — لا نرسل Bearer None (يكسر الطلب)
-        return {"error": "unlinked",
-                "message_ar": "يجب ربط حسابك أوّلاً. أرسل: /link"}
+        return {"error": "unlinked", "message_ar": "يجب ربط حسابك أوّلاً. أرسل: /link"}
     headers = {"Authorization": f"Bearer {token}"}
 
     payload = {
         "query": query,
         "user_id": f"telegram-{user_id}",
         "tenant_id": user_cache.get(user_id, {}).get("tenant_id", "default"),
-        "context": context or {}
+        "context": context or {},
     }
     if field_id:
         payload["field_id"] = field_id
@@ -298,14 +315,16 @@ async def call_supervisor(user_id: int, query: str, field_id: Optional[str] = No
         resp.raise_for_status()
         return resp.json()
 
+
 # ─── Command Handlers ──────────────────────────────────────
+
 
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     """Welcome and registration flow."""
     await state.clear()
 
-    welcome_text = f"""
+    welcome_text = """
 🌾 *مرحباً بك في SAHOOL\\!* 🌾
 
 أنا مساعدك الزراعي الذكي\\.
@@ -323,10 +342,10 @@ async def cmd_start(message: Message, state: FSMContext):
     kb = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="📱 مشاركة رقم الهاتف", request_contact=True)],
-            [KeyboardButton(text="❌ لاحقاً")]
+            [KeyboardButton(text="❌ لاحقاً")],
         ],
         resize_keyboard=True,
-        one_time_keyboard=True
+        one_time_keyboard=True,
     )
 
     await message.answer(welcome_text, reply_markup=kb)
@@ -338,8 +357,7 @@ async def cmd_start(message: Message, state: FSMContext):
 async def cmd_link(message: Message, state: FSMContext):
     """يبدأ ربط حساب تيليجرام بحساب SAHOOL عبر auth/login."""
     await state.clear()
-    await message.answer(
-        "🔐 لربط حسابك، أرسل بريدك الإلكتروني المسجّل في SAHOOL:")
+    await message.answer("🔐 لربط حسابك، أرسل بريدك الإلكتروني المسجّل في SAHOOL:")
     await state.set_state(LinkStates.waiting_email)
 
 
@@ -376,7 +394,7 @@ async def process_phone(message: Message, state: FSMContext):
         "phone": phone,
         "telegram_id": message.from_user.id,
         "username": message.from_user.username,
-        "registered_at": datetime.now(timezone.utc).isoformat()
+        "registered_at": datetime.now(UTC).isoformat(),
     }
 
     await message.answer(
@@ -386,8 +404,8 @@ async def process_phone(message: Message, state: FSMContext):
         reply_markup=ReplyKeyboardMarkup(
             keyboard=[[KeyboardButton(text="🆕 حقل جديد")]],
             resize_keyboard=True,
-            one_time_keyboard=True
-        )
+            one_time_keyboard=True,
+        ),
     )
     await state.set_state(RegistrationStates.waiting_field_id)
 
@@ -409,16 +427,13 @@ async def process_field_id(message: Message, state: FSMContext):
             [KeyboardButton(text="🌾 قمح"), KeyboardButton(text="🌽 ذرة")],
             [KeyboardButton(text="🌾 شعير"), KeyboardButton(text="🌾 ذرة بيضاء")],
             [KeyboardButton(text="🍅 طماطم"), KeyboardButton(text="🥔 بطاطس")],
-            [KeyboardButton(text="☕ قهوة"), KeyboardButton(text="🌿 قات")]
+            [KeyboardButton(text="☕ قهوة"), KeyboardButton(text="🌿 قات")],
         ],
         resize_keyboard=True,
-        one_time_keyboard=True
+        one_time_keyboard=True,
     )
 
-    await message.answer(
-        "🌱 *ما هو المحصول الرئيسي في حقلك؟*",
-        reply_markup=crops_kb
-    )
+    await message.answer("🌱 *ما هو المحصول الرئيسي في حقلك؟*", reply_markup=crops_kb)
     await state.set_state(RegistrationStates.waiting_crop)
 
 
@@ -426,9 +441,14 @@ async def process_field_id(message: Message, state: FSMContext):
 async def process_crop(message: Message, state: FSMContext):
     """Complete registration."""
     crop_map = {
-        "🌾 قمح": "wheat", "🌽 ذرة": "maize", "🌾 شعير": "barley",
-        "🌾 ذرة بيضاء": "millet", "🍅 طماطم": "tomato",
-        "🥔 بطاطس": "potato", "☕ قهوة": "coffee", "🌿 قات": "qat"
+        "🌾 قمح": "wheat",
+        "🌽 ذرة": "maize",
+        "🌾 شعير": "barley",
+        "🌾 ذرة بيضاء": "millet",
+        "🍅 طماطم": "tomato",
+        "🥔 بطاطس": "potato",
+        "☕ قهوة": "coffee",
+        "🌿 قات": "qat",
     }
 
     crop = crop_map.get(message.text.strip(), "wheat")
@@ -442,9 +462,9 @@ async def process_crop(message: Message, state: FSMContext):
             [KeyboardButton(text="📊 صحة الحقل"), KeyboardButton(text="🌤️ الطقس")],
             [KeyboardButton(text="🐛 تشخيص آفة"), KeyboardButton(text="💰 السوق")],
             [KeyboardButton(text="💡 استشارة"), KeyboardButton(text="⚙️ تحسين")],
-            [KeyboardButton(text="📋 المساعدة")]
+            [KeyboardButton(text="📋 المساعدة")],
         ],
-        resize_keyboard=True
+        resize_keyboard=True,
     )
 
     await message.answer(
@@ -452,7 +472,7 @@ async def process_crop(message: Message, state: FSMContext):
         f"• الحقل: `{user_cache[user_id].get('field_id', 'غير محدد')}`\n"
         f"• المحصول: {_md2(message.text.strip())}\n\n"
         f"استخدم القائمة أدناه أو اكتب سؤالك مباشرة\\.",
-        reply_markup=main_kb
+        reply_markup=main_kb,
     )
 
 
@@ -473,7 +493,7 @@ async def cmd_ndvi(message: Message):
             user_id,
             "ما هو NDVI لحقلي اليوم؟",
             field_id=field_id,
-            context={"date": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+            context={"date": datetime.now(UTC).strftime("%Y-%m-%d")},
         )
 
         response = result.get("response_ar", "لم أتمكن من الحصول على البيانات\\.")
@@ -500,11 +520,7 @@ async def cmd_weather(message: Message):
     wait_msg = await message.answer("⏳ جاري جلب التنبؤ الجوي\\.\\.\\.")
 
     try:
-        result = await call_supervisor(
-            user_id,
-            "ما هو طقس الأيام القادمة؟",
-            context={"days": 7}
-        )
+        result = await call_supervisor(user_id, "ما هو طقس الأيام القادمة؟", context={"days": 7})
 
         response = result.get("response_ar", "لم أتمكن من الحصول على البيانات\\.")
         await wait_msg.edit_text(response)
@@ -540,7 +556,7 @@ async def process_pest_photo(message: Message, state: FSMContext):
         await message.answer("⚠️ الصورة كبيرة جداً (الحد الأقصى 10MB). أرسل صورة أصغر.")
         await state.clear()
         return
-    file = await bot.get_file(photo.file_id)
+    await bot.get_file(photo.file_id)
 
     wait_msg = await message.answer("🔬 جاري تحليل الصورة بالذكاء الاصطناعي\\.\\.\\.")
 
@@ -551,7 +567,7 @@ async def process_pest_photo(message: Message, state: FSMContext):
             user_id,
             f"صورة آفة على محصول {crop}",
             field_id=field_id,
-            context={"crop": crop, "image_file_id": photo.file_id}
+            context={"crop": crop, "image_file_id": photo.file_id},
         )
 
         response = result.get("response_ar", "لم أتمكن من التحليل\\.")
@@ -560,10 +576,16 @@ async def process_pest_photo(message: Message, state: FSMContext):
 
         # If treatment recommended, offer to create task
         if "علاج" in response or "treatment" in response.lower():
-            kb = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="✅ إنشاء مهمة مكافحة", callback_data="create_pest_task")],
-                [InlineKeyboardButton(text="❌ لا شكراً", callback_data="dismiss")]
-            ])
+            kb = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="✅ إنشاء مهمة مكافحة", callback_data="create_pest_task"
+                        )
+                    ],
+                    [InlineKeyboardButton(text="❌ لا شكراً", callback_data="dismiss")],
+                ]
+            )
             await message.answer("هل تريد إنشاء مهمة مكافحة في نظام SAHOOL؟", reply_markup=kb)
 
     except Exception as e:
@@ -582,18 +604,18 @@ async def cmd_market(message: Message):
 
     try:
         result = await call_supervisor(
-            user_id,
-            f"كم سعر {crop} في السوق؟",
-            context={"crop": crop, "market": "sanaa"}
+            user_id, f"كم سعر {crop} في السوق؟", context={"crop": crop, "market": "sanaa"}
         )
 
         response = result.get("response_ar", "لم أتمكن من الحصول على الأسعار\\.")
 
         # Add price trend button
-        kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📈 اتجاه 30 يوم", callback_data=f"trend_{crop}")],
-            [InlineKeyboardButton(text="📝 إنشاء عقد آجل", callback_data="create_contract")]
-        ])
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="📈 اتجاه 30 يوم", callback_data=f"trend_{crop}")],
+                [InlineKeyboardButton(text="📝 إنشاء عقد آجل", callback_data="create_contract")],
+            ]
+        )
 
         await wait_msg.edit_text(response, reply_markup=kb)
 
@@ -625,7 +647,9 @@ async def cmd_optimize(message: Message):
         await message.answer("⚠️ لم تقم بربط حقل بعد\\. استخدم /start للتسجيل\\.")
         return
 
-    wait_msg = await message.answer("🧠 جاري تحليل البيانات وإيجاد أفضل خطة... قد يستغرق 10-30 ثانية.")
+    wait_msg = await message.answer(
+        "🧠 جاري تحليل البيانات وإيجاد أفضل خطة... قد يستغرق 10-30 ثانية."
+    )
 
     try:
         result = await call_supervisor(
@@ -633,17 +657,19 @@ async def cmd_optimize(message: Message):
             "حسّن مزرعتي",
             field_id=field_id,
             context={"crop": crop},
-            objectives=["balanced"]
+            objectives=["balanced"],
         )
 
         response = result.get("trade_off_explanation", result.get("response_ar", "تم التحليل\\!"))
 
         # Add optimization options
-        kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="📈 أقصى إنتاجية", callback_data="opt_max_yield")],
-            [InlineKeyboardButton(text="💰 أقصى ربح", callback_data="opt_max_profit")],
-            [InlineKeyboardButton(text="💧 توفير مياه", callback_data="opt_min_water")]
-        ])
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="📈 أقصى إنتاجية", callback_data="opt_max_yield")],
+                [InlineKeyboardButton(text="💰 أقصى ربح", callback_data="opt_max_profit")],
+                [InlineKeyboardButton(text="💧 توفير مياه", callback_data="opt_min_water")],
+            ]
+        )
 
         await wait_msg.edit_text(str(response)[:4000], reply_markup=kb)  # Telegram limit
 
@@ -677,24 +703,26 @@ async def cmd_help(message: Message):
 @router.message(Command("settings"))
 async def cmd_settings(message: Message):
     """User settings."""
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🌐 العربية", callback_data="lang_ar")],
-        [InlineKeyboardButton(text="🇬🇧 English", callback_data="lang_en")],
-        [InlineKeyboardButton(text="🔔 تفعيل الإشعارات", callback_data="notif_on")],
-        [InlineKeyboardButton(text="🔕 إيقاف الإشعارات", callback_data="notif_off")]
-    ])
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🌐 العربية", callback_data="lang_ar")],
+            [InlineKeyboardButton(text="🇬🇧 English", callback_data="lang_en")],
+            [InlineKeyboardButton(text="🔔 تفعيل الإشعارات", callback_data="notif_on")],
+            [InlineKeyboardButton(text="🔕 إيقاف الإشعارات", callback_data="notif_off")],
+        ]
+    )
     await message.answer("⚙️ *الإعدادات*", reply_markup=kb)
 
 
 # ─── Callback Handlers ─────────────────────────────────────
 
+
 @router.callback_query(F.data == "create_pest_task")
 async def cb_create_pest_task(callback: CallbackQuery):
     """Create pest control task."""
     await callback.message.edit_text(
-        "✅ *تم إنشاء مهمة مكافحة في نظام SAHOOL\\!*\n"
-        "سيتم إشعارك بموعد التنفيذ\\.",
-        reply_markup=None
+        "✅ *تم إنشاء مهمة مكافحة في نظام SAHOOL\\!*\nسيتم إشعارك بموعد التنفيذ\\.",
+        reply_markup=None,
     )
     await callback.answer("تم إنشاء المهمة\\!", show_alert=True)
 
@@ -709,9 +737,7 @@ async def cb_price_trend(callback: CallbackQuery):
 
     try:
         result = await call_supervisor(
-            user_id,
-            f"اتجاه سعر {crop}",
-            context={"crop": crop, "market": "sanaa"}
+            user_id, f"اتجاه سعر {crop}", context={"crop": crop, "market": "sanaa"}
         )
 
         response = result.get("response_ar", "لم أتمكن من جلب الاتجاه\\.")
@@ -727,7 +753,7 @@ async def cb_optimize_objective(callback: CallbackQuery):
     obj_map = {
         "opt_max_yield": ["max_yield"],
         "opt_max_profit": ["max_profit"],
-        "opt_min_water": ["min_water"]
+        "opt_min_water": ["min_water"],
     }
     objectives = obj_map.get(callback.data, ["balanced"])
     user_id = callback.from_user.id
@@ -742,11 +768,7 @@ async def cb_optimize_objective(callback: CallbackQuery):
 
     try:
         result = await call_supervisor(
-            user_id,
-            "حسّن مزرعتي",
-            field_id=field_id,
-            context={"crop": crop},
-            objectives=objectives
+            user_id, "حسّن مزرعتي", field_id=field_id, context={"crop": crop}, objectives=objectives
         )
 
         response = result.get("trade_off_explanation", result.get("response_ar", "تم التحليل\\!"))
@@ -765,6 +787,7 @@ async def cb_dismiss(callback: CallbackQuery):
 
 # ─── Natural Language Handler ──────────────────────────────
 
+
 @router.message(F.text)
 async def handle_natural_language(message: Message):
     """Handle any text message as natural language query."""
@@ -779,7 +802,7 @@ async def handle_natural_language(message: Message):
         "شكرا": "🙏 على الرحب والسعة\\!",
         "thanks": "🙏 You're welcome\\!",
         "bye": "👋 مع السلامة\\!",
-        "مع السلامة": "👋 في أمان الله\\!"
+        "مع السلامة": "👋 في أمان الله\\!",
     }
 
     if message.text.strip().lower() in quick_responses:
@@ -790,10 +813,7 @@ async def handle_natural_language(message: Message):
 
     try:
         result = await call_supervisor(
-            user_id,
-            message.text,
-            field_id=field_id,
-            context={"crop": crop}
+            user_id, message.text, field_id=field_id, context={"crop": crop}
         )
 
         response = result.get("response_ar", "لم أفهم السؤال تماماً\\. حاول صياغته بطريقة أخرى\\.")
@@ -806,16 +826,16 @@ async def handle_natural_language(message: Message):
 
     except Exception as e:
         await wait_msg.edit_text(
-            f"❌ عذراً، حدث خطأ\\:\n`{str(e)[:200]}`\n\n"
-            f"حاول مرة أخرى أو استخدم /help"
+            f"❌ عذراً، حدث خطأ\\:\n`{str(e)[:200]}`\n\nحاول مرة أخرى أو استخدم /help"
         )
 
 
 # ─── Main Entry Point ──────────────────────────────────────
 
+
 async def main():
     """Start the bot."""
-    logger.info("[SAHOOL Bot] Starting at %s", datetime.now(timezone.utc).isoformat())
+    logger.info("[SAHOOL Bot] Starting at %s", datetime.now(UTC).isoformat())
     logger.info("[SAHOOL Bot] Supervisor: %s", SUPERVISOR_URL)
     logger.info("[SAHOOL Bot] Connected users: %s", len(user_cache))
 
@@ -830,14 +850,7 @@ if __name__ == "__main__":
 @router.message(Command("voice"))
 async def cmd_voice(message: Message):
     """Send a sample voice message in Yemeni Arabic."""
-    user_id = message.from_user.id
-    text = (
-        "مرحباً بك في منصة سهول الزراعية الذكية. "
-        "هذه رسالة صوتية تجريبية بصوت يمني أصيل."
-    )
+    text = "مرحباً بك في منصة سهول الزراعية الذكية. هذه رسالة صوتية تجريبية بصوت يمني أصيل."
     sent = await send_voice_alert(message.chat.id, text, voice="yemeni_male")
     if not sent:
-        await message.answer(
-            "تعذر إنتاج الصوت في الوقت الحالي\\. سيتم الإرسال نصياً بدلاً من ذلك\\."
-        )
-
+        await message.answer("تعذر إنتاج الصوت في الوقت الحالي\\. سيتم الإرسال نصياً بدلاً من ذلك\\.")

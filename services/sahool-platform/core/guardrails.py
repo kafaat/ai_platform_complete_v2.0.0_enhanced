@@ -17,6 +17,7 @@ sahool_core.guardrails
 
 هذا تجسيد لمبدأ "السلامة لا تُتخطّى" و"الحاكم يُلغي الكل" — موحّداً.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -24,8 +25,8 @@ from enum import Enum
 
 
 class GuardrailSeverity(str, Enum):
-    HALT = "halt"          # خط أحمر — يوقف التوصية تماماً
-    WARN = "warn"          # تحذير — لا يوقف لكن يخفض الثقة
+    HALT = "halt"  # خط أحمر — يوقف التوصية تماماً
+    WARN = "warn"  # تحذير — لا يوقف لكن يخفض الثقة
 
 
 @dataclass
@@ -37,9 +38,9 @@ class GuardrailBreach:
 
 @dataclass
 class GuardrailResult:
-    passed: bool                          # هل اجتاز كل الخطوط الحمراء؟
+    passed: bool  # هل اجتاز كل الخطوط الحمراء؟
     breaches: list[GuardrailBreach] = field(default_factory=list)
-    confidence_cap: str | None = None     # سقف تفرضه التحذيرات
+    confidence_cap: str | None = None  # سقف تفرضه التحذيرات
     summary_ar: str = ""
 
     @property
@@ -69,44 +70,72 @@ def check_guardrails(
 
     # خط أحمر ١: السلامة (PHI) — لا حصاد ضمن فترة الأمان
     if pesticide_phi_satisfied is False:
-        breaches.append(GuardrailBreach(
-            "pesticide_phi", GuardrailSeverity.HALT,
-            "فترة أمان المبيد (PHI) لم تنقضِ — يُمنع الحصاد"))
+        breaches.append(
+            GuardrailBreach(
+                "pesticide_phi",
+                GuardrailSeverity.HALT,
+                "فترة أمان المبيد (PHI) لم تنقضِ — يُمنع الحصاد",
+            )
+        )
     elif pesticide_phi_satisfied is None and has_governing_data is False:
-        breaches.append(GuardrailBreach(
-            "pesticide_unknown", GuardrailSeverity.HALT,
-            "سجلّ المبيدات غير معروف — لا توصية حصاد حتى يُتحقّق"))
+        breaches.append(
+            GuardrailBreach(
+                "pesticide_unknown",
+                GuardrailSeverity.HALT,
+                "سجلّ المبيدات غير معروف — لا توصية حصاد حتى يُتحقّق",
+            )
+        )
 
     # خط أحمر ٢: البيانات الحاكمة ناقصة
     if not has_governing_data:
-        breaches.append(GuardrailBreach(
-            "missing_governing_data", GuardrailSeverity.HALT,
-            "بيانات حاكمة ناقصة (تربة/ماء مخبري) — القاعدة الذهبية: لا قرار"))
+        breaches.append(
+            GuardrailBreach(
+                "missing_governing_data",
+                GuardrailSeverity.HALT,
+                "بيانات حاكمة ناقصة (تربة/ماء مخبري) — القاعدة الذهبية: لا قرار",
+            )
+        )
 
     # خط أحمر ٣: الملوحة تتجاوز عتبة المحصول بشدّة
     if soil_ec_ds_m is not None and crop_salinity_threshold_ds_m is not None:
         if soil_ec_ds_m > crop_salinity_threshold_ds_m * 1.5:
-            breaches.append(GuardrailBreach(
-                "salinity_exceeds_crop", GuardrailSeverity.HALT,
-                f"ملوحة التربة ({soil_ec_ds_m}) تتجاوز عتبة المحصول "
-                f"({crop_salinity_threshold_ds_m}) بشدّة — المحصول غير مناسب"))
+            breaches.append(
+                GuardrailBreach(
+                    "salinity_exceeds_crop",
+                    GuardrailSeverity.HALT,
+                    f"ملوحة التربة ({soil_ec_ds_m}) تتجاوز عتبة المحصول "
+                    f"({crop_salinity_threshold_ds_m}) بشدّة — المحصول غير مناسب",
+                )
+            )
         elif soil_ec_ds_m > crop_salinity_threshold_ds_m:
-            breaches.append(GuardrailBreach(
-                "salinity_above_threshold", GuardrailSeverity.WARN,
-                "ملوحة التربة فوق عتبة المحصول — خفض غلّة متوقّع"))
+            breaches.append(
+                GuardrailBreach(
+                    "salinity_above_threshold",
+                    GuardrailSeverity.WARN,
+                    "ملوحة التربة فوق عتبة المحصول — خفض غلّة متوقّع",
+                )
+            )
 
     # خط أحمر ٤: تراكم أملاح من عجز الري بماء مالح
     if deficit_salinity_risk == "high":
-        breaches.append(GuardrailBreach(
-            "deficit_salt_buildup", GuardrailSeverity.HALT,
-            "عجز ري حادّ بماء مالح — تراكم أملاح خطير (الفيزياء ترفض)"))
+        breaches.append(
+            GuardrailBreach(
+                "deficit_salt_buildup",
+                GuardrailSeverity.HALT,
+                "عجز ري حادّ بماء مالح — تراكم أملاح خطير (الفيزياء ترفض)",
+            )
+        )
 
     # تحذير: غياب المعايرة المحلية يخفض السقف (لا يوقف)
     cap = None
     if not zone_factor_calibrated:
-        breaches.append(GuardrailBreach(
-            "uncalibrated", GuardrailSeverity.WARN,
-            "لا معايرة محلية (zone_factor) — السقف MEDIUM"))
+        breaches.append(
+            GuardrailBreach(
+                "uncalibrated",
+                GuardrailSeverity.WARN,
+                "لا معايرة محلية (zone_factor) — السقف MEDIUM",
+            )
+        )
         cap = "medium"
 
     halted = any(b.severity == GuardrailSeverity.HALT for b in breaches)
@@ -119,5 +148,5 @@ def check_guardrails(
         summary = "اجتازت كل الخطوط الحمراء"
 
     return GuardrailResult(
-        passed=not halted, breaches=breaches,
-        confidence_cap=cap, summary_ar=summary)
+        passed=not halted, breaches=breaches, confidence_cap=cap, summary_ar=summary
+    )

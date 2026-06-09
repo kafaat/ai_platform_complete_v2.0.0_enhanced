@@ -24,6 +24,7 @@ sahool_core.terroir_index
 صريح، والفجوات معلنة. هذا تطبيق متّسق لـ"لا تحسب ما لا تقيس":
 ما يُقاس يُحسب بسقف منخفض، وما لا يُقاس يُعلَن لا يُلفَّق.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -31,10 +32,10 @@ from dataclasses import dataclass, field
 
 @dataclass
 class TerroirResult:
-    potential_score: float | None      # 0..1، إمكان لا حكم
-    confidence: str                    # low دائماً (قرينة)
-    measured_factors: dict             # العوامل المقيسة المساهمة
-    unmeasured_gaps_ar: list[str]      # ما لا يُقاس (معلن صراحةً)
+    potential_score: float | None  # 0..1، إمكان لا حكم
+    confidence: str  # low دائماً (قرينة)
+    measured_factors: dict  # العوامل المقيسة المساهمة
+    unmeasured_gaps_ar: list[str]  # ما لا يُقاس (معلن صراحةً)
     note_ar: str = ""
     warnings_ar: list[str] = field(default_factory=list)
 
@@ -97,9 +98,12 @@ def terroir_potential(
 
     if not measured:
         return TerroirResult(
-            potential_score=None, confidence="none", measured_factors={},
+            potential_score=None,
+            confidence="none",
+            measured_factors={},
             unmeasured_gaps_ar=gaps,
-            note_ar="لا عوامل مقيسة متاحة — لا يمكن تقدير إمكان التيروير")
+            note_ar="لا عوامل مقيسة متاحة — لا يمكن تقدير إمكان التيروير",
+        )
 
     score = round(sum(measured.values()) / len(measured), 3)
     warnings = [
@@ -107,8 +111,13 @@ def terroir_potential(
         "سقف منخفض دائماً: التيروير قرينة لا دليل (مثل أي مدخل غير مخبري حاكم)",
     ]
     return TerroirResult(
-        potential_score=score, confidence="low",
+        potential_score=score,
+        confidence="low",
         measured_factors={k: round(v, 2) for k, v in measured.items()},
-        unmeasured_gaps_ar=gaps, warnings_ar=warnings,
-        note_ar=(f"إمكان جودة {crop_id} من العوامل المقيسة: {score} "
-                 f"(قرينة سقف منخفض؛ {len(gaps)} عوامل جودة غير مقيسة معلنة)"))
+        unmeasured_gaps_ar=gaps,
+        warnings_ar=warnings,
+        note_ar=(
+            f"إمكان جودة {crop_id} من العوامل المقيسة: {score} "
+            f"(قرينة سقف منخفض؛ {len(gaps)} عوامل جودة غير مقيسة معلنة)"
+        ),
+    )

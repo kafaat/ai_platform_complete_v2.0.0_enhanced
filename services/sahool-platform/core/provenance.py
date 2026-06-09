@@ -16,23 +16,24 @@ The golden rule is enforced in code: confidence of a derived/fused value
 is bounded by the WEAKEST input (largest relative error). Nothing can claim
 higher confidence than its shakiest source.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class Stage(str, Enum):
-    RAW = "raw"            # direct measurement
-    DERIVED = "derived"    # equation on raw
-    FUSED = "fused"        # weighted multi-source
+    RAW = "raw"  # direct measurement
+    DERIVED = "derived"  # equation on raw
+    FUSED = "fused"  # weighted multi-source
     DECISION = "decision"  # rules + calibration
 
 
 class Status(str, Enum):
-    CALIBRATED = "calibrated"        # validated against ground truth
-    PHYSICS = "physics"              # established equation, no calibration needed
+    CALIBRATED = "calibrated"  # validated against ground truth
+    PHYSICS = "physics"  # established equation, no calibration needed
     PENDING = "pending_calibration"  # awaits ground truth — NO fake number
     INSUFFICIENT = "insufficient_data"
 
@@ -58,17 +59,18 @@ def confidence_from_error(relative_error: float) -> Confidence:
 @dataclass
 class Provenance:
     """The lineage record attached to every information value."""
-    name: str                      # what this is (e.g. "ET0", "suitability")
-    value: Any                     # the value (or None if pending)
+
+    name: str  # what this is (e.g. "ET0", "suitability")
+    value: Any  # the value (or None if pending)
     unit: str
     stage: Stage
     status: Status
-    source: str                    # measurement source / equation
-    ground_truth: str              # what the reference truth is
-    error: float                   # relative error (e.g. 0.10 = ±10%); -1 unknown
-    verification: str              # how to verify later
-    inputs: list["Provenance"] = field(default_factory=list)
-    citation: str = ""             # literature source
+    source: str  # measurement source / equation
+    ground_truth: str  # what the reference truth is
+    error: float  # relative error (e.g. 0.10 = ±10%); -1 unknown
+    verification: str  # how to verify later
+    inputs: list[Provenance] = field(default_factory=list)
+    citation: str = ""  # literature source
 
     @property
     def confidence(self) -> Confidence:
@@ -103,7 +105,7 @@ class Provenance:
         """Human-readable Arabic lineage line."""
         if self.value is None or self.status == Status.PENDING:
             return f"{self.name}: قيد المعايرة (لا رقم — ينتظر {self.ground_truth})"
-        err_txt = f"±{self.error*100:.0f}%" if self.error >= 0 else "غير معروف"
+        err_txt = f"±{self.error * 100:.0f}%" if self.error >= 0 else "غير معروف"
         return (
             f"{self.name} = {self.value} {self.unit} | "
             f"ثقة: {self.confidence.value} | خطأ: {err_txt} | "
@@ -116,20 +118,24 @@ def propagate_multiply(a: Provenance, b: Provenance) -> float:
     """Relative errors add in quadrature for z = a*b."""
     ea = a.error if a.error >= 0 else 0.0
     eb = b.error if b.error >= 0 else 0.0
-    return (ea ** 2 + eb ** 2) ** 0.5
+    return (ea**2 + eb**2) ** 0.5
 
 
 def propagate_add(values_errors: list[tuple[float, float]]) -> float:
     """Absolute errors add in quadrature for z = x+y+...; returns abs error."""
-    return sum(e ** 2 for _, e in values_errors) ** 0.5
+    return sum(e**2 for _, e in values_errors) ** 0.5
 
 
 # ── Factory for a "pending" value (the honest default) ───────────────
-def pending(name: str, unit: str, ground_truth: str,
-            verification: str = "") -> Provenance:
+def pending(name: str, unit: str, ground_truth: str, verification: str = "") -> Provenance:
     return Provenance(
-        name=name, value=None, unit=unit,
-        stage=Stage.DECISION, status=Status.PENDING,
-        source="—", ground_truth=ground_truth, error=-1.0,
+        name=name,
+        value=None,
+        unit=unit,
+        stage=Stage.DECISION,
+        status=Status.PENDING,
+        source="—",
+        ground_truth=ground_truth,
+        error=-1.0,
         verification=verification or f"يتطلب {ground_truth}",
     )

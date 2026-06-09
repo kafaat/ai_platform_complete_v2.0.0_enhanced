@@ -19,10 +19,10 @@ LSD ليُجيب بصدق: "هل الفرق مؤكّد إحصائيّاً أم �
 — حذّرنا من ثوابت الذرة الأمريكيّة). هذا المحرّك يُنتج البيانات التي قد يحتاجها
 EONR لاحقاً، بالترتيب الصحيح.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 from scipy import stats
@@ -31,18 +31,20 @@ from scipy import stats
 @dataclass
 class BlockResult:
     """نتيجة حصاد كتلة واحدة: إنتاج المعالجة مقابل المقارنة."""
+
     block_number: int
-    treatment_yield: float    # kg/ha (أو أيّ وحدة متّسقة)
+    treatment_yield: float  # kg/ha (أو أيّ وحدة متّسقة)
     control_yield: float
 
 
 @dataclass
 class TrialVerdict:
     """نتيجة التحليل الإحصائي الكاملة."""
+
     n_blocks: int
     treatment_mean: float
     control_mean: float
-    mean_difference: float       # معالجة − مقارنة
+    mean_difference: float  # معالجة − مقارنة
     std_diff: float
     se_diff: float
     t_statistic: float
@@ -57,7 +59,7 @@ class TrialVerdict:
     verdict_ar: str
     recommendation_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "n_blocks": self.n_blocks,
             "treatment_mean": round(self.treatment_mean, 3),
@@ -83,7 +85,7 @@ MIN_BLOCKS = 4  # معيار SARE: أقلّ من ٤ = لا صحّة إحصائي
 
 
 def analyze_paired_trial(
-    blocks: List[BlockResult],
+    blocks: list[BlockResult],
     *,
     confidence_level: float = 0.95,
     treatment_label_ar: str = "المعالجة الجديدة",
@@ -104,7 +106,7 @@ def analyze_paired_trial(
     diffs = treatment - control
 
     mean_diff = float(np.mean(diffs))
-    std_diff = float(np.std(diffs, ddof=1))            # عيّنة (n-1)
+    std_diff = float(np.std(diffs, ddof=1))  # عيّنة (n-1)
     se_diff = std_diff / np.sqrt(n)
     df = n - 1
 
@@ -142,9 +144,21 @@ def analyze_paired_trial(
         rec = "الفرق قد يكون تبايناً طبيعيّاً. لا دليل كافٍ لتغيير الممارسة."
 
     return TrialVerdict(
-        n_blocks=n, treatment_mean=treatment_mean, control_mean=control_mean,
-        mean_difference=mean_diff, std_diff=std_diff, se_diff=se_diff,
-        t_statistic=t_stat, df=df, p_value=p_value, confidence_level=confidence_level,
-        lsd=lsd, is_significant=is_sig, ci_lower=ci_lower, ci_upper=ci_upper,
-        percent_change=pct, verdict_ar=verdict, recommendation_ar=rec,
+        n_blocks=n,
+        treatment_mean=treatment_mean,
+        control_mean=control_mean,
+        mean_difference=mean_diff,
+        std_diff=std_diff,
+        se_diff=se_diff,
+        t_statistic=t_stat,
+        df=df,
+        p_value=p_value,
+        confidence_level=confidence_level,
+        lsd=lsd,
+        is_significant=is_sig,
+        ci_lower=ci_lower,
+        ci_upper=ci_upper,
+        percent_change=pct,
+        verdict_ar=verdict,
+        recommendation_ar=rec,
     )

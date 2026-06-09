@@ -17,14 +17,16 @@ sahool_core.evidence_class
 هذه الوحدة تفرض القاعدة برمجياً: لا قرينة تُعامَل معاملة دليل.
 تربط أنواع مصفوفة المشاهدات بطبيعتها (قرينة/دليل) وتفرض الحدود.
 """
+
 from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
 
 
 class EvidenceClass(str, Enum):
-    INDICATION = "indication"   # قرينة — ترجّح لا تُلزِم
-    EVIDENCE = "evidence"       # دليل — يُثبت ويَحكم
+    INDICATION = "indication"  # قرينة — ترجّح لا تُلزِم
+    EVIDENCE = "evidence"  # دليل — يُثبت ويَحكم
 
 
 # ربط أنواع مصفوفة المشاهدات بطبيعتها (قرينة/دليل)
@@ -33,23 +35,24 @@ _TYPE_TO_CLASS = {
     "governing": EvidenceClass.EVIDENCE,
     "governing_strict": EvidenceClass.EVIDENCE,
     "governing_trees": EvidenceClass.EVIDENCE,
-    "calibration": EvidenceClass.EVIDENCE,    # معايرة من قياس حقيقي
+    "calibration": EvidenceClass.EVIDENCE,  # معايرة من قياس حقيقي
     "feasibility": EvidenceClass.EVIDENCE,
     # قرائن: ترجّح وتوجّه، لا تُلزِم
-    "diagnostic": EvidenceClass.INDICATION,   # المؤشّرات الطيفية
-    "modifying": EvidenceClass.INDICATION,    # عوامل مُعدِّلة (ترجّح)
+    "diagnostic": EvidenceClass.INDICATION,  # المؤشّرات الطيفية
+    "modifying": EvidenceClass.INDICATION,  # عوامل مُعدِّلة (ترجّح)
 }
 
 
 @dataclass
 class EvidenceRuling:
     """حكم على مشاهدة: أقرينة هي أم دليل، وما يجوز بناؤه عليها."""
+
     observable_id: str
     observation_type: str
     evidence_class: EvidenceClass
-    can_govern_decision: bool   # هل تبني قراراً قاطعاً؟
-    can_lift_blocked: bool      # هل ترفع حالة BLOCKED؟
-    max_confidence: str         # سقف الثقة المسموح
+    can_govern_decision: bool  # هل تبني قراراً قاطعاً؟
+    can_lift_blocked: bool  # هل ترفع حالة BLOCKED؟
+    max_confidence: str  # سقف الثقة المسموح
     note_ar: str
 
 
@@ -74,14 +77,15 @@ def classify_evidence(observable_id: str, observation_type: str) -> EvidenceRuli
         evidence_class=ec,
         can_govern_decision=False,
         can_lift_blocked=False,
-        max_confidence="low",   # القرينة سقفها ثقة منخفضة
+        max_confidence="low",  # القرينة سقفها ثقة منخفضة
         note_ar=f"{observable_id}: قرينة — ترجّح وتوجّه، لا تبني قراراً قاطعاً "
-                f"ولا ترفع BLOCKED. تحتاج دليلاً (تحليل) للحسم",
+        f"ولا ترفع BLOCKED. تحتاج دليلاً (تحليل) للحسم",
     )
 
 
-def enforce_indication_ceiling(observable_id: str, observation_type: str,
-                               proposed_confidence: str) -> dict:
+def enforce_indication_ceiling(
+    observable_id: str, observation_type: str, proposed_confidence: str
+) -> dict:
     """يفرض سقف ثقة القرينة: حتى لو اقترح النظام ثقة عالية لقرينة، تُخفَّض.
     يمنع معاملة القرينة معاملة الدليل (خطأ يكسر الصدق)."""
     ruling = classify_evidence(observable_id, observation_type)
@@ -93,9 +97,11 @@ def enforce_indication_ceiling(observable_id: str, observation_type: str,
         return {
             "allowed_confidence": ruling.max_confidence,
             "was_capped": True,
-            "note_ar": (f"{observable_id} قرينة طيفية — خُفضت الثقة من "
-                        f"'{proposed_confidence}' إلى '{ruling.max_confidence}'. "
-                        f"القرينة لا تُعامَل معاملة الدليل."),
+            "note_ar": (
+                f"{observable_id} قرينة طيفية — خُفضت الثقة من "
+                f"'{proposed_confidence}' إلى '{ruling.max_confidence}'. "
+                f"القرينة لا تُعامَل معاملة الدليل."
+            ),
         }
     return {
         "allowed_confidence": proposed_confidence,
@@ -122,31 +128,38 @@ def explain_evidence_principle_ar() -> str:
 @dataclass
 class Corroboration:
     """نتيجة تضافر عدّة قرائن حول نفس الاستنتاج."""
-    target_ar: str              # ما تشير إليه (مثل: ملوحة)
-    n_indications: int          # عدد القرائن
+
+    target_ar: str  # ما تشير إليه (مثل: ملوحة)
+    n_indications: int  # عدد القرائن
     n_independent_sources: int  # عدد المصادر المستقلّة فعلاً
-    agree: bool                 # هل تتّفق؟
-    elevated_confidence: str    # الثقة بعد التضافر
-    can_govern: bool            # هل ترقى لتحكم؟ (شبه دائماً False للحاكمات)
-    lifts_blocked: bool         # هل ترفع BLOCKED؟
+    agree: bool  # هل تتّفق؟
+    elevated_confidence: str  # الثقة بعد التضافر
+    can_govern: bool  # هل ترقى لتحكم؟ (شبه دائماً False للحاكمات)
+    lifts_blocked: bool  # هل ترفع BLOCKED؟
     note_ar: str
 
 
 # تصنيف مصدر كل قرينة (للحكم على الاستقلال)
 _INDICATION_SOURCE = {
-    "NDVI": "optical_satellite", "NDMI": "optical_satellite",
-    "NDWI": "optical_satellite", "SI": "optical_satellite",
-    "BSI": "optical_satellite", "LAI": "optical_satellite",
-    "CWSI": "thermal", "RVI": "radar", "RSMI": "radar",
-    "district_context": "neighbor_data", "farmer_obs": "ground",
+    "NDVI": "optical_satellite",
+    "NDMI": "optical_satellite",
+    "NDWI": "optical_satellite",
+    "SI": "optical_satellite",
+    "BSI": "optical_satellite",
+    "LAI": "optical_satellite",
+    "CWSI": "thermal",
+    "RVI": "radar",
+    "RSMI": "radar",
+    "district_context": "neighbor_data",
+    "farmer_obs": "ground",
 }
 
 
 def corroborate_indications(
     target_ar: str,
-    indications: "list[tuple[str, bool]]",  # (observable_id, agrees_with_target)
+    indications: list[tuple[str, bool]],  # (observable_id, agrees_with_target)
     *,
-    is_strict_governor: bool = False,       # هل الهدف حاكم صارم (ملوحة/pH/سلامة)؟
+    is_strict_governor: bool = False,  # هل الهدف حاكم صارم (ملوحة/pH/سلامة)؟
 ) -> Corroboration:
     """يقيّم تضافر عدّة قرائن. ترقى الثقة مع الاتفاق والاستقلال —
     لكن لا تبلغ الدليل المخبري للحاكمات الصارمة.
@@ -167,24 +180,45 @@ def corroborate_indications(
     if n_conflict > 0:
         if n_conflict >= n:
             # المخالف ≥ المتّفق → لا تضافر موثوق
-            return Corroboration(target_ar, n, n_independent, False, "low",
-                False, False,
+            return Corroboration(
+                target_ar,
+                n,
+                n_independent,
+                False,
+                "low",
+                False,
+                False,
                 f"{target_ar}: قرائن متضاربة ({n} مع، {n_conflict} ضد) — "
-                f"التناقض يلغي التضافر. تبقى ثقة منخفضة، يلزم دليل للحسم")
+                f"التناقض يلغي التضافر. تبقى ثقة منخفضة، يلزم دليل للحسم",
+            )
         # أقلّية مخالفة → ترقٍّ مكبوح بدرجة واحدة (التناقض يُضعف)
         _conflict_penalty = True
     else:
         _conflict_penalty = False
 
     if n < 2:
-        return Corroboration(target_ar, n, n_independent, False, "low",
-            False, False,
-            f"{target_ar}: قرينة واحدة فقط — لا تضافر. تبقى ثقة منخفضة")
+        return Corroboration(
+            target_ar,
+            n,
+            n_independent,
+            False,
+            "low",
+            False,
+            False,
+            f"{target_ar}: قرينة واحدة فقط — لا تضافر. تبقى ثقة منخفضة",
+        )
 
     if not (n >= 2 and all(a for _, a in agreeing)):
-        return Corroboration(target_ar, n, n_independent, False, "low",
-            False, False,
-            f"{target_ar}: القرائن لا تتّفق — لا ترقى")
+        return Corroboration(
+            target_ar,
+            n,
+            n_independent,
+            False,
+            "low",
+            False,
+            False,
+            f"{target_ar}: القرائن لا تتّفق — لا ترقى",
+        )
 
     # الترقّي يعتمد على الاستقلال: مصادر مستقلّة متعدّدة ترفع أكثر
     if n_independent >= 3:
@@ -198,18 +232,21 @@ def corroborate_indications(
     # الحدّ الحاسم: الحاكم الصارم لا يُحسم بالقرائن مهما تضافرت
     if is_strict_governor:
         can_gov, lifts = False, False
-        verdict = (f"قرائن متضافرة قوية على {target_ar} "
-                   f"({n} قرينة من {n_independent} مصدر مستقلّ) → "
-                   f"ثقة {elevated}. **أولوية عالية للتحليل المخبري** — "
-                   f"لكن الحاكم الصارم يبقى يتطلّب دليلاً مخبرياً، "
-                   f"لا تُحسمه القرائن.")
+        verdict = (
+            f"قرائن متضافرة قوية على {target_ar} "
+            f"({n} قرينة من {n_independent} مصدر مستقلّ) → "
+            f"ثقة {elevated}. **أولوية عالية للتحليل المخبري** — "
+            f"لكن الحاكم الصارم يبقى يتطلّب دليلاً مخبرياً، "
+            f"لا تُحسمه القرائن."
+        )
     else:
         # غير الحاكم: تضافر قوي قد يكفي لقرار غير حرج
-        can_gov = (n_independent >= 3)
+        can_gov = n_independent >= 3
         lifts = False  # التضافر لا يرفع BLOCKED، حتى لغير الحاكم
-        verdict = (f"قرائن متضافرة على {target_ar} "
-                   f"({n} قرينة من {n_independent} مصدر) → ثقة {elevated}. "
-                   f"{'كافية لقرار استرشادي قوي' if can_gov else 'ترجّح بقوّة'}.")
+        verdict = (
+            f"قرائن متضافرة على {target_ar} "
+            f"({n} قرينة من {n_independent} مصدر) → ثقة {elevated}. "
+            f"{'كافية لقرار استرشادي قوي' if can_gov else 'ترجّح بقوّة'}."
+        )
 
-    return Corroboration(target_ar, n, n_independent, True, elevated,
-        can_gov, lifts, verdict)
+    return Corroboration(target_ar, n, n_independent, True, elevated, can_gov, lifts, verdict)

@@ -14,6 +14,7 @@ Split-conformal prediction (Vovk et al.; Lei et al. 2018):
 Until tenant-specific calibration data exists, this returns status=PENDING and
 NO numeric estimate — by design.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,7 +22,7 @@ from dataclasses import dataclass
 
 @dataclass
 class YieldInterval:
-    status: str                      # "calibrated" | "pending"
+    status: str  # "calibrated" | "pending"
     point_estimate: float | None
     lower: float | None
     upper: float | None
@@ -42,8 +43,12 @@ def conformal_interval(
     n = len(calibration_residuals)
     if n < 10:
         return YieldInterval(
-            status="pending", point_estimate=None, lower=None, upper=None,
-            coverage=None, n_calibration=n,
+            status="pending",
+            point_estimate=None,
+            lower=None,
+            upper=None,
+            coverage=None,
+            n_calibration=n,
             note_ar="قيد المعايرة — بيانات غير كافية لنطاق موثوق (تحتاج ≥10 نقاط محجوبة)",
         )
     abs_res = sorted(abs(r) for r in calibration_residuals)
@@ -57,14 +62,18 @@ def conformal_interval(
         upper=round(point_estimate + q, 2),
         coverage=coverage,
         n_calibration=n,
-        note_ar=f"نطاق إنتاج بتغطية {int(coverage*100)}% (لا نقطة وهمية)",
+        note_ar=f"نطاق إنتاج بتغطية {int(coverage * 100)}% (لا نقطة وهمية)",
     )
 
 
 def pending_estimate() -> YieldInterval:
     """Explicit 'not yet calibrated' — the honest default before tenant data exists."""
     return YieldInterval(
-        status="pending", point_estimate=None, lower=None, upper=None,
-        coverage=None, n_calibration=0,
+        status="pending",
+        point_estimate=None,
+        lower=None,
+        upper=None,
+        coverage=None,
+        n_calibration=0,
         note_ar="قيد المعايرة — لا تقدير إنتاج حتى تتوفر بيانات حصاد محلّية",
     )

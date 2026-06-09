@@ -19,10 +19,10 @@ sahool_core.engines.deficit_irrigation
 صراحةً، ولا توصي بعجز حادّ إن كان ماء الري مالحاً (يراكم الأملاح).
 تتّكئ على fao56.leaching_requirement الموجود. سقف MEDIUM (تقديري).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-
 
 # خفض الغلّة التقريبي مقابل نسبة ETc (Nature Sci Rep 2025, شبه جاف)
 _YIELD_PENALTY = {100: 0.0, 90: 0.04, 80: 0.07, 70: 0.15, 60: 0.23, 40: 0.50}
@@ -30,10 +30,10 @@ _YIELD_PENALTY = {100: 0.0, 90: 0.04, 80: 0.07, 70: 0.15, 60: 0.23, 40: 0.50}
 
 @dataclass
 class DeficitTradeoff:
-    etc_fraction: int                 # نسبة الري المطبّق (% من ETc)
-    yield_penalty_pct: float          # خفض الغلّة المتوقّع
-    salinity_risk: str                # low / medium / high
-    wue_gain: bool                    # هل يحسّن كفاءة الماء؟
+    etc_fraction: int  # نسبة الري المطبّق (% من ETc)
+    yield_penalty_pct: float  # خفض الغلّة المتوقّع
+    salinity_risk: str  # low / medium / high
+    wue_gain: bool  # هل يحسّن كفاءة الماء؟
     recommended: bool
     confidence: str
     warnings_ar: list[str] = field(default_factory=list)
@@ -74,13 +74,18 @@ def evaluate_deficit_irrigation(
     التكميلي (مفهوم مختلف). is_irrigated=False → لا توصية عجز."""
     if not is_irrigated:
         return DeficitTradeoff(
-            etc_fraction=etc_fraction, yield_penalty_pct=0.0,
-            salinity_risk="low", wue_gain=False, recommended=False,
+            etc_fraction=etc_fraction,
+            yield_penalty_pct=0.0,
+            salinity_risk="low",
+            wue_gain=False,
+            recommended=False,
             confidence="none",
-            warnings_ar=["هذا المحرّك للمناطق المرويّة لا المطرية — "
-                         "في الزراعة المطرية يُدار الماء بالريّ التكميلي لا بعجز الريّ"],
-            note_ar="غير منطبق: الحقل مطريّ (لا مرويّ). عجز الريّ قرار إداري "
-                    "يخصّ المناطق المرويّة فقط.")
+            warnings_ar=[
+                "هذا المحرّك للمناطق المرويّة لا المطرية — "
+                "في الزراعة المطرية يُدار الماء بالريّ التكميلي لا بعجز الريّ"
+            ],
+            note_ar="غير منطبق: الحقل مطريّ (لا مرويّ). عجز الريّ قرار إداري يخصّ المناطق المرويّة فقط.",
+        )
     penalty = _interp_penalty(etc_fraction)
     warnings: list[str] = []
 
@@ -93,11 +98,11 @@ def evaluate_deficit_irrigation(
             salt_risk = "high"
             warnings.append(
                 f"⚠️ ماء الري مالح (EC={water_ec_ds_m}) + عجز حادّ ({etc_fraction}% ETc) "
-                "= تراكم أملاح خطير (الغسل يقلّ). الفيزياء ترفض هذا المزيج.")
+                "= تراكم أملاح خطير (الغسل يقلّ). الفيزياء ترفض هذا المزيج."
+            )
         elif etc_fraction < 80 and ec_ratio > 0.3:
             salt_risk = "medium"
-            warnings.append(
-                "عجز متوسّط مع ماء مالح — راقب ملوحة التربة؛ قد تحتاج ريّة غسل دورية")
+            warnings.append("عجز متوسّط مع ماء مالح — راقب ملوحة التربة؛ قد تحتاج ريّة غسل دورية")
     elif water_ec_ds_m is None:
         warnings.append("ملوحة ماء الري غير معروفة — لا يمكن تقييم خطر تراكم الأملاح بثقة")
 
@@ -112,17 +117,23 @@ def evaluate_deficit_irrigation(
         note = f"عجز {etc_fraction}% يخفض الغلّة ~{penalty:.0%} — حادّ، استشر خبيراً"
     elif 80 <= etc_fraction <= 90 and salt_risk == "low":
         recommended = True
-        note = (f"عجز معتدل ({etc_fraction}%) خيار جيد — يوفّر الماء، خفض غلّة "
-                f"~{penalty:.0%}, كفاءة أعلى")
+        note = (
+            f"عجز معتدل ({etc_fraction}%) خيار جيد — يوفّر الماء، خفض غلّة ~{penalty:.0%}, كفاءة أعلى"
+        )
     else:
         note = f"عجز {etc_fraction}% — خفض غلّة ~{penalty:.0%}؛ وازِن التوفير بالخسارة"
 
     warnings.append("تقديري (سقف متوسّط) — معايَر على دراسات شبه جافة، لا حقلك تحديداً")
     return DeficitTradeoff(
-        etc_fraction=etc_fraction, yield_penalty_pct=round(penalty, 3),
-        salinity_risk=salt_risk, wue_gain=wue_gain, recommended=recommended,
+        etc_fraction=etc_fraction,
+        yield_penalty_pct=round(penalty, 3),
+        salinity_risk=salt_risk,
+        wue_gain=wue_gain,
+        recommended=recommended,
         confidence="medium" if salt_risk != "high" else "low",
-        warnings_ar=warnings, note_ar=note)
+        warnings_ar=warnings,
+        note_ar=note,
+    )
 
 
 def soc_water_capacity_gain(soc_increase_pct: float, soil_depth_cm: float = 30.0) -> dict:
@@ -135,8 +146,10 @@ def soc_water_capacity_gain(soc_increase_pct: float, soil_depth_cm: float = 30.0
     return {
         "awc_gain_mm_low": round(low, 2),
         "awc_gain_mm_high": round(high, 2),
-        "note_ar": (f"زيادة {soc_increase_pct}% كربون عضوي ترفع الماء المتاح "
-                    f"~{low:.1f}-{high:.1f}مم/{soil_depth_cm:.0f}سم — "
-                    "أثر تراكمي بطيء (مواسم)، يحسّن مقاومة الجفاف"),
+        "note_ar": (
+            f"زيادة {soc_increase_pct}% كربون عضوي ترفع الماء المتاح "
+            f"~{low:.1f}-{high:.1f}مم/{soil_depth_cm:.0f}سم — "
+            "أثر تراكمي بطيء (مواسم)، يحسّن مقاومة الجفاف"
+        ),
         "confidence": "medium",
     }

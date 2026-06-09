@@ -115,6 +115,10 @@ services:
     # FIX: لا تكشف Redis للمضيف إلا إذا احتجت debugging
     # ports:
     #   - "127.0.0.1:6379:6379"
+    environment:
+      # FIX: expose the password inside the container so the healthcheck can
+      # authenticate (redis-cli -a) and avoid NOAUTH failures.
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
     command: >
       sh -c '
         echo "requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD required}" > /usr/local/etc/redis/redis.conf &&
@@ -127,10 +131,13 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      # FIX: redis runs with --requirepass, so an unauthenticated PING returns
+      # NOAUTH and the check fails. Authenticate with -a before PING.
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
       interval: 10s
       timeout: 3s
       retries: 5
+      start_period: 10s
 
   # ═══════════════════════════════════════════════════════════════
   # 4. NATS JetStream (FIX: بدون persistence → JetStream store)
@@ -150,10 +157,14 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8222/healthz"]
+      # FIX: nats:2-alpine ships BusyBox wget (no curl). Hit the monitoring
+      # port 8222 (enabled via --http_port 8222), not the 4222 client port.
+      # Use -qO- instead of --spider (BusyBox --spider is unreliable).
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
+      start_period: 10s
 
   # ═══════════════════════════════════════════════════════════════
   # 5. MinIO (FIX: كلمة سر جذرية مكشوفة → env var)
@@ -201,11 +212,15 @@ services:
       - qdrant-storage:/qdrant/storage
     networks:
       - sahool-internal
-    healthcheck:
-      test: ["CMD", "curl", "-f", "-H", "api-key: ${QDRANT_API_KEY}", "http://localhost:6333/healthz"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
+    # FIX: the official qdrant/qdrant image is DISTROLESS — it has NO curl,
+    # wget or shell, so the previous `curl ... /healthz` test could NEVER run
+    # and the container was always marked "unhealthy", which then cascaded to
+    # every service that waits on it via `condition: service_healthy`.
+    # There is no usable HTTP client inside the image, so we cannot run an
+    # in-container HTTP healthcheck without rebuilding the image. We therefore
+    # drop the in-container healthcheck and gate dependents on service_started.
+    # (If a true readiness gate is required, build a wrapper image that adds a
+    #  static healthcheck binary — see report.)
 
   # ═══════════════════════════════════════════════════════════════
   # 7. Ollama (FIX: مفقود للـ RAG)
@@ -229,7 +244,13 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434"]
+      # FIX: the ollama/ollama image does NOT ship curl — the old
+      # `curl -f http://localhost:11434` test could never run, so ollama was
+      # always "unhealthy" and every dependent (local-ai-rag, qdrant-seed) that
+      # waits on `condition: service_healthy` failed to start.
+      # The image DOES bundle the `ollama` CLI; `ollama list` hits the local API
+      # and exits 0 once the server is ready.
+      test: ["CMD", "ollama", "list"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -683,7 +704,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-qdrant:
-        condition: service_healthy
+        condition: service_started  # FIX: qdrant image is distroless, no healthcheck
       sahool-ollama:
         condition: service_healthy
     networks:
@@ -713,7 +734,7 @@ services:
       EMBEDDING_MODEL: nomic-embed-text
     depends_on:
       sahool-qdrant:
-        condition: service_healthy
+        condition: service_started  # FIX: qdrant image is distroless, no healthcheck
       sahool-ollama:
         condition: service_healthy
     networks:

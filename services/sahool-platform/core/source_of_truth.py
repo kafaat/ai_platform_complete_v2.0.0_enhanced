@@ -38,45 +38,47 @@ arbitration.
   → يُستخدم في field_bundle قبل تغذية recommendation_engine
   → يُستخدم في farm_memory للذاكرة الموحّدة
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 
 from core.canonical_schemas import ObservationSource
-
 
 # ─── سلّم الموثوقية ──────────────────────────────────────────────
 # مبدأ زراعي صريح: المختبر يحكم على الاستشعار.
 # هذا تطبيق آخر للمبدأ السهولي #٢ ("الاستشعار يوجّه، المختبر يحكم").
 
 _SOURCE_PRIORITY = {
-    ObservationSource.LAB: 100,         # دليل قطعي
-    ObservationSource.MANUAL: 80,       # إدخال بشري مُتحقَّق
-    ObservationSource.SENSOR: 60,       # حسّاس ميداني معاير
-    ObservationSource.DRONE: 50,        # رصد جوّي قريب
-    ObservationSource.SATELLITE: 40,    # قمر صناعي (resolution منخفض)
-    ObservationSource.HISTORICAL: 30,   # بيانات تاريخية (قد تكون stale)
+    ObservationSource.LAB: 100,  # دليل قطعي
+    ObservationSource.MANUAL: 80,  # إدخال بشري مُتحقَّق
+    ObservationSource.SENSOR: 60,  # حسّاس ميداني معاير
+    ObservationSource.DRONE: 50,  # رصد جوّي قريب
+    ObservationSource.SATELLITE: 40,  # قمر صناعي (resolution منخفض)
+    ObservationSource.HISTORICAL: 30,  # بيانات تاريخية (قد تكون stale)
 }
 
 
 class ConflictSeverity(str, Enum):
     """شدّة التضارب بين مصادر متعدّدة."""
-    NONE = "none"            # مصدر واحد فقط
+
+    NONE = "none"  # مصدر واحد فقط
     AGREEMENT = "agreement"  # كلّ المصادر ضمن tolerance
-    MINOR = "minor"          # فرق <15%
-    MAJOR = "major"          # فرق 15-30%
-    CRITICAL = "critical"    # فرق >30% — يحتاج مراجعة بشرية
+    MINOR = "minor"  # فرق <15%
+    MAJOR = "major"  # فرق 15-30%
+    CRITICAL = "critical"  # فرق >30% — يحتاج مراجعة بشرية
 
 
 @dataclass
 class Observation:
     """تمثيل خفيف لمشاهدة (نسخة مبسّطة من ObservationSchema)."""
+
     value: float
     source: ObservationSource
-    confidence: str               # "low"/"medium"/"high"
-    measured_at: str              # ISO datetime
+    confidence: str  # "low"/"medium"/"high"
+    measured_at: str  # ISO datetime
     observable_id: str
     method: str | None = None
 
@@ -84,12 +86,13 @@ class Observation:
 @dataclass
 class ArbitrationResult:
     """نتيجة arbitration — مع reasoning كامل."""
-    canonical_value: float | None        # القيمة المُختارة (None إن critical)
+
+    canonical_value: float | None  # القيمة المُختارة (None إن critical)
     canonical_source: ObservationSource | None
-    canonical_confidence: str            # سقف الثقة بعد arbitration
+    canonical_confidence: str  # سقف الثقة بعد arbitration
     severity: ConflictSeverity
-    competing_sources: int               # عدد المصادر التي شاركت
-    spread_pct: float                    # نطاق التباين
+    competing_sources: int  # عدد المصادر التي شاركت
+    spread_pct: float  # نطاق التباين
     reasoning_ar: str
     rejected_sources: list[dict] = field(default_factory=list)
     requires_human_review: bool = False
@@ -97,9 +100,10 @@ class ArbitrationResult:
 
 # ─── الـcore arbitration ─────────────────────────────────────────
 
-def _age_decay_factor(measured_at: str,
-                     current: datetime | None = None,
-                     half_life_days: int = 30) -> float:
+
+def _age_decay_factor(
+    measured_at: str, current: datetime | None = None, half_life_days: int = 30
+) -> float:
     """عامل تخفيف بسبب العمر. 30 يوم half-life افتراضياً.
 
     حسّاس قرأ منذ ساعة > قمر صناعي قرأ منذ شهر.
@@ -159,10 +163,12 @@ def arbitrate(
 
     if not observations:
         return ArbitrationResult(
-            canonical_value=None, canonical_source=None,
+            canonical_value=None,
+            canonical_source=None,
             canonical_confidence="none",
             severity=ConflictSeverity.NONE,
-            competing_sources=0, spread_pct=0.0,
+            competing_sources=0,
+            spread_pct=0.0,
             reasoning_ar="لا مشاهدات للـarbitration",
         )
 
@@ -170,10 +176,12 @@ def arbitrate(
     valid = [o for o in observations if o.value is not None]
     if not valid:
         return ArbitrationResult(
-            canonical_value=None, canonical_source=None,
+            canonical_value=None,
+            canonical_source=None,
             canonical_confidence="none",
             severity=ConflictSeverity.NONE,
-            competing_sources=0, spread_pct=0.0,
+            competing_sources=0,
+            spread_pct=0.0,
             reasoning_ar="كل المشاهدات بقيمة None",
         )
 
@@ -187,8 +195,7 @@ def arbitrate(
             severity=ConflictSeverity.NONE,
             competing_sources=1,
             spread_pct=0.0,
-            reasoning_ar=(f"مصدر واحد: {obs.source.value} "
-                         f"({obs.confidence}) → القيمة كما هي"),
+            reasoning_ar=(f"مصدر واحد: {obs.source.value} ({obs.confidence}) → القيمة كما هي"),
         )
 
     # حالة متعدّدة: قِس التباين أوّلاً
@@ -204,11 +211,12 @@ def arbitrate(
             severity=ConflictSeverity.CRITICAL,
             competing_sources=len(valid),
             spread_pct=spread,
-            reasoning_ar=(f"تضارب حرج: {len(valid)} مصدر، "
-                         f"تباين {spread:.1f}% > {critical_threshold_pct}%. "
-                         "يتطلّب مراجعة بشرية — لا اختيار آلي."),
-            rejected_sources=[{"source": o.source.value, "value": o.value}
-                             for o in valid],
+            reasoning_ar=(
+                f"تضارب حرج: {len(valid)} مصدر، "
+                f"تباين {spread:.1f}% > {critical_threshold_pct}%. "
+                "يتطلّب مراجعة بشرية — لا اختيار آلي."
+            ),
+            rejected_sources=[{"source": o.source.value, "value": o.value} for o in valid],
             requires_human_review=True,
         )
 
@@ -227,9 +235,12 @@ def arbitrate(
     best_score, best = scored[0]
 
     rejected = [
-        {"source": o.source.value, "value": o.value,
-         "score": round(s, 2),
-         "rejected_because": f"score {s:.1f} < winner {best_score:.1f}"}
+        {
+            "source": o.source.value,
+            "value": o.value,
+            "score": round(s, 2),
+            "rejected_because": f"score {s:.1f} < winner {best_score:.1f}",
+        }
         for s, o in scored[1:]
     ]
 
@@ -237,10 +248,9 @@ def arbitrate(
     final_conf = best.confidence
     if severity == ConflictSeverity.MINOR:
         # خفّض medium → low (لا high مع تباين)
-        final_conf = {"high": "medium", "medium": "low",
-                     "low": "low"}.get(best.confidence, "low")
+        final_conf = {"high": "medium", "medium": "low", "low": "low"}.get(best.confidence, "low")
     elif severity == ConflictSeverity.MAJOR:
-        final_conf = "low"   # دائماً low مع تباين major
+        final_conf = "low"  # دائماً low مع تباين major
 
     return ArbitrationResult(
         canonical_value=best.value,
@@ -249,10 +259,12 @@ def arbitrate(
         severity=severity,
         competing_sources=len(valid),
         spread_pct=round(spread, 1),
-        reasoning_ar=(f"{best.source.value} يفوز "
-                     f"({len(valid)} مصدر، تباين {spread:.1f}%، "
-                     f"شدّة {severity.value}). "
-                     f"الثقة النهائية: {final_conf}."),
+        reasoning_ar=(
+            f"{best.source.value} يفوز "
+            f"({len(valid)} مصدر، تباين {spread:.1f}%، "
+            f"شدّة {severity.value}). "
+            f"الثقة النهائية: {final_conf}."
+        ),
         rejected_sources=rejected,
         requires_human_review=False,
     )
@@ -274,6 +286,7 @@ def arbitrate_summary(result: ArbitrationResult) -> str:
 
 # ─── سياسات قابلة للتخصيص ────────────────────────────────────────
 
+
 def set_source_priority(source: ObservationSource, priority: int) -> None:
     """تخصيص priority لمصدر معيّن (للتجربة/المعايرة).
 
@@ -290,11 +303,13 @@ def reset_priorities_to_default() -> None:
     """يُعيد التعيينات الافتراضية. للاختبارات + reset."""
     global _SOURCE_PRIORITY
     _SOURCE_PRIORITY.clear()
-    _SOURCE_PRIORITY.update({
-        ObservationSource.LAB: 100,
-        ObservationSource.MANUAL: 80,
-        ObservationSource.SENSOR: 60,
-        ObservationSource.DRONE: 50,
-        ObservationSource.SATELLITE: 40,
-        ObservationSource.HISTORICAL: 30,
-    })
+    _SOURCE_PRIORITY.update(
+        {
+            ObservationSource.LAB: 100,
+            ObservationSource.MANUAL: 80,
+            ObservationSource.SENSOR: 60,
+            ObservationSource.DRONE: 50,
+            ObservationSource.SATELLITE: 40,
+            ObservationSource.HISTORICAL: 30,
+        }
+    )

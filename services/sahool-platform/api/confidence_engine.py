@@ -22,32 +22,37 @@ services/sahool-platform/api/confidence_engine.py — Spatial/Temporal Confidenc
    هذه قواعد رياضيّة من remote sensing literature (Justice et al. 1998,
    Vermote et al. 2016). لا "AI"، لا ML — معادلات معيّنة.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import List, Optional, Dict, Any
 import math
-
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
 
 # ─── Confidence levels ──────────────────────────────────────────
 
+
 class ConfidenceLevel(str, Enum):
-    HIGH = "high"           # 0.80-1.0  → trust + act
-    MEDIUM = "medium"       # 0.55-0.79 → suggest, verify
-    LOW = "low"             # 0.35-0.54 → warn user
-    VERY_LOW = "very_low"   # 0.00-0.34 → don't show / require ground-truth
+    HIGH = "high"  # 0.80-1.0  → trust + act
+    MEDIUM = "medium"  # 0.55-0.79 → suggest, verify
+    LOW = "low"  # 0.35-0.54 → warn user
+    VERY_LOW = "very_low"  # 0.00-0.34 → don't show / require ground-truth
 
 
 def level_from_score(score: float) -> ConfidenceLevel:
-    if score >= 0.80: return ConfidenceLevel.HIGH
-    if score >= 0.55: return ConfidenceLevel.MEDIUM
-    if score >= 0.35: return ConfidenceLevel.LOW
+    if score >= 0.80:
+        return ConfidenceLevel.HIGH
+    if score >= 0.55:
+        return ConfidenceLevel.MEDIUM
+    if score >= 0.35:
+        return ConfidenceLevel.LOW
     return ConfidenceLevel.VERY_LOW
 
 
 # ─── Component scores ───────────────────────────────────────────
+
 
 @dataclass
 class CloudConfidence:
@@ -59,7 +64,8 @@ class CloudConfidence:
         4=VEGETATION, 5=BARE_SOIL, 6=WATER, 7=UNCLASSIFIED,
         8=CLOUD_MEDIUM_PROB, 9=CLOUD_HIGH_PROB, 10=THIN_CIRRUS, 11=SNOW
     """
-    cloud_pct: float            # 0-100, % of pixels classified as cloud
+
+    cloud_pct: float  # 0-100, % of pixels classified as cloud
     cloud_shadow_pct: float = 0
     cirrus_pct: float = 0
     valid_pixel_pct: float = 100  # what's left for analysis
@@ -68,9 +74,7 @@ class CloudConfidence:
     def score(self) -> float:
         """0=fully clouded, 1=clear."""
         contamination = (
-            self.cloud_pct * 1.0 +
-            self.cloud_shadow_pct * 0.8 +
-            self.cirrus_pct * 0.4
+            self.cloud_pct * 1.0 + self.cloud_shadow_pct * 0.8 + self.cirrus_pct * 0.4
         ) / 100
         return max(0.0, 1.0 - contamination)
 
@@ -78,8 +82,9 @@ class CloudConfidence:
 @dataclass
 class TemporalConfidence:
     """كم يوم منذ آخر observation. الأحدث = أعلى ثقة."""
+
     days_since_observation: int
-    typical_revisit_days: int = 5      # Sentinel-2 revisit time
+    typical_revisit_days: int = 5  # Sentinel-2 revisit time
 
     @property
     def score(self) -> float:
@@ -88,15 +93,16 @@ class TemporalConfidence:
             return 1.0
         # Decay: 0.95^days for first revisit_days, then steeper
         if self.days_since_observation <= self.typical_revisit_days:
-            return 0.95 ** self.days_since_observation
+            return 0.95**self.days_since_observation
         # Beyond revisit: serious aging
         beyond = self.days_since_observation - self.typical_revisit_days
-        return max(0.1, (0.95 ** self.typical_revisit_days) * (0.85 ** beyond))
+        return max(0.1, (0.95**self.typical_revisit_days) * (0.85**beyond))
 
 
 @dataclass
 class CoverageConfidence:
     """نسبة الـpixels الفعليّة المتوفّرة من الـregion المطلوبة."""
+
     pixels_observed: int
     pixels_expected: int
 
@@ -116,7 +122,8 @@ class CoverageConfidence:
 @dataclass
 class SourceConfidence:
     """عدد المصادر المُؤكِّدة. multiple sources = أعلى."""
-    source_count: int               # كم sensor/satellite يؤكّد القراءة
+
+    source_count: int  # كم sensor/satellite يؤكّد القراءة
     has_ground_truth: bool = False  # عيّنة مختبر أو in-situ sensor
 
     @property
@@ -129,11 +136,13 @@ class SourceConfidence:
 
 # ─── Composite confidence ──────────────────────────────────────
 
+
 @dataclass
 class IndicatorConfidence:
     """confidence معاملة شاملة لقراءة معيّنة (مثلاً NDVI mean لحقل)."""
-    indicator_name: str             # "ndvi", "moisture", "ndwi"...
-    measurement_value: Optional[float]
+
+    indicator_name: str  # "ndvi", "moisture", "ndwi"...
+    measurement_value: float | None
 
     cloud: CloudConfidence
     temporal: TemporalConfidence
@@ -143,7 +152,7 @@ class IndicatorConfidence:
     # Computed
     composite_score: float = 0.0
     level: ConfidenceLevel = ConfidenceLevel.VERY_LOW
-    reasons_ar: List[str] = field(default_factory=list)
+    reasons_ar: list[str] = field(default_factory=list)
     recommendation_ar: str = ""
 
     def __post_init__(self):
@@ -165,7 +174,9 @@ class IndicatorConfidence:
         if self.temporal.score < 0.5:
             self.reasons_ar.append(f"البيانات قديمة ({self.temporal.days_since_observation} يوم)")
         if self.coverage.score < 0.6:
-            self.reasons_ar.append(f"تغطية البكسلات ضعيفة ({self.coverage.pixels_observed}/{self.coverage.pixels_expected})")
+            self.reasons_ar.append(
+                f"تغطية البكسلات ضعيفة ({self.coverage.pixels_observed}/{self.coverage.pixels_expected})"
+            )
         if self.source.score < 0.5:
             self.reasons_ar.append("مصدر واحد فقط بدون تأكيد ميداني")
 
@@ -179,7 +190,7 @@ class IndicatorConfidence:
         else:
             self.recommendation_ar = "ثقة شبه معدومة — انتظر صورة جديدة أو اطلب عيّنة ميدانيّة."
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "indicator": self.indicator_name,
             "value": self.measurement_value,
@@ -200,6 +211,7 @@ class IndicatorConfidence:
 
 # ─── Helpers ────────────────────────────────────────────────────
 
+
 def compute_ndvi_confidence(
     ndvi_value: float,
     observation_date: datetime,
@@ -207,13 +219,13 @@ def compute_ndvi_confidence(
     cloud_pct: float = 0,
     cloud_shadow_pct: float = 0,
     cirrus_pct: float = 0,
-    pixels_observed: Optional[int] = None,
+    pixels_observed: int | None = None,
     has_ground_truth: bool = False,
-    now: Optional[datetime] = None,
+    now: datetime | None = None,
 ) -> IndicatorConfidence:
     """واجهة مُبسَّطة لحساب confidence لقراءة NDVI."""
     if now is None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
     days = max(0, (now - observation_date).days)
 

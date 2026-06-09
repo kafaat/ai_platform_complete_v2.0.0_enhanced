@@ -14,28 +14,30 @@ trueup_calibrations) تحتاج PostgreSQL وتُبنى لاحقاً فوق هذ
 يعيد استخدام البُنى المُختبَرة في data_lineage.py (LineageSourceType،
 _summarize_action) بدل تكرارها.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from api.data_lineage import LineageSourceType, _summarize_action
+from api.data_lineage import _summarize_action
 
 
-class TimelineCategory(str, Enum):
+class TimelineCategory(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     """تصنيف بصري لكلّ حدث في الخطّ الزمني (لأيقونات الواجهة العربيّة)."""
-    LIFECYCLE = "lifecycle"        # انتقال مرحلة
-    OPERATION = "operation"        # بذر/ري/تسميد/حصاد
-    OBSERVATION = "observation"    # مشاهدة ميدانيّة (pin)
-    CALIBRATION = "calibration"    # معايرة الإنتاج (trueup)
-    WEATHER = "weather"            # مطر/طقس مؤثّر
-    SYSTEM = "system"              # إنشاء/تحديث
+
+    LIFECYCLE = "lifecycle"  # انتقال مرحلة
+    OPERATION = "operation"  # بذر/ري/تسميد/حصاد
+    OBSERVATION = "observation"  # مشاهدة ميدانيّة (pin)
+    CALIBRATION = "calibration"  # معايرة الإنتاج (trueup)
+    WEATHER = "weather"  # مطر/طقس مؤثّر
+    SYSTEM = "system"  # إنشاء/تحديث
 
 
 # تخطيط نوع الحدث → الفئة (للأيقونات والترشيح)
-_EVENT_CATEGORY: Dict[str, TimelineCategory] = {
+_EVENT_CATEGORY: dict[str, TimelineCategory] = {
     "field.created": TimelineCategory.SYSTEM,
     "field.create": TimelineCategory.SYSTEM,
     "field.updated": TimelineCategory.SYSTEM,
@@ -65,14 +67,15 @@ _EVENT_CATEGORY: Dict[str, TimelineCategory] = {
 @dataclass
 class TimelineEvent:
     """حدث واحد في الخطّ الزمني."""
-    timestamp: str                       # ISO 8601
+
+    timestamp: str  # ISO 8601
     event_type: str
     category: TimelineCategory
     summary_ar: str
-    actor_id: Optional[str] = None
-    payload: Dict[str, Any] = field(default_factory=dict)
+    actor_id: str | None = None
+    payload: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "timestamp": self.timestamp,
             "event_type": self.event_type,
@@ -86,15 +89,16 @@ class TimelineEvent:
 @dataclass
 class FieldTimeline:
     """الخطّ الزمني الكامل لحقل."""
+
     field_id: str
     total_events: int
-    earliest_at: Optional[str]
-    latest_at: Optional[str]
-    events: List[TimelineEvent]
+    earliest_at: str | None
+    latest_at: str | None
+    events: list[TimelineEvent]
     # إحصاءات لكلّ فئة (لشارات الواجهة)
-    category_counts: Dict[str, int] = field(default_factory=dict)
+    category_counts: dict[str, int] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "field_id": self.field_id,
             "total_events": self.total_events,
@@ -121,10 +125,10 @@ def _parse_ts(ts: str) -> datetime:
 
 def assemble_timeline(
     field_id: str,
-    events: List[Dict[str, Any]],
+    events: list[dict[str, Any]],
     *,
     newest_first: bool = True,
-    category_filter: Optional[List[str]] = None,
+    category_filter: list[str] | None = None,
 ) -> FieldTimeline:
     """يبني خطّاً زمنيّاً من قائمة أحداث.
 
@@ -140,8 +144,8 @@ def assemble_timeline(
     Returns:
         FieldTimeline مرتّب + مُصنّف + بإحصاءات.
     """
-    timeline_events: List[TimelineEvent] = []
-    category_counts: Dict[str, int] = {}
+    timeline_events: list[TimelineEvent] = []
+    category_counts: dict[str, int] = {}
 
     for ev in events:
         event_type = ev.get("event_type", "unknown")

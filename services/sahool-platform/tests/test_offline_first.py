@@ -1,22 +1,38 @@
 """Tests for offline_first - explicit offline-first architecture.
 Resolves the philosophical gap from AI Ag Template: 'offline as default'."""
+
 from datetime import datetime, timedelta
+
 from core.offline_first import (
-    OfflineQueue, PendingOperation, OperationKind, SyncStatus,
-    record_operation_offline, sync_cycle, queue_summary,
-    detect_superseded, apply_supersession, SyncResult,
-    ConnectivityState)
+    ConnectivityState,
+    OfflineQueue,
+    OperationKind,
+    PendingOperation,
+    SyncResult,
+    SyncStatus,
+    apply_supersession,
+    detect_superseded,
+    queue_summary,
+    record_operation_offline,
+    sync_cycle,
+)
 
 
 def _make_obs_op(tenant="tnt_001", field="fld_01", value=0.5):
     """Helper: create observation operation."""
     import uuid
+
     return PendingOperation(
         op_id=str(uuid.uuid4()),
-        tenant_id=tenant, user_id="u1",
+        tenant_id=tenant,
+        user_id="u1",
         kind=OperationKind.OBSERVATION_CREATE,
-        payload={"field_id": field, "observable_id": "ndvi",
-                "value": value, "measured_at": "2026-05-29T00:00:00"},
+        payload={
+            "field_id": field,
+            "observable_id": "ndvi",
+            "value": value,
+            "measured_at": "2026-05-29T00:00:00",
+        },
         created_at=datetime.utcnow().isoformat(),
     )
 
@@ -82,21 +98,30 @@ class TestRecordOperation:
         # CRITICAL: كل عملية تحصل على UUID فريد
         q = OfflineQueue()
         op1 = record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.OBSERVATION_CREATE,
-            payload={"field_id": "f1"})
+            payload={"field_id": "f1"},
+        )
         op2 = record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.OBSERVATION_CREATE,
-            payload={"field_id": "f1"})
+            payload={"field_id": "f1"},
+        )
         assert op1.op_id != op2.op_id
 
     def test_record_sets_created_at(self):
         q = OfflineQueue()
         op = record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.ACTIVITY_COMPLETE,
-            payload={"activity_id": "a1"})
+            payload={"activity_id": "a1"},
+        )
         assert op.created_at
         # تاريخ صالح
         datetime.fromisoformat(op.created_at.replace("Z", ""))
@@ -109,13 +134,19 @@ class TestSupersession:
         # CRITICAL: نفس activity_id مرّتين → الأقدم superseded
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.ACTIVITY_COMPLETE,
-            payload={"activity_id": "act_X", "field_id": "f1"})
+            payload={"activity_id": "act_X", "field_id": "f1"},
+        )
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.ACTIVITY_COMPLETE,
-            payload={"activity_id": "act_X", "field_id": "f1"})
+            payload={"activity_id": "act_X", "field_id": "f1"},
+        )
 
         count = apply_supersession(q, "tnt_001")
         assert count == 1
@@ -123,28 +154,40 @@ class TestSupersession:
     def test_different_activities_not_superseded(self):
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.ACTIVITY_COMPLETE,
-            payload={"activity_id": "act_A", "field_id": "f1"})
+            payload={"activity_id": "act_A", "field_id": "f1"},
+        )
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.ACTIVITY_COMPLETE,
-            payload={"activity_id": "act_B", "field_id": "f1"})
+            payload={"activity_id": "act_B", "field_id": "f1"},
+        )
 
         count = apply_supersession(q, "tnt_001")
-        assert count == 0   # نشاطان مختلفان
+        assert count == 0  # نشاطان مختلفان
 
     def test_no_supersession_across_tenants(self):
         # CRITICAL: نفس activity_id في tnt مختلفَين → لا supersession
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.ACTIVITY_COMPLETE,
-            payload={"activity_id": "act_X", "field_id": "f1"})
+            payload={"activity_id": "act_X", "field_id": "f1"},
+        )
         record_operation_offline(
-            q, tenant_id="tnt_002", user_id="u",
+            q,
+            tenant_id="tnt_002",
+            user_id="u",
             kind=OperationKind.ACTIVITY_COMPLETE,
-            payload={"activity_id": "act_X", "field_id": "f1"})
+            payload={"activity_id": "act_X", "field_id": "f1"},
+        )
 
         count_001 = apply_supersession(q, "tnt_001")
         count_002 = apply_supersession(q, "tnt_002")
@@ -166,9 +209,12 @@ class TestSyncCycle:
         q = OfflineQueue()
         for i in range(3):
             record_operation_offline(
-                q, tenant_id="tnt_001", user_id="u",
+                q,
+                tenant_id="tnt_001",
+                user_id="u",
                 kind=OperationKind.OBSERVATION_CREATE,
-                payload={"field_id": f"f_{i}", "value": 0.5})
+                payload={"field_id": f"f_{i}", "value": 0.5},
+            )
 
         result = sync_cycle(q, "tnt_001", sync_handler=lambda op: True)
         assert result.synced_count == 3
@@ -178,9 +224,12 @@ class TestSyncCycle:
         # CRITICAL: فشل sync لا يُسقط العملية — تبقى للمحاولة لاحقاً
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.OBSERVATION_CREATE,
-            payload={"field_id": "f1"})
+            payload={"field_id": "f1"},
+        )
 
         def failing(op):
             raise ConnectionError("network down")
@@ -194,9 +243,12 @@ class TestSyncCycle:
         # CRITICAL: "conflict" يُصنّف منفصلاً عن "failure"
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.OBSERVATION_CREATE,
-            payload={"field_id": "f1"})
+            payload={"field_id": "f1"},
+        )
 
         def conflict_handler(op):
             raise ValueError("CONFLICT: duplicate")
@@ -208,9 +260,12 @@ class TestSyncCycle:
     def test_handler_returning_false_counts_failure(self):
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.OBSERVATION_CREATE,
-            payload={"field_id": "f1"})
+            payload={"field_id": "f1"},
+        )
 
         result = sync_cycle(q, "tnt_001", sync_handler=lambda op: False)
         assert result.failed_count == 1
@@ -222,9 +277,12 @@ class TestRetryBehavior:
     def test_retry_count_increments(self):
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.OBSERVATION_CREATE,
-            payload={"field_id": "f1"})
+            payload={"field_id": "f1"},
+        )
 
         def fail(op):
             raise ConnectionError("temporary")
@@ -239,9 +297,12 @@ class TestQueueSummary:
     def test_summary_shows_breakdown(self):
         q = OfflineQueue()
         record_operation_offline(
-            q, tenant_id="tnt_001", user_id="u",
+            q,
+            tenant_id="tnt_001",
+            user_id="u",
             kind=OperationKind.OBSERVATION_CREATE,
-            payload={"field_id": "f1"})
+            payload={"field_id": "f1"},
+        )
 
         summary = queue_summary(q, "tnt_001")
         assert summary["total_in_queue"] == 1
@@ -260,10 +321,17 @@ class TestNoNetworkInTests:
     def test_pure_python_only(self):
         # كل sync_handler هو callable من المستدعي
         # النواة لا تستورد requests, urllib, httpx
-        import core.offline_first as off
         import inspect
+
+        import core.offline_first as off
+
         src = inspect.getsource(off)
-        forbidden = ["import requests", "import urllib", "import httpx",
-                    "import aiohttp", "urlopen("]
+        forbidden = [
+            "import requests",
+            "import urllib",
+            "import httpx",
+            "import aiohttp",
+            "urlopen(",
+        ]
         for bad in forbidden:
             assert bad not in src, f"offline_first يستورد {bad}!"

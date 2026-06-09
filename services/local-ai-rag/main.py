@@ -5,6 +5,7 @@ Agricultural Advisor with local LLM — no API keys, no cloud leakage.
 Supports Arabic + English agricultural knowledge base.
 Hardware: GPU RTX 4090/5090 + 192GB RAM recommended for 70B+ models.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -12,46 +13,49 @@ import logging
 import os
 import tempfile
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import List, Optional
 
 import httpx
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi import File, Form, HTTPException, UploadFile, Header
-from fastapi.security import HTTPBearer as _B, HTTPAuthorizationCredentials as _C
-from jose import jwt as _jjwt, JWTError as _JE
-from pydantic import BaseModel, Field
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi.security import HTTPAuthorizationCredentials as _C
+from fastapi.security import HTTPBearer as _B
+from jose import JWTError as _JE
+from jose import jwt as _jjwt
 
 # LangChain imports
 from langchain.chains import RetrievalQA
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain_qdrant import QdrantVectorStore
-from langchain_ollama import ChatOllama, OllamaEmbeddings
+
 # مسارات مستقرّة (langchain_core/langchain_text_splitters) بدل langchain.schema
 # وlangchain.text_splitter المهملين — تجنّباً للكسر عند ترقية langchain.
 from langchain_core.documents import Document
+from langchain_ollama import ChatOllama, OllamaEmbeddings
+from langchain_qdrant import QdrantVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from pydantic import BaseModel, Field
 
 try:
     from shared.logging_config import setup_logging
+
     logger = setup_logging("local-ai-rag")
 except ImportError:
-    logging.basicConfig(level=logging.INFO,
-        format='{"time":"%(asctime)s","svc":"local-ai-rag","msg":"%(message)s"}')
+    logging.basicConfig(
+        level=logging.INFO, format='{"time":"%(asctime)s","svc":"local-ai-rag","msg":"%(message)s"}'
+    )
     logger = logging.getLogger("local-ai-rag")
 
 # ── Config ────────────────────────────────────────────────────
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://ollama:11434")
-LLM_MODEL       = os.getenv("LLM_MODEL", "qwen3:32b")   # or qwen3:70b, qwen3:8b
-EMBED_MODEL     = os.getenv("EMBED_MODEL", "nomic-embed-text")
-QDRANT_URL      = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
+LLM_MODEL = os.getenv("LLM_MODEL", "qwen3:32b")  # or qwen3:70b, qwen3:8b
+EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
+QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "sahool_agri_kb")
-CHUNK_SIZE      = int(os.getenv("CHUNK_SIZE", "800"))
-CHUNK_OVERLAP   = int(os.getenv("CHUNK_OVERLAP", "150"))
-NUM_CTX         = int(os.getenv("NUM_CTX", "8192"))  # context window
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "800"))
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
+NUM_CTX = int(os.getenv("NUM_CTX", "8192"))  # context window
 # مصادقة خدمة-لخدمة: استيعاب المستندات يكتب لقاعدة المعرفة — منع تسميم RAG
-AGENT_TOKEN     = os.getenv("SAHOOL_AGENT_TOKEN", "")
+AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
@@ -60,8 +64,9 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
     if x_agent_token != AGENT_TOKEN:
         raise HTTPException(401, "توكن خدمة غير صالح")
 
-_vectorstore: Optional[QdrantVectorStore] = None
-_llm: Optional[ChatOllama] = None
+
+_vectorstore: QdrantVectorStore | None = None
+_llm: ChatOllama | None = None
 
 
 # ══════════════════════════════════════════════════════════════
@@ -81,10 +86,12 @@ async def wait_for_ollama(timeout: float = 120.0):
                         return True
                     logger.info(f"Ollama up. Pulling {LLM_MODEL} + {EMBED_MODEL}...")
                     # Trigger pulls (non-blocking)
-                    await client.post(f"{OLLAMA_BASE_URL}/api/pull",
-                        json={"name": LLM_MODEL}, timeout=300.0)
-                    await client.post(f"{OLLAMA_BASE_URL}/api/pull",
-                        json={"name": EMBED_MODEL}, timeout=300.0)
+                    await client.post(
+                        f"{OLLAMA_BASE_URL}/api/pull", json={"name": LLM_MODEL}, timeout=300.0
+                    )
+                    await client.post(
+                        f"{OLLAMA_BASE_URL}/api/pull", json={"name": EMBED_MODEL}, timeout=300.0
+                    )
                     return True
             except Exception as e:  # noqa: BLE001
                 logger.warning("تعذّر سحب نماذج Ollama (محاولة): %s", type(e).__name__)
@@ -100,13 +107,12 @@ def init_vectorstore() -> QdrantVectorStore:
     if _vectorstore:
         return _vectorstore
 
-    embeddings = OllamaEmbeddings(
-        model=EMBED_MODEL,
-        base_url=OLLAMA_BASE_URL
-    )
+    embeddings = OllamaEmbeddings(model=EMBED_MODEL, base_url=OLLAMA_BASE_URL)
 
     _vectorstore = QdrantVectorStore.from_documents(
-        documents=[Document(page_content="SAHOOL initialization document.", metadata={"source": "init"})],
+        documents=[
+            Document(page_content="SAHOOL initialization document.", metadata={"source": "init"})
+        ],
         embedding=embeddings,
         url=QDRANT_URL,
         prefer_grpc=False,
@@ -137,7 +143,7 @@ def init_llm() -> ChatOllama:
 # ══════════════════════════════════════════════════════════════
 # Document Ingestion
 # ══════════════════════════════════════════════════════════════
-def load_document(path: Path) -> List[Document]:
+def load_document(path: Path) -> list[Document]:
     suffix = path.suffix.lower()
     if suffix == ".pdf":
         loader = PyPDFLoader(str(path))
@@ -148,7 +154,7 @@ def load_document(path: Path) -> List[Document]:
     return loader.load()
 
 
-def split_docs(docs: List[Document]) -> List[Document]:
+def split_docs(docs: list[Document]) -> list[Document]:
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=CHUNK_SIZE,
         chunk_overlap=CHUNK_OVERLAP,
@@ -157,16 +163,16 @@ def split_docs(docs: List[Document]) -> List[Document]:
     return splitter.split_documents(docs)
 
 
-async def ingest_documents(file_paths: List[Path], tenant_id: str = "default") -> dict:
+async def ingest_documents(file_paths: list[Path], tenant_id: str = "default") -> dict:
     vs = init_vectorstore()
-    all_docs: List[Document] = []
+    all_docs: list[Document] = []
     for p in file_paths:
         try:
             docs = load_document(p)
             for d in docs:
                 d.metadata["tenant_id"] = tenant_id
                 d.metadata["source_file"] = p.name
-                d.metadata["ingested_at"] = datetime.now(timezone.utc).isoformat()
+                d.metadata["ingested_at"] = datetime.now(UTC).isoformat()
             all_docs.extend(docs)
         except Exception as e:
             logger.warning(f"Failed to load {p}: {e}")
@@ -187,14 +193,15 @@ async def query_rag(question: str, tenant_id: str = "default", k: int = 5) -> di
     llm = init_llm()
 
     # Filter by tenant (Qdrant payload filter)
-    from qdrant_client.http.models import FieldCondition, MatchValue, Filter
-    filters = Filter(
-        must=[FieldCondition(key="metadata.tenant_id", match=MatchValue(value=tenant_id))]
-    ) if tenant_id != "default" else None
+    from qdrant_client.http.models import FieldCondition, Filter, MatchValue
 
-    retriever = vs.as_retriever(
-        search_kwargs={"k": k, "filter": filters}
+    filters = (
+        Filter(must=[FieldCondition(key="metadata.tenant_id", match=MatchValue(value=tenant_id))])
+        if tenant_id != "default"
+        else None
     )
+
+    retriever = vs.as_retriever(search_kwargs={"k": k, "filter": filters})
 
     qa = RetrievalQA.from_chain_type(
         llm=llm,
@@ -209,7 +216,7 @@ async def query_rag(question: str, tenant_id: str = "default", k: int = 5) -> di
         {
             "source": d.metadata.get("source_file", "unknown"),
             "page": d.metadata.get("page", 0),
-            "snippet": d.page_content[:200] + "..."
+            "snippet": d.page_content[:200] + "...",
         }
         for d in result.get("source_documents", [])
     ]
@@ -219,7 +226,7 @@ async def query_rag(question: str, tenant_id: str = "default", k: int = 5) -> di
         "answer": answer,
         "model": LLM_MODEL,
         "sources": sources,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -237,27 +244,30 @@ async def lifespan(app: FastAPI):
     logger.info("🧠 RAG service stopped")
 
 
-
 # C-07 FIX: JWT auth for RAG endpoints
 _rag_security = _B(auto_error=False)
 _RAG_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _RAG_SECRET = _RAG_PUBLIC if _RAG_PUBLIC else os.getenv("JWT_SECRET", "")
 _RAG_ALG = "RS256" if _RAG_PUBLIC else "HS256"
 
+
 async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
     if not creds:
         raise HTTPException(401, "Authentication required")
     try:
-        payload = _jjwt.decode(creds.credentials, _RAG_SECRET,
-                               algorithms=[_RAG_ALG], audience="sahool")
+        payload = _jjwt.decode(
+            creds.credentials, _RAG_SECRET, algorithms=[_RAG_ALG], audience="sahool"
+        )
         return payload
     except _JE as e:
-        raise HTTPException(401, str(e))
+        raise HTTPException(401, str(e)) from e
+
 
 app = FastAPI(title="SAHOOL Local AI RAG", version="9.1.0", lifespan=lifespan)
 # ✅ OTEL
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
     FastAPIInstrumentor.instrument_app(app)
 except ImportError:
     logger.debug("OTEL غير مثبّت — التتبّع معطّل (اختياري)")
@@ -291,16 +301,16 @@ async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user))
 
 @app.post("/ingest")
 async def ingest_endpoint(
-    files: List[UploadFile] = File(...),
+    files: list[UploadFile] = File(...),
     tenant_id: str = Form("default"),
-    x_agent_token: str = Header(None)
+    x_agent_token: str = Header(None),
 ):
     """Upload PDF/TXT/MD files to build the agricultural knowledge base.
 
     يتطلّب توكن خدمة (منع تسميم قاعدة المعرفة بمستندات مزوّرة).
     """
     _require_service_token(x_agent_token)
-    paths: List[Path] = []
+    paths: list[Path] = []
     for upload in files:
         suffix = Path(upload.filename).suffix.lower()
         if suffix not in (".pdf", ".txt", ".md", ".csv"):
@@ -335,15 +345,16 @@ async def health():
         "status": "alive",
         "ollama": "connected" if ollama_ok else "disconnected",
         "model": LLM_MODEL,
-        "embed_model": EMBED_MODEL
+        "embed_model": EMBED_MODEL,
     }
-
 
 
 @app.get("/readyz")
 async def readyz():
     return {"status": "ready", "version": "9.1.0"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

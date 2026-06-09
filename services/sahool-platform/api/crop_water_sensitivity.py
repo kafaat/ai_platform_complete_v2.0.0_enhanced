@@ -14,11 +14,11 @@ api/crop_water_sensitivity.py — حساسيّة المراحل للإجهاد �
 ⚠ القيم إرشاديّة من مراجع عالميّة — تحتاج معايرة محلّيّة يمنيّة. الإرشاد
 يوجّه القرار، لا يقرّر آليّاً (human-in-the-loop). نغطّي ما لدينا مرجع له فقط.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class WaterSensitivity(str, Enum):
@@ -31,7 +31,7 @@ class WaterSensitivity(str, Enum):
 # ════════════════════════════════════════════════════════════════
 # سجلّ المحاصيل: لكلّ محصول مراحله + حساسيّتها + سياقه اليمني
 # ════════════════════════════════════════════════════════════════
-_CROPS: Dict[str, Dict] = {
+_CROPS: dict[str, dict] = {
     "wheat": {
         "name_ar": "القمح",
         "season_total_mm": "350-600",
@@ -41,18 +41,36 @@ _CROPS: Dict[str, Dict] = {
         "irrigation_frequency_ar": "4-6 ريّات؛ كل 12-18 يوماً في الأراضي الجافة المرويّة",
         "yemen_context_ar": "الجوف والهضاب، ريّ محوري من المياه الجوفيّة الشحيحة.",
         "stages": [
-            ("germination", "الإنبات", WaterSensitivity.HIGH, 10,
-             "نقص الماء قد يُفشل المحصول. ريّ مبكر (~150مم) لإنبات متناسق."),
-            ("tillering", "الإشطاء", WaterSensitivity.MODERATE, 15,
-             "ازدياد الطلب مع نمو الأوراق."),
-            ("stem_elongation", "الاستطالة (الصعود)", WaterSensitivity.CRITICAL, 25,
-             "بداية المرحلة الأحرج. ⚠ التشبّع المائي هنا كارثي (خسارة حتى 92%)."),
-            ("flowering", "الإزهار", WaterSensitivity.CRITICAL, 20,
-             "ذروة الحساسيّة. قد يلزم ريّ تكميلي 90-150مم."),
-            ("grain_filling", "تكوين الحبوب", WaterSensitivity.HIGH, 20,
-             "النقص يقلّل عدد ووزن الحبوب وامتصاص النيتروجين."),
-            ("maturity", "النضج", WaterSensitivity.LOW, 10,
-             "أوقف الريّ تدريجيّاً قبل الحصاد."),
+            (
+                "germination",
+                "الإنبات",
+                WaterSensitivity.HIGH,
+                10,
+                "نقص الماء قد يُفشل المحصول. ريّ مبكر (~150مم) لإنبات متناسق.",
+            ),
+            ("tillering", "الإشطاء", WaterSensitivity.MODERATE, 15, "ازدياد الطلب مع نمو الأوراق."),
+            (
+                "stem_elongation",
+                "الاستطالة (الصعود)",
+                WaterSensitivity.CRITICAL,
+                25,
+                "بداية المرحلة الأحرج. ⚠ التشبّع المائي هنا كارثي (خسارة حتى 92%).",
+            ),
+            (
+                "flowering",
+                "الإزهار",
+                WaterSensitivity.CRITICAL,
+                20,
+                "ذروة الحساسيّة. قد يلزم ريّ تكميلي 90-150مم.",
+            ),
+            (
+                "grain_filling",
+                "تكوين الحبوب",
+                WaterSensitivity.HIGH,
+                20,
+                "النقص يقلّل عدد ووزن الحبوب وامتصاص النيتروجين.",
+            ),
+            ("maturity", "النضج", WaterSensitivity.LOW, 10, "أوقف الريّ تدريجيّاً قبل الحصاد."),
         ],
     },
     "maize": {
@@ -67,16 +85,35 @@ _CROPS: Dict[str, Dict] = {
             "من علف المواشي). تهامة والجوف صيفاً."
         ),
         "stages": [
-            ("emergence", "الإنبات والظهور", WaterSensitivity.HIGH, 12,
-             "رطوبة كافية ضروريّة عند ظهور النباتات. الرية الأولى خفيفة."),
-            ("vegetative", "النمو الخضري", WaterSensitivity.MODERATE, 20,
-             "نمو سريع، طلب متزايد على الماء."),
-            ("tasseling", "التزهير والتلقيح", WaterSensitivity.CRITICAL, 30,
-             "⚠ الأحرج: نقص الماء عند التلقيح يقلّل عدد الحبوب بشدّة (فراغات بالكوز)."),
-            ("grain_filling", "امتلاء الحبوب", WaterSensitivity.HIGH, 28,
-             "يحدّد وزن الحبّة. النقص يقلّل الإنتاج."),
-            ("maturity", "النضج", WaterSensitivity.LOW, 10,
-             "قلّل الريّ تدريجيّاً."),
+            (
+                "emergence",
+                "الإنبات والظهور",
+                WaterSensitivity.HIGH,
+                12,
+                "رطوبة كافية ضروريّة عند ظهور النباتات. الرية الأولى خفيفة.",
+            ),
+            (
+                "vegetative",
+                "النمو الخضري",
+                WaterSensitivity.MODERATE,
+                20,
+                "نمو سريع، طلب متزايد على الماء.",
+            ),
+            (
+                "tasseling",
+                "التزهير والتلقيح",
+                WaterSensitivity.CRITICAL,
+                30,
+                "⚠ الأحرج: نقص الماء عند التلقيح يقلّل عدد الحبوب بشدّة (فراغات بالكوز).",
+            ),
+            (
+                "grain_filling",
+                "امتلاء الحبوب",
+                WaterSensitivity.HIGH,
+                28,
+                "يحدّد وزن الحبّة. النقص يقلّل الإنتاج.",
+            ),
+            ("maturity", "النضج", WaterSensitivity.LOW, 10, "قلّل الريّ تدريجيّاً."),
         ],
     },
     "sorghum": {
@@ -91,14 +128,34 @@ _CROPS: Dict[str, Dict] = {
             "يعتمد على الأمطار غالباً — ميزته أنّه يصمد حيث يفشل غيره."
         ),
         "stages": [
-            ("emergence", "الإنبات", WaterSensitivity.MODERATE, 15,
-             "يتحمّل جفافاً أكثر من القمح/الذرة الشاميّة."),
-            ("vegetative", "النمو الخضري", WaterSensitivity.LOW, 25,
-             "مرحلة متحمّلة — قدرته على الجفاف عالية هنا."),
-            ("booting_flowering", "طرد السنابل والإزهار", WaterSensitivity.CRITICAL, 35,
-             "⚠ الأحرج رغم تحمّله العام — النقص هنا يقلّل المحصول."),
-            ("grain_filling", "امتلاء الحبوب", WaterSensitivity.HIGH, 20,
-             "ريّ تكميلي مفيد إن توفّر."),
+            (
+                "emergence",
+                "الإنبات",
+                WaterSensitivity.MODERATE,
+                15,
+                "يتحمّل جفافاً أكثر من القمح/الذرة الشاميّة.",
+            ),
+            (
+                "vegetative",
+                "النمو الخضري",
+                WaterSensitivity.LOW,
+                25,
+                "مرحلة متحمّلة — قدرته على الجفاف عالية هنا.",
+            ),
+            (
+                "booting_flowering",
+                "طرد السنابل والإزهار",
+                WaterSensitivity.CRITICAL,
+                35,
+                "⚠ الأحرج رغم تحمّله العام — النقص هنا يقلّل المحصول.",
+            ),
+            (
+                "grain_filling",
+                "امتلاء الحبوب",
+                WaterSensitivity.HIGH,
+                20,
+                "ريّ تكميلي مفيد إن توفّر.",
+            ),
             ("maturity", "النضج", WaterSensitivity.LOW, 5, "لا حاجة لريّ."),
         ],
     },
@@ -114,14 +171,28 @@ _CROPS: Dict[str, Dict] = {
             "غيره. غذاء وعلف. مناسب لمناطق اليمن الجافّة جدّاً."
         ),
         "stages": [
-            ("emergence", "الإنبات", WaterSensitivity.MODERATE, 18,
-             "يحتاج رطوبة للإنبات ثمّ يتحمّل."),
-            ("vegetative", "النمو الخضري", WaterSensitivity.LOW, 27,
-             "متحمّل جدّاً للجفاف."),
-            ("flowering", "الإزهار", WaterSensitivity.HIGH, 30,
-             "أحرج مرحلة — النقص يقلّل عقد الحبوب."),
-            ("grain_filling", "امتلاء الحبوب", WaterSensitivity.MODERATE, 20,
-             "ريّ تكميلي مفيد إن توفّر."),
+            (
+                "emergence",
+                "الإنبات",
+                WaterSensitivity.MODERATE,
+                18,
+                "يحتاج رطوبة للإنبات ثمّ يتحمّل.",
+            ),
+            ("vegetative", "النمو الخضري", WaterSensitivity.LOW, 27, "متحمّل جدّاً للجفاف."),
+            (
+                "flowering",
+                "الإزهار",
+                WaterSensitivity.HIGH,
+                30,
+                "أحرج مرحلة — النقص يقلّل عقد الحبوب.",
+            ),
+            (
+                "grain_filling",
+                "امتلاء الحبوب",
+                WaterSensitivity.MODERATE,
+                20,
+                "ريّ تكميلي مفيد إن توفّر.",
+            ),
             ("maturity", "النضج", WaterSensitivity.LOW, 5, "لا حاجة لريّ."),
         ],
     },
@@ -137,16 +208,17 @@ _CROPS: Dict[str, Dict] = {
             "والترب المالحة. مهمّ للمرتفعات اليمنيّة."
         ),
         "stages": [
-            ("germination", "الإنبات", WaterSensitivity.HIGH, 12,
-             "رطوبة ضروريّة للإنبات."),
-            ("tillering", "الإشطاء", WaterSensitivity.MODERATE, 18,
-             "أكثر تحمّلاً من القمح."),
-            ("stem_elongation", "الاستطالة", WaterSensitivity.CRITICAL, 25,
-             "⚠ بداية المرحلة الأحرج."),
-            ("flowering", "الإزهار", WaterSensitivity.CRITICAL, 25,
-             "ذروة الحساسيّة."),
-            ("grain_filling", "امتلاء الحبوب", WaterSensitivity.HIGH, 15,
-             "النقص يقلّل وزن الحبوب."),
+            ("germination", "الإنبات", WaterSensitivity.HIGH, 12, "رطوبة ضروريّة للإنبات."),
+            ("tillering", "الإشطاء", WaterSensitivity.MODERATE, 18, "أكثر تحمّلاً من القمح."),
+            (
+                "stem_elongation",
+                "الاستطالة",
+                WaterSensitivity.CRITICAL,
+                25,
+                "⚠ بداية المرحلة الأحرج.",
+            ),
+            ("flowering", "الإزهار", WaterSensitivity.CRITICAL, 25, "ذروة الحساسيّة."),
+            ("grain_filling", "امتلاء الحبوب", WaterSensitivity.HIGH, 15, "النقص يقلّل وزن الحبوب."),
             ("maturity", "النضج", WaterSensitivity.LOW, 5, "أوقف الريّ."),
         ],
     },
@@ -154,13 +226,19 @@ _CROPS: Dict[str, Dict] = {
 
 # مرادفات عربيّة → مفتاح إنجليزي
 _ALIASES = {
-    "قمح": "wheat", "ذرة شامية": "maize", "ذرة شاميّة": "maize", "شامية": "maize",
-    "ذرة رفيعة": "sorghum", "ذرة": "sorghum", "رفيعة": "sorghum",
-    "دخن": "millet", "شعير": "barley",
+    "قمح": "wheat",
+    "ذرة شامية": "maize",
+    "ذرة شاميّة": "maize",
+    "شامية": "maize",
+    "ذرة رفيعة": "sorghum",
+    "ذرة": "sorghum",
+    "رفيعة": "sorghum",
+    "دخن": "millet",
+    "شعير": "barley",
 }
 
 
-def _resolve(crop: str) -> Optional[str]:
+def _resolve(crop: str) -> str | None:
     c = crop.strip().lower()
     if c in _CROPS:
         return c
@@ -176,20 +254,23 @@ class StageSensitivity:
     note_ar: str
     is_critical_window: bool
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
-            "stage_key": self.stage_key, "name_ar": self.name_ar,
+            "stage_key": self.stage_key,
+            "name_ar": self.name_ar,
             "sensitivity": self.sensitivity.value,
             "water_share_pct": self.water_share_pct,
-            "note_ar": self.note_ar, "is_critical_window": self.is_critical_window,
+            "note_ar": self.note_ar,
+            "is_critical_window": self.is_critical_window,
         }
 
 
-def supported_crops() -> List[Dict]:
+def supported_crops() -> list[dict]:
     """قائمة المحاصيل المدعومة (للعرض)."""
     return [
         {
-            "crop": k, "name_ar": v["name_ar"],
+            "crop": k,
+            "name_ar": v["name_ar"],
             "drought_tolerance_ar": v["drought_tolerance_ar"],
             "season_ar": v["season_ar"],
         }
@@ -197,7 +278,7 @@ def supported_crops() -> List[Dict]:
     ]
 
 
-def get_stage_sensitivity(crop: str, stage_key: str) -> Optional[StageSensitivity]:
+def get_stage_sensitivity(crop: str, stage_key: str) -> StageSensitivity | None:
     key = _resolve(crop)
     if not key:
         return None
@@ -208,14 +289,14 @@ def get_stage_sensitivity(crop: str, stage_key: str) -> Optional[StageSensitivit
     return None
 
 
-def water_calendar(crop: str) -> Dict:
+def water_calendar(crop: str) -> dict:
     """التقويم المائي الكامل لمحصول (كلّ المراحل + السياق اليمني)."""
     key = _resolve(crop)
     if not key:
         return {
             "supported": False,
             "message_ar": f"لا بيانات حساسيّة مائيّة لـ«{crop}». المدعوم: "
-                          + "، ".join(v["name_ar"] for v in _CROPS.values()),
+            + "، ".join(v["name_ar"] for v in _CROPS.values()),
         }
     c = _CROPS[key]
     return {
@@ -240,14 +321,14 @@ def water_calendar(crop: str) -> Dict:
     }
 
 
-def assess_stress_risk(crop: str, stage_key: str, depletion_pct: float) -> Dict:
+def assess_stress_risk(crop: str, stage_key: str, depletion_pct: float) -> dict:
     """يقيّم خطر الإجهاد بناءً على المرحلة ونضوب التربة."""
     ss = get_stage_sensitivity(crop, stage_key)
     if not ss:
         return {
             "supported": False,
             "message_ar": f"لا بيانات لـ«{crop}» مرحلة «{stage_key}». "
-                          "المدعوم: قمح، ذرة شاميّة، ذرة رفيعة، دخن، شعير.",
+            "المدعوم: قمح، ذرة شاميّة، ذرة رفيعة، دخن، شعير.",
         }
     if depletion_pct >= 80:
         level, level_ar = "severe", "إجهاد شديد"
@@ -269,15 +350,15 @@ def assess_stress_risk(crop: str, stage_key: str, depletion_pct: float) -> Dict:
         "advice_ar": (
             f"⚠ {ss.name_ar}: مرحلة حرجة + نضوب {depletion_pct:.0f}% → اروِ قريباً "
             "لتفادي خسارة كبيرة."
-            if urgent else
-            f"{ss.name_ar}: {level_ar} عند نضوب {depletion_pct:.0f}%. "
+            if urgent
+            else f"{ss.name_ar}: {level_ar} عند نضوب {depletion_pct:.0f}%. "
             + (ss.note_ar if level != "ok" else "تابع المراقبة.")
         ),
     }
 
 
 # توافق خلفي: الدالّة القديمة wheat_water_calendar
-def wheat_water_calendar() -> Dict:
+def wheat_water_calendar() -> dict:
     d = water_calendar("wheat")
     d["warning_waterlogging_ar"] = (
         "التشبّع المائي ضارّ كالجفاف: خسارة حتى 92% من الاستطالة للإزهار، "
@@ -287,9 +368,11 @@ def wheat_water_calendar() -> Dict:
 
 
 def integrated_irrigation_advice(
-    crop: str, stage_key: str, depletion_pct: float,
-    net_irrigation_mm: Optional[float] = None,
-) -> Dict:
+    crop: str,
+    stage_key: str,
+    depletion_pct: float,
+    net_irrigation_mm: float | None = None,
+) -> dict:
     """توصية ريّ متكاملة: تجمع الحساسيّة (متى حرج) مع الاحتياج (كم).
 
     تربط crop_water_sensitivity مع ناتج water_balance لتعطي المزارع صورة
@@ -316,9 +399,8 @@ def integrated_irrigation_advice(
                 f"{net_irrigation_mm:.0f}مم → اروِ الآن بهذه الكميّة لحماية المحصول."
             )
         elif net_irrigation_mm == 0:
-            out["integrated_advice_ar"] = (
-                f"{risk['stage_ar']}: المطر يغطّي الاحتياج حاليّاً. "
-                + ("راقب — المرحلة حرجة." if risk["is_critical_window"] else "تابع.")
+            out["integrated_advice_ar"] = f"{risk['stage_ar']}: المطر يغطّي الاحتياج حاليّاً. " + (
+                "راقب — المرحلة حرجة." if risk["is_critical_window"] else "تابع."
             )
         else:
             out["integrated_advice_ar"] = (

@@ -19,27 +19,28 @@ core.spatial.pipeline
 
 هذا الملف يعرّف الواجهات والقرارات، جاهزة للتوصيل بالصور الحقيقية.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import date
+from dataclasses import dataclass
 from enum import Enum
 
 
 class Satellite(str, Enum):
-    S2_OPTICAL = "sentinel-2"    # بصري — 10م، كل 5 أيام، يحجبه السحب
-    S1_RADAR = "sentinel-1"      # رادار — 10م، كل 6 أيام، يخترق السحب
+    S2_OPTICAL = "sentinel-2"  # بصري — 10م، كل 5 أيام، يحجبه السحب
+    S1_RADAR = "sentinel-1"  # رادار — 10م، كل 6 أيام، يخترق السحب
 
 
 class ImageQuality(str, Enum):
-    USABLE = "usable"            # سحب < 20%
-    CLOUDY = "cloudy"            # سحب > 20% → بديل
-    FUSED = "fused"              # دمج S1+S2
+    USABLE = "usable"  # سحب < 20%
+    CLOUDY = "cloudy"  # سحب > 20% → بديل
+    FUSED = "fused"  # دمج S1+S2
 
 
 @dataclass
 class FieldAOI:
     """منطقة الاهتمام = حدود الحقل (تأتي من PostGIS / GeoJSON)."""
+
     tenant_id: str
     field_id: str
     # polygon vertices (lon, lat) — حدود الحقل الفعلية
@@ -60,6 +61,7 @@ class FieldAOI:
 @dataclass
 class AcquisitionPlan:
     """خطة الجلب — متى وأي قمر."""
+
     aoi: FieldAOI
     revisit_days: int = 5
     prefer: Satellite = Satellite.S2_OPTICAL
@@ -72,7 +74,7 @@ def decide_source(cloud_cover_pct: float) -> tuple[Satellite, ImageQuality]:
     القرار الذي وصفه المستخدم: سحب → S1، أو دمج S1+S2.
     العتبة 20% تطابق connectors.base.CLOUD_THRESHOLD_PCT (مصدر الحقيقة الموحّد).
     """
-    if cloud_cover_pct < 20:   # == base.CLOUD_THRESHOLD_PCT
+    if cloud_cover_pct < 20:  # == base.CLOUD_THRESHOLD_PCT
         return Satellite.S2_OPTICAL, ImageQuality.USABLE
     if cloud_cover_pct < 60:
         # سحب جزئي → دمج (S2 المتاح + S1 لسدّ الفجوات)
@@ -85,17 +87,18 @@ def decide_source(cloud_cover_pct: float) -> tuple[Satellite, ImageQuality]:
 class RasterTile:
     """بلاطة مؤشر مكاني — تُعرض فوق الخريطة. metadata في SQLite،
     البيانات الفعلية (PNG/GeoTIFF) في ملف/PostGIS لاحقاً."""
+
     tenant_id: str
     field_id: str
-    index_name: str              # ndvi / ndmi / salinity
-    capture_date: str            # ISO
+    index_name: str  # ndvi / ndmi / salinity
+    capture_date: str  # ISO
     satellite: str
     quality: str
     cloud_cover_pct: float
     # مسارات الأصول (تُملأ عند المعالجة الفعلية):
-    geotiff_path: str = ""       # المصدر الخام
-    png_overlay_path: str = ""   # للعرض فوق الخريطة
-    thumbnail_path: str = ""     # للـ timeline
+    geotiff_path: str = ""  # المصدر الخام
+    png_overlay_path: str = ""  # للعرض فوق الخريطة
+    thumbnail_path: str = ""  # للـ timeline
     # إحصاءات (تُحسب من الـ raster):
     mean_value: float | None = None
     min_value: float | None = None
@@ -109,6 +112,7 @@ def compute_ndvi_from_bands(nir, red):
     """
     try:
         import numpy as np
+
         nir = np.asarray(nir, dtype=float)
         red = np.asarray(red, dtype=float)
         denom = nir + red
@@ -122,6 +126,7 @@ def compute_ndvi_from_bands(nir, red):
 @dataclass
 class TimelineEntry:
     """مدخل في شريط الزمن أسفل الخريطة — تاريخ + صورة مصغّرة."""
+
     capture_date: str
     index_name: str
     thumbnail_path: str
@@ -133,8 +138,10 @@ def build_timeline(tiles: list[RasterTile]) -> list[TimelineEntry]:
     """يبني شريط الزمن للمقارنة (الأحدث أولاً)."""
     entries = [
         TimelineEntry(
-            capture_date=t.capture_date, index_name=t.index_name,
-            thumbnail_path=t.thumbnail_path, mean_value=t.mean_value,
+            capture_date=t.capture_date,
+            index_name=t.index_name,
+            thumbnail_path=t.thumbnail_path,
+            mean_value=t.mean_value,
             quality=t.quality,
         )
         for t in tiles
@@ -143,11 +150,11 @@ def build_timeline(tiles: list[RasterTile]) -> list[TimelineEntry]:
 
 
 def detect_temporal_change(
-    timeline: list[TimelineEntry], index_name: str,
+    timeline: list[TimelineEntry],
+    index_name: str,
 ) -> dict:
     """كشف التغيّر الزمني (إنذار مبكر): هل المؤشر يتدهور؟"""
-    series = [e for e in timeline if e.index_name == index_name
-              and e.mean_value is not None]
+    series = [e for e in timeline if e.index_name == index_name and e.mean_value is not None]
     if len(series) < 2:
         return {"trend": "insufficient_data", "note_ar": "يحتاج صورتين على الأقل"}
     series.sort(key=lambda e: e.capture_date)
@@ -169,6 +176,7 @@ def polygon_area_ha(coords: list[tuple[float, float]]) -> float:
     يستخدم صيغة Shoelace مع إسقاط متري تقريبي (يكفي لحقل صغير).
     للدقة العالية لاحقاً: إسقاط UTM كامل. coords مغلقة أو مفتوحة."""
     import math
+
     if len(coords) < 3:
         return 0.0
     # متوسط خط العرض لإسقاط تقريبي (متر/درجة)
@@ -176,8 +184,10 @@ def polygon_area_ha(coords: list[tuple[float, float]]) -> float:
     m_per_deg_lat = 111_320.0
     m_per_deg_lon = 111_320.0 * math.cos(math.radians(lat_mean))
     # تحويل لأمتار نسبية
-    pts = [((lon - coords[0][0]) * m_per_deg_lon,
-            (lat - coords[0][1]) * m_per_deg_lat) for lon, lat in coords]
+    pts = [
+        ((lon - coords[0][0]) * m_per_deg_lon, (lat - coords[0][1]) * m_per_deg_lat)
+        for lon, lat in coords
+    ]
     # Shoelace
     area_m2 = 0.0
     n = len(pts)
@@ -206,8 +216,11 @@ def estimate_soil_texture(bsi: float, ndvi: float) -> dict:
     الحاكمات الصارمة (ملوحة S3، pH S4) تبقى تتطلب المختبر."""
     # على الغطاء النباتي الكثيف لا يُقاس النسيج بصرياً
     if ndvi > 0.4:
-        return {"texture": None, "confidence": "none",
-                "note_ar": "غطاء نباتي كثيف — النسيج لا يُقاس بصرياً، يحتاج عيّنة حقلية"}
+        return {
+            "texture": None,
+            "confidence": "none",
+            "note_ar": "غطاء نباتي كثيف — النسيج لا يُقاس بصرياً، يحتاج عيّنة حقلية",
+        }
     # تصنيف تقريبي على التربة العارية (BSI أعلى ≈ أكثر رملية/جفافاً)
     if bsi >= 0.3:
         tex, conf = "رملي (تقديري)", "low"
@@ -217,8 +230,11 @@ def estimate_soil_texture(bsi: float, ndvi: float) -> dict:
         tex, conf = "طميي (تقديري)", "low"
     else:
         tex, conf = "طيني/رطب (تقديري)", "low"
-    return {"texture": tex, "confidence": conf,
-            "note_ar": f"{tex} — تقدير استشعاري استرشادي. للتأكيد: عيّنة حقلية أو مختبر."}
+    return {
+        "texture": tex,
+        "confidence": conf,
+        "note_ar": f"{tex} — تقدير استشعاري استرشادي. للتأكيد: عيّنة حقلية أو مختبر.",
+    }
 
 
 # ── مؤشّرات تمييز التربة (تدقّق تصنيف النسيج) — موجّهة لا حاكمة ──
@@ -234,8 +250,9 @@ def iron_oxide_ratio(red, blue):
     return red / blue if blue != 0 else 0.0
 
 
-def refine_soil_texture(bsi: float, ndvi: float, clay_ratio: float = None,
-                        iron_ratio: float = None) -> dict:
+def refine_soil_texture(
+    bsi: float, ndvi: float, clay_ratio: float = None, iron_ratio: float = None
+) -> dict:
     """يدقّق تقدير النسيج بدمج BSI مع مؤشّري الطين/الحديد (إن توفّرا).
     ⚠️ موجّه لا حاكم: ثقة منخفضة دائماً، يوجّه لعيّنة. الحاكمات للمختبر."""
     base = estimate_soil_texture(bsi, ndvi)
@@ -251,13 +268,15 @@ def refine_soil_texture(bsi: float, ndvi: float, clay_ratio: float = None,
     return {
         "texture": base["texture"],
         "confidence": "low",  # يبقى منخفضاً — استشعار لا مختبر
-        "refined_with": [k for k, v in [("clay", clay_ratio), ("iron", iron_ratio)] if v is not None],
+        "refined_with": [
+            k for k, v in [("clay", clay_ratio), ("iron", iron_ratio)] if v is not None
+        ],
         "note_ar": " · ".join(notes) + " — تقدير استشعاري. للتأكيد: تحليل مخبري.",
     }
 
 
 # ── كشف مرحلة النمو من سلسلة NDVI الزمنية (يكمّل GDD في fao56) ──
-def detect_growth_stage_from_ndvi(ndvi_series: "list[tuple[int, float]]") -> dict:
+def detect_growth_stage_from_ndvi(ndvi_series: list[tuple[int, float]]) -> dict:
     """يستنتج مرحلة النمو من شكل منحنى NDVI الزمني (يوم السنة, NDVI).
     مبني على أبحاث محكّمة (RMSE <2.9 يوم للقمح من Sentinel-2).
 
@@ -266,8 +285,11 @@ def detect_growth_stage_from_ndvi(ndvi_series: "list[tuple[int, float]]") -> dic
 
     ⚠️ موجّه: الاستشعار يرى الغطاء؛ المزارع يؤكّد بالمشاهدة الميدانية."""
     if not ndvi_series or len(ndvi_series) < 3:
-        return {"stage": None, "confidence": "none",
-                "note_ar": "سلسلة NDVI قصيرة (<3 نقاط) — لا يمكن استنتاج المرحلة"}
+        return {
+            "stage": None,
+            "confidence": "none",
+            "note_ar": "سلسلة NDVI قصيرة (<3 نقاط) — لا يمكن استنتاج المرحلة",
+        }
 
     # تنعيم ضدّ تذبذب الغيوم (الأبحاث المحكّمة تنعّم السلسلة قبل التحليل).
     # متوسّط متحرّك ثلاثي يخفّف القيم الشاذّة (غيمة تخفض NDVI فجأة).
@@ -276,13 +298,13 @@ def detect_growth_stage_from_ndvi(ndvi_series: "list[tuple[int, float]]") -> dic
     if len(_vals) >= 3:
         _smoothed = [_vals[0]]
         for i in range(1, len(_vals) - 1):
-            _smoothed.append((_vals[i-1] + _vals[i] + _vals[i+1]) / 3.0)
+            _smoothed.append((_vals[i - 1] + _vals[i] + _vals[i + 1]) / 3.0)
         _smoothed.append(_vals[-1])
         # كشف الشذوذ: نمط V (هبوط حادّ ثم ارتفاع) يشير لغيمة عابرة.
         # النمو الطبيعي رتيب؛ الهبوط المفاجئ المتبوع بارتفاع = غيمة لا فيزيولوجيا.
         _cloud_flag = False
         for i in range(1, len(_vals) - 1):
-            _dip = _vals[i] < _vals[i-1] - 0.20 and _vals[i] < _vals[i+1] - 0.20
+            _dip = _vals[i] < _vals[i - 1] - 0.20 and _vals[i] < _vals[i + 1] - 0.20
             if _dip:
                 _cloud_flag = True
                 break
@@ -319,16 +341,21 @@ def detect_growth_stage_from_ndvi(ndvi_series: "list[tuple[int, float]]") -> dic
         "peak_ndvi": round(peak, 3),
         "confidence": "low" if _cloud_flag else "estimate",  # غيوم → ثقة أقل
         "cloud_noise_detected": _cloud_flag,
-        "note_ar": (f"المرحلة المُقدَّرة: {stage_ar} (NDVI={current:.2f}). "
-                    + ("⚠️ تذبذب حادّ في السلسلة (غيوم محتملة) — الثقة منخفضة، "
-                       "أعد التحليل بصورة صافية. " if _cloud_flag else "")
-                    + "تقدير من الأقمار — أكّده بالمشاهدة الميدانية أو GDD."),
+        "note_ar": (
+            f"المرحلة المُقدَّرة: {stage_ar} (NDVI={current:.2f}). "
+            + (
+                "⚠️ تذبذب حادّ في السلسلة (غيوم محتملة) — الثقة منخفضة، أعد التحليل بصورة صافية. "
+                if _cloud_flag
+                else ""
+            )
+            + "تقدير من الأقمار — أكّده بالمشاهدة الميدانية أو GDD."
+        ),
     }
 
 
-def crop_type_consistency_check(observed_ndvi_peak: float,
-                                expected_crop: str,
-                                expected_peak_range: "tuple[float, float]") -> dict:
+def crop_type_consistency_check(
+    observed_ndvi_peak: float, expected_crop: str, expected_peak_range: tuple[float, float]
+) -> dict:
     """يتحقّق أن منحنى NDVI يطابق المحصول المُدخَل (يكشف الشذوذ).
     لا يستبدل إدخال المزارع للصنف — يؤكّده أو ينبّه لشذوذ."""
     lo, hi = expected_peak_range
@@ -337,10 +364,12 @@ def crop_type_consistency_check(observed_ndvi_peak: float,
         "expected_crop": expected_crop,
         "consistent": consistent,
         "confidence": "estimate",
-        "note_ar": (f"ذروة NDVI ({observed_ndvi_peak:.2f}) "
-                    f"{'متّسقة مع' if consistent else 'لا تتّسق مع'} "
-                    f"المحصول المُدخَل ({expected_crop})."
-                    + ("" if consistent else " راجع الصنف أو ابحث عن إجهاد.")),
+        "note_ar": (
+            f"ذروة NDVI ({observed_ndvi_peak:.2f}) "
+            f"{'متّسقة مع' if consistent else 'لا تتّسق مع'} "
+            f"المحصول المُدخَل ({expected_crop})."
+            + ("" if consistent else " راجع الصنف أو ابحث عن إجهاد.")
+        ),
     }
 
 
@@ -362,17 +391,21 @@ def estimate_lai_from_ndvi(ndvi: float) -> dict:
         lai = 7.0
     else:
         import math
+
         lai = -math.log((ndvi_inf - ndvi) / (ndvi_inf - ndvi_soil)) / k
         lai = max(0.0, min(7.0, lai))
     # تصنيف الكثافة
-    if lai < 1.0: density = "غطاء متناثر"
-    elif lai < 3.0: density = "غطاء معتدل"
-    elif lai < 5.0: density = "غطاء كثيف"
-    else: density = "غطاء كثيف جداً"
+    if lai < 1.0:
+        density = "غطاء متناثر"
+    elif lai < 3.0:
+        density = "غطاء معتدل"
+    elif lai < 5.0:
+        density = "غطاء كثيف"
+    else:
+        density = "غطاء كثيف جداً"
     return {
         "lai": round(lai, 2),
         "density_ar": density,
         "confidence": "estimate",
-        "note_ar": f"LAI تقديري ≈ {lai:.1f} ({density}). "
-                   f"تقدير طيفي — للمعايرة: قياس LAI ميداني.",
+        "note_ar": f"LAI تقديري ≈ {lai:.1f} ({density}). تقدير طيفي — للمعايرة: قياس LAI ميداني.",
     }

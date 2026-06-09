@@ -22,12 +22,12 @@ HTTP integration لـOpen-Meteo (مجاني، بدون مفتاح).
   ⚠ لم يُختبَر runtime (الشبكة معطّلة في bash_tool هنا)
   ✅ بنية URLs وschemas مأخوذة من Open-Meteo docs مباشرة
 """
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Optional
 
 import httpx
 
@@ -47,6 +47,7 @@ def _daily_at(daily: dict, key: str, i: int, default):
     v = lst[i]
     return default if v is None else v
 
+
 # ─── Endpoints (مأخوذة من open-meteo.com docs) ────────────────────
 
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
@@ -56,6 +57,7 @@ GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 
 # ─── Data models ──────────────────────────────────────────────────
 
+
 @dataclass
 class CurrentWeather:
     temperature_c: float
@@ -63,19 +65,19 @@ class CurrentWeather:
     wind_speed_ms: float
     precipitation_mm: float
     cloud_cover_pct: float
-    weather_code: int                # WMO code (0=clear, 61=rain, etc.)
+    weather_code: int  # WMO code (0=clear, 61=rain, etc.)
     is_day: bool
-    timestamp: str                    # ISO
+    timestamp: str  # ISO
 
 
 @dataclass
 class DailyForecast:
-    date: str                         # YYYY-MM-DD
+    date: str  # YYYY-MM-DD
     temp_max_c: float
     temp_min_c: float
     precipitation_mm: float
-    et0_mm: Optional[float]           # FAO-56 reference ET₀ (في النموذج!)
-    sunshine_hours: Optional[float]
+    et0_mm: float | None  # FAO-56 reference ET₀ (في النموذج!)
+    sunshine_hours: float | None
     wind_max_ms: float
     weather_code: int
 
@@ -83,27 +85,37 @@ class DailyForecast:
 @dataclass
 class WeatherBundle:
     """البيانات الكاملة لشاشة الطقس + توصيات."""
-    location: tuple[float, float]     # (lat, lon)
+
+    location: tuple[float, float]  # (lat, lon)
     elevation_m: float
     current: CurrentWeather
     daily_forecast: list[DailyForecast]
-    historical_30d: Optional[list[DailyForecast]] = None
+    historical_30d: list[DailyForecast] | None = None
 
 
 # ─── Implementation ────────────────────────────────────────────────
 
+
 async def fetch_current(
-    lat: float, lon: float,
+    lat: float,
+    lon: float,
     timeout_s: float = 10.0,
 ) -> CurrentWeather:
     """يجلب الطقس الحالي."""
     params = {
         "latitude": lat,
         "longitude": lon,
-        "current": ",".join([
-            "temperature_2m", "relative_humidity_2m", "wind_speed_10m",
-            "precipitation", "cloud_cover", "weather_code", "is_day",
-        ]),
+        "current": ",".join(
+            [
+                "temperature_2m",
+                "relative_humidity_2m",
+                "wind_speed_10m",
+                "precipitation",
+                "cloud_cover",
+                "weather_code",
+                "is_day",
+            ]
+        ),
         "timezone": "auto",
         "wind_speed_unit": "ms",
     }
@@ -143,10 +155,17 @@ async def fetch_current_batch(
     params = {
         "latitude": lats,
         "longitude": lons,
-        "current": ",".join([
-            "temperature_2m", "relative_humidity_2m", "wind_speed_10m",
-            "precipitation", "cloud_cover", "weather_code", "is_day",
-        ]),
+        "current": ",".join(
+            [
+                "temperature_2m",
+                "relative_humidity_2m",
+                "wind_speed_10m",
+                "precipitation",
+                "cloud_cover",
+                "weather_code",
+                "is_day",
+            ]
+        ),
         "timezone": "auto",
         "wind_speed_unit": "ms",
     }
@@ -161,21 +180,24 @@ async def fetch_current_batch(
     out = []
     for entry in data:
         c = entry.get("current", {})
-        out.append(CurrentWeather(
-            temperature_c=c.get("temperature_2m", 0),
-            humidity_pct=c.get("relative_humidity_2m", 0),
-            wind_speed_ms=c.get("wind_speed_10m", 0),
-            precipitation_mm=c.get("precipitation", 0),
-            cloud_cover_pct=c.get("cloud_cover", 0),
-            weather_code=c.get("weather_code", 0),
-            is_day=bool(c.get("is_day", 1)),
-            timestamp=c.get("time", ""),
-        ))
+        out.append(
+            CurrentWeather(
+                temperature_c=c.get("temperature_2m", 0),
+                humidity_pct=c.get("relative_humidity_2m", 0),
+                wind_speed_ms=c.get("wind_speed_10m", 0),
+                precipitation_mm=c.get("precipitation", 0),
+                cloud_cover_pct=c.get("cloud_cover", 0),
+                weather_code=c.get("weather_code", 0),
+                is_day=bool(c.get("is_day", 1)),
+                timestamp=c.get("time", ""),
+            )
+        )
     return out
 
 
 async def fetch_daily_forecast(
-    lat: float, lon: float,
+    lat: float,
+    lon: float,
     days: int = 7,
     timeout_s: float = 15.0,
 ) -> list[DailyForecast]:
@@ -184,12 +206,17 @@ async def fetch_daily_forecast(
     params = {
         "latitude": lat,
         "longitude": lon,
-        "daily": ",".join([
-            "temperature_2m_max", "temperature_2m_min",
-            "precipitation_sum", "et0_fao_evapotranspiration",
-            "sunshine_duration", "wind_speed_10m_max",
-            "weather_code",
-        ]),
+        "daily": ",".join(
+            [
+                "temperature_2m_max",
+                "temperature_2m_min",
+                "precipitation_sum",
+                "et0_fao_evapotranspiration",
+                "sunshine_duration",
+                "wind_speed_10m_max",
+                "weather_code",
+            ]
+        ),
         "timezone": "auto",
         "wind_speed_unit": "ms",
         "forecast_days": days,
@@ -205,23 +232,26 @@ async def fetch_daily_forecast(
     results = []
     for i, date in enumerate(dates):
         _sun = _daily_at(d, "sunshine_duration", i, None)
-        results.append(DailyForecast(
-            date=date,
-            temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
-            temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
-            precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
-            et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
-            sunshine_hours=(_sun / 3600 if _sun else None),
-            wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
-            weather_code=_daily_at(d, "weather_code", i, 0),
-        ))
+        results.append(
+            DailyForecast(
+                date=date,
+                temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
+                temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
+                precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
+                et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
+                sunshine_hours=(_sun / 3600 if _sun else None),
+                wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
+                weather_code=_daily_at(d, "weather_code", i, 0),
+            )
+        )
     return results
 
 
 async def fetch_historical(
-    lat: float, lon: float,
-    start_date: str,                  # YYYY-MM-DD
-    end_date: str,                    # YYYY-MM-DD
+    lat: float,
+    lon: float,
+    start_date: str,  # YYYY-MM-DD
+    end_date: str,  # YYYY-MM-DD
     timeout_s: float = 30.0,
 ) -> list[DailyForecast]:
     """يجلب البيانات التاريخيّة (ERA5 reanalysis)."""
@@ -230,12 +260,17 @@ async def fetch_historical(
         "longitude": lon,
         "start_date": start_date,
         "end_date": end_date,
-        "daily": ",".join([
-            "temperature_2m_max", "temperature_2m_min",
-            "precipitation_sum", "et0_fao_evapotranspiration",
-            "sunshine_duration", "wind_speed_10m_max",
-            "weather_code",
-        ]),
+        "daily": ",".join(
+            [
+                "temperature_2m_max",
+                "temperature_2m_min",
+                "precipitation_sum",
+                "et0_fao_evapotranspiration",
+                "sunshine_duration",
+                "wind_speed_10m_max",
+                "weather_code",
+            ]
+        ),
         "timezone": "auto",
         "wind_speed_unit": "ms",
     }
@@ -250,21 +285,24 @@ async def fetch_historical(
     results = []
     for i, date in enumerate(dates):
         _sun = _daily_at(d, "sunshine_duration", i, None)
-        results.append(DailyForecast(
-            date=date,
-            temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
-            temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
-            precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
-            et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
-            sunshine_hours=(_sun / 3600 if _sun else None),
-            wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
-            weather_code=_daily_at(d, "weather_code", i, 0),
-        ))
+        results.append(
+            DailyForecast(
+                date=date,
+                temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
+                temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
+                precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
+                et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
+                sunshine_hours=(_sun / 3600 if _sun else None),
+                wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
+                weather_code=_daily_at(d, "weather_code", i, 0),
+            )
+        )
     return results
 
 
 async def fetch_bundle(
-    lat: float, lon: float,
+    lat: float,
+    lon: float,
     forecast_days: int = 7,
     include_historical_30d: bool = False,
 ) -> WeatherBundle:
@@ -277,7 +315,8 @@ async def fetch_bundle(
         end = datetime.utcnow().date()
         start = end - timedelta(days=30)
         historical = await fetch_historical(
-            lat, lon,
+            lat,
+            lon,
             start.isoformat(),
             end.isoformat(),
         )

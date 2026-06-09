@@ -15,10 +15,10 @@ EC أو yield-history (المزارع اليمني الصغير).
 لذا: (أ) نفضّل متوسّط سلسلة زمنيّة لا صورة واحدة، (ب) نَسِم الثقة. هذا ليس
 بديلاً عن التحليل المختبري بل دليلاً للفحص.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 import numpy as np
 
@@ -26,19 +26,20 @@ import numpy as np
 @dataclass
 class ZoneCell:
     """خليّة حقل واحدة بقيمتها."""
+
     cell_id: str
-    value: float                  # NDVI متوسّط (أو مؤشّر آخر)
-    confidence: float = 1.0       # 0-1 (من confidence_engine لو متاح)
+    value: float  # NDVI متوسّط (أو مؤشّر آخر)
+    confidence: float = 1.0  # 0-1 (من confidence_engine لو متاح)
 
 
 @dataclass
 class ZoneAssignment:
     cell_id: str
-    zone_class: str               # low|medium|high|problem
+    zone_class: str  # low|medium|high|problem
     value: float
     cluster_center: float
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "cell_id": self.cell_id,
             "zone_class": self.zone_class,
@@ -50,12 +51,12 @@ class ZoneAssignment:
 @dataclass
 class ZoningResult:
     n_zones: int
-    assignments: List[ZoneAssignment]
-    zone_centers: Dict[str, float]      # متوسّط NDVI لكلّ منطقة
-    zone_counts: Dict[str, int]
+    assignments: list[ZoneAssignment]
+    zone_centers: dict[str, float]  # متوسّط NDVI لكلّ منطقة
+    zone_counts: dict[str, int]
     notes_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "n_zones": self.n_zones,
             "zone_centers": {k: round(v, 4) for k, v in self.zone_centers.items()},
@@ -65,12 +66,12 @@ class ZoningResult:
         }
 
 
-_MIN_CELLS = 6          # أقلّ من ذلك = لا معنى للتجميع
-_LOW_CONFIDENCE = 0.4   # خليّة دون هذه الثقة → PROBLEM
+_MIN_CELLS = 6  # أقلّ من ذلك = لا معنى للتجميع
+_LOW_CONFIDENCE = 0.4  # خليّة دون هذه الثقة → PROBLEM
 
 
 def delineate_zones(
-    cells: List[ZoneCell],
+    cells: list[ZoneCell],
     *,
     n_zones: int = 3,
     random_state: int = 42,
@@ -90,15 +91,15 @@ def delineate_zones(
     valid = [c for c in cells if c.confidence >= _LOW_CONFIDENCE]
     problem = [c for c in cells if c.confidence < _LOW_CONFIDENCE]
 
-    assignments: List[ZoneAssignment] = []
-    zone_counts: Dict[str, int] = {"low": 0, "medium": 0, "high": 0, "problem": 0}
+    assignments: list[ZoneAssignment] = []
+    zone_counts: dict[str, int] = {"low": 0, "medium": 0, "high": 0, "problem": 0}
 
     # خلايا PROBLEM
     for c in problem:
         assignments.append(ZoneAssignment(c.cell_id, "problem", c.value, c.value))
         zone_counts["problem"] += 1
 
-    zone_centers: Dict[str, float] = {}
+    zone_centers: dict[str, float] = {}
     if len(valid) >= n_zones:
         X = np.array([[c.value] for c in valid])
         km = KMeans(n_clusters=n_zones, random_state=random_state, n_init=10)
@@ -116,7 +117,7 @@ def delineate_zones(
             names = ["low"] + ["medium"] * (n_zones - 2) + ["high"]
             label_names = {order[i]: names[i] for i in range(n_zones)}
 
-        for c, lbl in zip(valid, labels):
+        for c, lbl in zip(valid, labels, strict=True):
             zname = label_names[lbl]
             assignments.append(ZoneAssignment(c.cell_id, zname, c.value, float(centers[lbl])))
             zone_counts[zname] = zone_counts.get(zname, 0) + 1
@@ -137,6 +138,9 @@ def delineate_zones(
     )
 
     return ZoningResult(
-        n_zones=n_zones, assignments=assignments,
-        zone_centers=zone_centers, zone_counts=zone_counts, notes_ar=notes,
+        n_zones=n_zones,
+        assignments=assignments,
+        zone_centers=zone_centers,
+        zone_counts=zone_counts,
+        notes_ar=notes,
     )

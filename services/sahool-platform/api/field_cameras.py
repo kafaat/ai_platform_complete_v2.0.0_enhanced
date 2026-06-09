@@ -14,39 +14,40 @@ api/field_cameras.py — مراقبة الحقول بالكاميرا (عين م
 أي: الكاميرا "عين" تُري المزارع، لا "عقل" يقرّر عنه. التشخيص يبقى بشريّاً
 (أو عبر disease_diagnosis الشفّاف القائم على القواعد، لا ML الصندوق الأسود).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 
-class CameraType(str, Enum):
-    FIXED = "fixed"          # كاميرا ثابتة (عمود/برج)
-    MOBILE = "mobile"        # محمولة (هاتف/جهاز المزارع)
+class CameraType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
+    FIXED = "fixed"  # كاميرا ثابتة (عمود/برج)
+    MOBILE = "mobile"  # محمولة (هاتف/جهاز المزارع)
     TIMELAPSE = "timelapse"  # لقطات دوريّة مجدولة
 
 
-class CameraStatus(str, Enum):
+class CameraStatus(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     ACTIVE = "active"
-    OFFLINE = "offline"      # متوقّعة في الريف (كهرباء/شبكة متقطّعة)
+    OFFLINE = "offline"  # متوقّعة في الريف (كهرباء/شبكة متقطّعة)
     ARCHIVED = "archived"
 
 
 @dataclass
 class FieldCamera:
     """كاميرا مراقبة مسجّلة لحقل."""
+
     camera_id: str
     field_id: str
     name_ar: str
     camera_type: CameraType
     status: CameraStatus = CameraStatus.ACTIVE
-    lat: Optional[float] = None
-    lon: Optional[float] = None
-    capture_interval_min: Optional[int] = None   # للـtimelapse
+    lat: float | None = None
+    lon: float | None = None
+    capture_interval_min: int | None = None  # للـtimelapse
     note_ar: str = ""
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "camera_id": self.camera_id,
             "field_id": self.field_id,
@@ -63,15 +64,16 @@ class FieldCamera:
 @dataclass
 class CameraSnapshot:
     """لقطة بصريّة من كاميرا (قرينة ميدانيّة)."""
+
     snapshot_id: str
     camera_id: str
     field_id: str
-    media_uri: str                       # مسار الصورة (في mediaStore/MinIO)
-    captured_at: str                     # ISO
-    linked_pin_id: Optional[str] = None  # ربط بنقطة استكشاف إن وُجدت
+    media_uri: str  # مسار الصورة (في mediaStore/MinIO)
+    captured_at: str  # ISO
+    linked_pin_id: str | None = None  # ربط بنقطة استكشاف إن وُجدت
     note_ar: str = ""
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "snapshot_id": self.snapshot_id,
             "camera_id": self.camera_id,
@@ -89,21 +91,26 @@ def register_camera(
     name_ar: str,
     camera_type: str,
     *,
-    lat: Optional[float] = None,
-    lon: Optional[float] = None,
-    capture_interval_min: Optional[int] = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    capture_interval_min: int | None = None,
     note_ar: str = "",
-) -> Dict:
+) -> dict:
     """يسجّل كاميرا مراقبة لحقل (نقيّة — الحفظ في الموبايل/الـbackend عبر المستودع)."""
     try:
         ctype = CameraType(camera_type)
-    except ValueError:
-        raise ValueError(f"نوع كاميرا غير معروف: {camera_type}")
+    except ValueError as err:
+        raise ValueError(f"نوع كاميرا غير معروف: {camera_type}") from err
 
     cam = FieldCamera(
-        camera_id=camera_id, field_id=field_id, name_ar=name_ar,
-        camera_type=ctype, lat=lat, lon=lon,
-        capture_interval_min=capture_interval_min, note_ar=note_ar,
+        camera_id=camera_id,
+        field_id=field_id,
+        name_ar=name_ar,
+        camera_type=ctype,
+        lat=lat,
+        lon=lon,
+        capture_interval_min=capture_interval_min,
+        note_ar=note_ar,
     )
     return {
         "camera": cam.to_dict(),
@@ -117,7 +124,7 @@ def register_camera(
     }
 
 
-def link_snapshot_as_evidence(snapshot: CameraSnapshot) -> Dict:
+def link_snapshot_as_evidence(snapshot: CameraSnapshot) -> dict:
     """يحوّل لقطة كاميرا إلى قرينة ميدانيّة (field_obs) للتظافر.
 
     اللقطة قرينة بصريّة بوزن منخفض (ملاحظة ميدانيّة) — لا ترفع توصية وحدها،
@@ -125,7 +132,7 @@ def link_snapshot_as_evidence(snapshot: CameraSnapshot) -> Dict:
     """
     return {
         "snapshot": snapshot.to_dict(),
-        "evidence_type": "field_obs",     # يطابق EvidenceType في التظافر
+        "evidence_type": "field_obs",  # يطابق EvidenceType في التظافر
         "weight_note_ar": (
             "لقطة الكاميرا قرينة بصريّة ميدانيّة (وزن منخفض). تُعرَض للمزارع "
             "وتُسهم في تظافر القرائن، لكنّها لا تُنتج تشخيصاً آليّاً ولا ترفع "
@@ -134,7 +141,7 @@ def link_snapshot_as_evidence(snapshot: CameraSnapshot) -> Dict:
     }
 
 
-def monitoring_summary(cameras: List[FieldCamera]) -> Dict:
+def monitoring_summary(cameras: list[FieldCamera]) -> dict:
     """ملخّص حالة كاميرات حقل (كم نشطة/متوقّفة)."""
     active = sum(1 for c in cameras if c.status == CameraStatus.ACTIVE)
     offline = sum(1 for c in cameras if c.status == CameraStatus.OFFLINE)
@@ -145,6 +152,7 @@ def monitoring_summary(cameras: List[FieldCamera]) -> Dict:
         "offline_note_ar": (
             "انقطاع الكاميرات متوقّع في الريف (كهرباء/شبكة متقطّعة) — "
             "النظام offline-first ويعرض آخر لقطة محفوظة عند الانقطاع."
-            if offline > 0 else ""
+            if offline > 0
+            else ""
         ),
     }

@@ -29,6 +29,7 @@ Farm hierarchy حقيقية. مع مئات المستخدمين، هذا فجو�
   ← يحرس استدعاءات skills_registry (لاحقاً)
   ← يحرس cross_reference_finder (تفعيل عزل tenant آلياً)
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -39,6 +40,7 @@ from core.canonical_schemas import UserRole, UserSchema
 
 class Permission(str, Enum):
     """العمليات الجوهرية في النواة. مفصّلة عمداً لتجنّب 'صلاحية شاملة'."""
+
     # المزارع والحقول
     FARM_CREATE = "farm:create"
     FARM_EDIT = "farm:edit"
@@ -51,19 +53,19 @@ class Permission(str, Enum):
     # التوصيات
     RECOMMENDATION_REQUEST = "recommendation:request"
     RECOMMENDATION_VIEW = "recommendation:view"
-    RECOMMENDATION_OVERRIDE = "recommendation:override"   # حرج
+    RECOMMENDATION_OVERRIDE = "recommendation:override"  # حرج
     # الأنشطة
     ACTIVITY_PLAN = "activity:plan"
-    ACTIVITY_EXECUTE = "activity:execute"     # mark_completed
-    ACTIVITY_SKIP = "activity:skip"           # mark_skipped
+    ACTIVITY_EXECUTE = "activity:execute"  # mark_completed
+    ACTIVITY_SKIP = "activity:skip"  # mark_skipped
     ACTIVITY_VIEW = "activity:view"
     # البيانات
     OBSERVATION_RECORD = "observation:record"
     OBSERVATION_VIEW = "observation:view"
-    HISTORICAL_IMPORT = "historical:import"   # historical_loader
+    HISTORICAL_IMPORT = "historical:import"  # historical_loader
     # السلامة (حرجة)
-    PESTICIDE_APPROVE = "pesticide:approve"   # safety_critical
-    HARVEST_AUTHORIZE = "harvest:authorize"   # PHI gate override
+    PESTICIDE_APPROVE = "pesticide:approve"  # safety_critical
+    HARVEST_AUTHORIZE = "harvest:authorize"  # PHI gate override
     # الإدارة
     USER_INVITE = "user:invite"
     USER_REMOVE = "user:remove"
@@ -71,7 +73,7 @@ class Permission(str, Enum):
     CALIBRATION_RUN = "calibration:run"
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
-    REPLAY_RECOMMENDATION = "replay:recommendation"   # recommendation_replay
+    REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
 
 
 # ─── مصفوفة الصلاحيات الافتراضية ──────────────────────────────────
@@ -79,61 +81,88 @@ class Permission(str, Enum):
 _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
     UserRole.OWNER: {
         # كل شيء — لكن صريحاً (لا magic admin)
-        Permission.FARM_CREATE, Permission.FARM_EDIT, Permission.FARM_DELETE,
+        Permission.FARM_CREATE,
+        Permission.FARM_EDIT,
+        Permission.FARM_DELETE,
         Permission.FARM_VIEW,
-        Permission.FIELD_CREATE, Permission.FIELD_EDIT, Permission.FIELD_DELETE,
+        Permission.FIELD_CREATE,
+        Permission.FIELD_EDIT,
+        Permission.FIELD_DELETE,
         Permission.FIELD_VIEW,
-        Permission.RECOMMENDATION_REQUEST, Permission.RECOMMENDATION_VIEW,
+        Permission.RECOMMENDATION_REQUEST,
+        Permission.RECOMMENDATION_VIEW,
         Permission.RECOMMENDATION_OVERRIDE,
-        Permission.ACTIVITY_PLAN, Permission.ACTIVITY_EXECUTE,
-        Permission.ACTIVITY_SKIP, Permission.ACTIVITY_VIEW,
-        Permission.OBSERVATION_RECORD, Permission.OBSERVATION_VIEW,
+        Permission.ACTIVITY_PLAN,
+        Permission.ACTIVITY_EXECUTE,
+        Permission.ACTIVITY_SKIP,
+        Permission.ACTIVITY_VIEW,
+        Permission.OBSERVATION_RECORD,
+        Permission.OBSERVATION_VIEW,
         Permission.HISTORICAL_IMPORT,
-        Permission.PESTICIDE_APPROVE, Permission.HARVEST_AUTHORIZE,
-        Permission.USER_INVITE, Permission.USER_REMOVE,
+        Permission.PESTICIDE_APPROVE,
+        Permission.HARVEST_AUTHORIZE,
+        Permission.USER_INVITE,
+        Permission.USER_REMOVE,
         Permission.USER_CHANGE_ROLE,
         Permission.CALIBRATION_RUN,
-        Permission.AUDIT_VIEW, Permission.REPLAY_RECOMMENDATION,
+        Permission.AUDIT_VIEW,
+        Permission.REPLAY_RECOMMENDATION,
     },
     UserRole.MANAGER: {
         # إدارة كاملة، لا حذف ملكية ولا تغيير أدوار
-        Permission.FARM_VIEW, Permission.FARM_EDIT,
-        Permission.FIELD_CREATE, Permission.FIELD_EDIT, Permission.FIELD_VIEW,
-        Permission.RECOMMENDATION_REQUEST, Permission.RECOMMENDATION_VIEW,
-        Permission.ACTIVITY_PLAN, Permission.ACTIVITY_EXECUTE,
-        Permission.ACTIVITY_SKIP, Permission.ACTIVITY_VIEW,
-        Permission.OBSERVATION_RECORD, Permission.OBSERVATION_VIEW,
+        Permission.FARM_VIEW,
+        Permission.FARM_EDIT,
+        Permission.FIELD_CREATE,
+        Permission.FIELD_EDIT,
+        Permission.FIELD_VIEW,
+        Permission.RECOMMENDATION_REQUEST,
+        Permission.RECOMMENDATION_VIEW,
+        Permission.ACTIVITY_PLAN,
+        Permission.ACTIVITY_EXECUTE,
+        Permission.ACTIVITY_SKIP,
+        Permission.ACTIVITY_VIEW,
+        Permission.OBSERVATION_RECORD,
+        Permission.OBSERVATION_VIEW,
         Permission.HISTORICAL_IMPORT,
         Permission.CALIBRATION_RUN,
-        Permission.AUDIT_VIEW, Permission.REPLAY_RECOMMENDATION,
-        Permission.USER_INVITE,   # دعوة، لا تغيير أدوار
+        Permission.AUDIT_VIEW,
+        Permission.REPLAY_RECOMMENDATION,
+        Permission.USER_INVITE,  # دعوة، لا تغيير أدوار
     },
     UserRole.AGRONOMIST: {
         # توصيات + معايرة + بحث، لا إدارة بنيوية
-        Permission.FARM_VIEW, Permission.FIELD_VIEW,
-        Permission.RECOMMENDATION_REQUEST, Permission.RECOMMENDATION_VIEW,
-        Permission.ACTIVITY_PLAN, Permission.ACTIVITY_VIEW,
-        Permission.OBSERVATION_RECORD, Permission.OBSERVATION_VIEW,
+        Permission.FARM_VIEW,
+        Permission.FIELD_VIEW,
+        Permission.RECOMMENDATION_REQUEST,
+        Permission.RECOMMENDATION_VIEW,
+        Permission.ACTIVITY_PLAN,
+        Permission.ACTIVITY_VIEW,
+        Permission.OBSERVATION_RECORD,
+        Permission.OBSERVATION_VIEW,
         Permission.HISTORICAL_IMPORT,
         Permission.CALIBRATION_RUN,
         Permission.REPLAY_RECOMMENDATION,
-        Permission.PESTICIDE_APPROVE,   # المهندس يوافق على المبيدات
+        Permission.PESTICIDE_APPROVE,  # المهندس يوافق على المبيدات
         # لا HARVEST_AUTHORIZE (تخطّي PHI يحتاج OWNER)
     },
     UserRole.WORKER: {
         # تنفيذ ميداني فقط
-        Permission.FARM_VIEW, Permission.FIELD_VIEW,
+        Permission.FARM_VIEW,
+        Permission.FIELD_VIEW,
         Permission.RECOMMENDATION_VIEW,
-        Permission.ACTIVITY_EXECUTE, Permission.ACTIVITY_SKIP,
+        Permission.ACTIVITY_EXECUTE,
+        Permission.ACTIVITY_SKIP,
         Permission.ACTIVITY_VIEW,
         Permission.OBSERVATION_RECORD,
         Permission.OBSERVATION_VIEW,
     },
     UserRole.VIEWER: {
         # قراءة فقط
-        Permission.FARM_VIEW, Permission.FIELD_VIEW,
+        Permission.FARM_VIEW,
+        Permission.FIELD_VIEW,
         Permission.RECOMMENDATION_VIEW,
-        Permission.ACTIVITY_VIEW, Permission.OBSERVATION_VIEW,
+        Permission.ACTIVITY_VIEW,
+        Permission.OBSERVATION_VIEW,
     },
 }
 
@@ -141,6 +170,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
 @dataclass
 class AuthDecision:
     """قرار صلاحية بسبب صريح — قابل للمراجعة."""
+
     allowed: bool
     reason_ar: str
     user_id: str | None = None
@@ -174,10 +204,15 @@ def authorize(
       4. الحقل (إن وُجد) ضمن farm_ids_access؟"""
 
     base = AuthDecision(
-        allowed=False, reason_ar="", user_id=user.user_id,
-        role=user.role.value, permission=permission.value,
-        tenant_id=user.tenant_id, resource_tenant_id=resource_tenant_id,
-        farm_id=farm_id)
+        allowed=False,
+        reason_ar="",
+        user_id=user.user_id,
+        role=user.role.value,
+        permission=permission.value,
+        tenant_id=user.tenant_id,
+        resource_tenant_id=resource_tenant_id,
+        farm_id=farm_id,
+    )
 
     # 1. نشاط المستخدم
     if not user.is_active:
@@ -187,62 +222,66 @@ def authorize(
     # 2. صلاحية الدور
     role_perms = _ROLE_PERMISSIONS.get(user.role, set())
     if permission not in role_perms:
-        base.reason_ar = (f"الدور '{user.role.value}' لا يملك صلاحية "
-                          f"'{permission.value}'")
+        base.reason_ar = f"الدور '{user.role.value}' لا يملك صلاحية '{permission.value}'"
         return base
 
     # 3. عزل tenant — الخطّ الأحمر المطلق
     if resource_tenant_id is not None and resource_tenant_id != user.tenant_id:
-        base.reason_ar = (f"عزل tenant: المستخدم في '{user.tenant_id}'، "
-                          f"المورد في '{resource_tenant_id}'")
+        base.reason_ar = (
+            f"عزل tenant: المستخدم في '{user.tenant_id}'، المورد في '{resource_tenant_id}'"
+        )
         return base
 
     # 4. صلاحية الوصول للمزرعة (إن طُلب)
     # farm_ids_access فارغة = كل المزارع في tenant
     if farm_id is not None:
         if user.farm_ids_access and farm_id not in user.farm_ids_access:
-            base.reason_ar = (f"المستخدم ليس له صلاحية على المزرعة '{farm_id}' "
-                              f"(الوصول: {user.farm_ids_access})")
+            base.reason_ar = (
+                f"المستخدم ليس له صلاحية على المزرعة '{farm_id}' (الوصول: {user.farm_ids_access})"
+            )
             return base
 
     base.allowed = True
-    base.reason_ar = (f"مسموح: {user.role.value} لـ{permission.value}"
-                      + (f" في {farm_id}" if farm_id else ""))
+    base.reason_ar = f"مسموح: {user.role.value} لـ{permission.value}" + (
+        f" في {farm_id}" if farm_id else ""
+    )
     return base
 
 
 # ─── Farm Hierarchy Helpers ──────────────────────────────────────
 
-def farms_accessible_to_user(user: UserSchema,
-                             all_farms_in_tenant: list) -> list:
+
+def farms_accessible_to_user(user: UserSchema, all_farms_in_tenant: list) -> list:
     """المزارع التي يستطيع المستخدم رؤيتها.
 
     قاعدة: farm_ids_access فارغة = كل المزارع في tenant.
     غير فارغة = حصراً ما فيها."""
     if not user.is_active:
         return []
-    if not user.farm_ids_access:   # empty = all
+    if not user.farm_ids_access:  # empty = all
         return [f for f in all_farms_in_tenant if f.tenant_id == user.tenant_id]
-    return [f for f in all_farms_in_tenant
-            if f.tenant_id == user.tenant_id
-            and f.farm_id in user.farm_ids_access]
+    return [
+        f
+        for f in all_farms_in_tenant
+        if f.tenant_id == user.tenant_id and f.farm_id in user.farm_ids_access
+    ]
 
 
-def fields_in_farm_for_user(user: UserSchema, farm_id: str,
-                            all_fields: list) -> list:
+def fields_in_farm_for_user(user: UserSchema, farm_id: str, all_fields: list) -> list:
     """الحقول داخل مزرعة، مع تطبيق الصلاحيات.
 
     شرط مزدوج: tenant_id يطابق + الحقل في المزرعة + المستخدم يصل للمزرعة."""
     # تحقّق صلاحية المزرعة أولاً
-    decision = authorize(user, Permission.FIELD_VIEW,
-                         resource_tenant_id=user.tenant_id, farm_id=farm_id)
+    decision = authorize(
+        user, Permission.FIELD_VIEW, resource_tenant_id=user.tenant_id, farm_id=farm_id
+    )
     if not decision.allowed:
         return []
-    return [f for f in all_fields
-            if f.tenant_id == user.tenant_id and f.farm_id == farm_id]
+    return [f for f in all_fields if f.tenant_id == user.tenant_id and f.farm_id == farm_id]
 
 
 # ─── Audit Helpers ───────────────────────────────────────────────
+
 
 def audit_user_permissions(user: UserSchema) -> dict:
     """تقرير: ما يستطيع هذا المستخدم فعله؟ مفيد للواجهة وللمراجعة."""
@@ -254,10 +293,11 @@ def audit_user_permissions(user: UserSchema) -> dict:
         "is_active": user.is_active,
         "permissions_count": len(perms),
         "permissions": sorted(p.value for p in perms),
-        "farm_access": ("all_in_tenant" if not user.farm_ids_access
-                       else user.farm_ids_access),
-        "summary_ar": (f"المستخدم {user.user_id} ({user.role.value}) "
-                       f"لديه {len(perms)} صلاحية في tenant {user.tenant_id}"),
+        "farm_access": ("all_in_tenant" if not user.farm_ids_access else user.farm_ids_access),
+        "summary_ar": (
+            f"المستخدم {user.user_id} ({user.role.value}) "
+            f"لديه {len(perms)} صلاحية في tenant {user.tenant_id}"
+        ),
     }
 
 

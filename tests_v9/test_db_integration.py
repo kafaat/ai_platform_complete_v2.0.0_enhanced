@@ -16,6 +16,7 @@ tests_v9/test_db_integration.py — اختبارات تكامل asyncpg للوح
   export DATABASE_URL=postgresql://sahool_user:sahool_dev_pw@127.0.0.1:5432/sahool
   python3 tests_v9/test_db_integration.py
 """
+
 import asyncio
 import os
 import sys
@@ -37,16 +38,20 @@ def _preconditions():
 
 async def _get_pool():
     import asyncpg
+
     return await asyncpg.create_pool(
-        os.environ["DATABASE_URL"], statement_cache_size=0, min_size=1, max_size=4,
+        os.environ["DATABASE_URL"],
+        statement_cache_size=0,
+        min_size=1,
+        max_size=4,
     )
 
 
 async def _run_async() -> tuple:
     """يشغّل كل اختبارات التكامل. يعيد (passed, failed, messages)."""
-    from api.command_store import CommandStore, Command
-    from api.event_bus import EventBus
+    from api.command_store import Command, CommandStore
     from api.data_lineage import LineageAssembler
+    from api.event_bus import EventBus
     from api.sharing import SharingKeyService, SharingScope
 
     msgs = []
@@ -59,75 +64,103 @@ async def _run_async() -> tuple:
         try:
             store = CommandStore(pool)
             cmd_id = str(uuid.uuid4())
-            cmd = Command(
-                command_id=cmd_id, tenant_id=tenant, command_type="field.create",
-                actor_id="u1", payload={"name": "اختبار"},
-            ) if _command_accepts_kwargs() else None
+            _cmd = (
+                Command(
+                    command_id=cmd_id,
+                    tenant_id=tenant,
+                    command_type="field.create",
+                    actor_id="u1",
+                    payload={"name": "اختبار"},
+                )
+                if _command_accepts_kwargs()
+                else None
+            )
             # بناء Command قد يختلف؛ نتحقّق فقط أنّ get لأمر غير موجود = None
             got = await store.get(str(uuid.uuid4()))
             if got is None:
-                tp += 1; msgs.append(("✓", "command_store.get(غير موجود)=None"))
+                tp += 1
+                msgs.append(("✓", "command_store.get(غير موجود)=None"))
             else:
-                tf += 1; msgs.append(("✗", "توقّعنا None لأمر غير موجود"))
+                tf += 1
+                msgs.append(("✗", "توقّعنا None لأمر غير موجود"))
         except Exception as e:  # noqa: BLE001
-            tf += 1; msgs.append(("✗", f"command_store: {e}"))
+            tf += 1
+            msgs.append(("✗", f"command_store: {e}"))
 
         # ── event_bus ──
         try:
             bus = EventBus(pool)
             hist = await bus.query_entity_history("field", str(uuid.uuid4()), limit=10)
             if isinstance(hist, list):
-                tp += 1; msgs.append(("✓", f"event_bus.query_entity_history → list ({len(hist)})"))
+                tp += 1
+                msgs.append(("✓", f"event_bus.query_entity_history → list ({len(hist)})"))
             else:
-                tf += 1; msgs.append(("✗", "توقّعنا list"))
+                tf += 1
+                msgs.append(("✗", "توقّعنا list"))
         except Exception as e:  # noqa: BLE001
-            tf += 1; msgs.append(("✗", f"event_bus: {e}"))
+            tf += 1
+            msgs.append(("✗", f"event_bus: {e}"))
 
         # ── data_lineage ──
         try:
             asm = LineageAssembler(pool)
             lin = await asm.get_entity_lineage("field", str(uuid.uuid4()), limit=10)
             if hasattr(lin, "total_entries"):
-                tp += 1; msgs.append(("✓", f"data_lineage.get_entity_lineage → {lin.total_entries} entries"))
+                tp += 1
+                msgs.append(("✓", f"data_lineage.get_entity_lineage → {lin.total_entries} entries"))
             else:
-                tf += 1; msgs.append(("✗", "بنية EntityLineage غير متوقّعة"))
+                tf += 1
+                msgs.append(("✗", "بنية EntityLineage غير متوقّعة"))
         except Exception as e:  # noqa: BLE001
-            tf += 1; msgs.append(("✗", f"data_lineage: {e}"))
+            tf += 1
+            msgs.append(("✗", f"data_lineage: {e}"))
 
         # ── sharing (دورة كاملة) ──
         try:
             svc = SharingKeyService(pool)
             key = await svc.create_key(
-                tenant_id=tenant, created_by="u1",
-                scope=SharingScope.READ, valid_days=30,
-                third_party_name="مهندس زراعي", allowed_field_ids=["field_01"],
+                tenant_id=tenant,
+                created_by="u1",
+                scope=SharingScope.READ,
+                valid_days=30,
+                third_party_name="مهندس زراعي",
+                allowed_field_ids=["field_01"],
             )
             if key.key_plaintext:
-                tp += 1; msgs.append(("✓", f"sharing.create_key → {key.key_prefix}"))
+                tp += 1
+                msgs.append(("✓", f"sharing.create_key → {key.key_prefix}"))
                 # تحقّق المفتاح
                 val = await svc.validate_key(key.key_plaintext)
                 if val.valid and val.tenant_id == tenant:
-                    tp += 1; msgs.append(("✓", "sharing.validate_key صحيح"))
+                    tp += 1
+                    msgs.append(("✓", "sharing.validate_key صحيح"))
                 else:
-                    tf += 1; msgs.append(("✗", "validate_key فشل لمفتاح صالح"))
+                    tf += 1
+                    msgs.append(("✗", "validate_key فشل لمفتاح صالح"))
                 # سرد
                 keys = await svc.list_keys(tenant)
                 if any(k.get("key_id") == key.key_id for k in keys):
-                    tp += 1; msgs.append(("✓", "sharing.list_keys يحوي المفتاح"))
+                    tp += 1
+                    msgs.append(("✓", "sharing.list_keys يحوي المفتاح"))
                 else:
-                    tf += 1; msgs.append(("✗", "list_keys لا يحوي المفتاح"))
+                    tf += 1
+                    msgs.append(("✗", "list_keys لا يحوي المفتاح"))
                 # إلغاء
                 revoked = await svc.revoke_key(key.key_id, tenant)
                 if revoked:
                     val2 = await svc.validate_key(key.key_plaintext)
                     if not val2.valid:
-                        tp += 1; msgs.append(("✓", "sharing.revoke_key يُبطل المفتاح"))
+                        tp += 1
+                        msgs.append(("✓", "sharing.revoke_key يُبطل المفتاح"))
                     else:
-                        tf += 1; msgs.append(("✗", "المفتاح ما زال صالحاً بعد الإلغاء"))
+                        tf += 1
+                        msgs.append(("✗", "المفتاح ما زال صالحاً بعد الإلغاء"))
             else:
-                tf += 1; msgs.append(("✗", "create_key بلا plaintext"))
+                tf += 1
+                msgs.append(("✗", "create_key بلا plaintext"))
         except Exception as e:  # noqa: BLE001
-            tf += 1; msgs.append(("✗", f"sharing: {e}"))
+            tf += 1
+            msgs.append(("✗", f"sharing: {e}"))
 
     finally:
         # تنظيف بيانات الاختبار
@@ -144,8 +177,10 @@ async def _run_async() -> tuple:
 def _command_accepts_kwargs() -> bool:
     """فحص دفاعي: هل Command يقبل الـkwargs المستخدمة؟ (بنيته قد تتغيّر)."""
     try:
-        from api.command_store import Command
         import inspect
+
+        from api.command_store import Command
+
         params = inspect.signature(Command.__init__).parameters
         return "command_type" in params
     except Exception:  # noqa: BLE001

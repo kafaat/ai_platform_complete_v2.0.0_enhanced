@@ -1,10 +1,17 @@
 """Tests for the three learning components."""
+
 from pathlib import Path
-from core.learning.model_selector import select_model, effective_sample_size, ModelTier
+
 from core.learning.calibration_loop import calibrate_zone_factor
+from core.learning.model_selector import ModelTier, effective_sample_size, select_model
 from knowledge.conservative_rag import (
-    FieldConditions, KnowledgeSource, SourceTier, retrieve, condition_similarity,
-    LITERATURE_WEIGHT_CEILING)
+    LITERATURE_WEIGHT_CEILING,
+    FieldConditions,
+    KnowledgeSource,
+    SourceTier,
+    condition_similarity,
+    retrieve,
+)
 
 
 class TestModelSelector:
@@ -44,20 +51,30 @@ class TestConservativeRAG:
         return FieldConditions(32, "sandy", 5.5, "sorghum", "hot_arid")
 
     def test_matching_conditions_high_similarity(self):
-        sim = condition_similarity(self._field(),
-            {"crop": "sorghum", "climate_class": "hot_arid", "ece_ds_m": 5.0})
+        sim = condition_similarity(
+            self._field(), {"crop": "sorghum", "climate_class": "hot_arid", "ece_ds_m": 5.0}
+        )
         assert sim > 0.8
 
     def test_mismatched_conditions_low_similarity(self):
-        sim = condition_similarity(self._field(),
-            {"crop": "wheat", "climate_class": "humid_subtropical", "temp_mean_c": 22})
+        sim = condition_similarity(
+            self._field(),
+            {"crop": "wheat", "climate_class": "humid_subtropical", "temp_mean_c": 22},
+        )
         assert sim < 0.3
 
     def test_literature_weight_capped(self):
         # literature can never exceed the ceiling
         field = self._field()
-        src = [KnowledgeSource("s", SourceTier.LITERATURE, "cite", "txt",
-               {"crop": "sorghum", "climate_class": "hot_arid"})]
+        src = [
+            KnowledgeSource(
+                "s",
+                SourceTier.LITERATURE,
+                "cite",
+                "txt",
+                {"crop": "sorghum", "climate_class": "hot_arid"},
+            )
+        ]
         rk = retrieve(field, src)
         assert rk.literature_weight <= LITERATURE_WEIGHT_CEILING
         assert rk.local_weight == 0.85
@@ -65,17 +82,20 @@ class TestConservativeRAG:
 
 class TestTabPFNTier:
     def test_very_small_data_rules_only(self):
-        from core.learning.model_selector import select_model, ModelTier
+        from core.learning.model_selector import ModelTier, select_model
+
         d = select_model(8, 8, 1)  # 8 farms, 1 season
         assert d.allowed_model == ModelTier.RULES_ONLY
 
     def test_small_data_allows_tabpfn(self):
-        from core.learning.model_selector import select_model, ModelTier
+        from core.learning.model_selector import ModelTier, select_model
+
         d = select_model(30, 10, 3)
         assert d.allowed_model == ModelTier.TABPFN
 
     def test_tabpfn_window_upper_bound(self):
-        from core.learning.model_selector import select_model, ModelTier
+        from core.learning.model_selector import ModelTier, select_model
+
         # at 50+ effective, should move beyond tabpfn
         d = select_model(60, 12, 5)
         assert d.allowed_model != ModelTier.TABPFN

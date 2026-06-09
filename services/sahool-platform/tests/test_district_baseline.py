@@ -1,6 +1,10 @@
 """Tests for tiered collective learning: aware farmers help low-data farmers WITHOUT fabricating field values."""
+
 from core.district_baseline import (
-    compute_district_baseline, context_for_low_data_farmer, MIN_FARMS_FOR_BASELINE)
+    MIN_FARMS_FOR_BASELINE,
+    compute_district_baseline,
+    context_for_low_data_farmer,
+)
 
 
 class TestDistrictBaseline:

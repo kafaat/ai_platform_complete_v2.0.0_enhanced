@@ -24,51 +24,55 @@ sahool_core.spatial.field_bundle
 النواة محايدة العارض: نُنتج GeoJSON معياري + PNG، أيّ مكتبة (Leaflet/
 Mapbox/MapLibre) تستهلكها.
 """
+
 from __future__ import annotations
 
 import base64
 from dataclasses import dataclass, field
-from typing import Any
 
 
 @dataclass
 class TimelineSnapshot:
     """نقطة على شريط الزمن — مرجع لا raster كامل."""
+
     snapshot_id: str
     captured_at: str
     indicator: str
     coverage_pct: float
     cloud_pct: float | None
     source: str
-    has_png: bool          # هل PNG محفوظ في DB (للعرض السريع)؟
+    has_png: bool  # هل PNG محفوظ في DB (للعرض السريع)؟
 
 
 @dataclass
 class SamplePoint:
     """موقع أخذ عيّنة تربة/ماء."""
+
     request_id: int
     lon: float
     lat: float
-    sample_purpose: str    # nutrient / salinity / texture / ph
-    status: str            # pending / received / cancelled
+    sample_purpose: str  # nutrient / salinity / texture / ph
+    status: str  # pending / received / cancelled
     requested_at: str
 
 
 @dataclass
 class SensorLocation:
     """موقع حسّاس مع آخر قراءة (مرجع لا سلسلة)."""
+
     device_id: str
     sensor_type: str
     lon: float
     lat: float
     last_value: float | None
     last_reading_at: str | None
-    confidence: str        # medium دائماً للحسّاسات (مبدأ سهول)
+    confidence: str  # medium دائماً للحسّاسات (مبدأ سهول)
 
 
 @dataclass
 class ActivityMarker:
     """علامة نشاط على الخريطة."""
+
     activity_id: str
     activity_type: str
     status: str
@@ -81,11 +85,11 @@ class ActivityMarker:
 @dataclass
 class FieldVisualBundle:
     field_id: str
-    boundary_geojson: dict | None              # Polygon Feature
-    zones_geojson: dict | None                 # FeatureCollection
-    raster_png_base64: str | None              # data URI جاهز للـimg src
-    raster_bounds: dict | None                 # {south,west,north,east}
-    indicator: str | None                      # ndvi / ndmi / bivariate
+    boundary_geojson: dict | None  # Polygon Feature
+    zones_geojson: dict | None  # FeatureCollection
+    raster_png_base64: str | None  # data URI جاهز للـimg src
+    raster_bounds: dict | None  # {south,west,north,east}
+    indicator: str | None  # ndvi / ndmi / bivariate
     timeline: list[TimelineSnapshot] = field(default_factory=list)
     sample_points: list[SamplePoint] = field(default_factory=list)
     sensors: list[SensorLocation] = field(default_factory=list)
@@ -103,32 +107,54 @@ class FieldVisualBundle:
                 "png_base64": self.raster_png_base64,
                 "bounds": self.raster_bounds,
                 "indicator": self.indicator,
-            } if self.raster_png_base64 else None,
+            }
+            if self.raster_png_base64
+            else None,
             "timeline": [
-                {"snapshot_id": t.snapshot_id, "captured_at": t.captured_at,
-                 "indicator": t.indicator, "coverage_pct": t.coverage_pct,
-                 "cloud_pct": t.cloud_pct, "source": t.source,
-                 "has_png": t.has_png}
+                {
+                    "snapshot_id": t.snapshot_id,
+                    "captured_at": t.captured_at,
+                    "indicator": t.indicator,
+                    "coverage_pct": t.coverage_pct,
+                    "cloud_pct": t.cloud_pct,
+                    "source": t.source,
+                    "has_png": t.has_png,
+                }
                 for t in self.timeline
             ],
             "sample_points": [
-                {"request_id": s.request_id, "lon": s.lon, "lat": s.lat,
-                 "purpose": s.sample_purpose, "status": s.status,
-                 "requested_at": s.requested_at}
+                {
+                    "request_id": s.request_id,
+                    "lon": s.lon,
+                    "lat": s.lat,
+                    "purpose": s.sample_purpose,
+                    "status": s.status,
+                    "requested_at": s.requested_at,
+                }
                 for s in self.sample_points
             ],
             "sensors": [
-                {"device_id": s.device_id, "sensor_type": s.sensor_type,
-                 "lon": s.lon, "lat": s.lat, "last_value": s.last_value,
-                 "last_reading_at": s.last_reading_at,
-                 "confidence": s.confidence}
+                {
+                    "device_id": s.device_id,
+                    "sensor_type": s.sensor_type,
+                    "lon": s.lon,
+                    "lat": s.lat,
+                    "last_value": s.last_value,
+                    "last_reading_at": s.last_reading_at,
+                    "confidence": s.confidence,
+                }
                 for s in self.sensors
             ],
             "activities": [
-                {"activity_id": a.activity_id, "type": a.activity_type,
-                 "status": a.status, "lon": a.lon, "lat": a.lat,
-                 "planned_date": a.planned_date,
-                 "completed_date": a.completed_date}
+                {
+                    "activity_id": a.activity_id,
+                    "type": a.activity_type,
+                    "status": a.status,
+                    "lon": a.lon,
+                    "lat": a.lat,
+                    "planned_date": a.planned_date,
+                    "completed_date": a.completed_date,
+                }
                 for a in self.activities
             ],
             "legend": self.legend,

@@ -6,10 +6,10 @@ Execution Control Plane (ECP) — Observability + governance convention.
 ⚠️ الإقرار النزيه (استجابة لمراجعة التوثيق العاشرة 2026-05-29):
    هذه الوحدة كانت تُوصَف سابقاً كـ"structural enforcement" — هذا
    توصيف مُبالَغ فيه. Python لا يدعم true encapsulation:
-   
+
        from core.recommendation_engine import generate_recommendation
        result = generate_recommendation(...)   # ينجح حتى في STRICT mode
-   
+
    ECP يحرس entry points المُسجَّلة (المُزخرفة بـ@governed)، لا
    generate_recommendation نفسها. الـ`__all__` sealing هو convention
    يساعد IDEs/linters، لا يمنع الاستيراد الصريح.
@@ -46,39 +46,43 @@ Execution Control Plane (ECP) — Observability + governance convention.
   → audit_call_log قابل للقراءة من خارج النواة (للـops)
   → bypass_attempts يُغذّي alerting (لاحقاً)
 """
+
 from __future__ import annotations
 
 import functools
 import threading
 import time
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 
 class EntryPointType(str, Enum):
     """أنواع نقاط الدخول المُسجَّلة."""
-    EXTERNAL_API = "external_api"        # HTTP/RPC — safe_delivery
+
+    EXTERNAL_API = "external_api"  # HTTP/RPC — safe_delivery
     INTERNAL_SERVICE = "internal_service"  # orchestrate_recommendation
-    BACKGROUND_WORKER = "background_worker"   # scheduled jobs
-    CLI_TOOL = "cli_tool"                # diagnostic/admin
-    TEST = "test"                         # في tests
-    UNKNOWN = "unknown"                   # bypass attempt محتمل
+    BACKGROUND_WORKER = "background_worker"  # scheduled jobs
+    CLI_TOOL = "cli_tool"  # diagnostic/admin
+    TEST = "test"  # في tests
+    UNKNOWN = "unknown"  # bypass attempt محتمل
 
 
 class GovernanceMode(str, Enum):
     """طور تفعيل الـECP."""
-    OBSERVATION = "observation"   # يُسجّل، لا يفرض (الوضع الحالي)
-    WARNING = "warning"           # يُسجّل + يُحذّر في logs
-    STRICT = "strict"             # يرفع exception على bypass
+
+    OBSERVATION = "observation"  # يُسجّل، لا يفرض (الوضع الحالي)
+    WARNING = "warning"  # يُسجّل + يُحذّر في logs
+    STRICT = "strict"  # يرفع exception على bypass
 
 
 @dataclass
 class CallRecord:
     """سجلّ استدعاء واحد لـcontrolled function."""
+
     timestamp: float
     function_name: str
-    entry_point: str             # المسار الذي بدأ منه الاستدعاء
+    entry_point: str  # المسار الذي بدأ منه الاستدعاء
     entry_type: EntryPointType
     duration_ms: float | None = None
     success: bool = True
@@ -89,7 +93,7 @@ class CallRecord:
 # ─── حالة عالمية thread-safe ─────────────────────────────────────
 
 _LOCK = threading.RLock()
-_MODE = GovernanceMode.OBSERVATION   # افتراضياً: نُسجّل، لا نرفض
+_MODE = GovernanceMode.OBSERVATION  # افتراضياً: نُسجّل، لا نرفض
 
 # سجلّ الاستدعاءات (ring buffer — آخر 10K لتجنّب memory leak)
 _CALL_LOG: deque = deque(maxlen=10000)
@@ -103,6 +107,7 @@ _BYPASS_ATTEMPTS: dict[str, int] = defaultdict(int)
 
 
 # ─── الـAPI العامّ ───────────────────────────────────────────────
+
 
 def register_entry_point(
     function_qualname: str,
@@ -163,6 +168,7 @@ def governed(
       • entry_type: تصنيف الدالة للـmetrics
       • require_governance: في STRICT mode، يجب أن يكون المُستدعي
                             entry_point مُسجَّل، وإلا exception."""
+
     def decorator(func):
         qualname = f"{func.__module__}.{func.__qualname__}"
         register_entry_point(qualname, entry_type)
@@ -209,10 +215,12 @@ def governed(
                     _CALL_COUNTS[qualname] += 1
 
         return wrapper
+
     return decorator
 
 
 # ─── الـmetrics والـaudit ────────────────────────────────────────
+
 
 def call_stats() -> dict:
     """KPIs قابلة للقراءة لـops/metrics."""
@@ -225,15 +233,14 @@ def call_stats() -> dict:
         for record in _CALL_LOG:
             fn = record.function_name
             if fn not in by_function:
-                by_function[fn] = {"count": 0, "total_ms": 0.0,
-                                  "failures": 0}
+                by_function[fn] = {"count": 0, "total_ms": 0.0, "failures": 0}
             by_function[fn]["count"] += 1
             if record.duration_ms:
                 by_function[fn]["total_ms"] += record.duration_ms
             if not record.success:
                 by_function[fn]["failures"] += 1
 
-        for fn, stats in by_function.items():
+        for _fn, stats in by_function.items():
             if stats["count"]:
                 stats["avg_ms"] = round(stats["total_ms"] / stats["count"], 2)
 
@@ -243,9 +250,11 @@ def call_stats() -> dict:
             "bypass_attempts": bypass_total,
             "approved_entry_points": len(_APPROVED_ENTRY_POINTS),
             "by_function": by_function,
-            "summary_ar": (f"وضع {_MODE.value}: {total} استدعاء، "
-                          f"{bypass_total} محاولة bypass، "
-                          f"{len(_APPROVED_ENTRY_POINTS)} entry point"),
+            "summary_ar": (
+                f"وضع {_MODE.value}: {total} استدعاء، "
+                f"{bypass_total} محاولة bypass، "
+                f"{len(_APPROVED_ENTRY_POINTS)} entry point"
+            ),
         }
 
 
@@ -276,8 +285,10 @@ def bypass_alert_summary() -> dict:
         return {
             "count": sum(_BYPASS_ATTEMPTS.values()),
             "by_function": dict(_BYPASS_ATTEMPTS),
-            "summary_ar": (f"⚠️ {sum(_BYPASS_ATTEMPTS.values())} محاولة bypass "
-                          f"على {len(_BYPASS_ATTEMPTS)} دالّة. مراجعة مطلوبة."),
+            "summary_ar": (
+                f"⚠️ {sum(_BYPASS_ATTEMPTS.values())} محاولة bypass "
+                f"على {len(_BYPASS_ATTEMPTS)} دالّة. مراجعة مطلوبة."
+            ),
         }
 
 
@@ -294,6 +305,7 @@ def reset_ecp_state() -> None:
 
 # ─── Sealed Engine API ──────────────────────────────────────────
 
+
 def seal_direct_engine_access() -> dict:
     """يفعّل حماية module-level: generate_recommendation تصبح مُسوَّرة.
 
@@ -309,22 +321,26 @@ def seal_direct_engine_access() -> dict:
         from core import recommendation_engine
 
         if not hasattr(recommendation_engine, "_original_all"):
-            recommendation_engine._original_all = getattr(
-                recommendation_engine, "__all__", None)
+            recommendation_engine._original_all = getattr(recommendation_engine, "__all__", None)
 
         # نُعلن __all__ الذي يخفي generate_recommendation
         recommendation_engine.__all__ = [
-            "Recommendation", "BackendDetail", "FarmerView",
-            "RecommendationStatus", "FarmerSignal",
+            "Recommendation",
+            "BackendDetail",
+            "FarmerView",
+            "RecommendationStatus",
+            "FarmerSignal",
             # generate_recommendation مُستبعَدة عمداً
         ]
         return {
             "sealed": True,
             "exposed_symbols": recommendation_engine.__all__,
-            "note_ar": ("recommendation_engine.generate_recommendation "
-                       "تبقى importable برمجياً لكنّها لا تُصدَّر بـ"
-                       "'from module import *'. للوصول الصحيح: "
-                       "استخدم orchestrate_recommendation."),
+            "note_ar": (
+                "recommendation_engine.generate_recommendation "
+                "تبقى importable برمجياً لكنّها لا تُصدَّر بـ"
+                "'from module import *'. للوصول الصحيح: "
+                "استخدم orchestrate_recommendation."
+            ),
         }
     except Exception as e:
         return {"sealed": False, "error": str(e)}
@@ -332,23 +348,22 @@ def seal_direct_engine_access() -> dict:
 
 # ─── Self-Registration عند الاستيراد ────────────────────────────
 
+
 def _bootstrap_known_entry_points() -> None:
     """يسجّل المسارات المعروفة عند تحميل ECP.
 
     هذه opt-in: ECP يعرف من البداية من هي entry points الموصى بها،
     حتى لو لم تُستخدم decorators."""
+    register_entry_point("core.recommendation_bridge.safe_delivery", EntryPointType.EXTERNAL_API)
     register_entry_point(
-        "core.recommendation_bridge.safe_delivery",
-        EntryPointType.EXTERNAL_API)
+        "core.recommendation_bridge.full_delivery_pipeline", EntryPointType.EXTERNAL_API
+    )
     register_entry_point(
-        "core.recommendation_bridge.full_delivery_pipeline",
-        EntryPointType.EXTERNAL_API)
+        "core.internal_orchestrator.orchestrate_recommendation", EntryPointType.INTERNAL_SERVICE
+    )
     register_entry_point(
-        "core.internal_orchestrator.orchestrate_recommendation",
-        EntryPointType.INTERNAL_SERVICE)
-    register_entry_point(
-        "core.api_adapter.handle_recommendation_request",
-        EntryPointType.EXTERNAL_API)
+        "core.api_adapter.handle_recommendation_request", EntryPointType.EXTERNAL_API
+    )
 
 
 _bootstrap_known_entry_points()

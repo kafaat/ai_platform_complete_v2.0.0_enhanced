@@ -1,7 +1,12 @@
 """Tests for field_lifecycle ↔ maestro bridge."""
-from core.recommendation_engine import generate_recommendation, RecommendationStatus
 
-BLOCKED_V = {"quality_grade": "BLOCKED", "blocking_observables": ["S3", "S4", "I3"], "missing_A": ["S3"]}
+from core.recommendation_engine import RecommendationStatus, generate_recommendation
+
+BLOCKED_V = {
+    "quality_grade": "BLOCKED",
+    "blocking_observables": ["S3", "S4", "I3"],
+    "missing_A": ["S3"],
+}
 
 
 class TestMaestroBridge:

@@ -21,10 +21,10 @@ Sources:
     Yemen groundwater literature). We DO NOT hardcode a $/m3 — caller
     supplies depth, pump type, fuel price.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 # kWh needed to lift 1 m3 of water 1 metre (100% efficiency)
 KWH_PER_M3_PER_M = 0.002725
@@ -33,19 +33,19 @@ KWH_PER_M3_PER_M = 0.002725
 @dataclass
 class WaterCostInputs:
     well_depth_m: float
-    pump_type: str                 # "diesel" | "solar" | "grid"
+    pump_type: str  # "diesel" | "solar" | "grid"
     pump_efficiency: float = 0.55  # diesel pump+motor typical 0.5-0.6
     # diesel
-    diesel_price_usd_per_liter: Optional[float] = None
-    diesel_kwh_per_liter: float = 3.4   # usable shaft energy, not raw LHV
+    diesel_price_usd_per_liter: float | None = None
+    diesel_kwh_per_liter: float = 3.4  # usable shaft energy, not raw LHV
     # solar (amortised)
-    solar_capital_usd: Optional[float] = None
+    solar_capital_usd: float | None = None
     solar_lifetime_years: int = 10
     solar_maintenance_annual_pct: float = 0.05
-    solar_m3_per_year: Optional[float] = None
+    solar_m3_per_year: float | None = None
     solar_dust_derate_pct: float = 0.25  # dust cuts output 20-30% in arid zones
     # grid
-    grid_price_usd_per_kwh: Optional[float] = None
+    grid_price_usd_per_kwh: float | None = None
     grid_efficiency: float = 0.80
 
 
@@ -85,7 +85,7 @@ def water_cost_per_m3(inp: WaterCostInputs) -> dict:
             "low": round(cost * 0.7, 4),
             "high": round(cost * 1.4, 4),
             "basis": "solar; amortised capital scaled by well depth, dust-derated. "
-                     "Near-zero marginal cost — WARN: encourages over-abstraction",
+            "Near-zero marginal cost — WARN: encourages over-abstraction",
             "depletion_warning": True,
         }
 
@@ -104,9 +104,7 @@ def water_cost_per_m3(inp: WaterCostInputs) -> dict:
     return {"error": f"unknown pump_type: {inp.pump_type}"}
 
 
-def seasonal_water_cost(
-    inp: WaterCostInputs, etc_m3_per_ha: float, area_ha: float
-) -> dict:
+def seasonal_water_cost(inp: WaterCostInputs, etc_m3_per_ha: float, area_ha: float) -> dict:
     """Total seasonal water cost for a field as a range."""
     per_m3 = water_cost_per_m3(inp)
     if "error" in per_m3:

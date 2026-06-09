@@ -1,8 +1,8 @@
 """Tests for field lifecycle — four states + safety rule.
 Per comprehensive review: this is a bottleneck of the system, deserves
 thorough coverage. Expanded from 6 → 14 tests."""
-from core.field_lifecycle import (
-    FieldQualityState, SoilTestChoice, resolve_state, can_recommend)
+
+from core.field_lifecycle import FieldQualityState, SoilTestChoice, can_recommend, resolve_state
 
 
 class TestFieldLifecycle:
@@ -27,8 +27,11 @@ class TestFieldLifecycle:
 
     def test_pesticide_requires_ready_always(self):
         # safety: pesticide never allowed unless READY — not even LIMITED
-        for state in [FieldQualityState.BLOCKED, FieldQualityState.LIMITED,
-                      FieldQualityState.PENDING_LAB]:
+        for state in [
+            FieldQualityState.BLOCKED,
+            FieldQualityState.LIMITED,
+            FieldQualityState.PENDING_LAB,
+        ]:
             ok, _ = can_recommend(state, "pesticide_phi")
             assert not ok, f"pesticide must be blocked in {state}"
         ok, _ = can_recommend(FieldQualityState.READY, "pesticide_phi")
@@ -46,21 +49,18 @@ class TestPartialGovernors:
 
     def test_partial_governors_blocked(self):
         # CRITICAL: ٢ من ٣ غير كافٍ
-        state, recs = resolve_state(
-            SoilTestChoice.PROVIDED, {"S3", "S4"})   # ينقص I3
+        state, recs = resolve_state(SoilTestChoice.PROVIDED, {"S3", "S4"})  # ينقص I3
         assert state == FieldQualityState.BLOCKED
         assert recs == []
 
     def test_single_governor_blocked(self):
         for gov in ["S3", "S4", "I3"]:
             state, _ = resolve_state(SoilTestChoice.PROVIDED, {gov})
-            assert state == FieldQualityState.BLOCKED, \
-                f"حاكم واحد ({gov}) لا يكفي"
+            assert state == FieldQualityState.BLOCKED, f"حاكم واحد ({gov}) لا يكفي"
 
     def test_extra_governors_still_ready(self):
         # CRITICAL: governors إضافية لا تضرّ — كلّها ≥ المطلوب
-        state, _ = resolve_state(
-            SoilTestChoice.PROVIDED, {"S3", "S4", "I3", "EXTRA1"})
+        state, _ = resolve_state(SoilTestChoice.PROVIDED, {"S3", "S4", "I3", "EXTRA1"})
         assert state == FieldQualityState.READY
 
 
@@ -69,15 +69,13 @@ class TestSafetyCriticalRecommendations:
 
     def test_blocked_state_blocks_all_recommendations(self):
         # CRITICAL: BLOCKED state ⇒ لا توصية مطلقاً
-        for rec_type in ["irrigation_basic", "pesticide_phi",
-                        "salinity_mgmt", "fertilization"]:
+        for rec_type in ["irrigation_basic", "pesticide_phi", "salinity_mgmt", "fertilization"]:
             ok, _ = can_recommend(FieldQualityState.BLOCKED, rec_type)
             assert not ok, f"{rec_type} ممنوع في BLOCKED"
 
     def test_pending_lab_allows_estimates_not_pesticide(self):
         # PENDING_LAB يسمح بتقديرات، لا مبيدات
-        ok_pest, _ = can_recommend(FieldQualityState.PENDING_LAB,
-                                  "pesticide_phi")
+        ok_pest, _ = can_recommend(FieldQualityState.PENDING_LAB, "pesticide_phi")
         assert not ok_pest
 
 
@@ -88,8 +86,7 @@ class TestEnumIntegrity:
         states = list(FieldQualityState)
         assert len(states) == 4
         for required in ["BLOCKED", "LIMITED", "PENDING_LAB", "READY"]:
-            assert any(s.value == required or s.name == required
-                      for s in states)
+            assert any(s.value == required or s.name == required for s in states)
 
     def test_three_soil_choices_exist(self):
         choices = list(SoilTestChoice)

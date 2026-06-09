@@ -19,6 +19,7 @@ core.learning.calibration_loop
 ملاحظة إحصائية صادقة: مع حقل واحد (pseudoreplication)، المعايرة تعطي
 zone_factor استرشادياً بثقة منخفضة. الثقة ترتفع مع تنوّع المزارع.
 """
+
 from __future__ import annotations
 
 import csv
@@ -32,13 +33,13 @@ import yaml
 @dataclass
 class CalibrationResult:
     district_id: str
-    status: str                  # "calibrated" | "pending" | "insufficient"
-    zone_factor: float | None    # OUTPUT — null until enough data
+    status: str  # "calibrated" | "pending" | "insufficient"
+    zone_factor: float | None  # OUTPUT — null until enough data
     n_seasons: int
     n_farms: int
     farms_required: int
     method: str
-    confidence: str              # high | medium | low (pseudoreplication-aware)
+    confidence: str  # high | medium | low (pseudoreplication-aware)
     note_ar: str
 
 
@@ -77,7 +78,7 @@ def calibrate_zone_factor(
     Returns None if inputs invalid (no fabrication)."""
     if not actual_yields or len(actual_yields) != len(model_predicted):
         return None
-    ratios = [a / p for a, p in zip(actual_yields, model_predicted) if p and p > 0]
+    ratios = [a / p for a, p in zip(actual_yields, model_predicted, strict=True) if p and p > 0]
     if not ratios:
         return None
 
@@ -85,16 +86,15 @@ def calibrate_zone_factor(
     if trend in ("rising", "falling"):
         # exponential weights — recent seasons weighted higher
         weights = [i + 1 for i in range(len(ratios))]
-        zf = sum(r * w for r, w in zip(ratios, weights)) / sum(weights)
+        zf = sum(r * w for r, w in zip(ratios, weights, strict=True)) / sum(weights)
     else:
-        zf = statistics.mean(ratios)   # stable or insufficient -> simple mean
+        zf = statistics.mean(ratios)  # stable or insufficient -> simple mean
     return round(zf, 3)
 
 
-def calibration_method_used(actual_yields: list[float],
-                            model_predicted: list[float]) -> str:
+def calibration_method_used(actual_yields: list[float], model_predicted: list[float]) -> str:
     """Report which method was applied + honest data-sufficiency note."""
-    ratios = [a / p for a, p in zip(actual_yields, model_predicted) if p and p > 0]
+    ratios = [a / p for a, p in zip(actual_yields, model_predicted, strict=True) if p and p > 0]
     trend = _detect_trend(ratios)
     if trend == "insufficient":
         return "simple_mean (⚠️ <3 نقاط — لا يمكن تأكيد اتجاه)"
@@ -109,7 +109,7 @@ def _confidence(n_farms: int, n_seasons: int) -> str:
         return "high"
     if n_farms >= 2:
         return "medium"
-    return "low"   # single farm — indicative only
+    return "low"  # single farm — indicative only
 
 
 def run_calibration(
@@ -142,27 +142,40 @@ def run_calibration(
     # not enough farms -> stay pending (no fake number)
     if farms_with_data < farms_required:
         return CalibrationResult(
-            district_id=district_id, status="pending", zone_factor=None,
-            n_seasons=seasons, n_farms=farms_with_data,
+            district_id=district_id,
+            status="pending",
+            zone_factor=None,
+            n_seasons=seasons,
+            n_farms=farms_with_data,
             farms_required=farms_required,
             method="awaiting_threshold",
             confidence=_confidence(farms_with_data, seasons),
-            note_ar=(f"قيد المعايرة — {farms_with_data}/{farms_required} مزارع. "
-                     f"النواة العامة فقط حتى يكتمل الحد (تقدير الفريق)."),
+            note_ar=(
+                f"قيد المعايرة — {farms_with_data}/{farms_required} مزارع. "
+                f"النواة العامة فقط حتى يكتمل الحد (تقدير الفريق)."
+            ),
         )
 
     zf = calibrate_zone_factor(all_actual, all_pred)
     if zf is None:
         return CalibrationResult(
-            district_id=district_id, status="insufficient", zone_factor=None,
-            n_seasons=seasons, n_farms=farms_with_data,
-            farms_required=farms_required, method="ratio_mean",
-            confidence="low", note_ar="بيانات غير صالحة للمعايرة",
+            district_id=district_id,
+            status="insufficient",
+            zone_factor=None,
+            n_seasons=seasons,
+            n_farms=farms_with_data,
+            farms_required=farms_required,
+            method="ratio_mean",
+            confidence="low",
+            note_ar="بيانات غير صالحة للمعايرة",
         )
 
     return CalibrationResult(
-        district_id=district_id, status="calibrated", zone_factor=zf,
-        n_seasons=seasons, n_farms=farms_with_data,
+        district_id=district_id,
+        status="calibrated",
+        zone_factor=zf,
+        n_seasons=seasons,
+        n_farms=farms_with_data,
         farms_required=farms_required,
         method="zone_factor = mean(actual/predicted) [standard physical calibration]",
         confidence=_confidence(farms_with_data, seasons),
@@ -174,13 +187,15 @@ def write_calibration(district_dir: Path, result: CalibrationResult) -> None:
     """Persist calibration OUTPUT to districts/<region>/climate.yaml."""
     path = district_dir / "climate.yaml"
     climate = yaml.safe_load(open(path, encoding="utf-8"))
-    climate["calibration"].update({
-        "status": result.status.upper(),
-        "farms_calibrated": result.n_farms,
-        "zone_factor": result.zone_factor,
-        "method": result.method,
-        "confidence": result.confidence,
-        "n_seasons": result.n_seasons,
-    })
+    climate["calibration"].update(
+        {
+            "status": result.status.upper(),
+            "farms_calibrated": result.n_farms,
+            "zone_factor": result.zone_factor,
+            "method": result.method,
+            "confidence": result.confidence,
+            "n_seasons": result.n_seasons,
+        }
+    )
     with open(path, "w", encoding="utf-8") as f:
         yaml.safe_dump(climate, f, allow_unicode=True, sort_keys=False)

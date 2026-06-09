@@ -23,13 +23,12 @@ api/salinity_management.py — إدارة ملوحة التربة والمياه
 الغسيل يستهلك ماءً
 إضافيّاً (معضلة في بلد شحيح) → موازنة دقيقة بين طرد الملح وتوفير الماء.
 """
-from __future__ import annotations
 
-from typing import Dict, List, Optional
+from __future__ import annotations
 
 
 # تصنيف ملوحة التربة (ECe بالـdS/m) — معايير FAO
-def classify_soil_salinity(ece_dsm: float) -> Dict:
+def classify_soil_salinity(ece_dsm: float) -> dict:
     """يصنّف شدّة ملوحة التربة (ECe) ومخاطرها على المحاصيل."""
     if ece_dsm < 2:
         cls, cls_ar = "non_saline", "غير مالحة"
@@ -49,13 +48,14 @@ def classify_soil_salinity(ece_dsm: float) -> Dict:
 
     return {
         "ece_dsm": ece_dsm,
-        "class": cls, "class_ar": cls_ar,
+        "class": cls,
+        "class_ar": cls_ar,
         "effect_ar": effect,
     }
 
 
 # تصنيف ملوحة ماء الريّ (ECw بالـdS/m) — FAO-29
-def classify_water_salinity(ecw_dsm: float) -> Dict:
+def classify_water_salinity(ecw_dsm: float) -> dict:
     """يصنّف صلاحيّة ماء الريّ حسب ملوحته."""
     if ecw_dsm < 0.7:
         risk, risk_ar = "none", "لا قيود"
@@ -64,15 +64,18 @@ def classify_water_salinity(ecw_dsm: float) -> Dict:
     else:
         risk, risk_ar = "severe", "قيود شديدة"
     return {
-        "ecw_dsm": ecw_dsm, "risk": risk, "risk_ar": risk_ar,
+        "ecw_dsm": ecw_dsm,
+        "risk": risk,
+        "risk_ar": risk_ar,
         "note_ar": (
             "ماء الريّ المالح يراكم الأملاح في التربة مع الوقت — يلزم غسيل دوري."
-            if risk != "none" else "ماء مناسب للريّ دون قيود ملوحة تُذكر."
+            if risk != "none"
+            else "ماء مناسب للريّ دون قيود ملوحة تُذكر."
         ),
     }
 
 
-def leaching_requirement(ecw_dsm: float, crop_threshold_ece: float) -> Dict:
+def leaching_requirement(ecw_dsm: float, crop_threshold_ece: float) -> dict:
     """يحسب احتياج الغسيل (LR): نسبة الماء الإضافي لطرد الأملاح.
 
     LR = ECw / (5 × ECe_threshold − ECw)   [معادلة FAO المبسّطة]
@@ -107,7 +110,7 @@ def leaching_requirement(ecw_dsm: float, crop_threshold_ece: float) -> Dict:
     }
 
 
-def sodium_hazard(sar: float) -> Dict:
+def sodium_hazard(sar: float) -> dict:
     """يقيّم خطر الصوديوم (SAR) على بنية التربة ونفاذيّتها."""
     if sar < 10:
         cls, cls_ar = "low", "منخفض"
@@ -123,24 +126,27 @@ def sodium_hazard(sar: float) -> Dict:
         effect = "خطر شديد — التربة الصودية تفقد بنيتها؛ يلزم جبس وإصلاح."
 
     return {
-        "sar": sar, "class": cls, "class_ar": cls_ar, "effect_ar": effect,
+        "sar": sar,
+        "class": cls,
+        "class_ar": cls_ar,
+        "effect_ar": effect,
         "remedy_ar": (
             "إضافة الجبس الزراعي (كبريتات الكالسيوم) يزيح الصوديوم ويحسّن البنية."
-            if cls in ("high", "very_high") else
-            "لا حاجة لإجراء خاصّ حاليّاً، تابع المراقبة."
+            if cls in ("high", "very_high")
+            else "لا حاجة لإجراء خاصّ حاليّاً، تابع المراقبة."
         ),
     }
 
 
 def salinity_assessment(
-    ece_dsm: Optional[float] = None,
-    ecw_dsm: Optional[float] = None,
-    sar: Optional[float] = None,
-    crop_threshold_ece: Optional[float] = None,
-) -> Dict:
+    ece_dsm: float | None = None,
+    ecw_dsm: float | None = None,
+    sar: float | None = None,
+    crop_threshold_ece: float | None = None,
+) -> dict:
     """تقييم شامل للملوحة يجمع كلّ المؤشّرات المتاحة في توصية واحدة."""
-    out: Dict = {"supported": True, "components": {}}
-    recommendations: List[str] = []
+    out: dict = {"supported": True, "components": {}}
+    recommendations: list[str] = []
 
     if ece_dsm is not None:
         soil = classify_soil_salinity(ece_dsm)
@@ -168,8 +174,7 @@ def salinity_assessment(
             recommendations.append("خطر صوديوم عالٍ — أضف الجبس الزراعي لحماية بنية التربة.")
 
     if not out["components"]:
-        return {"supported": False,
-                "message_ar": "قدّم على الأقلّ ECe (تربة) أو ECw (ماء) أو SAR."}
+        return {"supported": False, "message_ar": "قدّم على الأقلّ ECe (تربة) أو ECw (ماء) أو SAR."}
 
     out["recommendations_ar"] = recommendations or ["المؤشّرات ضمن الأمان — تابع المراقبة الدوريّة."]
     out["disclaimer_ar"] = (

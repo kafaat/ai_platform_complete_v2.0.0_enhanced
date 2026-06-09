@@ -1,7 +1,10 @@
 """Tests for validate_observations.py — the CRITICAL quality gate that enforces
 the Golden Rule (missing strict governor → BLOCKED). Previously had ZERO tests."""
-import sys, tempfile
+
+import sys
+import tempfile
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 import validate_observations as vo
 
@@ -41,8 +44,11 @@ class TestValidateGate:
         # adding data should never DOWNGRADE the grade (monotonic)
         order = {"BLOCKED": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3}
         empty = vo.validate(_make_tenant([]))
-        full = vo.validate(_make_tenant(
-            ["farm_map.yaml", "well_specs.yaml", "yield_history.csv", "economics.yaml"]))
+        full = vo.validate(
+            _make_tenant(
+                ["farm_map.yaml", "well_specs.yaml", "yield_history.csv", "economics.yaml"]
+            )
+        )
         assert order[full["quality_grade"]] >= order[empty["quality_grade"]]
 
     def test_matrix_and_fallback_load(self):

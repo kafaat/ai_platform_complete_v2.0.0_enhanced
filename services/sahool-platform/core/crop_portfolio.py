@@ -29,18 +29,19 @@ core/crop_portfolio.py — تأثير المحفظة الزراعيّة
   ✗ insurance pricing model (خارج النطاق)
   ✗ "أمر" المزارع بتغيير محاصيله (يحترم الـagency)
 """
+
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
-from typing import Optional
-
+from dataclasses import dataclass
 
 # ─── Data structures ──────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class FieldAllocation:
     """تخصيص حقل لمحصول."""
+
     field_id: str
     crop: str
     area_ha: float
@@ -49,6 +50,7 @@ class FieldAllocation:
 @dataclass(frozen=True)
 class PortfolioMetrics:
     """مؤشّرات تحليل المحفظة."""
+
     # المساحة الإجماليّة
     total_area_ha: float
     # عدد المحاصيل المختلفة
@@ -64,20 +66,22 @@ class PortfolioMetrics:
     # نسبة المحصول المُهيمن (لاكتشاف monoculture)
     dominance_pct: float
     # تصنيف
-    classification: str   # 'monoculture' | 'low' | 'moderate' | 'high'
+    classification: str  # 'monoculture' | 'low' | 'moderate' | 'high'
 
 
 @dataclass(frozen=True)
 class PortfolioSuggestion:
     """اقتراح لتحسين المحفظة (لا يُلزم المزارع)."""
+
     current: PortfolioMetrics
     suggestion_ar: str
     rationale_ar: str
     # ❌ ليس قراراً، فقط معلومة:
-    risk_level: str       # 'low' | 'moderate' | 'high'
+    risk_level: str  # 'low' | 'moderate' | 'high'
 
 
 # ─── Core math ────────────────────────────────────────────────────
+
 
 def compute_portfolio_metrics(
     allocations: list[FieldAllocation],
@@ -124,13 +128,13 @@ def compute_portfolio_metrics(
 
     # تصنيف بسيط (مبدئي)
     if dominance >= 95:
-        classification = 'monoculture'
+        classification = "monoculture"
     elif enc < 1.5:
-        classification = 'low'
+        classification = "low"
     elif enc < 2.5:
-        classification = 'moderate'
+        classification = "moderate"
     else:
-        classification = 'high'
+        classification = "high"
 
     return PortfolioMetrics(
         total_area_ha=total_area,
@@ -145,9 +149,10 @@ def compute_portfolio_metrics(
 
 # ─── Suggestions (الاقتراحات، لا الأوامر) ────────────────────────
 
+
 def suggest_for_portfolio(
     metrics: PortfolioMetrics,
-    context: Optional[dict] = None,
+    context: dict | None = None,
 ) -> PortfolioSuggestion:
     """يولّد اقتراحاً نصّياً (عربي) بناءً على المؤشّرات.
 
@@ -159,9 +164,9 @@ def suggest_for_portfolio(
       Renard & Tilman 2019 — التنويع ≈ الري في المناطق الجافة
     """
     ctx = context or {}
-    water_scarce = ctx.get('water_scarce', False)
+    water_scarce = ctx.get("water_scarce", False)
 
-    if metrics.classification == 'monoculture':
+    if metrics.classification == "monoculture":
         # ٩٥٪+ من المساحة بمحصول واحد
         dominant = max(metrics.proportions.items(), key=lambda kv: kv[1])
         suggestion = (
@@ -172,47 +177,33 @@ def suggest_for_portfolio(
             "الأدبيات (Nature 2019): التنويع يستقرّ الإنتاج بقوّة قريبة "
             "من الري — مهمّ خصوصاً عند شحّ المياه."
         )
-        risk = 'high'
+        risk = "high"
 
-    elif metrics.classification == 'low':
+    elif metrics.classification == "low":
         suggestion = (
             f"تنويع منخفض ({metrics.effective_crop_number:.1f} محصول فعّال). "
             "إضافة محصول مقاوم للجفاف قد يفيد."
         )
-        rationale = (
-            "محصول مهيمن واحد يجعل المحفظة حسّاسة لأيّ مرض/آفة/جفاف "
-            "يضربه تحديداً."
-        )
-        risk = 'moderate'
+        rationale = "محصول مهيمن واحد يجعل المحفظة حسّاسة لأيّ مرض/آفة/جفاف يضربه تحديداً."
+        risk = "moderate"
 
-    elif metrics.classification == 'moderate':
+    elif metrics.classification == "moderate":
         if water_scarce:
             suggestion = (
-                f"تنويع معتدل ({metrics.effective_crop_number:.1f}). "
-                "ممتاز في سياق شحّ المياه."
+                f"تنويع معتدل ({metrics.effective_crop_number:.1f}). ممتاز في سياق شحّ المياه."
             )
-            rationale = (
-                "في المناطق الجافة، التنويع يعمل كـ'تأمين طبيعي' "
-                "ضد تقلّب الأمطار."
-            )
+            rationale = "في المناطق الجافة، التنويع يعمل كـ'تأمين طبيعي' ضد تقلّب الأمطار."
         else:
-            suggestion = (
-                f"تنويع معتدل ({metrics.effective_crop_number:.1f}). "
-                "محفظة متوازنة."
-            )
+            suggestion = f"تنويع معتدل ({metrics.effective_crop_number:.1f}). محفظة متوازنة."
             rationale = "حافظ على التوازن الحالي."
-        risk = 'low'
+        risk = "low"
 
     else:  # 'high'
         suggestion = (
-            f"تنويع عالٍ ({metrics.effective_crop_number:.1f} محصول فعّال). "
-            "محفظة مستقرّة جداً."
+            f"تنويع عالٍ ({metrics.effective_crop_number:.1f} محصول فعّال). محفظة مستقرّة جداً."
         )
-        rationale = (
-            "تنويع عالٍ = مقاومة عالية للصدمات، لكنّ راقب الكفاءة "
-            "الإداريّة (تعقيد العمليات)."
-        )
-        risk = 'low'
+        rationale = "تنويع عالٍ = مقاومة عالية للصدمات، لكنّ راقب الكفاءة الإداريّة (تعقيد العمليات)."
+        risk = "low"
 
     return PortfolioSuggestion(
         current=metrics,
@@ -223,6 +214,7 @@ def suggest_for_portfolio(
 
 
 # ─── Comparison helper ────────────────────────────────────────────
+
 
 def compare_portfolios(
     current: PortfolioMetrics,
@@ -235,8 +227,7 @@ def compare_portfolios(
     return {
         "shannon_delta": proposed.shannon_index - current.shannon_index,
         "enc_delta": proposed.effective_crop_number - current.effective_crop_number,
-        "dominance_delta_pct":
-            proposed.dominance_pct - current.dominance_pct,
+        "dominance_delta_pct": proposed.dominance_pct - current.dominance_pct,
         "improved": (
             proposed.effective_crop_number > current.effective_crop_number
             and proposed.dominance_pct < current.dominance_pct
@@ -246,18 +237,18 @@ def compare_portfolios(
 
 # ─── Helpers للعرض في الواجهة ────────────────────────────────────
 
+
 def format_metrics_ar(m: PortfolioMetrics) -> str:
     """نصّ عربي مفهوم للمزارع."""
     crops_str = "، ".join(
-        f"{c} ({p*100:.0f}٪)"
-        for c, p in sorted(m.proportions.items(),
-                          key=lambda kv: kv[1], reverse=True)
+        f"{c} ({p * 100:.0f}٪)"
+        for c, p in sorted(m.proportions.items(), key=lambda kv: kv[1], reverse=True)
     )
     label = {
-        'monoculture': 'محصول واحد',
-        'low': 'تنويع منخفض',
-        'moderate': 'تنويع معتدل',
-        'high': 'تنويع عالٍ',
+        "monoculture": "محصول واحد",
+        "low": "تنويع منخفض",
+        "moderate": "تنويع معتدل",
+        "high": "تنويع عالٍ",
     }[m.classification]
     return (
         f"المحفظة: {label}\n"

@@ -26,13 +26,13 @@ services/sahool-platform/api/geospatial_integrity.py — Geospatial Integrity La
    ٥. check_self_intersection() — منع polygons مكسورة
    ٦. RasterAlignment — للـSentinel-2 → field grid alignment
 """
+
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
-import math
-
+from typing import Any
 
 # ─── Constants ──────────────────────────────────────────────────
 
@@ -44,25 +44,26 @@ CANONICAL_CRS_CODE = 4326
 # Latitude:  12.0° - 19.0° N
 # Longitude: 41.5° - 54.5° E
 YEMEN_BBOX = {
-    "min_lat": 11.5,   # جنوب — جزر سُقطرى
-    "max_lat": 19.5,   # شمال — حدود السعوديّة
-    "min_lng": 41.0,   # غرب — البحر الأحمر
-    "max_lng": 55.0,   # شرق — حدود عُمان
+    "min_lat": 11.5,  # جنوب — جزر سُقطرى
+    "max_lat": 19.5,  # شمال — حدود السعوديّة
+    "min_lng": 41.0,  # غرب — البحر الأحمر
+    "max_lng": 55.0,  # شرق — حدود عُمان
 }
 
 # UTM zones لليمن (للـSentinel-2)
-YEMEN_UTM_ZONES = {37, 38, 39}   # zones N (شمال خطّ الاستواء)
+YEMEN_UTM_ZONES = {37, 38, 39}  # zones N (شمال خطّ الاستواء)
 
 # Field size limits (هكتارات)
-MIN_FIELD_AREA_HA = 0.01    # 100 m²
+MIN_FIELD_AREA_HA = 0.01  # 100 m²
 MAX_FIELD_AREA_HA = 10_000  # 100 km² — أكبر حقل معقول
 
 # Polygon constraints
-MIN_POLYGON_VERTICES = 4   # 3 + closing point
+MIN_POLYGON_VERTICES = 4  # 3 + closing point
 MAX_POLYGON_VERTICES = 10_000
 
 
 # ─── Result types ───────────────────────────────────────────────
+
 
 class ValidationSeverity(str, Enum):
     OK = "ok"
@@ -73,19 +74,19 @@ class ValidationSeverity(str, Enum):
 @dataclass
 class ValidationIssue:
     severity: ValidationSeverity
-    code: str               # machine-readable code (e.g. "self_intersection")
+    code: str  # machine-readable code (e.g. "self_intersection")
     message_ar: str
     message_en: str
-    hint: Optional[str] = None
+    hint: str | None = None
 
 
 @dataclass
 class GeometryValidation:
-    valid: bool             # False لو فيه ERROR، True مع WARNINGs مقبول
-    issues: List[ValidationIssue]
+    valid: bool  # False لو فيه ERROR، True مع WARNINGs مقبول
+    issues: list[ValidationIssue]
     canonical_crs: str = CANONICAL_CRS
-    computed_area_ha: Optional[float] = None
-    computed_bbox: Optional[Dict[str, float]] = None
+    computed_area_ha: float | None = None
+    computed_bbox: dict[str, float] | None = None
 
     @property
     def has_errors(self) -> bool:
@@ -98,6 +99,7 @@ class GeometryValidation:
 
 # ─── Pure geometry helpers ──────────────────────────────────────
 
+
 def haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     """المسافة بالأمتار بين نقطتين."""
     R = 6371008.8  # WGS84 mean Earth radius
@@ -108,7 +110,7 @@ def haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     return 2 * R * math.asin(math.sqrt(a))
 
 
-def polygon_area_m2(coords: List[Tuple[float, float]]) -> float:
+def polygon_area_m2(coords: list[tuple[float, float]]) -> float:
     """
     Spherical polygon area (الإحداثيّات lng/lat).
     Uses spherical excess formula — أدقّ من Shoelace للـlat/lng.
@@ -131,26 +133,31 @@ def polygon_area_m2(coords: List[Tuple[float, float]]) -> float:
     return area
 
 
-def polygon_area_ha(coords: List[Tuple[float, float]]) -> float:
+def polygon_area_ha(coords: list[tuple[float, float]]) -> float:
     return polygon_area_m2(coords) / 10_000.0
 
 
-def compute_bbox(coords: List[Tuple[float, float]]) -> Dict[str, float]:
+def compute_bbox(coords: list[tuple[float, float]]) -> dict[str, float]:
     if not coords:
         return {"min_lng": 0, "max_lng": 0, "min_lat": 0, "max_lat": 0}
     lngs = [c[0] for c in coords]
     lats = [c[1] for c in coords]
     return {
-        "min_lng": min(lngs), "max_lng": max(lngs),
-        "min_lat": min(lats), "max_lat": max(lats),
+        "min_lng": min(lngs),
+        "max_lng": max(lngs),
+        "min_lat": min(lats),
+        "max_lat": max(lats),
     }
 
 
 def segments_intersect(
-    p1: Tuple[float, float], p2: Tuple[float, float],
-    p3: Tuple[float, float], p4: Tuple[float, float],
+    p1: tuple[float, float],
+    p2: tuple[float, float],
+    p3: tuple[float, float],
+    p4: tuple[float, float],
 ) -> bool:
     """هل القطعة p1p2 تتقاطع مع p3p4 (لا تشمل النقاط المشتركة)."""
+
     def ccw(a, b, c):
         return (c[1] - a[1]) * (b[0] - a[0]) > (b[1] - a[1]) * (c[0] - a[0])
 
@@ -160,7 +167,7 @@ def segments_intersect(
     return ccw(p1, p3, p4) != ccw(p2, p3, p4) and ccw(p1, p2, p3) != ccw(p1, p2, p4)
 
 
-def has_self_intersection(coords: List[Tuple[float, float]]) -> bool:
+def has_self_intersection(coords: list[tuple[float, float]]) -> bool:
     """يتحقّق من تقاطع الـpolygon مع نفسه."""
     n = len(coords)
     if n < 4:
@@ -169,7 +176,7 @@ def has_self_intersection(coords: List[Tuple[float, float]]) -> bool:
     for i in range(n - 1):
         for j in range(i + 2, n - 1):
             if i == 0 and j == n - 2:
-                continue   # adjacent through closing
+                continue  # adjacent through closing
             if segments_intersect(coords[i], coords[i + 1], coords[j], coords[j + 1]):
                 return True
     return False
@@ -177,7 +184,8 @@ def has_self_intersection(coords: List[Tuple[float, float]]) -> bool:
 
 # ─── CRS validation ─────────────────────────────────────────────
 
-def validate_crs(crs_string: Optional[str]) -> Optional[ValidationIssue]:
+
+def validate_crs(crs_string: str | None) -> ValidationIssue | None:
     """يتأكّد أنّ الـCRS هو 4326 (الـcanonical). يقبل عدّة أشكال."""
     if not crs_string:
         # غياب الـCRS يعني GeoJSON 4326 بشكل ضمني (RFC 7946)
@@ -187,10 +195,12 @@ def validate_crs(crs_string: Optional[str]) -> Optional[ValidationIssue]:
     valid_forms = {
         "EPSG:4326",
         "EPSG/4326",
-        "WGS84", "WGS-84", "WGS:84",
+        "WGS84",
+        "WGS-84",
+        "WGS:84",
         "URN:OGC:DEF:CRS:EPSG::4326",
         "HTTP://WWW.OPENGIS.NET/DEF/CRS/EPSG/0/4326",
-        "CRS:84",   # GeoJSON-style
+        "CRS:84",  # GeoJSON-style
     }
 
     for form in valid_forms:
@@ -208,9 +218,10 @@ def validate_crs(crs_string: Optional[str]) -> Optional[ValidationIssue]:
 
 # ─── Main validation ────────────────────────────────────────────
 
+
 def validate_field_geometry(
-    geojson: Dict[str, Any],
-    declared_crs: Optional[str] = None,
+    geojson: dict[str, Any],
+    declared_crs: str | None = None,
 ) -> GeometryValidation:
     """
     التحقّق الشامل من geometry حقل.
@@ -222,7 +233,7 @@ def validate_field_geometry(
     Returns:
         GeometryValidation مع كل الـissues + computed_area_ha + bbox
     """
-    issues: List[ValidationIssue] = []
+    issues: list[ValidationIssue] = []
 
     # ١. تحقّق CRS
     crs_issue = validate_crs(declared_crs)
@@ -232,115 +243,141 @@ def validate_field_geometry(
     # ٢. استخرج coordinates من GeoJSON shapes مختلفة
     coords = _extract_polygon_coords(geojson)
     if coords is None:
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.ERROR,
-            code="invalid_geojson",
-            message_ar="الـGeoJSON غير صالح أو ليس Polygon.",
-            message_en="Invalid GeoJSON or not a Polygon.",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                code="invalid_geojson",
+                message_ar="الـGeoJSON غير صالح أو ليس Polygon.",
+                message_en="Invalid GeoJSON or not a Polygon.",
+            )
+        )
         return GeometryValidation(valid=False, issues=issues)
 
     # ٣. تحقّق عدد النقاط
     if len(coords) < MIN_POLYGON_VERTICES:
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.ERROR,
-            code="too_few_vertices",
-            message_ar=f"الـpolygon يحتاج ≥ {MIN_POLYGON_VERTICES} نقاط (مع الإغلاق). وُجد {len(coords)}.",
-            message_en=f"Polygon needs ≥ {MIN_POLYGON_VERTICES} vertices. Got {len(coords)}.",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                code="too_few_vertices",
+                message_ar=f"الـpolygon يحتاج ≥ {MIN_POLYGON_VERTICES} نقاط (مع الإغلاق). وُجد {len(coords)}.",
+                message_en=f"Polygon needs ≥ {MIN_POLYGON_VERTICES} vertices. Got {len(coords)}.",
+            )
+        )
         return GeometryValidation(valid=False, issues=issues)
 
     if len(coords) > MAX_POLYGON_VERTICES:
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.ERROR,
-            code="too_many_vertices",
-            message_ar=f"الـpolygon فيه نقاط كثيرة جدّاً ({len(coords)} > {MAX_POLYGON_VERTICES}).",
-            message_en=f"Polygon has too many vertices ({len(coords)}).",
-            hint="استخدم simplification (Douglas-Peucker) قبل الإرسال.",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                code="too_many_vertices",
+                message_ar=f"الـpolygon فيه نقاط كثيرة جدّاً ({len(coords)} > {MAX_POLYGON_VERTICES}).",
+                message_en=f"Polygon has too many vertices ({len(coords)}).",
+                hint="استخدم simplification (Douglas-Peucker) قبل الإرسال.",
+            )
+        )
 
     # ٤. تحقّق الإغلاق
     if coords[0] != coords[-1]:
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.WARNING,
-            code="not_closed",
-            message_ar="الـring غير مُغلَق (آخر نقطة ≠ أوّل نقطة). سيُغلَق تلقائياً.",
-            message_en="Ring not closed (first ≠ last point). Auto-closing.",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.WARNING,
+                code="not_closed",
+                message_ar="الـring غير مُغلَق (آخر نقطة ≠ أوّل نقطة). سيُغلَق تلقائياً.",
+                message_en="Ring not closed (first ≠ last point). Auto-closing.",
+            )
+        )
         coords = list(coords) + [coords[0]]
 
     # ٥. تحقّق duplicate consecutive points
     duplicates = sum(1 for i in range(len(coords) - 1) if coords[i] == coords[i + 1])
     if duplicates > 0:
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.WARNING,
-            code="duplicate_vertices",
-            message_ar=f"يوجد {duplicates} نقاط متكرّرة متتالية. تُتجاهَل.",
-            message_en=f"{duplicates} duplicate consecutive vertices found.",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.WARNING,
+                code="duplicate_vertices",
+                message_ar=f"يوجد {duplicates} نقاط متكرّرة متتالية. تُتجاهَل.",
+                message_en=f"{duplicates} duplicate consecutive vertices found.",
+            )
+        )
 
     # ٦. تحقّق self-intersection
     if has_self_intersection(coords):
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.ERROR,
-            code="self_intersection",
-            message_ar="الـpolygon يتقاطع مع نفسه (geometry غير صالح).",
-            message_en="Polygon self-intersects.",
-            hint="ارسم الـpolygon مجدّداً بدون تقاطعات.",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                code="self_intersection",
+                message_ar="الـpolygon يتقاطع مع نفسه (geometry غير صالح).",
+                message_en="Polygon self-intersects.",
+                hint="ارسم الـpolygon مجدّداً بدون تقاطعات.",
+            )
+        )
 
     # ٧. حساب الـbbox + تحقّق أنّه داخل اليمن
     bbox = compute_bbox(coords)
-    if not (YEMEN_BBOX["min_lat"] <= bbox["min_lat"] and bbox["max_lat"] <= YEMEN_BBOX["max_lat"]
-            and YEMEN_BBOX["min_lng"] <= bbox["min_lng"] and bbox["max_lng"] <= YEMEN_BBOX["max_lng"]):
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.WARNING,
-            code="outside_yemen_bbox",
-            message_ar=(
-                f"الـpolygon خارج حدود اليمن المعتادة "
-                f"(lat {bbox['min_lat']:.2f}-{bbox['max_lat']:.2f}, "
-                f"lng {bbox['min_lng']:.2f}-{bbox['max_lng']:.2f}). "
-                "تأكّد من الإحداثيّات."
-            ),
-            message_en=f"Polygon outside Yemen bbox. Check coordinates.",
-        ))
+    if not (
+        YEMEN_BBOX["min_lat"] <= bbox["min_lat"]
+        and bbox["max_lat"] <= YEMEN_BBOX["max_lat"]
+        and YEMEN_BBOX["min_lng"] <= bbox["min_lng"]
+        and bbox["max_lng"] <= YEMEN_BBOX["max_lng"]
+    ):
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.WARNING,
+                code="outside_yemen_bbox",
+                message_ar=(
+                    f"الـpolygon خارج حدود اليمن المعتادة "
+                    f"(lat {bbox['min_lat']:.2f}-{bbox['max_lat']:.2f}, "
+                    f"lng {bbox['min_lng']:.2f}-{bbox['max_lng']:.2f}). "
+                    "تأكّد من الإحداثيّات."
+                ),
+                message_en="Polygon outside Yemen bbox. Check coordinates.",
+            )
+        )
 
     # ٨. حساب المساحة + تحقّق
     area_ha = polygon_area_ha(coords)
     if area_ha < MIN_FIELD_AREA_HA:
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.WARNING,
-            code="area_too_small",
-            message_ar=f"المساحة صغيرة جدّاً ({area_ha*10000:.0f} م²). تأكّد.",
-            message_en=f"Area too small ({area_ha*10000:.0f} m²).",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.WARNING,
+                code="area_too_small",
+                message_ar=f"المساحة صغيرة جدّاً ({area_ha * 10000:.0f} م²). تأكّد.",
+                message_en=f"Area too small ({area_ha * 10000:.0f} m²).",
+            )
+        )
     if area_ha > MAX_FIELD_AREA_HA:
-        issues.append(ValidationIssue(
-            severity=ValidationSeverity.ERROR,
-            code="area_too_large",
-            message_ar=f"المساحة كبيرة جدّاً ({area_ha:.0f} هكتار). الحدّ الأقصى {MAX_FIELD_AREA_HA}.",
-            message_en=f"Area too large ({area_ha:.0f} ha). Max is {MAX_FIELD_AREA_HA}.",
-            hint="هل أرسلت إحداثيّات في وحدة خاطئة (مثل meters بدل degrees)؟",
-        ))
+        issues.append(
+            ValidationIssue(
+                severity=ValidationSeverity.ERROR,
+                code="area_too_large",
+                message_ar=f"المساحة كبيرة جدّاً ({area_ha:.0f} هكتار). الحدّ الأقصى {MAX_FIELD_AREA_HA}.",
+                message_en=f"Area too large ({area_ha:.0f} ha). Max is {MAX_FIELD_AREA_HA}.",
+                hint="هل أرسلت إحداثيّات في وحدة خاطئة (مثل meters بدل degrees)؟",
+            )
+        )
 
     # ٩. تحقّق range الإحداثيّات (catch unit errors)
     for lng, lat in coords:
         if not (-180 <= lng <= 180):
-            issues.append(ValidationIssue(
-                severity=ValidationSeverity.ERROR,
-                code="lng_out_of_range",
-                message_ar=f"خط الطول خارج النطاق: {lng}. يجب أن يكون -180 إلى 180.",
-                message_en=f"Longitude out of range: {lng}",
-                hint="ربّما الإحداثيّات بترتيب (lat, lng) بدل (lng, lat)؟",
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    code="lng_out_of_range",
+                    message_ar=f"خط الطول خارج النطاق: {lng}. يجب أن يكون -180 إلى 180.",
+                    message_en=f"Longitude out of range: {lng}",
+                    hint="ربّما الإحداثيّات بترتيب (lat, lng) بدل (lng, lat)؟",
+                )
+            )
             break
         if not (-90 <= lat <= 90):
-            issues.append(ValidationIssue(
-                severity=ValidationSeverity.ERROR,
-                code="lat_out_of_range",
-                message_ar=f"خط العرض خارج النطاق: {lat}.",
-                message_en=f"Latitude out of range: {lat}",
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    code="lat_out_of_range",
+                    message_ar=f"خط العرض خارج النطاق: {lat}.",
+                    message_en=f"Latitude out of range: {lat}",
+                )
+            )
             break
 
     has_errors = any(i.severity == ValidationSeverity.ERROR for i in issues)
@@ -353,8 +390,8 @@ def validate_field_geometry(
 
 
 def _extract_polygon_coords(
-    geojson: Dict[str, Any],
-) -> Optional[List[Tuple[float, float]]]:
+    geojson: dict[str, Any],
+) -> list[tuple[float, float]] | None:
     """يستخرج outer ring من Polygon GeoJSON بأشكاله المختلفة."""
     if not isinstance(geojson, dict):
         return None
@@ -385,16 +422,18 @@ def _extract_polygon_coords(
 
 # ─── Raster alignment (Sentinel-2 → field grid) ─────────────────
 
+
 @dataclass
 class RasterAlignmentSpec:
     """مواصفات alignment لـraster مع field."""
+
     target_crs: str = CANONICAL_CRS
-    target_resolution_m: float = 10.0   # Sentinel-2 native
+    target_resolution_m: float = 10.0  # Sentinel-2 native
     snap_to_grid: bool = True
     nodata_value: float = -9999.0
 
 
-def check_bbox_in_utm_zones(bbox: Dict[str, float]) -> List[int]:
+def check_bbox_in_utm_zones(bbox: dict[str, float]) -> list[int]:
     """يحدّد UTM zones التي تتقاطع مع bbox (لـSentinel-2 selection)."""
     # UTM zone width = 6 degrees, starting from -180
     min_zone = int((bbox["min_lng"] + 180) / 6) + 1

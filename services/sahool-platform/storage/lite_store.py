@@ -15,6 +15,7 @@ SQLite كافٍ حتى ~100 مزرعة. الترقية لـ PostgreSQL/Timescale
 
 لا embeddings، لا GPU. بحث نصي بسيط في knowledge_snippets.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -272,7 +273,7 @@ def connect(db_path: Path = DEFAULT_DB):
     # (عدة مزارعين/إشعارات في آنٍ واحد). يُكتب مرّة في bootstrap لكن
     # نضبطه هنا أيضاً (idempotent) لضمان التطبيق.
     conn.execute("PRAGMA journal_mode = WAL")
-    conn.execute("PRAGMA synchronous = NORMAL")   # مع WAL آمن وأسرع
+    conn.execute("PRAGMA synchronous = NORMAL")  # مع WAL آمن وأسرع
     try:
         yield conn
         conn.commit()
@@ -295,20 +296,32 @@ def _load_valid_observables() -> set[str]:
     global _VALID_OBSERVABLES
     if _VALID_OBSERVABLES is None:
         import yaml
+
         mpath = Path(__file__).parent.parent / "core" / "observation_matrix.yaml"
         try:
             m = yaml.safe_load(open(mpath, encoding="utf-8"))
             obs = m.get("observables", {})
-            _VALID_OBSERVABLES = set(obs.keys() if isinstance(obs, dict)
-                                     else (o["id"] for o in obs))
+            _VALID_OBSERVABLES = set(
+                obs.keys() if isinstance(obs, dict) else (o["id"] for o in obs)
+            )
         except Exception:
             _VALID_OBSERVABLES = set()  # غياب الملف لا يكسر — التحقّق يُتخطّى
     return _VALID_OBSERVABLES
 
 
-def add_observation(tenant_id, district_id, observable_id, measured_at,
-                    value=None, value_text=None, unit=None, source=None,
-                    zone_id=None, validate=True, db_path: Path = DEFAULT_DB) -> None:
+def add_observation(
+    tenant_id,
+    district_id,
+    observable_id,
+    measured_at,
+    value=None,
+    value_text=None,
+    unit=None,
+    source=None,
+    zone_id=None,
+    validate=True,
+    db_path: Path = DEFAULT_DB,
+) -> None:
     """يضيف مشاهدة. مراجعة #6: يتحقّق أن observable_id معرّف في المصفوفة
     (يمنع 'S99' الخاطئ) — قابل للإيقاف بـ validate=False."""
     if validate:
@@ -321,41 +334,75 @@ def add_observation(tenant_id, district_id, observable_id, measured_at,
                (tenant_id, district_id, zone_id, observable_id, value, value_text,
                 unit, measured_at, source)
                VALUES (?,?,?,?,?,?,?,?,?)""",
-            (tenant_id, district_id, zone_id, observable_id, value, value_text,
-             unit, measured_at, source),
+            (
+                tenant_id,
+                district_id,
+                zone_id,
+                observable_id,
+                value,
+                value_text,
+                unit,
+                measured_at,
+                source,
+            ),
         )
 
 
-def get_observations(tenant_id=None, observable_id=None, district_id=None,
-                     since=None, db_path: Path = DEFAULT_DB) -> list[dict]:
+def get_observations(
+    tenant_id=None, observable_id=None, district_id=None, since=None, db_path: Path = DEFAULT_DB
+) -> list[dict]:
     """يقرأ المشاهدات بمرشّحات اختيارية. الدالة المفقودة (كان add فقط)."""
     sql = "SELECT * FROM observations WHERE 1=1"
     params = []
     if tenant_id is not None:
-        sql += " AND tenant_id = ?"; params.append(tenant_id)
+        sql += " AND tenant_id = ?"
+        params.append(tenant_id)
     if observable_id is not None:
-        sql += " AND observable_id = ?"; params.append(observable_id)
+        sql += " AND observable_id = ?"
+        params.append(observable_id)
     if district_id is not None:
-        sql += " AND district_id = ?"; params.append(district_id)
+        sql += " AND district_id = ?"
+        params.append(district_id)
     if since is not None:
-        sql += " AND measured_at >= ?"; params.append(since)
+        sql += " AND measured_at >= ?"
+        params.append(since)
     sql += " ORDER BY measured_at DESC"
     with connect(db_path) as conn:
         return [dict(r) for r in conn.execute(sql, params).fetchall()]
 
 
 # ── yield records (ground truth) ─────────────────────────────
-def add_yield(tenant_id, district_id, crop, season_year, yield_t_ha,
-             variety=None, zone_id=None, planting_date=None, harvest_date=None,
-             verified=True, db_path: Path = DEFAULT_DB) -> None:
+def add_yield(
+    tenant_id,
+    district_id,
+    crop,
+    season_year,
+    yield_t_ha,
+    variety=None,
+    zone_id=None,
+    planting_date=None,
+    harvest_date=None,
+    verified=True,
+    db_path: Path = DEFAULT_DB,
+) -> None:
     with connect(db_path) as conn:
         conn.execute(
             """INSERT INTO yield_records
                (tenant_id, district_id, zone_id, crop, variety, season_year,
                 planting_date, harvest_date, yield_t_ha, verified)
                VALUES (?,?,?,?,?,?,?,?,?,?)""",
-            (tenant_id, district_id, zone_id, crop, variety, season_year,
-             planting_date, harvest_date, yield_t_ha, 1 if verified else 0),
+            (
+                tenant_id,
+                district_id,
+                zone_id,
+                crop,
+                variety,
+                season_year,
+                planting_date,
+                harvest_date,
+                yield_t_ha,
+                1 if verified else 0,
+            ),
         )
 
 
@@ -364,7 +411,8 @@ def yields_for_district(district_id, crop=None, db_path: Path = DEFAULT_DB) -> l
         q = "SELECT * FROM yield_records WHERE district_id=? AND verified=1"
         params = [district_id]
         if crop:
-            q += " AND crop=?"; params.append(crop)
+            q += " AND crop=?"
+            params.append(crop)
         return [dict(r) for r in conn.execute(q, params).fetchall()]
 
 
@@ -377,8 +425,9 @@ def independent_units(district_id, crop=None, db_path: Path = DEFAULT_DB) -> dic
 
 
 # ── knowledge snippets (simple keyword search, no embeddings) ─
-def add_snippet(topic, content_ar, citation, district_id=None, crop=None,
-               db_path: Path = DEFAULT_DB) -> None:
+def add_snippet(
+    topic, content_ar, citation, district_id=None, crop=None, db_path: Path = DEFAULT_DB
+) -> None:
     with connect(db_path) as conn:
         conn.execute(
             """INSERT INTO knowledge_snippets
@@ -388,29 +437,44 @@ def add_snippet(topic, content_ar, citation, district_id=None, crop=None,
         )
 
 
-def search_snippets(topic=None, district_id=None, crop=None,
-                   db_path: Path = DEFAULT_DB) -> list[dict]:
+def search_snippets(
+    topic=None, district_id=None, crop=None, db_path: Path = DEFAULT_DB
+) -> list[dict]:
     """Simple structured retrieval — no GPU, no embeddings. Region/crop
     NULL in a snippet means it applies broadly."""
     with connect(db_path) as conn:
         q = "SELECT * FROM knowledge_snippets WHERE 1=1"
         params = []
         if topic:
-            q += " AND topic=?"; params.append(topic)
+            q += " AND topic=?"
+            params.append(topic)
         if district_id:
-            q += " AND (district_id=? OR district_id IS NULL)"; params.append(district_id)
+            q += " AND (district_id=? OR district_id IS NULL)"
+            params.append(district_id)
         if crop:
-            q += " AND (crop=? OR crop IS NULL)"; params.append(crop)
+            q += " AND (crop=? OR crop IS NULL)"
+            params.append(crop)
         return [dict(r) for r in conn.execute(q, params).fetchall()]
 
 
 # ── farmer knowledge (structured local knowledge) ────────────
 def add_farmer_knowledge(fk_dict: dict, db_path: Path = DEFAULT_DB) -> None:
     """Store a structured FarmerKnowledge.to_dict() record."""
-    cols = ["knowledge_id", "knowledge_type", "content_ar", "tenant_id",
-            "district_id", "spatial_scope", "farmer_confidence", "mechanism_ar",
-            "verification_method", "verification_status", "data_agreement",
-            "review_year", "source_ar"]
+    cols = [
+        "knowledge_id",
+        "knowledge_type",
+        "content_ar",
+        "tenant_id",
+        "district_id",
+        "spatial_scope",
+        "farmer_confidence",
+        "mechanism_ar",
+        "verification_method",
+        "verification_status",
+        "data_agreement",
+        "review_year",
+        "source_ar",
+    ]
     vals = []
     for c in cols:
         v = fk_dict.get(c)
@@ -420,61 +484,101 @@ def add_farmer_knowledge(fk_dict: dict, db_path: Path = DEFAULT_DB) -> None:
     with connect(db_path) as conn:
         conn.execute(
             f"INSERT OR REPLACE INTO farmer_knowledge ({','.join(cols)}) "
-            f"VALUES ({','.join('?'*len(cols))})", vals)
+            f"VALUES ({','.join('?' * len(cols))})",
+            vals,
+        )
 
 
-def get_farmer_knowledge(district_id=None, knowledge_type=None,
-                        status=None, db_path: Path = DEFAULT_DB) -> list[dict]:
+def get_farmer_knowledge(
+    district_id=None, knowledge_type=None, status=None, db_path: Path = DEFAULT_DB
+) -> list[dict]:
     with connect(db_path) as conn:
         q = "SELECT * FROM farmer_knowledge WHERE 1=1"
         params = []
         if district_id:
-            q += " AND district_id=?"; params.append(district_id)
+            q += " AND district_id=?"
+            params.append(district_id)
         if knowledge_type:
-            q += " AND knowledge_type=?"; params.append(knowledge_type)
+            q += " AND knowledge_type=?"
+            params.append(knowledge_type)
         if status:
-            q += " AND verification_status=?"; params.append(status)
+            q += " AND verification_status=?"
+            params.append(status)
         return [dict(r) for r in conn.execute(q, params).fetchall()]
 
 
 # ── variety trials (accumulated varietal experience) ─────────
-def add_variety_trial(tenant_id, district_id, variety_ar, crop, trait_tested,
-                     result_ar, season_year=None, verified_by="farmer_obs",
-                     dna_verified=False, db_path: Path = DEFAULT_DB) -> None:
+def add_variety_trial(
+    tenant_id,
+    district_id,
+    variety_ar,
+    crop,
+    trait_tested,
+    result_ar,
+    season_year=None,
+    verified_by="farmer_obs",
+    dna_verified=False,
+    db_path: Path = DEFAULT_DB,
+) -> None:
     with connect(db_path) as conn:
         conn.execute(
             """INSERT INTO variety_trials
                (tenant_id, district_id, variety_ar, crop, trait_tested,
                 season_year, result_ar, verified_by, dna_verified)
                VALUES (?,?,?,?,?,?,?,?,?)""",
-            (tenant_id, district_id, variety_ar, crop, trait_tested,
-             season_year, result_ar, verified_by, 1 if dna_verified else 0))
+            (
+                tenant_id,
+                district_id,
+                variety_ar,
+                crop,
+                trait_tested,
+                season_year,
+                result_ar,
+                verified_by,
+                1 if dna_verified else 0,
+            ),
+        )
 
 
-def get_variety_trials(district_id=None, crop=None, variety_ar=None,
-                      db_path: Path = DEFAULT_DB) -> list[dict]:
+def get_variety_trials(
+    district_id=None, crop=None, variety_ar=None, db_path: Path = DEFAULT_DB
+) -> list[dict]:
     with connect(db_path) as conn:
         q = "SELECT * FROM variety_trials WHERE 1=1"
         params = []
         if district_id:
-            q += " AND district_id=?"; params.append(district_id)
+            q += " AND district_id=?"
+            params.append(district_id)
         if crop:
-            q += " AND crop=?"; params.append(crop)
+            q += " AND crop=?"
+            params.append(crop)
         if variety_ar:
-            q += " AND variety_ar=?"; params.append(variety_ar)
+            q += " AND variety_ar=?"
+            params.append(variety_ar)
         return [dict(r) for r in conn.execute(q, params).fetchall()]
+
 
 # ════════════════════════════════════════════════════════════
 # الفجوات الحقيقية من مراجعة v9.1.0 (على SQLite، لا PostgreSQL)
 # ════════════════════════════════════════════════════════════
 
-def save_field_state(field_id, tenant_id, quality_state, soil_choice=None,
-                     completeness=0, soil_skip_reason=None, supervisor_id=None,
-                     supervisor_role=None, db_path: Path = DEFAULT_DB):
+
+def save_field_state(
+    field_id,
+    tenant_id,
+    quality_state,
+    soil_choice=None,
+    completeness=0,
+    soil_skip_reason=None,
+    supervisor_id=None,
+    supervisor_role=None,
+    db_path: Path = DEFAULT_DB,
+):
     """الفجوة #6: تخزين حالة الحقل (لا حسابها فقط).
     + المسؤول (مراجعة #2) + سبب التخطّي (مراجعة #6)."""
     with connect(db_path) as conn:
-        conn.execute("""
+        conn.execute(
+            """
             INSERT INTO field_state (field_id, tenant_id, quality_state, soil_choice,
                 completeness, soil_skip_reason, supervisor_id, supervisor_role, updated_at)
             VALUES (?,?,?,?,?,?,?,?,datetime('now'))
@@ -483,21 +587,50 @@ def save_field_state(field_id, tenant_id, quality_state, soil_choice=None,
                 completeness=excluded.completeness, soil_skip_reason=excluded.soil_skip_reason,
                 supervisor_id=excluded.supervisor_id, supervisor_role=excluded.supervisor_role,
                 updated_at=datetime('now')
-        """, (field_id, tenant_id, quality_state, soil_choice, completeness,
-              soil_skip_reason, supervisor_id, supervisor_role))
+        """,
+            (
+                field_id,
+                tenant_id,
+                quality_state,
+                soil_choice,
+                completeness,
+                soil_skip_reason,
+                supervisor_id,
+                supervisor_role,
+            ),
+        )
 
 
-def save_irrigation_config(field_id, tenant_id, method, pivot_length_m=None,
-                           pivot_radius_m=None, flow_rate_lps=None, schedule_json=None,
-                           water_source=None, db_path: Path = DEFAULT_DB) -> int:
+def save_irrigation_config(
+    field_id,
+    tenant_id,
+    method,
+    pivot_length_m=None,
+    pivot_radius_m=None,
+    flow_rate_lps=None,
+    schedule_json=None,
+    water_source=None,
+    db_path: Path = DEFAULT_DB,
+) -> int:
     """مراجعة #1: حفظ إعداد نظام الري (الفجوة الأكبر بين التدفّق والكود)."""
     with connect(db_path) as conn:
-        cur = conn.execute("""
+        cur = conn.execute(
+            """
             INSERT INTO irrigation_configs (field_id, tenant_id, method, pivot_length_m,
                 pivot_radius_m, flow_rate_lps, schedule_json, water_source)
             VALUES (?,?,?,?,?,?,?,?)
-        """, (field_id, tenant_id, method, pivot_length_m, pivot_radius_m,
-              flow_rate_lps, schedule_json, water_source))
+        """,
+            (
+                field_id,
+                tenant_id,
+                method,
+                pivot_length_m,
+                pivot_radius_m,
+                flow_rate_lps,
+                schedule_json,
+                water_source,
+            ),
+        )
         return cur.lastrowid
 
 
@@ -505,22 +638,32 @@ def get_irrigation_config(field_id, db_path: Path = DEFAULT_DB) -> dict | None:
     with connect(db_path) as conn:
         r = conn.execute(
             "SELECT * FROM irrigation_configs WHERE field_id=? ORDER BY config_id DESC LIMIT 1",
-            (field_id,)).fetchone()
+            (field_id,),
+        ).fetchone()
         return dict(r) if r else None
 
 
-def upsert_user(tenant_id, display_name=None, phone=None, district_id=None,
-                role="owner", db_path: Path = DEFAULT_DB):
+def upsert_user(
+    tenant_id,
+    display_name=None,
+    phone=None,
+    district_id=None,
+    role="owner",
+    db_path: Path = DEFAULT_DB,
+):
     """مراجعة #5: إدارة المستخدمين المبسّطة.
     tenant_id = معرّف المزرعة · district_id = المديرية."""
     with connect(db_path) as conn:
-        conn.execute("""
+        conn.execute(
+            """
             INSERT INTO users (tenant_id, display_name, phone, district_id, role)
             VALUES (?,?,?,?,?)
             ON CONFLICT(tenant_id) DO UPDATE SET
                 display_name=excluded.display_name, phone=excluded.phone,
                 district_id=excluded.district_id, role=excluded.role
-        """, (tenant_id, display_name, phone, district_id, role))
+        """,
+            (tenant_id, display_name, phone, district_id, role),
+        )
 
 
 def get_field_state(field_id, db_path: Path = DEFAULT_DB) -> dict | None:
@@ -533,8 +676,8 @@ def create_lab_request(field_id, tenant_id, db_path: Path = DEFAULT_DB) -> int:
     """الفجوة #9: إنشاء طلب معمل → الحقل يصبح pending_lab."""
     with connect(db_path) as conn:
         cur = conn.execute(
-            "INSERT INTO lab_requests (field_id, tenant_id) VALUES (?,?)",
-            (field_id, tenant_id))
+            "INSERT INTO lab_requests (field_id, tenant_id) VALUES (?,?)", (field_id, tenant_id)
+        )
         return cur.lastrowid
 
 
@@ -542,29 +685,42 @@ def receive_lab_results(field_id, db_path: Path = DEFAULT_DB) -> dict:
     """الفجوة #9: حدث LAB_RESULTS_RECEIVED — pending_lab → ready.
     يُعلّم الطلب مستلَماً ويرقّي حالة الحقل. يُرجع ما يكفي لإرسال إشعار."""
     with connect(db_path) as conn:
-        conn.execute("""
+        conn.execute(
+            """
             UPDATE lab_requests SET status='received', received_at=datetime('now')
             WHERE field_id=? AND status='pending'
-        """, (field_id,))
+        """,
+            (field_id,),
+        )
         # ترقية حالة الحقل إن وُجد
-        conn.execute("""
+        conn.execute(
+            """
             UPDATE field_state SET quality_state='ready', updated_at=datetime('now')
             WHERE field_id=?
-        """, (field_id,))
+        """,
+            (field_id,),
+        )
         row = conn.execute(
-            "SELECT field_id, tenant_id FROM field_state WHERE field_id=?",
-            (field_id,)).fetchone()
-        return {"field_id": field_id, "new_state": "ready",
-                "notify": True, "tenant_id": row["tenant_id"] if row else None}
+            "SELECT field_id, tenant_id FROM field_state WHERE field_id=?", (field_id,)
+        ).fetchone()
+        return {
+            "field_id": field_id,
+            "new_state": "ready",
+            "notify": True,
+            "tenant_id": row["tenant_id"] if row else None,
+        }
 
 
 def record_consent(tenant_id, consent_type, version, db_path: Path = DEFAULT_DB):
     """الفجوة #1: تسجيل الموافقة (مبسّط)."""
     with connect(db_path) as conn:
-        conn.execute("""
+        conn.execute(
+            """
             INSERT INTO user_consent (tenant_id, consent_type, version)
             VALUES (?,?,?)
-        """, (tenant_id, consent_type, version))
+        """,
+            (tenant_id, consent_type, version),
+        )
 
 
 # ── مراجعة v9.1 #12: نسخة احتياطية بسيطة (مناسبة لـ 50 مزرعة) ──
@@ -573,6 +729,7 @@ def backup_db(db_path: Path = DEFAULT_DB, backup_dir: str = "backups") -> str:
     يُستدعى دورياً (cron) أو قبل الترقيات."""
     import shutil
     from datetime import datetime
+
     bdir = Path(backup_dir)
     bdir.mkdir(exist_ok=True)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -586,6 +743,7 @@ def sanitize_id(raw: str) -> str:
     """يعقّم معرّفاً (tenant/district) قبل استخدامه في أي مسار ملف.
     دفاع وقائي: حتى لو لم نبنِ المسار من tenant_id حالياً، نمنع المستقبل."""
     import re
+
     safe = re.sub(r"[^a-zA-Z0-9_-]", "", raw or "")
     if not safe or safe != raw:
         raise ValueError(f"معرّف غير صالح: {raw!r}")

@@ -12,41 +12,44 @@ Pin = موقع GPS + صورة + نوع مشكلة (taxonomy يمنيّة) + شد
 
 المبدأ: "rule-based قبل ML" — التصنيف هنا قائم على قوائم منسّقة، لا تشخيص آلي.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from enum import StrEnum
+from typing import Any
 
 
-class IssueCategory(str, Enum):
+class IssueCategory(StrEnum):
     """فئات المشاكل الميدانيّة العامّة."""
-    DISEASE = "disease"              # مرض
-    PEST = "pest"                    # آفة حشريّة
-    WEED = "weed"                    # أعشاب ضارّة
-    NUTRIENT = "nutrient"            # نقص عنصر غذائي
-    WATER_STRESS = "water_stress"    # إجهاد مائي
-    ABIOTIC = "abiotic"              # غير حيوي (ملوحة، حرق، رياح)
+
+    DISEASE = "disease"  # مرض
+    PEST = "pest"  # آفة حشريّة
+    WEED = "weed"  # أعشاب ضارّة
+    NUTRIENT = "nutrient"  # نقص عنصر غذائي
+    WATER_STRESS = "water_stress"  # إجهاد مائي
+    ABIOTIC = "abiotic"  # غير حيوي (ملوحة، حرق، رياح)
     OTHER = "other"
 
 
-class Severity(str, Enum):
-    LOW = "low"          # خفيف
-    MEDIUM = "medium"    # متوسّط
-    HIGH = "high"        # شديد
+class Severity(StrEnum):
+    LOW = "low"  # خفيف
+    MEDIUM = "medium"  # متوسّط
+    HIGH = "high"  # شديد
 
 
-class PinStatus(str, Enum):
+class PinStatus(StrEnum):
     """دورة حياة المشاهدة."""
-    NEW = "new"                      # جديدة
-    CONFIRMED = "confirmed"          # مؤكّدة (مثلاً من مهندس زراعي)
+
+    NEW = "new"  # جديدة
+    CONFIRMED = "confirmed"  # مؤكّدة (مثلاً من مهندس زراعي)
     UNDER_TREATMENT = "under_treatment"  # تحت المعالجة
-    RESOLVED = "resolved"            # محلولة
+    RESOLVED = "resolved"  # محلولة
 
 
-class Persistence(str, Enum):
-    SEASONAL = "seasonal"    # موسميّة (تختفي بنهاية الموسم)
+class Persistence(StrEnum):
+    SEASONAL = "seasonal"  # موسميّة (تختفي بنهاية الموسم)
     PERMANENT = "permanent"  # دائمة (ملوحة، انحدار — مشكلة بنيويّة)
 
 
@@ -54,12 +57,20 @@ class Persistence(str, Enum):
 # rule-based: قوائم منسّقة (لا تشخيص آلي). الأسماء العربيّة للواجهة.
 # المصدر: السياق الزراعي اليمني (تربة كلسيّة، نقص N/P/Fe/Zn شائع).
 
-YEMEN_CROP_ISSUES: Dict[str, List[Dict[str, str]]] = {
+YEMEN_CROP_ISSUES: dict[str, list[dict[str, str]]] = {
     "wheat": [
         {"code": "wheat.rust", "category": "disease", "name_ar": "صدأ القمح"},
         {"code": "wheat.aphid", "category": "pest", "name_ar": "منّ القمح"},
-        {"code": "wheat.n_deficiency", "category": "nutrient", "name_ar": "نقص نيتروجين (اصفرار عام)"},
-        {"code": "wheat.fe_deficiency", "category": "nutrient", "name_ar": "نقص حديد (اصفرار بين العروق)"},
+        {
+            "code": "wheat.n_deficiency",
+            "category": "nutrient",
+            "name_ar": "نقص نيتروجين (اصفرار عام)",
+        },
+        {
+            "code": "wheat.fe_deficiency",
+            "category": "nutrient",
+            "name_ar": "نقص حديد (اصفرار بين العروق)",
+        },
     ],
     "barley": [
         {"code": "barley.net_blotch", "category": "disease", "name_ar": "تبقّع شبكي"},
@@ -93,7 +104,11 @@ YEMEN_CROP_ISSUES: Dict[str, List[Dict[str, str]]] = {
         {"code": "tomato.late_blight", "category": "disease", "name_ar": "اللفحة المتأخّرة"},
         {"code": "tomato.tuta", "category": "pest", "name_ar": "حفّار أوراق الطماطم (توتا)"},
         {"code": "tomato.whitefly", "category": "pest", "name_ar": "الذبابة البيضاء"},
-        {"code": "tomato.blossom_end_rot", "category": "abiotic", "name_ar": "تعفّن الطرف الزهري (نقص كالسيوم)"},
+        {
+            "code": "tomato.blossom_end_rot",
+            "category": "abiotic",
+            "name_ar": "تعفّن الطرف الزهري (نقص كالسيوم)",
+        },
     ],
     "pepper": [
         {"code": "pepper.powdery_mildew", "category": "disease", "name_ar": "البياض الدقيقي"},
@@ -118,10 +133,18 @@ YEMEN_CROP_ISSUES: Dict[str, List[Dict[str, str]]] = {
 }
 
 # أعراض نقص العناصر الشائعة في التربة الكلسيّة اليمنيّة (دليل بصري rule-based)
-NUTRIENT_DEFICIENCY_GUIDE: List[Dict[str, str]] = [
+NUTRIENT_DEFICIENCY_GUIDE: list[dict[str, str]] = [
     {"code": "n", "name_ar": "نقص نيتروجين", "sign_ar": "اصفرار عام يبدأ بالأوراق القديمة"},
-    {"code": "p", "name_ar": "نقص فوسفور", "sign_ar": "لون أرجواني/داكن، نموّ بطيء (شائع لتثبيت الفوسفور)"},
-    {"code": "fe", "name_ar": "نقص حديد", "sign_ar": "اصفرار بين العروق في الأوراق الحديثة (شائع بالتربة الكلسيّة)"},
+    {
+        "code": "p",
+        "name_ar": "نقص فوسفور",
+        "sign_ar": "لون أرجواني/داكن، نموّ بطيء (شائع لتثبيت الفوسفور)",
+    },
+    {
+        "code": "fe",
+        "name_ar": "نقص حديد",
+        "sign_ar": "اصفرار بين العروق في الأوراق الحديثة (شائع بالتربة الكلسيّة)",
+    },
     {"code": "zn", "name_ar": "نقص زنك", "sign_ar": "أوراق صغيرة، مسافات قصيرة بين العقد"},
 ]
 
@@ -129,6 +152,7 @@ NUTRIENT_DEFICIENCY_GUIDE: List[Dict[str, str]] = [
 @dataclass
 class ScoutingPin:
     """مشاهدة ميدانيّة واحدة."""
+
     pin_id: str
     field_id: str
     lat: float
@@ -137,15 +161,15 @@ class ScoutingPin:
     severity: Severity
     status: PinStatus
     persistence: Persistence
-    crop: Optional[str] = None
-    issue_code: Optional[str] = None      # من الـtaxonomy
-    note_ar: Optional[str] = None
-    photo_uri: Optional[str] = None       # مسار دائم من mediaStore
+    crop: str | None = None
+    issue_code: str | None = None  # من الـtaxonomy
+    note_ar: str | None = None
+    photo_uri: str | None = None  # مسار دائم من mediaStore
     created_at: str = ""
-    created_by: Optional[str] = None
-    color: Optional[str] = None           # ترميز لوني (واجهة)
+    created_by: str | None = None
+    color: str | None = None  # ترميز لوني (واجهة)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "pin_id": self.pin_id,
             "field_id": self.field_id,
@@ -172,7 +196,7 @@ _YEMEN_BBOX = (41.0, 12.0, 54.6, 19.5)  # (min_lng, min_lat, max_lng, max_lat)
 @dataclass
 class PinValidationResult:
     valid: bool
-    issues: List[str] = field(default_factory=list)
+    issues: list[str] = field(default_factory=list)
 
 
 def validate_pin(
@@ -182,11 +206,11 @@ def validate_pin(
     severity: str,
     status: str,
     persistence: str,
-    crop: Optional[str] = None,
-    issue_code: Optional[str] = None,
+    crop: str | None = None,
+    issue_code: str | None = None,
 ) -> PinValidationResult:
     """يتحقّق من صلاحيّة مشاهدة قبل الحفظ."""
-    issues: List[str] = []
+    issues: list[str] = []
 
     # إحداثيّات داخل اليمن
     min_lng, min_lat, max_lng, max_lat = _YEMEN_BBOX
@@ -214,7 +238,7 @@ def validate_pin(
     return PinValidationResult(valid=len(issues) == 0, issues=issues)
 
 
-def get_crop_issues(crop: str) -> List[Dict[str, str]]:
+def get_crop_issues(crop: str) -> list[dict[str, str]]:
     """يُرجع قائمة المشاكل الشائعة لمحصول (للقوائم المنسدلة في الواجهة)."""
     return YEMEN_CROP_ISSUES.get(crop, [])
 
@@ -232,8 +256,14 @@ def make_pin(
 ) -> ScoutingPin:
     """يبني ScoutingPin بعد التحقّق (يرفع ValueError لو غير صالح)."""
     result = validate_pin(
-        lat, lng, issue_category, severity, status, persistence,
-        crop=kwargs.get("crop"), issue_code=kwargs.get("issue_code"),
+        lat,
+        lng,
+        issue_category,
+        severity,
+        status,
+        persistence,
+        crop=kwargs.get("crop"),
+        issue_code=kwargs.get("issue_code"),
     )
     if not result.valid:
         raise ValueError("; ".join(result.issues))
@@ -251,7 +281,7 @@ def make_pin(
         issue_code=kwargs.get("issue_code"),
         note_ar=kwargs.get("note_ar"),
         photo_uri=kwargs.get("photo_uri"),
-        created_at=kwargs.get("created_at") or datetime.now(timezone.utc).isoformat(),
+        created_at=kwargs.get("created_at") or datetime.now(UTC).isoformat(),
         created_by=kwargs.get("created_by"),
         color=kwargs.get("color"),
     )

@@ -19,29 +19,30 @@ knowledge.farmer_knowledge
 
 الفخاخ المحصَّن ضدها: تحيّز البقاء، الارتباط الوهمي، التقادم المناخي، التعميم.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from enum import Enum
+from dataclasses import asdict, dataclass
+from enum import StrEnum
 
 
-class KnowledgeType(str, Enum):
-    SPATIAL = "spatial"       # مكانية — أعلى قيمة، أقل عرضة للتحيّز
-    TEMPORAL = "temporal"     # زمنية — أنماط محلية
-    VARIETAL = "varietal"     # أصناف — كنز نادر
-    PRACTICE = "practice"     # ممارسة — تُفحص
-    CAUSAL = "causal"         # سببية — تُرفض إن بلا آلية
+class KnowledgeType(StrEnum):
+    SPATIAL = "spatial"  # مكانية — أعلى قيمة، أقل عرضة للتحيّز
+    TEMPORAL = "temporal"  # زمنية — أنماط محلية
+    VARIETAL = "varietal"  # أصناف — كنز نادر
+    PRACTICE = "practice"  # ممارسة — تُفحص
+    CAUSAL = "causal"  # سببية — تُرفض إن بلا آلية
 
 
-class VerificationStatus(str, Enum):
-    PENDING = "pending"           # لم يُتحقّق بعد
-    CONFIRMED = "confirmed"       # البيانات تؤكّدها
-    CONTRADICTED = "contradicted" # البيانات تناقضها — للدراسة
-    UNVERIFIABLE = "unverifiable" # لا سبيل للتحقّق حالياً
-    REJECTED = "rejected"         # لا آلية فيزيائية (خرافة)
+class VerificationStatus(StrEnum):
+    PENDING = "pending"  # لم يُتحقّق بعد
+    CONFIRMED = "confirmed"  # البيانات تؤكّدها
+    CONTRADICTED = "contradicted"  # البيانات تناقضها — للدراسة
+    UNVERIFIABLE = "unverifiable"  # لا سبيل للتحقّق حالياً
+    REJECTED = "rejected"  # لا آلية فيزيائية (خرافة)
 
 
-class Confidence(str, Enum):
+class Confidence(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
@@ -53,11 +54,11 @@ _REQUIRES_MECHANISM = {KnowledgeType.CAUSAL}
 
 # قيمة كل نوع كـ prior (مدى موثوقيته المبدئية قبل التحقق)
 _TYPE_PRIOR_STRENGTH = {
-    KnowledgeType.SPATIAL: 0.7,    # ملاحظة مباشرة متكررة
-    KnowledgeType.TEMPORAL: 0.5,   # عرضة للتحيّز الزمني
-    KnowledgeType.VARIETAL: 0.6,   # قيّمة لكن تحتاج تأكيداً
-    KnowledgeType.PRACTICE: 0.4,   # قد تكون عادة لا حكمة
-    KnowledgeType.CAUSAL: 0.1,     # افتراضياً ضعيفة حتى تُثبت الآلية
+    KnowledgeType.SPATIAL: 0.7,  # ملاحظة مباشرة متكررة
+    KnowledgeType.TEMPORAL: 0.5,  # عرضة للتحيّز الزمني
+    KnowledgeType.VARIETAL: 0.6,  # قيّمة لكن تحتاج تأكيداً
+    KnowledgeType.PRACTICE: 0.4,  # قد تكون عادة لا حكمة
+    KnowledgeType.CAUSAL: 0.1,  # افتراضياً ضعيفة حتى تُثبت الآلية
 }
 
 # سقف صارم لوزن المعرفة المحلية/المجتمعية (قرار المستخدم).
@@ -67,12 +68,18 @@ COMMUNITY_WEIGHT_CEILING = 0.15
 # مراصد حاكمة/فيزيائية: المعرفة المحلية لا تمسّها إطلاقاً (وزن = صفر مطلق).
 # الفيزياء والمختبر يحكمان هنا، مهما بلغ إجماع المزارعين.
 GOVERNING_PHYSICS_OBSERVABLES = {
-    "S3", "S4", "S5", "I3", "L3",       # الحاكمات الصارمة
-    "ET0", "ETc", "ETa",                # الحسابات الفيزيائية
+    "S3",
+    "S4",
+    "S5",
+    "I3",
+    "L3",  # الحاكمات الصارمة
+    "ET0",
+    "ETc",
+    "ETa",  # الحسابات الفيزيائية
 }
 
 
-def applicable_weight(fk: "FarmerKnowledge", target_observable: str) -> float:
+def applicable_weight(fk: FarmerKnowledge, target_observable: str) -> float:
     """الوزن الفعّال للمعرفة عند تطبيقها على مرصد معيّن.
     صفر مطلق على الحاكمات/الفيزياء — القاعدة الذهبية: المعرفة لا تكسر الفيزياء."""
     if target_observable in GOVERNING_PHYSICS_OBSERVABLES:
@@ -83,18 +90,19 @@ def applicable_weight(fk: "FarmerKnowledge", target_observable: str) -> float:
 @dataclass
 class FarmerKnowledge:
     """وحدة معرفة محلية مهيكلة وقابلة للتحقق."""
+
     knowledge_id: str
     knowledge_type: KnowledgeType
-    content_ar: str                       # ما قاله المزارع
+    content_ar: str  # ما قاله المزارع
     tenant_id: str
     district_id: str
-    spatial_scope: str                    # النطاق المكاني الدقيق (حقل/منطقة/بقعة)
-    farmer_confidence: Confidence         # ثقة المزارع نفسه
-    mechanism_ar: str = ""                # الآلية الفيزيائية المقترحة (إن وُجدت)
-    verification_method: str = ""         # كيف نتحقّق (ndvi/lab/trial...)
+    spatial_scope: str  # النطاق المكاني الدقيق (حقل/منطقة/بقعة)
+    farmer_confidence: Confidence  # ثقة المزارع نفسه
+    mechanism_ar: str = ""  # الآلية الفيزيائية المقترحة (إن وُجدت)
+    verification_method: str = ""  # كيف نتحقّق (ndvi/lab/trial...)
     verification_status: VerificationStatus = VerificationStatus.PENDING
-    data_agreement: bool | None = None    # هل البيانات تطابقها؟
-    review_year: int | None = None        # متى نراجع (drift مناخي)
+    data_agreement: bool | None = None  # هل البيانات تطابقها؟
+    review_year: int | None = None  # متى نراجع (drift مناخي)
     source_ar: str = "المزارع/الخبرة المتراكمة"
 
     def __post_init__(self):
@@ -111,7 +119,7 @@ class FarmerKnowledge:
         if self.verification_status == VerificationStatus.CONFIRMED and self.data_agreement:
             return Confidence.HIGH
         if self.verification_status == VerificationStatus.CONTRADICTED:
-            return Confidence.LOW   # تعارض — لا تُتّبع
+            return Confidence.LOW  # تعارض — لا تُتّبع
         if self.verification_status == VerificationStatus.PENDING:
             # prior فقط — لم يُتحقّق بعد
             strength = _TYPE_PRIOR_STRENGTH[self.knowledge_type]
@@ -124,20 +132,23 @@ class FarmerKnowledge:
         مقابل المصادر الأخرى — سقف صارم 0.15 (كـ conservative_rag).
         صفر إن مرفوضة أو متعارضة."""
         if self.verification_status in (
-            VerificationStatus.REJECTED, VerificationStatus.CONTRADICTED
+            VerificationStatus.REJECTED,
+            VerificationStatus.CONTRADICTED,
         ):
             return 0.0
         # النوع يحدّد نسبة من السقف؛ التحقّق يرفع ضمن السقف، لا فوقه.
-        base = _TYPE_PRIOR_STRENGTH[self.knowledge_type]   # 0.1..0.7
-        scaled = base * COMMUNITY_WEIGHT_CEILING           # ≤ 0.105
+        base = _TYPE_PRIOR_STRENGTH[self.knowledge_type]  # 0.1..0.7
+        scaled = base * COMMUNITY_WEIGHT_CEILING  # ≤ 0.105
         if self.verification_status == VerificationStatus.CONFIRMED and self.data_agreement:
             scaled = min(scaled * 1.4, COMMUNITY_WEIGHT_CEILING)  # يبلغ السقف بالتحقّق
         return round(scaled, 3)
 
     def explain_ar(self) -> str:
         status_ar = {
-            "pending": "قيد التحقّق", "confirmed": "مؤكّدة بالبيانات",
-            "contradicted": "تعارضها البيانات", "unverifiable": "غير قابلة للتحقّق",
+            "pending": "قيد التحقّق",
+            "confirmed": "مؤكّدة بالبيانات",
+            "contradicted": "تعارضها البيانات",
+            "unverifiable": "غير قابلة للتحقّق",
             "rejected": "مرفوضة (بلا آلية)",
         }
         return (
@@ -166,10 +177,9 @@ def verify_against_data(
     لا تُرفض المعرفة عند التعارض — تُسجّل للدراسة (قد يكون الحساس مخطئاً،
     أو المعرفة متقادمة). الشفافية لا الإقصاء."""
     if knowledge.verification_status == VerificationStatus.REJECTED:
-        return knowledge   # سببية بلا آلية تبقى مرفوضة
+        return knowledge  # سببية بلا آلية تبقى مرفوضة
     knowledge.data_agreement = data_supports
     knowledge.verification_status = (
-        VerificationStatus.CONFIRMED if data_supports
-        else VerificationStatus.CONTRADICTED
+        VerificationStatus.CONFIRMED if data_supports else VerificationStatus.CONTRADICTED
     )
     return knowledge

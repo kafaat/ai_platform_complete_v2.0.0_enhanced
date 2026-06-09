@@ -1,17 +1,25 @@
 """tests/test_historical_onboarding.py — اختبارات إطار الاستيعاب."""
-import sys, os
+
+import os
+import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.historical_onboarding import (
-    FieldType, CanonicalCategory,
-    infer_column_type, suggest_mapping_for_column, profile_column,
-    build_report, ingest_csv_string, format_report_ar,
-    _try_parse_date, _try_parse_number,
+    CanonicalCategory,
+    FieldType,
+    _try_parse_date,
+    _try_parse_number,
+    build_report,
+    format_report_ar,
+    infer_column_type,
+    ingest_csv_string,
+    profile_column,
+    suggest_mapping_for_column,
 )
 
 
 class TestTypeInference:
-
     def test_integer_column(self):
         assert infer_column_type([1, 2, 3, 4, 5]) == FieldType.INTEGER
         assert infer_column_type(["1", "2", "3"]) == FieldType.INTEGER
@@ -45,7 +53,6 @@ class TestTypeInference:
 
 
 class TestMappingSuggestion:
-
     def test_yield_column_mapped(self):
         cat, conf = suggest_mapping_for_column("yield_kg_ha", FieldType.FLOAT)
         assert cat == CanonicalCategory.YIELD_KG_HA
@@ -77,7 +84,6 @@ class TestMappingSuggestion:
 
 
 class TestColumnProfile:
-
     def test_profile_yield_column(self):
         values = [3500, 4200, 5100, None, 3800, 4500]
         p = profile_column("yield_kg_ha", values)
@@ -111,7 +117,6 @@ class TestColumnProfile:
 
 
 class TestBuildReport:
-
     def test_basic_csv_report(self):
         """تقرير بسيط لـCSV نموذجي."""
         csv_data = """field_id,crop,area_ha,sowing_date,yield_kg_ha
@@ -123,7 +128,7 @@ FLD003,barley,1.5,2024-11-10,3800"""
         assert report.column_count == 5
         # كلّ الأعمدة مُربَطة
         assert report.mapping_coverage_pct == 100
-        assert report.readiness == 'ready'
+        assert report.readiness == "ready"
 
     def test_high_null_warning(self):
         """عمود بـ>50٪ null يُولّد warning."""
@@ -133,9 +138,9 @@ FLD003,barley,1.5,2024-11-10,3800"""
 3,5.0
 4,"""
         report = ingest_csv_string(csv_data)
-        warnings = [i for i in report.issues if i.severity == 'warning']
+        warnings = [i for i in report.issues if i.severity == "warning"]
         assert len(warnings) >= 1
-        assert any('value' in w.column for w in warnings if w.column)
+        assert any("value" in w.column for w in warnings if w.column)
 
     def test_blocked_on_empty_column(self):
         """عمود فارغ كلّياً → readiness=blocked."""
@@ -145,8 +150,8 @@ FLD003,barley,1.5,2024-11-10,3800"""
 3,c,"""
         report = ingest_csv_string(csv_data)
         # empty_col كل قيمه فارغة
-        assert report.readiness == 'blocked'
-        errors = [i for i in report.issues if i.severity == 'error']
+        assert report.readiness == "blocked"
+        errors = [i for i in report.issues if i.severity == "error"]
         assert len(errors) >= 1
 
     def test_implausible_warning(self):
@@ -156,9 +161,9 @@ F1,15.0
 F2,20.0
 F3,18.5"""
         report = ingest_csv_string(csv_data)
-        warnings = [i for i in report.issues if i.severity == 'warning']
+        warnings = [i for i in report.issues if i.severity == "warning"]
         # pH خارج النطاق ٣.٥-١٠
-        assert any('متوقَّع' in w.message_ar for w in warnings)
+        assert any("متوقَّع" in w.message_ar for w in warnings)
 
     def test_arabic_columns(self):
         """الأعمدة العربيّة تُربَط."""
@@ -167,13 +172,11 @@ F3,18.5"""
 شعير,3.0,3800"""
         report = ingest_csv_string(csv_data)
         # المحصول → CROP، المساحة → AREA_HA
-        crop_col = next((p for p in report.columns
-                        if p.column_name == 'المحصول'), None)
+        crop_col = next((p for p in report.columns if p.column_name == "المحصول"), None)
         assert crop_col is not None
         assert crop_col.suggested_mapping == CanonicalCategory.CROP
 
-        area_col = next((p for p in report.columns
-                        if p.column_name == 'المساحة'), None)
+        area_col = next((p for p in report.columns if p.column_name == "المساحة"), None)
         assert area_col is not None
         assert area_col.suggested_mapping == CanonicalCategory.AREA_HA
 
@@ -190,7 +193,7 @@ F1,wheat,4500"""
         """CSV فارغ يرفع ValueError."""
         try:
             ingest_csv_string("")
-            assert False
+            raise AssertionError
         except ValueError:
             pass
 
@@ -201,18 +204,18 @@ F1,wheat,4500"""
 F1,wheat,2.0
 F2,barley,3.0"""
         r1 = ingest_csv_string(clean)
-        assert r1.readiness == 'ready'
+        assert r1.readiness == "ready"
 
         # needs_review (coverage<50%)
         weird = """xyz,abc,qwe
 1,2,3
 4,5,6"""
         r2 = ingest_csv_string(weird)
-        assert r2.readiness == 'needs_review'
+        assert r2.readiness == "needs_review"
 
         # blocked (empty column)
         broken = """id,empty
 1,
 2,"""
         r3 = ingest_csv_string(broken)
-        assert r3.readiness == 'blocked'
+        assert r3.readiness == "blocked"

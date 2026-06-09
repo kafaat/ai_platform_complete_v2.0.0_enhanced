@@ -16,15 +16,16 @@ services/sahool-platform/api/sharing.py — Sharing Keys (advisor/dealer/ministr
    - الـthird party يضع الـkey في Authorization header
    - الـscope محدّد + الـexpiration إلزامي
 """
-from __future__ import annotations
-from contextlib import asynccontextmanager as _asynccontextmanager
 
-from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import List, Optional, TYPE_CHECKING
-import secrets
+from __future__ import annotations
+
 import hashlib
+import secrets
+from contextlib import asynccontextmanager as _asynccontextmanager
+from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import asyncpg
@@ -32,12 +33,13 @@ if TYPE_CHECKING:
 
 # ─── Types ──────────────────────────────────────────────────────
 
-class SharingScope(str, Enum):
+
+class SharingScope(StrEnum):
     READ = "read"
     READ_WRITE = "read_write"
 
 
-class ThirdPartyType(str, Enum):
+class ThirdPartyType(StrEnum):
     ADVISOR = "advisor"
     DEALER = "dealer"
     MINISTRY = "ministry"
@@ -48,13 +50,13 @@ class ThirdPartyType(str, Enum):
 @dataclass
 class SharingKey:
     key_id: str
-    key_plaintext: Optional[str]    # يُعرَض مرّة واحدة فقط (عند الإنشاء)
+    key_plaintext: str | None  # يُعرَض مرّة واحدة فقط (عند الإنشاء)
     key_prefix: str
     tenant_id: str
     scope: SharingScope
-    third_party_name: Optional[str]
-    third_party_type: Optional[ThirdPartyType]
-    allowed_field_ids: List[str]
+    third_party_name: str | None
+    third_party_type: ThirdPartyType | None
+    allowed_field_ids: list[str]
     expires_at: str
     created_at: str
 
@@ -62,20 +64,21 @@ class SharingKey:
 @dataclass
 class KeyValidation:
     valid: bool
-    tenant_id: Optional[str]
-    scope: Optional[SharingScope]
-    allowed_field_ids: Optional[List[str]]
-    reason: Optional[str] = None
+    tenant_id: str | None
+    scope: SharingScope | None
+    allowed_field_ids: list[str] | None
+    reason: str | None = None
 
 
 # ─── Key generation (cryptographically secure) ──────────────────
+
 
 def generate_key_plaintext() -> str:
     """يولّد key آمن للـsharing.
 
     Format: "shk_<32-char-base32>"  → e.g. "shk_3FA7B2C4D5E6F7..."
     """
-    raw = secrets.token_urlsafe(24)   # 192 bits of entropy
+    raw = secrets.token_urlsafe(24)  # 192 bits of entropy
     return f"shk_{raw}"
 
 
@@ -90,11 +93,13 @@ def hash_key(key_plaintext: str) -> str:
 
 # ─── Service ────────────────────────────────────────────────────
 
+
 class SharingKeyService:
     """Generate, validate, revoke sharing keys."""
 
-    def __init__(self, pool: "asyncpg.Pool", conn=None):
+    def __init__(self, pool: asyncpg.Pool, conn=None):
         import asyncpg as _ap  # noqa: F401
+
         self.pool = pool
         self._conn = conn
 
@@ -113,10 +118,10 @@ class SharingKeyService:
         created_by: str,
         scope: SharingScope,
         valid_days: int,
-        third_party_name: Optional[str] = None,
-        third_party_type: Optional[ThirdPartyType] = None,
-        allowed_field_ids: Optional[List[str]] = None,
-        allowed_endpoints: Optional[List[str]] = None,
+        third_party_name: str | None = None,
+        third_party_type: ThirdPartyType | None = None,
+        allowed_field_ids: list[str] | None = None,
+        allowed_endpoints: list[str] | None = None,
     ) -> SharingKey:
         """إنشاء key جديد. الـplaintext يُرجَع مرّة واحدة فقط."""
         import uuid as _u
@@ -128,7 +133,7 @@ class SharingKeyService:
         prefix = plaintext[:12]  # "shk_3FA7B2C4"
         key_hash = hash_key(plaintext)
         key_id = str(_u.uuid4())
-        expires_at = datetime.now(timezone.utc) + timedelta(days=valid_days)
+        expires_at = datetime.now(UTC) + timedelta(days=valid_days)
 
         async with self._acquire() as conn:
             await conn.execute(
@@ -162,7 +167,7 @@ class SharingKeyService:
             third_party_type=third_party_type,
             allowed_field_ids=allowed_field_ids or [],
             expires_at=expires_at.isoformat(),
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
         )
 
     async def validate_key(self, key_plaintext: str) -> KeyValidation:
@@ -188,7 +193,7 @@ class SharingKeyService:
                 return KeyValidation(False, None, None, None, "key not found")
             if row["revoked_at"] is not None:
                 return KeyValidation(False, None, None, None, "key revoked")
-            if row["expires_at"] < datetime.now(timezone.utc):
+            if row["expires_at"] < datetime.now(UTC):
                 return KeyValidation(False, None, None, None, "key expired")
 
             # Touch (update last_used_at + count)
@@ -218,7 +223,7 @@ class SharingKeyService:
             )
             return result.endswith("1")
 
-    async def list_keys(self, tenant_id: str, include_revoked: bool = False) -> List[dict]:
+    async def list_keys(self, tenant_id: str, include_revoked: bool = False) -> list[dict]:
         """قائمة كل المفاتيح للـtenant (بدون الـplaintext طبعاً)."""
         import uuid as _u
 

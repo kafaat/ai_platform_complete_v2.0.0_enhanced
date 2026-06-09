@@ -18,47 +18,47 @@ services/sahool-platform/api/temporal_arbitration.py — Temporal Consistency
    ✗ ML temporal reasoning
    ✗ "Causal AI"
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Dict, List, Optional, Tuple
-
+from datetime import UTC, datetime
+from enum import StrEnum
 
 # ─── Measurement types ──────────────────────────────────────────
 
-class DataSource(str, Enum):
-    NDVI_SENTINEL = "ndvi_sentinel"      # ~5 day revisit
+
+class DataSource(StrEnum):
+    NDVI_SENTINEL = "ndvi_sentinel"  # ~5 day revisit
     NDWI_SENTINEL = "ndwi_sentinel"
     SOIL_MOISTURE_SAT = "soil_moisture_sat"  # ~10 day
-    WEATHER_ETO = "weather_eto"          # daily
-    WEATHER_RAIN = "weather_rain"        # daily
-    WEATHER_TEMP = "weather_temp"        # hourly
-    SOIL_LAB = "soil_lab"                # rare (months)
-    SOIL_SENSOR = "soil_sensor"          # hourly/daily
+    WEATHER_ETO = "weather_eto"  # daily
+    WEATHER_RAIN = "weather_rain"  # daily
+    WEATHER_TEMP = "weather_temp"  # hourly
+    SOIL_LAB = "soil_lab"  # rare (months)
+    SOIL_SENSOR = "soil_sensor"  # hourly/daily
     USER_OBSERVATION = "user_observation"  # whenever
-    YIELD_HARVEST = "yield_harvest"      # once per season
+    YIELD_HARVEST = "yield_harvest"  # once per season
 
 
 # Max acceptable age in days, per source
-MAX_FRESHNESS_DAYS: Dict[DataSource, int] = {
-    DataSource.NDVI_SENTINEL:     14,   # weekly revisit acceptable
-    DataSource.NDWI_SENTINEL:     14,
+MAX_FRESHNESS_DAYS: dict[DataSource, int] = {
+    DataSource.NDVI_SENTINEL: 14,  # weekly revisit acceptable
+    DataSource.NDWI_SENTINEL: 14,
     DataSource.SOIL_MOISTURE_SAT: 14,
-    DataSource.WEATHER_ETO:       3,    # ET0 changes fast
-    DataSource.WEATHER_RAIN:      3,
-    DataSource.WEATHER_TEMP:      1,
-    DataSource.SOIL_LAB:          365,  # rarely changes
-    DataSource.SOIL_SENSOR:       7,
-    DataSource.USER_OBSERVATION:  30,
-    DataSource.YIELD_HARVEST:     365,
+    DataSource.WEATHER_ETO: 3,  # ET0 changes fast
+    DataSource.WEATHER_RAIN: 3,
+    DataSource.WEATHER_TEMP: 1,
+    DataSource.SOIL_LAB: 365,  # rarely changes
+    DataSource.SOIL_SENSOR: 7,
+    DataSource.USER_OBSERVATION: 30,
+    DataSource.YIELD_HARVEST: 365,
 }
 
 
 # Max acceptable gap between two sources when combining (days)
 # Default tolerances (crop-agnostic baseline)
-PAIRWISE_MAX_GAP: Dict[Tuple[DataSource, DataSource], int] = {
+PAIRWISE_MAX_GAP: dict[tuple[DataSource, DataSource], int] = {
     # NDVI + ET0 used together for water stress → must be within 7 days
     (DataSource.NDVI_SENTINEL, DataSource.WEATHER_ETO): 7,
     (DataSource.NDVI_SENTINEL, DataSource.WEATHER_RAIN): 7,
@@ -85,32 +85,29 @@ PAIRWISE_MAX_GAP: Dict[Tuple[DataSource, DataSource], int] = {
 # ⚠ UNVALIDATED DEFAULT — needs agronomist review (جلسة التصحيح الذاتي)
 # القيم أدناه تقديريّة ومنطقيّة لكنّها لم تُتحقَّق من مصدر علمي/ميداني موثَّق.
 # يجب مراجعتها مع مهندس زراعي يمني قبل الاعتماد عليها في قرارات حقيقيّة.
-CROP_TOLERANCE_MULTIPLIER: Dict[str, float] = {
+CROP_TOLERANCE_MULTIPLIER: dict[str, float] = {
     # خضروات حسّاسة (تتغيّر يومياً)
-    "tomato":   0.5,
-    "pepper":   0.5,
+    "tomato": 0.5,
+    "pepper": 0.5,
     "cucumber": 0.5,
-    "lettuce":  0.5,
-    "onion":    0.7,
-    "potato":   0.7,
-
+    "lettuce": 0.5,
+    "onion": 0.7,
+    "potato": 0.7,
     # حبوب متوسّطة (تتغيّر أسبوعياً)
-    "wheat":    1.0,
-    "barley":   1.0,
-    "corn":     1.0,
-    "sorghum":  1.0,
-    "rice":     1.0,
-
+    "wheat": 1.0,
+    "barley": 1.0,
+    "corn": 1.0,
+    "sorghum": 1.0,
+    "rice": 1.0,
     # محاصيل علفيّة
-    "alfalfa":  0.8,    # multi-cut: حسّاس للري
-
+    "alfalfa": 0.8,  # multi-cut: حسّاس للري
     # أشجار وشُجَيرات (تتغيّر ببطء)
-    "coffee":   1.8,
-    "qat":      1.5,
-    "dates":    2.0,
-    "mango":    1.8,
-    "citrus":   1.8,
-    "olive":    2.0,
+    "coffee": 1.8,
+    "qat": 1.5,
+    "dates": 2.0,
+    "mango": 1.8,
+    "citrus": 1.8,
+    "olive": 2.0,
 }
 
 # Phenological stage modifier (مرحلة النموّ)
@@ -118,22 +115,23 @@ CROP_TOLERANCE_MULTIPLIER: Dict[str, float] = {
 # ⚠ UNVALIDATED DEFAULT — needs agronomist review (جلسة التصحيح الذاتي)
 # القيم أدناه تقديريّة ومنطقيّة لكنّها لم تُتحقَّق من مصدر علمي/ميداني موثَّق.
 # يجب مراجعتها مع مهندس زراعي يمني قبل الاعتماد عليها في قرارات حقيقيّة.
-STAGE_TOLERANCE_MODIFIER: Dict[str, float] = {
-    "germination":    0.6,   # الإنبات: حسّاس جدّاً
-    "flowering":      0.5,   # الأزهار: الأهمّ في الحبوب
-    "grain_filling":  0.6,   # امتلاء الحبّة: حسّاس
-    "fruit_setting":  0.5,   # عقد الثمار: حسّاس
+STAGE_TOLERANCE_MODIFIER: dict[str, float] = {
+    "germination": 0.6,  # الإنبات: حسّاس جدّاً
+    "flowering": 0.5,  # الأزهار: الأهمّ في الحبوب
+    "grain_filling": 0.6,  # امتلاء الحبّة: حسّاس
+    "fruit_setting": 0.5,  # عقد الثمار: حسّاس
     # المراحل العاديّة
-    "vegetative":     1.0,
-    "maturity":       1.2,   # النضج: tolerance أطول
-    "post_harvest":   2.0,
+    "vegetative": 1.0,
+    "maturity": 1.2,  # النضج: tolerance أطول
+    "post_harvest": 2.0,
 }
 
 
 def _get_pair_limit(
-    a: DataSource, b: DataSource,
-    crop: Optional[str] = None,
-    stage: Optional[str] = None,
+    a: DataSource,
+    b: DataSource,
+    crop: str | None = None,
+    stage: str | None = None,
 ) -> int:
     """يجلب الحدّ الأقصى للفارق الزمني بين مصدرين.
 
@@ -159,18 +157,20 @@ def _get_pair_limit(
 
 # ─── Result types ───────────────────────────────────────────────
 
+
 @dataclass
 class Measurement:
     """قراءة واحدة من مصدر."""
+
     source: DataSource
     timestamp: datetime
-    value: Optional[float] = None
-    metadata: Optional[dict] = None
+    value: float | None = None
+    metadata: dict | None = None
 
 
 @dataclass
 class TemporalIssue:
-    severity: str        # "warning" | "error"
+    severity: str  # "warning" | "error"
     code: str
     message_ar: str
 
@@ -178,21 +178,22 @@ class TemporalIssue:
 @dataclass
 class TemporalArbitrationResult:
     valid: bool
-    issues: List[TemporalIssue] = field(default_factory=list)
-    oldest_measurement: Optional[DataSource] = None
-    newest_measurement: Optional[DataSource] = None
-    age_span_days: Optional[int] = None
+    issues: list[TemporalIssue] = field(default_factory=list)
+    oldest_measurement: DataSource | None = None
+    newest_measurement: DataSource | None = None
+    age_span_days: int | None = None
 
 
 # ─── Main arbiter ───────────────────────────────────────────────
 
+
 class TemporalArbiter:
     """يفحص consistency زمنيّة لمجموعة measurements."""
 
-    def __init__(self, now: Optional[datetime] = None):
-        self.now = now or datetime.now(timezone.utc)
+    def __init__(self, now: datetime | None = None):
+        self.now = now or datetime.now(UTC)
 
-    def check_freshness(self, m: Measurement) -> Optional[TemporalIssue]:
+    def check_freshness(self, m: Measurement) -> TemporalIssue | None:
         """يفحص هل measurement واحدة too stale."""
         age_days = (self.now - m.timestamp).days
         max_age = MAX_FRESHNESS_DAYS.get(m.source, 30)
@@ -201,18 +202,15 @@ class TemporalArbiter:
             return TemporalIssue(
                 severity="warning",
                 code="data_stale",
-                message_ar=(
-                    f"{m.source.value} قديم ({age_days} يوم، "
-                    f"الحدّ المعتاد {max_age})"
-                ),
+                message_ar=(f"{m.source.value} قديم ({age_days} يوم، الحدّ المعتاد {max_age})"),
             )
         return None
 
     def check_combination(
         self,
-        measurements: List[Measurement],
-        crop: Optional[str] = None,
-        stage: Optional[str] = None,
+        measurements: list[Measurement],
+        crop: str | None = None,
+        stage: str | None = None,
     ) -> TemporalArbitrationResult:
         """
         يفحص هل مجموعة measurements متوافقة زمنياً للاستخدام معاً.
@@ -231,7 +229,7 @@ class TemporalArbiter:
         if not measurements:
             return TemporalArbitrationResult(valid=True)
 
-        issues: List[TemporalIssue] = []
+        issues: list[TemporalIssue] = []
 
         # ١. تحقّق freshness لكل واحدة
         for m in measurements:
@@ -241,7 +239,7 @@ class TemporalArbiter:
 
         # ٢. تحقّق pairwise gaps (crop+stage aware)
         for i, m1 in enumerate(measurements):
-            for m2 in measurements[i + 1:]:
+            for m2 in measurements[i + 1 :]:
                 gap_days = abs((m1.timestamp - m2.timestamp).days)
                 limit = _get_pair_limit(m1.source, m2.source, crop=crop, stage=stage)
 
@@ -249,17 +247,18 @@ class TemporalArbiter:
                     severity = "warning" if gap_days <= limit * 2 else "error"
                     crop_note = f" [crop={crop}]" if crop else ""
                     stage_note = f" [stage={stage}]" if stage else ""
-                    issues.append(TemporalIssue(
-                        severity=severity,
-                        code="pair_gap_exceeded",
-                        message_ar=(
-                            f"فارق زمني كبير بين {m1.source.value} و {m2.source.value}: "
-                            f"{gap_days} يوم (الحدّ {limit}){crop_note}{stage_note}"
-                        ),
-                    ))
+                    issues.append(
+                        TemporalIssue(
+                            severity=severity,
+                            code="pair_gap_exceeded",
+                            message_ar=(
+                                f"فارق زمني كبير بين {m1.source.value} و {m2.source.value}: "
+                                f"{gap_days} يوم (الحدّ {limit}){crop_note}{stage_note}"
+                            ),
+                        )
+                    )
 
         # ٣. احسب الـspan
-        timestamps = [m.timestamp for m in measurements]
         oldest = min(measurements, key=lambda m: m.timestamp)
         newest = max(measurements, key=lambda m: m.timestamp)
         span_days = (newest.timestamp - oldest.timestamp).days
@@ -276,11 +275,11 @@ class TemporalArbiter:
 
     def can_combine_for_recommendation(
         self,
-        measurements: List[Measurement],
+        measurements: list[Measurement],
         recommendation_type: str,
-        crop: Optional[str] = None,
-        stage: Optional[str] = None,
-    ) -> Tuple[bool, List[TemporalIssue]]:
+        crop: str | None = None,
+        stage: str | None = None,
+    ) -> tuple[bool, list[TemporalIssue]]:
         """
         Higher-level: هل آمن أن نولّد توصية من هذه الـmeasurements؟
 

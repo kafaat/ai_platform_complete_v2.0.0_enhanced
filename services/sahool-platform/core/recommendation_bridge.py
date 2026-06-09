@@ -28,32 +28,35 @@ provenance) مع recommendation_engine الموجود **بدون تعديله**.
   • Fail closed: شكّ في الصلاحية = رفض
 
 التكامل (الحلقة الكاملة):
-  user request → authorize → recommendation_engine → enrich → 
+  user request → authorize → recommendation_engine → enrich →
   recommendation_log (مع provenance) → returned to user
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 
-from core.authorization import (
-    authorize, Permission, AuthDecision, is_safety_critical_permission)
+from core.authorization import Permission, authorize, is_safety_critical_permission
 from core.canonical_schemas import UserSchema
 from core.cross_reference_finder import (
-    SearchContext, find_similar_recommendations,
-    cross_reference_summary, SimilarityMatch)
+    SearchContext,
+    cross_reference_summary,
+    find_similar_recommendations,
+)
 from core.skills_registry import model_versions_snapshot
 
 
 @dataclass
 class EnrichedRecommendation:
     """توصية مُغنّاة بـcontext تاريخي + provenance + auth decision."""
+
     rec_id: str
-    base_recommendation: dict       # ما أنتجه recommendation_engine
-    cross_reference: dict           # حالات تاريخية مشابهة
-    provenance: dict                # model_versions + weather + snapshot
-    auth_decision: dict             # قرار الصلاحية
-    delivered: bool                 # هل وصلت للمستخدم؟
+    base_recommendation: dict  # ما أنتجه recommendation_engine
+    cross_reference: dict  # حالات تاريخية مشابهة
+    provenance: dict  # model_versions + weather + snapshot
+    auth_decision: dict  # قرار الصلاحية
+    delivered: bool  # هل وصلت للمستخدم؟
     reason_ar: str
     timestamp: str = ""
 
@@ -100,13 +103,15 @@ def enrich_with_context(
     لا يُعدّل التوصية، يُضيف context. recommendation_engine يبقى كما هو."""
     # ١. البحث عن حالات مشابهة (Karpathy Connection Finder)
     search_ctx = SearchContext(
-        tenant_id=tenant_id, field_id=field_id, crop=crop,
-        growth_stage=growth_stage, issue_type=issue_type,
+        tenant_id=tenant_id,
+        field_id=field_id,
+        crop=crop,
+        growth_stage=growth_stage,
+        issue_type=issue_type,
         current_indicators=current_indicators,
-        district_id=district_id,   # ← يُمرّر للـsame_district الصريح
+        district_id=district_id,  # ← يُمرّر للـsame_district الصريح
     )
-    similar = find_similar_recommendations(
-        search_ctx, recommendation_history, min_similarity=0.3)
+    similar = find_similar_recommendations(search_ctx, recommendation_history, min_similarity=0.3)
     cross_ref = cross_reference_summary(similar)
 
     # ٢. بناء provenance
@@ -138,15 +143,14 @@ def authorize_and_deliver(
 
     Fail closed: شكّ = رفض. كل قرار يحمل سبباً."""
     # تحديد الصلاحية المطلوبة
-    perm = (Permission.PESTICIDE_APPROVE if is_pesticide
-            else Permission.RECOMMENDATION_REQUEST)
+    perm = Permission.PESTICIDE_APPROVE if is_pesticide else Permission.RECOMMENDATION_REQUEST
 
-    decision = authorize(user, perm,
-                         resource_tenant_id=tenant_id, farm_id=farm_id)
+    decision = authorize(user, perm, resource_tenant_id=tenant_id, farm_id=farm_id)
 
     # توليد rec_id قابل للتتبّع
-    rec_id = enriched_rec.get("rec_id") or \
-             f"rec_{tenant_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    rec_id = (
+        enriched_rec.get("rec_id") or f"rec_{tenant_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    )
 
     result = EnrichedRecommendation(
         rec_id=rec_id,
@@ -174,7 +178,7 @@ def full_delivery_pipeline(
     field_id: str,
     farm_id: str,
     crop: str,
-    base_recommendation: dict,           # من recommendation_engine
+    base_recommendation: dict,  # من recommendation_engine
     recommendation_history: list,
     current_indicators: dict | None = None,
     growth_stage: str | None = None,
@@ -190,7 +194,9 @@ def full_delivery_pipeline(
     # 1. الإغناء بالسياق
     enriched = enrich_with_context(
         base_recommendation,
-        tenant_id=tenant_id, field_id=field_id, crop=crop,
+        tenant_id=tenant_id,
+        field_id=field_id,
+        crop=crop,
         recommendation_history=recommendation_history,
         current_indicators=current_indicators,
         growth_stage=growth_stage,
@@ -200,8 +206,12 @@ def full_delivery_pipeline(
 
     # 2. الحراسة والتسليم
     return authorize_and_deliver(
-        user, {**enriched, "rec_id": base_recommendation.get("rec_id")},
-        tenant_id=tenant_id, farm_id=farm_id, is_pesticide=is_pesticide)
+        user,
+        {**enriched, "rec_id": base_recommendation.get("rec_id")},
+        tenant_id=tenant_id,
+        farm_id=farm_id,
+        is_pesticide=is_pesticide,
+    )
 
 
 def delivery_summary(delivery: EnrichedRecommendation) -> str:
@@ -211,13 +221,16 @@ def delivery_summary(delivery: EnrichedRecommendation) -> str:
     cross = delivery.cross_reference
     historical = cross.get("count", 0)
     snap = delivery.provenance.get("model_versions", {})
-    return (f"✅ مُسلَّمة (id={delivery.rec_id}). "
-            f"حالات تاريخية: {historical}. "
-            f"نسخ نماذج: {len(snap)}. "
-            f"{delivery.reason_ar}")
+    return (
+        f"✅ مُسلَّمة (id={delivery.rec_id}). "
+        f"حالات تاريخية: {historical}. "
+        f"نسخ نماذج: {len(snap)}. "
+        f"{delivery.reason_ar}"
+    )
 
 
 # ─── Contract Enforcement: المايسترو الذي يفرض الخطوات ───────────
+
 
 class ContextPipelineError(Exception):
     """يُرفع عند محاولة تخطّي خطوة إلزامية في خطّ القرار.
@@ -230,6 +243,7 @@ class ContextPipelineError(Exception):
 @dataclass
 class PipelineRequirements:
     """ما يجب توفّره قبل أيّ توصية. Fail closed إن نقص شيء."""
+
     has_tenant_context: bool
     has_field_context: bool
     has_cross_reference: bool
@@ -239,21 +253,27 @@ class PipelineRequirements:
 
     @property
     def is_complete(self) -> bool:
-        return (self.has_tenant_context and self.has_field_context
-                and self.has_cross_reference and self.has_provenance
-                and self.has_authorization)
+        return (
+            self.has_tenant_context
+            and self.has_field_context
+            and self.has_cross_reference
+            and self.has_provenance
+            and self.has_authorization
+        )
 
 
-def validate_pipeline(delivery: EnrichedRecommendation
-                     ) -> PipelineRequirements:
+def validate_pipeline(delivery: EnrichedRecommendation) -> PipelineRequirements:
     """يفحص أنّ كل المراحل الإلزامية اكتملت.
 
     هذا هو "contract gate": لا توصية تخرج بدون اجتياز.
     يحرس ضدّ المراجعة الأهمّ: 'memory layer outside decision core'."""
     req = PipelineRequirements(
-        has_tenant_context=False, has_field_context=False,
-        has_cross_reference=False, has_provenance=False,
-        has_authorization=False)
+        has_tenant_context=False,
+        has_field_context=False,
+        has_cross_reference=False,
+        has_provenance=False,
+        has_authorization=False,
+    )
 
     # ١. tenant context
     auth = delivery.auth_decision or {}
@@ -302,9 +322,9 @@ def enforce_pipeline(delivery: EnrichedRecommendation) -> EnrichedRecommendation
             delivery.delivered = False
             delivery.reason_ar = (
                 f"خطّ السياق غير مكتمل — ناقص: {'، '.join(req.missing_ar)}. "
-                "هذا يحرس ضدّ توصية بدون cross_reference أو provenance.")
-        raise ContextPipelineError(
-            f"Pipeline incomplete: {req.missing_ar}")
+                "هذا يحرس ضدّ توصية بدون cross_reference أو provenance."
+            )
+        raise ContextPipelineError(f"Pipeline incomplete: {req.missing_ar}")
     return delivery
 
 
@@ -339,8 +359,11 @@ def safe_delivery(
     - scheduled jobs
     - أيّ مكان خارج النواة"""
     delivery = full_delivery_pipeline(
-        user=user, tenant_id=tenant_id, field_id=field_id,
-        farm_id=farm_id, crop=crop,
+        user=user,
+        tenant_id=tenant_id,
+        field_id=field_id,
+        farm_id=farm_id,
+        crop=crop,
         base_recommendation=base_recommendation,
         recommendation_history=recommendation_history,
         current_indicators=current_indicators,

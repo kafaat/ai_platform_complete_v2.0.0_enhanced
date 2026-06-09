@@ -1,10 +1,23 @@
 """Tests for Execution Control Plane (ECP) - structural enforcement.
 Addresses the review's central point: 'convention vs structural enforcement'."""
+
 from core.execution_control_plane import (
-    register_entry_point, unregister_entry_point, is_approved_entry_point,
-    set_mode, get_mode, governed, call_stats, audit_call_log,
-    bypass_alert_summary, seal_direct_engine_access, reset_ecp_state,
-    GovernanceMode, EntryPointType, CallRecord, _bootstrap_known_entry_points)
+    CallRecord,
+    EntryPointType,
+    GovernanceMode,
+    _bootstrap_known_entry_points,
+    audit_call_log,
+    bypass_alert_summary,
+    call_stats,
+    get_mode,
+    governed,
+    is_approved_entry_point,
+    register_entry_point,
+    reset_ecp_state,
+    seal_direct_engine_access,
+    set_mode,
+    unregister_entry_point,
+)
 
 
 class TestEntryPointRegistration:
@@ -14,10 +27,8 @@ class TestEntryPointRegistration:
 
     def test_known_entry_points_registered_on_bootstrap(self):
         # CRITICAL: safe_delivery + orchestrate يجب أن تكون مُسجَّلة
-        assert is_approved_entry_point(
-            "core.recommendation_bridge.safe_delivery")
-        assert is_approved_entry_point(
-            "core.internal_orchestrator.orchestrate_recommendation")
+        assert is_approved_entry_point("core.recommendation_bridge.safe_delivery")
+        assert is_approved_entry_point("core.internal_orchestrator.orchestrate_recommendation")
 
     def test_unknown_function_not_approved(self):
         # CRITICAL: لا اختراع — دالة غير مُسجَّلة → False
@@ -75,8 +86,7 @@ class TestGovernedDecorator:
 
         slow_fn()
         log = audit_call_log(last_n=10)
-        assert any(r.duration_ms is not None and r.duration_ms >= 0
-                  for r in log)
+        assert any(r.duration_ms is not None and r.duration_ms >= 0 for r in log)
 
     def test_governed_captures_failures(self):
         @governed(EntryPointType.INTERNAL_SERVICE)
@@ -109,13 +119,13 @@ class TestStrictModeEnforcement:
 
         # نُلغي تسجيله (محاكاة bypass attempt)
         from core.execution_control_plane import _APPROVED_ENTRY_POINTS
-        qualname = next(k for k in _APPROVED_ENTRY_POINTS
-                       if "will_be_orphaned" in k)
+
+        qualname = next(k for k in _APPROVED_ENTRY_POINTS if "will_be_orphaned" in k)
         unregister_entry_point(qualname)
 
         try:
             will_be_orphaned()
-            assert False, "كان يجب رفع PermissionError"
+            raise AssertionError("كان يجب رفع PermissionError")
         except PermissionError as e:
             assert "STRICT" in str(e)
             assert "safe_delivery" in str(e) or "orchestrate" in str(e)
@@ -130,6 +140,7 @@ class TestStrictModeEnforcement:
 
         # حتى لو ألغينا التسجيل، observation لا يرفض
         from core.execution_control_plane import _APPROVED_ENTRY_POINTS
+
         qualname = next(k for k in _APPROVED_ENTRY_POINTS if "fn" in k)
         unregister_entry_point(qualname)
         # يجب ألّا يرفع
@@ -145,8 +156,8 @@ class TestStrictModeEnforcement:
             return "x"
 
         from core.execution_control_plane import _APPROVED_ENTRY_POINTS
-        qualname = next(k for k in _APPROVED_ENTRY_POINTS
-                       if "orphan_fn" in k)
+
+        qualname = next(k for k in _APPROVED_ENTRY_POINTS if "orphan_fn" in k)
         unregister_entry_point(qualname)
 
         try:
@@ -181,6 +192,7 @@ class TestSealing:
         # CRITICAL: التحقّق الآلي من السلوك الفعلي
         seal_direct_engine_access()
         from core import recommendation_engine
+
         assert hasattr(recommendation_engine, "__all__")
         assert "generate_recommendation" not in recommendation_engine.__all__
 
@@ -220,8 +232,7 @@ class TestThreadSafety:
 
         results = []
         threads = [
-            threading.Thread(target=lambda i=i: results.append(concurrent_fn(i)))
-            for i in range(20)
+            threading.Thread(target=lambda i=i: results.append(concurrent_fn(i))) for i in range(20)
         ]
         for t in threads:
             t.start()

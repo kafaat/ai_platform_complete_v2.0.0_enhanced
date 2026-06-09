@@ -13,10 +13,10 @@ api/ipm_advisor.py — الإدارة المتكاملة للآفات (IPM)
 محدّدة (السلامة عبر chemical_safety + التسجيل المحلّي). المكافحة الكيميائيّة
 ملاذ أخير بإشراف فنّي. human-in-the-loop: المزارع يقرّر، الإرشاد يوجّه.
 """
+
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class IPMStage(str, Enum):
@@ -27,7 +27,7 @@ class IPMStage(str, Enum):
 
 
 # قاعدة معرفة الآفات الرئيسيّة في اليمن + نهج IPM لكلّ منها
-_PESTS: Dict[str, Dict] = {
+_PESTS: dict[str, dict] = {
     "fall_armyworm": {
         "name_ar": "دودة الحشد الخريفيّة",
         "scientific": "Spodoptera frugiperda",
@@ -112,54 +112,85 @@ _PESTS: Dict[str, Dict] = {
             "الدبابير المتطفّلة (Aphidius)",
         ],
         "chemical_note_ar": (
-            "نادراً ما يلزم رشّ إن كانت الأعداء الطبيعيّة نشطة. عند الحاجة، استشر "
-            "السلامة الكيميائيّة."
+            "نادراً ما يلزم رشّ إن كانت الأعداء الطبيعيّة نشطة. عند الحاجة، استشر السلامة الكيميائيّة."
         ),
         "economic_threshold_ar": "عند تجمّعات كثيفة مع غياب الأعداء الطبيعيّين.",
     },
 }
 
 _ALIASES = {
-    "دودة الحشد": "fall_armyworm", "دودة الحشد الخريفية": "fall_armyworm",
-    "الحشد": "fall_armyworm", "armyworm": "fall_armyworm",
-    "صدأ القمح": "wheat_rust", "صدأ": "wheat_rust", "rust": "wheat_rust",
-    "منّ": "aphid", "المن": "aphid", "المنّ": "aphid",
+    "دودة الحشد": "fall_armyworm",
+    "دودة الحشد الخريفية": "fall_armyworm",
+    "الحشد": "fall_armyworm",
+    "armyworm": "fall_armyworm",
+    "صدأ القمح": "wheat_rust",
+    "صدأ": "wheat_rust",
+    "rust": "wheat_rust",
+    "منّ": "aphid",
+    "المن": "aphid",
+    "المنّ": "aphid",
 }
 
 
-def _resolve(pest: str) -> Optional[str]:
+def _resolve(pest: str) -> str | None:
     p = pest.strip().lower()
     if p in _PESTS:
         return p
     return _ALIASES.get(pest.strip())
 
 
-def supported_pests() -> List[Dict]:
+def supported_pests() -> list[dict]:
     return [
-        {"pest": k, "name_ar": v["name_ar"], "scientific": v["scientific"],
-         "hosts_ar": v["hosts_ar"], "severity_ar": v["severity_ar"]}
+        {
+            "pest": k,
+            "name_ar": v["name_ar"],
+            "scientific": v["scientific"],
+            "hosts_ar": v["hosts_ar"],
+            "severity_ar": v["severity_ar"],
+        }
         for k, v in _PESTS.items()
     ]
 
 
-def ipm_plan(pest: str) -> Dict:
+def ipm_plan(pest: str) -> dict:
     """خطّة الإدارة المتكاملة الكاملة لآفة (4 مراحل متدرّجة)."""
     key = _resolve(pest)
     if not key:
-        return {"supported": False,
-                "message_ar": f"لا خطّة IPM لـ«{pest}». المدعوم: "
-                              + "، ".join(v["name_ar"] for v in _PESTS.values())}
+        return {
+            "supported": False,
+            "message_ar": f"لا خطّة IPM لـ«{pest}». المدعوم: "
+            + "، ".join(v["name_ar"] for v in _PESTS.values()),
+        }
     p = _PESTS[key]
     return {
         "supported": True,
-        "pest": key, "name_ar": p["name_ar"], "scientific": p["scientific"],
-        "hosts_ar": p["hosts_ar"], "severity_ar": p["severity_ar"],
+        "pest": key,
+        "name_ar": p["name_ar"],
+        "scientific": p["scientific"],
+        "hosts_ar": p["hosts_ar"],
+        "severity_ar": p["severity_ar"],
         "symptoms_ar": p["symptoms_ar"],
         "ipm_ladder": [
-            {"stage": "prevention", "stage_ar": "١. الوقاية (الأساس)", "actions_ar": p["prevention_ar"]},
-            {"stage": "monitoring", "stage_ar": "٢. المراقبة والرصد", "actions_ar": p["monitoring_ar"]},
-            {"stage": "biological", "stage_ar": "٣. المكافحة الحيويّة", "actions_ar": p["biological_ar"]},
-            {"stage": "chemical", "stage_ar": "٤. الكيميائيّة (ملاذ أخير)", "actions_ar": [p["chemical_note_ar"]]},
+            {
+                "stage": "prevention",
+                "stage_ar": "١. الوقاية (الأساس)",
+                "actions_ar": p["prevention_ar"],
+            },
+            {
+                "stage": "monitoring",
+                "stage_ar": "٢. المراقبة والرصد",
+                "actions_ar": p["monitoring_ar"],
+            },
+            {
+                "stage": "biological",
+                "stage_ar": "٣. المكافحة الحيويّة",
+                "actions_ar": p["biological_ar"],
+            },
+            {
+                "stage": "chemical",
+                "stage_ar": "٤. الكيميائيّة (ملاذ أخير)",
+                "actions_ar": [p["chemical_note_ar"]],
+            },
         ],
         "economic_threshold_ar": p["economic_threshold_ar"],
         "philosophy_ar": (
@@ -173,13 +204,20 @@ def ipm_plan(pest: str) -> Dict:
     }
 
 
-def pests_for_crop(crop: str) -> Dict:
+def pests_for_crop(crop: str) -> dict:
     """يُرجع الآفات التي تصيب محصولاً معيّناً (للوقاية الاستباقيّة)."""
     crop_l = crop.strip().lower()
     crop_map = {
-        "maize": "الذرة الشاميّة", "ذرة شامية": "الذرة الشاميّة", "ذرة شاميّة": "الذرة الشاميّة",
-        "wheat": "القمح", "قمح": "القمح", "barley": "الشعير", "شعير": "الشعير",
-        "sorghum": "الذرة الرفيعة", "millet": "الدخن", "دخن": "الدخن",
+        "maize": "الذرة الشاميّة",
+        "ذرة شامية": "الذرة الشاميّة",
+        "ذرة شاميّة": "الذرة الشاميّة",
+        "wheat": "القمح",
+        "قمح": "القمح",
+        "barley": "الشعير",
+        "شعير": "الشعير",
+        "sorghum": "الذرة الرفيعة",
+        "millet": "الدخن",
+        "دخن": "الدخن",
     }
     crop_ar = crop_map.get(crop_l) or crop_map.get(crop.strip())
     if not crop_ar:

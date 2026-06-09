@@ -8,16 +8,16 @@ management_zones.py — مناطق الإدارة داخل الحقل (سدّ ف
 يعمل على إحصاءات/قيم المؤشّر (لا يحتاج مكتبات ثقيلة). التقسيم بالكوانتايل
 (quantile) على متوسّط المؤشّر، مع علامة ثبات (CV عبر الزمن).
 """
+
 from __future__ import annotations
 
 import statistics
-from typing import Dict, List, Optional
 
 
 def classify_zones(
-    pixel_values: List[float],
+    pixel_values: list[float],
     n_zones: int = 3,
-) -> Dict:
+) -> dict:
     """يقسّم قيم بكسلات الحقل إلى n مناطق أداء بالكوانتايل.
 
     3 مناطق افتراضيّة: منخفض/متوسّط/عالٍ. الكوانتايل أمتن من العتبات الثابتة
@@ -25,15 +25,14 @@ def classify_zones(
     """
     vals = [v for v in pixel_values if v is not None and _finite(v)]
     if len(vals) < n_zones:
-        return {"zones": [], "error": "قيم غير كافية للتقسيم",
-                "pixels": len(vals)}
+        return {"zones": [], "error": "قيم غير كافية للتقسيم", "pixels": len(vals)}
 
     vals_sorted = sorted(vals)
     # حدود الكوانتايل
-    cuts = [vals_sorted[int(len(vals_sorted) * i / n_zones)]
-            for i in range(1, n_zones)]
-    labels = (["low", "medium", "high"] if n_zones == 3
-              else [f"zone_{i+1}" for i in range(n_zones)])
+    cuts = [vals_sorted[int(len(vals_sorted) * i / n_zones)] for i in range(1, n_zones)]
+    labels = (
+        ["low", "medium", "high"] if n_zones == 3 else [f"zone_{i + 1}" for i in range(n_zones)]
+    )
 
     counts = [0] * n_zones
     for v in vals:
@@ -46,28 +45,31 @@ def classify_zones(
     total = len(vals)
     zones = []
     for i in range(n_zones):
-        zones.append({
-            "zone": labels[i] if i < len(labels) else f"zone_{i+1}",
-            "pixel_count": counts[i],
-            "pct": round(100 * counts[i] / total, 1),
-            "value_range": [
-                round(vals_sorted[0] if i == 0 else cuts[i-1], 4),
-                round(cuts[i] if i < len(cuts) else vals_sorted[-1], 4),
-            ],
-        })
+        zones.append(
+            {
+                "zone": labels[i] if i < len(labels) else f"zone_{i + 1}",
+                "pixel_count": counts[i],
+                "pct": round(100 * counts[i] / total, 1),
+                "value_range": [
+                    round(vals_sorted[0] if i == 0 else cuts[i - 1], 4),
+                    round(cuts[i] if i < len(cuts) else vals_sorted[-1], 4),
+                ],
+            }
+        )
     return {
         "n_zones": n_zones,
         "total_pixels": total,
         "zones": zones,
         "field_mean": round(statistics.fmean(vals), 4),
         "field_cv": round(statistics.pstdev(vals) / statistics.fmean(vals), 3)
-                    if statistics.fmean(vals) else None,
+        if statistics.fmean(vals)
+        else None,
     }
 
 
 def stability_zones(
-    temporal_values: List[List[float]],
-) -> Dict:
+    temporal_values: list[list[float]],
+) -> dict:
     """مناطق الثبات: يجمع عدّة تواريخ ليحدّد المناطق الثابتة عبر الزمن.
 
     المدخل: قائمة [تاريخ][بكسل]. المخرج: لكلّ بكسل، المتوسّط + معامل التباين
@@ -81,8 +83,11 @@ def stability_zones(
     stable, unstable = 0, 0
     means = []
     for px in range(n_px):
-        series = [temporal_values[t][px] for t in range(len(temporal_values))
-                  if _finite(temporal_values[t][px])]
+        series = [
+            temporal_values[t][px]
+            for t in range(len(temporal_values))
+            if _finite(temporal_values[t][px])
+        ]
         if len(series) < 2:
             continue
         m = statistics.fmean(series)
@@ -103,10 +108,10 @@ def stability_zones(
 
 
 def prescription_from_zones(
-    zones: List[Dict],
+    zones: list[dict],
     base_rate: float,
     strategy: str = "compensate",
-) -> List[Dict]:
+) -> list[dict]:
     """وصفة متغيّرة المعدّل (VRT) من المناطق.
 
     strategy='compensate': المناطق الضعيفة تأخذ أكثر (تعويض) — شائع للسماد.
@@ -121,12 +126,14 @@ def prescription_from_zones(
     for z in zones:
         zone = z.get("zone", "medium")
         factor = factors.get(zone, 1.0)
-        out.append({
-            "zone": zone,
-            "pct_of_field": z.get("pct"),
-            "rate": round(base_rate * factor, 2),
-            "factor": factor,
-        })
+        out.append(
+            {
+                "zone": zone,
+                "pct_of_field": z.get("pct"),
+                "rate": round(base_rate * factor, 2),
+                "factor": factor,
+            }
+        )
     return out
 
 

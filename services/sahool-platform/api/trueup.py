@@ -22,12 +22,13 @@ services/sahool-platform/api/trueup.py — Yield Calibration Engine
    - لا variable k per zone (نطبّق نفس الـk على كل الـmap)
    - تأتي لاحقاً مع spatial regression
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import List, Optional, TYPE_CHECKING
+from datetime import UTC, datetime
+from enum import StrEnum
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import asyncpg
@@ -37,35 +38,36 @@ if TYPE_CHECKING:
 # مرجع: USDA + FAO grain trading standards
 # الإنتاج يُنقَل دائماً إلى نسبة الرطوبة المعياريّة قبل التسعير
 STANDARD_MOISTURE_PCT = {
-    "wheat":   13.5,
-    "barley":  13.5,
-    "corn":    15.5,
+    "wheat": 13.5,
+    "barley": 13.5,
+    "corn": 15.5,
     "sorghum": 14.0,
-    "rice":    14.0,
+    "rice": 14.0,
     # الخضراوات تُسعَّر طازجة، لا تطبيق
-    "tomato":  None,
-    "potato":  None,
-    "onion":   None,
+    "tomato": None,
+    "potato": None,
+    "onion": None,
 }
 
 
 # ─── Types ──────────────────────────────────────────────────────
 
-class TrueUpStatus(str, Enum):
+
+class TrueUpStatus(StrEnum):
     PENDING = "pending"
     APPLIED = "applied"
-    REJECTED = "rejected"   # لو الـk_new خارج النطاق المعقول
+    REJECTED = "rejected"  # لو الـk_new خارج النطاق المعقول
 
 
 @dataclass
 class TrueUpInput:
     field_id: str
-    operation_id: str           # harvest operation
-    actual_weight_kg: float     # الوزن الحقيقي بعد التوزين (للحقل كاملاً أو لعيّنة)
+    operation_id: str  # harvest operation
+    actual_weight_kg: float  # الوزن الحقيقي بعد التوزين (للحقل كاملاً أو لعيّنة)
     actual_moisture_pct: float  # رطوبة العيّنة عند التوزين
-    measured_weight_kg: float   # ما قاسه الـcombine
-    sample_area_ha: Optional[float] = None  # لو القياس لجزء فقط من الحقل
-    notes_ar: Optional[str] = None
+    measured_weight_kg: float  # ما قاسه الـcombine
+    sample_area_ha: float | None = None  # لو القياس لجزء فقط من الحقل
+    notes_ar: str | None = None
 
 
 @dataclass
@@ -75,7 +77,7 @@ class TrueUpResult:
     status: TrueUpStatus
 
     # The k correction factor
-    k_old: float                # كان 1.0 لو أوّل معايرة
+    k_old: float  # كان 1.0 لو أوّل معايرة
     k_new: float
     k_change_pct: float
 
@@ -85,15 +87,16 @@ class TrueUpResult:
 
     # Adjustment metadata
     moisture_correction_applied: bool
-    standard_moisture_pct: Optional[float]
+    standard_moisture_pct: float | None
 
-    error_pct: float            # |k_new - 1| × 100 — كم كان الـcombine off
-    warnings: List[str] = field(default_factory=list)
+    error_pct: float  # |k_new - 1| × 100 — كم كان الـcombine off
+    warnings: list[str] = field(default_factory=list)
     rationale_ar: str = ""
     applied_at: str = ""
 
 
 # ─── Math (pure functions — testable without DB) ────────────────
+
 
 def moisture_correct(
     weight_kg: float,
@@ -141,6 +144,7 @@ def is_k_acceptable(k_new: float) -> bool:
 
 # ─── TrueUp engine ──────────────────────────────────────────────
 
+
 class TrueUpEngine:
     """
     Server-side engine لتطبيق TrueUp.
@@ -153,7 +157,7 @@ class TrueUpEngine:
        5. emit event 'trueup.applied' → reports تُعاد توليدها
     """
 
-    def __init__(self, pool: "asyncpg.Pool" = None, event_bus=None):
+    def __init__(self, pool: asyncpg.Pool = None, event_bus=None):
         """pool + event_bus اختياريّان — التعديل الرياضي يعمل بدونهما."""
         self.pool = pool
         self.event_bus = event_bus
@@ -169,7 +173,7 @@ class TrueUpEngine:
         Pure function — يحسب الـTrueUp بدون أيّ DB access.
         قابل للاختبار مستقلّاً.
         """
-        warnings: List[str] = []
+        warnings: list[str] = []
 
         # ١. Moisture correction (إن كان المحصول حبوب)
         std_moisture = STANDARD_MOISTURE_PCT.get(crop.lower())
@@ -205,7 +209,9 @@ class TrueUpEngine:
                 field_id=input_data.field_id,
                 operation_id=input_data.operation_id,
                 status=TrueUpStatus.REJECTED,
-                k_old=k_old, k_new=0, k_change_pct=0,
+                k_old=k_old,
+                k_new=0,
+                k_change_pct=0,
                 measured_yield_kg_ha=measured_yield_kg_ha,
                 adjusted_yield_kg_ha=measured_yield_kg_ha,
                 moisture_correction_applied=moisture_applied,
@@ -222,7 +228,8 @@ class TrueUpEngine:
                 field_id=input_data.field_id,
                 operation_id=input_data.operation_id,
                 status=TrueUpStatus.REJECTED,
-                k_old=k_old, k_new=k_new,
+                k_old=k_old,
+                k_new=k_new,
                 k_change_pct=(k_new - 1.0) * 100,
                 measured_yield_kg_ha=measured_yield_kg_ha,
                 adjusted_yield_kg_ha=measured_yield_kg_ha,
@@ -249,15 +256,11 @@ class TrueUpEngine:
         rationale_parts = []
         if moisture_applied:
             rationale_parts.append(
-                f"تصحيح الرطوبة: من {input_data.actual_moisture_pct}% "
-                f"إلى المعيار {std_moisture}%"
+                f"تصحيح الرطوبة: من {input_data.actual_moisture_pct}% إلى المعيار {std_moisture}%"
             )
+        rationale_parts.append(f"معامل التصحيح k={k_new:.3f} (الفرق {error_pct:.1f}%)")
         rationale_parts.append(
-            f"معامل التصحيح k={k_new:.3f} (الفرق {error_pct:.1f}%)"
-        )
-        rationale_parts.append(
-            f"الإنتاج المُعدَّل: {adjusted_yield:.0f} كغ/هـ "
-            f"(كان {measured_yield_kg_ha:.0f})"
+            f"الإنتاج المُعدَّل: {adjusted_yield:.0f} كغ/هـ (كان {measured_yield_kg_ha:.0f})"
         )
 
         if error_pct > 10:
@@ -289,7 +292,7 @@ class TrueUpEngine:
         measured_yield_kg_ha: float,
         actor_id: str,
         tenant_id: str,
-        command_id: Optional[str] = None,
+        command_id: str | None = None,
     ) -> TrueUpResult:
         """
         النسخة الكاملة: compute + persist + emit event.
@@ -300,6 +303,7 @@ class TrueUpEngine:
 
         # ١. Look up current k (default 1.0)
         import uuid as _uuid
+
         async with self.pool.acquire() as conn:
             k_old_row = await conn.fetchval(
                 """
@@ -348,7 +352,8 @@ class TrueUpEngine:
 
         # ٤. Emit event (لـreports تُعاد توليدها)
         if self.event_bus:
-            from .event_bus import EventType, EventSource
+            from .event_bus import EventSource, EventType
+
             await self.event_bus.emit(
                 event_type=EventType.TRUEUP_APPLIED,
                 entity_type="field",
@@ -372,4 +377,4 @@ class TrueUpEngine:
 
 
 def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()

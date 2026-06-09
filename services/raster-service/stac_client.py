@@ -12,6 +12,7 @@ stac_client.py — عميل STAC مرن (تحسين قلب النظام: الا�
 
 صدق: لا تخترع صوراً. عند فشل المصدر + لا cache → تُبلّغ بالفشل بوضوح.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -19,7 +20,6 @@ import hashlib
 import json
 import logging
 import time
-from typing import Dict, Optional
 
 logger = logging.getLogger("sahool.stac_client")
 
@@ -42,11 +42,16 @@ class ResilientStacClient:
     وإلّا الذاكرة (للجلسة). يتدهور بلطف: فشل Redis → ذاكرة، لا يعطّل الخدمة.
     """
 
-    def __init__(self, base_url: str, timeout: float = 30.0,
-                 max_retries: int = 3, cache_ttl: float = 900.0,
-                 redis_url: Optional[str] = None,
-                 fallback_url: Optional[str] = None,
-                 fallback_urls: Optional[list] = None):
+    def __init__(
+        self,
+        base_url: str,
+        timeout: float = 30.0,
+        max_retries: int = 3,
+        cache_ttl: float = 900.0,
+        redis_url: str | None = None,
+        fallback_url: str | None = None,
+        fallback_urls: list | None = None,
+    ):
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
@@ -60,13 +65,19 @@ class ResilientStacClient:
         if fallback_urls:
             chain.extend(u.rstrip("/") for u in fallback_urls if u)
         self.fallback_urls = chain
-        self._cache: Dict[str, _CacheEntry] = {}  # ذاكرة (fallback)
+        self._cache: dict[str, _CacheEntry] = {}  # ذاكرة (fallback)
         self._redis = None  # يُهيّأ كسولاً
         self._redis_tried = False
         # عدّادات صحّة المصدر (للمراقبة /metrics)
-        self.stats = {"requests": 0, "cache_hits": 0, "retries": 0,
-                      "failures": 0, "stale_served": 0, "redis_hits": 0,
-                      "fallback_served": 0}
+        self.stats = {
+            "requests": 0,
+            "cache_hits": 0,
+            "retries": 0,
+            "failures": 0,
+            "stale_served": 0,
+            "redis_hits": 0,
+            "fallback_served": 0,
+        }
 
     async def _get_redis(self):
         """يهيّئ Redis كسولاً مرّة واحدة. فشله لا يعطّل (يتدهور للذاكرة)."""
@@ -77,8 +88,8 @@ class ResilientStacClient:
             return None
         try:
             import redis.asyncio as aioredis
-            r = aioredis.from_url(self.redis_url, encoding="utf-8",
-                                  decode_responses=True)
+
+            r = aioredis.from_url(self.redis_url, encoding="utf-8", decode_responses=True)
             await r.ping()
             self._redis = r
             logger.info("STAC cache: Redis متّصل (مشترك)")
@@ -93,7 +104,7 @@ class ResilientStacClient:
         norm = json.dumps(payload, sort_keys=True)
         return hashlib.sha256(norm.encode()).hexdigest()[:24]
 
-    async def _cache_get(self, key: str) -> Optional[_CacheEntry]:
+    async def _cache_get(self, key: str) -> _CacheEntry | None:
         """يقرأ من Redis (مشترك) ثمّ الذاكرة. يُرجِع _CacheEntry أو None."""
         r = await self._get_redis()
         if r is not None:
@@ -137,7 +148,8 @@ class ResilientStacClient:
 
         # ٢. طلب بإعادة محاولة + backoff أُسّي (يحتاج httpx)
         import httpx
-        last_err: Optional[Exception] = None
+
+        last_err: Exception | None = None
         for attempt in range(self.max_retries):
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -152,7 +164,7 @@ class ResilientStacClient:
                 if attempt < self.max_retries - 1:
                     self.stats["retries"] += 1
                     # backoff أُسّي: 1s, 2s, 4s ... (مع سقف)
-                    await asyncio.sleep(min(2 ** attempt, 8))
+                    await asyncio.sleep(min(2**attempt, 8))
                     logger.warning("STAC محاولة %d فشلت: %s", attempt + 1, e)
 
         # ٣. الأساس فشل — جرّب المصادر الاحتياطيّة بالترتيب (PC ثمّ غيره).
@@ -166,9 +178,13 @@ class ResilientStacClient:
                 self.stats["fallback_served"] += 1
                 await self._cache_set(key, data)
                 logger.warning("STAC الأساس فشل — قُدّم من احتياطي: %s", fb_url)
-                return {**data, "_cache": "miss", "_source": "fallback",
-                        "_fallback_url": fb_url,
-                        "_warning": "المصدر الأساس متعذّر — نتيجة من مصدر احتياطي"}
+                return {
+                    **data,
+                    "_cache": "miss",
+                    "_source": "fallback",
+                    "_fallback_url": fb_url,
+                    "_warning": "المصدر الأساس متعذّر — نتيجة من مصدر احتياطي",
+                }
             except Exception as e:  # noqa: BLE001 — هذا الاحتياطي فشل، جرّب التالي
                 logger.warning("احتياطي فشل (%s): %s", fb_url, e)
 
@@ -176,13 +192,15 @@ class ResilientStacClient:
         if entry is not None:
             self.stats["stale_served"] += 1
             logger.warning("STAC فشل — أقدّم cache منتهياً (عمر %.0fث)", entry.age())
-            return {**entry.data, "_cache": "stale",
-                    "_warning": "المصدر غير متاح — نتيجة محفوظة قد تكون قديمة"}
+            return {
+                **entry.data,
+                "_cache": "stale",
+                "_warning": "المصدر غير متاح — نتيجة محفوظة قد تكون قديمة",
+            }
 
         # ٥. لا cache + فشل تامّ — أبلِغ بصدق (لا تخترع)
         self.stats["failures"] += 1
-        raise RuntimeError(
-            f"STAC غير متاح بعد {self.max_retries} محاولات ولا cache: {last_err}")
+        raise RuntimeError(f"STAC غير متاح بعد {self.max_retries} محاولات ولا cache: {last_err}")
 
     def health(self) -> dict:
         """صحّة المصدر للمراقبة (يُضاف لـ/metrics)."""

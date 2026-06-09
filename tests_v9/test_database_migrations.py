@@ -1,19 +1,26 @@
 """Database Migration Tests — SAHOOL v9.1.0"""
-import pytest
-import re
-import os
 
-IMP  = os.path.join(os.path.dirname(__file__), "../../sahool_improvements")
+import os
+import re
+
+import pytest
+
+IMP = os.path.join(os.path.dirname(__file__), "../../sahool_improvements")
 BASE = os.path.dirname(os.path.dirname(__file__))
 
+
 def read_sql(path):
-    try: return open(path, encoding="utf-8").read()
-    except Exception: return ""
+    try:
+        return open(path, encoding="utf-8").read()
+    except Exception:
+        return ""
+
 
 class TestSQLSyntax:
     @pytest.mark.unit
     def test_no_syntax_errors_init_v8(self):
         import sqlparse
+
         # FIX: الملف يقع في migrations/ داخل المستودع (المسار القديم
         # ../../sahool_improvements لم يَعُد موجوداً ⇒ read_sql='' ⇒ فشل زائف).
         sql = read_sql(os.path.join(BASE, "migrations/init_v8.sql"))
@@ -39,9 +46,14 @@ class TestSQLSyntax:
         for f in sql_files:
             sql = read_sql(os.path.join(BASE, f))
             # 4+ اقتباسات متتالية = تهريب مضاعف (وليس مجرّد '' فارغة شرعيّة)
-            over_escaped = [l for l in sql.split("\n")
-                            if re.search(r"'{4,}", l) and not l.strip().startswith("--")]
-            assert len(over_escaped) == 0, f"over-escaped quotes (bypass risk) in {f}: {over_escaped}"
+            over_escaped = [
+                line
+                for line in sql.split("\n")
+                if re.search(r"'{4,}", line) and not line.strip().startswith("--")
+            ]
+            assert len(over_escaped) == 0, (
+                f"over-escaped quotes (bypass risk) in {f}: {over_escaped}"
+            )
 
     @pytest.mark.unit
     def test_no_pg_has_role_bypass(self):
@@ -55,8 +67,11 @@ class TestSQLSyntax:
         ]
         for f in sql_files:
             sql = read_sql(os.path.join(BASE, f))
-            active = [l.strip() for l in sql.split("\n")
-                      if "pg_has_role" in l and not l.strip().startswith("--")]
+            active = [
+                line.strip()
+                for line in sql.split("\n")
+                if "pg_has_role" in line and not line.strip().startswith("--")
+            ]
             assert len(active) == 0, f"pg_has_role in {f}"
 
     @pytest.mark.unit
@@ -64,9 +79,9 @@ class TestSQLSyntax:
         """workflow_states must be defined before workflow_transitions."""
         sql = read_sql(os.path.join(BASE, "migrations/v9_odoo_bridge.sql"))
         states_pos = sql.find("CREATE TABLE IF NOT EXISTS workflow_states")
-        trans_pos  = sql.find("CREATE TABLE IF NOT EXISTS workflow_transitions")
+        trans_pos = sql.find("CREATE TABLE IF NOT EXISTS workflow_transitions")
         assert states_pos >= 0, "workflow_states not found"
-        assert trans_pos >= 0,  "workflow_transitions not found"
+        assert trans_pos >= 0, "workflow_transitions not found"
         assert states_pos < trans_pos, "workflow_states must come before workflow_transitions"
 
     @pytest.mark.unit
@@ -82,6 +97,7 @@ class TestSQLSyntax:
         """Test that the DB is alive after migrations."""
         import asyncpg
         from conftest import TEST_DB_URL
+
         pool = await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=2)
         try:
             result = await pool.fetchval("SELECT 1")

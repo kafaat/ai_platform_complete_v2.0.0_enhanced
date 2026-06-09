@@ -22,49 +22,51 @@ services/sahool-platform/api/confidence_aggregation.py — Compositional Confide
    - critical inputs تكون required (لو غابت → very_low)
    - non-critical inputs تكون weighted contributions
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
 import math
+from dataclasses import dataclass
+from typing import Any
 
 from .confidence_engine import (
     ConfidenceLevel,
     level_from_score,
 )
 
-
 # ─── Aggregation strategy ───────────────────────────────────────
+
 
 @dataclass
 class ConfidenceInput:
     """input واحد للـaggregation."""
-    name: str                              # "ndvi" / "soil_ph" / "weather_eto"
-    score: float                           # 0-1
+
+    name: str  # "ndvi" / "soil_ph" / "weather_eto"
+    score: float  # 0-1
     weight: float = 1.0
-    is_critical: bool = False              # لو missing → recommendation rejected
-    is_present: bool = True                # False لو الـinput غير متوفّر
+    is_critical: bool = False  # لو missing → recommendation rejected
+    is_present: bool = True  # False لو الـinput غير متوفّر
 
 
 @dataclass
 class AggregatedConfidence:
     """نتيجة دمج confidences متعدّدة."""
-    score: float                           # 0-1
+
+    score: float  # 0-1
     level: ConfidenceLevel
-    inputs_used: List[str]
-    inputs_missing: List[str]              # الـmissing critical inputs
-    inputs_degraded: List[str]             # < 0.5
+    inputs_used: list[str]
+    inputs_missing: list[str]  # الـmissing critical inputs
+    inputs_degraded: list[str]  # < 0.5
     rationale_ar: str
-    
+
     @property
     def safe_for_action(self) -> bool:
         """هل آمن لتنفيذ action تلقائياً؟"""
         return (
-            self.level in (ConfidenceLevel.HIGH, ConfidenceLevel.MEDIUM)
-            and not self.inputs_missing
+            self.level in (ConfidenceLevel.HIGH, ConfidenceLevel.MEDIUM) and not self.inputs_missing
         )
-    
-    def to_dict(self) -> Dict[str, Any]:
+
+    def to_dict(self) -> dict[str, Any]:
         return {
             "score": self.score,
             "level": self.level.value,
@@ -78,7 +80,8 @@ class AggregatedConfidence:
 
 # ─── Aggregator ────────────────────────────────────────────────
 
-def aggregate(inputs: List[ConfidenceInput]) -> AggregatedConfidence:
+
+def aggregate(inputs: list[ConfidenceInput]) -> AggregatedConfidence:
     """
     Combines confidences using weighted geometric mean.
 
@@ -98,9 +101,9 @@ def aggregate(inputs: List[ConfidenceInput]) -> AggregatedConfidence:
             rationale_ar="لا توجد أيّ مدخلات للحساب",
         )
 
-    inputs_used: List[str] = []
-    missing_critical: List[str] = []
-    degraded: List[str] = []
+    inputs_used: list[str] = []
+    missing_critical: list[str] = []
+    degraded: list[str] = []
     weighted_log_sum = 0.0
     total_weight = 0.0
     missing_non_critical_weight = 0.0
@@ -172,63 +175,109 @@ def aggregate(inputs: List[ConfidenceInput]) -> AggregatedConfidence:
 
 # ─── Recipe presets للـcommon recommendations ───────────────────
 
+
 def irrigation_confidence(
-    ndvi_confidence: Optional[float],
-    et0_confidence: Optional[float],
-    soil_moisture_confidence: Optional[float],
-    weather_forecast_confidence: Optional[float],
+    ndvi_confidence: float | None,
+    et0_confidence: float | None,
+    soil_moisture_confidence: float | None,
+    weather_forecast_confidence: float | None,
 ) -> AggregatedConfidence:
     """confidence لتوصية ري."""
-    return aggregate([
-        ConfidenceInput("ndvi", ndvi_confidence or 0,
-                        weight=0.30, is_critical=False,
-                        is_present=ndvi_confidence is not None),
-        ConfidenceInput("et0", et0_confidence or 0,
-                        weight=0.35, is_critical=True,
-                        is_present=et0_confidence is not None),
-        ConfidenceInput("soil_moisture", soil_moisture_confidence or 0,
-                        weight=0.25, is_critical=False,
-                        is_present=soil_moisture_confidence is not None),
-        ConfidenceInput("weather_forecast", weather_forecast_confidence or 0,
-                        weight=0.10, is_critical=False,
-                        is_present=weather_forecast_confidence is not None),
-    ])
+    return aggregate(
+        [
+            ConfidenceInput(
+                "ndvi",
+                ndvi_confidence or 0,
+                weight=0.30,
+                is_critical=False,
+                is_present=ndvi_confidence is not None,
+            ),
+            ConfidenceInput(
+                "et0",
+                et0_confidence or 0,
+                weight=0.35,
+                is_critical=True,
+                is_present=et0_confidence is not None,
+            ),
+            ConfidenceInput(
+                "soil_moisture",
+                soil_moisture_confidence or 0,
+                weight=0.25,
+                is_critical=False,
+                is_present=soil_moisture_confidence is not None,
+            ),
+            ConfidenceInput(
+                "weather_forecast",
+                weather_forecast_confidence or 0,
+                weight=0.10,
+                is_critical=False,
+                is_present=weather_forecast_confidence is not None,
+            ),
+        ]
+    )
 
 
 def fertilizer_confidence(
-    soil_lab_confidence: Optional[float],
-    ndvi_confidence: Optional[float],
+    soil_lab_confidence: float | None,
+    ndvi_confidence: float | None,
     crop_stage_known: bool,
 ) -> AggregatedConfidence:
     """confidence لتوصية تسميد."""
-    return aggregate([
-        ConfidenceInput("soil_lab", soil_lab_confidence or 0,
-                        weight=0.50, is_critical=True,
-                        is_present=soil_lab_confidence is not None),
-        ConfidenceInput("ndvi", ndvi_confidence or 0,
-                        weight=0.30, is_critical=False,
-                        is_present=ndvi_confidence is not None),
-        ConfidenceInput("crop_stage", 1.0 if crop_stage_known else 0,
-                        weight=0.20, is_critical=False,
-                        is_present=crop_stage_known),
-    ])
+    return aggregate(
+        [
+            ConfidenceInput(
+                "soil_lab",
+                soil_lab_confidence or 0,
+                weight=0.50,
+                is_critical=True,
+                is_present=soil_lab_confidence is not None,
+            ),
+            ConfidenceInput(
+                "ndvi",
+                ndvi_confidence or 0,
+                weight=0.30,
+                is_critical=False,
+                is_present=ndvi_confidence is not None,
+            ),
+            ConfidenceInput(
+                "crop_stage",
+                1.0 if crop_stage_known else 0,
+                weight=0.20,
+                is_critical=False,
+                is_present=crop_stage_known,
+            ),
+        ]
+    )
 
 
 def yield_prediction_confidence(
-    ndvi_confidence: Optional[float],
+    ndvi_confidence: float | None,
     lifecycle_complete: bool,
     sample_count: int,
 ) -> AggregatedConfidence:
     """confidence لتوقّع إنتاج."""
-    return aggregate([
-        ConfidenceInput("ndvi_history", ndvi_confidence or 0,
-                        weight=0.45, is_critical=True,
-                        is_present=ndvi_confidence is not None),
-        ConfidenceInput("lifecycle_history", 1.0 if lifecycle_complete else 0.3,
-                        weight=0.35, is_critical=False,
-                        is_present=True),
-        ConfidenceInput("soil_samples",
-                        min(1.0, sample_count / 3.0),
-                        weight=0.20, is_critical=False,
-                        is_present=sample_count > 0),
-    ])
+    return aggregate(
+        [
+            ConfidenceInput(
+                "ndvi_history",
+                ndvi_confidence or 0,
+                weight=0.45,
+                is_critical=True,
+                is_present=ndvi_confidence is not None,
+            ),
+            ConfidenceInput(
+                "lifecycle_history",
+                1.0 if lifecycle_complete else 0.3,
+                weight=0.35,
+                is_critical=False,
+                is_present=True,
+            ),
+            ConfidenceInput(
+                "soil_samples",
+                min(1.0, sample_count / 3.0),
+                weight=0.20,
+                is_critical=False,
+                is_present=sample_count > 0,
+            ),
+        ]
+    )

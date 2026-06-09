@@ -9,6 +9,7 @@ Syncs:
 
 Odoo API docs: https://www.odoo.com/documentation/18.0/developer/reference/external_api.html
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -16,38 +17,40 @@ import hashlib
 import logging
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Any, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import asyncpg
 import httpx
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Header
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 try:
     from shared.logging_config import setup_logging
+
     logger = setup_logging("odoo-bridge")
 except ImportError:
-    logging.basicConfig(level=logging.INFO,
-        format='{"time":"%(asctime)s","svc":"odoo-bridge","msg":"%(message)s"}')
+    logging.basicConfig(
+        level=logging.INFO, format='{"time":"%(asctime)s","svc":"odoo-bridge","msg":"%(message)s"}'
+    )
     logger = logging.getLogger("odoo-bridge")
 
 # ── Config ────────────────────────────────────────────────────
-ODOO_URL      = os.getenv("ODOO_URL", "http://odoo:8069")
-ODOO_DB       = os.getenv("ODOO_DB", "sahool_erp")
-ODOO_USER     = os.getenv("ODOO_USER", "admin")
+ODOO_URL = os.getenv("ODOO_URL", "http://odoo:8069")
+ODOO_DB = os.getenv("ODOO_DB", "sahool_erp")
+ODOO_USER = os.getenv("ODOO_USER", "admin")
 ODOO_PASSWORD = os.getenv("ODOO_PASSWORD")  # CRIT-ODOO-01: no default — must be set in env
-ODOO_API_KEY  = os.getenv("ODOO_API_KEY", "")  # preferred over password
+ODOO_API_KEY = os.getenv("ODOO_API_KEY", "")  # preferred over password
 
 SAHOOL_DB_URL = os.getenv("DATABASE_URL", "")
 SAHOOL_API_URL = os.getenv("SAHOOL_API_URL", "http://sahool-auth:8000")
 SAHOOL_AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 SYNC_INTERVAL_SEC = int(os.getenv("SYNC_INTERVAL_SEC", "300"))  # 5 min
-WEBHOOK_SECRET    = os.getenv("WEBHOOK_SECRET", "")
+WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
 
-_pool: Optional[asyncpg.Pool] = None
-_odoo_uid: Optional[int] = None
+_pool: asyncpg.Pool | None = None
+_odoo_uid: int | None = None
 _odoo_auth_cache: dict = {}
 
 
@@ -61,7 +64,7 @@ class OdooClient:
         self.username = username
         self.password = password
         self.api_key = api_key
-        self.uid: Optional[int] = None
+        self.uid: int | None = None
         self._session = httpx.AsyncClient(timeout=30.0)
 
     async def authenticate(self) -> int:
@@ -72,9 +75,9 @@ class OdooClient:
             "params": {
                 "service": "common",
                 "method": "authenticate",
-                "args": [self.db, self.username, self.api_key or self.password, {}]
+                "args": [self.db, self.username, self.api_key or self.password, {}],
             },
-            "id": 1
+            "id": 1,
         }
         r = await self._session.post(f"{self.url}/jsonrpc", json=payload)
         r.raise_for_status()
@@ -96,11 +99,16 @@ class OdooClient:
                 "service": "object",
                 "method": "execute_kw",
                 "args": [
-                    self.db, self.uid, self.api_key or self.password,
-                    model, method, args or [], kwargs or {}
-                ]
+                    self.db,
+                    self.uid,
+                    self.api_key or self.password,
+                    model,
+                    method,
+                    args or [],
+                    kwargs or {},
+                ],
             },
-            "id": hashlib.md5(f"{model}:{method}:{datetime.now()}".encode()).hexdigest()[:8]
+            "id": hashlib.md5(f"{model}:{method}:{datetime.now()}".encode()).hexdigest()[:8],
         }
         r = await self._session.post(f"{self.url}/jsonrpc", json=payload)
         r.raise_for_status()
@@ -109,7 +117,9 @@ class OdooClient:
             raise RuntimeError(f"Odoo RPC error: {result['error']}")
         return result["result"]
 
-    async def search_read(self, model: str, domain: list, fields: list, limit: int = 0, order: str = "") -> List[dict]:
+    async def search_read(
+        self, model: str, domain: list, fields: list, limit: int = 0, order: str = ""
+    ) -> list[dict]:
         kwargs = {"fields": fields}
         if limit:
             kwargs["limit"] = limit
@@ -120,10 +130,10 @@ class OdooClient:
     async def create(self, model: str, values: dict) -> int:
         return await self.call(model, "create", [values])
 
-    async def write(self, model: str, ids: List[int], values: dict) -> bool:
+    async def write(self, model: str, ids: list[int], values: dict) -> bool:
         return await self.call(model, "write", [ids, values])
 
-    async def unlink(self, model: str, ids: List[int]) -> bool:
+    async def unlink(self, model: str, ids: list[int]) -> bool:
         return await self.call(model, "unlink", [ids])
 
     async def close(self):
@@ -131,7 +141,8 @@ class OdooClient:
 
 
 # Global client
-_odoo: Optional[OdooClient] = None
+_odoo: OdooClient | None = None
+
 
 def get_odoo() -> OdooClient:
     global _odoo
@@ -150,14 +161,15 @@ async def get_pool() -> asyncpg.Pool:
     return _pool
 
 
-async def get_last_sync(entity: str, direction: str) -> Optional[datetime]:
+async def get_last_sync(entity: str, direction: str) -> datetime | None:
     pool = await get_pool()
     if not pool:
         return None
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
             "SELECT last_sync_at FROM odoo_sync_state WHERE entity=$1 AND direction=$2",
-            entity, direction
+            entity,
+            direction,
         )
         return row["last_sync_at"] if row else None
 
@@ -171,12 +183,20 @@ async def set_last_sync(entity: str, direction: str, sync_at: datetime):
             """INSERT INTO odoo_sync_state (entity, direction, last_sync_at)
                 VALUES ($1,$2,$3)
                 ON CONFLICT (entity, direction) DO UPDATE SET last_sync_at=$3""",
-            entity, direction, sync_at
+            entity,
+            direction,
+            sync_at,
         )
 
 
-async def log_sync_record(direction: str, entity: str, odoo_id: Optional[int],
-                          sahool_id: Optional[str], status: str, details: str = ""):
+async def log_sync_record(
+    direction: str,
+    entity: str,
+    odoo_id: int | None,
+    sahool_id: str | None,
+    status: str,
+    details: str = "",
+):
     pool = await get_pool()
     if not pool:
         return
@@ -185,7 +205,12 @@ async def log_sync_record(direction: str, entity: str, odoo_id: Optional[int],
             """INSERT INTO odoo_sync_log
                 (direction, entity, odoo_id, sahool_id, status, details)
                 VALUES ($1,$2,$3,$4,$5,$6)""",
-            direction, entity, odoo_id, sahool_id, status, details
+            direction,
+            entity,
+            odoo_id,
+            sahool_id,
+            status,
+            details,
         )
 
 
@@ -198,9 +223,22 @@ async def sync_products():
     last_sync = await get_last_sync("product.product", "odoo_to_sahool")
     domain = [["write_date", ">", last_sync.isoformat()]] if last_sync else []
 
-    products = await odoo.search_read("product.product", domain,
-        ["id", "name", "default_code", "categ_id", "uom_id", "list_price",
-         "standard_price", "type", "write_date"], limit=500)
+    products = await odoo.search_read(
+        "product.product",
+        domain,
+        [
+            "id",
+            "name",
+            "default_code",
+            "categ_id",
+            "uom_id",
+            "list_price",
+            "standard_price",
+            "type",
+            "write_date",
+        ],
+        limit=500,
+    )
 
     pool = await get_pool()
     if not pool:
@@ -219,17 +257,21 @@ async def sync_products():
                     ON CONFLICT (odoo_product_id) DO UPDATE SET
                         item_name=$1, category=$2, unit=$3, unit_cost_usd=$4,
                         last_synced_at=NOW()""",
-                p["name"], category, uom,
+                p["name"],
+                category,
+                uom,
                 float(p.get("standard_price", 0) or 0),
                 0,  # qty managed by inventory moves
                 10,
                 "Odoo Sync",
-                str(p["id"])
+                str(p["id"]),
             )
             synced += 1
 
-    await set_last_sync("product.product", "odoo_to_sahool", datetime.now(timezone.utc))
-    await log_sync_record("odoo_to_sahool", "product.product", None, None, "success", f"Synced {synced} products")
+    await set_last_sync("product.product", "odoo_to_sahool", datetime.now(UTC))
+    await log_sync_record(
+        "odoo_to_sahool", "product.product", None, None, "success", f"Synced {synced} products"
+    )
     logger.info(f"Products synced: {synced}")
 
 
@@ -239,11 +281,25 @@ async def sync_suppliers():
     last_sync = await get_last_sync("res.partner", "odoo_to_sahool")
     domain = [["supplier_rank", ">", 0]]
     if last_sync:
-        domain[0].append("|"); domain[0].append(["write_date", ">", last_sync.isoformat()])
+        domain[0].append("|")
+        domain[0].append(["write_date", ">", last_sync.isoformat()])
 
-    partners = await odoo.search_read("res.partner", domain,
-        ["id", "name", "phone", "email", "street", "city", "country_id",
-         "supplier_rank", "write_date"], limit=200)
+    partners = await odoo.search_read(
+        "res.partner",
+        domain,
+        [
+            "id",
+            "name",
+            "phone",
+            "email",
+            "street",
+            "city",
+            "country_id",
+            "supplier_rank",
+            "write_date",
+        ],
+        limit=200,
+    )
 
     pool = await get_pool()
     if not pool:
@@ -259,22 +315,31 @@ async def sync_suppliers():
                     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
                     ON CONFLICT (odoo_partner_id) DO UPDATE SET
                         name=$1, phone=$3, email=$4, address=$5, last_synced_at=NOW()""",
-                p["name"], p["name"], p.get("phone", ""), p.get("email", ""),
-                f"{p.get('street','')} {p.get('city','')} {country}".strip(),
-                4.0, ["general"], True, str(p["id"])
+                p["name"],
+                p["name"],
+                p.get("phone", ""),
+                p.get("email", ""),
+                f"{p.get('street', '')} {p.get('city', '')} {country}".strip(),
+                4.0,
+                ["general"],
+                True,
+                str(p["id"]),
             )
             synced += 1
 
-    await set_last_sync("res.partner", "odoo_to_sahool", datetime.now(timezone.utc))
-    await log_sync_record("odoo_to_sahool", "res.partner", None, None, "success", f"Synced {synced} suppliers")
+    await set_last_sync("res.partner", "odoo_to_sahool", datetime.now(UTC))
+    await log_sync_record(
+        "odoo_to_sahool", "res.partner", None, None, "success", f"Synced {synced} suppliers"
+    )
     logger.info(f"Suppliers synced: {synced}")
 
 
 async def sync_warehouses():
     """Sync Odoo stock.warehouse → SAHOOL (for multi-location inventory)."""
     odoo = get_odoo()
-    whs = await odoo.search_read("stock.warehouse", [],
-        ["id", "name", "code", "partner_id"], limit=50)
+    whs = await odoo.search_read(
+        "stock.warehouse", [], ["id", "name", "code", "partner_id"], limit=50
+    )
     pool = await get_pool()
     if not pool:
         return
@@ -284,7 +349,9 @@ async def sync_warehouses():
                 """INSERT INTO inventory_locations (location_name, location_code, odoo_warehouse_id)
                     VALUES ($1,$2,$3)
                     ON CONFLICT (odoo_warehouse_id) DO UPDATE SET location_name=$1, location_code=$2""",
-                w["name"], w.get("code", ""), str(w["id"])
+                w["name"],
+                w.get("code", ""),
+                str(w["id"]),
             )
     logger.info(f"Warehouses synced: {len(whs)}")
 
@@ -325,7 +392,9 @@ async def sync_procurement_orders_to_odoo():
                 "partner_id": supplier_id or 1,  # default supplier
                 "origin": f"SAHOOL-{row['order_id']}",
                 "notes": row.get("notes", "") + "\nSynced from SAHOOL",
-                "date_order": row["created_at"].isoformat() if row["created_at"] else datetime.now(timezone.utc).isoformat(),
+                "date_order": row["created_at"].isoformat()
+                if row["created_at"]
+                else datetime.now(UTC).isoformat(),
             }
             po_id = await odoo.create("purchase.order", po_vals)
 
@@ -348,17 +417,28 @@ async def sync_procurement_orders_to_odoo():
             # Update SAHOOL
             await conn.execute(
                 "UPDATE procurement_orders SET odoo_sync_status='synced', odoo_document_id=$1 WHERE order_id=$2",
-                str(po_id), row["order_id"]
+                str(po_id),
+                row["order_id"],
             )
-            await log_sync_record("sahool_to_odoo", "purchase.order", po_id, str(row["order_id"]), "success")
+            await log_sync_record(
+                "sahool_to_odoo", "purchase.order", po_id, str(row["order_id"]), "success"
+            )
             logger.info(f"PO synced to Odoo: {po_id}")
 
         except Exception as e:
             await conn.execute(
                 "UPDATE procurement_orders SET odoo_sync_status='failed', odoo_sync_error=$1 WHERE order_id=$2",
-                str(e)[:500], row["order_id"]
+                str(e)[:500],
+                row["order_id"],
             )
-            await log_sync_record("sahool_to_odoo", "purchase.order", None, str(row["order_id"]), "failed", str(e)[:500])
+            await log_sync_record(
+                "sahool_to_odoo",
+                "purchase.order",
+                None,
+                str(row["order_id"]),
+                "failed",
+                str(e)[:500],
+            )
             logger.error(f"PO sync failed {row['order_id']}: {e}")
 
 
@@ -390,15 +470,29 @@ async def sync_field_costs_to_odoo():
 
             await conn.execute(
                 "UPDATE field_cost_ledger SET odoo_sync_status='synced', odoo_entry_id=$1 WHERE ledger_id=$2",
-                str(entry_id), row["ledger_id"]
+                str(entry_id),
+                row["ledger_id"],
             )
-            await log_sync_record("sahool_to_odoo", "account.analytic.line", entry_id, str(row["ledger_id"]), "success")
+            await log_sync_record(
+                "sahool_to_odoo",
+                "account.analytic.line",
+                entry_id,
+                str(row["ledger_id"]),
+                "success",
+            )
         except Exception as e:
             await conn.execute(
                 "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
-                row["ledger_id"]
+                row["ledger_id"],
             )
-            await log_sync_record("sahool_to_odoo", "account.analytic.line", None, str(row["ledger_id"]), "failed", str(e)[:500])
+            await log_sync_record(
+                "sahool_to_odoo",
+                "account.analytic.line",
+                None,
+                str(row["ledger_id"]),
+                "failed",
+                str(e)[:500],
+            )
 
 
 # ══════════════════════════════════════════════════════════════
@@ -451,21 +545,24 @@ async def lifespan(app: FastAPI):
         await _pool.close()
 
 
-
 # C-08 FIX: JWT verification with audience
 import os as _os
-from jose import jwt as _jwt, JWTError as _JE
+
+from jose import JWTError as _JE
+from jose import jwt as _jwt
+
 _JWT_PUBLIC = _os.getenv("JWT_PUBLIC_KEY", "")
 _JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else _os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
 
+
 def verify_token(token: str) -> dict:
     """Verify JWT with audience check."""
     try:
-        return _jwt.decode(token, _JWT_SECRET,
-                          algorithms=[_JWT_ALG], audience="sahool")
+        return _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
     except _JE as e:
-        raise ValueError(f"Invalid token: {e}")
+        raise ValueError(f"Invalid token: {e}") from e
+
 
 app = FastAPI(title="SAHOOL Odoo Bridge", version="9.1.0", lifespan=lifespan)
 
@@ -475,8 +572,10 @@ app = FastAPI(title="SAHOOL Odoo Bridge", version="9.1.0", lifespan=lifespan)
 # ══════════════════════════════════════════════════════════════
 class SyncRequest(BaseModel):
     entity: str = Field(..., pattern="^(products|suppliers|warehouses|procurement|costs|all)$")
-    direction: str = Field("bidirectional", pattern="^(odoo_to_sahool|sahool_to_odoo|bidirectional)$")
-    tenant_id: Optional[str] = None
+    direction: str = Field(
+        "bidirectional", pattern="^(odoo_to_sahool|sahool_to_odoo|bidirectional)$"
+    )
+    tenant_id: str | None = None
 
 
 class WebhookPayload(BaseModel):
@@ -484,7 +583,7 @@ class WebhookPayload(BaseModel):
     model: str
     record_id: int
     data: dict = Field(default_factory=dict)
-    signature: Optional[str] = None
+    signature: str | None = None
     # L6 FIX: أُزيل مُحقّق "التوقيع" الميّت (كان pass فقط) لئلّا يوحي بتحقّق
     # توقيع غير موجود. التحقّق الفعلي يجري في نقطة /webhook/odoo عبر
     # hmac.compare_digest على رأس X-Webhook-Secret (يفشل-مغلقاً).
@@ -495,8 +594,8 @@ class OdooConfigResponse(BaseModel):
     db: str
     user: str
     connected: bool
-    uid: Optional[int] = None
-    version: Optional[str] = None
+    uid: int | None = None
+    version: str | None = None
 
 
 # ══════════════════════════════════════════════════════════════
@@ -520,7 +619,7 @@ async def health():
         "status": "alive",
         "odoo_connected": odoo_ok,
         "odoo_uid": uid,
-        "sync_interval_sec": SYNC_INTERVAL_SEC
+        "sync_interval_sec": SYNC_INTERVAL_SEC,
     }
 
 
@@ -531,7 +630,9 @@ async def erp_provider_status():
     ERP_PROVIDER = odoo | erpnext | none — يحدّد المزوّد دون تغيير الكود.
     """
     import os
+
     from erp_provider import get_erp_provider
+
     selected = os.getenv("ERP_PROVIDER", "odoo").strip().lower()
     # نمرّر OdooClient للمزوّد odoo (يعيد استخدام الموجود)
     try:
@@ -557,14 +658,14 @@ async def get_config():
     except Exception as e:
         logger.warning(f"Config check failed: {e}")
     return OdooConfigResponse(
-        url=ODOO_URL, db=ODOO_DB, user=ODOO_USER,
-        connected=connected, uid=uid, version=version
+        url=ODOO_URL, db=ODOO_DB, user=ODOO_USER, connected=connected, uid=uid, version=version
     )
 
 
 @app.post("/sync")
-async def trigger_sync(req: SyncRequest, background_tasks: BackgroundTasks,
-                      authorization: str = Header(None)):
+async def trigger_sync(
+    req: SyncRequest, background_tasks: BackgroundTasks, authorization: str = Header(None)
+):
     """Trigger manual sync — يتطلّب توكناً صالحاً (كان مكشوفاً)."""
     # الأمان: المزامنة تكتب لـERP — تتطلّب مصادقة
     if not _JWT_SECRET or len(_JWT_SECRET) < 32:
@@ -573,8 +674,8 @@ async def trigger_sync(req: SyncRequest, background_tasks: BackgroundTasks,
         raise HTTPException(401, "توكن مطلوب للمزامنة")
     try:
         verify_token(authorization.split(" ", 1)[1])
-    except ValueError:
-        raise HTTPException(401, "توكن غير صالح")
+    except ValueError as e:
+        raise HTTPException(401, "توكن غير صالح") from e
     if req.entity == "all" or req.entity == "products":
         background_tasks.add_task(sync_products)
     if req.entity == "all" or req.entity == "suppliers":
@@ -596,6 +697,7 @@ async def odoo_webhook(payload: WebhookPayload, x_webhook_secret: str = Header(N
         raise HTTPException(503, "WEBHOOK_SECRET غير مضبوط — webhook معطّل بأمان")
     # مقارنة ثابتة الزمن (منع هجوم التوقيت على السرّ)
     import hmac
+
     if not x_webhook_secret or not hmac.compare_digest(x_webhook_secret, WEBHOOK_SECRET):
         raise HTTPException(401, "سرّ webhook غير صالح")
     logger.info(f"Odoo webhook: {payload.model}:{payload.record_id} event={payload.event}")
@@ -613,7 +715,7 @@ async def odoo_webhook(payload: WebhookPayload, x_webhook_secret: str = Header(N
 
 
 @app.get("/logs")
-async def get_logs(limit: int = 50, entity: Optional[str] = None):
+async def get_logs(limit: int = 50, entity: str | None = None):
     pool = await get_pool()
     if not pool:
         return {"logs": []}
@@ -621,7 +723,8 @@ async def get_logs(limit: int = 50, entity: Optional[str] = None):
         if entity:
             rows = await conn.fetch(
                 "SELECT * FROM odoo_sync_log WHERE entity=$1 ORDER BY created_at DESC LIMIT $2",
-                entity, limit
+                entity,
+                limit,
             )
         else:
             rows = await conn.fetch(
@@ -633,25 +736,33 @@ async def get_logs(limit: int = 50, entity: Optional[str] = None):
 @app.get("/products")
 async def list_odoo_products(limit: int = 20):
     odoo = get_odoo()
-    products = await odoo.search_read("product.product", [],
+    products = await odoo.search_read(
+        "product.product",
+        [],
         ["id", "name", "default_code", "list_price", "standard_price", "qty_available"],
-        limit=limit)
+        limit=limit,
+    )
     return {"products": products}
 
 
 @app.get("/suppliers")
 async def list_odoo_suppliers(limit: int = 20):
     odoo = get_odoo()
-    suppliers = await odoo.search_read("res.partner", [["supplier_rank", ">", 0]],
-        ["id", "name", "phone", "email", "supplier_rank"], limit=limit)
+    suppliers = await odoo.search_read(
+        "res.partner",
+        [["supplier_rank", ">", 0]],
+        ["id", "name", "phone", "email", "supplier_rank"],
+        limit=limit,
+    )
     return {"suppliers": suppliers}
-
 
 
 @app.get("/readyz")
 async def readyz():
     return {"status": "ready", "version": "9.1.0"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

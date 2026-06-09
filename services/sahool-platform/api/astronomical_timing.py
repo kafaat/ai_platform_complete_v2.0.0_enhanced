@@ -16,22 +16,23 @@ api/astronomical_timing.py — التوقيت الفلكي كمرساة موسم
 ⚠ الحساب **تقريبي عملي** (مرساة موسميّة)، لا فلك أثري دقيق (الذي يحتاج arcus
 visionis وانكسار جوّي وSwiss Ephemeris). موسوم بدقّته. كافٍ للتوقيت الزراعي.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Dict, List, Optional
 
 
 @dataclass
 class StarTiming:
     """توقيت نجم تقويمي."""
-    name_ar: str
-    heliacal_rising_approx: str   # تاريخ تقريبي (شهر/يوم)
-    season_marker_ar: str         # ما يشير إليه موسميّاً
-    agricultural_note_ar: str     # الاستخدام الزراعي التقليدي
 
-    def to_dict(self) -> Dict:
+    name_ar: str
+    heliacal_rising_approx: str  # تاريخ تقريبي (شهر/يوم)
+    season_marker_ar: str  # ما يشير إليه موسميّاً
+    agricultural_note_ar: str  # الاستخدام الزراعي التقليدي
+
+    def to_dict(self) -> dict:
         return {
             "name_ar": self.name_ar,
             "heliacal_rising_approx": self.heliacal_rising_approx,
@@ -42,14 +43,16 @@ class StarTiming:
 
 # نجوم التقويم الزراعي العربي — توقيت تقريبي لخطوط عرض اليمن/الجزيرة (~15°N)
 # التواريخ من التقاليد الرصديّة الموثّقة (سهيل ~24 أغسطس)؛ تقريب موسمي
-ARABIAN_CALENDAR_STARS: List[StarTiming] = [
+ARABIAN_CALENDAR_STARS: list[StarTiming] = [
     StarTiming(
-        "سهيل (Canopus)", "24 أغسطس تقريباً",
+        "سهيل (Canopus)",
+        "24 أغسطس تقريباً",
         "بدء تراجع ذروة حرّ الصيف؛ تبرد الليالي تدريجيّاً على ~52 يوماً",
         "إشارة تقليديّة لقرب موسم الزراعة الخريفي وتحسّن ظروف العمل الحقلي",
     ),
     StarTiming(
-        "الثريّا (Pleiades)", "شروق احتراقي ~أوائل يونيو",
+        "الثريّا (Pleiades)",
+        "شروق احتراقي ~أوائل يونيو",
         "تُستخدم في نظام الأنواء لتتبّع التحوّلات الموسميّة وأنماط المطر",
         "مرجع تقليدي لتوقيت بعض الأعمال الزراعيّة الموسميّة",
     ),
@@ -69,12 +72,13 @@ _SEASON_ANCHORS = {
 @dataclass
 class TimingCrossCheck:
     """تحقّق متقاطع: المرساة الفلكيّة مقابل GDD."""
+
     star_anchor_ar: str
     days_from_anchor: int
-    gdd_stage: Optional[str]
+    gdd_stage: str | None
     agreement_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "star_anchor_ar": self.star_anchor_ar,
             "days_from_anchor": self.days_from_anchor,
@@ -83,7 +87,7 @@ class TimingCrossCheck:
         }
 
 
-def get_calendar_stars() -> Dict:
+def get_calendar_stars() -> dict:
     """يُرجع نجوم التقويم الزراعي كمرساة موسميّة (رصديّة، لا تنجيميّة)."""
     return {
         "purpose_ar": "توقيت موسمي رصدي (لا تنجيم)",
@@ -102,13 +106,14 @@ def get_calendar_stars() -> Dict:
 # الحِميري للهضبة، الحضرمي للوادي. لكلّ منطقة تقويمها (المناخ يختلف).
 # ⚠ التواريخ الميلاديّة تقريبيّة وتحتاج تأكيداً (تباين المصادر الشعبيّة/الأكاديميّة).
 
+
 @dataclass
 class RegionalCalendarEntry:
-    period_name_ar: str          # اسم الشهر/النجم
-    approx_gregorian_ar: str     # ما يقابله ميلاديّاً (تقريبي)
+    period_name_ar: str  # اسم الشهر/النجم
+    approx_gregorian_ar: str  # ما يقابله ميلاديّاً (تقريبي)
     agricultural_meaning_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "period_name_ar": self.period_name_ar,
             "approx_gregorian_ar": self.approx_gregorian_ar,
@@ -118,7 +123,7 @@ class RegionalCalendarEntry:
 
 # التقويم الحِميري الزراعي (الهضبة: صنعاء/ذمار/البيضاء) — شهري شمسي
 # ⚠ التواريخ من مصادر شعبيّة، تحتاج تأكيداً أكاديميّاً
-_HIMYARITE_CALENDAR: List[RegionalCalendarEntry] = [
+_HIMYARITE_CALENDAR: list[RegionalCalendarEntry] = [
     RegionalCalendarEntry("ذو الثابة", "≈ أبريل", "أوّل الصيف — أوّل الشهور الزراعيّة"),
     RegionalCalendarEntry("ذو مبكر", "≈ مايو", "بداية الذرة"),
     RegionalCalendarEntry("ذو القياظ", "≈ يونيو", "شدّة الحرارة"),
@@ -129,7 +134,7 @@ _HIMYARITE_CALENDAR: List[RegionalCalendarEntry] = [
 
 # التقويم الحضرمي النجمي (وادي حضرموت) — ٢٨ نجماً × ١٣ يوماً
 # عيّنة موثّقة من محطّة بحوث سيئون (٢٠١٢)
-_HADRAMI_CALENDAR: List[RegionalCalendarEntry] = [
+_HADRAMI_CALENDAR: list[RegionalCalendarEntry] = [
     RegionalCalendarEntry("الصرفة", "≈ ٢٠ مارس–١ أبريل", "ذرة صيفيّة + بامية"),
     RegionalCalendarEntry("العوّاء", "≈ ٢–١٤ أبريل", "ذرة صيفيّة"),
     RegionalCalendarEntry("السماك", "≈ ١٥–٢٧ أبريل", "لوبيا (الدجر)"),
@@ -138,10 +143,15 @@ _HADRAMI_CALENDAR: List[RegionalCalendarEntry] = [
 # ربط المحافظة بالتقويم الإقليمي المناسب
 _GOVERNORATE_CALENDAR = {
     # الهضبة → الحِميري
-    "al_bayda": "himyarite", "sanaa": "himyarite", "dhamar": "himyarite",
-    "ibb": "himyarite", "al_jawf": "himyarite",
+    "al_bayda": "himyarite",
+    "sanaa": "himyarite",
+    "dhamar": "himyarite",
+    "ibb": "himyarite",
+    "al_jawf": "himyarite",
     # الوادي/الساحل الشرقي → الحضرمي
-    "hadramout": "hadrami", "al_mahra": "hadrami", "shabwa": "hadrami",
+    "hadramout": "hadrami",
+    "al_mahra": "hadrami",
+    "shabwa": "hadrami",
 }
 
 _CALENDAR_META = {
@@ -160,7 +170,7 @@ _CALENDAR_META = {
 }
 
 
-def get_regional_calendar(governorate: Optional[str] = None) -> Dict:
+def get_regional_calendar(governorate: str | None = None) -> dict:
     """يُرجع التقويم الزراعي الإقليمي المناسب للمحافظة (حِميري/حضرمي).
 
     لا "تقويم يمني موحّد" — التوقيت يختلف بالمنطقة لاختلاف المناخ والمحاصيل.
@@ -206,9 +216,9 @@ def get_regional_calendar(governorate: Optional[str] = None) -> Dict:
 
 def cross_check_with_gdd(
     current_date_iso: str,
-    gdd_stage: Optional[str] = None,
+    gdd_stage: str | None = None,
     anchor: str = "suhail_rising",
-) -> Dict:
+) -> dict:
     """تحقّق متقاطع: كم يوماً من المرساة الفلكيّة، وهل يتّفق مع مرحلة GDD؟
 
     Args:
@@ -250,6 +260,8 @@ def cross_check_with_gdd(
         )
 
     return TimingCrossCheck(
-        star_anchor_ar=anchor_ar, days_from_anchor=days_diff,
-        gdd_stage=gdd_stage, agreement_ar=agreement,
+        star_anchor_ar=anchor_ar,
+        days_from_anchor=days_diff,
+        gdd_stage=gdd_stage,
+        agreement_ar=agreement,
     ).to_dict()

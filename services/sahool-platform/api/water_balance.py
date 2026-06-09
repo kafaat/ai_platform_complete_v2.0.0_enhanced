@@ -17,15 +17,15 @@ api/water_balance.py — توصية ميزان الماء (ET0 + المطر)
 ⚠ معاملات Kc تقديريّة من FAO-56 (مرجع علمي)، لكن يجب معايرتها محلّيّاً.
 موسومة بمصدرها. الحساب الفيزيائي (Penman-Monteith) معادلة معياريّة لا ثابت مُختلق.
 """
+
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, Optional
+from enum import StrEnum
 
 
-class ET0Method(str, Enum):
+class ET0Method(StrEnum):
     PENMAN_MONTEITH = "penman_monteith"
     HARGREAVES = "hargreaves_samani"
 
@@ -33,34 +33,35 @@ class ET0Method(str, Enum):
 # معاملات Kc حسب مرحلة النموّ (FAO-56 Irrigation & Drainage Paper 56)
 # ⚠ FAO reference values — تحتاج معايرة محلّيّة يمنيّة
 # المراحل: initial / development / mid-season / late-season
-KC_BY_CROP_STAGE: Dict[str, Dict[str, float]] = {
-    "wheat":   {"initial": 0.40, "development": 0.75, "mid": 1.15, "late": 0.40},
-    "barley":  {"initial": 0.40, "development": 0.75, "mid": 1.15, "late": 0.40},
+KC_BY_CROP_STAGE: dict[str, dict[str, float]] = {
+    "wheat": {"initial": 0.40, "development": 0.75, "mid": 1.15, "late": 0.40},
+    "barley": {"initial": 0.40, "development": 0.75, "mid": 1.15, "late": 0.40},
     "sorghum": {"initial": 0.40, "development": 0.75, "mid": 1.10, "late": 0.55},
-    "maize":   {"initial": 0.40, "development": 0.80, "mid": 1.20, "late": 0.60},
-    "millet":  {"initial": 0.35, "development": 0.70, "mid": 1.00, "late": 0.35},
-    "tomato":  {"initial": 0.60, "development": 0.85, "mid": 1.15, "late": 0.80},
-    "potato":  {"initial": 0.50, "development": 0.85, "mid": 1.15, "late": 0.75},
-    "onion":   {"initial": 0.70, "development": 0.85, "mid": 1.05, "late": 0.75},
+    "maize": {"initial": 0.40, "development": 0.80, "mid": 1.20, "late": 0.60},
+    "millet": {"initial": 0.35, "development": 0.70, "mid": 1.00, "late": 0.35},
+    "tomato": {"initial": 0.60, "development": 0.85, "mid": 1.15, "late": 0.80},
+    "potato": {"initial": 0.50, "development": 0.85, "mid": 1.15, "late": 0.75},
+    "onion": {"initial": 0.70, "development": 0.85, "mid": 1.05, "late": 0.75},
     "alfalfa": {"initial": 0.40, "development": 0.80, "mid": 1.20, "late": 1.15},
-    "citrus":  {"initial": 0.70, "development": 0.65, "mid": 0.70, "late": 0.70},
-    "dates":   {"initial": 0.90, "development": 0.95, "mid": 0.95, "late": 0.95},
+    "citrus": {"initial": 0.70, "development": 0.65, "mid": 0.70, "late": 0.70},
+    "dates": {"initial": 0.90, "development": 0.95, "mid": 0.95, "late": 0.95},
 }
 
 
 @dataclass
 class WeatherInput:
     """مدخلات الطقس اليوميّة."""
+
     t_min_c: float
     t_max_c: float
-    t_mean_c: Optional[float] = None
+    t_mean_c: float | None = None
     # لـPenman-Monteith الكامل (اختياريّة — لو غابت نستخدم Hargreaves)
-    solar_rad_mj_m2: Optional[float] = None   # الإشعاع الشمسي MJ/m²/يوم
-    rh_mean_pct: Optional[float] = None        # الرطوبة النسبيّة %
-    wind_2m_ms: Optional[float] = None         # سرعة الرياح عند 2م m/s
+    solar_rad_mj_m2: float | None = None  # الإشعاع الشمسي MJ/m²/يوم
+    rh_mean_pct: float | None = None  # الرطوبة النسبيّة %
+    wind_2m_ms: float | None = None  # سرعة الرياح عند 2م m/s
     # سياق جغرافي (لـPenman-Monteith و Hargreaves)
-    latitude_deg: float = 15.5                 # اليمن ~15°N
-    elevation_m: float = 2000.0                # الهضبة اليمنيّة
+    latitude_deg: float = 15.5  # اليمن ~15°N
+    elevation_m: float = 2000.0  # الهضبة اليمنيّة
     day_of_year: int = 100
 
     @property
@@ -73,13 +74,13 @@ class WaterBalanceResult:
     et0_mm: float
     method: ET0Method
     kc: float
-    etc_mm: float                # الاحتياج الكلّي
+    etc_mm: float  # الاحتياج الكلّي
     effective_rain_mm: float
-    net_irrigation_mm: float     # الاحتياج الصافي بعد المطر
+    net_irrigation_mm: float  # الاحتياج الصافي بعد المطر
     advice_ar: str
-    kc_source_ar: str = "محصول مُعرّف"   # هل Kc خاصّ بالمحصول أم عامّ؟
+    kc_source_ar: str = "محصول مُعرّف"  # هل Kc خاصّ بالمحصول أم عامّ؟
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "et0_mm": round(self.et0_mm, 2),
             "method": self.method.value,
@@ -95,13 +96,15 @@ class WaterBalanceResult:
 def _extraterrestrial_radiation(lat_deg: float, doy: int) -> float:
     """الإشعاع خارج الغلاف الجوّي Ra (MJ/m²/يوم) — FAO-56 eq. 21."""
     lat = math.radians(lat_deg)
-    dr = 1 + 0.033 * math.cos(2 * math.pi / 365 * doy)          # المسافة الشمسيّة
-    decl = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)      # الميل الشمسي
+    dr = 1 + 0.033 * math.cos(2 * math.pi / 365 * doy)  # المسافة الشمسيّة
+    decl = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)  # الميل الشمسي
     ws = math.acos(max(-1, min(1, -math.tan(lat) * math.tan(decl))))  # زاوية الغروب
     gsc = 0.0820  # الثابت الشمسي MJ/m²/min
-    ra = (24 * 60 / math.pi) * gsc * dr * (
-        ws * math.sin(lat) * math.sin(decl)
-        + math.cos(lat) * math.cos(decl) * math.sin(ws)
+    ra = (
+        (24 * 60 / math.pi)
+        * gsc
+        * dr
+        * (ws * math.sin(lat) * math.sin(decl) + math.cos(lat) * math.cos(decl) * math.sin(ws))
     )
     return ra
 
@@ -126,9 +129,11 @@ def et0_penman_monteith(w: WeatherInput) -> float:
         raise ValueError("Penman-Monteith يحتاج solar_rad + rh + wind")
 
     t = w.t_mean
+
     # ضغط البخار المشبع es و الفعلي ea
     def svp(temp):  # FAO-56 eq. 11
         return 0.6108 * math.exp(17.27 * temp / (temp + 237.3))
+
     es = (svp(w.t_max_c) + svp(w.t_min_c)) / 2
     ea = es * w.rh_mean_pct / 100
     # ميل منحنى ضغط البخار Δ (eq. 13)
@@ -137,14 +142,18 @@ def et0_penman_monteith(w: WeatherInput) -> float:
     p = 101.3 * ((293 - 0.0065 * w.elevation_m) / 293) ** 5.26
     gamma = 0.000665 * p
     # صافي الإشعاع Rn (تقدير مبسّط من الإشعاع الشمسي)
-    rns = (1 - 0.23) * w.solar_rad_mj_m2          # الموجة القصيرة (albedo 0.23)
+    rns = (1 - 0.23) * w.solar_rad_mj_m2  # الموجة القصيرة (albedo 0.23)
     ra = _extraterrestrial_radiation(w.latitude_deg, w.day_of_year)
     rso = (0.75 + 2e-5 * w.elevation_m) * ra
     tmaxk = w.t_max_c + 273.16
     tmink = w.t_min_c + 273.16
-    rnl = (4.903e-9 * (tmaxk ** 4 + tmink ** 4) / 2
-           * (0.34 - 0.14 * math.sqrt(ea))
-           * (1.35 * min(1.0, w.solar_rad_mj_m2 / rso if rso > 0 else 1) - 0.35))
+    rnl = (
+        4.903e-9
+        * (tmaxk**4 + tmink**4)
+        / 2
+        * (0.34 - 0.14 * math.sqrt(ea))
+        * (1.35 * min(1.0, w.solar_rad_mj_m2 / rso if rso > 0 else 1) - 0.35)
+    )
     rn = rns - rnl
     g = 0  # تدفّق حراري أرضي يومي ≈ 0
     u2 = w.wind_2m_ms
@@ -185,9 +194,12 @@ def water_balance(
     """
     et0, method = compute_et0(w)
     crop_known = crop in KC_BY_CROP_STAGE
-    kc_map = KC_BY_CROP_STAGE.get(crop, {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6})
+    kc_map = KC_BY_CROP_STAGE.get(
+        crop, {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6}
+    )
     kc_source = (
-        f"محصول مُعرّف ({crop})" if crop_known
+        f"محصول مُعرّف ({crop})"
+        if crop_known
         else f"عامّ — '{crop}' غير مُعرّف، استُخدم منحنى Kc افتراضي (تقدير، عايِر ميدانيّاً)"
     )
     kc = kc_map.get(stage, 1.0)
@@ -206,7 +218,12 @@ def water_balance(
         )
 
     return WaterBalanceResult(
-        et0_mm=et0, method=method, kc=kc, etc_mm=etc,
-        effective_rain_mm=eff_rain, net_irrigation_mm=net, advice_ar=advice,
+        et0_mm=et0,
+        method=method,
+        kc=kc,
+        etc_mm=etc,
+        effective_rain_mm=eff_rain,
+        net_irrigation_mm=net,
+        advice_ar=advice,
         kc_source_ar=kc_source,
     )

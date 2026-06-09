@@ -1,7 +1,11 @@
 """Tests for soil-property → recommendation chains (texture→irrigation, pH→fertilizer, texture→crop bias)."""
+
 from core.soil_recommendations import (
-    fertilizer_hint_from_ph, irrigation_hint_from_texture,
-    crop_bias_from_texture, soil_to_recommendations)
+    crop_bias_from_texture,
+    fertilizer_hint_from_ph,
+    irrigation_hint_from_texture,
+    soil_to_recommendations,
+)
 
 
 class TestFertilizerFromPH:

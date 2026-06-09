@@ -20,23 +20,36 @@ services/raster-service/raster_provenance.py — أصل ونسخة نتائج ا
 البِتّيّة (bit-exact) تتطلّب أيضاً تثبيت نسخة rasterio/GDAL — مُوثّق كحقل،
 لكن لا يُفرَض (يحتاج بيئة تشغيل مثبّتة).
 """
+
 from __future__ import annotations
+
 import hashlib
 import json
-from typing import Optional
-
 
 # نسخ صيغ المؤشّرات (تتغيّر الصيغة = تتغيّر النسخة = نتيجة مختلفة)
 INDICATOR_FORMULA_VERSION = {
-    "ndvi": "1.0", "evi": "1.0", "savi": "1.0", "ndwi": "1.0", "ndmi": "1.0",
-    "gndvi": "1.0", "fapar": "1.0", "vari": "1.0", "gli": "1.0", "tgi": "1.0",
+    "ndvi": "1.0",
+    "evi": "1.0",
+    "savi": "1.0",
+    "ndwi": "1.0",
+    "ndmi": "1.0",
+    "gndvi": "1.0",
+    "fapar": "1.0",
+    "vari": "1.0",
+    "gli": "1.0",
+    "tgi": "1.0",
     # مؤشّرات التربة (أحدث)
-    "bsi": "1.0", "bi": "1.0", "bi2": "1.0", "ndti": "1.0",
-    "dbsi": "1.0", "ndsi": "1.0", "satvi": "1.0",
+    "bsi": "1.0",
+    "bi": "1.0",
+    "bi2": "1.0",
+    "ndti": "1.0",
+    "dbsi": "1.0",
+    "ndsi": "1.0",
+    "satvi": "1.0",
 }
 
 
-def _hash_polygon(clip_polygon: Optional[dict]) -> Optional[str]:
+def _hash_polygon(clip_polygon: dict | None) -> str | None:
     """بصمة ثابتة للمضلّع (لإثبات نفس منطقة القصّ)."""
     if not clip_polygon:
         return None
@@ -47,16 +60,16 @@ def _hash_polygon(clip_polygon: Optional[dict]) -> Optional[str]:
 def build_provenance(
     indicator: str,
     *,
-    scene_id: Optional[str] = None,
-    capture_datetime: Optional[str] = None,
-    raster_url: Optional[str] = None,
-    source_format: Optional[str] = None,
+    scene_id: str | None = None,
+    capture_datetime: str | None = None,
+    raster_url: str | None = None,
+    source_format: str | None = None,
     crs: str = "EPSG:4326",
-    resolution_m: Optional[float] = None,
+    resolution_m: float | None = None,
     apply_cloud_mask: bool = True,
-    band_mapping: Optional[dict] = None,
-    clip_polygon: Optional[dict] = None,
-    rasterio_version: Optional[str] = None,
+    band_mapping: dict | None = None,
+    clip_polygon: dict | None = None,
+    rasterio_version: str | None = None,
 ) -> dict:
     """يبني سجلّ أصل كامل + بصمة إعادة إنتاج لنتيجة مؤشّر.
 
@@ -79,18 +92,19 @@ def build_provenance(
         "band_mapping": band_mapping,
         "clip_polygon_hash": polygon_hash,
     }
-    canonical = json.dumps(reproducibility_inputs, sort_keys=True,
-                           separators=(",", ":"), ensure_ascii=False)
+    canonical = json.dumps(
+        reproducibility_inputs, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    )
     provenance_hash = hashlib.sha256(canonical.encode()).hexdigest()
 
     return {
-        "provenance_hash": provenance_hash,     # بصمة إعادة الإنتاج
-        "scene_id": scene_id,                   # الصورة المثبّتة
-        "capture_datetime": capture_datetime,   # وقت التقاط القمر
-        "raster_url": raster_url,               # الأصل
+        "provenance_hash": provenance_hash,  # بصمة إعادة الإنتاج
+        "scene_id": scene_id,  # الصورة المثبّتة
+        "capture_datetime": capture_datetime,  # وقت التقاط القمر
+        "raster_url": raster_url,  # الأصل
         "source_format": source_format,
         "indicator": indicator,
-        "formula_version": formula_version,     # نسخة الصيغة
+        "formula_version": formula_version,  # نسخة الصيغة
         "crs": crs,
         "resolution_m": resolution_m,
         "apply_cloud_mask": apply_cloud_mask,
@@ -102,8 +116,8 @@ def build_provenance(
         "note_ar": (
             "أصل كامل — نفس المدخلات تُنتج نفس provenance_hash. الإعادة "
             "البِتّيّة تتطلّب تثبيت نسخة rasterio/GDAL أيضاً."
-            if scene_id else
-            "⚠ أصل ناقص — لا scene_id/تاريخ التقاط. النتيجة غير قابلة "
+            if scene_id
+            else "⚠ أصل ناقص — لا scene_id/تاريخ التقاط. النتيجة غير قابلة "
             "لإعادة الإنتاج بثقة (مصدر غير مثبّت)."
         ),
     }

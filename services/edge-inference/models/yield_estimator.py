@@ -1,4 +1,5 @@
 import logging
+
 logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
@@ -8,7 +9,6 @@ Extracts phenotypic features from field images
 """
 import io
 import os
-from typing import Dict, List
 
 import numpy as np
 from PIL import Image
@@ -36,7 +36,7 @@ class EdgeYieldEstimator:
             "rice": 5000,
             "potato": 25000,  # kg/ha (high value crop)
             "tomato": 35000,
-            "coffee": 1500
+            "coffee": 1500,
         }
 
         self._load_model()
@@ -45,6 +45,7 @@ class EdgeYieldEstimator:
         if os.path.exists(self.model_path):
             try:
                 import onnxruntime as ort
+
                 providers = ["CPUExecutionProvider"]
                 if self.device == "jetson_orin":
                     providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
@@ -55,9 +56,11 @@ class EdgeYieldEstimator:
                 self.session = None
         else:
             self.session = None
-            logger.info(f"[EdgeYieldEstimator] Model not found: {self.model_path}. Using simulation mode.")
+            logger.info(
+                f"[EdgeYieldEstimator] Model not found: {self.model_path}. Using simulation mode."
+            )
 
-    def extract_features(self, image_bytes: bytes) -> Dict[str, float]:
+    def extract_features(self, image_bytes: bytes) -> dict[str, float]:
         """Extract visual features from a single image."""
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         image_resized = image.resize(self.input_size)
@@ -67,7 +70,7 @@ class EdgeYieldEstimator:
         # MVP: Simulate features based on image statistics
 
         # Greenness index (proxy for canopy health)
-        r, g, b = img_array[:,:,0], img_array[:,:,1], img_array[:,:,2]
+        r, g, b = img_array[:, :, 0], img_array[:, :, 1], img_array[:, :, 2]
         greenness = np.mean(g) / (np.mean(r) + np.mean(b) + 1e-6)
 
         # Brightness (proxy for sunlight/exposure)
@@ -83,10 +86,10 @@ class EdgeYieldEstimator:
             "greenness": round(float(greenness), 3),
             "brightness": round(float(brightness), 3),
             "texture": round(float(texture), 3),
-            "plant_count_proxy": plant_count_proxy
+            "plant_count_proxy": plant_count_proxy,
         }
 
-    def predict_yield(self, features: List[Dict], crop: str, growth_stage: str) -> Dict[str, float]:
+    def predict_yield(self, features: list[dict], crop: str, growth_stage: str) -> dict[str, float]:
         """
         Predict yield from multiple sample images.
         """
@@ -104,7 +107,7 @@ class EdgeYieldEstimator:
             "vegetative": 0.6,
             "flowering": 0.85,
             "grain_filling": 0.95,
-            "maturity": 1.0
+            "maturity": 1.0,
         }
         stage_mult = stage_multipliers.get(growth_stage, 0.7)
 
@@ -122,9 +125,17 @@ class EdgeYieldEstimator:
         estimated_yield = baseline * stage_mult * greenness_factor * density_factor
 
         # Biomass proxy (higher than yield, before harvest index)
-        harvest_index = {"wheat": 0.45, "barley": 0.42, "maize": 0.50, 
-                         "sorghum": 0.48, "millet": 0.35, "rice": 0.52,
-                         "potato": 0.75, "tomato": 0.60, "coffee": 0.30}.get(crop, 0.45)
+        harvest_index = {
+            "wheat": 0.45,
+            "barley": 0.42,
+            "maize": 0.50,
+            "sorghum": 0.48,
+            "millet": 0.35,
+            "rice": 0.52,
+            "potato": 0.75,
+            "tomato": 0.60,
+            "coffee": 0.30,
+        }.get(crop, 0.45)
 
         biomass = estimated_yield / harvest_index if harvest_index > 0 else estimated_yield * 2
 
@@ -134,5 +145,5 @@ class EdgeYieldEstimator:
             "plant_count": int(total_plant_proxy * stage_mult),
             "greenness_factor": round(greenness_factor, 3),
             "density_factor": round(density_factor, 3),
-            "stage_multiplier": stage_mult
+            "stage_multiplier": stage_mult,
         }

@@ -14,6 +14,7 @@ sahool_core.implementation_verification
 
 لا يخترع بيانات: بلا إشارة من المزارع/الحسّاس → UNCONFIRMED (لا "نُفّذ").
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,77 +22,103 @@ from enum import Enum
 
 
 class VerificationLevel(str, Enum):
-    PASSIVE = "passive"     # سؤال المزارع
-    ACTIVE = "active"       # صورة/GPS
-    PHYSICAL = "physical"   # حسّاس
+    PASSIVE = "passive"  # سؤال المزارع
+    ACTIVE = "active"  # صورة/GPS
+    PHYSICAL = "physical"  # حسّاس
 
 
 class ImplementationStatus(str, Enum):
-    IMPLEMENTED = "implemented"     # مؤكّد (فيزيائياً أو إيجابياً)
-    CLAIMED = "claimed"             # المزارع قال نعم (سلبي — نيّة لا أثر)
-    REJECTED = "rejected"           # لم يُنفّذ
-    DEFERRED = "deferred"           # أُجّل
-    UNCONFIRMED = "unconfirmed"     # لا إشارة — غير مؤكّد (صادق)
-    INSUFFICIENT = "insufficient"   # نُفّذ جزئياً (الأثر أقلّ من المطلوب)
+    IMPLEMENTED = "implemented"  # مؤكّد (فيزيائياً أو إيجابياً)
+    CLAIMED = "claimed"  # المزارع قال نعم (سلبي — نيّة لا أثر)
+    REJECTED = "rejected"  # لم يُنفّذ
+    DEFERRED = "deferred"  # أُجّل
+    UNCONFIRMED = "unconfirmed"  # لا إشارة — غير مؤكّد (صادق)
+    INSUFFICIENT = "insufficient"  # نُفّذ جزئياً (الأثر أقلّ من المطلوب)
 
 
 @dataclass
 class VerificationResult:
     status: ImplementationStatus
     level: VerificationLevel | None
-    confidence: str               # none/low/medium/high
+    confidence: str  # none/low/medium/high
     note_ar: str
-    learn_signal: str = ""        # إشارة للتعلّم (سبب الرفض، إلخ)
+    learn_signal: str = ""  # إشارة للتعلّم (سبب الرفض، إلخ)
 
 
-def verify_passive(farmer_response: str | None,
-                   why_rejected: str | None = None) -> VerificationResult:
+def verify_passive(
+    farmer_response: str | None, why_rejected: str | None = None
+) -> VerificationResult:
     """المستوى السلبي: سؤال المزارع. يؤكّد النيّة لا الأثر."""
     if farmer_response is None:
         return VerificationResult(
-            ImplementationStatus.UNCONFIRMED, None, "none",
-            "لم يُسأل المزارع بعد — غير مؤكّد")
+            ImplementationStatus.UNCONFIRMED, None, "none", "لم يُسأل المزارع بعد — غير مؤكّد"
+        )
     r = farmer_response.strip().lower()
     if r in ("yes", "نعم", "true"):
         return VerificationResult(
-            ImplementationStatus.CLAIMED, VerificationLevel.PASSIVE, "low",
-            "المزارع أفاد بالتنفيذ — نيّة مؤكّدة لا أثر مقيس (سقف منخفض)")
+            ImplementationStatus.CLAIMED,
+            VerificationLevel.PASSIVE,
+            "low",
+            "المزارع أفاد بالتنفيذ — نيّة مؤكّدة لا أثر مقيس (سقف منخفض)",
+        )
     if r in ("no", "لا", "false"):
         return VerificationResult(
-            ImplementationStatus.REJECTED, VerificationLevel.PASSIVE, "medium",
-            "المزارع لم يُنفّذ", learn_signal=why_rejected or "(لم يُذكر سبب)")
+            ImplementationStatus.REJECTED,
+            VerificationLevel.PASSIVE,
+            "medium",
+            "المزارع لم يُنفّذ",
+            learn_signal=why_rejected or "(لم يُذكر سبب)",
+        )
     if r in ("later", "تأجيل", "deferred"):
         return VerificationResult(
-            ImplementationStatus.DEFERRED, VerificationLevel.PASSIVE, "medium",
-            "أُجّل التنفيذ — تذكير لاحق")
+            ImplementationStatus.DEFERRED,
+            VerificationLevel.PASSIVE,
+            "medium",
+            "أُجّل التنفيذ — تذكير لاحق",
+        )
     return VerificationResult(
-        ImplementationStatus.UNCONFIRMED, None, "none",
-        f"رد غير مفهوم ({farmer_response}) — غير مؤكّد")
+        ImplementationStatus.UNCONFIRMED,
+        None,
+        "none",
+        f"رد غير مفهوم ({farmer_response}) — غير مؤكّد",
+    )
 
 
-def verify_physical(metric_before: float | None, metric_after: float | None,
-                    expected_delta: float, tolerance: float = 0.5) -> VerificationResult:
+def verify_physical(
+    metric_before: float | None,
+    metric_after: float | None,
+    expected_delta: float,
+    tolerance: float = 0.5,
+) -> VerificationResult:
     """المستوى الفيزيائي: حسّاس يؤكّد الأثر. الأقوى (يقيس لا يسأل).
 
     مثال: ري 40مم → رطوبة يجب أن ترتفع. before=18%, after=25% → نُفّذ.
     قياس الأثر الفعلي، لا ادّعاء النيّة."""
     if metric_before is None or metric_after is None:
         return VerificationResult(
-            ImplementationStatus.UNCONFIRMED, None, "none",
-            "لا قراءة حسّاس — غير مؤكّد (لا اختراع)")
+            ImplementationStatus.UNCONFIRMED, None, "none", "لا قراءة حسّاس — غير مؤكّد (لا اختراع)"
+        )
     actual_delta = metric_after - metric_before
     if actual_delta >= expected_delta - tolerance:
         return VerificationResult(
-            ImplementationStatus.IMPLEMENTED, VerificationLevel.PHYSICAL, "high",
-            f"الأثر مؤكّد فيزيائياً (تغيّر {actual_delta:.1f}، متوقّع {expected_delta})")
+            ImplementationStatus.IMPLEMENTED,
+            VerificationLevel.PHYSICAL,
+            "high",
+            f"الأثر مؤكّد فيزيائياً (تغيّر {actual_delta:.1f}، متوقّع {expected_delta})",
+        )
     if actual_delta > tolerance:
         return VerificationResult(
-            ImplementationStatus.INSUFFICIENT, VerificationLevel.PHYSICAL, "high",
-            f"نُفّذ جزئياً (تغيّر {actual_delta:.1f} < متوقّع {expected_delta}) — "
-            "قد يحتاج إكمالاً")
+            ImplementationStatus.INSUFFICIENT,
+            VerificationLevel.PHYSICAL,
+            "high",
+            f"نُفّذ جزئياً (تغيّر {actual_delta:.1f} < متوقّع {expected_delta}) — قد يحتاج إكمالاً",
+        )
     return VerificationResult(
-        ImplementationStatus.REJECTED, VerificationLevel.PHYSICAL, "high",
-        f"لا أثر فيزيائي (تغيّر {actual_delta:.1f}) — لم يُنفّذ فعلياً")
+        ImplementationStatus.REJECTED,
+        VerificationLevel.PHYSICAL,
+        "high",
+        f"لا أثر فيزيائي (تغيّر {actual_delta:.1f}) — لم يُنفّذ فعلياً",
+    )
 
 
 def combined_verification(
@@ -115,35 +142,49 @@ def combined_verification(
 
     if phys is not None and phys.status != ImplementationStatus.UNCONFIRMED:
         # تناقض: المزارع ادّعى التنفيذ لكن الحسّاس لا يكشف أثراً
-        if (pas.status == ImplementationStatus.CLAIMED
-                and phys.status == ImplementationStatus.REJECTED):
+        if (
+            pas.status == ImplementationStatus.CLAIMED
+            and phys.status == ImplementationStatus.REJECTED
+        ):
             # حالات يُضعَّف فيها الحسّاس (لا يُرفَض الادّعاء قطعاً):
             #   • الري التحت-سطحي لا يرفع الرطوبة السطحية فوراً
             #   • حسّاس منخفض الثقة (قد يكون معطّلاً/غير مُعاير)
             if subsurface_irrigation:
                 return VerificationResult(
-                    ImplementationStatus.UNCONFIRMED, None, "low",
+                    ImplementationStatus.UNCONFIRMED,
+                    None,
+                    "low",
                     "تعارض غير حاسم: الري التحت-سطحي قد لا يرفع الرطوبة السطحية "
                     "فوراً — لا رفض قاطع، يلزم تأكيد لاحق",
-                    learn_signal="subsurface_sensor_mismatch")
+                    learn_signal="subsurface_sensor_mismatch",
+                )
             if sensor_confidence in ("low", "medium"):
                 return VerificationResult(
-                    ImplementationStatus.UNCONFIRMED, None, "low",
+                    ImplementationStatus.UNCONFIRMED,
+                    None,
+                    "low",
                     f"تعارض غير حاسم: ثقة الحسّاس {sensor_confidence} (قد يكون "
                     "معطّلاً) مقابل ادّعاء المزارع — لا رفض قاطع، أعد الفحص",
-                    learn_signal="low_confidence_sensor_mismatch")
+                    learn_signal="low_confidence_sensor_mismatch",
+                )
             # حسّاس عالي الثقة + ري سطحي → التناقض حاسم (يترجّح الحسّاس)
             return VerificationResult(
-                ImplementationStatus.REJECTED, VerificationLevel.PHYSICAL, "medium",
+                ImplementationStatus.REJECTED,
+                VerificationLevel.PHYSICAL,
+                "medium",
                 "تعارض: أُفيد بالتنفيذ لكن حسّاس موثوق لا يكشف أثراً — "
                 "يترجّح الحسّاس (ليس قطعاً؛ راجع إن تكرّر)",
-                learn_signal="claimed_but_no_physical_effect")
+                learn_signal="claimed_but_no_physical_effect",
+            )
         # حسّاس منخفض الثقة لا يؤكّد التنفيذ وحده بثقة عالية
         if sensor_confidence in ("low", "medium") and phys.confidence == "high":
             return VerificationResult(
-                phys.status, phys.level, "medium",
+                phys.status,
+                phys.level,
+                "medium",
                 phys.note_ar + f" (ثقة الحسّاس {sensor_confidence} — خُفّض السقف)",
-                learn_signal=phys.learn_signal)
+                learn_signal=phys.learn_signal,
+            )
         return phys
     return pas
 
@@ -171,9 +212,12 @@ def verify_recommendation_followup(
     لا يعدّل التوصية الأصلية — يُضيف طبقة متابعة (separation of concerns)."""
     result = combined_verification(
         farmer_response=farmer_response,
-        metric_before=metric_before, metric_after=metric_after,
-        expected_delta=expected_delta, sensor_confidence=sensor_confidence,
-        subsurface_irrigation=subsurface_irrigation)
+        metric_before=metric_before,
+        metric_after=metric_after,
+        expected_delta=expected_delta,
+        sensor_confidence=sensor_confidence,
+        subsurface_irrigation=subsurface_irrigation,
+    )
     enriched = dict(recommendation_log)
     enriched["verification"] = {
         "status": result.status.value,

@@ -1,13 +1,18 @@
 """Tests for v9.1.0 review gaps: irrigation, GDD, polygon area, supervisor, users."""
-import tempfile, os
+
+import os
+import tempfile
 from pathlib import Path
-from storage import lite_store
-from core.engines.fao56 import gdd_daily, gdd_accumulate
+
+from core.engines.fao56 import gdd_accumulate, gdd_daily
 from core.spatial.pipeline import polygon_area_ha
+from storage import lite_store
 
 
 def _db():
-    db = Path(tempfile.mktemp(suffix=".db")); lite_store.init_db(db); return db
+    db = Path(tempfile.mktemp(suffix=".db"))
+    lite_store.init_db(db)
+    return db
 
 
 class TestGapsV91:
@@ -29,7 +34,9 @@ class TestGapsV91:
 
     def test_irrigation_config_saved(self):
         db = _db()
-        lite_store.save_irrigation_config("F1", "t1", "pivot", pivot_length_m=125, flow_rate_lps=38, db_path=db)
+        lite_store.save_irrigation_config(
+            "F1", "t1", "pivot", pivot_length_m=125, flow_rate_lps=38, db_path=db
+        )
         cfg = lite_store.get_irrigation_config("F1", db_path=db)
         assert cfg["method"] == "pivot"
         assert cfg["pivot_length_m"] == 125
@@ -37,8 +44,16 @@ class TestGapsV91:
 
     def test_supervisor_and_skip_reason(self):
         db = _db()
-        lite_store.save_field_state("F1", "t1", "limited", soil_choice="skip",
-            soil_skip_reason="cost", supervisor_id="u1", supervisor_role="owner", db_path=db)
+        lite_store.save_field_state(
+            "F1",
+            "t1",
+            "limited",
+            soil_choice="skip",
+            soil_skip_reason="cost",
+            supervisor_id="u1",
+            supervisor_role="owner",
+            db_path=db,
+        )
         s = lite_store.get_field_state("F1", db_path=db)
         assert s["soil_skip_reason"] == "cost"
         assert s["supervisor_role"] == "owner"

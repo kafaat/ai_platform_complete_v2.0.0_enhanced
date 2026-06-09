@@ -28,14 +28,14 @@ services/sahool-platform/api/data_lineage.py — Unified Data Lineage
    ✗ "causal AI reasoning"
    ✗ time-travel "consciousness"
 """
+
 from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager as _asynccontextmanager
-
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import asyncpg
@@ -45,37 +45,41 @@ logger = logging.getLogger(__name__)
 
 # ─── Types ──────────────────────────────────────────────────────
 
-class LineageSourceType(str, Enum):
+
+class LineageSourceType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     """من أين جاءت كل entry في الـlineage."""
-    COMMAND = "command"                # commands table
-    EVENT = "event"                    # events table
-    LIFECYCLE = "lifecycle_transition" # field_lifecycle_transitions
-    JOURNAL = "execution_journal"      # tool invocations
-    TRUEUP = "trueup_calibration"      # trueup_calibrations
+
+    COMMAND = "command"  # commands table
+    EVENT = "event"  # events table
+    LIFECYCLE = "lifecycle_transition"  # field_lifecycle_transitions
+    JOURNAL = "execution_journal"  # tool invocations
+    TRUEUP = "trueup_calibration"  # trueup_calibrations
 
 
 @dataclass
 class LineageEntry:
     """نقطة واحدة في sequence الـlineage."""
+
     timestamp: str
     source_type: LineageSourceType
-    source_id: str                # primary key في الجدول المصدر
-    actor_id: Optional[str]
-    action: str                   # human-readable
-    payload: Dict[str, Any]
-    related_command_id: Optional[str] = None
+    source_id: str  # primary key في الجدول المصدر
+    actor_id: str | None
+    action: str  # human-readable
+    payload: dict[str, Any]
+    related_command_id: str | None = None
     summary_ar: str = ""
 
 
 @dataclass
 class EntityLineage:
     """كل ما حدث على entity (موحّد عبر الـsources)."""
+
     entity_type: str
     entity_id: str
     total_entries: int
-    earliest_at: Optional[str]
-    latest_at: Optional[str]
-    entries: List[LineageEntry]
+    earliest_at: str | None
+    latest_at: str | None
+    entries: list[LineageEntry]
 
     # Summary stats
     commands_count: int = 0
@@ -89,20 +93,20 @@ class EntityLineage:
 
 _ACTION_SUMMARIES_AR = {
     # Command types
-    "field.create":                  "إنشاء حقل",
-    "field.update":                  "تحديث حقل",
-    "field.delete":                  "حذف حقل",
-    "operation.planting.start":      "بدء البذر",
-    "operation.harvest.complete":    "اكتمال الحصاد",
-    "operation.irrigation.start":    "بدء الري",
-    "field.advance_stage":           "تقدّم المرحلة",
-    "prescription.applied":          "تطبيق وصفة",
-    "walk_plan.generated":           "توليد خطة مشي",
-    "trueup.apply":                  "معايرة الإنتاج",
+    "field.create": "إنشاء حقل",
+    "field.update": "تحديث حقل",
+    "field.delete": "حذف حقل",
+    "operation.planting.start": "بدء البذر",
+    "operation.harvest.complete": "اكتمال الحصاد",
+    "operation.irrigation.start": "بدء الري",
+    "field.advance_stage": "تقدّم المرحلة",
+    "prescription.applied": "تطبيق وصفة",
+    "walk_plan.generated": "توليد خطة مشي",
+    "trueup.apply": "معايرة الإنتاج",
 }
 
 
-def _summarize_action(action: str, payload: Dict[str, Any]) -> str:
+def _summarize_action(action: str, payload: dict[str, Any]) -> str:
     """ولّد ملخّص عربي قصير."""
     base = _ACTION_SUMMARIES_AR.get(action, action)
 
@@ -124,6 +128,7 @@ class _ReadOnlyConn:
     يلفّ asyncpg connection ويفحص كلّ استعلام: fetch/fetchrow/fetchval مسموحة
     (قراءة)؛ execute بكتابة (INSERT/UPDATE/DELETE) يُرفَض. يضمن أنّ المجمّع
     لا يصبح writable صامتاً (projection لا يكتب حقيقة)."""
+
     _WRITE = ("INSERT", "UPDATE", "DELETE", "TRUNCATE", "MERGE")
 
     def __init__(self, conn):
@@ -132,23 +137,27 @@ class _ReadOnlyConn:
     @staticmethod
     def _check(sql):
         if sql.lstrip()[:12].upper().startswith(_ReadOnlyConn._WRITE):
-            raise RuntimeError(
-                "المجمّع طبقة قراءة فقط — الكتابة عبر command_store/event_bus")
+            raise RuntimeError("المجمّع طبقة قراءة فقط — الكتابة عبر command_store/event_bus")
 
     async def fetch(self, sql, *a, **k):
-        self._check(sql); return await self._c.fetch(sql, *a, **k)
+        self._check(sql)
+        return await self._c.fetch(sql, *a, **k)
 
     async def fetchrow(self, sql, *a, **k):
-        self._check(sql); return await self._c.fetchrow(sql, *a, **k)
+        self._check(sql)
+        return await self._c.fetchrow(sql, *a, **k)
 
     async def fetchval(self, sql, *a, **k):
-        self._check(sql); return await self._c.fetchval(sql, *a, **k)
+        self._check(sql)
+        return await self._c.fetchval(sql, *a, **k)
 
     async def execute(self, sql, *a, **k):
-        self._check(sql); return await self._c.execute(sql, *a, **k)
+        self._check(sql)
+        return await self._c.execute(sql, *a, **k)
 
 
 # ─── Lineage assembler ──────────────────────────────────────────
+
 
 class LineageAssembler:
     """
@@ -159,8 +168,9 @@ class LineageAssembler:
         lineage = await assembler.get_entity_lineage("field", field_id)
     """
 
-    def __init__(self, pool: "asyncpg.Pool", conn=None):
+    def __init__(self, pool: asyncpg.Pool, conn=None):
         import asyncpg as _ap  # noqa: F401
+
         self.pool = pool
         # conn اختياري: لو مُرّر (من tenant_connection) يُستخدم مباشرةً فيُطبَّق
         # RLS؛ وإلّا يُكتسب من الـpool (توافق خلفي).
@@ -197,7 +207,7 @@ class LineageAssembler:
         """يجمع lineage كامل للـentity."""
         import uuid as _u
 
-        entries: List[LineageEntry] = []
+        entries: list[LineageEntry] = []
 
         async with self._acquire() as conn:
             # ١. Commands المتعلّقة (بـpayload contains entity_id)
@@ -217,17 +227,19 @@ class LineageAssembler:
 
             for r in cmd_rows:
                 payload = r["payload"] if isinstance(r["payload"], dict) else {}
-                entries.append(LineageEntry(
-                    timestamp=r["created_at"].isoformat() if r["created_at"] else "",
-                    source_type=LineageSourceType.COMMAND,
-                    source_id=str(r["command_id"]),
-                    actor_id=r["actor_id"],
-                    action=r["command_type"],
-                    payload=payload,
-                    related_command_id=str(r["command_id"]),
-                    summary_ar=f"[أمر] {_summarize_action(r['command_type'], payload)}"
-                              + (f" — {r['status']}" if r['status'] != 'succeeded' else ""),
-                ))
+                entries.append(
+                    LineageEntry(
+                        timestamp=r["created_at"].isoformat() if r["created_at"] else "",
+                        source_type=LineageSourceType.COMMAND,
+                        source_id=str(r["command_id"]),
+                        actor_id=r["actor_id"],
+                        action=r["command_type"],
+                        payload=payload,
+                        related_command_id=str(r["command_id"]),
+                        summary_ar=f"[أمر] {_summarize_action(r['command_type'], payload)}"
+                        + (f" — {r['status']}" if r["status"] != "succeeded" else ""),
+                    )
+                )
 
             # ٢. Events
             try:
@@ -246,16 +258,18 @@ class LineageAssembler:
                 )
                 for r in event_rows:
                     payload = r["payload"] if isinstance(r["payload"], dict) else {}
-                    entries.append(LineageEntry(
-                        timestamp=r["occurred_at"].isoformat() if r["occurred_at"] else "",
-                        source_type=LineageSourceType.EVENT,
-                        source_id=str(r["event_id"]),
-                        actor_id=r["actor_id"],
-                        action=r["event_type"],
-                        payload=payload,
-                        related_command_id=str(r["command_id"]) if r["command_id"] else None,
-                        summary_ar=f"[حدث] {_summarize_action(r['event_type'], payload)}",
-                    ))
+                    entries.append(
+                        LineageEntry(
+                            timestamp=r["occurred_at"].isoformat() if r["occurred_at"] else "",
+                            source_type=LineageSourceType.EVENT,
+                            source_id=str(r["event_id"]),
+                            actor_id=r["actor_id"],
+                            action=r["event_type"],
+                            payload=payload,
+                            related_command_id=str(r["command_id"]) if r["command_id"] else None,
+                            summary_ar=f"[حدث] {_summarize_action(r['event_type'], payload)}",
+                        )
+                    )
             except Exception as e:
                 # events table قد لا تكون موجودة (لو v11 migration لم يُطبَّق بعد)
                 logger.debug(f"lineage: events table unavailable: {e}")
@@ -277,16 +291,26 @@ class LineageAssembler:
                         limit,
                     )
                     for r in lc_rows:
-                        entries.append(LineageEntry(
-                            timestamp=r["transitioned_at"].isoformat() if r["transitioned_at"] else "",
-                            source_type=LineageSourceType.LIFECYCLE,
-                            source_id=str(r["transition_id"]),
-                            actor_id=r["changed_by"],
-                            action=f"lifecycle: {r['from_stage'] or '∅'} → {r['to_stage']}",
-                            payload={"from": r["from_stage"], "to": r["to_stage"], "reason": r["reason"]},
-                            related_command_id=str(r["command_id"]) if r["command_id"] else None,
-                            summary_ar=f"[مرحلة] {r['from_stage'] or '—'} → {r['to_stage']}",
-                        ))
+                        entries.append(
+                            LineageEntry(
+                                timestamp=r["transitioned_at"].isoformat()
+                                if r["transitioned_at"]
+                                else "",
+                                source_type=LineageSourceType.LIFECYCLE,
+                                source_id=str(r["transition_id"]),
+                                actor_id=r["changed_by"],
+                                action=f"lifecycle: {r['from_stage'] or '∅'} → {r['to_stage']}",
+                                payload={
+                                    "from": r["from_stage"],
+                                    "to": r["to_stage"],
+                                    "reason": r["reason"],
+                                },
+                                related_command_id=str(r["command_id"])
+                                if r["command_id"]
+                                else None,
+                                summary_ar=f"[مرحلة] {r['from_stage'] or '—'} → {r['to_stage']}",
+                            )
+                        )
                 except Exception as e:
                     logger.debug(f"lineage: optional source unavailable: {e}")
 
@@ -307,22 +331,26 @@ class LineageAssembler:
                         limit,
                     )
                     for r in tu_rows:
-                        entries.append(LineageEntry(
-                            timestamp=r["applied_at"].isoformat() if r["applied_at"] else "",
-                            source_type=LineageSourceType.TRUEUP,
-                            source_id=str(r["calibration_id"]),
-                            actor_id=r["applied_by"],
-                            action="trueup.applied",
-                            payload={
-                                "k": float(r["k_factor"]),
-                                "actual_kg": float(r["actual_weight_kg"]),
-                                "measured_kg": float(r["measured_weight_kg"]),
-                                "error_pct": float(r["error_pct"]) if r["error_pct"] else 0,
-                            },
-                            related_command_id=str(r["command_id"]) if r["command_id"] else None,
-                            summary_ar=f"[معايرة] k={float(r['k_factor']):.3f} "
-                                      f"(خطأ {float(r['error_pct'] or 0):.1f}%)",
-                        ))
+                        entries.append(
+                            LineageEntry(
+                                timestamp=r["applied_at"].isoformat() if r["applied_at"] else "",
+                                source_type=LineageSourceType.TRUEUP,
+                                source_id=str(r["calibration_id"]),
+                                actor_id=r["applied_by"],
+                                action="trueup.applied",
+                                payload={
+                                    "k": float(r["k_factor"]),
+                                    "actual_kg": float(r["actual_weight_kg"]),
+                                    "measured_kg": float(r["measured_weight_kg"]),
+                                    "error_pct": float(r["error_pct"]) if r["error_pct"] else 0,
+                                },
+                                related_command_id=str(r["command_id"])
+                                if r["command_id"]
+                                else None,
+                                summary_ar=f"[معايرة] k={float(r['k_factor']):.3f} "
+                                f"(خطأ {float(r['error_pct'] or 0):.1f}%)",
+                            )
+                        )
                 except Exception as e:
                     logger.debug(f"lineage: optional source unavailable: {e}")
 
@@ -354,7 +382,7 @@ class LineageAssembler:
             trueup_applications=counts[LineageSourceType.TRUEUP],
         )
 
-    async def get_command_chain(self, command_id: str) -> Dict[str, Any]:
+    async def get_command_chain(self, command_id: str) -> dict[str, Any]:
         """
         يأخذ command_id ويُرجع كلّ ما تولّد عنه:
             - الـcommand نفسه

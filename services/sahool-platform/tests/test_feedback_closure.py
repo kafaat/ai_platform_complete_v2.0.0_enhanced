@@ -1,10 +1,17 @@
 """Tests for feedback_closure - preparation for future learning loop.
 Principle: data readiness ≠ model readiness. We define, don't apply."""
+
 from core.feedback_closure import (
-    SuccessMetric, SuccessDefinition, get_success_definitions,
-    composite_success_weight_sum, is_outcome_ready_for_learning,
-    assess_acceptance_bias, learning_loop_readiness, known_biases,
-    LagWindow)
+    LagWindow,
+    SuccessDefinition,
+    SuccessMetric,
+    assess_acceptance_bias,
+    composite_success_weight_sum,
+    get_success_definitions,
+    is_outcome_ready_for_learning,
+    known_biases,
+    learning_loop_readiness,
+)
 
 
 class TestSuccessDefinitions:
@@ -21,7 +28,7 @@ class TestSuccessDefinitions:
 
     def test_each_definition_has_reasoning(self):
         # CRITICAL: كل metric يحمل reason_ar صريحاً (لا "ML سحري")
-        for metric, definition in get_success_definitions().items():
+        for _metric, definition in get_success_definitions().items():
             assert definition.reason_ar
             assert len(definition.reason_ar) > 10
 
@@ -36,6 +43,7 @@ class TestLagWindow:
     def test_wheat_outcome_after_minimum_lag(self):
         # توصية عمرها 100 يوم لقمح (>min_lag=90) = ready
         from datetime import datetime, timedelta
+
         old = (datetime.now() - timedelta(days=100)).date().isoformat()
         ready, reason = is_outcome_ready_for_learning(old, "wheat")
         assert ready
@@ -44,6 +52,7 @@ class TestLagWindow:
     def test_premature_outcome_blocked(self):
         # CRITICAL: 4 يوم لا يكفي — لا نُغذّي learning
         from datetime import datetime, timedelta
+
         recent = (datetime.now() - timedelta(days=4)).date().isoformat()
         ready, reason = is_outcome_ready_for_learning(recent, "wheat")
         assert not ready
@@ -52,6 +61,7 @@ class TestLagWindow:
     def test_stale_outcome_blocked(self):
         # CRITICAL: outcome قديم جدّاً = stale
         from datetime import datetime, timedelta
+
         old = (datetime.now() - timedelta(days=500)).date().isoformat()
         ready, reason = is_outcome_ready_for_learning(old, "wheat")
         assert not ready
@@ -59,8 +69,7 @@ class TestLagWindow:
 
     def test_unknown_crop_no_invention(self):
         # CRITICAL: محصول غير معرّف → لا نخترع lag window
-        ready, reason = is_outcome_ready_for_learning(
-            "2026-01-01", "unknown_crop")
+        ready, reason = is_outcome_ready_for_learning("2026-01-01", "unknown_crop")
         assert not ready
         assert "غير معروف" in reason or "لا lag window" in reason
 
@@ -74,28 +83,25 @@ class TestBiasAwareness:
 
     def test_low_acceptance_flags_high_risk(self):
         # CRITICAL: قبول < 70% = selection bias قوي
-        result = assess_acceptance_bias(
-            total_recommendations=100, accepted=40, skipped=60)
+        result = assess_acceptance_bias(total_recommendations=100, accepted=40, skipped=60)
         assert result["bias_risk"] == "high"
         assert "⚠️" in result["summary_ar"]
 
     def test_high_acceptance_low_risk(self):
-        result = assess_acceptance_bias(
-            total_recommendations=100, accepted=85, skipped=15)
+        result = assess_acceptance_bias(total_recommendations=100, accepted=85, skipped=15)
         assert result["bias_risk"] == "low"
         assert "✅" in result["summary_ar"]
 
     def test_empty_data_no_invention(self):
         # CRITICAL: لا بيانات → "unknown"، لا "good"
-        result = assess_acceptance_bias(
-            total_recommendations=0, accepted=0, skipped=0)
+        result = assess_acceptance_bias(total_recommendations=0, accepted=0, skipped=0)
         assert result["bias_risk"] == "unknown"
 
 
 class TestReadinessCheck:
     def test_insufficient_outcomes_blocked(self):
         readiness = learning_loop_readiness(
-            completed_outcomes_count=20,    # < 50
+            completed_outcomes_count=20,  # < 50
             acceptance_rate=0.85,
             lag_window_compliance=0.90,
         )
@@ -106,7 +112,7 @@ class TestReadinessCheck:
         # selection bias منع التفعيل
         readiness = learning_loop_readiness(
             completed_outcomes_count=100,
-            acceptance_rate=0.50,    # < 0.7
+            acceptance_rate=0.50,  # < 0.7
             lag_window_compliance=0.90,
         )
         assert not readiness["ready_for_learning"]

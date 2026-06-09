@@ -28,58 +28,62 @@ sahool_core.cross_reference_finder
   → يُغذّي field_bundle (context إضافي للـrecommendation_engine)
   → يُغذّي recommendation_replay (الأنماط المشابهة وقت الإصدار)
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 
 @dataclass
 class SimilarityMatch:
     """تطابق تاريخي — حدث سابق يشبه الحالة الحالية."""
-    source_type: str              # "recommendation" / "activity" / "calibration"
+
+    source_type: str  # "recommendation" / "activity" / "calibration"
     source_id: str
     source_date: str
     tenant_id: str
     field_id: str | None
     crop: str | None
-    similarity_score: float       # 0.0-1.0
-    why_similar_ar: list[str]    # أسباب التشابه الصريحة
-    outcome: str | None = None    # إن وُجد: "successful" / "rejected" / "skipped"
+    similarity_score: float  # 0.0-1.0
+    why_similar_ar: list[str]  # أسباب التشابه الصريحة
+    outcome: str | None = None  # إن وُجد: "successful" / "rejected" / "skipped"
     actual_yield_t_ha: float | None = None
     # جسر مستقبلي للـoutcome-driven learning loop (DEFER التنفيذ):
     # حالياً: محسوب من error_pct (دقّة عالية = جودة عالية)
     # لاحقاً: يُغذّي weight_adjustment_hook حين تتوفّر بيانات outcomes كافية
-    outcome_quality: float | None = None   # 0.0-1.0، اختياري
+    outcome_quality: float | None = None  # 0.0-1.0، اختياري
 
 
 @dataclass
 class SearchContext:
     """السياق المُستعلَم عنه — ما الذي نبحث عن مشابه له؟"""
+
     tenant_id: str
     field_id: str
     crop: str
     season: str | None = None
     growth_stage: str | None = None
-    issue_type: str | None = None      # "drought_stress" / "low_ndvi" / "salinity"
-    current_indicators: dict | None = None   # {"ndvi": 0.42, "ec": 2.1, ...}
-    district_id: str | None = None     # ← مُضاف (إصلاح bug صامت: كان rec.district_id
-                                       # يُستخدم بدون مرجع في السياق)
+    issue_type: str | None = None  # "drought_stress" / "low_ndvi" / "salinity"
+    current_indicators: dict | None = None  # {"ndvi": 0.42, "ec": 2.1, ...}
+    district_id: str | None = None  # ← مُضاف (إصلاح bug صامت: كان rec.district_id
+    # يُستخدم بدون مرجع في السياق)
 
 
 # ─── أوزان التشابه الزراعي ─────────────────────────────────────
 # لا "ML سحرية" — أوزان زراعية صريحة قابلة للمراجعة
 _WEIGHTS = {
-    "same_crop":            0.30,    # نفس المحصول
-    "same_growth_stage":    0.20,    # نفس مرحلة النمو
-    "same_issue_type":      0.25,    # نفس نوع المشكلة
-    "similar_indicators":   0.15,    # NDVI/EC قريبة (±15%)
-    "same_district":        0.10,    # نفس المديرية (مناخ متشابه)
+    "same_crop": 0.30,  # نفس المحصول
+    "same_growth_stage": 0.20,  # نفس مرحلة النمو
+    "same_issue_type": 0.25,  # نفس نوع المشكلة
+    "similar_indicators": 0.15,  # NDVI/EC قريبة (±15%)
+    "same_district": 0.10,  # نفس المديرية (مناخ متشابه)
 }
 
 
-def _compare_indicators(current: dict, historical: dict,
-                        tolerance_pct: float = 15.0) -> tuple[float, list[str]]:
+def _compare_indicators(
+    current: dict, historical: dict, tolerance_pct: float = 15.0
+) -> tuple[float, list[str]]:
     """يقارن قيم المؤشّرات. يُرجع (score 0-1، أسباب التطابق)."""
     if not current or not historical:
         return 0.0, []
@@ -130,9 +134,10 @@ def find_similar_recommendations(
     # PRE-FILTER: عزل المستأجر + العمر قبل أيّ حساب تشابه
     # هذا يحلّ O(n) full scan: نمرّ مرّة واحدة بـcomparisons رخيصة
     candidates = [
-        rec for rec in recommendation_log
-        if rec.tenant_id == context.tenant_id     # عزل tenant (حرس صارم)
-        and rec.issued_date >= cutoff             # عمر معقول
+        rec
+        for rec in recommendation_log
+        if rec.tenant_id == context.tenant_id  # عزل tenant (حرس صارم)
+        and rec.issued_date >= cutoff  # عمر معقول
     ]
 
     if not candidates:
@@ -157,11 +162,12 @@ def find_similar_recommendations(
         # المؤشّرات (إن وُجدت في provenance)
         prov = getattr(rec, "provenance", None)
         if prov and context.current_indicators:
-            hist_snapshot = (prov.get("input_snapshot", {})
-                            if isinstance(prov, dict)
-                            else getattr(prov, "input_snapshot", {}))
-            ind_score, ind_matches = _compare_indicators(
-                context.current_indicators, hist_snapshot)
+            hist_snapshot = (
+                prov.get("input_snapshot", {})
+                if isinstance(prov, dict)
+                else getattr(prov, "input_snapshot", {})
+            )
+            ind_score, ind_matches = _compare_indicators(context.current_indicators, hist_snapshot)
             score += _WEIGHTS["similar_indicators"] * ind_score
             if ind_matches:
                 reasons.append("مؤشّرات مشابهة: " + "، ".join(ind_matches[:2]))
@@ -181,19 +187,21 @@ def find_similar_recommendations(
         elif hasattr(rec, "error_pct") and rec.error_pct is not None:
             outcome = "evaluated"
 
-        matches.append(SimilarityMatch(
-            source_type="recommendation",
-            source_id=rec.rec_id,
-            source_date=rec.issued_date,
-            tenant_id=rec.tenant_id,
-            field_id=getattr(rec, "zone_id", None),
-            crop=rec.crop,
-            similarity_score=round(score, 2),
-            why_similar_ar=reasons,
-            outcome=outcome,
-            outcome_quality=outcome_quality,
-            actual_yield_t_ha=getattr(rec, "actual_yield_t_ha", None),
-        ))
+        matches.append(
+            SimilarityMatch(
+                source_type="recommendation",
+                source_id=rec.rec_id,
+                source_date=rec.issued_date,
+                tenant_id=rec.tenant_id,
+                field_id=getattr(rec, "zone_id", None),
+                crop=rec.crop,
+                similarity_score=round(score, 2),
+                why_similar_ar=reasons,
+                outcome=outcome,
+                outcome_quality=outcome_quality,
+                actual_yield_t_ha=getattr(rec, "actual_yield_t_ha", None),
+            )
+        )
 
     # رتّب وأعد الأعلى
     matches.sort(key=lambda m: m.similarity_score, reverse=True)
@@ -219,9 +227,11 @@ def find_similar_activities(
             continue
         # نوع النشاط
         if activity_type:
-            act_type_val = (act.activity_type.value
-                           if hasattr(act.activity_type, "value")
-                           else str(act.activity_type))
+            act_type_val = (
+                act.activity_type.value
+                if hasattr(act.activity_type, "value")
+                else str(act.activity_type)
+            )
             if act_type_val != activity_type:
                 continue
         # العمر
@@ -230,26 +240,27 @@ def find_similar_activities(
             continue
 
         # تشابه أساسي: نفس المستأجر، نوع النشاط
-        score = 0.3   # baseline
+        score = 0.3  # baseline
         reasons = [f"نفس tenant ({act.tenant_id})"]
         if activity_type:
             reasons.append(f"نفس نوع النشاط ({activity_type})")
             score += 0.2
 
         # outcome
-        status_val = (act.status.value if hasattr(act.status, "value")
-                     else str(act.status))
-        matches.append(SimilarityMatch(
-            source_type="activity",
-            source_id=act.activity_id,
-            source_date=act.completed_date or act.planned_date or "",
-            tenant_id=act.tenant_id,
-            field_id=act.field_id,
-            crop=None,
-            similarity_score=round(score, 2),
-            why_similar_ar=reasons,
-            outcome=status_val,
-        ))
+        status_val = act.status.value if hasattr(act.status, "value") else str(act.status)
+        matches.append(
+            SimilarityMatch(
+                source_type="activity",
+                source_id=act.activity_id,
+                source_date=act.completed_date or act.planned_date or "",
+                tenant_id=act.tenant_id,
+                field_id=act.field_id,
+                crop=None,
+                similarity_score=round(score, 2),
+                why_similar_ar=reasons,
+                outcome=status_val,
+            )
+        )
 
     matches.sort(key=lambda m: m.source_date, reverse=True)
     return matches[:top_n]
@@ -281,16 +292,18 @@ def find_similar_calibrations(
         if score < 0.3:
             continue
 
-        matches.append(SimilarityMatch(
-            source_type="calibration",
-            source_id=cal.get("calibration_id", "unknown"),
-            source_date=cal.get("date", ""),
-            tenant_id=cal.get("tenant_id"),
-            field_id=cal.get("field_id"),
-            crop=cal.get("crop_id"),
-            similarity_score=round(score, 2),
-            why_similar_ar=reasons,
-        ))
+        matches.append(
+            SimilarityMatch(
+                source_type="calibration",
+                source_id=cal.get("calibration_id", "unknown"),
+                source_date=cal.get("date", ""),
+                tenant_id=cal.get("tenant_id"),
+                field_id=cal.get("field_id"),
+                crop=cal.get("crop_id"),
+                similarity_score=round(score, 2),
+                why_similar_ar=reasons,
+            )
+        )
 
     matches.sort(key=lambda m: m.similarity_score, reverse=True)
     return matches[:top_n]
@@ -326,5 +339,5 @@ def cross_reference_summary(matches: list[SimilarityMatch]) -> dict:
         "top_similarity": top.similarity_score,
         "top_match_reasons": top.why_similar_ar,
         "note_ar": "؛ ".join(summary_parts),
-        "matches": matches[:5],   # حدّ أقصى للسياق
+        "matches": matches[:5],  # حدّ أقصى للسياق
     }

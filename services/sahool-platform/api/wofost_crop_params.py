@@ -21,33 +21,47 @@ api/wofost_crop_params.py — دليل بارامترات WOFOST عبر المح
   الفيزيولوجيّة لبعض المحاصيل تفتقر لبيانات عامّة. لا نعرض رقماً كأنّه
   مُعايَر لليمن — نعرضه كنقطة بداية موسومة بمصدرها ومداها.
 """
+
 from __future__ import annotations
-
-from typing import Dict
-
 
 # نوع نموذج المحصول → يحدّد مدى التعديل المطلوب عن نموذج القمح الأساسي
 # (نسب التغيير من جدول المستند: القمح ٠٪، الحمضيات ٤٠-٦٠٪، الفلفل ٣٠-٥٠٪...)
 _CROP_MODEL_TYPE = {
     # حوليّة حبّيّة — النموذج الأساسي يعمل مباشرة (تغيير ~٠٪)
-    "wheat": "annual_cereal", "barley": "annual_cereal",
-    "maize": "annual_cereal", "sorghum": "annual_cereal",
-    "millet": "annual_cereal", "rice": "annual_cereal",
-    "قمح": "annual_cereal", "شعير": "annual_cereal",
-    "ذرة": "annual_cereal", "ذرة رفيعة": "annual_cereal",
+    "wheat": "annual_cereal",
+    "barley": "annual_cereal",
+    "maize": "annual_cereal",
+    "sorghum": "annual_cereal",
+    "millet": "annual_cereal",
+    "rice": "annual_cereal",
+    "قمح": "annual_cereal",
+    "شعير": "annual_cereal",
+    "ذرة": "annual_cereal",
+    "ذرة رفيعة": "annual_cereal",
     # أشجار مثمرة معمّرة — تحتاج إعادة تشكيل المناخ + التوزيع (تغيير ٤٠-٦٠٪)
-    "citrus": "perennial_tree", "date_palm": "perennial_tree",
-    "grape": "perennial_tree", "olive": "perennial_tree",
-    "pomegranate": "perennial_tree", "almond": "perennial_tree",
-    "fig": "perennial_tree", "mango": "perennial_tree",
-    "حمضيات": "perennial_tree", "نخيل": "perennial_tree",
-    "عنب": "perennial_tree", "زيتون": "perennial_tree",
-    "رمّان": "perennial_tree", "لوز": "perennial_tree",
+    "citrus": "perennial_tree",
+    "date_palm": "perennial_tree",
+    "grape": "perennial_tree",
+    "olive": "perennial_tree",
+    "pomegranate": "perennial_tree",
+    "almond": "perennial_tree",
+    "fig": "perennial_tree",
+    "mango": "perennial_tree",
+    "حمضيات": "perennial_tree",
+    "نخيل": "perennial_tree",
+    "عنب": "perennial_tree",
+    "زيتون": "perennial_tree",
+    "رمّان": "perennial_tree",
+    "لوز": "perennial_tree",
     # خضار/ثمريّة — تفصيل العمليّات الفسيولوجيّة + توسيع التغذية (تغيير ٣٠-٥٠٪)
-    "tomato": "vegetable_fruit", "pepper": "vegetable_fruit",
-    "cucumber": "vegetable_fruit", "potato": "tuber",
-    "طماطم": "vegetable_fruit", "فلفل": "vegetable_fruit",
-    "خيار": "vegetable_fruit", "بطاطس": "tuber",
+    "tomato": "vegetable_fruit",
+    "pepper": "vegetable_fruit",
+    "cucumber": "vegetable_fruit",
+    "potato": "tuber",
+    "طماطم": "vegetable_fruit",
+    "فلفل": "vegetable_fruit",
+    "خيار": "vegetable_fruit",
+    "بطاطس": "tuber",
 }
 
 # إطار التعديل لكلّ نوع — من جداول المستند (البارامترات + المدى + المصدر)
@@ -71,19 +85,35 @@ _ADAPTATION_FRAMEWORK = {
             "إعادة بناء توزيع المستحاثات نحو الثمار."
         ),
         "key_params": [
-            {"param": "PHINT_CYCLE", "name_ar": "دورة النموّ الفينولوجي",
-             "note_ar": "استبدال دورة البذار→الحصاد بدورة معمّرة (سكون→تفتّح→إزهار→عقد→نضج)",
-             "source_ar": "حالة الحمضيات Chongqing"},
-            {"param": "RDMSOL", "name_ar": "أقصى عمق جذور",
-             "range": "2.5–3.0 م", "default_wheat": "1.2 م",
-             "note_ar": "الأشجار جذورها أعمق بكثير — يؤثّر على استخراج الماء",
-             "source_ar": "حالة عنب شينجيانغ"},
-            {"param": "CVO", "name_ar": "كفاءة تحويل المستحاثات للتخزين",
-             "range": "0.5–0.7", "default_wheat": "0.4–0.6",
-             "note_ar": "نحو أعضاء تخزين الثمار", "source_ar": "حالة الحمضيات"},
-            {"param": "TMNFTB", "name_ar": "عتبة تصحيح الحرارة المنخفضة",
-             "range": "~35°C", "note_ar": "وحدة إجهاد حراري للحرّ العالي (مهمّ للجوف)",
-             "source_ar": "حالة الحمضيات"},
+            {
+                "param": "PHINT_CYCLE",
+                "name_ar": "دورة النموّ الفينولوجي",
+                "note_ar": "استبدال دورة البذار→الحصاد بدورة معمّرة (سكون→تفتّح→إزهار→عقد→نضج)",
+                "source_ar": "حالة الحمضيات Chongqing",
+            },
+            {
+                "param": "RDMSOL",
+                "name_ar": "أقصى عمق جذور",
+                "range": "2.5–3.0 م",
+                "default_wheat": "1.2 م",
+                "note_ar": "الأشجار جذورها أعمق بكثير — يؤثّر على استخراج الماء",
+                "source_ar": "حالة عنب شينجيانغ",
+            },
+            {
+                "param": "CVO",
+                "name_ar": "كفاءة تحويل المستحاثات للتخزين",
+                "range": "0.5–0.7",
+                "default_wheat": "0.4–0.6",
+                "note_ar": "نحو أعضاء تخزين الثمار",
+                "source_ar": "حالة الحمضيات",
+            },
+            {
+                "param": "TMNFTB",
+                "name_ar": "عتبة تصحيح الحرارة المنخفضة",
+                "range": "~35°C",
+                "note_ar": "وحدة إجهاد حراري للحرّ العالي (مهمّ للجوف)",
+                "source_ar": "حالة الحمضيات",
+            },
         ],
         "phenology_ar": "دورة موسميّة معمّرة متكرّرة (لا بذار→حصاد).",
     },
@@ -94,16 +124,29 @@ _ADAPTATION_FRAMEWORK = {
         "data_need_gb": "5–20",
         "summary_ar": "تفصيل العمليّات الفسيولوجيّة + توسيع وحدة التغذية.",
         "key_params": [
-            {"param": "Photoperiod", "name_ar": "حسّاسيّة الفترة الضوئيّة",
-             "range": "يوم حرج ~12 ساعة", "note_ar": "بعض الخضار حسّاسة لطول النهار",
-             "source_ar": "حالة الفلفل"},
-            {"param": "NITRO", "name_ar": "عتبة إجهاد النيتروجين",
-             "range": "20 mg/kg", "default_wheat": "10 mg/kg",
-             "note_ar": "الخضار أكثر حساسيّة لنقص N", "source_ar": "حالة الفلفل"},
-            {"param": "CFET", "name_ar": "عامل تصحيح التبخّر",
-             "range": "500–600", "default_wheat": "250–400",
-             "note_ar": "الخضار عالية التبخّر — يضبط احتياج الماء",
-             "source_ar": "حالة طماطم شاندونغ"},
+            {
+                "param": "Photoperiod",
+                "name_ar": "حسّاسيّة الفترة الضوئيّة",
+                "range": "يوم حرج ~12 ساعة",
+                "note_ar": "بعض الخضار حسّاسة لطول النهار",
+                "source_ar": "حالة الفلفل",
+            },
+            {
+                "param": "NITRO",
+                "name_ar": "عتبة إجهاد النيتروجين",
+                "range": "20 mg/kg",
+                "default_wheat": "10 mg/kg",
+                "note_ar": "الخضار أكثر حساسيّة لنقص N",
+                "source_ar": "حالة الفلفل",
+            },
+            {
+                "param": "CFET",
+                "name_ar": "عامل تصحيح التبخّر",
+                "range": "500–600",
+                "default_wheat": "250–400",
+                "note_ar": "الخضار عالية التبخّر — يضبط احتياج الماء",
+                "source_ar": "حالة طماطم شاندونغ",
+            },
         ],
         "phenology_ar": "دورة حوليّة لكن بمراحل ثمريّة مفصّلة.",
     },
@@ -114,14 +157,27 @@ _ADAPTATION_FRAMEWORK = {
         "data_need_gb": "3–10",
         "summary_ar": "محاكاة الأعضاء التخزينيّة (الدرنات) + تعديل جذري ديناميكي.",
         "key_params": [
-            {"param": "TB", "name_ar": "الحرارة المثلى لتضخّم الدرنات",
-             "range": "18–22°C", "note_ar": "علاقة غير خطّيّة بين التضخّم والحرارة",
-             "source_ar": "حالة بطاطس بولندا"},
-            {"param": "ROOTGROW", "name_ar": "سرعة نموّ الجذور",
-             "note_ar": "تعديل ديناميكي لنسبة رطوبة التربة", "source_ar": "حالة البطاطس"},
-            {"param": "HI", "name_ar": "مؤشّر المحصول (الحصاد)",
-             "range": "0.6–0.8", "default_wheat": "0.4–0.5",
-             "note_ar": "نسبة الدرنات للكتلة الكلّيّة أعلى", "source_ar": "حالة البطاطس"},
+            {
+                "param": "TB",
+                "name_ar": "الحرارة المثلى لتضخّم الدرنات",
+                "range": "18–22°C",
+                "note_ar": "علاقة غير خطّيّة بين التضخّم والحرارة",
+                "source_ar": "حالة بطاطس بولندا",
+            },
+            {
+                "param": "ROOTGROW",
+                "name_ar": "سرعة نموّ الجذور",
+                "note_ar": "تعديل ديناميكي لنسبة رطوبة التربة",
+                "source_ar": "حالة البطاطس",
+            },
+            {
+                "param": "HI",
+                "name_ar": "مؤشّر المحصول (الحصاد)",
+                "range": "0.6–0.8",
+                "default_wheat": "0.4–0.5",
+                "note_ar": "نسبة الدرنات للكتلة الكلّيّة أعلى",
+                "source_ar": "حالة البطاطس",
+            },
         ],
         "phenology_ar": "دورة حوليّة مع طور تكوين درنات حرج.",
     },
@@ -133,7 +189,7 @@ def crop_model_type(crop: str) -> str:
     return _CROP_MODEL_TYPE.get(crop.lower()) or _CROP_MODEL_TYPE.get(crop) or "perennial_tree"
 
 
-def wofost_adaptation_guidance(crop: str) -> Dict:
+def wofost_adaptation_guidance(crop: str) -> dict:
     """دليل تعديل بارامترات WOFOST لمحصول مستهدف (عن النموذج الأساسي).
 
     يُرجع نوع النموذج، نسبة التغيير المتوقّعة، البارامترات الرئيسيّة التي
@@ -160,8 +216,11 @@ def wofost_adaptation_guidance(crop: str) -> Dict:
             "هذه بارامترات إرشاديّة للمعايرة من حالات منشورة، لا قيم نهائيّة "
             "مُعايَرة لليمن. التحويل يحتاج معايرة ميدانيّة (هدف RMSE < 15%) "
             "ببيانات الصنف والإقليم المحلّيّين. "
-            + ("" if known else
-               "هذا المحصول غير مصنّف صراحةً — عُومل افتراضيّاً كشجرة معمّرة، تحقّق يدويّاً.")
+            + (
+                ""
+                if known
+                else "هذا المحصول غير مصنّف صراحةً — عُومل افتراضيّاً كشجرة معمّرة، تحقّق يدويّاً."
+            )
         ),
         "limitations_ar": [
             "البارامترات الفيزيولوجيّة لبعض المحاصيل (الاستوائيّة التجاريّة) "
@@ -172,12 +231,15 @@ def wofost_adaptation_guidance(crop: str) -> Dict:
     }
 
 
-def list_supported_crop_types() -> Dict:
+def list_supported_crop_types() -> dict:
     """يعرض أنواع نماذج المحاصيل المدعومة وإطار كلّ منها."""
     return {
         "model_types": {
-            k: {"name_ar": v["name_ar"], "change_pct": v["change_pct"],
-                "typical_r2": v["typical_r2"]}
+            k: {
+                "name_ar": v["name_ar"],
+                "change_pct": v["change_pct"],
+                "typical_r2": v["typical_r2"],
+            }
             for k, v in _ADAPTATION_FRAMEWORK.items()
         },
         "note_ar": (

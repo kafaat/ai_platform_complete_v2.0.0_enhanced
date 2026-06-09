@@ -16,38 +16,37 @@ api/decision_engine.py — محرّك القرار الزراعي الموحّد
 ⚠ القرار النهائي للمزارع. المحرّك يرتّب الخيارات بشفافيّة (لماذا) لا يفرضها.
 كلّ مكوّن يحمل تنويهه. التربة والسوق المحلّي والخبرة الميدانيّة حاسمة.
 """
-from __future__ import annotations
 
-from typing import Dict, Optional
+from __future__ import annotations
 
 
 def decide_for_location(
-    location: Optional[str] = None,
-    lat: Optional[float] = None,
-    lon: Optional[float] = None,
-    elevation_m: Optional[float] = None,
-    soil_ph: Optional[float] = None,
-    soil_ec_dsm: Optional[float] = None,
-    area_ha: Optional[float] = None,
-) -> Dict:
+    location: str | None = None,
+    lat: float | None = None,
+    lon: float | None = None,
+    elevation_m: float | None = None,
+    soil_ph: float | None = None,
+    soil_ec_dsm: float | None = None,
+    area_ha: float | None = None,
+) -> dict:
     """قرار زراعي متكامل لحقل من موقعه وبياناته الأساسيّة.
 
     يُدخل المزارع إمّا اسم محافظة/مديريّة أو إحداثيّات GPS (+ارتفاع)،
     واختياريّاً تربة (pH/EC) ومساحة. يُخرج المحرّك قراراً مرتّباً.
     """
-    result: Dict = {"supported": True, "steps_ar": []}
+    result: dict = {"supported": True, "steps_ar": []}
 
     # ── الخطوة ١: تحديد الإقليم المناخي ──
     zone_key = None
-    zone_info = None
     if lat is not None and lon is not None:
         from api.geo_zone_locator import locate_field
+
         loc = locate_field(lat, lon, elevation_m)
         if loc.get("supported"):
             zone_key = loc.get("zone")
-            zone_info = loc
             result["location_ar"] = {
-                "method": "GPS", "governorate_ar": loc.get("governorate_ar"),
+                "method": "GPS",
+                "governorate_ar": loc.get("governorate_ar"),
                 "zone_name_ar": loc.get("zone_name_ar"),
                 "climate_ar": loc.get("climate_ar"),
             }
@@ -58,12 +57,13 @@ def decide_for_location(
             return {"supported": False, "message_ar": loc.get("message_ar")}
     elif location:
         from api.agro_climate_zones import identify_zone_v2
+
         idz = identify_zone_v2(location, elevation_m)
         if idz.get("supported"):
             zone_key = idz.get("zone")
-            zone_info = idz
             result["location_ar"] = {
-                "method": "اسم", "input_ar": location,
+                "method": "اسم",
+                "input_ar": location,
                 "zone_name_ar": idz.get("name_ar"),
                 "climate_ar": idz.get("climate_ar"),
             }
@@ -76,14 +76,14 @@ def decide_for_location(
                 "example_districts_ar": idz.get("example_districts_ar"),
             }
     else:
-        return {"supported": False,
-                "message_ar": "أدخل موقعاً (اسم محافظة/مديريّة) أو إحداثيّات GPS."}
+        return {"supported": False, "message_ar": "أدخل موقعاً (اسم محافظة/مديريّة) أو إحداثيّات GPS."}
 
     if not zone_key:
         return {"supported": False, "message_ar": "تعذّر تحديد الإقليم."}
 
     # ── الخطوة ٢: المحاصيل الملائمة للإقليم + التنبيه المائي ──
     from api.agro_climate_zones import suited_for_zone
+
     suited = suited_for_zone(zone_key)
     result["suited_crops_ar"] = suited.get("suited_crops_ar")
     result["avoid_ar"] = suited.get("avoid_ar")
@@ -93,6 +93,7 @@ def decide_for_location(
 
     # ── الخطوة ٣: الدليل العالمي (للصحراء الداخليّة فقط) ──
     from api.climate_analogs import analogs_for_zone, strategic_tiers
+
     analogs = analogs_for_zone(zone_key)
     if analogs.get("applicable"):
         result["global_evidence_ar"] = {
@@ -109,6 +110,7 @@ def decide_for_location(
         }
         # نموذج البستان المختلط الاستثماري (للصحراء — لوز/زيتون/فستق)
         from api.orchard_planner import mixed_orchard_plan
+
         _orchard = mixed_orchard_plan(area_ha or 1.0)
         if _orchard.get("supported"):
             result["mixed_orchard_ar"] = {
@@ -120,10 +122,13 @@ def decide_for_location(
                 "strategy_ar": _orchard["strategy_ar"],
                 "arid_warning_ar": _orchard["arid_warning_ar"],
             }
-        result["steps_ar"].append("③ أُرفق الدليل العالمي + التصنيف الاستراتيجي + نموذج البستان (صحراء)")
+        result["steps_ar"].append(
+            "③ أُرفق الدليل العالمي + التصنيف الاستراتيجي + نموذج البستان (صحراء)"
+        )
         # طبقات الفرص عالية القيمة (للصحراء — موثّقة)
         from api.high_value_crops import list_high_value_crops
         from api.niche_export_crops import list_niche_crops
+
         _hv = list_high_value_crops()
         result["high_value_opportunities_ar"] = {
             "top_3_ar": _hv.get("top_3_for_jawf_ar"),
@@ -137,11 +142,11 @@ def decide_for_location(
         }
 
     # ── الخطوة ٤: المخاطر الموسميّة + ساعات البرودة ──
-    from api.seasonal_risk import zone_risk_calendar, chill_hours_estimate
+    from api.seasonal_risk import chill_hours_estimate, zone_risk_calendar
+
     risk = zone_risk_calendar(zone_key)
     if risk.get("supported"):
-        high_risks = [h["hazard_ar"] for h in risk["hazards"]
-                      if h["severity"] == "high"]
+        high_risks = [h["hazard_ar"] for h in risk["hazards"] if h["severity"] == "high"]
         result["seasonal_risks_ar"] = {
             "high_severity_ar": high_risks,
             "advice_ar": risk.get("advice_ar"),
@@ -161,7 +166,7 @@ def decide_for_location(
                 "annual_rainfall_mm": _ref.get("annual_rainfall_mm"),
                 "heat_stress_days_per_year": _ref.get("heat_stress_days_per_year"),
                 "temp_record_ar": f"سُجّل من {_ref.get('temp_min_record')}° إلى "
-                                  f"{_ref.get('temp_max_record')}°م",
+                f"{_ref.get('temp_max_record')}°م",
                 "note_ar": (
                     "بيانات فعليّة (5 سنوات) لا تقديرات — "
                     f"~{_ref.get('heat_stress_days_per_year')} يوم إجهاد حراري/سنة، "
@@ -210,8 +215,7 @@ def decide_for_location(
         result["steps_ar"].append("⑥ روعيت مساحة الحقل")
 
     # ── القرار المجمّع ──
-    result["decision_summary_ar"] = _build_summary(zone_key, suited, analogs,
-                                                   chill, soil_ec_dsm)
+    result["decision_summary_ar"] = _build_summary(zone_key, suited, analogs, chill, soil_ec_dsm)
     result["next_actions_ar"] = [
         "افحص ملاءمة محصولك المختار لحقلك (محرّك الملاءمة)",
         "قدّر الجدوى الاقتصاديّة (وحدة الاقتصاد الزراعي)",
@@ -245,12 +249,14 @@ def _build_summary(zone_key, suited, analogs, chill, ec) -> str:
     return ". ".join(parts) + "."
 
 
-def _load_jawf_climate_ref() -> Optional[Dict]:
+def _load_jawf_climate_ref() -> dict | None:
     """يحمّل ملخّص طقس الجوف الفعلي المرجعي (5 سنوات NASA POWER)، إن وُجد."""
     import json
     import os
-    path = os.path.join(os.path.dirname(__file__), "..", "data",
-                        "reference", "aljawf_climate_summary.json")
+
+    path = os.path.join(
+        os.path.dirname(__file__), "..", "data", "reference", "aljawf_climate_summary.json"
+    )
     try:
         with open(path, encoding="utf-8") as fh:
             return json.load(fh)

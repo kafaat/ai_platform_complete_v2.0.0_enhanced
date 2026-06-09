@@ -17,6 +17,7 @@ Sources:
   - Q10 mineralisation: standard soil biogeochemistry (Q10~2,
     k_ref~0.05/day at 20°C). C:N delay: Janssen 1996 / standard agronomy.
 """
+
 from __future__ import annotations
 
 import math
@@ -45,8 +46,10 @@ def fertiliser_need(
     if deficit <= 0:
         note = f"{nutrient}: المتوفر كافٍ — لا حاجة للإضافة"
     else:
-        note = (f"{nutrient}: نقص {deficit:.0f} كجم/هكتار → "
-                f"{fert:.0f} كجم سماد (كفاءة {use_efficiency:.0%})")
+        note = (
+            f"{nutrient}: نقص {deficit:.0f} كجم/هكتار → "
+            f"{fert:.0f} كجم سماد (كفاءة {use_efficiency:.0%})"
+        )
     return FertiliserNeed(
         nutrient=nutrient,
         required_kg_ha=required_kg_ha,
@@ -58,8 +61,11 @@ def fertiliser_need(
 
 
 def mineralisation_half_life_days(
-    temp_c: float, cn_ratio: float,
-    k_ref_per_day: float = 0.05, q10: float = 2.0, t_ref: float = 20.0,
+    temp_c: float,
+    cn_ratio: float,
+    k_ref_per_day: float = 0.05,
+    q10: float = 2.0,
+    t_ref: float = 20.0,
 ) -> dict:
     """Q10 mineralisation half-life. Accounts for C:N delay."""
     k = k_ref_per_day * (q10 ** ((temp_c - t_ref) / 10.0))
@@ -68,8 +74,7 @@ def mineralisation_half_life_days(
     if delayed:
         # high C:N immobilises N first -> effective delay 3-6x
         half_life *= 4.0
-        note = (f"C:N={cn_ratio:.0f} > 30 → تثبيت مؤقت للنيتروجين، "
-                f"المعدنية متأخرة رغم الحرارة")
+        note = f"C:N={cn_ratio:.0f} > 30 → تثبيت مؤقت للنيتروجين، المعدنية متأخرة رغم الحرارة"
     else:
         note = f"معدنية سريعة عند {temp_c:.0f}°م (C:N={cn_ratio:.0f})"
     return {
@@ -81,17 +86,22 @@ def mineralisation_half_life_days(
 
 
 def organic_matter_recommendation(
-    current_om_pct: float, optimal_om_pct: float, soil_history: str,
+    current_om_pct: float,
+    optimal_om_pct: float,
+    soil_history: str,
 ) -> dict:
     """Compost need to reach optimal OM. History adjusts the baseline."""
     om = current_om_pct
     if "fallow_3yr" in soil_history:
-        om *= 0.7   # degradation
+        om *= 0.7  # degradation
     elif "rotation" in soil_history:
-        om *= 1.1   # improvement from rotation
+        om *= 1.1  # improvement from rotation
     if om >= optimal_om_pct:
-        return {"status": "مثالي", "compost_tons_per_ha": 0.0,
-                "note_ar": "صيانة سنوية 2-3 طن/هكتار"}
+        return {
+            "status": "مثالي",
+            "compost_tons_per_ha": 0.0,
+            "note_ar": "صيانة سنوية 2-3 طن/هكتار",
+        }
     deficit = optimal_om_pct - om
     # ~50% OM content in compost, 20 t/ha raises ~1% (rough agronomic factor)
     compost = round(deficit * 20.0, 1)
@@ -99,6 +109,5 @@ def organic_matter_recommendation(
         "status": "ناقص",
         "current_om_pct": round(om, 2),
         "compost_tons_per_ha": compost,
-        "note_ar": f"أضف ~{compost} طن/هكتار كومبوست قبل الزراعة 4-6 أسابيع "
-                   f"(عدّل حسب C:N والحرارة)",
+        "note_ar": f"أضف ~{compost} طن/هكتار كومبوست قبل الزراعة 4-6 أسابيع (عدّل حسب C:N والحرارة)",
     }

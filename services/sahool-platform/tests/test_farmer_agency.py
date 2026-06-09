@@ -1,6 +1,11 @@
 """Tests for farmer agency: advice not orders, rejection feeds learning (Deskilling lesson)."""
+
 from core.farmer_agency import (
-    AdvisoryDecision, FarmerResponse, record_farmer_response, analyze_rejection_pattern)
+    AdvisoryDecision,
+    FarmerResponse,
+    analyze_rejection_pattern,
+    record_farmer_response,
+)
 
 
 class TestFarmerAgency:
@@ -29,21 +34,29 @@ class TestFarmerAgency:
 
     def test_high_rejection_signals_local_mismatch(self):
         # CHILE LESSON: repeated rejection = algorithm may not fit local context
-        decisions = [record_farmer_response(AdvisoryDecision("x","low"),
-                     FarmerResponse.REJECTED if i < 5 else FarmerResponse.ACCEPTED)
-                     for i in range(10)]
+        decisions = [
+            record_farmer_response(
+                AdvisoryDecision("x", "low"),
+                FarmerResponse.REJECTED if i < 5 else FarmerResponse.ACCEPTED,
+            )
+            for i in range(10)
+        ]
         p = analyze_rejection_pattern("تسميد", decisions)
         assert p.rejection_rate >= 0.4
         assert "السياق المحلّي" in p.signal_ar
 
     def test_small_sample_no_pattern(self):
-        decisions = [record_farmer_response(AdvisoryDecision("x","low"),
-                     FarmerResponse.REJECTED) for _ in range(3)]
+        decisions = [
+            record_farmer_response(AdvisoryDecision("x", "low"), FarmerResponse.REJECTED)
+            for _ in range(3)
+        ]
         p = analyze_rejection_pattern("x", decisions)
         assert "عيّنة صغيرة" in p.signal_ar
 
     def test_good_acceptance_positive_signal(self):
-        decisions = [record_farmer_response(AdvisoryDecision("x","low"),
-                     FarmerResponse.ACCEPTED) for _ in range(10)]
+        decisions = [
+            record_farmer_response(AdvisoryDecision("x", "low"), FarmerResponse.ACCEPTED)
+            for _ in range(10)
+        ]
         p = analyze_rejection_pattern("x", decisions)
         assert p.rejection_rate == 0.0

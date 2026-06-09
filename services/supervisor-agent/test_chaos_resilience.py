@@ -14,13 +14,13 @@ test_chaos_resilience.py — اختبارات السلوك تحت الفشل (ch
   python3 services/supervisor-agent/test_chaos_resilience.py
   أو: pytest services/supervisor-agent/test_chaos_resilience.py -v
 """
+
 import os
 import sys
 import time
 
 sys.path.insert(0, os.path.dirname(__file__))
-from circuit_breaker import (CircuitBreaker, CircuitState,  # noqa: E402
-                             CircuitBreakerRegistry)
+from circuit_breaker import CircuitBreaker, CircuitBreakerRegistry, CircuitState  # noqa: E402
 
 
 # ── سيناريو ١: انقطاع خدمة متتالٍ → fail-fast ──
@@ -40,17 +40,16 @@ def test_sustained_outage_trips_breaker():
 # ── سيناريو ٢: تعافي بعد المهلة ──
 def test_recovery_after_outage():
     """بعد انتهاء الانقطاع: half-open ثمّ closed عند النجاح."""
-    cb = CircuitBreaker(name="mcp", failure_threshold=3,
-                        recovery_timeout=0.05, success_threshold=2)
+    cb = CircuitBreaker(name="mcp", failure_threshold=3, recovery_timeout=0.05, success_threshold=2)
     for _ in range(3):
         cb.record_failure()
     assert cb.state == CircuitState.OPEN
     # الخدمة عادت — ننتظر المهلة
     time.sleep(0.06)
-    assert cb.allow_request() is True          # يسمح بطلب اختبار
+    assert cb.allow_request() is True  # يسمح بطلب اختبار
     assert cb.state == CircuitState.HALF_OPEN
     cb.record_success()
-    cb.record_success()                         # نجاحان → تعافى
+    cb.record_success()  # نجاحان → تعافى
     assert cb.state == CircuitState.CLOSED
 
 
@@ -91,15 +90,16 @@ def test_failure_isolation_across_services():
 # ── سيناريو ٥: تذبذب الخدمة (flapping) ──
 def test_flapping_service_stabilizes():
     """خدمة متذبذبة (نجاح/فشل متناوب) لا تُبقي القاطع يرفرف بلا استقرار."""
-    cb = CircuitBreaker(name="sentinel", failure_threshold=3,
-                        recovery_timeout=0.02, success_threshold=2)
+    cb = CircuitBreaker(
+        name="sentinel", failure_threshold=3, recovery_timeout=0.02, success_threshold=2
+    )
     # تذبذب: فشل-فشل-فشل (يفتح) ثمّ نصف-مفتوح-فشل (يعيد الفتح)
     for _ in range(3):
         cb.record_failure()
     assert cb.state == CircuitState.OPEN
     time.sleep(0.03)
-    cb.allow_request()                # half-open
-    cb.record_failure()               # فشل في الاختبار → يعيد الفتح فوراً
+    cb.allow_request()  # half-open
+    cb.record_failure()  # فشل في الاختبار → يعيد الفتح فوراً
     assert cb.state == CircuitState.OPEN, "فشل نصف-مفتوح يجب أن يعيد الفتح"
 
 
@@ -135,8 +135,7 @@ def test_duplicate_failures_dont_double_count_after_open():
 
 
 if __name__ == "__main__":
-    fns = [v for k, v in sorted(globals().items())
-           if k.startswith("test_") and callable(v)]
+    fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     passed = 0
     for fn in fns:
         try:

@@ -1,17 +1,26 @@
 """Tests for identity (Dual-ID Strategy).
 Internal UUID for engineering safety, external readable for human support.
 The review insight: not 'either/or' but 'both, for different purposes'."""
+
 import uuid
+
 from core.identity import (
-    EntityKind, IdentityPair, IdentityIndex, generate_uuid, generate_readable,
-    new_identity, upgrade_legacy_id, identity_summary)
+    EntityKind,
+    IdentityIndex,
+    IdentityPair,
+    generate_readable,
+    generate_uuid,
+    identity_summary,
+    new_identity,
+    upgrade_legacy_id,
+)
 
 
 class TestUUIDGeneration:
     def test_generated_uuid_is_valid(self):
         u = generate_uuid()
         # يجب أن يكون UUID صالحاً قابلاً للتفسير
-        uuid.UUID(u)   # لا يرفع exception
+        uuid.UUID(u)  # لا يرفع exception
 
     def test_uuids_are_unique(self):
         # CRITICAL: 100 UUID في تتابع لا تتكرر
@@ -36,47 +45,43 @@ class TestReadableGeneration:
         # context فارغ → timestamp لتجنّب التضارب
         r = generate_readable(EntityKind.RECOMMENDATION)
         assert r.startswith("rec_")
-        assert len(r) > 6   # rec_ + timestamp
+        assert len(r) > 6  # rec_ + timestamp
 
     def test_consecutive_calls_unique(self):
         # حتى بدون counter، الـtimestamp يجعلها فريدة
         r1 = generate_readable(EntityKind.OBSERVATION, context="test")
         r2 = generate_readable(EntityKind.OBSERVATION, context="test", counter=1)
         r3 = generate_readable(EntityKind.OBSERVATION, context="test", counter=2)
-        # على الأقل r2 ≠ r3
-        assert r2 != r3
+        # الثلاثة يجب أن تكون فريدة (على الأقل r2 ≠ r3)
+        assert len({r1, r2, r3}) == 3
 
 
 class TestIdentityPair:
     def test_valid_pair_constructs(self):
-        p = IdentityPair(uuid=generate_uuid(), readable="fld_test_01",
-                        kind=EntityKind.FIELD)
+        p = IdentityPair(uuid=generate_uuid(), readable="fld_test_01", kind=EntityKind.FIELD)
         assert p.kind == EntityKind.FIELD
 
     def test_invalid_uuid_rejected(self):
         # CRITICAL: لا اختراع UUID — يجب أن يكون صالحاً
         try:
-            IdentityPair(uuid="not-a-uuid", readable="fld_x",
-                        kind=EntityKind.FIELD)
-            assert False, "كان يجب رفض UUID غير صالح"
+            IdentityPair(uuid="not-a-uuid", readable="fld_x", kind=EntityKind.FIELD)
+            raise AssertionError("كان يجب رفض UUID غير صالح")
         except ValueError as e:
             assert "UUID غير صالح" in str(e)
 
     def test_kind_prefix_mismatch_rejected(self):
         # CRITICAL: البادئة يجب أن تطابق النوع (لا "fld_xxx" لـRECOMMENDATION)
         try:
-            IdentityPair(uuid=generate_uuid(), readable="fld_wrong",
-                        kind=EntityKind.RECOMMENDATION)
-            assert False, "كان يجب رفض mismatch البادئة"
+            IdentityPair(uuid=generate_uuid(), readable="fld_wrong", kind=EntityKind.RECOMMENDATION)
+            raise AssertionError("كان يجب رفض mismatch البادئة")
         except ValueError as e:
             assert "بادئة" in str(e)
 
     def test_invalid_readable_pattern_rejected(self):
         # نمط readable صارم — لا مسافات، لا حروف كبيرة، لا رموز خاصّة
         try:
-            IdentityPair(uuid=generate_uuid(), readable="Bad ID!",
-                        kind=EntityKind.FIELD)
-            assert False, "كان يجب رفض نمط غير صالح"
+            IdentityPair(uuid=generate_uuid(), readable="Bad ID!", kind=EntityKind.FIELD)
+            raise AssertionError("كان يجب رفض نمط غير صالح")
         except ValueError:
             pass
 
@@ -102,7 +107,7 @@ class TestIdentityIndex:
         # CRITICAL: لا اختراع — معرّف غير معروف → None
         idx = IdentityIndex()
         assert idx.resolve("unknown_id") is None
-        assert idx.resolve(generate_uuid()) is None   # UUID صحيح لكن غير مُسجَّل
+        assert idx.resolve(generate_uuid()) is None  # UUID صحيح لكن غير مُسجَّل
 
     def test_to_uuid_conversion(self):
         idx = IdentityIndex()
@@ -124,12 +129,15 @@ class TestConflictDetection:
         # CRITICAL: تسجيل UUID مكرّر = خطأ صريح
         idx = IdentityIndex()
         p1 = new_identity(EntityKind.FIELD, context="a")
-        p2 = IdentityPair(uuid=p1.uuid, readable="fld_b",   # نفس UUID
-                         kind=EntityKind.FIELD)
+        p2 = IdentityPair(
+            uuid=p1.uuid,
+            readable="fld_b",  # نفس UUID
+            kind=EntityKind.FIELD,
+        )
         idx.register(p1)
         try:
             idx.register(p2)
-            assert False, "كان يجب رفض UUID مكرّر"
+            raise AssertionError("كان يجب رفض UUID مكرّر")
         except ValueError as e:
             assert "مُسجَّل بالفعل" in str(e)
 
@@ -137,12 +145,11 @@ class TestConflictDetection:
         # readable مكرّر أيضاً = خطأ
         idx = IdentityIndex()
         p1 = new_identity(EntityKind.FIELD, context="same")
-        p2 = IdentityPair(uuid=generate_uuid(), readable=p1.readable,
-                         kind=EntityKind.FIELD)
+        p2 = IdentityPair(uuid=generate_uuid(), readable=p1.readable, kind=EntityKind.FIELD)
         idx.register(p1)
         try:
             idx.register(p2)
-            assert False, "كان يجب رفض readable مكرّر"
+            raise AssertionError("كان يجب رفض readable مكرّر")
         except ValueError:
             pass
 
@@ -154,8 +161,8 @@ class TestLegacyMigration:
         # CRITICAL: fld_03 الحالي يبقى كـreadable، يُضاف UUID
         upgraded = upgrade_legacy_id("fld_03", EntityKind.FIELD)
         assert upgraded.readable == "fld_03"
-        assert upgraded.uuid   # غير فارغ
-        uuid.UUID(upgraded.uuid)   # صالح
+        assert upgraded.uuid  # غير فارغ
+        uuid.UUID(upgraded.uuid)  # صالح
 
     def test_legacy_with_wrong_prefix_regenerated(self):
         # بادئة لا تطابق النوع → readable جديد يحفظ القديم في context
@@ -174,14 +181,14 @@ class TestCanonicalSchemasIntegration:
 
     def test_field_schema_default_id_uuid_none(self):
         from core.canonical_schemas import FieldSchema
-        f = FieldSchema(field_id="fld_01", tenant_id="t1",
-                       farm_id="frm_01", name_ar="x")
+
+        f = FieldSchema(field_id="fld_01", tenant_id="t1", farm_id="frm_01", name_ar="x")
         assert hasattr(f, "id_uuid")
-        assert f.id_uuid is None   # default للتوافق الخلفي
+        assert f.id_uuid is None  # default للتوافق الخلفي
 
     def test_field_schema_accepts_uuid(self):
         from core.canonical_schemas import FieldSchema
+
         u = generate_uuid()
-        f = FieldSchema(field_id="fld_01", tenant_id="t1",
-                       farm_id="frm_01", name_ar="x", id_uuid=u)
+        f = FieldSchema(field_id="fld_01", tenant_id="t1", farm_id="frm_01", name_ar="x", id_uuid=u)
         assert f.id_uuid == u

@@ -1,5 +1,6 @@
 """Tests for supplemental irrigation (rainfed highland Yemen — 70% of agriculture).
 Different from deficit_irrigation: rainfed needs supplementation, not deficit management."""
+
 from core.engines.supplemental_irrigation import compute_water_gap, seasonal_summary
 
 
@@ -27,7 +28,7 @@ class TestWaterGap:
     def test_non_critical_stage_moderate_gap_optional(self):
         # فجوة معتبرة في مرحلة غير حرجة → اختياري لا مطلوب
         g = compute_water_gap(etc_mm=100, rainfall_mm=70, growth_stage="vegetative")
-        assert not g.needs_supplemental   # 30% فجوة + مرحلة غير حرجة
+        assert not g.needs_supplemental  # 30% فجوة + مرحلة غير حرجة
 
     def test_flowering_highest_sensitivity(self):
         # الإزهار يحمل أعلى حسّاسية (Ky=1.10)
@@ -47,8 +48,9 @@ class TestWaterGap:
     def test_soil_storage_reduces_gap(self):
         # مخزون التربة يقلّل الفجوة
         without = compute_water_gap(etc_mm=100, rainfall_mm=50, growth_stage="flowering")
-        with_storage = compute_water_gap(etc_mm=100, rainfall_mm=50,
-            growth_stage="flowering", soil_water_storage_mm=30)
+        with_storage = compute_water_gap(
+            etc_mm=100, rainfall_mm=50, growth_stage="flowering", soil_water_storage_mm=30
+        )
         assert with_storage.gap_mm < without.gap_mm
 
     def test_carries_estimate_warning(self):

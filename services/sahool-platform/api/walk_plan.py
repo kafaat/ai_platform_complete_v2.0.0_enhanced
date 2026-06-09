@@ -12,16 +12,18 @@ api/walk_plan.py — مولّد خطة المشي للتطبيق اليدوي
 
 ⚠ معدّل العمل (دقائق/هكتار) تقديري ويُمرَّر من المستخدم — ليس ثابتاً علميّاً.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Dict, List
+from datetime import UTC, datetime
 
 from api.manual_converter import (
-    ApplicationMethod, EquipmentSpec, ManualDose, convert_zone,
+    ApplicationMethod,
+    EquipmentSpec,
+    ManualDose,
+    convert_zone,
 )
-
 
 # ترتيب أولويّة الزونات (الأسهل أوّلاً، PROBLEM أخيراً)
 _ZONE_ORDER = {"high": 0, "medium": 1, "low": 2, "problem": 3}
@@ -34,6 +36,7 @@ DEFAULT_MINUTES_PER_HA = 60.0
 @dataclass
 class WalkStep:
     """خطوة واحدة في خطة المشي."""
+
     order: int
     zone_id: str
     zone_class: str
@@ -41,7 +44,7 @@ class WalkStep:
     dose: ManualDose
     estimated_minutes: float
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         d = self.dose.to_dict()
         return {
             "order": self.order,
@@ -57,17 +60,18 @@ class WalkStep:
 @dataclass
 class WalkPlan:
     """خطة المشي الكاملة لحقل."""
+
     field_id: str
     crop: str
     method: ApplicationMethod
     product_name_ar: str
-    steps: List[WalkStep]
+    steps: list[WalkStep]
     total_product_kg: float
     total_estimated_minutes: float
     created_at: str
     notes_ar: str = ""
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "field_id": self.field_id,
             "crop": self.crop,
@@ -85,6 +89,7 @@ class WalkPlan:
 @dataclass
 class ZoneRateInput:
     """مدخل لكلّ zone: المعدّل + المساحة + التصنيف."""
+
     zone_id: str
     rate_kg_ha: float
     area_ha: float
@@ -94,7 +99,7 @@ class ZoneRateInput:
 def generate_walk_plan(
     field_id: str,
     crop: str,
-    zones: List[ZoneRateInput],
+    zones: list[ZoneRateInput],
     method: ApplicationMethod,
     equip: EquipmentSpec,
     *,
@@ -120,28 +125,30 @@ def generate_walk_plan(
         key=lambda z: _ZONE_ORDER.get(z.zone_class.lower(), 1),
     )
 
-    steps: List[WalkStep] = []
+    steps: list[WalkStep] = []
     total_kg = 0.0
     total_minutes = 0.0
 
     for i, z in enumerate(ordered, start=1):
         dose = convert_zone(z.zone_id, z.rate_kg_ha, z.area_ha, method, equip)
         est_min = z.area_ha * minutes_per_ha
-        steps.append(WalkStep(
-            order=i,
-            zone_id=z.zone_id,
-            zone_class=z.zone_class,
-            area_ha=z.area_ha,
-            dose=dose,
-            estimated_minutes=est_min,
-        ))
+        steps.append(
+            WalkStep(
+                order=i,
+                zone_id=z.zone_id,
+                zone_class=z.zone_class,
+                area_ha=z.area_ha,
+                dose=dose,
+                estimated_minutes=est_min,
+            )
+        )
         total_kg += dose.kg_total
         total_minutes += est_min
 
     notes = (
         f"ابدأ بالمناطق الخصبة (high) وانتهِ بالمناطق المشكلة (problem). "
         f"إجمالي {product_name_ar}: {total_kg:.1f} كغ، "
-        f"الوقت المُقدَّر: {total_minutes/60:.1f} ساعة."
+        f"الوقت المُقدَّر: {total_minutes / 60:.1f} ساعة."
     )
 
     return WalkPlan(
@@ -152,6 +159,6 @@ def generate_walk_plan(
         steps=steps,
         total_product_kg=total_kg,
         total_estimated_minutes=total_minutes,
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
         notes_ar=notes,
     )

@@ -17,23 +17,24 @@ api/crop_introduction.py — بطاقات تعريفيّة لإدخال محاص
 السياق: إدخال محاصيل نقديّة (مانجو، حمضيات، بنّ) قد يكون بديلاً مجدياً عن
 القات (مردود + ماء)، لكن القرار يوازن الماء المتاح والسوق.
 """
+
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, Optional
 
 
 class ClimateZone(str, Enum):
-    TIHAMA = "tihama"          # تهامة الساحليّة الحارّة الرطبة
-    JAWF = "jawf"              # الجوف الداخلي الجافّ
-    HIGHLAND = "highland"      # المرتفعات الباردة (تحتاج برودة/ارتفاعاً)
-    BOTH = "both"              # تهامة والجوف (السهول الحارّة)
+    TIHAMA = "tihama"  # تهامة الساحليّة الحارّة الرطبة
+    JAWF = "jawf"  # الجوف الداخلي الجافّ
+    HIGHLAND = "highland"  # المرتفعات الباردة (تحتاج برودة/ارتفاعاً)
+    BOTH = "both"  # تهامة والجوف (السهول الحارّة)
 
 
 # بطاقات المحاصيل/الأشجار القابلة للإدخال (مبنيّة على نجاح موثّق محاذٍ)
-_CARDS: Dict[str, Dict] = {
+_CARDS: dict[str, dict] = {
     "mango": {
-        "name_ar": "المانجو", "type_ar": "شجرة فاكهة استوائيّة دائمة",
+        "name_ar": "المانجو",
+        "type_ar": "شجرة فاكهة استوائيّة دائمة",
         "zone": ClimateZone.TIHAMA,
         "climate_ar": "حارّ رطب استوائي، يتحمّل الحرارة العالية",
         "water_ar": "متوسّط-عالٍ، ريّ منتظم خاصّةً عند التزهير والإثمار",
@@ -48,7 +49,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "يحتاج ماءً منتظماً؛ احسب توفّره قبل التوسّع.",
     },
     "citrus": {
-        "name_ar": "الحمضيات (برتقال/ليمون/يوسفي)", "type_ar": "أشجار فاكهة دائمة الخضرة",
+        "name_ar": "الحمضيات (برتقال/ليمون/يوسفي)",
+        "type_ar": "أشجار فاكهة دائمة الخضرة",
         "zone": ClimateZone.JAWF,
         "climate_ar": "معتدل-حارّ، تتحمّل الجفاف نسبيّاً مع ريّ، حسّاسة للصقيع الشديد",
         "water_ar": "متوسّط، ريّ منتظم؛ توجد أصناف مقاومة للجفاف والملوحة",
@@ -64,7 +66,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "ابدأ بأصناف مطعّمة معتمدة مقاومة؛ احذر ملوحة الماء العالية.",
     },
     "coffee_lowland_inspo": {
-        "name_ar": "البنّ (استلهام توسّع)", "type_ar": "شجيرة دائمة (محصول نقدي)",
+        "name_ar": "البنّ (استلهام توسّع)",
+        "type_ar": "شجيرة دائمة (محصول نقدي)",
         "zone": ClimateZone.HIGHLAND,
         "climate_ar": "يفضّل المرتفعات المعتدلة 1200-2400م",
         "water_ar": "محدود، يعتمد على المطر/الندى + ريّ تكميلي",
@@ -83,7 +86,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "للمرتفعات لا السهول الحارّة؛ راجع ملاءمة الارتفاع.",
     },
     "date_palm": {
-        "name_ar": "نخيل التمر", "type_ar": "شجرة دائمة (صحراويّة بامتياز)",
+        "name_ar": "نخيل التمر",
+        "type_ar": "شجرة دائمة (صحراويّة بامتياز)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "حارّ جافّ — مثالي للمناطق الصحراويّة، يتحمّل الملوحة عالياً",
         "water_ar": "منخفض نسبيّاً لشجرة معمّرة؛ يتحمّل ماءً مالحاً أكثر من معظم الأشجار",
@@ -98,7 +102,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "يحتاج صبراً (سنوات للإثمار)؛ اختر أصنافاً معتمدة.",
     },
     "olive": {
-        "name_ar": "الزيتون", "type_ar": "شجرة دائمة (صحراويّة مثبتة عالميّاً)",
+        "name_ar": "الزيتون",
+        "type_ar": "شجرة دائمة (صحراويّة مثبتة عالميّاً)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "حارّ جافّ شبه صحراوي؛ يتحمّل الجفاف والحرارة، ويفيده التباين الحراري النهاري",
         "water_ar": "منخفض — من أكفأ الأشجار مائيّاً؛ ريّ تكميلي مع التأسيس",
@@ -120,7 +125,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "mulberry": {
-        "name_ar": "التوت", "type_ar": "شجرة متعدّدة الأغراض (متحمّلة للأراضي الصعبة)",
+        "name_ar": "التوت",
+        "type_ar": "شجرة متعدّدة الأغراض (متحمّلة للأراضي الصعبة)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "واسع التكيّف — يتحمّل الجفاف والبرد والحرارة؛ مناسب للمناطق الجافّة",
         "water_ar": "متوسّط — متحمّل للجفاف لكن يحتاج ريّاً عميقاً منتظماً للإنتاج الجيّد",
@@ -142,7 +148,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "pistachio": {
-        "name_ar": "الفستق", "type_ar": "شجرة مكسّرات نفضيّة (أعلى قيمة، طويل الأمد)",
+        "name_ar": "الفستق",
+        "type_ar": "شجرة مكسّرات نفضيّة (أعلى قيمة، طويل الأمد)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "صحراوي حارّ جافّ؛ يحبّ الصيف الجافّ ويحتاج بعض برودة شتويّة؛ التباين الحراري يفيده",
         "water_ar": "متوسّط — متحمّل للجفاف لكن حسّاس جدّاً للتشبّع المائي (الريّ الزائد يقتل الجذور)",
@@ -165,7 +172,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "almond": {
-        "name_ar": "اللوز", "type_ar": "شجرة مكسّرات نفضيّة (توازن سرعة/ربح)",
+        "name_ar": "اللوز",
+        "type_ar": "شجرة مكسّرات نفضيّة (توازن سرعة/ربح)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "يتحمّل الحرّ والجفاف جيّداً؛ يحتاج بعض برودة شتويّة (أقلّ من التفاح)؛ حسّاس لصقيع الإزهار المبكّر",
         "water_ar": "متوسّط — أكفأ من الفاكهة لكن يحتاج ريّاً منتظماً للإنتاج الجيّد",
@@ -186,7 +194,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "jojoba": {
-        "name_ar": "الجوجوبا", "type_ar": "شجيرة زيتيّة صحراويّة صناعيّة (ذهب الصحراء)",
+        "name_ar": "الجوجوبا",
+        "type_ar": "شجيرة زيتيّة صحراويّة صناعيّة (ذهب الصحراء)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "صحراوي حارّ جافّ؛ من أكثر النباتات تكيّفاً مع الحرّ والجفاف الشديد",
         "water_ar": "منخفض جدّاً — من أكفأ المحاصيل مائيّاً",
@@ -208,7 +217,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "moringa": {
-        "name_ar": "المورينجا", "type_ar": "شجرة متعدّدة الأغراض سريعة (سوبرفود)",
+        "name_ar": "المورينجا",
+        "type_ar": "شجرة متعدّدة الأغراض سريعة (سوبرفود)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "حارّ شبه جافّ؛ سريعة النموّ، متحمّلة للجفاف والحرارة",
         "water_ar": "منخفض (لكن «متحمّلة للجفاف» لا تعني بلا ماء)",
@@ -229,7 +239,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "aloe_vera": {
-        "name_ar": "الألوفيرا (الصبّار الطبّي)", "type_ar": "نبات عصاري طبّي (CAM)",
+        "name_ar": "الألوفيرا (الصبّار الطبّي)",
+        "type_ar": "نبات عصاري طبّي (CAM)",
         "zone": ClimateZone.JAWF,
         "climate_ar": "حارّ جافّ؛ نبات CAM يفتح ثغوره ليلاً — كفاءة مائيّة استثنائيّة",
         "water_ar": "منخفض جدّاً (4-6 ريّات/سنة فقط في الصحراء)",
@@ -250,7 +261,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "sesame": {
-        "name_ar": "السمسم الأبيض", "type_ar": "محصول زيتي صيفي (الجلجلان)",
+        "name_ar": "السمسم الأبيض",
+        "type_ar": "محصول زيتي صيفي (الجلجلان)",
         "zone": ClimateZone.BOTH,
         "climate_ar": "دافئ شبه جافّ، 25-35°م؛ حسّاس جدّاً للرطوبة الزائدة",
         "water_ar": "منخفض، 3-4 ريّات فقط (كل 10-15 يوماً) — مقاوم للجفاف",
@@ -265,7 +277,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "تجنّب الرطوبة الزائدة في كلّ مراحله؛ التربة النظيفة ضروريّة.",
     },
     "papaya": {
-        "name_ar": "البابايا (العنبرود)", "type_ar": "شجرة فاكهة استوائيّة سريعة",
+        "name_ar": "البابايا (العنبرود)",
+        "type_ar": "شجرة فاكهة استوائيّة سريعة",
         "zone": ClimateZone.TIHAMA,
         "climate_ar": "استوائي حارّ، حسّاس للبرد والصقيع",
         "water_ar": "متوسّط-عالٍ، ريّ منتظم؛ حسّاس للتشبّع المائي",
@@ -280,7 +293,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "احذر التشبّع المائي والبرد؛ عمر إنتاجي قصير (تجديد دوري).",
     },
     "avocado": {
-        "name_ar": "الأفوكادو (الزبديّة)", "type_ar": "شجرة فاكهة دائمة عالية القيمة",
+        "name_ar": "الأفوكادو (الزبديّة)",
+        "type_ar": "شجرة فاكهة دائمة عالية القيمة",
         "zone": ClimateZone.JAWF,
         "climate_ar": "معتدل-حارّ، يتحمّل ظروفاً متنوّعة مع رعاية",
         "water_ar": "متوسّط-عالٍ، ريّ منتظم؛ حسّاس للملوحة والتشبّع",
@@ -295,7 +309,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "حسّاس للملوحة ورداءة الصرف؛ يحتاج صبراً وخبرة — جرّب محدوداً.",
     },
     "pomegranate": {
-        "name_ar": "الرمّان", "type_ar": "شجرة فاكهة متساقطة",
+        "name_ar": "الرمّان",
+        "type_ar": "شجرة فاكهة متساقطة",
         "zone": ClimateZone.BOTH,
         "climate_ar": "يتحمّل الحرّ والجفاف بقوّة؛ يتحمّل ملوحة معتدلة",
         "water_ar": "منخفض-متوسّط؛ مقاوم للجفاف، خيار اقتصادي للماء",
@@ -310,7 +325,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "اختر أصنافاً معتمدة؛ يتحمّل الإهمال نسبيّاً.",
     },
     "guava": {
-        "name_ar": "الجوافة", "type_ar": "شجرة فاكهة استوائيّة/شبه استوائيّة",
+        "name_ar": "الجوافة",
+        "type_ar": "شجرة فاكهة استوائيّة/شبه استوائيّة",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ شبه استوائي، يتحمّل تنوّعاً واسعاً",
         "water_ar": "متوسّط؛ يتحمّل فترات جفاف قصيرة",
@@ -325,7 +341,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "قد تصبح غازية؛ أدِر انتشارها.",
     },
     "grape": {
-        "name_ar": "العنب", "type_ar": "كرمة فاكهة متساقطة",
+        "name_ar": "العنب",
+        "type_ar": "كرمة فاكهة متساقطة",
         "zone": ClimateZone.JAWF,
         "climate_ar": "حارّ جافّ نهاراً معتدل ليلاً؛ يجود بالأودية الداخليّة",
         "water_ar": "متوسّط، ريّ منتظم في الإثمار؛ كفء مائيّاً نسبيّاً",
@@ -340,7 +357,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "يحتاج تقليماً ودعامات؛ راقب الأمراض الفطريّة بالرطوبة.",
     },
     "banana": {
-        "name_ar": "الموز", "type_ar": "نبات استوائي معمّر",
+        "name_ar": "الموز",
+        "type_ar": "نبات استوائي معمّر",
         "zone": ClimateZone.TIHAMA,
         "climate_ar": "استوائي حارّ رطب؛ حسّاس جدّاً للبرد والرياح",
         "water_ar": "عالٍ — من أكثر المحاصيل استهلاكاً للماء (احسب توفّره بدقّة)",
@@ -348,14 +366,14 @@ _CARDS: Dict[str, Dict] = {
         "season_ar": "معمّر؛ إثمار مستمرّ على مدار السنة",
         "product_ar": "فاكهة طازجة — طلب محلّي مرتفع دائم",
         "inspiration_ar": (
-            "محصول استوائي كلاسيكي للسهول الساحليّة الحارّة الرطبة المماثلة "
-            "لتهامة والشريط الساحلي."
+            "محصول استوائي كلاسيكي للسهول الساحليّة الحارّة الرطبة المماثلة لتهامة والشريط الساحلي."
         ),
         "yemen_fit_ar": "تهامة الساحليّة الحارّة الرطبة — لكن استهلاكه المائي عالٍ.",
         "caution_ar": "⚠ استهلاك مائي مرتفع جدّاً — غير ملائم حيث الماء شحيح؛ احسب جيّداً.",
     },
     "cotton": {
-        "name_ar": "القطن (طويل التيلة)", "type_ar": "محصول ألياف صيفي نقدي",
+        "name_ar": "القطن (طويل التيلة)",
+        "type_ar": "محصول ألياف صيفي نقدي",
         "zone": ClimateZone.TIHAMA,
         "climate_ar": "حارّ طويل الموسم مشمس؛ مثالي للسهول الحارّة",
         "water_ar": "متوسّط-عالٍ، ريّ منتظم في التزهير والتلويز",
@@ -363,14 +381,14 @@ _CARDS: Dict[str, Dict] = {
         "season_ar": "صيفي طويل (~150-180 يوماً)",
         "product_ar": "ألياف طويلة التيلة (قيمة تصنيعيّة عالية) + بذرة للزيت",
         "inspiration_ar": (
-            "القطن محصول تهامة التاريخي؛ طويل التيلة منتج نوعي مرتفع القيمة "
-            "للسهول الساحليّة الحارّة."
+            "القطن محصول تهامة التاريخي؛ طويل التيلة منتج نوعي مرتفع القيمة للسهول الساحليّة الحارّة."
         ),
         "yemen_fit_ar": "سهول تهامة الحارّة — محصول نقدي صناعي + بذرة زيتيّة.",
         "caution_ar": "يحتاج مكافحة آفات دقيقة (دودة اللوز)؛ موسم طويل.",
     },
     "peanut": {
-        "name_ar": "الفول السوداني", "type_ar": "محصول بقولي زيتي صيفي",
+        "name_ar": "الفول السوداني",
+        "type_ar": "محصول بقولي زيتي صيفي",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ، 25-35°م؛ ملائم للمناطق الدافئة",
         "water_ar": "متوسّط؛ مقاوم للجفاف نسبيّاً، حسّاس للتشبّع",
@@ -385,7 +403,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "يحتاج تربة مفكّكة؛ احذر سموم الأفلاتوكسين عند سوء التخزين.",
     },
     "sunflower": {
-        "name_ar": "عبّاد الشمس", "type_ar": "محصول زيتي صيفي",
+        "name_ar": "عبّاد الشمس",
+        "type_ar": "محصول زيتي صيفي",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ مشمس؛ يتحمّل الجفاف والحرارة جيّداً",
         "water_ar": "منخفض-متوسّط؛ جذوره العميقة تقاوم الجفاف",
@@ -400,16 +419,15 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "يحتاج تقاوي محسّنة (الاستيراد تحدٍّ)؛ راقب الطيور.",
     },
     "tobacco": {
-        "name_ar": "التبغ", "type_ar": "محصول نقدي صناعي صيفي",
+        "name_ar": "التبغ",
+        "type_ar": "محصول نقدي صناعي صيفي",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ؛ ملائم للمناطق الدافئة",
         "water_ar": "متوسّط، ريّ منتظم",
         "soil_ar": "جيّدة الصرف؛ حسّاس لنوع التربة (يؤثّر على الجودة)",
         "season_ar": "صيفي",
         "product_ar": "أوراق التبغ (محصول نقدي) — قيمة سوقيّة، لكن اعتبارات صحّيّة",
-        "inspiration_ar": (
-            "محصول نقدي تقليدي في بعض مناطق اليمن الحارّة؛ مردود اقتصادي معروف."
-        ),
+        "inspiration_ar": ("محصول نقدي تقليدي في بعض مناطق اليمن الحارّة؛ مردود اقتصادي معروف."),
         "yemen_fit_ar": "مناطق حارّة بالجوف وتهامة — محصول نقدي قائم محلّيّاً.",
         "caution_ar": (
             "⚠ اعتبارات صحّيّة واقتصاديّة: مستنزف للتربة، وسوق مقيّد. وازن "
@@ -417,7 +435,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "apple_highland": {
-        "name_ar": "التفاح (للمرتفعات فقط)", "type_ar": "شجرة فاكهة متساقطة",
+        "name_ar": "التفاح (للمرتفعات فقط)",
+        "type_ar": "شجرة فاكهة متساقطة",
         "zone": ClimateZone.HIGHLAND,  # المرتفعات الباردة فقط — لا الجوف/تهامة
         "climate_ar": "⚠ يحتاج ساعات برودة شتويّة — المرتفعات العالية فقط، لا الجوف/تهامة الحارّة",
         "water_ar": "متوسّط، ريّ منتظم",
@@ -435,7 +454,8 @@ _CARDS: Dict[str, Dict] = {
         ),
     },
     "fig": {
-        "name_ar": "التين", "type_ar": "شجرة فاكهة متساقطة",
+        "name_ar": "التين",
+        "type_ar": "شجرة فاكهة متساقطة",
         "zone": ClimateZone.BOTH,
         "climate_ar": "يتحمّل الحرّ والجفاف؛ مرن مناخيّاً",
         "water_ar": "منخفض-متوسّط؛ مقاوم للجفاف نسبيّاً",
@@ -443,15 +463,15 @@ _CARDS: Dict[str, Dict] = {
         "season_ar": "إثمار صيفي",
         "product_ar": "تين طازج + مجفّف (يخزّن) — قيمة جيّدة",
         "inspiration_ar": (
-            "جازان: ~498 ألف شجرة تين تنتج ~2000 طن سنويّاً — دليل ملاءمته "
-            "للشريط الساحلي الحارّ."
+            "جازان: ~498 ألف شجرة تين تنتج ~2000 طن سنويّاً — دليل ملاءمته للشريط الساحلي الحارّ."
         ),
         "yemen_fit_ar": "تهامة وأطراف الجوف — مقاوم للجفاف، خيار منخفض الماء.",
         "caution_ar": "اختر أصنافاً ملائمة للحرارة العالية.",
     },
     # ── خضروات صيفيّة ──
     "okra": {
-        "name_ar": "البامية", "type_ar": "خضار صيفي حارّ",
+        "name_ar": "البامية",
+        "type_ar": "خضار صيفي حارّ",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ، يتحمّل الحرارة العالية جيّداً",
         "water_ar": "متوسّط، ريّ منتظم",
@@ -463,7 +483,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "قطف منتظم يطيل الإنتاج؛ راقب المنّ.",
     },
     "cucumber": {
-        "name_ar": "الخيار", "type_ar": "خضار قرعي صيفي",
+        "name_ar": "الخيار",
+        "type_ar": "خضار قرعي صيفي",
         "zone": ClimateZone.BOTH,
         "climate_ar": "دافئ، حسّاس للحرارة المفرطة والبرد",
         "water_ar": "متوسّط-عالٍ، ريّ منتظم (ثماره ماء غالباً)",
@@ -475,7 +496,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "حسّاس للحرارة المفرطة؛ البيوت المحميّة تطيل موسمه.",
     },
     "pepper": {
-        "name_ar": "الفلفل", "type_ar": "خضار باذنجاني صيفي",
+        "name_ar": "الفلفل",
+        "type_ar": "خضار باذنجاني صيفي",
         "zone": ClimateZone.BOTH,
         "climate_ar": "دافئ-حارّ، يتحمّل الحرارة مع ريّ",
         "water_ar": "متوسّط، ريّ منتظم",
@@ -487,7 +509,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "من عائلة الباذنجانيّات (تجنّب تعاقبها — راجع الدورة).",
     },
     "eggplant": {
-        "name_ar": "الباذنجان", "type_ar": "خضار باذنجاني صيفي",
+        "name_ar": "الباذنجان",
+        "type_ar": "خضار باذنجاني صيفي",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ، من أكثر الخضروات تحمّلاً للحرارة",
         "water_ar": "متوسّط، ريّ منتظم",
@@ -500,7 +523,8 @@ _CARDS: Dict[str, Dict] = {
     },
     # ── بقوليّات (تثبّت النيتروجين — تثري الدورة) ──
     "cowpea": {
-        "name_ar": "اللوبيا", "type_ar": "بقولي صيفي (غذاء + علف)",
+        "name_ar": "اللوبيا",
+        "type_ar": "بقولي صيفي (غذاء + علف)",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ، مقاوم للجفاف جيّداً",
         "water_ar": "منخفض-متوسّط؛ مقاوم للجفاف",
@@ -515,7 +539,8 @@ _CARDS: Dict[str, Dict] = {
         "caution_ar": "ممتاز في الدورة بعد الحبوب (راجع الدورة الزراعيّة).",
     },
     "mung_bean": {
-        "name_ar": "الماش (الفاصولياء الذهبيّة)", "type_ar": "بقولي صيفي قصير",
+        "name_ar": "الماش (الفاصولياء الذهبيّة)",
+        "type_ar": "بقولي صيفي قصير",
         "zone": ClimateZone.BOTH,
         "climate_ar": "حارّ، مقاوم للجفاف",
         "water_ar": "منخفض؛ دورة قصيرة توفّر الماء",
@@ -532,31 +557,55 @@ _CARDS: Dict[str, Dict] = {
 }
 
 _ALIASES = {
-    "مانجو": "mango", "حمضيات": "citrus", "برتقال": "citrus", "ليمون": "citrus",
-    "بن": "coffee_lowland_inspo", "بنّ": "coffee_lowland_inspo",
-    "نخيل": "date_palm", "تمر": "date_palm", "تين": "fig",
-    "زيتون": "olive", "زيت": "olive",
-    "سمسم": "sesame", "جلجلان": "sesame", "بابايا": "papaya", "عنبرود": "papaya",
-    "أفوكادو": "avocado", "افوكادو": "avocado", "زبدية": "avocado",
-    "رمان": "pomegranate", "رمّان": "pomegranate", "جوافة": "guava",
-    "عنب": "grape", "زبيب": "grape", "موز": "banana",
-    "قطن": "cotton", "فول سوداني": "peanut", "عباد الشمس": "sunflower",
-    "عبّاد الشمس": "sunflower", "دوار الشمس": "sunflower", "تبغ": "tobacco",
+    "مانجو": "mango",
+    "حمضيات": "citrus",
+    "برتقال": "citrus",
+    "ليمون": "citrus",
+    "بن": "coffee_lowland_inspo",
+    "بنّ": "coffee_lowland_inspo",
+    "نخيل": "date_palm",
+    "تمر": "date_palm",
+    "تين": "fig",
+    "زيتون": "olive",
+    "زيت": "olive",
+    "سمسم": "sesame",
+    "جلجلان": "sesame",
+    "بابايا": "papaya",
+    "عنبرود": "papaya",
+    "أفوكادو": "avocado",
+    "افوكادو": "avocado",
+    "زبدية": "avocado",
+    "رمان": "pomegranate",
+    "رمّان": "pomegranate",
+    "جوافة": "guava",
+    "عنب": "grape",
+    "زبيب": "grape",
+    "موز": "banana",
+    "قطن": "cotton",
+    "فول سوداني": "peanut",
+    "عباد الشمس": "sunflower",
+    "عبّاد الشمس": "sunflower",
+    "دوار الشمس": "sunflower",
+    "تبغ": "tobacco",
     "تفاح": "apple_highland",
-    "بامية": "okra", "باميا": "okra", "خيار": "cucumber",
-    "فلفل": "pepper", "باذنجان": "eggplant", "لوبيا": "cowpea",
+    "بامية": "okra",
+    "باميا": "okra",
+    "خيار": "cucumber",
+    "فلفل": "pepper",
+    "باذنجان": "eggplant",
+    "لوبيا": "cowpea",
     "ماش": "mung_bean",
 }
 
 
-def _resolve(crop: str) -> Optional[str]:
+def _resolve(crop: str) -> str | None:
     c = crop.strip().lower()
     if c in _CARDS:
         return c
     return _ALIASES.get(crop.strip())
 
 
-def list_candidates(zone: Optional[str] = None) -> Dict:
+def list_candidates(zone: str | None = None) -> dict:
     """قائمة المحاصيل/الأشجار المرشّحة للإدخال (كلّها أو حسب المنطقة)."""
     z = (zone or "").strip().lower()
     cards = []
@@ -573,8 +622,15 @@ def list_candidates(zone: Optional[str] = None) -> Dict:
             # المرتفعات الباردة فقط (تفاح/بنّ — تحتاج برودة/ارتفاعاً)
             if v["zone"] != ClimateZone.HIGHLAND:
                 continue
-        cards.append({"crop": k, "name_ar": v["name_ar"], "type_ar": v["type_ar"],
-                      "zone": v["zone"].value, "product_ar": v["product_ar"]})
+        cards.append(
+            {
+                "crop": k,
+                "name_ar": v["name_ar"],
+                "type_ar": v["type_ar"],
+                "zone": v["zone"].value,
+                "product_ar": v["product_ar"],
+            }
+        )
     return {
         "zone_query": zone or "all",
         "candidates": cards,
@@ -587,24 +643,34 @@ def list_candidates(zone: Optional[str] = None) -> Dict:
     }
 
 
-def crop_card(crop: str) -> Dict:
+def crop_card(crop: str) -> dict:
     """البطاقة التعريفيّة الكاملة لمحصول/شجرة مرشّحة للإدخال."""
     key = _resolve(crop)
     if not key:
-        return {"supported": False,
-                "message_ar": f"لا بطاقة لـ«{crop}». المتاح: "
-                              + "، ".join(v["name_ar"] for v in _CARDS.values())}
+        return {
+            "supported": False,
+            "message_ar": f"لا بطاقة لـ«{crop}». المتاح: "
+            + "، ".join(v["name_ar"] for v in _CARDS.values()),
+        }
     c = _CARDS[key]
     return {
         "supported": True,
-        "crop": key, "name_ar": c["name_ar"], "type_ar": c["type_ar"],
-        "suitable_zone_ar": ("تهامة" if c["zone"] == ClimateZone.TIHAMA
-                             else "الجوف" if c["zone"] == ClimateZone.JAWF
-                             else "المرتفعات الباردة فقط (لا الجوف/تهامة)"
-                             if c["zone"] == ClimateZone.HIGHLAND
-                             else "تهامة والجوف (حسب الصنف/الارتفاع)"),
+        "crop": key,
+        "name_ar": c["name_ar"],
+        "type_ar": c["type_ar"],
+        "suitable_zone_ar": (
+            "تهامة"
+            if c["zone"] == ClimateZone.TIHAMA
+            else "الجوف"
+            if c["zone"] == ClimateZone.JAWF
+            else "المرتفعات الباردة فقط (لا الجوف/تهامة)"
+            if c["zone"] == ClimateZone.HIGHLAND
+            else "تهامة والجوف (حسب الصنف/الارتفاع)"
+        ),
         "requirements_ar": {
-            "climate": c["climate_ar"], "water": c["water_ar"], "soil": c["soil_ar"],
+            "climate": c["climate_ar"],
+            "water": c["water_ar"],
+            "soil": c["soil_ar"],
         },
         "season_ar": c["season_ar"],
         "product_ar": c["product_ar"],
@@ -622,35 +688,165 @@ def crop_card(crop: str) -> Dict:
 # نطاقات تحمّل تقريبيّة لمحاصيل الإدخال (للفحص الآلي عبر crop_suitability)
 # (pH أمثل, pH محتمَل, أقصى ملوحة dS/m, أدنى مطر مم, مدى الحرارة °م)
 # ⚠ قيم إرشاديّة عامّة (FAO/أدبيّات) — تحتاج معايرة محلّيّة بالصنف
-_INTRO_TOLERANCE: Dict[str, Dict] = {
-    "mango":      {"ph_opt": (5.5, 7.5), "ph_tol": (5.0, 8.0), "ec_max": 3.0, "rain_min": 600, "temp": (24, 38)},
-    "citrus":     {"ph_opt": (6.0, 7.5), "ph_tol": (5.5, 8.0), "ec_max": 3.0, "rain_min": 500, "temp": (15, 35)},
-    "date_palm":  {"ph_opt": (7.0, 8.5), "ph_tol": (6.0, 9.0), "ec_max": 12.0, "rain_min": 100, "temp": (20, 42)},
-    "olive":      {"ph_opt": (7.0, 8.5), "ph_tol": (6.5, 8.7), "ec_max": 6.0, "rain_min": 200, "temp": (15, 40)},
-    "fig":        {"ph_opt": (6.0, 7.8), "ph_tol": (5.5, 8.5), "ec_max": 5.0, "rain_min": 300, "temp": (18, 38)},
-    "sesame":     {"ph_opt": (5.5, 7.5), "ph_tol": (5.0, 8.0), "ec_max": 4.0, "rain_min": 300, "temp": (25, 35)},
-    "papaya":     {"ph_opt": (6.0, 6.8), "ph_tol": (5.5, 7.5), "ec_max": 2.0, "rain_min": 600, "temp": (22, 35)},
-    "avocado":    {"ph_opt": (6.0, 7.0), "ph_tol": (5.5, 7.5), "ec_max": 1.5, "rain_min": 500, "temp": (18, 33)},
-    "pomegranate":{"ph_opt": (6.0, 7.5), "ph_tol": (5.5, 8.5), "ec_max": 6.0, "rain_min": 250, "temp": (18, 38)},
-    "guava":      {"ph_opt": (5.5, 7.5), "ph_tol": (5.0, 8.0), "ec_max": 4.0, "rain_min": 400, "temp": (20, 35)},
-    "grape":      {"ph_opt": (6.0, 7.5), "ph_tol": (5.5, 8.0), "ec_max": 3.5, "rain_min": 300, "temp": (18, 35)},
-    "banana":     {"ph_opt": (6.0, 7.0), "ph_tol": (5.5, 7.5), "ec_max": 1.5, "rain_min": 1000, "temp": (22, 35)},
-    "cotton":     {"ph_opt": (6.0, 7.5), "ph_tol": (5.5, 8.5), "ec_max": 7.0, "rain_min": 500, "temp": (20, 38)},
-    "peanut":     {"ph_opt": (5.5, 7.0), "ph_tol": (5.0, 7.5), "ec_max": 3.0, "rain_min": 400, "temp": (25, 35)},
-    "sunflower":  {"ph_opt": (6.0, 7.5), "ph_tol": (5.5, 8.0), "ec_max": 4.0, "rain_min": 300, "temp": (20, 35)},
-    "okra":       {"ph_opt": (6.0, 7.0), "ph_tol": (5.5, 7.8), "ec_max": 3.0, "rain_min": 400, "temp": (24, 35)},
-    "cucumber":   {"ph_opt": (6.0, 7.0), "ph_tol": (5.5, 7.5), "ec_max": 2.5, "rain_min": 400, "temp": (18, 32)},
-    "pepper":     {"ph_opt": (6.0, 6.8), "ph_tol": (5.5, 7.5), "ec_max": 2.0, "rain_min": 400, "temp": (20, 32)},
-    "eggplant":   {"ph_opt": (6.0, 7.0), "ph_tol": (5.5, 7.5), "ec_max": 2.5, "rain_min": 400, "temp": (22, 35)},
-    "cowpea":     {"ph_opt": (5.5, 7.5), "ph_tol": (5.0, 8.0), "ec_max": 4.0, "rain_min": 300, "temp": (22, 35)},
-    "mung_bean":  {"ph_opt": (6.0, 7.5), "ph_tol": (5.5, 8.0), "ec_max": 3.0, "rain_min": 300, "temp": (25, 35)},
+_INTRO_TOLERANCE: dict[str, dict] = {
+    "mango": {
+        "ph_opt": (5.5, 7.5),
+        "ph_tol": (5.0, 8.0),
+        "ec_max": 3.0,
+        "rain_min": 600,
+        "temp": (24, 38),
+    },
+    "citrus": {
+        "ph_opt": (6.0, 7.5),
+        "ph_tol": (5.5, 8.0),
+        "ec_max": 3.0,
+        "rain_min": 500,
+        "temp": (15, 35),
+    },
+    "date_palm": {
+        "ph_opt": (7.0, 8.5),
+        "ph_tol": (6.0, 9.0),
+        "ec_max": 12.0,
+        "rain_min": 100,
+        "temp": (20, 42),
+    },
+    "olive": {
+        "ph_opt": (7.0, 8.5),
+        "ph_tol": (6.5, 8.7),
+        "ec_max": 6.0,
+        "rain_min": 200,
+        "temp": (15, 40),
+    },
+    "fig": {
+        "ph_opt": (6.0, 7.8),
+        "ph_tol": (5.5, 8.5),
+        "ec_max": 5.0,
+        "rain_min": 300,
+        "temp": (18, 38),
+    },
+    "sesame": {
+        "ph_opt": (5.5, 7.5),
+        "ph_tol": (5.0, 8.0),
+        "ec_max": 4.0,
+        "rain_min": 300,
+        "temp": (25, 35),
+    },
+    "papaya": {
+        "ph_opt": (6.0, 6.8),
+        "ph_tol": (5.5, 7.5),
+        "ec_max": 2.0,
+        "rain_min": 600,
+        "temp": (22, 35),
+    },
+    "avocado": {
+        "ph_opt": (6.0, 7.0),
+        "ph_tol": (5.5, 7.5),
+        "ec_max": 1.5,
+        "rain_min": 500,
+        "temp": (18, 33),
+    },
+    "pomegranate": {
+        "ph_opt": (6.0, 7.5),
+        "ph_tol": (5.5, 8.5),
+        "ec_max": 6.0,
+        "rain_min": 250,
+        "temp": (18, 38),
+    },
+    "guava": {
+        "ph_opt": (5.5, 7.5),
+        "ph_tol": (5.0, 8.0),
+        "ec_max": 4.0,
+        "rain_min": 400,
+        "temp": (20, 35),
+    },
+    "grape": {
+        "ph_opt": (6.0, 7.5),
+        "ph_tol": (5.5, 8.0),
+        "ec_max": 3.5,
+        "rain_min": 300,
+        "temp": (18, 35),
+    },
+    "banana": {
+        "ph_opt": (6.0, 7.0),
+        "ph_tol": (5.5, 7.5),
+        "ec_max": 1.5,
+        "rain_min": 1000,
+        "temp": (22, 35),
+    },
+    "cotton": {
+        "ph_opt": (6.0, 7.5),
+        "ph_tol": (5.5, 8.5),
+        "ec_max": 7.0,
+        "rain_min": 500,
+        "temp": (20, 38),
+    },
+    "peanut": {
+        "ph_opt": (5.5, 7.0),
+        "ph_tol": (5.0, 7.5),
+        "ec_max": 3.0,
+        "rain_min": 400,
+        "temp": (25, 35),
+    },
+    "sunflower": {
+        "ph_opt": (6.0, 7.5),
+        "ph_tol": (5.5, 8.0),
+        "ec_max": 4.0,
+        "rain_min": 300,
+        "temp": (20, 35),
+    },
+    "okra": {
+        "ph_opt": (6.0, 7.0),
+        "ph_tol": (5.5, 7.8),
+        "ec_max": 3.0,
+        "rain_min": 400,
+        "temp": (24, 35),
+    },
+    "cucumber": {
+        "ph_opt": (6.0, 7.0),
+        "ph_tol": (5.5, 7.5),
+        "ec_max": 2.5,
+        "rain_min": 400,
+        "temp": (18, 32),
+    },
+    "pepper": {
+        "ph_opt": (6.0, 6.8),
+        "ph_tol": (5.5, 7.5),
+        "ec_max": 2.0,
+        "rain_min": 400,
+        "temp": (20, 32),
+    },
+    "eggplant": {
+        "ph_opt": (6.0, 7.0),
+        "ph_tol": (5.5, 7.5),
+        "ec_max": 2.5,
+        "rain_min": 400,
+        "temp": (22, 35),
+    },
+    "cowpea": {
+        "ph_opt": (5.5, 7.5),
+        "ph_tol": (5.0, 8.0),
+        "ec_max": 4.0,
+        "rain_min": 300,
+        "temp": (22, 35),
+    },
+    "mung_bean": {
+        "ph_opt": (6.0, 7.5),
+        "ph_tol": (5.5, 8.0),
+        "ec_max": 3.0,
+        "rain_min": 300,
+        "temp": (25, 35),
+    },
 }
 
 
-def check_field_fit(crop: str, ph: float, ec_dsm: float,
-                    season_rain_mm: Optional[float] = None,
-                    temp_mean_c: Optional[float] = None,
-                    irrigated: bool = True) -> Dict:
+def check_field_fit(
+    crop: str,
+    ph: float,
+    ec_dsm: float,
+    season_rain_mm: float | None = None,
+    temp_mean_c: float | None = None,
+    irrigated: bool = True,
+) -> dict:
     """يفحص ملاءمة تربة/ظروف حقل لمحصول إدخال مرشّح — ربط آلي بـcrop_suitability.
 
     يحوّل بطاقة الإدخال إلى تقييم ملاءمة كمّي بناءً على ظروف الحقل الفعليّة.
@@ -661,7 +857,8 @@ def check_field_fit(crop: str, ph: float, ec_dsm: float,
     t = _INTRO_TOLERANCE.get(key)
     if not t:
         return {
-            "supported": True, "scored": False,
+            "supported": True,
+            "scored": False,
             "crop_ar": _CARDS[key]["name_ar"],
             "message_ar": (
                 "هذا المحصول له بطاقة تعريفيّة لكن بلا نطاقات تحمّل كمّيّة بعد "
@@ -671,21 +868,27 @@ def check_field_fit(crop: str, ph: float, ec_dsm: float,
 
     # استخدم محرّك الملاءمة القائم (لا تكرار للمنطق)
     try:
-        from api.crop_suitability import FieldConditions, CropTolerance, score_crop
+        from api.crop_suitability import CropTolerance, FieldConditions, score_crop
+
         cond = FieldConditions(
-            ph=ph, ec_dsm=ec_dsm, season_rain_mm=season_rain_mm,
-            temp_mean_c=temp_mean_c, irrigated=irrigated,
+            ph=ph,
+            ec_dsm=ec_dsm,
+            season_rain_mm=season_rain_mm,
+            temp_mean_c=temp_mean_c,
+            irrigated=irrigated,
         )
         tol = CropTolerance(
-            crop=key, name_ar=_CARDS[key]["name_ar"],
-            ph_optimal=t["ph_opt"], ph_tolerable=t["ph_tol"],
-            ec_max_dsm=t["ec_max"], rain_min_mm=t["rain_min"],
+            crop=key,
+            name_ar=_CARDS[key]["name_ar"],
+            ph_optimal=t["ph_opt"],
+            ph_tolerable=t["ph_tol"],
+            ec_max_dsm=t["ec_max"],
+            rain_min_mm=t["rain_min"],
             temp_range_c=t["temp"],
         )
         result = score_crop(cond, tol).to_dict()
     except Exception as exc:  # pragma: no cover
-        return {"supported": True, "scored": False,
-                "message_ar": f"تعذّر التقييم الكمّي: {exc}"}
+        return {"supported": True, "scored": False, "message_ar": f"تعذّر التقييم الكمّي: {exc}"}
 
     result["yemen_fit_ar"] = _CARDS[key]["yemen_fit_ar"]
     result["caution_ar"] = _CARDS[key]["caution_ar"]

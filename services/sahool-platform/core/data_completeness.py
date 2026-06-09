@@ -14,9 +14,11 @@ core.data_completeness
 تعدّد المستخدمين: كل دالة تأخذ field_id؛ العزل يُدار في طبقة
 التخزين (lite_store) بعمود tenant/farmer_id. جاهز لـ RLS عند PostgreSQL.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field as dc_field
+from dataclasses import dataclass
+from dataclasses import field as dc_field
 
 # وزن كل حقل في درجة الاكتمال + ما يفتحه
 # (الحقل، الوزن، التوصية التي يفتحها)
@@ -40,12 +42,12 @@ _GOVERNING = {"salinity_s3", "ph_s4", "water_i3"}
 
 @dataclass
 class CompletenessResult:
-    score: int                          # 0–100
+    score: int  # 0–100
     provided: list[str] = dc_field(default_factory=list)
     missing: list[str] = dc_field(default_factory=list)
-    next_value: str = ""                # أهم حقل ناقص + ما يفتحه
+    next_value: str = ""  # أهم حقل ناقص + ما يفتحه
     headline_ar: str = ""
-    is_precise: bool = False            # كل الحاكمات متوفّرة؟
+    is_precise: bool = False  # كل الحاكمات متوفّرة؟
 
 
 def compute_completeness(provided_fields: set[str]) -> CompletenessResult:
@@ -79,33 +81,44 @@ def compute_completeness(provided_fields: set[str]) -> CompletenessResult:
         headline = "⚪ ابدأ بإدخال بياناتك — كل حقل يفتح توصيات أكثر قيمة"
 
     return CompletenessResult(
-        score=score, provided=provided,
-        missing=[m[0] for m in missing], next_value=next_value,
-        headline_ar=headline, is_precise=governing_done,
+        score=score,
+        provided=provided,
+        missing=[m[0] for m in missing],
+        next_value=next_value,
+        headline_ar=headline,
+        is_precise=governing_done,
     )
 
 
 def _label(field_name: str) -> str:
     labels = {
-        "boundary": "حدود الحقل", "crop": "المحصول", "planting_date": "تاريخ الزراعة",
-        "irrigation_type": "نظام الري", "salinity_s3": "ملوحة التربة S3",
-        "ph_s4": "حموضة pH S4", "water_i3": "ملوحة المياه I3", "organic_matter": "المادة العضوية",
+        "boundary": "حدود الحقل",
+        "crop": "المحصول",
+        "planting_date": "تاريخ الزراعة",
+        "irrigation_type": "نظام الري",
+        "salinity_s3": "ملوحة التربة S3",
+        "ph_s4": "حموضة pH S4",
+        "water_i3": "ملوحة المياه I3",
+        "organic_matter": "المادة العضوية",
     }
     return labels.get(field_name, field_name)
 
 
 # ── نظام الإشعارات اللاحقة ──
 
+
 class NotificationTrigger(str):
     """أنواع الإشعارات التحفيزية اللاحقة."""
-    DATA_COMPLETE = "data_complete"      # أكمل البيانات → نتائج دقيقة جاهزة
-    LAB_RESULTS = "lab_results"          # وصلت نتائج المعمل
-    PRECISE_READY = "precise_ready"      # التوصيات الدقيقة مُفعّلة الآن
-    REMINDER = "reminder"                # تذكير لطيف بإكمال البيانات
+
+    DATA_COMPLETE = "data_complete"  # أكمل البيانات → نتائج دقيقة جاهزة
+    LAB_RESULTS = "lab_results"  # وصلت نتائج المعمل
+    PRECISE_READY = "precise_ready"  # التوصيات الدقيقة مُفعّلة الآن
+    REMINDER = "reminder"  # تذكير لطيف بإكمال البيانات
 
 
-def build_notification(trigger: str, field_name: str,
-                       completeness: CompletenessResult | None = None) -> dict:
+def build_notification(
+    trigger: str, field_name: str, completeness: CompletenessResult | None = None
+) -> dict:
     """يبني إشعاراً تحفيزياً (للإرسال عبر التطبيق/WhatsApp لاحقاً)."""
     messages = {
         NotificationTrigger.PRECISE_READY: {
@@ -118,8 +131,11 @@ def build_notification(trigger: str, field_name: str,
         },
         NotificationTrigger.REMINDER: {
             "title_ar": "💡 أكمل بيانات حقلك",
-            "body_ar": (completeness.next_value if completeness and completeness.next_value
-                        else f"أكمل بيانات «{field_name}» للحصول على توصيات أدقّ."),
+            "body_ar": (
+                completeness.next_value
+                if completeness and completeness.next_value
+                else f"أكمل بيانات «{field_name}» للحصول على توصيات أدقّ."
+            ),
         },
         NotificationTrigger.DATA_COMPLETE: {
             "title_ar": "✅ بياناتك مكتملة",

@@ -8,6 +8,7 @@
   pytest services/supervisor-agent/test_router.py -v
   أو offline: python3 services/supervisor-agent/test_router.py
 """
+
 import asyncio
 import os
 import sys
@@ -58,15 +59,13 @@ def test_arabic_simulation_routes_crop_model():
 # ── ٢. حماية من رجوع خطأ tatweel (regression guard) ──
 def test_no_tatweel_in_patterns():
     """الأنماط خالية من tatweel (يكسر مطابقة العربي الطبيعي)."""
-    src = open(os.path.join(os.path.dirname(__file__), "router.py"),
-               encoding="utf-8").read()
+    src = open(os.path.join(os.path.dirname(__file__), "router.py"), encoding="utf-8").read()
     assert "\u0640" not in src, "tatweel رجع للأنماط — يكسر التصنيف العربي"
 
 
 def test_natural_arabic_not_all_default():
     """استعلامات عربيّة متنوّعة لا تسقط كلّها في advisory الافتراضي."""
-    queries = ["ما سعر القمح؟", "متى أسقي؟", "تحليل NDVI",
-               "محاكاة الإنتاج"]
+    queries = ["ما سعر القمح؟", "متى أسقي؟", "تحليل NDVI", "محاكاة الإنتاج"]
     domains = {_classify(q)[0] for q in queries}
     # لو كانت كلّها advisory → خطأ tatweel رجع
     assert len(domains) > 1, "كلّ الاستعلامات سقطت في domain واحد (خطأ tatweel؟)"
@@ -122,8 +121,7 @@ def test_mixed_language_price_query():
 
 
 if __name__ == "__main__":
-    fns = [v for k, v in sorted(globals().items())
-           if k.startswith("test_") and callable(v)]
+    fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
     passed = 0
     for fn in fns:
         try:

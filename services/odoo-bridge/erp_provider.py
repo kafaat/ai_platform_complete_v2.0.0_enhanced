@@ -11,12 +11,12 @@ erp_provider.py — تجريد مزوّد ERP (Odoo / ERPNext / معطّل).
 صدق: ERPNextClient كود حقيقي لـFrappe REST API، لكنّه يحتاج خادم ERPNext
 حيّاً على جهازك لاختباره فعليّاً. NullProvider يجعل تعطيل ERP آمناً (لا أعطال).
 """
+
 from __future__ import annotations
 
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional
 
 logger = logging.getLogger("erp_provider")
 
@@ -35,17 +35,17 @@ class ERPProvider(ABC):
         ...
 
     @abstractmethod
-    async def list_products(self, since: Optional[str] = None) -> List[dict]:
+    async def list_products(self, since: str | None = None) -> list[dict]:
         """يُرجِع المنتجات الموحّدة: [{name, code, category, uom, cost, supplier}]."""
         ...
 
     @abstractmethod
-    async def list_suppliers(self, since: Optional[str] = None) -> List[dict]:
+    async def list_suppliers(self, since: str | None = None) -> list[dict]:
         """يُرجِع المورّدين: [{name, code, phone, email}]."""
         ...
 
     @abstractmethod
-    async def list_warehouses(self) -> List[dict]:
+    async def list_warehouses(self) -> list[dict]:
         """يُرجِع المستودعات/المواقع: [{name, code}]."""
         ...
 
@@ -71,13 +71,13 @@ class NullProvider(ERPProvider):
     async def authenticate(self) -> bool:
         return True  # لا مصادقة مطلوبة
 
-    async def list_products(self, since=None) -> List[dict]:
+    async def list_products(self, since=None) -> list[dict]:
         return []
 
-    async def list_suppliers(self, since=None) -> List[dict]:
+    async def list_suppliers(self, since=None) -> list[dict]:
         return []
 
-    async def list_warehouses(self) -> List[dict]:
+    async def list_warehouses(self) -> list[dict]:
         return []
 
     async def push_field_cost(self, cost: dict) -> bool:
@@ -86,8 +86,11 @@ class NullProvider(ERPProvider):
         return True
 
     async def health(self) -> dict:
-        return {"provider": "none", "status": "disabled",
-                "note": "ERP معطّل — النظام يعمل بـfarm_ledger المحلّي فقط"}
+        return {
+            "provider": "none",
+            "status": "disabled",
+            "note": "ERP معطّل — النظام يعمل بـfarm_ledger المحلّي فقط",
+        }
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -110,21 +113,26 @@ class ERPNextProvider(ERPProvider):
 
     def _headers(self) -> dict:
         # مصادقة Frappe: token <key>:<secret> في رأس Authorization
-        return {"Authorization": f"token {self.api_key}:{self.api_secret}",
-                "Content-Type": "application/json"}
+        return {
+            "Authorization": f"token {self.api_key}:{self.api_secret}",
+            "Content-Type": "application/json",
+        }
 
     async def _get_client(self):
         if self._client is None:
             import httpx
+
             self._client = httpx.AsyncClient(timeout=30.0, headers=self._headers())
         return self._client
 
-    async def _get_list(self, doctype: str, fields: list,
-                        filters: Optional[list] = None) -> List[dict]:
+    async def _get_list(
+        self, doctype: str, fields: list, filters: list | None = None
+    ) -> list[dict]:
         """يجلب قائمة مستندات Frappe (resource API)."""
         try:
             client = await self._get_client()
             import json
+
             params = {"fields": json.dumps(fields), "limit_page_length": 0}
             if filters:
                 params["filters"] = json.dumps(filters)
@@ -145,39 +153,50 @@ class ERPNextProvider(ERPProvider):
             logger.warning(f"ERPNext auth تعذّر: {e}")
             return False
 
-    async def list_products(self, since=None) -> List[dict]:
+    async def list_products(self, since=None) -> list[dict]:
         # Item هو منتج Frappe؛ نوحّده لمخطّط الجسر
         items = await self._get_list(
-            "Item", ["item_code", "item_name", "item_group",
-                     "stock_uom", "standard_rate"])
-        return [{"name": i.get("item_name"), "code": i.get("item_code"),
-                 "category": i.get("item_group", "General"),
-                 "uom": i.get("stock_uom", "Unit"),
-                 "cost": i.get("standard_rate", 0.0), "supplier": None}
-                for i in items]
+            "Item", ["item_code", "item_name", "item_group", "stock_uom", "standard_rate"]
+        )
+        return [
+            {
+                "name": i.get("item_name"),
+                "code": i.get("item_code"),
+                "category": i.get("item_group", "General"),
+                "uom": i.get("stock_uom", "Unit"),
+                "cost": i.get("standard_rate", 0.0),
+                "supplier": None,
+            }
+            for i in items
+        ]
 
-    async def list_suppliers(self, since=None) -> List[dict]:
-        sups = await self._get_list(
-            "Supplier", ["supplier_name", "name", "mobile_no", "email_id"])
-        return [{"name": s.get("supplier_name"), "code": s.get("name"),
-                 "phone": s.get("mobile_no"), "email": s.get("email_id")}
-                for s in sups]
+    async def list_suppliers(self, since=None) -> list[dict]:
+        sups = await self._get_list("Supplier", ["supplier_name", "name", "mobile_no", "email_id"])
+        return [
+            {
+                "name": s.get("supplier_name"),
+                "code": s.get("name"),
+                "phone": s.get("mobile_no"),
+                "email": s.get("email_id"),
+            }
+            for s in sups
+        ]
 
-    async def list_warehouses(self) -> List[dict]:
+    async def list_warehouses(self) -> list[dict]:
         whs = await self._get_list("Warehouse", ["warehouse_name", "name"])
-        return [{"name": w.get("warehouse_name"), "code": w.get("name")}
-                for w in whs]
+        return [{"name": w.get("warehouse_name"), "code": w.get("name")} for w in whs]
 
     async def push_field_cost(self, cost: dict) -> bool:
         """ينشئ قيد مصروف (Journal Entry / Expense Claim) في ERPNext."""
         try:
             client = await self._get_client()
             # مبسّط: ينشئ مستند تكلفة؛ المخطّط الفعلي يعتمد إعداد جهازك
-            payload = {"doctype": "Journal Entry",
-                       "voucher_type": "Journal Entry",
-                       "user_remark": cost.get("description", "SAHOOL field cost")}
-            r = await client.post(f"{self.url}/api/resource/Journal Entry",
-                                  json=payload)
+            payload = {
+                "doctype": "Journal Entry",
+                "voucher_type": "Journal Entry",
+                "user_remark": cost.get("description", "SAHOOL field cost"),
+            }
+            r = await client.post(f"{self.url}/api/resource/Journal Entry", json=payload)
             return r.status_code in (200, 201)
         except Exception as e:  # noqa: BLE001 — صدق: فشل يُعلَن لا يُخفى
             logger.warning(f"ERPNext push_field_cost تعذّر: {e}")
@@ -185,8 +204,11 @@ class ERPNextProvider(ERPProvider):
 
     async def health(self) -> dict:
         ok = await self.authenticate()
-        return {"provider": "erpnext", "url": self.url,
-                "status": "connected" if ok else "unreachable"}
+        return {
+            "provider": "erpnext",
+            "url": self.url,
+            "status": "connected" if ok else "unreachable",
+        }
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -211,38 +233,58 @@ class OdooProvider(ERPProvider):
             logger.warning(f"Odoo auth تعذّر: {e}")
             return False
 
-    async def list_products(self, since=None) -> List[dict]:
+    async def list_products(self, since=None) -> list[dict]:
         domain = []
         rows = await self.odoo.search_read(
-            "product.product", domain,
-            ["name", "default_code", "categ_id", "uom_id", "list_price"])
+            "product.product", domain, ["name", "default_code", "categ_id", "uom_id", "list_price"]
+        )
         out = []
         for p in rows:
             cat = p.get("categ_id")[1] if isinstance(p.get("categ_id"), list) else "General"
             uom = p.get("uom_id")[1] if isinstance(p.get("uom_id"), list) else "Unit"
-            out.append({"name": p.get("name"), "code": p.get("default_code"),
-                        "category": cat, "uom": uom,
-                        "cost": p.get("list_price", 0.0), "supplier": None})
+            out.append(
+                {
+                    "name": p.get("name"),
+                    "code": p.get("default_code"),
+                    "category": cat,
+                    "uom": uom,
+                    "cost": p.get("list_price", 0.0),
+                    "supplier": None,
+                }
+            )
         return out
 
-    async def list_suppliers(self, since=None) -> List[dict]:
+    async def list_suppliers(self, since=None) -> list[dict]:
         rows = await self.odoo.search_read(
-            "res.partner", [["supplier_rank", ">", 0]],
-            ["name", "phone", "email"])
-        return [{"name": s.get("name"), "code": str(s.get("id", "")),
-                 "phone": s.get("phone"), "email": s.get("email")} for s in rows]
+            "res.partner", [["supplier_rank", ">", 0]], ["name", "phone", "email"]
+        )
+        return [
+            {
+                "name": s.get("name"),
+                "code": str(s.get("id", "")),
+                "phone": s.get("phone"),
+                "email": s.get("email"),
+            }
+            for s in rows
+        ]
 
-    async def list_warehouses(self) -> List[dict]:
-        rows = await self.odoo.search_read(
-            "stock.warehouse", [], ["name", "code"])
+    async def list_warehouses(self) -> list[dict]:
+        rows = await self.odoo.search_read("stock.warehouse", [], ["name", "code"])
         return [{"name": w.get("name"), "code": w.get("code")} for w in rows]
 
     async def push_field_cost(self, cost: dict) -> bool:
         # يعتمد المحاسبة التحليليّة في Odoo (analytic account)
         try:
-            await self.odoo.call("account.analytic.line", "create", [{
-                "name": cost.get("description", "SAHOOL field cost"),
-                "amount": -abs(cost.get("amount", 0.0))}])
+            await self.odoo.call(
+                "account.analytic.line",
+                "create",
+                [
+                    {
+                        "name": cost.get("description", "SAHOOL field cost"),
+                        "amount": -abs(cost.get("amount", 0.0)),
+                    }
+                ],
+            )
             return True
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Odoo push_field_cost تعذّر: {e}")

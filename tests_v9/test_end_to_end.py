@@ -3,6 +3,7 @@
 SAHOOL v9.0 — End-to-End Integration Tests
 Tests: Full workflow from farmer query → AI response → guardrails → action
 """
+
 import pytest
 from httpx import AsyncClient
 
@@ -12,7 +13,9 @@ from httpx import AsyncClient
 class TestEndToEndWorkflow:
     """End-to-end tests simulating real farmer interactions"""
 
-    async def test_farmer_daily_checkup(self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict):
+    async def test_farmer_daily_checkup(
+        self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict
+    ):
         """TC-E2E-001: Farmer asks 'How is my field?' — full pipeline."""
         # Step 1: Farmer sends query to Supervisor
         query_payload = {
@@ -20,12 +23,12 @@ class TestEndToEndWorkflow:
             "field_id": mock_field_data["field_id"],
             "user_id": "farmer-ali-001",
             "tenant_id": mock_field_data["tenant_id"],
-            "context": {"date": "2026-05-18"}
+            "context": {"date": "2026-05-18"},
         }
         response = await http_client.post(
             "http://localhost:8096/agent/query",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -37,9 +40,11 @@ class TestEndToEndWorkflow:
         assert len(data.get("sources", [])) > 0
 
         # Verify Arabic content
-        assert any('\u0600' <= c <= '\u06FF' for c in data["response_ar"])
+        assert any("\u0600" <= c <= "\u06ff" for c in data["response_ar"])
 
-    async def test_irrigation_decision_with_guardrails(self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict):
+    async def test_irrigation_decision_with_guardrails(
+        self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict
+    ):
         """TC-E2E-002: Farmer asks to irrigate — AI recommends + guardrails validate."""
         # Step 1: Get irrigation advice
         query_payload = {
@@ -47,16 +52,12 @@ class TestEndToEndWorkflow:
             "field_id": mock_field_data["field_id"],
             "user_id": "farmer-ali-001",
             "tenant_id": mock_field_data["tenant_id"],
-            "context": {
-                "crop": "wheat",
-                "soil_moisture_30cm": 25,
-                "date": "2026-05-18"
-            }
+            "context": {"crop": "wheat", "soil_moisture_30cm": 25, "date": "2026-05-18"},
         }
         response = await http_client.post(
             "http://localhost:8096/agent/query",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
         advice = response.json()
@@ -66,25 +67,21 @@ class TestEndToEndWorkflow:
         # Extract recommended water amount from advice (simplified)
         guardrails_payload = {
             "action_type": "irrigation",
-            "action_data": {
-                "water_m3": 50,
-                "cost_usd": 25,
-                "projected_revenue_increase_usd": 100
-            },
+            "action_data": {"water_m3": 50, "cost_usd": 25, "projected_revenue_increase_usd": 100},
             "farm_context": {
                 "field_area_ha": mock_field_data["area_ha"],
                 "water_source": "groundwater",
                 "season_water_used_m3_ha": 500,
                 "annual_revenue_usd": 5000,
-                "capital_usd": 3000
+                "capital_usd": 3000,
             },
             "user_id": "farmer-ali-001",
-            "tenant_id": mock_field_data["tenant_id"]
+            "tenant_id": mock_field_data["tenant_id"],
         }
         gr_response = await http_client.post(
             "http://localhost:8097/validate",
             json=guardrails_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert gr_response.status_code == 200
         gr_data = gr_response.json()
@@ -92,7 +89,9 @@ class TestEndToEndWorkflow:
         # Small irrigation should be safe
         assert gr_data["overall_risk"] in ["LOW", "MEDIUM"]
 
-    async def test_pest_alert_workflow(self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict):
+    async def test_pest_alert_workflow(
+        self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict
+    ):
         """TC-E2E-003: Farmer reports pest → AI identifies + guardrails check treatment."""
         # Step 1: Farmer describes pest symptoms
         query_payload = {
@@ -100,12 +99,12 @@ class TestEndToEndWorkflow:
             "field_id": mock_field_data["field_id"],
             "user_id": "farmer-ali-001",
             "tenant_id": mock_field_data["tenant_id"],
-            "context": {"crop": "wheat"}
+            "context": {"crop": "wheat"},
         }
         response = await http_client.post(
             "http://localhost:8096/agent/query",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
         advice = response.json()
@@ -118,25 +117,24 @@ class TestEndToEndWorkflow:
             "action_data": {
                 "chemical": "mancozeb",  # Safe fungicide
                 "dosage_kg_ha": 2.0,
-                "crop": "wheat"
+                "crop": "wheat",
             },
-            "farm_context": {
-                "annual_revenue_usd": 5000,
-                "capital_usd": 3000
-            },
+            "farm_context": {"annual_revenue_usd": 5000, "capital_usd": 3000},
             "user_id": "farmer-ali-001",
-            "tenant_id": mock_field_data["tenant_id"]
+            "tenant_id": mock_field_data["tenant_id"],
         }
         gr_response = await http_client.post(
             "http://localhost:8097/validate",
             json=guardrails_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert gr_response.status_code == 200
         gr_data = gr_response.json()
-        assert gr_data["allowed"] == True or gr_data["overall_risk"] in ["LOW", "MEDIUM"]
+        assert gr_data["allowed"] or gr_data["overall_risk"] in ["LOW", "MEDIUM"]
 
-    async def test_optimization_workflow(self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict):
+    async def test_optimization_workflow(
+        self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict
+    ):
         """TC-E2E-004: Farmer requests optimization → Pareto front + recommendation."""
         query_payload = {
             "query": "حسّن مزرعتي للموسم القادم",
@@ -144,15 +142,12 @@ class TestEndToEndWorkflow:
             "user_id": "farmer-ali-001",
             "tenant_id": mock_field_data["tenant_id"],
             "preferred_objectives": ["balanced"],
-            "context": {
-                "crop": "wheat",
-                "planting_date": "2026-01-15"
-            }
+            "context": {"crop": "wheat", "planting_date": "2026-01-15"},
         }
         response = await http_client.post(
             "http://localhost:8096/agent/optimize",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -172,19 +167,21 @@ class TestEndToEndWorkflow:
         assert "trade_off_explanation" in data
         assert len(data["trade_off_explanation"]) > 50
 
-    async def test_market_and_contract_workflow(self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict):
+    async def test_market_and_contract_workflow(
+        self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict
+    ):
         """TC-E2E-005: Farmer checks price → creates forward contract."""
         # Step 1: Check market price
         query_payload = {
             "query": "كم سعر القمح؟",
             "user_id": "farmer-ali-001",
             "tenant_id": mock_field_data["tenant_id"],
-            "context": {"crop": "wheat", "market": "sanaa"}
+            "context": {"crop": "wheat", "market": "sanaa"},
         }
         response = await http_client.post(
             "http://localhost:8096/agent/query",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert response.status_code == 200
         price_data = response.json()
@@ -198,23 +195,26 @@ class TestEndToEndWorkflow:
                 "field_id": mock_field_data["field_id"],
                 "crop": "wheat",
                 "estimated_yield_kg": 5000,
-                "harvest_date": "2026-09-01"
-            }
+                "harvest_date": "2026-09-01",
+            },
         }
         contract_response = await http_client.post(
             "http://localhost:8094/mcp/v1/tools/call",
             json=contract_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         assert contract_response.status_code == 200
         contract_data = contract_response.json()
-        content = __import__('json').loads(contract_data["content"][0]["text"])
+        content = __import__("json").loads(contract_data["content"][0]["text"])
         assert "contract_id" in content
         assert "total_contract_value_yer" in content
 
-    async def test_full_pipeline_performance(self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict):
+    async def test_full_pipeline_performance(
+        self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict
+    ):
         """TC-E2E-006: Full pipeline completes within 15 seconds."""
         import time
+
         start = time.time()
 
         # Query → Optimize → Guardrails
@@ -223,12 +223,12 @@ class TestEndToEndWorkflow:
             "field_id": mock_field_data["field_id"],
             "user_id": "farmer-ali-001",
             "tenant_id": mock_field_data["tenant_id"],
-            "preferred_objectives": ["balanced"]
+            "preferred_objectives": ["balanced"],
         }
         response = await http_client.post(
             "http://localhost:8096/agent/optimize",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
 
         elapsed = time.time() - start
@@ -243,19 +243,17 @@ class TestEndToEndWorkflow:
 class TestSystemResilience:
     """Tests for system resilience and error handling"""
 
-    async def test_service_unavailable_graceful(self, http_client: AsyncClient, mock_jwt_token: str):
+    async def test_service_unavailable_graceful(
+        self, http_client: AsyncClient, mock_jwt_token: str
+    ):
         """TC-E2E-007: When MCP server down, Supervisor returns graceful error."""
         # This test assumes we can temporarily stop a service
         # In practice, tested via mock or staging environment
-        query_payload = {
-            "query": "ما هو NDVI",
-            "user_id": "test",
-            "tenant_id": "test"
-        }
+        query_payload = {"query": "ما هو NDVI", "user_id": "test", "tenant_id": "test"}
         response = await http_client.post(
             "http://localhost:8096/agent/query",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         # Should not crash — returns error message or fallback
         assert response.status_code in (200, 503, 502)
@@ -269,12 +267,12 @@ class TestSystemResilience:
             "query": "كيف حال حقلي؟",
             "field_id": "nonexistent-field-999",
             "user_id": "test",
-            "tenant_id": "test"
+            "tenant_id": "test",
         }
         response = await http_client.post(
             "http://localhost:8096/agent/query",
             json=query_payload,
-            headers={"Authorization": f"Bearer {mock_jwt_token}"}
+            headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
         # Should handle gracefully
         assert response.status_code in (200, 404, 422)

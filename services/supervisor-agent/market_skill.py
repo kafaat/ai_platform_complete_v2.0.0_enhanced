@@ -3,8 +3,9 @@
 Market Skill Library for SAHOOL Supervisor Agent
 Handles: Price queries · Forward contracts · Trend analysis
 """
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from mcp_client import MCPClient
 
@@ -22,21 +23,19 @@ class MarketSkill:
         self,
         intent: str,
         query: str = "",
-        field_id: Optional[str] = None,
+        field_id: str | None = None,
         user_id: str = "",
         tenant_id: str = "",
-        context: Dict[str, Any] = None,
-        objectives: List[str] = None
-    ) -> Dict[str, Any]:
+        context: dict[str, Any] = None,
+        objectives: list[str] = None,
+    ) -> dict[str, Any]:
 
         if intent == "price_current":
             crop = context.get("crop", "wheat") if context else "wheat"
             market = context.get("market", "sanaa") if context else "sanaa"
 
             result = await self.mcp.call_tool(
-                self.server,
-                "get_market_price",
-                {"crop": crop, "market": market}
+                self.server, "get_market_price", {"crop": crop, "market": market}
             )
 
             content = result.get("content", [{}])[0].get("text", "{}")
@@ -50,17 +49,13 @@ class MarketSkill:
                 "price_usd_kg": price_data.get("price_usd_kg", 0),
                 "trend": price_data.get("trend", "stable"),
                 "updated": price_data.get("updated", "N/A"),
-                "sources": [f"SAHOOL Market Data — {market}"]
+                "sources": [f"SAHOOL Market Data — {market}"],
             }
 
         elif intent == "price_forecast":
             crop = context.get("crop", "wheat") if context else "wheat"
 
-            result = await self.mcp.call_tool(
-                self.server,
-                "get_price_trend",
-                {"crop": crop}
-            )
+            result = await self.mcp.call_tool(self.server, "get_price_trend", {"crop": crop})
 
             content = result.get("content", [{}])[0].get("text", "{}")
             trend_data = json.loads(content)
@@ -72,7 +67,7 @@ class MarketSkill:
                 "change_30d_pct": trend_data.get("price_change_pct", 0),
                 "forecast": trend_data.get("forecast", "stable"),
                 "trend_data": trend_data.get("trend_data", [])[:7],  # Last 7 days
-                "sources": ["SAHOOL Market Analytics"]
+                "sources": ["SAHOOL Market Analytics"],
             }
 
         elif intent == "create_contract":
@@ -92,8 +87,8 @@ class MarketSkill:
                     "crop": crop,
                     "estimated_yield_kg": yield_est,
                     "harvest_date": harvest,
-                    "quality_grade": "A"
-                }
+                    "quality_grade": "A",
+                },
             )
 
             content = result.get("content", [{}])[0].get("text", "{}")
@@ -109,11 +104,8 @@ class MarketSkill:
                 "harvest_date": harvest,
                 "status": contract.get("status", "pending"),
                 "next_steps": contract.get("next_steps", []),
-                "sources": ["SAHOOL B2B Marketplace"]
+                "sources": ["SAHOOL B2B Marketplace"],
             }
 
         else:
-            return {
-                "type": "error",
-                "response": f"نوعية استعلام السوق غير معروفة: {intent}"
-            }
+            return {"type": "error", "response": f"نوعية استعلام السوق غير معروفة: {intent}"}

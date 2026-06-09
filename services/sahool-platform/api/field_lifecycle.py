@@ -15,14 +15,15 @@ State machine للحقل (موسم واحد):
   Kernel". هذا تأطير مُضخَّم. الواقع: state machine بسيط يمنع انتقالات غير
   منطقيّة (مثل "حصاد حقل لم يُزرع"). هذا مفيد لكنّه ليس "operating kernel".
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from typing import List, Optional, Dict, TYPE_CHECKING
 import logging
 import uuid
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from enum import Enum
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import asyncpg
@@ -32,7 +33,8 @@ logger = logging.getLogger(__name__)
 
 # ─── Stages ─────────────────────────────────────────────────────
 
-class LifecycleStage(str, Enum):
+
+class LifecycleStage(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     CREATED = "CREATED"
     PREPARED = "PREPARED"
     PLANTED = "PLANTED"
@@ -42,14 +44,14 @@ class LifecycleStage(str, Enum):
     POST_HARVEST = "POST_HARVEST"
 
 
-VALID_TRANSITIONS: Dict[LifecycleStage, List[LifecycleStage]] = {
-    LifecycleStage.CREATED:      [LifecycleStage.PREPARED],
-    LifecycleStage.PREPARED:     [LifecycleStage.PLANTED],
-    LifecycleStage.PLANTED:      [LifecycleStage.GROWING],
-    LifecycleStage.GROWING:      [LifecycleStage.MATURE],
-    LifecycleStage.MATURE:       [LifecycleStage.HARVESTED],
-    LifecycleStage.HARVESTED:    [LifecycleStage.POST_HARVEST],
-    LifecycleStage.POST_HARVEST: [LifecycleStage.PREPARED],   # موسم جديد
+VALID_TRANSITIONS: dict[LifecycleStage, list[LifecycleStage]] = {
+    LifecycleStage.CREATED: [LifecycleStage.PREPARED],
+    LifecycleStage.PREPARED: [LifecycleStage.PLANTED],
+    LifecycleStage.PLANTED: [LifecycleStage.GROWING],
+    LifecycleStage.GROWING: [LifecycleStage.MATURE],
+    LifecycleStage.MATURE: [LifecycleStage.HARVESTED],
+    LifecycleStage.HARVESTED: [LifecycleStage.POST_HARVEST],
+    LifecycleStage.POST_HARVEST: [LifecycleStage.PREPARED],  # موسم جديد
 }
 
 
@@ -60,12 +62,13 @@ def is_valid_transition(from_stage: LifecycleStage, to_stage: LifecycleStage) ->
 
 # ─── Types ──────────────────────────────────────────────────────
 
+
 @dataclass
 class FieldLifecycle:
     lifecycle_id: str
     field_id: str
     tenant_id: str
-    season_id: Optional[str]
+    season_id: str | None
     current_stage: LifecycleStage
     stage_entered_at: datetime
 
@@ -74,15 +77,16 @@ class FieldLifecycle:
 class LifecycleTransition:
     transition_id: str
     lifecycle_id: str
-    from_stage: Optional[LifecycleStage]
+    from_stage: LifecycleStage | None
     to_stage: LifecycleStage
     transitioned_at: datetime
     changed_by: str
-    command_id: Optional[str]
-    reason: Optional[str]
+    command_id: str | None
+    reason: str | None
 
 
 # ─── Engine ─────────────────────────────────────────────────────
+
 
 class LifecycleError(Exception):
     """خطأ في الـlifecycle (انتقال غير صالح، lifecycle مفقود، إلخ)."""
@@ -97,13 +101,17 @@ class FieldLifecycleEngine:
         - get_state(field_id, season_id) → FieldLifecycle | None
     """
 
-    def __init__(self, pool: "asyncpg.Pool"):
+    def __init__(self, pool: asyncpg.Pool):
         # Lazy import — pure logic functions تعمل بدون asyncpg
         import asyncpg as _ap  # noqa: F401
+
         self.pool = pool
 
     async def get_or_create(
-        self, field_id: str, tenant_id: str, season_id: Optional[str] = None,
+        self,
+        field_id: str,
+        tenant_id: str,
+        season_id: str | None = None,
     ) -> FieldLifecycle:
         async with self.pool.acquire() as conn:
             # حاول الجلب أوّلاً
@@ -137,7 +145,7 @@ class FieldLifecycleEngine:
                 tenant_id=tenant_id,
                 season_id=season_id,
                 current_stage=LifecycleStage.CREATED,
-                stage_entered_at=datetime.now(timezone.utc),
+                stage_entered_at=datetime.now(UTC),
             )
 
     async def transition(
@@ -145,9 +153,9 @@ class FieldLifecycleEngine:
         lifecycle_id: str,
         to_stage: LifecycleStage,
         changed_by: str,
-        command_id: Optional[str] = None,
-        reason: Optional[str] = None,
-        occurred_at: Optional[datetime] = None,
+        command_id: str | None = None,
+        reason: str | None = None,
+        occurred_at: datetime | None = None,
         enforcement_mode: str = "LIVE",
     ) -> LifecycleTransition:
         """
@@ -195,7 +203,9 @@ class FieldLifecycleEngine:
                               last_occurred_at, reason)
                            VALUES (NULLIF(current_setting('app.current_tenant',true),'')::uuid,
                                    $1, $2, $3, $4, $5)""",
-                        uuid.UUID(lifecycle_id), to_stage.value, occurred_at,
+                        uuid.UUID(lifecycle_id),
+                        to_stage.value,
+                        occurred_at,
                         last["occurred_at"],
                         "temporal regression: occurred_at أقدم من آخر انتقال",
                     )
@@ -224,20 +234,20 @@ class FieldLifecycleEngine:
                 )
             except asyncpg.PostgresError as e:
                 # الـtrigger رفض (نادر لأنّنا تحقّقنا فوق، لكن دفاعياً)
-                raise LifecycleError(f"DB rejected transition: {e}")
+                raise LifecycleError(f"DB rejected transition: {e}") from e
 
             return LifecycleTransition(
                 transition_id=transition_id,
                 lifecycle_id=lifecycle_id,
                 from_stage=current_stage,
                 to_stage=to_stage,
-                transitioned_at=datetime.now(timezone.utc),
+                transitioned_at=datetime.now(UTC),
                 changed_by=changed_by,
                 command_id=command_id,
                 reason=reason,
             )
 
-    async def get_history(self, lifecycle_id: str) -> List[LifecycleTransition]:
+    async def get_history(self, lifecycle_id: str) -> list[LifecycleTransition]:
         async with self.pool.acquire() as conn:
             rows = await conn.fetch(
                 """
@@ -262,8 +272,10 @@ class FieldLifecycleEngine:
             ]
 
     async def get_state(
-        self, field_id: str, season_id: Optional[str] = None,
-    ) -> Optional[FieldLifecycle]:
+        self,
+        field_id: str,
+        season_id: str | None = None,
+    ) -> FieldLifecycle | None:
         async with self.pool.acquire() as conn:
             row = await conn.fetchrow(
                 """

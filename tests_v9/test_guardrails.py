@@ -1,5 +1,7 @@
 """Guardrails Engine Tests — SAHOOL v9.1.0"""
+
 import pytest
+
 
 class TestChemicalTier:
     @pytest.mark.unit
@@ -25,23 +27,27 @@ class TestChemicalTier:
         risk = "HIGH" if dose > MAX_DOSE else "LOW"
         assert risk == "HIGH"
 
+
 class TestEconomicTier:
     @pytest.mark.unit
     def test_negative_roi_blocked(self):
         """Negative ROI action should be flagged."""
-        cost = 1000; revenue = 800
+        cost = 1000
+        revenue = 800
         roi = (revenue - cost) / cost
         risk = "HIGH" if roi < 0 else "LOW"
         assert risk == "HIGH"
+
 
 class TestGuardrailsEndpoints:
     @pytest.mark.integration
     async def test_validate_endpoint(self, http_client, auth_headers):
         from conftest import service_urls
+
         resp = await http_client.post(
             f"{service_urls['guardrails']}/validate",
-            json={"action":"irrigate","field_id":"field_01","amount_mm":25},
-            headers=auth_headers
+            json={"action": "irrigate", "field_id": "field_01", "amount_mm": 25},
+            headers=auth_headers,
         )
         assert resp.status_code in [200, 201]
         data = resp.json()

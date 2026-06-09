@@ -22,6 +22,7 @@ Sources:
   - NDWI_865-1614 + SCA-VV soil moisture R^2=0.54 vs NDVI 0.31:
     arid-region SAR+optical fusion literature (2023-2025).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -38,17 +39,17 @@ class Confidence(str, Enum):
 class IndexReading:
     name: str
     value: float
-    sigma: float          # measurement std (error)
+    sigma: float  # measurement std (error)
     weight: float
-    family: str           # "optical" | "sar" | "thermal"
+    family: str  # "optical" | "sar" | "thermal"
 
 
 # default correlation between indices of the SAME family (high),
 # and between families (low). Used in ensemble variance.
 def _rho(a: IndexReading, b: IndexReading) -> float:
     if a.family == b.family:
-        return 0.85   # same family — highly correlated, little fusion gain
-    return 0.15       # cross-family — nearly independent, real gain
+        return 0.85  # same family — highly correlated, little fusion gain
+    return 0.15  # cross-family — nearly independent, real gain
 
 
 def ensemble_variance(readings: list[IndexReading]) -> float:
@@ -56,16 +57,13 @@ def ensemble_variance(readings: list[IndexReading]) -> float:
     var = 0.0
     # diagonal
     for r in readings:
-        var += (r.weight ** 2) * (r.sigma ** 2)
+        var += (r.weight**2) * (r.sigma**2)
     # off-diagonal (correlation terms)
     n = len(readings)
     for i in range(n):
         for j in range(i + 1, n):
             ri, rj = readings[i], readings[j]
-            var += (
-                2.0 * ri.weight * rj.weight * _rho(ri, rj)
-                * ri.sigma * rj.sigma
-            )
+            var += 2.0 * ri.weight * rj.weight * _rho(ri, rj) * ri.sigma * rj.sigma
     return var
 
 
@@ -103,9 +101,7 @@ def fuse_health(
 
     # cloud-driven reweighting
     if cloud_cover_pct > 20.0:
-        notes.append(
-            f"غطاء سحب {cloud_cover_pct:.0f}% — تحويل الوزن إلى SAR"
-        )
+        notes.append(f"غطاء سحب {cloud_cover_pct:.0f}% — تحويل الوزن إلى SAR")
         for r in rs:
             if r.family == "optical":
                 r.weight *= 0.2
@@ -142,18 +138,38 @@ def fuse_health(
 
 # ── Diagnostic tree (critique 2.2: no causal guessing) ───────────────
 def diagnose_stress(
-    ndmi: float, cwsi: float, ndre: float, ndvi: float,
-    salinity_index: float, ec_trend: str,
+    ndmi: float,
+    cwsi: float,
+    ndre: float,
+    ndvi: float,
+    salinity_index: float,
+    ec_trend: str,
 ) -> dict:
     """Confirmed diagnosis, not 'check irrigation or fertiliser' guess."""
     if ndmi < 0.2 and cwsi > 0.6:
-        return {"cause": "water_stress", "ar": "إجهاد مائي مؤكد",
-                "confidence": Confidence.HIGH, "action": "ري عاجل"}
+        return {
+            "cause": "water_stress",
+            "ar": "إجهاد مائي مؤكد",
+            "confidence": Confidence.HIGH,
+            "action": "ري عاجل",
+        }
     if ndre < 0.3 and ndvi > 0.5:
-        return {"cause": "nitrogen_deficit", "ar": "نقص نيتروجين مؤكد",
-                "confidence": Confidence.HIGH, "action": "تسميد ورقي"}
+        return {
+            "cause": "nitrogen_deficit",
+            "ar": "نقص نيتروجين مؤكد",
+            "confidence": Confidence.HIGH,
+            "action": "تسميد ورقي",
+        }
     if salinity_index > 0.4 and ec_trend == "rising":
-        return {"cause": "salinity", "ar": "ملوحة مؤكدة",
-                "confidence": Confidence.HIGH, "action": "غسيل + صرف"}
-    return {"cause": "unknown", "ar": "سبب غير محدد — فحص ميداني مطلوب",
-            "confidence": Confidence.LOW, "action": "field_inspection"}
+        return {
+            "cause": "salinity",
+            "ar": "ملوحة مؤكدة",
+            "confidence": Confidence.HIGH,
+            "action": "غسيل + صرف",
+        }
+    return {
+        "cause": "unknown",
+        "ar": "سبب غير محدد — فحص ميداني مطلوب",
+        "confidence": Confidence.LOW,
+        "action": "field_inspection",
+    }

@@ -16,14 +16,14 @@ api/trial_randomization.py — توليد عشوائي حتمي للتجارب �
 
 ⚠ هذا منطق توزيع فقط؛ التحليل الإحصائي (t-test/LSD) يأتي في البند ١١ نفسه.
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
 import random
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
-
+from typing import Any
 
 SeedSource = str  # "user_provided" | "hash_chain" | "uuid_v4"
 
@@ -31,33 +31,39 @@ SeedSource = str  # "user_provided" | "hash_chain" | "uuid_v4"
 @dataclass(frozen=True)
 class RandomizationConfig:
     """إعداد ثابت للتوزيع الحتمي."""
+
     trial_id: str
     num_blocks: int
     seed_source: SeedSource = "hash_chain"
-    seed_value: Optional[int] = None        # لـuser_provided
-    hash_chain_input: Optional[str] = None  # لـhash_chain
+    seed_value: int | None = None  # لـuser_provided
+    hash_chain_input: str | None = None  # لـhash_chain
 
     def to_canonical(self) -> str:
         """تمثيل قانوني (لإعادة الإنتاج + التدقيق)."""
-        return json.dumps({
-            "trial_id": self.trial_id,
-            "num_blocks": self.num_blocks,
-            "seed_source": self.seed_source,
-            "seed_value": self.seed_value,
-            "hash_chain_input": self.hash_chain_input,
-        }, sort_keys=True, ensure_ascii=False)
+        return json.dumps(
+            {
+                "trial_id": self.trial_id,
+                "num_blocks": self.num_blocks,
+                "seed_source": self.seed_source,
+                "seed_value": self.seed_value,
+                "hash_chain_input": self.hash_chain_input,
+            },
+            sort_keys=True,
+            ensure_ascii=False,
+        )
 
 
 @dataclass
 class BlockAssignment:
     """توزيع كتلة واحدة (معالجة شمال/جنوب) + hash للتحقّق."""
+
     block_number: int
-    treatment_position: str        # "north" | "south"
+    treatment_position: str  # "north" | "south"
     control_position: str
     block_seed: int
-    seed_hash: str                 # لكشف التلاعب
+    seed_hash: str  # لكشف التلاعب
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "block_number": self.block_number,
             "treatment_position": self.treatment_position,
@@ -72,9 +78,9 @@ class RandomizationResult:
     master_seed: int
     master_seed_hash: str
     config_canonical: str
-    blocks: List[BlockAssignment] = field(default_factory=list)
+    blocks: list[BlockAssignment] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "master_seed_hash": self.master_seed_hash,  # لا نكشف البذرة الخام
             "config_canonical": self.config_canonical,
@@ -94,6 +100,7 @@ def _compute_master_seed(config: RandomizationConfig) -> int:
         return int(hashlib.sha256(config.hash_chain_input.encode()).hexdigest(), 16)
     if config.seed_source == "uuid_v4":
         import uuid
+
         return uuid.uuid4().int
     raise ValueError(f"seed_source غير معروف: {config.seed_source}")
 
@@ -104,18 +111,16 @@ def generate_block_assignments(config: RandomizationConfig) -> RandomizationResu
     يحتاج ≥4 كتل (معيار الصحّة الإحصائيّة — SARE).
     """
     if config.num_blocks < 4:
-        raise ValueError(
-            "الحدّ الأدنى ٤ كتل للصحّة الإحصائيّة (تقسيم الحقل لنصفَين غير صالح)"
-        )
+        raise ValueError("الحدّ الأدنى ٤ كتل للصحّة الإحصائيّة (تقسيم الحقل لنصفَين غير صالح)")
 
     master_seed = _compute_master_seed(config)
     master_seed_hash = hashlib.sha256(str(master_seed).encode()).hexdigest()
 
-    blocks: List[BlockAssignment] = []
+    blocks: list[BlockAssignment] = []
     for block_number in range(1, config.num_blocks + 1):
         # بذرة كلّ كتلة مشتقّة حتميّاً من الرئيسيّة + رقم الكتلة + معرّف التجربة
         block_seed_input = f"{master_seed}:{block_number}:{config.trial_id}"
-        block_seed = int(hashlib.sha256(block_seed_input.encode()).hexdigest(), 16) % (2 ** 32)
+        block_seed = int(hashlib.sha256(block_seed_input.encode()).hexdigest(), 16) % (2**32)
 
         rng = random.Random(block_seed)
         treatment_is_north = rng.choice([True, False])
@@ -124,13 +129,15 @@ def generate_block_assignments(config: RandomizationConfig) -> RandomizationResu
             f"{block_seed}:{block_number}:{treatment_is_north}".encode()
         ).hexdigest()
 
-        blocks.append(BlockAssignment(
-            block_number=block_number,
-            treatment_position="north" if treatment_is_north else "south",
-            control_position="south" if treatment_is_north else "north",
-            block_seed=block_seed,
-            seed_hash=seed_hash,
-        ))
+        blocks.append(
+            BlockAssignment(
+                block_number=block_number,
+                treatment_position="north" if treatment_is_north else "south",
+                control_position="south" if treatment_is_north else "north",
+                block_seed=block_seed,
+                seed_hash=seed_hash,
+            )
+        )
 
     return RandomizationResult(
         master_seed=master_seed,

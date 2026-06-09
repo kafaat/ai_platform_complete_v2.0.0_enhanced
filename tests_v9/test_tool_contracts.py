@@ -10,15 +10,21 @@ tests_v9/test_tool_contracts.py — Tool Contracts + Execution Journal
     ٦. side-effects classification
     ٧. actuator مع max_retries > 0 و idempotent=False → raises
 """
+
 import asyncio
+import os
+import sys
+
 import pytest
 
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../services/supervisor-agent'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/supervisor-agent"))
 
 from tool_contracts import (
-    ToolContract, ToolRegistry, ExecutionJournal,
-    SideEffectClass, bootstrap_default_tools,
+    ExecutionJournal,
+    SideEffectClass,
+    ToolContract,
+    ToolRegistry,
+    bootstrap_default_tools,
 )
 
 
@@ -35,7 +41,6 @@ def journal():
 
 
 class TestToolRegistry:
-
     def test_default_tools_registered(self, registry):
         tools = registry.list_tools()
         assert "weather.forecast" in tools
@@ -50,7 +55,6 @@ class TestToolRegistry:
 
 
 class TestInvocation:
-
     @pytest.mark.asyncio
     async def test_unregistered_tool_rejected(self, registry):
         result = await registry.invoke(
@@ -114,10 +118,10 @@ class TestInvocation:
 
 
 class TestTimeoutEnforcement:
-
     @pytest.mark.asyncio
     async def test_timeout_enforced(self):
         """tool ببطء يُجبَر على timeout."""
+
         async def slow_impl(**kwargs):
             await asyncio.sleep(2.0)
             return {"ok": True}
@@ -144,7 +148,6 @@ class TestTimeoutEnforcement:
 
 
 class TestActuatorContracts:
-
     def test_actuator_cannot_have_retries_unless_idempotent(self):
         """invariant: actuator non-idempotent → max_retries=0."""
         with pytest.raises(AssertionError):
@@ -175,7 +178,6 @@ class TestActuatorContracts:
 
 
 class TestJournalReplay:
-
     @pytest.mark.asyncio
     async def test_replay_extracts_history(self, registry, journal):
         # نفّذ tool عدّة مرّات
@@ -196,9 +198,12 @@ class TestJournalReplay:
     async def test_journal_immutability(self, journal):
         """Journal يجب أن تكون append-only."""
         await journal.record_start(
-            invocation_id="i1", tool_id="t1",
-            input_data={"a": 1}, actor_capabilities=[],
-            tenant_id="tx", contract_version="1.0.0",
+            invocation_id="i1",
+            tool_id="t1",
+            input_data={"a": 1},
+            actor_capabilities=[],
+            tenant_id="tx",
+            contract_version="1.0.0",
         )
 
         entries_v1 = await journal.get_entries()
@@ -214,7 +219,6 @@ class TestJournalReplay:
 
 
 class TestSideEffectsTracking:
-
     @pytest.mark.asyncio
     async def test_actuator_invocation_journaled(self, registry, journal):
         """actuator invocation يجب أن يُسجَّل في journal (للـaudit)."""

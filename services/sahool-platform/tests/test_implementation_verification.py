@@ -1,7 +1,12 @@
 """Tests for implementation verification: passive (intent) vs physical (effect),
 physical governs over claim, no fabrication when no signal (UNCONFIRMED is honest)."""
+
 from core.implementation_verification import (
-    combined_verification, verify_physical, verify_passive, ImplementationStatus)
+    ImplementationStatus,
+    combined_verification,
+    verify_passive,
+    verify_physical,
+)
 
 
 class TestPassive:
@@ -45,14 +50,16 @@ class TestPhysical:
 class TestCombined:
     def test_physical_governs_over_claim(self):
         # CRITICAL: ادّعاء التنفيذ + لا أثر فيزيائي → الحسّاس يحكم (REJECTED)
-        r = combined_verification(farmer_response="نعم", metric_before=18.0,
-            metric_after=18.2, expected_delta=6.0)
+        r = combined_verification(
+            farmer_response="نعم", metric_before=18.0, metric_after=18.2, expected_delta=6.0
+        )
         assert r.status == ImplementationStatus.REJECTED
         assert r.learn_signal == "claimed_but_no_physical_effect"
 
     def test_physical_confirms_when_available(self):
-        r = combined_verification(farmer_response="نعم", metric_before=18.0,
-            metric_after=25.0, expected_delta=6.0)
+        r = combined_verification(
+            farmer_response="نعم", metric_before=18.0, metric_after=25.0, expected_delta=6.0
+        )
         assert r.status == ImplementationStatus.IMPLEMENTED
 
     def test_falls_back_to_passive_without_sensor(self):
@@ -70,33 +77,53 @@ class TestArbitrationEdgeCases:
 
     def test_low_confidence_sensor_no_hard_reject(self):
         # CRITICAL: حسّاس منخفض الثقة + تعارض → لا رفض قاطع (قد يكون معطّلاً)
-        from core.implementation_verification import combined_verification, ImplementationStatus
-        r = combined_verification(farmer_response="نعم", metric_before=18,
-            metric_after=18.2, expected_delta=6, sensor_confidence="low")
+        from core.implementation_verification import ImplementationStatus, combined_verification
+
+        r = combined_verification(
+            farmer_response="نعم",
+            metric_before=18,
+            metric_after=18.2,
+            expected_delta=6,
+            sensor_confidence="low",
+        )
         assert r.status == ImplementationStatus.UNCONFIRMED
         assert r.learn_signal == "low_confidence_sensor_mismatch"
 
     def test_subsurface_irrigation_no_hard_reject(self):
         # CRITICAL: ري تحت-سطحي لا يرفع الرطوبة السطحية → لا رفض قاطع
-        from core.implementation_verification import combined_verification, ImplementationStatus
-        r = combined_verification(farmer_response="نعم", metric_before=18,
-            metric_after=18.2, expected_delta=6, subsurface_irrigation=True)
+        from core.implementation_verification import ImplementationStatus, combined_verification
+
+        r = combined_verification(
+            farmer_response="نعم",
+            metric_before=18,
+            metric_after=18.2,
+            expected_delta=6,
+            subsurface_irrigation=True,
+        )
         assert r.status == ImplementationStatus.UNCONFIRMED
         assert r.learn_signal == "subsurface_sensor_mismatch"
 
     def test_high_confidence_sensor_still_arbitrates_not_absolute(self):
         # حسّاس موثوق يترجّح لكن بسقف medium لا high (ليس قطعاً)
-        from core.implementation_verification import combined_verification, ImplementationStatus
-        r = combined_verification(farmer_response="نعم", metric_before=18,
-            metric_after=18.2, expected_delta=6, sensor_confidence="high")
+        from core.implementation_verification import ImplementationStatus, combined_verification
+
+        r = combined_verification(
+            farmer_response="نعم",
+            metric_before=18,
+            metric_after=18.2,
+            expected_delta=6,
+            sensor_confidence="high",
+        )
         assert r.status == ImplementationStatus.REJECTED
         assert r.confidence == "medium"  # خُفّض من high — ليس تغلّباً مطلقاً
 
     def test_low_confidence_sensor_caps_positive_confirmation(self):
         # حسّاس منخفض الثقة يؤكّد التنفيذ لكن بسقف مخفّض
-        from core.implementation_verification import combined_verification, ImplementationStatus
-        r = combined_verification(metric_before=18, metric_after=25,
-            expected_delta=6, sensor_confidence="medium")
+        from core.implementation_verification import ImplementationStatus, combined_verification
+
+        r = combined_verification(
+            metric_before=18, metric_after=25, expected_delta=6, sensor_confidence="medium"
+        )
         assert r.status == ImplementationStatus.IMPLEMENTED
         assert r.confidence == "medium"  # لا high رغم الأثر
 
@@ -106,15 +133,18 @@ class TestMaestroIntegration:
 
     def test_followup_enriches_recommendation_log(self):
         from core.implementation_verification import verify_recommendation_followup
+
         rec = {"recommendation_id": "irr_001", "type": "irrigation"}
-        out = verify_recommendation_followup(rec, farmer_response="نعم",
-            metric_before=18, metric_after=25, expected_delta=6)
+        out = verify_recommendation_followup(
+            rec, farmer_response="نعم", metric_before=18, metric_after=25, expected_delta=6
+        )
         assert "verification" in out
         assert out["verification"]["status"] == "implemented"
         assert out["recommendation_id"] == "irr_001"  # لا يعدّل الأصل
 
     def test_followup_preserves_original_fields(self):
         from core.implementation_verification import verify_recommendation_followup
+
         rec = {"recommendation_id": "x", "type": "fertilizer", "confidence": "medium"}
         out = verify_recommendation_followup(rec, farmer_response="لا")
         assert out["type"] == "fertilizer"
@@ -124,8 +154,14 @@ class TestMaestroIntegration:
     def test_followup_carries_learn_signal(self):
         # التكامل يمرّر إشارة التعلّم (للـ calibration_loop)
         from core.implementation_verification import verify_recommendation_followup
+
         rec = {"recommendation_id": "y", "type": "irrigation"}
-        out = verify_recommendation_followup(rec, farmer_response="نعم",
-            metric_before=18, metric_after=18.2, expected_delta=6,
-            sensor_confidence="low")
+        out = verify_recommendation_followup(
+            rec,
+            farmer_response="نعم",
+            metric_before=18,
+            metric_after=18.2,
+            expected_delta=6,
+            sensor_confidence="low",
+        )
         assert out["verification"]["learn_signal"] == "low_confidence_sensor_mismatch"

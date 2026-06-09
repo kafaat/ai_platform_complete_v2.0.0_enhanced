@@ -18,21 +18,35 @@ api/coffee_advisor.py — دليل البنّ اليمني (محصول نقدي 
 ملاحظة سياقيّة: زراعة البنّ بديل واعد عن القات في بعض المناطق (مردود اقتصادي
 + استهلاك مائي أقلّ من القات) — توجّه تشجّعه مبادرات محلّيّة ودوليّة.
 """
+
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
-
 # أصناف البنّ اليمنيّة الشهيرة حسب المنطقة
-_VARIETIES: List[Dict] = [
-    {"name_ar": "الحرازي (الإسماعيلي)", "region_ar": "حراز (صنعاء)", "note_ar": "نكهة معقّدة غنيّة، مدرّجات على ارتفاعات شاهقة"},
-    {"name_ar": "اليافعي", "region_ar": "يافع", "note_ar": "نكهة استثنائيّة، تربة بركانيّة وارتفاعات مثاليّة"},
+_VARIETIES: list[dict] = [
+    {
+        "name_ar": "الحرازي (الإسماعيلي)",
+        "region_ar": "حراز (صنعاء)",
+        "note_ar": "نكهة معقّدة غنيّة، مدرّجات على ارتفاعات شاهقة",
+    },
+    {
+        "name_ar": "اليافعي",
+        "region_ar": "يافع",
+        "note_ar": "نكهة استثنائيّة، تربة بركانيّة وارتفاعات مثاليّة",
+    },
     {"name_ar": "المطري", "region_ar": "بني مطر (صنعاء)", "note_ar": "من أشهر الأنواع"},
-    {"name_ar": "المحويتي (الأهجري/البرعي)", "region_ar": "المحويت", "note_ar": "من كبرى مناطق الإنتاج شمالاً"},
+    {
+        "name_ar": "المحويتي (الأهجري/البرعي)",
+        "region_ar": "المحويت",
+        "note_ar": "من كبرى مناطق الإنتاج شمالاً",
+    },
     {"name_ar": "الحيمي", "region_ar": "الحيمة (صنعاء)", "note_ar": "الداخليّة والخارجيّة"},
     {"name_ar": "الخولاني", "region_ar": "خولان", "note_ar": "من أندر وأجود الأنواع عالميّاً"},
     {"name_ar": "الوصابي", "region_ar": "وصاب", "note_ar": "صنف مميّز"},
-    {"name_ar": "العديني", "region_ar": "عدين (إب)", "note_ar": "من أصناف المناطق الجنوبيّة الغربيّة"},
+    {
+        "name_ar": "العديني",
+        "region_ar": "عدين (إب)",
+        "note_ar": "من أصناف المناطق الجنوبيّة الغربيّة",
+    },
 ]
 
 # مدى الارتفاع الأمثل لزراعة البنّ (متر فوق سطح البحر)
@@ -42,43 +56,70 @@ _ALT_OPTIMAL_MAX = 2400
 _ALT_MAX = 2600
 
 
-def site_suitability(altitude_m: float) -> Dict:
+def site_suitability(altitude_m: float) -> dict:
     """يقيّم ملاءمة موقع لزراعة البنّ بناءً على الارتفاع."""
     if altitude_m < _ALT_MIN:
         rating, rating_ar = "unsuitable", "غير ملائم"
-        reason = (f"الارتفاع ({altitude_m:.0f}م) أقلّ من الحدّ الأدنى للبنّ "
-                  f"(~{_ALT_MIN}م). الحرارة عالية والجودة تتأثّر.")
+        reason = (
+            f"الارتفاع ({altitude_m:.0f}م) أقلّ من الحدّ الأدنى للبنّ "
+            f"(~{_ALT_MIN}م). الحرارة عالية والجودة تتأثّر."
+        )
     elif altitude_m > _ALT_MAX:
         rating, rating_ar = "marginal", "حدّي"
         reason = f"الارتفاع ({altitude_m:.0f}م) مرتفع جدّاً — خطر الصقيع وبطء النضج."
     elif _ALT_OPTIMAL_MIN <= altitude_m <= _ALT_OPTIMAL_MAX:
         rating, rating_ar = "optimal", "مثالي ✓"
-        reason = (f"الارتفاع ({altitude_m:.0f}م) ضمن المدى المثالي "
-                  f"({_ALT_OPTIMAL_MIN}-{_ALT_OPTIMAL_MAX}م) — جودة عالية ونكهة مميّزة.")
+        reason = (
+            f"الارتفاع ({altitude_m:.0f}م) ضمن المدى المثالي "
+            f"({_ALT_OPTIMAL_MIN}-{_ALT_OPTIMAL_MAX}م) — جودة عالية ونكهة مميّزة."
+        )
     else:
         rating, rating_ar = "suitable", "ملائم"
         reason = f"الارتفاع ({altitude_m:.0f}م) ملائم لزراعة البنّ."
 
     return {
         "altitude_m": altitude_m,
-        "rating": rating, "rating_ar": rating_ar, "reason_ar": reason,
+        "rating": rating,
+        "rating_ar": rating_ar,
+        "reason_ar": reason,
         "optimal_range_ar": f"{_ALT_OPTIMAL_MIN}-{_ALT_OPTIMAL_MAX}م فوق سطح البحر",
     }
 
 
-def cultivation_guide() -> Dict:
+def cultivation_guide() -> dict:
     """دليل زراعة البنّ اليمني (الممارسات الأساسيّة)."""
     return {
         "crop_ar": "البنّ اليمني (Coffea arabica)",
         "type_ar": "شجري دائم (ليس موسميّاً — لا يخضع لدورة/مواعيد الحبوب)",
         "practices_ar": [
-            {"topic_ar": "الموقع", "detail_ar": "المرتفعات 1200-2400م، مدرّجات جبليّة تحفظ التربة والماء."},
-            {"topic_ar": "المدرّجات", "detail_ar": "الزراعة على المدرّجات تمنع انجراف التربة وتحفظ مياه الأمطار."},
-            {"topic_ar": "التظليل", "detail_ar": "أشجار ظلّ تحمي الشتلات من الشمس المباشرة وتلطّف الحرارة."},
-            {"topic_ar": "الريّ", "detail_ar": "محدود — يعتمد كثيراً على الأمطار والندى في المرتفعات؛ ريّ تكميلي عند الجفاف."},
-            {"topic_ar": "التسميد", "detail_ar": "عضوي تقليديّاً (سماد المواشي) — يحافظ على الجودة والاستدامة."},
-            {"topic_ar": "الحصاد", "detail_ar": "قطف الكرز الناضج يدويّاً بعناية (انتقائي لضمان الجودة)."},
-            {"topic_ar": "التجفيف", "detail_ar": "تجفيف طبيعي للكرز كاملاً في هواء المرتفعات النقي — سرّ النكهة المميّزة."},
+            {
+                "topic_ar": "الموقع",
+                "detail_ar": "المرتفعات 1200-2400م، مدرّجات جبليّة تحفظ التربة والماء.",
+            },
+            {
+                "topic_ar": "المدرّجات",
+                "detail_ar": "الزراعة على المدرّجات تمنع انجراف التربة وتحفظ مياه الأمطار.",
+            },
+            {
+                "topic_ar": "التظليل",
+                "detail_ar": "أشجار ظلّ تحمي الشتلات من الشمس المباشرة وتلطّف الحرارة.",
+            },
+            {
+                "topic_ar": "الريّ",
+                "detail_ar": "محدود — يعتمد كثيراً على الأمطار والندى في المرتفعات؛ ريّ تكميلي عند الجفاف.",
+            },
+            {
+                "topic_ar": "التسميد",
+                "detail_ar": "عضوي تقليديّاً (سماد المواشي) — يحافظ على الجودة والاستدامة.",
+            },
+            {
+                "topic_ar": "الحصاد",
+                "detail_ar": "قطف الكرز الناضج يدويّاً بعناية (انتقائي لضمان الجودة).",
+            },
+            {
+                "topic_ar": "التجفيف",
+                "detail_ar": "تجفيف طبيعي للكرز كاملاً في هواء المرتفعات النقي — سرّ النكهة المميّزة.",
+            },
         ],
         "quality_factors_ar": [
             "الارتفاع العالي + التضاريس الوعرة → نكهة معقّدة غنيّة",
@@ -96,15 +137,18 @@ def cultivation_guide() -> Dict:
     }
 
 
-def varieties(region: Optional[str] = None) -> Dict:
+def varieties(region: str | None = None) -> dict:
     """أصناف البنّ اليمنيّة (كلّها أو حسب منطقة)."""
     if region:
         matched = [v for v in _VARIETIES if region.strip() in v["region_ar"]]
         return {
             "region_query": region,
             "varieties": matched or [],
-            "note_ar": ("أصناف منطقتك." if matched else
-                        "لا صنف محدّد لهذه المنطقة في القائمة — قد توجد أصناف محلّيّة أخرى."),
+            "note_ar": (
+                "أصناف منطقتك."
+                if matched
+                else "لا صنف محدّد لهذه المنطقة في القائمة — قد توجد أصناف محلّيّة أخرى."
+            ),
         }
     return {
         "varieties": _VARIETIES,
@@ -115,14 +159,20 @@ def varieties(region: Optional[str] = None) -> Dict:
     }
 
 
-def coffee_pests() -> Dict:
+def coffee_pests() -> dict:
     """آفات البنّ الرئيسيّة (مرتبطة بنهج IPM)."""
     return {
         "pests_ar": [
-            {"name_ar": "صدأ أوراق البنّ", "scientific": "Hemileia vastatrix",
-             "note_ar": "مرض فطري خطير — بقع صفراء/برتقاليّة أسفل الأوراق. الوقاية بالأصناف المقاومة والتهوية."},
-            {"name_ar": "ثاقبة ثمار البنّ", "scientific": "Hypothenemus hampei",
-             "note_ar": "أخطر آفة حشريّة عالميّاً للبنّ — تثقب الكرز. المراقبة والمصائد + النظافة الحقليّة."},
+            {
+                "name_ar": "صدأ أوراق البنّ",
+                "scientific": "Hemileia vastatrix",
+                "note_ar": "مرض فطري خطير — بقع صفراء/برتقاليّة أسفل الأوراق. الوقاية بالأصناف المقاومة والتهوية.",
+            },
+            {
+                "name_ar": "ثاقبة ثمار البنّ",
+                "scientific": "Hypothenemus hampei",
+                "note_ar": "أخطر آفة حشريّة عالميّاً للبنّ — تثقب الكرز. المراقبة والمصائد + النظافة الحقليّة.",
+            },
         ],
         "ipm_note_ar": (
             "اتّبع نهج الإدارة المتكاملة: الوقاية (أصناف مقاومة، تهوية، نظافة) → "

@@ -16,35 +16,36 @@ sahool_core.practice_promotion
 
 يكمّل: knowledge_levels (يعطي المجتمعي سقفاً)، farmer_agency (يسجّل القبول/الرفض).
 """
+
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
 
-
-FSI_CEILING_COMMUNITY = 0.65   # السقف المطلق — لا تتجاوزه الممارسة المجتمعية أبداً
-FSI_FLOOR = 0.10               # أرضية التخمين
+FSI_CEILING_COMMUNITY = 0.65  # السقف المطلق — لا تتجاوزه الممارسة المجتمعية أبداً
+FSI_FLOOR = 0.10  # أرضية التخمين
 
 
 class PhysicalCompat:
-    COMPATIBLE = "compatible"        # +0.10
-    PARTIAL = "partial"              # +0.05
-    CONFLICTING = "conflicting"      # -0.30
-    VIOLATES_SAFETY = "violates"     # رفض نهائي (PHI/FAO صارخ)
+    COMPATIBLE = "compatible"  # +0.10
+    PARTIAL = "partial"  # +0.05
+    CONFLICTING = "conflicting"  # -0.30
+    VIOLATES_SAFETY = "violates"  # رفض نهائي (PHI/FAO صارخ)
 
 
 @dataclass
 class PracticeEvidence:
     """شواهد ممارسة جماعية — كلها قابلة للتحقّق."""
+
     n_farmers: int = 0
     n_seasons: int = 0
-    spatial_fields: int = 0          # حقول متجاورة بنفس التربة/المناخ
+    spatial_fields: int = 0  # حقول متجاورة بنفس التربة/المناخ
     temporal_success_seasons: int = 0
     physical_compat: str = PhysicalCompat.PARTIAL
     has_yield_data: bool = False
-    has_full_dataset: bool = False   # غلة+طقس+تربة
-    adoption_rate: float = 0.0       # 0..1
-    yield_std: float | None = None   # للكشف عن التباين العالي
+    has_full_dataset: bool = False  # غلة+طقس+تربة
+    adoption_rate: float = 0.0  # 0..1
+    yield_std: float | None = None  # للكشف عن التباين العالي
     yield_mean: float | None = None
 
 
@@ -52,7 +53,7 @@ class PracticeEvidence:
 class PromotionResult:
     fsi: float
     weight: float
-    ceiling: str                     # سقف الثقة (none/low/medium)
+    ceiling: str  # سقف الثقة (none/low/medium)
     status_ar: str
     show_in_farmer_view: bool
     breakdown: dict = field(default_factory=dict)
@@ -60,44 +61,63 @@ class PromotionResult:
 
 
 def _adoption_bonus(rate: float) -> float:
-    if rate >= 0.70: return 0.20
-    if rate >= 0.50: return 0.15
-    if rate >= 0.30: return 0.10
-    if rate >= 0.10: return 0.05
+    if rate >= 0.70:
+        return 0.20
+    if rate >= 0.50:
+        return 0.15
+    if rate >= 0.30:
+        return 0.10
+    if rate >= 0.10:
+        return 0.05
     return 0.0
 
 
 def _spatial_bonus(fields: int) -> float:
-    if fields >= 20: return 0.15
-    if fields >= 5: return 0.10
-    if fields >= 3: return 0.05
+    if fields >= 20:
+        return 0.15
+    if fields >= 5:
+        return 0.10
+    if fields >= 3:
+        return 0.05
     return 0.0
 
 
 def _temporal_bonus(seasons: int) -> float:
-    if seasons >= 10: return 0.15
-    if seasons >= 3: return 0.10
-    if seasons >= 2: return 0.05
+    if seasons >= 10:
+        return 0.15
+    if seasons >= 3:
+        return 0.10
+    if seasons >= 2:
+        return 0.05
     return 0.0
 
 
 def _measurability_bonus(ev: PracticeEvidence) -> float:
-    if ev.has_full_dataset: return 0.20
-    if ev.has_yield_data: return 0.10
+    if ev.has_full_dataset:
+        return 0.20
+    if ev.has_yield_data:
+        return 0.10
     return 0.0
 
 
 def _count_bonus(n_farmers: int) -> float:
-    if n_farmers >= 200: return 0.20
-    if n_farmers >= 50: return 0.15
-    if n_farmers >= 30: return 0.10
-    if n_farmers >= 10: return 0.05
+    if n_farmers >= 200:
+        return 0.20
+    if n_farmers >= 50:
+        return 0.15
+    if n_farmers >= 30:
+        return 0.10
+    if n_farmers >= 10:
+        return 0.05
     return 0.0
 
 
 def _physical_delta(compat: str) -> float:
-    return {PhysicalCompat.COMPATIBLE: 0.10, PhysicalCompat.PARTIAL: 0.05,
-            PhysicalCompat.CONFLICTING: -0.30}.get(compat, 0.0)
+    return {
+        PhysicalCompat.COMPATIBLE: 0.10,
+        PhysicalCompat.PARTIAL: 0.05,
+        PhysicalCompat.CONFLICTING: -0.30,
+    }.get(compat, 0.0)
 
 
 def evaluate_practice(ev: PracticeEvidence) -> PromotionResult:
@@ -107,17 +127,29 @@ def evaluate_practice(ev: PracticeEvidence) -> PromotionResult:
     # ١. رفض نهائي: تعارض السلامة (PHI/FAO صارخ)
     if ev.physical_compat == PhysicalCompat.VIOLATES_SAFETY:
         return PromotionResult(
-            fsi=0.0, weight=0.0, ceiling="none", status_ar="مرفوضة",
+            fsi=0.0,
+            weight=0.0,
+            ceiling="none",
+            status_ar="مرفوضة",
             show_in_farmer_view=False,
-            reason_ar="تتعارض مع السلامة (PHI/FAO) — رفض نهائي لا يُرقّى")
+            reason_ar="تتعارض مع السلامة (PHI/FAO) — رفض نهائي لا يُرقّى",
+        )
 
     # ٢. تجميد: تباين عالٍ (std > mean = لا نمط)
-    if (ev.yield_std is not None and ev.yield_mean is not None
-            and ev.yield_mean > 0 and ev.yield_std > ev.yield_mean):
+    if (
+        ev.yield_std is not None
+        and ev.yield_mean is not None
+        and ev.yield_mean > 0
+        and ev.yield_std > ev.yield_mean
+    ):
         return PromotionResult(
-            fsi=FSI_FLOOR, weight=0.0, ceiling="none", status_ar="مجمّدة",
+            fsi=FSI_FLOOR,
+            weight=0.0,
+            ceiling="none",
+            status_ar="مجمّدة",
             show_in_farmer_view=False,
-            reason_ar="نتائج متباينة (الانحراف > المتوسط) — لا نمط موثوق")
+            reason_ar="نتائج متباينة (الانحراف > المتوسط) — لا نمط موثوق",
+        )
 
     # ٣. التراكم
     bd = {
@@ -157,11 +189,16 @@ def evaluate_practice(ev: PracticeEvidence) -> PromotionResult:
     else:
         ceiling, status, show = "medium", "مُعايرة/إقليمية", True
 
-    weight = round(fsi * 0.9, 2)   # الوزن أقلّ قليلاً من FSI (تحفّظ)
+    weight = round(fsi * 0.9, 2)  # الوزن أقلّ قليلاً من FSI (تحفّظ)
     reason = f"FSI={fsi} ({status})"
     if was_capped:
         reason += f" — حُدّ بالسقف المجتمعي {FSI_CEILING_COMMUNITY} (لا يبلغ الفيزياء)"
     return PromotionResult(
-        fsi=fsi, weight=weight, ceiling=ceiling, status_ar=status,
-        show_in_farmer_view=show, breakdown={k: round(v, 2) for k, v in bd.items()},
-        reason_ar=reason)
+        fsi=fsi,
+        weight=weight,
+        ceiling=ceiling,
+        status_ar=status,
+        show_in_farmer_view=show,
+        breakdown={k: round(v, 2) for k, v in bd.items()},
+        reason_ar=reason,
+    )

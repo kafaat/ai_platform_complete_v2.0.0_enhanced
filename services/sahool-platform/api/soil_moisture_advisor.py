@@ -27,45 +27,66 @@ NRCCA). الأدقّ قياسها ميدانيّاً للحقل نفسه (ريّ
 ⚠ المستشعر يقيس VWC لا "صعوبة الامتصاص"؛ في الدفيئات عالية التسميد يلزم
 أيضاً مراقبة EC وجهد الماء (المستند يفصّل ذلك للخيار مقابل الذرة).
 """
+
 from __future__ import annotations
-
-from typing import Dict, Optional
-
 
 # جداول رطوبة التربة النوعيّة (من المستند — مصدرها NRCCA)
 # (θs مشبع، θFC سعة حقليّة، θWP نقطة ذبول) — كنسب حجميّة
 _SOIL_PARAMS = {
     "sand": {  # رمليّة
-        "name_ar": "رمليّة", "theta_s": 0.33, "theta_fc": 0.20, "theta_wp": 0.075,
+        "name_ar": "رمليّة",
+        "theta_s": 0.33,
+        "theta_fc": 0.20,
+        "theta_wp": 0.075,
         "note_ar": "تحتفظ بماء أقلّ، تسرّب سريع، سعة حقليّة منخفضة.",
     },
     "loam": {  # طميّة
-        "name_ar": "طميّة", "theta_s": 0.47, "theta_fc": 0.40, "theta_wp": 0.125,
+        "name_ar": "طميّة",
+        "theta_s": 0.47,
+        "theta_fc": 0.40,
+        "theta_wp": 0.125,
         "note_ar": "احتفاظ معتدل بالماء — الأفضل للزراعة.",
     },
     "clay": {  # طينيّة
-        "name_ar": "طينيّة", "theta_s": 0.55, "theta_fc": 0.50, "theta_wp": 0.175,
+        "name_ar": "طينيّة",
+        "theta_s": 0.55,
+        "theta_fc": 0.50,
+        "theta_wp": 0.175,
         "note_ar": "ماء كثير 'محبوس' — ليس كلّه متاحاً للنبات.",
     },
 }
 
 # عتبات قرار الريّ على RWC (من المستند)
-_RWC_NEED = 0.60       # تحتها: يحتاج ريّاً
-_RWC_SAFE = 0.80       # فوقها: آمن
+_RWC_NEED = 0.60  # تحتها: يحتاج ريّاً
+_RWC_SAFE = 0.80  # فوقها: آمن
 
 # عمق منطقة الجذور الفعّال (متر) — لحساب كمّيّة الريّ (FAO-56 جدول ٢٢)
 # المرجع: FAO Irrigation & Drainage Paper 56 (Allen et al. 1998)
 _ROOT_DEPTH_M = {
-    "wheat": 1.2, "barley": 1.2, "maize": 1.0, "ذرة": 1.0,
-    "millet": 1.0, "sorghum": 1.5, "potato": 0.5, "tomato": 0.9,
-    "onion": 0.4, "cucumber": 0.8, "خيار": 0.8, "alfalfa": 1.5,
-    "olive": 1.5, "زيتون": 1.5, "citrus": 1.2, "grape": 1.2, "عنب": 1.2,
-    "vegetables": 0.4, "خضروات": 0.4,
+    "wheat": 1.2,
+    "barley": 1.2,
+    "maize": 1.0,
+    "ذرة": 1.0,
+    "millet": 1.0,
+    "sorghum": 1.5,
+    "potato": 0.5,
+    "tomato": 0.9,
+    "onion": 0.4,
+    "cucumber": 0.8,
+    "خيار": 0.8,
+    "alfalfa": 1.5,
+    "olive": 1.5,
+    "زيتون": 1.5,
+    "citrus": 1.2,
+    "grape": 1.2,
+    "عنب": 1.2,
+    "vegetables": 0.4,
+    "خضروات": 0.4,
 }
-_DEFAULT_ROOT_DEPTH_M = 0.6   # افتراضي محافظ حين يُجهل المحصول
+_DEFAULT_ROOT_DEPTH_M = 0.6  # افتراضي محافظ حين يُجهل المحصول
 
 
-def list_soil_types() -> Dict:
+def list_soil_types() -> dict:
     """أنواع التربة وقيمها المرجعيّة (للاختيار في الواجهة)."""
     return {
         "soil_types": _SOIL_PARAMS,
@@ -80,9 +101,9 @@ def list_soil_types() -> Dict:
 def compute_rwc(
     vwc: float,
     soil_type: str = "loam",
-    theta_fc: Optional[float] = None,
-    theta_wp: Optional[float] = None,
-) -> Dict:
+    theta_fc: float | None = None,
+    theta_wp: float | None = None,
+) -> dict:
     """يحوّل قراءة المستشعر (VWC) إلى محتوى رطوبة نسبي RWC + قرار ريّ.
 
     vwc: الرطوبة الحجميّة من المستشعر (نسبة 0-1، مثلاً 0.20 = 20%).
@@ -116,7 +137,7 @@ def compute_rwc(
         decision = "irrigate"
         decision_ar = "يحتاج ريّاً الآن"
         reason_ar = (
-            f"المحتوى النسبي {rwc_pct}% دون عتبة {int(_RWC_NEED*100)}% — "
+            f"المحتوى النسبي {rwc_pct}% دون عتبة {int(_RWC_NEED * 100)}% — "
             "النبات يقترب من الإجهاد المائي."
         )
     elif rwc < _RWC_SAFE:
@@ -124,13 +145,13 @@ def compute_rwc(
         decision_ar = "إجهاد خفيف — راقب"
         reason_ar = (
             f"المحتوى النسبي {rwc_pct}% في نطاق الإجهاد الخفيف "
-            f"({int(_RWC_NEED*100)}-{int(_RWC_SAFE*100)}%) — جهّز للريّ قريباً."
+            f"({int(_RWC_NEED * 100)}-{int(_RWC_SAFE * 100)}%) — جهّز للريّ قريباً."
         )
     else:
         decision = "safe"
         decision_ar = "آمن — لا حاجة للريّ"
         reason_ar = (
-            f"المحتوى النسبي {rwc_pct}% فوق {int(_RWC_SAFE*100)}% — "
+            f"المحتوى النسبي {rwc_pct}% فوق {int(_RWC_SAFE * 100)}% — "
             "قرب السعة الحقليّة. ريّ زائد يتسرّب ويُهدر."
         )
 
@@ -154,9 +175,11 @@ def compute_rwc(
         "reason_ar": reason_ar,
         "disclaimer_ar": (
             "القرار مبنيّ على عتبات نوعيّة. "
-            + ("القيم مُعايَرة ميدانيّاً (دقّة أعلى)."
-               if calibrated else
-               "للدقّة، عايِر السعة الحقليّة لحقلك ميدانيّاً.")
+            + (
+                "القيم مُعايَرة ميدانيّاً (دقّة أعلى)."
+                if calibrated
+                else "للدقّة، عايِر السعة الحقليّة لحقلك ميدانيّاً."
+            )
             + " في الدفيئات عالية التسميد، راقب أيضاً EC وجهد الماء."
         ),
     }
@@ -165,10 +188,10 @@ def compute_rwc(
 def irrigation_amount_mm(
     vwc: float,
     soil_type: str = "loam",
-    crop: Optional[str] = None,
-    root_depth_m: Optional[float] = None,
-    theta_fc: Optional[float] = None,
-) -> Dict:
+    crop: str | None = None,
+    root_depth_m: float | None = None,
+    theta_fc: float | None = None,
+) -> dict:
     """يحسب كمّيّة الريّ اللازمة (ملّيمتر) لإعادة التربة للسعة الحقليّة.
 
     المعادلة الفيزيائيّة القياسيّة (FAO-56):
@@ -198,11 +221,12 @@ def irrigation_amount_mm(
         "note_ar": (
             f"لإعادة التربة للسعة الحقليّة في منطقة جذور بعمق {depth_m} م، "
             f"يلزم نحو {amount_mm} مم ماء."
-            if amount_mm > 0 else
-            "التربة عند السعة الحقليّة أو فوقها — لا حاجة للريّ."
+            if amount_mm > 0
+            else "التربة عند السعة الحقليّة أو فوقها — لا حاجة للريّ."
         ),
         "root_depth_source_ar": (
-            "مُدخَل يدويّاً" if root_depth_m is not None
+            "مُدخَل يدويّاً"
+            if root_depth_m is not None
             else "جدول المحصول (FAO-56)"
             if (crop and (crop.lower() in _ROOT_DEPTH_M or crop in _ROOT_DEPTH_M))
             else "افتراضي محافظ (المحصول غير محدّد)"
@@ -213,12 +237,12 @@ def irrigation_amount_mm(
 def irrigation_guidance(
     vwc: float,
     soil_type: str = "loam",
-    crop: Optional[str] = None,
-    growth_stage: Optional[str] = None,
-    theta_fc: Optional[float] = None,
-    theta_wp: Optional[float] = None,
-    root_depth_m: Optional[float] = None,
-) -> Dict:
+    crop: str | None = None,
+    growth_stage: str | None = None,
+    theta_fc: float | None = None,
+    theta_wp: float | None = None,
+    root_depth_m: float | None = None,
+) -> dict:
     """إرشاد ريّ متكامل: RWC + سياق المحصول/المرحلة + كمّيّة الريّ (إن لزم)."""
     base = compute_rwc(vwc, soil_type, theta_fc, theta_wp)
     if not base.get("ok"):
@@ -227,8 +251,10 @@ def irrigation_guidance(
     # تنبيه حسّاسيّة المرحلة (المستند يذكر أنّ مرحلة سحب الذكور في الذرة حرجة)
     stage_note_ar = None
     if growth_stage and base["decision"] != "safe":
-        sensitive = any(k in growth_stage for k in
-                        ["إزهار", "flower", "سحب", "tassel", "عقد", "fruit_set", "ذروة", "mid"])
+        sensitive = any(
+            k in growth_stage
+            for k in ["إزهار", "flower", "سحب", "tassel", "عقد", "fruit_set", "ذروة", "mid"]
+        )
         if sensitive:
             stage_note_ar = (
                 "⚠ المرحلة الحاليّة حرجة لاستهلاك الماء — تأخّر الريّ قد يخفض "

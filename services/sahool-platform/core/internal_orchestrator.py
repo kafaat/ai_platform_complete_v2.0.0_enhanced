@@ -32,6 +32,7 @@ sahool_core.internal_orchestrator
             → enforce_pipeline (Contract Gate)
               → EnrichedRecommendation مع provenance
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict
@@ -40,14 +41,17 @@ from datetime import datetime
 from core.authorization import Permission, authorize
 from core.canonical_schemas import UserSchema
 from core.cross_reference_finder import (
-    SearchContext, find_similar_recommendations,
-    cross_reference_summary)
+    SearchContext,
+    cross_reference_summary,
+    find_similar_recommendations,
+)
 from core.recommendation_bridge import (
-    EnrichedRecommendation, build_provenance,
-    enforce_pipeline, ContextPipelineError)
-from core.recommendation_engine import (
-    generate_recommendation, Recommendation, RecommendationStatus)
-from core.skills_registry import model_versions_snapshot
+    ContextPipelineError,
+    EnrichedRecommendation,
+    build_provenance,
+    enforce_pipeline,
+)
+from core.recommendation_engine import Recommendation, generate_recommendation
 
 
 def orchestrate_recommendation(
@@ -88,11 +92,8 @@ def orchestrate_recommendation(
     Fail closed: إن فشل أيّ طبقة، delivered=False مع سبب صريح."""
 
     # 1. AUTHORIZATION — قبل أيّ حساب (Fail fast)
-    perm = (Permission.PESTICIDE_APPROVE if is_pesticide
-            else Permission.RECOMMENDATION_REQUEST)
-    auth_decision = authorize(user, perm,
-                              resource_tenant_id=tenant_id,
-                              farm_id=farm_id)
+    perm = Permission.PESTICIDE_APPROVE if is_pesticide else Permission.RECOMMENDATION_REQUEST
+    auth_decision = authorize(user, perm, resource_tenant_id=tenant_id, farm_id=farm_id)
 
     rec_id = f"rec_{tenant_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -101,8 +102,7 @@ def orchestrate_recommendation(
         return EnrichedRecommendation(
             rec_id=rec_id,
             base_recommendation={},
-            cross_reference={"count": 0,
-                            "note_ar": "لم يُجرَ بحث — صلاحية مرفوضة"},
+            cross_reference={"count": 0, "note_ar": "لم يُجرَ بحث — صلاحية مرفوضة"},
             provenance={},
             auth_decision=asdict(auth_decision),
             delivered=False,
@@ -112,8 +112,11 @@ def orchestrate_recommendation(
 
     # 2. CROSS-REFERENCE — كشف الأنماط التاريخية المشابهة
     search_ctx = SearchContext(
-        tenant_id=tenant_id, field_id=field_id, crop=crop,
-        growth_stage=growth_stage, issue_type=issue_type,
+        tenant_id=tenant_id,
+        field_id=field_id,
+        crop=crop,
+        growth_stage=growth_stage,
+        issue_type=issue_type,
         current_indicators=current_indicators,
         district_id=district_id,
     )
@@ -189,8 +192,7 @@ def orchestrator_summary(delivery: EnrichedRecommendation) -> dict:
         "auth_role": delivery.auth_decision.get("role"),
         "auth_permission": delivery.auth_decision.get("permission"),
         "historical_matches": delivery.cross_reference.get("count", 0),
-        "model_versions_count": len(
-            delivery.provenance.get("model_versions", {})),
+        "model_versions_count": len(delivery.provenance.get("model_versions", {})),
         "weather_source": delivery.provenance.get("weather_source"),
         "timestamp": delivery.timestamp,
     }

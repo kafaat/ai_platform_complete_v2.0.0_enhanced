@@ -12,46 +12,59 @@ api/data_readiness.py — محرّك اكتمال البيانات
 
 ⚠ نسب الدقّة التقديريّة (٧٠-٩٠٪) من المستند ٩ — موسومة كتقدير إرشادي لا وعد.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Set
-
 
 # المستويات وحقولها (من هرميّة المستند ٩، مُكيّفة لحقول سهول)
-DATA_LEVELS: List[Dict] = [
+DATA_LEVELS: list[dict] = [
     {
-        "level": 1, "name_ar": "بيانات الحقل الأساسيّة", "mandatory": True,
+        "level": 1,
+        "name_ar": "بيانات الحقل الأساسيّة",
+        "mandatory": True,
         "fields": ["location", "area_ha", "crop", "season", "planting_date", "irrigation"],
     },
     {
-        "level": 2, "name_ar": "المناخ والطقس", "mandatory": True,
+        "level": 2,
+        "name_ar": "المناخ والطقس",
+        "mandatory": True,
         "fields": ["t_min", "t_max", "rain"],  # يكفي للـHargreaves
     },
     {
-        "level": 3, "name_ar": "التربة الأساسيّة", "mandatory": True,
+        "level": 3,
+        "name_ar": "التربة الأساسيّة",
+        "mandatory": True,
         "fields": ["soil_texture", "ph", "ec"],
     },
     {
-        "level": 4, "name_ar": "المؤشّرات النباتيّة", "mandatory": False,
+        "level": 4,
+        "name_ar": "المؤشّرات النباتيّة",
+        "mandatory": False,
         "fields": ["ndvi"],  # NDRE/MSAVI اختياريّة
     },
     {
-        "level": 5, "name_ar": "تحاليل مختبريّة (NPK + ميكرو)", "mandatory": False,
+        "level": 5,
+        "name_ar": "تحاليل مختبريّة (NPK + ميكرو)",
+        "mandatory": False,
         "fields": ["n_ppm", "p_ppm", "k_ppm", "fe_ppm", "zn_ppm"],
     },
     {
-        "level": 6, "name_ar": "مستشعرات حقليّة", "mandatory": False,
+        "level": 6,
+        "name_ar": "مستشعرات حقليّة",
+        "mandatory": False,
         "fields": ["soil_moisture"],
     },
     {
-        "level": 7, "name_ar": "بيانات تاريخيّة/سياقيّة", "mandatory": False,
+        "level": 7,
+        "name_ar": "بيانات تاريخيّة/سياقيّة",
+        "mandatory": False,
         "fields": ["prev_yield", "prev_season_data"],
     },
 ]
 
 # أيّ توصية تتطلّب أيّ بيانات (الحدّ الأدنى)
-RECOMMENDATION_REQUIREMENTS: Dict[str, Dict] = {
+RECOMMENDATION_REQUIREMENTS: dict[str, dict] = {
     "irrigation": {  # ميزان الماء
         "name_ar": "توصية الريّ",
         "requires": {"t_min", "t_max", "crop"},
@@ -64,7 +77,7 @@ RECOMMENDATION_REQUIREMENTS: Dict[str, Dict] = {
     },
     "phosphorus": {  # 4R فوسفور — يحتاج مختبر
         "name_ar": "توصية الفوسفور",
-        "requires": {"p_ppm"},          # محجوب دون Olsen-P
+        "requires": {"p_ppm"},  # محجوب دون Olsen-P
         "improved_by": set(),
     },
     "micronutrients": {  # Fe/Zn — يحتاج مختبر
@@ -95,13 +108,13 @@ _ACCURACY_HINT = {
 @dataclass
 class ReadinessResult:
     highest_complete_level: int
-    levels_status: List[Dict]
-    available_recommendations: List[str]
-    blocked_recommendations: List[Dict]
-    next_best_data_ar: List[str]
+    levels_status: list[dict]
+    available_recommendations: list[str]
+    blocked_recommendations: list[dict]
+    next_best_data_ar: list[str]
     accuracy_hint_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "highest_complete_level": self.highest_complete_level,
             "levels_status": self.levels_status,
@@ -112,13 +125,13 @@ class ReadinessResult:
         }
 
 
-def assess_readiness(provided: List[str]) -> ReadinessResult:
+def assess_readiness(provided: list[str]) -> ReadinessResult:
     """يقيّم اكتمال البيانات بناءً على الحقول المتوفّرة.
 
     Args:
         provided: قائمة أسماء الحقول المتوفّرة فعلاً للحقل.
     """
-    have: Set[str] = set(provided)
+    have: set[str] = set(provided)
 
     # حالة كلّ مستوى
     levels_status = []
@@ -126,33 +139,42 @@ def assess_readiness(provided: List[str]) -> ReadinessResult:
     for lvl in DATA_LEVELS:
         present = [f for f in lvl["fields"] if f in have]
         complete = len(present) == len(lvl["fields"])
-        levels_status.append({
-            "level": lvl["level"], "name_ar": lvl["name_ar"],
-            "mandatory": lvl["mandatory"], "complete": complete,
-            "present": present, "missing": [f for f in lvl["fields"] if f not in have],
-        })
+        levels_status.append(
+            {
+                "level": lvl["level"],
+                "name_ar": lvl["name_ar"],
+                "mandatory": lvl["mandatory"],
+                "complete": complete,
+                "present": present,
+                "missing": [f for f in lvl["fields"] if f not in have],
+            }
+        )
         if complete:
             highest_complete = lvl["level"]
 
     # أيّ توصيات متاحة / محجوبة
     available = []
     blocked = []
-    next_data: Set[str] = set()
+    next_data: set[str] = set()
     for key, req in RECOMMENDATION_REQUIREMENTS.items():
         missing_req = req["requires"] - have
         if not missing_req:
             available.append(key)
             # ما الذي يحسّنها لكنّه ناقص؟
-            next_data |= (req["improved_by"] - have)
+            next_data |= req["improved_by"] - have
         else:
-            blocked.append({
-                "recommendation": key,
-                "name_ar": req["name_ar"],
-                "missing_ar": _fields_ar(missing_req),
-            })
+            blocked.append(
+                {
+                    "recommendation": key,
+                    "name_ar": req["name_ar"],
+                    "missing_ar": _fields_ar(missing_req),
+                }
+            )
             next_data |= missing_req
 
-    accuracy = _ACCURACY_HINT.get(highest_complete, "محدودة (بيانات ناقصة)" if highest_complete < 3 else "")
+    accuracy = _ACCURACY_HINT.get(
+        highest_complete, "محدودة (بيانات ناقصة)" if highest_complete < 3 else ""
+    )
 
     return ReadinessResult(
         highest_complete_level=highest_complete,
@@ -165,16 +187,29 @@ def assess_readiness(provided: List[str]) -> ReadinessResult:
 
 
 _FIELD_AR = {
-    "location": "الموقع", "area_ha": "المساحة", "crop": "المحصول", "season": "الموسم",
-    "planting_date": "تاريخ الزراعة", "irrigation": "نظام الريّ",
-    "t_min": "الحرارة الصغرى", "t_max": "الحرارة العظمى", "rain": "المطر",
-    "soil_texture": "نسيج التربة", "ph": "حموضة التربة (pH)", "ec": "ملوحة التربة (EC)",
-    "ndvi": "مؤشّر NDVI", "n_ppm": "نيتروجين مختبري", "p_ppm": "فوسفور Olsen-P",
-    "k_ppm": "بوتاسيوم مختبري", "fe_ppm": "حديد مختبري", "zn_ppm": "زنك مختبري",
-    "soil_moisture": "رطوبة التربة (مستشعر)", "prev_yield": "إنتاج سابق",
+    "location": "الموقع",
+    "area_ha": "المساحة",
+    "crop": "المحصول",
+    "season": "الموسم",
+    "planting_date": "تاريخ الزراعة",
+    "irrigation": "نظام الريّ",
+    "t_min": "الحرارة الصغرى",
+    "t_max": "الحرارة العظمى",
+    "rain": "المطر",
+    "soil_texture": "نسيج التربة",
+    "ph": "حموضة التربة (pH)",
+    "ec": "ملوحة التربة (EC)",
+    "ndvi": "مؤشّر NDVI",
+    "n_ppm": "نيتروجين مختبري",
+    "p_ppm": "فوسفور Olsen-P",
+    "k_ppm": "بوتاسيوم مختبري",
+    "fe_ppm": "حديد مختبري",
+    "zn_ppm": "زنك مختبري",
+    "soil_moisture": "رطوبة التربة (مستشعر)",
+    "prev_yield": "إنتاج سابق",
     "prev_season_data": "بيانات موسم سابق",
 }
 
 
-def _fields_ar(fields) -> List[str]:
+def _fields_ar(fields) -> list[str]:
     return [_FIELD_AR.get(f, f) for f in sorted(fields)]

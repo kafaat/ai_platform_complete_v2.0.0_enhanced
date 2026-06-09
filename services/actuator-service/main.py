@@ -4,6 +4,7 @@ SAHOOL v9.1 — Actuator Service (IoT Actuation Layer)
 Scene Linkage: automation_rules → MQTT commands → device actuation
 Supports: valves, pumps, fans, lights, motors via FastBee MQTT Broker
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -11,39 +12,40 @@ import json
 import logging
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 import asyncpg
-from aiomqtt import Client as MQTTClient
-from fastapi import FastAPI, HTTPException, Depends, Header
-from pydantic import BaseModel, Field
 import jwt as _jwt
+from aiomqtt import Client as MQTTClient
+from fastapi import Depends, FastAPI, Header, HTTPException
+from pydantic import BaseModel, Field
 
 try:
     from shared.logging_config import setup_logging
+
     logger = setup_logging("actuator-service")
 except ImportError:
-    logging.basicConfig(level=logging.INFO,
-        format='{"time":"%(asctime)s","svc":"actuator","msg":"%(message)s"}')
+    logging.basicConfig(
+        level=logging.INFO, format='{"time":"%(asctime)s","svc":"actuator","msg":"%(message)s"}'
+    )
     logger = logging.getLogger("actuator-service")
 
 # ── Config ────────────────────────────────────────────────────
 MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
-DATABASE_URL    = os.getenv("DATABASE_URL", "")
-REDIS_URL       = os.getenv("REDIS_URL", "")
-_JWT_PUBLIC     = os.getenv("JWT_PUBLIC_KEY", "")
-JWT_SECRET      = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
-JWT_ALGORITHM   = "RS256" if _JWT_PUBLIC else "HS256"
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+REDIS_URL = os.getenv("REDIS_URL", "")
+_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
+JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
+JWT_ALGORITHM = "RS256" if _JWT_PUBLIC else "HS256"
 
-_pool: Optional[asyncpg.Pool] = None
+_pool: asyncpg.Pool | None = None
 
 
 # ══════════════════════════════════════════════════════════════
 # مصادقة (أمان السلامة الفيزيائيّة): التحكّم بالأجهزة يتطلّب توكناً صالحاً
 # والهويّة تُشتقّ من التوكن المُتحقَّق لا من جسم الطلب.
 # ══════════════════════════════════════════════════════════════
-def _verify_token(authorization: Optional[str] = Header(None)) -> dict:
+def _verify_token(authorization: str | None = Header(None)) -> dict:
     # افشل بأمان: لا سرّ → لا تشغيل (HS256 بمفتاح فارغ يقبل تزويراً)
     if not JWT_SECRET or len(JWT_SECRET) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط — التحكّم بالأجهزة معطّل بأمان")
@@ -52,12 +54,11 @@ def _verify_token(authorization: Optional[str] = Header(None)) -> dict:
     token = authorization.split(" ", 1)[1]
     try:
         payload = _jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-    except Exception:
-        raise HTTPException(401, "توكن غير صالح")
+    except Exception as e:
+        raise HTTPException(401, "توكن غير صالح") from e
     if not payload.get("sub") or not payload.get("tenant_id"):
         raise HTTPException(401, "توكن ناقص الحقول الأساسيّة")
     return payload
-
 
 
 # ══════════════════════════════════════════════════════════════
@@ -65,21 +66,24 @@ def _verify_token(authorization: Optional[str] = Header(None)) -> dict:
 # ══════════════════════════════════════════════════════════════
 async def send_mqtt_command(device_id: str, command: str, payload: dict):
     topic = f"sahool/actuator/{device_id}/command"
-    ts = datetime.now(timezone.utc).isoformat()
+    ts = datetime.now(UTC).isoformat()
     # A1: وقّع الأمر بـHMAC-SHA256 ليتحقّق منه الـfirmware قبل تحريك الصمّام
     # (يطابق verifyCmdHmac في esp32_mesh_gateway.ino: HMAC(secret, cmd+"|"+ts)).
-    import hmac as _hmac, hashlib as _hashlib
+    import hashlib as _hashlib
+    import hmac as _hmac
+
     secret = os.getenv("CMD_HMAC_SECRET", "")
     sig = ""
     if secret:
-        sig = _hmac.new(secret.encode(), f"{command}|{ts}".encode(),
-                        _hashlib.sha256).hexdigest()
-    message = json.dumps({
-        "cmd": command,
-        "payload": payload,
-        "ts": ts,
-        "sig": sig,
-    })
+        sig = _hmac.new(secret.encode(), f"{command}|{ts}".encode(), _hashlib.sha256).hexdigest()
+    message = json.dumps(
+        {
+            "cmd": command,
+            "payload": payload,
+            "ts": ts,
+            "sig": sig,
+        }
+    )
     try:
         async with MQTTClient(MQTT_BROKER_URL) as client:
             await client.publish(topic, message, qos=1)
@@ -112,10 +116,11 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                   AND tenant_id = $1::uuid
                   AND trigger_sensor = $2
                 """,
-                tenant_id, sensor_type
+                tenant_id,
+                sensor_type,
             )
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         triggered = []
 
         for row in rows:
@@ -146,11 +151,16 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
             op = row["trigger_operator"]
             thresh = float(row["trigger_threshold"])
             matched = False
-            if op == ">" and value > thresh: matched = True
-            elif op == ">=" and value >= thresh: matched = True
-            elif op == "<" and value < thresh: matched = True
-            elif op == "<=" and value <= thresh: matched = True
-            elif op == "==" and abs(value - thresh) < 0.001: matched = True
+            if op == ">" and value > thresh:
+                matched = True
+            elif op == ">=" and value >= thresh:
+                matched = True
+            elif op == "<" and value < thresh:
+                matched = True
+            elif op == "<=" and value <= thresh:
+                matched = True
+            elif op == "==" and abs(value - thresh) < 0.001:
+                matched = True
 
             if matched:
                 device = row["action_device"]
@@ -165,7 +175,7 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     command=cmd,
                     payload=payload,
                     status="sent" if success else "failed",
-                    tenant_id=tenant_id
+                    tenant_id=tenant_id,
                 )
 
                 # Update rule counters
@@ -179,15 +189,17 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                                         ELSE 1 END,
                                     last_reset_date = CURRENT_DATE
                                 WHERE rule_id = $1""",
-                            row["rule_id"]
+                            row["rule_id"],
                         )
 
-                triggered.append({
-                    "rule_id": str(row["rule_id"]),
-                    "device": device,
-                    "command": cmd,
-                    "sent": success
-                })
+                triggered.append(
+                    {
+                        "rule_id": str(row["rule_id"]),
+                        "device": device,
+                        "command": cmd,
+                        "sent": success,
+                    }
+                )
 
         return triggered
 
@@ -196,8 +208,9 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
         return []
 
 
-async def log_command(rule_id: Optional[str], device_id: str, command: str,
-                      payload: dict, status: str, tenant_id: str):
+async def log_command(
+    rule_id: str | None, device_id: str, command: str, payload: dict, status: str, tenant_id: str
+):
     if not _pool:
         return
     try:
@@ -213,7 +226,7 @@ async def log_command(rule_id: Optional[str], device_id: str, command: str,
                 json.dumps(payload),
                 status,
                 f"sahool/actuator/{device_id}/command",
-                "rule"
+                "rule",
             )
     except Exception as e:
         logger.warning(f"log_command failed: {e}")
@@ -272,6 +285,7 @@ app = FastAPI(title="SAHOOL Actuator Service", version="9.1.0", lifespan=lifespa
 # ✅ OTEL
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
     FastAPIInstrumentor.instrument_app(app)
 except ImportError:
     logger.debug("OTEL غير مثبّت — التتبّع معطّل (اختياري)")
@@ -285,7 +299,7 @@ class CommandRequest(BaseModel):
     command: str
     payload: dict = Field(default_factory=dict)
     tenant_id: str = "default"
-    user_id: Optional[int] = None
+    user_id: int | None = None
     source: str = "api"  # api|manual|schedule
 
 
@@ -301,7 +315,7 @@ async def send_command(req: CommandRequest, claims: dict = Depends(_verify_token
         command=req.command,
         payload=req.payload,
         status="sent" if success else "failed",
-        tenant_id=tenant_id
+        tenant_id=tenant_id,
     )
     return {
         "device_id": req.device_id,
@@ -309,7 +323,7 @@ async def send_command(req: CommandRequest, claims: dict = Depends(_verify_token
         "sent": success,
         "tenant_id": tenant_id,
         "issued_by": user_id,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -325,7 +339,8 @@ async def list_commands(limit: int = 50, claims: dict = Depends(_verify_token)):
                FROM device_commands_log
                WHERE tenant_id = $1::uuid
                ORDER BY sent_at DESC LIMIT $2""",
-            tenant_id, limit
+            tenant_id,
+            limit,
         )
     return {"commands": [dict(r) for r in rows]}
 
@@ -336,11 +351,12 @@ async def health():
     return {"status": "alive", "service": "actuator", "mqtt": MQTT_BROKER_URL}
 
 
-
 @app.get("/readyz")
 async def readyz():
     return {"status": "ready", "version": "9.1.0"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -23,20 +23,20 @@ api/evidence_corroboration.py — تظافر القرائن ودرجات الت�
 استشعاري موثوق لها → لا ترقى أبداً لـCONFIRMED دون مختبر الحقل، مهما تظافرت
 القرائن غير المختبريّة. هذا يجسّد "الاستشعار يوجّه / المختبر يحكم".
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional
 
 
-class RecommendationTier(str, Enum):
-    INDICATIVE = "indicative"      # إرشاديّة (قرينة ضعيفة)
+class RecommendationTier(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
+    INDICATIVE = "indicative"  # إرشاديّة (قرينة ضعيفة)
     CORROBORATED = "corroborated"  # مؤيَّدة (قرائن متظافرة)
-    CONFIRMED = "confirmed"        # مؤكَّدة (مختبر الحقل)
+    CONFIRMED = "confirmed"  # مؤكَّدة (مختبر الحقل)
 
 
-class EvidenceType(str, Enum):
+class EvidenceType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     LAB_FIELD = "lab_field"
     REGIONAL_PRIOR = "regional_prior"
     REMOTE_SENSING = "remote_sensing"
@@ -47,7 +47,7 @@ class EvidenceType(str, Enum):
 
 
 # أوزان القرائن (قوّة كلّ نوع منفرداً)
-_EVIDENCE_WEIGHT: Dict[EvidenceType, float] = {
+_EVIDENCE_WEIGHT: dict[EvidenceType, float] = {
     EvidenceType.LAB_FIELD: 1.0,
     EvidenceType.REGIONAL_PRIOR: 0.5,
     EvidenceType.HISTORICAL: 0.5,
@@ -61,7 +61,7 @@ _EVIDENCE_WEIGHT: Dict[EvidenceType, float] = {
     EvidenceType.COMMUNITY_KNOWLEDGE: 0.25,
 }
 
-_EVIDENCE_AR: Dict[EvidenceType, str] = {
+_EVIDENCE_AR: dict[EvidenceType, str] = {
     EvidenceType.LAB_FIELD: "تحليل مختبري للحقل",
     EvidenceType.REGIONAL_PRIOR: "عيّنات مزارع مجاورة",
     EvidenceType.REMOTE_SENSING: "مؤشّر استشعار (قمر صناعي)",
@@ -75,7 +75,7 @@ _EVIDENCE_AR: Dict[EvidenceType, str] = {
 _LAB_GATED_NUTRIENTS = {"phosphorus", "micronutrients", "potassium"}
 
 
-def _has_non_community_signal(agreeing: List["Evidence"]) -> bool:
+def _has_non_community_signal(agreeing: list[Evidence]) -> bool:
     """هل في القرائن المتّفقة قرينة موضوعيّة واحدة على الأقلّ (لا مجتمعيّة فقط)؟"""
     return any(e.etype != EvidenceType.COMMUNITY_KNOWLEDGE for e in agreeing)
 
@@ -83,8 +83,9 @@ def _has_non_community_signal(agreeing: List["Evidence"]) -> bool:
 @dataclass
 class Evidence:
     """قرينة واحدة تشير لنتيجة."""
+
     etype: EvidenceType
-    agrees: bool                 # هل تتّفق مع بقيّة القرائن على نفس الاتّجاه؟
+    agrees: bool  # هل تتّفق مع بقيّة القرائن على نفس الاتّجاه؟
     note_ar: str = ""
 
 
@@ -96,11 +97,11 @@ class CorroborationResult:
     n_independent: int
     n_agreeing: int
     has_field_lab: bool
-    nudge_ar: Optional[str]      # حضّ على الفحص (لو لم يبلغ CONFIRMED)
+    nudge_ar: str | None  # حضّ على الفحص (لو لم يبلغ CONFIRMED)
     explanation_ar: str
-    evidence_summary: List[Dict]
+    evidence_summary: list[dict]
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "tier": self.tier.value,
             "tier_ar": self.tier_ar,
@@ -122,7 +123,7 @@ _TIER_AR = {
 
 
 def corroborate(
-    evidences: List[Evidence],
+    evidences: list[Evidence],
     *,
     recommendation_key: str = "general",
     test_type_ar: str = "تربة",
@@ -138,9 +139,7 @@ def corroborate(
     n_independent = len({e.etype for e in evidences})
     n_agreeing = len({e.etype for e in agreeing})
 
-    has_field_lab = any(
-        e.etype == EvidenceType.LAB_FIELD and e.agrees for e in evidences
-    )
+    has_field_lab = any(e.etype == EvidenceType.LAB_FIELD and e.agrees for e in evidences)
     # مجموع أوزان القرائن المتّفقة (مستقلّة)
     score = sum(_EVIDENCE_WEIGHT[t] for t in {e.etype for e in agreeing})
 
@@ -196,9 +195,13 @@ def corroborate(
     explanation = "؛ ".join(parts) + "."
 
     return CorroborationResult(
-        tier=tier, tier_ar=_TIER_AR[tier], evidence_score=score,
-        n_independent=n_independent, n_agreeing=n_agreeing,
-        has_field_lab=has_field_lab, nudge_ar=nudge,
+        tier=tier,
+        tier_ar=_TIER_AR[tier],
+        evidence_score=score,
+        n_independent=n_independent,
+        n_agreeing=n_agreeing,
+        has_field_lab=has_field_lab,
+        nudge_ar=nudge,
         explanation_ar=explanation,
         evidence_summary=[
             {"type_ar": _EVIDENCE_AR[e.etype], "agrees": e.agrees, "note_ar": e.note_ar}

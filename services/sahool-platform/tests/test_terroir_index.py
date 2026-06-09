@@ -1,5 +1,6 @@
 """Tests for terroir index: multi-factor INDICATION (low ceiling) of quality potential,
 honestly declares unmeasured factors (resolves the selective-principle inconsistency)."""
+
 from core.terroir_index import terroir_potential
 
 
@@ -35,6 +36,10 @@ class TestTerroirPotential:
     def test_known_heritage_reduces_gaps(self):
         # توثيق الصنف يقلّل الفجوات المعلنة
         unknown = terroir_potential(crop_id="coffee", elevation_m=2000)
-        known = terroir_potential(crop_id="coffee", elevation_m=2000,
-            known_heritage_variety=True, known_traditional_processing=True)
+        known = terroir_potential(
+            crop_id="coffee",
+            elevation_m=2000,
+            known_heritage_variety=True,
+            known_traditional_processing=True,
+        )
         assert len(known.unmeasured_gaps_ar) < len(unknown.unmeasured_gaps_ar)

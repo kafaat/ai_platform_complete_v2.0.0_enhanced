@@ -1,10 +1,13 @@
 """Tests for engines flagged as untested in review: fertility, water_cost, yield_interval."""
+
 from core.engines import fertility, water_cost, yield_interval
 
 
 class TestFertility:
     def test_fertiliser_need_deficit(self):
-        r = fertility.fertiliser_need("N", required_kg_ha=120, available_kg_ha=40, use_efficiency=0.5)
+        r = fertility.fertiliser_need(
+            "N", required_kg_ha=120, available_kg_ha=40, use_efficiency=0.5
+        )
         assert r.deficit_kg_ha == 80
         assert r.fertiliser_kg_ha == 160  # deficit / efficiency
 
@@ -26,22 +29,38 @@ class TestFertility:
 class TestWaterCost:
     def test_diesel_cost_positive(self):
         inp = water_cost.WaterCostInputs(
-            well_depth_m=120, pump_type="diesel", pump_efficiency=0.6,
-            diesel_price_usd_per_liter=0.8, diesel_kwh_per_liter=3.0,
-            solar_capital_usd=0, solar_lifetime_years=20, solar_maintenance_annual_pct=2,
-            solar_m3_per_year=0, solar_dust_derate_pct=5,
-            grid_price_usd_per_kwh=0.1, grid_efficiency=0.9)
+            well_depth_m=120,
+            pump_type="diesel",
+            pump_efficiency=0.6,
+            diesel_price_usd_per_liter=0.8,
+            diesel_kwh_per_liter=3.0,
+            solar_capital_usd=0,
+            solar_lifetime_years=20,
+            solar_maintenance_annual_pct=2,
+            solar_m3_per_year=0,
+            solar_dust_derate_pct=5,
+            grid_price_usd_per_kwh=0.1,
+            grid_efficiency=0.9,
+        )
         r = water_cost.water_cost_per_m3(inp)
         assert r["mid"] > 0
         assert "basis" in r
 
     def test_seasonal_scales_with_area(self):
         inp = water_cost.WaterCostInputs(
-            well_depth_m=120, pump_type="diesel", pump_efficiency=0.6,
-            diesel_price_usd_per_liter=0.8, diesel_kwh_per_liter=3.0,
-            solar_capital_usd=0, solar_lifetime_years=20, solar_maintenance_annual_pct=2,
-            solar_m3_per_year=0, solar_dust_derate_pct=5,
-            grid_price_usd_per_kwh=0.1, grid_efficiency=0.9)
+            well_depth_m=120,
+            pump_type="diesel",
+            pump_efficiency=0.6,
+            diesel_price_usd_per_liter=0.8,
+            diesel_kwh_per_liter=3.0,
+            solar_capital_usd=0,
+            solar_lifetime_years=20,
+            solar_maintenance_annual_pct=2,
+            solar_m3_per_year=0,
+            solar_dust_derate_pct=5,
+            grid_price_usd_per_kwh=0.1,
+            grid_efficiency=0.9,
+        )
         r = water_cost.seasonal_water_cost(inp, etc_m3_per_ha=5000, area_ha=10)
         assert r["cost_mid_usd"] > 0 and r["total_m3"] == 50000
 
@@ -68,22 +87,26 @@ class TestYieldInterval:
 class TestRegionalSupplySignal:
     def test_strong_season_above_normal(self):
         from core.engines.market_analyzer import regional_supply_signal
-        r = regional_supply_signal([4.2,4.5,4.0,4.8,4.3,4.6], historical_avg_lai=3.5)
+
+        r = regional_supply_signal([4.2, 4.5, 4.0, 4.8, 4.3, 4.6], historical_avg_lai=3.5)
         assert r["signal"] == "above_normal"
 
     def test_weak_season_below_normal(self):
         from core.engines.market_analyzer import regional_supply_signal
-        r = regional_supply_signal([2.0,2.2,1.8,2.1,1.9], historical_avg_lai=3.5)
+
+        r = regional_supply_signal([2.0, 2.2, 1.8, 2.1, 1.9], historical_avg_lai=3.5)
         assert r["signal"] == "below_normal"
 
     def test_insufficient_data_unknown(self):
         from core.engines.market_analyzer import regional_supply_signal
-        r = regional_supply_signal([3.0,3.2], historical_avg_lai=None)
+
+        r = regional_supply_signal([3.0, 3.2], historical_avg_lai=None)
         assert r["signal"] == "unknown"
 
     def test_never_predicts_absolute_price(self):
         # HONESTY: must be a trend signal, never an absolute supply/price number
         from core.engines.market_analyzer import regional_supply_signal
-        r = regional_supply_signal([4.2,4.5,4.0,4.8,4.3], historical_avg_lai=3.5)
+
+        r = regional_supply_signal([4.2, 4.5, 4.0, 4.8, 4.3], historical_avg_lai=3.5)
         assert "تنبّؤ سعر" in r["note_ar"]  # explicitly says NOT a price forecast
         assert r["confidence"] == "low"

@@ -15,46 +15,128 @@ api/crop_rotation.py — إرشاد الدورة الزراعيّة (تعاقب 
 ⚠ إرشاد عامّ من أدبيّات موثّقة — يوجّه التخطيط، لا يفرض. القرار للمزارع
 حسب سوقه وأرضه (human-in-the-loop).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Dict, List, Optional
 
 
 class CropFamily(str, Enum):
-    GRASS = "grass"        # نجيليّة: قمح، شعير، ذرة، دخن — مستهلكة للنيتروجين
-    LEGUME = "legume"      # بقوليّة: عدس، فول، لوبيا — مثبّتة للنيتروجين
+    GRASS = "grass"  # نجيليّة: قمح، شعير، ذرة، دخن — مستهلكة للنيتروجين
+    LEGUME = "legume"  # بقوليّة: عدس، فول، لوبيا — مثبّتة للنيتروجين
     SOLANACEAE = "solanaceae"  # باذنجانيّة: طماطم، بطاطس، فلفل
     CUCURBIT = "cucurbit"  # قرعيّة: بطيخ، خيار
-    ALLIUM = "allium"      # بصليّة: بصل، ثوم
-    FORAGE = "forage"      # علفيّة: برسيم (بقولي علفي)
+    ALLIUM = "allium"  # بصليّة: بصل، ثوم
+    FORAGE = "forage"  # علفيّة: برسيم (بقولي علفي)
 
 
 # تصنيف المحاصيل اليمنيّة الشائعة → عائلة + خصائص الدورة
-_CROP_INFO: Dict[str, Dict] = {
-    "wheat":   {"name_ar": "القمح", "family": CropFamily.GRASS, "root": "سطحي", "n_effect": "مستهلك", "season": "شتوي"},
-    "barley":  {"name_ar": "الشعير", "family": CropFamily.GRASS, "root": "سطحي", "n_effect": "مستهلك", "season": "شتوي"},
-    "maize":   {"name_ar": "الذرة الشاميّة", "family": CropFamily.GRASS, "root": "متوسّط", "n_effect": "مستهلك بشدّة", "season": "صيفي"},
-    "sorghum": {"name_ar": "الذرة الرفيعة", "family": CropFamily.GRASS, "root": "عميق", "n_effect": "مستهلك", "season": "صيفي"},
-    "millet":  {"name_ar": "الدخن", "family": CropFamily.GRASS, "root": "متوسّط", "n_effect": "مستهلك", "season": "صيفي"},
-    "lentil":  {"name_ar": "العدس", "family": CropFamily.LEGUME, "root": "متوسّط", "n_effect": "مثبّت", "season": "شتوي"},
-    "faba_bean": {"name_ar": "الفول", "family": CropFamily.LEGUME, "root": "عميق", "n_effect": "مثبّت", "season": "شتوي"},
-    "cowpea":  {"name_ar": "اللوبيا", "family": CropFamily.LEGUME, "root": "عميق", "n_effect": "مثبّت", "season": "صيفي"},
-    "alfalfa": {"name_ar": "البرسيم", "family": CropFamily.FORAGE, "root": "عميق جدّاً", "n_effect": "مثبّت", "season": "دائم"},
-    "potato":  {"name_ar": "البطاطس", "family": CropFamily.SOLANACEAE, "root": "سطحي", "n_effect": "مستهلك", "season": "متعدّد"},
-    "tomato":  {"name_ar": "الطماطم", "family": CropFamily.SOLANACEAE, "root": "متوسّط", "n_effect": "مستهلك", "season": "متعدّد"},
-    "onion":   {"name_ar": "البصل", "family": CropFamily.ALLIUM, "root": "سطحي", "n_effect": "مستهلك", "season": "شتوي"},
+_CROP_INFO: dict[str, dict] = {
+    "wheat": {
+        "name_ar": "القمح",
+        "family": CropFamily.GRASS,
+        "root": "سطحي",
+        "n_effect": "مستهلك",
+        "season": "شتوي",
+    },
+    "barley": {
+        "name_ar": "الشعير",
+        "family": CropFamily.GRASS,
+        "root": "سطحي",
+        "n_effect": "مستهلك",
+        "season": "شتوي",
+    },
+    "maize": {
+        "name_ar": "الذرة الشاميّة",
+        "family": CropFamily.GRASS,
+        "root": "متوسّط",
+        "n_effect": "مستهلك بشدّة",
+        "season": "صيفي",
+    },
+    "sorghum": {
+        "name_ar": "الذرة الرفيعة",
+        "family": CropFamily.GRASS,
+        "root": "عميق",
+        "n_effect": "مستهلك",
+        "season": "صيفي",
+    },
+    "millet": {
+        "name_ar": "الدخن",
+        "family": CropFamily.GRASS,
+        "root": "متوسّط",
+        "n_effect": "مستهلك",
+        "season": "صيفي",
+    },
+    "lentil": {
+        "name_ar": "العدس",
+        "family": CropFamily.LEGUME,
+        "root": "متوسّط",
+        "n_effect": "مثبّت",
+        "season": "شتوي",
+    },
+    "faba_bean": {
+        "name_ar": "الفول",
+        "family": CropFamily.LEGUME,
+        "root": "عميق",
+        "n_effect": "مثبّت",
+        "season": "شتوي",
+    },
+    "cowpea": {
+        "name_ar": "اللوبيا",
+        "family": CropFamily.LEGUME,
+        "root": "عميق",
+        "n_effect": "مثبّت",
+        "season": "صيفي",
+    },
+    "alfalfa": {
+        "name_ar": "البرسيم",
+        "family": CropFamily.FORAGE,
+        "root": "عميق جدّاً",
+        "n_effect": "مثبّت",
+        "season": "دائم",
+    },
+    "potato": {
+        "name_ar": "البطاطس",
+        "family": CropFamily.SOLANACEAE,
+        "root": "سطحي",
+        "n_effect": "مستهلك",
+        "season": "متعدّد",
+    },
+    "tomato": {
+        "name_ar": "الطماطم",
+        "family": CropFamily.SOLANACEAE,
+        "root": "متوسّط",
+        "n_effect": "مستهلك",
+        "season": "متعدّد",
+    },
+    "onion": {
+        "name_ar": "البصل",
+        "family": CropFamily.ALLIUM,
+        "root": "سطحي",
+        "n_effect": "مستهلك",
+        "season": "شتوي",
+    },
 }
 
 _ALIASES = {
-    "قمح": "wheat", "شعير": "barley", "ذرة شامية": "maize", "ذرة شاميّة": "maize",
-    "ذرة رفيعة": "sorghum", "دخن": "millet", "عدس": "lentil", "فول": "faba_bean",
-    "لوبيا": "cowpea", "برسيم": "alfalfa", "بطاطس": "potato", "طماطم": "tomato", "بصل": "onion",
+    "قمح": "wheat",
+    "شعير": "barley",
+    "ذرة شامية": "maize",
+    "ذرة شاميّة": "maize",
+    "ذرة رفيعة": "sorghum",
+    "دخن": "millet",
+    "عدس": "lentil",
+    "فول": "faba_bean",
+    "لوبيا": "cowpea",
+    "برسيم": "alfalfa",
+    "بطاطس": "potato",
+    "طماطم": "tomato",
+    "بصل": "onion",
 }
 
 
-def _resolve(crop: str) -> Optional[str]:
+def _resolve(crop: str) -> str | None:
     c = crop.strip().lower()
     if c in _CROP_INFO:
         return c
@@ -65,33 +147,33 @@ def _resolve(crop: str) -> Optional[str]:
 class RotationAdvice:
     previous_crop: str
     candidate_crop: str
-    rating: str          # good / acceptable / avoid
+    rating: str  # good / acceptable / avoid
     rating_ar: str
-    reasons_ar: List[str] = field(default_factory=list)
+    reasons_ar: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "previous_crop": self.previous_crop,
             "candidate_crop": self.candidate_crop,
-            "rating": self.rating, "rating_ar": self.rating_ar,
+            "rating": self.rating,
+            "rating_ar": self.rating_ar,
             "reasons_ar": self.reasons_ar,
         }
 
 
-def evaluate_rotation(previous: str, candidate: str) -> Dict:
+def evaluate_rotation(previous: str, candidate: str) -> dict:
     """يقيّم تعاقب محصولَين: هل candidate خيار جيّد بعد previous؟"""
     pk, ck = _resolve(previous), _resolve(candidate)
     if not pk or not ck:
         unknown = previous if not pk else candidate
-        return {"supported": False,
-                "message_ar": f"المحصول «{unknown}» غير معروف في جدول الدورة."}
+        return {"supported": False, "message_ar": f"المحصول «{unknown}» غير معروف في جدول الدورة."}
 
     p, c = _CROP_INFO[pk], _CROP_INFO[ck]
-    reasons: List[str] = []
+    reasons: list[str] = []
     score = 0
 
     # نفس العائلة = سيّئ (نفس الآفات + نفس استنزاف العناصر) — عقوبة غالبة
-    same_family = (p["family"] == c["family"])
+    same_family = p["family"] == c["family"]
     if same_family:
         reasons.append(f"⚠ نفس العائلة ({p['family'].value}) — تراكم آفات واستنزاف متشابه. تجنّب.")
         score -= 4
@@ -101,7 +183,9 @@ def evaluate_rotation(previous: str, candidate: str) -> Dict:
 
     # بقولي بعد نجيلي (أو العكس) = ممتاز
     if p["family"] == CropFamily.GRASS and c["family"] in (CropFamily.LEGUME, CropFamily.FORAGE):
-        reasons.append("✓ بقولي بعد حبوب: يثبّت النيتروجين ويطلق الفوسفور المرتبط — مثالي لتربة اليمن القلويّة.")
+        reasons.append(
+            "✓ بقولي بعد حبوب: يثبّت النيتروجين ويطلق الفوسفور المرتبط — مثالي لتربة اليمن القلويّة."
+        )
         score += 3
     elif p["family"] in (CropFamily.LEGUME, CropFamily.FORAGE) and c["family"] == CropFamily.GRASS:
         reasons.append("✓ حبوب بعد بقولي: تستفيد من النيتروجين المتبقّي — يقلّل حاجة التسميد.")
@@ -126,10 +210,12 @@ def evaluate_rotation(previous: str, candidate: str) -> Dict:
     else:
         rating, rating_ar = "avoid", "يُفضّل تجنّبه ✗"
 
-    return RotationAdvice(p["name_ar"], c["name_ar"], rating, rating_ar, reasons).to_dict() | {"supported": True}
+    return RotationAdvice(p["name_ar"], c["name_ar"], rating, rating_ar, reasons).to_dict() | {
+        "supported": True
+    }
 
 
-def suggest_next_crop(previous: str) -> Dict:
+def suggest_next_crop(previous: str) -> dict:
     """يقترح أفضل المحاصيل التالية بعد محصول معيّن (مرتّبة)."""
     pk = _resolve(previous)
     if not pk:
@@ -155,13 +241,12 @@ def suggest_next_crop(previous: str) -> Dict:
         ),
         "ranked": [ev for _, ev in candidates],
         "disclaimer_ar": (
-            "إرشاد عامّ من أدبيّات الدورة الزراعيّة. القرار النهائي للمزارع حسب "
-            "سوقه وأرضه ومياهه."
+            "إرشاد عامّ من أدبيّات الدورة الزراعيّة. القرار النهائي للمزارع حسب سوقه وأرضه ومياهه."
         ),
     }
 
 
-def rotation_principles() -> Dict:
+def rotation_principles() -> dict:
     """مبادئ الدورة الزراعيّة (للعرض التثقيفي)."""
     return {
         "principles_ar": [
@@ -176,8 +261,13 @@ def rotation_principles() -> Dict:
             "حلّ مزدوج: تثبّت النيتروجين وتحرّر الفوسفور المثبّت في التربة القلويّة."
         ),
         "supported_crops": [
-            {"crop": k, "name_ar": v["name_ar"], "family": v["family"].value,
-             "n_effect": v["n_effect"], "season": v["season"]}
+            {
+                "crop": k,
+                "name_ar": v["name_ar"],
+                "family": v["family"].value,
+                "n_effect": v["n_effect"],
+                "season": v["season"],
+            }
             for k, v in _CROP_INFO.items()
         ],
     }

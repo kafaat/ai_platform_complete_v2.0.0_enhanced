@@ -22,6 +22,7 @@ sahool_core.knowledge_levels
   • الحاكم يُلغي الكل: أي مستوى BLOCKED → الناتج BLOCKED
   • المعايرة شرط لا كفاية: غياب المعايرة → سقف MEDIUM
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -29,14 +30,14 @@ from enum import IntEnum
 
 
 class KnowledgeLevel(IntEnum):
-    GUESS = 0          # استكشافي
-    SOCIAL = 1         # مجتمعي
-    GENERATIVE = 2     # توليدي
-    INDUCTIVE = 3      # استقرائي
-    FIELD = 4          # ميداني
-    ANALYTICAL = 5     # مخبري
-    PHYSICAL = 6       # فيزيائي
-    MATHEMATICAL = 7   # رياضي
+    GUESS = 0  # استكشافي
+    SOCIAL = 1  # مجتمعي
+    GENERATIVE = 2  # توليدي
+    INDUCTIVE = 3  # استقرائي
+    FIELD = 4  # ميداني
+    ANALYTICAL = 5  # مخبري
+    PHYSICAL = 6  # فيزيائي
+    MATHEMATICAL = 7  # رياضي
 
 
 # سقف الثقة لكل مستوى (تطبيق "لا HIGH للتوليدي/التخمين")
@@ -45,46 +46,61 @@ _CONF_RANK = {"none": 0, "low": 1, "medium": 2, "high": 3}
 _RANK_CONF = {v: k for k, v in _CONF_RANK.items()}
 
 _LEVEL_CEILING = {
-    KnowledgeLevel.MATHEMATICAL: "high",   # ثابت كوني
-    KnowledgeLevel.PHYSICAL: "high",       # فيزياء معايَرة → high ممكن
-    KnowledgeLevel.ANALYTICAL: "high",     # المختبر يحكم
-    KnowledgeLevel.FIELD: "medium",        # ميداني يحتاج معايرة
-    KnowledgeLevel.INDUCTIVE: "medium",    # إحصائي مقيّد
-    KnowledgeLevel.GENERATIVE: "low",      # توليدي: لا HIGH أبداً
-    KnowledgeLevel.SOCIAL: "low",          # مجتمعي يُحترم لا يحكم
-    KnowledgeLevel.GUESS: "none",          # تخمين: الصمت قرار
+    KnowledgeLevel.MATHEMATICAL: "high",  # ثابت كوني
+    KnowledgeLevel.PHYSICAL: "high",  # فيزياء معايَرة → high ممكن
+    KnowledgeLevel.ANALYTICAL: "high",  # المختبر يحكم
+    KnowledgeLevel.FIELD: "medium",  # ميداني يحتاج معايرة
+    KnowledgeLevel.INDUCTIVE: "medium",  # إحصائي مقيّد
+    KnowledgeLevel.GENERATIVE: "low",  # توليدي: لا HIGH أبداً
+    KnowledgeLevel.SOCIAL: "low",  # مجتمعي يُحترم لا يحكم
+    KnowledgeLevel.GUESS: "none",  # تخمين: الصمت قرار
 }
 
 # درجة اليقين المرجعية (FSI) — للتوثيق والشفافية
 _LEVEL_FSI = {
-    KnowledgeLevel.MATHEMATICAL: 1.00, KnowledgeLevel.PHYSICAL: 0.95,
-    KnowledgeLevel.ANALYTICAL: 0.90, KnowledgeLevel.FIELD: 0.75,
-    KnowledgeLevel.INDUCTIVE: 0.60, KnowledgeLevel.GENERATIVE: 0.35,
-    KnowledgeLevel.SOCIAL: 0.30, KnowledgeLevel.GUESS: 0.10,
+    KnowledgeLevel.MATHEMATICAL: 1.00,
+    KnowledgeLevel.PHYSICAL: 0.95,
+    KnowledgeLevel.ANALYTICAL: 0.90,
+    KnowledgeLevel.FIELD: 0.75,
+    KnowledgeLevel.INDUCTIVE: 0.60,
+    KnowledgeLevel.GENERATIVE: 0.35,
+    KnowledgeLevel.SOCIAL: 0.30,
+    KnowledgeLevel.GUESS: 0.10,
 }
 
 # تصنيف المصادر الفعلية لمستوياتها (يربط الكود بالمصفوفة)
 _SOURCE_LEVEL = {
     # فيزياء (6)
-    "fao56": KnowledgeLevel.PHYSICAL, "penman_monteith": KnowledgeLevel.PHYSICAL,
-    "phi": KnowledgeLevel.PHYSICAL, "maas_hoffman": KnowledgeLevel.PHYSICAL,
+    "fao56": KnowledgeLevel.PHYSICAL,
+    "penman_monteith": KnowledgeLevel.PHYSICAL,
+    "phi": KnowledgeLevel.PHYSICAL,
+    "maas_hoffman": KnowledgeLevel.PHYSICAL,
     # مخبري (5)
-    "lab": KnowledgeLevel.ANALYTICAL, "ec": KnowledgeLevel.ANALYTICAL,
-    "ph": KnowledgeLevel.ANALYTICAL, "soil_test": KnowledgeLevel.ANALYTICAL,
+    "lab": KnowledgeLevel.ANALYTICAL,
+    "ec": KnowledgeLevel.ANALYTICAL,
+    "ph": KnowledgeLevel.ANALYTICAL,
+    "soil_test": KnowledgeLevel.ANALYTICAL,
     # ميداني (4)
-    "field_sensor": KnowledgeLevel.FIELD, "weather_station": KnowledgeLevel.FIELD,
+    "field_sensor": KnowledgeLevel.FIELD,
+    "weather_station": KnowledgeLevel.FIELD,
     # استقرائي (3)
-    "zone_factor": KnowledgeLevel.INDUCTIVE, "ml_model": KnowledgeLevel.INDUCTIVE,
+    "zone_factor": KnowledgeLevel.INDUCTIVE,
+    "ml_model": KnowledgeLevel.INDUCTIVE,
     "district_baseline": KnowledgeLevel.INDUCTIVE,
     # توليدي (2)
-    "llm": KnowledgeLevel.GENERATIVE, "chatbot": KnowledgeLevel.GENERATIVE,
+    "llm": KnowledgeLevel.GENERATIVE,
+    "chatbot": KnowledgeLevel.GENERATIVE,
     # استشعار طيفي → قرينة استقرائية بصرية (سقف منخفض)
-    "satellite": KnowledgeLevel.INDUCTIVE, "ndvi": KnowledgeLevel.INDUCTIVE,
-    "si": KnowledgeLevel.INDUCTIVE, "bsi": KnowledgeLevel.INDUCTIVE,
+    "satellite": KnowledgeLevel.INDUCTIVE,
+    "ndvi": KnowledgeLevel.INDUCTIVE,
+    "si": KnowledgeLevel.INDUCTIVE,
+    "bsi": KnowledgeLevel.INDUCTIVE,
     # مجتمعي (1)
-    "farmer": KnowledgeLevel.SOCIAL, "anwa": KnowledgeLevel.SOCIAL,
+    "farmer": KnowledgeLevel.SOCIAL,
+    "anwa": KnowledgeLevel.SOCIAL,
     # استكشافي (0)
-    "day_zero": KnowledgeLevel.GUESS, "guess": KnowledgeLevel.GUESS,
+    "day_zero": KnowledgeLevel.GUESS,
+    "guess": KnowledgeLevel.GUESS,
 }
 
 
@@ -92,15 +108,19 @@ _SOURCE_LEVEL = {
 class LevelInfo:
     level: KnowledgeLevel
     name_ar: str
-    ceiling: str         # سقف الثقة
-    fsi: float           # درجة اليقين المرجعية
+    ceiling: str  # سقف الثقة
+    fsi: float  # درجة اليقين المرجعية
 
 
 _NAME_AR = {
-    KnowledgeLevel.MATHEMATICAL: "رياضي", KnowledgeLevel.PHYSICAL: "فيزيائي",
-    KnowledgeLevel.ANALYTICAL: "مخبري", KnowledgeLevel.FIELD: "ميداني",
-    KnowledgeLevel.INDUCTIVE: "استقرائي", KnowledgeLevel.GENERATIVE: "توليدي",
-    KnowledgeLevel.SOCIAL: "مجتمعي", KnowledgeLevel.GUESS: "استكشافي",
+    KnowledgeLevel.MATHEMATICAL: "رياضي",
+    KnowledgeLevel.PHYSICAL: "فيزيائي",
+    KnowledgeLevel.ANALYTICAL: "مخبري",
+    KnowledgeLevel.FIELD: "ميداني",
+    KnowledgeLevel.INDUCTIVE: "استقرائي",
+    KnowledgeLevel.GENERATIVE: "توليدي",
+    KnowledgeLevel.SOCIAL: "مجتمعي",
+    KnowledgeLevel.GUESS: "استكشافي",
 }
 
 
@@ -129,8 +149,10 @@ def fuse_confidence(sources: list[str], proposed: str = "high") -> tuple[str, st
     allowed_rank = min(_CONF_RANK.get(proposed, 3), min_rank)
     allowed = _RANK_CONF[allowed_rank]
     lvl = level_info(level_of_source(limiting))
-    return allowed, (f"الثقة محدودة بـ«{allowed}» — أدنى سقف من مصدر "
-                     f"{limiting} (مستوى {lvl.name_ar}، سقفه {lvl.ceiling})")
+    return allowed, (
+        f"الثقة محدودة بـ«{allowed}» — أدنى سقف من مصدر "
+        f"{limiting} (مستوى {lvl.name_ar}، سقفه {lvl.ceiling})"
+    )
 
 
 def explain_matrix_ar() -> str:

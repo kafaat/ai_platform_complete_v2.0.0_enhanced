@@ -21,6 +21,7 @@ copernicus يجلب raster، لكن لا تحويل بكسلي للعرض. هذ�
   • محايد العارض: PNG bytes قياسي، أي مكتبة خرائط تقرأه
   • Pillow (PIL) فقط — لا rasterio/GDAL ثقيلة
 """
+
 from __future__ import annotations
 
 import io
@@ -30,21 +31,21 @@ from dataclasses import dataclass
 # كلّ نطاق: (lo, hi, R, G, B) — RGB صريحة لتجنّب تحويل hex
 _BAND_COLORS = {
     "ndvi": [
-        (0.0,  0.2, 139,  69, 19),    # بنّي — أرض عارية
-        (0.2,  0.4, 218, 165, 32),    # ذهبي — متوسّط
-        (0.4,  0.7, 144, 238, 144),   # أخضر فاتح — جيّد
-        (0.7,  1.0,  34, 139, 34),    # أخضر داكن — كثيف
+        (0.0, 0.2, 139, 69, 19),  # بنّي — أرض عارية
+        (0.2, 0.4, 218, 165, 32),  # ذهبي — متوسّط
+        (0.4, 0.7, 144, 238, 144),  # أخضر فاتح — جيّد
+        (0.7, 1.0, 34, 139, 34),  # أخضر داكن — كثيف
     ],
     "ndmi": [
         (-1.0, 0.0, 210, 105, 30),
-        ( 0.0, 0.2, 244, 164, 96),
-        ( 0.2, 0.4, 135, 206, 235),
-        ( 0.4, 1.0,  70, 130, 180),
+        (0.0, 0.2, 244, 164, 96),
+        (0.2, 0.4, 135, 206, 235),
+        (0.4, 1.0, 70, 130, 180),
     ],
     "salinity_si": [
-        (0.0, 0.10, 144, 238, 144),   # منخفض
-        (0.10, 0.30, 255, 215,   0),  # متوسّط — تحذير
-        (0.30, 1.0,  220,  20,  60),  # مرتفع — تنبيه (لكن سقف قرينة فقط)
+        (0.0, 0.10, 144, 238, 144),  # منخفض
+        (0.10, 0.30, 255, 215, 0),  # متوسّط — تحذير
+        (0.30, 1.0, 220, 20, 60),  # مرتفع — تنبيه (لكن سقف قرينة فقط)
     ],
 }
 
@@ -54,19 +55,19 @@ class RasterExport:
     png_bytes: bytes
     width_px: int
     height_px: int
-    bounds: dict          # {"south", "west", "north", "east"}
+    bounds: dict  # {"south", "west", "north", "east"}
     indicator: str
-    transparent_pixels: int     # عدد البكسل غير المعروف (للصدق الإحصائي)
+    transparent_pixels: int  # عدد البكسل غير المعروف (للصدق الإحصائي)
     total_pixels: int
 
 
 def _pixel_for_value(value: float | None, bands: list) -> tuple[int, int, int, int]:
     """يُرجع RGBA لقيمة واحدة. None → شفّاف (alpha=0)، لا اختراع."""
     if value is None:
-        return (0, 0, 0, 0)   # شفّاف تماماً
+        return (0, 0, 0, 0)  # شفّاف تماماً
     for lo, hi, r, g, b in bands:
         if lo <= value <= hi:
-            return (r, g, b, 200)   # شبه شفّاف ليبقى أساس الخريطة مرئياً
+            return (r, g, b, 200)  # شبه شفّاف ليبقى أساس الخريطة مرئياً
     # خارج النطاق المتوقّع → شفّاف (لا نخمّن خارج التصنيف)
     return (0, 0, 0, 0)
 
@@ -102,7 +103,7 @@ def grid_to_png(
 
     height = len(grid)
     width = len(grid[0])
-    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))   # شفّاف افتراضاً
+    img = Image.new("RGBA", (width, height), (0, 0, 0, 0))  # شفّاف افتراضاً
     pixels = img.load()
 
     transparent_count = 0
@@ -119,7 +120,8 @@ def grid_to_png(
 
     return RasterExport(
         png_bytes=buf.getvalue(),
-        width_px=width, height_px=height,
+        width_px=width,
+        height_px=height,
         bounds={"south": south, "west": west, "north": north, "east": east},
         indicator=indicator,
         transparent_pixels=transparent_count,
@@ -129,17 +131,20 @@ def grid_to_png(
 
 def export_summary(export: RasterExport) -> dict:
     """ملخّص قابل للقراءة (لتسجيل الصدق الإحصائي بصرياً)."""
-    coverage_pct = round(
-        100 * (1 - export.transparent_pixels / export.total_pixels), 1
-    ) if export.total_pixels else 0.0
+    coverage_pct = (
+        round(100 * (1 - export.transparent_pixels / export.total_pixels), 1)
+        if export.total_pixels
+        else 0.0
+    )
     return {
         "indicator": export.indicator,
         "resolution": f"{export.width_px}×{export.height_px} بكسل",
         "bounds": export.bounds,
         "coverage_pct": coverage_pct,
         "png_size_kb": round(len(export.png_bytes) / 1024, 1),
-        "note_ar": (f"تغطية {coverage_pct}% — "
-                    f"{export.transparent_pixels} بكسل غير معروف (شفّاف)"
-                    if export.transparent_pixels else
-                    f"تغطية كاملة ({export.total_pixels} بكسل)"),
+        "note_ar": (
+            f"تغطية {coverage_pct}% — {export.transparent_pixels} بكسل غير معروف (شفّاف)"
+            if export.transparent_pixels
+            else f"تغطية كاملة ({export.total_pixels} بكسل)"
+        ),
     }

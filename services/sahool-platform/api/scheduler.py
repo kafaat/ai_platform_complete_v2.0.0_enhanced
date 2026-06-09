@@ -20,13 +20,14 @@ api/scheduler.py — جدولة المهام الدوريّة (أتمتة داخ
   - asyncio خالص، يبدأ/يتوقّف مع دورة حياة التطبيق (lifespan)
   - يسجّل آخر تشغيل/نجاح/فشل لكلّ مهمّة (مراقبة)
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Awaitable, Callable, Dict, List, Optional
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
 
 logger = logging.getLogger("sahool.scheduler")
 
@@ -41,13 +42,13 @@ class ScheduledTask:
     fn: TaskFn
     enabled: bool = True
     # حالة المراقبة
-    last_run_at: Optional[str] = None
-    last_success_at: Optional[str] = None
-    last_error: Optional[str] = None
+    last_run_at: str | None = None
+    last_success_at: str | None = None
+    last_error: str | None = None
     run_count: int = 0
     error_count: int = 0
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "name": self.name,
             "interval_seconds": self.interval_seconds,
@@ -64,8 +65,8 @@ class Scheduler:
     """جدولة خفيفة قائمة على asyncio. كلّ مهمّة في حلقتها المستقلّة."""
 
     def __init__(self) -> None:
-        self._tasks: Dict[str, ScheduledTask] = {}
-        self._handles: List[asyncio.Task] = []
+        self._tasks: dict[str, ScheduledTask] = {}
+        self._handles: list[asyncio.Task] = []
         self._running = False
 
     def register(
@@ -89,11 +90,11 @@ class Scheduler:
             if not task.enabled:
                 await asyncio.sleep(task.interval_seconds)
                 continue
-            task.last_run_at = datetime.now(timezone.utc).isoformat()
+            task.last_run_at = datetime.now(UTC).isoformat()
             task.run_count += 1
             try:
                 await task.fn()
-                task.last_success_at = datetime.now(timezone.utc).isoformat()
+                task.last_success_at = datetime.now(UTC).isoformat()
                 task.last_error = None
                 backoff = task.interval_seconds  # أعِد الضبط عند النجاح
                 await asyncio.sleep(task.interval_seconds)
@@ -127,7 +128,7 @@ class Scheduler:
         self._handles.clear()
         logger.info("الجدولة توقّفت")
 
-    def status(self) -> Dict:
+    def status(self) -> dict:
         """حالة كلّ المهامّ — للمراقبة عبر endpoint."""
         return {
             "running": self._running,
@@ -152,11 +153,12 @@ scheduler = Scheduler()
 # (Open-Meteo، STAC، event_bus) يتمّ في lifespan التطبيق حيث تتوفّر الـpool
 # والـhttp client. هنا نُعرّف الهيكل القابل للاختبار فقط.
 
+
 def register_default_tasks(
     *,
-    fetch_weather: Optional[TaskFn] = None,
-    scan_new_imagery: Optional[TaskFn] = None,
-    check_decision_freshness: Optional[TaskFn] = None,
+    fetch_weather: TaskFn | None = None,
+    scan_new_imagery: TaskFn | None = None,
+    check_decision_freshness: TaskFn | None = None,
 ) -> None:
     """يسجّل المهامّ الدوريّة القياسيّة لـSAHOOL.
 

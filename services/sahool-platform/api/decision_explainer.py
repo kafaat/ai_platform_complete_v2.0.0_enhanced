@@ -21,18 +21,15 @@ api/decision_explainer.py — طبقة تفسير القرار بالذكاء ا
 ⚠ الـAI يشرح فقط ما قرّرته القواعد — لا يضيف توصيات من عنده. التعليمات
 الموجّهة لـClaude تمنعه صراحةً من اختراع محاصيل أو أرقام. القرار يبقى للمزارع.
 """
+
 from __future__ import annotations
-
-from typing import Dict, Optional
-
 
 # نموذج Claude المستخدم للتفسير (يُمرّر للـproxy الآمن في الخادم)
 _EXPLAINER_MODEL = "claude-sonnet-4-20250514"
 _MAX_TOKENS = 800
 
 
-def build_explanation_prompt(decision: Dict,
-                             rag_context: Optional[str] = None) -> Dict:
+def build_explanation_prompt(decision: dict, rag_context: str | None = None) -> dict:
     """يبني طلب Claude من ناتج محرّك القرار (rule-based).
 
     يُرجع dict جاهزاً لإرساله عبر proxy الخادم الآمن (لا مفتاح هنا).
@@ -118,14 +115,15 @@ def build_explanation_prompt(decision: Dict,
     }
 
 
-def offline_explanation(decision: Dict) -> str:
+def offline_explanation(decision: dict) -> str:
     """بديل offline: شرح مولّد من القواعد دون AI (حين لا يتوفّر Claude).
 
     يضمن أنّ المزارع يحصل على شرح مفهوم حتّى بلا إنترنت (offline-first).
     """
     if not decision.get("supported"):
         return decision.get("needs_clarification_ar") or decision.get(
-            "message_ar", "تعذّر تحليل الموقع — تأكّد من الإحداثيّات أو الاسم.")
+            "message_ar", "تعذّر تحليل الموقع — تأكّد من الإحداثيّات أو الاسم."
+        )
 
     loc = decision.get("location_ar", {})
     parts = []
@@ -145,14 +143,14 @@ def offline_explanation(decision: Dict) -> str:
     if decision.get("decision_summary_ar"):
         parts.append(decision["decision_summary_ar"])
     parts.append(
-        "القرار النهائي لك — افحص تربة حقلك واستشر هيئة البحوث والإرشاد الزراعي "
-        "قبل التنفيذ."
+        "القرار النهائي لك — افحص تربة حقلك واستشر هيئة البحوث والإرشاد الزراعي قبل التنفيذ."
     )
     return " ".join(parts)
 
 
-def explain_decision(decision: Dict, ai_response_text: Optional[str] = None,
-                     rag_context: Optional[str] = None) -> Dict:
+def explain_decision(
+    decision: dict, ai_response_text: str | None = None, rag_context: str | None = None
+) -> dict:
     """يجمع التفسير: يستخدم نصّ Claude إن توفّر، وإلّا البديل offline.
 
     ai_response_text: نصّ شرح Claude (يأتي من الخادم بعد استدعاء الـproxy).
@@ -168,15 +166,14 @@ def explain_decision(decision: Dict, ai_response_text: Optional[str] = None,
         "rag_used": bool(rag_context and rag_context.strip()),
         "note_ar": (
             "شرح بالذكاء الاصطناعي (Claude) — القرار نفسه من نظام القواعد الموثّق."
-            if used_ai else
-            "شرح من نظام القواعد (يعمل دون إنترنت). الذكاء الاصطناعي يضيف صياغة "
+            if used_ai
+            else "شرح من نظام القواعد (يعمل دون إنترنت). الذكاء الاصطناعي يضيف صياغة "
             "أدفأ عند توفّره."
         ),
         "prompt_for_server": (
             build_explanation_prompt(decision, rag_context) if not used_ai else None
         ),
         "disclaimer_ar": (
-            "الذكاء الاصطناعي يشرح ولا يقرّر — التوصية من القواعد الموثّقة، "
-            "والقرار النهائي لك."
+            "الذكاء الاصطناعي يشرح ولا يقرّر — التوصية من القواعد الموثّقة، والقرار النهائي لك."
         ),
     }

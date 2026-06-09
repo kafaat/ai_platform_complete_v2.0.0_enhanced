@@ -1,6 +1,11 @@
 """Tests for on-demand index scheduling: continuous vs purpose-driven indices to save cost."""
+
 from core.spatial.index_scheduler import (
-    should_compute_now, cost_summary, get_index_policy, IndexCadence)
+    IndexCadence,
+    cost_summary,
+    get_index_policy,
+    should_compute_now,
+)
 
 
 class TestIndexScheduler:
@@ -11,13 +16,13 @@ class TestIndexScheduler:
         assert get_index_policy("BSI").cadence == IndexCadence.ON_DEMAND
 
     def test_continuous_recomputes_when_due(self):
-        assert should_compute_now("NDVI", 8)["compute"] is True   # >7 days
+        assert should_compute_now("NDVI", 8)["compute"] is True  # >7 days
         assert should_compute_now("NDVI", 3)["compute"] is False  # fresh
 
     def test_on_demand_stops_after_computed(self):
         # CORE IDEA: soil type computed once, then stopped to save cost
-        assert should_compute_now("BSI", None)["compute"] is True   # first
-        assert should_compute_now("BSI", 30)["compute"] is False    # already done
+        assert should_compute_now("BSI", None)["compute"] is True  # first
+        assert should_compute_now("BSI", 30)["compute"] is False  # already done
 
     def test_on_demand_reactivates_on_purpose(self):
         assert should_compute_now("BSI", 30, purpose_active=True)["compute"] is True

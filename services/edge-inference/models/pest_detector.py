@@ -1,5 +1,3 @@
-import logging
-logger = logging.getLogger(__name__)
 #!/usr/bin/env python3
 """
 Edge-Optimized Pest/Disease Detector
@@ -7,11 +5,13 @@ ONNX Runtime with INT8 quantization for ARM64
 Supports: YOLOv8-World / MobileViT / Custom quantized models
 """
 import io
+import logging
 import os
-from typing import Dict, List
 
 import numpy as np
 from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 
 class EdgePestDetector:
@@ -23,26 +23,66 @@ class EdgePestDetector:
 
     # Yemen agricultural pests database
     PEST_DB = {
-        "aphid": {"arabic": "منّ", "crops": ["wheat", "barley", "maize", "tomato"], 
-                  "action": "رش زيت النيم أو Imidacloprid", "severity": "medium"},
-        "armyworm": {"arabic": "دودة الحشد", "crops": ["maize", "sorghum", "millet"],
-                     "action": "Bacillus thuringiensis أو Chlorpyrifos", "severity": "high"},
-        "leaf_miner": {"arabic": "حفار الأوراق", "crops": ["tomato", "potato"],
-                       "action": "Abamectin أو Spinosad", "severity": "medium"},
-        "red_spider_mite": {"arabic": "عنكبوت أحمر", "crops": ["tomato", "potato", "coffee"],
-                            "action": "صابون زراعي أو Abamectin", "severity": "medium"},
-        "stem_borer": {"arabic": "حفار الساق", "crops": ["maize", "sorghum"],
-                       "action": "زراعة مبكرة + فخوم فرمونية", "severity": "high"},
-        "rust": {"arabic": "صدأ", "crops": ["wheat", "barley"],
-                 "action": "Mancozeb أو Propiconazole", "severity": "high"},
-        "blight": {"arabic": "لفحة", "crops": ["potato", "tomato"],
-                   "action": "Mancozeb + Copper oxychloride", "severity": "high"},
-        "bacterial_wilt": {"arabic": "ذبول بكتيري", "crops": ["tomato", "potato"],
-                           "action": "تناوب المحاصيل + مقاومة الأصناف", "severity": "high"},
-        "coffee_borer": {"arabic": "حفار القهوة", "crops": ["coffee"],
-                         "action": "Beauveria bassiana أو Endosulfan (محظور)", "severity": "high"},
-        "coffee_rust": {"arabic": "صدأ القهوة", "crops": ["coffee"],
-                        "action": "Copper fungicides", "severity": "high"}
+        "aphid": {
+            "arabic": "منّ",
+            "crops": ["wheat", "barley", "maize", "tomato"],
+            "action": "رش زيت النيم أو Imidacloprid",
+            "severity": "medium",
+        },
+        "armyworm": {
+            "arabic": "دودة الحشد",
+            "crops": ["maize", "sorghum", "millet"],
+            "action": "Bacillus thuringiensis أو Chlorpyrifos",
+            "severity": "high",
+        },
+        "leaf_miner": {
+            "arabic": "حفار الأوراق",
+            "crops": ["tomato", "potato"],
+            "action": "Abamectin أو Spinosad",
+            "severity": "medium",
+        },
+        "red_spider_mite": {
+            "arabic": "عنكبوت أحمر",
+            "crops": ["tomato", "potato", "coffee"],
+            "action": "صابون زراعي أو Abamectin",
+            "severity": "medium",
+        },
+        "stem_borer": {
+            "arabic": "حفار الساق",
+            "crops": ["maize", "sorghum"],
+            "action": "زراعة مبكرة + فخوم فرمونية",
+            "severity": "high",
+        },
+        "rust": {
+            "arabic": "صدأ",
+            "crops": ["wheat", "barley"],
+            "action": "Mancozeb أو Propiconazole",
+            "severity": "high",
+        },
+        "blight": {
+            "arabic": "لفحة",
+            "crops": ["potato", "tomato"],
+            "action": "Mancozeb + Copper oxychloride",
+            "severity": "high",
+        },
+        "bacterial_wilt": {
+            "arabic": "ذبول بكتيري",
+            "crops": ["tomato", "potato"],
+            "action": "تناوب المحاصيل + مقاومة الأصناف",
+            "severity": "high",
+        },
+        "coffee_borer": {
+            "arabic": "حفار القهوة",
+            "crops": ["coffee"],
+            "action": "Beauveria bassiana أو Endosulfan (محظور)",
+            "severity": "high",
+        },
+        "coffee_rust": {
+            "arabic": "صدأ القهوة",
+            "crops": ["coffee"],
+            "action": "Copper fungicides",
+            "severity": "high",
+        },
     }
 
     def __init__(self, model_path: str, device: str = "rpi5"):
@@ -60,6 +100,7 @@ class EdgePestDetector:
         if os.path.exists(self.model_path):
             try:
                 import onnxruntime as ort
+
                 # Use ARM64 optimized execution providers
                 providers = ["CPUExecutionProvider"]
                 if self.device == "jetson_orin":
@@ -71,9 +112,11 @@ class EdgePestDetector:
                 self.session = None
         else:
             self.session = None
-            logger.info(f"[EdgePestDetector] Model not found: {self.model_path}. Using simulation mode.")
+            logger.info(
+                f"[EdgePestDetector] Model not found: {self.model_path}. Using simulation mode."
+            )
 
-    def predict(self, image_bytes: bytes, confidence_threshold: float = 0.6) -> List[Dict]:
+    def predict(self, image_bytes: bytes, confidence_threshold: float = 0.6) -> list[dict]:
         """
         Run inference on image bytes.
         Returns list of detections with Arabic names and actions.
@@ -106,10 +149,11 @@ class EdgePestDetector:
 
     def _simulate_detection(self, image, threshold):
         """Simulate realistic pest detection for MVP."""
-        import random
         # FIXED: hash() is non-deterministic in Python 3 (PYTHONHASHSEED)
         # Use hashlib.md5 for reproducible deterministic seeding
         import hashlib as _hl
+        import random
+
         seed = int(_hl.md5(image.tobytes()).hexdigest(), 16) % (2**31)
         random.seed(seed)
 
@@ -132,23 +176,25 @@ class EdgePestDetector:
             w = random.uniform(0.05, 0.3)
             h = random.uniform(0.05, 0.3)
 
-            detections.append({
-                "class_id": i,
-                "class_name": pest_key,
-                "arabic_name": pest_info["arabic"],
-                "confidence": round(confidence, 3),
-                "bbox": {
-                    "x1": round(x1, 3),
-                    "y1": round(y1, 3),
-                    "x2": round(x1 + w, 3),
-                    "y2": round(y1 + h, 3),
-                    "width": round(w, 3),
-                    "height": round(h, 3)
-                },
-                "affected_crops": pest_info["crops"],
-                "recommended_action": pest_info["action"],
-                "severity": pest_info["severity"]
-            })
+            detections.append(
+                {
+                    "class_id": i,
+                    "class_name": pest_key,
+                    "arabic_name": pest_info["arabic"],
+                    "confidence": round(confidence, 3),
+                    "bbox": {
+                        "x1": round(x1, 3),
+                        "y1": round(y1, 3),
+                        "x2": round(x1 + w, 3),
+                        "y2": round(y1 + h, 3),
+                        "width": round(w, 3),
+                        "height": round(h, 3),
+                    },
+                    "affected_crops": pest_info["crops"],
+                    "recommended_action": pest_info["action"],
+                    "severity": pest_info["severity"],
+                }
+            )
 
         # Sort by confidence
         detections.sort(key=lambda x: x["confidence"], reverse=True)

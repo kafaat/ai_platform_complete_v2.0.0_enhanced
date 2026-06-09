@@ -1,23 +1,35 @@
 """Tests for Farmonaut connector — SAR fallback, validation, no fabrication."""
+
 import os
-from core.connectors.farmonaut import (
-    FarmonautConnector, ImageType, validate_field_polygon, estimate_monthly_credits)
+
 from core.connectors.base import FetchStatus
+from core.connectors.farmonaut import (
+    FarmonautConnector,
+    ImageType,
+    estimate_monthly_credits,
+    validate_field_polygon,
+)
 
 
 class TestFarmonaut:
     def test_polygon_validation_yemen(self):
-        ok, _ = validate_field_polygon({
-            "a": {"Latitude": 16.08, "Longitude": 44.94},
-            "P_1": {"Latitude": 16.09, "Longitude": 44.95},
-            "P_2": {"Latitude": 16.07, "Longitude": 44.96}})
+        ok, _ = validate_field_polygon(
+            {
+                "a": {"Latitude": 16.08, "Longitude": 44.94},
+                "P_1": {"Latitude": 16.09, "Longitude": 44.95},
+                "P_2": {"Latitude": 16.07, "Longitude": 44.96},
+            }
+        )
         assert ok
 
     def test_polygon_rejects_outside_yemen(self):
-        ok, _ = validate_field_polygon({
-            "a": {"Latitude": 48.8, "Longitude": 2.3},
-            "P_1": {"Latitude": 48.9, "Longitude": 2.4},
-            "P_2": {"Latitude": 48.7, "Longitude": 2.5}})
+        ok, _ = validate_field_polygon(
+            {
+                "a": {"Latitude": 48.8, "Longitude": 2.3},
+                "P_1": {"Latitude": 48.9, "Longitude": 2.4},
+                "P_2": {"Latitude": 48.7, "Longitude": 2.5},
+            }
+        )
         assert not ok
 
     def test_polygon_requires_three_points(self):

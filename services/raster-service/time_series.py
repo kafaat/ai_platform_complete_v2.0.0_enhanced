@@ -8,12 +8,12 @@ time_series.py — التحليل الزمني للمؤشّرات (سدّ فجو
 
 تعتمد على دالّة معالجة لكلّ مشهد (تُحقَن) لإعادة استخدام منطق band-math نفسه.
 """
+
 from __future__ import annotations
 
 import statistics
 from collections import defaultdict
-from datetime import datetime
-from typing import Callable, Dict, List, Optional
+from collections.abc import Callable
 
 
 def _month_key(iso_dt: str) -> str:
@@ -25,16 +25,16 @@ def _month_key(iso_dt: str) -> str:
 
 
 def monthly_composite(
-    scene_stats: List[Dict],
+    scene_stats: list[dict],
     value_key: str = "mean",
-) -> List[Dict]:
+) -> list[dict]:
     """تركيب الوسيط الشهري (monthly median compositing).
 
     المدخل: قائمة إحصاءات مشاهد، كلّ عنصر {datetime, mean, ...}.
     المخرج: قيمة وسيط (median) لكلّ شهر — يخفّف أثر الغيوم/الشذوذ.
     median لا mean: مقاوم للقيم الشاذّة (سحابة متبقّية) — ممارسة معياريّة.
     """
-    by_month: Dict[str, List[float]] = defaultdict(list)
+    by_month: dict[str, list[float]] = defaultdict(list)
     for s in scene_stats:
         v = s.get(value_key)
         dt = s.get("datetime", "")
@@ -46,25 +46,26 @@ def monthly_composite(
         vals = by_month[month]
         if not vals:
             continue
-        out.append({
-            "month": month,
-            "median": round(statistics.median(vals), 4),
-            "mean": round(statistics.fmean(vals), 4),
-            "min": round(min(vals), 4),
-            "max": round(max(vals), 4),
-            "scene_count": len(vals),
-        })
+        out.append(
+            {
+                "month": month,
+                "median": round(statistics.median(vals), 4),
+                "mean": round(statistics.fmean(vals), 4),
+                "min": round(min(vals), 4),
+                "max": round(max(vals), 4),
+                "scene_count": len(vals),
+            }
+        )
     return out
 
 
-def linear_trend(composite: List[Dict], value_key: str = "median") -> Dict:
+def linear_trend(composite: list[dict], value_key: str = "median") -> dict:
     """اتّجاه خطّي بسيط (انحدار least-squares) عبر الأشهر.
 
     يكشف: هل المؤشّر يتحسّن (slope>0) أم يتدهور (slope<0)؟ مفيد لكشف
     الإجهاد التدريجي. لا يدّعي تنبّؤاً — وصف اتّجاه فقط.
     """
-    pts = [(i, m[value_key]) for i, m in enumerate(composite)
-           if m.get(value_key) is not None]
+    pts = [(i, m[value_key]) for i, m in enumerate(composite) if m.get(value_key) is not None]
     n = len(pts)
     if n < 2:
         return {"slope": None, "direction": "insufficient_data", "points": n}
@@ -93,8 +94,9 @@ def linear_trend(composite: List[Dict], value_key: str = "median") -> Dict:
     }
 
 
-def detect_anomalies(composite: List[Dict], value_key: str = "median",
-                     z_threshold: float = 1.5) -> List[Dict]:
+def detect_anomalies(
+    composite: list[dict], value_key: str = "median", z_threshold: float = 1.5
+) -> list[dict]:
     """يكشف الأشهر الشاذّة (انخفاض/ارتفاع حادّ) عبر z-score.
 
     انخفاض NDVI حادّ قد يشير لإجهاد/آفة (الأدبيّات). عتبة z=1.5 افتراضيّة.
@@ -113,20 +115,22 @@ def detect_anomalies(composite: List[Dict], value_key: str = "median",
             continue
         z = (v - mu) / sd
         if abs(z) >= z_threshold:
-            anomalies.append({
-                "month": m["month"],
-                "value": v,
-                "z_score": round(z, 2),
-                "type": "drop" if z < 0 else "spike",
-            })
+            anomalies.append(
+                {
+                    "month": m["month"],
+                    "value": v,
+                    "z_score": round(z, 2),
+                    "type": "drop" if z < 0 else "spike",
+                }
+            )
     return anomalies
 
 
 def build_time_series(
-    scene_list: List[Dict],
-    process_scene: Optional[Callable[[Dict], Optional[float]]] = None,
+    scene_list: list[dict],
+    process_scene: Callable[[dict], float | None] | None = None,
     value_key: str = "mean",
-) -> Dict:
+) -> dict:
     """يبني تحليلاً زمنيّاً كاملاً من قائمة مشاهد STAC.
 
     إن مُرّرت process_scene (تحسب مؤشّر المشهد فعليّاً)، تُستخدَم؛ وإلّا يُتوقّع
@@ -154,11 +158,11 @@ def build_time_series(
 
 
 async def build_time_series_parallel(
-    scene_list: List[Dict],
+    scene_list: list[dict],
     process_scene_async: Callable,
     max_concurrency: int = 4,
     value_key: str = "mean",
-) -> Dict:
+) -> dict:
     """يحسب مؤشّر كلّ مشهد بالتوازي (محدود) ثمّ يبني التحليل الزمني.
 
     معالجة المشاهد المتعدّدة بالتوازي تسرّع التحليل الزمني بشدّة (بدل تسلسلي).
@@ -168,10 +172,11 @@ async def build_time_series_parallel(
     process_scene_async: دالّة async تأخذ مشهداً وتُرجِع قيمة المؤشّر (أو None).
     """
     import asyncio
+
     sem = asyncio.Semaphore(max(1, max_concurrency))
     failed = 0
 
-    async def _one(sc: Dict):
+    async def _one(sc: dict):
         nonlocal failed
         async with sem:  # حدّ التزامن (backpressure)
             try:

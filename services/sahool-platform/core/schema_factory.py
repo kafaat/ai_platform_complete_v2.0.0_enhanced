@@ -24,21 +24,26 @@ Factory functions لـcanonical_schemas — يربط canonical_schemas مع iden
   • صفر اختراع: factory يفشل صراحةً إن نقصت بيانات إلزامية
   • صراحة العقد: كل factory يُعلِم بـtenant + entity kind
 """
+
 from __future__ import annotations
 
 from datetime import datetime
 
 from core.canonical_schemas import (
-    TenantSchema, UserSchema, FarmSchema, FieldSchema, CropSeasonSchema,
-    ObservationSchema, RecommendationSchema,
-    UserRole, FieldQuality, IrrigationMethod, SeasonStatus,
-    ObservationSource, TenantStatus)
+    CropSeasonSchema,
+    FarmSchema,
+    FieldSchema,
+    ObservationSchema,
+    ObservationSource,
+    RecommendationSchema,
+    TenantSchema,
+    UserRole,
+    UserSchema,
+)
 from core.identity import EntityKind, new_identity
 
 
-def make_tenant(*, name_ar: str,
-                tenant_id_readable: str | None = None,
-                **kwargs) -> TenantSchema:
+def make_tenant(*, name_ar: str, tenant_id_readable: str | None = None, **kwargs) -> TenantSchema:
     """ينشئ TenantSchema مع UUID + readable id تلقائياً.
 
     tenant_id_readable: لو حُدّد، يُستخدم كما هو (للترقية).
@@ -47,6 +52,7 @@ def make_tenant(*, name_ar: str,
         readable = tenant_id_readable
         # توليد UUID فقط
         from core.identity import generate_uuid
+
         uuid_str = generate_uuid()
     else:
         # توليد كلاهما من السياق
@@ -64,13 +70,14 @@ def make_tenant(*, name_ar: str,
     )
 
 
-def make_user(*, tenant_id: str, role: UserRole, name_ar: str,
-              user_id_readable: str | None = None,
-              **kwargs) -> UserSchema:
+def make_user(
+    *, tenant_id: str, role: UserRole, name_ar: str, user_id_readable: str | None = None, **kwargs
+) -> UserSchema:
     """ينشئ UserSchema مع Dual-ID."""
     if user_id_readable:
         readable = user_id_readable
         from core.identity import generate_uuid
+
         uuid_str = generate_uuid()
     else:
         # tenant_id_short للسياق
@@ -90,13 +97,14 @@ def make_user(*, tenant_id: str, role: UserRole, name_ar: str,
     )
 
 
-def make_farm(*, tenant_id: str, name_ar: str,
-              farm_id_readable: str | None = None,
-              **kwargs) -> FarmSchema:
+def make_farm(
+    *, tenant_id: str, name_ar: str, farm_id_readable: str | None = None, **kwargs
+) -> FarmSchema:
     """ينشئ FarmSchema مع Dual-ID."""
     if farm_id_readable:
         readable = farm_id_readable
         from core.identity import generate_uuid
+
         uuid_str = generate_uuid()
     else:
         context = f"{tenant_id[:8]}"
@@ -114,13 +122,14 @@ def make_farm(*, tenant_id: str, name_ar: str,
     )
 
 
-def make_field(*, tenant_id: str, farm_id: str, name_ar: str,
-               field_id_readable: str | None = None,
-               **kwargs) -> FieldSchema:
+def make_field(
+    *, tenant_id: str, farm_id: str, name_ar: str, field_id_readable: str | None = None, **kwargs
+) -> FieldSchema:
     """ينشئ FieldSchema مع Dual-ID. الحقل الأساسي للمنصّة."""
     if field_id_readable:
         readable = field_id_readable
         from core.identity import generate_uuid
+
         uuid_str = generate_uuid()
     else:
         context = f"{farm_id[:12]}"
@@ -139,14 +148,21 @@ def make_field(*, tenant_id: str, farm_id: str, name_ar: str,
     )
 
 
-def make_crop_season(*, tenant_id: str, field_id: str, crop_id: str,
-                     season_name_ar: str, season_year: int,
-                     season_id_readable: str | None = None,
-                     **kwargs) -> CropSeasonSchema:
+def make_crop_season(
+    *,
+    tenant_id: str,
+    field_id: str,
+    crop_id: str,
+    season_name_ar: str,
+    season_year: int,
+    season_id_readable: str | None = None,
+    **kwargs,
+) -> CropSeasonSchema:
     """ينشئ CropSeasonSchema مع Dual-ID."""
     if season_id_readable:
         readable = season_id_readable
         from core.identity import generate_uuid
+
         uuid_str = generate_uuid()
     else:
         context = f"{crop_id}_{season_year}"
@@ -166,16 +182,24 @@ def make_crop_season(*, tenant_id: str, field_id: str, crop_id: str,
     )
 
 
-def make_observation(*, tenant_id: str, field_id: str,
-                     observable_id: str, value: float, unit: str,
-                     source: ObservationSource, confidence: str,
-                     measured_at: str,
-                     observation_id_readable: str | None = None,
-                     **kwargs) -> ObservationSchema:
+def make_observation(
+    *,
+    tenant_id: str,
+    field_id: str,
+    observable_id: str,
+    value: float,
+    unit: str,
+    source: ObservationSource,
+    confidence: str,
+    measured_at: str,
+    observation_id_readable: str | None = None,
+    **kwargs,
+) -> ObservationSchema:
     """ينشئ ObservationSchema مع Dual-ID. وحدة EAV الأساسية."""
     if observation_id_readable:
         readable = observation_id_readable
         from core.identity import generate_uuid
+
         uuid_str = generate_uuid()
     else:
         context = f"{observable_id}_{source.value}"
@@ -199,14 +223,14 @@ def make_observation(*, tenant_id: str, field_id: str,
     )
 
 
-def make_recommendation(*, tenant_id: str,
-                        recommendation_ar: str,
-                        rec_id_readable: str | None = None,
-                        **kwargs) -> RecommendationSchema:
+def make_recommendation(
+    *, tenant_id: str, recommendation_ar: str, rec_id_readable: str | None = None, **kwargs
+) -> RecommendationSchema:
     """ينشئ RecommendationSchema مع Dual-ID."""
     if rec_id_readable:
         readable = rec_id_readable
         from core.identity import generate_uuid
+
         uuid_str = generate_uuid()
     else:
         context = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -218,15 +242,13 @@ def make_recommendation(*, tenant_id: str,
         rec_id=readable,
         tenant_id=tenant_id,
         recommendation_ar=recommendation_ar,
-        issued_date=kwargs.pop("issued_date",
-                              datetime.now().date().isoformat()),
+        issued_date=kwargs.pop("issued_date", datetime.now().date().isoformat()),
         id_uuid=uuid_str,
         **kwargs,
     )
 
 
-def make_default_pair_for_entity(kind: EntityKind,
-                                  context: str | None = None) -> tuple:
+def make_default_pair_for_entity(kind: EntityKind, context: str | None = None) -> tuple:
     """يُرجع (uuid, readable) لأيّ نوع — useful للهجرة من schemas قديمة."""
     pair = new_identity(kind, context=context)
     return pair.uuid, pair.readable

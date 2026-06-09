@@ -1,12 +1,17 @@
 """Tests for v9.1 valid review points: PRAGMAs, backup, sanitization."""
-import tempfile, os
+
+import os
+import tempfile
 from pathlib import Path
-from storage import lite_store
+
 import pytest
+from storage import lite_store
 
 
 def _db():
-    db = Path(tempfile.mktemp(suffix=".db")); lite_store.init_db(db); return db
+    db = Path(tempfile.mktemp(suffix=".db"))
+    lite_store.init_db(db)
+    return db
 
 
 class TestSecurityV91:

@@ -15,20 +15,19 @@ agronomic_state_engine.py — طبقة الغراء (Semantic Composition Layer)
 
 الصدق: كلّ مؤشّر غائب يُعلَن، والثقة تنخفض بنقص المُدخلات (لا تخمين).
 """
+
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 # إصدارات (المراجعة الثانية: القرارات historical-sensitive — replay/audit)
 SCHEMA_VERSION = "1.0"
 FUSION_STRATEGY_VERSION = "1.0"
 
 # عتبات حلّ التعارض (مُسنَدة لقواعد القرار الموجودة SAL-SOIL-*)
-SALINITY_CRITICAL_ECE = 8.0   # > 8 dS/m: ملحية حرجة (SAL-SOIL-03)
-SALINITY_MODERATE_ECE = 4.0   # 4-8: متوسّطة (SAL-SOIL-02/06)
+SALINITY_CRITICAL_ECE = 8.0  # > 8 dS/m: ملحية حرجة (SAL-SOIL-03)
+SALINITY_MODERATE_ECE = 4.0  # 4-8: متوسّطة (SAL-SOIL-02/06)
 
 # مصفوفة الأسبقيّة الصريحة (arbitration matrix) — من يحكم عند التعارض؟
 # المبدأ (من المراجعة): القيود البنيويّة طويلة الأمد تتقدّم على القرائن اللحظيّة.
@@ -36,58 +35,66 @@ SALINITY_MODERATE_ECE = 4.0   # 4-8: متوسّطة (SAL-SOIL-02/06)
 # كلّ بند: (المعرّف, الحالة الناتجة, شرط التفعيل, التعليل, القاعدة المصدر).
 ARBITRATION_PRECEDENCE = [
     # ١. الملوحة الحرجة — انهيار بنيوي يتجاوز أيّ مؤشّر إيجابي
-    ("salinity_critical", "salinity_limited",
-     "الملوحة الحرجة (انهيار بنيوي) تتجاوز المؤشّرات اللحظيّة", "SAL-SOIL-03"),
+    (
+        "salinity_critical",
+        "salinity_limited",
+        "الملوحة الحرجة (انهيار بنيوي) تتجاوز المؤشّرات اللحظيّة",
+        "SAL-SOIL-03",
+    ),
     # ٢. الإجهاد الحراري الحادّ — ضغط مستقبلي وشيك
-    ("heat_severe", "heat_limited",
-     "إجهاد حراري حادّ — يتقدّم على الحيويّة الحاليّة", "HEAT-01"),
+    ("heat_severe", "heat_limited", "إجهاد حراري حادّ — يتقدّم على الحيويّة الحاليّة", "HEAT-01"),
     # ٣. اتّجاه هابط مستمرّ — إنذار مبكر يتقدّم على القيمة اللحظيّة
-    ("declining_trend", "trend_warning",
-     "اتّجاه هابط مستمرّ (trend>snapshot) — إنذار مبكر", "MON-TREND-01"),
+    (
+        "declining_trend",
+        "trend_warning",
+        "اتّجاه هابط مستمرّ (trend>snapshot) — إنذار مبكر",
+        "MON-TREND-01",
+    ),
     # ٤. حيويّة منخفضة — حالة فعليّة مُلاحَظة
-    ("low_vigor", "vigor_stressed",
-     "حيويّة منخفضة فعليّة — تستوجب فحصاً", "RS-VIGOR-01"),
+    ("low_vigor", "vigor_stressed", "حيويّة منخفضة فعليّة — تستوجب فحصاً", "RS-VIGOR-01"),
     # ٥. الحيويّة الجيّدة تقود (الحالة الطبيعيّة)
-    ("vigor_ok", "vigor_led",
-     "حيويّة جيّدة بلا قيود مهيمنة", "RS-VIGOR-02"),
+    ("vigor_ok", "vigor_led", "حيويّة جيّدة بلا قيود مهيمنة", "RS-VIGOR-02"),
 ]
 
 
 @dataclass
 class SignalInput:
     """إشارة خام مُطبّعة من مصدر (المراجعة: NormalizedSignal)."""
-    source: str                       # ndvi | ndre | ndsi | soil_ec | weather...
-    value: Optional[float] = None
-    confidence: str = "medium"        # high | medium | low | none
-    observed_at: Optional[str] = None  # ISO — لحساب الحداثة
-    spatial_resolution_m: Optional[float] = None
-    field_coverage: Optional[float] = None  # 0..1 (نسبة تغطية الحقل)
+
+    source: str  # ndvi | ndre | ndsi | soil_ec | weather...
+    value: float | None = None
+    confidence: str = "medium"  # high | medium | low | none
+    observed_at: str | None = None  # ISO — لحساب الحداثة
+    spatial_resolution_m: float | None = None
+    field_coverage: float | None = None  # 0..1 (نسبة تغطية الحقل)
 
 
 @dataclass
 class CropContext:
     """سياق المحصول للتقويم الفينولوجي (Kc/GDD/مرحلة النمو)."""
-    crop_id: Optional[str] = None
-    days_after_planting: Optional[int] = None
-    ndvi_series: Optional[list] = None  # [(day_of_year, ndvi), ...] لمرحلة النمو
-    star_id: Optional[str] = None       # نوء حالي (التقويم النجمي)
-    location_zone: Optional[str] = None  # الإقليم المناخي (المكان)
-    variety_id: Optional[str] = None    # صنف (يُعدّل عتبات الملوحة/الجفاف)
-    farmer_objective: Optional[str] = None  # maximize_yield|minimize_cost|water_saving|risk_reduction
+
+    crop_id: str | None = None
+    days_after_planting: int | None = None
+    ndvi_series: list | None = None  # [(day_of_year, ndvi), ...] لمرحلة النمو
+    star_id: str | None = None  # نوء حالي (التقويم النجمي)
+    location_zone: str | None = None  # الإقليم المناخي (المكان)
+    variety_id: str | None = None  # صنف (يُعدّل عتبات الملوحة/الجفاف)
+    farmer_objective: str | None = None  # maximize_yield|minimize_cost|water_saving|risk_reduction
 
 
 @dataclass
 class EconomicContext:
     """سياق اقتصادي — يجعل 'لا تدخّل' قراراً صحيحاً اقتصاديّاً أحياناً."""
-    crop_id: Optional[str] = None
-    historical_prices: Optional[list] = None  # أسعار تاريخيّة للتقلّب
-    local_price: Optional[float] = None
-    import_price: Optional[float] = None
-    intervention_cost: Optional[float] = None  # تكلفة الإجراء المقترح
-    expected_gain: Optional[float] = None       # العائد المتوقّع منه
+
+    crop_id: str | None = None
+    historical_prices: list | None = None  # أسعار تاريخيّة للتقلّب
+    local_price: float | None = None
+    import_price: float | None = None
+    intervention_cost: float | None = None  # تكلفة الإجراء المقترح
+    expected_gain: float | None = None  # العائد المتوقّع منه
     # تكاليف المدخلات المفصّلة (من المستخدم — لا نخترع أسعاراً)
-    input_costs: Optional[dict] = None  # {"seeds":..,"fertilizer":..,"labor":..,"irrigation":..}
-    area_ha: Optional[float] = None     # لحساب التكلفة لكلّ هكتار
+    input_costs: dict | None = None  # {"seeds":..,"fertilizer":..,"labor":..,"irrigation":..}
+    area_ha: float | None = None  # لحساب التكلفة لكلّ هكتار
 
 
 @dataclass
@@ -96,11 +103,12 @@ class CanonicalFieldState:
 
     تُنتَج مرّة واحدة، ويستهلكها decision_engine + guardrails (لا إعادة تفسير).
     """
+
     field_id: str
     generated_at: str
     # سيادة البيانات: كلّ حالة مملوكة لمستأجر (multi-tenant isolation)
-    tenant_id: Optional[str] = None
-    farm_id: Optional[str] = None
+    tenant_id: str | None = None
+    farm_id: str | None = None
     schema_version: str = SCHEMA_VERSION
     fusion_strategy_version: str = FUSION_STRATEGY_VERSION
     # الحقائق التشغيليّة المشتقّة (operational truths)
@@ -157,17 +165,13 @@ class CanonicalFieldState:
             # سلسلة الأدلّة: كلّ حقيقة ← مصدرها ووزنها
             "evidence_chain": list(self.provenance),
             # التحكيم: التعارضات وكيف حُسمت (conflict audit lineage)
-            "conflicts_resolved": [
-                c for c in self.contradictions if isinstance(c, dict)
-            ],
-            "warnings": [
-                c for c in self.contradictions if not isinstance(c, dict)
-            ],
+            "conflicts_resolved": [c for c in self.contradictions if isinstance(c, dict)],
+            "warnings": [c for c in self.contradictions if not isinstance(c, dict)],
             "missing_signals": list(self.missing_signals),
         }
 
     @classmethod
-    def from_dict(cls, d: dict) -> "CanonicalFieldState":
+    def from_dict(cls, d: dict) -> CanonicalFieldState:
         """يُعيد بناء الحالة من تسلسل محفوظ (للمقارنة التاريخيّة)."""
         return cls(
             field_id=d["field_id"],
@@ -175,23 +179,23 @@ class CanonicalFieldState:
             farm_id=d.get("farm_id"),
             generated_at=d["generated_at"],
             schema_version=d.get("schema_version", SCHEMA_VERSION),
-            fusion_strategy_version=d.get("fusion_strategy_version",
-                                          FUSION_STRATEGY_VERSION),
+            fusion_strategy_version=d.get("fusion_strategy_version", FUSION_STRATEGY_VERSION),
             operational_truths=d.get("operational_truths", {}),
             confidence=d.get("confidence", "none"),
             confidence_reason=d.get("confidence_reason", ""),
             provenance=d.get("provenance", []),
             contradictions=d.get("contradictions", []),
-            missing_signals=d.get("missing_signals", []))
+            missing_signals=d.get("missing_signals", []),
+        )
 
 
-def _signal_age_days(observed_at: Optional[str]) -> Optional[float]:
+def _signal_age_days(observed_at: str | None) -> float | None:
     """عمر الإشارة بالأيّام (للثقة المعتمدة على الحداثة)."""
     if not observed_at:
         return None
     try:
         dt = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return (now - dt).total_seconds() / 86400.0
     except (ValueError, AttributeError):
         return None
@@ -200,42 +204,57 @@ def _signal_age_days(observed_at: Optional[str]) -> Optional[float]:
 def compose_field_state(
     field_id: str,
     signals: list[SignalInput],
-    ndvi_trend_values: Optional[list[float]] = None,
-    crop_context: Optional["CropContext"] = None,
-    tenant_id: Optional[str] = None,
-    farm_id: Optional[str] = None,
+    ndvi_trend_values: list[float] | None = None,
+    crop_context: CropContext | None = None,
+    tenant_id: str | None = None,
+    farm_id: str | None = None,
 ) -> CanonicalFieldState:
     """يؤلّف الحالة الموحّدة من الإشارات — يعيد استخدام اللبنات الموجودة.
 
     لا يخترع منطق دمج جديد: يستدعي fuse_health/detect_trend/fuse_confidence.
     tenant_id/farm_id لسيادة البيانات (كلّ حالة مملوكة لمستأجر).
     """
-    now = datetime.now(timezone.utc).isoformat()
-    state = CanonicalFieldState(field_id=field_id, generated_at=now,
-                                tenant_id=tenant_id, farm_id=farm_id)
+    now = datetime.now(UTC).isoformat()
+    state = CanonicalFieldState(
+        field_id=field_id, generated_at=now, tenant_id=tenant_id, farm_id=farm_id
+    )
 
     by_source = {s.source: s for s in signals}
     truths: dict = {}
     prov: list = []
 
     # ── ١. صحّة نباتيّة من المؤشّرات الطيفيّة (يعيد استخدام fuse_health) ──
-    spectral = [s for s in signals if s.source in ("ndvi", "ndre", "ndsi", "ndwi")
-                and s.value is not None]
+    spectral = [
+        s for s in signals if s.source in ("ndvi", "ndre", "ndsi", "ndwi") and s.value is not None
+    ]
     if spectral:
         try:
             from core.engines.fusion import IndexReading, fuse_health
+
             # العائلة: المؤشّرات الطيفيّة البصريّة optical (للترابط في التباين)
-            readings = [IndexReading(name=s.source, value=s.value, sigma=0.05,
-                                     weight=1.0 / len(spectral), family="optical")
-                        for s in spectral]
+            readings = [
+                IndexReading(
+                    name=s.source,
+                    value=s.value,
+                    sigma=0.05,
+                    weight=1.0 / len(spectral),
+                    family="optical",
+                )
+                for s in spectral
+            ]
             # cloud_cover من إشارة إن وُجدت، وإلّا 0 (لا تخمين سحب عالٍ)
             cloud = next((s.value for s in signals if s.source == "cloud_cover"), 0.0)
             fr = fuse_health(readings, cloud_cover_pct=cloud or 0.0)
             truths["crop_vigor"] = round(fr.fused_value, 3)
             truths["crop_vigor_confidence"] = fr.confidence.value
             for s in spectral:
-                prov.append({"source": s.source, "weight": round(1.0 / len(spectral), 3),
-                             "contributes_to": "crop_vigor"})
+                prov.append(
+                    {
+                        "source": s.source,
+                        "weight": round(1.0 / len(spectral), 3),
+                        "contributes_to": "crop_vigor",
+                    }
+                )
         except Exception as e:  # noqa: BLE001 — صدق: لو فشل، نُعلن لا نخترع
             state.contradictions.append(f"fuse_health تعذّر: {e}")
     else:
@@ -246,6 +265,7 @@ def compose_field_state(
     if ndvi_sig and ndvi_sig.value is not None:
         try:
             from core.spatial.pipeline import estimate_lai_from_ndvi
+
             lai = estimate_lai_from_ndvi(ndvi_sig.value)
             if lai.get("lai") is not None:
                 truths["lai"] = round(lai["lai"], 2)
@@ -254,14 +274,15 @@ def compose_field_state(
         except Exception as e:  # noqa: BLE001
             state.contradictions.append(f"estimate_lai تعذّر: {e}")
     # BSI (تربة عارية) وSI (ملوحة طيفي): قرائن توجّه لعيّنة، لا تحكم.
-    for ind, key, note in (("bsi", "bare_soil_index", "تربة عارية — قرينة غطاء"),
-                           ("si", "spectral_salinity", "ملوحة طيفيّة — قرينة لا حكم")):
+    for ind, key, note in (
+        ("bsi", "bare_soil_index", "تربة عارية — قرينة غطاء"),
+        ("si", "spectral_salinity", "ملوحة طيفيّة — قرينة لا حكم"),
+    ):
         sig = by_source.get(ind)
         if sig and sig.value is not None:
             truths[key] = round(sig.value, 3)
             truths[f"{key}_class"] = "indication"  # قرينة (سقف ثقة منخفض)
-            prov.append({"source": ind, "contributes_to": key,
-                         "note_ar": note})
+            prov.append({"source": ind, "contributes_to": key, "note_ar": note})
 
     # ── ٢. مخاطر الملوحة من التربة (SAL-SOIL-*) ──
     soil_ec = by_source.get("soil_ec")
@@ -289,18 +310,21 @@ def compose_field_state(
     # ── ٣. التحليل الزمني (يعيد استخدام detect_trend) ──
     if ndvi_trend_values and len(ndvi_trend_values) >= 4:
         try:
-            from core.time_series import detect_trend, TimePoint
             from datetime import timedelta
+
+            from core.time_series import TimePoint, detect_trend
+
             # بناء TimePoint بتواريخ يوميّة تنازليّة (الأحدث آخراً)
-            base = datetime.now(timezone.utc)
+            base = datetime.now(UTC)
             n = len(ndvi_trend_values)
-            points = [TimePoint(
-                timestamp=(base - timedelta(days=(n - 1 - i))).isoformat(),
-                value=v) for i, v in enumerate(ndvi_trend_values)]
+            points = [
+                TimePoint(timestamp=(base - timedelta(days=(n - 1 - i))).isoformat(), value=v)
+                for i, v in enumerate(ndvi_trend_values)
+            ]
             tr = detect_trend(points)
-            truths["ndvi_trend"] = (tr.direction.value
-                                    if hasattr(tr.direction, "value")
-                                    else str(tr.direction))
+            truths["ndvi_trend"] = (
+                tr.direction.value if hasattr(tr.direction, "value") else str(tr.direction)
+            )
             truths["ndvi_slope_per_day"] = tr.slope_per_day
             prov.append({"source": "ndvi_timeseries", "contributes_to": "ndvi_trend"})
         except Exception as e:  # noqa: BLE001
@@ -328,10 +352,14 @@ def compose_field_state(
             truths["effective_status_rule"] = rule
             # سجّل التعارض إن كان مؤشّر إيجابي مُتجاوَزاً بقيد أعلى
             if status != "vigor_led" and vigor is not None and vigor > 0.5:
-                state.contradictions.append({
-                    "type": f"positive_signal_overridden_by_{cond_id}",
-                    "resolution": f"{cond_id}_overrides",
-                    "reason_ar": reason_ar, "source_rule": rule})
+                state.contradictions.append(
+                    {
+                        "type": f"positive_signal_overridden_by_{cond_id}",
+                        "resolution": f"{cond_id}_overrides",
+                        "reason_ar": reason_ar,
+                        "source_rule": rule,
+                    }
+                )
             break
 
     # ── ٥. الثقة الكلّيّة (يعيد استخدام fuse_confidence) ──
@@ -339,11 +367,17 @@ def compose_field_state(
     # الثقة تنخفض بنقص المُدخلات + قِدَم البيانات (المراجعة: confidence رياضي).
     source_names = [s.source for s in signals if s.value is not None]
     # ترجمة أسماء SAHOOL لمفردات knowledge_levels (soil_ec→ec)
-    _map = {"soil_ec": "ec", "ndre": "ndvi", "ndsi": "si", "ndwi": "ndvi",
-            "weather": "weather_station"}
+    _map = {
+        "soil_ec": "ec",
+        "ndre": "ndvi",
+        "ndsi": "si",
+        "ndwi": "ndvi",
+        "weather": "weather_station",
+    }
     mapped = [_map.get(s, s) for s in source_names]
     try:
         from core.knowledge_levels import fuse_confidence
+
         conf, reason = fuse_confidence(mapped or ["guess"])
         state.confidence = conf
         state.confidence_reason = reason
@@ -356,13 +390,15 @@ def compose_field_state(
         state.confidence_reason += f" | مؤشّرات ناقصة: {len(state.missing_signals)}"
 
     # خفض الثقة لو البيانات قديمة (freshness SLA)
-    stale = [s.source for s in signals
-             if (_signal_age_days(s.observed_at) or 0) > 14]
+    stale = [s.source for s in signals if (_signal_age_days(s.observed_at) or 0) > 14]
     if stale:
-        state.contradictions.append({
-            "type": "stale_observation",
-            "sources": stale,
-            "reason_ar": "بيانات أقدم من 14 يوماً — الثقة مخفّضة"})
+        state.contradictions.append(
+            {
+                "type": "stale_observation",
+                "sources": stale,
+                "reason_ar": "بيانات أقدم من 14 يوماً — الثقة مخفّضة",
+            }
+        )
 
     # ── ٦. التقويم الفينولوجي + النجمي (مرحلة النمو + Kc + التوقيت) ──
     if crop_context is not None:
@@ -383,6 +419,7 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
     if ctx.ndvi_series and len(ctx.ndvi_series) >= 3:
         try:
             from core.spatial.pipeline import detect_growth_stage_from_ndvi
+
             # detect_growth_stage_from_ndvi يتوقّع أزواج (يوم السنة، NDVI).
             # المايسترو قد يتلقّى أرقاماً مجرّدة [0.4,0.5,..] → نطبّعها لأزواج
             # بفهرسة متساوية (الترتيب الزمني محفوظ) لتجنّب 'float not subscriptable'.
@@ -394,16 +431,16 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
                 truths["growth_stage"] = gs["stage"]
                 truths["growth_stage_ar"] = gs.get("stage_ar")
                 truths["growth_stage_confidence"] = gs.get("confidence", "medium")
-                prov.append({"source": "ndvi_phenology",
-                             "contributes_to": "growth_stage"})
+                prov.append({"source": "ndvi_phenology", "contributes_to": "growth_stage"})
         except Exception as e:  # noqa: BLE001
             state.contradictions.append(f"detect_growth_stage تعذّر: {e}")
 
     # ② Kc/المرحلة من عمر المحصول (الجانب البيولوجي الثابت — FAO-56)
     if ctx.crop_id and ctx.days_after_planting is not None:
         try:
-            from core.engines.fao56 import kc_for_age, CropKcProfile
             from core.crop_cards.loader import load_crop_card
+            from core.engines.fao56 import CropKcProfile, kc_for_age
+
             card = load_crop_card(ctx.crop_id)
             if card and card.get("kc"):
                 kc_d = card["kc"]
@@ -415,7 +452,8 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
                     kc_end=kc_d.get("end", 0.4),
                     stage_days=kc_d.get("stage_days", [15, 25, 50, 30]),
                     salt_tolerance_ece=salt.get("threshold_ece_ds_m", 4.0),
-                    salt_slope_pct=salt.get("slope_pct_per_ds_m", 0.0))
+                    salt_slope_pct=salt.get("slope_pct_per_ds_m", 0.0),
+                )
                 kc, stage = kc_for_age(profile, ctx.days_after_planting)
                 truths["kc"] = round(kc, 2)
                 truths["fao56_stage"] = stage.value if hasattr(stage, "value") else str(stage)
@@ -430,10 +468,12 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
     if ctx.star_id:
         try:
             from core.anwa_calendar import anwa_timing_context
+
             tc = anwa_timing_context(ctx.star_id)
             if tc:
-                truths["timing_context_ar"] = getattr(tc, "traditional_advice_ar", None) or \
-                    getattr(tc, "note_ar", None)
+                truths["timing_context_ar"] = getattr(tc, "traditional_advice_ar", None) or getattr(
+                    tc, "note_ar", None
+                )
                 truths["timing_is_governing"] = getattr(tc, "is_governing", False)
                 truths["timing_source"] = "anwa_calendar (الحميري العنسي)"
                 prov.append({"source": "anwa_calendar", "contributes_to": "timing"})
@@ -449,6 +489,7 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
     if ctx.variety_id:
         try:
             from core.crop_cards.loader import load_variety_card
+
             v = load_variety_card(ctx.variety_id)
             if v:
                 traits = v.get("variety_traits", {})
@@ -459,7 +500,8 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
                 if salt_mod:
                     truths["salinity_threshold_shift"] = salt_mod
                     truths["salinity_threshold_note_ar"] = (
-                        f"الصنف يُعدّل عتبة الملوحة بـ{salt_mod} dS/m")
+                        f"الصنف يُعدّل عتبة الملوحة بـ{salt_mod} dS/m"
+                    )
                 truths["maturity_class"] = v.get("maturity_class") or traits.get("maturity_class")
                 prov.append({"source": "cultivar", "contributes_to": "decision_thresholds"})
         except Exception as e:  # noqa: BLE001
@@ -471,7 +513,7 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
         prov.append({"source": "farmer_intent", "contributes_to": "decision_weighting"})
 
 
-def assess_economics(econ: "EconomicContext") -> dict:
+def assess_economics(econ: EconomicContext) -> dict:
     """يحلّل الجدوى الاقتصاديّة — يعيد استخدام analyse_market.
 
     صدق: يُرجِع تقييماً لا يحكم وحده؛ القرار النهائي يوازنه مع الأَولويّات.
@@ -481,9 +523,13 @@ def assess_economics(econ: "EconomicContext") -> dict:
     if econ.crop_id and econ.historical_prices:
         try:
             from core.engines.market_analyzer import analyse_market
-            sig = analyse_market(econ.crop_id, econ.historical_prices,
-                                 econ.local_price, econ.import_price)
-            result["price_risk"] = sig.price_risk.value if hasattr(sig.price_risk, "value") else str(sig.price_risk)
+
+            sig = analyse_market(
+                econ.crop_id, econ.historical_prices, econ.local_price, econ.import_price
+            )
+            result["price_risk"] = (
+                sig.price_risk.value if hasattr(sig.price_risk, "value") else str(sig.price_risk)
+            )
             result["price_cv"] = sig.cv
             result["market_opportunity_ar"] = sig.opportunity_ar
             result["market_data_quality"] = sig.data_quality
@@ -499,7 +545,8 @@ def assess_economics(econ: "EconomicContext") -> dict:
         if not result["economically_justified"]:
             result["economic_note_ar"] = (
                 "العائد المتوقّع لا يغطّي تكلفة الإجراء — قد يكون 'لا تدخّل' "
-                "أصحّ اقتصاديّاً رغم وجود إجهاد بسيط.")
+                "أصحّ اقتصاديّاً رغم وجود إجهاد بسيط."
+            )
 
     # تكاليف المدخلات المفصّلة (من المستخدم) — إجمالي + لكلّ هكتار
     if econ.input_costs:
@@ -511,9 +558,9 @@ def assess_economics(econ: "EconomicContext") -> dict:
     return result
 
 
-def economic_context_from_ledger(season_summary, crop_id=None,
-                                 historical_prices=None,
-                                 local_price=None, area_ha=None):
+def economic_context_from_ledger(
+    season_summary, crop_id=None, historical_prices=None, local_price=None, area_ha=None
+):
     """يبني EconomicContext من ملخّص موسم دفتر المزرعة (farm_ledger).
 
     دفتر المزرعة يُملأ من Odoo (المخزون/العمليّات الحقليّة/التكاليف) عبر
@@ -539,9 +586,9 @@ def economic_context_from_ledger(season_summary, crop_id=None,
     return ctx
 
 
-def state_to_event_row(state: "CanonicalFieldState",
-                       actor_id: str = "system",
-                       command_id: Optional[str] = None) -> dict:
+def state_to_event_row(
+    state: CanonicalFieldState, actor_id: str = "system", command_id: str | None = None
+) -> dict:
     """يحوّل الحالة الموحّدة إلى صفّ حدث لجدول events الموجود (DB-backed).
 
     يربط المايسترو الجديد بالـpersistence/event-sourcing الموجود (events table).
@@ -560,14 +607,13 @@ def state_to_event_row(state: "CanonicalFieldState",
         "tenant_id": state.tenant_id,
         "actor_id": actor_id,
         "command_id": command_id,
-        "payload": state.to_dict(),   # الحالة كاملة (JSONB) — قابلة للـreplay
-        "source": "ai",               # المايسترو مصدر ذكاء
+        "payload": state.to_dict(),  # الحالة كاملة (JSONB) — قابلة للـreplay
+        "source": "ai",  # المايسترو مصدر ذكاء
         "occurred_at": state.generated_at,
     }
 
 
-def compare_seasons(current: "CanonicalFieldState",
-                    previous: "CanonicalFieldState") -> dict:
+def compare_seasons(current: CanonicalFieldState, previous: CanonicalFieldState) -> dict:
     """يقارن حالتين موسميّتين (intelligence over time — رفع الفجوة الزمنيّة).
 
     يعمل على CanonicalFieldState المحفوظة (عبر state_to_event_row + event_replay).
@@ -589,17 +635,21 @@ def compare_seasons(current: "CanonicalFieldState",
         if isinstance(cur_v, (int, float)) and isinstance(prev_v, (int, float)):
             delta = round(cur_v - prev_v, 3)
             pct = round((delta / prev_v) * 100, 1) if prev_v else None
-            result["deltas"][metric] = {"current": cur_v, "previous": prev_v,
-                                        "delta": delta, "pct_change": pct}
+            result["deltas"][metric] = {
+                "current": cur_v,
+                "previous": prev_v,
+                "delta": delta,
+                "pct_change": pct,
+            }
         elif cur_v is None or prev_v is None:
             result["notes_ar"].append(f"{metric}: غير متاح في أحد الموسمين (لا مقارنة)")
     # تنبيهات الاتّجاه المهمّة
     sal = result["deltas"].get("salinity_risk")
     if sal and sal["delta"] > 0.05:
         result["notes_ar"].append(
-            f"⚠ الملوحة ترتفع عبر المواسم (+{sal['delta']}) — تدهور تدريجي محتمل.")
+            f"⚠ الملوحة ترتفع عبر المواسم (+{sal['delta']}) — تدهور تدريجي محتمل."
+        )
     vig = result["deltas"].get("crop_vigor")
     if vig and vig["pct_change"] is not None and vig["pct_change"] < -10:
-        result["notes_ar"].append(
-            f"⚠ الحيويّة أدنى {abs(vig['pct_change'])}% من الموسم السابق.")
+        result["notes_ar"].append(f"⚠ الحيويّة أدنى {abs(vig['pct_change'])}% من الموسم السابق.")
     return result

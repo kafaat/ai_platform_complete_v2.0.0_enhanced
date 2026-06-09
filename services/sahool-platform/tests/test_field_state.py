@@ -1,6 +1,9 @@
 """Tests for field_state, lab cycle, consent — the real gaps from v9.1.0 review."""
-import tempfile, os
+
+import os
+import tempfile
 from pathlib import Path
+
 from storage import lite_store
 
 

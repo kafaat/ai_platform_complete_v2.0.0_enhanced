@@ -13,14 +13,14 @@ sampling = 3-6 مناطق × عيّنة مركّبة (composite) = 3-6 تحال�
 ⚠️ تقديري: التوصيات إرشاديّة من أدبيّات (Iowa State / OSU / GeoPard).
 العدد النهائي للعيّنات قرار المزارع حسب ميزانيّته وتباين حقله.
 """
+
 from __future__ import annotations
-from typing import Optional
 
 
 def recommend_sampling_strategy(
     area_ha: float,
     has_field_history: bool = False,
-    variability: str = "unknown",   # low | medium | high | unknown
+    variability: str = "unknown",  # low | medium | high | unknown
 ) -> dict:
     """يوصي باستراتيجيّة أخذ العيّنات (zone أو grid) + عدد العيّنات.
 
@@ -43,8 +43,8 @@ def recommend_sampling_strategy(
     if method == "zone":
         # 3-6 مناطق حسب المساحة، عيّنة مركّبة لكلّ منطقة
         zones = max(3, min(6, round(area_ha / 15)))
-        samples = zones                       # عيّنة composite لكلّ منطقة
-        cores_per_sample = 8                  # 8-12 core لتكوين العيّنة المركّبة
+        samples = zones  # عيّنة composite لكلّ منطقة
+        cores_per_sample = 8  # 8-12 core لتكوين العيّنة المركّبة
         note = f"{zones} مناطق × عيّنة مركّبة (من ~{cores_per_sample} cores) = {samples} تحليل مخبري"
     else:
         # grid: ~عيّنة لكلّ 1 هكتار (cell ~2.5 acre ≈ 1 ha) — مكلف
@@ -64,12 +64,12 @@ def recommend_sampling_strategy(
         "calibration_advice_ar": "اجمع grid مرّة كل 3-5 سنوات للمعايرة، وzone كلّ موسم",
         "deferred": {
             "auto_zoning": "تقسيم المناطق تلقائيّاً بـk-means على صور القمر — "
-                           "مؤجّل (يحتاج scikit-learn + تباين كافٍ)",
+            "مؤجّل (يحتاج scikit-learn + تباين كافٍ)",
         },
     }
 
 
-def sampling_depth_advice(crop: Optional[str] = None) -> dict:
+def sampling_depth_advice(crop: str | None = None) -> dict:
     """عمق أخذ العيّنة حسب نوع الجذور (إرشادي)."""
     # عمق قياسي 0-30 سم للأغلب؛ أعمق للجذور العميقة
     deep_root = {"alfalfa", "sorghum", "faba_bean", "cowpea"}

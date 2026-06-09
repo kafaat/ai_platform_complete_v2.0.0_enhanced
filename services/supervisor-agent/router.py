@@ -3,8 +3,9 @@
 Hierarchical Intent Router for SAHOOL Supervisor Agent
 Classifies queries into domains and sub-intents for skill routing.
 """
+
 import re
-from typing import Dict, List, Tuple
+
 
 class HierarchicalRouter:
     """
@@ -13,53 +14,53 @@ class HierarchicalRouter:
     Level 2: Sub-intent (ndvi, irrigation, pest, price, etc.)
     """
 
-    def __init__(self, skill_libraries: Dict):
+    def __init__(self, skill_libraries: dict):
         self.skill_libraries = skill_libraries
 
         # Domain keywords (Arabic + English)
         self.domain_patterns = {
             "remote_sensing": [
                 r"ndvi|ندفي|صحة.*حقل|صورة.*فضائية|satellite|sentinel|أقمار|خرائط",
-                r"لون|green|red|nir|swir|radar|رادار|sar"
+                r"لون|green|red|nir|swir|radar|رادار|sar",
             ],
             "crop_model": [
                 r"wofost|محاكاة|نموذج|yield|إنتاج|biomass|كتلة.*حيوية|gdd|phenology",
-                r"irrigation|ري|أسقي|اسقي|سقي|مياه|et0|evapotranspiration|تبخير|fertilizer|تسميد|npk"
+                r"irrigation|ري|أسقي|اسقي|سقي|مياه|et0|evapotranspiration|تبخير|fertilizer|تسميد|npk",
             ],
             "market": [
                 r"price|سعر|market|سوق|buy|buyer|buyers|buying|sell|seller|selling|بيع|شراء|contract|عقد",
-                r"carbon|كربون|credit|ائتمان|subsidy|إعانة|loan|قرض"
+                r"carbon|كربون|credit|ائتمان|subsidy|إعانة|loan|قرض",
             ],
             "advisory": [
                 r"pest|آفة|disease|مرض|weed|أعشاب|advice|نصيحة|recommend|توصية|what.*do|ماذا.*أفعل",
-                r"help|مساعدة|problem|مشكلة|symptom|عرض|damage|ضرر|treatment|علاج"
-            ]
+                r"help|مساعدة|problem|مشكلة|symptom|عرض|damage|ضرر|treatment|علاج",
+            ],
         }
 
         self.sub_intent_patterns = {
             "remote_sensing": {
                 "ndvi": r"ndvi|ندفي|vegetation_index|مؤشر.*نبات",
                 "full_analysis": r"full.*analysis|تحليل.*شامل|complete.*report|تقرير.*كامل",
-                "change_detection": r"change|تغير|difference|فرق|compare|مقارنة|before.*after|قبل.*بعد"
+                "change_detection": r"change|تغير|difference|فرق|compare|مقارنة|before.*after|قبل.*بعد",
             },
             "crop_model": {
                 "simulate_current": r"simulate|محاكاة|model|نموذج|predict|تنبؤ|forecast|توقع",
                 "irrigation_advice": r"irrigation|ري|أسقي|اسقي|سقي|مياه|water.*need|حاجة.*مياه|when.*water|متى.*أسقي|schedule|جدول",
-                "fertilizer_advice": r"fertilizer|تسميد|npk|nutrient|غذائ|feed|أطعم|when.*fertilize|متى.*أسمد"
+                "fertilizer_advice": r"fertilizer|تسميد|npk|nutrient|غذائ|feed|أطعم|when.*fertilize|متى.*أسمد",
             },
             "market": {
                 "price_current": r"price|سعر|cost|تكلفة|how.*much|كم.*سعر",
                 "price_forecast": r"forecast|توقع|future|مستقبل|trend|اتجاه|will.*price|هل.*يرتفع|next.*month|الشهر.*القادمة",
-                "create_contract": r"contract|عقد|sell.*before|بيع.*قبل|forward|آجل|pre.*harvest|قبل.*الحصاد|buyer|مشتري"
+                "create_contract": r"contract|عقد|sell.*before|بيع.*قبل|forward|آجل|pre.*harvest|قبل.*الحصاد|buyer|مشتري",
             },
             "advisory": {
                 "pest_id": r"pest|آفة|insect|حشرة|bug|بق|worm|دودة|identify|تشخيص|what.*this|ما.*هذا|photo.*pest|صورة.*آفة",
                 "disease_id": r"disease|مرض|fungus|فطر|virus|فيروس|bacteria|بكتيريا|spot|بقعة|rot|تعفن|wilt|ذبول",
-                "general_advice": r"advice|نصيحة|recommend|توصية|suggest|أقترح|what.*do|ماذا.*أفعل|how.*improve|كيف.*أحسن|best.*practice|أفضل.*ممارسة"
-            }
+                "general_advice": r"advice|نصيحة|recommend|توصية|suggest|أقترح|what.*do|ماذا.*أفعل|how.*improve|كيف.*أحسن|best.*practice|أفضل.*ممارسة",
+            },
         }
 
-    async def classify_intent(self, query: str) -> Tuple[str, str, float]:
+    async def classify_intent(self, query: str) -> tuple[str, str, float]:
         """
         Returns: (domain, sub_intent, confidence)
         """
@@ -94,7 +95,7 @@ class HierarchicalRouter:
                 "remote_sensing": "full_analysis",
                 "crop_model": "simulate_current",
                 "market": "price_current",
-                "advisory": "general_advice"
+                "advisory": "general_advice",
             }
             best_sub = defaults.get(best_domain, "general_advice")
             sub_confidence = 0.6

@@ -18,6 +18,7 @@ no data they return UNKNOWN, never a fake number.
 Source: CV as volatility proxy is standard; import-substitution gap is a
 practical proxy where absolute price forecasting is infeasible.
 """
+
 from __future__ import annotations
 
 import statistics
@@ -39,7 +40,7 @@ class MarketSignal:
     cv: float | None
     gap_score: float | None
     opportunity_ar: str
-    data_quality: str            # "good" | "sparse" | "none"
+    data_quality: str  # "good" | "sparse" | "none"
 
 
 def coefficient_of_variation(prices: list[float]) -> float | None:
@@ -63,9 +64,7 @@ def classify_price_risk(cv: float | None) -> PriceRisk:
     return PriceRisk.LOW
 
 
-def import_substitution_gap(
-    local_price: float | None, import_price: float | None
-) -> float | None:
+def import_substitution_gap(local_price: float | None, import_price: float | None) -> float | None:
     """(import - local)/local. Positive => local is cheaper => substitution
     opportunity. Needs both prices."""
     if not (local_price and import_price) or local_price <= 0:
@@ -124,16 +123,24 @@ def regional_supply_signal(
     """
     valid = [x for x in current_season_lai if x is not None and x >= 0]
     if not valid:
-        return {"signal": "unknown", "confidence": "none",
-                "note_ar": "لا بيانات LAI كافية لإشارة العرض"}
+        return {
+            "signal": "unknown",
+            "confidence": "none",
+            "note_ar": "لا بيانات LAI كافية لإشارة العرض",
+        }
     n = len(valid)
     current_avg = sum(valid) / n
 
     if historical_avg_lai is None or n < 5:
-        return {"signal": "unknown", "confidence": "low",
-                "current_avg_lai": round(current_avg, 2),
-                "note_ar": (f"متوسط LAI الحالي ≈ {current_avg:.1f} (من {n} حقل). "
-                            f"لا تاريخ كافٍ للمقارنة — يلزم ≥5 حقول وتاريخ موسمي")}
+        return {
+            "signal": "unknown",
+            "confidence": "low",
+            "current_avg_lai": round(current_avg, 2),
+            "note_ar": (
+                f"متوسط LAI الحالي ≈ {current_avg:.1f} (من {n} حقل). "
+                f"لا تاريخ كافٍ للمقارنة — يلزم ≥5 حقول وتاريخ موسمي"
+            ),
+        }
 
     ratio = current_avg / historical_avg_lai if historical_avg_lai > 0 else 1.0
     if ratio >= 1.15:
@@ -150,6 +157,8 @@ def regional_supply_signal(
         "ratio": round(ratio, 2),
         "n_fields": n,
         "confidence": "low",  # اتجاه استرشادي، لا تنبّؤ
-        "note_ar": (f"إشارة العرض الإقليمي ({n} حقل بالمنصّة): {ar}. "
-                    f"اتجاه استرشادي من الكتلة الحيوية — ليس تنبّؤ سعر."),
+        "note_ar": (
+            f"إشارة العرض الإقليمي ({n} حقل بالمنصّة): {ar}. "
+            f"اتجاه استرشادي من الكتلة الحيوية — ليس تنبّؤ سعر."
+        ),
     }

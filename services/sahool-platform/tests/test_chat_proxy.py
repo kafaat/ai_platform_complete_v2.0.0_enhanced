@@ -1,11 +1,15 @@
 """Tests for api/chat_proxy_reference.py — the security gate protecting the Claude API key.
 Verifies rate-limiting, token cap, and server-side context injection. Previously ZERO tests."""
-import sys, time, importlib.util
+
+import importlib.util
+import sys
+import time
 from pathlib import Path
 
 # تحميل الوحدة المرجعية (خارج core/، في api/)
 _spec = importlib.util.spec_from_file_location(
-    "chat_proxy", Path(__file__).parent.parent / "api" / "chat_proxy_reference.py")
+    "chat_proxy", Path(__file__).parent.parent / "api" / "chat_proxy_reference.py"
+)
 proxy = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(proxy)
 

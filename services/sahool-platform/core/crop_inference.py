@@ -18,10 +18,10 @@ sahool_core.crop_inference
   شجرة دائمة: التزام 5-20 سنة، مخاطرة عالية، سقف LOW، تتطلّب دراسة.
 بلا بيانات تربة عميقة، الأشجار تُحظر (NONE) — القرار طويل الأمد يحتاج بيانات أكثر.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
-
 
 _CONF_RANK = {"none": 0, "low": 1, "medium": 2, "high": 3}
 _RANK_CONF = {v: k for k, v in _CONF_RANK.items()}
@@ -30,10 +30,10 @@ _RANK_CONF = {v: k for k, v in _CONF_RANK.items()}
 @dataclass
 class CropCandidate:
     crop_id: str
-    score: float                 # 0..1
-    confidence: str              # none/low/medium
+    score: float  # 0..1
+    confidence: str  # none/low/medium
     is_tree: bool
-    recommendation_ar: str       # توصية التجريب (لا قرار)
+    recommendation_ar: str  # توصية التجريب (لا قرار)
     note_ar: str = ""
 
 
@@ -43,7 +43,7 @@ def _min_conf(a: str, b: str) -> str:
 
 def infer_suitable_crops(
     *,
-    crop_scores: list[dict],          # [{crop_id, climate, soil, water, market, is_tree, maturity_days}]
+    crop_scores: list[dict],  # [{crop_id, climate, soil, water, market, is_tree, maturity_days}]
     has_lab_soil: bool,
 ) -> list[CropCandidate]:
     """يُنتج قائمة محاصيل مرشّحة مرتّبة. لا يُقرر — يقترح التجريب.
@@ -60,10 +60,12 @@ def infer_suitable_crops(
 
     out: list[CropCandidate] = []
     for c in crop_scores:
-        total = (c.get("climate", 0.5) * w_climate +
-                 c.get("soil", 0.5) * w_soil +
-                 c.get("water", 0.5) * w_water +
-                 c.get("market", 0.5) * w_market)
+        total = (
+            c.get("climate", 0.5) * w_climate
+            + c.get("soil", 0.5) * w_soil
+            + c.get("water", 0.5) * w_water
+            + c.get("market", 0.5) * w_market
+        )
         is_tree = bool(c.get("is_tree") or (c.get("maturity_days", 0) or 0) > 365)
 
         # السقف: الأشجار أدنى دائماً (التزام طويل، مخاطرة عالية)
@@ -81,20 +83,30 @@ def infer_suitable_crops(
         elif is_tree:
             rec = "لا تزرع بلا دراسة تفصيلية — التزام طويل الأمد"
         elif has_lab_soil:
-            rec = ("مرشّح — جرّب RCBD: قسّم 50% من المساحة لقطعتين متجانستين "
-                   "(معاملة + شاهد) في 3-4 كتل، وقِس الغلّة")
+            rec = (
+                "مرشّح — جرّب RCBD: قسّم 50% من المساحة لقطعتين متجانستين "
+                "(معاملة + شاهد) في 3-4 كتل، وقِس الغلّة"
+            )
         else:
-            rec = ("مرشّح استكشافي — جرّب RCBD مصغّراً: 20% بقطعتين (معاملة + "
-                   "شاهد) في 3 كتل، أرسل عيّنات تربة مع التجربة")
+            rec = (
+                "مرشّح استكشافي — جرّب RCBD مصغّراً: 20% بقطعتين (معاملة + "
+                "شاهد) في 3 كتل، أرسل عيّنات تربة مع التجربة"
+            )
 
         # المحاصيل ضعيفة الدرجة تُرفض من القائمة
         if total < 0.55 and not is_tree:
             ceiling = "none"
             rec = "غير مرشّح — الدرجة منخفضة لظروف الموقع"
 
-        out.append(CropCandidate(
-            crop_id=c["crop_id"], score=round(total, 3), confidence=ceiling,
-            is_tree=is_tree, recommendation_ar=rec,
-            note_ar=("قائمة مرشّحة لا قرار — الفحص الميداني والمزارع يقرّران")))
+        out.append(
+            CropCandidate(
+                crop_id=c["crop_id"],
+                score=round(total, 3),
+                confidence=ceiling,
+                is_tree=is_tree,
+                recommendation_ar=rec,
+                note_ar=("قائمة مرشّحة لا قرار — الفحص الميداني والمزارع يقرّران"),
+            )
+        )
 
     return sorted(out, key=lambda x: x.score, reverse=True)

@@ -14,8 +14,11 @@ tests_v9/test_trueup_endpoint.py — اختبار منطق endpoint الـTrueUp
 
    عند توفّر fastapi: يُستبدَل هذا بـTestClient(app) حقيقي.
 """
-import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../services/sahool-platform'))
+
+import os
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../services/sahool-platform"))
 
 from api.trueup import TrueUpEngine, TrueUpInput, TrueUpStatus
 
@@ -45,8 +48,11 @@ def simulate_trueup_endpoint(path_field_id: str, req: dict):
     )
 
     if result.status == TrueUpStatus.REJECTED:
-        return {"_status_code": 422, "rationale_ar": result.rationale_ar,
-                "warnings": result.warnings}
+        return {
+            "_status_code": 422,
+            "rationale_ar": result.rationale_ar,
+            "warnings": result.warnings,
+        }
 
     return {
         "_status_code": 200,
@@ -90,8 +96,10 @@ def test_endpoint_field_mismatch():
     req = {
         "field_id": "aaaa1111-1111-1111-1111-111111111111",
         "operation_id": "22222222-2222-2222-2222-222222222222",
-        "crop": "wheat", "actual_weight_kg": 2100,
-        "actual_moisture_pct": 14.0, "measured_weight_kg": 2000,
+        "crop": "wheat",
+        "actual_weight_kg": 2100,
+        "actual_moisture_pct": 14.0,
+        "measured_weight_kg": 2000,
         "measured_yield_kg_ha": 2500,
     }
     # path يختلف عن body
@@ -122,12 +130,10 @@ def test_endpoint_rejection():
     return results
 
 
-
-
 # ════════════════════════════════════════════════════════════════
 # Geometry validation endpoint logic (توصيل الوحدة الثانية)
 # ════════════════════════════════════════════════════════════════
-from api.geospatial_integrity import validate_field_geometry
+from api.geospatial_integrity import validate_field_geometry  # noqa: E402
 
 
 def simulate_geometry_endpoint(geojson, declared_crs=None):
@@ -145,8 +151,9 @@ def test_geometry_endpoint_valid():
     results = []
     yemen_field = {
         "type": "Polygon",
-        "coordinates": [[[45.30, 15.45], [45.32, 15.45],
-                         [45.32, 15.47], [45.30, 15.47], [45.30, 15.45]]],
+        "coordinates": [
+            [[45.30, 15.45], [45.32, 15.45], [45.32, 15.47], [45.30, 15.47], [45.30, 15.45]]
+        ],
     }
     resp = simulate_geometry_endpoint(yemen_field)
     if resp["valid"]:
@@ -160,8 +167,9 @@ def test_geometry_endpoint_bad_crs():
     results = []
     field = {
         "type": "Polygon",
-        "coordinates": [[[45.30, 15.45], [45.32, 15.45],
-                         [45.32, 15.47], [45.30, 15.47], [45.30, 15.45]]],
+        "coordinates": [
+            [[45.30, 15.45], [45.32, 15.45], [45.32, 15.47], [45.30, 15.47], [45.30, 15.45]]
+        ],
     }
     resp = simulate_geometry_endpoint(field, declared_crs="EPSG:32638")
     if any(i["code"] == "invalid_crs" for i in resp["issues"]):
@@ -173,8 +181,9 @@ def test_geometry_endpoint_self_intersect():
     results = []
     bowtie = {
         "type": "Polygon",
-        "coordinates": [[[45.30, 15.45], [45.32, 15.47],
-                         [45.32, 15.45], [45.30, 15.47], [45.30, 15.45]]],
+        "coordinates": [
+            [[45.30, 15.45], [45.32, 15.47], [45.32, 15.45], [45.30, 15.47], [45.30, 15.45]]
+        ],
     }
     resp = simulate_geometry_endpoint(bowtie)
     if not resp["valid"] and any(i["code"] == "self_intersection" for i in resp["issues"]):
@@ -184,15 +193,15 @@ def test_geometry_endpoint_self_intersect():
 
 # سجّلها في الـrunner
 def run_all():
-    print("="*60)
+    print("=" * 60)
     print("  Endpoint logic tests (TrueUp + Geometry — موصَّلتان)")
-    print("="*60)
+    print("=" * 60)
     suites = [
-        ("TrueUp: happy (200)",     test_endpoint_happy_path),
-        ("TrueUp: mismatch (400)",  test_endpoint_field_mismatch),
+        ("TrueUp: happy (200)", test_endpoint_happy_path),
+        ("TrueUp: mismatch (400)", test_endpoint_field_mismatch),
         ("TrueUp: rejection (422)", test_endpoint_rejection),
-        ("Geometry: valid",         test_geometry_endpoint_valid),
-        ("Geometry: bad CRS",       test_geometry_endpoint_bad_crs),
+        ("Geometry: valid", test_geometry_endpoint_valid),
+        ("Geometry: bad CRS", test_geometry_endpoint_bad_crs),
         ("Geometry: self-intersect", test_geometry_endpoint_self_intersect),
     ]
     tp = tf = 0
@@ -202,7 +211,7 @@ def run_all():
             print(f"  {status} {msg}")
             tp += 1 if status == "✓" else 0
             tf += 1 if status == "✗" else 0
-    print(f"\n{'='*60}\n  Passed: {tp}/{tp+tf}\n{'='*60}")
+    print(f"\n{'=' * 60}\n  Passed: {tp}/{tp + tf}\n{'=' * 60}")
     return tp, tf
 
 

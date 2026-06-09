@@ -16,53 +16,69 @@ api/postharvest_advisor.py — إرشاد ما بعد الحصاد (التخزي
 السياق اليمني: التخزين التقليدي شائع؛ تحسينه البسيط (تجفيف + نظافة + فحص)
 يقلّل الفقد كثيراً دون تكلفة عالية.
 """
+
 from __future__ import annotations
-
-from typing import Dict, List, Optional
-
 
 # عتبات الرطوبة القصوى للتخزين الآمن (% رطوبة الحبوب)
 # المصدر: أدبيّات تخزين الحبوب — فوقها خطر حشرات وعفن
-_MOISTURE_MAX: Dict[str, Dict] = {
-    "wheat":   {"name_ar": "القمح", "safe_max": 12.0, "long_term": 12.0},
-    "maize":   {"name_ar": "الذرة الشاميّة", "safe_max": 13.0, "long_term": 13.0},
+_MOISTURE_MAX: dict[str, dict] = {
+    "wheat": {"name_ar": "القمح", "safe_max": 12.0, "long_term": 12.0},
+    "maize": {"name_ar": "الذرة الشاميّة", "safe_max": 13.0, "long_term": 13.0},
     "sorghum": {"name_ar": "الذرة الرفيعة", "safe_max": 12.0, "long_term": 12.0},
-    "millet":  {"name_ar": "الدخن", "safe_max": 12.0, "long_term": 12.0},
-    "barley":  {"name_ar": "الشعير", "safe_max": 12.0, "long_term": 12.0},
+    "millet": {"name_ar": "الدخن", "safe_max": 12.0, "long_term": 12.0},
+    "barley": {"name_ar": "الشعير", "safe_max": 12.0, "long_term": 12.0},
 }
 
 _ALIASES = {
-    "قمح": "wheat", "ذرة شامية": "maize", "ذرة شاميّة": "maize",
-    "ذرة رفيعة": "sorghum", "دخن": "millet", "شعير": "barley",
+    "قمح": "wheat",
+    "ذرة شامية": "maize",
+    "ذرة شاميّة": "maize",
+    "ذرة رفيعة": "sorghum",
+    "دخن": "millet",
+    "شعير": "barley",
 }
 
 # الآفات المخزنيّة الرئيسيّة للحبوب
-_STORAGE_PESTS: List[Dict] = [
-    {"name_ar": "سوسة الأرز", "scientific": "Sitophilus oryzae",
-     "note_ar": "تثقب الحبّة وتتغذّى داخلها — من أخطر آفات الحبوب المخزونة."},
-    {"name_ar": "خنفساء الخابرا", "scientific": "Trogoderma granarium",
-     "note_ar": "يرقاتها تتلف الحبوب بشدّة، تقاوم الظروف الجافّة طويلاً."},
-    {"name_ar": "ثاقبة الحبوب الصغرى", "scientific": "Rhyzopertha dominica",
-     "note_ar": "تثقب الحبوب وتطحنها، تترك مسحوقاً."},
-    {"name_ar": "فراش (عثّة) الحبوب", "scientific": "Sitotroga cerealella",
-     "note_ar": "يرقاتها داخل الحبّة — الذرة الشاميّة بأغلفتها (الكيزان) محميّة جزئيّاً."},
+_STORAGE_PESTS: list[dict] = [
+    {
+        "name_ar": "سوسة الأرز",
+        "scientific": "Sitophilus oryzae",
+        "note_ar": "تثقب الحبّة وتتغذّى داخلها — من أخطر آفات الحبوب المخزونة.",
+    },
+    {
+        "name_ar": "خنفساء الخابرا",
+        "scientific": "Trogoderma granarium",
+        "note_ar": "يرقاتها تتلف الحبوب بشدّة، تقاوم الظروف الجافّة طويلاً.",
+    },
+    {
+        "name_ar": "ثاقبة الحبوب الصغرى",
+        "scientific": "Rhyzopertha dominica",
+        "note_ar": "تثقب الحبوب وتطحنها، تترك مسحوقاً.",
+    },
+    {
+        "name_ar": "فراش (عثّة) الحبوب",
+        "scientific": "Sitotroga cerealella",
+        "note_ar": "يرقاتها داخل الحبّة — الذرة الشاميّة بأغلفتها (الكيزان) محميّة جزئيّاً.",
+    },
 ]
 
 
-def _resolve(crop: str) -> Optional[str]:
+def _resolve(crop: str) -> str | None:
     c = crop.strip().lower()
     if c in _MOISTURE_MAX:
         return c
     return _ALIASES.get(crop.strip())
 
 
-def check_storage_moisture(crop: str, moisture_pct: float) -> Dict:
+def check_storage_moisture(crop: str, moisture_pct: float) -> dict:
     """يقيّم: هل رطوبة الحبوب آمنة للتخزين؟"""
     key = _resolve(crop)
     if not key:
-        return {"supported": False,
-                "message_ar": f"لا عتبة تخزين لـ«{crop}». المدعوم: "
-                              + "، ".join(v["name_ar"] for v in _MOISTURE_MAX.values())}
+        return {
+            "supported": False,
+            "message_ar": f"لا عتبة تخزين لـ«{crop}». المدعوم: "
+            + "، ".join(v["name_ar"] for v in _MOISTURE_MAX.values()),
+        }
     c = _MOISTURE_MAX[key]
     safe = c["safe_max"]
     if moisture_pct <= safe:
@@ -70,21 +86,28 @@ def check_storage_moisture(crop: str, moisture_pct: float) -> Dict:
         advice = f"رطوبة {moisture_pct:.1f}% ضمن الحدّ الآمن (≤{safe:.0f}%) لـ{c['name_ar']}."
     elif moisture_pct <= safe + 2:
         status, status_ar = "risky", "⚠ حدّيّة"
-        advice = (f"رطوبة {moisture_pct:.1f}% أعلى من الحدّ الآمن (≤{safe:.0f}%). "
-                  "جفّف أكثر قبل التخزين الطويل لتفادي الحشرات والعفن.")
+        advice = (
+            f"رطوبة {moisture_pct:.1f}% أعلى من الحدّ الآمن (≤{safe:.0f}%). "
+            "جفّف أكثر قبل التخزين الطويل لتفادي الحشرات والعفن."
+        )
     else:
         status, status_ar = "unsafe", "✗ غير آمنة"
-        advice = (f"رطوبة {moisture_pct:.1f}% مرتفعة جدّاً (الحدّ ≤{safe:.0f}%). "
-                  "التخزين الآن يعرّض المحصول لإصابة حشريّة وعفن — جفّف فوراً.")
+        advice = (
+            f"رطوبة {moisture_pct:.1f}% مرتفعة جدّاً (الحدّ ≤{safe:.0f}%). "
+            "التخزين الآن يعرّض المحصول لإصابة حشريّة وعفن — جفّف فوراً."
+        )
     return {
         "supported": True,
         "crop_ar": c["name_ar"],
-        "moisture_pct": moisture_pct, "safe_max_pct": safe,
-        "status": status, "status_ar": status_ar, "advice_ar": advice,
+        "moisture_pct": moisture_pct,
+        "safe_max_pct": safe,
+        "status": status,
+        "status_ar": status_ar,
+        "advice_ar": advice,
     }
 
 
-def storage_pests() -> Dict:
+def storage_pests() -> dict:
     """الآفات المخزنيّة الرئيسيّة للحبوب."""
     return {
         "pests": _STORAGE_PESTS,
@@ -95,15 +118,30 @@ def storage_pests() -> Dict:
     }
 
 
-def storage_best_practices(crop: Optional[str] = None) -> Dict:
+def storage_best_practices(crop: str | None = None) -> dict:
     """أفضل ممارسات التخزين لتقليل الفقد بعد الحصاد."""
     practices = [
-        {"topic_ar": "التجفيف", "detail_ar": "جفّف الحبوب لرطوبة ≤12-13% قبل التخزين (الأهمّ على الإطلاق)."},
-        {"topic_ar": "النظافة", "detail_ar": "حبوب نظيفة خالية من الكسر والشوائب — الكسر بيئة مثاليّة للحشرات."},
+        {
+            "topic_ar": "التجفيف",
+            "detail_ar": "جفّف الحبوب لرطوبة ≤12-13% قبل التخزين (الأهمّ على الإطلاق).",
+        },
+        {
+            "topic_ar": "النظافة",
+            "detail_ar": "حبوب نظيفة خالية من الكسر والشوائب — الكسر بيئة مثاليّة للحشرات.",
+        },
         {"topic_ar": "المخزن", "detail_ar": "مكان جافّ غير رطب جيّد التهوية، بعيد عن مصادر الرطوبة."},
-        {"topic_ar": "الفحص الدوري", "detail_ar": "افحص الحبوب كل أسبوعين-شهر للكشف المبكر عن أيّ إصابة."},
-        {"topic_ar": "الوقاية الطبيعيّة", "detail_ar": "مسحوق بذور النيم يقلّل الإصابة الحشريّة طبيعيّاً (طريقة منخفضة التكلفة)."},
-        {"topic_ar": "الحماية من القوارض والطيور", "detail_ar": "أغلق المخزن جيّداً؛ الذرة بأغلفتها لا تحميها من القوارض/الطيور."},
+        {
+            "topic_ar": "الفحص الدوري",
+            "detail_ar": "افحص الحبوب كل أسبوعين-شهر للكشف المبكر عن أيّ إصابة.",
+        },
+        {
+            "topic_ar": "الوقاية الطبيعيّة",
+            "detail_ar": "مسحوق بذور النيم يقلّل الإصابة الحشريّة طبيعيّاً (طريقة منخفضة التكلفة).",
+        },
+        {
+            "topic_ar": "الحماية من القوارض والطيور",
+            "detail_ar": "أغلق المخزن جيّداً؛ الذرة بأغلفتها لا تحميها من القوارض/الطيور.",
+        },
     ]
     result = {
         "practices_ar": practices,

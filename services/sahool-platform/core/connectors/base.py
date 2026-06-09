@@ -13,6 +13,7 @@ core.connectors.base
 كل موصّل يرث BaseConnector ويطبّق fetch(). الاتصال الفعلي بالشبكة
 يحدث في بيئة السيرفر المحلي (GPU 50/90)؛ هنا الواجهة والمنطق.
 """
+
 from __future__ import annotations
 
 import os
@@ -22,7 +23,6 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-
 # عتبة السحب الموحّدة (C6): فوقها → الرادar (S1) بدل البصري (S2).
 # ثابت مشترك يمنع تكرار القيمة السحرية عبر الموصّلات و pipeline (DRY).
 CLOUD_THRESHOLD_PCT: float = 20.0
@@ -30,18 +30,19 @@ CLOUD_THRESHOLD_PCT: float = 20.0
 
 class FetchStatus(str, Enum):
     OK = "ok"
-    FALLBACK = "fallback"        # المصدر فشل، استُخدم بديل
+    FALLBACK = "fallback"  # المصدر فشل، استُخدم بديل
     UNAVAILABLE = "unavailable"  # لا مصدر ولا بديل
-    CACHED = "cached"            # من الذاكرة المؤقتة
+    CACHED = "cached"  # من الذاكرة المؤقتة
 
 
 @dataclass
 class ConnectorResult:
     """نتيجة موحّدة من أي موصّل — تحمل نسبها (provenance)."""
-    source: str                  # "open-meteo", "copernicus-s2"...
+
+    source: str  # "open-meteo", "copernicus-s2"...
     status: FetchStatus
     data: dict[str, Any] = field(default_factory=dict)
-    error_margin: float = -1.0   # نسبة الخطأ المرجعية للمصدر
+    error_margin: float = -1.0  # نسبة الخطأ المرجعية للمصدر
     fetched_at: str = ""
     note_ar: str = ""
 
@@ -84,6 +85,4 @@ class BaseConnector(ABC):
         ...
 
     def _cache_key(self, **kwargs) -> str:
-        return f"{self.source_name}:" + ":".join(
-            f"{k}={v}" for k, v in sorted(kwargs.items())
-        )
+        return f"{self.source_name}:" + ":".join(f"{k}={v}" for k, v in sorted(kwargs.items()))

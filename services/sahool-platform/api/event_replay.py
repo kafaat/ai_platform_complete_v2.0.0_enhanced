@@ -22,99 +22,107 @@ services/sahool-platform/api/event_replay.py — Event Replay & Causal Tracing
    - reports:  "كم مرّة رُويَ هذا الحقل في الموسم؟"
    - UI:       "Timeline" view على شاشة Field Detail
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import asyncpg
 
 from .event_bus import EventBus
 
-
 # ─── Types ──────────────────────────────────────────────────────
+
 
 @dataclass
 class TimelineEntry:
     """نقطة على الـtimeline."""
+
     event_id: str
     event_type: str
     occurred_at: str
     source: str
-    actor_id: Optional[str]
-    command_id: Optional[str]
-    summary_ar: str          # وصف مُختصَر بالعربيّة
-    payload: Dict[str, Any]
+    actor_id: str | None
+    command_id: str | None
+    summary_ar: str  # وصف مُختصَر بالعربيّة
+    payload: dict[str, Any]
 
 
 @dataclass
 class ReconstructedState:
     """State مُعاد بناؤها من الـevents."""
+
     entity_id: str
     entity_type: str
-    field_name: Optional[str] = None
-    lifecycle_stage: Optional[str] = None
-    area_ha: Optional[float] = None
-    crop: Optional[str] = None
-    planting_date: Optional[str] = None
-    harvest_date: Optional[str] = None
+    field_name: str | None = None
+    lifecycle_stage: str | None = None
+    area_ha: float | None = None
+    crop: str | None = None
+    planting_date: str | None = None
+    harvest_date: str | None = None
 
     irrigation_count: int = 0
     fertilizer_count: int = 0
     pesticide_count: int = 0
     soil_samples_count: int = 0
 
-    last_ndvi: Optional[float] = None
-    last_ndvi_date: Optional[str] = None
+    last_ndvi: float | None = None
+    last_ndvi_date: str | None = None
 
-    last_event_at: Optional[str] = None
+    last_event_at: str | None = None
     total_events: int = 0
 
 
 @dataclass
 class CausalChain:
     """سلسلة سببيّة: command → events resulted."""
+
     command_id: str
-    command_type: Optional[str]
-    triggered_events: List[TimelineEntry]
+    command_type: str | None
+    triggered_events: list[TimelineEntry]
 
 
 # ─── Summary helpers (Arabic) ───────────────────────────────────
 
-_EVENT_SUMMARY_AR: Dict[str, str] = {
-    "field.created":                  "أُنشئ الحقل",
-    "field.updated":                  "حُدِّثت بيانات الحقل",
-    "field.geometry_changed":         "تغيّرت حدود الحقل",
-    "field.deleted":                  "حُذِف الحقل",
-    "lifecycle.transitioned":         "انتقل إلى مرحلة جديدة",
-    "operation.planting.started":     "بدأ البذر",
-    "operation.planting.completed":   "اكتمل البذر",
-    "operation.irrigation.started":   "بدأ الري",
+_EVENT_SUMMARY_AR: dict[str, str] = {
+    "field.created": "أُنشئ الحقل",
+    "field.updated": "حُدِّثت بيانات الحقل",
+    "field.geometry_changed": "تغيّرت حدود الحقل",
+    "field.deleted": "حُذِف الحقل",
+    "lifecycle.transitioned": "انتقل إلى مرحلة جديدة",
+    "operation.planting.started": "بدأ البذر",
+    "operation.planting.completed": "اكتمل البذر",
+    "operation.irrigation.started": "بدأ الري",
     "operation.irrigation.completed": "اكتمل الري",
-    "operation.fertilizer.applied":   "طُبِّق تسميد",
-    "operation.pesticide.applied":    "طُبِّق مبيد",
-    "operation.harvest.started":      "بدأ الحصاد",
-    "operation.harvest.completed":    "اكتمل الحصاد",
-    "trueup.applied":                 "معايرة الإنتاج (TrueUp)",
-    "remote_sensing.ndvi.observed":   "وصول قراءة NDVI",
-    "soil.sample.recorded":           "تسجيل عيّنة تربة",
-    "weather.rain":                   "حدث مطر",
-    "weather.moisture.low":           "إجهاد مائي",
-    "ai.suggestion.generated":        "اقتراح من سهول",
-    "ai.anomaly.detected":            "كشف شذوذ",
+    "operation.fertilizer.applied": "طُبِّق تسميد",
+    "operation.pesticide.applied": "طُبِّق مبيد",
+    "operation.harvest.started": "بدأ الحصاد",
+    "operation.harvest.completed": "اكتمل الحصاد",
+    "trueup.applied": "معايرة الإنتاج (TrueUp)",
+    "remote_sensing.ndvi.observed": "وصول قراءة NDVI",
+    "soil.sample.recorded": "تسجيل عيّنة تربة",
+    "weather.rain": "حدث مطر",
+    "weather.moisture.low": "إجهاد مائي",
+    "ai.suggestion.generated": "اقتراح من سهول",
+    "ai.anomaly.detected": "كشف شذوذ",
 }
 
 
-def _summarize_ar(event_type: str, payload: Dict[str, Any]) -> str:
+def _summarize_ar(event_type: str, payload: dict[str, Any]) -> str:
     """يولّد سطر عربي مفهوم لكل event."""
     base = _EVENT_SUMMARY_AR.get(event_type, event_type)
 
     # إضافات سياقيّة
     if event_type == "lifecycle.transitioned" and "to_stage" in payload:
         stage_ar = {
-            "CREATED": "أُنشئ", "PREPARED": "جُهِّز", "PLANTED": "زُرع",
-            "GROWING": "ينمو", "MATURE": "ناضج", "HARVESTED": "حُصِد",
+            "CREATED": "أُنشئ",
+            "PREPARED": "جُهِّز",
+            "PLANTED": "زُرع",
+            "GROWING": "ينمو",
+            "MATURE": "ناضج",
+            "HARVESTED": "حُصِد",
             "POST_HARVEST": "ما بعد الحصاد",
         }.get(payload["to_stage"], payload["to_stage"])
         return f"{base}: {stage_ar}"
@@ -124,9 +132,12 @@ def _summarize_ar(event_type: str, payload: Dict[str, Any]) -> str:
 
     if event_type == "operation.fertilizer.applied":
         parts = []
-        if "nitrogen_kg" in payload: parts.append(f"N={payload['nitrogen_kg']}")
-        if "phosphorus_kg" in payload: parts.append(f"P={payload['phosphorus_kg']}")
-        if "potassium_kg" in payload: parts.append(f"K={payload['potassium_kg']}")
+        if "nitrogen_kg" in payload:
+            parts.append(f"N={payload['nitrogen_kg']}")
+        if "phosphorus_kg" in payload:
+            parts.append(f"P={payload['phosphorus_kg']}")
+        if "potassium_kg" in payload:
+            parts.append(f"K={payload['potassium_kg']}")
         if parts:
             return f"{base} ({', '.join(parts)} kg)"
 
@@ -141,6 +152,7 @@ def _summarize_ar(event_type: str, payload: Dict[str, Any]) -> str:
 
 # ─── Reconstruction engine ──────────────────────────────────────
 
+
 class FieldStateReconstructor:
     """
     يُعيد بناء state حقل من history.
@@ -149,7 +161,7 @@ class FieldStateReconstructor:
     """
 
     @staticmethod
-    def apply_event(state: ReconstructedState, event: Dict[str, Any]) -> ReconstructedState:
+    def apply_event(state: ReconstructedState, event: dict[str, Any]) -> ReconstructedState:
         """يطبّق event على state حالي ويُعيد state جديدة."""
         etype = event["event_type"]
         payload = event["payload"] if isinstance(event["payload"], dict) else {}
@@ -163,12 +175,16 @@ class FieldStateReconstructor:
             state.crop = payload.get("crop")
 
         elif etype == "field.updated":
-            if "name_ar" in payload: state.field_name = payload["name_ar"]
-            if "area_ha" in payload: state.area_ha = payload["area_ha"]
-            if "crop" in payload: state.crop = payload["crop"]
+            if "name_ar" in payload:
+                state.field_name = payload["name_ar"]
+            if "area_ha" in payload:
+                state.area_ha = payload["area_ha"]
+            if "crop" in payload:
+                state.crop = payload["crop"]
 
         elif etype == "field.geometry_changed":
-            if "area_ha" in payload: state.area_ha = payload["area_ha"]
+            if "area_ha" in payload:
+                state.area_ha = payload["area_ha"]
 
         elif etype == "lifecycle.transitioned":
             new_stage = payload.get("to_stage")
@@ -204,7 +220,7 @@ class FieldStateReconstructor:
         cls,
         entity_type: str,
         entity_id: str,
-        events: List[Dict[str, Any]],
+        events: list[dict[str, Any]],
     ) -> ReconstructedState:
         """يُعيد بناء كامل state من قائمة events مرتّبة زمنياً."""
         state = ReconstructedState(entity_id=entity_id, entity_type=entity_type)
@@ -213,9 +229,7 @@ class FieldStateReconstructor:
         # (وإلّا عكس ترتيب الإدخال يغيّر الحالة النهائيّة — لا حتميّة).
         sorted_events = sorted(
             events,
-            key=lambda e: (e.get("occurred_at", ""),
-                           e.get("seq", 0),
-                           str(e.get("event_id", ""))),
+            key=lambda e: (e.get("occurred_at", ""), e.get("seq", 0), str(e.get("event_id", ""))),
         )
         for ev in sorted_events:
             state = cls.apply_event(state, ev)
@@ -223,6 +237,7 @@ class FieldStateReconstructor:
 
 
 # ─── Replay API ─────────────────────────────────────────────────
+
 
 class EventReplay:
     """High-level API لقراءة + تفسير الـevents."""
@@ -235,27 +250,29 @@ class EventReplay:
         entity_type: str,
         entity_id: str,
         limit: int = 100,
-    ) -> List[TimelineEntry]:
+    ) -> list[TimelineEntry]:
         """timeline قابل للعرض في الـUI."""
         events = await self.bus.query_entity_history(entity_type, entity_id, limit)
         from api.event_upcasting import upcast
+
         out = []
         for e in events:
             raw_payload = e["payload"] or {}
             # ترقية المخطّط: أحداث قديمة تُرقّى لأحدث نسخة قبل العرض/البناء
             # (سدّ فجوة حماية إعادة التشغيل) — المخزن يبقى append-only.
-            payload, _ver = upcast(e["event_type"], raw_payload,
-                                   e.get("schema_version", "1.0"))
-            out.append(TimelineEntry(
-                event_id=e["event_id"],
-                event_type=e["event_type"],
-                occurred_at=e["occurred_at"] or "",
-                source=e["source"],
-                actor_id=e["actor_id"],
-                command_id=e["command_id"],
-                summary_ar=_summarize_ar(e["event_type"], payload),
-                payload=payload,
-            ))
+            payload, _ver = upcast(e["event_type"], raw_payload, e.get("schema_version", "1.0"))
+            out.append(
+                TimelineEntry(
+                    event_id=e["event_id"],
+                    event_type=e["event_type"],
+                    occurred_at=e["occurred_at"] or "",
+                    source=e["source"],
+                    actor_id=e["actor_id"],
+                    command_id=e["command_id"],
+                    summary_ar=_summarize_ar(e["event_type"], payload),
+                    payload=payload,
+                )
+            )
         return out
 
     async def reconstruct_state(
@@ -270,10 +287,11 @@ class EventReplay:
     async def get_causal_chain(
         self,
         command_id: str,
-        pool: "asyncpg.Pool",
+        pool: asyncpg.Pool,
     ) -> CausalChain:
         """يرجع كل الـevents الذي ولّدها هذا الـcommand."""
         import uuid
+
         async with pool.acquire() as conn:
             cmd_row = await conn.fetchrow(
                 "SELECT command_type FROM commands WHERE command_id = $1",

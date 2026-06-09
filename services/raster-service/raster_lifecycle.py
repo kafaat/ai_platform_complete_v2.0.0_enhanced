@@ -7,20 +7,21 @@ rasters, derived products). بلا سياسة retention، التخزين ينف�
 
 صدق: تعمل على الملفّات الفعليّة على القرص؛ تُبلّغ بما حُذف فعلاً (لا تخمين).
 """
+
 from __future__ import annotations
 
+import logging
 import os
 import time
-from typing import Dict, List
-import logging
+
 _log = logging.getLogger("raster_lifecycle")
 
 
 # سياسات الاحتفاظ الافتراضيّة (بالأيّام) — قابلة للضبط عبر env
 RETENTION = {
-    "temp": float(os.getenv("RASTER_TEMP_RETENTION_DAYS", "1")),       # مؤقّت
-    "thumbnail": float(os.getenv("RASTER_THUMB_RETENTION_DAYS", "30")), # مصغّرات
-    "derived": float(os.getenv("RASTER_DERIVED_RETENTION_DAYS", "90")), # مشتقّات
+    "temp": float(os.getenv("RASTER_TEMP_RETENTION_DAYS", "1")),  # مؤقّت
+    "thumbnail": float(os.getenv("RASTER_THUMB_RETENTION_DAYS", "30")),  # مصغّرات
+    "derived": float(os.getenv("RASTER_DERIVED_RETENTION_DAYS", "90")),  # مشتقّات
     # النواتج الدائمة (offline_packs، COG أصليّة) لا تُحذَف تلقائيّاً
 }
 PROTECTED_DIRS = {"offline_packs"}  # لا تُمَسّ أبداً
@@ -33,15 +34,14 @@ def _age_days(path: str) -> float:
         return 0.0
 
 
-def scan_storage(upload_dir: str) -> Dict:
+def scan_storage(upload_dir: str) -> dict:
     """يحصي التخزين: إجمالي الحجم + توزيعه (للمراقبة قبل التنظيف)."""
     total_bytes = 0
-    by_type: Dict[str, int] = {"tif": 0, "png": 0, "mbtiles": 0,
-                               "pmtiles": 0, "other": 0}
+    by_type: dict[str, int] = {"tif": 0, "png": 0, "mbtiles": 0, "pmtiles": 0, "other": 0}
     file_count = 0
     if not os.path.isdir(upload_dir):
         return {"total_mb": 0, "files": 0, "by_type_mb": {}}
-    for root, dirs, files in os.walk(upload_dir):
+    for root, _dirs, files in os.walk(upload_dir):
         for fn in files:
             path = os.path.join(root, fn)
             try:
@@ -59,7 +59,7 @@ def scan_storage(upload_dir: str) -> Dict:
     }
 
 
-def cleanup(upload_dir: str, dry_run: bool = True) -> Dict:
+def cleanup(upload_dir: str, dry_run: bool = True) -> dict:
     """ينظّف النواتج المنتهية حسب سياسة الاحتفاظ.
 
     dry_run=True (افتراضي): يُبلّغ بما سيُحذَف دون حذف فعلي (آمن). مرّر
@@ -68,7 +68,7 @@ def cleanup(upload_dir: str, dry_run: bool = True) -> Dict:
     if not os.path.isdir(upload_dir):
         return {"scanned": 0, "removed": 0, "freed_mb": 0, "dry_run": dry_run}
 
-    removed: List[str] = []
+    removed: list[str] = []
     freed_bytes = 0
     scanned = 0
 

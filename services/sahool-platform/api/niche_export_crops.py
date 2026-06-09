@@ -21,10 +21,8 @@ api/niche_export_crops.py — منتجات تصديريّة متخصّصة عا�
 والشهادات (عضوي/تجارة عادلة) لا الخام. تحتاج دراسة سوق جادّة قبل التوسّع.
 الأكاسيا اليمنيّة تحتاج تأكيد النوع (سنغال/سيال تنتجان الصمغ التجاري).
 """
+
 from __future__ import annotations
-
-from typing import Dict, Optional
-
 
 _NICHE_CROPS = {
     "الصمغ العربي": {
@@ -65,8 +63,7 @@ _NICHE_CROPS = {
         "water_ar": "منخفض — أصلها مناطق جافّة، يتحمّل العجز المائي",
         "salinity_ar": "جيّدة — يستخرج ماءً من الجوفي المالح الضحل",
         "yemen_edge_ar": (
-            "ميزة يمنيّة قويّة: صنف 'Eden' الموثّق عالميّاً أصله يمني! "
-            "تراث طبّي عربي أصيل (حبّة البركة)."
+            "ميزة يمنيّة قويّة: صنف 'Eden' الموثّق عالميّاً أصله يمني! تراث طبّي عربي أصيل (حبّة البركة)."
         ),
         "uses_ar": "بذور + زيت (ثيموكينون — مضادّ التهاب) — طبّي وغذائي",
         "bonus_ar": "محصول دوران ممتاز للحبوب/البقوليات + حولي سريع",
@@ -120,17 +117,17 @@ _NICHE_CROPS = {
 }
 
 
-def list_niche_crops(category: Optional[str] = None) -> Dict:
+def list_niche_crops(category: str | None = None) -> dict:
     """منتجات تصديريّة متخصّصة عالية القيمة (موجة ثانية)."""
     if category:
         cat = category.strip()
-        filtered = {k: v for k, v in _NICHE_CROPS.items()
-                    if cat in v["category_ar"]}
+        filtered = {k: v for k, v in _NICHE_CROPS.items() if cat in v["category_ar"]}
         if filtered:
             return {"category_ar": cat, "crops": filtered}
-        return {"supported": False,
-                "message_ar": f"لا فئة «{category}». الفئات: صمغ صناعي، "
-                              "توابل/طبّي، زيت/صبغة، غذائي صحّي"}
+        return {
+            "supported": False,
+            "message_ar": f"لا فئة «{category}». الفئات: صمغ صناعي، توابل/طبّي، زيت/صبغة، غذائي صحّي",
+        }
     return {
         "crops": _NICHE_CROPS,
         "count": len(_NICHE_CROPS),
@@ -157,7 +154,7 @@ def list_niche_crops(category: Optional[str] = None) -> Dict:
     }
 
 
-def niche_crop_detail(crop_ar: str) -> Dict:
+def niche_crop_detail(crop_ar: str) -> dict:
     """تفصيل منتج متخصّص محدّد."""
     kw = crop_ar.strip()
     for name, info in _NICHE_CROPS.items():

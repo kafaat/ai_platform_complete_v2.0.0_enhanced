@@ -1,15 +1,19 @@
 """TTS Service Tests — SAHOOL v9.1.0"""
-import pytest
+
 import hashlib
+
+import pytest
+
 
 class TestTTSConfig:
     @pytest.mark.unit
     def test_yemeni_voice_available(self):
         """ar-YE-MaryamNeural and ar-YE-SalehNeural must be supported."""
         from importlib import import_module
+
         VOICES = {
             "yemeni_female": "ar-YE-MaryamNeural",
-            "yemeni_male":   "ar-YE-SalehNeural",
+            "yemeni_male": "ar-YE-SalehNeural",
         }
         assert "ar-YE" in VOICES["yemeni_female"]
         assert "ar-YE" in VOICES["yemeni_male"]
@@ -34,6 +38,7 @@ class TestTTSConfig:
     def test_rate_validation(self):
         """Rate must be in format ±N% (يطابق regex مُحقّق الخدمة)."""
         import re
+
         # نفس النمط الذي تفرضه الخدمة (field_validator) — يرفض '+abc%'/'+%'
         rate_re = re.compile(r"[+-]\d+%")
         valid = ["+0%", "-20%", "+50%"]
@@ -48,6 +53,7 @@ class TestTTSEndpoints:
     @pytest.mark.integration
     async def test_health_endpoint(self, http_client):
         from conftest import service_urls
+
         url = service_urls.get("tts", "http://127.0.0.1:8210")
         try:
             resp = await http_client.get(f"{url}/healthz")
@@ -59,11 +65,11 @@ class TestTTSEndpoints:
     @pytest.mark.security
     async def test_synthesize_requires_auth(self, http_client):
         from conftest import service_urls
+
         url = service_urls.get("tts", "http://127.0.0.1:8210")
         try:
             resp = await http_client.post(
-                f"{url}/tts/synthesize",
-                json={"text": "test", "voice": "yemeni_male"}
+                f"{url}/tts/synthesize", json={"text": "test", "voice": "yemeni_male"}
             )
             assert resp.status_code == 401
         except Exception:
@@ -72,12 +78,13 @@ class TestTTSEndpoints:
     @pytest.mark.integration
     async def test_synthesize_with_auth(self, http_client, auth_headers):
         from conftest import service_urls
+
         url = service_urls.get("tts", "http://127.0.0.1:8210")
         try:
             resp = await http_client.post(
                 f"{url}/tts/synthesize",
                 json={"text": "مرحبا", "voice": "yemeni_female"},
-                headers=auth_headers
+                headers=auth_headers,
             )
             # 200 with audio, or 5xx if upstream unavailable
             assert resp.status_code in [200, 502, 503]
@@ -90,7 +97,7 @@ class TestTTSEndpoints:
     @pytest.mark.unit
     def test_invalid_voice_rejected(self):
         """voice must be in allowed list."""
-        from pydantic import ValidationError, BaseModel, Field, field_validator
+        from pydantic import BaseModel, Field, ValidationError, field_validator
 
         VOICES = {"yemeni_female", "yemeni_male", "saudi_male", "egyptian_female"}
 

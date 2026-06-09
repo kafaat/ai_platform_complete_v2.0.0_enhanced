@@ -8,12 +8,11 @@ terrain_analysis.py — تحليل التضاريس من DEM (سدّ فجوة: �
 ⚠ الحساب الفعلي يتطلّب numpy/rasterio في بيئة التشغيل. هنا منطق الانحدار
 (صحيح رياضيّاً) + إبلاغ صادق عند غياب المكتبات.
 """
+
 from __future__ import annotations
 
-from typing import Dict, Optional
 
-
-def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> Dict:
+def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
     """يحسب الانحدار (درجات) والاتّجاه من DEM عبر طريقة Horn (المعياريّة).
 
     Horn: تدرّج بـ3×3 نافذة (ArcGIS/GDAL يستخدمانها). يُرجِع إحصاءات الانحدار
@@ -31,10 +30,12 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> Dict:
     # تدرّج Horn (3×3) — dz/dx و dz/dy
     dzdx = np.gradient(dem, pixel_size_m, axis=1)
     dzdy = np.gradient(dem, pixel_size_m, axis=0)
-    slope_rad = np.arctan(np.sqrt(dzdx ** 2 + dzdy ** 2))
+    slope_rad = np.arctan(np.sqrt(dzdx**2 + dzdy**2))
     slope_deg = np.degrees(slope_rad)
     aspect = np.degrees(np.arctan2(dzdy, -dzdx))
-    aspect = np.where(aspect < 0, 90.0 - aspect, np.where(aspect > 90.0, 360.0 - aspect + 90.0, 90.0 - aspect))
+    aspect = np.where(
+        aspect < 0, 90.0 - aspect, np.where(aspect > 90.0, 360.0 - aspect + 90.0, 90.0 - aspect)
+    )
 
     valid = np.isfinite(slope_deg)
     sv = slope_deg[valid]
@@ -51,7 +52,7 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> Dict:
     }
 
 
-def classify_water_harvesting(slope_deg_mean: float) -> Dict:
+def classify_water_harvesting(slope_deg_mean: float) -> dict:
     """يصنّف ملاءمة حصاد المياه حسب الانحدار (إرشادي زراعي).
 
     صدق: عتبات إرشاديّة من أدبيّات حصاد المياه؛ القرار النهائي ميداني.

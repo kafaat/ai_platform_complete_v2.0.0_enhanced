@@ -1,5 +1,7 @@
 """Vegetation Analysis Tests — SAHOOL v9.1.0"""
+
 import pytest
+
 
 class TestNDVICalculation:
     @pytest.mark.unit
@@ -32,9 +34,11 @@ class TestNDVICalculation:
             is_valid = -1 <= val <= 1
             assert is_valid == expected_valid
 
+
 class TestVegetationEndpoints:
     @pytest.mark.integration
     async def test_health_endpoint(self, http_client):
         from conftest import service_urls
+
         resp = await http_client.get(f"{service_urls['vegetation']}/healthz")
         assert resp.status_code == 200

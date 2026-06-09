@@ -1,6 +1,6 @@
 """Tests for anwa (star-rising) agricultural calendar as respected community timing indication, never governing."""
-from core.anwa_calendar import (
-    anwa_timing_context, get_star_season, ANWA_WEIGHT_CEILING)
+
+from core.anwa_calendar import ANWA_WEIGHT_CEILING, anwa_timing_context, get_star_season
 
 
 class TestAnwaCalendar:

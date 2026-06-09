@@ -19,22 +19,21 @@ services/raster-service/salinity_calibration.py — معايرة مؤشّر ال
 عند جمعك عيّناتٍ بإحداثيّات + EC، استخدم fit_regression() لاستبدال
 الـheuristic بانحدار حقيقي مُعاير محلّيّاً.
 """
-from __future__ import annotations
-from typing import Optional
 
+from __future__ import annotations
 
 # نطاق ECe الموثّق للجوف (من districts/al_jawf/soil.yaml + دراسة القمح)
-ALJAWF_ECE_RANGE_DS_M = (3.0, 7.0)   # ميل للملوحة (saline tendency)
+ALJAWF_ECE_RANGE_DS_M = (3.0, 7.0)  # ميل للملوحة (saline tendency)
 
 # عتبات NDSI → صنف ملوحة (heuristic إقليمي، ليس انحداراً مُلائَماً)
 # المرجع: SOIL_INDICES_RESEARCH (NDSI > 0.1 ملوحة عالية، < 0 غير متأثّرة)
 # مُرتكز على أنّ الجوف ضمن نطاق ECe 3–7، فالعتبات معدّلة لهذا السياق.
 NDSI_SALINITY_CLASSES = [
     # (حدّ أدنى NDSI, الصنف, ECe تقديري dS/m, الإجراء)
-    (0.15,  "high",      "> 6",     "ملوحة عالية — ريّ غسيل + تصريف عاجل"),
-    (0.05,  "moderate",  "4 – 6",   "ملوحة متوسّطة — ريّ تنقيط + تجنّب الترسّب"),
-    (-0.05, "low",       "3 – 4",   "ملوحة منخفضة — مراقبة دوريّة"),
-    (-1.0,  "none",      "< 3",     "غير متأثّرة بالملوحة"),
+    (0.15, "high", "> 6", "ملوحة عالية — ريّ غسيل + تصريف عاجل"),
+    (0.05, "moderate", "4 – 6", "ملوحة متوسّطة — ريّ تنقيط + تجنّب الترسّب"),
+    (-0.05, "low", "3 – 4", "ملوحة منخفضة — مراقبة دوريّة"),
+    (-1.0, "none", "< 3", "غير متأثّرة بالملوحة"),
 ]
 
 
@@ -70,13 +69,17 @@ def fit_regression(samples: list[dict]) -> dict:
     يُرجع المعاملات + R² ليحلّ محلّ الـheuristic عند جودة كافية.
     """
     if len(samples) < 5:
-        return {"fitted": False,
-                "reason": f"عيّنات غير كافية ({len(samples)} < 5) — استمرّ بالـheuristic"}
+        return {
+            "fitted": False,
+            "reason": f"عيّنات غير كافية ({len(samples)} < 5) — استمرّ بالـheuristic",
+        }
 
     methods = {s.get("extraction_method", "unknown") for s in samples}
     if len(methods) > 1:
-        return {"fitted": False,
-                "reason": f"طرق استخلاص مختلطة {methods} — وحّدها أوّلاً (1:5 vs عجينة مشبعة غير قابلة للمقارنة)"}
+        return {
+            "fitted": False,
+            "reason": f"طرق استخلاص مختلطة {methods} — وحّدها أوّلاً (1:5 vs عجينة مشبعة غير قابلة للمقارنة)",
+        }
 
     # انحدار خطّي بسيط (least squares) بلا numpy — يعمل في أيّ بيئة
     xs = [s["ndsi"] for s in samples]
@@ -85,14 +88,14 @@ def fit_regression(samples: list[dict]) -> dict:
     mx = sum(xs) / n
     my = sum(ys) / n
     sxx = sum((x - mx) ** 2 for x in xs)
-    sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys, strict=True))
     if sxx == 0:
         return {"fitted": False, "reason": "تباين NDSI صفر — لا يمكن الملاءمة"}
     slope = sxy / sxx
     intercept = my - slope * mx
     # R²
     ss_tot = sum((y - my) ** 2 for y in ys)
-    ss_res = sum((y - (slope * x + intercept)) ** 2 for x, y in zip(xs, ys))
+    ss_res = sum((y - (slope * x + intercept)) ** 2 for x, y in zip(xs, ys, strict=True))
     r2 = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
 
     return {
@@ -108,7 +111,7 @@ def fit_regression(samples: list[dict]) -> dict:
     }
 
 
-def predict_ece(ndsi_value: float, regression: Optional[dict] = None) -> dict:
+def predict_ece(ndsi_value: float, regression: dict | None = None) -> dict:
     """يتنبّأ بـECe من NDSI: يستخدم الانحدار المُلائَم إن توفّر بجودة كافية،
     وإلّا يقع على الـheuristic الإقليمي."""
     if regression and regression.get("fitted") and regression.get("r_squared", 0) >= 0.6:

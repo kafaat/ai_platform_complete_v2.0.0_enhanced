@@ -1,21 +1,37 @@
 """Unit tests for SAHOOL Core Phase 0a."""
+
 import math
 
 import pytest
-
 from core.engines.fao56 import (
-    WeatherDay, CropKcProfile, SoilZone,
-    penman_monteith_et0, kc_for_age, salinity_stress_ks,
-    leaching_requirement, compute_irrigation, GrowthStage,
-)
-from core.engines.fuzzy import (
-    TrapezoidParams, trapezoidal_score, descending_score, ascending_score,
+    CropKcProfile,
+    GrowthStage,
+    SoilZone,
+    WeatherDay,
+    compute_irrigation,
+    kc_for_age,
+    leaching_requirement,
+    penman_monteith_et0,
+    salinity_stress_ks,
 )
 from core.engines.fusion import (
-    IndexReading, ensemble_variance, fuse_health, diagnose_stress, Confidence,
+    Confidence,
+    IndexReading,
+    diagnose_stress,
+    ensemble_variance,
+    fuse_health,
+)
+from core.engines.fuzzy import (
+    TrapezoidParams,
+    ascending_score,
+    descending_score,
+    trapezoidal_score,
 )
 from core.engines.market_analyzer import (
-    coefficient_of_variation, classify_price_risk, PriceRisk, analyse_market,
+    PriceRisk,
+    analyse_market,
+    classify_price_risk,
+    coefficient_of_variation,
 )
 
 
@@ -74,8 +90,8 @@ class TestFAO56:
 class TestFuzzy:
     def test_dead_zone_returns_zero(self):
         p = TrapezoidParams(4.0, 5.0, 6.0, 7.0)
-        assert trapezoidal_score(3.5, p) == 0.0   # below acceptable
-        assert trapezoidal_score(8.0, p) == 0.0   # above acceptable
+        assert trapezoidal_score(3.5, p) == 0.0  # below acceptable
+        assert trapezoidal_score(8.0, p) == 0.0  # above acceptable
 
     def test_optimal_plateau(self):
         p = TrapezoidParams(4.0, 5.0, 6.0, 7.0)
@@ -83,7 +99,7 @@ class TestFuzzy:
 
     def test_shoulders_linear(self):
         p = TrapezoidParams(4.0, 6.0, 6.0, 8.0)
-        assert trapezoidal_score(5.0, p) == 0.5   # halfway up rising shoulder
+        assert trapezoidal_score(5.0, p) == 0.5  # halfway up rising shoulder
 
     def test_descending_salinity(self):
         assert descending_score(0.5, 1.0, 2.0) == 1.0  # below optimal
@@ -121,14 +137,16 @@ class TestFusion:
         assert res.dominant_family == "sar"
 
     def test_diagnostic_tree_water_stress(self):
-        d = diagnose_stress(ndmi=0.1, cwsi=0.7, ndre=0.5, ndvi=0.6,
-                            salinity_index=0.1, ec_trend="stable")
+        d = diagnose_stress(
+            ndmi=0.1, cwsi=0.7, ndre=0.5, ndvi=0.6, salinity_index=0.1, ec_trend="stable"
+        )
         assert d["cause"] == "water_stress"
         assert d["confidence"] == Confidence.HIGH
 
     def test_diagnostic_tree_unknown(self):
-        d = diagnose_stress(ndmi=0.5, cwsi=0.3, ndre=0.5, ndvi=0.6,
-                            salinity_index=0.1, ec_trend="stable")
+        d = diagnose_stress(
+            ndmi=0.5, cwsi=0.3, ndre=0.5, ndvi=0.6, salinity_index=0.1, ec_trend="stable"
+        )
         assert d["cause"] == "unknown"
 
 
@@ -154,10 +172,16 @@ class TestNoFakeNumbers:
     def test_core_crop_card_has_no_calibration(self):
         """ARCHITECTURAL INVARIANT: core crop cards must NOT contain
         calibration, yield, or zone_factor — those live in districts/tenant."""
-        import yaml, os
+        import os
+
+        import yaml
+
         path = os.path.join(
-            os.path.dirname(__file__), "..", "core",
-            "crop_cards", "sorghum.yaml",
+            os.path.dirname(__file__),
+            "..",
+            "core",
+            "crop_cards",
+            "sorghum.yaml",
         )
         card = yaml.safe_load(open(path, encoding="utf-8"))
         assert "calibration" not in card, "core card must not have calibration"
@@ -167,6 +191,7 @@ class TestNoFakeNumbers:
     def test_core_has_no_farm_data(self):
         """No Al-Jawf/Sakha/well data may leak into core crop cards."""
         import os
+
         path = os.path.join(os.path.dirname(__file__), "..", "core", "crop_cards")
         for fn in os.listdir(path):
             if not fn.endswith(".yaml"):
@@ -179,25 +204,26 @@ class TestNoFakeNumbers:
 # ── Provenance (the constitution, enforced) ──────────────────
 class TestProvenance:
     def test_golden_rule_weakest_link(self):
-        from core.provenance import (
-            Provenance, Stage, Status, Confidence)
-        strong = Provenance("a", 1, "u", Stage.RAW, Status.PHYSICS,
-                            "s", "g", 0.05, "v")
-        weak = Provenance("b", 2, "u", Stage.RAW, Status.CALIBRATED,
-                         "s", "g", 0.30, "v")
-        derived = Provenance("c", 2, "u", Stage.DERIVED, Status.PHYSICS,
-                            "s", "g", 0.05, "v", inputs=[strong, weak])
+        from core.provenance import Confidence, Provenance, Stage, Status
+
+        strong = Provenance("a", 1, "u", Stage.RAW, Status.PHYSICS, "s", "g", 0.05, "v")
+        weak = Provenance("b", 2, "u", Stage.RAW, Status.CALIBRATED, "s", "g", 0.30, "v")
+        derived = Provenance(
+            "c", 2, "u", Stage.DERIVED, Status.PHYSICS, "s", "g", 0.05, "v", inputs=[strong, weak]
+        )
         # despite own low error, confidence bounded by weak input (30%)
         assert derived.confidence == Confidence.LOW
 
     def test_pending_has_no_value(self):
         from core.provenance import pending
+
         y = pending("yield", "t/ha", "weighed harvest")
         assert y.value is None
         assert "قيد المعايرة" in y.explain_ar()
 
     def test_error_propagation_multiply(self):
         from core.provenance import Provenance, Stage, Status, propagate_multiply
+
         a = Provenance("a", 1, "u", Stage.RAW, Status.PHYSICS, "s", "g", 0.08, "v")
         b = Provenance("b", 1, "u", Stage.RAW, Status.PHYSICS, "s", "g", 0.05, "v")
         err = propagate_multiply(a, b)
@@ -205,7 +231,8 @@ class TestProvenance:
         assert abs(err - 0.0943) < 0.001
 
     def test_confidence_categories(self):
-        from core.provenance import confidence_from_error, Confidence
+        from core.provenance import Confidence, confidence_from_error
+
         assert confidence_from_error(0.05) == Confidence.HIGH
         assert confidence_from_error(0.20) == Confidence.MEDIUM
         assert confidence_from_error(0.40) == Confidence.LOW

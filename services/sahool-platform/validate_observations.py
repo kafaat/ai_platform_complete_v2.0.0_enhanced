@@ -15,6 +15,7 @@ and tell the user exactly how trustworthy the answer is.
 Usage:
     python validate_observations.py <tenant_dir>
 """
+
 from __future__ import annotations
 
 import sys
@@ -45,11 +46,11 @@ def available_observables(tenant_dir: Path) -> set[str]:
         # farm map implies: crop variety (O1), area (O5), energy (I6), irrigation
         available |= {"O1", "O5", "I6"}
     if (tenant_dir / "well_specs.yaml").exists():
-        available |= {"I5"}              # well depth
+        available |= {"I5"}  # well depth
     if (tenant_dir / "yield_history.csv").exists():
-        available |= {"G1", "O2"}        # actual yield + planting dates
+        available |= {"G1", "O2"}  # actual yield + planting dates
     if (tenant_dir / "economics.yaml").exists():
-        available |= {"E2"}              # installed power
+        available |= {"E2"}  # installed power
     return available
 
 
@@ -77,7 +78,7 @@ def validate(tenant_dir: Path) -> dict:
     if blocking:
         grade = "BLOCKED"
     elif missing_A:
-        grade = "LOW"        # missing some A (but not blocking governing)
+        grade = "LOW"  # missing some A (but not blocking governing)
     elif len(missing_B) > 3:
         grade = "MEDIUM"
     else:
@@ -109,8 +110,12 @@ def print_report(r: dict) -> None:
         print("     → النظام لا يُصدر توصية (حاكم صارم غائب)")
     if r["activatable_fallbacks"]:
         print(f"  🔄 سيناريوهات سقوط:     {r['activatable_fallbacks']}")
-    grade_ar = {"HIGH": "عالية ✅", "MEDIUM": "متوسطة 🟡",
-                "LOW": "منخفضة 🟠", "BLOCKED": "محجوبة 🛑"}
+    grade_ar = {
+        "HIGH": "عالية ✅",
+        "MEDIUM": "متوسطة 🟡",
+        "LOW": "منخفضة 🟠",
+        "BLOCKED": "محجوبة 🛑",
+    }
     print(f"  درجة الجودة:            {grade_ar.get(r['quality_grade'])}")
     print("═" * 60)
 

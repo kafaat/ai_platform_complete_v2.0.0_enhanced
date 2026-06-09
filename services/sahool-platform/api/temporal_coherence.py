@@ -13,18 +13,19 @@ api/temporal_coherence.py — طبقة التماسك الزمني الموحّ�
 المبدأ: تاريخ ISO هو المرجع الموثوق (authoritative)؛ day_of_year واليوم النسبي
 يُشتقّان منه بدالّة واحدة، لا بحساب مستقلّ في كلّ محرّك.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from typing import Dict, Optional
 
 
 @dataclass
 class TemporalContext:
     """مرجع زمني موحّد لكلّ المحرّكات في موسم/حقل واحد."""
+
     current_date: date
-    planting_date: Optional[date] = None
+    planting_date: date | None = None
 
     @property
     def day_of_year(self) -> int:
@@ -32,7 +33,7 @@ class TemporalContext:
         return self.current_date.timetuple().tm_yday
 
     @property
-    def days_since_planting(self) -> Optional[int]:
+    def days_since_planting(self) -> int | None:
         """لـGDD / المراحل — اليوم النسبي من الزراعة."""
         if self.planting_date is None:
             return None
@@ -43,7 +44,7 @@ class TemporalContext:
         """لـastronomical / السجلّات — التاريخ المطلق."""
         return self.current_date.isoformat()
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {
             "iso": self.iso,
             "day_of_year": self.day_of_year,
@@ -54,12 +55,13 @@ class TemporalContext:
 
 def make_temporal_context(
     current_date_iso: str,
-    planting_date_iso: Optional[str] = None,
+    planting_date_iso: str | None = None,
 ) -> TemporalContext:
     """يبني مرجعاً زمنيّاً موحّداً من تواريخ ISO.
 
     كلّ المحرّكات تأخذ زمنها من هنا → اتّساق مضمون.
     """
+
     def _parse(s: str) -> date:
         y, m, d = map(int, s.split("-"))
         return date(y, m, d)
@@ -78,17 +80,18 @@ def make_temporal_context(
 @dataclass
 class CoherenceCheck:
     """تحقّق اتّساق زمني بين مخرجات محرّكات مختلفة لنفس اللحظة."""
+
     coherent: bool
     detail_ar: str
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         return {"coherent": self.coherent, "detail_ar": self.detail_ar}
 
 
 def check_temporal_coherence(
     ctx: TemporalContext,
-    gdd_days_counted: Optional[int] = None,
-    astronomical_anchor_days: Optional[int] = None,
+    gdd_days_counted: int | None = None,
+    astronomical_anchor_days: int | None = None,
     *,
     tolerance_days: int = 3,
 ) -> CoherenceCheck:

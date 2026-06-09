@@ -3,8 +3,9 @@
 Remote Sensing Skill Library for SAHOOL Supervisor Agent
 Handles: NDVI · SAR · Satellite imagery · Change detection
 """
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from mcp_client import MCPClient
 
@@ -23,12 +24,12 @@ class RemoteSensingSkill:
         self,
         intent: str,
         query: str = "",
-        field_id: Optional[str] = None,
+        field_id: str | None = None,
         user_id: str = "",
         tenant_id: str = "",
-        context: Dict[str, Any] = None,
-        objectives: List[str] = None
-    ) -> Dict[str, Any]:
+        context: dict[str, Any] = None,
+        objectives: list[str] = None,
+    ) -> dict[str, Any]:
 
         if intent == "ndvi":
             if not field_id:
@@ -38,7 +39,7 @@ class RemoteSensingSkill:
             result = await self.mcp.call_tool(
                 self.server,
                 "compute_ndvi",
-                {"field_id": field_id, "date": context.get("date", "2026-05-18")}
+                {"field_id": field_id, "date": context.get("date", "2026-05-18")},
             )
 
             content = result.get("content", [{}])[0].get("text", "{}")
@@ -69,7 +70,7 @@ class RemoteSensingSkill:
                 "recommendation": recommendation,
                 "distribution": ndvi_data.get("health_distribution", {}),
                 "cloud_coverage_pct": round(ndvi_data.get("cloud_coverage", 0) * 100, 1),
-                "sources": ["Sentinel-2 L2A", "SAHOOL NDVI Engine"]
+                "sources": ["Sentinel-2 L2A", "SAHOOL NDVI Engine"],
             }
 
         elif intent == "full_analysis":
@@ -78,17 +79,36 @@ class RemoteSensingSkill:
             date_range = f"2026-04-18/{today}"
 
             parallel_calls = [
-                {"server": self.server, "tool": "fetch_sentinel2_l2a", "args": {
-                    "field_id": field_id,
-                    "date_range": date_range,
-                    "bands": ["B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B11", "B12"],
-                    "cloud_cover_max": 20
-                }},
-                {"server": self.server, "tool": "fetch_sentinel1_grd", "args": {
-                    "field_id": field_id,
-                    "date_range": date_range,
-                    "polarization": ["VV", "VH"]
-                }}
+                {
+                    "server": self.server,
+                    "tool": "fetch_sentinel2_l2a",
+                    "args": {
+                        "field_id": field_id,
+                        "date_range": date_range,
+                        "bands": [
+                            "B02",
+                            "B03",
+                            "B04",
+                            "B05",
+                            "B06",
+                            "B07",
+                            "B08",
+                            "B8A",
+                            "B11",
+                            "B12",
+                        ],
+                        "cloud_cover_max": 20,
+                    },
+                },
+                {
+                    "server": self.server,
+                    "tool": "fetch_sentinel1_grd",
+                    "args": {
+                        "field_id": field_id,
+                        "date_range": date_range,
+                        "polarization": ["VV", "VH"],
+                    },
+                },
             ]
 
             results = await self.mcp.call_tools_parallel(parallel_calls)
@@ -98,18 +118,18 @@ class RemoteSensingSkill:
                 "satellite_results": results,
                 "period": date_range,
                 "recommendation": "تم جلب البيانات الفضائية. استخدم /agent/optimize لتحليل المفاضلات.",
-                "sources": ["Sentinel-2", "Sentinel-1", "SAHOOL Fusion Engine"]
+                "sources": ["Sentinel-2", "Sentinel-1", "SAHOOL Fusion Engine"],
             }
 
         elif intent == "change_detection":
             return {
                 "type": "change_detection",
                 "response": "ميزة كشف التغيير قيد التطوير. ستكون متاحة في الإصدار القادم.",
-                "sources": []
+                "sources": [],
             }
 
         else:
             return {
                 "type": "error",
-                "response": f"نوعية الاستعلام عن الاستشعار عن بعد غير معروفة: {intent}"
+                "response": f"نوعية الاستعلام عن الاستشعار عن بعد غير معروفة: {intent}",
             }

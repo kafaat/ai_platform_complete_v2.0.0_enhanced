@@ -19,13 +19,11 @@ Wisconsin, UF/IFAS extension).
 والاعتماد على أصناف قليلة متطابقة وراثيّاً = هشاشة (الموز/البنّ/الكيوي خسرت
 تاريخيّاً). توجّه لا يفرض؛ التطعيم مهارة تحتاج تدريباً.
 """
+
 from __future__ import annotations
 
-from typing import Dict
-
-
 # طرق الإكثار الخضري
-_METHODS: Dict[str, Dict] = {
+_METHODS: dict[str, dict] = {
     "cuttings": {
         "name_ar": "العُقَل (Cuttings)",
         "what_ar": "قطع جزء من الساق (عقدتان على الأقلّ) وتجذيره في وسط مناسب.",
@@ -85,24 +83,40 @@ _CROP_PROPAGATION = {
     "pomegranate": {"method": "cuttings", "note_ar": "عقل خشبيّة سهلة."},
     "grape": {"method": "cuttings", "note_ar": "عقل خشبيّة (الكرمة)."},
     "guava": {"method": "layering", "note_ar": "ترقيد هوائي أو عقل."},
-    "date_palm": {"method": "division", "note_ar": "الفسائل (الرواكيب) من قاعدة الأمّ — تحافظ على الصنف."},
+    "date_palm": {
+        "method": "division",
+        "note_ar": "الفسائل (الرواكيب) من قاعدة الأمّ — تحافظ على الصنف.",
+    },
 }
 
 _ALIASES = {
-    "عقل": "cuttings", "عقلة": "cuttings", "تطعيم": "grafting",
-    "برعمة": "budding", "تقسيم": "division", "ترقيد": "layering",
-    "مانجو": "mango", "حمضيات": "citrus", "أفوكادو": "avocado",
-    "تين": "fig", "رمان": "pomegranate", "عنب": "grape",
-    "جوافة": "guava", "نخيل": "date_palm",
+    "عقل": "cuttings",
+    "عقلة": "cuttings",
+    "تطعيم": "grafting",
+    "برعمة": "budding",
+    "تقسيم": "division",
+    "ترقيد": "layering",
+    "مانجو": "mango",
+    "حمضيات": "citrus",
+    "أفوكادو": "avocado",
+    "تين": "fig",
+    "رمان": "pomegranate",
+    "عنب": "grape",
+    "جوافة": "guava",
+    "نخيل": "date_palm",
 }
 
 
-def propagation_methods() -> Dict:
+def propagation_methods() -> dict:
     """طرق الإكثار الخضري الخمس مع مزاياها."""
     return {
         "methods": [
-            {"method": k, "name_ar": v["name_ar"], "what_ar": v["what_ar"],
-             "best_for_ar": v["best_for_ar"]}
+            {
+                "method": k,
+                "name_ar": v["name_ar"],
+                "what_ar": v["what_ar"],
+                "best_for_ar": v["best_for_ar"],
+            }
             for k, v in _METHODS.items()
         ],
         "principle_ar": (
@@ -116,34 +130,42 @@ def propagation_methods() -> Dict:
     }
 
 
-def method_guide(method: str) -> Dict:
+def method_guide(method: str) -> dict:
     """دليل طريقة إكثار محدّدة."""
     key = _ALIASES.get(method.strip(), method.strip().lower())
     m = _METHODS.get(key)
     if not m:
-        return {"supported": False,
-                "message_ar": f"لا دليل لـ«{method}». المتاح: "
-                              + "، ".join(v["name_ar"] for v in _METHODS.values())}
+        return {
+            "supported": False,
+            "message_ar": f"لا دليل لـ«{method}». المتاح: "
+            + "، ".join(v["name_ar"] for v in _METHODS.values()),
+        }
     return {
-        "supported": True, "method": key,
-        "name_ar": m["name_ar"], "what_ar": m["what_ar"],
-        "types_ar": m["types_ar"], "tip_ar": m["tip_ar"],
+        "supported": True,
+        "method": key,
+        "name_ar": m["name_ar"],
+        "what_ar": m["what_ar"],
+        "types_ar": m["types_ar"],
+        "tip_ar": m["tip_ar"],
         "best_for_ar": m["best_for_ar"],
         "disclaimer_ar": "إرشاد عامّ؛ التطعيم مهارة تحتاج تدريباً وممارسة.",
     }
 
 
-def crop_propagation(crop: str) -> Dict:
+def crop_propagation(crop: str) -> dict:
     """طريقة الإكثار المناسبة لمحصول/شجرة من بطاقات الإدخال."""
     key = _ALIASES.get(crop.strip(), crop.strip().lower())
     cp = _CROP_PROPAGATION.get(key)
     if not cp:
-        return {"supported": False,
-                "message_ar": f"لا توصية إكثار لـ«{crop}». المتاح: مانجو، حمضيات، "
-                              "أفوكادو، تين، رمّان، عنب، جوافة، نخيل."}
+        return {
+            "supported": False,
+            "message_ar": f"لا توصية إكثار لـ«{crop}». المتاح: مانجو، حمضيات، "
+            "أفوكادو، تين، رمّان، عنب، جوافة، نخيل.",
+        }
     m = _METHODS[cp["method"]]
     return {
-        "supported": True, "crop": key,
+        "supported": True,
+        "crop": key,
         "recommended_method": cp["method"],
         "method_name_ar": m["name_ar"],
         "why_ar": cp["note_ar"],
@@ -155,7 +177,7 @@ def crop_propagation(crop: str) -> Dict:
     }
 
 
-def rootstock_selection(stress: str = "salinity") -> Dict:
+def rootstock_selection(stress: str = "salinity") -> dict:
     """إرشاد اختيار الأصل (rootstock) حسب الإجهاد — يربط بوحدة الملوحة/الجفاف."""
     guides = {
         "salinity": {
@@ -177,16 +199,13 @@ def rootstock_selection(stress: str = "salinity") -> Dict:
         "disease": {
             "label_ar": "أمراض التربة",
             "advice_ar": (
-                "اختر أصلاً مقاوماً لمسبّبات الأمراض المنقولة بالتربة لحماية "
-                "الشجرة طوال عمرها."
+                "اختر أصلاً مقاوماً لمسبّبات الأمراض المنقولة بالتربة لحماية الشجرة طوال عمرها."
             ),
             "link_ar": "راجع وحدة الإدارة المتكاملة للآفات (IPM).",
         },
         "dwarfing": {
             "label_ar": "التقزيم",
-            "advice_ar": (
-                "اختر أصلاً مقزّماً لأشجار أصغر (أسهل قطفاً، كثافة أعلى، إنتاج مبكّر)."
-            ),
+            "advice_ar": ("اختر أصلاً مقزّماً لأشجار أصغر (أسهل قطفاً، كثافة أعلى، إنتاج مبكّر)."),
             "link_ar": "",
         },
     }
@@ -200,8 +219,6 @@ def rootstock_selection(stress: str = "salinity") -> Dict:
             "الأصل (rootstock) يُختار لمقاومته (جفاف/ملوحة/أمراض/تقزيم)، والطعم "
             "(scion) يُختار لجودة ثماره. هذا جوهر نجاح نجران بالأشجار المطعّمة."
         ),
-        "all_stresses_ar": [
-            {"stress": k, "label_ar": v["label_ar"]} for k, v in guides.items()
-        ],
+        "all_stresses_ar": [{"stress": k, "label_ar": v["label_ar"]} for k, v in guides.items()],
         "disclaimer_ar": "إرشاد عامّ — اختر أصلاً معتمداً من مشتل موثوق + استشر هيئة البحوث.",
     }

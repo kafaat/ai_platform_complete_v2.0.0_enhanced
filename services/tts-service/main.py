@@ -8,6 +8,7 @@ Voices supported:
   - ar-SA-HamedNeural   (Saudi male, fallback)
   - ar-EG-SalmaNeural   (Egyptian female, fallback)
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -16,7 +17,6 @@ import logging
 import os
 import re
 from contextlib import asynccontextmanager
-from typing import Optional
 
 import edge_tts
 import redis.asyncio as aioredis
@@ -27,11 +27,12 @@ from fastapi.security import (
     HTTPBearer,
 )
 from jose import JWTError, jwt
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import BaseModel, Field, field_validator
 
 try:
     from shared.logging_config import setup_logging
+
     logger = setup_logging("tts-service")
 except ImportError:
     logging.basicConfig(
@@ -40,19 +41,19 @@ except ImportError:
     )
     logger = logging.getLogger("tts-service")
 
-VERSION       = "9.1.0"
-_JWT_PUBLIC   = os.getenv("JWT_PUBLIC_KEY", "")
-JWT_SECRET    = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
-_JWT_ALG      = "RS256" if _JWT_PUBLIC else "HS256"
-REDIS_URL     = os.getenv("REDIS_URL", "redis://sahool-redis:6379/2")
-CACHE_TTL     = int(os.getenv("TTS_CACHE_TTL", "86400"))  # 24h
-MAX_TEXT_LEN  = int(os.getenv("TTS_MAX_TEXT_LEN", "1000"))
+VERSION = "9.1.0"
+_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
+JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
+_JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
+REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/2")
+CACHE_TTL = int(os.getenv("TTS_CACHE_TTL", "86400"))  # 24h
+MAX_TEXT_LEN = int(os.getenv("TTS_MAX_TEXT_LEN", "1000"))
 
 # Available voices
 VOICES = {
-    "yemeni_female":   "ar-YE-MaryamNeural",
-    "yemeni_male":     "ar-YE-SalehNeural",
-    "saudi_male":      "ar-SA-HamedNeural",
+    "yemeni_female": "ar-YE-MaryamNeural",
+    "yemeni_male": "ar-YE-SalehNeural",
+    "saudi_male": "ar-SA-HamedNeural",
     "egyptian_female": "ar-EG-SalmaNeural",
 }
 DEFAULT_VOICE = "yemeni_female"
@@ -69,7 +70,7 @@ TTS_LATENCY = Histogram(
     ["voice"],
 )
 
-_redis: Optional[aioredis.Redis] = None
+_redis: aioredis.Redis | None = None
 _security = HTTPBearer(auto_error=False)
 
 
@@ -115,7 +116,7 @@ async def get_current_user(
             audience="sahool",
         )
     except JWTError as e:
-        raise HTTPException(401, f"Invalid token: {e}")
+        raise HTTPException(401, f"Invalid token: {e}") from e
 
 
 # ── Models ───────────────────────────────────────────────────
@@ -247,13 +248,11 @@ async def synthesize(
 
     # Generate
     try:
-        audio = await _generate_speech(
-            req.text, req.voice, req.rate, req.pitch, req.volume
-        )
+        audio = await _generate_speech(req.text, req.voice, req.rate, req.pitch, req.volume)
     except Exception as e:
         TTS_REQUESTS.labels(voice=req.voice, status="error", cache="miss").inc()
         logger.error(f"TTS generation failed: {e}")
-        raise HTTPException(500, "Speech synthesis failed")
+        raise HTTPException(500, "Speech synthesis failed") from e
 
     # Cache result
     if _redis:
@@ -264,8 +263,7 @@ async def synthesize(
 
     TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="miss").inc()
     logger.info(
-        f"Generated: tenant={tenant_id} voice={req.voice} "
-        f"chars={len(req.text)} bytes={len(audio)}"
+        f"Generated: tenant={tenant_id} voice={req.voice} chars={len(req.text)} bytes={len(audio)}"
     )
 
     return Response(
@@ -304,4 +302,5 @@ async def stream(
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

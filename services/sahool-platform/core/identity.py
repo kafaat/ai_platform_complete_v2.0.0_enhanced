@@ -33,6 +33,7 @@ Dual-ID Strategy — UUID داخلي + readable خارجي.
   ← PostgreSQL migration plan يستخدم UUID كـPK، readable كـUNIQUE
   ← API endpoints تقبل أيّ معرّف، تعمل بالـUUID داخلياً
 """
+
 from __future__ import annotations
 
 import re
@@ -44,6 +45,7 @@ from enum import Enum
 
 class EntityKind(str, Enum):
     """نوع الكيان — يحدّد بادئة الـreadable id."""
+
     TENANT = "tnt"
     USER = "usr"
     FARM = "frm"
@@ -73,6 +75,7 @@ class IdentityPair:
       • readable: قابل للتغيير (نادراً) إذا تطلّب العمل (مثل إعادة هيكلة region)
       • الـUUID هو "هويّة الكيان"، readable هو "اسم العرض"
     """
+
     uuid: str
     readable: str
     kind: EntityKind
@@ -88,12 +91,12 @@ class IdentityPair:
         if not _READABLE_PATTERN.match(self.readable):
             raise ValueError(
                 f"readable id '{self.readable}' لا يطابق النمط "
-                f"(<kind>_<context>، حروف صغيرة وأرقام و_)")
+                f"(<kind>_<context>، حروف صغيرة وأرقام و_)"
+            )
         # تطابق البادئة مع النوع
         prefix = self.readable.split("_")[0]
         if prefix != self.kind.value:
-            raise ValueError(
-                f"بادئة '{prefix}' لا تطابق النوع '{self.kind.value}'")
+            raise ValueError(f"بادئة '{prefix}' لا تطابق النوع '{self.kind.value}'")
 
 
 def generate_uuid() -> str:
@@ -149,12 +152,14 @@ def new_identity(
 
 # ─── Identity Mapping Layer (لتسهيل البحث) ───────────────────────
 
+
 @dataclass
 class IdentityIndex:
     """فهرس داخلي للتحويل بين UUID و readable.
 
     في production: هذا جدول DB بـindexes على كلا العمودين.
     في النواة الحالية: in-memory للاختبار + التصميم."""
+
     by_uuid: dict[str, IdentityPair] = field(default_factory=dict)
     by_readable: dict[str, IdentityPair] = field(default_factory=dict)
 
@@ -162,12 +167,13 @@ class IdentityIndex:
         """يسجّل زوجاً — يرفض التضارب صراحةً."""
         if pair.uuid in self.by_uuid:
             raise ValueError(
-                f"UUID '{pair.uuid}' مُسجَّل بالفعل لـ"
-                f"'{self.by_uuid[pair.uuid].readable}'")
+                f"UUID '{pair.uuid}' مُسجَّل بالفعل لـ'{self.by_uuid[pair.uuid].readable}'"
+            )
         if pair.readable in self.by_readable:
             raise ValueError(
                 f"readable '{pair.readable}' مُسجَّل بالفعل لـUUID "
-                f"'{self.by_readable[pair.readable].uuid}'")
+                f"'{self.by_readable[pair.readable].uuid}'"
+            )
         self.by_uuid[pair.uuid] = pair
         self.by_readable[pair.readable] = pair
 
@@ -200,6 +206,7 @@ class IdentityIndex:
 
 
 # ─── Migration Helper: ترقية canonical_schemas القديمة ───────────
+
 
 def upgrade_legacy_id(legacy_id: str, kind: EntityKind) -> IdentityPair:
     """يُرقّي معرّف قديم (TEXT فقط) إلى IdentityPair.
@@ -234,6 +241,5 @@ def identity_summary(index: IdentityIndex) -> dict:
     return {
         "total_entities": len(index),
         "by_kind": by_kind,
-        "summary_ar": (f"{len(index)} كيان مُسجَّل، موزّعة على "
-                       f"{len(by_kind)} نوع"),
+        "summary_ar": (f"{len(index)} كيان مُسجَّل، موزّعة على {len(by_kind)} نوع"),
     }

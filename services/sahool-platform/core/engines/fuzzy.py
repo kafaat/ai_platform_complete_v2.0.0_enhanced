@@ -15,6 +15,7 @@ This is standard fuzzy-logic trapezoidal membership (Zadeh, 1965), applied
 to crop-requirement matching per FAO land-suitability framework
 (FAO, 1976, "A Framework for Land Evaluation", Soils Bulletin 32).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -23,16 +24,16 @@ from dataclasses import dataclass
 @dataclass
 class TrapezoidParams:
     """Four corners of the trapezoid. Outside [min_acc, max_acc] => dead zone."""
+
     min_acceptable: float
     optimal_min: float
     optimal_max: float
     max_acceptable: float
 
     def __post_init__(self):
-        assert (
-            self.min_acceptable <= self.optimal_min
-            <= self.optimal_max <= self.max_acceptable
-        ), "trapezoid corners must be ordered"
+        assert self.min_acceptable <= self.optimal_min <= self.optimal_max <= self.max_acceptable, (
+            "trapezoid corners must be ordered"
+        )
 
 
 def trapezoidal_score(value: float, p: TrapezoidParams) -> float:

@@ -2,43 +2,51 @@
 SAHOOL v9.1 — mcp_servers/shared/oauth_middleware.py (FULLY REWRITTEN)
 FIX: FastAPI dependency-based OAuth 2.1 middleware with proper JWT validation
 """
+
 from __future__ import annotations
-import os, re
-from typing import Optional, Set
-from fastapi import HTTPException, Request, status, Depends
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+import os
+import re
+
 import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 _TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
 
 security = HTTPBearer(auto_error=False)
+
 
 def _validate_tenant_id(tenant_id: str) -> str:
     if not tenant_id or not _TENANT_RE.match(tenant_id):
         raise ValueError(f"Invalid tenant_id: {tenant_id!r}")
     return tenant_id
 
+
 async def set_tenant_context(conn, tenant_id: str) -> None:
     safe = _validate_tenant_id(tenant_id)
     await conn.execute("SELECT set_config('app.current_tenant', $1, true)", safe)
 
+
 async def clear_tenant_context(conn) -> None:
     await conn.execute("SELECT set_config('app.current_tenant', '', true)")
 
+
 def require_scope(required_scope: str):
     """FastAPI dependency factory for MCP scope enforcement."""
-    async def _check(
-        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
-    ) -> dict:
+
+    async def _check(credentials: HTTPAuthorizationCredentials | None = Depends(security)) -> dict:
         if not credentials:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing token")
         secret = os.getenv("JWT_SECRET", "")
         if not secret:
             raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "JWT_SECRET not configured")
         try:
-            payload = jwt.decode(credentials.credentials, secret, algorithms=["HS256"], audience="sahool")
+            payload = jwt.decode(
+                credentials.credentials, secret, algorithms=["HS256"], audience="sahool"
+            )
         except jwt.InvalidTokenError as e:
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {e}")
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {e}") from e
         scopes = payload.get("scope", "").split()
         if required_scope not in scopes and "admin" not in scopes:
             raise HTTPException(status.HTTP_403_FORBIDDEN, f"Scope '{required_scope}' required")
@@ -46,6 +54,7 @@ def require_scope(required_scope: str):
         try:
             _validate_tenant_id(tid)
         except ValueError as e:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e))
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e)) from e
         return payload
+
     return _check

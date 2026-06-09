@@ -4,18 +4,17 @@ SAHOOL v9.1 — Video Stream Processor
 RTSP / HTTP / USB camera → frame extraction → Edge Inference
 Supports: GB28181 via ZLMediaKit proxy, WebRTC, local files
 """
-from __future__ import annotations
 
-import uuid
+from __future__ import annotations
 
 import asyncio
 import json
 import logging
 import os
 import time
+import uuid
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 import httpx
 import numpy as np
@@ -25,28 +24,34 @@ from pydantic import BaseModel, Field
 
 try:
     from shared.logging_config import setup_logging
+
     logger = setup_logging("video-processor")
 except ImportError:
-    logging.basicConfig(level=logging.INFO,
-        format='{"time":"%(asctime)s","svc":"video-processor","msg":"%(message)s"}')
+    logging.basicConfig(
+        level=logging.INFO,
+        format='{"time":"%(asctime)s","svc":"video-processor","msg":"%(message)s"}',
+    )
     logger = logging.getLogger("video-processor")
 
 # ── Config ────────────────────────────────────────────────────
-MQTT_BROKER_URL    = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
+MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
 EDGE_INFERENCE_URL = os.getenv("EDGE_INFERENCE_URL", "http://sahool-edge:8000")
-ZLMEDIA_API_URL    = os.getenv("ZLMEDIA_API_URL", os.getenv("ZLMEDIAKIT_URL", "http://sahool-zlmediakit:8080"))
-REDIS_URL          = os.getenv("REDIS_URL", "")
+ZLMEDIA_API_URL = os.getenv(
+    "ZLMEDIA_API_URL", os.getenv("ZLMEDIAKIT_URL", "http://sahool-zlmediakit:8080")
+)
+REDIS_URL = os.getenv("REDIS_URL", "")
 FRAME_INTERVAL_SEC = int(os.getenv("FRAME_INTERVAL_SEC", "5"))
 MAX_CONCURRENT_STREAMS = int(os.getenv("MAX_CONCURRENT_STREAMS", "10"))
+
 
 # ══════════════════════════════════════════════════════════════
 # Video Stream Manager
 # ══════════════════════════════════════════════════════════════
 class StreamConfig(BaseModel):
     stream_id: str
-    rtsp_url: Optional[str] = None
-    http_url: Optional[str] = None
-    usb_index: Optional[int] = None
+    rtsp_url: str | None = None
+    http_url: str | None = None
+    usb_index: int | None = None
     field_id: str = "unknown"
     tenant_id: str = "default"
     ai_enabled: bool = True
@@ -57,9 +62,9 @@ class StreamConfig(BaseModel):
 class StreamState:
     def __init__(self, config: StreamConfig):
         self.config = config
-        self.task: Optional[asyncio.Task] = None
-        self.last_frame: Optional[np.ndarray] = None
-        self.last_detection: Optional[dict] = None
+        self.task: asyncio.Task | None = None
+        self.last_frame: np.ndarray | None = None
+        self.last_detection: dict | None = None
         self.status = "inactive"
         self.error_count = 0
         self.frame_count = 0
@@ -71,10 +76,11 @@ STREAMS: dict[str, StreamState] = {}
 # ══════════════════════════════════════════════════════════════
 # Frame Capture (OpenCV)
 # ══════════════════════════════════════════════════════════════
-def capture_frame(source: str) -> Optional[np.ndarray]:
+def capture_frame(source: str) -> np.ndarray | None:
     """Capture a single frame from RTSP/HTTP/USB. Blocking — run in thread pool."""
     try:
         import cv2
+
         cap = cv2.VideoCapture(source)
         if not cap.isOpened():
             return None
@@ -87,7 +93,7 @@ def capture_frame(source: str) -> Optional[np.ndarray]:
     return None
 
 
-async def async_capture(source: str) -> Optional[np.ndarray]:
+async def async_capture(source: str) -> np.ndarray | None:
     return await asyncio.to_thread(capture_frame, source)
 
 
@@ -97,6 +103,7 @@ async def async_capture(source: str) -> Optional[np.ndarray]:
 async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
     """Send frame to edge-inference service."""
     import cv2
+
     success, encoded = cv2.imencode(".jpg", frame)  # MED-VIDEO-01
     if not success:
         return {"error": "encode_failed"}
@@ -106,7 +113,7 @@ async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
         "field_id": "stream",
         "crop": "wheat",
         "confidence_threshold": 0.6,
-        "return_image": False
+        "return_image": False,
     }
 
     try:
@@ -114,7 +121,7 @@ async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
             resp = await client.post(
                 f"{EDGE_INFERENCE_URL}/inference/pest-detect",
                 data={"request": json.dumps(payload)},
-                files=files
+                files=files,
             )
             resp.raise_for_status()
             return resp.json()
@@ -137,12 +144,15 @@ async def process_stream_loop(stream_id: str):
         try:
             proxy_url = f"{ZLMEDIA_API_URL}/index/api/addStreamProxy"
             async with httpx.AsyncClient(timeout=10.0) as c:
-                r = await c.post(proxy_url, json={
-                    "vhost": "__defaultVhost__",
-                    "app": "live",
-                    "stream": stream_id,
-                    "url": cfg.rtsp_url
-                })
+                r = await c.post(
+                    proxy_url,
+                    json={
+                        "vhost": "__defaultVhost__",
+                        "app": "live",
+                        "stream": stream_id,
+                        "url": cfg.rtsp_url,
+                    },
+                )
                 if r.status_code == 200:
                     source = f"{ZLMEDIA_API_URL}/live/{stream_id}.live.flv"
                     logger.info(f"[{stream_id}] ZLMediaKit proxy active: {source}")
@@ -196,12 +206,15 @@ async def publish_alert(cfg: StreamConfig, detections: list):
     """Publish pest alert to MQTT broker (FastBee)."""
     try:
         topic = f"sahool/tenant/{cfg.tenant_id}/alerts/pest"
-        payload = json.dumps({
-            "stream_id": cfg.stream_id,
-            "field_id": cfg.field_id,
-            "detections": detections,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        }, ensure_ascii=False)
+        payload = json.dumps(
+            {
+                "stream_id": cfg.stream_id,
+                "field_id": cfg.field_id,
+                "detections": detections,
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+            ensure_ascii=False,
+        )
         async with MQTTClient(MQTT_BROKER_URL) as client:
             await client.publish(topic, payload, qos=1)
     except Exception as e:
@@ -216,20 +229,22 @@ async def lifespan(app: FastAPI):
     logger.info("🎥 Video Processor starting — RTSP/HTTP/USB ready")
     yield
     # Cleanup
-    for sid, state in list(STREAMS.items()):
+    for _sid, state in list(STREAMS.items()):
         state.status = "inactive"
         if state.task:
             state.task.cancel()
     logger.info("🎥 Video Processor stopped")
 
 
-
 # HIGH-VIDEO-01 FIX: JWT authentication
-from fastapi import HTTPException, Depends
-from fastapi.security import HTTPBearer as _Bearer, HTTPAuthorizationCredentials as _Creds
-from jose import jwt as _v_jwt, JWTError as _v_JE
+from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials as _Creds
+from fastapi.security import HTTPBearer as _Bearer
+from jose import JWTError as _v_JE
+from jose import jwt as _v_jwt
 
 _v_bearer = _Bearer(auto_error=False)
+
 
 async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
     """Verify JWT and return user payload."""
@@ -237,10 +252,16 @@ async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
         raise HTTPException(401, "Authentication required")
     try:
         _v_pub = os.getenv("JWT_PUBLIC_KEY", "")
-        return _v_jwt.decode(creds.credentials, _v_pub or os.getenv("JWT_SECRET", ""),
-                             algorithms=["RS256" if _v_pub else "HS256"], audience="sahool")
+        return _v_jwt.decode(
+            creds.credentials,
+            _v_pub or os.getenv("JWT_SECRET", ""),
+            algorithms=["RS256" if _v_pub else "HS256"],
+            audience="sahool",
+        )
     except _v_JE as e:
-        raise HTTPException(401, f"Invalid token: {e}")
+        raise HTTPException(401, f"Invalid token: {e}") from e
+
+
 # from shared.helpers import get_current_user
 app = FastAPI(title="SAHOOL Video Processor", version="9.1.0", lifespan=lifespan)
 
@@ -249,10 +270,12 @@ app = FastAPI(title="SAHOOL Video Processor", version="9.1.0", lifespan=lifespan
 # API Endpoints
 # ══════════════════════════════════════════════════════════════
 class CreateStreamRequest(BaseModel):
-    stream_id: str = Field(default_factory=lambda: f"stream_{uuid.uuid4().hex[:12]}")  # MED-VIDEO-03
-    rtsp_url: Optional[str] = None
-    http_url: Optional[str] = None
-    usb_index: Optional[int] = None
+    stream_id: str = Field(
+        default_factory=lambda: f"stream_{uuid.uuid4().hex[:12]}"
+    )  # MED-VIDEO-03
+    rtsp_url: str | None = None
+    http_url: str | None = None
+    usb_index: int | None = None
     field_id: str = "unknown"
     tenant_id: str = "default"
     ai_enabled: bool = True
@@ -275,7 +298,7 @@ async def create_stream(req: CreateStreamRequest, user: dict = Depends(_get_curr
     return {
         "stream_id": req.stream_id,
         "status": "starting",
-        "source": cfg.rtsp_url or cfg.http_url or f"usb:{cfg.usb_index}"
+        "source": cfg.rtsp_url or cfg.http_url or f"usb:{cfg.usb_index}",
     }
 
 
@@ -300,7 +323,7 @@ async def get_stream(stream_id: str):
         "status": state.status,
         "frame_count": state.frame_count,
         "last_detection": state.last_detection,
-        "config": state.config.model_dump()
+        "config": state.config.model_dump(),
     }
 
 
@@ -312,11 +335,11 @@ async def list_streams():
                 "stream_id": sid,
                 "status": s.status,
                 "frame_count": s.frame_count,
-                "source": s.config.rtsp_url or s.config.http_url or f"usb:{s.config.usb_index}"
+                "source": s.config.rtsp_url or s.config.http_url or f"usb:{s.config.usb_index}",
             }
             for sid, s in STREAMS.items()
         ],
-        "max_streams": MAX_CONCURRENT_STREAMS
+        "max_streams": MAX_CONCURRENT_STREAMS,
     }
 
 
@@ -326,8 +349,10 @@ async def snapshot(stream_id: str):
     if not state or state.last_frame is None:
         raise HTTPException(404, "No frame available")
     import cv2
+
     success2, buf = cv2.imencode(".jpg", state.last_frame)  # MED-VIDEO-01
     from fastapi.responses import Response
+
     return Response(content=buf.tobytes(), media_type="image/jpeg")
 
 
@@ -337,15 +362,16 @@ async def health():
     return {
         "status": "alive",
         "active_streams": sum(1 for s in STREAMS.values() if s.status == "active"),
-        "max_streams": MAX_CONCURRENT_STREAMS
+        "max_streams": MAX_CONCURRENT_STREAMS,
     }
-
 
 
 @app.get("/readyz")
 async def readyz():
     return {"status": "ready", "version": "9.1.0"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

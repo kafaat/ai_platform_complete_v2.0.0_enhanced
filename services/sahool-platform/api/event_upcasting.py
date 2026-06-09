@@ -11,15 +11,16 @@ append-only)؛ الترقية في الذاكرة وقت إعادة التشغي
 
 صدق: لا يخترع حقولاً بقيم وهميّة — يضيف افتراضات صريحة موثّقة، أو يترك None.
 """
+
 from __future__ import annotations
 
 import logging
-from typing import Callable, Dict, Tuple
+from collections.abc import Callable
 
 logger = logging.getLogger("sahool.event_upcasting")
 
 # النسخة الحاليّة لكلّ نوع حدث (المرجع)
-CURRENT_VERSIONS: Dict[str, str] = {
+CURRENT_VERSIONS: dict[str, str] = {
     "lifecycle.transitioned": "1.0",
     "operation.irrigation.completed": "1.0",
     "operation.fertilizer.applied": "1.0",
@@ -28,7 +29,7 @@ CURRENT_VERSIONS: Dict[str, str] = {
 }
 
 # سجلّ المرقّيات: (event_type, from_version) → دالّة(payload)->payload
-_UPCASTERS: Dict[Tuple[str, str], Callable[[dict], dict]] = {}
+_UPCASTERS: dict[tuple[str, str], Callable[[dict], dict]] = {}
 
 
 def _vkey(v: str) -> tuple:
@@ -42,13 +43,15 @@ def _vkey(v: str) -> tuple:
 
 def register_upcaster(event_type: str, from_version: str):
     """ديكوريتر لتسجيل مرقّي. الدالّة تأخذ payload قديماً وتُرجِع أحدث."""
+
     def deco(fn: Callable[[dict], dict]):
         _UPCASTERS[(event_type, from_version)] = fn
         return fn
+
     return deco
 
 
-def upcast(event_type: str, payload: dict, version: str) -> Tuple[dict, str]:
+def upcast(event_type: str, payload: dict, version: str) -> tuple[dict, str]:
     """يرقّي payload لأحدث نسخة عبر سلسلة المرقّيات. يُرجِع (payload, version).
 
     يطبّق المرقّيات بالتسلسل (1.0→1.1→1.2...) حتّى الوصول للنسخة الحاليّة.

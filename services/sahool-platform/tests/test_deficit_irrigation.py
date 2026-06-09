@@ -1,7 +1,11 @@
 """Tests for deficit irrigation salinity trade-off: moderate deficit OK with fresh water,
 severe deficit + saline water REJECTED (salt buildup), yield penalties match literature."""
+
 from core.engines.deficit_irrigation import (
-    evaluate_deficit_irrigation, soc_water_capacity_gain, _interp_penalty)
+    _interp_penalty,
+    evaluate_deficit_irrigation,
+    soc_water_capacity_gain,
+)
 
 
 class TestYieldPenalty:
@@ -19,35 +23,40 @@ class TestYieldPenalty:
 
 class TestSalinityTradeoff:
     def test_moderate_deficit_fresh_water_recommended(self):
-        r = evaluate_deficit_irrigation(etc_fraction=85, water_ec_ds_m=0.8,
-            crop_salinity_threshold_ds_m=6.0)
+        r = evaluate_deficit_irrigation(
+            etc_fraction=85, water_ec_ds_m=0.8, crop_salinity_threshold_ds_m=6.0
+        )
         assert r.recommended
         assert r.salinity_risk == "low"
 
     def test_severe_deficit_saline_water_rejected(self):
         # CRITICAL: عجز حادّ + ماء مالح → مرفوض (تراكم أملاح، الفيزياء تحكم)
-        r = evaluate_deficit_irrigation(etc_fraction=50, water_ec_ds_m=4.0,
-            crop_salinity_threshold_ds_m=6.0)
+        r = evaluate_deficit_irrigation(
+            etc_fraction=50, water_ec_ds_m=4.0, crop_salinity_threshold_ds_m=6.0
+        )
         assert not r.recommended
         assert r.salinity_risk == "high"
         assert any("تراكم أملاح" in w for w in r.warnings_ar)
 
     def test_severe_deficit_high_yield_penalty(self):
-        r = evaluate_deficit_irrigation(etc_fraction=40, water_ec_ds_m=0.5,
-            crop_salinity_threshold_ds_m=6.0)
+        r = evaluate_deficit_irrigation(
+            etc_fraction=40, water_ec_ds_m=0.5, crop_salinity_threshold_ds_m=6.0
+        )
         assert r.yield_penalty_pct >= 0.45
         assert not r.recommended
 
     def test_unknown_water_ec_warns(self):
         # ملوحة الماء مجهولة → تحذير صريح (لا تقييم بثقة)
-        r = evaluate_deficit_irrigation(etc_fraction=70, water_ec_ds_m=None,
-            crop_salinity_threshold_ds_m=6.0)
+        r = evaluate_deficit_irrigation(
+            etc_fraction=70, water_ec_ds_m=None, crop_salinity_threshold_ds_m=6.0
+        )
         assert any("غير معروف" in w for w in r.warnings_ar)
 
     def test_always_carries_estimate_caveat(self):
         # دائماً تقديري (سقف متوسّط) — لا ادّعاء دقّة
-        r = evaluate_deficit_irrigation(etc_fraction=85, water_ec_ds_m=0.8,
-            crop_salinity_threshold_ds_m=6.0)
+        r = evaluate_deficit_irrigation(
+            etc_fraction=85, water_ec_ds_m=0.8, crop_salinity_threshold_ds_m=6.0
+        )
         assert r.confidence in ("medium", "low")
         assert any("تقدير" in w for w in r.warnings_ar)
 
@@ -70,14 +79,16 @@ class TestRainfedGuard:
 
     def test_rainfed_returns_not_applicable(self):
         # CRITICAL: حقل مطري → لا توصية عجز (المفهوم لا ينطبق)
-        r = evaluate_deficit_irrigation(etc_fraction=80, water_ec_ds_m=0.8,
-            crop_salinity_threshold_ds_m=6.0, is_irrigated=False)
+        r = evaluate_deficit_irrigation(
+            etc_fraction=80, water_ec_ds_m=0.8, crop_salinity_threshold_ds_m=6.0, is_irrigated=False
+        )
         assert not r.recommended
         assert r.confidence == "none"
         assert any("مطري" in w for w in r.warnings_ar)
 
     def test_irrigated_still_works(self):
         # المروي (الافتراضي) يعمل كالسابق
-        r = evaluate_deficit_irrigation(etc_fraction=85, water_ec_ds_m=0.8,
-            crop_salinity_threshold_ds_m=6.0, is_irrigated=True)
+        r = evaluate_deficit_irrigation(
+            etc_fraction=85, water_ec_ds_m=0.8, crop_salinity_threshold_ds_m=6.0, is_irrigated=True
+        )
         assert r.recommended

@@ -15,17 +15,18 @@ services/sahool-platform/api/command_store.py — Server-Side Idempotency
   هذه ليست "Deterministic Command Execution Kernel" كما زعم المستند الخارجي.
   هي ببساطة: idempotency على مستوى الـDB + lifecycle validation. لا أكثر.
 """
-from __future__ import annotations
-from contextlib import asynccontextmanager as _asynccontextmanager
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from enum import Enum
-from typing import Any, Callable, Dict, Optional
+from __future__ import annotations
+
 import json
 import logging
 import uuid
-from typing import TYPE_CHECKING
+from collections.abc import Awaitable, Callable
+from contextlib import asynccontextmanager as _asynccontextmanager
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import asyncpg
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 # ─── Types ──────────────────────────────────────────────────────
+
 
 class CommandStatus(str, Enum):
     PENDING = "pending"
@@ -52,17 +54,18 @@ class CommandSource(str, Enum):
 @dataclass
 class Command:
     """تمثيل الـcommand — يطابق الـSQL schema في v10."""
+
     command_id: str
     command_type: str
     actor_id: str
     tenant_id: str
-    payload: Dict[str, Any]
+    payload: dict[str, Any]
     source: CommandSource
     status: CommandStatus = CommandStatus.PENDING
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     retry_count: int = 0
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
     @classmethod
     def new(
@@ -70,10 +73,10 @@ class Command:
         command_type: str,
         actor_id: str,
         tenant_id: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         source: CommandSource = CommandSource.MOBILE,
-        command_id: Optional[str] = None,
-    ) -> "Command":
+        command_id: str | None = None,
+    ) -> Command:
         return cls(
             command_id=command_id or str(uuid.uuid4()),
             command_type=command_type,
@@ -88,17 +91,18 @@ class Command:
 class DispatchResult:
     command_id: str
     status: CommandStatus
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     was_duplicate: bool = False
 
 
 # ─── Command Store (DB layer) ───────────────────────────────────
 
+
 class CommandStore:
     """CRUD على جدول commands. لا منطق أعمال."""
 
-    def __init__(self, pool: "asyncpg.Pool", conn=None):
+    def __init__(self, pool: asyncpg.Pool, conn=None):
         self.pool = pool
         self._conn = conn
 
@@ -111,7 +115,7 @@ class CommandStore:
             async with self.pool.acquire() as c:
                 yield c
 
-    async def get(self, command_id: str) -> Optional[Command]:
+    async def get(self, command_id: str) -> Command | None:
         async with self._acquire() as conn:
             row = await conn.fetchrow(
                 "SELECT * FROM commands WHERE command_id = $1",
@@ -148,7 +152,7 @@ class CommandStore:
                 uuid.UUID(command_id),
             )
 
-    async def mark_succeeded(self, command_id: str, result: Dict[str, Any]) -> None:
+    async def mark_succeeded(self, command_id: str, result: dict[str, Any]) -> None:
         async with self._acquire() as conn:
             await conn.execute(
                 """
@@ -196,7 +200,7 @@ class CommandStore:
 
 # ─── Dispatcher ─────────────────────────────────────────────────
 
-HandlerFn = Callable[[Command], "Awaitable[Dict[str, Any]]"]
+HandlerFn = Callable[[Command], "Awaitable[dict[str, Any]]"]
 
 
 class CommandDispatcher:
@@ -210,7 +214,7 @@ class CommandDispatcher:
 
     def __init__(self, store: CommandStore):
         self.store = store
-        self._handlers: Dict[str, HandlerFn] = {}
+        self._handlers: dict[str, HandlerFn] = {}
 
     def register(self, command_type: str, handler: HandlerFn) -> None:
         if command_type in self._handlers:
@@ -238,7 +242,9 @@ class CommandDispatcher:
                 )
             if existing.status == CommandStatus.FAILED:
                 # Retry attempt — مسموح، نعيد التنفيذ
-                logger.info(f"Retrying failed command {cmd.command_id} (attempt {existing.retry_count + 1})")
+                logger.info(
+                    f"Retrying failed command {cmd.command_id} (attempt {existing.retry_count + 1})"
+                )
             # else PENDING → fall through to insert (race condition fix below)
 
         # ٢. Insert (idempotent — ON CONFLICT DO NOTHING)

@@ -1,10 +1,10 @@
 """Tests for bivariate_raster (NDVI × NDMI dual classification).
 Honest pixel combination (no averaging), diagnostic clarity, dimension safety."""
-import io
-from PIL import Image
 
-from core.spatial.bivariate_raster import (
-    combine_grids_to_png, bivariate_legend, diagnose_pixel)
+import io
+
+from core.spatial.bivariate_raster import bivariate_legend, combine_grids_to_png, diagnose_pixel
+from PIL import Image
 
 
 class TestDiagnosticCombinations:
@@ -45,7 +45,11 @@ class TestPixelCombination:
         r = combine_grids_to_png(
             grid_ndvi=[[0.5, 0.6], [0.7, 0.4]],
             grid_ndmi=[[0.3, 0.4], [0.5, 0.2]],
-            south=0, west=0, north=1, east=1)
+            south=0,
+            west=0,
+            north=1,
+            east=1,
+        )
         assert r.png_bytes[:8] == b"\x89PNG\r\n\x1a\n"
         assert r.indicator_x == "ndvi"
         assert r.indicator_y == "ndmi"
@@ -53,9 +57,8 @@ class TestPixelCombination:
     def test_any_none_makes_transparent_pixel(self):
         # CRITICAL: إن كان أيّ مؤشّر مجهولاً → شفّاف (لا اختراع)
         r = combine_grids_to_png(
-            grid_ndvi=[[0.5, None]],
-            grid_ndmi=[[None, 0.3]],
-            south=0, west=0, north=1, east=1)
+            grid_ndvi=[[0.5, None]], grid_ndmi=[[None, 0.3]], south=0, west=0, north=1, east=1
+        )
         img = Image.open(io.BytesIO(r.png_bytes))
         # كلا البكسلين فيهما None → شفّاف
         assert img.getpixel((0, 0))[3] == 0
@@ -66,7 +69,11 @@ class TestPixelCombination:
         r = combine_grids_to_png(
             grid_ndvi=[[0.1, 0.1]],  # كلاهما low
             grid_ndmi=[[-0.2, -0.2]],  # كلاهما dry
-            south=0, west=0, north=1, east=1)
+            south=0,
+            west=0,
+            north=1,
+            east=1,
+        )
         assert r.class_counts.get(("low", "dry")) == 2
 
 
@@ -75,18 +82,16 @@ class TestDimensionValidation:
         # CRITICAL: لا إعادة عيّنة وهمية — الأبعاد المختلفة خطأ صريح
         try:
             combine_grids_to_png(
-                grid_ndvi=[[0.5, 0.5]],
-                grid_ndmi=[[0.3]],
-                south=0, west=0, north=1, east=1)
-            assert False, "كان يجب رفع ValueError"
+                grid_ndvi=[[0.5, 0.5]], grid_ndmi=[[0.3]], south=0, west=0, north=1, east=1
+            )
+            raise AssertionError("كان يجب رفع ValueError")
         except ValueError as e:
             assert "أبعاد" in str(e) or "مختلفة" in str(e)
 
     def test_empty_grid_raises(self):
         try:
-            combine_grids_to_png(grid_ndvi=[], grid_ndmi=[],
-                                south=0, west=0, north=1, east=1)
-            assert False
+            combine_grids_to_png(grid_ndvi=[], grid_ndmi=[], south=0, west=0, north=1, east=1)
+            raise AssertionError
         except ValueError as e:
             assert "فارغة" in str(e)
 
@@ -106,7 +111,7 @@ class TestUnknownValueHandling:
 class TestLegend:
     def test_legend_has_all_16_combinations(self):
         legend = bivariate_legend()
-        assert len(legend) == 16   # 4 NDVI × 4 NDMI
+        assert len(legend) == 16  # 4 NDVI × 4 NDMI
 
     def test_legend_has_diagnostic_for_each(self):
         legend = bivariate_legend()

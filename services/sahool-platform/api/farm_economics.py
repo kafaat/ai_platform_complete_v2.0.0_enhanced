@@ -15,10 +15,8 @@ api/farm_economics.py — دراسة الجدوى الاقتصاديّة للم�
 مبدأ صريح من المقال: لا تبدأ زراعةً دون معرفة **من سيشتري** و**بأيّ سعر**.
 السياق اليمني: ضعف البنية التسويقيّة تحدٍّ — تقدير الجدوى يحمي من خسارة موسم.
 """
+
 from __future__ import annotations
-
-from typing import Dict, Optional
-
 
 # بنود التكلفة القياسيّة (من المقال) — للإرشاد عند بناء التقدير
 _COST_CATEGORIES = [
@@ -36,14 +34,11 @@ _COST_CATEGORIES = [
 ]
 
 
-def cost_categories() -> Dict:
+def cost_categories() -> dict:
     """بنود التكلفة القياسيّة لبناء تقدير الجدوى."""
     return {
         "categories": _COST_CATEGORIES,
-        "note_ar": (
-            "قدّر كلّ بند بأسعار منطقتك. ليست كلّها تنطبق على كلّ محصول — "
-            "املأ ما يخصّ حالتك."
-        ),
+        "note_ar": ("قدّر كلّ بند بأسعار منطقتك. ليست كلّها تنطبق على كلّ محصول — املأ ما يخصّ حالتك."),
     }
 
 
@@ -51,9 +46,9 @@ def feasibility(
     area_ha: float,
     yield_t_per_ha: float,
     price_per_t: float,
-    costs: Optional[Dict[str, float]] = None,
-    total_cost: Optional[float] = None,
-) -> Dict:
+    costs: dict[str, float] | None = None,
+    total_cost: float | None = None,
+) -> dict:
     """يحسب جدوى المحصول: الإيراد المتوقّع وصافي الربح والهامش.
 
     مرّر إمّا قاموس التكاليف المفصّل (costs) أو إجماليّاً (total_cost).
@@ -125,8 +120,7 @@ def feasibility(
     }
 
 
-def break_even_price(area_ha: float, yield_t_per_ha: float,
-                     total_cost: float) -> Dict:
+def break_even_price(area_ha: float, yield_t_per_ha: float, total_cost: float) -> dict:
     """سعر التعادل: أدنى سعر/طن يغطّي التكاليف (لا ربح لا خسارة)."""
     total_yield = area_ha * yield_t_per_ha
     if total_yield <= 0:

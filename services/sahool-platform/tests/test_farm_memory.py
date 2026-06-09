@@ -1,16 +1,29 @@
 """Tests for farm_memory - unified operational memory.
 Realizes the 'agricultural intelligence infrastructure' from Digital Ag OS doc."""
+
 from core.farm_memory import (
-    build_farm_memory, memory_density_report, field_timeline,
-    events_around_recommendation, EventKind, MemoryEvent,
-    FarmMemorySnapshot)
+    EventKind,
+    FarmMemorySnapshot,
+    MemoryEvent,
+    build_farm_memory,
+    events_around_recommendation,
+    field_timeline,
+    memory_density_report,
+)
 from core.learning.recommendation_log import RecommendationRecord
 
 
 class _FakeActivity:
-    def __init__(self, tenant_id, field_id, kind="planting",
-                 farm_id="frm_01", planned="2025-04-01",
-                 status="completed", notes=""):
+    def __init__(
+        self,
+        tenant_id,
+        field_id,
+        kind="planting",
+        farm_id="frm_01",
+        planned="2025-04-01",
+        status="completed",
+        notes="",
+    ):
         self.tenant_id = tenant_id
         self.farm_id = farm_id
         self.field_id = field_id
@@ -23,8 +36,15 @@ class _FakeActivity:
 
 
 class _FakeObs:
-    def __init__(self, tenant_id, field_id, observable="ndvi", value=0.55,
-                 farm_id="frm_01", measured="2025-04-10"):
+    def __init__(
+        self,
+        tenant_id,
+        field_id,
+        observable="ndvi",
+        value=0.55,
+        farm_id="frm_01",
+        measured="2025-04-10",
+    ):
         self.tenant_id = tenant_id
         self.farm_id = farm_id
         self.field_id = field_id
@@ -37,14 +57,19 @@ class _FakeObs:
         self.observation_id = f"obs_{observable}_{field_id}"
 
 
-def _rec(rec_id, tenant_id, field_id="fld_03", actual=None,
-         issued="2025-03-20"):
+def _rec(rec_id, tenant_id, field_id="fld_03", actual=None, issued="2025-03-20"):
     r = RecommendationRecord(
-        rec_id=rec_id, tenant_id=tenant_id, district_id="al_bayda",
-        zone_id=field_id, crop="wheat", issued_date=issued,
+        rec_id=rec_id,
+        tenant_id=tenant_id,
+        district_id="al_bayda",
+        zone_id=field_id,
+        crop="wheat",
+        issued_date=issued,
         recommendation_ar="اروِ 15مم",
         quality_grade="READY",
-        predicted_yield_t_ha=3.5, confidence="medium")
+        predicted_yield_t_ha=3.5,
+        confidence="medium",
+    )
     if actual is not None:
         r.actual_yield_t_ha = actual
     r.farm_id = "frm_01"
@@ -56,7 +81,8 @@ class TestComposition:
 
     def test_combines_activities_observations_recommendations(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             activities=[_FakeActivity("tnt_001", "fld_03")],
             observations=[_FakeObs("tnt_001", "fld_03")],
             recommendations=[_rec("r1", "tnt_001", actual=3.4)],
@@ -71,7 +97,8 @@ class TestComposition:
     def test_outcome_separate_event_from_recommendation(self):
         # CRITICAL: التوصية + النتيجة حدثان منفصلان (timeline أوضح)
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             recommendations=[_rec("r1", "tnt_001", actual=3.4)],
         )
         assert snap.events_by_kind.get("recommendation") == 1
@@ -80,7 +107,8 @@ class TestComposition:
     def test_recommendation_without_outcome_no_invention(self):
         # CRITICAL: لا outcome إن لم يُسجَّل (صفر اختراع)
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             recommendations=[_rec("r1", "tnt_001", actual=None)],
         )
         assert snap.events_by_kind.get("recommendation") == 1
@@ -93,10 +121,11 @@ class TestTenantIsolation:
     def test_other_tenant_filtered_from_activities(self):
         # CRITICAL: نشاط في tenant آخر لا يظهر
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             activities=[
                 _FakeActivity("tnt_001", "fld_03"),
-                _FakeActivity("tnt_OTHER", "fld_03"),   # tenant آخر
+                _FakeActivity("tnt_OTHER", "fld_03"),  # tenant آخر
             ],
         )
         assert snap.events_by_kind.get("activity") == 1
@@ -104,7 +133,8 @@ class TestTenantIsolation:
 
     def test_other_tenant_filtered_from_observations(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             observations=[
                 _FakeObs("tnt_001", "fld_03"),
                 _FakeObs("tnt_OTHER", "fld_03"),
@@ -114,15 +144,15 @@ class TestTenantIsolation:
 
     def test_other_tenant_filtered_from_recommendations(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             recommendations=[
                 _rec("r1", "tnt_001"),
                 _rec("r2", "tnt_OTHER"),
             ],
         )
         # توصية tenant آخر يجب أن تختفي
-        rec_ids = [e.event_id for e in snap.timeline
-                  if e.kind == EventKind.RECOMMENDATION]
+        rec_ids = [e.event_id for e in snap.timeline if e.kind == EventKind.RECOMMENDATION]
         assert "r1" in rec_ids
         assert "r2" not in rec_ids
 
@@ -133,10 +163,11 @@ class TestOpenQuestions:
     def test_unfulfilled_recommendations_flagged(self):
         # 2 توصية، 1 نتيجة فقط → سؤال مفتوح
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             recommendations=[
-                _rec("r1", "tnt_001", actual=3.4),    # مع نتيجة
-                _rec("r2", "tnt_001", actual=None),   # بلا نتيجة
+                _rec("r1", "tnt_001", actual=3.4),  # مع نتيجة
+                _rec("r2", "tnt_001", actual=None),  # بلا نتيجة
             ],
         )
         # CRITICAL: لا اختراع outcomes - نُعلن النقص
@@ -145,11 +176,11 @@ class TestOpenQuestions:
     def test_no_observations_flagged(self):
         # CRITICAL: توصيات بلا قياسات = سؤال مفتوح
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             recommendations=[_rec("r1", "tnt_001", actual=3.4)],
         )
-        assert any("لا مشاهدات" in q or "بلا دليل" in q
-                  for q in snap.open_questions)
+        assert any("لا مشاهدات" in q or "بلا دليل" in q for q in snap.open_questions)
 
 
 class TestTimelineOrdering:
@@ -157,7 +188,8 @@ class TestTimelineOrdering:
 
     def test_events_sorted_chronologically(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             activities=[
                 _FakeActivity("tnt_001", "fld_03", planned="2025-06-01"),
                 _FakeActivity("tnt_001", "fld_03", planned="2025-03-01"),
@@ -171,7 +203,8 @@ class TestTimelineOrdering:
 class TestPeriodFilter:
     def test_period_from_filter(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             activities=[
                 _FakeActivity("tnt_001", "fld_03", planned="2024-12-01"),
                 _FakeActivity("tnt_001", "fld_03", planned="2025-05-01"),
@@ -185,7 +218,8 @@ class TestPeriodFilter:
 class TestFieldTimeline:
     def test_extracts_single_field_events(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             activities=[
                 _FakeActivity("tnt_001", "fld_03"),
                 _FakeActivity("tnt_001", "fld_04"),
@@ -206,7 +240,8 @@ class TestMemoryDensity:
 
     def test_recs_with_outcomes_medium(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             recommendations=[_rec("r1", "tnt_001", actual=3.4)],
         )
         d = memory_density_report(snap)
@@ -214,7 +249,8 @@ class TestMemoryDensity:
 
     def test_three_plus_with_outcomes_high(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             recommendations=[
                 _rec("r1", "tnt_001", actual=3.4),
                 _rec("r2", "tnt_001", actual=3.5),
@@ -227,7 +263,8 @@ class TestMemoryDensity:
     def test_activities_only_is_low(self):
         # أنشطة فقط بدون outcomes = low (لا نعرف النتيجة)
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             activities=[_FakeActivity("tnt_001", "fld_03")],
         )
         d = memory_density_report(snap)
@@ -239,16 +276,15 @@ class TestEventsAroundRecommendation:
 
     def test_returns_related_events(self):
         snap = build_farm_memory(
-            tenant_id="tnt_001", farm_id="frm_01",
+            tenant_id="tnt_001",
+            farm_id="frm_01",
             activities=[
                 _FakeActivity("tnt_001", "fld_03", planned="2025-03-15"),
                 _FakeActivity("tnt_001", "fld_03", planned="2025-04-15"),
             ],
-            recommendations=[_rec("r1", "tnt_001", issued="2025-03-20",
-                                 actual=3.4)],
+            recommendations=[_rec("r1", "tnt_001", issued="2025-03-20", actual=3.4)],
         )
-        around = events_around_recommendation(snap, "r1",
-                                              days_before=10, days_after=60)
+        around = events_around_recommendation(snap, "r1", days_before=10, days_after=60)
         # توصية + نشاط 03-15 + نشاط 04-15 + outcome
         assert len(around) >= 3
 

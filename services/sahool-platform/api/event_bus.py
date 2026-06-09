@@ -24,17 +24,18 @@ services/sahool-platform/api/event_bus.py — Reliable Event Emission
    ٢. OutboxWorker — background task يقرأ outbox ويُرسل لـNATS
    ٣. helper functions للـcommon events (field.created, etc.)
 """
-from __future__ import annotations
-from contextlib import asynccontextmanager as _asynccontextmanager
 
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from typing import Any, Dict, Optional, List, TYPE_CHECKING
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
 import uuid
+from contextlib import asynccontextmanager as _asynccontextmanager
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import asyncpg
@@ -44,41 +45,42 @@ logger = logging.getLogger(__name__)
 
 # ─── Event types (catalog) ──────────────────────────────────────
 
-class EventType(str, Enum):
+
+class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     # Field lifecycle
-    FIELD_CREATED        = "field.created"
-    FIELD_UPDATED        = "field.updated"
+    FIELD_CREATED = "field.created"
+    FIELD_UPDATED = "field.updated"
     FIELD_GEOMETRY_CHANGED = "field.geometry_changed"
-    FIELD_DELETED        = "field.deleted"
+    FIELD_DELETED = "field.deleted"
 
     # Lifecycle transitions (state machine)
     LIFECYCLE_TRANSITIONED = "lifecycle.transitioned"
 
     # Operations
-    PLANTING_STARTED     = "operation.planting.started"
-    PLANTING_COMPLETED   = "operation.planting.completed"
-    IRRIGATION_STARTED   = "operation.irrigation.started"
+    PLANTING_STARTED = "operation.planting.started"
+    PLANTING_COMPLETED = "operation.planting.completed"
+    IRRIGATION_STARTED = "operation.irrigation.started"
     IRRIGATION_COMPLETED = "operation.irrigation.completed"
-    FERTILIZER_APPLIED   = "operation.fertilizer.applied"
-    PESTICIDE_APPLIED    = "operation.pesticide.applied"
-    HARVEST_STARTED      = "operation.harvest.started"
-    HARVEST_COMPLETED    = "operation.harvest.completed"
+    FERTILIZER_APPLIED = "operation.fertilizer.applied"
+    PESTICIDE_APPLIED = "operation.pesticide.applied"
+    HARVEST_STARTED = "operation.harvest.started"
+    HARVEST_COMPLETED = "operation.harvest.completed"
 
     # TrueUp (yield calibration)
-    TRUEUP_APPLIED       = "trueup.applied"
+    TRUEUP_APPLIED = "trueup.applied"
 
     # Sensors / Remote sensing
-    NDVI_OBSERVATION     = "remote_sensing.ndvi.observed"
+    NDVI_OBSERVATION = "remote_sensing.ndvi.observed"
     SOIL_SAMPLE_RECORDED = "soil.sample.recorded"
-    WEATHER_RAIN         = "weather.rain"
-    MOISTURE_LOW         = "weather.moisture.low"
+    WEATHER_RAIN = "weather.rain"
+    MOISTURE_LOW = "weather.moisture.low"
 
     # AI suggestions (NOT decisions — human-in-loop)
-    AI_SUGGESTION        = "ai.suggestion.generated"
-    AI_ANOMALY_DETECTED  = "ai.anomaly.detected"
+    AI_SUGGESTION = "ai.suggestion.generated"
+    AI_ANOMALY_DETECTED = "ai.anomaly.detected"
 
 
-class EventSource(str, Enum):
+class EventSource(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     MOBILE = "mobile"
     WEB = "web"
     EDGE = "edge"
@@ -90,12 +92,13 @@ class EventSource(str, Enum):
 
 @dataclass
 class EmittedEvent:
-    event_id: Optional[str]    # None إن كان duplicate
+    event_id: str | None  # None إن كان duplicate
     was_duplicate: bool
-    outbox_id: Optional[int] = None
+    outbox_id: int | None = None
 
 
 # ─── EventBus ───────────────────────────────────────────────────
+
 
 class EventBus:
     """
@@ -108,8 +111,9 @@ class EventBus:
                  → DB يرفضه عبر UNIQUE INDEX، الـmethod يُرجع was_duplicate=True
     """
 
-    def __init__(self, pool: "asyncpg.Pool", conn=None):
+    def __init__(self, pool: asyncpg.Pool, conn=None):
         import asyncpg as _ap  # noqa: F401
+
         self.pool = pool
         self._conn = conn
 
@@ -128,11 +132,11 @@ class EventBus:
         entity_type: str,
         entity_id: str,
         tenant_id: str,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         source: EventSource = EventSource.SYSTEM,
-        actor_id: Optional[str] = None,
-        command_id: Optional[str] = None,
-        occurred_at: Optional[datetime] = None,
+        actor_id: str | None = None,
+        command_id: str | None = None,
+        occurred_at: datetime | None = None,
     ) -> EmittedEvent:
         """يُصدر event عبر emit_event SQL function (atomic)."""
         async with self._acquire() as conn:
@@ -173,7 +177,7 @@ class EventBus:
         entity_type: str,
         entity_id: str,
         limit: int = 100,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """يرجع تاريخ entity (للـreplay engine)."""
         async with self._acquire() as conn:
             rows = await conn.fetch(
@@ -193,7 +197,9 @@ class EventBus:
                 {
                     "event_id": str(r["event_id"]),
                     "event_type": r["event_type"],
-                    "payload": r["payload"] if isinstance(r["payload"], dict) else json.loads(r["payload"]),
+                    "payload": r["payload"]
+                    if isinstance(r["payload"], dict)
+                    else json.loads(r["payload"]),
                     "source": r["source"],
                     "actor_id": r["actor_id"],
                     "command_id": str(r["command_id"]) if r["command_id"] else None,
@@ -205,6 +211,7 @@ class EventBus:
 
 
 # ─── OutboxWorker (background task) ─────────────────────────────
+
 
 class OutboxWorker:
     """
@@ -219,8 +226,8 @@ class OutboxWorker:
 
     def __init__(
         self,
-        pool: "asyncpg.Pool",
-        nats_publish_fn,                # async callable(subject, payload_bytes)
+        pool: asyncpg.Pool,
+        nats_publish_fn,  # async callable(subject, payload_bytes)
         batch_size: int = 50,
         poll_interval_sec: float = 1.0,
         max_retries: int = 5,
@@ -288,7 +295,9 @@ class OutboxWorker:
             "entity_type": row["entity_type"],
             "entity_id": str(row["entity_id"]),
             "tenant_id": str(row["tenant_id"]),
-            "payload": row["payload"] if isinstance(row["payload"], dict) else json.loads(row["payload"]),
+            "payload": row["payload"]
+            if isinstance(row["payload"], dict)
+            else json.loads(row["payload"]),
             "occurred_at": row["occurred_at"].isoformat() if row["occurred_at"] else None,
         }
 
@@ -305,7 +314,7 @@ class OutboxWorker:
         except Exception as e:
             err_msg = f"{type(e).__name__}: {str(e)[:200]}"
             new_retry = row["retry_count"] + 1
-            new_status = 'failed' if new_retry >= self.max_retries else 'pending'
+            new_status = "failed" if new_retry >= self.max_retries else "pending"
             await conn.execute(
                 """
                 UPDATE event_outbox
@@ -313,6 +322,9 @@ class OutboxWorker:
                     last_error = $2, status = $3
                 WHERE outbox_id = $4
                 """,
-                new_retry, err_msg, new_status, row["outbox_id"],
+                new_retry,
+                err_msg,
+                new_status,
+                row["outbox_id"],
             )
             logger.warning(f"outbox send failed ({new_retry}/{self.max_retries}): {err_msg}")

@@ -2,10 +2,21 @@
 Reviewer insight #14: AI shouldn't 'know everything' - it should orchestrate tools.
 This registry IS the orchestration layer. No LLM, no chatbot - just explicit
 catalog with rigorous signatures."""
+
 from core.skills_registry import (
-    register, unregister, get, all_skills, by_category,
-    available_for_field, safety_critical_skills, model_versions_snapshot,
-    registry_health, SkillSignature, SkillCategory, ConfidenceCeiling)
+    ConfidenceCeiling,
+    SkillCategory,
+    SkillSignature,
+    all_skills,
+    available_for_field,
+    by_category,
+    get,
+    model_versions_snapshot,
+    register,
+    registry_health,
+    safety_critical_skills,
+    unregister,
+)
 
 
 class TestRegistryBasics:
@@ -23,13 +34,20 @@ class TestRegistryBasics:
     def test_duplicate_registration_rejected(self):
         # CRITICAL: لا overwrite صامت — حماية من تعارض النسخ
         try:
-            register(SkillSignature(
-                name="fao56_etc", version="v9.9",
-                category=SkillCategory.AGRONOMIC,
-                description_ar="dup", required_inputs=[], optional_inputs=[],
-                outputs=[], requires_quality_grade="READY",
-                confidence_ceiling=ConfidenceCeiling.HIGH))
-            assert False, "كان يجب رفض التكرار"
+            register(
+                SkillSignature(
+                    name="fao56_etc",
+                    version="v9.9",
+                    category=SkillCategory.AGRONOMIC,
+                    description_ar="dup",
+                    required_inputs=[],
+                    optional_inputs=[],
+                    outputs=[],
+                    requires_quality_grade="READY",
+                    confidence_ceiling=ConfidenceCeiling.HIGH,
+                )
+            )
+            raise AssertionError("كان يجب رفض التكرار")
         except ValueError as e:
             assert "مُسجَّلة بالفعل" in str(e)
 
@@ -39,8 +57,7 @@ class TestEligibilityFiltering:
 
     def test_blocked_field_only_data_skills(self):
         # CRITICAL: حقل BLOCKED لا يحصل على توصيات زراعية
-        eligible = available_for_field("BLOCKED",
-            {"tenant_id", "field_id", "sensor_type", "value"})
+        eligible = available_for_field("BLOCKED", {"tenant_id", "field_id", "sensor_type", "value"})
         # يقبل sensor_intake لأن requires_quality_grade=BLOCKED
         assert any(s.name == "sensor_intake" for s in eligible)
         # لا يقبل fao56 لأن متطلباته غير متوفّرة + يحتاج LIMITED
@@ -48,10 +65,19 @@ class TestEligibilityFiltering:
 
     def test_ready_field_with_inputs_unlocks_advanced(self):
         # حقل READY مع بيانات كاملة يفتح كل الإمكانات
-        eligible = available_for_field("READY", {
-            "et0", "kc", "growth_stage", "calibration_residuals",
-            "crop_id", "last_spray_date", "phi_days", "harvest_planned_date"
-        })
+        eligible = available_for_field(
+            "READY",
+            {
+                "et0",
+                "kc",
+                "growth_stage",
+                "calibration_residuals",
+                "crop_id",
+                "last_spray_date",
+                "phi_days",
+                "harvest_planned_date",
+            },
+        )
         names = {s.name for s in eligible}
         assert "fao56_etc" in names
         assert "yield_interval_conformal" in names
@@ -93,6 +119,7 @@ class TestVersionSnapshot:
     def test_snapshot_is_serializable_for_provenance(self):
         # CRITICAL: يجب أن يكون قابلاً للحفظ في JSON
         import json
+
         snapshot = model_versions_snapshot()
         serialized = json.dumps(snapshot)
         restored = json.loads(serialized)
@@ -121,14 +148,19 @@ class TestRegistryHealth:
     def test_undocumented_skill_flagged(self):
         # سجّل skill ناقصة التوثيق ثم تأكّد أنها تُكتشف
         try:
-            register(SkillSignature(
-                name="test_undocumented_xyz", version="v0.1",
-                category=SkillCategory.AGRONOMIC,
-                description_ar="",   # وصف فارغ
-                required_inputs=[], optional_inputs=[],
-                outputs=[],          # مخرجات فارغة
-                requires_quality_grade="READY",
-                confidence_ceiling=ConfidenceCeiling.LOW))
+            register(
+                SkillSignature(
+                    name="test_undocumented_xyz",
+                    version="v0.1",
+                    category=SkillCategory.AGRONOMIC,
+                    description_ar="",  # وصف فارغ
+                    required_inputs=[],
+                    optional_inputs=[],
+                    outputs=[],  # مخرجات فارغة
+                    requires_quality_grade="READY",
+                    confidence_ceiling=ConfidenceCeiling.LOW,
+                )
+            )
             health = registry_health()
             assert len(health["issues"]) >= 2  # وصف + مخرجات
         finally:
@@ -138,12 +170,19 @@ class TestRegistryHealth:
 class TestUnregister:
     def test_unregister_returns_true_when_exists(self):
         # سجّل ثم احذف
-        register(SkillSignature(
-            name="temp_test_skill", version="v0.1",
-            category=SkillCategory.DIAGNOSTIC,
-            description_ar="مؤقت", required_inputs=["x"], optional_inputs=[],
-            outputs=["y"], requires_quality_grade="LIMITED",
-            confidence_ceiling=ConfidenceCeiling.LOW))
+        register(
+            SkillSignature(
+                name="temp_test_skill",
+                version="v0.1",
+                category=SkillCategory.DIAGNOSTIC,
+                description_ar="مؤقت",
+                required_inputs=["x"],
+                optional_inputs=[],
+                outputs=["y"],
+                requires_quality_grade="LIMITED",
+                confidence_ceiling=ConfidenceCeiling.LOW,
+            )
+        )
         assert unregister("temp_test_skill") is True
         assert get("temp_test_skill") is None
 

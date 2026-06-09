@@ -1,4 +1,5 @@
 """Tests for day-zero advisory: uses available data at creation, honest about limits, motivates testing."""
+
 from core.day_zero_advisory import build_day_zero_advisory
 
 

@@ -14,15 +14,15 @@ learn_from_harvest.py
 
 Usage: python learn_from_harvest.py <district_id> [crop]
 """
+
 from __future__ import annotations
 
 import sys
 from pathlib import Path
 
 import yaml
-
-from storage.lite_store import yields_for_district, independent_units, init_db
 from core.learning.model_selector import select_model
+from storage.lite_store import independent_units, init_db, yields_for_district
 
 PLATFORM = Path(__file__).parent
 
@@ -31,7 +31,7 @@ def base_model_predict(record: dict) -> float:
     """Base physical prediction BEFORE districts calibration.
     In production this calls WOFOST. Here: a transparent placeholder
     representing the uncalibrated physical estimate."""
-    return 5.0   # uncalibrated baseline (t/ha) — same for all, calibration adjusts
+    return 5.0  # uncalibrated baseline (t/ha) — same for all, calibration adjusts
 
 
 def learn(district_id: str, crop: str | None = None) -> dict:
@@ -61,14 +61,16 @@ def learn(district_id: str, crop: str | None = None) -> dict:
             "farms_required": farms_required,
             "model_allowed": model.allowed_model.value,
             "scope": "tenant_only (indicative)",
-            "note_ar": (f"قيد المعايرة المديريةية — {units['farms']}/{farms_required} مزارع. "
-                        f"معامل استرشادي للمزرعة فقط. النموذج: {model.allowed_model.value}"),
+            "note_ar": (
+                f"قيد المعايرة المديريةية — {units['farms']}/{farms_required} مزارع. "
+                f"معامل استرشادي للمزرعة فقط. النموذج: {model.allowed_model.value}"
+            ),
         }
         # compute indicative zone_factor if we have any verified harvests
         if rows:
             actual = [r["yield_t_ha"] for r in rows]
             pred = [base_model_predict(r) for r in rows]
-            ratios = [a / p for a, p in zip(actual, pred) if p > 0]
+            ratios = [a / p for a, p in zip(actual, pred, strict=True) if p > 0]
             if ratios:
                 zf = round(sum(ratios) / len(ratios), 3)
                 result["indicative_zone_factor"] = zf
@@ -80,24 +82,29 @@ def learn(district_id: str, crop: str | None = None) -> dict:
     # threshold met -> districts calibration (the real thing)
     actual = [r["yield_t_ha"] for r in rows]
     pred = [base_model_predict(r) for r in rows]
-    ratios = [a / p for a, p in zip(actual, pred) if p > 0]
+    ratios = [a / p for a, p in zip(actual, pred, strict=True) if p > 0]
     zf = round(sum(ratios) / len(ratios), 3)
 
-    climate.setdefault("calibration", {}).update({
-        "status": "CALIBRATED",
-        "farms_calibrated": units["farms"],
-        "zone_factor": zf,
-        "method": "zone_factor = mean(actual/predicted) [standard physical calibration]",
-        "confidence": "high" if units["farms"] >= 5 and units["seasons"] >= 3 else "medium",
-        "n_seasons": units["seasons"],
-        "model_allowed": model.allowed_model.value,
-    })
+    climate.setdefault("calibration", {}).update(
+        {
+            "status": "CALIBRATED",
+            "farms_calibrated": units["farms"],
+            "zone_factor": zf,
+            "method": "zone_factor = mean(actual/predicted) [standard physical calibration]",
+            "confidence": "high" if units["farms"] >= 5 and units["seasons"] >= 3 else "medium",
+            "n_seasons": units["seasons"],
+            "model_allowed": model.allowed_model.value,
+        }
+    )
     with open(climate_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(climate, f, allow_unicode=True, sort_keys=False)
 
     return {
-        "district_id": district_id, "status": "calibrated_districts",
-        "zone_factor": zf, "farms": units["farms"], "seasons": units["seasons"],
+        "district_id": district_id,
+        "status": "calibrated_districts",
+        "zone_factor": zf,
+        "farms": units["farms"],
+        "seasons": units["seasons"],
         "model_allowed": model.allowed_model.value,
         "note_ar": f"معايرة مديريةية معتمدة: zone_factor={zf} من {units['farms']} مزارع",
     }
@@ -108,7 +115,8 @@ def _write_tenant_indicative(tenant_id, district_id, zf, units) -> None:
     cal_dir = PLATFORM / "tenants" / tenant_id / "calibration"
     cal_dir.mkdir(parents=True, exist_ok=True)
     data = {
-        "tenant_id": tenant_id, "district_id": district_id,
+        "tenant_id": tenant_id,
+        "district_id": district_id,
         "indicative_zone_factor": zf,
         "scope": "tenant_only",
         "confidence": "low",
@@ -124,4 +132,5 @@ if __name__ == "__main__":
     district = sys.argv[1] if len(sys.argv) > 1 else "al_jawf"
     crop = sys.argv[2] if len(sys.argv) > 2 else None
     import json
+
     print(json.dumps(learn(district, crop), ensure_ascii=False, indent=2))

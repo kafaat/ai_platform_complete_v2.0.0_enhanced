@@ -19,6 +19,7 @@
     pip install fastapi uvicorn httpx
     uvicorn api.chat_proxy_reference:app
 """
+
 import os
 import time
 from collections import defaultdict
@@ -56,8 +57,8 @@ def build_proxy_request(body: dict, farm_context: str) -> dict:
 
 # ── مثال FastAPI (يُفعّل عند بناء طبقة API) ──
 try:
-    from fastapi import FastAPI, HTTPException, Request
     import httpx
+    from fastapi import FastAPI, HTTPException, Request
 
     app = FastAPI(title="SAHOOL Chat Proxy")
 

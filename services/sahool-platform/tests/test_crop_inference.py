@@ -1,13 +1,35 @@
 """Tests for crop suitability inference: produces a shortlist NOT a decision,
 trees get lower ceiling (blocked without lab soil), trial recommendations (20%/50%)."""
+
 from core.crop_inference import infer_suitable_crops
 
 
 def _scores():
     return [
-        {"crop_id":"wheat","climate":0.90,"soil":0.60,"water":0.70,"market":0.80,"is_tree":False},
-        {"crop_id":"maize","climate":0.50,"soil":0.45,"water":0.40,"market":0.50,"is_tree":False},
-        {"crop_id":"mango","climate":0.40,"soil":0.30,"water":0.30,"market":0.50,"is_tree":True},
+        {
+            "crop_id": "wheat",
+            "climate": 0.90,
+            "soil": 0.60,
+            "water": 0.70,
+            "market": 0.80,
+            "is_tree": False,
+        },
+        {
+            "crop_id": "maize",
+            "climate": 0.50,
+            "soil": 0.45,
+            "water": 0.40,
+            "market": 0.50,
+            "is_tree": False,
+        },
+        {
+            "crop_id": "mango",
+            "climate": 0.40,
+            "soil": 0.30,
+            "water": 0.30,
+            "market": 0.50,
+            "is_tree": True,
+        },
     ]
 
 

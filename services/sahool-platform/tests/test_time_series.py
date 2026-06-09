@@ -1,9 +1,17 @@
 """Tests for time_series - temporal aggregation per AI Ag Template critique.
 Pure functions, no I/O, no DB. Strict 'no invention' on empty windows."""
+
 from datetime import datetime, timedelta
+
 from core.time_series import (
-    TimePoint, aggregate_window, moving_average, detect_trend,
-    detect_anomalies, temporal_summary, TrendDirection)
+    TimePoint,
+    TrendDirection,
+    aggregate_window,
+    detect_anomalies,
+    detect_trend,
+    moving_average,
+    temporal_summary,
+)
 
 
 def _points(count, start_days_ago, value_fn):
@@ -28,14 +36,13 @@ class TestAggregateWindow:
 
     def test_insufficient_samples_no_aggregation(self):
         # CRITICAL: <min_samples = لا نخترع متوسّط
-        r = aggregate_window([TimePoint("2026-05-29T00:00:00", 0.5)], 30,
-                            min_samples=3)
+        r = aggregate_window([TimePoint("2026-05-29T00:00:00", 0.5)], 30, min_samples=3)
         assert r.mean_value is None
 
     def test_window_returns_stats(self):
         pts = _points(10, 30, lambda i: 0.5 + i * 0.01)
         r = aggregate_window(pts, 30)
-        assert r.sample_count >= 5   # بعضها داخل النافذة
+        assert r.sample_count >= 5  # بعضها داخل النافذة
         assert r.mean_value is not None
         assert r.std_dev is not None
 
@@ -44,12 +51,15 @@ class TestAggregateWindow:
         now = datetime.now()
         old = TimePoint(
             timestamp=(now - timedelta(days=200)).isoformat(),
-            value=999.0,   # قيمة شاذّة عمداً
+            value=999.0,  # قيمة شاذّة عمداً
         )
-        recent = [TimePoint(
-            timestamp=(now - timedelta(days=i)).isoformat(),
-            value=0.5,
-        ) for i in range(1, 10)]
+        recent = [
+            TimePoint(
+                timestamp=(now - timedelta(days=i)).isoformat(),
+                value=0.5,
+            )
+            for i in range(1, 10)
+        ]
 
         r = aggregate_window([old] + recent, 30)
         # القديم لا يُحسَب → mean ≈ 0.5، ليس متأثّراً بالـ999
@@ -76,7 +86,7 @@ class TestTrendDetection:
 
     def test_increasing_detected(self):
         # قيم متزايدة بثبات داخل النافذة
-        pts = _points(10, 28, lambda i: 0.40 + i * 0.02)   # 0.40→0.58
+        pts = _points(10, 28, lambda i: 0.40 + i * 0.02)  # 0.40→0.58
         r = detect_trend(pts, 30, min_samples=4)
         assert r.direction == TrendDirection.INCREASING
         assert r.slope_per_day is not None
@@ -97,14 +107,17 @@ class TestTrendDetection:
     def test_volatile_detection(self):
         # CRITICAL: تذبذب عالٍ → VOLATILE، لا "trend مُختلق"
         import random
+
         random.seed(42)
         pts = _points(10, 28, lambda i: 0.50 + random.uniform(-0.4, 0.4))
         r = detect_trend(pts, 30, min_samples=4)
         # احتمال VOLATILE قوي (CV عالٍ)
-        assert r.direction in (TrendDirection.VOLATILE,
-                              TrendDirection.STABLE,
-                              TrendDirection.INCREASING,
-                              TrendDirection.DECREASING)
+        assert r.direction in (
+            TrendDirection.VOLATILE,
+            TrendDirection.STABLE,
+            TrendDirection.INCREASING,
+            TrendDirection.DECREASING,
+        )
         # noise_level مكشوف صراحةً
         assert r.noise_level is not None
 
@@ -125,7 +138,7 @@ class TestAnomalyDetection:
     def test_clear_anomaly_detected(self):
         # 9 نقاط حول 0.50 + نقطة عند 5.0 → anomaly واضح
         pts = [TimePoint(f"2026-05-{i:02d}", 0.50) for i in range(1, 10)]
-        pts.append(TimePoint("2026-05-10", 5.0))   # شاذّ جدّاً
+        pts.append(TimePoint("2026-05-10", 5.0))  # شاذّ جدّاً
         r = detect_anomalies(pts)
         assert r.has_anomaly
         assert len(r.anomaly_points) == 1
@@ -134,7 +147,7 @@ class TestAnomalyDetection:
     def test_z_score_threshold_configurable(self):
         # threshold أعلى = أقلّ anomalies
         pts = [TimePoint(f"2026-05-{i:02d}", 0.50) for i in range(1, 10)]
-        pts.append(TimePoint("2026-05-10", 1.0))   # شاذّ معتدل
+        pts.append(TimePoint("2026-05-10", 1.0))  # شاذّ معتدل
         strict = detect_anomalies(pts, z_score_threshold=10.0)
         lax = detect_anomalies(pts, z_score_threshold=1.5)
         assert len(lax.anomaly_points) >= len(strict.anomaly_points)
