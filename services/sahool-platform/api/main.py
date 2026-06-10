@@ -45,8 +45,9 @@ from core.canonical_schemas import UserRole, UserSchema
 from core.offline_first import (
     OfflineQueue,
     OperationKind,
+    SyncStatus,
+    apply_supersession,
     record_operation_offline,
-    sync_cycle,
 )
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -552,9 +553,8 @@ async def sync(
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
-    # نُسجّل كل العمليات في الـqueue أوّلاً
+    # ١) نُسجّل عمليّات هذا الطلب في الـqueue
     op_ids = []
-    ops = []
     for raw_op in req.operations:
         op = record_operation_offline(
             _OFFLINE_QUEUE,
@@ -564,45 +564,61 @@ async def sync(
             payload=raw_op.get("payload", {}),
         )
         op_ids.append(op.op_id)
-        ops.append(op)
 
-    # كتابة DB فعليّة: نُثبّت كل عمليّة بمتانة ضمن سياق RLS للمستأجر. نستخدم
-    # savepoint لكلّ عمليّة كي لا يُفسد فشل واحدة الدفعة كلّها، ونتعقّب أيّها نجح
-    # فعليّاً لنُعلمه لـsync_cycle (يبقى الفاشل في الـqueue لإعادة المحاولة).
-    from api.offline_sync_db import persist_synced_operation
+    # ٢) supersession أوّلاً (لا نُثبّت عمليّات قديمة حلّت محلّها أحدث منها)
+    superseded = apply_supersession(_OFFLINE_QUEUE, req.tenant_id)
 
-    persisted: set[str] = set()
+    # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
+    #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
+    #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
+    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(req.operations), 1))
+
+    # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
+    #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
+    #    فقط). إن لم تكن القاعدة مفعّلة، تبقى الكلّ QUEUED.
+    started = datetime.now(UTC)
+    synced = 0
+    pending_retry = 0
     if _DB_POOL is not None:
+        from api.offline_sync_db import persist_synced_operation
+
         async with tenant_connection(user) as conn:
-            for op in ops:
+            for op in batch:
                 try:
                     async with conn.transaction():  # savepoint لكلّ عمليّة
                         await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
-                    persisted.add(op.op_id)
-                except Exception as exc:  # noqa: BLE001 — تبقى العمليّة في الـqueue
+                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
+                    synced += 1
+                except Exception as exc:  # noqa: BLE001 — تبقى QUEUED لإعادة المحاولة
+                    _OFFLINE_QUEUE.mark_status(
+                        req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
+                    )
+                    pending_retry += 1
                     logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
     else:
-        logging.warning("sync: DATABASE_URL غير مضبوط — لم تُكتب العمليّات (تبقى في الـqueue)")
+        pending_retry = len(batch)
+        logging.warning(
+            "sync: DATABASE_URL غير مضبوط — بقيت %d عمليّة QUEUED لإعادة المحاولة", pending_retry
+        )
 
-    def sync_handler(op):
-        # نجاح = كُتبت للقاعدة فعليّاً (وإلّا تبقى معلّقة)
-        return op.op_id in persisted
-
-    result = sync_cycle(
-        _OFFLINE_QUEUE,
-        tenant_id=req.tenant_id,
-        sync_handler=sync_handler,
-        max_batch=len(req.operations),
-    )
+    duration_ms = round((datetime.now(UTC) - started).total_seconds() * 1000, 2)
+    if not batch:
+        reason = "✅ لا عمليّات معلّقة للـsync"
+    elif pending_retry == 0:
+        reason = f"✅ {synced} عمليّة sync بنجاح"
+    else:
+        reason = f"⚠️ {synced} sync، {pending_retry} بقيت معلّقة لإعادة المحاولة"
+    if superseded:
+        reason += f" (+{superseded} مُلغاة بـsupersession)"
 
     return {
         "status": "completed",
-        "synced": result.synced_count,
-        "failed": result.failed_count,
-        "conflicted": result.conflicted_count,
-        "superseded": result.superseded_count,
-        "duration_ms": result.duration_ms,
-        "reason_ar": result.reason_ar,
+        "synced": synced,
+        "failed": pending_retry,
+        "conflicted": 0,
+        "superseded": superseded,
+        "duration_ms": duration_ms,
+        "reason_ar": reason,
         "op_ids": op_ids,
     }
 

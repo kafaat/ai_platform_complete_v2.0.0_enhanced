@@ -14,7 +14,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - نوعيّ فقط
@@ -22,16 +22,27 @@ if TYPE_CHECKING:  # pragma: no cover - نوعيّ فقط
     from core.offline_first import PendingOperation
 
 
-def _parse_ts(value: object) -> datetime | None:
-    """يحوّل ISO string إلى datetime لعمود timestamptz (يتسامح مع القيم التالفة)."""
+def _parse_ts(value: object) -> datetime:
+    """يحوّل ISO string إلى datetime واعٍ بـUTC لعمود timestamptz (NOT NULL).
+
+    offline_first يُنتج created_at عبر datetime.utcnow().isoformat() (naive)؛
+    نعتبره UTC صراحةً (وإلّا فسّره الخادم بتوقيته المحلّي ⇒ انزياح زمني). ندعم
+    اللاحقة 'Z'، ونرجع الآن (UTC) كقيمة آمنة بدل None حتّى لا يفشل الإدراج بسبب
+    فرق تنسيق طفيف.
+    """
+    dt: datetime | None = None
     if isinstance(value, datetime):
-        return value
-    if isinstance(value, str):
+        dt = value
+    elif isinstance(value, str):
         try:
-            return datetime.fromisoformat(value)
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
         except ValueError:
-            return None
-    return None
+            dt = None
+    if dt is None:
+        dt = datetime.now(UTC)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt
 
 
 async def persist_synced_operation(
