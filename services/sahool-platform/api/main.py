@@ -544,7 +544,12 @@ def recommendations_for_field(
         "SAHOOL_TENANT_DATA_ROOT",
         _os.path.join(_os.path.dirname(__file__), "..", "tenants"),
     )
-    tenant_dir = _Path(root) / str(user.tenant_id)
+    # تقوية: نُطبّع المسار ونتأكّد أنّ مجلّد المستأجر داخل الجذر (دفاع ضدّ "../"
+    # أو فواصل مسار في tenant_id — تجنّب قراءة بيانات خارج عزل المستأجر).
+    root_path = _Path(root).resolve()
+    tenant_dir = (root_path / str(user.tenant_id)).resolve()
+    if not tenant_dir.is_relative_to(root_path):
+        raise HTTPException(status_code=400, detail="معرّف مستأجر غير صالح")
     try:
         validation = _vo.validate(tenant_dir)
     except Exception as e:  # noqa: BLE001 — صدق: لا توصية بلا شهادة جودة
@@ -554,7 +559,10 @@ def recommendations_for_field(
         user=user,
         payload={
             "tenant_id": user.tenant_id,
-            "farm_id": req.farm_id or req.field_id,
+            # لا نخلط farm_id بـfield_id (كيانان مختلفان؛ authorize يفحص
+            # farm_ids_access). نمرّره كما هو؛ المستخدم محدود الصلاحيّة يُرسله،
+            # وذو الوصول الشامل (farm_ids_access فارغة) يمرّ بـ"".
+            "farm_id": req.farm_id,
             "field_id": req.field_id,
             "crop": req.crop,
             "validation": validation,

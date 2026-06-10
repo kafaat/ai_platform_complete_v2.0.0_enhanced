@@ -164,13 +164,14 @@ export interface RecommendationResult {
   timestamp?: string;
   reason_ar?: string; // عند delivered=false (محجوب/مرفوض)
 }
-// نقبل <500 كاستجابة (delivered=false مع 422 سلوك مشروع للمحرّك لا خطأ شبكة).
+// نقبل فقط الحالات المقصودة: 200 (مُسلَّمة) و422/403 (محجوب/مرفوض ⇒ reason_ar).
+// نترك 401 تُرفض ليعمل interceptor تسجيل الخروج، و400/500 تُعامَل كأخطاء فعليّة.
 export const getFieldRecommendation = (
   payload: FieldRecommendationInput,
 ): Promise<RecommendationResult> =>
   kongApi
     .post<RecommendationResult>('/api/v1/recommendations/for-field', payload, {
-      validateStatus: (s) => s < 500,
+      validateStatus: (s) => s === 200 || s === 422 || s === 403,
     })
     .then(r => r.data);
 

@@ -25,6 +25,7 @@ function asText(v: unknown): string {
 export default function RecommendationPage() {
   const [crop, setCrop] = useState(CROPS[0]);
   const [fieldId, setFieldId] = useState('');
+  const [farmId, setFarmId] = useState('');
   const [growthStage, setGrowthStage] = useState('');
   const [showBackend, setShowBackend] = useState(false);
   const mut = useFieldRecommendation();
@@ -33,6 +34,7 @@ export default function RecommendationPage() {
     if (!fieldId.trim()) return;
     mut.mutate({
       field_id: fieldId.trim(),
+      farm_id: farmId.trim() || undefined,
       crop,
       growth_stage: growthStage.trim() || undefined,
     });
@@ -74,6 +76,11 @@ export default function RecommendationPage() {
           <label className="flex flex-col gap-1">
             <span className="text-xs text-slate-400">مرحلة النموّ (اختياريّ)</span>
             <input value={growthStage} onChange={e => setGrowthStage(e.target.value)} placeholder="tillering"
+              className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-slate-400">معرّف المزرعة (اختياريّ — للصلاحيّة المحدودة)</span>
+            <input value={farmId} onChange={e => setFarmId(e.target.value)} placeholder="farm_01"
               className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
           </label>
         </div>
