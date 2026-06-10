@@ -193,7 +193,7 @@ export interface FieldIntelResult {
   field_id: string;
   generated_at?: string;
   operational_truths?: Record<string, unknown>;
-  confidence?: number | string;
+  confidence?: string; // high | medium | low | none — نصّ من المحرّك (لا رقم)
   confidence_reason?: string;
   contradictions?: unknown[];
   missing_signals?: unknown[];
@@ -202,7 +202,7 @@ export interface FieldIntelResult {
   alerts?: Record<string, unknown>[];
   alerts_summary?: Record<string, unknown>;
   simulation?: Record<string, unknown>;
-  provenance?: Record<string, unknown>;
+  provenance?: unknown[]; // قائمة لقطات المصدريّة (list لا object)
   correlation_id?: string;
   [k: string]: unknown;
 }

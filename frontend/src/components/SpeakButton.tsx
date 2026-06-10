@@ -11,17 +11,27 @@ export default function SpeakButton({ text, className }: { text: string; classNa
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urlRef = useRef<string | null>(null);
 
+  // إلغاء عنوان الـBlob وتصفير المراجع — يتفادى تراكم blobs في الجلسات الطويلة.
+  const cleanup = () => {
+    if (urlRef.current) {
+      URL.revokeObjectURL(urlRef.current);
+      urlRef.current = null;
+    }
+    audioRef.current = null;
+  };
+
   useEffect(() => {
-    // تنظيف: إيقاف وإلغاء عنوان الـBlob عند إزالة المكوّن.
+    // تنظيف عند إزالة المكوّن.
     return () => {
       audioRef.current?.pause();
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      cleanup();
     };
   }, []);
 
   const speak = async () => {
     if (playing) {
       audioRef.current?.pause();
+      cleanup();
       setPlaying(false);
       return;
     }
@@ -29,17 +39,18 @@ export default function SpeakButton({ text, className }: { text: string; classNa
     setLoading(true);
     try {
       const blob = await synthesizeSpeech(text);
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      cleanup();
       const url = URL.createObjectURL(blob);
       urlRef.current = url;
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onended = () => setPlaying(false);
-      audio.onerror = () => setPlaying(false);
+      audio.onended = () => { setPlaying(false); cleanup(); };
+      audio.onerror = () => { setPlaying(false); cleanup(); };
       await audio.play();
       setPlaying(true);
     } catch {
       // تعذّر التوليد الصوتيّ — نتجاهل بهدوء (لا نُعطّل التجربة).
+      cleanup();
       setPlaying(false);
     } finally {
       setLoading(false);

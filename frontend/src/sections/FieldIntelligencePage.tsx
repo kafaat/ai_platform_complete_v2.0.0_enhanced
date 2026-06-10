@@ -15,6 +15,11 @@ function asText(v: unknown): string {
   return String(v);
 }
 
+// مستوى الثقة نصّيّ من المحرّك (high|medium|low|none) — يُترجَم للعرض.
+const CONF_AR: Record<string, string> = {
+  high: 'عالية', medium: 'متوسطة', low: 'منخفضة', none: 'غير متوفّرة',
+};
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
@@ -47,18 +52,24 @@ export default function FieldIntelligencePage() {
   const [showProv, setShowProv] = useState(false);
   const mut = useFieldIntelligence();
 
+  // رقم محدود صالح أو undefined — لئلّا نُرسل NaN كـquery param (يسبب 422).
+  const toNum = (s: string): number | undefined => {
+    const n = Number(s);
+    return s.trim() && Number.isFinite(n) ? n : undefined;
+  };
+
   const submit = () => {
     if (!fieldId.trim()) return;
     mut.mutate({
       field_id: fieldId.trim(),
-      lat: lat.trim() ? Number(lat) : undefined,
-      lon: lon.trim() ? Number(lon) : undefined,
+      lat: toNum(lat),
+      lon: toNum(lon),
       crop: crop.trim() || undefined,
     });
   };
 
   const res = mut.data;
-  const conf = res?.confidence;
+  const conf = asText(res?.confidence);
   const truths = (res?.operational_truths ?? {}) as Record<string, unknown>;
   const policy = (res?.policy_decision ?? {}) as Record<string, unknown>;
   const sim = (res?.simulation ?? {}) as Record<string, unknown>;
@@ -111,7 +122,7 @@ export default function FieldIntelligencePage() {
           <Section title="الثقة">
             <div className="flex items-center gap-3">
               <span className="text-2xl font-bold text-emerald-400">
-                {typeof conf === 'number' ? `${Math.round(conf * 100)}%` : asText(conf) || '—'}
+                {CONF_AR[conf] ?? conf ?? '—'}
               </span>
               {res.confidence_reason && <span className="text-xs text-slate-400">{res.confidence_reason}</span>}
             </div>
