@@ -166,13 +166,19 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
 # ── الطبقة ٣+٤+٥: Fusion → Policy → Guardrails (المسار الكامل) ──
 @dataclass
 class FieldIntelligenceResult:
-    """ناتج المسار الكامل: الحالة الموحّدة + القرار + حالة الحَوكمة."""
+    """ناتج المسار الكامل: الحالة الموحّدة + القرار + حالة الحَوكمة.
+
+    Runtime Cohesion: يضمّ الآن السياق التاريخي (farm_memory) والمحاكاة
+    (simulation) في graph قرار واحد — لا أنظمة فرعيّة منفصلة.
+    """
 
     field_id: str
     canonical_state: CanonicalFieldState
     policy_decision: dict = field(default_factory=dict)
     governance: dict = field(default_factory=dict)
     generated_at: str = ""
+    farm_memory_context: dict = field(default_factory=dict)  # السياق التاريخي
+    simulation: dict = field(default_factory=dict)  # أثر what-if المتوقّع
 
 
 def run_field_intelligence(
@@ -185,6 +191,8 @@ def run_field_intelligence(
     guardrails_fn: Callable | None = None,
     crop_context: CropContext | None = None,
     economic_context: EconomicContext | None = None,
+    memory_fn: Callable | None = None,
+    simulate_fn: Callable | None = None,
 ) -> FieldIntelligenceResult:
     """المسار الكامل: جمع → تطبيع → دمج (مايسترو) → سياسة → حَوكمة.
 
@@ -228,12 +236,51 @@ def run_field_intelligence(
         except Exception as e:  # noqa: BLE001 — صدق: نُعلن لا نخترع موافقة
             governance = {"status": "error", "note": f"تعذّر التحقّق: {e}"}
 
+    # ⑥ السياق التاريخي (farm_memory) — يُغني القرار بذاكرة الحقل الزمنيّة.
+    # Runtime Cohesion: الذاكرة تدخل graph القرار، لا نظام منفصل. fail-safe:
+    # فشلها لا يُسقط القرار (السياق إثراء لا شرط).
+    farm_memory_context: dict = {}
+    if memory_fn is not None:
+        try:
+            mem = memory_fn(req)
+            if mem:
+                farm_memory_context = mem
+                # إن كشفت الذاكرة تكراراً (مثلاً ملوحة متكرّرة) نرفعه للقرار
+                recurring = mem.get("recurring_issues")
+                if recurring:
+                    decision.setdefault("historical_context_ar", [])
+                    decision["historical_context_ar"].append(
+                        f"سياق تاريخي: {', '.join(recurring)} — يتكرّر في هذا الحقل."
+                    )
+        except Exception as e:  # noqa: BLE001 — صدق: الذاكرة إثراء لا شرط
+            farm_memory_context = {"error": f"تعذّر جلب الذاكرة: {e}"}
+
+    # ⑦ المحاكاة (what-if) — تُغني القرار بالأثر المتوقّع لإجراء مقترَح.
+    # Runtime Cohesion: المحاكاة تدخل graph القرار عند طلبها (لا عبر مسار
+    # منفصل). تُشغَّل فقط إن كان القرار actionable (لا محاكاة عبثيّة).
+    simulation: dict = {}
+    if simulate_fn is not None and decision.get("actionable"):
+        try:
+            sim = simulate_fn(req, decision, state)
+            if sim:
+                simulation = sim
+                # إن أظهرت المحاكاة أنّ الإجراء لا يُجدي، نُعلنه في القرار
+                if sim.get("recommended_action_helps") is False:
+                    decision.setdefault("simulation_caveat_ar", "")
+                    decision["simulation_caveat_ar"] = (
+                        "المحاكاة تشير إلى أثر محدود للإجراء المقترَح — راجِع الجدوى."
+                    )
+        except Exception as e:  # noqa: BLE001 — صدق: المحاكاة إثراء لا شرط
+            simulation = {"error": f"تعذّرت المحاكاة: {e}"}
+
     return FieldIntelligenceResult(
         field_id=req.field_id,
         canonical_state=state,
         policy_decision=decision,
         governance=governance,
         generated_at=now,
+        farm_memory_context=farm_memory_context,
+        simulation=simulation,
     )
 
 

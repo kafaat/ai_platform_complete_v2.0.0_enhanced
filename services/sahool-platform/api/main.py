@@ -1405,6 +1405,190 @@ def field_timeline(
     return tl.to_dict()
 
 
+# ─── السياق التاريخي للحقل (farm memory) — يغذّي Runtime Cohesion ──
+# يجلب أحداث الحقل من events table (RLS مُطبَّق) ويستنتج القضايا المتكرّرة.
+# يستهلكه memory_adapter في حلقة القرار (run_field_intelligence).
+def _issue_tags_from_event(event_type: str, payload: dict) -> list[str]:
+    """يستنتج وسوم القضايا من نوع الحدث/الحمولة (للكشف عن التكرار).
+
+    صدق: استنتاج صريح من البيانات الموجودة، لا تخمين. القضايا الزراعيّة
+    المتكرّرة (ملوحة/إجهاد مائي/آفة/تدهور) تُغني القرار بالسياق التاريخي.
+    """
+    tags: list[str] = []
+    et = (event_type or "").lower()
+    p = payload or {}
+    # من نوع الحدث
+    if "salin" in et or p.get("salinity_class") in ("critical", "moderate"):
+        tags.append("ملوحة")
+    if "water_stress" in et or "drought" in et or p.get("water_stress"):
+        tags.append("إجهاد مائي")
+    if "pest" in et or "disease" in et or p.get("pest_detected"):
+        tags.append("آفة")
+    if "degrad" in et or (p.get("degraded_pct") or 0) >= 10:
+        tags.append("تدهور")
+    if "heat" in et or p.get("heat_risk", 0) and p.get("heat_risk", 0) >= 0.7:
+        tags.append("إجهاد حراري")
+    return tags
+
+
+@app.get("/api/v1/fields/{field_id}/history")
+async def field_history(
+    field_id: str,
+    limit: int = 200,
+    user: UserSchema = Depends(get_current_user),
+):
+    """السياق التاريخي للحقل: أحداثه + القضايا المتكرّرة (farm memory).
+
+    يجلب من events table عبر tenant_connection (RLS — كلّ مستأجر أحداثه فقط).
+    يُغذّي memory_adapter في حلقة القرار (Runtime Cohesion). صدق: عند تعطّل
+    القاعدة يُرجِع events فارغة (لا تاريخ مخترَع) ويُعلن السبب.
+    """
+    if _DB_POOL is None:
+        return {
+            "field_id": field_id,
+            "events": [],
+            "total_events": 0,
+            "note_ar": "القاعدة غير مفعّلة (DATABASE_URL) — لا تاريخ حيّ",
+        }
+    out_events: list[dict] = []
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                """
+                SELECT event_id, event_type, payload, occurred_at
+                FROM events
+                WHERE entity_type = 'field' AND entity_id = $1
+                ORDER BY occurred_at DESC
+                LIMIT $2
+                """,
+                field_id,
+                min(limit, 1000),
+            )
+        for r in rows:
+            payload = r["payload"] if isinstance(r["payload"], dict) else {}
+            out_events.append(
+                {
+                    "event_id": str(r["event_id"]),
+                    "event_type": r["event_type"],
+                    "occurred_at": r["occurred_at"].isoformat() if r["occurred_at"] else "",
+                    "issue_tags": _issue_tags_from_event(r["event_type"], payload),
+                }
+            )
+    except Exception as e:  # noqa: BLE001 — صدق: نُعلن الفشل لا نخترع تاريخاً
+        return {
+            "field_id": field_id,
+            "events": [],
+            "total_events": 0,
+            "error": f"تعذّر جلب التاريخ: {e}",
+        }
+    return {"field_id": field_id, "events": out_events, "total_events": len(out_events)}
+
+
+# ─── محاكاة what-if — تغذّي Runtime Cohesion (simulate_adapter) ────
+# يشغّل WOFOST مرّتين (baseline مقابل سيناريو) ويقارن المحصول/الماء.
+# يستهلكه simulate_adapter في حلقة القرار. محاكاة علميّة حقيقيّة (لا أرقام
+# مخترَعة): تعتمد طقساً حيّاً من Open-Meteo داخل simulate_wofost.
+class WhatIfRequest(BaseModel):
+    field_id: str
+    crop: str = "قمح صلب"
+    lat: float | None = None
+    lon: float | None = None
+    soil_type: str = "loam"
+    planting_date: str | None = None  # ISO؛ افتراض بداية الموسم
+    scenario: str = "reduce_irrigation"  # reduce_irrigation | no_irrigation
+
+
+@app.post("/api/v1/simulate/what-if")
+async def simulate_what_if(
+    req: WhatIfRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يحاكي أثر سيناريو (مثلاً تقليل/إيقاف الريّ) على المحصول والماء.
+
+    Runtime Cohesion: يغذّي حلقة القرار بأثر متوقّع للإجراء المقترَح. يشغّل
+    WOFOST مرّتين (baseline مرويّ مقابل السيناريو) ويقارن. صدق: عند تعذّر
+    النموذج/الطقس يُعلَن (لا أرقام مخترَعة). lat/lon إلزاميّان للطقس الحيّ.
+    """
+    if req.lat is None or req.lon is None:
+        return {
+            "field_id": req.field_id,
+            "available": False,
+            "note_ar": "lat/lon مطلوبان للطقس الحيّ — لا محاكاة بلا موقع",
+        }
+    # استيراد آمن لمحرّك WOFOST (وحدة جذريّة — قد لا تكون على المسار)
+    try:
+        import importlib.util as _ilu
+        import os as _os
+
+        _root = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", ".."))
+        _eng_path = _os.path.join(_root, "wofost_real", "wofost_engine.py")
+        if not _os.path.exists(_eng_path):
+            return {
+                "field_id": req.field_id,
+                "available": False,
+                "note_ar": "محرّك WOFOST غير متاح على هذا المسار",
+            }
+        _spec = _ilu.spec_from_file_location("wofost_engine", _eng_path)
+        _eng = _ilu.module_from_spec(_spec)
+        _spec.loader.exec_module(_eng)
+    except Exception as e:  # noqa: BLE001 — صدق: نُعلن التعذّر
+        return {
+            "field_id": req.field_id,
+            "available": False,
+            "error": f"تعذّر تحميل محرّك المحاكاة: {e}",
+        }
+
+    from datetime import date as _date
+
+    try:
+        pd = _date.fromisoformat(req.planting_date) if req.planting_date else _date.today()
+    except ValueError:
+        pd = _date.today()
+
+    async def _run(irrigation: bool):
+        return await _eng.simulate_wofost(
+            req.field_id,
+            req.crop,
+            req.soil_type,
+            req.lat,
+            req.lon,
+            pd,
+            irrigation=irrigation,
+        )
+
+    try:
+        baseline = await _run(irrigation=True)  # مرويّ كاملاً (الأساس)
+        scenario = await _run(irrigation=False)  # السيناريو (بلا/تقليل ريّ)
+    except Exception as e:  # noqa: BLE001 — صدق: الطقس/النموذج تعذّر
+        return {
+            "field_id": req.field_id,
+            "available": False,
+            "error": f"تعذّرت المحاكاة (طقس/نموذج): {e}",
+        }
+
+    b_yield = baseline.get("simulation", {}).get("yield_t_ha")
+    s_yield = scenario.get("simulation", {}).get("yield_t_ha")
+    b_irr = baseline.get("water_balance", {}).get("irrigation_needed_mm")
+    s_irr = scenario.get("water_balance", {}).get("irrigation_needed_mm")
+    water_saved = round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
+    # هل "الإجراء المقترَح" (تقليل الريّ) يُجدي؟ مُجدٍ إن وفّر ماءً دون خسارة
+    # محصول تتجاوز عتبة. هنا baseline=action (الريّ الموصى به) يُحافظ المحصول.
+    helps = None
+    if b_yield is not None and s_yield is not None:
+        helps = b_yield > s_yield * 1.02  # الريّ الموصى به يحفظ >2% محصول
+
+    return {
+        "field_id": req.field_id,
+        "available": True,
+        "scenario": req.scenario,
+        "baseline_yield_t_ha": b_yield,  # مع الإجراء (الريّ الموصى به)
+        "action_yield_t_ha": b_yield,  # الإجراء = baseline المرويّ
+        "no_action_yield_t_ha": s_yield,  # بلا إجراء (السيناريو)
+        "water_saved_mm": water_saved,
+        "recommended_action_helps": helps,
+    }
+
+
 # ─── ١١. Scouting Pins (المرحلة ١، البند ٨) ──────────────────────
 # مشاهدات ميدانيّة: GPS + صورة + taxonomy يمنيّة + شدّة + حالة + موسمي/دائم.
 # التحقّق والـtaxonomy هنا (pure)؛ الحفظ في الموبايل SQLite + mediaStore + syncEngine.
@@ -3459,8 +3643,13 @@ def field_intelligence_analyze(
     """
     from core.agronomic_state_engine import state_to_event_row
     from core.alert_engine import evaluate_alerts, summarize_alerts
+    from core.correlation import set_correlation
     from core.field_intelligence_adapters import build_live_adapters
     from core.field_intelligence_coordinator import FieldRequest, run_field_intelligence
+
+    # ربط موحّد: correlation_id يمرّ بكلّ ما ينتج عن هذا الطلب (workflow/
+    # events/alerts) — لتتبّع "ماذا أنتج ماذا" عبر الخدمات (نمط OpenTelemetry).
+    correlation_id = set_correlation()
 
     # tenant_id من التوكن الموثوق (لا من جسم الطلب — حماية multi-tenant)
     req = FieldRequest(field_id=field_id, lat=lat, lon=lon, crop=crop, tenant_id=user.tenant_id)
@@ -3503,6 +3692,9 @@ def field_intelligence_analyze(
         "missing_signals": state.missing_signals,
         "policy_decision": result.policy_decision,
         "governance": result.governance,
+        "farm_memory_context": result.farm_memory_context,  # السياق التاريخي
+        "correlation_id": correlation_id,  # خيط التتبّع الموحّد (OpenTelemetry-style)
+        "simulation": result.simulation,  # أثر what-if المتوقّع
         "alerts": alerts,  # تنبيهات استباقيّة مُصنّفة (محرّك التنبيهات)
         "alerts_summary": summarize_alerts(alerts),
         "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)

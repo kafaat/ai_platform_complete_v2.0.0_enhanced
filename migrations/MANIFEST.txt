@@ -47,3 +47,6 @@ v9_rls_force_all.sql
 # v15: تخزين عمليّات offline-first المُزامَنة. يُطبّق RLS بنفسه عبر
 # _sahool_apply_tenant_rls، فترتيبه بعد force_all آمن.
 v15_offline_synced_operations.sql
+# v16: حالة الـworkflow متعدّد الخطوات (durable/resumable) لـworkflow_engine.
+# يُطبّق RLS بنفسه (ENABLE + سياسة العزل)، فترتيبه بعد force_all آمن.
+v16_workflow_state.sql

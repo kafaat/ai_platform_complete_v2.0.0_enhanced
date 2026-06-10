@@ -137,8 +137,26 @@ class EventBus:
         actor_id: str | None = None,
         command_id: str | None = None,
         occurred_at: datetime | None = None,
+        correlation_id: str | None = None,
     ) -> EmittedEvent:
-        """يُصدر event عبر emit_event SQL function (atomic)."""
+        """يُصدر event عبر emit_event SQL function (atomic).
+
+        correlation_id: خيط التتبّع الموحّد. إن لم يُمرَّر يُلتقَط من السياق
+        الحالي (correlation context). يُضمَّن في payload (jsonb — بلا تغيير
+        مخطّط) ليكون الحدث ذاتيّ الوصف بخيط تتبّعه. صدق: غيابه يُترَك (لا اختراع).
+        """
+        # التقاط correlation من السياق إن لم يُمرَّر (fallback-safe)
+        if correlation_id is None:
+            try:
+                from core.correlation import get_correlation_id
+
+                correlation_id = get_correlation_id()
+            except Exception:  # noqa: BLE001 — الربط اختياري لا يكسر الإصدار
+                correlation_id = None
+        # نُضمّن الـcorrelation في payload (بلا تغيير مخطّط events) ليرتبط الحدث
+        # بخيط التتبّع. لا نطمس payload الأصلي.
+        if correlation_id is not None:
+            payload = {**payload, "_correlation_id": correlation_id}
         async with self._acquire() as conn:
             event_id = await conn.fetchval(
                 """

@@ -86,6 +86,29 @@ Stock → Item Group → أنشئ:
 - فعّل Cost Centers (مركز تكلفة لكلّ حقل)
 - الجسر يدفع تكاليف SAHOOL → ERPNext عبر push_field_cost
 
+#### تفعيل push_field_cost (ربط حسابات قيد اليوميّة)
+`push_field_cost` يبني قيد Journal Entry متوازناً (مدين=دائن، شرط Frappe).
+لا يعمل حتّى تُضبط الحسابات الخاصّة بتثبيتك (لا تُفبرك أرقام حسابات). أضِف
+لـ.env بعد إنشاء الحسابات في دليل حسابات ERPNext (Chart of Accounts):
+
+```bash
+# الحساب المدين (مصروف الحقل) — مثال (بدّله بحسابك الفعلي):
+ERPNEXT_EXPENSE_ACCOUNT="Farm Operating Expenses - SAHOOL"
+# الحساب الدائن (نقد/دائنون):
+ERPNEXT_CREDIT_ACCOUNT="Cash - SAHOOL"
+# الشركة (إلزامي في Frappe):
+ERPNEXT_COMPANY="SAHOOL Agriculture"
+# مركز التكلفة (اختياري — للمحاسبة التحليليّة لكلّ حقل):
+ERPNEXT_COST_CENTER="Al-Jawf Fields - SAHOOL"
+```
+
+- المصادقة: `ERPNEXT_API_KEY:ERPNEXT_API_SECRET` في رأس `Authorization: token`
+  (من User → Settings → API Access → Generate Keys).
+- بلا الحسابات الثلاثة الإلزاميّة (expense/credit/company) → push_field_cost
+  يُعلِن NotImplementedError بصدق (لا محاولة فاشلة، لا فبركة).
+- تحقّق بعد الضبط: التكلفة تظهر في Accounting → Journal Entry، والمجموع
+  المدين = الدائن.
+
 ## التبديل بين المزوّدات (مرونة كاملة)
 | ERP_PROVIDER | الأمر |
 |--------------|-------|
