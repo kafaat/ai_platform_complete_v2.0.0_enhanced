@@ -1816,7 +1816,7 @@ async def field_indices(
     lat: float | None = Query(None),
     lon: float | None = Query(None),
     date: str = Query("latest"),
-    indices: str = Query("ndvi,ndre,ndsi,ndwi,bsi,si"),
+    indices: str = Query("ndvi,ndre,ndsi,ndwi,bsi,si,rvi"),
     cloud_cover: float | None = Query(None),
     x_agent_token: str = Header(None),
 ):

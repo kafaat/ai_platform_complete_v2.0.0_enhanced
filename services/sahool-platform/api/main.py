@@ -3457,6 +3457,7 @@ def field_intelligence_analyze(
     الحالة الناتجة جاهزة للحفظ في events (state_to_event_row) كذاكرة موسميّة.
     """
     from core.agronomic_state_engine import state_to_event_row
+    from core.alert_engine import evaluate_alerts, summarize_alerts
     from core.field_intelligence_adapters import build_live_adapters
     from core.field_intelligence_coordinator import FieldRequest, run_field_intelligence
 
@@ -3466,6 +3467,9 @@ def field_intelligence_analyze(
     result = run_field_intelligence(req, **adapters)
 
     state = result.canonical_state
+    # التنبيهات الاستباقيّة: من الحالة الموحّدة (change_detection/FVC يُمرَّران عند
+    # توفّرهما من العامل — هنا الحالة فقط، فالمحرّك سلبيّ→استباقيّ على ما هو متاح).
+    alerts = evaluate_alerts(state)
     # حدث الحفظ جاهز (الكتابة الفعليّة في events عبر event_bus على بيئة التشغيل)
     try:
         event_row = state_to_event_row(state, actor_id=user.user_id)
@@ -3484,6 +3488,8 @@ def field_intelligence_analyze(
         "missing_signals": state.missing_signals,
         "policy_decision": result.policy_decision,
         "governance": result.governance,
+        "alerts": alerts,  # تنبيهات استباقيّة مُصنّفة (محرّك التنبيهات)
+        "alerts_summary": summarize_alerts(alerts),
         "_persistable_event": event_row,  # جاهز للإدراج في events table
     }
 

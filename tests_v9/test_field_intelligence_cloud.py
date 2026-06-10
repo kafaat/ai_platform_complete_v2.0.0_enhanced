@@ -64,6 +64,21 @@ def test_cloud_reaches_fuse_health_via_compose_state():
 
 
 @pytest.mark.unit
+def test_sar_rvi_dominates_under_cloud():
+    """مقاومة السحاب الكاملة: صحوٌ ⇒ optical مهيمن؛ سحابٌ ⇒ SAR(rvi) مهيمن."""
+    fic = _coordinator()
+    ase = _load("ase", "services/sahool-platform/core/agronomic_state_engine.py")
+    clear = fic.CollectorResult(raw={"sensing": {"ndvi": 0.6, "ndre": 0.4, "rvi": 0.55}})
+    s_clear = ase.compose_field_state("f", fic.normalize_signals(clear))
+    assert s_clear.operational_truths.get("crop_vigor_dominant") == "optical"
+    cloudy = fic.CollectorResult(
+        raw={"sensing": {"ndvi": 0.6, "ndre": 0.4, "rvi": 0.55, "cloud_cover": 60.0}}
+    )
+    s_cloudy = ase.compose_field_state("f", fic.normalize_signals(cloudy))
+    assert s_cloudy.operational_truths.get("crop_vigor_dominant") == "sar"
+
+
+@pytest.mark.unit
 def test_sensing_adapter_passes_cloud_cover(monkeypatch):
     adapters = _load("fia", "services/sahool-platform/core/field_intelligence_adapters.py")
     monkeypatch.setattr(

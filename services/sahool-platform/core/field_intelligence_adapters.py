@@ -68,7 +68,7 @@ def sensing_adapter(req) -> dict | None:
         return None
     # تمرير المؤشّرات المتاحة فقط (الغائب يُعلَن في المايسترو)
     out = {}
-    for k in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si"):
+    for k in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si", "rvi"):
         if data.get(k) is not None:
             out[k] = data[k]
     out["resolution_m"] = data.get("resolution_m", 10.0)

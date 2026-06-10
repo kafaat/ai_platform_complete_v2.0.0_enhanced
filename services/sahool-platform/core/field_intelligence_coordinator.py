@@ -96,7 +96,8 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
 
     # الاستشعار → ndvi/ndre/ndsi/ndwi (دقّة 10م، تغطية من نسبة البكسلات السليمة)
     sensing = raw.get("sensing", {})
-    for idx in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si"):
+    # rvi = مؤشّر الغطاء الراداري ([0,1]) — يُدمج كـSAR (مقاومة السحاب)
+    for idx in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si", "rvi"):
         if idx in sensing and sensing[idx] is not None:
             signals.append(
                 SignalInput(
