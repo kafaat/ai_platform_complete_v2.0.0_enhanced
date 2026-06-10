@@ -175,6 +175,49 @@ export const getFieldRecommendation = (
     })
     .then(r => r.data);
 
+// TTS — تحويل نصّ عربيّ إلى صوت (صوت يمنيّ). يُرجِع MP3 كـBlob للتشغيل في المتصفّح.
+// قيمة للأمّيّين/ضعاف البصر: قراءة التوصيات/التنبيهات صوتيّاً.
+export const synthesizeSpeech = (text: string, voice?: string): Promise<Blob> =>
+  kongApi
+    .post('/tts/synthesize', { text, ...(voice ? { voice } : {}) }, { responseType: 'blob' })
+    .then(r => r.data as Blob);
+
+// المايسترو — التحليل الموحّد لحقل (operational truths + قرار السياسة + تنبيهات).
+export interface FieldIntelInput {
+  field_id: string;
+  lat?: number;
+  lon?: number;
+  crop?: string;
+}
+export interface FieldIntelResult {
+  field_id: string;
+  generated_at?: string;
+  operational_truths?: Record<string, unknown>;
+  confidence?: number | string;
+  confidence_reason?: string;
+  contradictions?: unknown[];
+  missing_signals?: unknown[];
+  policy_decision?: Record<string, unknown>;
+  governance?: Record<string, unknown>;
+  alerts?: Record<string, unknown>[];
+  alerts_summary?: Record<string, unknown>;
+  simulation?: Record<string, unknown>;
+  provenance?: Record<string, unknown>;
+  correlation_id?: string;
+  [k: string]: unknown;
+}
+export const analyzeFieldIntelligence = (input: FieldIntelInput): Promise<FieldIntelResult> =>
+  kongApi
+    .post<FieldIntelResult>('/api/v1/field-intelligence/analyze', null, {
+      params: {
+        field_id: input.field_id,
+        ...(input.lat != null ? { lat: input.lat } : {}),
+        ...(input.lon != null ? { lon: input.lon } : {}),
+        ...(input.crop ? { crop: input.crop } : {}),
+      },
+    })
+    .then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════

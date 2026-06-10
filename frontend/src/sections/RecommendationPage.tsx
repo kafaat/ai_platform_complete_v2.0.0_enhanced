@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { ClipboardList, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFieldRecommendation } from '../hooks/useApi';
 import { ErrorState } from '../components/StateViews';
+import SpeakButton from '../components/SpeakButton';
 
 const CROPS = ['قمح صلب', 'شعير', 'ذرة صفراء', 'طماطم', 'بطاطس', 'خضروات', 'برسيم', 'سورغم'];
 
@@ -104,9 +105,12 @@ export default function RecommendationPage() {
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${gradeColor}22`, color: gradeColor }}>
                 جودة: {grade}
               </span>
-              {asText(rec.status) && (
-                <span className="text-xs text-slate-400">الحالة: {asText(rec.status)}</span>
-              )}
+              <div className="flex items-center gap-3">
+                {asText(rec.status) && (
+                  <span className="text-xs text-slate-400">الحالة: {asText(rec.status)}</span>
+                )}
+                {headline && <SpeakButton text={[headline, asText(rec.confidence), asText(rec.next_action_ar)].filter(Boolean).join('. ')} />}
+              </div>
             </div>
             <div className="text-xl font-bold text-slate-100 mb-2 leading-relaxed">
               {headline || '—'}

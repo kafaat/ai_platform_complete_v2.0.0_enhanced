@@ -7,9 +7,11 @@ import {
   kongApi, indicatorsApi, vegetationApi,
   weatherApi, soilApi, authApi, rasterApi,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
+  analyzeFieldIntelligence,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
+  type FieldIntelInput, type FieldIntelResult,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -319,6 +321,13 @@ export function usePestEscalation() {
 export function useFieldRecommendation() {
   return useMutation<RecommendationResult, Error, FieldRecommendationInput>({
     mutationFn: (payload) => getFieldRecommendation(payload),
+  });
+}
+
+// المايسترو — تحليل موحّد لحقل (operational truths + قرار + تنبيهات استباقيّة).
+export function useFieldIntelligence() {
+  return useMutation<FieldIntelResult, Error, FieldIntelInput>({
+    mutationFn: (input) => analyzeFieldIntelligence(input),
   });
 }
 

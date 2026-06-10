@@ -22,7 +22,7 @@ export function normalizeRole(role?: string | null): Role {
 // كلّ الصفحات (مرجع). owner/manager/agronomist: وصول كامل.
 const ALL_PAGES: PageId[] = [
   'dashboard', 'hybrid-index', 'satellite', 'fields', 'recommendations',
-  'irrigation', 'pest-escalation',
+  'irrigation', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'tasks', 'analytics', 'alerts', 'reports', 'chatbot', 'settings',
 ];
 
@@ -30,7 +30,7 @@ const ALL_PAGES: PageId[] = [
 // لوحة + أقمار + حقول + مهام، مع التنبيهات/المستشار/المكانيّة + أدوات حقله).
 const WORKER_PAGES: PageId[] = [
   'dashboard', 'satellite', 'fields', 'tasks', 'alerts', 'chatbot', 'spatial-indicators',
-  'irrigation', 'pest-escalation',
+  'irrigation', 'pest-escalation', 'field-intelligence',
 ];
 
 const ROLE_PAGES: Record<Role, PageId[]> = {
