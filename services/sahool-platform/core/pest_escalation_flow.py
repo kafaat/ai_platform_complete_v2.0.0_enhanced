@@ -87,11 +87,17 @@ def build_pest_escalation_steps(
         if not ctx.get("confirmed"):
             return {"approval_requested": False, "approval_status": "not_required"}
         # موافقة الخبير تصل عبر initial_context عند الاستئناف (approval_status=approved).
-        # قبلها تبقى pending ⇒ يتوقّف الـworkflow (الخطوة suspends=True).
+        # قبلها تبقى pending ⇒ يتوقّف الـworkflow (التعليق المشروط أدناه).
         return {
             "approval_requested": True,
             "approval_status": ctx.get("approval_status", "pending"),
         }
+
+    def _needs_approval_suspend(ctx: dict) -> bool:
+        # تعليق مشروط: نُعلّق فقط حين تكون الموافقة فعلاً معلّقة (pending). مسار
+        # «لا تصعيد» (not_required) أو الموافقة المعتمَدة (approved) لا يُعلّق ⇒
+        # لا حاجة لطلب استئناف بلا معنى للحالات التي لا تنتظر خبيراً.
+        return ctx.get("approval_status") not in ("approved", "not_required")
 
     def step_execute(ctx: dict) -> dict:
         # HIL فعليّ: لا تنفيذ إلّا بموافقة معتمَدة (أو لا حاجة لها). كان ينفّذ رغم
@@ -126,7 +132,7 @@ def build_pest_escalation_steps(
         WorkflowStep("detect", step_detect),
         WorkflowStep("confirm", step_confirm),
         WorkflowStep("recommend", step_recommend),
-        WorkflowStep("await_approval", step_await_approval, suspends=True),
+        WorkflowStep("await_approval", step_await_approval, suspends=_needs_approval_suspend),
         WorkflowStep("execute", step_execute, compensate=undo_execute),
         WorkflowStep("follow_up", step_follow_up),
     ]

@@ -3748,8 +3748,12 @@ def irrigation_water_analysis(
 _INMEM_WORKFLOW_STORE = None  # مفرد تطويري (InMemory) ليصمد الاستئناف عبر الطلبات
 
 
-def _get_workflow_store():
+def _get_workflow_store(tenant_id: str | None = None):
     """يُرجِع المخزن المعمّر (Postgres) إن توفّرت القاعدة، وإلّا مفرد InMemory.
+
+    tenant_id: سياق المستأجر لـRLS. workflow_state عليه RLS+FORCE، فالقراءة (load)
+    تحتاج ضبط app.current_tenant وإلّا تُحجب الصفوف ⇒ الاستئناف لا يعمل. يُمرَّر
+    للمخزن المعمّر ليضبطه عند load (الحفظ يأخذه من حالة الـworkflow).
 
     صدق: InMemory يُفقَد عند إعادة التشغيل (تطوير فقط)؛ الإنتاج (DATABASE_URL)
     يستعمل workflow_state (v16+v17) فيصمد التقدّم. PostgresWorkflowStore متزامن
@@ -3759,7 +3763,7 @@ def _get_workflow_store():
 
     dsn = os.getenv("DATABASE_URL", "")
     if dsn:
-        return PostgresWorkflowStore(dsn)
+        return PostgresWorkflowStore(dsn, tenant_id=tenant_id)
     if _INMEM_WORKFLOW_STORE is None:
         _INMEM_WORKFLOW_STORE = InMemoryWorkflowStore()
     return _INMEM_WORKFLOW_STORE
@@ -3801,7 +3805,7 @@ async def pest_escalation_run(
     if req.approval_status:
         initial["approval_status"] = req.approval_status
 
-    store = _get_workflow_store()
+    store = _get_workflow_store(str(user.tenant_id))  # سياق RLS للقراءة/الاستئناف
     # المخزن المعمّر متزامن (asyncio.run داخليّاً) ⇒ نُشغّله في thread لا في الحلقة
     state = await _aio.to_thread(
         run_pest_escalation,

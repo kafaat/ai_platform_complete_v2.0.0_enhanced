@@ -67,8 +67,10 @@ def test_postgres_store_durable_resume():
         st = wfe.run_workflow(wid, steps, store=store1, tenant_id=_TENANT)
         assert st.status.value == "completed" and calls == ["s1", "s2"]
 
-        # «إعادة تشغيل»: نسخة store جديدة (الذاكرة فُقدت) — تُحمّل من القاعدة
-        store2 = wfe.PostgresWorkflowStore(DSN)
+        # «إعادة تشغيل»: نسخة store جديدة (الذاكرة فُقدت) — تُحمّل من القاعدة.
+        # تمرير tenant_id ضروريّ: workflow_state عليه RLS+FORCE، فبدون ضبط
+        # app.current_tenant تحجب السياسة الصفوف (load=None).
+        store2 = wfe.PostgresWorkflowStore(DSN, tenant_id=_TENANT)
         loaded = store2.load(wid)
         assert loaded is not None and loaded.completed_steps == ["s1", "s2"]
         assert loaded.context == {"a": 1, "b": 2}  # السياق المتراكم صمد

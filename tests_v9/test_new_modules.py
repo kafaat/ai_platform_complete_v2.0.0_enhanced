@@ -215,3 +215,27 @@ def test_pest_hil_executes_only_after_approval():
     )
     assert st2.status.value == "completed"
     assert executed == ["urgent_spray"]  # نُفّذ بعد الموافقة فقط
+
+
+@pytest.mark.unit
+def test_pest_no_escalation_does_not_suspend_needlessly():
+    """مسار «لا تصعيد» (شدّة دون العتبة) لا يُعلّق (تعليق مشروط): يكتمل في نداء
+    واحد بلا طلب استئناف بلا معنى — وبلا تنفيذ (لا إجراء)."""
+    pef = _load("pest_escalation_flow", "services/sahool-platform/core/pest_escalation_flow.py")
+    executed: list = []
+
+    def execute_fn(ctx):
+        executed.append(ctx.get("action_type"))
+        return {"executed": True}
+
+    store = pef.InMemoryWorkflowStore()
+    st = pef.run_pest_escalation(
+        "pest-low",
+        store=store,
+        tenant_id="t1",
+        initial_context={"pest_type": "بقعة", "severity": 0.2},  # دون عتبة التأكيد
+        execute_fn=execute_fn,
+    )
+    assert st.status.value == "completed"  # لا تعليق — اكتمل في نداء واحد
+    assert executed == []  # لا تنفيذ (لا إجراء للتصعيد)
+    assert st.step_results["await_approval"]["approval_status"] == "not_required"

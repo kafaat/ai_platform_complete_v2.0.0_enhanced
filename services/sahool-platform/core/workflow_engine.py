@@ -51,8 +51,10 @@ class WorkflowStep:
 
     step_id: str
     fn: Callable[[dict], Any]
-    # إن صحّ، الـworkflow يتوقّف بعد هذه الخطوة بانتظار استئناف خارجي
-    suspends: bool = False
+    # إن صحّ، الـworkflow يتوقّف بعد هذه الخطوة بانتظار استئناف خارجي. قد يكون
+    # bool ثابتاً أو دالّة (ctx)→bool تُقيَّم بعد تنفيذ الخطوة (تعليق مشروط): مثلاً
+    # خطوة موافقة تُعلّق فقط حين تكون الموافقة فعلاً مطلوبة (لا تعليق بلا داعٍ).
+    suspends: bool | Callable[[dict], bool] = False
     # دالّة تعويض (Saga rollback) — تُستدعى عند فشل خطوة لاحقة
     compensate: Callable[[dict], Any] | None = None
 
@@ -134,8 +136,12 @@ class PostgresWorkflowStore:
     يضبط app.current_tenant عند الحفظ ليُطبَّق RLS (FORCE) على الإدراج.
     """
 
-    def __init__(self, dsn: str) -> None:
+    def __init__(self, dsn: str, tenant_id: str | None = None) -> None:
         self._dsn = dsn
+        # سياق المستأجر للقراءة (load): workflow_state عليه RLS+FORCE، فبدون ضبط
+        # app.current_tenant تحجب السياسة كلّ الصفوف ⇒ load يُرجِع None دائماً
+        # (الاستئناف عبر إعادة التشغيل لا يعمل). الحفظ يأخذ المستأجر من الحالة.
+        self._tenant_id = tenant_id
 
     def _run(self, coro: Any) -> Any:
         import asyncio
@@ -143,6 +149,13 @@ class PostgresWorkflowStore:
         return asyncio.run(coro)
 
     def save(self, state: WorkflowState) -> None:
+        # فشل مبكر واضح: workflow_state.tenant_id NOT NULL + RLS يعتمد المستأجر.
+        # بدونه كان يقع خطأ قاعدة غامض (NOT NULL/سياسة) بعد فتح الاتّصال.
+        if not state.tenant_id:
+            raise ValueError(
+                "PostgresWorkflowStore.save يتطلّب tenant_id غير فارغ "
+                "(workflow_state.tenant_id NOT NULL + RLS) — شغّل run_workflow بـtenant_id."
+            )
         self._run(self._save(state))
 
     async def _save(self, state: WorkflowState) -> None:
@@ -196,6 +209,11 @@ class PostgresWorkflowStore:
 
         conn = await asyncpg.connect(self._dsn)
         try:
+            # ضبط سياق المستأجر ليُمرِّر RLS (FORCE) القراءة — بدونه تُحجب الصفوف.
+            if self._tenant_id:
+                await conn.execute(
+                    "SELECT set_config('app.current_tenant', $1, false)", str(self._tenant_id)
+                )
             row = await conn.fetchrow(
                 "SELECT * FROM workflow_state WHERE workflow_id=$1", workflow_id
             )
@@ -342,8 +360,10 @@ def run_workflow(
             state.context.update(result)  # تراكم السياق للخطوة التالية
         store.save(state)
 
-        # خطوة معلِّقة (تنتظر حدثاً خارجيّاً مثل موافقة بشريّة)
-        if step.suspends:
+        # خطوة معلِّقة (تنتظر حدثاً خارجيّاً مثل موافقة بشريّة). التعليق قد يكون
+        # مشروطاً (دالّة تُقيَّم على السياق بعد التنفيذ) فلا نُعلّق بلا داعٍ.
+        suspend_now = step.suspends(state.context) if callable(step.suspends) else step.suspends
+        if suspend_now:
             state.status = WorkflowStatus.SUSPENDED
             store.save(state)
             return state
