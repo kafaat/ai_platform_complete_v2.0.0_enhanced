@@ -114,7 +114,9 @@ async def _get_current_user(credentials: Optional = Depends(security)):
         # FIX (اتّساق audience): auth/platform يُصدران aud="sahool" وmcp يتطلّبه.
         # الفكّ بلا audience يرمي InvalidAudienceError ويرفض توكنات auth الصالحة.
         payload = jwt.decode(
-            credentials.credentials, _vkey, algorithms=[_valg],
+            credentials.credentials,
+            _vkey,
+            algorithms=[_valg],
             audience="sahool",
         )
         return payload

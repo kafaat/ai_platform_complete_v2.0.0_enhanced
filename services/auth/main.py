@@ -143,7 +143,9 @@ async def tenant_header_middleware(request: Request, call_next):
     auth = request.headers.get("Authorization", "")
     if auth.startswith("Bearer "):
         try:
-            payload = jwt.decode(auth[7:], JWT_VERIFY_KEY, algorithms=[JWT_ALGORITHM], audience="sahool")
+            payload = jwt.decode(
+                auth[7:], JWT_VERIFY_KEY, algorithms=[JWT_ALGORITHM], audience="sahool"
+            )
             response.headers["X-Tenant-ID"] = payload.get("tenant_id", "")
         except Exception as e:  # noqa: BLE001
             # توكن غير صالح/منتهٍ — لا نضيف رأس tenant (سلوك مقصود، نسجّل للتتبّع)

@@ -4,12 +4,22 @@ from __future__ import annotations
 
 import asyncio
 import os
+import sys
 from datetime import UTC, datetime, timedelta, timezone
 from uuid import uuid4
 
 import httpx
 import pytest
 from jose import jwt
+
+# جذر المستودع على sys.path حتى تُستورَد حِزَم المشروع (sahool_ai, shared) في CI.
+# CI يشغّل `pytest` (سكربت الكونسول) لا `python -m pytest`، فلا يُضاف cwd تلقائيّاً
+# إلى sys.path ⇒ كانت test_cookbook/test_research_pipeline/test_farm_memory تفشل
+# بـModuleNotFoundError عند الجمع. conftest يُنفَّذ قبل استيراد وحدات الاختبار،
+# فيدرَج الجذر هنا (بعد استيرادات conftest نفسها تفادياً لـE402).
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
 # ── Test Config ───────────────────────────────────────────────
 TEST_JWT_SECRET = "test_secret_min_32_chars_for_sahool_v9"

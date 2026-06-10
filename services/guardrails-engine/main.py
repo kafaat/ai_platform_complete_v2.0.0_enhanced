@@ -313,7 +313,10 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
         raise HTTPException(401, "توكن مطلوب للموافقة")
     try:
         payload = _jwt.decode(
-            authorization.split(" ", 1)[1], _GR_JWT_SECRET, algorithms=[_GR_JWT_ALG], audience="sahool"
+            authorization.split(" ", 1)[1],
+            _GR_JWT_SECRET,
+            algorithms=[_GR_JWT_ALG],
+            audience="sahool",
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
