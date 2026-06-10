@@ -6,9 +6,10 @@ import {
 import {
   kongApi, indicatorsApi, vegetationApi,
   weatherApi, soilApi, authApi, rasterApi,
-  analyzeWaterSample, runPestEscalation,
+  analyzeWaterSample, runPestEscalation, getFieldRecommendation,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
+  type FieldRecommendationInput, type RecommendationResult,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -311,6 +312,13 @@ export function useWaterAnalysis() {
 export function usePestEscalation() {
   return useMutation<PestEscalationResult, Error, PestEscalationInput>({
     mutationFn: (payload) => runPestEscalation(payload),
+  });
+}
+
+// توصية لحقل — المحرّك الحقيقيّ (validation يُبنى خادميّاً). لا سيناريو مفبرَك.
+export function useFieldRecommendation() {
+  return useMutation<RecommendationResult, Error, FieldRecommendationInput>({
+    mutationFn: (payload) => getFieldRecommendation(payload),
   });
 }
 
