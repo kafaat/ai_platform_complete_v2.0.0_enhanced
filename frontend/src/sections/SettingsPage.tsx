@@ -21,7 +21,7 @@ type Tab = 'general' | 'notifications' | 'services' | 'security';
 
 // حفظ إعدادات العميل فعليّاً (كانت حالة محلّيّة تُفقَد عند التحديث).
 const SETTINGS_KEY = 'sahool_settings';
-function loadSettings(): { lang?: string; map?: string; claudeKey?: string } {
+function loadSettings(): { lang?: string; map?: string } {
   try {
     return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
   } catch {
@@ -41,7 +41,8 @@ export default function SettingsPage() {
   const [saved,   setSaved]  = useState(false);
   const [lang,    setLang]   = useState(() => loadSettings().lang ?? 'ar');
   const [map,     setMap]    = useState(() => loadSettings().map ?? 'satellite');
-  const [claude,  setClaude] = useState(() => loadSettings().claudeKey ?? '');
+  // المفتاح في الذاكرة فقط (لا localStorage) — تخزينه دائماً يعرّضه لسرقة عبر XSS.
+  const [claude,  setClaude] = useState('');
   const [showKey, setShowKey] = useState(false);
 
   const { user } = useAuthStore();
@@ -49,10 +50,10 @@ export default function SettingsPage() {
   const wsOk = wsService.isConnected();
 
   const handleSave = () => {
-    // persist فعليّ: يصمد عبر تحديث الصفحة (كان يُفقَد). المفتاح يُخزَّن محلّيّاً
-    // في المتصفّح فقط (لا يُرسَل — المستشار يعمل عبر الخدمة الخلفيّة).
+    // persist للتفضيلات غير الحسّاسة فقط (لغة/خريطة) — يصمد عبر تحديث الصفحة.
+    // لا نحفظ المفتاح أبداً (سرّ: تخزينه في localStorage مخاطرة XSS).
     try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ lang, map, claudeKey: claude }));
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ lang, map }));
     } catch {
       /* تخزين المتصفّح غير متاح — نتجاهل بهدوء */
     }
@@ -142,7 +143,7 @@ export default function SettingsPage() {
             </Row>
             <p className="text-[11px] text-slate-500">
               احصل على مفتاح من <a href="https://console.anthropic.com" target="_blank" className="text-emerald-500 hover:underline">console.anthropic.com</a>
-              {' '}· يُحفظ محلّيّاً في متصفّحك فقط (المستشار يعمل عبر الخدمة الخلفيّة).
+              {' '}· لا يُخزَّن (يبقى في الذاكرة للجلسة فقط — حمايةً من XSS؛ المستشار يعمل عبر الخدمة الخلفيّة).
             </p>
           </Section>
 

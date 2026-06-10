@@ -88,24 +88,33 @@ export default function TasksPage() {
     setCompleting(taskId);
     try {
       await completeMut.mutateAsync({ taskId }); // PATCH فعليّ
-    } catch { /* offline — يبقى التحديث محلّيّاً للجلسة */ }
-    setStatus(taskId, { status: 'completed' });
-    toastStore.add('success', '✅ تم إنجاز المهمة', '');
-    setCompleting(null);
+      setStatus(taskId, { status: 'completed' });
+      toastStore.add('success', '✅ تم إنجاز المهمة', '');
+    } catch {
+      // صدق: لا نُعلن نجاحاً عند فشل الحفظ (كان يُعلَن نجاح زائف ويُخفي العطل).
+      toastStore.add('error', '⚠️ تعذّر إنجاز المهمة', 'فشل الاتصال بالخادم — لم تُحفظ');
+    } finally {
+      setCompleting(null);
+    }
   };
 
   const startTask = async (taskId: string) => {
     if (!mutateAllowed) return;
-    try { await kongApi.patch(`/tasks/${taskId}`, { status: 'in_progress' }); } catch { /* offline */ }
-    setStatus(taskId, { status: 'in_progress' });
+    try {
+      await kongApi.patch(`/tasks/${taskId}`, { status: 'in_progress' });
+      setStatus(taskId, { status: 'in_progress' });
+    } catch {
+      toastStore.add('error', '⚠️ تعذّر بدء المهمة', 'فشل الاتصال بالخادم');
+    }
   };
 
   const handlePhotoUpload = (taskId: string, file: File) => {
     if (!mutateAllowed) return;
+    // معاينة محلّيّة فقط (blob: غير صالح على الخادم). لا نُرسل الرابط المحلّيّ
+    // كـphoto_url — الرفع الفعليّ للملفّ يحتاج endpoint multipart (مؤجَّل بصدق).
     const url = URL.createObjectURL(file);
-    setStatus(taskId, { photo_url: url, status: 'completed' });
-    completeMut.mutate({ taskId, photoUrl: url });
-    toastStore.add('success', '📸 تم رفع الصورة', 'تم توثيق إنجاز المهمة');
+    setStatus(taskId, { photo_url: url });
+    void completeTask(taskId); // الإنجاز يُحفظ فعليّاً (بلا رابط blob زائف)
   };
 
   const TaskCard = ({ task }: { task: Task }) => {

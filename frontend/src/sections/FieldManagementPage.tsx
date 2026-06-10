@@ -52,7 +52,7 @@ function mapField(f: Record<string, unknown>): Field {
     name: str(f.name_ar ?? f.name ?? f.field_name, 'حقل'),
     area_ha: num(f.area_ha ?? f.area),
     crop: str(f.crop ?? f.crop_ar, '—'),
-    soil: str(f.soil, 'loam'),
+    soil: str(f.soil, ''), // لا نفترض نوع تربة عند غيابه (تحييد لا تلفيق)
     ndvi,
     health: str(f.health, ndviHealth(ndvi)),
     stage: str(f.stage ?? f.growth_stage, '—'),

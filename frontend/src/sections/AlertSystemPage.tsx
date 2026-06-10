@@ -17,6 +17,7 @@ interface ApiAlert {
   id?: string; field_id?: string; field_name?: string;
   level?: string; severity?: string; message?: string;
   color?: string; recommendation?: string; timestamp?: string;
+  acknowledged?: boolean; // حالة الإقرار من الخادم (إن وُجدت)
   [k: string]: unknown;
 }
 
@@ -67,7 +68,8 @@ export function AlertSystemPage() {
       message: (a.recommendation || '').toString(),
       field: (a.field_name || a.field_id || '').toString(),
       time: relTime(a.timestamp),
-      acknowledged: ackIds.has(id),
+      // ندمج حالة الخادم مع إقرار الجلسة (وإلّا ظهر المُقَرّ على الخادم كغير مُقَرّ).
+      acknowledged: ackIds.has(id) || Boolean(a.acknowledged),
     }));
 
   const filtered = alerts.filter(a =>
