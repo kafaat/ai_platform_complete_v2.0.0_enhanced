@@ -115,9 +115,12 @@ class TestHILGetStatus:
     """get_status يقرأ workflow حقيقيّاً من القاعدة (كان يُرجع None دائماً)."""
 
     async def test_create_then_get_status(self, db):
-        os.environ["DATABASE_URL"] = DATABASE_URL
+        # نضبط DATABASE_URL على وحدة HIL فقط، لا على os.environ: تعيينه عالميّاً
+        # كان يُسرّب فيُفعّل اختبارات أخرى (test_services_functional) كانت تتخطّى،
+        # فتفشل في وظيفة التكامل بـ ModuleNotFoundError: fastapi (غير مثبّت هناك).
         sys.path.insert(0, os.path.join(ROOT, "services/guardrails-engine"))
         hil_mod = _load("services/guardrails-engine/human_in_loop.py", "human_in_loop_test")
+        hil_mod.DATABASE_URL = DATABASE_URL
         hil = hil_mod.HumanApprovalWorkflow()
 
         req = types.SimpleNamespace(
