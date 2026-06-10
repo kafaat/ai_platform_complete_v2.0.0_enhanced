@@ -3707,6 +3707,116 @@ def field_intelligence_analyze(
     }
 
 
+# ═══════════════════════════════════════════════════════════════════
+# تحليل ماء الريّ — endpoint حيّ يستدعي irrigation_water_analysis (كان معزولاً)
+# نقيّ-حسابيّ (SAR/RSC + تصنيف FAO-29/USDA-197/USSL)، بلا قاعدة. tenant من التوكن.
+# ═══════════════════════════════════════════════════════════════════
+class WaterAnalysisRequest(BaseModel):
+    sample_id: str
+    source: str = "well"  # well | canal | mixed
+    na: float | None = None
+    ca: float | None = None
+    mg: float | None = None
+    hco3: float | None = None
+    co3: float | None = None
+    cl: float | None = None
+    ec_dsm: float | None = None
+    ph: float | None = None
+    sampled_at: str | None = None
+
+
+@app.post("/api/v1/irrigation/water-analysis")
+def irrigation_water_analysis(
+    req: WaterAnalysisRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يحلّل عيّنة ماء ريّ: SAR/RSC + تصنيف الملوحة/الصوديوم/القلويّة.
+
+    صدق: يُعلِن المؤشّر غير المحسوب (نقص أيونات) صراحةً — لا تقدير مفبرَك.
+    حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول)."""
+    from core.irrigation_water_analysis import WaterSample, analyze_water_sample
+
+    sample = WaterSample(**req.model_dump())
+    return analyze_water_sample(sample)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# تصعيد الآفة — endpoint حيّ يشغّل/يستأنف workflow تصعيد الآفة (كان معزولاً)
+# يحقن المخزن المعمّر (PostgresWorkflowStore) إن DATABASE_URL مضبوط ⇒ الاستئناف
+# يصمد عبر إعادة التشغيل؛ وإلّا InMemory (مفرد على مستوى العمليّة للتطوير).
+# ═══════════════════════════════════════════════════════════════════
+_INMEM_WORKFLOW_STORE = None  # مفرد تطويري (InMemory) ليصمد الاستئناف عبر الطلبات
+
+
+def _get_workflow_store():
+    """يُرجِع المخزن المعمّر (Postgres) إن توفّرت القاعدة، وإلّا مفرد InMemory.
+
+    صدق: InMemory يُفقَد عند إعادة التشغيل (تطوير فقط)؛ الإنتاج (DATABASE_URL)
+    يستعمل workflow_state (v16+v17) فيصمد التقدّم. PostgresWorkflowStore متزامن
+    فوق asyncio.run ⇒ يُستدعى عبر thread من endpoint async (لا داخل الحلقة)."""
+    global _INMEM_WORKFLOW_STORE
+    from core.workflow_engine import InMemoryWorkflowStore, PostgresWorkflowStore
+
+    dsn = os.getenv("DATABASE_URL", "")
+    if dsn:
+        return PostgresWorkflowStore(dsn)
+    if _INMEM_WORKFLOW_STORE is None:
+        _INMEM_WORKFLOW_STORE = InMemoryWorkflowStore()
+    return _INMEM_WORKFLOW_STORE
+
+
+class PestEscalationRequest(BaseModel):
+    workflow_id: str
+    field_id: str | None = None
+    pest_type: str | None = None
+    severity: float = 0.0
+    # للاستئناف بعد التعليق: موافقة الخبير (approved) أو رفضه (rejected)
+    approval_status: str | None = None
+
+
+@app.post("/api/v1/pest-escalation/run")
+async def pest_escalation_run(
+    req: PestEscalationRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يشغّل/يستأنف تدفّق تصعيد الآفة (durable + HIL).
+
+    أوّل نداء (بـpest_type/severity): يصل لخطوة الموافقة ثمّ يُعلَّق (suspended).
+    نداء ثانٍ بنفس workflow_id + approval_status=approved: يُستأنف فينفّذ ثمّ يُتابع.
+    سيادة: tenant_id من التوكن (لا من الجسم). HIL: لا تنفيذ قبل موافقة الخبير."""
+    import asyncio as _aio
+
+    from core.correlation import set_correlation
+    from core.pest_escalation_flow import run_pest_escalation
+    from core.workflow_engine import workflow_trace
+
+    set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
+    initial: dict = {}
+    if req.pest_type is not None:
+        initial["pest_type"] = req.pest_type
+    if req.severity:
+        initial["severity"] = req.severity
+    if req.field_id:
+        initial["field_id"] = req.field_id
+    if req.approval_status:
+        initial["approval_status"] = req.approval_status
+
+    store = _get_workflow_store()
+    # المخزن المعمّر متزامن (asyncio.run داخليّاً) ⇒ نُشغّله في thread لا في الحلقة
+    state = await _aio.to_thread(
+        run_pest_escalation,
+        req.workflow_id,
+        store=store,
+        tenant_id=str(user.tenant_id),
+        initial_context=initial or None,
+    )
+    return {
+        "workflow": workflow_trace(state),
+        "context": state.context,
+        "step_results": state.step_results,
+    }
+
+
 # ── OpenAPI FIX: إعادة بناء نماذج pydantic ذات التعليقات المؤجّلة ──────────
 # مع `from __future__ import annotations` تصبح كل التعليقات نصوصاً مؤجّلة، فبعض
 # النماذج (forward refs) تحتاج model_rebuild() وإلّا يفشل توليد مخطّط OpenAPI

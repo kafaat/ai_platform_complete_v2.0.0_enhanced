@@ -141,13 +141,34 @@ class EventBus:
     ) -> EmittedEvent:
         """يُصدر event عبر emit_event SQL function (atomic).
 
+        التوحيد: يُبنى الحدث عبر EventEnvelope (العقد الموحّد) ويُتحقَّق منه قبل أن
+        يلمس القاعدة — فما يُصدَر موحّد الشكل ومُلتقِط خيط التتبّع (correlation/
+        causation من core.correlation). صدق: المظروف غير الصالح يُرفَض بـValueError
+        (لا إصدار صامت لحدثٍ مشوَّه).
+
         correlation_id: خيط التتبّع الموحّد (وسيط محجوز). idempotency: لا نحقنه
         داخل payload — emit_event يحسب payload_hash/dedup_key على p_payload::text،
-        فحقنه يكسر الـdedup (نفس الحدث المُعاد بـcorrelation مختلف يُعدّ جديداً ⇒
-        تكرار/outbox مزدوج). خيط التتبّع متاح في السياق (core.correlation)؛ تخزينه
-        الدائم على الحدث يحتاج عمود events.correlation_id مستقلّ (خطوة تالية، لا
-        يمسّ الـhash). لذا لا نلتقطه/نستعمله هنا (لا عمل ضائع لكلّ إصدار).
+        فحقنه يكسر الـdedup. تخزينه الدائم يحتاج عمود events.correlation_id مستقلّ
+        (خطوة تالية، لا يمسّ الـhash) — لذا يبقى في المظروف للتحقّق/التتبّع فقط.
         """
+        from core.event_schema import new_event, validate_envelope
+
+        envelope = new_event(
+            event_type.value,
+            entity_type,
+            entity_id,
+            tenant_id,
+            payload=payload,
+            source=source.value,
+            actor_id=actor_id,
+            command_id=command_id,
+            correlation_id=correlation_id,
+        )
+        errors = validate_envelope(envelope)
+        if errors:
+            raise ValueError(f"مظروف حدث غير صالح: {'; '.join(errors)}")
+        args = envelope.to_emit_args()
+
         async with self._acquire() as conn:
             event_id = await conn.fetchval(
                 """
@@ -163,14 +184,14 @@ class EventBus:
                     $9::timestamptz     -- occurred_at
                 )
                 """,
-                event_type.value,
-                entity_type,
-                uuid.UUID(entity_id),
-                uuid.UUID(tenant_id),
-                json.dumps(payload),
-                source.value,
-                actor_id,
-                uuid.UUID(command_id) if command_id else None,
+                args["event_type"],
+                args["entity_type"],
+                uuid.UUID(args["entity_id"]),
+                uuid.UUID(args["tenant_id"]),
+                json.dumps(args["payload"]),
+                args["source"],
+                args["actor_id"],
+                uuid.UUID(args["command_id"]) if args["command_id"] else None,
                 occurred_at,
             )
 
