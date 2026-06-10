@@ -29,65 +29,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       // ✅ FIXED: Real API call via ApiService
 
+      // النتيجة الحيّة من /indicators/v1/overview تُستعمَل مباشرةً (لا نموذج وهميّ).
+      // (كان هنا map معلّق بعد الفاصلة المنقوطة يكسر التصريف — أُزيل.)
       _dashboardData = await ApiService.instance.getDashboard();
-      // Fallback below kept for reference only
-        'fields_count': 3,
-        'total_area_ha': 12.5,
-        'active_crops': ['قمح', 'ذرة', 'طماطم'],
-        'ndvi_avg': 0.62,
-        'ndvi_trend': 'up', // up, down, stable
-        'ndvi_history': [
-          {'date': '2026-04-18', 'value': 0.45},
-          {'date': '2026-04-25', 'value': 0.52},
-          {'date': '2026-05-02', 'value': 0.58},
-          {'date': '2026-05-09', 'value': 0.61},
-          {'date': '2026-05-16', 'value': 0.62},
-        ],
-        'weather_today': {
-          'temp_max': 34,
-          'temp_min': 19,
-          'humidity': 45,
-          'wind_speed': 12,
-          'precipitation': 0,
-          'condition': 'sunny',
-        },
-        'alerts': [
-          {
-            'type': 'irrigation',
-            'severity': 'medium',
-            'message': 'رطوبة التربة منخفضة — يُنصح بالري خلال 48 ساعة',
-            'field': 'حقل القمح الشمالي',
-            'action': 'جدولة الري',
-          },
-          {
-            'type': 'pest',
-            'severity': 'low',
-            'message': 'اكتشاف منّ خفيف — راقب الحقل يومياً',
-            'field': 'حقل الطماطم',
-            'action': 'مراقبة',
-          },
-        ],
-        'yield_forecast': {
-          'wheat': {'current_kg_ha': 2200, 'predicted_kg_ha': 2450, 'confidence': 0.85},
-          'maize': {'current_kg_ha': 3800, 'predicted_kg_ha': 4200, 'confidence': 0.78},
-          'tomato': {'current_kg_ha': 28000, 'predicted_kg_ha': 32000, 'confidence': 0.82},
-        },
-        'market_prices': {
-          'wheat': {'price_yer_kg': 450, 'trend': 'stable'},
-          'maize': {'price_yer_kg': 320, 'trend': 'up'},
-          'tomato': {'price_yer_kg': 150, 'trend': 'down'},
-        },
-        'water_usage': {
-          'this_month_m3': 450,
-          'last_month_m3': 520,
-          'budget_m3': 600,
-          'savings_pct': 13.5,
-        },
-        'carbon': {
-          'sequestered_kg': 1250,
-          'credit_value_usd': 6.25,
-        },
-      };
 
       setState(() {
         _isLoading = false;

@@ -238,6 +238,30 @@ class ApiService {
   }
 
   // ── API Methods ──────────────────────────────────────────────
+
+  /// تسجيل الدخول (POST /auth/login). يحفظ التوكنات + الملفّ في التخزين الآمن.
+  /// صدق: يفشل برسالة واضحة إن نقص رمز الوصول (لا جلسة زائفة).
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final r = await _dio.post('/auth/login',
+        data: {'email': email, 'password': password});
+    final data = r.data as Map<String, dynamic>;
+    final access = data['access_token'] as String?;
+    if (access == null) {
+      throw Exception('استجابة الدخول بلا رمز وصول');
+    }
+    await AuthService.instance.saveToken(
+      access,
+      refresh: data['refresh_token'] as String?,
+      profile: {
+        'user_id': data['user_id'],
+        'role': data['role'],
+        'full_name': data['full_name'],
+        'tenant_id': data['tenant_id'],
+      },
+    );
+    return data;
+  }
+
   Future<Map<String, dynamic>> getDashboard({String? tag}) async {
     final r = await _dio.get('/indicators/v1/overview',
         cancelToken: tag != null ? _getToken(tag) : null);

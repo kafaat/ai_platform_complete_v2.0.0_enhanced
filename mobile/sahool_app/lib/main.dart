@@ -6,6 +6,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'bloc/dashboard_bloc.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/advisor_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/satellite_screen.dart';
+import 'screens/fields_screen.dart';
+import 'screens/profile_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/websocket_service.dart';
@@ -205,32 +209,6 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// Placeholder screens
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: Center(child: Text('تسجيل الدخول',
-        style: TextStyle(color: Colors.white))));
-}
-class SatelliteScreen extends StatelessWidget {
-  const SatelliteScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: Center(child: Text('صور الأقمار الصناعية',
-        style: TextStyle(color: Colors.white))));
-}
-class FieldsScreen extends StatelessWidget {
-  const FieldsScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: Center(child: Text('إدارة الحقول',
-        style: TextStyle(color: Colors.white))));
-}
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-  @override
-  Widget build(BuildContext context) => const Scaffold(
-    body: Center(child: Text('الحساب الشخصي',
-        style: TextStyle(color: Colors.white))));
-}
+// شاشات الدخول/الأقمار/الحقول/الحساب صارت حقيقيّة في ملفّاتها المستقلّة
+// (screens/login_screen.dart، satellite_screen.dart، fields_screen.dart،
+// profile_screen.dart) بدل الـplaceholders النصّيّة التي كانت هنا.
