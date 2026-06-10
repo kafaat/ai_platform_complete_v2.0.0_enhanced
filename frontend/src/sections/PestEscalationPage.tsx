@@ -57,10 +57,17 @@ export default function PestEscalationPage() {
   // البيئيّة/الاقتصاديّة. حاجز صارم (allowed=false) يمنع الموافقة.
   const actionType = String(ctx.action_type ?? '');
   const hasAction = !!actionType && actionType !== 'none';
-  const needsSafety = status === 'suspended' && hasAction;
+  // الـworkflow الحاليّ فقط (يطابق آخر تشغيل محلّيّ). يتفادى الحالة الحافّة: بعد
+  // guard.reset() لتشغيل جديد يفشل، تبقى استجابة الـworkflow القديم معروضة و
+  // suspendedWfId لا يتغيّر ⇒ لا يُعاد الفحص ⇒ البوّابة تتجمّد. ربطها بالحاليّ يحلّها.
+  const isCurrentWorkflow = !!res && res.workflow.workflow_id === workflowId;
+  const needsSafety = isCurrentWorkflow && status === 'suspended' && hasAction;
+  // معرّف الـworkflow المُعلَّق من الخادم — لا من workflowId المحلّيّ الذي يتغيّر قبل
+  // وصول الاستجابة (سباق).
+  const suspendedWfId = needsSafety ? (res?.workflow.workflow_id ?? '') : '';
 
   useEffect(() => {
-    if (needsSafety && guard.isIdle) {
+    if (suspendedWfId && guard.isIdle) {
       guard.mutate({
         actionType: 'pesticide',
         actionData: {
@@ -73,10 +80,15 @@ export default function PestEscalationPage() {
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsSafety, workflowId]);
+  }, [suspendedWfId]);
 
   const verdict = guard.data;
-  const hardBlocked = verdict ? verdict.allowed === false : false;
+  // حظر صارم فقط للرفض القاطع (مادّة محظورة/تجاوز حدّ). حالة «يتطلّب موافقة بشريّة»
+  // (HIGH/CRITICAL) ليست حظراً — هي موافقة الخبير نفسها، فحجبها يُجمّد التدفّق.
+  const hardBlocked = !!verdict && verdict.allowed === false && !verdict.requires_human_approval;
+  // لا نُتيح الموافقة قبل اكتمال الفحص (بوّابة فعليّة). لكن إن تعذّر الفحص نفسه لا
+  // نُجمّد التدفّق — يبقى قرار الخبير (guardrails مُعطّل ≠ منع).
+  const safetyBlocking = needsSafety && !verdict && !guard.isError;
   const riskColor = verdict ? (RISK_COLOR[verdict.overall_risk] ?? '#94a3b8') : '#94a3b8';
 
   return (
@@ -187,11 +199,17 @@ export default function PestEscalationPage() {
                 <>
                   <p className="text-sm text-slate-300">{verdict.arabic_explanation}</p>
                   <div className="flex flex-wrap gap-3 mt-2 text-[11px]">
-                    <span style={{ color: verdict.allowed ? '#4ade80' : '#f87171' }}>
-                      {verdict.allowed ? '✓ مسموح ضمن الحواجز' : '✗ محجوب بحاجز صارم'}
+                    <span style={{ color: hardBlocked ? '#f87171' : verdict.requires_human_approval ? '#f59e0b' : '#4ade80' }}>
+                      {hardBlocked ? '✗ محجوب بحاجز صارم'
+                        : verdict.requires_human_approval ? 'يتطلّب مراجعة الخبير'
+                        : '✓ مسموح ضمن الحواجز'}
                     </span>
-                    {verdict.requires_human_approval && <span className="text-amber-400">يتطلّب موافقة بشريّة</span>}
                   </div>
+                  {/* صدق: الفحص أوّليّ — تدفّق الآفة لا يحمل مبيداً/جرعة محدّدين، فالتقييم
+                      الكيميائيّ الدقيق يحتاجهما (وصفة الرشّ). يُعرَض كإرشاد لا كحُكم قاطع. */}
+                  <p className="text-[10px] text-slate-500 mt-2">
+                    فحص أوّليّ — التقييم الدقيق يتطلّب تحديد المبيد والجرعة (وصفة الرشّ).
+                  </p>
                 </>
               )}
             </div>
@@ -203,9 +221,11 @@ export default function PestEscalationPage() {
               <div className="text-sm text-amber-200">
                 {hardBlocked
                   ? 'محجوب بحاجز السلامة — لا يمكن الموافقة على هذا الإجراء.'
-                  : 'التدفّق مُعلَّق بانتظار موافقة الخبير قبل التنفيذ.'}
+                  : safetyBlocking
+                    ? 'يجري فحص السلامة قبل إتاحة الموافقة…'
+                    : 'التدفّق مُعلَّق بانتظار موافقة الخبير قبل التنفيذ.'}
               </div>
-              <button onClick={approve} disabled={mut.isPending || hardBlocked}
+              <button onClick={approve} disabled={mut.isPending || hardBlocked || safetyBlocking}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
                 style={{ background: hardBlocked ? '#6b7280' : '#16a34a' }}>
                 <ShieldCheck className="w-4 h-4" />
