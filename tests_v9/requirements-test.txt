@@ -23,3 +23,5 @@ PyJWT>=2.8.0
 # sahool_ai/cookbook يقرأ model_catalog.yaml عبر PyYAML (تبعيّة أساسيّة للحزمة)
 # ⇒ كان جمع test_cookbook يفشل بـ ModuleNotFoundError: yaml في CI.
 PyYAML>=6.0
+# raster-service/change_detection يستخدم numpy (test_change_detection يختبره).
+numpy>=1.24.0

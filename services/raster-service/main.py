@@ -616,6 +616,46 @@ async def zones_classify(req: ManagementZonesRequest, x_agent_token: str = Heade
     return result
 
 
+class ChangeDetectRequest(BaseModel):
+    field_id: str
+    index: str = "ndvi"
+    date_before: str
+    date_after: str
+    grid_before: list[list[float | None]]  # شبكة المؤشّر للتاريخ الأقدم
+    grid_after: list[list[float | None]]  # شبكة المؤشّر للتاريخ الأحدث
+    slight_threshold: float = 0.1
+    severe_threshold: float = 0.2
+
+
+@app.post("/change/detect")
+async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(None)):
+    """كشف التغيير المكاني (per-pixel 2D) بين تاريخين — أين تدهور/تحسّن الحقل.
+
+    يسدّ فجوة كانت placeholder: التحليل الزمني 1D (متوسّط) يُخفي التدهور الموضعي
+    (زحف ملوحة من زاوية، عطل ريّ في قطاع). يستقبل شبكتي مؤشّر مُحسبتَين فعليّاً من
+    COG لتاريخين (نفس النهج الصادق: لا يخترع NDVI من البحث) ويُرجِع خريطة فرق
+    مُصنّفة + نسب المساحة المتدهورة + تفسير عربي. NaN/null لا تُحسب (صدق السحاب).
+    """
+    _require_service_token(x_agent_token)
+    import change_detection as cd
+
+    result = cd.detect_change(
+        req.grid_before,
+        req.grid_after,
+        index=req.index,
+        slight_threshold=req.slight_threshold,
+        severe_threshold=req.severe_threshold,
+    )
+    result.update(
+        {
+            "field_id": req.field_id,
+            "date_before": req.date_before,
+            "date_after": req.date_after,
+        }
+    )
+    return result
+
+
 @app.get("/imagery/search/radar")
 async def imagery_search_radar(
     west: float,
