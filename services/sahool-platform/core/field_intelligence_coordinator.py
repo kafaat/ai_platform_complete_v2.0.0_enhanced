@@ -109,6 +109,20 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
                 )
             )
 
+    # غطاء السحب → إشارة منفصلة (لا تدخل الدمج الطيفي، لكنّها تُفعّل تحويل الوزن
+    # إلى SAR في fuse_health). كانت مفقودة ⇒ cloud دائماً 0 في المسار الحيّ.
+    if sensing.get("cloud_cover") is not None:
+        signals.append(
+            SignalInput(
+                source="cloud_cover",
+                value=sensing["cloud_cover"],
+                confidence="high",
+                observed_at=sensing.get("observed_at", now),
+                spatial_resolution_m=sensing.get("resolution_m", 10.0),
+                field_coverage=sensing.get("field_coverage"),
+            )
+        )
+
     # التربة → soil_ec (تحليل مخبري — ثقة عالية، لكن قد يكون قديماً)
     soil = raw.get("soil", {})
     if soil.get("ec_dsm") is not None:

@@ -247,6 +247,11 @@ def compose_field_state(
             fr = fuse_health(readings, cloud_cover_pct=cloud or 0.0)
             truths["crop_vigor"] = round(fr.fused_value, 3)
             truths["crop_vigor_confidence"] = fr.confidence.value
+            # شفافيّة: ملاحظات الدمج (منها تحويل الوزن للرادار عند السحب) تُسطَّح
+            # في الحالة الموحّدة لتكون مرئيّة/قابلة للتتبّع (كانت تُفقَد).
+            if fr.notes:
+                truths["crop_vigor_notes"] = fr.notes
+            truths["cloud_cover_pct"] = round(float(cloud or 0.0), 1)
             for s in spectral:
                 prov.append(
                     {

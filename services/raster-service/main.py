@@ -1810,6 +1810,59 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
         return None
 
 
+@app.get("/indices")
+async def field_indices(
+    field_id: str,
+    lat: float | None = Query(None),
+    lon: float | None = Query(None),
+    date: str = Query("latest"),
+    indices: str = Query("ndvi,ndre,ndsi,ndwi,bsi,si"),
+    cloud_cover: float | None = Query(None),
+    x_agent_token: str = Header(None),
+):
+    """متوسّط كلّ مؤشّر للحقل (للدمج الحيّ في field-intelligence) + غطاء السحب.
+
+    يسدّ ثغرة wiring حقيقيّة: sensing_adapter كان ينادي /indices غير الموجودة ⇒
+    المسار الطيفي الحيّ بلا تغذية. يعيد استخدام مسار indicator-grid
+    (_resolve_field_layer + _grid_from_cog): لكلّ مؤشّر يقرأ COG المقصوص ويُرجِع
+    المتوسّط (real_data=True). صدق: لا COG ⇒ قيم null + real_data=False + note (لا
+    اختراع). cloud_cover يُمرَّر إن توفّر (من eo:cloud_cover عبر المستدعي) ليُفعّل
+    تحويل الوزن للرادار في fuse_health.
+    """
+    _require_service_token(x_agent_token)
+    requested = [i.strip() for i in indices.split(",") if i.strip()]
+    out: dict = {
+        "field_id": field_id,
+        "real_data": False,
+        "observed_at": None,
+        "field_coverage": None,
+        "cloud_cover": cloud_cover,
+        "resolution_m": 10.0,
+    }
+    coverage_val = None
+    for idx in requested:
+        layer = await _resolve_field_layer(field_id, idx, date)
+        real = _grid_from_cog(layer, idx, date, 16) if layer is not None else None
+        if real is None:
+            out[idx] = None
+            continue
+        out[idx] = real["stats"]["mean"]
+        out["real_data"] = True
+        out["observed_at"] = out["observed_at"] or real.get("date")
+        if coverage_val is None:
+            cells = [v for row in real["grid"] for v in row]
+            coverage_val = (
+                round(sum(v is not None for v in cells) / len(cells), 4) if cells else None
+            )
+    out["field_coverage"] = coverage_val
+    out["note"] = (
+        None
+        if out["real_data"]
+        else "لا COG مقصوص للحقل — شغّل /process أوّلاً (لا قيم مخترعة)"
+    )
+    return out
+
+
 @app.get("/v1/fields/{field_id}/indicator-grid")
 async def field_indicator_grid(
     field_id: str,
