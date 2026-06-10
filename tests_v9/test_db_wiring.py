@@ -82,9 +82,7 @@ class TestOfflineSyncPersistence:
             END $$;
         """)
         await db.execute(f"GRANT USAGE ON SCHEMA public TO {RLS_ROLE}")
-        await db.execute(
-            f"GRANT SELECT, INSERT ON offline_synced_operations TO {RLS_ROLE}"
-        )
+        await db.execute(f"GRANT SELECT, INSERT ON offline_synced_operations TO {RLS_ROLE}")
 
         tenant_a, tenant_b = str(uuid.uuid4()), str(uuid.uuid4())
         op = await self._make_op(core, tenant_a)

@@ -64,9 +64,7 @@ async def persist_synced_operation(
     return True
 
 
-async def fetch_synced_operations(
-    conn: asyncpg.Connection, limit: int = 100
-) -> list[dict]:
+async def fetch_synced_operations(conn: asyncpg.Connection, limit: int = 100) -> list[dict]:
     """يقرأ عمليّات المستأجر الحالي (RLS يُرشّح حسب app.current_tenant)."""
     rows = await conn.fetch(
         """
