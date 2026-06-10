@@ -141,22 +141,13 @@ class EventBus:
     ) -> EmittedEvent:
         """يُصدر event عبر emit_event SQL function (atomic).
 
-        correlation_id: خيط التتبّع الموحّد. إن لم يُمرَّر يُلتقَط من السياق
-        الحالي (correlation context). يُضمَّن في payload (jsonb — بلا تغيير
-        مخطّط) ليكون الحدث ذاتيّ الوصف بخيط تتبّعه. صدق: غيابه يُترَك (لا اختراع).
+        correlation_id: خيط التتبّع الموحّد (وسيط محجوز). idempotency: لا نحقنه
+        داخل payload — emit_event يحسب payload_hash/dedup_key على p_payload::text،
+        فحقنه يكسر الـdedup (نفس الحدث المُعاد بـcorrelation مختلف يُعدّ جديداً ⇒
+        تكرار/outbox مزدوج). خيط التتبّع متاح في السياق (core.correlation)؛ تخزينه
+        الدائم على الحدث يحتاج عمود events.correlation_id مستقلّ (خطوة تالية، لا
+        يمسّ الـhash). لذا لا نلتقطه/نستعمله هنا (لا عمل ضائع لكلّ إصدار).
         """
-        # التقاط correlation من السياق إن لم يُمرَّر (fallback-safe)
-        if correlation_id is None:
-            try:
-                from core.correlation import get_correlation_id
-
-                correlation_id = get_correlation_id()
-            except Exception:  # noqa: BLE001 — الربط اختياري لا يكسر الإصدار
-                correlation_id = None
-        # نُضمّن الـcorrelation في payload (بلا تغيير مخطّط events) ليرتبط الحدث
-        # بخيط التتبّع. لا نطمس payload الأصلي.
-        if correlation_id is not None:
-            payload = {**payload, "_correlation_id": correlation_id}
         async with self._acquire() as conn:
             event_id = await conn.fetchval(
                 """

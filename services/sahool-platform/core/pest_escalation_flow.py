@@ -83,11 +83,21 @@ def build_pest_escalation_steps(
         }
 
     def step_await_approval(ctx: dict) -> dict:
-        # تعليق للموافقة البشريّة — قرار حقلي يحتاج خبيراً (إلّا لو لا تصعيد)
-        return {"approval_requested": bool(ctx.get("confirmed")), "approval_status": "pending"}
+        # لا تصعيد مؤكّد ⇒ لا حاجة لموافقة (لا نُعلّق بلا داعٍ).
+        if not ctx.get("confirmed"):
+            return {"approval_requested": False, "approval_status": "not_required"}
+        # موافقة الخبير تصل عبر initial_context عند الاستئناف (approval_status=approved).
+        # قبلها تبقى pending ⇒ يتوقّف الـworkflow (الخطوة suspends=True).
+        return {
+            "approval_requested": True,
+            "approval_status": ctx.get("approval_status", "pending"),
+        }
 
     def step_execute(ctx: dict) -> dict:
-        # تنفيذ بعد الموافقة (له تعويض Saga). صدق: لا تنفيذ بلا موافقة/إجراء
+        # HIL فعليّ: لا تنفيذ إلّا بموافقة معتمَدة (أو لا حاجة لها). كان ينفّذ رغم
+        # بقاء الموافقة "pending" ⇒ كان الـHIL شكليّاً.
+        if ctx.get("approval_status") not in ("approved", "not_required"):
+            return {"executed": False, "note_ar": "بانتظار موافقة الخبير — لم يُنفَّذ"}
         if ctx.get("action_type") in (None, "none"):
             return {"executed": False, "note_ar": "لا إجراء للتنفيذ"}
         if execute_fn is not None:

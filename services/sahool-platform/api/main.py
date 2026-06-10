@@ -1462,7 +1462,7 @@ async def field_history(
                 LIMIT $2
                 """,
                 field_id,
-                min(limit, 1000),
+                max(1, min(limit, 1000)),  # قصّ [1..1000]: limit≤0 يرمي/يُفرغ بلا داعٍ
             )
         for r in rows:
             payload = r["payload"] if isinstance(r["payload"], dict) else {}
@@ -1566,24 +1566,27 @@ async def simulate_what_if(
             "error": f"تعذّرت المحاكاة (طقس/نموذج): {e}",
         }
 
+    # b_yield = محصول الإجراء المقترَح (الريّ الموصى به)؛ s_yield = بلا إجراء (بلا ريّ)
     b_yield = baseline.get("simulation", {}).get("yield_t_ha")
     s_yield = scenario.get("simulation", {}).get("yield_t_ha")
     b_irr = baseline.get("water_balance", {}).get("irrigation_needed_mm")
     s_irr = scenario.get("water_balance", {}).get("irrigation_needed_mm")
     water_saved = round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
-    # هل "الإجراء المقترَح" (تقليل الريّ) يُجدي؟ مُجدٍ إن وفّر ماءً دون خسارة
-    # محصول تتجاوز عتبة. هنا baseline=action (الريّ الموصى به) يُحافظ المحصول.
+    # هل "الإجراء المقترَح" (الريّ) يُجدي؟ مُجدٍ إن رفع المحصول >2% فوق خطّ الأساس
+    # (لا إجراء). خطّ الأساس = s_yield، الإجراء = b_yield ⇒ المقارنة ذات معنى.
     helps = None
     if b_yield is not None and s_yield is not None:
-        helps = b_yield > s_yield * 1.02  # الريّ الموصى به يحفظ >2% محصول
+        helps = b_yield > s_yield * 1.02  # الريّ الموصى به يرفع المحصول >2%
 
     return {
         "field_id": req.field_id,
         "available": True,
         "scenario": req.scenario,
-        "baseline_yield_t_ha": b_yield,  # مع الإجراء (الريّ الموصى به)
-        "action_yield_t_ha": b_yield,  # الإجراء = baseline المرويّ
-        "no_action_yield_t_ha": s_yield,  # بلا إجراء (السيناريو)
+        # خطّ الأساس = لا إجراء (بلا ريّ)؛ الإجراء = الريّ الموصى به (قيمتان متمايزتان
+        # حتّى تكون recommended_action_helps مقارنةً فعليّةً لا قيمةً بنفسها).
+        "baseline_yield_t_ha": s_yield,  # لا إجراء (السيناريو بلا ريّ) — خطّ الأساس
+        "action_yield_t_ha": b_yield,  # الإجراء المقترَح (الريّ الموصى به)
+        "no_action_yield_t_ha": s_yield,  # مرادف صريح لخطّ الأساس (توافق خلفي)
         "water_saved_mm": water_saved,
         "recommended_action_helps": helps,
     }
@@ -3633,6 +3636,7 @@ def field_intelligence_analyze(
     lon: float | None = None,
     crop: str | None = None,
     notify: bool = False,
+    authorization: str = Header(None),
     user: UserSchema = Depends(get_current_user),
 ):
     """يُشغّل المسار الكامل للمايسترو لحقل ويُرجِع الحالة الموحّدة + القرار.
@@ -3653,7 +3657,8 @@ def field_intelligence_analyze(
 
     # tenant_id من التوكن الموثوق (لا من جسم الطلب — حماية multi-tenant)
     req = FieldRequest(field_id=field_id, lat=lat, lon=lon, crop=crop, tenant_id=user.tenant_id)
-    adapters = build_live_adapters()
+    # تمرير رأس التفويض للمحوّلات المحميّة (memory/simulate تنادي نقاط JWT داخليّة)
+    adapters = build_live_adapters(authorization=authorization)
     result = run_field_intelligence(req, **adapters)
 
     state = result.canonical_state

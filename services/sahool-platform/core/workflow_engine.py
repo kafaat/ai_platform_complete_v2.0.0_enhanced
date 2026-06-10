@@ -301,9 +301,15 @@ def run_workflow(
         store.save(state)
         return state
 
-    # لو كان مكتملاً سابقاً، لا نعيد
-    if state.status == WorkflowStatus.COMPLETED:
+    # حالات طرفيّة لا تُستأنف: مكتمل أو مُعوَّض (Saga). COMPENSATED كان يُعاد
+    # تشغيله خطأً (يُهمَل تعويضه) ⇒ نُعامله نهايةً كـCOMPLETED.
+    if state.status in (WorkflowStatus.COMPLETED, WorkflowStatus.COMPENSATED):
         return state
+
+    # دمج المدخلات الخارجيّة عند الاستئناف (قناة بيانات للتعليق/الاستئناف): بدونها
+    # لا تصل موافقة الخبير (أو أيّ إدخال) للخطوات بعد الاستئناف فيُصبح التعليق بلا فائدة.
+    if initial_context:
+        state.context.update(initial_context)
 
     state.status = WorkflowStatus.RUNNING
     state.error = None

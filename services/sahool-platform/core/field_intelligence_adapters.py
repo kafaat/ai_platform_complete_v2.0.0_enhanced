@@ -21,22 +21,34 @@ PLATFORM_URL = os.getenv("PLATFORM_SERVICE_URL", "http://sahool-platform:8000")
 HTTP_TIMEOUT = float(os.getenv("ADAPTER_TIMEOUT", "20.0"))
 
 
-def _get_json(url: str, params: dict | None = None) -> dict | None:
-    """نداء GET آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع)."""
+def _auth_headers(authorization: str | None) -> dict | None:
+    """رأس التفويض (Bearer) لتمريره للنقاط المحميّة بـJWT. None ⇒ بلا رأس."""
+    return {"Authorization": authorization} if authorization else None
+
+
+def _get_json(
+    url: str, params: dict | None = None, *, authorization: str | None = None
+) -> dict | None:
+    """نداء GET آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع).
+
+    يمرّر رأس التفويض إن وُجد (النقاط المحميّة بـJWT تُرجع 401 بدونه ⇒ None دائماً).
+    """
     try:
         import httpx
     except ImportError:
         return None  # بيئة بلا httpx — يُعلَن كمتعذّر
     try:
         with httpx.Client(timeout=HTTP_TIMEOUT) as client:
-            resp = client.get(url, params=params or {})
+            resp = client.get(url, params=params or {}, headers=_auth_headers(authorization))
             resp.raise_for_status()
             return resp.json()
     except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر (لا نُسقط الطلب)
         return None
 
 
-def _post_json(url: str, payload: dict | None = None) -> dict | None:
+def _post_json(
+    url: str, payload: dict | None = None, *, authorization: str | None = None
+) -> dict | None:
     """نداء POST آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع)."""
     try:
         import httpx
@@ -44,7 +56,7 @@ def _post_json(url: str, payload: dict | None = None) -> dict | None:
         return None
     try:
         with httpx.Client(timeout=HTTP_TIMEOUT) as client:
-            resp = client.post(url, json=payload or {})
+            resp = client.post(url, json=payload or {}, headers=_auth_headers(authorization))
             resp.raise_for_status()
             return resp.json()
     except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر
@@ -96,16 +108,19 @@ def sensing_adapter(req) -> dict | None:
     return out or None
 
 
-def memory_adapter(req) -> dict | None:
+def memory_adapter(req, *, authorization: str | None = None) -> dict | None:
     """يجلب السياق التاريخي للحقل (farm_memory) → {recurring_issues, ...}.
 
     Runtime Cohesion: يصل ذاكرة الحقل بحلقة القرار. يقرأ تاريخ الأحداث من
     خدمة المنصّة (events عبر event_replay)، يكشف القضايا المتكرّرة (ملوحة/
     إجهاد يتكرّر) لإغناء القرار. None عند التعذّر (صدق: لا تاريخ مخترَع).
+
+    النقطة محميّة بـJWT ⇒ يجب تمرير authorization وإلّا تُرجِع 401 (⇒ None دائماً).
     """
     data = _get_json(
         f"{PLATFORM_URL}/api/v1/fields/{req.field_id}/history",
         {"tenant_id": req.tenant_id},
+        authorization=authorization,
     )
     if not data:
         return None
@@ -129,7 +144,7 @@ def memory_adapter(req) -> dict | None:
     }
 
 
-def simulate_adapter(req, decision, state) -> dict | None:
+def simulate_adapter(req, decision, state, *, authorization: str | None = None) -> dict | None:
     """يشغّل محاكاة what-if لتقدير أثر الإجراء المقترَح على المحصول/الماء.
 
     Runtime Cohesion: يصل المحاكاة بحلقة القرار. يطلب من خدمة WOFOST محاكاة
@@ -143,7 +158,9 @@ def simulate_adapter(req, decision, state) -> dict | None:
         "lon": req.lon,
         "scenario": "recommended_action",  # الخدمة تفسّر القرار المقترَح
     }
-    data = _post_json(f"{PLATFORM_URL}/api/v1/simulate/what-if", payload)
+    data = _post_json(
+        f"{PLATFORM_URL}/api/v1/simulate/what-if", payload, authorization=authorization
+    )
     if not data:
         return None
     # هل الإجراء المقترَح يُحسّن النتيجة فعلاً؟ (للقرار)
@@ -160,17 +177,28 @@ def simulate_adapter(req, decision, state) -> dict | None:
     }
 
 
-def build_live_adapters() -> dict:
+def build_live_adapters(authorization: str | None = None) -> dict:
     """يُرجِع قاموس المحوّلات الحيّة لتمريرها لـrun_field_intelligence.
 
+    authorization: رأس التفويض القادم من الطلب. يُمرَّر للمحوّلات المحميّة بـJWT
+    (memory/simulate تنادي نقاط المنصّة المحميّة ⇒ بدونه تُرجِع 401 ثمّ None).
+    الطقس/التربة/الاستشعار خدمات داخليّة لا تتطلّبه (تبقى كما هي).
+
     الاستخدام في endpoint:
-        adapters = build_live_adapters()
+        adapters = build_live_adapters(authorization=authorization)
         run_field_intelligence(req, **adapters, ...)
     """
+
+    def memory_fn(req):
+        return memory_adapter(req, authorization=authorization)
+
+    def simulate_fn(req, decision, state):
+        return simulate_adapter(req, decision, state, authorization=authorization)
+
     return {
         "weather_fn": weather_adapter,
         "soil_fn": soil_adapter,
         "sensing_fn": sensing_adapter,
-        "memory_fn": memory_adapter,
-        "simulate_fn": simulate_adapter,
+        "memory_fn": memory_fn,
+        "simulate_fn": simulate_fn,
     }
