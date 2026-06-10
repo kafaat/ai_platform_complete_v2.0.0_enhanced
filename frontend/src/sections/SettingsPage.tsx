@@ -14,8 +14,20 @@ import {
 import NotificationSettingsPage from './NotificationSettingsPage';
 import { useAllServicesHealth } from '../hooks/useApi';
 import { wsService } from '../services/websocket';
+import { useAuthStore } from '../hooks/useAuth';
+import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
 
 type Tab = 'general' | 'notifications' | 'services' | 'security';
+
+// حفظ إعدادات العميل فعليّاً (كانت حالة محلّيّة تُفقَد عند التحديث).
+const SETTINGS_KEY = 'sahool_settings';
+function loadSettings(): { lang?: string; map?: string; claudeKey?: string } {
+  try {
+    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
 
 const TABS: { id: Tab; label: string; icon: any }[] = [
   { id:'general',       label:'عام',         icon:Globe  },
@@ -27,15 +39,23 @@ const TABS: { id: Tab; label: string; icon: any }[] = [
 export default function SettingsPage() {
   const [tab,     setTab]    = useState<Tab>('general');
   const [saved,   setSaved]  = useState(false);
-  const [lang,    setLang]   = useState('ar');
-  const [map,     setMap]    = useState('satellite');
-  const [claude,  setClaude] = useState('');
+  const [lang,    setLang]   = useState(() => loadSettings().lang ?? 'ar');
+  const [map,     setMap]    = useState(() => loadSettings().map ?? 'satellite');
+  const [claude,  setClaude] = useState(() => loadSettings().claudeKey ?? '');
   const [showKey, setShowKey] = useState(false);
 
+  const { user } = useAuthStore();
   const { data: services, isLoading: svLoading, refetch: refetchSv } = useAllServicesHealth();
   const wsOk = wsService.isConnected();
 
   const handleSave = () => {
+    // persist فعليّ: يصمد عبر تحديث الصفحة (كان يُفقَد). المفتاح يُخزَّن محلّيّاً
+    // في المتصفّح فقط (لا يُرسَل — المستشار يعمل عبر الخدمة الخلفيّة).
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ lang, map, claudeKey: claude }));
+    } catch {
+      /* تخزين المتصفّح غير متاح — نتجاهل بهدوء */
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
@@ -122,6 +142,7 @@ export default function SettingsPage() {
             </Row>
             <p className="text-[11px] text-slate-500">
               احصل على مفتاح من <a href="https://console.anthropic.com" target="_blank" className="text-emerald-500 hover:underline">console.anthropic.com</a>
+              {' '}· يُحفظ محلّيّاً في متصفّحك فقط (المستشار يعمل عبر الخدمة الخلفيّة).
             </p>
           </Section>
 
@@ -238,19 +259,32 @@ export default function SettingsPage() {
             ))}
           </Section>
 
-          <Section title="أدوار المستخدمين (RBAC)">
-            {[
-              {r:'admin',  perms:'كل الصفحات + حذف + إدارة المستخدمين'},
-              {r:'expert', perms:'كل الصفحات بدون إدارة المستخدمين'},
-              {r:'farmer', perms:'Dashboard + Satellite + Fields + Tasks'},
-              {r:'viewer', perms:'قراءة فقط — بدون إضافة أو حذف'},
-            ].map((row,i)=>(
-              <div key={i} className="flex gap-3 py-1.5 border-b last:border-0 text-sm" style={{ borderColor:'#334155' }}>
-                <span className="px-2 py-0.5 rounded text-[11px] font-mono"
-                  style={{ background:'#1e293b', border:'1px solid #334155', color:'#38bdf8' }}>{row.r}</span>
-                <span className="text-slate-400 text-xs">{row.perms}</span>
-              </div>
-            ))}
+          <Section title="أدوار المستخدمين (RBAC — مُطبَّق فعليّاً)">
+            <p className="text-[11px] text-slate-500 mb-1">
+              دورك الحاليّ:{' '}
+              <span className="text-emerald-400">{ROLE_LABEL_AR[normalizeRole(user?.role)]}</span>
+            </p>
+            {([
+              { r: 'owner',      perms: 'كل الصفحات + الإدارة' },
+              { r: 'manager',    perms: 'كل الصفحات + إدارة' },
+              { r: 'agronomist', perms: 'كل الصفحات (بلا إدارة مستخدمين)' },
+              { r: 'worker',     perms: 'لوحة + أقمار + حقول + مهام + تنبيهات + مستشار' },
+              { r: 'viewer',     perms: 'قراءة فقط — بلا إضافة/حذف/إقرار' },
+            ] as const).map((row, i) => {
+              const isCurrent = normalizeRole(user?.role) === row.r;
+              return (
+                <div key={i} className="flex gap-3 py-1.5 border-b last:border-0 text-sm items-center"
+                  style={{ borderColor: '#334155' }}>
+                  <span className="px-2 py-0.5 rounded text-[11px]"
+                    style={{ background: isCurrent ? '#16a34a22' : '#1e293b',
+                      border: `1px solid ${isCurrent ? '#16a34a' : '#334155'}`,
+                      color: isCurrent ? '#4ade80' : '#38bdf8' }}>
+                    {ROLE_LABEL_AR[row.r]}{isCurrent ? ' ●' : ''}
+                  </span>
+                  <span className="text-slate-400 text-xs">{row.perms}</span>
+                </div>
+              );
+            })}
           </Section>
         </div>
       )}
