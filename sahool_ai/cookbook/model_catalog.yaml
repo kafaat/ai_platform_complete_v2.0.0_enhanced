@@ -1,0 +1,149 @@
+# SAHOOL Cookbook — كتالوج النماذج للسياق الزراعي العربي
+# =====================================================
+# كل إدخال يحوي: name, type, params_b, use_case, min_ram_gb
+# للنماذج اللغوية والتضمين: quantizations
+# لنماذج ONNX: format: onnx
+
+models:
+  # ── نماذج التضمين (Embeddings) ──────────────────────────────────────────────
+  - name: "bge-m3-gguf"
+    type: "embedding"
+    params_b: 0.567
+    quantizations: ["Q4_K_M", "Q8_0", "F16"]
+    use_case: "arabic_text_embedding"
+    min_ram_gb: 2
+
+  - name: "jina-embeddings-v3-gguf"
+    type: "embedding"
+    params_b: 0.572
+    quantizations: ["Q4_K_M", "Q8_0", "F16"]
+    use_case: "multilingual_text_embedding"
+    min_ram_gb: 2
+
+  - name: "e5-mistral-7b-instruct-gguf"
+    type: "embedding"
+    params_b: 7.0
+    quantizations: ["Q4_K_M", "Q5_K_M"]
+    use_case: "arabic_semantic_search"
+    min_ram_gb: 6
+
+  - name: "arabic-bert-base-gguf"
+    type: "embedding"
+    params_b: 0.110
+    quantizations: ["Q4_K_M", "Q8_0", "F16"]
+    use_case: "arabic_classification_embedding"
+    min_ram_gb: 1
+
+  # ── النماذج اللغوية الكبيرة (LLMs) ─────────────────────────────────────────
+  - name: "acegpt-7b-gguf"
+    type: "llm"
+    params_b: 7.0
+    quantizations: ["Q4_K_M", "Q5_K_M", "Q8_0"]
+    use_case: "arabic_reasoning"
+    min_ram_gb: 6
+
+  - name: "acegpt-13b-gguf"
+    type: "llm"
+    params_b: 13.0
+    quantizations: ["Q4_K_M", "Q5_K_M"]
+    use_case: "arabic_reasoning"
+    min_ram_gb: 10
+
+  - name: "jais-13b-gguf"
+    type: "llm"
+    params_b: 13.0
+    quantizations: ["Q4_K_M", "Q5_K_M"]
+    use_case: "arabic_general"
+    min_ram_gb: 10
+
+  - name: "jais-30b-gguf"
+    type: "llm"
+    params_b: 30.0
+    quantizations: ["Q4_K_M", "Q5_K_M"]
+    use_case: "arabic_general"
+    min_ram_gb: 22
+
+  - name: "qwen2.5-7b-gguf"
+    type: "llm"
+    params_b: 7.0
+    quantizations: ["Q4_K_M", "Q5_K_M", "Q8_0"]
+    use_case: "multilingual_reasoning"
+    min_ram_gb: 6
+
+  - name: "qwen2.5-14b-gguf"
+    type: "llm"
+    params_b: 14.0
+    quantizations: ["Q4_K_M", "Q5_K_M"]
+    use_case: "multilingual_reasoning"
+    min_ram_gb: 10
+
+  - name: "qwen2.5-3b-gguf"
+    type: "llm"
+    params_b: 3.0
+    quantizations: ["Q4_K_M", "Q5_K_M", "Q8_0"]
+    use_case: "multilingual_reasoning"
+    min_ram_gb: 3
+
+  - name: "phi-3.5-mini-arabic-gguf"
+    type: "llm"
+    params_b: 3.8
+    quantizations: ["Q4_K_M", "Q8_0"]
+    use_case: "arabic_instruction_following"
+    min_ram_gb: 3
+
+  - name: "llama-3.2-3b-arabic-gguf"
+    type: "llm"
+    params_b: 3.0
+    quantizations: ["Q4_K_M", "Q5_K_M", "Q8_0"]
+    use_case: "arabic_general"
+    min_ram_gb: 3
+
+  # ── نماذج SAHOOL ONNX المتخصّصة ─────────────────────────────────────────────
+  - name: "sahool-crop-forecast-v1"
+    type: "onnx"
+    params_b: 0.125
+    format: "onnx"
+    use_case: "crop_yield_prediction"
+    min_ram_gb: 1
+
+  - name: "sahool-soil-analysis-v1"
+    type: "onnx"
+    params_b: 0.089
+    format: "onnx"
+    use_case: "soil_composition_analysis"
+    min_ram_gb: 1
+
+  - name: "sahool-pest-detection-v1"
+    type: "onnx"
+    params_b: 0.234
+    format: "onnx"
+    use_case: "pest_image_classification"
+    min_ram_gb: 2
+
+  - name: "sahool-yield-estimator-v2"
+    type: "onnx"
+    params_b: 0.156
+    format: "onnx"
+    use_case: "crop_yield_prediction"
+    min_ram_gb: 1
+
+  - name: "sahool-disease-classifier-v1"
+    type: "onnx"
+    params_b: 0.312
+    format: "onnx"
+    use_case: "plant_disease_classification"
+    min_ram_gb: 2
+
+  - name: "sahool-weed-detector-v1"
+    type: "onnx"
+    params_b: 0.198
+    format: "onnx"
+    use_case: "weed_detection"
+    min_ram_gb: 2
+
+  - name: "sahool-irrigation-optimizer-v1"
+    type: "onnx"
+    params_b: 0.067
+    format: "onnx"
+    use_case: "irrigation_scheduling"
+    min_ram_gb: 1
