@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Satellite, Map, BarChart3, Bell,
   FileText, Bot, Settings, Loader2, Leaf, LogOut,
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
-  Wifi, WifiOff, ClipboardList,
+  Wifi, WifiOff, ClipboardList, Droplets, Bug,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { wsService } from './services/websocket';
@@ -54,11 +54,14 @@ const SettingsPage        = lazy(() => import('./sections/SettingsPage'));
 const TasksPage           = lazy(() => import('./sections/TasksPage'));
 const RecommendationPage  = lazy(() => import('./sections/RecommendationPage'));
 const SpatialIndicatorsPage = lazy(() => import('./sections/SpatialIndicatorsPage'));
+const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'));
+const PestEscalationPage  = lazy(() => import('./sections/PestEscalationPage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
-  | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators';
+  | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
+  | 'irrigation' | 'pest-escalation';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -66,6 +69,8 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
   { id:'fields',       label:'إدارة الحقول',   icon:Map },
   { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
+  { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
+  { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
   { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
   { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList, badge:'6' },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
@@ -263,6 +268,8 @@ export default function App() {
       case 'satellite':    return <SatellitePage />;
       case 'fields':       return <FieldManagementPage />;
       case 'recommendations': return <RecommendationPage />;
+      case 'irrigation':   return <IrrigationWaterPage />;
+      case 'pest-escalation': return <PestEscalationPage />;
       case 'spatial-indicators': return <SpatialIndicatorsPage />;
       case 'tasks':        return <TasksPage />;
       case 'analytics':    return <AnalyticsPage />;

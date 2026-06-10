@@ -6,6 +6,9 @@ import {
 import {
   kongApi, indicatorsApi, vegetationApi,
   weatherApi, soilApi, authApi, rasterApi,
+  analyzeWaterSample, runPestEscalation,
+  type WaterSampleInput, type WaterAnalysisResult,
+  type PestEscalationInput, type PestEscalationResult,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -294,6 +297,20 @@ export function useAcknowledgeAlert() {
   return useMutation<unknown, Error, string>({
     mutationFn: (alertId) =>
       indicatorsApi.patch(`/indicators/alerts/${alertId}/acknowledge`).then(r => r.data),
+  });
+}
+
+// تحليل ماء الريّ (sahool-platform) — SAR/RSC + تصنيف. ربط حيّ، بلا تلفيق.
+export function useWaterAnalysis() {
+  return useMutation<WaterAnalysisResult, Error, WaterSampleInput>({
+    mutationFn: (payload) => analyzeWaterSample(payload),
+  });
+}
+
+// تصعيد الآفة (workflow durable + HIL). الاستئناف بنفس workflow_id + approval.
+export function usePestEscalation() {
+  return useMutation<PestEscalationResult, Error, PestEscalationInput>({
+    mutationFn: (payload) => runPestEscalation(payload),
   });
 }
 

@@ -87,6 +87,65 @@ export const logout = () =>
   tryReal(() => authApi.post('/auth/logout').then(r => r.data), () => ({ status:'ok' }));
 
 // ══════════════════════════════════════════════════════════════════
+// SAHOOL-PLATFORM (core) — وحدات قرار حيّة عبر البوابة الموحّدة (kong)
+// ربط حقيقيّ: لا fallback وهميّ (قرارات زراعيّة — الخطأ يُعلَن للـUI).
+// ══════════════════════════════════════════════════════════════════
+export interface WaterSampleInput {
+  sample_id: string;
+  source?: string;
+  na?: number | null; ca?: number | null; mg?: number | null;
+  hco3?: number | null; co3?: number | null; cl?: number | null;
+  ec_dsm?: number | null; ph?: number | null;
+  sampled_at?: string | null;
+}
+export interface WaterClass {
+  class: string | null;
+  restriction_ar?: string;
+  hazard_ar?: string;
+  note_ar?: string;
+}
+export interface WaterAnalysisResult {
+  sample_id: string;
+  source: string;
+  indices: { sar: number | null; rsc_meq_l: number | null; ec_dsm: number | null; ph: number | null };
+  classification: {
+    salinity: WaterClass;
+    alkalinity_rsc: WaterClass;
+    sodicity_sar: WaterClass;
+  };
+  hazard_flags_ar: string[];
+  suitable_ar: string;
+  missing_inputs: string[];
+  data_complete: boolean;
+}
+export const analyzeWaterSample = (payload: WaterSampleInput): Promise<WaterAnalysisResult> =>
+  kongApi.post<WaterAnalysisResult>('/api/v1/irrigation/water-analysis', payload).then(r => r.data);
+
+export interface PestEscalationInput {
+  workflow_id: string;
+  field_id?: string;
+  pest_type?: string;
+  severity?: number;
+  approval_status?: string; // للاستئناف بعد التعليق: approved/rejected
+}
+export interface WorkflowTrace {
+  workflow_id: string;
+  status: string; // running|suspended|completed|failed|compensated
+  completed_steps: string[];
+  compensated_steps: string[];
+  current_step: string | null;
+  steps_done: number;
+  error: string | null;
+}
+export interface PestEscalationResult {
+  workflow: WorkflowTrace;
+  context: Record<string, unknown>;
+  step_results: Record<string, Record<string, unknown>>;
+}
+export const runPestEscalation = (payload: PestEscalationInput): Promise<PestEscalationResult> =>
+  kongApi.post<PestEscalationResult>('/api/v1/pest-escalation/run', payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════
 
