@@ -145,6 +145,36 @@ export interface PestEscalationResult {
 export const runPestEscalation = (payload: PestEscalationInput): Promise<PestEscalationResult> =>
   kongApi.post<PestEscalationResult>('/api/v1/pest-escalation/run', payload).then(r => r.data);
 
+export interface FieldRecommendationInput {
+  field_id: string;
+  farm_id?: string;
+  crop: string;
+  current_indicators?: Record<string, unknown>;
+  growth_stage?: string;
+  district_id?: string;
+}
+export interface RecommendationResult {
+  delivered: boolean;
+  rec_id?: string;
+  // مخرجات المحرّك الحقيقيّ: {status, headline, quality_grade, confidence, ...}
+  recommendation?: Record<string, unknown>;
+  cross_reference_count?: number;
+  cross_reference_note_ar?: string;
+  model_versions_count?: number;
+  timestamp?: string;
+  reason_ar?: string; // عند delivered=false (محجوب/مرفوض)
+}
+// نقبل فقط الحالات المقصودة: 200 (مُسلَّمة) و422/403 (محجوب/مرفوض ⇒ reason_ar).
+// نترك 401 تُرفض ليعمل interceptor تسجيل الخروج، و400/500 تُعامَل كأخطاء فعليّة.
+export const getFieldRecommendation = (
+  payload: FieldRecommendationInput,
+): Promise<RecommendationResult> =>
+  kongApi
+    .post<RecommendationResult>('/api/v1/recommendations/for-field', payload, {
+      validateStatus: (s) => s === 200 || s === 422 || s === 403,
+    })
+    .then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════

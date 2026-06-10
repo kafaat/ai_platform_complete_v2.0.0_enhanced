@@ -512,6 +512,71 @@ def recommendations(
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
+class FieldRecommendationRequest(BaseModel):
+    field_id: str
+    farm_id: str = ""
+    crop: str
+    current_indicators: dict = Field(default_factory=dict)
+    growth_stage: str | None = None
+    district_id: str | None = None
+
+
+@app.post("/api/v1/recommendations/for-field")
+def recommendations_for_field(
+    req: FieldRecommendationRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """توصية لحقل دون أن يبني العميل «شهادة الجودة» (validation) يدويّاً.
+
+    الواجهة كانت تعجز عن استدعاء /api/v1/recommendations لأنّه يتطلّب dict
+    validation معقّداً (خرج بوّابة الجودة). هنا نبنيه خادميّاً من ملاحظات
+    المستأجر عبر validate_observations ثمّ نستدعي المحرّك الحقيقيّ نفسه. صدق:
+    عند نقص الملاحظات تُعاد توصية «محجوبة/محدودة» تُبيّن ما يلزم قياسه — لا
+    سيناريو مفبرَك، وهو السلوك المُصمَّم لبوّابة الجودة."""
+    import os as _os
+    from pathlib import Path as _Path
+
+    import validate_observations as _vo
+
+    # جذر بيانات المستأجر (قابل للضبط). غيابه ⇒ شهادة منخفضة الجودة بصدق
+    # (لا اختراع ملاحظات)، فيُعيد المحرّك توصية محدودة تُرشد لما يجب قياسه.
+    root = _os.getenv(
+        "SAHOOL_TENANT_DATA_ROOT",
+        _os.path.join(_os.path.dirname(__file__), "..", "tenants"),
+    )
+    # تقوية: نُطبّع المسار ونتأكّد أنّ مجلّد المستأجر داخل الجذر (دفاع ضدّ "../"
+    # أو فواصل مسار في tenant_id — تجنّب قراءة بيانات خارج عزل المستأجر).
+    root_path = _Path(root).resolve()
+    tenant_dir = (root_path / str(user.tenant_id)).resolve()
+    if not tenant_dir.is_relative_to(root_path):
+        raise HTTPException(status_code=400, detail="معرّف مستأجر غير صالح")
+    try:
+        validation = _vo.validate(tenant_dir)
+    except Exception as e:  # noqa: BLE001 — صدق: لا توصية بلا شهادة جودة
+        raise HTTPException(status_code=503, detail=f"تعذّر بناء شهادة الجودة: {e}") from e
+
+    api_req = ApiRequest(
+        user=user,
+        payload={
+            "tenant_id": user.tenant_id,
+            # لا نخلط farm_id بـfield_id (كيانان مختلفان؛ authorize يفحص
+            # farm_ids_access). نمرّره كما هو؛ المستخدم محدود الصلاحيّة يُرسله،
+            # وذو الوصول الشامل (farm_ids_access فارغة) يمرّ بـ"".
+            "farm_id": req.farm_id,
+            "field_id": req.field_id,
+            "crop": req.crop,
+            "validation": validation,
+            "current_indicators": req.current_indicators,
+            "growth_stage": req.growth_stage,
+            "district_id": req.district_id,
+        },
+        path="/api/v1/recommendations/for-field",
+        method="POST",
+    )
+    resp = handle_recommendation_request(api_req)
+    return JSONResponse(status_code=resp.status_code, content=resp.body)
+
+
 @app.post("/api/v1/observations")
 def observations(
     req: ObservationRequest,
