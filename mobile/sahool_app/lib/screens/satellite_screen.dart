@@ -121,7 +121,26 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
                     fontSize: 18,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            if (_fields.isEmpty)
+            if (_error != null && _fields.isEmpty)
+              // لا نُخفي خطأ الشبكة خلف «لا توجد حقول» — نُعلنه مع إعادة محاولة.
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                      const SizedBox(height: 10),
+                      const Text('تعذّر تحميل الحقول',
+                          style: TextStyle(color: Colors.white)),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                          onPressed: _loadFields,
+                          child: const Text('إعادة المحاولة')),
+                    ],
+                  ),
+                ),
+              )
+            else if (_fields.isEmpty)
               const Expanded(
                 child: Center(
                     child: Text('لا توجد حقول لعرض مؤشّراتها',
@@ -179,7 +198,7 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
                 style: TextStyle(color: Colors.white)),
             const SizedBox(height: 10),
             ElevatedButton(
-              onPressed: () => _selectedId != null ? _select(_selectedId!) : null,
+              onPressed: _selectedId != null ? () => _select(_selectedId!) : null,
               child: const Text('إعادة المحاولة'),
             ),
           ],

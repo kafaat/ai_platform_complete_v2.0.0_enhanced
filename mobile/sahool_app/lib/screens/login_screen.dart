@@ -43,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         (route) => false,
       );
     } catch (e) {
-      setState(() => _error = _humanize(e));
+      if (mounted) setState(() => _error = _humanize(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

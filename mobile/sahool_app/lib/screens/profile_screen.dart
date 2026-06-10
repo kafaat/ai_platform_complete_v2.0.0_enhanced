@@ -3,6 +3,7 @@
 // (الاسم/الدور/المستأجر) + الإصدار + تسجيل الخروج الفعليّ (POST /auth/logout
 // ثمّ مسح الجلسة وإعادة AuthGate). الأدوار تُترجَم للعربيّة.
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../main.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
@@ -102,7 +103,16 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 28),
           _tile(Icons.badge_outlined, 'الدور', roleAr),
           _tile(Icons.business_outlined, 'المستأجر', tenant),
-          _tile(Icons.info_outline, 'إصدار التطبيق', 'سهول 9.1.0'),
+          // الإصدار الفعليّ من الحزمة (لا قيمة ثابتة تتقادم).
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (ctx, snap) {
+              final v = snap.hasData
+                  ? 'سهول ${snap.data!.version} (${snap.data!.buildNumber})'
+                  : 'سهول';
+              return _tile(Icons.info_outline, 'إصدار التطبيق', v);
+            },
+          ),
           const SizedBox(height: 28),
           ElevatedButton.icon(
             onPressed: () => _logout(context),
