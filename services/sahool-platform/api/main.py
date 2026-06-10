@@ -1462,7 +1462,7 @@ async def field_history(
                 LIMIT $2
                 """,
                 field_id,
-                min(limit, 1000),
+                max(1, min(limit, 1000)),  # قصّ [1..1000]: limit≤0 يرمي/يُفرغ بلا داعٍ
             )
         for r in rows:
             payload = r["payload"] if isinstance(r["payload"], dict) else {}
@@ -1566,24 +1566,27 @@ async def simulate_what_if(
             "error": f"تعذّرت المحاكاة (طقس/نموذج): {e}",
         }
 
+    # b_yield = محصول الإجراء المقترَح (الريّ الموصى به)؛ s_yield = بلا إجراء (بلا ريّ)
     b_yield = baseline.get("simulation", {}).get("yield_t_ha")
     s_yield = scenario.get("simulation", {}).get("yield_t_ha")
     b_irr = baseline.get("water_balance", {}).get("irrigation_needed_mm")
     s_irr = scenario.get("water_balance", {}).get("irrigation_needed_mm")
     water_saved = round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
-    # هل "الإجراء المقترَح" (تقليل الريّ) يُجدي؟ مُجدٍ إن وفّر ماءً دون خسارة
-    # محصول تتجاوز عتبة. هنا baseline=action (الريّ الموصى به) يُحافظ المحصول.
+    # هل "الإجراء المقترَح" (الريّ) يُجدي؟ مُجدٍ إن رفع المحصول >2% فوق خطّ الأساس
+    # (لا إجراء). خطّ الأساس = s_yield، الإجراء = b_yield ⇒ المقارنة ذات معنى.
     helps = None
     if b_yield is not None and s_yield is not None:
-        helps = b_yield > s_yield * 1.02  # الريّ الموصى به يحفظ >2% محصول
+        helps = b_yield > s_yield * 1.02  # الريّ الموصى به يرفع المحصول >2%
 
     return {
         "field_id": req.field_id,
         "available": True,
         "scenario": req.scenario,
-        "baseline_yield_t_ha": b_yield,  # مع الإجراء (الريّ الموصى به)
-        "action_yield_t_ha": b_yield,  # الإجراء = baseline المرويّ
-        "no_action_yield_t_ha": s_yield,  # بلا إجراء (السيناريو)
+        # خطّ الأساس = لا إجراء (بلا ريّ)؛ الإجراء = الريّ الموصى به (قيمتان متمايزتان
+        # حتّى تكون recommended_action_helps مقارنةً فعليّةً لا قيمةً بنفسها).
+        "baseline_yield_t_ha": s_yield,  # لا إجراء (السيناريو بلا ريّ) — خطّ الأساس
+        "action_yield_t_ha": b_yield,  # الإجراء المقترَح (الريّ الموصى به)
+        "no_action_yield_t_ha": s_yield,  # مرادف صريح لخطّ الأساس (توافق خلفي)
         "water_saved_mm": water_saved,
         "recommended_action_helps": helps,
     }
@@ -3633,6 +3636,7 @@ def field_intelligence_analyze(
     lon: float | None = None,
     crop: str | None = None,
     notify: bool = False,
+    authorization: str = Header(None),
     user: UserSchema = Depends(get_current_user),
 ):
     """يُشغّل المسار الكامل للمايسترو لحقل ويُرجِع الحالة الموحّدة + القرار.
@@ -3653,7 +3657,8 @@ def field_intelligence_analyze(
 
     # tenant_id من التوكن الموثوق (لا من جسم الطلب — حماية multi-tenant)
     req = FieldRequest(field_id=field_id, lat=lat, lon=lon, crop=crop, tenant_id=user.tenant_id)
-    adapters = build_live_adapters()
+    # تمرير رأس التفويض للمحوّلات المحميّة (memory/simulate تنادي نقاط JWT داخليّة)
+    adapters = build_live_adapters(authorization=authorization)
     result = run_field_intelligence(req, **adapters)
 
     state = result.canonical_state
@@ -3699,6 +3704,120 @@ def field_intelligence_analyze(
         "alerts_summary": summarize_alerts(alerts),
         "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
         "_persistable_event": event_row,  # جاهز للإدراج في events table
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════
+# تحليل ماء الريّ — endpoint حيّ يستدعي irrigation_water_analysis (كان معزولاً)
+# نقيّ-حسابيّ (SAR/RSC + تصنيف FAO-29/USDA-197/USSL)، بلا قاعدة. tenant من التوكن.
+# ═══════════════════════════════════════════════════════════════════
+class WaterAnalysisRequest(BaseModel):
+    sample_id: str
+    source: str = "well"  # well | canal | mixed
+    na: float | None = None
+    ca: float | None = None
+    mg: float | None = None
+    hco3: float | None = None
+    co3: float | None = None
+    cl: float | None = None
+    ec_dsm: float | None = None
+    ph: float | None = None
+    sampled_at: str | None = None
+
+
+@app.post("/api/v1/irrigation/water-analysis")
+def irrigation_water_analysis(
+    req: WaterAnalysisRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يحلّل عيّنة ماء ريّ: SAR/RSC + تصنيف الملوحة/الصوديوم/القلويّة.
+
+    صدق: يُعلِن المؤشّر غير المحسوب (نقص أيونات) صراحةً — لا تقدير مفبرَك.
+    حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول)."""
+    from core.irrigation_water_analysis import WaterSample, analyze_water_sample
+
+    sample = WaterSample(**req.model_dump())
+    return analyze_water_sample(sample)
+
+
+# ═══════════════════════════════════════════════════════════════════
+# تصعيد الآفة — endpoint حيّ يشغّل/يستأنف workflow تصعيد الآفة (كان معزولاً)
+# يحقن المخزن المعمّر (PostgresWorkflowStore) إن DATABASE_URL مضبوط ⇒ الاستئناف
+# يصمد عبر إعادة التشغيل؛ وإلّا InMemory (مفرد على مستوى العمليّة للتطوير).
+# ═══════════════════════════════════════════════════════════════════
+_INMEM_WORKFLOW_STORE = None  # مفرد تطويري (InMemory) ليصمد الاستئناف عبر الطلبات
+
+
+def _get_workflow_store(tenant_id: str | None = None):
+    """يُرجِع المخزن المعمّر (Postgres) إن توفّرت القاعدة، وإلّا مفرد InMemory.
+
+    tenant_id: سياق المستأجر لـRLS. workflow_state عليه RLS+FORCE، فالقراءة (load)
+    تحتاج ضبط app.current_tenant وإلّا تُحجب الصفوف ⇒ الاستئناف لا يعمل. يُمرَّر
+    للمخزن المعمّر ليضبطه عند load (الحفظ يأخذه من حالة الـworkflow).
+
+    صدق: InMemory يُفقَد عند إعادة التشغيل (تطوير فقط)؛ الإنتاج (DATABASE_URL)
+    يستعمل workflow_state (v16+v17) فيصمد التقدّم. PostgresWorkflowStore متزامن
+    فوق asyncio.run ⇒ يُستدعى عبر thread من endpoint async (لا داخل الحلقة)."""
+    global _INMEM_WORKFLOW_STORE
+    from core.workflow_engine import InMemoryWorkflowStore, PostgresWorkflowStore
+
+    dsn = os.getenv("DATABASE_URL", "")
+    if dsn:
+        return PostgresWorkflowStore(dsn, tenant_id=tenant_id)
+    if _INMEM_WORKFLOW_STORE is None:
+        _INMEM_WORKFLOW_STORE = InMemoryWorkflowStore()
+    return _INMEM_WORKFLOW_STORE
+
+
+class PestEscalationRequest(BaseModel):
+    workflow_id: str
+    field_id: str | None = None
+    pest_type: str | None = None
+    severity: float = 0.0
+    # للاستئناف بعد التعليق: موافقة الخبير (approved) أو رفضه (rejected)
+    approval_status: str | None = None
+
+
+@app.post("/api/v1/pest-escalation/run")
+async def pest_escalation_run(
+    req: PestEscalationRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يشغّل/يستأنف تدفّق تصعيد الآفة (durable + HIL).
+
+    أوّل نداء (بـpest_type/severity): يصل لخطوة الموافقة ثمّ يُعلَّق (suspended).
+    نداء ثانٍ بنفس workflow_id + approval_status=approved: يُستأنف فينفّذ ثمّ يُتابع.
+    سيادة: tenant_id من التوكن (لا من الجسم). HIL: لا تنفيذ قبل موافقة الخبير."""
+    import asyncio as _aio
+
+    from core.correlation import set_correlation
+    from core.pest_escalation_flow import run_pest_escalation
+    from core.workflow_engine import workflow_trace
+
+    set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
+    initial: dict = {}
+    if req.pest_type is not None:
+        initial["pest_type"] = req.pest_type
+    if req.severity:
+        initial["severity"] = req.severity
+    if req.field_id:
+        initial["field_id"] = req.field_id
+    if req.approval_status:
+        initial["approval_status"] = req.approval_status
+
+    store = _get_workflow_store(str(user.tenant_id))  # سياق RLS للقراءة/الاستئناف
+    # المخزن المعمّر متزامن (asyncio.run داخليّاً) ⇒ نُشغّله في thread لا في الحلقة
+    state = await _aio.to_thread(
+        run_pest_escalation,
+        req.workflow_id,
+        store=store,
+        tenant_id=str(user.tenant_id),
+        initial_context=initial or None,
+    )
+    return {
+        "workflow": workflow_trace(state),
+        "context": state.context,
+        "step_results": state.step_results,
     }
 
 

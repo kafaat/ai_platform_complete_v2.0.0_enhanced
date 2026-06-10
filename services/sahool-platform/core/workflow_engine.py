@@ -51,8 +51,10 @@ class WorkflowStep:
 
     step_id: str
     fn: Callable[[dict], Any]
-    # إن صحّ، الـworkflow يتوقّف بعد هذه الخطوة بانتظار استئناف خارجي
-    suspends: bool = False
+    # إن صحّ، الـworkflow يتوقّف بعد هذه الخطوة بانتظار استئناف خارجي. قد يكون
+    # bool ثابتاً أو دالّة (ctx)→bool تُقيَّم بعد تنفيذ الخطوة (تعليق مشروط): مثلاً
+    # خطوة موافقة تُعلّق فقط حين تكون الموافقة فعلاً مطلوبة (لا تعليق بلا داعٍ).
+    suspends: bool | Callable[[dict], bool] = False
     # دالّة تعويض (Saga rollback) — تُستدعى عند فشل خطوة لاحقة
     compensate: Callable[[dict], Any] | None = None
 
@@ -122,6 +124,124 @@ class InMemoryWorkflowStore:
     def load(self, workflow_id: str) -> WorkflowState | None:
         d = self._store.get(workflow_id)
         return WorkflowState.from_dict(d) if d else None
+
+
+class PostgresWorkflowStore:
+    """مخزن حالة معمّر على workflow_state (migrations v16+v17). يجعل الاستئناف
+    يصمد عبر إعادة التشغيل (عكس InMemory الذي يُفقَد). نفس عقد save/load.
+
+    ⚠ صدق: واجهة متزامنة فوق asyncpg عبر asyncio.run — لا تُستدعى من داخل event
+    loop نشط (run_workflow متزامن أصلاً؛ في خدمة async استدعِه عبر executor).
+    يفتح اتّصالاً قصير العمر لكلّ عمليّة (بسيط؛ الإنتاج عالي الإنتاجيّة يحقن pool).
+    يضبط app.current_tenant عند الحفظ ليُطبَّق RLS (FORCE) على الإدراج.
+    """
+
+    def __init__(self, dsn: str, tenant_id: str | None = None) -> None:
+        self._dsn = dsn
+        # سياق المستأجر للقراءة (load): workflow_state عليه RLS+FORCE، فبدون ضبط
+        # app.current_tenant تحجب السياسة كلّ الصفوف ⇒ load يُرجِع None دائماً
+        # (الاستئناف عبر إعادة التشغيل لا يعمل). الحفظ يأخذ المستأجر من الحالة.
+        self._tenant_id = tenant_id
+
+    def _run(self, coro: Any) -> Any:
+        import asyncio
+
+        return asyncio.run(coro)
+
+    def save(self, state: WorkflowState) -> None:
+        # فشل مبكر واضح: workflow_state.tenant_id NOT NULL + RLS يعتمد المستأجر.
+        # بدونه كان يقع خطأ قاعدة غامض (NOT NULL/سياسة) بعد فتح الاتّصال.
+        if not state.tenant_id:
+            raise ValueError(
+                "PostgresWorkflowStore.save يتطلّب tenant_id غير فارغ "
+                "(workflow_state.tenant_id NOT NULL + RLS) — شغّل run_workflow بـtenant_id."
+            )
+        self._run(self._save(state))
+
+    async def _save(self, state: WorkflowState) -> None:
+        import json
+
+        import asyncpg
+
+        d = state.to_dict()
+        conn = await asyncpg.connect(self._dsn)
+        try:
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, false)",
+                str(d["tenant_id"] or ""),
+            )
+            await conn.execute(
+                """
+                INSERT INTO workflow_state
+                  (workflow_id, tenant_id, status, completed_steps, step_results, context,
+                   current_step, error, compensated_steps, workflow_version, correlation_id, updated_at)
+                VALUES ($1,$2::uuid,$3,$4::jsonb,$5::jsonb,$6::jsonb,$7,$8,$9::jsonb,$10,$11,NOW())
+                ON CONFLICT (workflow_id) DO UPDATE SET
+                  status=EXCLUDED.status, completed_steps=EXCLUDED.completed_steps,
+                  step_results=EXCLUDED.step_results, context=EXCLUDED.context,
+                  current_step=EXCLUDED.current_step, error=EXCLUDED.error,
+                  compensated_steps=EXCLUDED.compensated_steps,
+                  workflow_version=EXCLUDED.workflow_version,
+                  correlation_id=EXCLUDED.correlation_id, updated_at=NOW()
+                """,
+                d["workflow_id"],
+                d["tenant_id"],
+                d["status"],
+                json.dumps(d["completed_steps"]),
+                json.dumps(d["step_results"]),
+                json.dumps(d["context"]),
+                d["current_step"],
+                d["error"],
+                json.dumps(d["compensated_steps"]),
+                d["workflow_version"],
+                d["correlation_id"],
+            )
+        finally:
+            await conn.close()
+
+    def load(self, workflow_id: str) -> WorkflowState | None:
+        return self._run(self._load(workflow_id))
+
+    async def _load(self, workflow_id: str) -> WorkflowState | None:
+        import json
+
+        import asyncpg
+
+        conn = await asyncpg.connect(self._dsn)
+        try:
+            # ضبط سياق المستأجر ليُمرِّر RLS (FORCE) القراءة — بدونه تُحجب الصفوف.
+            if self._tenant_id:
+                await conn.execute(
+                    "SELECT set_config('app.current_tenant', $1, false)", str(self._tenant_id)
+                )
+            row = await conn.fetchrow(
+                "SELECT * FROM workflow_state WHERE workflow_id=$1", workflow_id
+            )
+        finally:
+            await conn.close()
+        if not row:
+            return None
+
+        def _j(v: Any, default: Any) -> Any:
+            if v is None:
+                return default
+            return v if isinstance(v, list | dict) else json.loads(v)
+
+        return WorkflowState.from_dict(
+            {
+                "workflow_id": row["workflow_id"],
+                "tenant_id": str(row["tenant_id"]) if row["tenant_id"] else None,
+                "status": row["status"],
+                "completed_steps": _j(row["completed_steps"], []),
+                "step_results": _j(row["step_results"], {}),
+                "context": _j(row["context"], {}),
+                "current_step": row["current_step"],
+                "error": row["error"],
+                "compensated_steps": _j(row["compensated_steps"], []),
+                "workflow_version": row["workflow_version"] or "1",
+                "correlation_id": row["correlation_id"],
+            }
+        )
 
 
 def _compensate(steps: list[WorkflowStep], state: WorkflowState, store: Any) -> None:
@@ -199,9 +319,15 @@ def run_workflow(
         store.save(state)
         return state
 
-    # لو كان مكتملاً سابقاً، لا نعيد
-    if state.status == WorkflowStatus.COMPLETED:
+    # حالات طرفيّة لا تُستأنف: مكتمل أو مُعوَّض (Saga). COMPENSATED كان يُعاد
+    # تشغيله خطأً (يُهمَل تعويضه) ⇒ نُعامله نهايةً كـCOMPLETED.
+    if state.status in (WorkflowStatus.COMPLETED, WorkflowStatus.COMPENSATED):
         return state
+
+    # دمج المدخلات الخارجيّة عند الاستئناف (قناة بيانات للتعليق/الاستئناف): بدونها
+    # لا تصل موافقة الخبير (أو أيّ إدخال) للخطوات بعد الاستئناف فيُصبح التعليق بلا فائدة.
+    if initial_context:
+        state.context.update(initial_context)
 
     state.status = WorkflowStatus.RUNNING
     state.error = None
@@ -234,8 +360,10 @@ def run_workflow(
             state.context.update(result)  # تراكم السياق للخطوة التالية
         store.save(state)
 
-        # خطوة معلِّقة (تنتظر حدثاً خارجيّاً مثل موافقة بشريّة)
-        if step.suspends:
+        # خطوة معلِّقة (تنتظر حدثاً خارجيّاً مثل موافقة بشريّة). التعليق قد يكون
+        # مشروطاً (دالّة تُقيَّم على السياق بعد التنفيذ) فلا نُعلّق بلا داعٍ.
+        suspend_now = step.suspends(state.context) if callable(step.suspends) else step.suspends
+        if suspend_now:
             state.status = WorkflowStatus.SUSPENDED
             store.save(state)
             return state
