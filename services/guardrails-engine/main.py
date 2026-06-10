@@ -357,7 +357,10 @@ async def approve_workflow(
 @app.get("/workflow/{workflow_id}")
 async def get_workflow(workflow_id: str):
     hil = HumanApprovalWorkflow()
-    return hil.get_status(workflow_id)
+    status = await hil.get_status(workflow_id)
+    if status is None:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return status
 
 
 @app.get("/healthz")

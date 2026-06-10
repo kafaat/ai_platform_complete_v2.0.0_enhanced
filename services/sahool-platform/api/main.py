@@ -536,22 +536,25 @@ def observations(
 
 
 @app.post("/api/v1/sync")
-def sync(
+async def sync(
     req: SyncBatchRequest,
     user: UserSchema = Depends(get_current_user),
 ):
     """دفعة عمليات من العميل offline-first.
 
     العميل أنشأ ops محلّياً، يرسلها هنا حين يعود الاتصال.
-    لكلّ عملية: تُعالَج، تُسجَّل النتيجة.
+    لكلّ عملية: تُكتب للقاعدة فعليّاً (idempotent على op_id)، ثم تُسجَّل النتيجة.
 
-    fail-safe: لو فشلت عملية، تبقى في الـqueue للمحاولة لاحقاً.
+    fail-safe: لو فشلت كتابة عملية، تبقى في الـqueue للمحاولة لاحقاً (لا نُعلن
+    نجاحاً زائفاً). إن لم تكن القاعدة مفعّلة (DATABASE_URL غير مضبوط) تبقى الكلّ
+    في الـqueue.
     """
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
-    # نُسجّل كل العمليات أوّلاً
+    # نُسجّل كل العمليات في الـqueue أوّلاً
     op_ids = []
+    ops = []
     for raw_op in req.operations:
         op = record_operation_offline(
             _OFFLINE_QUEUE,
@@ -561,12 +564,29 @@ def sync(
             payload=raw_op.get("payload", {}),
         )
         op_ids.append(op.op_id)
+        ops.append(op)
 
-    # دورة sync (الـhandler هنا يُحاكي الـDB persist)
+    # كتابة DB فعليّة: نُثبّت كل عمليّة بمتانة ضمن سياق RLS للمستأجر. نستخدم
+    # savepoint لكلّ عمليّة كي لا يُفسد فشل واحدة الدفعة كلّها، ونتعقّب أيّها نجح
+    # فعليّاً لنُعلمه لـsync_cycle (يبقى الفاشل في الـqueue لإعادة المحاولة).
+    from api.offline_sync_db import persist_synced_operation
+
+    persisted: set[str] = set()
+    if _DB_POOL is not None:
+        async with tenant_connection(user) as conn:
+            for op in ops:
+                try:
+                    async with conn.transaction():  # savepoint لكلّ عمليّة
+                        await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
+                    persisted.add(op.op_id)
+                except Exception as exc:  # noqa: BLE001 — تبقى العمليّة في الـqueue
+                    logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
+    else:
+        logging.warning("sync: DATABASE_URL غير مضبوط — لم تُكتب العمليّات (تبقى في الـqueue)")
+
     def sync_handler(op):
-        # في الإنتاج: يكتب لـDB، يستدعي recommendation_engine، إلخ
-        # الآن: نُرجع True (نجح) — placeholder
-        return True
+        # نجاح = كُتبت للقاعدة فعليّاً (وإلّا تبقى معلّقة)
+        return op.op_id in persisted
 
     result = sync_cycle(
         _OFFLINE_QUEUE,
