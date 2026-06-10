@@ -4,10 +4,14 @@
 // تشغيل → يُعلَّق عند الموافقة → موافقة الخبير → يُستأنف فينفّذ. الاستئناف بنفس
 // workflow_id. صدق: لا تنفيذ قبل موافقة معتمَدة (البوّابة من الخادم).
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
-import { Bug, PlayCircle, ShieldCheck, CheckCircle2, Clock } from 'lucide-react';
-import { usePestEscalation } from '../hooks/useApi';
+import { useState, useEffect } from 'react';
+import { Bug, PlayCircle, ShieldCheck, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
+import { usePestEscalation, useGuardrailsValidate } from '../hooks/useApi';
 import { ErrorState } from '../components/StateViews';
+
+const RISK_COLOR: Record<string, string> = {
+  LOW: '#16a34a', MEDIUM: '#f59e0b', HIGH: '#f97316', CRITICAL: '#dc2626',
+};
 
 const PESTS = ['صدأ القمح', 'المنّ', 'دودة الحشد', 'الذبابة البيضاء', 'التربس', 'العنكبوت الأحمر'];
 
@@ -30,10 +34,12 @@ export default function PestEscalationPage() {
   const [fieldId, setFieldId] = useState('');
   const [workflowId, setWorkflowId] = useState('');
   const mut = usePestEscalation();
+  const guard = useGuardrailsValidate();
 
   const start = () => {
     const wid = `pest-${Date.now()}`;
     setWorkflowId(wid);
+    guard.reset(); // إعادة التحقّق الأمنيّ لكلّ تشغيل جديد
     mut.mutate({ workflow_id: wid, pest_type: pestType, severity, field_id: fieldId || undefined });
   };
   const approve = () => {
@@ -45,6 +51,33 @@ export default function PestEscalationPage() {
   const ctx = (res?.context ?? {}) as Record<string, unknown>;
   const status = res?.workflow.status ?? '';
   const st = STATUS_STYLE[status] ?? { ar: status || '—', color: '#94a3b8', bg: '#1e293b' };
+
+  // تحقّق السلامة (Guardrails) قبل القرار الحرج: عند تعليق التدفّق بانتظار موافقة
+  // الخبير وكان هناك إجراء فعليّ (رشّ/مكافحة)، نمرّره عبر حواجز السلامة الكيميائيّة/
+  // البيئيّة/الاقتصاديّة. حاجز صارم (allowed=false) يمنع الموافقة.
+  const actionType = String(ctx.action_type ?? '');
+  const hasAction = !!actionType && actionType !== 'none';
+  const needsSafety = status === 'suspended' && hasAction;
+
+  useEffect(() => {
+    if (needsSafety && guard.isIdle) {
+      guard.mutate({
+        actionType: 'pesticide',
+        actionData: {
+          intervention: actionType,
+          pest_type: ctx.pest_type,
+          severity: ctx.severity,
+          recommendation_ar: ctx.recommendation_ar,
+        },
+        farmContext: { field_id: fieldId || ctx.field_id },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsSafety, workflowId]);
+
+  const verdict = guard.data;
+  const hardBlocked = verdict ? verdict.allowed === false : false;
+  const riskColor = verdict ? (RISK_COLOR[verdict.overall_risk] ?? '#94a3b8') : '#94a3b8';
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
@@ -134,13 +167,47 @@ export default function PestEscalationPage() {
             {res.workflow.error && <Row label="خطأ" value={res.workflow.error} />}
           </div>
 
+          {/* Guardrails — تحقّق السلامة قبل القرار الحرج */}
+          {needsSafety && (
+            <div className="rounded-xl border p-4" style={{ background: '#0f1a16', borderColor: `${riskColor}44` }}>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-sm text-slate-200">
+                  <ShieldAlert className="w-4 h-4" style={{ color: riskColor }} />
+                  حواجز السلامة (Guardrails)
+                </div>
+                {guard.isPending && <span className="text-xs text-slate-500">جارٍ الفحص…</span>}
+                {verdict && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${riskColor}22`, color: riskColor }}>
+                    خطر: {verdict.overall_risk}
+                  </span>
+                )}
+              </div>
+              {guard.isError && <p className="text-xs text-slate-500">تعذّر فحص السلامة — الموافقة تبقى قرار الخبير.</p>}
+              {verdict && (
+                <>
+                  <p className="text-sm text-slate-300">{verdict.arabic_explanation}</p>
+                  <div className="flex flex-wrap gap-3 mt-2 text-[11px]">
+                    <span style={{ color: verdict.allowed ? '#4ade80' : '#f87171' }}>
+                      {verdict.allowed ? '✓ مسموح ضمن الحواجز' : '✗ محجوب بحاجز صارم'}
+                    </span>
+                    {verdict.requires_human_approval && <span className="text-amber-400">يتطلّب موافقة بشريّة</span>}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           {/* HIL approval */}
           {status === 'suspended' && (
             <div className="rounded-xl border p-4 flex items-center justify-between" style={{ background: '#1a1000', borderColor: '#f59e0b33' }}>
-              <div className="text-sm text-amber-200">التدفّق مُعلَّق بانتظار موافقة الخبير قبل التنفيذ.</div>
-              <button onClick={approve} disabled={mut.isPending}
+              <div className="text-sm text-amber-200">
+                {hardBlocked
+                  ? 'محجوب بحاجز السلامة — لا يمكن الموافقة على هذا الإجراء.'
+                  : 'التدفّق مُعلَّق بانتظار موافقة الخبير قبل التنفيذ.'}
+              </div>
+              <button onClick={approve} disabled={mut.isPending || hardBlocked}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
-                style={{ background: '#16a34a' }}>
+                style={{ background: hardBlocked ? '#6b7280' : '#16a34a' }}>
                 <ShieldCheck className="w-4 h-4" />
                 {mut.isPending ? 'جارٍ…' : 'موافقة الخبير'}
               </button>
