@@ -1315,9 +1315,13 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
         elif ind == "evi":
             arr = 2.5 * (nir - red) / (nir + 6 * red - 7.5 * blue + 1)
         elif ind == "vari":
-            arr = (green - red) / (green + red - blue)
+            # حماية القسمة: المقام قد يبلغ صفراً (green+red=blue) → epsilon
+            _denom = green + red - blue
+            arr = (green - red) / np.where(_denom == 0, 1e-10, _denom)
         elif ind == "gli":
-            arr = (2 * green - red - blue) / (2 * green + red + blue)
+            # حماية القسمة: المقام قد يبلغ صفراً (نادر) → epsilon
+            _denom = 2 * green + red + blue
+            arr = (2 * green - red - blue) / np.where(_denom == 0, 1e-10, _denom)
         elif ind == "tgi":
             arr = green - 0.39 * red - 0.61 * blue
         elif ind in ("bsi", "bi", "bi2", "ndti", "dbsi", "ndsi", "satvi"):

@@ -17,6 +17,7 @@ import os
 WEATHER_URL = os.getenv("WEATHER_SERVICE_URL", "http://sahool-weather-service:8000")
 SOIL_URL = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000")
 RASTER_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
+PLATFORM_URL = os.getenv("PLATFORM_SERVICE_URL", "http://sahool-platform:8000")
 HTTP_TIMEOUT = float(os.getenv("ADAPTER_TIMEOUT", "20.0"))
 
 
@@ -32,6 +33,21 @@ def _get_json(url: str, params: dict | None = None) -> dict | None:
             resp.raise_for_status()
             return resp.json()
     except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر (لا نُسقط الطلب)
+        return None
+
+
+def _post_json(url: str, payload: dict | None = None) -> dict | None:
+    """نداء POST آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع)."""
+    try:
+        import httpx
+    except ImportError:
+        return None
+    try:
+        with httpx.Client(timeout=HTTP_TIMEOUT) as client:
+            resp = client.post(url, json=payload or {})
+            resp.raise_for_status()
+            return resp.json()
+    except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر
         return None
 
 
@@ -80,6 +96,70 @@ def sensing_adapter(req) -> dict | None:
     return out or None
 
 
+def memory_adapter(req) -> dict | None:
+    """يجلب السياق التاريخي للحقل (farm_memory) → {recurring_issues, ...}.
+
+    Runtime Cohesion: يصل ذاكرة الحقل بحلقة القرار. يقرأ تاريخ الأحداث من
+    خدمة المنصّة (events عبر event_replay)، يكشف القضايا المتكرّرة (ملوحة/
+    إجهاد يتكرّر) لإغناء القرار. None عند التعذّر (صدق: لا تاريخ مخترَع).
+    """
+    data = _get_json(
+        f"{PLATFORM_URL}/api/v1/fields/{req.field_id}/history",
+        {"tenant_id": req.tenant_id},
+    )
+    if not data:
+        return None
+    events = data.get("events", [])
+    if not events:
+        return {
+            "recurring_issues": [],
+            "total_events": 0,
+            "note_ar": "لا تاريخ مسجّل بعد لهذا الحقل",
+        }
+    # كشف التكرار: قضايا ظهرت ≥ مرّتين في التاريخ (سياق للقرار)
+    issue_counts: dict = {}
+    for e in events:
+        for tag in e.get("issue_tags") or []:
+            issue_counts[tag] = issue_counts.get(tag, 0) + 1
+    recurring = [k for k, v in issue_counts.items() if v >= 2]
+    return {
+        "recurring_issues": recurring,
+        "total_events": len(events),
+        "issue_counts": issue_counts,
+    }
+
+
+def simulate_adapter(req, decision, state) -> dict | None:
+    """يشغّل محاكاة what-if لتقدير أثر الإجراء المقترَح على المحصول/الماء.
+
+    Runtime Cohesion: يصل المحاكاة بحلقة القرار. يطلب من خدمة WOFOST محاكاة
+    سيناريو (مثلاً: مع/بلا تدخّل) ويقارن. None عند التعذّر (لا أرقام مخترَعة).
+    """
+    crop = req.crop or "قمح صلب"
+    payload = {
+        "field_id": req.field_id,
+        "crop": crop,
+        "lat": req.lat,
+        "lon": req.lon,
+        "scenario": "recommended_action",  # الخدمة تفسّر القرار المقترَح
+    }
+    data = _post_json(f"{PLATFORM_URL}/api/v1/simulate/what-if", payload)
+    if not data:
+        return None
+    # هل الإجراء المقترَح يُحسّن النتيجة فعلاً؟ (للقرار)
+    baseline = data.get("baseline_yield_t_ha")
+    with_action = data.get("action_yield_t_ha")
+    helps = None
+    if baseline is not None and with_action is not None:
+        helps = with_action > baseline * 1.02  # تحسّن >2% يُعتبر مُجدياً
+    return {
+        "baseline_yield_t_ha": baseline,
+        "action_yield_t_ha": with_action,
+        "water_saved_mm": data.get("water_saved_mm"),
+        "recommended_action_helps": helps,
+    }
+
+
 def build_live_adapters() -> dict:
     """يُرجِع قاموس المحوّلات الحيّة لتمريرها لـrun_field_intelligence.
 
@@ -87,4 +167,10 @@ def build_live_adapters() -> dict:
         adapters = build_live_adapters()
         run_field_intelligence(req, **adapters, ...)
     """
-    return {"weather_fn": weather_adapter, "soil_fn": soil_adapter, "sensing_fn": sensing_adapter}
+    return {
+        "weather_fn": weather_adapter,
+        "soil_fn": soil_adapter,
+        "sensing_fn": sensing_adapter,
+        "memory_fn": memory_adapter,
+        "simulate_fn": simulate_adapter,
+    }

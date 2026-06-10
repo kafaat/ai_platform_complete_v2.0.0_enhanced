@@ -17,6 +17,7 @@ from __future__ import annotations
 import logging
 import os
 from abc import ABC, abstractmethod
+from datetime import UTC, datetime
 
 logger = logging.getLogger("erp_provider")
 
@@ -105,10 +106,26 @@ class ERPNextProvider(ERPProvider):
 
     name = "erpnext"
 
-    def __init__(self, url: str, api_key: str, api_secret: str):
+    def __init__(
+        self,
+        url: str,
+        api_key: str,
+        api_secret: str,
+        *,
+        expense_account: str = "",
+        credit_account: str = "",
+        cost_center: str = "",
+        company: str = "",
+    ):
         self.url = url.rstrip("/")
         self.api_key = api_key
         self.api_secret = api_secret
+        # ربط الحسابات (خاصّ بكلّ تثبيت — يُضبط عبر env، لا يُفبرك).
+        # عند غيابه يبقى push_field_cost مُعلِناً NotImplementedError بصدق.
+        self.expense_account = expense_account
+        self.credit_account = credit_account
+        self.cost_center = cost_center
+        self.company = company
         self._client = None
 
     def _headers(self) -> dict:
@@ -199,22 +216,69 @@ class ERPNextProvider(ERPProvider):
     async def push_field_cost(self, cost: dict) -> bool:
         """دفع تكلفة حقل إلى ERPNext كقيد محاسبيّ (Journal Entry).
 
-        صدق: قيد اليوميّة (Journal Entry) الصالح في Frappe يتطلّب سطور حسابات
-        (accounts[] مع debit/credit وربط بحسابات مُعرَّفة في دليل الحسابات
-        ومركز تكلفة)، وهذه ربوط خاصّة بكلّ تثبيت ولا يمكن استنتاجها عموميّاً.
-        إرسال payload بلا حسابات/مبلغ يرفضه Frappe دائماً (كان يفشل صامتاً
-        ولا يقرأ cost["amount"] أصلاً). فبدل خداع المتّصل بمحاولة فاشلة دوماً
-        أو اختراع أرقام حسابات، نُعلن الحدّ بصراحة عبر NotImplementedError.
+        يبني قيداً متوازناً (مدين = دائن) **فقط** عند ضبط ربط الحسابات عبر
+        البيئة (ERPNEXT_EXPENSE_ACCOUNT/ERPNEXT_CREDIT_ACCOUNT/COST_CENTER/
+        COMPANY). الحسابات خاصّة بكلّ تثبيت — لا تُفبرك. عند غيابها يُعلَن
+        الحدّ بصراحة (NotImplementedError) بدل محاولة فاشلة دوماً.
 
-        لتفعيل هذه الميزة: أضِف ربط الحسابات (الحساب المدين/الدائن ومركز
-        التكلفة والشركة) عبر متغيّرات بيئة، ثم ابنِ accounts[] قبل POST.
+        البنية (أفضل ممارسة Frappe): voucher_type=Journal Entry، سطران
+        accounts[] متوازنان (مصروف مدين / نقد أو دائنون دائن)، مع cost_center
+        وcompany. المجموع المدين = الدائن (شرط Frappe الإلزامي).
         """
-        raise NotImplementedError(
-            "ERPNext push_field_cost: ربط حسابات قيد اليوميّة غير مُعدّ. "
-            "Journal Entry يتطلّب accounts[] (مدين/دائن + مركز تكلفة + شركة) "
-            "خاصّة بهذا التثبيت — لم تُفبرك أرقام حسابات. "
-            f"(amount={cost.get('amount')}, description={cost.get('description')!r})"
-        )
+        amount = cost.get("amount")
+        if amount is None or float(amount) <= 0:
+            raise ValueError(f"push_field_cost يحتاج amount موجباً (وصل: {amount!r})")
+
+        # ربط الحسابات غير مُعدّ → نُعلن الحدّ بصدق (لا فبركة أرقام حسابات)
+        if not (self.expense_account and self.credit_account and self.company):
+            raise NotImplementedError(
+                "ERPNext push_field_cost: ربط حسابات قيد اليوميّة غير مُعدّ. "
+                "اضبط ERPNEXT_EXPENSE_ACCOUNT + ERPNEXT_CREDIT_ACCOUNT + "
+                "ERPNEXT_COMPANY (+ COST_CENTER) لهذا التثبيت — لم تُفبرك "
+                f"أرقام حسابات. (amount={amount}, "
+                f"description={cost.get('description')!r})"
+            )
+
+        amt = round(float(amount), 2)
+        row_debit = {
+            "account": self.expense_account,  # مصروف الحقل (مدين)
+            "debit_in_account_currency": amt,
+            "credit_in_account_currency": 0,
+        }
+        row_credit = {
+            "account": self.credit_account,  # نقد/دائنون (دائن)
+            "debit_in_account_currency": 0,
+            "credit_in_account_currency": amt,
+        }
+        if self.cost_center:
+            row_debit["cost_center"] = self.cost_center
+            row_credit["cost_center"] = self.cost_center
+
+        entry = {
+            "doctype": "Journal Entry",
+            "voucher_type": "Journal Entry",
+            "company": self.company,
+            "posting_date": cost.get("posting_date") or datetime.now(UTC).strftime("%Y-%m-%d"),
+            "user_remark": cost.get("description", "SAHOOL field cost"),
+            "accounts": [row_debit, row_credit],  # متوازن: مدين = دائن = amt
+        }
+
+        try:
+            client = await self._get_client()
+            resp = await client.post(
+                f"{self.url}/api/resource/Journal Entry",
+                headers=self._headers(),
+                json={"data": entry},
+            )
+            if resp.status_code in (200, 201):
+                return True
+            logger.warning(
+                "ERPNext push_field_cost رُفض (%s): %s", resp.status_code, resp.text[:200]
+            )
+            return False
+        except Exception as e:  # noqa: BLE001 — لا نخفي الفشل، نُرجِع False
+            logger.warning("ERPNext push_field_cost تعذّر: %s", e)
+            return False
 
     async def health(self) -> dict:
         ok = await self.authenticate()
@@ -332,7 +396,17 @@ def get_erp_provider(odoo_client=None) -> ERPProvider:
             logger.warning("ERPNext مختار لكن المفاتيح فارغة → none (صدق: لا اتّصال وهمي)")
             return NullProvider()
         logger.info("ERP_PROVIDER=erpnext")
-        return ERPNextProvider(url, key, secret)
+        # ربط حسابات Journal Entry (اختياري — push_field_cost يبقى معطّلاً
+        # بصدق حتّى تُضبط الحسابات الثلاثة الإلزاميّة).
+        return ERPNextProvider(
+            url,
+            key,
+            secret,
+            expense_account=os.getenv("ERPNEXT_EXPENSE_ACCOUNT", ""),
+            credit_account=os.getenv("ERPNEXT_CREDIT_ACCOUNT", ""),
+            cost_center=os.getenv("ERPNEXT_COST_CENTER", ""),
+            company=os.getenv("ERPNEXT_COMPANY", ""),
+        )
 
     if provider == "odoo":
         if odoo_client is None:
