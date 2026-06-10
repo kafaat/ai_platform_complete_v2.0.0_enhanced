@@ -50,9 +50,25 @@
 #define SOIL_PIN        34   // FC28 analog
 #define RELAY_PIN       25   // Actuator relay (optional)
 
+// ── Valve fail-safe (حماية فيزيائيّة محلّيّة) ────────────────────
+// أقصى مدّة فتح للصمّام. السيناريو الخطر: يصل أمر OPEN فيُفتح الصمّام، ثم ينقطع
+// الاتصال قبل وصول CLOSE (شبكة اليمن متقطّعة) ⇒ صمّام عالق مفتوح ⇒ إغراق الحقل
+// أو إهدار ماء نادر. هذا الحدّ يُغلقه تلقائيّاً في loop() دون اعتماد MQTT/Mesh.
+// اضبطه حسب أكبر ريّة مشروعة لمحاصيلك.
+#define VALVE_MAX_OPEN_MS  1800000UL   // 30 دقيقة
+
 // ── Globals ─────────────────────────────────────────────────
 painlessMesh  mesh;
 WiFiClient    wifiClient;
+
+// لحظة فتح الصمّام (millis). 0 = مغلق. تُستخدم للإغلاق التلقائي عند تجاوز المدّة.
+unsigned long valveOpenedAt = 0;
+
+// تحكّم مركزيّ بالصمّام مع تتبّع وقت الفتح (مصدر واحد للحقيقة لمنطق الـfail-safe).
+void setRelay(bool on) {
+  digitalWrite(RELAY_PIN, on ? HIGH : LOW);
+  valveOpenedAt = on ? millis() : 0;
+}
 PubSubClient  mqttClient(wifiClient);
 DHT           dht(DHT_PIN, DHT_TYPE);
 
@@ -176,9 +192,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   rememberCmd(ts);
 
   if (strcmp(cmd, "OPEN") == 0 || strcmp(cmd, "ON") == 0) {
-    digitalWrite(RELAY_PIN, HIGH);
+    setRelay(true);    // يفتح + يبدأ مؤقّت الإغلاق التلقائي (fail-safe)
   } else if (strcmp(cmd, "CLOSE") == 0 || strcmp(cmd, "OFF") == 0) {
-    digitalWrite(RELAY_PIN, LOW);
+    setRelay(false);   // يغلق + يلغي المؤقّت
   }
 
   // Acknowledge via mesh
@@ -228,7 +244,7 @@ void setup() {
   Serial.println("SAHOOL ESP32 Mesh Gateway starting...");
 
   pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW);
+  setRelay(false);   // حالة آمنة عند الإقلاع (صمّام مغلق + مؤقّت ملغى)
   dht.begin();
 
   // مراقب الأجهزة: يعيد تشغيل اللوحة إن تعلّق loop() أكثر من 30s.
@@ -256,6 +272,22 @@ void setup() {
 // ── Loop ────────────────────────────────────────────────────
 void loop() {
   esp_task_wdt_reset();   // أطعِم المراقب (loop حيّ) — يمنع إعادة تشغيل زائفة
+
+  // Valve fail-safe: أغلق الصمّام تلقائيّاً إن تجاوز المدّة القصوى للفتح. حماية
+  // محلّيّة لا تعتمد الشبكة (طرح unsigned آمن مع تجاوز millis كل ~49 يوماً).
+  if (valveOpenedAt != 0 && (millis() - valveOpenedAt) >= VALVE_MAX_OPEN_MS) {
+    setRelay(false);
+    StaticJsonDocument<160> alert;
+    alert["device"]      = DEVICE_ID;
+    alert["alert"]       = "valve_auto_closed";
+    alert["reason"]      = "max_open_timeout";
+    alert["max_open_ms"] = VALVE_MAX_OPEN_MS;
+    String alertStr;
+    serializeJson(alert, alertStr);
+    mesh.sendBroadcast(alertStr);
+    Serial.println("VALVE FAIL-SAFE: أُغلق الصمّام تلقائيّاً (تجاوز المدّة القصوى)");
+  }
+
   mesh.update();
 
   // Root node: maintain MQTT
