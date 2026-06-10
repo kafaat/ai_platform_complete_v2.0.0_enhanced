@@ -5062,7 +5062,9 @@ def test_critical_review_c1_c4():
     return r
 
 
-def test_jwt_audience_consistency():
+def _report_jwt_audience_consistency():
+    # ملاحظة: ليست اختبار pytest (تُرجع قائمة تقرير لـrun_all بلا assert، فكانت
+    # تنجح دائماً وتُضلّل). الحارس الفعلي بـassert في tests_v9/test_jwt_audience_guard.py.
     """اتّساق audience عبر الخدمات: auth/platform يُصدران aud=sahool، وكلّ
     الفاكّين يتحقّقون منه (كان supervisor يرفض توكنات auth — مكسور)."""
     import glob
@@ -5237,7 +5239,7 @@ def run_all():
         ("idempotency_chain", test_idempotency_chain),
         ("firmware_hardening", test_firmware_hardening),
         ("critical_review_c1_c4", test_critical_review_c1_c4),
-        ("jwt_audience_consistency", test_jwt_audience_consistency),
+        ("jwt_audience_consistency", _report_jwt_audience_consistency),
     ]
     tp = tf = 0
     for name, s in suites:

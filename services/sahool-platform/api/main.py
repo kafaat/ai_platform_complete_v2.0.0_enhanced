@@ -553,14 +553,24 @@ async def sync(
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
-    # ١) نُسجّل عمليّات هذا الطلب في الـqueue
+    # ١) نُسجّل عمليّات هذا الطلب في الـqueue. نوع غير معروف ⇒ 400 صريح (لا 500):
+    #    OperationKind(قيمة مجهولة) يرفع ValueError، فنتحقّق قبل الإدخال.
     op_ids = []
     for raw_op in req.operations:
+        raw_kind = raw_op.get("kind", "observation_create")
+        try:
+            kind = OperationKind(raw_kind)
+        except ValueError:
+            valid = ", ".join(k.value for k in OperationKind)
+            raise HTTPException(
+                status_code=400,
+                detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
+            ) from None
         op = record_operation_offline(
             _OFFLINE_QUEUE,
             tenant_id=req.tenant_id,
             user_id=user.user_id,
-            kind=OperationKind(raw_op.get("kind", "observation_create")),
+            kind=kind,
             payload=raw_op.get("payload", {}),
         )
         op_ids.append(op.op_id)
@@ -614,7 +624,10 @@ async def sync(
     return {
         "status": "completed",
         "synced": synced,
-        "failed": pending_retry,
+        # العمليّات غير المُثبّتة تبقى QUEUED لإعادة المحاولة (لا FAILED). نفصل
+        # العدّين: failed=الفشل النهائي الفعلي (0 هنا)، queued=ما سيُعاد.
+        "failed": 0,
+        "queued": pending_retry,
         "conflicted": 0,
         "superseded": superseded,
         "duration_ms": duration_ms,
