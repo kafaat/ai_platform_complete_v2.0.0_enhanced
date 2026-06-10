@@ -4,11 +4,12 @@ import {
   LayoutDashboard, Satellite, Map, BarChart3, Bell,
   FileText, Bot, Settings, Loader2, Leaf, LogOut,
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
-  Wifi, WifiOff, ClipboardList,
+  Wifi, WifiOff, ClipboardList, Droplets, Bug,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
+import { canAccess } from './lib/permissions';
 
 // ── Error Boundary ──────────────────────────────────────────
 import React from 'react';
@@ -53,11 +54,14 @@ const SettingsPage        = lazy(() => import('./sections/SettingsPage'));
 const TasksPage           = lazy(() => import('./sections/TasksPage'));
 const RecommendationPage  = lazy(() => import('./sections/RecommendationPage'));
 const SpatialIndicatorsPage = lazy(() => import('./sections/SpatialIndicatorsPage'));
+const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'));
+const PestEscalationPage  = lazy(() => import('./sections/PestEscalationPage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
-  | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators';
+  | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
+  | 'irrigation' | 'pest-escalation';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -65,10 +69,12 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
   { id:'fields',       label:'إدارة الحقول',   icon:Map },
   { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
+  { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
+  { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
   { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
-  { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList, badge:'6' },
+  { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
-  { id:'alerts',       label:'التنبيهات',       icon:Bell, badge:'2' },
+  { id:'alerts',       label:'التنبيهات',       icon:Bell },
   { id:'reports',      label:'التقارير',        icon:FileText },
   { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
   { id:'settings',     label:'الإعدادات',       icon:Settings },
@@ -125,9 +131,9 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
         </div>
       )}
 
-      {/* Nav */}
+      {/* Nav — مُرشَّح حسب صلاحيّة الدور (RBAC فعليّ: لا تظهر صفحة لا يحقّ فتحها) */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {NAV.map(item => {
+        {NAV.filter(item => canAccess(user?.role, item.id)).map(item => {
           const Icon = item.icon;
           const active = page === item.id;
           return (
@@ -242,12 +248,28 @@ export default function App() {
   }
 
   const renderPage = () => {
+    // حارس RBAC: صفحة لا يحقّ للدور فتحها (عبر زر/رابط داخليّ) تُمنَع صراحةً.
+    if (!canAccess(user?.role, page)) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-center" dir="rtl">
+          <Shield className="w-10 h-10 text-amber-500 mb-3" />
+          <h2 className="text-lg font-bold text-slate-100">لا تملك صلاحيّة هذه الصفحة</h2>
+          <p className="text-sm text-slate-400 mt-1">دورك الحاليّ لا يسمح بالوصول إلى هذا القسم.</p>
+          <button onClick={() => setPage('dashboard')}
+            className="mt-4 px-4 py-2 rounded-lg text-sm text-emerald-400 border border-emerald-900 hover:bg-emerald-950">
+            العودة للوحة المعلومات
+          </button>
+        </div>
+      );
+    }
     switch(page) {
       case 'dashboard':    return <DashboardPage setPage={setPage} />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
       case 'fields':       return <FieldManagementPage />;
       case 'recommendations': return <RecommendationPage />;
+      case 'irrigation':   return <IrrigationWaterPage />;
+      case 'pest-escalation': return <PestEscalationPage />;
       case 'spatial-indicators': return <SpatialIndicatorsPage />;
       case 'tasks':        return <TasksPage />;
       case 'analytics':    return <AnalyticsPage />;

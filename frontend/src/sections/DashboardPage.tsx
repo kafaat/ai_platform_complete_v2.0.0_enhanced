@@ -1,63 +1,20 @@
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL v8.0 — DashboardPage (ربط حقيقي مع APIs)
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
 import {
-  TrendingUp, TrendingDown, Minus, Leaf, Activity, BarChart3,
-  Map, RefreshCw, Zap, ChevronLeft, Loader2, Wifi, WifiOff, AlertTriangle,
+  Leaf, BarChart3, Map, RefreshCw, Zap, ChevronLeft, Wifi, WifiOff, AlertTriangle,
 } from 'lucide-react';
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 import { useDashboardData, useWeatherForecast, useAlerts, useAllServicesHealth } from '../hooks/useApi';
+import { KPICard, STATUS_COLOR } from '../components/KPICard';
+import { LoadingState, SkeletonGrid, EmptyState } from '../components/StateViews';
 import type { PageId } from '../App';
 
-const STATUS_COLOR: Record<string, string> = {
-  excellent:'#16a34a', good:'#65a30d', fair:'#ca8a04', poor:'#f97316', critical:'#dc2626',
-};
 function ndviStatus(v: number) {
   return v>=0.70 ? 'excellent' : v>=0.50 ? 'good' : v>=0.30 ? 'fair' : 'poor';
-}
-
-function KPICard({ kpi }: { kpi: any; key?: React.Key }) {
-  const color = kpi.color || STATUS_COLOR[kpi.status] || '#6b7280';
-  const td = kpi.trend_direction;
-  const TIcon = td === 'improving' ? TrendingUp : td === 'declining' ? TrendingDown : Minus;
-  const tColor = td === 'improving' ? '#16a34a' : td === 'declining' ? '#dc2626' : '#f59e0b';
-  const sparkline: number[] = kpi.sparkline || [];
-  const val = typeof kpi.value === 'number'
-    ? kpi.value.toFixed(kpi.value > 10 ? 1 : kpi.value < 1 ? 3 : 1)
-    : kpi.value;
-  return (
-    <div className="rounded-xl p-4 border hover:border-emerald-800 transition-all"
-      style={{ background:'#1e293b', borderColor:'#334155' }}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background:`${color}22` }}>
-          <Activity className="w-4 h-4" style={{ color }} />
-        </div>
-        <TIcon className="w-4 h-4" style={{ color: tColor }} />
-      </div>
-      <div className="flex items-baseline gap-1 mb-0.5">
-        <span className="text-xl font-bold text-slate-100">{val}</span>
-        {kpi.unit && <span className="text-xs text-slate-400">{kpi.unit}</span>}
-      </div>
-      <p className="text-xs text-slate-400 mb-2">{kpi.name || kpi.name_ar}</p>
-      <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-        style={{ background:`${color}22`, color }}>
-        {kpi.status_ar || kpi.status}
-      </span>
-      {sparkline.length > 0 && (
-        <div className="h-8 mt-2 -mx-1">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sparkline.map((v, i) => ({ i, v }))}>
-              <Line dataKey="v" stroke={color} strokeWidth={1.5} dot={false} isAnimationActive={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </div>
-  );
 }
 
 export default function DashboardPage({ setPage }: { setPage: (p: PageId) => void }) {
@@ -85,14 +42,8 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
     ndvi: +(f.ndvi||0),
   }));
 
-  if (loadDash && kpis.length === 0) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-center">
-        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin mx-auto mb-3" />
-        <p className="text-slate-400 text-sm">جاري تحميل البيانات من indicators-service...</p>
-      </div>
-    </div>
-  );
+  if (loadDash && kpis.length === 0)
+    return <LoadingState message="جارٍ تحميل البيانات من indicators-service…" />;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto" dir="rtl">
@@ -134,14 +85,13 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
       )}
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {enrichedKpis.length > 0
-          ? enrichedKpis.map((k: any) => <KPICard key={k.id} kpi={k} />)
-          : Array(6).fill(0).map((_,i) => (
-              <div key={i} className="rounded-xl h-28 animate-pulse border" style={{ background:'#1e293b33', borderColor:'#334155' }} />
-            ))
-        }
-      </div>
+      {enrichedKpis.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {enrichedKpis.map((k: any) => <KPICard key={k.id} kpi={k} />)}
+        </div>
+      ) : (
+        <SkeletonGrid count={6} />
+      )}
 
       {/* NDVI Chart + Alerts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -191,10 +141,7 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
             );
           })}
           {alerts.length === 0 && (
-            <div className="text-center py-6 text-slate-500">
-              <span className="text-2xl">✅</span>
-              <p className="text-sm mt-1">لا توجد تنبيهات</p>
-            </div>
+            <EmptyState icon={<span className="text-2xl">✅</span>} title="لا توجد تنبيهات" />
           )}
         </div>
       </div>
