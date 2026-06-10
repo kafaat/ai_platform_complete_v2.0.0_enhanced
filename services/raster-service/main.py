@@ -669,6 +669,41 @@ async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(No
     return result
 
 
+class FvcComputeRequest(BaseModel):
+    field_id: str
+    date: str
+    ndvi_grid: list[list[float | None]]  # شبكة NDVI مُحسبة من COG
+    method: str = "cumulative_frequency"  # | global_constant | dynamic_range
+    ndvi_soil: float | None = None  # لـdynamic_range فقط
+    ndvi_veg: float | None = None
+
+
+@app.post("/fvc/compute")
+async def fvc_compute(req: FvcComputeRequest, x_agent_token: str = Header(None)):
+    """نسبة التغطية النباتيّة (FVC) عبر نموذج البكسل الثنائي — تكمّل LAI.
+
+    LAI (موجود) يقيس كثافة الأوراق (3D)؛ FVC يقيس نسبة الأرض المُغطّاة بالنبات
+    (2D) — أساس موضوعي لرصد زحف التصحّر وتغطية المحاصيل في الجوف. يستقبل شبكة
+    NDVI مُحسبة من COG ويُرجِع شبكة FVC + نسبة التصحّر + تصنيف + تفسير عربي.
+    """
+    _require_service_token(x_agent_token)
+    cells = sum(len(row) for row in req.ndvi_grid)
+    if cells > MAX_CHANGE_GRID_CELLS:
+        raise HTTPException(
+            status_code=413, detail=f"ndvi_grid كبير جدّاً: {cells} > {MAX_CHANGE_GRID_CELLS}"
+        )
+    import fvc
+
+    try:
+        result = fvc.compute_fvc(
+            req.ndvi_grid, method=req.method, ndvi_soil=req.ndvi_soil, ndvi_veg=req.ndvi_veg
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    result.update({"field_id": req.field_id, "date": req.date})
+    return result
+
+
 @app.get("/imagery/search/radar")
 async def imagery_search_radar(
     west: float,
