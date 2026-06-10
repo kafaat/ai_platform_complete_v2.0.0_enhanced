@@ -326,6 +326,7 @@ def create_token(user: UserSchema) -> str:
         "tenant_id": user.tenant_id,
         "role": user.role.value,
         "name_ar": user.name_ar,
+        "aud": "sahool",  # توحيد: يطابق auth ويُقبل عبر كلّ الخدمات
         "iat": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS),
     }
@@ -339,7 +340,7 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
 
     token = authorization.replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
 

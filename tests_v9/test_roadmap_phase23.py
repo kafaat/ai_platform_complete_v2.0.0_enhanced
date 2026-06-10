@@ -5062,6 +5062,48 @@ def test_critical_review_c1_c4():
     return r
 
 
+def test_jwt_audience_consistency():
+    """اتّساق audience عبر الخدمات: auth/platform يُصدران aud=sahool، وكلّ
+    الفاكّين يتحقّقون منه (كان supervisor يرفض توكنات auth — مكسور)."""
+    import glob
+    import os
+    import re
+    base = os.path.join(os.path.dirname(__file__), '..')
+    r = []
+    # كلّ jwt.decode في الخدمات يجب أن يتحقّق من audience
+    decoders_without = []
+    for py in glob.glob(os.path.join(base, 'services/**/*.py'), recursive=True):
+        if '__pycache__' in py:
+            continue
+        txt = open(py, encoding='utf-8', errors='ignore').read()
+        for m in re.finditer(r'jwt\.decode\(', txt):
+            window = txt[m.start():m.start() + 250]
+            depth = 0
+            end = len(window)
+            for i, ch in enumerate(window):
+                if ch == '(':
+                    depth += 1
+                elif ch == ')':
+                    depth -= 1
+                    if depth == 0:
+                        end = i + 1
+                        break
+            if 'audience' not in window[:end]:
+                decoders_without.append(os.path.basename(py))
+    if not decoders_without:
+        r.append(("\u2713","كلّ jwt.decode يتحقّق من audience (اتّساق كامل)"))
+    # auth + platform يُصدران aud
+    auth=open(os.path.join(base,'services/auth/main.py'),encoding='utf-8').read()
+    plat=open(os.path.join(base,'services/sahool-platform/api/main.py'),encoding='utf-8').read()
+    if '"aud": "sahool"' in auth and '"aud": "sahool"' in plat:
+        r.append(("\u2713","auth+platform يُصدران aud=sahool (مُصدِران متّسقان)"))
+    # supervisor (المشكلة الأصليّة) أُصلح
+    sup=open(os.path.join(base,'services/supervisor-agent/main.py'),encoding='utf-8').read()
+    if 'audience="sahool"' in sup:
+        r.append(("\u2713","supervisor يتحقّق من aud=sahool (كان يرفض توكنات auth)"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -5186,6 +5228,7 @@ def run_all():
         ("idempotency_chain", test_idempotency_chain),
         ("firmware_hardening", test_firmware_hardening),
         ("critical_review_c1_c4", test_critical_review_c1_c4),
+        ("jwt_audience_consistency", test_jwt_audience_consistency),
     ]
     tp = tf = 0
     for name, s in suites:
