@@ -45,8 +45,9 @@ from core.canonical_schemas import UserRole, UserSchema
 from core.offline_first import (
     OfflineQueue,
     OperationKind,
+    SyncStatus,
+    apply_supersession,
     record_operation_offline,
-    sync_cycle,
 )
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -326,6 +327,7 @@ def create_token(user: UserSchema) -> str:
         "tenant_id": user.tenant_id,
         "role": user.role.value,
         "name_ar": user.name_ar,
+        "aud": "sahool",  # توحيد: يطابق auth ويُقبل عبر كلّ الخدمات
         "iat": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS),
     }
@@ -339,7 +341,7 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
 
     token = authorization.replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
 
@@ -535,53 +537,101 @@ def observations(
 
 
 @app.post("/api/v1/sync")
-def sync(
+async def sync(
     req: SyncBatchRequest,
     user: UserSchema = Depends(get_current_user),
 ):
     """دفعة عمليات من العميل offline-first.
 
     العميل أنشأ ops محلّياً، يرسلها هنا حين يعود الاتصال.
-    لكلّ عملية: تُعالَج، تُسجَّل النتيجة.
+    لكلّ عملية: تُكتب للقاعدة فعليّاً (idempotent على op_id)، ثم تُسجَّل النتيجة.
 
-    fail-safe: لو فشلت عملية، تبقى في الـqueue للمحاولة لاحقاً.
+    fail-safe: لو فشلت كتابة عملية، تبقى في الـqueue للمحاولة لاحقاً (لا نُعلن
+    نجاحاً زائفاً). إن لم تكن القاعدة مفعّلة (DATABASE_URL غير مضبوط) تبقى الكلّ
+    في الـqueue.
     """
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
-    # نُسجّل كل العمليات أوّلاً
+    # ١) نُسجّل عمليّات هذا الطلب في الـqueue. نوع غير معروف ⇒ 400 صريح (لا 500):
+    #    OperationKind(قيمة مجهولة) يرفع ValueError، فنتحقّق قبل الإدخال.
     op_ids = []
     for raw_op in req.operations:
+        raw_kind = raw_op.get("kind", "observation_create")
+        try:
+            kind = OperationKind(raw_kind)
+        except ValueError:
+            valid = ", ".join(k.value for k in OperationKind)
+            raise HTTPException(
+                status_code=400,
+                detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
+            ) from None
         op = record_operation_offline(
             _OFFLINE_QUEUE,
             tenant_id=req.tenant_id,
             user_id=user.user_id,
-            kind=OperationKind(raw_op.get("kind", "observation_create")),
+            kind=kind,
             payload=raw_op.get("payload", {}),
         )
         op_ids.append(op.op_id)
 
-    # دورة sync (الـhandler هنا يُحاكي الـDB persist)
-    def sync_handler(op):
-        # في الإنتاج: يكتب لـDB، يستدعي recommendation_engine، إلخ
-        # الآن: نُرجع True (نجح) — placeholder
-        return True
+    # ٢) supersession أوّلاً (لا نُثبّت عمليّات قديمة حلّت محلّها أحدث منها)
+    superseded = apply_supersession(_OFFLINE_QUEUE, req.tenant_id)
 
-    result = sync_cycle(
-        _OFFLINE_QUEUE,
-        tenant_id=req.tenant_id,
-        sync_handler=sync_handler,
-        max_batch=len(req.operations),
-    )
+    # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
+    #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
+    #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
+    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(req.operations), 1))
+
+    # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
+    #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
+    #    فقط). إن لم تكن القاعدة مفعّلة، تبقى الكلّ QUEUED.
+    started = datetime.now(UTC)
+    synced = 0
+    pending_retry = 0
+    if _DB_POOL is not None:
+        from api.offline_sync_db import persist_synced_operation
+
+        async with tenant_connection(user) as conn:
+            for op in batch:
+                try:
+                    async with conn.transaction():  # savepoint لكلّ عمليّة
+                        await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
+                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
+                    synced += 1
+                except Exception as exc:  # noqa: BLE001 — تبقى QUEUED لإعادة المحاولة
+                    _OFFLINE_QUEUE.mark_status(
+                        req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
+                    )
+                    pending_retry += 1
+                    logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
+    else:
+        pending_retry = len(batch)
+        logging.warning(
+            "sync: DATABASE_URL غير مضبوط — بقيت %d عمليّة QUEUED لإعادة المحاولة", pending_retry
+        )
+
+    duration_ms = round((datetime.now(UTC) - started).total_seconds() * 1000, 2)
+    if not batch:
+        reason = "✅ لا عمليّات معلّقة للـsync"
+    elif pending_retry == 0:
+        reason = f"✅ {synced} عمليّة sync بنجاح"
+    else:
+        reason = f"⚠️ {synced} sync، {pending_retry} بقيت معلّقة لإعادة المحاولة"
+    if superseded:
+        reason += f" (+{superseded} مُلغاة بـsupersession)"
 
     return {
         "status": "completed",
-        "synced": result.synced_count,
-        "failed": result.failed_count,
-        "conflicted": result.conflicted_count,
-        "superseded": result.superseded_count,
-        "duration_ms": result.duration_ms,
-        "reason_ar": result.reason_ar,
+        "synced": synced,
+        # العمليّات غير المُثبّتة تبقى QUEUED لإعادة المحاولة (لا FAILED). نفصل
+        # العدّين: failed=الفشل النهائي الفعلي (0 هنا)، queued=ما سيُعاد.
+        "failed": 0,
+        "queued": pending_retry,
+        "conflicted": 0,
+        "superseded": superseded,
+        "duration_ms": duration_ms,
+        "reason_ar": reason,
         "op_ids": op_ids,
     }
 
@@ -3398,6 +3448,7 @@ def field_intelligence_analyze(
     lat: float | None = None,
     lon: float | None = None,
     crop: str | None = None,
+    notify: bool = False,
     user: UserSchema = Depends(get_current_user),
 ):
     """يُشغّل المسار الكامل للمايسترو لحقل ويُرجِع الحالة الموحّدة + القرار.
@@ -3407,6 +3458,7 @@ def field_intelligence_analyze(
     الحالة الناتجة جاهزة للحفظ في events (state_to_event_row) كذاكرة موسميّة.
     """
     from core.agronomic_state_engine import state_to_event_row
+    from core.alert_engine import evaluate_alerts, summarize_alerts
     from core.field_intelligence_adapters import build_live_adapters
     from core.field_intelligence_coordinator import FieldRequest, run_field_intelligence
 
@@ -3416,6 +3468,23 @@ def field_intelligence_analyze(
     result = run_field_intelligence(req, **adapters)
 
     state = result.canonical_state
+    # التنبيهات الاستباقيّة: من الحالة الموحّدة (change_detection/FVC يُمرَّران عند
+    # توفّرهما من العامل — هنا الحالة فقط، فالمحرّك سلبيّ→استباقيّ على ما هو متاح).
+    alerts = evaluate_alerts(state)
+    # التوصيل اختياريّ (notify=true): warning فأعلى عبر القنوات المُهيّأة. صدق:
+    # الإرسال الخارجي يحدث فقط عند تهيئة القناة (لا ادّعاء إرسال).
+    alerts_delivery = None
+    if notify and alerts:
+        from core.alert_delivery import deliver_alerts
+
+        alerts_delivery = deliver_alerts(
+            alerts,
+            context={
+                "field_id": state.field_id,
+                "tenant_id": state.tenant_id,
+                "now": state.generated_at,
+            },
+        )
     # حدث الحفظ جاهز (الكتابة الفعليّة في events عبر event_bus على بيئة التشغيل)
     try:
         event_row = state_to_event_row(state, actor_id=user.user_id)
@@ -3434,6 +3503,9 @@ def field_intelligence_analyze(
         "missing_signals": state.missing_signals,
         "policy_decision": result.policy_decision,
         "governance": result.governance,
+        "alerts": alerts,  # تنبيهات استباقيّة مُصنّفة (محرّك التنبيهات)
+        "alerts_summary": summarize_alerts(alerts),
+        "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
         "_persistable_event": event_row,  # جاهز للإدراج في events table
     }
 

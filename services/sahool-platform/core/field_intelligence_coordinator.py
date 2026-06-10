@@ -96,7 +96,8 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
 
     # الاستشعار → ndvi/ndre/ndsi/ndwi (دقّة 10م، تغطية من نسبة البكسلات السليمة)
     sensing = raw.get("sensing", {})
-    for idx in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si"):
+    # rvi = مؤشّر الغطاء الراداري ([0,1]) — يُدمج كـSAR (مقاومة السحاب)
+    for idx in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si", "rvi"):
         if idx in sensing and sensing[idx] is not None:
             signals.append(
                 SignalInput(
@@ -108,6 +109,20 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
                     field_coverage=sensing.get("field_coverage"),
                 )
             )
+
+    # غطاء السحب → إشارة منفصلة (لا تدخل الدمج الطيفي، لكنّها تُفعّل تحويل الوزن
+    # إلى SAR في fuse_health). كانت مفقودة ⇒ cloud دائماً 0 في المسار الحيّ.
+    if sensing.get("cloud_cover") is not None:
+        signals.append(
+            SignalInput(
+                source="cloud_cover",
+                value=sensing["cloud_cover"],
+                confidence="high",
+                observed_at=sensing.get("observed_at", now),
+                spatial_resolution_m=sensing.get("resolution_m", 10.0),
+                field_coverage=sensing.get("field_coverage"),
+            )
+        )
 
     # التربة → soil_ec (تحليل مخبري — ثقة عالية، لكن قد يكون قديماً)
     soil = raw.get("soil", {})

@@ -313,7 +313,10 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
         raise HTTPException(401, "توكن مطلوب للموافقة")
     try:
         payload = _jwt.decode(
-            authorization.split(" ", 1)[1], _GR_JWT_SECRET, algorithms=[_GR_JWT_ALG]
+            authorization.split(" ", 1)[1],
+            _GR_JWT_SECRET,
+            algorithms=[_GR_JWT_ALG],
+            audience="sahool",
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
@@ -325,7 +328,30 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
     return payload
 
 
-@app.post("/validate", response_model=GuardrailsResult)
+def _gr_authn(authorization: str = _Header(None)) -> dict:
+    """تحقّق توكن فقط (بلا اشتراط دور خبير) — للقراءة المُصرّح بها لأيّ مستخدم.
+
+    يُستخدم لقراءة حالة workflow: لا يحتاج صلاحيّة خبير (المزارع صاحب الإجراء
+    يحقّ له متابعة حالته)، لكن لا بدّ من توكن صالح + تقييد بالمستأجر في النقطة.
+    """
+    if not _GR_JWT_SECRET or len(_GR_JWT_SECRET) < 32:
+        raise HTTPException(503, "JWT_SECRET غير مضبوط")
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(401, "توكن مطلوب")
+    try:
+        payload = _jwt.decode(
+            authorization.split(" ", 1)[1],
+            _GR_JWT_SECRET,
+            algorithms=[_GR_JWT_ALG],
+            audience="sahool",
+        )
+    except Exception:
+        raise HTTPException(401, "توكن غير صالح") from None
+    if not payload.get("sub"):
+        raise HTTPException(401, "توكن ناقص الهويّة")
+    return payload
+
+
 async def validate_action(request: GuardrailsRequest, _svc: bool = Depends(_require_service_token)):
     """Main validation endpoint — checks action against 3 tiers.
 
@@ -352,9 +378,18 @@ async def approve_workflow(
 
 
 @app.get("/workflow/{workflow_id}")
-async def get_workflow(workflow_id: str):
+async def get_workflow(workflow_id: str, claims: dict = Depends(_gr_authn)):
+    """حالة workflow — تتطلّب توكناً ومقيّدة بمستأجر الطالب (منع IDOR/تسريب).
+
+    أمان: get_status أصبح يُرجع بيانات فعليّة (كان None)، فلولا التحقّق لأمكن لأيّ
+    مجهول قراءة workflow أيّ مستأجر بمعرفة المعرّف. نُرجع 404 (لا 403) عند عدم
+    تطابق المستأجر كي لا نكشف وجود الـworkflow عبر المستأجرين.
+    """
     hil = HumanApprovalWorkflow()
-    return hil.get_status(workflow_id)
+    status = await hil.get_status(workflow_id)
+    if status is None or str(status.get("tenant_id")) != str(claims.get("tenant_id")):
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return status
 
 
 @app.get("/healthz")

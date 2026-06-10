@@ -223,35 +223,45 @@ def compose_field_state(
     truths: dict = {}
     prov: list = []
 
-    # ── ١. صحّة نباتيّة من المؤشّرات الطيفيّة (يعيد استخدام fuse_health) ──
+    # ── ١. صحّة نباتيّة من المؤشّرات الطيفيّة + الرادار (يعيد استخدام fuse_health) ──
     spectral = [
         s for s in signals if s.source in ("ndvi", "ndre", "ndsi", "ndwi") and s.value is not None
     ]
-    if spectral:
+    # رادار: RVI (مؤشّر الغطاء الراداري، مُطبَّع [0,1] — قابل للدمج مع البصري، عكس
+    # الـbackscatter الخام بـdB). family="sar" ⇒ fuse_health يرفع وزنه عند السحب،
+    # فيُكمل مقاومة الغيوم (البصري ينخفض، الرادار يرتفع).
+    sar = [s for s in signals if s.source in ("rvi", "sar") and s.value is not None]
+    if spectral or sar:
         try:
             from core.engines.fusion import IndexReading, fuse_health
 
-            # العائلة: المؤشّرات الطيفيّة البصريّة optical (للترابط في التباين)
+            n = len(spectral) + len(sar)
             readings = [
                 IndexReading(
-                    name=s.source,
-                    value=s.value,
-                    sigma=0.05,
-                    weight=1.0 / len(spectral),
-                    family="optical",
+                    name=s.source, value=s.value, sigma=0.05, weight=1.0 / n, family="optical"
                 )
                 for s in spectral
+            ]
+            readings += [
+                IndexReading(name=s.source, value=s.value, sigma=0.08, weight=1.0 / n, family="sar")
+                for s in sar
             ]
             # cloud_cover من إشارة إن وُجدت، وإلّا 0 (لا تخمين سحب عالٍ)
             cloud = next((s.value for s in signals if s.source == "cloud_cover"), 0.0)
             fr = fuse_health(readings, cloud_cover_pct=cloud or 0.0)
             truths["crop_vigor"] = round(fr.fused_value, 3)
             truths["crop_vigor_confidence"] = fr.confidence.value
-            for s in spectral:
+            truths["crop_vigor_dominant"] = fr.dominant_family  # optical|sar (مقاومة السحاب)
+            # شفافيّة: ملاحظات الدمج (منها تحويل الوزن للرادار عند السحب) تُسطَّح
+            # في الحالة الموحّدة لتكون مرئيّة/قابلة للتتبّع (كانت تُفقَد).
+            if fr.notes:
+                truths["crop_vigor_notes"] = fr.notes
+            truths["cloud_cover_pct"] = round(float(cloud or 0.0), 1)
+            for s in spectral + sar:
                 prov.append(
                     {
                         "source": s.source,
-                        "weight": round(1.0 / len(spectral), 3),
+                        "weight": round(1.0 / n, 3),
                         "contributes_to": "crop_vigor",
                     }
                 )

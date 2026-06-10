@@ -37,7 +37,7 @@ security = HTTPBearer(auto_error=False)
 
 def verify_token(token: str) -> dict:
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
     except InvalidTokenError as e:
         raise HTTPException(401, f"Invalid token: {e}") from e
 

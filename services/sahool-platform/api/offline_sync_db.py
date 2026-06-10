@@ -1,0 +1,103 @@
+"""offline_sync_db — كتابة DB فعليّة لعمليّات offline-first المُزامَنة.
+
+النواة ‎sahool_core.offline_first‎ نقيّة (لا I/O بالتصميم)، فهذا الملف يعزل
+الكتابة الفعليّة للقاعدة خلف دالّتين قابلتين للاختبار:
+
+  • persist_synced_operation — يُدخِل عمليّة (idempotent على op_id) ضمن سياق
+    RLS الذي يضبطه المستدعي (tenant_connection). إعادة الـsync لا تُكرّر الصفّ.
+  • fetch_synced_operations — يقرأ عمليّات المستأجر (مُرشَّحة تلقائيّاً بـRLS).
+
+كلاهما يعمل على conn جاهز (من tenant_connection)، فلا يفتح pool بنفسه —
+يبقى الاختبار والاستخدام بسيطين وسياق المستأجر مضموناً من المستدعي.
+"""
+
+from __future__ import annotations
+
+import json
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # pragma: no cover - نوعيّ فقط
+    import asyncpg
+    from core.offline_first import PendingOperation
+
+
+def _parse_ts(value: object) -> datetime:
+    """يحوّل ISO string إلى datetime واعٍ بـUTC لعمود timestamptz (NOT NULL).
+
+    offline_first يُنتج created_at عبر datetime.utcnow().isoformat() (naive)؛
+    نعتبره UTC صراحةً (وإلّا فسّره الخادم بتوقيته المحلّي ⇒ انزياح زمني). ندعم
+    اللاحقة 'Z'، ونرجع الآن (UTC) كقيمة آمنة بدل None حتّى لا يفشل الإدراج بسبب
+    فرق تنسيق طفيف.
+    """
+    dt: datetime | None = None
+    if isinstance(value, datetime):
+        dt = value
+    elif isinstance(value, str):
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            dt = None
+    if dt is None:
+        dt = datetime.now(UTC)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt
+
+
+async def persist_synced_operation(
+    conn: asyncpg.Connection, *, op: PendingOperation, tenant_id: str
+) -> bool:
+    """يكتب عمليّة مُزامَنة في offline_synced_operations (idempotent على op_id).
+
+    يجب أن يكون ``conn`` ضمن سياق المستأجر (tenant_connection) ليُطبَّق RLS.
+    يرفع استثناء عند خطأ قاعدة فعلي (يُترك للمستدعي ليُبقي العمليّة في الـqueue).
+
+    Returns
+    -------
+    bool
+        True إن كُتبت أو كانت موجودة سلفاً (ON CONFLICT DO NOTHING).
+    """
+    await conn.execute(
+        """
+        INSERT INTO offline_synced_operations
+            (op_id, tenant_id, user_id, kind, payload, created_at, synced_at)
+        VALUES ($1::uuid, $2::uuid, $3, $4, $5::jsonb, $6, NOW())
+        ON CONFLICT (op_id) DO NOTHING
+        """,
+        op.op_id,
+        tenant_id,
+        str(op.user_id),
+        op.kind.value if hasattr(op.kind, "value") else str(op.kind),
+        json.dumps(op.payload or {}),
+        _parse_ts(op.created_at),
+    )
+    return True
+
+
+async def fetch_synced_operations(conn: asyncpg.Connection, limit: int = 100) -> list[dict]:
+    """يقرأ عمليّات المستأجر الحالي (RLS يُرشّح حسب app.current_tenant)."""
+    rows = await conn.fetch(
+        """
+        SELECT op_id, tenant_id, user_id, kind, payload, created_at, synced_at
+        FROM offline_synced_operations
+        ORDER BY synced_at DESC
+        LIMIT $1
+        """,
+        limit,
+    )
+    out: list[dict] = []
+    for r in rows:
+        payload = r["payload"]
+        out.append(
+            {
+                "op_id": str(r["op_id"]),
+                "tenant_id": str(r["tenant_id"]),
+                "user_id": r["user_id"],
+                "kind": r["kind"],
+                "payload": payload if isinstance(payload, dict) else json.loads(payload),
+                "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+                "synced_at": r["synced_at"].isoformat() if r["synced_at"] else None,
+            }
+        )
+    return out

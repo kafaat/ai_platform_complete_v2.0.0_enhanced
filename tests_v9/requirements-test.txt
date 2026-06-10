@@ -12,7 +12,7 @@ black>=24.0.0
 sqlparse>=0.5.0
 asyncpg>=0.30.0,<0.32.0
 redis>=5.0.0
-python-jose[cryptography]>=3.3.0
+python-jose[cryptography]>=3.4.0
 # تبعيّات وقت تشغيل تستوردها الاختبارات (كانت مفقودة ⇒ ModuleNotFoundError في CI):
 # test_tts/test_auth_service تستوردان pydantic؛ auth يستخدم bcrypt وEmailStr؛
 # الخدمات تستورد prometheus_client.
@@ -20,3 +20,8 @@ pydantic[email]>=2.8.0
 bcrypt>=4.1.0
 prometheus-client>=0.20.0
 PyJWT>=2.8.0
+# sahool_ai/cookbook يقرأ model_catalog.yaml عبر PyYAML (تبعيّة أساسيّة للحزمة)
+# ⇒ كان جمع test_cookbook يفشل بـ ModuleNotFoundError: yaml في CI.
+PyYAML>=6.0
+# raster-service/change_detection يستخدم numpy (test_change_detection يختبره).
+numpy>=1.24.0

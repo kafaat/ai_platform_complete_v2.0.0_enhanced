@@ -53,7 +53,7 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
         raise HTTPException(401, "توكن مطلوب للتحكّم بالأجهزة")
     token = authorization.split(" ", 1)[1]
     try:
-        payload = _jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = _jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except Exception as e:
         raise HTTPException(401, "توكن غير صالح") from e
     if not payload.get("sub") or not payload.get("tenant_id"):

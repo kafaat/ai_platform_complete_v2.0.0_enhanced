@@ -44,3 +44,6 @@ v14_imagery_storage.sql
 # FIX (أمان): يُطبَّق أخيراً — يفرض RLS على كلّ الجداول المُفعّلة (كان 7/26 فقط
 # تُفرض، فالباقي يتسرّب لمالك الجدول). يحتاج كلّ الجداول منشأة قبله.
 v9_rls_force_all.sql
+# v15: تخزين عمليّات offline-first المُزامَنة. يُطبّق RLS بنفسه عبر
+# _sahool_apply_tenant_rls، فترتيبه بعد force_all آمن.
+v15_offline_synced_operations.sql

@@ -616,6 +616,126 @@ async def zones_classify(req: ManagementZonesRequest, x_agent_token: str = Heade
     return result
 
 
+# حدّ أعلى لحجم شبكة التغيير (256×256). يمنع استهلاك ذاكرة/CPU كبير (DoS) من
+# طلب واحد قبل تحويل numpy. شبكات الموبايل أصغر بكثير عمليّاً.
+MAX_CHANGE_GRID_CELLS = 256 * 256
+
+
+class ChangeDetectRequest(BaseModel):
+    field_id: str
+    index: str = "ndvi"
+    date_before: str
+    date_after: str
+    grid_before: list[list[float | None]]  # شبكة المؤشّر للتاريخ الأقدم
+    grid_after: list[list[float | None]]  # شبكة المؤشّر للتاريخ الأحدث
+    slight_threshold: float = 0.1
+    severe_threshold: float = 0.2
+
+
+@app.post("/change/detect")
+async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(None)):
+    """كشف التغيير المكاني (per-pixel 2D) بين تاريخين — أين تدهور/تحسّن الحقل.
+
+    يسدّ فجوة كانت placeholder: التحليل الزمني 1D (متوسّط) يُخفي التدهور الموضعي
+    (زحف ملوحة من زاوية، عطل ريّ في قطاع). يستقبل شبكتي مؤشّر مُحسبتَين فعليّاً من
+    COG لتاريخين (نفس النهج الصادق: لا يخترع NDVI من البحث) ويُرجِع خريطة فرق
+    مُصنّفة + نسب المساحة المتدهورة + تفسير عربي. NaN/null لا تُحسب (صدق السحاب).
+    """
+    _require_service_token(x_agent_token)
+    # حدّ الحجم قبل أيّ تحويل numpy (حماية من DoS) ⇒ 413 عند التجاوز.
+    for name, g in (("grid_before", req.grid_before), ("grid_after", req.grid_after)):
+        cells = sum(len(row) for row in g)
+        if cells > MAX_CHANGE_GRID_CELLS:
+            raise HTTPException(
+                status_code=413,
+                detail=f"{name} كبير جدّاً: {cells} خليّة > الحدّ {MAX_CHANGE_GRID_CELLS}",
+            )
+    import change_detection as cd
+
+    result = cd.detect_change(
+        req.grid_before,
+        req.grid_after,
+        index=req.index,
+        slight_threshold=req.slight_threshold,
+        severe_threshold=req.severe_threshold,
+    )
+    result.update(
+        {
+            "field_id": req.field_id,
+            "date_before": req.date_before,
+            "date_after": req.date_after,
+        }
+    )
+    return result
+
+
+class FvcComputeRequest(BaseModel):
+    field_id: str
+    date: str
+    ndvi_grid: list[list[float | None]]  # شبكة NDVI مُحسبة من COG
+    method: str = "cumulative_frequency"  # | global_constant | dynamic_range
+    ndvi_soil: float | None = None  # لـdynamic_range فقط
+    ndvi_veg: float | None = None
+
+
+@app.post("/fvc/compute")
+async def fvc_compute(req: FvcComputeRequest, x_agent_token: str = Header(None)):
+    """نسبة التغطية النباتيّة (FVC) عبر نموذج البكسل الثنائي — تكمّل LAI.
+
+    LAI (موجود) يقيس كثافة الأوراق (3D)؛ FVC يقيس نسبة الأرض المُغطّاة بالنبات
+    (2D) — أساس موضوعي لرصد زحف التصحّر وتغطية المحاصيل في الجوف. يستقبل شبكة
+    NDVI مُحسبة من COG ويُرجِع شبكة FVC + نسبة التصحّر + تصنيف + تفسير عربي.
+    """
+    _require_service_token(x_agent_token)
+    cells = sum(len(row) for row in req.ndvi_grid)
+    if cells > MAX_CHANGE_GRID_CELLS:
+        raise HTTPException(
+            status_code=413, detail=f"ndvi_grid كبير جدّاً: {cells} > {MAX_CHANGE_GRID_CELLS}"
+        )
+    import fvc
+
+    try:
+        result = fvc.compute_fvc(
+            req.ndvi_grid, method=req.method, ndvi_soil=req.ndvi_soil, ndvi_veg=req.ndvi_veg
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    result.update({"field_id": req.field_id, "date": req.date})
+    return result
+
+
+class SarRviRequest(BaseModel):
+    field_id: str
+    date: str
+    vv_grid: list[list[float | None]]  # σ°_VV (قدرة خطّيّة أو dB)
+    vh_grid: list[list[float | None]]  # σ°_VH
+    in_db: bool = False  # هل القيم بالديسيبل؟ (تُحوَّل للخطّي قبل النسبة)
+
+
+@app.post("/sar/rvi")
+async def sar_rvi_endpoint(req: SarRviRequest, x_agent_token: str = Header(None)):
+    """مؤشّر الغطاء الراداري RVI من Sentinel-1 VV/VH — يُكمل مقاومة السحاب.
+
+    RVI = 4·σ°VH/(σ°VV+σ°VH) (قدرة خطّيّة)، مقصوص [0,1] كبديل غطاء قابل للدمج مع
+    NDVI كـfamily="sar". المُدخلات شبكتا VV/VH مُحسبتان من COG رادار مُعايَر
+    (العامل، rasterio). صدق: فجوات NaN محفوظة. rvi_mean يُمرَّر كإشارة source=rvi.
+    """
+    _require_service_token(x_agent_token)
+    cells = sum(len(row) for row in req.vv_grid)
+    if cells > MAX_CHANGE_GRID_CELLS:
+        raise HTTPException(
+            status_code=413, detail=f"vv_grid كبير جدّاً: {cells} > {MAX_CHANGE_GRID_CELLS}"
+        )
+    import sar_rvi
+
+    try:
+        result = sar_rvi.compute_rvi(req.vv_grid, req.vh_grid, in_db=req.in_db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    result.update({"field_id": req.field_id, "date": req.date})
+    return result
+
+
 @app.get("/imagery/search/radar")
 async def imagery_search_radar(
     west: float,
@@ -1720,6 +1840,96 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
     except Exception as e:  # noqa: BLE001 — غياب القاعدة لا يُفشل القراءة
         logger.warning("DB rehydrate skipped (%s): %s", field_id, e)
         return None
+
+
+async def _rvi_from_sar_cog(field_id: str, date: str) -> float | None:
+    """RVI من COG رادار ثنائي النطاق (VV=band1, VH=band2) إن وُجد، وإلّا None.
+
+    صدق: يحتاج COG Sentinel-1 مُعالَجاً (نطاقَين) للحقل؛ لا اختراع عند غيابه.
+    """
+    layer = await _resolve_field_layer(field_id, "rvi", date)
+    if layer is None:
+        layer = await _resolve_field_layer(field_id, "sar", date)
+    if layer is None:
+        return None
+    try:
+        import numpy as np
+        import rasterio
+        import sar_rvi
+    except Exception:  # noqa: BLE001 — rasterio غير متوفّر → لا RVI
+        return None
+    path = object_store.to_gdal_path(layer["cog_url"])
+    try:
+        with rasterio.open(path) as src:
+            if src.count < 2:
+                return None  # ليس ثنائي الاستقطاب (VV/VH)
+            vv = src.read(1).astype("float64")
+            vh = src.read(2).astype("float64")
+            if src.nodata is not None:
+                vv = np.where(vv == src.nodata, np.nan, vv)
+                vh = np.where(vh == src.nodata, np.nan, vh)
+    except Exception:  # noqa: BLE001 — قراءة فشلت → لا RVI
+        return None
+    res = sar_rvi.compute_rvi(vv, vh, in_db=False)
+    return res["rvi_mean"] if res["valid_pixels"] else None
+
+
+@app.get("/indices")
+async def field_indices(
+    field_id: str,
+    lat: float | None = Query(None),
+    lon: float | None = Query(None),
+    date: str = Query("latest"),
+    indices: str = Query("ndvi,ndre,ndsi,ndwi,bsi,si,rvi"),
+    cloud_cover: float | None = Query(None),
+    x_agent_token: str = Header(None),
+):
+    """متوسّط كلّ مؤشّر للحقل (للدمج الحيّ في field-intelligence) + غطاء السحب.
+
+    يسدّ ثغرة wiring حقيقيّة: sensing_adapter كان ينادي /indices غير الموجودة ⇒
+    المسار الطيفي الحيّ بلا تغذية. يعيد استخدام مسار indicator-grid
+    (_resolve_field_layer + _grid_from_cog): لكلّ مؤشّر يقرأ COG المقصوص ويُرجِع
+    المتوسّط (real_data=True). صدق: لا COG ⇒ قيم null + real_data=False + note (لا
+    اختراع). cloud_cover يُمرَّر إن توفّر (من eo:cloud_cover عبر المستدعي) ليُفعّل
+    تحويل الوزن للرادار في fuse_health.
+    """
+    _require_service_token(x_agent_token)
+    requested = [i.strip() for i in indices.split(",") if i.strip()]
+    out: dict = {
+        "field_id": field_id,
+        "real_data": False,
+        "observed_at": None,
+        "field_coverage": None,
+        "cloud_cover": cloud_cover,
+        "resolution_m": 10.0,
+    }
+    coverage_val = None
+    for idx in requested:
+        # rvi رادارية: تُحسب من COG ثنائي النطاق (VV/VH) لا band واحد
+        if idx == "rvi":
+            m = await _rvi_from_sar_cog(field_id, date)
+            out["rvi"] = m
+            if m is not None:
+                out["real_data"] = True
+            continue
+        layer = await _resolve_field_layer(field_id, idx, date)
+        real = _grid_from_cog(layer, idx, date, 16) if layer is not None else None
+        if real is None:
+            out[idx] = None
+            continue
+        out[idx] = real["stats"]["mean"]
+        out["real_data"] = True
+        out["observed_at"] = out["observed_at"] or real.get("date")
+        if coverage_val is None:
+            cells = [v for row in real["grid"] for v in row]
+            coverage_val = (
+                round(sum(v is not None for v in cells) / len(cells), 4) if cells else None
+            )
+    out["field_coverage"] = coverage_val
+    out["note"] = (
+        None if out["real_data"] else "لا COG مقصوص للحقل — شغّل /process أوّلاً (لا قيم مخترعة)"
+    )
+    return out
 
 
 @app.get("/v1/fields/{field_id}/indicator-grid")

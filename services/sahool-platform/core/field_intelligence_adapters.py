@@ -68,12 +68,15 @@ def sensing_adapter(req) -> dict | None:
         return None
     # تمرير المؤشّرات المتاحة فقط (الغائب يُعلَن في المايسترو)
     out = {}
-    for k in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si"):
+    for k in ("ndvi", "ndre", "ndsi", "ndwi", "bsi", "si", "rvi"):
         if data.get(k) is not None:
             out[k] = data[k]
     out["resolution_m"] = data.get("resolution_m", 10.0)
     out["field_coverage"] = data.get("field_coverage")
     out["observed_at"] = data.get("observed_at")
+    # غطاء السحب — يُمرَّر ليُفعّل تحويل الوزن للرادار في fuse_health (كان مفقوداً)
+    if data.get("cloud_cover") is not None:
+        out["cloud_cover"] = data["cloud_cover"]
     return out or None
 
 

@@ -111,7 +111,14 @@ async def _get_current_user(credentials: Optional = Depends(security)):
         _pub = os.getenv("JWT_PUBLIC_KEY", "")
         _vkey = _pub if _pub else secret
         _valg = "RS256" if _pub else "HS256"
-        payload = jwt.decode(credentials.credentials, _vkey, algorithms=[_valg])
+        # FIX (اتّساق audience): auth/platform يُصدران aud="sahool" وmcp يتطلّبه.
+        # الفكّ بلا audience يرمي InvalidAudienceError ويرفض توكنات auth الصالحة.
+        payload = jwt.decode(
+            credentials.credentials,
+            _vkey,
+            algorithms=[_valg],
+            audience="sahool",
+        )
         return payload
     except Exception as e:
         raise HTTPException(401, f"Invalid token: {e}") from e

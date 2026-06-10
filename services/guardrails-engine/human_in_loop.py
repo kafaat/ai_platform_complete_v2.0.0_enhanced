@@ -248,6 +248,44 @@ class HumanApprovalWorkflow:
         logger.info(f"[HIL] Risk level: {risk_level}")
         logger.info(f"[HIL] Escalation: {escalation}")
 
-    def get_status(self, workflow_id: str) -> dict | None:
-        # In production: query DB; here placeholder
-        return None
+    async def get_status(self, workflow_id: str) -> dict | None:
+        """يقرأ حالة workflow من القاعدة (كان placeholder يُرجع None دائماً).
+
+        Returns None إن لم يوجد الـworkflow أو لم تكن القاعدة مفعّلة.
+        """
+        pool = await _get_pool()
+        if not pool:
+            return None
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT workflow_id, tenant_id, status, risk_level, action_type,
+                       required_roles, approvals, rejections, escalation_count,
+                       created_at, resolved_at, expires_at
+                FROM approval_workflows
+                WHERE workflow_id = $1
+                """,
+                workflow_id,
+            )
+        if not row:
+            return None
+
+        def _json_list(value: Any) -> list:
+            if isinstance(value, str):
+                return json.loads(value) if value else []
+            return value or []
+
+        return {
+            "workflow_id": row["workflow_id"],
+            "tenant_id": str(row["tenant_id"]),
+            "status": row["status"],
+            "risk_level": row["risk_level"],
+            "action_type": row["action_type"],
+            "required_roles": list(row["required_roles"] or []),
+            "approvals": _json_list(row["approvals"]),
+            "rejections": _json_list(row["rejections"]),
+            "escalation_count": row["escalation_count"] or 0,
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "resolved_at": row["resolved_at"].isoformat() if row["resolved_at"] else None,
+            "expires_at": row["expires_at"].isoformat() if row["expires_at"] else None,
+        }
