@@ -1856,9 +1856,7 @@ async def field_indices(
             )
     out["field_coverage"] = coverage_val
     out["note"] = (
-        None
-        if out["real_data"]
-        else "لا COG مقصوص للحقل — شغّل /process أوّلاً (لا قيم مخترعة)"
+        None if out["real_data"] else "لا COG مقصوص للحقل — شغّل /process أوّلاً (لا قيم مخترعة)"
     )
     return out
 
