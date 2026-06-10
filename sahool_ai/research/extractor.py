@@ -6,6 +6,8 @@ for the SAHOOL Agronomic Research Pipeline. All logic is deterministic.
 
 from __future__ import annotations
 
+from datetime import date
+
 from sahool_ai.research.models import CausalLink
 
 # ── ثوابت خطّ الأساس / Baseline constants ──────────────────────────────────
@@ -119,21 +121,28 @@ def extract_temporal_patterns(results: dict) -> dict:
         missed_days = irrigation.get("missed_days", [])
         adherence = irrigation.get("adherence_pct", 100.0)
 
-        # Group consecutive missed days into delay events
+        # Group runs of calendar-consecutive missed days into delay events.
+        # (A new group starts whenever two sorted days are not exactly one day
+        # apart; unparseable dates also break the run.)
         if missed_days:
             sorted_days = sorted(missed_days)
             current_group: list[str] = [sorted_days[0]]
             groups: list[list[str]] = []
 
             for day in sorted_days[1:]:
-                # Simple consecutive-day detection (7-day window within a group)
-                current_group.append(day)
-                if len(current_group) >= 3:  # flush groups of 3+
+                try:
+                    consecutive = (
+                        date.fromisoformat(day) - date.fromisoformat(current_group[-1])
+                    ).days == 1
+                except ValueError:
+                    consecutive = False
+                if consecutive:
+                    current_group.append(day)
+                else:
                     groups.append(current_group)
-                    current_group = []
+                    current_group = [day]
 
-            if current_group:
-                groups.append(current_group)
+            groups.append(current_group)
 
             for group in groups:
                 delay_events.append(
@@ -151,7 +160,8 @@ def extract_temporal_patterns(results: dict) -> dict:
             delay_events.append(
                 {
                     "type": "irrigation_delay",
-                    "days": scheduled - actual,
+                    # clamp: actual > scheduled (or missing) must not yield negative days
+                    "days": max(0, scheduled - actual),
                     "start_date": missed_days[0] if missed_days else "unknown",
                 }
             )

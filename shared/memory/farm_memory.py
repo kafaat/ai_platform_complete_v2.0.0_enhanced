@@ -12,6 +12,7 @@ Real deployment: swap the scoring function for fastembed + qdrant vectors.
 
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -128,10 +129,12 @@ class _LocalStore:
             try:
                 raw = self._path.read_text(encoding="utf-8")
                 loaded = json.loads(raw)
-                # Merge so missing keys get defaults
+                # Merge so missing keys get their real defaults (deep-copied).
+                # NOTE: type(v)() would set schema_version to '' (type('v2')()),
+                # silently erasing the version on older/partial files.
                 for k, v in self._EMPTY.items():
                     if k not in loaded:
-                        loaded[k] = type(v)()
+                        loaded[k] = copy.deepcopy(v)
                 self._data = loaded
                 logger.debug("farm_memory: loaded %s", self._path)
             except Exception as exc:  # noqa: BLE001

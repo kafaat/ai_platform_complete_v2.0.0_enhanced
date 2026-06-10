@@ -461,13 +461,28 @@ def import_from_encrypted_tarball(
 
         try:
             with tarfile.open(tarball_path, "r:gz") as tar:
-                # Security: validate member names before extracting
-                for member in tar.getmembers():
-                    if ".." in member.name or member.name.startswith("/"):
+                # Security (untrusted input): reject links/special members and
+                # enforce that every resolved destination stays inside tmp, then
+                # extract members individually. Name-only checks (".."/leading "/")
+                # are insufficient — symlinks/hardlinks could escape the temp dir.
+                tmp_resolved = tmp.resolve()
+                members = tar.getmembers()
+                for member in members:
+                    if member.issym() or member.islnk() or member.isdev():
+                        raise ValueError(
+                            f"عضو غير آمن في الأرشيف (رابط/جهاز): {member.name!r} — رُفض الاستيراد"
+                        )
+                    if not (member.isfile() or member.isdir()):
+                        raise ValueError(
+                            f"نوع عضو غير مدعوم في الأرشيف: {member.name!r} — رُفض الاستيراد"
+                        )
+                    dest = (tmp / member.name).resolve()
+                    if dest != tmp_resolved and tmp_resolved not in dest.parents:
                         raise ValueError(
                             f"مسار غير آمن في الأرشيف: {member.name!r} — رُفض الاستيراد"
                         )
-                tar.extractall(tmp)
+                for member in members:
+                    tar.extract(member, tmp)
         except Exception as exc:
             logger.error(
                 "import_engine[%s]: tar extraction failed for %s: %s",

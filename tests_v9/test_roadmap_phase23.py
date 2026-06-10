@@ -5077,7 +5077,8 @@ def test_jwt_audience_consistency():
         if "__pycache__" in py:
             continue
         txt = open(py, encoding="utf-8", errors="ignore").read()
-        for m in re.finditer(r"jwt\.decode\(", txt):
+        # \w* يلتقط الأسماء المستعارة مثل _jwt.decode / jose_jwt.decode صراحةً
+        for m in re.finditer(r"\w*jwt\.decode\(", txt):
             window = txt[m.start() : m.start() + 250]
             depth = 0
             end = len(window)
@@ -5093,15 +5094,22 @@ def test_jwt_audience_consistency():
                 decoders_without.append(os.path.basename(py))
     if not decoders_without:
         r.append(("\u2713", "كلّ jwt.decode يتحقّق من audience (اتّساق كامل)"))
+    else:
+        uniq = ", ".join(sorted(set(decoders_without)))
+        r.append(("\u2717", f"فاكّو JWT بلا audience (تسرّب اتّساق): {uniq}"))
     # auth + platform يُصدران aud
     auth = open(os.path.join(base, "services/auth/main.py"), encoding="utf-8").read()
     plat = open(os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8").read()
     if '"aud": "sahool"' in auth and '"aud": "sahool"' in plat:
         r.append(("\u2713", "auth+platform يُصدران aud=sahool (مُصدِران متّسقان)"))
+    else:
+        r.append(("\u2717", "auth أو platform لا يُصدر aud=sahool (مُصدِر غير متّسق)"))
     # supervisor (المشكلة الأصليّة) أُصلح
     sup = open(os.path.join(base, "services/supervisor-agent/main.py"), encoding="utf-8").read()
     if 'audience="sahool"' in sup:
         r.append(("\u2713", "supervisor يتحقّق من aud=sahool (كان يرفض توكنات auth)"))
+    else:
+        r.append(("\u2717", "supervisor لا يتحقّق من aud=sahool (انتكاسة الإصلاح الأصلي)"))
     return r
 
 
