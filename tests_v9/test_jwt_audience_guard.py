@@ -52,11 +52,15 @@ def test_all_jwt_decoders_validate_audience():
 def test_issuers_emit_aud_sahool():
     auth = open(os.path.join(ROOT, "services/auth/main.py"), encoding="utf-8").read()
     plat = open(os.path.join(ROOT, "services/sahool-platform/api/main.py"), encoding="utf-8").read()
-    assert '"aud": "sahool"' in auth, "auth لا يُصدر aud=sahool"
-    assert '"aud": "sahool"' in plat, "sahool-platform لا يُصدر aud=sahool"
+    # regex مرن (يقبل '/" ومسافات) — لا يكسره إعادة تنسيق
+    aud_re = re.compile(r"""['"]aud['"]\s*:\s*['"]sahool['"]""")
+    assert aud_re.search(auth), "auth لا يُصدر aud=sahool"
+    assert aud_re.search(plat), "sahool-platform لا يُصدر aud=sahool"
 
 
 @pytest.mark.unit
 def test_supervisor_validates_audience():
     sup = open(os.path.join(ROOT, "services/supervisor-agent/main.py"), encoding="utf-8").read()
-    assert 'audience="sahool"' in sup, "supervisor لا يتحقّق من aud=sahool (انتكاسة)"
+    assert re.search(r"""audience\s*=\s*['"]sahool['"]""", sup), (
+        "supervisor لا يتحقّق من aud=sahool (انتكاسة)"
+    )

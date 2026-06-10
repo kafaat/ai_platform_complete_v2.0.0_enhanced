@@ -616,6 +616,11 @@ async def zones_classify(req: ManagementZonesRequest, x_agent_token: str = Heade
     return result
 
 
+# حدّ أعلى لحجم شبكة التغيير (256×256). يمنع استهلاك ذاكرة/CPU كبير (DoS) من
+# طلب واحد قبل تحويل numpy. شبكات الموبايل أصغر بكثير عمليّاً.
+MAX_CHANGE_GRID_CELLS = 256 * 256
+
+
 class ChangeDetectRequest(BaseModel):
     field_id: str
     index: str = "ndvi"
@@ -637,6 +642,14 @@ async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(No
     مُصنّفة + نسب المساحة المتدهورة + تفسير عربي. NaN/null لا تُحسب (صدق السحاب).
     """
     _require_service_token(x_agent_token)
+    # حدّ الحجم قبل أيّ تحويل numpy (حماية من DoS) ⇒ 413 عند التجاوز.
+    for name, g in (("grid_before", req.grid_before), ("grid_after", req.grid_after)):
+        cells = sum(len(row) for row in g)
+        if cells > MAX_CHANGE_GRID_CELLS:
+            raise HTTPException(
+                status_code=413,
+                detail=f"{name} كبير جدّاً: {cells} خليّة > الحدّ {MAX_CHANGE_GRID_CELLS}",
+            )
     import change_detection as cd
 
     result = cd.detect_change(

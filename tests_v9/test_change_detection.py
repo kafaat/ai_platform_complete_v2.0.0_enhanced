@@ -104,3 +104,5 @@ def test_placeholder_removed_and_endpoint_wired():
         assert "/change/detect" in txt, f"الربط بالنقطة مفقود في {rel}"
     main = open(os.path.join(ROOT, "services/raster-service/main.py"), encoding="utf-8").read()
     assert '@app.post("/change/detect")' in main, "نقطة /change/detect مفقودة"
+    # حدّ الحجم (413) ضدّ DoS قبل تحويل numpy
+    assert "MAX_CHANGE_GRID_CELLS" in main and "status_code=413" in main, "حدّ حجم الشبكة مفقود"
