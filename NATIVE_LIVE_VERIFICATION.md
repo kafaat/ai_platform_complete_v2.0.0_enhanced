@@ -30,3 +30,11 @@
 
 ## ما يتطلّب بيئة بشبكة مفتوحة
 بناء/تشغيل صور Docker الفعليّة + جلب صور أقمار حيّة (Element84/Sentinel Hub) — محجوبة هنا.
+
+## سلسلة متعدّدة الخدمات حيّة (user → supervisor → mcp + guardrails)
+6 خدمات عبر uvicorn/sockets + shared مدموج: supervisor:8096 · guardrails:8097 ·
+weather/wofost/market/sentinel-mcp :8092-8094,8091. `POST /agent/query`: **4/4→200**
+عبر الشبكة. **supervisor→mcp مُثبَت**: إيقاف weather-mcp أنتج `httpx.ConnectError`
+من `mcp_client.py:81 POST /mcp/v1/tools/call`. ملاحظة صدق: الاستعلامات صنّفها الموجّه
+~0.5 ⇒ fallback، فلم تُملأ governance لها تحديداً. اكتشاف للمتابعة: supervisor يفكّ
+JWT بلا audience (يرفض aud) بينما mcp يتطلّب aud=sahool — مخطّطا audience غير متّسقين.
