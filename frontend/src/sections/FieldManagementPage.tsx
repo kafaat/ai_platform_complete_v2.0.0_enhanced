@@ -7,7 +7,7 @@
 // ✅ WOFOST data per field
 // ✅ CRUD كامل
 // ═══════════════════════════════════════════════════════════════
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Plus, Search, Pencil, Trash2, X, Check, Leaf,
   Wheat, Ruler, ChevronDown, Sprout, Calendar, Map,
@@ -16,6 +16,10 @@ import AddFieldWithMap from '../components/AddFieldWithMap';
 import AddSeasonWithStages from '../components/AddSeasonWithStages';
 import { kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
+import { useFields } from '../hooks/useApi';
+import { useAuthStore } from '../hooks/useAuth';
+import { canMutate } from '../lib/permissions';
+import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 interface Field {
   field_id:   string;
@@ -33,16 +37,32 @@ interface Field {
   geometry?:  any;
 }
 
-const INITIAL: Field[] = [
-  { field_id:'field_01', name:'حقل وادي سبأ',        area_ha:23.5, crop:'قمح صلب',  soil:'loam',       ndvi:0.72, health:'excellent', stage:'ملء الحبوب', gdd:960,  yield_est:2.8, lat:15.05, lon:45.55 },
-  { field_id:'field_02', name:'حقل البيضاء الشمالي', area_ha:32.0, crop:'شعير',      soil:'clay_loam',  ndvi:0.58, health:'good',      stage:'نمو خضري',  gdd:825,  yield_est:2.5, lat:15.02, lon:45.58 },
-  { field_id:'field_03', name:'حقل البيضاء الجنوبي', area_ha:18.7, crop:'ذرة صفراء', soil:'sandy_loam', ndvi:0.44, health:'fair',      stage:'تزهير',     gdd:980,  yield_est:3.9, lat:14.98, lon:45.52 },
-  { field_id:'field_04', name:'حقل رداع الغربي',     area_ha:41.3, crop:'طماطم',     soil:'loam',       ndvi:0.66, health:'good',      stage:'ثمرة',      gdd:780,  yield_est:4.2, lat:14.92, lon:45.48 },
-  { field_id:'field_05', name:'حقل ذي السفال',       area_ha:28.9, crop:'قمح صلب',  soil:'silt_loam',  ndvi:0.74, health:'excellent', stage:'ملء الحبوب', gdd:1020, yield_est:3.1, lat:14.88, lon:45.60 },
-  { field_id:'field_06', name:'حقل عتمة الشرقي',    area_ha:37.5, crop:'شعير',      soil:'clay_loam',  ndvi:0.51, health:'fair',      stage:'نمو خضري',  gdd:792,  yield_est:2.4, lat:15.10, lon:45.62 },
-  { field_id:'field_07', name:'حقل الرياشية',        area_ha:22.1, crop:'خضروات',   soil:'loam',       ndvi:0.55, health:'good',      stage:'حصاد',      gdd:660,  yield_est:5.5, lat:15.00, lon:45.45 },
-  { field_id:'field_08', name:'حقل ذي ناعم',         area_ha:45.0, crop:'بطاطس',    soil:'sandy_loam', ndvi:0.61, health:'good',      stage:'درنات',     gdd:680,  yield_est:6.8, lat:14.85, lon:45.65 },
-];
+function ndviHealth(n: number): string {
+  return n >= 0.70 ? 'excellent' : n >= 0.50 ? 'good' : n >= 0.30 ? 'fair' : 'poor';
+}
+
+// تطبيع حقل من /fields لشكل العرض. دفاعيّ: الحقول الناقصة من الخادم تُحايَد
+// (تُعرَض «—»/صفر) لا تُفبرَك — لا قيم زراعيّة مخترَعة.
+function mapField(f: Record<string, unknown>): Field {
+  const num = (v: unknown, d = 0) => (typeof v === 'number' ? v : Number(v) || d);
+  const str = (v: unknown, d: string) => (v == null || v === '' ? d : String(v));
+  const ndvi = typeof f.ndvi === 'number' ? f.ndvi : num(f.ndvi, 0);
+  return {
+    field_id: str(f.field_id ?? f.id, `field_${Date.now()}_${Math.floor(Math.random() * 1e4)}`),
+    name: str(f.name_ar ?? f.name ?? f.field_name, 'حقل'),
+    area_ha: num(f.area_ha ?? f.area),
+    crop: str(f.crop ?? f.crop_ar, '—'),
+    soil: str(f.soil, 'loam'),
+    ndvi,
+    health: str(f.health, ndviHealth(ndvi)),
+    stage: str(f.stage ?? f.growth_stage, '—'),
+    gdd: num(f.gdd),
+    yield_est: num(f.yield_est ?? f.yield_t_ha),
+    lat: num(f.lat ?? f.centroid_lat),
+    lon: num(f.lon ?? f.centroid_lon),
+    geometry: f.geometry,
+  };
+}
 
 const SOIL_AR: Record<string,string> = {
   loam:'مزيجية', clay_loam:'طينية مزيجية',
@@ -59,7 +79,11 @@ function healthConfig(h: string) {
 }
 
 export default function FieldManagementPage() {
-  const [fields,        setFields]        = useState<Field[]>(INITIAL);
+  const { user } = useAuthStore();
+  const mutateAllowed = canMutate(user?.role);
+  const { data, isLoading, isError, refetch } = useFields();
+  const [fields,        setFields]        = useState<Field[]>([]);
+  const [seeded,        setSeeded]        = useState(false);
   const [search,        setSearch]        = useState('');
   const [filterHealth,  setFilterHealth]  = useState('all');
   const [filterCrop,    setFilterCrop]    = useState('all');
@@ -67,6 +91,16 @@ export default function FieldManagementPage() {
   const [showAddField,  setShowAddField]  = useState(false);
   const [showSeason,    setShowSeason]    = useState<Field|null>(null);
   const [editField,     setEditField]     = useState<Field|null>(null);
+
+  // بذر الحالة المحلّيّة من البيانات الحيّة مرّة واحدة (CRUD تفاؤليّ بعدها لا يُداس
+  // عند إعادة الجلب). كان يُبذَر من INITIAL مُلفّقة — أُزيلت.
+  useEffect(() => {
+    const apiFields = (data as { fields?: Record<string, unknown>[] } | undefined)?.fields;
+    if (!seeded && Array.isArray(apiFields)) {
+      setFields(apiFields.map(mapField));
+      setSeeded(true);
+    }
+  }, [data, seeded]);
 
   const crops = [...new Set(fields.map(f=>f.crop))];
 
@@ -168,27 +202,32 @@ export default function FieldManagementPage() {
             </div>
           ))}
         </div>
-        {/* Actions */}
-        <div className="flex gap-1.5 px-4 pb-3">
-          <button onClick={() => setShowSeason(f)}
-            className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-emerald-400 hover:text-emerald-300 border"
-            style={{ borderColor:'#16a34a44', background:'#1e3a1e22' }}>
-            <Sprout className="w-3 h-3" /> موسم زراعي
-          </button>
-          <button onClick={() => setEditField(f)}
-            className="px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 border"
-            style={{ borderColor:'#334155' }}>
-            <Pencil className="w-3 h-3" />
-          </button>
-          <button onClick={() => handleDelete(f.field_id)}
-            className="px-2.5 py-1.5 rounded-lg text-xs text-red-400 hover:text-red-300 border"
-            style={{ borderColor:'#dc262633' }}>
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
+        {/* Actions — محكومة بالدور (المُشاهِد قراءة فقط) */}
+        {mutateAllowed && (
+          <div className="flex gap-1.5 px-4 pb-3">
+            <button onClick={() => setShowSeason(f)}
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-emerald-400 hover:text-emerald-300 border"
+              style={{ borderColor:'#16a34a44', background:'#1e3a1e22' }}>
+              <Sprout className="w-3 h-3" /> موسم زراعي
+            </button>
+            <button onClick={() => setEditField(f)}
+              className="px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-slate-200 border"
+              style={{ borderColor:'#334155' }}>
+              <Pencil className="w-3 h-3" />
+            </button>
+            <button onClick={() => handleDelete(f.field_id)}
+              className="px-2.5 py-1.5 rounded-lg text-xs text-red-400 hover:text-red-300 border"
+              style={{ borderColor:'#dc262633' }}>
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+        )}
       </div>
     );
   };
+
+  if (isLoading && !seeded) return <LoadingState message="جارٍ تحميل الحقول…" />;
+  if (isError && !seeded) return <ErrorState title="تعذّر تحميل الحقول" onRetry={() => refetch()} />;
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto" dir="rtl">
@@ -210,11 +249,13 @@ export default function FieldManagementPage() {
               </button>
             ))}
           </div>
-          <button onClick={()=>setShowAddField(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background:'#16a34a' }}>
-            <Plus className="w-4 h-4" /> رسم حقل جديد
-          </button>
+          {mutateAllowed && (
+            <button onClick={()=>setShowAddField(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ background:'#16a34a' }}>
+              <Plus className="w-4 h-4" /> رسم حقل جديد
+            </button>
+          )}
         </div>
       </div>
 
@@ -246,9 +287,10 @@ export default function FieldManagementPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map(f=><FieldCard key={f.field_id} f={f} />)}
           {filtered.length===0 && (
-            <div className="col-span-full text-center py-12 text-slate-500">
-              <Map className="w-10 h-10 mx-auto mb-2 text-slate-700" />
-              <p>لا توجد حقول تطابق البحث</p>
+            <div className="col-span-full">
+              <EmptyState icon={<Map className="w-10 h-10 text-slate-700" />}
+                title={fields.length === 0 ? 'لا توجد حقول' : 'لا توجد حقول تطابق البحث'}
+                hint={fields.length === 0 ? 'أضِف حقلاً للبدء' : undefined} />
             </div>
           )}
         </div>
@@ -282,20 +324,22 @@ export default function FieldManagementPage() {
                       <td className="px-4 py-3 text-slate-300 font-mono">{f.gdd}</td>
                       <td className="px-4 py-3 text-emerald-400 font-semibold">{f.yield_est}</td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-1.5">
-                          <button onClick={()=>setShowSeason(f)} title="إضافة موسم"
-                            className="p-1.5 rounded hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
-                            <Sprout className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={()=>setEditField(f)}
-                            className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-slate-200">
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button onClick={()=>handleDelete(f.field_id)}
-                            className="p-1.5 rounded hover:bg-red-950 text-slate-400 hover:text-red-400">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        {mutateAllowed ? (
+                          <div className="flex gap-1.5">
+                            <button onClick={()=>setShowSeason(f)} title="إضافة موسم"
+                              className="p-1.5 rounded hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
+                              <Sprout className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={()=>setEditField(f)}
+                              className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-slate-200">
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={()=>handleDelete(f.field_id)}
+                              className="p-1.5 rounded hover:bg-red-950 text-slate-400 hover:text-red-400">
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : <span className="text-slate-600 text-xs">—</span>}
                       </td>
                     </tr>
                   );
