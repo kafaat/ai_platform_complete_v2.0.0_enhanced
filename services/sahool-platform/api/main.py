@@ -3448,6 +3448,7 @@ def field_intelligence_analyze(
     lat: float | None = None,
     lon: float | None = None,
     crop: str | None = None,
+    notify: bool = False,
     user: UserSchema = Depends(get_current_user),
 ):
     """يُشغّل المسار الكامل للمايسترو لحقل ويُرجِع الحالة الموحّدة + القرار.
@@ -3470,6 +3471,20 @@ def field_intelligence_analyze(
     # التنبيهات الاستباقيّة: من الحالة الموحّدة (change_detection/FVC يُمرَّران عند
     # توفّرهما من العامل — هنا الحالة فقط، فالمحرّك سلبيّ→استباقيّ على ما هو متاح).
     alerts = evaluate_alerts(state)
+    # التوصيل اختياريّ (notify=true): warning فأعلى عبر القنوات المُهيّأة. صدق:
+    # الإرسال الخارجي يحدث فقط عند تهيئة القناة (لا ادّعاء إرسال).
+    alerts_delivery = None
+    if notify and alerts:
+        from core.alert_delivery import deliver_alerts
+
+        alerts_delivery = deliver_alerts(
+            alerts,
+            context={
+                "field_id": state.field_id,
+                "tenant_id": state.tenant_id,
+                "now": state.generated_at,
+            },
+        )
     # حدث الحفظ جاهز (الكتابة الفعليّة في events عبر event_bus على بيئة التشغيل)
     try:
         event_row = state_to_event_row(state, actor_id=user.user_id)
@@ -3490,6 +3505,7 @@ def field_intelligence_analyze(
         "governance": result.governance,
         "alerts": alerts,  # تنبيهات استباقيّة مُصنّفة (محرّك التنبيهات)
         "alerts_summary": summarize_alerts(alerts),
+        "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
         "_persistable_event": event_row,  # جاهز للإدراج في events table
     }
 

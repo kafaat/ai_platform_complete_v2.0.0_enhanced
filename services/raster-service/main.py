@@ -704,6 +704,38 @@ async def fvc_compute(req: FvcComputeRequest, x_agent_token: str = Header(None))
     return result
 
 
+class SarRviRequest(BaseModel):
+    field_id: str
+    date: str
+    vv_grid: list[list[float | None]]  # σ°_VV (قدرة خطّيّة أو dB)
+    vh_grid: list[list[float | None]]  # σ°_VH
+    in_db: bool = False  # هل القيم بالديسيبل؟ (تُحوَّل للخطّي قبل النسبة)
+
+
+@app.post("/sar/rvi")
+async def sar_rvi_endpoint(req: SarRviRequest, x_agent_token: str = Header(None)):
+    """مؤشّر الغطاء الراداري RVI من Sentinel-1 VV/VH — يُكمل مقاومة السحاب.
+
+    RVI = 4·σ°VH/(σ°VV+σ°VH) (قدرة خطّيّة)، مقصوص [0,1] كبديل غطاء قابل للدمج مع
+    NDVI كـfamily="sar". المُدخلات شبكتا VV/VH مُحسبتان من COG رادار مُعايَر
+    (العامل، rasterio). صدق: فجوات NaN محفوظة. rvi_mean يُمرَّر كإشارة source=rvi.
+    """
+    _require_service_token(x_agent_token)
+    cells = sum(len(row) for row in req.vv_grid)
+    if cells > MAX_CHANGE_GRID_CELLS:
+        raise HTTPException(
+            status_code=413, detail=f"vv_grid كبير جدّاً: {cells} > {MAX_CHANGE_GRID_CELLS}"
+        )
+    import sar_rvi
+
+    try:
+        result = sar_rvi.compute_rvi(req.vv_grid, req.vh_grid, in_db=req.in_db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from None
+    result.update({"field_id": req.field_id, "date": req.date})
+    return result
+
+
 @app.get("/imagery/search/radar")
 async def imagery_search_radar(
     west: float,
@@ -1810,6 +1842,38 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
         return None
 
 
+async def _rvi_from_sar_cog(field_id: str, date: str) -> float | None:
+    """RVI من COG رادار ثنائي النطاق (VV=band1, VH=band2) إن وُجد، وإلّا None.
+
+    صدق: يحتاج COG Sentinel-1 مُعالَجاً (نطاقَين) للحقل؛ لا اختراع عند غيابه.
+    """
+    layer = await _resolve_field_layer(field_id, "rvi", date)
+    if layer is None:
+        layer = await _resolve_field_layer(field_id, "sar", date)
+    if layer is None:
+        return None
+    try:
+        import numpy as np
+        import rasterio
+        import sar_rvi
+    except Exception:  # noqa: BLE001 — rasterio غير متوفّر → لا RVI
+        return None
+    path = object_store.to_gdal_path(layer["cog_url"])
+    try:
+        with rasterio.open(path) as src:
+            if src.count < 2:
+                return None  # ليس ثنائي الاستقطاب (VV/VH)
+            vv = src.read(1).astype("float64")
+            vh = src.read(2).astype("float64")
+            if src.nodata is not None:
+                vv = np.where(vv == src.nodata, np.nan, vv)
+                vh = np.where(vh == src.nodata, np.nan, vh)
+    except Exception:  # noqa: BLE001 — قراءة فشلت → لا RVI
+        return None
+    res = sar_rvi.compute_rvi(vv, vh, in_db=False)
+    return res["rvi_mean"] if res["valid_pixels"] else None
+
+
 @app.get("/indices")
 async def field_indices(
     field_id: str,
@@ -1841,6 +1905,13 @@ async def field_indices(
     }
     coverage_val = None
     for idx in requested:
+        # rvi رادارية: تُحسب من COG ثنائي النطاق (VV/VH) لا band واحد
+        if idx == "rvi":
+            m = await _rvi_from_sar_cog(field_id, date)
+            out["rvi"] = m
+            if m is not None:
+                out["real_data"] = True
+            continue
         layer = await _resolve_field_layer(field_id, idx, date)
         real = _grid_from_cog(layer, idx, date, 16) if layer is not None else None
         if real is None:
