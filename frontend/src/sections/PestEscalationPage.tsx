@@ -57,9 +57,13 @@ export default function PestEscalationPage() {
   // البيئيّة/الاقتصاديّة. حاجز صارم (allowed=false) يمنع الموافقة.
   const actionType = String(ctx.action_type ?? '');
   const hasAction = !!actionType && actionType !== 'none';
-  const needsSafety = status === 'suspended' && hasAction;
-  // معرّف الـworkflow المُعلَّق كما ورد فعليّاً من الخادم — لا من حالة workflowId
-  // المحلّيّة التي تتغيّر فور الضغط على «تشغيل» قبل وصول الاستجابة (سباق).
+  // الـworkflow الحاليّ فقط (يطابق آخر تشغيل محلّيّ). يتفادى الحالة الحافّة: بعد
+  // guard.reset() لتشغيل جديد يفشل، تبقى استجابة الـworkflow القديم معروضة و
+  // suspendedWfId لا يتغيّر ⇒ لا يُعاد الفحص ⇒ البوّابة تتجمّد. ربطها بالحاليّ يحلّها.
+  const isCurrentWorkflow = !!res && res.workflow.workflow_id === workflowId;
+  const needsSafety = isCurrentWorkflow && status === 'suspended' && hasAction;
+  // معرّف الـworkflow المُعلَّق من الخادم — لا من workflowId المحلّيّ الذي يتغيّر قبل
+  // وصول الاستجابة (سباق).
   const suspendedWfId = needsSafety ? (res?.workflow.workflow_id ?? '') : '';
 
   useEffect(() => {
