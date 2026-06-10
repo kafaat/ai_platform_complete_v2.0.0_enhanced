@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from './hooks/useAuth';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
+import { canAccess } from './lib/permissions';
 
 // ── Error Boundary ──────────────────────────────────────────
 import React from 'react';
@@ -125,9 +126,9 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
         </div>
       )}
 
-      {/* Nav */}
+      {/* Nav — مُرشَّح حسب صلاحيّة الدور (RBAC فعليّ: لا تظهر صفحة لا يحقّ فتحها) */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {NAV.map(item => {
+        {NAV.filter(item => canAccess(user?.role, item.id)).map(item => {
           const Icon = item.icon;
           const active = page === item.id;
           return (
@@ -242,6 +243,20 @@ export default function App() {
   }
 
   const renderPage = () => {
+    // حارس RBAC: صفحة لا يحقّ للدور فتحها (عبر زر/رابط داخليّ) تُمنَع صراحةً.
+    if (!canAccess(user?.role, page)) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-center" dir="rtl">
+          <Shield className="w-10 h-10 text-amber-500 mb-3" />
+          <h2 className="text-lg font-bold text-slate-100">لا تملك صلاحيّة هذه الصفحة</h2>
+          <p className="text-sm text-slate-400 mt-1">دورك الحاليّ لا يسمح بالوصول إلى هذا القسم.</p>
+          <button onClick={() => setPage('dashboard')}
+            className="mt-4 px-4 py-2 rounded-lg text-sm text-emerald-400 border border-emerald-900 hover:bg-emerald-950">
+            العودة للوحة المعلومات
+          </button>
+        </div>
+      );
+    }
     switch(page) {
       case 'dashboard':    return <DashboardPage setPage={setPage} />;
       case 'hybrid-index': return <HybridIndexPage />;

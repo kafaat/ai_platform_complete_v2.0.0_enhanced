@@ -288,6 +288,15 @@ export function useAlerts() {
   });
 }
 
+// إقرار تنبيه (persist فعليّ عبر indicators). الواجهة تُحدّث تفاؤليّاً والـPATCH
+// يثبّت الإقرار على الخادم. صدق: لو تعذّرت النقطة، الإقرار يبقى محلّيّاً للجلسة.
+export function useAcknowledgeAlert() {
+  return useMutation<unknown, Error, string>({
+    mutationFn: (alertId) =>
+      indicatorsApi.patch(`/indicators/alerts/${alertId}/acknowledge`).then(r => r.data),
+  });
+}
+
 // ── v9: Supervisor Agent ──────────────────────────────────────
 export function useAgentQuery() {
   const { user } = useAuthStore();
