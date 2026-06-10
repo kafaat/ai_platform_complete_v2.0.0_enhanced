@@ -124,6 +124,108 @@ class InMemoryWorkflowStore:
         return WorkflowState.from_dict(d) if d else None
 
 
+class PostgresWorkflowStore:
+    """مخزن حالة معمّر على workflow_state (migrations v16+v17). يجعل الاستئناف
+    يصمد عبر إعادة التشغيل (عكس InMemory الذي يُفقَد). نفس عقد save/load.
+
+    ⚠ صدق: واجهة متزامنة فوق asyncpg عبر asyncio.run — لا تُستدعى من داخل event
+    loop نشط (run_workflow متزامن أصلاً؛ في خدمة async استدعِه عبر executor).
+    يفتح اتّصالاً قصير العمر لكلّ عمليّة (بسيط؛ الإنتاج عالي الإنتاجيّة يحقن pool).
+    يضبط app.current_tenant عند الحفظ ليُطبَّق RLS (FORCE) على الإدراج.
+    """
+
+    def __init__(self, dsn: str) -> None:
+        self._dsn = dsn
+
+    def _run(self, coro: Any) -> Any:
+        import asyncio
+
+        return asyncio.run(coro)
+
+    def save(self, state: WorkflowState) -> None:
+        self._run(self._save(state))
+
+    async def _save(self, state: WorkflowState) -> None:
+        import json
+
+        import asyncpg
+
+        d = state.to_dict()
+        conn = await asyncpg.connect(self._dsn)
+        try:
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, false)",
+                str(d["tenant_id"] or ""),
+            )
+            await conn.execute(
+                """
+                INSERT INTO workflow_state
+                  (workflow_id, tenant_id, status, completed_steps, step_results, context,
+                   current_step, error, compensated_steps, workflow_version, correlation_id, updated_at)
+                VALUES ($1,$2::uuid,$3,$4::jsonb,$5::jsonb,$6::jsonb,$7,$8,$9::jsonb,$10,$11,NOW())
+                ON CONFLICT (workflow_id) DO UPDATE SET
+                  status=EXCLUDED.status, completed_steps=EXCLUDED.completed_steps,
+                  step_results=EXCLUDED.step_results, context=EXCLUDED.context,
+                  current_step=EXCLUDED.current_step, error=EXCLUDED.error,
+                  compensated_steps=EXCLUDED.compensated_steps,
+                  workflow_version=EXCLUDED.workflow_version,
+                  correlation_id=EXCLUDED.correlation_id, updated_at=NOW()
+                """,
+                d["workflow_id"],
+                d["tenant_id"],
+                d["status"],
+                json.dumps(d["completed_steps"]),
+                json.dumps(d["step_results"]),
+                json.dumps(d["context"]),
+                d["current_step"],
+                d["error"],
+                json.dumps(d["compensated_steps"]),
+                d["workflow_version"],
+                d["correlation_id"],
+            )
+        finally:
+            await conn.close()
+
+    def load(self, workflow_id: str) -> WorkflowState | None:
+        return self._run(self._load(workflow_id))
+
+    async def _load(self, workflow_id: str) -> WorkflowState | None:
+        import json
+
+        import asyncpg
+
+        conn = await asyncpg.connect(self._dsn)
+        try:
+            row = await conn.fetchrow(
+                "SELECT * FROM workflow_state WHERE workflow_id=$1", workflow_id
+            )
+        finally:
+            await conn.close()
+        if not row:
+            return None
+
+        def _j(v: Any, default: Any) -> Any:
+            if v is None:
+                return default
+            return v if isinstance(v, list | dict) else json.loads(v)
+
+        return WorkflowState.from_dict(
+            {
+                "workflow_id": row["workflow_id"],
+                "tenant_id": str(row["tenant_id"]) if row["tenant_id"] else None,
+                "status": row["status"],
+                "completed_steps": _j(row["completed_steps"], []),
+                "step_results": _j(row["step_results"], {}),
+                "context": _j(row["context"], {}),
+                "current_step": row["current_step"],
+                "error": row["error"],
+                "compensated_steps": _j(row["compensated_steps"], []),
+                "workflow_version": row["workflow_version"] or "1",
+                "correlation_id": row["correlation_id"],
+            }
+        )
+
+
 def _compensate(steps: list[WorkflowStep], state: WorkflowState, store: Any) -> None:
     """يتراجع عن الخطوات المكتملة بالترتيب العكسي (Saga compensation).
 

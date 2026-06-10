@@ -50,3 +50,5 @@ v15_offline_synced_operations.sql
 # v16: حالة الـworkflow متعدّد الخطوات (durable/resumable) لـworkflow_engine.
 # يُطبّق RLS بنفسه (ENABLE + سياسة العزل)، فترتيبه بعد force_all آمن.
 v16_workflow_state.sql
+# v17: أعمدة WorkflowState الناقصة في v16 (للحفظ المعمّر الكامل).
+v17_workflow_state_full.sql
