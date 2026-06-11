@@ -20,7 +20,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isDemoMode: boolean;
   // Actions
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, mfaCode?: string) => Promise<void>;
   signup: (data: { full_name: string; email: string; password: string }) => Promise<void>;
   loginDemo: () => void;
   logout: () => void;
@@ -36,8 +36,10 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isDemoMode: false,
 
-      login: async (email: string, password: string) => {
-        const data = await apiLogin({ email, password });
+      login: async (email: string, password: string, mfaCode?: string) => {
+        // mfaCode اختياريّ — يُمرَّر فقط للحسابات المُفعّل لها MFA. الخادم يرفض
+        // بـ401 + X-MFA-Required إن لزم رمز ولم يُرسَل (يلتقطه LoginPage).
+        const data = await apiLogin({ email, password, ...(mfaCode ? { mfa_code: mfaCode } : {}) });
         const token    = data.access_token;
         const tenantId = data.user?.tenant_id || data.tenant_id || 'default';
         const user: AuthUser = {
