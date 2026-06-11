@@ -1,23 +1,20 @@
-// SAHOOL v8.0 — SatellitePage.tsx (v2)
-// ✅ خريطة أولاً + 7 طبقات + قيمة البكسل + شريط زمني
-import { useState } from 'react';
-import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Info } from 'lucide-react';
+// SAHOOL v9 — SatellitePage.tsx (v3)
+// ✅ خريطة Leaflet حقيقيّة (FieldIndicatorMap) ببلاطات مؤشّر من raster-service
+//    بدل الشبكة المتدرّجة + NDVI الجيبيّ الوهميّ السابق.
+// ✅ الحقول من القاعدة (useFields) بدل قائمة مُبرمَجة.
+import { useState, useEffect } from 'react';
+import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
-import { useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI, useIndicatorGrid, type GridIndex } from '../hooks/useApi';
+import {
+  useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
+  useIndicatorGrid, useFields, type GridIndex,
+} from '../hooks/useApi';
+import FieldIndicatorMap from '../components/FieldIndicatorMap';
+import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
-// أي مؤشر من طبقات الواجهة يملك شبكة per-pixel حقيقيّة في raster-service؟
+// أيّ مؤشّر من طبقات الواجهة يملك بلاطات/شبكة حقيقيّة في raster-service؟
+// غير المدعوم يسقط إلى ndvi (الخدمة تُرجِع بلاطات شفّافة لغير المدعوم).
 const GRID_INDEX_MAP: Record<string, GridIndex> = { ndvi: 'ndvi', ndwi: 'ndwi' };
-
-const FIELDS = [
-  { id:'field_01', name:'حقل وادي سبأ',        lat:15.05, lon:45.55, area:23.5, crop:'قمح صلب' },
-  { id:'field_02', name:'حقل البيضاء الشمالي', lat:15.02, lon:45.58, area:32.0, crop:'شعير' },
-  { id:'field_03', name:'حقل البيضاء الجنوبي', lat:14.98, lon:45.52, area:18.7, crop:'ذرة صفراء' },
-  { id:'field_04', name:'حقل رداع الغربي',     lat:14.92, lon:45.48, area:41.3, crop:'طماطم' },
-  { id:'field_05', name:'حقل ذي السفال',       lat:14.88, lon:45.60, area:28.9, crop:'قمح صلب' },
-  { id:'field_06', name:'حقل عتمة الشرقي',    lat:15.10, lon:45.62, area:37.5, crop:'شعير' },
-  { id:'field_07', name:'حقل الرياشية',        lat:15.00, lon:45.45, area:22.1, crop:'خضروات' },
-  { id:'field_08', name:'حقل ذي ناعم',         lat:14.85, lon:45.65, area:45.0, crop:'بطاطس' },
-];
 
 const INDICES = [
   { id:'ndvi',  name:'NDVI',  desc:'الغطاء النباتي', color:'#16a34a', icon:'🌿' },
@@ -28,6 +25,11 @@ const INDICES = [
   { id:'lai',   name:'LAI',   desc:'مساحة الورق',    color:'#8b5cf6', icon:'🍃' },
   { id:'rgb',   name:'صورة حقيقية', desc:'Sentinel-2 RGB', color:'#6b7280', icon:'🛰️' },
 ];
+
+interface SatField {
+  id: string; name: string; area: number; crop: string;
+  lat: number | null; lon: number | null; geometry: any;
+}
 
 function ndviColor(v: number) {
   if (v > 0.7) return '#16a34a';
@@ -43,61 +45,59 @@ function ndviLabel(v: number) {
   return 'منخفض';
 }
 
+// هندسة الحقل (GeoJSON Polygon، إحداثيّات [lon,lat]) → مضلّع Leaflet [lat,lng].
+function geomToPolygon(geometry: any): [number, number][] | undefined {
+  const ring = geometry?.coordinates?.[0];
+  if (!Array.isArray(ring) || ring.length < 3) return undefined;
+  return ring
+    .filter((c: any) => Array.isArray(c) && c.length >= 2)
+    .map((c: number[]) => [c[1], c[0]] as [number, number]);
+}
+
 export default function SatellitePage() {
-  const [fieldId,      setFieldId]      = useState('field_01');
-  const [activeIndex,  setActiveIndex]  = useState('ndvi');
-  const [opacity,      setOpacity]      = useState(75);
-  const [days,         setDays]         = useState(30);
-  const [showLayers,   setShowLayers]   = useState(true);
-  const [pixelInfo,    setPixelInfo]    = useState<{lat:number;lon:number;ndvi:number;real:boolean}|null>(null);
+  const { data: fieldsData, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFields();
+  const fields: SatField[] = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
+    id: String(f.field_id ?? f.id),
+    name: String(f.name_ar ?? f.name ?? 'حقل'),
+    area: Number(f.area_ha ?? f.area ?? 0),
+    crop: String(f.crop ?? '—'),
+    lat: f.lat ?? f.centroid_lat ?? null,
+    lon: f.lon ?? f.centroid_lon ?? null,
+    geometry: f.geometry,
+  }));
 
-  const field = FIELDS.find(f => f.id === fieldId) || FIELDS[0];
-  const idx   = INDICES.find(i => i.id === activeIndex) || INDICES[0];
+  const [fieldId,     setFieldId]     = useState('');
+  const [activeIndex, setActiveIndex] = useState('ndvi');
+  const [days,        setDays]        = useState(30);
+  const [showLayers,  setShowLayers]  = useState(true);
 
-  const { data: tsData,  isLoading: tsLoading  } = useVegetationTimeseries(fieldId, days);
-  const { data: ndviNow, isLoading: ndviLoading } = useCurrentNDVI(fieldId);
+  // أوّل حقل حقيقيّ يصبح المختار افتراضيّاً عند توفّر القائمة.
+  useEffect(() => {
+    if (!fieldId && fields.length) setFieldId(fields[0].id);
+  }, [fields, fieldId]);
+
+  const field = fields.find((f) => f.id === fieldId) || fields[0];
+  const idx   = INDICES.find((i) => i.id === activeIndex) || INDICES[0];
+  const gridIndex = GRID_INDEX_MAP[activeIndex] ?? 'ndvi';
+
+  const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
+  const { data: ndviNow }                        = useCurrentNDVI(fieldId);
   const { mutateAsync: analyze, isPending: analyzing } = useAnalyzeVegetation();
 
-  // شبكة المؤشر الحقيقيّة لكل بكسل (Sentinel-2 / Element84) — للقراءة عند النقر
-  const gridIndex = GRID_INDEX_MAP[activeIndex] ?? 'ndvi';
+  // شبكة المؤشّر الحقيقيّة — لوسم مصدر البيانات بصدق (حقيقيّة / لا توجد بعد).
   const { data: gridResp } = useIndicatorGrid(fieldId, gridIndex, 'latest');
   const hasGrid = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
 
   const ts: any[] = tsData?.timeseries || (tsData as { data?: any[] } | undefined)?.data || [];
-  const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length-1]?.ndvi ?? null;
-  const thumbs = ts.filter((_,i) => i % Math.max(1,Math.floor(ts.length/8)) === 0).slice(0,8);
+  const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length - 1]?.ndvi ?? null;
+  const thumbs = ts.filter((_, i) => i % Math.max(1, Math.floor(ts.length / 8)) === 0).slice(0, 8);
 
-  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;   // 0=يسار, 1=يمين
-    const y = (e.clientY - rect.top)  / rect.height;  // 0=أعلى, 1=أسفل
-
-    // قراءة قيمة البكسل الحقيقيّة من الشبكة: تطبيع موضع النقر داخل bbox → grid[r][c]
-    if (hasGrid && gridResp) {
-      const [minLon, minLat, maxLon, maxLat] = gridResp.bbox;
-      const lon = minLon + x * (maxLon - minLon);
-      const lat = maxLat - y * (maxLat - minLat); // الصف 0 = أعلى الحقل (أقصى خط عرض)
-      const c = Math.min(gridResp.cols - 1, Math.max(0, Math.floor(x * gridResp.cols)));
-      const r = Math.min(gridResp.rows - 1, Math.max(0, Math.floor(y * gridResp.rows)));
-      const cell = gridResp.grid[r]?.[c];
-      if (cell != null) {
-        setPixelInfo({ lat, lon, ndvi: cell, real: true });
-        return;
-      }
-      // خلية خارج الحقل / لا بيانات → أبلغ بصدق بدل تلفيق قيمة
-      setPixelInfo({ lat, lon, ndvi: NaN, real: true });
-      return;
-    }
-
-    // سقوط آمن: تقدير توضيحي عند غياب الشبكة الحقيقيّة (موسوم بوضوح في الواجهة)
-    const mockNdvi = 0.35 + Math.sin(x*5+y*3)*0.25 + Math.cos(x*3+y*5)*0.15;
-    setPixelInfo({
-      lat: field.lat + (0.5-y)*0.1,
-      lon: field.lon + (x-0.5)*0.1,
-      ndvi: Math.max(-1, Math.min(1, mockNdvi)),
-      real: false,
-    });
-  };
+  // مضلّع الحقل + إطار احتياطيّ للخريطة من هندسة/مركز الحقل الحقيقيّ.
+  const fieldPolygon = field ? geomToPolygon(field.geometry) : undefined;
+  const fallbackBounds: [number, number, number, number] | undefined =
+    field && field.lat != null && field.lon != null
+      ? [field.lon - 0.01, field.lat - 0.01, field.lon + 0.01, field.lat + 0.01]
+      : undefined;
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto" dir="rtl">
@@ -111,83 +111,53 @@ export default function SatellitePage() {
           <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-900">
             <Wifi className="w-3 h-3" /> Copernicus CDSE
           </span>
-          <button onClick={() => analyze({ fieldId })} disabled={analyzing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white"
+          <button onClick={() => fieldId && analyze({ fieldId })} disabled={analyzing || !fieldId}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
             style={{ background: analyzing ? '#15803d' : '#16a34a' }}>
             {analyzing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحليل...</> : <><RefreshCw className="w-3.5 h-3.5" /> تحليل الآن</>}
           </button>
         </div>
       </div>
 
+      {/* لا حقول حقيقيّة بعد → حالة صادقة بدل خريطة وهميّة */}
+      {fieldsLoading ? (
+        <LoadingState message="جارٍ تحميل الحقول…" />
+      ) : fieldsError ? (
+        <ErrorState title="تعذّر تحميل الحقول من الخادم" onRetry={() => refetch()} />
+      ) : fields.length === 0 ? (
+        <EmptyState
+          title="لا توجد حقول بعد"
+          hint="أضِف حقلاً من شاشة «إدارة الحقول» (ارسم حدوده على الخريطة) لعرض مؤشّراته الفضائيّة."
+        />
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Map */}
         <div className="lg:col-span-3 space-y-3">
-          <div style={{ height:400, position:'relative', borderRadius:12, overflow:'hidden', border:'1px solid #334155', cursor:'crosshair' }}
-            onClick={handleMapClick}>
-            {/* Background */}
-            <div className="absolute inset-0" style={{ background:'linear-gradient(135deg,#1a2a1a,#0a1a0a,#1a1a2a)' }} />
-            {/* Grid */}
-            <div className="absolute inset-0 opacity-10" style={{
-              backgroundImage:'repeating-linear-gradient(0deg,transparent,transparent 39px,#16a34a22 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,#16a34a22 40px)'
-            }} />
-            {/* NDVI overlay */}
-            {idx.id !== 'rgb' && (
-              <div className="absolute inset-0" style={{ opacity: opacity/100,
-                background:`linear-gradient(45deg, ${idx.color}55 0%, ${idx.color}22 50%, ${idx.color}44 100%)` }} />
-            )}
-            {/* Pivot circles — قيم العرض التوضيحي؛ القيمة الحقيقية من زر "تحليل الآن" */}
-            {[{x:'35%',y:'40%',r:90,v:currentNdvi},{x:'65%',y:'60%',r:70,v:null}].map((p,i)=>(
-              <div key={i} className="absolute rounded-full border-2 flex items-center justify-center"
-                style={{ left:p.x, top:p.y, width:p.r*2, height:p.r*2, transform:'translate(-50%,-50%)',
-                  borderColor: p.v!=null?ndviColor(p.v):'#475569', background:`radial-gradient(circle,${p.v!=null?ndviColor(p.v):'#475569'}22,transparent)` }}>
-                <div className="text-center">
-                  <div className="text-sm font-bold" style={{ color:p.v!=null?ndviColor(p.v):'#94a3b8' }}>{p.v!=null?p.v.toFixed(2):'—'}</div>
-                  <div className="text-[9px] text-slate-300">{p.v!=null?ndviLabel(p.v):'لا بيانات'}</div>
-                </div>
-              </div>
-            ))}
-            {/* Layer badge */}
-            <div className="absolute top-3 right-3 z-10 px-2.5 py-1.5 rounded-xl text-sm font-bold"
-              style={{ background:'#0f1117dd', color:idx.color, border:`1px solid ${idx.color}44` }}>
-              {idx.icon} {idx.name}
-            </div>
-            {/* Pixel info */}
-            {pixelInfo && (() => {
-              const noData = Number.isNaN(pixelInfo.ndvi);
-              const valLabel = pixelInfo.real
-                ? `${gridIndex.toUpperCase()} (حقيقي)`
-                : 'NDVI (تقديري)';
-              const valColor = noData ? '#94a3b8' : ndviColor(pixelInfo.ndvi);
-              return (
-                <div className="absolute top-3 left-3 z-10 rounded-xl p-3 text-xs"
-                  style={{ background:'#0f1117dd', border:'1px solid #334155', backdropFilter:'blur(8px)' }}>
-                  <div className="mb-1 flex items-center gap-1"
-                    style={{ color: pixelInfo.real ? '#4ade80' : '#94a3b8' }}>
-                    <Info className="w-3 h-3" /> {pixelInfo.real ? 'قيمة حقيقية · Sentinel-2 (Element84)' : 'قيمة تقديرية للعرض'}
-                  </div>
-                  {[[valLabel, noData ? 'لا بيانات' : pixelInfo.ndvi.toFixed(2), valColor],
-                    ['الحالة', noData ? 'خارج الحقل' : ndviLabel(pixelInfo.ndvi), valColor],
-                    ['lat', pixelInfo.lat.toFixed(5), '#94a3b8'],
-                    ['lon', pixelInfo.lon.toFixed(5), '#94a3b8']].map(([k,v,c],i)=>(
-                    <div key={i} className="flex justify-between gap-6">
-                      <span className="text-slate-500">{k}</span>
-                      <span className="font-bold" style={{ color:c as string }}>{v}</span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-            {!pixelInfo && (
-              <div className="absolute bottom-3 left-3 z-10 px-2 py-1 rounded text-[10px] text-slate-400"
-                style={{ background:'#0f1117cc' }}>
-                {hasGrid ? 'انقر لقراءة قيمة البكسل الحقيقيّة' : 'انقر لعرض قيمة تقديرية (للعرض فقط)'}
-              </div>
-            )}
-            {/* Attribution */}
-            <div className="absolute bottom-2 right-2 text-[10px] text-slate-600">Sentinel-2 © Copernicus</div>
+          {/* شريط مصدر البيانات: بلاطات حقيقيّة أم لا توجد بعد (صدق المصدر) */}
+          <div className="flex items-center gap-2 text-[11px] px-3 py-2 rounded-lg border"
+            style={hasGrid
+              ? { background:'#13301f', borderColor:'#2d6a3e', color:'#9fe6b4' }
+              : { background:'#3a2e14', borderColor:'#7a5a1a', color:'#f0d68a' }}>
+            <MapIcon className="w-3.5 h-3.5" />
+            {hasGrid
+              ? `بلاطات حقيقيّة · Sentinel-2 (Element84)${gridResp?.date ? ` · ${gridResp.date}` : ''}`
+              : 'لا توجد بلاطات مؤشّر لهذا الحقل بعد — اضغط «تحليل الآن» أو تحقّق من معالجة الراستر. الخريطة تعرض الأساس والحدود فقط.'}
           </div>
 
-          {/* Thumbnail strip */}
+          {/* خريطة Leaflet حقيقيّة ببلاطات المؤشّر مقصوصة فوق الحقل */}
+          <FieldIndicatorMap
+            key={fieldId}
+            fieldId={fieldId}
+            index={gridIndex}
+            date="latest"
+            fieldPolygon={fieldPolygon}
+            fallbackBounds={fallbackBounds}
+            basemap="satellite"
+            initialOpacity={0.75}
+            height={400}
+          />
+
+          {/* Thumbnail strip (سلسلة زمنيّة حقيقيّة من vegetation-service) */}
           <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-emerald-400" />
@@ -209,8 +179,7 @@ export default function SatellitePage() {
                 {thumbs.map((t,i)=>{
                   const v = t.ndvi||0; const c = ndviColor(v);
                   return (
-                    <div key={i} className="flex-shrink-0 w-18 cursor-pointer" style={{width:72}}
-                      onClick={()=>setPixelInfo({lat:field.lat,lon:field.lon,ndvi:v,real:false})}>
+                    <div key={i} className="flex-shrink-0 cursor-default" style={{width:72}}>
                       <div className="h-10 rounded-lg mb-1 border" style={{
                         borderColor:'#334155',
                         background:`linear-gradient(135deg,${c}44,${c}88,${c}44)`
@@ -230,20 +199,20 @@ export default function SatellitePage() {
 
         {/* Side panel */}
         <div className="space-y-3">
-          {/* Field selector */}
+          {/* Field selector (حقول حقيقيّة) */}
           <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
             <label className="block text-xs text-slate-400 mb-1">الحقل</label>
             <select value={fieldId} onChange={e=>setFieldId(e.target.value)}
               className="w-full px-3 py-2 rounded-lg text-sm"
               style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
-              {FIELDS.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}
+              {fields.map(f=><option key={f.id} value={f.id}>{f.name}</option>)}
             </select>
             <div className="grid grid-cols-2 gap-1.5 mt-2">
               {[
                 {l:'NDVI',v:currentNdvi!=null?currentNdvi.toFixed(3):'لا بيانات',c:currentNdvi!=null?ndviColor(currentNdvi):'#94a3b8'},
                 {l:'الحالة',v:currentNdvi!=null?ndviLabel(currentNdvi):'بانتظار التحليل',c:currentNdvi!=null?ndviColor(currentNdvi):'#94a3b8'},
-                {l:'المساحة',v:`${field.area}هـ`,c:'#94a3b8'},
-                {l:'المحصول',v:field.crop,c:'#94a3b8'},
+                {l:'المساحة',v:field?`${field.area}هـ`:'—',c:'#94a3b8'},
+                {l:'المحصول',v:field?field.crop:'—',c:'#94a3b8'},
               ].map((s,i)=>(
                 <div key={i} className="rounded-lg px-2 py-1.5 text-center" style={{background:'#0f1117'}}>
                   <div className="text-xs font-bold" style={{color:s.c}}>{s.v}</div>
@@ -265,25 +234,25 @@ export default function SatellitePage() {
             </button>
             {showLayers && (
               <div className="px-2 pb-3 space-y-1">
-                {INDICES.map(ind=>(
-                  <button key={ind.id} onClick={()=>setActiveIndex(ind.id)}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right"
-                    style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
-                      border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
-                    <span>{ind.icon}</span>
-                    <div className="flex-1">
-                      <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
-                      <div className="text-[10px] text-slate-600">{ind.desc}</div>
-                    </div>
-                  </button>
-                ))}
-                <div className="pt-1 px-1">
-                  <div className="flex justify-between text-[11px] mb-1 text-slate-400">
-                    <span>شفافية</span><span>{opacity}%</span>
-                  </div>
-                  <input type="range" min="0" max="100" value={opacity}
-                    onChange={e=>setOpacity(+e.target.value)} className="w-full accent-emerald-500" />
-                </div>
+                {INDICES.map(ind=>{
+                  // فقط المؤشّرات التي لها بلاطات حقيقيّة قابلة للاختيار — تعطيل
+                  // الباقي يمنع تضليل المستخدم (خريطة NDVI تحت عنوان EVI مثلاً).
+                  const supported = ind.id in GRID_INDEX_MAP;
+                  return (
+                    <button key={ind.id} disabled={!supported}
+                      onClick={()=> supported && setActiveIndex(ind.id)}
+                      title={supported ? undefined : 'بلاطات هذا المؤشّر غير متوفّرة بعد'}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right disabled:opacity-40 disabled:cursor-not-allowed"
+                      style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
+                        border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
+                      <span>{ind.icon}</span>
+                      <div className="flex-1">
+                        <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
+                        <div className="text-[10px] text-slate-600">{ind.desc}{!supported && ' · بلاطات قريباً'}</div>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -298,6 +267,7 @@ export default function SatellitePage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Time-series chart */}
       <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
