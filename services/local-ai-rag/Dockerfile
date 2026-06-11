@@ -2,10 +2,13 @@ FROM python:3.11-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends     gcc curl && rm -rf /var/lib/apt/lists/*
 COPY services/local-ai-rag/requirements.txt /tmp/requirements.txt
-# ── PyPI الرسمي (افتراضي، يعمل عالميّاً) — للمرآة الصينيّة مرّر --build-arg ──
-# البديل: https://mirrors.aliyun.com/pypi/simple/ (علي بابا)
-ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-ARG PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+# ── PyPI الرسمي هو الافتراضي فعليّاً (يعمل عالميّاً، لا اعتماد على مرآة طرف ثالث) ──
+# للمرآة الصينيّة (تسريع داخل الصين) مرّر:
+#   --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
+#   --build-arg PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+# (أو علي بابا: https://mirrors.aliyun.com/pypi/simple/)
+ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_TRUSTED_HOST=pypi.org
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN pip install --no-cache-dir -r /tmp/requirements.txt

@@ -24,7 +24,6 @@ from jose import JWTError as _JE
 from jose import jwt as _jjwt
 
 # LangChain imports
-from langchain.chains import RetrievalQA
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 
 # مسارات مستقرّة (langchain_core/langchain_text_splitters) بدل langchain.schema
@@ -56,6 +55,8 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "150"))
 NUM_CTX = int(os.getenv("NUM_CTX", "8192"))  # context window
 # مصادقة خدمة-لخدمة: استيعاب المستندات يكتب لقاعدة المعرفة — منع تسميم RAG
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+# حدّ أقصى لحجم الملفّ المرفوع (منع DoS عبر تحميل ملفّ ضخم في الذاكرة).
+MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "25"))
 
 
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
@@ -84,19 +85,20 @@ async def wait_for_ollama(timeout: float = 120.0):
                     if LLM_MODEL in model_names and EMBED_MODEL in model_names:
                         logger.info(f"Ollama ready. Models: {model_names}")
                         return True
+                    # النماذج غير حاضرة بعد: نطلب السحب ثمّ **نعيد الفحص** في الدورة
+                    # التالية. لا نُرجِع True هنا (كان يُعلِن الجاهزيّة زوراً قبل اكتمال
+                    # السحب، فيفشل أوّل /query بـ500 بدل انتظار صادق).
                     logger.info(f"Ollama up. Pulling {LLM_MODEL} + {EMBED_MODEL}...")
-                    # Trigger pulls (non-blocking)
                     await client.post(
                         f"{OLLAMA_BASE_URL}/api/pull", json={"name": LLM_MODEL}, timeout=300.0
                     )
                     await client.post(
                         f"{OLLAMA_BASE_URL}/api/pull", json={"name": EMBED_MODEL}, timeout=300.0
                     )
-                    return True
             except Exception as e:  # noqa: BLE001
                 logger.warning("تعذّر سحب نماذج Ollama (محاولة): %s", type(e).__name__)
             await asyncio.sleep(5)
-    raise RuntimeError("Ollama not available")
+    raise RuntimeError("Ollama not available — النماذج لم تجهز ضمن المهلة")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -109,17 +111,32 @@ def init_vectorstore() -> QdrantVectorStore:
 
     embeddings = OllamaEmbeddings(model=EMBED_MODEL, base_url=OLLAMA_BASE_URL)
 
-    _vectorstore = QdrantVectorStore.from_documents(
-        documents=[
-            Document(page_content="SAHOOL initialization document.", metadata={"source": "init"})
-        ],
-        embedding=embeddings,
-        url=QDRANT_URL,
-        prefer_grpc=False,
-        collection_name=COLLECTION_NAME,
-        force_recreate=False,  # keep existing
-    )
-    logger.info("Qdrant vector store connected")
+    # نتّصل بالمجموعة القائمة إن وُجدت (لا نُدخِل وثيقة init وهميّة في كلّ إقلاع —
+    # كانت تتراكم وتظهر كـ«مصدر» ملوّثاً للنتائج). نُنشئها بوثيقة بذرة بلا
+    # tenant_id (فلا تَظهر لأيّ مستأجِر بعد فلترة العزل) فقط إن لم تكن موجودة.
+    try:
+        _vectorstore = QdrantVectorStore.from_existing_collection(
+            embedding=embeddings,
+            url=QDRANT_URL,
+            prefer_grpc=False,
+            collection_name=COLLECTION_NAME,
+        )
+        logger.info("Qdrant vector store connected (existing collection)")
+    except Exception:  # noqa: BLE001 — المجموعة غير موجودة بعد ⇒ ننشئها مرّة واحدة
+        _vectorstore = QdrantVectorStore.from_documents(
+            documents=[
+                Document(
+                    page_content="SAHOOL initialization document.",
+                    metadata={"source": "init"},  # بلا tenant_id ⇒ مُستبعَد بفلتر العزل
+                )
+            ],
+            embedding=embeddings,
+            url=QDRANT_URL,
+            prefer_grpc=False,
+            collection_name=COLLECTION_NAME,
+            force_recreate=False,
+        )
+        logger.info("Qdrant vector store created (new collection)")
     return _vectorstore
 
 
@@ -188,37 +205,70 @@ async def ingest_documents(file_paths: list[Path], tenant_id: str = "default") -
 # ══════════════════════════════════════════════════════════════
 # RAG Query
 # ══════════════════════════════════════════════════════════════
-async def query_rag(question: str, tenant_id: str = "default", k: int = 5) -> dict:
+# prompt تأريض صارم: الإجابة من السياق المُسترجَع فقط، ورفض صريح عند عدم الكفاية.
+# يمنع النموذج من الإجابة من معرفته الداخليّة أو اختلاق مصادر (مبدأ: لا بيانات مُلفَّقة).
+_NO_KNOWLEDGE_AR = "لا تتوفّر معلومات كافية في قاعدة المعرفة للإجابة على هذا السؤال."
+_GROUNDED_PROMPT = (
+    "أنت مستشار زراعيّ. أجب حصراً اعتماداً على «السياق» أدناه. إن لم يكن في السياق ما "
+    "يكفي للإجابة، فقل حرفيّاً: «" + _NO_KNOWLEDGE_AR + "» — لا تستعمل معرفتك العامّة "
+    "ولا تختلق مصادر أو أرقاماً.\n\nالسياق:\n{context}\n\nالسؤال: {question}\n\nالإجابة:"
+)
+
+
+async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
+    """استعلام RAG مُؤرَّض ومعزول بالمستأجِر.
+
+    - العزل: يُفلتَر دائماً بـtenant_id المُشتَقّ من الـJWT (لا من جسم الطلب، ولا
+      استثناء لـ"default") — يمنع القراءة العابرة للمستأجرين.
+    - التأريض: لا نُجيب إلّا من الوثائق المُسترجَعة؛ عند فراغ الاسترجاع نردّ رفضاً
+      صريحاً بلا مصادر (لا هلوسة).
+    - الصدق التشغيليّ: تعطّل Qdrant/Ollama يُترجَم إلى 503 صريح لا 500 مبهَم.
+    """
     vs = init_vectorstore()
     llm = init_llm()
 
-    # Filter by tenant (Qdrant payload filter)
     from qdrant_client.http.models import FieldCondition, Filter, MatchValue
 
-    filters = (
-        Filter(must=[FieldCondition(key="metadata.tenant_id", match=MatchValue(value=tenant_id))])
-        if tenant_id != "default"
-        else None
+    # فلتر العزل **دائماً** (لكلّ المستأجرين بمن فيهم "default"): لا يرى المستأجِر
+    # إلّا وثائقه. وثيقة init بلا tenant_id ⇒ مُستبعَدة تلقائيّاً.
+    tenant_filter = Filter(
+        must=[FieldCondition(key="metadata.tenant_id", match=MatchValue(value=tenant_id))]
     )
+    retriever = vs.as_retriever(search_kwargs={"k": k, "filter": tenant_filter})
 
-    retriever = vs.as_retriever(search_kwargs={"k": k, "filter": filters})
+    try:
+        docs = await asyncio.to_thread(retriever.invoke, question)
+    except Exception as e:  # noqa: BLE001 — تعطّل Qdrant/Ollama ⇒ 503 صادق
+        logger.warning("فشل استرجاع المعرفة: %s", type(e).__name__)
+        raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر الاسترجاع)") from e
 
-    qa = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=retriever,
-        return_source_documents=True,
-    )
+    # لا سياق ⇒ رفض صريح بلا مصادر (لا نستدعي النموذج لئلّا يُجيب من معرفته).
+    if not docs:
+        return {
+            "question": question,
+            "answer": _NO_KNOWLEDGE_AR,
+            "model": LLM_MODEL,
+            "sources": [],
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
 
-    result = await asyncio.to_thread(qa.invoke, {"query": question})
-    answer = result.get("result", "")
+    context = "\n\n".join(d.page_content for d in docs)
+    prompt = _GROUNDED_PROMPT.format(context=context, question=question)
+    try:
+        resp = await asyncio.to_thread(llm.invoke, prompt)
+    except Exception as e:  # noqa: BLE001 — تعطّل Ollama ⇒ 503 صادق
+        logger.warning("فشل توليد الإجابة: %s", type(e).__name__)
+        raise HTTPException(503, "خدمة المعرفة غير متاحة حاليّاً (تعذّر التوليد)") from e
+
+    answer = getattr(resp, "content", None) or str(resp)
     sources = [
         {
             "source": d.metadata.get("source_file", "unknown"),
             "page": d.metadata.get("page", 0),
-            "snippet": d.page_content[:200] + "...",
+            # "..." فقط عند الاقتطاع الفعليّ (لا نوحي باقتطاع لم يحدث).
+            "snippet": d.page_content[:200] + ("..." if len(d.page_content) > 200 else ""),
         }
-        for d in result.get("source_documents", [])
+        for d in docs
     ]
 
     return {
@@ -252,6 +302,10 @@ _RAG_ALG = "RS256" if _RAG_PUBLIC else "HS256"
 
 
 async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
+    # fail-closed: بلا سرّ/مفتاح مضبوط لا يجوز التحقّق (سرّ HS256 فارغ كان يقبل
+    # توكنات مزوّرة). نرفض بـ503 كما يفعل حارس توكن الخدمة، لا نسمح بمرور صامت.
+    if not _RAG_SECRET:
+        raise HTTPException(503, "JWT_SECRET/JWT_PUBLIC_KEY غير مضبوط — المصادقة معطّلة بأمان")
     if not creds:
         raise HTTPException(401, "Authentication required")
     try:
@@ -278,7 +332,7 @@ except ImportError:
 # ══════════════════════════════════════════════════════════════
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=3, max_length=2000)
-    tenant_id: str = "default"
+    # ملاحظة: tenant_id لا يُؤخَذ من جسم الطلب (كان ثغرة عزل) — يُشتَقّ من الـJWT.
     k: int = Field(5, ge=1, le=20)
 
 
@@ -295,8 +349,11 @@ class QueryResponse(BaseModel):
 # ══════════════════════════════════════════════════════════════
 @app.post("/query", response_model=QueryResponse)
 async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user)):
-    result = await query_rag(req.question, req.tenant_id, req.k)
-    return result
+    # العزل من مصدر موثوق: tenant_id من الـJWT لا من جسم الطلب (يمنع قراءة مستأجِر آخر).
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(401, "التوكن لا يحمل tenant_id")
+    return await query_rag(req.question, str(tenant_id), req.k)
 
 
 @app.post("/ingest")
@@ -316,8 +373,12 @@ async def ingest_endpoint(
         if suffix not in (".pdf", ".txt", ".md", ".csv"):
             raise HTTPException(400, f"Unsupported: {suffix}")
 
-        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
         content = await upload.read()
+        if len(content) > MAX_UPLOAD_MB * 1024 * 1024:
+            raise HTTPException(
+                413, f"الملفّ {upload.filename} يتجاوز الحدّ الأقصى ({MAX_UPLOAD_MB}MB)"
+            )
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
         tmp.write(content)
         tmp.close()
         paths.append(Path(tmp.name))

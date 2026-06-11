@@ -38,6 +38,8 @@ class TestRAGConfig:
         import os
 
         url = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
-        assert "localhost" not in url or "127.0.0.1" not in url, (
+        # AND لا OR: العنوان يجب ألّا يحوي localhost **ولا** 127.0.0.1 (كان OR
+        # يمرّر http://localhost:6333 لأنّه لا يحوي 127.0.0.1).
+        assert "localhost" not in url and "127.0.0.1" not in url, (
             "Qdrant URL should not point to localhost inside Docker"
         )
