@@ -25,7 +25,10 @@ def test_centroid_from_bbox_handles_missing():
 
 
 def test_row_to_field_summary_parses_jsonb_string():
-    geom = {"type": "Polygon", "coordinates": [[[45.5, 15.0], [45.6, 15.0], [45.6, 15.1], [45.5, 15.0]]]}
+    geom = {
+        "type": "Polygon",
+        "coordinates": [[[45.5, 15.0], [45.6, 15.0], [45.6, 15.1], [45.5, 15.0]]],
+    }
     row = {
         "field_id": "fld_abc",
         "farm_id": None,
@@ -58,7 +61,9 @@ def test_validate_geometry_accepts_good_yemen_polygon():
     # مضلّع صغير سليم داخل اليمن (إغلاق صريح)
     geom = {
         "type": "Polygon",
-        "coordinates": [[[45.50, 15.00], [45.52, 15.00], [45.52, 15.02], [45.50, 15.02], [45.50, 15.00]]],
+        "coordinates": [
+            [[45.50, 15.00], [45.52, 15.00], [45.52, 15.02], [45.50, 15.02], [45.50, 15.00]]
+        ],
     }
     result = validate_field_geometry(geom)
     assert result.valid is True
@@ -71,7 +76,9 @@ def test_validate_geometry_rejects_self_intersecting():
     # شكل الفراشة (bowtie) — تقاطع ذاتيّ ⇒ غير صالح
     geom = {
         "type": "Polygon",
-        "coordinates": [[[45.50, 15.00], [45.52, 15.02], [45.52, 15.00], [45.50, 15.02], [45.50, 15.00]]],
+        "coordinates": [
+            [[45.50, 15.00], [45.52, 15.02], [45.52, 15.00], [45.50, 15.02], [45.50, 15.00]]
+        ],
     }
     result = validate_field_geometry(geom)
     assert result.valid is False
