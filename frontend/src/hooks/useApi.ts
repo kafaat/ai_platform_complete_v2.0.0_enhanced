@@ -8,11 +8,13 @@ import {
   weatherApi, soilApi, authApi, rasterApi,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
   analyzeFieldIntelligence, getCostAnalytics,
+  getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
   type FieldIntelInput, type FieldIntelResult,
   type CostAnalytics,
+  type FarmSummary, type FieldReportSummary, type SeasonReportSummary,
   // ── الأنظمة الجديدة (شاشات الويب): مخزون/معدّات/أجهزة/ري تشغيلي/مرجعيّة/وثائق ──
   getInventoryItems, getExpiringBatches, createInventoryItem, addInventoryBatch,
   type InventoryItem, type ExpiringBatch, type NewInventoryItem, type NewInventoryBatch,
@@ -72,6 +74,9 @@ export const QK = {
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
+  farmSummary:      (tid: string)        => ['reports', 'farm-summary', tid],
+  fieldReport:      (tid: string, fid: string) => ['reports', 'field', tid, fid],
+  seasonReport:     (tid: string, sid: string) => ['reports', 'season', tid, sid],
   // الأنظمة الجديدة (شاشات الويب)
   inventoryItems:   (tid: string)        => ['inventory', 'items', tid],
   inventoryExpiring:(tid: string, d: number) => ['inventory', 'expiring', tid, d],
@@ -931,6 +936,41 @@ export function useCostAnalytics(): UseQueryResult<CostAnalytics> {
     queryKey: QK.costAnalytics(tid),
     queryFn:  () => getCostAnalytics(),
     staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+// ── Reports: تقارير وتحليلات (حيّة، tenant-scoped + RBAC field:view) ──
+// لا fallback وهميّ: عند الخطأ (503 DB / 404 / 403) يُرفض الاستعلام لتعرض
+// الواجهة حالة صادقة (StateViews) بدل أرقام مُلفَّقة.
+export function useFarmSummary(): UseQueryResult<FarmSummary> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FarmSummary>({
+    queryKey: QK.farmSummary(tid),
+    queryFn:  () => getFarmSummary(),
+    staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+export function useFieldReport(fieldId?: string): UseQueryResult<FieldReportSummary, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldReportSummary, Error>({
+    queryKey: QK.fieldReport(tid, fieldId ?? 'none'),
+    queryFn:  () => getFieldReportSummary(fieldId as string),
+    enabled:  !!fieldId,
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+export function useSeasonReport(seasonId?: string): UseQueryResult<SeasonReportSummary, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<SeasonReportSummary, Error>({
+    queryKey: QK.seasonReport(tid, seasonId ?? 'none'),
+    queryFn:  () => getSeasonReportSummary(seasonId as string),
+    enabled:  !!seasonId,
+    staleTime:60_000,
     retry:    false,
   });
 }
