@@ -229,22 +229,29 @@ export function useAllFieldsNdvi() {
   });
 }
 
+// FIX (ربط حيّ): الخادم (vegetation-analysis-service) يكشف GET /v1/analyze بمعاملات
+// استعلام لا POST بجسم — كان POST يرتدّ 405. صُحّح الفعل/الشكل ليطابق الخادم الفعليّ.
 export function useAnalyzeVegetation() {
   return useMutation<unknown, Error, { fieldId: string; dateFrom?: string }>({
     mutationFn: ({ fieldId, dateFrom }) =>
-      vegetationApi.post('/v1/analyze', null, {
+      vegetationApi.get('/v1/analyze', {
         params: { field_id: fieldId, ...(dateFrom ? { date_from: dateFrom } : {}) }
       }).then(r => r.data),
   });
 }
 
 // ── Indicators ────────────────────────────────────────────────
+// صدق المصدر: لا توجد نقطة «33 مؤشّراً لكلّ حقل» حقيقيّة (indicators-service خدمة
+// stub). نشتقّ مؤشّرات الحقل من تحليل الغطاء النباتيّ الحيّ (vegetation-service)
+// عبر GET /v1/analyze — لا نطلب نقطة وهميّة. شكل الردّ (indices[*].value + health)
+// كافٍ للوحة المعلومات. عند الخطأ (404 حقل/503) يُرفض الاستعلام لحالة صادقة.
 export function useIndicators(fieldId: string) {
   return useQuery({
     queryKey: QK.indicators(fieldId),
-    queryFn:  () => indicatorsApi.get(`/v1/indicators/${fieldId}`).then(r => r.data),
+    queryFn:  () => vegetationApi.get('/v1/analyze', { params: { field_id: fieldId } }).then(r => r.data),
     staleTime:5 * 60_000,
     enabled:  !!fieldId,
+    retry:    false,
   });
 }
 
@@ -408,11 +415,14 @@ export function useFieldPrescription(
   });
 }
 
+// FIX (ربط حيّ): الكتالوج الحقيقيّ مُخدَّم من sahool-platform عبر البوّابة
+// (/api/v1/indicators/catalog) لا من indicators-service الـstub. tenant-scoped + FIELD_VIEW.
 export function useIndicatorsCatalog() {
   return useQuery({
     queryKey: QK.indicatorsCatalog,
-    queryFn:  () => indicatorsApi.get('/indicators/catalog').then(r => r.data),
+    queryFn:  () => kongApi.get('/api/v1/indicators/catalog').then(r => r.data),
     staleTime:60 * 60_000,
+    retry:    false,
   });
 }
 

@@ -3783,6 +3783,262 @@ async def report_season_summary(
     }
 
 
+# ═══════════════════════════════════════════════════════════════════
+# INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (tenant-scoped, FIELD_VIEW)
+# ───────────────────────────────────────────────────────────────────
+# صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). كانت الواجهة
+# تطلب :8091/indicators/dashboard|catalog فتسقط على mock أو فراغ. هنا نوفّر
+# لوحة *حقيقيّة* مُجمَّعة من الجداول القائمة (fields/seasons/alerts) عبر البوّابة
+# الموحّدة /api/v1/. لا نخترع قيم NDVI/طقس (تلك في vegetation/weather/raster) —
+# نُجمّع ما هو محفوظ فعلاً ونصنّف الحقول حسب وجود/غياب موسم نشط. أيّ خطأ DB ⇒ 503.
+# ═══════════════════════════════════════════════════════════════════
+
+# كتالوج المؤشّرات التي تحسبها المنصّة فعلاً (مصدر كلٍّ موثّق بصدق). ليس 33
+# مؤشّراً مُلفَّقاً — بل ما هو مُنفَّذ ومخدوم عبر خدمات حقيقيّة (vegetation/raster
+# للطيفيّة، weather للمناخيّة، soil للتربة). الواجهة تعرضه كدليل + فلترة بالفئة.
+_INDICATOR_CATALOG: list[dict] = [
+    {
+        "id": "ndvi",
+        "category": "vegetation",
+        "name_ar": "NDVI",
+        "unit": "",
+        "source": "raster-service / vegetation-service",
+    },
+    {
+        "id": "evi",
+        "category": "vegetation",
+        "name_ar": "EVI",
+        "unit": "",
+        "source": "raster-service / vegetation-service",
+    },
+    {
+        "id": "ndre",
+        "category": "vegetation",
+        "name_ar": "NDRE",
+        "unit": "",
+        "source": "raster-service",
+    },
+    {
+        "id": "msavi",
+        "category": "vegetation",
+        "name_ar": "MSAVI",
+        "unit": "",
+        "source": "raster-service",
+    },
+    {
+        "id": "ndwi",
+        "category": "water",
+        "name_ar": "NDWI",
+        "unit": "",
+        "source": "raster-service / vegetation-service",
+    },
+    {
+        "id": "ndmi",
+        "category": "water",
+        "name_ar": "NDMI (الرطوبة)",
+        "unit": "",
+        "source": "raster-service",
+    },
+    {
+        "id": "et0",
+        "category": "water",
+        "name_ar": "ET₀",
+        "unit": "mm/d",
+        "source": "weather-service (FAO-56)",
+    },
+    {
+        "id": "water_deficit",
+        "category": "water",
+        "name_ar": "عجز المياه",
+        "unit": "mm",
+        "source": "weather-service",
+    },
+    {
+        "id": "gdd",
+        "category": "weather",
+        "name_ar": "GDD المتراكم",
+        "unit": "°C·يوم",
+        "source": "weather-service",
+    },
+    {
+        "id": "temperature",
+        "category": "weather",
+        "name_ar": "الحرارة",
+        "unit": "°C",
+        "source": "weather-service",
+    },
+    {
+        "id": "humidity",
+        "category": "weather",
+        "name_ar": "الرطوبة النسبيّة",
+        "unit": "%",
+        "source": "weather-service",
+    },
+    {
+        "id": "soil_ph",
+        "category": "soil",
+        "name_ar": "pH التربة",
+        "unit": "",
+        "source": "soil-service",
+    },
+    {
+        "id": "soil_ec",
+        "category": "soil",
+        "name_ar": "EC التربة",
+        "unit": "dS/m",
+        "source": "soil-service",
+    },
+    {
+        "id": "nitrogen",
+        "category": "soil",
+        "name_ar": "النيتروجين المتاح",
+        "unit": "mg/kg",
+        "source": "soil-service",
+    },
+]
+
+
+def _shape_indicator_catalog() -> dict:
+    """يبني جسم الكتالوج من _INDICATOR_CATALOG — نقيّ (لا قاعدة).
+
+    يحسب categories = {فئة: عدد} ليطابق ما تتوقّعه الواجهة (total + categories).
+    """
+    categories: dict[str, int] = {}
+    for ind in _INDICATOR_CATALOG:
+        cat = ind["category"]
+        categories[cat] = categories.get(cat, 0) + 1
+    return {
+        "total": len(_INDICATOR_CATALOG),
+        "categories": categories,
+        "indicators": _INDICATOR_CATALOG,
+        "note_ar": "المؤشّرات المُنفَّذة فعلاً ومصادرها — لا قيم مُلفَّقة.",
+    }
+
+
+def _shape_indicators_dashboard(
+    *,
+    fields_rows,
+    active_field_ids: set[str],
+    alert_rows,
+) -> dict:
+    """يبني لوحة المؤشّرات المُجمَّعة من صفوف الحقول/المواسم/التنبيهات — نقيّ.
+
+    - fields_summary: صفّ لكلّ حقل (id/name/crop/area + has_active_season).
+    - kpis: عدّادات حقيقيّة (إجماليّ الحقول/المساحة/الحقول النشطة/التنبيهات المفتوحة).
+      لا NDVI مخترع — قيم المؤشّرات الطيفيّة تأتي من vegetation/raster لكلّ حقل.
+    - alerts: قائمة التنبيهات النشطة كما هي (تُمرَّر للّوحة بلا تلفيق).
+    """
+    fields_summary = []
+    total_area = 0.0
+    for r in fields_rows:
+        area = float(r["area_ha"]) if r["area_ha"] is not None else 0.0
+        total_area += area
+        fields_summary.append(
+            {
+                "field_id": r["field_id"],
+                "field_name": r["name"],
+                "crop": r["crop"],
+                "area_ha": round(area, 2),
+                "has_active_season": r["field_id"] in active_field_ids,
+            }
+        )
+    active_count = len(active_field_ids)
+    kpis = [
+        {
+            "id": "fields_total",
+            "category": "operations",
+            "name_ar": "إجماليّ الحقول",
+            "value": len(fields_summary),
+            "unit": "حقل",
+            "status": "good",
+        },
+        {
+            "id": "area_total",
+            "category": "operations",
+            "name_ar": "إجماليّ المساحة",
+            "value": round(total_area, 2),
+            "unit": "هـ",
+            "status": "good",
+        },
+        {
+            "id": "active_seasons",
+            "category": "operations",
+            "name_ar": "حقول بموسم نشط",
+            "value": active_count,
+            "unit": "حقل",
+            "status": "good" if active_count else "fair",
+        },
+        {
+            "id": "open_alerts",
+            "category": "operations",
+            "name_ar": "تنبيهات مفتوحة",
+            "value": len(alert_rows),
+            "unit": "تنبيه",
+            "status": "critical" if alert_rows else "good",
+        },
+    ]
+    return {
+        "kpis": kpis,
+        "alerts": [_row_to_alert(r).model_dump() for r in alert_rows],
+        "fields_summary": fields_summary,
+        "note_ar": "عدّادات حيّة من جداولك — المؤشّرات الطيفيّة لكلّ حقل من شاشة الأقمار.",
+    }
+
+
+@app.get("/api/v1/indicators/catalog")
+async def indicators_catalog(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """كتالوج المؤشّرات المُنفَّذة فعلاً + مصادرها (بديل indicators-service الـstub).
+
+    ثابت (لا قاعدة) لكنّه صادق: يصف ما تحسبه المنصّة حقّاً عبر خدماتها، لا ٣٣
+    مؤشّراً وهميّاً. مُقيَّد بالدور (FIELD_VIEW) للاتّساق مع بقيّة لوحات الحقل.
+    """
+    return _shape_indicator_catalog()
+
+
+@app.get("/api/v1/indicators/dashboard")
+async def indicators_dashboard(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """لوحة المؤشّرات المُجمَّعة للمستأجِر — عدّادات + تنبيهات + ملخّص الحقول.
+
+    تجميع حيّ من fields/seasons/alerts (RLS + tenant_id). لا قيم NDVI/طقس مُلفَّقة:
+    المؤشّرات الطيفيّة لكلّ حقل تُجلب من vegetation/raster في شاشة الأقمار. 503 عند
+    تعذّر القاعدة — لا أرقام مخترعة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            tid = str(user.tenant_id)
+            fields_rows = await conn.fetch(
+                "SELECT field_id, name, crop, area_ha FROM fields "
+                "WHERE tenant_id = $1::uuid ORDER BY name",
+                tid,
+            )
+            active_season_rows = await conn.fetch(
+                "SELECT DISTINCT field_id FROM seasons "
+                "WHERE tenant_id = $1::uuid AND status = 'active'",
+                tid,
+            )
+            alert_rows = await conn.fetch(
+                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at FROM alerts "
+                "WHERE tenant_id = $1::uuid AND status = 'active' "
+                "ORDER BY created_at DESC LIMIT 50",
+                tid,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة لوحة المؤشّرات", e) from e
+    active_field_ids = {r["field_id"] for r in active_season_rows}
+    return _shape_indicators_dashboard(
+        fields_rows=fields_rows,
+        active_field_ids=active_field_ids,
+        alert_rows=alert_rows,
+    )
+
+
 # ─── إدارة المستندات (Document Management — سجلّ بيانات وصفيّة) — (v29) ─
 # ⚠️ سجلّ بيانات وصفيّة فقط: لا يخزّن الملفّ الثنائيّ (blob). تخزين الكائنات
 #    الفعليّ (PDF/صورة/...) يحتاج S3/MinIO — نحفظ هنا storage_ref فقط.

@@ -567,6 +567,28 @@ def _generate_timeseries(field_id: str, days: int) -> list[dict]:
     return result
 
 
+def _current_ndvi_payload(field_id: str, field: dict, analysis: dict) -> dict:
+    """يشكّل ردّ NDVI الحالي من ناتج التحليل — دالّة نقيّة (لا قاعدة/شبكة).
+
+    الواجهة (useCurrentNDVI) تتوقّع `ndvi.current` + تصنيف صحّي. نستخرجهما من
+    مؤشّرات التحليل (indices[*].value) دون تكرار منطق الحساب. real_data يُمرَّر
+    كما هو من التحليل (دائماً False في هذه الخدمة — تقدير لا بكسلات حقيقيّة).
+    """
+    indices = analysis.get("indices", {})
+    ndvi_val = indices.get("ndvi", {}).get("value")
+    return {
+        "field_id": field_id,
+        "field_name": field.get("name"),
+        "crop": field.get("crop"),
+        "ndvi": {"current": ndvi_val},
+        "classification": analysis.get("health", {}),
+        "acquisition_date": analysis.get("acquisition_date"),
+        "data_source": analysis.get("data_source"),
+        "real_data": analysis.get("real_data", False),
+        "provider_reachable": analysis.get("provider_reachable", False),
+    }
+
+
 # ── Lifespan ───────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -645,6 +667,61 @@ async def timeseries(
         "field_id": field_id,
         "days": days,
         "timeseries": _generate_timeseries(field_id, days),
+        "generated_at": datetime.now(UTC).isoformat(),
+    }
+
+
+@app.get("/v1/ndvi/current/{field_id}")
+async def current_ndvi(field_id: str, token: str = Depends(security)):
+    """NDVI الحالي + تصنيف الصحّة لحقل واحد (يستهلكه useCurrentNDVI في الواجهة).
+
+    يُعيد استخدام run_analysis (نافذة آخر ٣٠ يوماً) ثمّ يستخرج NDVI الحالي عبر
+    _current_ndvi_payload. صدق المصدر: تقدير من نطاقات تركيبيّة (real_data=False)
+    — لا بكسلات حقيقيّة (تلك في raster-service).
+    """
+    if not token or not token.credentials:
+        raise HTTPException(401, "Authentication required")
+    if field_id not in FIELD_REGISTRY:
+        raise HTTPException(404, f"field_id {field_id!r} غير موجود")
+    date_to = date.today().isoformat()
+    date_from = (date.today() - timedelta(days=30)).isoformat()
+    analysis = await run_analysis(field_id, "default", date_from, date_to)
+    return _current_ndvi_payload(field_id, FIELD_REGISTRY[field_id], analysis)
+
+
+@app.get("/v1/all_fields")
+async def all_fields(tenant_id: str = Query(default="default"), token: str = Depends(security)):
+    """NDVI الحالي لكلّ الحقول المعروفة (يستهلكه useAllFieldsNdvi/لوحة المؤشّرات).
+
+    يكرّر على FIELD_REGISTRY ويستدعي run_analysis لكلّ حقل. الردّ {fields:[...]}
+    لكلّ منه field_id/name/crop/ndvi/health — تقدير صادق (real_data=False).
+    """
+    if not token or not token.credentials:
+        raise HTTPException(401, "Authentication required")
+    date_to = date.today().isoformat()
+    date_from = (date.today() - timedelta(days=30)).isoformat()
+    fields_out = []
+    for fid, field in FIELD_REGISTRY.items():
+        analysis = await run_analysis(fid, tenant_id, date_from, date_to)
+        payload = _current_ndvi_payload(fid, field, analysis)
+        fields_out.append(
+            {
+                "field_id": fid,
+                "field_name": field["name"],
+                "name": field["name"],
+                "crop": field["crop"],
+                "area_ha": field["area_ha"],
+                "ndvi": payload["ndvi"]["current"],
+                "status": payload["classification"].get("status"),
+                "health": payload["classification"],
+                "real_data": payload["real_data"],
+            }
+        )
+    return {
+        "fields": fields_out,
+        "count": len(fields_out),
+        "tenant_id": tenant_id,
+        "real_data": False,
         "generated_at": datetime.now(UTC).isoformat(),
     }
 

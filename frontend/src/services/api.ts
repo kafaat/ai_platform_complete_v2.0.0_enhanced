@@ -1148,81 +1148,61 @@ export const importField = (payload: FieldImportInput): Promise<unknown> =>
   kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
-// INDICATORS SERVICE — 33 مؤشر + WOFOST
+// INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
+// صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج
+// الحقيقيّان مُخدَّمان من sahool-platform عبر /api/v1/indicators/* (تجميع من
+// fields/seasons/alerts، tenant-scoped + FIELD_VIEW). لا fallback وهميّ — عند
+// الخطأ (503 DB / 403) يُرمى لتعرض الواجهة حالة صادقة (إلّا في MOCK_MODE الصريح).
 // ══════════════════════════════════════════════════════════════════
 
-/** لوحة KPI الرئيسية */
+/** لوحة المؤشّرات المُجمَّعة للمستأجِر: kpis + alerts + fields_summary */
 export const fetchDashboard = () =>
   tryReal(
-    () => indicatorsApi.get('/indicators/dashboard').then(r => r.data),
+    () => kongApi.get('/api/v1/indicators/dashboard').then(r => r.data),
     () => MOCK_DASHBOARD
   );
 
-/** جميع مؤشرات حقل محدد */
-export const fetchFieldIndicators = (fieldId: string) =>
-  tryReal(
-    () => indicatorsApi.get(`/v1/indicators/${fieldId}`).then(r => r.data),
-    () => mockFieldIndicators(fieldId)
-  );
-
-/** مؤشر واحد مع تاريخه */
-export const fetchSingleIndicator = (fieldId: string, indicatorId: string, days = 30) =>
-  tryReal(
-    () => indicatorsApi.get(`/v1/indicators/${fieldId}/${indicatorId}`, { params:{ days } }).then(r => r.data),
-    () => ({ field_id:fieldId, indicator_id:indicatorId, value:0.62, status:'good', trend:[] })
-  );
-
-/** كتالوج 33 مؤشر */
+/** كتالوج المؤشّرات المُنفَّذة فعلاً + مصادرها (لا ٣٣ مؤشّراً مُلفَّقاً) */
 export const fetchIndicatorCatalog = () =>
   tryReal(
-    () => indicatorsApi.get('/indicators/catalog').then(r => r.data),
-    () => ({ total:33, categories:{} })
+    () => kongApi.get('/api/v1/indicators/catalog').then(r => r.data),
+    () => ({ total:14, categories:{} })
   );
 
-// ملحوظة: fetchAlerts/createAlert/acknowledgeAlert (التنبيهات الزراعيّة v36)
-// مُعرَّفة أعلاه عبر kongApi (sahool-platform). نقطة indicators القديمة المُلفَّقة
-// أُزيلت لمصلحة الربط الحيّ الموحَّد.
-
-/** حالة NATS */
-export const fetchNatsStatus = () =>
-  tryReal(
-    () => indicatorsApi.get('/indicators/nats/status').then(r => r.data),
-    () => ({ nats_connected:false, events_processed:0 })
-  );
+// ملحوظة صدق: المؤشّرات الطيفيّة لكلّ حقل (NDVI/EVI/...) تُجلب من vegetation/raster
+// لكلّ حقل (شاشة الأقمار) لا من نقطة 33-مؤشّر وهميّة. لذا fetchFieldIndicators/
+// fetchSingleIndicator/fetchNatsStatus (التي كانت تستهدف indicators-service الـstub
+// بلا خلفيّة حقيقيّة) أُزيلت لمصلحة الربط الحيّ الموحَّد عبر vegetation/raster.
 
 /** Probes */
 export const fetchIndicatorsHealth = () =>
   indicatorsApi.get('/health').then(r => r.data).catch(() => ({ status:'unavailable' }));
 
 // ══════════════════════════════════════════════════════════════════
-// VEGETATION SERVICE
+// VEGETATION SERVICE — مسارات حيّة مطابقة لـvegetation-analysis-service
+// ربط حقيقيّ بلا تلفيق (إلّا MOCK_MODE الصريح). صدق المصدر: المؤشّرات تقديرات
+// متوسّط-حقل من نطاقات تركيبيّة (real_data=false) — البكسلات الحقيقيّة في
+// raster-service. أُصلحت المسارات/الأفعال لتطابق الخادم الفعليّ (GET /v1/*).
 // ══════════════════════════════════════════════════════════════════
 
-/** تحليل صورة + 7 مؤشرات + نشر NATS */
-export const analyzeVegetation = (fieldId: string, satellite = 'sentinel-2', tenantId = 'default') =>
+/** تحليل صورة + مؤشّرات + نشر NATS — GET /v1/analyze (الخادم يقبل GET بمعاملات) */
+export const analyzeVegetation = (fieldId: string, _satellite = 'sentinel-2', tenantId = 'default') =>
   tryReal(
-    () => vegetationApi.post('/v1/analyze', { field_id:fieldId, satellite, tenant_id:tenantId }).then(r => r.data),
+    () => vegetationApi.get('/v1/analyze', { params:{ field_id:fieldId, tenant_id:tenantId } }).then(r => r.data),
     () => mockVegetationAnalysis(fieldId)
   );
 
-/** سلسلة زمنية NDVI */
+/** سلسلة زمنية NDVI — GET /v1/timeseries/{fieldId} */
 export const fetchVegetationTimeseries = (fieldId: string, days = 30) =>
   tryReal(
-    () => vegetationApi.get(`/vegetation/field/${fieldId}/timeseries`, { params:{ days } }).then(r => r.data),
+    () => vegetationApi.get(`/v1/timeseries/${fieldId}`, { params:{ days } }).then(r => r.data),
     () => mockTimeseries(fieldId, days)
   );
 
-/** شذوذات */
-export const fetchVegetationAnomalies = (fieldId: string, threshold = 1.5) =>
-  tryReal(
-    () => vegetationApi.get('/vegetation/anomalies', { params:{ field_id:fieldId, threshold } }).then(r => r.data),
-    () => ({ field_id:fieldId, total_anomalies:2, anomalies:[] })
-  );
-
-/** NDVI الحالي */
+/** NDVI الحالي — GET /v1/ndvi/current/{fieldId} */
 export const fetchCurrentNDVI = (fieldId: string) =>
   tryReal(
-    () => vegetationApi.get(`/vegetation/field/${fieldId}/current-ndvi`).then(r => r.data),
+    () => vegetationApi.get(`/v1/ndvi/current/${fieldId}`).then(r => r.data),
     () => ({ field_id:fieldId, ndvi:{ current:0.62 }, classification:{ level:'good', label_ar:'جيد', color:'#65a30d' } })
   );
 

@@ -17,6 +17,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from main import (  # noqa: E402
     _compute_indices,
+    _current_ndvi_payload,
     _deterministic_seed,
     _health_classification,
     _realistic_bands,
@@ -192,6 +193,34 @@ def test_bands_feed_indices_consistently():
     idx = _compute_indices(bands)
     assert -1.0 <= idx["ndvi"] <= 1.0
     assert idx["lai"] >= 0.0
+
+
+# ── ٦. تشكيل ردّ NDVI الحالي (useCurrentNDVI) ──
+def test_current_ndvi_payload_extracts_value_and_health():
+    """يستخرج ndvi.current من indices ويُمرّر التصنيف الصحّي + صدق المصدر."""
+    field = {"name": "حقل وادي سبأ", "crop": "wheat"}
+    analysis = {
+        "indices": {"ndvi": {"value": 0.71, "unit": "dimensionless"}},
+        "health": {"status": "good", "label_ar": "جيد"},
+        "acquisition_date": "2026-06-01",
+        "data_source": "simulation",
+        "real_data": False,
+        "provider_reachable": True,
+    }
+    out = _current_ndvi_payload("field_01", field, analysis)
+    assert out["field_id"] == "field_01"
+    assert out["ndvi"]["current"] == 0.71
+    assert out["classification"]["status"] == "good"
+    assert out["crop"] == "wheat"
+    assert out["real_data"] is False
+    assert out["provider_reachable"] is True
+
+
+def test_current_ndvi_payload_missing_ndvi_is_none_not_crash():
+    """غياب مؤشّر ndvi لا يُسقط التشكيل — current=None (صدق: لا قيمة مخترعة)."""
+    out = _current_ndvi_payload("field_02", {"name": "x", "crop": "barley"}, {"indices": {}})
+    assert out["ndvi"]["current"] is None
+    assert out["real_data"] is False  # افتراضيّ آمن عند الغياب
 
 
 if __name__ == "__main__":
