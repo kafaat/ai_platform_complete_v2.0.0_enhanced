@@ -1,9 +1,14 @@
 // ═══════════════════════════════════════════════════════════════
 // SAHOOL v8.0 — ReportsPage
+// ملخّص التكلفة الآن حيّ (useCostAnalytics → /api/v1/analytics/costs):
+// إجماليّ التكلفة + التوزيع حسب المصدر + عدد المهام، مُقيَّد بالدور والمستأجِر.
+// لا أرقام مُلفَّقة — عند الخطأ/الفراغ تُعرض حالة صادقة (StateViews).
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
-import { FileText, Download, Calendar, BarChart3, Leaf, Droplets, TrendingUp } from 'lucide-react';
+import { Download, BarChart3, DollarSign, ListChecks, Wallet } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { useCostAnalytics } from '../hooks/useApi';
+import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 const FIELDS = ['جميع الحقول','حقل وادي سبأ','حقل البيضاء الشمالي','حقل رداع الغربي'];
 
@@ -16,10 +21,19 @@ const MONTHLY_DATA = [
   { month:'يونيو',  ndvi:0.70, yield:3.3, rain:8  },
 ];
 
+// أسماء عربية لمصادر التكلفة القادمة من الخادم (fallback: اسم المصدر كما هو).
+const SOURCE_LABELS: Record<string, string> = {
+  field_tasks: 'المهام الميدانية',
+  maintenance: 'الصيانة',
+};
+
+const usd = (n: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n ?? 0);
+
 function exportToCSV(data: any[], filename: string) {
   const headers = Object.keys(data[0]).join(',');
   const rows = data.map(r => Object.values(r).join(','));
-  const csv = '\uFEFF' + [headers, ...rows].join('\n');
+  const csv = '﻿' + [headers, ...rows].join('\n');
   const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
@@ -27,14 +41,111 @@ function exportToCSV(data: any[], filename: string) {
   link.click();
 }
 
+function CostSummary() {
+  const { data, isLoading, isError, error, refetch } = useCostAnalytics();
+
+  if (isLoading) return <LoadingState message="جارٍ تحميل ملخّص التكلفة…" />;
+  if (isError) {
+    const status = (error as any)?.response?.status;
+    const detail = status === 503
+      ? 'خدمة التحليلات غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
+      : status === 403
+        ? 'لا تملك صلاحية عرض التحليلات (analytics:view).'
+        : 'تعذّر الاتصال بخدمة التحليلات.';
+    return <ErrorState title="تعذّر تحميل ملخّص التكلفة" detail={detail} onRetry={() => refetch()} />;
+  }
+
+  const bySource = data?.by_source ?? [];
+  const totalUsd = data?.total_usd ?? 0;
+  const taskCount = data?.task_count ?? 0;
+
+  if (bySource.length === 0 && totalUsd === 0 && taskCount === 0) {
+    return (
+      <EmptyState
+        icon={<Wallet className="w-8 h-8" />}
+        title="لا توجد بيانات تكلفة بعد"
+        hint="لم تُسجَّل أي تكاليف للمهام حتى الآن."
+      />
+    );
+  }
+
+  const chartData = bySource.map(s => ({
+    source: SOURCE_LABELS[s.source] ?? s.source,
+    total_usd: s.total_usd,
+  }));
+
+  return (
+    <div className="space-y-3">
+      {/* إجماليّات حيّة */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {[
+          { label:'إجماليّ التكلفة', val:usd(totalUsd),                  icon:DollarSign, color:'#f59e0b' },
+          { label:'عدد المهام',      val:taskCount.toLocaleString('en-US'), icon:ListChecks, color:'#38bdf8' },
+          { label:'مصادر التكلفة',   val:bySource.length.toLocaleString('en-US'), icon:BarChart3, color:'#a855f7' },
+        ].map((k, i) => {
+          const Icon = k.icon;
+          return (
+            <div key={i} className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+              <Icon className="w-4 h-4 mb-1" style={{ color:k.color }} />
+              <div className="text-lg font-bold" style={{ color:k.color }}>{k.val}</div>
+              <div className="text-[10px] text-slate-400">{k.label}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* التوزيع حسب المصدر */}
+      {bySource.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-semibold text-slate-200">التكلفة حسب المصدر (USD)</span>
+              <button onClick={() => exportToCSV(chartData, 'SAHOOL_Cost_By_Source.csv')}
+                className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300">
+                <Download className="w-3 h-3" /> CSV
+              </button>
+            </div>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={chartData} barSize={28}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="source" tick={{ fill:'#64748b', fontSize:10 }} tickLine={false} />
+                <YAxis tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} width={44} />
+                <Tooltip
+                  contentStyle={{ background:'#0f1117', border:'1px solid #334155', borderRadius:8, fontSize:12 }}
+                  itemStyle={{ color:'#e2e8f0' }}
+                  formatter={(v: any) => [usd(Number(v)), 'التكلفة']}
+                />
+                <Bar dataKey="total_usd" fill="#f59e0b" radius={[4,4,0,0]} name="التكلفة" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+            <span className="text-sm font-semibold text-slate-200">تفصيل المصادر</span>
+            <ul className="mt-3 space-y-2">
+              {bySource.map((s, i) => {
+                const pct = totalUsd > 0 ? (s.total_usd / totalUsd) * 100 : 0;
+                return (
+                  <li key={i} className="flex items-center justify-between text-sm">
+                    <span className="text-slate-300">{SOURCE_LABELS[s.source] ?? s.source}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-500">{pct.toFixed(0)}%</span>
+                      <span className="font-semibold text-amber-400">{usd(s.total_usd)}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ReportsPage() {
   const [field, setField] = useState(FIELDS[0]);
   const [period, setPeriod] = useState('30d');
-
-  const summary = {
-    avgNdvi:0.63, totalArea:249.0, fieldCount:8,
-    avgYield:3.5, waterUsed:1240, carbonSeq:45.2,
-  };
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
@@ -55,25 +166,13 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {/* KPI summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {[
-          { label:'متوسط NDVI',    val:summary.avgNdvi,  unit:'',        icon:Leaf,       color:'#16a34a' },
-          { label:'الحقول',        val:summary.fieldCount,unit:'حقل',    icon:BarChart3,  color:'#38bdf8' },
-          { label:'المساحة',       val:summary.totalArea, unit:'هـ',     icon:BarChart3,  color:'#f59e0b' },
-          { label:'إنتاج متوسط',  val:summary.avgYield,  unit:'t/ha',   icon:TrendingUp, color:'#a855f7' },
-          { label:'مياه مستخدمة', val:summary.waterUsed, unit:'m³',     icon:Droplets,   color:'#0ea5e9' },
-          { label:'كربون مستوعب', val:summary.carbonSeq, unit:'t',      icon:Leaf,       color:'#22c55e' },
-        ].map((k, i) => {
-          const Icon = k.icon;
-          return (
-            <div key={i} className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-              <Icon className="w-4 h-4 mb-1" style={{ color:k.color }} />
-              <div className="text-lg font-bold" style={{ color:k.color }}>{k.val}</div>
-              <div className="text-[10px] text-slate-400">{k.unit && `${k.unit} · `}{k.label}</div>
-            </div>
-          );
-        })}
+      {/* ملخّص التكلفة — بيانات حيّة من /api/v1/analytics/costs */}
+      <div className="rounded-xl p-4 border" style={{ background:'#0f1117', borderColor:'#334155' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <Wallet className="w-4 h-4 text-amber-400" />
+          <span className="text-sm font-semibold text-slate-200">ملخّص التكلفة</span>
+        </div>
+        <CostSummary />
       </div>
 
       {/* Charts */}

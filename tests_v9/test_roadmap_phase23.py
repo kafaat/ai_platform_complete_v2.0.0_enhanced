@@ -6124,6 +6124,126 @@ def test_gis_db_enforcement_layer():
     return r
 
 
+def _agos_read(p):
+    base = os.path.join(os.path.dirname(__file__), "..")
+    with open(os.path.join(base, p), encoding="utf-8") as f:
+        return f.read()
+
+
+def _agos_u(role):
+    from core.canonical_schemas import UserSchema
+
+    return UserSchema(user_id="u", tenant_id="t", role=role, name_ar="x")
+
+
+def test_settings_layer():
+    """حارس الإعدادات (Settings): ترحيل+صلاحيات+نقاط (منصّة/مزرعة/ريّ/إشعارات)."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+    manifest = _agos_read("migrations/MANIFEST.txt")
+    mig = "v28_settings.sql"
+    ok = os.path.exists(os.path.join(base, "migrations", mig)) and mig in manifest
+    r.append(("✓" if ok else "✗", f"Settings: ترحيل {mig} {'موجود ومُدرَج' if ok else 'مفقود'}"))
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole
+
+    if (
+        has_permission(_agos_u(UserRole.OWNER), Permission.SETTINGS_MANAGE)
+        and has_permission(_agos_u(UserRole.VIEWER), Permission.SETTINGS_VIEW)
+        and not has_permission(_agos_u(UserRole.WORKER), Permission.SETTINGS_MANAGE)
+    ):
+        r.append(("✓", "Settings: صلاحيّات (المالك/المدير يدير، البقيّة تعرض)"))
+    else:
+        r.append(("✗", "Settings: صلاحيّات غير صحيحة"))
+    main_src = _agos_read("services/sahool-platform/api/main.py")
+    if "/api/v1/settings" in main_src and "Permission.SETTINGS_MANAGE" in main_src:
+        r.append(("✓", "Settings: نقاط الحفظ والعرض موجودة ومحروسة"))
+    else:
+        r.append(("✗", "Settings: نقاط مفقودة/غير محروسة"))
+    return r
+
+
+def test_documents_layer():
+    """حارس إدارة المستندات (سجلّ وصفيّ، لا blob)."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+    manifest = _agos_read("migrations/MANIFEST.txt")
+    mig = "v29_documents.sql"
+    ok = os.path.exists(os.path.join(base, "migrations", mig)) and mig in manifest
+    r.append(("✓" if ok else "✗", f"Documents: ترحيل {mig} {'موجود ومُدرَج' if ok else 'مفقود'}"))
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole
+
+    if (
+        has_permission(_agos_u(UserRole.AGRONOMIST), Permission.DOCUMENT_MANAGE)
+        and has_permission(_agos_u(UserRole.VIEWER), Permission.DOCUMENT_VIEW)
+        and not has_permission(_agos_u(UserRole.WORKER), Permission.DOCUMENT_MANAGE)
+    ):
+        r.append(("✓", "Documents: صلاحيّات (المهندس+ يدير، البقيّة تعرض)"))
+    else:
+        r.append(("✗", "Documents: صلاحيّات غير صحيحة"))
+    main_src = _agos_read("services/sahool-platform/api/main.py")
+    if "/api/v1/documents" in main_src and "/api/v1/documents/{doc_id}" in main_src:
+        r.append(("✓", "Documents: نقاط التسجيل والقائمة والمستند المفرد موجودة"))
+    else:
+        r.append(("✗", "Documents: نقاط مفقودة"))
+    return r
+
+
+def test_cost_analytics_layer():
+    """حارس تحليلات التكاليف الفعليّة. analytics:view + تجميع من جداول حقيقيّة."""
+    r = []
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole
+
+    if (
+        has_permission(_agos_u(UserRole.OWNER), Permission.ANALYTICS_VIEW)
+        and has_permission(_agos_u(UserRole.AGRONOMIST), Permission.ANALYTICS_VIEW)
+        and not has_permission(_agos_u(UserRole.WORKER), Permission.ANALYTICS_VIEW)
+        and not has_permission(_agos_u(UserRole.VIEWER), Permission.ANALYTICS_VIEW)
+    ):
+        r.append(("✓", "Cost Analytics: صلاحيّة analytics:view (مالك+مدير+مهندس فقط)"))
+    else:
+        r.append(("✗", "Cost Analytics: صلاحيّات غير صحيحة"))
+    main_src = _agos_read("services/sahool-platform/api/main.py")
+    if "/api/v1/analytics/costs" in main_src and "ANALYTICS_VIEW" in main_src:
+        r.append(("✓", "Cost Analytics: نقطة التجميع موجودة ومحروسة"))
+    else:
+        r.append(("✗", "Cost Analytics: نقطة مفقودة/غير محروسة"))
+    if "actual_cost_usd" in main_src and "equipment_maintenance" in main_src:
+        r.append(("✓", "Cost Analytics: يُجمّع تكاليف فعليّة من جداول قائمة"))
+    else:
+        r.append(("✗", "Cost Analytics: لا يُجمّع من الجداول الحقيقيّة"))
+    return r
+
+
+def test_alerting_layer():
+    """حارس الإنذار التشغيليّ: قواعد Prometheus + AlertManager (فحص ملفّات)."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+    if os.path.exists(os.path.join(base, "prometheus", "alerts.yml")) and (
+        "alert:" in _agos_read("prometheus/alerts.yml")
+    ):
+        r.append(("✓", "الإنذار: prometheus/alerts.yml موجود ويحوي قاعدة إنذار (alert:)"))
+    else:
+        r.append(("✗", "الإنذار: prometheus/alerts.yml مفقود أو بلا قواعد"))
+    prom = _agos_read("prometheus/prometheus.yml")
+    if "rule_files" in prom and "alerts.yml" in prom and "alertmanager:9093" in prom:
+        r.append(("✓", "الإنذار: prometheus.yml يُحمِّل القواعد ويشير إلى alertmanager"))
+    else:
+        r.append(("✗", "الإنذار: prometheus.yml لا يُحمِّل القواعد/alertmanager"))
+    am_path = os.path.join(base, "monitoring", "alertmanager.yml")
+    if os.path.exists(am_path):
+        am = _agos_read("monitoring/alertmanager.yml")
+        if "route:" in am and "receivers:" in am and "receiver:" in am:
+            r.append(("✓", "الإنذار: alertmanager.yml يحوي route ومستقبِلاً (receiver)"))
+        else:
+            r.append(("✗", "الإنذار: alertmanager.yml ينقصه route أو receiver"))
+    else:
+        r.append(("✗", "الإنذار: monitoring/alertmanager.yml مفقود"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -6268,6 +6388,10 @@ def run_all():
         ("irrigation_ops_layer", test_irrigation_ops_layer),
         ("master_data_layer", test_master_data_layer),
         ("gis_db_enforcement_layer", test_gis_db_enforcement_layer),
+        ("settings_layer", test_settings_layer),
+        ("documents_layer", test_documents_layer),
+        ("cost_analytics_layer", test_cost_analytics_layer),
+        ("alerting_layer", test_alerting_layer),
     ]
     tp = tf = 0
     for name, s in suites:

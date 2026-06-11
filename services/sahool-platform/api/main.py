@@ -1677,6 +1677,228 @@ async def list_crop_rotations(
     ]
 
 
+# ─── الإعدادات (Settings) — منصّة/مزرعة/ريّ/إشعارات — (v28) ───────
+class SettingRequest(BaseModel):
+    scope: str = Field(pattern="^(platform|farm|irrigation|notification)$")
+    key: str = Field(min_length=1, max_length=80)
+    value: dict | None = None
+
+
+@app.put("/api/v1/settings")
+async def upsert_setting(
+    req: SettingRequest,
+    user: UserSchema = Depends(require_permission(Permission.SETTINGS_MANAGE)),
+):
+    """يحفظ/يحدّث إعداداً (upsert idempotent لكلّ مستأجر+نطاق+مفتاح)."""
+    import json as _json
+    import uuid as _uuid
+
+    setting_id = "set_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        row = await conn.fetchrow(
+            """INSERT INTO settings
+                (setting_id, tenant_id, scope, key, value, updated_by)
+               VALUES ($1, $2::uuid, $3, $4, $5::jsonb, $6)
+               ON CONFLICT (tenant_id, scope, key) DO UPDATE
+                 SET value = EXCLUDED.value, updated_by = EXCLUDED.updated_by
+               RETURNING setting_id, scope, key""",
+            setting_id,
+            str(user.tenant_id),
+            req.scope,
+            req.key,
+            _json.dumps(req.value or {}),
+            str(user.user_id),
+        )
+    return {
+        "setting_id": row["setting_id"],
+        "scope": row["scope"],
+        "key": row["key"],
+        "message_ar": "حُفِظ الإعداد",
+    }
+
+
+@app.get("/api/v1/settings")
+async def list_settings(
+    scope: str | None = None,
+    user: UserSchema = Depends(require_permission(Permission.SETTINGS_VIEW)),
+):
+    """إعدادات المستأجر (مُرشَّحة اختياريّاً بالنطاق)."""
+    async with tenant_connection(user) as conn:
+        if scope:
+            rows = await conn.fetch(
+                "SELECT setting_id, scope, key, value, updated_by "
+                "FROM settings WHERE scope = $1 ORDER BY key",
+                scope,
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT setting_id, scope, key, value, updated_by FROM settings ORDER BY scope, key"
+            )
+    return [
+        {
+            "setting_id": r["setting_id"],
+            "scope": r["scope"],
+            "key": r["key"],
+            "value": r["value"] if isinstance(r["value"], dict) else {},
+            "updated_by": r["updated_by"],
+        }
+        for r in rows
+    ]
+
+
+# ─── تحليلات التكاليف الفعليّة (Cost Analytics) ──────────────────
+# يستبدل ملخّص التكاليف الثابت في ReportsPage. يُجمّع تكاليف حقيقيّة من جداول
+# قائمة: field_tasks.actual_cost_usd + equipment_maintenance.cost_usd. لا ترحيل.
+@app.get("/api/v1/analytics/costs")
+async def analytics_costs(
+    user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
+):
+    """تكاليف فعليّة مُجمَّعة من الجداول القائمة (لا أرقام ثابتة)."""
+    async with tenant_connection(user) as conn:
+        tasks_total = await conn.fetchval(
+            "SELECT COALESCE(SUM(actual_cost_usd), 0) FROM field_tasks "
+            "WHERE actual_cost_usd IS NOT NULL"
+        )
+        tasks_count = await conn.fetchval(
+            "SELECT COUNT(*) FROM field_tasks WHERE actual_cost_usd IS NOT NULL"
+        )
+        maint_total = await conn.fetchval(
+            "SELECT COALESCE(SUM(cost_usd), 0) FROM equipment_maintenance WHERE cost_usd IS NOT NULL"
+        )
+    tasks_total_f = float(tasks_total or 0)
+    maint_total_f = float(maint_total or 0)
+    return {
+        "by_source": [
+            {"source": "field_tasks", "total_usd": tasks_total_f},
+            {"source": "maintenance", "total_usd": maint_total_f},
+        ],
+        "total_usd": tasks_total_f + maint_total_f,
+        "task_count": int(tasks_count or 0),
+    }
+
+
+@app.get("/api/v1/analytics/costs/by-field")
+async def analytics_costs_by_field(
+    user: UserSchema = Depends(require_permission(Permission.ANALYTICS_VIEW)),
+):
+    """إجماليّات تكلفة المهامّ لكلّ حقل."""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT field_id, COALESCE(SUM(actual_cost_usd), 0) AS total_usd "
+            "FROM field_tasks WHERE actual_cost_usd IS NOT NULL "
+            "GROUP BY field_id ORDER BY total_usd DESC"
+        )
+    return [{"field_id": r["field_id"], "total_usd": float(r["total_usd"] or 0)} for r in rows]
+
+
+# ─── إدارة المستندات (Document Management — سجلّ بيانات وصفيّة) — (v29) ─
+# ⚠️ سجلّ بيانات وصفيّة فقط: لا يخزّن الملفّ الثنائيّ (blob). تخزين الكائنات
+#    الفعليّ (PDF/صورة/...) يحتاج S3/MinIO — نحفظ هنا storage_ref فقط.
+class DocumentRequest(BaseModel):
+    category: str = Field(pattern="^(contract|report|image|map|lab_result|other)$")
+    title: str = Field(min_length=1, max_length=200)
+    storage_ref: str | None = None
+    content_type: str | None = Field(default=None, max_length=80)
+    size_bytes: int | None = Field(default=None, ge=0)
+    field_id: str | None = None
+
+
+@app.post("/api/v1/documents", status_code=201)
+async def register_document(
+    req: DocumentRequest,
+    user: UserSchema = Depends(require_permission(Permission.DOCUMENT_MANAGE)),
+):
+    """يسجّل بيانات مستند وصفيّة (لا blob — storage_ref يشير لتخزين الكائنات)."""
+    import uuid as _uuid
+
+    doc_id = "doc_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        await conn.execute(
+            """INSERT INTO documents
+                (doc_id, tenant_id, category, field_id, title, storage_ref,
+                 content_type, size_bytes, uploaded_by)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
+            doc_id,
+            str(user.tenant_id),
+            req.category,
+            req.field_id,
+            req.title,
+            req.storage_ref,
+            req.content_type,
+            req.size_bytes,
+            user.user_id,
+        )
+    return {"doc_id": doc_id, "title": req.title, "message_ar": "سُجّل المستند"}
+
+
+@app.get("/api/v1/documents")
+async def list_documents(
+    category: str | None = None,
+    field_id: str | None = None,
+    user: UserSchema = Depends(require_permission(Permission.DOCUMENT_VIEW)),
+):
+    """سجلّ المستندات (مُرشَّح اختياريّاً بالفئة و/أو الحقل) — معزول بالمستأجر."""
+    clauses: list[str] = []
+    params: list = []
+    if category:
+        params.append(category)
+        clauses.append(f"category = ${len(params)}")
+    if field_id:
+        params.append(field_id)
+        clauses.append(f"field_id = ${len(params)}")
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT doc_id, category, field_id, title, storage_ref, content_type, "
+            "size_bytes, version, uploaded_by, created_at "
+            f"FROM documents{where} ORDER BY created_at DESC",
+            *params,
+        )
+    return [
+        {
+            "doc_id": r["doc_id"],
+            "category": r["category"],
+            "field_id": r["field_id"],
+            "title": r["title"],
+            "storage_ref": r["storage_ref"],
+            "content_type": r["content_type"],
+            "size_bytes": r["size_bytes"],
+            "version": r["version"],
+            "uploaded_by": r["uploaded_by"],
+        }
+        for r in rows
+    ]
+
+
+@app.get("/api/v1/documents/{doc_id}")
+async def get_document(
+    doc_id: str,
+    user: UserSchema = Depends(require_permission(Permission.DOCUMENT_VIEW)),
+):
+    """بيانات مستند مفرد (404 إن غير موجود) — معزول بالمستأجر."""
+    async with tenant_connection(user) as conn:
+        r = await conn.fetchrow(
+            "SELECT doc_id, category, field_id, title, storage_ref, content_type, "
+            "size_bytes, version, uploaded_by, created_at "
+            "FROM documents WHERE doc_id = $1",
+            doc_id,
+        )
+    if r is None:
+        raise HTTPException(status_code=404, detail="المستند غير موجود")
+    return {
+        "doc_id": r["doc_id"],
+        "category": r["category"],
+        "field_id": r["field_id"],
+        "title": r["title"],
+        "storage_ref": r["storage_ref"],
+        "content_type": r["content_type"],
+        "size_bytes": r["size_bytes"],
+        "version": r["version"],
+        "uploaded_by": r["uploaded_by"],
+        "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+    }
+
+
 @app.get("/api/v1/activities", response_model=list[ActivityItem])
 def list_activities(
     user: UserSchema = Depends(get_current_user),

@@ -1,0 +1,47 @@
+# SAHOOL v9 — AlertManager configuration (minimal, safe defaults)
+#
+# Real receivers (email / Slack / Telegram) are wired in deployment via
+# environment substitution. DO NOT hardcode secrets (SMTP creds, webhook
+# tokens, Slack URLs) in this file — they belong in env / secret stores and
+# are injected at container start. The default webhook below is a placeholder.
+global:
+  resolve_timeout: 5m
+
+route:
+  # Group alerts by alertname + job + severity so related firings collapse
+  # into a single notification.
+  group_by: ['alertname', 'job', 'severity']
+  group_wait: 30s        # buffer alerts in a new group before notifying
+  group_interval: 5m     # wait before notifying about new alerts in an existing group
+  repeat_interval: 4h    # resend an unresolved alert at most this often
+  receiver: 'default-webhook'
+
+  # Optional severity-based fan-out. Both routes fall back to the default
+  # webhook receiver until dedicated receivers are configured via env.
+  routes:
+    - matchers:
+        - severity = "critical"
+      receiver: 'default-webhook'
+      group_wait: 10s
+      repeat_interval: 1h
+    - matchers:
+        - severity = "warning"
+      receiver: 'default-webhook'
+
+receivers:
+  # Placeholder webhook receiver. Override the URL via deployment env, e.g.
+  #   ALERTMANAGER_WEBHOOK_URL=https://alerts.internal.sahool/notify
+  # and template it into this file at deploy time. Slack / email / Telegram
+  # receivers are added here in the deployment overlay.
+  - name: 'default-webhook'
+    webhook_configs:
+      - url: 'http://alert-webhook:9000/alert'  # placeholder — set via ALERTMANAGER_WEBHOOK_URL
+        send_resolved: true
+
+inhibit_rules:
+  # Suppress warning-level alerts when a critical alert for the same job is firing.
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['alertname', 'job']

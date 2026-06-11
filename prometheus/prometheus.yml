@@ -5,7 +5,13 @@ global:
     environment: 'production'
     project:     'sahool-v9'
 
-rule_files: []
+rule_files:
+  - alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
 
 scrape_configs:
   # ── Backend Services ──────────────────────────────────────────

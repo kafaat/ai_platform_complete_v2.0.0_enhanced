@@ -7,11 +7,12 @@ import {
   kongApi, indicatorsApi, vegetationApi,
   weatherApi, soilApi, authApi, rasterApi,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
-  analyzeFieldIntelligence,
+  analyzeFieldIntelligence, getCostAnalytics,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
   type FieldIntelInput, type FieldIntelResult,
+  type CostAnalytics,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -31,6 +32,7 @@ export const QK = {
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
+  costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
   health:                                   ['health', 'all'],
 } as const;
 
@@ -378,6 +380,20 @@ export function useGuardrailsValidate() {
         tenant_id:    (user as any)?.tenant_id ?? 'default',
         auto_approve_low_risk: true,
       }).then(r => r.data),
+  });
+}
+
+// ── Analytics: تحليلات التكلفة (حيّة، tenant-scoped + RBAC analytics:view) ──
+// لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض
+// الاستعلام لتعرض الواجهة حالة خطأ صادقة بدل رقم مالي مُلفَّق.
+export function useCostAnalytics(): UseQueryResult<CostAnalytics> {
+  const { user } = useAuthStore();
+  const tid = (user as any)?.tenant_id ?? 'default';
+  return useQuery<CostAnalytics>({
+    queryKey: QK.costAnalytics(tid),
+    queryFn:  () => getCostAnalytics(),
+    staleTime:5 * 60_000,
+    retry:    false,
   });
 }
 

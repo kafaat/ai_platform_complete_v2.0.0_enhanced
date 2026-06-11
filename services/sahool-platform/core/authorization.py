@@ -85,6 +85,14 @@ class Permission(str, Enum):
     # البيانات المرجعيّة (Master Data: محاصيل/تربة/أسمدة/مبيدات/بذور — الطبقة المركزيّة)
     MASTER_DATA_VIEW = "master_data:view"
     MASTER_DATA_MANAGE = "master_data:manage"
+    # الإعدادات (Settings: منصّة/مزرعة/ريّ/إشعارات — مخزن مفتاح/قيمة لكلّ مستأجر)
+    SETTINGS_VIEW = "settings:view"
+    SETTINGS_MANAGE = "settings:manage"
+    # إدارة المستندات (Document Management: عقود/تقارير/صور/خرائط/نتائج مختبر)
+    DOCUMENT_VIEW = "document:view"
+    DOCUMENT_MANAGE = "document:manage"
+    # التحليلات (تكاليف فعليّة مُجمَّعة — استبدال ملخّص ReportsPage الثابت)
+    ANALYTICS_VIEW = "analytics:view"
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
     REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
@@ -131,6 +139,11 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.IRRIGATION_MANAGE,
         Permission.MASTER_DATA_VIEW,
         Permission.MASTER_DATA_MANAGE,
+        Permission.SETTINGS_VIEW,
+        Permission.SETTINGS_MANAGE,
+        Permission.DOCUMENT_VIEW,
+        Permission.DOCUMENT_MANAGE,
+        Permission.ANALYTICS_VIEW,
     },
     UserRole.MANAGER: {
         # إدارة كاملة، لا حذف ملكية ولا تغيير أدوار
@@ -162,6 +175,11 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.IRRIGATION_MANAGE,
         Permission.MASTER_DATA_VIEW,
         Permission.MASTER_DATA_MANAGE,
+        Permission.SETTINGS_VIEW,
+        Permission.SETTINGS_MANAGE,
+        Permission.DOCUMENT_VIEW,
+        Permission.DOCUMENT_MANAGE,
+        Permission.ANALYTICS_VIEW,
     },
     UserRole.AGRONOMIST: {
         # توصيات + معايرة + بحث، لا إدارة بنيوية
@@ -185,6 +203,10 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.IRRIGATION_MANAGE,
         Permission.MASTER_DATA_VIEW,
         Permission.MASTER_DATA_MANAGE,
+        Permission.SETTINGS_VIEW,
+        Permission.DOCUMENT_VIEW,
+        Permission.DOCUMENT_MANAGE,
+        Permission.ANALYTICS_VIEW,
     },
     UserRole.WORKER: {
         # تنفيذ ميداني فقط
@@ -201,6 +223,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.DEVICE_VIEW,
         Permission.IRRIGATION_VIEW,
         Permission.MASTER_DATA_VIEW,
+        Permission.SETTINGS_VIEW,
+        Permission.DOCUMENT_VIEW,
     },
     UserRole.VIEWER: {
         # قراءة فقط
@@ -214,6 +238,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.DEVICE_VIEW,
         Permission.IRRIGATION_VIEW,
         Permission.MASTER_DATA_VIEW,
+        Permission.SETTINGS_VIEW,
+        Permission.DOCUMENT_VIEW,
     },
 }
 

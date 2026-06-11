@@ -219,6 +219,23 @@ export const analyzeFieldIntelligence = (input: FieldIntelInput): Promise<FieldI
     .then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// ANALYTICS — تحليلات التكلفة (حيّة، مُقيَّدة بالدور analytics:view وبالمستأجِر)
+// ربط حقيقيّ عبر البوابة (kong). لا fallback وهميّ — أرقام مالية، الخطأ يُعلَن
+// للـUI (حالة خطأ/فراغ). 503 يُرمى عند تعطيل قاعدة البيانات على الخادم.
+// ══════════════════════════════════════════════════════════════════
+export interface CostBySource {
+  source:    string;
+  total_usd: number;
+}
+export interface CostAnalytics {
+  by_source:  CostBySource[];
+  total_usd:  number;
+  task_count: number;
+}
+export const getCostAnalytics = (): Promise<CostAnalytics> =>
+  kongApi.get<CostAnalytics>('/api/v1/analytics/costs').then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════
 
