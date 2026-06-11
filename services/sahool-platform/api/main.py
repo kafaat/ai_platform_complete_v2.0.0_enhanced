@@ -1560,25 +1560,28 @@ async def create_master_data(
 
     md_id = "md_" + _uuid.uuid4().hex[:12]
     async with tenant_connection(user) as conn:
-        # رمز مكرّر ضمن نفس الفئة ⇒ 409 واضحة (لا 500 من قيد UNIQUE)
-        dup = await conn.fetchval(
-            "SELECT 1 FROM master_data WHERE category = $1 AND code = $2",
-            req.category,
-            req.code,
-        )
-        if dup:
-            raise HTTPException(status_code=409, detail="الرمز موجود مسبقاً في هذه الفئة")
-        await conn.execute(
-            """INSERT INTO master_data (md_id, tenant_id, category, code, name_ar, name_en, metadata)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb)""",
-            md_id,
-            str(user.tenant_id),
-            req.category,
-            req.code,
-            req.name_ar,
-            req.name_en,
-            _json.dumps(req.metadata or {}),
-        )
+        # نعتمد على قيد UNIQUE(tenant, category, code) لا SELECT-ثمّ-INSERT (سباق):
+        # طلبان متزامنان قد يمرّان الفحص ثم يفشل الثاني — نلتقط unique_violation
+        # (SQLSTATE 23505) ونُعيد 409 دائماً (لا 500). ملاحظة المراجعة.
+        try:
+            await conn.execute(
+                """INSERT INTO master_data
+                    (md_id, tenant_id, category, code, name_ar, name_en, metadata)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb)""",
+                md_id,
+                str(user.tenant_id),
+                req.category,
+                req.code,
+                req.name_ar,
+                req.name_en,
+                _json.dumps(req.metadata or {}),
+            )
+        except Exception as e:  # noqa: BLE001 — نميّز unique_violation فقط
+            if getattr(e, "sqlstate", None) == "23505":
+                raise HTTPException(
+                    status_code=409, detail="الرمز موجود مسبقاً في هذه الفئة"
+                ) from None
+            raise
     return {"md_id": md_id, "code": req.code, "message_ar": "أُضيف عنصر مرجعيّ"}
 
 
