@@ -71,9 +71,15 @@ Fix:
 - The indicators dashboard reports only counts that exist in the tenant's tables;
   spectral/weather values per field are fetched from their real services on the
   relevant screens.
-- `HybridIndexPage` still renders a static `WOFOST_DATA` / `SPARKLINES` block as
-  cosmetic demo decoration (not claimed as live API data). Out of scope for this
-  wiring sprint; flagged for a future pass.
+- `HybridIndexPage` no longer renders the static `WOFOST_DATA` / `SPARKLINES`
+  decoration (removed). The season-simulation table now pulls live per-field
+  seasons via `GET /api/v1/fields/{id}/seasons` (`useSeasons`) and shows the
+  stored `sim_*` estimates (GDD / water need / LAI / yield); a field/season with
+  no run shows an honest "—" instead of fabricated numbers. KPI cards render the
+  live dashboard counts with no synthetic sparklines, and the status summary +
+  bar chart are derived from `has_active_season` (active vs idle) rather than a
+  non-existent per-field NDVI in the payload. NDVI gauge shows the dashboard NDVI
+  KPI if present, else a neutral 0 with a "from the Satellite screen" label.
 
 ## Verification
 - `python3 -m py_compile` on all touched Python files — OK.

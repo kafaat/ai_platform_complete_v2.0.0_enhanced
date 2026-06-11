@@ -436,6 +436,36 @@ export interface SeasonSimResult {
 export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
   kongApi.post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`).then(r => r.data);
 
+// ── مواسم الحقل (مع نتائج المحاكاة المُخزَّنة sim_*) — حيّة عبر البوّابة ──
+// GET /api/v1/fields/{field_id}/seasons (SeasonSummary[]، الأحدث أولاً، tenant-scoped
+// + FIELD_VIEW). حقول sim_* تكون مملوءة فقط بعد تشغيل /simulate (تقديريّة)، وإلّا null
+// ⇒ تعرضها الواجهة كحالة "—" صادقة لا أرقاماً مُلفَّقة. لا fallback وهميّ.
+export interface SeasonSummary {
+  season_id:        string;
+  field_id:         string;
+  crops:            string[];
+  cultivar:         string | null;
+  irrigation_type:  string | null;
+  seed_rate_kg_ha:  number | null;
+  land_leveling_date: string | null;
+  plowing_date:     string | null;
+  sowing_date:      string | null;
+  season_end:       string | null;
+  stages:           Record<string, unknown>[];
+  status:           string; // active | closed | ...
+  created_at:       string | null;
+  // نتائج المحاكاة (تُملأ عند تشغيل /simulate، وإلّا null — تقديريّة بنطاق وثقة)
+  sim_yield_kg_ha:   number | null;
+  sim_biomass_kg_ha: number | null;
+  sim_gdd_total:     number | null;
+  sim_lai_max:       number | null;
+  sim_water_mm:      number | null;
+  sim_ran_at:        string | null;
+}
+
+export const fetchSeasons = (fieldId: string): Promise<SeasonSummary[]> =>
+  kongApi.get<SeasonSummary[]>(`/api/v1/fields/${fieldId}/seasons`).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // INVENTORY — مخزون المدخلات (حيّ، مُقيَّد بالدور inventory:view/manage وبالمستأجِر)
 // ربط حقيقيّ عبر البوابة (kong). لا fallback وهميّ — كميّات/مخزون حقيقيّة، الخطأ
