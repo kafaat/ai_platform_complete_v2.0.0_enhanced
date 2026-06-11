@@ -220,6 +220,11 @@ def detect_change(
         "cols": cols,
         "delta_grid": delta_grid,  # after - before (None للفجوات)
         "change_grid": code_grid,  # -2/-1/0/1 (None للفجوات) للموبايل
+        # مفاتيح مختصرة على المستوى الأعلى (يستهلكها العميل/الموبايل مباشرة)
+        "mean_delta": mean_delta,
+        "improved_pct": improved_pct,
+        "degraded_pct": degraded_pct,
+        "stable_pct": stable_pct,
         "stats": stats,
         "coverage_pct": round(coverage * 100, 2),
         "valid_pixels": valid,

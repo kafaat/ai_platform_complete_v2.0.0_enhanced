@@ -76,6 +76,10 @@ export const QK = {
   alerts:           (tid: string)        => ['alerts', tid],
   notifPrefs:       (tid: string)        => ['notifications', 'preferences', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
+  fieldChange:      (fid: string, index: string, dateA: string, dateB: string) =>
+                       ['field-change', fid, index, dateA, dateB],
+  fieldTimeseries:  (fid: string, index: string, dates: string) =>
+                       ['field-timeseries', fid, index, dates],
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
@@ -258,6 +262,100 @@ export function useIndicatorGrid(
       .then(r => r.data),
     staleTime: 10 * 60_000,
     enabled:   !!fieldId,
+    retry:     false,
+  });
+}
+
+// ── Change detection (per-pixel 2D, between two dates) ─────────────
+export interface ChangeZone {
+  class: 'improvement' | 'degradation' | 'severe_degradation';
+  code: number;            // 1 | -1 | -2
+  count: number;
+  mean_delta: number;
+  cells: [number, number][];
+}
+
+export interface ChangeDetectionResponse {
+  field_id: string;
+  index: string;
+  date_a: string;
+  date_b: string;
+  available: boolean;      // false ⇒ لا COG حقيقي لأحد التاريخين (لا تغيّر مُفبرَك)
+  real_data: boolean;
+  // الحقول التالية موجودة فقط عند available=true
+  rows?: number;
+  cols?: number;
+  bbox?: [number, number, number, number];
+  delta_grid?: (number | null)[][]; // after - before (null = فجوة/غيمة)
+  change_grid?: (number | null)[][]; // -2/-1/0/1 (null = فجوة)
+  mean_delta?: number;
+  improved_pct?: number;
+  degraded_pct?: number;
+  stable_pct?: number;
+  coverage_pct?: number;
+  valid_pixels?: number;
+  total_pixels?: number;
+  areas?: { severe_degraded_pct: number; degraded_pct: number; improved_pct: number; stable_pct: number };
+  zones?: ChangeZone[];
+  cloud_warning?: boolean;
+  interpretation_ar?: string;
+  // الحقول التالية موجودة فقط عند available=false
+  missing_dates?: string[];
+  note?: string;
+}
+
+// Spatial change detection between two acquisition dates (real COG grids only).
+export function useFieldChange(
+  fieldId: string,
+  index: GridIndex,
+  dateA: string,
+  dateB: string,
+  opts: { grid?: number; enabled?: boolean } = {},
+) {
+  const { grid = 32, enabled = true } = opts;
+  return useQuery<ChangeDetectionResponse>({
+    queryKey: QK.fieldChange(fieldId, index, dateA, dateB),
+    queryFn:  () => rasterApi
+      .post(`/v1/fields/${fieldId}/change`, { index, date_a: dateA, date_b: dateB, grid })
+      .then(r => r.data),
+    staleTime: 10 * 60_000,
+    enabled:   !!fieldId && !!dateA && !!dateB && dateA !== dateB && enabled,
+    retry:     false,
+  });
+}
+
+// ── Time series (real per-date index means for a field) ────────────
+export interface TimeseriesPoint { datetime: string; mean: number }
+
+export interface FieldTimeseriesResponse {
+  field_id: string;
+  index: string;
+  available: boolean;      // false ⇒ لا COG حقيقي في التواريخ (لا قيم مخترعة)
+  real_data: boolean;
+  points: TimeseriesPoint[];
+  requested_dates?: string[];
+  monthly_composite?: { month: string; median: number; mean: number; min: number; max: number; scene_count: number }[];
+  trend?: { slope: number | null; direction: string; points: number; first?: number; last?: number };
+  anomalies?: { month: string; value: number; z_score: number; type: 'drop' | 'spike' }[];
+  scenes_used?: number;
+  note?: string;
+}
+
+// Real index-mean time series for a field. dates="" ⇒ all available COG dates.
+export function useFieldTimeseries(
+  fieldId: string,
+  index: GridIndex,
+  dates: string = '',
+  opts: { grid?: number; enabled?: boolean } = {},
+) {
+  const { grid = 16, enabled = true } = opts;
+  return useQuery<FieldTimeseriesResponse>({
+    queryKey: QK.fieldTimeseries(fieldId, index, dates),
+    queryFn:  () => rasterApi
+      .get(`/v1/fields/${fieldId}/timeseries`, { params: { index, dates, grid } })
+      .then(r => r.data),
+    staleTime: 10 * 60_000,
+    enabled:   !!fieldId && enabled,
     retry:     false,
   });
 }
