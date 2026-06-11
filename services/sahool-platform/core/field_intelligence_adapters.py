@@ -273,10 +273,15 @@ def build_live_adapters(authorization: str | None = None) -> dict:
     def simulate_fn(req, decision, state):
         return simulate_adapter(req, decision, state, authorization=authorization)
 
+    def forecast_fn(req):
+        # التوقّع الحيّ (Open-Meteo، keyless) — يُجلَب فعليّاً في run_field_intelligence.
+        return weather_forecast_adapter(req, authorization=authorization)
+
     return {
         "weather_fn": weather_adapter,
         "soil_fn": soil_adapter,
         "sensing_fn": sensing_adapter,
         "memory_fn": memory_fn,
         "simulate_fn": simulate_fn,
+        "forecast_fn": forecast_fn,
     }

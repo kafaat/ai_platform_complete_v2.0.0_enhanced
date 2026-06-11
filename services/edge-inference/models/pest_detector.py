@@ -55,7 +55,16 @@ def _load_onnx_session(model_path: str, device: str):
     providers = ["CPUExecutionProvider"]
     if device == "jetson_orin":
         providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-    session = ort.InferenceSession(model_path, providers=providers)
+    # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
+    try:
+        session = ort.InferenceSession(model_path, providers=providers)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            "[EdgePestDetector] فشل تحميل نموذج ONNX (%s) — السقوط للمسار القاعديّ: %s",
+            model_path,
+            e,
+        )
+        return None
     _ONNX_SESSION_CACHE[model_path] = session
     return session
 

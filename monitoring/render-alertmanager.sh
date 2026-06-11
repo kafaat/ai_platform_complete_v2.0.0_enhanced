@@ -4,19 +4,19 @@
 # Gate (mirrors capabilities.alerting_receivers_active()): real receivers are
 # rendered ONLY when at least one alerting secret is provisioned —
 #   ALERT_SLACK_WEBHOOK | ALERT_SMTP_HOST | ALERT_TELEGRAM_TOKEN
-# Otherwise this is a no-op: it prints the dormant message and exits 0, leaving
-# the base no-op config (monitoring/alertmanager.yml) in use. No delivery, no
-# failures, no noise.
+# Otherwise this is a no-op: prints the dormant message and exits 0, leaving the
+# base no-op config (monitoring/alertmanager.yml) in use.
 #
-# Idempotent. Safe: set -eu, never echoes secret values.
+# IMPORTANT (review): it ASSEMBLES the config from ONLY the channels whose secrets
+# are present — Slack-only provisioning yields a Slack-only receiver (no empty
+# SMTP/Telegram blocks). So "any one channel is enough" always produces a VALID,
+# usable config. (alertmanager.overlay.example.yml stays as a full reference.)
 #
-# Usage:   sh monitoring/render-alertmanager.sh
-# Output (only when gated ON): monitoring/alertmanager.rendered.yml
+# Safe: set -eu, never echoes secret values. Output: monitoring/alertmanager.rendered.yml
 
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-OVERLAY="$SCRIPT_DIR/alertmanager.overlay.example.yml"
 RENDERED="$SCRIPT_DIR/alertmanager.rendered.yml"
 
 # --- GATE ------------------------------------------------------------------
@@ -27,31 +27,70 @@ if [ -z "${ALERT_SLACK_WEBHOOK:-}" ] \
   exit 0
 fi
 
-# --- RENDER ----------------------------------------------------------------
-if [ ! -f "$OVERLAY" ]; then
-  echo "render-alertmanager: missing overlay template: $OVERLAY" >&2
-  exit 1
-fi
+TMP="$RENDERED.tmp"
+: > "$TMP"
 
-# Replace a __PLACEHOLDER__ with the value of an env var, escaping sed-special
-# chars (& / \) in the replacement. Never prints the value.
-_sub() {
-  _val=$(printf '%s' "$(eval "printf '%s' \"\${$2:-}\"")" | sed -e 's/[&/\\]/\\&/g')
-  sed "s/$1/$_val/g"
-}
+# --- global (SMTP transport only when email is provisioned) ----------------
+{
+  echo "global:"
+  echo "  resolve_timeout: 5m"
+  if [ -n "${ALERT_SMTP_HOST:-}" ]; then
+    echo "  smtp_smarthost: '${ALERT_SMTP_HOST}'"
+    echo "  smtp_from: '${ALERT_SMTP_FROM:-alerts@sahool.local}'"
+    [ -n "${ALERT_SMTP_USER:-}" ] && echo "  smtp_auth_username: '${ALERT_SMTP_USER}'"
+    [ -n "${ALERT_SMTP_PASS:-}" ] && echo "  smtp_auth_password: '${ALERT_SMTP_PASS}'"
+    echo "  smtp_require_tls: true"
+  fi
+} >> "$TMP"
 
-cat "$OVERLAY" \
-  | _sub '__ALERT_SLACK_WEBHOOK__'    ALERT_SLACK_WEBHOOK \
-  | _sub '__ALERT_SMTP_HOST__'        ALERT_SMTP_HOST \
-  | _sub '__ALERT_SMTP_FROM__'        ALERT_SMTP_FROM \
-  | _sub '__ALERT_SMTP_TO__'          ALERT_SMTP_TO \
-  | _sub '__ALERT_SMTP_USER__'        ALERT_SMTP_USER \
-  | _sub '__ALERT_SMTP_PASS__'        ALERT_SMTP_PASS \
-  | _sub '__ALERT_TELEGRAM_TOKEN__'   ALERT_TELEGRAM_TOKEN \
-  | _sub '__ALERT_TELEGRAM_CHAT_ID__' ALERT_TELEGRAM_CHAT_ID \
-  > "$RENDERED.tmp"
+# --- route -----------------------------------------------------------------
+{
+  echo "route:"
+  echo "  group_by: ['alertname', 'job', 'severity']"
+  echo "  group_wait: 30s"
+  echo "  group_interval: 5m"
+  echo "  repeat_interval: 4h"
+  echo "  receiver: 'sahool-receiver'"
+  echo "  routes:"
+  echo "    - matchers: [severity = \"critical\"]"
+  echo "      receiver: 'sahool-receiver'"
+  echo "      group_wait: 10s"
+  echo "      repeat_interval: 1h"
+} >> "$TMP"
 
-chmod 600 "$RENDERED.tmp"
-mv "$RENDERED.tmp" "$RENDERED"
+# --- receivers (ONLY the channels whose secrets exist) ---------------------
+{
+  echo "receivers:"
+  echo "  - name: 'sahool-receiver'"
+  if [ -n "${ALERT_SLACK_WEBHOOK:-}" ]; then
+    echo "    slack_configs:"
+    echo "      - api_url: '${ALERT_SLACK_WEBHOOK}'"
+    echo "        channel: '${ALERT_SLACK_CHANNEL:-#sahool-alerts}'"
+    echo "        send_resolved: true"
+    echo "        title: '[{{ .CommonLabels.severity }}] {{ .CommonLabels.alertname }}'"
+  fi
+  if [ -n "${ALERT_SMTP_HOST:-}" ] && [ -n "${ALERT_SMTP_TO:-}" ]; then
+    echo "    email_configs:"
+    echo "      - to: '${ALERT_SMTP_TO}'"
+    echo "        send_resolved: true"
+  fi
+  if [ -n "${ALERT_TELEGRAM_TOKEN:-}" ] && [ -n "${ALERT_TELEGRAM_CHAT_ID:-}" ]; then
+    echo "    telegram_configs:"
+    echo "      - bot_token: '${ALERT_TELEGRAM_TOKEN}'"
+    echo "        chat_id: ${ALERT_TELEGRAM_CHAT_ID}"
+    echo "        parse_mode: 'HTML'"
+    echo "        send_resolved: true"
+  fi
+} >> "$TMP"
 
-echo "alerting receivers active — rendered: $RENDERED"
+# --- inhibit ---------------------------------------------------------------
+{
+  echo "inhibit_rules:"
+  echo "  - source_matchers: [severity = \"critical\"]"
+  echo "    target_matchers: [severity = \"warning\"]"
+  echo "    equal: ['alertname', 'job']"
+} >> "$TMP"
+
+chmod 600 "$TMP"
+mv "$TMP" "$RENDERED"
+echo "alerting receivers active — rendered: $RENDERED (only provisioned channels)"

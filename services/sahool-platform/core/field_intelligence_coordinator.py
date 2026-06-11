@@ -179,6 +179,7 @@ class FieldIntelligenceResult:
     generated_at: str = ""
     farm_memory_context: dict = field(default_factory=dict)  # السياق التاريخي
     simulation: dict = field(default_factory=dict)  # أثر what-if المتوقّع
+    forecast: dict = field(default_factory=dict)  # توقّع جوّي حيّ (Open-Meteo) — إثراء
 
 
 def run_field_intelligence(
@@ -193,6 +194,7 @@ def run_field_intelligence(
     economic_context: EconomicContext | None = None,
     memory_fn: Callable | None = None,
     simulate_fn: Callable | None = None,
+    forecast_fn: Callable | None = None,
 ) -> FieldIntelligenceResult:
     """المسار الكامل: جمع → تطبيع → دمج (مايسترو) → سياسة → حَوكمة.
 
@@ -273,6 +275,17 @@ def run_field_intelligence(
         except Exception as e:  # noqa: BLE001 — صدق: المحاكاة إثراء لا شرط
             simulation = {"error": f"تعذّرت المحاكاة: {e}"}
 
+    # ⑧ التوقّع الجوّي الحيّ (Open-Meteo) — إثراء للقرار، fail-safe (لا يُسقطه).
+    # يُجلَب فعليّاً عند توفّر forecast_fn (المحوّل الافتراضي keyless). صدق: None ⇒ {}.
+    forecast: dict = {}
+    if forecast_fn is not None:
+        try:
+            fc = forecast_fn(req)
+            if fc:
+                forecast = fc
+        except Exception as e:  # noqa: BLE001 — صدق: التوقّع إثراء لا شرط
+            forecast = {"error": f"تعذّر التوقّع: {e}"}
+
     return FieldIntelligenceResult(
         field_id=req.field_id,
         canonical_state=state,
@@ -281,6 +294,7 @@ def run_field_intelligence(
         generated_at=now,
         farm_memory_context=farm_memory_context,
         simulation=simulation,
+        forecast=forecast,
     )
 
 

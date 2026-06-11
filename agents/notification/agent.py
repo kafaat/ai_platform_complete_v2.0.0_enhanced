@@ -10,9 +10,10 @@ SAHOOL v9.0 — agents/notification/agent.py (مُصلَح)
 Condition-gated capabilities:
   • FCM/APNs push (send_push) is CONDITION-GATED on the `fcm_push` capability
     (mirrors services/sahool-platform/core/capabilities.py fcm_push_active()):
-    active only when FCM_SERVER_KEY or FCM_CREDENTIALS_JSON is set in the env.
-    When neither is set the push path is a dormant no-op (returns False, never
-    fabricates a send and never crashes the agent).
+    active only when FCM_SERVER_KEY is set to a truthy value in the env (the
+    legacy send path; HTTP v1 / FCM_CREDENTIALS_JSON is not wired for sending yet).
+    Otherwise the push path is a dormant no-op (returns False, never fabricates a
+    send and never crashes the agent).
 """
 
 from __future__ import annotations
@@ -45,8 +46,7 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASS = os.getenv("SMTP_PASSWORD", "")
 TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY", "")
-FCM_CREDENTIALS_JSON = os.getenv("FCM_CREDENTIALS_JSON", "")
+# FCM: السرّ يُقرأ وقت التشغيل في fcm_push_active()/send_push (لا ثابت استيراد).
 FCM_LEGACY_ENDPOINT = "https://fcm.googleapis.com/fcm/send"
 _fcm_dormant_logged = False
 
@@ -153,19 +153,26 @@ async def send_telegram(chat_id: str, text: str) -> bool:
 
 
 # ── FCM/APNs push (CONDITION-GATED: fcm_push capability) ───────
+def _fcm_truthy(v: str) -> bool:
+    """A non-empty, non-falsey env value counts as set (rejects 0/false/no/off)."""
+    return v.strip().lower() not in ("", "0", "false", "no", "off")
+
+
 def fcm_push_active() -> bool:
-    """Mirror of capabilities.py fcm_push_active(): push is active only when
-    an FCM credential is provisioned via env. Dormant by default."""
-    return bool(FCM_SERVER_KEY or FCM_CREDENTIALS_JSON)
+    """Mirrors capabilities.py fcm_push_active(): active ONLY when FCM_SERVER_KEY is
+    set to a truthy value. Read at CALL time (not import) so env changes take effect.
+    FCM_CREDENTIALS_JSON (HTTP v1 / service account) is NOT wired for sending yet, so
+    it alone does NOT activate push — otherwise /capabilities would lie."""
+    return _fcm_truthy(os.getenv("FCM_SERVER_KEY", ""))
 
 
 async def send_push(push_token: str, title: str, body: str) -> bool:
     """Deliver a real FCM push. Honest + gated.
 
-    • Dormant (no FCM_SERVER_KEY and no FCM_CREDENTIALS_JSON): logs once and
-      returns False. No fabrication, no fake send.
-    • FCM_SERVER_KEY set: POSTs to the FCM legacy HTTP API. Returns True ONLY
-      on a real 2xx response from FCM.
+    • Dormant (FCM_SERVER_KEY unset/falsey): logs once and returns False. No
+      fabrication, no fake send.
+    • FCM_SERVER_KEY set: POSTs to the FCM legacy HTTP API. Returns True ONLY on
+      a real 2xx response from FCM.
     Never raises — any error is logged and returns False so the agent stays up.
     """
     global _fcm_dormant_logged
@@ -178,11 +185,8 @@ async def send_push(push_token: str, title: str, body: str) -> bool:
     if not push_token:
         return False
 
-    # FCM_CREDENTIALS_JSON (HTTP v1 / service account) is not wired here yet;
-    # the legacy server-key path is the activated transport.
-    if not FCM_SERVER_KEY:
-        logger.info("FCM: FCM_CREDENTIALS_JSON set but legacy FCM_SERVER_KEY required for send")
-        return False
+    # قراءة المفتاح وقت التشغيل (لا ثابت الاستيراد) ليعتمد التفعيل على البيئة فقط.
+    server_key = os.getenv("FCM_SERVER_KEY", "")
 
     try:
         import httpx  # lazy import — agent must not hard-depend on it for dormant path
@@ -195,7 +199,7 @@ async def send_push(push_token: str, title: str, body: str) -> bool:
             resp = await client.post(
                 FCM_LEGACY_ENDPOINT,
                 headers={
-                    "Authorization": f"key={FCM_SERVER_KEY}",
+                    "Authorization": f"key={server_key}",
                     "Content-Type": "application/json",
                 },
                 json={

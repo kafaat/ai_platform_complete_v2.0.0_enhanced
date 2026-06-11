@@ -1,9 +1,10 @@
 """capabilities.py — بوّابة القدرات المشروطة (conditional deferred capabilities).
 
-كل قدرة "مؤجَّلة" (FCM/forecast/ML/مستقبِلات التنبيه) مبنيّة بكودها الحقيقي لكن
-مُسوَّرة بشرط تفعيل (متغيّر بيئة / ملفّ نموذج / سرّ). دون الشرط تبقى خاملة بصدق
+كل قدرة "مؤجَّلة" (FCM/ML/مستقبِلات التنبيه) مبنيّة بكودها الحقيقي لكن مُسوَّرة
+بشرط تفعيل (متغيّر بيئة / ملفّ نموذج / سرّ). دون الشرط تبقى خاملة بصدق
 (no-op / fallback مُعلَن — لا اختراع بيانات)؛ بتحقّق الشرط يبدأ تدفّق بياناتها
-الحقيقي فوراً دون تعديل كود.
+الحقيقي فوراً دون تعديل كود. (التوقّع الجوّي الحيّ Open-Meteo ليس مؤجَّلاً —
+keyless ومربوط افتراضيّاً في weather_forecast_adapter، فليس ضمن هذه البوّابة.)
 
 مبدأ: القدرة حاضرة، خاملة حتى التزويد. (capability present, dormant until provisioned)
 
@@ -30,8 +31,13 @@ def _file_present(env_key: str) -> bool:
 
 
 def fcm_push_active() -> bool:
-    """إشعارات Push تُفعَّل عند ضبط اعتماد FCM."""
-    return _truthy(os.getenv("FCM_SERVER_KEY")) or _truthy(os.getenv("FCM_CREDENTIALS_JSON"))
+    """إشعارات Push تُفعَّل عند ضبط FCM_SERVER_KEY (مسار FCM legacy المُنفَّذ فعلاً).
+
+    ملاحظة (مراجعة): لا نعتبر FCM_CREDENTIALS_JSON كافياً — مسار HTTP v1 (حساب
+    الخدمة) غير مربوط في notification-agent بعد، فاعتباره "مُفعَّلاً" يجعل
+    /capabilities يكذب (active بينما الإرسال يُرجِع False). يُوسَّع الشرط عند ربط v1.
+    """
+    return _truthy(os.getenv("FCM_SERVER_KEY"))
 
 
 # ملاحظة: التنبّؤ الجوّي الحيّ (Open-Meteo) ليس قدرةً مؤجَّلة — Open-Meteo مجّاني
@@ -73,7 +79,7 @@ def all_capabilities() -> list[Capability]:
             "fcm_push",
             "إشعارات Push (FCM/APNs)",
             fcm_push_active(),
-            "عيّن FCM_SERVER_KEY أو FCM_CREDENTIALS_JSON",
+            "عيّن FCM_SERVER_KEY (مسار FCM legacy؛ HTTP v1/JSON يُربط لاحقاً)",
             "لا إرسال Push (البريد/تلغرام/داخل-التطبيق تعمل)؛ لا إشعار وهميّ",
         ),
         Capability(

@@ -55,7 +55,16 @@ def _load_onnx_session(model_path: str, device: str):
     providers = ["CPUExecutionProvider"]
     if device == "jetson_orin":
         providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
-    session = ort.InferenceSession(model_path, providers=providers)
+    # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
+    try:
+        session = ort.InferenceSession(model_path, providers=providers)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(
+            "[EdgeYieldEstimator] فشل تحميل نموذج ONNX (%s) — السقوط للمسار القاعديّ: %s",
+            model_path,
+            e,
+        )
+        return None
     _ONNX_SESSION_CACHE[model_path] = session
     return session
 
@@ -135,7 +144,7 @@ class EdgeYieldEstimator:
             "plant_count_proxy": plant_count_proxy,
         }
 
-    def predict_yield(self, features: list[dict], crop: str, growth_stage: str) -> dict[str, float]:
+    def predict_yield(self, features: list[dict], crop: str, growth_stage: str) -> dict:
         """
         Predict yield from multiple sample images.
 
@@ -214,7 +223,7 @@ class EdgeYieldEstimator:
         features: list[dict],
         crop: str,
         growth_stage: str,
-    ) -> dict[str, float]:
+    ) -> dict:
         """Run REAL ONNX inference over the already-computed band-stat features.
 
         Builds the model input vector from the aggregated visual features extracted in
