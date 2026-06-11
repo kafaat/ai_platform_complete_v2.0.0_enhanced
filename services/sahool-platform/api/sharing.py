@@ -152,7 +152,7 @@ class SharingKeyService:
                 scope.value,
                 third_party_name,
                 third_party_type.value if third_party_type else None,
-                [_u.UUID(fid) for fid in (allowed_field_ids or [])] or None,
+                list(allowed_field_ids or []) or None,  # نصّيّة منذ v18 (TEXT[])
                 allowed_endpoints or [],
                 expires_at,
             )

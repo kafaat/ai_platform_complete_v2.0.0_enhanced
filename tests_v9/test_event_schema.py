@@ -36,13 +36,26 @@ def test_valid_envelope_passes_and_autofills():
 @pytest.mark.unit
 def test_invalid_envelope_reports_each_problem_honestly():
     es = _es()
+    # entity_id فارغ (لا "ليس UUID" — المعرّفات النصّيّة صالحة منذ v18)
     bad = es.EventEnvelope(
-        event_type="NotDotted", entity_type="", entity_id="not-uuid", tenant_id="x", source="ghost"
+        event_type="NotDotted", entity_type="", entity_id="  ", tenant_id="x", source="ghost"
     )
     errors = es.validate_envelope(bad)
     joined = " ".join(errors)
     assert "event_type" in joined and "entity_type" in joined
     assert "entity_id" in joined and "tenant_id" in joined and "source" in joined
+
+
+@pytest.mark.unit
+def test_text_field_id_is_valid_entity_id():
+    """Regression: معرّفات الحقول نصّيّة (fields.field_id VARCHAR مثل fld_demo_001).
+
+    فرض UUID على entity_id كان يرفض كلّ أحداث الحقول الحقيقيّة (trueup وغيره)
+    رغم أنّ الأعمدة وُحِّدت على TEXT في v18. هذا الاختبار يحرس ألّا يعود الفرض."""
+    es = _es()
+    env = es.new_event("trueup.applied", "field", "fld_demo_001", _UUID, source="system")
+    assert es.validate_envelope(env) == []  # نصّيّ ⇒ صالح (كان يُرفَض)
+    assert env.to_emit_args()["entity_id"] == "fld_demo_001"  # يمرّ كما هو للعقد
 
 
 @pytest.mark.unit

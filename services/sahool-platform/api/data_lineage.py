@@ -205,7 +205,6 @@ class LineageAssembler:
         limit: int = 500,
     ) -> EntityLineage:
         """يجمع lineage كامل للـentity."""
-        import uuid as _u
 
         entries: list[LineageEntry] = []
 
@@ -253,7 +252,7 @@ class LineageAssembler:
                     LIMIT $3
                     """,
                     entity_type,
-                    _u.UUID(entity_id),
+                    entity_id,  # نصّيّ منذ v18 (معرّفات الحقول نصّيّة)
                     limit,
                 )
                 for r in event_rows:
@@ -287,7 +286,7 @@ class LineageAssembler:
                         ORDER BY t.transitioned_at DESC
                         LIMIT $2
                         """,
-                        _u.UUID(entity_id),
+                        entity_id,  # نصّيّ منذ v18 (معرّفات الحقول نصّيّة)
                         limit,
                     )
                     for r in lc_rows:
@@ -327,7 +326,7 @@ class LineageAssembler:
                         ORDER BY applied_at DESC
                         LIMIT $2
                         """,
-                        _u.UUID(entity_id),
+                        entity_id,  # نصّيّ منذ v18 (معرّفات الحقول نصّيّة)
                         limit,
                     )
                     for r in tu_rows:

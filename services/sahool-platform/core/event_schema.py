@@ -93,8 +93,11 @@ def validate_envelope(env: EventEnvelope) -> list[str]:
         errors.append(f"event_type غير صالح: {env.event_type!r} (المتوقّع entity.action)")
     if not env.entity_type:
         errors.append("entity_type مفقود")
-    if not _is_uuid(env.entity_id):
-        errors.append(f"entity_id ليس UUID: {env.entity_id!r}")
+    # entity_id نصّيّ لا UUID: معرّفات الكيانات الزراعيّة نصّيّة عمداً
+    # (fields.field_id VARCHAR مثل "fld_demo_001") — v18 وحّد الأعمدة على TEXT.
+    # فرض UUID هنا كان يرفض كلّ أحداث الحقول الحقيقيّة (regression مكشوف).
+    if not isinstance(env.entity_id, str) or not env.entity_id.strip():
+        errors.append(f"entity_id مفقود/فارغ: {env.entity_id!r}")
     if not _is_uuid(env.tenant_id):
         errors.append(f"tenant_id ليس UUID: {env.tenant_id!r}")
     if env.source not in EVENT_SOURCES:

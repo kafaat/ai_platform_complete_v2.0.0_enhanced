@@ -120,7 +120,7 @@ class FieldLifecycleEngine:
                 SELECT * FROM field_lifecycle
                 WHERE field_id = $1 AND (season_id = $2 OR (season_id IS NULL AND $2 IS NULL))
                 """,
-                uuid.UUID(field_id),
+                field_id,  # نصّيّ منذ v18 (fields.field_id VARCHAR)
                 uuid.UUID(season_id) if season_id else None,
             )
             if row:
@@ -135,7 +135,7 @@ class FieldLifecycleEngine:
                 VALUES ($1, $2, $3, $4, 'CREATED')
                 """,
                 uuid.UUID(lifecycle_id),
-                uuid.UUID(field_id),
+                field_id,  # نصّيّ منذ v18 (fields.field_id VARCHAR)
                 uuid.UUID(tenant_id),
                 uuid.UUID(season_id) if season_id else None,
             )
@@ -282,7 +282,7 @@ class FieldLifecycleEngine:
                 SELECT * FROM field_lifecycle
                 WHERE field_id = $1 AND (season_id = $2 OR (season_id IS NULL AND $2 IS NULL))
                 """,
-                uuid.UUID(field_id),
+                field_id,  # نصّيّ منذ v18 (fields.field_id VARCHAR)
                 uuid.UUID(season_id) if season_id else None,
             )
             return self._row_to_lifecycle(row) if row else None
