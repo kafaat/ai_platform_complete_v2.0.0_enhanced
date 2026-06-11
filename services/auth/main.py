@@ -24,6 +24,7 @@ from uuid import uuid4
 
 import asyncpg
 import bcrypt
+import pyotp  # TOTP (RFC 6238) — المصادقة الثنائيّة MFA
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -179,6 +180,11 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    mfa_code: str | None = None  # رمز TOTP المؤقّت — مطلوب إن كان MFA مفعّلاً للحساب
+
+
+class MfaCodeRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=10)  # رمز TOTP (٦ أرقام عادةً)
 
 
 class RefreshRequest(BaseModel):
@@ -493,7 +499,8 @@ async def login(req: LoginRequest, request: Request):
 
     async with _pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT id, email, password_hash, role, full_name, tenant_id, active FROM users WHERE email=$1",
+            "SELECT id, email, password_hash, role, full_name, tenant_id, active, "
+            "mfa_enabled, mfa_secret FROM users WHERE email=$1",
             req.email,
         )
 
@@ -510,6 +517,24 @@ async def login(req: LoginRequest, request: Request):
         await record_failed_login(req.email)  # ✅ track failed attempts (locks account internally)
         LOGIN_COUNTER.labels(status="failed").inc()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "بيانات غير صحيحة")
+
+    # المصادقة الثنائيّة (MFA): إن كانت مفعّلة، كلمة المرور وحدها لا تكفي.
+    # fail-closed: مفعّل بلا سرّ ⇒ رفض (لا تجاوز صامت). التحقّق بنافذة ±30s.
+    if row["mfa_enabled"]:
+        if not req.mfa_code:
+            await record_failed_login(req.email)
+            LOGIN_COUNTER.labels(status="mfa_required").inc()
+            # 401 برمز خاصّ ليعرف العميل أنّ كلمة المرور صحّت لكن يلزم رمز MFA
+            raise HTTPException(
+                status.HTTP_401_UNAUTHORIZED,
+                "يتطلّب الحساب رمز المصادقة الثنائيّة (MFA)",
+                headers={"X-MFA-Required": "true"},
+            )
+        secret = row["mfa_secret"]
+        if not secret or not pyotp.TOTP(secret).verify(req.mfa_code.strip(), valid_window=1):
+            await record_failed_login(req.email)
+            LOGIN_COUNTER.labels(status="mfa_failed").inc()
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "رمز MFA غير صحيح")
 
     await clear_failed_logins(req.email)  # ✅ reset on success
     tid = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
@@ -669,6 +694,79 @@ async def change_password(
         )
     await audit_log("change_password", user_id, "authenticated")
     return {"message": "تم تغيير كلمة المرور بنجاح"}
+
+
+# ── MFA (TOTP / RFC 6238) ─────────────────────────────────────
+@app.post("/auth/mfa/setup")
+async def mfa_setup(user: dict = Depends(get_current_user)):
+    """يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri (لتطبيق المصادقة).
+
+    لا يُفعّل MFA بعد — التفعيل يتطلّب تأكيد أوّل رمز عبر /auth/mfa/activate
+    (إثبات أنّ المستخدم اقترن فعلاً، لئلّا يُقفل نفسه خارجاً). السرّ يُعرَض هنا
+    مرّة واحدة فقط (لا يُعاد بعدها أبداً).
+    """
+    user_id = int(user["sub"])
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT email, mfa_enabled FROM users WHERE id=$1", user_id)
+    if not row:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "المستخدم غير موجود")
+    if row["mfa_enabled"]:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "MFA مفعّل بالفعل — عطّله أولاً لإعادة الاقتران"
+        )
+
+    secret = pyotp.random_base32()
+    async with _pool.acquire() as conn:
+        # نخزّن السرّ لكن mfa_enabled يبقى FALSE حتى التأكيد
+        await conn.execute(
+            "UPDATE users SET mfa_secret=$1, mfa_enabled=FALSE, updated_at=NOW() WHERE id=$2",
+            secret,
+            user_id,
+        )
+    uri = pyotp.TOTP(secret).provisioning_uri(name=row["email"], issuer_name="SAHOOL")
+    await audit_log("mfa_setup_started", user_id, "authenticated")
+    return {
+        "secret": secret,
+        "provisioning_uri": uri,
+        "message": "أكّد الرمز عبر /auth/mfa/activate",
+    }
+
+
+@app.post("/auth/mfa/activate")
+async def mfa_activate(req: MfaCodeRequest, user: dict = Depends(get_current_user)):
+    """يفعّل MFA بعد تأكيد أوّل رمز صحيح (إثبات الاقتران)."""
+    user_id = int(user["sub"])
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT mfa_secret, mfa_enabled FROM users WHERE id=$1", user_id)
+    if not row or not row["mfa_secret"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "ابدأ الاقتران أولاً عبر /auth/mfa/setup")
+    if not pyotp.TOTP(row["mfa_secret"]).verify(req.code.strip(), valid_window=1):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح — تأكّد من تطبيق المصادقة")
+    async with _pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET mfa_enabled=TRUE, updated_at=NOW() WHERE id=$1", user_id
+        )
+    await audit_log("mfa_activated", user_id, "authenticated")
+    return {"message": "تم تفعيل المصادقة الثنائيّة", "mfa_enabled": True}
+
+
+@app.post("/auth/mfa/disable")
+async def mfa_disable(req: MfaCodeRequest, user: dict = Depends(get_current_user)):
+    """يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله مهاجم بتوكن مسروق بلا الجهاز)."""
+    user_id = int(user["sub"])
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT mfa_secret, mfa_enabled FROM users WHERE id=$1", user_id)
+    if not row or not row["mfa_enabled"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA غير مفعّل")
+    if not pyotp.TOTP(row["mfa_secret"]).verify(req.code.strip(), valid_window=1):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح")
+    async with _pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET mfa_enabled=FALSE, mfa_secret=NULL, updated_at=NOW() WHERE id=$1",
+            user_id,
+        )
+    await audit_log("mfa_disabled", user_id, "authenticated")
+    return {"message": "تم تعطيل المصادقة الثنائيّة", "mfa_enabled": False}
 
 
 @app.get("/auth/verify")
