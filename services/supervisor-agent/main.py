@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any, Optional
 
+from circuit_breaker import CircuitOpenError
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.security import HTTPBearer
 from mcp_client import MCPClient
@@ -125,6 +126,26 @@ async def _get_current_user(credentials: Optional = Depends(security)):
         raise HTTPException(401, f"Invalid token: {e}") from e
 
 
+def _degraded_response(
+    start_time: datetime, domain: str, reason: str = "circuit_open"
+) -> AgentResponse:
+    """تدهور لطيف: خدمة MCP خلفيّة متعطّلة (القاطع مفتوح). نُرجِع 200 برسالة
+    عربيّة واضحة + وسم `degraded` بدل 500 قاسٍ — المنصّة تبقى مستجيبة والقاطع
+    يتعافى تلقائيّاً. الوسم في structured_data يتيح للعميل كشف الحالة وإعادة
+    المحاولة. confidence=0 يمنع البناء على بيانات غائبة."""
+    elapsed = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
+    return AgentResponse(
+        response_ar=(
+            "خدمة البيانات اللازمة لهذا الطلب متعطّلة مؤقّتاً ونحاول التعافي "
+            "تلقائيّاً — يرجى المحاولة بعد قليل."
+        ),
+        confidence=0.0,
+        sources=[],
+        structured_data={"status": "degraded", "reason": reason, "domain": domain},
+        processing_time_ms=elapsed,
+    )
+
+
 @app.post("/agent/query", response_model=AgentResponse)
 async def process_query(
     query: AgentQuery, user: dict = Depends(_get_current_user)
@@ -143,15 +164,21 @@ async def process_query(
     # الهويّة من التوكن المُتحقَّق لا من جسم الطلب (منع انتحال المستأجر)
     trusted_user_id = user.get("sub") or user.get("user_id") or query.user_id
     trusted_tenant_id = user.get("tenant_id") or query.tenant_id
-    result = await skill.execute(
-        intent=sub_intent,
-        query=query.query,
-        field_id=query.field_id,
-        user_id=trusted_user_id,
-        tenant_id=trusted_tenant_id,
-        context=query.context,
-        objectives=query.preferred_objectives,
-    )
+    try:
+        result = await skill.execute(
+            intent=sub_intent,
+            query=query.query,
+            field_id=query.field_id,
+            user_id=trusted_user_id,
+            tenant_id=trusted_tenant_id,
+            context=query.context,
+            objectives=query.preferred_objectives,
+        )
+    except CircuitOpenError as e:
+        # خدمة MCP خلفيّة متعطّلة (القاطع مفتوح) — تدهور لطيف بدل 500.
+        # القاطع المفتوح مرصود أصلاً (مقياس + سجلّ)؛ هنا نُبقي المنصّة مستجيبة.
+        logger.warning("circuit.degraded_response domain=%s detail=%s", domain, e)
+        return _degraded_response(start_time, domain)
     response_ar = _format_arabic_response(result)
     # حَوكمة موحّدة: إن أنتجت المهارة إجراءات قابلة للتنفيذ، تمرّ عبر البوّابة
     # (سدّ الباب الخلفي: لا مسار توصية→أمر يتجاوز /validate).
