@@ -1598,6 +1598,166 @@ async def list_field_activities(
     return [_row_to_activity(r) for r in rows]
 
 
+# ─── التنبيهات الزراعيّة (Alerts) — نمط activities (v36) ──────────
+_ALERT_TYPES = {
+    "low_moisture",
+    "heavy_rain",
+    "disease_risk",
+    "heat_stress",
+    "frost_risk",
+    "other",
+}
+_ALERT_SEVERITIES = {"info", "warning", "critical"}
+_ALERT_STATUSES = {"active", "acknowledged", "resolved"}
+
+
+class AlertCreateRequest(BaseModel):
+    """طلب إنشاء تنبيه زراعيّ (نوع/خطورة/عنوان/نصّ/حقل اختياريّ)."""
+
+    alert_type: str
+    severity: str
+    title_ar: str | None = Field(default=None, max_length=200)
+    message_ar: str | None = None
+    field_id: str | None = None
+
+
+class AlertSummary(BaseModel):
+    alert_id: str
+    field_id: str | None = None
+    alert_type: str
+    severity: str
+    title_ar: str | None = None
+    message_ar: str | None = None
+    status: str
+    created_at: str | None = None
+
+
+def _row_to_alert(r) -> AlertSummary:
+    return AlertSummary(
+        alert_id=r["alert_id"],
+        field_id=r["field_id"],
+        alert_type=r["alert_type"],
+        severity=r["severity"],
+        title_ar=r["title_ar"],
+        message_ar=r["message_ar"],
+        status=r["status"],
+        created_at=r["created_at"].isoformat() if r["created_at"] else None,
+    )
+
+
+@app.get("/api/v1/alerts", response_model=list[AlertSummary])
+async def list_alerts(
+    status: str | None = Query(default=None),
+    severity: str | None = Query(default=None),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تنبيهات المستأجِر (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS) + حالة/خطورة اختياريّة.
+
+    تُتحقَّق قيم الترشيح (422 على قيمة غير معروفة) قبل الاستعلام. 503 عند تعذّر القاعدة.
+    """
+    if status is not None and status not in _ALERT_STATUSES:
+        raise HTTPException(status_code=422, detail="حالة تنبيه غير معروفة")
+    if severity is not None and severity not in _ALERT_SEVERITIES:
+        raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
+    conds = ["tenant_id = $1::uuid"]
+    args: list = [str(user.tenant_id)]
+    if status is not None:
+        args.append(status)
+        conds.append(f"status = ${len(args)}")
+    if severity is not None:
+        args.append(severity)
+        conds.append(f"severity = ${len(args)}")
+    where = " AND ".join(conds)
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at "
+                f"FROM alerts WHERE {where} ORDER BY created_at DESC",
+                *args,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة التنبيهات", e) from e
+    return [_row_to_alert(r) for r in rows]
+
+
+@app.post("/api/v1/alerts", status_code=201, response_model=AlertSummary)
+async def create_alert(
+    req: AlertCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """ينشئ تنبيهاً زراعيّاً للمستأجِر — يُخزَّن فعليّاً ضمن سياق المستأجِر (RLS).
+
+    يتحقّق من النوع والخطورة (422)، ويؤكّد أنّ الحقل (إن مُرِّر) يخصّ المستأجِر
+    (404) قبل الإدراج، ثمّ يردّ التنبيه المُنشأ.
+    """
+    import uuid as _uuid
+
+    if req.alert_type not in _ALERT_TYPES:
+        raise HTTPException(status_code=422, detail="نوع تنبيه غير معروف")
+    if req.severity not in _ALERT_SEVERITIES:
+        raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
+    alert_id = "alr_" + _uuid.uuid4().hex[:12]
+    try:
+        async with tenant_connection(user) as conn:
+            if req.field_id is not None:
+                await _assert_field_in_tenant(conn, req.field_id)
+            await conn.execute(
+                """INSERT INTO alerts
+                    (alert_id, tenant_id, field_id, alert_type, severity,
+                     title_ar, message_ar, status)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
+                alert_id,
+                str(user.tenant_id),
+                req.field_id,
+                req.alert_type,
+                req.severity,
+                req.title_ar,
+                req.message_ar,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ التنبيه", e) from e
+    return AlertSummary(
+        alert_id=alert_id,
+        field_id=req.field_id,
+        alert_type=req.alert_type,
+        severity=req.severity,
+        title_ar=req.title_ar,
+        message_ar=req.message_ar,
+        status="active",
+    )
+
+
+@app.patch("/api/v1/alerts/{alert_id}/acknowledge", response_model=AlertSummary)
+async def acknowledge_alert(
+    alert_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يُقِرّ تنبيهاً (status='acknowledged') للمستأجِر — مُرشَّح بالمستأجِر (RLS).
+
+    404 لو التنبيه ليس ضمن المستأجِر؛ 503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "UPDATE alerts SET status = 'acknowledged' WHERE alert_id = $1 "
+                "RETURNING alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at",
+                alert_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("إقرار التنبيه", e) from e
+    if row is None:
+        raise HTTPException(status_code=404, detail="التنبيه غير موجود ضمن هذا المستأجِر")
+    return _row_to_alert(row)
+
+
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
 class FarmCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)

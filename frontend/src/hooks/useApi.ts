@@ -22,6 +22,8 @@ import {
   type Activity, type ActivityCreateInput,
   fetchIrrigationAdvice, fetchDiseaseRisk,
   type IrrigationAdvice, type DiseaseRisk,
+  fetchAlerts, createAlert, acknowledgeAlert,
+  type AlertRecord, type AlertCreateInput, type AlertListFilters,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
@@ -451,25 +453,39 @@ export function useDiseaseRisk(fieldId?: string): UseQueryResult<DiseaseRisk, Er
   });
 }
 
-// ── Alerts ────────────────────────────────────────────────────
-export function useAlerts() {
-  const { user } = useAuthStore();
-  const tid = (user as any)?.tenant_id ?? 'default';
-  return useQuery({
-    queryKey: QK.alerts(tid),
-    queryFn:  () => indicatorsApi.get('/v1/alerts', { params: { tenant_id: tid } })
-      .then(r => r.data).catch(() => ({ alerts: [] })),
+// ── Alerts: التنبيهات الزراعيّة المُصنَّفة لكلّ مستأجِر (sahool-platform v36) ──
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC) يُرفض الاستعلام
+// لتعرض الواجهة حالة صادقة (StateViews) بدل تنبيهات ملفّقة.
+export function useAlerts(
+  filters: AlertListFilters = {},
+): UseQueryResult<AlertRecord[], Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<AlertRecord[], Error>({
+    queryKey: [...QK.alerts(tid), filters.status ?? 'all', filters.severity ?? 'all'],
+    queryFn:  () => fetchAlerts(filters),
     staleTime:60_000,
     refetchInterval: 2 * 60_000,
   });
 }
 
-// إقرار تنبيه (persist فعليّ عبر indicators). الواجهة تُحدّث تفاؤليّاً والـPATCH
-// يثبّت الإقرار على الخادم. صدق: لو تعذّرت النقطة، الإقرار يبقى محلّيّاً للجلسة.
-export function useAcknowledgeAlert() {
-  return useMutation<unknown, Error, string>({
-    mutationFn: (alertId) =>
-      indicatorsApi.patch(`/indicators/alerts/${alertId}/acknowledge`).then(r => r.data),
+// إقرار تنبيه (persist فعليّ على sahool-platform) — يُبطِل كاش تنبيهات المستأجِر
+// ليُعاد جلب القائمة بالحالة المُثبَّتة على الخادم.
+export function useAcknowledgeAlert(): UseMutationResult<AlertRecord, Error, string> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<AlertRecord, Error, string>({
+    mutationFn: (alertId) => acknowledgeAlert(alertId),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
+  });
+}
+
+// إنشاء تنبيه — يُبطِل كاش تنبيهات المستأجِر.
+export function useCreateAlert(): UseMutationResult<AlertRecord, Error, AlertCreateInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<AlertRecord, Error, AlertCreateInput>({
+    mutationFn: (payload) => createAlert(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
   });
 }
 
