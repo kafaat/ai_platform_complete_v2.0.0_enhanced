@@ -65,7 +65,10 @@ function buildPatch(
     if (raw === '') {
       patch[spec.key] = null; // مُسح ⇒ null صريح
     } else if (spec.type === 'number') {
-      patch[spec.key] = Number(raw);
+      // قيمة رقميّة غير مكتملة/غير صالحة (مثل "-") ⇒ NaN؛ لا تُدرَج في الـpatch
+      // كي لا تتحوّل إلى null عبر JSON وتمسح القيمة على الخادم دون قصد.
+      const n = Number(raw);
+      if (Number.isFinite(n)) patch[spec.key] = n;
     } else {
       patch[spec.key] = raw;
     }

@@ -66,7 +66,8 @@ export const QK = {
   diseaseRisk:      (tid: string, fid: string) => ['weather-advice', 'disease', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
-  prescription:     (fid: string, index: string, date: string, n: number) => ['prescription', fid, index, date, n],
+  prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
+                       ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
   // الأنظمة الجديدة (شاشات الويب)
   inventoryItems:   (tid: string)        => ['inventory', 'items', tid],
@@ -283,7 +284,8 @@ export function useFieldPrescription(
 ) {
   const { nZones = 3, baseRate, strategy = 'compensate', enabled = true } = opts;
   return useQuery<PrescriptionResponse>({
-    queryKey: QK.prescription(fieldId, index, date, nZones),
+    // baseRate/strategy في المفتاح: تغييرهما يُبطل الكاش ويُعيد الجلب (الطلب POST يعتمدهما).
+    queryKey: QK.prescription(fieldId, index, date, nZones, baseRate ?? null, strategy),
     queryFn:  () => rasterApi
       .post(`/v1/fields/${fieldId}/prescription`, {
         index, date, n_zones: nZones, base_rate: baseRate ?? null, strategy,
