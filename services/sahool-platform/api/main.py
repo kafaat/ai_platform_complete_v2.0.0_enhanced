@@ -1286,6 +1286,14 @@ class FarmCreateRequest(BaseModel):
     area_ha: float | None = None
     centroid_lat: float | None = None
     centroid_lon: float | None = None
+    # تنظيم المزرعة (v34) — حقول اختياريّة لشاشة «إنشاء مزرعة».
+    country: str | None = Field(default=None, max_length=60)
+    region: str | None = Field(default=None, max_length=80)
+    timezone: str | None = Field(default=None, max_length=40)
+    units: str | None = Field(default=None, max_length=10)
+    currency: str | None = Field(default=None, max_length=10)
+    description: str | None = None
+    activity_type: str | None = Field(default=None, max_length=40)
 
 
 @app.post("/api/v1/farms", status_code=201)
@@ -1297,30 +1305,49 @@ async def create_farm(
     import uuid as _uuid
 
     farm_id = "frm_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO farms
-                (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            farm_id,
-            str(user.tenant_id),
-            req.name,
-            req.location,
-            req.area_ha,
-            req.centroid_lat,
-            req.centroid_lon,
-        )
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO farms
+                    (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon,
+                     country, region, timezone, units, currency, description, activity_type)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)""",
+                farm_id,
+                str(user.tenant_id),
+                req.name,
+                req.location,
+                req.area_ha,
+                req.centroid_lat,
+                req.centroid_lon,
+                req.country,
+                req.region,
+                req.timezone,
+                req.units,
+                req.currency,
+                req.description,
+                req.activity_type,
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ المزرعة", e) from e
     return {"farm_id": farm_id, "name": req.name, "message_ar": "أُنشئت المزرعة"}
 
 
 @app.get("/api/v1/farms")
 async def list_farms(user: UserSchema = Depends(require_permission(Permission.FARM_VIEW))):
     """قائمة مزارع المستأجر (مُرشّحة بـRLS تلقائيّاً)."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT farm_id, name, location, area_ha, centroid_lat, centroid_lon, created_at "
-            "FROM farms ORDER BY created_at DESC"
-        )
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT farm_id, name, location, area_ha, centroid_lat, centroid_lon, "
+                "country, region, timezone, units, currency, description, activity_type, "
+                "created_at FROM farms ORDER BY created_at DESC"
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة المزارع", e) from e
     return [
         {
             "farm_id": r["farm_id"],
@@ -1329,6 +1356,13 @@ async def list_farms(user: UserSchema = Depends(require_permission(Permission.FA
             "area_ha": float(r["area_ha"]) if r["area_ha"] is not None else None,
             "centroid_lat": float(r["centroid_lat"]) if r["centroid_lat"] is not None else None,
             "centroid_lon": float(r["centroid_lon"]) if r["centroid_lon"] is not None else None,
+            "country": r["country"],
+            "region": r["region"],
+            "timezone": r["timezone"],
+            "units": r["units"],
+            "currency": r["currency"],
+            "description": r["description"],
+            "activity_type": r["activity_type"],
             "created_at": r["created_at"].isoformat() if r["created_at"] else None,
         }
         for r in rows

@@ -675,6 +675,55 @@ export const createSharingKey = (payload: NewSharingKey): Promise<SharingKeyCrea
   kongApi.post<SharingKeyCreated>('/api/v1/sharing/keys', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// FARMS — المزارع (أب الحقول). إنشاء/سرد حيّ عبر البوابة (kong)، مُقيَّد بالدور
+// farm:create / farm:view وبالمستأجِر (RLS). لا fallback وهميّ — 503 عند تعطيل
+// قاعدة البيانات. تُستخدم لبوّابة التأهيل: مستخدم جديد يُنشئ مزرعة قبل اللوحة.
+// ══════════════════════════════════════════════════════════════════
+export type FarmUnits = 'metric' | 'imperial';
+
+export interface Farm {
+  farm_id:        string;
+  name:           string;
+  location:       string | null;
+  area_ha:        number | null;
+  centroid_lat:   number | null;
+  centroid_lon:   number | null;
+  country?:       string | null;
+  region?:        string | null;
+  timezone?:      string | null;
+  units?:         string | null;
+  currency?:      string | null;
+  description?:   string | null;
+  activity_type?: string | null;
+  created_at?:    string | null;
+}
+
+export interface FarmCreateInput {
+  name:           string;
+  location?:      string;
+  area_ha?:       number;
+  country?:       string;
+  region?:        string;
+  timezone?:      string;
+  units?:         FarmUnits;
+  currency?:      string;
+  description?:   string;
+  activity_type?: string;
+}
+
+export interface FarmCreated {
+  farm_id:    string;
+  name:       string;
+  message_ar: string;
+}
+
+export const fetchFarms = (): Promise<Farm[]> =>
+  kongApi.get<Farm[]>('/api/v1/farms').then(r => r.data);
+
+export const createFarm = (payload: FarmCreateInput): Promise<FarmCreated> =>
+  kongApi.post<FarmCreated>('/api/v1/farms', payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════
 
