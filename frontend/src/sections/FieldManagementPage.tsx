@@ -136,11 +136,26 @@ export default function FieldManagementPage() {
   };
 
   const handleSaveSeason = async (data: any) => {
+    // إنشاء حقيقيّ: POST /api/v1/fields/{id}/seasons (بدل /seasons المُبتلَع).
+    // عند الفشل نرمي رسالة عربيّة فيعرضها النموذج (errors.general) ويبقى مفتوحاً.
     try {
-      await kongApi.post('/seasons', data);
-    } catch { /* fallback */ }
+      await kongApi.post(`/api/v1/fields/${data.field_id}/seasons`, {
+        crops: data.crops, cultivar: data.cultivar || null,
+        irrigation_type: data.irrigation_type,
+        seed_rate_kg_ha: data.seed_rate_kg_ha,
+        land_leveling_date: data.land_leveling_date || null,
+        plowing_date: data.plowing_date || null,
+        sowing_date: data.sowing_date || null,
+        season_end: data.season_end || null,
+        custom_stages: data.custom_stages,
+      });
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      throw new Error((detail && (detail.message_ar || detail)) ||
+        'تعذّر حفظ الموسم — تحقّق من القاعدة/الصلاحيّة والتواريخ.');
+    }
     setShowSeason(null);
-    toastStore.add('success', '🌾 تم إنشاء الموسم', 'جاري محاكاة WOFOST...');
+    toastStore.add('success', '🌾 تم إنشاء الموسم', (data.crops || []).join('، '));
   };
 
   const handleDelete = (id: string) => {

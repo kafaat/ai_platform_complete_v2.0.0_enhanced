@@ -93,3 +93,6 @@ v29_documents.sql
 v30_fields_geometry.sql
 # v31: عمود manager (المسؤول عن الحقل) لجدول fields — يكمل تدفّق بيانات الحقل.
 v31_fields_manager.sql
+# v32: المواسم الزراعيّة (seasons) لكلّ حقل — محاصيل/صنف/ريّ/تواريخ/مراحل/حالة.
+# يعتمد على fields. self-applied RLS.
+v32_seasons.sql

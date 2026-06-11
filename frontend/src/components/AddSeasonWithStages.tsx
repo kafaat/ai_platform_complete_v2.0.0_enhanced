@@ -19,9 +19,11 @@ interface Stage { name: string; date: string; notes: string; }
 interface SeasonData {
   field_id:          string;
   crops:             string[];
+  cultivar:          string;
   land_leveling_date:string;
   plowing_date:      string;
   sowing_date:       string;
+  season_end:        string;
   seed_rate_kg_ha:   number;
   irrigation_type:   string;
   custom_stages:     Stage[];
@@ -65,9 +67,11 @@ function suitabilityColor(s: string) {
 
 export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCancel }: Props) {
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
+  const [cultivar,   setCultivar]   = useState('');
   const [landDate,   setLandDate]   = useState('');
   const [plowDate,   setPlowDate]   = useState('');
   const [sowDate,    setSowDate]    = useState('');
+  const [endDate,    setEndDate]    = useState('');
   const [seedRate,   setSeedRate]   = useState<string>('');
   const [irrType,    setIrrType]    = useState('drip');
   const [stages,     setStages]     = useState<Stage[]>([]);
@@ -88,6 +92,8 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
       e.plowDate = 'تاريخ الحراثة يجب أن يكون بعد تسوية الأرض';
     if (plowDate && sowDate && sowDate < plowDate)
       e.sowDate = 'تاريخ البذار يجب أن يكون بعد الحراثة';
+    if (endDate && sowDate && endDate < sowDate)
+      e.endDate = 'نهاية الموسم يجب أن تكون بعد البذار';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -99,9 +105,11 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
       await onSave({
         field_id:           fieldId,
         crops:              selectedCrops,
+        cultivar:           cultivar,
         land_leveling_date: landDate,
         plowing_date:       plowDate,
         sowing_date:        sowDate,
+        season_end:         endDate,
         seed_rate_kg_ha:    +seedRate,
         irrigation_type:    irrType,
         custom_stages:      stages,
@@ -199,11 +207,12 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
             <label className="block text-sm font-semibold text-slate-200 mb-2 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-emerald-400" /> تواريخ إعداد الأرض والبذار
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
                 { label:'تسوية الأرض',  val:landDate,  set:setLandDate,  key:'landDate',  tip:'' },
                 { label:'حراثة الأرض', val:plowDate,  set:setPlowDate,  key:'plowDate',  tip:'بعد التسوية' },
                 { label:'البذار *',     val:sowDate,   set:setSowDate,   key:'sowDate',   tip:'بعد الحراثة' },
+                { label:'نهاية الموسم', val:endDate,   set:setEndDate,   key:'endDate',   tip:'حصاد متوقّع' },
               ].map(f => (
                 <div key={f.key}>
                   <label className="block text-xs text-slate-400 mb-1">
@@ -218,8 +227,15 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
             </div>
           </div>
 
-          {/* ③ البذور + الري */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* ③ الصنف + البذور + الري */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">الصنف (اختياري)</label>
+              <input value={cultivar} onChange={e => setCultivar(e.target.value)}
+                placeholder="مثال: صنف محلّي / Yecora"
+                className="w-full px-3 py-2 rounded-lg text-sm"
+                style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+            </div>
             <div>
               <label className="block text-xs text-slate-400 mb-1">كمية البذور (كجم/هـ) *</label>
               <input type="number" value={seedRate} onChange={e => setSeedRate(e.target.value)}
