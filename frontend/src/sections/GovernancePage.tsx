@@ -25,6 +25,7 @@ import { toastStore } from '../services/websocket';
 function errorDetail(error: unknown): string {
   const status = (error as { response?: { status?: number } })?.response?.status;
   if (status === 503) return 'خدمة الحوكمة غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
+  if (status === 401) return 'انتهت الجلسة — يُرجى تسجيل الدخول من جديد.';
   if (status === 403) return 'لا تملك صلاحيّة الوصول إلى سجلّ التدقيق.';
   if (status === 404) return 'العنصر غير موجود.';
   const detail = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
@@ -275,7 +276,8 @@ function CommandSection() {
 function SharingSection({ manageable }: { manageable: boolean }) {
   const { data, isLoading, error, refetch } = useSharingKeys();
   const create = useCreateSharingKey();
-  const [scope, setScope] = useState<'read' | 'write'>('read');
+  // SharingScope الخادم = 'read' | 'read_write' (لا 'write' — كان سيُرفض بـ422).
+  const [scope, setScope] = useState<'read' | 'read_write'>('read');
   const [validDays, setValidDays] = useState(30);
   const [partyName, setPartyName] = useState('');
   const [plaintext, setPlaintext] = useState<string | null>(null);
@@ -311,11 +313,11 @@ function SharingSection({ manageable }: { manageable: boolean }) {
               النطاق
               <select
                 value={scope}
-                onChange={(e) => setScope(e.target.value as 'read' | 'write')}
+                onChange={(e) => setScope(e.target.value as 'read' | 'read_write')}
                 className="px-2 py-1.5 rounded-lg bg-sahool-surface border border-sahool-border text-sm text-sahool-text"
               >
                 <option value="read">قراءة</option>
-                <option value="write">كتابة</option>
+                <option value="read_write">قراءة وكتابة</option>
               </select>
             </label>
             <label className="flex flex-col gap-1 text-xs text-sahool-muted">
@@ -392,7 +394,7 @@ function SharingSection({ manageable }: { manageable: boolean }) {
                       {k.scope}
                     </span>
                   )}
-                  {k.revoked && (
+                  {k.revoked_at != null && (
                     <span className="text-[11px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400">ملغى</span>
                   )}
                 </div>

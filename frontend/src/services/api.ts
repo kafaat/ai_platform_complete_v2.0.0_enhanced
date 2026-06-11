@@ -578,16 +578,18 @@ export interface EntityLineage {
   entries:        LineageEntry[];
 }
 export interface SharingKey {
-  key_id:      string;
-  key_prefix?: string;
-  scope?:      string;
-  created_by?: string;
-  expires_at?: string | null;
-  revoked?:    boolean;
+  key_id:       string;
+  key_prefix?:  string;
+  scope?:       string;
+  created_by?:  string;
+  expires_at?:  string | null;
+  revoked_at?:  string | null; // الخادم يُرجِع طابعاً زمنيّاً (أو null) لا boolean
   [k: string]: unknown; // الخادم قد يُرجِع حقولاً إضافيّة — لا نقصّها
 }
+// SharingScope على الخادم = 'read' | 'read_write' (لا 'write').
+export type SharingScope = 'read' | 'read_write';
 export interface NewSharingKey {
-  scope?:            'read' | 'write' | string;
+  scope?:            SharingScope;
   valid_days?:       number;
   third_party_name?: string;
   third_party_type?: string;
