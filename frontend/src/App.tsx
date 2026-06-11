@@ -12,7 +12,7 @@ import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
-import { canAccess } from './lib/permissions';
+import { canAccess, canCreateFarm } from './lib/permissions';
 import { LoadingState } from './components/StateViews';
 
 // ── Error Boundary ──────────────────────────────────────────
@@ -285,7 +285,9 @@ export default function App() {
   // واحدة. الوضع التجريبيّ يتجاوزها (الاستعلام مُعطَّل ⇒ يبقى pending ⇒ نتخطّاه صراحةً).
   // أثناء جلب القائمة نُظهر تحميلاً. عند الخطأ (503/انقطاع) لا نحبس المستخدم — نمرّره
   // للّوحة (الصفحات نفسها تعرض حالات خطأ صادقة)، فلا نقفل التطبيق على عطل قاعدة عابر.
-  if (!isDemoMode) {
+  // البوّابة لمن يملك farm:create (owner) فقط — غير المالك لا يُحبَس في إنشاء
+  // مزرعة لا يستطيع إكمالها (403)؛ يمرّ مباشرةً للوحة (صفحاته تعرض حالاتها).
+  if (!isDemoMode && canCreateFarm(user?.role)) {
     if (farms.isLoading) {
       return (
         <ErrorBoundary>
