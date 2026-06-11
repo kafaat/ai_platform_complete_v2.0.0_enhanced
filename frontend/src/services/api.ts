@@ -423,6 +423,43 @@ export const createActivity = (
   kongApi.post<Activity>(`/api/v1/fields/${fieldId}/activities`, payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// WEATHER ADVICE — توصية ريّ (FAO-56) + مخاطر أمراض لكلّ حقل (Sprint 5a).
+// تُحسبان من الطقس الحيّ (Open-Meteo) ومحصول الموسم النشط. ربط حيّ بلا تلفيق:
+// عند الخطأ (503 طقس/قاعدة، 404 حقل، 422 بلا إحداثيّات، 403 RBAC) يُرمى
+// ليعرض الـUI حالة صادقة (StateViews).
+// ══════════════════════════════════════════════════════════════════
+export interface IrrigationAdvice {
+  recommended_mm: number;
+  urgency:        'none' | 'low' | 'moderate' | 'high' | string;
+  timing_ar:      string;
+  et0:            number;
+  kc:             number;
+  rationale_ar:   string;
+  field_id:       string;
+  crop:           string | null;
+  stage:          string;
+  source:         string;
+}
+
+export interface DiseaseRisk {
+  risk_level:     'low' | 'moderate' | 'high' | string;
+  diseases_ar:    string[];
+  advice_ar:      string;
+  field_id:       string;
+  crop:           string | null;
+  temperature_c:  number;
+  humidity_pct:   number;
+  rain_mm_3d:     number;
+  source:         string;
+}
+
+export const fetchIrrigationAdvice = (fieldId: string): Promise<IrrigationAdvice> =>
+  kongApi.get<IrrigationAdvice>(`/api/v1/fields/${fieldId}/weather/irrigation-advice`).then(r => r.data);
+
+export const fetchDiseaseRisk = (fieldId: string): Promise<DiseaseRisk> =>
+  kongApi.get<DiseaseRisk>(`/api/v1/fields/${fieldId}/weather/disease-risk`).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
 // عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.
 // device:view للقراءة، device:manage للتسجيل، observation:record لرفع قياس.

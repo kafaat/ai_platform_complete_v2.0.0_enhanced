@@ -20,6 +20,8 @@ import {
   type Equipment, type EquipmentCreateInput, type MaintenanceRecord, type MaintenanceCreateInput,
   fetchActivities, createActivity,
   type Activity, type ActivityCreateInput,
+  fetchIrrigationAdvice, fetchDiseaseRisk,
+  type IrrigationAdvice, type DiseaseRisk,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
@@ -54,6 +56,8 @@ export const QK = {
   farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
+  irrigationAdvice: (tid: string, fid: string) => ['weather-advice', 'irrigation', tid, fid],
+  diseaseRisk:      (tid: string, fid: string) => ['weather-advice', 'disease', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
@@ -371,6 +375,31 @@ export function useCreateActivity(
   return useMutation<Activity, Error, ActivityCreateInput>({
     mutationFn: (payload) => createActivity(fieldId, payload),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.activities(tid, fieldId) }); },
+  });
+}
+
+// ── Weather advice: توصية الريّ + مخاطر الأمراض لكلّ حقل (Sprint 5a) ──
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 طقس/قاعدة، 404 حقل، 422 بلا
+// إحداثيّات، 403) يُرفض الاستعلام لتعرض الواجهة حالة صادقة. مُفعَّل فقط مع fieldId.
+export function useIrrigationAdvice(fieldId?: string): UseQueryResult<IrrigationAdvice, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<IrrigationAdvice, Error>({
+    queryKey: QK.irrigationAdvice(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchIrrigationAdvice(fieldId as string),
+    staleTime:10 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
+  });
+}
+
+export function useDiseaseRisk(fieldId?: string): UseQueryResult<DiseaseRisk, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<DiseaseRisk, Error>({
+    queryKey: QK.diseaseRisk(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchDiseaseRisk(fieldId as string),
+    staleTime:10 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
   });
 }
 
