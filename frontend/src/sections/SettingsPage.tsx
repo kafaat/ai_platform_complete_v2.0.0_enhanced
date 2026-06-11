@@ -9,13 +9,17 @@ import { useState } from 'react';
 import {
   Settings, Bell, Globe, Shield, Server, Save,
   Check, Loader2, Eye, EyeOff, RefreshCw,
-  Wifi, WifiOff,
+  Wifi, WifiOff, KeyRound, Lock, Copy, AlertTriangle, CheckCircle2,
 } from 'lucide-react';
 import NotificationSettingsPage from './NotificationSettingsPage';
 import { useAllServicesHealth } from '../hooks/useApi';
 import { wsService } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
+import {
+  mfaSetup, mfaActivate, mfaDisable, changePassword, apiErrorMessage,
+  type MfaSetupResponse,
+} from '../services/api';
 
 type Tab = 'general' | 'notifications' | 'services' | 'security';
 
@@ -239,6 +243,9 @@ export default function SettingsPage() {
       {/* ── Security ─────────────────────────────────────────── */}
       {tab === 'security' && (
         <div className="space-y-4">
+          {/* حساب المستخدم: MFA + تغيير كلمة المرور (ربط حيّ مع auth-service) */}
+          <AccountSecurity Section={Section} Row={Row} inputCls={inputCls} inputSty={inputSty} />
+
           <Section title="نموذج الأمان">
             {[
               {k:'JWT Algorithm',      v:'HS256',      ok:true},
@@ -294,5 +301,253 @@ export default function SettingsPage() {
         SAHOOL v8.0.0 · 88 ملف · 16,181 سطر · MIT License
       </div>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AccountSecurity — أمان الحساب: تفعيل/تعطيل MFA + تغيير كلمة المرور
+// ربط حيّ مع auth-service. لا fallback وهميّ — مسارات حسّاسة، الخطأ يُعرَض
+// بصدق عبر apiErrorMessage. الأشكال تطابق services/auth/main.py.
+// ═══════════════════════════════════════════════════════════════
+function AccountSecurity({ Section, Row, inputCls, inputSty }: {
+  Section: (p: { title?: string; children: any }) => React.ReactNode;
+  Row: (p: { label: string; hint?: string; children: any }) => React.ReactNode;
+  inputCls: string;
+  inputSty: React.CSSProperties;
+}) {
+  // ── MFA setup state ──────────────────────────────────────────
+  // setupData != null ⇒ بدأ الاقتران (يُعرض السرّ + otpauth) بانتظار التفعيل.
+  const [setupData, setSetupData] = useState<MfaSetupResponse | null>(null);
+  const [mfaActivated, setMfaActivated] = useState(false);
+  const [activateCode, setActivateCode] = useState('');
+  const [mfaBusy, setMfaBusy] = useState(false);
+  const [mfaErr, setMfaErr]   = useState('');
+  const [copied, setCopied]   = useState(false);
+
+  // ── MFA disable state ────────────────────────────────────────
+  const [showDisable, setShowDisable] = useState(false);
+  const [disableCode, setDisableCode] = useState('');
+  const [disableBusy, setDisableBusy] = useState(false);
+  const [disableErr, setDisableErr]   = useState('');
+  const [disabledOk, setDisabledOk]   = useState(false);
+
+  // ── Change password state ────────────────────────────────────
+  const [curPw, setCurPw]       = useState('');
+  const [newPw, setNewPw]       = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showPw, setShowPw]     = useState(false);
+  const [pwBusy, setPwBusy]     = useState(false);
+  const [pwErr, setPwErr]       = useState('');
+  const [pwOk, setPwOk]         = useState(false);
+
+  const handleSetup = async () => {
+    setMfaBusy(true); setMfaErr(''); setMfaActivated(false);
+    try {
+      const data = await mfaSetup();
+      setSetupData(data);
+    } catch (e) {
+      setMfaErr(apiErrorMessage(e, 'تعذّر بدء اقتران المصادقة الثنائيّة'));
+    } finally {
+      setMfaBusy(false);
+    }
+  };
+
+  const handleActivate = async () => {
+    if (!activateCode.trim()) { setMfaErr('أدخل الرمز من تطبيق المصادقة'); return; }
+    setMfaBusy(true); setMfaErr('');
+    try {
+      await mfaActivate(activateCode.trim());
+      setMfaActivated(true);
+      setSetupData(null);  // السرّ يُعرَض مرّة واحدة فقط — نخفيه بعد التفعيل
+      setActivateCode('');
+    } catch (e) {
+      setMfaErr(apiErrorMessage(e, 'رمز غير صحيح — تأكّد من تطبيق المصادقة'));
+    } finally {
+      setMfaBusy(false);
+    }
+  };
+
+  const handleDisable = async () => {
+    if (!disableCode.trim()) { setDisableErr('أدخل الرمز الحاليّ لتأكيد التعطيل'); return; }
+    setDisableBusy(true); setDisableErr('');
+    try {
+      await mfaDisable(disableCode.trim());
+      setDisabledOk(true);
+      setShowDisable(false);
+      setDisableCode('');
+    } catch (e) {
+      setDisableErr(apiErrorMessage(e, 'تعذّر تعطيل المصادقة الثنائيّة'));
+    } finally {
+      setDisableBusy(false);
+    }
+  };
+
+  // قواعد كلمة المرور = ما يفرضه SignupPage/الخادم (8+، كبير، رقم، رمز خاص).
+  const pwValidation = (): string | null => {
+    if (newPw.length < 8) return 'كلمة المرور 8 أحرف على الأقل';
+    if (!/[A-Z]/.test(newPw)) return 'يجب أن تحتوي على حرف كبير (إنجليزيّ)';
+    if (!/[0-9]/.test(newPw)) return 'يجب أن تحتوي على رقم';
+    if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(newPw)) return 'يجب أن تحتوي على رمز خاص (مثل !@#$)';
+    if (newPw !== confirmPw) return 'كلمتا المرور غير متطابقتين';
+    return null;
+  };
+
+  const handleChangePw = async () => {
+    if (!curPw) { setPwErr('أدخل كلمة المرور الحاليّة'); return; }
+    const v = pwValidation();
+    if (v) { setPwErr(v); return; }
+    setPwBusy(true); setPwErr(''); setPwOk(false);
+    try {
+      await changePassword(curPw, newPw);
+      setPwOk(true);
+      setCurPw(''); setNewPw(''); setConfirmPw('');
+    } catch (e) {
+      setPwErr(apiErrorMessage(e, 'تعذّر تغيير كلمة المرور'));
+    } finally {
+      setPwBusy(false);
+    }
+  };
+
+  const copySecret = async () => {
+    if (!setupData) return;
+    try {
+      await navigator.clipboard.writeText(setupData.secret);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch { /* الحافظة غير متاحة — المستخدم ينسخ يدويّاً */ }
+  };
+
+  const errBox = (msg: string) => (
+    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
+      <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+      <span className="text-red-300">{msg}</span>
+    </div>
+  );
+  const okBox = (msg: string) => (
+    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs text-emerald-300" style={{ background:'#052e16', border:'1px solid #16a34a33' }}>
+      <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> {msg}
+    </div>
+  );
+
+  return (
+    <>
+      {/* ── MFA (TOTP) ──────────────────────────────────────── */}
+      <Section title="المصادقة الثنائيّة (TOTP)">
+        <p className="text-[11px] text-slate-500">
+          طبقة حماية إضافيّة: عند الدخول يُطلب رمز مؤقّت من تطبيق مصادقة (Google Authenticator / Authy).
+        </p>
+
+        {mfaActivated && okBox('تم تفعيل المصادقة الثنائيّة بنجاح')}
+        {disabledOk && okBox('تم تعطيل المصادقة الثنائيّة')}
+
+        {/* بدء الاقتران */}
+        {!setupData && !mfaActivated && (
+          <button onClick={handleSetup} disabled={mfaBusy}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
+            style={{ background: mfaBusy ? '#15803d' : '#16a34a', opacity: mfaBusy ? 0.8 : 1 }}>
+            {mfaBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
+            بدء تفعيل المصادقة الثنائيّة
+          </button>
+        )}
+
+        {/* عرض السرّ + إدخال الرمز للتفعيل */}
+        {setupData && (
+          <div className="space-y-3">
+            <div className="p-3 rounded-lg space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
+              <p className="text-[11px] text-slate-400">امسح هذا الرابط كـ QR أو أدخل السرّ يدويّاً في تطبيق المصادقة. <span className="text-amber-400">يُعرَض مرّة واحدة فقط.</span></p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 text-xs text-emerald-300 font-mono break-all">{setupData.secret}</code>
+                <button onClick={copySecret} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-300 hover:text-white" style={{ border:'1px solid #334155' }}>
+                  {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />} {copied ? 'نُسخ' : 'نسخ'}
+                </button>
+              </div>
+              <div className="text-[10px] text-slate-600 font-mono break-all border-t pt-2" style={{ borderColor:'#334155' }}>
+                {setupData.provisioning_uri}
+              </div>
+            </div>
+            <Row label="رمز التأكيد" hint="من تطبيق المصادقة">
+              <div className="flex gap-2">
+                <input value={activateCode}
+                  onChange={e => setActivateCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456" inputMode="numeric"
+                  className={inputCls + ' tracking-[0.3em] text-center'} style={inputSty} />
+                <button onClick={handleActivate} disabled={mfaBusy}
+                  className="flex items-center gap-1.5 px-4 rounded-lg text-sm font-medium text-white whitespace-nowrap"
+                  style={{ background: mfaBusy ? '#15803d' : '#16a34a', opacity: mfaBusy ? 0.8 : 1 }}>
+                  {mfaBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} تفعيل
+                </button>
+              </div>
+            </Row>
+          </div>
+        )}
+
+        {mfaErr && errBox(mfaErr)}
+
+        {/* تعطيل MFA */}
+        <div className="border-t pt-3" style={{ borderColor:'#334155' }}>
+          {!showDisable ? (
+            <button onClick={() => { setShowDisable(true); setDisableErr(''); setDisabledOk(false); }}
+              className="text-xs text-slate-400 hover:text-red-400">
+              تعطيل المصادقة الثنائيّة (إن كانت مفعّلة)
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <p className="text-[11px] text-slate-500">أدخل رمزاً صحيحاً حاليّاً لتأكيد التعطيل.</p>
+              <div className="flex gap-2">
+                <input value={disableCode}
+                  onChange={e => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456" inputMode="numeric"
+                  className={inputCls + ' tracking-[0.3em] text-center'} style={inputSty} />
+                <button onClick={handleDisable} disabled={disableBusy}
+                  className="flex items-center gap-1.5 px-4 rounded-lg text-sm font-medium text-white whitespace-nowrap"
+                  style={{ background: disableBusy ? '#7f1d1d' : '#dc2626', opacity: disableBusy ? 0.8 : 1 }}>
+                  {disableBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : null} تعطيل
+                </button>
+                <button onClick={() => setShowDisable(false)}
+                  className="px-3 rounded-lg text-xs text-slate-400" style={{ border:'1px solid #334155' }}>إلغاء</button>
+              </div>
+              {disableErr && errBox(disableErr)}
+            </div>
+          )}
+        </div>
+      </Section>
+
+      {/* ── Change password ─────────────────────────────────── */}
+      <Section title="تغيير كلمة المرور">
+        {pwOk && okBox('تم تغيير كلمة المرور بنجاح')}
+        <Row label="كلمة المرور الحاليّة">
+          <div className="relative">
+            <input type={showPw ? 'text' : 'password'} value={curPw} onChange={e => setCurPw(e.target.value)}
+              placeholder="••••••••" autoComplete="current-password"
+              className={inputCls + ' pl-10'} style={inputSty} />
+            <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          </div>
+        </Row>
+        <Row label="كلمة المرور الجديدة" hint="8 أحرف، حرف كبير، رقم، رمز">
+          <div className="relative">
+            <input type={showPw ? 'text' : 'password'} value={newPw} onChange={e => setNewPw(e.target.value)}
+              placeholder="••••••••" autoComplete="new-password"
+              className={inputCls + ' pl-10'} style={inputSty} />
+            <button type="button" onClick={() => setShowPw(!showPw)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+              {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </Row>
+        <Row label="تأكيد الجديدة">
+          <input type={showPw ? 'text' : 'password'} value={confirmPw} onChange={e => setConfirmPw(e.target.value)}
+            placeholder="••••••••" autoComplete="new-password"
+            className={inputCls} style={inputSty} />
+        </Row>
+        {pwErr && errBox(pwErr)}
+        <div className="flex justify-end">
+          <button onClick={handleChangePw} disabled={pwBusy}
+            className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white"
+            style={{ background: pwBusy ? '#15803d' : '#16a34a', opacity: pwBusy ? 0.8 : 1 }}>
+            {pwBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />} تحديث كلمة المرور
+          </button>
+        </div>
+      </Section>
+    </>
   );
 }
