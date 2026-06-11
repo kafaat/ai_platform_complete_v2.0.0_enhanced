@@ -31,6 +31,7 @@ import secrets
 import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from typing import Literal
 
 # جعل النواة قابلة للاستيراد
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -1049,7 +1050,7 @@ async def create_field(
                 area_ha,
                 lat,
                 lon,
-                req.gov or region or "البيضاء",
+                req.gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
                 _json.dumps(req.geometry),
                 req.field_code,
                 req.description,
@@ -1367,7 +1368,13 @@ async def create_activity(
     performed = _parse_date(req.performed_on, "تاريخ التنفيذ")
     activity_id = "act_" + _uuid.uuid4().hex[:12]
     status = "done" if performed else "planned"
-    details_json = _json.dumps(req.details or {})
+    try:
+        details_json = _json.dumps(req.details or {})
+    except (TypeError, ValueError) as e:
+        # محتوى details غير قابل للتسلسل ⇒ خطأ إدخال صريح (422) لا 500/503.
+        raise HTTPException(
+            status_code=422, detail="تفاصيل العمليّة غير قابلة للتسلسل (JSON)"
+        ) from e
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
@@ -1437,7 +1444,9 @@ class FarmCreateRequest(BaseModel):
     country: str | None = Field(default=None, max_length=60)
     region: str | None = Field(default=None, max_length=80)
     timezone: str | None = Field(default=None, max_length=40)
-    units: str | None = Field(default=None, max_length=10)
+    # غير اختياريّ بقيمة افتراضيّة 'metric' — يطابق DEFAULT في الـmigration ويمنع
+    # إدراج NULL صريح، ومُقيَّد بالقيم المسموحة (تحقّق ساكن للواجهة أيضاً).
+    units: Literal["metric", "imperial"] = "metric"
     currency: str | None = Field(default=None, max_length=10)
     description: str | None = None
     activity_type: str | None = Field(default=None, max_length=40)

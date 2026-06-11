@@ -119,6 +119,9 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
   const [error, setError]   = useState('');
   const [tileType, setTileType] = useState<'street'|'satellite'>('satellite');
   const mapRef = useRef<L.Map | null>(null);
+  // حارس تسلسل لطلب الكشف العكسي: يمنع ردّ طلب قديم من الكتابة فوق الأحدث
+  // (إعادة رسم سريعة قد تُظهر موقعاً لا يطابق المضلّع الحاليّ).
+  const geoReqRef = useRef(0);
 
   const handlePolygonDone = useCallback((pts: L.LatLng[]) => {
     if (!fgRef.current) return;
@@ -142,9 +145,11 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
     const lon = (Math.min(...lngs) + Math.max(...lngs)) / 2;
     setAutoCountry(null);
     setAutoRegion(null);
+    const myReq = ++geoReqRef.current;
     kongApi
       .get('/api/v1/geo/reverse', { params: { lat, lon } })
       .then(r => {
+        if (myReq !== geoReqRef.current) return; // ردّ قديم — تجاهله
         setAutoCountry(r.data?.country ?? null);
         setAutoRegion(r.data?.region ?? null);
       })

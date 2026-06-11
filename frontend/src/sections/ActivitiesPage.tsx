@@ -34,7 +34,9 @@ const STATUS_STYLE: Record<string, { label: string; bg: string; fg: string }> = 
   skipped: { label: 'مُتجاوَزة', bg: '#64748b22', fg: '#94a3b8' },
 };
 
-const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('en-CA') : '—');
+// الخادم يُرجع ISO (YYYY-MM-DD)؛ نعرضه كما هو لتفادي انزياح اليوم بحسب المنطقة
+// الزمنيّة (new Date('YYYY-MM-DD') يُفسَّر UTC ثمّ يُعرَض محليّاً).
+const fmtDate = (d: string | null) => d || '—';
 
 // رسالة خطأ صادقة مُشتقّة من رمز الحالة.
 function errorDetail(err: unknown): string {

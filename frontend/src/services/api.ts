@@ -731,7 +731,7 @@ export interface Farm {
   country?:       string | null;
   region?:        string | null;
   timezone?:      string | null;
-  units?:         string | null;
+  units?:         FarmUnits | null;
   currency?:      string | null;
   description?:   string | null;
   activity_type?: string | null;
