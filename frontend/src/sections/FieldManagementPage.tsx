@@ -115,30 +115,23 @@ export default function FieldManagementPage() {
 
   // ── Handlers ──────────────────────────────────────────────────
   const handleSaveField = async (data: any) => {
+    // إنشاء حقيقيّ: POST /api/v1/fields يتحقّق من الهندسة ويحسب المساحة/المركز
+    // ويُخزّن. نَبني العرض من ردّ الخادم (لا تلفيق قيم). الفشل يُعرَض بصدق.
     try {
-      await kongApi.post('/fields', {
-        name: data.name, manager: data.manager, crop: data.crop,
-        area_ha: data.area_ha, geometry: data.geometry,
+      const r = await kongApi.post('/api/v1/fields', {
+        name: data.name, crop: data.crop,
+        soil_type: data.soil_type ?? data.soil,
+        geometry: data.geometry,
       });
-    } catch { /* fallback offline */ }
-    const newField: Field = {
-      field_id:  `field_${Date.now()}`,
-      name:      data.name,
-      area_ha:   data.area_ha,
-      crop:      data.crop,
-      soil:      'loam',
-      ndvi:      0.55,
-      health:    'good',
-      stage:     'إنبات',
-      gdd:       0,
-      yield_est: 0,
-      lat:       15.0,
-      lon:       45.5,
-      geometry:  data.geometry,
-    };
-    setFields(p => [...p, newField]);
-    setShowAddField(false);
-    toastStore.add('success', '✅ تم إضافة الحقل', `${data.name} (${data.area_ha} هـ)`);
+      setFields(p => [...p, mapField(r.data as Record<string, unknown>)]);
+      setShowAddField(false);
+      toastStore.add('success', '✅ تم إضافة الحقل', `${data.name}`);
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const msg = (detail && (detail.message_ar || detail)) ||
+        'تعذّر حفظ الحقل — تحقّق من القاعدة/الصلاحيّة أو صحّة الحدود.';
+      toastStore.add('error', '⚠️ فشل حفظ الحقل', typeof msg === 'string' ? msg : 'خطأ غير متوقّع');
+    }
   };
 
   const handleSaveSeason = async (data: any) => {
