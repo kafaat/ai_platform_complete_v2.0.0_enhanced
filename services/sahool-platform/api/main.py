@@ -41,6 +41,7 @@ from core.api_adapter import (
     handle_readyz,
     handle_recommendation_request,
 )
+from core.authorization import Permission, has_permission
 from core.canonical_schemas import UserRole, UserSchema
 from core.offline_first import (
     OfflineQueue,
@@ -321,6 +322,29 @@ class ActivityItem(BaseModel):
 # ─── Auth helpers ────────────────────────────────────────────────
 
 
+# تطبيع الأدوار عبر حدود الخدمات: خدمة auth تُصدر admin/expert/farmer، والنواة
+# تستخدم النموذج الخماسي (owner/manager/agronomist/worker/viewer). يطابق
+# frontend/src/lib/permissions.ts (ROLE_ALIASES) حتى لا يهبط 'admin' صامتاً إلى
+# أدنى صلاحية. fail-closed: المجهول/الناقص ⇒ viewer (أقلّ صلاحية، مبدأ "شكّ = منع").
+_ROLE_ALIASES: dict[str, UserRole] = {
+    "owner": UserRole.OWNER,
+    "admin": UserRole.OWNER,
+    "manager": UserRole.MANAGER,
+    "agronomist": UserRole.AGRONOMIST,
+    "expert": UserRole.AGRONOMIST,
+    "worker": UserRole.WORKER,
+    "farmer": UserRole.WORKER,
+    "viewer": UserRole.VIEWER,
+}
+
+
+def _normalize_role(raw: str | None) -> UserRole:
+    """يطبّع دور الـJWT للنموذج الخماسي. fail-closed: مجهول/ناقص ⇒ viewer."""
+    if not raw:
+        return UserRole.VIEWER
+    return _ROLE_ALIASES.get(str(raw).strip().lower(), UserRole.VIEWER)
+
+
 def create_token(user: UserSchema) -> str:
     payload = {
         "sub": user.user_id,
@@ -345,10 +369,7 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     except InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
 
-    try:
-        role = UserRole(payload.get("role", "worker"))
-    except ValueError:
-        role = UserRole.WORKER
+    role = _normalize_role(payload.get("role"))
 
     # توكن ناقص الحقول الأساسيّة → 401 (لا 500). استخدم .get ثمّ تحقّق.
     sub = payload.get("sub")
@@ -362,6 +383,29 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
         role=role,
         name_ar=payload.get("name_ar", ""),
     )
+
+
+def require_permission(permission: Permission):
+    """تبعيّة FastAPI: تُصادِق (JWT) ثمّ تفرض صلاحية الدور — fail-closed 403.
+
+    تربط طبقة HTTP بمحرّك الصلاحيات (core.authorization) الذي كان مفروضاً في خطّ
+    التوصيات فقط لا عند نقاط الـHTTP. تُرجِع المستخدم فيبقى جسد الـendpoint بلا
+    تغيير:
+        user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD))
+
+    العزل بين المستأجرين يبقى على RLS + tenant_id؛ هذه الطبقة تفصل الصلاحيات
+    *داخل* المستأجر (الفجوة المعياريّة: RBAC غير مفروض في platform).
+    """
+
+    def _dep(user: UserSchema = Depends(get_current_user)) -> UserSchema:
+        if not has_permission(user, permission):
+            raise HTTPException(
+                status_code=403,
+                detail=f"الدور '{user.role.value}' لا يملك صلاحية '{permission.value}'",
+            )
+        return user
+
+    return _dep
 
 
 # ─── Endpoints ────────────────────────────────────────────────────
@@ -495,7 +539,7 @@ def auth_signup(req: LoginRequest):
 @app.post("/api/v1/recommendations")
 def recommendations(
     req: RecommendationRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ):
     """نقطة التوصية الجوهرية — تستخدم api_adapter كاملاً."""
     # تحقّق tenant isolation
@@ -524,7 +568,7 @@ class FieldRecommendationRequest(BaseModel):
 @app.post("/api/v1/recommendations/for-field")
 def recommendations_for_field(
     req: FieldRecommendationRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ):
     """توصية لحقل دون أن يبني العميل «شهادة الجودة» (validation) يدويّاً.
 
@@ -580,7 +624,7 @@ def recommendations_for_field(
 @app.post("/api/v1/observations")
 def observations(
     req: ObservationRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """تسجيل مشاهدة جديدة. في الإنتاج: يدخل DB. الآن: offline queue."""
     if req.tenant_id != user.tenant_id:
@@ -901,7 +945,7 @@ class TrueUpRequest(BaseModel):
 def apply_trueup(
     field_id: str,
     req: TrueUpRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.CALIBRATION_RUN)),
 ):
     """معايرة الإنتاج (TrueUp) — يحسب k_new + الإنتاج المُعدَّل.
 
@@ -1044,7 +1088,7 @@ class NitrogenRxRequest(BaseModel):
 def prescribe_nitrogen(
     field_id: str,
     req: NitrogenRxRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_PLAN)),
 ):
     """توصية تسميد نيتروجيني متغيّر المعدّل (Variable-Rate N) حسب الزون."""
     try:
@@ -1847,7 +1891,7 @@ class ShareKeyRequest(BaseModel):
 @app.post("/api/v1/sharing/generate-key")
 def generate_share_key(
     req: ShareKeyRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
 ):
     """يولّد مفتاح مشاركة (يُعرَض الـplaintext مرّة واحدة فقط).
 
@@ -1969,7 +2013,7 @@ class SharingKeyCreateRequest(BaseModel):
 @app.post("/api/v1/sharing/keys")
 async def create_sharing_key(
     req: SharingKeyCreateRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
 ):
     """ينشئ ويحفظ مفتاح مشاركة (عبر tenant_connection — RLS مُطبَّق)."""
     try:
@@ -2102,7 +2146,7 @@ class Soil4RRequest(BaseModel):
 @app.post("/api/v1/nutrients/4r-plan")
 def nutrient_4r_plan(
     req: Soil4RRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_PLAN)),
 ):
     """خطة تسميد 4R للتربة الكلسيّة (تحجب ما يحتاج تحليلاً)."""
     soil = SoilContext(
@@ -3854,7 +3898,7 @@ class PestEscalationRequest(BaseModel):
 @app.post("/api/v1/pest-escalation/run")
 async def pest_escalation_run(
     req: PestEscalationRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.PESTICIDE_APPROVE)),
 ):
     """يشغّل/يستأنف تدفّق تصعيد الآفة (durable + HIL).
 

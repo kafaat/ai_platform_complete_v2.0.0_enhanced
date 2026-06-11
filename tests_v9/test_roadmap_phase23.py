@@ -5748,6 +5748,51 @@ def test_entityid_text_and_tenant_isolation():
     return r
 
 
+def test_rbac_platform_enforcement():
+    """حارس فرض RBAC في طبقة platform (الفجوة المعياريّة): محرّك الصلاحيات كان
+    مفروضاً في خطّ التوصيات فقط لا عند نقاط HTTP. جزآن: ① سلوكيّ نقيّ عبر
+    core.authorization (لا FastAPI)؛ ② فحص مصدر أنّ main.py يربط require_permission
+    + يطبّع الأدوار عبر الحدود (admin→owner)."""
+    r = []
+    # ① مصفوفة الصلاحيات السلوكيّة (استيراد خفيف — لا pydantic/fastapi)
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole, UserSchema
+
+    def _u(role):
+        return UserSchema(user_id="u", tenant_id="t", role=role, name_ar="x")
+
+    checks = [
+        (UserRole.WORKER, Permission.OBSERVATION_RECORD, True, "عامل يسجّل مشاهدة"),
+        (UserRole.WORKER, Permission.RECOMMENDATION_REQUEST, False, "عامل لا يطلب توصية"),
+        (UserRole.VIEWER, Permission.OBSERVATION_RECORD, False, "مشاهد لا يسجّل"),
+        (UserRole.AGRONOMIST, Permission.PESTICIDE_APPROVE, True, "مهندس يوافق المبيد"),
+    ]
+    for role, perm, expected, label in checks:
+        if has_permission(_u(role), perm) is expected:
+            r.append(("✓", f"RBAC مصفوفة: {label}"))
+        else:
+            r.append(("✗", f"RBAC مصفوفة: {label} — قرار خاطئ (regression)"))
+
+    # ② فحص مصدر: طبقة HTTP تربط الفرض فعليّاً + تطبّع الأدوار عبر الحدود
+    base = os.path.join(os.path.dirname(__file__), "..")
+    main_src = open(
+        os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8"
+    ).read()
+    if "def require_permission(" in main_src and "from core.authorization import" in main_src:
+        r.append(("✓", "RBAC طبقة HTTP: require_permission موصول بمحرّك الصلاحيات"))
+    else:
+        r.append(("✗", "RBAC طبقة HTTP: لا require_permission (الفجوة المعياريّة لم تُسدّ)"))
+    if "Depends(require_permission(Permission." in main_src:
+        r.append(("✓", "RBAC طبقة HTTP: نقاط حسّاسة مُبوّبة بالصلاحية"))
+    else:
+        r.append(("✗", "RBAC طبقة HTTP: لا نقطة مُبوّبة (require_permission غير مستخدَم)"))
+    if '"admin": UserRole.OWNER' in main_src and '"farmer": UserRole.WORKER' in main_src:
+        r.append(("✓", "تطبيع الأدوار: admin/expert/farmer يُجسَّر للنموذج الخماسي"))
+    else:
+        r.append(("✗", "تطبيع الأدوار: غير مُجسَّر (admin قد يهبط صامتاً لأدنى صلاحية)"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -5884,6 +5929,7 @@ def run_all():
         ("critical_review_c1_c4", test_critical_review_c1_c4),
         ("jwt_audience_consistency", _report_jwt_audience_consistency),
         ("entityid_text_tenant_isolation", test_entityid_text_and_tenant_isolation),
+        ("rbac_platform_enforcement", test_rbac_platform_enforcement),
     ]
     tp = tf = 0
     for name, s in suites:
