@@ -19,20 +19,20 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def _load_auth_main():
-    """يُحمّل services/auth/main.py كوحدة معزولة (مثل test_auth_e2e)."""
+def _load_auth_otp():
+    """يُحمّل services/auth/otp.py (دوالّ OTP النقيّة) — بلا fastapi كي تُجمَع
+    وتُشغَّل في مهمّة الـUnit بـCI دون تثبيت fastapi (كان استيراد main.py يكسرها)."""
     sys.path.insert(0, os.path.join(ROOT, "services/auth"))
-    sys.path.insert(0, ROOT)
     spec = importlib.util.spec_from_file_location(
-        "auth_main_otp", os.path.join(ROOT, "services/auth/main.py")
+        "auth_otp", os.path.join(ROOT, "services/auth/otp.py")
     )
     m = importlib.util.module_from_spec(spec)
-    sys.modules["auth_main_otp"] = m
+    sys.modules["auth_otp"] = m
     spec.loader.exec_module(m)
     return m
 
 
-m = _load_auth_main()
+m = _load_auth_otp()
 
 
 class TestGenerateOtp:
