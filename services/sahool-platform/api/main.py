@@ -924,6 +924,270 @@ async def list_farm_fields(
     ]
 
 
+# ─── المخزون (Inventory) — الطبقة ١٠ (v22) ───────────────────────
+class InventoryItemRequest(BaseModel):
+    category: str = Field(pattern="^(fertilizer|pesticide|seed|spare_part|other)$")
+    name: str = Field(min_length=1, max_length=120)
+    unit: str = "unit"
+    reorder_level: float | None = None
+    notes: str | None = None
+
+
+class InventoryBatchRequest(BaseModel):
+    quantity: float = Field(ge=0)
+    unit: str | None = None
+    batch_code: str | None = None
+    expiry_date: str | None = None  # ISO date
+    received_at: str | None = None
+    supplier: str | None = None
+    notes: str | None = None
+
+
+@app.post("/api/v1/inventory/items", status_code=201)
+async def create_inventory_item(
+    req: InventoryItemRequest,
+    user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
+):
+    import uuid as _uuid
+
+    item_id = "inv_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        await conn.execute(
+            """INSERT INTO inventory_items
+                (item_id, tenant_id, category, name, unit, reorder_level, notes)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
+            item_id,
+            str(user.tenant_id),
+            req.category,
+            req.name,
+            req.unit,
+            req.reorder_level,
+            req.notes,
+        )
+    return {"item_id": item_id, "name": req.name, "message_ar": "أُضيف عنصر المخزون"}
+
+
+@app.get("/api/v1/inventory/items")
+async def list_inventory_items(
+    user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
+):
+    """عناصر المخزون مع الكمّيّة الكلّيّة (مجموع الدفعات) — مُرشّحة بـRLS."""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            """SELECT i.item_id, i.category, i.name, i.unit, i.reorder_level,
+                      COALESCE(SUM(b.quantity), 0) AS total_quantity
+               FROM inventory_items i
+               LEFT JOIN inventory_batches b ON b.item_id = i.item_id
+               GROUP BY i.item_id, i.category, i.name, i.unit, i.reorder_level
+               ORDER BY i.category, i.name"""
+        )
+    return [
+        {
+            "item_id": r["item_id"],
+            "category": r["category"],
+            "name": r["name"],
+            "unit": r["unit"],
+            "reorder_level": float(r["reorder_level"]) if r["reorder_level"] is not None else None,
+            "total_quantity": float(r["total_quantity"]),
+            "low_stock": (
+                r["reorder_level"] is not None
+                and float(r["total_quantity"]) <= float(r["reorder_level"])
+            ),
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/v1/inventory/items/{item_id}/batches", status_code=201)
+async def add_inventory_batch(
+    item_id: str,
+    req: InventoryBatchRequest,
+    user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
+):
+    import uuid as _uuid
+
+    batch_id = "bat_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        # تأكّد من وجود العنصر ضمن المستأجر (RLS يمنع عنصر مستأجر آخر)
+        exists = await conn.fetchval("SELECT 1 FROM inventory_items WHERE item_id = $1", item_id)
+        if not exists:
+            raise HTTPException(status_code=404, detail="عنصر المخزون غير موجود")
+        await conn.execute(
+            """INSERT INTO inventory_batches
+                (batch_id, tenant_id, item_id, quantity, unit, batch_code,
+                 expiry_date, received_at, supplier, notes)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6,
+                       $7::date, COALESCE($8::date, CURRENT_DATE), $9, $10)""",
+            batch_id,
+            str(user.tenant_id),
+            item_id,
+            req.quantity,
+            req.unit,
+            req.batch_code,
+            req.expiry_date,
+            req.received_at,
+            req.supplier,
+            req.notes,
+        )
+    return {"batch_id": batch_id, "item_id": item_id, "message_ar": "أُضيفت الدفعة"}
+
+
+@app.get("/api/v1/inventory/expiring")
+async def list_expiring_batches(
+    days: int = 30,
+    user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
+):
+    """دفعات تنتهي خلال N يوماً (تنبيه قبل تلف المبيدات/الأسمدة)."""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            """SELECT b.batch_id, b.item_id, i.name, b.quantity, b.unit, b.expiry_date
+               FROM inventory_batches b
+               JOIN inventory_items i ON i.item_id = b.item_id
+               WHERE b.expiry_date IS NOT NULL
+                 AND b.expiry_date <= CURRENT_DATE + ($1 || ' days')::interval
+                 AND b.quantity > 0
+               ORDER BY b.expiry_date ASC""",
+            str(days),
+        )
+    return [
+        {
+            "batch_id": r["batch_id"],
+            "item_id": r["item_id"],
+            "name": r["name"],
+            "quantity": float(r["quantity"]),
+            "unit": r["unit"],
+            "expiry_date": r["expiry_date"].isoformat() if r["expiry_date"] else None,
+        }
+        for r in rows
+    ]
+
+
+# ─── المعدّات (Equipment) — الطبقة ١١ (v23) ──────────────────────
+class EquipmentRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    type: str = Field(pattern="^(tractor|pump|harvester|sprayer|other)$")
+    operating_hours: float = Field(default=0, ge=0)
+    purchase_date: str | None = None
+    notes: str | None = None
+
+
+class MaintenanceRequest(BaseModel):
+    kind: str = Field(pattern="^(scheduled|repair|breakdown|inspection)$")
+    status: str = Field(default="planned", pattern="^(planned|done|cancelled)$")
+    scheduled_date: str | None = None
+    performed_date: str | None = None
+    cost_usd: float | None = None
+    notes: str | None = None
+
+
+@app.post("/api/v1/equipment", status_code=201)
+async def create_equipment(
+    req: EquipmentRequest,
+    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
+):
+    import uuid as _uuid
+
+    equipment_id = "eqp_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        await conn.execute(
+            """INSERT INTO equipment
+                (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6::date, $7)""",
+            equipment_id,
+            str(user.tenant_id),
+            req.name,
+            req.type,
+            req.operating_hours,
+            req.purchase_date,
+            req.notes,
+        )
+    return {"equipment_id": equipment_id, "name": req.name, "message_ar": "سُجّلت المعدّة"}
+
+
+@app.get("/api/v1/equipment")
+async def list_equipment(user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW))):
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT equipment_id, name, type, status, operating_hours, purchase_date "
+            "FROM equipment ORDER BY type, name"
+        )
+    return [
+        {
+            "equipment_id": r["equipment_id"],
+            "name": r["name"],
+            "type": r["type"],
+            "status": r["status"],
+            "operating_hours": float(r["operating_hours"]),
+            "purchase_date": r["purchase_date"].isoformat() if r["purchase_date"] else None,
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/v1/equipment/{equipment_id}/maintenance", status_code=201)
+async def log_maintenance(
+    equipment_id: str,
+    req: MaintenanceRequest,
+    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
+):
+    import uuid as _uuid
+
+    maintenance_id = "mnt_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        exists = await conn.fetchval(
+            "SELECT 1 FROM equipment WHERE equipment_id = $1", equipment_id
+        )
+        if not exists:
+            raise HTTPException(status_code=404, detail="المعدّة غير موجودة")
+        await conn.execute(
+            """INSERT INTO equipment_maintenance
+                (maintenance_id, tenant_id, equipment_id, kind, status,
+                 scheduled_date, performed_date, cost_usd, notes)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6::date, $7::date, $8, $9)""",
+            maintenance_id,
+            str(user.tenant_id),
+            equipment_id,
+            req.kind,
+            req.status,
+            req.scheduled_date,
+            req.performed_date,
+            req.cost_usd,
+            req.notes,
+        )
+        # عطل قيد التنفيذ ⇒ حدّث حالة المعدّة (تتبّع تشغيليّ)
+        if req.kind == "breakdown" and req.status != "done":
+            await conn.execute(
+                "UPDATE equipment SET status = 'broken' WHERE equipment_id = $1", equipment_id
+            )
+    return {"maintenance_id": maintenance_id, "message_ar": "سُجّلت الصيانة"}
+
+
+@app.get("/api/v1/equipment/{equipment_id}/maintenance")
+async def list_maintenance(
+    equipment_id: str,
+    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW)),
+):
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT maintenance_id, kind, status, scheduled_date, performed_date, cost_usd, notes "
+            "FROM equipment_maintenance WHERE equipment_id = $1 "
+            "ORDER BY COALESCE(performed_date, scheduled_date) DESC NULLS LAST",
+            equipment_id,
+        )
+    return [
+        {
+            "maintenance_id": r["maintenance_id"],
+            "kind": r["kind"],
+            "status": r["status"],
+            "scheduled_date": r["scheduled_date"].isoformat() if r["scheduled_date"] else None,
+            "performed_date": r["performed_date"].isoformat() if r["performed_date"] else None,
+            "cost_usd": float(r["cost_usd"]) if r["cost_usd"] is not None else None,
+            "notes": r["notes"],
+        }
+        for r in rows
+    ]
+
+
 @app.get("/api/v1/activities", response_model=list[ActivityItem])
 def list_activities(
     user: UserSchema = Depends(get_current_user),
