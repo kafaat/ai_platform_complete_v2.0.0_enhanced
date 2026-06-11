@@ -5,7 +5,7 @@
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
-PyJWT==2.8.0
+PyJWT==2.13.0   # مثبّت عند 2.13.0: يُغلق crit-bypass (PYSEC-2026-120) + خلط HMAC (179) + نواقل DoS/SSRF (175/177/178)
 python-multipart==0.0.27   # for form data
 
 # Open-Meteo integration
