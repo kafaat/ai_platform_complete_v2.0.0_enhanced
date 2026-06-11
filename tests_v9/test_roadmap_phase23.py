@@ -5791,6 +5791,35 @@ def test_rbac_platform_enforcement():
     return r
 
 
+def test_supply_chain_audit_gate():
+    """حارس سلسلة الإمداد (#٧): CI كان يُثبّت safety ولا يُشغّلها أبداً ⇒ لا فحص
+    تبعيّات مفروض. هذا يتأكّد أنّ بوّابة pip-audit موجودة على المسار الحرج وأنّ
+    الترقية الأمنيّة الحرجة (PyJWT≥2.13.0) ما زالت مثبّتة (فحص مصدر)."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+    with open(os.path.join(base, ".github/workflows/ci.yml"), encoding="utf-8") as _f:
+        ci = _f.read()
+    # بوّابة فرض فعليّة (لا continue-on-error على خطوة الفرض)
+    if "pip-audit" in ci and "gating — critical path" in ci:
+        r.append(("✓", "سلسلة الإمداد: بوّابة pip-audit تفرض المسار الحرج في CI"))
+    else:
+        r.append(("✗", "سلسلة الإمداد: لا بوّابة pip-audit مفروضة (الفجوة #٧ مفتوحة)"))
+    if "safety" not in ci or "pip-audit" in ci:
+        r.append(("✓", "سلسلة الإمداد: فحص التبعيّات يُشغَّل فعلاً (لا أداة مُثبَّتة بلا تشغيل)"))
+    else:
+        r.append(("✗", "سلسلة الإمداد: أداة فحص مُثبَّتة بلا تشغيل (safety الميّتة)"))
+    # الترقية الأمنيّة الحرجة ما زالت مثبّتة
+    with open(
+        os.path.join(base, "services/sahool-platform/api/requirements.txt"), encoding="utf-8"
+    ) as _f:
+        api_req = _f.read()
+    if "PyJWT==2.13.0" in api_req or "PyJWT>=2.13" in api_req:
+        r.append(("✓", "سلسلة الإمداد: PyJWT≥2.13.0 مثبّت (ثغرة crit/HMAC مُغلقة)"))
+    else:
+        r.append(("✗", "سلسلة الإمداد: PyJWT رُجِّع دون 2.13.0 (regression أمنيّ)"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -5928,6 +5957,7 @@ def run_all():
         ("jwt_audience_consistency", _report_jwt_audience_consistency),
         ("entityid_text_tenant_isolation", test_entityid_text_and_tenant_isolation),
         ("rbac_platform_enforcement", test_rbac_platform_enforcement),
+        ("supply_chain_audit_gate", test_supply_chain_audit_gate),
     ]
     tp = tf = 0
     for name, s in suites:

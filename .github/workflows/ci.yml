@@ -169,12 +169,32 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - run: pip install bandit safety pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
+      - run: pip install bandit pip-audit pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       # بوّابة أمان: تفشل على HIGH severity (تنفيذ كود/تشفير ضعيف/حقن) — صُحّحت إلى 0.
       - run: bandit -r services/ bots/ agents/ --severity-level high
       # فحص MEDIUM إرشادي (يُعرَض للمراجعة، لا يحجب): timeouts/bind-all/random… غالباً مقبولة بالسياق.
       - name: bandit medium (advisory)
         run: bandit -r services/ bots/ agents/ --severity-level medium -q || true
+        continue-on-error: true
+      # بوّابة سلسلة الإمداد (supply chain): pip-audit يفشل CI على تبعيّة بثغرة
+      # معروفة في المسار الحرج (المصادقة/الصلاحيات/وقت التشغيل). كانت safety
+      # تُثبَّت ولا تُشغَّل أبداً ⇒ لا فحص تبعيّات مفروض (الفجوة المعياريّة #٧).
+      # هذه الملفّات مُتحقَّقة نظافتها؛ فشلها لاحقاً = تبعيّة جديدة ضعيفة دخلت.
+      - name: pip-audit (gating — critical path)
+        run: >-
+          pip-audit
+          -r services/sahool-platform/api/requirements.txt
+          -r services/auth/requirements.txt
+          -r services/guardrails-engine/requirements.txt
+          -r requirements_real.txt
+          --progress-spinner off
+      # مسح إرشادي شامل: يكشف ثغرات بقيّة الخدمات (مثلاً RAG: pypdf/langchain —
+      # إصلاحها خارج سقوف توافق langchain، يحتاج ترقية متعمّدة) دون حجب الدمج.
+      - name: pip-audit (advisory — all services)
+        run: |
+          for f in $(find services bots agents -name 'requirements*.txt'); do
+            echo "── $f ──"; pip-audit -r "$f" --progress-spinner off || true
+          done
         continue-on-error: true
       # M12 FIX: الملف اسمه requirements_real.txt — السابق (requirements.txt)
       # غير موجود فكان || true يبتلعه دائماً وتبقى تبعيّات وقت التشغيل ناقصة.
