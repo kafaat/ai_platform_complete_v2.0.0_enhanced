@@ -79,3 +79,12 @@ v25_irrigation.sql
 # v26: البيانات المرجعيّة (master_data) + الدورات الزراعيّة (crop_rotations).
 # يعتمد على fields. self-applied RLS.
 v26_master_data.sql
+# v27: فرض صحّة الهندسة على القاعدة (trigger يرفض geom غير صالحة) — الطبقة ٢.
+# يعتمد على is_valid_field_geom (v13) + field_boundaries (init_v8).
+v27_gis_enforce.sql
+# v28: الإعدادات (settings) — منصّة/مزرعة/ريّ/إشعارات، مفتاح/قيمة JSONB مُنطّقة
+# بـscope. self-applied RLS.
+v28_settings.sql
+# v29: سجلّ مستندات (documents) — بيانات وصفيّة فقط (لا blob؛ يحتاج S3/MinIO)
+# + storage_ref + تحكّم وصول (RLS + RBAC). يعتمد على fields. self-applied RLS.
+v29_documents.sql

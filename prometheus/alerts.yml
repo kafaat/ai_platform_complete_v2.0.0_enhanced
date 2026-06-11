@@ -1,0 +1,132 @@
+# SAHOOL v9 — Prometheus alerting rules
+# Loaded via `rule_files: [alerts.yml]` in prometheus.yml.
+# Expressions are intentionally defensive: they only fire on metrics/jobs
+# that plausibly exist given the scrape config. Where a metric may be absent
+# the rule degrades to "no data => no alert" rather than erroring.
+groups:
+  # ── Availability: target down (up == 0) ──────────────────────────
+  - name: availability
+    rules:
+      - alert: CriticalServiceDown
+        expr: up{job=~"auth-service|guardrails-engine|supervisor-agent"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical service target down: {{ $labels.job }} ({{ $labels.instance }})"
+          description: "Prometheus has not been able to scrape {{ $labels.job }} on {{ $labels.instance }} for over 2 minutes (up == 0)."
+
+      - alert: ServiceDown
+        expr: up{job=~"indicators-service|vegetation-service|weather-service|soil-service|edge-inference|notification-agent|nginx"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service target down: {{ $labels.job }} ({{ $labels.instance }})"
+          description: "{{ $labels.job }} on {{ $labels.instance }} has been unreachable for over 5 minutes (up == 0)."
+
+  # ── Infrastructure: Postgres / NATS exporters ────────────────────
+  - name: infrastructure
+    rules:
+      - alert: PostgresExporterDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Postgres exporter down ({{ $labels.instance }})"
+          description: "postgres-exporter has been unreachable for over 2 minutes; database metrics and (likely) the database itself may be unavailable."
+
+      - alert: PostgresDown
+        # pg_up is exported by postgres-exporter; 0 means it cannot reach Postgres.
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down ({{ $labels.instance }})"
+          description: "postgres-exporter reports pg_up == 0 — it cannot connect to PostgreSQL."
+
+      - alert: NATSExporterDown
+        expr: up{job="nats-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "NATS down / metrics endpoint unreachable ({{ $labels.instance }})"
+          description: "The NATS monitoring endpoint (job nats-exporter) has been unreachable for over 2 minutes; the message bus may be down."
+
+  # ── HTTP error rate & latency (app metrics) ──────────────────────
+  # These assume services export Prometheus-style http_requests_total and a
+  # histogram http_request_duration_seconds_bucket. If a service does not
+  # export them, the expression simply yields no series and never fires.
+  - name: http-errors
+    rules:
+      - alert: HighHTTPErrorRate
+        expr: |
+          (
+            sum by (job) (rate(http_requests_total{code=~"5.."}[5m]))
+            /
+            clamp_min(sum by (job) (rate(http_requests_total[5m])), 1)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} is serving more than 5% HTTP 5xx responses over the last 5 minutes."
+
+      - alert: ElevatedHTTPErrorRate
+        expr: |
+          (
+            sum by (job) (rate(http_requests_total{code=~"5.."}[5m]))
+            /
+            clamp_min(sum by (job) (rate(http_requests_total[5m])), 1)
+          ) > 0.01
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elevated 5xx error rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} 5xx rate has exceeded 1% for over 10 minutes."
+
+      - alert: HighRequestLatencyP95
+        # 95th percentile request latency over 1s (requires a duration histogram).
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (job, le) (rate(http_request_duration_seconds_bucket[5m]))
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 latency on {{ $labels.job }}"
+          description: "95th percentile request latency for {{ $labels.job }} has been above 1s for over 10 minutes."
+
+  # ── Host / process resources ─────────────────────────────────────
+  # node-exporter is not currently scraped, so the node_* rules below will
+  # never fire until a node-exporter job is added. process_* metrics are
+  # exported by default by Prometheus client libraries.
+  - name: resources
+    rules:
+      - alert: HighNodeMemoryUsage
+        expr: |
+          node_memory_MemAvailable_bytes
+            / clamp_min(node_memory_MemTotal_bytes, 1) < 0.10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low available memory on {{ $labels.instance }}"
+          description: "Available memory on {{ $labels.instance }} has been below 10% for over 5 minutes."
+
+      - alert: HighProcessMemoryUsage
+        # process_resident_memory_bytes is exported by default client libraries.
+        expr: process_resident_memory_bytes > 1.5e9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High process memory on {{ $labels.job }} ({{ $labels.instance }})"
+          description: "Resident memory for {{ $labels.job }} on {{ $labels.instance }} has exceeded 1.5GB for over 10 minutes."

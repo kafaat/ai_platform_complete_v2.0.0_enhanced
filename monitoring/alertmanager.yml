@@ -1,0 +1,44 @@
+# SAHOOL v9 — AlertManager configuration (minimal, safe defaults)
+#
+# Real receivers (email / Slack / Telegram) are wired in deployment via
+# environment substitution. DO NOT hardcode secrets (SMTP creds, webhook
+# tokens, Slack URLs) in this file — they belong in env / secret stores and
+# are injected at container start. The default webhook below is a placeholder.
+global:
+  resolve_timeout: 5m
+
+route:
+  # Group alerts by alertname + job + severity so related firings collapse
+  # into a single notification.
+  group_by: ['alertname', 'job', 'severity']
+  group_wait: 30s        # buffer alerts in a new group before notifying
+  group_interval: 5m     # wait before notifying about new alerts in an existing group
+  repeat_interval: 4h    # resend an unresolved alert at most this often
+  receiver: 'null'       # افتراضيّ no-op (لا تسليم/لا ضجيج) — يُستبدَل عبر تراكب النشر
+
+  # Optional severity-based fan-out. Both routes fall back to the no-op receiver
+  # until dedicated receivers (Slack/email/Telegram) are added via the
+  # deployment overlay (so a fresh stack never spams a non-existent endpoint).
+  routes:
+    - matchers:
+        - severity = "critical"
+      receiver: 'null'
+      group_wait: 10s
+      repeat_interval: 1h
+    - matchers:
+        - severity = "warning"
+      receiver: 'null'
+
+receivers:
+  # No-op default: no notifier configs ⇒ AlertManager drops silently (no delivery
+  # failures, no noise). Real receivers (Slack/email/Telegram) + their routes are
+  # added in the deployment overlay, where secrets are injected via env.
+  - name: 'null'
+
+inhibit_rules:
+  # Suppress warning-level alerts when a critical alert for the same job is firing.
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['alertname', 'job']
