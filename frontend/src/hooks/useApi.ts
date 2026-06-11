@@ -39,6 +39,9 @@ import {
   // ── المزارع (بوّابة التأهيل): سرد + إنشاء ──
   fetchFarms, createFarm,
   type Farm, type FarmCreateInput, type FarmCreated,
+  // ── تفاصيل الحقل المتقدّمة (v37): قراءة + تحديث جزئيّ (ملء تدريجيّ) ──
+  fetchFieldDetail, updateField,
+  type FieldDetail, type FieldUpdatePatch,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -55,6 +58,7 @@ export const QK = {
   soilParams:       (fid: string)        => ['soil', 'params', fid],
   soilNRec:         (fid: string)        => ['soil', 'nrec', fid],
   fields:           (tid: string)        => ['fields', tid],
+  fieldDetail:      (tid: string, fid: string) => ['field-detail', tid, fid],
   farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
@@ -358,6 +362,37 @@ export function useFields() {
     queryFn:  () => kongApi.get('/api/v1/fields')
       .then(r => ({ fields: Array.isArray(r.data) ? r.data : (r.data?.fields ?? []) })),
     staleTime:5 * 60_000,
+  });
+}
+
+// ── Field Detail: تفاصيل الحقل المتقدّمة (sahool-platform v37) — ملء تدريجيّ ──
+// قراءة حيّة (field:view) عند فتح لوحة التفاصيل فقط (enabled على fieldId). لا
+// fallback وهميّ: عند الخطأ (503 DB / 404 حقل / 403) يُرفض الاستعلام لتعرض
+// الواجهة حالة صادقة (StateViews).
+export function useFieldDetail(fieldId?: string): UseQueryResult<FieldDetail, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldDetail, Error>({
+    queryKey: QK.fieldDetail(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchFieldDetail(fieldId as string),
+    enabled:  !!fieldId,
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// تحديث جزئيّ لتفاصيل حقل — يُبطِل كاش التفاصيل وقائمة الحقول للمستأجِر الحاليّ.
+// 503 DB / 404 حقل / 403 RBAC يُرفع ليعرض الـUI خطأً صادقاً (لا حفظ تفاؤليّ صامت).
+export function useUpdateField(
+  fieldId: string,
+): UseMutationResult<FieldDetail, Error, FieldUpdatePatch> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<FieldDetail, Error, FieldUpdatePatch>({
+    mutationFn: (patch) => updateField(fieldId, patch),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: QK.fieldDetail(tid, fieldId) });
+      qc.invalidateQueries({ queryKey: QK.fields(tid) });
+    },
   });
 }
 

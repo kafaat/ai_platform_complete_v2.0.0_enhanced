@@ -396,6 +396,100 @@ class FieldSummary(BaseModel):
     geometry: dict | None = None
 
 
+# ─── تفاصيل الحقل المتقدّمة (v37) — ملء تدريجيّ بعد الإنشاء ────────
+# القائمة (list_fields) تبقى رشيقة؛ هذه الأعمدة تُقرأ عبر GET /fields/{id}
+# وتُحدَّث جزئيّاً عبر PATCH /fields/{id}. مصدر واحد لأسماء الأعمدة (يُعاد
+# استخدامه في SELECT التفصيليّ وفي بنّاء التحديث الجزئيّ + الاختبارات).
+_FIELD_ADVANCED_COLUMNS: tuple[str, ...] = (
+    "soil_ph",
+    "soil_ec",
+    "soil_om",
+    "soil_n",
+    "soil_p",
+    "soil_k",
+    "elevation_m",
+    "slope_pct",
+    "aspect",
+    "climate_zone",
+    "annual_rainfall_mm",
+    "owner_name",
+    "lease_years",
+    "registry_no",
+)
+
+
+class FieldDetail(FieldSummary):
+    """تفاصيل حقل كاملة (لوحة التفاصيل) — يرث الملخّص ويضيف الأعمدة المتقدّمة.
+
+    كلّها اختياريّة (ملء تدريجيّ): كيمياء التربة + المناخ الدقيق + الملكيّة.
+    """
+
+    # كيمياء التربة (نتائج مختبر)
+    soil_ph: float | None = None
+    soil_ec: float | None = None
+    soil_om: float | None = None  # المادّة العضويّة %
+    soil_n: float | None = None
+    soil_p: float | None = None
+    soil_k: float | None = None
+    # المناخ الدقيق / التضاريس
+    elevation_m: float | None = None
+    slope_pct: float | None = None
+    aspect: str | None = None
+    climate_zone: str | None = None
+    annual_rainfall_mm: float | None = None
+    # تفاصيل الملكيّة
+    owner_name: str | None = None
+    lease_years: int | None = None
+    registry_no: str | None = None
+
+
+class FieldUpdateRequest(BaseModel):
+    """طلب تحديث جزئيّ لتفاصيل حقل — كلّ الحقول اختياريّة (ملء تدريجيّ).
+
+    تُحدَّث الأعمدة المُرسَلة فقط (الموجودة في الـpayload) — لا تُمسح غير المُرسَلة.
+    التمييز بين «لم يُرسَل» و«أُرسِل null» عبر model_fields_set (انظر _build_field_update).
+    """
+
+    soil_ph: float | None = Field(default=None, ge=0, le=14)
+    soil_ec: float | None = Field(default=None, ge=0)
+    soil_om: float | None = Field(default=None, ge=0)  # المادّة العضويّة %
+    soil_n: float | None = Field(default=None, ge=0)
+    soil_p: float | None = Field(default=None, ge=0)
+    soil_k: float | None = Field(default=None, ge=0)
+    elevation_m: float | None = None
+    slope_pct: float | None = Field(default=None, ge=0)
+    aspect: str | None = Field(default=None, max_length=20)
+    climate_zone: str | None = Field(default=None, max_length=40)
+    annual_rainfall_mm: float | None = Field(default=None, ge=0)
+    owner_name: str | None = Field(default=None, max_length=100)
+    lease_years: int | None = Field(default=None, ge=0)
+    registry_no: str | None = Field(default=None, max_length=50)
+
+
+def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
+    """يبني جملة SET للتحديث الجزئيّ من الحقول المُرسَلة فقط — دالّة نقيّة (لا DB).
+
+    يُرجِع (set_clause, values) حيث set_clause = "col1 = $1, col2 = $2 …" والقيم
+    بالترتيب نفسه. تُستخدَم القيم لاحقاً بعد إلحاق معرّف الحقل ($N) في WHERE.
+    يُميّز «لم يُرسَل» (يُتجاهَل) عن «أُرسِل null» (يُمسح العمود) عبر model_fields_set.
+
+    يرفع ValueError لو لم تُرسَل أيّ حقول — لا UPDATE فارغ (يعالجه الـendpoint 422).
+    """
+    sent = req.model_fields_set
+    data = req.model_dump()
+    assignments: list[str] = []
+    values: list = []
+    idx = 1
+    for col in _FIELD_ADVANCED_COLUMNS:
+        if col in sent:
+            assignments.append(f"{col} = ${idx}")
+            values.append(data[col])
+            idx += 1
+    if not assignments:
+        raise ValueError("no fields to update")
+    return ", ".join(assignments), values
+
+
 class ActivityItem(BaseModel):
     """عنصر في جدول الأنشطة."""
 
@@ -1083,6 +1177,121 @@ async def create_field(
         lon=lon,
         geometry=req.geometry,
     )
+
+
+def _row_to_field_detail(r) -> FieldDetail:
+    """صفّ DB (مع الأعمدة المتقدّمة) → FieldDetail. يعيد استخدام تطبيع الملخّص ثمّ
+    يضيف الأعمدة المتقدّمة (v37). NUMERIC من asyncpg يأتي Decimal ⇒ float للـJSON."""
+    base = _row_to_field_summary(r)
+
+    def _f(key):
+        try:
+            v = r[key]
+        except (KeyError, IndexError):
+            return None
+        return float(v) if v is not None else None
+
+    def _s(key):
+        try:
+            return r[key]
+        except (KeyError, IndexError):
+            return None
+
+    def _i(key):
+        try:
+            v = r[key]
+        except (KeyError, IndexError):
+            return None
+        return int(v) if v is not None else None
+
+    return FieldDetail(
+        **base.model_dump(),
+        soil_ph=_f("soil_ph"),
+        soil_ec=_f("soil_ec"),
+        soil_om=_f("soil_om"),
+        soil_n=_f("soil_n"),
+        soil_p=_f("soil_p"),
+        soil_k=_f("soil_k"),
+        elevation_m=_f("elevation_m"),
+        slope_pct=_f("slope_pct"),
+        aspect=_s("aspect"),
+        climate_zone=_s("climate_zone"),
+        annual_rainfall_mm=_f("annual_rainfall_mm"),
+        owner_name=_s("owner_name"),
+        lease_years=_i("lease_years"),
+        registry_no=_s("registry_no"),
+    )
+
+
+# أعمدة SELECT لقراءة الحقل التفصيليّة: أساس الملخّص + الأعمدة المتقدّمة (v37).
+_FIELD_DETAIL_SELECT = (
+    "field_id, farm_id, name, area_ha, crop, soil_type, manager, "
+    "field_code, description, water_source, ownership_type, country, region, "
+    "lat, lon, geometry, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
+)
+
+
+@app.get("/api/v1/fields/{field_id}", response_model=FieldDetail)
+async def get_field(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تفاصيل حقل كاملة (لوحة التفاصيل) — الأساسيّات + الأعمدة المتقدّمة (v37).
+
+    مُرشَّحة بالمستأجِر (RLS). 404 لو الحقل ليس للمستأجِر، 503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة تفاصيل الحقل", e) from e
+    if row is None:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    return _row_to_field_detail(row)
+
+
+@app.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
+async def update_field(
+    field_id: str,
+    req: FieldUpdateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """تحديث جزئيّ لتفاصيل حقل (ملء تدريجيّ) — يُحدِّث الأعمدة المُرسَلة فقط.
+
+    يتأكّد أنّ الحقل يخصّ المستأجِر (404) ضمن سياق المستأجِر (RLS)، يبني UPDATE
+    من الحقول المُرسَلة فقط (دالّة نقيّة _build_field_update)، ويردّ الحقل المُحدَّث.
+    422 لو لم تُرسَل أيّ حقول (لا UPDATE فارغ). 503 عند تعذّر القاعدة.
+    """
+    try:
+        set_clause, values = _build_field_update(req)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail="لا حقول للتحديث") from e
+    # معرّف الحقل يأخذ آخر رقم placeholder في WHERE.
+    field_idx = len(values) + 1
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            await conn.execute(
+                f"UPDATE fields SET {set_clause} WHERE field_id = ${field_idx}",
+                *values,
+                field_id,
+            )
+            row = await conn.fetchrow(
+                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("تحديث تفاصيل الحقل", e) from e
+    if row is None:  # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ 404 صادق
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    return _row_to_field_detail(row)
 
 
 @app.get("/api/v1/geo/reverse")

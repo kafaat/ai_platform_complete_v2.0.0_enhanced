@@ -10,10 +10,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
   Plus, Search, Pencil, Trash2, X, Check, Leaf,
-  Wheat, Ruler, ChevronDown, Sprout, Calendar, Map,
+  Wheat, Ruler, ChevronDown, Sprout, Calendar, Map, ClipboardList,
 } from 'lucide-react';
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import AddSeasonWithStages from '../components/AddSeasonWithStages';
+import FieldDetailPanel from '../components/FieldDetailPanel';
 import { kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useFields } from '../hooks/useApi';
@@ -90,6 +91,7 @@ export default function FieldManagementPage() {
   const [viewMode,      setViewMode]      = useState<'grid'|'table'>('grid');
   const [showAddField,  setShowAddField]  = useState(false);
   const [showSeason,    setShowSeason]    = useState<Field|null>(null);
+  const [showDetail,    setShowDetail]    = useState<Field|null>(null);
   const [editField,     setEditField]     = useState<Field|null>(null);
 
   // بذر الحالة المحلّيّة من البيانات الحيّة مرّة واحدة (CRUD تفاؤليّ بعدها لا يُداس
@@ -216,6 +218,14 @@ export default function FieldManagementPage() {
             </div>
           ))}
         </div>
+        {/* تفاصيل الحقل — متاح للجميع (قراءة؛ التحرير داخل اللوحة محكوم بالدور) */}
+        <div className="px-4 pb-2">
+          <button onClick={() => setShowDetail(f)}
+            className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-sky-400 hover:text-sky-300 border"
+            style={{ borderColor:'#0ea5e944', background:'#0c2a3a22' }}>
+            <ClipboardList className="w-3 h-3" /> تفاصيل
+          </button>
+        </div>
         {/* Actions — محكومة بالدور (المُشاهِد قراءة فقط) */}
         {mutateAllowed && (
           <div className="flex gap-1.5 px-4 pb-3">
@@ -338,6 +348,11 @@ export default function FieldManagementPage() {
                       <td className="px-4 py-3 text-slate-300 font-mono">{f.gdd}</td>
                       <td className="px-4 py-3 text-emerald-400 font-semibold">{f.yield_est}</td>
                       <td className="px-4 py-3">
+                        <div className="flex gap-1.5 items-center">
+                          <button onClick={()=>setShowDetail(f)} title="تفاصيل الحقل"
+                            className="p-1.5 rounded hover:bg-sky-950 text-slate-400 hover:text-sky-400 transition-colors">
+                            <ClipboardList className="w-3.5 h-3.5" />
+                          </button>
                         {mutateAllowed ? (
                           <div className="flex gap-1.5">
                             <button onClick={()=>setShowSeason(f)} title="إضافة موسم"
@@ -353,7 +368,8 @@ export default function FieldManagementPage() {
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
-                        ) : <span className="text-slate-600 text-xs">—</span>}
+                        ) : null}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -384,6 +400,13 @@ export default function FieldManagementPage() {
           field={editField}
           onSave={handleEditSave}
           onCancel={() => setEditField(null)}
+        />
+      )}
+      {showDetail && (
+        <FieldDetailPanel
+          fieldId={showDetail.field_id}
+          fieldName={showDetail.name}
+          onClose={() => setShowDetail(null)}
         />
       )}
     </div>

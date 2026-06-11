@@ -846,6 +846,76 @@ export const createFarm = (payload: FarmCreateInput): Promise<FarmCreated> =>
   kongApi.post<FarmCreated>('/api/v1/farms', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// FIELD DETAIL — تفاصيل الحقل المتقدّمة (sahool-platform v37). ملء تدريجيّ
+// بعد الإنشاء: كيمياء التربة + المناخ الدقيق + الملكيّة. ربط حيّ بلا تلفيق —
+// field:view للقراءة (GET /fields/{id})، field:edit للتحديث الجزئيّ (PATCH).
+// عند الخطأ (503 DB / 404 حقل / 403 RBAC) يُرمى ليعرض الـUI حالة صادقة.
+// ══════════════════════════════════════════════════════════════════
+export interface FieldDetail {
+  field_id:        string;
+  farm_id:         string;
+  name_ar:         string;
+  crop:            string;
+  area_ha:         number;
+  quality_grade:   string;
+  health_summary_ar: string;
+  soil_type?:      string | null;
+  manager?:        string | null;
+  field_code?:     string | null;
+  description?:    string | null;
+  water_source?:   string | null;
+  ownership_type?: string | null;
+  country?:        string | null;
+  region?:         string | null;
+  lat?:            number | null;
+  lon?:            number | null;
+  geometry?:       Record<string, unknown> | null;
+  // كيمياء التربة (نتائج مختبر)
+  soil_ph?:        number | null;
+  soil_ec?:        number | null;
+  soil_om?:        number | null; // المادّة العضويّة %
+  soil_n?:         number | null;
+  soil_p?:         number | null;
+  soil_k?:         number | null;
+  // المناخ الدقيق / التضاريس
+  elevation_m?:        number | null;
+  slope_pct?:          number | null;
+  aspect?:             string | null;
+  climate_zone?:       string | null;
+  annual_rainfall_mm?: number | null;
+  // تفاصيل الملكيّة
+  owner_name?:     string | null;
+  lease_years?:    number | null;
+  registry_no?:    string | null;
+}
+
+// تحديث جزئيّ: كلّ الحقول اختياريّة — تُرسَل المُعدَّلة فقط (الخادم يحدّثها فقط).
+export interface FieldUpdatePatch {
+  soil_ph?:            number | null;
+  soil_ec?:            number | null;
+  soil_om?:            number | null;
+  soil_n?:             number | null;
+  soil_p?:             number | null;
+  soil_k?:             number | null;
+  elevation_m?:        number | null;
+  slope_pct?:          number | null;
+  aspect?:             string | null;
+  climate_zone?:       string | null;
+  annual_rainfall_mm?: number | null;
+  owner_name?:         string | null;
+  lease_years?:        number | null;
+  registry_no?:        string | null;
+}
+
+/** تفاصيل حقل كاملة (field:view). 404 لو ليس للمستأجِر، 503 عند تعطيل DB. */
+export const fetchFieldDetail = (fieldId: string): Promise<FieldDetail> =>
+  kongApi.get<FieldDetail>(`/api/v1/fields/${fieldId}`).then(r => r.data);
+
+/** تحديث جزئيّ لتفاصيل حقل (field:edit). تُرسَل الحقول المُعدَّلة فقط. */
+export const updateField = (fieldId: string, patch: FieldUpdatePatch): Promise<FieldDetail> =>
+  kongApi.patch<FieldDetail>(`/api/v1/fields/${fieldId}`, patch).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════
 
