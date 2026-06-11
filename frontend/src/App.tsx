@@ -6,6 +6,7 @@ import {
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { wsService } from './services/websocket';
@@ -64,6 +65,7 @@ const DevicesPage         = lazy(() => import('./sections/DevicesPage'));
 const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
 const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
+const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -71,7 +73,7 @@ export type PageId =
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
-  | 'master-data' | 'documents';
+  | 'master-data' | 'documents' | 'governance';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -93,6 +95,7 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'reports',      label:'التقارير',        icon:FileText },
   { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
   { id:'documents',    label:'الوثائق',         icon:FolderArchive },
+  { id:'governance',   label:'الحوكمة والتدقيق', icon:ShieldCheck },
   { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
   { id:'settings',     label:'الإعدادات',       icon:Settings },
 ];
@@ -295,6 +298,7 @@ export default function App() {
       case 'irrigation-ops': return <IrrigationOpsPage />;
       case 'master-data':  return <MasterDataPage />;
       case 'documents':    return <DocumentsPage />;
+      case 'governance':   return <GovernancePage />;
       case 'tasks':        return <TasksPage />;
       case 'analytics':    return <AnalyticsPage />;
       case 'alerts':       return <AlertSystemPage />;

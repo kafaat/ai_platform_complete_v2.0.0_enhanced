@@ -27,6 +27,9 @@ import {
   type MasterDataCategory, type MasterDataEntry, type MasterDataCreateInput,
   listDocuments, createDocument,
   type DocumentRecord, type DocumentCreateInput, type DocumentCategory,
+  // ── الحوكمة والتدقيق: أصل/أحداث/أوامر كيان + مفاتيح المشاركة ──
+  listSharingKeys, createSharingKey,
+  type SharingKey, type NewSharingKey, type SharingKeyCreated,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -59,6 +62,8 @@ export const QK = {
   masterData:       (tid: string, cat: string) => ['master-data', tid, cat],
   documents:        (tid: string, category?: string, fieldId?: string) =>
                        ['documents', tid, category ?? 'all', fieldId ?? 'all'],
+  sharingKeys:      (tid: string, includeRevoked: boolean) =>
+                       ['sharing', 'keys', tid, includeRevoked],
   health:                                   ['health', 'all'],
 } as const;
 
@@ -669,6 +674,28 @@ export function useCreateDocument(): UseMutationResult<DocumentRecord, Error, Do
   return useMutation<DocumentRecord, Error, DocumentCreateInput>({
     mutationFn: (payload) => createDocument(payload),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: ['documents', tid] }); },
+  });
+}
+
+// ── Governance: مفاتيح المشاركة (حيّة، tenant-scoped + RBAC user:invite) ──
+// لا fallback وهميّ: 503 DB مُعطَّلة / 403 RBAC يُرفع لتعرض الواجهة حالة صادقة.
+export function useSharingKeys(includeRevoked = false): UseQueryResult<SharingKey[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<SharingKey[]>({
+    queryKey: QK.sharingKeys(tid, includeRevoked),
+    queryFn:  () => listSharingKeys(includeRevoked).then((r) => r.keys),
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// إنشاء مفتاح مشاركة. النصّ الكامل يُعاد مرّة واحدة فقط (يعرضه المُستدعي ثمّ يُهمَل).
+export function useCreateSharingKey(): UseMutationResult<SharingKeyCreated, Error, NewSharingKey> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<SharingKeyCreated, Error, NewSharingKey>({
+    mutationFn: (payload) => createSharingKey(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['sharing', 'keys', tid] }); },
   });
 }
 
