@@ -1654,6 +1654,119 @@ async def field_disease_risk(
     return risk
 
 
+# ─── التوصيات الموحَّدة لكلّ حقل (Unified per-field recommendations) ─
+# عمود توصيات واحد يجمع: الريّ + التسميد + الأمراض + الحصاد/الإنتاج. منطق
+# التجميع نقيّ في api.recommendations_hub (مُختبَر offline). النواة تجمع السياق
+# (الموسم من القاعدة، الطقس من Open-Meteo) ثمّ تمرّره. تدهور رشيق: عند تعذّر
+# الطقس نُرجع التوصيات التي لا تحتاجه (تسميد/حصاد) بدل التلفيق؛ 503 فقط إن لم
+# يبقَ شيء (القاعدة نفسها متعذّرة).
+
+
+async def _field_season_context(conn, field_id: str):
+    """يجلب (lat, lon, crop, stage, sowing_date) للحقل + موسمه النشط (404 إن غاب).
+
+    يوسّع _field_weather_context بإرجاع sowing_date (لنافذة الحصاد). يرفع 404 إن
+    غاب الحقل. lat/lon قد يكونان None هنا (الطقس اختياريّ في التوصيات الموحَّدة).
+    """
+    row = await conn.fetchrow("SELECT lat, lon, crop FROM fields WHERE field_id = $1", field_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    season = await conn.fetchrow(
+        "SELECT crops, sowing_date FROM seasons "
+        "WHERE field_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1",
+        field_id,
+    )
+    crop: str | None = row["crop"]
+    stage = "mid"
+    sowing_date = None
+    if season is not None:
+        import json as _json
+
+        crops = season["crops"]
+        if isinstance(crops, str):
+            try:
+                crops = _json.loads(crops)
+            except (ValueError, TypeError):
+                crops = []
+        if isinstance(crops, list) and crops:
+            crop = str(crops[0])
+        sowing_date = season["sowing_date"]
+        if sowing_date is not None:
+            stage = _growth_stage((date.today() - sowing_date).days)
+    lat = float(row["lat"]) if row["lat"] is not None else None
+    lon = float(row["lon"]) if row["lon"] is not None else None
+    return lat, lon, crop, stage, sowing_date
+
+
+@app.get("/api/v1/fields/{field_id}/recommendations")
+async def field_recommendations(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """عمود التوصيات الموحَّد للحقل: ريّ + تسميد + أمراض + حصاد، مفروز بالأولويّة.
+
+    التجميع نقيّ (api.recommendations_hub، مُختبَر offline). يجمع سياق الموسم من
+    القاعدة (404 إن غاب الحقل، 503 إن تعذّرت القاعدة) والطقس من Open-Meteo. تدهور
+    رشيق: عند تعذّر الطقس (أو غياب إحداثيّات الحقل) نُرجع توصيات التسميد/الحصاد
+    فقط — لا بيانات وهميّة. 503 فقط إن لم تتوفّر أيّة توصية.
+    """
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.recommendations_hub import RecommendationContext, build_recommendations
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل للتوصيات", e) from e
+
+    ctx = RecommendationContext(
+        field_id=field_id,
+        crop=crop,
+        stage=stage,
+        today=date.today(),
+        sowing_date=sowing_date,
+    )
+
+    # الطقس اختياريّ: نملأ سياقه إن توفّرت الإحداثيّات والمصدر. تعذّره لا يُسقط
+    # الطلب — نكتفي بالتوصيات التي لا تحتاجه (تدهور رشيق، لا تلفيق).
+    weather_available = False
+    if lat is not None and lon is not None:
+        try:
+            forecast = await fetch_daily_forecast(lat, lon, days=3)
+            current = await fetch_current(lat, lon)
+            today = forecast[0] if forecast else None
+            et0 = today.et0_mm if today and today.et0_mm is not None else None
+            ctx.et0_mm = et0
+            ctx.rain_recent_mm = current.precipitation_mm or 0.0
+            ctx.forecast_rain_mm = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+            ctx.temp_c = current.temperature_c
+            ctx.humidity_pct = current.humidity_pct
+            ctx.rain_mm_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+            weather_available = True
+        except Exception as e:  # noqa: BLE001 — تعذّر الطقس ⇒ تدهور رشيق لا فشل
+            logging.warning(
+                "recommendations: weather unavailable for %s: %s", field_id, type(e).__name__
+            )
+
+    recs = build_recommendations(ctx)
+    if not recs:
+        # لا توصية أمكن توليدها (لا طقس، لا محصول، لا بذار) — فشل صادق.
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر توليد توصيات (لا طقس ولا سياق موسم كافٍ). حدّد موقع الحقل وموسمه.",
+        )
+
+    return {
+        "field_id": field_id,
+        "crop": crop,
+        "stage": stage,
+        "weather_available": weather_available,
+        "recommendations": [r.to_dict() for r in recs],
+    }
+
+
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
 _ACTIVITY_TYPES = {
     "planting",

@@ -22,6 +22,8 @@ import {
   type Activity, type ActivityCreateInput,
   fetchIrrigationAdvice, fetchDiseaseRisk,
   type IrrigationAdvice, type DiseaseRisk,
+  fetchFieldRecommendations,
+  type FieldRecommendationsResult,
   fetchAlerts, createAlert, acknowledgeAlert, evaluateFieldAlerts,
   type AlertRecord, type AlertCreateInput, type AlertListFilters, type AlertEvaluateResult,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
@@ -64,6 +66,7 @@ export const QK = {
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
   irrigationAdvice: (tid: string, fid: string) => ['weather-advice', 'irrigation', tid, fid],
   diseaseRisk:      (tid: string, fid: string) => ['weather-advice', 'disease', tid, fid],
+  fieldRecs:        (tid: string, fid: string) => ['field-recommendations', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
@@ -484,6 +487,23 @@ export function useDiseaseRisk(fieldId?: string): UseQueryResult<DiseaseRisk, Er
   return useQuery<DiseaseRisk, Error>({
     queryKey: QK.diseaseRisk(tid, fieldId ?? 'none'),
     queryFn:  () => fetchDiseaseRisk(fieldId as string),
+    staleTime:10 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
+  });
+}
+
+// ── Unified recommendations: عمود التوصيات الموحَّد لكلّ حقل ──
+// يجمع الخادم الريّ + التسميد + الأمراض + الحصاد مفروزاً بالأولويّة (تدهور رشيق
+// عند تعذّر الطقس). ربط حيّ بلا fallback وهميّ: عند الخطأ (503/404/403) يُرفض
+// الاستعلام لتعرض الواجهة حالة صادقة. مُفعَّل فقط مع fieldId.
+export function useFieldRecommendations(
+  fieldId?: string,
+): UseQueryResult<FieldRecommendationsResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldRecommendationsResult, Error>({
+    queryKey: QK.fieldRecs(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchFieldRecommendations(fieldId as string),
     staleTime:10 * 60_000,
     retry:    false,
     enabled:  !!fieldId,
