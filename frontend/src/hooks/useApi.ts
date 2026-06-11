@@ -9,6 +9,7 @@ import {
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
   analyzeFieldIntelligence, getCostAnalytics,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
+  simulateSeason, type SeasonSimResult,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
@@ -599,6 +600,16 @@ export function useCreateActivity(
   return useMutation<Activity, Error, ActivityCreateInput>({
     mutationFn: (payload) => createActivity(fieldId, payload),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.activities(tid, fieldId) }); },
+  });
+}
+
+// ── محاكاة الموسم (Crop-model simulation, RUE/FAO-56) — v39 ──────────
+// يشغّل محاكاة محصوليّة للموسم على الخادم ويحفظ ناتجها (تقديرات بنطاق وثقة).
+// طفرة (mutation) بلا تخزين مؤقّت وهميّ: عند الخطأ (503 طقس/قاعدة، 404 موسم،
+// 422 بلا إحداثيّات) تعرض الواجهة الرسالة كما هي.
+export function useSimulateSeason(): UseMutationResult<SeasonSimResult, Error, string> {
+  return useMutation<SeasonSimResult, Error, string>({
+    mutationFn: (seasonId) => simulateSeason(seasonId),
   });
 }
 

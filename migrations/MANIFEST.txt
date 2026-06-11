@@ -116,3 +116,7 @@ v37_fields_advanced.sql
 # وواتساب + user_ref نصّيّ (هويّة المنصّة) + أرضيّة خطورة دنيا، لإعدادات الإشعارات
 # (GET/PUT /api/v1/notifications/preferences). يعدّل notification_preferences. idempotent.
 v38_notif_channels.sql
+# v39: محاكاة الموسم — أعمدة sim_* على seasons (إنتاج/كتلة حيويّة/GDD/LAI/ماء +
+# وقت التشغيل) تحفظ ناتج محاكاة محصوليّة RUE/FAO-56 (POST /api/v1/seasons/{id}/
+# simulate). كلّها nullable تقديريّة. يعدّل seasons (v32). idempotent.
+v39_season_simulation.sql
