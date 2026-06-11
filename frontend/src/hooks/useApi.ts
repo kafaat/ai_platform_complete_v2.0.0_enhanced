@@ -291,8 +291,11 @@ export function useFields() {
   const tid = (user as any)?.tenant_id ?? 'default';
   return useQuery({
     queryKey: QK.fields(tid),
-    queryFn:  () => kongApi.get('/fields', { params: { tenant_id: tid } })
-      .then(r => r.data).catch(() => ({ fields: [] })),
+    // الخلفيّة: GET /api/v1/fields تُرجع قائمة FieldSummary (مع lat/lon/geometry
+    // لرسم المضلّع). نطبّعها إلى {fields:[...]}. لا ابتلاع صامت ⇒ الفشل يظهر
+    // كـisError (لا ارتداد إلى بيانات وهميّة — كان /fields الخاطئ يرتدّ بصمت).
+    queryFn:  () => kongApi.get('/api/v1/fields')
+      .then(r => ({ fields: Array.isArray(r.data) ? r.data : (r.data?.fields ?? []) })),
     staleTime:5 * 60_000,
   });
 }

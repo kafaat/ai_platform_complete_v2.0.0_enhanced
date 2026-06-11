@@ -380,6 +380,11 @@ class FieldSummary(BaseModel):
     last_observation_at: str | None = None
     pending_activities: int = 0
     health_summary_ar: str  # "صحّي" / "يحتاج ريّ" / "إجهاد ملحي"
+    soil_type: str | None = None  # نوع التربة (يُمرَّر للواجهة بدل ضياعه)
+    # حقول الخريطة (اختياريّة، توافق خلفيّ): مركز الحقل وهندسته لرسم المضلّع.
+    lat: float | None = None
+    lon: float | None = None
+    geometry: dict | None = None
 
 
 class ActivityItem(BaseModel):
@@ -841,39 +846,156 @@ def list_capabilities(user: UserSchema = Depends(get_current_user)):
     return capabilities_report()
 
 
-@app.get("/api/v1/fields", response_model=list[FieldSummary])
-def list_fields(user: UserSchema = Depends(get_current_user)):
-    """قائمة حقول الـtenant — للـHomeScreen.
+def _centroid_from_bbox(bbox: dict | None) -> tuple[float | None, float | None]:
+    """مركز تقريبيّ من bbox {min_lat,max_lat,min_lng,max_lng}. (lat, lon).
 
-    MVP الحالي: يُرجع stub data. في الإنتاج: query من DB مع filters
-    حسب الـrole (worker يرى حقوله فقط، agronomist يرى الكل).
+    مفاتيح lng (لا lon) لمطابقة compute_bbox في geospatial_integrity.
     """
-    # في الإنتاج: SELECT * FROM fields WHERE tenant_id=? AND visible_to(user)
-    # هنا: stub demo data للـMVP
-    return [
-        FieldSummary(
-            field_id="fld_demo_001",
-            farm_id="farm_demo",
-            name_ar="حقل تجريبي ١",
-            crop="wheat",
-            area_ha=12.5,
-            quality_grade="READY",
-            last_observation_at=datetime.utcnow().isoformat(),
-            pending_activities=2,
-            health_summary_ar="صحّي",
-        ),
-        FieldSummary(
-            field_id="fld_demo_002",
-            farm_id="farm_demo",
-            name_ar="حقل تجريبي ٢",
-            crop="barley",
-            area_ha=8.3,
-            quality_grade="LIMITED",
-            last_observation_at=None,
-            pending_activities=0,
-            health_summary_ar="بانتظار قياسات",
-        ),
-    ]
+    if not bbox:
+        return None, None
+    try:
+        lat = round((bbox["min_lat"] + bbox["max_lat"]) / 2, 6)
+        lon = round((bbox["min_lng"] + bbox["max_lng"]) / 2, 6)
+    except (KeyError, TypeError):
+        return None, None
+    return lat, lon
+
+
+def _row_to_field_summary(r) -> FieldSummary:
+    """صفّ DB → FieldSummary (يفكّ geometry لو رجعت نصّاً من JSONB)."""
+    import json as _json
+
+    geom = r["geometry"]
+    if isinstance(geom, str):
+        try:
+            geom = _json.loads(geom)
+        except (ValueError, TypeError):
+            geom = None
+    return FieldSummary(
+        field_id=r["field_id"],
+        farm_id=r["farm_id"] or "",
+        name_ar=r["name"],
+        crop=r["crop"] or "—",
+        area_ha=float(r["area_ha"]) if r["area_ha"] is not None else 0.0,
+        quality_grade="READY",
+        health_summary_ar="—",
+        soil_type=r["soil_type"],
+        lat=float(r["lat"]) if r["lat"] is not None else None,
+        lon=float(r["lon"]) if r["lon"] is not None else None,
+        geometry=geom,
+    )
+
+
+def _db_unavailable(action_ar: str, exc: Exception) -> HTTPException:
+    """يحوّل خطأ DB (انقطاع اتّصال، عمود/هجرة غير مطبّقة…) إلى 503 صريح بدل 500.
+
+    يُبقي الـendpoint مطابقاً للموثَّق (والواجهة تعرض فشلاً صادقاً لا «خطأ غير
+    متوقّع»). يُعاد استخدامه في قراءة/كتابة الحقول.
+    """
+    logging.warning("fields DB error during %s: %s", action_ar, type(exc).__name__)
+    return HTTPException(
+        status_code=503,
+        detail=f"تعذّر {action_ar} (القاعدة غير متاحة أو الهجرات غير مطبّقة). حاول لاحقاً.",
+    )
+
+
+@app.get("/api/v1/fields", response_model=list[FieldSummary])
+async def list_fields(user: UserSchema = Depends(get_current_user)):
+    """قائمة حقول المستأجر من القاعدة — للـHomeScreen/الخريطة.
+
+    تُرشَّح بـtenant_id (دفاع عميق) + RLS، وتُرجع المركز + الهندسة (GeoJSON)
+    لرسم المضلّع على الخريطة. عند تعذّر القاعدة ⇒ 503 صريح — لا بيانات وهميّة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT field_id, farm_id, name, area_ha, crop, soil_type, lat, lon, geometry "
+                "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
+                str(user.tenant_id),
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة الحقول", e) from e
+    return [_row_to_field_summary(r) for r in rows]
+
+
+class FieldCreateRequest(BaseModel):
+    """طلب إنشاء حقل من مضلّع مرسوم على الخريطة."""
+
+    name: str = Field(min_length=1, max_length=100)
+    crop: str | None = None
+    soil_type: str | None = None
+    geometry: dict  # GeoJSON Polygon: {"type":"Polygon","coordinates":[[[lon,lat],...]]}
+    farm_id: str | None = None
+    gov: str | None = None
+
+
+@app.post("/api/v1/fields", status_code=201, response_model=FieldSummary)
+async def create_field(
+    req: FieldCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
+):
+    """ينشئ حقلاً من مضلّع مرسوم — يُخزَّن فعليّاً في القاعدة (لا تلفيق).
+
+    يتحقّق من الهندسة (CRS 4326، تقاطع ذاتي، مساحة معقولة، داخل اليمن) ويحسب
+    المساحة + المركز منها، ثمّ يُدرج ضمن سياق المستأجر (RLS). يردّ الحقل المُنشأ
+    بهندسته كي ترسمه الواجهة فوراً.
+    """
+    import json as _json
+    import uuid as _uuid
+
+    validation = validate_field_geometry(req.geometry)
+    if not validation.valid:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
+                "issues": [
+                    {"code": i.code, "severity": i.severity.value, "message_ar": i.message_ar}
+                    for i in validation.issues
+                ],
+            },
+        )
+    area_ha = round(validation.computed_area_ha or 0.0, 2)
+    lat, lon = _centroid_from_bbox(validation.computed_bbox)
+    field_id = "fld_" + _uuid.uuid4().hex[:12]
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO fields
+                    (field_id, tenant_id, farm_id, name, crop, soil_type,
+                     area_ha, lat, lon, gov, geometry)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)""",
+                field_id,
+                str(user.tenant_id),
+                req.farm_id,
+                req.name,
+                req.crop,
+                req.soil_type,
+                area_ha,
+                lat,
+                lon,
+                req.gov or "البيضاء",
+                _json.dumps(req.geometry),
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("حفظ الحقل", e) from e
+    return FieldSummary(
+        field_id=field_id,
+        farm_id=req.farm_id or "",
+        name_ar=req.name,
+        crop=req.crop or "—",
+        area_ha=area_ha,
+        quality_grade="PENDING_LAB",
+        health_summary_ar="حقل جديد — بانتظار قياسات",
+        soil_type=req.soil_type,
+        lat=lat,
+        lon=lon,
+        geometry=req.geometry,
+    )
 
 
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
