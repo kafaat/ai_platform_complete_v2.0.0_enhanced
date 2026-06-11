@@ -1530,6 +1530,150 @@ async def delete_schedule(
     return {"schedule_id": schedule_id, "message_ar": "حُذف جدول الريّ"}
 
 
+# ─── البيانات المرجعيّة (Master Data) + الدورات الزراعيّة — (v26) ─
+class MasterDataRequest(BaseModel):
+    category: str = Field(
+        pattern="^(crop|soil_type|fertilizer|pesticide|seed_variety|equipment_type|other)$"
+    )
+    code: str = Field(min_length=1, max_length=60)
+    name_ar: str = Field(min_length=1, max_length=160)
+    name_en: str | None = None
+    metadata: dict | None = None
+
+
+class RotationRequest(BaseModel):
+    crop: str = Field(min_length=1, max_length=80)
+    season_label: str | None = None
+    sequence_order: int | None = None
+    planted_at: str | None = None
+    harvested_at: str | None = None
+    notes: str | None = None
+
+
+@app.post("/api/v1/master-data", status_code=201)
+async def create_master_data(
+    req: MasterDataRequest,
+    user: UserSchema = Depends(require_permission(Permission.MASTER_DATA_MANAGE)),
+):
+    import json as _json
+    import uuid as _uuid
+
+    md_id = "md_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        # رمز مكرّر ضمن نفس الفئة ⇒ 409 واضحة (لا 500 من قيد UNIQUE)
+        dup = await conn.fetchval(
+            "SELECT 1 FROM master_data WHERE category = $1 AND code = $2",
+            req.category,
+            req.code,
+        )
+        if dup:
+            raise HTTPException(status_code=409, detail="الرمز موجود مسبقاً في هذه الفئة")
+        await conn.execute(
+            """INSERT INTO master_data (md_id, tenant_id, category, code, name_ar, name_en, metadata)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb)""",
+            md_id,
+            str(user.tenant_id),
+            req.category,
+            req.code,
+            req.name_ar,
+            req.name_en,
+            _json.dumps(req.metadata or {}),
+        )
+    return {"md_id": md_id, "code": req.code, "message_ar": "أُضيف عنصر مرجعيّ"}
+
+
+@app.get("/api/v1/master-data")
+async def list_master_data(
+    category: str | None = None,
+    user: UserSchema = Depends(require_permission(Permission.MASTER_DATA_VIEW)),
+):
+    """كتالوج البيانات المرجعيّة (مُرشَّح اختياريّاً بالفئة)."""
+    async with tenant_connection(user) as conn:
+        if category:
+            rows = await conn.fetch(
+                "SELECT md_id, category, code, name_ar, name_en, metadata, active "
+                "FROM master_data WHERE category = $1 AND active ORDER BY name_ar",
+                category,
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT md_id, category, code, name_ar, name_en, metadata, active "
+                "FROM master_data WHERE active ORDER BY category, name_ar"
+            )
+    return [
+        {
+            "md_id": r["md_id"],
+            "category": r["category"],
+            "code": r["code"],
+            "name_ar": r["name_ar"],
+            "name_en": r["name_en"],
+            "metadata": r["metadata"] if isinstance(r["metadata"], dict) else {},
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/v1/fields/{field_id}/rotations", status_code=201)
+async def add_crop_rotation(
+    field_id: str,
+    req: RotationRequest,
+    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_PLAN)),
+):
+    """يسجّل محصولاً في تعاقب الحقل (الدورة الزراعيّة + التتبّع)."""
+    import uuid as _uuid
+
+    rotation_id = "rot_" + _uuid.uuid4().hex[:12]
+    planted = _parse_date(req.planted_at, "planted_at")
+    harvested = _parse_date(req.harvested_at, "harvested_at")
+    async with tenant_connection(user) as conn:
+        exists = await conn.fetchval("SELECT 1 FROM fields WHERE field_id = $1", field_id)
+        if not exists:
+            raise HTTPException(status_code=404, detail="الحقل غير موجود")
+        await conn.execute(
+            """INSERT INTO crop_rotations
+                (rotation_id, tenant_id, field_id, crop, season_label,
+                 sequence_order, planted_at, harvested_at, notes)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
+            rotation_id,
+            str(user.tenant_id),
+            field_id,
+            req.crop,
+            req.season_label,
+            req.sequence_order,
+            planted,
+            harvested,
+            req.notes,
+        )
+    return {"rotation_id": rotation_id, "message_ar": "سُجّل تعاقب المحصول"}
+
+
+@app.get("/api/v1/fields/{field_id}/rotations")
+async def list_crop_rotations(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تاريخ تعاقب المحاصيل للحقل (للدورة الزراعيّة وتتبّع المحصول)."""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT rotation_id, crop, season_label, sequence_order, planted_at, harvested_at, notes "
+            "FROM crop_rotations WHERE field_id = $1 "
+            "ORDER BY sequence_order NULLS LAST, planted_at",
+            field_id,
+        )
+    return [
+        {
+            "rotation_id": r["rotation_id"],
+            "crop": r["crop"],
+            "season_label": r["season_label"],
+            "sequence_order": r["sequence_order"],
+            "planted_at": r["planted_at"].isoformat() if r["planted_at"] else None,
+            "harvested_at": r["harvested_at"].isoformat() if r["harvested_at"] else None,
+            "notes": r["notes"],
+        }
+        for r in rows
+    ]
+
+
 @app.get("/api/v1/activities", response_model=list[ActivityItem])
 def list_activities(
     user: UserSchema = Depends(get_current_user),

@@ -82,6 +82,9 @@ class Permission(str, Enum):
     # الري التشغيلي (جدولة + صمامات — الطبقة ٣ من تدقيق التغطية)
     IRRIGATION_VIEW = "irrigation:view"
     IRRIGATION_MANAGE = "irrigation:manage"  # جدولة، تسجيل صمّام، أمر فتح/إغلاق
+    # البيانات المرجعيّة (Master Data: محاصيل/تربة/أسمدة/مبيدات/بذور — الطبقة المركزيّة)
+    MASTER_DATA_VIEW = "master_data:view"
+    MASTER_DATA_MANAGE = "master_data:manage"
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
     REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
@@ -126,6 +129,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.DEVICE_MANAGE,
         Permission.IRRIGATION_VIEW,
         Permission.IRRIGATION_MANAGE,
+        Permission.MASTER_DATA_VIEW,
+        Permission.MASTER_DATA_MANAGE,
     },
     UserRole.MANAGER: {
         # إدارة كاملة، لا حذف ملكية ولا تغيير أدوار
@@ -155,6 +160,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.DEVICE_MANAGE,
         Permission.IRRIGATION_VIEW,
         Permission.IRRIGATION_MANAGE,
+        Permission.MASTER_DATA_VIEW,
+        Permission.MASTER_DATA_MANAGE,
     },
     UserRole.AGRONOMIST: {
         # توصيات + معايرة + بحث، لا إدارة بنيوية
@@ -176,6 +183,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.DEVICE_VIEW,
         Permission.IRRIGATION_VIEW,
         Permission.IRRIGATION_MANAGE,
+        Permission.MASTER_DATA_VIEW,
+        Permission.MASTER_DATA_MANAGE,
     },
     UserRole.WORKER: {
         # تنفيذ ميداني فقط
@@ -191,6 +200,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.EQUIPMENT_VIEW,
         Permission.DEVICE_VIEW,
         Permission.IRRIGATION_VIEW,
+        Permission.MASTER_DATA_VIEW,
     },
     UserRole.VIEWER: {
         # قراءة فقط
@@ -203,6 +213,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.EQUIPMENT_VIEW,
         Permission.DEVICE_VIEW,
         Permission.IRRIGATION_VIEW,
+        Permission.MASTER_DATA_VIEW,
     },
 }
 
