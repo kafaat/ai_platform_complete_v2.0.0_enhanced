@@ -70,7 +70,8 @@ JWT_EXPIRY_HOURS = 24
 #   • التطوير: إن غاب/ضعف نولّد سرّاً عشوائيّاً لهذه العمليّة فقط — لا يُزوَّر عبر
 #     سرّ منشور، والتوكنات تُمنَح وتُتحقَّق داخل العمليّة نفسها (يكفي للاختبار/dev).
 _IS_PRODUCTION = os.getenv("SAHOOL_ENV", "development").lower() == "production"
-_ENV_SECRET = os.getenv("SAHOOL_JWT_SECRET", "")
+# strip: مسافات/أسطر لاحقة لا تُحوّل سرّاً ضعيفاً/افتراضيّاً إلى «قويّ» (التفاف على الفحص).
+_ENV_SECRET = os.getenv("SAHOOL_JWT_SECRET", "").strip()
 _WEAK_SECRET = (
     not _ENV_SECRET or _ENV_SECRET == "dev-secret-CHANGE-IN-PRODUCTION" or len(_ENV_SECRET) < 32
 )
@@ -502,7 +503,9 @@ def readyz():
 
 @app.post("/api/v1/auth/login", response_model=TokenResponse)
 def login(req: LoginRequest):
-    """تسجيل دخول dev-mode. في الإنتاج: يُرفض — استخدم خدمة auth الحقيقيّة."""
+    """تسجيل دخول dev-mode (بلا كلمة مرور). مُعطَّل افتراضيّاً في كلّ البيئات؛
+    لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير الإنتاج. غير ذلك ⇒ 403.
+    المصادقة الحقيقيّة عبر خدمة sahool-auth (/auth/login بـbcrypt)."""
     # C1 FIX: هذه نقطة تطوير تُصدر JWT بلا كلمة مرور. مُعطَّلة افتراضيّاً (وفي
     # الإنتاج دائماً) — لا تُفعَّل إلّا بإقرار صريح SAHOOL_DEV_AUTH=1 في غير الإنتاج.
     # يمنع تجاوز المصادقة وانهيار عزل المستأجرين لو أصابت الطلبات هذه النقطة.
@@ -578,9 +581,10 @@ def auth_logout(user: UserSchema = Depends(get_current_user)):
 
 @app.post("/api/v1/auth/signup", response_model=TokenResponse)
 def auth_signup(req: LoginRequest):
-    """تسجيل مستخدم جديد (dev-mode — نفس منطق login حتّى ربط DB).
+    """تسجيل مستخدم جديد (dev-mode — نفس منطق login بلا كلمة مرور).
 
-    في الإنتاج: يُرفض — استخدم خدمة auth الحقيقيّة (DB + bcrypt).
+    مُعطَّل افتراضيّاً في كلّ البيئات؛ لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير
+    الإنتاج. غير ذلك ⇒ 403. التسجيل الحقيقيّ عبر خدمة auth (DB + bcrypt).
     """
     # C1 FIX: نفس منطق login بلا كلمة مرور → مُعطَّل افتراضيّاً وفي الإنتاج دائماً.
     if not _DEV_AUTH_ENABLED:
