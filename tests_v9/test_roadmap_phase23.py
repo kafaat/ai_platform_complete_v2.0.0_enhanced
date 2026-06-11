@@ -6244,6 +6244,58 @@ def test_alerting_layer():
     return r
 
 
+def test_deferred_capabilities_gate():
+    """حارس بوّابة القدرات المشروطة: المؤجَّلة خاملة افتراضيّاً، تُفعَّل بشرطها
+    فقط (لا اختراع). فحص سلوكيّ نقيّ + وجود النقطة."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+    import os as _os
+
+    # بيئة الـrunner قد تحمل أسراراً؛ ننظّفها مؤقّتاً لقياس الافتراض الخامل
+    _saved = {
+        k: _os.environ.pop(k, None)
+        for k in (
+            "FCM_SERVER_KEY",
+            "FCM_CREDENTIALS_JSON",
+            "WEATHER_LIVE_ENABLED",
+            "PEST_MODEL_PATH",
+            "YIELD_MODEL_PATH",
+            "ALERT_SLACK_WEBHOOK",
+            "ALERT_SMTP_HOST",
+            "ALERT_TELEGRAM_TOKEN",
+        )
+    }
+    try:
+        from core import capabilities as _cap
+
+        rep = _cap.capabilities_report()
+        if rep["active_count"] == 0 and rep["dormant_count"] >= 4:
+            r.append(("✓", "القدرات: كلّها خاملة افتراضيّاً (لا تشغيل وهميّ)"))
+        else:
+            r.append(("✗", "القدرات: قدرة مُفعَّلة دون شرط (تسرّب/اختراع)"))
+        if all(c["activation_ar"] and c["fallback_ar"] for c in rep["capabilities"]):
+            r.append(("✓", "القدرات: لكلّ قدرة شرط تفعيل + سلوك خامل مُعلَن"))
+        else:
+            r.append(("✗", "القدرات: قدرة بلا تعليمات تفعيل/سلوك خامل"))
+        _os.environ["FCM_SERVER_KEY"] = "test"
+        activated = _cap.fcm_push_active()
+        del _os.environ["FCM_SERVER_KEY"]
+        if activated and not _cap.fcm_push_active():
+            r.append(("✓", "القدرات: الشرط يُفعّل ويُعطّل القدرة فعليّاً"))
+        else:
+            r.append(("✗", "القدرات: الشرط لا يتحكّم بالتفعيل (regression)"))
+    finally:
+        for k, v in _saved.items():
+            if v is not None:
+                _os.environ[k] = v
+    with open(os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8") as _f:
+        if "/api/v1/capabilities" in _f.read():
+            r.append(("✓", "القدرات: نقطة /capabilities تُبلِغ الحالة (شفافيّة)"))
+        else:
+            r.append(("✗", "القدرات: لا نقطة إبلاغ"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -6392,6 +6444,7 @@ def run_all():
         ("documents_layer", test_documents_layer),
         ("cost_analytics_layer", test_cost_analytics_layer),
         ("alerting_layer", test_alerting_layer),
+        ("deferred_capabilities_gate", test_deferred_capabilities_gate),
     ]
     tp = tf = 0
     for name, s in suites:

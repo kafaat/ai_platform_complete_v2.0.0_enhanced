@@ -1,0 +1,88 @@
+# SAHOOL v9 — AlertManager DEPLOYMENT OVERLAY (worked example with REAL receivers)
+#
+# This file is the ACTIVE counterpart to the base no-op `alertmanager.yml`.
+# It is rendered + mounted INSTEAD of the base ONLY when alerting secrets are
+# provisioned (gate: capabilities.alerting_receivers_active() — true when any of
+# ALERT_SLACK_WEBHOOK / ALERT_SMTP_HOST / ALERT_TELEGRAM_TOKEN is set).
+#
+# AlertManager does NOT interpolate environment variables natively, so the
+# operator templates the __PLACEHOLDERS__ below from env at deploy time using
+# monitoring/render-alertmanager.sh, which writes monitoring/alertmanager.rendered.yml.
+#
+# PLACEHOLDERS ONLY — NO REAL SECRETS IN THIS FILE. Every `__NAME__` token is
+# substituted by the render script from the matching env var. Commit this
+# example; never commit the rendered output.
+
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: '__ALERT_SMTP_HOST__'
+  smtp_from: '__ALERT_SMTP_FROM__'
+  smtp_auth_username: '__ALERT_SMTP_USER__'
+  smtp_auth_password: '__ALERT_SMTP_PASS__'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname', 'job', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'slack-default'
+  routes:
+    # critical → fan out to ALL configured channels, fast + frequent resend.
+    - matchers:
+        - severity = "critical"
+      receiver: 'all-channels'
+      group_wait: 10s
+      repeat_interval: 1h
+      continue: false
+    # warning → Slack only (quieter cadence).
+    - matchers:
+        - severity = "warning"
+      receiver: 'slack-default'
+      continue: false
+
+receivers:
+  - name: 'slack-default'
+    slack_configs:
+      - api_url: '__ALERT_SLACK_WEBHOOK__'
+        channel: '#sahool-alerts'
+        send_resolved: true
+        title: '{{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} [{{ .CommonLabels.severity }}] {{ .CommonLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}*{{ .Labels.job }}* — {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          {{ end }}
+
+  - name: 'all-channels'
+    slack_configs:
+      - api_url: '__ALERT_SLACK_WEBHOOK__'
+        channel: '#sahool-alerts'
+        send_resolved: true
+        title: '🔴 [CRITICAL] {{ .CommonLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}*{{ .Labels.job }}* — {{ .Annotations.summary }}
+          {{ .Annotations.description }}
+          {{ end }}
+    email_configs:
+      - to: '__ALERT_SMTP_TO__'
+        send_resolved: true
+        headers:
+          Subject: '[SAHOOL CRITICAL] {{ .CommonLabels.alertname }}'
+    telegram_configs:
+      - bot_token: '__ALERT_TELEGRAM_TOKEN__'
+        chat_id: __ALERT_TELEGRAM_CHAT_ID__
+        api_url: 'https://api.telegram.org'
+        parse_mode: 'HTML'
+        send_resolved: true
+        message: >-
+          {{ range .Alerts }}<b>[CRITICAL] {{ .Labels.alertname }}</b> ({{ .Labels.job }})
+          {{ .Annotations.summary }}
+          {{ end }}
+
+inhibit_rules:
+  # Suppress warning-level alerts when a critical alert for the same job fires.
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['alertname', 'job']

@@ -6,6 +6,14 @@ SAHOOL v9.0 — agents/notification/agent.py (مُصلَح)
   ✅ asyncio.to_thread() كـ fallback لـ smtplib
   ✅ WebSocket manager محسّن مع connection cleanup
   ✅ 8 اشتراكات NATS مع durable names
+
+Condition-gated capabilities:
+  • FCM/APNs push (send_push) is CONDITION-GATED on the `fcm_push` capability
+    (mirrors services/sahool-platform/core/capabilities.py fcm_push_active()):
+    active only when FCM_SERVER_KEY is set to a truthy value in the env (the
+    legacy send path; HTTP v1 / FCM_CREDENTIALS_JSON is not wired for sending yet).
+    Otherwise the push path is a dormant no-op (returns False, never fabricates a
+    send and never crashes the agent).
 """
 
 from __future__ import annotations
@@ -38,6 +46,9 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASS = os.getenv("SMTP_PASSWORD", "")
 TG_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+# FCM: السرّ يُقرأ وقت التشغيل في fcm_push_active()/send_push (لا ثابت استيراد).
+FCM_LEGACY_ENDPOINT = "https://fcm.googleapis.com/fcm/send"
+_fcm_dormant_logged = False
 
 # ── WebSocket manager ─────────────────────────────────────────
 
@@ -141,6 +152,70 @@ async def send_telegram(chat_id: str, text: str) -> bool:
         return False
 
 
+# ── FCM/APNs push (CONDITION-GATED: fcm_push capability) ───────
+def _fcm_truthy(v: str) -> bool:
+    """A non-empty, non-falsey env value counts as set (rejects 0/false/no/off)."""
+    return v.strip().lower() not in ("", "0", "false", "no", "off")
+
+
+def fcm_push_active() -> bool:
+    """Mirrors capabilities.py fcm_push_active(): active ONLY when FCM_SERVER_KEY is
+    set to a truthy value. Read at CALL time (not import) so env changes take effect.
+    FCM_CREDENTIALS_JSON (HTTP v1 / service account) is NOT wired for sending yet, so
+    it alone does NOT activate push — otherwise /capabilities would lie."""
+    return _fcm_truthy(os.getenv("FCM_SERVER_KEY", ""))
+
+
+async def send_push(push_token: str, title: str, body: str) -> bool:
+    """Deliver a real FCM push. Honest + gated.
+
+    • Dormant (FCM_SERVER_KEY unset/falsey): logs once and returns False. No
+      fabrication, no fake send.
+    • FCM_SERVER_KEY set: POSTs to the FCM legacy HTTP API. Returns True ONLY on
+      a real 2xx response from FCM.
+    Never raises — any error is logged and returns False so the agent stays up.
+    """
+    global _fcm_dormant_logged
+    if not fcm_push_active():
+        if not _fcm_dormant_logged:
+            logger.info("FCM dormant: set FCM_SERVER_KEY to activate")
+            _fcm_dormant_logged = True
+        return False
+
+    if not push_token:
+        return False
+
+    # قراءة المفتاح وقت التشغيل (لا ثابت الاستيراد) ليعتمد التفعيل على البيئة فقط.
+    server_key = os.getenv("FCM_SERVER_KEY", "")
+
+    try:
+        import httpx  # lazy import — agent must not hard-depend on it for dormant path
+    except Exception as e:
+        logger.warning(f"FCM: httpx unavailable, push skipped: {e}")
+        return False
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(
+                FCM_LEGACY_ENDPOINT,
+                headers={
+                    "Authorization": f"key={server_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "to": push_token,
+                    "notification": {"title": title, "body": body},
+                },
+            )
+        if 200 <= resp.status_code < 300:
+            return True
+        logger.warning(f"FCM push non-2xx: {resp.status_code} {resp.text[:200]}")
+        return False
+    except Exception as e:
+        logger.warning(f"FCM push failed: {e}")
+        return False
+
+
 # ── DB helpers ────────────────────────────────────────────────
 _pool: asyncpg.Pool | None = None
 
@@ -233,6 +308,10 @@ async def dispatch(data: dict):
         if extra:
             text += "\n" + "\n".join(f"• {k}: {v}" for k, v in extra.items())
         await send_telegram(str(prefs["telegram_chat_id"]), text)
+
+    # Mobile push — condition-gated (fcm_push). No-op while dormant.
+    if prefs.get("push_enabled") and prefs.get("push_token") and fcm_push_active():
+        await send_push(str(prefs["push_token"]), title, message)
 
 
 # ── NATS subscriptions ────────────────────────────────────────
