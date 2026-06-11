@@ -210,3 +210,39 @@ def evaluate_field_alerts(ctx: FieldAlertContext) -> list[GeneratedAlert]:
         if alert is not None:
             out.append(alert)
     return out
+
+
+# ─── تشكيل ملخّص التشغيل الدوريّ لكلّ الحقول (منطق نقيّ — يُختبَر offline) ──
+def field_run_summary(
+    field_id: str,
+    *,
+    created: int = 0,
+    skipped: int = 0,
+    error: str | None = None,
+) -> dict:
+    """يبني سطر ملخّص تقييم تنبيهات حقل واحد ضمن تشغيل «كلّ الحقول».
+
+    منطق نقيّ (لا شبكة/قاعدة) — يُختبَر offline. الحقل المتعثّر يُسجَّل بـerror
+    وقيم created/skipped=0 (تدهور رشيق: لا يُسقط بقيّة الحقول).
+    """
+    row: dict = {"field_id": field_id, "created": int(created), "skipped": int(skipped)}
+    if error is not None:
+        row["error"] = error
+    return row
+
+
+def summarize_run(rows: list[dict]) -> dict:
+    """يُجمّع نتائج تشغيل «كلّ الحقول» في إجماليّات + تفصيل لكلّ حقل.
+
+    منطق نقيّ (يُختبَر offline). يُرجع fields_total/evaluated/failed،
+    created_total، skipped_total، وper_field (الصفوف كما هي).
+    """
+    failed = sum(1 for r in rows if r.get("error"))
+    return {
+        "fields_total": len(rows),
+        "fields_evaluated": len(rows) - failed,
+        "fields_failed": failed,
+        "created_total": sum(int(r.get("created", 0)) for r in rows),
+        "skipped_total": sum(int(r.get("skipped", 0)) for r in rows),
+        "per_field": rows,
+    }

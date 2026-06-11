@@ -778,6 +778,26 @@ export interface AlertEvaluateResult {
 export const evaluateFieldAlerts = (fieldId: string): Promise<AlertEvaluateResult> =>
   kongApi.post<AlertEvaluateResult>(`/api/v1/fields/${fieldId}/alerts/evaluate`).then(r => r.data);
 
+// تشغيل تقييم التنبيهات لكلّ حقول المستأجِر دفعةً واحدة (أتمتة عند الطلب). معزول
+// لكلّ حقل: الحقل المتعثّر يظهر بـerror دون إسقاط البقيّة (تدهور رشيق، لا 500).
+export interface AlertsRunFieldSummary {
+  field_id:  string;
+  created:    number;
+  skipped:    number;
+  error?:     string;
+}
+export interface AlertsRunResult {
+  fields_total:      number;
+  fields_evaluated:  number;
+  fields_failed:     number;
+  created_total:     number;
+  skipped_total:     number;
+  per_field:         AlertsRunFieldSummary[];
+}
+
+export const runAllFieldsAlerts = (): Promise<AlertsRunResult> =>
+  kongApi.post<AlertsRunResult>('/api/v1/automation/alerts/run').then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // NOTIFICATION PREFERENCES — قنوات تسليم التنبيهات لكلّ مستخدم (sahool-platform
 // v9+v38). القنوات (بريد/SMS/Push/واتساب) + عناوينها + أنواع الأحداث المُشترَك بها
