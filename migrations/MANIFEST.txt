@@ -102,3 +102,6 @@ v33_fields_extended.sql
 # v34: تنظيم المزرعة — حقول إضافيّة على farms (دولة/منطقة/منطقة زمنيّة/وحدات/
 # عملة/وصف/نوع نشاط) لشاشة «إنشاء مزرعة» (Sprint 1b). يعدّل farms (v19). idempotent.
 v34_farms_org.sql
+# v35: العمليّات الزراعيّة (activities) لكلّ حقل — بذر/تسميد/ريّ/رشّ/تقليم/حصاد/كشف.
+# يعتمد على fields. self-applied RLS.
+v35_activities.sql

@@ -383,6 +383,46 @@ export const logMaintenance = (
   kongApi.post<MaintenanceRecord>(`/api/v1/equipment/${equipmentId}/maintenance`, payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// FIELD ACTIVITIES — العمليّات الزراعيّة لكلّ حقل (sahool-platform v35).
+// ربط حيّ بلا تلفيق: field:view للقراءة، field:edit للتسجيل. عند الخطأ
+// (503 DB / 404 حقل / 403 RBAC) يُرمى ليعرض الـUI حالة صادقة.
+// ══════════════════════════════════════════════════════════════════
+export type ActivityType =
+  | 'planting' | 'fertilization' | 'irrigation'
+  | 'spraying' | 'pruning' | 'harvest' | 'scouting';
+
+export interface Activity {
+  activity_id:   string;
+  field_id:      string;
+  season_id:     string | null;
+  activity_type: ActivityType | string;
+  title_ar:      string | null;
+  details:       Record<string, unknown>;
+  scheduled_for: string | null;
+  performed_on:  string | null;
+  status:        string; // planned | done | skipped (من الخادم)
+  created_at:    string | null;
+}
+
+export interface ActivityCreateInput {
+  activity_type: ActivityType;
+  title_ar?:     string;
+  details?:      Record<string, unknown>;
+  scheduled_for?: string;
+  performed_on?: string;
+  season_id?:    string;
+}
+
+export const fetchActivities = (fieldId: string): Promise<Activity[]> =>
+  kongApi.get<Activity[]>(`/api/v1/fields/${fieldId}/activities`).then(r => r.data);
+
+export const createActivity = (
+  fieldId: string,
+  payload: ActivityCreateInput,
+): Promise<Activity> =>
+  kongApi.post<Activity>(`/api/v1/fields/${fieldId}/activities`, payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
 // عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.
 // device:view للقراءة، device:manage للتسجيل، observation:record لرفع قياس.

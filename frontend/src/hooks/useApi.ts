@@ -18,6 +18,8 @@ import {
   type InventoryItem, type ExpiringBatch, type NewInventoryItem, type NewInventoryBatch,
   fetchEquipment, createEquipment, fetchMaintenance, logMaintenance,
   type Equipment, type EquipmentCreateInput, type MaintenanceRecord, type MaintenanceCreateInput,
+  fetchActivities, createActivity,
+  type Activity, type ActivityCreateInput,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
@@ -51,6 +53,7 @@ export const QK = {
   fields:           (tid: string)        => ['fields', tid],
   farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
+  activities:       (tid: string, fid: string) => ['activities', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
@@ -343,6 +346,31 @@ export function useCompleteTask() {
   return useMutation({
     mutationFn: ({ taskId, photoUrl }: { taskId: string; photoUrl?: string }) =>
       kongApi.patch(`/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
+  });
+}
+
+// ── Field Activities: العمليّات الزراعيّة لكلّ حقل (sahool-platform v35) ──
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 404 حقل / 403) يُرفض الاستعلام
+// لتعرض الواجهة حالة صادقة (StateViews). مُفعَّل فقط عند وجود fieldId.
+export function useActivities(fieldId?: string): UseQueryResult<Activity[], Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<Activity[], Error>({
+    queryKey: QK.activities(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchActivities(fieldId as string),
+    staleTime:2 * 60_000,
+    enabled:  !!fieldId,
+  });
+}
+
+// تسجيل عمليّة لحقل — يُبطِل كاش عمليّات الحقل للمستأجِر الحاليّ.
+export function useCreateActivity(
+  fieldId: string,
+): UseMutationResult<Activity, Error, ActivityCreateInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<Activity, Error, ActivityCreateInput>({
+    mutationFn: (payload) => createActivity(fieldId, payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.activities(tid, fieldId) }); },
   });
 }
 

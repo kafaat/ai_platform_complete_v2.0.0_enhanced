@@ -1279,6 +1279,153 @@ async def list_seasons(
     return [_row_to_season(r) for r in rows]
 
 
+# ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
+_ACTIVITY_TYPES = {
+    "planting",
+    "fertilization",
+    "irrigation",
+    "spraying",
+    "pruning",
+    "harvest",
+    "scouting",
+}
+
+
+class ActivityCreateRequest(BaseModel):
+    """طلب تسجيل عمليّة زراعيّة لحقل (نوع/عنوان/تفاصيل/تواريخ/موسم اختياريّ)."""
+
+    activity_type: str
+    title_ar: str | None = Field(default=None, max_length=200)
+    details: dict = Field(default_factory=dict)
+    scheduled_for: str | None = None
+    performed_on: str | None = None
+    season_id: str | None = None
+
+
+class ActivitySummary(BaseModel):
+    activity_id: str
+    field_id: str
+    season_id: str | None = None
+    activity_type: str
+    title_ar: str | None = None
+    details: dict
+    scheduled_for: str | None = None
+    performed_on: str | None = None
+    status: str
+    created_at: str | None = None
+
+
+def _row_to_activity(r) -> ActivitySummary:
+    import json as _json
+
+    def _obj(v):
+        if isinstance(v, str):
+            try:
+                return _json.loads(v)
+            except (ValueError, TypeError):
+                return {}
+        return v or {}
+
+    def _d(v):
+        return v.isoformat() if v is not None else None
+
+    return ActivitySummary(
+        activity_id=r["activity_id"],
+        field_id=r["field_id"],
+        season_id=r["season_id"],
+        activity_type=r["activity_type"],
+        title_ar=r["title_ar"],
+        details=_obj(r["details"]),
+        scheduled_for=_d(r["scheduled_for"]),
+        performed_on=_d(r["performed_on"]),
+        status=r["status"],
+        created_at=r["created_at"].isoformat() if r["created_at"] else None,
+    )
+
+
+@app.post(
+    "/api/v1/fields/{field_id}/activities",
+    status_code=201,
+    response_model=ActivitySummary,
+)
+async def create_activity(
+    field_id: str,
+    req: ActivityCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يسجّل عمليّة زراعيّة للحقل — تُخزَّن فعليّاً ضمن سياق المستأجِر (RLS).
+
+    يتحقّق من نوع العمليّة (422)، ويحوّل التواريخ (400)، ويؤكّد أنّ الحقل
+    يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة.
+    """
+    import json as _json
+    import uuid as _uuid
+
+    if req.activity_type not in _ACTIVITY_TYPES:
+        raise HTTPException(status_code=422, detail="نوع عمليّة غير معروف")
+    scheduled = _parse_date(req.scheduled_for, "التاريخ المُجدوَل")
+    performed = _parse_date(req.performed_on, "تاريخ التنفيذ")
+    activity_id = "act_" + _uuid.uuid4().hex[:12]
+    status = "done" if performed else "planned"
+    details_json = _json.dumps(req.details or {})
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            await conn.execute(
+                """INSERT INTO activities
+                    (activity_id, tenant_id, field_id, season_id, activity_type,
+                     title_ar, details, scheduled_for, performed_on, status)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)""",
+                activity_id,
+                str(user.tenant_id),
+                field_id,
+                req.season_id,
+                req.activity_type,
+                req.title_ar,
+                details_json,
+                scheduled,
+                performed,
+                status,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ العمليّة", e) from e
+    return ActivitySummary(
+        activity_id=activity_id,
+        field_id=field_id,
+        season_id=req.season_id,
+        activity_type=req.activity_type,
+        title_ar=req.title_ar,
+        details=req.details or {},
+        scheduled_for=scheduled.isoformat() if scheduled else None,
+        performed_on=performed.isoformat() if performed else None,
+        status=status,
+    )
+
+
+@app.get("/api/v1/fields/{field_id}/activities", response_model=list[ActivitySummary])
+async def list_field_activities(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """عمليّات الحقل (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS). 503 عند تعذّر القاعدة."""
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)  # 404 لو الحقل ليس للمستأجِر
+            rows = await conn.fetch(
+                "SELECT activity_id, field_id, season_id, activity_type, title_ar, "
+                "details, scheduled_for, performed_on, status, created_at "
+                "FROM activities WHERE field_id = $1 ORDER BY created_at DESC",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة العمليّات", e) from e
+    return [_row_to_activity(r) for r in rows]
+
+
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
 class FarmCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
