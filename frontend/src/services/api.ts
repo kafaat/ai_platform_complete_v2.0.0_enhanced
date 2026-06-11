@@ -1026,6 +1026,28 @@ export const fetchFieldDetail = (fieldId: string): Promise<FieldDetail> =>
 export const updateField = (fieldId: string, patch: FieldUpdatePatch): Promise<FieldDetail> =>
   kongApi.patch<FieldDetail>(`/api/v1/fields/${fieldId}`, patch).then(r => r.data);
 
+// ── استيراد حدّ حقل من ملفّ (GeoJSON/KML) أو نقاط GPS (field:create) ──
+// بدل الرسم اليدويّ: نرسل نصّ الملفّ (content) أو نقاط GPS (points) للخادم،
+// الذي يحلّلها إلى GeoJSON Polygon ثمّ يعيد استخدام نفس مسار التحقّق/الحفظ
+// كإنشاء حقل مرسوم. 400 = تحليل تالف، 422 = هندسة غير صالحة (يُعرَضان بصدق).
+export interface FieldImportInput {
+  format:        'geojson' | 'kml' | 'gps';
+  content?:      string;          // نصّ ملفّ GeoJSON/KML
+  points?:       number[][];      // مسار GPS [[lon,lat],...]
+  name:          string;
+  crop?:         string;
+  soil_type?:    string;
+  manager?:      string;
+  field_code?:   string;
+  water_source?: string;
+  country?:      string;
+  region?:       string;
+}
+
+/** يستورد حقلاً من ملفّ/نقاط GPS. يُرجع FieldSummary المُنشأ من ردّ الخادم. */
+export const importField = (payload: FieldImportInput): Promise<unknown> =>
+  kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════

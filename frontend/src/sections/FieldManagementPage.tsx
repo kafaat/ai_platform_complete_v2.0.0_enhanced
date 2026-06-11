@@ -142,6 +142,23 @@ export default function FieldManagementPage() {
     }
   };
 
+  const handleImportField = async (payload: any) => {
+    // استيراد حقيقيّ: POST /api/v1/fields/import يحلّل الملفّ → Polygon ثمّ نفس
+    // مسار التحقّق/الحفظ. الفشل (400 تحليل / 422 هندسة / 503 DB) يُرمى رسالةً
+    // عربيّةً صادقةً فيعرضها النموذج (لا ابتلاع، لا تلفيق).
+    try {
+      const r = await kongApi.post('/api/v1/fields/import', payload);
+      setFields(p => [...p, mapField(r.data as Record<string, unknown>)]);
+      setShowAddField(false);
+      toastStore.add('success', '✅ تم استيراد الحقل', `${payload.name}`);
+    } catch (e: any) {
+      const detail = e?.response?.data?.detail;
+      const msg = (detail && (detail.message_ar || detail)) ||
+        'تعذّر استيراد الحقل — تحقّق من صحّة الملفّ والحدود والصلاحيّة.';
+      throw new Error(typeof msg === 'string' ? msg : 'خطأ غير متوقّع');
+    }
+  };
+
   const handleSaveSeason = async (data: any) => {
     // إنشاء حقيقيّ: POST /api/v1/fields/{id}/seasons (بدل /seasons المُبتلَع).
     // عند الفشل نرمي رسالة عربيّة فيعرضها النموذج (errors.general) ويبقى مفتوحاً.
@@ -384,6 +401,7 @@ export default function FieldManagementPage() {
       {showAddField && (
         <AddFieldWithMap
           onSave={handleSaveField}
+          onImport={handleImportField}
           onCancel={() => setShowAddField(false)}
         />
       )}

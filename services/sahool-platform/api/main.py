@@ -1089,16 +1089,13 @@ class FieldCreateRequest(BaseModel):
     region: str | None = Field(default=None, max_length=80)
 
 
-@app.post("/api/v1/fields", status_code=201, response_model=FieldSummary)
-async def create_field(
-    req: FieldCreateRequest,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
-):
-    """ينشئ حقلاً من مضلّع مرسوم — يُخزَّن فعليّاً في القاعدة (لا تلفيق).
+async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSummary:
+    """مسار التحقّق + الإدراج المشترك للحقل (مرسوم أو مستورَد).
 
     يتحقّق من الهندسة (CRS 4326، تقاطع ذاتي، مساحة معقولة، داخل اليمن) ويحسب
-    المساحة + المركز منها، ثمّ يُدرج ضمن سياق المستأجر (RLS). يردّ الحقل المُنشأ
-    بهندسته كي ترسمه الواجهة فوراً.
+    المساحة + المركز منها، يكشف الدولة/الإقليم آليّاً إن لم يُرسَلا، ثمّ يُدرج
+    ضمن سياق المستأجر (RLS). يردّ الحقل المُنشأ بهندسته. مصدر واحد للحقيقة
+    يُعيد استخدامه create_field و import_field — لا تكرار للتحقّق/الإدراج.
     """
     import json as _json
     import uuid as _uuid
@@ -1177,6 +1174,95 @@ async def create_field(
         lon=lon,
         geometry=req.geometry,
     )
+
+
+@app.post("/api/v1/fields", status_code=201, response_model=FieldSummary)
+async def create_field(
+    req: FieldCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
+):
+    """ينشئ حقلاً من مضلّع مرسوم — يُخزَّن فعليّاً في القاعدة (لا تلفيق).
+
+    يتحقّق من الهندسة ويحسب المساحة + المركز، ثمّ يُدرج ضمن سياق المستأجر (RLS).
+    يردّ الحقل المُنشأ بهندسته كي ترسمه الواجهة فوراً.
+    """
+    return await _persist_field(req, user)
+
+
+class FieldImportRequest(BaseModel):
+    """طلب استيراد حدّ حقل من ملفّ (GeoJSON/KML) أو نقاط GPS بدل الرسم اليدويّ.
+
+    format يحدّد المصدر: 'geojson'/'kml' يستخدمان content (نصّ الملفّ)؛ 'gps'
+    يستخدم points ([[lon,lat],...] مسار المشي). بقيّة الحقول كـFieldCreateRequest
+    (تُمرَّر لنفس مسار الحفظ المشترك).
+    """
+
+    format: Literal["geojson", "kml", "gps"]
+    content: str | None = None
+    points: list[list[float]] | None = None
+    name: str = Field(min_length=1, max_length=100)
+    crop: str | None = None
+    soil_type: str | None = None
+    manager: str | None = Field(default=None, max_length=100)
+    farm_id: str | None = None
+    gov: str | None = None
+    field_code: str | None = Field(default=None, max_length=50)
+    description: str | None = None
+    water_source: str | None = Field(default=None, max_length=20)
+    ownership_type: str | None = Field(default=None, max_length=20)
+    country: str | None = Field(default=None, max_length=60)
+    region: str | None = Field(default=None, max_length=80)
+
+
+@app.post("/api/v1/fields/import", status_code=201, response_model=FieldSummary)
+async def import_field(
+    req: FieldImportRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
+):
+    """يستورد حدّ حقل من GeoJSON/KML/نقاط GPS → GeoJSON Polygon ثمّ يُخزّنه.
+
+    يحلّل المصدر إلى Polygon (geo_import: نقيّ offline) ثمّ يعيد استخدام نفس
+    مسار التحقّق + الإدراج كـcreate_field. خطأ التحليل ⇒ 400 (مدخل تالف)؛ هندسة
+    غير صالحة ⇒ 422 (من المسار المشترك). لا تلفيق — الفشل يُعرَض بصدق.
+    """
+    from api import geo_import
+
+    fmt = req.format
+    try:
+        if fmt == "geojson":
+            if not req.content:
+                raise ValueError("استيراد GeoJSON يتطلّب محتوى الملفّ (content).")
+            geometry = geo_import.parse_geojson(req.content)
+        elif fmt == "kml":
+            if not req.content:
+                raise ValueError("استيراد KML يتطلّب محتوى الملفّ (content).")
+            geometry = geo_import.parse_kml(req.content)
+        else:  # gps
+            if not req.points:
+                raise ValueError("استيراد GPS يتطلّب نقاطاً (points).")
+            geometry = geo_import.points_to_polygon(req.points)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail={"message_ar": f"تعذّر تحليل ملفّ الاستيراد: {e}"},
+        ) from e
+
+    create_req = FieldCreateRequest(
+        name=req.name,
+        crop=req.crop,
+        soil_type=req.soil_type,
+        manager=req.manager,
+        geometry=geometry,
+        farm_id=req.farm_id,
+        gov=req.gov,
+        field_code=req.field_code,
+        description=req.description,
+        water_source=req.water_source,
+        ownership_type=req.ownership_type,
+        country=req.country,
+        region=req.region,
+    )
+    return await _persist_field(create_req, user)
 
 
 def _row_to_field_detail(r) -> FieldDetail:

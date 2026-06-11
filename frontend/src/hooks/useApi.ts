@@ -46,6 +46,8 @@ import {
   // ── تفاصيل الحقل المتقدّمة (v37): قراءة + تحديث جزئيّ (ملء تدريجيّ) ──
   fetchFieldDetail, updateField,
   type FieldDetail, type FieldUpdatePatch,
+  // ── استيراد حدّ حقل من ملفّ/نقاط GPS (بدل الرسم اليدويّ) ──
+  importField, type FieldImportInput,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -403,6 +405,20 @@ export function useUpdateField(
       qc.invalidateQueries({ queryKey: QK.fieldDetail(tid, fieldId) });
       qc.invalidateQueries({ queryKey: QK.fields(tid) });
     },
+  });
+}
+
+/**
+ * استيراد حقل من ملفّ (GeoJSON/KML) أو نقاط GPS (field:create).
+ * عند النجاح يُبطِل قائمة الحقول كي تظهر فوراً. الخطأ (400 تحليل / 422 هندسة /
+ * 503 DB) يُرمى ليعرضه النموذج بصدق — لا ابتلاع.
+ */
+export function useImportField(): UseMutationResult<unknown, Error, FieldImportInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<unknown, Error, FieldImportInput>({
+    mutationFn: (payload) => importField(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.fields(tid) }); },
   });
 }
 

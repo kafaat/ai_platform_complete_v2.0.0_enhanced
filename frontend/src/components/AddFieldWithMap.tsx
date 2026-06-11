@@ -17,9 +17,10 @@ import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import {
   X, Check, Trash2, Loader2,
-  MapPin, Ruler, AlertCircle,
+  MapPin, Ruler, AlertCircle, Upload, FileUp,
 } from 'lucide-react';
 import { kongApi } from '../services/api';
+import type { FieldImportInput } from '../services/api';
 
 interface FieldData {
   name:          string;
@@ -35,8 +36,11 @@ interface FieldData {
 }
 
 interface Props {
-  onSave:   (data: FieldData) => Promise<void>;
-  onCancel: () => void;
+  onSave:    (data: FieldData) => Promise<void>;
+  onCancel:  () => void;
+  // استيراد حدّ حقل من ملفّ (GeoJSON/KML). اختياريّ: إن لم يُمرَّر يبقى تبويب
+  // الاستيراد مخفيّاً ويعمل الرسم اليدويّ كما هو (توافق خلفيّ).
+  onImport?: (payload: FieldImportInput) => Promise<void>;
 }
 
 const CROPS = ['قمح صلب','شعير','ذرة صفراء','طماطم','بطاطس','خضروات','برسيم'];
@@ -100,8 +104,10 @@ function circleToPolygon(center: L.LatLng, radiusM: number, n = 48): L.LatLng[] 
 }
 
 // ── Main component ─────────────────────────────────────────────
-export default function AddFieldWithMap({ onSave, onCancel }: Props) {
+export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
   const fgRef = useRef<L.FeatureGroup>(null);
+  // mode: 'draw' (الرسم اليدويّ — الافتراضيّ) أو 'import' (استيراد ملفّ).
+  const [mode, setMode] = useState<'draw' | 'import'>('draw');
   const [stage, setStage] = useState<'draw' | 'form'>('draw');
   const [latlngs, setLatlngs] = useState<L.LatLng[]>([]);
   const [areaHa, setAreaHa] = useState(0);
@@ -210,6 +216,56 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
     }
   };
 
+  // ── الاستيراد من ملفّ (GeoJSON/KML) ──────────────────────────
+  const [fileName, setFileName]   = useState('');
+  const [fileText, setFileText]   = useState('');     // نصّ الملفّ المقروء
+  const [fileFmt, setFileFmt]     = useState<'geojson' | 'kml' | null>(null);
+
+  const handleFilePicked = (f: File | null) => {
+    setError('');
+    if (!f) { setFileName(''); setFileText(''); setFileFmt(null); return; }
+    const lower = f.name.toLowerCase();
+    const fmt: 'geojson' | 'kml' | null =
+      lower.endsWith('.kml') ? 'kml'
+      : (lower.endsWith('.geojson') || lower.endsWith('.json')) ? 'geojson'
+      : null;
+    if (!fmt) {
+      setError('صيغة غير مدعومة — اختر ملفّ .geojson أو .json أو .kml.');
+      setFileName(''); setFileText(''); setFileFmt(null);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFileName(f.name);
+      setFileText(String(reader.result ?? ''));
+      setFileFmt(fmt);
+    };
+    reader.onerror = () => setError('تعذّرت قراءة الملفّ.');
+    reader.readAsText(f);
+  };
+
+  const handleImport = async () => {
+    if (!onImport) return;
+    if (!name.trim()) { setError('اسم الحقل مطلوب'); return; }
+    if (!mgr.trim())  { setError('اسم المسؤول مطلوب'); return; }
+    if (!fileText || !fileFmt) { setError('اختر ملفّ الحدود أولاً (.geojson/.json/.kml).'); return; }
+    setSaving(true); setError('');
+    try {
+      await onImport({
+        format: fileFmt,
+        content: fileText,
+        name, manager: mgr, crop, soil_type: soil,
+        field_code: fieldCode.trim() || undefined,
+        water_source: waterSource,
+      });
+    } catch (e: any) {
+      // رسالة صادقة من الخادم (400 تحليل / 422 هندسة غير صالحة) لا ابتلاع.
+      setError(e?.message || 'فشل الاستيراد');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background:'rgba(0,0,0,0.7)' }}>
       <div className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl" style={{ background:'#1e293b', border:'1px solid #334155' }}>
@@ -218,29 +274,56 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-emerald-400" />
             <h2 className="font-bold text-slate-100">
-              {stage === 'draw' ? 'ارسم حدود الحقل على الخريطة' : 'بيانات الحقل'}
+              {mode === 'import'
+                ? 'استيراد حدود الحقل من ملفّ'
+                : stage === 'draw' ? 'ارسم حدود الحقل على الخريطة' : 'بيانات الحقل'}
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            {/* Layer toggle */}
-            <button onClick={() => setTileType(t => t === 'street' ? 'satellite' : 'street')}
-              className="px-2 py-1 rounded text-xs border" style={{ borderColor:'#334155', color:'#94a3b8' }}>
-              {tileType === 'satellite' ? '🗺 خريطة' : '🛰 قمر صناعي'}
-            </button>
+            {/* Layer toggle (الرسم فقط) */}
+            {mode === 'draw' && (
+              <button onClick={() => setTileType(t => t === 'street' ? 'satellite' : 'street')}
+                className="px-2 py-1 rounded text-xs border" style={{ borderColor:'#334155', color:'#94a3b8' }}>
+                {tileType === 'satellite' ? '🗺 خريطة' : '🛰 قمر صناعي'}
+              </button>
+            )}
             <button onClick={onCancel} className="p-1 rounded hover:bg-slate-700 text-slate-400">
               <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
+        {/* Tabs: رسم يدويّ / استيراد ملفّ (التبويب يظهر فقط إن وُفّر onImport) */}
+        {onImport && (
+          <div className="flex gap-1 px-5 pt-3" dir="rtl">
+            <button
+              onClick={() => { setMode('draw'); setError(''); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-sm font-semibold"
+              style={mode === 'draw'
+                ? { background:'#0f1117', color:'#34d399', border:'1px solid #334155', borderBottom:'none' }
+                : { color:'#94a3b8' }}>
+              <MapPin className="w-4 h-4" /> رسم على الخريطة
+            </button>
+            <button
+              onClick={() => { setMode('import'); setError(''); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-sm font-semibold"
+              style={mode === 'import'
+                ? { background:'#0f1117', color:'#34d399', border:'1px solid #334155', borderBottom:'none' }
+                : { color:'#94a3b8' }}>
+              <FileUp className="w-4 h-4" /> استيراد ملفّ
+            </button>
+          </div>
+        )}
+
         {/* Instructions */}
-        {stage === 'draw' && (
+        {mode === 'draw' && stage === 'draw' && (
           <div className="px-5 py-2 text-sm" style={{ background:'#172032', color:'#94a3b8' }}>
             💡 <strong className="text-emerald-400">أدوات الرسم</strong> (أعلى يمين الخريطة): مضلّع (انقر الرؤوس ثمّ أغلق) · مستطيل · <strong className="text-emerald-400">دائرة</strong> للريّ المحوريّ.
           </div>
         )}
 
-        {/* Map */}
+        {/* Map (الرسم اليدويّ فقط) */}
+        {mode === 'draw' && (
         <div style={{ height: 380, position:'relative' }}>
           <MapContainer
             center={[15.05, 45.55]}
@@ -289,8 +372,10 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
             </div>
           )}
         </div>
+        )}
 
-        {/* Bottom panel */}
+        {/* Bottom panel (الرسم اليدويّ) */}
+        {mode === 'draw' && (
         <div className="px-5 py-4" dir="rtl">
           {stage === 'draw' ? (
             <div className="flex items-center justify-between">
@@ -393,6 +478,104 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
             </div>
           )}
         </div>
+        )}
+
+        {/* لوحة الاستيراد من ملفّ (GeoJSON/KML) */}
+        {mode === 'import' && (
+          <div className="px-5 py-4 space-y-4" dir="rtl">
+            <p className="text-sm text-slate-400">
+              استورد حدود الحقل من ملفّ <strong className="text-emerald-400">GeoJSON</strong> أو
+              {' '}<strong className="text-emerald-400">KML</strong> (مُصدَّر من Google Earth / QGIS / جهاز GPS)
+              بدل رسمها يدويّاً. تُتحقَّق الحدود على الخادم وتُحسَب المساحة تلقائيّاً.
+            </p>
+
+            {/* File input */}
+            <label
+              className="flex flex-col items-center justify-center gap-2 px-4 py-6 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
+              style={{ borderColor: fileName ? '#16a34a66' : '#334155', background:'#0f1117' }}>
+              <Upload className="w-6 h-6 text-emerald-400" />
+              <span className="text-sm text-slate-300">
+                {fileName ? <>الملفّ: <strong className="text-emerald-300">{fileName}</strong></> : 'اختر ملفّ .geojson / .json / .kml'}
+              </span>
+              <input
+                type="file"
+                accept=".geojson,.json,.kml,application/geo+json,application/vnd.google-earth.kml+xml"
+                className="hidden"
+                onChange={e => handleFilePicked(e.target.files?.[0] ?? null)}
+              />
+            </label>
+
+            {/* نموذج البيانات (اسم/مسؤول/محصول/تربة/كود/ماء) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">اسم الحقل *</label>
+                <input value={name} onChange={e => setName(e.target.value)}
+                  placeholder="مثال: حقل وادي سبأ"
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">المسؤول *</label>
+                <input value={mgr} onChange={e => setMgr(e.target.value)}
+                  placeholder="اسم المسؤول"
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">المحصول</label>
+                <select value={crop} onChange={e => setCrop(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                  {CROPS.map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">نوع التربة</label>
+                <select value={soil} onChange={e => setSoil(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                  {SOIL_TYPES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">كود الحقل</label>
+                <input value={fieldCode} onChange={e => setFieldCode(e.target.value)}
+                  placeholder="مثال: F-01"
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">مصدر الماء</label>
+                <select value={waterSource} onChange={e => setWaterSource(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                  {WATER_SOURCES.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                style={{ background:'#1a000022', border:'1px solid #dc262633', color:'#f87171' }}>
+                <AlertCircle className="w-4 h-4" /> {error}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-2 justify-end">
+              <button onClick={onCancel}
+                className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 border"
+                style={{ borderColor:'#334155' }}>
+                إلغاء
+              </button>
+              <button onClick={handleImport} disabled={saving || !fileText}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                style={{ background: (saving || !fileText) ? '#15803d' : '#16a34a' }}>
+                {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الاستيراد...</> : <><Check className="w-4 h-4" /> استيراد الحقل</>}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
