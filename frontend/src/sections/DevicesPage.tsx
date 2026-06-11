@@ -10,7 +10,7 @@ import {
   Cpu, Wifi, WifiOff, Plus, RefreshCw, Loader2, Activity,
   Droplets, CloudSun, Gauge, Camera, ToggleRight, HardDrive,
 } from 'lucide-react';
-import { useDevices, useDeviceTelemetry, useRegisterDevice } from '../hooks/useApi';
+import { useDevices, useDeviceTelemetry, useRegisterDevice, useFieldSoilMoisture } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { toastStore } from '../services/websocket';
@@ -71,6 +71,46 @@ function HealthDot({ online }: { online: boolean }) {
           : <span className="inline-flex items-center gap-1"><WifiOff className="w-3 h-3" /> غير متصل</span>}
       </span>
     </span>
+  );
+}
+
+// ── بطاقة رطوبة التربة للحقل (أحدث قراءة حيّة من أجهزة الحقل) ──────────
+// تستهلك /api/v1/fields/{id}/soil-moisture — القراءة هي ما يُغذّي محرّك التنبيهات
+// وتوصية الريّ فعليّاً (لا تلفيق: reading=null ⇒ حالة صادقة «لا قراءة بعد»).
+function FieldSoilMoistureCard({ fieldId }: { fieldId: string }) {
+  const { data, isLoading, isError } = useFieldSoilMoisture(fieldId);
+
+  const wrap = (body: React.ReactNode) => (
+    <div className="rounded-lg p-3 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <Droplets className="w-3.5 h-3.5 text-sky-400" />
+        <span className="text-[11px] text-slate-400">رطوبة تربة الحقل (تُغذّي التنبيهات والريّ)</span>
+        <span className="text-[10px] text-slate-600 mr-auto">{fieldId}</span>
+      </div>
+      {body}
+    </div>
+  );
+
+  if (isLoading) {
+    return wrap(<span className="text-xs text-slate-500">جارٍ التحميل…</span>);
+  }
+  if (isError) {
+    return wrap(<span className="text-xs text-amber-500">تعذّر جلب رطوبة التربة.</span>);
+  }
+  const reading = data?.reading ?? null;
+  if (!reading) {
+    return wrap(
+      <span className="text-xs text-slate-500">لا قراءة رطوبة تربة بعد لهذا الحقل.</span>,
+    );
+  }
+  return wrap(
+    <div className="flex items-baseline gap-2">
+      <span className="text-2xl font-bold text-sky-400">
+        {reading.soil_moisture_pct.toFixed(0)}
+        <span className="text-sm font-normal text-slate-500"> {reading.unit ?? '٪'}</span>
+      </span>
+      <span className="text-[11px] text-slate-500 mr-auto">آخر قراءة: {fmtTime(reading.recorded_at)}</span>
+    </div>,
   );
 }
 
@@ -337,6 +377,11 @@ export default function DevicesPage() {
                     {selected.firmware_version ? `إصدار ${selected.firmware_version}` : ''}
                   </span>
                 </div>
+                {selected.field_id && (
+                  <div className="mb-3">
+                    <FieldSoilMoistureCard fieldId={selected.field_id} />
+                  </div>
+                )}
                 <DeviceTelemetry device={selected} />
               </div>
             )}
