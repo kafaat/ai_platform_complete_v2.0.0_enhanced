@@ -1373,7 +1373,9 @@ def _parse_time(value: str):
     try:
         return _time.fromisoformat(value.strip())
     except (ValueError, TypeError, AttributeError):
-        raise HTTPException(status_code=400, detail="start_time غير صالح — استخدم HH:MM") from None
+        raise HTTPException(
+            status_code=400, detail="start_time غير صالح — استخدم HH:MM أو HH:MM:SS"
+        ) from None
 
 
 @app.post("/api/v1/irrigation/valves", status_code=201)
@@ -1502,7 +1504,7 @@ async def list_schedules(
             "name": r["name"],
             "start_time": r["start_time"].isoformat() if r["start_time"] else None,
             "duration_min": r["duration_min"],
-            "days_of_week": list(r["days_of_week"]) if r["days_of_week"] else None,
+            "days_of_week": (list(r["days_of_week"]) if r["days_of_week"] is not None else None),
             "water_target_mm": (
                 float(r["water_target_mm"]) if r["water_target_mm"] is not None else None
             ),

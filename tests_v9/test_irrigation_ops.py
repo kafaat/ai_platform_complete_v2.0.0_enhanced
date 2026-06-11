@@ -73,12 +73,13 @@ def test_manage_denied_view_allowed(app_mod):
         headers={"Authorization": f"Bearer {_raw_token(m, 'worker', tenant)}"},
     )
     assert r.status_code == 403, r.text
-    # worker يملك irrigation:view ⇒ قائمة الصمامات ليست 403
+    # worker يملك irrigation:view ⇒ يتجاوز التبويب. في بيئة بلا قاعدة يصل 503
+    # (get_pool)، ومعها 200 — نستبعد 403 (حجب) و500 (عطل) صراحةً (ملاحظة المراجعة).
     r = client.get(
         "/api/v1/irrigation/valves",
         headers={"Authorization": f"Bearer {_raw_token(m, 'worker', tenant)}"},
     )
-    assert r.status_code != 403, r.text
+    assert r.status_code in (200, 503), r.text
 
 
 @pytest.mark.integration
