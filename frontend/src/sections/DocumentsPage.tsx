@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useDocuments, useCreateDocument } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
-import { canMutate } from '../lib/permissions';
+import { canManage } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import type { DocumentCategory, DocumentCreateInput } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -182,7 +182,8 @@ function RegisterForm({ onClose }: { onClose: () => void }) {
 
 export default function DocumentsPage() {
   const { user } = useAuthStore();
-  const mutateAllowed = canMutate(user?.role);
+  // إدارة فقط (owner/manager): تسجيل الوثائق إجراء إداريّ لا يظهر لغير الإدارة.
+  const mutateAllowed = canManage(user?.role);
 
   const [category, setCategory] = useState<DocumentCategory | 'all'>('all');
   const [showForm, setShowForm] = useState(false);

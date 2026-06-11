@@ -35,12 +35,22 @@ const WORKER_PAGES: PageId[] = [
   'inventory', 'equipment', 'devices', 'irrigation-ops',
 ];
 
+// صفحات إداريّة (owner/manager فقط): البيانات المرجعيّة + الوثائق.
+// لا تظهر لـagronomist/viewer حتى لو كان الخادم سيردّ 403 — منعٌ من المصدر في الواجهة.
+const MANAGEMENT_ONLY_PAGES: PageId[] = ['master-data', 'documents'];
+
+// كلّ ما عدا الصفحات الإداريّة (لـagronomist والمُشاهِد). يحافظ على وصولهما الكامل
+// للصفحات التشغيليّة/التحليليّة، مع استبعاد الإداريّة فقط.
+const NON_MANAGEMENT_PAGES: PageId[] = ALL_PAGES.filter(
+  (p) => !MANAGEMENT_ONLY_PAGES.includes(p),
+);
+
 const ROLE_PAGES: Record<Role, PageId[]> = {
   owner: ALL_PAGES,
   manager: ALL_PAGES,
-  agronomist: ALL_PAGES,
+  agronomist: NON_MANAGEMENT_PAGES, // وصول كامل عدا الصفحات الإداريّة
   worker: WORKER_PAGES,
-  viewer: ALL_PAGES, // يرى كلّ شيء لكن قراءةً فقط (انظر canMutate)
+  viewer: NON_MANAGEMENT_PAGES, // يرى كلّ شيء (عدا الإداريّة) قراءةً فقط (انظر canMutate)
 };
 
 /** هل يحقّ للدور فتح هذه الصفحة؟ */

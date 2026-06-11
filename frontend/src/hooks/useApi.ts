@@ -53,7 +53,7 @@ export const QK = {
   equipment:        (tid: string)        => ['equipment', tid],
   maintenance:      (tid: string, eid: string) => ['equipment', tid, 'maintenance', eid],
   devices:          (tid: string)        => ['devices', tid],
-  deviceTelemetry:  (id: string, n: number) => ['devices', 'telemetry', id, n],
+  deviceTelemetry:  (tid: string, id: string, n: number) => ['devices', 'telemetry', tid, id, n],
   valves:           (tid: string)        => ['irrigation', 'valves', tid],
   schedules:        (tid: string, fid?: string) => ['irrigation', 'schedules', tid, fid ?? 'all'],
   masterData:       (tid: string, cat: string) => ['master-data', tid, cat],
@@ -521,8 +521,9 @@ export function useDevices(): UseQueryResult<Device[]> {
 }
 
 export function useDeviceTelemetry(deviceId: string, limit = 20): UseQueryResult<TelemetryPoint[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useQuery<TelemetryPoint[]>({
-    queryKey: QK.deviceTelemetry(deviceId, limit),
+    queryKey: QK.deviceTelemetry(tid, deviceId, limit),
     queryFn:  () => getDeviceTelemetry(deviceId, limit),
     staleTime:60_000,
     enabled:  !!deviceId,
@@ -545,9 +546,11 @@ export function useRecordTelemetry(
   deviceId: string,
 ): UseMutationResult<TelemetryPoint, Error, TelemetryRecordInput> {
   const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<TelemetryPoint, Error, TelemetryRecordInput>({
+    // مفتاح جزئيّ مفهرَس بالمستأجِر ⇒ يُبطِل كل القياسات (مهما كان الحدّ) لهذا الجهاز.
     mutationFn: (payload) => recordTelemetry(deviceId, payload),
-    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['devices', 'telemetry', deviceId] }); },
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['devices', 'telemetry', tid, deviceId] }); },
   });
 }
 

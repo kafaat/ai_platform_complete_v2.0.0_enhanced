@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { Database, Plus, Loader2 } from 'lucide-react';
 import { useMasterData, useCreateMasterData } from '../hooks/useApi';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
-import { canMutate } from '../lib/permissions';
+import { canManage } from '../lib/permissions';
 import { useAuthStore } from '../hooks/useAuth';
 import type { MasterDataCategory } from '../services/api';
 
@@ -192,7 +192,8 @@ function EntriesTable({ category }: { category: MasterDataCategory }) {
 
 export function MasterDataPage() {
   const role = useAuthStore((s) => s.user?.role);
-  const mutable = canMutate(role);
+  // إدارة فقط (owner/manager): البيانات المرجعيّة كتالوج إداريّ، لا يُحرّره غير الإدارة.
+  const mutable = canManage(role);
   const [category, setCategory] = useState<MasterDataCategory>('crop');
 
   return (
