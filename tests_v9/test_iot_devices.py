@@ -107,3 +107,29 @@ def test_view_and_telemetry_pass_rbac(app_mod):
         headers={"Authorization": f"Bearer {_raw_token(m, 'viewer', tenant)}"},
     )
     assert r.status_code == 403, r.text
+
+
+@pytest.mark.integration
+def test_bad_recorded_at_returns_400(app_mod):
+    """recorded_at غير صالح يُرفَض بـ400 (تحقّق API قبل القاعدة)، وصيغة Z تُقبَل."""
+    from fastapi.testclient import TestClient
+
+    m = app_mod
+    tenant = str(uuid.uuid4())
+    client = TestClient(m.app)
+    hdr = {"Authorization": f"Bearer {_raw_token(m, 'worker', tenant)}"}
+    # تاريخ غير صالح ⇒ 400 (لا 500)
+    r = client.post(
+        "/api/v1/devices/dev_x/telemetry",
+        json={"sensor_type": "soil_moisture", "value": 20, "recorded_at": "not-a-time"},
+        headers=hdr,
+    )
+    assert r.status_code == 400, r.text
+    assert "recorded_at" in r.text
+    # صيغة Zulu صحيحة ⇒ ليست 400 (تتجاوز التحقّق؛ تصل 404/503 لغياب الجهاز/القاعدة)
+    r = client.post(
+        "/api/v1/devices/dev_x/telemetry",
+        json={"sensor_type": "soil_moisture", "value": 20, "recorded_at": "2026-06-11T08:00:00Z"},
+        headers=hdr,
+    )
+    assert r.status_code != 400, r.text

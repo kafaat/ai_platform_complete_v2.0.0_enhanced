@@ -1283,12 +1283,17 @@ async def ingest_telemetry(
     صلاحية observation:record (العامل يدفع قراءات الميدان)."""
     recorded = None
     if req.recorded_at:
+        # ندعم لاحقة "Z" (Zulu/UTC) الشائعة، ونطبّع الـnaive إلى UTC قبل
+        # إدخاله في عمود TIMESTAMPTZ (لئلّا يُرفَض مدخل صحيح أو يُخزَّن توقيت ملتبس).
+        raw = req.recorded_at.strip().replace("Z", "+00:00").replace("z", "+00:00")
         try:
-            recorded = datetime.fromisoformat(req.recorded_at.strip())
-        except (ValueError, TypeError, AttributeError):
+            recorded = datetime.fromisoformat(raw)
+        except (ValueError, TypeError):
             raise HTTPException(
-                status_code=400, detail="recorded_at غير صالح — استخدم ISO datetime"
+                status_code=400, detail="recorded_at غير صالح — استخدم ISO 8601"
             ) from None
+        if recorded.tzinfo is None:
+            recorded = recorded.replace(tzinfo=UTC)
     async with tenant_connection(user) as conn:
         exists = await conn.fetchval("SELECT 1 FROM iot_devices WHERE device_id = $1", device_id)
         if not exists:

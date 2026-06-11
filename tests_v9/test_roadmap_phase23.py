@@ -5964,7 +5964,9 @@ def test_iot_device_layer():
     else:
         r.append(("✗", f"IoT: ترحيل {mig} مفقود/غير مُدرَج"))
 
-    sql = _read("migrations/v24_iot_devices.sql")
+    # قراءة الملفّ مشروطة بوجوده (وإلّا FileNotFoundError يُسقط الحارس بدل ✗)
+    mig_path = os.path.join(base, "migrations", mig)
+    sql = _read("migrations/v24_iot_devices.sql") if os.path.exists(mig_path) else ""
     if "iot_devices" in sql and "device_telemetry" in sql and "last_seen_at" in sql:
         r.append(("✓", "IoT: جدولا السجلّ والقراءات + حقل الصحّة (last_seen_at)"))
     else:
