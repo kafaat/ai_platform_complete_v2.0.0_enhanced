@@ -28,6 +28,8 @@ import {
   type FieldRecommendationsResult,
   fetchAlerts, createAlert, acknowledgeAlert, evaluateFieldAlerts,
   type AlertRecord, type AlertCreateInput, type AlertListFilters, type AlertEvaluateResult,
+  fetchNotificationPreferences, updateNotificationPreferences,
+  type NotificationPreferences,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
@@ -46,6 +48,8 @@ import {
   // ── تفاصيل الحقل المتقدّمة (v37): قراءة + تحديث جزئيّ (ملء تدريجيّ) ──
   fetchFieldDetail, updateField,
   type FieldDetail, type FieldUpdatePatch,
+  // ── استيراد حدّ حقل من ملفّ/نقاط GPS (بدل الرسم اليدويّ) ──
+  importField, type FieldImportInput,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -70,6 +74,7 @@ export const QK = {
   diseaseRisk:      (tid: string, fid: string) => ['weather-advice', 'disease', tid, fid],
   fieldRecs:        (tid: string, fid: string) => ['field-recommendations', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
+  notifPrefs:       (tid: string)        => ['notifications', 'preferences', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
@@ -406,6 +411,20 @@ export function useUpdateField(
   });
 }
 
+/**
+ * استيراد حقل من ملفّ (GeoJSON/KML) أو نقاط GPS (field:create).
+ * عند النجاح يُبطِل قائمة الحقول كي تظهر فوراً. الخطأ (400 تحليل / 422 هندسة /
+ * 503 DB) يُرمى ليعرضه النموذج بصدق — لا ابتلاع.
+ */
+export function useImportField(): UseMutationResult<unknown, Error, FieldImportInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<unknown, Error, FieldImportInput>({
+    mutationFn: (payload) => importField(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.fields(tid) }); },
+  });
+}
+
 // ── Farms: المزارع (حيّة، tenant-scoped + RBAC farm:view/create) ──
 // تُستخدم لبوّابة التأهيل: مستخدم جديد بلا مزرعة يُجبَر على إنشاء واحدة قبل اللوحة.
 // لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض الاستعلام.
@@ -559,6 +578,33 @@ export function useEvaluateAlerts(): UseMutationResult<AlertEvaluateResult, Erro
   return useMutation<AlertEvaluateResult, Error, string>({
     mutationFn: (fieldId) => evaluateFieldAlerts(fieldId),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
+  });
+}
+
+// ── Notification Preferences: قنوات تسليم التنبيهات لكلّ مستخدم (v9+v38) ──
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC) يُرفض الاستعلام
+// لتعرض الواجهة حالة صادقة. الخادم يُرجع تفضيلات افتراضيّة (كلّ القنوات مُعطَّلة)
+// لا 404 إن لم يُحفَظ شيء بعد — فالنموذج يبدأ فارغاً صادقاً.
+export function useNotificationPreferences(): UseQueryResult<NotificationPreferences, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<NotificationPreferences, Error>({
+    queryKey: QK.notifPrefs(tid),
+    queryFn:  () => fetchNotificationPreferences(),
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// حفظ تفضيلات الإشعار (UPSERT على الخادم) — يُبطِل كاش التفضيلات للمستأجِر الحاليّ.
+// 503 DB / 403 RBAC / 422 (نوع حدث/خطورة غير معروفة) يُرفع ليعرض النموذج خطأً صادقاً.
+export function useUpdateNotificationPreferences(): UseMutationResult<
+  NotificationPreferences, Error, NotificationPreferences
+> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<NotificationPreferences, Error, NotificationPreferences>({
+    mutationFn: (payload) => updateNotificationPreferences(payload),
+    onSuccess:  (data) => { qc.setQueryData(QK.notifPrefs(tid), data); },
   });
 }
 

@@ -77,15 +77,28 @@ async function tryReal<T>(fn: () => Promise<T>, fallback: () => T): Promise<T> {
 // AUTH
 // ══════════════════════════════════════════════════════════════════
 // عقد auth-service: /auth/login و/auth/register يتوقّعان `email` (لا username).
-export interface LoginPayload { email: string; password: string; }
+export interface LoginPayload { email: string; password: string; mfa_code?: string; }
 export interface AuthResponse { access_token: string; refresh_token: string; tenant_id?: string; role?: string; user: { username: string; role: string; tenant_id?: string; email?: string; full_name?: string } }
 
 export const login = (payload: LoginPayload): Promise<AuthResponse> =>
   // أمان (P0-2): المصادقة لا تسقط على fallback وهمي. الفشل يظهر بوضوح
   // بدل منح admin زائف. وضع التجريب فقط عبر MOCK_MODE الصريح، وبدور farmer.
+  // mfa_code يُرسَل فقط إن وُجد (الخادم يتطلّبه للحسابات المُفعّل لها MFA).
   MOCK_MODE
     ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh', user:{ username:payload.email, email:payload.email, role:'farmer' } } as AuthResponse)
-    : authApi.post<AuthResponse>('/auth/login', payload).then(r => r.data);
+    : authApi.post<AuthResponse>('/auth/login', {
+        email: payload.email,
+        password: payload.password,
+        ...(payload.mfa_code ? { mfa_code: payload.mfa_code } : {}),
+      }).then(r => r.data);
+
+/** يفحص ما إذا كان خطأ تسجيل الدخول يعني "MFA مطلوب" (الخادم يردّ 401 مع
+ *  الرأس X-MFA-Required: true حين تصحّ كلمة المرور لكن يلزم رمز TOTP). */
+export function isMfaRequiredError(e: any): boolean {
+  const status = e?.response?.status;
+  const header = e?.response?.headers?.['x-mfa-required'];
+  return status === 401 && (header === 'true' || header === true);
+}
 
 // يستخرج رسالة خطأ مقروءة من ردّ FastAPI (detail قد يكون نصّاً أو مصفوفة كائنات).
 export function apiErrorMessage(e: any, fallback: string): string {
@@ -121,6 +134,59 @@ export const register = (payload: RegisterPayload): Promise<AuthResponse> =>
 
 export const logout = () =>
   tryReal(() => authApi.post('/auth/logout').then(r => r.data), () => ({ status:'ok' }));
+
+// ── Password Reset & MFA & Change-Password ─────────────────────────
+// ربط حيّ مع auth-service (لا fallback وهميّ — مسارات أمان حسّاسة). الأشكال
+// تطابق services/auth/main.py تماماً. أخطاء FastAPI تُقرأ عبر apiErrorMessage.
+
+/** طلب إعادة تعيين كلمة المرور بالبريد. الخادم يردّ دائماً برسالة موحّدة
+ *  (منع تعداد البريد) — حتى لو لم يكن مسجّلاً. */
+export const requestPasswordReset = (email: string): Promise<{ message: string }> =>
+  authApi.post<{ message: string }>('/auth/password-reset/request', { email }).then(r => r.data);
+
+/** تأكيد إعادة التعيين برمز من البريد + كلمة مرور جديدة. 400 لرمز غير صالح/منتهٍ. */
+export const confirmPasswordReset = (
+  token: string,
+  newPassword: string,
+): Promise<{ message: string }> =>
+  authApi
+    .post<{ message: string }>('/auth/password-reset/confirm', { token, new_password: newPassword })
+    .then(r => r.data);
+
+export interface MfaSetupResponse {
+  secret: string;            // سرّ base32 — يُعرَض مرّة واحدة فقط
+  provisioning_uri: string;  // otpauth://… (لتطبيق المصادقة / QR)
+  message: string;
+}
+
+/** يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri. لا يُفعّل بعد —
+ *  التفعيل يتطلّب تأكيد أوّل رمز عبر mfaActivate. (يتطلّب توكناً صالحاً) */
+export const mfaSetup = (): Promise<MfaSetupResponse> =>
+  authApi.post<MfaSetupResponse>('/auth/mfa/setup').then(r => r.data);
+
+/** يفعّل MFA بعد تأكيد أوّل رمز صحيح من تطبيق المصادقة. */
+export const mfaActivate = (code: string): Promise<{ message: string; mfa_enabled: boolean }> =>
+  authApi
+    .post<{ message: string; mfa_enabled: boolean }>('/auth/mfa/activate', { code })
+    .then(r => r.data);
+
+/** يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله توكن مسروق بلا الجهاز). */
+export const mfaDisable = (code: string): Promise<{ message: string; mfa_enabled: boolean }> =>
+  authApi
+    .post<{ message: string; mfa_enabled: boolean }>('/auth/mfa/disable', { code })
+    .then(r => r.data);
+
+/** تغيير كلمة المرور لمستخدم مُصادَق (يتطلّب الحاليّة + الجديدة). */
+export const changePassword = (
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ message: string }> =>
+  authApi
+    .post<{ message: string }>('/auth/change-password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    })
+    .then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
 // SAHOOL-PLATFORM (core) — وحدات قرار حيّة عبر البوابة الموحّدة (kong)
@@ -616,6 +682,39 @@ export const evaluateFieldAlerts = (fieldId: string): Promise<AlertEvaluateResul
   kongApi.post<AlertEvaluateResult>(`/api/v1/fields/${fieldId}/alerts/evaluate`).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// NOTIFICATION PREFERENCES — قنوات تسليم التنبيهات لكلّ مستخدم (sahool-platform
+// v9+v38). القنوات (بريد/SMS/Push/واتساب) + عناوينها + أنواع الأحداث المُشترَك بها
+// + أرضيّة خطورة دنيا. ربط حيّ بلا تلفيق: عند الخطأ (503 DB / 403 RBAC) يُرمى
+// لتعرض الواجهة حالة صادقة. field:view للقراءة، field:edit للحفظ (UPSERT).
+// ══════════════════════════════════════════════════════════════════
+export type NotifEventType =
+  | 'satellite' | 'weather_alert' | 'pest_alert' | 'irrigation_rec'
+  | 'fertilizer_rec' | 'low_stock' | 'task_assigned' | 'economic_analysis'
+  | 'low_moisture' | 'heavy_rain' | 'disease_risk' | 'heat_stress'
+  | 'frost_risk' | 'other';
+
+export interface NotificationPreferences {
+  email_enabled:    boolean;
+  email_address:    string | null;
+  sms_enabled:      boolean;
+  sms_number:       string | null;
+  push_enabled:     boolean;
+  push_token:       string | null;
+  whatsapp_enabled: boolean;
+  whatsapp_number:  string | null;
+  event_types:      string[];
+  min_severity:     AlertSeverity | null;
+}
+
+export const fetchNotificationPreferences = (): Promise<NotificationPreferences> =>
+  kongApi.get<NotificationPreferences>('/api/v1/notifications/preferences').then(r => r.data);
+
+export const updateNotificationPreferences = (
+  payload: NotificationPreferences,
+): Promise<NotificationPreferences> =>
+  kongApi.put<NotificationPreferences>('/api/v1/notifications/preferences', payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
 // عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.
 // device:view للقراءة، device:manage للتسجيل، observation:record لرفع قياس.
@@ -1025,6 +1124,28 @@ export const fetchFieldDetail = (fieldId: string): Promise<FieldDetail> =>
 /** تحديث جزئيّ لتفاصيل حقل (field:edit). تُرسَل الحقول المُعدَّلة فقط. */
 export const updateField = (fieldId: string, patch: FieldUpdatePatch): Promise<FieldDetail> =>
   kongApi.patch<FieldDetail>(`/api/v1/fields/${fieldId}`, patch).then(r => r.data);
+
+// ── استيراد حدّ حقل من ملفّ (GeoJSON/KML) أو نقاط GPS (field:create) ──
+// بدل الرسم اليدويّ: نرسل نصّ الملفّ (content) أو نقاط GPS (points) للخادم،
+// الذي يحلّلها إلى GeoJSON Polygon ثمّ يعيد استخدام نفس مسار التحقّق/الحفظ
+// كإنشاء حقل مرسوم. 400 = تحليل تالف، 422 = هندسة غير صالحة (يُعرَضان بصدق).
+export interface FieldImportInput {
+  format:        'geojson' | 'kml' | 'gps';
+  content?:      string;          // نصّ ملفّ GeoJSON/KML
+  points?:       number[][];      // مسار GPS [[lon,lat],...]
+  name:          string;
+  crop?:         string;
+  soil_type?:    string;
+  manager?:      string;
+  field_code?:   string;
+  water_source?: string;
+  country?:      string;
+  region?:       string;
+}
+
+/** يستورد حقلاً من ملفّ/نقاط GPS. يُرجع FieldSummary المُنشأ من ردّ الخادم. */
+export const importField = (payload: FieldImportInput): Promise<unknown> =>
+  kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
