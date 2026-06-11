@@ -9,7 +9,7 @@
 CREATE TABLE IF NOT EXISTS seasons (
     season_id          VARCHAR(50)  PRIMARY KEY,
     tenant_id          UUID         NOT NULL,
-    field_id           VARCHAR(50)  REFERENCES fields(field_id) ON DELETE CASCADE,
+    field_id           VARCHAR(50)  NOT NULL REFERENCES fields(field_id) ON DELETE CASCADE,
     crops              JSONB        NOT NULL DEFAULT '[]'::jsonb,  -- محاصيل الموسم (تناوب)
     cultivar           VARCHAR(100),                              -- الصنف / variety
     irrigation_type    VARCHAR(20),                               -- drip/pivot/flood/sprinkler/rainfed/subsurface
