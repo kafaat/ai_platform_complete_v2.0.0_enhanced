@@ -382,6 +382,13 @@ class FieldSummary(BaseModel):
     health_summary_ar: str  # "صحّي" / "يحتاج ريّ" / "إجهاد ملحي"
     soil_type: str | None = None  # نوع التربة (يُمرَّر للواجهة بدل ضياعه)
     manager: str | None = None  # المسؤول عن الحقل
+    # حقول مُثراة (v33): كود الحقل + مصدر الماء + الملكيّة + الكشف الآلي للموقع.
+    field_code: str | None = None  # كود الحقل (مرجع المزارع)
+    description: str | None = None  # وصف حرّ
+    water_source: str | None = None  # well/canal/river/rainfed/tank/mixed
+    ownership_type: str | None = None  # نوع الملكيّة
+    country: str | None = None  # الدولة (مكتشفة آليّاً من المركز)
+    region: str | None = None  # الإقليم/المحافظة (مكتشفة آليّاً من المركز)
     # حقول الخريطة (اختياريّة، توافق خلفيّ): مركز الحقل وهندسته لرسم المضلّع.
     lat: float | None = None
     lon: float | None = None
@@ -862,9 +869,47 @@ def _centroid_from_bbox(bbox: dict | None) -> tuple[float | None, float | None]:
     return lat, lon
 
 
+def _reverse_geocode(lat: float | None, lon: float | None) -> tuple[str | None, str | None]:
+    """يكشف آليّاً الدولة + الإقليم (المحافظة) من مركز الحقل — دالّة نقيّة offline.
+
+    الدولة = "اليمن" إن وقعت النقطة داخل YEMEN_BBOX (geospatial_integrity)، وإلّا
+    "غير محدّد". الإقليم = المحافظة اليمنيّة عبر geo_zone_locator (صناديق إحداثيّة
+    + الأصغر/الأدقّ عند التداخل). تُعاد (country, region)؛ region قد يكون None خارج
+    اليمن أو خارج المحافظات المعرّفة. لا I/O — قابلة للاختبار دون قاعدة/شبكة.
+    """
+    from api.geo_zone_locator import locate_field
+    from api.geospatial_integrity import YEMEN_BBOX
+
+    if lat is None or lon is None:
+        return None, None
+
+    inside_yemen = (
+        YEMEN_BBOX["min_lat"] <= lat <= YEMEN_BBOX["max_lat"]
+        and YEMEN_BBOX["min_lng"] <= lon <= YEMEN_BBOX["max_lng"]
+    )
+    country = "اليمن" if inside_yemen else "غير محدّد"
+
+    region: str | None = None
+    if inside_yemen:
+        loc = locate_field(lat, lon)
+        if loc.get("supported"):
+            gov = loc.get("governorate_ar")
+            # locate_field يُرجع نصّاً افتراضيّاً عند تعذّر المطابقة الدقيقة
+            if gov and gov != "غير محدّدة بدقّة":
+                region = gov
+    return country, region
+
+
 def _row_to_field_summary(r) -> FieldSummary:
     """صفّ DB → FieldSummary (يفكّ geometry لو رجعت نصّاً من JSONB)."""
     import json as _json
+
+    def _opt(key):
+        # عمود اختياري قد يغيب (صفّ قديم/اختبار) — None بدل KeyError
+        try:
+            return r[key]
+        except (KeyError, IndexError):
+            return None
 
     geom = r["geometry"]
     if isinstance(geom, str):
@@ -882,6 +927,12 @@ def _row_to_field_summary(r) -> FieldSummary:
         health_summary_ar="—",
         soil_type=r["soil_type"],
         manager=r["manager"],
+        field_code=_opt("field_code"),
+        description=_opt("description"),
+        water_source=_opt("water_source"),
+        ownership_type=_opt("ownership_type"),
+        country=_opt("country"),
+        region=_opt("region"),
         lat=float(r["lat"]) if r["lat"] is not None else None,
         lon=float(r["lon"]) if r["lon"] is not None else None,
         geometry=geom,
@@ -912,6 +963,7 @@ async def list_fields(user: UserSchema = Depends(get_current_user)):
         async with tenant_connection(user) as conn:
             rows = await conn.fetch(
                 "SELECT field_id, farm_id, name, area_ha, crop, soil_type, manager, "
+                "field_code, description, water_source, ownership_type, country, region, "
                 "lat, lon, geometry "
                 "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
                 str(user.tenant_id),
@@ -933,6 +985,13 @@ class FieldCreateRequest(BaseModel):
     geometry: dict  # GeoJSON Polygon: {"type":"Polygon","coordinates":[[[lon,lat],...]]}
     farm_id: str | None = None
     gov: str | None = None
+    # حقول مُثراة (v33): اختياريّة. country/region تُكتشف آليّاً إن لم تُرسَل.
+    field_code: str | None = Field(default=None, max_length=50)
+    description: str | None = None
+    water_source: str | None = Field(default=None, max_length=20)
+    ownership_type: str | None = Field(default=None, max_length=20)
+    country: str | None = Field(default=None, max_length=60)
+    region: str | None = Field(default=None, max_length=80)
 
 
 @app.post("/api/v1/fields", status_code=201, response_model=FieldSummary)
@@ -963,14 +1022,23 @@ async def create_field(
         )
     area_ha = round(validation.computed_area_ha or 0.0, 2)
     lat, lon = _centroid_from_bbox(validation.computed_bbox)
+    # الكشف الآلي للدولة + الإقليم من مركز المضلّع (إن لم يُرسلهما العميل)
+    country, region = req.country, req.region
+    if country is None or region is None:
+        auto_country, auto_region = _reverse_geocode(lat, lon)
+        country = country or auto_country
+        region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
     try:
         async with tenant_connection(user) as conn:
             await conn.execute(
                 """INSERT INTO fields
                     (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
-                     area_ha, lat, lon, gov, geometry)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb)""",
+                     area_ha, lat, lon, gov, geometry,
+                     field_code, description, water_source, ownership_type,
+                     country, region)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
+                     $13, $14, $15, $16, $17, $18)""",
                 field_id,
                 str(user.tenant_id),
                 req.farm_id,
@@ -981,8 +1049,14 @@ async def create_field(
                 area_ha,
                 lat,
                 lon,
-                req.gov or "البيضاء",
+                req.gov or region or "البيضاء",
                 _json.dumps(req.geometry),
+                req.field_code,
+                req.description,
+                req.water_source,
+                req.ownership_type,
+                country,
+                region,
             )
     except HTTPException:
         raise  # get_pool() يرفع 503 أصلاً
@@ -998,10 +1072,28 @@ async def create_field(
         health_summary_ar="حقل جديد — بانتظار قياسات",
         soil_type=req.soil_type,
         manager=req.manager,
+        field_code=req.field_code,
+        description=req.description,
+        water_source=req.water_source,
+        ownership_type=req.ownership_type,
+        country=country,
+        region=region,
         lat=lat,
         lon=lon,
         geometry=req.geometry,
     )
+
+
+@app.get("/api/v1/geo/reverse")
+def geo_reverse_endpoint(
+    lat: float,
+    lon: float,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """كشف عكسي خفيف: مركز الحقل → {country, region} — لعرض الموقع المكتشف آليّاً
+    في الواجهة فور رسم المضلّع (قبل الحفظ). دالّة نقيّة (لا قاعدة)."""
+    country, region = _reverse_geocode(lat, lon)
+    return {"country": country, "region": region}
 
 
 # ─── المواسم الزراعيّة (Seasons) — نمط FieldView (v32) ────────────
