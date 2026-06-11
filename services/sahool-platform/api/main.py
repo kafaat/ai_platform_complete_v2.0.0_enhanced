@@ -1094,8 +1094,8 @@ async def create_season(
 ):
     """ينشئ موسماً زراعيّاً للحقل — يُخزَّن فعليّاً (بدل /seasons المُبتلَع).
 
-    يتحقّق من نوع الريّ والتواريخ، ويربط الموسم بالحقل ضمن سياق المستأجِر (RLS).
-    season_start يُشتقّ من تاريخ البذار. يردّ الموسم المُنشأ.
+    يتحقّق من نوع الريّ وترتيب التواريخ، ويربط الموسم بالحقل ضمن سياق المستأجِر
+    (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ.
     """
     import json as _json
     import uuid as _uuid
@@ -1114,7 +1114,12 @@ async def create_season(
     if end and sow and end < sow:
         raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
     season_id = "ssn_" + _uuid.uuid4().hex[:12]
-    stages_json = _json.dumps([s.model_dump() for s in req.custom_stages])
+    # تصفية المراحل الفارغة كليّاً (name/date/notes فارغة) — لا تلوّث JSONB
+    # بمدخلات غير مفيدة (مرحلة أُضيفت ثمّ تُركت فارغة في الواجهة).
+    clean_stages = [
+        s for s in req.custom_stages if (s.name.strip() or s.date.strip() or s.notes.strip())
+    ]
+    stages_json = _json.dumps([s.model_dump() for s in clean_stages])
     crops_json = _json.dumps(req.crops)
     try:
         async with tenant_connection(user) as conn:
@@ -1154,7 +1159,7 @@ async def create_season(
         plowing_date=plow.isoformat() if plow else None,
         sowing_date=sow.isoformat() if sow else None,
         season_end=end.isoformat() if end else None,
-        stages=[s.model_dump() for s in req.custom_stages],
+        stages=[s.model_dump() for s in clean_stages],  # نفس ما خُزّن (لا إعادة بناء)
         status="active",
     )
 
@@ -1167,6 +1172,7 @@ async def list_seasons(
     """مواسم الحقل (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS). 503 عند تعذّر القاعدة."""
     try:
         async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)  # 404 لو الحقل ليس للمستأجِر
             rows = await conn.fetch(
                 "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
                 "seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date, "

@@ -140,7 +140,7 @@ export default function FieldManagementPage() {
     // عند الفشل نرمي رسالة عربيّة فيعرضها النموذج (errors.general) ويبقى مفتوحاً.
     try {
       await kongApi.post(`/api/v1/fields/${data.field_id}/seasons`, {
-        crops: data.crops, cultivar: data.cultivar,
+        crops: data.crops, cultivar: data.cultivar || null,
         irrigation_type: data.irrigation_type,
         seed_rate_kg_ha: data.seed_rate_kg_ha,
         land_leveling_date: data.land_leveling_date || null,
