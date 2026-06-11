@@ -5804,7 +5804,9 @@ def test_supply_chain_audit_gate():
         r.append(("✓", "سلسلة الإمداد: بوّابة pip-audit تفرض المسار الحرج في CI"))
     else:
         r.append(("✗", "سلسلة الإمداد: لا بوّابة pip-audit مفروضة (الفجوة #٧ مفتوحة)"))
-    if "safety" not in ci or "pip-audit" in ci:
+    # ربط النجاح بوجود pip-audit *فعلاً* مع غياب سطر تثبيت safety الميّت معاً
+    # (لا يكفي غياب safety وحده — كان يُنتج ✓ مضلّلاً لو لم يوجد أي فحص).
+    if "pip-audit" in ci and "bandit safety" not in ci:
         r.append(("✓", "سلسلة الإمداد: فحص التبعيّات يُشغَّل فعلاً (لا أداة مُثبَّتة بلا تشغيل)"))
     else:
         r.append(("✗", "سلسلة الإمداد: أداة فحص مُثبَّتة بلا تشغيل (safety الميّتة)"))
