@@ -1634,6 +1634,55 @@ async def _field_weather_context(conn, field_id: str) -> tuple[float, float, str
     return float(row["lat"]), float(row["lon"]), crop, stage
 
 
+async def _latest_soil_moisture(conn, field_id: str):
+    """أحدث قراءة رطوبة تربة (٪) لأجهزة الحقل، أو None إن لا قراءة صالحة.
+
+    يجلب قراءات soil_moisture من device_telemetry للأجهزة المرتبطة بالحقل
+    (iot_devices.field_id) ضمن سياق المستأجِر (RLS)، ثمّ يلتقط أحدثها الصالحة عبر
+    المنطق النقيّ pick_latest_soil_moisture (يتجاهل القيم خارج النطاق المعقول).
+    يُعيد كائن SoilMoistureReading أو None — لا يرفع استثناء عند غياب البيانات
+    (القرار يتدبّر None برشاقة: يعتمد احتياج الريّ بدلاً منها).
+    """
+    from api.soil_telemetry import pick_latest_soil_moisture
+
+    rows = await conn.fetch(
+        """SELECT t.value, t.unit, t.recorded_at, t.device_id
+             FROM device_telemetry t
+             JOIN iot_devices d ON d.device_id = t.device_id
+            WHERE d.field_id = $1 AND t.sensor_type = 'soil_moisture'
+            ORDER BY t.recorded_at DESC
+            LIMIT 50""",
+        field_id,
+    )
+    return pick_latest_soil_moisture([dict(r) for r in rows])
+
+
+@app.get("/api/v1/fields/{field_id}/soil-moisture")
+async def field_soil_moisture(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """أحدث قراءة رطوبة تربة (٪) لأجهزة الحقل من telemetry الحيّ، أو null.
+
+    يقرأ من device_telemetry (الأجهزة المرتبطة بالحقل عبر iot_devices.field_id)
+    ضمن سياق المستأجِر (RLS) بعد تأكيد أنّ الحقل يخصّه (404). يردّ القراءة + زمنها
+    + الجهاز المصدر، أو reading=null إن لا قراءة صالحة (لا بيانات وهميّة). 503 إن
+    تعذّرت القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            reading = await _latest_soil_moisture(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة رطوبة التربة", e) from e
+    return {
+        "field_id": field_id,
+        "reading": reading.as_dict() if reading is not None else None,
+    }
+
+
 @app.get("/api/v1/fields/{field_id}/weather/irrigation-advice")
 async def field_irrigation_advice(
     field_id: str,
@@ -1651,6 +1700,8 @@ async def field_irrigation_advice(
     try:
         async with tenant_connection(user) as conn:
             lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+            # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي إلحاح التوصية.
+            soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -1676,15 +1727,27 @@ async def field_irrigation_advice(
         )
     # المطر المتوقّع خلال ٤٨ ساعة القادمة (يومان قادمان من التوقّع).
     forecast_rain = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+    soil_pct = soil_reading.value_pct if soil_reading is not None else None
     advice = irrigation_advice(
         et0_mm=et0,
         crop=crop,
         stage=stage,
         rain_recent_mm=current.precipitation_mm or 0.0,
         forecast_rain_mm=forecast_rain,
-        soil_moisture_pct=None,
+        soil_moisture_pct=soil_pct,
     )
-    advice.update({"field_id": field_id, "crop": crop, "stage": stage, "source": "open-meteo"})
+    advice.update(
+        {
+            "field_id": field_id,
+            "crop": crop,
+            "stage": stage,
+            "source": "open-meteo",
+            "soil_moisture_pct": soil_pct,
+            "soil_moisture_at": (
+                soil_reading.recorded_at.isoformat() if soil_reading is not None else None
+            ),
+        }
+    )
     return advice
 
 
@@ -2450,6 +2513,8 @@ async def evaluate_field_alerts_endpoint(
     try:
         async with tenant_connection(user) as conn:
             lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+            # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي قاعدة low_moisture.
+            soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -2466,6 +2531,7 @@ async def evaluate_field_alerts_endpoint(
             detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
         ) from e
 
+    soil_pct = soil_reading.value_pct if soil_reading is not None else None
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
@@ -2477,7 +2543,7 @@ async def evaluate_field_alerts_endpoint(
             stage=stage,
             rain_recent_mm=current.precipitation_mm or 0.0,
             forecast_rain_mm=forecast_rain_48h,
-            soil_moisture_pct=None,
+            soil_moisture_pct=soil_pct,
         )
         irrigation_need_mm = advice.get("recommended_mm")
 
@@ -2486,7 +2552,7 @@ async def evaluate_field_alerts_endpoint(
     rain_hist_3d = await _historical_rain_3d_mm(lat, lon, rain_fc_3d)
     ctx = FieldAlertContext(
         field_id=field_id,
-        soil_moisture_pct=None,  # لا مصدر قراءة تربة حيّ بعد — نعتمد احتياج الريّ.
+        soil_moisture_pct=soil_pct,  # رطوبة تربة حيّة من telemetry إن وُجدت، وإلّا None.
         irrigation_need_mm=irrigation_need_mm,
         forecast_rain_mm=rain_fc_3d,
         temp_c=current.temperature_c,

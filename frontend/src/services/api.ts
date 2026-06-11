@@ -771,6 +771,23 @@ export const getDeviceTelemetry = (deviceId: string, limit = 20): Promise<Teleme
 export const recordTelemetry = (deviceId: string, payload: TelemetryRecordInput): Promise<TelemetryPoint> =>
   kongApi.post<TelemetryPoint>(`/api/v1/devices/${deviceId}/telemetry`, payload).then(r => r.data);
 
+/** أحدث قراءة رطوبة تربة (٪) لأجهزة الحقل من telemetry الحيّ. reading=null إن لا قراءة. */
+export interface SoilMoistureReading {
+  soil_moisture_pct: number;
+  recorded_at:       string;
+  device_id:         string | null;
+  unit:              string | null;
+}
+
+export interface FieldSoilMoisture {
+  field_id: string;
+  reading:  SoilMoistureReading | null;
+}
+
+/** أحدث رطوبة تربة لحقل من أجهزته (field:view). reading=null عند غياب قراءة صالحة. */
+export const getFieldSoilMoisture = (fieldId: string): Promise<FieldSoilMoisture> =>
+  kongApi.get<FieldSoilMoisture>(`/api/v1/fields/${fieldId}/soil-moisture`).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // IRRIGATION OPS — صمّامات الريّ + جداول الريّ المُخزَّنة (حيّة عبر البوابة)
 // مُقيَّدة بالدور irrigation:view / irrigation:manage. 503 عند تعطيل قاعدة

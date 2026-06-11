@@ -30,8 +30,9 @@ import {
   type AlertRecord, type AlertCreateInput, type AlertListFilters, type AlertEvaluateResult,
   fetchNotificationPreferences, updateNotificationPreferences,
   type NotificationPreferences,
-  listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
+  listDevices, registerDevice, getDeviceTelemetry, recordTelemetry, getFieldSoilMoisture,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
+  type FieldSoilMoisture,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
   type Valve, type CreateValveInput, type ValveStateIntent,
   type IrrigationSchedule, type CreateScheduleInput,
@@ -93,6 +94,7 @@ export const QK = {
   maintenance:      (tid: string, eid: string) => ['equipment', tid, 'maintenance', eid],
   devices:          (tid: string)        => ['devices', tid],
   deviceTelemetry:  (tid: string, id: string, n: number) => ['devices', 'telemetry', tid, id, n],
+  fieldSoilMoisture:(tid: string, fid: string) => ['fields', 'soil-moisture', tid, fid],
   valves:           (tid: string)        => ['irrigation', 'valves', tid],
   schedules:        (tid: string, fid?: string) => ['irrigation', 'schedules', tid, fid ?? 'all'],
   masterData:       (tid: string, cat: string) => ['master-data', tid, cat],
@@ -913,6 +915,22 @@ export function useDeviceTelemetry(deviceId: string, limit = 20): UseQueryResult
     staleTime:60_000,
     enabled:  !!deviceId,
     retry:    false,
+  });
+}
+
+// أحدث رطوبة تربة لحقل من أجهزته (field:view). reading=null عند غياب قراءة صالحة —
+// لا fallback وهميّ: الواجهة تعرض حالة صادقة. ينعش دوريّاً لمواكبة القراءات الحيّة.
+export function useFieldSoilMoisture(
+  fieldId: string | null | undefined,
+): UseQueryResult<FieldSoilMoisture> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldSoilMoisture>({
+    queryKey:        QK.fieldSoilMoisture(tid, fieldId ?? ''),
+    queryFn:         () => getFieldSoilMoisture(fieldId as string),
+    staleTime:       60_000,
+    refetchInterval: 60_000,
+    enabled:         !!fieldId,
+    retry:           false,
   });
 }
 
