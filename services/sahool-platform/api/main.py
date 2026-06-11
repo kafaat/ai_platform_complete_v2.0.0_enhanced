@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import logging
 import os
+import secrets
 import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -59,26 +60,45 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger("sahool.api")
 
 # ─── إعدادات ──────────────────────────────────────────────────────
-JWT_SECRET = os.getenv("SAHOOL_JWT_SECRET", "dev-secret-CHANGE-IN-PRODUCTION")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_HOURS = 24
 
-# سياسة أمنيّة: السرّ الضعيف ثغرة خطيرة في الإنتاج.
-# في الإنتاج (SAHOOL_ENV=production) نفشل بأمان؛ في التطوير نكتفي بتحذير.
+# سياسة أمنيّة: لا سرّ افتراضيّ معروف. السرّ الحرفيّ المنشور سابقاً
+# ("dev-secret-CHANGE-IN-PRODUCTION") كان يسمح لأيّ مَن يعرفه بتزوير توكن لأيّ
+# مستأجِر/دور (owner). الآن:
+#   • الإنتاج (SAHOOL_ENV=production): يجب ضبط سرّ قويّ (≥32) وإلّا توقّف (fail-closed).
+#   • التطوير: إن غاب/ضعف نولّد سرّاً عشوائيّاً لهذه العمليّة فقط — لا يُزوَّر عبر
+#     سرّ منشور، والتوكنات تُمنَح وتُتحقَّق داخل العمليّة نفسها (يكفي للاختبار/dev).
 _IS_PRODUCTION = os.getenv("SAHOOL_ENV", "development").lower() == "production"
-_WEAK_SECRET = JWT_SECRET == "dev-secret-CHANGE-IN-PRODUCTION" or len(JWT_SECRET) < 32
+# strip: مسافات/أسطر لاحقة لا تُحوّل سرّاً ضعيفاً/افتراضيّاً إلى «قويّ» (التفاف على الفحص).
+_ENV_SECRET = os.getenv("SAHOOL_JWT_SECRET", "").strip()
+_WEAK_SECRET = (
+    not _ENV_SECRET or _ENV_SECRET == "dev-secret-CHANGE-IN-PRODUCTION" or len(_ENV_SECRET) < 32
+)
+if _WEAK_SECRET and _IS_PRODUCTION:
+    logger.error(
+        "🛑 SAHOOL_JWT_SECRET غير مضبوط/ضعيف في الإنتاج — توقّف. "
+        "عيّن سرّاً قويّاً (≥32 محرفاً) واستخدم RS256."
+    )
+    sys.exit(1)
 if _WEAK_SECRET:
-    if _IS_PRODUCTION:
-        logger.error(
-            "🛑 SAHOOL_JWT_SECRET ضعيف أو افتراضي في الإنتاج — توقّف. "
-            "عيّن سرّاً قويّاً (≥32 محرفاً) واستخدم RS256."
-        )
-        sys.exit(1)
-    else:
-        logger.warning(
-            "⚠️ JWT_SECRET افتراضي/ضعيف — مقبول في التطوير فقط. "
-            "عيّن سرّاً قويّاً (≥32 محرفاً) واستخدم RS256 قبل الإنتاج."
-        )
+    JWT_SECRET = secrets.token_urlsafe(48)  # عشوائيّ لكلّ عمليّة (تطوير فقط)
+    logger.warning(
+        "⚠️ SAHOOL_JWT_SECRET غير مضبوط/ضعيف — وُلِّد سرّ تطوير عشوائيّ لهذه العمليّة "
+        "فقط. عيّن سرّاً قويّاً (≥32) واستخدم RS256 قبل أيّ نشر."
+    )
+else:
+    JWT_SECRET = _ENV_SECRET
+
+# دخول dev بلا كلمة مرور (/api/v1/auth/{login,signup}) يُصدِر توكناً كامل الصلاحيّة
+# من جسم الطلب — تجاوز مصادقة لو وصلته الطلبات. لا يُفعَّل إلّا بإقرار صريح
+# (SAHOOL_DEV_AUTH=1) وفي غير الإنتاج. الافتراض **مُعطَّل**: staging/فارغ/غير مضبوط
+# لا يكشفه (المصادقة الحقيقيّة عبر خدمة sahool-auth بـbcrypt).
+_DEV_AUTH_ENABLED = (
+    os.getenv("SAHOOL_DEV_AUTH", "").strip().lower() in ("1", "true", "yes") and not _IS_PRODUCTION
+)
+if _DEV_AUTH_ENABLED:
+    logger.warning("⚠️ SAHOOL_DEV_AUTH مُفعَّل — دخول dev بلا كلمة مرور (تطوير فقط).")
 
 # Offline queue واحد على مستوى التطبيق.
 # ⚠️ N2: حالة في الذاكرة → يتطلّب --workers 1. عاملان = طابوران منفصلان =
@@ -483,14 +503,16 @@ def readyz():
 
 @app.post("/api/v1/auth/login", response_model=TokenResponse)
 def login(req: LoginRequest):
-    """تسجيل دخول dev-mode. في الإنتاج: يُرفض — استخدم خدمة auth الحقيقيّة."""
-    # C1 FIX: هذه نقطة تطوير تُصدر JWT بلا كلمة مرور. في الإنتاج تُرفض
-    # fail-closed (المصادقة الحقيقيّة عبر خدمة sahool-auth بـbcrypt). يمنع
-    # تجاوز المصادقة وانهيار عزل المستأجرين لو أصابت الطلبات هذه النقطة.
-    if _IS_PRODUCTION:
+    """تسجيل دخول dev-mode (بلا كلمة مرور). مُعطَّل افتراضيّاً في كلّ البيئات؛
+    لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير الإنتاج. غير ذلك ⇒ 403.
+    المصادقة الحقيقيّة عبر خدمة sahool-auth (/auth/login بـbcrypt)."""
+    # C1 FIX: هذه نقطة تطوير تُصدر JWT بلا كلمة مرور. مُعطَّلة افتراضيّاً (وفي
+    # الإنتاج دائماً) — لا تُفعَّل إلّا بإقرار صريح SAHOOL_DEV_AUTH=1 في غير الإنتاج.
+    # يمنع تجاوز المصادقة وانهيار عزل المستأجرين لو أصابت الطلبات هذه النقطة.
+    if not _DEV_AUTH_ENABLED:
         raise HTTPException(
             status_code=403,
-            detail="نقطة dev معطّلة في الإنتاج — استخدم خدمة المصادقة (/auth/login).",
+            detail="نقطة dev معطّلة — استخدم خدمة المصادقة (/auth/login).",
         )
     # هنا: dev-mode فقط، نقبل أيّ user_id صالح
     try:
@@ -559,15 +581,16 @@ def auth_logout(user: UserSchema = Depends(get_current_user)):
 
 @app.post("/api/v1/auth/signup", response_model=TokenResponse)
 def auth_signup(req: LoginRequest):
-    """تسجيل مستخدم جديد (dev-mode — نفس منطق login حتّى ربط DB).
+    """تسجيل مستخدم جديد (dev-mode — نفس منطق login بلا كلمة مرور).
 
-    في الإنتاج: يُرفض — استخدم خدمة auth الحقيقيّة (DB + bcrypt).
+    مُعطَّل افتراضيّاً في كلّ البيئات؛ لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير
+    الإنتاج. غير ذلك ⇒ 403. التسجيل الحقيقيّ عبر خدمة auth (DB + bcrypt).
     """
-    # C1 FIX: نفس منطق login بلا كلمة مرور → يُرفض fail-closed في الإنتاج.
-    if _IS_PRODUCTION:
+    # C1 FIX: نفس منطق login بلا كلمة مرور → مُعطَّل افتراضيّاً وفي الإنتاج دائماً.
+    if not _DEV_AUTH_ENABLED:
         raise HTTPException(
             status_code=403,
-            detail="نقطة dev معطّلة في الإنتاج — استخدم خدمة المصادقة.",
+            detail="نقطة dev معطّلة — استخدم خدمة المصادقة.",
         )
     try:
         role = UserRole(req.role)
