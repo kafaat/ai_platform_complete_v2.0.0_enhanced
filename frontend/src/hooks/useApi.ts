@@ -30,6 +30,9 @@ import {
   // ── الحوكمة والتدقيق: أصل/أحداث/أوامر كيان + مفاتيح المشاركة ──
   listSharingKeys, createSharingKey,
   type SharingKey, type NewSharingKey, type SharingKeyCreated,
+  // ── المزارع (بوّابة التأهيل): سرد + إنشاء ──
+  fetchFarms, createFarm,
+  type Farm, type FarmCreateInput, type FarmCreated,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -46,6 +49,7 @@ export const QK = {
   soilParams:       (fid: string)        => ['soil', 'params', fid],
   soilNRec:         (fid: string)        => ['soil', 'nrec', fid],
   fields:           (tid: string)        => ['fields', tid],
+  farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
@@ -297,6 +301,31 @@ export function useFields() {
     queryFn:  () => kongApi.get('/api/v1/fields')
       .then(r => ({ fields: Array.isArray(r.data) ? r.data : (r.data?.fields ?? []) })),
     staleTime:5 * 60_000,
+  });
+}
+
+// ── Farms: المزارع (حيّة، tenant-scoped + RBAC farm:view/create) ──
+// تُستخدم لبوّابة التأهيل: مستخدم جديد بلا مزرعة يُجبَر على إنشاء واحدة قبل اللوحة.
+// لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض الاستعلام.
+export function useFarms(enabled = true): UseQueryResult<Farm[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<Farm[]>({
+    queryKey: QK.farms(tid),
+    queryFn:  () => fetchFarms(),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled,
+  });
+}
+
+// إنشاء مزرعة — يُبطِل كاش قائمة المزارع للمستأجِر الحاليّ (بوّابة التأهيل تتجاوز
+// فور وجود مزرعة). 503 عند تعطيل DB / 403 RBAC يُرفع ليعرض النموذج خطأً صادقاً.
+export function useCreateFarm(): UseMutationResult<FarmCreated, Error, FarmCreateInput> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<FarmCreated, Error, FarmCreateInput>({
+    mutationFn: (payload) => createFarm(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.farms(tid) }); },
   });
 }
 

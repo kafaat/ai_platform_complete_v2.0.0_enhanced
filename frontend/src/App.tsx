@@ -9,9 +9,11 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
+import { useFarms } from './hooks/useApi';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
 import { canAccess } from './lib/permissions';
+import { LoadingState } from './components/StateViews';
 
 // ── Error Boundary ──────────────────────────────────────────
 import React from 'react';
@@ -67,6 +69,7 @@ const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
 const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
 const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
+const FarmCreatePage      = lazy(() => import('./sections/FarmCreatePage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -241,7 +244,10 @@ function TopBar({ page, onMenu }: any) {
 }
 
 export default function App() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isDemoMode } = useAuthStore();
+  // بوّابة التأهيل: بعد المصادقة نفحص وجود مزرعة. مُعطَّلة قبل المصادقة وفي الوضع
+  // التجريبيّ (لا تُطلق الطلب، فالاستعلام لا يعمل إلا حين isAuthenticated && !isDemoMode).
+  const farms = useFarms(isAuthenticated && !isDemoMode);
   const [page,       setPage]       = useState<PageId>('dashboard');
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -271,6 +277,36 @@ export default function App() {
         <ToastContainer />
       </>
     );
+  }
+
+  // بوّابة التأهيل الإجباريّة: مستخدم مُصادَق لكن بلا مزرعة لا يبلغ اللوحة حتى ينشئ
+  // واحدة. الوضع التجريبيّ يتجاوزها (الاستعلام مُعطَّل ⇒ يبقى pending ⇒ نتخطّاه صراحةً).
+  // أثناء جلب القائمة نُظهر تحميلاً. عند الخطأ (503/انقطاع) لا نحبس المستخدم — نمرّره
+  // للّوحة (الصفحات نفسها تعرض حالات خطأ صادقة)، فلا نقفل التطبيق على عطل قاعدة عابر.
+  if (!isDemoMode) {
+    if (farms.isLoading) {
+      return (
+        <ErrorBoundary>
+          <div className="flex items-center justify-center h-screen" style={{ background: '#0f1117' }}>
+            <LoadingState message="جارٍ تحضير مزرعتك…" />
+          </div>
+          <ToastContainer />
+        </ErrorBoundary>
+      );
+    }
+    if (farms.isSuccess && (farms.data?.length ?? 0) === 0) {
+      return (
+        <ErrorBoundary>
+          <div className="min-h-screen overflow-y-auto p-4 md:p-8" style={{ background: '#0f1117' }}>
+            <Suspense fallback={<Loader />}>
+              {/* عند النجاح يُبطَل كاش المزارع ⇒ farms.data يمتلئ ⇒ تتجاوز البوّابة تلقائيّاً */}
+              <FarmCreatePage onCreated={() => farms.refetch()} />
+            </Suspense>
+          </div>
+          <ToastContainer />
+        </ErrorBoundary>
+      );
+    }
   }
 
   const renderPage = () => {
