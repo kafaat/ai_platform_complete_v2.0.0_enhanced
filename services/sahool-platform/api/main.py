@@ -3810,28 +3810,36 @@ def irrigation_water_analysis(
 # يحقن المخزن المعمّر (PostgresWorkflowStore) إن DATABASE_URL مضبوط ⇒ الاستئناف
 # يصمد عبر إعادة التشغيل؛ وإلّا InMemory (مفرد على مستوى العمليّة للتطوير).
 # ═══════════════════════════════════════════════════════════════════
-_INMEM_WORKFLOW_STORE = None  # مفرد تطويري (InMemory) ليصمد الاستئناف عبر الطلبات
+# ═══════════════════════════════════════════════════════════════════
+# مفرد InMemory لكلّ مستأجر (تطوير فقط). كان مفرداً واحداً مشتركاً يفهرس بـ
+# workflow_id فقط ⇒ مستأجران بنفس workflow_id يتصادمان/يقرأ أحدهما حالة الآخر.
+# عزلٌ بمخزن منفصل لكلّ tenant (الإنتاج يستعمل Postgres+RLS فلا يمسّه هذا).
+_INMEM_WORKFLOW_STORES: dict = {}
 
 
 def _get_workflow_store(tenant_id: str | None = None):
-    """يُرجِع المخزن المعمّر (Postgres) إن توفّرت القاعدة، وإلّا مفرد InMemory.
+    """يُرجِع المخزن المعمّر (Postgres) إن توفّرت القاعدة، وإلّا مفرد InMemory
+    معزول لكلّ مستأجر.
 
     tenant_id: سياق المستأجر لـRLS. workflow_state عليه RLS+FORCE، فالقراءة (load)
     تحتاج ضبط app.current_tenant وإلّا تُحجب الصفوف ⇒ الاستئناف لا يعمل. يُمرَّر
-    للمخزن المعمّر ليضبطه عند load (الحفظ يأخذه من حالة الـworkflow).
+    للمخزن المعمّر ليضبطه عند load (الحفظ يأخذه من حالة الـworkflow). وفي مسار
+    InMemory يفصل مخزن كلّ مستأجر (عزل تطويريّ — لا خلط workflow_id عبر المستأجرين).
 
     صدق: InMemory يُفقَد عند إعادة التشغيل (تطوير فقط)؛ الإنتاج (DATABASE_URL)
     يستعمل workflow_state (v16+v17) فيصمد التقدّم. PostgresWorkflowStore متزامن
     فوق asyncio.run ⇒ يُستدعى عبر thread من endpoint async (لا داخل الحلقة)."""
-    global _INMEM_WORKFLOW_STORE
     from core.workflow_engine import InMemoryWorkflowStore, PostgresWorkflowStore
 
     dsn = os.getenv("DATABASE_URL", "")
     if dsn:
         return PostgresWorkflowStore(dsn, tenant_id=tenant_id)
-    if _INMEM_WORKFLOW_STORE is None:
-        _INMEM_WORKFLOW_STORE = InMemoryWorkflowStore()
-    return _INMEM_WORKFLOW_STORE
+    key = str(tenant_id or "")
+    store = _INMEM_WORKFLOW_STORES.get(key)
+    if store is None:
+        store = InMemoryWorkflowStore()
+        _INMEM_WORKFLOW_STORES[key] = store
+    return store
 
 
 class PestEscalationRequest(BaseModel):
