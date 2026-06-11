@@ -310,4 +310,161 @@ class ApiService {
     await _dio.post('/auth/password-reset/confirm',
         data: {'token': token, 'new_password': newPassword});
   }
+
+  // ══════════════════════════════════════════════════════════════════
+  // OPERATIONAL SUBSYSTEMS — /api/v1/* (مخزون/معدّات/أجهزة/ريّ/مرجعيّة/وثائق)
+  // ربط حيّ بالخلفيّة الفعليّة عبر نفس الـDio (توكن، إعادة محاولة، كشف انقطاع).
+  // لا بيانات مُلفَّقة — الخطأ (503 DB مُعطَّلة / 403 RBAC) يُرمى ليعرض الـUI حالة
+  // صادقة. كلّ القوائم تُعيد List<Map> (الخادم يردّ مصفوفة JSON صريحة).
+  // المسارات والحقول تطابق frontend/src/services/api.ts بدقّة.
+  // ══════════════════════════════════════════════════════════════════
+  List<Map<String, dynamic>> _asList(dynamic data) {
+    if (data is List) {
+      return data.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+    }
+    return const [];
+  }
+
+  Map<String, dynamic> _asMap(dynamic data) =>
+      data is Map ? data.cast<String, dynamic>() : <String, dynamic>{};
+
+  // ── Inventory (inventory:view / inventory:manage) ──
+  Future<List<Map<String, dynamic>>> getInventoryItems() async {
+    final r = await _dio.get('/api/v1/inventory/items');
+    return _asList(r.data);
+  }
+
+  Future<List<Map<String, dynamic>>> getExpiringBatches({int days = 30}) async {
+    final r = await _dio.get('/api/v1/inventory/expiring',
+        queryParameters: {'days': days});
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> createInventoryItem(
+      Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/inventory/items', data: payload);
+    return _asMap(r.data);
+  }
+
+  Future<Map<String, dynamic>> addInventoryBatch(
+      String itemId, Map<String, dynamic> payload) async {
+    final r =
+        await _dio.post('/api/v1/inventory/items/$itemId/batches', data: payload);
+    return _asMap(r.data);
+  }
+
+  // ── Equipment (equipment:view / equipment:manage) ──
+  Future<List<Map<String, dynamic>>> getEquipment() async {
+    final r = await _dio.get('/api/v1/equipment');
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> createEquipment(
+      Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/equipment', data: payload);
+    return _asMap(r.data);
+  }
+
+  Future<List<Map<String, dynamic>>> getMaintenance(String equipmentId) async {
+    final r = await _dio.get('/api/v1/equipment/$equipmentId/maintenance');
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> logMaintenance(
+      String equipmentId, Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/equipment/$equipmentId/maintenance',
+        data: payload);
+    return _asMap(r.data);
+  }
+
+  // ── IoT Devices (device:view / device:manage / observation:record) ──
+  Future<List<Map<String, dynamic>>> listDevices() async {
+    final r = await _dio.get('/api/v1/devices');
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> registerDevice(
+      Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/devices', data: payload);
+    return _asMap(r.data);
+  }
+
+  Future<List<Map<String, dynamic>>> getDeviceTelemetry(String deviceId,
+      {int limit = 20}) async {
+    final r = await _dio.get('/api/v1/devices/$deviceId/telemetry',
+        queryParameters: {'limit': limit});
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> recordTelemetry(
+      String deviceId, Map<String, dynamic> payload) async {
+    final r =
+        await _dio.post('/api/v1/devices/$deviceId/telemetry', data: payload);
+    return _asMap(r.data);
+  }
+
+  // ── Irrigation Ops (irrigation:view / irrigation:manage) ──
+  // ملاحظة: setValveState يسجّل النيّة فقط؛ التشغيل الفيزيائيّ عبر HIL (موافقة بشريّة).
+  Future<List<Map<String, dynamic>>> listValves() async {
+    final r = await _dio.get('/api/v1/irrigation/valves');
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> createValve(Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/irrigation/valves', data: payload);
+    return _asMap(r.data);
+  }
+
+  Future<Map<String, dynamic>> setValveState(
+      String valveId, String status) async {
+    final r = await _dio.post('/api/v1/irrigation/valves/$valveId/state',
+        data: {'status': status});
+    return _asMap(r.data);
+  }
+
+  Future<List<Map<String, dynamic>>> listSchedules({String? fieldId}) async {
+    final r = await _dio.get('/api/v1/irrigation/schedules',
+        queryParameters: fieldId != null ? {'field_id': fieldId} : null);
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> createSchedule(
+      Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/irrigation/schedules', data: payload);
+    return _asMap(r.data);
+  }
+
+  Future<void> deleteSchedule(String scheduleId) async {
+    await _dio.delete('/api/v1/irrigation/schedules/$scheduleId');
+  }
+
+  // ── Master Data (master_data:view / master_data:manage) ──
+  Future<List<Map<String, dynamic>>> getMasterData(String category) async {
+    final r = await _dio.get('/api/v1/master-data',
+        queryParameters: {'category': category});
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> createMasterDataEntry(
+      Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/master-data', data: payload);
+    return _asMap(r.data);
+  }
+
+  // ── Documents (document:view / document:manage) — بيانات وصفيّة فقط ──
+  Future<List<Map<String, dynamic>>> listDocuments(
+      {String? category, String? fieldId}) async {
+    final q = <String, dynamic>{};
+    if (category != null) q['category'] = category;
+    if (fieldId != null) q['field_id'] = fieldId;
+    final r = await _dio.get('/api/v1/documents',
+        queryParameters: q.isEmpty ? null : q);
+    return _asList(r.data);
+  }
+
+  Future<Map<String, dynamic>> createDocument(
+      Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/documents', data: payload);
+    return _asMap(r.data);
+  }
 }

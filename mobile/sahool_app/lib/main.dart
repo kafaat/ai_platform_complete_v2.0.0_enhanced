@@ -9,6 +9,7 @@ import 'screens/advisor_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/satellite_screen.dart';
 import 'screens/fields_screen.dart';
+import 'screens/operations_hub_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
@@ -165,12 +166,15 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  // H02: Build items once
+  // H02: Build items once. أُضيف تبويب «العمليّات» (سادساً) يفتح مركز الوحدات
+  // التشغيليّة (مخزون/معدّات/أجهزة/ريّ تشغيلي/بيانات مرجعيّة/وثائق) مُرشَّحاً
+  // بالـRBAC — دون إسقاط أيّ تبويب قائم (لا تراجع في الوظائف).
   static const List<BottomNavigationBarItem> _navItems = [
     BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'لوحة القيادة'),
     BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'المستشار'),
     BottomNavigationBarItem(icon: Icon(Icons.satellite_alt), label: 'الأقمار'),
     BottomNavigationBarItem(icon: Icon(Icons.terrain), label: 'الحقول'),
+    BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'العمليّات'),
     BottomNavigationBarItem(icon: Icon(Icons.person), label: 'الحساب'),
   ];
 
@@ -180,6 +184,7 @@ class _MainNavigationState extends State<MainNavigation> {
     AdvisorScreen(),
     SatelliteScreen(),
     FieldsScreen(),
+    OperationsHubScreen(),
     ProfileScreen(),
   ];
 
