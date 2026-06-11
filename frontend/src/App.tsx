@@ -6,7 +6,7 @@ import {
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
-  ShieldCheck,
+  ShieldCheck, Sprout,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { wsService } from './services/websocket';
@@ -55,6 +55,7 @@ const ChatbotPage         = lazy(() => import('./sections/ChatbotPage').then(m =
 const HybridIndexPage     = lazy(() => import('./sections/HybridIndexPage').then(m => ({ default: m.HybridIndexPage })));
 const SettingsPage        = lazy(() => import('./sections/SettingsPage'));
 const TasksPage           = lazy(() => import('./sections/TasksPage'));
+const ActivitiesPage      = lazy(() => import('./sections/ActivitiesPage'));
 const RecommendationPage  = lazy(() => import('./sections/RecommendationPage'));
 const SpatialIndicatorsPage = lazy(() => import('./sections/SpatialIndicatorsPage'));
 const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'));
@@ -74,7 +75,7 @@ export type PageId =
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
-  | 'master-data' | 'documents' | 'governance';
+  | 'activities' | 'master-data' | 'documents' | 'governance';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -91,6 +92,7 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'inventory',    label:'المخزون',         icon:Boxes },
   { id:'equipment',    label:'المعدّات',         icon:Tractor },
   { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
+  { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
   { id:'alerts',       label:'التنبيهات',       icon:Bell },
   { id:'reports',      label:'التقارير',        icon:FileText },
@@ -306,6 +308,7 @@ export default function App() {
       case 'documents':    return <DocumentsPage />;
       case 'governance':   return <GovernancePage />;
       case 'tasks':        return <TasksPage />;
+      case 'activities':   return <ActivitiesPage />;
       case 'analytics':    return <AnalyticsPage />;
       case 'alerts':       return <AlertSystemPage />;
       case 'reports':      return <ReportsPage />;
