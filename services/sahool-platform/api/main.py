@@ -2950,6 +2950,259 @@ async def analytics_costs_by_field(
     return [{"field_id": r["field_id"], "total_usd": float(r["total_usd"] or 0)} for r in rows]
 
 
+# ─── التقارير والتحليلات (Reports & Analytics) — تجميع جداول قائمة، لا ترحيل ─
+# يُجمّع ملخّصات (مزرعة/حقل/موسم) من fields/seasons/activities/alerts/farms عبر
+# COUNT/SUM/GROUP BY مُرشَّحة بالمستأجِر (RLS + tenant_id). تشكيل الصفوف نقيّ
+# (دوالّ _shape_* مُختبَرة offline) كي يبقى المنطق قابلاً للاختبار بلا قاعدة.
+
+
+def _count_by_key(rows, key: str) -> dict[str, int]:
+    """صفوف GROUP BY ({key, count}) → قاموس {قيمة: عدد}.
+
+    دالّة نقيّة (لا قاعدة): تتجاهل القيم None (تجمعها تحت 'unknown')، وتحوّل
+    العدّ إلى int. تُعاد استخدامها لتجميع العمليّات حسب الحالة/النوع.
+    """
+    out: dict[str, int] = {}
+    for r in rows:
+        raw = r[key]
+        label = str(raw) if raw is not None else "unknown"
+        out[label] = out.get(label, 0) + int(r["count"] or 0)
+    return out
+
+
+def _shape_area_by_crop(rows) -> list[dict]:
+    """صفوف ({crop, total_area_ha}) → قائمة مُرتّبة تنازليّاً بالمساحة.
+
+    دالّة نقيّة: المحصول None/فارغ ⇒ 'غير محدّد'، المساحة → float مُدوّرة (٢ منزلة).
+    تُغذّي مخطّط «المساحة حسب المحصول» في الواجهة.
+    """
+    shaped = [
+        {
+            "crop": (r["crop"] or "غير محدّد"),
+            "area_ha": round(float(r["total_area_ha"] or 0), 2),
+        }
+        for r in rows
+    ]
+    shaped.sort(key=lambda x: x["area_ha"], reverse=True)
+    return shaped
+
+
+def _shape_farm_summary(
+    *,
+    farms_count: int,
+    fields_count: int,
+    total_area_ha,
+    active_seasons_count: int,
+    activities_by_status: dict[str, int],
+    open_alerts_count: int,
+    area_by_crop: list[dict],
+) -> dict:
+    """يبني جسم ملخّص المزرعة من العدّادات المُجمَّعة — نقيّ (لا قاعدة).
+
+    يُطبّع المساحة إلى float (٢ منزلة) ويضمن أعداداً صحيحة موجبة. activities_total
+    مُشتقّ من مجموع القاموس كي يطابق التفصيل (مصدر واحد للحقيقة).
+    """
+    return {
+        "farms_count": int(farms_count or 0),
+        "fields_count": int(fields_count or 0),
+        "total_area_ha": round(float(total_area_ha or 0), 2),
+        "active_seasons_count": int(active_seasons_count or 0),
+        "activities_total": sum(activities_by_status.values()),
+        "activities_by_status": activities_by_status,
+        "open_alerts_count": int(open_alerts_count or 0),
+        "area_by_crop": area_by_crop,
+    }
+
+
+@app.get("/api/v1/reports/farm-summary")
+async def report_farm_summary(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملخّص المزرعة على مستوى المستأجِر — عدّادات حيّة من الجداول القائمة.
+
+    يُجمّع: عدد المزارع/الحقول، إجماليّ المساحة، المواسم النشطة، العمليّات حسب
+    الحالة، التنبيهات المفتوحة (active)، والمساحة حسب المحصول. مُرشَّح بالمستأجِر
+    (RLS + tenant_id). 503 عند تعذّر القاعدة — لا أرقام مُلفَّقة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            tid = str(user.tenant_id)
+            farms_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM farms WHERE tenant_id = $1::uuid", tid
+            )
+            fields_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM fields WHERE tenant_id = $1::uuid", tid
+            )
+            total_area = await conn.fetchval(
+                "SELECT COALESCE(SUM(area_ha), 0) FROM fields WHERE tenant_id = $1::uuid", tid
+            )
+            active_seasons = await conn.fetchval(
+                "SELECT COUNT(*) FROM seasons WHERE tenant_id = $1::uuid AND status = 'active'",
+                tid,
+            )
+            activity_rows = await conn.fetch(
+                "SELECT status, COUNT(*) AS count FROM activities "
+                "WHERE tenant_id = $1::uuid GROUP BY status",
+                tid,
+            )
+            open_alerts = await conn.fetchval(
+                "SELECT COUNT(*) FROM alerts WHERE tenant_id = $1::uuid AND status = 'active'",
+                tid,
+            )
+            crop_rows = await conn.fetch(
+                "SELECT crop, COALESCE(SUM(area_ha), 0) AS total_area_ha FROM fields "
+                "WHERE tenant_id = $1::uuid GROUP BY crop",
+                tid,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة ملخّص المزرعة", e) from e
+    return _shape_farm_summary(
+        farms_count=farms_count,
+        fields_count=fields_count,
+        total_area_ha=total_area,
+        active_seasons_count=active_seasons,
+        activities_by_status=_count_by_key(activity_rows, "status"),
+        open_alerts_count=open_alerts,
+        area_by_crop=_shape_area_by_crop(crop_rows),
+    )
+
+
+@app.get("/api/v1/reports/field/{field_id}/summary")
+async def report_field_summary(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملخّص حقل واحد — مساحته/محصوله/تربته + موسمه النشط + عمليّاته + تنبيهاته.
+
+    يؤكّد أنّ الحقل يخصّ المستأجِر (404) قبل التجميع. العمليّات تُعدّ حسب النوع
+    والحالة، والتنبيهات الأخيرة تُعرض (٥). مُرشَّح بالمستأجِر (RLS). 503 عند تعذّر
+    القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            field = await conn.fetchrow(
+                "SELECT field_id, name, area_ha, crop, soil_type FROM fields WHERE field_id = $1",
+                field_id,
+            )
+            if field is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            season = await conn.fetchrow(
+                "SELECT season_id, crops, cultivar, sowing_date, season_end, status "
+                "FROM seasons WHERE field_id = $1 AND status = 'active' "
+                "ORDER BY created_at DESC LIMIT 1",
+                field_id,
+            )
+            by_type_rows = await conn.fetch(
+                "SELECT activity_type, COUNT(*) AS count FROM activities "
+                "WHERE field_id = $1 GROUP BY activity_type",
+                field_id,
+            )
+            by_status_rows = await conn.fetch(
+                "SELECT status, COUNT(*) AS count FROM activities "
+                "WHERE field_id = $1 GROUP BY status",
+                field_id,
+            )
+            recent_alert_rows = await conn.fetch(
+                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at FROM alerts "
+                "WHERE field_id = $1 ORDER BY created_at DESC LIMIT 5",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة ملخّص الحقل", e) from e
+
+    import json as _json
+
+    current_season = None
+    if season is not None:
+        crops = season["crops"]
+        if isinstance(crops, str):
+            try:
+                crops = _json.loads(crops)
+            except (ValueError, TypeError):
+                crops = []
+        current_season = {
+            "season_id": season["season_id"],
+            "crops": crops if isinstance(crops, list) else [],
+            "cultivar": season["cultivar"],
+            "sowing_date": season["sowing_date"].isoformat() if season["sowing_date"] else None,
+            "season_end": season["season_end"].isoformat() if season["season_end"] else None,
+            "status": season["status"],
+        }
+    by_status = _count_by_key(by_status_rows, "status")
+    return {
+        "field_id": field["field_id"],
+        "name": field["name"],
+        "area_ha": float(field["area_ha"]) if field["area_ha"] is not None else 0.0,
+        "crop": field["crop"],
+        "soil_type": field["soil_type"],
+        "current_season": current_season,
+        "activities_total": sum(by_status.values()),
+        "activities_by_type": _count_by_key(by_type_rows, "activity_type"),
+        "activities_by_status": by_status,
+        "recent_alerts": [_row_to_alert(r).model_dump() for r in recent_alert_rows],
+    }
+
+
+@app.get("/api/v1/reports/season/{season_id}/summary")
+async def report_season_summary(
+    season_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملخّص موسم واحد — محصوله/صنفه/تواريخه + عدد المراحل + العمليّات المرتبطة.
+
+    يؤكّد أنّ الموسم يخصّ المستأجِر (404). عدد المراحل من مصفوفة stages (JSONB)،
+    والعمليّات المرتبطة تُعدّ بـseason_id. مُرشَّح بالمستأجِر (RLS). 503 عند تعذّر
+    القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            season = await conn.fetchrow(
+                "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
+                "sowing_date, season_end, stages, status FROM seasons "
+                "WHERE season_id = $1",
+                season_id,
+            )
+            if season is None:
+                raise HTTPException(status_code=404, detail="الموسم غير موجود ضمن هذا المستأجِر")
+            activities_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM activities WHERE season_id = $1", season_id
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة ملخّص الموسم", e) from e
+
+    import json as _json
+
+    def _arr(v):
+        if isinstance(v, str):
+            try:
+                return _json.loads(v)
+            except (ValueError, TypeError):
+                return []
+        return v or []
+
+    crops = _arr(season["crops"])
+    stages = _arr(season["stages"])
+    return {
+        "season_id": season["season_id"],
+        "field_id": season["field_id"],
+        "crops": crops if isinstance(crops, list) else [],
+        "cultivar": season["cultivar"],
+        "irrigation_type": season["irrigation_type"],
+        "sowing_date": season["sowing_date"].isoformat() if season["sowing_date"] else None,
+        "season_end": season["season_end"].isoformat() if season["season_end"] else None,
+        "status": season["status"],
+        "stage_count": len(stages) if isinstance(stages, list) else 0,
+        "activities_count": int(activities_count or 0),
+    }
+
+
 # ─── إدارة المستندات (Document Management — سجلّ بيانات وصفيّة) — (v29) ─
 # ⚠️ سجلّ بيانات وصفيّة فقط: لا يخزّن الملفّ الثنائيّ (blob). تخزين الكائنات
 #    الفعليّ (PDF/صورة/...) يحتاج S3/MinIO — نحفظ هنا storage_ref فقط.
