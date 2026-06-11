@@ -504,6 +504,16 @@ export const createAlert = (payload: AlertCreateInput): Promise<AlertRecord> =>
 export const acknowledgeAlert = (alertId: string): Promise<AlertRecord> =>
   kongApi.patch<AlertRecord>(`/api/v1/alerts/${alertId}/acknowledge`).then(r => r.data);
 
+// تقييم تلقائيّ لتنبيهات حقل: يُولّد تنبيهات مُصنَّفة من ظروف الحقل الحاليّة
+// (الطقس الحيّ) ويُدرِجها في جدول alerts (v36) مع حذف تكرار النوع النشط.
+export interface AlertEvaluateResult {
+  created:           AlertRecord[];
+  skipped_existing:  number;
+}
+
+export const evaluateFieldAlerts = (fieldId: string): Promise<AlertEvaluateResult> =>
+  kongApi.post<AlertEvaluateResult>(`/api/v1/fields/${fieldId}/alerts/evaluate`).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
 // عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.

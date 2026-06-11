@@ -1967,6 +1967,139 @@ async def acknowledge_alert(
     return _row_to_alert(row)
 
 
+# ─── توليد التنبيهات التلقائيّ (Alert engine) — يكتب في جدول alerts (v36) ──
+# يبني سياق الحقل من مساعِدات الطقس/الحقل الموجودة (_field_weather_context +
+# Open-Meteo + توصية الريّ FAO-56)، يُشغّل قواعد alert_rules النقيّة، ثمّ يُدرِج
+# التنبيهات المُولَّدة في نفس جدول v36 — بحذف تكرار (dedupe) لكلّ نوع نشط في الحقل.
+# لا جدول/هجرة جديدة. تعذّر الطقس/القاعدة ⇒ 503 صريح.
+
+
+class AlertEvaluateResponse(BaseModel):
+    """ناتج تقييم تنبيهات حقل: المُنشأ + عدد المُتجاوَز (موجود نشط مسبقاً)."""
+
+    created: list[AlertSummary]
+    skipped_existing: int
+
+
+@app.post(
+    "/api/v1/fields/{field_id}/alerts/evaluate",
+    response_model=AlertEvaluateResponse,
+)
+async def evaluate_field_alerts_endpoint(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يُقيّم ظروف الحقل الحاليّة ويُنشئ تنبيهات مُصنَّفة في جدول alerts (v36).
+
+    يؤكّد أنّ الحقل يخصّ المستأجِر (404)، يبني السياق من الطقس الحيّ (Open-Meteo،
+    نفس مصدر /api/v1/weather) ومحصول/مرحلة الموسم النشط، يُشغّل قواعد التنبيه
+    النقيّة (api.alert_rules)، ثمّ يُدرِج النتائج — مع تجاوز أيّ نوع تنبيه له
+    تنبيه 'active' قائم لهذا الحقل (dedupe). 503 إن تعذّر الطقس/القاعدة.
+    """
+    import uuid as _uuid
+
+    from api.alert_rules import FieldAlertContext, evaluate_field_alerts
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.weather_advice import irrigation_advice
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    try:
+        forecast = await fetch_daily_forecast(lat, lon, days=3)
+        current = await fetch_current(lat, lon)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    today = forecast[0] if forecast else None
+    # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
+    irrigation_need_mm: float | None = None
+    if today is not None and today.et0_mm is not None:
+        forecast_rain_48h = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+        advice = irrigation_advice(
+            et0_mm=today.et0_mm,
+            crop=crop,
+            stage=stage,
+            rain_recent_mm=current.precipitation_mm or 0.0,
+            forecast_rain_mm=forecast_rain_48h,
+            soil_moisture_pct=None,
+        )
+        irrigation_need_mm = advice.get("recommended_mm")
+
+    rain_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+    ctx = FieldAlertContext(
+        field_id=field_id,
+        soil_moisture_pct=None,  # لا مصدر قراءة تربة حيّ بعد — نعتمد احتياج الريّ.
+        irrigation_need_mm=irrigation_need_mm,
+        forecast_rain_mm=rain_3d,
+        temp_c=current.temperature_c,
+        humidity_pct=current.humidity_pct,
+        rain_mm_3d=rain_3d,
+        tmax_c=today.temp_max_c if today is not None else None,
+        tmin_c=today.temp_min_c if today is not None else None,
+        crop=crop,
+    )
+    generated = evaluate_field_alerts(ctx)
+
+    created: list[AlertSummary] = []
+    skipped = 0
+    try:
+        async with tenant_connection(user) as conn:
+            # أنواع التنبيهات النشطة القائمة لهذا الحقل (dedupe على (field_id, type)).
+            existing_rows = await conn.fetch(
+                "SELECT DISTINCT alert_type FROM alerts WHERE field_id = $1 AND status = 'active'",
+                field_id,
+            )
+            existing_types = {r["alert_type"] for r in existing_rows}
+            for ga in generated:
+                if ga.alert_type in existing_types:
+                    skipped += 1
+                    continue
+                alert_id = "alr_" + _uuid.uuid4().hex[:12]
+                await conn.execute(
+                    """INSERT INTO alerts
+                        (alert_id, tenant_id, field_id, alert_type, severity,
+                         title_ar, message_ar, status)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
+                    alert_id,
+                    str(user.tenant_id),
+                    field_id,
+                    ga.alert_type,
+                    ga.severity,
+                    ga.title_ar,
+                    ga.message_ar,
+                )
+                # نمنع تكراراً ضمن نفس التشغيل أيضاً (قاعدة واحدة لكلّ نوع).
+                existing_types.add(ga.alert_type)
+                created.append(
+                    AlertSummary(
+                        alert_id=alert_id,
+                        field_id=field_id,
+                        alert_type=ga.alert_type,
+                        severity=ga.severity,
+                        title_ar=ga.title_ar,
+                        message_ar=ga.message_ar,
+                        status="active",
+                    )
+                )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ التنبيهات المُولَّدة", e) from e
+
+    return AlertEvaluateResponse(created=created, skipped_existing=skipped)
+
+
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
 class FarmCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)

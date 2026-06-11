@@ -5,8 +5,8 @@
 // (StateViews)، وأزرار محكومة بالدور (RBAC: المُشاهِد لا يُقِرّ/يحذف).
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
-import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X } from 'lucide-react';
-import { useAlerts, useAcknowledgeAlert } from '../hooks/useApi';
+import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X, Zap } from 'lucide-react';
+import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useFields } from '../hooks/useApi';
 import type { AlertRecord } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -53,11 +53,41 @@ export function AlertSystemPage() {
   const mutateAllowed = canMutate(user?.role);
   const { data, isLoading, isError, refetch } = useAlerts();
   const ackMut = useAcknowledgeAlert();
+  const evalMut = useEvaluateAlerts();
+  const { data: fieldsData } = useFields();
 
   const [filter, setFilter] = useState<string>('all');
   const [showAcknowledged, setShowAcknowledged] = useState(false);
   const [ackIds, setAckIds] = useState<Set<string>>(new Set());
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const [evalFieldId, setEvalFieldId] = useState<string>('');
+  const [evalNote, setEvalNote] = useState<string>('');
+
+  // قائمة الحقول لمنتقي التقييم (نفس تطبيع WeatherAdvicePage).
+  const fieldOptions = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
+    id: String(f.field_id ?? f.id),
+    name: String(f.name_ar ?? f.name ?? 'حقل'),
+  }));
+
+  const runEvaluate = () => {
+    if (!mutateAllowed || !evalFieldId || evalMut.isPending) return;
+    setEvalNote('');
+    evalMut.mutate(evalFieldId, {
+      onSuccess: (res) => {
+        const c = res.created.length;
+        const s = res.skipped_existing;
+        setEvalNote(
+          c === 0 && s === 0
+            ? 'لا تنبيهات جديدة — ظروف الحقل ضمن الحدود الطبيعيّة.'
+            : `أُنشئ ${c} تنبيه${s > 0 ? ` (تُجووِز ${s} موجود مسبقاً)` : ''}.`
+        );
+        refetch();
+      },
+      onError: () => {
+        setEvalNote('تعذّر التقييم — قد يكون الطقس أو الخدمة غير متاح حاليّاً. حاول لاحقاً.');
+      },
+    });
+  };
 
   // useAlerts ترجع AlertRecord[] مباشرةً من sahool-platform (v36) — لا { alerts }.
   const apiAlerts: AlertRecord[] = data ?? [];
@@ -111,6 +141,40 @@ export function AlertSystemPage() {
           عرض المُعترف بها
         </label>
       </div>
+
+      {/* تقييم تلقائيّ: يُولّد تنبيهات من ظروف الحقل الحيّة (FIELD_EDIT فقط) */}
+      {mutateAllowed && (
+        <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Zap className="w-4 h-4 text-amber-400" />
+            <span className="text-sm font-semibold text-slate-200">تقييم تلقائيّ للتنبيهات</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={evalFieldId}
+              onChange={e => { setEvalFieldId(e.target.value); setEvalNote(''); }}
+              className="flex-1 min-w-[180px] rounded-lg px-3 py-2 text-sm text-slate-200 bg-slate-800 border border-slate-700"
+            >
+              <option value="">— اختر حقلاً —</option>
+              {fieldOptions.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+            <button
+              onClick={runEvaluate}
+              disabled={!evalFieldId || evalMut.isPending}
+              className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-slate-900 bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Zap className="w-4 h-4" />
+              {evalMut.isPending ? 'جارٍ التقييم…' : 'تقييم التنبيهات الآن'}
+            </button>
+          </div>
+          {fieldOptions.length === 0 && (
+            <p className="text-[11px] text-slate-500 mt-2">لا حقول متاحة — أضِف حقلاً من «إدارة الحقول» أوّلاً.</p>
+          )}
+          {evalNote && (
+            <p className="text-xs mt-2" style={{ color: evalMut.isError ? '#f87171' : '#34d399' }}>{evalNote}</p>
+          )}
+        </div>
+      )}
 
       {/* Severity summary */}
       <div className="grid grid-cols-4 gap-3">

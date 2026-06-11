@@ -22,8 +22,8 @@ import {
   type Activity, type ActivityCreateInput,
   fetchIrrigationAdvice, fetchDiseaseRisk,
   type IrrigationAdvice, type DiseaseRisk,
-  fetchAlerts, createAlert, acknowledgeAlert,
-  type AlertRecord, type AlertCreateInput, type AlertListFilters,
+  fetchAlerts, createAlert, acknowledgeAlert, evaluateFieldAlerts,
+  type AlertRecord, type AlertCreateInput, type AlertListFilters, type AlertEvaluateResult,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
@@ -522,6 +522,17 @@ export function useCreateAlert(): UseMutationResult<AlertRecord, Error, AlertCre
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<AlertRecord, Error, AlertCreateInput>({
     mutationFn: (payload) => createAlert(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
+  });
+}
+
+// تقييم تنبيهات حقل تلقائيّاً (يُولّد تنبيهات من ظروف الحقل الحيّة، sahool-platform)
+// — يُبطِل كاش تنبيهات المستأجِر ليُعاد جلب القائمة بالتنبيهات المُولَّدة حديثاً.
+export function useEvaluateAlerts(): UseMutationResult<AlertEvaluateResult, Error, string> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<AlertEvaluateResult, Error, string>({
+    mutationFn: (fieldId) => evaluateFieldAlerts(fieldId),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
   });
 }
