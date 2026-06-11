@@ -5720,11 +5720,15 @@ def test_entityid_text_and_tenant_isolation():
         r.append(("✗", "v18: entity_id نصّيّ رُفِض (regression)"))
     if new_event("x.y", "field", "fld_demo_001", _U).to_emit_args()["entity_id"] == "fld_demo_001":
         r.append(("✓", "v18: entity_id يمرّ نصّيّاً لعقد emit_event"))
+    else:
+        r.append(("✗", "v18: entity_id حُوِّل/شُوِّه في عقد emit_event (regression)"))
     bad = EventEnvelope(
         event_type="a.b", entity_type="field", entity_id="  ", tenant_id=_U, source="system"
     )
     if any("entity_id" in e for e in validate_envelope(bad)):
         r.append(("✓", "v18: entity_id فارغ يُرفَض (لا تحقّق زائف)"))
+    else:
+        r.append(("✗", "v18: entity_id فارغ قُبِل (لا حارس — regression)"))
 
     # ② عزل InMemoryWorkflowStore لكلّ مستأجر (#٤): فحص مصدر (api.main يستورد
     # FastAPI الثقيل ⇒ غير مناسب للـrunner الخفيف؛ الحارس السلوكيّ في pytest).
