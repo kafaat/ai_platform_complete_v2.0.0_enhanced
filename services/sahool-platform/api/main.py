@@ -1280,6 +1280,171 @@ async def list_seasons(
     return [_row_to_season(r) for r in rows]
 
 
+# ─── الطقس والريّ (Weather-driven advice) — Sprint 5a ────────────
+# نقطتان للحقل: توصية ريّ (FAO-56) + مخاطر أمراض، تُحسبان من الطقس الحيّ
+# (نفس مصدر /api/v1/weather: Open-Meteo) ومحصول الموسم النشط إن وُجد.
+# منطق التهديف نقيّ في api.weather_advice (مُختبَر offline). تعذّر الطقس ⇒ 503.
+
+# مراحل النموّ التقريبيّة بالأيّام منذ البذار (FAO-56 — initial/dev/mid/late).
+# ⚠ تقدير عامّ يحتاج معايرة لكلّ محصول؛ يُستخدم فقط لاختيار Kc حين توفّر sowing_date.
+_STAGE_DAY_BOUNDS = ((30, "initial"), (60, "development"), (120, "mid"))
+
+
+def _growth_stage(days_since_sowing: int | None) -> str:
+    """يُرجع مرحلة النموّ من عدد الأيّام منذ البذار. None/غير معروف ⇒ 'mid'."""
+    if days_since_sowing is None or days_since_sowing < 0:
+        return "mid"
+    for bound, stage in _STAGE_DAY_BOUNDS:
+        if days_since_sowing <= bound:
+            return stage
+    return "late"
+
+
+async def _field_weather_context(conn, field_id: str) -> tuple[float, float, str | None, str]:
+    """يجلب (lat, lon, crop, stage) للحقل + موسمه النشط بعد تأكيد المُستأجِر (404).
+
+    المحصول من الموسم النشط (أحدث active) إن وُجد، وإلّا من عمود fields.crop.
+    المرحلة من sowing_date للموسم النشط إن توفّر، وإلّا 'mid'.
+    يرفع 404 إن غاب الحقل، و422 إن لم تتوفّر إحداثيّات الحقل (الطقس يحتاجها).
+    """
+    row = await conn.fetchrow("SELECT lat, lon, crop FROM fields WHERE field_id = $1", field_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    if row["lat"] is None or row["lon"] is None:
+        raise HTTPException(
+            status_code=422,
+            detail="الحقل بلا إحداثيّات (lat/lon) — لا يمكن جلب الطقس. حدّد موقع الحقل أوّلاً.",
+        )
+    season = await conn.fetchrow(
+        "SELECT crops, sowing_date FROM seasons "
+        "WHERE field_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1",
+        field_id,
+    )
+    crop: str | None = row["crop"]
+    stage = "mid"
+    if season is not None:
+        import json as _json
+
+        crops = season["crops"]
+        if isinstance(crops, str):
+            try:
+                crops = _json.loads(crops)
+            except (ValueError, TypeError):
+                crops = []
+        if isinstance(crops, list) and crops:
+            crop = str(crops[0])
+        if season["sowing_date"] is not None:
+            days = (date.today() - season["sowing_date"]).days
+            stage = _growth_stage(days)
+    return float(row["lat"]), float(row["lon"]), crop, stage
+
+
+@app.get("/api/v1/fields/{field_id}/weather/irrigation-advice")
+async def field_irrigation_advice(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """توصية ريّ بنمط FAO-56 للحقل من الطقس الحيّ ومحصول الموسم النشط.
+
+    يحسب ET₀ × Kc − المطر الفعّال (api.weather_advice، نقيّ ومُختبَر). يجلب ET₀
+    والمطر من Open-Meteo (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
+    تعذّر الطقس (لا بيانات وهميّة).
+    """
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.weather_advice import irrigation_advice
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    try:
+        forecast = await fetch_daily_forecast(lat, lon, days=3)
+        current = await fetch_current(lat, lon)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    today = forecast[0] if forecast else None
+    et0 = today.et0_mm if today and today.et0_mm is not None else None
+    if et0 is None:
+        raise HTTPException(
+            status_code=503,
+            detail="بيانات ET₀ غير متوفّرة من مصدر الطقس حاليّاً. حاول لاحقاً.",
+        )
+    # المطر المتوقّع خلال ٤٨ ساعة القادمة (يومان قادمان من التوقّع).
+    forecast_rain = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+    advice = irrigation_advice(
+        et0_mm=et0,
+        crop=crop,
+        stage=stage,
+        rain_recent_mm=current.precipitation_mm or 0.0,
+        forecast_rain_mm=forecast_rain,
+        soil_moisture_pct=None,
+    )
+    advice.update({"field_id": field_id, "crop": crop, "stage": stage, "source": "open-meteo"})
+    return advice
+
+
+@app.get("/api/v1/fields/{field_id}/weather/disease-risk")
+async def field_disease_risk(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مخاطر أمراض فطريّة (agro-met) للحقل من الرطوبة/الحرارة/المطر.
+
+    منطق التهديف نقيّ (api.weather_advice، مُختبَر offline). يجلب الطقس الحالي +
+    مطر آخر ٣ أيّام من Open-Meteo. 404 إن غاب الحقل، 503 إن تعذّر الطقس.
+    """
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.weather_advice import disease_risk
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, _stage = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    try:
+        current = await fetch_current(lat, lon)
+        forecast = await fetch_daily_forecast(lat, lon, days=3)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    rain_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+    risk = disease_risk(
+        temp_c=current.temperature_c,
+        humidity_pct=current.humidity_pct,
+        rain_mm_3d=rain_3d,
+        crop=crop,
+    )
+    risk.update(
+        {
+            "field_id": field_id,
+            "crop": crop,
+            "temperature_c": round(current.temperature_c, 1),
+            "humidity_pct": round(current.humidity_pct, 1),
+            "rain_mm_3d": round(rain_3d, 1),
+            "source": "open-meteo",
+        }
+    )
+    return risk
+
+
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
 _ACTIVITY_TYPES = {
     "planting",
