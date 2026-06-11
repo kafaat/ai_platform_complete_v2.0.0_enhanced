@@ -69,6 +69,14 @@ export function canManage(role: string | undefined): boolean {
   return r === 'owner' || r === 'manager';
 }
 
+/** صلاحيّة إنشاء مزرعة (farm:create) — owner فقط (يطابق RBAC الخلفيّة:
+ *  FARM_CREATE مقصور على OWNER). تُستخدم لبوّابة الـonboarding كي لا يُحبَس
+ *  غير المالك (manager/agronomist/worker/viewer) في شاشة إنشاء مزرعة لا
+ *  يستطيع إكمالها (POST /api/v1/farms يردّ 403 لهم). */
+export function canCreateFarm(role: string | undefined): boolean {
+  return normalizeRole(role) === 'owner';
+}
+
 /** تسمية عربيّة موحّدة للدور. */
 export const ROLE_LABEL_AR: Record<Role, string> = {
   owner: 'مالك',
