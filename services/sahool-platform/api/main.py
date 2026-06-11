@@ -1342,6 +1342,192 @@ async def list_telemetry(
     ]
 
 
+# ─── الري التشغيلي (صمامات + جداول) — الطبقة ٣ (v25) ─────────────
+class ValveRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    field_id: str | None = None
+    device_id: str | None = None
+    valve_type: str = Field(default="solenoid", pattern="^(solenoid|manual|drip_header|gate)$")
+    flow_rate_lpm: float | None = Field(default=None, ge=0)
+
+
+class ValveStateRequest(BaseModel):
+    status: str = Field(pattern="^(open|closed)$")
+
+
+class ScheduleRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    field_id: str | None = None
+    valve_id: str | None = None
+    start_time: str  # HH:MM أو HH:MM:SS
+    duration_min: int = Field(ge=1, le=1440)
+    days_of_week: list[int] | None = None
+    water_target_mm: float | None = Field(default=None, ge=0)
+    enabled: bool = True
+
+
+def _parse_time(value: str):
+    """يحوّل HH:MM[:SS] إلى time؛ 400 على قيمة غير صالحة (لا 500)."""
+    from datetime import time as _time
+
+    try:
+        return _time.fromisoformat(value.strip())
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(status_code=400, detail="start_time غير صالح — استخدم HH:MM") from None
+
+
+@app.post("/api/v1/irrigation/valves", status_code=201)
+async def register_valve(
+    req: ValveRequest,
+    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
+):
+    import uuid as _uuid
+
+    valve_id = "vlv_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        await conn.execute(
+            """INSERT INTO irrigation_valves
+                (valve_id, tenant_id, name, field_id, device_id, valve_type, flow_rate_lpm)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
+            valve_id,
+            str(user.tenant_id),
+            req.name,
+            req.field_id,
+            req.device_id,
+            req.valve_type,
+            req.flow_rate_lpm,
+        )
+    return {"valve_id": valve_id, "name": req.name, "message_ar": "سُجّل الصمّام"}
+
+
+@app.get("/api/v1/irrigation/valves")
+async def list_valves(user: UserSchema = Depends(require_permission(Permission.IRRIGATION_VIEW))):
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT valve_id, name, field_id, device_id, valve_type, status, flow_rate_lpm, "
+            "last_changed_at FROM irrigation_valves ORDER BY name"
+        )
+    return [
+        {
+            "valve_id": r["valve_id"],
+            "name": r["name"],
+            "field_id": r["field_id"],
+            "device_id": r["device_id"],
+            "valve_type": r["valve_type"],
+            "status": r["status"],
+            "flow_rate_lpm": float(r["flow_rate_lpm"]) if r["flow_rate_lpm"] is not None else None,
+            "last_changed_at": r["last_changed_at"].isoformat() if r["last_changed_at"] else None,
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/v1/irrigation/valves/{valve_id}/state")
+async def set_valve_state(
+    valve_id: str,
+    req: ValveStateRequest,
+    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
+):
+    """يسجّل نيّة فتح/إغلاق الصمّام + الحالة. التشغيل الفيزيائي الفعلي يمرّ عبر
+    actuator-service/automation مع موافقة بشريّة (HIL) — هذه النقطة لا تُشغّل
+    العتاد مباشرةً (مبدأ: لا تشغيل آليّ بلا ضابط)."""
+    async with tenant_connection(user) as conn:
+        updated = await conn.fetchval(
+            "UPDATE irrigation_valves SET status = $1, last_changed_at = NOW() "
+            "WHERE valve_id = $2 RETURNING valve_id",
+            req.status,
+            valve_id,
+        )
+        if not updated:
+            raise HTTPException(status_code=404, detail="الصمّام غير موجود")
+    return {"valve_id": valve_id, "status": req.status, "message_ar": "سُجّلت حالة الصمّام"}
+
+
+@app.post("/api/v1/irrigation/schedules", status_code=201)
+async def create_schedule(
+    req: ScheduleRequest,
+    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
+):
+    import uuid as _uuid
+
+    schedule_id = "sch_" + _uuid.uuid4().hex[:12]
+    start = _parse_time(req.start_time)
+    dows = req.days_of_week
+    if dows is not None and any(d < 0 or d > 6 for d in dows):
+        raise HTTPException(status_code=400, detail="days_of_week يجب أن تكون 0..6")
+    async with tenant_connection(user) as conn:
+        await conn.execute(
+            """INSERT INTO irrigation_schedules
+                (schedule_id, tenant_id, field_id, valve_id, name, start_time,
+                 duration_min, days_of_week, water_target_mm, enabled)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
+            schedule_id,
+            str(user.tenant_id),
+            req.field_id,
+            req.valve_id,
+            req.name,
+            start,
+            req.duration_min,
+            dows,
+            req.water_target_mm,
+            req.enabled,
+        )
+    return {"schedule_id": schedule_id, "name": req.name, "message_ar": "أُنشئ جدول الريّ"}
+
+
+@app.get("/api/v1/irrigation/schedules")
+async def list_schedules(
+    field_id: str | None = None,
+    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_VIEW)),
+):
+    async with tenant_connection(user) as conn:
+        if field_id:
+            rows = await conn.fetch(
+                "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
+                "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
+                "WHERE field_id = $1 ORDER BY start_time",
+                field_id,
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
+                "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
+                "ORDER BY start_time"
+            )
+    return [
+        {
+            "schedule_id": r["schedule_id"],
+            "field_id": r["field_id"],
+            "valve_id": r["valve_id"],
+            "name": r["name"],
+            "start_time": r["start_time"].isoformat() if r["start_time"] else None,
+            "duration_min": r["duration_min"],
+            "days_of_week": list(r["days_of_week"]) if r["days_of_week"] else None,
+            "water_target_mm": (
+                float(r["water_target_mm"]) if r["water_target_mm"] is not None else None
+            ),
+            "enabled": r["enabled"],
+            "last_run_at": r["last_run_at"].isoformat() if r["last_run_at"] else None,
+        }
+        for r in rows
+    ]
+
+
+@app.delete("/api/v1/irrigation/schedules/{schedule_id}")
+async def delete_schedule(
+    schedule_id: str,
+    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
+):
+    async with tenant_connection(user) as conn:
+        deleted = await conn.fetchval(
+            "DELETE FROM irrigation_schedules WHERE schedule_id = $1 RETURNING schedule_id",
+            schedule_id,
+        )
+        if not deleted:
+            raise HTTPException(status_code=404, detail="جدول الريّ غير موجود")
+    return {"schedule_id": schedule_id, "message_ar": "حُذف جدول الريّ"}
+
+
 @app.get("/api/v1/activities", response_model=list[ActivityItem])
 def list_activities(
     user: UserSchema = Depends(get_current_user),
