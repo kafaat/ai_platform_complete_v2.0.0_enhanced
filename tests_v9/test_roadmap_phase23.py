@@ -5702,6 +5702,52 @@ def test_indices_water():
     return r
 
 
+def test_entityid_text_and_tenant_isolation():
+    """حارس الإصلاحين البنيويّين في الـrunner (offline): v18 (entity_id نصّيّ)
+    + عزل InMemoryWorkflowStore لكلّ مستأجر. كانا بحارسات pytest فقط؛ هذا
+    يُدرجهما في الـrunner النقيّ ليُشغَّلا مع البقيّة."""
+    r = []
+    _U = "22222222-2222-2222-2222-222222222222"
+    # services/sahool-platform مُضاف لـsys.path في رأس الملفّ (لا حاجة لتكرار).
+
+    # ① v18: معرّف حقل نصّيّ صالح في event_schema (كان يُرفَض بفرض UUID)
+    from core.event_schema import EventEnvelope, new_event, validate_envelope
+
+    env = new_event("trueup.applied", "field", "fld_demo_001", _U, source="system")
+    if validate_envelope(env) == []:
+        r.append(("✓", "v18: entity_id نصّيّ (fld_demo_001) صالح في event_schema"))
+    else:
+        r.append(("✗", "v18: entity_id نصّيّ رُفِض (regression)"))
+    if new_event("x.y", "field", "fld_demo_001", _U).to_emit_args()["entity_id"] == "fld_demo_001":
+        r.append(("✓", "v18: entity_id يمرّ نصّيّاً لعقد emit_event"))
+    else:
+        r.append(("✗", "v18: entity_id حُوِّل/شُوِّه في عقد emit_event (regression)"))
+    bad = EventEnvelope(
+        event_type="a.b", entity_type="field", entity_id="  ", tenant_id=_U, source="system"
+    )
+    if any("entity_id" in e for e in validate_envelope(bad)):
+        r.append(("✓", "v18: entity_id فارغ يُرفَض (لا تحقّق زائف)"))
+    else:
+        r.append(("✗", "v18: entity_id فارغ قُبِل (لا حارس — regression)"))
+
+    # ② عزل InMemoryWorkflowStore لكلّ مستأجر (#٤): فحص مصدر (api.main يستورد
+    # FastAPI الثقيل ⇒ غير مناسب للـrunner الخفيف؛ الحارس السلوكيّ في pytest).
+    base = os.path.join(os.path.dirname(__file__), "..")
+    main_src = open(
+        os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8"
+    ).read()
+    # المفرد المشترك القديم أُزيل، وحلّ محلّه قاموس لكلّ مستأجر يُفهرَس بـtenant.
+    if "_INMEM_WORKFLOW_STORE = None" not in main_src and "_INMEM_WORKFLOW_STORES" in main_src:
+        r.append(("✓", "عزل InMemory: المفرد المشترك القديم أُزيل (لكلّ مستأجر)"))
+    else:
+        r.append(("✗", "عزل InMemory: لا يزال مفرداً مشتركاً (تصادم المستأجرين)"))
+    if "_INMEM_WORKFLOW_STORES.get(key)" in main_src and 'key = str(tenant_id or "")' in main_src:
+        r.append(("✓", "عزل InMemory: المخزن يُفهرَس بمفتاح المستأجر"))
+    else:
+        r.append(("✗", "عزل InMemory: المخزن لا يُفهرَس بالمستأجر"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -5837,6 +5883,7 @@ def run_all():
         ("firmware_hardening", test_firmware_hardening),
         ("critical_review_c1_c4", test_critical_review_c1_c4),
         ("jwt_audience_consistency", _report_jwt_audience_consistency),
+        ("entityid_text_tenant_isolation", test_entityid_text_and_tenant_isolation),
     ]
     tp = tf = 0
     for name, s in suites:
