@@ -24,13 +24,13 @@ const ALL_PAGES: PageId[] = [
   'dashboard', 'hybrid-index', 'satellite', 'fields', 'recommendations',
   'irrigation', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
-  'tasks', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
+  'tasks', 'activities', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
 ];
 
 // worker (مزارع/عامل): الصفحات التشغيليّة فقط (وفق سياسة الإعدادات الموثّقة:
 // لوحة + أقمار + حقول + مهام، مع التنبيهات/المستشار/المكانيّة + أدوات حقله).
 const WORKER_PAGES: PageId[] = [
-  'dashboard', 'satellite', 'fields', 'tasks', 'alerts', 'chatbot', 'spatial-indicators',
+  'dashboard', 'satellite', 'fields', 'tasks', 'activities', 'alerts', 'chatbot', 'spatial-indicators',
   'irrigation', 'pest-escalation', 'field-intelligence',
   'inventory', 'equipment', 'devices', 'irrigation-ops',
 ];

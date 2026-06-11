@@ -18,6 +18,8 @@ import {
   type InventoryItem, type ExpiringBatch, type NewInventoryItem, type NewInventoryBatch,
   fetchEquipment, createEquipment, fetchMaintenance, logMaintenance,
   type Equipment, type EquipmentCreateInput, type MaintenanceRecord, type MaintenanceCreateInput,
+  fetchActivities, createActivity,
+  type Activity, type ActivityCreateInput,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
@@ -30,6 +32,9 @@ import {
   // ── الحوكمة والتدقيق: أصل/أحداث/أوامر كيان + مفاتيح المشاركة ──
   listSharingKeys, createSharingKey,
   type SharingKey, type NewSharingKey, type SharingKeyCreated,
+  // ── المزارع (بوّابة التأهيل): سرد + إنشاء ──
+  fetchFarms, createFarm,
+  type Farm, type FarmCreateInput, type FarmCreated,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -46,7 +51,9 @@ export const QK = {
   soilParams:       (fid: string)        => ['soil', 'params', fid],
   soilNRec:         (fid: string)        => ['soil', 'nrec', fid],
   fields:           (tid: string)        => ['fields', tid],
+  farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
+  activities:       (tid: string, fid: string) => ['activities', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
@@ -300,6 +307,31 @@ export function useFields() {
   });
 }
 
+// ── Farms: المزارع (حيّة، tenant-scoped + RBAC farm:view/create) ──
+// تُستخدم لبوّابة التأهيل: مستخدم جديد بلا مزرعة يُجبَر على إنشاء واحدة قبل اللوحة.
+// لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض الاستعلام.
+export function useFarms(enabled = true): UseQueryResult<Farm[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<Farm[]>({
+    queryKey: QK.farms(tid),
+    queryFn:  () => fetchFarms(),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled,
+  });
+}
+
+// إنشاء مزرعة — يُبطِل كاش قائمة المزارع للمستأجِر الحاليّ (بوّابة التأهيل تتجاوز
+// فور وجود مزرعة). 503 عند تعطيل DB / 403 RBAC يُرفع ليعرض النموذج خطأً صادقاً.
+export function useCreateFarm(): UseMutationResult<FarmCreated, Error, FarmCreateInput> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<FarmCreated, Error, FarmCreateInput>({
+    mutationFn: (payload) => createFarm(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.farms(tid) }); },
+  });
+}
+
 export function useTasks(fieldId?: string) {
   return useQuery<{ tasks: Task[] }>({
     queryKey: QK.tasks(fieldId),
@@ -314,6 +346,31 @@ export function useCompleteTask() {
   return useMutation({
     mutationFn: ({ taskId, photoUrl }: { taskId: string; photoUrl?: string }) =>
       kongApi.patch(`/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
+  });
+}
+
+// ── Field Activities: العمليّات الزراعيّة لكلّ حقل (sahool-platform v35) ──
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 404 حقل / 403) يُرفض الاستعلام
+// لتعرض الواجهة حالة صادقة (StateViews). مُفعَّل فقط عند وجود fieldId.
+export function useActivities(fieldId?: string): UseQueryResult<Activity[], Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<Activity[], Error>({
+    queryKey: QK.activities(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchActivities(fieldId as string),
+    staleTime:2 * 60_000,
+    enabled:  !!fieldId,
+  });
+}
+
+// تسجيل عمليّة لحقل — يُبطِل كاش عمليّات الحقل للمستأجِر الحاليّ.
+export function useCreateActivity(
+  fieldId: string,
+): UseMutationResult<Activity, Error, ActivityCreateInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<Activity, Error, ActivityCreateInput>({
+    mutationFn: (payload) => createActivity(fieldId, payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.activities(tid, fieldId) }); },
   });
 }
 

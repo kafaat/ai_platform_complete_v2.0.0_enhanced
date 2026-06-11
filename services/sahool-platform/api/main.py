@@ -31,6 +31,7 @@ import secrets
 import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
+from typing import Literal
 
 # جعل النواة قابلة للاستيراد
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -382,6 +383,13 @@ class FieldSummary(BaseModel):
     health_summary_ar: str  # "صحّي" / "يحتاج ريّ" / "إجهاد ملحي"
     soil_type: str | None = None  # نوع التربة (يُمرَّر للواجهة بدل ضياعه)
     manager: str | None = None  # المسؤول عن الحقل
+    # حقول مُثراة (v33): كود الحقل + مصدر الماء + الملكيّة + الكشف الآلي للموقع.
+    field_code: str | None = None  # كود الحقل (مرجع المزارع)
+    description: str | None = None  # وصف حرّ
+    water_source: str | None = None  # well/canal/river/rainfed/tank/mixed
+    ownership_type: str | None = None  # نوع الملكيّة
+    country: str | None = None  # الدولة (مكتشفة آليّاً من المركز)
+    region: str | None = None  # الإقليم/المحافظة (مكتشفة آليّاً من المركز)
     # حقول الخريطة (اختياريّة، توافق خلفيّ): مركز الحقل وهندسته لرسم المضلّع.
     lat: float | None = None
     lon: float | None = None
@@ -862,9 +870,47 @@ def _centroid_from_bbox(bbox: dict | None) -> tuple[float | None, float | None]:
     return lat, lon
 
 
+def _reverse_geocode(lat: float | None, lon: float | None) -> tuple[str | None, str | None]:
+    """يكشف آليّاً الدولة + الإقليم (المحافظة) من مركز الحقل — دالّة نقيّة offline.
+
+    الدولة = "اليمن" إن وقعت النقطة داخل YEMEN_BBOX (geospatial_integrity)، وإلّا
+    "غير محدّد". الإقليم = المحافظة اليمنيّة عبر geo_zone_locator (صناديق إحداثيّة
+    + الأصغر/الأدقّ عند التداخل). تُعاد (country, region)؛ region قد يكون None خارج
+    اليمن أو خارج المحافظات المعرّفة. لا I/O — قابلة للاختبار دون قاعدة/شبكة.
+    """
+    from api.geo_zone_locator import locate_field
+    from api.geospatial_integrity import YEMEN_BBOX
+
+    if lat is None or lon is None:
+        return None, None
+
+    inside_yemen = (
+        YEMEN_BBOX["min_lat"] <= lat <= YEMEN_BBOX["max_lat"]
+        and YEMEN_BBOX["min_lng"] <= lon <= YEMEN_BBOX["max_lng"]
+    )
+    country = "اليمن" if inside_yemen else "غير محدّد"
+
+    region: str | None = None
+    if inside_yemen:
+        loc = locate_field(lat, lon)
+        if loc.get("supported"):
+            gov = loc.get("governorate_ar")
+            # locate_field يُرجع نصّاً افتراضيّاً عند تعذّر المطابقة الدقيقة
+            if gov and gov != "غير محدّدة بدقّة":
+                region = gov
+    return country, region
+
+
 def _row_to_field_summary(r) -> FieldSummary:
     """صفّ DB → FieldSummary (يفكّ geometry لو رجعت نصّاً من JSONB)."""
     import json as _json
+
+    def _opt(key):
+        # عمود اختياري قد يغيب (صفّ قديم/اختبار) — None بدل KeyError
+        try:
+            return r[key]
+        except (KeyError, IndexError):
+            return None
 
     geom = r["geometry"]
     if isinstance(geom, str):
@@ -882,6 +928,12 @@ def _row_to_field_summary(r) -> FieldSummary:
         health_summary_ar="—",
         soil_type=r["soil_type"],
         manager=r["manager"],
+        field_code=_opt("field_code"),
+        description=_opt("description"),
+        water_source=_opt("water_source"),
+        ownership_type=_opt("ownership_type"),
+        country=_opt("country"),
+        region=_opt("region"),
         lat=float(r["lat"]) if r["lat"] is not None else None,
         lon=float(r["lon"]) if r["lon"] is not None else None,
         geometry=geom,
@@ -912,6 +964,7 @@ async def list_fields(user: UserSchema = Depends(get_current_user)):
         async with tenant_connection(user) as conn:
             rows = await conn.fetch(
                 "SELECT field_id, farm_id, name, area_ha, crop, soil_type, manager, "
+                "field_code, description, water_source, ownership_type, country, region, "
                 "lat, lon, geometry "
                 "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
                 str(user.tenant_id),
@@ -933,6 +986,13 @@ class FieldCreateRequest(BaseModel):
     geometry: dict  # GeoJSON Polygon: {"type":"Polygon","coordinates":[[[lon,lat],...]]}
     farm_id: str | None = None
     gov: str | None = None
+    # حقول مُثراة (v33): اختياريّة. country/region تُكتشف آليّاً إن لم تُرسَل.
+    field_code: str | None = Field(default=None, max_length=50)
+    description: str | None = None
+    water_source: str | None = Field(default=None, max_length=20)
+    ownership_type: str | None = Field(default=None, max_length=20)
+    country: str | None = Field(default=None, max_length=60)
+    region: str | None = Field(default=None, max_length=80)
 
 
 @app.post("/api/v1/fields", status_code=201, response_model=FieldSummary)
@@ -963,14 +1023,23 @@ async def create_field(
         )
     area_ha = round(validation.computed_area_ha or 0.0, 2)
     lat, lon = _centroid_from_bbox(validation.computed_bbox)
+    # الكشف الآلي للدولة + الإقليم من مركز المضلّع (إن لم يُرسلهما العميل)
+    country, region = req.country, req.region
+    if country is None or region is None:
+        auto_country, auto_region = _reverse_geocode(lat, lon)
+        country = country or auto_country
+        region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
     try:
         async with tenant_connection(user) as conn:
             await conn.execute(
                 """INSERT INTO fields
                     (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
-                     area_ha, lat, lon, gov, geometry)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb)""",
+                     area_ha, lat, lon, gov, geometry,
+                     field_code, description, water_source, ownership_type,
+                     country, region)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
+                     $13, $14, $15, $16, $17, $18)""",
                 field_id,
                 str(user.tenant_id),
                 req.farm_id,
@@ -981,8 +1050,14 @@ async def create_field(
                 area_ha,
                 lat,
                 lon,
-                req.gov or "البيضاء",
+                req.gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
                 _json.dumps(req.geometry),
+                req.field_code,
+                req.description,
+                req.water_source,
+                req.ownership_type,
+                country,
+                region,
             )
     except HTTPException:
         raise  # get_pool() يرفع 503 أصلاً
@@ -998,10 +1073,28 @@ async def create_field(
         health_summary_ar="حقل جديد — بانتظار قياسات",
         soil_type=req.soil_type,
         manager=req.manager,
+        field_code=req.field_code,
+        description=req.description,
+        water_source=req.water_source,
+        ownership_type=req.ownership_type,
+        country=country,
+        region=region,
         lat=lat,
         lon=lon,
         geometry=req.geometry,
     )
+
+
+@app.get("/api/v1/geo/reverse")
+def geo_reverse_endpoint(
+    lat: float,
+    lon: float,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """كشف عكسي خفيف: مركز الحقل → {country, region} — لعرض الموقع المكتشف آليّاً
+    في الواجهة فور رسم المضلّع (قبل الحفظ). دالّة نقيّة (لا قاعدة)."""
+    country, region = _reverse_geocode(lat, lon)
+    return {"country": country, "region": region}
 
 
 # ─── المواسم الزراعيّة (Seasons) — نمط FieldView (v32) ────────────
@@ -1187,6 +1280,159 @@ async def list_seasons(
     return [_row_to_season(r) for r in rows]
 
 
+# ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
+_ACTIVITY_TYPES = {
+    "planting",
+    "fertilization",
+    "irrigation",
+    "spraying",
+    "pruning",
+    "harvest",
+    "scouting",
+}
+
+
+class ActivityCreateRequest(BaseModel):
+    """طلب تسجيل عمليّة زراعيّة لحقل (نوع/عنوان/تفاصيل/تواريخ/موسم اختياريّ)."""
+
+    activity_type: str
+    title_ar: str | None = Field(default=None, max_length=200)
+    details: dict = Field(default_factory=dict)
+    scheduled_for: str | None = None
+    performed_on: str | None = None
+    season_id: str | None = None
+
+
+class ActivitySummary(BaseModel):
+    activity_id: str
+    field_id: str
+    season_id: str | None = None
+    activity_type: str
+    title_ar: str | None = None
+    details: dict
+    scheduled_for: str | None = None
+    performed_on: str | None = None
+    status: str
+    created_at: str | None = None
+
+
+def _row_to_activity(r) -> ActivitySummary:
+    import json as _json
+
+    def _obj(v):
+        if isinstance(v, str):
+            try:
+                return _json.loads(v)
+            except (ValueError, TypeError):
+                return {}
+        return v or {}
+
+    def _d(v):
+        return v.isoformat() if v is not None else None
+
+    return ActivitySummary(
+        activity_id=r["activity_id"],
+        field_id=r["field_id"],
+        season_id=r["season_id"],
+        activity_type=r["activity_type"],
+        title_ar=r["title_ar"],
+        details=_obj(r["details"]),
+        scheduled_for=_d(r["scheduled_for"]),
+        performed_on=_d(r["performed_on"]),
+        status=r["status"],
+        created_at=r["created_at"].isoformat() if r["created_at"] else None,
+    )
+
+
+@app.post(
+    "/api/v1/fields/{field_id}/activities",
+    status_code=201,
+    response_model=ActivitySummary,
+)
+async def create_activity(
+    field_id: str,
+    req: ActivityCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يسجّل عمليّة زراعيّة للحقل — تُخزَّن فعليّاً ضمن سياق المستأجِر (RLS).
+
+    يتحقّق من نوع العمليّة (422)، ويحوّل التواريخ (400)، ويؤكّد أنّ الحقل
+    يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة.
+    """
+    import json as _json
+    import uuid as _uuid
+
+    if req.activity_type not in _ACTIVITY_TYPES:
+        raise HTTPException(status_code=422, detail="نوع عمليّة غير معروف")
+    scheduled = _parse_date(req.scheduled_for, "التاريخ المُجدوَل")
+    performed = _parse_date(req.performed_on, "تاريخ التنفيذ")
+    activity_id = "act_" + _uuid.uuid4().hex[:12]
+    status = "done" if performed else "planned"
+    try:
+        details_json = _json.dumps(req.details or {})
+    except (TypeError, ValueError) as e:
+        # محتوى details غير قابل للتسلسل ⇒ خطأ إدخال صريح (422) لا 500/503.
+        raise HTTPException(
+            status_code=422, detail="تفاصيل العمليّة غير قابلة للتسلسل (JSON)"
+        ) from e
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            await conn.execute(
+                """INSERT INTO activities
+                    (activity_id, tenant_id, field_id, season_id, activity_type,
+                     title_ar, details, scheduled_for, performed_on, status)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)""",
+                activity_id,
+                str(user.tenant_id),
+                field_id,
+                req.season_id,
+                req.activity_type,
+                req.title_ar,
+                details_json,
+                scheduled,
+                performed,
+                status,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ العمليّة", e) from e
+    return ActivitySummary(
+        activity_id=activity_id,
+        field_id=field_id,
+        season_id=req.season_id,
+        activity_type=req.activity_type,
+        title_ar=req.title_ar,
+        details=req.details or {},
+        scheduled_for=scheduled.isoformat() if scheduled else None,
+        performed_on=performed.isoformat() if performed else None,
+        status=status,
+    )
+
+
+@app.get("/api/v1/fields/{field_id}/activities", response_model=list[ActivitySummary])
+async def list_field_activities(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """عمليّات الحقل (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS). 503 عند تعذّر القاعدة."""
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)  # 404 لو الحقل ليس للمستأجِر
+            rows = await conn.fetch(
+                "SELECT activity_id, field_id, season_id, activity_type, title_ar, "
+                "details, scheduled_for, performed_on, status, created_at "
+                "FROM activities WHERE field_id = $1 ORDER BY created_at DESC",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة العمليّات", e) from e
+    return [_row_to_activity(r) for r in rows]
+
+
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
 class FarmCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
@@ -1194,6 +1440,16 @@ class FarmCreateRequest(BaseModel):
     area_ha: float | None = None
     centroid_lat: float | None = None
     centroid_lon: float | None = None
+    # تنظيم المزرعة (v34) — حقول اختياريّة لشاشة «إنشاء مزرعة».
+    country: str | None = Field(default=None, max_length=60)
+    region: str | None = Field(default=None, max_length=80)
+    timezone: str | None = Field(default=None, max_length=40)
+    # غير اختياريّ بقيمة افتراضيّة 'metric' — يطابق DEFAULT في الـmigration ويمنع
+    # إدراج NULL صريح، ومُقيَّد بالقيم المسموحة (تحقّق ساكن للواجهة أيضاً).
+    units: Literal["metric", "imperial"] = "metric"
+    currency: str | None = Field(default=None, max_length=10)
+    description: str | None = None
+    activity_type: str | None = Field(default=None, max_length=40)
 
 
 @app.post("/api/v1/farms", status_code=201)
@@ -1205,30 +1461,49 @@ async def create_farm(
     import uuid as _uuid
 
     farm_id = "frm_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO farms
-                (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            farm_id,
-            str(user.tenant_id),
-            req.name,
-            req.location,
-            req.area_ha,
-            req.centroid_lat,
-            req.centroid_lon,
-        )
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO farms
+                    (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon,
+                     country, region, timezone, units, currency, description, activity_type)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)""",
+                farm_id,
+                str(user.tenant_id),
+                req.name,
+                req.location,
+                req.area_ha,
+                req.centroid_lat,
+                req.centroid_lon,
+                req.country,
+                req.region,
+                req.timezone,
+                req.units,
+                req.currency,
+                req.description,
+                req.activity_type,
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ المزرعة", e) from e
     return {"farm_id": farm_id, "name": req.name, "message_ar": "أُنشئت المزرعة"}
 
 
 @app.get("/api/v1/farms")
 async def list_farms(user: UserSchema = Depends(require_permission(Permission.FARM_VIEW))):
     """قائمة مزارع المستأجر (مُرشّحة بـRLS تلقائيّاً)."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT farm_id, name, location, area_ha, centroid_lat, centroid_lon, created_at "
-            "FROM farms ORDER BY created_at DESC"
-        )
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT farm_id, name, location, area_ha, centroid_lat, centroid_lon, "
+                "country, region, timezone, units, currency, description, activity_type, "
+                "created_at FROM farms ORDER BY created_at DESC"
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة المزارع", e) from e
     return [
         {
             "farm_id": r["farm_id"],
@@ -1237,6 +1512,13 @@ async def list_farms(user: UserSchema = Depends(require_permission(Permission.FA
             "area_ha": float(r["area_ha"]) if r["area_ha"] is not None else None,
             "centroid_lat": float(r["centroid_lat"]) if r["centroid_lat"] is not None else None,
             "centroid_lon": float(r["centroid_lon"]) if r["centroid_lon"] is not None else None,
+            "country": r["country"],
+            "region": r["region"],
+            "timezone": r["timezone"],
+            "units": r["units"],
+            "currency": r["currency"],
+            "description": r["description"],
+            "activity_type": r["activity_type"],
             "created_at": r["created_at"].isoformat() if r["created_at"] else None,
         }
         for r in rows

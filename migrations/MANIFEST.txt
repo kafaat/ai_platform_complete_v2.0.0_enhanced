@@ -96,3 +96,12 @@ v31_fields_manager.sql
 # v32: المواسم الزراعيّة (seasons) لكلّ حقل — محاصيل/صنف/ريّ/تواريخ/مراحل/حالة.
 # يعتمد على fields. self-applied RLS.
 v32_seasons.sql
+# v33: إثراء الحقول — field_code + water_source + ownership_type + الكشف الآلي
+# للدولة (country) + الإقليم/المحافظة (region) من مركز المضلّع. يعدّل fields. idempotent.
+v33_fields_extended.sql
+# v34: تنظيم المزرعة — حقول إضافيّة على farms (دولة/منطقة/منطقة زمنيّة/وحدات/
+# عملة/وصف/نوع نشاط) لشاشة «إنشاء مزرعة» (Sprint 1b). يعدّل farms (v19). idempotent.
+v34_farms_org.sql
+# v35: العمليّات الزراعيّة (activities) لكلّ حقل — بذر/تسميد/ريّ/رشّ/تقليم/حصاد/كشف.
+# يعتمد على fields. self-applied RLS.
+v35_activities.sql

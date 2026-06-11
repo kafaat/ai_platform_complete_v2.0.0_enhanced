@@ -6,12 +6,14 @@ import {
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
-  ShieldCheck,
+  ShieldCheck, Sprout,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
+import { useFarms } from './hooks/useApi';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
 import { canAccess } from './lib/permissions';
+import { LoadingState } from './components/StateViews';
 
 // ── Error Boundary ──────────────────────────────────────────
 import React from 'react';
@@ -55,6 +57,7 @@ const ChatbotPage         = lazy(() => import('./sections/ChatbotPage').then(m =
 const HybridIndexPage     = lazy(() => import('./sections/HybridIndexPage').then(m => ({ default: m.HybridIndexPage })));
 const SettingsPage        = lazy(() => import('./sections/SettingsPage'));
 const TasksPage           = lazy(() => import('./sections/TasksPage'));
+const ActivitiesPage      = lazy(() => import('./sections/ActivitiesPage'));
 const RecommendationPage  = lazy(() => import('./sections/RecommendationPage'));
 const SpatialIndicatorsPage = lazy(() => import('./sections/SpatialIndicatorsPage'));
 const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'));
@@ -67,6 +70,7 @@ const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
 const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
 const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
+const FarmCreatePage      = lazy(() => import('./sections/FarmCreatePage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -74,7 +78,7 @@ export type PageId =
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
-  | 'master-data' | 'documents' | 'governance';
+  | 'activities' | 'master-data' | 'documents' | 'governance';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -91,6 +95,7 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'inventory',    label:'المخزون',         icon:Boxes },
   { id:'equipment',    label:'المعدّات',         icon:Tractor },
   { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
+  { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
   { id:'alerts',       label:'التنبيهات',       icon:Bell },
   { id:'reports',      label:'التقارير',        icon:FileText },
@@ -241,7 +246,10 @@ function TopBar({ page, onMenu }: any) {
 }
 
 export default function App() {
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, isDemoMode } = useAuthStore();
+  // بوّابة التأهيل: بعد المصادقة نفحص وجود مزرعة. مُعطَّلة قبل المصادقة وفي الوضع
+  // التجريبيّ (لا تُطلق الطلب، فالاستعلام لا يعمل إلا حين isAuthenticated && !isDemoMode).
+  const farms = useFarms(isAuthenticated && !isDemoMode);
   const [page,       setPage]       = useState<PageId>('dashboard');
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -271,6 +279,36 @@ export default function App() {
         <ToastContainer />
       </>
     );
+  }
+
+  // بوّابة التأهيل الإجباريّة: مستخدم مُصادَق لكن بلا مزرعة لا يبلغ اللوحة حتى ينشئ
+  // واحدة. الوضع التجريبيّ يتجاوزها (الاستعلام مُعطَّل ⇒ يبقى pending ⇒ نتخطّاه صراحةً).
+  // أثناء جلب القائمة نُظهر تحميلاً. عند الخطأ (503/انقطاع) لا نحبس المستخدم — نمرّره
+  // للّوحة (الصفحات نفسها تعرض حالات خطأ صادقة)، فلا نقفل التطبيق على عطل قاعدة عابر.
+  if (!isDemoMode) {
+    if (farms.isLoading) {
+      return (
+        <ErrorBoundary>
+          <div className="flex items-center justify-center h-screen" style={{ background: '#0f1117' }}>
+            <LoadingState message="جارٍ تحضير مزرعتك…" />
+          </div>
+          <ToastContainer />
+        </ErrorBoundary>
+      );
+    }
+    if (farms.isSuccess && (farms.data?.length ?? 0) === 0) {
+      return (
+        <ErrorBoundary>
+          <div className="min-h-screen overflow-y-auto p-4 md:p-8" style={{ background: '#0f1117' }}>
+            <Suspense fallback={<Loader />}>
+              {/* عند النجاح يُبطَل كاش المزارع ⇒ farms.data يمتلئ ⇒ تتجاوز البوّابة تلقائيّاً */}
+              <FarmCreatePage onCreated={() => farms.refetch()} />
+            </Suspense>
+          </div>
+          <ToastContainer />
+        </ErrorBoundary>
+      );
+    }
   }
 
   const renderPage = () => {
@@ -306,6 +344,7 @@ export default function App() {
       case 'documents':    return <DocumentsPage />;
       case 'governance':   return <GovernancePage />;
       case 'tasks':        return <TasksPage />;
+      case 'activities':   return <ActivitiesPage />;
       case 'analytics':    return <AnalyticsPage />;
       case 'alerts':       return <AlertSystemPage />;
       case 'reports':      return <ReportsPage />;

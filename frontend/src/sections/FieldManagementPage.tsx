@@ -122,6 +122,11 @@ export default function FieldManagementPage() {
         name: data.name, crop: data.crop,
         soil_type: data.soil_type ?? data.soil,
         manager: data.manager,
+        field_code: data.field_code ?? null,
+        water_source: data.water_source ?? null,
+        ownership_type: data.ownership_type ?? null,
+        country: data.country ?? null,
+        region: data.region ?? null,
         geometry: data.geometry,
       });
       setFields(p => [...p, mapField(r.data as Record<string, unknown>)]);

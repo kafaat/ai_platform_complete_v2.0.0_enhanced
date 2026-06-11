@@ -19,14 +19,19 @@ import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle,
 } from 'lucide-react';
+import { kongApi } from '../services/api';
 
 interface FieldData {
-  name:        string;
-  manager:     string;
-  crop:        string;
-  soil_type:   string;
-  area_ha:     number;
-  geometry:    { type: string; coordinates: number[][][] };
+  name:          string;
+  manager:       string;
+  crop:          string;
+  soil_type:     string;
+  area_ha:       number;
+  field_code?:   string;
+  water_source?: string;
+  country?:      string;
+  region?:       string;
+  geometry:      { type: string; coordinates: number[][][] };
 }
 
 interface Props {
@@ -43,6 +48,15 @@ const SOIL_TYPES = [
   { value:'silt_loam',  label:'طمية مزيجية' },
   { value:'clay',       label:'طينية' },
   { value:'sandy',      label:'رملية' },
+];
+// مصدر الماء — يطابق عمود fields.water_source (well/canal/...)؛ التسمية عربيّة.
+const WATER_SOURCES = [
+  { value:'well',    label:'بئر' },
+  { value:'canal',   label:'قناة' },
+  { value:'river',   label:'نهر' },
+  { value:'rainfed', label:'بعليّ (مطري)' },
+  { value:'tank',    label:'خزّان' },
+  { value:'mixed',   label:'مختلط' },
 ];
 const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 const SAT_URL  = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -96,10 +110,18 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
   const [mgr,  setMgr]    = useState('');
   const [crop, setCrop]   = useState(CROPS[0]);
   const [soil, setSoil]   = useState(SOIL_TYPES[0].value);
+  const [fieldCode, setFieldCode]     = useState('');
+  const [waterSource, setWaterSource] = useState(WATER_SOURCES[0].value);
+  // الموقع المكتشف آليّاً من مركز المضلّع (دولة + إقليم/محافظة) — للعرض فقط.
+  const [autoCountry, setAutoCountry] = useState<string | null>(null);
+  const [autoRegion, setAutoRegion]   = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
   const [tileType, setTileType] = useState<'street'|'satellite'>('satellite');
   const mapRef = useRef<L.Map | null>(null);
+  // حارس تسلسل لطلب الكشف العكسي: يمنع ردّ طلب قديم من الكتابة فوق الأحدث
+  // (إعادة رسم سريعة قد تُظهر موقعاً لا يطابق المضلّع الحاليّ).
+  const geoReqRef = useRef(0);
 
   const handlePolygonDone = useCallback((pts: L.LatLng[]) => {
     if (!fgRef.current) return;
@@ -116,6 +138,22 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
     setAreaHa(ha);
     setPolygon(poly);
     setStage('form');
+    // كشف عكسي للموقع (دولة + إقليم) من مركز bbox المضلّع — عرض تلقائي قبل الحفظ.
+    const lats = pts.map(p => p.lat);
+    const lngs = pts.map(p => p.lng);
+    const lat = (Math.min(...lats) + Math.max(...lats)) / 2;
+    const lon = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+    setAutoCountry(null);
+    setAutoRegion(null);
+    const myReq = ++geoReqRef.current;
+    kongApi
+      .get('/api/v1/geo/reverse', { params: { lat, lon } })
+      .then(r => {
+        if (myReq !== geoReqRef.current) return; // ردّ قديم — تجاهله
+        setAutoCountry(r.data?.country ?? null);
+        setAutoRegion(r.data?.region ?? null);
+      })
+      .catch(() => { /* الكشف التلقائي اختياري — لا يُفشل الإضافة */ });
   }, []);
 
   // أداة الرسم (leaflet-draw): مضلّع / مستطيل / دائرة (ريّ محوريّ).
@@ -138,6 +176,8 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
     setLatlngs([]);
     setAreaHa(0);
     setPolygon(null);
+    setAutoCountry(null);
+    setAutoRegion(null);
     setError('');
   };
 
@@ -156,6 +196,10 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
       const coords = [...finalPts.map(p => [p.lng, p.lat]), [finalPts[0].lng, finalPts[0].lat]];
       await onSave({
         name, manager: mgr, crop, soil_type: soil,
+        field_code: fieldCode.trim() || undefined,
+        water_source: waterSource,
+        country: autoCountry ?? undefined,
+        region: autoRegion ?? undefined,
         area_ha: +(geodesicAreaHa(finalPts).toFixed(2)),
         geometry: { type: 'Polygon', coordinates: [coords] },
       });
@@ -288,7 +332,38 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
                     {SOIL_TYPES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">كود الحقل</label>
+                  <input value={fieldCode} onChange={e => setFieldCode(e.target.value)}
+                    placeholder="مثال: F-01"
+                    className="w-full px-3 py-2 rounded-lg text-sm"
+                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">مصدر الماء</label>
+                  <select value={waterSource} onChange={e => setWaterSource(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg text-sm"
+                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                    {WATER_SOURCES.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
+                  </select>
+                </div>
               </div>
+
+              {/* الموقع المكتشف آليّاً (دولة + إقليم) — للعرض فقط */}
+              {(autoCountry || autoRegion) && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#94a3b8' }}>
+                  <MapPin className="w-4 h-4 text-emerald-400" />
+                  <span>
+                    الموقع: <strong className="text-slate-200">{autoCountry || '—'}</strong>
+                    {autoRegion ? <> · <strong className="text-slate-200">{autoRegion}</strong></> : null}
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px]"
+                    style={{ background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a44' }}>
+                    تلقائيّ
+                  </span>
+                </div>
+              )}
 
               {error && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
