@@ -114,6 +114,34 @@ ALTER TABLE trueup_calibrations
 ALTER TABLE sharing_keys
     ALTER COLUMN allowed_field_ids TYPE TEXT[] USING allowed_field_ids::text[];
 
+-- ════════════════════════════════════════════════════════════════
+-- ٦. is_sharing_key_valid: نوع الإرجاع allowed_fields UUID[] → TEXT[]
+-- ════════════════════════════════════════════════════════════════
+-- دالّة v12 تُرجِع k.allowed_field_ids ضمن RETURNS TABLE(... UUID[]) — بعد
+-- تحويل العمود لـTEXT[] يفشل الاستدعاء (عدم تطابق بنية النتيجة). تغيير نوع
+-- الإرجاع لا يجوز بـCREATE OR REPLACE في PostgreSQL ⇒ إسقاط ثمّ إعادة إنشاء.
+DROP FUNCTION IF EXISTS is_sharing_key_valid(TEXT);
+
+CREATE OR REPLACE FUNCTION is_sharing_key_valid(p_key_hash TEXT)
+RETURNS TABLE(
+    valid           BOOLEAN,
+    tenant_id       UUID,
+    scope           TEXT,
+    allowed_fields  TEXT[]
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        (k.revoked_at IS NULL AND k.expires_at > NOW()) AS valid,
+        k.tenant_id,
+        k.scope,
+        k.allowed_field_ids
+    FROM sharing_keys k
+    WHERE k.key_hash = p_key_hash
+    LIMIT 1;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
 COMMIT;
 
 -- ════════════════════════════════════════════════════════════════
