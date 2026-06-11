@@ -32,9 +32,12 @@ function makeClient(baseURL: string): AxiosInstance {
   const client = axios.create({ baseURL, timeout: 15000, headers: { 'Content-Type': 'application/json' } });
   // JWT interceptor
   client.interceptors.request.use((config) => {
-    const token = localStorage.getItem('sahool_access_token');
+    // FIX (مراجعة): useAuth يكتب التوكن/المستأجِر في sessionStorage، فكانت قراءة
+    // localStorage هنا تُرجِع فارغاً ⇒ كلّ طلبات kongApi غير مُصادَقة. نقرأ من
+    // sessionStorage حيث يُكتَب فعلاً (مصدر الحقيقة في useAuth.ts).
+    const token = sessionStorage.getItem('sahool_access_token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    const tenant = localStorage.getItem('sahool_tenant_id') || 'default';
+    const tenant = sessionStorage.getItem('sahool_tenant_id') || 'default';
     config.headers['X-Tenant-ID'] = tenant;
     return config;
   });
@@ -43,7 +46,7 @@ function makeClient(baseURL: string): AxiosInstance {
     (r) => r,
     (err) => {
       if (err.response?.status === 401) {
-        localStorage.removeItem('sahool_access_token');
+        sessionStorage.removeItem('sahool_access_token');
         window.dispatchEvent(new CustomEvent('sahool:auth:unauthorized'));
       }
       return Promise.reject(err);

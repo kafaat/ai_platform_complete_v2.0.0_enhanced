@@ -1800,7 +1800,7 @@ class DocumentRequest(BaseModel):
     storage_ref: str | None = None
     content_type: str | None = Field(default=None, max_length=80)
     size_bytes: int | None = Field(default=None, ge=0)
-    field_id: str | None = None
+    field_id: str | None = Field(default=None, max_length=50)  # يطابق fields.field_id VARCHAR(50)
 
 
 @app.post("/api/v1/documents", status_code=201)

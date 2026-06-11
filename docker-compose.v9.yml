@@ -937,11 +937,34 @@ services:
       - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
     networks:
       - sahool-internal
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # AlertManager — يستقبل إنذارات Prometheus ويوجّهها (ملاحظة المراجعة: كان
+  # prometheus يشير لـalertmanager غير موجود). المستقبِلات الحقيقيّة تُضاف عبر
+  # تراكب النشر (Slack/email/Telegram) — الافتراضيّ no-op (لا ضجيج).
+  sahool-alertmanager:
+    image: prom/alertmanager:latest
+    container_name: sahool-alertmanager
+    mem_limit: 128m
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -1052,6 +1075,7 @@ volumes:
   odoo-addons:
   odoo-filestore:
   prometheus-data:
+  alertmanager-data:
   grafana-data:
   jaeger-data:
   nginx-cache:

@@ -46,7 +46,10 @@ async def test_geom_validity_function_and_trigger():
         await tr.start()
         try:
             await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tid)
-            rejected = False
+            # نؤكّد رمز الخطأ المحدّد من enforce_valid_field_geom():
+            # RAISE ... USING ERRCODE='check_violation' ⇒ SQLSTATE 23514. هكذا لا
+            # يُعتبر أيّ فشل آخر (جدول مفقود/RLS/اتّصال) نجاحاً زائفاً (ملاحظة المراجعة).
+            err_sqlstate = None
             try:
                 await conn.execute(
                     "INSERT INTO field_boundaries (field_id, field_name, geom, tenant_id) "
@@ -56,9 +59,11 @@ async def test_geom_validity_function_and_trigger():
                     _BOWTIE,
                     tid,
                 )
-            except Exception:  # noqa: BLE001 — نتوقّع رفض الـtrigger
-                rejected = True
-            assert rejected, "الـtrigger لم يرفض الهندسة الباطلة (الفرض على القاعدة لا يعمل)"
+            except Exception as e:  # noqa: BLE001
+                err_sqlstate = getattr(e, "sqlstate", None)
+            assert err_sqlstate == "23514", (
+                f"متوقّع رفض الـtrigger بـcheck_violation (23514)، الفعليّ: {err_sqlstate}"
+            )
         finally:
             await tr.rollback()
     finally:

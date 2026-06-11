@@ -387,8 +387,9 @@ export function useGuardrailsValidate() {
 // لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض
 // الاستعلام لتعرض الواجهة حالة خطأ صادقة بدل رقم مالي مُلفَّق.
 export function useCostAnalytics(): UseQueryResult<CostAnalytics> {
-  const { user } = useAuthStore();
-  const tid = (user as any)?.tenant_id ?? 'default';
+  // FIX (مراجعة): المستأجِر الفعّال في المتجر هو tenantId (لا user.tenant_id الذي
+  // قد يكون غائباً) — نُفهرِس الكاش به لتجنّب تصادم كاش بين المستأجرين عند التبديل.
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useQuery<CostAnalytics>({
     queryKey: QK.costAnalytics(tid),
     queryFn:  () => getCostAnalytics(),

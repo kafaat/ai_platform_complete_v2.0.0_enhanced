@@ -11,7 +11,7 @@ rule_files:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ['alertmanager:9093']
+        - targets: ['sahool-alertmanager:9093']
 
 scrape_configs:
   # ── Backend Services ──────────────────────────────────────────

@@ -14,29 +14,26 @@ route:
   group_wait: 30s        # buffer alerts in a new group before notifying
   group_interval: 5m     # wait before notifying about new alerts in an existing group
   repeat_interval: 4h    # resend an unresolved alert at most this often
-  receiver: 'default-webhook'
+  receiver: 'null'       # افتراضيّ no-op (لا تسليم/لا ضجيج) — يُستبدَل عبر تراكب النشر
 
-  # Optional severity-based fan-out. Both routes fall back to the default
-  # webhook receiver until dedicated receivers are configured via env.
+  # Optional severity-based fan-out. Both routes fall back to the no-op receiver
+  # until dedicated receivers (Slack/email/Telegram) are added via the
+  # deployment overlay (so a fresh stack never spams a non-existent endpoint).
   routes:
     - matchers:
         - severity = "critical"
-      receiver: 'default-webhook'
+      receiver: 'null'
       group_wait: 10s
       repeat_interval: 1h
     - matchers:
         - severity = "warning"
-      receiver: 'default-webhook'
+      receiver: 'null'
 
 receivers:
-  # Placeholder webhook receiver. Override the URL via deployment env, e.g.
-  #   ALERTMANAGER_WEBHOOK_URL=https://alerts.internal.sahool/notify
-  # and template it into this file at deploy time. Slack / email / Telegram
-  # receivers are added here in the deployment overlay.
-  - name: 'default-webhook'
-    webhook_configs:
-      - url: 'http://alert-webhook:9000/alert'  # placeholder — set via ALERTMANAGER_WEBHOOK_URL
-        send_resolved: true
+  # No-op default: no notifier configs ⇒ AlertManager drops silently (no delivery
+  # failures, no noise). Real receivers (Slack/email/Telegram) + their routes are
+  # added in the deployment overlay, where secrets are injected via env.
+  - name: 'null'
 
 inhibit_rules:
   # Suppress warning-level alerts when a critical alert for the same job is firing.
