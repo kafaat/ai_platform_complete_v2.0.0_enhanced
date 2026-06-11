@@ -1,6 +1,6 @@
 // SAHOOL v9.0 — src/hooks/useApi.ts — React Query hooks شاملة
 import {
-  useQuery, useMutation,
+  useQuery, useMutation, useQueryClient,
   UseQueryResult, UseMutationResult,
 } from '@tanstack/react-query';
 import {
@@ -13,6 +13,20 @@ import {
   type FieldRecommendationInput, type RecommendationResult,
   type FieldIntelInput, type FieldIntelResult,
   type CostAnalytics,
+  // ── الأنظمة الجديدة (شاشات الويب): مخزون/معدّات/أجهزة/ري تشغيلي/مرجعيّة/وثائق ──
+  getInventoryItems, getExpiringBatches, createInventoryItem, addInventoryBatch,
+  type InventoryItem, type ExpiringBatch, type NewInventoryItem, type NewInventoryBatch,
+  fetchEquipment, createEquipment, fetchMaintenance, logMaintenance,
+  type Equipment, type EquipmentCreateInput, type MaintenanceRecord, type MaintenanceCreateInput,
+  listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
+  type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
+  listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
+  type Valve, type CreateValveInput, type ValveStateIntent,
+  type IrrigationSchedule, type CreateScheduleInput,
+  fetchMasterData, createMasterDataEntry,
+  type MasterDataCategory, type MasterDataEntry, type MasterDataCreateInput,
+  listDocuments, createDocument,
+  type DocumentRecord, type DocumentCreateInput, type DocumentCategory,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -33,6 +47,18 @@ export const QK = {
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
+  // الأنظمة الجديدة (شاشات الويب)
+  inventoryItems:   (tid: string)        => ['inventory', 'items', tid],
+  inventoryExpiring:(tid: string, d: number) => ['inventory', 'expiring', tid, d],
+  equipment:        (tid: string)        => ['equipment', tid],
+  maintenance:      (tid: string, eid: string) => ['equipment', tid, 'maintenance', eid],
+  devices:          (tid: string)        => ['devices', tid],
+  deviceTelemetry:  (tid: string, id: string, n: number) => ['devices', 'telemetry', tid, id, n],
+  valves:           (tid: string)        => ['irrigation', 'valves', tid],
+  schedules:        (tid: string, fid?: string) => ['irrigation', 'schedules', tid, fid ?? 'all'],
+  masterData:       (tid: string, cat: string) => ['master-data', tid, cat],
+  documents:        (tid: string, category?: string, fieldId?: string) =>
+                       ['documents', tid, category ?? 'all', fieldId ?? 'all'],
   health:                                   ['health', 'all'],
 } as const;
 
@@ -380,6 +406,269 @@ export function useGuardrailsValidate() {
         tenant_id:    (user as any)?.tenant_id ?? 'default',
         auto_approve_low_risk: true,
       }).then(r => r.data),
+  });
+}
+
+
+// ── Inventory: مخزون المدخلات (حيّ، tenant-scoped + RBAC inventory:view/manage) ──
+// لا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC / انقطاع) يُرفض الاستعلام لتعرض
+// الواجهة حالة خطأ صادقة بدل كميّات مُلفَّقة. الكاش مُفهرَس بالمستأجِر الفعّال.
+export function useInventoryItems(): UseQueryResult<InventoryItem[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<InventoryItem[]>({
+    queryKey: QK.inventoryItems(tid),
+    queryFn:  () => getInventoryItems(),
+    staleTime:2 * 60_000,
+    retry:    false,
+  });
+}
+
+export function useExpiringBatches(days = 30): UseQueryResult<ExpiringBatch[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<ExpiringBatch[]>({
+    queryKey: QK.inventoryExpiring(tid, days),
+    queryFn:  () => getExpiringBatches(days),
+    staleTime:2 * 60_000,
+    retry:    false,
+  });
+}
+
+// إضافة صنف مخزون — يُبطِل كاش القائمة لإعادة الجلب الفعليّ بعد النجاح.
+export function useCreateInventoryItem(): UseMutationResult<InventoryItem, Error, NewInventoryItem> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<InventoryItem, Error, NewInventoryItem>({
+    mutationFn: (payload) => createInventoryItem(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.inventoryItems(tid) }); },
+  });
+}
+
+// إضافة دفعة لصنف — يُبطِل كاش القائمة والصلاحيّة (الكميّات/الانتهاء تتغيّر).
+export function useAddInventoryBatch(): UseMutationResult<unknown, Error, { itemId: string; batch: NewInventoryBatch }> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<unknown, Error, { itemId: string; batch: NewInventoryBatch }>({
+    mutationFn: ({ itemId, batch }) => addInventoryBatch(itemId, batch),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: QK.inventoryItems(tid) });
+      qc.invalidateQueries({ queryKey: ['inventory', 'expiring', tid] });
+    },
+  });
+}
+
+// ── Equipment: المعدّات + سجلّ الصيانة (حيّ، tenant-scoped + RBAC equipment:view/manage)
+// لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض
+// الاستعلام لتعرض الواجهة حالة صادقة بدل بيانات معدّات/تكلفة مُلفَّقة.
+export function useEquipment(): UseQueryResult<Equipment[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<Equipment[]>({
+    queryKey: QK.equipment(tid),
+    queryFn:  () => fetchEquipment(),
+    staleTime:2 * 60_000,
+    retry:    false,
+  });
+}
+
+export function useMaintenance(equipmentId: string): UseQueryResult<MaintenanceRecord[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<MaintenanceRecord[]>({
+    queryKey: QK.maintenance(tid, equipmentId),
+    queryFn:  () => fetchMaintenance(equipmentId),
+    staleTime:60_000,
+    retry:    false,
+    enabled:  !!equipmentId,
+  });
+}
+
+// تسجيل معدّة جديدة — يُبطِل كاش قائمة المعدّات للمستأجِر الحاليّ.
+export function useCreateEquipment(): UseMutationResult<Equipment, Error, EquipmentCreateInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<Equipment, Error, EquipmentCreateInput>({
+    mutationFn: (payload) => createEquipment(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.equipment(tid) }); },
+  });
+}
+
+// تسجيل صيانة — يُبطِل سجلّ صيانة المعدّة + قائمة المعدّات (breakdown يقلب الحالة
+// إلى broken خادميّاً، فالقائمة بحاجة تحديث).
+export function useLogMaintenance(
+  equipmentId: string,
+): UseMutationResult<MaintenanceRecord, Error, MaintenanceCreateInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<MaintenanceRecord, Error, MaintenanceCreateInput>({
+    mutationFn: (payload) => logMaintenance(equipmentId, payload),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: QK.maintenance(tid, equipmentId) });
+      qc.invalidateQueries({ queryKey: QK.equipment(tid) });
+    },
+  });
+}
+
+// ── IoT Devices: أجهزة استشعار (حيّة، tenant-scoped + RBAC device:view) ──
+// لا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC / انقطاع) يُرفض الاستعلام
+// لتعرض الواجهة حالة صادقة (StateViews) بدل قراءة مُلفَّقة.
+export function useDevices(): UseQueryResult<Device[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<Device[]>({
+    queryKey:        QK.devices(tid),
+    queryFn:         () => listDevices(),
+    staleTime:       60_000,
+    refetchInterval: 60_000, // online مُحتسَب خادميّاً ⇒ نُحدّث دوريّاً
+    retry:           false,
+  });
+}
+
+export function useDeviceTelemetry(deviceId: string, limit = 20): UseQueryResult<TelemetryPoint[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<TelemetryPoint[]>({
+    queryKey: QK.deviceTelemetry(tid, deviceId, limit),
+    queryFn:  () => getDeviceTelemetry(deviceId, limit),
+    staleTime:60_000,
+    enabled:  !!deviceId,
+    retry:    false,
+  });
+}
+
+// تسجيل جهاز (device:manage). ينعش قائمة الأجهزة للمستأجِر بعد النجاح.
+export function useRegisterDevice(): UseMutationResult<Device, Error, DeviceRegisterInput> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<Device, Error, DeviceRegisterInput>({
+    mutationFn: (payload) => registerDevice(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.devices(tid) }); },
+  });
+}
+
+// رفع قياس لجهاز (observation:record). ينعش قياسات الجهاز بعد النجاح.
+export function useRecordTelemetry(
+  deviceId: string,
+): UseMutationResult<TelemetryPoint, Error, TelemetryRecordInput> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<TelemetryPoint, Error, TelemetryRecordInput>({
+    // مفتاح جزئيّ مفهرَس بالمستأجِر ⇒ يُبطِل كل القياسات (مهما كان الحدّ) لهذا الجهاز.
+    mutationFn: (payload) => recordTelemetry(deviceId, payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['devices', 'telemetry', tid, deviceId] }); },
+  });
+}
+
+// ── Irrigation Ops: صمّامات + جداول الريّ (حيّة، tenant-scoped + RBAC) ──
+// لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض
+// الاستعلام لتعرض الواجهة حالة خطأ صادقة. الكاش مُفهرَس بالمستأجِر الفعّال.
+export function useValves(): UseQueryResult<Valve[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<Valve[]>({
+    queryKey: QK.valves(tid),
+    queryFn:  () => listValves(),
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+export function useCreateValve(): UseMutationResult<Valve, Error, CreateValveInput> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<Valve, Error, CreateValveInput>({
+    mutationFn: (payload) => createValve(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.valves(tid) }); },
+  });
+}
+
+// تسجيل نيّة فتح/إغلاق الصمّام. التشغيل الفيزيائيّ يمرّ عبر HIL (موافقة بشريّة).
+export function useSetValveState(): UseMutationResult<Valve, Error, { valveId: string; status: ValveStateIntent }> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<Valve, Error, { valveId: string; status: ValveStateIntent }>({
+    mutationFn: ({ valveId, status }) => setValveState(valveId, status),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.valves(tid) }); },
+  });
+}
+
+export function useSchedules(fieldId?: string): UseQueryResult<IrrigationSchedule[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<IrrigationSchedule[]>({
+    queryKey: QK.schedules(tid, fieldId),
+    queryFn:  () => listSchedules(fieldId),
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+export function useCreateSchedule(): UseMutationResult<IrrigationSchedule, Error, CreateScheduleInput> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<IrrigationSchedule, Error, CreateScheduleInput>({
+    mutationFn: (payload) => createSchedule(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['irrigation', 'schedules', tid] }); },
+  });
+}
+
+export function useDeleteSchedule(): UseMutationResult<void, Error, string> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<void, Error, string>({
+    mutationFn: (scheduleId) => deleteSchedule(scheduleId),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['irrigation', 'schedules', tid] }); },
+  });
+}
+
+// ── Master Data: كتالوج البيانات المرجعيّة (tenant-scoped + RBAC master_data) ──
+// لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض الاستعلام
+// لتعرض الواجهة حالة خطأ صادقة بدل بيانات مرجعيّة مُلفَّقة تُبنى عليها قرارات.
+export function useMasterData(
+  category: MasterDataCategory,
+): UseQueryResult<MasterDataEntry[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<MasterDataEntry[]>({
+    queryKey: QK.masterData(tid, category),
+    queryFn:  () => fetchMasterData(category),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled:  !!category,
+  });
+}
+
+// إضافة مُدخَل مرجعيّ. عند النجاح نُبطِل كاش الفئة المعنيّة لإعادة الجلب الحيّ.
+// 409 (تكرار tenant,category,code) يُرفَع كخطأ ليتعامل معه الـUI بصدق.
+export function useCreateMasterData(): UseMutationResult<
+  MasterDataEntry, Error, MasterDataCreateInput
+> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<MasterDataEntry, Error, MasterDataCreateInput>({
+    mutationFn: (payload) => createMasterDataEntry(payload),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: QK.masterData(tid, vars.category) });
+    },
+  });
+}
+
+// ── Documents: سجلّ الوثائق (حيّ، tenant-scoped + RBAC document:view/manage) ──
+// سجلّ بيانات وصفيّة فقط (الملفّ في تخزين الكائنات). لا fallback وهميّ: عند الخطأ
+// (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض الاستعلام لتعرض الواجهة حالة صادقة.
+export function useDocuments(
+  category?: DocumentCategory,
+  fieldId?: string,
+): UseQueryResult<DocumentRecord[]> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<DocumentRecord[]>({
+    queryKey: QK.documents(tid, category, fieldId),
+    queryFn:  () => listDocuments({ category, field_id: fieldId }),
+    staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+// تسجيل وثيقة (بيانات وصفيّة + storage_ref). ليس رفعاً للملفّ — يسجّل المرجع فقط.
+// بعد النجاح نُبطِل كاش الوثائق للمستأجِر الحاليّ ليُعاد الجلب.
+export function useCreateDocument(): UseMutationResult<DocumentRecord, Error, DocumentCreateInput> {
+  const qc = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<DocumentRecord, Error, DocumentCreateInput>({
+    mutationFn: (payload) => createDocument(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: ['documents', tid] }); },
   });
 }
 
