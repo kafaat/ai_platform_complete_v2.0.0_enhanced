@@ -49,6 +49,15 @@ def test_row_to_field_summary_parses_jsonb_string():
     assert fs.lat == 15.05 and fs.lon == 45.55
 
 
+def test_db_unavailable_maps_to_503():
+    # أخطاء DB (هجرة/اتّصال) تُحوَّل إلى 503 موثَّق لا 500
+    from api.main import _db_unavailable
+
+    exc = _db_unavailable("قراءة الحقول", RuntimeError("connection reset"))
+    assert exc.status_code == 503
+    assert "قراءة الحقول" in exc.detail
+
+
 def test_field_create_request_requires_geometry():
     import pytest
     from pydantic import ValidationError

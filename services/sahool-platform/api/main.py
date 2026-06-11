@@ -884,6 +884,19 @@ def _row_to_field_summary(r) -> FieldSummary:
     )
 
 
+def _db_unavailable(action_ar: str, exc: Exception) -> HTTPException:
+    """يحوّل خطأ DB (انقطاع اتّصال، عمود/هجرة غير مطبّقة…) إلى 503 صريح بدل 500.
+
+    يُبقي الـendpoint مطابقاً للموثَّق (والواجهة تعرض فشلاً صادقاً لا «خطأ غير
+    متوقّع»). يُعاد استخدامه في قراءة/كتابة الحقول.
+    """
+    logging.warning("fields DB error during %s: %s", action_ar, type(exc).__name__)
+    return HTTPException(
+        status_code=503,
+        detail=f"تعذّر {action_ar} (القاعدة غير متاحة أو الهجرات غير مطبّقة). حاول لاحقاً.",
+    )
+
+
 @app.get("/api/v1/fields", response_model=list[FieldSummary])
 async def list_fields(user: UserSchema = Depends(get_current_user)):
     """قائمة حقول المستأجر من القاعدة — للـHomeScreen/الخريطة.
@@ -891,12 +904,17 @@ async def list_fields(user: UserSchema = Depends(get_current_user)):
     تُرشَّح بـtenant_id (دفاع عميق) + RLS، وتُرجع المركز + الهندسة (GeoJSON)
     لرسم المضلّع على الخريطة. عند تعذّر القاعدة ⇒ 503 صريح — لا بيانات وهميّة.
     """
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT field_id, farm_id, name, area_ha, crop, soil_type, lat, lon, geometry "
-            "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
-            str(user.tenant_id),
-        )
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT field_id, farm_id, name, area_ha, crop, soil_type, lat, lon, geometry "
+                "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
+                str(user.tenant_id),
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة الحقول", e) from e
     return [_row_to_field_summary(r) for r in rows]
 
 
@@ -940,24 +958,29 @@ async def create_field(
     area_ha = round(validation.computed_area_ha or 0.0, 2)
     lat, lon = _centroid_from_bbox(validation.computed_bbox)
     field_id = "fld_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO fields
-                (field_id, tenant_id, farm_id, name, crop, soil_type,
-                 area_ha, lat, lon, gov, geometry)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)""",
-            field_id,
-            str(user.tenant_id),
-            req.farm_id,
-            req.name,
-            req.crop,
-            req.soil_type,
-            area_ha,
-            lat,
-            lon,
-            req.gov or "البيضاء",
-            _json.dumps(req.geometry),
-        )
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO fields
+                    (field_id, tenant_id, farm_id, name, crop, soil_type,
+                     area_ha, lat, lon, gov, geometry)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)""",
+                field_id,
+                str(user.tenant_id),
+                req.farm_id,
+                req.name,
+                req.crop,
+                req.soil_type,
+                area_ha,
+                lat,
+                lon,
+                req.gov or "البيضاء",
+                _json.dumps(req.geometry),
+            )
+    except HTTPException:
+        raise  # get_pool() يرفع 503 أصلاً
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("حفظ الحقل", e) from e
     return FieldSummary(
         field_id=field_id,
         farm_id=req.farm_id or "",
