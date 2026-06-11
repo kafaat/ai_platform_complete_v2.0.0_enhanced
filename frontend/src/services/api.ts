@@ -616,6 +616,39 @@ export const evaluateFieldAlerts = (fieldId: string): Promise<AlertEvaluateResul
   kongApi.post<AlertEvaluateResult>(`/api/v1/fields/${fieldId}/alerts/evaluate`).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// NOTIFICATION PREFERENCES — قنوات تسليم التنبيهات لكلّ مستخدم (sahool-platform
+// v9+v38). القنوات (بريد/SMS/Push/واتساب) + عناوينها + أنواع الأحداث المُشترَك بها
+// + أرضيّة خطورة دنيا. ربط حيّ بلا تلفيق: عند الخطأ (503 DB / 403 RBAC) يُرمى
+// لتعرض الواجهة حالة صادقة. field:view للقراءة، field:edit للحفظ (UPSERT).
+// ══════════════════════════════════════════════════════════════════
+export type NotifEventType =
+  | 'satellite' | 'weather_alert' | 'pest_alert' | 'irrigation_rec'
+  | 'fertilizer_rec' | 'low_stock' | 'task_assigned' | 'economic_analysis'
+  | 'low_moisture' | 'heavy_rain' | 'disease_risk' | 'heat_stress'
+  | 'frost_risk' | 'other';
+
+export interface NotificationPreferences {
+  email_enabled:    boolean;
+  email_address:    string | null;
+  sms_enabled:      boolean;
+  sms_number:       string | null;
+  push_enabled:     boolean;
+  push_token:       string | null;
+  whatsapp_enabled: boolean;
+  whatsapp_number:  string | null;
+  event_types:      string[];
+  min_severity:     AlertSeverity | null;
+}
+
+export const fetchNotificationPreferences = (): Promise<NotificationPreferences> =>
+  kongApi.get<NotificationPreferences>('/api/v1/notifications/preferences').then(r => r.data);
+
+export const updateNotificationPreferences = (
+  payload: NotificationPreferences,
+): Promise<NotificationPreferences> =>
+  kongApi.put<NotificationPreferences>('/api/v1/notifications/preferences', payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
 // عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.
 // device:view للقراءة، device:manage للتسجيل، observation:record لرفع قياس.
