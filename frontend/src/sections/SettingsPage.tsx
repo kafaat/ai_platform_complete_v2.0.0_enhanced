@@ -5,11 +5,12 @@
 // ✅ حالة الخدمات الحقيقية (checkAllServices)
 // ✅ إعدادات الخريطة والمظهر
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Settings, Bell, Globe, Shield, Server, Save,
   Check, Loader2, Eye, EyeOff, RefreshCw,
   Wifi, WifiOff, KeyRound, Lock, Copy, AlertTriangle, CheckCircle2,
+  Mail, Phone, BadgeCheck,
 } from 'lucide-react';
 import NotificationSettingsPage from './NotificationSettingsPage';
 import { useAllServicesHealth } from '../hooks/useApi';
@@ -18,7 +19,8 @@ import { useAuthStore } from '../hooks/useAuth';
 import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
 import {
   mfaSetup, mfaActivate, mfaDisable, changePassword, apiErrorMessage,
-  type MfaSetupResponse,
+  getVerificationStatus, requestVerification, confirmVerification,
+  type MfaSetupResponse, type VerifyChannel, type VerificationStatus,
 } from '../services/api';
 
 type Tab = 'general' | 'notifications' | 'services' | 'security';
@@ -243,6 +245,9 @@ export default function SettingsPage() {
       {/* ── Security ─────────────────────────────────────────── */}
       {tab === 'security' && (
         <div className="space-y-4">
+          {/* تأكيد البريد/الهاتف (تحقّق ناعم عبر OTP — ربط حيّ مع auth-service) */}
+          <AccountVerification Section={Section} Row={Row} inputCls={inputCls} inputSty={inputSty} />
+
           {/* حساب المستخدم: MFA + تغيير كلمة المرور (ربط حيّ مع auth-service) */}
           <AccountSecurity Section={Section} Row={Row} inputCls={inputCls} inputSty={inputSty} />
 
@@ -301,6 +306,141 @@ export default function SettingsPage() {
         SAHOOL v8.0.0 · 88 ملف · 16,181 سطر · MIT License
       </div>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AccountVerification — تأكيد البريد/الهاتف (تحقّق ناعم عبر OTP).
+// تدفّق: اطلب رمزاً → أدخل ٦ أرقام → تأكيد ⇒ يُعلَّم الحساب verified_*.
+// ربط حيّ مع auth-service (/auth/verify/*). التسليم STUB خادميّاً (سجلّ).
+// الحالات صادقة عبر apiErrorMessage — لا حجب للدخول (تحقّق ناعم).
+// ═══════════════════════════════════════════════════════════════
+function AccountVerification({ Section, Row, inputCls, inputSty }: {
+  Section: (p: { title?: string; children: any }) => React.ReactNode;
+  Row: (p: { label: string; hint?: string; children: any }) => React.ReactNode;
+  inputCls: string;
+  inputSty: React.CSSProperties;
+}) {
+  const [status, setStatus] = useState<VerificationStatus | null>(null);
+  // القناة التي يجري إدخال رمزها حاليّاً (null = لا تدفّق نشط).
+  const [activeChannel, setActiveChannel] = useState<VerifyChannel | null>(null);
+  const [code, setCode]     = useState('');
+  const [busy, setBusy]     = useState(false);
+  const [err, setErr]       = useState('');
+  const [sentMsg, setSentMsg] = useState('');
+
+  // جلب الحالة الحاليّة عند الفتح (إن تعذّر، نُكمل بحالة افتراضيّة غير متحقّقة).
+  useEffect(() => {
+    let alive = true;
+    getVerificationStatus()
+      .then(s => { if (alive) setStatus(s); })
+      .catch(() => { if (alive) setStatus({ verified_email: false, verified_phone: false }); });
+    return () => { alive = false; };
+  }, []);
+
+  const handleRequest = async (channel: VerifyChannel) => {
+    setBusy(true); setErr(''); setSentMsg('');
+    try {
+      await requestVerification(channel);
+      setActiveChannel(channel);
+      setCode('');
+      setSentMsg(channel === 'email'
+        ? 'أُرسل رمز التحقّق إلى بريدك (إن لم يصل، تحقّق من السجلّ في بيئة التطوير)'
+        : 'أُرسل رمز التحقّق إلى هاتفك (إن لم يصل، تحقّق من السجلّ في بيئة التطوير)');
+    } catch (e) {
+      setErr(apiErrorMessage(e, 'تعذّر إرسال رمز التحقّق'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!activeChannel) return;
+    if (code.trim().length !== 6) { setErr('أدخل الرمز المكوّن من ٦ أرقام'); return; }
+    setBusy(true); setErr('');
+    try {
+      await confirmVerification(activeChannel, code.trim());
+      setStatus(prev => ({
+        verified_email: activeChannel === 'email' ? true : (prev?.verified_email ?? false),
+        verified_phone: activeChannel === 'phone' ? true : (prev?.verified_phone ?? false),
+      }));
+      setActiveChannel(null);
+      setCode('');
+      setSentMsg('');
+    } catch (e) {
+      setErr(apiErrorMessage(e, 'رمز غير صالح أو منتهٍ'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const errBox = (msg: string) => (
+    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
+      <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+      <span className="text-red-300">{msg}</span>
+    </div>
+  );
+
+  const channelRow = (channel: VerifyChannel, label: string, Icon: any, verified: boolean) => (
+    <div className="p-3 rounded-lg space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-2 text-sm text-slate-300">
+          <Icon className="w-4 h-4 text-slate-400" /> {label}
+        </span>
+        {verified ? (
+          <span className="flex items-center gap-1 text-xs text-emerald-300">
+            <BadgeCheck className="w-4 h-4" /> مُتحقَّق منه
+          </span>
+        ) : (
+          <span className="text-xs text-amber-400">غير مُتحقَّق منه</span>
+        )}
+      </div>
+
+      {!verified && activeChannel !== channel && (
+        <button onClick={() => handleRequest(channel)} disabled={busy}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white"
+          style={{ background: busy ? '#15803d' : '#16a34a', opacity: busy ? 0.8 : 1 }}>
+          {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
+          {channel === 'email' ? 'تأكيد البريد' : 'تأكيد الهاتف'}
+        </button>
+      )}
+
+      {!verified && activeChannel === channel && (
+        <Row label="رمز التحقّق" hint="٦ أرقام، صالح ١٠ دقائق">
+          <div className="flex gap-2">
+            <input value={code}
+              onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="123456" inputMode="numeric"
+              className={inputCls + ' tracking-[0.3em] text-center'} style={inputSty} />
+            <button onClick={handleConfirm} disabled={busy}
+              className="flex items-center gap-1.5 px-4 rounded-lg text-sm font-medium text-white whitespace-nowrap"
+              style={{ background: busy ? '#15803d' : '#16a34a', opacity: busy ? 0.8 : 1 }}>
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} تأكيد
+            </button>
+            <button onClick={() => handleRequest(channel)} disabled={busy}
+              className="px-3 rounded-lg text-xs text-slate-400" style={{ border:'1px solid #334155' }}>
+              إعادة إرسال
+            </button>
+          </div>
+        </Row>
+      )}
+    </div>
+  );
+
+  return (
+    <Section title="تأكيد البريد/الهاتف">
+      <p className="text-[11px] text-slate-500">
+        تحقّق ناعم لتعزيز ثقة الحساب — لا يحجب الدخول. سنرسل رمزاً مؤقّتاً (٦ أرقام) للقناة، ثمّ تؤكّده هنا.
+      </p>
+      {channelRow('email', 'البريد الإلكتروني', Mail, status?.verified_email ?? false)}
+      {channelRow('phone', 'الهاتف', Phone, status?.verified_phone ?? false)}
+      {sentMsg && (
+        <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs text-sky-300" style={{ background:'#0c1a2e', border:'1px solid #0ea5e933' }}>
+          <Mail className="w-3.5 h-3.5 flex-shrink-0" /> {sentMsg}
+        </div>
+      )}
+      {err && errBox(err)}
+    </Section>
   );
 }
 

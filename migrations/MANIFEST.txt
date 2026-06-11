@@ -120,3 +120,6 @@ v38_notif_channels.sql
 # وقت التشغيل) تحفظ ناتج محاكاة محصوليّة RUE/FAO-56 (POST /api/v1/seasons/{id}/
 # simulate). كلّها nullable تقديريّة. يعدّل seasons (v32). idempotent.
 v39_season_simulation.sql
+# v40: تأكيد البريد/الهاتف — أعمدة verified_email/verified_phone على users
+# (تحقّق ناعم عبر OTP في Redis). يعدّل users (v9/v21). idempotent.
+v40_verification.sql
