@@ -12,6 +12,7 @@ field_intelligence_adapters.py — محوّلات المصادر الحيّة (H
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 
 # عناوين الخدمات الداخليّة (قابلة للضبط من البيئة — افتراضات compose)
 WEATHER_URL = os.getenv("WEATHER_SERVICE_URL", "http://sahool-weather-service:8000")
@@ -19,6 +20,16 @@ SOIL_URL = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000")
 RASTER_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
 PLATFORM_URL = os.getenv("PLATFORM_SERVICE_URL", "http://sahool-platform:8000")
 HTTP_TIMEOUT = float(os.getenv("ADAPTER_TIMEOUT", "20.0"))
+
+# Open-Meteo — توقّع مجّاني بلا مفتاح API (المصدر الافتراضي للتوقّع الجوّي).
+# يُحاوَل دائماً متى توفّرت lat/lon (بلا راية تفعيل — keyless). الانسحاب للنشر
+# المعزول: WEATHER_LIVE_DISABLED صادقة ⇒ None. أيّ فشل شبكيّ ⇒ None (صدق، لا اختراع).
+OPENMETEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+
+
+def _is_truthy(val: str | None) -> bool:
+    """هل قيمة بيئة تعني التفعيل؟ (1/true/yes/on — بلا حساسيّة لحالة الأحرف)."""
+    return (val or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _auth_headers(authorization: str | None) -> dict | None:
@@ -74,6 +85,73 @@ def weather_adapter(req) -> dict | None:
     return {
         "heat_risk": data.get("heat_stress_index", data.get("heat_risk")),
         "forecast_at": data.get("forecast_at"),
+    }
+
+
+def weather_forecast_adapter(req, *, authorization: str | None = None) -> dict | None:
+    """يجلب توقّع الطقس الحيّ (7 أيّام) من Open-Meteo → مخطّط مطبَّع. None عند التعذّر.
+
+    Open-Meteo مجّاني بلا مفتاح ⇒ هو المصدر الافتراضي: يُحاوَل النداء دائماً متى
+    توفّرت lat/lon (بلا راية تفعيل). الانسحاب (air-gapped): WEATHER_LIVE_DISABLED.
+    الصدق: عند أيّ فشل (منع الخروج/≠200/تفكيك/غياب httpx) → None — لا أرقام مخترَعة.
+    """
+    if _is_truthy(os.getenv("WEATHER_LIVE_DISABLED")):
+        return None  # انسحاب صريح للنشر المعزول
+    if req.lat is None or req.lon is None:
+        return None
+    try:
+        import httpx
+    except ImportError:
+        return None  # بيئة بلا httpx — يُعلَن كمتعذّر
+    params = {
+        "latitude": req.lat,
+        "longitude": req.lon,
+        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,"
+        "et0_fao_evapotranspiration,wind_speed_10m_max,weather_code",
+        "timezone": "auto",
+        "wind_speed_unit": "ms",
+        "forecast_days": 7,
+    }
+    try:
+        with httpx.Client(timeout=HTTP_TIMEOUT) as client:
+            resp = client.get(OPENMETEO_FORECAST_URL, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+    except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر (لا نُسقط الطلب)
+        return None
+    daily = data.get("daily") if isinstance(data, dict) else None
+    if not isinstance(daily, dict):
+        return None
+    dates = daily.get("time")
+    if not isinstance(dates, list) or not dates:
+        return None
+
+    def _at(key: str, i: int):
+        lst = daily.get(key)
+        if not isinstance(lst, list) or i >= len(lst):
+            return None
+        return lst[i]
+
+    days = [
+        {
+            "date": date,
+            "temp_max_c": _at("temperature_2m_max", i),
+            "temp_min_c": _at("temperature_2m_min", i),
+            "precipitation_mm": _at("precipitation_sum", i),
+            "et0_mm": _at("et0_fao_evapotranspiration", i),
+            "wind_max_ms": _at("wind_speed_10m_max", i),
+            "weather_code": _at("weather_code", i),
+        }
+        for i, date in enumerate(dates)
+    ]
+    if not days:
+        return None
+    return {
+        "source": "open-meteo",
+        "forecast_at": dates[0],
+        "fetched_at": datetime.now(UTC).isoformat(),
+        "elevation_m": data.get("elevation"),
+        "daily": days,
     }
 
 

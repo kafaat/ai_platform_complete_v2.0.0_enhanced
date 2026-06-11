@@ -809,6 +809,15 @@ def queue_status(user: UserSchema = Depends(get_current_user)):
     return queue_summary(_OFFLINE_QUEUE, user.tenant_id)
 
 
+@app.get("/api/v1/capabilities")
+def list_capabilities(user: UserSchema = Depends(get_current_user)):
+    """بوّابة القدرات المشروطة: أيّ قدرة مؤجَّلة مُفعَّلة/خاملة وكيف تُشغَّل.
+    لا يكشف أسراراً — قِيَم منطقيّة + تعليمات تفعيل فقط (شفافيّة تشغيليّة)."""
+    from core.capabilities import capabilities_report
+
+    return capabilities_report()
+
+
 @app.get("/api/v1/fields", response_model=list[FieldSummary])
 def list_fields(user: UserSchema = Depends(get_current_user)):
     """قائمة حقول الـtenant — للـHomeScreen.

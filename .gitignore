@@ -22,3 +22,6 @@ htmlcov/
 .pytest_cache/
 build/
 .claude/worktrees/
+
+# AlertManager rendered config (contains live secrets — never commit)
+monitoring/alertmanager.rendered.yml

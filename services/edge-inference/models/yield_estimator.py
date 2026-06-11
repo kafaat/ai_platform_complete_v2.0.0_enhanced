@@ -14,6 +14,51 @@ from PIL import Image
 
 logger = logging.getLogger(__name__)
 
+# Gating mirrors services/sahool-platform/core/capabilities.py :: ml_yield_active()
+# ("تنبّؤ الإنتاج بنموذج ML — يتطلّب ملفّ ONNX موجوداً"). The real ONNX path activates
+# ONLY when YIELD_MODEL_PATH points at an existing file AND onnxruntime is importable
+# (lazy — onnxruntime is NOT a hard dependency). Otherwise the service stays honestly
+# dormant and falls back to the existing rule-based heuristic estimate, unchanged.
+YIELD_MODEL_ENV = "YIELD_MODEL_PATH"
+
+# Cache of loaded ONNX sessions keyed by resolved model path (one session per file).
+_ONNX_SESSION_CACHE: dict[str, object] = {}
+
+
+def _ml_yield_model_path() -> str | None:
+    """Return the configured yield model path iff it is set and the file exists.
+
+    Same condition as capabilities.ml_yield_active(): YIELD_MODEL_PATH present on disk.
+    Returns None when the capability is dormant (no model → rule-based fallback).
+    """
+    p = os.getenv(YIELD_MODEL_ENV, "")
+    return p if p and os.path.exists(p) else None
+
+
+def _load_onnx_session(model_path: str, device: str):
+    """Lazily import onnxruntime and return a cached InferenceSession, or None.
+
+    onnxruntime is intentionally an OPTIONAL dependency: if the import fails the
+    capability is treated as dormant and the caller falls back to the rule-based path.
+    """
+    cached = _ONNX_SESSION_CACHE.get(model_path)
+    if cached is not None:
+        return cached
+    try:
+        import onnxruntime as ort  # lazy: not in requirements, optional
+    except ImportError:
+        logger.info(
+            "[EdgeYieldEstimator] onnxruntime not installed — ML yield path dormant, "
+            "falling back to rule-based estimation."
+        )
+        return None
+    providers = ["CPUExecutionProvider"]
+    if device == "jetson_orin":
+        providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
+    session = ort.InferenceSession(model_path, providers=providers)
+    _ONNX_SESSION_CACHE[model_path] = session
+    return session
+
 
 class EdgeYieldEstimator:
     """
@@ -93,10 +138,23 @@ class EdgeYieldEstimator:
     def predict_yield(self, features: list[dict], crop: str, growth_stage: str) -> dict[str, float]:
         """
         Predict yield from multiple sample images.
+
+        Gated on capabilities.ml_yield_active(): when YIELD_MODEL_PATH points at an
+        existing ONNX file AND onnxruntime is importable, run REAL model inference over
+        the already-computed band-stat features and tag the result "source": "ml_onnx".
+        Otherwise fall back to the EXISTING rule-based heuristic, byte-for-byte unchanged.
         """
         if not features:
             return {"yield_kg_ha": 0, "biomass_proxy": 0, "plant_count": 0}
 
+        # ── Conditional REAL ONNX path (dormant unless a model file is provisioned) ──
+        model_path = _ml_yield_model_path()
+        if model_path is not None:
+            session = _load_onnx_session(model_path, self.device)
+            if session is not None:
+                return self._predict_yield_onnx(session, model_path, features, crop, growth_stage)
+
+        # ── Honest fallback: EXISTING rule-based heuristic (unchanged output) ──
         # Aggregate features
         avg_greenness = np.mean([f["greenness"] for f in features])
         avg_texture = np.mean([f["texture"] for f in features])
@@ -147,4 +205,75 @@ class EdgeYieldEstimator:
             "greenness_factor": round(greenness_factor, 3),
             "density_factor": round(density_factor, 3),
             "stage_multiplier": stage_mult,
+        }
+
+    def _predict_yield_onnx(
+        self,
+        session,
+        model_path: str,
+        features: list[dict],
+        crop: str,
+        growth_stage: str,
+    ) -> dict[str, float]:
+        """Run REAL ONNX inference over the already-computed band-stat features.
+
+        Builds the model input vector from the aggregated visual features extracted in
+        extract_features() (greenness, brightness, texture, plant-count proxy) plus the
+        crop baseline and growth-stage multiplier, then maps the model's scalar output
+        (predicted yield in kg/ha) to the existing result shape. No fabrication: the
+        numbers come entirely from the provisioned model's output.
+        """
+        stage_multipliers = {
+            "seedling": 0.3,
+            "vegetative": 0.6,
+            "flowering": 0.85,
+            "grain_filling": 0.95,
+            "maturity": 1.0,
+        }
+        stage_mult = stage_multipliers.get(growth_stage, 0.7)
+        baseline = self.yield_baselines.get(crop, 2000)
+
+        avg_greenness = float(np.mean([f["greenness"] for f in features]))
+        avg_brightness = float(np.mean([f["brightness"] for f in features]))
+        avg_texture = float(np.mean([f["texture"] for f in features]))
+        total_plant_proxy = sum(f["plant_count_proxy"] for f in features)
+
+        # Feature vector fed to the regressor (shape [1, 6], float32).
+        input_vec = np.array(
+            [
+                [
+                    avg_greenness,
+                    avg_brightness,
+                    avg_texture,
+                    float(total_plant_proxy),
+                    float(baseline),
+                    stage_mult,
+                ]
+            ],
+            dtype=np.float32,
+        )
+        input_name = session.get_inputs()[0].name
+        outputs = session.run(None, {input_name: input_vec})
+        estimated_yield = float(np.asarray(outputs[0]).reshape(-1)[0])
+
+        harvest_index = {
+            "wheat": 0.45,
+            "barley": 0.42,
+            "maize": 0.50,
+            "sorghum": 0.48,
+            "millet": 0.35,
+            "rice": 0.52,
+            "potato": 0.75,
+            "tomato": 0.60,
+            "coffee": 0.30,
+        }.get(crop, 0.45)
+        biomass = estimated_yield / harvest_index if harvest_index > 0 else estimated_yield * 2
+
+        return {
+            "yield_kg_ha": round(estimated_yield, 2),
+            "biomass_proxy": round(biomass, 2),
+            "plant_count": int(total_plant_proxy * stage_mult),
+            "stage_multiplier": stage_mult,
+            "source": "ml_onnx",
+            "model": os.path.basename(model_path),
         }
