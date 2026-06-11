@@ -1004,6 +1004,183 @@ async def create_field(
     )
 
 
+# ─── المواسم الزراعيّة (Seasons) — نمط FieldView (v32) ────────────
+_IRRIGATION_TYPES = {"drip", "pivot", "flood", "sprinkler", "rainfed", "subsurface"}
+
+
+class StageItem(BaseModel):
+    name: str = ""
+    date: str = ""
+    notes: str = ""
+
+
+class SeasonCreateRequest(BaseModel):
+    """طلب إنشاء موسم زراعيّ لحقل (محاصيل/صنف/ريّ/تواريخ/مراحل)."""
+
+    crops: list[str] = Field(default_factory=list)
+    cultivar: str | None = Field(default=None, max_length=100)
+    irrigation_type: str | None = None
+    seed_rate_kg_ha: float | None = Field(default=None, ge=0)
+    land_leveling_date: str | None = None
+    plowing_date: str | None = None
+    sowing_date: str | None = None
+    season_end: str | None = None
+    custom_stages: list[StageItem] = Field(default_factory=list)
+
+
+class SeasonSummary(BaseModel):
+    season_id: str
+    field_id: str
+    crops: list[str]
+    cultivar: str | None = None
+    irrigation_type: str | None = None
+    seed_rate_kg_ha: float | None = None
+    land_leveling_date: str | None = None
+    plowing_date: str | None = None
+    sowing_date: str | None = None
+    season_end: str | None = None
+    stages: list[dict]
+    status: str
+    created_at: str | None = None
+
+
+def _row_to_season(r) -> SeasonSummary:
+    import json as _json
+
+    def _arr(v):
+        if isinstance(v, str):
+            try:
+                return _json.loads(v)
+            except (ValueError, TypeError):
+                return []
+        return v or []
+
+    def _d(v):
+        return v.isoformat() if v is not None else None
+
+    return SeasonSummary(
+        season_id=r["season_id"],
+        field_id=r["field_id"],
+        crops=_arr(r["crops"]),
+        cultivar=r["cultivar"],
+        irrigation_type=r["irrigation_type"],
+        seed_rate_kg_ha=float(r["seed_rate_kg_ha"]) if r["seed_rate_kg_ha"] is not None else None,
+        land_leveling_date=_d(r["land_leveling_date"]),
+        plowing_date=_d(r["plowing_date"]),
+        sowing_date=_d(r["sowing_date"]),
+        season_end=_d(r["season_end"]),
+        stages=_arr(r["stages"]),
+        status=r["status"],
+        created_at=r["created_at"].isoformat() if r["created_at"] else None,
+    )
+
+
+async def _assert_field_in_tenant(conn, field_id: str) -> None:
+    """يتأكّد أنّ الحقل يخصّ المستأجِر (RLS) قبل ربط موسم به — 404 وإلّا."""
+    exists = await conn.fetchval("SELECT 1 FROM fields WHERE field_id = $1", field_id)
+    if not exists:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+
+
+@app.post(
+    "/api/v1/fields/{field_id}/seasons",
+    status_code=201,
+    response_model=SeasonSummary,
+)
+async def create_season(
+    field_id: str,
+    req: SeasonCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """ينشئ موسماً زراعيّاً للحقل — يُخزَّن فعليّاً (بدل /seasons المُبتلَع).
+
+    يتحقّق من نوع الريّ والتواريخ، ويربط الموسم بالحقل ضمن سياق المستأجِر (RLS).
+    season_start يُشتقّ من تاريخ البذار. يردّ الموسم المُنشأ.
+    """
+    import json as _json
+    import uuid as _uuid
+
+    if req.irrigation_type and req.irrigation_type not in _IRRIGATION_TYPES:
+        raise HTTPException(status_code=422, detail="نوع ريّ غير معروف")
+    # التواريخ: تُحوَّل/تُتحقَّق (400 على صيغة غير صالحة) قبل القاعدة.
+    land = _parse_date(req.land_leveling_date, "تسوية الأرض")
+    plow = _parse_date(req.plowing_date, "الحراثة")
+    sow = _parse_date(req.sowing_date, "البذار")
+    end = _parse_date(req.season_end, "نهاية الموسم")
+    if plow and land and plow < land:
+        raise HTTPException(status_code=422, detail="تاريخ الحراثة قبل تسوية الأرض")
+    if sow and plow and sow < plow:
+        raise HTTPException(status_code=422, detail="تاريخ البذار قبل الحراثة")
+    if end and sow and end < sow:
+        raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
+    season_id = "ssn_" + _uuid.uuid4().hex[:12]
+    stages_json = _json.dumps([s.model_dump() for s in req.custom_stages])
+    crops_json = _json.dumps(req.crops)
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            await conn.execute(
+                """INSERT INTO seasons
+                    (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,
+                     seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date,
+                     season_end, stages, status)
+                   VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
+                           $8, $9, $10, $11, $12::jsonb, 'active')""",
+                season_id,
+                str(user.tenant_id),
+                field_id,
+                crops_json,
+                req.cultivar,
+                req.irrigation_type,
+                req.seed_rate_kg_ha,
+                land,
+                plow,
+                sow,
+                end,
+                stages_json,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ الموسم", e) from e
+    return SeasonSummary(
+        season_id=season_id,
+        field_id=field_id,
+        crops=req.crops,
+        cultivar=req.cultivar,
+        irrigation_type=req.irrigation_type,
+        seed_rate_kg_ha=req.seed_rate_kg_ha,
+        land_leveling_date=land.isoformat() if land else None,
+        plowing_date=plow.isoformat() if plow else None,
+        sowing_date=sow.isoformat() if sow else None,
+        season_end=end.isoformat() if end else None,
+        stages=[s.model_dump() for s in req.custom_stages],
+        status="active",
+    )
+
+
+@app.get("/api/v1/fields/{field_id}/seasons", response_model=list[SeasonSummary])
+async def list_seasons(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مواسم الحقل (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS). 503 عند تعذّر القاعدة."""
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
+                "seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date, "
+                "season_end, stages, status, created_at "
+                "FROM seasons WHERE field_id = $1 ORDER BY created_at DESC",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة المواسم", e) from e
+    return [_row_to_season(r) for r in rows]
+
+
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
 class FarmCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
