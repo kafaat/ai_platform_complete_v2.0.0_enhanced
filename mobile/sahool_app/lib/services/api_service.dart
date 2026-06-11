@@ -282,6 +282,29 @@ class ApiService {
     return r.data as Map<String, dynamic>;
   }
 
+  /// H06: كشف الآفات بالصورة — رفع multipart إلى خدمة الاستدلال الحافيّة عبر
+  /// البوّابة (/api/edge/ → inference/pest-detect). يستخدم نفس Dio (توكن، إعادة
+  /// محاولة، كشف انقطاع). صدق: يردّ استجابة الخادم كما هي (detections/alert_ar)
+  /// أو يرمي خطأً صريحاً ليعرض الـUI حالة فشل واضحة — لا كشف مُلفَّق.
+  Future<Map<String, dynamic>> analyzePestImage(
+    File image, {
+    String? fieldId,
+    String crop = 'wheat',
+  }) async {
+    final fileName = image.path.split('/').last;
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(image.path, filename: fileName),
+      if (fieldId != null) 'field_id': fieldId,
+      'crop': crop,
+    });
+    final r = await _dio.post(
+      '/api/edge/inference/pest-detect',
+      data: form,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    return _asMap(r.data);
+  }
+
   Future<void> acknowledgeAlert(String alertId) async {
     await _dio.patch('/indicators/alerts/$alertId/acknowledge');
   }

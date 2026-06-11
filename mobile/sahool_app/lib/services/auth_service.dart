@@ -2,7 +2,9 @@
 // Fixes: F12(SecureStorage), F13(expiry check), M02(biometric hint)
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
 
 class AuthService {
   static final AuthService instance = AuthService._internal();
@@ -12,6 +14,10 @@ class AuthService {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
+
+  // M02: local_auth integration. مفتاح الإعداد المُخزَّن بأمان (opt-in).
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  static const _biometricPrefKey = 'biometric_enabled';
 
   String? _token;
   String? _refreshToken;
@@ -83,15 +89,64 @@ class AuthService {
   String? get userRole => _userProfile?['role'] as String?;
   String? get tenantId => _userProfile?['tenant_id'] as String?;
 
-  // M02: Biometric auth — غير مُنفّذ بعد. يفشل مغلقاً (false) لئلّا يمنح
-  // تأكيداً أمنيّاً زائفاً. أيّ مستدعٍ يُرفَض حتّى يُنفَّذ فعليّاً بـlocal_auth.
-  bool get isBiometricAvailable => false;  // الواجهة تُخفي الخيار حتّى التنفيذ
+  // M02: Biometric auth عبر local_auth. fail-closed بالكامل: أيّ تعذّر أو رفض
+  // أو غياب جهاز ⇒ false (لا تأكيد أمنيّ زائف)، ولا يُرمى استثناء أبداً.
 
-  Future<bool> authenticateWithBiometric() async {
-    // غير مُنفّذ — للتنفيذ بحزمة local_auth:
-    //   final auth = LocalAuthentication();
-    //   return auth.authenticate(localizedReason: 'تحقق من هويتك للدخول إلى SAHOOL');
-    // حتّى ذلك الحين: false (fail-closed) لا true (لا تأكيد زائف).
-    return false;
+  /// هل الجهاز يدعم البصمة/الوجه ومُسجَّل بياناتٍ حيويّة؟ (لإظهار/إخفاء الخيار)
+  Future<bool> get isBiometricAvailable async {
+    try {
+      final supported = await _localAuth.isDeviceSupported();
+      final canCheck = await _localAuth.canCheckBiometrics;
+      return supported && canCheck;
+    } on PlatformException catch (e) {
+      debugPrint('Biometric availability check failed: ${e.code}');
+      return false;
+    } catch (e) {
+      debugPrint('Biometric availability check failed: $e');
+      return false;
+    }
+  }
+
+  /// إعداد المستخدم: هل فعّل الدخول بالبصمة؟ (opt-in؛ افتراضيّاً معطّل).
+  Future<bool> get isBiometricEnabled async {
+    try {
+      return (await _storage.read(key: _biometricPrefKey)) == 'true';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// تفعيل/تعطيل الدخول بالبصمة (يُستدعى من شاشة الإعدادات).
+  Future<void> setBiometricEnabled(bool enabled) async {
+    await _storage.write(
+      key: _biometricPrefKey,
+      value: enabled ? 'true' : 'false',
+    );
+  }
+
+  /// يطلب التحقّق الحيويّ (بصمة/وجه). يفشل مغلقاً: يردّ false عند عدم التوفّر
+  /// أو الرفض أو أيّ خطأ — لا يُرمى استثناء. لا يُطالِب إن لم يفعّله المستخدم.
+  Future<bool> authenticateWithBiometric({
+    String reason = 'تحقّق من هويتك للدخول إلى SAHOOL',
+  }) async {
+    try {
+      // مُعطَّل من المستخدم (لا نفرضه) أو غير متوفّر ⇒ false بلا مُطالبة.
+      if (!await isBiometricEnabled) return false;
+      if (!await isBiometricAvailable) return false;
+      return await _localAuth.authenticate(
+        localizedReason: reason,
+        options: const AuthenticationOptions(
+          biometricOnly: true,
+          stickyAuth: true,
+        ),
+      );
+    } on PlatformException catch (e) {
+      // جهاز غير مُهيَّأ/مقفل/إلخ — fail-closed
+      debugPrint('Biometric auth failed: ${e.code}');
+      return false;
+    } catch (e) {
+      debugPrint('Biometric auth error: $e');
+      return false;
+    }
   }
 }
