@@ -9,6 +9,7 @@ import {
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
   analyzeFieldIntelligence, getCostAnalytics,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
+  simulateSeason, type SeasonSimResult,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
@@ -30,8 +31,9 @@ import {
   type AlertRecord, type AlertCreateInput, type AlertListFilters, type AlertEvaluateResult,
   fetchNotificationPreferences, updateNotificationPreferences,
   type NotificationPreferences,
-  listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
+  listDevices, registerDevice, getDeviceTelemetry, recordTelemetry, getFieldSoilMoisture,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
+  type FieldSoilMoisture,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
   type Valve, type CreateValveInput, type ValveStateIntent,
   type IrrigationSchedule, type CreateScheduleInput,
@@ -76,6 +78,10 @@ export const QK = {
   alerts:           (tid: string)        => ['alerts', tid],
   notifPrefs:       (tid: string)        => ['notifications', 'preferences', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
+  fieldChange:      (fid: string, index: string, dateA: string, dateB: string) =>
+                       ['field-change', fid, index, dateA, dateB],
+  fieldTimeseries:  (fid: string, index: string, dates: string) =>
+                       ['field-timeseries', fid, index, dates],
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
@@ -89,6 +95,7 @@ export const QK = {
   maintenance:      (tid: string, eid: string) => ['equipment', tid, 'maintenance', eid],
   devices:          (tid: string)        => ['devices', tid],
   deviceTelemetry:  (tid: string, id: string, n: number) => ['devices', 'telemetry', tid, id, n],
+  fieldSoilMoisture:(tid: string, fid: string) => ['fields', 'soil-moisture', tid, fid],
   valves:           (tid: string)        => ['irrigation', 'valves', tid],
   schedules:        (tid: string, fid?: string) => ['irrigation', 'schedules', tid, fid ?? 'all'],
   masterData:       (tid: string, cat: string) => ['master-data', tid, cat],
@@ -225,22 +232,29 @@ export function useAllFieldsNdvi() {
   });
 }
 
+// FIX (ربط حيّ): الخادم (vegetation-analysis-service) يكشف GET /v1/analyze بمعاملات
+// استعلام لا POST بجسم — كان POST يرتدّ 405. صُحّح الفعل/الشكل ليطابق الخادم الفعليّ.
 export function useAnalyzeVegetation() {
   return useMutation<unknown, Error, { fieldId: string; dateFrom?: string }>({
     mutationFn: ({ fieldId, dateFrom }) =>
-      vegetationApi.post('/v1/analyze', null, {
+      vegetationApi.get('/v1/analyze', {
         params: { field_id: fieldId, ...(dateFrom ? { date_from: dateFrom } : {}) }
       }).then(r => r.data),
   });
 }
 
 // ── Indicators ────────────────────────────────────────────────
+// صدق المصدر: لا توجد نقطة «33 مؤشّراً لكلّ حقل» حقيقيّة (indicators-service خدمة
+// stub). نشتقّ مؤشّرات الحقل من تحليل الغطاء النباتيّ الحيّ (vegetation-service)
+// عبر GET /v1/analyze — لا نطلب نقطة وهميّة. شكل الردّ (indices[*].value + health)
+// كافٍ للوحة المعلومات. عند الخطأ (404 حقل/503) يُرفض الاستعلام لحالة صادقة.
 export function useIndicators(fieldId: string) {
   return useQuery({
     queryKey: QK.indicators(fieldId),
-    queryFn:  () => indicatorsApi.get(`/v1/indicators/${fieldId}`).then(r => r.data),
+    queryFn:  () => vegetationApi.get('/v1/analyze', { params: { field_id: fieldId } }).then(r => r.data),
     staleTime:5 * 60_000,
     enabled:  !!fieldId,
+    retry:    false,
   });
 }
 
@@ -258,6 +272,100 @@ export function useIndicatorGrid(
       .then(r => r.data),
     staleTime: 10 * 60_000,
     enabled:   !!fieldId,
+    retry:     false,
+  });
+}
+
+// ── Change detection (per-pixel 2D, between two dates) ─────────────
+export interface ChangeZone {
+  class: 'improvement' | 'degradation' | 'severe_degradation';
+  code: number;            // 1 | -1 | -2
+  count: number;
+  mean_delta: number;
+  cells: [number, number][];
+}
+
+export interface ChangeDetectionResponse {
+  field_id: string;
+  index: string;
+  date_a: string;
+  date_b: string;
+  available: boolean;      // false ⇒ لا COG حقيقي لأحد التاريخين (لا تغيّر مُفبرَك)
+  real_data: boolean;
+  // الحقول التالية موجودة فقط عند available=true
+  rows?: number;
+  cols?: number;
+  bbox?: [number, number, number, number];
+  delta_grid?: (number | null)[][]; // after - before (null = فجوة/غيمة)
+  change_grid?: (number | null)[][]; // -2/-1/0/1 (null = فجوة)
+  mean_delta?: number;
+  improved_pct?: number;
+  degraded_pct?: number;
+  stable_pct?: number;
+  coverage_pct?: number;
+  valid_pixels?: number;
+  total_pixels?: number;
+  areas?: { severe_degraded_pct: number; degraded_pct: number; improved_pct: number; stable_pct: number };
+  zones?: ChangeZone[];
+  cloud_warning?: boolean;
+  interpretation_ar?: string;
+  // الحقول التالية موجودة فقط عند available=false
+  missing_dates?: string[];
+  note?: string;
+}
+
+// Spatial change detection between two acquisition dates (real COG grids only).
+export function useFieldChange(
+  fieldId: string,
+  index: GridIndex,
+  dateA: string,
+  dateB: string,
+  opts: { grid?: number; enabled?: boolean } = {},
+) {
+  const { grid = 32, enabled = true } = opts;
+  return useQuery<ChangeDetectionResponse>({
+    queryKey: QK.fieldChange(fieldId, index, dateA, dateB),
+    queryFn:  () => rasterApi
+      .post(`/v1/fields/${fieldId}/change`, { index, date_a: dateA, date_b: dateB, grid })
+      .then(r => r.data),
+    staleTime: 10 * 60_000,
+    enabled:   !!fieldId && !!dateA && !!dateB && dateA !== dateB && enabled,
+    retry:     false,
+  });
+}
+
+// ── Time series (real per-date index means for a field) ────────────
+export interface TimeseriesPoint { datetime: string; mean: number }
+
+export interface FieldTimeseriesResponse {
+  field_id: string;
+  index: string;
+  available: boolean;      // false ⇒ لا COG حقيقي في التواريخ (لا قيم مخترعة)
+  real_data: boolean;
+  points: TimeseriesPoint[];
+  requested_dates?: string[];
+  monthly_composite?: { month: string; median: number; mean: number; min: number; max: number; scene_count: number }[];
+  trend?: { slope: number | null; direction: string; points: number; first?: number; last?: number };
+  anomalies?: { month: string; value: number; z_score: number; type: 'drop' | 'spike' }[];
+  scenes_used?: number;
+  note?: string;
+}
+
+// Real index-mean time series for a field. dates="" ⇒ all available COG dates.
+export function useFieldTimeseries(
+  fieldId: string,
+  index: GridIndex,
+  dates: string = '',
+  opts: { grid?: number; enabled?: boolean } = {},
+) {
+  const { grid = 16, enabled = true } = opts;
+  return useQuery<FieldTimeseriesResponse>({
+    queryKey: QK.fieldTimeseries(fieldId, index, dates),
+    queryFn:  () => rasterApi
+      .get(`/v1/fields/${fieldId}/timeseries`, { params: { index, dates, grid } })
+      .then(r => r.data),
+    staleTime: 10 * 60_000,
+    enabled:   !!fieldId && enabled,
     retry:     false,
   });
 }
@@ -310,11 +418,14 @@ export function useFieldPrescription(
   });
 }
 
+// FIX (ربط حيّ): الكتالوج الحقيقيّ مُخدَّم من sahool-platform عبر البوّابة
+// (/api/v1/indicators/catalog) لا من indicators-service الـstub. tenant-scoped + FIELD_VIEW.
 export function useIndicatorsCatalog() {
   return useQuery({
     queryKey: QK.indicatorsCatalog,
-    queryFn:  () => indicatorsApi.get('/indicators/catalog').then(r => r.data),
+    queryFn:  () => kongApi.get('/api/v1/indicators/catalog').then(r => r.data),
     staleTime:60 * 60_000,
+    retry:    false,
   });
 }
 
@@ -489,6 +600,16 @@ export function useCreateActivity(
   return useMutation<Activity, Error, ActivityCreateInput>({
     mutationFn: (payload) => createActivity(fieldId, payload),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.activities(tid, fieldId) }); },
+  });
+}
+
+// ── محاكاة الموسم (Crop-model simulation, RUE/FAO-56) — v39 ──────────
+// يشغّل محاكاة محصوليّة للموسم على الخادم ويحفظ ناتجها (تقديرات بنطاق وثقة).
+// طفرة (mutation) بلا تخزين مؤقّت وهميّ: عند الخطأ (503 طقس/قاعدة، 404 موسم،
+// 422 بلا إحداثيّات) تعرض الواجهة الرسالة كما هي.
+export function useSimulateSeason(): UseMutationResult<SeasonSimResult, Error, string> {
+  return useMutation<SeasonSimResult, Error, string>({
+    mutationFn: (seasonId) => simulateSeason(seasonId),
   });
 }
 
@@ -805,6 +926,22 @@ export function useDeviceTelemetry(deviceId: string, limit = 20): UseQueryResult
     staleTime:60_000,
     enabled:  !!deviceId,
     retry:    false,
+  });
+}
+
+// أحدث رطوبة تربة لحقل من أجهزته (field:view). reading=null عند غياب قراءة صالحة —
+// لا fallback وهميّ: الواجهة تعرض حالة صادقة. ينعش دوريّاً لمواكبة القراءات الحيّة.
+export function useFieldSoilMoisture(
+  fieldId: string | null | undefined,
+): UseQueryResult<FieldSoilMoisture> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldSoilMoisture>({
+    queryKey:        QK.fieldSoilMoisture(tid, fieldId ?? ''),
+    queryFn:         () => getFieldSoilMoisture(fieldId as string),
+    staleTime:       60_000,
+    refetchInterval: 60_000,
+    enabled:         !!fieldId,
+    retry:           false,
   });
 }
 

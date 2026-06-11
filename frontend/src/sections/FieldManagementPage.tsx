@@ -17,7 +17,8 @@ import AddSeasonWithStages from '../components/AddSeasonWithStages';
 import FieldDetailPanel from '../components/FieldDetailPanel';
 import { kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
-import { useFields } from '../hooks/useApi';
+import { useFields, useSimulateSeason } from '../hooks/useApi';
+import type { SeasonSimResult } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -93,6 +94,8 @@ export default function FieldManagementPage() {
   const [showSeason,    setShowSeason]    = useState<Field|null>(null);
   const [showDetail,    setShowDetail]    = useState<Field|null>(null);
   const [editField,     setEditField]     = useState<Field|null>(null);
+  // الموسم المُنشأ حديثاً (لعرض إجراء «تشغيل المحاكاة») — v39
+  const [simSeason,     setSimSeason]     = useState<{ seasonId: string; crops: string[] }|null>(null);
 
   // بذر الحالة المحلّيّة من البيانات الحيّة مرّة واحدة (CRUD تفاؤليّ بعدها لا يُداس
   // عند إعادة الجلب). كان يُبذَر من INITIAL مُلفّقة — أُزيلت.
@@ -162,8 +165,9 @@ export default function FieldManagementPage() {
   const handleSaveSeason = async (data: any) => {
     // إنشاء حقيقيّ: POST /api/v1/fields/{id}/seasons (بدل /seasons المُبتلَع).
     // عند الفشل نرمي رسالة عربيّة فيعرضها النموذج (errors.general) ويبقى مفتوحاً.
+    let seasonId: string | null = null;
     try {
-      await kongApi.post(`/api/v1/fields/${data.field_id}/seasons`, {
+      const r = await kongApi.post(`/api/v1/fields/${data.field_id}/seasons`, {
         crops: data.crops, cultivar: data.cultivar || null,
         irrigation_type: data.irrigation_type,
         seed_rate_kg_ha: data.seed_rate_kg_ha,
@@ -173,6 +177,7 @@ export default function FieldManagementPage() {
         season_end: data.season_end || null,
         custom_stages: data.custom_stages,
       });
+      seasonId = (r?.data as any)?.season_id ?? null;
     } catch (e: any) {
       const detail = e?.response?.data?.detail;
       throw new Error((detail && (detail.message_ar || detail)) ||
@@ -180,6 +185,8 @@ export default function FieldManagementPage() {
     }
     setShowSeason(null);
     toastStore.add('success', '🌾 تم إنشاء الموسم', (data.crops || []).join('، '));
+    // بعد الإنشاء: اعرض إجراء «تشغيل المحاكاة» على الموسم الجديد (إن عاد المعرّف).
+    if (seasonId) setSimSeason({ seasonId, crops: data.crops || [] });
   };
 
   const handleDelete = (id: string) => {
@@ -427,6 +434,113 @@ export default function FieldManagementPage() {
           onClose={() => setShowDetail(null)}
         />
       )}
+      {simSeason && (
+        <SeasonSimModal
+          seasonId={simSeason.seasonId}
+          crops={simSeason.crops}
+          onClose={() => setSimSeason(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── محاكاة الموسم (Crop-model simulation) — v39 ────────────────────
+// إجراء صريح «تشغيل المحاكاة» بعد إنشاء الموسم. يعرض النتائج بصدق: نطاق الإنتاج
+// (لا رقم قاطع) + GDD + LAI + احتياج الماء + الثقة + الافتراضات/التحذيرات كما
+// عادت من الخادم. لا تلفيق: الخطأ (503 طقس/قاعدة، 404، 422) يُعرَض كما هو.
+function SeasonSimModal({ seasonId, crops, onClose }: {
+  seasonId: string; crops: string[]; onClose: () => void;
+}) {
+  const sim = useSimulateSeason();
+  const r: SeasonSimResult | undefined = sim.data;
+  const num = (v: number | null | undefined, d = 0) =>
+    (typeof v === 'number' ? Math.round(v).toLocaleString('ar') : String(d));
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.6)' }}>
+      <div className="w-full max-w-lg rounded-xl border max-h-[88vh] overflow-y-auto"
+        style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: '#334155' }}>
+          <div className="font-semibold text-slate-100 text-sm flex items-center gap-2">
+            <Sprout size={16} className="text-emerald-400" />
+            محاكاة الموسم {crops.length ? `· ${crops.join('، ')}` : ''}
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-200"><X size={18} /></button>
+        </div>
+
+        <div className="p-4 space-y-3">
+          {!r && !sim.isError && (
+            <p className="text-xs text-slate-400 leading-relaxed">
+              تشغيل نموذج محصولي (RUE/FAO-56) يقدّر الإنتاج وتراكم الحرارة (GDD) ومؤشّر
+              المساحة الورقيّة (LAI) واحتياج الماء من طقس الموسم. النتائج <b>تقديرات نموذجيّة</b>
+              ضمن نطاق، لا قياسات ميدانيّة.
+            </p>
+          )}
+
+          {sim.isError && (
+            <div className="rounded-lg p-3 text-xs" style={{ background: '#3f1d1d', color: '#fca5a5' }}>
+              تعذّرت المحاكاة: {(sim.error as any)?.response?.data?.detail ||
+                (sim.error as Error)?.message || 'خطأ غير معروف (طقس/قاعدة غير متاحة).'}
+            </div>
+          )}
+
+          {r && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Stat label="الإنتاج المُقدَّر (kg/ha)"
+                  value={`${num(r.yield_low_kg_ha)} – ${num(r.yield_high_kg_ha)}`} hint={`المركزي ≈ ${num(r.yield_kg_ha)}`} />
+                <Stat label="GDD التراكمي (°C·day)"
+                  value={`${num(r.gdd_total)} / ${num(r.gdd_to_maturity)}`} hint={r.maturity_reached ? 'بلغ النضج' : 'لم يبلغ النضج'} />
+                <Stat label="أقصى LAI (m²/m²)" value={r.lai_max.toFixed(2)} hint="مؤشّر تقريبي" />
+                <Stat label="احتياج الماء (mm)" value={num(r.water_need_mm)}
+                  hint={r.water_supply_mm != null ? `العرض ≈ ${num(r.water_supply_mm)}` : 'العرض غير معروف'} />
+              </div>
+
+              <div className="rounded-lg p-2 text-[11px]" style={{ background: '#0f172a', color: '#94a3b8' }}>
+                الكتلة الحيويّة ≈ {num(r.biomass_kg_ha)} kg/ha · الثقة {Math.round(r.confidence * 100)}٪
+                {!r.crop_recognized && ' · المحصول غير مُعرّف (نموذج عامّ)'}
+              </div>
+
+              <p className="text-[11px] text-slate-400 leading-relaxed">{r.rationale_ar}</p>
+
+              {r.assumptions_ar.length > 0 && (
+                <ul className="text-[11px] text-slate-500 list-disc pr-4 space-y-0.5">
+                  {r.assumptions_ar.map((a, i) => <li key={i}>{a}</li>)}
+                </ul>
+              )}
+              {r.warnings_ar.length > 0 && (
+                <ul className="text-[11px] list-disc pr-4 space-y-0.5" style={{ color: '#fbbf24' }}>
+                  {r.warnings_ar.map((w, i) => <li key={i}>{w}</li>)}
+                </ul>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-end gap-2 p-4 border-t" style={{ borderColor: '#334155' }}>
+          <button onClick={onClose}
+            className="px-3 py-1.5 rounded-lg text-xs text-slate-300 hover:bg-slate-700">
+            إغلاق
+          </button>
+          <button onClick={() => sim.mutate(seasonId)} disabled={sim.isPending}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50"
+            style={{ background: '#059669' }}>
+            {sim.isPending ? 'جارٍ التشغيل…' : r ? 'إعادة التشغيل' : 'تشغيل المحاكاة'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-lg p-2" style={{ background: '#0f172a' }}>
+      <div className="text-[10px] text-slate-400">{label}</div>
+      <div className="text-sm font-semibold text-slate-100 mt-0.5">{value}</div>
+      {hint && <div className="text-[10px] text-slate-500 mt-0.5">{hint}</div>}
     </div>
   );
 }

@@ -2034,6 +2034,152 @@ async def field_prescription(field_id: str, req: PrescriptionRequest):
     }
 
 
+# ─── كشف التغيّر المكاني بين تاريخين (field-scoped) ───────────────────
+class FieldChangeRequest(BaseModel):
+    index: str = "ndvi"
+    date_a: str  # التاريخ الأقدم (before)
+    date_b: str  # التاريخ الأحدث (after)
+    grid: int = Field(32, ge=2, le=256)
+    slight_threshold: float = 0.1
+    severe_threshold: float = 0.2
+
+
+async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> dict | None:
+    """شبكة المؤشّر الحقيقيّة (من COG) لحقل+مؤشّر+تاريخ، أو None إن لم تتوفّر.
+
+    صدق: لا COG / لا rasterio / لا شبكة ⇒ None (لا محاكاة هنا — كشف التغيّر يجب
+    أن يبني على بيانات حقيقيّة فقط، لا يُفبرَك تغيّر من شبكتين مُولَّدتين).
+    """
+    layer = await _resolve_field_layer(field_id, index, date)
+    if layer is None:
+        return None
+    return _grid_from_cog(layer, index, date, grid)
+
+
+@app.post("/v1/fields/{field_id}/change")
+async def field_change(field_id: str, req: FieldChangeRequest):
+    """كشف التغيّر المكاني (per-pixel 2D) للحقل بين تاريخين — أين تدهور/تحسّن.
+
+    يبني شبكتي المؤشّر الحقيقيّتين (من COG المقصوص لكلّ تاريخ، نفس مسار
+    indicator-grid) ويُمرّرهما لـdetect_change. صدق: إن لم تتوفّر شبكة حقيقيّة
+    لأحد التاريخين (لا COG / لا rasterio) يُرجِع real_data=False بلا تغيّر مُفبرَك.
+    """
+    grid_a = await _real_field_grid(field_id, req.index, req.date_a, req.grid)
+    grid_b = await _real_field_grid(field_id, req.index, req.date_b, req.grid)
+
+    if grid_a is None or grid_b is None:
+        missing = [d for d, g in ((req.date_a, grid_a), (req.date_b, grid_b)) if g is None]
+        return {
+            "field_id": field_id,
+            "index": req.index,
+            "date_a": req.date_a,
+            "date_b": req.date_b,
+            "real_data": False,
+            "available": False,
+            "missing_dates": missing,
+            "note": "لا COG مقصوص للحقل لأحد التاريخين — شغّل /process أوّلاً "
+            "(لا تغيّر مُفبرَك من بيانات غير متوفّرة)",
+        }
+
+    if grid_a["rows"] != grid_b["rows"] or grid_a["cols"] != grid_b["cols"]:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"أبعاد شبكتي التاريخين مختلفة: "
+                f"{grid_a['rows']}×{grid_a['cols']} مقابل {grid_b['rows']}×{grid_b['cols']}"
+            ),
+        )
+
+    import change_detection as cd
+
+    result = cd.detect_change(
+        grid_a["grid"],
+        grid_b["grid"],
+        index=req.index,
+        slight_threshold=req.slight_threshold,
+        severe_threshold=req.severe_threshold,
+    )
+    result.update(
+        {
+            "field_id": field_id,
+            "date_a": grid_a.get("date", req.date_a),
+            "date_b": grid_b.get("date", req.date_b),
+            "bbox": grid_b.get("bbox") or grid_a.get("bbox"),
+            "real_data": True,
+            "available": True,
+        }
+    )
+    return result
+
+
+# ─── السلسلة الزمنيّة للمؤشّر (field-scoped) ──────────────────────────
+@app.get("/v1/fields/{field_id}/timeseries")
+async def field_timeseries(
+    field_id: str,
+    index: str = Query("ndvi"),
+    dates: str = Query(
+        "",
+        description="تواريخ مفصولة بفواصل (YYYY-MM-DD). فارغ ⇒ كلّ تواريخ COG المتاحة للحقل.",
+    ),
+    grid: int = Query(16, ge=2, le=64),
+    x_agent_token: str = Header(None),
+):
+    """السلسلة الزمنيّة الحقيقيّة لمتوسّط المؤشّر للحقل عبر التواريخ المتاحة.
+
+    لكلّ تاريخ يبني شبكة المؤشّر من COG الحقل المقصوص ويأخذ متوسّطها الحقيقي
+    (real_data). يجمّعها شهريّاً ويحسب الاتّجاه/الشذوذ عبر time_series. صدق:
+    لا COG ⇒ نقطة محذوفة (لا تُخترع قيمة)؛ لا نقاط حقيقيّة ⇒ available=False.
+    """
+    requested_dates = [d.strip() for d in dates.split(",") if d.strip()]
+    if not requested_dates:
+        # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر (من الذاكرة)
+        internal = _GRID_INDEX_ALIASES.get(index, index)
+        seen: set[str] = set()
+        for lid in _field_layers.get(field_id, []):
+            lyr = _layers.get(lid)
+            if not lyr or not lyr.get("cog_url") or lyr.get("index") != internal:
+                continue
+            d = lyr.get("acquisition_date")
+            if d:
+                seen.add(str(d)[:10])
+        requested_dates = sorted(seen)
+
+    points: list[dict] = []
+    for date in requested_dates:
+        real = await _real_field_grid(field_id, index, date, grid)
+        if real is None:
+            continue
+        points.append(
+            {
+                "datetime": str(real.get("date") or date)[:10],
+                "mean": real["stats"]["mean"],
+            }
+        )
+
+    if not points:
+        return {
+            "field_id": field_id,
+            "index": index,
+            "available": False,
+            "real_data": False,
+            "points": [],
+            "requested_dates": requested_dates,
+            "note": "لا COG مقصوص للحقل في التواريخ المطلوبة — شغّل /process (لا قيم مؤشّر مخترعة)",
+        }
+
+    import time_series as ts
+
+    analysis = ts.build_time_series(points, value_key="mean")
+    return {
+        "field_id": field_id,
+        "index": index,
+        "available": True,
+        "real_data": True,
+        "points": points,
+        **analysis,
+    }
+
+
 # ─── بلاطات XYZ ديناميكيّة (TiTiler-style) من COG الحقل المقصوص ────────
 @app.get("/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png")
 async def field_tile(

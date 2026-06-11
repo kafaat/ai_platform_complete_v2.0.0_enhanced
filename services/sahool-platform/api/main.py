@@ -1430,10 +1430,19 @@ class SeasonSummary(BaseModel):
     stages: list[dict]
     status: str
     created_at: str | None = None
+    # ─── نتائج محاكاة الموسم (v39) — تُملأ عند تشغيل /simulate، تقديريّة ─
+    sim_yield_kg_ha: float | None = None
+    sim_biomass_kg_ha: float | None = None
+    sim_gdd_total: float | None = None
+    sim_lai_max: float | None = None
+    sim_water_mm: float | None = None
+    sim_ran_at: str | None = None
 
 
 def _row_to_season(r) -> SeasonSummary:
     import json as _json
+
+    keys = set(r.keys())
 
     def _arr(v):
         if isinstance(v, str):
@@ -1445,6 +1454,10 @@ def _row_to_season(r) -> SeasonSummary:
 
     def _d(v):
         return v.isoformat() if v is not None else None
+
+    def _num(col):  # عمود sim_* قد لا يكون في SELECT (مثلاً list_seasons) — None بأمان
+        v = r[col] if col in keys else None
+        return float(v) if v is not None else None
 
     return SeasonSummary(
         season_id=r["season_id"],
@@ -1460,6 +1473,16 @@ def _row_to_season(r) -> SeasonSummary:
         stages=_arr(r["stages"]),
         status=r["status"],
         created_at=r["created_at"].isoformat() if r["created_at"] else None,
+        sim_yield_kg_ha=_num("sim_yield_kg_ha"),
+        sim_biomass_kg_ha=_num("sim_biomass_kg_ha"),
+        sim_gdd_total=_num("sim_gdd_total"),
+        sim_lai_max=_num("sim_lai_max"),
+        sim_water_mm=_num("sim_water_mm"),
+        sim_ran_at=(
+            r["sim_ran_at"].isoformat()
+            if "sim_ran_at" in keys and r["sim_ran_at"] is not None
+            else None
+        ),
     )
 
 
@@ -1564,7 +1587,9 @@ async def list_seasons(
             rows = await conn.fetch(
                 "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
                 "seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date, "
-                "season_end, stages, status, created_at "
+                "season_end, stages, status, created_at, "
+                "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, "
+                "sim_water_mm, sim_ran_at "
                 "FROM seasons WHERE field_id = $1 ORDER BY created_at DESC",
                 field_id,
             )
@@ -1573,6 +1598,177 @@ async def list_seasons(
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("قراءة المواسم", e) from e
     return [_row_to_season(r) for r in rows]
+
+
+# ─── محاكاة الموسم (Crop-model simulation) — v39 ─────────────────
+# نموذج محصولي حقيقي خفيف (RUE/FAO-56، نقيّ ومُختبَر في api.season_simulation):
+# تراكم GDD + كتلة حيويّة عبر كفاءة استخدام الإشعاع + مؤشّر LAI + احتياج الماء،
+# ثمّ الإنتاج = الكتلة × مؤشّر الحصاد، مُحجَّماً بإجهاد مائي. النواة تجمع السياق
+# (الموسم من القاعدة، الطقس التاريخي من Open-Meteo) وتكتب الناتج على صفّ الموسم.
+# تقديرات نموذجيّة بنطاق وثقة صريحة — لا أرقام قاطعة. تعذّر الطقس ⇒ 503.
+
+# سقف نافذة المحاكاة (يوم) حين يغيب season_end — دورة موسميّة معقولة.
+_SIM_MAX_WINDOW_DAYS = 160
+
+
+class SeasonSimResponse(BaseModel):
+    """ناتج محاكاة الموسم — تقديرات نموذجيّة بنطاق وثقة وافتراضات صريحة."""
+
+    season_id: str
+    crop: str
+    crop_recognized: bool
+    days_simulated: int
+    gdd_total: float
+    gdd_to_maturity: float
+    maturity_reached: bool
+    lai_max: float
+    biomass_kg_ha: float
+    yield_kg_ha: float
+    yield_low_kg_ha: float
+    yield_high_kg_ha: float
+    water_need_mm: float
+    water_supply_mm: float | None
+    water_stress_factor: float
+    confidence: float
+    rationale_ar: str
+    assumptions_ar: list[str]
+    warnings_ar: list[str]
+    sim_ran_at: str
+
+
+@app.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
+async def simulate_season_endpoint(
+    season_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يشغّل محاكاة محصوليّة (RUE/FAO-56) للموسم ويحفظ الناتج على صفّه.
+
+    يؤكّد أنّ الموسم يخصّ المستأجِر (404 وإلّا)، يجمع المحصول/التواريخ من القاعدة
+    والطقس التاريخي من Open-Meteo لنافذة الموسم (sowing→end أو آخر ~160 يوماً)،
+    يستدعي api.season_simulation.simulate_season (نقيّ)، يكتب sim_* + sim_ran_at،
+    ويردّ النتيجة (تقديرات بنطاق وثقة). 503 إن تعذّرت القاعدة أو الطقس.
+    """
+    import json as _json
+
+    from api.connectors.openmeteo import fetch_historical
+    from api.season_simulation import DayWeather, SimContext, simulate_season
+
+    # ١) سياق الموسم من القاعدة (+ تأكيد المستأجِر عبر RLS ⇒ 404 إن غاب).
+    try:
+        async with tenant_connection(user) as conn:
+            srow = await conn.fetchrow(
+                "SELECT s.season_id, s.field_id, s.crops, s.sowing_date, s.season_end, "
+                "f.lat, f.lon FROM seasons s JOIN fields f ON f.field_id = s.field_id "
+                "WHERE s.season_id = $1",
+                season_id,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة الموسم للمحاكاة", e) from e
+    if srow is None:
+        raise HTTPException(status_code=404, detail="الموسم غير موجود ضمن هذا المستأجِر")
+    if srow["lat"] is None or srow["lon"] is None:
+        raise HTTPException(
+            status_code=422,
+            detail="حقل الموسم بلا إحداثيّات (lat/lon) — لا يمكن جلب الطقس للمحاكاة.",
+        )
+
+    crops = srow["crops"]
+    if isinstance(crops, str):
+        try:
+            crops = _json.loads(crops)
+        except (ValueError, TypeError):
+            crops = []
+    crop = str(crops[0]) if isinstance(crops, list) and crops else None
+
+    # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بحدّ أقصى.
+    today = datetime.now(UTC).date()
+    sow = srow["sowing_date"]
+    end = srow["season_end"]
+    start = sow if sow is not None else (today - timedelta(days=_SIM_MAX_WINDOW_DAYS))
+    win_end = min(end, today) if end is not None else today
+    if win_end <= start:
+        win_end = min(start + timedelta(days=_SIM_MAX_WINDOW_DAYS), today)
+    if (win_end - start).days > _SIM_MAX_WINDOW_DAYS:
+        win_end = start + timedelta(days=_SIM_MAX_WINDOW_DAYS)
+    # ERA5 التاريخي يتأخّر ~5 أيّام — لا نطلب أحدث من ذلك.
+    win_end = min(win_end, today - timedelta(days=5))
+    if win_end <= start:
+        raise HTTPException(
+            status_code=422,
+            detail="نافذة الموسم قصيرة جدّاً أو في المستقبل — لا بيانات طقس تاريخيّة كافية للمحاكاة.",
+        )
+
+    # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
+    try:
+        days = await fetch_historical(
+            float(srow["lat"]),
+            float(srow["lon"]),
+            start.isoformat(),
+            win_end.isoformat(),
+        )
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس التاريخي (Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    weather = [
+        DayWeather(
+            t_min_c=d.temp_min_c,
+            t_max_c=d.temp_max_c,
+            solar_mj_m2=None,  # غير مطلوب من المصدر الحالي — يُقدَّر في النموذج
+            et0_mm=d.et0_mm,
+            rain_mm=d.precipitation_mm or 0.0,
+        )
+        for d in days
+    ]
+
+    # ٤) المحاكاة النقيّة.
+    result = simulate_season(
+        SimContext(crop=crop, sowing_date=sow, season_end=end, weather=weather)
+    )
+
+    # ٥) حفظ النتائج على صفّ الموسم (+ وقت التشغيل).
+    ran_at = datetime.now(UTC)
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
+                "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, sim_ran_at = $7 "
+                "WHERE season_id = $1",
+                season_id,
+                result.yield_kg_ha,
+                result.biomass_kg_ha,
+                result.gdd_total,
+                result.lai_max,
+                result.water_need_mm,
+                ran_at,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("حفظ نتائج المحاكاة", e) from e
+
+    return SeasonSimResponse(
+        season_id=season_id,
+        crop=result.crop,
+        crop_recognized=result.crop_recognized,
+        days_simulated=result.days_simulated,
+        gdd_total=result.gdd_total,
+        gdd_to_maturity=result.gdd_to_maturity,
+        maturity_reached=result.maturity_reached,
+        lai_max=result.lai_max,
+        biomass_kg_ha=result.biomass_kg_ha,
+        yield_kg_ha=result.yield_kg_ha,
+        yield_low_kg_ha=result.yield_low_kg_ha,
+        yield_high_kg_ha=result.yield_high_kg_ha,
+        water_need_mm=result.water_need_mm,
+        water_supply_mm=result.water_supply_mm,
+        water_stress_factor=result.water_stress_factor,
+        confidence=result.confidence,
+        rationale_ar=result.rationale_ar,
+        assumptions_ar=result.assumptions_ar,
+        warnings_ar=result.warnings_ar,
+        sim_ran_at=ran_at.isoformat(),
+    )
 
 
 # ─── الطقس والريّ (Weather-driven advice) — Sprint 5a ────────────
@@ -1634,6 +1830,55 @@ async def _field_weather_context(conn, field_id: str) -> tuple[float, float, str
     return float(row["lat"]), float(row["lon"]), crop, stage
 
 
+async def _latest_soil_moisture(conn, field_id: str):
+    """أحدث قراءة رطوبة تربة (٪) لأجهزة الحقل، أو None إن لا قراءة صالحة.
+
+    يجلب قراءات soil_moisture من device_telemetry للأجهزة المرتبطة بالحقل
+    (iot_devices.field_id) ضمن سياق المستأجِر (RLS)، ثمّ يلتقط أحدثها الصالحة عبر
+    المنطق النقيّ pick_latest_soil_moisture (يتجاهل القيم خارج النطاق المعقول).
+    يُعيد كائن SoilMoistureReading أو None — لا يرفع استثناء عند غياب البيانات
+    (القرار يتدبّر None برشاقة: يعتمد احتياج الريّ بدلاً منها).
+    """
+    from api.soil_telemetry import pick_latest_soil_moisture
+
+    rows = await conn.fetch(
+        """SELECT t.value, t.unit, t.recorded_at, t.device_id
+             FROM device_telemetry t
+             JOIN iot_devices d ON d.device_id = t.device_id
+            WHERE d.field_id = $1 AND t.sensor_type = 'soil_moisture'
+            ORDER BY t.recorded_at DESC
+            LIMIT 50""",
+        field_id,
+    )
+    return pick_latest_soil_moisture([dict(r) for r in rows])
+
+
+@app.get("/api/v1/fields/{field_id}/soil-moisture")
+async def field_soil_moisture(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """أحدث قراءة رطوبة تربة (٪) لأجهزة الحقل من telemetry الحيّ، أو null.
+
+    يقرأ من device_telemetry (الأجهزة المرتبطة بالحقل عبر iot_devices.field_id)
+    ضمن سياق المستأجِر (RLS) بعد تأكيد أنّ الحقل يخصّه (404). يردّ القراءة + زمنها
+    + الجهاز المصدر، أو reading=null إن لا قراءة صالحة (لا بيانات وهميّة). 503 إن
+    تعذّرت القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            reading = await _latest_soil_moisture(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة رطوبة التربة", e) from e
+    return {
+        "field_id": field_id,
+        "reading": reading.as_dict() if reading is not None else None,
+    }
+
+
 @app.get("/api/v1/fields/{field_id}/weather/irrigation-advice")
 async def field_irrigation_advice(
     field_id: str,
@@ -1651,6 +1896,8 @@ async def field_irrigation_advice(
     try:
         async with tenant_connection(user) as conn:
             lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+            # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي إلحاح التوصية.
+            soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -1676,15 +1923,27 @@ async def field_irrigation_advice(
         )
     # المطر المتوقّع خلال ٤٨ ساعة القادمة (يومان قادمان من التوقّع).
     forecast_rain = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+    soil_pct = soil_reading.value_pct if soil_reading is not None else None
     advice = irrigation_advice(
         et0_mm=et0,
         crop=crop,
         stage=stage,
         rain_recent_mm=current.precipitation_mm or 0.0,
         forecast_rain_mm=forecast_rain,
-        soil_moisture_pct=None,
+        soil_moisture_pct=soil_pct,
     )
-    advice.update({"field_id": field_id, "crop": crop, "stage": stage, "source": "open-meteo"})
+    advice.update(
+        {
+            "field_id": field_id,
+            "crop": crop,
+            "stage": stage,
+            "source": "open-meteo",
+            "soil_moisture_pct": soil_pct,
+            "soil_moisture_at": (
+                soil_reading.recorded_at.isoformat() if soil_reading is not None else None
+            ),
+        }
+    )
     return advice
 
 
@@ -2450,6 +2709,8 @@ async def evaluate_field_alerts_endpoint(
     try:
         async with tenant_connection(user) as conn:
             lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+            # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي قاعدة low_moisture.
+            soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -2466,6 +2727,7 @@ async def evaluate_field_alerts_endpoint(
             detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
         ) from e
 
+    soil_pct = soil_reading.value_pct if soil_reading is not None else None
     today = forecast[0] if forecast else None
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
@@ -2477,7 +2739,7 @@ async def evaluate_field_alerts_endpoint(
             stage=stage,
             rain_recent_mm=current.precipitation_mm or 0.0,
             forecast_rain_mm=forecast_rain_48h,
-            soil_moisture_pct=None,
+            soil_moisture_pct=soil_pct,
         )
         irrigation_need_mm = advice.get("recommended_mm")
 
@@ -2486,7 +2748,7 @@ async def evaluate_field_alerts_endpoint(
     rain_hist_3d = await _historical_rain_3d_mm(lat, lon, rain_fc_3d)
     ctx = FieldAlertContext(
         field_id=field_id,
-        soil_moisture_pct=None,  # لا مصدر قراءة تربة حيّ بعد — نعتمد احتياج الريّ.
+        soil_moisture_pct=soil_pct,  # رطوبة تربة حيّة من telemetry إن وُجدت، وإلّا None.
         irrigation_need_mm=irrigation_need_mm,
         forecast_rain_mm=rain_fc_3d,
         temp_c=current.temperature_c,
@@ -3781,6 +4043,262 @@ async def report_season_summary(
         "stage_count": len(stages) if isinstance(stages, list) else 0,
         "activities_count": int(activities_count or 0),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════
+# INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (tenant-scoped, FIELD_VIEW)
+# ───────────────────────────────────────────────────────────────────
+# صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). كانت الواجهة
+# تطلب :8091/indicators/dashboard|catalog فتسقط على mock أو فراغ. هنا نوفّر
+# لوحة *حقيقيّة* مُجمَّعة من الجداول القائمة (fields/seasons/alerts) عبر البوّابة
+# الموحّدة /api/v1/. لا نخترع قيم NDVI/طقس (تلك في vegetation/weather/raster) —
+# نُجمّع ما هو محفوظ فعلاً ونصنّف الحقول حسب وجود/غياب موسم نشط. أيّ خطأ DB ⇒ 503.
+# ═══════════════════════════════════════════════════════════════════
+
+# كتالوج المؤشّرات التي تحسبها المنصّة فعلاً (مصدر كلٍّ موثّق بصدق). ليس 33
+# مؤشّراً مُلفَّقاً — بل ما هو مُنفَّذ ومخدوم عبر خدمات حقيقيّة (vegetation/raster
+# للطيفيّة، weather للمناخيّة، soil للتربة). الواجهة تعرضه كدليل + فلترة بالفئة.
+_INDICATOR_CATALOG: list[dict] = [
+    {
+        "id": "ndvi",
+        "category": "vegetation",
+        "name_ar": "NDVI",
+        "unit": "",
+        "source": "raster-service / vegetation-service",
+    },
+    {
+        "id": "evi",
+        "category": "vegetation",
+        "name_ar": "EVI",
+        "unit": "",
+        "source": "raster-service / vegetation-service",
+    },
+    {
+        "id": "ndre",
+        "category": "vegetation",
+        "name_ar": "NDRE",
+        "unit": "",
+        "source": "raster-service",
+    },
+    {
+        "id": "msavi",
+        "category": "vegetation",
+        "name_ar": "MSAVI",
+        "unit": "",
+        "source": "raster-service",
+    },
+    {
+        "id": "ndwi",
+        "category": "water",
+        "name_ar": "NDWI",
+        "unit": "",
+        "source": "raster-service / vegetation-service",
+    },
+    {
+        "id": "ndmi",
+        "category": "water",
+        "name_ar": "NDMI (الرطوبة)",
+        "unit": "",
+        "source": "raster-service",
+    },
+    {
+        "id": "et0",
+        "category": "water",
+        "name_ar": "ET₀",
+        "unit": "mm/d",
+        "source": "weather-service (FAO-56)",
+    },
+    {
+        "id": "water_deficit",
+        "category": "water",
+        "name_ar": "عجز المياه",
+        "unit": "mm",
+        "source": "weather-service",
+    },
+    {
+        "id": "gdd",
+        "category": "weather",
+        "name_ar": "GDD المتراكم",
+        "unit": "°C·يوم",
+        "source": "weather-service",
+    },
+    {
+        "id": "temperature",
+        "category": "weather",
+        "name_ar": "الحرارة",
+        "unit": "°C",
+        "source": "weather-service",
+    },
+    {
+        "id": "humidity",
+        "category": "weather",
+        "name_ar": "الرطوبة النسبيّة",
+        "unit": "%",
+        "source": "weather-service",
+    },
+    {
+        "id": "soil_ph",
+        "category": "soil",
+        "name_ar": "pH التربة",
+        "unit": "",
+        "source": "soil-service",
+    },
+    {
+        "id": "soil_ec",
+        "category": "soil",
+        "name_ar": "EC التربة",
+        "unit": "dS/m",
+        "source": "soil-service",
+    },
+    {
+        "id": "nitrogen",
+        "category": "soil",
+        "name_ar": "النيتروجين المتاح",
+        "unit": "mg/kg",
+        "source": "soil-service",
+    },
+]
+
+
+def _shape_indicator_catalog() -> dict:
+    """يبني جسم الكتالوج من _INDICATOR_CATALOG — نقيّ (لا قاعدة).
+
+    يحسب categories = {فئة: عدد} ليطابق ما تتوقّعه الواجهة (total + categories).
+    """
+    categories: dict[str, int] = {}
+    for ind in _INDICATOR_CATALOG:
+        cat = ind["category"]
+        categories[cat] = categories.get(cat, 0) + 1
+    return {
+        "total": len(_INDICATOR_CATALOG),
+        "categories": categories,
+        "indicators": _INDICATOR_CATALOG,
+        "note_ar": "المؤشّرات المُنفَّذة فعلاً ومصادرها — لا قيم مُلفَّقة.",
+    }
+
+
+def _shape_indicators_dashboard(
+    *,
+    fields_rows,
+    active_field_ids: set[str],
+    alert_rows,
+) -> dict:
+    """يبني لوحة المؤشّرات المُجمَّعة من صفوف الحقول/المواسم/التنبيهات — نقيّ.
+
+    - fields_summary: صفّ لكلّ حقل (id/name/crop/area + has_active_season).
+    - kpis: عدّادات حقيقيّة (إجماليّ الحقول/المساحة/الحقول النشطة/التنبيهات المفتوحة).
+      لا NDVI مخترع — قيم المؤشّرات الطيفيّة تأتي من vegetation/raster لكلّ حقل.
+    - alerts: قائمة التنبيهات النشطة كما هي (تُمرَّر للّوحة بلا تلفيق).
+    """
+    fields_summary = []
+    total_area = 0.0
+    for r in fields_rows:
+        area = float(r["area_ha"]) if r["area_ha"] is not None else 0.0
+        total_area += area
+        fields_summary.append(
+            {
+                "field_id": r["field_id"],
+                "field_name": r["name"],
+                "crop": r["crop"],
+                "area_ha": round(area, 2),
+                "has_active_season": r["field_id"] in active_field_ids,
+            }
+        )
+    active_count = len(active_field_ids)
+    kpis = [
+        {
+            "id": "fields_total",
+            "category": "operations",
+            "name_ar": "إجماليّ الحقول",
+            "value": len(fields_summary),
+            "unit": "حقل",
+            "status": "good",
+        },
+        {
+            "id": "area_total",
+            "category": "operations",
+            "name_ar": "إجماليّ المساحة",
+            "value": round(total_area, 2),
+            "unit": "هـ",
+            "status": "good",
+        },
+        {
+            "id": "active_seasons",
+            "category": "operations",
+            "name_ar": "حقول بموسم نشط",
+            "value": active_count,
+            "unit": "حقل",
+            "status": "good" if active_count else "fair",
+        },
+        {
+            "id": "open_alerts",
+            "category": "operations",
+            "name_ar": "تنبيهات مفتوحة",
+            "value": len(alert_rows),
+            "unit": "تنبيه",
+            "status": "critical" if alert_rows else "good",
+        },
+    ]
+    return {
+        "kpis": kpis,
+        "alerts": [_row_to_alert(r).model_dump() for r in alert_rows],
+        "fields_summary": fields_summary,
+        "note_ar": "عدّادات حيّة من جداولك — المؤشّرات الطيفيّة لكلّ حقل من شاشة الأقمار.",
+    }
+
+
+@app.get("/api/v1/indicators/catalog")
+async def indicators_catalog(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """كتالوج المؤشّرات المُنفَّذة فعلاً + مصادرها (بديل indicators-service الـstub).
+
+    ثابت (لا قاعدة) لكنّه صادق: يصف ما تحسبه المنصّة حقّاً عبر خدماتها، لا ٣٣
+    مؤشّراً وهميّاً. مُقيَّد بالدور (FIELD_VIEW) للاتّساق مع بقيّة لوحات الحقل.
+    """
+    return _shape_indicator_catalog()
+
+
+@app.get("/api/v1/indicators/dashboard")
+async def indicators_dashboard(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """لوحة المؤشّرات المُجمَّعة للمستأجِر — عدّادات + تنبيهات + ملخّص الحقول.
+
+    تجميع حيّ من fields/seasons/alerts (RLS + tenant_id). لا قيم NDVI/طقس مُلفَّقة:
+    المؤشّرات الطيفيّة لكلّ حقل تُجلب من vegetation/raster في شاشة الأقمار. 503 عند
+    تعذّر القاعدة — لا أرقام مخترعة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            tid = str(user.tenant_id)
+            fields_rows = await conn.fetch(
+                "SELECT field_id, name, crop, area_ha FROM fields "
+                "WHERE tenant_id = $1::uuid ORDER BY name",
+                tid,
+            )
+            active_season_rows = await conn.fetch(
+                "SELECT DISTINCT field_id FROM seasons "
+                "WHERE tenant_id = $1::uuid AND status = 'active'",
+                tid,
+            )
+            alert_rows = await conn.fetch(
+                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at FROM alerts "
+                "WHERE tenant_id = $1::uuid AND status = 'active' "
+                "ORDER BY created_at DESC LIMIT 50",
+                tid,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة لوحة المؤشّرات", e) from e
+    active_field_ids = {r["field_id"] for r in active_season_rows}
+    return _shape_indicators_dashboard(
+        fields_rows=fields_rows,
+        active_field_ids=active_field_ids,
+        alert_rows=alert_rows,
+    )
 
 
 # ─── إدارة المستندات (Document Management — سجلّ بيانات وصفيّة) — (v29) ─

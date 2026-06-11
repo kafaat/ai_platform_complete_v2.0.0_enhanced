@@ -2,12 +2,12 @@
 // ✅ خريطة Leaflet حقيقيّة (FieldIndicatorMap) ببلاطات مؤشّر من raster-service
 //    بدل الشبكة المتدرّجة + NDVI الجيبيّ الوهميّ السابق.
 // ✅ الحقول من القاعدة (useFields) بدل قائمة مُبرمَجة.
-import { useState, useEffect } from 'react';
-import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFields, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFields, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -99,9 +99,41 @@ export default function SatellitePage() {
   const { data: gridResp } = useIndicatorGrid(fieldId, gridIndex, 'latest');
   const hasGrid = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
 
+  // السلسلة الزمنيّة الحقيقيّة من raster-service (متوسّط المؤشّر لكلّ تاريخ COG).
+  // صدق: لا COG ⇒ available=false (لا قيم مخترعة) — نُظهر حالة فارغة لا رسماً وهميّاً.
+  const { data: rasterTs, isLoading: rasterTsLoading, isError: rasterTsError } =
+    useFieldTimeseries(fieldId, gridIndex, '');
+  const rasterPoints = rasterTs?.available ? (rasterTs.points ?? []) : [];
+  // تواريخ COG الحقيقيّة المتاحة (لاختيار تاريخَي كشف التغيّر).
+  const availableDates = useMemo(
+    () => rasterPoints.map((p) => p.datetime).filter(Boolean),
+    [rasterPoints],
+  );
+
+  // كشف التغيّر بين تاريخين (real grids only). الافتراض: الأقدم ↔ الأحدث.
+  const [dateA, setDateA] = useState('');
+  const [dateB, setDateB] = useState('');
+  useEffect(() => {
+    if (availableDates.length >= 2) {
+      setDateA((prev) => (prev && availableDates.includes(prev) ? prev : availableDates[0]));
+      setDateB((prev) =>
+        prev && availableDates.includes(prev) ? prev : availableDates[availableDates.length - 1],
+      );
+    }
+  }, [availableDates]);
+  const { data: change, isLoading: changeLoading, isError: changeError } =
+    useFieldChange(fieldId, gridIndex, dateA, dateB, { enabled: !!dateA && !!dateB && dateA !== dateB });
+
   const ts: any[] = tsData?.timeseries || (tsData as { data?: any[] } | undefined)?.data || [];
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length - 1]?.ndvi ?? null;
-  const thumbs = ts.filter((_, i) => i % Math.max(1, Math.floor(ts.length / 8)) === 0).slice(0, 8);
+  // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
+  // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.
+  const stripPoints = rasterPoints.length
+    ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean }))
+    : ts.map((t) => ({ date: t.date, value: t.ndvi ?? 0 }));
+  const thumbs = stripPoints
+    .filter((_, i) => i % Math.max(1, Math.floor(stripPoints.length / 8)) === 0)
+    .slice(0, 8);
 
   // مضلّع الحقل + إطار احتياطيّ للخريطة من هندسة/مركز الحقل الحقيقيّ.
   const fieldPolygon = field ? geomToPolygon(field.geometry) : undefined;
@@ -173,6 +205,11 @@ export default function SatellitePage() {
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-4 h-4 text-emerald-400" />
               <span className="text-xs font-semibold text-slate-300">الشريط الزمني</span>
+              {rasterPoints.length > 0 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-900">
+                  متوسّطات حقيقيّة · {gridIndex.toUpperCase()}
+                </span>
+              )}
               <div className="flex gap-1 mr-auto">
                 {[14,30,60].map(d=>(
                   <button key={d} onClick={()=>setDays(d)}
@@ -183,12 +220,14 @@ export default function SatellitePage() {
                 ))}
               </div>
             </div>
-            {tsLoading ? (
+            {(rasterTsLoading || tsLoading) ? (
               <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-emerald-500 animate-spin" /></div>
+            ) : rasterTsError && !thumbs.length ? (
+              <p className="text-amber-400/80 text-xs py-4 w-full text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
             ) : (
               <div className="flex gap-2 overflow-x-auto pb-1 min-h-[72px]">
                 {thumbs.map((t,i)=>{
-                  const v = t.ndvi||0; const c = ndviColor(v);
+                  const v = t.value||0; const c = ndviColor(v);
                   return (
                     <div key={i} className="flex-shrink-0 cursor-default" style={{width:72}}>
                       <div className="h-10 rounded-lg mb-1 border" style={{
@@ -202,7 +241,7 @@ export default function SatellitePage() {
                     </div>
                   );
                 })}
-                {!thumbs.length && <p className="text-slate-500 text-xs py-4 w-full text-center">اضغط "تحليل الآن" لجلب بيانات Sentinel-2</p>}
+                {!thumbs.length && <p className="text-slate-500 text-xs py-4 w-full text-center">لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لمعالجة صور Sentinel-2.</p>}
               </div>
             )}
           </div>
@@ -276,6 +315,81 @@ export default function SatellitePage() {
               <span>0.2- (تربة)</span><span>0.9+ (صحي)</span>
             </div>
           </div>
+
+          {/* كشف التغيّر بين تاريخين (per-pixel، بيانات COG حقيقيّة فقط) */}
+          <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <GitCompareArrows className="w-4 h-4 text-sky-400" />
+              <span className="text-sm font-semibold text-slate-200">كشف التغيّر</span>
+              <span className="text-[10px] text-slate-500 mr-auto">{gridIndex.toUpperCase()}</span>
+            </div>
+
+            {availableDates.length < 2 ? (
+              <p className="text-[11px] text-slate-500 py-2">
+                يلزم تاريخان مُعالَجان على الأقلّ لكشف التغيّر. شغّل «تحليل الآن» على تواريخ متعدّدة.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <label className="block">
+                    <span className="block text-[10px] text-slate-400 mb-1">من (الأقدم)</span>
+                    <select value={dateA} onChange={(e)=>setDateA(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-lg text-[11px]"
+                      style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                      {availableDates.map((d)=><option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="block text-[10px] text-slate-400 mb-1">إلى (الأحدث)</span>
+                    <select value={dateB} onChange={(e)=>setDateB(e.target.value)}
+                      className="w-full px-2 py-1.5 rounded-lg text-[11px]"
+                      style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                      {availableDates.map((d)=><option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </label>
+                </div>
+
+                {dateA === dateB ? (
+                  <p className="text-[11px] text-amber-400/80 py-1">اختر تاريخين مختلفين.</p>
+                ) : changeLoading ? (
+                  <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 text-sky-400 animate-spin" /></div>
+                ) : changeError ? (
+                  <p className="text-[11px] text-amber-400/80 py-1">تعذّر حساب التغيّر.</p>
+                ) : change && !change.available ? (
+                  <p className="text-[11px] text-amber-400/80 py-1">
+                    {change.note || 'لا توجد بيانات COG حقيقيّة لأحد التاريخين — لا تغيّر مُفبرَك.'}
+                  </p>
+                ) : change && change.available ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg px-2 py-1.5 text-center" style={{ background:'#13301f', border:'1px solid #2d6a3e' }}>
+                        <div className="text-base font-bold text-emerald-400">{(change.improved_pct ?? 0).toFixed(1)}%</div>
+                        <div className="text-[10px] text-emerald-300/70">تحسّن</div>
+                      </div>
+                      <div className="rounded-lg px-2 py-1.5 text-center" style={{ background:'#3a1414', border:'1px solid #7a2a2a' }}>
+                        <div className="text-base font-bold text-red-400">{(change.degraded_pct ?? 0).toFixed(1)}%</div>
+                        <div className="text-[10px] text-red-300/70">تدهور</div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-[10px] text-slate-500">
+                      <span>مستقرّ: {(change.stable_pct ?? 0).toFixed(1)}%</span>
+                      <span>Δ متوسّط: {(change.mean_delta ?? 0).toFixed(3)}</span>
+                    </div>
+                    {change.cloud_warning && (
+                      <p className="text-[10px] text-amber-400/80">
+                        ⚠️ التغطية {(change.coverage_pct ?? 0).toFixed(0)}% فقط (غيوم/فجوات) — نتيجة جزئيّة.
+                      </p>
+                    )}
+                    {change.interpretation_ar && (
+                      <p className="text-[11px] text-slate-300 leading-relaxed border-t border-slate-700 pt-1.5">
+                        {change.interpretation_ar}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </>
+            )}
+          </div>
         </div>
       </div>
       )}
@@ -285,27 +399,31 @@ export default function SatellitePage() {
         <div className="flex items-center gap-2 mb-4">
           <Satellite className="w-4 h-4 text-emerald-400" />
           <span className="text-sm font-semibold text-slate-200">السلسلة الزمنية — {idx.name}</span>
-          <span className="text-[10px] text-slate-500 mr-auto">{ts.length} اكتساب</span>
+          {rasterPoints.length > 0 && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-900">
+              متوسّطات COG حقيقيّة
+            </span>
+          )}
+          <span className="text-[10px] text-slate-500 mr-auto">{stripPoints.length} اكتساب</span>
         </div>
-        {tsLoading ? (
+        {(rasterTsLoading || tsLoading) ? (
           <div className="flex justify-center h-24 items-center"><Loader2 className="w-6 h-6 text-emerald-500 animate-spin" /></div>
-        ) : ts.length > 0 ? (
+        ) : stripPoints.length > 0 ? (
           <ResponsiveContainer width="100%" height={160}>
-            <LineChart data={ts}>
+            <LineChart data={stripPoints}>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="date" tick={{fill:'#64748b',fontSize:9}} tickLine={false} interval={Math.floor(ts.length/6)} />
+              <XAxis dataKey="date" tick={{fill:'#64748b',fontSize:9}} tickLine={false} interval={Math.max(1,Math.floor(stripPoints.length/6))} />
               <YAxis domain={[0,1]} tick={{fill:'#64748b',fontSize:11}} tickLine={false} width={32} />
               <Tooltip contentStyle={{background:'#0f1117',border:'1px solid #334155',borderRadius:8,fontSize:12}} itemStyle={{color:'#e2e8f0'}} />
               <ReferenceLine y={0.5} stroke="#f59e0b" strokeDasharray="4 2" />
-              <Line type="monotone" dataKey="ndvi" stroke={idx.color} strokeWidth={2} dot={{r:3,fill:idx.color}} name="NDVI" />
-              {ts[0]?.evi !== undefined && (
-                <Line type="monotone" dataKey="evi" stroke="#38bdf8" strokeWidth={1.5} dot={false} strokeDasharray="4 2" name="EVI" />
-              )}
+              <Line type="monotone" dataKey="value" stroke={idx.color} strokeWidth={2} dot={{r:3,fill:idx.color}} name={idx.name} />
             </LineChart>
           </ResponsiveContainer>
+        ) : rasterTsError ? (
+          <div className="text-center py-8 text-amber-400/80 text-sm">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</div>
         ) : (
           <div className="text-center py-8 text-slate-500 text-sm">
-            اضغط "تحليل الآن" لبدء تحليل صور Sentinel-2
+            لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لبدء تحليل صور Sentinel-2.
           </div>
         )}
       </div>
