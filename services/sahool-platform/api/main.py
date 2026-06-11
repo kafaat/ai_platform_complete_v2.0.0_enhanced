@@ -1205,6 +1205,138 @@ async def list_maintenance(
     ]
 
 
+# ─── أجهزة IoT (سجلّ + صحّة + telemetry) — الطبقة ٤ (v24) ─────────
+class DeviceRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    type: str = Field(pattern="^(soil_moisture|weather_station|water_meter|camera|actuator|other)$")
+    field_id: str | None = None
+    firmware_version: str | None = None
+
+
+class TelemetryRequest(BaseModel):
+    sensor_type: str = Field(min_length=1, max_length=40)
+    value: float
+    unit: str | None = None
+    recorded_at: str | None = None  # ISO datetime اختياري (افتراض: الآن)
+
+
+_DEVICE_ONLINE_WINDOW_MIN = 15  # جهاز يُعتبر online إن ظهر خلال هذه المدّة
+
+
+@app.post("/api/v1/devices", status_code=201)
+async def register_device(
+    req: DeviceRequest,
+    user: UserSchema = Depends(require_permission(Permission.DEVICE_MANAGE)),
+):
+    """يسجّل جهاز IoT جديد في سجلّ المستأجر."""
+    import uuid as _uuid
+
+    device_id = "dev_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        await conn.execute(
+            """INSERT INTO iot_devices
+                (device_id, tenant_id, name, type, field_id, firmware_version)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6)""",
+            device_id,
+            str(user.tenant_id),
+            req.name,
+            req.type,
+            req.field_id,
+            req.firmware_version,
+        )
+    return {"device_id": device_id, "name": req.name, "message_ar": "سُجّل الجهاز"}
+
+
+@app.get("/api/v1/devices")
+async def list_devices(user: UserSchema = Depends(require_permission(Permission.DEVICE_VIEW))):
+    """قائمة الأجهزة مع حالة الصحّة المحسوبة (online إن ظهر مؤخّراً)."""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            """SELECT device_id, name, type, field_id, status, last_seen_at, firmware_version,
+                      (last_seen_at IS NOT NULL
+                       AND last_seen_at > NOW() - make_interval(mins => $1)) AS online
+               FROM iot_devices ORDER BY type, name""",
+            _DEVICE_ONLINE_WINDOW_MIN,
+        )
+    return [
+        {
+            "device_id": r["device_id"],
+            "name": r["name"],
+            "type": r["type"],
+            "field_id": r["field_id"],
+            "status": r["status"],
+            "online": r["online"],
+            "last_seen_at": r["last_seen_at"].isoformat() if r["last_seen_at"] else None,
+            "firmware_version": r["firmware_version"],
+        }
+        for r in rows
+    ]
+
+
+@app.post("/api/v1/devices/{device_id}/telemetry", status_code=201)
+async def ingest_telemetry(
+    device_id: str,
+    req: TelemetryRequest,
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
+):
+    """يبتلع قراءة من جهاز ويحدّث آخر ظهوره (= نبضة صحّة). تسجيل القراءة من
+    صلاحية observation:record (العامل يدفع قراءات الميدان)."""
+    recorded = None
+    if req.recorded_at:
+        try:
+            recorded = datetime.fromisoformat(req.recorded_at.strip())
+        except (ValueError, TypeError, AttributeError):
+            raise HTTPException(
+                status_code=400, detail="recorded_at غير صالح — استخدم ISO datetime"
+            ) from None
+    async with tenant_connection(user) as conn:
+        exists = await conn.fetchval("SELECT 1 FROM iot_devices WHERE device_id = $1", device_id)
+        if not exists:
+            raise HTTPException(status_code=404, detail="الجهاز غير مسجّل")
+        await conn.execute(
+            """INSERT INTO device_telemetry
+                (tenant_id, device_id, sensor_type, value, unit, recorded_at)
+               VALUES ($1::uuid, $2, $3, $4, $5, COALESCE($6, NOW()))""",
+            str(user.tenant_id),
+            device_id,
+            req.sensor_type,
+            req.value,
+            req.unit,
+            recorded,
+        )
+        # القراءة = نبضة صحّة: حدّث آخر ظهور والحالة online
+        await conn.execute(
+            "UPDATE iot_devices SET last_seen_at = NOW(), status = 'online' WHERE device_id = $1",
+            device_id,
+        )
+    return {"device_id": device_id, "message_ar": "سُجّلت القراءة"}
+
+
+@app.get("/api/v1/devices/{device_id}/telemetry")
+async def list_telemetry(
+    device_id: str,
+    limit: int = Query(100, ge=1, le=1000),
+    user: UserSchema = Depends(require_permission(Permission.DEVICE_VIEW)),
+):
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            """SELECT sensor_type, value, unit, recorded_at
+               FROM device_telemetry WHERE device_id = $1
+               ORDER BY recorded_at DESC LIMIT $2""",
+            device_id,
+            limit,
+        )
+    return [
+        {
+            "sensor_type": r["sensor_type"],
+            "value": float(r["value"]),
+            "unit": r["unit"],
+            "recorded_at": r["recorded_at"].isoformat() if r["recorded_at"] else None,
+        }
+        for r in rows
+    ]
+
+
 @app.get("/api/v1/activities", response_model=list[ActivityItem])
 def list_activities(
     user: UserSchema = Depends(get_current_user),

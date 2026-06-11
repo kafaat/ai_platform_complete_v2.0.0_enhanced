@@ -70,3 +70,6 @@ v22_inventory.sql
 # v23: إدارة المعدّات (equipment + equipment_maintenance) — الطبقة ١١ الغائبة.
 # self-applied RLS.
 v23_equipment.sql
+# v24: سجلّ أجهزة IoT (iot_devices) + ابتلاع القراءات (device_telemetry) —
+# الطبقة ٤ الغائبة. self-applied RLS.
+v24_iot_devices.sql

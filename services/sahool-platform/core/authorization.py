@@ -76,6 +76,9 @@ class Permission(str, Enum):
     INVENTORY_MANAGE = "inventory:manage"  # إضافة/تعديل دفعات، خصم كمّيّات
     EQUIPMENT_VIEW = "equipment:view"
     EQUIPMENT_MANAGE = "equipment:manage"  # تسجيل معدّة/صيانة/عطل
+    # أجهزة IoT (سجلّ + صحّة + telemetry — الطبقة ٤ من تدقيق التغطية)
+    DEVICE_VIEW = "device:view"
+    DEVICE_MANAGE = "device:manage"  # تسجيل/تعطيل جهاز، إدارة السجلّ
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
     REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
@@ -116,6 +119,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.INVENTORY_MANAGE,
         Permission.EQUIPMENT_VIEW,
         Permission.EQUIPMENT_MANAGE,
+        Permission.DEVICE_VIEW,
+        Permission.DEVICE_MANAGE,
     },
     UserRole.MANAGER: {
         # إدارة كاملة، لا حذف ملكية ولا تغيير أدوار
@@ -141,6 +146,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.INVENTORY_MANAGE,
         Permission.EQUIPMENT_VIEW,
         Permission.EQUIPMENT_MANAGE,
+        Permission.DEVICE_VIEW,
+        Permission.DEVICE_MANAGE,
     },
     UserRole.AGRONOMIST: {
         # توصيات + معايرة + بحث، لا إدارة بنيوية
@@ -159,6 +166,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         # لا HARVEST_AUTHORIZE (تخطّي PHI يحتاج OWNER)
         Permission.INVENTORY_VIEW,  # يرى المخزون (أيّ مبيدات/أسمدة متوفّرة)
         Permission.EQUIPMENT_VIEW,
+        Permission.DEVICE_VIEW,
     },
     UserRole.WORKER: {
         # تنفيذ ميداني فقط
@@ -172,6 +180,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.OBSERVATION_VIEW,
         Permission.INVENTORY_VIEW,  # يرى المخزون والمعدّات المتاحة للتنفيذ
         Permission.EQUIPMENT_VIEW,
+        Permission.DEVICE_VIEW,
     },
     UserRole.VIEWER: {
         # قراءة فقط
@@ -182,6 +191,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.OBSERVATION_VIEW,
         Permission.INVENTORY_VIEW,
         Permission.EQUIPMENT_VIEW,
+        Permission.DEVICE_VIEW,
     },
 }
 

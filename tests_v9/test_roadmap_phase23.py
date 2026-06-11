@@ -5948,6 +5948,56 @@ def test_inventory_equipment_layers():
     return r
 
 
+def test_iot_device_layer():
+    """حارس الطبقة ٤ (IoT): سجلّ أجهزة + telemetry. ترحيل + صلاحيات + نقاط."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+
+    def _read(p):
+        with open(os.path.join(base, p), encoding="utf-8") as f:
+            return f.read()
+
+    manifest = _read("migrations/MANIFEST.txt")
+    mig = "v24_iot_devices.sql"
+    if os.path.exists(os.path.join(base, "migrations", mig)) and mig in manifest:
+        r.append(("✓", f"IoT: ترحيل {mig} موجود ومُدرَج"))
+    else:
+        r.append(("✗", f"IoT: ترحيل {mig} مفقود/غير مُدرَج"))
+
+    sql = _read("migrations/v24_iot_devices.sql")
+    if "iot_devices" in sql and "device_telemetry" in sql and "last_seen_at" in sql:
+        r.append(("✓", "IoT: جدولا السجلّ والقراءات + حقل الصحّة (last_seen_at)"))
+    else:
+        r.append(("✗", "IoT: جداول IoT ناقصة"))
+
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole, UserSchema
+
+    def _u(role):
+        return UserSchema(user_id="u", tenant_id="t", role=role, name_ar="x")
+
+    if (
+        has_permission(_u(UserRole.OWNER), Permission.DEVICE_MANAGE)
+        and has_permission(_u(UserRole.VIEWER), Permission.DEVICE_VIEW)
+        and not has_permission(_u(UserRole.WORKER), Permission.DEVICE_MANAGE)
+    ):
+        r.append(("✓", "IoT: صلاحيّات الأجهزة (المالك يدير، البقيّة تعرض)"))
+    else:
+        r.append(("✗", "IoT: صلاحيّات الأجهزة غير صحيحة"))
+
+    main_src = _read("services/sahool-platform/api/main.py")
+    if "/api/v1/devices" in main_src and "require_permission(Permission.DEVICE_MANAGE)" in main_src:
+        r.append(("✓", "IoT: نقاط الأجهزة موجودة ومُبوّبة"))
+    else:
+        r.append(("✗", "IoT: نقاط الأجهزة مفقودة أو غير مُبوّبة"))
+    # ابتلاع القراءة من observation:record (العامل يدفع، لا المشاهد)
+    if "/telemetry" in main_src and "require_permission(Permission.OBSERVATION_RECORD)" in main_src:
+        r.append(("✓", "IoT: ابتلاع telemetry مُبوّب بـobservation:record"))
+    else:
+        r.append(("✗", "IoT: ابتلاع telemetry غير مُبوّب"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -6088,6 +6138,7 @@ def run_all():
         ("supply_chain_audit_gate", test_supply_chain_audit_gate),
         ("p0_security_foundation", test_p0_security_foundation),
         ("inventory_equipment_layers", test_inventory_equipment_layers),
+        ("iot_device_layer", test_iot_device_layer),
     ]
     tp = tf = 0
     for name, s in suites:
