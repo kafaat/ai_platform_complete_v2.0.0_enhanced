@@ -6049,6 +6049,51 @@ def test_irrigation_ops_layer():
     return r
 
 
+def test_master_data_layer():
+    """حارس البيانات المرجعيّة + الدورات الزراعيّة (Master Data). ترحيل+صلاحيات+نقاط."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+
+    def _read(p):
+        with open(os.path.join(base, p), encoding="utf-8") as f:
+            return f.read()
+
+    manifest = _read("migrations/MANIFEST.txt")
+    mig = "v26_master_data.sql"
+    mig_path = os.path.join(base, "migrations", mig)
+    if os.path.exists(mig_path) and mig in manifest:
+        r.append(("✓", f"Master Data: ترحيل {mig} موجود ومُدرَج"))
+    else:
+        r.append(("✗", f"Master Data: ترحيل {mig} مفقود/غير مُدرَج"))
+    sql = _read("migrations/" + mig) if os.path.exists(mig_path) else ""
+    if "master_data" in sql and "crop_rotations" in sql:
+        r.append(("✓", "Master Data: جدولا الكتالوج والدورات الزراعيّة"))
+    else:
+        r.append(("✗", "Master Data: جداول ناقصة"))
+
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole, UserSchema
+
+    def _u(role):
+        return UserSchema(user_id="u", tenant_id="t", role=role, name_ar="x")
+
+    if (
+        has_permission(_u(UserRole.AGRONOMIST), Permission.MASTER_DATA_MANAGE)
+        and has_permission(_u(UserRole.VIEWER), Permission.MASTER_DATA_VIEW)
+        and not has_permission(_u(UserRole.WORKER), Permission.MASTER_DATA_MANAGE)
+    ):
+        r.append(("✓", "Master Data: صلاحيّات (المهندس+ يدير، البقيّة تعرض)"))
+    else:
+        r.append(("✗", "Master Data: صلاحيّات غير صحيحة"))
+
+    main_src = _read("services/sahool-platform/api/main.py")
+    if "/api/v1/master-data" in main_src and "/rotations" in main_src:
+        r.append(("✓", "Master Data: نقاط الكتالوج والدورات موجودة"))
+    else:
+        r.append(("✗", "Master Data: نقاط مفقودة"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -6191,6 +6236,7 @@ def run_all():
         ("inventory_equipment_layers", test_inventory_equipment_layers),
         ("iot_device_layer", test_iot_device_layer),
         ("irrigation_ops_layer", test_irrigation_ops_layer),
+        ("master_data_layer", test_master_data_layer),
     ]
     tp = tf = 0
     for name, s in suites:

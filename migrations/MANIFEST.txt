@@ -76,3 +76,6 @@ v24_iot_devices.sql
 # v25: الري التشغيلي (irrigation_valves + irrigation_schedules) — الطبقة ٣.
 # يعتمد على fields + iot_devices. self-applied RLS.
 v25_irrigation.sql
+# v26: البيانات المرجعيّة (master_data) + الدورات الزراعيّة (crop_rotations).
+# يعتمد على fields. self-applied RLS.
+v26_master_data.sql
