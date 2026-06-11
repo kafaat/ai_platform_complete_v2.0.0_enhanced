@@ -22,8 +22,9 @@ export function normalizeRole(role?: string | null): Role {
 // كلّ الصفحات (مرجع). owner/manager/agronomist: وصول كامل.
 const ALL_PAGES: PageId[] = [
   'dashboard', 'hybrid-index', 'satellite', 'fields', 'recommendations',
-  'irrigation', 'pest-escalation', 'field-intelligence',
-  'spatial-indicators', 'tasks', 'analytics', 'alerts', 'reports', 'chatbot', 'settings',
+  'irrigation', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
+  'spatial-indicators', 'devices', 'inventory', 'equipment',
+  'tasks', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'chatbot', 'settings',
 ];
 
 // worker (مزارع/عامل): الصفحات التشغيليّة فقط (وفق سياسة الإعدادات الموثّقة:
@@ -31,6 +32,7 @@ const ALL_PAGES: PageId[] = [
 const WORKER_PAGES: PageId[] = [
   'dashboard', 'satellite', 'fields', 'tasks', 'alerts', 'chatbot', 'spatial-indicators',
   'irrigation', 'pest-escalation', 'field-intelligence',
+  'inventory', 'equipment', 'devices', 'irrigation-ops',
 ];
 
 const ROLE_PAGES: Record<Role, PageId[]> = {

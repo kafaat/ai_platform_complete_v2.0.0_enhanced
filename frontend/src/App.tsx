@@ -5,6 +5,7 @@ import {
   FileText, Bot, Settings, Loader2, Leaf, LogOut,
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
+  Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { wsService } from './services/websocket';
@@ -57,12 +58,20 @@ const SpatialIndicatorsPage = lazy(() => import('./sections/SpatialIndicatorsPag
 const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'));
 const PestEscalationPage  = lazy(() => import('./sections/PestEscalationPage'));
 const FieldIntelligencePage = lazy(() => import('./sections/FieldIntelligencePage'));
+const InventoryPage       = lazy(() => import('./sections/InventoryPage'));
+const EquipmentPage       = lazy(() => import('./sections/EquipmentPage'));
+const DevicesPage         = lazy(() => import('./sections/DevicesPage'));
+const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
+const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
+const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'pest-escalation' | 'field-intelligence';
+  | 'irrigation' | 'pest-escalation' | 'field-intelligence'
+  | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
+  | 'master-data' | 'documents';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -71,13 +80,19 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'fields',       label:'إدارة الحقول',   icon:Map },
   { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
   { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
+  { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
   { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
   { id:'field-intelligence', label:'المايسترو', icon:Activity },
   { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
+  { id:'devices',      label:'أجهزة IoT',       icon:Cpu },
+  { id:'inventory',    label:'المخزون',         icon:Boxes },
+  { id:'equipment',    label:'المعدّات',         icon:Tractor },
   { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
   { id:'alerts',       label:'التنبيهات',       icon:Bell },
   { id:'reports',      label:'التقارير',        icon:FileText },
+  { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
+  { id:'documents',    label:'الوثائق',         icon:FolderArchive },
   { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
   { id:'settings',     label:'الإعدادات',       icon:Settings },
 ];
@@ -274,6 +289,12 @@ export default function App() {
       case 'pest-escalation': return <PestEscalationPage />;
       case 'field-intelligence': return <FieldIntelligencePage />;
       case 'spatial-indicators': return <SpatialIndicatorsPage />;
+      case 'inventory':    return <InventoryPage />;
+      case 'equipment':    return <EquipmentPage />;
+      case 'devices':      return <DevicesPage />;
+      case 'irrigation-ops': return <IrrigationOpsPage />;
+      case 'master-data':  return <MasterDataPage />;
+      case 'documents':    return <DocumentsPage />;
       case 'tasks':        return <TasksPage />;
       case 'analytics':    return <AnalyticsPage />;
       case 'alerts':       return <AlertSystemPage />;

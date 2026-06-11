@@ -239,6 +239,322 @@ export const getCostAnalytics = (): Promise<CostAnalytics> =>
   kongApi.get<CostAnalytics>('/api/v1/analytics/costs').then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// INVENTORY — مخزون المدخلات (حيّ، مُقيَّد بالدور inventory:view/manage وبالمستأجِر)
+// ربط حقيقيّ عبر البوابة (kong). لا fallback وهميّ — كميّات/مخزون حقيقيّة، الخطأ
+// يُعلَن للـUI (حالة خطأ/فراغ). 503 يُرمى عند تعطيل قاعدة البيانات على الخادم.
+// ══════════════════════════════════════════════════════════════════
+export interface InventoryItem {
+  item_id:        string;
+  category:       string;
+  name:           string;
+  unit:           string | null;
+  reorder_level:  number | null;
+  total_quantity: number;
+  low_stock:      boolean;
+}
+export interface ExpiringBatch {
+  batch_id:    string;
+  item_id:     string;
+  name:        string;
+  quantity:    number;
+  unit:        string | null;
+  expiry_date: string;
+}
+export interface NewInventoryItem {
+  category:       string;
+  name:           string;
+  unit?:          string;
+  reorder_level?: number;
+  notes?:         string;
+}
+export interface NewInventoryBatch {
+  quantity:     number;
+  unit?:        string;
+  batch_code?:  string;
+  expiry_date?: string;
+  received_at?: string;
+  supplier?:    string;
+  notes?:       string;
+}
+
+export const getInventoryItems = (): Promise<InventoryItem[]> =>
+  kongApi.get<InventoryItem[]>('/api/v1/inventory/items').then(r => r.data);
+
+export const getExpiringBatches = (days = 30): Promise<ExpiringBatch[]> =>
+  kongApi.get<ExpiringBatch[]>('/api/v1/inventory/expiring', { params: { days } }).then(r => r.data);
+
+export const createInventoryItem = (payload: NewInventoryItem): Promise<InventoryItem> =>
+  kongApi.post<InventoryItem>('/api/v1/inventory/items', payload).then(r => r.data);
+
+export const addInventoryBatch = (itemId: string, payload: NewInventoryBatch): Promise<unknown> =>
+  kongApi.post(`/api/v1/inventory/items/${itemId}/batches`, payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// EQUIPMENT — إدارة المعدّات وسجلّ الصيانة (حيّ، مُقيَّد بالدور والمستأجِر)
+// ربط حقيقيّ عبر البوابة (kong). لا fallback وهميّ — حالة المعدّة وتكلفة
+// الصيانة قرارات تشغيليّة/ماليّة، الخطأ يُعلَن للـUI. 503 عند تعطيل DB.
+// ══════════════════════════════════════════════════════════════════
+export type EquipmentType   = 'tractor' | 'pump' | 'harvester' | 'sprayer' | 'other';
+export type MaintenanceKind = 'scheduled' | 'repair' | 'breakdown' | 'inspection';
+
+export interface Equipment {
+  equipment_id:    string;
+  name:            string;
+  type:            EquipmentType | string;
+  status:          string; // active | broken | maintenance | … (من الخادم)
+  operating_hours: number;
+  purchase_date:   string | null;
+}
+
+export interface EquipmentCreateInput {
+  name:             string;
+  type:             EquipmentType;
+  operating_hours?: number;
+  purchase_date?:   string;
+  notes?:           string;
+}
+
+export interface MaintenanceRecord {
+  maintenance_id:  string;
+  kind:            MaintenanceKind | string;
+  status:          string | null;
+  scheduled_date:  string | null;
+  performed_date:  string | null;
+  cost_usd:        number | null;
+  notes:           string | null;
+}
+
+export interface MaintenanceCreateInput {
+  kind:            MaintenanceKind;
+  status?:         string;
+  scheduled_date?: string;
+  performed_date?: string;
+  cost_usd?:       number;
+  notes?:          string;
+}
+
+export const fetchEquipment = (): Promise<Equipment[]> =>
+  kongApi.get<Equipment[]>('/api/v1/equipment').then(r => r.data);
+
+export const createEquipment = (payload: EquipmentCreateInput): Promise<Equipment> =>
+  kongApi.post<Equipment>('/api/v1/equipment', payload).then(r => r.data);
+
+export const fetchMaintenance = (equipmentId: string): Promise<MaintenanceRecord[]> =>
+  kongApi.get<MaintenanceRecord[]>(`/api/v1/equipment/${equipmentId}/maintenance`).then(r => r.data);
+
+// تسجيل صيانة. kind=breakdown يقلب حالة المعدّة إلى broken خادميّاً.
+export const logMaintenance = (
+  equipmentId: string,
+  payload: MaintenanceCreateInput,
+): Promise<MaintenanceRecord> =>
+  kongApi.post<MaintenanceRecord>(`/api/v1/equipment/${equipmentId}/maintenance`, payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
+// عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.
+// device:view للقراءة، device:manage للتسجيل، observation:record لرفع قياس.
+// ══════════════════════════════════════════════════════════════════
+export type DeviceType =
+  | 'soil_moisture' | 'weather_station' | 'water_meter'
+  | 'camera' | 'actuator' | 'other';
+
+export interface Device {
+  device_id:         string;
+  name:              string;
+  type:              DeviceType;
+  field_id:          string | null;
+  status:            string;
+  online:            boolean; // مُحتسَب خادميّاً (من last_seen_at)
+  last_seen_at:      string | null;
+  firmware_version:  string | null;
+}
+
+export interface DeviceRegisterInput {
+  name:              string;
+  type:              DeviceType;
+  field_id?:         string;
+  firmware_version?: string;
+}
+
+export interface TelemetryPoint {
+  sensor_type: string;
+  value:       number;
+  unit:        string | null;
+  recorded_at: string;
+}
+
+export interface TelemetryRecordInput {
+  sensor_type: string;
+  value:       number;
+  unit?:       string;
+  recorded_at?:string;
+}
+
+/** قائمة الأجهزة (device:view). online مُحتسَب على الخادم. */
+export const listDevices = (): Promise<Device[]> =>
+  kongApi.get<Device[]>('/api/v1/devices').then(r => r.data);
+
+/** تسجيل جهاز جديد (device:manage). */
+export const registerDevice = (payload: DeviceRegisterInput): Promise<Device> =>
+  kongApi.post<Device>('/api/v1/devices', payload).then(r => r.data);
+
+/** قياسات حديثة لجهاز (device:view). */
+export const getDeviceTelemetry = (deviceId: string, limit = 20): Promise<TelemetryPoint[]> =>
+  kongApi.get<TelemetryPoint[]>(`/api/v1/devices/${deviceId}/telemetry`, { params: { limit } }).then(r => r.data);
+
+/** رفع قياس لجهاز (observation:record). */
+export const recordTelemetry = (deviceId: string, payload: TelemetryRecordInput): Promise<TelemetryPoint> =>
+  kongApi.post<TelemetryPoint>(`/api/v1/devices/${deviceId}/telemetry`, payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// IRRIGATION OPS — صمّامات الريّ + جداول الريّ المُخزَّنة (حيّة عبر البوابة)
+// مُقيَّدة بالدور irrigation:view / irrigation:manage. 503 عند تعطيل قاعدة
+// البيانات على الخادم. ربط حقيقيّ — لا fallback وهميّ (تشغيل ريّ فعليّ).
+// ملاحظة: state يسجّل النيّة فقط؛ التشغيل الفيزيائيّ يمرّ عبر HIL (موافقة بشريّة).
+// ══════════════════════════════════════════════════════════════════
+export type ValveStatus = 'open' | 'closed' | 'unknown';
+export type ValveStateIntent = 'open' | 'closed';
+export type ValveType = 'solenoid' | 'manual' | 'drip_header' | 'gate';
+
+export interface Valve {
+  valve_id:        string;
+  name:            string;
+  field_id?:       string | null;
+  device_id?:      string | null;
+  valve_type?:     ValveType | string | null;
+  status:          ValveStatus;
+  flow_rate_lpm?:  number | null;
+  last_changed_at?: string | null;
+}
+export interface CreateValveInput {
+  name:           string;
+  field_id?:      string;
+  device_id?:     string;
+  valve_type?:    ValveType;
+  flow_rate_lpm?: number;
+}
+export interface IrrigationSchedule {
+  schedule_id:     string;
+  field_id?:       string | null;
+  valve_id?:       string | null;
+  name:            string;
+  start_time:      string; // 'HH:MM'
+  duration_min:    number;
+  days_of_week?:   number[] | null; // 0..6
+  water_target_mm?: number | null;
+  enabled:         boolean;
+  last_run_at?:    string | null;
+}
+export interface CreateScheduleInput {
+  name:            string;
+  field_id?:       string;
+  valve_id?:       string;
+  start_time:      string; // 'HH:MM'
+  duration_min:    number;
+  days_of_week?:   number[];
+  water_target_mm?: number;
+  enabled?:        boolean;
+}
+
+export const listValves = (): Promise<Valve[]> =>
+  kongApi.get<Valve[]>('/api/v1/irrigation/valves').then(r => r.data);
+
+export const createValve = (payload: CreateValveInput): Promise<Valve> =>
+  kongApi.post<Valve>('/api/v1/irrigation/valves', payload).then(r => r.data);
+
+export const setValveState = (valveId: string, status: ValveStateIntent): Promise<Valve> =>
+  kongApi.post<Valve>(`/api/v1/irrigation/valves/${valveId}/state`, { status }).then(r => r.data);
+
+export const listSchedules = (fieldId?: string): Promise<IrrigationSchedule[]> =>
+  kongApi.get<IrrigationSchedule[]>('/api/v1/irrigation/schedules', {
+    params: fieldId ? { field_id: fieldId } : {},
+  }).then(r => r.data);
+
+export const createSchedule = (payload: CreateScheduleInput): Promise<IrrigationSchedule> =>
+  kongApi.post<IrrigationSchedule>('/api/v1/irrigation/schedules', payload).then(r => r.data);
+
+export const deleteSchedule = (scheduleId: string): Promise<void> =>
+  kongApi.delete(`/api/v1/irrigation/schedules/${scheduleId}`).then(() => undefined);
+
+// ══════════════════════════════════════════════════════════════════
+// MASTER DATA — كتالوج البيانات المرجعيّة (محصول/تربة/سماد/مبيد/صنف/معدّة)
+// ربط حقيقيّ عبر البوابة (kong). لا fallback وهميّ — بيانات مرجعيّة تُبنى عليها
+// قرارات، فالخطأ يُعلَن للـUI. 503 عند تعطيل قاعدة البيانات، 409 عند التكرار
+// (tenant,category,code). مُقيَّد بالدور master_data:view / master_data:manage.
+// ══════════════════════════════════════════════════════════════════
+export type MasterDataCategory =
+  | 'crop' | 'soil_type' | 'fertilizer' | 'pesticide'
+  | 'seed_variety' | 'equipment_type' | 'other';
+
+export interface MasterDataEntry {
+  md_id:    string;
+  category: MasterDataCategory;
+  code:     string;
+  name_ar:  string;
+  name_en?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface MasterDataCreateInput {
+  category:  MasterDataCategory;
+  code:      string;
+  name_ar:   string;
+  name_en?:  string;
+  metadata?: Record<string, unknown>;
+}
+
+export const fetchMasterData = (category: MasterDataCategory): Promise<MasterDataEntry[]> =>
+  kongApi.get<MasterDataEntry[]>('/api/v1/master-data', { params: { category } }).then(r => r.data);
+
+export const createMasterDataEntry = (payload: MasterDataCreateInput): Promise<MasterDataEntry> =>
+  kongApi.post<MasterDataEntry>('/api/v1/master-data', payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// DOCUMENTS — سجلّ الوثائق (عقود/تقارير/صور/خرائط/نتائج مخبريّة)
+// سجلّ بيانات وصفيّة فقط: الملفّ الفعليّ في تخزين الكائنات، وstorage_ref مسار/رابط.
+// ربط حيّ عبر البوابة (kong)، مُقيَّد بالدور (document:view / document:manage)
+// وبالمستأجِر. لا fallback وهميّ — 503 يُرمى عند تعطيل قاعدة البيانات.
+// ══════════════════════════════════════════════════════════════════
+export type DocumentCategory = 'contract' | 'report' | 'image' | 'map' | 'lab_result' | 'other';
+
+export interface DocumentRecord {
+  doc_id:       string;
+  category:     DocumentCategory;
+  title:        string;
+  storage_ref:  string | null;
+  content_type: string | null;
+  size_bytes:   number | null;
+  version:      number;
+  field_id:     string | null;
+  created_at:   string;
+}
+
+export interface DocumentCreateInput {
+  category:      DocumentCategory;
+  title:         string;
+  storage_ref?:  string;
+  content_type?: string;
+  size_bytes?:   number;
+  field_id?:     string;
+}
+
+export const listDocuments = (
+  filters?: { category?: DocumentCategory; field_id?: string },
+): Promise<DocumentRecord[]> =>
+  kongApi.get<DocumentRecord[]>('/api/v1/documents', {
+    params: {
+      ...(filters?.category ? { category: filters.category } : {}),
+      ...(filters?.field_id ? { field_id: filters.field_id } : {}),
+    },
+  }).then(r => r.data);
+
+export const getDocument = (docId: string): Promise<DocumentRecord> =>
+  kongApi.get<DocumentRecord>(`/api/v1/documents/${docId}`).then(r => r.data);
+
+export const createDocument = (payload: DocumentCreateInput): Promise<DocumentRecord> =>
+  kongApi.post<DocumentRecord>('/api/v1/documents', payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════
 
