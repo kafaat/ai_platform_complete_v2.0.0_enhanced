@@ -40,13 +40,13 @@ def client_and_token():
     # نحفظ DATABASE_URL ونستعيده في التفكيك (لئلّا نكسر اختبارات تكامل أخرى تحتاجه
     # في نفس العمليّة مثل test_workflow_store).
     saved_dsn = os.environ.pop("DATABASE_URL", None)
-    m._INMEM_WORKFLOW_STORE = None
+    m._INMEM_WORKFLOW_STORES.clear()  # تصفير مخازن المستأجرين (حتميّة عبر الاختبارات)
     try:
         yield TestClient(m.app), token
     finally:
         if saved_dsn is not None:
             os.environ["DATABASE_URL"] = saved_dsn
-        m._INMEM_WORKFLOW_STORE = None
+        m._INMEM_WORKFLOW_STORES.clear()
 
 
 def _auth(token: str) -> dict:
