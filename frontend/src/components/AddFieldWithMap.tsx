@@ -59,7 +59,9 @@ function geodesicAreaHa(latlngs: L.LatLng[]): number {
 // الخلفيّة تتوقّع GeoJSON Polygon؛ نحوّل (مركز + نصف قطر م) إلى حلقة رؤوس.
 function circleToPolygon(center: L.LatLng, radiusM: number, n = 48): L.LatLng[] {
   const latPerM = 1 / 111320; // متر → درجة عرض
-  const lonPerM = 1 / (111320 * Math.cos((center.lat * Math.PI) / 180));
+  // تثبيت cosLat بحدّ أدنى: قرب القطبين cos≈0 ⇒ Infinity/NaN يكسر التوليد.
+  const cosLat = Math.max(Math.cos((center.lat * Math.PI) / 180), 1e-6);
+  const lonPerM = 1 / (111320 * cosLat);
   const pts: L.LatLng[] = [];
   for (let i = 0; i < n; i++) {
     const a = (i / n) * 2 * Math.PI;
