@@ -245,6 +245,62 @@ app.add_middleware(
 )
 
 
+# ─── حدّ المعدّل (Rate Limiting) ─────────────────────────────────
+# الفجوة المسدودة (تدقيق التغطية، الأمن): platform API كان بلا أيّ حدّ معدّل
+# (خدمة auth تملك check_ip_rate، لكن النواة لا). نافذة ثابتة في الذاكرة لكلّ IP.
+# ⚠ N: الحالة في الذاكرة (لكلّ worker). كافٍ كحاجز DoS أساسيّ في MVP؛ قبل توزيع
+# العمّال انقله لـRedis (INCR+EXPIRE، نفس نمط auth) لعدّاد مشترك دقيق.
+_RATE_LIMIT_PER_MIN = int(os.getenv("SAHOOL_RATE_LIMIT_PER_MIN", "120"))
+_RATE_EXEMPT_PATHS = {"/healthz", "/readyz", "/metrics"}
+_RATE_MAX_BUCKETS = 50000  # سقف المفاتيح — يمنع نموّ الذاكرة بلا حدّ من IPs فريدة
+_rate_buckets: dict[str, tuple[int, float]] = {}  # client → (count, window_start_epoch)
+
+
+def _rate_client_key(request) -> str:
+    """العميل الحقيقي خلف البروكسي: X-Forwarded-For (أوّل قفزة) ثمّ X-Real-IP،
+    وإلّا عنوان الاتّصال المباشر. nginx يضبطهما؛ بدونهما يُبكَّت الكلّ تحت IP
+    البروكسي ⇒ خنق عامّ خاطئ (ملاحظة المراجعة)."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.headers.get("x-real-ip") or (
+        request.client.host if request.client else "unknown"
+    )
+
+
+def _prune_rate_buckets(now: float) -> None:
+    """تنظيف كسول: يحذف النوافذ المنتهية حين يتضخّم القاموس (لا مؤقّت خلفيّ)."""
+    for k in [k for k, (_, start) in _rate_buckets.items() if now - start >= 60.0]:
+        _rate_buckets.pop(k, None)
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request, call_next):
+    """حاجز DoS أساسيّ: يحدّ طلبات كلّ عميل في نافذة دقيقة (fail-open عند الشكّ)."""
+    if _RATE_LIMIT_PER_MIN <= 0 or request.url.path in _RATE_EXEMPT_PATHS:
+        return await call_next(request)
+    import time as _t
+
+    now = _t.time()
+    # تنظيف كسول عند التضخّم (burst من IPs فريدة لا يُنمّي الذاكرة بلا حدّ)
+    if len(_rate_buckets) > _RATE_MAX_BUCKETS:
+        _prune_rate_buckets(now)
+    key = _rate_client_key(request)
+    count, start = _rate_buckets.get(key, (0, now))
+    if now - start >= 60.0:  # نافذة جديدة
+        count, start = 0, now
+    count += 1
+    _rate_buckets[key] = (count, start)
+    if count > _RATE_LIMIT_PER_MIN:
+        retry = max(1, int(60.0 - (now - start)))
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "طلبات كثيرة — تجاوزت الحدّ المسموح، حاول لاحقاً"},
+            headers={"Retry-After": str(retry)},
+        )
+    return await call_next(request)
+
+
 # ─── Pydantic models للـrequest/response ─────────────────────────
 
 
@@ -785,6 +841,86 @@ def list_fields(user: UserSchema = Depends(get_current_user)):
             pending_activities=0,
             health_summary_ar="بانتظار قياسات",
         ),
+    ]
+
+
+# ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
+class FarmCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    location: str | None = None
+    area_ha: float | None = None
+    centroid_lat: float | None = None
+    centroid_lon: float | None = None
+
+
+@app.post("/api/v1/farms", status_code=201)
+async def create_farm(
+    req: FarmCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FARM_CREATE)),
+):
+    """ينشئ مزرعة جديدة (أب الحقول). مُبوّب بصلاحية farm:create."""
+    import uuid as _uuid
+
+    farm_id = "frm_" + _uuid.uuid4().hex[:12]
+    async with tenant_connection(user) as conn:
+        await conn.execute(
+            """INSERT INTO farms
+                (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon)
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
+            farm_id,
+            str(user.tenant_id),
+            req.name,
+            req.location,
+            req.area_ha,
+            req.centroid_lat,
+            req.centroid_lon,
+        )
+    return {"farm_id": farm_id, "name": req.name, "message_ar": "أُنشئت المزرعة"}
+
+
+@app.get("/api/v1/farms")
+async def list_farms(user: UserSchema = Depends(require_permission(Permission.FARM_VIEW))):
+    """قائمة مزارع المستأجر (مُرشّحة بـRLS تلقائيّاً)."""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT farm_id, name, location, area_ha, centroid_lat, centroid_lon, created_at "
+            "FROM farms ORDER BY created_at DESC"
+        )
+    return [
+        {
+            "farm_id": r["farm_id"],
+            "name": r["name"],
+            "location": r["location"],
+            "area_ha": float(r["area_ha"]) if r["area_ha"] is not None else None,
+            "centroid_lat": float(r["centroid_lat"]) if r["centroid_lat"] is not None else None,
+            "centroid_lon": float(r["centroid_lon"]) if r["centroid_lon"] is not None else None,
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        }
+        for r in rows
+    ]
+
+
+@app.get("/api/v1/farms/{farm_id}/fields")
+async def list_farm_fields(
+    farm_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """حقول مزرعة محدّدة (هرميّة المزرعة→الحقل)."""
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(
+            "SELECT field_id, name, area_ha, crop, soil_type FROM fields "
+            "WHERE farm_id = $1 ORDER BY name",
+            farm_id,
+        )
+    return [
+        {
+            "field_id": r["field_id"],
+            "name": r["name"],
+            "area_ha": float(r["area_ha"]) if r["area_ha"] is not None else None,
+            "crop": r["crop"],
+            "soil_type": r["soil_type"],
+        }
+        for r in rows
     ]
 
 

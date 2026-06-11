@@ -56,3 +56,11 @@ v17_workflow_state_full.sql
 # field_lifecycle.field_id، trueup_calibrations.field_id، allowed_field_ids).
 # يعيد تعريف emit_event بتوقيع p_entity_id TEXT (يُسقط القديم — لا overload).
 v18_entity_ids_text.sql
+# v19: جدول المزارع (Farms) + fields.farm_id — هرميّة المزرعة→الحقل (تدقيق
+# التغطية، الطبقة ١). self-applied RLS، فترتيبه بعد force_all آمن.
+v19_farms.sql
+# v20: جداول الأتمتة (automation_rules + device_commands_log) التي يتوقّعها
+# actuator-service ولم تُنشأ قطّ — يُصلح الأتمتة المعطّلة. self-applied RLS.
+v20_automation_tables.sql
+# v21: أعمدة MFA (TOTP) على users (mfa_secret/mfa_enabled) — مصادقة ثنائيّة.
+v21_mfa.sql

@@ -5822,6 +5822,78 @@ def test_supply_chain_audit_gate():
     return r
 
 
+def test_p0_security_foundation():
+    """حارس دفعة P0 (تدقيق التغطية): MFA + Rate Limiting + جدول farms + إصلاح
+    الأتمتة المعطّلة. فحوص مصدر/ترحيلات (لا قاعدة في الـrunner الخفيف)."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+
+    def _read(p):
+        with open(os.path.join(base, p), encoding="utf-8") as f:
+            return f.read()
+
+    # ① الترحيلات الثلاثة موجودة ومُدرَجة في MANIFEST بالترتيب
+    manifest = _read("migrations/MANIFEST.txt")
+    for mig in ("v19_farms.sql", "v20_automation_tables.sql", "v21_mfa.sql"):
+        exists = os.path.exists(os.path.join(base, "migrations", mig))
+        if exists and mig in manifest:
+            r.append(("✓", f"P0: ترحيل {mig} موجود ومُدرَج في MANIFEST"))
+        else:
+            r.append(("✗", f"P0: ترحيل {mig} مفقود أو غير مُدرَج (لن يُطبَّق)"))
+    # الترتيب يهمّ (الاعتماديّات): v18 < v19 < v20 < v21 كما تُطبَّق فعلاً.
+    # نتحقّق من مواضع الأسطر غير المعلّقة لا مجرّد الوجود (ملاحظة المراجعة).
+    _order = [
+        "v18_entity_ids_text.sql",
+        "v19_farms.sql",
+        "v20_automation_tables.sql",
+        "v21_mfa.sql",
+    ]
+    _pos = [_order.index(s) for s in (ln.strip() for ln in manifest.splitlines()) if s in _order]
+    if _pos == sorted(_pos) and len(_pos) == len(_order):
+        r.append(("✓", "P0: ترتيب الترحيلات v18→v19→v20→v21 صحيح في MANIFEST"))
+    else:
+        r.append(("✗", "P0: ترتيب الترحيلات في MANIFEST مكسور (اعتماديّات قد تنكسر)"))
+
+    # ② MFA مفروض في auth.login + نقاط الاقتران الثلاث
+    auth_src = _read("services/auth/main.py")
+    if 'if row["mfa_enabled"]' in auth_src and "pyotp.TOTP" in auth_src:
+        r.append(("✓", "P0: MFA مفروض عند login (لا تجاوز صامت)"))
+    else:
+        r.append(("✗", "P0: login لا يفرض MFA (الفجوة مفتوحة)"))
+    if all(p in auth_src for p in ("/auth/mfa/setup", "/auth/mfa/activate", "/auth/mfa/disable")):
+        r.append(("✓", "P0: نقاط MFA الثلاث (setup/activate/disable) موجودة"))
+    else:
+        r.append(("✗", "P0: نقاط اقتران MFA ناقصة"))
+
+    # ③ Rate Limiting في النواة (platform API)
+    main_src = _read("services/sahool-platform/api/main.py")
+    if "rate_limit_middleware" in main_src and "_RATE_LIMIT_PER_MIN" in main_src:
+        r.append(("✓", "P0: حدّ المعدّل (Rate Limiting) موصول في النواة"))
+    else:
+        r.append(("✗", "P0: لا حدّ معدّل في النواة (مكشوفة لـDoS)"))
+
+    # ④ جداول الأتمتة تطابق ما يتوقّعه actuator (إصلاح الأتمتة المعطّلة)
+    auto_sql = _read("migrations/v20_automation_tables.sql")
+    needed = (
+        "automation_rules",
+        "device_commands_log",
+        "trigger_sensor",
+        "action_device",
+        "today_run_count",
+    )
+    if all(c in auto_sql for c in needed):
+        r.append(("✓", "P0: جداول الأتمتة تطابق أعمدة actuator-service"))
+    else:
+        r.append(("✗", "P0: جداول الأتمتة ناقصة الأعمدة (تبقى الأتمتة معطّلة)"))
+
+    # ⑤ نقاط farms + ربطها بالصلاحيات
+    if "/api/v1/farms" in main_src and "require_permission(Permission.FARM_CREATE)" in main_src:
+        r.append(("✓", "P0: نقاط farms موجودة ومُبوّبة بصلاحية farm:create"))
+    else:
+        r.append(("✗", "P0: نقاط farms مفقودة أو غير مُبوّبة"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -5960,6 +6032,7 @@ def run_all():
         ("entityid_text_tenant_isolation", test_entityid_text_and_tenant_isolation),
         ("rbac_platform_enforcement", test_rbac_platform_enforcement),
         ("supply_chain_audit_gate", test_supply_chain_audit_gate),
+        ("p0_security_foundation", test_p0_security_foundation),
     ]
     tp = tf = 0
     for name, s in suites:
