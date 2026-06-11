@@ -159,6 +159,8 @@ def register_default_tasks(
     fetch_weather: TaskFn | None = None,
     scan_new_imagery: TaskFn | None = None,
     check_decision_freshness: TaskFn | None = None,
+    run_alerts_evaluation: TaskFn | None = None,
+    alerts_evaluation_interval_seconds: float = 21600,
 ) -> None:
     """يسجّل المهامّ الدوريّة القياسيّة لـSAHOOL.
 
@@ -174,3 +176,11 @@ def register_default_tasks(
     if check_decision_freshness:
         # فحص نضارة القرارات — كلّ ساعة
         scheduler.register("check_decision_freshness", 3600, check_decision_freshness)
+    if run_alerts_evaluation:
+        # تقييم تنبيهات كلّ الحقول دوريّاً — الكادينس قابل للضبط (افتراض 6 ساعات).
+        # يُعرَض في scheduler-status ليتأكّد المشغّل من جريانه (أو ضربه خارجيّاً).
+        scheduler.register(
+            "alerts_evaluation",
+            alerts_evaluation_interval_seconds,
+            run_alerts_evaluation,
+        )

@@ -27,8 +27,9 @@ import {
   type IrrigationAdvice, type DiseaseRisk,
   fetchFieldRecommendations,
   type FieldRecommendationsResult,
-  fetchAlerts, createAlert, acknowledgeAlert, evaluateFieldAlerts,
+  fetchAlerts, createAlert, acknowledgeAlert, evaluateFieldAlerts, runAllFieldsAlerts,
   type AlertRecord, type AlertCreateInput, type AlertListFilters, type AlertEvaluateResult,
+  type AlertsRunResult,
   fetchNotificationPreferences, updateNotificationPreferences,
   type NotificationPreferences,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry, getFieldSoilMoisture,
@@ -698,6 +699,17 @@ export function useEvaluateAlerts(): UseMutationResult<AlertEvaluateResult, Erro
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<AlertEvaluateResult, Error, string>({
     mutationFn: (fieldId) => evaluateFieldAlerts(fieldId),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
+  });
+}
+
+// تشغيل تقييم التنبيهات لكلّ الحقول دفعةً (أتمتة عند الطلب، sahool-platform)
+// — يُبطِل كاش تنبيهات المستأجِر ليُعاد جلب القائمة بالتنبيهات المُولَّدة حديثاً.
+export function useRunAllAlerts(): UseMutationResult<AlertsRunResult, Error, void> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<AlertsRunResult, Error, void>({
+    mutationFn: () => runAllFieldsAlerts(),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
   });
 }
