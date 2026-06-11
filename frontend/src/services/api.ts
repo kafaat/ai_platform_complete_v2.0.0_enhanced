@@ -86,6 +86,23 @@ export const login = (payload: LoginPayload): Promise<AuthResponse> =>
     ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh', user:{ username:payload.username, role:'farmer' } } as AuthResponse)
     : authApi.post<AuthResponse>('/auth/login', payload).then(r => r.data);
 
+export interface RegisterPayload { full_name: string; email: string; password: string }
+// التسجيل: الخلفيّة تُصدر توكناً مباشرةً (تسجيل دخول تلقائيّ). الدور يُثبَّت
+// 'farmer' خادم-جانبيّاً (منع تصعيد الصلاحيّات) — لا يُرسَل دور من العميل.
+export const register = (payload: RegisterPayload): Promise<AuthResponse> =>
+  authApi.post('/auth/register', payload).then(r => {
+    const d = r.data as { access_token: string; refresh_token?: string; role?: string;
+      full_name?: string; tenant_id?: string };
+    return {
+      access_token: d.access_token,
+      refresh_token: d.refresh_token ?? '',
+      tenant_id: d.tenant_id,
+      role: d.role,
+      user: { username: payload.email, email: payload.email, role: d.role ?? 'farmer',
+        tenant_id: d.tenant_id, full_name: d.full_name ?? payload.full_name },
+    } as AuthResponse;
+  });
+
 export const logout = () =>
   tryReal(() => authApi.post('/auth/logout').then(r => r.data), () => ({ status:'ok' }));
 

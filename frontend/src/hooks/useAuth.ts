@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { login as apiLogin } from '../services/api';
+import { login as apiLogin, register as apiRegister } from '../services/api';
 
 interface AuthUser {
   id?: number;
@@ -21,6 +21,7 @@ interface AuthState {
   isDemoMode: boolean;
   // Actions
   login: (email: string, password: string) => Promise<void>;
+  signup: (data: { full_name: string; email: string; password: string }) => Promise<void>;
   loginDemo: () => void;
   logout: () => void;
   setTenant: (id: string) => void;
@@ -45,6 +46,23 @@ export const useAuthStore = create<AuthState>()(
           role: data.user?.role || data.role || 'farmer',
         };
         // حفظ في localStorage للـ interceptors
+        sessionStorage.setItem('sahool_access_token', token);
+        sessionStorage.setItem('sahool_tenant_id', tenantId);
+        sessionStorage.setItem('sahool_user', JSON.stringify(user));
+        set({ token, tenantId, user, isAuthenticated: true, isDemoMode: false });
+      },
+
+      signup: async (data: { full_name: string; email: string; password: string }) => {
+        // تسجيل حقيقيّ → توكن مباشر (دخول تلقائيّ). الدور دائماً farmer خادم-جانبيّاً.
+        const res = await apiRegister(data);
+        const token    = res.access_token;
+        const tenantId = res.user?.tenant_id || res.tenant_id || 'default';
+        const user: AuthUser = {
+          email: res.user?.email || data.email,
+          full_name: res.user?.full_name || data.full_name,
+          role: res.user?.role || res.role || 'farmer',
+          tenant_id: tenantId,
+        };
         sessionStorage.setItem('sahool_access_token', token);
         sessionStorage.setItem('sahool_tenant_id', tenantId);
         sessionStorage.setItem('sahool_user', JSON.stringify(user));

@@ -44,6 +44,7 @@ class ErrorBoundary extends React.Component<
 
 
 const LoginPage           = lazy(() => import('./pages/LoginPage'));
+const SignupPage          = lazy(() => import('./pages/SignupPage'));
 const DashboardPage       = lazy(() => import('./sections/DashboardPage'));
 const SatellitePage       = lazy(() => import('./sections/SatellitePage'));
 const FieldManagementPage = lazy(() => import('./sections/FieldManagementPage'));
@@ -244,6 +245,7 @@ export default function App() {
   const [page,       setPage]       = useState<PageId>('dashboard');
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [authScreen, setAuthScreen] = useState<'login' | 'signup'>('login');
 
   // Connect WebSocket after login
   useEffect(() => {
@@ -261,7 +263,11 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <>
-        <Suspense fallback={<Loader />}><LoginPage /></Suspense>
+        <Suspense fallback={<Loader />}>
+          {authScreen === 'signup'
+            ? <SignupPage onLogin={() => setAuthScreen('login')} />
+            : <LoginPage onSignup={() => setAuthScreen('signup')} />}
+        </Suspense>
         <ToastContainer />
       </>
     );

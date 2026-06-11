@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Leaf, Eye, EyeOff, Loader2, Shield, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '../hooks/useAuth';
 
-export default function LoginPage() {
+export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
   const [email, setEmail]     = useState('admin@sahool.ye');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]   = useState(false);
@@ -113,6 +113,15 @@ export default function LoginPage() {
               <Shield className="w-4 h-4" />
               دخول تجريبي (بيانات افتراضية)
             </button>
+
+            {/* Signup link */}
+            <p className="text-center text-xs text-slate-500 pt-1">
+              ليس لديك حساب؟{' '}
+              <button type="button" onClick={onSignup}
+                className="text-emerald-500 hover:text-emerald-400 font-medium">
+                إنشاء حساب جديد
+              </button>
+            </p>
           </form>
 
           {/* Footer hint */}
