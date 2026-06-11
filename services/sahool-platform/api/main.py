@@ -380,6 +380,7 @@ class FieldSummary(BaseModel):
     last_observation_at: str | None = None
     pending_activities: int = 0
     health_summary_ar: str  # "صحّي" / "يحتاج ريّ" / "إجهاد ملحي"
+    soil_type: str | None = None  # نوع التربة (يُمرَّر للواجهة بدل ضياعه)
     # حقول الخريطة (اختياريّة، توافق خلفيّ): مركز الحقل وهندسته لرسم المضلّع.
     lat: float | None = None
     lon: float | None = None
@@ -878,6 +879,7 @@ def _row_to_field_summary(r) -> FieldSummary:
         area_ha=float(r["area_ha"]) if r["area_ha"] is not None else 0.0,
         quality_grade="READY",
         health_summary_ar="—",
+        soil_type=r["soil_type"],
         lat=float(r["lat"]) if r["lat"] is not None else None,
         lon=float(r["lon"]) if r["lon"] is not None else None,
         geometry=geom,
@@ -989,6 +991,7 @@ async def create_field(
         area_ha=area_ha,
         quality_grade="PENDING_LAB",
         health_summary_ar="حقل جديد — بانتظار قياسات",
+        soil_type=req.soil_type,
         lat=lat,
         lon=lon,
         geometry=req.geometry,
