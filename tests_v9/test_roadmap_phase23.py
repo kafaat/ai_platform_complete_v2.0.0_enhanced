@@ -6094,6 +6094,36 @@ def test_master_data_layer():
     return r
 
 
+def test_gis_db_enforcement_layer():
+    """حارس فرض GIS على القاعدة (الطبقة ٢): trigger يرفض الهندسة الباطلة."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+
+    def _read(p):
+        with open(os.path.join(base, p), encoding="utf-8") as f:
+            return f.read()
+
+    manifest = _read("migrations/MANIFEST.txt")
+    mig = "v27_gis_enforce.sql"
+    mig_path = os.path.join(base, "migrations", mig)
+    if os.path.exists(mig_path) and mig in manifest:
+        r.append(("✓", f"GIS-فرض: ترحيل {mig} موجود ومُدرَج"))
+    else:
+        r.append(("✗", f"GIS-فرض: ترحيل {mig} مفقود/غير مُدرَج"))
+    sql = _read("migrations/" + mig) if os.path.exists(mig_path) else ""
+    # trigger BEFORE write على field_boundaries يستدعي is_valid_field_geom
+    if (
+        "enforce_valid_field_geom" in sql
+        and "is_valid_field_geom" in sql
+        and "BEFORE INSERT OR UPDATE" in sql
+        and "field_boundaries" in sql
+    ):
+        r.append(("✓", "GIS-فرض: trigger يرفض الهندسة الباطلة على القاعدة (لا API فقط)"))
+    else:
+        r.append(("✗", "GIS-فرض: لا فرض على القاعدة (إدراج مباشر باطل يمرّ)"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -6237,6 +6267,7 @@ def run_all():
         ("iot_device_layer", test_iot_device_layer),
         ("irrigation_ops_layer", test_irrigation_ops_layer),
         ("master_data_layer", test_master_data_layer),
+        ("gis_db_enforcement_layer", test_gis_db_enforcement_layer),
     ]
     tp = tf = 0
     for name, s in suites:

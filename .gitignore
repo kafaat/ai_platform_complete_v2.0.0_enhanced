@@ -21,3 +21,4 @@ backups/
 htmlcov/
 .pytest_cache/
 build/
+.claude/worktrees/
