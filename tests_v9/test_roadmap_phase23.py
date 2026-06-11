@@ -5894,6 +5894,60 @@ def test_p0_security_foundation():
     return r
 
 
+def test_inventory_equipment_layers():
+    """حارس الطبقتين ١٠/١١ (كانتا غائبتين 100%): ترحيلات + صلاحيات + نقاط."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+
+    def _read(p):
+        with open(os.path.join(base, p), encoding="utf-8") as f:
+            return f.read()
+
+    # ① ترحيلات المخزون والمعدّات موجودة ومُدرَجة
+    manifest = _read("migrations/MANIFEST.txt")
+    for mig in ("v22_inventory.sql", "v23_equipment.sql"):
+        if os.path.exists(os.path.join(base, "migrations", mig)) and mig in manifest:
+            r.append(("✓", f"المخزون/المعدّات: ترحيل {mig} موجود ومُدرَج"))
+        else:
+            r.append(("✗", f"المخزون/المعدّات: ترحيل {mig} مفقود/غير مُدرَج"))
+
+    # ② الصلاحيات الأربع في authorization + سلوكها (المالك يدير، المشاهد يعرض فقط)
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole, UserSchema
+
+    def _u(role):
+        return UserSchema(user_id="u", tenant_id="t", role=role, name_ar="x")
+
+    if has_permission(_u(UserRole.OWNER), Permission.INVENTORY_MANAGE) and has_permission(
+        _u(UserRole.MANAGER), Permission.EQUIPMENT_MANAGE
+    ):
+        r.append(("✓", "المخزون/المعدّات: المالك/المدير يملكان صلاحية الإدارة"))
+    else:
+        r.append(("✗", "المخزون/المعدّات: صلاحية الإدارة غير ممنوحة للمالك/المدير"))
+    if (
+        has_permission(_u(UserRole.VIEWER), Permission.INVENTORY_VIEW)
+        and not has_permission(_u(UserRole.VIEWER), Permission.INVENTORY_MANAGE)
+        and not has_permission(_u(UserRole.WORKER), Permission.EQUIPMENT_MANAGE)
+    ):
+        r.append(("✓", "المخزون/المعدّات: الأدوار الدنيا تعرض فقط (لا إدارة)"))
+    else:
+        r.append(("✗", "المخزون/المعدّات: تسرّب صلاحية إدارة لدور أدنى"))
+
+    # ③ النقاط مُبوّبة بالصلاحيات الصحيحة في النواة
+    main_src = _read("services/sahool-platform/api/main.py")
+    inv_ok = "/api/v1/inventory/items" in main_src and (
+        "require_permission(Permission.INVENTORY_MANAGE)" in main_src
+    )
+    eqp_ok = "/api/v1/equipment" in main_src and (
+        "require_permission(Permission.EQUIPMENT_MANAGE)" in main_src
+    )
+    if inv_ok and eqp_ok:
+        r.append(("✓", "المخزون/المعدّات: النقاط موجودة ومُبوّبة بصلاحياتها"))
+    else:
+        r.append(("✗", "المخزون/المعدّات: نقاط مفقودة أو غير مُبوّبة"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -6033,6 +6087,7 @@ def run_all():
         ("rbac_platform_enforcement", test_rbac_platform_enforcement),
         ("supply_chain_audit_gate", test_supply_chain_audit_gate),
         ("p0_security_foundation", test_p0_security_foundation),
+        ("inventory_equipment_layers", test_inventory_equipment_layers),
     ]
     tp = tf = 0
     for name, s in suites:

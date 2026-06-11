@@ -71,6 +71,11 @@ class Permission(str, Enum):
     USER_REMOVE = "user:remove"
     USER_CHANGE_ROLE = "user:change_role"
     CALIBRATION_RUN = "calibration:run"
+    # المخزون والمعدّات (إدارة الموارد — الطبقتان ١٠/١١ من تدقيق التغطية)
+    INVENTORY_VIEW = "inventory:view"
+    INVENTORY_MANAGE = "inventory:manage"  # إضافة/تعديل دفعات، خصم كمّيّات
+    EQUIPMENT_VIEW = "equipment:view"
+    EQUIPMENT_MANAGE = "equipment:manage"  # تسجيل معدّة/صيانة/عطل
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
     REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
@@ -107,6 +112,10 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.CALIBRATION_RUN,
         Permission.AUDIT_VIEW,
         Permission.REPLAY_RECOMMENDATION,
+        Permission.INVENTORY_VIEW,
+        Permission.INVENTORY_MANAGE,
+        Permission.EQUIPMENT_VIEW,
+        Permission.EQUIPMENT_MANAGE,
     },
     UserRole.MANAGER: {
         # إدارة كاملة، لا حذف ملكية ولا تغيير أدوار
@@ -128,6 +137,10 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.AUDIT_VIEW,
         Permission.REPLAY_RECOMMENDATION,
         Permission.USER_INVITE,  # دعوة، لا تغيير أدوار
+        Permission.INVENTORY_VIEW,
+        Permission.INVENTORY_MANAGE,
+        Permission.EQUIPMENT_VIEW,
+        Permission.EQUIPMENT_MANAGE,
     },
     UserRole.AGRONOMIST: {
         # توصيات + معايرة + بحث، لا إدارة بنيوية
@@ -144,6 +157,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.REPLAY_RECOMMENDATION,
         Permission.PESTICIDE_APPROVE,  # المهندس يوافق على المبيدات
         # لا HARVEST_AUTHORIZE (تخطّي PHI يحتاج OWNER)
+        Permission.INVENTORY_VIEW,  # يرى المخزون (أيّ مبيدات/أسمدة متوفّرة)
+        Permission.EQUIPMENT_VIEW,
     },
     UserRole.WORKER: {
         # تنفيذ ميداني فقط
@@ -155,6 +170,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.ACTIVITY_VIEW,
         Permission.OBSERVATION_RECORD,
         Permission.OBSERVATION_VIEW,
+        Permission.INVENTORY_VIEW,  # يرى المخزون والمعدّات المتاحة للتنفيذ
+        Permission.EQUIPMENT_VIEW,
     },
     UserRole.VIEWER: {
         # قراءة فقط
@@ -163,6 +180,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.RECOMMENDATION_VIEW,
         Permission.ACTIVITY_VIEW,
         Permission.OBSERVATION_VIEW,
+        Permission.INVENTORY_VIEW,
+        Permission.EQUIPMENT_VIEW,
     },
 }
 

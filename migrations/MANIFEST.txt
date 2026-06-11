@@ -64,3 +64,9 @@ v19_farms.sql
 v20_automation_tables.sql
 # v21: أعمدة MFA (TOTP) على users (mfa_secret/mfa_enabled) — مصادقة ثنائيّة.
 v21_mfa.sql
+# v22: إدارة المخزون (inventory_items + inventory_batches) — الطبقة ١٠ الغائبة.
+# self-applied RLS، فترتيبه بعد force_all آمن.
+v22_inventory.sql
+# v23: إدارة المعدّات (equipment + equipment_maintenance) — الطبقة ١١ الغائبة.
+# self-applied RLS.
+v23_equipment.sql
