@@ -235,10 +235,14 @@ export default function SatellitePage() {
             {showLayers && (
               <div className="px-2 pb-3 space-y-1">
                 {INDICES.map(ind=>{
+                  // فقط المؤشّرات التي لها بلاطات حقيقيّة قابلة للاختيار — تعطيل
+                  // الباقي يمنع تضليل المستخدم (خريطة NDVI تحت عنوان EVI مثلاً).
                   const supported = ind.id in GRID_INDEX_MAP;
                   return (
-                    <button key={ind.id} onClick={()=>setActiveIndex(ind.id)}
-                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right"
+                    <button key={ind.id} disabled={!supported}
+                      onClick={()=> supported && setActiveIndex(ind.id)}
+                      title={supported ? undefined : 'بلاطات هذا المؤشّر غير متوفّرة بعد'}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right disabled:opacity-40 disabled:cursor-not-allowed"
                       style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
                         border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
                       <span>{ind.icon}</span>
