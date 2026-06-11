@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS inventory_items (
         CHECK (category IN ('fertilizer', 'pesticide', 'seed', 'spare_part', 'other')),
     name           VARCHAR(120) NOT NULL,
     unit           VARCHAR(20)  NOT NULL DEFAULT 'unit',   -- kg / L / bag / unit
-    reorder_level  NUMERIC(14, 3),                         -- حدّ إعادة الطلب (تنبيه low_stock)
+    reorder_level  NUMERIC(14, 3) CHECK (reorder_level IS NULL OR reorder_level >= 0),  -- حدّ إعادة الطلب
+
     notes          TEXT,
     created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW()

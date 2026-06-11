@@ -109,3 +109,21 @@ def test_view_allowed_passes_rbac(app_mod):
             headers={"Authorization": f"Bearer {_raw_token(m, role, tenant)}"},
         )
         assert r.status_code != 403, f"{role}: {r.status_code}"
+
+
+@pytest.mark.integration
+def test_bad_date_returns_400_not_500(app_mod):
+    """تاريخ غير صالح يُرفَض بـ400 (تحقّق API) قبل لمس القاعدة — لا 500."""
+    from fastapi.testclient import TestClient
+
+    m = app_mod
+    tenant = str(uuid.uuid4())
+    client = TestClient(m.app)
+    # owner يملك equipment:manage ⇒ يتجاوز التبويب؛ التاريخ السيّئ يُرفَض 400
+    r = client.post(
+        "/api/v1/equipment",
+        json={"name": "جرّار", "type": "tractor", "purchase_date": "not-a-date"},
+        headers={"Authorization": f"Bearer {_raw_token(m, 'owner', tenant)}"},
+    )
+    assert r.status_code == 400, r.text
+    assert "purchase_date" in r.text

@@ -28,7 +28,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 # جعل النواة قابلة للاستيراد
@@ -50,7 +50,7 @@ from core.offline_first import (
     apply_supersession,
     record_operation_offline,
 )
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from jwt.exceptions import InvalidTokenError
@@ -924,12 +924,25 @@ async def list_farm_fields(
     ]
 
 
+def _parse_date(value: str | None, field: str) -> date | None:
+    """يحوّل سلسلة ISO (YYYY-MM-DD) إلى date؛ يرفع 400 واضحة على قيمة غير صالحة
+    بدل تمريرها للقاعدة فتُسقِط 500 (ملاحظة المراجعة). فارغة/None ⇒ None."""
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value.strip())
+    except (ValueError, TypeError, AttributeError):
+        raise HTTPException(
+            status_code=400, detail=f"تاريخ غير صالح في {field} — استخدم صيغة YYYY-MM-DD"
+        ) from None
+
+
 # ─── المخزون (Inventory) — الطبقة ١٠ (v22) ───────────────────────
 class InventoryItemRequest(BaseModel):
     category: str = Field(pattern="^(fertilizer|pesticide|seed|spare_part|other)$")
     name: str = Field(min_length=1, max_length=120)
     unit: str = "unit"
-    reorder_level: float | None = None
+    reorder_level: float | None = Field(default=None, ge=0)
     notes: str | None = None
 
 
@@ -1007,6 +1020,8 @@ async def add_inventory_batch(
     import uuid as _uuid
 
     batch_id = "bat_" + _uuid.uuid4().hex[:12]
+    expiry = _parse_date(req.expiry_date, "expiry_date")
+    received = _parse_date(req.received_at, "received_at") or date.today()
     async with tenant_connection(user) as conn:
         # تأكّد من وجود العنصر ضمن المستأجر (RLS يمنع عنصر مستأجر آخر)
         exists = await conn.fetchval("SELECT 1 FROM inventory_items WHERE item_id = $1", item_id)
@@ -1016,16 +1031,15 @@ async def add_inventory_batch(
             """INSERT INTO inventory_batches
                 (batch_id, tenant_id, item_id, quantity, unit, batch_code,
                  expiry_date, received_at, supplier, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6,
-                       $7::date, COALESCE($8::date, CURRENT_DATE), $9, $10)""",
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
             batch_id,
             str(user.tenant_id),
             item_id,
             req.quantity,
             req.unit,
             req.batch_code,
-            req.expiry_date,
-            req.received_at,
+            expiry,
+            received,
             req.supplier,
             req.notes,
         )
@@ -1034,7 +1048,7 @@ async def add_inventory_batch(
 
 @app.get("/api/v1/inventory/expiring")
 async def list_expiring_batches(
-    days: int = 30,
+    days: int = Query(30, ge=1, le=3650),  # مقيّد 1..10 سنوات (لا سالب/ضخم)
     user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
 ):
     """دفعات تنتهي خلال N يوماً (تنبيه قبل تلف المبيدات/الأسمدة)."""
@@ -1044,10 +1058,10 @@ async def list_expiring_batches(
                FROM inventory_batches b
                JOIN inventory_items i ON i.item_id = b.item_id
                WHERE b.expiry_date IS NOT NULL
-                 AND b.expiry_date <= CURRENT_DATE + ($1 || ' days')::interval
+                 AND b.expiry_date <= CURRENT_DATE + make_interval(days => $1)
                  AND b.quantity > 0
                ORDER BY b.expiry_date ASC""",
-            str(days),
+            days,
         )
     return [
         {
@@ -1088,17 +1102,18 @@ async def create_equipment(
     import uuid as _uuid
 
     equipment_id = "eqp_" + _uuid.uuid4().hex[:12]
+    purchase = _parse_date(req.purchase_date, "purchase_date")
     async with tenant_connection(user) as conn:
         await conn.execute(
             """INSERT INTO equipment
                 (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6::date, $7)""",
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
             equipment_id,
             str(user.tenant_id),
             req.name,
             req.type,
             req.operating_hours,
-            req.purchase_date,
+            purchase,
             req.notes,
         )
     return {"equipment_id": equipment_id, "name": req.name, "message_ar": "سُجّلت المعدّة"}
@@ -1133,6 +1148,8 @@ async def log_maintenance(
     import uuid as _uuid
 
     maintenance_id = "mnt_" + _uuid.uuid4().hex[:12]
+    sched = _parse_date(req.scheduled_date, "scheduled_date")
+    performed = _parse_date(req.performed_date, "performed_date")
     async with tenant_connection(user) as conn:
         exists = await conn.fetchval(
             "SELECT 1 FROM equipment WHERE equipment_id = $1", equipment_id
@@ -1143,14 +1160,14 @@ async def log_maintenance(
             """INSERT INTO equipment_maintenance
                 (maintenance_id, tenant_id, equipment_id, kind, status,
                  scheduled_date, performed_date, cost_usd, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6::date, $7::date, $8, $9)""",
+               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
             maintenance_id,
             str(user.tenant_id),
             equipment_id,
             req.kind,
             req.status,
-            req.scheduled_date,
-            req.performed_date,
+            sched,
+            performed,
             req.cost_usd,
             req.notes,
         )
