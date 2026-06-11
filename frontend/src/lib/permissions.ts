@@ -24,7 +24,7 @@ const ALL_PAGES: PageId[] = [
   'dashboard', 'hybrid-index', 'satellite', 'fields', 'recommendations',
   'irrigation', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
-  'tasks', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'chatbot', 'settings',
+  'tasks', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
 ];
 
 // worker (مزارع/عامل): الصفحات التشغيليّة فقط (وفق سياسة الإعدادات الموثّقة:
@@ -37,7 +37,7 @@ const WORKER_PAGES: PageId[] = [
 
 // صفحات إداريّة (owner/manager فقط): البيانات المرجعيّة + الوثائق.
 // لا تظهر لـagronomist/viewer حتى لو كان الخادم سيردّ 403 — منعٌ من المصدر في الواجهة.
-const MANAGEMENT_ONLY_PAGES: PageId[] = ['master-data', 'documents'];
+const MANAGEMENT_ONLY_PAGES: PageId[] = ['master-data', 'documents', 'governance'];
 
 // كلّ ما عدا الصفحات الإداريّة (لـagronomist والمُشاهِد). يحافظ على وصولهما الكامل
 // للصفحات التشغيليّة/التحليليّة، مع استبعاد الإداريّة فقط.

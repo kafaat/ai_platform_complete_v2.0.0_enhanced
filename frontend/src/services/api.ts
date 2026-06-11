@@ -555,6 +555,93 @@ export const createDocument = (payload: DocumentCreateInput): Promise<DocumentRe
   kongApi.post<DocumentRecord>('/api/v1/documents', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// GOVERNANCE & AUDIT — أصل/أحداث/أوامر كيان + مفاتيح المشاركة (حيّ عبر البوابة)
+// قراءة-غالباً + إنشاء مفتاح. كلّها DB-backed عبر tenant_connection (RLS مُطبَّق)؛
+// عند تعطيل قاعدة البيانات يُرمى 503 ليعرض الـUI حالة صادقة. لا بيانات مُلفَّقة —
+// التتبّع/التدقيق سجلّ حقيقيّ أو لا شيء. مفتاح المشاركة يُعرَض نصّاً مرّة واحدة فقط.
+// ══════════════════════════════════════════════════════════════════
+export interface LineageEntry {
+  timestamp:   string;
+  source_type: string;
+  source_id:   string | null;
+  action:      string | null;
+  summary_ar:  string | null;
+}
+export interface EntityLineage {
+  entity_type:    string;
+  entity_id:      string;
+  total_entries:  number;
+  earliest_at:    string | null;
+  latest_at:      string | null;
+  commands_count: number;
+  events_count:   number;
+  entries:        LineageEntry[];
+}
+export interface SharingKey {
+  key_id:       string;
+  key_prefix?:  string;
+  scope?:       string;
+  created_by?:  string;
+  expires_at?:  string | null;
+  revoked_at?:  string | null; // الخادم يُرجِع طابعاً زمنيّاً (أو null) لا boolean
+  [k: string]: unknown; // الخادم قد يُرجِع حقولاً إضافيّة — لا نقصّها
+}
+// SharingScope على الخادم = 'read' | 'read_write' (لا 'write').
+export type SharingScope = 'read' | 'read_write';
+export interface NewSharingKey {
+  scope?:            SharingScope;
+  valid_days?:       number;
+  third_party_name?: string;
+  third_party_type?: string;
+  allowed_field_ids?: string[];
+}
+export interface SharingKeyCreated {
+  key_id:        string;
+  key_plaintext: string; // مرّة واحدة فقط — لا يُعاد عرضه
+  key_prefix:    string;
+  scope:         string;
+  expires_at:    string | null;
+}
+
+/** أصل (lineage) كامل لكيان (command+event+lifecycle+journal+trueup). */
+export const getEntityLineage = (
+  entityType: string,
+  entityId: string,
+  limit = 500,
+): Promise<EntityLineage> =>
+  kongApi.get<EntityLineage>(
+    `/api/v1/lineage/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { params: { limit } },
+  ).then(r => r.data);
+
+/** تاريخ أحداث كيان من ناقل الأحداث. */
+export const getEntityEvents = (
+  entityType: string,
+  entityId: string,
+  limit = 100,
+): Promise<{ events: unknown[] }> =>
+  kongApi.get<{ events: unknown[] }>(
+    `/api/v1/events/${encodeURIComponent(entityType)}/${encodeURIComponent(entityId)}`,
+    { params: { limit } },
+  ).then(r => r.data);
+
+/** البحث عن أمر بالمعرّف (404 عند عدم الوجود). */
+export const getCommand = (commandId: string): Promise<{ command_id: string; found: boolean }> =>
+  kongApi.get<{ command_id: string; found: boolean }>(
+    `/api/v1/commands/${encodeURIComponent(commandId)}`,
+  ).then(r => r.data);
+
+/** سرد مفاتيح المشاركة للمستأجِر. */
+export const listSharingKeys = (includeRevoked = false): Promise<{ keys: SharingKey[] }> =>
+  kongApi.get<{ keys: SharingKey[] }>('/api/v1/sharing/keys', {
+    params: { include_revoked: includeRevoked },
+  }).then(r => r.data);
+
+/** إنشاء مفتاح مشاركة (يتطلّب صلاحيّة دعوة المستخدم). النصّ يُعرَض مرّة واحدة. */
+export const createSharingKey = (payload: NewSharingKey): Promise<SharingKeyCreated> =>
+  kongApi.post<SharingKeyCreated>('/api/v1/sharing/keys', payload).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════
 
