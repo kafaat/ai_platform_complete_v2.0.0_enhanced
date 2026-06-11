@@ -272,6 +272,76 @@ export const getCostAnalytics = (): Promise<CostAnalytics> =>
   kongApi.get<CostAnalytics>('/api/v1/analytics/costs').then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// REPORTS — تقارير وتحليلات (حيّة، tenant-scoped + RBAC field:view)
+// تجميع من جداول قائمة (مزارع/حقول/مواسم/عمليّات/تنبيهات) عبر COUNT/SUM/GROUP BY.
+// لا fallback وهميّ — الخطأ (503 DB / 404 / 403) يُرفع لتعرض الواجهة حالة صادقة.
+// ══════════════════════════════════════════════════════════════════
+export interface AreaByCrop {
+  crop:    string;
+  area_ha: number;
+}
+export interface FarmSummary {
+  farms_count:          number;
+  fields_count:         number;
+  total_area_ha:        number;
+  active_seasons_count: number;
+  activities_total:     number;
+  activities_by_status: Record<string, number>;
+  open_alerts_count:    number;
+  area_by_crop:         AreaByCrop[];
+}
+export const getFarmSummary = (): Promise<FarmSummary> =>
+  kongApi.get<FarmSummary>('/api/v1/reports/farm-summary').then(r => r.data);
+
+export interface ReportAlert {
+  alert_id:   string;
+  field_id:   string | null;
+  alert_type: string;
+  severity:   string;
+  title_ar:   string | null;
+  message_ar: string | null;
+  status:     string;
+  created_at: string | null;
+}
+export interface FieldReportSeason {
+  season_id:   string;
+  crops:       string[];
+  cultivar:    string | null;
+  sowing_date: string | null;
+  season_end:  string | null;
+  status:      string;
+}
+export interface FieldReportSummary {
+  field_id:             string;
+  name:                 string;
+  area_ha:              number;
+  crop:                 string | null;
+  soil_type:            string | null;
+  current_season:       FieldReportSeason | null;
+  activities_total:     number;
+  activities_by_type:   Record<string, number>;
+  activities_by_status: Record<string, number>;
+  recent_alerts:        ReportAlert[];
+}
+export const getFieldReportSummary = (fieldId: string): Promise<FieldReportSummary> =>
+  kongApi.get<FieldReportSummary>(`/api/v1/reports/field/${fieldId}/summary`).then(r => r.data);
+
+export interface SeasonReportSummary {
+  season_id:        string;
+  field_id:         string;
+  crops:            string[];
+  cultivar:         string | null;
+  irrigation_type:  string | null;
+  sowing_date:      string | null;
+  season_end:       string | null;
+  status:           string;
+  stage_count:      number;
+  activities_count: number;
+}
+export const getSeasonReportSummary = (seasonId: string): Promise<SeasonReportSummary> =>
+  kongApi.get<SeasonReportSummary>(`/api/v1/reports/season/${seasonId}/summary`).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INVENTORY — مخزون المدخلات (حيّ، مُقيَّد بالدور inventory:view/manage وبالمستأجِر)
 // ربط حقيقيّ عبر البوابة (kong). لا fallback وهميّ — كميّات/مخزون حقيقيّة، الخطأ
 // يُعلَن للـUI (حالة خطأ/فراغ). 503 يُرمى عند تعطيل قاعدة البيانات على الخادم.
@@ -460,6 +530,37 @@ export const fetchDiseaseRisk = (fieldId: string): Promise<DiseaseRisk> =>
   kongApi.get<DiseaseRisk>(`/api/v1/fields/${fieldId}/weather/disease-risk`).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// UNIFIED RECOMMENDATIONS — عمود التوصيات الموحَّد لكلّ حقل.
+// يجمع الخادم (api.recommendations_hub، نقيّ) الريّ + التسميد + الأمراض + الحصاد
+// في قائمة واحدة مفروزة بالأولويّة. تدهور رشيق: عند تعذّر الطقس يُرجع توصيات
+// التسميد/الحصاد فقط (weather_available=false) — لا بيانات وهميّة. عند الخطأ
+// (503 لا سياق كافٍ، 404 حقل، 403 RBAC) يُرفع ليعرض الـUI حالة صادقة.
+// ══════════════════════════════════════════════════════════════════
+export type RecommendationCategory = 'irrigation' | 'fertilizer' | 'disease' | 'yield';
+export type RecommendationPriority = 'high' | 'medium' | 'low';
+
+export interface FieldRecommendation {
+  category:  RecommendationCategory | string;
+  priority:  RecommendationPriority | string;
+  title_ar:  string;
+  detail_ar: string;
+  source:    string;
+}
+
+export interface FieldRecommendationsResult {
+  field_id:           string;
+  crop:               string | null;
+  stage:              string;
+  weather_available:  boolean;
+  recommendations:    FieldRecommendation[];
+}
+
+export const fetchFieldRecommendations = (fieldId: string): Promise<FieldRecommendationsResult> =>
+  kongApi
+    .get<FieldRecommendationsResult>(`/api/v1/fields/${fieldId}/recommendations`)
+    .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // ALERTS — التنبيهات الزراعيّة المُصنَّفة لكلّ مستأجِر (sahool-platform v36).
 // ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC) يُرمى ليعرض الـUI
 // حالة صادقة. field:view للقراءة، field:edit للإنشاء/الإقرار.
@@ -503,6 +604,16 @@ export const createAlert = (payload: AlertCreateInput): Promise<AlertRecord> =>
 
 export const acknowledgeAlert = (alertId: string): Promise<AlertRecord> =>
   kongApi.patch<AlertRecord>(`/api/v1/alerts/${alertId}/acknowledge`).then(r => r.data);
+
+// تقييم تلقائيّ لتنبيهات حقل: يُولّد تنبيهات مُصنَّفة من ظروف الحقل الحاليّة
+// (الطقس الحيّ) ويُدرِجها في جدول alerts (v36) مع حذف تكرار النوع النشط.
+export interface AlertEvaluateResult {
+  created:           AlertRecord[];
+  skipped_existing:  number;
+}
+
+export const evaluateFieldAlerts = (fieldId: string): Promise<AlertEvaluateResult> =>
+  kongApi.post<AlertEvaluateResult>(`/api/v1/fields/${fieldId}/alerts/evaluate`).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:

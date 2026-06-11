@@ -1,25 +1,21 @@
 // ═══════════════════════════════════════════════════════════════
-// SAHOOL v8.0 — ReportsPage
-// ملخّص التكلفة الآن حيّ (useCostAnalytics → /api/v1/analytics/costs):
-// إجماليّ التكلفة + التوزيع حسب المصدر + عدد المهام، مُقيَّد بالدور والمستأجِر.
-// لا أرقام مُلفَّقة — عند الخطأ/الفراغ تُعرض حالة صادقة (StateViews).
+// SAHOOL — ReportsPage (تقارير وتحليلات حيّة)
+// لوحة المزرعة + ملخّص الحقل من نقاط /api/v1/reports/* (تجميع جداول قائمة،
+// مُقيَّد بالدور field:view وبالمستأجِر). ملخّص التكلفة حيّ أيضاً
+// (/api/v1/analytics/costs). لا أرقام مُلفَّقة — كلّ بطاقة/مخطّط يعرض حالة
+// تحميل/فراغ/خطأ صادقة (StateViews) بدل بيانات وهميّة.
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
-import { Download, BarChart3, DollarSign, ListChecks, Wallet } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { useCostAnalytics } from '../hooks/useApi';
+import {
+  Download, BarChart3, DollarSign, ListChecks, Wallet,
+  Tractor, Layers, Maximize2, Sprout, BellRing,
+} from 'lucide-react';
+import {
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell, Legend,
+} from 'recharts';
+import { useCostAnalytics, useFields, useFarmSummary, useFieldReport } from '../hooks/useApi';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
-
-const FIELDS = ['جميع الحقول','حقل وادي سبأ','حقل البيضاء الشمالي','حقل رداع الغربي'];
-
-const MONTHLY_DATA = [
-  { month:'يناير',  ndvi:0.52, yield:2.1, rain:12 },
-  { month:'فبراير', ndvi:0.55, yield:2.4, rain:18 },
-  { month:'مارس',   ndvi:0.61, yield:2.8, rain:32 },
-  { month:'أبريل',  ndvi:0.68, yield:3.2, rain:42 },
-  { month:'مايو',   ndvi:0.72, yield:3.5, rain:28 },
-  { month:'يونيو',  ndvi:0.70, yield:3.3, rain:8  },
-];
 
 // أسماء عربية لمصادر التكلفة القادمة من الخادم (fallback: اسم المصدر كما هو).
 const SOURCE_LABELS: Record<string, string> = {
@@ -27,18 +23,276 @@ const SOURCE_LABELS: Record<string, string> = {
   maintenance: 'الصيانة',
 };
 
+// أسماء عربية لحالات العمليّات (fallback: المفتاح كما هو من الخادم).
+const STATUS_LABELS: Record<string, string> = {
+  planned:     'مُجدوَلة',
+  in_progress: 'قيد التنفيذ',
+  done:        'مُنجَزة',
+  completed:   'مُكتملة',
+  cancelled:   'مُلغاة',
+  unknown:     'غير محدّدة',
+};
+
+const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  fertilization: 'تسميد',
+  irrigation:    'ريّ',
+  spraying:      'رشّ',
+  pruning:       'تقليم',
+  harvest:       'حصاد',
+  scouting:      'استكشاف',
+  unknown:       'غير محدّد',
+};
+
+const CHART_COLORS = ['#16a34a', '#38bdf8', '#f59e0b', '#a855f7', '#ef4444', '#14b8a6', '#eab308'];
+
 const usd = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n ?? 0);
 
-function exportToCSV(data: any[], filename: string) {
-  const headers = Object.keys(data[0]).join(',');
-  const rows = data.map(r => Object.values(r).join(','));
+const num = (n: number) => (n ?? 0).toLocaleString('en-US');
+
+// هروب CSV قياسيّ (RFC 4180): اقتبس القيمة إن احتوت فاصلة/اقتباس/سطراً جديداً
+// وضاعِف الاقتباسات الداخليّة — يمنع تحريف الأعمدة (نصوص عربيّة قد تحوي ",").
+function csvCell(v: unknown): string {
+  const s = v == null ? '' : String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function exportToCSV(data: Record<string, unknown>[], filename: string) {
+  if (!data.length) return;
+  const headers = Object.keys(data[0]).map(csvCell).join(',');
+  const rows = data.map(r => Object.values(r).map(csvCell).join(','));
   const csv = '﻿' + [headers, ...rows].join('\n');
-  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
   link.download = filename;
   link.click();
+}
+
+const CARD = 'rounded-xl p-4 border';
+const CARD_STYLE = { background: '#1e293b', borderColor: '#334155' } as const;
+const TOOLTIP_STYLE = { background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 } as const;
+
+function KpiCard({ label, value, icon: Icon, color }: {
+  label: string; value: string; icon: typeof Tractor; color: string;
+}) {
+  return (
+    <div className="rounded-xl p-3 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
+      <Icon className="w-4 h-4 mb-1" style={{ color }} />
+      <div className="text-lg font-bold" style={{ color }}>{value}</div>
+      <div className="text-[10px] text-slate-400">{label}</div>
+    </div>
+  );
+}
+
+// ── لوحة المزرعة: عدّادات + مخطّطان (العمليّات حسب الحالة، المساحة حسب المحصول) ──
+function FarmDashboard() {
+  const { data, isLoading, isError, error, refetch } = useFarmSummary();
+
+  if (isLoading) return <LoadingState message="جارٍ تحميل ملخّص المزرعة…" />;
+  if (isError) {
+    const status = (error as { response?: { status?: number } })?.response?.status;
+    const detail = status === 503
+      ? 'خدمة التقارير غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
+      : status === 403
+        ? 'لا تملك صلاحية عرض التقارير (field:view).'
+        : 'تعذّر الاتصال بخدمة التقارير.';
+    return <ErrorState title="تعذّر تحميل ملخّص المزرعة" detail={detail} onRetry={() => refetch()} />;
+  }
+  if (!data) return <EmptyState title="لا توجد بيانات بعد" />;
+
+  const statusData = Object.entries(data.activities_by_status).map(([k, v]) => ({
+    status: STATUS_LABELS[k] ?? k,
+    count: v,
+  }));
+  const cropData = data.area_by_crop.map(c => ({ crop: c.crop, area_ha: c.area_ha }));
+  const hasActivities = statusData.length > 0;
+  const hasCrops = cropData.some(c => c.area_ha > 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <KpiCard label="المزارع"        value={num(data.farms_count)}             icon={Tractor}    color="#16a34a" />
+        <KpiCard label="الحقول"         value={num(data.fields_count)}            icon={Layers}     color="#38bdf8" />
+        <KpiCard label="المساحة (هـ)"   value={num(data.total_area_ha)}           icon={Maximize2}  color="#f59e0b" />
+        <KpiCard label="مواسم نشطة"     value={num(data.active_seasons_count)}    icon={Sprout}     color="#a855f7" />
+        <KpiCard label="العمليّات"      value={num(data.activities_total)}        icon={ListChecks} color="#14b8a6" />
+        <KpiCard label="تنبيهات مفتوحة" value={num(data.open_alerts_count)}       icon={BellRing}   color="#ef4444" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* العمليّات حسب الحالة */}
+        <div className={CARD} style={CARD_STYLE}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold text-slate-200">العمليّات حسب الحالة</span>
+            {hasActivities && (
+              <button onClick={() => exportToCSV(statusData, 'SAHOOL_Activities_By_Status.csv')}
+                className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300">
+                <Download className="w-3 h-3" /> CSV
+              </button>
+            )}
+          </div>
+          {hasActivities ? (
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={statusData} barSize={28}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="status" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#e2e8f0' }}
+                  formatter={(v: number) => [num(v), 'عدد']} />
+                <Bar dataKey="count" fill="#16a34a" radius={[4, 4, 0, 0]} name="العدد" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState title="لا عمليّات مُسجَّلة بعد" hint="سجّل عمليّات للحقول لتظهر هنا." />
+          )}
+        </div>
+
+        {/* المساحة حسب المحصول */}
+        <div className={CARD} style={CARD_STYLE}>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-semibold text-slate-200">المساحة حسب المحصول (هـ)</span>
+            {hasCrops && (
+              <button onClick={() => exportToCSV(cropData, 'SAHOOL_Area_By_Crop.csv')}
+                className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300">
+                <Download className="w-3 h-3" /> CSV
+              </button>
+            )}
+          </div>
+          {hasCrops ? (
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie data={cropData} dataKey="area_ha" nameKey="crop" cx="50%" cy="50%"
+                  outerRadius={70} label={(e: { crop: string }) => e.crop}>
+                  {cropData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                </Pie>
+                <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#e2e8f0' }}
+                  formatter={(v: number) => [`${num(v)} هـ`, 'المساحة']} />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyState title="لا مساحات مُسجَّلة بعد" hint="أضِف حقولاً بمحاصيل ومساحات لتظهر هنا." />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ملخّص الحقل: اختيار حقل ثمّ عرض مساحته/محصوله/موسمه/عمليّاته/تنبيهاته ──
+function FieldSummaryView() {
+  const fieldsQuery = useFields();
+  const fields: Array<{ field_id: string; name_ar?: string; name?: string }> =
+    fieldsQuery.data?.fields ?? [];
+  const [fieldId, setFieldId] = useState('');
+  const report = useFieldReport(fieldId || undefined);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-slate-300">اختر حقلاً:</span>
+        <select value={fieldId} onChange={e => setFieldId(e.target.value)}
+          className="px-3 py-2 rounded-lg text-sm"
+          style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}>
+          <option value="">— اختر حقلاً —</option>
+          {fields.map(f => (
+            <option key={f.field_id} value={f.field_id}>{f.name_ar ?? f.name ?? f.field_id}</option>
+          ))}
+        </select>
+      </div>
+
+      {fieldsQuery.isLoading && <LoadingState message="جارٍ تحميل قائمة الحقول…" />}
+      {fieldsQuery.isError && (
+        <ErrorState title="تعذّر تحميل قائمة الحقول"
+          detail="تعذّر الاتصال بخدمة الحقول." onRetry={() => fieldsQuery.refetch()} />
+      )}
+      {!fieldsQuery.isLoading && !fieldsQuery.isError && fields.length === 0 && (
+        <EmptyState title="لا توجد حقول بعد" hint="أنشئ حقلاً أوّلاً لعرض ملخّصه." />
+      )}
+
+      {!fieldId ? null : report.isLoading ? (
+        <LoadingState message="جارٍ تحميل ملخّص الحقل…" />
+      ) : report.isError ? (
+        (() => {
+          const status = (report.error as { response?: { status?: number } })?.response?.status;
+          const detail = status === 404
+            ? 'الحقل غير موجود ضمن هذا المستأجِر.'
+            : status === 503
+              ? 'خدمة التقارير غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
+              : status === 403
+                ? 'لا تملك صلاحية عرض التقارير (field:view).'
+                : 'تعذّر الاتصال بخدمة التقارير.';
+          return <ErrorState title="تعذّر تحميل ملخّص الحقل" detail={detail} onRetry={() => report.refetch()} />;
+        })()
+      ) : report.data ? (
+        <div className="space-y-4">
+          {/* بطاقات الحقل الأساسيّة */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <KpiCard label="المساحة (هـ)" value={num(report.data.area_ha)}          icon={Maximize2}  color="#f59e0b" />
+            <KpiCard label="المحصول"      value={report.data.crop ?? '—'}           icon={Sprout}     color="#16a34a" />
+            <KpiCard label="نوع التربة"   value={report.data.soil_type ?? '—'}      icon={Layers}     color="#38bdf8" />
+            <KpiCard label="العمليّات"    value={num(report.data.activities_total)} icon={ListChecks} color="#14b8a6" />
+          </div>
+
+          {/* الموسم النشط */}
+          <div className={CARD} style={CARD_STYLE}>
+            <span className="text-sm font-semibold text-slate-200">الموسم النشط</span>
+            {report.data.current_season ? (
+              <div className="mt-2 text-sm text-slate-300 space-y-1">
+                <div>المحاصيل: <span className="text-slate-100">{report.data.current_season.crops.join('، ') || '—'}</span></div>
+                <div>الصنف: <span className="text-slate-100">{report.data.current_season.cultivar ?? '—'}</span></div>
+                <div>تاريخ البذار: <span className="text-slate-100">{report.data.current_season.sowing_date ?? '—'}</span></div>
+                <div>نهاية الموسم: <span className="text-slate-100">{report.data.current_season.season_end ?? '—'}</span></div>
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-slate-400">لا يوجد موسم نشط لهذا الحقل.</p>
+            )}
+          </div>
+
+          {/* العمليّات حسب النوع */}
+          <div className={CARD} style={CARD_STYLE}>
+            <span className="text-sm font-semibold text-slate-200">العمليّات حسب النوع</span>
+            {Object.keys(report.data.activities_by_type).length > 0 ? (
+              <ResponsiveContainer width="100%" height={170}>
+                <BarChart
+                  data={Object.entries(report.data.activities_by_type).map(([k, v]) => ({
+                    type: ACTIVITY_TYPE_LABELS[k] ?? k, count: v,
+                  }))}
+                  barSize={26}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="type" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#e2e8f0' }}
+                    formatter={(v: number) => [num(v), 'عدد']} />
+                  <Bar dataKey="count" fill="#a855f7" radius={[4, 4, 0, 0]} name="العدد" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="mt-2 text-xs text-slate-400">لا عمليّات مُسجَّلة لهذا الحقل.</p>
+            )}
+          </div>
+
+          {/* أحدث التنبيهات */}
+          <div className={CARD} style={CARD_STYLE}>
+            <span className="text-sm font-semibold text-slate-200">أحدث التنبيهات</span>
+            {report.data.recent_alerts.length > 0 ? (
+              <ul className="mt-2 space-y-2">
+                {report.data.recent_alerts.map(a => (
+                  <li key={a.alert_id} className="flex items-center justify-between text-sm border-b border-slate-700/50 pb-1">
+                    <span className="text-slate-200">{a.title_ar ?? a.alert_type}</span>
+                    <span className="text-[11px] text-slate-400">{a.severity} · {a.status}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-2 text-xs text-slate-400">لا تنبيهات لهذا الحقل.</p>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function CostSummary() {
@@ -46,7 +300,7 @@ function CostSummary() {
 
   if (isLoading) return <LoadingState message="جارٍ تحميل ملخّص التكلفة…" />;
   if (isError) {
-    const status = (error as any)?.response?.status;
+    const status = (error as { response?: { status?: number } })?.response?.status;
     const detail = status === 503
       ? 'خدمة التحليلات غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
       : status === 403
@@ -76,28 +330,26 @@ function CostSummary() {
 
   return (
     <div className="space-y-3">
-      {/* إجماليّات حيّة */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         {[
-          { label:'إجماليّ التكلفة', val:usd(totalUsd),                  icon:DollarSign, color:'#f59e0b' },
-          { label:'عدد المهام',      val:taskCount.toLocaleString('en-US'), icon:ListChecks, color:'#38bdf8' },
-          { label:'مصادر التكلفة',   val:bySource.length.toLocaleString('en-US'), icon:BarChart3, color:'#a855f7' },
+          { label: 'إجماليّ التكلفة', val: usd(totalUsd), icon: DollarSign, color: '#f59e0b' },
+          { label: 'عدد المهام', val: num(taskCount), icon: ListChecks, color: '#38bdf8' },
+          { label: 'مصادر التكلفة', val: num(bySource.length), icon: BarChart3, color: '#a855f7' },
         ].map((k, i) => {
           const Icon = k.icon;
           return (
-            <div key={i} className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-              <Icon className="w-4 h-4 mb-1" style={{ color:k.color }} />
-              <div className="text-lg font-bold" style={{ color:k.color }}>{k.val}</div>
+            <div key={i} className="rounded-xl p-3 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
+              <Icon className="w-4 h-4 mb-1" style={{ color: k.color }} />
+              <div className="text-lg font-bold" style={{ color: k.color }}>{k.val}</div>
               <div className="text-[10px] text-slate-400">{k.label}</div>
             </div>
           );
         })}
       </div>
 
-      {/* التوزيع حسب المصدر */}
       {bySource.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+          <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-semibold text-slate-200">التكلفة حسب المصدر (USD)</span>
               <button onClick={() => exportToCSV(chartData, 'SAHOOL_Cost_By_Source.csv')}
@@ -108,19 +360,19 @@ function CostSummary() {
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={chartData} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="source" tick={{ fill:'#64748b', fontSize:10 }} tickLine={false} />
-                <YAxis tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} width={44} />
+                <XAxis dataKey="source" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={44} />
                 <Tooltip
-                  contentStyle={{ background:'#0f1117', border:'1px solid #334155', borderRadius:8, fontSize:12 }}
-                  itemStyle={{ color:'#e2e8f0' }}
-                  formatter={(v: any) => [usd(Number(v)), 'التكلفة']}
+                  contentStyle={TOOLTIP_STYLE}
+                  itemStyle={{ color: '#e2e8f0' }}
+                  formatter={(v: number) => [usd(Number(v)), 'التكلفة']}
                 />
-                <Bar dataKey="total_usd" fill="#f59e0b" radius={[4,4,0,0]} name="التكلفة" />
+                <Bar dataKey="total_usd" fill="#f59e0b" radius={[4, 4, 0, 0]} name="التكلفة" />
               </BarChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+          <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
             <span className="text-sm font-semibold text-slate-200">تفصيل المصادر</span>
             <ul className="mt-3 space-y-2">
               {bySource.map((s, i) => {
@@ -143,105 +395,48 @@ function CostSummary() {
   );
 }
 
+type Tab = 'farm' | 'field';
+
 export function ReportsPage() {
-  const [field, setField] = useState(FIELDS[0]);
-  const [period, setPeriod] = useState('30d');
+  const [tab, setTab] = useState<Tab>('farm');
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">التقارير</h2>
-          <p className="text-sm text-slate-400">تقارير دورية شاملة للمزرعة</p>
+          <h2 className="text-xl font-bold text-slate-100">التقارير والتحليلات</h2>
+          <p className="text-sm text-slate-400">ملخّصات حيّة للمزرعة والحقول — مُجمَّعة من بياناتك الفعليّة</p>
         </div>
         <div className="flex gap-2">
-          <select value={field} onChange={e => setField(e.target.value)}
-            className="px-3 py-2 rounded-lg text-sm" style={{ background:'#1e293b', border:'1px solid #334155', color:'#e2e8f0' }}>
-            {FIELDS.map(f => <option key={f}>{f}</option>)}
-          </select>
-          <select value={period} onChange={e => setPeriod(e.target.value)}
-            className="px-3 py-2 rounded-lg text-sm" style={{ background:'#1e293b', border:'1px solid #334155', color:'#e2e8f0' }}>
-            {['7d','30d','90d','1y'].map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
-        </div>
-      </div>
-
-      {/* ملخّص التكلفة — بيانات حيّة من /api/v1/analytics/costs */}
-      <div className="rounded-xl p-4 border" style={{ background:'#0f1117', borderColor:'#334155' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Wallet className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-slate-200">ملخّص التكلفة</span>
-        </div>
-        <CostSummary />
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-slate-200">اتجاه NDVI الشهري</span>
-            <button onClick={() => exportToCSV(MONTHLY_DATA, 'SAHOOL_NDVI_Report.csv')}
-              className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300">
-              <Download className="w-3 h-3" /> CSV
+          {([['farm', 'لوحة المزرعة'], ['field', 'ملخّص حقل']] as [Tab, string][]).map(([t, label]) => (
+            <button key={t} onClick={() => setTab(t)}
+              className="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                background: tab === t ? '#16a34a' : '#1e293b',
+                border: '1px solid #334155',
+                color: tab === t ? '#fff' : '#e2e8f0',
+              }}>
+              {label}
             </button>
-          </div>
-          <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={MONTHLY_DATA}>
-              <defs>
-                <linearGradient id="gNdvi" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#16a34a" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#16a34a" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="month" tick={{ fill:'#64748b', fontSize:10 }} tickLine={false} />
-              <YAxis domain={[0.3,0.9]} tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} width={32} />
-              <Tooltip contentStyle={{ background:'#0f1117', border:'1px solid #334155', borderRadius:8, fontSize:12 }} itemStyle={{ color:'#e2e8f0' }} />
-              <Area type="monotone" dataKey="ndvi" stroke="#16a34a" strokeWidth={2} fill="url(#gNdvi)" name="NDVI" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-slate-200">الإنتاجية الشهرية (t/ha)</span>
-            <button onClick={() => exportToCSV(MONTHLY_DATA, 'SAHOOL_Yield_Report.csv')}
-              className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300">
-              <Download className="w-3 h-3" /> CSV
-            </button>
-          </div>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={MONTHLY_DATA} barSize={28}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="month" tick={{ fill:'#64748b', fontSize:10 }} tickLine={false} />
-              <YAxis domain={[0,5]} tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} width={28} />
-              <Tooltip contentStyle={{ background:'#0f1117', border:'1px solid #334155', borderRadius:8, fontSize:12 }} itemStyle={{ color:'#e2e8f0' }} />
-              <Bar dataKey="yield" fill="#8b5cf6" radius={[4,4,0,0]} name="الإنتاجية" />
-            </BarChart>
-          </ResponsiveContainer>
+          ))}
         </div>
       </div>
 
-      {/* Report buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          { label:'تقرير أسبوعي',  icon:'📅', desc:'ملخص آخر 7 أيام', color:'#16a34a' },
-          { label:'تقرير شهري',    icon:'📊', desc:'تقرير مفصل شامل', color:'#8b5cf6' },
-          { label:'تقرير WOFOST',  icon:'🌾', desc:'محاكاة موسم كامل', color:'#f59e0b' },
-        ].map((r, i) => (
-          <button key={i}
-            onClick={() => exportToCSV(MONTHLY_DATA, `SAHOOL_${r.label}.csv`)}
-            className="flex items-center gap-3 p-4 rounded-xl border transition-all hover:scale-[1.02] text-right"
-            style={{ background:'#1e293b', borderColor:`${r.color}33` }}>
-            <span className="text-2xl">{r.icon}</span>
-            <div>
-              <div className="font-semibold text-slate-100 text-sm">{r.label}</div>
-              <div className="text-xs text-slate-400">{r.desc}</div>
+      {tab === 'farm' ? (
+        <>
+          <FarmDashboard />
+          {/* ملخّص التكلفة — بيانات حيّة من /api/v1/analytics/costs */}
+          <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet className="w-4 h-4 text-amber-400" />
+              <span className="text-sm font-semibold text-slate-200">ملخّص التكلفة</span>
             </div>
-            <Download className="w-4 h-4 mr-auto" style={{ color:r.color }} />
-          </button>
-        ))}
-      </div>
+            <CostSummary />
+          </div>
+        </>
+      ) : (
+        <FieldSummaryView />
+      )}
     </div>
   );
 }

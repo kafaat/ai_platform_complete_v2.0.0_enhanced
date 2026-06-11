@@ -1654,6 +1654,137 @@ async def field_disease_risk(
     return risk
 
 
+# ─── التوصيات الموحَّدة لكلّ حقل (Unified per-field recommendations) ─
+# عمود توصيات واحد يجمع: الريّ + التسميد + الأمراض + الحصاد/الإنتاج. منطق
+# التجميع نقيّ في api.recommendations_hub (مُختبَر offline). النواة تجمع السياق
+# (الموسم من القاعدة، الطقس من Open-Meteo) ثمّ تمرّره. تدهور رشيق: عند تعذّر
+# الطقس نُرجع التوصيات التي لا تحتاجه (تسميد/حصاد) بدل التلفيق؛ 503 فقط إن لم
+# يبقَ شيء (القاعدة نفسها متعذّرة).
+
+
+async def _field_season_context(conn, field_id: str):
+    """يجلب (lat, lon, crop, stage, sowing_date) للحقل + موسمه النشط (404 إن غاب).
+
+    يوسّع _field_weather_context بإرجاع sowing_date (لنافذة الحصاد). يرفع 404 إن
+    غاب الحقل. lat/lon قد يكونان None هنا (الطقس اختياريّ في التوصيات الموحَّدة).
+    """
+    row = await conn.fetchrow("SELECT lat, lon, crop FROM fields WHERE field_id = $1", field_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    season = await conn.fetchrow(
+        "SELECT crops, sowing_date FROM seasons "
+        "WHERE field_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1",
+        field_id,
+    )
+    crop: str | None = row["crop"]
+    stage = "mid"
+    sowing_date = None
+    if season is not None:
+        import json as _json
+
+        crops = season["crops"]
+        if isinstance(crops, str):
+            try:
+                crops = _json.loads(crops)
+            except (ValueError, TypeError):
+                crops = []
+        if isinstance(crops, list) and crops:
+            crop = str(crops[0])
+        sowing_date = season["sowing_date"]
+        if sowing_date is not None:
+            stage = _growth_stage((date.today() - sowing_date).days)
+    lat = float(row["lat"]) if row["lat"] is not None else None
+    lon = float(row["lon"]) if row["lon"] is not None else None
+    return lat, lon, crop, stage, sowing_date
+
+
+async def _historical_rain_3d_mm(lat: float, lon: float, forecast_fallback: float) -> float:
+    """مطر تراكمي آخر ٣ أيام (تاريخيّ ERA5) — لمخاطر الأمراض تُعدّ رطوبة الأيام
+    السابقة لا المطر المستقبليّ. fallback لمجموع التوقّع إن تعذّر التاريخيّ."""
+    from datetime import timedelta as _td
+
+    from api.connectors.openmeteo import fetch_historical
+
+    try:
+        today = datetime.now(UTC).date()
+        hist = await fetch_historical(
+            lat, lon, (today - _td(days=3)).isoformat(), (today - _td(days=1)).isoformat()
+        )
+        return round(sum(d.precipitation_mm or 0.0 for d in hist), 1)
+    except Exception:  # noqa: BLE001 — تعذّر التاريخيّ ⇒ fallback للتوقّع
+        logging.exception("historical 3-day rain fetch failed; using forecast fallback")
+        return round(forecast_fallback, 1)
+
+
+@app.get("/api/v1/fields/{field_id}/recommendations")
+async def field_recommendations(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """عمود التوصيات الموحَّد للحقل: ريّ + تسميد + أمراض + حصاد، مفروز بالأولويّة.
+
+    التجميع نقيّ (api.recommendations_hub، مُختبَر offline). يجمع سياق الموسم من
+    القاعدة (404 إن غاب الحقل، 503 إن تعذّرت القاعدة) والطقس من Open-Meteo. تدهور
+    رشيق: عند تعذّر الطقس (أو غياب إحداثيّات الحقل) نُرجع توصيات التسميد/الحصاد
+    فقط — لا بيانات وهميّة. 503 فقط إن لم تتوفّر أيّة توصية.
+    """
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.recommendations_hub import RecommendationContext, build_recommendations
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل للتوصيات", e) from e
+
+    ctx = RecommendationContext(
+        field_id=field_id,
+        crop=crop,
+        stage=stage,
+        today=date.today(),
+        sowing_date=sowing_date,
+    )
+
+    # الطقس اختياريّ: نملأ سياقه إن توفّرت الإحداثيّات والمصدر. تعذّره لا يُسقط
+    # الطلب — نكتفي بالتوصيات التي لا تحتاجه (تدهور رشيق، لا تلفيق).
+    weather_available = False
+    if lat is not None and lon is not None:
+        try:
+            forecast = await fetch_daily_forecast(lat, lon, days=3)
+            current = await fetch_current(lat, lon)
+            today = forecast[0] if forecast else None
+            et0 = today.et0_mm if today and today.et0_mm is not None else None
+            ctx.et0_mm = et0
+            ctx.rain_recent_mm = current.precipitation_mm or 0.0
+            ctx.forecast_rain_mm = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+            ctx.temp_c = current.temperature_c
+            ctx.humidity_pct = current.humidity_pct
+            ctx.rain_mm_3d = await _historical_rain_3d_mm(
+                lat, lon, sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+            )
+            weather_available = True
+        except Exception:  # noqa: BLE001 — تعذّر الطقس ⇒ تدهور رشيق لا فشل
+            logging.exception("recommendations: weather unavailable for %s", field_id)
+
+    recs = build_recommendations(ctx)
+    if not recs:
+        # لا توصية أمكن توليدها (لا طقس، لا محصول، لا بذار) — فشل صادق.
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر توليد توصيات (لا طقس ولا سياق موسم كافٍ). حدّد موقع الحقل وموسمه.",
+        )
+
+    return {
+        "field_id": field_id,
+        "crop": crop,
+        "stage": stage,
+        "weather_available": weather_available,
+        "recommendations": [r.to_dict() for r in recs],
+    }
+
+
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
 _ACTIVITY_TYPES = {
     "planting",
@@ -1965,6 +2096,141 @@ async def acknowledge_alert(
     if row is None:
         raise HTTPException(status_code=404, detail="التنبيه غير موجود ضمن هذا المستأجِر")
     return _row_to_alert(row)
+
+
+# ─── توليد التنبيهات التلقائيّ (Alert engine) — يكتب في جدول alerts (v36) ──
+# يبني سياق الحقل من مساعِدات الطقس/الحقل الموجودة (_field_weather_context +
+# Open-Meteo + توصية الريّ FAO-56)، يُشغّل قواعد alert_rules النقيّة، ثمّ يُدرِج
+# التنبيهات المُولَّدة في نفس جدول v36 — بحذف تكرار (dedupe) لكلّ نوع نشط في الحقل.
+# لا جدول/هجرة جديدة. تعذّر الطقس/القاعدة ⇒ 503 صريح.
+
+
+class AlertEvaluateResponse(BaseModel):
+    """ناتج تقييم تنبيهات حقل: المُنشأ + عدد المُتجاوَز (موجود نشط مسبقاً)."""
+
+    created: list[AlertSummary]
+    skipped_existing: int
+
+
+@app.post(
+    "/api/v1/fields/{field_id}/alerts/evaluate",
+    response_model=AlertEvaluateResponse,
+)
+async def evaluate_field_alerts_endpoint(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يُقيّم ظروف الحقل الحاليّة ويُنشئ تنبيهات مُصنَّفة في جدول alerts (v36).
+
+    يؤكّد أنّ الحقل يخصّ المستأجِر (404)، يبني السياق من الطقس الحيّ (Open-Meteo،
+    نفس مصدر /api/v1/weather) ومحصول/مرحلة الموسم النشط، يُشغّل قواعد التنبيه
+    النقيّة (api.alert_rules)، ثمّ يُدرِج النتائج — مع تجاوز أيّ نوع تنبيه له
+    تنبيه 'active' قائم لهذا الحقل (dedupe). 503 إن تعذّر الطقس/القاعدة.
+    """
+    import uuid as _uuid
+
+    from api.alert_rules import FieldAlertContext, evaluate_field_alerts
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.weather_advice import irrigation_advice
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    try:
+        forecast = await fetch_daily_forecast(lat, lon, days=3)
+        current = await fetch_current(lat, lon)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    today = forecast[0] if forecast else None
+    # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
+    irrigation_need_mm: float | None = None
+    if today is not None and today.et0_mm is not None:
+        forecast_rain_48h = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+        advice = irrigation_advice(
+            et0_mm=today.et0_mm,
+            crop=crop,
+            stage=stage,
+            rain_recent_mm=current.precipitation_mm or 0.0,
+            forecast_rain_mm=forecast_rain_48h,
+            soil_moisture_pct=None,
+        )
+        irrigation_need_mm = advice.get("recommended_mm")
+
+    rain_fc_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])  # مطر متوقّع (heavy_rain)
+    # مطر آخر ٣ أيام تاريخيّاً (disease_risk = رطوبة سابقة)؛ fallback للتوقّع.
+    rain_hist_3d = await _historical_rain_3d_mm(lat, lon, rain_fc_3d)
+    ctx = FieldAlertContext(
+        field_id=field_id,
+        soil_moisture_pct=None,  # لا مصدر قراءة تربة حيّ بعد — نعتمد احتياج الريّ.
+        irrigation_need_mm=irrigation_need_mm,
+        forecast_rain_mm=rain_fc_3d,
+        temp_c=current.temperature_c,
+        humidity_pct=current.humidity_pct,
+        rain_mm_3d=rain_hist_3d,
+        tmax_c=today.temp_max_c if today is not None else None,
+        tmin_c=today.temp_min_c if today is not None else None,
+        crop=crop,
+    )
+    generated = evaluate_field_alerts(ctx)
+
+    created: list[AlertSummary] = []
+    skipped = 0
+    try:
+        async with tenant_connection(user) as conn:
+            # أنواع التنبيهات النشطة القائمة لهذا الحقل (dedupe على (field_id, type)).
+            existing_rows = await conn.fetch(
+                "SELECT DISTINCT alert_type FROM alerts WHERE field_id = $1 AND status = 'active'",
+                field_id,
+            )
+            existing_types = {r["alert_type"] for r in existing_rows}
+            for ga in generated:
+                if ga.alert_type in existing_types:
+                    skipped += 1
+                    continue
+                alert_id = "alr_" + _uuid.uuid4().hex[:12]
+                await conn.execute(
+                    """INSERT INTO alerts
+                        (alert_id, tenant_id, field_id, alert_type, severity,
+                         title_ar, message_ar, status)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
+                    alert_id,
+                    str(user.tenant_id),
+                    field_id,
+                    ga.alert_type,
+                    ga.severity,
+                    ga.title_ar,
+                    ga.message_ar,
+                )
+                # نمنع تكراراً ضمن نفس التشغيل أيضاً (قاعدة واحدة لكلّ نوع).
+                existing_types.add(ga.alert_type)
+                created.append(
+                    AlertSummary(
+                        alert_id=alert_id,
+                        field_id=field_id,
+                        alert_type=ga.alert_type,
+                        severity=ga.severity,
+                        title_ar=ga.title_ar,
+                        message_ar=ga.message_ar,
+                        status="active",
+                    )
+                )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ التنبيهات المُولَّدة", e) from e
+
+    return AlertEvaluateResponse(created=created, skipped_existing=skipped)
 
 
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
@@ -2948,6 +3214,259 @@ async def analytics_costs_by_field(
             "GROUP BY field_id ORDER BY total_usd DESC"
         )
     return [{"field_id": r["field_id"], "total_usd": float(r["total_usd"] or 0)} for r in rows]
+
+
+# ─── التقارير والتحليلات (Reports & Analytics) — تجميع جداول قائمة، لا ترحيل ─
+# يُجمّع ملخّصات (مزرعة/حقل/موسم) من fields/seasons/activities/alerts/farms عبر
+# COUNT/SUM/GROUP BY مُرشَّحة بالمستأجِر (RLS + tenant_id). تشكيل الصفوف نقيّ
+# (دوالّ _shape_* مُختبَرة offline) كي يبقى المنطق قابلاً للاختبار بلا قاعدة.
+
+
+def _count_by_key(rows, key: str) -> dict[str, int]:
+    """صفوف GROUP BY ({key, count}) → قاموس {قيمة: عدد}.
+
+    دالّة نقيّة (لا قاعدة): تتجاهل القيم None (تجمعها تحت 'unknown')، وتحوّل
+    العدّ إلى int. تُعاد استخدامها لتجميع العمليّات حسب الحالة/النوع.
+    """
+    out: dict[str, int] = {}
+    for r in rows:
+        raw = r[key]
+        label = str(raw) if raw is not None else "unknown"
+        out[label] = out.get(label, 0) + int(r["count"] or 0)
+    return out
+
+
+def _shape_area_by_crop(rows) -> list[dict]:
+    """صفوف ({crop, total_area_ha}) → قائمة مُرتّبة تنازليّاً بالمساحة.
+
+    دالّة نقيّة: المحصول None/فارغ ⇒ 'غير محدّد'، المساحة → float مُدوّرة (٢ منزلة).
+    تُغذّي مخطّط «المساحة حسب المحصول» في الواجهة.
+    """
+    shaped = [
+        {
+            "crop": (r["crop"] or "غير محدّد"),
+            "area_ha": round(float(r["total_area_ha"] or 0), 2),
+        }
+        for r in rows
+    ]
+    shaped.sort(key=lambda x: x["area_ha"], reverse=True)
+    return shaped
+
+
+def _shape_farm_summary(
+    *,
+    farms_count: int,
+    fields_count: int,
+    total_area_ha,
+    active_seasons_count: int,
+    activities_by_status: dict[str, int],
+    open_alerts_count: int,
+    area_by_crop: list[dict],
+) -> dict:
+    """يبني جسم ملخّص المزرعة من العدّادات المُجمَّعة — نقيّ (لا قاعدة).
+
+    يُطبّع المساحة إلى float (٢ منزلة) ويضمن أعداداً صحيحة موجبة. activities_total
+    مُشتقّ من مجموع القاموس كي يطابق التفصيل (مصدر واحد للحقيقة).
+    """
+    return {
+        "farms_count": int(farms_count or 0),
+        "fields_count": int(fields_count or 0),
+        "total_area_ha": round(float(total_area_ha or 0), 2),
+        "active_seasons_count": int(active_seasons_count or 0),
+        "activities_total": sum(activities_by_status.values()),
+        "activities_by_status": activities_by_status,
+        "open_alerts_count": int(open_alerts_count or 0),
+        "area_by_crop": area_by_crop,
+    }
+
+
+@app.get("/api/v1/reports/farm-summary")
+async def report_farm_summary(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملخّص المزرعة على مستوى المستأجِر — عدّادات حيّة من الجداول القائمة.
+
+    يُجمّع: عدد المزارع/الحقول، إجماليّ المساحة، المواسم النشطة، العمليّات حسب
+    الحالة، التنبيهات المفتوحة (active)، والمساحة حسب المحصول. مُرشَّح بالمستأجِر
+    (RLS + tenant_id). 503 عند تعذّر القاعدة — لا أرقام مُلفَّقة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            tid = str(user.tenant_id)
+            farms_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM farms WHERE tenant_id = $1::uuid", tid
+            )
+            fields_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM fields WHERE tenant_id = $1::uuid", tid
+            )
+            total_area = await conn.fetchval(
+                "SELECT COALESCE(SUM(area_ha), 0) FROM fields WHERE tenant_id = $1::uuid", tid
+            )
+            active_seasons = await conn.fetchval(
+                "SELECT COUNT(*) FROM seasons WHERE tenant_id = $1::uuid AND status = 'active'",
+                tid,
+            )
+            activity_rows = await conn.fetch(
+                "SELECT status, COUNT(*) AS count FROM activities "
+                "WHERE tenant_id = $1::uuid GROUP BY status",
+                tid,
+            )
+            open_alerts = await conn.fetchval(
+                "SELECT COUNT(*) FROM alerts WHERE tenant_id = $1::uuid AND status = 'active'",
+                tid,
+            )
+            crop_rows = await conn.fetch(
+                "SELECT crop, COALESCE(SUM(area_ha), 0) AS total_area_ha FROM fields "
+                "WHERE tenant_id = $1::uuid GROUP BY crop",
+                tid,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة ملخّص المزرعة", e) from e
+    return _shape_farm_summary(
+        farms_count=farms_count,
+        fields_count=fields_count,
+        total_area_ha=total_area,
+        active_seasons_count=active_seasons,
+        activities_by_status=_count_by_key(activity_rows, "status"),
+        open_alerts_count=open_alerts,
+        area_by_crop=_shape_area_by_crop(crop_rows),
+    )
+
+
+@app.get("/api/v1/reports/field/{field_id}/summary")
+async def report_field_summary(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملخّص حقل واحد — مساحته/محصوله/تربته + موسمه النشط + عمليّاته + تنبيهاته.
+
+    يؤكّد أنّ الحقل يخصّ المستأجِر (404) قبل التجميع. العمليّات تُعدّ حسب النوع
+    والحالة، والتنبيهات الأخيرة تُعرض (٥). مُرشَّح بالمستأجِر (RLS). 503 عند تعذّر
+    القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            field = await conn.fetchrow(
+                "SELECT field_id, name, area_ha, crop, soil_type FROM fields WHERE field_id = $1",
+                field_id,
+            )
+            if field is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            season = await conn.fetchrow(
+                "SELECT season_id, crops, cultivar, sowing_date, season_end, status "
+                "FROM seasons WHERE field_id = $1 AND status = 'active' "
+                "ORDER BY created_at DESC LIMIT 1",
+                field_id,
+            )
+            by_type_rows = await conn.fetch(
+                "SELECT activity_type, COUNT(*) AS count FROM activities "
+                "WHERE field_id = $1 GROUP BY activity_type",
+                field_id,
+            )
+            by_status_rows = await conn.fetch(
+                "SELECT status, COUNT(*) AS count FROM activities "
+                "WHERE field_id = $1 GROUP BY status",
+                field_id,
+            )
+            recent_alert_rows = await conn.fetch(
+                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at FROM alerts "
+                "WHERE field_id = $1 ORDER BY created_at DESC LIMIT 5",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة ملخّص الحقل", e) from e
+
+    import json as _json
+
+    current_season = None
+    if season is not None:
+        crops = season["crops"]
+        if isinstance(crops, str):
+            try:
+                crops = _json.loads(crops)
+            except (ValueError, TypeError):
+                crops = []
+        current_season = {
+            "season_id": season["season_id"],
+            "crops": crops if isinstance(crops, list) else [],
+            "cultivar": season["cultivar"],
+            "sowing_date": season["sowing_date"].isoformat() if season["sowing_date"] else None,
+            "season_end": season["season_end"].isoformat() if season["season_end"] else None,
+            "status": season["status"],
+        }
+    by_status = _count_by_key(by_status_rows, "status")
+    return {
+        "field_id": field["field_id"],
+        "name": field["name"],
+        "area_ha": float(field["area_ha"]) if field["area_ha"] is not None else 0.0,
+        "crop": field["crop"],
+        "soil_type": field["soil_type"],
+        "current_season": current_season,
+        "activities_total": sum(by_status.values()),
+        "activities_by_type": _count_by_key(by_type_rows, "activity_type"),
+        "activities_by_status": by_status,
+        "recent_alerts": [_row_to_alert(r).model_dump() for r in recent_alert_rows],
+    }
+
+
+@app.get("/api/v1/reports/season/{season_id}/summary")
+async def report_season_summary(
+    season_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملخّص موسم واحد — محصوله/صنفه/تواريخه + عدد المراحل + العمليّات المرتبطة.
+
+    يؤكّد أنّ الموسم يخصّ المستأجِر (404). عدد المراحل من مصفوفة stages (JSONB)،
+    والعمليّات المرتبطة تُعدّ بـseason_id. مُرشَّح بالمستأجِر (RLS). 503 عند تعذّر
+    القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            season = await conn.fetchrow(
+                "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
+                "sowing_date, season_end, stages, status FROM seasons "
+                "WHERE season_id = $1",
+                season_id,
+            )
+            if season is None:
+                raise HTTPException(status_code=404, detail="الموسم غير موجود ضمن هذا المستأجِر")
+            activities_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM activities WHERE season_id = $1", season_id
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة ملخّص الموسم", e) from e
+
+    import json as _json
+
+    def _arr(v):
+        if isinstance(v, str):
+            try:
+                return _json.loads(v)
+            except (ValueError, TypeError):
+                return []
+        return v or []
+
+    crops = _arr(season["crops"])
+    stages = _arr(season["stages"])
+    return {
+        "season_id": season["season_id"],
+        "field_id": season["field_id"],
+        "crops": crops if isinstance(crops, list) else [],
+        "cultivar": season["cultivar"],
+        "irrigation_type": season["irrigation_type"],
+        "sowing_date": season["sowing_date"].isoformat() if season["sowing_date"] else None,
+        "season_end": season["season_end"].isoformat() if season["season_end"] else None,
+        "status": season["status"],
+        "stage_count": len(stages) if isinstance(stages, list) else 0,
+        "activities_count": int(activities_count or 0),
+    }
 
 
 # ─── إدارة المستندات (Document Management — سجلّ بيانات وصفيّة) — (v29) ─
