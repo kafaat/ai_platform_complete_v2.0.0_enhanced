@@ -111,10 +111,12 @@ def init_vectorstore() -> QdrantVectorStore:
 
     embeddings = OllamaEmbeddings(model=EMBED_MODEL, base_url=OLLAMA_BASE_URL)
 
-    # نتّصل بالمجموعة القائمة إن وُجدت (لا نُدخِل وثيقة init وهميّة في كلّ إقلاع —
-    # كانت تتراكم وتظهر كـ«مصدر» ملوّثاً للنتائج). نُنشئها بوثيقة بذرة بلا
-    # tenant_id (فلا تَظهر لأيّ مستأجِر بعد فلترة العزل) فقط إن لم تكن موجودة.
-    try:
+    # نتحقّق صراحةً من وجود المجموعة (لا نلتقط Exception عامّاً يُخفي أعطال شبكة/
+    # Qdrant ويُحوّلها زوراً إلى «إنشاء جديد»). أخطاء الاتصال الحقيقيّة تنتشر بصدق.
+    from qdrant_client import QdrantClient
+
+    qclient = QdrantClient(url=QDRANT_URL, prefer_grpc=False)
+    if qclient.collection_exists(COLLECTION_NAME):
         _vectorstore = QdrantVectorStore.from_existing_collection(
             embedding=embeddings,
             url=QDRANT_URL,
@@ -122,12 +124,14 @@ def init_vectorstore() -> QdrantVectorStore:
             collection_name=COLLECTION_NAME,
         )
         logger.info("Qdrant vector store connected (existing collection)")
-    except Exception:  # noqa: BLE001 — المجموعة غير موجودة بعد ⇒ ننشئها مرّة واحدة
+    else:
+        # إنشاء لمرّة واحدة بوثيقة بذرة بلا tenant_id (مُستبعَدة بفلتر العزل، فلا
+        # تتراكم ولا تظهر كـ«مصدر»). لا نُعيد إدخالها في كلّ إقلاع.
         _vectorstore = QdrantVectorStore.from_documents(
             documents=[
                 Document(
                     page_content="SAHOOL initialization document.",
-                    metadata={"source": "init"},  # بلا tenant_id ⇒ مُستبعَد بفلتر العزل
+                    metadata={"source": "init"},
                 )
             ],
             embedding=embeddings,
@@ -306,6 +310,10 @@ async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
     # توكنات مزوّرة). نرفض بـ503 كما يفعل حارس توكن الخدمة، لا نسمح بمرور صامت.
     if not _RAG_SECRET:
         raise HTTPException(503, "JWT_SECRET/JWT_PUBLIC_KEY غير مضبوط — المصادقة معطّلة بأمان")
+    # في وضع HS256 نفرض حدّاً أدنى للطول (≥32) كبقيّة خدمات المستودع — سرّ قصير
+    # قابل للتخمين. (RS256 يستعمل مفتاحاً عامّاً طويلاً فلا يَعنيه هذا الحدّ.)
+    if _RAG_ALG == "HS256" and len(_RAG_SECRET) < 32:
+        raise HTTPException(503, "JWT_SECRET ضعيف (<32 محرفاً) — المصادقة معطّلة بأمان")
     if not creds:
         raise HTTPException(401, "Authentication required")
     try:
@@ -373,14 +381,28 @@ async def ingest_endpoint(
         if suffix not in (".pdf", ".txt", ".md", ".csv"):
             raise HTTPException(400, f"Unsupported: {suffix}")
 
-        content = await upload.read()
-        if len(content) > MAX_UPLOAD_MB * 1024 * 1024:
-            raise HTTPException(
-                413, f"الملفّ {upload.filename} يتجاوز الحدّ الأقصى ({MAX_UPLOAD_MB}MB)"
-            )
+        # قراءة متدفّقة مع عدّ البايتات والإيقاف عند تجاوز الحدّ — لا نُحمّل الملفّ
+        # كاملاً في الذاكرة (يمنع DoS عبر ملفّ ضخم).
+        limit = MAX_UPLOAD_MB * 1024 * 1024
         tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-        tmp.write(content)
-        tmp.close()
+        total = 0
+        try:
+            while True:
+                chunk = await upload.read(1024 * 1024)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > limit:
+                    tmp.close()
+                    Path(tmp.name).unlink(missing_ok=True)
+                    raise HTTPException(
+                        413,
+                        f"الملفّ {upload.filename} يتجاوز الحدّ الأقصى ({MAX_UPLOAD_MB}MB)",
+                    )
+                tmp.write(chunk)
+        finally:
+            if not tmp.closed:
+                tmp.close()
         paths.append(Path(tmp.name))
 
     result = await ingest_documents(paths, tenant_id)
