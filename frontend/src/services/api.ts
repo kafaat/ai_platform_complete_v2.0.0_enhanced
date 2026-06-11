@@ -188,6 +188,44 @@ export const changePassword = (
     })
     .then(r => r.data);
 
+// ── Email/Phone Verification (تأكيد البريد/الهاتف — soft) ──────────
+// تحقّق ناعم بعد التسجيل: المستخدم يطلب رمز OTP من ٦ أرقام (Redis قصير الأجل
+// على الخادم) ثمّ يؤكّده فيُعلَّم الحساب verified_email/verified_phone. التسليم
+// STUB خادميّاً (سجلّ، لا بوّابة بريد/SMS فعليّة بعد). لا fallback وهميّ.
+export type VerifyChannel = 'email' | 'phone';
+
+export interface VerificationStatus {
+  verified_email: boolean;
+  verified_phone: boolean;
+}
+
+/** حالة تحقّق الحساب الحاليّة (بريد/هاتف) من الخادم. (يتطلّب توكناً) */
+export const getVerificationStatus = (): Promise<VerificationStatus> =>
+  authApi.get<VerificationStatus>('/auth/verify/status').then(r => r.data);
+
+/** يطلب إصدار رمز تحقّق للقناة (بريد/هاتف). محدود المعدّل خادميّاً (429). */
+export const requestVerification = (
+  channel: VerifyChannel,
+): Promise<{ message: string; channel: VerifyChannel; expires_in: number }> =>
+  authApi
+    .post<{ message: string; channel: VerifyChannel; expires_in: number }>(
+      '/auth/verify/request',
+      { channel },
+    )
+    .then(r => r.data);
+
+/** يؤكّد رمز التحقّق للقناة. 400 لرمز غير صالح/منتهٍ. */
+export const confirmVerification = (
+  channel: VerifyChannel,
+  code: string,
+): Promise<{ message: string; channel: VerifyChannel; verified: boolean }> =>
+  authApi
+    .post<{ message: string; channel: VerifyChannel; verified: boolean }>(
+      '/auth/verify/confirm',
+      { channel, code },
+    )
+    .then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // SAHOOL-PLATFORM (core) — وحدات قرار حيّة عبر البوابة الموحّدة (kong)
 // ربط حقيقيّ: لا fallback وهميّ (قرارات زراعيّة — الخطأ يُعلَن للـUI).
