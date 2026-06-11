@@ -4,13 +4,14 @@ SAHOOL Supervisor Agent — Hybrid Skills + Hierarchical Routing
 """
 
 import asyncio
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any, Optional
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.security import HTTPBearer
 from mcp_client import MCPClient
 from pydantic import BaseModel, Field
@@ -496,6 +497,41 @@ async def healthz():
 @app.get("/readyz")
 async def readyz():
     return {"status": "ready", "version": "9.1.0"}
+
+
+@app.get("/metrics")
+async def metrics():
+    """مقاييس Prometheus (تتضمّن حالة قواطع MCP). Prometheus يسحب هذه النقطة
+    أصلاً (scrape config: job supervisor-agent، metrics_path /metrics)."""
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/healthz/deps")
+async def healthz_deps():
+    """صحّة التبعيّات الخلفيّة عبر حالة قواطع MCP.
+
+    تشغيليّاً: يردّ 503 (degraded) إن كان أيّ قاطع مفتوحاً — أيّ خدمة MCP
+    تُعتبر متعطّلة الآن — فيلتقطه الـreadiness/Alertmanager بدل العمى. القاطع
+    المفتوح يعني أنّ المنصّة تردّ fail-fast لتلك الخدمة وقد تكون متدهورة جزئيّاً.
+    """
+    from circuit_breaker import CircuitState, mcp_breakers
+
+    breakers = mcp_breakers.status_all()
+    open_services = [b["name"] for b in breakers if b["state"] == CircuitState.OPEN.value]
+    degraded = bool(open_services)
+    body = {
+        "status": "degraded" if degraded else "ok",
+        "service": "supervisor-agent",
+        "open_circuits": open_services,
+        "breakers": breakers,
+    }
+    return Response(
+        content=json.dumps(body, ensure_ascii=False),
+        media_type="application/json",
+        status_code=503 if degraded else 200,
+    )
 
 
 # ─── Tool Contracts + Execution Journal (Operational Semantics) ──

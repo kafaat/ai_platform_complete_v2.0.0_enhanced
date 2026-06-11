@@ -104,6 +104,33 @@ groups:
           summary: "High p95 latency on {{ $labels.job }}"
           description: "95th percentile request latency for {{ $labels.job }} has been above 1s for over 10 minutes."
 
+  # ── Resilience: MCP circuit breakers (supervisor-agent) ──────────
+  # supervisor-agent exports sahool_circuit_state{service} via /metrics.
+  # 2 == OPEN (the breaker is failing fast for a degraded MCP backend).
+  # If the metric is absent (no breaker has ever tripped) the rule yields
+  # no series and never fires.
+  - name: resilience
+    rules:
+      - alert: MCPCircuitOpen
+        expr: sahool_circuit_state == 2
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MCP circuit OPEN for {{ $labels.service }} (supervisor-agent failing fast)"
+          description: "The supervisor-agent circuit breaker for MCP backend {{ $labels.service }} has been OPEN for over 1 minute; requests to it are being rejected fast. The backend is likely down or degraded."
+
+      - alert: MCPCircuitFlapping
+        # Frequent transitions indicate a backend hovering at the failure
+        # threshold (HALF_OPEN -> OPEN repeatedly) — partial degradation.
+        expr: sum by (service) (rate(sahool_circuit_transitions_total[10m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MCP circuit flapping for {{ $labels.service }}"
+          description: "The circuit breaker for {{ $labels.service }} has been changing state frequently over the last 10 minutes, indicating an unstable / partially degraded MCP backend."
+
   # ── Host / process resources ─────────────────────────────────────
   # node-exporter is not currently scraped, so the node_* rules below will
   # never fire until a node-exporter job is added. process_* metrics are
