@@ -6000,6 +6000,55 @@ def test_iot_device_layer():
     return r
 
 
+def test_irrigation_ops_layer():
+    """حارس الطبقة ٣ (الري التشغيلي): صمامات + جداول مُستمرّة. ترحيل + صلاحيات + نقاط."""
+    r = []
+    base = os.path.join(os.path.dirname(__file__), "..")
+
+    def _read(p):
+        with open(os.path.join(base, p), encoding="utf-8") as f:
+            return f.read()
+
+    manifest = _read("migrations/MANIFEST.txt")
+    mig = "v25_irrigation.sql"
+    mig_path = os.path.join(base, "migrations", mig)
+    if os.path.exists(mig_path) and mig in manifest:
+        r.append(("✓", f"الري: ترحيل {mig} موجود ومُدرَج"))
+    else:
+        r.append(("✗", f"الري: ترحيل {mig} مفقود/غير مُدرَج"))
+    sql = _read("migrations/" + mig) if os.path.exists(mig_path) else ""
+    if "irrigation_valves" in sql and "irrigation_schedules" in sql:
+        r.append(("✓", "الري: جدولا الصمامات والجداول المُستمرّة"))
+    else:
+        r.append(("✗", "الري: جداول الري ناقصة"))
+
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole, UserSchema
+
+    def _u(role):
+        return UserSchema(user_id="u", tenant_id="t", role=role, name_ar="x")
+
+    if (
+        has_permission(_u(UserRole.AGRONOMIST), Permission.IRRIGATION_MANAGE)
+        and has_permission(_u(UserRole.WORKER), Permission.IRRIGATION_VIEW)
+        and not has_permission(_u(UserRole.WORKER), Permission.IRRIGATION_MANAGE)
+    ):
+        r.append(("✓", "الري: صلاحيّات (المهندس+ يدير، العامل يعرض)"))
+    else:
+        r.append(("✗", "الري: صلاحيّات الري غير صحيحة"))
+
+    main_src = _read("services/sahool-platform/api/main.py")
+    if "/api/v1/irrigation/schedules" in main_src and "/api/v1/irrigation/valves" in main_src:
+        r.append(("✓", "الري: نقاط الصمامات والجداول موجودة"))
+    else:
+        r.append(("✗", "الري: نقاط الري مفقودة"))
+    if "require_permission(Permission.IRRIGATION_MANAGE)" in main_src:
+        r.append(("✓", "الري: النقاط مُبوّبة بصلاحية irrigation:manage"))
+    else:
+        r.append(("✗", "الري: النقاط غير مُبوّبة"))
+    return r
+
+
 def run_all():
     print("=" * 60)
     print("  المرحلتان ٢+٣ (البنود ١١-١٦)")
@@ -6141,6 +6190,7 @@ def run_all():
         ("p0_security_foundation", test_p0_security_foundation),
         ("inventory_equipment_layers", test_inventory_equipment_layers),
         ("iot_device_layer", test_iot_device_layer),
+        ("irrigation_ops_layer", test_irrigation_ops_layer),
     ]
     tp = tf = 0
     for name, s in suites:

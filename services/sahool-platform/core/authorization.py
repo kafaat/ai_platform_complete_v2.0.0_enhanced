@@ -79,6 +79,9 @@ class Permission(str, Enum):
     # أجهزة IoT (سجلّ + صحّة + telemetry — الطبقة ٤ من تدقيق التغطية)
     DEVICE_VIEW = "device:view"
     DEVICE_MANAGE = "device:manage"  # تسجيل/تعطيل جهاز، إدارة السجلّ
+    # الري التشغيلي (جدولة + صمامات — الطبقة ٣ من تدقيق التغطية)
+    IRRIGATION_VIEW = "irrigation:view"
+    IRRIGATION_MANAGE = "irrigation:manage"  # جدولة، تسجيل صمّام، أمر فتح/إغلاق
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
     REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
@@ -121,6 +124,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.EQUIPMENT_MANAGE,
         Permission.DEVICE_VIEW,
         Permission.DEVICE_MANAGE,
+        Permission.IRRIGATION_VIEW,
+        Permission.IRRIGATION_MANAGE,
     },
     UserRole.MANAGER: {
         # إدارة كاملة، لا حذف ملكية ولا تغيير أدوار
@@ -148,6 +153,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.EQUIPMENT_MANAGE,
         Permission.DEVICE_VIEW,
         Permission.DEVICE_MANAGE,
+        Permission.IRRIGATION_VIEW,
+        Permission.IRRIGATION_MANAGE,
     },
     UserRole.AGRONOMIST: {
         # توصيات + معايرة + بحث، لا إدارة بنيوية
@@ -167,6 +174,8 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.INVENTORY_VIEW,  # يرى المخزون (أيّ مبيدات/أسمدة متوفّرة)
         Permission.EQUIPMENT_VIEW,
         Permission.DEVICE_VIEW,
+        Permission.IRRIGATION_VIEW,
+        Permission.IRRIGATION_MANAGE,
     },
     UserRole.WORKER: {
         # تنفيذ ميداني فقط
@@ -181,6 +190,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.INVENTORY_VIEW,  # يرى المخزون والمعدّات المتاحة للتنفيذ
         Permission.EQUIPMENT_VIEW,
         Permission.DEVICE_VIEW,
+        Permission.IRRIGATION_VIEW,
     },
     UserRole.VIEWER: {
         # قراءة فقط
@@ -192,6 +202,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.INVENTORY_VIEW,
         Permission.EQUIPMENT_VIEW,
         Permission.DEVICE_VIEW,
+        Permission.IRRIGATION_VIEW,
     },
 }
 

@@ -73,3 +73,6 @@ v23_equipment.sql
 # v24: سجلّ أجهزة IoT (iot_devices) + ابتلاع القراءات (device_telemetry) —
 # الطبقة ٤ الغائبة. self-applied RLS.
 v24_iot_devices.sql
+# v25: الري التشغيلي (irrigation_valves + irrigation_schedules) — الطبقة ٣.
+# يعتمد على fields + iot_devices. self-applied RLS.
+v25_irrigation.sql
