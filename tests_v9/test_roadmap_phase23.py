@@ -5733,9 +5733,8 @@ def test_entityid_text_and_tenant_isolation():
     # ② عزل InMemoryWorkflowStore لكلّ مستأجر (#٤): فحص مصدر (api.main يستورد
     # FastAPI الثقيل ⇒ غير مناسب للـrunner الخفيف؛ الحارس السلوكيّ في pytest).
     base = os.path.join(os.path.dirname(__file__), "..")
-    main_src = open(
-        os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8"
-    ).read()
+    with open(os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8") as _f:
+        main_src = _f.read()
     # المفرد المشترك القديم أُزيل، وحلّ محلّه قاموس لكلّ مستأجر يُفهرَس بـtenant.
     if "_INMEM_WORKFLOW_STORE = None" not in main_src and "_INMEM_WORKFLOW_STORES" in main_src:
         r.append(("✓", "عزل InMemory: المفرد المشترك القديم أُزيل (لكلّ مستأجر)"))
@@ -5775,9 +5774,8 @@ def test_rbac_platform_enforcement():
 
     # ② فحص مصدر: طبقة HTTP تربط الفرض فعليّاً + تطبّع الأدوار عبر الحدود
     base = os.path.join(os.path.dirname(__file__), "..")
-    main_src = open(
-        os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8"
-    ).read()
+    with open(os.path.join(base, "services/sahool-platform/api/main.py"), encoding="utf-8") as _f:
+        main_src = _f.read()
     if "def require_permission(" in main_src and "from core.authorization import" in main_src:
         r.append(("✓", "RBAC طبقة HTTP: require_permission موصول بمحرّك الصلاحيات"))
     else:

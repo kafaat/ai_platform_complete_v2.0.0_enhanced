@@ -22,7 +22,9 @@ CORE = os.path.join(ROOT, "services/sahool-platform")
 
 @pytest.fixture(scope="module")
 def app_mod():
-    os.environ.setdefault("JWT_SECRET", "test-secret-key-for-ci-only-0123456789")
+    # ملاحظة: لا نضبط سرّاً عبر البيئة. main.py يقرأ SAHOOL_JWT_SECRET عند الاستيراد
+    # (افتراضه dev-secret في الاختبار)، و_raw_token يوقّع بـm.JWT_SECRET نفسه الذي
+    # حمّله التطبيق — فالتوكنات تُقبَل أيّاً كان السرّ المُحمَّل (لا اعتماد على قوّته).
     if CORE not in sys.path:
         sys.path.insert(0, CORE)
     pytest.importorskip("fastapi")
@@ -164,7 +166,9 @@ def test_worker_allowed_on_observations(app_mod):
         json=_obs_body(tenant),
         headers={"Authorization": f"Bearer {_raw_token(m, 'worker', tenant)}"},
     )
-    assert r.status_code != 403, r.text
+    # نجاح صريح (200 + مسجّل) — لا نكتفي بـ«ليس 403» حتى لا تتسلّل انحدارات 4xx/5xx
+    assert r.status_code == 200, r.text
+    assert r.json().get("status") == "recorded", r.text
 
 
 @pytest.mark.integration
