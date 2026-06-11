@@ -10,6 +10,7 @@ import {
   analyzeFieldIntelligence, getCostAnalytics,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
+  fetchSeasons, type SeasonSummary,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
@@ -72,6 +73,7 @@ export const QK = {
   farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
+  seasons:          (tid: string, fid: string) => ['seasons', tid, fid],
   irrigationAdvice: (tid: string, fid: string) => ['weather-advice', 'irrigation', tid, fid],
   diseaseRisk:      (tid: string, fid: string) => ['weather-advice', 'disease', tid, fid],
   fieldRecs:        (tid: string, fid: string) => ['field-recommendations', tid, fid],
@@ -610,6 +612,20 @@ export function useCreateActivity(
 export function useSimulateSeason(): UseMutationResult<SeasonSimResult, Error, string> {
   return useMutation<SeasonSimResult, Error, string>({
     mutationFn: (seasonId) => simulateSeason(seasonId),
+  });
+}
+
+// ── مواسم حقل (مع نتائج المحاكاة المُخزَّنة sim_*) — قراءة حيّة بلا تلفيق ──
+// GET /api/v1/fields/{id}/seasons. مُفعَّل فقط مع fieldId. عند الخطأ (503 DB /
+// 404 حقل / 403) يُرفض الاستعلام لتعرض الواجهة حالة صادقة (لا fallback وهميّ).
+export function useSeasons(fieldId?: string): UseQueryResult<SeasonSummary[], Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<SeasonSummary[], Error>({
+    queryKey: QK.seasons(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchSeasons(fieldId as string),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
   });
 }
 
