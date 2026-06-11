@@ -36,6 +36,7 @@ def test_row_to_field_summary_parses_jsonb_string():
         "area_ha": 12.5,
         "crop": "wheat",
         "soil_type": "loam",
+        "manager": "أبو محمد",
         "lat": 15.05,
         "lon": 45.55,
         "geometry": json.dumps(geom),  # JSONB يرجع نصّاً من asyncpg افتراضيّاً
@@ -47,6 +48,8 @@ def test_row_to_field_summary_parses_jsonb_string():
     assert fs.area_ha == 12.5
     assert fs.geometry == geom  # فُكّ النصّ إلى dict
     assert fs.lat == 15.05 and fs.lon == 45.55
+    assert fs.soil_type == "loam"
+    assert fs.manager == "أبو محمد"  # المسؤول يُمرَّر بدل ضياعه
 
 
 def test_db_unavailable_maps_to_503():

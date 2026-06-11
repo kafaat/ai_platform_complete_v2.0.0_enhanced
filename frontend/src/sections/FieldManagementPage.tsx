@@ -121,6 +121,7 @@ export default function FieldManagementPage() {
       const r = await kongApi.post('/api/v1/fields', {
         name: data.name, crop: data.crop,
         soil_type: data.soil_type ?? data.soil,
+        manager: data.manager,
         geometry: data.geometry,
       });
       setFields(p => [...p, mapField(r.data as Record<string, unknown>)]);

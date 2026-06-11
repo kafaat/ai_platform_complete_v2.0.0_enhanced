@@ -24,6 +24,7 @@ interface FieldData {
   name:        string;
   manager:     string;
   crop:        string;
+  soil_type:   string;
   area_ha:     number;
   geometry:    { type: string; coordinates: number[][][] };
 }
@@ -34,6 +35,15 @@ interface Props {
 }
 
 const CROPS = ['قمح صلب','شعير','ذرة صفراء','طماطم','بطاطس','خضروات','برسيم'];
+// قيم نوع التربة تطابق جدول fields (loam/clay_loam/...) — التسمية عربيّة فقط.
+const SOIL_TYPES = [
+  { value:'loam',       label:'مزيجية (Loam)' },
+  { value:'clay_loam',  label:'طينية مزيجية' },
+  { value:'sandy_loam', label:'رملية مزيجية' },
+  { value:'silt_loam',  label:'طمية مزيجية' },
+  { value:'clay',       label:'طينية' },
+  { value:'sandy',      label:'رملية' },
+];
 const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
 const SAT_URL  = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
@@ -85,6 +95,7 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
   const [name, setName]   = useState('');
   const [mgr,  setMgr]    = useState('');
   const [crop, setCrop]   = useState(CROPS[0]);
+  const [soil, setSoil]   = useState(SOIL_TYPES[0].value);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
   const [tileType, setTileType] = useState<'street'|'satellite'>('satellite');
@@ -144,7 +155,7 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
       }
       const coords = [...finalPts.map(p => [p.lng, p.lat]), [finalPts[0].lng, finalPts[0].lat]];
       await onSave({
-        name, manager: mgr, crop,
+        name, manager: mgr, crop, soil_type: soil,
         area_ha: +(geodesicAreaHa(finalPts).toFixed(2)),
         geometry: { type: 'Polygon', coordinates: [coords] },
       });
@@ -246,7 +257,7 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
           ) : (
             <div className="space-y-4">
               {/* Form */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-slate-400 mb-1">اسم الحقل *</label>
                   <input value={name} onChange={e => setName(e.target.value)}
@@ -267,6 +278,14 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
                     className="w-full px-3 py-2 rounded-lg text-sm"
                     style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
                     {CROPS.map(c => <option key={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 mb-1">نوع التربة</label>
+                  <select value={soil} onChange={e => setSoil(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg text-sm"
+                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                    {SOIL_TYPES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                   </select>
                 </div>
               </div>
