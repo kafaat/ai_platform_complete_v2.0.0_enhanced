@@ -252,23 +252,45 @@ app.add_middleware(
 # العمّال انقله لـRedis (INCR+EXPIRE، نفس نمط auth) لعدّاد مشترك دقيق.
 _RATE_LIMIT_PER_MIN = int(os.getenv("SAHOOL_RATE_LIMIT_PER_MIN", "120"))
 _RATE_EXEMPT_PATHS = {"/healthz", "/readyz", "/metrics"}
-_rate_buckets: dict[str, tuple[int, float]] = {}  # ip → (count, window_start_epoch)
+_RATE_MAX_BUCKETS = 50000  # سقف المفاتيح — يمنع نموّ الذاكرة بلا حدّ من IPs فريدة
+_rate_buckets: dict[str, tuple[int, float]] = {}  # client → (count, window_start_epoch)
+
+
+def _rate_client_key(request) -> str:
+    """العميل الحقيقي خلف البروكسي: X-Forwarded-For (أوّل قفزة) ثمّ X-Real-IP،
+    وإلّا عنوان الاتّصال المباشر. nginx يضبطهما؛ بدونهما يُبكَّت الكلّ تحت IP
+    البروكسي ⇒ خنق عامّ خاطئ (ملاحظة المراجعة)."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.headers.get("x-real-ip") or (
+        request.client.host if request.client else "unknown"
+    )
+
+
+def _prune_rate_buckets(now: float) -> None:
+    """تنظيف كسول: يحذف النوافذ المنتهية حين يتضخّم القاموس (لا مؤقّت خلفيّ)."""
+    for k in [k for k, (_, start) in _rate_buckets.items() if now - start >= 60.0]:
+        _rate_buckets.pop(k, None)
 
 
 @app.middleware("http")
 async def rate_limit_middleware(request, call_next):
-    """حاجز DoS أساسيّ: يحدّ طلبات كلّ IP في نافذة دقيقة (fail-open عند الشكّ)."""
+    """حاجز DoS أساسيّ: يحدّ طلبات كلّ عميل في نافذة دقيقة (fail-open عند الشكّ)."""
     if _RATE_LIMIT_PER_MIN <= 0 or request.url.path in _RATE_EXEMPT_PATHS:
         return await call_next(request)
     import time as _t
 
-    ip = request.client.host if request.client else "unknown"
     now = _t.time()
-    count, start = _rate_buckets.get(ip, (0, now))
+    # تنظيف كسول عند التضخّم (burst من IPs فريدة لا يُنمّي الذاكرة بلا حدّ)
+    if len(_rate_buckets) > _RATE_MAX_BUCKETS:
+        _prune_rate_buckets(now)
+    key = _rate_client_key(request)
+    count, start = _rate_buckets.get(key, (0, now))
     if now - start >= 60.0:  # نافذة جديدة
         count, start = 0, now
     count += 1
-    _rate_buckets[ip] = (count, start)
+    _rate_buckets[key] = (count, start)
     if count > _RATE_LIMIT_PER_MIN:
         retry = max(1, int(60.0 - (now - start)))
         return JSONResponse(

@@ -57,11 +57,13 @@ CREATE TABLE IF NOT EXISTS device_commands_log (
     status        TEXT NOT NULL,                        -- sent / failed
     mqtt_topic    TEXT,
     triggered_by  TEXT,                                 -- rule / manual / system
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    -- sent_at: actuator-service يختار ويُرتّب بـsent_at (GET /commands) — لا created_at.
+    -- الإدراج لا يضبطه (DEFAULT NOW يملؤه = لحظة الإرسال).
+    sent_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_devcmd_tenant   ON device_commands_log(tenant_id);
-CREATE INDEX IF NOT EXISTS idx_devcmd_device   ON device_commands_log(device_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_devcmd_device   ON device_commands_log(device_id, sent_at DESC);
 CREATE INDEX IF NOT EXISTS idx_devcmd_rule     ON device_commands_log(rule_id);
 
 -- عزل المستأجرين (self-applied بعد force_all، كنمط v15/v16)

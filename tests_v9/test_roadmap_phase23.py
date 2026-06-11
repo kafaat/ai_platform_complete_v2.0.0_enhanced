@@ -5840,6 +5840,19 @@ def test_p0_security_foundation():
             r.append(("✓", f"P0: ترحيل {mig} موجود ومُدرَج في MANIFEST"))
         else:
             r.append(("✗", f"P0: ترحيل {mig} مفقود أو غير مُدرَج (لن يُطبَّق)"))
+    # الترتيب يهمّ (الاعتماديّات): v18 < v19 < v20 < v21 كما تُطبَّق فعلاً.
+    # نتحقّق من مواضع الأسطر غير المعلّقة لا مجرّد الوجود (ملاحظة المراجعة).
+    _order = [
+        "v18_entity_ids_text.sql",
+        "v19_farms.sql",
+        "v20_automation_tables.sql",
+        "v21_mfa.sql",
+    ]
+    _pos = [_order.index(s) for s in (ln.strip() for ln in manifest.splitlines()) if s in _order]
+    if _pos == sorted(_pos) and len(_pos) == len(_order):
+        r.append(("✓", "P0: ترتيب الترحيلات v18→v19→v20→v21 صحيح في MANIFEST"))
+    else:
+        r.append(("✗", "P0: ترتيب الترحيلات في MANIFEST مكسور (اعتماديّات قد تنكسر)"))
 
     # ② MFA مفروض في auth.login + نقاط الاقتران الثلاث
     auth_src = _read("services/auth/main.py")

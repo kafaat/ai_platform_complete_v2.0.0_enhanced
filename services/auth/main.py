@@ -758,6 +758,9 @@ async def mfa_disable(req: MfaCodeRequest, user: dict = Depends(get_current_user
         row = await conn.fetchrow("SELECT mfa_secret, mfa_enabled FROM users WHERE id=$1", user_id)
     if not row or not row["mfa_enabled"]:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA غير مفعّل")
+    # حالة غير متّسقة (مفعّل بلا سرّ): لا تُمرّر None لـpyotp (تجنّب 500) — أبلغ صراحةً.
+    if not row["mfa_secret"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "حالة MFA غير متّسقة — تواصل مع المسؤول")
     if not pyotp.TOTP(row["mfa_secret"]).verify(req.code.strip(), valid_window=1):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح")
     async with _pool.acquire() as conn:
