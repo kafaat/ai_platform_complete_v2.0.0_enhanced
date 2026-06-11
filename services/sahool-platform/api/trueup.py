@@ -336,7 +336,7 @@ class TrueUpEngine:
                 """,
                 calib_id,
                 _uuid.UUID(input_data.operation_id),
-                _uuid.UUID(input_data.field_id),
+                input_data.field_id,  # نصّيّ منذ v18 (fields.field_id VARCHAR لا UUID)
                 _uuid.UUID(tenant_id),
                 result.k_new,
                 input_data.actual_weight_kg,

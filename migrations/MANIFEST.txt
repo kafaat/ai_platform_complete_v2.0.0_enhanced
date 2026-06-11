@@ -52,3 +52,7 @@ v15_offline_synced_operations.sql
 v16_workflow_state.sql
 # v17: أعمدة WorkflowState الناقصة في v16 (للحفظ المعمّر الكامل).
 v17_workflow_state_full.sql
+# v18: إصلاح بنيويّ — معرّفات الكيانات نصّيّة لا UUID (events.entity_id،
+# field_lifecycle.field_id، trueup_calibrations.field_id، allowed_field_ids).
+# يعيد تعريف emit_event بتوقيع p_entity_id TEXT (يُسقط القديم — لا overload).
+v18_entity_ids_text.sql

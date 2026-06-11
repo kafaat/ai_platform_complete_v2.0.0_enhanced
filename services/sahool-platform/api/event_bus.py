@@ -175,7 +175,7 @@ class EventBus:
                 SELECT emit_event(
                     $1::text,           -- event_type
                     $2::text,           -- entity_type
-                    $3::uuid,           -- entity_id
+                    $3::text,           -- entity_id (نصّيّ منذ v18 — معرّفات الحقول نصّيّة)
                     $4::uuid,           -- tenant_id
                     $5::jsonb,          -- payload
                     $6::text,           -- source
@@ -186,7 +186,7 @@ class EventBus:
                 """,
                 args["event_type"],
                 args["entity_type"],
-                uuid.UUID(args["entity_id"]),
+                str(args["entity_id"]),
                 uuid.UUID(args["tenant_id"]),
                 json.dumps(args["payload"]),
                 args["source"],
@@ -220,7 +220,7 @@ class EventBus:
                 LIMIT $3
                 """,
                 entity_type,
-                uuid.UUID(entity_id),
+                entity_id,  # نصّيّ منذ v18 (لا تحويل UUID — كان يكسر معرّفات الحقول)
                 limit,
             )
             return [
