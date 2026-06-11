@@ -1430,10 +1430,19 @@ class SeasonSummary(BaseModel):
     stages: list[dict]
     status: str
     created_at: str | None = None
+    # ─── نتائج محاكاة الموسم (v39) — تُملأ عند تشغيل /simulate، تقديريّة ─
+    sim_yield_kg_ha: float | None = None
+    sim_biomass_kg_ha: float | None = None
+    sim_gdd_total: float | None = None
+    sim_lai_max: float | None = None
+    sim_water_mm: float | None = None
+    sim_ran_at: str | None = None
 
 
 def _row_to_season(r) -> SeasonSummary:
     import json as _json
+
+    keys = set(r.keys())
 
     def _arr(v):
         if isinstance(v, str):
@@ -1445,6 +1454,10 @@ def _row_to_season(r) -> SeasonSummary:
 
     def _d(v):
         return v.isoformat() if v is not None else None
+
+    def _num(col):  # عمود sim_* قد لا يكون في SELECT (مثلاً list_seasons) — None بأمان
+        v = r[col] if col in keys else None
+        return float(v) if v is not None else None
 
     return SeasonSummary(
         season_id=r["season_id"],
@@ -1460,6 +1473,16 @@ def _row_to_season(r) -> SeasonSummary:
         stages=_arr(r["stages"]),
         status=r["status"],
         created_at=r["created_at"].isoformat() if r["created_at"] else None,
+        sim_yield_kg_ha=_num("sim_yield_kg_ha"),
+        sim_biomass_kg_ha=_num("sim_biomass_kg_ha"),
+        sim_gdd_total=_num("sim_gdd_total"),
+        sim_lai_max=_num("sim_lai_max"),
+        sim_water_mm=_num("sim_water_mm"),
+        sim_ran_at=(
+            r["sim_ran_at"].isoformat()
+            if "sim_ran_at" in keys and r["sim_ran_at"] is not None
+            else None
+        ),
     )
 
 
@@ -1564,7 +1587,9 @@ async def list_seasons(
             rows = await conn.fetch(
                 "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
                 "seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date, "
-                "season_end, stages, status, created_at "
+                "season_end, stages, status, created_at, "
+                "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, "
+                "sim_water_mm, sim_ran_at "
                 "FROM seasons WHERE field_id = $1 ORDER BY created_at DESC",
                 field_id,
             )
@@ -1573,6 +1598,177 @@ async def list_seasons(
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("قراءة المواسم", e) from e
     return [_row_to_season(r) for r in rows]
+
+
+# ─── محاكاة الموسم (Crop-model simulation) — v39 ─────────────────
+# نموذج محصولي حقيقي خفيف (RUE/FAO-56، نقيّ ومُختبَر في api.season_simulation):
+# تراكم GDD + كتلة حيويّة عبر كفاءة استخدام الإشعاع + مؤشّر LAI + احتياج الماء،
+# ثمّ الإنتاج = الكتلة × مؤشّر الحصاد، مُحجَّماً بإجهاد مائي. النواة تجمع السياق
+# (الموسم من القاعدة، الطقس التاريخي من Open-Meteo) وتكتب الناتج على صفّ الموسم.
+# تقديرات نموذجيّة بنطاق وثقة صريحة — لا أرقام قاطعة. تعذّر الطقس ⇒ 503.
+
+# سقف نافذة المحاكاة (يوم) حين يغيب season_end — دورة موسميّة معقولة.
+_SIM_MAX_WINDOW_DAYS = 160
+
+
+class SeasonSimResponse(BaseModel):
+    """ناتج محاكاة الموسم — تقديرات نموذجيّة بنطاق وثقة وافتراضات صريحة."""
+
+    season_id: str
+    crop: str
+    crop_recognized: bool
+    days_simulated: int
+    gdd_total: float
+    gdd_to_maturity: float
+    maturity_reached: bool
+    lai_max: float
+    biomass_kg_ha: float
+    yield_kg_ha: float
+    yield_low_kg_ha: float
+    yield_high_kg_ha: float
+    water_need_mm: float
+    water_supply_mm: float | None
+    water_stress_factor: float
+    confidence: float
+    rationale_ar: str
+    assumptions_ar: list[str]
+    warnings_ar: list[str]
+    sim_ran_at: str
+
+
+@app.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
+async def simulate_season_endpoint(
+    season_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يشغّل محاكاة محصوليّة (RUE/FAO-56) للموسم ويحفظ الناتج على صفّه.
+
+    يؤكّد أنّ الموسم يخصّ المستأجِر (404 وإلّا)، يجمع المحصول/التواريخ من القاعدة
+    والطقس التاريخي من Open-Meteo لنافذة الموسم (sowing→end أو آخر ~160 يوماً)،
+    يستدعي api.season_simulation.simulate_season (نقيّ)، يكتب sim_* + sim_ran_at،
+    ويردّ النتيجة (تقديرات بنطاق وثقة). 503 إن تعذّرت القاعدة أو الطقس.
+    """
+    import json as _json
+
+    from api.connectors.openmeteo import fetch_historical
+    from api.season_simulation import DayWeather, SimContext, simulate_season
+
+    # ١) سياق الموسم من القاعدة (+ تأكيد المستأجِر عبر RLS ⇒ 404 إن غاب).
+    try:
+        async with tenant_connection(user) as conn:
+            srow = await conn.fetchrow(
+                "SELECT s.season_id, s.field_id, s.crops, s.sowing_date, s.season_end, "
+                "f.lat, f.lon FROM seasons s JOIN fields f ON f.field_id = s.field_id "
+                "WHERE s.season_id = $1",
+                season_id,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة الموسم للمحاكاة", e) from e
+    if srow is None:
+        raise HTTPException(status_code=404, detail="الموسم غير موجود ضمن هذا المستأجِر")
+    if srow["lat"] is None or srow["lon"] is None:
+        raise HTTPException(
+            status_code=422,
+            detail="حقل الموسم بلا إحداثيّات (lat/lon) — لا يمكن جلب الطقس للمحاكاة.",
+        )
+
+    crops = srow["crops"]
+    if isinstance(crops, str):
+        try:
+            crops = _json.loads(crops)
+        except (ValueError, TypeError):
+            crops = []
+    crop = str(crops[0]) if isinstance(crops, list) and crops else None
+
+    # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بحدّ أقصى.
+    today = datetime.now(UTC).date()
+    sow = srow["sowing_date"]
+    end = srow["season_end"]
+    start = sow if sow is not None else (today - timedelta(days=_SIM_MAX_WINDOW_DAYS))
+    win_end = min(end, today) if end is not None else today
+    if win_end <= start:
+        win_end = min(start + timedelta(days=_SIM_MAX_WINDOW_DAYS), today)
+    if (win_end - start).days > _SIM_MAX_WINDOW_DAYS:
+        win_end = start + timedelta(days=_SIM_MAX_WINDOW_DAYS)
+    # ERA5 التاريخي يتأخّر ~5 أيّام — لا نطلب أحدث من ذلك.
+    win_end = min(win_end, today - timedelta(days=5))
+    if win_end <= start:
+        raise HTTPException(
+            status_code=422,
+            detail="نافذة الموسم قصيرة جدّاً أو في المستقبل — لا بيانات طقس تاريخيّة كافية للمحاكاة.",
+        )
+
+    # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
+    try:
+        days = await fetch_historical(
+            float(srow["lat"]),
+            float(srow["lon"]),
+            start.isoformat(),
+            win_end.isoformat(),
+        )
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس التاريخي (Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    weather = [
+        DayWeather(
+            t_min_c=d.temp_min_c,
+            t_max_c=d.temp_max_c,
+            solar_mj_m2=None,  # غير مطلوب من المصدر الحالي — يُقدَّر في النموذج
+            et0_mm=d.et0_mm,
+            rain_mm=d.precipitation_mm or 0.0,
+        )
+        for d in days
+    ]
+
+    # ٤) المحاكاة النقيّة.
+    result = simulate_season(
+        SimContext(crop=crop, sowing_date=sow, season_end=end, weather=weather)
+    )
+
+    # ٥) حفظ النتائج على صفّ الموسم (+ وقت التشغيل).
+    ran_at = datetime.now(UTC)
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
+                "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, sim_ran_at = $7 "
+                "WHERE season_id = $1",
+                season_id,
+                result.yield_kg_ha,
+                result.biomass_kg_ha,
+                result.gdd_total,
+                result.lai_max,
+                result.water_need_mm,
+                ran_at,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("حفظ نتائج المحاكاة", e) from e
+
+    return SeasonSimResponse(
+        season_id=season_id,
+        crop=result.crop,
+        crop_recognized=result.crop_recognized,
+        days_simulated=result.days_simulated,
+        gdd_total=result.gdd_total,
+        gdd_to_maturity=result.gdd_to_maturity,
+        maturity_reached=result.maturity_reached,
+        lai_max=result.lai_max,
+        biomass_kg_ha=result.biomass_kg_ha,
+        yield_kg_ha=result.yield_kg_ha,
+        yield_low_kg_ha=result.yield_low_kg_ha,
+        yield_high_kg_ha=result.yield_high_kg_ha,
+        water_need_mm=result.water_need_mm,
+        water_supply_mm=result.water_supply_mm,
+        water_stress_factor=result.water_stress_factor,
+        confidence=result.confidence,
+        rationale_ar=result.rationale_ar,
+        assumptions_ar=result.assumptions_ar,
+        warnings_ar=result.warnings_ar,
+        sim_ran_at=ran_at.isoformat(),
+    )
 
 
 # ─── الطقس والريّ (Weather-driven advice) — Sprint 5a ────────────

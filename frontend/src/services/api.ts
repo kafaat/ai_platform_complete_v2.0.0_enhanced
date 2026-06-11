@@ -407,6 +407,35 @@ export interface SeasonReportSummary {
 export const getSeasonReportSummary = (seasonId: string): Promise<SeasonReportSummary> =>
   kongApi.get<SeasonReportSummary>(`/api/v1/reports/season/${seasonId}/summary`).then(r => r.data);
 
+// ── محاكاة الموسم (Crop-model simulation, RUE/FAO-56) — v39 ──────────
+// تقديرات نموذجيّة (إنتاج/GDD/LAI/ماء) بنطاق وثقة صريحة — لا أرقام قاطعة.
+export interface SeasonSimResult {
+  season_id:           string;
+  crop:                string;
+  crop_recognized:     boolean;
+  days_simulated:      number;
+  gdd_total:           number;
+  gdd_to_maturity:     number;
+  maturity_reached:    boolean;
+  lai_max:             number;
+  biomass_kg_ha:       number;
+  yield_kg_ha:         number;
+  yield_low_kg_ha:     number;
+  yield_high_kg_ha:    number;
+  water_need_mm:       number;
+  water_supply_mm:     number | null;
+  water_stress_factor: number;
+  confidence:          number;
+  rationale_ar:        string;
+  assumptions_ar:      string[];
+  warnings_ar:         string[];
+  sim_ran_at:          string;
+}
+// يشغّل محاكاة محصوليّة للموسم ويحفظ ناتجها على الخادم (FIELD_EDIT). 503 عند تعذّر
+// الطقس/القاعدة، 404 إن غاب الموسم عن المستأجِر.
+export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
+  kongApi.post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // INVENTORY — مخزون المدخلات (حيّ، مُقيَّد بالدور inventory:view/manage وبالمستأجِر)
 // ربط حقيقيّ عبر البوابة (kong). لا fallback وهميّ — كميّات/مخزون حقيقيّة، الخطأ
