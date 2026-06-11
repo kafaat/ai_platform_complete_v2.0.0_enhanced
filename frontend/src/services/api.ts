@@ -460,6 +460,37 @@ export const fetchDiseaseRisk = (fieldId: string): Promise<DiseaseRisk> =>
   kongApi.get<DiseaseRisk>(`/api/v1/fields/${fieldId}/weather/disease-risk`).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// UNIFIED RECOMMENDATIONS — عمود التوصيات الموحَّد لكلّ حقل.
+// يجمع الخادم (api.recommendations_hub، نقيّ) الريّ + التسميد + الأمراض + الحصاد
+// في قائمة واحدة مفروزة بالأولويّة. تدهور رشيق: عند تعذّر الطقس يُرجع توصيات
+// التسميد/الحصاد فقط (weather_available=false) — لا بيانات وهميّة. عند الخطأ
+// (503 لا سياق كافٍ، 404 حقل، 403 RBAC) يُرفع ليعرض الـUI حالة صادقة.
+// ══════════════════════════════════════════════════════════════════
+export type RecommendationCategory = 'irrigation' | 'fertilizer' | 'disease' | 'yield';
+export type RecommendationPriority = 'high' | 'medium' | 'low';
+
+export interface FieldRecommendation {
+  category:  RecommendationCategory | string;
+  priority:  RecommendationPriority | string;
+  title_ar:  string;
+  detail_ar: string;
+  source:    string;
+}
+
+export interface FieldRecommendationsResult {
+  field_id:           string;
+  crop:               string | null;
+  stage:              string;
+  weather_available:  boolean;
+  recommendations:    FieldRecommendation[];
+}
+
+export const fetchFieldRecommendations = (fieldId: string): Promise<FieldRecommendationsResult> =>
+  kongApi
+    .get<FieldRecommendationsResult>(`/api/v1/fields/${fieldId}/recommendations`)
+    .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // ALERTS — التنبيهات الزراعيّة المُصنَّفة لكلّ مستأجِر (sahool-platform v36).
 // ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC) يُرمى ليعرض الـUI
 // حالة صادقة. field:view للقراءة، field:edit للإنشاء/الإقرار.
