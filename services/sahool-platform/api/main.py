@@ -381,6 +381,7 @@ class FieldSummary(BaseModel):
     pending_activities: int = 0
     health_summary_ar: str  # "صحّي" / "يحتاج ريّ" / "إجهاد ملحي"
     soil_type: str | None = None  # نوع التربة (يُمرَّر للواجهة بدل ضياعه)
+    manager: str | None = None  # المسؤول عن الحقل
     # حقول الخريطة (اختياريّة، توافق خلفيّ): مركز الحقل وهندسته لرسم المضلّع.
     lat: float | None = None
     lon: float | None = None
@@ -880,6 +881,7 @@ def _row_to_field_summary(r) -> FieldSummary:
         quality_grade="READY",
         health_summary_ar="—",
         soil_type=r["soil_type"],
+        manager=r["manager"],
         lat=float(r["lat"]) if r["lat"] is not None else None,
         lon=float(r["lon"]) if r["lon"] is not None else None,
         geometry=geom,
@@ -909,7 +911,8 @@ async def list_fields(user: UserSchema = Depends(get_current_user)):
     try:
         async with tenant_connection(user) as conn:
             rows = await conn.fetch(
-                "SELECT field_id, farm_id, name, area_ha, crop, soil_type, lat, lon, geometry "
+                "SELECT field_id, farm_id, name, area_ha, crop, soil_type, manager, "
+                "lat, lon, geometry "
                 "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
                 str(user.tenant_id),
             )
@@ -926,6 +929,7 @@ class FieldCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     crop: str | None = None
     soil_type: str | None = None
+    manager: str | None = Field(default=None, max_length=100)
     geometry: dict  # GeoJSON Polygon: {"type":"Polygon","coordinates":[[[lon,lat],...]]}
     farm_id: str | None = None
     gov: str | None = None
@@ -964,15 +968,16 @@ async def create_field(
         async with tenant_connection(user) as conn:
             await conn.execute(
                 """INSERT INTO fields
-                    (field_id, tenant_id, farm_id, name, crop, soil_type,
+                    (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
                      area_ha, lat, lon, gov, geometry)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)""",
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb)""",
                 field_id,
                 str(user.tenant_id),
                 req.farm_id,
                 req.name,
                 req.crop,
                 req.soil_type,
+                req.manager,
                 area_ha,
                 lat,
                 lon,
@@ -992,6 +997,7 @@ async def create_field(
         quality_grade="PENDING_LAB",
         health_summary_ar="حقل جديد — بانتظار قياسات",
         soil_type=req.soil_type,
+        manager=req.manager,
         lat=lat,
         lon=lon,
         geometry=req.geometry,

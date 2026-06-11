@@ -88,3 +88,8 @@ v28_settings.sql
 # v29: سجلّ مستندات (documents) — بيانات وصفيّة فقط (لا blob؛ يحتاج S3/MinIO)
 # + storage_ref + تحكّم وصول (RLS + RBAC). يعتمد على fields. self-applied RLS.
 v29_documents.sql
+# v30: عمود geometry (GeoJSON) + idx_fields_tenant لجدول fields — لرسم/عرض
+# الحقول المرسومة على الخريطة (POST/GET /api/v1/fields). يعدّل fields (v9). idempotent.
+v30_fields_geometry.sql
+# v31: عمود manager (المسؤول عن الحقل) لجدول fields — يكمل تدفّق بيانات الحقل.
+v31_fields_manager.sql
