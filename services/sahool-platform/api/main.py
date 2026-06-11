@@ -396,6 +396,100 @@ class FieldSummary(BaseModel):
     geometry: dict | None = None
 
 
+# ─── تفاصيل الحقل المتقدّمة (v37) — ملء تدريجيّ بعد الإنشاء ────────
+# القائمة (list_fields) تبقى رشيقة؛ هذه الأعمدة تُقرأ عبر GET /fields/{id}
+# وتُحدَّث جزئيّاً عبر PATCH /fields/{id}. مصدر واحد لأسماء الأعمدة (يُعاد
+# استخدامه في SELECT التفصيليّ وفي بنّاء التحديث الجزئيّ + الاختبارات).
+_FIELD_ADVANCED_COLUMNS: tuple[str, ...] = (
+    "soil_ph",
+    "soil_ec",
+    "soil_om",
+    "soil_n",
+    "soil_p",
+    "soil_k",
+    "elevation_m",
+    "slope_pct",
+    "aspect",
+    "climate_zone",
+    "annual_rainfall_mm",
+    "owner_name",
+    "lease_years",
+    "registry_no",
+)
+
+
+class FieldDetail(FieldSummary):
+    """تفاصيل حقل كاملة (لوحة التفاصيل) — يرث الملخّص ويضيف الأعمدة المتقدّمة.
+
+    كلّها اختياريّة (ملء تدريجيّ): كيمياء التربة + المناخ الدقيق + الملكيّة.
+    """
+
+    # كيمياء التربة (نتائج مختبر)
+    soil_ph: float | None = None
+    soil_ec: float | None = None
+    soil_om: float | None = None  # المادّة العضويّة %
+    soil_n: float | None = None
+    soil_p: float | None = None
+    soil_k: float | None = None
+    # المناخ الدقيق / التضاريس
+    elevation_m: float | None = None
+    slope_pct: float | None = None
+    aspect: str | None = None
+    climate_zone: str | None = None
+    annual_rainfall_mm: float | None = None
+    # تفاصيل الملكيّة
+    owner_name: str | None = None
+    lease_years: int | None = None
+    registry_no: str | None = None
+
+
+class FieldUpdateRequest(BaseModel):
+    """طلب تحديث جزئيّ لتفاصيل حقل — كلّ الحقول اختياريّة (ملء تدريجيّ).
+
+    تُحدَّث الأعمدة المُرسَلة فقط (الموجودة في الـpayload) — لا تُمسح غير المُرسَلة.
+    التمييز بين «لم يُرسَل» و«أُرسِل null» عبر model_fields_set (انظر _build_field_update).
+    """
+
+    soil_ph: float | None = Field(default=None, ge=0, le=14)
+    soil_ec: float | None = Field(default=None, ge=0)
+    soil_om: float | None = Field(default=None, ge=0)  # المادّة العضويّة %
+    soil_n: float | None = Field(default=None, ge=0)
+    soil_p: float | None = Field(default=None, ge=0)
+    soil_k: float | None = Field(default=None, ge=0)
+    elevation_m: float | None = None
+    slope_pct: float | None = Field(default=None, ge=0)
+    aspect: str | None = Field(default=None, max_length=20)
+    climate_zone: str | None = Field(default=None, max_length=40)
+    annual_rainfall_mm: float | None = Field(default=None, ge=0)
+    owner_name: str | None = Field(default=None, max_length=100)
+    lease_years: int | None = Field(default=None, ge=0)
+    registry_no: str | None = Field(default=None, max_length=50)
+
+
+def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
+    """يبني جملة SET للتحديث الجزئيّ من الحقول المُرسَلة فقط — دالّة نقيّة (لا DB).
+
+    يُرجِع (set_clause, values) حيث set_clause = "col1 = $1, col2 = $2 …" والقيم
+    بالترتيب نفسه. تُستخدَم القيم لاحقاً بعد إلحاق معرّف الحقل ($N) في WHERE.
+    يُميّز «لم يُرسَل» (يُتجاهَل) عن «أُرسِل null» (يُمسح العمود) عبر model_fields_set.
+
+    يرفع ValueError لو لم تُرسَل أيّ حقول — لا UPDATE فارغ (يعالجه الـendpoint 422).
+    """
+    sent = req.model_fields_set
+    data = req.model_dump()
+    assignments: list[str] = []
+    values: list = []
+    idx = 1
+    for col in _FIELD_ADVANCED_COLUMNS:
+        if col in sent:
+            assignments.append(f"{col} = ${idx}")
+            values.append(data[col])
+            idx += 1
+    if not assignments:
+        raise ValueError("no fields to update")
+    return ", ".join(assignments), values
+
+
 class ActivityItem(BaseModel):
     """عنصر في جدول الأنشطة."""
 
@@ -1085,6 +1179,121 @@ async def create_field(
     )
 
 
+def _row_to_field_detail(r) -> FieldDetail:
+    """صفّ DB (مع الأعمدة المتقدّمة) → FieldDetail. يعيد استخدام تطبيع الملخّص ثمّ
+    يضيف الأعمدة المتقدّمة (v37). NUMERIC من asyncpg يأتي Decimal ⇒ float للـJSON."""
+    base = _row_to_field_summary(r)
+
+    def _f(key):
+        try:
+            v = r[key]
+        except (KeyError, IndexError):
+            return None
+        return float(v) if v is not None else None
+
+    def _s(key):
+        try:
+            return r[key]
+        except (KeyError, IndexError):
+            return None
+
+    def _i(key):
+        try:
+            v = r[key]
+        except (KeyError, IndexError):
+            return None
+        return int(v) if v is not None else None
+
+    return FieldDetail(
+        **base.model_dump(),
+        soil_ph=_f("soil_ph"),
+        soil_ec=_f("soil_ec"),
+        soil_om=_f("soil_om"),
+        soil_n=_f("soil_n"),
+        soil_p=_f("soil_p"),
+        soil_k=_f("soil_k"),
+        elevation_m=_f("elevation_m"),
+        slope_pct=_f("slope_pct"),
+        aspect=_s("aspect"),
+        climate_zone=_s("climate_zone"),
+        annual_rainfall_mm=_f("annual_rainfall_mm"),
+        owner_name=_s("owner_name"),
+        lease_years=_i("lease_years"),
+        registry_no=_s("registry_no"),
+    )
+
+
+# أعمدة SELECT لقراءة الحقل التفصيليّة: أساس الملخّص + الأعمدة المتقدّمة (v37).
+_FIELD_DETAIL_SELECT = (
+    "field_id, farm_id, name, area_ha, crop, soil_type, manager, "
+    "field_code, description, water_source, ownership_type, country, region, "
+    "lat, lon, geometry, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
+)
+
+
+@app.get("/api/v1/fields/{field_id}", response_model=FieldDetail)
+async def get_field(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تفاصيل حقل كاملة (لوحة التفاصيل) — الأساسيّات + الأعمدة المتقدّمة (v37).
+
+    مُرشَّحة بالمستأجِر (RLS). 404 لو الحقل ليس للمستأجِر، 503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة تفاصيل الحقل", e) from e
+    if row is None:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    return _row_to_field_detail(row)
+
+
+@app.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
+async def update_field(
+    field_id: str,
+    req: FieldUpdateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """تحديث جزئيّ لتفاصيل حقل (ملء تدريجيّ) — يُحدِّث الأعمدة المُرسَلة فقط.
+
+    يتأكّد أنّ الحقل يخصّ المستأجِر (404) ضمن سياق المستأجِر (RLS)، يبني UPDATE
+    من الحقول المُرسَلة فقط (دالّة نقيّة _build_field_update)، ويردّ الحقل المُحدَّث.
+    422 لو لم تُرسَل أيّ حقول (لا UPDATE فارغ). 503 عند تعذّر القاعدة.
+    """
+    try:
+        set_clause, values = _build_field_update(req)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail="لا حقول للتحديث") from e
+    # معرّف الحقل يأخذ آخر رقم placeholder في WHERE.
+    field_idx = len(values) + 1
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            await conn.execute(
+                f"UPDATE fields SET {set_clause} WHERE field_id = ${field_idx}",
+                *values,
+                field_id,
+            )
+            row = await conn.fetchrow(
+                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("تحديث تفاصيل الحقل", e) from e
+    if row is None:  # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ 404 صادق
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    return _row_to_field_detail(row)
+
+
 @app.get("/api/v1/geo/reverse")
 def geo_reverse_endpoint(
     lat: float,
@@ -1280,6 +1489,171 @@ async def list_seasons(
     return [_row_to_season(r) for r in rows]
 
 
+# ─── الطقس والريّ (Weather-driven advice) — Sprint 5a ────────────
+# نقطتان للحقل: توصية ريّ (FAO-56) + مخاطر أمراض، تُحسبان من الطقس الحيّ
+# (نفس مصدر /api/v1/weather: Open-Meteo) ومحصول الموسم النشط إن وُجد.
+# منطق التهديف نقيّ في api.weather_advice (مُختبَر offline). تعذّر الطقس ⇒ 503.
+
+# مراحل النموّ التقريبيّة بالأيّام منذ البذار (FAO-56 — initial/dev/mid/late).
+# ⚠ تقدير عامّ يحتاج معايرة لكلّ محصول؛ يُستخدم فقط لاختيار Kc حين توفّر sowing_date.
+_STAGE_DAY_BOUNDS = ((30, "initial"), (60, "development"), (120, "mid"))
+
+
+def _growth_stage(days_since_sowing: int | None) -> str:
+    """يُرجع مرحلة النموّ من عدد الأيّام منذ البذار. None/غير معروف ⇒ 'mid'."""
+    if days_since_sowing is None or days_since_sowing < 0:
+        return "mid"
+    for bound, stage in _STAGE_DAY_BOUNDS:
+        if days_since_sowing <= bound:
+            return stage
+    return "late"
+
+
+async def _field_weather_context(conn, field_id: str) -> tuple[float, float, str | None, str]:
+    """يجلب (lat, lon, crop, stage) للحقل + موسمه النشط بعد تأكيد المُستأجِر (404).
+
+    المحصول من الموسم النشط (أحدث active) إن وُجد، وإلّا من عمود fields.crop.
+    المرحلة من sowing_date للموسم النشط إن توفّر، وإلّا 'mid'.
+    يرفع 404 إن غاب الحقل، و422 إن لم تتوفّر إحداثيّات الحقل (الطقس يحتاجها).
+    """
+    row = await conn.fetchrow("SELECT lat, lon, crop FROM fields WHERE field_id = $1", field_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    if row["lat"] is None or row["lon"] is None:
+        raise HTTPException(
+            status_code=422,
+            detail="الحقل بلا إحداثيّات (lat/lon) — لا يمكن جلب الطقس. حدّد موقع الحقل أوّلاً.",
+        )
+    season = await conn.fetchrow(
+        "SELECT crops, sowing_date FROM seasons "
+        "WHERE field_id = $1 AND status = 'active' ORDER BY created_at DESC LIMIT 1",
+        field_id,
+    )
+    crop: str | None = row["crop"]
+    stage = "mid"
+    if season is not None:
+        import json as _json
+
+        crops = season["crops"]
+        if isinstance(crops, str):
+            try:
+                crops = _json.loads(crops)
+            except (ValueError, TypeError):
+                crops = []
+        if isinstance(crops, list) and crops:
+            crop = str(crops[0])
+        if season["sowing_date"] is not None:
+            days = (date.today() - season["sowing_date"]).days
+            stage = _growth_stage(days)
+    return float(row["lat"]), float(row["lon"]), crop, stage
+
+
+@app.get("/api/v1/fields/{field_id}/weather/irrigation-advice")
+async def field_irrigation_advice(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """توصية ريّ بنمط FAO-56 للحقل من الطقس الحيّ ومحصول الموسم النشط.
+
+    يحسب ET₀ × Kc − المطر الفعّال (api.weather_advice، نقيّ ومُختبَر). يجلب ET₀
+    والمطر من Open-Meteo (نفس مصدر /api/v1/weather). 404 إن غاب الحقل، 503 إن
+    تعذّر الطقس (لا بيانات وهميّة).
+    """
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.weather_advice import irrigation_advice
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    try:
+        forecast = await fetch_daily_forecast(lat, lon, days=3)
+        current = await fetch_current(lat, lon)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    today = forecast[0] if forecast else None
+    et0 = today.et0_mm if today and today.et0_mm is not None else None
+    if et0 is None:
+        raise HTTPException(
+            status_code=503,
+            detail="بيانات ET₀ غير متوفّرة من مصدر الطقس حاليّاً. حاول لاحقاً.",
+        )
+    # المطر المتوقّع خلال ٤٨ ساعة القادمة (يومان قادمان من التوقّع).
+    forecast_rain = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+    advice = irrigation_advice(
+        et0_mm=et0,
+        crop=crop,
+        stage=stage,
+        rain_recent_mm=current.precipitation_mm or 0.0,
+        forecast_rain_mm=forecast_rain,
+        soil_moisture_pct=None,
+    )
+    advice.update({"field_id": field_id, "crop": crop, "stage": stage, "source": "open-meteo"})
+    return advice
+
+
+@app.get("/api/v1/fields/{field_id}/weather/disease-risk")
+async def field_disease_risk(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مخاطر أمراض فطريّة (agro-met) للحقل من الرطوبة/الحرارة/المطر.
+
+    منطق التهديف نقيّ (api.weather_advice، مُختبَر offline). يجلب الطقس الحالي +
+    مطر آخر ٣ أيّام من Open-Meteo. 404 إن غاب الحقل، 503 إن تعذّر الطقس.
+    """
+    from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.weather_advice import disease_risk
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, _stage = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    try:
+        current = await fetch_current(lat, lon)
+        forecast = await fetch_daily_forecast(lat, lon, days=3)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب الطقس (مصدر Open-Meteo غير متاح). حاول لاحقاً.",
+        ) from e
+
+    rain_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+    risk = disease_risk(
+        temp_c=current.temperature_c,
+        humidity_pct=current.humidity_pct,
+        rain_mm_3d=rain_3d,
+        crop=crop,
+    )
+    risk.update(
+        {
+            "field_id": field_id,
+            "crop": crop,
+            "temperature_c": round(current.temperature_c, 1),
+            "humidity_pct": round(current.humidity_pct, 1),
+            "rain_mm_3d": round(rain_3d, 1),
+            "source": "open-meteo",
+        }
+    )
+    return risk
+
+
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
 _ACTIVITY_TYPES = {
     "planting",
@@ -1431,6 +1805,166 @@ async def list_field_activities(
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("قراءة العمليّات", e) from e
     return [_row_to_activity(r) for r in rows]
+
+
+# ─── التنبيهات الزراعيّة (Alerts) — نمط activities (v36) ──────────
+_ALERT_TYPES = {
+    "low_moisture",
+    "heavy_rain",
+    "disease_risk",
+    "heat_stress",
+    "frost_risk",
+    "other",
+}
+_ALERT_SEVERITIES = {"info", "warning", "critical"}
+_ALERT_STATUSES = {"active", "acknowledged", "resolved"}
+
+
+class AlertCreateRequest(BaseModel):
+    """طلب إنشاء تنبيه زراعيّ (نوع/خطورة/عنوان/نصّ/حقل اختياريّ)."""
+
+    alert_type: str
+    severity: str
+    title_ar: str | None = Field(default=None, max_length=200)
+    message_ar: str | None = None
+    field_id: str | None = None
+
+
+class AlertSummary(BaseModel):
+    alert_id: str
+    field_id: str | None = None
+    alert_type: str
+    severity: str
+    title_ar: str | None = None
+    message_ar: str | None = None
+    status: str
+    created_at: str | None = None
+
+
+def _row_to_alert(r) -> AlertSummary:
+    return AlertSummary(
+        alert_id=r["alert_id"],
+        field_id=r["field_id"],
+        alert_type=r["alert_type"],
+        severity=r["severity"],
+        title_ar=r["title_ar"],
+        message_ar=r["message_ar"],
+        status=r["status"],
+        created_at=r["created_at"].isoformat() if r["created_at"] else None,
+    )
+
+
+@app.get("/api/v1/alerts", response_model=list[AlertSummary])
+async def list_alerts(
+    status: str | None = Query(default=None),
+    severity: str | None = Query(default=None),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تنبيهات المستأجِر (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS) + حالة/خطورة اختياريّة.
+
+    تُتحقَّق قيم الترشيح (422 على قيمة غير معروفة) قبل الاستعلام. 503 عند تعذّر القاعدة.
+    """
+    if status is not None and status not in _ALERT_STATUSES:
+        raise HTTPException(status_code=422, detail="حالة تنبيه غير معروفة")
+    if severity is not None and severity not in _ALERT_SEVERITIES:
+        raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
+    conds = ["tenant_id = $1::uuid"]
+    args: list = [str(user.tenant_id)]
+    if status is not None:
+        args.append(status)
+        conds.append(f"status = ${len(args)}")
+    if severity is not None:
+        args.append(severity)
+        conds.append(f"severity = ${len(args)}")
+    where = " AND ".join(conds)
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at "
+                f"FROM alerts WHERE {where} ORDER BY created_at DESC",
+                *args,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة التنبيهات", e) from e
+    return [_row_to_alert(r) for r in rows]
+
+
+@app.post("/api/v1/alerts", status_code=201, response_model=AlertSummary)
+async def create_alert(
+    req: AlertCreateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """ينشئ تنبيهاً زراعيّاً للمستأجِر — يُخزَّن فعليّاً ضمن سياق المستأجِر (RLS).
+
+    يتحقّق من النوع والخطورة (422)، ويؤكّد أنّ الحقل (إن مُرِّر) يخصّ المستأجِر
+    (404) قبل الإدراج، ثمّ يردّ التنبيه المُنشأ.
+    """
+    import uuid as _uuid
+
+    if req.alert_type not in _ALERT_TYPES:
+        raise HTTPException(status_code=422, detail="نوع تنبيه غير معروف")
+    if req.severity not in _ALERT_SEVERITIES:
+        raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
+    alert_id = "alr_" + _uuid.uuid4().hex[:12]
+    try:
+        async with tenant_connection(user) as conn:
+            if req.field_id is not None:
+                await _assert_field_in_tenant(conn, req.field_id)
+            await conn.execute(
+                """INSERT INTO alerts
+                    (alert_id, tenant_id, field_id, alert_type, severity,
+                     title_ar, message_ar, status)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
+                alert_id,
+                str(user.tenant_id),
+                req.field_id,
+                req.alert_type,
+                req.severity,
+                req.title_ar,
+                req.message_ar,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ التنبيه", e) from e
+    return AlertSummary(
+        alert_id=alert_id,
+        field_id=req.field_id,
+        alert_type=req.alert_type,
+        severity=req.severity,
+        title_ar=req.title_ar,
+        message_ar=req.message_ar,
+        status="active",
+    )
+
+
+@app.patch("/api/v1/alerts/{alert_id}/acknowledge", response_model=AlertSummary)
+async def acknowledge_alert(
+    alert_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يُقِرّ تنبيهاً (status='acknowledged') للمستأجِر — مُرشَّح بالمستأجِر (RLS).
+
+    404 لو التنبيه ليس ضمن المستأجِر؛ 503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "UPDATE alerts SET status = 'acknowledged' WHERE alert_id = $1 "
+                "RETURNING alert_id, field_id, alert_type, severity, title_ar, "
+                "message_ar, status, created_at",
+                alert_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("إقرار التنبيه", e) from e
+    if row is None:
+        raise HTTPException(status_code=404, detail="التنبيه غير موجود ضمن هذا المستأجِر")
+    return _row_to_alert(row)
 
 
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────

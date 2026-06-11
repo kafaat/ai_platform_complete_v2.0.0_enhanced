@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
-import { useIndicatorGrid, type GridIndex, type IndicatorGridResponse } from "../hooks/useApi";
+import {
+  useIndicatorGrid, useFieldPrescription,
+  type GridIndex, type IndicatorGridResponse,
+} from "../hooks/useApi";
 import FieldIndicatorMap from "../components/FieldIndicatorMap";
 
 // ════════════════════════════════════════════════════════════
@@ -20,6 +23,10 @@ const INDICES = {
   ndvi: { name: "NDVI", label: "صحة الغطاء النباتي", lowIsProblem: true, healthy: 0.7 },
   ndmi: { name: "NDMI", label: "رطوبة المحتوى", lowIsProblem: true, healthy: 0.5 },
   salinity: { name: "SI", label: "مؤشر الملوحة", lowIsProblem: false, healthy: 0.2 },
+  // Sprint 5b — مؤشّرات موسّعة (band-math + بلاطات في raster-service)
+  ndre: { name: "NDRE", label: "النيتروجين (red-edge)", lowIsProblem: true, healthy: 0.4 },
+  msavi: { name: "MSAVI", label: "تصحيح تربة ذاتي", lowIsProblem: true, healthy: 0.6 },
+  moisture: { name: "الرطوبة", label: "محتوى الرطوبة (NDMI)", lowIsProblem: true, healthy: 0.5 },
 } as const;
 
 type IndexKey = keyof typeof INDICES;
@@ -161,6 +168,14 @@ export default function SpatialView() {
     apiDate,
   );
 
+  // وصفة مناطق الإدارة (VRT) — تقسيم كوانتايل + معدّل موصى به لكلّ منطقة.
+  // base_rate إرشادي (كغ/هـ مثلاً)؛ المعدّل النهائي قرار agronomic يحتاج تحقّقاً.
+  const { data: rxResp } = useFieldPrescription(FIELD_ID, indexKey as GridIndex, apiDate, {
+    nZones: 3,
+    baseRate: 100,
+    strategy: "compensate",
+  });
+
   // هل لدينا بيانات حقيقيّة قابلة للعرض؟
   const hasReal = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
 
@@ -184,11 +199,17 @@ export default function SpatialView() {
 
   const idx = INDICES[indexKey];
 
-  const interp = (k: IndexKey) => ({
-    ndvi: "غطاء نباتي ضعيف — فرضيات: ملوحة، نقص ري، نقص تغذية، أو إصابة. يحتاج تحقّقاً ميدانياً.",
-    ndmi: "رطوبة منخفضة — منطقة جافة محتملة. راجع توزيع الري.",
-    salinity: "مؤشر ملوحة مرتفع — بقعة مالحة محتملة. خذ عينة تربة (S3).",
-  }[k]);
+  const interp = (k: IndexKey) => {
+    const m: Partial<Record<IndexKey, string>> = {
+      ndvi: "غطاء نباتي ضعيف — فرضيات: ملوحة، نقص ري، نقص تغذية، أو إصابة. يحتاج تحقّقاً ميدانياً.",
+      ndmi: "رطوبة منخفضة — منطقة جافة محتملة. راجع توزيع الري.",
+      salinity: "مؤشر ملوحة مرتفع — بقعة مالحة محتملة. خذ عينة تربة (S3).",
+      ndre: "إشارة نيتروجين منخفضة (red-edge) — قد تحتاج تسميداً موجّهاً. أكّد ميدانياً.",
+      msavi: "غطاء نباتي ضعيف (تصحيح تربة) — تربة عارية أو نموّ متأخّر محتمل.",
+      moisture: "رطوبة منخفضة — منطقة جافة محتملة. راجع توزيع الري.",
+    };
+    return m[k] ?? "قراءة شاذّة — تحتاج تحقّقاً ميدانياً.";
+  };
 
   const zoneCells = new Set<string>();
   zones.forEach((z) => z.comp.forEach(([r, c]) => zoneCells.add(`${r},${c}`)));
@@ -384,6 +405,44 @@ export default function SpatialView() {
                 : `انحراف معياري ${fieldStats.sd.toFixed(3)} · ${rows}×${cols} بكسل`}
             </div>
           </div>
+
+          {/* وصفة مناطق الإدارة (VRT) — تقسيم كوانتايل + معدّل موصى به */}
+          {rxResp && rxResp.zones.length > 0 && (
+            <div style={{
+              background: "#1a2b21", borderRadius: 12, padding: 16, marginBottom: 14,
+              border: "1px solid #2d4a37",
+            }}>
+              <div style={{ fontSize: 13, color: "#fff", fontWeight: 700, marginBottom: 4 }}>
+                وصفة مناطق الإدارة (VRT)
+              </div>
+              <div style={{ fontSize: 11, color: "#9cb8a3", marginBottom: 10 }}>
+                {rxResp.n_zones} مناطق · {rxResp.total_pixels} بكسل
+                {rxResp.real_data ? "" : " · عرض توضيحي (محاكاة)"}
+              </div>
+              {rxResp.zones.map((z) => (
+                <div key={z.zone} style={{
+                  display: "flex", justifyContent: "space-between", alignItems: "center",
+                  padding: "8px 10px", marginBottom: 6, borderRadius: 8, background: "#0d1611",
+                }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: "#e8eee9", fontWeight: 600 }}>{z.zone}</div>
+                    <div style={{ fontSize: 10, color: "#7fae8c" }}>
+                      {z.pct}% · [{z.value_range[0].toFixed(2)}–{z.value_range[1].toFixed(2)}]
+                    </div>
+                  </div>
+                  {z.rate != null && (
+                    <div style={{ textAlign: "left" }}>
+                      <div style={{ fontSize: 15, color: "#5cbf6e", fontWeight: 800 }}>{z.rate}</div>
+                      <div style={{ fontSize: 9, color: "#7fae8c" }}>معدّل ×{z.factor}</div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div style={{ fontSize: 10, color: "#7fae8c", marginTop: 6, lineHeight: 1.6 }}>
+                المعدّلات إرشاديّة (معدّل أساسي 100) — القرار الزراعي يحتاج تحقّقاً ميدانياً.
+              </div>
+            </div>
+          )}
 
           {/* مناطق الاهتمام */}
           <div style={{ fontSize: 13, color: "#fff", fontWeight: 700, marginBottom: 10 }}>

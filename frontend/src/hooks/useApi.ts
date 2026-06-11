@@ -20,6 +20,10 @@ import {
   type Equipment, type EquipmentCreateInput, type MaintenanceRecord, type MaintenanceCreateInput,
   fetchActivities, createActivity,
   type Activity, type ActivityCreateInput,
+  fetchIrrigationAdvice, fetchDiseaseRisk,
+  type IrrigationAdvice, type DiseaseRisk,
+  fetchAlerts, createAlert, acknowledgeAlert,
+  type AlertRecord, type AlertCreateInput, type AlertListFilters,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
@@ -35,6 +39,9 @@ import {
   // ── المزارع (بوّابة التأهيل): سرد + إنشاء ──
   fetchFarms, createFarm,
   type Farm, type FarmCreateInput, type FarmCreated,
+  // ── تفاصيل الحقل المتقدّمة (v37): قراءة + تحديث جزئيّ (ملء تدريجيّ) ──
+  fetchFieldDetail, updateField,
+  type FieldDetail, type FieldUpdatePatch,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 
@@ -51,11 +58,16 @@ export const QK = {
   soilParams:       (fid: string)        => ['soil', 'params', fid],
   soilNRec:         (fid: string)        => ['soil', 'nrec', fid],
   fields:           (tid: string)        => ['fields', tid],
+  fieldDetail:      (tid: string, fid: string) => ['field-detail', tid, fid],
   farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
+  irrigationAdvice: (tid: string, fid: string) => ['weather-advice', 'irrigation', tid, fid],
+  diseaseRisk:      (tid: string, fid: string) => ['weather-advice', 'disease', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
+  prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
+                       ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
   // الأنظمة الجديدة (شاشات الويب)
   inventoryItems:   (tid: string)        => ['inventory', 'items', tid],
@@ -110,7 +122,7 @@ export interface GuardrailsResult {
 }
 
 // ── Indicator Grid (raster-service per-pixel grid) ──────────────
-export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity';
+export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture';
 
 export interface IndicatorGridZone {
   id: string;
@@ -237,6 +249,54 @@ export function useIndicatorGrid(
   });
 }
 
+// ── Prescription / management zones (raster-service quantile binning) ──
+export interface PrescriptionZone {
+  zone: string;            // low | medium | high | zone_N
+  pixel_count: number;
+  pct: number;
+  value_range: [number, number];
+  rate?: number;           // معدّل موصى به (إن مُرّر base_rate)
+  factor?: number;
+}
+
+export interface PrescriptionResponse {
+  field_id: string;
+  index: string;
+  date: string;
+  real_data: boolean;
+  source: string;
+  n_zones: number;
+  total_pixels: number;
+  field_mean: number;
+  field_cv: number | null;
+  zones: PrescriptionZone[];
+  base_rate?: number;
+  strategy?: string;
+  prescription?: { zone: string; pct_of_field: number; rate: number; factor: number }[];
+}
+
+// Management zones + variable-rate prescription from the indicator grid.
+export function useFieldPrescription(
+  fieldId: string,
+  index: GridIndex,
+  date: string = 'latest',
+  opts: { nZones?: number; baseRate?: number; strategy?: string; enabled?: boolean } = {},
+) {
+  const { nZones = 3, baseRate, strategy = 'compensate', enabled = true } = opts;
+  return useQuery<PrescriptionResponse>({
+    // baseRate/strategy في المفتاح: تغييرهما يُبطل الكاش ويُعيد الجلب (الطلب POST يعتمدهما).
+    queryKey: QK.prescription(fieldId, index, date, nZones, baseRate ?? null, strategy),
+    queryFn:  () => rasterApi
+      .post(`/v1/fields/${fieldId}/prescription`, {
+        index, date, n_zones: nZones, base_rate: baseRate ?? null, strategy,
+      })
+      .then(r => r.data),
+    staleTime: 10 * 60_000,
+    enabled:   !!fieldId && enabled,
+    retry:     false,
+  });
+}
+
 export function useIndicatorsCatalog() {
   return useQuery({
     queryKey: QK.indicatorsCatalog,
@@ -307,6 +367,37 @@ export function useFields() {
   });
 }
 
+// ── Field Detail: تفاصيل الحقل المتقدّمة (sahool-platform v37) — ملء تدريجيّ ──
+// قراءة حيّة (field:view) عند فتح لوحة التفاصيل فقط (enabled على fieldId). لا
+// fallback وهميّ: عند الخطأ (503 DB / 404 حقل / 403) يُرفض الاستعلام لتعرض
+// الواجهة حالة صادقة (StateViews).
+export function useFieldDetail(fieldId?: string): UseQueryResult<FieldDetail, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldDetail, Error>({
+    queryKey: QK.fieldDetail(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchFieldDetail(fieldId as string),
+    enabled:  !!fieldId,
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// تحديث جزئيّ لتفاصيل حقل — يُبطِل كاش التفاصيل وقائمة الحقول للمستأجِر الحاليّ.
+// 503 DB / 404 حقل / 403 RBAC يُرفع ليعرض الـUI خطأً صادقاً (لا حفظ تفاؤليّ صامت).
+export function useUpdateField(
+  fieldId: string,
+): UseMutationResult<FieldDetail, Error, FieldUpdatePatch> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<FieldDetail, Error, FieldUpdatePatch>({
+    mutationFn: (patch) => updateField(fieldId, patch),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: QK.fieldDetail(tid, fieldId) });
+      qc.invalidateQueries({ queryKey: QK.fields(tid) });
+    },
+  });
+}
+
 // ── Farms: المزارع (حيّة، tenant-scoped + RBAC farm:view/create) ──
 // تُستخدم لبوّابة التأهيل: مستخدم جديد بلا مزرعة يُجبَر على إنشاء واحدة قبل اللوحة.
 // لا fallback وهميّ: عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرفض الاستعلام.
@@ -374,25 +465,64 @@ export function useCreateActivity(
   });
 }
 
-// ── Alerts ────────────────────────────────────────────────────
-export function useAlerts() {
-  const { user } = useAuthStore();
-  const tid = (user as any)?.tenant_id ?? 'default';
-  return useQuery({
-    queryKey: QK.alerts(tid),
-    queryFn:  () => indicatorsApi.get('/v1/alerts', { params: { tenant_id: tid } })
-      .then(r => r.data).catch(() => ({ alerts: [] })),
+// ── Weather advice: توصية الريّ + مخاطر الأمراض لكلّ حقل (Sprint 5a) ──
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 طقس/قاعدة، 404 حقل، 422 بلا
+// إحداثيّات، 403) يُرفض الاستعلام لتعرض الواجهة حالة صادقة. مُفعَّل فقط مع fieldId.
+export function useIrrigationAdvice(fieldId?: string): UseQueryResult<IrrigationAdvice, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<IrrigationAdvice, Error>({
+    queryKey: QK.irrigationAdvice(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchIrrigationAdvice(fieldId as string),
+    staleTime:10 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
+  });
+}
+
+export function useDiseaseRisk(fieldId?: string): UseQueryResult<DiseaseRisk, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<DiseaseRisk, Error>({
+    queryKey: QK.diseaseRisk(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchDiseaseRisk(fieldId as string),
+    staleTime:10 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
+  });
+}
+
+// ── Alerts: التنبيهات الزراعيّة المُصنَّفة لكلّ مستأجِر (sahool-platform v36) ──
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC) يُرفض الاستعلام
+// لتعرض الواجهة حالة صادقة (StateViews) بدل تنبيهات ملفّقة.
+export function useAlerts(
+  filters: AlertListFilters = {},
+): UseQueryResult<AlertRecord[], Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<AlertRecord[], Error>({
+    queryKey: [...QK.alerts(tid), filters.status ?? 'all', filters.severity ?? 'all'],
+    queryFn:  () => fetchAlerts(filters),
     staleTime:60_000,
     refetchInterval: 2 * 60_000,
   });
 }
 
-// إقرار تنبيه (persist فعليّ عبر indicators). الواجهة تُحدّث تفاؤليّاً والـPATCH
-// يثبّت الإقرار على الخادم. صدق: لو تعذّرت النقطة، الإقرار يبقى محلّيّاً للجلسة.
-export function useAcknowledgeAlert() {
-  return useMutation<unknown, Error, string>({
-    mutationFn: (alertId) =>
-      indicatorsApi.patch(`/indicators/alerts/${alertId}/acknowledge`).then(r => r.data),
+// إقرار تنبيه (persist فعليّ على sahool-platform) — يُبطِل كاش تنبيهات المستأجِر
+// ليُعاد جلب القائمة بالحالة المُثبَّتة على الخادم.
+export function useAcknowledgeAlert(): UseMutationResult<AlertRecord, Error, string> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<AlertRecord, Error, string>({
+    mutationFn: (alertId) => acknowledgeAlert(alertId),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
+  });
+}
+
+// إنشاء تنبيه — يُبطِل كاش تنبيهات المستأجِر.
+export function useCreateAlert(): UseMutationResult<AlertRecord, Error, AlertCreateInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<AlertRecord, Error, AlertCreateInput>({
+    mutationFn: (payload) => createAlert(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
   });
 }
 

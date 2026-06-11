@@ -25,7 +25,8 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
 
   const kpis   = dashboard?.kpis           || [];
   const fields  = dashboard?.fields_summary || [];
-  const alerts  = alertsData?.alerts || dashboard?.alerts || [];
+  // alertsData هو AlertRecord[] من sahool-platform (v36) — قائمة مباشرة لا { alerts }.
+  const alerts  = alertsData ?? dashboard?.alerts ?? [];
   const weather = weatherData?.current;
   // natsData is a ServiceHealth[]; these aggregate fields are read defensively
   // (undefined at runtime) — typed via a narrow optional shape to match usage.
@@ -128,15 +129,15 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
             <button onClick={() => setPage('alerts')} className="text-xs text-emerald-400">الكل</button>
           </div>
           {alerts.slice(0,3).map((a: any) => {
-            const color = a.color || '#f59e0b';
+            const color = a.severity === 'critical' ? '#dc2626' : a.severity === 'warning' ? '#f59e0b' : a.color || '#38bdf8';
             return (
-              <div key={a.id} className="rounded-lg p-3 cursor-pointer" style={{ background:`${color}11`, border:`1px solid ${color}33` }}
+              <div key={a.alert_id || a.id} className="rounded-lg p-3 cursor-pointer" style={{ background:`${color}11`, border:`1px solid ${color}33` }}
                 onClick={() => setPage('alerts')}>
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs font-semibold" style={{ color }}>{a.field_name||a.field}</span>
-                  <span className="text-[10px] text-slate-500">{a.timestamp ? new Date(a.timestamp).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
+                  <span className="text-xs font-semibold" style={{ color }}>{a.title_ar || a.field_id || a.field_name || a.field || 'تنبيه'}</span>
+                  <span className="text-[10px] text-slate-500">{(a.created_at || a.timestamp) ? new Date(a.created_at || a.timestamp).toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'}) : ''}</span>
                 </div>
-                <p className="text-xs text-slate-300">{a.message}</p>
+                <p className="text-xs text-slate-300">{a.message_ar || a.message}</p>
               </div>
             );
           })}

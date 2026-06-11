@@ -137,6 +137,39 @@ def prescription_from_zones(
     return out
 
 
+def prescription_from_grid(
+    grid: list[list],
+    n_zones: int = 3,
+    base_rate: float | None = None,
+    strategy: str = "compensate",
+) -> dict:
+    """يحوّل شبكة مؤشّر (rows من float|None) إلى مناطق إدارة + وصفة معدّل.
+
+    يسطّح الشبكة (متجاهلاً null/NaN)، يقسّمها بالكوانتايل عبر classify_zones،
+    ثمّ يلصق المعدّل الموصى به لكلّ منطقة إن مُرّر base_rate. صدق: يعمل على قيم
+    حقيقيّة فقط؛ شبكة فارغة → zones=[] مع خطأ واضح (لا اختراع معدّلات).
+
+    يُرجِع: {n_zones, total_pixels, zones, field_mean, field_cv,
+             prescription?: [...]}  حيث كلّ zone يحمل value_range وpct
+    وpixel_count، وعند الوصفة rate/factor.
+    """
+    flat = [v for row in grid for v in row]
+    result = classify_zones(flat, n_zones=n_zones)
+    if base_rate is not None and result.get("zones"):
+        rx = prescription_from_zones(result["zones"], base_rate, strategy=strategy)
+        # ادمج المعدّل داخل كلّ منطقة (per-zone stats + rate في كائن واحد)
+        rate_by_zone = {r["zone"]: r for r in rx}
+        for z in result["zones"]:
+            r = rate_by_zone.get(z["zone"])
+            if r:
+                z["rate"] = r["rate"]
+                z["factor"] = r["factor"]
+        result["prescription"] = rx
+        result["base_rate"] = base_rate
+        result["strategy"] = strategy
+    return result
+
+
 def _finite(v) -> bool:
     try:
         return v == v and abs(v) != float("inf")

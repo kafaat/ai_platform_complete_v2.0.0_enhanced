@@ -41,6 +41,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
+import band_math
 import httpx
 import object_store
 import salinity_calibration as _sal
@@ -113,6 +114,8 @@ class IndicatorKind(StrEnum):
     tgi = "tgi"
     ndre = "ndre"
     msi = "msi"  # NDRE (نيتروجين/red-edge) + MSI (إجهاد مائي)
+    msavi = "msavi"  # Modified SAVI (تصحيح تربة ذاتي L) — كثافة نباتيّة منخفضة
+    moisture = "moisture"  # مؤشّر رطوبة (NDMI-style: NIR/SWIR1) للواجهة
     # مؤشّرات التربة (Sentinel-2) — تسدّ نقص: السابقة كلّها نباتيّة
     bsi = "bsi"
     bi = "bi"
@@ -962,6 +965,8 @@ _INDICATOR_FORMULAS = {
     "gndvi": "(NIR - GREEN) / (NIR + GREEN)",
     "ndre": "(NIR - REDEDGE) / (NIR + REDEDGE)  # النيتروجين/الكلوروفيل (red-edge)",
     "msi": "SWIR1 / NIR  # Moisture Stress Index (الإجهاد المائي)",
+    "msavi": "(2*NIR + 1 - sqrt((2*NIR+1)^2 - 8*(NIR-RED))) / 2  # Modified SAVI (L ذاتي)",
+    "moisture": "(NIR - SWIR1) / (NIR + SWIR1)  # NDMI رطوبة المحتوى (للواجهة)",
     "fapar": "أساسها NDVI (علاقة تجريبيّة)",
     "vari": "(GREEN - RED) / (GREEN + RED - BLUE)",  # RGB-only للدرون
     "gli": "(2*GREEN - RED - BLUE) / (2*GREEN + RED + BLUE)",
@@ -1294,15 +1299,25 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
         swir2 = band(b.swir2) if b.swir2 is not None else None
         np.seterr(divide="ignore", invalid="ignore")
         ind = req.indicator.value
-        if ind == "ndvi":
+        if ind in band_math.NEW_INDEX_BANDS:
+            # المؤشّرات الموسّعة (ndre/evi/msavi/moisture) — صيغ نقيّة مختبَرة
+            # في band_math.py (مصدر واحد للحقيقة، يُعيد استخدام نفس قراءة النطاق).
+            arr = band_math.compute(
+                ind,
+                {
+                    "red": red,
+                    "nir": nir,
+                    "green": green,
+                    "blue": blue,
+                    "swir1": swir1,
+                    "rededge": rededge,
+                },
+                np,
+            )
+        elif ind == "ndvi":
             arr = (nir - red) / (nir + red)
         elif ind == "gndvi":
             arr = (nir - green) / (nir + green)
-        elif ind == "ndre":
-            # NDRE: النيتروجين/الكلوروفيل عبر red-edge (الأدقّ للنيتروجين)
-            if rededge is None:
-                raise ValueError("NDRE يتطلّب نطاق rededge (B5/B6/B7) في bands")
-            arr = (nir - rededge) / (nir + rededge)
         elif ind == "msi":
             # Moisture Stress Index: SWIR1/NIR (أعلى = إجهاد مائي أكبر)
             arr = swir1 / nir
@@ -1312,8 +1327,6 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             arr = (nir - swir1) / (nir + swir1)
         elif ind == "savi":
             arr = 1.5 * (nir - red) / (nir + red + 0.5)
-        elif ind == "evi":
-            arr = 2.5 * (nir - red) / (nir + 6 * red - 7.5 * blue + 1)
         elif ind == "vari":
             # حماية القسمة: المقام قد يبلغ صفراً (green+red=blue) → epsilon
             _denom = green + red - blue
@@ -1966,6 +1979,59 @@ async def field_indicator_grid(
     if layer is not None and layer.get("bounds_4326"):
         bbox = [round(float(x), 6) for x in layer["bounds_4326"]]
     return ig.synthetic_grid(field_id, out_index, date, bbox, grid)
+
+
+class PrescriptionRequest(BaseModel):
+    index: str = "ndvi"
+    date: str = "latest"
+    grid: int = Field(32, ge=2, le=256)
+    n_zones: int = Field(3, ge=2, le=6)
+    base_rate: float | None = None  # معدّل أساسي (سماد/بذار) لاشتقاق معدّل المناطق
+    strategy: str = "compensate"  # compensate | protect
+
+
+@app.post("/v1/fields/{field_id}/prescription")
+async def field_prescription(field_id: str, req: PrescriptionRequest):
+    """وصفة مناطق الإدارة (VRT) من شبكة المؤشّر — سدّ Sprint 5b.
+
+    يبني شبكة المؤشّر للحقل (نفس مسار indicator-grid: COG حقيقي إن وُجد وإلّا
+    محاكاة صادقة)، يقسّمها بالكوانتايل إلى n_zones مناطق أداء، ويشتقّ معدّلاً
+    موصى به لكلّ منطقة إن مُرّر base_rate. يُرجِع المناطق + إحصاء كلّ منطقة
+    (pixel_count, pct, value_range) + متوسّط/تباين الحقل.
+
+    صدق: real_data ينعكس من مصدر الشبكة؛ المعدّلات إرشاديّة (قرار agronomic
+    يحتاج تحقّقاً ميدانيّاً).
+    """
+    import indicator_grid as ig
+    import management_zones as mz
+
+    layer = await _resolve_field_layer(field_id, req.index, req.date)
+    grid_resp = None
+    if layer is not None:
+        grid_resp = _grid_from_cog(layer, req.index, req.date, req.grid)
+    if grid_resp is None:
+        bbox = [44.0, 16.0, 44.01, 16.01]
+        if layer is not None and layer.get("bounds_4326"):
+            bbox = [round(float(x), 6) for x in layer["bounds_4326"]]
+        grid_resp = ig.synthetic_grid(field_id, req.index, req.date, bbox, req.grid)
+
+    pres = mz.prescription_from_grid(
+        grid_resp["grid"],
+        n_zones=req.n_zones,
+        base_rate=req.base_rate,
+        strategy=req.strategy,
+    )
+    return {
+        "field_id": field_id,
+        "index": req.index,
+        "date": grid_resp.get("date", req.date),
+        "bbox": grid_resp.get("bbox"),
+        "rows": grid_resp.get("rows"),
+        "cols": grid_resp.get("cols"),
+        "real_data": grid_resp.get("real_data", False),
+        "source": grid_resp.get("source", "raster"),
+        **pres,
+    }
 
 
 # ─── بلاطات XYZ ديناميكيّة (TiTiler-style) من COG الحقل المقصوص ────────

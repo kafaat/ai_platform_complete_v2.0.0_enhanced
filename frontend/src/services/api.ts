@@ -423,6 +423,88 @@ export const createActivity = (
   kongApi.post<Activity>(`/api/v1/fields/${fieldId}/activities`, payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// WEATHER ADVICE — توصية ريّ (FAO-56) + مخاطر أمراض لكلّ حقل (Sprint 5a).
+// تُحسبان من الطقس الحيّ (Open-Meteo) ومحصول الموسم النشط. ربط حيّ بلا تلفيق:
+// عند الخطأ (503 طقس/قاعدة، 404 حقل، 422 بلا إحداثيّات، 403 RBAC) يُرمى
+// ليعرض الـUI حالة صادقة (StateViews).
+// ══════════════════════════════════════════════════════════════════
+export interface IrrigationAdvice {
+  recommended_mm: number;
+  urgency:        'none' | 'low' | 'moderate' | 'high' | string;
+  timing_ar:      string;
+  et0:            number;
+  kc:             number;
+  rationale_ar:   string;
+  field_id:       string;
+  crop:           string | null;
+  stage:          string;
+  source:         string;
+}
+
+export interface DiseaseRisk {
+  risk_level:     'low' | 'moderate' | 'high' | string;
+  diseases_ar:    string[];
+  advice_ar:      string;
+  field_id:       string;
+  crop:           string | null;
+  temperature_c:  number;
+  humidity_pct:   number;
+  rain_mm_3d:     number;
+  source:         string;
+}
+
+export const fetchIrrigationAdvice = (fieldId: string): Promise<IrrigationAdvice> =>
+  kongApi.get<IrrigationAdvice>(`/api/v1/fields/${fieldId}/weather/irrigation-advice`).then(r => r.data);
+
+export const fetchDiseaseRisk = (fieldId: string): Promise<DiseaseRisk> =>
+  kongApi.get<DiseaseRisk>(`/api/v1/fields/${fieldId}/weather/disease-risk`).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// ALERTS — التنبيهات الزراعيّة المُصنَّفة لكلّ مستأجِر (sahool-platform v36).
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC) يُرمى ليعرض الـUI
+// حالة صادقة. field:view للقراءة، field:edit للإنشاء/الإقرار.
+// ══════════════════════════════════════════════════════════════════
+export type AlertType =
+  | 'low_moisture' | 'heavy_rain' | 'disease_risk'
+  | 'heat_stress' | 'frost_risk' | 'other';
+
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+export type AlertStatus = 'active' | 'acknowledged' | 'resolved';
+
+export interface AlertRecord {
+  alert_id:    string;
+  field_id:    string | null;
+  alert_type:  AlertType | string;
+  severity:    AlertSeverity | string;
+  title_ar:    string | null;
+  message_ar:  string | null;
+  status:      AlertStatus | string;
+  created_at:  string | null;
+}
+
+export interface AlertCreateInput {
+  alert_type: AlertType;
+  severity:   AlertSeverity;
+  title_ar?:  string;
+  message_ar?: string;
+  field_id?:  string;
+}
+
+export interface AlertListFilters {
+  status?:   AlertStatus;
+  severity?: AlertSeverity;
+}
+
+export const fetchAlerts = (filters: AlertListFilters = {}): Promise<AlertRecord[]> =>
+  kongApi.get<AlertRecord[]>('/api/v1/alerts', { params: filters }).then(r => r.data);
+
+export const createAlert = (payload: AlertCreateInput): Promise<AlertRecord> =>
+  kongApi.post<AlertRecord>('/api/v1/alerts', payload).then(r => r.data);
+
+export const acknowledgeAlert = (alertId: string): Promise<AlertRecord> =>
+  kongApi.patch<AlertRecord>(`/api/v1/alerts/${alertId}/acknowledge`).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
 // عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.
 // device:view للقراءة، device:manage للتسجيل، observation:record لرفع قياس.
@@ -764,6 +846,76 @@ export const createFarm = (payload: FarmCreateInput): Promise<FarmCreated> =>
   kongApi.post<FarmCreated>('/api/v1/farms', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// FIELD DETAIL — تفاصيل الحقل المتقدّمة (sahool-platform v37). ملء تدريجيّ
+// بعد الإنشاء: كيمياء التربة + المناخ الدقيق + الملكيّة. ربط حيّ بلا تلفيق —
+// field:view للقراءة (GET /fields/{id})، field:edit للتحديث الجزئيّ (PATCH).
+// عند الخطأ (503 DB / 404 حقل / 403 RBAC) يُرمى ليعرض الـUI حالة صادقة.
+// ══════════════════════════════════════════════════════════════════
+export interface FieldDetail {
+  field_id:        string;
+  farm_id:         string;
+  name_ar:         string;
+  crop:            string;
+  area_ha:         number;
+  quality_grade:   string;
+  health_summary_ar: string;
+  soil_type?:      string | null;
+  manager?:        string | null;
+  field_code?:     string | null;
+  description?:    string | null;
+  water_source?:   string | null;
+  ownership_type?: string | null;
+  country?:        string | null;
+  region?:         string | null;
+  lat?:            number | null;
+  lon?:            number | null;
+  geometry?:       Record<string, unknown> | null;
+  // كيمياء التربة (نتائج مختبر)
+  soil_ph?:        number | null;
+  soil_ec?:        number | null;
+  soil_om?:        number | null; // المادّة العضويّة %
+  soil_n?:         number | null;
+  soil_p?:         number | null;
+  soil_k?:         number | null;
+  // المناخ الدقيق / التضاريس
+  elevation_m?:        number | null;
+  slope_pct?:          number | null;
+  aspect?:             string | null;
+  climate_zone?:       string | null;
+  annual_rainfall_mm?: number | null;
+  // تفاصيل الملكيّة
+  owner_name?:     string | null;
+  lease_years?:    number | null;
+  registry_no?:    string | null;
+}
+
+// تحديث جزئيّ: كلّ الحقول اختياريّة — تُرسَل المُعدَّلة فقط (الخادم يحدّثها فقط).
+export interface FieldUpdatePatch {
+  soil_ph?:            number | null;
+  soil_ec?:            number | null;
+  soil_om?:            number | null;
+  soil_n?:             number | null;
+  soil_p?:             number | null;
+  soil_k?:             number | null;
+  elevation_m?:        number | null;
+  slope_pct?:          number | null;
+  aspect?:             string | null;
+  climate_zone?:       string | null;
+  annual_rainfall_mm?: number | null;
+  owner_name?:         string | null;
+  lease_years?:        number | null;
+  registry_no?:        string | null;
+}
+
+/** تفاصيل حقل كاملة (field:view). 404 لو ليس للمستأجِر، 503 عند تعطيل DB. */
+export const fetchFieldDetail = (fieldId: string): Promise<FieldDetail> =>
+  kongApi.get<FieldDetail>(`/api/v1/fields/${fieldId}`).then(r => r.data);
+
+/** تحديث جزئيّ لتفاصيل حقل (field:edit). تُرسَل الحقول المُعدَّلة فقط. */
+export const updateField = (fieldId: string, patch: FieldUpdatePatch): Promise<FieldDetail> =>
+  kongApi.patch<FieldDetail>(`/api/v1/fields/${fieldId}`, patch).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS SERVICE — 33 مؤشر + WOFOST
 // ══════════════════════════════════════════════════════════════════
 
@@ -795,12 +947,9 @@ export const fetchIndicatorCatalog = () =>
     () => ({ total:33, categories:{} })
   );
 
-/** تنبيهات */
-export const fetchAlerts = (severity?: string) =>
-  tryReal(
-    () => indicatorsApi.get('/indicators/alerts', { params:{ severity } }).then(r => r.data),
-    () => ({ total_alerts:3, alerts:MOCK_ALERTS })
-  );
+// ملحوظة: fetchAlerts/createAlert/acknowledgeAlert (التنبيهات الزراعيّة v36)
+// مُعرَّفة أعلاه عبر kongApi (sahool-platform). نقطة indicators القديمة المُلفَّقة
+// أُزيلت لمصلحة الربط الحيّ الموحَّد.
 
 /** حالة NATS */
 export const fetchNatsStatus = () =>

@@ -6,7 +6,7 @@ import {
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
-  ShieldCheck, Sprout,
+  ShieldCheck, Sprout, CloudRain,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
@@ -67,6 +67,7 @@ const InventoryPage       = lazy(() => import('./sections/InventoryPage'));
 const EquipmentPage       = lazy(() => import('./sections/EquipmentPage'));
 const DevicesPage         = lazy(() => import('./sections/DevicesPage'));
 const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
+const WeatherAdvicePage   = lazy(() => import('./sections/WeatherAdvicePage'));
 const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
 const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
@@ -78,7 +79,8 @@ export type PageId =
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
-  | 'activities' | 'master-data' | 'documents' | 'governance';
+  | 'activities' | 'master-data' | 'documents' | 'governance'
+  | 'weather-advice';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -87,6 +89,7 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'fields',       label:'إدارة الحقول',   icon:Map },
   { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
   { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
+  { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
   { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
   { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
   { id:'field-intelligence', label:'المايسترو', icon:Activity },
@@ -342,6 +345,7 @@ export default function App() {
       case 'equipment':    return <EquipmentPage />;
       case 'devices':      return <DevicesPage />;
       case 'irrigation-ops': return <IrrigationOpsPage />;
+      case 'weather-advice': return <WeatherAdvicePage />;
       case 'master-data':  return <MasterDataPage />;
       case 'documents':    return <DocumentsPage />;
       case 'governance':   return <GovernancePage />;

@@ -14,16 +14,27 @@ import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 // أيّ مؤشّر من طبقات الواجهة يملك بلاطات/شبكة حقيقيّة في raster-service؟
 // غير المدعوم يسقط إلى ndvi (الخدمة تُرجِع بلاطات شفّافة لغير المدعوم).
-const GRID_INDEX_MAP: Record<string, GridIndex> = { ndvi: 'ndvi', ndwi: 'ndwi' };
+// Sprint 5b: أُضيف ndre/msavi/evi/moisture (band-math + بلاطات في raster-service).
+const GRID_INDEX_MAP: Record<string, GridIndex> = {
+  ndvi: 'ndvi',
+  ndwi: 'ndwi',
+  evi: 'evi',
+  ndre: 'ndre',
+  msavi: 'msavi',
+  moisture: 'moisture',
+};
 
 const INDICES = [
-  { id:'ndvi',  name:'NDVI',  desc:'الغطاء النباتي', color:'#16a34a', icon:'🌿' },
-  { id:'evi',   name:'EVI',   desc:'الغطاء المحسّن', color:'#dc2626', icon:'📊' },
-  { id:'savi',  name:'SAVI',  desc:'تصحيح التربة',   color:'#f59e0b', icon:'🏜' },
-  { id:'ndwi',  name:'NDWI',  desc:'محتوى المياه',   color:'#3b82f6', icon:'💧' },
-  { id:'gndvi', name:'GNDVI', desc:'NDVI أخضر',      color:'#22c55e', icon:'🌱' },
-  { id:'lai',   name:'LAI',   desc:'مساحة الورق',    color:'#8b5cf6', icon:'🍃' },
-  { id:'rgb',   name:'صورة حقيقية', desc:'Sentinel-2 RGB', color:'#6b7280', icon:'🛰️' },
+  { id:'ndvi',     name:'NDVI',  desc:'الغطاء النباتي', color:'#16a34a', icon:'🌿' },
+  { id:'evi',      name:'EVI',   desc:'الغطاء المحسّن', color:'#dc2626', icon:'📊' },
+  { id:'msavi',    name:'MSAVI', desc:'تصحيح تربة ذاتي', color:'#ea580c', icon:'🏜' },
+  { id:'ndre',     name:'NDRE',  desc:'النيتروجين (red-edge)', color:'#a855f7', icon:'🧪' },
+  { id:'moisture', name:'الرطوبة', desc:'محتوى الرطوبة (NDMI)', color:'#0ea5e9', icon:'💦' },
+  { id:'savi',     name:'SAVI',  desc:'تصحيح التربة',   color:'#f59e0b', icon:'🏜' },
+  { id:'ndwi',     name:'NDWI',  desc:'محتوى المياه',   color:'#3b82f6', icon:'💧' },
+  { id:'gndvi',    name:'GNDVI', desc:'NDVI أخضر',      color:'#22c55e', icon:'🌱' },
+  { id:'lai',      name:'LAI',   desc:'مساحة الورق',    color:'#8b5cf6', icon:'🍃' },
+  { id:'rgb',      name:'صورة حقيقية', desc:'Sentinel-2 RGB', color:'#6b7280', icon:'🛰️' },
 ];
 
 interface SatField {
