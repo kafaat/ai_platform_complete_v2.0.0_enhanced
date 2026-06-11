@@ -27,7 +27,11 @@ logger = logging.getLogger("supervisor-agent.circuit")
 # بلا بنية تحتيّة. إن غاب prometheus_client تتحوّل المقاييس إلى لا-عمليّة. ──
 try:
     from prometheus_client import Counter, Gauge
-
+except ImportError:  # pragma: no cover - prometheus_client غير متوفّر (اختبار صرف)
+    # نحصر الابتلاع في غياب المكتبة فقط. أيّ خطأ تسجيل مقياس (اسم مكرّر،
+    # CollectorRegistry…) يجب أن يفشل بوضوح لا أن يُعطّل الإشارة بصمت.
+    _CIRCUIT_STATE = _CIRCUIT_TRANSITIONS = _CIRCUIT_REJECTIONS = None
+else:
     _CIRCUIT_STATE = Gauge(
         "sahool_circuit_state",
         "حالة قاطع دائرة MCP لكلّ خدمة (0=closed, 1=half_open, 2=open).",
@@ -43,8 +47,6 @@ try:
         "عدد الطلبات المرفوضة سريعاً لأنّ القاطع مفتوح (fail-fast).",
         ["service"],
     )
-except Exception:  # pragma: no cover - prometheus_client غير متوفّر (اختبار صرف)
-    _CIRCUIT_STATE = _CIRCUIT_TRANSITIONS = _CIRCUIT_REJECTIONS = None
 
 
 # الترميز العدديّ للحالة (للـGauge): يتيح تنبيهاً بسيطاً expr `== 2`.
