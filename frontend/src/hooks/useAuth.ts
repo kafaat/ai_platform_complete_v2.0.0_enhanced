@@ -37,7 +37,7 @@ export const useAuthStore = create<AuthState>()(
       isDemoMode: false,
 
       login: async (email: string, password: string) => {
-        const data = await apiLogin({ username: email, password });
+        const data = await apiLogin({ email, password });
         const token    = data.access_token;
         const tenantId = data.user?.tenant_id || data.tenant_id || 'default';
         const user: AuthUser = {

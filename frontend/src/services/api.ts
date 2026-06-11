@@ -76,21 +76,37 @@ async function tryReal<T>(fn: () => Promise<T>, fallback: () => T): Promise<T> {
 // ══════════════════════════════════════════════════════════════════
 // AUTH
 // ══════════════════════════════════════════════════════════════════
-export interface LoginPayload { username: string; password: string; }
+// عقد auth-service: /auth/login و/auth/register يتوقّعان `email` (لا username).
+export interface LoginPayload { email: string; password: string; }
 export interface AuthResponse { access_token: string; refresh_token: string; tenant_id?: string; role?: string; user: { username: string; role: string; tenant_id?: string; email?: string; full_name?: string } }
 
 export const login = (payload: LoginPayload): Promise<AuthResponse> =>
   // أمان (P0-2): المصادقة لا تسقط على fallback وهمي. الفشل يظهر بوضوح
   // بدل منح admin زائف. وضع التجريب فقط عبر MOCK_MODE الصريح، وبدور farmer.
   MOCK_MODE
-    ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh', user:{ username:payload.username, role:'farmer' } } as AuthResponse)
+    ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh', user:{ username:payload.email, email:payload.email, role:'farmer' } } as AuthResponse)
     : authApi.post<AuthResponse>('/auth/login', payload).then(r => r.data);
+
+// يستخرج رسالة خطأ مقروءة من ردّ FastAPI (detail قد يكون نصّاً أو مصفوفة كائنات).
+export function apiErrorMessage(e: any, fallback: string): string {
+  const d = e?.response?.data?.detail ?? e?.response?.data?.message_ar;
+  if (Array.isArray(d)) {
+    const msgs = d.map((x: any) => x?.msg || x?.message_ar || '').filter(Boolean);
+    return msgs.length ? msgs.join('، ') : fallback;
+  }
+  if (typeof d === 'string') return d;
+  if (d && typeof d === 'object') return d.message_ar || d.msg || fallback;
+  return e?.message || fallback;
+}
 
 export interface RegisterPayload { full_name: string; email: string; password: string }
 // التسجيل: الخلفيّة تُصدر توكناً مباشرةً (تسجيل دخول تلقائيّ). الدور يُثبَّت
 // 'farmer' خادم-جانبيّاً (منع تصعيد الصلاحيّات) — لا يُرسَل دور من العميل.
 export const register = (payload: RegisterPayload): Promise<AuthResponse> =>
-  authApi.post('/auth/register', payload).then(r => {
+  MOCK_MODE
+    ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh',
+        user:{ username:payload.email, email:payload.email, role:'farmer', full_name:payload.full_name } } as AuthResponse)
+    : authApi.post('/auth/register', payload).then(r => {
     const d = r.data as { access_token: string; refresh_token?: string; role?: string;
       full_name?: string; tenant_id?: string };
     return {

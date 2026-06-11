@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { Leaf, Eye, EyeOff, Loader2, AlertTriangle, UserPlus } from 'lucide-react';
 import { useAuthStore } from '../hooks/useAuth';
+import { apiErrorMessage } from '../services/api';
 
 const COUNTRIES = ['اليمن', 'السعودية', 'الإمارات', 'عُمان', 'مصر', 'الأردن', 'أخرى'];
 const LANGUAGES = [
@@ -32,7 +33,11 @@ export default function SignupPage({ onLogin }: { onLogin?: () => void }) {
     e.preventDefault();
     if (fullName.trim().length < 2) { setError('أدخل الاسم الكامل'); return; }
     if (!email) { setError('أدخل البريد الإلكتروني'); return; }
+    // مطابقة قواعد الخلفيّة (RegisterRequest): 8+ أحرف، حرف كبير، رقم، رمز خاص.
     if (password.length < 8) { setError('كلمة المرور 8 أحرف على الأقل'); return; }
+    if (!/[A-Z]/.test(password)) { setError('كلمة المرور يجب أن تحتوي على حرف كبير (إنجليزيّ)'); return; }
+    if (!/[0-9]/.test(password)) { setError('كلمة المرور يجب أن تحتوي على رقم'); return; }
+    if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?]/.test(password)) { setError('كلمة المرور يجب أن تحتوي على رمز خاص (مثل !@#$)'); return; }
     if (password !== confirm) { setError('كلمتا المرور غير متطابقتين'); return; }
     if (!agree) { setError('يجب الموافقة على الشروط'); return; }
     setLoading(true); setError('');
@@ -42,8 +47,8 @@ export default function SignupPage({ onLogin }: { onLogin?: () => void }) {
       await signup({ full_name: fullName.trim(), email: email.trim(), password });
       // النجاح ⇒ توكن محفوظ ⇒ التطبيق ينتقل تلقائيّاً (isAuthenticated).
     } catch (err: any) {
-      setError(err?.response?.data?.detail || err?.response?.data?.message_ar
-        || err?.message || 'تعذّر إنشاء الحساب');
+      // detail قد يكون مصفوفة كائنات (Pydantic 422) — نستخرج نصّاً مقروءاً.
+      setError(apiErrorMessage(err, 'تعذّر إنشاء الحساب'));
     } finally {
       setLoading(false);
     }
