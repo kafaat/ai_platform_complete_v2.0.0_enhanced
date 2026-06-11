@@ -1698,6 +1698,24 @@ async def _field_season_context(conn, field_id: str):
     return lat, lon, crop, stage, sowing_date
 
 
+async def _historical_rain_3d_mm(lat: float, lon: float, forecast_fallback: float) -> float:
+    """مطر تراكمي آخر ٣ أيام (تاريخيّ ERA5) — لمخاطر الأمراض تُعدّ رطوبة الأيام
+    السابقة لا المطر المستقبليّ. fallback لمجموع التوقّع إن تعذّر التاريخيّ."""
+    from datetime import timedelta as _td
+
+    from api.connectors.openmeteo import fetch_historical
+
+    try:
+        today = datetime.now(UTC).date()
+        hist = await fetch_historical(
+            lat, lon, (today - _td(days=3)).isoformat(), (today - _td(days=1)).isoformat()
+        )
+        return round(sum(d.precipitation_mm or 0.0 for d in hist), 1)
+    except Exception:  # noqa: BLE001 — تعذّر التاريخيّ ⇒ fallback للتوقّع
+        logging.exception("historical 3-day rain fetch failed; using forecast fallback")
+        return round(forecast_fallback, 1)
+
+
 @app.get("/api/v1/fields/{field_id}/recommendations")
 async def field_recommendations(
     field_id: str,
@@ -1743,12 +1761,12 @@ async def field_recommendations(
             ctx.forecast_rain_mm = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
             ctx.temp_c = current.temperature_c
             ctx.humidity_pct = current.humidity_pct
-            ctx.rain_mm_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
-            weather_available = True
-        except Exception as e:  # noqa: BLE001 — تعذّر الطقس ⇒ تدهور رشيق لا فشل
-            logging.warning(
-                "recommendations: weather unavailable for %s: %s", field_id, type(e).__name__
+            ctx.rain_mm_3d = await _historical_rain_3d_mm(
+                lat, lon, sum(f.precipitation_mm or 0.0 for f in forecast[:3])
             )
+            weather_available = True
+        except Exception:  # noqa: BLE001 — تعذّر الطقس ⇒ تدهور رشيق لا فشل
+            logging.exception("recommendations: weather unavailable for %s", field_id)
 
     recs = build_recommendations(ctx)
     if not recs:
@@ -2149,15 +2167,17 @@ async def evaluate_field_alerts_endpoint(
         )
         irrigation_need_mm = advice.get("recommended_mm")
 
-    rain_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])
+    rain_fc_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])  # مطر متوقّع (heavy_rain)
+    # مطر آخر ٣ أيام تاريخيّاً (disease_risk = رطوبة سابقة)؛ fallback للتوقّع.
+    rain_hist_3d = await _historical_rain_3d_mm(lat, lon, rain_fc_3d)
     ctx = FieldAlertContext(
         field_id=field_id,
         soil_moisture_pct=None,  # لا مصدر قراءة تربة حيّ بعد — نعتمد احتياج الريّ.
         irrigation_need_mm=irrigation_need_mm,
-        forecast_rain_mm=rain_3d,
+        forecast_rain_mm=rain_fc_3d,
         temp_c=current.temperature_c,
         humidity_pct=current.humidity_pct,
-        rain_mm_3d=rain_3d,
+        rain_mm_3d=rain_hist_3d,
         tmax_c=today.temp_max_c if today is not None else None,
         tmin_c=today.temp_min_c if today is not None else None,
         crop=crop,

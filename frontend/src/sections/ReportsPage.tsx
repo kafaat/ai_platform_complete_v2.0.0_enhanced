@@ -50,10 +50,17 @@ const usd = (n: number) =>
 
 const num = (n: number) => (n ?? 0).toLocaleString('en-US');
 
+// هروب CSV قياسيّ (RFC 4180): اقتبس القيمة إن احتوت فاصلة/اقتباس/سطراً جديداً
+// وضاعِف الاقتباسات الداخليّة — يمنع تحريف الأعمدة (نصوص عربيّة قد تحوي ",").
+function csvCell(v: unknown): string {
+  const s = v == null ? '' : String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 function exportToCSV(data: Record<string, unknown>[], filename: string) {
   if (!data.length) return;
-  const headers = Object.keys(data[0]).join(',');
-  const rows = data.map(r => Object.values(r).join(','));
+  const headers = Object.keys(data[0]).map(csvCell).join(',');
+  const rows = data.map(r => Object.values(r).map(csvCell).join(','));
   const csv = '﻿' + [headers, ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
