@@ -2143,19 +2143,22 @@ async def create_alert(
                 req.title_ar,
                 req.message_ar,
             )
+            created = AlertSummary(
+                alert_id=alert_id,
+                field_id=req.field_id,
+                alert_type=req.alert_type,
+                severity=req.severity,
+                title_ar=req.title_ar,
+                message_ar=req.message_ar,
+                status="active",
+            )
+            # تسجيل قنوات التسليم المقصودة (بلا إرسال فعليّ) — غير كاسر.
+            await _log_alert_deliveries(conn, user, created)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("حفظ التنبيه", e) from e
-    return AlertSummary(
-        alert_id=alert_id,
-        field_id=req.field_id,
-        alert_type=req.alert_type,
-        severity=req.severity,
-        title_ar=req.title_ar,
-        message_ar=req.message_ar,
-        status="active",
-    )
+    return created
 
 
 @app.patch("/api/v1/alerts/{alert_id}/acknowledge", response_model=AlertSummary)
@@ -2182,6 +2185,231 @@ async def acknowledge_alert(
     if row is None:
         raise HTTPException(status_code=404, detail="التنبيه غير موجود ضمن هذا المستأجِر")
     return _row_to_alert(row)
+
+
+# ─── تفضيلات الإشعار + قنوات التسليم (notification_preferences v9 + v38) ──
+# تخزّن قنوات المستخدم (بريد/SMS/Push/واتساب) + عناوينها + أنواع الأحداث المُشترَك
+# بها لكلّ (مستأجِر، مستخدم) — تُقرأ/تُحدَّث عبر GET/PUT /api/v1/notifications/
+# preferences (FIELD_VIEW/FIELD_EDIT). نُعيد استخدام جدول v9 (لا جدول جديد) مع
+# توسعة v38 (sms/whatsapp/user_ref/min_severity). UPSERT على (tenant_id, user_ref)
+# ⇒ صفّ واحد لكلّ مستخدم لكلّ مستأجِر (tenant-isolated عبر RLS + شرط tenant صريح).
+# منطق التوجيه (أيّ قناة تتلقّى أيّ تنبيه) صرف في api.alert_delivery (مُختبَر offline).
+
+_NOTIF_EVENT_TYPES = {
+    "satellite",
+    "weather_alert",
+    "pest_alert",
+    "irrigation_rec",
+    "fertilizer_rec",
+    "low_stock",
+    "task_assigned",
+    "economic_analysis",
+    # أنواع تنبيهات الحقل (v36) — لتطابق التوجيه مع alert_type الفعليّ.
+    "low_moisture",
+    "heavy_rain",
+    "disease_risk",
+    "heat_stress",
+    "frost_risk",
+    "other",
+}
+
+
+class NotificationPreferences(BaseModel):
+    """تفضيلات إشعار المستخدم — القنوات المُفعَّلة + عناوينها + أنواع الأحداث.
+
+    تُستخدم للقراءة والتحديث (PUT يستبدل الصفّ كاملاً — upsert). العناوين/الأرقام
+    اختياريّة؛ القناة المُفعَّلة بلا عنوان تُسجَّل كغير قابلة للتسليم (صدق، لا ابتلاع).
+    """
+
+    email_enabled: bool = False
+    email_address: str | None = Field(default=None, max_length=255)
+    sms_enabled: bool = False
+    sms_number: str | None = Field(default=None, max_length=32)
+    push_enabled: bool = False
+    push_token: str | None = None
+    whatsapp_enabled: bool = False
+    whatsapp_number: str | None = Field(default=None, max_length=32)
+    event_types: list[str] = Field(default_factory=list)
+    min_severity: str | None = None
+
+
+def _row_to_prefs(r) -> NotificationPreferences:
+    """يطبّع صفّ notification_preferences إلى نموذج الاستجابة (event_types قائمة)."""
+    raw_events = r["event_types"]
+    if isinstance(raw_events, str):
+        import json as _json
+
+        try:
+            raw_events = _json.loads(raw_events)
+        except (ValueError, TypeError):
+            raw_events = []
+    return NotificationPreferences(
+        email_enabled=bool(r["email_enabled"]),
+        email_address=r["email_address"],
+        sms_enabled=bool(r["sms_enabled"]),
+        sms_number=r["sms_number"],
+        push_enabled=bool(r["push_enabled"]),
+        push_token=r["push_token"],
+        whatsapp_enabled=bool(r["whatsapp_enabled"]),
+        whatsapp_number=r["whatsapp_number"],
+        event_types=list(raw_events) if raw_events else [],
+        min_severity=r["min_severity"],
+    )
+
+
+_PREF_SELECT_COLS = (
+    "email_enabled, email_address, sms_enabled, sms_number, "
+    "push_enabled, push_token, whatsapp_enabled, whatsapp_number, "
+    "event_types, min_severity"
+)
+
+
+@app.get(
+    "/api/v1/notifications/preferences",
+    response_model=NotificationPreferences,
+)
+async def get_notification_preferences(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تفضيلات إشعار المستخدم الحاليّ ضمن مستأجِره — قنوات + عناوين + أنواع أحداث.
+
+    تُرشَّح بـ(tenant_id, user_ref) (عزل مستأجِر + لكلّ مستخدم). لا صفّ ⇒ تفضيلات
+    افتراضيّة (كلّ القنوات مُعطَّلة) لا 404 (الواجهة تعرض نموذجاً فارغاً صادقاً).
+    503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                f"SELECT {_PREF_SELECT_COLS} FROM notification_preferences "
+                "WHERE tenant_id = $1::uuid AND user_ref = $2",
+                str(user.tenant_id),
+                str(user.user_id),
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة تفضيلات الإشعار", e) from e
+    if row is None:
+        return NotificationPreferences()
+    return _row_to_prefs(row)
+
+
+@app.put(
+    "/api/v1/notifications/preferences",
+    response_model=NotificationPreferences,
+)
+async def update_notification_preferences(
+    req: NotificationPreferences,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يُحدِّث (UPSERT) تفضيلات إشعار المستخدم الحاليّ — صفّ واحد لكلّ (مستأجِر، مستخدم).
+
+    يتحقّق من أنواع الأحداث ودرجة الخطورة (422 على قيمة غير معروفة)، ثمّ يُدرِج/
+    يُحدِّث عبر تعارض (tenant_id, user_ref). tenant-isolated. 503 عند تعذّر القاعدة.
+    """
+    import json as _json
+
+    bad_events = [e for e in req.event_types if e not in _NOTIF_EVENT_TYPES]
+    if bad_events:
+        raise HTTPException(status_code=422, detail="نوع حدث إشعار غير معروف")
+    if req.min_severity is not None and req.min_severity not in _ALERT_SEVERITIES:
+        raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                """INSERT INTO notification_preferences
+                    (tenant_id, user_ref, email_enabled, email_address,
+                     sms_enabled, sms_number, push_enabled, push_token,
+                     whatsapp_enabled, whatsapp_number, event_types, min_severity)
+                   VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                           $11::jsonb, $12)
+                   ON CONFLICT (tenant_id, user_ref)
+                   DO UPDATE SET
+                     email_enabled    = EXCLUDED.email_enabled,
+                     email_address    = EXCLUDED.email_address,
+                     sms_enabled      = EXCLUDED.sms_enabled,
+                     sms_number       = EXCLUDED.sms_number,
+                     push_enabled     = EXCLUDED.push_enabled,
+                     push_token       = EXCLUDED.push_token,
+                     whatsapp_enabled = EXCLUDED.whatsapp_enabled,
+                     whatsapp_number  = EXCLUDED.whatsapp_number,
+                     event_types      = EXCLUDED.event_types,
+                     min_severity     = EXCLUDED.min_severity,
+                     updated_at       = NOW()
+                   RETURNING email_enabled, email_address, sms_enabled,
+                     sms_number, push_enabled, push_token, whatsapp_enabled,
+                     whatsapp_number, event_types, min_severity""",
+                str(user.tenant_id),
+                str(user.user_id),
+                req.email_enabled,
+                req.email_address,
+                req.sms_enabled,
+                req.sms_number,
+                req.push_enabled,
+                req.push_token,
+                req.whatsapp_enabled,
+                req.whatsapp_number,
+                _json.dumps(req.event_types),
+                req.min_severity,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حفظ تفضيلات الإشعار", e) from e
+    return _row_to_prefs(row)
+
+
+async def _log_alert_deliveries(conn, user, alert: AlertSummary) -> None:
+    """يحسب قنوات التسليم المقصودة لتنبيه مُنشأ ويُسجّلها (log) — بلا إرسال فعليّ.
+
+    يقرأ تفضيلات المستخدم الحاليّ، يبني NotificationPrefs/AlertInput، يستدعي
+    alert_delivery.deliver (مُرسِل وهميّ يُسجّل فقط — لا بوّابة SMS/بريد هنا)،
+    ثمّ يُسجّل النتيجة. غير كاسر: أيّ خطأ يُبتلَع ويُسجَّل تحذيراً (لا يفشل إنشاء
+    التنبيه). نقطة التوصيل لمُرسِل حقيقيّ لاحقاً: مرّر sender إلى deliver().
+    """
+    from api.alert_delivery import AlertInput, NotificationPrefs, deliver
+
+    try:
+        row = await conn.fetchrow(
+            f"SELECT {_PREF_SELECT_COLS} FROM notification_preferences "
+            "WHERE tenant_id = $1::uuid AND user_ref = $2",
+            str(user.tenant_id),
+            str(user.user_id),
+        )
+    except Exception as e:  # noqa: BLE001 — تسجيل تسليم لا يكسر إنشاء التنبيه
+        logger.warning("تعذّر قراءة تفضيلات الإشعار للتسليم: %s", e)
+        return
+    if row is None:
+        return
+    prefs_model = _row_to_prefs(row)
+    prefs = NotificationPrefs(
+        email_enabled=prefs_model.email_enabled,
+        email_address=prefs_model.email_address,
+        sms_enabled=prefs_model.sms_enabled,
+        sms_number=prefs_model.sms_number,
+        push_enabled=prefs_model.push_enabled,
+        push_token=prefs_model.push_token,
+        whatsapp_enabled=prefs_model.whatsapp_enabled,
+        whatsapp_number=prefs_model.whatsapp_number,
+        event_types=prefs_model.event_types or None,
+        min_severity=prefs_model.min_severity,
+    )
+    alert_input = AlertInput(
+        alert_type=alert.alert_type,
+        severity=alert.severity,
+        title_ar=alert.title_ar,
+        message_ar=alert.message_ar,
+        field_id=alert.field_id,
+    )
+    plan = deliver(prefs, alert_input)
+    for channel, ok, detail in plan.results:
+        logger.info(
+            "تسليم تنبيه %s ← قناة=%s نجَح=%s (%s)",
+            alert.alert_id,
+            channel,
+            ok,
+            detail,
+        )
 
 
 # ─── توليد التنبيهات التلقائيّ (Alert engine) — يكتب في جدول alerts (v36) ──

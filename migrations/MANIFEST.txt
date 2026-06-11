@@ -112,3 +112,7 @@ v36_alerts.sql
 # (ارتفاع/ميل/جهة/منطقة مناخيّة/أمطار) + تفاصيل الملكيّة (مالك/إيجار/سجلّ) — تُملأ
 # تدريجيّاً عبر لوحة تفاصيل الحقل (GET/PATCH /api/v1/fields/{id}). يعدّل fields. idempotent.
 v37_fields_advanced.sql
+# v38: قنوات تسليم التنبيهات — توسعة notification_preferences (v9) بقنوات SMS
+# وواتساب + user_ref نصّيّ (هويّة المنصّة) + أرضيّة خطورة دنيا، لإعدادات الإشعارات
+# (GET/PUT /api/v1/notifications/preferences). يعدّل notification_preferences. idempotent.
+v38_notif_channels.sql
