@@ -10,11 +10,13 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState, useRef, useCallback } from 'react';
 import {
-  MapContainer, TileLayer, FeatureGroup, useMapEvents
+  MapContainer, TileLayer, FeatureGroup,
 } from 'react-leaflet';
+import { EditControl } from 'react-leaflet-draw';
 import L from 'leaflet';
+import 'leaflet-draw/dist/leaflet.draw.css';
 import {
-  X, Check, Undo2, Trash2, Pencil, Square, Loader2,
+  X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle,
 } from 'lucide-react';
 
@@ -53,48 +55,22 @@ function geodesicAreaHa(latlngs: L.LatLng[]): number {
   return sqm / 10000;
 }
 
-// ── Drawing controller ─────────────────────────────────────────
-function DrawController({
-  onPolygonDone,
-}: { onPolygonDone: (latlngs: L.LatLng[]) => void }) {
-  const [points, setPoints] = useState<L.LatLng[]>([]);
-  const previewRef = useRef<L.Polyline | null>(null);
-  const dotsRef    = useRef<L.CircleMarker[]>([]);
-  const mapRef     = useRef<L.Map | null>(null);
-
-  const map = useMapEvents({
-    click(e) {
-      const newPts = [...points, e.latlng];
-      setPoints(newPts);
-      // نقطة مرئية
-      const dot = L.circleMarker(e.latlng, {
-        radius: 5, color: '#16a34a', fillColor: '#16a34a', fillOpacity: 1,
-      }).addTo(map);
-      dotsRef.current.push(dot);
-      // خط معاينة
-      if (previewRef.current) map.removeLayer(previewRef.current);
-      if (newPts.length >= 2) {
-        previewRef.current = L.polyline(newPts, {
-          color: '#16a34a', weight: 2, dashArray: '5,5',
-        }).addTo(map);
-      }
-    },
-    dblclick(e) {
-      e.originalEvent.preventDefault();
-      if (points.length >= 3) {
-        // مسح المعاينة
-        if (previewRef.current) map.removeLayer(previewRef.current);
-        dotsRef.current.forEach(d => map.removeLayer(d));
-        dotsRef.current = [];
-        onPolygonDone(points);
-        setPoints([]);
-      }
-    },
-  });
-
-  mapRef.current = map;
-
-  return null;
+// ── دائرة (ريّ محوريّ) → مضلّع مُقرَّب ──────────────────────────
+// الخلفيّة تتوقّع GeoJSON Polygon؛ نحوّل (مركز + نصف قطر م) إلى حلقة رؤوس.
+function circleToPolygon(center: L.LatLng, radiusM: number, n = 48): L.LatLng[] {
+  const latPerM = 1 / 111320; // متر → درجة عرض
+  const lonPerM = 1 / (111320 * Math.cos((center.lat * Math.PI) / 180));
+  const pts: L.LatLng[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * 2 * Math.PI;
+    pts.push(
+      L.latLng(
+        center.lat + radiusM * latPerM * Math.sin(a),
+        center.lng + radiusM * lonPerM * Math.cos(a),
+      ),
+    );
+  }
+  return pts;
 }
 
 // ── Main component ─────────────────────────────────────────────
@@ -128,6 +104,20 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
     setPolygon(poly);
     setStage('form');
   }, []);
+
+  // أداة الرسم (leaflet-draw): مضلّع / مستطيل / دائرة (ريّ محوريّ).
+  const handleCreated = useCallback((e: any) => {
+    const layer = e.layer;
+    let pts: L.LatLng[];
+    if (e.layerType === 'circle') {
+      pts = circleToPolygon(layer.getLatLng(), layer.getRadius());
+    } else {
+      // polygon / rectangle: الحلقة الخارجيّة
+      const ring = layer.getLatLngs?.()[0];
+      pts = Array.isArray(ring) ? (ring as L.LatLng[]) : [];
+    }
+    if (pts.length >= 3) handlePolygonDone(pts);
+  }, [handlePolygonDone]);
 
   const handleReset = () => {
     if (fgRef.current) fgRef.current.clearLayers();
@@ -189,7 +179,7 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
         {/* Instructions */}
         {stage === 'draw' && (
           <div className="px-5 py-2 text-sm" style={{ background:'#172032', color:'#94a3b8' }}>
-            💡 <strong className="text-emerald-400">كيفية الرسم:</strong> انقر لإضافة رؤوس المضلع ← انقر مزدوجاً لإغلاق الشكل (يتطلب 3 نقاط على الأقل)
+            💡 <strong className="text-emerald-400">أدوات الرسم</strong> (أعلى يمين الخريطة): مضلّع (انقر الرؤوس ثمّ أغلق) · مستطيل · <strong className="text-emerald-400">دائرة</strong> للريّ المحوريّ.
           </div>
         )}
 
@@ -204,8 +194,25 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
           >
             <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
               attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
-            <FeatureGroup ref={fgRef} />
-            {stage === 'draw' && <DrawController onPolygonDone={handlePolygonDone} />}
+            <FeatureGroup ref={fgRef}>
+              {stage === 'draw' && (
+                <EditControl
+                  position="topright"
+                  onCreated={handleCreated}
+                  draw={{
+                    // showArea:false — يتفادى عطل leaflet-draw المعروف (readableArea)
+                    // مع Leaflet 1.9؛ المساحة تُحسَب وتُعرَض من geodesicAreaHa لدينا.
+                    polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#16a34a' } },
+                    rectangle: { shapeOptions: { color: '#16a34a' } },
+                    circle: { shapeOptions: { color: '#16a34a' } },
+                    polyline: false,
+                    marker: false,
+                    circlemarker: false,
+                  }}
+                  edit={{ edit: false, remove: false }}
+                />
+              )}
+            </FeatureGroup>
           </MapContainer>
 
           {/* Area badge */}
@@ -221,7 +228,7 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
           {stage === 'draw' && (
             <div className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl text-xs"
               style={{ background:'#0f1117cc', color:'#94a3b8', backdropFilter:'blur(8px)' }}>
-              انقر لإضافة نقطة · انقر مزدوجاً للإغلاق
+              اختر أداة من أعلى يمين الخريطة: مضلّع · مستطيل · دائرة
             </div>
           )}
         </div>
@@ -230,7 +237,7 @@ export default function AddFieldWithMap({ onSave, onCancel }: Props) {
         <div className="px-5 py-4" dir="rtl">
           {stage === 'draw' ? (
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">ارسم مضلع الحقل على الخريطة ثم انقر مزدوجاً للإغلاق</p>
+              <p className="text-sm text-slate-400">ارسم حدود الحقل بإحدى أدوات الرسم (مضلّع / مستطيل / دائرة) أعلى يمين الخريطة</p>
               <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200"
                 style={{ borderColor:'#334155' }}>إلغاء</button>
             </div>
