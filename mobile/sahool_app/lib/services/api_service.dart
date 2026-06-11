@@ -318,15 +318,26 @@ class ApiService {
   // صادقة. كلّ القوائم تُعيد List<Map> (الخادم يردّ مصفوفة JSON صريحة).
   // المسارات والحقول تطابق frontend/src/services/api.ts بدقّة.
   // ══════════════════════════════════════════════════════════════════
+  // صدق العقد: عدم تطابق الشكل المتوقَّع (تغيّر عقدة الـAPI/استجابة وسيط) يُرمى
+  // صراحةً ليُعرَض ErrorView، لا أن يُبتلَع كقائمة فارغة مضلِّلة («لا بيانات»).
   List<Map<String, dynamic>> _asList(dynamic data) {
-    if (data is List) {
-      return data.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
+    if (data is! List) {
+      throw const FormatException('استجابة غير متوقّعة من الخادم: تُتوقّع قائمة JSON.');
     }
-    return const [];
+    return data.map((e) {
+      if (e is! Map) {
+        throw const FormatException('استجابة غير متوقّعة من الخادم: عنصر ليس كائن JSON.');
+      }
+      return e.cast<String, dynamic>();
+    }).toList();
   }
 
-  Map<String, dynamic> _asMap(dynamic data) =>
-      data is Map ? data.cast<String, dynamic>() : <String, dynamic>{};
+  Map<String, dynamic> _asMap(dynamic data) {
+    if (data is! Map) {
+      throw const FormatException('استجابة غير متوقّعة من الخادم: يُتوقّع كائن JSON.');
+    }
+    return data.cast<String, dynamic>();
+  }
 
   // ── Inventory (inventory:view / inventory:manage) ──
   Future<List<Map<String, dynamic>>> getInventoryItems() async {

@@ -216,11 +216,12 @@ class _AddItemSheetState extends State<_AddItemSheet> {
   String _category = 'fertilizer';
   bool _saving = false;
 
+  // الفئات تطابق عقد الخادم: ^(fertilizer|pesticide|seed|spare_part|other)$
+  // (لا 'fuel' — غير مدعوم خادميّاً، كان سيُرجِع 422).
   static const _categories = {
     'fertilizer': 'سماد',
     'pesticide': 'مبيد',
     'seed': 'بذور',
-    'fuel': 'وقود',
     'spare_part': 'قطع غيار',
     'other': 'أخرى',
   };

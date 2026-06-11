@@ -201,13 +201,22 @@ class _AddEquipmentSheetState extends State<_AddEquipmentSheet> {
       showSnack(context, 'الاسم مطلوب', error: true);
       return;
     }
+    // صدق البيانات: ساعات تشغيل غير رقميّة تُرفض صراحةً بدل إرسال 0 صامتاً.
+    final hoursText = _hours.text.trim();
+    double? hours;
+    if (hoursText.isNotEmpty) {
+      hours = double.tryParse(hoursText);
+      if (hours == null) {
+        showSnack(context, 'ساعات التشغيل يجب أن تكون رقماً', error: true);
+        return;
+      }
+    }
     setState(() => _saving = true);
     try {
       await ApiService.instance.createEquipment({
         'name': _name.text.trim(),
         'type': _type,
-        if (_hours.text.trim().isNotEmpty)
-          'operating_hours': double.tryParse(_hours.text.trim()) ?? 0,
+        if (hours != null) 'operating_hours': hours,
       });
       if (!mounted) return;
       Navigator.pop(context);

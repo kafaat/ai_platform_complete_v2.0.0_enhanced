@@ -31,6 +31,12 @@ String apiErrorMessage(Object e) {
       return detail['detail'].toString();
     }
   }
+  // عدم تطابق شكل الاستجابة (عقد API تغيّر/استجابة وسيط) — رسالة صريحة لا "فارغ".
+  if (e is FormatException) {
+    return e.message.isNotEmpty
+        ? e.message
+        : 'استجابة غير متوقّعة من الخادم.';
+  }
   return 'حدث خطأ غير متوقّع.';
 }
 

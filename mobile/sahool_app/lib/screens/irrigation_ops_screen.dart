@@ -98,13 +98,18 @@ class _IrrigationOpsScreenState extends State<IrrigationOpsScreen>
           tabs: const [Tab(text: 'الصمّامات'), Tab(text: 'الجداول')],
         ),
       ),
+      // FAB يتبع التبويب الحاليّ: AnimatedBuilder على TabController يعيد بناءه
+      // عند السحب/التبديل، فلا يبقى نصّ التبويب الخاطئ معروضاً.
       floatingActionButton: mutable
-          ? FloatingActionButton.extended(
-              backgroundColor: kPrimary,
-              onPressed: () =>
-                  _tabs.index == 0 ? _openAddValve() : _openAddSchedule(),
-              icon: const Icon(Icons.add),
-              label: Text(_tabs.index == 0 ? 'صمّام' : 'جدول'),
+          ? AnimatedBuilder(
+              animation: _tabs,
+              builder: (_, __) => FloatingActionButton.extended(
+                backgroundColor: kPrimary,
+                onPressed: () =>
+                    _tabs.index == 0 ? _openAddValve() : _openAddSchedule(),
+                icon: const Icon(Icons.add),
+                label: Text(_tabs.index == 0 ? 'صمّام' : 'جدول'),
+              ),
             )
           : null,
       body: _loading
