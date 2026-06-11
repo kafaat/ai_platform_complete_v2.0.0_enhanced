@@ -7,19 +7,22 @@
 import { useState } from 'react';
 import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X } from 'lucide-react';
 import { useAlerts, useAcknowledgeAlert } from '../hooks/useApi';
+import type { AlertRecord } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 type Severity = 'critical' | 'high' | 'medium' | 'low';
 
-interface ApiAlert {
-  id?: string; field_id?: string; field_name?: string;
-  level?: string; severity?: string; message?: string;
-  color?: string; recommendation?: string; timestamp?: string;
-  acknowledged?: boolean; // حالة الإقرار من الخادم (إن وُجدت)
-  [k: string]: unknown;
-}
+// أسماء أنواع التنبيهات (v36) بالعربيّة — للعرض حين لا يُرسَل عنوان.
+const TYPE_LABELS: Record<string, string> = {
+  low_moisture: 'رطوبة منخفضة',
+  heavy_rain:   'أمطار غزيرة',
+  disease_risk: 'خطر مرض',
+  heat_stress:  'إجهاد حراريّ',
+  frost_risk:   'خطر صقيع',
+  other:        'تنبيه',
+};
 
 const SEVERITY_CONFIG: Record<Severity, { label: string; icon: typeof Info; color: string; bg: string; border: string }> = {
   critical: { label: 'حرج',   icon: AlertOctagon,  color: '#dc2626', bg: '#1a0000', border: '#dc262633' },
@@ -56,20 +59,21 @@ export function AlertSystemPage() {
   const [ackIds, setAckIds] = useState<Set<string>>(new Set());
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
 
-  const apiAlerts = ((data as { alerts?: ApiAlert[] } | undefined)?.alerts ?? []) as ApiAlert[];
+  // useAlerts ترجع AlertRecord[] مباشرةً من sahool-platform (v36) — لا { alerts }.
+  const apiAlerts: AlertRecord[] = data ?? [];
 
   const alerts = apiAlerts
-    .map((a, i) => ({ a, id: String(a.id ?? i) }))
+    .map((a, i) => ({ a, id: String(a.alert_id ?? i) }))
     .filter(({ id }) => !dismissedIds.has(id))
     .map(({ a, id }) => ({
       id,
-      severity: normSev(a.severity || a.level),
-      title: (a.message || 'تنبيه').toString(),
-      message: (a.recommendation || '').toString(),
-      field: (a.field_name || a.field_id || '').toString(),
-      time: relTime(a.timestamp),
-      // ندمج حالة الخادم مع إقرار الجلسة (وإلّا ظهر المُقَرّ على الخادم كغير مُقَرّ).
-      acknowledged: ackIds.has(id) || Boolean(a.acknowledged),
+      severity: normSev(a.severity),
+      title: (a.title_ar || TYPE_LABELS[a.alert_type] || 'تنبيه').toString(),
+      message: (a.message_ar || '').toString(),
+      field: (a.field_id || '').toString(),
+      time: relTime(a.created_at ?? undefined),
+      // ندمج حالة الخادم (status) مع إقرار الجلسة التفاؤليّ (وإلّا ظهر المُقَرّ كغير مُقَرّ).
+      acknowledged: ackIds.has(id) || a.status === 'acknowledged' || a.status === 'resolved',
     }));
 
   const filtered = alerts.filter(a =>

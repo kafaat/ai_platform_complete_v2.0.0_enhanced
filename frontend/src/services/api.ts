@@ -423,6 +423,51 @@ export const createActivity = (
   kongApi.post<Activity>(`/api/v1/fields/${fieldId}/activities`, payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// ALERTS — التنبيهات الزراعيّة المُصنَّفة لكلّ مستأجِر (sahool-platform v36).
+// ربط حيّ بلا fallback وهميّ: عند الخطأ (503 DB / 403 RBAC) يُرمى ليعرض الـUI
+// حالة صادقة. field:view للقراءة، field:edit للإنشاء/الإقرار.
+// ══════════════════════════════════════════════════════════════════
+export type AlertType =
+  | 'low_moisture' | 'heavy_rain' | 'disease_risk'
+  | 'heat_stress' | 'frost_risk' | 'other';
+
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+export type AlertStatus = 'active' | 'acknowledged' | 'resolved';
+
+export interface AlertRecord {
+  alert_id:    string;
+  field_id:    string | null;
+  alert_type:  AlertType | string;
+  severity:    AlertSeverity | string;
+  title_ar:    string | null;
+  message_ar:  string | null;
+  status:      AlertStatus | string;
+  created_at:  string | null;
+}
+
+export interface AlertCreateInput {
+  alert_type: AlertType;
+  severity:   AlertSeverity;
+  title_ar?:  string;
+  message_ar?: string;
+  field_id?:  string;
+}
+
+export interface AlertListFilters {
+  status?:   AlertStatus;
+  severity?: AlertSeverity;
+}
+
+export const fetchAlerts = (filters: AlertListFilters = {}): Promise<AlertRecord[]> =>
+  kongApi.get<AlertRecord[]>('/api/v1/alerts', { params: filters }).then(r => r.data);
+
+export const createAlert = (payload: AlertCreateInput): Promise<AlertRecord> =>
+  kongApi.post<AlertRecord>('/api/v1/alerts', payload).then(r => r.data);
+
+export const acknowledgeAlert = (alertId: string): Promise<AlertRecord> =>
+  kongApi.patch<AlertRecord>(`/api/v1/alerts/${alertId}/acknowledge`).then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // IoT DEVICES — أجهزة استشعار حيّة عبر البوابة (kong). ربط حقيقيّ بلا تلفيق:
 // عند الخطأ (503 DB مُعطَّلة / 403 RBAC / انقطاع) يُرمى ليعرض الـUI حالة صادقة.
 // device:view للقراءة، device:manage للتسجيل، observation:record لرفع قياس.
@@ -795,12 +840,9 @@ export const fetchIndicatorCatalog = () =>
     () => ({ total:33, categories:{} })
   );
 
-/** تنبيهات */
-export const fetchAlerts = (severity?: string) =>
-  tryReal(
-    () => indicatorsApi.get('/indicators/alerts', { params:{ severity } }).then(r => r.data),
-    () => ({ total_alerts:3, alerts:MOCK_ALERTS })
-  );
+// ملحوظة: fetchAlerts/createAlert/acknowledgeAlert (التنبيهات الزراعيّة v36)
+// مُعرَّفة أعلاه عبر kongApi (sahool-platform). نقطة indicators القديمة المُلفَّقة
+// أُزيلت لمصلحة الربط الحيّ الموحَّد.
 
 /** حالة NATS */
 export const fetchNatsStatus = () =>
