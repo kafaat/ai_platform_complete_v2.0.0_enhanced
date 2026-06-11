@@ -56,6 +56,7 @@ export const QK = {
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
   alerts:           (tid: string)        => ['alerts', tid],
   indicatorGrid:    (fid: string, index: string, date: string) => ['indicator-grid', fid, index, date],
+  prescription:     (fid: string, index: string, date: string, n: number) => ['prescription', fid, index, date, n],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
   // الأنظمة الجديدة (شاشات الويب)
   inventoryItems:   (tid: string)        => ['inventory', 'items', tid],
@@ -110,7 +111,7 @@ export interface GuardrailsResult {
 }
 
 // ── Indicator Grid (raster-service per-pixel grid) ──────────────
-export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity';
+export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture';
 
 export interface IndicatorGridZone {
   id: string;
@@ -233,6 +234,53 @@ export function useIndicatorGrid(
       .then(r => r.data),
     staleTime: 10 * 60_000,
     enabled:   !!fieldId,
+    retry:     false,
+  });
+}
+
+// ── Prescription / management zones (raster-service quantile binning) ──
+export interface PrescriptionZone {
+  zone: string;            // low | medium | high | zone_N
+  pixel_count: number;
+  pct: number;
+  value_range: [number, number];
+  rate?: number;           // معدّل موصى به (إن مُرّر base_rate)
+  factor?: number;
+}
+
+export interface PrescriptionResponse {
+  field_id: string;
+  index: string;
+  date: string;
+  real_data: boolean;
+  source: string;
+  n_zones: number;
+  total_pixels: number;
+  field_mean: number;
+  field_cv: number | null;
+  zones: PrescriptionZone[];
+  base_rate?: number;
+  strategy?: string;
+  prescription?: { zone: string; pct_of_field: number; rate: number; factor: number }[];
+}
+
+// Management zones + variable-rate prescription from the indicator grid.
+export function useFieldPrescription(
+  fieldId: string,
+  index: GridIndex,
+  date: string = 'latest',
+  opts: { nZones?: number; baseRate?: number; strategy?: string; enabled?: boolean } = {},
+) {
+  const { nZones = 3, baseRate, strategy = 'compensate', enabled = true } = opts;
+  return useQuery<PrescriptionResponse>({
+    queryKey: QK.prescription(fieldId, index, date, nZones),
+    queryFn:  () => rasterApi
+      .post(`/v1/fields/${fieldId}/prescription`, {
+        index, date, n_zones: nZones, base_rate: baseRate ?? null, strategy,
+      })
+      .then(r => r.data),
+    staleTime: 10 * 60_000,
+    enabled:   !!fieldId && enabled,
     retry:     false,
   });
 }

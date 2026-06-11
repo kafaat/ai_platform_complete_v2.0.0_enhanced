@@ -91,6 +91,10 @@ _INDEX_DOMAIN = {
     "ndwi": (-0.5, 0.5, False),
     "ndsi": (-0.1, 0.6, True),
     "salinity": (-0.1, 0.6, True),
+    # المؤشّرات الموسّعة (Sprint 5b)
+    "ndre": (-0.1, 0.6, False),  # red-edge — نطاق أضيق من NDVI
+    "msavi": (-0.2, 0.9, False),  # مثل NDVI (تصحيح تربة)
+    "moisture": (-0.3, 0.6, False),  # NDMI-style: عالٍ = رطب (أخضر)
 }
 
 

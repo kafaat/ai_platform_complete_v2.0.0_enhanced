@@ -62,6 +62,11 @@ def _severity_thresholds(index: str) -> tuple[float, float]:
         "ndwi": (-0.3, 0.0),
         "salinity": (0.1, 0.3),
         "ndsi": (0.1, 0.3),
+        # المؤشّرات الموسّعة (Sprint 5b)
+        "msavi": (0.3, 0.6),  # مثل ndvi (تصحيح تربة)
+        "evi": (0.2, 0.4),
+        "ndre": (0.2, 0.4),  # red-edge — نطاق أضيق
+        "moisture": (0.0, 0.3),  # NDMI-style مثل ndmi
     }
     return table.get(index, (0.3, 0.6))
 
