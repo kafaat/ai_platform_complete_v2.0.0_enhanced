@@ -57,12 +57,17 @@ def confidence_weight(n: int) -> float:
 
 @dataclass
 class PredictionPair:
-    """زوج (توقّع, نتيجة فعليّة) من recommendation_log."""
+    """زوج (توقّع, نتيجة فعليّة) من recommendation_log.
+
+    farm_id = وحدة التكرار المستقلّة (المزرعة)، لا المستأجِر: تحت RLS يكون
+    tenant_id ثابتاً، فعدّ المستأجرين لا يقيس الاستقلال الإحصائي. نعدّ المزارع
+    (farm_id) لتفادي pseudoreplication الحقيقي.
+    """
 
     predicted: float
     actual: float
     crop_id: str
-    tenant_id: str
+    farm_id: str
 
     @property
     def signed_error(self) -> float:
@@ -79,7 +84,7 @@ def analyze_systematic_bias(pairs: list[PredictionPair]) -> dict:
     الموقّع (الاتّجاه): هل نُفرط أم نُقلّل منهجيّاً؟
     """
     n = len(pairs)
-    farms = len({p.tenant_id for p in pairs})
+    farms = len({p.farm_id for p in pairs})
 
     # حدّ أدنى مطلق: دون 3 أزواج أو مزرعة واحدة، لا إشارة (عيّنة بلا معنى).
     if n < MIN_PAIRS_FOR_SIGNAL or farms < MIN_FARMS:
@@ -114,7 +119,9 @@ def analyze_systematic_bias(pairs: list[PredictionPair]) -> dict:
         # التصحيح المطبّق = الانحياز × الوزن المتدرّج × سقف الحذر.
         # عيّنة صغيرة ⇒ وزن صغير ⇒ تصحيح خفيف (قرينة بسيطة).
         # عيّنة كبيرة ⇒ وزن قرب 1 ⇒ تصحيح أقرب للكامل (لكن دون MAX_DAMPING).
-        applied = mean_bias * weight * MAX_DAMPING
+        # القصّ إلى ±MAX_DAMPING يضمن correction ∈ [1-0.6, 1+0.6] = [0.4, 1.6]:
+        # انحياز ضخم (predicted≫actual) لا يُنتج معاملاً ≤0 ولا تنبّؤاً سالباً.
+        applied = max(-MAX_DAMPING, min(MAX_DAMPING, mean_bias * weight * MAX_DAMPING))
         correction = round(1.0 - applied, 4)
         direction = "نُفرط في التقدير" if mean_bias > 0 else "نُقلّل التقدير"
         reason = (

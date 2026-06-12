@@ -6684,6 +6684,7 @@ async def market_crop_gap(
 
     concentrations: list = []
     suitability: dict = {}
+    schema_ready = True  # يصبح False فقط عند غياب العمود/الجدول (لا عند 0 صفوف)
     try:
         async with tenant_connection(user) as conn:
             try:
@@ -6698,10 +6699,9 @@ async def market_crop_gap(
                     )
                 total = sum(r["cnt"] for r in rows) or 0
                 suited = suited_for_zone(zone_key)
-                suited_names = {
-                    (c.get("name_ar", c) if isinstance(c, dict) else c)
-                    for c in suited.get("crops", [])
-                }
+                # suited_for_zone يُرجِع suited_crops_ar (أسماء عربيّة)؛ مطابقة
+                # crop_id بالاسم تقريبيّة — تُحسَّن عند توحيد قاموس المحاصيل.
+                suited_names = set(suited.get("suited_crops_ar", []))
                 for r in rows:
                     concentrations.append(
                         CropConcentration(
@@ -6713,24 +6713,25 @@ async def market_crop_gap(
                     )
                     suitability[r["crop_id"]] = r["crop_id"] in suited_names
             except (_asyncpg.UndefinedColumnError, _asyncpg.UndefinedTableError):
-                # zone_key/الجدول غير موجود بعد — تدهور صادق لا تخمين.
+                # المخطّط غير جاهز (zone_key/الجدول غير مفعَّل) — يميَّز عن «لا بيانات».
+                schema_ready = False
                 concentrations = []
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("تحليل فجوة سوق المنطقة", e) from e
 
+    # مفاتيح ميتا ثابتة دائماً (استقرار API): نفس التعريف في كلّ المسارات.
+    meta = {"zone_key": zone_key, "schema_ready": schema_ready, "live_data_wired": schema_ready}
     if not concentrations:
-        return {
-            "zone_key": zone_key,
-            "total_crops_analysed": 0,
-            "schema_ready": False,
-            "note_ar": (
-                "لا بيانات كافية بالمنصّة لهذه المنطقة (أو عمود zone_key غير مفعَّل "
-                "بعد في المخطّط) — لا تخمين. الربط الكامل مؤجَّل بعد التشغيل."
-            ),
-        }
-    return regional_crop_map(concentrations, suitability)
+        meta["total_crops_analysed"] = 0
+        meta["note_ar"] = (
+            "عمود zone_key غير مفعَّل بعد في المخطّط — لا تخمين؛ الربط مؤجَّل بعد التشغيل."
+            if not schema_ready
+            else "المخطّط جاهز لكن لا حقول كافية بالمنصّة في هذه المنطقة — لا تخمين."
+        )
+        return meta
+    return {**meta, **regional_crop_map(concentrations, suitability)}
 
 
 @app.get("/api/v1/market/crop-classification-readiness")
@@ -6750,6 +6751,7 @@ async def crop_classification_readiness_endpoint(
     )
 
     fields_by_crop: dict[str, int] = {}
+    schema_ready = True  # False فقط عند غياب العمود/الجدول
     try:
         async with tenant_connection(user) as conn:
             try:
@@ -6765,6 +6767,7 @@ async def crop_classification_readiness_endpoint(
                     )
                 fields_by_crop = {r["crop_id"]: r["cnt"] for r in rows}
             except (_asyncpg.UndefinedColumnError, _asyncpg.UndefinedTableError):
+                schema_ready = False
                 fields_by_crop = {}
     except HTTPException:
         raise
@@ -6778,7 +6781,10 @@ async def crop_classification_readiness_endpoint(
         gps_quality_ok=bool(fields_by_crop),
     )
     result = assess_classification_readiness(inv)
-    result["live_data_wired"] = bool(fields_by_crop)
+    # live_data_wired = جاهزيّة الربط/المخطّط (لا وجود الصفوف)؛ has_sample_data منفصل.
+    result["schema_ready"] = schema_ready
+    result["live_data_wired"] = schema_ready
+    result["has_sample_data"] = bool(fields_by_crop)
     result["data_source_note_ar"] = (
         "⚠ العيّنات من حقول المنصّة (محصول معروف + حدود GPS). المشاهد الزمنيّة "
         "(avg_temporal_scenes) تُحسب من /imagery/timeseries لاحقاً — مؤجَّل بعد "
@@ -6807,13 +6813,16 @@ async def prediction_calibration_status(
     )
 
     pairs: list = []
+    schema_ready = True  # False فقط عند غياب الجدول/العمود
     try:
         async with tenant_connection(user) as conn:
             try:
                 async with conn.transaction():  # savepoint — يعزل غياب الجدول
+                    # وحدة التكرار = المزرعة (farm_id) لا المستأجِر: تحت RLS يكون
+                    # tenant_id ثابتاً، فعدّه لا يقيس الاستقلال (تفادي pseudoreplication).
                     q = (
                         "SELECT predicted_yield_t_ha AS pred, actual_yield_t_ha AS act, "
-                        "crop AS crop_id, tenant_id::text AS tid "
+                        "crop AS crop_id, farm_id::text AS fid "
                         "FROM recommendation_outcomes "
                         "WHERE predicted_yield_t_ha IS NOT NULL "
                         "AND actual_yield_t_ha IS NOT NULL"
@@ -6824,10 +6833,11 @@ async def prediction_calibration_status(
                         params.append(crop_id)
                     rows = await conn.fetch(q, *params)
                 pairs = [
-                    PredictionPair(float(r["pred"]), float(r["act"]), r["crop_id"], r["tid"])
+                    PredictionPair(float(r["pred"]), float(r["act"]), r["crop_id"], r["fid"])
                     for r in rows
                 ]
             except (_asyncpg.UndefinedColumnError, _asyncpg.UndefinedTableError):
+                schema_ready = False
                 pairs = []
     except HTTPException:
         raise
@@ -6835,11 +6845,15 @@ async def prediction_calibration_status(
         raise _db_unavailable("معايرة التنبّؤ", e) from e
 
     result = analyze_systematic_bias(pairs)
-    result["live_data_wired"] = bool(pairs)
+    # live_data_wired = جاهزيّة الربط/المخطّط (لا وجود الأزواج)؛ has_pairs منفصل.
+    result["schema_ready"] = schema_ready
+    result["live_data_wired"] = schema_ready
+    result["has_pairs"] = bool(pairs)
     result["data_source_note_ar"] = (
-        "⚠ الأزواج من recommendation_outcomes (توقّع تاريخي + نتيجة فعليّة) عبر RLS. "
-        "الجدول غير مفعَّل بعد في المخطّط الحاليّ؛ حتى ذلك يُرجِع «عيّنة غير كافية» "
-        "بصدق (لا تصحيح). الربط الكامل مؤجَّل بعد التشغيل."
+        "⚠ الأزواج من recommendation_outcomes (توقّع تاريخي + نتيجة فعليّة) عبر RLS، "
+        "ووحدة التكرار = المزرعة (farm_id) لا المستأجِر (تفادي pseudoreplication). "
+        "الجدول غير مفعَّل بعد في المخطّط؛ حتى ذلك «عيّنة غير كافية» بصدق (لا تصحيح). "
+        "الربط الكامل مؤجَّل بعد التشغيل."
     )
     return result
 

@@ -56,13 +56,13 @@ def test_confidence_weight_monotone_towards_one():
 
 def test_signed_error_overprediction_is_positive():
     # توقّع > فعلي ⇒ أفرطنا ⇒ موجب
-    p = PredictionPair(predicted=12.0, actual=10.0, crop_id="wheat", tenant_id="t1")
+    p = PredictionPair(predicted=12.0, actual=10.0, crop_id="wheat", farm_id="t1")
     assert p.signed_error == pytest.approx(0.2)
 
 
 def test_signed_error_underprediction_is_negative():
     # توقّع < فعلي ⇒ قلّلنا ⇒ سالب
-    p = PredictionPair(predicted=8.0, actual=10.0, crop_id="wheat", tenant_id="t1")
+    p = PredictionPair(predicted=8.0, actual=10.0, crop_id="wheat", farm_id="t1")
     assert p.signed_error == pytest.approx(-0.2)
 
 
@@ -161,6 +161,16 @@ def test_correction_damping_capped_below_full_bias():
     applied = 1.0 - out["correction_factor"]
     # التصحيح المطبّق لا يتجاوز الانحياز كاملاً × سقف الحذر
     assert applied <= abs(bias) * MAX_DAMPING + 1e-9
+
+
+def test_extreme_overprediction_factor_stays_positive():
+    # انحياز ضخم (توقّع 3× الفعلي) لا يُنتج معاملاً ≤0 ولا تنبّؤاً سالباً (القصّ).
+    pairs = [PredictionPair(30.0, 10.0, "wheat", f"t{i % 2}") for i in range(60)]  # +200%
+    out = analyze_systematic_bias(pairs)
+    assert out["correction_factor"] >= 1.0 - MAX_DAMPING  # ≥ 0.4
+    assert out["correction_factor"] > 0.0
+    calibrated = apply_calibration(10.0, out)["calibrated_prediction"]
+    assert calibrated > 0.0  # لا غلّة سالبة
 
 
 # ─── apply_calibration ───────────────────────────────────────────────────
