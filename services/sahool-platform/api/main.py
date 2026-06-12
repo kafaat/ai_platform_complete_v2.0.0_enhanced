@@ -1610,6 +1610,51 @@ async def get_field(
     return _row_to_field_detail(row)
 
 
+@app.get("/api/v1/fields/{field_id}/terrain")
+async def get_field_terrain(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تفسير تضاريسيّ للحقل (ارتفاع/منحدر/اتّجاه → دلالة زراعيّة) — طبقة استرشاد/عرض.
+
+    يقرأ أعمدة التضاريس (v37) ويُرجِع enrich_terrain: تدريج/انجراف/صقيع/تعرّض
+    شمسي/صرف. يعمل فوراً على القيم المخزّنة (يدويّة أو من DEM). صادق عند غيابها.
+
+    ⚠ التعبئة التلقائيّة من DEM (SRTM/Copernicus) بند مؤجَّل (POST_DEPLOYMENT_ROADMAP):
+    تحتاج مزوّد DEM حيّاً غير مضبوط هنا — حتى ذلك تُملأ يدويّاً عبر PATCH /fields.
+    """
+    from core.engines.dem_enrichment import enrich_terrain
+
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT elevation_m, slope_pct, aspect FROM fields WHERE field_id = $1",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة تضاريس الحقل", e) from e
+    if row is None:
+        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+
+    result = enrich_terrain(
+        elevation_m=float(row["elevation_m"]) if row["elevation_m"] is not None else None,
+        slope_pct=float(row["slope_pct"]) if row["slope_pct"] is not None else None,
+        aspect=row["aspect"],
+    )
+    result["field_id"] = field_id
+    result["dem_auto_fill"] = {
+        "available": False,
+        "note_ar": (
+            "التعبئة التلقائيّة من DEM مؤجَّلة (تحتاج مزوّد SRTM/Copernicus حيّاً). "
+            "حتى ذلك: أدخِل elevation_m/slope_pct/aspect عبر PATCH /fields/{id}، "
+            "والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
+        ),
+    }
+    return result
+
+
 @app.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def update_field(
     field_id: str,
