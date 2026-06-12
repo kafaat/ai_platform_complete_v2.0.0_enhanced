@@ -4,9 +4,13 @@ import 'package:shimmer/shimmer.dart';
 
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/state_views.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  // يُستدعى من حالة «لا حقول» للانتقال إلى تبويب الحقول لإنشاء أوّل حقل.
+  // اختياريّ (غير كاسر): إن لم يُمرَّر، يُخفى زرّ الإجراء فقط.
+  final VoidCallback? onCreateField;
+  const DashboardScreen({super.key, this.onCreateField});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -45,6 +49,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
+  // كشف «صفر حقول» دفاعيّاً (نفس منطق fields_screen): عدّاد صريح fields_count أو
+  // قائمة حقول بأيّ مفتاح محتمل. أيّ غموض ⇒ «ليس صفراً» (لا نُخفي اللوحة بالغلط).
+  bool _isZeroFields(Map<String, dynamic> data) {
+    final count = data['fields_count'];
+    if (count is num) return count == 0;
+    final raw = data['fields'] ?? data['fields_summary'] ?? data['field_list'];
+    if (raw is List) return raw.isEmpty;
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     // H04: SafeArea in parent MainNavigation
@@ -73,6 +87,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     final data = _dashboardData!;
+
+    // حالة «صفر حقول»: نعرض ترحيباً قابلاً للتنفيذ بدل بطاقات NDVI/الإنتاجيّة/السوق/
+    // الكربون (التي تفترض وجود حقول). نسمح بالسحب للتحديث ليُعاد الفحص بعد الإنشاء.
+    if (_isZeroFields(data)) {
+      return SafeArea(
+        child: RefreshIndicator(
+          onRefresh: _loadDashboard,
+          child: ListView(
+            // physics دائم التمرير ليعمل السحب للتحديث رغم قلّة المحتوى.
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.7,
+                child: EmptyView(
+                  icon: Icons.terrain,
+                  title: 'لا توجد حقول بعد',
+                  message:
+                      'أنشئ أوّل حقل لتبدأ بمتابعة صحّة المحاصيل والمؤشّرات والتنبيهات.',
+                  actionLabel: widget.onCreateField != null
+                      ? 'إنشاء أوّل حقل'
+                      : null,
+                  onAction: widget.onCreateField,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return SafeArea(
       child: RefreshIndicator(
