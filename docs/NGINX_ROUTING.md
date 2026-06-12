@@ -59,17 +59,18 @@ the remainder is forwarded. This is the crux of every mapping below.
 
 ## Notes
 
-1. **Auth base path.** `authApi` uses `VITE_AUTH_URL` (default `/auth`), and the
-   frontend issues calls like `/auth/login`, `/auth/register`. The auth-service
-   mounts its routes under `/auth/*`, so the nginx location for auth **must
-   preserve the `/auth/` prefix** when proxying — use
-   `location /auth/ { proxy_pass http://auth_backend; }` (no trailing slash on
-   `proxy_pass`, which keeps the original URI). A trailing slash
-   (`proxy_pass http://auth_backend/;`) would strip `/auth/` and the upstream
-   would receive `/login` instead of `/auth/login` → 404. The configs
-   (`nginx.unified.conf`, `nginx.light.conf`, `nginx.v9.conf`) were corrected to
-   drop the trailing slash so the prefix is preserved. Keep `VITE_AUTH_URL` and
-   the upstream mount prefix in sync.
+1. **Auth base path.** The frontend's `authApi` has base = `VITE_AUTH_URL` **and**
+   calls paths that already begin with `/auth/` (e.g. `authApi.post('/auth/login')`).
+   So with the production setting `VITE_AUTH_URL=/auth`, the browser requests
+   **`/auth/auth/login`**. The nginx block
+   `location /auth/ { proxy_pass http://auth_backend/; }` (trailing slash —
+   **intentional**) strips the *first* `/auth/` and forwards `/auth/login` to the
+   auth-service, which mounts its routes under `/auth/*` → matches. Removing the
+   trailing slash would forward `/auth/auth/login` unchanged → 404, so keep it.
+   (In dev, `VITE_AUTH_URL` defaults to the auth-service origin directly with no
+   nginx, so `/auth/login` reaches it as-is.) If you ever set `VITE_AUTH_URL=/`
+   (gateway root), the frontend calls must then drop the extra `/auth` prefix
+   (e.g. `POST /login`) to avoid a double prefix.
 
 2. **Guardrails is service-to-service.** `guardrails-engine`'s `/validate`
    enforces a service token (`X-Agent-Token`) and is intended to be called by the
