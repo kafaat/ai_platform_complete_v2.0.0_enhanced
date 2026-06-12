@@ -76,11 +76,13 @@ def layer_availability(field: dict) -> list[dict]:
             val = field.get(spec["field_col"])
             available = val is not None and val != ""
             status = "available" if available else "missing"
-            note = (
-                "متاحة من بيانات الحقل."
-                if available
-                else "غير متوفّرة — أدخِل القيمة (PATCH /api/v1/fields/{field_id}) أو من DEM."
-            )
+            if available:
+                note = "متاحة من بيانات الحقل."
+            elif spec["category"] == "terrain":
+                # DEM يملأ التضاريس فقط (ارتفاع/منحدر/اتّجاه).
+                note = "غير متوفّرة — أدخِلها (PATCH /api/v1/fields/{field_id}) أو املأها من DEM."
+            else:
+                note = "غير متوفّرة — أدخِل القيمة (PATCH /api/v1/fields/{field_id})."
         layers.append(
             {
                 "key": spec["key"],
@@ -104,13 +106,16 @@ def normalize_timeline(events: list[dict]) -> list[dict]:
     cards = []
     for e in events:
         op_ar, category = _op_label(e.get("event_type", ""))
+        tags = e.get("issue_tags")
+        if not isinstance(tags, list):  # None/نوع غير صالح → [] (عقد المستهلك: قائمة دائماً)
+            tags = []
         cards.append(
             {
                 "occurred_at": e.get("occurred_at", ""),
                 "event_type": e.get("event_type", ""),
                 "op_ar": op_ar,
                 "category": category,
-                "issue_tags": e.get("issue_tags", []),
+                "issue_tags": tags,
             }
         )
     # الأحدث أوّلاً (نمط الخطّ الزمنيّ)؛ ثابت ومستقرّ.

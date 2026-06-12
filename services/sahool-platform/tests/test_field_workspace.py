@@ -91,6 +91,29 @@ def test_empty_events_yield_empty_timeline_no_invention():
     assert normalize_timeline([]) == []  # لا تاريخ مخترَع
 
 
+def test_issue_tags_normalized_to_list_when_none_or_invalid():
+    # issue_tags=None أو نوع غير صالح ⇒ [] (عقد المستهلك: قائمة دائماً)
+    for bad in (None, "tag", 5):
+        card = normalize_timeline(
+            [
+                {
+                    "event_type": "irrigation.completed",
+                    "occurred_at": "2026-01-01T00:00:00",
+                    "issue_tags": bad,
+                }
+            ]
+        )[0]
+        assert card["issue_tags"] == []
+
+
+def test_missing_non_terrain_layer_note_does_not_mention_dem():
+    # salinity/soil/irrigation لا تُملأ من DEM ⇒ لا توجيه مضلّل
+    layers = {lyr["key"]: lyr for lyr in layer_availability({"field_id": "f", "water_ec": None})}
+    assert "DEM" not in layers["salinity"]["note_ar"]
+    # بينما طبقة تضاريس مفقودة تذكر DEM
+    assert "DEM" in layers["elevation"]["note_ar"]
+
+
 # ─── التجميع الكامل ──────────────────────────────────────────────────────
 
 

@@ -22,7 +22,7 @@
 
 ```
 { field_id, display_only:true, field:{name_ar,crop,area_ha,soil_type},
-  layers:[{key,label_ar,category,available,status,note_ar}],
+  layers:[{key,label_ar,category,available,status,display_only,note_ar}],
   available_layer_count, terrain:{...enrich_terrain},
   timeline:[{occurred_at,event_type,op_ar,category,issue_tags}], timeline_total }
 ```
@@ -36,4 +36,5 @@
 ## الواجهة (الطبقة المستهلِكة — تصميم)
 شاشة «مساحة عمل الحقل»: خريطة الحقل مركزها + مبدّل طبقات (يُخفي/يُظهر، ويُعلن
 «عند الطلب» لطبقات الأقمار) + خطّ زمنيّ أسفلها (بطاقات بأيقونة الفئة). تستهلك
-`GET /fields/{id}/workspace` في نداء واحد. (الموبايل Flutter: offline-first — تُخزَّن محليّاً.)
+`GET /api/v1/fields/{field_id}/workspace` في نداء واحد. (الموبايل Flutter:
+offline-first — تُخزَّن محليّاً.)
