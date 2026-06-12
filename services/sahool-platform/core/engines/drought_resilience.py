@@ -195,7 +195,12 @@ def compare_crops_resilience(
 
     يخدم قرار اختيار المحصول في موسم جفاف متوقّع — من صفات موثّقة.
     """
-    assessed = [compute_drought_resilience(c, forecast_max_temp_c, is_irrigated) for c in crop_ids]
+    assessed = [
+        compute_drought_resilience(
+            c, forecast_max_temp_c=forecast_max_temp_c, is_irrigated=is_irrigated
+        )
+        for c in crop_ids
+    ]
     scored = [a for a in assessed if a.get("resilience_score") is not None]
     scored.sort(key=lambda a: a["resilience_score"], reverse=True)
     return {
