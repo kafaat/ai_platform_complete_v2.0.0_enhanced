@@ -149,3 +149,7 @@ v45_activity_season_fk.sql
 # لها). DB-level فيلتقط كلّ مسارات الكتابة. يعتمد على v10 (field_lifecycle*) +
 # v11/v18 (emit_event). idempotent (CREATE OR REPLACE + DROP TRIGGER IF EXISTS).
 v46_lifecycle_event_sync.sql
+# v47: تقوية سلامة الـSchema — FK مركّب tenant-aware (seasons/activities ↔ fields)،
+# تفرّد الحقل (field_code/الاسم لكلّ مستأجِر)، قيود تواريخ الموسم، وترقية
+# manager_user_id إلى INTEGER + FK users(id). idempotent + NOT VALID/DO-guard.
+v47_schema_integrity.sql

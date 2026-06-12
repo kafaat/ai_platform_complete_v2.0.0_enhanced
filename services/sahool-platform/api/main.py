@@ -521,7 +521,7 @@ class FieldDetail(FieldSummary):
     pump_type: str | None = None
     well_depth_m: float | None = None
     water_ec: float | None = None  # ملوحة الماء dS/m
-    manager_user_id: str | None = None  # ربط منطقيّ بمستخدم (users.id)
+    manager_user_id: int | None = None  # FK إلى users(id) (v47)
 
 
 class FieldUpdateRequest(BaseModel):
@@ -552,7 +552,7 @@ class FieldUpdateRequest(BaseModel):
     pump_type: str | None = Field(default=None, max_length=30)
     well_depth_m: float | None = Field(default=None, ge=0)
     water_ec: float | None = Field(default=None, ge=0)
-    manager_user_id: str | None = Field(default=None, max_length=64)
+    manager_user_id: int | None = Field(default=None, ge=1)  # FK users(id) (v47)
 
 
 def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
@@ -1482,7 +1482,7 @@ def _row_to_field_detail(r) -> FieldDetail:
         pump_type=_s("pump_type"),
         well_depth_m=_f("well_depth_m"),
         water_ec=_f("water_ec"),
-        manager_user_id=_s("manager_user_id"),
+        manager_user_id=_i("manager_user_id"),
     )
 
 
