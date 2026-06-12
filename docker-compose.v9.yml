@@ -786,15 +786,18 @@ services:
     logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      # مفتاح تبديل مزوّد ERP: odoo | erpnext | none (إيقاف)
-      ERP_PROVIDER: ${ERP_PROVIDER:-odoo}
+      # مفتاح تبديل مزوّد ERP: erpnext (الأساسي) | odoo (اختياري) | none (إيقاف).
+      # الافتراض erpnext؛ Odoo اختياريّ يُشغَّل بـ--profile odoo + ERP_PROVIDER=odoo.
+      ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
       ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
       ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
       ERPNEXT_API_SECRET: ${ERPNEXT_API_SECRET:-}
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
       ODOO_DB: ${ODOO_DB:-sahool_erp}  # قاعدة Odoo المنفصلة (لا قاعدة المنصّة sahool)
       ODOO_USER: ${ODOO_USER:-admin}
-      ODOO_PASSWORD: ${ODOO_PASSWORD:?ODOO_PASSWORD required}
+      # اختياريّ: يُستعمَل فقط عند ERP_PROVIDER=odoo. كان «:?required» يمنع تشغيل
+      # الإعداد الافتراضي (erpnext) بلا ضبط Odoo — فجُعِل اختياريّاً.
+      ODOO_PASSWORD: ${ODOO_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-postgres:

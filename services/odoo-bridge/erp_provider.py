@@ -379,10 +379,10 @@ class OdooProvider(ERPProvider):
 def get_erp_provider(odoo_client=None) -> ERPProvider:
     """يُرجِع المزوّد المختار عبر ERP_PROVIDER (odoo|erpnext|none).
 
-    odoo هو الافتراضي (التوافق الخلفي). أيّ قيمة غير معروفة → none (آمن).
+    erpnext هو الافتراضي (المزوّد الأساسي)؛ odoo اختياريّ. أيّ قيمة غير معروفة → none (آمن).
     odoo_client: OdooClient الموجود (يُمرَّر لـOdooProvider).
     """
-    provider = os.getenv("ERP_PROVIDER", "odoo").strip().lower()
+    provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()  # erpnext = الأساسي
 
     if provider in ("none", "disabled", "off"):
         logger.info("ERP_PROVIDER=none → ERP معطّل")
@@ -412,7 +412,7 @@ def get_erp_provider(odoo_client=None) -> ERPProvider:
         if odoo_client is None:
             logger.warning("ERP_PROVIDER=odoo لكن لا OdooClient مُمرَّر → none مؤقّتاً")
             return NullProvider()
-        logger.info("ERP_PROVIDER=odoo (الافتراضي)")
+        logger.info("ERP_PROVIDER=odoo (اختياري — الأساسي erpnext)")
         return OdooProvider(odoo_client)
 
     logger.warning(f"ERP_PROVIDER={provider} غير معروف → none (آمن)")

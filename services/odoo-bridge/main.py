@@ -523,7 +523,7 @@ async def periodic_sync():
     while True:
         # احترام مفتاح التبديل: لا تزامن Odoo إلّا حين ERP_PROVIDER=odoo.
         # حين none/erpnext (أو Odoo مُستثنى من البناء) → تخطٍّ نظيف بلا أخطاء.
-        provider = os.getenv("ERP_PROVIDER", "odoo").strip().lower()
+        provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
         if provider != "odoo":
             logger.info(f"ERP_PROVIDER={provider} → تخطّي مزامنة Odoo (لا حاوية Odoo)")
             await asyncio.sleep(SYNC_INTERVAL_SEC)
@@ -551,13 +551,17 @@ async def lifespan(app: FastAPI):
         _pool = await asyncpg.create_pool(SAHOOL_DB_URL, min_size=1, max_size=5)
         logger.info("DB pool ready")
         await _run_migrations()
-    # Test Odoo connection
-    try:
-        odoo = get_odoo()
-        await odoo.authenticate()
-        logger.info("Odoo bridge initialized")
-    except Exception as e:
-        logger.warning(f"Odoo not reachable yet: {e}")
+    # Odoo: نتّصل فقط حين يكون المزوّد المختار odoo (الأساسي erpnext لا يحتاج Odoo
+    # — فلا محاولات اتصال/تحذيرات في بيئة بلا حاوية Odoo).
+    if os.getenv("ERP_PROVIDER", "erpnext").strip().lower() == "odoo":
+        try:
+            odoo = get_odoo()
+            await odoo.authenticate()
+            logger.info("Odoo bridge initialized")
+        except Exception as e:
+            logger.warning(f"Odoo not reachable yet: {e}")
+    else:
+        logger.info("ERP_PROVIDER != odoo → تخطّي تهيئة Odoo (اختياري؛ الأساسي erpnext)")
     # Start background sync (احتفظ بالمرجع لمنع GC المبكّر)
     app.state.sync_task = asyncio.create_task(periodic_sync())
     yield
@@ -639,20 +643,23 @@ class OdooConfigResponse(BaseModel):
 @app.get("/healthz")
 @app.get("/health")
 async def health():
-    odoo_ok = False
+    # Odoo يُفحَص فقط حين يكون المزوّد المختار odoo؛ غير ذلك odoo_connected=null
+    # (غير مفعَّل) بدل false مضلّل — الأساسي erpnext لا يمرّ عبر Odoo.
+    provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
+    odoo_ok = None
     uid = None
-    try:
-        odoo = get_odoo()
-        if odoo.uid is None:
-            uid = await odoo.authenticate()
-        else:
-            uid = odoo.uid
-        odoo_ok = True
-    except Exception as e:  # noqa: BLE001
-        logger.debug("فحص صحّة Odoo فشل: %s", type(e).__name__)
+    if provider == "odoo":
+        odoo_ok = False
+        try:
+            odoo = get_odoo()
+            uid = odoo.uid if odoo.uid is not None else await odoo.authenticate()
+            odoo_ok = True
+        except Exception as e:  # noqa: BLE001
+            logger.debug("فحص صحّة Odoo فشل: %s", type(e).__name__)
     return {
         "status": "alive",
-        "odoo_connected": odoo_ok,
+        "erp_provider": provider,
+        "odoo_connected": odoo_ok,  # null حين المزوّد ليس odoo (غير مفعَّل)
         "odoo_uid": uid,
         "sync_interval_sec": SYNC_INTERVAL_SEC,
     }
@@ -668,7 +675,7 @@ async def erp_provider_status(_auth: dict = Depends(require_auth)):
 
     from erp_provider import get_erp_provider
 
-    selected = os.getenv("ERP_PROVIDER", "odoo").strip().lower()
+    selected = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
     # نمرّر OdooClient للمزوّد odoo (يعيد استخدام الموجود)
     try:
         provider = get_erp_provider(odoo_client=get_odoo() if selected == "odoo" else None)
