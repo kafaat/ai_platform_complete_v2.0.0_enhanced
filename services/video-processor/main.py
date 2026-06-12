@@ -53,6 +53,8 @@ def _parse_mqtt_broker_url(url: str) -> tuple[str, int]:
 def _mqtt_disabled() -> bool:
     """MQTT معطّل إذا لم يُضبط العنوان أو بدأ بـ'disabled' — للتشغيل بلا وسيط."""
     return not MQTT_BROKER_URL or MQTT_BROKER_URL.startswith("disabled")
+
+
 EDGE_INFERENCE_URL = os.getenv("EDGE_INFERENCE_URL", "http://sahool-edge:8000")
 ZLMEDIA_API_URL = os.getenv(
     "ZLMEDIA_API_URL", os.getenv("ZLMEDIAKIT_URL", "http://sahool-zlmediakit:8080")
