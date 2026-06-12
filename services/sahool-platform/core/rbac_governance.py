@@ -101,7 +101,10 @@ def preview_role_change(current_role: str, new_role: str) -> dict:
     gained_critical = [p.value for p in gained if is_safety_critical_permission(p)]
     lost_critical = [p.value for p in lost if is_safety_critical_permission(p)]
 
-    is_escalation = len(new_perms) > len(cur_perms)
+    # تصعيد = اكتساب أيّ صلاحيّة جديدة (لا مقارنة أعداد فقط): قد يكتسب الدور
+    # الجديد صلاحيّة حرجة مع بقاء العدد ثابتاً لفقدانه أخرى — وذلك تصعيد يستحقّ
+    # المراجعة. أيّ مكسب صلاحيّة = اتّساع للقدرة.
+    is_escalation = bool(gained)
 
     return {
         "from_role": current_role,

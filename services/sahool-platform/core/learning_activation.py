@@ -6,7 +6,7 @@
 
 ما يربطه هذا المكوّن (كان معزولاً):
   • feedback_closure.is_outcome_ready_for_learning — نضج التوصية الواحدة (زمنيّاً)
-  • feedback_closure.assess_learning_readiness — معايير الجاهزيّة الكلّيّة (50+، إلخ)
+  • feedback_closure.learning_loop_readiness — معايير الجاهزيّة الكلّيّة (50+، إلخ)
   • capabilities — نمط "حاضرة خاملة حتى التزويد"
 الجسر المفقود: حساب المعايير من **تدفّق البيانات الفعلي** ثمّ التفعيل التلقائي.
 
@@ -27,15 +27,20 @@ from enum import Enum
 
 
 class ActivationState(str, Enum):
-    """حالة بوّابة التعلّم."""
+    """حالة بوّابة التعلّم.
+
+    نطاق evaluate_activation: يُبلّغ حتى READY فقط (قرار البوّابة: هل يمكن البدء؟).
+    ACTIVE حالة دورة حياة لاحقة يضبطها **مُتحكّم التفعيل** بعد فتح البوّابة وبدء
+    التعلّم الفعلي — ليست من مخرجات evaluate_activation (لذا لا رسالة لها هنا).
+    """
 
     DORMANT = "dormant"  # خاملة — لا بيانات كافية بعد
     ACCUMULATING = "accumulating"  # تتراكم — بيانات تتدفّق لكن دون العتبة
-    READY = "ready"  # جاهزة — العتبة بُلغت، يمكن التفعيل
-    ACTIVE = "active"  # مُفعَّلة — التعلّم يعمل على بيانات حقيقيّة
+    READY = "ready"  # جاهزة — العتبة بُلغت، يمكن التفعيل (أقصى ما تُرجِعه البوّابة)
+    ACTIVE = "active"  # مُفعَّلة — تُضبط خارج البوّابة بعد بدء التعلّم (انظر docstring)
 
 
-# عتبات التفعيل (من feedback_closure.assess_learning_readiness — مصدر واحد للحقيقة)
+# عتبات التفعيل (من feedback_closure.learning_loop_readiness — مصدر واحد للحقيقة)
 MIN_COMPLETED_OUTCOMES = 50  # حدّ أدنى لكلّ محصول رئيسي
 MIN_ACCEPTANCE_RATE = 0.70  # selection bias منخفض
 MIN_LAG_COMPLIANCE = 0.80  # نضج زمني للنتائج

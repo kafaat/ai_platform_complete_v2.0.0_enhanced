@@ -6546,12 +6546,14 @@ def learning_activation_status(
 ):
     """حالة بوّابة تفعيل التعلّم للمستأجر — مدفوعة بتدفّق البيانات.
 
-    قبل العتبة: خاملة بصدق (لا تتظاهر بتعلّم لم يبدأ). القيم الحيّة تأتي من
-    طبقة DB (recommendations/outcomes عبر RLS) في الإنتاج.
+    ⚠ placeholder بنيويّ: ربط العدّ الحيّ بجداول التوصيات/النتائج (عبر RLS)
+    مؤجَّل إلى ما بعد التشغيل (POST_DEPLOYMENT_ROADMAP). حتى ذلك يُرجِع لقطة
+    صفريّة صريحة (خاملة) ولا يدّعي حساباً حيّاً — اتّساقاً مع مبدأ الصدق.
     """
     from core.learning_activation import DataFlowSnapshot, evaluate_activation
 
     tenant = str(getattr(user, "tenant_id", ""))
+    # لقطة صفريّة صريحة — الربط الحيّ بالـDB مؤجَّل (لا تظاهر بتعلّم لم يبدأ).
     snapshot = DataFlowSnapshot(
         tenant_id=tenant,
         completed_outcomes=0,
@@ -6560,9 +6562,11 @@ def learning_activation_status(
         outcomes_within_lag=0,
     )
     result = evaluate_activation(snapshot)
+    result["live_data_wired"] = False
     result["data_source_note_ar"] = (
-        "الأعداد تُحسب حيّاً من جداول التوصيات/النتائج عبر RLS في الإنتاج. "
-        "هذه الاستجابة تعكس البنية؛ التدفّق الفعلي يملؤها."
+        "⚠ placeholder: لقطة صفريّة صريحة (live_data_wired=false). ربط العدّ الحيّ "
+        "بجداول التوصيات/النتائج عبر RLS مؤجَّل إلى ما بعد التشغيل — حتى ذلك تبقى "
+        "الحالة خاملة بصدق ولا تعكس تدفّقاً فعليّاً."
     )
     return result
 
@@ -6599,12 +6603,20 @@ async def devices_fleet_health(
                         ),
                     )
                 )
+            import asyncpg as _asyncpg  # لتضييق الالتقاط على غياب الجدول فقط
+
             try:
-                af = await conn.fetch(
-                    "SELECT DISTINCT field_id FROM field_lifecycle WHERE status = 'active'"
-                )
-                active_fields = {r["field_id"] for r in af if r["field_id"]}
-            except Exception:  # noqa: BLE001 — غياب الجدول لا يكسر المراقبة
+                # SAVEPOINT يعزل فشل الاستعلام الاختياري عن المعاملة الخارجيّة (RLS)،
+                # فلا يُجهضها غياب الجدول (نمط _emit_domain_event نفسه).
+                async with conn.transaction():
+                    af = await conn.fetch(
+                        "SELECT DISTINCT field_id FROM field_lifecycle WHERE status = 'active'"
+                    )
+                    active_fields = {r["field_id"] for r in af if r["field_id"]}
+            except _asyncpg.UndefinedTableError:
+                # غياب جدول دورة الحياة لا يكسر المراقبة (يسقط رفع الحرجيّة فقط).
+                # أيّ خطأ DB آخر (صلاحيّة/SQL/انقطاع) يُترك ليُترجَم إلى 503 خارجيّاً
+                # بدل إخفائه بصمت وإعطاء «صحّة» مضلّلة.
                 active_fields = set()
     except HTTPException:
         raise
@@ -6626,7 +6638,9 @@ def rbac_who_can(
     try:
         perm = _P(permission)
     except ValueError as e:
-        raise HTTPException(400, f"صلاحيّة غير معروفة: {permission}") from e
+        raise HTTPException(
+            status_code=422, detail=f"صلاحيّة غير معروفة: {permission}"
+        ) from e
     return who_can(perm)
 
 
