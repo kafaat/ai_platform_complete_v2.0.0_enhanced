@@ -95,8 +95,9 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
 
 ## المرحلة ٤ — ميزات مؤجَّلة بقرار منتج (حسب الأولويّة)
 - ☐ **Command Handler Registry / Dispatcher كامل** (P1 من مراجعة CQRS) — يُمهّد للمرحلة ٣.
-- ☐ **DLQ admin endpoint/UI:** `GET /admin/events/dead-letter` + `POST …/requeue`
-  (فوق `v_event_dead_letter`/`requeue_*` الجاهزة) — لتشغيل بلا SQL يدويّ.
+- ✅ **DLQ admin endpoint:** `GET /api/v1/admin/events/dead-letter` +
+  `POST …/{outbox_id}/requeue` + `POST …/requeue-all` (فوق `v_event_dead_letter`/`requeue_*`)
+  — **مُنفَّذ** (AUDIT_VIEW، مُرشَّح بالمستأجِر). عرض ops عابر المستأجرين = شأن superuser مؤجَّل.
 - ☐ **توسيع تغطية الأحداث:** `FIELD_DELETED` عند إضافة endpoint حذف الحقل؛ أحداث
   إغلاق/تحديث الموسم.
 - ☐ **`farm_id` إلزاميّ:** نافذة انتقاليّة (ترحيل البيانات بلا مزرعة → افتراضيّة، ثمّ
