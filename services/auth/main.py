@@ -498,9 +498,8 @@ def _post_sms_blocking(phone: str, message: str) -> bool:
     import urllib.error
     import urllib.request
 
-    payload = json.dumps(
-        {"to": phone, "from": SMS_FROM, "message": message, "api_key": SMS_API_KEY}
-    ).encode()
+    # المفتاح في ترويسة Authorization فقط — لا نُكرّره في الجسم (يقلّل سطح التعرّض).
+    payload = json.dumps({"to": phone, "from": SMS_FROM, "message": message}).encode()
     req = urllib.request.Request(
         SMS_PROVIDER_URL,
         data=payload,
@@ -518,10 +517,21 @@ def _post_sms_blocking(phone: str, message: str) -> bool:
         return False
 
 
+def _is_valid_phone(destination: str) -> bool:
+    """رقم هاتف صالح للإرسال؟ (أرقام دوليّة E.164 مبسّطة) — يستبعد النوائب مثل
+    'user:{id}' المستعمَلة قبل حفظ أرقام الهواتف فعليّاً."""
+    d = destination.strip().lstrip("+")
+    return d.isdigit() and 7 <= len(d) <= 15
+
+
 async def _send_otp_sms(destination: str, code: str) -> bool:
     """يُرسِل OTP عبر مزوّد SMS HTTP — تشغيل الطلب الحاجب في خيط."""
     if not SMS_PROVIDER_URL or not SMS_API_KEY:
         logger.warning("OTP هاتف: مزوّد SMS غير مضبوط — لم يُرسَل (destination=%s)", destination)
+        return False
+    if not _is_valid_phone(destination):
+        # وجهة نائبة (لم يُحفَظ رقم هاتف بعد) — لا نُرسِل لرقم غير حقيقيّ (إهدار/أخطاء).
+        logger.warning("OTP هاتف: وجهة غير صالحة (نائبة؟) — لم يُرسَل")
         return False
     message = f"رمز تحقّق SAHOOL: {code} (صالح {OTP_TTL_SECONDS // 60} دقيقة)"
     return await asyncio.to_thread(_post_sms_blocking, destination, message)
@@ -935,10 +945,12 @@ async def verify_request(
 
     code = generate_otp()
     await _redis.setex(otp_redis_key(user_id, req.channel), OTP_TTL_SECONDS, code)
-    await send_otp(req.channel, destination, code)
+    # صدق: الرسالة تعكس واقع التسليم — لا ندّعي إرسالاً إن لم يُهيّأ مزوّد القناة.
+    delivered = await send_otp(req.channel, destination, code)
     await audit_log(f"verify_request_{req.channel}", user_id, ip)
     return {
-        "message": "تم إرسال رمز التحقّق",
+        "message": "تم إرسال رمز التحقّق" if delivered else "تعذّر تسليم الرمز عبر القناة",
+        "delivered": delivered,
         "channel": req.channel,
         "expires_in": OTP_TTL_SECONDS,
     }

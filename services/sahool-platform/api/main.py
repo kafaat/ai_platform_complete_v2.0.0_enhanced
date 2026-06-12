@@ -2671,12 +2671,13 @@ async def update_notification_preferences(
 
 
 async def _log_alert_deliveries(conn, user, alert: AlertSummary) -> None:
-    """يحسب قنوات التسليم المقصودة لتنبيه مُنشأ ويُسجّلها (log) — بلا إرسال فعليّ.
+    """يحسب قنوات تسليم تنبيه مُنشأ ويُسلّمه عبر مُرسِل حقيقيّ، ثمّ يُسجّل النتيجة.
 
-    يقرأ تفضيلات المستخدم الحاليّ، يبني NotificationPrefs/AlertInput، يستدعي
-    alert_delivery.deliver (مُرسِل وهميّ يُسجّل فقط — لا بوّابة SMS/بريد هنا)،
-    ثمّ يُسجّل النتيجة. غير كاسر: أيّ خطأ يُبتلَع ويُسجَّل تحذيراً (لا يفشل إنشاء
-    التنبيه). نقطة التوصيل لمُرسِل حقيقيّ لاحقاً: مرّر sender إلى deliver().
+    يقرأ تفضيلات المستخدم، يبني NotificationPrefs/AlertInput، ويستدعي
+    alert_delivery.deliver بمُرسِل حقيقيّ (real_channel_sender): إرسال فعليّ
+    عبر القنوات المهيّأة (بريد/SMS/واتساب/تلغرام/Push)، و'logged_not_sent' لغير
+    المهيّأة (لا ادّعاء إرسال). غير كاسر: أيّ خطأ (قراءة التفضيلات أو التسليم)
+    يُبتلَع ويُسجَّل تحذيراً فلا يفشل إنشاء التنبيه.
     """
     from api.alert_delivery import AlertInput, NotificationPrefs, deliver
     from api.alert_senders import real_channel_sender
@@ -2714,8 +2715,13 @@ async def _log_alert_deliveries(conn, user, alert: AlertSummary) -> None:
         field_id=alert.field_id,
     )
     # مُرسِل حقيقيّ (بريد/SMS/واتساب/تلغرام/Push عند تهيئتها، وإلّا logged_not_sent).
-    # متزامن (I/O) فنشغّله في خيط كي لا يحجب حلقة الأحداث.
-    plan = await asyncio.to_thread(deliver, prefs, alert_input, real_channel_sender)
+    # متزامن (I/O) فنشغّله في خيط كي لا يحجب حلقة الأحداث. غير كاسر: أيّ استثناء
+    # تسليم (شبكة/SMTP) يُبتلَع ويُسجَّل — لا يفشل إنشاء التنبيه.
+    try:
+        plan = await asyncio.to_thread(deliver, prefs, alert_input, real_channel_sender)
+    except Exception as e:  # noqa: BLE001 — تسليم لا يكسر الإنشاء
+        logger.warning("تعذّر تسليم التنبيه %s عبر القنوات: %s", alert.alert_id, e)
+        return
     for channel, ok, detail in plan.results:
         logger.info(
             "تسليم تنبيه %s ← قناة=%s نجَح=%s (%s)",

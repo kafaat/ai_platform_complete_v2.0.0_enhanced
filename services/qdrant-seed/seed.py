@@ -156,7 +156,12 @@ async def seed():
             vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
         )
         logger.info(f"✅ Collection '{COLLECTION}' created (dim={dim})")
-    except Exception:
+    except Exception as e:
+        # لا نبتلع الخطأ كـ"موجود مسبقاً" أعمى — نتحقّق فعليّاً: إن كان موجوداً
+        # نُكمل، وإلّا (تعذّر اتّصال/خطأ إعداد) نُعيد رفع الخطأ بدل فشل لاحق غامض.
+        if not await client.collection_exists(COLLECTION):
+            logger.error("فشل إنشاء/تهيئة المجموعة '%s': %s", COLLECTION, e)
+            raise
         logger.info(f"Collection '{COLLECTION}' already exists")
 
     points = [
