@@ -1765,6 +1765,52 @@ async def update_field(
     return _row_to_field_detail(row)
 
 
+@app.delete("/api/v1/fields/{field_id}")
+async def delete_field(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_DELETE)),
+):
+    """يحذف حقلاً ويُصدِر FIELD_DELETED — حذف متتالٍ لتبعيّاته (مواسم/عمليّات/تنبيهات).
+
+    حارس صدق: يُرفض (409) إن كان للحقل موسم نشط — أغلِقه أوّلاً (يمنع محو حقل قيد
+    الاستخدام بالخطأ). الحدث يُصدَر قبل الحذف ضمن المعاملة (نمط outbox)، وentity_id
+    نصّيّ (events منذ v18) فيبقى الحدث بعد حذف الحقل (لا FK من events إلى fields).
+    404 لو الحقل ليس للمستأجِر؛ 503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT field_id, name, crop, farm_id FROM fields WHERE field_id = $1",
+                field_id,
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            active = await conn.fetchval(
+                "SELECT COUNT(*) FROM seasons WHERE field_id = $1 AND status = 'active'",
+                field_id,
+            )
+            if active and int(active) > 0:
+                raise HTTPException(
+                    status_code=409,
+                    detail="للحقل موسم نشط — أغلِقه قبل الحذف (تفادي محو بيانات قيد الاستخدام).",
+                )
+            # الحدث قبل الحذف (يحفظ ما حُذف)؛ ثمّ DELETE المتتالي.
+            await _emit_domain_event(
+                conn,
+                user,
+                "FIELD_DELETED",
+                "field",
+                field_id,
+                {"name": row["name"], "crop": row["crop"], "farm_id": row["farm_id"]},
+            )
+            await conn.execute("DELETE FROM fields WHERE field_id = $1", field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("حذف الحقل", e) from e
+    return {"field_id": field_id, "deleted": True}
+
+
 @app.get("/api/v1/geo/reverse")
 def geo_reverse_endpoint(
     lat: float,
@@ -1942,11 +1988,25 @@ async def create_season(
             # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
             # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
             async with conn.transaction():
-                await conn.execute(
+                closed = await conn.fetch(
                     "UPDATE seasons SET status = 'closed' "
-                    "WHERE field_id = $1 AND status = 'active'",
+                    "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
                     field_id,
                 )
+                # حدث SEASON_CLOSED لكلّ موسم نشط أُغلق آليّاً (توسيع تغطية الأحداث).
+                for cr in closed:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "SEASON_CLOSED",
+                        "season",
+                        cr["season_id"],
+                        {
+                            "field_id": field_id,
+                            "reason": "superseded_by_new_season",
+                            "superseded_by": season_id,
+                        },
+                    )
                 await conn.execute(
                     """INSERT INTO seasons
                     (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,

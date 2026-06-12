@@ -98,8 +98,9 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
 - ✅ **DLQ admin endpoint:** `GET /api/v1/admin/events/dead-letter` +
   `POST …/{outbox_id}/requeue` + `POST …/requeue-all` (فوق `v_event_dead_letter`/`requeue_*`)
   — **مُنفَّذ** (AUDIT_VIEW، مُرشَّح بالمستأجِر). عرض ops عابر المستأجرين = شأن superuser مؤجَّل.
-- ☐ **توسيع تغطية الأحداث:** `FIELD_DELETED` عند إضافة endpoint حذف الحقل؛ أحداث
-  إغلاق/تحديث الموسم.
+- ✅ **توسيع تغطية الأحداث:** `DELETE /api/v1/fields/{id}` يُصدِر `FIELD_DELETED`
+  (محروس: 409 لو موسم نشط)؛ و`SEASON_CLOSED` يُصدَر عند الإغلاق الآليّ في إنشاء
+  موسم جديد — **مُنفَّذ**. (تحديث الموسم الصريح: عند إضافة endpoint تحديث موسم.)
 - ☐ **`farm_id` إلزاميّ:** نافذة انتقاليّة (ترحيل البيانات بلا مزرعة → افتراضيّة، ثمّ
   `NOT NULL` + إلزام الواجهة بإنشاء مزرعة أوّلاً — منطق `canCreateFarm` جاهز).
 - ☐ **Workflow مخبري للتربة:** عيّنة → نتيجة مختبر → اعتماد → إصدارات (جداول +
