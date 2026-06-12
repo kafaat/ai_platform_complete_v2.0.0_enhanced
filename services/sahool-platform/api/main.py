@@ -6904,6 +6904,62 @@ async def prediction_calibration_status(
     return result
 
 
+@app.get("/api/v1/fields/{field_id}/water-stress-spectral")
+async def field_water_stress_spectral(
+    field_id: str,
+    ndmi: float | None = None,
+    msi: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """الإجهاد المائي من مؤشّرات الرطوبة الطيفيّة (ndmi/msi) — جسر للقرار.
+
+    يربط المؤشّرات المحسوبة (كانت بلا ربط) بكشف الإجهاد المائي. إشارة استرشاديّة
+    تُدمَج مع ميزان الماء — القياس الأرضي يبقى المرجّح. صدق: لا مؤشّر → unknown.
+    """
+    from core.engines.spectral_stress_bridge import fuse_water_stress
+
+    return {"field_id": field_id, **fuse_water_stress(ndmi=ndmi, msi=msi)}
+
+
+@app.get("/api/v1/indices/coverage-report")
+def indices_coverage_report(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تقرير شفّاف: أيّ مؤشّرات طيفيّة مربوطة بالقرار وأيّها عرض/سياق (حوكمة)."""
+    from core.engines.spectral_stress_bridge import index_coverage_report
+
+    return index_coverage_report()
+
+
+@app.get("/api/v1/crops/drought-resilience")
+def crop_drought_resilience(
+    crop_id: str,
+    forecast_max_temp_c: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+):
+    """درجة تحمّل الجفاف/الحرارة لمحصول من صفات موثّقة (مبدأ TRY، لا أرقام مخترعة).
+
+    يجمع صفات سهول (عمق الجذور، حدّ حرارة الإزهار، عتبة الملوحة) في درجة مركّبة.
+    يحذّر إن تجاوزت الحرارة المتوقّعة حدّ الإزهار (قد تكون أخطر). صدق: بلا صفات → لا درجة.
+    """
+    from core.engines.drought_resilience import compute_drought_resilience
+
+    return compute_drought_resilience(crop_id, forecast_max_temp_c=forecast_max_temp_c)
+
+
+@app.get("/api/v1/crops/compare-drought-resilience")
+def compare_drought_resilience(
+    crop_ids: str,
+    forecast_max_temp_c: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+):
+    """يقارن تحمّل محاصيل للجفاف (قائمة مفصولة بفواصل) — لاختيار الأصمد."""
+    from core.engines.drought_resilience import compare_crops_resilience
+
+    crops = [c.strip() for c in crop_ids.split(",") if c.strip()]
+    return compare_crops_resilience(crops, forecast_max_temp_c=forecast_max_temp_c)
+
+
 @app.get("/api/v1/calendars/lunar-mansions")
 def calendars_lunar_mansions():
     """المنازل القمريّة الـ٢٨ (نجوم الزراعة) — مرجع معرفي تراثي (عرض فقط)."""
