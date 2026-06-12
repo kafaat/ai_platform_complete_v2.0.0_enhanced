@@ -485,6 +485,92 @@ class ApiService {
     return _asMap(r.data);
   }
 
+  // ── Fields (field:view / field:create / field:edit) ──
+  // إنشاء/تحديث الحقول — يطابق عقد الخادم POST/PATCH /api/v1/fields بدقّة.
+  // geometry هو GeoJSON Polygon: {"type":"Polygon","coordinates":[[[lon,lat],...]]}.
+  // صدق: الخطأ (422 هندسة غير صالحة / 409 تداخل-تكرار / 503 DB) يُرمى ليعرض
+  // الـUI حالة صادقة عبر apiErrorMessage — لا حقل مُلفَّق.
+
+  /// ينشئ حقلاً من مضلّع مرسوم/مستورَد (POST /api/v1/fields). [geometry] لازم
+  /// (GeoJSON Polygon). يردّ الحقل المُنشأ (FieldSummary) بهندسته كي ترسمه الواجهة.
+  Future<Map<String, dynamic>> createField({
+    required String name,
+    required Map<String, dynamic> geometry,
+    String? crop,
+    String? soilType,
+    String? waterSource,
+    String? manager,
+    String? farmId,
+  }) async {
+    final r = await _dio.post('/api/v1/fields', data: {
+      'name': name,
+      'geometry': geometry,
+      if (crop != null) 'crop': crop,
+      if (soilType != null) 'soil_type': soilType,
+      if (waterSource != null) 'water_source': waterSource,
+      if (manager != null) 'manager': manager,
+      if (farmId != null) 'farm_id': farmId,
+    });
+    return _asMap(r.data);
+  }
+
+  /// تحديث جزئيّ لتفاصيل حقل (ملء تدريجيّ) — PATCH /api/v1/fields/{id}.
+  /// [advanced] يحوي الأعمدة المُرسَلة فقط (مثل irrigation_type، soil_ph…)؛
+  /// تُحدَّث المُرسَلة فقط ولا تُمسح غير المُرسَلة. يردّ الحقل المُحدَّث (FieldDetail).
+  Future<Map<String, dynamic>> updateField(
+      String fieldId, Map<String, dynamic> advanced) async {
+    final r = await _dio.patch('/api/v1/fields/$fieldId', data: advanced);
+    return _asMap(r.data);
+  }
+
+  /// يستورد حدّ حقل من نصّ GeoJSON (POST /api/v1/fields/import، format=geojson).
+  /// الخادم يحلّل المحتوى إلى Polygon ثمّ يعيد استخدام مسار الإنشاء. خطأ التحليل
+  /// ⇒ 400 يُرمى ليُعرَض بصدق. يردّ الحقل المُنشأ (FieldSummary).
+  Future<Map<String, dynamic>> importFieldGeoJson(
+    String content, {
+    required String name,
+    String? crop,
+    String? soilType,
+    String? waterSource,
+    String? manager,
+    String? farmId,
+  }) async {
+    final r = await _dio.post('/api/v1/fields/import', data: {
+      'format': 'geojson',
+      'content': content,
+      'name': name,
+      if (crop != null) 'crop': crop,
+      if (soilType != null) 'soil_type': soilType,
+      if (waterSource != null) 'water_source': waterSource,
+      if (manager != null) 'manager': manager,
+      if (farmId != null) 'farm_id': farmId,
+    });
+    return _asMap(r.data);
+  }
+
+  /// يستورد حدّ حقل من نصّ KML (POST /api/v1/fields/import، format=kml).
+  Future<Map<String, dynamic>> importFieldKml(
+    String content, {
+    required String name,
+    String? crop,
+    String? soilType,
+    String? waterSource,
+    String? manager,
+    String? farmId,
+  }) async {
+    final r = await _dio.post('/api/v1/fields/import', data: {
+      'format': 'kml',
+      'content': content,
+      'name': name,
+      if (crop != null) 'crop': crop,
+      if (soilType != null) 'soil_type': soilType,
+      if (waterSource != null) 'water_source': waterSource,
+      if (manager != null) 'manager': manager,
+      if (farmId != null) 'farm_id': farmId,
+    });
+    return _asMap(r.data);
+  }
+
   // ── Documents (document:view / document:manage) — بيانات وصفيّة فقط ──
   Future<List<Map<String, dynamic>>> listDocuments(
       {String? category, String? fieldId}) async {
