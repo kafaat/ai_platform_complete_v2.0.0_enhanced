@@ -182,7 +182,7 @@ services:
   # FIX-05: MINIO_ROOT_PASSWORD من .env
   # ═══════════════════════════════════════════════════════════════
   sahool-minio:
-    image: ${MINIO_IMAGE:-minio/minio:latest}  # prod: ثبّت إصدار/digest
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-10-13T13-34-11Z}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-minio
     mem_limit: 384m
     restart: unless-stopped
@@ -240,7 +240,7 @@ services:
   # FIX-07: أضف Ollama لخدمة local-ai-rag
   # ═══════════════════════════════════════════════════════════════
   sahool-ollama:
-    image: ${OLLAMA_IMAGE:-ollama/ollama:latest}  # prod: ثبّت إصدار/digest
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-ollama
     mem_limit: 4g
     restart: unless-stopped
@@ -562,7 +562,7 @@ services:
   # سدّ فجوة P0: MapLibre لا يدعم COG أصلاً؛ TiTiler ينتج بلاطات عند الطلب
   # من COG مع تمدّد ألوان ديناميكي. بديل عن البلاطات الثابتة المُولَّدة مسبقاً.
   sahool-titiler:
-    image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:latest}  # prod: ثبّت إصدار/digest
+    image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-titiler
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
     mem_limit: 1024m
@@ -757,6 +757,7 @@ services:
     container_name: sahool-qdrant-seed
     mem_limit: 384m
     restart: "no"
+    logging: *default_logging
     environment:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333

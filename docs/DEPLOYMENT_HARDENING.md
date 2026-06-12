@@ -44,21 +44,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 ### ج. بناء Python متعدّد المراحل (صورة أصغر، CVEs أقلّ)
 معظم خدمات بايثون أحاديّة المرحلة فيبقى `gcc`/`libpq-dev` في الصورة النهائيّة.
-النمط المثبَت (انظر `services/edge-inference/Dockerfile.arm64`):
+النمط المُطبَّق فعلاً في المستودع — `services/edge-inference/Dockerfile.arm64` يستخدم
+`pip install --user` ثمّ ينسخ `/root/.local` (لا `--prefix=/install`):
 ```dockerfile
 FROM python:3.11-slim-bookworm AS builder
 RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt
 
 FROM python:3.11-slim-bookworm           # runtime — بلا أدوات بناء
 RUN apt-get update && apt-get install -y --no-install-recommends libpq5 curl \
     && rm -rf /var/lib/apt/lists/*
-COPY --from=builder /install /usr/local
+COPY --from=builder /root/.local /root/.local
+ENV PATH=/root/.local/bin:$PATH \
+    PYTHONPATH=/root/.local/lib/python3.11/site-packages:/app
 COPY services/<svc>/ /app/
 USER sahool
 ```
+> أو استخدم `pip install --prefix=/install` + `COPY --from=builder /install /usr/local`
+> كنمط بديل — المهمّ هو فصل أدوات البناء عن صورة التشغيل.
 > ⚠ تتطلّب معرفة تبعيّات وقت التشغيل لكلّ خدمة (مثلاً `libpq5` لخدمات القاعدة،
 > `libgl1/libglib2.0-0` للرؤية). طبّقها لكلّ خدمة وابنِ محليّاً للتحقّق
 > (`docker build`) قبل النشر — لا تُطبَّق عمياء.
