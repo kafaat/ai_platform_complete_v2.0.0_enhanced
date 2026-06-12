@@ -1656,6 +1656,61 @@ async def get_field_terrain(
     return result
 
 
+@app.get("/api/v1/fields/{field_id}/workspace")
+async def get_field_workspace(
+    field_id: str,
+    timeline_limit: int = 50,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مساحة عمل الحقل: ملخّص + طبقات قابلة للتبديل + خطّ زمنيّ (عرض صرف).
+
+    مستلهَمة من نمط FieldView/John Deere (الخريطة محور + طبقات + خطّ زمنيّ) بنمط
+    سهول الصادق: كلّ طبقة تُعلن توفّرها (متاحة/عند الطلب/غير متوفّرة)، والخطّ الزمنيّ
+    من أحداث مسجّلة فقط (لا اختراع). 404 لو الحقل ليس للمستأجِر، 503 عند تعذّر القاعدة.
+    """
+    from core.engines.dem_enrichment import enrich_terrain
+    from core.engines.field_workspace import assemble_workspace
+
+    events: list[dict] = []
+    try:
+        async with tenant_connection(user) as conn:
+            field = await conn.fetchrow(
+                "SELECT field_id, name, crop, area_ha, soil_type, elevation_m, slope_pct, "
+                "aspect, water_ec, irrigation_type FROM fields WHERE field_id = $1",
+                field_id,
+            )
+            if field is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            rows = await conn.fetch(
+                """SELECT event_type, occurred_at FROM events
+                   WHERE entity_type = 'field' AND entity_id = $1
+                   ORDER BY occurred_at DESC LIMIT $2""",
+                field_id,
+                max(1, min(timeline_limit, 500)),
+            )
+            events = [
+                {
+                    "event_type": r["event_type"],
+                    "occurred_at": r["occurred_at"].isoformat() if r["occurred_at"] else "",
+                }
+                for r in rows
+            ]
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("مساحة عمل الحقل", e) from e
+
+    field_d = dict(field)
+    terrain = enrich_terrain(
+        elevation_m=float(field_d["elevation_m"])
+        if field_d.get("elevation_m") is not None
+        else None,
+        slope_pct=float(field_d["slope_pct"]) if field_d.get("slope_pct") is not None else None,
+        aspect=field_d.get("aspect"),
+    )
+    return assemble_workspace(field_d, terrain, events)
+
+
 @app.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def update_field(
     field_id: str,
