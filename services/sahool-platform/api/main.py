@@ -1640,6 +1640,15 @@ async def update_field(
                 f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
                 field_id,
             )
+            # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
+            await _emit_domain_event(
+                conn,
+                user,
+                "FIELD_UPDATED",
+                "field",
+                field_id,
+                req.model_dump(exclude_unset=True),
+            )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
@@ -2476,6 +2485,20 @@ _ACTIVITY_TYPES = {
 }
 
 
+def _activity_event_type(activity_type: str, status: str) -> str:
+    """يربط نوع النشاط + حالته (done/planned) بحدث عمليّة محدَّد (operation.*) حين
+    ينطبق، وإلّا ACTIVITY_RECORDED العامّ — لإثراء سجلّ الأحداث بدلالة أدقّ."""
+    done = status == "done"
+    mapping = {
+        "planting": "PLANTING_COMPLETED" if done else "PLANTING_STARTED",
+        "irrigation": "IRRIGATION_COMPLETED" if done else "IRRIGATION_STARTED",
+        "harvest": "HARVEST_COMPLETED" if done else "HARVEST_STARTED",
+        "fertilization": "FERTILIZER_APPLIED" if done else "ACTIVITY_RECORDED",
+        "spraying": "PESTICIDE_APPLIED" if done else "ACTIVITY_RECORDED",
+    }
+    return mapping.get(activity_type, "ACTIVITY_RECORDED")
+
+
 class ActivityCreateRequest(BaseModel):
     """طلب تسجيل عمليّة زراعيّة لحقل (نوع/عنوان/تفاصيل/تواريخ/موسم اختياريّ)."""
 
@@ -2594,11 +2617,12 @@ async def create_activity(
                 performed,
                 status,
             )
-            # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox).
+            # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox) — بحدث عمليّة
+            # محدَّد (operation.*) حسب النوع/الحالة، وإلّا ACTIVITY_RECORDED العامّ.
             await _emit_domain_event(
                 conn,
                 user,
-                "ACTIVITY_RECORDED",
+                _activity_event_type(req.activity_type, status),
                 "activity",
                 activity_id,
                 {
