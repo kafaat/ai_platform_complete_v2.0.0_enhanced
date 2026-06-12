@@ -158,3 +158,38 @@ def get_proverbs(
         "proverbs": [p.to_dict() for p in items],
         "academic_references_ar": _ACADEMIC_REFS,
     }
+
+
+def proverbs_for_date(target_iso: str, governorate: str | None = None) -> dict:
+    """جسر زمني: تاريخ → المنزلة النشطة → الأمثال المرتبطة بها (الحلقة المكتملة).
+
+    يسدّ الفجوة: بدل تمرير النجم يدويّاً، نحسب المنزلة النشطة من التاريخ ثمّ
+    نُرجِع أمثالها. صدق: طبقة عرض فقط؛ التواريخ تقريبيّة؛ لا يدخل القرار.
+    """
+    try:
+        from api.yemeni_calendars import calendar_context_for_date
+
+        ctx = calendar_context_for_date(target_iso, governorate=governorate)
+        if ctx.get("error_ar"):
+            return ctx
+        marker = ctx.get("marker_for_proverbs")
+    except Exception:  # noqa: BLE001 — الجسر اختياري لا يكسر الأمثال
+        marker = None
+
+    # نطابق الأمثال بالمعلم/النجم النشط (مطابقة مرنة بالاسم الجزئي)
+    result = get_proverbs(governorate=governorate)
+    if marker:
+        matched = [
+            p
+            for p in result["proverbs"]
+            if any(w in p["marker_ar"] or p["marker_ar"] in w for w in marker.split())
+        ]
+        result["proverbs"] = matched if matched else result["proverbs"]
+        result["active_marker_ar"] = marker
+        result["matched_by_date"] = bool(matched)
+    result["date_iso"] = target_iso
+    result["note_bridge_ar"] = (
+        "الأمثال مرتبطة بالمنزلة/النجم النشط في هذا التاريخ (تقريبي). "
+        "سياق ثقافي فقط — لا يدخل القرار."
+    )
+    return result

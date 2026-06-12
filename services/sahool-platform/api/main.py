@@ -6514,6 +6514,49 @@ def regional_calendar(governorate: str | None = None):
     return get_regional_calendar(governorate)
 
 
+@app.get("/api/v1/calendars/lunar-mansions")
+def calendars_lunar_mansions():
+    """المنازل القمريّة الـ٢٨ (نجوم الزراعة) — مرجع معرفي تراثي (عرض فقط)."""
+    from api.yemeni_calendars import get_lunar_mansions
+
+    return get_lunar_mansions()
+
+
+@app.get("/api/v1/calendars/himyarite-months")
+def calendars_himyarite_months():
+    """الشهور الحميريّة الـ١٢ + تنبيه التباين بين المصادر (عرض فقط)."""
+    from api.yemeni_calendars import get_himyarite_months
+
+    return get_himyarite_months()
+
+
+@app.get("/api/v1/calendars/regional-profiles")
+def calendars_regional_profiles(governorate: str | None = None):
+    """ملفّات التقاويم الإقليميّة (حضرموت/تهامة/المرتفعات/الجوف) — الربط المكانيّ."""
+    from api.yemeni_calendars import get_regional_profiles
+
+    return get_regional_profiles(governorate=governorate)
+
+
+@app.get("/api/v1/calendars/context")
+def calendars_context(date_iso: str, governorate: str | None = None):
+    """الجسر الزمني: تاريخ → المنزلة النشطة + الشهر الحميري + ملف المنطقة.
+
+    عرض ومعرفة فقط؛ لا يدخل القرار. التواريخ تقريبيّة، المقابلات تختلف.
+    """
+    from api.yemeni_calendars import calendar_context_for_date
+
+    return calendar_context_for_date(date_iso, governorate=governorate)
+
+
+@app.get("/api/v1/agricultural-proverbs/for-date")
+def agricultural_proverbs_for_date(date_iso: str, governorate: str | None = None):
+    """أمثال التاريخ: تاريخ → المنزلة النشطة → أمثالها (الحلقة المكتملة)."""
+    from api.agricultural_proverbs import proverbs_for_date
+
+    return proverbs_for_date(date_iso, governorate=governorate)
+
+
 @app.get("/api/v1/agricultural-proverbs")
 def agricultural_proverbs(marker: str | None = None, governorate: str | None = None):
     """أمثال زراعيّة موثّقة تجسر ثقة المزارع — عرض فقط، مفهرسة بالمعلم/المنطقة."""
