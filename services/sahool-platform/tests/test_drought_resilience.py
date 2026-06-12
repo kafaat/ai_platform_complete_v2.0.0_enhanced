@@ -28,16 +28,16 @@ def test_unknown_crop_is_honest_no_score():
 
 
 def test_heat_warning_when_forecast_exceeds_flowering_max():
-    # القمح حدّ إزهاره 32°؛ توقّع 38° ⇒ تحذير حراري
+    # القمح حدّ إزهاره 31° (بطاقة سهول)؛ توقّع 38° ⇒ تحذير حراري، هامش -7
     out = compute_drought_resilience("wheat", forecast_max_temp_c=38.0)
     assert "heat_warning_ar" in out
-    assert out["components"]["heat_headroom_c"] == -6.0
+    assert out["components"]["heat_headroom_c"] == -7.0
 
 
 def test_no_heat_warning_within_safe_range():
     out = compute_drought_resilience("wheat", forecast_max_temp_c=28.0)
     assert "heat_warning_ar" not in out
-    assert out["components"]["heat_headroom_c"] == 4.0
+    assert out["components"]["heat_headroom_c"] == 3.0  # 31 - 28
 
 
 def test_deep_root_crop_scores_higher_than_shallow():

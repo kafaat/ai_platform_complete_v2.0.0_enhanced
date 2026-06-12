@@ -6915,10 +6915,25 @@ async def field_water_stress_spectral(
 
     يربط المؤشّرات المحسوبة (كانت بلا ربط) بكشف الإجهاد المائي. إشارة استرشاديّة
     تُدمَج مع ميزان الماء — القياس الأرضي يبقى المرجّح. صدق: لا مؤشّر → unknown.
+
+    field-scoped: يتحقّق أنّ الحقل يخصّ المستأجِر (404 وإلّا) عبر RLS. المؤشّرات
+    تُمرَّر كمعاملات حاليّاً (جلبها من الراستر لكلّ حقل بند لاحق).
     """
     from core.engines.spectral_stress_bridge import fuse_water_stress
 
-    return {"field_id": field_id, **fuse_water_stress(ndmi=ndmi, msi=msi)}
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("التحقّق من الحقل", e) from e
+
+    return {
+        "field_id": field_id,
+        "indices_source": "query_params",  # صدق: لم تُجلَب من الراستر بعد
+        **fuse_water_stress(ndmi=ndmi, msi=msi),
+    }
 
 
 @app.get("/api/v1/indices/coverage-report")

@@ -27,6 +27,7 @@
 
 from __future__ import annotations
 
+import math
 from enum import Enum
 
 
@@ -59,11 +60,12 @@ MSI_THRESHOLDS = {
 
 def assess_water_stress_ndmi(ndmi: float | None) -> dict:
     """يحوّل NDMI إلى إشارة إجهاد مائي (حتمي، من الأدبيّات)."""
-    if ndmi is None:
+    if ndmi is None or not math.isfinite(ndmi):
+        # غياب بيانات أو ناتج غير رقمي (NaN/±inf من قسمة/nodata) ⇒ unknown لا severe.
         return {
             "signal": StressSignal.UNKNOWN.value,
             "index": "ndmi",
-            "detail_ar": "NDMI غير متاح (لا صورة/سحب) — لا إشارة (صدق)",
+            "detail_ar": "NDMI غير متاح/غير رقمي (لا صورة/سحب/فجوة) — لا إشارة (صدق)",
         }
     if ndmi >= NDMI_THRESHOLDS["healthy"]:
         sig = StressSignal.NONE
@@ -83,11 +85,12 @@ def assess_water_stress_ndmi(ndmi: float | None) -> dict:
 
 def assess_water_stress_msi(msi: float | None) -> dict:
     """يحوّل MSI إلى إشارة إجهاد مائي (عكس NDMI، Hunt & Rock 1989)."""
-    if msi is None:
+    if msi is None or not math.isfinite(msi):
+        # غياب بيانات أو ناتج غير رقمي (NaN/±inf من قسمة SWIR/NIR/nodata) ⇒ unknown.
         return {
             "signal": StressSignal.UNKNOWN.value,
             "index": "msi",
-            "detail_ar": "MSI غير متاح — لا إشارة (صدق)",
+            "detail_ar": "MSI غير متاح/غير رقمي — لا إشارة (صدق)",
         }
     if msi < MSI_THRESHOLDS["healthy"]:
         sig = StressSignal.NONE

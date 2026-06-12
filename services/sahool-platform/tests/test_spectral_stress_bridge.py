@@ -27,6 +27,12 @@ def test_ndmi_missing_is_unknown_not_invented():
     assert out["signal"] == "unknown"  # صدق: لا صورة → لا إشارة
 
 
+def test_ndmi_non_finite_is_unknown_not_severe():
+    # NaN/±inf (قسمة/nodata) ⇒ unknown لا severe (المقارنات مع NaN دائماً False)
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        assert assess_water_stress_ndmi(bad)["signal"] == "unknown"
+
+
 # ─── MSI (عكس NDMI) ──────────────────────────────────────────────────────
 
 
@@ -36,6 +42,7 @@ def test_msi_thresholds_inverse_of_ndmi():
     assert assess_water_stress_msi(1.8)["signal"] == "moderate"
     assert assess_water_stress_msi(2.5)["signal"] == "severe"  # مرتفع = إجهاد
     assert assess_water_stress_msi(None)["signal"] == "unknown"
+    assert assess_water_stress_msi(float("nan"))["signal"] == "unknown"  # غير رقمي → unknown
 
 
 # ─── الدمج ───────────────────────────────────────────────────────────────
