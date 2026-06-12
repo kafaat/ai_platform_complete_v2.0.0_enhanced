@@ -6,6 +6,13 @@
 
 version: "3.8"
 
+# ── دوران السجلّات الموحّد (يمنع امتلاء القرص بالسجلّات) — *default_logging ──
+x-logging: &default_logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 # ── المتطلبات البيئية (ضعها في .env) ─────────────────────────────
 # JWT_SECRET=your-min-32-char-secret-here
 # SAHOOL_AGENT_TOKEN=your-agent-token-here
@@ -27,10 +34,11 @@ services:
   # 1. REVERSE PROXY (Nginx)
   # ═══════════════════════════════════════════════════════════════
   sahool-nginx:
-    image: nginx:alpine
+    image: nginx:1.27-alpine
     container_name: sahool-nginx
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "80:80"
       - "443:443"
@@ -84,6 +92,7 @@ services:
     container_name: sahool-postgres
     mem_limit: 1g
     restart: unless-stopped
+    logging: *default_logging
     # منفذ مكشوف للمضيف فقط — إذا لم تحتاجه من الخارج، أزل السطر التالي
     ports:
       - "127.0.0.1:5432:5432"
@@ -112,6 +121,7 @@ services:
     container_name: sahool-redis
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     # FIX: لا تكشف Redis للمضيف إلا إذا احتجت debugging
     # ports:
     #   - "127.0.0.1:6379:6379"
@@ -148,6 +158,7 @@ services:
     container_name: sahool-nats
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     command: >
       --js
       --store_dir /data/jetstream
@@ -171,10 +182,11 @@ services:
   # FIX-05: MINIO_ROOT_PASSWORD من .env
   # ═══════════════════════════════════════════════════════════════
   sahool-minio:
-    image: minio/minio:latest
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-10-13T13-34-11Z}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-minio
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       # SECURITY FIX: bind to 127.0.0.1 only — access via Nginx reverse proxy
       # في الإنتاج: Nginx يُضيف TLS + auth قبل الـMinIO
@@ -203,6 +215,7 @@ services:
     container_name: sahool-qdrant
     mem_limit: 2g
     restart: unless-stopped
+    logging: *default_logging
     # لا تكشف Qdrant للمضيف إلا إذا احتجت debugging
     # ports:
     #   - "127.0.0.1:6333:6333"
@@ -227,10 +240,11 @@ services:
   # FIX-07: أضف Ollama لخدمة local-ai-rag
   # ═══════════════════════════════════════════════════════════════
   sahool-ollama:
-    image: ollama/ollama:latest
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-ollama
     mem_limit: 4g
     restart: unless-stopped
+    logging: *default_logging
     # GPU اختياري — أزل deploy.resources إذا لم تكن بحاجة لها
     deploy:
       resources:
@@ -267,6 +281,7 @@ services:
     container_name: sahool-auth
     mem_limit: 512m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -305,6 +320,7 @@ services:
     container_name: sahool-platform
     mem_limit: 1g
     restart: unless-stopped
+    logging: *default_logging
     environment:
       # المنصّة تقرأ SAHOOL_* — يجب تمرير نفس السرّ الذي يوقّع به auth
       SAHOOL_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
@@ -336,6 +352,7 @@ services:
     container_name: sahool-supervisor-agent
     mem_limit: 768m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:8096:8000"
     environment:
@@ -367,6 +384,7 @@ services:
     container_name: sahool-guardrails-engine
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:8097:8000"
     environment:
@@ -396,6 +414,7 @@ services:
     container_name: sahool-sentinel-hub-mcp
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       SH_CLIENT_ID: ${SH_CLIENT_ID:?SH_CLIENT_ID required}
       SH_CLIENT_SECRET: ${SH_CLIENT_SECRET:?SH_CLIENT_SECRET required}
@@ -415,6 +434,7 @@ services:
     container_name: sahool-weather-mcp
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       JWT_SECRET: ${JWT_SECRET}
     networks:
@@ -432,6 +452,7 @@ services:
     container_name: sahool-wofost-mcp
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       JWT_SECRET: ${JWT_SECRET}
     networks:
@@ -449,6 +470,7 @@ services:
     container_name: sahool-market-mcp
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
@@ -475,6 +497,7 @@ services:
     container_name: sahool-vegetation-analysis
     mem_limit: 768m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -507,6 +530,7 @@ services:
     container_name: sahool-raster-service
     mem_limit: 1536m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -538,11 +562,12 @@ services:
   # سدّ فجوة P0: MapLibre لا يدعم COG أصلاً؛ TiTiler ينتج بلاطات عند الطلب
   # من COG مع تمدّد ألوان ديناميكي. بديل عن البلاطات الثابتة المُولَّدة مسبقاً.
   sahool-titiler:
-    image: ghcr.io/developmentseed/titiler:latest
+    image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-titiler
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
     mem_limit: 1024m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       # CORS للسماح للواجهة بطلب البلاطات
       TITILER_API_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -564,6 +589,7 @@ services:
     container_name: sahool-indicators-service
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -594,6 +620,7 @@ services:
     container_name: sahool-weather-service
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -618,6 +645,7 @@ services:
     container_name: sahool-actuator-service
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -645,6 +673,7 @@ services:
     container_name: sahool-edge
     mem_limit: 1536m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       SAHOOL_CLOUD_URL: https://api.sahool.local
       EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:-}
@@ -693,6 +722,7 @@ services:
     container_name: sahool-local-ai-rag
     mem_limit: 2g
     restart: unless-stopped
+    logging: *default_logging
     environment:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
@@ -727,6 +757,7 @@ services:
     container_name: sahool-qdrant-seed
     mem_limit: 384m
     restart: "no"
+    logging: *default_logging
     environment:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
@@ -752,6 +783,7 @@ services:
     container_name: sahool-odoo-bridge
     mem_limit: 512m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL}
       # مفتاح تبديل مزوّد ERP: odoo | erpnext | none (إيقاف)
@@ -791,6 +823,7 @@ services:
     profiles: ["odoo"]
     mem_limit: 1536m   # FIX: Odoo 17 يحتاج ~1GB+ — 384m كان يسبّب OOM kill عند البدء
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:8069:8069"
     environment:
@@ -837,6 +870,7 @@ services:
     container_name: sahool-telegram-bot
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       # كان :?required ويوقف compose كلّه إن غاب. جُعل اختياريّاً —
       # البوت لن يعمل بلا token لكنّه لا يمنع بقيّة الخدمات.
@@ -875,6 +909,7 @@ services:
     container_name: sahool-notification-agent
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -915,6 +950,7 @@ services:
     container_name: sahool-frontend
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:3003:8080"
     environment:
@@ -932,10 +968,11 @@ services:
   # 25. Prometheus + Grafana (Observability)
   # ═══════════════════════════════════════════════════════════════
   sahool-prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.53.0
     container_name: sahool-prometheus
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:9090:9090"
     volumes:
@@ -955,10 +992,11 @@ services:
   # prometheus يشير لـalertmanager غير موجود). المستقبِلات الحقيقيّة تُضاف عبر
   # تراكب النشر (Slack/email/Telegram) — الافتراضيّ no-op (لا ضجيج).
   sahool-alertmanager:
-    image: prom/alertmanager:latest
+    image: prom/alertmanager:v0.27.0
     container_name: sahool-alertmanager
     mem_limit: 128m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:9093:9093"
     volumes:
@@ -974,10 +1012,11 @@ services:
       start_period: 10s
 
   sahool-grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.4.5
     container_name: sahool-grafana
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:3001:3000"
     environment:
@@ -999,10 +1038,11 @@ services:
   # 26. Jaeger (Tracing)
   # ═══════════════════════════════════════════════════════════════
   sahool-jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.57}
     container_name: sahool-jaeger
     mem_limit: 384m
     restart: unless-stopped
+    logging: *default_logging
     ports:
       - "127.0.0.1:16686:16686"
     environment:
