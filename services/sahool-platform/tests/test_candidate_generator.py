@@ -75,6 +75,32 @@ def test_all_options_visible_including_unsuited():
     assert any("غير مناسب" in f for f in banana["flags_ar"])
 
 
+def test_suited_outranks_unsuited_even_with_higher_raw_score():
+    # غير مناسب عالي الربح/رخيص قد تكون درجته أعلى — لكن المناسب يبقى الموصى به
+    unsuited_profitable = CropCandidate(
+        "grape",
+        "العنب",
+        is_suited=False,
+        profit_potential_level="high",
+        upfront_cost_level="low",
+    )
+    suited_modest = CropCandidate("millet", "الدخن", is_suited=True, profit_potential_level="low")
+    out = generate_candidates([unsuited_profitable, suited_modest], FarmerGoal.MAX_PROFIT)
+    assert out["recommended"]["crop_id"] == "millet"  # المناسب أوّلاً رغم درجة أدنى
+    assert out["recommended"]["is_suited"] is True
+    # غير المناسب يبقى معروضاً (لا حذف)
+    assert any(c["crop_id"] == "grape" for c in out["candidates"])
+
+
+def test_unknown_level_value_is_flagged():
+    # مستوى ماء خارج {low,mid,high} ⇒ محايد + مُعلَن (لا يمرّ بصمت)
+    c = CropCandidate("x", "س", is_suited=True, water_need_level="extreme", drought_score=0.5)
+    s = score_candidate(c, FarmerGoal.MIN_WATER)
+    assert s["breakdown"]["water"]["value"] == 0.5  # محايد
+    assert s["breakdown"]["water"]["known"] is False
+    assert any("حاجة الماء مجهول" in f for f in s["flags_ar"])
+
+
 def test_display_only_and_agency_note_present():
     out = generate_candidates([_sorghum()], FarmerGoal.MAX_PROFIT)
     assert out["display_only"] is True  # لا تفرض قراراً

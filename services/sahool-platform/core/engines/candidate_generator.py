@@ -82,24 +82,52 @@ _GOAL_WEIGHTS: dict[FarmerGoal, dict[str, float]] = {
 }
 
 
-def _components(c: CropCandidate) -> dict[str, tuple[float, str]]:
-    """قيم المكوّنات [0,1] + مصدر/ملاحظة كلّ منها (شفافيّة)."""
-    water_eff = 1.0 - _LEVEL.get(c.water_need_level, 0.5)  # حاجة أقلّ = أكفأ
-    profit = _LEVEL.get(c.profit_potential_level, 0.5)  # unknown → محايد 0.5
+# تسمية المكوّنات (لإعلان المجهول في flags_ar بوضوح)
+_COMP_LABEL_AR = {
+    "drought": "تحمّل الجفاف",
+    "water": "حاجة الماء",
+    "affordability": "التكلفة المسبقة",
+    "profit": "إمكان الربح",
+}
+
+
+def _components(c: CropCandidate) -> dict[str, tuple[float, str, bool]]:
+    """قيم المكوّنات [0,1] + مصدر + هل القيمة معروفة (للشفافيّة والإعلان).
+
+    الثالث (known=False) ⇒ قيمة مجهولة عُومِلت محايدةً (0.5) وتُعلَن صراحةً —
+    يشمل أيّ مستوى خارج {low,mid,high} (وprofit خارجها أو 'unknown').
+    """
+    water_known = c.water_need_level in _LEVEL
+    cost_known = c.upfront_cost_level in _LEVEL
+    profit_known = c.profit_potential_level in _LEVEL  # 'unknown'/قيمة غريبة → مجهول
+    drought_known = c.drought_score is not None
+
+    def _ann(base: str, known: bool) -> str:
+        return base if known else base + " — مجهول، محايد"
+
     return {
-        "suitability": (1.0 if c.is_suited else 0.2, "ملاءمة إقليميّة (suited_for_zone)"),
+        "suitability": (1.0 if c.is_suited else 0.2, "ملاءمة إقليميّة (suited_for_zone)", True),
         "drought": (
-            c.drought_score if c.drought_score is not None else 0.5,
-            "تحمّل الجفاف (drought_resilience)"
-            + ("" if c.drought_score is not None else " — مجهول، محايد"),
+            c.drought_score if drought_known else 0.5,
+            _ann("تحمّل الجفاف (drought_resilience)", drought_known),
+            drought_known,
         ),
-        "water": (water_eff, "كفاءة الماء (حاجة أقلّ أفضل)"),
-        "affordability": (1.0 - _LEVEL.get(c.upfront_cost_level, 0.5), "يُسر التكلفة المسبقة"),
+        "water": (
+            1.0 - _LEVEL.get(c.water_need_level, 0.5),  # حاجة أقلّ = أكفأ
+            _ann("كفاءة الماء (حاجة أقلّ أفضل)", water_known),
+            water_known,
+        ),
+        "affordability": (
+            1.0 - _LEVEL.get(c.upfront_cost_level, 0.5),
+            _ann("يُسر التكلفة المسبقة", cost_known),
+            cost_known,
+        ),
         "profit": (
-            profit,
-            "إمكان الربح" + ("" if c.profit_potential_level != "unknown" else " — مجهول، محايد"),
+            _LEVEL.get(c.profit_potential_level, 0.5),
+            _ann("إمكان الربح", profit_known),
+            profit_known,
         ),
-        "staple": (1.0 if c.is_staple else 0.4, "محصول أساسي (أمن غذائي)"),
+        "staple": (1.0 if c.is_staple else 0.4, "محصول أساسي (أمن غذائي)", True),
     }
 
 
@@ -109,8 +137,11 @@ def score_candidate(c: CropCandidate, goal: FarmerGoal) -> dict:
     weights = _GOAL_WEIGHTS[goal]
     breakdown = {}
     total = 0.0
+    flags = []
+    if not c.is_suited:
+        flags.append("غير مناسب إقليميّاً (معروض للوكالة، مُرتَّب أدنى)")
     for key, w in weights.items():
-        val, src = comps[key]
+        val, src, known = comps[key]
         contribution = round(val * w, 4)
         total += contribution
         breakdown[key] = {
@@ -118,14 +149,10 @@ def score_candidate(c: CropCandidate, goal: FarmerGoal) -> dict:
             "weight": w,
             "contribution": contribution,
             "source_ar": src,
+            "known": known,
         }
-    flags = []
-    if not c.is_suited:
-        flags.append("غير مناسب إقليميّاً (معروض للوكالة، مُرتَّب أدنى)")
-    if c.drought_score is None:
-        flags.append("تحمّل الجفاف مجهول (محايد)")
-    if c.profit_potential_level == "unknown":
-        flags.append("إمكان الربح مجهول (محايد)")
+        if not known:  # أعلِن كلّ صفة مجهولة مؤثّرة في هذا الهدف (محايدة)
+            flags.append(f"{_COMP_LABEL_AR.get(key, key)} مجهول (محايد)")
     return {
         "crop_id": c.crop_id,
         "name_ar": c.name_ar,
@@ -142,7 +169,9 @@ def generate_candidates(candidates: list[CropCandidate], goal: FarmerGoal, top_n
     لا حذف: الخيار غير المناسب يُرتَّب أدنى لكن يبقى معروضاً (استقلاليّة المزارع).
     """
     scored = [score_candidate(c, goal) for c in candidates]
-    scored.sort(key=lambda s: s["score"], reverse=True)
+    # المناسب إقليميّاً أوّلاً ثمّ الأعلى درجةً: لا يتقدّم غير المناسب على مناسب
+    # موجود (تجسيد «غير المناسب أدنى دون حذف»). الكلّ يبقى معروضاً.
+    scored.sort(key=lambda s: (0 if s["is_suited"] else 1, -s["score"]))
     for i, s in enumerate(scored):
         s["rank"] = i + 1
         s["highlighted"] = i < top_n  # ضمن الأعلى المُقترَحة

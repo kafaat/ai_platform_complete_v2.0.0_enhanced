@@ -6610,24 +6610,43 @@ def generate_crop_candidates(
         g = FarmerGoal(goal)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"هدف غير معروف: {goal}") from e
+    if not isinstance(top_n, int) or top_n < 1:
+        raise HTTPException(status_code=422, detail="top_n يجب أن يكون عدداً صحيحاً موجباً")
+
+    def _req_bool(c: dict, key: str) -> bool:
+        # JSON يجب أن يكون true/false صريحاً (لا "false" نصّاً تصبح True بصمت)
+        v = c.get(key, False)
+        if not isinstance(v, bool):
+            raise HTTPException(status_code=422, detail=f"{key} يجب أن يكون true/false")
+        return v
+
+    def _req_score(c: dict):
+        v = c.get("drought_score")
+        if v is None:
+            return None
+        if isinstance(v, bool) or not isinstance(v, (int, float)):
+            raise HTTPException(status_code=422, detail="drought_score يجب أن يكون رقماً [0,1]")
+        v = float(v)
+        if not 0.0 <= v <= 1.0:
+            raise HTTPException(status_code=422, detail="drought_score خارج المدى [0,1]")
+        return v
 
     objs: list = []
     for c in candidates:
-        try:
-            objs.append(
-                CropCandidate(
-                    crop_id=str(c["crop_id"]),
-                    name_ar=str(c.get("name_ar", c["crop_id"])),
-                    is_suited=bool(c.get("is_suited", False)),
-                    water_need_level=str(c.get("water_need_level", "mid")),
-                    upfront_cost_level=str(c.get("upfront_cost_level", "mid")),
-                    profit_potential_level=str(c.get("profit_potential_level", "unknown")),
-                    is_staple=bool(c.get("is_staple", False)),
-                    drought_score=c.get("drought_score"),
-                )
+        if not isinstance(c, dict) or "crop_id" not in c:
+            raise HTTPException(status_code=422, detail="كلّ خيار يجب أن يكون كائناً فيه crop_id")
+        objs.append(
+            CropCandidate(
+                crop_id=str(c["crop_id"]),
+                name_ar=str(c.get("name_ar", c["crop_id"])),
+                is_suited=_req_bool(c, "is_suited"),
+                water_need_level=str(c.get("water_need_level", "mid")),
+                upfront_cost_level=str(c.get("upfront_cost_level", "mid")),
+                profit_potential_level=str(c.get("profit_potential_level", "unknown")),
+                is_staple=_req_bool(c, "is_staple"),
+                drought_score=_req_score(c),
             )
-        except (KeyError, TypeError) as e:
-            raise HTTPException(status_code=422, detail=f"خيار غير صالح: {e}") from e
+        )
 
     return generate_candidates(objs, g, top_n=top_n)
 
