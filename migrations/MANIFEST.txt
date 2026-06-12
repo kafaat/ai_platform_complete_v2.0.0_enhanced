@@ -135,17 +135,17 @@ v42_seasons_kpis.sql
 # (ST_Intersects على فهرس بدل مسح خطّيّ). trigger يزامنه من geometry JSONB.
 # يعدّل fields. يتطلّب PostGIS. idempotent.
 v43_fields_geom_index.sql
+# v44: موسم نشط واحد لكلّ حقل — فهرس فريد جزئي على seasons(field_id) حيث
+# status='active'. يضمن ثابت «حقل ⇒ موسم نشط واحد على الأكثر» (يكمّله create_season
+# بإغلاق الموسم النشط القديم آليّاً). يعدّل seasons (v32). idempotent.
+v44_one_active_season.sql
+# v45: فهرس season_id على activities + توثيق العلاقة المنطقيّة (الموسم يخصّ نفس
+# الحقل). لا FK صلب (قد يفشل على صفوف يتيمة) — فهرس داعم + تحقّق تطبيقيّ في
+# create_activity. يعدّل activities (v35). idempotent.
+v45_activity_season_fk.sql
 # v46: مزامنة دورة الحياة ↔ سجلّ الأحداث — trigger بعد INSERT على
 # field_lifecycle_transitions يستدعي emit_event بنوع 'lifecycle.transitioned'،
 # فيُغلِق انحراف الحالة (كان السجلّ يخلو من أحداث الانتقال رغم توقّع المستهلكين
 # لها). DB-level فيلتقط كلّ مسارات الكتابة. يعتمد على v10 (field_lifecycle*) +
 # v11/v18 (emit_event). idempotent (CREATE OR REPLACE + DROP TRIGGER IF EXISTS).
 v46_lifecycle_event_sync.sql
-# v45: فهرس season_id على activities + توثيق العلاقة المنطقيّة (الموسم يخصّ نفس
-# الحقل). لا FK صلب (قد يفشل على صفوف يتيمة) — فهرس داعم + تحقّق تطبيقيّ في
-# create_activity. يعدّل activities (v35). idempotent.
-v45_activity_season_fk.sql
-# v44: موسم نشط واحد لكلّ حقل — فهرس فريد جزئي على seasons(field_id) حيث
-# status='active'. يضمن ثابت «حقل ⇒ موسم نشط واحد على الأكثر» (يكمّله create_season
-# بإغلاق الموسم النشط القديم آليّاً). يعدّل seasons (v32). idempotent.
-v44_one_active_season.sql
