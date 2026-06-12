@@ -26,7 +26,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 # تصنيف نوع المدخل من نوع العمليّة (activities.activity_type).
@@ -95,9 +95,7 @@ def build_input_ledger(
     total_cost = 0.0
     for app in applications:
         t = app.input_type
-        grp = by_type.setdefault(
-            t, {"count": 0, "cost": 0.0, "n_with_cost": 0, "products": []}
-        )
+        grp = by_type.setdefault(t, {"count": 0, "cost": 0.0, "n_with_cost": 0, "products": []})
         grp["count"] += 1
         if app.product_name and app.product_name not in grp["products"]:
             grp["products"].append(app.product_name)

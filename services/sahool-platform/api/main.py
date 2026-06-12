@@ -2851,15 +2851,14 @@ async def field_input_traceability(
     مدخلات صادقاً: كلفة/هكتار، كلفة/طنّ، ومدى اكتمال النَسَب. الكلفة الغائبة
     تُعلَن لا تُؤلَّف. المخزون والشراء يبقيان في ERPNext (لا نقل WareMap).
     """
-    import asyncpg as _asyncpg
+    from decimal import Decimal as _Decimal
 
+    import asyncpg as _asyncpg
     from core.engines.input_traceability import (
         ACTIVITY_TO_INPUT,
         InputApplication,
         build_input_ledger,
     )
-
-    from decimal import Decimal as _Decimal
 
     _json = __import__("json")
 

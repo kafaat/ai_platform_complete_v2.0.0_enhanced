@@ -37,9 +37,7 @@ def test_no_inputs_is_empty_state():
 
 
 def test_groups_by_input_type_in_seed_to_harvest_order():
-    out = build_input_ledger(
-        [_spray(cost=100), _seed(cost=500), _fert(cost=300)], field_id="f1"
-    )
+    out = build_input_ledger([_spray(cost=100), _seed(cost=500), _fert(cost=300)], field_id="f1")
     # الترتيب يبدأ بالبذرة ثمّ السماد ثمّ المبيد (نَسَب منطقي).
     assert list(out["by_input_type"].keys()) == ["seed", "fertilizer", "pesticide"]
     assert out["total_cost"] == 900.0
@@ -98,8 +96,6 @@ def test_complete_state_needs_seed_harvest_and_full_cost():
 
 
 def test_partial_when_seed_missing():
-    out = build_input_ledger(
-        [_fert(cost=400)], field_id="f1", area_ha=2.0, harvest_yield_t_ha=2.0
-    )
+    out = build_input_ledger([_fert(cost=400)], field_id="f1", area_ha=2.0, harvest_yield_t_ha=2.0)
     assert out["state"] == TraceabilityState.PARTIAL.value
     assert any("بذر" in g for g in out["gaps_ar"])
