@@ -75,8 +75,10 @@ CommandStore + RLS (v10)، lifecycle state-machine + ثابت زمنيّ (v46 tr
 Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+النشاط+الدورة.
 
 **خطوات مقترحة (تدريجيّة، غير كاسرة):**
-1. ☐ **Command Handler Registry:** `register(command_type, handler)` + `dispatch(cmd)`
-   فوق `CommandStore` القائم (idempotency جاهز). يبدأ بأمر واحد (`CreateField`).
+1. ✅ **Command Handler Registry:** `api/command_dispatcher.py` — `CommandRegistry.register`
+   + `dispatch(registry, store, cmd)` فوق `CommandStore` (idempotency + دورة حياة:
+   succeeded→duplicate، unknown→fail، error→mark_failed). **مُنفَّذ + 6 اختبارات**.
+   المتبقّي: توجيه endpoints فعليّة عبره (الخطوة ٣ أدناه).
 2. ☐ **FieldAggregate:** كائن يحمّل حالة الحقل (+ الموسم النشط + آخر lifecycle) ويعرّف
    عمليّات (`create/update/start_season/record_activity`) تتحقّق من الـinvariants ثمّ
    تُنتج (state change + events) ضمن معاملة واحدة.
@@ -94,7 +96,8 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
 ---
 
 ## المرحلة ٤ — ميزات مؤجَّلة بقرار منتج (حسب الأولويّة)
-- ☐ **Command Handler Registry / Dispatcher كامل** (P1 من مراجعة CQRS) — يُمهّد للمرحلة ٣.
+- ✅ **Command Handler Registry / Dispatcher** (P1 من مراجعة CQRS) — **مُنفَّذ**
+  (`api/command_dispatcher.py`). يُمهّد للمرحلة ٣ (توجيه الكتابة عبر aggregate).
 - ✅ **DLQ admin endpoint:** `GET /api/v1/admin/events/dead-letter` +
   `POST …/{outbox_id}/requeue` + `POST …/requeue-all` (فوق `v_event_dead_letter`/`requeue_*`)
   — **مُنفَّذ** (AUDIT_VIEW، مُرشَّح بالمستأجِر). عرض ops عابر المستأجرين = شأن superuser مؤجَّل.
