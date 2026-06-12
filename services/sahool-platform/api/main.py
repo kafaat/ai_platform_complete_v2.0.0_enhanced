@@ -1640,6 +1640,10 @@ async def update_field(
                 f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
                 field_id,
             )
+            if row is None:
+                # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ نرفع 404 **داخل** المعاملة
+                # قبل إصدار الحدث، فتتراجع المعاملة ولا يُكتب حدث لتحديث لم يقع فعلاً.
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
             # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
             await _emit_domain_event(
                 conn,
@@ -1653,8 +1657,6 @@ async def update_field(
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
         raise _db_unavailable("تحديث تفاصيل الحقل", e) from e
-    if row is None:  # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ 404 صادق
-        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
     return _row_to_field_detail(row)
 
 
