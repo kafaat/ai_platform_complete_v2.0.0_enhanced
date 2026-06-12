@@ -7,10 +7,10 @@ import 'bloc/dashboard_bloc.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/advisor_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/satellite_screen.dart';
 import 'screens/fields_screen.dart';
 import 'screens/operations_hub_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/more_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/websocket_service.dart';
@@ -166,30 +166,81 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  // H02: Build items once. أُضيف تبويب «العمليّات» (سادساً) يفتح مركز الوحدات
-  // التشغيليّة (مخزون/معدّات/أجهزة/ريّ تشغيلي/بيانات مرجعيّة/وثائق) مُرشَّحاً
-  // بالـRBAC — دون إسقاط أيّ تبويب قائم (لا تراجع في الوظائف).
+  // فهرس تبويب «الحقول» — وجهة زرّ «إنشاء أوّل حقل» (من الترحيب أو اللوحة).
+  static const int _fieldsTabIndex = 1;
+
+  // بوّابة الترحيب: نتحقّق مرّة من وجود حقول للمستخدم المُصادَق عليه. حتّى تكتمل
+  // المحاولة نُبقي العرض على اللوحة العاديّة (لا نحجب الواجهة بمؤشّر تحميل ثانٍ).
+  // فشل الجلب (شبكة/خادم) لا يفرض الترحيب — نتركه false fail-open ليرى المستخدم
+  // اللوحة بحالة الخطأ الخاصّة بها بدل بوّابة ترحيب مضلِّلة.
+  bool _checkedFields = false;
+  bool _hasZeroFields = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFields();
+  }
+
+  Future<void> _checkFields() async {
+    try {
+      final data = await ApiService.instance.getDashboard();
+      final zero = _isZeroFields(data);
+      if (mounted) {
+        setState(() {
+          _hasZeroFields = zero;
+          _checkedFields = true;
+        });
+      }
+    } catch (_) {
+      // fail-open: لا نفرض الترحيب عند تعذّر الجلب.
+      if (mounted) setState(() => _checkedFields = true);
+    }
+  }
+
+  // كشف «صفر حقول» دفاعيّاً: نقبل عدّاد صريح (fields_count) أو قائمة حقول بأيّ من
+  // المفاتيح المحتملة (نفس منطق fields_screen). أيّ غموض يُعدّ «ليس صفراً» (fail-open).
+  bool _isZeroFields(Map<String, dynamic> data) {
+    final count = data['fields_count'];
+    if (count is num) return count == 0;
+    final raw = data['fields'] ?? data['fields_summary'] ?? data['field_list'];
+    if (raw is List) return raw.isEmpty;
+    return false;
+  }
+
+  void _goToFields() {
+    setState(() {
+      _hasZeroFields = false; // اخرج من بوّابة الترحيب
+      _selectedIndex = _fieldsTabIndex;
+    });
+  }
+
+  // ترتيب جديد يخدم المزارع: لوحة/حقول/عمليّات/مستشار/المزيد. الأقمار والوحدات
+  // الثانويّة (مخزون/معدّات/أجهزة/مرجعيّة/وثائق/الحساب) انتقلت إلى «المزيد».
   static const List<BottomNavigationBarItem> _navItems = [
-    BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'لوحة القيادة'),
-    BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'المستشار'),
-    BottomNavigationBarItem(icon: Icon(Icons.satellite_alt), label: 'الأقمار'),
+    BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'لوحة'),
     BottomNavigationBarItem(icon: Icon(Icons.terrain), label: 'الحقول'),
     BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'العمليّات'),
-    BottomNavigationBarItem(icon: Icon(Icons.person), label: 'الحساب'),
-  ];
-
-  // H02: Static screens list
-  static const List<Widget> _screens = [
-    DashboardScreen(),
-    AdvisorScreen(),
-    SatelliteScreen(),
-    FieldsScreen(),
-    OperationsHubScreen(),
-    ProfileScreen(),
+    BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'المستشار'),
+    BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'المزيد'),
   ];
 
   @override
   Widget build(BuildContext context) {
+    // بوّابة الترحيب: مستخدم مُصادَق عليه بلا حقول ⇒ شاشة ترحيب بزرّ رئيسيّ.
+    if (_checkedFields && _hasZeroFields) {
+      return OnboardingScreen(onStart: _goToFields);
+    }
+
+    // قائمة الشاشات تُبنى هنا (لا const) لتمرير الـcallback إلى اللوحة.
+    final screens = <Widget>[
+      DashboardScreen(onCreateField: _goToFields),
+      const FieldsScreen(),
+      const OperationsHubScreen(),
+      const AdvisorScreen(),
+      const MoreScreen(),
+    ];
+
     // H01: Handle Android back button
     return PopScope(
       canPop: _selectedIndex == 0,
@@ -199,7 +250,7 @@ class _MainNavigationState extends State<MainNavigation> {
         }
       },
       child: Scaffold(
-        body: IndexedStack(index: _selectedIndex, children: _screens),
+        body: IndexedStack(index: _selectedIndex, children: screens),
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: (i) => setState(() => _selectedIndex = i),
@@ -214,6 +265,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// شاشات الدخول/الأقمار/الحقول/الحساب صارت حقيقيّة في ملفّاتها المستقلّة
-// (screens/login_screen.dart، satellite_screen.dart، fields_screen.dart،
-// profile_screen.dart) بدل الـplaceholders النصّيّة التي كانت هنا.
+// الشاشات في ملفّاتها المستقلّة (screens/*.dart). شريط التنقّل أُعيد ترتيبه
+// لخمسة تبويبات تخدم المزارع (لوحة/حقول/عمليّات/مستشار/المزيد)؛ الأقمار والوحدات
+// الثانويّة والحساب انتقلت إلى MoreScreen. بوّابة الترحيب (OnboardingScreen)
+// تُعرَض للمستخدم المُصادَق عليه حين لا يملك حقولاً بعد.
