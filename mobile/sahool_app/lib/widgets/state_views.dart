@@ -78,20 +78,57 @@ class ErrorView extends StatelessWidget {
 class EmptyView extends StatelessWidget {
   final String message;
   final IconData icon;
+  // إضافيّ وغير كاسر: عنوان اختياريّ + زرّ إجراء (CTA) للحالات الفارغة القابلة
+  // للتنفيذ (مثل: «أنشئ أوّل حقل»). الاستدعاءات القائمة تبقى كما هي بلا تغيير.
+  final String? title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
   const EmptyView({
     super.key,
     required this.message,
     this.icon = Icons.inbox_outlined,
+    this.title,
+    this.actionLabel,
+    this.onAction,
   });
   @override
   Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.grey, size: 40),
-            const SizedBox(height: 10),
-            Text(message, style: const TextStyle(color: Colors.grey)),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.grey, size: 40),
+              const SizedBox(height: 12),
+              if (title != null) ...[
+                Text(title!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+              ],
+              Text(message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.grey)),
+              if (onAction != null && actionLabel != null) ...[
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: onAction,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(actionLabel!),
+                ),
+              ],
+            ],
+          ),
         ),
       );
 }

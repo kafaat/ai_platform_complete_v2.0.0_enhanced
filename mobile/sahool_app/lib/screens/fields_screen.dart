@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/api_service.dart';
 import '../widgets/offline_field_map.dart';
+import 'field_create_wizard.dart';
 
 class FieldsScreen extends StatefulWidget {
   const FieldsScreen({super.key});
@@ -48,6 +49,36 @@ class _FieldsScreenState extends State<FieldsScreen> {
     }
   }
 
+  // فتح معالج إنشاء الحقل (route: 'field_create'). يُعاد تحميل القائمة عند النجاح
+  // (يردّ true). نستخدم MaterialPageRoute مباشرةً كي تعمل الشاشة حتّى لو لم يُسجّل
+  // المسار في main.dart بعد (تسجيل المسارات مهمّة وكيل آخر — انظر ملاحظات الـPR).
+  Future<void> _openCreateWizard() async {
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        settings: const RouteSettings(name: 'field_create'),
+        builder: (_) => const FieldCreateWizard(),
+      ),
+    );
+    if (created == true) await _load();
+  }
+
+  // الانتقال إلى مساحة عمل الحقل (route: 'field_workspace' — يبنيه وكيل آخر).
+  // نمرّر معرّف الحقل كوسيط. pushNamed كي يربطه main.dart حين يُسجَّل المسار؛
+  // نلتقط الفشل بهدوء (المسار غير مسجّل بعد) كي لا تتعطّل الشاشة.
+  void _openWorkspace(String fieldId) {
+    try {
+      Navigator.of(context).pushNamed('field_workspace', arguments: fieldId);
+    } catch (_) {
+      // المسار غير مسجَّل بعد (وكيل آخر يبنيه) — أبلغ بهدوء بدل تعطّل.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('مساحة عمل الحقل غير متاحة بعد')),
+      );
+    }
+  }
+
+  String _fieldId(Map<String, dynamic> f, int i) =>
+      (f['field_id'] ?? f['id'] ?? f['fieldId'] ?? '$i').toString();
+
   // استخراج دفاعيّ: نقبل عدّة مفاتيح محتملة لقائمة الحقول.
   List<Map<String, dynamic>> _extractFields(Map<String, dynamic> data) {
     final raw = data['fields'] ?? data['fields_summary'] ?? data['field_list'];
@@ -78,111 +109,162 @@ class _FieldsScreenState extends State<FieldsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      // CTA واضح لإنشاء حقل (يفتح المعالج). يظهر دائماً ما لم نكن في حالة خطأ.
+      floatingActionButton: (_loading || _error != null)
+          ? null
+          : FloatingActionButton.extended(
+              backgroundColor: const Color(0xFF10B981),
+              onPressed: _openCreateWizard,
+              icon: const Icon(Icons.add),
+              label: const Text('إضافة حقل'),
+            ),
+      body: SafeArea(child: _body()),
+    );
+  }
+
+  Widget _body() {
     if (_loading) {
-      return const SafeArea(
-          child: Center(child: CircularProgressIndicator(color: Color(0xFF10B981))));
+      return const Center(
+          child: CircularProgressIndicator(color: Color(0xFF10B981)));
     }
     if (_error != null) {
-      return SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 44),
-              const SizedBox(height: 12),
-              const Text('تعذّر تحميل الحقول',
-                  style: TextStyle(color: Colors.white)),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                  onPressed: _load, child: const Text('إعادة المحاولة')),
-            ],
-          ),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 44),
+            const SizedBox(height: 12),
+            const Text('تعذّر تحميل الحقول',
+                style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+                onPressed: _load, child: const Text('إعادة المحاولة')),
+          ],
         ),
       );
     }
 
-    return SafeArea(
-      child: Column(
-        children: [
-          // خريطة الحقول (offline-أوّلاً عبر الـwidget الجاهز).
-          SizedBox(
-            height: 240,
-            child: OfflineFieldMap(center: _centerOf(_fields)),
-          ),
-          Expanded(
-            child: _fields.isEmpty
-                ? const Center(
-                    child: Text('لا توجد حقول مسجّلة بعد',
-                        style: TextStyle(color: Colors.grey)))
-                : RefreshIndicator(
-                    onRefresh: _load,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _fields.length,
-                      itemBuilder: (ctx, i) {
-                        final f = _fields[i];
-                        final name = (f['field_name'] ??
-                                f['name'] ??
-                                'حقل ${i + 1}')
-                            .toString();
-                        final ndvi = _num(f['ndvi']);
-                        final area = _num(f['area_ha'] ?? f['area']);
-                        final crop = (f['crop'] ?? f['crop_ar'] ?? '').toString();
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1A1D29),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: _ndviColor(ndvi).withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    ndvi != null ? ndvi.toStringAsFixed(2) : '—',
-                                    style: TextStyle(
-                                        color: _ndviColor(ndvi),
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(name,
-                                        style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      [
-                                        if (crop.isNotEmpty) crop,
-                                        if (area != null)
-                                          '${area.toStringAsFixed(1)} هـ',
-                                      ].join(' · '),
-                                      style: const TextStyle(
-                                          color: Colors.grey, fontSize: 12),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
+    return Column(
+      children: [
+        // خريطة الحقول (offline-أوّلاً عبر الـwidget الجاهز).
+        SizedBox(
+          height: 240,
+          child: OfflineFieldMap(center: _centerOf(_fields)),
+        ),
+        Expanded(
+          child: _fields.isEmpty
+              ? _emptyState()
+              : RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 80),
+                    itemCount: _fields.length,
+                    itemBuilder: (ctx, i) => _fieldCard(_fields[i], i),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  // حالة فارغة قابلة للفعل: أيقونة + نصّ + زرّ يفتح المعالج (بدل نصّ خامل).
+  Widget _emptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.terrain, color: Colors.grey, size: 56),
+            const SizedBox(height: 14),
+            const Text('لا توجد حقول مسجّلة بعد',
+                style: TextStyle(color: Colors.white, fontSize: 16)),
+            const SizedBox(height: 6),
+            const Text('أنشئ حقلك الأوّل بالرسم على الخريطة أو استيراد حدوده.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 13)),
+            const SizedBox(height: 18),
+            ElevatedButton.icon(
+              onPressed: _openCreateWizard,
+              icon: const Icon(Icons.add),
+              label: const Text('إنشاء حقل'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fieldCard(Map<String, dynamic> f, int i) {
+    final name = (f['field_name'] ?? f['name'] ?? 'حقل ${i + 1}').toString();
+    final ndvi = _num(f['ndvi']);
+    final area = _num(f['area_ha'] ?? f['area']);
+    final crop = (f['crop'] ?? f['crop_ar'] ?? '').toString();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1D29),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          // البطاقة قابلة للنقر → مساحة عمل الحقل (يبنيها وكيل آخر).
+          onTap: () => _openWorkspace(_fieldId(f, i)),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: _ndviColor(ndvi).withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      ndvi != null ? ndvi.toStringAsFixed(2) : '—',
+                      style: TextStyle(
+                          color: _ndviColor(ndvi),
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 2),
+                      Text(
+                        [
+                          if (crop.isNotEmpty) crop,
+                          if (area != null) '${area.toStringAsFixed(1)} هـ',
+                        ].join(' · '),
+                        style: const TextStyle(
+                            color: Colors.grey, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_left, color: Colors.grey),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1215,6 +1215,23 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
     geom_json = _json.dumps(req.geometry)
     try:
         async with tenant_connection(user) as conn:
+            # التحقّق أنّ المزرعة المرتبطة موجودة وتخصّ المستأجِر الحالي (إن أُرسلت).
+            # farm_id يبقى اختياريّاً (ملف تعريف تدريجي)؛ نتحقّق فقط عند توفّره.
+            # RLS يحصر farms أصلاً — لكن نضيف الفحص الصريح (دفاع + خطأ واضح).
+            if req.farm_id:
+                farm_ok = await conn.fetchrow(
+                    "SELECT 1 FROM farms WHERE farm_id = $1 AND tenant_id = $2::uuid",
+                    req.farm_id,
+                    str(user.tenant_id),
+                )
+                if farm_ok is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail={
+                            "message_ar": "المزرعة غير موجودة أو ليست لك",
+                            "code": "farm_not_found",
+                        },
+                    )
             # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
             dup = await conn.fetchrow(
                 "SELECT field_id FROM fields WHERE tenant_id = $1::uuid "
@@ -1709,8 +1726,18 @@ async def create_season(
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
-            await conn.execute(
-                """INSERT INTO seasons
+            # ثابت v44: حقل واحد ⇒ موسم نشط واحد على الأكثر. بدل رفض الإنشاء (409)،
+            # نُغلق آليّاً أيّ موسم نشط سابق لهذا الحقل ثمّ نُدرج الجديد ضمن نفس
+            # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
+            # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
+            async with conn.transaction():
+                await conn.execute(
+                    "UPDATE seasons SET status = 'closed' "
+                    "WHERE field_id = $1 AND status = 'active'",
+                    field_id,
+                )
+                await conn.execute(
+                    """INSERT INTO seasons
                     (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,
                      seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date,
                      season_end, stages, status,
@@ -1718,23 +1745,23 @@ async def create_season(
                    VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
                            $8, $9, $10, $11, $12::jsonb, 'active',
                            $13, $14, $15, $16)""",
-                season_id,
-                str(user.tenant_id),
-                field_id,
-                crops_json,
-                req.cultivar,
-                req.irrigation_type,
-                req.seed_rate_kg_ha,
-                land,
-                plow,
-                sow,
-                end,
-                stages_json,
-                req.target_yield_kg_ha,
-                req.plant_density,
-                req.row_spacing_cm,
-                req.seed_variety_source,
-            )
+                    season_id,
+                    str(user.tenant_id),
+                    field_id,
+                    crops_json,
+                    req.cultivar,
+                    req.irrigation_type,
+                    req.seed_rate_kg_ha,
+                    land,
+                    plow,
+                    sow,
+                    end,
+                    stages_json,
+                    req.target_yield_kg_ha,
+                    req.plant_density,
+                    req.row_spacing_cm,
+                    req.seed_variety_source,
+                )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
@@ -2413,6 +2440,22 @@ async def create_activity(
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
+            if req.season_id is not None:
+                # الموسم اختياريّ، لكن إن مُرّر فيجب أن يوجد ويخصّ الحقل نفسه
+                # (لا FK صلب على القاعدة؛ تحقّق تطبيقيّ + فهرس داعم — v45).
+                season_ok = await conn.fetchval(
+                    "SELECT 1 FROM seasons WHERE season_id = $1 AND field_id = $2",
+                    req.season_id,
+                    field_id,
+                )
+                if season_ok is None:
+                    raise HTTPException(
+                        status_code=422,
+                        detail={
+                            "message_ar": "الموسم غير موجود لهذا الحقل",
+                            "code": "invalid_season_for_field",
+                        },
+                    )
             await conn.execute(
                 """INSERT INTO activities
                     (activity_id, tenant_id, field_id, season_id, activity_type,
