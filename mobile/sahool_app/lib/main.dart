@@ -11,6 +11,7 @@ import 'screens/fields_screen.dart';
 import 'screens/operations_hub_screen.dart';
 import 'screens/more_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/field_workspace_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/websocket_service.dart';
@@ -97,6 +98,18 @@ class SAHOOLApp extends StatelessWidget {
         child: child!,
       ),
       home: const AuthGate(),
+      // مسار مساحة عمل الحقل (Field-Centric): بطاقة الحقل تنادي
+      // pushNamed('field_workspace', arguments: fieldId).
+      onGenerateRoute: (settings) {
+        if (settings.name == FieldWorkspaceScreen.routeName) {
+          final fid = settings.arguments is String ? settings.arguments as String : null;
+          return MaterialPageRoute(
+            settings: settings,
+            builder: (_) => FieldWorkspaceScreen(fieldId: fid),
+          );
+        }
+        return null;
+      },
     );
   }
 }
