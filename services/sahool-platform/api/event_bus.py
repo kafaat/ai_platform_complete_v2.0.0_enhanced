@@ -56,6 +56,12 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # Lifecycle transitions (state machine)
     LIFECYCLE_TRANSITIONED = "lifecycle.transitioned"
 
+    # Season
+    SEASON_CREATED = "season.created"
+
+    # Activity (عمليّة حقليّة عامّة — تكمّل أحداث operation.* المحدّدة)
+    ACTIVITY_RECORDED = "activity.recorded"
+
     # Operations
     PLANTING_STARTED = "operation.planting.started"
     PLANTING_COMPLETED = "operation.planting.completed"

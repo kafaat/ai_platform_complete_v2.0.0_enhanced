@@ -192,3 +192,16 @@ def test_row_to_season_maps_kpis():
     assert s.plant_density == 250.0
     assert s.row_spacing_cm == 20.0
     assert s.seed_variety_source == "ICARDA"
+
+
+# ─── عقد أحداث domain (مسارات الكتابة تُصدر هذه الأنواع — يجب أن توجد) ─────
+
+
+def test_domain_event_types_exist():
+    # _emit_domain_event يبحث EventType[name]؛ خطأ مطبعيّ يُسقِط الحدث بصمت.
+    from api.event_bus import EventType
+
+    for name in ("FIELD_CREATED", "SEASON_CREATED", "ACTIVITY_RECORDED"):
+        assert name in EventType.__members__, f"EventType.{name} مفقود"
+    assert EventType.SEASON_CREATED.value == "season.created"
+    assert EventType.ACTIVITY_RECORDED.value == "activity.recorded"
