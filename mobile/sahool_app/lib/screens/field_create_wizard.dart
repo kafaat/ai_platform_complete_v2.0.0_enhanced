@@ -451,7 +451,12 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
               TextStyle(color: sel ? Colors.white : Colors.grey, fontSize: 12),
           selectedColor: kPrimary,
           backgroundColor: kSurface,
-          onSelected: (_) => setState(() => _method = value),
+          // عند تبديل طريقة الحدود نُصفّر معاينة الهندسة المستوردة كي لا تُستعمَل
+          // مساحة GeoJSON قديمة مع طريقة جديدة (رسم/KML).
+          onSelected: (_) => setState(() {
+            _method = value;
+            _importedGeometry = null;
+          }),
         ),
       );
     }

@@ -113,6 +113,14 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
         }
       }
       if (!mounted) return;
+      if (match.isEmpty) {
+        // حقل غير موجود (حُذف/رابط قديم/معرّف خاطئ) — خطأ صريح لا بيانات نائبة.
+        setState(() {
+          _error = 'الحقل غير موجود (قد يكون حُذف أو الرابط قديم).';
+          _loading = false;
+        });
+        return;
+      }
       setState(() {
         _field = match;
         _loading = false;
