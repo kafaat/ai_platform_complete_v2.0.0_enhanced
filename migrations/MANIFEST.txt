@@ -123,3 +123,11 @@ v39_season_simulation.sql
 # v40: تأكيد البريد/الهاتف — أعمدة verified_email/verified_phone على users
 # (تحقّق ناعم عبر OTP في Redis). يعدّل users (v9/v21). idempotent.
 v40_verification.sql
+
+# v41: حقل — نموذج الريّ/المياه التفصيليّ (irrigation_type/efficiency/flow/pump/
+# well_depth/water_ec) + manager_user_id (ربط منطقيّ بمستخدم). أعمدة متقدّمة
+# اختياريّة تُملأ تدريجيّاً عبر PATCH. يعدّل fields. idempotent.
+v41_fields_irrigation.sql
+# v42: موسم — KPIs زراعيّة (target_yield/plant_density/row_spacing/seed_variety_
+# source) أساس التحليلات. nullable تُملأ تدريجيّاً. يعدّل seasons. idempotent.
+v42_seasons_kpis.sql
