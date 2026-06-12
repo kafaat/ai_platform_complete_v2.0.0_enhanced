@@ -6484,6 +6484,37 @@ def confidence_gate(
     return _gate_eval(signals).to_dict()
 
 
+class EscalationAssessRequest(BaseModel):
+    """تقييم تصعيد الشكّ لإنسان من ثقة مصدر (محرّك/RAG)."""
+
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    source: str = Field(min_length=1, max_length=60)
+    has_answer: bool = True
+    uncertain_points: list[str] = Field(default_factory=list)
+
+
+@app.post("/api/v1/escalation/assess")
+def escalation_assess(
+    req: EscalationAssessRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يقرّر تصعيد الشكّ لإنسان من ثقة مصدر (محرّك/RAG) — actionable (مستلِم/أولويّة/مجهول).
+
+    يعمّم مبدأ confidence_gate لأيّ مصدر ثقة (لا المحرّكات فقط): بلا سند/ثقة كافية →
+    تصعيد لمرشد زراعي لا إجابة مولّدة (human-in-the-loop). confidence=None أو
+    has_answer=false ⇒ BLOCKED (لا تأليف). للمحرّكات استعمل /confidence-gate ثمّ
+    escalation_from_gate.
+    """
+    from core.engines.human_escalation import assess_escalation
+
+    return assess_escalation(
+        req.confidence,
+        source=req.source,
+        has_answer=req.has_answer,
+        uncertain_points=req.uncertain_points,
+    )
+
+
 # ─── ٢٢. اكتمال البيانات + ملاءمة المحاصيل (مُستلهَم من المستندَين) ─
 from api.crop_suitability import FieldConditions, rank_crops  # noqa: E402
 from api.data_readiness import assess_readiness  # noqa: E402
