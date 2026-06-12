@@ -157,3 +157,6 @@ v47_schema_integrity.sql
 # مستوى القاعدة؛ + حوكمة الأحداث الفاشلة (DLQ): عرض v_event_dead_letter ودالّتا
 # requeue_dead_letter/requeue_all_dead_letter. يعدّل activities + يضيف عرض/دوالّ.
 v48_activity_season_fk_dlq.sql
+# v49: تفعيل الربط الحيّ لـ#62/#63 — عمود fields.zone_key (مفتاح الإقليم القانوني)
+# + جدول recommendation_outcomes (أزواج توقّع/نتيجة + قبول/نضج) مع RLS. idempotent.
+v49_zone_key_recommendation_outcomes.sql

@@ -540,6 +540,7 @@ _FIELD_ADVANCED_COLUMNS: tuple[str, ...] = (
     "slope_pct",
     "aspect",
     "climate_zone",
+    "zone_key",  # v49: مفتاح الإقليم القانوني (agro_climate_zones) — يُفعّل تحليل السوق الإقليمي
     "annual_rainfall_mm",
     "owner_name",
     "lease_years",
@@ -586,6 +587,7 @@ class FieldDetail(FieldSummary):
     slope_pct: float | None = None
     aspect: str | None = None
     climate_zone: str | None = None
+    zone_key: str | None = None
     annual_rainfall_mm: float | None = None
     # تفاصيل الملكيّة
     owner_name: str | None = None
@@ -618,6 +620,7 @@ class FieldUpdateRequest(BaseModel):
     slope_pct: float | None = Field(default=None, ge=0)
     aspect: str | None = Field(default=None, max_length=20)
     climate_zone: str | None = Field(default=None, max_length=40)
+    zone_key: str | None = Field(default=None, max_length=64)
     annual_rainfall_mm: float | None = Field(default=None, ge=0)
     owner_name: str | None = Field(default=None, max_length=100)
     lease_years: int | None = Field(default=None, ge=0)
@@ -1564,6 +1567,7 @@ def _row_to_field_detail(r) -> FieldDetail:
         slope_pct=_f("slope_pct"),
         aspect=_s("aspect"),
         climate_zone=_s("climate_zone"),
+        zone_key=_s("zone_key"),
         annual_rainfall_mm=_f("annual_rainfall_mm"),
         owner_name=_s("owner_name"),
         lease_years=_i("lease_years"),
@@ -6707,32 +6711,58 @@ def generate_crop_candidates(
 
 
 @app.get("/api/v1/learning/activation-status")
-def learning_activation_status(
+async def learning_activation_status(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """حالة بوّابة تفعيل التعلّم للمستأجر — مدفوعة بتدفّق البيانات.
+    """حالة بوّابة تفعيل التعلّم للمستأجر — مدفوعة بتدفّق البيانات (v49).
 
-    ⚠ placeholder بنيويّ: ربط العدّ الحيّ بجداول التوصيات/النتائج (عبر RLS)
-    مؤجَّل إلى ما بعد التشغيل (POST_DEPLOYMENT_ROADMAP). حتى ذلك يُرجِع لقطة
-    صفريّة صريحة (خاملة) ولا يدّعي حساباً حيّاً — اتّساقاً مع مبدأ الصدق.
+    تُحسب الأعداد حيّاً من recommendation_outcomes عبر RLS: إجماليّ التوصيات،
+    المكتملة (نتيجة مسجّلة)، المقبولة، وضمن نافذة النضج. قبل العتبة: خاملة بصدق
+    (لا تتظاهر بتعلّم لم يبدأ). جدول غير مفعَّل ⇒ لقطة صفريّة صريحة.
     """
+    import asyncpg as _asyncpg
     from core.learning_activation import DataFlowSnapshot, evaluate_activation
 
     tenant = str(getattr(user, "tenant_id", ""))
-    # لقطة صفريّة صريحة — الربط الحيّ بالـDB مؤجَّل (لا تظاهر بتعلّم لم يبدأ).
+    total = completed = accepted = within_lag = 0
+    schema_ready = True
+    try:
+        async with tenant_connection(user) as conn:
+            try:
+                async with conn.transaction():  # savepoint — يعزل غياب الجدول
+                    row = await conn.fetchrow(
+                        """SELECT COUNT(*) AS total,
+                                  COUNT(*) FILTER (WHERE actual_yield_t_ha IS NOT NULL) AS completed,
+                                  COUNT(*) FILTER (WHERE accepted) AS accepted,
+                                  COUNT(*) FILTER (WHERE matured_within_lag) AS within_lag
+                           FROM recommendation_outcomes"""
+                    )
+                total = int(row["total"] or 0)
+                completed = int(row["completed"] or 0)
+                accepted = int(row["accepted"] or 0)
+                within_lag = int(row["within_lag"] or 0)
+            except (_asyncpg.UndefinedTableError, _asyncpg.UndefinedColumnError):
+                schema_ready = False
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("حالة تفعيل التعلّم", e) from e
+
     snapshot = DataFlowSnapshot(
         tenant_id=tenant,
-        completed_outcomes=0,
-        total_recommendations=0,
-        accepted_recommendations=0,
-        outcomes_within_lag=0,
+        completed_outcomes=completed,
+        total_recommendations=total,
+        accepted_recommendations=accepted,
+        outcomes_within_lag=within_lag,
     )
     result = evaluate_activation(snapshot)
-    result["live_data_wired"] = False
+    result["schema_ready"] = schema_ready
+    result["live_data_wired"] = schema_ready
     result["data_source_note_ar"] = (
-        "⚠ placeholder: لقطة صفريّة صريحة (live_data_wired=false). ربط العدّ الحيّ "
-        "بجداول التوصيات/النتائج عبر RLS مؤجَّل إلى ما بعد التشغيل — حتى ذلك تبقى "
-        "الحالة خاملة بصدق ولا تعكس تدفّقاً فعليّاً."
+        "الأعداد تُحسب حيّاً من recommendation_outcomes عبر RLS (v49 مُفعَّل). "
+        "البوّابة مدفوعة بالبيانات: خاملة بصدق حتى تتراكم نتائج كافية وناضجة."
+        if schema_ready
+        else "جدول recommendation_outcomes غير مفعَّل — لقطة صفريّة صريحة (خاملة)."
     )
     return result
 
@@ -6840,8 +6870,9 @@ async def market_crop_gap(
     يكشف التشبّع (فائض محتمل) والفرص (محاصيل مناسبة قليلة الزراعة). صدق: حقول
     المنصّة المشتركة فقط (عيّنة لا مسح)، اتجاه نسبي لا رقم مطلق، لا تنبّؤ سعر.
 
-    ⚠ عمود zone_key على fields غير مفعَّل بعد في المخطّط الحاليّ؛ حتى إضافته
-    يُرجِع «لا بيانات كافية» بصدق (لا تخمين) — الربط الكامل مؤجَّل بعد التشغيل.
+    عمود zone_key مُفعَّل (v49)؛ تُملأ قيمته لكلّ حقل عبر PATCH /fields/{id}
+    (zone_key من agro_climate_zones). الحقول بلا zone_key لا تدخل التجميع — صدق
+    بلا تخمين.
     """
     import asyncpg as _asyncpg
     from core.engines.crop_market_gap import CropConcentration, regional_crop_map
@@ -6892,7 +6923,7 @@ async def market_crop_gap(
     if not concentrations:
         meta["total_crops_analysed"] = 0
         meta["note_ar"] = (
-            "عمود zone_key غير مفعَّل بعد في المخطّط — لا تخمين؛ الربط مؤجَّل بعد التشغيل."
+            "عمود/جدول مطلوب غير مفعَّل في المخطّط — لا تخمين."
             if not schema_ready
             else "المخطّط جاهز لكن لا حقول كافية بالمنصّة في هذه المنطقة — لا تخمين."
         )
@@ -6969,8 +7000,8 @@ async def prediction_calibration_status(
     يحلّل أزواج (توقّع,نتيجة) التاريخيّة: هل نُفرط/نُقلّل منهجيّاً؟ ويطبّق تصحيحاً
     متدرّجاً (shrinkage). قبل عيّنة كافية: لا تصحيح (النموذج الأساسي كما هو).
 
-    ⚠ جدول recommendation_outcomes غير مفعَّل بعد؛ حتى ذلك يُرجِع «عيّنة غير
-    كافية» بصدق (correction_factor=1.0) — الربط الكامل مؤجَّل بعد التشغيل.
+    جدول recommendation_outcomes مُفعَّل (v49)؛ يُحلّل أزواجه الفعليّة عبر RLS.
+    بلا أزواج كافية (≥3، ≥2 مزرعة) يُرجِع «عيّنة غير كافية» بصدق (correction_factor=1.0).
     """
     import asyncpg as _asyncpg
     from core.learning.prediction_calibration import (
@@ -7016,12 +7047,63 @@ async def prediction_calibration_status(
     result["live_data_wired"] = schema_ready
     result["has_pairs"] = bool(pairs)
     result["data_source_note_ar"] = (
-        "⚠ الأزواج من recommendation_outcomes (توقّع تاريخي + نتيجة فعليّة) عبر RLS، "
-        "ووحدة التكرار = المزرعة (farm_id) لا المستأجِر (تفادي pseudoreplication). "
-        "الجدول غير مفعَّل بعد في المخطّط؛ حتى ذلك «عيّنة غير كافية» بصدق (لا تصحيح). "
-        "الربط الكامل مؤجَّل بعد التشغيل."
+        "الأزواج من recommendation_outcomes (توقّع تاريخي + نتيجة فعليّة) عبر RLS "
+        "(v49 مُفعَّل)، ووحدة التكرار = المزرعة (farm_id) لا المستأجِر (تفادي "
+        "pseudoreplication). بلا أزواج كافية: «عيّنة غير كافية» بصدق (لا تصحيح)."
     )
     return result
+
+
+class OutcomeRecordRequest(BaseModel):
+    """تسجيل نتيجة توصية — يغذّي معايرة التنبّؤ وبوّابة تفعيل التعلّم (مسار الكتابة)."""
+
+    crop: str | None = Field(default=None, max_length=50)
+    field_id: str | None = Field(default=None, max_length=50)
+    farm_id: str | None = Field(default=None, max_length=50)
+    season_id: str | None = Field(default=None, max_length=50)
+    recommendation_id: str | None = Field(default=None, max_length=64)
+    predicted_yield_t_ha: float | None = Field(default=None, ge=0)
+    actual_yield_t_ha: float | None = Field(default=None, ge=0)
+    accepted: bool = False
+    matured_within_lag: bool = False
+
+
+@app.post("/api/v1/recommendations/outcomes", status_code=201)
+async def record_recommendation_outcome(
+    req: OutcomeRecordRequest,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
+):
+    """يسجّل نتيجة توصية (توقّع/فعليّ + قبول/نضج) — مسار الكتابة لحلقة التعلّم (v49).
+
+    تقرأ هذه الصفوفَ نقطتا learning/activation-status و prediction-calibration حيّاً.
+    tenant عبر RLS (WITH CHECK يفرض المستأجِر). صدق: يسجّل المُرسَل فقط (لا اختراع).
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                """INSERT INTO recommendation_outcomes
+                       (tenant_id, field_id, farm_id, season_id, crop, recommendation_id,
+                        predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag,
+                        outcome_recorded_at)
+                   VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                           CASE WHEN $8 IS NOT NULL THEN now() ELSE NULL END)
+                   RETURNING outcome_id""",
+                str(getattr(user, "tenant_id", "")),
+                req.field_id,
+                req.farm_id,
+                req.season_id,
+                req.crop,
+                req.recommendation_id,
+                req.predicted_yield_t_ha,
+                req.actual_yield_t_ha,
+                req.accepted,
+                req.matured_within_lag,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تسجيل نتيجة التوصية", e) from e
+    return {"outcome_id": row["outcome_id"], "recorded": True}
 
 
 @app.get("/api/v1/fields/{field_id}/water-stress-spectral")

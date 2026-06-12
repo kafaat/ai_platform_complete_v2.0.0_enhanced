@@ -16,7 +16,7 @@
 
 | البند | الإجراء | معيار القبول |
 |------|---------|-------------|
-| قاعدة البيانات | `DATABASE_URL` + تشغيل `migrations/bootstrap_postgres.sh` (يطبّق init_v8 → **v48** عبر MANIFEST). يتطلّب PostGIS. | كلّ الجداول/القيود/المُطلِقات مُنشأة؛ `\dt` يُظهر fields/seasons/activities/events/event_outbox |
+| قاعدة البيانات | `DATABASE_URL` + تشغيل `migrations/bootstrap_postgres.sh` (يطبّق init_v8 → **v49** عبر MANIFEST). يتطلّب PostGIS. | كلّ الجداول/القيود/المُطلِقات مُنشأة؛ `\dt` يُظهر fields/seasons/activities/events/event_outbox/recommendation_outcomes |
 | الأسرار | `.env`: `JWT_SECRET`(≥32) أو `JWT_PRIVATE_KEY`/`JWT_PUBLIC_KEY` (RS256)، `DB_PASSWORD`، `REDIS_PASSWORD`، `MINIO_ROOT_PASSWORD` | الخدمات تُقلع بلا `:?required` errors |
 | NATS (لازم الآن) | تشغيل `sahool-nats` — **مطلوب لتدفّق الأحداث فعليّاً** (OutboxWorker ينشر إليه) | في سجلّ المنصّة: `✓ OutboxWorker بدأ — relay الأحداث إلى nats://…` |
 | Ollama + التضمين | تشغيل `sahool-ollama` + `ollama pull nomic-embed-text` قبل `qdrant-seed` | بذور Qdrant تنجح (لا «تخطّي البذر») |
