@@ -201,9 +201,17 @@ def test_domain_event_types_exist():
     # _emit_domain_event يبحث EventType[name]؛ خطأ مطبعيّ يُسقِط الحدث بصمت.
     from api.event_bus import EventType
 
-    for name in ("FIELD_CREATED", "SEASON_CREATED", "ACTIVITY_RECORDED"):
+    for name in (
+        "FIELD_CREATED",
+        "FIELD_DELETED",
+        "SEASON_CREATED",
+        "SEASON_CLOSED",
+        "ACTIVITY_RECORDED",
+    ):
         assert name in EventType.__members__, f"EventType.{name} مفقود"
     assert EventType.SEASON_CREATED.value == "season.created"
+    assert EventType.SEASON_CLOSED.value == "season.closed"
+    assert EventType.FIELD_DELETED.value == "field.deleted"
     assert EventType.ACTIVITY_RECORDED.value == "activity.recorded"
 
 
