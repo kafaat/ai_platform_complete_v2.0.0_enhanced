@@ -81,11 +81,17 @@ class DroughtComponents:
 def compute_drought_resilience(
     crop_id: str,
     forecast_max_temp_c: float | None = None,
+    is_irrigated: bool | None = None,
 ) -> dict:
     """درجة تحمّل جفاف/حرارة مركّبة من صفات موثّقة (لا اختراع).
 
-    forecast_max_temp_c: حرارة متوقّعة — تُفعّل تحذير الإجهاد الحراري إن
-    تجاوزت حدّ الإزهار الآمن (نقطة المرفق: الحرارة قد تكون أخطر من الجفاف).
+    forecast_max_temp_c: حرارة **الهواء** المتوقّعة — تُفعّل تحذير الإجهاد الحراري
+    إن تجاوزت حدّ الإزهار الآمن (الحرارة قد تكون أخطر من الجفاف).
+
+    is_irrigated: حالة الريّ. عند التحذير الحراريّ على حقل مرويّ يُضاف تنويه صادق:
+    الريّ يبرّد سطح الغطاء (تبخّر-نتح) فالحرارة الفعليّة أدنى من الهواء، فتحذير
+    الهواء قد يبالغ في الضرر الحراريّ على المرويّ (Zhu et al., HESS 2022). كيفيّ
+    لا كمّيّ (لا نزرع أرقام نبراسكا)؛ لا يغيّر الدرجة (لا فبركة مقدار تبريد).
     """
     crop = crop_id.lower()
     root = ROOT_DEPTH_M.get(crop)
@@ -168,18 +174,28 @@ def compute_drought_resilience(
     }
     if heat_warning:
         result["heat_warning_ar"] = heat_warning
+        result["heat_basis_ar"] = "التحذير من حرارة الهواء المتوقّعة (لا حرارة سطح الغطاء)."
+        # تصحيح علميّ: على الحقل المرويّ، الريّ يبرّد الغطاء فالهواء يبالغ في الضرر.
+        if is_irrigated:
+            result["heat_irrigation_caveat_ar"] = (
+                "حقل مرويّ: الريّ يبرّد سطح الغطاء بالتبخّر-نتح، فحرارة الغطاء الفعليّة "
+                "أدنى من حرارة الهواء؛ تحذيرٌ مبنيّ على حرارة الهواء قد يبالغ في الضرر "
+                "الحراريّ على المرويّ (Zhu et al., HESS 2022). الأصدق حرارة السطح LST "
+                "بالأقمار (مؤجَّل) — والريّ في الموجات الحارّة يحمي طور ملء الحبوب."
+            )
     return result
 
 
 def compare_crops_resilience(
     crop_ids: list[str],
     forecast_max_temp_c: float | None = None,
+    is_irrigated: bool | None = None,
 ) -> dict:
     """يقارن تحمّل عدّة محاصيل للجفاف/الحرارة (لاختيار الأصمد لظرف صعب).
 
     يخدم قرار اختيار المحصول في موسم جفاف متوقّع — من صفات موثّقة.
     """
-    assessed = [compute_drought_resilience(c, forecast_max_temp_c) for c in crop_ids]
+    assessed = [compute_drought_resilience(c, forecast_max_temp_c, is_irrigated) for c in crop_ids]
     scored = [a for a in assessed if a.get("resilience_score") is not None]
     scored.sort(key=lambda a: a["resilience_score"], reverse=True)
     return {

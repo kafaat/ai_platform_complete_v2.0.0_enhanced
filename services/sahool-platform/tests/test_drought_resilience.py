@@ -40,6 +40,31 @@ def test_no_heat_warning_within_safe_range():
     assert out["components"]["heat_headroom_c"] == 3.0  # 31 - 28
 
 
+def test_irrigated_field_gets_canopy_cooling_caveat_on_heat_warning():
+    # حقل مرويّ + تحذير حراريّ ⇒ تنويه أنّ حرارة الهواء تبالغ (Zhu et al. 2022)
+    out = compute_drought_resilience("wheat", forecast_max_temp_c=38.0, is_irrigated=True)
+    assert "heat_warning_ar" in out
+    assert "heat_irrigation_caveat_ar" in out
+    assert "Zhu" in out["heat_irrigation_caveat_ar"]  # استشهاد بالمصدر
+    assert "heat_basis_ar" in out  # يُعلن أنّ الأساس حرارة الهواء
+
+
+def test_rainfed_field_no_irrigation_caveat():
+    # غير مرويّ (أو غير محدَّد) ⇒ لا تنويه تبريد الريّ (لا فبركة)
+    out = compute_drought_resilience("wheat", forecast_max_temp_c=38.0, is_irrigated=False)
+    assert "heat_warning_ar" in out
+    assert "heat_irrigation_caveat_ar" not in out
+    none_out = compute_drought_resilience("wheat", forecast_max_temp_c=38.0)
+    assert "heat_irrigation_caveat_ar" not in none_out
+
+
+def test_irrigation_caveat_does_not_change_score():
+    # المبدأ: التنويه كيفيّ لا كمّيّ — لا يغيّر الدرجة (لا فبركة مقدار تبريد)
+    a = compute_drought_resilience("wheat", forecast_max_temp_c=38.0, is_irrigated=True)
+    b = compute_drought_resilience("wheat", forecast_max_temp_c=38.0, is_irrigated=False)
+    assert a["resilience_score"] == b["resilience_score"]
+
+
 def test_deep_root_crop_scores_higher_than_shallow():
     # الذرة الرفيعة (جذور 1.5م، ملوحة 6.8) أصمد من البطاطس (0.5م، 1.7)
     sorghum = compute_drought_resilience("sorghum")["resilience_score"]
