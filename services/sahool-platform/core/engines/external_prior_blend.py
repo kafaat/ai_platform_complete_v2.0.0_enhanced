@@ -69,9 +69,7 @@ def blend_external_prior(
                 "السابقة الخارجيّة غير منطبقة: المحصول ليس مزروعاً في اليمن — "
                 "لا مزج (المنهجيّة قد تُلهم، لكن القيمة الأجنبيّة لا تُستورَد)."
             ),
-            "escalation": assess_escalation(
-                None, source="external_prior_blend", has_answer=False
-            ),
+            "escalation": assess_escalation(None, source="external_prior_blend", has_answer=False),
         }
 
     # سقف ثقة السابقة: لا تتجاوز الحدّ مهما كان (غير متحقّقة محلّيّاً).
@@ -94,9 +92,7 @@ def blend_external_prior(
             "applicable": True,
             "blended_estimate": None,
             "reason_ar": "لا سابقة خارجيّة ولا بيانات محلّيّة — لا تقدير (تصعيد).",
-            "escalation": assess_escalation(
-                None, source="external_prior_blend", has_answer=False
-            ),
+            "escalation": assess_escalation(None, source="external_prior_blend", has_answer=False),
         }
 
     # 4) ثقة المخرَج: المحلّي بكامل وزنه، والسابقة الخارجيّة بمصداقيّتها المقصوصة.
@@ -109,11 +105,7 @@ def blend_external_prior(
         output_confidence,
         source="external_prior_blend",
         uncertain_points=(
-            []
-            if prior_faded
-            else [
-                "السابقة لا تزال خارجيّة (غير متحقّقة محلّيّاً) — راكم بيانات اليمن"
-            ]
+            [] if prior_faded else ["السابقة لا تزال خارجيّة (غير متحقّقة محلّيّاً) — راكم بيانات اليمن"]
         ),
     )
 
