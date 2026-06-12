@@ -64,7 +64,24 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
 # ══════════════════════════════════════════════════════════════
 # MQTT Command Publisher
 # ══════════════════════════════════════════════════════════════
+def _parse_mqtt_broker_url(url: str) -> tuple[str, int]:
+    """يستخرج (hostname, port) من mqtt://host:port — aiomqtt.Client يحتاج المضيف
+    والمنفذ لا URL كاملاً (تمرير URL كاملاً كـhostname يفشل في DNS)."""
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    return (parsed.hostname or "localhost"), (parsed.port or 1883)
+
+
+def _mqtt_disabled() -> bool:
+    """MQTT معطّل إذا لم يُضبط العنوان أو بدأ بـ'disabled' — للتشغيل بلا وسيط."""
+    return not MQTT_BROKER_URL or MQTT_BROKER_URL.startswith("disabled")
+
+
 async def send_mqtt_command(device_id: str, command: str, payload: dict):
+    if _mqtt_disabled():
+        logger.debug(f"MQTT معطّل — تخطّي الأمر إلى {device_id}: {command}")
+        return False
     topic = f"sahool/actuator/{device_id}/command"
     ts = datetime.now(UTC).isoformat()
     # A1: وقّع الأمر بـHMAC-SHA256 ليتحقّق منه الـfirmware قبل تحريك الصمّام
@@ -84,8 +101,9 @@ async def send_mqtt_command(device_id: str, command: str, payload: dict):
             "sig": sig,
         }
     )
+    host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     try:
-        async with MQTTClient(MQTT_BROKER_URL) as client:
+        async with MQTTClient(host, port=port) as client:
             await client.publish(topic, message, qos=1)
             logger.info(f"MQTT → {device_id}: {command}")
             return True
@@ -237,10 +255,14 @@ async def log_command(
 # ══════════════════════════════════════════════════════════════
 async def mqtt_sensor_listener():
     """Listen to sensor telemetry and evaluate rules."""
+    if _mqtt_disabled():
+        logger.info("MQTT_BROKER_URL غير مضبوط — مستمع MQTT معطّل")
+        return
     topic = "sahool/+/+/telemetry/+"  # tenant/field/telemetry/sensor_type
+    host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     while True:
         try:
-            async with MQTTClient(MQTT_BROKER_URL) as client:
+            async with MQTTClient(host, port=port) as client:
                 async with client.messages() as messages:
                     await client.subscribe(topic, qos=1)
                     logger.info(f"MQTT listener subscribed: {topic}")

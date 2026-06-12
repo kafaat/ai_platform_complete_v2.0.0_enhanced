@@ -165,6 +165,23 @@ async def get_pool() -> asyncpg.Pool:
     return _pool
 
 
+async def _run_migrations():
+    """يضمن وجود الجداول المطلوبة قبل أيّ مزامنة (تشغيل مستقلّ بلا مانيفست خارجيّ)."""
+    pool = await get_pool()
+    if not pool:
+        return
+    async with pool.acquire() as conn:
+        await conn.execute(
+            """CREATE TABLE IF NOT EXISTS odoo_sync_state (
+                entity       TEXT        NOT NULL,
+                direction    TEXT        NOT NULL,
+                last_sync_at TIMESTAMPTZ,
+                PRIMARY KEY (entity, direction)
+            )"""
+        )
+    logger.info("DB migrations applied")
+
+
 async def get_last_sync(entity: str, direction: str) -> datetime | None:
     pool = await get_pool()
     if not pool:
@@ -533,6 +550,7 @@ async def lifespan(app: FastAPI):
     if SAHOOL_DB_URL:
         _pool = await asyncpg.create_pool(SAHOOL_DB_URL, min_size=1, max_size=5)
         logger.info("DB pool ready")
+        await _run_migrations()
     # Test Odoo connection
     try:
         odoo = get_odoo()

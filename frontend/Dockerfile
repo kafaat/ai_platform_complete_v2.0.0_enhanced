@@ -8,13 +8,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# ── مرآة npm صينيّة (registry محجوب/بطيء) — قابلة للتجاوز بـ--build-arg ──
-ARG NPM_REGISTRY=https://registry.npmmirror.com
-RUN npm config set registry ${NPM_REGISTRY}
-
 # تثبيت الاعتماديات أوّلاً (للاستفادة من Docker layer caching)
+# نستخدم سجلّ npm الرسميّ (registry.npmjs.org) — مرآة صينيّة محجوبة/بطيئة عالميّاً.
+# .npmrc يُنسخ أوّلاً حتى تكون legacy-peer-deps=true متاحة لـnpm ci.
 # npm ci يحتاج package-lock.json؛ لو غاب نقع على npm install
-COPY package.json package-lock.json* ./
+COPY package.json package-lock.json* .npmrc* ./
 RUN if [ -f package-lock.json ]; then \
       npm ci --legacy-peer-deps; \
     else \

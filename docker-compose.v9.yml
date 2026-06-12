@@ -893,7 +893,8 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      # وكيل الإشعارات يستمع على 8123 ويخدّم /health (لا 8000/healthz).
+      test: ["CMD", "curl", "-f", "http://localhost:8123/health"]
       interval: 30s
       timeout: 10s
       retries: 3

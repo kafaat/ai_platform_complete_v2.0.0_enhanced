@@ -5,17 +5,17 @@ COPY services/local-ai-rag/requirements.txt /tmp/requirements.txt
 # ── PyPI الرسمي هو الافتراضي فعليّاً (HTTPS، لا اعتماد على مرآة طرف ثالث) ──
 # لا نضبط trusted-host افتراضيّاً (غير ضروريّ مع HTTPS، وضبطه يُضعِف أمان TLS).
 # للمرآة الصينيّة (تسريع داخل الصين) مرّر كليهما صراحةً:
-#   --build-arg PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple \
-#   --build-arg PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+#   --build-arg PIP_INDEX_URL=https://pypi.org/simple \
+#   --build-arg PIP_TRUSTED_HOST=pypi.org
 # (أو علي بابا: https://mirrors.aliyun.com/pypi/simple/)
 ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 # trusted-host فقط إن مُرِّر (مرآة تتطلّبه) — وإلّا لا نخفّض أمان TLS.
 RUN if [ -n "${PIP_TRUSTED_HOST}" ]; then \
-        pip install --no-cache-dir --trusted-host "${PIP_TRUSTED_HOST}" -r /tmp/requirements.txt; \
+        pip install --no-cache-dir --timeout 120 --retries 5 --trusted-host "${PIP_TRUSTED_HOST}" -r /tmp/requirements.txt; \
     else \
-        pip install --no-cache-dir -r /tmp/requirements.txt; \
+        pip install --no-cache-dir --timeout 120 --retries 5 -r /tmp/requirements.txt; \
     fi
 COPY shared/ /app/shared/
 COPY services/local-ai-rag/ /app/
