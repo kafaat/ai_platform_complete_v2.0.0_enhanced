@@ -394,6 +394,11 @@ class ConnectionManager:
         self._max_per_user = max_per_user
         self._lock = asyncio.Lock()
 
+    @property
+    def total_connections(self) -> int:
+        """إجماليّ اتّصالات WebSocket الحيّة عبر كلّ المستخدمين (لـ/health)."""
+        return sum(len(s) for s in self.connections.values())
+
     async def connect(self, user_id: str, websocket) -> bool:
         async with self._lock:
             if len(self.connections[user_id]) >= self._max_per_user:

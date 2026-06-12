@@ -367,8 +367,16 @@ class QueryResponse(BaseModel):
 # ══════════════════════════════════════════════════════════════
 # Endpoints
 # ══════════════════════════════════════════════════════════════
+def _require_ready() -> None:
+    """يرفض الطلبات المعتمِدة على النماذج بـ503 أثناء التهيئة الخلفيّة — كي يحصل
+    العميل على 503 متّسقة (مثل /readyz) بدل 500 من فشل اتّصال Qdrant/Ollama."""
+    if _llm is None or _vectorstore is None:
+        raise HTTPException(503, "الخدمة قيد التهيئة — النماذج تُحمَّل، أعد المحاولة لاحقاً")
+
+
 @app.post("/query", response_model=QueryResponse)
 async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user)):
+    _require_ready()
     # العزل من مصدر موثوق: tenant_id من الـJWT لا من جسم الطلب (يمنع قراءة مستأجِر آخر).
     tenant_id = user.get("tenant_id")
     if not tenant_id:
@@ -387,6 +395,7 @@ async def ingest_endpoint(
     يتطلّب توكن خدمة (منع تسميم قاعدة المعرفة بمستندات مزوّرة).
     """
     _require_service_token(x_agent_token)
+    _require_ready()
     paths: list[Path] = []
     for upload in files:
         suffix = Path(upload.filename).suffix.lower()
