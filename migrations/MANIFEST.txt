@@ -123,3 +123,7 @@ v39_season_simulation.sql
 # v40: تأكيد البريد/الهاتف — أعمدة verified_email/verified_phone على users
 # (تحقّق ناعم عبر OTP في Redis). يعدّل users (v9/v21). idempotent.
 v40_verification.sql
+# v45: فهرس season_id على activities + توثيق العلاقة المنطقيّة (الموسم يخصّ نفس
+# الحقل). لا FK صلب (قد يفشل على صفوف يتيمة) — فهرس داعم + تحقّق تطبيقيّ في
+# create_activity. يعدّل activities (v35). idempotent.
+v45_activity_season_fk.sql

@@ -2280,6 +2280,22 @@ async def create_activity(
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
+            if req.season_id is not None:
+                # الموسم اختياريّ، لكن إن مُرّر فيجب أن يوجد ويخصّ الحقل نفسه
+                # (لا FK صلب على القاعدة؛ تحقّق تطبيقيّ + فهرس داعم — v45).
+                season_ok = await conn.fetchval(
+                    "SELECT 1 FROM seasons WHERE season_id = $1 AND field_id = $2",
+                    req.season_id,
+                    field_id,
+                )
+                if season_ok is None:
+                    raise HTTPException(
+                        status_code=422,
+                        detail={
+                            "message_ar": "الموسم غير موجود لهذا الحقل",
+                            "code": "invalid_season_for_field",
+                        },
+                    )
             await conn.execute(
                 """INSERT INTO activities
                     (activity_id, tenant_id, field_id, season_id, activity_type,
