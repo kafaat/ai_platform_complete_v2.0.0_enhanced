@@ -6664,6 +6664,200 @@ def rbac_preview_role_change(
     return preview_role_change(current_role, new_role)
 
 
+@app.get("/api/v1/market/crop-gap")
+async def market_crop_gap(
+    zone_key: str,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+):
+    """خريطة تركّز المحاصيل وفجوة السوق لمنطقة (إسقاط مبدأ LULC على حقول المنصّة).
+
+    يكشف التشبّع (فائض محتمل) والفرص (محاصيل مناسبة قليلة الزراعة). صدق: حقول
+    المنصّة المشتركة فقط (عيّنة لا مسح)، اتجاه نسبي لا رقم مطلق، لا تنبّؤ سعر.
+
+    ⚠ عمود zone_key على fields غير مفعَّل بعد في المخطّط الحاليّ؛ حتى إضافته
+    يُرجِع «لا بيانات كافية» بصدق (لا تخمين) — الربط الكامل مؤجَّل بعد التشغيل.
+    """
+    import asyncpg as _asyncpg
+    from core.engines.crop_market_gap import CropConcentration, regional_crop_map
+
+    from api.agro_climate_zones import suited_for_zone
+
+    concentrations: list = []
+    suitability: dict = {}
+    schema_ready = True  # يصبح False فقط عند غياب العمود/الجدول (لا عند 0 صفوف)
+    try:
+        async with tenant_connection(user) as conn:
+            try:
+                # SAVEPOINT يعزل غياب العمود/الجدول عن معاملة RLS (لا يُجهضها).
+                async with conn.transaction():
+                    rows = await conn.fetch(
+                        """SELECT f.crop AS crop_id, COUNT(*) AS cnt
+                           FROM fields f
+                           WHERE f.zone_key = $1 AND f.crop IS NOT NULL
+                           GROUP BY f.crop""",
+                        zone_key,
+                    )
+                total = sum(r["cnt"] for r in rows) or 0
+                suited = suited_for_zone(zone_key)
+                # suited_for_zone يُرجِع suited_crops_ar (أسماء عربيّة)؛ مطابقة
+                # crop_id بالاسم تقريبيّة — تُحسَّن عند توحيد قاموس المحاصيل.
+                suited_names = set(suited.get("suited_crops_ar", []))
+                for r in rows:
+                    concentrations.append(
+                        CropConcentration(
+                            crop_id=r["crop_id"],
+                            zone_key=zone_key,
+                            field_count=r["cnt"],
+                            total_fields_in_zone=total,
+                        )
+                    )
+                    suitability[r["crop_id"]] = r["crop_id"] in suited_names
+            except (_asyncpg.UndefinedColumnError, _asyncpg.UndefinedTableError):
+                # المخطّط غير جاهز (zone_key/الجدول غير مفعَّل) — يميَّز عن «لا بيانات».
+                schema_ready = False
+                concentrations = []
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تحليل فجوة سوق المنطقة", e) from e
+
+    # مفاتيح ميتا ثابتة دائماً (استقرار API): نفس التعريف في كلّ المسارات.
+    meta = {"zone_key": zone_key, "schema_ready": schema_ready, "live_data_wired": schema_ready}
+    if not concentrations:
+        meta["total_crops_analysed"] = 0
+        meta["note_ar"] = (
+            "عمود zone_key غير مفعَّل بعد في المخطّط — لا تخمين؛ الربط مؤجَّل بعد التشغيل."
+            if not schema_ready
+            else "المخطّط جاهز لكن لا حقول كافية بالمنصّة في هذه المنطقة — لا تخمين."
+        )
+        return meta
+    return {**meta, **regional_crop_map(concentrations, suitability)}
+
+
+@app.get("/api/v1/market/crop-classification-readiness")
+async def crop_classification_readiness_endpoint(
+    zone_key: str,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+):
+    """جاهزيّة تصنيف المحاصيل بالأقمار لمنطقة (البوّابة الصادقة نحو فجوة سوق أشمل).
+
+    يقيس عيّنات التدريب المتاحة (حقول المنصّة: محصول معروف + حدود GPS) ويقرّر
+    متى يصبح التصنيف ممكناً. قبل الكفاية: التصنيف «غير متاح» بصدق (لا اختراع).
+    """
+    import asyncpg as _asyncpg
+    from core.engines.crop_classification_readiness import (
+        CropSampleInventory,
+        assess_classification_readiness,
+    )
+
+    fields_by_crop: dict[str, int] = {}
+    schema_ready = True  # False فقط عند غياب العمود/الجدول
+    try:
+        async with tenant_connection(user) as conn:
+            try:
+                async with conn.transaction():  # savepoint — يعزل غياب العمود/الجدول
+                    rows = await conn.fetch(
+                        """SELECT f.crop AS crop_id, COUNT(*) AS cnt
+                           FROM fields f
+                           JOIN field_boundaries fb ON fb.field_id = f.field_id
+                           WHERE f.zone_key = $1 AND f.crop IS NOT NULL
+                                 AND fb.geom IS NOT NULL
+                           GROUP BY f.crop""",
+                        zone_key,
+                    )
+                fields_by_crop = {r["crop_id"]: r["cnt"] for r in rows}
+            except (_asyncpg.UndefinedColumnError, _asyncpg.UndefinedTableError):
+                schema_ready = False
+                fields_by_crop = {}
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("جاهزيّة تصنيف المحاصيل", e) from e
+
+    inv = CropSampleInventory(
+        zone_key=zone_key,
+        fields_with_crop_and_gps=fields_by_crop,
+        avg_temporal_scenes=0.0,  # يُحسب من /imagery/timeseries لاحقاً (مؤجَّل)
+        gps_quality_ok=bool(fields_by_crop),
+    )
+    result = assess_classification_readiness(inv)
+    # live_data_wired = جاهزيّة الربط/المخطّط (لا وجود الصفوف)؛ has_sample_data منفصل.
+    result["schema_ready"] = schema_ready
+    result["live_data_wired"] = schema_ready
+    result["has_sample_data"] = bool(fields_by_crop)
+    result["data_source_note_ar"] = (
+        "⚠ العيّنات من حقول المنصّة (محصول معروف + حدود GPS). المشاهد الزمنيّة "
+        "(avg_temporal_scenes) تُحسب من /imagery/timeseries لاحقاً — مؤجَّل بعد "
+        "التشغيل؛ حتى ذلك تُقدَّر صفراً (التصنيف يُعلَن غير جاهز بصدق)."
+    )
+    return result
+
+
+@app.get("/api/v1/learning/prediction-calibration")
+async def prediction_calibration_status(
+    crop_id: str | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+):
+    """حالة معايرة التنبّؤ من التاريخ المتراكم (الانحياز المنهجي + التصحيح التدريجي).
+
+    يحلّل أزواج (توقّع,نتيجة) التاريخيّة: هل نُفرط/نُقلّل منهجيّاً؟ ويطبّق تصحيحاً
+    متدرّجاً (shrinkage). قبل عيّنة كافية: لا تصحيح (النموذج الأساسي كما هو).
+
+    ⚠ جدول recommendation_outcomes غير مفعَّل بعد؛ حتى ذلك يُرجِع «عيّنة غير
+    كافية» بصدق (correction_factor=1.0) — الربط الكامل مؤجَّل بعد التشغيل.
+    """
+    import asyncpg as _asyncpg
+    from core.learning.prediction_calibration import (
+        PredictionPair,
+        analyze_systematic_bias,
+    )
+
+    pairs: list = []
+    schema_ready = True  # False فقط عند غياب الجدول/العمود
+    try:
+        async with tenant_connection(user) as conn:
+            try:
+                async with conn.transaction():  # savepoint — يعزل غياب الجدول
+                    # وحدة التكرار = المزرعة (farm_id) لا المستأجِر: تحت RLS يكون
+                    # tenant_id ثابتاً، فعدّه لا يقيس الاستقلال (تفادي pseudoreplication).
+                    q = (
+                        "SELECT predicted_yield_t_ha AS pred, actual_yield_t_ha AS act, "
+                        "crop AS crop_id, farm_id::text AS fid "
+                        "FROM recommendation_outcomes "
+                        "WHERE predicted_yield_t_ha IS NOT NULL "
+                        "AND actual_yield_t_ha IS NOT NULL"
+                    )
+                    params: list = []
+                    if crop_id:
+                        q += " AND crop = $1"
+                        params.append(crop_id)
+                    rows = await conn.fetch(q, *params)
+                pairs = [
+                    PredictionPair(float(r["pred"]), float(r["act"]), r["crop_id"], r["fid"])
+                    for r in rows
+                ]
+            except (_asyncpg.UndefinedColumnError, _asyncpg.UndefinedTableError):
+                schema_ready = False
+                pairs = []
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("معايرة التنبّؤ", e) from e
+
+    result = analyze_systematic_bias(pairs)
+    # live_data_wired = جاهزيّة الربط/المخطّط (لا وجود الأزواج)؛ has_pairs منفصل.
+    result["schema_ready"] = schema_ready
+    result["live_data_wired"] = schema_ready
+    result["has_pairs"] = bool(pairs)
+    result["data_source_note_ar"] = (
+        "⚠ الأزواج من recommendation_outcomes (توقّع تاريخي + نتيجة فعليّة) عبر RLS، "
+        "ووحدة التكرار = المزرعة (farm_id) لا المستأجِر (تفادي pseudoreplication). "
+        "الجدول غير مفعَّل بعد في المخطّط؛ حتى ذلك «عيّنة غير كافية» بصدق (لا تصحيح). "
+        "الربط الكامل مؤجَّل بعد التشغيل."
+    )
+    return result
+
+
 @app.get("/api/v1/calendars/lunar-mansions")
 def calendars_lunar_mansions():
     """المنازل القمريّة الـ٢٨ (نجوم الزراعة) — مرجع معرفي تراثي (عرض فقط)."""
