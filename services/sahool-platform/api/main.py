@@ -242,6 +242,60 @@ async def _start_scheduler():
     scheduler.start()
 
 
+# ── OutboxWorker: relay الأحداث من event_outbox إلى NATS (نمط outbox الموثوق) ──
+# يُغلق فجوة «الأحداث تُكتب ولا تُنشَر»: emit_event يكتب الحدث + صفّ outbox ذرّيّاً
+# مع تغيير الحالة، وهذا العامل يقرأ المعلّق ويُنشره لـNATS (backoff/retry).
+_OUTBOX_WORKER = None  # OutboxWorker | None
+_OUTBOX_TASK = None  # asyncio.Task | None
+_NATS_CONN = None  # nats client | None
+
+
+@app.on_event("startup")
+async def _start_outbox_worker():
+    """يبدأ relay الأحداث (outbox → NATS). تدهور رشيق: لو غاب NATS/القاعدة، نتخطّى
+    بتحذير دون إسقاط الإقلاع — الأحداث تبقى في outbox لتُنشَر عند توفّر NATS لاحقاً."""
+    global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+    if _DB_POOL is None:
+        logging.warning("OutboxWorker: لا pool قاعدة — relay الأحداث معطّل")
+        return
+    try:
+        import nats
+
+        from api.event_bus import OutboxWorker
+
+        nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
+        _NATS_CONN = await nats.connect(nats_url, max_reconnect_attempts=-1)
+
+        async def _publish(subject: str, payload: bytes) -> None:
+            await _NATS_CONN.publish(subject, payload)
+
+        _OUTBOX_WORKER = OutboxWorker(_DB_POOL, _publish)
+        _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
+        logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", nats_url)
+    except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
+        logging.warning("OutboxWorker معطّل (NATS؟): %s — الأحداث تبقى في outbox", e)
+
+
+@app.on_event("shutdown")
+async def _stop_outbox_worker():
+    global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+    if _OUTBOX_WORKER is not None:
+        _OUTBOX_WORKER.stop()
+    if _OUTBOX_TASK is not None:
+        _OUTBOX_TASK.cancel()
+        try:
+            await _OUTBOX_TASK
+        except asyncio.CancelledError:
+            pass
+    if _NATS_CONN is not None:
+        # drain قد يرمي لو انقطع الاتّصال — لا نُفشِل الإيقاف بسببه.
+        try:
+            await _NATS_CONN.drain()
+        except Exception as e:  # noqa: BLE001
+            logging.warning("NATS drain أثناء الإيقاف: %s", e)
+    _OUTBOX_WORKER = _OUTBOX_TASK = _NATS_CONN = None
+
+
 @app.on_event("shutdown")
 async def _stop_scheduler():
     from api.scheduler import scheduler
@@ -295,6 +349,29 @@ async def tenant_connection(user):
                 user.role.value if hasattr(user.role, "value") else str(user.role),
             )
             yield conn
+
+
+async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id, payload):
+    """يُصدر حدث domain ضمن نفس معاملة الكتابة (نمط outbox: الحدث + صفّ outbox
+    يُكتبان ذرّيّاً مع تغيير الحالة)، لكن داخل **savepoint** — نجاحه ذرّيّ مع
+    الحالة، وفشله (مثلاً غياب جداول الأحداث v11) يُسجَّل ولا يُجهض الكتابة. هكذا
+    نُغلق فجوة «كتابة بلا حدث» دون جعل مسار الكتابة قابلاً للكسر."""
+    try:
+        from api.event_bus import EventBus, EventSource, EventType
+
+        et = EventType[event_type_name]
+        async with conn.transaction():  # SAVEPOINT داخل معاملة tenant_connection
+            await EventBus(get_pool(), conn=conn).emit(
+                event_type=et,
+                entity_type=entity_type,
+                entity_id=str(entity_id),
+                tenant_id=str(user.tenant_id),
+                payload=payload,
+                source=EventSource.WEB,
+                actor_id=str(user.user_id),
+            )
+    except Exception as e:  # noqa: BLE001 — إصدار الحدث لا يكسر الكتابة
+        logger.warning("emit %s تخطّي: %s", event_type_name, e)
 
 
 # المتغيّر: SAHOOL_CORS_ORIGINS = "https://app.sahool.ye,https://www.sahool.ye"
@@ -1320,6 +1397,21 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
                 country,
                 region,
             )
+            # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
+            await _emit_domain_event(
+                conn,
+                user,
+                "FIELD_CREATED",
+                "field",
+                field_id,
+                {
+                    "name": req.name,
+                    "crop": req.crop,
+                    "area_ha": area_ha,
+                    "farm_id": req.farm_id,
+                    "soil_type": req.soil_type,
+                },
+            )
     except HTTPException:
         raise  # get_pool() يرفع 503 أصلاً
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
@@ -1723,6 +1815,9 @@ async def create_season(
     ]
     stages_json = _json.dumps([s.model_dump() for s in clean_stages])
     crops_json = _json.dumps(req.crops)
+
+    import asyncpg as _asyncpg  # لالتقاط سباق الموسم النشط (UniqueViolation → 409)
+
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
@@ -1762,8 +1857,35 @@ async def create_season(
                     req.row_spacing_cm,
                     req.seed_variety_source,
                 )
+                # حدث domain ضمن نفس معاملة إنشاء الموسم (نمط outbox).
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "SEASON_CREATED",
+                    "season",
+                    season_id,
+                    {
+                        "field_id": field_id,
+                        "crops": req.crops,
+                        "cultivar": req.cultivar,
+                        "irrigation_type": req.irrigation_type,
+                        "sowing_date": req.sowing_date,
+                    },
+                )
     except HTTPException:
         raise
+    except _asyncpg.UniqueViolationError as e:
+        # 409 فقط لانتهاك uq_seasons_one_active (سباق الموسم النشط)؛ أيّ تفرّد آخر
+        # (أو قيد مستقبليّ) يسلك مسار 503 الموثّق بدل إخفائه كـactive_season_conflict.
+        if getattr(e, "constraint_name", None) != "uq_seasons_one_active":
+            raise _db_unavailable("حفظ الموسم", e) from e
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message_ar": "يوجد موسم نشط لهذا الحقل بالفعل (محاولة متزامنة) — أعد المحاولة.",
+                "code": "active_season_conflict",
+            },
+        ) from e
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("حفظ الموسم", e) from e
     return SeasonSummary(
@@ -2471,6 +2593,20 @@ async def create_activity(
                 scheduled,
                 performed,
                 status,
+            )
+            # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox).
+            await _emit_domain_event(
+                conn,
+                user,
+                "ACTIVITY_RECORDED",
+                "activity",
+                activity_id,
+                {
+                    "field_id": field_id,
+                    "season_id": req.season_id,
+                    "activity_type": req.activity_type,
+                    "status": status,
+                },
             )
     except HTTPException:
         raise

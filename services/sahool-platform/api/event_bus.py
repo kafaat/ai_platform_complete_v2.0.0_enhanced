@@ -56,6 +56,12 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # Lifecycle transitions (state machine)
     LIFECYCLE_TRANSITIONED = "lifecycle.transitioned"
 
+    # Season
+    SEASON_CREATED = "season.created"
+
+    # Activity (عمليّة حقليّة عامّة — تكمّل أحداث operation.* المحدّدة)
+    ACTIVITY_RECORDED = "activity.recorded"
+
     # Operations
     PLANTING_STARTED = "operation.planting.started"
     PLANTING_COMPLETED = "operation.planting.completed"
@@ -289,33 +295,40 @@ class OutboxWorker:
         self._running = False
 
     async def _process_batch(self) -> int:
-        """يأخذ batch من الـpending events ويرسلها."""
-        async with self._acquire() as conn:
-            # SELECT FOR UPDATE SKIP LOCKED للـconcurrent workers safety
-            rows = await conn.fetch(
-                """
-                SELECT o.outbox_id, o.event_id, o.nats_subject, o.retry_count,
-                       e.event_type, e.entity_type, e.entity_id, e.tenant_id,
-                       e.payload, e.occurred_at
-                FROM event_outbox o
-                JOIN events e ON e.event_id = o.event_id
-                WHERE o.status IN ('pending', 'failed')
-                  AND o.retry_count < $1
-                ORDER BY o.created_at ASC
-                LIMIT $2
-                FOR UPDATE OF o SKIP LOCKED
-                """,
-                self.max_retries,
-                self.batch_size,
-            )
+        """يأخذ batch من الـpending events ويرسلها.
 
-            if not rows:
-                return 0
+        يفتح اتّصالاً من الـpool (OutboxWorker لا يملك conn مُنطّقاً — هو عامل
+        خلفيّ عبر المستأجِرين، يقرأ outbox مباشرةً). يلفّ الكلّ في **معاملة صريحة**
+        كي تبقى أقفال FOR UPDATE SKIP LOCKED محتجَزة حتى تحديث الحالة إلى 'sent'
+        — يمنع الإرسال المزدوج عند تعدّد العمّال.
+        """
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                # SELECT FOR UPDATE SKIP LOCKED للـconcurrent workers safety
+                rows = await conn.fetch(
+                    """
+                    SELECT o.outbox_id, o.event_id, o.nats_subject, o.retry_count,
+                           e.event_type, e.entity_type, e.entity_id, e.tenant_id,
+                           e.payload, e.occurred_at
+                    FROM event_outbox o
+                    JOIN events e ON e.event_id = o.event_id
+                    WHERE o.status IN ('pending', 'failed')
+                      AND o.retry_count < $1
+                    ORDER BY o.created_at ASC
+                    LIMIT $2
+                    FOR UPDATE OF o SKIP LOCKED
+                    """,
+                    self.max_retries,
+                    self.batch_size,
+                )
 
-            for row in rows:
-                await self._send_one(conn, row)
+                if not rows:
+                    return 0
 
-            return len(rows)
+                for row in rows:
+                    await self._send_one(conn, row)
+
+                return len(rows)
 
     async def _send_one(self, conn, row):
         """يرسل event واحد إلى NATS مع retry tracking."""
