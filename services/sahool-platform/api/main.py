@@ -1587,26 +1587,36 @@ async def create_season(
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
-            await conn.execute(
-                """INSERT INTO seasons
+            # ثابت v44: حقل واحد ⇒ موسم نشط واحد على الأكثر. بدل رفض الإنشاء (409)،
+            # نُغلق آليّاً أيّ موسم نشط سابق لهذا الحقل ثمّ نُدرج الجديد ضمن نفس
+            # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
+            # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
+            async with conn.transaction():
+                await conn.execute(
+                    "UPDATE seasons SET status = 'closed' "
+                    "WHERE field_id = $1 AND status = 'active'",
+                    field_id,
+                )
+                await conn.execute(
+                    """INSERT INTO seasons
                     (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,
                      seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date,
                      season_end, stages, status)
                    VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
                            $8, $9, $10, $11, $12::jsonb, 'active')""",
-                season_id,
-                str(user.tenant_id),
-                field_id,
-                crops_json,
-                req.cultivar,
-                req.irrigation_type,
-                req.seed_rate_kg_ha,
-                land,
-                plow,
-                sow,
-                end,
-                stages_json,
-            )
+                    season_id,
+                    str(user.tenant_id),
+                    field_id,
+                    crops_json,
+                    req.cultivar,
+                    req.irrigation_type,
+                    req.seed_rate_kg_ha,
+                    land,
+                    plow,
+                    sow,
+                    end,
+                    stages_json,
+                )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
