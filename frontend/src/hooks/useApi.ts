@@ -10,6 +10,7 @@ import {
   analyzeFieldIntelligence, getCostAnalytics,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
+  fetchSeasons, type SeasonSummary,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
@@ -27,8 +28,9 @@ import {
   type IrrigationAdvice, type DiseaseRisk,
   fetchFieldRecommendations,
   type FieldRecommendationsResult,
-  fetchAlerts, createAlert, acknowledgeAlert, evaluateFieldAlerts,
+  fetchAlerts, createAlert, acknowledgeAlert, evaluateFieldAlerts, runAllFieldsAlerts,
   type AlertRecord, type AlertCreateInput, type AlertListFilters, type AlertEvaluateResult,
+  type AlertsRunResult,
   fetchNotificationPreferences, updateNotificationPreferences,
   type NotificationPreferences,
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry, getFieldSoilMoisture,
@@ -72,6 +74,7 @@ export const QK = {
   farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
+  seasons:          (tid: string, fid: string) => ['seasons', tid, fid],
   irrigationAdvice: (tid: string, fid: string) => ['weather-advice', 'irrigation', tid, fid],
   diseaseRisk:      (tid: string, fid: string) => ['weather-advice', 'disease', tid, fid],
   fieldRecs:        (tid: string, fid: string) => ['field-recommendations', tid, fid],
@@ -613,6 +616,20 @@ export function useSimulateSeason(): UseMutationResult<SeasonSimResult, Error, s
   });
 }
 
+// ── مواسم حقل (مع نتائج المحاكاة المُخزَّنة sim_*) — قراءة حيّة بلا تلفيق ──
+// GET /api/v1/fields/{id}/seasons. مُفعَّل فقط مع fieldId. عند الخطأ (503 DB /
+// 404 حقل / 403) يُرفض الاستعلام لتعرض الواجهة حالة صادقة (لا fallback وهميّ).
+export function useSeasons(fieldId?: string): UseQueryResult<SeasonSummary[], Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<SeasonSummary[], Error>({
+    queryKey: QK.seasons(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchSeasons(fieldId as string),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
+  });
+}
+
 // ── Weather advice: توصية الريّ + مخاطر الأمراض لكلّ حقل (Sprint 5a) ──
 // ربط حيّ بلا fallback وهميّ: عند الخطأ (503 طقس/قاعدة، 404 حقل، 422 بلا
 // إحداثيّات، 403) يُرفض الاستعلام لتعرض الواجهة حالة صادقة. مُفعَّل فقط مع fieldId.
@@ -698,6 +715,17 @@ export function useEvaluateAlerts(): UseMutationResult<AlertEvaluateResult, Erro
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<AlertEvaluateResult, Error, string>({
     mutationFn: (fieldId) => evaluateFieldAlerts(fieldId),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
+  });
+}
+
+// تشغيل تقييم التنبيهات لكلّ الحقول دفعةً (أتمتة عند الطلب، sahool-platform)
+// — يُبطِل كاش تنبيهات المستأجِر ليُعاد جلب القائمة بالتنبيهات المُولَّدة حديثاً.
+export function useRunAllAlerts(): UseMutationResult<AlertsRunResult, Error, void> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<AlertsRunResult, Error, void>({
+    mutationFn: () => runAllFieldsAlerts(),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.alerts(tid) }); },
   });
 }

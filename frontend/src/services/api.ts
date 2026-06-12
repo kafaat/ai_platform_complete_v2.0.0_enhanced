@@ -188,6 +188,44 @@ export const changePassword = (
     })
     .then(r => r.data);
 
+// ── Email/Phone Verification (تأكيد البريد/الهاتف — soft) ──────────
+// تحقّق ناعم بعد التسجيل: المستخدم يطلب رمز OTP من ٦ أرقام (Redis قصير الأجل
+// على الخادم) ثمّ يؤكّده فيُعلَّم الحساب verified_email/verified_phone. التسليم
+// STUB خادميّاً (سجلّ، لا بوّابة بريد/SMS فعليّة بعد). لا fallback وهميّ.
+export type VerifyChannel = 'email' | 'phone';
+
+export interface VerificationStatus {
+  verified_email: boolean;
+  verified_phone: boolean;
+}
+
+/** حالة تحقّق الحساب الحاليّة (بريد/هاتف) من الخادم. (يتطلّب توكناً) */
+export const getVerificationStatus = (): Promise<VerificationStatus> =>
+  authApi.get<VerificationStatus>('/auth/verify/status').then(r => r.data);
+
+/** يطلب إصدار رمز تحقّق للقناة (بريد/هاتف). محدود المعدّل خادميّاً (429). */
+export const requestVerification = (
+  channel: VerifyChannel,
+): Promise<{ message: string; channel: VerifyChannel; expires_in: number }> =>
+  authApi
+    .post<{ message: string; channel: VerifyChannel; expires_in: number }>(
+      '/auth/verify/request',
+      { channel },
+    )
+    .then(r => r.data);
+
+/** يؤكّد رمز التحقّق للقناة. 400 لرمز غير صالح/منتهٍ. */
+export const confirmVerification = (
+  channel: VerifyChannel,
+  code: string,
+): Promise<{ message: string; channel: VerifyChannel; verified: boolean }> =>
+  authApi
+    .post<{ message: string; channel: VerifyChannel; verified: boolean }>(
+      '/auth/verify/confirm',
+      { channel, code },
+    )
+    .then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // SAHOOL-PLATFORM (core) — وحدات قرار حيّة عبر البوابة الموحّدة (kong)
 // ربط حقيقيّ: لا fallback وهميّ (قرارات زراعيّة — الخطأ يُعلَن للـUI).
@@ -435,6 +473,36 @@ export interface SeasonSimResult {
 // الطقس/القاعدة، 404 إن غاب الموسم عن المستأجِر.
 export const simulateSeason = (seasonId: string): Promise<SeasonSimResult> =>
   kongApi.post<SeasonSimResult>(`/api/v1/seasons/${seasonId}/simulate`).then(r => r.data);
+
+// ── مواسم الحقل (مع نتائج المحاكاة المُخزَّنة sim_*) — حيّة عبر البوّابة ──
+// GET /api/v1/fields/{field_id}/seasons (SeasonSummary[]، الأحدث أولاً، tenant-scoped
+// + FIELD_VIEW). حقول sim_* تكون مملوءة فقط بعد تشغيل /simulate (تقديريّة)، وإلّا null
+// ⇒ تعرضها الواجهة كحالة "—" صادقة لا أرقاماً مُلفَّقة. لا fallback وهميّ.
+export interface SeasonSummary {
+  season_id:        string;
+  field_id:         string;
+  crops:            string[];
+  cultivar:         string | null;
+  irrigation_type:  string | null;
+  seed_rate_kg_ha:  number | null;
+  land_leveling_date: string | null;
+  plowing_date:     string | null;
+  sowing_date:      string | null;
+  season_end:       string | null;
+  stages:           Record<string, unknown>[];
+  status:           string; // active | closed | ...
+  created_at:       string | null;
+  // نتائج المحاكاة (تُملأ عند تشغيل /simulate، وإلّا null — تقديريّة بنطاق وثقة)
+  sim_yield_kg_ha:   number | null;
+  sim_biomass_kg_ha: number | null;
+  sim_gdd_total:     number | null;
+  sim_lai_max:       number | null;
+  sim_water_mm:      number | null;
+  sim_ran_at:        string | null;
+}
+
+export const fetchSeasons = (fieldId: string): Promise<SeasonSummary[]> =>
+  kongApi.get<SeasonSummary[]>(`/api/v1/fields/${fieldId}/seasons`).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
 // INVENTORY — مخزون المدخلات (حيّ، مُقيَّد بالدور inventory:view/manage وبالمستأجِر)
@@ -709,6 +777,26 @@ export interface AlertEvaluateResult {
 
 export const evaluateFieldAlerts = (fieldId: string): Promise<AlertEvaluateResult> =>
   kongApi.post<AlertEvaluateResult>(`/api/v1/fields/${fieldId}/alerts/evaluate`).then(r => r.data);
+
+// تشغيل تقييم التنبيهات لكلّ حقول المستأجِر دفعةً واحدة (أتمتة عند الطلب). معزول
+// لكلّ حقل: الحقل المتعثّر يظهر بـerror دون إسقاط البقيّة (تدهور رشيق، لا 500).
+export interface AlertsRunFieldSummary {
+  field_id:  string;
+  created:    number;
+  skipped:    number;
+  error?:     string;
+}
+export interface AlertsRunResult {
+  fields_total:      number;
+  fields_evaluated:  number;
+  fields_failed:     number;
+  created_total:     number;
+  skipped_total:     number;
+  per_field:         AlertsRunFieldSummary[];
+}
+
+export const runAllFieldsAlerts = (): Promise<AlertsRunResult> =>
+  kongApi.post<AlertsRunResult>('/api/v1/automation/alerts/run').then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
 // NOTIFICATION PREFERENCES — قنوات تسليم التنبيهات لكلّ مستخدم (sahool-platform

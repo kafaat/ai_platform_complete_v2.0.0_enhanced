@@ -20,6 +20,10 @@ pydantic[email]>=2.8.0
 bcrypt>=4.1.0
 prometheus-client>=0.20.0
 PyJWT>=2.13.0
+# test_otp يُحمّل services/auth/main.py الذي يستورد pyotp (MFA/TOTP، تبعيّة
+# مُعلَنة أصلاً في services/auth/requirements.txt) ⇒ بدونها يفشل جمع الاختبار
+# في CI بـModuleNotFoundError: No module named 'pyotp'.
+pyotp>=2.9.0
 # sahool_ai/cookbook يقرأ model_catalog.yaml عبر PyYAML (تبعيّة أساسيّة للحزمة)
 # ⇒ كان جمع test_cookbook يفشل بـ ModuleNotFoundError: yaml في CI.
 PyYAML>=6.0

@@ -1,5 +1,7 @@
 // SAHOOL v9.1.0 — lib/screens/advisor_screen.dart
 // Fixes: F06(real API), F07(Hive storage), H05(keyboard), H06(image_picker), H07(markdown)
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -69,7 +71,7 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
     }
   }
 
-  // H06: Image picker for pest detection
+  // H06: Image picker + real pest detection (multipart → /api/edge/inference/pest-detect)
   Future<void> _sendImage() async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.camera,
@@ -77,10 +79,72 @@ class _AdvisorScreenState extends State<AdvisorScreen> {
     );
     if (image == null) return;
 
-    final bytes = await image.readAsBytes();
-    // Send base64 image to API for pest detection
-    await _send('تحليل صورة: [صورة مرفقة للكشف عن الآفات]');
-    // TODO: await ApiService.instance.analyzePestImage(bytes);
+    // Record the user's intent in the transcript (honest: shows what was sent)
+    await _chatBox.add({
+      'role': 'user',
+      'text': 'تحليل صورة: [صورة مرفقة للكشف عن الآفات]',
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    setState(() {
+      _isLoading = true;
+    });
+    _scrollToBottom();
+
+    try {
+      final result =
+          await ApiService.instance.analyzePestImage(File(image.path));
+      await _chatBox.add({
+        'role': 'assistant',
+        'text': _formatPestResult(result),
+        'timestamp': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      // صدق: فشل التحليل يُعرَض صراحةً — لا كشف مُلفَّق
+      await _chatBox.add({
+        'role': 'assistant',
+        'text':
+            'عذراً، تعذّر تحليل الصورة. تحقّق من الإنترنت وأعد المحاولة، أو صف الآفة كتابةً.',
+        'timestamp': DateTime.now().toIso8601String(),
+        'isError': true,
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+      _scrollToBottom();
+    }
+  }
+
+  /// يصوغ نتيجة كشف الآفات (اسم الآفة/الثقة/الإجراء) نصّاً عربيّاً للعرض.
+  /// إن لم يُكتشف شيء فوق العتبة، يقول ذلك صراحةً بدل اختلاق نتيجة.
+  String _formatPestResult(Map<String, dynamic> result) {
+    // تنبيه عالي الثقة جاهز من الخادم — استخدمه مباشرةً إن وُجد
+    final alert = result['alert_ar'];
+    if (alert is String && alert.trim().isNotEmpty) return alert;
+
+    final detections = (result['detections'] as List?) ?? const [];
+    if (detections.isEmpty) {
+      return 'لم يُكتشف وجود آفات واضحة في الصورة. إن لاحظت أعراضاً، صوّر عن قُرب أو صفها كتابةً.';
+    }
+
+    final buf = StringBuffer('🔍 نتائج تحليل الصورة:\n');
+    for (final raw in detections.take(3)) {
+      if (raw is! Map) continue;
+      final d = raw.cast<String, dynamic>();
+      final name = d['arabic_name'] ?? d['class_name'] ?? 'آفة غير معروفة';
+      final conf = (d['confidence'] as num?)?.toDouble();
+      final action = d['recommended_action'];
+      buf.write('\n• $name');
+      if (conf != null) {
+        buf.write(' (ثقة ${(conf * 100).round()}%)');
+      }
+      if (action is String && action.trim().isNotEmpty) {
+        buf.write('\n  الإجراء المقترح: $action');
+      }
+    }
+    return buf.toString().trim();
   }
 
   void _scrollToBottom() {

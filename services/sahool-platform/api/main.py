@@ -182,10 +182,61 @@ async def _start_scheduler():
                 "أتمتة الصور: %s صورة جديدة، فُحص %s حقل", result["new_images"], result["scanned"]
             )
 
+    async def _alerts_sweep():
+        # تقييم تنبيهات كلّ الحقول دوريّاً لكلّ مستأجِر. لا واجهة/مستخدم هنا،
+        # لذا نبني مبدأً نظاميّاً (OWNER) لكلّ tenant من جدول fields ونمرّره
+        # لنفس مسار التقييم/الحفظ (المُعاد استخدامه في endpoint عند الطلب).
+        # معزول: فشل حقل/مستأجِر لا يُسقط البقيّة. صدق: لو لا حقول → لا عمل.
+        if _DB_POOL is None:
+            return
+        from core.canonical_schemas import UserRole, UserSchema
+
+        try:
+            async with _DB_POOL.acquire() as conn:
+                trows = await conn.fetch(
+                    "SELECT DISTINCT tenant_id FROM fields WHERE tenant_id IS NOT NULL"
+                )
+        except Exception as e:  # noqa: BLE001 — تعذّر سرد المستأجرين ⇒ تخطٍّ صامت
+            logging.warning("أتمتة التنبيهات: تعذّر سرد المستأجرين: %s", type(e).__name__)
+            return
+
+        total_created = 0
+        for tr in trows:
+            tid = str(tr["tenant_id"])
+            sys_user = UserSchema(
+                user_id="system-scheduler",
+                tenant_id=tid,
+                role=UserRole.OWNER,
+                name_ar="نظام الجدولة",
+            )
+            try:
+                async with tenant_connection(sys_user) as conn:
+                    frows = await conn.fetch(
+                        "SELECT field_id FROM fields WHERE tenant_id = $1::uuid", tid
+                    )
+                for fr in frows:
+                    try:
+                        created, _ = await _evaluate_field_alerts_persist(sys_user, fr["field_id"])
+                        total_created += len(created)
+                    except Exception as fe:  # noqa: BLE001 — عزل لكلّ حقل
+                        logging.debug(
+                            "أتمتة التنبيهات: تخطّي حقل %s: %s",
+                            fr["field_id"],
+                            type(fe).__name__,
+                        )
+            except Exception as te:  # noqa: BLE001 — عزل لكلّ مستأجِر
+                logging.warning("أتمتة التنبيهات: تخطّي مستأجِر %s: %s", tid, type(te).__name__)
+        if total_created:
+            logging.info("أتمتة التنبيهات: أُنشئ %s تنبيهاً عبر كلّ الحقول", total_created)
+
     register_default_tasks(
         fetch_weather=_weather_sweep,
         scan_new_imagery=_imagery_sweep,
         check_decision_freshness=_freshness_sweep,
+        run_alerts_evaluation=_alerts_sweep,
+        alerts_evaluation_interval_seconds=int(
+            os.getenv("SAHOOL_ALERTS_EVAL_INTERVAL_SECONDS", "21600")
+        ),
     )
     scheduler.start()
 
@@ -2685,20 +2736,20 @@ class AlertEvaluateResponse(BaseModel):
     skipped_existing: int
 
 
-@app.post(
-    "/api/v1/fields/{field_id}/alerts/evaluate",
-    response_model=AlertEvaluateResponse,
-)
-async def evaluate_field_alerts_endpoint(
-    field_id: str,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
-):
-    """يُقيّم ظروف الحقل الحاليّة ويُنشئ تنبيهات مُصنَّفة في جدول alerts (v36).
+async def _evaluate_field_alerts_persist(
+    user: UserSchema, field_id: str
+) -> tuple[list[AlertSummary], int]:
+    """ينفّذ تقييم تنبيهات حقل واحد ويُدرِج الجديد منها في alerts (v36).
 
-    يؤكّد أنّ الحقل يخصّ المستأجِر (404)، يبني السياق من الطقس الحيّ (Open-Meteo،
-    نفس مصدر /api/v1/weather) ومحصول/مرحلة الموسم النشط، يُشغّل قواعد التنبيه
-    النقيّة (api.alert_rules)، ثمّ يُدرِج النتائج — مع تجاوز أيّ نوع تنبيه له
-    تنبيه 'active' قائم لهذا الحقل (dedupe). 503 إن تعذّر الطقس/القاعدة.
+    منطق مشترك بين endpoint الحقل المفرد (/fields/{id}/alerts/evaluate) وتشغيل
+    «كلّ الحقول» الدوريّ (/automation/alerts/run) — لتفادي التكرار. يبني السياق
+    من الطقس الحيّ (Open-Meteo) ومحصول/مرحلة الموسم النشط، يُشغّل قواعد التنبيه
+    النقيّة (api.alert_rules)، ثمّ يُدرِج النتائج مع تجاوز أيّ نوع تنبيه له تنبيه
+    'active' قائم (dedupe).
+
+    يُرجع (created, skipped_existing). يرفع HTTPException عند تعذّر القاعدة/الطقس
+    أو غياب الحقل (404/422/503) — المُستدعي المفرد يُمرّره؛ تشغيل «كلّ الحقول»
+    يلتقطه ليتدهور رشيقاً (يتخطّى الحقل، لا 500).
     """
     import uuid as _uuid
 
@@ -2806,6 +2857,25 @@ async def evaluate_field_alerts_endpoint(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("حفظ التنبيهات المُولَّدة", e) from e
 
+    return created, skipped
+
+
+@app.post(
+    "/api/v1/fields/{field_id}/alerts/evaluate",
+    response_model=AlertEvaluateResponse,
+)
+async def evaluate_field_alerts_endpoint(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يُقيّم ظروف الحقل الحاليّة ويُنشئ تنبيهات مُصنَّفة في جدول alerts (v36).
+
+    يؤكّد أنّ الحقل يخصّ المستأجِر (404)، يبني السياق من الطقس الحيّ (Open-Meteo،
+    نفس مصدر /api/v1/weather) ومحصول/مرحلة الموسم النشط، يُشغّل قواعد التنبيه
+    النقيّة (api.alert_rules)، ثمّ يُدرِج النتائج — مع تجاوز أيّ نوع تنبيه له
+    تنبيه 'active' قائم لهذا الحقل (dedupe). 503 إن تعذّر الطقس/القاعدة.
+    """
+    created, skipped = await _evaluate_field_alerts_persist(user, field_id)
     return AlertEvaluateResponse(created=created, skipped_existing=skipped)
 
 
@@ -7187,6 +7257,55 @@ async def imagery_register_field_endpoint(
 def imagery_automation_status_endpoint():
     """حالة أتمتة الصور: الحقول المتابَعة + آخر صورة/مؤشّر لكلّ حقل."""
     return imagery_automation.status()
+
+
+# ─── ٦١. أتمتة تقييم التنبيهات (تشغيل دوريّ/عند الطلب لكلّ حقول المستأجِر) ──
+# الكادينس (ثوان) الذي يُتوقَّع أن يُطلَق فيه التقييم الدوريّ لكلّ الحقول.
+# يُعرَض في scheduler-status. الافتراض ٦ ساعات (توقّع الطقس يومي عمليّاً؛
+# ٦ ساعات تلتقط تحوّلات الحرارة/المطر دون إغراق Open-Meteo). قابل للضبط عبر ENV.
+ALERTS_EVAL_INTERVAL_SECONDS = int(os.getenv("SAHOOL_ALERTS_EVAL_INTERVAL_SECONDS", "21600"))
+
+
+@app.post("/api/v1/automation/alerts/run")
+async def automation_run_alerts_endpoint(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يُشغّل تقييم التنبيهات لكلّ حقول المستأجِر دفعةً واحدة (تشغيل عند الطلب).
+
+    هذا هو المسار الذي يضربه جدولٌ خارجيّ (cron) أو الجدولة الداخليّة دوريّاً
+    لتوليد تنبيهات الحقول تلقائيّاً بدل الانتظار لطلب يدويّ لكلّ حقل.
+
+    معزول لكلّ حقل: فشل القاعدة/الطقس لحقل (مثلاً بلا إحداثيّات → 422، أو تعذّر
+    Open-Meteo → 503) يُسجَّل في error ويُتخطّى — لا يُسقط بقيّة الحقول ولا يرفع
+    500. tenant-isolated (RLS عبر tenant_connection + ترشيح tenant_id). يُرجع
+    ملخّصاً لكلّ حقل {field_id, created, skipped} + إجماليّات.
+    """
+    from api.alert_rules import field_run_summary, summarize_run
+
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT field_id FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
+                str(user.tenant_id),
+            )
+    except HTTPException:
+        raise  # get_pool() ⇒ 503 (القاعدة معطّلة) — لا حقول لنقرأها أصلاً
+    except Exception as e:  # noqa: BLE001 — تعذّر قراءة قائمة الحقول ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة حقول المستأجِر", e) from e
+
+    summaries: list[dict] = []
+    for r in rows:
+        fid = r["field_id"]
+        try:
+            created, skipped = await _evaluate_field_alerts_persist(user, fid)
+            summaries.append(field_run_summary(fid, created=len(created), skipped=skipped))
+        except HTTPException as he:  # 404/422/503 لحقل ⇒ تخطٍّ رشيق (لا 500)
+            summaries.append(field_run_summary(fid, error=f"{he.status_code}: {he.detail}"))
+        except Exception as e:  # noqa: BLE001 — أيّ خطأ آخر لحقل ⇒ تخطٍّ معزول
+            logging.warning("automation alerts run: skipped field %s: %s", fid, type(e).__name__)
+            summaries.append(field_run_summary(fid, error=type(e).__name__))
+
+    return summarize_run(summaries)
 
 
 @app.get("/api/v1/climate-analogs/strategy")

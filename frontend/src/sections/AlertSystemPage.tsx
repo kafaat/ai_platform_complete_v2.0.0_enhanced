@@ -5,8 +5,8 @@
 // (StateViews)، وأزرار محكومة بالدور (RBAC: المُشاهِد لا يُقِرّ/يحذف).
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
-import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X, Zap } from 'lucide-react';
-import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useFields } from '../hooks/useApi';
+import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X, Zap, Play } from 'lucide-react';
+import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useRunAllAlerts, useFields } from '../hooks/useApi';
 import type { AlertRecord } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -54,6 +54,7 @@ export function AlertSystemPage() {
   const { data, isLoading, isError, refetch } = useAlerts();
   const ackMut = useAcknowledgeAlert();
   const evalMut = useEvaluateAlerts();
+  const runAllMut = useRunAllAlerts();
   const { data: fieldsData } = useFields();
 
   const [filter, setFilter] = useState<string>('all');
@@ -62,6 +63,7 @@ export function AlertSystemPage() {
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [evalFieldId, setEvalFieldId] = useState<string>('');
   const [evalNote, setEvalNote] = useState<string>('');
+  const [runAllNote, setRunAllNote] = useState<string>('');
 
   // قائمة الحقول لمنتقي التقييم (نفس تطبيع WeatherAdvicePage).
   const fieldOptions = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
@@ -85,6 +87,26 @@ export function AlertSystemPage() {
       },
       onError: () => {
         setEvalNote('تعذّر التقييم — قد يكون الطقس أو الخدمة غير متاح حاليّاً. حاول لاحقاً.');
+      },
+    });
+  };
+
+  const runAll = () => {
+    if (!mutateAllowed || runAllMut.isPending) return;
+    setRunAllNote('');
+    runAllMut.mutate(undefined, {
+      onSuccess: (res) => {
+        const parts = [
+          `فُحص ${res.fields_total} حقل`,
+          `أُنشئ ${res.created_total} تنبيه`,
+        ];
+        if (res.skipped_total > 0) parts.push(`تجاوز ${res.skipped_total} موجوداً`);
+        if (res.fields_failed > 0) parts.push(`تعذّر ${res.fields_failed} حقل`);
+        setRunAllNote(parts.join(' · ') + '.');
+        refetch();
+      },
+      onError: () => {
+        setRunAllNote('تعذّر تشغيل التقييم لكلّ الحقول — قد تكون الخدمة غير متاحة. حاول لاحقاً.');
       },
     });
   };
@@ -173,6 +195,21 @@ export function AlertSystemPage() {
           {evalNote && (
             <p className="text-xs mt-2" style={{ color: evalMut.isError ? '#f87171' : '#34d399' }}>{evalNote}</p>
           )}
+
+          {/* تشغيل دفعيّ: تقييم تنبيهات كلّ الحقول دفعةً (نفس مسار الجدولة الدوريّة) */}
+          <div className="mt-3 pt-3 border-t" style={{ borderColor: '#334155' }}>
+            <button
+              onClick={runAll}
+              disabled={runAllMut.isPending || fieldOptions.length === 0}
+              className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-slate-100 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Play className="w-4 h-4" />
+              {runAllMut.isPending ? 'جارٍ التقييم لكلّ الحقول…' : 'تشغيل تقييم التنبيهات لكلّ الحقول'}
+            </button>
+            {runAllNote && (
+              <p className="text-xs mt-2" style={{ color: runAllMut.isError ? '#f87171' : '#34d399' }}>{runAllNote}</p>
+            )}
+          </div>
         </div>
       )}
 
