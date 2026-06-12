@@ -461,11 +461,11 @@ async def send_otp(channel: str, destination: str, code: str) -> bool:
     send_reset_email) للبريد، أو بوّابة SMS (Twilio/مزوّد محلّيّ) للهاتف.
     التوقيع ثابت فلا يتغيّر المنادون عند ربط مزوّد حقيقيّ.
     """
+    # أمان: لا نُسجّل الرمز نفسه (سرّ) — تسريبه في السجلّات يُبطل تأمين OTP.
     logger.info(
-        "📨 OTP STUB — channel=%s destination=%s code=%s (لا مزوّد فعليّ — سجلّ فقط)",
+        "📨 OTP STUB — channel=%s destination=%s (لا مزوّد فعليّ — لا يُسجَّل الرمز)",
         channel,
         destination,
-        code,
     )
     return True
 
@@ -879,6 +879,8 @@ async def verify_confirm(
 ):
     """يتحقّق من رمز OTP مقابل Redis (مقارنة ثابتة الزمن) ويُعلّم الحساب مُتحقَّقاً."""
     ip = request.client.host if request.client else "unknown"
+    # حدّ معدّل بالـIP أيضاً على التأكيد — الرمز ٦ أرقام فقط، فبلا حدٍّ يمكن تخمينه قسريّاً.
+    await check_ip_rate(ip)
     if not _redis:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "خدمة التحقّق تتطلّب Redis")
     user_id = int(user["sub"])
@@ -892,14 +894,21 @@ async def verify_confirm(
     if not stored or not otp_codes_match(submitted, stored):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صالح أو منتهٍ")
 
-    # نجاح: نستهلك الرمز (استعمال واحد) ونُثبّت العلَم في القاعدة.
-    await _redis.delete(key)
-    column = "verified_email" if req.channel == "email" else "verified_phone"
+    # نجاح: نُثبّت العلَم في القاعدة أوّلاً ثم نستهلك الرمز — لو فشل التحديث يبقى
+    # الرمز صالحاً لإعادة المحاولة (لا نخسره). جملتان ثابتتان بلا SQL ديناميكيّ
+    # (اسم العمود لا يأتي من المستخدم، لكن نتجنّب البناء النصّيّ مبدئيّاً).
     async with _pool.acquire() as conn:
-        await conn.execute(
-            f"UPDATE users SET {column}=TRUE, updated_at=NOW() WHERE id=$1",  # noqa: S608
-            user_id,
-        )
+        if req.channel == "email":
+            await conn.execute(
+                "UPDATE users SET verified_email=TRUE, updated_at=NOW() WHERE id=$1",
+                user_id,
+            )
+        else:
+            await conn.execute(
+                "UPDATE users SET verified_phone=TRUE, updated_at=NOW() WHERE id=$1",
+                user_id,
+            )
+    await _redis.delete(key)
     await audit_log(f"verify_confirm_{req.channel}", user_id, ip)
     return {"message": "تم التحقّق بنجاح", "channel": req.channel, "verified": True}
 

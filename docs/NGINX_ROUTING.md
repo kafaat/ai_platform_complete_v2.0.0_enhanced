@@ -59,14 +59,17 @@ the remainder is forwarded. This is the crux of every mapping below.
 
 ## Notes
 
-1. **Auth base path.** `authApi` uses `VITE_AUTH_URL`. In production this is set
-   to the gateway alias (`/auth`); the auth-service mounts its routes under
-   `/auth/*`. The nginx block `location /auth/ { proxy_pass auth_backend/; }`
-   strips `/auth/` — so the deployment must set `VITE_AUTH_URL=/` (gateway) or the
-   auth-service must serve under root. This pre-existing behaviour is unchanged
-   here; the frontend calls (`/auth/login`, `/auth/register`, …) are issued
-   against `VITE_AUTH_URL` and were not in scope for this routing pass beyond
-   documenting them.
+1. **Auth base path.** `authApi` uses `VITE_AUTH_URL` (default `/auth`), and the
+   frontend issues calls like `/auth/login`, `/auth/register`. The auth-service
+   mounts its routes under `/auth/*`, so the nginx location for auth **must
+   preserve the `/auth/` prefix** when proxying — use
+   `location /auth/ { proxy_pass http://auth_backend; }` (no trailing slash on
+   `proxy_pass`, which keeps the original URI). A trailing slash
+   (`proxy_pass http://auth_backend/;`) would strip `/auth/` and the upstream
+   would receive `/login` instead of `/auth/login` → 404. The configs
+   (`nginx.unified.conf`, `nginx.light.conf`, `nginx.v9.conf`) were corrected to
+   drop the trailing slash so the prefix is preserved. Keep `VITE_AUTH_URL` and
+   the upstream mount prefix in sync.
 
 2. **Guardrails is service-to-service.** `guardrails-engine`'s `/validate`
    enforces a service token (`X-Agent-Token`) and is intended to be called by the

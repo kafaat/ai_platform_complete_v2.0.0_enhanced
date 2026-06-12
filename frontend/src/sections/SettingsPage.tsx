@@ -345,8 +345,8 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
       setActiveChannel(channel);
       setCode('');
       setSentMsg(channel === 'email'
-        ? 'أُرسل رمز التحقّق إلى بريدك (إن لم يصل، تحقّق من السجلّ في بيئة التطوير)'
-        : 'أُرسل رمز التحقّق إلى هاتفك (إن لم يصل، تحقّق من السجلّ في بيئة التطوير)');
+        ? 'أُرسل رمز التحقّق إلى بريدك — قد يستغرق وصوله بضع دقائق'
+        : 'أُرسل رمز التحقّق إلى هاتفك — قد يستغرق وصوله بضع دقائق');
     } catch (e) {
       setErr(apiErrorMessage(e, 'تعذّر إرسال رمز التحقّق'));
     } finally {
