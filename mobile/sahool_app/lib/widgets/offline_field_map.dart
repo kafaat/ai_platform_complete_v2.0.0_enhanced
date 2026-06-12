@@ -4,12 +4,17 @@
 // على الجهاز كأساس offline، مع بلاطات الشبكة كـfallback عند توفّرها.
 // هذا يضمن أنّ المزارع في منطقة بلا تغطيّة لا يفقد الخريطة كاملةً.
 //
-// الاستخدام:
+// الاستخدام (عرض فقط — الافتراضيّ، يبقى متوافقاً مع المستدعين القدامى):
 //   OfflineFieldMap(
 //     center: LatLng(16.79, 44.33),   // الجوف
-//     mbtilesAssetPath: 'assets/maps/aljawf.mbtiles',  // اختياري
-//     fields: [...],
+//     offlinePackPath: 'assets/maps/aljawf.mbtiles',  // اختياري
+//     fieldPolygons: [...],
 //   )
+//
+// الاستخدام (وضع الرسم — لمعالج إنشاء الحقل): فعّل drawingEnabled واستقبل
+// تغيّر المضلّع عبر onPolygonChanged. النقر على الخريطة يضيف رأساً؛ التحكّم
+// (تراجع/مسح) يبقى مسؤوليّة الشاشة المضيفة عبر إعادة بناء drawingPoints.
+// العرض-فقط لا يتأثّر: كلّ معطيات الرسم اختياريّة بقيم افتراضيّة.
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -33,6 +38,16 @@ class OfflineFieldMap extends StatefulWidget {
   final String networkTileUrl;
   final List<Polygon> fieldPolygons;
 
+  // ── وضع الرسم (اختياريّ — لمعالج إنشاء الحقل) ──
+  // عند true: النقر على الخريطة يضيف رأساً إلى المضلّع الجاري رسمه، وتُرسَم
+  // الرؤوس + الخطّ + ملء المضلّع المغلق فوق الأساس. العرض-فقط (الافتراضيّ false)
+  // لا يتأثّر إطلاقاً.
+  final bool drawingEnabled;
+  // النقاط الحاليّة للمضلّع الجاري رسمه (مصدر الحقيقة تملكه الشاشة المضيفة).
+  final List<LatLng> drawingPoints;
+  // يُستدعى بعد كلّ إضافة رأس بالنقر — يردّ القائمة المُحدَّثة (بما فيها الرأس الجديد).
+  final ValueChanged<List<LatLng>>? onPolygonChanged;
+
   const OfflineFieldMap({
     super.key,
     required this.center,
@@ -42,6 +57,9 @@ class OfflineFieldMap extends StatefulWidget {
         'https://server.arcgisonline.com/ArcGIS/rest/services/'
         'World_Imagery/MapServer/tile/{z}/{y}/{x}',
     this.fieldPolygons = const [],
+    this.drawingEnabled = false,
+    this.drawingPoints = const [],
+    this.onPolygonChanged,
   });
 
   @override
@@ -108,6 +126,61 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
     );
   }
 
+  // النقر على الخريطة في وضع الرسم → أضف الرأس وبلّغ الشاشة المضيفة.
+  void _onMapTap(TapPosition _, LatLng latlng) {
+    if (!widget.drawingEnabled) return;
+    final updated = [...widget.drawingPoints, latlng];
+    widget.onPolygonChanged?.call(updated);
+  }
+
+  // طبقة الرسم: ملء المضلّع المغلق (≥3 نقاط) + خطّ الحدّ + علامات الرؤوس.
+  List<Widget> _drawingLayers() {
+    final pts = widget.drawingPoints;
+    if (pts.isEmpty) return const [];
+    return [
+      if (pts.length >= 3)
+        PolygonLayer(
+          polygons: [
+            Polygon(
+              points: pts,
+              color: const Color(0xFF10B981).withOpacity(0.18),
+              borderColor: const Color(0xFF10B981),
+              borderStrokeWidth: 2,
+            ),
+          ],
+        ),
+      if (pts.length >= 2)
+        PolylineLayer(
+          polylines: [
+            Polyline(
+              points: pts,
+              color: const Color(0xFF10B981),
+              strokeWidth: 2,
+            ),
+          ],
+        ),
+      MarkerLayer(
+        markers: [
+          for (var i = 0; i < pts.length; i++)
+            Marker(
+              point: pts[i],
+              width: 18,
+              height: 18,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: i == 0
+                      ? const Color(0xFFF59E0B) // الرأس الأوّل مميّز (نقطة الإغلاق)
+                      : const Color(0xFF10B981),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -116,6 +189,7 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
           options: MapOptions(
             initialCenter: widget.center,
             initialZoom: widget.zoom,
+            onTap: widget.drawingEnabled ? _onMapTap : null,
           ),
           children: [
             // طبقة الأساس: PMTiles → MBTiles → الشبكة (انظر _baseLayer).
@@ -123,6 +197,8 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
             // طبقة الحقول (polygons) فوق الأساس.
             if (widget.fieldPolygons.isNotEmpty)
               PolygonLayer(polygons: widget.fieldPolygons),
+            // طبقة الرسم (وضع المعالج فقط — فارغة في العرض-فقط).
+            ..._drawingLayers(),
           ],
         ),
         // مؤشّر المصدر (شفّافيّة: المستخدم يعرف offline أم online).
@@ -141,6 +217,23 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
             ),
           ),
         ),
+        // تلميح الرسم (وضع المعالج فقط).
+        if (widget.drawingEnabled)
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text(
+                'انقر لإضافة نقطة',
+                style: TextStyle(color: Colors.white, fontSize: 11),
+              ),
+            ),
+          ),
       ],
     );
   }
