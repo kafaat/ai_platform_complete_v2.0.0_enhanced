@@ -205,3 +205,29 @@ def test_domain_event_types_exist():
         assert name in EventType.__members__, f"EventType.{name} مفقود"
     assert EventType.SEASON_CREATED.value == "season.created"
     assert EventType.ACTIVITY_RECORDED.value == "activity.recorded"
+
+
+# ─── ربط نوع النشاط بحدث عمليّة (تغطية أحداث كاملة — الخيار أ) ─────────────
+
+
+def test_activity_event_type_mapping():
+    from api.event_bus import EventType
+    from api.main import _activity_event_type
+
+    cases = {
+        ("irrigation", "done"): "IRRIGATION_COMPLETED",
+        ("irrigation", "planned"): "IRRIGATION_STARTED",
+        ("planting", "done"): "PLANTING_COMPLETED",
+        ("harvest", "done"): "HARVEST_COMPLETED",
+        ("fertilization", "done"): "FERTILIZER_APPLIED",
+        ("spraying", "done"): "PESTICIDE_APPLIED",
+        ("pruning", "done"): "ACTIVITY_RECORDED",  # لا حدث عمليّة محدَّد
+        ("scouting", "planned"): "ACTIVITY_RECORDED",
+    }
+    for (atype, status), expected in cases.items():
+        name = _activity_event_type(atype, status)
+        assert name == expected, f"{atype}/{status} → {name} (المتوقّع {expected})"
+        # كلّ اسم مُرجَع يجب أن يكون عضو EventType حقيقيّاً (وإلّا يُسقَط الحدث).
+        assert name in EventType.__members__
+    # FIELD_UPDATED المستعمَل في update_field موجود أيضاً.
+    assert "FIELD_UPDATED" in EventType.__members__
