@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends     gcc     libgl1-mesa-glx     libglib2.0-0     libsm6     libxext6     libxrender-dev     libgomp1     curl     && rm -rf /var/lib/apt/lists/*
 COPY services/video-processor/requirements.txt /tmp/requirements.txt

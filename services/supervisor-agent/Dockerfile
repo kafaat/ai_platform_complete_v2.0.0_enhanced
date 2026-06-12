@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 WORKDIR /app
 RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
 COPY services/supervisor-agent/requirements.txt /tmp/req.txt

@@ -1,0 +1,122 @@
+# SAHOOL — Container / Deployment Hardening
+
+دليل تقوية الحاويات للإنتاج واسع النطاق. يفصل ما **طُبِّق في الكود** عمّا يحتاج
+**بناء Docker حقيقيّاً أو بيئة تشغيل** على جهازك (لا يُتحقَّق منه في بيئة CI الحاليّة
+لأنّ سياسة الشبكة تمنع apt/pip أثناء البناء).
+
+## 0) ملفّ الـcompose المعتمد
+يوجد عدّة ملفّات compose في الجذر. **المعتمد للإنتاج هو `docker-compose.v9.yml`**
+(مُشار إليه في `scripts_v9/setup.sh` و`run_all.sh` والوثائق). البقيّة متغيّرات/تجارب:
+- `docker-compose.unified.yml`, `docker-compose.light.yml`, `docker-compose.fixed.yml`,
+  `docker-compose.erpnext.yml`, `docker-compose.odoo-snippet.yml`, `docker-compose.test.yml`.
+
+**توصية:** أبقِ `v9` مصدراً وحيداً للحقيقة، وأرشِف/احذف الباقي أو وثّق غرض كلّ منها
+صراحةً لتفادي الانحراف.
+
+## 1) طُبِّق في الكود (هذه الدفعة)
+- ✅ **دوران السجلّات:** `x-logging` موحّد (`max-size: 10m`, `max-file: 5`) على كلّ
+  الخدمات في `v9` (كان غائباً — يمنع امتلاء القرص).
+- ✅ **تثبيت الصور الأساسيّة:** كلّ Dockerfiles لبايثون → `python:3.{11,12}-slim-bookworm`
+  (Debian صريح، أكثر قابليّة لإعادة الإنتاج)، و`nginx:alpine` → `nginx:1.27-alpine`.
+- ✅ **تثبيت صور compose المؤكَّدة:** prometheus `v2.53.0`، alertmanager `v0.27.0`،
+  grafana `10.4.5`، jaeger `1.57` (إضافةً لـredis/nats/postgis/qdrant المثبّتة أصلاً).
+- ✅ **صور قابلة للتجاوز:** `minio/ollama/titiler` صارت `${X_IMAGE:-default}` — ثبّت
+  إصداراً/digest في الإنتاج عبر `.env` دون تعديل الملفّ.
+
+## 2) يحتاج تنفيذاً على جهازك (بناء Docker / بيئة تشغيل)
+### أ. تثبيت بالـdigest (أقوى من الوسم)
+للإنتاج، ثبّت بالـdigest غير القابل للتغيير (يتطلّب وصولاً للـregistry):
+```dockerfile
+FROM python:3.11-slim-bookworm@sha256:<digest>
+```
+وفي compose: `image: minio/minio@sha256:<digest>`. احصل على الـdigest بـ
+`docker buildx imagetools inspect <image:tag>`.
+
+### ب. تثبيت إصدارات apt (إعادة إنتاج كاملة)
+حاليّاً `apt-get install -y gcc libpq-dev curl` بلا إصدارات. للإنتاج:
+```dockerfile
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      gcc=4:12.2.0-3 libpq-dev=15.* curl=7.88.* \
+    && rm -rf /var/lib/apt/lists/*
+```
+> ملاحظة: إصدارات Debian تتغيّر؛ يُفضَّل تثبيت snapshot لمستودع apt أو استخدام صورة
+> أساس مثبّتة بالـdigest بدل تثبيت كلّ حزمة (أبسط وأمتن).
+
+### ج. بناء Python متعدّد المراحل (صورة أصغر، CVEs أقلّ)
+معظم خدمات بايثون أحاديّة المرحلة فيبقى `gcc`/`libpq-dev` في الصورة النهائيّة.
+النمط المثبَت (انظر `services/edge-inference/Dockerfile.arm64`):
+```dockerfile
+FROM python:3.11-slim-bookworm AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+FROM python:3.11-slim-bookworm           # runtime — بلا أدوات بناء
+RUN apt-get update && apt-get install -y --no-install-recommends libpq5 curl \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /install /usr/local
+COPY services/<svc>/ /app/
+USER sahool
+```
+> ⚠ تتطلّب معرفة تبعيّات وقت التشغيل لكلّ خدمة (مثلاً `libpq5` لخدمات القاعدة،
+> `libgl1/libglib2.0-0` للرؤية). طبّقها لكلّ خدمة وابنِ محليّاً للتحقّق
+> (`docker build`) قبل النشر — لا تُطبَّق عمياء.
+
+### د. الأسرار خارج environment
+`JWT_SECRET`/`SAHOOL_AGENT_TOKEN`/`SH_CLIENT_SECRET`… تُمرَّر عبر `environment:`.
+للإنتاج استخدم Docker/K8s secrets:
+```yaml
+# docker-compose (swarm) أو K8s
+secrets:
+  jwt_secret: { external: true }
+services:
+  sahool-auth:
+    secrets: [jwt_secret]
+    environment:
+      JWT_SECRET_FILE: /run/secrets/jwt_secret   # اقرأ الملفّ في التطبيق
+```
+أو External Secrets Operator / Vault في Kubernetes.
+
+### هـ. تقسيم الشبكة (public / service / data)
+حاليّاً كلّ شيء على `sahool-internal` (مسطّح) — الواجهة وأيّ خدمة ترى القاعدة مباشرةً.
+الهدف: عزل طبقة البيانات.
+```yaml
+networks:
+  sahool-public:   {}                 # nginx فقط (+ منافذ 80/443)
+  sahool-internal: {}                 # الخدمات ↔ الخدمات
+  sahool-data:     { internal: true } # مخازن البيانات (بلا خروج)
+```
+- مخازن البيانات (`postgres/redis/nats/minio/qdrant`): `[sahool-data]` فقط.
+- خدمات التطبيق: `[sahool-internal, sahool-data]`.
+- `nginx`: `[sahool-public, sahool-internal]` — **لا** `sahool-data`.
+- `frontend`: `[sahool-internal]` فقط.
+> ⚠ يلزم اختبار اتّصال فعليّ بعد التطبيق (يُكشف فقط وقت التشغيل، لا عبر
+> `docker compose config`) — لذا لم يُطبَّق عمياء هنا.
+
+### و. حدود CPU
+الذاكرة محكومة (`mem_limit` على ٣٣ خدمة، مُطبَّق فعليّاً في compose v2)، لكن **CPU
+غير محدود**. أضِف لكلّ خدمة (قيمة تُضبَط حسب الحمل، لا قيمة واحدة عمياء):
+```yaml
+    cpus: "1.5"     # مثال — ضعها على الخدمات الثقيلة (ollama/video) بقيم أعلى
+```
+> لا تضع قيمة واحدة منخفضة للجميع (تُسبّب throttling) — اضبط لكلّ خدمة.
+
+### ز. تفعيل قيود v47 رجعيّاً
+قيود v47 أُضيفت `NOT VALID` (تُفرض على الصفوف الجديدة). بعد تدقيق البيانات:
+```sql
+ALTER TABLE seasons    VALIDATE CONSTRAINT fk_seasons_field_tenant;
+ALTER TABLE activities VALIDATE CONSTRAINT fk_activities_field_tenant;
+ALTER TABLE seasons    VALIDATE CONSTRAINT chk_seasons_dates;
+ALTER TABLE fields     VALIDATE CONSTRAINT fk_fields_manager_user;
+```
+
+## 3) Kubernetes (لاحقاً)
+- `requests/limits` (CPU/ذاكرة) لكلّ حاوية، `readiness/liveness probes` (موجودة
+  أصلاً كـHEALTHCHECK)، `NetworkPolicy` للعزل، Secrets/ConfigMaps، PodSecurity
+  (non-root موجود)، HPA على المنصّة/الواجهة.
+
+## نقاط القوّة القائمة (تأكَّدت بالمراجعة)
+تشغيل non-root (`USER sahool`/`nginx`)، HEALTHCHECK + `depends_on: condition:
+service_healthy`، بناء الواجهة متعدّد المراحل، ربط المنافذ الداخليّة بـ`127.0.0.1`
+(لا انكشاف عامّ — فقط `80/443` عبر nginx)، و`mem_limit` مُطبَّق.
