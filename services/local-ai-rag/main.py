@@ -287,15 +287,27 @@ async def query_rag(question: str, tenant_id: str, k: int = 5) -> dict:
 # ══════════════════════════════════════════════════════════════
 # Lifespan
 # ══════════════════════════════════════════════════════════════
+async def _init_models_background() -> None:
+    """يسحب النماذج ويهيّئ LLM + المتجهات دون حجب الإقلاع — كي تكون الحاوية
+    حيّة فوراً للـhealthcheck. _llm/_vectorstore يصبحان غير None بعد الجاهزيّة."""
+    try:
+        logger.info("تهيئة خلفيّة: انتظار Ollama وسحب النماذج...")
+        await wait_for_ollama()
+        init_llm()
+        init_vectorstore()
+        logger.info("اكتملت التهيئة الخلفيّة — خدمة RAG جاهزة بالكامل")
+    except Exception as exc:  # noqa: BLE001
+        logger.error("فشلت التهيئة الخلفيّة للنماذج: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("🧠 Local AI RAG starting...")
-    await wait_for_ollama()
-    init_llm()
-    init_vectorstore()
-    logger.info("🧠 RAG service ready — Qwen3 + Ollama + Qdrant")
+    logger.info("Local AI RAG starting (سحب النماذج يجري في الخلفيّة)...")
+    # fire-and-forget: التطبيق حيّ فوراً للفحوص؛ النماذج تُحمَّل في الخلفيّة.
+    asyncio.create_task(_init_models_background())
+    logger.info("خادم RAG HTTP جاهز — النماذج تُحمَّل في الخلفيّة")
     yield
-    logger.info("🧠 RAG service stopped")
+    logger.info("Local AI RAG stopped")
 
 
 # C-07 FIX: JWT auth for RAG endpoints
@@ -355,8 +367,16 @@ class QueryResponse(BaseModel):
 # ══════════════════════════════════════════════════════════════
 # Endpoints
 # ══════════════════════════════════════════════════════════════
+def _require_ready() -> None:
+    """يرفض الطلبات المعتمِدة على النماذج بـ503 أثناء التهيئة الخلفيّة — كي يحصل
+    العميل على 503 متّسقة (مثل /readyz) بدل 500 من فشل اتّصال Qdrant/Ollama."""
+    if _llm is None or _vectorstore is None:
+        raise HTTPException(503, "الخدمة قيد التهيئة — النماذج تُحمَّل، أعد المحاولة لاحقاً")
+
+
 @app.post("/query", response_model=QueryResponse)
 async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user)):
+    _require_ready()
     # العزل من مصدر موثوق: tenant_id من الـJWT لا من جسم الطلب (يمنع قراءة مستأجِر آخر).
     tenant_id = user.get("tenant_id")
     if not tenant_id:
@@ -375,6 +395,7 @@ async def ingest_endpoint(
     يتطلّب توكن خدمة (منع تسميم قاعدة المعرفة بمستندات مزوّرة).
     """
     _require_service_token(x_agent_token)
+    _require_ready()
     paths: list[Path] = []
     for upload in files:
         suffix = Path(upload.filename).suffix.lower()
@@ -434,6 +455,12 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
+    """يردّ 200 فقط بعد تحميل النماذج؛ 503 أثناء التهيئة الخلفيّة."""
+    if _llm is None or _vectorstore is None:
+        raise HTTPException(
+            status_code=503,
+            detail={"status": "initialising", "message": "النماذج قيد التحميل"},
+        )
     return {"status": "ready", "version": "9.1.0"}
 
 

@@ -30,8 +30,10 @@ from email.mime.text import MIMEText
 import asyncpg
 import httpx
 from fastapi import FastAPI
+from fastapi.responses import Response
 from nats.aio.client import Client as NATS
 from nats.js import JetStreamContext
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 logger = logging.getLogger("notification-agent")
 logging.basicConfig(
@@ -346,6 +348,18 @@ async def lifespan(app: FastAPI):
     await _nc.connect(NATS_URL)
     _js = _nc.jetstream()
 
+    # نضمن وجود تيّار "sahool" قبل الاشتراك — JetStream يتطلّب وجود التيّار قبل
+    # إنشاء المستهلكين الدائمين (durable)، وإلّا تفشل كلّ الاشتراكات.
+    try:
+        from nats.js.api import StreamConfig
+
+        await _js.add_stream(StreamConfig(name="sahool", subjects=["sahool.>"]))
+        logger.info("  JetStream stream 'sahool' ensured")
+    except Exception as e:
+        # تجاهل "already exists" — أيّ خطأ آخر يُسجَّل دون إيقاف الإقلاع.
+        if "already exists" not in str(e).lower():
+            logger.warning(f"  add_stream 'sahool' warning: {e}")
+
     for subject, durable in SUBSCRIPTIONS:
         try:
             await _js.subscribe(subject, cb=handle_msg, durable=durable)
@@ -379,6 +393,11 @@ class ConnectionManager:
         self.connections: dict[str, set] = defaultdict(set)
         self._max_per_user = max_per_user
         self._lock = asyncio.Lock()
+
+    @property
+    def total_connections(self) -> int:
+        """إجماليّ اتّصالات WebSocket الحيّة عبر كلّ المستخدمين (لـ/health)."""
+        return sum(len(s) for s in self.connections.values())
 
     async def connect(self, user_id: str, websocket) -> bool:
         async with self._lock:
@@ -489,6 +508,12 @@ async def health():
 @app.get("/readyz")
 async def readyz():
     return {"status": "ready"}
+
+
+@app.get("/metrics")
+async def metrics():
+    """مقاييس Prometheus — يلتقطها prometheus/grafana في المنظومة."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 if __name__ == "__main__":

@@ -11,11 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY services/edge-inference/requirements.txt .
 # ── مرآة pip صينيّة (PyPI محجوب/بطيء) — قابلة للتجاوز بـ--build-arg ──
 # البديل: https://mirrors.aliyun.com/pypi/simple/ (علي بابا)
-ARG PIP_INDEX_URL=https://pypi.tuna.tsinghua.edu.cn/simple
-ARG PIP_TRUSTED_HOST=pypi.tuna.tsinghua.edu.cn
+ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --timeout 120 --retries 5 --user -r requirements.txt
 
 # Runtime stage
 FROM python:3.12-slim
@@ -31,6 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy Python packages from builder
 COPY --from=builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
+# نُضمّن مسار حزم --user في PYTHONPATH كي تُكتشَف الحزم المثبَّتة بـ--user مع /app.
+ENV PYTHONPATH=/root/.local/lib/python3.12/site-packages:/app
 
 # Copy application (الخدمة فقط، لا كامل المشروع — context هو الجذر)
 COPY services/edge-inference/ /app/
@@ -38,7 +40,6 @@ COPY services/edge-inference/ /app/
 # Model cache directory
 RUN mkdir -p /models /data/sync_queue
 
-ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV EDGE_DEVICE=rpi5
 ENV OFFLINE_MODE=false
