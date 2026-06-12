@@ -39,6 +39,22 @@ except ImportError:
 
 # ── Config ────────────────────────────────────────────────────
 MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
+
+
+def _parse_mqtt_broker_url(url: str) -> tuple[str, int]:
+    """يستخرج (hostname, port) من mqtt://host:port — aiomqtt.Client يحتاج المضيف
+    والمنفذ لا URL كاملاً (تمرير URL كاملاً كـhostname يفشل في DNS)."""
+    from urllib.parse import urlparse
+
+    parsed = urlparse(url)
+    return (parsed.hostname or "localhost"), (parsed.port or 1883)
+
+
+def _mqtt_disabled() -> bool:
+    """MQTT معطّل إذا لم يُضبط العنوان أو بدأ بـ'disabled' — للتشغيل بلا وسيط."""
+    return not MQTT_BROKER_URL or MQTT_BROKER_URL.startswith("disabled")
+
+
 EDGE_INFERENCE_URL = os.getenv("EDGE_INFERENCE_URL", "http://sahool-edge:8000")
 ZLMEDIA_API_URL = os.getenv(
     "ZLMEDIA_API_URL", os.getenv("ZLMEDIAKIT_URL", "http://sahool-zlmediakit:8080")
@@ -208,6 +224,9 @@ async def process_stream_loop(stream_id: str):
 
 async def publish_alert(cfg: StreamConfig, detections: list):
     """Publish pest alert to MQTT broker (FastBee)."""
+    if _mqtt_disabled():
+        logger.debug("MQTT معطّل — تخطّي نشر تنبيه الآفة")
+        return
     try:
         topic = f"sahool/tenant/{cfg.tenant_id}/alerts/pest"
         payload = json.dumps(
@@ -219,7 +238,8 @@ async def publish_alert(cfg: StreamConfig, detections: list):
             },
             ensure_ascii=False,
         )
-        async with MQTTClient(MQTT_BROKER_URL) as client:
+        host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
+        async with MQTTClient(host, port=port) as client:
             await client.publish(topic, payload, qos=1)
     except Exception as e:
         logger.warning(f"MQTT publish failed: {e}")
