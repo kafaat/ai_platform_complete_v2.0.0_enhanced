@@ -6712,7 +6712,7 @@ def generate_crop_candidates(
 
 @app.get("/api/v1/learning/activation-status")
 async def learning_activation_status(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     """حالة بوّابة تفعيل التعلّم للمستأجر — مدفوعة بتدفّق البيانات (v49).
 
@@ -6734,7 +6734,9 @@ async def learning_activation_status(
                         """SELECT COUNT(*) AS total,
                                   COUNT(*) FILTER (WHERE actual_yield_t_ha IS NOT NULL) AS completed,
                                   COUNT(*) FILTER (WHERE accepted) AS accepted,
-                                  COUNT(*) FILTER (WHERE matured_within_lag) AS within_lag
+                                  COUNT(*) FILTER (
+                                      WHERE matured_within_lag AND actual_yield_t_ha IS NOT NULL
+                                  ) AS within_lag
                            FROM recommendation_outcomes"""
                     )
                 total = int(row["total"] or 0)
@@ -7055,10 +7057,13 @@ async def prediction_calibration_status(
 
 
 class OutcomeRecordRequest(BaseModel):
-    """تسجيل نتيجة توصية — يغذّي معايرة التنبّؤ وبوّابة تفعيل التعلّم (مسار الكتابة)."""
+    """تسجيل نتيجة توصية — يغذّي معايرة التنبّؤ وبوّابة تفعيل التعلّم (مسار الكتابة).
 
-    crop: str | None = Field(default=None, max_length=50)
-    field_id: str | None = Field(default=None, max_length=50)
+    crop + field_id إلزاميّان (سياق التوصية) — يمنعان صفوفاً فارغة تشوّه العدّادات.
+    """
+
+    crop: str = Field(min_length=1, max_length=50)
+    field_id: str = Field(min_length=1, max_length=50)
     farm_id: str | None = Field(default=None, max_length=50)
     season_id: str | None = Field(default=None, max_length=50)
     recommendation_id: str | None = Field(default=None, max_length=64)
@@ -7078,6 +7083,12 @@ async def record_recommendation_outcome(
     تقرأ هذه الصفوفَ نقطتا learning/activation-status و prediction-calibration حيّاً.
     tenant عبر RLS (WITH CHECK يفرض المستأجِر). صدق: يسجّل المُرسَل فقط (لا اختراع).
     """
+    # اتّساق: matured_within_lag يعني نضج نتيجة فعليّة — يستلزم actual_yield_t_ha.
+    if req.matured_within_lag and req.actual_yield_t_ha is None:
+        raise HTTPException(
+            status_code=422,
+            detail="matured_within_lag=true يستلزم actual_yield_t_ha (نتيجة فعليّة)",
+        )
     try:
         async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
