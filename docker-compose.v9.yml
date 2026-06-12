@@ -786,8 +786,9 @@ services:
     logging: *default_logging
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      # مفتاح تبديل مزوّد ERP: odoo | erpnext | none (إيقاف)
-      ERP_PROVIDER: ${ERP_PROVIDER:-odoo}
+      # مفتاح تبديل مزوّد ERP: erpnext (الأساسي) | odoo (اختياري) | none (إيقاف).
+      # الافتراض erpnext؛ Odoo اختياريّ يُشغَّل بـ--profile odoo + ERP_PROVIDER=odoo.
+      ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
       ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
       ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
       ERPNEXT_API_SECRET: ${ERPNEXT_API_SECRET:-}

@@ -523,7 +523,7 @@ async def periodic_sync():
     while True:
         # احترام مفتاح التبديل: لا تزامن Odoo إلّا حين ERP_PROVIDER=odoo.
         # حين none/erpnext (أو Odoo مُستثنى من البناء) → تخطٍّ نظيف بلا أخطاء.
-        provider = os.getenv("ERP_PROVIDER", "odoo").strip().lower()
+        provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
         if provider != "odoo":
             logger.info(f"ERP_PROVIDER={provider} → تخطّي مزامنة Odoo (لا حاوية Odoo)")
             await asyncio.sleep(SYNC_INTERVAL_SEC)
@@ -668,7 +668,7 @@ async def erp_provider_status(_auth: dict = Depends(require_auth)):
 
     from erp_provider import get_erp_provider
 
-    selected = os.getenv("ERP_PROVIDER", "odoo").strip().lower()
+    selected = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
     # نمرّر OdooClient للمزوّد odoo (يعيد استخدام الموجود)
     try:
         provider = get_erp_provider(odoo_client=get_odoo() if selected == "odoo" else None)
