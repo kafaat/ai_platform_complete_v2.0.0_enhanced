@@ -77,11 +77,12 @@ try:
         if not auth.startswith("Bearer "):
             raise HTTPException(401, "توكن مصادقة مفقود")
         token = auth[len("Bearer ") :]
+        # audience="sahool" يطابق عقد JWT عبر الخدمات (auth/platform يُصدران aud=sahool).
         try:
             if _JWT_PUBLIC_KEY:
-                claims = jwt.decode(token, _JWT_PUBLIC_KEY, algorithms=["RS256"])
+                claims = jwt.decode(token, _JWT_PUBLIC_KEY, algorithms=["RS256"], audience="sahool")
             elif _JWT_SECRET:
-                claims = jwt.decode(token, _JWT_SECRET, algorithms=["HS256"])
+                claims = jwt.decode(token, _JWT_SECRET, algorithms=["HS256"], audience="sahool")
             else:
                 raise HTTPException(503, "تحقّق التوكن غير مُهيّأ")
         except jwt.PyJWTError as e:
