@@ -370,4 +370,16 @@ class OutboxWorker:
                 new_status,
                 row["outbox_id"],
             )
-            logger.warning(f"outbox send failed ({new_retry}/{self.max_retries}): {err_msg}")
+            if new_status == "failed":
+                # حدث ميّت (DLQ): استُنفدت المحاولات. تصعيد ERROR ليلتقطه الرصد/التنبيه
+                # — يبقى في event_outbox (status='failed') لإعادة جدولته عبر
+                # requeue_dead_letter بعد إصلاح السبب (راجع v_event_dead_letter).
+                logger.error(
+                    "DEAD_LETTER outbox_id=%s event=%s بعد %s محاولة: %s",
+                    row["outbox_id"],
+                    row["event_type"],
+                    self.max_retries,
+                    err_msg,
+                )
+            else:
+                logger.warning(f"outbox send failed ({new_retry}/{self.max_retries}): {err_msg}")

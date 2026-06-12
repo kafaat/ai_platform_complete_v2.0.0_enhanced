@@ -153,3 +153,7 @@ v46_lifecycle_event_sync.sql
 # تفرّد الحقل (field_code/الاسم لكلّ مستأجِر)، قيود تواريخ الموسم، وترقية
 # manager_user_id إلى INTEGER + FK users(id). idempotent + NOT VALID/DO-guard.
 v47_schema_integrity.sql
+# v48: FK صلب Activity→Season (ON DELETE SET NULL، NOT VALID) يُغلق العلاقة على
+# مستوى القاعدة؛ + حوكمة الأحداث الفاشلة (DLQ): عرض v_event_dead_letter ودالّتا
+# requeue_dead_letter/requeue_all_dead_letter. يعدّل activities + يضيف عرض/دوالّ.
+v48_activity_season_fk_dlq.sql
