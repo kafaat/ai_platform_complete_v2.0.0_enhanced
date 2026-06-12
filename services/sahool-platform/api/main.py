@@ -288,7 +288,11 @@ async def _stop_outbox_worker():
         except asyncio.CancelledError:
             pass
     if _NATS_CONN is not None:
-        await _NATS_CONN.drain()
+        # drain قد يرمي لو انقطع الاتّصال — لا نُفشِل الإيقاف بسببه.
+        try:
+            await _NATS_CONN.drain()
+        except Exception as e:  # noqa: BLE001
+            logging.warning("NATS drain أثناء الإيقاف: %s", e)
     _OUTBOX_WORKER = _OUTBOX_TASK = _NATS_CONN = None
 
 
@@ -1871,8 +1875,10 @@ async def create_season(
     except HTTPException:
         raise
     except _asyncpg.UniqueViolationError as e:
-        # سباق إنشاء موسم نشط متزامن — الفهرس الفريد uq_seasons_one_active (v44)
-        # رفض الموسم النشط الثاني. نُرجِع 409 واضحاً بدل 503 خام.
+        # 409 فقط لانتهاك uq_seasons_one_active (سباق الموسم النشط)؛ أيّ تفرّد آخر
+        # (أو قيد مستقبليّ) يسلك مسار 503 الموثّق بدل إخفائه كـactive_season_conflict.
+        if getattr(e, "constraint_name", None) != "uq_seasons_one_active":
+            raise _db_unavailable("حفظ الموسم", e) from e
         raise HTTPException(
             status_code=409,
             detail={
