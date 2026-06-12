@@ -478,6 +478,18 @@ _FIELD_ADVANCED_COLUMNS: tuple[str, ...] = (
     "manager_user_id",
 )
 
+# حدّ التداخل المعتبَر (م²) — أكبر منه ⇒ تداخل حقيقيّ لا مجرّد ملامسة حدود/انزياح GPS.
+_MIN_FIELD_OVERLAP_M2 = 25.0
+
+
+def _significant_overlaps(overlaps, min_m2: float = _MIN_FIELD_OVERLAP_M2) -> list:
+    """يُرشّح صفوف التداخل بحيث يبقى ما تجاوزت مساحة تقاطعه الحدّ — دالّة نقيّة (لا DB).
+
+    يقبل صفوف asyncpg.Record أو dict (كلاهما يدعم o["overlap_m2"]). قيمة None تُعامَل
+    كصفر. يُستخدَم لتحويل قرار «تداخل معتبَر» إلى منطق قابل للاختبار offline.
+    """
+    return [o for o in overlaps if (o["overlap_m2"] or 0.0) > min_m2]
+
 
 class FieldDetail(FieldSummary):
     """تفاصيل حقل كاملة (لوحة التفاصيل) — يرث الملخّص ويضيف الأعمدة المتقدّمة.
@@ -1177,6 +1189,8 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
     import json as _json
     import uuid as _uuid
 
+    import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
+
     validation = validate_field_geometry(req.geometry)
     if not validation.valid:
         raise HTTPException(
@@ -1199,8 +1213,6 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
         region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
     geom_json = _json.dumps(req.geometry)
-    # حدّ التداخل المعتبَر (م²) — أكبر منه ⇒ تداخل حقيقيّ لا مجرّد ملامسة حدود.
-    _MIN_OVERLAP_M2 = 25.0
     try:
         async with tenant_connection(user) as conn:
             # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
@@ -1220,32 +1232,30 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
                         "existing_field_id": dup["field_id"],
                     },
                 )
-            # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects/ST_Area) — يكشف أيضاً
-            # «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛ تدهور رشيق لو غاب.
+            # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
+            # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
+            # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
             try:
                 overlaps = await conn.fetch(
                     """
                     SELECT field_id, name,
                            ST_Area(ST_Intersection(
-                               ST_GeomFromGeoJSON($1), ST_GeomFromGeoJSON(geometry::text)
+                               ST_GeomFromGeoJSON($1), geom
                            )::geography) AS overlap_m2
                     FROM fields
-                    WHERE tenant_id = $2::uuid AND geometry IS NOT NULL
-                      AND ST_Intersects(
-                          ST_GeomFromGeoJSON($1), ST_GeomFromGeoJSON(geometry::text)
-                      )
+                    WHERE tenant_id = $2::uuid AND geom IS NOT NULL
+                      AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
                     ORDER BY overlap_m2 DESC NULLS LAST
                     LIMIT 5
                     """,
                     geom_json,
                     str(user.tenant_id),
                 )
-            except HTTPException:
-                raise
-            except Exception as ovl_err:  # noqa: BLE001 — PostGIS غائب/هندسة تالفة ⇒ تخطٍّ
-                logger.warning("تخطّي فحص تداخل الحقول (PostGIS؟): %s", ovl_err)
+            except (asyncpg.UndefinedFunctionError, asyncpg.UndefinedObjectError) as ovl_err:
+                # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
+                logger.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
                 overlaps = []
-            significant = [o for o in overlaps if (o["overlap_m2"] or 0.0) > _MIN_OVERLAP_M2]
+            significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
             if significant:
                 top = significant[0]
                 raise HTTPException(

@@ -131,3 +131,7 @@ v41_fields_irrigation.sql
 # v42: موسم — KPIs زراعيّة (target_yield/plant_density/row_spacing/seed_variety_
 # source) أساس التحليلات. nullable تُملأ تدريجيّاً. يعدّل seasons. idempotent.
 v42_seasons_kpis.sql
+# v43: عمود geom (PostGIS) مفهرس GiST على fields — يُسرّع فحص تداخل الحقول
+# (ST_Intersects على فهرس بدل مسح خطّيّ). trigger يزامنه من geometry JSONB.
+# يعدّل fields. يتطلّب PostGIS. idempotent.
+v43_fields_geom_index.sql
