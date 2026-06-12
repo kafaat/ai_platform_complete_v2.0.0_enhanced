@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, timedelta
 
 from api.water_balance import KC_BY_CROP_STAGE
 
@@ -81,7 +81,33 @@ _GENERIC_PARAMS = CropParams(5.0, 32.0, 1700.0, 1.35, 0.45, 4.5, 0.55)
 # نسبة الإشعاع الكلّي القابل للامتصاص ضوئيّاً (PAR ≈ 48٪ من الإشعاع الكلّي).
 _PAR_FRACTION = 0.48
 # إشعاع كلّي يوميّ افتراضي للهضبة اليمنيّة حين يغيب القياس (MJ/m²/يوم) — تقدير.
-_DEFAULT_SOLAR_MJ = 20.0
+# متوسّط سنويّ احتياطيّ يُستعمَل فقط حين يتعذّر معرفة الشهر (لا تاريخ بذر).
+_DEFAULT_SOLAR_MJ = 21.0
+# تقدير الإشعاع الكلّي اليوميّ حسب الشهر لليمن (~15°N، إشعاع عالٍ) — MJ/m²/يوم.
+# يُستعمَل حين يغيب القياس لكنّ الشهر معروف (أدقّ من ثابت موسميّ واحد).
+_YEMEN_SOLAR_BY_MONTH = {
+    1: 18.0,
+    2: 20.0,
+    3: 22.0,
+    4: 24.0,
+    5: 25.0,
+    6: 26.0,
+    7: 24.0,
+    8: 23.0,
+    9: 22.0,
+    10: 20.0,
+    11: 18.0,
+    12: 17.0,
+}
+
+
+def _solar_estimate(month: int | None) -> float:
+    """تقدير الإشعاع اليوميّ حين يغيب القياس: حسب الشهر إن عُرف، وإلّا المتوسّط السنويّ."""
+    if month is None:
+        return _DEFAULT_SOLAR_MJ
+    return _YEMEN_SOLAR_BY_MONTH.get(month, _DEFAULT_SOLAR_MJ)
+
+
 # نطاق عدم اليقين حول التقدير المركزي (±) — يُعبَّر عنه كنطاق صريح لا رقم قاطع.
 _UNCERTAINTY_FRAC = 0.20
 
@@ -274,14 +300,20 @@ def simulate_season(ctx: SimContext) -> SimResult:
     estimated_solar_days = 0
     estimated_et0_days = 0
 
-    for day in weather:
+    for day_idx, day in enumerate(weather):
         gdd_cum += gdd_day(day.t_min_c, day.t_max_c, p.t_base_c, p.t_cap_c)
         lai = _lai_at(gdd_cum, p.gdd_to_maturity, p.lai_max)
         lai_peak = max(lai_peak, lai)
 
         solar = day.solar_mj_m2
         if solar is None:
-            solar = _DEFAULT_SOLAR_MJ
+            # تقدير حسب شهر اليوم (من تاريخ البذر + الإزاحة) — أدقّ من ثابت واحد.
+            day_month = (
+                (ctx.sowing_date + timedelta(days=day_idx)).month
+                if ctx.sowing_date is not None
+                else None
+            )
+            solar = _solar_estimate(day_month)
             estimated_solar_days += 1
         apar = _absorbed_par(solar, lai, p.k_extinction)
         # RUE: g/MJ × MJ/m² ⇒ g/m² من الكتلة الحيويّة اليوميّة.
