@@ -58,17 +58,46 @@ def build_proxy_request(body: dict, farm_context: str) -> dict:
 # ── مثال FastAPI (يُفعّل عند بناء طبقة API) ──
 try:
     import httpx
+    import jwt  # PyJWT
     from fastapi import FastAPI, HTTPException, Request
 
     app = FastAPI(title="SAHOOL Chat Proxy")
+
+    # مفاتيح التحقّق من التوكن (نفس عقد auth-service): RS256 بمفتاح عامّ، أو HS256 بسرّ.
+    _JWT_PUBLIC_KEY = os.environ.get("JWT_PUBLIC_KEY", "")
+    _JWT_SECRET = os.environ.get("JWT_SECRET", "")
+
+    def _tenant_from_jwt(request: Request) -> str:
+        """يستخرج tenant_id من توكن JWT مُتحقَّق منه في ترويسة Authorization.
+
+        أمان: المصدر الوحيد الموثوق للهويّة هو التوكن المُوقَّع — لا ترويسة
+        X-Tenant-Id ولا جسم الطلب (كلاهما قابل للتزوير من المتصفّح).
+        """
+        auth = request.headers.get("Authorization", "")
+        if not auth.startswith("Bearer "):
+            raise HTTPException(401, "توكن مصادقة مفقود")
+        token = auth[len("Bearer ") :]
+        try:
+            if _JWT_PUBLIC_KEY:
+                claims = jwt.decode(token, _JWT_PUBLIC_KEY, algorithms=["RS256"])
+            elif _JWT_SECRET:
+                claims = jwt.decode(token, _JWT_SECRET, algorithms=["HS256"])
+            else:
+                raise HTTPException(503, "تحقّق التوكن غير مُهيّأ")
+        except jwt.PyJWTError as e:
+            raise HTTPException(401, "توكن غير صالح") from e
+        tenant_id = claims.get("tenant_id")
+        if not tenant_id:
+            raise HTTPException(401, "التوكن لا يحمل tenant_id")
+        return str(tenant_id)
 
     @app.post("/api/chat")
     async def chat(request: Request):
         if not ANTHROPIC_API_KEY:
             raise HTTPException(503, "خدمة المحادثة غير مُهيّأة")
 
-        # TODO: استخرج tenant_id من JWT/الجلسة (لا من جسم الطلب — قابل للتزوير)
-        tenant_id = request.headers.get("X-Tenant-Id", "anonymous")
+        # الهويّة من التوكن المُوقَّع حصراً (لا ترويسة/جسم قابلين للتزوير).
+        tenant_id = _tenant_from_jwt(request)
 
         if not check_rate_limit(tenant_id):
             raise HTTPException(429, "تجاوزت الحدّ — حاول بعد دقيقة")

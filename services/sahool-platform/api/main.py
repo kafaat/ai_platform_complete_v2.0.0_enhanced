@@ -25,6 +25,7 @@ api/main.py — FastAPI application للنواة سهول
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 import secrets
@@ -2678,6 +2679,7 @@ async def _log_alert_deliveries(conn, user, alert: AlertSummary) -> None:
     التنبيه). نقطة التوصيل لمُرسِل حقيقيّ لاحقاً: مرّر sender إلى deliver().
     """
     from api.alert_delivery import AlertInput, NotificationPrefs, deliver
+    from api.alert_senders import real_channel_sender
 
     try:
         row = await conn.fetchrow(
@@ -2711,7 +2713,9 @@ async def _log_alert_deliveries(conn, user, alert: AlertSummary) -> None:
         message_ar=alert.message_ar,
         field_id=alert.field_id,
     )
-    plan = deliver(prefs, alert_input)
+    # مُرسِل حقيقيّ (بريد/SMS/واتساب/تلغرام/Push عند تهيئتها، وإلّا logged_not_sent).
+    # متزامن (I/O) فنشغّله في خيط كي لا يحجب حلقة الأحداث.
+    plan = await asyncio.to_thread(deliver, prefs, alert_input, real_channel_sender)
     for channel, ok, detail in plan.results:
         logger.info(
             "تسليم تنبيه %s ← قناة=%s نجَح=%s (%s)",
