@@ -467,7 +467,28 @@ _FIELD_ADVANCED_COLUMNS: tuple[str, ...] = (
     "owner_name",
     "lease_years",
     "registry_no",
+    # نموذج الريّ/المياه التفصيليّ (v41) — ملء تدريجيّ عبر PATCH (Progressive Profiling)
+    "irrigation_type",
+    "irrigation_efficiency_pct",
+    "flow_rate_m3h",
+    "pump_type",
+    "well_depth_m",
+    "water_ec",
+    # ربط المدير بمستخدم حقيقيّ (v41) — إضافيّ بجانب manager النصّيّ
+    "manager_user_id",
 )
+
+# حدّ التداخل المعتبَر (م²) — أكبر منه ⇒ تداخل حقيقيّ لا مجرّد ملامسة حدود/انزياح GPS.
+_MIN_FIELD_OVERLAP_M2 = 25.0
+
+
+def _significant_overlaps(overlaps, min_m2: float = _MIN_FIELD_OVERLAP_M2) -> list:
+    """يُرشّح صفوف التداخل بحيث يبقى ما تجاوزت مساحة تقاطعه الحدّ — دالّة نقيّة (لا DB).
+
+    يقبل صفوف asyncpg.Record أو dict (كلاهما يدعم o["overlap_m2"]). قيمة None تُعامَل
+    كصفر. يُستخدَم لتحويل قرار «تداخل معتبَر» إلى منطق قابل للاختبار offline.
+    """
+    return [o for o in overlaps if (o["overlap_m2"] or 0.0) > min_m2]
 
 
 class FieldDetail(FieldSummary):
@@ -493,6 +514,14 @@ class FieldDetail(FieldSummary):
     owner_name: str | None = None
     lease_years: int | None = None
     registry_no: str | None = None
+    # الريّ/المياه التفصيليّ (v41)
+    irrigation_type: str | None = None  # drip/pivot/flood/sprinkler/rainfed/subsurface
+    irrigation_efficiency_pct: float | None = None
+    flow_rate_m3h: float | None = None  # تدفّق المضخّة م³/ساعة
+    pump_type: str | None = None
+    well_depth_m: float | None = None
+    water_ec: float | None = None  # ملوحة الماء dS/m
+    manager_user_id: str | None = None  # ربط منطقيّ بمستخدم (users.id)
 
 
 class FieldUpdateRequest(BaseModel):
@@ -516,6 +545,14 @@ class FieldUpdateRequest(BaseModel):
     owner_name: str | None = Field(default=None, max_length=100)
     lease_years: int | None = Field(default=None, ge=0)
     registry_no: str | None = Field(default=None, max_length=50)
+    # الريّ/المياه التفصيليّ (v41)
+    irrigation_type: str | None = Field(default=None, max_length=20)
+    irrigation_efficiency_pct: float | None = Field(default=None, ge=0, le=100)
+    flow_rate_m3h: float | None = Field(default=None, ge=0)
+    pump_type: str | None = Field(default=None, max_length=30)
+    well_depth_m: float | None = Field(default=None, ge=0)
+    water_ec: float | None = Field(default=None, ge=0)
+    manager_user_id: str | None = Field(default=None, max_length=64)
 
 
 def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
@@ -1152,6 +1189,8 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
     import json as _json
     import uuid as _uuid
 
+    import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
+
     validation = validate_field_geometry(req.geometry)
     if not validation.valid:
         raise HTTPException(
@@ -1173,8 +1212,70 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
         country = country or auto_country
         region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
+    geom_json = _json.dumps(req.geometry)
     try:
         async with tenant_connection(user) as conn:
+            # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
+            dup = await conn.fetchrow(
+                "SELECT field_id FROM fields WHERE tenant_id = $1::uuid "
+                "AND farm_id IS NOT DISTINCT FROM $2 AND lower(name) = lower($3) LIMIT 1",
+                str(user.tenant_id),
+                req.farm_id,
+                req.name,
+            )
+            if dup is not None:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "message_ar": f"يوجد حقل بالاسم نفسه «{req.name}» في هذه المزرعة.",
+                        "code": "duplicate_field_name",
+                        "existing_field_id": dup["field_id"],
+                    },
+                )
+            # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
+            # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
+            # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
+            try:
+                overlaps = await conn.fetch(
+                    """
+                    SELECT field_id, name,
+                           ST_Area(ST_Intersection(
+                               ST_GeomFromGeoJSON($1), geom
+                           )::geography) AS overlap_m2
+                    FROM fields
+                    WHERE tenant_id = $2::uuid AND geom IS NOT NULL
+                      AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
+                    ORDER BY overlap_m2 DESC NULLS LAST
+                    LIMIT 5
+                    """,
+                    geom_json,
+                    str(user.tenant_id),
+                )
+            except (asyncpg.UndefinedFunctionError, asyncpg.UndefinedObjectError) as ovl_err:
+                # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
+                logger.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
+                overlaps = []
+            significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
+            if significant:
+                top = significant[0]
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "message_ar": (
+                            f"حدود الحقل تتداخل مع «{top['name']}» "
+                            f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
+                        ),
+                        "code": "field_geometry_overlap",
+                        "overlaps": [
+                            {
+                                "field_id": o["field_id"],
+                                "name": o["name"],
+                                "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
+                            }
+                            for o in significant
+                        ],
+                    },
+                )
             await conn.execute(
                 """INSERT INTO fields
                     (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
@@ -1358,6 +1459,13 @@ def _row_to_field_detail(r) -> FieldDetail:
         owner_name=_s("owner_name"),
         lease_years=_i("lease_years"),
         registry_no=_s("registry_no"),
+        irrigation_type=_s("irrigation_type"),
+        irrigation_efficiency_pct=_f("irrigation_efficiency_pct"),
+        flow_rate_m3h=_f("flow_rate_m3h"),
+        pump_type=_s("pump_type"),
+        well_depth_m=_f("well_depth_m"),
+        water_ec=_f("water_ec"),
+        manager_user_id=_s("manager_user_id"),
     )
 
 
@@ -1466,6 +1574,11 @@ class SeasonCreateRequest(BaseModel):
     sowing_date: str | None = None
     season_end: str | None = None
     custom_stages: list[StageItem] = Field(default_factory=list)
+    # KPIs زراعيّة (v42) — أساس التحليلات، كلّها اختياريّة (ملء تدريجيّ)
+    target_yield_kg_ha: float | None = Field(default=None, ge=0)
+    plant_density: float | None = Field(default=None, ge=0)  # نبات/م²
+    row_spacing_cm: float | None = Field(default=None, ge=0)
+    seed_variety_source: str | None = Field(default=None, max_length=100)
 
 
 class SeasonSummary(BaseModel):
@@ -1482,6 +1595,11 @@ class SeasonSummary(BaseModel):
     stages: list[dict]
     status: str
     created_at: str | None = None
+    # ─── KPIs زراعيّة (v42) — اختياريّة، ملء تدريجيّ ─
+    target_yield_kg_ha: float | None = None
+    plant_density: float | None = None
+    row_spacing_cm: float | None = None
+    seed_variety_source: str | None = None
     # ─── نتائج محاكاة الموسم (v39) — تُملأ عند تشغيل /simulate، تقديريّة ─
     sim_yield_kg_ha: float | None = None
     sim_biomass_kg_ha: float | None = None
@@ -1525,6 +1643,10 @@ def _row_to_season(r) -> SeasonSummary:
         stages=_arr(r["stages"]),
         status=r["status"],
         created_at=r["created_at"].isoformat() if r["created_at"] else None,
+        target_yield_kg_ha=_num("target_yield_kg_ha"),
+        plant_density=_num("plant_density"),
+        row_spacing_cm=_num("row_spacing_cm"),
+        seed_variety_source=(r["seed_variety_source"] if "seed_variety_source" in keys else None),
         sim_yield_kg_ha=_num("sim_yield_kg_ha"),
         sim_biomass_kg_ha=_num("sim_biomass_kg_ha"),
         sim_gdd_total=_num("sim_gdd_total"),
@@ -1591,9 +1713,11 @@ async def create_season(
                 """INSERT INTO seasons
                     (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,
                      seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date,
-                     season_end, stages, status)
+                     season_end, stages, status,
+                     target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source)
                    VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
-                           $8, $9, $10, $11, $12::jsonb, 'active')""",
+                           $8, $9, $10, $11, $12::jsonb, 'active',
+                           $13, $14, $15, $16)""",
                 season_id,
                 str(user.tenant_id),
                 field_id,
@@ -1606,6 +1730,10 @@ async def create_season(
                 sow,
                 end,
                 stages_json,
+                req.target_yield_kg_ha,
+                req.plant_density,
+                req.row_spacing_cm,
+                req.seed_variety_source,
             )
     except HTTPException:
         raise
@@ -1624,6 +1752,10 @@ async def create_season(
         season_end=end.isoformat() if end else None,
         stages=[s.model_dump() for s in clean_stages],  # نفس ما خُزّن (لا إعادة بناء)
         status="active",
+        target_yield_kg_ha=req.target_yield_kg_ha,
+        plant_density=req.plant_density,
+        row_spacing_cm=req.row_spacing_cm,
+        seed_variety_source=req.seed_variety_source,
     )
 
 
@@ -1640,6 +1772,7 @@ async def list_seasons(
                 "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
                 "seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date, "
                 "season_end, stages, status, created_at, "
+                "target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source, "
                 "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, "
                 "sim_water_mm, sim_ran_at "
                 "FROM seasons WHERE field_id = $1 ORDER BY created_at DESC",

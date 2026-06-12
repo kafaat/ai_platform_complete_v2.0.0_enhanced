@@ -8,7 +8,18 @@ geometry من JSONB نصّاً)، وتحقّق الهندسة الذي يعتم�
 import json
 
 from api.geospatial_integrity import validate_field_geometry
-from api.main import FieldCreateRequest, _centroid_from_bbox, _row_to_field_summary
+from api.main import (
+    _FIELD_ADVANCED_COLUMNS,
+    _MIN_FIELD_OVERLAP_M2,
+    FieldCreateRequest,
+    FieldUpdateRequest,
+    SeasonCreateRequest,
+    _build_field_update,
+    _centroid_from_bbox,
+    _row_to_field_summary,
+    _row_to_season,
+    _significant_overlaps,
+)
 
 
 def test_centroid_from_bbox_uses_lng_keys():
@@ -94,3 +105,90 @@ def test_validate_geometry_rejects_self_intersecting():
     }
     result = validate_field_geometry(geom)
     assert result.valid is False
+
+
+# ─── فحص التداخل الهندسيّ (v43) — منطق «التداخل المعتبَر» النقيّ ───────────
+
+
+def test_significant_overlaps_filters_below_threshold():
+    # تقاطع أصغر من الحدّ (ملامسة/انزياح) ⇒ لا يُعتبر تداخلاً.
+    rows = [{"field_id": "f1", "name": "A", "overlap_m2": _MIN_FIELD_OVERLAP_M2 - 1}]
+    assert _significant_overlaps(rows) == []
+
+
+def test_significant_overlaps_keeps_above_threshold():
+    rows = [{"field_id": "f1", "name": "A", "overlap_m2": _MIN_FIELD_OVERLAP_M2 + 50}]
+    assert len(_significant_overlaps(rows)) == 1
+
+
+def test_significant_overlaps_treats_none_as_zero():
+    rows = [{"field_id": "f1", "name": "A", "overlap_m2": None}]
+    assert _significant_overlaps(rows) == []
+
+
+# ─── أعمدة الريّ/المياه المتقدّمة (v41) — مسار PATCH ──────────────────────
+
+
+def test_advanced_columns_include_irrigation_water_model():
+    for col in (
+        "irrigation_type",
+        "irrigation_efficiency_pct",
+        "flow_rate_m3h",
+        "pump_type",
+        "well_depth_m",
+        "water_ec",
+        "manager_user_id",
+    ):
+        assert col in _FIELD_ADVANCED_COLUMNS
+
+
+def test_build_field_update_emits_only_sent_advanced_columns():
+    req = FieldUpdateRequest(irrigation_type="drip", well_depth_m=120.0)
+    set_clause, values = _build_field_update(req)
+    assert "irrigation_type = $1" in set_clause
+    assert "well_depth_m = $2" in set_clause
+    assert values == ["drip", 120.0]  # فقط المُرسَل، بالترتيب
+
+
+# ─── KPIs الموسم (v42) ───────────────────────────────────────────────────
+
+
+def test_season_create_request_accepts_kpis():
+    req = SeasonCreateRequest(
+        crops=["wheat"],
+        target_yield_kg_ha=4200.0,
+        plant_density=250.0,
+        row_spacing_cm=20.0,
+        seed_variety_source="ICARDA",
+    )
+    assert req.target_yield_kg_ha == 4200.0
+    assert req.plant_density == 250.0
+    assert req.row_spacing_cm == 20.0
+    assert req.seed_variety_source == "ICARDA"
+
+
+def test_row_to_season_maps_kpis():
+    row = {
+        "season_id": "ssn_1",
+        "field_id": "fld_1",
+        "crops": json.dumps(["wheat"]),
+        "cultivar": "Saba",
+        "irrigation_type": "drip",
+        "seed_rate_kg_ha": 150.0,
+        "land_leveling_date": None,
+        "plowing_date": None,
+        "sowing_date": None,
+        "season_end": None,
+        "stages": json.dumps([]),
+        "status": "active",
+        "created_at": None,
+        "target_yield_kg_ha": 4200.0,
+        "plant_density": 250.0,
+        "row_spacing_cm": 20.0,
+        "seed_variety_source": "ICARDA",
+    }
+    s = _row_to_season(row)
+    assert s.target_yield_kg_ha == 4200.0
+    assert s.plant_density == 250.0
+    assert s.row_spacing_cm == 20.0
+    assert s.seed_variety_source == "ICARDA"
