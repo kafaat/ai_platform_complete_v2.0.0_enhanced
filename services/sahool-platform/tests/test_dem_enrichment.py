@@ -9,6 +9,7 @@ import math
 
 import pytest
 from core.engines.dem_enrichment import (
+    aspect_agronomic_note,
     azimuth_to_aspect,
     classify_elevation,
     classify_slope,
@@ -116,6 +117,17 @@ def test_enrich_terrain_combines_advisories():
     assert "تدريج" in joined  # منحدر شديد
     assert "صقيع" in joined  # مرتفعات
     assert out["aspect"]["exposure"] == "warm"  # جنوبي
+
+
+def test_aspect_note_unknown_value_is_not_defaulted_to_west():
+    # إدخال غير قياسي (مثل WEST) لا يُفسَّر غرباً — يُعلَن «غير معروف» بصدق
+    for bad in ("WEST", "NORTH", "xyz", ""):
+        out = aspect_agronomic_note(bad)
+        assert out["exposure"] == "unknown", f"{bad!r} عاد كـ{out['exposure']}"
+        assert out["aspect_ar"] == "غير معروف"
+    # الجهات القياسيّة الثماني تبقى مُفسَّرة
+    assert aspect_agronomic_note("W")["exposure"] == "afternoon_sun"
+    assert aspect_agronomic_note("S")["exposure"] == "warm"
 
 
 def test_enrich_terrain_honest_when_no_data():

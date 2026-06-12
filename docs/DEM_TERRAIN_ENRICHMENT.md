@@ -21,7 +21,7 @@
 ## النقطة: `GET /api/v1/fields/{field_id}/terrain`
 
 يقرأ أعمدة `v37` (`elevation_m`/`slope_pct`/`aspect`) عبر RLS ويُرجِع `enrich_terrain`.
-**يعمل فوراً** على القيم المخزّنة (يدويّة عبر `PATCH /fields/{id}` أو من DEM لاحقاً).
+**يعمل فوراً** على القيم المخزّنة (يدويّة عبر `PATCH /api/v1/fields/{field_id}` أو من DEM لاحقاً).
 يُعلن `dem_auto_fill.available = false` بصدق (الجلب التلقائي مؤجَّل).
 
 ## المتبقّي (مؤجَّل — يحتاج بيئتك الحيّة)

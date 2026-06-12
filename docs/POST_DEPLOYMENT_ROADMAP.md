@@ -104,8 +104,9 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
 - ☐ **Workflow مخبري للتربة:** عيّنة → نتيجة مختبر → اعتماد → إصدارات (جداول +
   endpoints + شاشة)؛ يستبدل أعمدة soil_* الحاليّة بدورة حياة.
 - ◐ **الإثراء الجغرافيّ التلقائيّ:** النواة الحتميّة **مُنفَّذة** (`core/engines/dem_enrichment.py`
-  — حساب Horn للمنحدر/السمت + تصنيف + تفسير زراعيّ، وendpoint `GET /fields/{id}/terrain`
-  يفسّر القيم المخزّنة فوراً؛ انظر `docs/DEM_TERRAIN_ENRICHMENT.md`). **المتبقّي:** الجلب
+  — حساب Horn للمنحدر/السمت + تصنيف + تفسير زراعيّ، وendpoint
+  `GET /api/v1/fields/{field_id}/terrain` يفسّر القيم المخزّنة فوراً؛ انظر
+  `docs/DEM_TERRAIN_ENRICHMENT.md`). **المتبقّي:** الجلب
   الحيّ من DEM (SRTM/Copernicus) لملء elevation/slope/aspect تلقائيّاً بعد الرسم +
   climate/rainfall — يحتاج مصدر DEM. (الأعمدة جاهزة v37؛ حتى ذلك تُملأ يدويّاً عبر PATCH.)
 - ☐ **بوّابة تأكيد بريد صلبة** قبل الوصول (بدل التحقّق الناعم الحاليّ) — قرار UX.

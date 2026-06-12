@@ -20,7 +20,7 @@ from __future__ import annotations
 import math
 
 # ── عتبات المنحدر (٪) — سياق الزراعة المدرَّجة اليمنيّة ──────────────────
-SLOPE_FLAT = 2.0  # < = منبسط (لا تدريج؛ قد يحتاج صرفاً)
+SLOPE_FLAT = 2.0  # < 2 ⇒ منبسط (لا تدريج؛ قد يحتاج صرفاً)
 SLOPE_GENTLE = 8.0  # 2–8 = لطيف (تدابير خفيفة)
 SLOPE_MODERATE = 15.0  # 8–15 = متوسّط (تدريج كنتوري يُنصح)
 SLOPE_STEEP = 30.0  # 15–30 = شديد (تدريج ضروري، انجراف عالٍ)
@@ -149,8 +149,16 @@ def aspect_agronomic_note(aspect: str) -> dict:
         )
     elif a == "E":
         exposure, note = "morning_sun", "مواجه للشرق — شمس الصباح، اعتدال حراريّ بعد الظهر."
-    else:  # W
+    elif a == "W":
         exposure, note = "afternoon_sun", "مواجه للغرب — شمس بعد الظهر الأحرّ، إجهاد حراريّ مسائيّ."
+    else:
+        # اتّجاه غير معروف (إدخال حرّ غير قياسي) — لا نخترع تفسيراً (لا افتراض غرب).
+        return {
+            "aspect": a or None,
+            "aspect_ar": "غير معروف",
+            "exposure": "unknown",
+            "note_ar": "اتّجاه غير معروف — لا تفسير تعرّض شمسيّ (أدخِل أحد ٨ جهات قياسيّة).",
+        }
     return {"aspect": a, "aspect_ar": _COMPASS_AR.get(a, a), "exposure": exposure, "note_ar": note}
 
 

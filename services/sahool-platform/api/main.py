@@ -1621,7 +1621,8 @@ async def get_field_terrain(
     شمسي/صرف. يعمل فوراً على القيم المخزّنة (يدويّة أو من DEM). صادق عند غيابها.
 
     ⚠ التعبئة التلقائيّة من DEM (SRTM/Copernicus) بند مؤجَّل (POST_DEPLOYMENT_ROADMAP):
-    تحتاج مزوّد DEM حيّاً غير مضبوط هنا — حتى ذلك تُملأ يدويّاً عبر PATCH /fields.
+    تحتاج مزوّد DEM حيّاً غير مضبوط هنا — حتى ذلك تُملأ يدويّاً عبر
+    PATCH /api/v1/fields/{field_id}.
     """
     from core.engines.dem_enrichment import enrich_terrain
 
@@ -1648,8 +1649,8 @@ async def get_field_terrain(
         "available": False,
         "note_ar": (
             "التعبئة التلقائيّة من DEM مؤجَّلة (تحتاج مزوّد SRTM/Copernicus حيّاً). "
-            "حتى ذلك: أدخِل elevation_m/slope_pct/aspect عبر PATCH /fields/{id}، "
-            "والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
+            "حتى ذلك: أدخِل elevation_m/slope_pct/aspect عبر "
+            "PATCH /api/v1/fields/{field_id}، والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
         ),
     }
     return result
