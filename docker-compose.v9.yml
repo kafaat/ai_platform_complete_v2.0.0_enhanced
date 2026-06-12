@@ -795,7 +795,9 @@ services:
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
       ODOO_DB: ${ODOO_DB:-sahool_erp}  # قاعدة Odoo المنفصلة (لا قاعدة المنصّة sahool)
       ODOO_USER: ${ODOO_USER:-admin}
-      ODOO_PASSWORD: ${ODOO_PASSWORD:?ODOO_PASSWORD required}
+      # اختياريّ: يُستعمَل فقط عند ERP_PROVIDER=odoo. كان «:?required» يمنع تشغيل
+      # الإعداد الافتراضي (erpnext) بلا ضبط Odoo — فجُعِل اختياريّاً.
+      ODOO_PASSWORD: ${ODOO_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-postgres:
