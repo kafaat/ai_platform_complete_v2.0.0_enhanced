@@ -6638,9 +6638,7 @@ def rbac_who_can(
     try:
         perm = _P(permission)
     except ValueError as e:
-        raise HTTPException(
-            status_code=422, detail=f"صلاحيّة غير معروفة: {permission}"
-        ) from e
+        raise HTTPException(status_code=422, detail=f"صلاحيّة غير معروفة: {permission}") from e
     return who_can(perm)
 
 
