@@ -145,3 +145,7 @@ v46_lifecycle_event_sync.sql
 # الحقل). لا FK صلب (قد يفشل على صفوف يتيمة) — فهرس داعم + تحقّق تطبيقيّ في
 # create_activity. يعدّل activities (v35). idempotent.
 v45_activity_season_fk.sql
+# v44: موسم نشط واحد لكلّ حقل — فهرس فريد جزئي على seasons(field_id) حيث
+# status='active'. يضمن ثابت «حقل ⇒ موسم نشط واحد على الأكثر» (يكمّله create_season
+# بإغلاق الموسم النشط القديم آليّاً). يعدّل seasons (v32). idempotent.
+v44_one_active_season.sql
