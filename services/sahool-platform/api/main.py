@@ -6586,6 +6586,52 @@ def capacity_profiles_endpoint():
     return get_capacity_profiles()
 
 
+@app.post("/api/v1/recommendations/candidates")
+def generate_crop_candidates(
+    candidates: list[dict],
+    goal: str = "max_profit",
+    top_n: int = 3,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
+):
+    """يولّد بدائل زراعيّة مُقيَّمة حسب هدف المزارع — كلّ الخيارات مرئيّة (الوكالة).
+
+    candidates: قائمة خيارات، كلّ منها dict بصفات موثّقة (crop_id, name_ar, is_suited,
+    water_need_level, upfront_cost_level, profit_potential_level, is_staple, drought_score)
+    — تُملأ من محرّكات سهول (الملاءمة/الماء/الاقتصاد/تحمّل الجفاف). تقييم حتميّ شفّاف.
+    goal ∈ {max_profit, food_security, min_water, drought_resilience}.
+    """
+    from core.engines.candidate_generator import (
+        CropCandidate,
+        FarmerGoal,
+        generate_candidates,
+    )
+
+    try:
+        g = FarmerGoal(goal)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"هدف غير معروف: {goal}") from e
+
+    objs: list = []
+    for c in candidates:
+        try:
+            objs.append(
+                CropCandidate(
+                    crop_id=str(c["crop_id"]),
+                    name_ar=str(c.get("name_ar", c["crop_id"])),
+                    is_suited=bool(c.get("is_suited", False)),
+                    water_need_level=str(c.get("water_need_level", "mid")),
+                    upfront_cost_level=str(c.get("upfront_cost_level", "mid")),
+                    profit_potential_level=str(c.get("profit_potential_level", "unknown")),
+                    is_staple=bool(c.get("is_staple", False)),
+                    drought_score=c.get("drought_score"),
+                )
+            )
+        except (KeyError, TypeError) as e:
+            raise HTTPException(status_code=422, detail=f"خيار غير صالح: {e}") from e
+
+    return generate_candidates(objs, g, top_n=top_n)
+
+
 @app.get("/api/v1/learning/activation-status")
 def learning_activation_status(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
