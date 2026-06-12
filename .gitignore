@@ -25,3 +25,7 @@ build/
 
 # AlertManager rendered config (contains live secrets — never commit)
 monitoring/alertmanager.rendered.yml
+
+# SQLite lite-store artifact (self-created at runtime/tests)
+services/sahool-platform/storage/sahool.db
+services/sahool-platform/storage/*.db

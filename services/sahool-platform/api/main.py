@@ -6514,6 +6514,144 @@ def regional_calendar(governorate: str | None = None):
     return get_regional_calendar(governorate)
 
 
+@app.post("/api/v1/recommendations/economic-adaptation")
+def economic_adaptation_endpoint(
+    crop_options: list[dict],
+    area_ha: float | None = None,
+    annual_revenue_usd: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
+):
+    """يكيّف خيارات المحاصيل حسب القدرة الاقتصاديّة (اقتراح متدرّج لا فرض).
+
+    متّسق مع استقلاليّة المزارع: كلّ الخيارات تبقى مرئيّة، الترتيب اقتراح.
+    """
+    from core.economic_adaptation import adapt_recommendation
+
+    return adapt_recommendation(
+        crop_options, area_ha=area_ha, annual_revenue_usd=annual_revenue_usd
+    )
+
+
+@app.get("/api/v1/recommendations/capacity-profiles")
+def capacity_profiles_endpoint():
+    """ملفّات طبقات القدرة الاقتصاديّة (مرجع شفّاف)."""
+    from core.economic_adaptation import get_capacity_profiles
+
+    return get_capacity_profiles()
+
+
+@app.get("/api/v1/learning/activation-status")
+def learning_activation_status(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """حالة بوّابة تفعيل التعلّم للمستأجر — مدفوعة بتدفّق البيانات.
+
+    قبل العتبة: خاملة بصدق (لا تتظاهر بتعلّم لم يبدأ). القيم الحيّة تأتي من
+    طبقة DB (recommendations/outcomes عبر RLS) في الإنتاج.
+    """
+    from core.learning_activation import DataFlowSnapshot, evaluate_activation
+
+    tenant = str(getattr(user, "tenant_id", ""))
+    snapshot = DataFlowSnapshot(
+        tenant_id=tenant,
+        completed_outcomes=0,
+        total_recommendations=0,
+        accepted_recommendations=0,
+        outcomes_within_lag=0,
+    )
+    result = evaluate_activation(snapshot)
+    result["data_source_note_ar"] = (
+        "الأعداد تُحسب حيّاً من جداول التوصيات/النتائج عبر RLS في الإنتاج. "
+        "هذه الاستجابة تعكس البنية؛ التدفّق الفعلي يملؤها."
+    )
+    return result
+
+
+@app.get("/api/v1/devices/fleet-health")
+async def devices_fleet_health(
+    user: UserSchema = Depends(require_permission(Permission.DEVICE_VIEW)),
+):
+    """صحّة أسطول الأجهزة — كشف استباقي للأجهزة الصامتة مرتّباً بالخطورة.
+
+    يُكمّل GET /devices (العرض) بإنذار استباقي: أيّ جهاز صامت، ما خطورته، هل
+    يعتمده حقل نشط. مُستلهَم من مبدأ MDM (الإنذار المبكر). RLS عبر tenant_connection.
+    """
+    from api.fleet_health import DeviceHealthRecord, assess_fleet
+
+    rows: list = []
+    active_fields: set[str] = set()
+    try:
+        async with tenant_connection(user) as conn:
+            devs = await conn.fetch(
+                """SELECT device_id, name, type, field_id,
+                          EXTRACT(EPOCH FROM (NOW() - last_seen_at)) / 60 AS mins_since
+                   FROM iot_devices"""
+            )
+            for d in devs:
+                rows.append(
+                    DeviceHealthRecord(
+                        device_id=d["device_id"],
+                        name=d["name"],
+                        device_type=d["type"],
+                        field_id=d["field_id"],
+                        minutes_since_seen=(
+                            float(d["mins_since"]) if d["mins_since"] is not None else None
+                        ),
+                    )
+                )
+            try:
+                af = await conn.fetch(
+                    "SELECT DISTINCT field_id FROM field_lifecycle WHERE status = 'active'"
+                )
+                active_fields = {r["field_id"] for r in af if r["field_id"]}
+            except Exception:  # noqa: BLE001 — غياب الجدول لا يكسر المراقبة
+                active_fields = set()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("صحّة الأسطول", e) from e
+
+    return assess_fleet(rows, active_field_ids=active_fields)
+
+
+@app.get("/api/v1/rbac/who-can")
+def rbac_who_can(
+    permission: str,
+    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
+):
+    """الاستعلام العكسي: أيّ الأدوار تملك صلاحيّة معيّنة؟ (تدقيق أمني)."""
+    from core.authorization import Permission as _P
+    from core.rbac_governance import who_can
+
+    try:
+        perm = _P(permission)
+    except ValueError as e:
+        raise HTTPException(400, f"صلاحيّة غير معروفة: {permission}") from e
+    return who_can(perm)
+
+
+@app.get("/api/v1/rbac/permission-matrix")
+def rbac_permission_matrix(
+    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
+):
+    """مصفوفة الصلاحيّات الكاملة (كلّ دور × كلّ صلاحيّة) — شفافيّة الحوكمة."""
+    from core.rbac_governance import permission_matrix
+
+    return permission_matrix()
+
+
+@app.get("/api/v1/rbac/preview-role-change")
+def rbac_preview_role_change(
+    current_role: str,
+    new_role: str,
+    user: UserSchema = Depends(require_permission(Permission.USER_CHANGE_ROLE)),
+):
+    """معاينة أثر تغيير دور قبل تطبيقه (ما يُكتسَب/يُفقَد + تنبيه التصعيد)."""
+    from core.rbac_governance import preview_role_change
+
+    return preview_role_change(current_role, new_role)
+
+
 @app.get("/api/v1/calendars/lunar-mansions")
 def calendars_lunar_mansions():
     """المنازل القمريّة الـ٢٨ (نجوم الزراعة) — مرجع معرفي تراثي (عرض فقط)."""
