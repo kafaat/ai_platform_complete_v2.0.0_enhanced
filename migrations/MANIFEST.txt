@@ -135,3 +135,9 @@ v42_seasons_kpis.sql
 # (ST_Intersects على فهرس بدل مسح خطّيّ). trigger يزامنه من geometry JSONB.
 # يعدّل fields. يتطلّب PostGIS. idempotent.
 v43_fields_geom_index.sql
+# v46: مزامنة دورة الحياة ↔ سجلّ الأحداث — trigger بعد INSERT على
+# field_lifecycle_transitions يستدعي emit_event بنوع 'lifecycle.transitioned'،
+# فيُغلِق انحراف الحالة (كان السجلّ يخلو من أحداث الانتقال رغم توقّع المستهلكين
+# لها). DB-level فيلتقط كلّ مسارات الكتابة. يعتمد على v10 (field_lifecycle*) +
+# v11/v18 (emit_event). idempotent (CREATE OR REPLACE + DROP TRIGGER IF EXISTS).
+v46_lifecycle_event_sync.sql
