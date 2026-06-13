@@ -80,6 +80,7 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # Sensors / Remote sensing
     NDVI_OBSERVATION = "remote_sensing.ndvi.observed"
     SOIL_SAMPLE_RECORDED = "soil.sample.recorded"
+    SOIL_LAB_RESULT_PUBLISHED = "soil.lab.result.published"
     WEATHER_RAIN = "weather.rain"
     MOISTURE_LOW = "weather.moisture.low"
 

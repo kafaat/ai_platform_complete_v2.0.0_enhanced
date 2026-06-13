@@ -160,3 +160,6 @@ v48_activity_season_fk_dlq.sql
 # v49: تفعيل الربط الحيّ لـ#62/#63 — عمود fields.zone_key (مفتاح الإقليم القانوني)
 # + جدول recommendation_outcomes (أزواج توقّع/نتيجة + قبول/نضج) مع RLS. idempotent.
 v49_zone_key_recommendation_outcomes.sql
+# v50: Workflow مخبري للتربة — جدول soil_lab_tests (دورة حياة عيّنة→مختبر→نتيجة→اعتماد→نشر)
+# مع RLS وtrigger updated_at. قواعد الانتقال في core/engines/soil_lab_workflow. idempotent.
+v50_soil_lab_tests.sql
