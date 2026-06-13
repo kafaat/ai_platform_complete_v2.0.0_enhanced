@@ -2654,16 +2654,13 @@ _ACTIVITY_TYPES = {
 
 def _activity_event_type(activity_type: str, status: str) -> str:
     """يربط نوع النشاط + حالته (done/planned) بحدث عمليّة محدَّد (operation.*) حين
-    ينطبق، وإلّا ACTIVITY_RECORDED العامّ — لإثراء سجلّ الأحداث بدلالة أدقّ."""
-    done = status == "done"
-    mapping = {
-        "planting": "PLANTING_COMPLETED" if done else "PLANTING_STARTED",
-        "irrigation": "IRRIGATION_COMPLETED" if done else "IRRIGATION_STARTED",
-        "harvest": "HARVEST_COMPLETED" if done else "HARVEST_STARTED",
-        "fertilization": "FERTILIZER_APPLIED" if done else "ACTIVITY_RECORDED",
-        "spraying": "PESTICIDE_APPLIED" if done else "ACTIVITY_RECORDED",
-    }
-    return mapping.get(activity_type, "ACTIVITY_RECORDED")
+    ينطبق، وإلّا ACTIVITY_RECORDED العامّ — لإثراء سجلّ الأحداث بدلالة أدقّ.
+
+    يفوّض إلى `field_aggregate.activity_event_for` (مصدر واحد للدلالة) ويُرجِع اسم
+    العضو (لتوافق `_emit_domain_event` الذي يستقبل الاسم)."""
+    from api.field_aggregate import activity_event_for
+
+    return activity_event_for(activity_type, status).name
 
 
 class ActivityCreateRequest(BaseModel):

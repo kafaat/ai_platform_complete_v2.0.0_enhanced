@@ -74,6 +74,29 @@ def _payload(field_id: str, data: dict) -> dict:
     return {"field_id": field_id, **{k: v for k, v in data.items() if k != "field_id"}}
 
 
+# خريطة (نوع النشاط، أُنجِز؟) → حدث عمليّة محدَّد (operation.*). مصدر واحد لدلالة
+# أحداث النشاط — يستعمله الـaggregate و(تفويضاً) endpoint النشاط في main.
+_ACTIVITY_OP_EVENT = {
+    ("planting", True): EventType.PLANTING_COMPLETED,
+    ("planting", False): EventType.PLANTING_STARTED,
+    ("irrigation", True): EventType.IRRIGATION_COMPLETED,
+    ("irrigation", False): EventType.IRRIGATION_STARTED,
+    ("harvest", True): EventType.HARVEST_COMPLETED,
+    ("harvest", False): EventType.HARVEST_STARTED,
+    ("fertilization", True): EventType.FERTILIZER_APPLIED,
+    ("spraying", True): EventType.PESTICIDE_APPLIED,
+}
+
+
+def activity_event_for(activity_type: str, status: str) -> EventType:
+    """يربط نوع النشاط + حالته (done/planned) بحدث عمليّة محدَّد، وإلّا ACTIVITY_RECORDED.
+
+    مصدر واحد للدلالة (لا تكرار): الـaggregate يستعمله مباشرةً، و`main._activity_event_type`
+    يفوّض إليه — فيُصدِر المساران الحدثَ نفسه.
+    """
+    return _ACTIVITY_OP_EVENT.get((activity_type, status == "done"), EventType.ACTIVITY_RECORDED)
+
+
 class FieldAggregate:
     """حدّ الحقل: يتحقّق من الـinvariants ويصف الأثر (أحداث) — نقيّ، لا I/O."""
 
@@ -99,9 +122,9 @@ class FieldAggregate:
 
     def record_activity(self, data: dict) -> FieldEffect:
         self._require_exists()
-        return FieldEffect(
-            [(EventType.ACTIVITY_RECORDED.value, _payload(self.state.field_id, data))]
-        )
+        # الحدث محدَّد بنوع النشاط/حالته (operation.*) — أدقّ من ACTIVITY_RECORDED العامّ.
+        event = activity_event_for(data.get("activity_type", ""), data.get("status", ""))
+        return FieldEffect([(event.value, _payload(self.state.field_id, data))])
 
     def _require_exists(self) -> None:
         if not self.state.exists:
