@@ -49,7 +49,7 @@ export default function PestEscalationPage() {
 
   const res = mut.data;
   const ctx = (res?.context ?? {}) as Record<string, unknown>;
-  const status = res?.workflow.status ?? '';
+  const status = res?.workflow?.status ?? '';
   const st = STATUS_STYLE[status] ?? { ar: status || '—', color: '#94a3b8', bg: '#1e293b' };
 
   // تحقّق السلامة (Guardrails) قبل القرار الحرج: عند تعليق التدفّق بانتظار موافقة
@@ -146,7 +146,7 @@ export default function PestEscalationPage() {
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${st.color}22`, color: st.color }}>{st.ar}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {res.workflow.completed_steps.map(s => (
+              {(res.workflow?.completed_steps ?? []).map(s => (
                 <span key={s} className="text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1"
                   style={{ background: '#16a34a18', color: '#4ade80' }}>
                   <CheckCircle2 className="w-3 h-3" />{STEP_AR[s] ?? s}

@@ -101,11 +101,11 @@ function FarmDashboard() {
   }
   if (!data) return <EmptyState title="لا توجد بيانات بعد" />;
 
-  const statusData = Object.entries(data.activities_by_status).map(([k, v]) => ({
+  const statusData = Object.entries(data.activities_by_status ?? {}).map(([k, v]) => ({
     status: STATUS_LABELS[k] ?? k,
     count: v,
   }));
-  const cropData = data.area_by_crop.map(c => ({ crop: c.crop, area_ha: c.area_ha }));
+  const cropData = (data.area_by_crop ?? []).map(c => ({ crop: c.crop, area_ha: c.area_ha }));
   const hasActivities = statusData.length > 0;
   const hasCrops = cropData.some(c => c.area_ha > 0);
 
@@ -240,7 +240,7 @@ function FieldSummaryView() {
             <span className="text-sm font-semibold text-slate-200">الموسم النشط</span>
             {report.data.current_season ? (
               <div className="mt-2 text-sm text-slate-300 space-y-1">
-                <div>المحاصيل: <span className="text-slate-100">{report.data.current_season.crops.join('، ') || '—'}</span></div>
+                <div>المحاصيل: <span className="text-slate-100">{(report.data.current_season.crops ?? []).join('، ') || '—'}</span></div>
                 <div>الصنف: <span className="text-slate-100">{report.data.current_season.cultivar ?? '—'}</span></div>
                 <div>تاريخ البذار: <span className="text-slate-100">{report.data.current_season.sowing_date ?? '—'}</span></div>
                 <div>نهاية الموسم: <span className="text-slate-100">{report.data.current_season.season_end ?? '—'}</span></div>
@@ -253,10 +253,10 @@ function FieldSummaryView() {
           {/* العمليّات حسب النوع */}
           <div className={CARD} style={CARD_STYLE}>
             <span className="text-sm font-semibold text-slate-200">العمليّات حسب النوع</span>
-            {Object.keys(report.data.activities_by_type).length > 0 ? (
+            {Object.keys(report.data.activities_by_type ?? {}).length > 0 ? (
               <ResponsiveContainer width="100%" height={170}>
                 <BarChart
-                  data={Object.entries(report.data.activities_by_type).map(([k, v]) => ({
+                  data={Object.entries(report.data.activities_by_type ?? {}).map(([k, v]) => ({
                     type: ACTIVITY_TYPE_LABELS[k] ?? k, count: v,
                   }))}
                   barSize={26}>
@@ -276,9 +276,9 @@ function FieldSummaryView() {
           {/* أحدث التنبيهات */}
           <div className={CARD} style={CARD_STYLE}>
             <span className="text-sm font-semibold text-slate-200">أحدث التنبيهات</span>
-            {report.data.recent_alerts.length > 0 ? (
+            {(report.data.recent_alerts ?? []).length > 0 ? (
               <ul className="mt-2 space-y-2">
-                {report.data.recent_alerts.map(a => (
+                {(report.data.recent_alerts ?? []).map(a => (
                   <li key={a.alert_id} className="flex items-center justify-between text-sm border-b border-slate-700/50 pb-1">
                     <span className="text-slate-200">{a.title_ar ?? a.alert_type}</span>
                     <span className="text-[11px] text-slate-400">{a.severity} · {a.status}</span>

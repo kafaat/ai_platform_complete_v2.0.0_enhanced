@@ -176,8 +176,15 @@ export default function SpatialView() {
     strategy: "compensate",
   });
 
-  // هل لدينا بيانات حقيقيّة قابلة للعرض؟
-  const hasReal = !!gridResp && gridResp.real_data && Array.isArray(gridResp.grid) && gridResp.grid.length > 0;
+  // هل لدينا بيانات حقيقيّة قابلة للعرض؟ (نتحقّق من zones/stats أيضاً لا الـgrid فقط —
+  // وإلّا mapApiZones/fieldStats ينهاران على استجابة بشكل ناقص: zones.map / stats.mean)
+  const hasReal =
+    !!gridResp &&
+    gridResp.real_data &&
+    Array.isArray(gridResp.grid) &&
+    gridResp.grid.length > 0 &&
+    Array.isArray(gridResp.zones) &&
+    !!gridResp.stats;
 
   // الشبكة المعروضة: حقيقيّة إن توفّرت، وإلا محاكاة احتياطيّة
   const { grid, rows, cols } = useMemo<{ grid: Grid; rows: number; cols: number }>(() => {
@@ -407,7 +414,7 @@ export default function SpatialView() {
           </div>
 
           {/* وصفة مناطق الإدارة (VRT) — تقسيم كوانتايل + معدّل موصى به */}
-          {rxResp && rxResp.zones.length > 0 && (
+          {rxResp && Array.isArray(rxResp.zones) && rxResp.zones.length > 0 && (
             <div style={{
               background: "#1a2b21", borderRadius: 12, padding: 16, marginBottom: 14,
               border: "1px solid #2d4a37",
