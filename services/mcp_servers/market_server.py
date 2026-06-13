@@ -591,27 +591,32 @@ async def api_search_products(
     limit: int = 20,
     user: dict = Depends(_get_current_user),
 ):
-    return await tool_search_products({"query": q or "", "category": category, "limit": limit})
+    return await tool_search_products(
+        {"query": q or "", "category": category, "limit": limit, "tenant_id": user.get("tenant_id")}
+    )
 
 
 @app.get("/suppliers/{supplier_id}")
 async def api_get_supplier(supplier_id: str, user: dict = Depends(_get_current_user)):
-    return await tool_get_supplier({"supplier_id": supplier_id})
+    return await tool_get_supplier({"supplier_id": supplier_id, "tenant_id": user.get("tenant_id")})
 
 
 @app.post("/procurement")
 async def api_create_procurement(body: dict, user: dict = Depends(_get_current_user)):
-    return await tool_create_procurement(body)
+    # tenant من التوكن لا من الجسم (منع كتابة عابرة المستأجرين).
+    return await tool_create_procurement({**(body or {}), "tenant_id": user.get("tenant_id")})
 
 
 @app.get("/procurement/{order_id}")
 async def api_get_procurement(order_id: str, user: dict = Depends(_get_current_user)):
-    return await tool_get_procurement_status({"order_id": order_id})
+    return await tool_get_procurement_status(
+        {"order_id": order_id, "tenant_id": user.get("tenant_id")}
+    )
 
 
 @app.post("/sales")
 async def api_create_sales(body: dict, user: dict = Depends(_get_current_user)):
-    return await tool_create_sales_listing(body)
+    return await tool_create_sales_listing({**(body or {}), "tenant_id": user.get("tenant_id")})
 
 
 @app.get("/sales")
@@ -621,17 +626,27 @@ async def api_search_sales(
     limit: int = 20,
     user: dict = Depends(_get_current_user),
 ):
-    return await tool_search_sales({"crop_type": crop, "quality_grade": grade, "limit": limit})
+    return await tool_search_sales(
+        {
+            "crop_type": crop,
+            "quality_grade": grade,
+            "limit": limit,
+            "tenant_id": user.get("tenant_id"),
+        }
+    )
 
 
 @app.get("/price-history/{category}")
 async def api_price_history(category: str, days: int = 90, user: dict = Depends(_get_current_user)):
-    return await tool_price_history({"category": category, "days": days})
+    return await tool_price_history(
+        {"category": category, "days": days, "tenant_id": user.get("tenant_id")}
+    )
 
 
 @app.get("/analytics/{tenant_id}")
 async def api_analytics(tenant_id: str, user: dict = Depends(_get_current_user)):
-    return await tool_analytics_dashboard({"tenant_id": tenant_id})
+    # tenant من التوكن لا من المسار (منع قراءة تحليلات مستأجِر آخر).
+    return await tool_analytics_dashboard({"tenant_id": user.get("tenant_id")})
 
 
 @app.get("/healthz")

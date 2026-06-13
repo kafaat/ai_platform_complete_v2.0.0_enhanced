@@ -28,21 +28,22 @@
 - 🟠 **weather-mcp معطّل:** `retry_request(client.get(...))` يمرّر coroutine بدل callable ⇒
   كلّ نداء طقس يفشل → `retry_request(client.get, url, ...)`.
 
-## يحتاج متابعة — مؤكَّد + الإصلاح الدقيق (لم يُنفَّذ بعد، خدمات بلا اختبارات هنا)
-- 🟠 **raster-service path traversal/SSRF** (`main.py:1213,822,1475`): `rasterio.open(raster_url)`
-  بلا تحقّق ⇒ `file:///etc/passwd` أو SSRF. **الإصلاح:** قائمة بيضاء للمخطّطات +
-  `realpath` تحت `UPLOAD_DIR` لـ`file://`.
-- 🟠 **market-mcp REST writes** (`/procurement`, `/sales-listing`): تمرّر `body` للمعالِج ⇒
-  انتحال tenant. **الإصلاح:** حقن `user["tenant_id"]` كما في مسار MCP.
-- 🟠 **raster `/process` tenant من الجسم** + `fetch_latest_asset` بلا فلتر tenant. **الإصلاح:**
-  فكّ التوكن واشتقاق tenant + `AND tenant_id=$N`.
-- 🟡 **actuator-service:** `limit` بلا حدّ أعلى → `Query(50, ge=1, le=500)`؛ وغياب set_config
-  للـRLS قبل الاستعلام.
-- 🟡 **raster div-by-zero:** NDVI/GNDVI/NDWI/MSI بلا epsilon (VARI/GLI لديها) → وحّد الحارس.
-- 🟡 **notification/supervisor:** نقاط `/notifications/test` بلا مصادقة (انتحال/حقن NATS)؛
-  رسالة خطأ التوكن تسرّب تفاصيل PyJWT.
+## أُصلِحت لاحقاً (PR متابعة) ✅
+- ✅ **raster-service path traversal/SSRF** (`raster_url`/`dem_url`/`band_hrefs`): `_safe_raster_source`
+  — `file://` تحت `UPLOAD_DIR` (realpath) فقط + حجب metadata السحابي.
+- ✅ **market-mcp REST writes** (`/procurement`/`/sales`/`/analytics`/القراءات): حقن `tenant_id`
+  من التوكن (لا الجسم/المسار).
+- ✅ **raster `fetch_latest_asset`**: فلتر `AND tenant_id=$N::uuid` صريح (دفاع عميق فوق RLS).
+  (`/process` يستعمل توكناً خدميّاً مشتركاً بلا claim مستأجِر ⇒ tenant من الجسم نمط
+  service-to-service مقبول، كـlocal-ai-rag `/ingest` — لا تغيير.)
+- ✅ **actuator-service:** `limit = Query(50, ge=1, le=500)` (الـRLS مكفول أصلاً بـ`WHERE tenant_id`).
+- ✅ **raster div-by-zero:** NDVI/GNDVI/NDWI/NDMI/MSI بحارس epsilon (اتّساقاً مع VARI/GLI).
+- ✅ **notification `/test`**: محميّة بـ`SAHOOL_AGENT_TOKEN` (fail-closed) + تحقّق `event_type`
+  (منع حقن subject NATS).
+
+## يحتاج متابعة (لبس تصميم/دفاع عميق — موثّق، أثر منخفض)
 - 🟡 **trueup compounding** · **evidence_class low_plus** · **farm_memory/data_lineage** مقارنات
-  نصّيّة — موثّقة (لبس تصميم/دفاع عميق).
+  نصّيّة · supervisor رسالة خطأ التوكن تسرّب تفاصيل PyJWT.
 
 ## فجوات اختبار عالية الأثر (وكيل الجودة) — تُقترَح إضافتها
 وحدات بلا اختبار: `workflow_engine` (Saga/تعويض)، `pest_escalation_flow` (تعليق الموافقة)،

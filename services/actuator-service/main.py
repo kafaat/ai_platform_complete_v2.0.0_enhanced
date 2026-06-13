@@ -17,7 +17,7 @@ from datetime import UTC, datetime
 import asyncpg
 import jwt as _jwt
 from aiomqtt import Client as MQTTClient
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 try:
@@ -350,7 +350,9 @@ async def send_command(req: CommandRequest, claims: dict = Depends(_verify_token
 
 
 @app.get("/commands")
-async def list_commands(limit: int = 50, claims: dict = Depends(_verify_token)):
+async def list_commands(
+    limit: int = Query(50, ge=1, le=500), claims: dict = Depends(_verify_token)
+):
     # الأمان: tenant_id من التوكن المُتحقَّق لا من المعامل (منع قراءة سجلّ مستأجر آخر)
     tenant_id = str(claims["tenant_id"])
     if not _pool:
