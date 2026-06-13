@@ -3027,6 +3027,136 @@ async def list_field_activities(
     return [_row_to_activity(r) for r in rows]
 
 
+# ─── المهامّ الميدانيّة (field_tasks) — كانت الواجهة تنادي /tasks بلا خلفيّة ─
+# تُسلسِل قائمة مهامّ المستأجِر + تحديث الحالة، مدعومة بجدول field_tasks (RLS).
+class TaskSummary(BaseModel):
+    task_id: str
+    field_id: str
+    task_type: str
+    priority: int = 3
+    status: str
+    recommended_date: str | None = None
+    estimated_duration_min: int | None = None
+    estimated_cost_usd: float | None = None
+    assigned_to: str | None = None
+    notes: str | None = None
+    photo_url: str | None = None
+    completed_at: str | None = None
+    created_at: str | None = None
+
+
+class TaskListResponse(BaseModel):
+    """غلاف {tasks:[...]} — يطابق عقد الواجهة (useTasks يقرأ data.tasks)."""
+
+    tasks: list[TaskSummary]
+
+
+class TaskUpdateRequest(BaseModel):
+    """تحديث مهمّة (جزئيّ): الحالة و/أو صورة و/أو ملاحظة."""
+
+    status: str | None = None
+    photo_url: str | None = None
+    notes: str | None = None
+
+
+_TASK_STATUSES = {"pending", "in_progress", "completed", "cancelled"}
+_TASK_COLS = (
+    "task_id, field_id, task_type, priority, status, recommended_date, "
+    "estimated_duration_min, estimated_cost_usd, assigned_to, notes, photo_url, "
+    "completed_at, created_at"
+)
+
+
+def _row_to_task(r) -> TaskSummary:
+    return TaskSummary(
+        task_id=str(r["task_id"]),
+        field_id=r["field_id"],
+        task_type=r["task_type"],
+        priority=r["priority"] if r["priority"] is not None else 3,
+        status=r["status"],
+        recommended_date=r["recommended_date"].isoformat()
+        if r["recommended_date"] is not None
+        else None,
+        estimated_duration_min=r["estimated_duration_min"],
+        estimated_cost_usd=float(r["estimated_cost_usd"])
+        if r["estimated_cost_usd"] is not None
+        else None,
+        assigned_to=r["assigned_to"],
+        notes=r["notes"],
+        photo_url=r["photo_url"],
+        completed_at=r["completed_at"].isoformat() if r["completed_at"] is not None else None,
+        created_at=r["created_at"].isoformat() if r["created_at"] is not None else None,
+    )
+
+
+@app.get("/api/v1/tasks", response_model=TaskListResponse)
+async def list_tasks(
+    field_id: str | None = None,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مهامّ المستأجِر (مُرشَّحة بـRLS، واختياريّاً بحقل). الأعلى أولويّةً ثمّ الأقرب
+    موعداً. يُرجِع {tasks:[...]} (عقد الواجهة). 503 عند تعذّر القاعدة."""
+    try:
+        async with tenant_connection(user) as conn:
+            if field_id:
+                rows = await conn.fetch(
+                    f"SELECT {_TASK_COLS} FROM field_tasks WHERE field_id = $1 "
+                    "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC",
+                    field_id,
+                )
+            else:
+                rows = await conn.fetch(
+                    f"SELECT {_TASK_COLS} FROM field_tasks "
+                    "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC"
+                )
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة المهامّ", e) from e
+    return TaskListResponse(tasks=[_row_to_task(r) for r in rows])
+
+
+@app.patch("/api/v1/tasks/{task_id}", response_model=TaskSummary)
+async def update_task(
+    task_id: str,
+    req: TaskUpdateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """تحديث مهمّة (الحالة/صورة/ملاحظة) — مُرشَّح بالمستأجِر (RLS). 404 لو ليست
+    للمستأجِر؛ 422 على حالة غير معروفة أو لا حقول للتحديث."""
+    if req.status is not None and req.status not in _TASK_STATUSES:
+        raise HTTPException(status_code=422, detail="حالة مهمّة غير معروفة")
+    sets: list[str] = []
+    vals: list[object] = []
+    if req.status is not None:
+        vals.append(req.status)
+        sets.append(f"status = ${len(vals)}")
+        if req.status == "completed":
+            sets.append("completed_at = NOW()")
+    if req.photo_url is not None:
+        vals.append(req.photo_url)
+        sets.append(f"photo_url = ${len(vals)}")
+    if req.notes is not None:
+        vals.append(req.notes)
+        sets.append(f"notes = ${len(vals)}")
+    if not sets:
+        raise HTTPException(status_code=422, detail="لا حقول للتحديث")
+    sets.append("updated_at = NOW()")
+    vals.append(task_id)
+    query = (
+        f"UPDATE field_tasks SET {', '.join(sets)} "
+        f"WHERE task_id::TEXT = ${len(vals)} RETURNING {_TASK_COLS}"
+    )
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(query, *vals)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("تحديث المهمّة", e) from e
+    if row is None:
+        raise HTTPException(status_code=404, detail="المهمّة غير موجودة ضمن هذا المستأجِر")
+    return _row_to_task(row)
+
+
 @app.get("/api/v1/fields/{field_id}/input-traceability")
 async def field_input_traceability(
     field_id: str,

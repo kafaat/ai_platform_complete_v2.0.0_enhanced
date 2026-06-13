@@ -34,6 +34,8 @@ SH_CLIENT_ID = os.getenv("SH_CLIENT_ID", "")
 SH_CLIENT_SECRET = os.getenv("SH_CLIENT_SECRET", "")
 SH_INSTANCE_ID = os.getenv("SH_INSTANCE_ID", "")
 SH_BASE_URL = "https://services.sentinel-hub.com"
+# FIX: اسم الخدمة الفعليّ sahool-vegetation-analysis (كان sahool-vegetation لا يُحلّ).
+VEGETATION_URL = os.getenv("VEGETATION_URL", "http://sahool-vegetation-analysis:8000")
 
 FIELD_REGISTRY = {
     "field_01": {
@@ -363,7 +365,7 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await retry_request(
                 client.post,
-                "http://sahool-vegetation:8000/v1/analyze",
+                f"{VEGETATION_URL}/v1/analyze",
                 json={"field_id": req.field_id, "date": req.date},
                 timeout=60.0,
             )
