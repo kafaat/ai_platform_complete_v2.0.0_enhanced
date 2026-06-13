@@ -3736,6 +3736,26 @@ async def create_alert(
             )
             # تسجيل قنوات التسليم المقصودة (بلا إرسال فعليّ) — غير كاسر.
             await _log_alert_deliveries(conn, user, created)
+            # Canonical Field State: تنبيه على حقل قد يعكس تبدّل قراره ⇒ أعِد حساب
+            # الإسقاط وأصدِر field.state_changed إن تبدّلت الصلاحيّة (نفس نمط الموسم،
+            # نفس معاملة الكتابة). التنبيهات تمرّ عبر مصدر الحقيقة الواحد.
+            if req.field_id is not None:
+                from api.field_state_projection import recompute_field_state
+
+                _fs = await recompute_field_state(conn, req.field_id)
+                if _fs["changed"]:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "FIELD_STATE_CHANGED",
+                        "field",
+                        req.field_id,
+                        {
+                            "validity": _fs["state"]["validity"],
+                            "execution_mode": _fs["state"]["execution_mode"],
+                            "trigger": "alert.created",
+                        },
+                    )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
