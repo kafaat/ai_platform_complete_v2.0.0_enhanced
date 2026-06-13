@@ -8,13 +8,16 @@ Supports: GB28181 via ZLMediaKit proxy, WebRTC, local files
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 import json
 import logging
 import os
+import socket
 import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from urllib.parse import urlparse
 
 import httpx
 import numpy as np
@@ -24,7 +27,43 @@ from fastapi.security import HTTPAuthorizationCredentials as _Creds
 from fastapi.security import HTTPBearer as _Bearer
 from jose import JWTError as _v_JE
 from jose import jwt as _v_jwt
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+# ── حارس SSRF لمصادر البثّ ────────────────────────────────────
+# الخدمة تتّصل بكاميرات ميدانيّة تعيش غالباً على شبكات LAN خاصّة، فلا نحظر
+# النطاقات الخاصّة (يكسر الاستخدام المشروع). نحظر فقط loopback وlink-local
+# (عنوان ميتاداتا السحابة 169.254.169.254) وغير المحدّد/المحجوز/البثّ الجماعيّ،
+# والمخطّطات غير البثّيّة (file:// وغيره) — وهي ناقلات SSRF الحقيقيّة.
+_ALLOWED_STREAM_SCHEMES = {"rtsp", "rtsps", "http", "https"}
+
+
+def _validate_stream_source(url: str) -> None:
+    """يرفع ValueError إن كان رابط البثّ خطر SSRF (مخطّط ممنوع/مضيف داخليّ محظور)."""
+    try:
+        parsed = urlparse(url)
+    except Exception as e:
+        raise ValueError("رابط بثّ غير صالح") from e
+    scheme = (parsed.scheme or "").lower()
+    if scheme not in _ALLOWED_STREAM_SCHEMES:
+        raise ValueError(f"مخطّط غير مسموح: {scheme or '?'} (المسموح: rtsp/rtsps/http/https)")
+    host = parsed.hostname
+    if not host:
+        raise ValueError("رابط بثّ بلا مضيف")
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except socket.gaierror as e:
+        raise ValueError("تعذّر تحليل مضيف الرابط") from e
+    for info in infos:
+        ip = ipaddress.ip_address(info[4][0])
+        if (
+            ip.is_loopback
+            or ip.is_link_local  # يشمل 169.254.169.254 (ميتاداتا السحابة)
+            or ip.is_unspecified
+            or ip.is_multicast
+            or ip.is_reserved
+        ):
+            raise ValueError("الرابط يشير إلى عنوان داخليّ محظور (loopback/link-local/metadata)")
+
 
 try:
     from shared.logging_config import setup_logging
@@ -277,7 +316,16 @@ async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
             audience="sahool",
         )
     except _v_JE as e:
-        raise HTTPException(401, f"Invalid token: {e}") from e
+        raise HTTPException(401, "Invalid token") from e
+
+
+def _assert_stream_tenant(state: StreamState, user: dict) -> None:
+    """يمنع IDOR عبر المستأجرين: مالك غير admin يرى بثّ مستأجِره فقط. 404 عند
+    عدم التطابق (لا 403) كي لا يُكشَف وجود الـstream عبر المستأجرين."""
+    if user.get("role") == "admin":
+        return
+    if str(state.config.tenant_id) != str(user.get("tenant_id", "")):
+        raise HTTPException(404, "Stream not found")
 
 
 # from shared.helpers import get_current_user
@@ -299,6 +347,14 @@ class CreateStreamRequest(BaseModel):
     ai_enabled: bool = True
     ai_model: str = "pest_yolov8"
     detection_interval_sec: int = 5
+
+    @field_validator("rtsp_url", "http_url")
+    @classmethod
+    def _check_source(cls, v: str | None) -> str | None:
+        # حارس SSRF: يُرفض الرابط الخطر بـ422 قبل تمريره لـZLMediaKit/cv2.VideoCapture
+        if v:
+            _validate_stream_source(v)
+        return v
 
 
 @app.post("/streams")
@@ -332,10 +388,12 @@ async def stop_stream(stream_id: str, user: dict = Depends(_get_current_user)):
 
 
 @app.get("/streams/{stream_id}")
-async def get_stream(stream_id: str):
+async def get_stream(stream_id: str, user: dict = Depends(_get_current_user)):
     state = STREAMS.get(stream_id)
     if not state:
         raise HTTPException(404, "Stream not found")
+    # تقييد بالمستأجِر: المنفذ كان بلا مصادقة ويُرجِع rtsp_url (قد يحوي اعتماد كاميرا)
+    _assert_stream_tenant(state, user)
     return {
         "stream_id": stream_id,
         "status": state.status,
@@ -346,7 +404,10 @@ async def get_stream(stream_id: str):
 
 
 @app.get("/streams")
-async def list_streams():
+async def list_streams(user: dict = Depends(_get_current_user)):
+    # تقييد بالمستأجِر: كان بلا مصادقة ويعدّد بثوث كلّ المستأجرين + مصادرها
+    is_admin = user.get("role") == "admin"
+    tid = str(user.get("tenant_id", ""))
     return {
         "streams": [
             {
@@ -356,16 +417,19 @@ async def list_streams():
                 "source": s.config.rtsp_url or s.config.http_url or f"usb:{s.config.usb_index}",
             }
             for sid, s in STREAMS.items()
+            if is_admin or str(s.config.tenant_id) == tid
         ],
         "max_streams": MAX_CONCURRENT_STREAMS,
     }
 
 
 @app.post("/streams/{stream_id}/snapshot")
-async def snapshot(stream_id: str):
+async def snapshot(stream_id: str, user: dict = Depends(_get_current_user)):
     state = STREAMS.get(stream_id)
     if not state or state.last_frame is None:
         raise HTTPException(404, "No frame available")
+    # تقييد بالمستأجِر: كان بلا مصادقة ويُرجِع لقطة كاميرا حيّة لأيّ طالب
+    _assert_stream_tenant(state, user)
     import cv2
 
     success2, buf = cv2.imencode(".jpg", state.last_frame)  # MED-VIDEO-01
