@@ -79,9 +79,11 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
    + `dispatch(registry, store, cmd)` فوق `CommandStore` (idempotency + دورة حياة:
    succeeded→duplicate، unknown→fail، error→mark_failed). **مُنفَّذ + 6 اختبارات**.
    المتبقّي: توجيه endpoints فعليّة عبره (الخطوة ٣ أدناه).
-2. ☐ **FieldAggregate:** كائن يحمّل حالة الحقل (+ الموسم النشط + آخر lifecycle) ويعرّف
-   عمليّات (`create/update/start_season/record_activity`) تتحقّق من الـinvariants ثمّ
-   تُنتج (state change + events) ضمن معاملة واحدة.
+2. ◐ **FieldAggregate (النواة جاهزة):** `api/field_aggregate.py` — `FieldAggregate`
+   نقيّ (invariants في مكان واحد: إنشاء مكرّر→409، حقل مفقود→404، موسم نشط→409) +
+   `register_field_handlers` يسجّل المعالِجات على `CommandDispatcher` بمنافذ مُحقَنة
+   (تحميل حالة/حفظ/إصدار) + **١٠ اختبارات offline** (نواة + مسار dispatcher كامل).
+   انظر `docs/FIELD_AGGREGATE.md`. **المتبقّي:** توجيه endpoints حيّة عبرها (الخطوة ٣).
 3. ☐ **توجيه الـendpoints تدريجيّاً** إلى الـaggregate بدل الـINSERT المباشر — endpoint
    واحد كلّ مرّة، مع إبقاء التوافق الخلفيّ.
 4. ☐ **حارس قاعديّ (اختياريّ):** منع UPDATE/INSERT المباشر على جداول الحالة خارج
