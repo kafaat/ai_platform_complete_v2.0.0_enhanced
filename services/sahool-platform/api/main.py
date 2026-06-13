@@ -2795,11 +2795,16 @@ async def field_recommendations(
     فقط — لا بيانات وهميّة. 503 فقط إن لم تتوفّر أيّة توصية.
     """
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
+    from api.field_state_projection import recompute_field_state
     from api.recommendations_hub import RecommendationContext, build_recommendations
 
     try:
         async with tenant_connection(user) as conn:
             lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
+            # Canonical Field State: التوصيات تمرّ عبر الحالة القانونيّة الموحّدة —
+            # نُحدِّث الإسقاط ونرفق صلاحيّة القرار + نمط التنفيذ بالاستجابة (مصدر حقيقة
+            # واحد يحكم: تلقائيّ أم مراجعة بشريّة)، بدل قرار متفرّق لكلّ توصية.
+            field_state = (await recompute_field_state(conn, field_id))["state"]
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -2847,6 +2852,15 @@ async def field_recommendations(
         "crop": crop,
         "stage": stage,
         "weather_available": weather_available,
+        # الحالة القانونيّة الموحّدة تحكم تطبيق التوصيات (مصدر حقيقة واحد): نمط
+        # التنفيذ != auto ⇒ requires_review (تحتاج تأكيد المهندس/المزارع قبل التنفيذ).
+        "field_state": {
+            "validity": field_state["validity"],
+            "execution_mode": field_state["execution_mode"],
+            "confidence_level": field_state.get("confidence_level"),
+            "reasons_ar": field_state.get("reasons_ar", []),
+        },
+        "requires_review": field_state["execution_mode"] != "auto",
         "recommendations": [r.to_dict() for r in recs],
     }
 
