@@ -109,8 +109,11 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
   يُصدِر `SEASON_UPDATED` (+`SEASON_CLOSED` عند الإغلاق)، بانتقال حالة محقَّق
   (`api/season_lifecycle.py` — planned→active/closed، active→closed، المُغلَق نهائيّ)
   — **مُنفَّذ** (٧ اختبارات offline؛ انظر `docs/SEASON_UPDATE.md`).
-- ☐ **`farm_id` إلزاميّ:** نافذة انتقاليّة (ترحيل البيانات بلا مزرعة → افتراضيّة، ثمّ
-  `NOT NULL` + إلزام الواجهة بإنشاء مزرعة أوّلاً — منطق `canCreateFarm` جاهز).
+- ◐ **`farm_id` إلزاميّ:** نافذة انتقاليّة — **مُجهَّز للنشر** (`scripts/farm_id_backfill.sql`
+  backfill مزرعة افتراضيّة/مستأجِر + قيد إلزام NOT VALID، خارج MANIFEST؛ + runbook
+  `docs/FARM_ID_ROLLOUT.md`). **المتبقّي (وقت النشر):** تشغيل backfill كمالك (RLS)،
+  التحقّق، جعل `farm_id` إلزاميّاً في الـAPI (تغيير كاسر، سطر واحد)، ثمّ `VALIDATE`.
+  لا يُنفَّذ أعمى في الصندوق (backfill عابر مستأجرين تحت RLS + تغيير كاسر).
 - ◐ **Workflow مخبري للتربة:** عيّنة → مختبر → نتيجة → اعتماد → نشر — **مُنفَّذ**
   (نواة `core/engines/soil_lab_workflow.py` + جدول `v50_soil_lab_tests` RLS +
   `POST`/`GET`/`PATCH /api/v1/fields/{id}/soil-lab-tests` + أحداث + ١٠ اختبارات
