@@ -240,3 +240,15 @@ class TestSummary:
         ]
         summary = cross_reference_summary(matches)
         assert len(summary["matches"]) <= 5
+
+
+def test_outcome_quality_uses_percent_not_fraction():
+    # error_pct نسبة مئويّة: خطأ 20% ⇒ جودة 0.8 (كان يُعامَل ككسر فيصفّر أيّ خطأ >1%).
+    rec = _make_rec("rq", "tnt_001", "wheat", indicators={"ndvi": 0.6}, outcome_yield=3.4)
+    rec.error_pct = 20.0  # خطأ 20% — يلزم actual_yield لحساب الجودة
+    ctx = SearchContext(
+        tenant_id="tnt_001", field_id="f1", crop="wheat", current_indicators={"ndvi": 0.6}
+    )
+    matches = find_similar_recommendations(ctx, [rec], min_similarity=0.0)
+    assert matches
+    assert matches[0].outcome_quality == 0.8

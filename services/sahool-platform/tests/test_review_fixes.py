@@ -127,14 +127,15 @@ class TestOutcomeQualityBridge:
         assert m.outcome_quality is None  # default: غير محسوب
 
     def test_outcome_quality_computed_from_error(self):
-        # error_pct=0.1 (10% خطأ) → quality=0.9
+        # error_pct نسبة مئويّة (recommendation_log: |خطأ|/فعلي×100). 10% خطأ → جودة 0.9.
+        # (كان يضع 0.1 ظنّاً أنّها كسر — وحدة خاطئة ثبّتت خطأً في الحساب.)
         rec = _rec("r1")
         rec.actual_yield_t_ha = 3.4
-        rec.error_pct = 0.1
+        rec.error_pct = 10.0
         ctx = SearchContext(tenant_id="t1", field_id="f1", crop="wheat")
         results = find_similar_recommendations(ctx, [rec], min_similarity=0.0)
         assert results
-        assert results[0].outcome_quality == 0.9  # 1.0 - 0.1
+        assert results[0].outcome_quality == 0.9  # 1.0 - 10/100
 
 
 class TestContractPipelineEnforcement:

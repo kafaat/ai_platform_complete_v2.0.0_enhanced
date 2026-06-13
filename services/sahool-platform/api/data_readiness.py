@@ -172,9 +172,12 @@ def assess_readiness(provided: list[str]) -> ReadinessResult:
             )
             next_data |= missing_req
 
-    accuracy = _ACCURACY_HINT.get(
-        highest_complete, "محدودة (بيانات ناقصة)" if highest_complete < 3 else ""
-    )
+    # مستوى أعلى من أعلى مفتاح (مثلاً 6 بمجسّات) يأخذ تلميح أعلى دقّة (5)، لا "" —
+    # كان «بيانات أكثر ⇒ تلميح أفرغ» (عكسيّ). نقصّ المفتاح لأعلى تلميح مُعرَّف.
+    if highest_complete >= min(_ACCURACY_HINT):
+        accuracy = _ACCURACY_HINT[min(highest_complete, max(_ACCURACY_HINT))]
+    else:
+        accuracy = "محدودة (بيانات ناقصة)"
 
     return ReadinessResult(
         highest_complete_level=highest_complete,
