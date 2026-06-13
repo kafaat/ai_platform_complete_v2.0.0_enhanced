@@ -43,6 +43,7 @@ class Recommendation:
     title_ar: str
     detail_ar: str
     source: str  # مرجع/أصل التوصية (heuristic موسوم — لا تلفيق)
+    safety: bool = False  # تنبيه سلامة من الحالة الموحّدة — يتصدّر عند تعادل الأولويّة
 
     def to_dict(self) -> dict:
         return {
@@ -51,6 +52,7 @@ class Recommendation:
             "title_ar": self.title_ar,
             "detail_ar": self.detail_ar,
             "source": self.source,
+            "safety": self.safety,
         }
 
 
@@ -74,6 +76,10 @@ class RecommendationContext:
     temp_c: float | None = None
     humidity_pct: float | None = None
     rain_mm_3d: float = 0.0
+    # Stage F (تغذية آمنة): مرجعيّة من الحالة القانونيّة الموحّدة (النواة الزراعيّة)
+    # — تُستخدَم للتصعيد/التنبيه فقط، لا تُغيّر أرقام التوصيات الأخرى.
+    salinity_class: str | None = None  # critical|moderate|low (compose_field_state)
+    crop_vigor: float | None = None  # 0..1 (مرجعيّة فقط)
 
 
 # ─── التسميد: إرشاد N/P/K مبسّط بحسب المرحلة ───────────────────────
@@ -277,7 +283,33 @@ def _yield_rec(ctx: RecommendationContext) -> Recommendation | None:
     )
 
 
-_BUILDERS = (_irrigation_rec, _fertilizer_rec, _disease_rec, _yield_rec)
+def _salinity_caution_rec(ctx: RecommendationContext) -> Recommendation | None:
+    """Stage F (تغذية آمنة): تصعيد مرجعيّ من الحالة القانونيّة الموحّدة.
+
+    حين تحكم النواة الزراعيّة بملوحة تربة حرجة (salinity_class=critical عبر تحكيم
+    Salinity>Vigor)، نُضيف تنبيهاً عالي الأولويّة يربط التوصيات بحالة الحقل الموحّدة:
+    ريّ بماء هامشيّ قد يفاقم الملوحة؛ يُراجَع كسر التملّح (leaching fraction)/الصرف
+    واختيار أصناف متحمّلة — إرشاد عامّ (FAO 29) لا كمّيّة مخترعة. لا يغيّر أرقام
+    التوصيات الأخرى — يُضيف تصعيد سلامة فقط (يحترم قيد عدم تغيير الأرقام).
+    """
+    if ctx.salinity_class != "critical":
+        return None
+    return Recommendation(
+        category="irrigation",
+        priority="high",
+        title_ar="تنبيه ملوحة تربة حرجة — راجِع الريّ والصرف",
+        detail_ar=(
+            "الحالة الموحّدة للحقل تشير إلى ملوحة تربة حرجة (تحكُم رغم خُضرة المؤشّر "
+            "الطيفيّ). الريّ بماء هامشيّ قد يزيد تراكم الأملاح — راجِع كسر التملّح "
+            "(leaching) وكفاءة الصرف، وفضّل أصنافاً متحمّلة للملوحة. استشِر المهندس "
+            "الزراعيّ قبل زيادة الريّ."
+        ),
+        source="canonical_field_state:arbitration(salinity>vigor) — إرشاد FAO 29 عامّ",
+        safety=True,
+    )
+
+
+_BUILDERS = (_irrigation_rec, _fertilizer_rec, _disease_rec, _yield_rec, _salinity_caution_rec)
 
 
 def build_recommendations(ctx: RecommendationContext) -> list[Recommendation]:
@@ -293,5 +325,13 @@ def build_recommendations(ctx: RecommendationContext) -> list[Recommendation]:
         if rec is not None:
             recs.append(rec)
     cat_order = {c: i for i, c in enumerate(CATEGORIES)}
-    recs.sort(key=lambda r: (PRIORITY_ORDER.get(r.priority, 99), cat_order.get(r.category, 99)))
+    # الفرز: الأولويّة، ثمّ تنبيهات السلامة (من الحالة الموحّدة) أوّلاً عند التعادل،
+    # ثمّ ترتيب الفئة — كي لا يُدفَن تنبيه السلامة تحت توصية ريّ بنفس الأولويّة.
+    recs.sort(
+        key=lambda r: (
+            PRIORITY_ORDER.get(r.priority, 99),
+            0 if r.safety else 1,
+            cat_order.get(r.category, 99),
+        )
+    )
     return recs

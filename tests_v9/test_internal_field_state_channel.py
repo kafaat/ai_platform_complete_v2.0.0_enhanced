@@ -14,6 +14,8 @@ import sys
 
 import pytest
 
+pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا يُنفَّذ
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CORE = os.path.join(ROOT, "services/sahool-platform")
 SUPERVISOR = os.path.join(ROOT, "services/supervisor-agent")
