@@ -571,6 +571,79 @@ class ApiService {
     return _asMap(r.data);
   }
 
+  // ── Field setup chain (موسم / فحص تربة / تقدير إنتاجيّة) ──
+  // تكملة معالج إنشاء الحقل على نمط Climate FieldView: بعد إنشاء الحقل تُسلسَل
+  // خطوات الإعداد (موسم ← فحوص تربة اختياريّة ← إنتاجيّة اختياريّة). كلّ طلب
+  // يستعمل نفس Dio (توكن، إعادة محاولة، كشف انقطاع) ويحرس الشكل بـ_asMap.
+  // المسارات تطابق عقد الخادم بدقّة — لا نقاط مُختلَقة.
+
+  /// ينشئ موسماً للحقل (POST /api/v1/fields/{field_id}/seasons).
+  /// [crop] لازم (يُرسَل ضمن مصفوفة crops). الحقول الأخرى اختياريّة وتُرسَل فقط
+  /// إن وُجدت (ملء تدريجيّ). يردّ الموسم المُنشأ. صدق: الخطأ يُرمى ليُعرَض كما هو.
+  Future<Map<String, dynamic>> createSeason(
+    String fieldId, {
+    required String crop,
+    String? cultivar,
+    String? irrigationType,
+    String? sowingDate, // "YYYY-MM-DD"
+    String? seasonEnd, // "YYYY-MM-DD"
+    num? targetYieldKgHa,
+  }) async {
+    final r = await _dio.post('/api/v1/fields/$fieldId/seasons', data: {
+      'crops': [crop],
+      if (cultivar != null) 'cultivar': cultivar,
+      if (irrigationType != null) 'irrigation_type': irrigationType,
+      if (sowingDate != null) 'sowing_date': sowingDate,
+      if (seasonEnd != null) 'season_end': seasonEnd,
+      if (targetYieldKgHa != null) 'target_yield_kg_ha': targetYieldKgHa,
+    });
+    return _asMap(r.data);
+  }
+
+  /// يسجّل نتيجة فحص تربة مخبريّ (POST /api/v1/fields/{field_id}/soil-lab-tests).
+  /// pH/المادّة العضويّة/CEC تُرسَل داخل result. كلّ الحقول اختياريّة (خطوة قابلة
+  /// للتخطّي). يردّ السجلّ المُنشأ. صدق: الخطأ يُرمى ليُعرَض كما هو.
+  Future<Map<String, dynamic>> submitSoilLabTest(
+    String fieldId, {
+    String? labName,
+    String? sampledOn, // "YYYY-MM-DD"
+    String? notesAr,
+    num? ph,
+    num? organicMatter,
+    num? cec,
+  }) async {
+    final result = <String, dynamic>{
+      if (ph != null) 'ph': ph,
+      if (organicMatter != null) 'organic_matter': organicMatter,
+      if (cec != null) 'cec': cec,
+    };
+    final r = await _dio.post('/api/v1/fields/$fieldId/soil-lab-tests', data: {
+      if (labName != null) 'lab_name': labName,
+      if (sampledOn != null) 'sampled_on': sampledOn,
+      if (notesAr != null) 'notes_ar': notesAr,
+      if (result.isNotEmpty) 'result': result,
+    });
+    return _asMap(r.data);
+  }
+
+  /// يطلب تقدير إنتاجيّة الحقل (POST /api/v1/fields/{field_id}/yield-estimate).
+  /// [crop] لازم. أيّام النموّ/متوسّط NDVI اختياريّان. يردّ التقدير (خطوة قابلة
+  /// للتخطّي). صدق: الخطأ يُرمى ليُعرَض كما هو.
+  Future<Map<String, dynamic>> requestYieldEstimate(
+    String fieldId, {
+    required String crop,
+    int? daysInGrowing,
+    num? avgNdviGrowing,
+  }) async {
+    final r = await _dio.post('/api/v1/fields/$fieldId/yield-estimate', data: {
+      'field_id': fieldId,
+      'crop': crop,
+      if (daysInGrowing != null) 'days_in_growing': daysInGrowing,
+      if (avgNdviGrowing != null) 'avg_ndvi_growing': avgNdviGrowing,
+    });
+    return _asMap(r.data);
+  }
+
   // ── Documents (document:view / document:manage) — بيانات وصفيّة فقط ──
   Future<List<Map<String, dynamic>>> listDocuments(
       {String? category, String? fieldId}) async {
