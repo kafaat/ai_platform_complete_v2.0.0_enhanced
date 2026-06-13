@@ -2940,6 +2940,63 @@ async def field_input_traceability(
     )
 
 
+class NDVIObservationIn(BaseModel):
+    """مشاهدة NDVI زمنيّة واحدة (من سلسلة Sentinel-2)."""
+
+    date: str = Field(min_length=4, max_length=32)
+    ndvi: float
+    days_after_planting: int | None = Field(default=None, ge=0)
+
+
+class GrowthNarrativeRequest(BaseModel):
+    """سرد نموّ فينولوجي من سلسلة NDVI + مظروف متوقَّع اختياريّ."""
+
+    observations: list[NDVIObservationIn]
+    crop: str = Field(min_length=1, max_length=50)
+    peak_ndvi_floor: float | None = Field(default=None, ge=-1, le=1)
+    expected_peak_dap_min: int | None = Field(default=None, ge=0)
+
+
+@app.post("/api/v1/fields/{field_id}/growth-narrative")
+async def field_growth_narrative(
+    field_id: str,
+    req: GrowthNarrativeRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """سرد نموّ الحقل الفينولوجي من سلسلة NDVI القمريّة — بديل صادق للتايم‑لابس بلا عتاد.
+
+    يصنّف الطور (إنبات/خضري/ذروة/شيخوخة) من شكل المنحنى، ويكشف شذوذ النموّ
+    (ذروة ضعيفة/شيخوخة مبكّرة) **فقط مقابل مظروف متوقَّع مُمرَّر** — لا قيم أجنبيّة
+    مُقحَمة. دون حدّ أدنى من المشاهد: لا سرد (لا لقطة تُقدَّم كمنحنى). 503 عند تعذّر
+    القاعدة. السلسلة تُمرَّر في الطلب (من raster-service) — الجلب الحيّ بند تشغيليّ.
+    """
+    from core.engines.phenology_narrative import (
+        NDVIObservation,
+        build_growth_narrative,
+    )
+
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)  # 404 لو ليس للمستأجِر
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("سرد النموّ", e) from e
+
+    obs = [
+        NDVIObservation(date=o.date, ndvi=o.ndvi, days_after_planting=o.days_after_planting)
+        for o in req.observations
+    ]
+    result = build_growth_narrative(
+        obs,
+        crop=req.crop,
+        peak_ndvi_floor=req.peak_ndvi_floor,
+        expected_peak_dap_min=req.expected_peak_dap_min,
+    )
+    result["field_id"] = field_id
+    return result
+
+
 # ─── التنبيهات الزراعيّة (Alerts) — نمط activities (v36) ──────────
 _ALERT_TYPES = {
     "low_moisture",
