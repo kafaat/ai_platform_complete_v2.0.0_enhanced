@@ -622,6 +622,11 @@ class ApiService {
     String? sowingDate, // "YYYY-MM-DD"
     String? seasonEnd, // "YYYY-MM-DD"
     num? targetYieldKgHa,
+    num? seedRateKgHa,
+    String? tillageType,
+    String? maturity, // early/medium/late
+    num? actualYieldKgHa,
+    String? notesAr,
   }) async {
     final r = await _dio.post('/api/v1/fields/$fieldId/seasons', data: {
       'crops': [crop],
@@ -630,6 +635,11 @@ class ApiService {
       if (sowingDate != null) 'sowing_date': sowingDate,
       if (seasonEnd != null) 'season_end': seasonEnd,
       if (targetYieldKgHa != null) 'target_yield_kg_ha': targetYieldKgHa,
+      if (seedRateKgHa != null) 'seed_rate_kg_ha': seedRateKgHa,
+      if (tillageType != null) 'tillage_type': tillageType,
+      if (maturity != null) 'maturity': maturity,
+      if (actualYieldKgHa != null) 'actual_yield_kg_ha': actualYieldKgHa,
+      if (notesAr != null) 'notes_ar': notesAr,
     });
     return _asMap(r.data);
   }
