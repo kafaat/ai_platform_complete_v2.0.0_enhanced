@@ -129,9 +129,12 @@ services:
       # FIX: expose the password inside the container so the healthcheck can
       # authenticate (redis-cli -a) and avoid NOAUTH failures.
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
+    # السرّ يُقرأ من بيئة الحاوية وقت التشغيل ($$ ⇒ $ للـshell) لا بتفكيك compose
+    # ($VAR) الذي يُضمِّن كلمة السرّ في الأمر المُصيَّر فتظهر في docker inspect/config.
+    # الإلزاميّة (fail-closed) محفوظة عبر environment: REDIS_PASSWORD أعلاه (:?).
     command: >
       sh -c '
-        echo "requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD required}" > /usr/local/etc/redis/redis.conf &&
+        echo "requirepass $$REDIS_PASSWORD" > /usr/local/etc/redis/redis.conf &&
         echo "maxmemory 256mb" >> /usr/local/etc/redis/redis.conf &&
         echo "maxmemory-policy allkeys-lru" >> /usr/local/etc/redis/redis.conf &&
         redis-server /usr/local/etc/redis/redis.conf
@@ -159,6 +162,10 @@ services:
     mem_limit: 384m
     restart: unless-stopped
     logging: *default_logging
+    # TODO (تحصين، يحتاج تحقّقاً حيّاً): حدّ تخزين JetStream لمنع امتلاء القرص
+    # (الافتراضيّ غير محدود). يُضبط عبر ملفّ إعداد nats (max_file_store/
+    # max_memory_store) لا أعلام CLI غير المؤكَّدة في هذا الإصدار — لم يُطبَّق هنا
+    # تفادياً لكسر الإقلاع دون أن تلتقطه بوّابة "Validate Docker Compose".
     command: >
       --js
       --store_dir /data/jetstream
