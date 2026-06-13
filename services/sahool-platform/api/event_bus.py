@@ -59,6 +59,7 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # Season
     SEASON_CREATED = "season.created"
     SEASON_CLOSED = "season.closed"
+    SEASON_UPDATED = "season.updated"
 
     # Activity (عمليّة حقليّة عامّة — تكمّل أحداث operation.* المحدّدة)
     ACTIVITY_RECORDED = "activity.recorded"
