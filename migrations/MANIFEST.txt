@@ -178,6 +178,8 @@ v53_field_state_projection.sql
 # v54: قيمة NDVI الحقيقيّة لكلّ حقل (Stage D) — عمودان على imagery_automation_fields
 # تقرأهما الحالة القانونيّة. idempotent (ADD COLUMN IF NOT EXISTS).
 v54_imagery_ndvi_value.sql
+# v55: تخزين الحقائق الزراعيّة الغنيّة (Stage E) — عمود agronomic JSONB على field_state.
+v55_field_state_agronomic.sql
 # فرض append-only (immutability) — يُطبَّق أخيراً كي توجد events/field_lifecycle_transitions/
 # lifecycle_temporal_rejections فعليّاً وقت تركيب trigger الحظر (كان موضعه الأصليّ يسبق
 # إنشاءها فيتخطّاها). idempotent (DROP TRIGGER IF EXISTS) — آمن إعادة التطبيق كلّ إقلاع.

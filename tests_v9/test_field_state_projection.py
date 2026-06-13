@@ -74,9 +74,9 @@ async def test_recompute_upserts_and_flags_changed_when_no_prev(core_on_path):
     assert res["changed"] is True
     assert res["state"]["validity"] == "insufficient"  # لا مصادر ⇒ بيانات ناقصة
     assert len(conn.executed) == 1  # UPSERT واحد
-    # الوسيط الأوّل في UPSERT هو field_id، و12 وسيطاً ($1..$12؛ computed_at=NOW())
+    # الوسيط الأوّل في UPSERT هو field_id، و13 وسيطاً ($1..$13؛ computed_at=NOW())
     assert conn.executed[0][1][0] == "fld_1"
-    assert len(conn.executed[0][1]) == 12
+    assert len(conn.executed[0][1]) == 13
 
 
 @pytest.mark.asyncio
