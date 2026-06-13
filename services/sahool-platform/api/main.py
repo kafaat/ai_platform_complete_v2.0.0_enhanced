@@ -7263,6 +7263,9 @@ async def diagnose_symptoms(
             from api.field_state_projection import recompute_field_state
 
             async with tenant_connection(user) as conn:
+                # تأكّد أنّ الحقل ضمن المستأجِر قبل الإرفاق — وإلّا 404 يلتقطه except
+                # أدناه فلا نُرفِق حالة «حقل شبح» (مراجعة Copilot).
+                await _assert_field_in_tenant(conn, req.field_id)
                 field_state = (await recompute_field_state(conn, req.field_id))["state"]
             # نُرفِق مقتطفاً من الحالة الموحّدة (لا نغيّر التشخيص).
             _agro = field_state.get("agronomic") or {}

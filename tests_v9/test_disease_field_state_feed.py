@@ -70,7 +70,8 @@ def test_diagnose_endpoint_feeds_canonical_state():
 def test_critical_salinity_adds_reference_note_only():
     """ملوحة حرجة ⇒ ملاحظة مرجعيّة فقط (لا تغيير لقواعد/نتيجة التشخيص)."""
     body = _func_src("diagnose_symptoms")
-    assert 'salinity_class") == "critical"' in body, "لا فحص لملوحة حرجة"
+    # متسامح مع التنسيق: salinity_class ... == ... critical (مراجعة Copilot)
+    assert re.search(r"salinity_class.*?==.*?critical", body), "لا فحص لملوحة حرجة"
     assert "إجهاد الملوحة" in body, "لا ملاحظة مرجعيّة عند الملوحة الحرجة"
     # التغذية best-effort: تعذّر الحالة لا يكسر التشخيص (fail-safe).
     assert "except Exception" in body, "لا حارس fail-safe حول الحالة الموحّدة"
