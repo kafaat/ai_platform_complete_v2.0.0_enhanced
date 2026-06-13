@@ -29,6 +29,52 @@ from .field_state_gateway import build_state_inputs
 logger = logging.getLogger("sahool.field_state")
 
 
+def _derive_alerts_from_state(state: dict) -> list[dict]:
+    """يشتقّ تنبيهات صادقة (للعرض فقط) من dict الحالة القانونيّة الموحّدة.
+
+    دالّة نقيّة بلا I/O (قابلة للاختبار بلا قاعدة): تقرأ الحقائق الزراعيّة من
+    agronomic.operational_truths + نمط التنفيذ، فتشتقّ تنبيهات بسيطة لا تُلفِّق:
+      • salinity_class == "critical" ⇒ تنبيه عالي الخطورة «ملوحة تربة حرجة».
+      • execution_mode في (blocked, human_review) ⇒ تنبيه «القرار يحتاج مراجعة بشريّة».
+    صدق: غياب الحقائق ⇒ قائمة فارغة (لا تنبيه مُلفَّق). لا تُكتب في جدول alerts.
+    كلّ تنبيه يحمل source="canonical_field_state" (مصدر الاشتقاق صريح للتدقيق).
+    """
+    if not isinstance(state, dict):
+        return []
+    alerts: list[dict] = []
+    truths = (state.get("agronomic") or {}).get("operational_truths") or {}
+
+    if truths.get("salinity_class") == "critical":
+        alerts.append(
+            {
+                "alert_type": "salinity_critical",
+                "severity": "high",
+                "title_ar": "ملوحة تربة حرجة",
+                "message_ar": (
+                    "الحالة القانونيّة الموحّدة تُظهر ملوحة تربة حرجة — غسيل وتحسين "
+                    "الصرف عاجلاً، وتجنّب الريّ المالح."
+                ),
+                "source": "canonical_field_state",
+            }
+        )
+
+    if state.get("execution_mode") in ("blocked", "human_review"):
+        alerts.append(
+            {
+                "alert_type": "human_review_required",
+                "severity": "medium",
+                "title_ar": "القرار يحتاج مراجعة بشريّة",
+                "message_ar": (
+                    "نمط تنفيذ الحالة القانونيّة الموحّدة ليس تلقائيّاً — يلزم تأكيد "
+                    "المهندس/المزارع قبل التنفيذ."
+                ),
+                "source": "canonical_field_state",
+            }
+        )
+
+    return alerts
+
+
 async def gather_field_freshness(conn, field_id: str) -> dict:
     """يقرأ مصادر النضارة القانونيّة للحقل من قاعدة المنصّة.
 
