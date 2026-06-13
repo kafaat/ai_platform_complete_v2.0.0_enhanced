@@ -526,8 +526,15 @@ async def mcp_tools_list():
     }
 
 
-@app.post("/mcp/v1/tools/call", dependencies=[Depends(require_scope("market:read"))])
-async def mcp_tools_call(req: MCPCallRequest):
+_MARKET_WRITE_TOOLS = {
+    "market_create_procurement",
+    "market_create_sales_listing",
+    "create_forward_contract",
+}
+
+
+@app.post("/mcp/v1/tools/call")
+async def mcp_tools_call(req: MCPCallRequest, user: dict = Depends(require_scope("market:read"))):
     handlers = {
         "market_search_products": tool_search_products,
         "market_get_supplier": tool_get_supplier,
@@ -544,8 +551,20 @@ async def mcp_tools_call(req: MCPCallRequest):
     handler = handlers.get(req.name)
     if not handler:
         raise HTTPException(404, f"Unknown tool: {req.name}")
+
+    # عزل المستأجِر الحاسم: tenant_id من التوكن المُتحقَّق لا من جسم الطلب (كان قابلاً
+    # للانتحال ⇒ قراءة/كتابة عابرة المستأجرين). نحقن المُتحقَّق فوق أيّ قيمة مُرسَلة.
+    trusted_tenant = user.get("tenant_id")
+    if not trusted_tenant:
+        raise HTTPException(401, "Token missing tenant_id")
+    args = dict(req.arguments or {})
+    args["tenant_id"] = trusted_tenant
+    # أدوات الكتابة/الصرف تتطلّب market:write (كانت بـmarket:read فقط ⇒ توكن قراءة يشتري).
+    scopes = (user.get("scope", "") or "").split()
+    if req.name in _MARKET_WRITE_TOOLS and not ("market:write" in scopes or "admin" in scopes):
+        raise HTTPException(403, "scope 'market:write' required for write operations")
     try:
-        result = await handler(req.arguments)
+        result = await handler(args)
         return {
             "content": [
                 {"type": "text", "text": json.dumps(result, ensure_ascii=False, default=str)}

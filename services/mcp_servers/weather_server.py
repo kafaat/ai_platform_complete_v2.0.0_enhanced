@@ -155,7 +155,7 @@ async def _execute(name: str, args: dict) -> dict:
         }
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await retry_request(
-                client.get(f"{OPEN_METEO_URL}/forecast", params=params, timeout=30.0)
+                client.get, f"{OPEN_METEO_URL}/forecast", params=params, timeout=30.0
             )
             resp.raise_for_status()
             data = resp.json()
@@ -239,7 +239,7 @@ async def _execute(name: str, args: dict) -> dict:
         }
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await retry_request(
-                client.get(f"{OPEN_METEO_URL}/archive", params=params, timeout=30.0)
+                client.get, f"{OPEN_METEO_URL}/archive", params=params, timeout=30.0
             )
             resp.raise_for_status()
             data = resp.json()
