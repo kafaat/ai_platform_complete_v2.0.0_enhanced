@@ -48,6 +48,9 @@ class OfflineFieldMap extends StatefulWidget {
   // رابط بلاطات الشبكة (fallback عند توفّر اتّصال).
   final String networkTileUrl;
   final List<Polygon> fieldPolygons;
+  // إطار اختياريّ لتأطير حقل المستخدم (fitBounds): إن وُجد، تفتح الخريطة مُؤطِّرةً
+  // حقله بدل مركز/تكبير ثابتين — «التركيز على حقل المستخدم». بلا قيمة ⇒ center/zoom.
+  final LatLngBounds? bounds;
 
   // ── وضع الرسم (اختياريّ — لمعالج إنشاء الحقل) ──
   // عند true: النقر على الخريطة يضيف رأساً إلى المضلّع الجاري رسمه، وتُرسَم
@@ -78,6 +81,7 @@ class OfflineFieldMap extends StatefulWidget {
         'https://server.arcgisonline.com/ArcGIS/rest/services/'
         'World_Imagery/MapServer/tile/{z}/{y}/{x}',
     this.fieldPolygons = const [],
+    this.bounds,
     this.drawingEnabled = false,
     this.drawingPoints = const [],
     this.onPolygonChanged,
@@ -282,6 +286,14 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
       children: [
         FlutterMap(
           options: MapOptions(
+            // إن توفّر إطار حقل المستخدم نُؤطّره (fitBounds مع حاشية)؛ وإلّا
+            // مركز/تكبير ثابتان. flutter_map يُفضّل initialCameraFit إن وُجد.
+            initialCameraFit: widget.bounds != null
+                ? CameraFit.bounds(
+                    bounds: widget.bounds!,
+                    padding: const EdgeInsets.all(40),
+                  )
+                : null,
             initialCenter: widget.center,
             initialZoom: widget.zoom,
             onTap: widget.drawingEnabled ? _onMapTap : null,
