@@ -2817,6 +2817,11 @@ async def field_recommendations(
         today=date.today(),
         sowing_date=sowing_date,
     )
+    # Stage F (تغذية آمنة): مرّر مرجعيّة النواة الزراعيّة الموحّدة للمُجمِّع — تصعيد/
+    # تنبيه فقط (تنبيه ملوحة حرجة) لا استبدال أرقام. صدق: غياب الحقائق ⇒ لا تصعيد.
+    _agro_truths = (field_state.get("agronomic") or {}).get("operational_truths") or {}
+    ctx.salinity_class = _agro_truths.get("salinity_class")
+    ctx.crop_vigor = _agro_truths.get("crop_vigor")
 
     # الطقس اختياريّ: نملأ سياقه إن توفّرت الإحداثيّات والمصدر. تعذّره لا يُسقط
     # الطلب — نكتفي بالتوصيات التي لا تحتاجه (تدهور رشيق، لا تلفيق).
