@@ -43,7 +43,9 @@ class TestWaterCost:
             grid_efficiency=0.9,
         )
         r = water_cost.water_cost_per_m3(inp)
-        assert r["mid"] > 0
+        # قيمة محسوبة بالضبط (لا مجرّد >0): 120م، ديزل 0.8$/L، η0.6 ⇒ 0.1453$/م³.
+        assert r["mid"] == 0.1453
+        assert r["low"] < r["mid"] < r["high"]  # النطاق يحيط بالوسط
         assert "basis" in r
 
     def test_seasonal_scales_with_area(self):
@@ -61,8 +63,12 @@ class TestWaterCost:
             grid_price_usd_per_kwh=0.1,
             grid_efficiency=0.9,
         )
-        r = water_cost.seasonal_water_cost(inp, etc_m3_per_ha=5000, area_ha=10)
-        assert r["cost_mid_usd"] > 0 and r["total_m3"] == 50000
+        r10 = water_cost.seasonal_water_cost(inp, etc_m3_per_ha=5000, area_ha=10)
+        assert r10["cost_mid_usd"] == 7265.0 and r10["total_m3"] == 50000
+        # تحقّق فعليّ من التحجيم بالمساحة (الاسم يَعِد به): ضعف المساحة ⇒ ضعف الكلفة.
+        r20 = water_cost.seasonal_water_cost(inp, etc_m3_per_ha=5000, area_ha=20)
+        assert r20["total_m3"] == 100000
+        assert r20["cost_mid_usd"] == 2 * r10["cost_mid_usd"]
 
 
 class TestYieldInterval:
