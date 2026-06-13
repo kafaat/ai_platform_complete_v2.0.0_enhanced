@@ -37,6 +37,8 @@ services:
     image: nginx:1.27-alpine
     container_name: sahool-nginx
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -91,6 +93,8 @@ services:
     image: postgis/postgis:15-3.4
     container_name: sahool-postgres
     mem_limit: 1g
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     # منفذ مكشوف للمضيف فقط — إذا لم تحتاجه من الخارج، أزل السطر التالي
@@ -120,6 +124,8 @@ services:
     image: redis:7-alpine
     container_name: sahool-redis
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     # FIX: لا تكشف Redis للمضيف إلا إذا احتجت debugging
@@ -157,6 +163,8 @@ services:
     image: nats:2-alpine
     container_name: sahool-nats
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     command: >
@@ -185,6 +193,8 @@ services:
     image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-10-13T13-34-11Z}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-minio
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -214,6 +224,8 @@ services:
     image: qdrant/qdrant:v1.17.1  # مثبّت على مستقرّ حديث (آخر GitHub، مارس 2026)؛ نشر جديد فلا هجرة RocksDB
     container_name: sahool-qdrant
     mem_limit: 2g
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     # لا تكشف Qdrant للمضيف إلا إذا احتجت debugging
@@ -243,6 +255,8 @@ services:
     image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}  # تحقّق/حدّث الوسم؛ digest أقوى
     container_name: sahool-ollama
     mem_limit: 4g
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     # GPU اختياري — أزل deploy.resources إذا لم تكن بحاجة لها
@@ -280,6 +294,8 @@ services:
       dockerfile: services/auth/Dockerfile
     container_name: sahool-auth
     mem_limit: 512m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -319,6 +335,8 @@ services:
       dockerfile: services/sahool-platform/Dockerfile
     container_name: sahool-platform
     mem_limit: 1g
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -351,6 +369,8 @@ services:
       dockerfile: services/supervisor-agent/Dockerfile
     container_name: sahool-supervisor-agent
     mem_limit: 768m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -383,6 +403,8 @@ services:
       dockerfile: services/guardrails-engine/Dockerfile
     container_name: sahool-guardrails-engine
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -413,6 +435,8 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     container_name: sahool-sentinel-hub-mcp
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -433,6 +457,8 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     container_name: sahool-weather-mcp
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -451,6 +477,8 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     container_name: sahool-wofost-mcp
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -469,6 +497,8 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     container_name: sahool-market-mcp
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -496,6 +526,8 @@ services:
       dockerfile: services/vegetation-analysis-service/Dockerfile
     container_name: sahool-vegetation-analysis
     mem_limit: 768m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -529,6 +561,8 @@ services:
       dockerfile: services/raster-service/Dockerfile
     container_name: sahool-raster-service
     mem_limit: 1536m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -566,6 +600,8 @@ services:
     container_name: sahool-titiler
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
     mem_limit: 1024m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -588,6 +624,8 @@ services:
       dockerfile: services/indicators-service/Dockerfile
     container_name: sahool-indicators-service
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -619,6 +657,8 @@ services:
       dockerfile: services/weather-service/Dockerfile
     container_name: sahool-weather-service
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -644,6 +684,8 @@ services:
       dockerfile: services/actuator-service/Dockerfile
     container_name: sahool-actuator-service
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -672,6 +714,8 @@ services:
       dockerfile: services/edge-inference/Dockerfile.arm64
     container_name: sahool-edge
     mem_limit: 1536m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -721,6 +765,8 @@ services:
       dockerfile: services/local-ai-rag/Dockerfile
     container_name: sahool-local-ai-rag
     mem_limit: 2g
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -756,6 +802,8 @@ services:
       dockerfile: services/qdrant-seed/Dockerfile
     container_name: sahool-qdrant-seed
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: "no"
     logging: *default_logging
     environment:
@@ -782,6 +830,8 @@ services:
       dockerfile: services/odoo-bridge/Dockerfile
     container_name: sahool-odoo-bridge
     mem_limit: 512m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -825,6 +875,8 @@ services:
     # مفتاح التبديل: يعمل فقط مع --profile odoo (أو ERP_PROVIDER=odoo)
     profiles: ["odoo"]
     mem_limit: 1536m   # FIX: Odoo 17 يحتاج ~1GB+ — 384m كان يسبّب OOM kill عند البدء
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -881,6 +933,8 @@ services:
       dockerfile: bots/telegram/Dockerfile
     container_name: sahool-telegram-bot
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -920,6 +974,8 @@ services:
       dockerfile: agents/notification/Dockerfile
     container_name: sahool-notification-agent
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     environment:
@@ -961,6 +1017,8 @@ services:
         VITE_WS_URL: ${VITE_WS_URL:-/ws}
     container_name: sahool-frontend
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -983,6 +1041,8 @@ services:
     image: prom/prometheus:v2.53.0
     container_name: sahool-prometheus
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -1007,6 +1067,8 @@ services:
     image: prom/alertmanager:v0.27.0
     container_name: sahool-alertmanager
     mem_limit: 128m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -1027,6 +1089,8 @@ services:
     image: grafana/grafana:10.4.5
     container_name: sahool-grafana
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
@@ -1053,6 +1117,8 @@ services:
     image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.57}
     container_name: sahool-jaeger
     mem_limit: 384m
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
     ports:
