@@ -14,7 +14,7 @@ type View = 'login' | 'reset-request' | 'reset-confirm';
 
 export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
   const [view, setView]       = useState<View>('login');
-  const [email, setEmail]     = useState('admin@sahool.ye');
+  const [email, setEmail]     = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
@@ -181,12 +181,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
             />
           )}
 
-          {/* Footer hint */}
-          {view === 'login' && (
-            <div className="mt-6 p-3 rounded-xl text-xs text-center" style={{ background:'#0f1117', color:'#475569' }}>
-              <p>مدير: <span className="text-emerald-600">admin@sahool.ye</span> / Admin@2026!</p>
-            </div>
-          )}
+          {/* أُزيل تلميح بيانات اعتماد المدير (تسريب حرج: كلمة سرّ على شاشة الدخول). */}
         </div>
 
         <p className="text-center text-xs text-slate-600 mt-4">
