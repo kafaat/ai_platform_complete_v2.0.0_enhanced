@@ -30,7 +30,10 @@ v9_odoo_bridge.sql
 v9_edge_idempotency.sql
 v9_edge_occurred_at.sql
 v9_rls_tenant_isolation.sql
-v9_append_only_enforcement.sql
+# نُقِل v9_append_only_enforcement.sql إلى نهاية الـMANIFEST: كان يُطبَّق هنا
+# (موضع ١٤) قبل إنشاء events (v11) وfield_lifecycle_transitions (v10) و
+# lifecycle_temporal_rejections (v9_lifecycle_occurred_at)، فحارس IF EXISTS
+# يتخطّاها صامتاً ⇒ السجلّ غير المحميّ (UPDATE/DELETE ممكنان). idempotent فالنقل آمن.
 v10_command_store_lifecycle.sql
 # FIX: v9_lifecycle_occurred_at يُعدّل field_lifecycle_transitions المُنشأ في
 # v10 — لذا يجب أن يأتي بعده (كان قبله ⇒ "relation does not exist").
@@ -166,3 +169,7 @@ v50_soil_lab_tests.sql
 # v51: إصلاحات المراجعة (جولة ٢) — توسيع events.entity_type (activity/soil_lab_test)،
 # RLS على lifecycle_temporal_rejections، وقصر requeue على مستأجِر السياق. idempotent.
 v51_review_round2_fixes.sql
+# فرض append-only (immutability) — يُطبَّق أخيراً كي توجد events/field_lifecycle_transitions/
+# lifecycle_temporal_rejections فعليّاً وقت تركيب trigger الحظر (كان موضعه الأصليّ يسبق
+# إنشاءها فيتخطّاها). idempotent (DROP TRIGGER IF EXISTS) — آمن إعادة التطبيق كلّ إقلاع.
+v9_append_only_enforcement.sql

@@ -42,6 +42,7 @@ CREATE INDEX IF NOT EXISTS idx_commands_status         ON commands(status) WHERE
 -- RLS — tenant isolation على الـcommands
 ALTER TABLE commands ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS commands_tenant_isolation ON commands;  -- idempotency (المُشغِّل يُعيد التطبيق كلّ إقلاع)
 CREATE POLICY commands_tenant_isolation ON commands
     USING (
         -- fail-closed: لو app.current_tenant غير مضبوط (NULL) → لا صفوف
@@ -99,6 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_field_lifecycle_field ON field_lifecycle(field_id
 CREATE INDEX IF NOT EXISTS idx_field_lifecycle_stage ON field_lifecycle(current_stage, stage_entered_at);
 
 ALTER TABLE field_lifecycle ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS field_lifecycle_tenant_isolation ON field_lifecycle;  -- idempotency
 CREATE POLICY field_lifecycle_tenant_isolation ON field_lifecycle
     USING (
         -- fail-closed: لو app.current_tenant غير مضبوط (NULL) → لا صفوف

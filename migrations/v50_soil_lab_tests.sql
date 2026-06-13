@@ -32,7 +32,7 @@ ALTER TABLE soil_lab_tests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE soil_lab_tests FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation ON soil_lab_tests;
 CREATE POLICY tenant_isolation ON soil_lab_tests
-    USING (tenant_id = NULLIF(current_setting('app.current_tenant', TRUE), '')::UUID);
+    USING (tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', TRUE), ''));
 
 COMMENT ON TABLE soil_lab_tests IS
     'دورة حياة فحص التربة المخبري (عيّنة→مختبر→نتيجة→اعتماد→نشر). نمط seasons/activities. v50.';
