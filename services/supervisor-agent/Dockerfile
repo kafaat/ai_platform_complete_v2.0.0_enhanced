@@ -1,6 +1,7 @@
 FROM python:3.11-slim-bookworm
 WORKDIR /app
-RUN apt-get update && apt-get install -y gcc curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends gcc curl \
+    && rm -rf /var/lib/apt/lists/*
 COPY services/supervisor-agent/requirements.txt /tmp/req.txt
 # ── PyPI الرسمي (افتراضي، يعمل عالميّاً) — للمرآة الصينيّة مرّر --build-arg ──
 # البديل: https://mirrors.aliyun.com/pypi/simple/ (علي بابا)
@@ -11,7 +12,8 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 RUN pip install --no-cache-dir --timeout 120 --retries 5 -r /tmp/req.txt
 COPY shared/ /app/shared/
 COPY services/supervisor-agent/ /app/
-HEALTHCHECK --interval=30s CMD curl -sf http://localhost:8000/readyz || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD curl -sf http://localhost:8000/readyz || exit 1
 RUN useradd -m sahool && chown -R sahool:sahool /app 2>/dev/null || true
 USER sahool
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
