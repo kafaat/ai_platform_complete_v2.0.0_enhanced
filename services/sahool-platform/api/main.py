@@ -7239,15 +7239,53 @@ from api.disease_diagnosis import diagnose, list_symptoms  # noqa: E402
 class DiagnoseRequest(BaseModel):
     crop: str
     symptoms: list[str]
+    # تغذية آمنة اختياريّة: عند تمرير field_id نُرفِق سياق الحالة القانونيّة
+    # الموحّدة بالاستجابة. غيابه (None) ⇒ السلوك الحاليّ تماماً (لا إرفاق).
+    field_id: str | None = None
 
 
 @app.post("/api/v1/diagnose")
-def diagnose_symptoms(
+async def diagnose_symptoms(
     req: DiagnoseRequest,
     user: UserSchema = Depends(get_current_user),
 ):
-    """تشخيص أوّلي بقواعد الأعراض (لا قاطع — يوصي بتأكيد بشري/مختبر)."""
-    return diagnose(req.crop, req.symptoms).to_dict()
+    """تشخيص أوّلي بقواعد الأعراض (لا قاطع — يوصي بتأكيد بشري/مختبر).
+
+    تغذية آمنة (Stage F): عند تمرير field_id نُرفِق كتلة field_state من الحالة
+    القانونيّة الموحّدة (validity/execution_mode/operational_truths) وملاحظة
+    مرجعيّة عند ملوحة تربة حرجة — دون تغيير قواعد التشخيص أو أرقامه. fail-safe:
+    تعذّر الحالة أو غياب field_id ⇒ يُعاد التشخيص الأصليّ بلا إرفاق.
+    """
+    result = diagnose(req.crop, req.symptoms).to_dict()
+
+    if req.field_id:
+        try:
+            from api.field_state_projection import recompute_field_state
+
+            async with tenant_connection(user) as conn:
+                field_state = (await recompute_field_state(conn, req.field_id))["state"]
+            # نُرفِق مقتطفاً من الحالة الموحّدة (لا نغيّر التشخيص).
+            _agro = field_state.get("agronomic") or {}
+            _truths = _agro.get("operational_truths") or {}
+            result["field_state"] = {
+                "validity": field_state.get("validity"),
+                "execution_mode": field_state.get("execution_mode"),
+                "agronomic": {"operational_truths": _truths},
+            }
+            # ملاحظة مرجعيّة فقط عند ملوحة حرجة — إجهاد الملوحة قد يحاكي/يفاقم
+            # أعراض الأمراض. لا تغيير لقواعد/نتيجة التشخيص.
+            if _truths.get("salinity_class") == "critical":
+                result.setdefault("advisory_notes_ar", []).append(
+                    "إجهاد الملوحة قد يحاكي/يفاقم أعراض الأمراض — راجِع حالة التربة."
+                )
+        except Exception:  # noqa: BLE001 — تغذية best-effort، لا تكسر التشخيص
+            logger.warning(
+                "diagnose: تعذّر إرفاق الحالة الموحّدة للحقل %s — يُعاد التشخيص بلا حالة",
+                req.field_id,
+                exc_info=True,
+            )
+
+    return result
 
 
 @app.get("/api/v1/diagnose/symptoms")
