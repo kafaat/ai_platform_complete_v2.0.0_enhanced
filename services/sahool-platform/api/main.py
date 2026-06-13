@@ -2110,6 +2110,155 @@ async def list_seasons(
     return [_row_to_season(r) for r in rows]
 
 
+class SeasonUpdateRequest(BaseModel):
+    """تحديث موسم قائم (تحديث جزئيّ — الحقول الممرَّرة فقط). status بانتقال محقَّق."""
+
+    status: str | None = None
+    crops: list[str] | None = None
+    cultivar: str | None = Field(default=None, max_length=100)
+    irrigation_type: str | None = None
+    seed_rate_kg_ha: float | None = Field(default=None, ge=0)
+    sowing_date: str | None = None
+    season_end: str | None = None
+    target_yield_kg_ha: float | None = Field(default=None, ge=0)
+    plant_density: float | None = Field(default=None, ge=0)
+    row_spacing_cm: float | None = Field(default=None, ge=0)
+    seed_variety_source: str | None = Field(default=None, max_length=100)
+
+
+_SEASON_SELECT_COLS = (
+    "season_id, field_id, crops, cultivar, irrigation_type, seed_rate_kg_ha, "
+    "land_leveling_date, plowing_date, sowing_date, season_end, stages, status, "
+    "created_at, target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source, "
+    "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, sim_water_mm, sim_ran_at"
+)
+
+
+@app.patch("/api/v1/fields/{field_id}/seasons/{season_id}", response_model=SeasonSummary)
+async def update_season(
+    field_id: str,
+    season_id: str,
+    req: SeasonUpdateRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """يحدّث موسماً قائماً (تحديث جزئيّ) — يُصدِر SEASON_UPDATED (+SEASON_CLOSED عند الإغلاق).
+
+    حالة الموسم تتغيّر بانتقال محقَّق فقط (season_lifecycle): planned→active/closed،
+    active→closed، والمُغلَق نهائيّ (422 لغيره). تأكيد ملكيّة الحقل (404)؛ والموسم
+    يخصّ الحقل (404). انتقال planned→active وهناك نشط ⇒ 409. 503 عند تعذّر القاعدة.
+    """
+    import asyncpg as _asyncpg
+
+    from api.season_lifecycle import SeasonTransitionError, validate_status_transition
+
+    if req.irrigation_type is not None and req.irrigation_type not in _IRRIGATION_TYPES:
+        raise HTTPException(status_code=422, detail="نوع ريّ غير معروف")
+    sow = _parse_date(req.sowing_date, "البذار") if req.sowing_date is not None else None
+    end = _parse_date(req.season_end, "نهاية الموسم") if req.season_end is not None else None
+    if end and sow and end < sow:
+        raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
+
+    # أعمدة قابلة للتحديث (column, value) — الحقول الممرَّرة فقط، JSONB مُعلَّم.
+    fields_set = req.model_fields_set
+    updates: list[tuple[str, object, bool]] = []  # (col, value, is_jsonb)
+    if "crops" in fields_set:
+        import json as _json
+
+        updates.append(("crops", _json.dumps(req.crops or []), True))
+    if "cultivar" in fields_set:
+        updates.append(("cultivar", req.cultivar, False))
+    if req.irrigation_type is not None:
+        updates.append(("irrigation_type", req.irrigation_type, False))
+    if "seed_rate_kg_ha" in fields_set:
+        updates.append(("seed_rate_kg_ha", req.seed_rate_kg_ha, False))
+    if req.sowing_date is not None:
+        updates.append(("sowing_date", sow, False))
+    if req.season_end is not None:
+        updates.append(("season_end", end, False))
+    for kpi in ("target_yield_kg_ha", "plant_density", "row_spacing_cm", "seed_variety_source"):
+        if kpi in fields_set:
+            updates.append((kpi, getattr(req, kpi), False))
+
+    if not updates and req.status is None:
+        raise HTTPException(status_code=422, detail="لا حقول للتحديث")
+
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            async with conn.transaction():
+                current = await conn.fetchrow(
+                    "SELECT status FROM seasons WHERE season_id = $1 AND field_id = $2 FOR UPDATE",
+                    season_id,
+                    field_id,
+                )
+                if current is None:
+                    raise HTTPException(status_code=404, detail="الموسم غير موجود لهذا الحقل")
+
+                status_changed = False
+                if req.status is not None:
+                    try:
+                        status_changed = validate_status_transition(current["status"], req.status)
+                    except SeasonTransitionError as te:
+                        raise HTTPException(
+                            status_code=te.http_status, detail=te.message_ar
+                        ) from te
+                    if status_changed:
+                        updates.append(("status", req.status, False))
+
+                if updates:
+                    set_parts, params = [], []
+                    for col, value, is_jsonb in updates:
+                        params.append(value)
+                        cast = "::jsonb" if is_jsonb else ""
+                        set_parts.append(f"{col} = ${len(params)}{cast}")
+                    params.extend([season_id, field_id])
+                    await conn.execute(
+                        f"UPDATE seasons SET {', '.join(set_parts)} "
+                        f"WHERE season_id = ${len(params) - 1} AND field_id = ${len(params)}",
+                        *params,
+                    )
+
+                # حدث التحديث + حدث الإغلاق المخصَّص عند الانتقال إلى closed.
+                changed_fields = [c for c, _, _ in updates]
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "SEASON_UPDATED",
+                    "season",
+                    season_id,
+                    {"field_id": field_id, "changed_fields": changed_fields},
+                )
+                if status_changed and req.status == "closed":
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "SEASON_CLOSED",
+                        "season",
+                        season_id,
+                        {"field_id": field_id, "reason": "explicit_update"},
+                    )
+
+                row = await conn.fetchrow(
+                    f"SELECT {_SEASON_SELECT_COLS} FROM seasons WHERE season_id = $1",
+                    season_id,
+                )
+    except HTTPException:
+        raise
+    except _asyncpg.UniqueViolationError as e:
+        if getattr(e, "constraint_name", None) != "uq_seasons_one_active":
+            raise _db_unavailable("تحديث الموسم", e) from e
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message_ar": "يوجد موسم نشط لهذا الحقل بالفعل — أغلقه قبل تفعيل آخر.",
+                "code": "active_season_conflict",
+            },
+        ) from e
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("تحديث الموسم", e) from e
+    return _row_to_season(row)
+
+
 # ─── محاكاة الموسم (Crop-model simulation) — v39 ─────────────────
 # نموذج محصولي حقيقي خفيف (RUE/FAO-56، نقيّ ومُختبَر في api.season_simulation):
 # تراكم GDD + كتلة حيويّة عبر كفاءة استخدام الإشعاع + مؤشّر LAI + احتياج الماء،

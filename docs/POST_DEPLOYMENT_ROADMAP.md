@@ -105,7 +105,10 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
   — **مُنفَّذ** (AUDIT_VIEW، مُرشَّح بالمستأجِر). عرض ops عابر المستأجرين = شأن superuser مؤجَّل.
 - ✅ **توسيع تغطية الأحداث:** `DELETE /api/v1/fields/{id}` يُصدِر `FIELD_DELETED`
   (محروس: 409 لو موسم نشط)؛ و`SEASON_CLOSED` يُصدَر عند الإغلاق الآليّ في إنشاء
-  موسم جديد — **مُنفَّذ**. (تحديث الموسم الصريح: عند إضافة endpoint تحديث موسم.)
+  موسم جديد — **مُنفَّذ**. وتحديث الموسم الصريح: `PATCH /api/v1/fields/{id}/seasons/{sid}`
+  يُصدِر `SEASON_UPDATED` (+`SEASON_CLOSED` عند الإغلاق)، بانتقال حالة محقَّق
+  (`api/season_lifecycle.py` — planned→active/closed، active→closed، المُغلَق نهائيّ)
+  — **مُنفَّذ** (٧ اختبارات offline؛ انظر `docs/SEASON_UPDATE.md`).
 - ☐ **`farm_id` إلزاميّ:** نافذة انتقاليّة (ترحيل البيانات بلا مزرعة → افتراضيّة، ثمّ
   `NOT NULL` + إلزام الواجهة بإنشاء مزرعة أوّلاً — منطق `canCreateFarm` جاهز).
 - ☐ **Workflow مخبري للتربة:** عيّنة → نتيجة مختبر → اعتماد → إصدارات (جداول +
