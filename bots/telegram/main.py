@@ -39,6 +39,7 @@ from aiogram.types import (
     Message,
     ReplyKeyboardMarkup,
 )
+from aiogram.utils.token import TokenValidationError
 
 logger = logging.getLogger("sahool.telegram")
 
@@ -141,10 +142,23 @@ if not BOT_TOKEN:
 # ─── Bot Setup ─────────────────────────────────────────────
 # aiogram 3.7+ أزال parse_mode كمعامل لـBot() ⇒ نمرّره عبر DefaultBotProperties
 # (تمريره مباشرةً يرمي TypeError وقت التشغيل على 3.7+، بما فيها 3.10/3.28).
-bot = Bot(
-    token=BOT_TOKEN,
-    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN_V2),
-)
+# B3 fix (متابعة): التوكن قد يكون غير فارغ لكنّه placeholder غير صالح (مثل
+# "your-telegram-token-here") ⇒ aiogram يرمي TokenValidationError. حارس الفراغ
+# أعلاه لا يلتقطه، فيظلّ crash-loop مع restart:unless-stopped. نلتقطه هنا ونخرج
+# نظيفاً (exit 0، البوت معطّل) — مطابقةً لسلوك التوكن الفارغ، لا انهيار متكرّر.
+try:
+    bot = Bot(
+        token=BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN_V2),
+    )
+except TokenValidationError:
+    logger.warning(
+        "TELEGRAM_BOT_TOKEN غير صالح (placeholder/تنسيق خاطئ) — "
+        "البوت معطّل (خروج نظيف، لا crash-loop)"
+    )
+    import sys as _sys
+
+    _sys.exit(0)
 
 
 def _md2(text: str) -> str:
