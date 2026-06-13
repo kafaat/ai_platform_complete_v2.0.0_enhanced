@@ -18,13 +18,20 @@ import axios, { type AxiosInstance } from 'axios';
 const IS_LOCAL = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-const KONG_URL       = import.meta.env.VITE_API_URL             || (IS_LOCAL ? 'http://localhost:8000' : '/api');
-const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL         || 'http://localhost:8092';
-const SOIL_URL       = import.meta.env.VITE_SOIL_URL            || 'http://localhost:8094';
-const INDICATORS_URL = import.meta.env.VITE_INDICATORS_URL      || 'http://localhost:8091';
-const VEGETATION_URL = import.meta.env.VITE_VEGETATION_URL      || 'http://localhost:8090';
-const RASTER_URL     = import.meta.env.VITE_RASTER_URL          || 'http://localhost:8099';
-const AUTH_URL       = import.meta.env.VITE_AUTH_URL            || 'http://localhost:8120';
+// ملاحظة (إصلاح اتّصال الإنتاج): خارج التطوير المحلّيّ، تُوجَّه كلّ العملاء عبر
+// البوّابة (nginx) بمسارات نسبيّة — كان السقوط لـlocalhost:81xx يكسر تسجيل الدخول
+// وكلّ الخدمات في المتصفّح المنشور. المسارات النسبيّة مطابقة لتوجيه nginx:
+//   /auth → خدمة auth (nginx /auth/ يُجرّد ثمّ الخدمة تخدم /auth/*)
+//   /api/vegetation, /api/indicators, /api/raster → الخدمات (تجريد البادئة)
+//   /api(=KONG) + /weather/* → platform /api/v1/weather/* (nginx /api/weather/)
+// التطوير المحلّيّ (IS_LOCAL) يبقى على localhost كما كان (لا كسر)؛ وVITE_*_URL يَسبق.
+const KONG_URL       = import.meta.env.VITE_API_URL        || (IS_LOCAL ? 'http://localhost:8000' : '/api');
+const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL    || (IS_LOCAL ? 'http://localhost:8092' : '/api');
+const SOIL_URL       = import.meta.env.VITE_SOIL_URL       || (IS_LOCAL ? 'http://localhost:8094' : '/api/soil');
+const INDICATORS_URL = import.meta.env.VITE_INDICATORS_URL || (IS_LOCAL ? 'http://localhost:8091' : '/api/indicators');
+const VEGETATION_URL = import.meta.env.VITE_VEGETATION_URL || (IS_LOCAL ? 'http://localhost:8090' : '/api/vegetation');
+const RASTER_URL     = import.meta.env.VITE_RASTER_URL     || (IS_LOCAL ? 'http://localhost:8099' : '/api/raster');
+const AUTH_URL       = import.meta.env.VITE_AUTH_URL       || (IS_LOCAL ? 'http://localhost:8120' : '/auth');
 const MOCK_MODE      = import.meta.env.VITE_MOCK_MODE === 'true' || false;
 
 // ── Axios instances ────────────────────────────────────────────
