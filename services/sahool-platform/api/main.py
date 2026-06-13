@@ -9272,7 +9272,7 @@ async def field_canonical_state(
 # يستدعيها supervisor بـX-Agent-Token + مستأجِر صريح ليُمرِّر الحالة لـguardrails،
 # فتمرّ قرارات الحَوكمة عبر مصدر الحقيقة الواحد. **ليست تحت /api/** (لا يوجّهها
 # nginx العامّ ⇒ غير قابلة للوصول من الإنترنت؛ داخليّة على الشبكة فقط).
-def _require_service_token(x_agent_token: str = Header(None, alias="X-Agent-Token")) -> None:
+def _require_service_token(x_agent_token: str | None = Header(None, alias="X-Agent-Token")) -> None:
     """يحمي النقاط الداخليّة بالتوكن الخدميّ (fail-closed): يُرفض إن غاب السرّ أو اختلف."""
     expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
     if not expected or x_agent_token != expected:

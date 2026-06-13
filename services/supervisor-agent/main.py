@@ -69,8 +69,11 @@ mcp_client = MCPClient(
 # بوّابة القرار المركزيّة — التوصيات تمرّ عبرها (حَوكمة موحّدة)
 GUARDRAILS_URL = os.getenv("GUARDRAILS_URL", "http://sahool-guardrails-engine:8000")
 # المنصّة — لجلب الحالة القانونيّة للحقل (Canonical Field State) وإرفاقها بسياق
-# الحَوكمة، فتمرّ قرارات guardrails عبر مصدر الحقيقة الواحد.
-PLATFORM_URL = os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
+# الحَوكمة، فتمرّ قرارات guardrails عبر مصدر الحقيقة الواحد. نعتمد PLATFORM_SERVICE_URL
+# (نفس اسم field_intelligence_adapters) مع PLATFORM_URL توافقاً خلفيّاً.
+PLATFORM_URL = os.getenv(
+    "PLATFORM_SERVICE_URL", os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
+)
 
 
 async def _fetch_field_state(client, field_id, tenant_id):
