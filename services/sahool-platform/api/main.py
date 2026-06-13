@@ -9268,6 +9268,63 @@ async def field_canonical_state(
     return result["state"]
 
 
+# ─── ٥٧-ج. قناة خدمة-لخدمة للحالة القانونيّة (للمنسّق/guardrails) ──
+# يستدعيها supervisor بـX-Agent-Token + مستأجِر صريح ليُمرِّر الحالة لـguardrails،
+# فتمرّ قرارات الحَوكمة عبر مصدر الحقيقة الواحد. **ليست تحت /api/** (لا يوجّهها
+# nginx العامّ ⇒ غير قابلة للوصول من الإنترنت؛ داخليّة على الشبكة فقط).
+def _require_service_token(x_agent_token: str | None = Header(None, alias="X-Agent-Token")) -> None:
+    """يحمي النقاط الداخليّة بالتوكن الخدميّ (fail-closed): يُرفض إن غاب السرّ أو اختلف."""
+    expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if not expected or x_agent_token != expected:
+        raise HTTPException(status_code=403, detail="نقطة داخليّة محميّة بـSAHOOL_AGENT_TOKEN")
+
+
+@_asynccontextmanager
+async def tenant_connection_for(tenant_id: str):
+    """مثل tenant_connection لكن بمستأجِر صريح (لا user) — لقنوات الخدمة-لخدمة.
+
+    ليس تجاوزاً لـRLS: يضبط app.current_tenant على المستأجِر المُمرَّر صراحةً فيظلّ
+    العزل مفروضاً على ذلك المستأجِر فقط (الخدمة تتصرّف نيابةً عنه بعد تحقّق التوكن).
+    """
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true), "
+                "       set_config('app.current_user_id', $2, true), "
+                "       set_config('app.current_role', $3, true)",
+                str(tenant_id),
+                "service",
+                "service",
+            )
+            yield conn
+
+
+@app.get("/internal/fields/{field_id}/state")
+async def internal_field_state(
+    field_id: str,
+    tenant_id: str = Query(..., description="معرّف المستأجِر الصريح (خدمة-لخدمة)"),
+    _: None = Depends(_require_service_token),
+):
+    """الحالة القانونيّة للحقل لقنوات الخدمة (supervisor→guardrails).
+
+    محميّة بـX-Agent-Token + مستأجِر صريح (عزل RLS عبر tenant_connection_for).
+    404 إن لم يكن الحقل ضمن المستأجِر؛ 503 عند تعذّر القاعدة. تُعيد نفس عقد
+    /api/v1/fields/{id}/state (validity/execution_mode/remote_sensing/inputs).
+    """
+    from api.field_state_projection import recompute_field_state
+
+    try:
+        async with tenant_connection_for(tenant_id) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            result = await recompute_field_state(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة الحالة القانونيّة (خدمة)", e) from e
+    return result["state"]
+
+
 # ─── ٥٨. حالة جدولة الأتمتة (مراقبة) ──
 @app.get("/api/v1/automation/scheduler-status")
 def scheduler_status_endpoint():
