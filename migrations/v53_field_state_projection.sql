@@ -29,6 +29,10 @@ CREATE TABLE IF NOT EXISTS field_state (
 -- عزل المستأجِر (نفس النمط القانونيّ للمنصّة). USING تُستخدَم أيضاً كـWITH CHECK
 -- عند غيابها ⇒ UPSERT مسموح فقط حين tenant_id = المستأجِر الحاليّ.
 ALTER TABLE field_state ENABLE ROW LEVEL SECURITY;
+-- FORCE صراحةً: هذا الجدول يُنشأ بعد v9_rls_force_all في MANIFEST، فلا يلتقطه فرضه
+-- في إقلاع نظيف ⇒ سيتجاوز مالكُ الجدول السياسةَ. نفرضه هنا (idempotent) كي يُطبَّق
+-- العزل حتى على المالك فوراً. (ملاحظة مراجعة Copilot — PR #131.)
+ALTER TABLE field_state FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation ON field_state;
 CREATE POLICY tenant_isolation ON field_state
     USING (tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', TRUE), ''));

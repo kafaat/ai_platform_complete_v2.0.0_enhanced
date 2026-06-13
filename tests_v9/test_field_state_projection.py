@@ -104,6 +104,28 @@ def test_field_state_changed_event_registered(core_on_path):
     assert EventType["FIELD_STATE_CHANGED"].value == "field.state_changed"
 
 
+def test_rls_tables_after_force_all_are_explicitly_forced():
+    """كلّ جدول يُفعّل RLS ويُنشأ بعد v9_rls_force_all يجب أن يَفرض RLS صراحةً.
+
+    v9_rls_force_all يفرض RLS على الجداول الموجودة وقت تشغيله فقط؛ الجداول المُنشأة
+    بعده (في إقلاع نظيف) لا يلتقطها ⇒ يتجاوز مالكُ الجدول العزلَ. هذا الحارس يمنع
+    تكرار الثغرة (ملاحظة مراجعة Copilot — PR #131).
+    """
+    mdir = os.path.join(ROOT, "migrations")
+    with open(os.path.join(mdir, "MANIFEST.txt"), encoding="utf-8") as f:
+        order = [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
+    force_all_idx = order.index("v9_rls_force_all.sql")
+    offenders = []
+    for fname in order[force_all_idx + 1 :]:
+        path = os.path.join(mdir, fname)
+        if not os.path.exists(path):
+            continue
+        sql = open(path, encoding="utf-8").read()
+        if "ENABLE ROW LEVEL SECURITY" in sql and "FORCE ROW LEVEL SECURITY" not in sql:
+            offenders.append(fname)
+    assert offenders == [], f"جداول تُفعّل RLS بلا FORCE بعد v9_rls_force_all: {offenders}"
+
+
 def test_v53_migration_in_manifest_and_exists():
     manifest = os.path.join(ROOT, "migrations", "MANIFEST.txt")
     with open(manifest, encoding="utf-8") as f:

@@ -15,6 +15,9 @@ ALTER TABLE events ADD CONSTRAINT events_entity_type_check
 
 -- ── (2) RLS على lifecycle_temporal_rejections ────────────────────
 ALTER TABLE lifecycle_temporal_rejections ENABLE ROW LEVEL SECURITY;
+-- FORCE صراحةً: يُنشأ هذا الجدول بعد v9_rls_force_all في MANIFEST فلا يلتقطه
+-- فرضُه في إقلاع نظيف (حاوية بإقلاع واحد) ⇒ يتجاوز المالكُ العزلَ. idempotent.
+ALTER TABLE lifecycle_temporal_rejections FORCE ROW LEVEL SECURITY;
 ALTER TABLE lifecycle_temporal_rejections FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation ON lifecycle_temporal_rejections;
 CREATE POLICY tenant_isolation ON lifecycle_temporal_rejections
