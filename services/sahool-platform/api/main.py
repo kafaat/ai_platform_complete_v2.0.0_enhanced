@@ -2199,7 +2199,9 @@ async def update_season(
                     try:
                         status_changed = validate_status_transition(current["status"], req.status)
                     except SeasonTransitionError as te:
-                        raise HTTPException(status_code=te.http_status, detail=te.message_ar) from te
+                        raise HTTPException(
+                            status_code=te.http_status, detail=te.message_ar
+                        ) from te
                     if status_changed:
                         updates.append(("status", req.status, False))
 
