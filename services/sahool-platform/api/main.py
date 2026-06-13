@@ -9181,6 +9181,65 @@ def field_operational_state_endpoint(
     ).to_dict()
 
 
+# ─── ٥٧-ب. الحالة القانونيّة الموحّدة للحقل (Canonical Field State — Phase 1) ──
+# مصدر الحقيقة الواحد للحالة الزراعيّة: على عكس /operational-state أعلاه (آلة
+# حاسبة بلا مصادقة، يمرّر المتّصِل كلّ المدخلات)، هذه النقطة tenant-scoped وتجمع
+# مدخلات القرار من مصادرها القانونيّة في قاعدة المنصّة بنفسها (نضارة NDVI/تربة/طقس)
+# ثمّ تركّبها عبر نفس resolve_field_state. تُرجِع المدخلات أيضاً (شفافيّة التدقيق:
+# أيّ مصدر دخل في القرار). الإسقاط المُخزَّن + توجيه بقيّة المستهلكين = مراحل لاحقة.
+@app.get("/api/v1/fields/{field_id}/state")
+async def field_canonical_state(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """الحالة القانونيّة الموحّدة للحقل — مصدر حقيقة واحد للقرار/التنبيه/التوصية.
+
+    يجمع نضارة NDVI (imagery_automation_fields) + التربة (soil_lab_tests) + الطقس
+    (weather_automation_cache) من قاعدة المنصّة، يشتقّ الثقة من نضارة NDVI، ثمّ
+    يركّبها في validity (valid/degraded/conflicted/insufficient) + نمط التنفيذ.
+    صدق: غياب مصدر ⇒ عمره None ⇒ حالة «بيانات ناقصة» لا نضارة مُلفَّقة. 503 عند
+    تعذّر القاعدة. يُرجِع inputs المستخدَمة للتدقيق.
+    """
+    from datetime import date as _date
+
+    from api.field_state_gateway import build_state_inputs
+
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            img = await conn.fetchval(
+                "SELECT last_image_date FROM imagery_automation_fields WHERE field_id = $1",
+                field_id,
+            )
+            soil = await conn.fetchval(
+                "SELECT MAX(sampled_on) FROM soil_lab_tests "
+                "WHERE field_id = $1 AND status IN ('approved', 'published')",
+                field_id,
+            )
+            wx_hours = await conn.fetchval(
+                "SELECT EXTRACT(EPOCH FROM (NOW() - c.fetched_at)) / 3600.0 "
+                "FROM weather_automation_cache c "
+                "JOIN weather_automation_locations l ON l.location_key = c.location_key "
+                "WHERE l.field_id = $1 ORDER BY c.fetched_at DESC LIMIT 1",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("قراءة الحالة القانونيّة للحقل", e) from e
+
+    inputs = build_state_inputs(
+        last_image_date=img,
+        latest_soil_sampled_on=soil,
+        weather_age_hours=float(wx_hours) if wx_hours is not None else None,
+        today=_date.today(),
+    )
+    out = resolve_field_state(field_id, **inputs).to_dict()
+    # شفافيّة التدقيق: المدخلات القانونيّة التي دخلت القرار (مصدر كلّ عامل).
+    out["inputs"] = inputs
+    return out
+
+
 # ─── ٥٨. حالة جدولة الأتمتة (مراقبة) ──
 @app.get("/api/v1/automation/scheduler-status")
 def scheduler_status_endpoint():
