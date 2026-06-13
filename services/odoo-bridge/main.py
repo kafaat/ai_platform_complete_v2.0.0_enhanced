@@ -395,72 +395,72 @@ async def sync_procurement_orders_to_odoo():
                ORDER BY created_at LIMIT 50"""
         )
 
-    for row in rows:
-        try:
-            # 1. Find or create partner in Odoo
-            # 2. Create purchase.order
-            # 3. Create purchase.order.line for each item
-            items = await conn.fetch(
-                "SELECT * FROM procurement_order_items WHERE order_id=$1", row["order_id"]
-            )
-            if not items:
-                continue
+        for row in rows:
+            try:
+                # 1. Find or create partner in Odoo
+                # 2. Create purchase.order
+                # 3. Create purchase.order.line for each item
+                items = await conn.fetch(
+                    "SELECT * FROM procurement_order_items WHERE order_id=$1", row["order_id"]
+                )
+                if not items:
+                    continue
 
-            # Get supplier from first item (or default)
-            supplier_id = None
-            # Create PO header
-            po_vals = {
-                "partner_id": supplier_id or 1,  # default supplier
-                "origin": f"SAHOOL-{row['order_id']}",
-                "notes": row.get("notes", "") + "\nSynced from SAHOOL",
-                "date_order": row["created_at"].isoformat()
-                if row["created_at"]
-                else datetime.now(UTC).isoformat(),
-            }
-            po_id = await odoo.create("purchase.order", po_vals)
-
-            # Create lines
-            for it in items:
-                # Map product by name (or create if not exists)
-                prod_domain = [["name", "ilike", it["item_name"]]]
-                prods = await odoo.search_read("product.product", prod_domain, ["id"], limit=1)
-                prod_id = prods[0]["id"] if prods else 1
-
-                line_vals = {
-                    "order_id": po_id,
-                    "product_id": prod_id,
-                    "product_qty": float(it["quantity"]),
-                    "price_unit": float(it.get("unit_cost_usd", 0) or 0),
-                    "name": it["item_name"],
+                # Get supplier from first item (or default)
+                supplier_id = None
+                # Create PO header
+                po_vals = {
+                    "partner_id": supplier_id or 1,  # default supplier
+                    "origin": f"SAHOOL-{row['order_id']}",
+                    "notes": row.get("notes", "") + "\nSynced from SAHOOL",
+                    "date_order": row["created_at"].isoformat()
+                    if row["created_at"]
+                    else datetime.now(UTC).isoformat(),
                 }
-                await odoo.create("purchase.order.line", line_vals)
+                po_id = await odoo.create("purchase.order", po_vals)
 
-            # Update SAHOOL
-            await conn.execute(
-                "UPDATE procurement_orders SET odoo_sync_status='synced', odoo_document_id=$1 WHERE order_id=$2",
-                str(po_id),
-                row["order_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo", "purchase.order", po_id, str(row["order_id"]), "success"
-            )
-            logger.info(f"PO synced to Odoo: {po_id}")
+                # Create lines
+                for it in items:
+                    # Map product by name (or create if not exists)
+                    prod_domain = [["name", "ilike", it["item_name"]]]
+                    prods = await odoo.search_read("product.product", prod_domain, ["id"], limit=1)
+                    prod_id = prods[0]["id"] if prods else 1
 
-        except Exception as e:
-            await conn.execute(
-                "UPDATE procurement_orders SET odoo_sync_status='failed', odoo_sync_error=$1 WHERE order_id=$2",
-                str(e)[:500],
-                row["order_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo",
-                "purchase.order",
-                None,
-                str(row["order_id"]),
-                "failed",
-                str(e)[:500],
-            )
-            logger.error(f"PO sync failed {row['order_id']}: {e}")
+                    line_vals = {
+                        "order_id": po_id,
+                        "product_id": prod_id,
+                        "product_qty": float(it["quantity"]),
+                        "price_unit": float(it.get("unit_cost_usd", 0) or 0),
+                        "name": it["item_name"],
+                    }
+                    await odoo.create("purchase.order.line", line_vals)
+
+                # Update SAHOOL
+                await conn.execute(
+                    "UPDATE procurement_orders SET odoo_sync_status='synced', odoo_document_id=$1 WHERE order_id=$2",
+                    str(po_id),
+                    row["order_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo", "purchase.order", po_id, str(row["order_id"]), "success"
+                )
+                logger.info(f"PO synced to Odoo: {po_id}")
+
+            except Exception as e:
+                await conn.execute(
+                    "UPDATE procurement_orders SET odoo_sync_status='failed', odoo_sync_error=$1 WHERE order_id=$2",
+                    str(e)[:500],
+                    row["order_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo",
+                    "purchase.order",
+                    None,
+                    str(row["order_id"]),
+                    "failed",
+                    str(e)[:500],
+                )
+                logger.error(f"PO sync failed {row['order_id']}: {e}")
 
 
 async def sync_field_costs_to_odoo():
@@ -476,44 +476,44 @@ async def sync_field_costs_to_odoo():
                WHERE odoo_sync_status='pending' ORDER BY recorded_at LIMIT 100"""
         )
 
-    for row in rows:
-        try:
-            # Map to Odoo analytic line or journal entry
-            # Requires analytic account per field in Odoo
-            vals = {
-                "name": f"{row['category']} — {row['item_name']}",
-                "amount": -float(row["total_cost_usd"]),  # negative = cost
-                "date": row["recorded_at"].strftime("%Y-%m-%d"),
-                "ref": f"SAHOOL-{row['ledger_id']}",
-            }
-            # Use analytic line if module installed
-            entry_id = await odoo.create("account.analytic.line", vals)
+        for row in rows:
+            try:
+                # Map to Odoo analytic line or journal entry
+                # Requires analytic account per field in Odoo
+                vals = {
+                    "name": f"{row['category']} — {row['item_name']}",
+                    "amount": -float(row["total_cost_usd"]),  # negative = cost
+                    "date": row["recorded_at"].strftime("%Y-%m-%d"),
+                    "ref": f"SAHOOL-{row['ledger_id']}",
+                }
+                # Use analytic line if module installed
+                entry_id = await odoo.create("account.analytic.line", vals)
 
-            await conn.execute(
-                "UPDATE field_cost_ledger SET odoo_sync_status='synced', odoo_entry_id=$1 WHERE ledger_id=$2",
-                str(entry_id),
-                row["ledger_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo",
-                "account.analytic.line",
-                entry_id,
-                str(row["ledger_id"]),
-                "success",
-            )
-        except Exception as e:
-            await conn.execute(
-                "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
-                row["ledger_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo",
-                "account.analytic.line",
-                None,
-                str(row["ledger_id"]),
-                "failed",
-                str(e)[:500],
-            )
+                await conn.execute(
+                    "UPDATE field_cost_ledger SET odoo_sync_status='synced', odoo_entry_id=$1 WHERE ledger_id=$2",
+                    str(entry_id),
+                    row["ledger_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo",
+                    "account.analytic.line",
+                    entry_id,
+                    str(row["ledger_id"]),
+                    "success",
+                )
+            except Exception as e:
+                await conn.execute(
+                    "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
+                    row["ledger_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo",
+                    "account.analytic.line",
+                    None,
+                    str(row["ledger_id"]),
+                    "failed",
+                    str(e)[:500],
+                )
 
 
 # ══════════════════════════════════════════════════════════════
