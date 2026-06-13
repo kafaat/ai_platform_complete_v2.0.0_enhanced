@@ -79,7 +79,7 @@ class AuthService {
         utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))
       ) as Map<String, dynamic>;
       final exp = payload['exp'] as int?;
-      if (exp == null) return false;
+      if (exp == null) return true; // fail-closed: توكن بلا exp = منتهٍ (يطابق api_service)
       // Expire 60s early to avoid edge cases
       return DateTime.now().millisecondsSinceEpoch ~/ 1000 > exp - 60;
     } catch (_) { return true; }

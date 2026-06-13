@@ -127,24 +127,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _buildStatsRow(data),
           const SizedBox(height: 20),
 
-          // ─── NDVI Chart ───────────────────────────────────
-          _buildNDVIChart(data['ndvi_history'] as List<dynamic>),
+          // ─── NDVI Chart ─────────────────────────────────── (حُرّاس: حقل ناقص ⇒ افتراضيّ لا انهيار)
+          _buildNDVIChart((data['ndvi_history'] as List<dynamic>?) ?? const []),
           const SizedBox(height: 20),
 
           // ─── Weather Card ─────────────────────────────────
-          _buildWeatherCard(data['weather_today'] as Map<String, dynamic>),
+          _buildWeatherCard((data['weather_today'] as Map<String, dynamic>?) ?? const {}),
           const SizedBox(height: 20),
 
           // ─── Alerts ───────────────────────────────────────
-          _buildAlertsSection(data['alerts'] as List<dynamic>),
+          _buildAlertsSection((data['alerts'] as List<dynamic>?) ?? const []),
           const SizedBox(height: 20),
 
           // ─── Yield Forecast ───────────────────────────────
-          _buildYieldForecast(data['yield_forecast'] as Map<String, dynamic>),
+          _buildYieldForecast((data['yield_forecast'] as Map<String, dynamic>?) ?? const {}),
           const SizedBox(height: 20),
 
           // ─── Market Prices ────────────────────────────────
-          _buildMarketPrices(data['market_prices'] as Map<String, dynamic>),
+          _buildMarketPrices((data['market_prices'] as Map<String, dynamic>?) ?? const {}),
           const SizedBox(height: 20),
 
           // ─── Water & Carbon ───────────────────────────────
@@ -191,8 +191,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildNDVIChart(List<dynamic> history) {
+    // حُرّاس: عنصر بلا قيمة عدديّة لا يُسقِط الرسم (كان e.value['value'] as num ينهار).
     final spots = history.asMap().entries.map((e) {
-      return FlSpot(e.key.toDouble(), (e.value['value'] as num).toDouble());
+      final v = e.value is Map ? (e.value as Map)['value'] : null;
+      return FlSpot(e.key.toDouble(), v is num ? v.toDouble() : 0.0);
     }).toList();
 
     return Card(
@@ -227,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'متوسط 30 يوم: ${history.last['value']}',
+              'متوسط 30 يوم: ${history.isNotEmpty && history.last is Map ? ((history.last as Map)['value'] ?? '—') : '—'}',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -350,7 +352,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 12),
-        ...alerts.map((alert) => _AlertCard(alert: alert as Map<String, dynamic>)),
+        ...alerts.whereType<Map<String, dynamic>>().map((alert) => _AlertCard(alert: alert)),
       ],
     );
   }
@@ -369,11 +371,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 16),
             ...forecast.entries.map((entry) {
               final crop = entry.key;
-              final data = entry.value as Map<String, dynamic>;
-              final current = (data['current_kg_ha'] as num).toDouble();
-              final predicted = (data['predicted_kg_ha'] as num).toDouble();
-              final confidence = (data['confidence'] as num).toDouble();
-              final progress = current / predicted;
+              final data = entry.value is Map<String, dynamic>
+                  ? entry.value as Map<String, dynamic>
+                  : const <String, dynamic>{};
+              final current = (data['current_kg_ha'] as num?)?.toDouble() ?? 0;
+              final predicted = (data['predicted_kg_ha'] as num?)?.toDouble() ?? 0;
+              final confidence = (data['confidence'] as num?)?.toDouble() ?? 0;
+              final progress = predicted != 0 ? current / predicted : 0.0; // حارس قسمة على صفر
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -442,9 +446,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 12),
             ...prices.entries.map((entry) {
               final crop = entry.key;
-              final data = entry.value as Map<String, dynamic>;
-              final price = (data['price_yer_kg'] as num).toInt();
-              final trend = data['trend'] as String;
+              final data = entry.value is Map<String, dynamic>
+                  ? entry.value as Map<String, dynamic>
+                  : const <String, dynamic>{};
+              final price = (data['price_yer_kg'] as num?)?.toInt() ?? 0;
+              final trend = (data['trend'] as String?) ?? 'stable';
 
               IconData trendIcon;
               Color trendColor;
@@ -492,8 +498,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildResourceCards(Map<String, dynamic> data) {
-    final water = data['water_usage'] as Map<String, dynamic>;
-    final carbon = data['carbon'] as Map<String, dynamic>;
+    final water = (data['water_usage'] as Map<String, dynamic>?) ?? const {};
+    final carbon = (data['carbon'] as Map<String, dynamic>?) ?? const {};
 
     return Row(
       children: [
@@ -718,7 +724,7 @@ class _AlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final severity = alert['severity'] as String;
+    final severity = (alert['severity'] as String?) ?? 'info';
     final Color severityColor;
     final IconData severityIcon;
 
@@ -740,7 +746,7 @@ class _AlertCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: Icon(severityIcon, color: severityColor),
-        title: Text(alert['message'] as String),
+        title: Text((alert['message'] as String?) ?? '—'),
         subtitle: Text(
           '${alert['field']} — ${alert['action']}',
           style: const TextStyle(fontSize: 12),

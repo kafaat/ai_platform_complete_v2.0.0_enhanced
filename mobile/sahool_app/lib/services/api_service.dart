@@ -265,7 +265,7 @@ class ApiService {
   Future<Map<String, dynamic>> getDashboard({String? tag}) async {
     final r = await _dio.get('/indicators/v1/overview',
         cancelToken: tag != null ? _getToken(tag) : null);
-    return r.data as Map<String, dynamic>;
+    return _asMap(r.data); // حارس الشكل (كان as Map خاماً ينهار على استجابة غير Map)
   }
 
   Future<Map<String, dynamic>> getFieldIndicators(String fieldId, {String? tag}) async {

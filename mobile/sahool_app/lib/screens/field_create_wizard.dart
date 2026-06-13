@@ -216,7 +216,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     if (ring is! List) return const [];
     final out = <LatLng>[];
     for (final c in ring) {
-      if (c is List && c.length >= 2) {
+      if (c is List && c.length >= 2 && c[0] is num && c[1] is num) {
         final lon = (c[0] as num).toDouble();
         final lat = (c[1] as num).toDouble();
         out.add(LatLng(lat, lon));
