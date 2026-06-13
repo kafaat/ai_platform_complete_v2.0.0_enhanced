@@ -43,6 +43,7 @@ class Recommendation:
     title_ar: str
     detail_ar: str
     source: str  # مرجع/أصل التوصية (heuristic موسوم — لا تلفيق)
+    safety: bool = False  # تنبيه سلامة من الحالة الموحّدة — يتصدّر عند تعادل الأولويّة
 
     def to_dict(self) -> dict:
         return {
@@ -51,6 +52,7 @@ class Recommendation:
             "title_ar": self.title_ar,
             "detail_ar": self.detail_ar,
             "source": self.source,
+            "safety": self.safety,
         }
 
 
@@ -303,6 +305,7 @@ def _salinity_caution_rec(ctx: RecommendationContext) -> Recommendation | None:
             "الزراعيّ قبل زيادة الريّ."
         ),
         source="canonical_field_state:arbitration(salinity>vigor) — إرشاد FAO 29 عامّ",
+        safety=True,
     )
 
 
@@ -322,5 +325,13 @@ def build_recommendations(ctx: RecommendationContext) -> list[Recommendation]:
         if rec is not None:
             recs.append(rec)
     cat_order = {c: i for i, c in enumerate(CATEGORIES)}
-    recs.sort(key=lambda r: (PRIORITY_ORDER.get(r.priority, 99), cat_order.get(r.category, 99)))
+    # الفرز: الأولويّة، ثمّ تنبيهات السلامة (من الحالة الموحّدة) أوّلاً عند التعادل،
+    # ثمّ ترتيب الفئة — كي لا يُدفَن تنبيه السلامة تحت توصية ريّ بنفس الأولويّة.
+    recs.sort(
+        key=lambda r: (
+            PRIORITY_ORDER.get(r.priority, 99),
+            0 if r.safety else 1,
+            cat_order.get(r.category, 99),
+        )
+    )
     return recs

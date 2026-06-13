@@ -13,6 +13,8 @@ from datetime import date
 
 import pytest
 
+pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا يُنفَّذ
+
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CORE = os.path.join(ROOT, "services/sahool-platform")
 
@@ -38,7 +40,17 @@ def test_critical_salinity_adds_high_priority_caution(hub):
     sal = [r for r in recs if "ملوحة" in r.title_ar]
     assert len(sal) == 1
     assert sal[0].priority == "high"
+    assert sal[0].safety is True
     assert "canonical_field_state" in sal[0].source  # مرجعها الحالة الموحّدة
+
+
+def test_safety_alert_leads_irrigation_on_tie(hub):
+    """تنبيه السلامة يتصدّر فئة الريّ عند تعادل الأولويّة (لا يُدفَن تحت الجدولة)."""
+    recs = hub.build_recommendations(
+        _ctx(hub, salinity_class="critical", et0_mm=8.0, rain_recent_mm=0.0, forecast_rain_mm=0.0)
+    )
+    irrigation = [r for r in recs if r.category == "irrigation"]
+    assert irrigation and irrigation[0].safety is True
 
 
 def test_no_caution_when_not_critical(hub):
