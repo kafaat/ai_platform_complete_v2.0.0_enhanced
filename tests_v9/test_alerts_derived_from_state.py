@@ -4,7 +4,7 @@
 GET /api/v1/fields/{field_id}/alerts/derived تشتقّ تنبيهات صادقة **من الحالة**.
 
 يثبّت الاختبار سلوك دالّة الاشتقاق النقيّة (_derive_alerts_from_state) بلا قاعدة:
-ملوحة حرجة ⇒ تنبيه عالي الخطورة، نمط تنفيذ غير تلقائيّ ⇒ تنبيه مراجعة بشريّة،
+ملوحة حرجة ⇒ تنبيه critical، نمط تنفيذ غير تلقائيّ ⇒ تنبيه warning مراجعة بشريّة،
 غياب الحقائق ⇒ قائمة فارغة (لا تلفيق) — إضافةً إلى تسجيل النقطة GET.
 """
 
@@ -43,7 +43,7 @@ def test_critical_salinity_yields_high_alert(core_on_path):
     )
     sal = [a for a in alerts if a["alert_type"] == "salinity_critical"]
     assert len(sal) == 1, "ملوحة حرجة لم تُنتج تنبيهاً"
-    assert sal[0]["severity"] == "high", "تنبيه الملوحة الحرجة ليس عالي الخطورة"
+    assert sal[0]["severity"] == "critical", "تنبيه الملوحة الحرجة ليس critical (عقد المنصّة)"
     assert sal[0]["source"] == "canonical_field_state", "مصدر التنبيه غير موسوم بالحالة الموحّدة"
     assert sal[0]["title_ar"] and sal[0]["message_ar"], "تنبيه بلا عنوان/رسالة عربيّة"
 

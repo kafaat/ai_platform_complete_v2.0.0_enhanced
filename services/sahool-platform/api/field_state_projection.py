@@ -34,21 +34,25 @@ def _derive_alerts_from_state(state: dict) -> list[dict]:
 
     دالّة نقيّة بلا I/O (قابلة للاختبار بلا قاعدة): تقرأ الحقائق الزراعيّة من
     agronomic.operational_truths + نمط التنفيذ، فتشتقّ تنبيهات بسيطة لا تُلفِّق:
-      • salinity_class == "critical" ⇒ تنبيه عالي الخطورة «ملوحة تربة حرجة».
-      • execution_mode في (blocked, human_review) ⇒ تنبيه «القرار يحتاج مراجعة بشريّة».
+      • salinity_class == "critical" ⇒ تنبيه critical «ملوحة تربة حرجة».
+      • execution_mode في (blocked, human_review) ⇒ تنبيه warning «القرار يحتاج مراجعة».
     صدق: غياب الحقائق ⇒ قائمة فارغة (لا تنبيه مُلفَّق). لا تُكتب في جدول alerts.
     كلّ تنبيه يحمل source="canonical_field_state" (مصدر الاشتقاق صريح للتدقيق).
     """
     if not isinstance(state, dict):
         return []
     alerts: list[dict] = []
-    truths = (state.get("agronomic") or {}).get("operational_truths") or {}
+    # تحصين: أيّ مستوى متداخل غير قاموس (list/str) لا يكسر الاشتقاق (fail-safe).
+    _agro = state.get("agronomic")
+    truths = _agro.get("operational_truths") if isinstance(_agro, dict) else None
+    if not isinstance(truths, dict):
+        truths = {}
 
     if truths.get("salinity_class") == "critical":
         alerts.append(
             {
                 "alert_type": "salinity_critical",
-                "severity": "high",
+                "severity": "critical",
                 "title_ar": "ملوحة تربة حرجة",
                 "message_ar": (
                     "الحالة القانونيّة الموحّدة تُظهر ملوحة تربة حرجة — غسيل وتحسين "
@@ -62,7 +66,7 @@ def _derive_alerts_from_state(state: dict) -> list[dict]:
         alerts.append(
             {
                 "alert_type": "human_review_required",
-                "severity": "medium",
+                "severity": "warning",
                 "title_ar": "القرار يحتاج مراجعة بشريّة",
                 "message_ar": (
                     "نمط تنفيذ الحالة القانونيّة الموحّدة ليس تلقائيّاً — يلزم تأكيد "
