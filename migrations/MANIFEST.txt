@@ -163,3 +163,6 @@ v49_zone_key_recommendation_outcomes.sql
 # v50: Workflow مخبري للتربة — جدول soil_lab_tests (دورة حياة عيّنة→مختبر→نتيجة→اعتماد→نشر)
 # مع RLS وtrigger updated_at. قواعد الانتقال في core/engines/soil_lab_workflow. idempotent.
 v50_soil_lab_tests.sql
+# v51: إصلاحات المراجعة (جولة ٢) — توسيع events.entity_type (activity/soil_lab_test)،
+# RLS على lifecycle_temporal_rejections، وقصر requeue على مستأجِر السياق. idempotent.
+v51_review_round2_fixes.sql

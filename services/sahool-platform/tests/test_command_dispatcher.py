@@ -131,3 +131,23 @@ def test_idempotent_redispatch_returns_duplicate_without_reexecution():
     assert second.was_duplicate is True  # لم يُنفَّذ ثانيةً
     assert second.result == first.result  # النتيجة المخزّنة
     assert len(calls) == 1  # المعالِج نُفِّذ مرّة واحدة فقط
+
+
+def test_dispatch_on_processing_does_not_reexecute():
+    # أمر قيد التنفيذ (نسخة متزامنة/إعادة تشغيل) → لا يُعاد تنفيذه (exactly-once).
+    reg = CommandRegistry()
+    calls = []
+
+    async def h(cmd):
+        calls.append(1)
+        return {}
+
+    reg.register("CreateField", h)
+    store = _FakeStore()
+    cmd = _cmd()
+    store.cmds[cmd.command_id] = cmd
+    cmd.status = CommandStatus.PROCESSING  # عالِق قيد التنفيذ
+    res = asyncio.run(dispatch(reg, store, _cmd()))  # نفس command_id يصل ثانيةً
+    assert res.status == CommandStatus.PROCESSING
+    assert res.was_duplicate is True
+    assert calls == []  # لم يُستدعَ المعالِج مرّة أخرى

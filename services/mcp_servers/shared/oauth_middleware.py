@@ -39,8 +39,11 @@ def require_scope(required_scope: str):
         if not credentials:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Missing token")
         secret = os.getenv("JWT_SECRET", "")
-        if not secret:
-            raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "JWT_SECRET not configured")
+        if len(secret) < 32:  # يفشل مغلقاً: لا سرّ ضعيف/قصير (تزوير توكنات)
+            raise HTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "JWT_SECRET not configured or too weak (min 32 chars)",
+            )
         try:
             payload = jwt.decode(
                 credentials.credentials, secret, algorithms=["HS256"], audience="sahool"
@@ -50,7 +53,10 @@ def require_scope(required_scope: str):
         scopes = payload.get("scope", "").split()
         if required_scope not in scopes and "admin" not in scopes:
             raise HTTPException(status.HTTP_403_FORBIDDEN, f"Scope '{required_scope}' required")
-        tid = payload.get("tenant_id", "default")
+        # tenant_id إلزاميّ من التوكن — لا fallback إلى "default" (عزل مستأجِر).
+        tid = payload.get("tenant_id")
+        if not tid:
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token missing tenant_id")
         try:
             _validate_tenant_id(tid)
         except ValueError as e:
