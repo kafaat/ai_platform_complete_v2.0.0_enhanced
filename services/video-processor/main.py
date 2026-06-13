@@ -168,20 +168,31 @@ async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
         return {"error": "encode_failed"}
 
     files = {"file": ("frame.jpg", encoded.tobytes(), "image/jpeg")}
-    payload = {
+    # edge /inference/pest-detect يتوقّع حقول Form مسطّحة (لا json متداخل) + توكن الخدمة
+    data = {
         "field_id": "stream",
         "crop": "wheat",
-        "confidence_threshold": 0.6,
-        "return_image": False,
+        "confidence_threshold": "0.6",
+        "return_image": "false",
     }
+    headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await client.post(
                 f"{EDGE_INFERENCE_URL}/inference/pest-detect",
-                data={"request": json.dumps(payload)},
+                data=data,
                 files=files,
+                headers=headers,
             )
+            if resp.status_code in (401, 403, 503):
+                # فشل مصادقة/تفويض الخدمة — لا نبتلعه بصمت كنجاح
+                logger.warning(
+                    "Edge inference auth failed: status=%s body=%s",
+                    resp.status_code,
+                    resp.text[:200],
+                )
+                return {"error": f"auth_failed:{resp.status_code}"}
             resp.raise_for_status()
             return resp.json()
     except Exception as e:
