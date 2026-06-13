@@ -82,3 +82,11 @@ def test_gate_blocked_maps_to_blocked_escalation():
     assert out["level"] == EscalationLevel.BLOCKED.value
     assert out["priority"] == "high"
     assert any("لا مؤشّر حديث" in p for p in out["uncertain_points_ar"])
+
+
+def test_gate_review_with_low_confidence_stays_review_not_blocked():
+    # قرار البوّابة review لكن الثقة دون عتبة المراجعة — يجب أن يبقى REVIEW (قرار
+    # البوّابة)، لا يُصعَّد BLOCKED بسبب القصّ من جهة واحدة فقط.
+    out = escalation_from_gate({"decision": "review", "overall_confidence": 0.30, "per_engine": []})
+    assert out["level"] == EscalationLevel.REVIEW.value
+    assert out["gate_decision"] == "review"

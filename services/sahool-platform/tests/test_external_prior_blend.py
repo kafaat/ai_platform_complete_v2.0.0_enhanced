@@ -55,6 +55,13 @@ def test_blend_weight_matches_shrinkage_formula():
     assert math.isclose(out["blended_estimate"], 7.0, rel_tol=1e-9)
 
 
+def test_custom_k_changes_weight():
+    # k المُمرَّر يجب أن يؤثّر فعليّاً على الوزن (لا يُتجاهَل لصالح SHRINKAGE_K).
+    out = blend_external_prior(10.0, 4.0, 30, crop_grown_in_yemen=True, k=5)
+    assert out["local_weight"] == round(30 / 35, 3)  # ≈0.857، لا 0.5 (k=30)
+    assert out["local_weight"] > 0.5  # k=5 < SHRINKAGE_K ⇒ وزن أعلى من حالة k=30
+
+
 def test_external_credibility_is_capped():
     # حتّى لو طُلبت مصداقيّة عالية للسابقة الخارجيّة، تُقصّ إلى الحدّ.
     out = blend_external_prior(6.0, None, 0, crop_grown_in_yemen=True, external_credibility=0.95)

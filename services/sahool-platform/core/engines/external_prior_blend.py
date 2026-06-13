@@ -32,8 +32,8 @@ from __future__ import annotations
 
 from core.engines.human_escalation import CONFIDENT_FLOOR, assess_escalation
 
-# مصدر واحد لصيغة الانكماش n/(n+K) — لا نعيد تعريفها.
-from core.learning.prediction_calibration import SHRINKAGE_K, confidence_weight
+# مصدر واحد لثابت الانكماش الافتراضيّ (صيغة n/(n+k) نفسها في prediction_calibration).
+from core.learning.prediction_calibration import SHRINKAGE_K
 
 # سقف مصداقيّة السابقة الخارجيّة المنشورة (غير متحقّقة محلّيّاً): حتّى عند n=0
 # لا تتجاوز مساهمتها في ثقة المخرَج هذا الحدّ — تبقى «تلميحاً يُراجَع».
@@ -75,8 +75,9 @@ def blend_external_prior(
     # سقف ثقة السابقة: لا تتجاوز الحدّ مهما كان (غير متحقّقة محلّيّاً).
     cred = max(0.0, min(external_credibility, EXTERNAL_PRIOR_MAX_CREDIBILITY))
 
-    # 2) الوزن التدرّجي للقرينة المحلّيّة (نفس انكماش prediction_calibration).
-    w_local = confidence_weight(n_local) if n_local > 0 else 0.0
+    # 2) الوزن التدرّجي للقرينة المحلّيّة: انكماش n/(n+k) (k=SHRINKAGE_K افتراضاً —
+    #    نفس صيغة prediction_calibration.confidence_weight، لكن يحترم k المُمرَّر).
+    w_local = n_local / (n_local + k) if n_local > 0 else 0.0
     w_external = 1.0 - w_local
 
     # 3) المزج — حسب توفّر القرائن (لا اختراع لقيمة غائبة).

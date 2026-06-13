@@ -100,17 +100,26 @@ def build_growth_narrative(
             ),
         }
 
-    # ترتيب زمنيّ: بأيّام-بعد-الزراعة إن توفّرت، وإلّا بالتاريخ.
+    # ترتيب زمنيّ: بأيّام-بعد-الزراعة إن توفّرت، وإلّا بالتاريخ. المشاهد بلا DAP
+    # تُرتَّب أخيراً (لا تُقحَم في المقدّمة كأنّها يوم 0) لتفادي خلط السلسلة المختلطة.
     ordered = sorted(
         valid,
-        key=lambda o: (o.days_after_planting if o.days_after_planting is not None else 0, o.date),
+        key=lambda o: (
+            o.days_after_planting is None,
+            o.days_after_planting if o.days_after_planting is not None else 0,
+            o.date,
+        ),
     )
     ndvis = [o.ndvi for o in ordered]
     peak_idx = max(range(len(ndvis)), key=lambda i: ndvis[i])
     peak_ndvi = ndvis[peak_idx]
     peak_dap = ordered[peak_idx].days_after_planting
+    # لا نموّ فعليّ: حتّى الذروة دون عتبة التربة العارية ⇒ لا ذروة/شيخوخة وهميّة.
+    peak_below_floor = peak_ndvi < _BARE_FLOOR
 
     def _phase(i: int) -> GrowthPhase:
+        if peak_below_floor:
+            return GrowthPhase.EMERGENCE  # السلسلة كلّها دون العتبة — إنبات لا أكثر
         if ndvis[i] < _BARE_FLOOR and i <= peak_idx:
             return GrowthPhase.EMERGENCE
         if i < peak_idx:

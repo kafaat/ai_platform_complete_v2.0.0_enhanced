@@ -113,9 +113,9 @@ def build_input_ledger(
     # الاقتصاد — متاح فقط بشروطه الصادقة.
     cost_per_ha = round(total_cost / area_ha, 2) if area_ha and area_ha > 0 else None
     cost_per_ton = None
-    if cost_per_ha is not None and harvest_yield_t_ha and harvest_yield_t_ha > 0:
-        # كلفة/طنّ = (كلفة/هكتار) ÷ (طنّ/هكتار).
-        cost_per_ton = round(cost_per_ha / harvest_yield_t_ha, 2)
+    if area_ha and area_ha > 0 and harvest_yield_t_ha and harvest_yield_t_ha > 0:
+        # كلفة/طنّ من القيم الخام (لا من cost_per_ha المقرّب) — تفادي تراكم التقريب.
+        cost_per_ton = round(total_cost / (area_ha * harvest_yield_t_ha), 2)
 
     has_seed = "seed" in by_type
     has_harvest = harvest_yield_t_ha is not None and harvest_yield_t_ha > 0
