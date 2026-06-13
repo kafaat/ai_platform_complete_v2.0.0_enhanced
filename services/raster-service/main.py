@@ -40,6 +40,7 @@ import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
+from urllib.parse import urlparse
 
 import band_math
 import httpx
@@ -819,7 +820,7 @@ async def terrain_slope(req: TerrainRequest, x_agent_token: str = Header(None)):
     _require_service_token(x_agent_token)
     import terrain_analysis as ta
 
-    result = ta.compute_slope_aspect(req.dem_url, req.pixel_size_m)
+    result = ta.compute_slope_aspect(_safe_raster_source(req.dem_url), req.pixel_size_m)
     if result.get("computed") and result.get("slope_deg"):
         result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
     return result
@@ -902,6 +903,32 @@ async def readyz():
 
 # ─── معالجة الراستر: الرفع ────────────────────────────────────────
 UPLOAD_DIR = os.getenv("RASTER_UPLOAD_DIR", "/tmp/sahool_rasters")
+
+_SSRF_BLOCKED_HOSTS = {"169.254.169.254", "metadata.google.internal", "metadata"}
+
+
+def _safe_raster_source(url: str | None) -> str:
+    """يتحقّق من مصدر راستر آمن قبل rasterio.open — يمنع path traversal وSSRF.
+
+    file:// : يُسمَح **فقط** تحت UPLOAD_DIR (realpath، لا ../traversal) ⇒ يمنع قراءة
+    ملفّات عشوائيّة (file:///etc/passwd). http(s): يُسمَح (STAC/object-store) مع حجب
+    عنوان metadata السحابي. أيّ غير ذلك ⇒ 400. (مراجعة الجولة ٣ — أمن.)
+    """
+    if not url or not isinstance(url, str):
+        raise HTTPException(400, "مصدر راستر غير صالح")
+    if url.startswith("file://"):
+        path = os.path.realpath(url[len("file://") :])
+        base = os.path.realpath(UPLOAD_DIR)
+        if path != base and not path.startswith(base + os.sep):
+            raise HTTPException(400, "مسار ملفّ خارج المجلّد المسموح (traversal مرفوض)")
+        return path
+    if url.startswith(("http://", "https://")):
+        host = (urlparse(url).hostname or "").lower()
+        if host in _SSRF_BLOCKED_HOSTS:
+            raise HTTPException(400, "مضيف محجوب (SSRF)")
+        return url
+    raise HTTPException(400, "مخطّط URL غير مدعوم لمصدر الراستر")
+
 
 # مصادقة خدمة-لخدمة: رفع الراستر يكتب ملفّات — منع إساءة التخزين/الحقن
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
@@ -1210,7 +1237,7 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
     import rasterio
 
     formula = _INDICATOR_FORMULAS[req.indicator.value]
-    with rasterio.open(req.raster_url.replace("file://", "")) as src:
+    with rasterio.open(_safe_raster_source(req.raster_url)) as src:
         res_m = abs(src.res[0])
         b = req.bands
 
@@ -1471,8 +1498,10 @@ async def process_from_stac(
     _require_service_token(x_agent_token)
     import stac_vrt
 
+    # كلّ href يُتحقَّق منه (traversal/SSRF) قبل بناء الـVRT.
+    safe_hrefs = {k: _safe_raster_source(v) for k, v in (req.band_hrefs or {}).items()}
     try:
-        vrt_path, index_map = stac_vrt.build_band_vrt(req.band_hrefs)
+        vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs)
     except Exception as e:  # noqa: BLE001 — مدخل غير صالح/نطاق غير مقروء
         raise HTTPException(400, f"تعذّر بناء VRT من نطاقات STAC: {e}") from e
 
