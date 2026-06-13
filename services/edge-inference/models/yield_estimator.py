@@ -10,6 +10,7 @@ import logging
 import os
 
 import numpy as np
+from models.errors import ModelNotProvisioned
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -163,58 +164,11 @@ class EdgeYieldEstimator:
             if session is not None:
                 return self._predict_yield_onnx(session, model_path, features, crop, growth_stage)
 
-        # ── Honest fallback: EXISTING rule-based heuristic (unchanged output) ──
-        # Aggregate features
-        avg_greenness = np.mean([f["greenness"] for f in features])
-        avg_texture = np.mean([f["texture"] for f in features])
-        total_plant_proxy = sum([f["plant_count_proxy"] for f in features])
-
-        # Growth stage multiplier
-        stage_multipliers = {
-            "seedling": 0.3,
-            "vegetative": 0.6,
-            "flowering": 0.85,
-            "grain_filling": 0.95,
-            "maturity": 1.0,
-        }
-        stage_mult = stage_multipliers.get(growth_stage, 0.7)
-
-        # Baseline yield
-        baseline = self.yield_baselines.get(crop, 2000)
-
-        # Adjust based on visual features
-        # Greenness factor: 0.8 to 1.2
-        greenness_factor = 0.8 + (avg_greenness * 0.4)
-
-        # Density factor: based on texture variance (plant density proxy)
-        density_factor = 0.7 + min(avg_texture * 2, 0.5)
-
-        # Calculate yield
-        estimated_yield = baseline * stage_mult * greenness_factor * density_factor
-
-        # Biomass proxy (higher than yield, before harvest index)
-        harvest_index = {
-            "wheat": 0.45,
-            "barley": 0.42,
-            "maize": 0.50,
-            "sorghum": 0.48,
-            "millet": 0.35,
-            "rice": 0.52,
-            "potato": 0.75,
-            "tomato": 0.60,
-            "coffee": 0.30,
-        }.get(crop, 0.45)
-
-        biomass = estimated_yield / harvest_index if harvest_index > 0 else estimated_yield * 2
-
-        return {
-            "yield_kg_ha": round(estimated_yield, 2),
-            "biomass_proxy": round(biomass, 2),
-            "plant_count": int(total_plant_proxy * stage_mult),
-            "greenness_factor": round(greenness_factor, 3),
-            "density_factor": round(density_factor, 3),
-            "stage_multiplier": stage_mult,
-        }
+        # ── لا نموذج ONNX حقيقيّ ⇒ لا اختلاق ──
+        # سابقاً كان يُرجِع تقدير غلّة تقريبيّاً (baseline × معاملات بصريّة) مُقدَّماً
+        # للمزارع كـ"estimated_yield" بفاصل ثقة ±15% مُصطنَع. أمانةً نرفع استثناءً
+        # تُترجمه طبقة الـAPI إلى 503 بدل رقمٍ مُختلَق يبني عليه المزارع قراراً.
+        raise ModelNotProvisioned("نموذج تقدير الغلّة (ONNX) غير مُجهَّز — لا اختلاق أرقام")
 
     def _predict_yield_onnx(
         self,
