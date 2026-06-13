@@ -27,12 +27,17 @@ def app_mod():
     return m
 
 
-_POLY = {"type": "Polygon", "coordinates": [[[44.2, 15.3], [44.3, 15.3], [44.3, 15.4], [44.2, 15.3]]]}
+_POLY = {
+    "type": "Polygon",
+    "coordinates": [[[44.2, 15.3], [44.3, 15.3], [44.3, 15.4], [44.2, 15.3]]],
+}
 
 
 def test_dashboard_includes_geometry_dict(app_mod):
     """geometry يُمرَّر كما هو حين يكون كائناً (dict)، وعلامة الموسم النشط تُحسب."""
-    rows = [{"field_id": "f1", "name": "حقل القمح", "crop": "wheat", "area_ha": 3.0, "geometry": _POLY}]
+    rows = [
+        {"field_id": "f1", "name": "حقل القمح", "crop": "wheat", "area_ha": 3.0, "geometry": _POLY}
+    ]
     out = app_mod._shape_indicators_dashboard(
         fields_rows=rows, active_field_ids={"f1"}, alert_rows=[]
     )
@@ -49,7 +54,13 @@ def test_dashboard_unpacks_jsonb_string_geometry(app_mod):
     import json
 
     rows = [
-        {"field_id": "f2", "name": "ب", "crop": None, "area_ha": None, "geometry": json.dumps(_POLY)},
+        {
+            "field_id": "f2",
+            "name": "ب",
+            "crop": None,
+            "area_ha": None,
+            "geometry": json.dumps(_POLY),
+        },
         {"field_id": "f3", "name": "ج", "crop": "maize", "area_ha": 1.5, "geometry": "{not-json"},
     ]
     out = app_mod._shape_indicators_dashboard(
