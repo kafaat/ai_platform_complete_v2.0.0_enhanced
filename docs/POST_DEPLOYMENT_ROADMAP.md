@@ -111,8 +111,11 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
   — **مُنفَّذ** (٧ اختبارات offline؛ انظر `docs/SEASON_UPDATE.md`).
 - ☐ **`farm_id` إلزاميّ:** نافذة انتقاليّة (ترحيل البيانات بلا مزرعة → افتراضيّة، ثمّ
   `NOT NULL` + إلزام الواجهة بإنشاء مزرعة أوّلاً — منطق `canCreateFarm` جاهز).
-- ☐ **Workflow مخبري للتربة:** عيّنة → نتيجة مختبر → اعتماد → إصدارات (جداول +
-  endpoints + شاشة)؛ يستبدل أعمدة soil_* الحاليّة بدورة حياة.
+- ◐ **Workflow مخبري للتربة:** عيّنة → مختبر → نتيجة → اعتماد → نشر — **مُنفَّذ**
+  (نواة `core/engines/soil_lab_workflow.py` + جدول `v50_soil_lab_tests` RLS +
+  `POST`/`GET`/`PATCH /api/v1/fields/{id}/soil-lab-tests` + أحداث + ١٠ اختبارات
+  offline؛ انظر `docs/SOIL_LAB_WORKFLOW.md`). **المتبقّي:** الشاشة (واجهة) + ربط
+  النتيجة المنشورة بأعمدة soil_* المرجعيّة عند النشر.
 - ◐ **الإثراء الجغرافيّ التلقائيّ:** النواة الحتميّة **مُنفَّذة** (`core/engines/dem_enrichment.py`
   — حساب Horn للمنحدر/السمت + تصنيف + تفسير زراعيّ، وendpoint
   `GET /api/v1/fields/{field_id}/terrain` يفسّر القيم المخزّنة فوراً؛ انظر
