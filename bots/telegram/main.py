@@ -24,6 +24,7 @@ from datetime import UTC, datetime
 
 import httpx
 from aiogram import Bot, Dispatcher, F, Router
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
@@ -138,7 +139,12 @@ if not BOT_TOKEN:
     _sys.exit(0)
 
 # ─── Bot Setup ─────────────────────────────────────────────
-bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.MARKDOWN_V2)
+# aiogram 3.7+ أزال parse_mode كمعامل لـBot() ⇒ نمرّره عبر DefaultBotProperties
+# (تمريره مباشرةً يرمي TypeError وقت التشغيل على 3.7+، بما فيها 3.10/3.28).
+bot = Bot(
+    token=BOT_TOKEN,
+    default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN_V2),
+)
 
 
 def _md2(text: str) -> str:
