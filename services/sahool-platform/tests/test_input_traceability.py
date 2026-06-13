@@ -82,6 +82,14 @@ def test_no_harvest_means_no_cost_per_ton():
     assert any("حصاد" in g for g in out["gaps_ar"])
 
 
+def test_cost_per_ton_uses_raw_values_not_double_rounded():
+    # كلفة/طنّ تُحسب من القيم الخام total/(area·yield)، لا من cost_per_ha المقرّب.
+    # total=10, area=3, yield=0.6 ⇒ خام 10/1.8=5.556→5.56 (لا 3.33/0.6=5.55).
+    out = build_input_ledger([_seed(cost=10)], field_id="f1", area_ha=3.0, harvest_yield_t_ha=0.6)
+    assert out["cost_per_ha"] == 3.33
+    assert out["cost_per_ton"] == 5.56
+
+
 # ─── الاكتمال ─────────────────────────────────────────────────────────────
 
 

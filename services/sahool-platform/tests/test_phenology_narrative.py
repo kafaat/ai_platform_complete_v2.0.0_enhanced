@@ -100,3 +100,27 @@ def test_healthy_curve_no_anomaly_with_envelope():
         expected_peak_dap_min=40,
     )
     assert out["anomalies"] == []
+
+
+# ─── حالات حدّيّة (مراجعة نقديّة) ──────────────────────────────────────────
+
+
+def test_all_below_bare_floor_is_emergence_no_fake_peak_or_senescence():
+    # سلسلة كلّها دون عتبة التربة العارية: لا نموّ فعليّ ⇒ إنبات فقط، لا ذروة/شيخوخة وهميّة.
+    out = build_growth_narrative(_series([0.05, 0.10, 0.08, 0.06]), crop="wheat")
+    phases = {p["phase"] for p in out["trajectory"]}
+    assert phases == {GrowthPhase.EMERGENCE.value}
+    assert out["current_phase"] == GrowthPhase.EMERGENCE.value
+
+
+def test_mixed_dap_none_sorts_last_not_front():
+    # مشاهدة بلا days_after_planting يجب ألّا تُقحَم في المقدّمة كأنّها يوم 0.
+    obs = [
+        NDVIObservation(date="2026-03-01", ndvi=0.5, days_after_planting=None),
+        NDVIObservation(date="2026-01-01", ndvi=0.3, days_after_planting=10),
+        NDVIObservation(date="2026-01-11", ndvi=0.6, days_after_planting=20),
+        NDVIObservation(date="2026-01-21", ndvi=0.7, days_after_planting=30),
+    ]
+    out = build_growth_narrative(obs, crop="wheat")
+    assert out["trajectory"][0]["days_after_planting"] == 10  # المعروف أوّلاً
+    assert out["trajectory"][-1]["days_after_planting"] is None  # المجهول أخيراً
