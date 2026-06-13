@@ -573,8 +573,8 @@ bootstrap_default_tools(_tool_registry)
 
 
 @app.get("/agent/tools")
-async def list_tools():
-    """يرجع كل الـtools المسجّلة + contracts."""
+async def list_tools(user: dict = Depends(_get_current_user)):
+    """يرجع كل الـtools المسجّلة + contracts. يتطلّب مصادقة (كان يكشف السجلّ علناً)."""
     tools = []
     for tool_id in _tool_registry.list_tools():
         contract = _tool_registry.get_contract(tool_id)
@@ -595,9 +595,14 @@ async def list_tools():
 
 
 @app.get("/agent/journal/{invocation_id}")
-async def get_journal_replay(invocation_id: str):
-    """Replay كامل لـinvocation معيّن (debugging / audit)."""
+async def get_journal_replay(invocation_id: str, user: dict = Depends(_get_current_user)):
+    """Replay لـinvocation (debug/audit) — مقصور على مستأجِر التوكن (كان مكشوفاً للجميع)."""
+    tenant = user.get("tenant_id")
     entries = await _execution_journal.replay(invocation_id)
+    # عزل المستأجِر: لا نكشف سجلّ invocation لمستأجِر آخر (404 لا 403 — لا تسريب وجود).
+    entries = [e for e in entries if e.tenant_id == tenant]
+    if not entries:
+        raise HTTPException(404, "Invocation not found")
     return {
         "invocation_id": invocation_id,
         "entries": [
@@ -614,10 +619,14 @@ async def get_journal_replay(invocation_id: str):
 
 
 @app.get("/agent/actuator-audit")
-async def get_actuator_audit(tenant_id: str | None = None):
-    """Audit log لكل actuator invocations (irrigation, pumps).
-    حسّاس — يتطلّب admin role في الإنتاج.
+async def get_actuator_audit(user: dict = Depends(_get_current_user)):
+    """Audit لكلّ actuator invocations (ريّ/مضخّات). حسّاس — admin + مستأجِر التوكن.
+
+    كان مكشوفاً بلا مصادقة وبـtenant_id من query ⇒ أيّ زائر يقرأ سجلّ actuator لأيّ مستأجِر.
     """
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Admin role required")
+    tenant_id = user.get("tenant_id")  # من التوكن لا من query
     entries = await _execution_journal.get_entries()
     actuator_tools = set(_tool_registry.list_by_side_effect(SideEffectClass.ACTUATOR))
     audit = [
@@ -629,7 +638,7 @@ async def get_actuator_audit(tenant_id: str | None = None):
             "tenant_id": e.tenant_id,
         }
         for e in entries
-        if e.tool_id in actuator_tools and (tenant_id is None or e.tenant_id == tenant_id)
+        if e.tool_id in actuator_tools and e.tenant_id == tenant_id
     ]
     return {"total": len(audit), "entries": audit}
 

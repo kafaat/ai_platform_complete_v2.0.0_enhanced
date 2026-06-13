@@ -281,11 +281,13 @@ async def dispatch(data: dict):
     message = data.get("message", "")
     extra = data.get("data", {})
 
-    # Always send via WebSocket
+    # Always send via WebSocket. الأسماء الصحيحة send_to_user/broadcast — كان
+    # broadcast_user/broadcast_all غير موجودين ⇒ AttributeError يُعطّل كلّ الإشعارات
+    # ويُبقي رسائل JetStream دون ack فتُعاد بلا نهاية. المفتاح str (connections: dict[str,…]).
     if user_id:
-        await manager.broadcast_user(int(user_id), data)
+        await manager.send_to_user(str(user_id), data)
     else:
-        await manager.broadcast_all(data)
+        await manager.broadcast(data)
 
     if not user_id:
         return
