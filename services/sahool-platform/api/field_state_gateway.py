@@ -63,9 +63,12 @@ def build_state_inputs(
     """
     ndvi_age = _days_since(last_image_date, today)
     soil_age = _days_since(latest_soil_sampled_on, today)
+    # تطبيع عمر الطقس مثل أعمار التواريخ: قيمة سالبة (انحراف ساعة DB/app أو طابع
+    # زمنيّ مستقبليّ) لا تُعدّ «طازجة» زوراً — تُقصّ إلى 0 لإدخال قانونيّ غير سالب.
+    wx_age = max(0.0, float(weather_age_hours)) if weather_age_hours is not None else None
     return {
         "confidence_level": derive_confidence_level(ndvi_age),
         "ndvi_age_days": ndvi_age,
         "soil_age_days": soil_age,
-        "weather_age_hours": weather_age_hours,
+        "weather_age_hours": wx_age,
     }

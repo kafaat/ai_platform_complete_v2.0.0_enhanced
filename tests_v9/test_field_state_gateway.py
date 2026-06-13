@@ -59,6 +59,19 @@ def test_missing_sources_are_honest_none(core_on_path):
     }
 
 
+def test_negative_weather_age_is_clamped(core_on_path):
+    """عمر طقس سالب (انحراف ساعة/طابع مستقبليّ) يُقصّ إلى 0 لا يُعدّ طازجاً زوراً."""
+    from api.field_state_gateway import build_state_inputs
+
+    out = build_state_inputs(
+        last_image_date=None,
+        latest_soil_sampled_on=None,
+        weather_age_hours=-5.0,
+        today=date(2026, 6, 13),
+    )
+    assert out["weather_age_hours"] == 0.0
+
+
 def test_stale_ndvi_lowers_confidence(core_on_path):
     from api.field_state_gateway import derive_confidence_level
 
