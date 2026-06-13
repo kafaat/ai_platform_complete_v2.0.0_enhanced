@@ -301,7 +301,7 @@ BEGIN
             DROP POLICY IF EXISTS tenant_isolation ON %I;
             CREATE POLICY tenant_isolation ON %I
             USING (
-                tenant_id = NULLIF(current_setting('app.current_tenant', TRUE), '')::UUID
+                tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', TRUE), '')
             )$ddl$, tbl, tbl);
     END LOOP;
 END

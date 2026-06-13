@@ -47,6 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_trueup_tenant     ON trueup_calibrations(tenant_i
 
 ALTER TABLE trueup_calibrations ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS trueup_tenant_isolation ON trueup_calibrations;  -- idempotency (المُشغِّل يُعيد التطبيق كلّ إقلاع)
 CREATE POLICY trueup_tenant_isolation ON trueup_calibrations
     USING (
         -- fail-closed: لو app.current_tenant غير مضبوط (NULL) → لا صفوف
@@ -104,6 +105,7 @@ CREATE INDEX IF NOT EXISTS idx_sharing_keys_active
 ALTER TABLE sharing_keys ENABLE ROW LEVEL SECURITY;
 
 -- المالك يرى مفاتيحه فقط
+DROP POLICY IF EXISTS sharing_keys_owner ON sharing_keys;  -- idempotency (المُشغِّل يُعيد التطبيق كلّ إقلاع)
 CREATE POLICY sharing_keys_owner ON sharing_keys
     USING (
         -- fail-closed: لو app.current_tenant غير مضبوط (NULL) → لا صفوف

@@ -18,7 +18,8 @@ CREATE INDEX IF NOT EXISTS idx_audit_ip        ON audit_log(ip_address);
 
 -- RLS: audit_log يرى كل المستأجرين (للمدير فقط)
 ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS audit_admin_only ON audit_log;
+DROP POLICY IF EXISTS audit_admin_only ON audit_log;  -- اسم قديم محتمل (DBs قديمة)
+DROP POLICY IF EXISTS audit_log_policy ON audit_log;  -- idempotency: الاسم الفعليّ المُنشأ أدناه
 -- FIX M04: allow admins (role=admin) to see audit log, not just superusers
 CREATE POLICY audit_log_policy ON audit_log
     USING (

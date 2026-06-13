@@ -65,6 +65,7 @@ CREATE INDEX IF NOT EXISTS idx_events_command       ON events(command_id) WHERE 
 -- RLS — tenant isolation
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS events_tenant_isolation ON events;  -- idempotency (المُشغِّل يُعيد التطبيق كلّ إقلاع)
 CREATE POLICY events_tenant_isolation ON events
     USING (
         -- fail-closed: لو app.current_tenant غير مضبوط (NULL) → لا صفوف

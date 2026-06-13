@@ -38,4 +38,4 @@ ALTER TABLE recommendation_outcomes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE recommendation_outcomes FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation ON recommendation_outcomes;
 CREATE POLICY tenant_isolation ON recommendation_outcomes
-    USING (tenant_id = NULLIF(current_setting('app.current_tenant', TRUE), '')::UUID);
+    USING (tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', TRUE), ''));
