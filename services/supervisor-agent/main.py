@@ -68,6 +68,29 @@ mcp_client = MCPClient(
 
 # بوّابة القرار المركزيّة — التوصيات تمرّ عبرها (حَوكمة موحّدة)
 GUARDRAILS_URL = os.getenv("GUARDRAILS_URL", "http://sahool-guardrails-engine:8000")
+# المنصّة — لجلب الحالة القانونيّة للحقل (Canonical Field State) وإرفاقها بسياق
+# الحَوكمة، فتمرّ قرارات guardrails عبر مصدر الحقيقة الواحد.
+PLATFORM_URL = os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
+
+
+async def _fetch_field_state(client, field_id, tenant_id):
+    """best-effort: يجلب الحالة القانونيّة للحقل من المنصّة عبر القناة الداخليّة
+    (X-Agent-Token + tenant صريح). يُرجِع dict أو None — fail-safe: أيّ تعذّر ⇒
+    None فيتابع التحقّق بلا الحالة (لا يكسر مسار الحَوكمة الحاليّ)."""
+    if not field_id or not tenant_id:
+        return None
+    try:
+        r = await client.get(
+            f"{PLATFORM_URL}/internal/fields/{field_id}/state",
+            params={"tenant_id": str(tenant_id)},
+            headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
+        )
+        if r.status_code == 200:
+            return r.json()
+    except Exception:  # noqa: BLE001 — best-effort، لا يكسر الحَوكمة
+        return None
+    return None
+
 
 skill_libraries = {
     "remote_sensing": RemoteSensingSkill(mcp_client),
@@ -245,6 +268,11 @@ async def _validate_actions_via_guardrails(
     }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
+            # Canonical Field State: أرفِق الحالة القانونيّة (best-effort) ليحكم
+            # guardrails بها — قرار الحَوكمة يمرّ عبر مصدر الحقيقة الواحد.
+            _fs = await _fetch_field_state(client, getattr(query, "field_id", None), tenant_id)
+            if _fs is not None:
+                payload["farm_context"]["field_state"] = _fs
             resp = await client.post(
                 f"{GUARDRAILS_URL}/validate",
                 json=payload,
@@ -346,6 +374,13 @@ async def _validate_via_guardrails(
     }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
+            # Canonical Field State: أرفِق الحالة القانونيّة (best-effort) ليحكم
+            # guardrails بها — قرار الحَوكمة يمرّ عبر مصدر الحقيقة الواحد.
+            _fs = await _fetch_field_state(
+                client, getattr(query, "field_id", None), trusted_tenant_id
+            )
+            if _fs is not None:
+                payload["farm_context"]["field_state"] = _fs
             resp = await client.post(
                 f"{GUARDRAILS_URL}/validate",
                 json=payload,
