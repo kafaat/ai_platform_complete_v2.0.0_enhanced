@@ -43,11 +43,12 @@ export const useAuthStore = create<AuthState>()(
         const token    = data.access_token;
         const tenantId = data.user?.tenant_id || data.tenant_id || 'default';
         const user: AuthUser = {
+          id: data.user?.id,
           email: data.user?.email || email,
           full_name: data.user?.full_name,
           role: data.user?.role || data.role || 'farmer',
         };
-        // حفظ في localStorage للـ interceptors
+        // التوكن في sessionStorage فقط (لا localStorage) — يقرؤه الـ interceptor.
         sessionStorage.setItem('sahool_access_token', token);
         sessionStorage.setItem('sahool_tenant_id', tenantId);
         sessionStorage.setItem('sahool_user', JSON.stringify(user));
@@ -60,6 +61,7 @@ export const useAuthStore = create<AuthState>()(
         const token    = res.access_token;
         const tenantId = res.user?.tenant_id || res.tenant_id || 'default';
         const user: AuthUser = {
+          id: res.user?.id,
           email: res.user?.email || data.email,
           full_name: res.user?.full_name || data.full_name,
           role: res.user?.role || res.role || 'farmer',
@@ -96,14 +98,19 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'sahool-auth',
-      // استثناء الـ actions من الحفظ
+      // أمان: لا نحفظ token/isAuthenticated في localStorage (قابلة للسرقة عبر XSS).
+      // التوكن يبقى في sessionStorage؛ يُعاد ترطيب الحالة منه عند التحميل.
       partialize: (s) => ({
-        token:           s.token,
-        tenantId:        s.tenantId,
-        user:            s.user,
-        isAuthenticated: s.isAuthenticated,
-        isDemoMode:      s.isDemoMode,
+        tenantId:   s.tenantId,
+        user:       s.user,
+        isDemoMode: s.isDemoMode,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const t = sessionStorage.getItem('sahool_access_token');
+        state.token = t;
+        state.isAuthenticated = !!t;
+      },
     }
   )
 );

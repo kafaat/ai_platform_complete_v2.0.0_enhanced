@@ -258,16 +258,17 @@ export default function App() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authScreen, setAuthScreen] = useState<'login' | 'signup'>('login');
 
-  // Connect WebSocket after login
+  // Connect WebSocket after login — بهويّة المستخدم الفعليّة (لا الثابت 1 الذي كان
+  // يسرّب إشعارات المستخدم 1 للجميع). بلا id: لا نتّصل (الخادم يجب أن يتحقّق بالتوكن).
   useEffect(() => {
-    if (isAuthenticated && user) {
-      wsService.connect(1); // userId placeholder
+    if (isAuthenticated && user?.id) {
+      wsService.connect(user.id);
       wsService.requestNotificationPermission();
     } else {
       wsService.disconnect();
     }
     return () => {};
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.id]);
 
   useEffect(() => { setMobileOpen(false); }, [page]);
 

@@ -30,10 +30,14 @@ class WebSocketService {
   connect(userId: number): void {
     if (this.isConnecting) return;
     this.userId = userId;
-    this.isConnecting = true;
 
-    const token = localStorage.getItem('sahool_access_token') || 'demo';
-    const url   = `${WS_URL}?token=${token}&user_id=${userId}`;
+    // التوكن من sessionStorage (نفس مصدر الـ interceptor) — لا 'demo' احتياطيّ.
+    // بلا توكن صالح: لا نفتح اتصالاً (كان يتّصل دائماً بـtoken=demo).
+    const token = sessionStorage.getItem('sahool_access_token');
+    if (!token) return;
+
+    this.isConnecting = true;
+    const url = `${WS_URL}?token=${token}&user_id=${userId}`;
 
     try {
       this.ws = new WebSocket(url);
