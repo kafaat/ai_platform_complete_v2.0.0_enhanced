@@ -6194,9 +6194,11 @@ async def estimate_field_yield(
     # تحقّقاً ميدانيّاً). نمط التنفيذ != auto ⇒ requires_review (يحتاج تأكيد المهندس
     # قبل الاعتماد على التقدير). صدق + fail-safe: أيّ تعذّر في جلب الحالة لا يكسر
     # التقدير (نتابع بلا الحالة)؛ غياب الحالة ⇒ لا تُرفَق كتلة field_state.
-    from api.field_state_projection import recompute_field_state
-
     try:
+        # الاستيراد ضمن try أيضاً: أيّ ImportError يُعامَل كتعذّر جلب الحالة (لا
+        # يكسر التقدير) — تحقيقاً للـfail-safe المعلن (مراجعة Copilot).
+        from api.field_state_projection import recompute_field_state
+
         async with tenant_connection(user) as conn:
             field_state = (await recompute_field_state(conn, field_id))["state"]
     except Exception:  # noqa: BLE001 — تعذّر جلب الحالة لا يكسر التقدير (تابع بلا الحالة)
@@ -6206,11 +6208,12 @@ async def estimate_field_yield(
     if field_state is not None:
         _agronomic = field_state.get("agronomic") or {}
         _truths = _agronomic.get("operational_truths") or {}
+        # نوع ثابت: operational_truths كائن دائماً (وإن فارغاً) لا null (مراجعة Copilot).
         result["field_state"] = {
             "validity": field_state.get("validity"),
             "execution_mode": field_state.get("execution_mode"),
             "confidence_level": field_state.get("confidence_level"),
-            "agronomic": {"operational_truths": _truths} if _truths else None,
+            "agronomic": {"operational_truths": _truths},
         }
         result["requires_review"] = field_state.get("execution_mode") != "auto"
 
