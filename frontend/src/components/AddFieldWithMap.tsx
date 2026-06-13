@@ -18,6 +18,7 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle, Upload, FileUp,
+  Pentagon, Square, Circle,
 } from 'lucide-react';
 import { kongApi } from '../services/api';
 import type { FieldImportInput } from '../services/api';
@@ -83,6 +84,37 @@ function geodesicAreaHa(latlngs: L.LatLng[]): number {
   return sqm / 10000;
 }
 
+// ── محيط جيوديسي (متر) — مجموع المسافات بين الرؤوس المتتالية ─────
+// يُستخدم نفس نصف قطر WGS84 (R = 6378137) ومعادلة هافرسين على القوس الأكبر.
+// الحلقة مُغلقة: نضيف الضلع من آخر رأس إلى الأوّل تلقائيّاً عبر (i+1)%n.
+function geodesicPerimeterM(latlngs: L.LatLng[]): number {
+  const R = 6378137; // نصف قطر WGS84 (متر) — نفس ثابت المساحة
+  if (!Array.isArray(latlngs) || latlngs.length < 2) return 0;
+  const rad = Math.PI / 180;
+  let perim = 0;
+  const n = latlngs.length;
+  for (let i = 0; i < n; i++) {
+    const p1 = latlngs[i];
+    const p2 = latlngs[(i + 1) % n];
+    if (!p1 || !p2) continue;
+    const dLat = (p2.lat - p1.lat) * rad;
+    const dLng = (p2.lng - p1.lng) * rad;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(p1.lat * rad) * Math.cos(p2.lat * rad) * Math.sin(dLng / 2) ** 2;
+    perim += 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+  return perim;
+}
+
+// تنسيق طول بالمتر: < 10000 م يُعرَض بالمتر (رقمان)، وإلّا بالكيلومتر للقراءة.
+// الوحدة تبقى المتر كأساس؛ هذا تنسيق عرض فقط (لا تحويل لأقدام/فدّان أبداً).
+function formatLengthM(m: number): string {
+  if (!isFinite(m) || m <= 0) return '0 م';
+  if (m >= 10000) return `${(m / 1000).toFixed(2)} كم`;
+  return `${Math.round(m)} م`;
+}
+
 // ── دائرة (ريّ محوريّ) → مضلّع مُقرَّب ──────────────────────────
 // الخلفيّة تتوقّع GeoJSON Polygon؛ نحوّل (مركز + نصف قطر م) إلى حلقة رؤوس.
 function circleToPolygon(center: L.LatLng, radiusM: number, n = 48): L.LatLng[] {
@@ -111,7 +143,11 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
   const [stage, setStage] = useState<'draw' | 'form'>('draw');
   const [latlngs, setLatlngs] = useState<L.LatLng[]>([]);
   const [areaHa, setAreaHa] = useState(0);
+  // المحيط الجيوديسي للحدّ المرسوم (متر) — يُعرَض مع المساحة بعد الرسم/التحرير.
+  const [perimeterM, setPerimeterM] = useState(0);
   const [polygon, setPolygon] = useState<L.Polygon | null>(null);
+  // مدخل "دائرة بنصف قطر" (إلهام FieldView): نصف القطر بالمتر (م) فقط — لا أقدام.
+  const [radiusInput, setRadiusInput] = useState('');
   const [name, setName]   = useState('');
   const [mgr,  setMgr]    = useState('');
   const [crop, setCrop]   = useState(CROPS[0]);
@@ -142,6 +178,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
     const ha = geodesicAreaHa(pts);
     setLatlngs(pts);
     setAreaHa(ha);
+    setPerimeterM(geodesicPerimeterM(pts));
     setPolygon(poly);
     setStage('form');
     // كشف عكسي للموقع (دولة + إقليم) من مركز bbox المضلّع — عرض تلقائي قبل الحفظ.
@@ -176,11 +213,29 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
     if (pts.length >= 3) handlePolygonDone(pts);
   }, [handlePolygonDone]);
 
+  // إنشاء دائرة بنصف قطر مُدخَل بالمتر (م) — إلهام FieldView (حوار نصف القطر).
+  // يُكمّل السحب-للرسم القائم: نأخذ مركز الخريطة الحاليّ ونحوّله لمضلّع عبر
+  // circleToPolygon (يستقبل نصف القطر بالمتر مباشرةً). تحقّق دفاعيّ من القيمة.
+  const handleCreateCircleByRadius = useCallback(() => {
+    setError('');
+    const r = Number(radiusInput);
+    if (!isFinite(r) || r <= 0) {
+      setError('أدخل نصف قطر صالحاً بالمتر (م).');
+      return;
+    }
+    const map = mapRef.current;
+    if (!map) { setError('الخريطة غير جاهزة بعد.'); return; }
+    const center = map.getCenter();
+    const pts = circleToPolygon(center, r);
+    if (pts.length >= 3) handlePolygonDone(pts);
+  }, [radiusInput, handlePolygonDone]);
+
   const handleReset = () => {
     if (fgRef.current) fgRef.current.clearLayers();
     setStage('draw');
     setLatlngs([]);
     setAreaHa(0);
+    setPerimeterM(0);
     setPolygon(null);
     setAutoCountry(null);
     setAutoRegion(null);
@@ -315,10 +370,64 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
           </div>
         )}
 
-        {/* Instructions */}
+        {/* لوحة الأدوات + شريط الإرشاد (إلهام FieldView) — رسم فقط */}
         {mode === 'draw' && stage === 'draw' && (
-          <div className="px-5 py-2 text-sm" style={{ background:'#172032', color:'#94a3b8' }}>
-            💡 <strong className="text-emerald-400">أدوات الرسم</strong> (أعلى يمين الخريطة): مضلّع (انقر الرؤوس ثمّ أغلق) · مستطيل · <strong className="text-emerald-400">دائرة</strong> للريّ المحوريّ.
+          <div className="px-5 py-3 space-y-2" style={{ background:'#172032' }} dir="rtl">
+            {/* سطر الإرشاد العربيّ الأصليّ — يبقى كما هو */}
+            <p className="text-sm" style={{ color:'#94a3b8' }}>
+              💡 <strong className="text-emerald-400">ارسم حدود الحقل على الخريطة</strong> — اختر أداة الرسم من أعلى يسار الخريطة.
+            </p>
+            {/* لوحة أدوات مرتّبة: المضلّع/المستطيل/الدائرة من شريط Leaflet (أعلى الخريطة) */}
+            <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color:'#cbd5e1' }}>
+              <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                <Pentagon className="w-3.5 h-3.5 text-emerald-400" /> مضلّع
+              </span>
+              <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                <Square className="w-3.5 h-3.5 text-emerald-400" /> مستطيل
+              </span>
+              <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                <Circle className="w-3.5 h-3.5 text-emerald-400" /> دائرة (ريّ محوريّ)
+              </span>
+              {onImport && (
+                <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                  style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                  <FileUp className="w-3.5 h-3.5 text-emerald-400" /> أو استيراد ملفّ
+                </span>
+              )}
+            </div>
+            {/* مدخل: دائرة بنصف قطر بالمتر (م) — يُنشئ حقلاً دائريّاً عند مركز الخريطة */}
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="text-xs" style={{ color:'#94a3b8' }}>
+                دائرة بنصف قطر:
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="number"
+                  min={1}
+                  inputMode="numeric"
+                  value={radiusInput}
+                  onChange={e => setRadiusInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCircleByRadius(); } }}
+                  placeholder="مثال: 250"
+                  className="w-28 px-2 py-1 rounded-lg text-sm"
+                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}
+                />
+                <span className="text-xs font-semibold text-emerald-400">م</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleCreateCircleByRadius}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white"
+                style={{ background:'#16a34a' }}>
+                <Circle className="w-3.5 h-3.5" /> إنشاء دائرة
+              </button>
+              <span className="text-[11px]" style={{ color:'#64748b' }}>
+                (تُنشأ عند مركز الخريطة — نصف القطر بالمتر)
+              </span>
+            </div>
           </div>
         )}
 
@@ -355,12 +464,19 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
             </FeatureGroup>
           </MapContainer>
 
-          {/* Area badge */}
+          {/* شارة القياسات: المساحة (هكتار + متر مربّع) + المحيط (متر) — الطول دائماً بالمتر */}
           {areaHa > 0 && (
             <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl text-sm font-bold"
               style={{ background:'#16a34acc', color:'white', backdropFilter:'blur(8px)' }}>
               <Ruler className="w-3.5 h-3.5 inline mr-1" />
               {areaHa.toFixed(2)} هكتار
+              {/* م² مفيد للحقول الصغيرة/الريّ المحوريّ — تحويل بسيط (1 هكتار = 10000 م²) */}
+              {areaHa < 10 && (
+                <span className="font-semibold"> ({Math.round(areaHa * 10000).toLocaleString('en-US')} م²)</span>
+              )}
+              {perimeterM > 0 && (
+                <span className="font-semibold"> · المحيط: {formatLengthM(perimeterM)}</span>
+              )}
             </div>
           )}
 
