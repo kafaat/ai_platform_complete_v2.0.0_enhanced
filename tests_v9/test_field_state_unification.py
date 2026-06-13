@@ -48,6 +48,8 @@ class _Conn:
     async def fetchrow(self, sql, *a):
         if "imagery_automation_fields" in sql:
             return {"last_ndvi_mean": self._ndvi, "last_ndvi_date": self._today}
+        if "FROM soil_lab_tests" in sql:  # صفّ واحد: sampled_on + result (EC)
+            return {"sampled_on": self._today, "result": json.dumps({"ec": self._ec, "ph": 7.5})}
         if "FROM field_state" in sql:
             return None
         return None
@@ -55,12 +57,8 @@ class _Conn:
     async def fetchval(self, sql, *a):
         if "last_image_date FROM imagery_automation_fields" in sql:
             return self._today  # صورة اليوم ⇒ ثقة عالية
-        if "MAX(sampled_on)" in sql:
-            return self._today
         if "weather_automation_cache" in sql:
             return 1.0  # طقس حديث (ساعة)
-        if "SELECT result FROM soil_lab_tests" in sql:
-            return json.dumps({"ec": self._ec, "ph": 7.5})
         if "FROM fields" in sql:
             return "t1"
         return None
@@ -96,6 +94,17 @@ async def test_low_salinity_does_not_escalate(core_on_path):
     assert "agronomic" in st  # النواة الغنيّة مدموجة دائماً عند توفّر إشارة
     assert st["agronomic"]["operational_truths"].get("salinity_class") != "critical"
     assert st["execution_mode"] == "auto"  # لا تصعيد
+
+
+def test_v55_migration_in_manifest_before_append_only():
+    manifest = os.path.join(ROOT, "migrations", "MANIFEST.txt")
+    with open(manifest, encoding="utf-8") as f:
+        lines = [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
+    assert "v55_field_state_agronomic.sql" in lines
+    assert lines.index("v55_field_state_agronomic.sql") < lines.index(
+        "v9_append_only_enforcement.sql"
+    )
+    assert os.path.exists(os.path.join(ROOT, "migrations", "v55_field_state_agronomic.sql"))
 
 
 def test_extract_ec_tolerant_keys(core_on_path):

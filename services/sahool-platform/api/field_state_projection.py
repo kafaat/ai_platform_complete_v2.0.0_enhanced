@@ -20,10 +20,13 @@ field_state، هجرة v53): يُعيد الحساب من المصادر الق�
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date
 
 from .field_operational_state import resolve_field_state
 from .field_state_gateway import build_state_inputs
+
+logger = logging.getLogger("sahool.field_state")
 
 
 async def gather_field_freshness(conn, field_id: str) -> dict:
@@ -56,23 +59,21 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
     except Exception:  # noqa: BLE001 — v54 غير مطبّقة بعد ⇒ تخطٍّ آمن
         ndvi_mean = None
         ndvi_date = None
-    soil_sampled_on = await conn.fetchval(
-        "SELECT MAX(sampled_on) FROM soil_lab_tests "
-        "WHERE field_id = $1 AND status IN ('approved', 'published')",
+    # آخر فحص تربة معتمَد/منشور — صفّ واحد يعطي النضارة (sampled_on) + EC (من result)،
+    # فنتفادى استعلامين ونربط EC بأحدث عيّنة فعلاً (مراجعة Copilot).
+    soil_row = await conn.fetchrow(
+        "SELECT sampled_on, result FROM soil_lab_tests "
+        "WHERE field_id = $1 AND status IN ('approved', 'published') AND sampled_on IS NOT NULL "
+        "ORDER BY sampled_on DESC LIMIT 1",
         field_id,
     )
+    soil_sampled_on = soil_row["sampled_on"] if soil_row else None
+    soil_ec = _extract_ec(soil_row["result"]) if soil_row else None
     weather_age_hours = await conn.fetchval(
         "SELECT EXTRACT(EPOCH FROM (NOW() - c.fetched_at)) / 3600.0 "
         "FROM weather_automation_cache c "
         "JOIN weather_automation_locations l ON l.location_key = c.location_key "
         "WHERE l.field_id = $1 ORDER BY c.fetched_at DESC LIMIT 1",
-        field_id,
-    )
-    # Stage E: نتيجة آخر فحص تربة (لاستخراج EC = إشارة الملوحة للنواة الزراعيّة)
-    soil_result = await conn.fetchval(
-        "SELECT result FROM soil_lab_tests "
-        "WHERE field_id = $1 AND status IN ('approved', 'published') AND sampled_on IS NOT NULL "
-        "ORDER BY sampled_on DESC LIMIT 1",
         field_id,
     )
     return {
@@ -81,7 +82,7 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "weather_age_hours": float(weather_age_hours) if weather_age_hours is not None else None,
         "ndvi_mean": float(ndvi_mean) if ndvi_mean is not None else None,
         "ndvi_date": ndvi_date,
-        "soil_ec": _extract_ec(soil_result),
+        "soil_ec": soil_ec,
     }
 
 
@@ -130,6 +131,9 @@ def _compose_agronomic(field_id: str, tenant_id, ndvi_mean, soil_ec) -> dict | N
             "provenance": list(cs.provenance),
         }
     except Exception:  # noqa: BLE001 — توحيد best-effort، لا يكسر الحالة التشغيليّة
+        # هذا المسار يُفعّل تصعيد السلامة (Salinity>Vigor) — الفشل الصامت يعطّل
+        # التحكيم. نُسجّل الأثر (مع إبقاء fail-safe) ليُكشَف تشخيصيّاً (مراجعة Copilot).
+        logger.warning("compose_field_state تعذّر للحقل %s — تخطّي التحكيم", field_id, exc_info=True)
         return None
 
 
@@ -202,9 +206,9 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         INSERT INTO field_state
             (field_id, tenant_id, validity, execution_mode, confidence_level,
              ndvi_age_days, soil_age_days, weather_age_hours,
-             reasons_ar, conflicts, freshness_warnings, inputs, computed_at)
+             reasons_ar, conflicts, freshness_warnings, inputs, agronomic, computed_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-                $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb, NOW())
+                $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb, $13::jsonb, NOW())
         ON CONFLICT (field_id) DO UPDATE SET
             validity = EXCLUDED.validity,
             execution_mode = EXCLUDED.execution_mode,
@@ -216,6 +220,7 @@ async def recompute_field_state(conn, field_id: str) -> dict:
             conflicts = EXCLUDED.conflicts,
             freshness_warnings = EXCLUDED.freshness_warnings,
             inputs = EXCLUDED.inputs,
+            agronomic = EXCLUDED.agronomic,
             computed_at = NOW()
         """,
         field_id,
@@ -230,5 +235,6 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         json.dumps(state.get("conflicts", [])),
         json.dumps(state.get("freshness_warnings", [])),
         json.dumps(inputs),
+        json.dumps(state.get("agronomic")),  # الحقائق الزراعيّة (NULL إن لا إشارات)
     )
     return {"state": state, "changed": changed}
