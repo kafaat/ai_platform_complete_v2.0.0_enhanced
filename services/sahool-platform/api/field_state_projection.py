@@ -68,13 +68,69 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "WHERE l.field_id = $1 ORDER BY c.fetched_at DESC LIMIT 1",
         field_id,
     )
+    # Stage E: نتيجة آخر فحص تربة (لاستخراج EC = إشارة الملوحة للنواة الزراعيّة)
+    soil_result = await conn.fetchval(
+        "SELECT result FROM soil_lab_tests "
+        "WHERE field_id = $1 AND status IN ('approved', 'published') AND sampled_on IS NOT NULL "
+        "ORDER BY sampled_on DESC LIMIT 1",
+        field_id,
+    )
     return {
         "last_image_date": last_image_date,
         "latest_soil_sampled_on": soil_sampled_on,
         "weather_age_hours": float(weather_age_hours) if weather_age_hours is not None else None,
         "ndvi_mean": float(ndvi_mean) if ndvi_mean is not None else None,
         "ndvi_date": ndvi_date,
+        "soil_ec": _extract_ec(soil_result),
     }
+
+
+def _extract_ec(soil_result) -> float | None:
+    """يستخرج التوصيل الكهربائيّ (EC، dS/m) من نتيجة فحص التربة (JSONB) — قرينة
+    الملوحة للنواة الزراعيّة. يتسامح مع أسماء المفاتيح الشائعة. None إن غاب."""
+    if not soil_result:
+        return None
+    if isinstance(soil_result, str):
+        try:
+            soil_result = json.loads(soil_result)
+        except (ValueError, TypeError):
+            return None
+    if not isinstance(soil_result, dict):
+        return None
+    for k in ("ec", "ec_ds_m", "ece", "salinity_ec", "ec_dsm"):
+        v = soil_result.get(k)
+        if isinstance(v, int | float):
+            return float(v)
+    return None
+
+
+def _compose_agronomic(field_id: str, tenant_id, ndvi_mean, soil_ec) -> dict | None:
+    """يستدعي النواة الزراعيّة الغنيّة compose_field_state (دالّة نقيّة بلا شبكة)
+    لدمج الحقائق الزراعيّة + التحكيم (Salinity>Vigor) في الحالة القانونيّة.
+
+    صدق + fail-safe: لا إشارات ⇒ None؛ وأيّ تعذّر استيراد/حساب ⇒ None دون كسر
+    recompute (الحالة التشغيليّة تبقى من resolve_field_state).
+    """
+    try:
+        from core.agronomic_state_engine import SignalInput, compose_field_state
+
+        signals = []
+        if ndvi_mean is not None:
+            signals.append(SignalInput(source="ndvi", value=float(ndvi_mean)))
+        if soil_ec is not None:
+            signals.append(SignalInput(source="soil_ec", value=float(soil_ec)))
+        if not signals:
+            return None
+        cs = compose_field_state(field_id, signals, tenant_id=str(tenant_id) if tenant_id else None)
+        return {
+            "operational_truths": dict(cs.operational_truths),
+            "confidence": cs.confidence,
+            "confidence_reason": cs.confidence_reason,
+            "contradictions": list(cs.contradictions),
+            "provenance": list(cs.provenance),
+        }
+    except Exception:  # noqa: BLE001 — توحيد best-effort، لا يكسر الحالة التشغيليّة
+        return None
 
 
 async def recompute_field_state(conn, field_id: str) -> dict:
@@ -108,6 +164,28 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     if tenant_id is None:
         # الحقل غير موجود ضمن المستأجِر — لا نحفظ إسقاطاً يتيماً (الحالة تُعاد فقط).
         return {"state": state, "changed": False}
+
+    # Stage E (توحيد النواة): ادمج الحقائق الزراعيّة الغنيّة (compose_field_state)
+    # في الحالة القانونيّة — فيصبح الإسقاط مصدر الحقيقة الموحّد (حقائق + جاهزيّة).
+    # التحكيم يَحكُم فعليّاً: ملوحة تربة حرجة تُصعّد نمط التنفيذ للمراجعة البشريّة
+    # رغم خُضرة NDVI (Salinity>Vigor) — تصعيد سلامة لا تخفيض، ولا يغيّر أرقاماً
+    # زراعيّة (يطبّق منطق النواة الموجود فقط).
+    agronomic = _compose_agronomic(
+        field_id, tenant_id, fresh.get("ndvi_mean"), fresh.get("soil_ec")
+    )
+    if agronomic is not None:
+        state["agronomic"] = agronomic
+        if (
+            agronomic["operational_truths"].get("salinity_class") == "critical"
+            and state["execution_mode"] == "auto"
+        ):
+            state["execution_mode"] = "human_review"
+            if state["validity"] == "valid":
+                state["validity"] = "degraded"
+            state.setdefault("reasons_ar", []).append(
+                "ملوحة تربة حرجة (تحكيم النواة الزراعيّة: الملوحة تَحكُم رغم خُضرة "
+                "NDVI) — تتطلّب مراجعة بشريّة."
+            )
 
     prev = await conn.fetchrow(
         "SELECT validity, execution_mode FROM field_state WHERE field_id = $1",
