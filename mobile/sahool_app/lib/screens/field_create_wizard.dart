@@ -89,8 +89,14 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   String? _seasonCrop;
   String? _seasonIrrigation;
   DateTime? _sowingDate;
+  DateTime? _seasonEnd; // تاريخ نهاية الموسم/الحصاد
+  String? _tillageType; // نوع الحراثة
+  String? _maturity; // مرحلة النضج (early/medium/late)
   final _cultivar = TextEditingController();
   final _targetYield = TextEditingController(); // كغ/هـ
+  final _seedRate = TextEditingController(); // كمية البذور كغ/هـ
+  final _actualYield = TextEditingController(); // الغلّة الفعليّة كغ/هـ
+  final _seasonNotes = TextEditingController(); // ملاحظات الموسم
 
   // خطوة فحوص التربة (اختياريّة): pH / مادّة عضويّة / CEC داخل result.
   final _soilPh = TextEditingController();
@@ -140,6 +146,19 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     'silt': 'غرينيّة',
     'rocky': 'صخريّة',
   };
+  // نوع الحراثة (نصوص خادم قصيرة ← عربيّ للعرض).
+  static const _tillageTypes = {
+    'conventional': 'تقليديّة',
+    'reduced': 'مخفَّضة',
+    'no_till': 'بدون حراثة',
+    'deep': 'عميقة',
+  };
+  // مرحلة النضج (مبكّر/متوسّط/متأخّر).
+  static const _maturityStages = {
+    'early': 'مبكّر',
+    'medium': 'متوسّط',
+    'late': 'متأخّر',
+  };
 
   @override
   void dispose() {
@@ -148,6 +167,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     _manager.dispose();
     _cultivar.dispose();
     _targetYield.dispose();
+    _seedRate.dispose();
+    _actualYield.dispose();
+    _seasonNotes.dispose();
     _soilPh.dispose();
     _soilOm.dispose();
     _soilCec.dispose();
@@ -465,8 +487,15 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         try {
           await ApiService.instance
               .updateField(fieldId, {'irrigation_type': _irrigationType});
-        } catch (_) {
-          // عدم حفظ نوع الريّ لا يبطل إنشاء الحقل — نُكمل بنجاح جزئيّ.
+        } catch (e) {
+          // عدم حفظ نوع الريّ لا يبطل إنشاء الحقل — نُكمل بنجاح جزئيّ، لكن لا
+          // نبتلع الفشل صامتاً: نسجّله للتشخيص ونُلمِّح للمستخدم (غير معطِّل).
+          debugPrint('تعذّر حفظ نوع الريّ عبر PATCH للحقل $fieldId: $e');
+          if (mounted) {
+            showSnack(context,
+                'تعذّر حفظ نوع الريّ — يمكنك ضبطه لاحقاً من مساحة العمل',
+                error: true);
+          }
         }
       }
 
@@ -540,6 +569,15 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     return num.tryParse(t);
   }
 
+  // محلّل رقم غير سالب (يرفض NaN/اللانهاية/السالب بإرجاع null — حارس دفاعيّ
+  // لحقول الكمّيّات: كمية البذور والغلّة الفعليّة لا تكون سالبة).
+  num? _parseNonNegNum(String s) {
+    final v = _parseNum(s);
+    if (v == null) return null;
+    if (v.isNaN || v.isInfinite || v < 0) return null;
+    return v;
+  }
+
   String _ymd(DateTime d) =>
       '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
@@ -557,13 +595,20 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     final fid = _createdFieldId;
     final crop = _seasonCrop;
     if (fid == null || crop == null) return false;
+    final notes = _seasonNotes.text.trim();
     await ApiService.instance.createSeason(
       fid,
       crop: crop,
       cultivar: _cultivar.text.trim().isEmpty ? null : _cultivar.text.trim(),
       irrigationType: _seasonIrrigation,
       sowingDate: _sowingDate != null ? _ymd(_sowingDate!) : null,
-      targetYieldKgHa: _parseNum(_targetYield.text),
+      seasonEnd: _seasonEnd != null ? _ymd(_seasonEnd!) : null,
+      targetYieldKgHa: _parseNonNegNum(_targetYield.text),
+      seedRateKgHa: _parseNonNegNum(_seedRate.text),
+      tillageType: _tillageType,
+      maturity: _maturity,
+      actualYieldKgHa: _parseNonNegNum(_actualYield.text),
+      notesAr: notes.isEmpty ? null : notes,
     );
     return true;
   }
@@ -1342,11 +1387,40 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         _dropdown(_irrigationTypes, _seasonIrrigation, 'نوع الريّ (اختياريّ)',
             (v) => setState(() => _seasonIrrigation = v)),
         kField(_cultivar, 'الصنف/الهجين (اختياريّ)'),
+        kField(_seedRate, 'كمية البذور (كجم/هـ)', number: true),
         _dateField('تاريخ البذر (اختياريّ)', _sowingDate,
             (d) => setState(() => _sowingDate = d)),
+        _dateField('تاريخ نهاية الموسم/الحصاد (اختياريّ)', _seasonEnd,
+            (d) => setState(() => _seasonEnd = d)),
+        _dropdown(_tillageTypes, _tillageType, 'نوع الحراثة (اختياريّ)',
+            (v) => setState(() => _tillageType = v)),
+        _dropdown(_maturityStages, _maturity, 'مرحلة النضج (اختياريّ)',
+            (v) => setState(() => _maturity = v)),
         kField(_targetYield, 'الإنتاجيّة المستهدفة كغ/هـ (اختياريّ)',
             number: true),
+        const SizedBox(height: 16),
+        const SectionTitle('بعد الحصاد (اختياريّ)'),
+        const Text('تُملأ لاحقاً بعد جني المحصول — اتركها فارغة الآن إن لم تتوفّر.',
+            style: TextStyle(color: Colors.grey, fontSize: 12)),
+        kField(_actualYield, 'الغلّة الفعليّة (كجم/هـ)', number: true),
+        _multilineField(_seasonNotes, 'ملاحظات'),
       ],
+    );
+  }
+
+  // حقل نصّ متعدّد الأسطر (ملاحظات) — kField أحاديّ السطر، فنوفّره محليّاً
+  // بنفس الثيم (kDec) دون تبعيّات جديدة.
+  Widget _multilineField(TextEditingController c, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: TextField(
+        controller: c,
+        maxLines: 4,
+        minLines: 2,
+        keyboardType: TextInputType.multiline,
+        style: const TextStyle(color: Colors.white),
+        decoration: kDec(label),
+      ),
     );
   }
 
