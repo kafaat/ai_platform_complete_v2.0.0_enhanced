@@ -128,12 +128,45 @@ export default function SatellitePage() {
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length - 1]?.ndvi ?? null;
   // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
   // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.
-  const stripPoints = rasterPoints.length
-    ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean }))
-    : ts.map((t) => ({ date: t.date, value: t.ndvi ?? 0 }));
-  const thumbs = stripPoints
-    .filter((_, i) => i % Math.max(1, Math.floor(stripPoints.length / 8)) === 0)
-    .slice(0, 8);
+  // cloud: نسبة الغيوم لكلّ تاريخ (raster فقط) — null في مصدر vegetation البديل.
+  const stripPoints = Array.isArray(rasterPoints) && rasterPoints.length
+    ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean, cloud: p.cloudy_pct ?? null }))
+    : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null }));
+
+  // هل يوفّر المصدر نسبة غيوم؟ (raster نعم، vegetation لا) — يضبط إتاحة المُبدِّل.
+  const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');
+
+  // إخفاء الأيّام الغائمة (نمط FieldView): يُسقط النقاط التي تتجاوز عتبة الغيوم.
+  // غير مُفعَّل ما لم يتوفّر cloudy_pct (تعطيل رشيق لمصدر vegetation البديل).
+  const [hideCloudy, setHideCloudy] = useState(false);
+  const CLOUD_THRESHOLD = 50;
+  const visiblePoints = (hideCloudy && hasCloudData)
+    ? stripPoints.filter((p) => !(typeof p.cloud === 'number' && p.cloud > CLOUD_THRESHOLD))
+    : stripPoints;
+
+  // البلاطات مدفوعة بالبيانات بالكامل (لا تواريخ ثابتة): تنمو مع وصول نقاط جديدة.
+  // الشريط قابل للتمرير أفقيّاً، فلا نحدّ العدد بثمانٍ — نعرض كلّ النقاط المرئيّة.
+  const thumbs = visiblePoints;
+
+  // قائمة التواريخ المرئيّة مُستقرّة المرجع (مفتاح نصّيّ) — كي لا يُعاد تشغيل
+  // التأثير كلّ تصيير (نمط availableDates أعلاه).
+  const visibleDates = useMemo(
+    () => visiblePoints.map((p) => p.date).filter(Boolean),
+    [visiblePoints.map((p) => p.date).join('|')], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // التاريخ المختار يقود طبقة الخريطة (نقر البلاطة). الافتراض: أحدث تاريخ مرئيّ.
+  // data-driven: لا قيمة ثابتة — نُعيد المزامنة كلّما تغيّرت النقاط/التصفية.
+  const [selectedDate, setSelectedDate] = useState('');
+  useEffect(() => {
+    if (!visibleDates.length) { setSelectedDate(''); return; }
+    setSelectedDate((prev) =>
+      prev && visibleDates.includes(prev) ? prev : visibleDates[visibleDates.length - 1],
+    );
+  }, [visibleDates]);
+
+  // طبقة الخريطة: التاريخ المختار إن وُجِد، وإلّا "latest" (سلوك سابق).
+  const mapDate = selectedDate || 'latest';
 
   // مضلّع الحقل + إطار احتياطيّ للخريطة من هندسة/مركز الحقل الحقيقيّ.
   const fieldPolygon = field ? geomToPolygon(field.geometry) : undefined;
@@ -192,7 +225,7 @@ export default function SatellitePage() {
             key={fieldId}
             fieldId={fieldId}
             index={gridIndex}
-            date="latest"
+            date={mapDate}
             fieldPolygon={fieldPolygon}
             fallbackBounds={fallbackBounds}
             basemap="satellite"
@@ -210,7 +243,20 @@ export default function SatellitePage() {
                   متوسّطات حقيقيّة · {gridIndex.toUpperCase()}
                 </span>
               )}
-              <div className="flex gap-1 mr-auto">
+              {/* إخفاء الأيّام الغائمة (نمط FieldView) — يظهر فقط حين يوفّر المصدر
+                  cloudy_pct؛ تعطيل رشيق لمصدر vegetation البديل. */}
+              {hasCloudData && (
+                <label className="flex items-center gap-1.5 mr-auto cursor-pointer select-none text-[11px] text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={hideCloudy}
+                    onChange={(e)=>setHideCloudy(e.target.checked)}
+                    style={{ accentColor:'#16a34a' }}
+                  />
+                  إخفاء الأيّام الغائمة
+                </label>
+              )}
+              <div className={`flex gap-1 ${hasCloudData ? '' : 'mr-auto'}`}>
                 {[14,30,60].map(d=>(
                   <button key={d} onClick={()=>setDays(d)}
                     className="px-2 py-0.5 rounded text-[11px]"
@@ -226,22 +272,46 @@ export default function SatellitePage() {
               <p className="text-amber-400/80 text-xs py-4 w-full text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
             ) : (
               <div className="flex gap-2 overflow-x-auto pb-1 min-h-[72px]">
-                {thumbs.map((t,i)=>{
+                {(Array.isArray(thumbs) ? thumbs : []).map((t,i)=>{
                   const v = t.value||0; const c = ndviColor(v);
+                  const selected = !!t.date && t.date === selectedDate;
+                  const cloudy = typeof t.cloud === 'number' && t.cloud > CLOUD_THRESHOLD;
+                  // نقر البلاطة يختار تاريخها ⇒ يتغيّر mapDate ⇒ طبقة الخريطة تتبدّل
+                  // (FieldIndicatorMap يُمرّر date عبر استعلام بلاطات/tilejson).
                   return (
-                    <div key={i} className="flex-shrink-0 cursor-default" style={{width:72}}>
-                      <div className="h-10 rounded-lg mb-1 border" style={{
-                        borderColor:'#334155',
+                    <button
+                      key={t.date || i}
+                      type="button"
+                      onClick={()=> t.date && setSelectedDate(t.date)}
+                      title={t.date ? (cloudy ? `${t.date} · غائم` : t.date) : ''}
+                      className="flex-shrink-0 cursor-pointer text-right rounded-lg p-0.5 transition-all"
+                      style={{ width:72,
+                        outline: selected ? `2px solid ${c}` : '2px solid transparent',
+                        outlineOffset: 1,
+                        background: selected ? `${c}1a` : 'transparent' }}
+                    >
+                      <div className="h-10 rounded-lg mb-1 border relative" style={{
+                        borderColor: selected ? c : '#334155',
                         background:`linear-gradient(135deg,${c}44,${c}88,${c}44)`
-                      }} />
+                      }}>
+                        {cloudy && (
+                          <span className="absolute top-0.5 left-0.5 text-[10px] leading-none" title="يوم غائم">☁️</span>
+                        )}
+                      </div>
                       <div className="text-center text-[10px]">
                         <div className="font-bold" style={{color:c}}>{v.toFixed(2)}</div>
-                        <div className="text-slate-500">{t.date?.slice(5)||''}</div>
+                        <div className={selected ? 'text-slate-200' : 'text-slate-500'}>{t.date?.slice(5)||''}</div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
-                {!thumbs.length && <p className="text-slate-500 text-xs py-4 w-full text-center">لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لمعالجة صور Sentinel-2.</p>}
+                {!thumbs.length && (
+                  <p className="text-slate-500 text-xs py-4 w-full text-center">
+                    {hideCloudy && hasCloudData
+                      ? 'كلّ التواريخ المتاحة غائمة — أوقِف «إخفاء الأيّام الغائمة» لعرضها.'
+                      : 'لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لمعالجة صور Sentinel-2.'}
+                  </p>
+                )}
               </div>
             )}
           </div>
