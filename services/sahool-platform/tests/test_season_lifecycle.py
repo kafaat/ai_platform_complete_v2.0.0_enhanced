@@ -5,7 +5,6 @@
 """
 
 import pytest
-
 from api.season_lifecycle import (
     SeasonStatus,
     SeasonTransitionError,
