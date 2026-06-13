@@ -338,7 +338,9 @@ export function useFieldChange(
 }
 
 // ── Time series (real per-date index means for a field) ────────────
-export interface TimeseriesPoint { datetime: string; mean: number }
+// stddev/cloudy_pct اختياريّان: raster-service يزوّدهما لكلّ تاريخ COG؛ مصدر
+// vegetation-service البديل لا يملكهما (فيبقيان undefined — لا قيم مُختلَقة).
+export interface TimeseriesPoint { datetime: string; mean: number; stddev?: number; cloudy_pct?: number }
 
 export interface FieldTimeseriesResponse {
   field_id: string;
