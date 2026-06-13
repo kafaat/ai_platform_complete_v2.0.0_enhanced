@@ -27,10 +27,12 @@ def core_on_path():
 
 
 def _field_recommendations_src() -> str:
-    src = open(MAIN, encoding="utf-8").read()
+    with open(MAIN, encoding="utf-8") as f:
+        src = f.read()
     start = src.index("async def field_recommendations(")
-    # نهاية الجسم = أوّل تعريف مستوى-أعلى تالٍ (decorator/def/class بلا إزاحة).
-    nxt = re.search(r"\n(?:@app\.|async def |def |class )", src[start + 1 :])
+    # نهاية الجسم = أوّل تعريف مستوى-أعلى تالٍ بلا إزاحة: أيّ decorator (@…) أو
+    # def/async def/class. (@\w أعمّ من @app. — يلتقط أيّ مزخرِف يُضاف لاحقاً.)
+    nxt = re.search(r"\n(?:@\w|async def |def |class )", src[start + 1 :])
     end = (start + 1 + nxt.start()) if nxt else len(src)
     return src[start:end]
 
