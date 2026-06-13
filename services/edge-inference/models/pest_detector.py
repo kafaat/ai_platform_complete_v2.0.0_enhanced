@@ -10,6 +10,7 @@ import logging
 import os
 
 import numpy as np
+from models.errors import ModelNotProvisioned
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -205,8 +206,12 @@ class EdgePestDetector:
                     d["model"] = model_name
                 return detections
 
-        # ── Honest fallback: EXISTING rule-based simulation (unchanged output) ──
-        return self._simulate_detection(image, confidence_threshold)
+        # ── لا نموذج ONNX حقيقيّ ⇒ لا اختلاق ──
+        # سابقاً كان يُرجِع _simulate_detection (آفات/ثقة/مربّعات عشوائيّة) مُقدَّمة
+        # للمزارع كمُخرَج نموذج مع تنبيه رشّ مبيد. أمانةً نرفع استثناءً تُترجمه
+        # طبقة الـAPI إلى 503 بدل تنبيهٍ مُختلَق. (_simulate_detection يبقى للاختبار
+        # المحلّيّ فقط، غير مُستخدَم في مسار الإنتاج.)
+        raise ModelNotProvisioned("نموذج كشف الآفات (ONNX) غير مُجهَّز — لا اختلاق كشوف")
 
     def _parse_onnx_outputs(self, outputs, threshold, original_size):
         """Parse YOLOv8-style ONNX outputs into the existing detection shape.
