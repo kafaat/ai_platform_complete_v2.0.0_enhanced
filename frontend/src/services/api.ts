@@ -43,7 +43,20 @@ function makeClient(baseURL: string): AxiosInstance {
   });
   // 401 → logout
   client.interceptors.response.use(
-    (r) => r,
+    (r) => {
+      // حارس: لو رجع HTML (SPA fallback لمسار API غير مُوجَّه) بدل JSON ⇒ عامله خطأً
+      // بدل تمرير نصّ HTML للمكوّنات فتنهار (مثل alerts.slice(...).map is not a function).
+      const ct = (r.headers?.['content-type'] || '') as string;
+      if (
+        typeof r.data === 'string' &&
+        (ct.includes('text/html') || r.data.trimStart().startsWith('<'))
+      ) {
+        return Promise.reject(
+          new Error('استجابة غير صالحة من الخادم (مسار API غير مُوجَّه للخلفيّة؟)')
+        );
+      }
+      return r;
+    },
     (err) => {
       if (err.response?.status === 401) {
         sessionStorage.removeItem('sahool_access_token');

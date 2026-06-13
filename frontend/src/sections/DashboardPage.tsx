@@ -24,9 +24,12 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
   const { data: natsData } = useAllServicesHealth();
 
   const kpis   = dashboard?.kpis           || [];
-  const fields  = dashboard?.fields_summary || [];
-  // alertsData هو AlertRecord[] من sahool-platform (v36) — قائمة مباشرة لا { alerts }.
-  const alerts  = alertsData ?? dashboard?.alerts ?? [];
+  const fields  = Array.isArray(dashboard?.fields_summary) ? dashboard.fields_summary : [];
+  // alertsData هو AlertRecord[] من sahool-platform (v36). حارس Array.isArray يمنع انهيار
+  // alerts.slice(...).map لو رجعت الاستجابة بصيغة غير متوقّعة (كائن/نصّ بدل مصفوفة).
+  const alerts  = Array.isArray(alertsData)
+    ? alertsData
+    : Array.isArray(dashboard?.alerts) ? dashboard.alerts : [];
   const weather = weatherData?.current;
   // natsData is a ServiceHealth[]; these aggregate fields are read defensively
   // (undefined at runtime) — typed via a narrow optional shape to match usage.

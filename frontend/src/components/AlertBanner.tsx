@@ -23,7 +23,8 @@ const SEV_CFG = {
 export function AlertBanner({ alerts }: AlertBannerProps) {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  const visible = alerts.filter(a => !dismissed.has(a.id));
+  // حارس: alerts قد تصل بصيغة غير متوقّعة — لا ننهار (Array.isArray قبل filter/slice).
+  const visible = (Array.isArray(alerts) ? alerts : []).filter(a => !dismissed.has(a.id));
   if (!visible.length) return null;
 
   return (
