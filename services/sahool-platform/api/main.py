@@ -5508,11 +5508,26 @@ def _shape_indicators_dashboard(
       لا NDVI مخترع — قيم المؤشّرات الطيفيّة تأتي من vegetation/raster لكلّ حقل.
     - alerts: قائمة التنبيهات النشطة كما هي (تُمرَّر للّوحة بلا تلفيق).
     """
+    import json as _json
+
     fields_summary = []
     total_area = 0.0
     for r in fields_rows:
         area = float(r["area_ha"]) if r["area_ha"] is not None else 0.0
         total_area += area
+        # geometry (GeoJSON) يُمرَّر كما هو ليرسم العميل (موبايل/ويب) حدّ الحقل
+        # ويضبط مركز/تكبير الخريطة على حقل المستخدم. JSONB قد يعود نصّاً ⇒ نفكّه.
+        # غيابه لا يكسر شيئاً: العميل يحرس على غياب geometry (حقل اختياريّ).
+        geom = None
+        try:
+            geom = r["geometry"]
+        except (KeyError, IndexError):
+            geom = None
+        if isinstance(geom, str):
+            try:
+                geom = _json.loads(geom)
+            except (ValueError, TypeError):
+                geom = None
         fields_summary.append(
             {
                 "field_id": r["field_id"],
@@ -5520,6 +5535,7 @@ def _shape_indicators_dashboard(
                 "crop": r["crop"],
                 "area_ha": round(area, 2),
                 "has_active_season": r["field_id"] in active_field_ids,
+                "geometry": geom,
             }
         )
     active_count = len(active_field_ids)
@@ -5591,7 +5607,7 @@ async def indicators_dashboard(
         async with tenant_connection(user) as conn:
             tid = str(user.tenant_id)
             fields_rows = await conn.fetch(
-                "SELECT field_id, name, crop, area_ha FROM fields "
+                "SELECT field_id, name, crop, area_ha, geometry FROM fields "
                 "WHERE tenant_id = $1::uuid ORDER BY name",
                 tid,
             )
