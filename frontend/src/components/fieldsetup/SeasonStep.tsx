@@ -4,7 +4,9 @@
 // الموسم + إنتاجيّة مستهدفة اختياريّة). إلزاميّة (لا تُتخطّى).
 // النقطة الخلفيّة الحقيقيّة:
 //   POST /api/v1/fields/{field_id}/seasons
-//   body: { crops, cultivar?, irrigation_type?, sowing_date?, season_end?, target_yield_kg_ha? }
+//   body: { crops, cultivar?, irrigation_type?, seed_rate_kg_ha?, sowing_date?,
+//           season_end?, target_yield_kg_ha?, tillage_type?, maturity?,
+//           actual_yield_kg_ha?, notes_ar? }
 // المفردات (محاصيل/ريّ) مأخوذة من نفس قاموس AddSeasonWithStages القائم —
 // لا مفردات جديدة مخترَعة.
 // ═══════════════════════════════════════════════════════════════
@@ -36,6 +38,17 @@ const IRRIGATION_TYPES = [
   { value: 'subsurface', label: 'تحت سطحي', icon: '⬇️' },
 ];
 
+// خيارات مرحلة النضج (v52) — early/medium/late مقابل تسميات عربيّة.
+const MATURITY_OPTIONS = [
+  { value: '', label: '— غير محدّد —' },
+  { value: 'early', label: 'مبكّر' },
+  { value: 'medium', label: 'متوسّط' },
+  { value: 'late', label: 'متأخّر' },
+];
+
+// اقتراحات نوع الحراثة (v52) — حقل حرّ مع لائحة datalist (لا قيود على المفردات).
+const TILLAGE_SUGGESTIONS = ['حراثة تقليديّة', 'بدون حراثة', 'حراثة شريطيّة'];
+
 export default function SeasonStep({
   ctx, onNext, onBack, canGoBack, stepIndex, stepTotal,
 }: FieldSetupStepProps) {
@@ -47,6 +60,13 @@ export default function SeasonStep({
   const [sowDate, setSowDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [targetYield, setTargetYield] = useState('');
+  // حقول أغرونوميّة (v52) تُحفظ فعليّاً عبر POST seasons.
+  const [seedRate, setSeedRate] = useState('');
+  const [tillageType, setTillageType] = useState('');
+  const [maturity, setMaturity] = useState('');
+  const [actualYield, setActualYield] = useState('');
+  const [notesAr, setNotesAr] = useState('');
+  const [showOptional, setShowOptional] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -54,21 +74,46 @@ export default function SeasonStep({
   const toggleCrop = (label: string) =>
     setCrops(p => p.includes(label) ? p.filter(x => x !== label) : [...p, label]);
 
+  // يحلّل رقماً غير سالب من نصّ حقل؛ يُعيد undefined إن كان فارغاً، أو null إن غير صالح.
+  const parseNonNeg = (s: string): number | null | undefined => {
+    if (!s.trim()) return undefined;
+    const n = Number(s);
+    if (!Number.isFinite(n) || n < 0) return null;
+    return n;
+  };
+
   const handleNext = async () => {
     if (!crops.length) { setError('اختر محصولاً واحداً على الأقلّ'); return; }
     if (endDate && sowDate && endDate < sowDate) {
       setError('نهاية الموسم يجب أن تكون بعد البذار'); return;
     }
+    const seedRateVal = parseNonNeg(seedRate);
+    if (seedRateVal === null) {
+      setError('كمية البذور يجب أن تكون رقماً غير سالب'); return;
+    }
+    const actualYieldVal = parseNonNeg(actualYield);
+    if (actualYieldVal === null) {
+      setError('الغلّة الفعليّة يجب أن تكون رقماً غير سالب'); return;
+    }
+    const targetYieldVal = parseNonNeg(targetYield);
+    if (targetYieldVal === null) {
+      setError('الإنتاجيّة المستهدفة يجب أن تكون رقماً غير سالب'); return;
+    }
     setSaving(true); setError('');
     try {
-      // نداء حقيقيّ على عقد الخلفيّة المُتّفق عليه (target_yield_kg_ha داخل جسم الموسم).
+      // نداء حقيقيّ على عقد الخلفيّة المُتّفق عليه (الحقول الأغرونوميّة داخل جسم الموسم).
       await kongApi.post(`/api/v1/fields/${ctx.fieldId}/seasons`, {
         crops,
         cultivar: cultivar.trim() || undefined,
         irrigation_type: irrType,
+        seed_rate_kg_ha: seedRateVal,
         sowing_date: sowDate || undefined,
         season_end: endDate || undefined,
-        target_yield_kg_ha: targetYield ? +targetYield : undefined,
+        target_yield_kg_ha: targetYieldVal,
+        tillage_type: tillageType.trim() || undefined,
+        maturity: maturity || undefined,
+        actual_yield_kg_ha: actualYieldVal,
+        notes_ar: notesAr.trim() || undefined,
       });
       onNext();
     } catch (e: any) {
@@ -167,11 +212,68 @@ export default function SeasonStep({
         </div>
         <div>
           <label className="block text-xs text-slate-400 mb-1">إنتاجيّة مستهدفة (كجم/هـ)</label>
-          <input type="number" value={targetYield} onChange={e => setTargetYield(e.target.value)}
+          <input type="number" min={0} value={targetYield} onChange={e => setTargetYield(e.target.value)}
             placeholder="اختياري"
             className="w-full px-3 py-2 rounded-lg text-sm"
             style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
         </div>
+      </div>
+
+      {/* حقول أغرونوميّة (v52): كمية البذور + نوع الحراثة + مرحلة النضج — تُحفظ فعليّاً */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">كمية البذور (كجم/هـ)</label>
+          <input type="number" min={0} value={seedRate} onChange={e => setSeedRate(e.target.value)}
+            placeholder="اختياري"
+            className="w-full px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">نوع الحراثة</label>
+          <input list="tillage-suggestions" value={tillageType} onChange={e => setTillageType(e.target.value)}
+            placeholder="مثال: حراثة تقليديّة / بدون حراثة"
+            className="w-full px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+          <datalist id="tillage-suggestions">
+            {TILLAGE_SUGGESTIONS.map(t => <option key={t} value={t} />)}
+          </datalist>
+        </div>
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">مرحلة النضج</label>
+          <select value={maturity} onChange={e => setMaturity(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+            {MATURITY_OPTIONS.map(m => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* منطقة اختياريّة (ما بعد الحصاد + ملاحظات) — مطويّة لتجنّب الإرباك */}
+      <div>
+        <button type="button" onClick={() => setShowOptional(p => !p)}
+          className="text-xs text-slate-400 hover:text-slate-200">
+          {showOptional ? '▾ إخفاء الحقول الاختياريّة' : '▸ حقول اختياريّة (ما بعد الحصاد + ملاحظات)'}
+        </button>
+        {showOptional && (
+          <div className="mt-2 grid grid-cols-1 gap-3">
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">الغلّة الفعليّة (كجم/هـ)</label>
+              <input type="number" min={0} value={actualYield} onChange={e => setActualYield(e.target.value)}
+                placeholder="اختياري — تُسجَّل بعد الحصاد"
+                className="w-full px-3 py-2 rounded-lg text-sm"
+                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-400 mb-1">ملاحظات</label>
+              <textarea value={notesAr} onChange={e => setNotesAr(e.target.value)} rows={3}
+                placeholder="ملاحظات حرّة على الموسم (اختياري)"
+                className="w-full px-3 py-2 rounded-lg text-sm resize-y"
+                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+            </div>
+          </div>
+        )}
       </div>
     </StepShell>
   );
