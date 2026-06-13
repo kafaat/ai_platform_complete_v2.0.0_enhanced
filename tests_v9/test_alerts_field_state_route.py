@@ -49,8 +49,7 @@ def test_create_alert_routes_through_canonical_state():
     assert rc_idx is not None, "لا استدعاء لـrecompute_field_state"
     rc_indent = len(lines[rc_idx]) - len(lines[rc_idx].lstrip())
     guarded = any(
-        ln.strip() == "if req.field_id is not None:"
-        and (len(ln) - len(ln.lstrip())) < rc_indent
+        ln.strip() == "if req.field_id is not None:" and (len(ln) - len(ln.lstrip())) < rc_indent
         for ln in lines[:rc_idx]
     )
     assert guarded, "recompute_field_state ليس داخل حارس req.field_id is not None"
