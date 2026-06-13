@@ -274,6 +274,40 @@ class ApiService {
     return r.data as Map<String, dynamic>;
   }
 
+  /// السلسلة الزمنيّة لمؤشّر NDVI للحقل بنمط Climate FieldView —
+  /// GET /v1/fields/{field_id}/timeseries?index=ndvi (raster-service، يُوصَل
+  /// عبر نفس الـDio/البوّابة كبقيّة مسارات raster مثل /process و/upload).
+  /// الخادم يردّ {available, points:[{datetime, mean, ...}]}. صدق: available=false
+  /// أو points فارغة ⇒ تُعاد قائمة فارغة (لا اختلاق نقاط)؛ تُتسامَح المفاتيح
+  /// الغائبة (stddev/cloudy_pct قد لا يُرسلها الخادم). كلّ عنصر خريطة آمنة الشكل.
+  Future<List<Map<String, dynamic>>> getFieldNdviTimeseries(
+    String fieldId, {
+    String? tag,
+  }) async {
+    final r = await _dio.get(
+      '/v1/fields/$fieldId/timeseries',
+      queryParameters: {'index': 'ndvi'},
+      cancelToken: tag != null ? _getToken(tag) : null,
+    );
+    final data = _asMap(r.data);
+    // صدق: غياب التوفّر ⇒ لا نقاط (الـUI يعرض «غير متاح»).
+    if (data['available'] == false) return const [];
+    final raw = data['points'];
+    if (raw is! List) return const [];
+    final out = <Map<String, dynamic>>[];
+    for (final e in raw) {
+      if (e is! Map) continue;
+      final m = e.cast<String, dynamic>();
+      // نمرّر فقط ما نحتاجه (datetime/mean/cloudy_pct)، مع تسامح المفاتيح الغائبة.
+      out.add({
+        'datetime': m['datetime'] ?? m['date'],
+        'mean': m['mean'],
+        if (m.containsKey('cloudy_pct')) 'cloudy_pct': m['cloudy_pct'],
+      });
+    }
+    return out;
+  }
+
   Future<Map<String, dynamic>> askAgent(String query, {String? fieldId}) async {
     final r = await _dio.post('/agent/query', data: {
       'query': query,
