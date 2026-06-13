@@ -1342,16 +1342,20 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
                 np,
             )
         elif ind == "ndvi":
-            arr = (nir - red) / (nir + red)
+            _d = nir + red
+            arr = (nir - red) / np.where(_d == 0, 1e-10, _d)  # حماية القسمة (اتّساقاً مع vari/gli)
         elif ind == "gndvi":
-            arr = (nir - green) / (nir + green)
+            _d = nir + green
+            arr = (nir - green) / np.where(_d == 0, 1e-10, _d)
         elif ind == "msi":
             # Moisture Stress Index: SWIR1/NIR (أعلى = إجهاد مائي أكبر)
-            arr = swir1 / nir
+            arr = swir1 / np.where(nir == 0, 1e-10, nir)
         elif ind == "ndwi":
-            arr = (green - nir) / (green + nir)
+            _d = green + nir
+            arr = (green - nir) / np.where(_d == 0, 1e-10, _d)
         elif ind == "ndmi":
-            arr = (nir - swir1) / (nir + swir1)
+            _d = nir + swir1
+            arr = (nir - swir1) / np.where(_d == 0, 1e-10, _d)
         elif ind == "savi":
             arr = 1.5 * (nir - red) / (nir + red + 0.5)
         elif ind == "vari":

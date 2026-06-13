@@ -22,6 +22,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from email.mime.multipart import MIMEMultipart
@@ -29,7 +30,7 @@ from email.mime.text import MIMEText
 
 import asyncpg
 import httpx
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import Response
 from nats.aio.client import Client as NATS
 from nats.js import JetStreamContext
@@ -488,8 +489,18 @@ async def ws_notifications(websocket, token: str = "", user_id: str = ""):
         logger.info(f"WS disconnected: user={verified_user_id}")
 
 
+def _require_agent_token(x_agent_token: str = Header(None, alias="X-Agent-Token")) -> None:
+    """يحمي نقاط الاختبار (تُرسِل إشعارات/تنشر NATS) بالتوكن الخدميّ — fail-closed.
+
+    كانت بلا مصادقة ⇒ انتحال إشعارات + حقن أحداث NATS عشوائيّة في الناقل الداخليّ.
+    """
+    expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if not expected or x_agent_token != expected:
+        raise HTTPException(403, "نقطة اختبار محميّة بـSAHOOL_AGENT_TOKEN")
+
+
 @app.post("/notifications/test")
-async def test_notification(payload: dict):
+async def test_notification(payload: dict, _: None = Depends(_require_agent_token)):
     test_event = {
         "event_type": "satellite",
         "user_id": payload.get("user_id"),
@@ -526,10 +537,15 @@ if __name__ == "__main__":
 
 # ══ Test publisher for NATS topics (development) ══
 @app.post("/notification/test")
-async def send_test_notification(tenant_id: str, event_type: str, data: dict):
+async def send_test_notification(
+    tenant_id: str, event_type: str, data: dict, _: None = Depends(_require_agent_token)
+):
     """Test endpoint to publish NATS events for testing notification subscriptions."""
     from shared.helpers import publish_event
 
+    # حصر نوع الحدث بأحرف/أرقام/فواصل (منع حقن subject NATS عشوائيّ).
+    if not re.fullmatch(r"[A-Za-z0-9_.\-]{1,64}", event_type or ""):
+        raise HTTPException(400, "event_type غير صالح")
     subject = f"sahool.{event_type}"
     await publish_event(subject, {"tenant_id": tenant_id, **data})
     return {"published": subject}
