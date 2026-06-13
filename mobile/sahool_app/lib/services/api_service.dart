@@ -263,7 +263,11 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getDashboard({String? tag}) async {
-    final r = await _dio.get('/indicators/v1/overview',
+    // البوّابة (nginx) لا تملك موقع /indicators/ ⇒ المسار القديم كان يسقط إلى
+    // الـSPA ويعيد HTML فينهار _asMap. المسار الصحيح للوحة المُجمَّعة على المنصّة
+    // هو /api/v1/indicators/dashboard (يردّ {fields_summary, kpis, alerts،
+    // وكلّ fields_summary يحوي geometry لضبط الخريطة على حقل المستخدم}).
+    final r = await _dio.get('/api/v1/indicators/dashboard',
         cancelToken: tag != null ? _getToken(tag) : null);
     return _asMap(r.data); // حارس الشكل (كان as Map خاماً ينهار على استجابة غير Map)
   }
@@ -309,7 +313,9 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> askAgent(String query, {String? fieldId}) async {
-    final r = await _dio.post('/agent/query', data: {
+    // البوّابة توجّه /api/agent/ → supervisor /agent/ (تطابق الويب kongApi).
+    // المسار القديم /agent/query بلا بادئة /api كان يسقط إلى الـSPA.
+    final r = await _dio.post('/api/agent/query', data: {
       'query': query,
       if (fieldId != null) 'field_id': fieldId,
     });
@@ -340,7 +346,9 @@ class ApiService {
   }
 
   Future<void> acknowledgeAlert(String alertId) async {
-    await _dio.patch('/indicators/alerts/$alertId/acknowledge');
+    // التنبيهات تُخدَّم على المنصّة تحت /api/v1/alerts/{id}/acknowledge
+    // (PATCH، يطابق الويب). المسار القديم /indicators/alerts/... غير موجود.
+    await _dio.patch('/api/v1/alerts/$alertId/acknowledge');
   }
 
   Future<Map<String, dynamic>> refreshTokenCall(String refreshToken) async {
