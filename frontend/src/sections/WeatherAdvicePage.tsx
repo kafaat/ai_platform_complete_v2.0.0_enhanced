@@ -129,9 +129,9 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
         <span className="inline-flex items-center gap-1"><Wind className="w-3 h-3 text-slate-500" /> رطوبة {r.humidity_pct}٪</span>
         <span className="inline-flex items-center gap-1"><CloudRain className="w-3 h-3 text-slate-500" /> مطر ٣ أيّام {r.rain_mm_3d} مم</span>
       </div>
-      {r.diseases_ar.length > 0 && (
+      {(r.diseases_ar ?? []).length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {r.diseases_ar.map((d) => (
+          {(r.diseases_ar ?? []).map((d) => (
             <span key={d} className="px-2 py-0.5 rounded-lg text-[11px]" style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid #334155' }}>
               {d}
             </span>

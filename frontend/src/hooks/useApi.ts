@@ -1120,7 +1120,7 @@ export function useSharingKeys(includeRevoked = false): UseQueryResult<SharingKe
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useQuery<SharingKey[]>({
     queryKey: QK.sharingKeys(tid, includeRevoked),
-    queryFn:  () => listSharingKeys(includeRevoked).then((r) => r.keys),
+    queryFn:  () => listSharingKeys(includeRevoked).then((r) => (Array.isArray(r.keys) ? r.keys : [])),
     staleTime:60_000,
     retry:    false,
   });

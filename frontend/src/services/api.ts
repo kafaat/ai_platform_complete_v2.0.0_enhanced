@@ -515,7 +515,7 @@ export interface SeasonSummary {
 }
 
 export const fetchSeasons = (fieldId: string): Promise<SeasonSummary[]> =>
-  kongApi.get<SeasonSummary[]>(`/api/v1/fields/${fieldId}/seasons`).then(r => r.data);
+  kongApi.get<SeasonSummary[]>(`/api/v1/fields/${fieldId}/seasons`).then(r => (Array.isArray(r.data) ? r.data : []));
 
 // ══════════════════════════════════════════════════════════════════
 // INVENTORY — مخزون المدخلات (حيّ، مُقيَّد بالدور inventory:view/manage وبالمستأجِر)
@@ -557,10 +557,10 @@ export interface NewInventoryBatch {
 }
 
 export const getInventoryItems = (): Promise<InventoryItem[]> =>
-  kongApi.get<InventoryItem[]>('/api/v1/inventory/items').then(r => r.data);
+  kongApi.get<InventoryItem[]>('/api/v1/inventory/items').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const getExpiringBatches = (days = 30): Promise<ExpiringBatch[]> =>
-  kongApi.get<ExpiringBatch[]>('/api/v1/inventory/expiring', { params: { days } }).then(r => r.data);
+  kongApi.get<ExpiringBatch[]>('/api/v1/inventory/expiring', { params: { days } }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createInventoryItem = (payload: NewInventoryItem): Promise<InventoryItem> =>
   kongApi.post<InventoryItem>('/api/v1/inventory/items', payload).then(r => r.data);
@@ -613,13 +613,13 @@ export interface MaintenanceCreateInput {
 }
 
 export const fetchEquipment = (): Promise<Equipment[]> =>
-  kongApi.get<Equipment[]>('/api/v1/equipment').then(r => r.data);
+  kongApi.get<Equipment[]>('/api/v1/equipment').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createEquipment = (payload: EquipmentCreateInput): Promise<Equipment> =>
   kongApi.post<Equipment>('/api/v1/equipment', payload).then(r => r.data);
 
 export const fetchMaintenance = (equipmentId: string): Promise<MaintenanceRecord[]> =>
-  kongApi.get<MaintenanceRecord[]>(`/api/v1/equipment/${equipmentId}/maintenance`).then(r => r.data);
+  kongApi.get<MaintenanceRecord[]>(`/api/v1/equipment/${equipmentId}/maintenance`).then(r => (Array.isArray(r.data) ? r.data : []));
 
 // تسجيل صيانة. kind=breakdown يقلب حالة المعدّة إلى broken خادميّاً.
 export const logMaintenance = (
@@ -660,7 +660,7 @@ export interface ActivityCreateInput {
 }
 
 export const fetchActivities = (fieldId: string): Promise<Activity[]> =>
-  kongApi.get<Activity[]>(`/api/v1/fields/${fieldId}/activities`).then(r => r.data);
+  kongApi.get<Activity[]>(`/api/v1/fields/${fieldId}/activities`).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createActivity = (
   fieldId: string,
@@ -773,7 +773,7 @@ export interface AlertListFilters {
 }
 
 export const fetchAlerts = (filters: AlertListFilters = {}): Promise<AlertRecord[]> =>
-  kongApi.get<AlertRecord[]>('/api/v1/alerts', { params: filters }).then(r => r.data);
+  kongApi.get<AlertRecord[]>('/api/v1/alerts', { params: filters }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createAlert = (payload: AlertCreateInput): Promise<AlertRecord> =>
   kongApi.post<AlertRecord>('/api/v1/alerts', payload).then(r => r.data);
@@ -887,7 +887,7 @@ export interface TelemetryRecordInput {
 
 /** قائمة الأجهزة (device:view). online مُحتسَب على الخادم. */
 export const listDevices = (): Promise<Device[]> =>
-  kongApi.get<Device[]>('/api/v1/devices').then(r => r.data);
+  kongApi.get<Device[]>('/api/v1/devices').then(r => (Array.isArray(r.data) ? r.data : []));
 
 /** تسجيل جهاز جديد (device:manage). */
 export const registerDevice = (payload: DeviceRegisterInput): Promise<Device> =>
@@ -895,7 +895,7 @@ export const registerDevice = (payload: DeviceRegisterInput): Promise<Device> =>
 
 /** قياسات حديثة لجهاز (device:view). */
 export const getDeviceTelemetry = (deviceId: string, limit = 20): Promise<TelemetryPoint[]> =>
-  kongApi.get<TelemetryPoint[]>(`/api/v1/devices/${deviceId}/telemetry`, { params: { limit } }).then(r => r.data);
+  kongApi.get<TelemetryPoint[]>(`/api/v1/devices/${deviceId}/telemetry`, { params: { limit } }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 /** رفع قياس لجهاز (observation:record). */
 export const recordTelemetry = (deviceId: string, payload: TelemetryRecordInput): Promise<TelemetryPoint> =>
@@ -969,7 +969,7 @@ export interface CreateScheduleInput {
 }
 
 export const listValves = (): Promise<Valve[]> =>
-  kongApi.get<Valve[]>('/api/v1/irrigation/valves').then(r => r.data);
+  kongApi.get<Valve[]>('/api/v1/irrigation/valves').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createValve = (payload: CreateValveInput): Promise<Valve> =>
   kongApi.post<Valve>('/api/v1/irrigation/valves', payload).then(r => r.data);
@@ -980,7 +980,7 @@ export const setValveState = (valveId: string, status: ValveStateIntent): Promis
 export const listSchedules = (fieldId?: string): Promise<IrrigationSchedule[]> =>
   kongApi.get<IrrigationSchedule[]>('/api/v1/irrigation/schedules', {
     params: fieldId ? { field_id: fieldId } : {},
-  }).then(r => r.data);
+  }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createSchedule = (payload: CreateScheduleInput): Promise<IrrigationSchedule> =>
   kongApi.post<IrrigationSchedule>('/api/v1/irrigation/schedules', payload).then(r => r.data);
@@ -1016,7 +1016,7 @@ export interface MasterDataCreateInput {
 }
 
 export const fetchMasterData = (category: MasterDataCategory): Promise<MasterDataEntry[]> =>
-  kongApi.get<MasterDataEntry[]>('/api/v1/master-data', { params: { category } }).then(r => r.data);
+  kongApi.get<MasterDataEntry[]>('/api/v1/master-data', { params: { category } }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createMasterDataEntry = (payload: MasterDataCreateInput): Promise<MasterDataEntry> =>
   kongApi.post<MasterDataEntry>('/api/v1/master-data', payload).then(r => r.data);
@@ -1058,7 +1058,7 @@ export const listDocuments = (
       ...(filters?.category ? { category: filters.category } : {}),
       ...(filters?.field_id ? { field_id: filters.field_id } : {}),
     },
-  }).then(r => r.data);
+  }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const getDocument = (docId: string): Promise<DocumentRecord> =>
   kongApi.get<DocumentRecord>(`/api/v1/documents/${docId}`).then(r => r.data);
@@ -1197,7 +1197,7 @@ export interface FarmCreated {
 }
 
 export const fetchFarms = (): Promise<Farm[]> =>
-  kongApi.get<Farm[]>('/api/v1/farms').then(r => r.data);
+  kongApi.get<Farm[]>('/api/v1/farms').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createFarm = (payload: FarmCreateInput): Promise<FarmCreated> =>
   kongApi.post<FarmCreated>('/api/v1/farms', payload).then(r => r.data);
