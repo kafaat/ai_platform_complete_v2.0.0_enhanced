@@ -16,6 +16,7 @@ core.learning.recommendation_log
 from __future__ import annotations
 
 import csv
+import json
 
 try:
     import fcntl  # POSIX file locking
@@ -136,6 +137,9 @@ def load_log(log_path: Path) -> list[RecommendationRecord]:
         for row in csv.DictReader(f):
             for k in ("predicted_yield_t_ha", "actual_yield_t_ha", "error_pct"):
                 row[k] = float(row[k]) if row.get(k) not in (None, "", "None") else None
+            # provenance: JSON → dict (كان يُحمَّل كنصّ repr فيكسر replay/الـforensics).
+            pv = row.get("provenance")
+            row["provenance"] = json.loads(pv) if pv not in (None, "", "None") else None
             out.append(RecommendationRecord(**row))
     return out
 
@@ -146,4 +150,8 @@ def _write(log_path: Path, records: list[RecommendationRecord]) -> None:
         w = csv.DictWriter(f, fieldnames=fields)
         w.writeheader()
         for r in records:
-            w.writerow(asdict(r))
+            row = asdict(r)
+            # provenance (dict) → JSON؛ csv/asdict كان يكتبه كـrepr بايثون يكسر القراءة.
+            if row.get("provenance") is not None:
+                row["provenance"] = json.dumps(row["provenance"], ensure_ascii=False)
+            w.writerow(row)
