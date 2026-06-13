@@ -2838,6 +2838,108 @@ async def list_field_activities(
     return [_row_to_activity(r) for r in rows]
 
 
+@app.get("/api/v1/fields/{field_id}/input-traceability")
+async def field_input_traceability(
+    field_id: str,
+    season_id: str | None = None,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تتبّع مدخلات الإنتاج (بذرة→حصاد) per حقل/موسم + الاقتصاد — يركّب القائم.
+
+    يجمع تطبيقات المدخلات من activities (بذر/تسميد/رشّ/ريّ مع كلفة في details)
+    ويربطها بناتج الحصاد من recommendation_outcomes ومساحة الحقل، فيبني دفتر
+    مدخلات صادقاً: كلفة/هكتار، كلفة/طنّ، ومدى اكتمال النَسَب. الكلفة الغائبة
+    تُعلَن لا تُؤلَّف. المخزون والشراء يبقيان في ERPNext (لا نقل WareMap).
+    """
+    from decimal import Decimal as _Decimal
+
+    import asyncpg as _asyncpg
+    from core.engines.input_traceability import (
+        ACTIVITY_TO_INPUT,
+        InputApplication,
+        build_input_ledger,
+    )
+
+    _json = __import__("json")
+
+    def _details(v):
+        if isinstance(v, str):
+            try:
+                return _json.loads(v)
+            except (ValueError, TypeError):
+                return {}
+        return v or {}
+
+    def _num(v):
+        # يقبل int/float/Decimal (NUMERIC من asyncpg) — يرفض bool/None/نصّ.
+        if isinstance(v, bool) or v is None:
+            return None
+        return float(v) if isinstance(v, (int, float, _Decimal)) else None
+
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)  # 404 لو ليس للمستأجِر
+            area_ha = _num(
+                await conn.fetchval("SELECT area_ha FROM fields WHERE field_id = $1", field_id)
+            )
+
+            q = (
+                "SELECT activity_type, details, performed_on, scheduled_for FROM activities "
+                "WHERE field_id = $1 AND activity_type = ANY($2::text[])"
+            )
+            params: list = [field_id, list(ACTIVITY_TO_INPUT.keys())]
+            if season_id is not None:
+                q += " AND season_id = $3"
+                params.append(season_id)
+            rows = await conn.fetch(q, *params)
+
+            # ناتج الحصاد من recommendation_outcomes (savepoint — قد لا يكون مفعَّلاً).
+            harvest_yield = None
+            try:
+                async with conn.transaction():
+                    oq = (
+                        "SELECT MAX(actual_yield_t_ha) AS y FROM recommendation_outcomes "
+                        "WHERE field_id = $1 AND actual_yield_t_ha IS NOT NULL"
+                    )
+                    oparams: list = [field_id]
+                    if season_id is not None:
+                        oq += " AND season_id = $2"
+                        oparams.append(season_id)
+                    orow = await conn.fetchrow(oq, *oparams)
+                    harvest_yield = _num(orow["y"]) if orow else None
+            except (_asyncpg.UndefinedTableError, _asyncpg.UndefinedColumnError):
+                harvest_yield = None
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تتبّع المدخلات", e) from e
+
+    apps = []
+    for r in rows:
+        d = _details(r["details"])
+        apps.append(
+            InputApplication(
+                activity_type=r["activity_type"],
+                product_name=d.get("product_name") or d.get("product"),
+                quantity=_num(d.get("quantity")),
+                unit=d.get("unit"),
+                cost=_num(d.get("cost")),
+                applied_on=(
+                    (r["performed_on"] or r["scheduled_for"]).isoformat()
+                    if (r["performed_on"] or r["scheduled_for"])
+                    else None
+                ),
+            )
+        )
+    return build_input_ledger(
+        apps,
+        field_id=field_id,
+        season_id=season_id,
+        area_ha=area_ha,
+        harvest_yield_t_ha=harvest_yield,
+    )
+
+
 # ─── التنبيهات الزراعيّة (Alerts) — نمط activities (v36) ──────────
 _ALERT_TYPES = {
     "low_moisture",
