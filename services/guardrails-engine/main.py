@@ -368,13 +368,19 @@ async def approve_workflow(
     workflow_id: str, approved: bool, reason: str = "", claims: dict = Depends(_gr_verify)
 ):
     """Human-in-the-Loop approval — الهويّة من التوكن المُتحقَّق لا من الطلب."""
-    # الأمان: expert_id يُشتقّ من التوكن (لا يُقبل من العميل) — منع انتحال الخبير
+    # الأمان: expert_id/expert_role/tenant_id كلّها من التوكن المُتحقَّق (لا من العميل):
+    #  • منع انتحال الخبير،
+    #  • منع IDOR عبر المستأجرين (تقييد الـworkflow بمستأجِر الطالب)،
+    #  • تمرير الدور الصحيح لبوّابة الدور (كان reason يُربَط خطأً بـexpert_role
+    #    فتفشل الموافقة دائماً، وreject كان يسقط لنقص وسيط إلزاميّ).
     expert_id = str(claims["sub"])
+    expert_role = str(claims.get("role", ""))
+    tenant_id = str(claims.get("tenant_id", ""))
     hil = HumanApprovalWorkflow()
     if approved:
-        return await hil.approve(workflow_id, expert_id, reason)
+        return await hil.approve(workflow_id, expert_id, expert_role, tenant_id, notes=reason)
     else:
-        return await hil.reject(workflow_id, expert_id, reason)
+        return await hil.reject(workflow_id, expert_id, expert_role, reason, tenant_id)
 
 
 @app.get("/workflow/{workflow_id}")
