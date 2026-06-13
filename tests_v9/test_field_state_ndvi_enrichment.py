@@ -1,9 +1,9 @@
 """Stage D — قيمة NDVI الحقيقيّة في الحالة القانونيّة (Canonical Field State).
 
-يثبّت: (أ) recompute_field_state يُرفِق remote_sensing بصدق (available=false حين لا
-قيمة، والقيمة حين تتوفّر)؛ (ب) populator أتمتة الصور يستخرج متوسّط NDVI من نتيجة
-raster (best-effort) ويفشل بأمان؛ (ج) هجرة v54 في MANIFEST قبل append-only.
-دالّات/conn/client وهميّة بلا قاعدة/شبكة.
+يثبّت: (أ) recompute_field_state يُرفِق remote_sensing بصدق؛ (ب) populator أتمتة
+الصور يستخرج متوسّط NDVI من نتيجة المهمّة الفرعيّة الحقيقيّة في raster
+(GET /jobs/{job_id}_ndvi/result → stats.mean) ويفشل بأمان؛ (ج) v54 في MANIFEST.
+يحاكي API raster الفعليّ (نتيجة المهمّة الفرعيّة + valid_pixels)، لا شكلاً مُتخيَّلاً.
 """
 
 from __future__ import annotations
@@ -24,20 +24,27 @@ def core_on_path():
     pytest.importorskip("fastapi")
 
 
-class _Conn:
-    """conn وهميّ: imagery يعيد NDVI، الباقي None، يسجّل execute."""
+class _NoopTx:
+    async def __aenter__(self):
+        return None
 
-    def __init__(self, *, ndvi_mean=None, ndvi_date=None, last_image_date=None):
-        self._img = {
-            "last_image_date": last_image_date,
-            "last_ndvi_mean": ndvi_mean,
-            "last_ndvi_date": ndvi_date,
-        }
+    async def __aexit__(self, *a):
+        return False
+
+
+class _Conn:
+    """conn وهميّ: imagery (NDVI) عبر fetchrow، tenant عبر fetchval، transaction لا-عمل."""
+
+    def __init__(self, *, ndvi_mean=None, ndvi_date=None):
+        self._ndvi = {"last_ndvi_mean": ndvi_mean, "last_ndvi_date": ndvi_date}
         self.executed = []
+
+    def transaction(self):
+        return _NoopTx()
 
     async def fetchrow(self, sql, *a):
         if "imagery_automation_fields" in sql:
-            return self._img
+            return self._ndvi
         if "FROM field_state" in sql:
             return None
         return None
@@ -86,40 +93,58 @@ class _Resp:
 
 
 class _FakeClient:
-    def __init__(self, info_payload):
-        self._info = info_payload
+    """يحاكي raster الفعليّ: GET /jobs/{job_id}_ndvi/result → {stats:{mean, valid_pixels}}."""
+
+    def __init__(self, result_payload, *, status=200):
+        self._result = result_payload
+        self._status = status
+        self.calls: list[str] = []
 
     async def get(self, url):
-        if "/info/" in url:
-            return _Resp(200, self._info)
-        if "/jobs/" in url:
-            return _Resp(200, {"batch_results": {"ndvi": "layer_x"}})
+        self.calls.append(url)
+        if url.endswith("_ndvi/result"):
+            return _Resp(self._status, self._result)
         return _Resp(404, {})
 
 
 @pytest.mark.asyncio
-async def test_collect_ndvi_value_extracts_mean(core_on_path):
+async def test_collect_ndvi_value_extracts_mean_from_subjob_result(core_on_path):
     from api.imagery_automation import ImageryAutomation, TrackedField
 
-    ia = ImageryAutomation()  # pool=None ⇒ _persist_ndvi لا-عمل، نفحص tf فقط
+    ia = ImageryAutomation()  # pool=None ⇒ _persist_ndvi لا-عمل، نفحص tf
     tf = TrackedField(field_id="fld_1", bbox=[44.0, 15.0, 44.1, 15.1])
-    client = _FakeClient({"provenance": {"stats": {"mean": 0.62, "std": 0.1}}})
-    image = {"datetime": "2026-06-10T08:00:00Z"}
-    await ia._collect_ndvi_value(client, tf, image, {"batch_results": {"ndvi": "layer_x"}})
+    client = _FakeClient({"stats": {"mean": 0.62, "valid_pixels": 1500, "std": 0.1}})
+    await ia._collect_ndvi_value(
+        client, tf, {"datetime": "2026-06-10T08:00:00Z"}, {"job_id": "jb1"}
+    )
+    assert len(client.calls) == 1 and client.calls[0].endswith("/jobs/jb1_ndvi/result")
     assert tf.last_ndvi_mean == 0.62
     assert tf.last_ndvi_date == "2026-06-10"
 
 
 @pytest.mark.asyncio
-async def test_collect_ndvi_value_fails_safe_without_layer(core_on_path):
+async def test_collect_ndvi_value_skips_when_no_valid_pixels(core_on_path):
     from api.imagery_automation import ImageryAutomation, TrackedField
 
     ia = ImageryAutomation()
     tf = TrackedField(field_id="fld_1", bbox=[44.0, 15.0, 44.1, 15.1])
-    client = _FakeClient({})  # لن يُستدعى /info لغياب layer
-    # لا batch_results ولا last_indicator_job ⇒ تخطٍّ صامت، القيمة تبقى None
+    # valid_pixels=0 ⇒ المتوسّط بلا معنى ⇒ لا حفظ (صدق)
+    client = _FakeClient({"stats": {"mean": 0.0, "valid_pixels": 0}})
+    await ia._collect_ndvi_value(client, tf, {"datetime": "2026-06-10"}, {"job_id": "jb1"})
+    assert tf.last_ndvi_mean is None
+
+
+@pytest.mark.asyncio
+async def test_collect_ndvi_value_fails_safe_without_job(core_on_path):
+    from api.imagery_automation import ImageryAutomation, TrackedField
+
+    ia = ImageryAutomation()
+    tf = TrackedField(field_id="fld_1", bbox=[44.0, 15.0, 44.1, 15.1])
+    client = _FakeClient({})
+    # لا job_id ولا last_indicator_job ⇒ تخطٍّ صامت، لا نداء
     await ia._collect_ndvi_value(client, tf, {"datetime": "2026-06-10"}, {})
     assert tf.last_ndvi_mean is None
+    assert client.calls == []
 
 
 def test_v54_migration_in_manifest_before_append_only():

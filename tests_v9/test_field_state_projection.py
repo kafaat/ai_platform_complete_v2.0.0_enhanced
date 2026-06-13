@@ -34,6 +34,17 @@ class _FakeConn:
         self.prev = prev
         self.executed: list = []
 
+    def transaction(self):
+        # SAVEPOINT وهميّ (gather يلفّ قراءة NDVI بمعاملة فرعيّة) — لا-عمل.
+        class _Tx:
+            async def __aenter__(self_):
+                return None
+
+            async def __aexit__(self_, *a):
+                return False
+
+        return _Tx()
+
     async def fetchval(self, sql, *args):
         if "imagery_automation_fields" in sql:
             return self.last_image_date

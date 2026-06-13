@@ -298,30 +298,27 @@ class ImageryAutomation:
     async def _collect_ndvi_value(
         self, client, tf: TrackedField, image: dict, batch_body: dict
     ) -> None:
-        """best-effort: يستخرج متوسّط NDVI الحقيقيّ من نتيجة الدفعة ويحفظه.
+        """best-effort: يستخرج متوسّط NDVI الحقيقيّ من نتيجة المعالجة ويحفظه.
 
-        المسار: نتيجة الدفعة → layer_id لمؤشّر ndvi → /info/{layer} →
-        provenance.stats.mean. fail-safe تماماً: أيّ تعذّر (شكل مختلف/خدمة بطيئة/
-        غياب الإحصاء) ⇒ تخطٍّ صامت دون كسر الأتمتة، والعمود يبقى NULL (صدق: لا قيمة
-        مُلفَّقة). ملاحظة: المسار السعيد يحتاج raster قيد التشغيل للتحقّق الميدانيّ.
+        المسار الصحيح في raster-service: /process/batch ينشئ مهمّة فرعيّة لكلّ مؤشّر
+        بمعرّف «{batch_job_id}_{indicator}»، ونتيجتها في GET /jobs/{id}/result بشكل
+        {layer_id, indicator, stats:{mean, valid_pixels, ...}}. فنقرأ نتيجة المهمّة
+        الفرعيّة «{job_id}_ndvi» ونأخذ stats.mean.
+
+        صدق: نحفظ المتوسّط فقط حين valid_pixels>0 (وإلّا المتوسّط 0.0 افتراضيّ بلا
+        معنى). fail-safe تامّ: أيّ تعذّر ⇒ تخطٍّ صامت، العمود يبقى NULL (لا تلفيق).
         """
         try:
-            results = batch_body.get("batch_results") or batch_body.get("results") or {}
-            ndvi_layer = results.get("ndvi")
-            if not ndvi_layer and tf.last_indicator_job:
-                jr = await client.get(f"{RASTER_SERVICE_URL}/jobs/{tf.last_indicator_job}")
-                if jr.status_code == 200:
-                    jd = jr.json()
-                    res = jd.get("batch_results") or jd.get("result") or {}
-                    ndvi_layer = res.get("ndvi") if isinstance(res, dict) else None
-            if not ndvi_layer:
+            job_id = batch_body.get("job_id") or tf.last_indicator_job
+            if not job_id:
                 return
-            info = await client.get(f"{RASTER_SERVICE_URL}/info/{ndvi_layer}")
-            if info.status_code != 200:
+            rr = await client.get(f"{RASTER_SERVICE_URL}/jobs/{job_id}_ndvi/result")
+            if rr.status_code != 200:
                 return
-            stats = (info.json().get("provenance") or {}).get("stats") or {}
+            stats = (rr.json() or {}).get("stats") or {}
             mean = stats.get("mean")
-            if mean is None:
+            valid = stats.get("valid_pixels")
+            if mean is None or not valid:  # لا قيمة أو لا بكسلات صالحة ⇒ لا حفظ
                 return
             tf.last_ndvi_mean = float(mean)
             tf.last_ndvi_date = (image.get("datetime") or image.get("date") or "")[:10] or None

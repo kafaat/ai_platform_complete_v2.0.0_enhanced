@@ -33,15 +33,29 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
     ndvi_date} — أيّ مصدر غائب يكون None (يدع resolve_field_state يعلن «بيانات
     ناقصة» بصدق، وتُعلَن قيمة NDVI غير متاحة بدل رقم مُلفَّق).
     """
-    # Stage D: قيمة NDVI الحقيقيّة + تاريخها (إن حُسِبت) مع تاريخ آخر صورة — صفّ واحد.
-    img = await conn.fetchrow(
-        "SELECT last_image_date, last_ndvi_mean, last_ndvi_date "
-        "FROM imagery_automation_fields WHERE field_id = $1",
+    # نضارة الصورة (عمود قديم دائم الوجود) — استعلام أساسيّ لا يفشل.
+    last_image_date = await conn.fetchval(
+        "SELECT last_image_date FROM imagery_automation_fields WHERE field_id = $1",
         field_id,
     )
-    last_image_date = img["last_image_date"] if img else None
-    ndvi_mean = img["last_ndvi_mean"] if img else None
-    ndvi_date = img["last_ndvi_date"] if img else None
+    # Stage D: قيمة NDVI الحقيقيّة (أعمدة v54) — داخل SAVEPOINT كي لا يكسر فشلُها
+    # (UndefinedColumn قبل تطبيق v54 في نشر متدرّج) المعاملةَ الخارجيّة ⇒ تراجع رشيق
+    # إلى لا-قيمة (fail-safe، صدق: NULL لا رقم مُلفَّق).
+    ndvi_mean = None
+    ndvi_date = None
+    try:
+        async with conn.transaction():  # SAVEPOINT
+            row = await conn.fetchrow(
+                "SELECT last_ndvi_mean, last_ndvi_date "
+                "FROM imagery_automation_fields WHERE field_id = $1",
+                field_id,
+            )
+            if row:
+                ndvi_mean = row["last_ndvi_mean"]
+                ndvi_date = row["last_ndvi_date"]
+    except Exception:  # noqa: BLE001 — v54 غير مطبّقة بعد ⇒ تخطٍّ آمن
+        ndvi_mean = None
+        ndvi_date = None
     soil_sampled_on = await conn.fetchval(
         "SELECT MAX(sampled_on) FROM soil_lab_tests "
         "WHERE field_id = $1 AND status IN ('approved', 'published')",
