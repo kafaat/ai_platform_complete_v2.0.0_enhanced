@@ -13,6 +13,7 @@ from api.field_aggregate import (
     FieldCommandType,
     FieldInvariantError,
     FieldState,
+    activity_event_for,
     register_field_handlers,
 )
 
@@ -53,8 +54,36 @@ def test_record_activity_requires_existing_field():
     with pytest.raises(FieldInvariantError) as e:
         FieldAggregate(FieldState("f1", exists=False)).record_activity({})
     assert e.value.http_status == 404
+    # بلا نوع نشاط معروف → الحدث العامّ ACTIVITY_RECORDED.
     eff = FieldAggregate(FieldState("f1", exists=True)).record_activity({"activity_id": "a1"})
     assert eff.events[0][0] == EventType.ACTIVITY_RECORDED.value
+
+
+def test_record_activity_emits_operation_specific_event():
+    # نوع/حالة معروفان → حدث عمليّة محدَّد (أدقّ من العامّ).
+    eff = FieldAggregate(FieldState("f1", exists=True)).record_activity(
+        {"activity_id": "a1", "activity_type": "harvest", "status": "done"}
+    )
+    assert eff.events[0][0] == EventType.HARVEST_COMPLETED.value
+
+
+def test_activity_event_for_single_source_mapping():
+    assert activity_event_for("planting", "done") == EventType.PLANTING_COMPLETED
+    assert activity_event_for("planting", "planned") == EventType.PLANTING_STARTED
+    assert activity_event_for("fertilization", "done") == EventType.FERTILIZER_APPLIED
+    # تسميد غير مُنجَز / نوع مجهول → العامّ.
+    assert activity_event_for("fertilization", "planned") == EventType.ACTIVITY_RECORDED
+    assert activity_event_for("scouting", "done") == EventType.ACTIVITY_RECORDED
+
+
+def test_main_activity_event_type_delegates_identically():
+    # main._activity_event_type يفوّض ويُرجِع اسم العضو نفسه (توافق خلفيّ).
+    from api.field_aggregate import activity_event_for as _src
+    from api.main import _activity_event_type
+
+    for atype in ("planting", "irrigation", "harvest", "fertilization", "spraying", "scouting"):
+        for status in ("done", "planned"):
+            assert _activity_event_type(atype, status) == _src(atype, status).name
 
 
 # ─── مسار CommandDispatcher القائم (متجر + منافذ وهميّة) ──────────────────
