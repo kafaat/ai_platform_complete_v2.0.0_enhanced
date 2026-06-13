@@ -149,8 +149,9 @@ def analyze_yield_trend(
         seasons_analyzed=len(valid),
         first_value=first_y,
         last_value=last_y,
-        change_per_season=round(change_per_season, 3) if change_per_season else 0.0,
-        change_pct_total=round(change_pct, 1) if change_pct else None,
+        change_per_season=round(change_per_season, 3),  # دائماً float (0.0 تغيّر شرعيّ)
+        # is not None لا truthiness: تغيّر 0.0% (إنتاج مستقرّ) قيمة صحيحة لا «مفقودة».
+        change_pct_total=round(change_pct, 1) if change_pct is not None else None,
         reason_ar=reason,
         confidence=conf,
     )

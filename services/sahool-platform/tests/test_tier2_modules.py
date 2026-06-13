@@ -40,6 +40,18 @@ class TestYieldTrend:
         assert trend.direction == TrendDirection.IMPROVING
         assert trend.change_pct_total == 20.0
 
+    def test_exactly_zero_change_reports_zero_not_none(self):
+        # إنتاج مستقرّ تماماً (تغيّر 0.0%) قيمة صحيحة لا «مفقودة» (كان truthiness يرجع None).
+        trend = analyze_yield_trend(
+            [
+                {"season_year": 2024, "yield_t_ha": 3.5},
+                {"season_year": 2025, "yield_t_ha": 3.5},
+            ]
+        )
+        assert trend.direction == TrendDirection.STABLE
+        assert trend.change_pct_total == 0.0  # لا None
+        assert trend.change_per_season == 0.0
+
     def test_declining_trend_detected(self):
         trend = analyze_yield_trend(
             [

@@ -356,10 +356,12 @@ async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id
     يُكتبان ذرّيّاً مع تغيير الحالة)، لكن داخل **savepoint** — نجاحه ذرّيّ مع
     الحالة، وفشله (مثلاً غياب جداول الأحداث v11) يُسجَّل ولا يُجهض الكتابة. هكذا
     نُغلق فجوة «كتابة بلا حدث» دون جعل مسار الكتابة قابلاً للكسر."""
-    try:
-        from api.event_bus import EventBus, EventSource, EventType
+    from api.event_bus import EventBus, EventSource, EventType
 
-        et = EventType[event_type_name]
+    # اسم حدث غير معروف = خطأ مطوّر (لا فشل قاعدة) — يُكشَف فوراً (KeyError) لا يُبتلَع
+    # صامتاً؛ خارج try حتى لا يُخفيه التقاط فشل الإصدار التالي.
+    et = EventType[event_type_name]
+    try:
         async with conn.transaction():  # SAVEPOINT داخل معاملة tenant_connection
             await EventBus(get_pool(), conn=conn).emit(
                 event_type=et,
@@ -370,7 +372,7 @@ async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id
                 source=EventSource.WEB,
                 actor_id=str(user.user_id),
             )
-    except Exception as e:  # noqa: BLE001 — إصدار الحدث لا يكسر الكتابة
+    except Exception as e:  # noqa: BLE001 — فشل الإصدار (غياب جداول/DB) لا يكسر الكتابة (تصميم متعمّد)
         logger.warning("emit %s تخطّي: %s", event_type_name, e)
 
 
