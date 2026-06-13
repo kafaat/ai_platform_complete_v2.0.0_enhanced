@@ -6148,7 +6148,7 @@ class YieldEstimateRequest(BaseModel):
 
 
 @app.post("/api/v1/fields/{field_id}/yield-estimate")
-def estimate_field_yield(
+async def estimate_field_yield(
     field_id: str,
     req: YieldEstimateRequest,
     user: UserSchema = Depends(get_current_user),
@@ -6168,7 +6168,7 @@ def estimate_field_yield(
     )
     est = estimate_yield(features)
     anomalies = detect_anomalies(features)
-    return {
+    result = {
         "field_id": est.field_id,
         "crop": est.crop,
         "estimated_yield_kg_ha": est.estimated_yield_kg_ha,
@@ -6188,6 +6188,33 @@ def estimate_field_yield(
             for a in anomalies
         ],
     }
+
+    # Stage F (تغذية آمنة): نرفق الحالة القانونيّة الموحّدة (Canonical Field State)
+    # كمرجعيّة/ثقة فقط — **لا نغيّر رقم التقدير إطلاقاً** (تغيير أرقام زراعيّة يحتاج
+    # تحقّقاً ميدانيّاً). نمط التنفيذ != auto ⇒ requires_review (يحتاج تأكيد المهندس
+    # قبل الاعتماد على التقدير). صدق + fail-safe: أيّ تعذّر في جلب الحالة لا يكسر
+    # التقدير (نتابع بلا الحالة)؛ غياب الحالة ⇒ لا تُرفَق كتلة field_state.
+    from api.field_state_projection import recompute_field_state
+
+    try:
+        async with tenant_connection(user) as conn:
+            field_state = (await recompute_field_state(conn, field_id))["state"]
+    except Exception:  # noqa: BLE001 — تعذّر جلب الحالة لا يكسر التقدير (تابع بلا الحالة)
+        logging.exception("yield-estimate: field_state unavailable for %s", field_id)
+        field_state = None
+
+    if field_state is not None:
+        _agronomic = field_state.get("agronomic") or {}
+        _truths = _agronomic.get("operational_truths") or {}
+        result["field_state"] = {
+            "validity": field_state.get("validity"),
+            "execution_mode": field_state.get("execution_mode"),
+            "confidence_level": field_state.get("confidence_level"),
+            "agronomic": {"operational_truths": _truths} if _truths else None,
+        }
+        result["requires_review"] = field_state.get("execution_mode") != "auto"
+
+    return result
 
 
 # ─── ٣. Confidence (NDVI) ────────────────────────────────────────
