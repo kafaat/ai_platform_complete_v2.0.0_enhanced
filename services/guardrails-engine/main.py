@@ -352,6 +352,7 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
     return payload
 
 
+@app.post("/validate", response_model=GuardrailsResult)
 async def validate_action(request: GuardrailsRequest, _svc: bool = Depends(_require_service_token)):
     """Main validation endpoint — checks action against 3 tiers.
 

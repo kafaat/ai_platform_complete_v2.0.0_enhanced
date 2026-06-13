@@ -101,7 +101,7 @@ export default function TasksPage() {
   const startTask = async (taskId: string) => {
     if (!mutateAllowed) return;
     try {
-      await kongApi.patch(`/tasks/${taskId}`, { status: 'in_progress' });
+      await kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'in_progress' });
       setStatus(taskId, { status: 'in_progress' });
     } catch {
       toastStore.add('error', '⚠️ تعذّر بدء المهمة', 'فشل الاتصال بالخادم');

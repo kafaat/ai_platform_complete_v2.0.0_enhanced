@@ -569,7 +569,7 @@ export function useCreateFarm(): UseMutationResult<FarmCreated, Error, FarmCreat
 export function useTasks(fieldId?: string) {
   return useQuery<{ tasks: Task[] }>({
     queryKey: QK.tasks(fieldId),
-    queryFn:  () => kongApi.get('/tasks', { params: fieldId ? { field_id: fieldId } : {} })
+    queryFn:  () => kongApi.get('/api/v1/tasks', { params: fieldId ? { field_id: fieldId } : {} })
       .then(r => r.data).catch(() => ({ tasks: [] })),
     staleTime:2 * 60_000,
     refetchInterval: 5 * 60_000,
@@ -579,7 +579,7 @@ export function useTasks(fieldId?: string) {
 export function useCompleteTask() {
   return useMutation({
     mutationFn: ({ taskId, photoUrl }: { taskId: string; photoUrl?: string }) =>
-      kongApi.patch(`/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
+      kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
   });
 }
 
