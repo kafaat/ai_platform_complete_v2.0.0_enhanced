@@ -530,7 +530,10 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+      # لا وسيط MQTT (sahool-fastbee) في هذا الـcompose ⇒ نُعطّل مستمع MQTT صراحةً
+      # كي يقلع actuator نظيفاً (_mqtt_disabled) بدل حلقة "MQTT listener crashed" كلّ
+      # 10ث على مضيف وهميّ. للإنتاج بوسيط حقيقيّ اضبط MQTT_BROKER_URL=mqtt://host:1883.
+      MQTT_BROKER_URL: disabled
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-postgres:
