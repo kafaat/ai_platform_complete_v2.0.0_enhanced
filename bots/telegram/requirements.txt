@@ -1,4 +1,6 @@
-aiogram==3.10.0
+# aiogram 3.10 يقيّد pydantic<2.9 ⇒ يتعارض مع pydantic==2.13.4 (المنصّة) فيُفشل
+# pip داخل بناء Docker. 3.28.2 يقبل pydantic 2.13.x (سطح API المُستخدَم مستقرّ).
+aiogram==3.28.2
 aiosmtplib>=3.0.0
 httpx>=0.27.0
 redis>=5.0.0
