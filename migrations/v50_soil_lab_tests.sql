@@ -29,6 +29,9 @@ CREATE TRIGGER trg_soil_lab_tests_updated_at
 
 -- RLS لكلّ مستأجِر (مطابق نمط init_v8 — tenant_id UUID).
 ALTER TABLE soil_lab_tests ENABLE ROW LEVEL SECURITY;
+-- FORCE صراحةً: يُنشأ هذا الجدول بعد v9_rls_force_all في MANIFEST فلا يلتقطه
+-- فرضُه في إقلاع نظيف (حاوية بإقلاع واحد) ⇒ يتجاوز المالكُ العزلَ. idempotent.
+ALTER TABLE soil_lab_tests FORCE ROW LEVEL SECURITY;
 ALTER TABLE soil_lab_tests FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation ON soil_lab_tests;
 CREATE POLICY tenant_isolation ON soil_lab_tests

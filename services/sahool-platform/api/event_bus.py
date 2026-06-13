@@ -52,6 +52,9 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     FIELD_UPDATED = "field.updated"
     FIELD_GEOMETRY_CHANGED = "field.geometry_changed"
     FIELD_DELETED = "field.deleted"
+    # تبدّل الحالة القانونيّة الموحّدة (Canonical Field State) — صلاحيّة القرار/نمط
+    # التنفيذ تغيّرا بعد تغيّر مدخلات (موسم/تربة/طقس). يستهلكه وكيل الإشعارات (تغذية حيّة).
+    FIELD_STATE_CHANGED = "field.state_changed"
 
     # Lifecycle transitions (state machine)
     LIFECYCLE_TRANSITIONED = "lifecycle.transitioned"

@@ -2071,6 +2071,25 @@ async def create_season(
                         "sowing_date": req.sowing_date,
                     },
                 )
+                # Canonical Field State: إنشاء موسم يغيّر سياق القرار ⇒ أعِد حساب
+                # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
+                # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
+                from api.field_state_projection import recompute_field_state
+
+                _fs = await recompute_field_state(conn, field_id)
+                if _fs["changed"]:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "FIELD_STATE_CHANGED",
+                        "field",
+                        field_id,
+                        {
+                            "validity": _fs["state"]["validity"],
+                            "execution_mode": _fs["state"]["execution_mode"],
+                            "trigger": "season.created",
+                        },
+                    )
     except HTTPException:
         raise
     except _asyncpg.UniqueViolationError as e:
@@ -9195,49 +9214,24 @@ async def field_canonical_state(
     """الحالة القانونيّة الموحّدة للحقل — مصدر حقيقة واحد للقرار/التنبيه/التوصية.
 
     يجمع نضارة NDVI (imagery_automation_fields) + التربة (soil_lab_tests) + الطقس
-    (weather_automation_cache) من قاعدة المنصّة، يشتقّ الثقة من نضارة NDVI، ثمّ
-    يركّبها في validity (valid/degraded/conflicted/insufficient) + نمط التنفيذ.
+    (weather_automation_cache) من قاعدة المنصّة، يشتقّ الثقة من نضارة NDVI، يركّبها
+    في validity (valid/degraded/conflicted/insufficient) + نمط التنفيذ، **ويحفظ
+    النتيجة في إسقاط field_state (read model)** كي يقرأها بقيّة المستهلكين.
     صدق: غياب مصدر ⇒ عمره None ⇒ حالة «بيانات ناقصة» لا نضارة مُلفَّقة. 503 عند
     تعذّر القاعدة. يُرجِع inputs المستخدَمة للتدقيق.
     """
-    from datetime import date as _date
-
-    from api.field_state_gateway import build_state_inputs
+    from api.field_state_projection import recompute_field_state
 
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
-            img = await conn.fetchval(
-                "SELECT last_image_date FROM imagery_automation_fields WHERE field_id = $1",
-                field_id,
-            )
-            soil = await conn.fetchval(
-                "SELECT MAX(sampled_on) FROM soil_lab_tests "
-                "WHERE field_id = $1 AND status IN ('approved', 'published')",
-                field_id,
-            )
-            wx_hours = await conn.fetchval(
-                "SELECT EXTRACT(EPOCH FROM (NOW() - c.fetched_at)) / 3600.0 "
-                "FROM weather_automation_cache c "
-                "JOIN weather_automation_locations l ON l.location_key = c.location_key "
-                "WHERE l.field_id = $1 ORDER BY c.fetched_at DESC LIMIT 1",
-                field_id,
-            )
+            result = await recompute_field_state(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("قراءة الحالة القانونيّة للحقل", e) from e
 
-    inputs = build_state_inputs(
-        last_image_date=img,
-        latest_soil_sampled_on=soil,
-        weather_age_hours=float(wx_hours) if wx_hours is not None else None,
-        today=_date.today(),
-    )
-    out = resolve_field_state(field_id, **inputs).to_dict()
-    # شفافيّة التدقيق: المدخلات القانونيّة التي دخلت القرار (مصدر كلّ عامل).
-    out["inputs"] = inputs
-    return out
+    return result["state"]
 
 
 # ─── ٥٨. حالة جدولة الأتمتة (مراقبة) ──

@@ -172,6 +172,9 @@ v51_review_round2_fixes.sql
 # v52: حقول أغرونوميّة للموسم (نمط FieldView) — maturity/tillage_type/
 # actual_yield_kg_ha/notes_ar على جدول seasons. كلّها اختياريّة. idempotent.
 v52_season_agronomy_fields.sql
+# v53: إسقاط الحالة القانونيّة الموحّدة للحقل (Canonical Field State read model) —
+# جدول field_state يُعاد حسابه من المصادر القانونيّة ويُقرأ من كلّ المستهلكين. idempotent.
+v53_field_state_projection.sql
 # فرض append-only (immutability) — يُطبَّق أخيراً كي توجد events/field_lifecycle_transitions/
 # lifecycle_temporal_rejections فعليّاً وقت تركيب trigger الحظر (كان موضعه الأصليّ يسبق
 # إنشاءها فيتخطّاها). idempotent (DROP TRIGGER IF EXISTS) — آمن إعادة التطبيق كلّ إقلاع.
