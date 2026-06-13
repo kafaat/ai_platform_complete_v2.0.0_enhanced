@@ -4,8 +4,10 @@
 // (3) المحصول، (4) مصدر المياه + نوع الريّ، (5) متقدّم اختياريّ (نوع التربة/المدير).
 // «الملء التدريجيّ»: الخطوات 3-5 اختياريّة عمليّاً؛ الإلزاميّ اسم + مضلّع مغلق.
 //
-// الرسم يعيد استخدام OfflineFieldMap في وضع drawingEnabled (إضافة نقطة/تراجع/مسح).
-// الاستيراد: لصق GeoJSON يعمل فعليّاً؛ KML نصّ يعمل عبر الخادم؛ GPS-walk «قريباً».
+// الرسم يعيد استخدام OfflineFieldMap في وضع drawingEnabled مع لوحة أدوات
+// مستوحاة من Climate FieldView: نقاط/مضلّع · دائرة بنصف قطر بالمتر (م) + تراجع/مسح
+// + قياس المساحة (هكتار) والمحيط (م). الاستيراد: GeoJSON محليّاً، KML عبر الخادم.
+// GPS-walk فعليّ عبر geolocator: المزارع يسجّل رأساً من موقع الجهاز عند كلّ زاوية.
 // عند الحفظ: createField (أو importFieldGeoJson) ثمّ — إن أُدخل نوع ريّ — updateField
 // بـirrigation_type (PATCH). صدق: الخطأ يُعرَض كما هو.
 //
@@ -21,6 +23,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../services/api_service.dart';
@@ -50,9 +53,17 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   final _name = TextEditingController();
 
   // الخطوة 2: طريقة تحديد الحدّ + المضلّع.
-  // 'draw' رسم يدويّ، 'geojson' لصق نصّ، 'kml' لصق نصّ، 'gps' قريباً.
+  // 'draw' رسم يدويّ (نقاط/دائرة)، 'geojson' لصق نصّ، 'kml' لصق نصّ،
+  // 'gps' المشي حول الحقل (تسجيل رؤوس من موقع الجهاز فعليّاً).
   String _method = 'draw';
   final List<LatLng> _points = [];
+  // وضع الرسم داخل طريقة «رسم»: نقاط (مضلّع بالنقر) أو دائرة (مركز + نصف قطر بالمتر).
+  DrawMode _drawMode = DrawMode.points;
+  // معاينة الدائرة (مركز محدَّد بالنقر + آخر نصف قطر أُدخِل بالمتر) قبل تثبيتها.
+  LatLng? _circleCenter;
+  double? _circleRadiusM;
+  // وضع GPS (المشي حول الحقل): يُفعَّل ضمن طريقة «مشي GPS» بعد منح الإذن.
+  bool _gpsBusy = false;
   final _geojsonText = TextEditingController();
   // عند الاستيراد: نحتفظ بالنصّ الخام لإرساله للخادم (يحلّله هو).
   Map<String, dynamic>? _importedGeometry; // معاينة محليّة للمساحة فقط
@@ -160,7 +171,11 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     setState(() => _points.removeLast());
   }
 
-  void _clearPoints() => setState(() => _points.clear());
+  void _clearPoints() => setState(() {
+        _points.clear();
+        _circleCenter = null;
+        _circleRadiusM = null;
+      });
 
   // مضلّع صالح للرسم = ≥3 رؤوس (نُغلقه آليّاً عند الإرسال).
   bool get _hasDrawnPolygon => _points.length >= 3;
@@ -169,12 +184,13 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   bool get _boundaryReady {
     switch (_method) {
       case 'draw':
+      case 'gps': // المشي بالـGPS يُنتج رؤوساً فعليّة (≥3 لإغلاق المضلّع)
         return _hasDrawnPolygon;
       case 'geojson':
       case 'kml':
         return _geojsonText.text.trim().isNotEmpty;
       default:
-        return false; // gps: قريباً
+        return false;
     }
   }
 
@@ -201,6 +217,125 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     }
     final areaM2 = sum.abs() / 2.0;
     return areaM2 / 10000.0; // م² → هكتار
+  }
+
+  // ── محيط المضلّع بالأمتار (تقدير جيوديسيّ — مجموع أطوال الأضلاع) ──
+  // مسافة هافرساين بين كلّ رأسين متتاليين، مع إغلاق الحلقة (آخر→أوّل) عند ≥3 رؤوس.
+  // الوحدة دائماً الأمتار (م) — لا أقدام إطلاقاً.
+  double _perimeterMeters(List<LatLng> pts) {
+    if (pts.length < 2) return 0;
+    const earthR = 6378137.0; // نصف قطر الأرض (م)
+    double rad(double d) => d * math.pi / 180.0;
+    double seg(LatLng a, LatLng b) {
+      final dLat = rad(b.latitude - a.latitude);
+      final dLon = rad(b.longitude - a.longitude);
+      final s = math.sin(dLat / 2) * math.sin(dLat / 2) +
+          math.cos(rad(a.latitude)) *
+              math.cos(rad(b.latitude)) *
+              math.sin(dLon / 2) *
+              math.sin(dLon / 2);
+      return 2 * earthR * math.atan2(math.sqrt(s), math.sqrt(1 - s));
+    }
+
+    var total = 0.0;
+    for (var i = 0; i < pts.length - 1; i++) {
+      total += seg(pts[i], pts[i + 1]);
+    }
+    // إغلاق الحلقة فقط إن كان المضلّع صالحاً (≥3 رؤوس).
+    if (pts.length >= 3) total += seg(pts.last, pts.first);
+    return total;
+  }
+
+  // ── وضع الدائرة (نصف القطر بالمتر — حقل محوريّ/center-pivot) ──
+  // النقر على الخريطة يحدّد المركز ويفتح حواراً لإدخال نصف القطر بالأمتار (م)،
+  // ثمّ يُولّد مضلّعاً دائريّاً (~48 رأساً) يستبدل النقاط الحاليّة كحدّ للحقل.
+  Future<void> _onCircleCenterTap(LatLng center) async {
+    final r = await _askRadiusMeters(initial: _circleRadiusM);
+    if (r == null || r <= 0) return;
+    final ring = OfflineFieldMap.circlePolygon(center, r);
+    if (ring.length < 3) return;
+    setState(() {
+      _circleCenter = center;
+      _circleRadiusM = r;
+      _points
+        ..clear()
+        ..addAll(ring);
+    });
+  }
+
+  // حوار إدخال نصف القطر بالأمتار (م). يُرجِع null عند الإلغاء أو إدخال غير صالح.
+  Future<double?> _askRadiusMeters({double? initial}) async {
+    final ctrl = TextEditingController(
+        text: initial != null ? initial.toStringAsFixed(0) : '');
+    final result = await showDialog<double>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: kSurface,
+        title: const Text('نصف قطر الدائرة',
+            style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: const TextStyle(color: Colors.white),
+          decoration: kDec('نصف القطر (م)'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+            onPressed: () {
+              final v = double.tryParse(ctrl.text.trim());
+              Navigator.pop(ctx, (v != null && v > 0) ? v : null);
+            },
+            child: const Text('تأكيد'),
+          ),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    return result;
+  }
+
+  // ── وضع GPS (المشي حول الحقل) — يعتمد geolocator (موجود في pubspec) ──
+  // يطلب إذن الموقع، يقرأ الموقع الحاليّ، ويُلحِقه كرأس. المزارع يكرّر الزرّ عند
+  // كلّ زاوية أثناء سيره حول الحقل. صدق: لا نُولّد إحداثيّات وهميّة — فشل/رفض
+  // الإذن يُعرَض كما هو ولا يُضاف أيّ رأس.
+  Future<void> _appendGpsVertex() async {
+    if (_gpsBusy) return;
+    setState(() => _gpsBusy = true);
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        if (!mounted) return;
+        showSnack(context, 'خدمة الموقع غير مُفعَّلة على الجهاز', error: true);
+        return;
+      }
+      var perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied ||
+          perm == LocationPermission.deniedForever) {
+        if (!mounted) return;
+        showSnack(context, 'إذن الموقع مرفوض — تعذّر تسجيل النقطة', error: true);
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition(
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high),
+      );
+      if (!mounted) return;
+      setState(() => _points.add(LatLng(pos.latitude, pos.longitude)));
+      showSnack(context, 'أُضيفت نقطة GPS (${_points.length})');
+    } catch (e) {
+      if (!mounted) return;
+      showSnack(context, 'تعذّر قراءة الموقع: $e', error: true);
+    } finally {
+      if (mounted) setState(() => _gpsBusy = false);
+    }
   }
 
   // مضلّع GeoJSON من الرؤوس المرسومة (حلقة مغلقة، ترتيب [lon,lat]).
@@ -272,7 +407,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
 
   // المساحة المعروضة حسب الطريقة (هكتار) — تقدير محليّ.
   double get _displayedAreaHa {
-    if (_method == 'draw') return _areaHa(_points);
+    if (_method == 'draw' || _method == 'gps') return _areaHa(_points);
     final g = _importedGeometry;
     if (g != null) return _areaHa(_ringToPoints(g));
     return 0;
@@ -737,7 +872,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         Expanded(
           child: _method == 'draw'
               ? _drawPane()
-              : (_method == 'gps' ? _gpsComingSoon() : _importPane()),
+              : (_method == 'gps' ? _gpsPane() : _importPane()),
         ),
       ],
     );
@@ -786,16 +921,66 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     );
   }
 
+  // لوحة أدوات الرسم (مستوحاة من Climate FieldView): تبديل نقاط/دائرة + تراجع/مسح.
+  // إضافيّة غير كاسرة — الافتراضيّ نقاط (السلوك القديم: نقرة = رأس).
+  Widget _drawTool(DrawMode mode, IconData icon, String label) {
+    final sel = _drawMode == mode;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: ChoiceChip(
+        selected: sel,
+        avatar: Icon(icon, size: 16, color: sel ? Colors.white : Colors.grey),
+        label: Text(label),
+        labelStyle:
+            TextStyle(color: sel ? Colors.white : Colors.grey, fontSize: 12),
+        selectedColor: kPrimary,
+        backgroundColor: kBg,
+        // تبديل الوضع لا يمسح ما رُسِم (إضافيّ): فقط يغيّر سلوك النقرة التالية.
+        onSelected: (_) => setState(() => _drawMode = mode),
+      ),
+    );
+  }
+
   Widget _drawPane() {
     final area = _areaHa(_points);
+    final perimeter = _perimeterMeters(_points);
+    final isCircle = _drawMode == DrawMode.circle;
+    // تعليمات الخريطة حسب الوضع (وحدة الطول دائماً الأمتار «م»).
+    final hint = isCircle
+        ? 'انقر لتحديد مركز الدائرة ثمّ أدخِل نصف القطر بالمتر'
+        : 'ارسم حدود الحقل بالنقر على الخريطة';
     return Column(
       children: [
+        // لوحة الأدوات + شريط التعليمات.
+        Container(
+          color: kSurface,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            children: [
+              _drawTool(DrawMode.points, Icons.timeline, 'نقاط/مضلّع'),
+              _drawTool(DrawMode.circle, Icons.circle_outlined, 'دائرة'),
+            ],
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          color: kSurface,
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+          child: Text(hint,
+              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+        ),
         Expanded(
           child: OfflineFieldMap(
             center: _mapCenter,
             drawingEnabled: true,
+            drawMode: _drawMode,
+            instruction: hint,
             drawingPoints: _points,
-            onPolygonChanged: _onPolygonChanged,
+            onPolygonChanged:
+                isCircle ? null : _onPolygonChanged, // الدائرة لا تضيف رؤوساً بالنقر
+            onCenterTap: isCircle ? _onCircleCenterTap : null,
+            circlePreviewCenter: isCircle ? _circleCenter : null,
+            circlePreviewRadiusMeters: isCircle ? _circleRadiusM : null,
           ),
         ),
         Container(
@@ -807,12 +992,19 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${_points.length} نقطة',
-                        style: const TextStyle(color: Colors.white)),
+                    Text(
+                      isCircle && _circleRadiusM != null
+                          ? 'دائرة · نصف القطر ${_circleRadiusM!.toStringAsFixed(0)} م'
+                          : '${_points.length} نقطة',
+                      style: const TextStyle(color: Colors.white),
+                    ),
                     Text(
                       _hasDrawnPolygon
-                          ? 'المساحة ≈ ${area.toStringAsFixed(2)} هـ'
-                          : 'أضف 3 نقاط على الأقلّ لإغلاق المضلّع',
+                          ? 'المساحة: ${area.toStringAsFixed(2)} هكتار · '
+                              'المحيط: ${perimeter.toStringAsFixed(0)} م'
+                          : (isCircle
+                              ? 'حدّد مركزاً وأدخِل نصف القطر بالمتر'
+                              : 'أضف 3 نقاط على الأقلّ لإغلاق المضلّع'),
                       style: TextStyle(
                           color: _hasDrawnPolygon ? kPrimary : Colors.grey,
                           fontSize: 12),
@@ -887,34 +1079,93 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     setState(() {});
   }
 
-  Widget _gpsComingSoon() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.directions_walk, color: Colors.grey, size: 48),
-            const SizedBox(height: 12),
-            const Text('المشي بالـGPS لتسجيل الحدّ',
-                style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text(
-              'قريباً — سيتيح لك السير حول الحقل لتسجيل حدوده آليّاً. حاليّاً '
-              'استخدم الرسم أو الاستيراد.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => setState(() => _method = 'draw'),
-              style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
-              child: const Text('ارسم بدلاً من ذلك'),
-            ),
-          ],
+  // وضع GPS (المشي حول الحقل) — فعليّ عبر geolocator (موجود في pubspec).
+  // المزارع يقف عند كلّ زاوية ويضغط «إضافة موقعي الحاليّ»؛ كلّ ضغطة تُلحِق رأساً
+  // من الموقع الفعليّ للجهاز. لا نُولّد إحداثيّات وهميّة — رفض الإذن يُعرَض كما هو.
+  Widget _gpsPane() {
+    final area = _areaHa(_points);
+    final perimeter = _perimeterMeters(_points);
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          color: kSurface,
+          padding: const EdgeInsets.all(10),
+          child: const Text(
+            'وضع GPS (المشي حول الحقل): قف عند كلّ زاوية واضغط الزرّ لتسجيل موقعك.',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
         ),
-      ),
+        Expanded(
+          child: OfflineFieldMap(
+            center: _mapCenter,
+            // عرض الرؤوس المسجَّلة فقط (لا إضافة بالنقر في وضع GPS).
+            drawingEnabled: true,
+            drawMode: DrawMode.circle, // النقرة لا تضيف رأساً (المصدر هو GPS)
+            drawingPoints: _points,
+            instruction: 'تُسجَّل النقاط من موقع الجهاز عبر زرّ GPS',
+            onCenterTap: null,
+          ),
+        ),
+        Container(
+          color: kSurface,
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${_points.length} نقطة',
+                            style: const TextStyle(color: Colors.white)),
+                        Text(
+                          _hasDrawnPolygon
+                              ? 'المساحة: ${area.toStringAsFixed(2)} هكتار · '
+                                  'المحيط: ${perimeter.toStringAsFixed(0)} م'
+                              : 'سجّل 3 نقاط على الأقلّ لإغلاق المضلّع',
+                          style: TextStyle(
+                              color: _hasDrawnPolygon ? kPrimary : Colors.grey,
+                              fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'تراجع',
+                    onPressed: _points.isEmpty ? null : _undoPoint,
+                    icon: const Icon(Icons.undo, color: Colors.white),
+                  ),
+                  IconButton(
+                    tooltip: 'مسح',
+                    onPressed: _points.isEmpty ? null : _clearPoints,
+                    icon: const Icon(Icons.delete_outline,
+                        color: Colors.redAccent),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _gpsBusy ? null : _appendGpsVertex,
+                  style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+                  icon: _gpsBusy
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.my_location, size: 18),
+                  label: const Text('إضافة موقعي الحاليّ'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -968,7 +1219,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
               _summaryRow('الاسم', _name.text.trim()),
               _summaryRow(
                   'الحدّ',
-                  _method == 'draw'
+                  (_method == 'draw' || _method == 'gps')
                       ? '${_points.length} نقطة'
                       : (_method == 'geojson'
                           ? 'GeoJSON مستورَد'
