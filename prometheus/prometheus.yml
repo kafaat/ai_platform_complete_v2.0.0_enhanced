@@ -20,31 +20,36 @@ scrape_configs:
       - targets: ['sahool-auth:8000']
     metrics_path: '/metrics'
 
+  # FIX: أسماء الخدمات الصحيحة كما في docker-compose (fixed.yml و v9.yml كلاهما
+  # يستخدم الأسماء الطويلة -service/-agent/-engine). الأسماء القصيرة السابقة
+  # (sahool-indicators/…) لا تُحَلّ عبر DNS داخل الشبكة ⇒ فقدان صامت للمقاييس (up=0).
   - job_name: 'indicators-service'
     static_configs:
-      - targets: ['sahool-indicators:8000']
+      - targets: ['sahool-indicators-service:8000']
 
   - job_name: 'vegetation-service'
     static_configs:
-      - targets: ['sahool-vegetation:8000']
+      - targets: ['sahool-vegetation-analysis:8000']
 
   - job_name: 'weather-service'
     static_configs:
-      - targets: ['sahool-weather:8000']
+      - targets: ['sahool-weather-service:8000']
 
-  - job_name: 'soil-service'
-    static_configs:
-      - targets: ['sahool-soil:8000']
+  # ملاحظة: لا خدمة soil-service مستقلّة في أيّ compose (مدمجة في المنصّة) ⇒ هدف
+  # معطّل دائماً. مُعطَّل حتى تُضاف خدمة فعليّة (إعادة تفعيله = إزالة التعليق).
+  # - job_name: 'soil-service'
+  #   static_configs:
+  #     - targets: ['sahool-soil:8000']
 
   # ── v9 New Services ───────────────────────────────────────────
   - job_name: 'supervisor-agent'
     static_configs:
-      - targets: ['sahool-supervisor:8000']
+      - targets: ['sahool-supervisor-agent:8000']
     metrics_path: '/metrics'
 
   - job_name: 'guardrails-engine'
     static_configs:
-      - targets: ['sahool-guardrails:8000']
+      - targets: ['sahool-guardrails-engine:8000']
 
   - job_name: 'edge-inference'
     static_configs:
@@ -56,9 +61,11 @@ scrape_configs:
     metrics_path: '/metrics'
 
   # ── Infrastructure ────────────────────────────────────────────
-  - job_name: 'postgres-exporter'
-    static_configs:
-      - targets: ['sahool-pg-exporter:9187']
+  # ملاحظة: لا حاوية sahool-pg-exporter في أيّ compose ⇒ هدف معطّل دائماً. مُعطَّل
+  # حتى يُضاف postgres-exporter كـsidecar (إعادة تفعيله = إزالة التعليق).
+  # - job_name: 'postgres-exporter'
+  #   static_configs:
+  #     - targets: ['sahool-pg-exporter:9187']
 
   - job_name: 'nats-exporter'
     static_configs:
