@@ -31,10 +31,12 @@ import json
 import logging
 import math
 import os
+import re
 from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 
 import httpx
+import jwt as _jwt
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
@@ -64,6 +66,41 @@ CDSE_USER = os.getenv("COPERNICUS_USER", "")
 CDSE_PASSWORD = os.getenv("COPERNICUS_PASSWORD", "")
 
 security = HTTPBearer(auto_error=False)
+
+# ── تحقّق JWT حقيقيّ (كان يُقبل أيّ Bearer غير فارغ بلا تحقّق توقيع) ──
+_VEG_JWT_SECRET = os.getenv("JWT_SECRET", "")
+_VEG_JWT_ALG = "HS256"
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _verify_claims(token) -> dict:
+    """يتحقّق من توقيع JWT وaudience، ويُرجِع المطالبات. fail-closed."""
+    if not token or not token.credentials:
+        raise HTTPException(401, "Authentication required")
+    if not _VEG_JWT_SECRET or len(_VEG_JWT_SECRET) < 32:
+        raise HTTPException(503, "JWT_SECRET غير مضبوط")
+    try:
+        return _jwt.decode(
+            token.credentials, _VEG_JWT_SECRET, algorithms=[_VEG_JWT_ALG], audience="sahool"
+        )
+    except Exception:
+        raise HTTPException(401, "توكن غير صالح") from None
+
+
+def _tenant_from_claims(claims: dict) -> str:
+    """المستأجِر من التوكن لا من العميل — يمنع حقن موضوع NATS عابر المستأجرين."""
+    tid = str(claims.get("tenant_id") or "")
+    if not tid:
+        raise HTTPException(401, "توكن بلا مستأجِر")
+    return tid
+
+
+def _valid_date(s: str) -> str:
+    """يتحقّق أنّ التاريخ بصيغة YYYY-MM-DD — يمنع حقن OData/الاستعلام المتسلسل."""
+    if not _ISO_DATE_RE.match(s):
+        raise HTTPException(400, "صيغة تاريخ غير صالحة (YYYY-MM-DD)")
+    return s
+
 
 # ── Prometheus (FIXED: removed field_id label to prevent cardinality explosion) ──
 ANALYSIS_COUNT = Counter(
@@ -648,10 +685,13 @@ async def analyze(
     date_to: str | None = Query(default=None),
     token: str = Depends(security),
 ):
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
-    date_to = date_to or date.today().isoformat()
-    date_from = date_from or (date.today() - timedelta(days=30)).isoformat()
+    claims = _verify_claims(token)
+    # المستأجِر من التوكن لا من الـquery (منع حقن موضوع NATS عابر المستأجرين)
+    tenant_id = _tenant_from_claims(claims)
+    date_to = _valid_date(date_to) if date_to else date.today().isoformat()
+    date_from = (
+        _valid_date(date_from) if date_from else (date.today() - timedelta(days=30)).isoformat()
+    )
     return await run_analysis(field_id, tenant_id, date_from, date_to)
 
 
@@ -659,8 +699,7 @@ async def analyze(
 async def timeseries(
     field_id: str, days: int = Query(default=90, ge=5, le=365), token: str = Depends(security)
 ):
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
+    _verify_claims(token)
     if field_id not in FIELD_REGISTRY:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     return {
@@ -679,25 +718,25 @@ async def current_ndvi(field_id: str, token: str = Depends(security)):
     _current_ndvi_payload. صدق المصدر: تقدير من نطاقات تركيبيّة (real_data=False)
     — لا بكسلات حقيقيّة (تلك في raster-service).
     """
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
+    claims = _verify_claims(token)
+    tenant_id = _tenant_from_claims(claims)
     if field_id not in FIELD_REGISTRY:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
-    analysis = await run_analysis(field_id, "default", date_from, date_to)
+    analysis = await run_analysis(field_id, tenant_id, date_from, date_to)
     return _current_ndvi_payload(field_id, FIELD_REGISTRY[field_id], analysis)
 
 
 @app.get("/v1/all_fields")
-async def all_fields(tenant_id: str = Query(default="default"), token: str = Depends(security)):
+async def all_fields(token: str = Depends(security)):
     """NDVI الحالي لكلّ الحقول المعروفة (يستهلكه useAllFieldsNdvi/لوحة المؤشّرات).
 
     يكرّر على FIELD_REGISTRY ويستدعي run_analysis لكلّ حقل. الردّ {fields:[...]}
     لكلّ منه field_id/name/crop/ndvi/health — تقدير صادق (real_data=False).
     """
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
+    claims = _verify_claims(token)
+    tenant_id = _tenant_from_claims(claims)
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
     fields_out = []
