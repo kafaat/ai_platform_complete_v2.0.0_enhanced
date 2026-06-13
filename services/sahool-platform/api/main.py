@@ -6515,6 +6515,39 @@ def escalation_assess(
     )
 
 
+class ExternalPriorBlendRequest(BaseModel):
+    """مزج سابقة خارجيّة منشورة (مشروع/ورقة) ببيانات اليمن المتراكمة — وزن تدرّجي."""
+
+    external_prior: float | None = None
+    local_estimate: float | None = None
+    n_local: int = Field(default=0, ge=0)
+    crop_grown_in_yemen: bool
+    external_credibility: float = Field(default=0.5, ge=0, le=1)
+
+
+@app.post("/api/v1/learning/external-prior-blend")
+def external_prior_blend(
+    req: ExternalPriorBlendRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يمزج سابقة خارجيّة منشورة ببيانات اليمن بوزن تدرّجي n/(n+K) — تظافر قرائن صادق.
+
+    للاستفادة من مشاريع/أوراق خارجيّة (مثل CropSight-US) لمحاصيل تُزرَع في اليمن:
+    السابقة الخارجيّة قرينة ضعيفة متلاشية (ثقة ≤50%، غير متحقّقة محلّيّاً)، تتلاشى
+    كلّما تراكم محلّي. محصول غير مزروع في اليمن ⇒ غير منطبق (لا استيراد قيمة أجنبيّة).
+    دون الحجم المطلوب: تلميح يُصعَّد لمرشد عبر human_escalation.
+    """
+    from core.engines.external_prior_blend import blend_external_prior
+
+    return blend_external_prior(
+        req.external_prior,
+        req.local_estimate,
+        req.n_local,
+        crop_grown_in_yemen=req.crop_grown_in_yemen,
+        external_credibility=req.external_credibility,
+    )
+
+
 # ─── ٢٢. اكتمال البيانات + ملاءمة المحاصيل (مُستلهَم من المستندَين) ─
 from api.crop_suitability import FieldConditions, rank_crops  # noqa: E402
 from api.data_readiness import assess_readiness  # noqa: E402
