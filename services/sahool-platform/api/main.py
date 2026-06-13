@@ -1852,6 +1852,11 @@ class SeasonCreateRequest(BaseModel):
     plant_density: float | None = Field(default=None, ge=0)  # نبات/م²
     row_spacing_cm: float | None = Field(default=None, ge=0)
     seed_variety_source: str | None = Field(default=None, max_length=100)
+    # حقول أغرونوميّة (v52، نمط FieldView) — كلّها اختياريّة
+    maturity: str | None = Field(default=None, max_length=40)  # early/medium/late
+    tillage_type: str | None = Field(default=None, max_length=40)
+    actual_yield_kg_ha: float | None = Field(default=None, ge=0)  # الغلّة الفعليّة بعد الحصاد
+    notes_ar: str | None = Field(default=None, max_length=2000)
 
 
 class SeasonSummary(BaseModel):
@@ -1873,6 +1878,11 @@ class SeasonSummary(BaseModel):
     plant_density: float | None = None
     row_spacing_cm: float | None = None
     seed_variety_source: str | None = None
+    # ─── حقول أغرونوميّة (v52، نمط FieldView) — اختياريّة ─
+    maturity: str | None = None
+    tillage_type: str | None = None
+    actual_yield_kg_ha: float | None = None
+    notes_ar: str | None = None
     # ─── نتائج محاكاة الموسم (v39) — تُملأ عند تشغيل /simulate، تقديريّة ─
     sim_yield_kg_ha: float | None = None
     sim_biomass_kg_ha: float | None = None
@@ -1920,6 +1930,11 @@ def _row_to_season(r) -> SeasonSummary:
         plant_density=_num("plant_density"),
         row_spacing_cm=_num("row_spacing_cm"),
         seed_variety_source=(r["seed_variety_source"] if "seed_variety_source" in keys else None),
+        # v52 (محروسة بالمفاتيح — None إن لم تُحدَّد في SELECT)
+        maturity=(r["maturity"] if "maturity" in keys else None),
+        tillage_type=(r["tillage_type"] if "tillage_type" in keys else None),
+        actual_yield_kg_ha=_num("actual_yield_kg_ha"),
+        notes_ar=(r["notes_ar"] if "notes_ar" in keys else None),
         sim_yield_kg_ha=_num("sim_yield_kg_ha"),
         sim_biomass_kg_ha=_num("sim_biomass_kg_ha"),
         sim_gdd_total=_num("sim_gdd_total"),
@@ -2014,10 +2029,12 @@ async def create_season(
                     (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,
                      seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date,
                      season_end, stages, status,
-                     target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source)
+                     target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source,
+                     maturity, tillage_type, actual_yield_kg_ha, notes_ar)
                    VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
                            $8, $9, $10, $11, $12::jsonb, 'active',
-                           $13, $14, $15, $16)""",
+                           $13, $14, $15, $16,
+                           $17, $18, $19, $20)""",
                     season_id,
                     str(user.tenant_id),
                     field_id,
@@ -2034,6 +2051,10 @@ async def create_season(
                     req.plant_density,
                     req.row_spacing_cm,
                     req.seed_variety_source,
+                    req.maturity,
+                    req.tillage_type,
+                    req.actual_yield_kg_ha,
+                    req.notes_ar,
                 )
                 # حدث domain ضمن نفس معاملة إنشاء الموسم (نمط outbox).
                 await _emit_domain_event(
@@ -2083,6 +2104,10 @@ async def create_season(
         plant_density=req.plant_density,
         row_spacing_cm=req.row_spacing_cm,
         seed_variety_source=req.seed_variety_source,
+        maturity=req.maturity,
+        tillage_type=req.tillage_type,
+        actual_yield_kg_ha=req.actual_yield_kg_ha,
+        notes_ar=req.notes_ar,
     )
 
 
@@ -2126,12 +2151,18 @@ class SeasonUpdateRequest(BaseModel):
     plant_density: float | None = Field(default=None, ge=0)
     row_spacing_cm: float | None = Field(default=None, ge=0)
     seed_variety_source: str | None = Field(default=None, max_length=100)
+    # حقول أغرونوميّة (v52، نمط FieldView) — اختياريّة
+    maturity: str | None = Field(default=None, max_length=40)
+    tillage_type: str | None = Field(default=None, max_length=40)
+    actual_yield_kg_ha: float | None = Field(default=None, ge=0)
+    notes_ar: str | None = Field(default=None, max_length=2000)
 
 
 _SEASON_SELECT_COLS = (
     "season_id, field_id, crops, cultivar, irrigation_type, seed_rate_kg_ha, "
     "land_leveling_date, plowing_date, sowing_date, season_end, stages, status, "
     "created_at, target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source, "
+    "maturity, tillage_type, actual_yield_kg_ha, notes_ar, "
     "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, sim_water_mm, sim_ran_at"
 )
 
@@ -2177,7 +2208,17 @@ async def update_season(
         updates.append(("sowing_date", sow, False))
     if req.season_end is not None:
         updates.append(("season_end", end, False))
-    for kpi in ("target_yield_kg_ha", "plant_density", "row_spacing_cm", "seed_variety_source"):
+    for kpi in (
+        "target_yield_kg_ha",
+        "plant_density",
+        "row_spacing_cm",
+        "seed_variety_source",
+        # حقول v52 الأغرونوميّة
+        "maturity",
+        "tillage_type",
+        "actual_yield_kg_ha",
+        "notes_ar",
+    ):
         if kpi in fields_set:
             updates.append((kpi, getattr(req, kpi), False))
 
