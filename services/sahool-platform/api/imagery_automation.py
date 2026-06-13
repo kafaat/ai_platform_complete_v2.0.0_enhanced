@@ -44,6 +44,8 @@ class TrackedField:
     last_image_date: str | None = None
     last_checked_at: str | None = None
     last_indicator_job: str | None = None
+    last_ndvi_mean: float | None = None  # Stage D: آخر متوسّط NDVI محسوب (Sentinel)
+    last_ndvi_date: str | None = None  # تاريخ صورة آخر NDVI ("YYYY-MM-DD")
     new_images_found: int = 0
     check_errors: int = 0
 
@@ -286,9 +288,62 @@ class ImageryAutomation:
                 json=payload,
             )
             resp.raise_for_status()
-            tf.last_indicator_job = resp.json().get("job_id")
+            body = resp.json()
+            tf.last_indicator_job = body.get("job_id")
+            # Stage D: best-effort — استخرج متوسّط NDVI الحقيقيّ واحفظه (fail-safe).
+            await self._collect_ndvi_value(client, tf, image, body)
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل طلب مؤشّرات الحقل %s: %s", tf.field_id, e)
+
+    async def _collect_ndvi_value(
+        self, client, tf: TrackedField, image: dict, batch_body: dict
+    ) -> None:
+        """best-effort: يستخرج متوسّط NDVI الحقيقيّ من نتيجة الدفعة ويحفظه.
+
+        المسار: نتيجة الدفعة → layer_id لمؤشّر ndvi → /info/{layer} →
+        provenance.stats.mean. fail-safe تماماً: أيّ تعذّر (شكل مختلف/خدمة بطيئة/
+        غياب الإحصاء) ⇒ تخطٍّ صامت دون كسر الأتمتة، والعمود يبقى NULL (صدق: لا قيمة
+        مُلفَّقة). ملاحظة: المسار السعيد يحتاج raster قيد التشغيل للتحقّق الميدانيّ.
+        """
+        try:
+            results = batch_body.get("batch_results") or batch_body.get("results") or {}
+            ndvi_layer = results.get("ndvi")
+            if not ndvi_layer and tf.last_indicator_job:
+                jr = await client.get(f"{RASTER_SERVICE_URL}/jobs/{tf.last_indicator_job}")
+                if jr.status_code == 200:
+                    jd = jr.json()
+                    res = jd.get("batch_results") or jd.get("result") or {}
+                    ndvi_layer = res.get("ndvi") if isinstance(res, dict) else None
+            if not ndvi_layer:
+                return
+            info = await client.get(f"{RASTER_SERVICE_URL}/info/{ndvi_layer}")
+            if info.status_code != 200:
+                return
+            stats = (info.json().get("provenance") or {}).get("stats") or {}
+            mean = stats.get("mean")
+            if mean is None:
+                return
+            tf.last_ndvi_mean = float(mean)
+            tf.last_ndvi_date = (image.get("datetime") or image.get("date") or "")[:10] or None
+            await self._persist_ndvi(tf)
+        except Exception as e:  # noqa: BLE001 — best-effort، لا يكسر الأتمتة أبداً
+            logger.debug("جمع قيمة NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
+
+    async def _persist_ndvi(self, tf: TrackedField) -> None:
+        """يحفظ متوسّط NDVI + تاريخه في imagery_automation_fields (fail-safe)."""
+        if self._pool is None:
+            return
+        try:
+            async with self._pool.acquire() as conn:
+                await conn.execute(
+                    "UPDATE imagery_automation_fields "
+                    "SET last_ndvi_mean = $2, last_ndvi_date = $3::date WHERE field_id = $1",
+                    tf.field_id,
+                    tf.last_ndvi_mean,
+                    tf.last_ndvi_date,
+                )
+        except Exception as e:  # noqa: BLE001 — حفظ best-effort
+            logger.debug("حفظ NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
 
 
 # مثيل وحيد للتطبيق

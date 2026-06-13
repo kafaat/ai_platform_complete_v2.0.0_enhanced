@@ -29,13 +29,19 @@ from .field_state_gateway import build_state_inputs
 async def gather_field_freshness(conn, field_id: str) -> dict:
     """يقرأ مصادر النضارة القانونيّة للحقل من قاعدة المنصّة.
 
-    يُرجِع {last_image_date, latest_soil_sampled_on, weather_age_hours} — أيّ
-    مصدر غائب يكون None (يدع resolve_field_state يعلن «بيانات ناقصة» بصدق).
+    يُرجِع {last_image_date, latest_soil_sampled_on, weather_age_hours, ndvi_mean,
+    ndvi_date} — أيّ مصدر غائب يكون None (يدع resolve_field_state يعلن «بيانات
+    ناقصة» بصدق، وتُعلَن قيمة NDVI غير متاحة بدل رقم مُلفَّق).
     """
-    last_image_date = await conn.fetchval(
-        "SELECT last_image_date FROM imagery_automation_fields WHERE field_id = $1",
+    # Stage D: قيمة NDVI الحقيقيّة + تاريخها (إن حُسِبت) مع تاريخ آخر صورة — صفّ واحد.
+    img = await conn.fetchrow(
+        "SELECT last_image_date, last_ndvi_mean, last_ndvi_date "
+        "FROM imagery_automation_fields WHERE field_id = $1",
         field_id,
     )
+    last_image_date = img["last_image_date"] if img else None
+    ndvi_mean = img["last_ndvi_mean"] if img else None
+    ndvi_date = img["last_ndvi_date"] if img else None
     soil_sampled_on = await conn.fetchval(
         "SELECT MAX(sampled_on) FROM soil_lab_tests "
         "WHERE field_id = $1 AND status IN ('approved', 'published')",
@@ -52,6 +58,8 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "last_image_date": last_image_date,
         "latest_soil_sampled_on": soil_sampled_on,
         "weather_age_hours": float(weather_age_hours) if weather_age_hours is not None else None,
+        "ndvi_mean": float(ndvi_mean) if ndvi_mean is not None else None,
+        "ndvi_date": ndvi_date,
     }
 
 
@@ -71,6 +79,16 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     )
     state = resolve_field_state(field_id, **inputs).to_dict()
     state["inputs"] = inputs  # شفافيّة التدقيق: المصادر التي دخلت القرار
+    # Stage D: قيمة NDVI الحقيقيّة (من Sentinel عبر raster، مزوّدون مجّانيّون) —
+    # معلوماتيّة لا تُغيّر صلاحيّة القرار (تغيير عتبات أغرونوميّة يحتاج تحقّقاً
+    # ميدانيّاً). صدق: لا قيمة محسوبة ⇒ available=false لا رقم مُلفَّق.
+    _ndvi = fresh.get("ndvi_mean")
+    state["remote_sensing"] = {
+        "available": _ndvi is not None,
+        "ndvi_mean": _ndvi,
+        "ndvi_date": fresh["ndvi_date"].isoformat() if fresh.get("ndvi_date") else None,
+        "source": "sentinel-2 (raster-service)" if _ndvi is not None else None,
+    }
 
     tenant_id = await conn.fetchval("SELECT tenant_id FROM fields WHERE field_id = $1", field_id)
     if tenant_id is None:
