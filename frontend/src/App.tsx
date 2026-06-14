@@ -73,6 +73,7 @@ const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
 const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
 const FarmCreatePage      = lazy(() => import('./sections/FarmCreatePage'));
 const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
+const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -81,10 +82,11 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app';
+  | 'weather-advice' | 'field-app' | 'command';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
+  { id:'command',      label:'مركز العمليّات (معاينة)', icon:Smartphone, badge:'دمج' },
   { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
   { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
   { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
@@ -336,6 +338,7 @@ export default function App() {
     }
     switch(page) {
       case 'dashboard':    return <DashboardPage setPage={setPage} />;
+      case 'command':      return <OperationCommand />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
