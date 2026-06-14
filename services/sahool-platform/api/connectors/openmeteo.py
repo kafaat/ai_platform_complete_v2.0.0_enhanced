@@ -118,6 +118,7 @@ _DAILY_KEYS = [
 
 def _build_daily(d: dict, i: int, date: str) -> DailyForecast:
     """يبني DailyForecast من استجابة Open-Meteo اليوميّة (فهرسة آمنة لكلّ حقل)."""
+    # `is not None` لا truthiness: 0 ثانية (سطوع/نهار) قيمة صالحة لا «مفقودة».
     _sun = _daily_at(d, "sunshine_duration", i, None)
     _day = _daily_at(d, "daylight_duration", i, None)
     return DailyForecast(
@@ -126,12 +127,12 @@ def _build_daily(d: dict, i: int, date: str) -> DailyForecast:
         temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
         precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
         et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
-        sunshine_hours=(_sun / 3600 if _sun else None),
+        sunshine_hours=(_sun / 3600 if _sun is not None else None),
         wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
         weather_code=_daily_at(d, "weather_code", i, 0),
         sunrise=_daily_at(d, "sunrise", i, None),
         sunset=_daily_at(d, "sunset", i, None),
-        daylight_hours=(round(_day / 3600, 2) if _day else None),
+        daylight_hours=(round(_day / 3600, 2) if _day is not None else None),
         solar_radiation_mj_m2=_daily_at(d, "shortwave_radiation_sum", i, None),
     )
 

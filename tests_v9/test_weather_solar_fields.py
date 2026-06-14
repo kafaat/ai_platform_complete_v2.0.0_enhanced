@@ -19,12 +19,15 @@ MAIN = os.path.join(CORE, "api", "main.py")
 
 @pytest.fixture(scope="module")
 def om():
-    if CORE not in sys.path:
+    added = CORE not in sys.path
+    if added:
         sys.path.insert(0, CORE)
     pytest.importorskip("httpx")
     from api.connectors import openmeteo
 
-    return openmeteo
+    yield openmeteo
+    if added and CORE in sys.path:  # تنظيف sys.path (لا تسريب حالة عالميّة بين الاختبارات)
+        sys.path.remove(CORE)
 
 
 def test_build_daily_extracts_solar_and_daylight(om):
@@ -47,6 +50,14 @@ def test_build_daily_extracts_solar_and_daylight(om):
     assert f.daylight_hours == 13.0  # 46800s → ساعات
     assert f.solar_radiation_mj_m2 == 28.5
     assert f.sunshine_hours == 10.0
+
+
+def test_build_daily_zero_is_not_none(om):
+    """قيمة 0 (سطوع/نهار = 0 ثانية) صالحة ⇒ 0.0 لا None (لا تُعامَل كمفقودة)."""
+    d = {"sunshine_duration": [0], "daylight_duration": [0]}
+    f = om._build_daily(d, 0, "2026-06-14")
+    assert f.sunshine_hours == 0.0
+    assert f.daylight_hours == 0.0
 
 
 def test_build_daily_missing_solar_is_none(om):
