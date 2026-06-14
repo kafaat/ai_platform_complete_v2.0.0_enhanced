@@ -6,7 +6,7 @@ import {
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
-  ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks,
+  ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
@@ -81,6 +81,7 @@ const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
 const AnalyzeCabin        = lazy(() => import('./sections/AnalyzeCabin'));
 const SetupCabin          = lazy(() => import('./sections/SetupCabin'));
 const UnifiedCabin        = lazy(() => import('./sections/UnifiedCabin'));
+const FieldRanking        = lazy(() => import('./sections/FieldRanking'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -89,7 +90,7 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -117,6 +118,7 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'equipment',    label:'المعدّات',         icon:Tractor },
   { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
   { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
+  { id:'field-ranking', label:'ترتيب الحقول',    icon:TrendingUp },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
   { id:'alerts',       label:'التنبيهات',       icon:Bell },
   { id:'reports',      label:'التقارير',        icon:FileText },
@@ -360,6 +362,7 @@ export default function App() {
       case 'analyze-cabin': return <AnalyzeCabin />;
       case 'setup-cabin': return <SetupCabin />;
       case 'unified-cabin': return <UnifiedCabin />;
+      case 'field-ranking': return <FieldRanking />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;

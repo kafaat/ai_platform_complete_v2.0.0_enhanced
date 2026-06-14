@@ -24,13 +24,13 @@ const ALL_PAGES: PageId[] = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'recommendations',
   'irrigation', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
-  'tasks', 'activities', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
+  'tasks', 'activities', 'field-ranking', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
 ];
 
 // worker (مزارع/عامل): الصفحات التشغيليّة فقط (وفق سياسة الإعدادات الموثّقة:
 // لوحة + أقمار + حقول + مهام، مع التنبيهات/المستشار/المكانيّة + أدوات حقله).
 const WORKER_PAGES: PageId[] = [
-  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'tasks', 'activities', 'alerts', 'chatbot', 'spatial-indicators',
+  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'tasks', 'activities', 'field-ranking', 'alerts', 'chatbot', 'spatial-indicators',
   'irrigation', 'weather-advice', 'pest-escalation', 'field-intelligence',
   'inventory', 'equipment', 'devices', 'irrigation-ops',
 ];
