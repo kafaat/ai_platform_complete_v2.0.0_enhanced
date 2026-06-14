@@ -3240,6 +3240,17 @@ async def update_task(
     try:
         async with tenant_connection(user) as conn:
             row = await conn.fetchrow(query, *vals)
+            # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل
+            # المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
+            if row is not None:
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "TASK_UPDATED",
+                    "task",
+                    task_id,
+                    {"status": req.status, "field_id": row.get("field_id")},
+                )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
@@ -4334,6 +4345,16 @@ async def create_farm(
                 req.description,
                 req.activity_type,
             )
+            # حدث إنشاء المزرعة (معلَم تأهيل): يُمكّن مستهلكي الأحداث من التفاعل
+            # (إشعار/تهيئة لاحقة). نفس المعاملة (outbox) — فشل الإصدار لا يكسر الحفظ.
+            await _emit_domain_event(
+                conn,
+                user,
+                "FARM_CREATED",
+                "farm",
+                farm_id,
+                {"name": req.name, "region": req.region},
+            )
     except HTTPException:
         raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 موثَّق لا 500
@@ -4949,6 +4970,16 @@ async def create_schedule(
             dows,
             req.water_target_mm,
             req.enabled,
+        )
+        # حدث إنشاء جدول الريّ (تفاعليّ): يبثّه وكيل الإشعارات. نفس المعاملة (outbox)؛
+        # _emit_domain_event آمن (يبتلع أخطاءه) فلا يكسر النقطة.
+        await _emit_domain_event(
+            conn,
+            user,
+            "IRRIGATION_SCHEDULE_CREATED",
+            "irrigation_schedule",
+            schedule_id,
+            {"field_id": req.field_id, "valve_id": req.valve_id},
         )
     return {"schedule_id": schedule_id, "name": req.name, "message_ar": "أُنشئ جدول الريّ"}
 

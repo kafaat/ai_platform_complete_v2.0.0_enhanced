@@ -72,6 +72,12 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     ALERT_CREATED = "alert.created"
     ALERT_ACKNOWLEDGED = "alert.acknowledged"
 
+    # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
+    # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.
+    TASK_UPDATED = "task.updated"
+    FARM_CREATED = "farm.created"
+    IRRIGATION_SCHEDULE_CREATED = "irrigation.schedule.created"
+
     # Operations
     PLANTING_STARTED = "operation.planting.started"
     PLANTING_COMPLETED = "operation.planting.completed"
