@@ -112,6 +112,22 @@ jobs:
       - uses: codecov/codecov-action@v4
         with: {files: coverage.xml}
 
+  platform-unit-tests:
+    name: Platform Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      # اختبارات منطق المنصّة (services/sahool-platform/tests) كانت خارج نطاق CI
+      # كلّيّاً: pytest.ini يحصر testpaths في tests_v9، فلم تُجمَع هذه الاختبارات
+      # (~١٢٨٢، منطق صرف بلا قاعدة/خدمات) ولم تُشغَّل قطّ رغم نجاحها. هذه الوظيفة
+      # تشغّلها فعليّاً من جذر المنصّة (PYTHONPATH=.) لتغطية حقيقيّة في CI.
+      - run: pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt
+      - name: Run platform pure-logic tests (no DB/services)
+        working-directory: services/sahool-platform
+        run: PYTHONPATH=. pytest tests -q -p no:cacheprovider
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-24.04
