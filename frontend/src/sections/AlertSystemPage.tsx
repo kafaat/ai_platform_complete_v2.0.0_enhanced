@@ -6,7 +6,8 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X, Zap, Play } from 'lucide-react';
-import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useRunAllAlerts, useFields } from '../hooks/useApi';
+import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useRunAllAlerts } from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { AlertRecord } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -55,7 +56,7 @@ export function AlertSystemPage() {
   const ackMut = useAcknowledgeAlert();
   const evalMut = useEvaluateAlerts();
   const runAllMut = useRunAllAlerts();
-  const { data: fieldsData } = useFields();
+  const { options: fieldOptions } = useFieldOptions();
 
   const [filter, setFilter] = useState<string>('all');
   const [showAcknowledged, setShowAcknowledged] = useState(false);
@@ -65,12 +66,7 @@ export function AlertSystemPage() {
   const [evalNote, setEvalNote] = useState<string>('');
   const [runAllNote, setRunAllNote] = useState<string>('');
 
-  // قائمة الحقول لمنتقي التقييم (نفس تطبيع WeatherAdvicePage).
-  const fieldOptions = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
-    id: String(f.field_id ?? f.id),
-    name: String(f.name_ar ?? f.name ?? 'حقل'),
-  }));
-
+  // قائمة الحقول لمنتقي التقييم — مُطبَّعة عبر useFieldOptions (مصدر واحد).
   const runEvaluate = () => {
     if (!mutateAllowed || !evalFieldId || evalMut.isPending) return;
     setEvalNote('');
