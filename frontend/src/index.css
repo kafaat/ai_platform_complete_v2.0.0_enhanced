@@ -51,7 +51,7 @@ body {
 .status-critical  { color: #dc2626; }
 
 /* ── Map containers ── */
-.maplibregl-map, .leaflet-container {
+.leaflet-container {
   font-family: var(--font-ar) !important;
   border-radius: 12px;
 }

@@ -145,7 +145,7 @@ export interface GuardrailsResult {
 }
 
 // ── Indicator Grid (raster-service per-pixel grid) ──────────────
-export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture';
+export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture' | 'msi';
 
 export interface IndicatorGridZone {
   id: string;
