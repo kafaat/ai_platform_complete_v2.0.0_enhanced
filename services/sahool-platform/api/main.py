@@ -5693,6 +5693,10 @@ async def report_season_summary(
 # كتالوج المؤشّرات التي تحسبها المنصّة فعلاً (مصدر كلٍّ موثّق بصدق). ليس 33
 # مؤشّراً مُلفَّقاً — بل ما هو مُنفَّذ ومخدوم عبر خدمات حقيقيّة (vegetation/raster
 # للطيفيّة، weather للمناخيّة، soil للتربة). الواجهة تعرضه كدليل + فلترة بالفئة.
+# renderable=True ⇒ طبقة بلاطات/شبكة مكانيّة يرسمها raster-service (band_math)
+# فتظهر في مبدّل طبقات الخريطة. renderable=False ⇒ قيمة قياسيّة (طقس/تربة) غير
+# مكانيّة (لا تُرسَم كطبقة) — مرجعيّة فقط. الواجهة تقود مبدّل الخريطة بـrenderable
+# لا بقائمة مُبرمَجة (مصدر حقيقة واحد). كلّ renderable مؤكَّد في raster band_math.
 _INDICATOR_CATALOG: list[dict] = [
     {
         "id": "ndvi",
@@ -5700,6 +5704,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "NDVI",
         "unit": "",
         "source": "raster-service / vegetation-service",
+        "renderable": True,
     },
     {
         "id": "evi",
@@ -5707,6 +5712,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "EVI",
         "unit": "",
         "source": "raster-service / vegetation-service",
+        "renderable": True,
     },
     {
         "id": "ndre",
@@ -5714,6 +5720,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "NDRE",
         "unit": "",
         "source": "raster-service",
+        "renderable": True,
     },
     {
         "id": "msavi",
@@ -5721,6 +5728,23 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "MSAVI",
         "unit": "",
         "source": "raster-service",
+        "renderable": True,
+    },
+    {
+        "id": "savi",
+        "category": "vegetation",
+        "name_ar": "SAVI",
+        "unit": "",
+        "source": "raster-service",
+        "renderable": True,
+    },
+    {
+        "id": "gndvi",
+        "category": "vegetation",
+        "name_ar": "GNDVI",
+        "unit": "",
+        "source": "raster-service",
+        "renderable": True,
     },
     {
         "id": "ndwi",
@@ -5728,6 +5752,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "NDWI",
         "unit": "",
         "source": "raster-service / vegetation-service",
+        "renderable": True,
     },
     {
         "id": "ndmi",
@@ -5735,6 +5760,15 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "NDMI (الرطوبة)",
         "unit": "",
         "source": "raster-service",
+        "renderable": True,
+    },
+    {
+        "id": "msi",
+        "category": "water",
+        "name_ar": "MSI (الإجهاد المائي)",
+        "unit": "",
+        "source": "raster-service",
+        "renderable": True,
     },
     {
         "id": "et0",
@@ -5742,6 +5776,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "ET₀",
         "unit": "mm/d",
         "source": "weather-service (FAO-56)",
+        "renderable": False,
     },
     {
         "id": "water_deficit",
@@ -5749,6 +5784,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "عجز المياه",
         "unit": "mm",
         "source": "weather-service",
+        "renderable": False,
     },
     {
         "id": "gdd",
@@ -5756,6 +5792,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "GDD المتراكم",
         "unit": "°C·يوم",
         "source": "weather-service",
+        "renderable": False,
     },
     {
         "id": "temperature",
@@ -5763,6 +5800,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "الحرارة",
         "unit": "°C",
         "source": "weather-service",
+        "renderable": False,
     },
     {
         "id": "humidity",
@@ -5770,6 +5808,15 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "الرطوبة النسبيّة",
         "unit": "%",
         "source": "weather-service",
+        "renderable": False,
+    },
+    {
+        "id": "salinity",
+        "category": "soil",
+        "name_ar": "الملوحة (SI)",
+        "unit": "",
+        "source": "raster-service",
+        "renderable": True,
     },
     {
         "id": "soil_ph",
@@ -5777,6 +5824,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "pH التربة",
         "unit": "",
         "source": "soil-service",
+        "renderable": False,
     },
     {
         "id": "soil_ec",
@@ -5784,6 +5832,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "EC التربة",
         "unit": "dS/m",
         "source": "soil-service",
+        "renderable": False,
     },
     {
         "id": "nitrogen",
@@ -5791,6 +5840,7 @@ _INDICATOR_CATALOG: list[dict] = [
         "name_ar": "النيتروجين المتاح",
         "unit": "mg/kg",
         "source": "soil-service",
+        "renderable": False,
     },
 ]
 
@@ -5804,11 +5854,14 @@ def _shape_indicator_catalog() -> dict:
     for ind in _INDICATOR_CATALOG:
         cat = ind["category"]
         categories[cat] = categories.get(cat, 0) + 1
+    renderable_total = sum(1 for ind in _INDICATOR_CATALOG if ind.get("renderable"))
     return {
         "total": len(_INDICATOR_CATALOG),
+        "renderable_total": renderable_total,
         "categories": categories,
         "indicators": _INDICATOR_CATALOG,
-        "note_ar": "المؤشّرات المُنفَّذة فعلاً ومصادرها — لا قيم مُلفَّقة.",
+        "note_ar": "المؤشّرات المُنفَّذة فعلاً ومصادرها — لا قيم مُلفَّقة. "
+        "renderable=طبقة بلاطات مكانيّة (تظهر في مبدّل الخريطة)؛ غيرها قيمة قياسيّة مرجعيّة.",
     }
 
 
