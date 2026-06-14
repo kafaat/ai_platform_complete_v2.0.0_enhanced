@@ -57,6 +57,19 @@ except ImportError:
 NATS_URL = os.getenv("NATS_URL", "nats://sahool-nats:4222")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 
+# تفضيل NDVI الحقيقيّ من raster-service (بكسليّ، Sentinel-2) على التقدير التركيبيّ.
+# مُفعَّل افتراضيّاً؛ يبقى مفتاح إيقاف (=0) لأغراض التشغيل. fail-safe بالكامل:
+# أيّ تعذّر/مهلة/غياب طبقة ⇒ ارتداد للتقدير المُعلَّم الحاليّ (السلوك لا يسوء أبداً).
+RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+    "/"
+)
+VEGETATION_PREFER_RASTER = os.getenv("VEGETATION_PREFER_RASTER", "1") not in (
+    "0",
+    "false",
+    "False",
+    "",
+)
+
 SH_CLIENT_ID = os.getenv("SH_CLIENT_ID", "")
 SH_CLIENT_SECRET = os.getenv("SH_CLIENT_SECRET", "")
 SH_TOKEN_URL = "https://services.sentinel-hub.com/auth/realms/main/protocol/openid-connect/token"
@@ -539,6 +552,32 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
+async def _real_ndvi_mean_from_raster(field_id: str) -> float | None:
+    """متوسّط NDVI الحقيقيّ (بكسليّ) من raster-service إن توفّر — وإلّا None.
+
+    fail-safe مطلق: أيّ خطأ/مهلة/غياب طبقة/real_data=false ⇒ None (لا استثناء يصعد)،
+    فيُبقي المتّصِل على التقدير المُعلَّم. لا يغيّر صيَغ المؤشّرات — يستبدل القيمة فقط.
+    """
+    if not VEGETATION_PREFER_RASTER:
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=8) as c:
+            r = await c.get(
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-grid",
+                params={"index": "ndvi", "date": "latest", "grid": 16},
+            )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data.get("real_data"):
+            return None
+        mean = (data.get("stats") or {}).get("mean")
+        return float(mean) if isinstance(mean, (int, float)) else None
+    except Exception as e:  # noqa: BLE001 — fail-safe: ارتداد للتقدير، لا كسر
+        logger.debug("raster NDVI الحقيقيّ غير متاح لـ%s: %s", field_id, e)
+        return None
+
+
 async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: str) -> dict:
     field = FIELD_REGISTRY.get(field_id)
     if not field:
@@ -561,10 +600,18 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         cloud_pct = meta.get("cloud_pct", 0.0)
         bands = _realistic_bands(field_id, acq_date)
         indices = _compute_indices(bands)
+        # تفضيل NDVI الحقيقيّ (بكسليّ، Sentinel-2 عبر raster-service) عند توفّره —
+        # يستبدل قيمة NDVI فقط (لا يغيّر صيَغ المؤشّرات). بقيّة المؤشّرات تبقى تقديريّة.
+        real_ndvi = await _real_ndvi_mean_from_raster(field_id)
+        ndvi_is_real = real_ndvi is not None
+        if ndvi_is_real:
+            indices["ndvi"] = round(real_ndvi, 3)
         health = _health_classification(indices["ndvi"], indices["cwsi"])
         recs = _recommendations_ar(indices, health, field["crop"])
     await _publish_analysis(field_id, tenant_id, indices, source)
     ANALYSIS_COUNT.labels(source=source, status="success").inc()
+    # وسم مصدر كلّ مؤشّر بصدق: NDVI من raster الحقيقيّ عند توفّره، والباقي تقدير.
+    _ndvi_src = "raster-service" if ndvi_is_real else "estimate"
     return {
         "field_id": field_id,
         "field_name": field["name"],
@@ -573,17 +620,25 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         "tenant_id": tenant_id,
         "acquisition_date": acq_date,
         "cloud_coverage_pct": cloud_pct,
-        "data_source": source,
-        # HONESTY: indices are field-mean estimates from synthetic bands, never
-        # decoded pixels — so this is always False. provider_reachable tells the
-        # caller whether the live SH/CDSE API responded (metadata only).
-        "real_data": False,
+        # data_source يعكس مصدر NDVI (الرقم الرئيسيّ): raster الحقيقيّ أو التقدير.
+        "data_source": "raster-service" if ndvi_is_real else source,
+        # real_data يعكس NDVI تحديداً (بطاقة الصحّة تُبنى عليه): حقيقيّ من raster؟
+        "real_data": ndvi_is_real,
         "provider_reachable": provider_reachable,
         "estimate_note": (
-            "Indices are field-mean estimates from deterministic synthetic bands; "
+            "NDVI من raster-service (بكسليّ، Sentinel-2)؛ بقيّة المؤشّرات تقديريّة من نطاقات تركيبيّة."
+            if ndvi_is_real
+            else "Indices are field-mean estimates from deterministic synthetic bands; "
             "no satellite pixels were decoded. Real per-pixel processing lives in raster-service."
         ),
-        "indices": {k: {"value": v, "unit": "dimensionless"} for k, v in indices.items()},
+        "indices": {
+            k: {
+                "value": v,
+                "unit": "dimensionless",
+                "source": _ndvi_src if k == "ndvi" else "estimate",
+            }
+            for k, v in indices.items()
+        },
         "raw_bands": bands,
         "health": health,
         "recommendations_ar": recs,
