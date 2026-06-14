@@ -17,3 +17,4 @@ numpy>=1.24.0
 scipy>=1.10.0
 PyYAML>=6.0  # FIX: core/crop_cards/loader.py + core/learning/calibration_loop.py يستوردان yaml
 nats-py>=2.6.0  # OutboxWorker → NATS (relay الأحداث الموثوق)
+redis>=5.0.0  # denylist (إبطال JWT) — مشترك مع خدمة auth (sahool:jti:revoked)
