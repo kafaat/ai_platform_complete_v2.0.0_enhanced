@@ -26,6 +26,7 @@ api/main.py — FastAPI application للنواة سهول
 from __future__ import annotations
 
 import asyncio
+import hmac
 import logging
 import os
 import secrets
@@ -9434,9 +9435,12 @@ async def field_alerts_derived(
 # فتمرّ قرارات الحَوكمة عبر مصدر الحقيقة الواحد. **ليست تحت /api/** (لا يوجّهها
 # nginx العامّ ⇒ غير قابلة للوصول من الإنترنت؛ داخليّة على الشبكة فقط).
 def _require_service_token(x_agent_token: str | None = Header(None, alias="X-Agent-Token")) -> None:
-    """يحمي النقاط الداخليّة بالتوكن الخدميّ (fail-closed): يُرفض إن غاب السرّ أو اختلف."""
+    """يحمي النقاط الداخليّة بالتوكن الخدميّ (fail-closed): يُرفض إن غاب السرّ أو اختلف.
+
+    المقارنة بزمن ثابت (hmac.compare_digest) لمنع تسريب السرّ عبر تحليل التوقيت.
+    """
     expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
-    if not expected or x_agent_token != expected:
+    if not expected or not hmac.compare_digest(x_agent_token or "", expected):
         raise HTTPException(status_code=403, detail="نقطة داخليّة محميّة بـSAHOOL_AGENT_TOKEN")
 
 
