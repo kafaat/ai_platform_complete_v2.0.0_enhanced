@@ -238,6 +238,39 @@ export function FAB({ icon, onClick, label }: { icon: ReactNode; onClick?: () =>
   );
 }
 
+// ── Button (زرّ إجراء أساسيّ · CTA) ─────────────────────────────
+// زرّ ممتلئ بعرض كامل افتراضيّاً (نمط الكابينة). tone أخضر (تأكيد) أو ذهبيّ
+// (إجراء/إعادة). الحالة المعطّلة تُفقِد اللون والنقر. style لضبط التباعد.
+export function Button({
+  children, onClick, disabled, tone = 'green', full = true, style,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  tone?: 'green' | 'gold';
+  full?: boolean;
+  style?: CSSProperties;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        width: full ? '100%' : undefined,
+        padding: '11px 14px', borderRadius: RADIUS.md, border: 'none',
+        background: disabled ? T.line : tone === 'gold' ? T.gold : T.green,
+        color: disabled ? T.muted : '#fff',
+        fontSize: 14, fontWeight: 800,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 // ── BottomSheet (لوح منزلق سفليّ) ───────────────────────────────
 export function BottomSheet({
   open, onClose, title, children,

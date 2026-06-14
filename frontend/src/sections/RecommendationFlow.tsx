@@ -11,14 +11,16 @@
 // «إرسال للكابينة» (ISOBUS) — فجوة ⛔ موثّقة (§5): التنفيذ هنا = تسجيل عمليّة
 // مخطّطة لا دفعٌ لشاشة الآلة. الحالات (تحميل/فراغ/خطأ/طفرة) صريحة.
 // ═══════════════════════════════════════════════════════════════
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import type { ReactNode } from 'react';
 import {
   Sprout, Droplets, FlaskConical, Bug, TrendingUp, Calendar, CheckCircle2, AlertTriangle, RotateCcw,
 } from 'lucide-react';
-import { useFields, useFieldRecommendations, useCreateActivity } from '../hooks/useApi';
+import { useFieldRecommendations, useCreateActivity } from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { ActivityType, FieldRecommendation } from '../services/api';
 import {
-  T, Card, Pill, Badge, SectionLabel, Stepper, FieldCabin,
+  T, Card, Pill, Badge, SectionLabel, Stepper, FieldCabin, Button,
 } from '../components/ds';
 
 const STEPS = ['الحقل', 'التوصية', 'العمليّة', 'التسجيل'];
@@ -49,28 +51,9 @@ function categoryIcon(cat?: string) {
   return <Sprout style={{ width: 16, height: 16, color: T.muted }} />;
 }
 
-// زرّ إجراء أساسيّ (CTA) — نمط متّسق مع شاشات الكابينة (لا Button atom بعد).
-function CTA({
-  children, onClick, disabled, tone = 'green',
-}: { children: React.ReactNode; onClick?: () => void; disabled?: boolean; tone?: 'green' | 'gold' }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        width: '100%', padding: '11px 14px', borderRadius: 12, border: 'none',
-        background: disabled ? T.line : tone === 'gold' ? T.gold : T.green,
-        color: disabled ? T.muted : '#fff', fontSize: 14, fontWeight: 800,
-        cursor: disabled ? 'not-allowed' : 'pointer', marginTop: 10,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-interface FlowField { id: string; name: string }
+// زرّ الكابينة: يلفّ ذرّة Button مع تباعد علويّ متّسق (يحافظ على مواضع الاستدعاء).
+const CTA = (props: { children: ReactNode; onClick?: () => void; disabled?: boolean; tone?: 'green' | 'gold' }) =>
+  <Button {...props} style={{ marginTop: 10 }} />;
 
 export default function RecommendationFlow() {
   const [step, setStep] = useState(1);
@@ -79,11 +62,8 @@ export default function RecommendationFlow() {
   const [activityType, setActivityType] = useState<ActivityType>('scouting');
   const [scheduledFor, setScheduledFor] = useState('');
 
-  const fieldsQ = useFields();
-  const fields: FlowField[] = useMemo(() => {
-    const raw = Array.isArray(fieldsQ.data?.fields) ? fieldsQ.data.fields : [];
-    return raw.map((f: any) => ({ id: String(f.field_id ?? f.id), name: f.name ?? f.field_id ?? 'حقل' }));
-  }, [fieldsQ.data]);
+  const fieldsQ = useFieldOptions();
+  const fields = fieldsQ.options;
 
   const recsQ = useFieldRecommendations(fieldId || undefined);
   const recs: FieldRecommendation[] = Array.isArray(recsQ.data?.recommendations) ? recsQ.data.recommendations : [];

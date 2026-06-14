@@ -14,10 +14,11 @@
 // كمؤشّرات حالة (MachineMarker) منسوبة للحقل لا كإحداثيّات مزعومة. الحالات
 // (تحميل/فراغ/خطأ) صريحة عبر StateViews الضمنيّة. شاشة قراءة فقط (معاينة دمج).
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Layers, Satellite, Droplets, FlaskConical, Cpu, Columns2, Square } from 'lucide-react';
-import { useFields, useDevices } from '../hooks/useApi';
+import { useDevices } from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 import { geomToPolygon } from '../lib/geo';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import {
@@ -84,19 +85,10 @@ function MapPanel({
 }
 
 export default function FieldMapCenter() {
-  const fieldsQ = useFields();
+  const fieldsQ = useFieldOptions();
   const devicesQ = useDevices();
 
-  const fields: MapField[] = useMemo(() => {
-    const raw = Array.isArray(fieldsQ.data?.fields) ? fieldsQ.data.fields : [];
-    return raw.map((f: any) => ({
-      id: String(f.field_id ?? f.id),
-      name: f.name ?? f.field_code ?? f.field_id ?? 'حقل',
-      lat: f.lat ?? f.centroid_lat ?? null,
-      lon: f.lon ?? f.centroid_lon ?? null,
-      geometry: f.geometry,
-    }));
-  }, [fieldsQ.data]);
+  const fields = fieldsQ.options;
 
   const [fieldId, setFieldId] = useState('');
   const [compare, setCompare] = useState(false);
