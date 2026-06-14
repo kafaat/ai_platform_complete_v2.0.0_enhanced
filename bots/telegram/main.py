@@ -115,8 +115,8 @@ class RedisThrottlingMiddleware:
             if isinstance(event, Message):
                 try:
                     await event.answer("⚠️ طلبات كثيرة — انتظر لحظة ثم أعد المحاولة.")
-                except Exception:
-                    pass
+                except Exception as e:  # noqa: BLE001 — إشعار throttle تجميليّ: الفشل غير حرج
+                    logger.debug("تعذّر إرسال إشعار throttle: %s", e)
             return None
 
         return await handler(event, data)
@@ -396,8 +396,8 @@ async def link_password(message: Message, state: FSMContext):
     # احذف رسالة كلمة المرور فوراً (لا تبقَ في سجلّ المحادثة)
     try:
         await message.delete()
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001 — خصوصيّة: فشل الحذف يُسجَّل (كلمة المرور تبقى بالسجلّ)
+        logger.warning("تعذّر حذف رسالة كلمة المرور من المحادثة: %s", e)
     ok = await link_account(message.from_user.id, email, password)
     await state.clear()
     if ok:
