@@ -151,6 +151,7 @@ class WOverviewSection extends StatelessWidget {
     final alerts = wNum(field['active_alerts'] ??
         field['alerts_count'] ??
         field['alert_count']);
+    final fieldId = wText(field['field_id'] ?? field['id'], '');
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -172,7 +173,132 @@ class WOverviewSection extends StatelessWidget {
             ],
           ),
         ),
+        // الحالة القانونيّة الموحّدة (Canonical Field State) — مصدر الحقيقة الواحد
+        // الذي تمرّ عبره القرارات. يُجلب حيّاً لكلّ حقل (إن توفّر معرّفه).
+        if (fieldId.isNotEmpty) WFieldStateSection(fieldId: fieldId),
       ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// قسم الحالة القانونيّة الموحّدة — يجلب GET /api/v1/fields/{id}/state ويعرض
+// صلاحيّة القرار + نمط التنفيذ + الحقائق الزراعيّة (حيويّة المحصول/الملوحة) مع
+// الأسباب العربيّة. صدق: غياب الحالة ⇒ حالة فارغة/خطأ صريحة بلا اختلاق. مضمّن
+// داخل ListView النظرة العامّة فيُعيد بطاقة (لا ListView متداخلاً).
+// ════════════════════════════════════════════════════════════════════
+class WFieldStateSection extends StatefulWidget {
+  final String fieldId;
+  const WFieldStateSection({super.key, required this.fieldId});
+  @override
+  State<WFieldStateSection> createState() => _WFieldStateSectionState();
+}
+
+class _WFieldStateSectionState extends State<WFieldStateSection> {
+  late Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<Map<String, dynamic>> _load() =>
+      ApiService.instance.getFieldState(widget.fieldId);
+
+  void _retry() => setState(() => _future = _load());
+
+  static const _validityAr = {
+    'valid': 'صالحة',
+    'degraded': 'متدهورة',
+    'conflicted': 'متعارضة',
+    'insufficient': 'بيانات ناقصة',
+  };
+  static const _execAr = {
+    'auto': 'تلقائيّ',
+    'human_review': 'يحتاج مراجعة بشريّة',
+    'blocked': 'محجوب',
+  };
+  static const _salAr = {
+    'normal': 'طبيعيّة',
+    'low': 'منخفضة',
+    'moderate': 'متوسّطة',
+    'high': 'عالية',
+    'critical': 'حرجة',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            // kPrimary لتوحيد التباين مع السمة الداكنة (كبقيّة الشاشات/LoadingView).
+            child: Center(child: CircularProgressIndicator(color: kPrimary)),
+          );
+        }
+        if (snap.hasError) {
+          return WSectionCard(
+            title: 'الحالة القانونيّة الموحّدة',
+            icon: Icons.verified,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(apiErrorMessage(snap.error!),
+                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                const SizedBox(height: 8),
+                TextButton(
+                    onPressed: _retry, child: const Text('إعادة المحاولة')),
+              ],
+            ),
+          );
+        }
+        final s = snap.data ?? const <String, dynamic>{};
+        final validity = wText(s['validity'], 'insufficient');
+        final exec = wText(s['execution_mode']);
+        final agronomic = s['agronomic'];
+        final truths =
+            (agronomic is Map && agronomic['operational_truths'] is Map)
+                ? (agronomic['operational_truths'] as Map)
+                    .cast<String, dynamic>()
+                : const <String, dynamic>{};
+        final vigor = truths['crop_vigor'];
+        final sal = wText(truths['salinity_class'], '');
+        final reasons = (s['reasons_ar'] is List)
+            ? (s['reasons_ar'] as List).map((e) => e.toString()).toList()
+            : const <String>[];
+
+        return WSectionCard(
+          title: 'الحالة القانونيّة الموحّدة',
+          icon: Icons.verified,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              WInfoRow('صلاحيّة القرار', _validityAr[validity] ?? validity),
+              WInfoRow('نمط التنفيذ', _execAr[exec] ?? exec),
+              if (vigor != null)
+                WInfoRow(
+                    'حيويّة المحصول',
+                    vigor is num
+                        ? vigor.toStringAsFixed(2)
+                        : wText(vigor)),
+              if (sal.isNotEmpty)
+                WInfoRow('ملوحة التربة', _salAr[sal] ?? sal),
+              if (reasons.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                ...reasons.map((r) => Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text('• $r',
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12)),
+                    )),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

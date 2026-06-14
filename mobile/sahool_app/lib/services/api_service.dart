@@ -278,6 +278,18 @@ class ApiService {
     return r.data as Map<String, dynamic>;
   }
 
+  /// الحالة القانونيّة الموحّدة للحقل (Canonical Field State) —
+  /// GET /api/v1/fields/{field_id}/state. مصدر الحقيقة الواحد الذي تمرّ عبره
+  /// القرارات/التنبيهات: صلاحيّة القرار (validity)، نمط التنفيذ (execution_mode)،
+  /// والحقائق الزراعيّة (agronomic.operational_truths: حيويّة المحصول/صنف الملوحة)
+  /// مع أسباب عربيّة (reasons_ar). حارس الشكل (_asMap) كبقيّة المسارات. صدق: غياب
+  /// مصدر ⇒ الخادم يردّ حالة «بيانات ناقصة» (insufficient) لا أرقاماً مُلفَّقة.
+  Future<Map<String, dynamic>> getFieldState(String fieldId, {String? tag}) async {
+    final r = await _dio.get('/api/v1/fields/$fieldId/state',
+        cancelToken: tag != null ? _getToken(tag) : null);
+    return _asMap(r.data);
+  }
+
   /// السلسلة الزمنيّة لمؤشّر NDVI للحقل بنمط Climate FieldView —
   /// GET /v1/fields/{field_id}/timeseries?index=ndvi (raster-service، يُوصَل
   /// عبر نفس الـDio/البوّابة كبقيّة مسارات raster مثل /process و/upload).
