@@ -3653,6 +3653,26 @@ async def update_soil_lab_test(
                         test_id,
                         {"field_id": field_id},
                     )
+                    # نشر نتيجة التربة يُدخِل EC جديداً (تقرؤه gather_field_freshness من
+                    # soil_lab_tests المنشورة) ⇒ قد تتبدّل الملوحة فالحالة القانونيّة
+                    # (نمط التنفيذ/الصلاحيّة). أعِد حساب الإسقاط وأصدِر field.state_changed
+                    # إن تبدّل — تغذية حيّة لمستهلكي الحالة، نفس معاملة الكتابة (outbox).
+                    from api.field_state_projection import recompute_field_state
+
+                    _fs = await recompute_field_state(conn, field_id)
+                    if _fs["changed"]:
+                        await _emit_domain_event(
+                            conn,
+                            user,
+                            "FIELD_STATE_CHANGED",
+                            "field",
+                            field_id,
+                            {
+                                "validity": _fs["state"]["validity"],
+                                "execution_mode": _fs["state"]["execution_mode"],
+                                "trigger": "soil_lab.published",
+                            },
+                        )
                 row = await conn.fetchrow(
                     f"SELECT {_SOIL_TEST_SELECT} FROM soil_lab_tests WHERE test_id = $1",
                     test_id,
