@@ -78,6 +78,7 @@ const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
 const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
 const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
+const AnalyzeCabin        = lazy(() => import('./sections/AnalyzeCabin'));
 const UnifiedCabin        = lazy(() => import('./sections/UnifiedCabin'));
 
 export type PageId =
@@ -87,7 +88,7 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'unified-cabin';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'unified-cabin';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -97,6 +98,7 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'tasks-cabin',  label:'كابينة المهام (معاينة)', icon:ListChecks, badge:'دمج' },
   { id:'rec-flow',     label:'توصية ← تنفيذ (معاينة)', icon:ClipboardList, badge:'دمج' },
   { id:'hybrid-monitor', label:'المراقبة الهجينة (معاينة)', icon:Activity, badge:'دمج' },
+  { id:'analyze-cabin', label:'التحليل (معاينة)', icon: BarChart3, badge:'دمج' },
   { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
   { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
   { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
@@ -353,6 +355,7 @@ export default function App() {
       case 'tasks-cabin':  return <FieldTasksCabin />;
       case 'rec-flow':     return <RecommendationFlow />;
       case 'hybrid-monitor': return <HybridMonitor />;
+      case 'analyze-cabin': return <AnalyzeCabin />;
       case 'unified-cabin': return <UnifiedCabin />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;

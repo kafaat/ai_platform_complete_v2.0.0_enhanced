@@ -22,6 +22,7 @@ const FieldMapCenter    = lazy(() => import('./FieldMapCenter'));
 const RecommendationFlow = lazy(() => import('./RecommendationFlow'));
 const FieldTasksCabin   = lazy(() => import('./FieldTasksCabin'));
 const HybridMonitor     = lazy(() => import('./HybridMonitor'));
+const AnalyzeCabin      = lazy(() => import('./AnalyzeCabin'));
 
 type DestId = 'command' | 'map' | 'plan' | 'monitor' | 'analyze' | 'setup';
 const DESTS: { id: DestId; label: string; icon: ReactNode }[] = [
@@ -83,7 +84,7 @@ export default function UnifiedCabin() {
       case 'map': return <FieldMapCenter />;
       case 'plan': return <PlanDestination />;
       case 'monitor': return <HybridMonitor />;
-      case 'analyze': return <ComingSoon title="التحليل" classic="التحليلات" />;
+      case 'analyze': return <AnalyzeCabin />;
       case 'setup': return <ComingSoon title="الإعداد" classic="إدارة الحقول/المعدّات" />;
     }
   }
