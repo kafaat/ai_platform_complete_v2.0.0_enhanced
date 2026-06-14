@@ -82,5 +82,27 @@ export function severityTone(severity?: string | null): Tone {
   return 'neutral';
 }
 
+// ── منحدرات الألوان (Colormaps) لطبقات التحليل المكانيّ ──────────
+// مقتبسة نمطاً (لا علامةً) من عرض الطبقات في Operations Center: كلّ طبقة
+// منحدر ستّ درجات منخفض→مرتفع. تُستخدم في LayerSwitcher/ColormapLegend.
+// (الزراعيّة منها — ndvi/yield — لوحات معياريّة؛ تُضبط من لقطات المستخدم.)
+export const CMAP = {
+  ndvi:      [T.ndvi1, T.ndvi2, T.ndvi3, T.ndvi4, T.ndvi5, T.ndvi6],
+  yield:     ['#8B0000', '#FF4500', '#FFA500', '#FFD700', '#ADFF2F', '#228B22'],
+  soil:      ['#F3E5AB', '#D7B899', '#C0956F', '#A17A4E', '#7D5F3A', '#5D3E27'],
+  elevation: ['#DDEEFF', '#AACCEE', '#88AACC', '#6688AA', '#446688', '#224466'],
+  ec:        ['#FCE4EC', '#F48FB1', '#E91E63', '#C2185B', '#880E4F', '#4A0030'],
+  moisture:  ['#E3F2FD', '#90CAF9', '#42A5F5', '#1E88E5', '#1565C0', '#0D47A1'],
+} as const;
+
+export type CmapId = keyof typeof CMAP;
+
 export const RADIUS = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
 export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const;
+
+/** لون مورد متناقص (وقود/DEF/بطّاريّة): أخضر→برتقاليّ→أحمر حسب النسبة [0..100]. */
+export function resourceColor(pct: number): string {
+  if (pct > 25) return T.ok;
+  if (pct > 10) return T.warn;
+  return T.danger;
+}

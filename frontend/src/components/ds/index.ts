@@ -2,3 +2,5 @@
 // نظام تصميم موازٍ للثيم الداكن، يكسو شاشات «تطبيق الحقل» (طراز FieldView).
 export * from './tokens';
 export * from './atoms';
+// مكوّنات الدمج (مقتبسة نمطاً من Operations Center) — UI_DESIGN_SPEC_UNIFIED.md
+export * from './merge';

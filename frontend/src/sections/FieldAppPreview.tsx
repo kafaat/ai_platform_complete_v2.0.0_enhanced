@@ -15,6 +15,7 @@ import { useFields, useWeatherForecast, useAlerts } from '../hooks/useApi';
 import {
   T, Card, Pill, Badge, StatBox, ProgressBar, Row, SectionLabel,
   TabBar, FAB, BottomSheet, ndviColor, severityTone,
+  RadialGauge, // مكوّن دمج (مقتبس من Operations Center) — يعرض الرطوبة الحقيقيّة كعدّاد
 } from '../components/ds';
 
 type FieldLike = {
@@ -221,6 +222,22 @@ function WeatherTab({
         <StatBox label="ET0" value={cur.et0_mm} unit="mm" color={T.green}
           icon={<Sprout style={{ width: 16, height: 16 }} />} />
       </div>
+
+      {/* عدّاد دمج: الرطوبة الحقيقيّة كحلقة نصف-قطريّة (نمط Operations Center).
+          القيمة من cur.humidity_pct؛ إن غابت يعرض العدّاد «—» لا حلقة وهميّة. */}
+      <Card pad={12}>
+        <SectionLabel>عدّادات</SectionLabel>
+        <div className="flex" style={{ gap: 16, justifyContent: 'space-around' }}>
+          <RadialGauge pct={cur.humidity_pct} label="الرطوبة" color={T.info} />
+          {day0?.daylight_hours != null && (
+            <RadialGauge
+              pct={Math.round((day0.daylight_hours / 24) * 100)}
+              label="نسبة النهار"
+              color={T.warn}
+            />
+          )}
+        </div>
+      </Card>
 
       {/* حقول الطاقة الشمسيّة (#159) — الشروق/الغروب/مدّة النهار/الإشعاع */}
       {day0 && (
