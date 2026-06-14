@@ -55,13 +55,27 @@
 **قرارك مطلوب:** هل (أ) يبقى التجميع (موثَّق هنا)، أم (ب) تُفصَل weather/indicators
 لخدمات مستقلّة حقيقيّة (جهد كبير)؟ التوصية: (أ) — لا قيمة تشغيليّة كافية للفصل الآن.
 
-## 8) تضخّم Compose (Config Drift) — **مؤكَّد**
+## 8) تضخّم Compose (Config Drift) — **مؤكَّد، وعولِج جزئيّاً (توثيق)**
 
-`docker-compose.v9.yml` و`docker-compose.fixed.yml` لهما **ترويسة متطابقة لكن
-يختلفان بـ589 سطراً** — خطر انجراف حقيقيّ. الـMakefile يعتمد `v9.yml` كقانونيّ
-(`COMPOSE := docker compose -f docker-compose.v9.yml`).
-**التوصية:** توثيق `v9.yml` كملفّ الإنتاج الوحيد، ووسم البقيّة (light/unified/erpnext/
-test) بغرضها صراحةً، وحذف `fixed.yml` المكرّر إن لم يُستخدَم.
+`docker-compose.v9.yml` و`docker-compose.fixed.yml` كان لهما **ترويسة متطابقة
+(كلاهما يقول «docker-compose.fixed.yml») لكن يختلفان بـ589 سطراً** — خطر انجراف
+حقيقيّ زاده أنّ ترويسة v9.yml كانت تُسمّي نفسها خطأً «fixed.yml».
+
+**الخريطة المُتحقَّقة (مراجع فعليّة عبر المستودع):**
+
+| الملفّ | الدور | يُستخدَم في |
+|---|---|---|
+| **`docker-compose.v9.yml`** | **★ الإنتاج القانونيّ** | Makefile (`COMPOSE`) + سكربتات النشر (25 مرجعاً) |
+| `docker-compose.fixed.yml` | متغيّر/أصل تاريخيّ (ليس القانونيّ) | OPERATIONAL_CONTRACTS / DEPLOYMENT_HARDENING / grafana (6 مراجع) ⇒ **مُستخدَم، لا يُحذَف بلا تأكيد** |
+| `docker-compose.unified.yml` | تركيب موحّد بحدود موارد | UNIFIED_SETUP.md |
+| `docker-compose.light.yml` | تركيب خفيف بموارد مخفّضة | LIGHTWEIGHT_INTEGRATION.md |
+| `docker-compose.erpnext.yml` | ERPNext كبديل ERP | ERPNEXT_SETUP_GUIDE.md |
+| `docker-compose.test.yml` | بنية الاختبار | DEPLOYMENT_HARDENING.md |
+
+**عولِج (هذا PR):** صُحّحت ترويسة `v9.yml` (تُسمّي نفسها صحيحاً + ★ canonical)،
+ووُسِم `fixed.yml`/`unified`/`light` بأدوارها صراحةً (تعليقات فقط، YAML سليم).
+**يبقى قرارك:** هل يُحذَف `fixed.yml` (يحتاج إزالة مراجعه الستّة أوّلاً) أم يُبقى
+متغيّراً موثَّقاً؟ لم أحذفه (مُستخدَم في وثائق + grafana).
 
 ---
 
