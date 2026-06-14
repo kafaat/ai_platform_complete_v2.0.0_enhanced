@@ -86,6 +86,7 @@ const ProblemFields       = lazy(() => import('./sections/ProblemFields'));
 const EconomicsDashboard  = lazy(() => import('./sections/EconomicsDashboard'));
 const PhenologyView       = lazy(() => import('./sections/PhenologyView'));
 const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
+const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -94,7 +95,7 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -129,6 +130,7 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'scouting',     label:'دليل الاستكشاف',   icon:Bug },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
   { id:'alerts',       label:'التنبيهات',       icon:Bell },
+  { id:'advisory-report', label:'استشارة المزرعة', icon: FileText },
   { id:'reports',      label:'التقارير',        icon:FileText },
   { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
   { id:'documents',    label:'الوثائق',         icon:FolderArchive },
@@ -375,6 +377,7 @@ export default function App() {
       case 'economics':    return <EconomicsDashboard />;
       case 'phenology':    return <PhenologyView />;
       case 'scouting':     return <ScoutingView />;
+      case 'advisory-report': return <FarmAdvisoryReport />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
