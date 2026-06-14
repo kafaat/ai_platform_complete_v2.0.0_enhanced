@@ -217,6 +217,34 @@ export function ColormapLegend({
   );
 }
 
+// ── SideBySide ── مقارنة طبقتين/لوحتين جنباً لجنب ───────────────
+// حاوية مقارنة عامّة (نمط Operations Center · Analyze): تعرض لوحتين
+// متجاورتين بعنوانين اختياريّين. تُركَّب داخلها LayerSwitcher/ColormapLegend
+// أو أيّ محتوى مقارنة (قبل/بعد، طبقة/طبقة). RTL: يمين = left منطقيّاً.
+export function SideBySide({
+  left, right, leftLabel, rightLabel,
+}: {
+  left: ReactNode;
+  right: ReactNode;
+  leftLabel?: ReactNode;
+  rightLabel?: ReactNode;
+}) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+      {[{ label: leftLabel, body: left }, { label: rightLabel, body: right }].map((side, i) => (
+        <div key={i}>
+          {side.label != null && (
+            <div style={{ fontSize: 11, color: T.muted, marginBottom: 4, fontWeight: 600 }}>{side.label}</div>
+          )}
+          <div style={{ borderRadius: RADIUS.sm, overflow: 'hidden', border: `1px solid ${T.line}` }}>
+            {side.body}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── MachineMarker ── مؤشّر آلة على الخريطة (مع نبض الحالة) ───────
 const MARKER_TONE: Record<string, string> = {
   working: T.ok, idling: T.warn, transporting: T.info, offline: T.faint,
