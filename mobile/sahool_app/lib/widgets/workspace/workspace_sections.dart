@@ -235,7 +235,8 @@ class _WFieldStateSectionState extends State<WFieldStateSection> {
         if (snap.connectionState != ConnectionState.done) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
-            child: Center(child: CircularProgressIndicator()),
+            // kPrimary لتوحيد التباين مع السمة الداكنة (كبقيّة الشاشات/LoadingView).
+            child: Center(child: CircularProgressIndicator(color: kPrimary)),
           );
         }
         if (snap.hasError) {
