@@ -7,7 +7,9 @@ import {
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
+  ChevronDown,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
 import { wsService } from './services/websocket';
@@ -97,47 +99,88 @@ export type PageId =
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report';
 
-const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
-  { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
-  { id:'unified-cabin', label:'التطبيق الموحّد (معاينة)', icon:Smartphone, badge:'٦ وجهات' },
-  { id:'command',      label:'مركز العمليّات (معاينة)', icon:Smartphone, badge:'دمج' },
-  { id:'map-center',   label:'مركز الخرائط (معاينة)', icon:Layers, badge:'دمج' },
-  { id:'tasks-cabin',  label:'كابينة المهام (معاينة)', icon:ListChecks, badge:'دمج' },
-  { id:'rec-flow',     label:'توصية ← تنفيذ (معاينة)', icon:ClipboardList, badge:'دمج' },
-  { id:'hybrid-monitor', label:'المراقبة الهجينة (معاينة)', icon:Activity, badge:'دمج' },
-  { id:'analyze-cabin', label:'التحليل (معاينة)', icon: BarChart3, badge:'دمج' },
-  { id:'setup-cabin', label:'الإعداد (معاينة)', icon: Settings, badge:'دمج' },
-  { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
-  { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
-  { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
-  { id:'fields',       label:'إدارة الحقول',   icon:Map },
-  { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
-  { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
-  { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
-  { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
-  { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
-  { id:'field-intelligence', label:'المايسترو', icon:Activity },
-  { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
-  { id:'devices',      label:'أجهزة IoT',       icon:Cpu },
-  { id:'inventory',    label:'المخزون',         icon:Boxes },
-  { id:'equipment',    label:'المعدّات',         icon:Tractor },
-  { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
-  { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
-  { id:'field-ranking', label:'ترتيب الحقول',    icon:TrendingUp },
-  { id:'problem-fields', label:'حقول المشكلات',   icon:AlertTriangle },
-  { id:'economics',    label:'الاقتصاد / ROI',   icon:BarChart3 },
-  { id:'phenology',    label:'مراحل النموّ',     icon:Sprout },
-  { id:'scouting',     label:'دليل الاستكشاف',   icon:Bug },
-  { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
-  { id:'alerts',       label:'التنبيهات',       icon:Bell },
-  { id:'advisory-report', label:'استشارة المزرعة', icon: FileText },
-  { id:'reports',      label:'التقارير',        icon:FileText },
-  { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
-  { id:'documents',    label:'الوثائق',         icon:FolderArchive },
-  { id:'governance',   label:'الحوكمة والتدقيق', icon:ShieldCheck },
-  { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
-  { id:'settings',     label:'الإعدادات',       icon:Settings },
+type NavItem = { id: PageId; label: string; icon: LucideIcon; badge?: string };
+type NavGroup = { id: string; label: string; defaultOpen: boolean; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    id: 'home', label: 'الرئيسية', defaultOpen: true,
+    items: [
+      { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
+      { id:'alerts',       label:'التنبيهات',       icon:Bell },
+      { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
+      { id:'reports',      label:'التقارير',        icon:FileText },
+    ],
+  },
+  {
+    id: 'unified', label: 'التطبيق الموحّد (معاينة)', defaultOpen: true,
+    items: [
+      { id:'unified-cabin', label:'التطبيق الموحّد (معاينة)', icon:Smartphone, badge:'٦ وجهات' },
+      { id:'command',      label:'مركز العمليّات (معاينة)', icon:Smartphone, badge:'دمج' },
+      { id:'map-center',   label:'مركز الخرائط (معاينة)', icon:Layers, badge:'دمج' },
+      { id:'tasks-cabin',  label:'كابينة المهام (معاينة)', icon:ListChecks, badge:'دمج' },
+      { id:'rec-flow',     label:'توصية ← تنفيذ (معاينة)', icon:ClipboardList, badge:'دمج' },
+      { id:'hybrid-monitor', label:'المراقبة الهجينة (معاينة)', icon:Activity, badge:'دمج' },
+      { id:'analyze-cabin', label:'التحليل (معاينة)', icon: BarChart3, badge:'دمج' },
+      { id:'setup-cabin', label:'الإعداد (معاينة)', icon: Settings, badge:'دمج' },
+      { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
+    ],
+  },
+  {
+    id: 'fields-sat', label: 'الحقول والأقمار', defaultOpen: false,
+    items: [
+      { id:'fields',       label:'إدارة الحقول',   icon:Map },
+      { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
+      { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
+      { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
+    ],
+  },
+  {
+    id: 'agri', label: 'الزراعة والري', defaultOpen: false,
+    items: [
+      { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
+      { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
+      { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
+      { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
+      { id:'phenology',    label:'مراحل النموّ',     icon:Sprout },
+      { id:'scouting',     label:'دليل الاستكشاف',   icon:Bug },
+      { id:'field-intelligence', label:'المايسترو', icon:Activity },
+    ],
+  },
+  {
+    id: 'analysis', label: 'التحليل والتقارير', defaultOpen: false,
+    items: [
+      { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
+      { id:'economics',    label:'الاقتصاد / ROI',   icon:BarChart3 },
+      { id:'field-ranking', label:'ترتيب الحقول',    icon:TrendingUp },
+      { id:'problem-fields', label:'حقول المشكلات',   icon:AlertTriangle },
+      { id:'advisory-report', label:'استشارة المزرعة', icon: FileText },
+      { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
+    ],
+  },
+  {
+    id: 'operations', label: 'التشغيل', defaultOpen: false,
+    items: [
+      { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
+      { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
+      { id:'inventory',    label:'المخزون',         icon:Boxes },
+      { id:'equipment',    label:'المعدّات',         icon:Tractor },
+      { id:'devices',      label:'أجهزة IoT',       icon:Cpu },
+    ],
+  },
+  {
+    id: 'admin', label: 'الإدارة', defaultOpen: false,
+    items: [
+      { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
+      { id:'documents',    label:'الوثائق',         icon:FolderArchive },
+      { id:'governance',   label:'الحوكمة والتدقيق', icon:ShieldCheck },
+      { id:'settings',     label:'الإعدادات',       icon:Settings },
+    ],
+  },
 ];
+
+// قائمة مُسطّحة لكل العناصر — للبحث عن العنوان/الأيقونة في TopBar عبر كل المجموعات.
+const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap(g => g.items);
 
 function Loader() {
   return (
@@ -149,9 +192,49 @@ function Loader() {
   );
 }
 
-function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
+interface SidebarProps {
+  page: PageId;
+  setPage: (p: PageId) => void;
+  collapsed: boolean;
+  setCollapsed: (c: boolean) => void;
+}
+
+function Sidebar({ page, setPage, collapsed, setCollapsed }: SidebarProps) {
   const { user, logout, isDemoMode } = useAuthStore();
   const wsOk = wsService.isConnected();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(NAV_GROUPS.map(g => [g.id, g.defaultOpen]))
+  );
+
+  // زرّ عنصر التنقّل — يحافظ على التمييز النشط، الشارات، ووضع الأيقونات المطويّ.
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const active = page === item.id;
+    return (
+      <button key={item.id} onClick={() => setPage(item.id)}
+        title={collapsed ? item.label : undefined}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
+        style={{
+          background: active ? '#1e3a1e' : 'transparent',
+          borderRight: active ? '2px solid #16a34a' : '2px solid transparent',
+          color: active ? '#4ade80' : '#94a3b8',
+        }}>
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        {!collapsed && (
+          <>
+            <span className="text-sm flex-1 text-right">{item.label}</span>
+            {item.badge && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full"
+                style={{ background:item.badge==='2'||item.badge==='6'?'#dc262622':'#16a34a22',
+                  color:item.badge==='2'||item.badge==='6'?'#f87171':'#4ade80' }}>
+                {item.badge}
+              </span>
+            )}
+          </>
+        )}
+      </button>
+    );
+  };
 
   return (
     <ErrorBoundary>
@@ -190,36 +273,33 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
         </div>
       )}
 
-      {/* Nav — مُرشَّح حسب صلاحيّة الدور (RBAC فعليّ: لا تظهر صفحة لا يحقّ فتحها) */}
+      {/* Nav — مُرشَّح حسب صلاحيّة الدور (RBAC فعليّ: لا تظهر صفحة لا يحقّ فتحها).
+          مطويّ: كل العناصر المسموح بها كأيقونات (بلا رؤوس مجموعات).
+          مفتوح: مجموعات قابلة للطيّ؛ مجموعة بلا عناصر مسموح بها تُخفى بالكامل. */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {NAV.filter(item => canAccess(user?.role, item.id)).map(item => {
-          const Icon = item.icon;
-          const active = page === item.id;
-          return (
-            <button key={item.id} onClick={() => setPage(item.id)}
-              title={collapsed ? item.label : undefined}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
-              style={{
-                background: active ? '#1e3a1e' : 'transparent',
-                borderRight: active ? '2px solid #16a34a' : '2px solid transparent',
-                color: active ? '#4ade80' : '#94a3b8',
-              }}>
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {!collapsed && (
-                <>
-                  <span className="text-sm flex-1 text-right">{item.label}</span>
-                  {item.badge && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                      style={{ background:item.badge==='2'||item.badge==='6'?'#dc262622':'#16a34a22',
-                        color:item.badge==='2'||item.badge==='6'?'#f87171':'#4ade80' }}>
-                      {item.badge}
-                    </span>
+        {collapsed
+          ? NAV_ITEMS.filter(item => canAccess(user?.role, item.id)).map(renderItem)
+          : NAV_GROUPS.map(group => {
+              const items = group.items.filter(item => canAccess(user?.role, item.id));
+              if (items.length === 0) return null;
+              const open = openGroups[group.id];
+              return (
+                <div key={group.id} className="pt-1">
+                  <button
+                    onClick={() => setOpenGroups(s => ({ ...s, [group.id]: !s[group.id] }))}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 transition-colors">
+                    <span className="text-[11px] font-semibold tracking-wide flex-1 text-right">{group.label}</span>
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform"
+                      style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
+                  </button>
+                  {open && (
+                    <div className="space-y-0.5 mt-0.5">
+                      {items.map(renderItem)}
+                    </div>
                   )}
-                </>
-              )}
-            </button>
-          );
-        })}
+                </div>
+              );
+            })}
       </nav>
 
       {/* User */}
@@ -247,8 +327,13 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
   );
 }
 
-function TopBar({ page, onMenu }: any) {
-  const item = NAV.find(n => n.id === page);
+interface TopBarProps {
+  page: PageId;
+  onMenu: () => void;
+}
+
+function TopBar({ page, onMenu }: TopBarProps) {
+  const item = NAV_ITEMS.find(n => n.id === page);
   const Icon = item?.icon || LayoutDashboard;
   const { isDemoMode } = useAuthStore();
   const wsOk = wsService.isConnected();
