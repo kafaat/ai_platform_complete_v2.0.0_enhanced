@@ -65,8 +65,8 @@
 
 | الملفّ | الدور | يُستخدَم في |
 |---|---|---|
-| **`docker-compose.v9.yml`** | **★ الإنتاج القانونيّ** | Makefile (`COMPOSE`) + سكربتات النشر (25 مرجعاً) |
-| `docker-compose.fixed.yml` | متغيّر/أصل تاريخيّ (ليس القانونيّ) | OPERATIONAL_CONTRACTS / DEPLOYMENT_HARDENING / grafana (6 مراجع) ⇒ **مُستخدَم، لا يُحذَف بلا تأكيد** |
+| **`docker-compose.v9.yml`** | **★ الإنتاج القانونيّ** | المرجع الأوسع: Makefile (`COMPOSE`) + سكربتات النشر + وثائق متعدّدة |
+| `docker-compose.fixed.yml` | متغيّر/أصل تاريخيّ (ليس القانونيّ) | مُشار إليه في وثائق تشغيليّة (OPERATIONAL_CONTRACTS/DEPLOYMENT_HARDENING) + grafana + nginx/.env ⇒ **مُستخدَم، لا يُحذَف بلا تأكيد** |
 | `docker-compose.unified.yml` | تركيب موحّد بحدود موارد | UNIFIED_SETUP.md |
 | `docker-compose.light.yml` | تركيب خفيف بموارد مخفّضة | LIGHTWEIGHT_INTEGRATION.md |
 | `docker-compose.erpnext.yml` | ERPNext كبديل ERP | ERPNEXT_SETUP_GUIDE.md |
@@ -74,8 +74,8 @@
 
 **عولِج (هذا PR):** صُحّحت ترويسة `v9.yml` (تُسمّي نفسها صحيحاً + ★ canonical)،
 ووُسِم `fixed.yml`/`unified`/`light` بأدوارها صراحةً (تعليقات فقط، YAML سليم).
-**يبقى قرارك:** هل يُحذَف `fixed.yml` (يحتاج إزالة مراجعه الستّة أوّلاً) أم يُبقى
-متغيّراً موثَّقاً؟ لم أحذفه (مُستخدَم في وثائق + grafana).
+**يبقى قرارك:** هل يُحذَف `fixed.yml` (يحتاج إزالة مراجعه أوّلاً عبر المستودع) أم
+يُبقى متغيّراً موثَّقاً؟ لم أحذفه (مُستخدَم في وثائق + grafana + nginx/.env).
 
 ---
 
