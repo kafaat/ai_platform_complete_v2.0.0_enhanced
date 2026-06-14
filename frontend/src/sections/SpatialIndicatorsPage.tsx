@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import {
-  useIndicatorGrid, useFieldPrescription,
+  useIndicatorGrid, useFieldPrescription, useIndicatorsCatalog,
   type GridIndex, type IndicatorGridResponse,
 } from "../hooks/useApi";
 import FieldIndicatorMap from "../components/FieldIndicatorMap";
@@ -18,8 +18,11 @@ const FIELD_ID = "field_01";
 const FIELD_BBOX = { minLon: 45.300, minLat: 16.150, maxLon: 45.307, maxLat: 16.157 };
 const GRID = 24; // أبعاد شبكة المحاكاة الاحتياطيّة (الشبكة الحقيقيّة تأتي بأبعادها من الـ backend)
 
-// مؤشرات قابلة للعرض المكاني (تطابق GridIndex في الـ backend)
-const INDICES = {
+// ── بيانات وصف المؤشّر المحلّيّة (عرض + عتبات المحاكاة) ───────────────────────
+// خريطة بيانات وصفيّة محلّيّة: الاسم/التسمية للعرض، و(lowIsProblem/healthy) عتباتٌ
+// تحتاجها المحاكاة الاحتياطيّة (genGrid/detectZones/pixelColor). لا نختلق عتبات
+// لمؤشّر لا نملك له بيانات هنا — الكتالوج يقرّر التوفّر، وهذه الخريطة تقرّر العرض.
+const IND_META = {
   ndvi: { name: "NDVI", label: "صحة الغطاء النباتي", lowIsProblem: true, healthy: 0.7 },
   ndmi: { name: "NDMI", label: "رطوبة المحتوى", lowIsProblem: true, healthy: 0.5 },
   salinity: { name: "SI", label: "مؤشر الملوحة", lowIsProblem: false, healthy: 0.2 },
@@ -29,7 +32,12 @@ const INDICES = {
   moisture: { name: "الرطوبة", label: "محتوى الرطوبة (NDMI)", lowIsProblem: true, healthy: 0.5 },
 } as const;
 
-type IndexKey = keyof typeof INDICES;
+type IndexKey = keyof typeof IND_META;
+
+// قائمة احتياطيّة للمؤشّرات القابلة للعرض إن تعذّر الكتالوج — كي لا تنكسر الصفحة.
+// تقتصر على ما نملك له بيانات وصفيّة محلّيّة (عتبات المحاكاة).
+const FALLBACK_RENDERABLE: IndexKey[] = ["ndvi", "ndmi", "salinity", "ndre", "msavi"];
+
 type Cell = number | null;
 type Grid = Cell[][];
 type Zone = {
@@ -40,7 +48,7 @@ type Zone = {
 
 // ── محاكاة احتياطيّة (تُستخدم فقط عند تعذّر البيانات الحقيقيّة) ─────────────
 function genGrid(indexKey: IndexKey, seed: number): number[][] {
-  const idx = INDICES[indexKey];
+  const idx = IND_META[indexKey];
   const base = idx.healthy;
   const g: number[][] = [];
   let s = seed;
@@ -73,7 +81,7 @@ function computeStats(grid: Grid) {
 
 // كشف مناطق الاهتمام محليّاً (يُستخدم فقط في وضع المحاكاة الاحتياطي)
 function detectZones(grid: Grid, indexKey: IndexKey, rows: number, cols: number, thresholdStd = 1.0, minCluster = 3): Zone[] {
-  const idx = INDICES[indexKey];
+  const idx = IND_META[indexKey];
   const { mean, sd } = computeStats(grid);
   if (sd === 0) return [];
   const mask = grid.map(row => row.map(v =>
@@ -137,7 +145,7 @@ function mapApiZones(resp: IndicatorGridResponse): Zone[] {
 
 // لون البكسل حسب القيمة والمؤشر
 function pixelColor(v: number, indexKey: IndexKey) {
-  const idx = INDICES[indexKey];
+  const idx = IND_META[indexKey];
   let t = idx.lowIsProblem ? v : 1 - v; // t: 1=صحي, 0=مشكلة
   t = Math.max(0, Math.min(1, t));
   if (t > 0.75) return "#1a7a3c";
@@ -161,16 +169,37 @@ export default function SpatialView() {
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
 
+  // مبدّل المؤشّر مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=قابل للعرض المكانيّ)
+  // مقاطَعاً مع البيانات الوصفيّة المحلّيّة (IND_META) — لا نعرض مؤشّراً لا نملك
+  // له عتبات محاكاة محلّيّاً (صدق: لا نختلق عتبات لمؤشّر مجهول). الاسم من
+  // IND_META؛ التوفّر من الكتالوج. عند تعذّر الكتالوج نسقط لقائمة احتياطيّة
+  // فلا تنكسر الصفحة. النتيجة دائماً ضمن مفاتيح IND_META فتبقى آمنة الأنواع.
+  const catalogQ = useIndicatorsCatalog();
+  const indices = useMemo<IndexKey[]>(() => {
+    const items = Array.isArray((catalogQ.data as any)?.indicators)
+      ? (catalogQ.data as any).indicators
+      : null;
+    const ids: string[] = items
+      ? items.filter((i: any) => i?.renderable).map((i: any) => String(i.id))
+      : FALLBACK_RENDERABLE;
+    const keys = ids.filter((id): id is IndexKey => id in IND_META);
+    // ضمان وجود عنصر واحد على الأقلّ كي يبقى المبدّل صالحاً ولا يفرغ المختار.
+    return keys.length ? keys : FALLBACK_RENDERABLE;
+  }, [catalogQ.data]);
+
+  // إن سقط المؤشّر المختار خارج القائمة المتاحة (تغيّر الكتالوج)، نعود لأوّل متاح.
+  const activeKey: IndexKey = indices.includes(indexKey) ? indexKey : indices[0];
+
   const apiDate = tIdx === 0 ? "latest" : TIMELINE[tIdx].date;
   const { data: gridResp, isLoading, isError } = useIndicatorGrid(
     FIELD_ID,
-    indexKey as GridIndex,
+    activeKey as GridIndex,
     apiDate,
   );
 
   // وصفة مناطق الإدارة (VRT) — تقسيم كوانتايل + معدّل موصى به لكلّ منطقة.
   // base_rate إرشادي (كغ/هـ مثلاً)؛ المعدّل النهائي قرار agronomic يحتاج تحقّقاً.
-  const { data: rxResp } = useFieldPrescription(FIELD_ID, indexKey as GridIndex, apiDate, {
+  const { data: rxResp } = useFieldPrescription(FIELD_ID, activeKey as GridIndex, apiDate, {
     nZones: 3,
     baseRate: 100,
     strategy: "compensate",
@@ -191,20 +220,20 @@ export default function SpatialView() {
     if (hasReal && gridResp) {
       return { grid: gridResp.grid, rows: gridResp.rows, cols: gridResp.cols };
     }
-    return { grid: genGrid(indexKey, 42 + tIdx * 7), rows: GRID, cols: GRID };
-  }, [hasReal, gridResp, indexKey, tIdx]);
+    return { grid: genGrid(activeKey, 42 + tIdx * 7), rows: GRID, cols: GRID };
+  }, [hasReal, gridResp, activeKey, tIdx]);
 
   const zones = useMemo<Zone[]>(() => {
     if (hasReal && gridResp) return mapApiZones(gridResp);
-    return detectZones(grid, indexKey, rows, cols);
-  }, [hasReal, gridResp, grid, indexKey, rows, cols]);
+    return detectZones(grid, activeKey, rows, cols);
+  }, [hasReal, gridResp, grid, activeKey, rows, cols]);
 
   const fieldStats = useMemo(() => {
     if (hasReal && gridResp) return { mean: gridResp.stats.mean, sd: 0 };
     return computeStats(grid);
   }, [hasReal, gridResp, grid]);
 
-  const idx = INDICES[indexKey];
+  const idx = IND_META[activeKey];
 
   const interp = (k: IndexKey) => {
     const m: Partial<Record<IndexKey, string>> = {
@@ -272,21 +301,24 @@ export default function SpatialView() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20 }}>
         {/* العمود الأيمن: الخريطة */}
         <div>
-          {/* اختيار المؤشر */}
+          {/* اختيار المؤشر — مدفوع بالكتالوج (renderable) ∩ البيانات الوصفيّة المحلّيّة */}
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-            {(Object.entries(INDICES) as [IndexKey, typeof INDICES[IndexKey]][]).map(([k, v]) => (
-              <button key={k} onClick={() => { setIndexKey(k); setSelectedZone(null); }}
-                style={{
-                  flex: 1, padding: "10px 8px", borderRadius: 10, cursor: "pointer",
-                  border: indexKey === k ? "2px solid #5cbf6e" : "1px solid #2d4a37",
-                  background: indexKey === k ? "#1f3a2a" : "transparent",
-                  color: indexKey === k ? "#fff" : "#9cb8a3", fontWeight: 600,
-                  fontFamily: "inherit", transition: "all .2s",
-                }}>
-                <div style={{ fontSize: 15 }}>{v.name}</div>
-                <div style={{ fontSize: 10, opacity: .7 }}>{v.label}</div>
-              </button>
-            ))}
+            {indices.map((k) => {
+              const v = IND_META[k];
+              return (
+                <button key={k} onClick={() => { setIndexKey(k); setSelectedZone(null); }}
+                  style={{
+                    flex: 1, padding: "10px 8px", borderRadius: 10, cursor: "pointer",
+                    border: activeKey === k ? "2px solid #5cbf6e" : "1px solid #2d4a37",
+                    background: activeKey === k ? "#1f3a2a" : "transparent",
+                    color: activeKey === k ? "#fff" : "#9cb8a3", fontWeight: 600,
+                    fontFamily: "inherit", transition: "all .2s",
+                  }}>
+                  <div style={{ fontSize: 15 }}>{v.name}</div>
+                  <div style={{ fontSize: 10, opacity: .7 }}>{v.label}</div>
+                </button>
+              );
+            })}
           </div>
 
           {/* مبدّل العرض: شبكة البكسل (Grid) ↔ خريطة حقيقية ببلاطات المؤشر (Map) */}
@@ -313,7 +345,7 @@ export default function SpatialView() {
               {/* خريطة حقيقية ببلاطات المؤشر مقصوصة فوق الحقل */}
               <FieldIndicatorMap
                 fieldId={FIELD_ID}
-                index={indexKey === "salinity" ? "salinity" : (indexKey as GridIndex)}
+                index={activeKey as GridIndex}
                 date={apiDate}
                 fieldPolygon={fieldPolygon}
                 fallbackBounds={bbox}
@@ -351,7 +383,7 @@ export default function SpatialView() {
                 return (
                   <div key={`${r}-${c}`} title={`${idx.name}=${v.toFixed(2)}`}
                     style={{
-                      background: pixelColor(v, indexKey), borderRadius: 2,
+                      background: pixelColor(v, activeKey), borderRadius: 2,
                       outline: inSel ? "2px solid #fff" : inZone ? "1px solid rgba(255,255,255,.5)" : "none",
                       outlineOffset: -1, transition: "outline .2s",
                     }} />
@@ -483,7 +515,7 @@ export default function SpatialView() {
               </div>
               {selectedZone?.id === z.id && (
                 <div style={{ fontSize: 12, color: "#cdddd2", lineHeight: 1.7, marginTop: 8 }}>
-                  <div style={{ marginBottom: 8 }}>{interp(indexKey)}</div>
+                  <div style={{ marginBottom: 8 }}>{interp(activeKey)}</div>
                   <div style={{
                     marginTop: 8, background: "#3a2a1a", borderRadius: 8,
                     padding: "8px 12px", borderRight: "3px solid #d4a017", fontSize: 11,
