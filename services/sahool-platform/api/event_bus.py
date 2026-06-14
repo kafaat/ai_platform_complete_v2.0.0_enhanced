@@ -67,6 +67,11 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # Activity (عمليّة حقليّة عامّة — تكمّل أحداث operation.* المحدّدة)
     ACTIVITY_RECORDED = "activity.recorded"
 
+    # Alerts (تنبيهات زراعيّة) — تجعل التنبيهات تفاعليّة عبر الأحداث بدل المسح الدوريّ.
+    # يستهلكها وكيل الإشعارات (sahool.events.>) لبثّ فوريّ عبر WebSocket/القنوات.
+    ALERT_CREATED = "alert.created"
+    ALERT_ACKNOWLEDGED = "alert.acknowledged"
+
     # Operations
     PLANTING_STARTED = "operation.planting.started"
     PLANTING_COMPLETED = "operation.planting.completed"
