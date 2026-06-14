@@ -30,6 +30,7 @@ import logging
 import os
 import secrets
 import sys
+import time
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
@@ -707,10 +708,44 @@ def create_token(user: UserSchema) -> str:
         "role": user.role.value,
         "name_ar": user.name_ar,
         "aud": "sahool",  # توحيد: يطابق auth ويُقبل عبر كلّ الخدمات
+        "jti": secrets.token_hex(16),  # معرّف توكن فريد — يتيح الإبطال (denylist)
         "iat": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+# ─── إبطال JWT (denylist) — يُغلق فجوة: تسجيل الخروج لم يكن يُبطِل التوكن فعليّاً ──
+# يُبنى backend مشترك مع خدمة auth (نفس مفتاح Redis sahool:jti:revoked:{jti}) كي
+# يرى المنصّة إبطالات auth أيضاً؛ وإلّا ذاكرة (dev/offline — إبطال داخل العمليّة).
+from core.jwt_denylist import (  # noqa: E402
+    InMemoryDenylist,
+    RedisDenylist,
+    is_token_revoked,
+)
+
+
+def _build_denylist():
+    """backend الإبطال: Redis (مشترك مع auth) إن توفّر REDIS_URL وحيّ، وإلّا ذاكرة.
+
+    fail-safe: أيّ تعذّر اتّصال/استيراد ⇒ ذاكرة (يُبطِل داخل العمليّة على الأقلّ، مع
+    fail-open على الفحص). الإنتاج متعدّد العمّال يحتاج Redis لمشاركة الإبطال.
+    """
+    url = os.getenv("REDIS_URL", "")
+    if url:
+        try:
+            import redis as _redis
+
+            client = _redis.from_url(url, socket_connect_timeout=2, socket_timeout=2)
+            client.ping()
+            logger.info("denylist: Redis مفعّل (إبطال مشترك مع auth)")
+            return RedisDenylist(client)
+        except Exception as e:  # noqa: BLE001 — تعذّر Redis ⇒ ذاكرة (fail-safe)
+            logger.warning("denylist: تعذّر Redis (%s) — fallback ذاكرة داخل العمليّة", e)
+    return InMemoryDenylist()
+
+
+_DENYLIST = _build_denylist()
 
 
 def get_current_user(authorization: str = Header(None)) -> UserSchema:
@@ -723,6 +758,11 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
+
+    # إبطال التوكن (denylist): توكن مُبطَل (سُجّل خروجه/أُلغي) ⇒ 401 رغم سريانه.
+    # fail-open: تعذّر فحص القائمة (Redis ساقط) لا يقفل المستخدمين (داخل is_token_revoked).
+    if is_token_revoked(_DENYLIST, payload.get("jti")):
+        raise HTTPException(status_code=401, detail="التوكن مُبطَل — سجّل الدخول من جديد")
 
     role = _normalize_role(payload.get("role"))
 
@@ -849,12 +889,25 @@ def auth_me(user: UserSchema = Depends(get_current_user)):
 
 
 @app.post("/api/v1/auth/logout")
-def auth_logout(user: UserSchema = Depends(get_current_user)):
-    """تسجيل خروج. في dev-mode الـJWT stateless فلا server-side session.
+def auth_logout(
+    authorization: str = Header(None),
+    user: UserSchema = Depends(get_current_user),
+):
+    """تسجيل خروج — يُبطِل التوكن فعليّاً عبر denylist (jti) لا على الجهاز فقط.
 
-    الإبطال الفعلي يحدث على الجهاز (حذف الـtoken). عند توفّر Redis،
-    يُضاف الـtoken لـdenylist هنا.
+    يُضيف jti التوكن للقائمة بمهلة = ما تبقّى حتى انتهائه، فيُرفَض في الطلبات اللاحقة
+    (get_current_user يستشير القائمة). fail-safe: فشل الإبطال لا يكسر الخروج.
     """
+    token = (authorization or "").replace("Bearer ", "", 1)
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
+        jti = payload.get("jti")
+        exp = payload.get("exp")
+        if jti and exp:
+            ttl = max(1, int(exp) - int(time.time()))
+            _DENYLIST.revoke(jti, ttl)
+    except Exception as e:  # noqa: BLE001 — فشل الإبطال لا يكسر الخروج (العميل يحذف التوكن)
+        logger.warning("logout: تعذّر إبطال التوكن: %s", e)
     return {"status": "logged_out", "message_ar": "تمّ تسجيل الخروج"}
 
 
