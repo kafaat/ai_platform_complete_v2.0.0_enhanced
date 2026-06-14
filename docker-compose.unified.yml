@@ -1,3 +1,5 @@
+# SAHOOL — docker-compose.unified.yml: تركيب موحّد بحدود موارد (راجع docs/UNIFIED_SETUP.md).
+# ليس ملفّ الإنتاج القانونيّ — القانونيّ هو docker-compose.v9.yml (يعتمده Makefile).
 x-limits: &default-limits
   deploy:
     resources:

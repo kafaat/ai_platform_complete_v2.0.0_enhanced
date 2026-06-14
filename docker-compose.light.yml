@@ -1,3 +1,5 @@
+# SAHOOL — docker-compose.light.yml: تركيب خفيف بموارد مخفّضة (راجع docs/LIGHTWEIGHT_INTEGRATION.md).
+# ليس ملفّ الإنتاج القانونيّ — القانونيّ هو docker-compose.v9.yml (يعتمده Makefile).
 x-limits: &default-limits
   deploy:
     resources:
