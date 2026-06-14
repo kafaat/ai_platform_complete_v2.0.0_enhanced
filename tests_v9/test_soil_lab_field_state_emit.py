@@ -67,4 +67,6 @@ def test_soil_lab_patch_route_registered(core_on_path):
         for r in m.app.routes
         if "soil-lab-tests/{test_id}" in (getattr(r, "path", "") or "")
     }
-    assert "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}" in routes, "نقطة تحديث فحص التربة غير مُسجَّلة"
+    assert "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}" in routes, (
+        "نقطة تحديث فحص التربة غير مُسجَّلة"
+    )
