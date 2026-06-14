@@ -76,6 +76,8 @@ const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
 const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
 const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
+const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
+const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -84,13 +86,15 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
   { id:'command',      label:'مركز العمليّات (معاينة)', icon:Smartphone, badge:'دمج' },
   { id:'map-center',   label:'مركز الخرائط (معاينة)', icon:Layers, badge:'دمج' },
   { id:'tasks-cabin',  label:'كابينة المهام (معاينة)', icon:ListChecks, badge:'دمج' },
+  { id:'rec-flow',     label:'توصية ← تنفيذ (معاينة)', icon:ClipboardList, badge:'دمج' },
+  { id:'hybrid-monitor', label:'المراقبة الهجينة (معاينة)', icon:Activity, badge:'دمج' },
   { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
   { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
   { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
@@ -345,6 +349,8 @@ export default function App() {
       case 'command':      return <OperationCommand />;
       case 'map-center':   return <FieldMapCenter />;
       case 'tasks-cabin':  return <FieldTasksCabin />;
+      case 'rec-flow':     return <RecommendationFlow />;
+      case 'hybrid-monitor': return <HybridMonitor />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
