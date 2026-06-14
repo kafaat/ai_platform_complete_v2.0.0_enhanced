@@ -78,7 +78,8 @@ export default function OperationCommand() {
   const equipment: EquipLike[] = Array.isArray(equipQ.data) ? equipQ.data : [];
   const devices: DeviceLike[] = Array.isArray(devicesQ.data) ? devicesQ.data : [];
   const alerts: AlertLike[] = Array.isArray(alertsQ.data) ? (alertsQ.data as AlertLike[]) : [];
-  const tasks: TaskLike[] = Array.isArray(tasksQ.data) ? (tasksQ.data as TaskLike[]) : [];
+  // useTasks() يُرجع { tasks: Task[] } (لا مصفوفة مجرّدة) — نقرأ المفتاح الصحيح.
+  const tasks: TaskLike[] = Array.isArray(tasksQ.data?.tasks) ? (tasksQ.data.tasks as TaskLike[]) : [];
   const cur = (weatherQ.data as any)?.current;
 
   // ── مشتقّات حقيقيّة (لا تلفيق) ──

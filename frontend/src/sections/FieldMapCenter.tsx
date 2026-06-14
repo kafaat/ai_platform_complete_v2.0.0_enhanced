@@ -38,6 +38,8 @@ const LAYERS: {
   { id: 'salinity', label: 'الملوحة', icon: <FlaskConical style={{ width: 13, height: 13 }} />, cmap: 'ec', low: 'منخفضة', high: 'مرتفعة', hint: 'مؤشّر الملوحة' },
 ];
 const layerOf = (id: LayerId) => LAYERS.find((l) => l.id === id) ?? LAYERS[0];
+// خيارات LayerSwitcher مشتقّة مرّة واحدة (LAYERS ثابتة) — هويّة مصفوفة مستقرّة.
+const LAYER_OPTS = LAYERS.map((l) => ({ id: l.id, label: l.label, icon: l.icon }));
 
 interface MapField { id: string; name: string; lat: number | null; lon: number | null; geometry: any }
 
@@ -71,7 +73,10 @@ function MapPanel({
   return (
     <div style={{ position: 'relative' }}>
       <FieldIndicatorMap
-        key={`${field.id}:${layerId}`}
+        // المفتاح على الحقل فقط: FieldIndicatorMap يبدّل طبقة بلاطات المؤشّر
+        // داخليّاً عند تغيّر index (مفتاحها fieldId-index-date)، فلا داعي لهدم
+        // الخريطة/الأساس بالكامل عند تبديل الطبقة (يطابق نمط SatellitePage).
+        key={field.id}
         fieldId={field.id}
         index={layerId}
         date="latest"
@@ -210,10 +215,10 @@ export default function FieldMapCenter() {
                 <SectionLabel>مقارنة الطبقات</SectionLabel>
                 <SideBySide
                   leftLabel={
-                    <LayerSwitcher layers={LAYERS.map((l) => ({ id: l.id, label: l.label, icon: l.icon }))} active={leftLayer} onChange={setLeftLayer} />
+                    <LayerSwitcher layers={LAYER_OPTS} active={leftLayer} onChange={setLeftLayer} />
                   }
                   rightLabel={
-                    <LayerSwitcher layers={LAYERS.map((l) => ({ id: l.id, label: l.label, icon: l.icon }))} active={rightLayer} onChange={setRightLayer} />
+                    <LayerSwitcher layers={LAYER_OPTS} active={rightLayer} onChange={setRightLayer} />
                   }
                   left={<MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={leftLayer} height={220} />}
                   right={<MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={rightLayer} height={220} />}
@@ -225,7 +230,7 @@ export default function FieldMapCenter() {
             ) : (
               <Card pad={12} style={{ marginBottom: 10 }}>
                 <div style={{ marginBottom: 10 }}>
-                  <LayerSwitcher layers={LAYERS.map((l) => ({ id: l.id, label: l.label, icon: l.icon }))} active={leftLayer} onChange={setLeftLayer} />
+                  <LayerSwitcher layers={LAYER_OPTS} active={leftLayer} onChange={setLeftLayer} />
                 </div>
                 <MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={leftLayer} height={320} />
                 <div style={{ fontSize: 11, color: T.muted, marginTop: 8 }}>
