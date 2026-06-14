@@ -3249,7 +3249,9 @@ async def update_task(
                     "TASK_UPDATED",
                     "task",
                     task_id,
-                    {"status": req.status, "field_id": row.get("field_id")},
+                    # القيم الفعليّة من الصفّ المُحدَّث (RETURNING) لا من req — req.status
+                    # قد تكون None عند تحديث photo/notes فقط (ملاحظة Copilot).
+                    {"status": row.get("status"), "field_id": row.get("field_id")},
                 )
     except HTTPException:
         raise
