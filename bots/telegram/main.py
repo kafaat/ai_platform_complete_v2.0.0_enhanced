@@ -397,7 +397,7 @@ async def link_password(message: Message, state: FSMContext):
     try:
         await message.delete()
     except Exception as e:  # noqa: BLE001 — خصوصيّة: فشل الحذف يُسجَّل (كلمة المرور تبقى بالسجلّ)
-        logger.warning("تعذّر حذف رسالة كلمة المرور من المحادثة: %s", e)
+        logger.warning("تعذّر حذف رسالة كلمة المرور من المحادثة: %s", e, exc_info=True)
     ok = await link_account(message.from_user.id, email, password)
     await state.clear()
     if ok:
