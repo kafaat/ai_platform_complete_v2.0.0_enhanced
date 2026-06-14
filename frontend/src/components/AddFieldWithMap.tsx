@@ -20,6 +20,7 @@ import {
   MapPin, Ruler, AlertCircle, Upload, FileUp,
   Pentagon, Square, Circle,
 } from 'lucide-react';
+import shp from 'shpjs';
 import { kongApi } from '../services/api';
 import type { FieldImportInput } from '../services/api';
 
@@ -271,21 +272,87 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
     }
   };
 
-  // ── الاستيراد من ملفّ (GeoJSON/KML) ──────────────────────────
+  // ── الاستيراد من ملفّ (GeoJSON/KML/Shapefile) ────────────────
   const [fileName, setFileName]   = useState('');
-  const [fileText, setFileText]   = useState('');     // نصّ الملفّ المقروء
+  const [fileText, setFileText]   = useState('');     // نصّ الملفّ المقروء (أو GeoJSON محوّل من Shapefile)
   const [fileFmt, setFileFmt]     = useState<'geojson' | 'kml' | null>(null);
+  // حالة تحليل ملفّ Shapefile في المتصفّح (shpjs) — تحليل غير متزامن يتطلّب مؤشّر تحميل.
+  const [parsing, setParsing]     = useState(false);
+
+  // ── استخراج أوّل حلقة مضلّع من نتيجة shpjs ────────────────────
+  // الخلفيّة تقبل format:'geojson' فقط (لا 'shp')، لذا نحوّل Shapefile → GeoJSON
+  // Polygon في المتصفّح ثمّ نرسله كنصّ GeoJSON. لا نُلفّق هندسة: إن لم نجد مضلّعاً
+  // صالحاً نرفع خطأً واضحاً بدل إرسال شيء فارغ.
+  const firstPolygonFeature = (
+    fc: GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[],
+  ): GeoJSON.Feature<GeoJSON.Polygon> => {
+    // shpjs قد يُرجع مجموعة واحدة أو مصفوفة مجموعات (إذا حوى الـ.zip عدّة طبقات).
+    const collections = Array.isArray(fc) ? fc : [fc];
+    for (const coll of collections) {
+      const feats = coll?.features ?? [];
+      for (const feat of feats) {
+        const g = feat?.geometry;
+        if (!g) continue;
+        if (g.type === 'Polygon' && Array.isArray(g.coordinates) && g.coordinates.length > 0) {
+          return { type: 'Feature', properties: feat.properties ?? {}, geometry: g };
+        }
+        // MultiPolygon: نأخذ أوّل مضلّع (أوّل حلقة خارجيّة) — اختيار صريح، لا تلفيق.
+        if (g.type === 'MultiPolygon' && Array.isArray(g.coordinates) && g.coordinates.length > 0) {
+          const first = g.coordinates[0];
+          if (Array.isArray(first) && first.length > 0) {
+            return {
+              type: 'Feature',
+              properties: feat.properties ?? {},
+              geometry: { type: 'Polygon', coordinates: first },
+            };
+          }
+        }
+      }
+    }
+    throw new Error('لم يُعثَر على مضلّع حدود صالح داخل ملفّ Shapefile.');
+  };
 
   const handleFilePicked = (f: File | null) => {
     setError('');
     if (!f) { setFileName(''); setFileText(''); setFileFmt(null); return; }
     const lower = f.name.toLowerCase();
+    // Shapefile (.zip مضغوط أو .shp مفرد) → نحلّله في المتصفّح إلى GeoJSON.
+    if (lower.endsWith('.zip') || lower.endsWith('.shp')) {
+      setFileName(''); setFileText(''); setFileFmt(null);
+      setParsing(true);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const buf = reader.result;
+          if (!(buf instanceof ArrayBuffer) || buf.byteLength === 0) {
+            throw new Error('ملفّ Shapefile فارغ أو تعذّرت قراءته.');
+          }
+          const parsed = await shp(buf);
+          const feature = firstPolygonFeature(parsed);
+          const geojson: GeoJSON.FeatureCollection = {
+            type: 'FeatureCollection',
+            features: [feature],
+          };
+          setFileName(f.name);
+          setFileText(JSON.stringify(geojson));
+          setFileFmt('geojson'); // الخلفيّة تستقبله كـGeoJSON بعد التحويل
+        } catch (e: any) {
+          setError(e?.message || 'تعذّر تحليل ملفّ Shapefile — تأكّد أنّه ملفّ .shp/.zip صالح.');
+          setFileName(''); setFileText(''); setFileFmt(null);
+        } finally {
+          setParsing(false);
+        }
+      };
+      reader.onerror = () => { setError('تعذّرت قراءة ملفّ Shapefile.'); setParsing(false); };
+      reader.readAsArrayBuffer(f);
+      return;
+    }
     const fmt: 'geojson' | 'kml' | null =
       lower.endsWith('.kml') ? 'kml'
       : (lower.endsWith('.geojson') || lower.endsWith('.json')) ? 'geojson'
       : null;
     if (!fmt) {
-      setError('صيغة غير مدعومة — اختر ملفّ .geojson أو .json أو .kml.');
+      setError('صيغة غير مدعومة — اختر ملفّ .geojson أو .json أو .kml أو .shp/.zip.');
       setFileName(''); setFileText(''); setFileFmt(null);
       return;
     }
@@ -601,22 +668,32 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
           <div className="px-5 py-4 space-y-4" dir="rtl">
             <p className="text-sm text-slate-400">
               استورد حدود الحقل من ملفّ <strong className="text-emerald-400">GeoJSON</strong> أو
-              {' '}<strong className="text-emerald-400">KML</strong> (مُصدَّر من Google Earth / QGIS / جهاز GPS)
-              بدل رسمها يدويّاً. تُتحقَّق الحدود على الخادم وتُحسَب المساحة تلقائيّاً.
+              {' '}<strong className="text-emerald-400">KML</strong> أو
+              {' '}<strong className="text-emerald-400">Shapefile</strong> (.shp أو .zip مضغوط)
+              مُصدَّر من Google Earth / QGIS / جهاز GPS بدل رسمها يدويّاً.
+              تُحلَّل ملفّات Shapefile داخل المتصفّح وتُحوَّل إلى GeoJSON،
+              ثمّ تُتحقَّق الحدود على الخادم وتُحسَب المساحة تلقائيّاً.
             </p>
 
             {/* File input */}
             <label
               className="flex flex-col items-center justify-center gap-2 px-4 py-6 rounded-xl cursor-pointer border-2 border-dashed transition-colors"
               style={{ borderColor: fileName ? '#16a34a66' : '#334155', background:'#0f1117' }}>
-              <Upload className="w-6 h-6 text-emerald-400" />
+              {parsing
+                ? <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
+                : <Upload className="w-6 h-6 text-emerald-400" />}
               <span className="text-sm text-slate-300">
-                {fileName ? <>الملفّ: <strong className="text-emerald-300">{fileName}</strong></> : 'اختر ملفّ .geojson / .json / .kml'}
+                {parsing
+                  ? 'جاري تحليل ملفّ Shapefile...'
+                  : fileName
+                    ? <>الملفّ: <strong className="text-emerald-300">{fileName}</strong></>
+                    : 'اختر ملفّ .geojson / .json / .kml / .shp / .zip'}
               </span>
               <input
                 type="file"
-                accept=".geojson,.json,.kml,application/geo+json,application/vnd.google-earth.kml+xml"
+                accept=".geojson,.json,.kml,.shp,.zip,application/geo+json,application/vnd.google-earth.kml+xml,application/zip,application/x-zip-compressed,x-gis/x-shapefile"
                 className="hidden"
+                disabled={parsing}
                 onChange={e => handleFilePicked(e.target.files?.[0] ?? null)}
               />
             </label>
@@ -684,9 +761,9 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
                 style={{ borderColor:'#334155' }}>
                 إلغاء
               </button>
-              <button onClick={handleImport} disabled={saving || !fileText}
+              <button onClick={handleImport} disabled={saving || parsing || !fileText}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-                style={{ background: (saving || !fileText) ? '#15803d' : '#16a34a' }}>
+                style={{ background: (saving || parsing || !fileText) ? '#15803d' : '#16a34a' }}>
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الاستيراد...</> : <><Check className="w-4 h-4" /> استيراد الحقل</>}
               </button>
             </div>

@@ -29,12 +29,14 @@
     "react-leaflet-draw": "^0.20.4",
     "react-router-dom": "^6.23.0",
     "recharts": "^2.12.3",
+    "shpjs": "^6.2.0",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.12",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/shpjs": "^3.4.7",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
