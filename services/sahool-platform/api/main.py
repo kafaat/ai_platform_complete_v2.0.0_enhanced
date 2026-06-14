@@ -4476,6 +4476,14 @@ async def create_inventory_item(
             req.reorder_level,
             req.notes,
         )
+        await _emit_domain_event(
+            conn,
+            user,
+            "INVENTORY_ITEM_CREATED",
+            "inventory_item",
+            item_id,
+            {"category": req.category, "name": req.name},
+        )
     return {"item_id": item_id, "name": req.name, "message_ar": "أُضيف عنصر المخزون"}
 
 
@@ -4541,6 +4549,14 @@ async def add_inventory_batch(
             received,
             req.supplier,
             req.notes,
+        )
+        await _emit_domain_event(
+            conn,
+            user,
+            "INVENTORY_BATCH_ADDED",
+            "inventory_batch",
+            batch_id,
+            {"item_id": item_id, "quantity": req.quantity},
         )
     return {"batch_id": batch_id, "item_id": item_id, "message_ar": "أُضيفت الدفعة"}
 
@@ -4615,6 +4631,14 @@ async def create_equipment(
             purchase,
             req.notes,
         )
+        await _emit_domain_event(
+            conn,
+            user,
+            "EQUIPMENT_CREATED",
+            "equipment",
+            equipment_id,
+            {"name": req.name, "type": req.type},
+        )
     return {"equipment_id": equipment_id, "name": req.name, "message_ar": "سُجّلت المعدّة"}
 
 
@@ -4675,6 +4699,14 @@ async def log_maintenance(
             await conn.execute(
                 "UPDATE equipment SET status = 'broken' WHERE equipment_id = $1", equipment_id
             )
+        await _emit_domain_event(
+            conn,
+            user,
+            "MAINTENANCE_LOGGED",
+            "equipment_maintenance",
+            maintenance_id,
+            {"equipment_id": equipment_id, "kind": req.kind, "status": req.status},
+        )
     return {"maintenance_id": maintenance_id, "message_ar": "سُجّلت الصيانة"}
 
 
@@ -5085,6 +5117,14 @@ async def create_master_data(
                 req.name_en,
                 _json.dumps(req.metadata or {}),
             )
+            await _emit_domain_event(
+                conn,
+                user,
+                "MASTER_DATA_CREATED",
+                "master_data",
+                md_id,
+                {"category": req.category, "code": req.code},
+            )
         except Exception as e:  # noqa: BLE001 — نميّز unique_violation فقط
             if getattr(e, "sqlstate", None) == "23505":
                 raise HTTPException(
@@ -5155,6 +5195,14 @@ async def add_crop_rotation(
             planted,
             harvested,
             req.notes,
+        )
+        await _emit_domain_event(
+            conn,
+            user,
+            "CROP_ROTATION_ADDED",
+            "crop_rotation",
+            rotation_id,
+            {"field_id": field_id, "crop": req.crop},
         )
     return {"rotation_id": rotation_id, "message_ar": "سُجّل تعاقب المحصول"}
 
