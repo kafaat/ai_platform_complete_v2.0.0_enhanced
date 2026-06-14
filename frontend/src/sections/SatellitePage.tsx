@@ -7,11 +7,12 @@ import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon, 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFields, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { geomToPolygon } from '../lib/geo';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 
 // أيّ مؤشّر من طبقات الواجهة يملك بلاطات/شبكة حقيقيّة في raster-service؟
 // غير المدعوم يسقط إلى ndvi (الخدمة تُرجِع بلاطات شفّافة لغير المدعوم).
@@ -38,11 +39,6 @@ const INDICES = [
   { id:'rgb',      name:'صورة حقيقية', desc:'Sentinel-2 RGB', color:'#6b7280', icon:'🛰️' },
 ];
 
-interface SatField {
-  id: string; name: string; area: number; crop: string;
-  lat: number | null; lon: number | null; geometry: any;
-}
-
 function ndviColor(v: number) {
   if (v > 0.7) return '#16a34a';
   if (v > 0.5) return '#65a30d';
@@ -58,16 +54,7 @@ function ndviLabel(v: number) {
 }
 
 export default function SatellitePage() {
-  const { data: fieldsData, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFields();
-  const fields: SatField[] = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
-    id: String(f.field_id ?? f.id),
-    name: String(f.name_ar ?? f.name ?? 'حقل'),
-    area: Number(f.area_ha ?? f.area ?? 0),
-    crop: String(f.crop ?? '—'),
-    lat: f.lat ?? f.centroid_lat ?? null,
-    lon: f.lon ?? f.centroid_lon ?? null,
-    geometry: f.geometry,
-  }));
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFieldOptions();
 
   const [fieldId,     setFieldId]     = useState('');
   const [activeIndex, setActiveIndex] = useState('ndvi');

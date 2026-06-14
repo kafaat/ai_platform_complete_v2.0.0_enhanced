@@ -14,7 +14,8 @@ import { useMemo, useState } from 'react';
 import {
   Cpu, Tractor, Droplets, Thermometer, FlaskConical, Battery, Gauge, Activity, Wrench,
 } from 'lucide-react';
-import { useFields, useDevices, useDeviceTelemetry, useEquipment } from '../hooks/useApi';
+import { useDevices, useDeviceTelemetry, useEquipment } from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { TelemetryPoint } from '../services/api';
 import { fmtDateAr } from '../lib/dates';
 import {
@@ -50,17 +51,12 @@ function sensorIcon(s?: string) {
 // وقت القراءة (يعيد استخدام مُنسّق التواريخ الموحّد بخيار الساعة/الدقيقة).
 const fmtTime = (s?: string) => fmtDateAr(s, { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
 
-interface MonField { id: string; name: string }
-
 export default function HybridMonitor() {
-  const fieldsQ = useFields();
+  const fieldsQ = useFieldOptions();
   const devicesQ = useDevices();
   const equipQ = useEquipment();
 
-  const fields: MonField[] = useMemo(() => {
-    const raw = Array.isArray(fieldsQ.data?.fields) ? fieldsQ.data.fields : [];
-    return raw.map((f: any) => ({ id: String(f.field_id ?? f.id), name: f.name ?? f.field_id ?? 'حقل' }));
-  }, [fieldsQ.data]);
+  const fields = fieldsQ.options;
 
   const [fieldId, setFieldId] = useState('');
   const field = fields.find((f) => f.id === fieldId) ?? fields[0];
