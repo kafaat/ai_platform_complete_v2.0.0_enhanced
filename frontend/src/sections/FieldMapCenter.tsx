@@ -22,7 +22,7 @@ import { geomToPolygon } from '../lib/geo';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import {
   T, Card, Pill, Badge, SectionLabel, Row,
-  LayerSwitcher, ColormapLegend, SideBySide, MachineMarker,
+  LayerSwitcher, ColormapLegend, SideBySide, MachineMarker, FieldCabin,
 } from '../components/ds';
 import type { CmapId } from '../components/ds';
 
@@ -123,32 +123,24 @@ export default function FieldMapCenter() {
   const onlineDevices = fieldDevices.filter((d) => d.online).length;
 
   return (
-    <div dir="rtl" style={{ background: T.cream, minHeight: '100%', padding: 16 }}>
-      <div
-        style={{
-          maxWidth: 420, margin: '0 auto', background: T.cream,
-          borderRadius: 22, border: `1px solid ${T.line}`, overflow: 'hidden',
-          boxShadow: '0 12px 40px rgba(44,26,14,.10)',
-        }}
-      >
-        {/* ── Header ── */}
-        <div style={{ background: T.brown, color: '#fff', padding: '18px 16px 22px' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div style={{ fontSize: 12, color: T.goldSoft }}>مركز الخرائط</div>
-              <div style={{ fontSize: 18, fontWeight: 800 }}>طبقات الحقل</div>
-            </div>
-            <Pill tone="info" icon={<Layers style={{ width: 12, height: 12 }} />}>
-              {LAYERS.length} طبقات
-            </Pill>
-          </div>
-          <div style={{ fontSize: 11, color: '#D8C7B3', marginTop: 6 }}>
-            بلاطات مؤشّر حقيقيّة من خدمة الراستر — فوق حدود الحقل
-          </div>
-        </div>
-
-        <div style={{ padding: 14 }}>
-          {/* ── اختيار الحقل + تبديل وضع المقارنة ── */}
+    <FieldCabin
+      eyebrow="مركز الخرائط"
+      title="طبقات الحقل"
+      subtitle="بلاطات مؤشّر حقيقيّة من خدمة الراستر — فوق حدود الحقل"
+      headerRight={
+        <Pill tone="info" icon={<Layers style={{ width: 12, height: 12 }} />}>
+          {LAYERS.length} طبقات
+        </Pill>
+      }
+      note={
+        <>
+          مركز الخرائط الموحّد — بلاطات <code>/raster</code> الحقيقيّة فوق حدود <code>/fields</code>.
+          مؤشّرات الأجهزة من <code>/devices</code> (حالة اتّصال، لا إحداثيّات). لا مواقع معدّات
+          ملفّقة (فجوة موثّقة). الحالات صادقة.
+        </>
+      }
+    >
+      {/* ── اختيار الحقل + تبديل وضع المقارنة ── */}
           <Card pad={14} style={{ marginBottom: 10 }}>
             <SectionLabel
               action={<Badge tone={fieldsQ.isLoading ? 'neutral' : fieldsQ.isError ? 'danger' : 'ok'}>
@@ -272,14 +264,6 @@ export default function FieldMapCenter() {
               ))
             )}
           </Card>
-        </div>
-      </div>
-
-      <p style={{ textAlign: 'center', color: T.muted, fontSize: 11, marginTop: 14 }}>
-        مركز الخرائط الموحّد — بلاطات <code>/raster</code> الحقيقيّة فوق حدود <code>/fields</code>.
-        مؤشّرات الأجهزة من <code>/devices</code> (حالة اتّصال، لا إحداثيّات). لا مواقع معدّات
-        ملفّقة (فجوة موثّقة). الحالات صادقة.
-      </p>
-    </div>
+    </FieldCabin>
   );
 }

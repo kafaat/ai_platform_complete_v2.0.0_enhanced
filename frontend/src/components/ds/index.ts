@@ -6,3 +6,5 @@ export * from './atoms';
 export * from './merge';
 // تسميات/نغمات الحالات الموحّدة (مهام/معدّات)
 export * from './status';
+// قشرة الكابينة المحمولة الموحّدة
+export * from './cabin';

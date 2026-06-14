@@ -21,7 +21,7 @@ import { useTasks, type Task } from '../hooks/useApi';
 import { fmtDateAr } from '../lib/dates';
 import {
   T, Card, Pill, Badge, SectionLabel, StatGrid, Stepper, BottomTabBar,
-  taskStatusAr, taskStatusTone,
+  taskStatusAr, taskStatusTone, FieldCabin,
 } from '../components/ds';
 
 // ── وجهات الكابينة (فرز بالحالة) — يُعرَض في BottomTabBar السفليّ ──
@@ -106,34 +106,24 @@ export default function FieldTasksCabin() {
   const shown = tab === 'all' ? tasks : tasks.filter((t) => t.status === tab);
 
   return (
-    <div dir="rtl" style={{ background: T.cream, minHeight: '100%', padding: 16 }}>
-      <div
-        style={{
-          maxWidth: 420, margin: '0 auto', background: T.cream,
-          borderRadius: 22, border: `1px solid ${T.line}`, overflow: 'hidden',
-          boxShadow: '0 12px 40px rgba(44,26,14,.10)',
-          display: 'flex', flexDirection: 'column', minHeight: 600,
-        }}
-      >
-        {/* ── Header ── */}
-        <div style={{ background: T.brown, color: '#fff', padding: '18px 16px 22px', flexShrink: 0 }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div style={{ fontSize: 12, color: T.goldSoft }}>كابينة الميدان</div>
-              <div style={{ fontSize: 18, fontWeight: 800 }}>المهام</div>
-            </div>
-            <Pill tone={tasks.length ? 'info' : 'ok'} icon={<ListChecks style={{ width: 12, height: 12 }} />}>
-              {tasks.length} مهمّة
-            </Pill>
-          </div>
-          <div style={{ fontSize: 11, color: '#D8C7B3', marginTop: 6 }}>
-            مسار كلّ مهمّة من حالتها الحقيقيّة — kong /tasks
-          </div>
-        </div>
-
-        {/* ── المحتوى القابل للتمرير ── */}
-        <div style={{ padding: 14, flex: 1, overflowY: 'auto' }}>
-          {/* نظرة سريعة (StatGrid) — عدّ فعليّ */}
+    <FieldCabin
+      eyebrow="كابينة الميدان"
+      title="المهام"
+      subtitle="مسار كلّ مهمّة من حالتها الحقيقيّة — kong /tasks"
+      headerRight={
+        <Pill tone={tasks.length ? 'info' : 'ok'} icon={<ListChecks style={{ width: 12, height: 12 }} />}>
+          {tasks.length} مهمّة
+        </Pill>
+      }
+      footer={<BottomTabBar tabs={TABS} active={tab} onChange={setTab} />}
+      note={
+        <>
+          كابينة المهام الموحّدة — قائمة <code>/tasks</code> الحقيقيّة. موضع المسار مشتقّ من
+          حالة المهمّة، والعدّ فعليّ. لا قيم ملفّقة (المدّة/الكلفة «—» إن غابت). الحالات صادقة.
+        </>
+      }
+    >
+      {/* نظرة سريعة (StatGrid) — عدّ فعليّ */}
           <Card pad={14} style={{ marginBottom: 10 }}>
             <SectionLabel action={<Badge tone={tasksQ.isLoading ? 'neutral' : tasksQ.isError ? 'danger' : 'ok'}>
               {tasksQ.isLoading ? 'تحميل…' : tasksQ.isError ? 'خطأ' : 'مباشر'}
@@ -167,16 +157,6 @@ export default function FieldTasksCabin() {
           ) : (
             shown.map((t) => <TaskCard key={t.task_id} task={t} />)
           )}
-        </div>
-
-        {/* ── شريط الوجهات السفليّ (فرز بالحالة) ── */}
-        <BottomTabBar tabs={TABS} active={tab} onChange={setTab} />
-      </div>
-
-      <p style={{ textAlign: 'center', color: T.muted, fontSize: 11, marginTop: 14 }}>
-        كابينة المهام الموحّدة — قائمة <code>/tasks</code> الحقيقيّة. موضع المسار مشتقّ من
-        حالة المهمّة، والعدّ فعليّ. لا قيم ملفّقة (المدّة/الكلفة «—» إن غابت). الحالات صادقة.
-      </p>
-    </div>
+    </FieldCabin>
   );
 }

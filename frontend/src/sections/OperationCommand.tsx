@@ -21,7 +21,7 @@ import {
 import {
   T, Card, Pill, Badge, ProgressBar, Row, SectionLabel,
   StatGrid, RadialGauge, AlertChip, ExpandableCard, severityTone,
-  taskStatusAr, equipStatusAr, equipStatusTone,
+  taskStatusAr, equipStatusAr, equipStatusTone, FieldCabin,
 } from '../components/ds';
 
 type FieldLike = { field_id?: string; ndvi?: number };
@@ -84,30 +84,24 @@ export default function OperationCommand() {
   const anyLoading = fieldsQ.isLoading || equipQ.isLoading || devicesQ.isLoading || alertsQ.isLoading;
 
   return (
-    <div dir="rtl" style={{ background: T.cream, minHeight: '100%', padding: 16 }}>
-      <div
-        style={{
-          maxWidth: 420, margin: '0 auto', background: T.cream,
-          borderRadius: 22, border: `1px solid ${T.line}`, overflow: 'hidden',
-          boxShadow: '0 12px 40px rgba(44,26,14,.10)',
-        }}
-      >
-        {/* ── Header ── */}
-        <div style={{ background: T.brown, color: '#fff', padding: '18px 16px 22px' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div style={{ fontSize: 12, color: T.goldSoft }}>مركز العمليّات</div>
-              <div style={{ fontSize: 18, fontWeight: 800 }}>نظرة موحّدة</div>
-            </div>
-            <Pill tone="warn" icon={<Sun style={{ width: 12, height: 12 }} />}>
-              {cur ? `${Math.round(cur.tmean)}°` : '—'}
-            </Pill>
-          </div>
-          <div style={{ fontSize: 11, color: '#D8C7B3', marginTop: 6 }}>{today}</div>
-        </div>
-
-        <div style={{ padding: 14 }}>
-          {/* ── نظرة عامّة (StatGrid) ── */}
+    <FieldCabin
+      eyebrow="مركز العمليّات"
+      title="نظرة موحّدة"
+      subtitle={today}
+      headerRight={
+        <Pill tone="warn" icon={<Sun style={{ width: 12, height: 12 }} />}>
+          {typeof cur?.tmean === 'number' ? `${Math.round(cur.tmean)}°` : '—'}
+        </Pill>
+      }
+      note={
+        <>
+          مركز العمليّات الموحّد — يصهر بيانات <code>/fields</code> و<code>/equipment</code> و
+          <code>/devices</code> و<code>/alerts</code> و<code>/tasks</code> الحقيقيّة. لا عدّادات وقود/DEF
+          (فجوة موثّقة). الحالات صادقة.
+        </>
+      }
+    >
+      {/* ── نظرة عامّة (StatGrid) ── */}
           <Card pad={14} style={{ marginBottom: 10 }}>
             <SectionLabel action={<Badge tone={anyLoading ? 'neutral' : 'ok'}>{anyLoading ? 'تحميل…' : 'مباشر'}</Badge>}>
               نظرة العمليّة
@@ -241,14 +235,6 @@ export default function OperationCommand() {
               ))
             )}
           </ExpandableCard>
-        </div>
-      </div>
-
-      <p style={{ textAlign: 'center', color: T.muted, fontSize: 11, marginTop: 14 }}>
-        مركز العمليّات الموحّد — يصهر بيانات <code>/fields</code> و<code>/equipment</code> و
-        <code>/devices</code> و<code>/alerts</code> و<code>/tasks</code> الحقيقيّة. لا عدّادات وقود/DEF
-        (فجوة موثّقة). الحالات صادقة.
-      </p>
-    </div>
+    </FieldCabin>
   );
 }
