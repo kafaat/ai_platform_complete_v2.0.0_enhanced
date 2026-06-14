@@ -13,35 +13,29 @@ import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { geomToPolygon } from '../lib/geo';
 import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useIndicatorsCatalog } from '../hooks/useApi';
 
-// أيّ مؤشّر من طبقات الواجهة يملك بلاطات/شبكة حقيقيّة في raster-service؟
-// غير المدعوم يسقط إلى ndvi (الخدمة تُرجِع بلاطات شفّافة لغير المدعوم).
-// Sprint 5b: أُضيف ndre/msavi/evi/moisture (band-math + بلاطات في raster-service).
-// msi (الإجهاد المائي SWIR1/NIR): بلاطات/شبكة حقيقيّة في raster-service (band_math)
-// — مكمّل لطبقة الرطوبة (NDMI) وجسر قرار الإجهاد المائي (ndmi/msi).
-const GRID_INDEX_MAP: Record<string, GridIndex> = {
-  ndvi: 'ndvi',
-  ndwi: 'ndwi',
-  evi: 'evi',
-  ndre: 'ndre',
-  msavi: 'msavi',
-  moisture: 'moisture',
-  msi: 'msi',
+// مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
+// لا بقائمة مُبرمَجة — مصدر حقيقة واحد للقابل للرسم (لا طبقة ميتة ولا مفقودة).
+// العرض فقط (لون/أيقونة/وصف) محلّيّ؛ الاسم والتوفّر من الكتالوج.
+interface IndOption { id: string; name: string; desc: string; color: string; icon: string }
+
+const IND_META: Record<string, { color: string; icon: string; desc: string }> = {
+  ndvi:     { color:'#16a34a', icon:'🌿', desc:'الغطاء النباتي' },
+  evi:      { color:'#dc2626', icon:'📊', desc:'الغطاء المحسّن' },
+  ndre:     { color:'#a855f7', icon:'🧪', desc:'النيتروجين (red-edge)' },
+  msavi:    { color:'#ea580c', icon:'🏜', desc:'تصحيح تربة ذاتي' },
+  savi:     { color:'#f59e0b', icon:'🏜', desc:'تصحيح التربة' },
+  gndvi:    { color:'#22c55e', icon:'🌱', desc:'NDVI أخضر' },
+  ndwi:     { color:'#3b82f6', icon:'💧', desc:'محتوى المياه' },
+  ndmi:     { color:'#0ea5e9', icon:'💦', desc:'محتوى الرطوبة' },
+  msi:      { color:'#0891b2', icon:'🌡', desc:'الإجهاد المائي (SWIR/NIR)' },
+  salinity: { color:'#b45309', icon:'🧂', desc:'مؤشّر الملوحة' },
 };
+const IND_META_DEFAULT = { color:'#6b7280', icon:'🛰️', desc:'' };
 
-const INDICES = [
-  { id:'ndvi',     name:'NDVI',  desc:'الغطاء النباتي', color:'#16a34a', icon:'🌿' },
-  { id:'evi',      name:'EVI',   desc:'الغطاء المحسّن', color:'#dc2626', icon:'📊' },
-  { id:'msavi',    name:'MSAVI', desc:'تصحيح تربة ذاتي', color:'#ea580c', icon:'🏜' },
-  { id:'ndre',     name:'NDRE',  desc:'النيتروجين (red-edge)', color:'#a855f7', icon:'🧪' },
-  { id:'moisture', name:'الرطوبة', desc:'محتوى الرطوبة (NDMI)', color:'#0ea5e9', icon:'💦' },
-  { id:'msi',      name:'MSI',   desc:'الإجهاد المائي (SWIR/NIR)', color:'#0891b2', icon:'🌡' },
-  { id:'savi',     name:'SAVI',  desc:'تصحيح التربة',   color:'#f59e0b', icon:'🏜' },
-  { id:'ndwi',     name:'NDWI',  desc:'محتوى المياه',   color:'#3b82f6', icon:'💧' },
-  { id:'gndvi',    name:'GNDVI', desc:'NDVI أخضر',      color:'#22c55e', icon:'🌱' },
-  { id:'lai',      name:'LAI',   desc:'مساحة الورق',    color:'#8b5cf6', icon:'🍃' },
-  { id:'rgb',      name:'صورة حقيقية', desc:'Sentinel-2 RGB', color:'#6b7280', icon:'🛰️' },
-];
+// قائمة احتياطيّة (الطبقات القابلة للرسم) إن تعذّر الكتالوج — كي لا تنكسر الخريطة.
+const FALLBACK_RENDERABLE = ['ndvi','evi','ndre','msavi','savi','gndvi','ndwi','ndmi','msi','salinity'];
 
 function ndviColor(v: number) {
   if (v > 0.7) return '#16a34a';
@@ -70,9 +64,20 @@ export default function SatellitePage() {
     if (!fieldId && fields.length) setFieldId(fields[0].id);
   }, [fields, fieldId]);
 
+  // طبقات قابلة للرسم من الكتالوج (renderable=true)، مزيّنة بعرض محلّيّ. عند
+  // تعذّر الكتالوج تسقط لقائمة احتياطيّة فلا تنكسر الخريطة. الاسم من الكتالوج.
+  const catalogQ = useIndicatorsCatalog();
+  const indices: IndOption[] = useMemo(() => {
+    const items = Array.isArray((catalogQ.data as any)?.indicators) ? (catalogQ.data as any).indicators : null;
+    const base: { id: string; name: string }[] = items
+      ? items.filter((i: any) => i?.renderable).map((i: any) => ({ id: String(i.id), name: String(i.name_ar ?? i.id) }))
+      : FALLBACK_RENDERABLE.map((id) => ({ id, name: id.toUpperCase() }));
+    return base.map(({ id, name }) => ({ id, name, ...(IND_META[id] ?? IND_META_DEFAULT) }));
+  }, [catalogQ.data]);
+
   const field = fields.find((f) => f.id === fieldId) || fields[0];
-  const idx   = INDICES.find((i) => i.id === activeIndex) || INDICES[0];
-  const gridIndex = GRID_INDEX_MAP[activeIndex] ?? 'ndvi';
+  const idx   = indices.find((i) => i.id === activeIndex) || indices[0];
+  const gridIndex = (idx?.id ?? 'ndvi') as GridIndex;
 
   const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
   const { data: ndviNow }                        = useCurrentNDVI(fieldId);
@@ -337,25 +342,20 @@ export default function SatellitePage() {
             </button>
             {showLayers && (
               <div className="px-2 pb-3 space-y-1">
-                {INDICES.map(ind=>{
-                  // فقط المؤشّرات التي لها بلاطات حقيقيّة قابلة للاختيار — تعطيل
-                  // الباقي يمنع تضليل المستخدم (خريطة NDVI تحت عنوان EVI مثلاً).
-                  const supported = ind.id in GRID_INDEX_MAP;
-                  return (
-                    <button key={ind.id} disabled={!supported}
-                      onClick={()=> supported && setActiveIndex(ind.id)}
-                      title={supported ? undefined : 'بلاطات هذا المؤشّر غير متوفّرة بعد'}
-                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
-                        border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
-                      <span>{ind.icon}</span>
-                      <div className="flex-1">
-                        <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
-                        <div className="text-[10px] text-slate-600">{ind.desc}{!supported && ' · بلاطات قريباً'}</div>
-                      </div>
-                    </button>
-                  );
-                })}
+                {/* كلّ المعروض قابل للرسم (الكتالوج · renderable) — لا تعطيل ولا تضليل */}
+                {indices.map(ind=>(
+                  <button key={ind.id}
+                    onClick={()=> setActiveIndex(ind.id)}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right"
+                    style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
+                      border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
+                    <span>{ind.icon}</span>
+                    <div className="flex-1">
+                      <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
+                      <div className="text-[10px] text-slate-600">{ind.desc}</div>
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
           </div>
