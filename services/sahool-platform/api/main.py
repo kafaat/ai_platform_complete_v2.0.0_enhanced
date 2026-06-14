@@ -378,6 +378,64 @@ async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id
         logger.warning("emit %s تخطّي: %s", event_type_name, e)
 
 
+# ─── idempotency لنقاط الموبايل (إعادات offline لا تُكرّر الكتابة) ──────────────
+# الموبايل قد يُعيد POST نفسه (شبكة ضعيفة/مزامنة batch بعد انقطاع). بمفتاح
+# Idempotency-Key (UUID) يُسجَّل الأمر مرّة واحدة في جدول commands؛ الإعادة تُعيد
+# النتيجة المخزّنة بلا إعادة تنفيذ. كلّ شيء داخل معاملة tenant_connection (RLS +
+# ذرّيّة): فشل العمل ⇒ ارتداد كامل (بما فيه أثر الأمر) ⇒ إعادة آمنة. بلا مفتاح ⇒
+# تنفيذ عاديّ (توافق خلفيّ كامل — لا يتغيّر سلوك العملاء القائمين).
+def _idem_key(idempotency_key: str | None = Header(None, alias="Idempotency-Key")) -> str | None:
+    """يستخرج مفتاح الإيدمبوتنسي (UUID) ويتحقّق من شكله.
+
+    فارغ/مسافات ⇒ يُعامَل كغياب (None، تنفيذ عاديّ)؛ قيمة غير فارغة غير صالحة ⇒ 400
+    (لا تضيع idempotency بصمت لمفتاح مُشوَّه). يُعيد المفتاح بعد strip.
+    """
+    if idempotency_key is None:
+        return None
+    key = idempotency_key.strip()
+    if not key:
+        return None
+    import uuid as _uuid
+
+    try:
+        _uuid.UUID(key)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Idempotency-Key يجب أن يكون UUID") from e
+    return key
+
+
+async def _idempotent(store, command_id, do_work, *, command_type, actor_id, tenant_id, payload):
+    """منطق idempotency نقيّ (store مُحقَن ⇒ قابل للاختبار). يُرجِع نتيجة العمل (JSON).
+
+    أوّل مرّة: يُدرِج الأمر، ينفّذ do_work، يسجّل النتيجة. الإعادة الناجحة: يُعيد
+    النتيجة المخزّنة بلا تنفيذ. الإعادة بينما الأصل قيد المعالجة/فشل: 409 (أعد لاحقاً).
+
+    قيد تصميميّ مهمّ: يجب استدعاؤه **داخل معاملة تَرتدّ عند الفشل** (مثل
+    tenant_connection). الاعتماد على الارتداد هو ما يجعله سليماً: فشل do_work ⇒
+    ارتداد إدراج الأمر أيضاً ⇒ لا أمر «pending» يتيم، والإعادة اللاحقة تُنفَّذ من
+    جديد بأمان (لا تعلّق على 409 أبديّ). لذا لا نُعلّم processing/failed صراحةً —
+    الارتداد يتكفّل، والتعليم داخل المعاملة سيُرتَدّ بلا فائدة. لا تستخدمه خارج معاملة.
+    """
+    from api.command_store import Command, CommandSource, CommandStatus
+
+    cmd = Command.new(
+        command_type,
+        actor_id,
+        tenant_id,
+        payload,
+        source=CommandSource.MOBILE,
+        command_id=command_id,
+    )
+    if await store.insert(cmd):  # أُدرِج الآن ⇒ تنفيذ أوّل
+        result = await do_work()
+        await store.mark_succeeded(command_id, result)
+        return result
+    existing = await store.get(command_id)  # موجود مسبقاً
+    if existing is not None and existing.status == CommandStatus.SUCCEEDED:
+        return existing.result  # نتيجة مخزّنة — لا إعادة تنفيذ (idempotent)
+    raise HTTPException(status_code=409, detail="الأمر قيد المعالجة — أعد المحاولة لاحقاً")
+
+
 # المتغيّر: SAHOOL_CORS_ORIGINS = "https://app.sahool.ye,https://www.sahool.ye"
 # للتطوير: SAHOOL_CORS_ORIGINS = "http://localhost:3000,http://10.0.2.2:8000"
 _cors_raw = os.getenv("SAHOOL_CORS_ORIGINS", "")
@@ -3007,12 +3065,14 @@ def _row_to_activity(r) -> ActivitySummary:
 async def create_activity(
     field_id: str,
     req: ActivityCreateRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     """يسجّل عمليّة زراعيّة للحقل — تُخزَّن فعليّاً ضمن سياق المستأجِر (RLS).
 
     يتحقّق من نوع العمليّة (422)، ويحوّل التواريخ (400)، ويؤكّد أنّ الحقل
-    يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة.
+    يخصّ المستأجِر (404) قبل الإدراج، ثمّ يردّ العمليّة المُنشأة. idempotent:
+    Idempotency-Key (UUID) يمنع تكرار التسجيل عند إعادة الموبايل (offline).
     """
     import json as _json
     import uuid as _uuid
@@ -3032,69 +3092,88 @@ async def create_activity(
         ) from e
     try:
         async with tenant_connection(user) as conn:
-            await _assert_field_in_tenant(conn, field_id)
-            if req.season_id is not None:
-                # الموسم اختياريّ، لكن إن مُرّر فيجب أن يوجد ويخصّ الحقل نفسه
-                # (لا FK صلب على القاعدة؛ تحقّق تطبيقيّ + فهرس داعم — v45).
-                season_ok = await conn.fetchval(
-                    "SELECT 1 FROM seasons WHERE season_id = $1 AND field_id = $2",
-                    req.season_id,
-                    field_id,
-                )
-                if season_ok is None:
-                    raise HTTPException(
-                        status_code=422,
-                        detail={
-                            "message_ar": "الموسم غير موجود لهذا الحقل",
-                            "code": "invalid_season_for_field",
-                        },
+
+            async def _work():
+                await _assert_field_in_tenant(conn, field_id)
+                if req.season_id is not None:
+                    # الموسم اختياريّ، لكن إن مُرّر فيجب أن يوجد ويخصّ الحقل نفسه
+                    # (لا FK صلب على القاعدة؛ تحقّق تطبيقيّ + فهرس داعم — v45).
+                    season_ok = await conn.fetchval(
+                        "SELECT 1 FROM seasons WHERE season_id = $1 AND field_id = $2",
+                        req.season_id,
+                        field_id,
                     )
-            await conn.execute(
-                """INSERT INTO activities
-                    (activity_id, tenant_id, field_id, season_id, activity_type,
-                     title_ar, details, scheduled_for, performed_on, status)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)""",
-                activity_id,
-                str(user.tenant_id),
-                field_id,
-                req.season_id,
-                req.activity_type,
-                req.title_ar,
-                details_json,
-                scheduled,
-                performed,
-                status,
-            )
-            # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox) — بحدث عمليّة
-            # محدَّد (operation.*) حسب النوع/الحالة، وإلّا ACTIVITY_RECORDED العامّ.
-            await _emit_domain_event(
-                conn,
-                user,
-                _activity_event_type(req.activity_type, status),
-                "activity",
-                activity_id,
-                {
-                    "field_id": field_id,
-                    "season_id": req.season_id,
-                    "activity_type": req.activity_type,
-                    "status": status,
-                },
-            )
+                    if season_ok is None:
+                        raise HTTPException(
+                            status_code=422,
+                            detail={
+                                "message_ar": "الموسم غير موجود لهذا الحقل",
+                                "code": "invalid_season_for_field",
+                            },
+                        )
+                await conn.execute(
+                    """INSERT INTO activities
+                        (activity_id, tenant_id, field_id, season_id, activity_type,
+                         title_ar, details, scheduled_for, performed_on, status)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10)""",
+                    activity_id,
+                    str(user.tenant_id),
+                    field_id,
+                    req.season_id,
+                    req.activity_type,
+                    req.title_ar,
+                    details_json,
+                    scheduled,
+                    performed,
+                    status,
+                )
+                # حدث domain ضمن نفس معاملة تسجيل العمليّة (نمط outbox) — بحدث عمليّة
+                # محدَّد (operation.*) حسب النوع/الحالة، وإلّا ACTIVITY_RECORDED العامّ.
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    _activity_event_type(req.activity_type, status),
+                    "activity",
+                    activity_id,
+                    {
+                        "field_id": field_id,
+                        "season_id": req.season_id,
+                        "activity_type": req.activity_type,
+                        "status": status,
+                    },
+                )
+                # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
+                # عند الإعادة (مع حفظ activity_id الأصليّ) — response_model يتحقّق منه.
+                return ActivitySummary(
+                    activity_id=activity_id,
+                    field_id=field_id,
+                    season_id=req.season_id,
+                    activity_type=req.activity_type,
+                    title_ar=req.title_ar,
+                    details=req.details or {},
+                    scheduled_for=scheduled.isoformat() if scheduled else None,
+                    performed_on=performed.isoformat() if performed else None,
+                    status=status,
+                ).model_dump()
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="activity.create",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": field_id, "activity_id": activity_id},
+                )
+            else:
+                result = await _work()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("حفظ العمليّة", e) from e
-    return ActivitySummary(
-        activity_id=activity_id,
-        field_id=field_id,
-        season_id=req.season_id,
-        activity_type=req.activity_type,
-        title_ar=req.title_ar,
-        details=req.details or {},
-        scheduled_for=scheduled.isoformat() if scheduled else None,
-        performed_on=performed.isoformat() if performed else None,
-        status=status,
-    )
+    return result
 
 
 @app.get("/api/v1/fields/{field_id}/activities", response_model=list[ActivitySummary])
