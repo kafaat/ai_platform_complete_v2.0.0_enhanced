@@ -8545,6 +8545,38 @@ def compare_drought_resilience(
     )
 
 
+@app.get("/api/v1/calendars/today")
+def calendars_today(
+    date: str | None = None,
+    governorate: str | None = None,
+    crop: str | None = None,
+):
+    """سياق التقويم الزراعيّ لتاريخ (افتراضيّاً اليوم) في نداء واحد — يُسهّل بطاقة
+    «التقويم الزراعيّ» في الواجهة:
+      • المنزلة القمريّة النشطة + النوء (marker) + الشهر الحميريّ + ملف المنطقة.
+      • إن مُرِّر محصول: نافذة زراعته وملاءمة الشهر الحاليّ (تبكير/تأخير).
+    عرض/إرشاد تراثيّ-رصديّ صريحاً (display_only=true، خارج محرّك القرار) — التوقيت
+    الفعليّ يبقى على GDD/الفيزياء. تاريخ غير صالح ⇒ يُعاد error_ar من الجسر.
+    """
+    from datetime import date as _date
+
+    from api.yemeni_calendars import calendar_context_for_date
+
+    target_iso = date or _date.today().isoformat()
+    ctx = calendar_context_for_date(target_iso, governorate)
+    # تاريخ غير صالح ⇒ الجسر يُعيد {error_ar}: لا نُضيف planting (تجنّب خلط خطأ
+    # ببيانات مشتقّة من تاريخ آخر) — تدهور رشيق متّسق مع الـdocstring.
+    if crop and "error_ar" not in ctx:
+        from api.planting_calendar import check_planting_date, planting_window
+
+        month = _date.fromisoformat(target_iso).month  # صحيح هنا (مرّ الجسر)
+        ctx["planting"] = {
+            "window": planting_window(crop),
+            "current_month_fit": check_planting_date(crop, month),
+        }
+    return ctx
+
+
 @app.get("/api/v1/calendars/lunar-mansions")
 def calendars_lunar_mansions():
     """المنازل القمريّة الـ٢٨ (نجوم الزراعة) — مرجع معرفي تراثي (عرض فقط)."""
