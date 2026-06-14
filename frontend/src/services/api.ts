@@ -103,7 +103,9 @@ export interface LoginPayload { email: string; password: string; mfa_code?: stri
 // user اختياريّ (غائب في الردّ الخام) ويحوي id (من user_id) لتفادي ضياعه.
 export interface AuthResponse {
   access_token: string;
-  refresh_token: string;
+  // قد تكون null حين لا يتوفّر Redis (auth-service لا يُصدِر refresh) — نُبقيها كما
+  // هي بدل طمسها بـ'' (سلسلة فارغة تُلتبَس كتوكن صالح). يطابق عقد TokenResponse.
+  refresh_token: string | null;
   tenant_id?: string;
   role?: string;
   user_id?: number;
@@ -124,11 +126,11 @@ export const login = (payload: LoginPayload): Promise<AuthResponse> =>
       }).then(r => {
         // الردّ الخام مسطّح ⇒ نطبّعه إلى {user:{...}} (كان login يُعيد الخام مباشرةً
         // فيصبح data.user = undefined وقت التشغيل، فيضيع user_id/full_name).
-        const d = r.data as { access_token: string; refresh_token?: string; role?: string;
+        const d = r.data as { access_token: string; refresh_token?: string | null; role?: string;
           full_name?: string; tenant_id?: string; user_id?: number };
         return {
           access_token: d.access_token,
-          refresh_token: d.refresh_token ?? '',
+          refresh_token: d.refresh_token ?? null,
           tenant_id: d.tenant_id,
           role: d.role,
           user_id: d.user_id,
@@ -166,11 +168,11 @@ export const register = (payload: RegisterPayload): Promise<AuthResponse> =>
     ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh',
         user:{ username:payload.email, email:payload.email, role:'farmer', full_name:payload.full_name } } as AuthResponse)
     : authApi.post('/auth/register', payload).then(r => {
-    const d = r.data as { access_token: string; refresh_token?: string; role?: string;
+    const d = r.data as { access_token: string; refresh_token?: string | null; role?: string;
       full_name?: string; tenant_id?: string; user_id?: number };
     return {
       access_token: d.access_token,
-      refresh_token: d.refresh_token ?? '',
+      refresh_token: d.refresh_token ?? null,
       tenant_id: d.tenant_id,
       role: d.role,
       user_id: d.user_id,
