@@ -15,6 +15,7 @@
 import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet (side-effect) — حاسم للتصيير
 import { rasterApi } from '../services/api';
 
 // قاعدة خدمة الراستر (نفس الأساس المستخدم في useIndicatorGrid / VITE_RASTER_URL)

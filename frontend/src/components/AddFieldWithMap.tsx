@@ -14,7 +14,7 @@ import {
 } from 'react-leaflet';
 import { EditControl } from 'react-leaflet-draw';
 import L from 'leaflet';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import '../lib/leafletSetup'; // CSS الأساسيّ لـLeaflet + الأداة + الأيقونات (حاسم للتصيير)
 import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle, Upload, FileUp,
