@@ -80,6 +80,12 @@ class DailyForecast:
     sunshine_hours: float | None
     wind_max_ms: float
     weather_code: int
+    # شمسيّ/نهاريّ — مفيد لجدولة الريّ بالطاقة الشمسيّة (مضخّات شمسيّة) وتقدير
+    # الإنتاج الشمسيّ: وقت الشروق/الغروب، مدّة النهار، ومجموع الإشعاع القصير الموجة.
+    sunrise: str | None = None  # ISO datetime محلّيّ
+    sunset: str | None = None  # ISO datetime محلّيّ
+    daylight_hours: float | None = None  # مدّة النهار بالساعات
+    solar_radiation_mj_m2: float | None = None  # مجموع الإشعاع القصير الموجة (MJ/m²·يوم)
 
 
 @dataclass
@@ -91,6 +97,43 @@ class WeatherBundle:
     current: CurrentWeather
     daily_forecast: list[DailyForecast]
     historical_30d: list[DailyForecast] | None = None
+
+
+# مفاتيح Open-Meteo اليوميّة المطلوبة (مشتركة بين التوقّع والتاريخيّ) — تشمل
+# الشروق/الغروب/مدّة النهار/الإشعاع الشمسيّ لجدولة الريّ بالطاقة الشمسيّة.
+_DAILY_KEYS = [
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "precipitation_sum",
+    "et0_fao_evapotranspiration",
+    "sunshine_duration",
+    "wind_speed_10m_max",
+    "weather_code",
+    "sunrise",
+    "sunset",
+    "daylight_duration",
+    "shortwave_radiation_sum",
+]
+
+
+def _build_daily(d: dict, i: int, date: str) -> DailyForecast:
+    """يبني DailyForecast من استجابة Open-Meteo اليوميّة (فهرسة آمنة لكلّ حقل)."""
+    _sun = _daily_at(d, "sunshine_duration", i, None)
+    _day = _daily_at(d, "daylight_duration", i, None)
+    return DailyForecast(
+        date=date,
+        temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
+        temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
+        precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
+        et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
+        sunshine_hours=(_sun / 3600 if _sun else None),
+        wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
+        weather_code=_daily_at(d, "weather_code", i, 0),
+        sunrise=_daily_at(d, "sunrise", i, None),
+        sunset=_daily_at(d, "sunset", i, None),
+        daylight_hours=(round(_day / 3600, 2) if _day else None),
+        solar_radiation_mj_m2=_daily_at(d, "shortwave_radiation_sum", i, None),
+    )
 
 
 # ─── Implementation ────────────────────────────────────────────────
@@ -206,17 +249,7 @@ async def fetch_daily_forecast(
     params = {
         "latitude": lat,
         "longitude": lon,
-        "daily": ",".join(
-            [
-                "temperature_2m_max",
-                "temperature_2m_min",
-                "precipitation_sum",
-                "et0_fao_evapotranspiration",
-                "sunshine_duration",
-                "wind_speed_10m_max",
-                "weather_code",
-            ]
-        ),
+        "daily": ",".join(_DAILY_KEYS),
         "timezone": "auto",
         "wind_speed_unit": "ms",
         "forecast_days": days,
@@ -229,22 +262,7 @@ async def fetch_daily_forecast(
 
     d = data.get("daily", {})
     dates = d.get("time", [])
-    results = []
-    for i, date in enumerate(dates):
-        _sun = _daily_at(d, "sunshine_duration", i, None)
-        results.append(
-            DailyForecast(
-                date=date,
-                temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
-                temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
-                precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
-                et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
-                sunshine_hours=(_sun / 3600 if _sun else None),
-                wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
-                weather_code=_daily_at(d, "weather_code", i, 0),
-            )
-        )
-    return results
+    return [_build_daily(d, i, date) for i, date in enumerate(dates)]
 
 
 async def fetch_historical(
@@ -260,17 +278,7 @@ async def fetch_historical(
         "longitude": lon,
         "start_date": start_date,
         "end_date": end_date,
-        "daily": ",".join(
-            [
-                "temperature_2m_max",
-                "temperature_2m_min",
-                "precipitation_sum",
-                "et0_fao_evapotranspiration",
-                "sunshine_duration",
-                "wind_speed_10m_max",
-                "weather_code",
-            ]
-        ),
+        "daily": ",".join(_DAILY_KEYS),
         "timezone": "auto",
         "wind_speed_unit": "ms",
     }
@@ -282,22 +290,7 @@ async def fetch_historical(
 
     d = data.get("daily", {})
     dates = d.get("time", [])
-    results = []
-    for i, date in enumerate(dates):
-        _sun = _daily_at(d, "sunshine_duration", i, None)
-        results.append(
-            DailyForecast(
-                date=date,
-                temp_max_c=_daily_at(d, "temperature_2m_max", i, 0),
-                temp_min_c=_daily_at(d, "temperature_2m_min", i, 0),
-                precipitation_mm=_daily_at(d, "precipitation_sum", i, 0),
-                et0_mm=_daily_at(d, "et0_fao_evapotranspiration", i, None),
-                sunshine_hours=(_sun / 3600 if _sun else None),
-                wind_max_ms=_daily_at(d, "wind_speed_10m_max", i, 0),
-                weather_code=_daily_at(d, "weather_code", i, 0),
-            )
-        )
-    return results
+    return [_build_daily(d, i, date) for i, date in enumerate(dates)]
 
 
 async def fetch_bundle(
