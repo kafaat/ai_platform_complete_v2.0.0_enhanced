@@ -252,6 +252,16 @@ export default function RecommendationFlow() {
         </Card>
       )}
 
+      {/* ── تعافٍ: لو ضاعت التوصية المختارة (إفراغ/إعادة جلب) ونحن في 3/4 ── */}
+      {(step === 3 || step === 4) && !chosen && (
+        <Card pad={14}>
+          <div style={{ color: T.muted, fontSize: 13, padding: '6px 0' }}>
+            لم تَعُد التوصية المختارة متاحة — ارجع لاختيار توصية.
+          </div>
+          <CTA tone="gold" onClick={() => { setRecIdx(null); setStep(2); }}>الرجوع للتوصيات</CTA>
+        </Card>
+      )}
+
       {/* ── الخطوة 4: المراجعة والتسجيل ── */}
       {step === 4 && chosen && (
         <Card pad={14}>

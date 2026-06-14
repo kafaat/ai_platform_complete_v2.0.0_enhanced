@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useFields, useDevices, useDeviceTelemetry, useEquipment } from '../hooks/useApi';
 import type { TelemetryPoint } from '../services/api';
+import { fmtDateAr } from '../lib/dates';
 import {
   T, Card, Pill, Badge, SectionLabel, Row, StatGrid, RadialGauge, ExpandableCard,
   LayerSwitcher, FieldCabin, equipStatusAr, equipStatusTone,
@@ -29,6 +30,13 @@ const SENSOR_AR: Record<string, string> = {
 };
 const sensorAr = (s?: string) => SENSOR_AR[(s ?? '').toLowerCase()] ?? (s || 'قياس');
 const GAUGE_SENSORS = new Set(['soil_moisture', 'moisture', 'humidity', 'battery']);
+// عدّاد نصف-قطريّ فقط لقياس نسبيّ صريح (الوحدة «%») وضمن [0,100] — تفادياً
+// لعرض مقياس مضلّل حين يُبلَّغ الحسّاس كسراً (0–1) أو بوحدة خام. غير ذلك → صفّ.
+function isPercentGauge(p: TelemetryPoint): boolean {
+  return GAUGE_SENSORS.has((p.sensor_type ?? '').toLowerCase())
+    && p.unit === '%'
+    && Number.isFinite(p.value) && p.value >= 0 && p.value <= 100;
+}
 
 function sensorIcon(s?: string) {
   const k = (s ?? '').toLowerCase();
@@ -39,11 +47,8 @@ function sensorIcon(s?: string) {
   return <Gauge style={{ width: 14, height: 14, color: T.muted }} />;
 }
 
-const fmtTime = (s?: string) => {
-  if (!s) return '';
-  const t = new Date(s);
-  return Number.isNaN(t.getTime()) ? '' : t.toLocaleString('ar-SA', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
-};
+// وقت القراءة (يعيد استخدام مُنسّق التواريخ الموحّد بخيار الساعة/الدقيقة).
+const fmtTime = (s?: string) => fmtDateAr(s, { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
 
 interface MonField { id: string; name: string }
 
@@ -61,7 +66,9 @@ export default function HybridMonitor() {
   const field = fields.find((f) => f.id === fieldId) ?? fields[0];
 
   const allDevices = Array.isArray(devicesQ.data) ? devicesQ.data : [];
-  const fieldDevices = field ? allDevices.filter((d) => d.field_id === field.id) : [];
+  // مطابقة منسوبة بعد التطبيع (field.id مُمرَّر عبر String؛ نطبّع d.field_id كذلك
+  // كي لا ينهار التطابق إن أرجع الخادم field_id رقماً) — null لا يطابق حقلاً.
+  const fieldDevices = field ? allDevices.filter((d) => d.field_id != null && String(d.field_id) === field.id) : [];
 
   const [deviceId, setDeviceId] = useState('');
   const activeDevice = fieldDevices.find((d) => d.device_id === deviceId) ?? fieldDevices[0];
@@ -80,7 +87,8 @@ export default function HybridMonitor() {
   }, [telemetryQ.data]);
 
   const equipment = Array.isArray(equipQ.data) ? equipQ.data : [];
-  const needsService = equipment.filter((e) => ['maintenance', 'broken', 'down'].includes((e.status ?? '').toLowerCase()));
+  // «تحتاج صيانة» مشتقّ من مصدر النغمة الموحّد (status.ts) لا من قائمة محليّة.
+  const needsService = equipment.filter((e) => ['warn', 'danger'].includes(equipStatusTone(e.status)));
   const [openFleet, setOpenFleet] = useState(false);
 
   return (
@@ -163,22 +171,22 @@ export default function HybridMonitor() {
               <div style={{ color: T.muted, fontSize: 13, padding: '6px 0' }}>لا قراءات حديثة لهذا الجهاز.</div>
             ) : (
               <>
-                {/* عدّادات نصف-قطريّة للحسّاسات النسبيّة (0–100) */}
+                {/* عدّادات نصف-قطريّة للحسّاسات النسبيّة الصريحة (وحدتها %) */}
                 <div className="flex" style={{ gap: 12, justifyContent: 'space-around', flexWrap: 'wrap' }}>
                   {latestBySensor
-                    .filter((p) => GAUGE_SENSORS.has((p.sensor_type ?? '').toLowerCase()))
+                    .filter(isPercentGauge)
                     .map((p) => (
                       <RadialGauge
                         key={p.sensor_type}
-                        pct={Number.isFinite(p.value) ? Math.round(p.value) : null}
+                        pct={Math.round(p.value)}
                         label={sensorAr(p.sensor_type)}
                         color={T.info}
                       />
                     ))}
                 </div>
-                {/* بقيّة القراءات كصفوف */}
+                {/* بقيّة القراءات كصفوف (بوحدتها الخام — لا افتراض مقياس) */}
                 {latestBySensor
-                  .filter((p) => !GAUGE_SENSORS.has((p.sensor_type ?? '').toLowerCase()))
+                  .filter((p) => !isPercentGauge(p))
                   .map((p) => (
                     <Row
                       key={p.sensor_type}
