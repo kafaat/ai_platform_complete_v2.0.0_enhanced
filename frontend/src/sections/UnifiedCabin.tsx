@@ -5,17 +5,16 @@
 // بستّ وجهات (القيادة · الخريطة · التخطيط · المراقبة · التحليل · الإعداد) يستضيف
 // شاشات الدمج الخمس المبنيّة فعلاً في تطبيقٍ واحد، بدل صفحات «معاينة» متفرّقة.
 //
-// صدق: لا تلفيق. الوجهات الأربع ذات الشاشات الموحّدة المبنيّة تعرضها مباشرةً؛
-// «التخطيط» يجمع شاشتَي التخطيط (توصية←تنفيذ + المهام) عبر TabBar؛ ووجهتا
-// «التحليل/الإعداد» اللتان لم تُبنَ وحدتهما الموحّدة بعد تُظهران بطاقة «قيد
-// الإنشاء» صريحة (تشيران للقسم الكلاسيكيّ القائم) — لا شاشة مزيّفة.
+// صدق: لا تلفيق. الوجهات الست تعرض شاشاتها الموحّدة المبنيّة مباشرةً؛ «التخطيط»
+// يجمع شاشتَي التخطيط (توصية←تنفيذ + المهام) عبر TabBar؛ و«التحليل/الإعداد»
+// أصبحتا شاشتَين موحّدتَين حقيقيّتَين (قراءة فقط) — لم تعد أيّ وجهة «قيد الإنشاء».
 // ═══════════════════════════════════════════════════════════════
 import { useState, lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
 import {
-  Gauge, Map as MapIcon, ClipboardList, Activity, BarChart3, Settings, Loader2, Hammer,
+  Gauge, Map as MapIcon, ClipboardList, Activity, BarChart3, Settings, Loader2,
 } from 'lucide-react';
-import { T, Card, SectionLabel, FieldCabin, BottomTabBar, TabBar } from '../components/ds';
+import { T, BottomTabBar, TabBar } from '../components/ds';
 
 const OperationCommand  = lazy(() => import('./OperationCommand'));
 const FieldMapCenter    = lazy(() => import('./FieldMapCenter'));
@@ -23,6 +22,7 @@ const RecommendationFlow = lazy(() => import('./RecommendationFlow'));
 const FieldTasksCabin   = lazy(() => import('./FieldTasksCabin'));
 const HybridMonitor     = lazy(() => import('./HybridMonitor'));
 const AnalyzeCabin      = lazy(() => import('./AnalyzeCabin'));
+const SetupCabin        = lazy(() => import('./SetupCabin'));
 
 type DestId = 'command' | 'map' | 'plan' | 'monitor' | 'analyze' | 'setup';
 const DESTS: { id: DestId; label: string; icon: ReactNode }[] = [
@@ -33,29 +33,6 @@ const DESTS: { id: DestId; label: string; icon: ReactNode }[] = [
   { id: 'analyze', label: 'التحليل', icon: <BarChart3 style={{ width: 16, height: 16 }} /> },
   { id: 'setup', label: 'الإعداد', icon: <Settings style={{ width: 16, height: 16 }} /> },
 ];
-
-// وجهة لم تُبنَ وحدتها الموحّدة بعد — بطاقة صادقة تشير للقسم الكلاسيكيّ.
-function ComingSoon({ title, classic }: { title: string; classic: string }) {
-  return (
-    <FieldCabin
-      eyebrow="التطبيق الموحّد"
-      title={title}
-      note={<>الوحدة الموحّدة لهذه الوجهة لم تُبنَ بعد — يغطّيها القسم الكلاسيكيّ «{classic}» في القائمة الجانبيّة.</>}
-    >
-      <Card pad={16}>
-        <SectionLabel>قيد الإنشاء</SectionLabel>
-        <div className="flex flex-col items-center" style={{ gap: 10, padding: '20px 0', color: T.muted, textAlign: 'center' }}>
-          <Hammer style={{ width: 30, height: 30, color: T.faint }} />
-          <div style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>وجهة «{title}»</div>
-          <div style={{ fontSize: 12, lineHeight: 1.7 }}>
-            الوحدة الموحّدة لهذه الوجهة ضمن خطّة الكسوة التاليّة. حتى تُبنى، استخدم قسم
-            «{classic}» الكلاسيكيّ — لا نعرض شاشة مزيّفة هنا.
-          </div>
-        </div>
-      </Card>
-    </FieldCabin>
-  );
-}
 
 // وجهة «التخطيط» — تجمع شاشتَي التخطيط المبنيّتين عبر مبدّل علويّ.
 type PlanTab = 'rec' | 'tasks';
@@ -85,7 +62,7 @@ export default function UnifiedCabin() {
       case 'plan': return <PlanDestination />;
       case 'monitor': return <HybridMonitor />;
       case 'analyze': return <AnalyzeCabin />;
-      case 'setup': return <ComingSoon title="الإعداد" classic="إدارة الحقول/المعدّات" />;
+      case 'setup': return <SetupCabin />;
     }
   }
 
