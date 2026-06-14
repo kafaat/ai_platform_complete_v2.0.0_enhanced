@@ -7,21 +7,22 @@ export default {
         cairo:   ['Cairo','sans-serif'],
         tajawal: ['Tajawal','sans-serif'],
       },
-      // نظام التصميم الموحّد — نفس قيم CSS variables الموجودة في index.css (:root)
-      // وفئات الحالة، صارت tokens قابلة لإعادة الاستخدام (بدل inline متكرّر). لا اختراع.
+      // نظام التصميم الموحّد — ألوان sahool تُحلّ من CSS variables (ثلاثيّات RGB)
+      // عبر rgb(var(--sahool-x) / <alpha-value>): تتبدّل مع السمة وتدعم مُعدّلات
+      // الشفافية (مثل bg-sahool-surface/40). تُعرّف القيم في index.css لكل سمة.
       colors: {
         sahool: {
-          green:        '#16a34a',  // --sahool-green
-          'green-light':'#4ade80',  // --sahool-green-light
-          'green-dark': '#15803d',  // --sahool-green-dark
-          bg:           '#0f1117',  // --sahool-bg
-          surface:      '#1e293b',  // --sahool-surface
-          'surface-2':  '#172032',  // سطح ثانويّ (لوحة الطقس — قيمة مستعملة أصلاً)
-          border:       '#334155',  // --sahool-border
-          'border-focus':'#16a34a', // حدّ التركيز = الأخضر العلامي (focus ring)
-          text:         '#e2e8f0',  // --sahool-text
-          muted:        '#64748b',  // --sahool-muted
-          accent:       '#38bdf8',  // --sahool-accent
+          green:        'rgb(var(--sahool-green) / <alpha-value>)',
+          'green-light':'rgb(var(--sahool-green-light) / <alpha-value>)',
+          'green-dark': 'rgb(var(--sahool-green-dark) / <alpha-value>)',
+          bg:           'rgb(var(--sahool-bg) / <alpha-value>)',
+          surface:      'rgb(var(--sahool-surface) / <alpha-value>)',
+          'surface-2':  'rgb(var(--sahool-surface-2) / <alpha-value>)',
+          border:       'rgb(var(--sahool-border) / <alpha-value>)',
+          'border-focus':'rgb(var(--sahool-border-focus) / <alpha-value>)',
+          text:         'rgb(var(--sahool-text) / <alpha-value>)',
+          muted:        'rgb(var(--sahool-muted) / <alpha-value>)',
+          accent:       'rgb(var(--sahool-accent) / <alpha-value>)',
         },
         // فئات الحالة (status-*) من index.css — نفس القيم، صارت ألوان Tailwind.
         status: {

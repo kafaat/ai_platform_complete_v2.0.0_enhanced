@@ -12,8 +12,10 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
+import { useTheme, type Theme } from './hooks/useTheme';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
+import ThemeToggle from './components/ThemeToggle';
 import { canAccess, canCreateFarm } from './lib/permissions';
 import { LoadingState } from './components/StateViews';
 
@@ -330,9 +332,11 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: SidebarProps) {
 interface TopBarProps {
   page: PageId;
   onMenu: () => void;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
 }
 
-function TopBar({ page, onMenu }: TopBarProps) {
+function TopBar({ page, onMenu, theme, setTheme }: TopBarProps) {
   const item = NAV_ITEMS.find(n => n.id === page);
   const Icon = item?.icon || LayoutDashboard;
   const { isDemoMode } = useAuthStore();
@@ -357,6 +361,7 @@ function TopBar({ page, onMenu }: TopBarProps) {
           {wsOk ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
           NATS
         </span>
+        <ThemeToggle theme={theme} setTheme={setTheme} />
       </div>
     </header>
     </ErrorBoundary>
@@ -365,6 +370,8 @@ function TopBar({ page, onMenu }: TopBarProps) {
 
 export default function App() {
   const { isAuthenticated, user, isDemoMode } = useAuthStore();
+  // السمة (فاتح/داكن) على مستوى الجذر — تُطبَّق على <html> وتُحفظ في localStorage.
+  const { theme, setTheme } = useTheme();
   // بوّابة التأهيل: بعد المصادقة نفحص وجود مزرعة. مُعطَّلة قبل المصادقة وفي الوضع
   // التجريبيّ (لا تُطلق الطلب، فالاستعلام لا يعمل إلا حين isAuthenticated && !isDemoMode).
   const farms = useFarms(isAuthenticated && !isDemoMode);
@@ -508,7 +515,7 @@ export default function App() {
           </>
         )}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <TopBar page={page} onMenu={() => setMobileOpen(!mobileOpen)} />
+          <TopBar page={page} onMenu={() => setMobileOpen(!mobileOpen)} theme={theme} setTheme={setTheme} />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Suspense fallback={<Loader />}>{renderPage()}</Suspense>
           </main>

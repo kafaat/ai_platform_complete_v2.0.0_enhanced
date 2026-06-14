@@ -3,17 +3,37 @@
 @tailwind utilities;
 
 /* ── SAHOOL v8 Design System ── */
-:root {
-  --sahool-green:     #16a34a;
-  --sahool-green-light: #4ade80;
-  --sahool-green-dark:  #15803d;
-  --sahool-bg:        #0f1117;
-  --sahool-surface:   #1e293b;
-  --sahool-border:    #334155;
-  --sahool-text:      #e2e8f0;
-  --sahool-muted:     #64748b;
-  --sahool-accent:    #38bdf8;
+/* القيم صارت ثلاثيّات RGB مفصولة بمسافات (r g b) ليستهلكها Tailwind عبر
+   rgb(var(--sahool-x) / <alpha-value>) فتعمل مُعدّلات الشفافية (مثل /40). */
+:root,
+[data-theme="dark"] {
+  --sahool-green:        22 163 74;   /* #16a34a */
+  --sahool-green-light: 74 222 128;   /* #4ade80 */
+  --sahool-green-dark:  21 128 61;    /* #15803d */
+  --sahool-bg:          15 17 23;     /* #0f1117 */
+  --sahool-surface:     30 41 59;     /* #1e293b */
+  --sahool-surface-2:   23 32 50;     /* #172032 */
+  --sahool-border:      51 65 85;     /* #334155 */
+  --sahool-border-focus: 22 163 74;   /* #16a34a */
+  --sahool-text:        226 232 240;  /* #e2e8f0 */
+  --sahool-muted:       100 116 139;  /* #64748b */
+  --sahool-accent:      56 189 248;   /* #38bdf8 */
   --font-ar: 'Cairo', 'Tajawal', system-ui, sans-serif;
+}
+
+/* سمة فاتحة دافئة — تُفعّل فقط عند التبديل (data-theme="light"). */
+[data-theme="light"] {
+  --sahool-green:        46 125 50;   /* #2e7d32 */
+  --sahool-green-light: 102 187 106;  /* #66bb6a */
+  --sahool-green-dark:  27 94 32;     /* #1b5e20 */
+  --sahool-bg:          251 247 240;  /* #fbf7f0 */
+  --sahool-surface:     255 255 255;  /* #ffffff */
+  --sahool-surface-2:   245 240 232;  /* #f5f0e8 */
+  --sahool-border:      232 223 210;  /* #e8dfd2 */
+  --sahool-border-focus: 46 125 50;   /* #2e7d32 */
+  --sahool-text:        44 26 14;     /* #2c1a0e */
+  --sahool-muted:       154 138 118;  /* #9a8a76 */
+  --sahool-accent:      2 132 199;    /* #0284c7 */
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,8 +41,8 @@
 html { font-family: var(--font-ar); }
 
 body {
-  background: var(--sahool-bg);
-  color: var(--sahool-text);
+  background: rgb(var(--sahool-bg));
+  color: rgb(var(--sahool-text));
   font-family: var(--font-ar);
   direction: rtl;
   overflow-x: hidden;
@@ -37,8 +57,8 @@ body {
 
 /* ── SAHOOL Card ── */
 .sahool-card {
-  background: var(--sahool-surface);
-  border: 1px solid var(--sahool-border);
+  background: rgb(var(--sahool-surface));
+  border: 1px solid rgb(var(--sahool-border));
   border-radius: 12px;
   padding: 16px;
 }
