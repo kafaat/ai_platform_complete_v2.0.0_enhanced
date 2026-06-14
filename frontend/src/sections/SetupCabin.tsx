@@ -11,18 +11,22 @@
 // الحالات (تحميل/خطأ/فراغ) صريحة لكلّ قسم. هذه نظرة عامّة للقراءة فقط — التعديل
 // يبقى في الأقسام الكلاسيكيّة (إدارة الحقول/المعدّات/الأجهزة/الإعدادات).
 // ═══════════════════════════════════════════════════════════════
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
-  Sprout, MapPinned, Tractor, Cpu, ShieldCheck, SlidersHorizontal, Globe, Map as MapIcon, Wrench,
+  Sprout, MapPinned, Tractor, Cpu, ShieldCheck, SlidersHorizontal, Globe, Map as MapIcon, Wrench, Plus,
 } from 'lucide-react';
-import { useFarms, useEquipment, useDevices } from '../hooks/useApi';
+import { useFarms, useEquipment, useDevices, QK } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
 import { useAuthStore } from '../hooks/useAuth';
-import { ROLE_LABEL_AR, normalizeRole, canAccess, type Role } from '../lib/permissions';
+import { ROLE_LABEL_AR, normalizeRole, canAccess, canMutate, type Role } from '../lib/permissions';
+import { kongApi, type FieldImportInput } from '../services/api';
+import { toastStore } from '../services/websocket';
+import FieldSetupWizard from '../components/fieldsetup/FieldSetupWizard';
 import type { PageId } from '../App';
 import {
   T, Card, Pill, Badge, SectionLabel, Row, StatGrid,
-  FieldCabin, equipStatusAr, equipStatusTone,
+  FieldCabin, equipStatusAr, equipStatusTone, Button,
 } from '../components/ds';
 
 // رقم محلّيّ بالعربيّة أو «—» إن غاب — لا تلفيق صفر لقيمة غير متاحة.
@@ -84,6 +88,51 @@ export default function SetupCabin() {
   const prefs = useMemo(readSettings, []);
   const langLabel = prefs.lang ? (LANG_AR[prefs.lang] ?? prefs.lang) : null;
   const mapLabel = prefs.map ? (MAP_AR[prefs.map] ?? prefs.map) : null;
+
+  // ── إنشاء حقل جديد: نقطة دخول للمعالج المتسلسل القائم (FieldSetupWizard) ──
+  // تفتح نفس المعالج الذي تستخدمه صفحة «إدارة الحقول» — لا تدفّق مكرّر. التعديل
+  // محكوم بالدور (canMutate). المعالجات تعكس FieldManagementPage حرفيّاً:
+  // POST /api/v1/fields للإنشاء و/fields/import للاستيراد، وتُرجِع سجلّ الخادم
+  // كي يلتقط المعالج field_id. لا تلفيق ولا مسار حفظ جديد.
+  const mutateAllowed = canMutate(userRole);
+  const qc = useQueryClient();
+  const tid = (useAuthStore((s) => s.user) as any)?.tenant_id ?? 'default';
+  const [showWizard, setShowWizard] = useState(false);
+
+  // بعد الإنشاء/الاستيراد نُبطِل كاش قائمة الحقول كي تُعيد SetupCabin الجلب
+  // (useFieldOptions يلفّ useFields بنفس مفتاح QK.fields(tid)).
+  const invalidateFields = () => qc.invalidateQueries({ queryKey: QK.fields(tid) });
+
+  const handleWizardSaveField = async (data: any): Promise<Record<string, unknown>> => {
+    const r = await kongApi.post('/api/v1/fields', {
+      name: data.name, crop: data.crop,
+      soil_type: data.soil_type ?? data.soil,
+      manager: data.manager,
+      field_code: data.field_code ?? null,
+      water_source: data.water_source ?? null,
+      ownership_type: data.ownership_type ?? null,
+      country: data.country ?? null,
+      region: data.region ?? null,
+      geometry: data.geometry,
+    });
+    const rec = r.data as Record<string, unknown>;
+    invalidateFields();
+    toastStore.add('success', '✅ تم إضافة الحقل', `${data.name}`);
+    return rec;
+  };
+
+  const handleWizardImportField = async (payload: FieldImportInput): Promise<Record<string, unknown>> => {
+    const r = await kongApi.post('/api/v1/fields/import', payload);
+    const rec = r.data as Record<string, unknown>;
+    invalidateFields();
+    toastStore.add('success', '✅ تم استيراد الحقل', `${payload.name}`);
+    return rec;
+  };
+
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    invalidateFields();
+  };
 
   return (
     <FieldCabin
@@ -149,6 +198,18 @@ export default function SetupCabin() {
         >
           الحقول
         </SectionLabel>
+        {/* نقطة دخول بارزة: تفتح نفس معالج التهيئة المتسلسل (FieldSetupWizard) */}
+        {mutateAllowed && (
+          <div style={{ marginBottom: 10 }}>
+            <Button
+              onClick={() => setShowWizard(true)}
+              full={false}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13 }}
+            >
+              <Plus style={{ width: 14, height: 14 }} /> إنشاء حقل جديد
+            </Button>
+          </div>
+        )}
         {fieldsQ.isLoading ? (
           <div style={{ color: T.muted, fontSize: 12, padding: '8px 0' }}>جارٍ تحميل الحقول…</div>
         ) : fieldsQ.isError ? (
@@ -307,6 +368,16 @@ export default function SetupCabin() {
           </div>
         )}
       </Card>
+
+      {/* معالج تهيئة الحقل المتسلسل — نفس المعالج المستخدم في «إدارة الحقول» */}
+      {showWizard && (
+        <FieldSetupWizard
+          onSaveField={handleWizardSaveField}
+          onImportField={handleWizardImportField}
+          onComplete={handleWizardComplete}
+          onCancel={() => setShowWizard(false)}
+        />
+      )}
     </FieldCabin>
   );
 }
