@@ -23,41 +23,54 @@ const renderMarkdown = (s: string) =>
 //   ✅ Fallback لـ KB المحلي عند انقطاع الاتصال
 // ═══════════════════════════════════════════════════════════════════
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Bot, Send, User, Loader2, Sprout, Droplets, Sun, Bug,
   FlaskConical, ThumbsUp, ThumbsDown, Copy, Clock,
   Trash2, RefreshCw, Sparkles, Leaf, Wind, AlertCircle,
   ChevronDown, Wheat, BarChart3,
 } from 'lucide-react';
+import { useFields, useWeatherForecast } from '../hooks/useApi';
 
-// ── Farm context injected into every request ─────────────────────
-const FARM_CONTEXT = `
-أنت مستشار زراعي ذكي متخصص لمنصة "سهول" للزراعة الذكية اليمنية.
-السياق الحالي للمزرعة:
-- الموقع: البيضاء، اليمن
-- المحاصيل: قمح صلب، شعير، ذرة صفراء، طماطم، بطاطس
-- متوسط NDVI: 0.62 (جيد)
-- عدد الحقول: 8 حقول (إجمالي 249.0 هـ)
-- الطقس الحالي: 15.7°C، رطوبة 70%، رياح 2.5 كم/س
-- الموسم: 2025/2026
-- محرك التنبؤ: WOFOST-RUE-v8
+// ── سياق المزرعة الحيّ ────────────────────────────────────────────
+// كان ثابتاً مُلفَّقاً (NDVI=0.62 و«8 حقول 249هـ» و15.7°م) يُحقَن في كلّ طلب —
+// يُضلّل النموذج بأرقام لا تخصّ المستخدم. الآن يُبنى من بياناته الفعليّة (الحقول
+// + الطقس). عند غياب مصدر نقول ذلك صراحةً بدل اختراع قيمة.
+interface LiveContext { count: number; totalArea: number; avgNdvi: number | null; crops: string[]; w: any }
 
-القواعد:
-1. أجب دائماً بالعربية الفصحى الواضحة
-2. اذكر الأرقام والوحدات بدقة
-3. قدّم توصيات عملية قابلة للتطبيق
-4. اربط الإجابات ببيانات المزرعة عند الإمكان
-5. كن موجزاً (3-5 جمل) ما لم يُطلب شرح تفصيلي
-`;
+function buildSystemPrompt(c: LiveContext): string {
+  const farm = c.count === 0
+    ? '- لا توجد حقول مُسجّلة بعد لهذا المستخدم (اطلب منه إضافة حقل أوّلاً قبل التوصيات الرقميّة).'
+    : [
+        `- عدد الحقول: ${c.count} (إجمالي ${c.totalArea.toFixed(1)} هـ)`,
+        `- متوسّط NDVI الحاليّ: ${c.avgNdvi != null ? c.avgNdvi.toFixed(2) : 'غير متاح'}`,
+        `- المحاصيل: ${c.crops.length ? c.crops.join('، ') : 'غير محدّدة'}`,
+      ].join('\n');
+  const weather = c.w
+    ? `- الطقس الحاليّ: ${c.w.tmean}°م، رطوبة ${c.w.humidity_pct}٪، رياح ${c.w.wind_speed_kmh} كم/س${c.w.et0_mm != null ? `، ET0 ${c.w.et0_mm} مم` : ''}`
+    : '- الطقس الحاليّ: غير متاح (خدمة الطقس متعذّرة الآن)';
+  return [
+    'أنت مستشار زراعيّ ذكيّ متخصّص لمنصّة "سهول" للزراعة الذكيّة اليمنيّة.',
+    'السياق الحيّ للمزرعة (مشتقّ من بيانات المستخدم الفعليّة، لا قيم افتراضيّة):',
+    farm,
+    weather,
+    '',
+    'القواعد:',
+    '1. أجب دائماً بالعربيّة الفصحى الواضحة.',
+    '2. اذكر الأرقام والوحدات بدقّة.',
+    '3. لا تذكر رقماً غير وارد في السياق أعلاه؛ إن غابت بيانات قل بصدق إنّها غير متاحة.',
+    '4. قدّم توصيات عمليّة قابلة للتطبيق واربطها بالبيانات المتاحة.',
+    '5. كن موجزاً (3-5 جمل) ما لم يُطلب شرح تفصيليّ.',
+  ].join('\n');
+}
 
-// ── Local KB fallback ────────────────────────────────────────────
+// ── قاعدة معرفة احتياطيّة (بلا إنترنت) — إرشاد عامّ لا ادّعاء بأرقام المزرعة ──
 const KB: Record<string, string> = {
-  ndvi: 'NDVI الحالي 0.62 — جيد. يتراوح المؤشر -1 إلى +1. >0.6 صحي، <0.3 إجهاد. المعادلة: (NIR-Red)/(NIR+Red). تابعه كل 5 أيام عبر Sentinel-2.',
-  ري: 'الري بالتنقيط (90% كفاءة) الأفضل لمزرعتك. درجة الحرارة 15.7°C → ET0 ≈ 3.5 مم/يوم. الري الصباحي 6-8 صباحاً يقلل البخر 30%.',
-  سماد: 'للقمح الحالي (مرحلة ملء الحبوب): لا تُضف نيتروجين الآن. جرعة البوتاسيوم 40 كجم/هـ مفيدة لجودة الحبة. pH التربة 6.5-7.2 مثالي.',
-  آفات: 'الظروف الحالية (رطوبة 70% + 15°C) مناسبة لظهور المن والصدأ الأصفر. فحص أسبوعي موصى به. نافذة الرش مفتوحة حالياً (رياح 2.5 كم/س).',
-  wofost: 'محرك WOFOST يتوقع إنتاجية متوسطة 3.6 طن/هـ للقمح هذا الموسم. GDD متراكم 960 من 1800. التقدم: 53%.',
+  ndvi: 'NDVI يتراوح -1 إلى +1: >0.6 غطاء صحّي، 0.3-0.6 متوسّط، <0.3 إجهاد. المعادلة (NIR-Red)/(NIR+Red). تابعه كلّ ~5 أيّام عبر Sentinel-2 لرصد الاتّجاه.',
+  ري: 'الريّ بالتنقيط (~90% كفاءة) عموماً الأفضل. احسب الاحتياج من ET0 اليوميّ ورطوبة التربة. الريّ الصباحيّ الباكر يقلّل فقد البخر. راجع لوحة توصية الريّ لحقلك للرقم الدقيق.',
+  سماد: 'وقت وكميّة التسميد يعتمدان على مرحلة المحصول وتحليل التربة (N-P-K وpH). في مراحل الملء غالباً يُخفَّض النيتروجين. أرفِق تحليل تربة حديثاً للحصول على جرعة دقيقة.',
+  آفات: 'الرطوبة المرتفعة والحرارة المعتدلة تزيد مخاطر المنّ والأصداء. افحص أسبوعيّاً، وراقب سرعة الرياح قبل الرشّ. راجع لوحة مخاطر الأمراض لحقلك للتقدير الحيّ.',
+  wofost: 'محرّك محاكاة المحصول يقدّر الإنتاجيّة من GDD المتراكم وLAI ومدخلات الطقس/التربة. شغّل محاكاة الموسم لحقلك للحصول على تقدير برقم ونطاق وثقة.',
 };
 
 function localFallback(q: string): string {
@@ -65,7 +78,7 @@ function localFallback(q: string): string {
   for (const [key, val] of Object.entries(KB)) {
     if (ql.includes(key)) return val;
   }
-  return `شكراً لسؤالك. للحصول على إجابة دقيقة، يرجى الاتصال بالإنترنت. بياناتك: NDVI=0.62، حرارة=15.7°C، رطوبة=70%.`;
+  return 'تعذّر الاتّصال بالمستشار الآن. أعد المحاولة عند توفّر الإنترنت، أو راجع لوحات الحقل (المؤشّرات/التوصيات) للبيانات الحيّة.';
 }
 
 // ── Quick suggestion chips ───────────────────────────────────────
@@ -184,6 +197,24 @@ export function ChatbotPage() {
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // سياق المزرعة الحيّ (حقول + طقس) — يُحقَن في كلّ طلب بدل القيم الثابتة.
+  const fieldsQ  = useFields();
+  const weatherQ = useWeatherForecast();
+  const ctx: LiveContext = useMemo(() => {
+    const list: any[] = fieldsQ.data?.fields ?? [];
+    const ndvis = list.map((f) => +(f.ndvi || 0)).filter((n) => n > 0);
+    const crops = Array.from(new Set(
+      list.map((f) => f.crop_ar || f.crop).filter((c): c is string => !!c),
+    ));
+    return {
+      count: list.length,
+      totalArea: list.reduce((s, f) => s + (+(f.area_ha || 0)), 0),
+      avgNdvi: ndvis.length ? ndvis.reduce((a, b) => a + b, 0) / ndvis.length : null,
+      crops,
+      w: (weatherQ.data as any)?.current ?? null,
+    };
+  }, [fieldsQ.data, weatherQ.data]);
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages]);
 
   const send = useCallback(async (text: string) => {
@@ -210,7 +241,7 @@ export function ChatbotPage() {
         body: JSON.stringify({
           model:      'claude-sonnet-4-20250514',
           max_tokens: 600,
-          system:     FARM_CONTEXT,
+          system:     buildSystemPrompt(ctx),
           messages:   [...history, { role:'user', content:text }],
         }),
       });
@@ -240,7 +271,7 @@ export function ChatbotPage() {
 
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [messages, loading]);
+  }, [messages, loading, ctx]);
 
   const clear = () => {
     setMessages([WELCOME]);
@@ -279,10 +310,15 @@ export function ChatbotPage() {
         </div>
       </div>
 
-      {/* Farm context pill */}
+      {/* Farm context pill — قيم حيّة من بيانات المستخدم (لا أرقام ثابتة) */}
       <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50/50 border-b border-emerald-100 text-xs text-emerald-700">
         <Leaf className="w-3 h-3" />
-        <span>سياق مُحقَن: NDVI=0.62 · الحرارة=15.7°C · رطوبة=70% · 8 حقول يمنية</span>
+        <span>
+          سياق مُحقَن حيّ: NDVI={ctx.avgNdvi != null ? ctx.avgNdvi.toFixed(2) : '—'}
+          {' · '}الحرارة={ctx.w?.tmean != null ? `${ctx.w.tmean}°م` : '—'}
+          {' · '}رطوبة={ctx.w?.humidity_pct != null ? `${ctx.w.humidity_pct}٪` : '—'}
+          {' · '}{ctx.count} حقول
+        </span>
       </div>
 
       {/* Messages */}
