@@ -6,7 +6,7 @@ import {
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
-  ShieldCheck, Sprout, CloudRain,
+  ShieldCheck, Sprout, CloudRain, Smartphone,
 } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
@@ -72,6 +72,7 @@ const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
 const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
 const FarmCreatePage      = lazy(() => import('./sections/FarmCreatePage'));
+const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -80,10 +81,11 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice';
+  | 'weather-advice' | 'field-app';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
+  { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
   { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
   { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
   { id:'fields',       label:'إدارة الحقول',   icon:Map },
@@ -334,6 +336,7 @@ export default function App() {
     }
     switch(page) {
       case 'dashboard':    return <DashboardPage setPage={setPage} />;
+      case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
       case 'fields':       return <FieldManagementPage />;
