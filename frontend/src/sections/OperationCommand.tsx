@@ -21,6 +21,7 @@ import {
 import {
   T, Card, Pill, Badge, ProgressBar, Row, SectionLabel,
   StatGrid, RadialGauge, AlertChip, ExpandableCard, severityTone,
+  taskStatusAr, equipStatusAr, equipStatusTone,
 } from '../components/ds';
 
 type FieldLike = { field_id?: string; ndvi?: number };
@@ -47,22 +48,6 @@ function equipIcon(type?: string) {
   if (s === 'sprayer') return <Bug style={{ width: 16, height: 16 }} />;
   return <Wrench style={{ width: 16, height: 16 }} />;
 }
-
-// نغمة حالة المعدّة (active→سليم، maintenance→تحذير، broken→خطر).
-function equipTone(status?: string) {
-  const s = (status ?? '').toLowerCase();
-  if (s === 'active' || s === 'operational') return 'ok' as const;
-  if (s === 'maintenance') return 'warn' as const;
-  if (s === 'broken' || s === 'down') return 'danger' as const;
-  return 'neutral' as const;
-}
-
-const STATUS_AR: Record<string, string> = {
-  active: 'تعمل', operational: 'تعمل', maintenance: 'صيانة',
-  broken: 'معطّلة', down: 'متوقّفة',
-  pending: 'معلّقة', in_progress: 'جارية', completed: 'مكتملة', cancelled: 'ملغاة',
-};
-const ar = (s?: string) => STATUS_AR[(s ?? '').toLowerCase()] ?? (s || '—');
 
 export default function OperationCommand() {
   const [openEquip, setOpenEquip] = useState(false);
@@ -209,7 +194,7 @@ export default function OperationCommand() {
                     <Row
                       key={t.task_id || i}
                       label={t.task_type || 'مهمّة'}
-                      value={ar(t.status)}
+                      value={taskStatusAr(t.status)}
                       tone={(t.status ?? '').toLowerCase() === 'in_progress' ? 'warn' : 'neutral'}
                     />
                   ))
@@ -245,7 +230,7 @@ export default function OperationCommand() {
                   label={e.name || 'معدّة'}
                   value={
                     <span className="inline-flex items-center gap-2">
-                      <Pill tone={equipTone(e.status)}>{ar(e.status)}</Pill>
+                      <Pill tone={equipStatusTone(e.status)}>{equipStatusAr(e.status)}</Pill>
                       {typeof e.operating_hours === 'number' && (
                         <span style={{ fontSize: 11, color: T.muted }}>{e.operating_hours} س</span>
                       )}

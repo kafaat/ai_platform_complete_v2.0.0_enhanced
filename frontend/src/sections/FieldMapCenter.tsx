@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Layers, Satellite, Droplets, FlaskConical, Cpu, Columns2, Square } from 'lucide-react';
 import { useFields, useDevices } from '../hooks/useApi';
+import { geomToPolygon } from '../lib/geo';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import {
   T, Card, Pill, Badge, SectionLabel, Row,
@@ -42,16 +43,6 @@ const layerOf = (id: LayerId) => LAYERS.find((l) => l.id === id) ?? LAYERS[0];
 const LAYER_OPTS = LAYERS.map((l) => ({ id: l.id, label: l.label, icon: l.icon }));
 
 interface MapField { id: string; name: string; lat: number | null; lon: number | null; geometry: any }
-
-// هندسة الحقل (GeoJSON Polygon، إحداثيّات [lon,lat]) → مضلّع Leaflet [lat,lng].
-// (نفس geomToPolygon في SatellitePage — مصدر واحد للحقيقة الهندسيّة.)
-function geomToPolygon(geometry: any): [number, number][] | undefined {
-  const ring = geometry?.coordinates?.[0];
-  if (!Array.isArray(ring) || ring.length < 3) return undefined;
-  return ring
-    .filter((c: any) => Array.isArray(c) && c.length >= 2)
-    .map((c: number[]) => [c[1], c[0]] as [number, number]);
-}
 
 // نغمة/حالة مؤشّر الجهاز — online→يعمل، غير ذلك→غير متّصل (alert إن غير متّصل).
 function deviceMarkerStatus(online?: boolean): 'working' | 'offline' {

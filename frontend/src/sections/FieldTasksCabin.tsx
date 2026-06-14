@@ -18,8 +18,10 @@ import {
   ListChecks, Clock, Loader, CheckCircle2, XCircle, Sprout, MapPin, Coins, Timer,
 } from 'lucide-react';
 import { useTasks, type Task } from '../hooks/useApi';
+import { fmtDateAr } from '../lib/dates';
 import {
   T, Card, Pill, Badge, SectionLabel, StatGrid, Stepper, BottomTabBar,
+  taskStatusAr, taskStatusTone,
 } from '../components/ds';
 
 // ── وجهات الكابينة (فرز بالحالة) — يُعرَض في BottomTabBar السفليّ ──
@@ -39,19 +41,6 @@ function stepOf(status: Task['status']): number {
   return 1; // pending
 }
 
-const STATUS_AR: Record<string, string> = {
-  pending: 'مجدولة', in_progress: 'جارية', completed: 'مكتملة', cancelled: 'ملغاة',
-};
-const statusTone = (s: string) =>
-  s === 'completed' ? 'ok' : s === 'in_progress' ? 'warn' : s === 'cancelled' ? 'danger' : 'info';
-
-// تنسيق تاريخ عربيّ مختصر (يتسامح مع القيم الغائبة/غير الصالحة → «—»).
-function fmtDate(d?: string): string {
-  if (!d) return '—';
-  const t = new Date(d);
-  return Number.isNaN(t.getTime()) ? '—' : t.toLocaleDateString('ar-SA', { day: 'numeric', month: 'long' });
-}
-
 // بطاقة مهمّة واحدة: مسار حالتها (Stepper) + بياناتها الحقيقيّة.
 function TaskCard({ task }: { task: Task }) {
   const cancelled = task.status === 'cancelled';
@@ -59,7 +48,7 @@ function TaskCard({ task }: { task: Task }) {
     <Card pad={14} style={{ marginBottom: 10, opacity: cancelled ? 0.6 : 1 }}>
       <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
         <span style={{ fontWeight: 800, fontSize: 14, color: T.ink }}>{task.task_type || 'مهمّة'}</span>
-        <Badge tone={statusTone(task.status)}>{STATUS_AR[task.status] ?? task.status}</Badge>
+        <Badge tone={taskStatusTone(task.status)}>{taskStatusAr(task.status)}</Badge>
       </div>
 
       {task.field_name && (
@@ -81,7 +70,7 @@ function TaskCard({ task }: { task: Task }) {
 
       {/* بيانات حقيقيّة — تُعرَض «—» إن غابت (لا تلفيق) */}
       <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
-        <Pill tone="neutral" icon={<Clock style={{ width: 11, height: 11 }} />}>{fmtDate(task.recommended_date)}</Pill>
+        <Pill tone="neutral" icon={<Clock style={{ width: 11, height: 11 }} />}>{fmtDateAr(task.recommended_date)}</Pill>
         <Pill tone="neutral" icon={<Timer style={{ width: 11, height: 11 }} />}>
           {typeof task.estimated_duration_min === 'number' ? `${task.estimated_duration_min} د` : '—'}
         </Pill>
