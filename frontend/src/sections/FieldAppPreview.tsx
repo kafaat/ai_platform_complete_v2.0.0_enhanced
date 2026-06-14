@@ -6,10 +6,10 @@
 // بيانات وهميّة: التحميل/الفراغ/الخطأ حالاتٌ صادقة. هذه «شاشة إثبات»
 // تُبنى وتُفحَص؛ التلميع البصريّ يُكرَّر لاحقاً عبر لقطات المستخدم.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Thermometer, Droplets, Wind, Sun, Sprout, Bell, MapPin,
-  Sunrise, Sunset, CloudSun, X,
+  Sunrise, Sunset, CloudSun, X, Info,
 } from 'lucide-react';
 import { useFields, useWeatherForecast, useAlerts } from '../hooks/useApi';
 import {
@@ -46,6 +46,7 @@ type TabId = (typeof TABS)[number]['id'];
 export default function FieldAppPreview() {
   const [tab, setTab] = useState<TabId>('fields');
   const [sheet, setSheet] = useState<FieldLike | null>(null);
+  const [info, setInfo] = useState(false);
 
   const fieldsQ = useFields();
   const weatherQ = useWeatherForecast();
@@ -98,12 +99,12 @@ export default function FieldAppPreview() {
           {tab === 'alerts' && <AlertsTab q={alertsQ} alerts={alerts} />}
         </div>
 
-        {/* ── FAB ── */}
+        {/* ── FAB ── معاينة قراءة فقط: لا يُنشئ حقلاً (إنشاء فعليّ في «إدارة الحقول») */}
         <div style={{ position: 'absolute', insetInlineStart: 16, bottom: 16 }}>
           <FAB
             icon={<MapPin style={{ width: 18, height: 18 }} />}
             label="حقل جديد"
-            onClick={() => setSheet({ field_name: 'حقل جديد' })}
+            onClick={() => setInfo(true)}
           />
         </div>
       </div>
@@ -113,10 +114,11 @@ export default function FieldAppPreview() {
         <code>/api/v1/alerts</code> الحقيقيّة. الحالات (تحميل/فراغ/خطأ) صادقة.
       </p>
 
-      {/* ── BottomSheet ── */}
+      {/* ── BottomSheet: تفاصيل حقل حقيقيّ (من نقرة على بطاقة) ── */}
       <BottomSheet open={!!sheet} onClose={() => setSheet(null)} title={sheet?.field_name || sheet?.name || 'الحقل'}>
         <div className="flex justify-end mb-2">
-          <button onClick={() => setSheet(null)} style={{ color: T.muted, background: 'none', border: 'none' }}>
+          <button type="button" aria-label="إغلاق" onClick={() => setSheet(null)}
+            style={{ color: T.muted, background: 'none', border: 'none', cursor: 'pointer' }}>
             <X style={{ width: 18, height: 18 }} />
           </button>
         </div>
@@ -126,11 +128,27 @@ export default function FieldAppPreview() {
             <Row label="المساحة" value={sheet.area_ha != null ? `${sheet.area_ha} هـ` : '—'} />
             <Row
               label="NDVI"
-              value={sheet.ndvi != null ? sheet.ndvi.toFixed(2) : '—'}
-              tone={sheet.ndvi != null ? (sheet.ndvi >= 0.5 ? 'ok' : 'warn') : 'neutral'}
+              value={isFiniteNum(sheet.ndvi) ? (sheet.ndvi as number).toFixed(2) : '—'}
+              tone={isFiniteNum(sheet.ndvi) ? ((sheet.ndvi as number) >= 0.5 ? 'ok' : 'warn') : 'neutral'}
             />
           </Card>
         )}
+      </BottomSheet>
+
+      {/* ── BottomSheet: ملاحظة صادقة للـFAB (معاينة قراءة فقط، لا إنشاء) ── */}
+      <BottomSheet open={info} onClose={() => setInfo(false)} title="حقل جديد">
+        <div className="flex justify-end mb-2">
+          <button type="button" aria-label="إغلاق" onClick={() => setInfo(false)}
+            style={{ color: T.muted, background: 'none', border: 'none', cursor: 'pointer' }}>
+            <X style={{ width: 18, height: 18 }} />
+          </button>
+        </div>
+        <Card pad={14}>
+          <div className="flex items-center gap-2" style={{ color: T.brownSoft, fontSize: 13 }}>
+            <Info style={{ width: 18, height: 18, color: T.info, flexShrink: 0 }} />
+            <span>هذه <b>معاينة قراءة فقط</b> لنظام التصميم. إنشاء الحقول الفعليّ يتمّ من شاشة «إدارة الحقول».</span>
+          </div>
+        </Card>
       </BottomSheet>
     </div>
   );
@@ -147,13 +165,15 @@ function FieldsTab({
   if (q.isLoading) return <Hint>جارٍ تحميل الحقول…</Hint>;
   if (q.isError) return <Hint tone="danger">تعذّر تحميل الحقول من الخادم.</Hint>;
   if (fields.length === 0)
-    return <Hint>لا توجد حقول مُسجّلة بعد — أضِف حقلاً من الزرّ العائم.</Hint>;
+    return <Hint>لا توجد حقول مُسجّلة بعد — تُضاف الحقول من شاشة «إدارة الحقول».</Hint>;
 
   return (
     <div className="space-y-3">
       <SectionLabel action={<Badge tone="ok">{fields.length} حقل</Badge>}>حقولي</SectionLabel>
       {fields.map((f, i) => {
-        const ndvi = typeof f.ndvi === 'number' ? f.ndvi : null;
+        // isFiniteNum يستبعد NaN/Infinity (وكلاهما typeof === 'number') ⇒ لا
+        // ndviColor(NaN) ولا عرض ProgressBar بنسبة NaN%.
+        const ndvi = isFiniteNum(f.ndvi) ? f.ndvi : null;
         const c = ndvi != null ? ndviColor(ndvi) : T.faint;
         return (
           <Card key={f.field_id || i} onClick={() => onOpen(f)} pad={12}>
@@ -262,11 +282,16 @@ function AlertsTab({
 }
 
 // ── مساعِدات ────────────────────────────────────────────────────
-function Hint({ children, tone = 'neutral' }: { children: React.ReactNode; tone?: 'neutral' | 'ok' | 'danger' }) {
+function Hint({ children, tone = 'neutral' }: { children: ReactNode; tone?: 'neutral' | 'ok' | 'danger' }) {
   const color = tone === 'ok' ? T.green : tone === 'danger' ? T.danger : T.muted;
   return (
     <div style={{ textAlign: 'center', color, fontSize: 13, padding: '28px 12px' }}>{children}</div>
   );
+}
+
+/** عدد منتهٍ حقيقيّ (يستبعد null/undefined/NaN/Infinity). */
+function isFiniteNum(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
 }
 
 function fmtTime(iso: string): string {

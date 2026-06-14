@@ -6,9 +6,21 @@
 // نثبّت يميناً/يساراً). الألوان من tokens.ts (لا قيَم سحريّة مكرّرة).
 // تُستخدم لكسوة شاشات «تطبيق الحقل». تُبنى وتُفحَص أنواعها بـtsc.
 // ═══════════════════════════════════════════════════════════════
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { T, RADIUS, toneColors, type Tone } from './tokens';
+
+// تفعيل العناصر القابلة للنقر عبر الكيبورد (Enter/Space) — وصوليّة a11y:
+// أيّ عنصر يحمل role="button" يجب أن يُفعَّل بالمفتاحين لا بالفأرة فقط.
+function keyActivate(onClick?: () => void) {
+  if (!onClick) return undefined;
+  return (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick();
+    }
+  };
+}
 
 // ── Card ───────────────────────────────────────────────────────
 export function Card({
@@ -23,6 +35,7 @@ export function Card({
   return (
     <div
       onClick={onClick}
+      onKeyDown={keyActivate(onClick)}
       className={className}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
@@ -146,6 +159,7 @@ export function Row({
   return (
     <div
       onClick={onClick}
+      onKeyDown={keyActivate(onClick)}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       className="flex items-center gap-3 py-2.5"
@@ -202,6 +216,7 @@ export function TabBar<TId extends string>({
 export function FAB({ icon, onClick, label }: { icon: ReactNode; onClick?: () => void; label?: string }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-label={label}
       className="inline-flex items-center justify-center gap-2"
@@ -240,6 +255,9 @@ export function BottomSheet({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         onClick={(e) => e.stopPropagation()}
         style={{
           background: T.cream,
