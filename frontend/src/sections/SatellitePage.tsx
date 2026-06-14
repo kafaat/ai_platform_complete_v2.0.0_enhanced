@@ -3,7 +3,7 @@
 //    بدل الشبكة المتدرّجة + NDVI الجيبيّ الوهميّ السابق.
 // ✅ الحقول من القاعدة (useFields) بدل قائمة مُبرمَجة.
 import { useState, useEffect, useMemo } from 'react';
-import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows } from 'lucide-react';
+import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows, Ruler } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
@@ -58,6 +58,8 @@ export default function SatellitePage() {
   const [activeIndex, setActiveIndex] = useState('ndvi');
   const [days,        setDays]        = useState(30);
   const [showLayers,  setShowLayers]  = useState(true);
+  // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
+  const [measureTools, setMeasureTools] = useState(false);
 
   // أوّل حقل حقيقيّ يصبح المختار افتراضيّاً عند توفّر القائمة.
   useEffect(() => {
@@ -175,6 +177,16 @@ export default function SatellitePage() {
           <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-900">
             <Wifi className="w-3 h-3" /> Copernicus CDSE
           </span>
+          {/* مُبدِّل أدوات القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً
+              فلا يتأثّر مستهلكو FieldIndicatorMap الآخرون (التمرير tools=measureTools). */}
+          <button onClick={() => setMeasureTools((v) => !v)}
+            aria-pressed={measureTools}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors"
+            style={measureTools
+              ? { background: '#0ea5e922', color: '#7dd3fc', borderColor: '#0ea5e966' }
+              : { background: '#1e293b', color: '#94a3b8', borderColor: '#334155' }}>
+            <Ruler className="w-3.5 h-3.5" /> أدوات القياس
+          </button>
           <button onClick={() => fieldId && analyze({ fieldId })} disabled={analyzing || !fieldId}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
             style={{ background: analyzing ? '#15803d' : '#16a34a' }}>
@@ -219,6 +231,7 @@ export default function SatellitePage() {
             basemap="satellite"
             initialOpacity={0.75}
             height={400}
+            tools={measureTools}
           />
 
           {/* Thumbnail strip (سلسلة زمنيّة حقيقيّة من vegetation-service) */}
