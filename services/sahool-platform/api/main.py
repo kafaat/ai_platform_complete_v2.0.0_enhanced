@@ -6140,6 +6140,11 @@ async def weather_forecast(lat: float, lon: float, days: int = 7):
                     "precipitation_mm": f.precipitation_mm,
                     "et0_mm": f.et0_mm,
                     "sunshine_hours": f.sunshine_hours,
+                    # شمسيّ/نهاريّ — لجدولة الريّ بالطاقة الشمسيّة وتقدير الإنتاج
+                    "sunrise": f.sunrise,
+                    "sunset": f.sunset,
+                    "daylight_hours": f.daylight_hours,
+                    "solar_radiation_mj_m2": f.solar_radiation_mj_m2,
                     "wind_max_ms": f.wind_max_ms,
                     "weather_code": f.weather_code,
                     "weather_ar": describe_weather_ar(f.weather_code),
