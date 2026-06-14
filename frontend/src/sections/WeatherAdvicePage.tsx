@@ -8,7 +8,8 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { CloudRain, Droplets, Bug, Map, Clock, Thermometer, Wind } from 'lucide-react';
-import { useFields, useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
+import { useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { IrrigationAdvice, DiseaseRisk } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
@@ -145,13 +146,8 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
 
 // ── الصفحة ──────────────────────────────────────────────────────
 export default function WeatherAdvicePage() {
-  const { data: fieldsData, isLoading, isError, error, refetch } = useFields();
+  const { options: fields, isLoading, isError, error, refetch } = useFieldOptions();
   const [fieldId, setFieldId] = useState<string>('');
-
-  const fields = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
-    id: String(f.field_id ?? f.id),
-    name: String(f.name_ar ?? f.name ?? 'حقل'),
-  }));
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
