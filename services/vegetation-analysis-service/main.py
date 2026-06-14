@@ -17,11 +17,15 @@ NOTE ON DATA PROVENANCE (honesty):
   field + date), NOT from real per-pixel reflectance.
 
   Real per-pixel raster processing (decoding the GeoTIFF, masking via SCL,
-  averaging real reflectance) lives in the raster-service, which ships
-  rasterio. Accordingly, this service ALWAYS reports `real_data: false` and
-  labels `data_source`/`source` as a simulation/estimate. A
-  `provider_reachable` flag indicates whether the live API responded, but it
-  never upgrades the indices to "real".
+  averaging real reflectance) lives in the raster-service, which ships rasterio.
+
+  EXCEPTION — real NDVI pass-through (VEGETATION_PREFER_RASTER, ON by default):
+  /v1/analyze prefers the REAL per-pixel NDVI mean from raster-service when the
+  field has a processed layer. In that case it substitutes NDVI only and reports
+  `real_data: true` + `data_source: "raster-service"` (per-index `source` marks
+  NDVI as "raster-service" and the rest as "estimate"). Any failure/timeout/
+  missing layer falls back to the labeled estimate (behaviour never degrades).
+  `provider_reachable` indicates whether the live SH/CDSE metadata API responded.
 """
 
 from __future__ import annotations
@@ -625,8 +629,11 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         # real_data يعكس NDVI تحديداً (بطاقة الصحّة تُبنى عليه): حقيقيّ من raster؟
         "real_data": ndvi_is_real,
         "provider_reachable": provider_reachable,
+        # نصّ آليّ موحّد اللغة (إنجليزيّ) في الحالتين — لا تتغيّر لغته بتغيّر المصدر
+        # (تفادياً لكسر مستهلكين يطابقون النصّ، كما نبّهت مراجعة Copilot).
         "estimate_note": (
-            "NDVI من raster-service (بكسليّ، Sentinel-2)؛ بقيّة المؤشّرات تقديريّة من نطاقات تركيبيّة."
+            "NDVI is the real per-pixel mean from raster-service (Sentinel-2); "
+            "other indices remain field-mean estimates from synthetic bands."
             if ndvi_is_real
             else "Indices are field-mean estimates from deterministic synthetic bands; "
             "no satellite pixels were decoded. Real per-pixel processing lives in raster-service."
