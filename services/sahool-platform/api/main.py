@@ -3815,6 +3815,20 @@ async def create_alert(
             )
             # تسجيل قنوات التسليم المقصودة (بلا إرسال فعليّ) — غير كاسر.
             await _log_alert_deliveries(conn, user, created)
+            # حدث إنشاء التنبيه (تفاعليّ): يستهلكه وكيل الإشعارات للبثّ الفوريّ بدل
+            # المسح الدوريّ. نفس معاملة الكتابة (outbox) — فشل الإصدار لا يكسر الحفظ.
+            await _emit_domain_event(
+                conn,
+                user,
+                "ALERT_CREATED",
+                "alert",
+                alert_id,
+                {
+                    "severity": req.severity,
+                    "alert_type": req.alert_type,
+                    "field_id": req.field_id,
+                },
+            )
             # Canonical Field State: تنبيه على حقل قد يعكس تبدّل قراره ⇒ أعِد حساب
             # الإسقاط وأصدِر field.state_changed إن تبدّلت الصلاحيّة (نفس نمط الموسم،
             # نفس معاملة الكتابة). التنبيهات تمرّ عبر مصدر الحقيقة الواحد.
@@ -3859,6 +3873,17 @@ async def acknowledge_alert(
                 "message_ar, status, created_at",
                 alert_id,
             )
+            # حدث الإقرار (تفاعليّ): يُمكّن المستهلكين من تتبّع دورة حياة التنبيه.
+            # داخل المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
+            if row is not None:
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "ALERT_ACKNOWLEDGED",
+                    "alert",
+                    alert_id,
+                    {"field_id": row["field_id"], "severity": row["severity"]},
+                )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
