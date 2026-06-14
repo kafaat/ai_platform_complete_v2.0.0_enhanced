@@ -95,6 +95,21 @@ jobs:
         run: mypy services/auth/main.py --ignore-missing-imports --explicit-package-bases
         continue-on-error: true
 
+  frontend-typecheck:
+    name: Frontend Typecheck
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "20"}
+      # بوّابة فحص نوعيّ للواجهة: كانت غائبة تماماً، فتراكمت أخطاء TS صامتة (مثل
+      # ضياع user_id في login). tsc --noEmit يكشفها قبل الدمج. لا يبني الإنتاج
+      # (vite build لا يفحص الأنواع) — هذا الفحص مكمّل له.
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run typecheck
+        working-directory: frontend
+
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-24.04

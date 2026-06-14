@@ -98,7 +98,18 @@ async function tryReal<T>(fn: () => Promise<T>, fallback: () => T): Promise<T> {
 // ══════════════════════════════════════════════════════════════════
 // عقد auth-service: /auth/login و/auth/register يتوقّعان `email` (لا username).
 export interface LoginPayload { email: string; password: string; mfa_code?: string; }
-export interface AuthResponse { access_token: string; refresh_token: string; tenant_id?: string; role?: string; user: { username: string; role: string; tenant_id?: string; email?: string; full_name?: string } }
+// auth-service يردّ حقولاً مسطّحة (TokenResponse: user_id/role/full_name/tenant_id،
+// بلا كائن user مُتداخل). نُطبّعها أدناه إلى {user:{...}} كي يقرأها useAuth بثبات.
+// user اختياريّ (غائب في الردّ الخام) ويحوي id (من user_id) لتفادي ضياعه.
+export interface AuthResponse {
+  access_token: string;
+  refresh_token: string;
+  tenant_id?: string;
+  role?: string;
+  user_id?: number;
+  full_name?: string;
+  user?: { id?: number; username?: string; role: string; tenant_id?: string; email?: string; full_name?: string };
+}
 
 export const login = (payload: LoginPayload): Promise<AuthResponse> =>
   // أمان (P0-2): المصادقة لا تسقط على fallback وهمي. الفشل يظهر بوضوح
@@ -106,11 +117,26 @@ export const login = (payload: LoginPayload): Promise<AuthResponse> =>
   // mfa_code يُرسَل فقط إن وُجد (الخادم يتطلّبه للحسابات المُفعّل لها MFA).
   MOCK_MODE
     ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh', user:{ username:payload.email, email:payload.email, role:'farmer' } } as AuthResponse)
-    : authApi.post<AuthResponse>('/auth/login', {
+    : authApi.post('/auth/login', {
         email: payload.email,
         password: payload.password,
         ...(payload.mfa_code ? { mfa_code: payload.mfa_code } : {}),
-      }).then(r => r.data);
+      }).then(r => {
+        // الردّ الخام مسطّح ⇒ نطبّعه إلى {user:{...}} (كان login يُعيد الخام مباشرةً
+        // فيصبح data.user = undefined وقت التشغيل، فيضيع user_id/full_name).
+        const d = r.data as { access_token: string; refresh_token?: string; role?: string;
+          full_name?: string; tenant_id?: string; user_id?: number };
+        return {
+          access_token: d.access_token,
+          refresh_token: d.refresh_token ?? '',
+          tenant_id: d.tenant_id,
+          role: d.role,
+          user_id: d.user_id,
+          full_name: d.full_name,
+          user: { id: d.user_id, username: payload.email, email: payload.email,
+            role: d.role ?? 'farmer', tenant_id: d.tenant_id, full_name: d.full_name },
+        } as AuthResponse;
+      });
 
 /** يفحص ما إذا كان خطأ تسجيل الدخول يعني "MFA مطلوب" (الخادم يردّ 401 مع
  *  الرأس X-MFA-Required: true حين تصحّ كلمة المرور لكن يلزم رمز TOTP). */
@@ -141,13 +167,15 @@ export const register = (payload: RegisterPayload): Promise<AuthResponse> =>
         user:{ username:payload.email, email:payload.email, role:'farmer', full_name:payload.full_name } } as AuthResponse)
     : authApi.post('/auth/register', payload).then(r => {
     const d = r.data as { access_token: string; refresh_token?: string; role?: string;
-      full_name?: string; tenant_id?: string };
+      full_name?: string; tenant_id?: string; user_id?: number };
     return {
       access_token: d.access_token,
       refresh_token: d.refresh_token ?? '',
       tenant_id: d.tenant_id,
       role: d.role,
-      user: { username: payload.email, email: payload.email, role: d.role ?? 'farmer',
+      user_id: d.user_id,
+      full_name: d.full_name ?? payload.full_name,
+      user: { id: d.user_id, username: payload.email, email: payload.email, role: d.role ?? 'farmer',
         tenant_id: d.tenant_id, full_name: d.full_name ?? payload.full_name },
     } as AuthResponse;
   });
