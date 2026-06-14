@@ -385,15 +385,23 @@ async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id
 # ذرّيّة): فشل العمل ⇒ ارتداد كامل (بما فيه أثر الأمر) ⇒ إعادة آمنة. بلا مفتاح ⇒
 # تنفيذ عاديّ (توافق خلفيّ كامل — لا يتغيّر سلوك العملاء القائمين).
 def _idem_key(idempotency_key: str | None = Header(None, alias="Idempotency-Key")) -> str | None:
-    """يستخرج مفتاح الإيدمبوتنسي (UUID) ويتحقّق من شكله (400 إن غير صالح)."""
-    if idempotency_key:
-        import uuid as _uuid
+    """يستخرج مفتاح الإيدمبوتنسي (UUID) ويتحقّق من شكله.
 
-        try:
-            _uuid.UUID(idempotency_key)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail="Idempotency-Key يجب أن يكون UUID") from e
-    return idempotency_key
+    فارغ/مسافات ⇒ يُعامَل كغياب (None، تنفيذ عاديّ)؛ قيمة غير فارغة غير صالحة ⇒ 400
+    (لا تضيع idempotency بصمت لمفتاح مُشوَّه). يُعيد المفتاح بعد strip.
+    """
+    if idempotency_key is None:
+        return None
+    key = idempotency_key.strip()
+    if not key:
+        return None
+    import uuid as _uuid
+
+    try:
+        _uuid.UUID(key)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Idempotency-Key يجب أن يكون UUID") from e
+    return key
 
 
 async def _idempotent(store, command_id, do_work, *, command_type, actor_id, tenant_id, payload):
@@ -401,6 +409,12 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
 
     أوّل مرّة: يُدرِج الأمر، ينفّذ do_work، يسجّل النتيجة. الإعادة الناجحة: يُعيد
     النتيجة المخزّنة بلا تنفيذ. الإعادة بينما الأصل قيد المعالجة/فشل: 409 (أعد لاحقاً).
+
+    قيد تصميميّ مهمّ: يجب استدعاؤه **داخل معاملة تَرتدّ عند الفشل** (مثل
+    tenant_connection). الاعتماد على الارتداد هو ما يجعله سليماً: فشل do_work ⇒
+    ارتداد إدراج الأمر أيضاً ⇒ لا أمر «pending» يتيم، والإعادة اللاحقة تُنفَّذ من
+    جديد بأمان (لا تعلّق على 409 أبديّ). لذا لا نُعلّم processing/failed صراحةً —
+    الارتداد يتكفّل، والتعليم داخل المعاملة سيُرتَدّ بلا فائدة. لا تستخدمه خارج معاملة.
     """
     from api.command_store import Command, CommandSource, CommandStatus
 

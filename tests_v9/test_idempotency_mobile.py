@@ -119,8 +119,12 @@ def test_idem_key_validates_uuid(m):
     from fastapi import HTTPException
 
     assert m._idem_key(None) is None
+    # فارغ/مسافات ⇒ يُعامَل كغياب (None، لا 400) — strip ثمّ فحص الفراغ
+    assert m._idem_key("") is None
+    assert m._idem_key("   ") is None
     good = str(uuid.uuid4())
     assert m._idem_key(good) == good
+    assert m._idem_key(f"  {good}  ") == good  # يُعيد المفتاح بعد strip
     with pytest.raises(HTTPException) as e:
         m._idem_key("not-a-uuid")
     assert e.value.status_code == 400
