@@ -8559,13 +8559,12 @@ def calendars_today(
 
     target_iso = date or _date.today().isoformat()
     ctx = calendar_context_for_date(target_iso, governorate)
-    if crop:
+    # تاريخ غير صالح ⇒ الجسر يُعيد {error_ar}: لا نُضيف planting (تجنّب خلط خطأ
+    # ببيانات مشتقّة من تاريخ آخر) — تدهور رشيق متّسق مع الـdocstring.
+    if crop and "error_ar" not in ctx:
         from api.planting_calendar import check_planting_date, planting_window
 
-        try:
-            month = _date.fromisoformat(target_iso).month
-        except ValueError:
-            month = _date.today().month
+        month = _date.fromisoformat(target_iso).month  # صحيح هنا (مرّ الجسر)
         ctx["planting"] = {
             "window": planting_window(crop),
             "current_month_fit": check_planting_date(crop, month),

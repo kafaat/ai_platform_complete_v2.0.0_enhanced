@@ -55,6 +55,13 @@ def test_today_bad_date_returns_error(m):
     assert "error_ar" in r
 
 
+def test_today_bad_date_with_crop_omits_planting(m):
+    """تاريخ غير صالح + محصول ⇒ خطأ فقط، بلا planting مشتقّ من تاريخ بديل."""
+    r = m.calendars_today(date="not-a-date", crop="wheat")
+    assert "error_ar" in r
+    assert "planting" not in r
+
+
 def test_today_route_registered(m):
     paths = {getattr(r, "path", None) for r in m.app.routes}
     assert "/api/v1/calendars/today" in paths
