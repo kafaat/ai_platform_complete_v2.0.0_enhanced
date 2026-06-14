@@ -78,6 +78,7 @@ const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
 const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
 const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
+const UnifiedCabin        = lazy(() => import('./sections/UnifiedCabin'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -86,10 +87,11 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'unified-cabin';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
+  { id:'unified-cabin', label:'التطبيق الموحّد (معاينة)', icon:Smartphone, badge:'٦ وجهات' },
   { id:'command',      label:'مركز العمليّات (معاينة)', icon:Smartphone, badge:'دمج' },
   { id:'map-center',   label:'مركز الخرائط (معاينة)', icon:Layers, badge:'دمج' },
   { id:'tasks-cabin',  label:'كابينة المهام (معاينة)', icon:ListChecks, badge:'دمج' },
@@ -351,6 +353,7 @@ export default function App() {
       case 'tasks-cabin':  return <FieldTasksCabin />;
       case 'rec-flow':     return <RecommendationFlow />;
       case 'hybrid-monitor': return <HybridMonitor />;
+      case 'unified-cabin': return <UnifiedCabin />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
