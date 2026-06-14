@@ -83,6 +83,9 @@ const SetupCabin          = lazy(() => import('./sections/SetupCabin'));
 const UnifiedCabin        = lazy(() => import('./sections/UnifiedCabin'));
 const FieldRanking        = lazy(() => import('./sections/FieldRanking'));
 const ProblemFields       = lazy(() => import('./sections/ProblemFields'));
+const EconomicsDashboard  = lazy(() => import('./sections/EconomicsDashboard'));
+const PhenologyView       = lazy(() => import('./sections/PhenologyView'));
+const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -91,7 +94,7 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting';
 
 const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
@@ -121,6 +124,9 @@ const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
   { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
   { id:'field-ranking', label:'ترتيب الحقول',    icon:TrendingUp },
   { id:'problem-fields', label:'حقول المشكلات',   icon:AlertTriangle },
+  { id:'economics',    label:'الاقتصاد / ROI',   icon:BarChart3 },
+  { id:'phenology',    label:'مراحل النموّ',     icon:Sprout },
+  { id:'scouting',     label:'دليل الاستكشاف',   icon:Bug },
   { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
   { id:'alerts',       label:'التنبيهات',       icon:Bell },
   { id:'reports',      label:'التقارير',        icon:FileText },
@@ -366,6 +372,9 @@ export default function App() {
       case 'unified-cabin': return <UnifiedCabin />;
       case 'field-ranking': return <FieldRanking />;
       case 'problem-fields': return <ProblemFields />;
+      case 'economics':    return <EconomicsDashboard />;
+      case 'phenology':    return <PhenologyView />;
+      case 'scouting':     return <ScoutingView />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
