@@ -161,23 +161,32 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
             إدارة <ChevronLeft className="w-3 h-3" />
           </button>
         </div>
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
-          {(fields.length > 0 ? fields : Array(8).fill(null).map((_,i) => ({ field_id:`f${i}`, ndvi:0.5, field_name:`حقل ${i+1}` }))).map((f: any) => {
-            const ndvi = f.ndvi || 0;
-            const c = STATUS_COLOR[ndviStatus(ndvi)];
-            return (
-              <button key={f.field_id} onClick={() => setPage('satellite')}
-                className="rounded-xl p-2 border hover:border-emerald-800 transition-all text-center"
-                style={{ background:'#1e293b', borderColor:'#334155' }}>
-                <div className="text-sm font-bold" style={{ color:c }}>{ndvi.toFixed(2)}</div>
-                <div className="h-1 rounded-full my-1.5" style={{ background:'#334155' }}>
-                  <div className="h-full rounded-full" style={{ width:`${ndvi*100}%`, background:c }} />
-                </div>
-                <div className="text-[9px] text-slate-400 truncate">{(f.field_name||'').replace('حقل ','').substring(0,6)}</div>
-              </button>
-            );
-          })}
-        </div>
+        {fields.length === 0 ? (
+          // لا حقول حقيقيّة ⇒ حالة فارغة صادقة بدل ٨ بطاقات وهميّة (NDVI=0.5 مُلفَّق).
+          <div className="text-center py-6 text-slate-400 text-sm">
+            لا توجد حقول مُسجّلة بعد.
+            <button onClick={() => setPage('fields')} className="text-emerald-400 mr-1 underline">أضِف حقلاً</button>
+            لعرض ملخّص المؤشّرات.
+          </div>
+        ) : (
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            {fields.map((f: any) => {
+              const ndvi = f.ndvi || 0;
+              const c = STATUS_COLOR[ndviStatus(ndvi)];
+              return (
+                <button key={f.field_id} onClick={() => setPage('satellite')}
+                  className="rounded-xl p-2 border hover:border-emerald-800 transition-all text-center"
+                  style={{ background:'#1e293b', borderColor:'#334155' }}>
+                  <div className="text-sm font-bold" style={{ color:c }}>{ndvi.toFixed(2)}</div>
+                  <div className="h-1 rounded-full my-1.5" style={{ background:'#334155' }}>
+                    <div className="h-full rounded-full" style={{ width:`${ndvi*100}%`, background:c }} />
+                  </div>
+                  <div className="text-[9px] text-slate-400 truncate">{(f.field_name||'').replace('حقل ','').substring(0,6)}</div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Quick actions */}

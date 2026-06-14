@@ -1,60 +1,39 @@
 // ═══════════════════════════════════════════════════════════════
-// SAHOOL v8.0 — AnalyticsPage
-// رسوم بيانية: إنتاجية + NDVI + رطوبة + radar المؤشرات
+// SAHOOL — AnalyticsPage (بيانات حقيقيّة، لا تلفيق)
+// كانت هذه الشاشة تعرض أرقاماً ثابتة/عشوائيّة (Math.random) لا علاقة لها
+// بالمستأجِر. أُعيد ربطها بالكامل بمصادر حيّة:
+//   • قائمة الحقول        ← useFields           (/api/v1/fields)
+//   • اتّجاه NDVI         ← useFieldTimeseries  (raster-service، COG حقيقيّ)
+//   • الإنتاجيّة المقدَّرة ← useSeasons (sim_*)  (محاكاة الموسم المخزَّنة)
+//   • رطوبة المناطق       ← useIndicatorGrid ndmi (شبكة بكسليّة حقيقيّة)
+//   • رؤى/توصيات          ← useFieldRecommendations (المحرّك الموحَّد)
+// كلّ بطاقة تعرض حالة صادقة (تحميل/فراغ/خطأ) عند غياب البيانات — لا قيم مخترعة.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  AreaChart, Area, LineChart, Line, BarChart, Bar, RadarChart,
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell,
+  LineChart, Line, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
-import { TrendingUp, BarChart3, Activity, Droplets, Calendar } from 'lucide-react';
+import { TrendingUp, BarChart3, Activity, Droplets, Lightbulb } from 'lucide-react';
+import {
+  useFields, useFieldTimeseries, useSeasons,
+  useIndicatorGrid, useFieldRecommendations,
+} from '../hooks/useApi';
+import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
-const YIELD_DATA = [
-  { month:'يناير', predicted:4.2, actual:null },
-  { month:'فبراير', predicted:4.8, actual:null },
-  { month:'مارس',   predicted:5.5, actual:null },
-  { month:'أبريل',  predicted:6.2, actual:5.8  },
-  { month:'مايو',   predicted:6.8, actual:6.5  },
-  { month:'يونيو',  predicted:7.1, actual:7.0  },
-  { month:'يوليو',  predicted:7.3, actual:null },
-  { month:'أغسطس',  predicted:7.0, actual:null },
-  { month:'سبتمبر', predicted:6.5, actual:null },
-  { month:'أكتوبر', predicted:5.8, actual:null },
-  { month:'نوفمبر', predicted:4.5, actual:null },
-  { month:'ديسمبر', predicted:3.8, actual:null },
-];
+const PRIORITY_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
+  high:   { bg: '#3f1d1d', fg: '#f87171', label: 'عالية' },
+  medium: { bg: '#3a2f17', fg: '#fbbf24', label: 'متوسّطة' },
+  low:    { bg: '#16331e', fg: '#4ade80', label: 'منخفضة' },
+};
 
-const MOISTURE_ZONES = [
-  { zone:'منطقة 1', moisture:78, color:'#16a34a' },
-  { zone:'منطقة 2', moisture:62, color:'#65a30d' },
-  { zone:'منطقة 3', moisture:45, color:'#ca8a04' },
-  { zone:'منطقة 4', moisture:28, color:'#dc2626' },
-  { zone:'منطقة 5', moisture:85, color:'#16a34a' },
-];
+const CAT_AR: Record<string, string> = {
+  irrigation: 'الريّ', fertilizer: 'التسميد', disease: 'الأمراض', yield: 'الإنتاج',
+};
 
-const NDVI_SERIES = Array.from({length:24},(_,i) => ({
-  week:`أسبوع ${i+1}`,
-  ndvi:+(0.45+Math.sin(i/5)*0.15+Math.random()*0.05).toFixed(3),
-  threshold:0.5,
-}));
-
-const RADAR_DATA = [
-  { subject:'NDVI', A:72, fullMark:100 },
-  { subject:'WUE',  A:68, fullMark:100 },
-  { subject:'تربة', A:80, fullMark:100 },
-  { subject:'إنتاج',A:65, fullMark:100 },
-  { subject:'صحة',  A:75, fullMark:100 },
-  { subject:'استدامة',A:70,fullMark:100 },
-];
-
-const FIELD_OPTIONS = [
-  'حقل وادي سبأ','حقل البيضاء الشمالي','حقل رداع الغربي','حقل ذي السفال',
-];
-
-function ChartCard({ title, icon: Icon, children }: any) {
+function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+    <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
       <div className="flex items-center gap-2 mb-4">
         <Icon className="w-4 h-4 text-emerald-400" />
         <span className="text-sm font-semibold text-slate-200">{title}</span>
@@ -64,117 +43,202 @@ function ChartCard({ title, icon: Icon, children }: any) {
   );
 }
 
+// حاوية صغيرة: تختار حالة العرض الصادقة (تحميل/خطأ/فراغ) أو ترسم المحتوى.
+function Panel({
+  isLoading, isError, isEmpty, onRetry, height = 200, emptyHint, children,
+}: {
+  isLoading: boolean; isError: boolean; isEmpty: boolean;
+  onRetry?: () => void; height?: number; emptyHint?: string; children: React.ReactNode;
+}) {
+  if (isLoading) return <div style={{ height }}><LoadingState message="جارٍ التحميل…" /></div>;
+  if (isError)   return <div style={{ height }}><ErrorState onRetry={onRetry} /></div>;
+  if (isEmpty)   return <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <EmptyState title="لا توجد بيانات بعد" hint={emptyHint} />
+  </div>;
+  return <>{children}</>;
+}
+
 export default function AnalyticsPage() {
-  const [selectedField, setSelectedField] = useState(FIELD_OPTIONS[0]);
-  const [period, setPeriod] = useState('6m');
+  const fieldsQ = useFields();
+  const fields: any[] = useMemo(() => fieldsQ.data?.fields ?? [], [fieldsQ.data]);
+
+  const [picked, setPicked] = useState<string>('');
+  const activeFieldId = picked || (fields[0]?.field_id ?? '');
+  const activeFieldName =
+    fields.find((f) => f.field_id === activeFieldId)?.field_name ??
+    fields.find((f) => f.field_id === activeFieldId)?.name_ar ?? activeFieldId;
+
+  // مصادر حيّة لكلّ بطاقة (مُفعَّلة فقط عند وجود حقل مختار)
+  const tsQ   = useFieldTimeseries(activeFieldId, 'ndvi', '', { enabled: !!activeFieldId });
+  const seasQ = useSeasons(activeFieldId || undefined);
+  const moistQ = useIndicatorGrid(activeFieldId, 'ndmi', 'latest');
+  const recQ  = useFieldRecommendations(activeFieldId || undefined);
+
+  // ── NDVI: نقاط زمنيّة حقيقيّة (datetime/mean) ──
+  const ndviData = useMemo(() =>
+    (tsQ.data?.points ?? []).map((p) => ({
+      date: (p.datetime || '').slice(0, 10),
+      ndvi: typeof p.mean === 'number' ? +p.mean.toFixed(3) : null,
+    })).filter((d) => d.ndvi != null),
+  [tsQ.data]);
+
+  // ── الإنتاجيّة: نتائج محاكاة الموسم المخزَّنة (kg/ha → t/ha) ──
+  const yieldData = useMemo(() =>
+    (seasQ.data ?? [])
+      .filter((s) => typeof s.sim_yield_kg_ha === 'number')
+      .map((s) => ({
+        label: (s.crops?.[0] ?? 'موسم') + (s.sowing_date ? ` ${s.sowing_date.slice(0, 4)}` : ''),
+        yield: +((s.sim_yield_kg_ha as number) / 1000).toFixed(2),
+      })),
+  [seasQ.data]);
+
+  // ── الرطوبة: متوسّط NDMI لكلّ منطقة شدّة من الشبكة البكسليّة الحقيقيّة ──
+  const moistureData = useMemo(() => {
+    const zones = moistQ.data?.zones ?? [];
+    const sevColor: Record<string, string> = { low: '#dc2626', medium: '#ca8a04', high: '#16a34a' };
+    return zones.map((z, i) => ({
+      zone: `منطقة ${i + 1}`,
+      value: +(z.mean ?? 0).toFixed(3),
+      color: sevColor[z.severity] ?? '#65a30d',
+    }));
+  }, [moistQ.data]);
+
+  const recs = recQ.data?.recommendations ?? [];
+
+  if (fieldsQ.isLoading) return <LoadingState message="جارٍ تحميل الحقول…" />;
+  if (fieldsQ.isError)   return <ErrorState title="تعذّر تحميل الحقول" onRetry={() => fieldsQ.refetch()} />;
+  if (fields.length === 0)
+    return <EmptyState title="لا توجد حقول بعد" hint="أضِف حقلاً أوّلاً لعرض التحليلات الحيّة." />;
 
   return (
     <div className="space-y-5 max-w-7xl mx-auto" dir="rtl">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">التحليلات المتقدمة</h2>
-          <p className="text-sm text-slate-400">رؤى زراعية مبنية على WOFOST + Sentinel-2</p>
+          <h2 className="text-xl font-bold text-slate-100">التحليلات المتقدّمة</h2>
+          <p className="text-sm text-slate-400">مؤشّرات حيّة من Sentinel-2 ومحاكاة المحصول — لكلّ حقل</p>
         </div>
-        <div className="flex gap-2">
-          <select value={selectedField} onChange={e => setSelectedField(e.target.value)}
-            className="px-3 py-2 rounded-lg text-sm" style={{ background:'#1e293b', border:'1px solid #334155', color:'#e2e8f0' }}>
-            {FIELD_OPTIONS.map(f => <option key={f}>{f}</option>)}
-          </select>
-          <div className="flex rounded-lg overflow-hidden border border-slate-700">
-            {['3m','6m','1y'].map(p => (
-              <button key={p} onClick={() => setPeriod(p)}
-                className="px-3 py-1.5 text-sm transition-colors"
-                style={{ background:period===p ? '#1e3a1e' : 'transparent', color:period===p ? '#4ade80' : '#64748b' }}>
-                {p}
-              </button>
-            ))}
-          </div>
-        </div>
+        <select
+          value={activeFieldId}
+          onChange={(e) => setPicked(e.target.value)}
+          className="px-3 py-2 rounded-lg text-sm"
+          style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}
+        >
+          {fields.map((f) => (
+            <option key={f.field_id} value={f.field_id}>
+              {f.field_name ?? f.name_ar ?? f.field_id}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="توقع الإنتاجية (طن/هـ)" icon={TrendingUp}>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={YIELD_DATA}>
-              <defs>
-                <linearGradient id="gPred" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.02} />
-                </linearGradient>
-                <linearGradient id="gAct" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#16a34a" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#16a34a" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="month" tick={{ fill:'#64748b', fontSize:10 }} tickLine={false} />
-              <YAxis domain={[3,8]} tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} width={28} />
-              <Tooltip contentStyle={{ background:'#0f1117', border:'1px solid #334155', borderRadius:8, fontSize:12 }} itemStyle={{ color:'#e2e8f0' }} />
-              <Area type="monotone" dataKey="predicted" stroke="#8b5cf6" strokeWidth={2} fill="url(#gPred)" name="متوقع" />
-              <Area type="monotone" dataKey="actual" stroke="#16a34a" strokeWidth={2} fill="url(#gAct)" name="فعلي" />
-            </AreaChart>
-          </ResponsiveContainer>
+        {/* الإنتاجيّة المقدَّرة (محاكاة الموسم) */}
+        <ChartCard title="الإنتاجيّة المقدَّرة (طن/هـ)" icon={TrendingUp}>
+          <Panel
+            isLoading={seasQ.isLoading}
+            isError={seasQ.isError}
+            isEmpty={yieldData.length === 0}
+            onRetry={() => seasQ.refetch()}
+            emptyHint="شغّل محاكاة الموسم لعرض تقدير الإنتاجيّة."
+          >
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={yieldData} barSize={42}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
+                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={28} />
+                <Tooltip contentStyle={{ background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#e2e8f0' }} />
+                <Bar dataKey="yield" name="طن/هـ" radius={[6, 6, 0, 0]} fill="#16a34a" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
         </ChartCard>
 
-        <ChartCard title="اتجاه NDVI الأسبوعي" icon={Activity}>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={NDVI_SERIES.slice(0,16)}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="week" tick={{ fill:'#64748b', fontSize:9 }} tickLine={false} interval={3} />
-              <YAxis domain={[0.2,0.9]} tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} width={32} />
-              <Tooltip contentStyle={{ background:'#0f1117', border:'1px solid #334155', borderRadius:8, fontSize:12 }} itemStyle={{ color:'#e2e8f0' }} />
-              <Line type="monotone" dataKey="ndvi" stroke="#16a34a" strokeWidth={2} dot={false} name="NDVI" />
-              <Line type="monotone" dataKey="threshold" stroke="#dc2626" strokeWidth={1} strokeDasharray="4 2" dot={false} name="الحد الأدنى" />
-            </LineChart>
-          </ResponsiveContainer>
+        {/* اتّجاه NDVI الحقيقيّ */}
+        <ChartCard title="اتّجاه NDVI عبر الزمن" icon={Activity}>
+          <Panel
+            isLoading={tsQ.isLoading}
+            isError={tsQ.isError}
+            isEmpty={ndviData.length === 0}
+            onRetry={() => tsQ.refetch()}
+            emptyHint="لا توجد مشاهد Sentinel-2 صافية لهذا الحقل بعد."
+          >
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={ndviData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }} tickLine={false} interval="preserveStartEnd" />
+                <YAxis domain={[0, 1]} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
+                <Tooltip contentStyle={{ background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#e2e8f0' }} />
+                <Line type="monotone" dataKey="ndvi" stroke="#16a34a" strokeWidth={2} dot={false} name="NDVI" />
+              </LineChart>
+            </ResponsiveContainer>
+          </Panel>
         </ChartCard>
 
-        <ChartCard title="توزيع رطوبة التربة بالمناطق" icon={Droplets}>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={MOISTURE_ZONES} barSize={36}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="zone" tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} />
-              <YAxis domain={[0,100]} tick={{ fill:'#64748b', fontSize:11 }} tickLine={false} width={28} unit="%" />
-              <Tooltip contentStyle={{ background:'#0f1117', border:'1px solid #334155', borderRadius:8, fontSize:12 }} itemStyle={{ color:'#e2e8f0' }} />
-              <Bar dataKey="moisture" name="الرطوبة %" radius={[6,6,0,0]}>
-                {MOISTURE_ZONES.map((m, i) => <Cell key={i} fill={m.color} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {/* رطوبة المناطق (NDMI حقيقيّ) */}
+        <ChartCard title="رطوبة المناطق (NDMI)" icon={Droplets}>
+          <Panel
+            isLoading={moistQ.isLoading}
+            isError={moistQ.isError}
+            isEmpty={moistureData.length === 0}
+            onRetry={() => moistQ.refetch()}
+            height={180}
+            emptyHint="لا تتوفّر شبكة رطوبة حقيقيّة لهذا الحقل بعد."
+          >
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={moistureData} barSize={36}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="zone" tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} />
+                <YAxis domain={[-1, 1]} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
+                <Tooltip contentStyle={{ background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#e2e8f0' }} />
+                <Bar dataKey="value" name="NDMI" radius={[6, 6, 0, 0]}>
+                  {moistureData.map((m, i) => <Cell key={i} fill={m.color} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
         </ChartCard>
 
-        <ChartCard title="مؤشر الصحة الزراعية المركّب" icon={BarChart3}>
-          <ResponsiveContainer width="100%" height={180}>
-            <RadarChart data={RADAR_DATA}>
-              <PolarGrid stroke="#334155" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill:'#94a3b8', fontSize:11 }} />
-              <PolarRadiusAxis domain={[0,100]} tick={{ fill:'#475569', fontSize:9 }} />
-              <Radar name={selectedField} dataKey="A" stroke="#16a34a" fill="#16a34a" fillOpacity={0.25} strokeWidth={2} />
-            </RadarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </div>
-
-      {/* AI Insights */}
-      <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-emerald-400 text-base">🤖</span>
-          <span className="text-sm font-semibold text-slate-200">رؤى AI مبنية على WOFOST + Sentinel-2</span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            { emoji:'🌾', title:'توقع الحصاد', body:'استناداً إلى GDD=960 و NDVI=0.72، يُتوقع حصاد القمح خلال 18-22 يوماً بإنتاجية 2.8 t/ha.' },
-            { emoji:'💧', title:'توصية الري', body:'ET0 اليومي 4.2mm والرطوبة 16% — ري 30mm صباح اليوم للحقل الشمالي.' },
-            { emoji:'⚠️', title:'تحذير مبكر', body:'حقل عتمة الشرقي: NDVI انخفض 0.08 خلال أسبوعين — فحص فوري للتربة موصى به.' },
-          ].map((ins, i) => (
-            <div key={i} className="rounded-lg p-3" style={{ background:'#0f1117', border:'1px solid #334155' }}>
-              <div className="text-xl mb-1">{ins.emoji}</div>
-              <div className="text-sm font-semibold text-slate-100 mb-1">{ins.title}</div>
-              <p className="text-xs text-slate-400 leading-relaxed">{ins.body}</p>
+        {/* رؤى/توصيات حقيقيّة من المحرّك الموحَّد */}
+        <ChartCard title="رؤى وتوصيات الحقل" icon={BarChart3}>
+          <Panel
+            isLoading={recQ.isLoading}
+            isError={recQ.isError}
+            isEmpty={recs.length === 0}
+            onRetry={() => recQ.refetch()}
+            height={200}
+            emptyHint="لا توجد توصيات حاليّة لهذا الحقل."
+          >
+            <div className="space-y-2" style={{ maxHeight: 220, overflowY: 'auto' }}>
+              {recs.map((r, i) => {
+                const ps = PRIORITY_STYLE[r.priority] ?? PRIORITY_STYLE.low;
+                return (
+                  <div key={i} className="rounded-lg p-3" style={{ background: '#0f1117', border: '1px solid #334155' }}>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-sm font-semibold text-slate-100">{r.title_ar}</span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap"
+                        style={{ background: ps.bg, color: ps.fg }}>
+                        {CAT_AR[r.category] ?? r.category} · {ps.label}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">{r.detail_ar}</p>
+                  </div>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </Panel>
+        </ChartCard>
       </div>
+
+      {!recQ.data?.weather_available && recs.length > 0 && (
+        <div className="rounded-lg p-3 flex items-center gap-2 text-xs" style={{ background: '#1e293b', border: '1px solid #334155', color: '#94a3b8' }}>
+          <Lightbulb className="w-4 h-4 text-amber-400" />
+          بعض توصيات الطقس غير متاحة حاليّاً (خدمة الطقس متعذّرة) — التوصيات المعروضة مبنيّة على المتاح.
+        </div>
+      )}
+
+      <p className="text-[11px] text-slate-500 text-center">
+        كلّ الأرقام أعلاه حيّة لحقل: <span className="text-slate-300">{activeFieldName}</span>. عند غياب مصدر، تُعرض حالة صادقة بدل قيمة مخترعة.
+      </p>
     </div>
   );
 }
