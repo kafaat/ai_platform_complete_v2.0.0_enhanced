@@ -17,6 +17,8 @@ import { useFieldOptions } from '../hooks/useFieldOptions';
 // أيّ مؤشّر من طبقات الواجهة يملك بلاطات/شبكة حقيقيّة في raster-service؟
 // غير المدعوم يسقط إلى ndvi (الخدمة تُرجِع بلاطات شفّافة لغير المدعوم).
 // Sprint 5b: أُضيف ndre/msavi/evi/moisture (band-math + بلاطات في raster-service).
+// msi (الإجهاد المائي SWIR1/NIR): بلاطات/شبكة حقيقيّة في raster-service (band_math)
+// — مكمّل لطبقة الرطوبة (NDMI) وجسر قرار الإجهاد المائي (ndmi/msi).
 const GRID_INDEX_MAP: Record<string, GridIndex> = {
   ndvi: 'ndvi',
   ndwi: 'ndwi',
@@ -24,6 +26,7 @@ const GRID_INDEX_MAP: Record<string, GridIndex> = {
   ndre: 'ndre',
   msavi: 'msavi',
   moisture: 'moisture',
+  msi: 'msi',
 };
 
 const INDICES = [
@@ -32,6 +35,7 @@ const INDICES = [
   { id:'msavi',    name:'MSAVI', desc:'تصحيح تربة ذاتي', color:'#ea580c', icon:'🏜' },
   { id:'ndre',     name:'NDRE',  desc:'النيتروجين (red-edge)', color:'#a855f7', icon:'🧪' },
   { id:'moisture', name:'الرطوبة', desc:'محتوى الرطوبة (NDMI)', color:'#0ea5e9', icon:'💦' },
+  { id:'msi',      name:'MSI',   desc:'الإجهاد المائي (SWIR/NIR)', color:'#0891b2', icon:'🌡' },
   { id:'savi',     name:'SAVI',  desc:'تصحيح التربة',   color:'#f59e0b', icon:'🏜' },
   { id:'ndwi',     name:'NDWI',  desc:'محتوى المياه',   color:'#3b82f6', icon:'💧' },
   { id:'gndvi',    name:'GNDVI', desc:'NDVI أخضر',      color:'#22c55e', icon:'🌱' },
