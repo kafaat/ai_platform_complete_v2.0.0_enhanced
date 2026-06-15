@@ -721,19 +721,6 @@ def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
     return ", ".join(assignments), values
 
 
-class ActivityItem(BaseModel):
-    """عنصر في جدول الأنشطة."""
-
-    activity_id: str
-    field_id: str
-    field_name_ar: str
-    activity_type: str  # irrigation/fertilization/pest_control/harvest
-    title_ar: str
-    scheduled_for: str  # ISO date
-    status: str  # pending/completed/skipped/overdue
-    urgency: str  # low/medium/high/critical
-
-
 # ─── Auth helpers ────────────────────────────────────────────────
 
 
@@ -6114,37 +6101,6 @@ async def get_document(
     }
 
 
-@app.get("/api/v1/activities", response_model=list[ActivityItem])
-def list_activities(
-    user: UserSchema = Depends(get_current_user),
-    status: str = "pending",
-):
-    """قائمة الأنشطة المُجدوَلة — للتذكيرات."""
-    now = datetime.utcnow()
-    return [
-        ActivityItem(
-            activity_id="act_001",
-            field_id="fld_demo_001",
-            field_name_ar="حقل تجريبي ١",
-            activity_type="irrigation",
-            title_ar="ريّ ١٢ ملم — صباح غد",
-            scheduled_for=(now + timedelta(hours=18)).isoformat(),
-            status="pending",
-            urgency="medium",
-        ),
-        ActivityItem(
-            activity_id="act_002",
-            field_id="fld_demo_001",
-            field_name_ar="حقل تجريبي ١",
-            activity_type="pest_control",
-            title_ar="فحص الحشرات الأسبوعي",
-            scheduled_for=(now + timedelta(days=2)).isoformat(),
-            status="pending",
-            urgency="low",
-        ),
-    ]
-
-
 # ═══════════════════════════════════════════════════════════════════
 #   Open-Meteo Weather Integration (مجاني، بدون مفتاح)
 # ═══════════════════════════════════════════════════════════════════
@@ -8767,7 +8723,7 @@ class RegisterCameraRequest(BaseModel):
 @app.post("/api/v1/cameras/register")
 def cameras_register(
     req: RegisterCameraRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.DEVICE_MANAGE)),
 ):
     """يسجّل كاميرا مراقبة لحقل (عين ميدانيّة — لا كشف آلي بالذكاء الاصطناعي)."""
     try:
@@ -8798,7 +8754,7 @@ class SnapshotEvidenceRequest(BaseModel):
 @app.post("/api/v1/cameras/snapshot-evidence")
 def cameras_snapshot_evidence(
     req: SnapshotEvidenceRequest,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.DEVICE_MANAGE)),
 ):
     """يحوّل لقطة كاميرا إلى قرينة ميدانيّة (field_obs) للتظافر — لا تشخيص آلي."""
     snap = CameraSnapshot(
@@ -9807,7 +9763,7 @@ async def weather_register_endpoint(
     lat: float,
     lon: float,
     field_id: str | None = None,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """يسجّل إحداثيّة لسحب طقسها تلقائيّاً (الجدولة تحدّثه دوريّاً).
 
@@ -9864,7 +9820,7 @@ class ImageryFieldRegister(BaseModel):
 @app.post("/api/v1/automation/imagery/register-field")
 async def imagery_register_field_endpoint(
     req: ImageryFieldRegister,
-    user: UserSchema = Depends(get_current_user),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """يسجّل حقلاً (bbox) لمتابعة صور Sentinel الجديدة تلقائيّاً.
 
@@ -9974,6 +9930,7 @@ async def onboarding_questionnaire(
 @app.post("/api/v1/onboarding/responses")
 async def submit_onboarding(
     req: OnboardingSubmitRequest,
+    # خدمة ذاتيّة لإعداد المستأجِر — مفتوحة عمداً لأيّ مستخدم مُصادَق (معزولة بالمستأجِر/RLS، لا حارس صلاحيّة).
     user: UserSchema = Depends(get_current_user),
 ):
     """يحفظ ردّ الاستبيان (عبر tenant_connection — RLS مُطبَّق).
