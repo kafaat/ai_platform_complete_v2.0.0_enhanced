@@ -1,0 +1,39 @@
+# Copilot Setup Steps — يُسبق-تثبيت تبعيّات التطوير/الاختبار لجلسات وكيل Copilot
+# فلا يُعاد بناء venv ولا تثبيت pytest/ruff/defusedxml يدويّاً كلّ جلسة، ويُجنَّب
+# عثرات «No module named jose/defusedxml». الوظيفة يجب أن تُسمّى copilot-setup-steps.
+# لا يعمل في كلّ دفع: فقط يدويّاً أو عند تغيّر هذا الملفّ (اختبار ذاتيّ) — لا حِمل CI إضافيّ.
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dev, test & platform dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # أدوات التطوير/الاختبار (pytest, ruff, bandit, alembic, pytest-cov …)
+          pip install -r requirements-dev.txt
+          pip install -r tests_v9/requirements-test.txt
+          # تبعيّات منصّة sahool الفعليّة (fastapi, asyncpg, numpy/scipy,
+          # defusedxml, python-multipart …) كي تُستورَد api/main.py وتُشغَّل اختباراتها.
+          pip install -r services/sahool-platform/api/requirements.txt
