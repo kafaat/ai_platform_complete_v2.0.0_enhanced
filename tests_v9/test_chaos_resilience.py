@@ -71,7 +71,16 @@ def test_concurrent_approval_guard():
 def test_edge_sync_handler_dedup():
     """معالج edge/sync: ON CONFLICT DO NOTHING → التكرار يُتجاهل بأمان."""
     r = []
-    src = open(os.path.join(BASE, "services/sahool-platform/api/main.py"), encoding="utf-8").read()
+    # معالج edge/sync نُقل إلى api/routers/edge.py (تفكيك main، نمط P0) — نبحث في
+    # main.py + موجِّهات api/routers معاً (location-agnostic: السلوك لا موقع التعريف).
+    api_dir = os.path.join(BASE, "services/sahool-platform/api")
+    sources = [os.path.join(api_dir, "main.py")]
+    routers_dir = os.path.join(api_dir, "routers")
+    if os.path.isdir(routers_dir):
+        sources += [
+            os.path.join(routers_dir, f) for f in os.listdir(routers_dir) if f.endswith(".py")
+        ]
+    src = "\n".join(open(p, encoding="utf-8").read() for p in sources if os.path.isfile(p))
     if "ON CONFLICT (idempotency_key)" in src and "DO NOTHING" in src:
         r.append(("✓", "edge/sync يستخدم ON CONFLICT DO NOTHING (dedup خادمي)"))
     if "duplicate_ignored" in src:
