@@ -1542,6 +1542,25 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
                     "soil_type": req.soil_type,
                 },
             )
+            # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب
+            # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
+            # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
+            from api.field_state_projection import recompute_field_state
+
+            _fs = await recompute_field_state(conn, field_id)
+            if _fs["changed"]:
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "FIELD_STATE_CHANGED",
+                    "field",
+                    field_id,
+                    {
+                        "validity": _fs["state"]["validity"],
+                        "execution_mode": _fs["state"]["execution_mode"],
+                        "trigger": "field.created",
+                    },
+                )
     except HTTPException:
         raise  # get_pool() يرفع 503 أصلاً
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
@@ -3177,6 +3196,25 @@ async def create_activity(
                         "status": status,
                     },
                 )
+                # Canonical Field State: تسجيل عمليّة يغيّر سياق القرار ⇒ أعِد حساب
+                # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
+                # (داخل _work ⇒ نفس معاملة الكتابة ومشمول بالـidempotency — نمط outbox).
+                from api.field_state_projection import recompute_field_state
+
+                _fs = await recompute_field_state(conn, field_id)
+                if _fs["changed"]:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "FIELD_STATE_CHANGED",
+                        "field",
+                        field_id,
+                        {
+                            "validity": _fs["state"]["validity"],
+                            "execution_mode": _fs["state"]["execution_mode"],
+                            "trigger": "activity.recorded",
+                        },
+                    )
                 # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
                 # عند الإعادة (مع حفظ activity_id الأصليّ) — response_model يتحقّق منه.
                 return ActivitySummary(
@@ -5070,6 +5108,17 @@ async def register_valve(
                 req.valve_type,
                 req.flow_rate_lpm,
             )
+            # حدث تسجيل الصمّام ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا
+            # حدث» فيصبح دورة حياة الصمّام مرئيّة لتيّار الأحداث/الوكلاء. داخل _work
+            # كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة.
+            await _emit_domain_event(
+                conn,
+                user,
+                "irrigation.valve.registered",
+                "irrigation_valve",
+                valve_id,
+                {"field_id": req.field_id, "valve_type": req.valve_type},
+            )
             # نُعيد النتيجة لتُخزَّن كنتيجة أمر idempotent وتُعاد حرفيّاً عند الإعادة
             # (مع حفظ valve_id الأصليّ).
             return {"valve_id": valve_id, "name": req.name, "message_ar": "سُجّل الصمّام"}
@@ -5136,6 +5185,17 @@ async def set_valve_state(
                 # 404 داخل _work ⇒ يرتدّ إدراج الأمر معه (لا أمر «ناجح» يتيم على صمّام
                 # غير موجود)، فإعادة لاحقة بعد إنشاء الصمّام تُنفَّذ من جديد بأمان.
                 raise HTTPException(status_code=404, detail="الصمّام غير موجود")
+            # حدث تغيّر حالة الصمّام ضمن نفس المعاملة (نمط outbox) — يجعل دورة فتح/إغلاق
+            # مرئيّة لتيّار الأحداث/الوكلاء (الحالة الجديدة في الحمولة، حقائق فقط). داخل
+            # _work كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة.
+            await _emit_domain_event(
+                conn,
+                user,
+                "irrigation.valve.state_changed",
+                "irrigation_valve",
+                valve_id,
+                {"status": req.status},
+            )
             return {"valve_id": valve_id, "status": req.status, "message_ar": "سُجّلت حالة الصمّام"}
 
         # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
