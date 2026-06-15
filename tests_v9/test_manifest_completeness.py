@@ -49,9 +49,7 @@ def test_every_forward_migration_is_in_manifest():
     on_disk = _forward_migration_files()
     listed = _manifest_entries()
     missing = sorted(on_disk - listed)
-    assert not missing, (
-        "ملفّات ترحيل غائبة عن MANIFEST: " + ", ".join(missing)
-    )
+    assert not missing, "ملفّات ترحيل غائبة عن MANIFEST: " + ", ".join(missing)
 
 
 @pytest.mark.unit
@@ -60,6 +58,4 @@ def test_every_manifest_entry_exists_on_disk():
     listed = _manifest_entries()
     on_disk = _forward_migration_files()
     orphans = sorted(listed - on_disk)
-    assert not orphans, (
-        "مُدخَلات في MANIFEST لا ملفّ لها على القرص: " + ", ".join(orphans)
-    )
+    assert not orphans, "مُدخَلات في MANIFEST لا ملفّ لها على القرص: " + ", ".join(orphans)
