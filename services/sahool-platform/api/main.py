@@ -1245,36 +1245,6 @@ def list_capabilities(user: UserSchema = Depends(get_current_user)):
     return capabilities_report()
 
 
-# ─── سجلّات الاستبطان: حقول التقرير + تعريفات سير العمل (قراءة فقط) ──────
-# تكشف الكتالوجات المُعلَنة كبيانات (report_builder/workflow_definitions) لطبقة
-# الواجهة دون قاعدة — دوالّ نقيّة. الصلاحيّة FIELD_VIEW (قراءة) مطابقةً لـendpoints
-# التقارير القائمة.
-@app.get("/api/v1/registry/report-fields")
-def list_registry_report_fields(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """حقول التقرير المتاحة (Report Builder) — كتالوج البيانات الوصفيّة لا بيانات مُجمَّعة.
-
-    مصدر واحد لما يمكن إدراجه في تقرير (المعرّف/الاسم/الكيان/النوع/الوحدة). نقيّ — لا
-    قاعدة. تجميع البيانات الفعليّ متابعة لاحقة (انظر api/report_builder)."""
-    from api.report_builder import list_report_fields
-
-    return {"report_fields": list_report_fields()}
-
-
-@app.get("/api/v1/registry/workflows")
-def list_registry_workflows(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """تعريفات سير العمل المتاحة (مراحل + انتقالات) — كتالوج لا محرّك تنفيذ.
-
-    التنفيذ يبقى في core/workflow_engine ومحرّكات النطاق؛ هنا الوصف فقط (انظر
-    api/workflow_definitions)."""
-    from api.workflow_definitions import list_workflows
-
-    return {"workflows": list_workflows()}
-
-
 @app.post("/api/v1/reports/build")
 def build_report(
     body: dict,
@@ -3252,64 +3222,6 @@ async def recommendation_engines(
     }
 
 
-# ─── سجلّات النظام (introspection) ───────────────────────────────
-# نقاط قراءة فقط (read-only) تكشف بيانات وصفيّة (metadata) عن السجلّات
-# المُدمَجة على main: لا قاعدة بيانات ولا مستأجِر (tenant) — فقط مصادقة
-# عبر صلاحيّة قراءة خفيفة (Permission.FIELD_VIEW، نفس صلاحيّة نقاط القراءة).
-# الاستيراد محلّيّ داخل كلّ مُعالِج (مطابقة لنمط الاستيراد المحلّيّ) لتفادي
-# كلفة الاستيراد وقت بدء التشغيل.
-
-
-@app.get("/api/v1/registry/indices")
-async def registry_indices(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """سجلّ مؤشّرات الاستشعار عن بُعد (vegetation/water indices) — بيانات وصفيّة."""
-    from api.index_registry import list_indices
-
-    return {"indices": list_indices()}
-
-
-@app.get("/api/v1/registry/device-types")
-async def registry_device_types(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """سجلّ أنواع الأجهزة (device types) المدعومة — بيانات وصفيّة."""
-    from api.device_registry import list_device_types
-
-    return {"device_types": list_device_types()}
-
-
-@app.get("/api/v1/registry/events")
-async def registry_events(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """كتالوج أحداث المجال (domain events) — بيانات وصفيّة."""
-    from api.event_catalog import list_events
-
-    return {"events": list_events()}
-
-
-@app.get("/api/v1/registry/cost-profiles")
-async def registry_cost_profiles(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """ملفّات حوكمة الكلفة (cost profiles) — بيانات وصفيّة."""
-    from api.cost_governance import list_profiles
-
-    return {"cost_profiles": list_profiles()}
-
-
-@app.get("/api/v1/registry/data-quality-rules")
-async def registry_data_quality_rules(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """قواعد جودة البيانات (data-quality rules) — بيانات وصفيّة."""
-    from api.data_quality import list_rules
-
-    return {"data_quality_rules": list_rules()}
-
-
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
 _ACTIVITY_TYPES = {
     "planting",
@@ -5225,135 +5137,6 @@ class TelemetryRequest(BaseModel):
 
 
 _DEVICE_ONLINE_WINDOW_MIN = 15  # جهاز يُعتبر online إن ظهر خلال هذه المدّة
-
-
-@app.post("/api/v1/devices", status_code=201)
-async def register_device(
-    req: DeviceRequest,
-    user: UserSchema = Depends(require_permission(Permission.DEVICE_MANAGE)),
-):
-    """يسجّل جهاز IoT جديد في سجلّ المستأجر."""
-    import uuid as _uuid
-
-    device_id = "dev_" + _uuid.uuid4().hex[:12]
-    # تحقّق غير كاسر (best-effort): إن لم يكن نوع الجهاز معرّفاً في سجلّ الأنواع
-    # (api/device_registry) نُسجّل تحذيراً فقط — لا نرفض (السلوك دون تغيير). مغلّف
-    # بـtry/except كي لا يكسر أيّ خطأ في السجلّ نقطة التسجيل. ربط النوع/الرفض متابعة.
-    try:
-        from api.device_registry import get_device_type
-
-        if get_device_type(req.type) is None:
-            logging.warning("سُجّل جهاز بنوع غير مُعرَّف في سجلّ الأنواع: %s", req.type)
-    except Exception:  # noqa: BLE001 — تحذير اختياريّ لا يجوز أن يُفشل التسجيل
-        pass
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO iot_devices
-                (device_id, tenant_id, name, type, field_id, firmware_version)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6)""",
-            device_id,
-            str(user.tenant_id),
-            req.name,
-            req.type,
-            req.field_id,
-            req.firmware_version,
-        )
-    return {"device_id": device_id, "name": req.name, "message_ar": "سُجّل الجهاز"}
-
-
-@app.get("/api/v1/devices")
-async def list_devices(user: UserSchema = Depends(require_permission(Permission.DEVICE_VIEW))):
-    """قائمة الأجهزة مع حالة الصحّة المحسوبة (online إن ظهر مؤخّراً)."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            """SELECT device_id, name, type, field_id, status, last_seen_at, firmware_version,
-                      (last_seen_at IS NOT NULL
-                       AND last_seen_at > NOW() - make_interval(mins => $1)) AS online
-               FROM iot_devices ORDER BY type, name""",
-            _DEVICE_ONLINE_WINDOW_MIN,
-        )
-    return [
-        {
-            "device_id": r["device_id"],
-            "name": r["name"],
-            "type": r["type"],
-            "field_id": r["field_id"],
-            "status": r["status"],
-            "online": r["online"],
-            "last_seen_at": r["last_seen_at"].isoformat() if r["last_seen_at"] else None,
-            "firmware_version": r["firmware_version"],
-        }
-        for r in rows
-    ]
-
-
-@app.post("/api/v1/devices/{device_id}/telemetry", status_code=201)
-async def ingest_telemetry(
-    device_id: str,
-    req: TelemetryRequest,
-    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
-):
-    """يبتلع قراءة من جهاز ويحدّث آخر ظهوره (= نبضة صحّة). تسجيل القراءة من
-    صلاحية observation:record (العامل يدفع قراءات الميدان)."""
-    recorded = None
-    if req.recorded_at:
-        # ندعم لاحقة "Z" (Zulu/UTC) الشائعة، ونطبّع الـnaive إلى UTC قبل
-        # إدخاله في عمود TIMESTAMPTZ (لئلّا يُرفَض مدخل صحيح أو يُخزَّن توقيت ملتبس).
-        raw = req.recorded_at.strip().replace("Z", "+00:00").replace("z", "+00:00")
-        try:
-            recorded = datetime.fromisoformat(raw)
-        except (ValueError, TypeError):
-            raise HTTPException(
-                status_code=400, detail="recorded_at غير صالح — استخدم ISO 8601"
-            ) from None
-        if recorded.tzinfo is None:
-            recorded = recorded.replace(tzinfo=UTC)
-    async with tenant_connection(user) as conn:
-        exists = await conn.fetchval("SELECT 1 FROM iot_devices WHERE device_id = $1", device_id)
-        if not exists:
-            raise HTTPException(status_code=404, detail="الجهاز غير مسجّل")
-        await conn.execute(
-            """INSERT INTO device_telemetry
-                (tenant_id, device_id, sensor_type, value, unit, recorded_at)
-               VALUES ($1::uuid, $2, $3, $4, $5, COALESCE($6, NOW()))""",
-            str(user.tenant_id),
-            device_id,
-            req.sensor_type,
-            req.value,
-            req.unit,
-            recorded,
-        )
-        # القراءة = نبضة صحّة: حدّث آخر ظهور والحالة online
-        await conn.execute(
-            "UPDATE iot_devices SET last_seen_at = NOW(), status = 'online' WHERE device_id = $1",
-            device_id,
-        )
-    return {"device_id": device_id, "message_ar": "سُجّلت القراءة"}
-
-
-@app.get("/api/v1/devices/{device_id}/telemetry")
-async def list_telemetry(
-    device_id: str,
-    limit: int = Query(100, ge=1, le=1000),
-    user: UserSchema = Depends(require_permission(Permission.DEVICE_VIEW)),
-):
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            """SELECT sensor_type, value, unit, recorded_at
-               FROM device_telemetry WHERE device_id = $1
-               ORDER BY recorded_at DESC LIMIT $2""",
-            device_id,
-            limit,
-        )
-    return [
-        {
-            "sensor_type": r["sensor_type"],
-            "value": float(r["value"]),
-            "unit": r["unit"],
-            "recorded_at": r["recorded_at"].isoformat() if r["recorded_at"] else None,
-        }
-        for r in rows
-    ]
 
 
 # ─── الري التشغيلي (صمامات + جداول) — الطبقة ٣ (v25) ─────────────
@@ -8568,61 +8351,6 @@ async def learning_activation_status(
     return result
 
 
-@app.get("/api/v1/devices/fleet-health")
-async def devices_fleet_health(
-    user: UserSchema = Depends(require_permission(Permission.DEVICE_VIEW)),
-):
-    """صحّة أسطول الأجهزة — كشف استباقي للأجهزة الصامتة مرتّباً بالخطورة.
-
-    يُكمّل GET /devices (العرض) بإنذار استباقي: أيّ جهاز صامت، ما خطورته، هل
-    يعتمده حقل نشط. مُستلهَم من مبدأ MDM (الإنذار المبكر). RLS عبر tenant_connection.
-    """
-    from api.fleet_health import DeviceHealthRecord, assess_fleet
-
-    rows: list = []
-    active_fields: set[str] = set()
-    try:
-        async with tenant_connection(user) as conn:
-            devs = await conn.fetch(
-                """SELECT device_id, name, type, field_id,
-                          EXTRACT(EPOCH FROM (NOW() - last_seen_at)) / 60 AS mins_since
-                   FROM iot_devices"""
-            )
-            for d in devs:
-                rows.append(
-                    DeviceHealthRecord(
-                        device_id=d["device_id"],
-                        name=d["name"],
-                        device_type=d["type"],
-                        field_id=d["field_id"],
-                        minutes_since_seen=(
-                            float(d["mins_since"]) if d["mins_since"] is not None else None
-                        ),
-                    )
-                )
-            import asyncpg as _asyncpg  # لتضييق الالتقاط على غياب الجدول فقط
-
-            try:
-                # SAVEPOINT يعزل فشل الاستعلام الاختياري عن المعاملة الخارجيّة (RLS)،
-                # فلا يُجهضها غياب الجدول (نمط _emit_domain_event نفسه).
-                async with conn.transaction():
-                    af = await conn.fetch(
-                        "SELECT DISTINCT field_id FROM field_lifecycle WHERE status = 'active'"
-                    )
-                    active_fields = {r["field_id"] for r in af if r["field_id"]}
-            except _asyncpg.UndefinedTableError:
-                # غياب جدول دورة الحياة لا يكسر المراقبة (يسقط رفع الحرجيّة فقط).
-                # أيّ خطأ DB آخر (صلاحيّة/SQL/انقطاع) يُترك ليُترجَم إلى 503 خارجيّاً
-                # بدل إخفائه بصمت وإعطاء «صحّة» مضلّلة.
-                active_fields = set()
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("صحّة الأسطول", e) from e
-
-    return assess_fleet(rows, active_field_ids=active_fields)
-
-
 @app.get("/api/v1/rbac/who-can")
 def rbac_who_can(
     permission: str,
@@ -10263,111 +9991,12 @@ async def internal_field_state(
     return result["state"]
 
 
-# ─── ٥٨. حالة جدولة الأتمتة (مراقبة) ──
-@app.get("/api/v1/automation/scheduler-status")
-def scheduler_status_endpoint():
-    """حالة المهامّ الدوريّة المُؤتمتة: آخر تشغيل/نجاح/فشل لكلّ مهمّة.
-
-    للمراقبة التشغيليّة — يكشف إن توقّفت أتمتة (سحب طقس/صور) أو تكرّر فشلها.
-    """
-    from api.scheduler import scheduler
-
-    return scheduler.status()
-
-
-# ─── ٥٩. أتمتة الطقس (Open-Meteo دوريّاً) ──
-from api.weather_automation import weather_automation  # noqa: E402
-
-
-@app.post("/api/v1/automation/weather/register")
-async def weather_register_endpoint(
-    lat: float,
-    lon: float,
-    field_id: str | None = None,
-    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
-):
-    """يسجّل إحداثيّة لسحب طقسها تلقائيّاً (الجدولة تحدّثه دوريّاً).
-
-    يُحفظ في القاعدة لو توفّرت (يبقى بعد إعادة التشغيل).
-    H1 FIX: يتطلّب مصادقة — يمنع تسجيل/استنزاف مجهول لمهامّ السحب الدوريّة.
-    """
-    await weather_automation.register_location_persistent(lat, lon, field_id)
-    return {
-        "registered": True,
-        "lat": lat,
-        "lon": lon,
-        "field_id": field_id,
-        "total_registered": weather_automation.registered_count(),
-        "note_ar": "ستُسحب بيانات الطقس تلقائيّاً ضمن الدورة القادمة.",
-    }
-
-
-@app.get("/api/v1/automation/weather/cached")
-def weather_cached_endpoint(
-    lat: float,
-    lon: float,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقرأ آخر طقس مسحوب تلقائيّاً لإحداثيّة (سريع، من الذاكرة)."""
-    c = weather_automation.get_cached(lat, lon)
-    if c is None:
-        return JSONResponse(
-            status_code=404,
-            content={
-                "found": False,
-                "note_ar": "لا طقس مُخزّن لهذه الإحداثيّة — سجّلها أوّلاً عبر /register.",
-            },
-        )
-    return {"found": True, **c.to_dict()}
-
-
-@app.get("/api/v1/automation/weather/status")
-def weather_automation_status_endpoint(
-    user: UserSchema = Depends(get_current_user),
-):
-    """حالة أتمتة الطقس: كم إحداثيّة مسجّلة وكم في الـcache."""
-    return weather_automation.status()
-
-
 # ─── ٦٠. أتمتة الصور الجوّية + المؤشّرات (Sentinel عبر raster-service) ──
-from api.imagery_automation import imagery_automation  # noqa: E402
-
-
+# نموذج طلب تسجيل حقل للصور — يبقى مُعرَّفاً هنا ويُستورَد من api.routers.automation
+# (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
 class ImageryFieldRegister(BaseModel):
     field_id: str
     bbox: list[float]  # [west, south, east, north]
-
-
-@app.post("/api/v1/automation/imagery/register-field")
-async def imagery_register_field_endpoint(
-    req: ImageryFieldRegister,
-    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
-):
-    """يسجّل حقلاً (bbox) لمتابعة صور Sentinel الجديدة تلقائيّاً.
-
-    عند كلّ دورة جدولة: يُبحَث عن صور جديدة، وتُحسب المؤشّرات (NDVI) لها.
-    يُحفظ في القاعدة لو توفّرت (يبقى بعد إعادة التشغيل، لا إعادة معالجة).
-    الهويّة (tenant) من التوكن — تُمرَّر لـraster /process عند الحساب التلقائي.
-    """
-    try:
-        await imagery_automation.register_field_persistent(
-            req.field_id, req.bbox, tenant_id=str(user.tenant_id)
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    return {
-        "registered": True,
-        "field_id": req.field_id,
-        "bbox": req.bbox,
-        "total_tracked": imagery_automation.tracked_count(),
-        "note_ar": "ستُفحَص صور Sentinel الجديدة وتُحسب مؤشّراتها تلقائيّاً.",
-    }
-
-
-@app.get("/api/v1/automation/imagery/status")
-def imagery_automation_status_endpoint():
-    """حالة أتمتة الصور: الحقول المتابَعة + آخر صورة/مؤشّر لكلّ حقل."""
-    return imagery_automation.status()
 
 
 # ─── ٦١. أتمتة تقييم التنبيهات (تشغيل دوريّ/عند الطلب لكلّ حقول المستأجِر) ──
@@ -10375,48 +10004,6 @@ def imagery_automation_status_endpoint():
 # يُعرَض في scheduler-status. الافتراض ٦ ساعات (توقّع الطقس يومي عمليّاً؛
 # ٦ ساعات تلتقط تحوّلات الحرارة/المطر دون إغراق Open-Meteo). قابل للضبط عبر ENV.
 ALERTS_EVAL_INTERVAL_SECONDS = int(os.getenv("SAHOOL_ALERTS_EVAL_INTERVAL_SECONDS", "21600"))
-
-
-@app.post("/api/v1/automation/alerts/run")
-async def automation_run_alerts_endpoint(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
-):
-    """يُشغّل تقييم التنبيهات لكلّ حقول المستأجِر دفعةً واحدة (تشغيل عند الطلب).
-
-    هذا هو المسار الذي يضربه جدولٌ خارجيّ (cron) أو الجدولة الداخليّة دوريّاً
-    لتوليد تنبيهات الحقول تلقائيّاً بدل الانتظار لطلب يدويّ لكلّ حقل.
-
-    معزول لكلّ حقل: فشل القاعدة/الطقس لحقل (مثلاً بلا إحداثيّات → 422، أو تعذّر
-    Open-Meteo → 503) يُسجَّل في error ويُتخطّى — لا يُسقط بقيّة الحقول ولا يرفع
-    500. tenant-isolated (RLS عبر tenant_connection + ترشيح tenant_id). يُرجع
-    ملخّصاً لكلّ حقل {field_id, created, skipped} + إجماليّات.
-    """
-    from api.alert_rules import field_run_summary, summarize_run
-
-    try:
-        async with tenant_connection(user) as conn:
-            rows = await conn.fetch(
-                "SELECT field_id FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
-                str(user.tenant_id),
-            )
-    except HTTPException:
-        raise  # get_pool() ⇒ 503 (القاعدة معطّلة) — لا حقول لنقرأها أصلاً
-    except Exception as e:  # noqa: BLE001 — تعذّر قراءة قائمة الحقول ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة حقول المستأجِر", e) from e
-
-    summaries: list[dict] = []
-    for r in rows:
-        fid = r["field_id"]
-        try:
-            created, skipped = await _evaluate_field_alerts_persist(user, fid)
-            summaries.append(field_run_summary(fid, created=len(created), skipped=skipped))
-        except HTTPException as he:  # 404/422/503 لحقل ⇒ تخطٍّ رشيق (لا 500)
-            summaries.append(field_run_summary(fid, error=f"{he.status_code}: {he.detail}"))
-        except Exception as e:  # noqa: BLE001 — أيّ خطأ آخر لحقل ⇒ تخطٍّ معزول
-            logging.warning("automation alerts run: skipped field %s: %s", fid, type(e).__name__)
-            summaries.append(field_run_summary(fid, error=type(e).__name__))
-
-    return summarize_run(summaries)
 
 
 @app.get("/api/v1/climate-analogs/strategy")
@@ -10816,6 +10403,12 @@ _rebuild_pydantic_models()
 # يُحلّ الاستيراد الدائريّ: routers/boundaries.py يستورد من api.main، وحين يصل
 # المُفسّر إلى هنا تكون كلّ تلك الرموز مُعرَّفة. التسجيل يحدث وقت الاستيراد فتُسجَّل
 # المسارات على ``app`` كما لو كانت مُعرَّفة هنا (مخطّط OpenAPI مطابق).
+from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
+from api.routers.devices import router as devices_router  # noqa: E402
+from api.routers.registry import router as registry_router  # noqa: E402
 
 app.include_router(boundaries_router)
+app.include_router(registry_router)
+app.include_router(automation_router)
+app.include_router(devices_router)
