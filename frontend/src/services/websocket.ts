@@ -37,7 +37,10 @@ class WebSocketService {
     if (!token) return;
 
     this.isConnecting = true;
-    const url = `${WS_URL}?token=${token}&user_id=${userId}`;
+    // التوكن لم يَعُد في الرابط (كان يتسرّب إلى سجلّات الوكلاء/الخوادم)؛ نرسله
+    // الآن في أوّل رسالة (إطار auth) بعد فتح الاتصال. نُبقي user_id للتوجيه
+    // والتوافق الخلفيّ (الخادم يتجاهله للمصادقة — يعتمد sub من الـJWT).
+    const url = `${WS_URL}?user_id=${userId}`;
 
     try {
       this.ws = new WebSocket(url);
@@ -46,6 +49,8 @@ class WebSocketService {
         console.info('[WS] SAHOOL WebSocket connected');
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        // أوّلاً: أرسل إطار المصادقة قبل أيّ شيء آخر (التوكن في الرسالة الأولى).
+        this.ws?.send(JSON.stringify({ type: 'auth', token }));
         // Ping كل 30 ثانية للحفاظ على الاتصال
         this.pingInterval = setInterval(() => {
           if (this.ws?.readyState === WebSocket.OPEN) {

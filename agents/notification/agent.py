@@ -477,29 +477,9 @@ def _validate_ws_token(token: str) -> dict:
         raise ValueError(f"Invalid token: {e}") from e
 
 
-@app.websocket("/ws/notifications")
-async def ws_notifications(websocket, token: str = "", user_id: str = ""):
-    """Secure WebSocket with JWT auth, connection limit, timeout."""
-
-    # W01: Full JWT validation
-    try:
-        payload = _validate_ws_token(token)
-        verified_user_id = payload["sub"]
-        tenant_id = payload.get("tenant_id", "")
-    except ValueError as e:
-        await websocket.close(code=1008, reason=str(e))
-        return
-
-    # W03: Ignore client-supplied user_id — use JWT sub
-    # W09: Max connections per user. نمرّر tenant_id (من مطالبة JWT) لتوجيه أحداث
-    # المستأجِر إليه فقط (عزل المستأجِر في broadcast_tenant).
-    if not await manager.connect(verified_user_id, websocket, tenant_id):
-        await websocket.close(code=1008, reason="Max connections reached")
-        return
-
-    await websocket.accept()
-    logger.info(f"WS connected: user={verified_user_id} tenant={tenant_id}")
-
+async def _ws_receive_loop(websocket, verified_user_id: str):
+    """حلقة الاستقبال المشتركة بين المسارين (التوكن في الـquery أو في الرسالة
+    الأولى) لتفادي أيّ تباعد في السلوك. تحافظ على W04: مهلة 60ث على الاستقبال."""
     try:
         while True:
             try:
@@ -514,6 +494,78 @@ async def ws_notifications(websocket, token: str = "", user_id: str = ""):
     finally:
         await manager.disconnect(verified_user_id, websocket)
         logger.info(f"WS disconnected: user={verified_user_id}")
+
+
+@app.websocket("/ws/notifications")
+async def ws_notifications(websocket, token: str = "", user_id: str = ""):
+    """Secure WebSocket with JWT auth, connection limit, timeout.
+
+    مساران للمصادقة (توافق خلفيّ صارم):
+      • توكن في الـquery (?token=…): السلوك القديم تماماً — يُتحقَّق منه قبل قبول
+        الاتصال. عيبه أنّ التوكن يتسرّب إلى سجلّات الوكلاء/الخوادم (access logs).
+      • توكن في الرسالة الأولى (handshake): إن خلا الـquery من التوكن، نقبل
+        الاتصال أوّلاً ثمّ ننتظر إطار {"type":"auth","token":"…"} ونتحقّق منه. هذا
+        يمنع تسرّب التوكن إلى السجلّات لأنّه لا يظهر في رابط الاتصال.
+    """
+
+    if token:
+        # ── المسار القديم: التوكن في الـquery (متروك كما هو للتوافق الخلفيّ) ──
+        # W01: Full JWT validation
+        try:
+            payload = _validate_ws_token(token)
+            verified_user_id = payload["sub"]
+            tenant_id = payload.get("tenant_id", "")
+        except ValueError as e:
+            await websocket.close(code=1008, reason=str(e))
+            return
+
+        # W03: Ignore client-supplied user_id — use JWT sub
+        # W09: Max connections per user. نمرّر tenant_id (من مطالبة JWT) لتوجيه أحداث
+        # المستأجِر إليه فقط (عزل المستأجِر في broadcast_tenant).
+        if not await manager.connect(verified_user_id, websocket, tenant_id):
+            await websocket.close(code=1008, reason="Max connections reached")
+            return
+
+        await websocket.accept()
+        logger.info(f"WS connected: user={verified_user_id} tenant={tenant_id}")
+        await _ws_receive_loop(websocket, verified_user_id)
+        return
+
+    # ── المسار الجديد: التوكن في الرسالة الأولى (يمنع تسرّبه في السجلّات) ──
+    # لا بدّ من قبول الاتصال قبل أن نستطيع استقبال إطار المصادقة (المتصفّح لا
+    # يملك وسيلة للتحقّق قبل القبول دون تمرير التوكن في الـquery).
+    await websocket.accept()
+    try:
+        # ننتظر إطار المصادقة بمهلة قصيرة كي لا يبقى اتصال مجهول مفتوحاً طويلاً.
+        auth_frame = await asyncio.wait_for(websocket.receive_json(), timeout=10.0)
+    except Exception:
+        await websocket.close(code=1008, reason="Auth handshake timeout")
+        return
+
+    auth_frame = auth_frame if isinstance(auth_frame, dict) else {}
+    ws_token = auth_frame.get("token", "")
+    if auth_frame.get("type") != "auth" or not ws_token:
+        await websocket.close(code=1008, reason="Missing auth frame")
+        return
+
+    # W01: Full JWT validation (بعد القبول، لكن قبل تقديم أيّ أحداث — نُبقي على
+    # خاصيّة "تحقّق قبل خدمة الأحداث").
+    try:
+        payload = _validate_ws_token(ws_token)
+        verified_user_id = payload["sub"]
+        tenant_id = payload.get("tenant_id", "")
+    except ValueError as e:
+        await websocket.close(code=1008, reason=str(e))
+        return
+
+    # W03: Ignore client-supplied user_id — use JWT sub
+    # W09: Max connections per user. نمرّر tenant_id (من مطالبة JWT) لعزل المستأجِر.
+    if not await manager.connect(verified_user_id, websocket, tenant_id):
+        await websocket.close(code=1008, reason="Max connections reached")
+        return
+
+    logger.info(f"WS connected: user={verified_user_id} tenant={tenant_id}")
+    await _ws_receive_loop(websocket, verified_user_id)
 
 
 def _require_agent_token(x_agent_token: str = Header(None, alias="X-Agent-Token")) -> None:
