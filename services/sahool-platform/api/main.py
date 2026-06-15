@@ -1245,6 +1245,55 @@ def list_capabilities(user: UserSchema = Depends(get_current_user)):
     return capabilities_report()
 
 
+# ─── سجلّات الاستبطان: حقول التقرير + تعريفات سير العمل (قراءة فقط) ──────
+# تكشف الكتالوجات المُعلَنة كبيانات (report_builder/workflow_definitions) لطبقة
+# الواجهة دون قاعدة — دوالّ نقيّة. الصلاحيّة FIELD_VIEW (قراءة) مطابقةً لـendpoints
+# التقارير القائمة.
+@app.get("/api/v1/registry/report-fields")
+def list_registry_report_fields(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """حقول التقرير المتاحة (Report Builder) — كتالوج البيانات الوصفيّة لا بيانات مُجمَّعة.
+
+    مصدر واحد لما يمكن إدراجه في تقرير (المعرّف/الاسم/الكيان/النوع/الوحدة). نقيّ — لا
+    قاعدة. تجميع البيانات الفعليّ متابعة لاحقة (انظر api/report_builder)."""
+    from api.report_builder import list_report_fields
+
+    return {"report_fields": list_report_fields()}
+
+
+@app.get("/api/v1/registry/workflows")
+def list_registry_workflows(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تعريفات سير العمل المتاحة (مراحل + انتقالات) — كتالوج لا محرّك تنفيذ.
+
+    التنفيذ يبقى في core/workflow_engine ومحرّكات النطاق؛ هنا الوصف فقط (انظر
+    api/workflow_definitions)."""
+    from api.workflow_definitions import list_workflows
+
+    return {"workflows": list_workflows()}
+
+
+@app.post("/api/v1/reports/build")
+def build_report(
+    body: dict,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """يبني **مواصفة تقرير مُتحقَّق منها** من اختيار المستخدم — دالّة نقيّة (لا قاعدة).
+
+    جسم الطلب هو اختيار التقرير ({"fields": [...], "entity"?, "filters"?}). يُعيد
+    المواصفة المُتحقَّق منها + resolved_fields (metadata الحقول) + warnings (حقول
+    مجهولة/كيان غير صالح...). هذا يُعيد **المواصفة فقط** لا بيانات مُجمَّعة — تجميع
+    البيانات/التصيير (CSV/PDF) متابعة لاحقة. 422 عند اختيار غير صالح بنيويّاً."""
+    from api.report_builder import build_report_spec
+
+    try:
+        return build_report_spec(body)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
+
+
 def _centroid_from_bbox(bbox: dict | None) -> tuple[float | None, float | None]:
     """مركز تقريبيّ من bbox {min_lat,max_lat,min_lng,max_lng}. (lat, lon).
 
@@ -5134,6 +5183,16 @@ async def register_device(
     import uuid as _uuid
 
     device_id = "dev_" + _uuid.uuid4().hex[:12]
+    # تحقّق غير كاسر (best-effort): إن لم يكن نوع الجهاز معرّفاً في سجلّ الأنواع
+    # (api/device_registry) نُسجّل تحذيراً فقط — لا نرفض (السلوك دون تغيير). مغلّف
+    # بـtry/except كي لا يكسر أيّ خطأ في السجلّ نقطة التسجيل. ربط النوع/الرفض متابعة.
+    try:
+        from api.device_registry import get_device_type
+
+        if get_device_type(req.type) is None:
+            logging.warning("سُجّل جهاز بنوع غير مُعرَّف في سجلّ الأنواع: %s", req.type)
+    except Exception:  # noqa: BLE001 — تحذير اختياريّ لا يجوز أن يُفشل التسجيل
+        pass
     async with tenant_connection(user) as conn:
         await conn.execute(
             """INSERT INTO iot_devices
