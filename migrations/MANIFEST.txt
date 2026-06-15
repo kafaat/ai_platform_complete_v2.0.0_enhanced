@@ -184,3 +184,8 @@ v55_field_state_agronomic.sql
 # lifecycle_temporal_rejections فعليّاً وقت تركيب trigger الحظر (كان موضعه الأصليّ يسبق
 # إنشاءها فيتخطّاها). idempotent (DROP TRIGGER IF EXISTS) — آمن إعادة التطبيق كلّ إقلاع.
 v9_append_only_enforcement.sql
+# v56: تغطية RLS ديناميكيّة (catch-all) — يُطبَّق أخيراً بعد إنشاء كلّ الجداول/الأعمدة.
+# يمسح كلّ جدول public يحوي tenant_id بلا أيّ سياسة RLS ويطبّق العزل عبر
+# _sahool_apply_tenant_rls. يقتصر على «صفر سياسات» تجنّباً لتوسعة الوصول بـOR على
+# الجداول ذات السياسات المخصّصة. idempotent (الجدول المُغطّى يصبح ذا سياسة فيُتخطّى).
+v56_rls_dynamic_all.sql
