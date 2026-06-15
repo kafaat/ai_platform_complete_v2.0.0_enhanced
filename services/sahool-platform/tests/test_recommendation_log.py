@@ -13,6 +13,11 @@ from core.learning.recommendation_log import (
 )
 
 
+def _csv_path():
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+        return Path(f.name)
+
+
 def _rec(rec_id="r1", pred=5.0, actual=None):
     return RecommendationRecord(
         rec_id=rec_id,
@@ -31,7 +36,7 @@ def _rec(rec_id="r1", pred=5.0, actual=None):
 
 class TestRecommendationLog:
     def test_log_and_load_roundtrip(self):
-        p = Path(tempfile.mktemp(suffix=".csv"))
+        p = _csv_path()
         log_recommendation(p, _rec("r1"))
         log_recommendation(p, _rec("r2"))
         loaded = load_log(p)
@@ -40,7 +45,7 @@ class TestRecommendationLog:
         p.unlink()
 
     def test_record_outcome_links_actual(self):
-        p = Path(tempfile.mktemp(suffix=".csv"))
+        p = _csv_path()
         log_recommendation(p, _rec("r1", pred=5.0))
         ok = record_outcome(p, "r1", actual_yield=4.5, outcome_date="2026-06-01")
         assert ok is True
@@ -49,14 +54,14 @@ class TestRecommendationLog:
         p.unlink()
 
     def test_record_outcome_missing_id(self):
-        p = Path(tempfile.mktemp(suffix=".csv"))
+        p = _csv_path()
         log_recommendation(p, _rec("r1"))
         assert record_outcome(p, "nonexistent", 4.0, "2026-06-01") is False
         p.unlink()
 
     def test_mape_only_on_completed(self):
         # MAPE must only use records with actual outcomes, never fabricate
-        p = Path(tempfile.mktemp(suffix=".csv"))
+        p = _csv_path()
         log_recommendation(p, _rec("r1", pred=5.0))  # no actual yet
         result = compute_mape(p)
         # with no completed records, MAPE should be None/unknown, not 0 or fake
@@ -64,7 +69,7 @@ class TestRecommendationLog:
         p.unlink()
 
     def test_mape_computes_with_outcomes(self):
-        p = Path(tempfile.mktemp(suffix=".csv"))
+        p = _csv_path()
         log_recommendation(p, _rec("r1", pred=5.0))
         record_outcome(p, "r1", 4.0, "2026-06-01")
         result = compute_mape(p)
@@ -73,7 +78,7 @@ class TestRecommendationLog:
 
     def test_no_prediction_written_as_zero(self):
         # honesty: predicted_yield None must stay None, not become 0
-        p = Path(tempfile.mktemp(suffix=".csv"))
+        p = _csv_path()
         log_recommendation(p, _rec("r1", pred=None))
         rec = load_log(p)[0]
         assert rec.predicted_yield_t_ha is None
@@ -83,9 +88,7 @@ class TestRecommendationLog:
 class TestConcurrencySafety:
     def test_concurrent_outcomes_no_loss(self):
         # FIX: file lock prevents lost updates under concurrent writes
-        import tempfile
         import threading
-        from pathlib import Path
 
         from core.learning.recommendation_log import (
             RecommendationRecord,
@@ -94,7 +97,7 @@ class TestConcurrencySafety:
             record_outcome,
         )
 
-        p = Path(tempfile.mktemp(suffix=".csv"))
+        p = _csv_path()
         for i in range(5):
             log_recommendation(
                 p,
