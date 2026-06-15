@@ -11,15 +11,31 @@
   • معالِجات أوامر تُسجَّل على `CommandDispatcher` القائم (`command_store.py`)،
     مُحقَّنة بمنافذ (تحميل حالة/حفظ/إصدار) فتُختبَر بمتجر ومنافذ وهميّة.
 
-توجيه endpoint حيّ فعليّ عبر هذا المسار = الشريحة التالية (يحتاج اختبار تكامل على
-قاعدة حيّة — موثَّق في POST_DEPLOYMENT_ROADMAP المرحلة ٣، خطوة ٣).
+⚠ هذا التعريف **مطابِق لسلوك endpoints الإنتاج الحيّة** (مصدر الحقيقة:
+`api/routers/fields.py` + المساعِدات في `api/main.py`) — فُصِّل ليكون مواصفةً
+أمينةً لها تمهيداً لتوصيله لاحقاً دون تراجع سلوكيّ. توجيه endpoint حيّ فعليّ عبر
+هذا المسار = الشريحة التالية (يحتاج اختبار تكامل على قاعدة حيّة — موثَّق في
+POST_DEPLOYMENT_ROADMAP المرحلة ٣، خطوة ٣). حتى ذلك يبقى **غير موصول** (لا
+يستعمله أيّ endpoint حيّ)، فهذا الملفّ لا يغيّر أيّ سلوك تشغيليّ.
 
-⚠ المبدأ:
-  • الـinvariants في **مكان واحد** (لا تُكرَّر عبر endpoints): إنشاء حقل موجود →
-    409؛ تحديث/موسم/نشاط على حقل غير موجود → 404؛ موسم جديد وهناك نشط → 409.
+⚠ الـinvariants (مطابِقة لما تفرضه الـendpoints فعليّاً، مكان واحد لا تكرار):
+  • إنشاء حقل موجود → 409: يطابق `_persist_field` (تكرار الاسم ⇒ 409
+    `duplicate_field_name`). [main.py ~L1093]
+  • تحديث/موسم/نشاط على حقل غير موجود → 404: يطابق `_assert_field_in_tenant`
+    (و`update_field` يؤكّد الوجود قبل الكتابة). [main.py ~L1498؛ fields.py ~L338]
+  • بدء موسم وهناك نشط = **استبدال (supersede) لا رفض**: مطابِق لثابت v44 في
+    `create_season` — يُغلق الموسم النشط آليّاً (SEASON_CLOSED بسبب
+    `superseded_by_new_season`) ثمّ يُنشئ الجديد (SEASON_CREATED) ضمن معاملة
+    واحدة. [fields.py ~L462–533]
   • النواة **نقيّة حتميّة**: لا تكتب القاعدة ولا تُصدِر — تصف الأثر فقط.
-  • الأحداث من `EventType` القائم (لا قيم سحريّة).
+  • الأحداث من `EventType` القائم (لا قيم سحريّة)؛ خريطة أحداث النشاط مطابِقة لما
+    يُصدِره `create_activity` فعليّاً عبر `_activity_event_type`. [fields.py ~L1085]
   • لا يستبدل المسارات الحاليّة دفعةً واحدة — يُمهِّد لتوجيهها تدريجيّاً.
+
+  ملاحظة حدّ نقاء (honesty): معرّف الموسم الجديد (`season_id`) يُولّده الـendpoint
+  (I/O، `ssn_…uuid`) لا النواة. نمرّره عبر `data["season_id"]` كي يتمكّن الأثر من
+  الإشارة إليه في `superseded_by`؛ وإن غاب، نُصدِر SEASON_CLOSED **دون** المفتاح
+  `superseded_by` ويملؤه منفذ `apply_change` بعد توليد المعرّف (نفس المعاملة).
 """
 
 from __future__ import annotations
@@ -113,12 +129,29 @@ class FieldAggregate:
         return FieldEffect([(EventType.FIELD_UPDATED.value, _payload(self.state.field_id, data))])
 
     def start_season(self, data: dict) -> FieldEffect:
+        """بدء موسم بدلالة **الاستبدال (supersede)** المطابِقة لثابت v44 في
+        `create_season`: إن وُجد موسم نشط، يُغلق آليّاً (SEASON_CLOSED) قبل إنشاء
+        الجديد (SEASON_CREATED) — لا رفض 409. حقل غير موجود → 404 (`_require_exists`،
+        مطابِق لـ`_assert_field_in_tenant`).
+
+        ترتيب الأحداث (مطابِق لترتيب الـendpoint): SEASON_CLOSED ثمّ SEASON_CREATED.
+        payload الإغلاق: {field_id, reason:"superseded_by_new_season", superseded_by}.
+        معرّف الموسم الجديد I/O (يولّده الـendpoint) — يُمرَّر عبر `data["season_id"]`؛
+        وإن غاب يُحذف `superseded_by` ويملؤه `apply_change` بعد التوليد (نفس المعاملة).
+        """
         self._require_exists()
+        events: list[tuple[str, dict]] = []
         if self.state.has_active_season:
-            raise FieldInvariantError(
-                f"موسم نشط موجود ({self.state.active_season_id}) — أغلقه قبل بدء جديد", 409
-            )
-        return FieldEffect([(EventType.SEASON_CREATED.value, _payload(self.state.field_id, data))])
+            close_payload = {
+                "field_id": self.state.field_id,
+                "reason": "superseded_by_new_season",
+            }
+            new_season_id = data.get("season_id")
+            if new_season_id is not None:
+                close_payload["superseded_by"] = new_season_id
+            events.append((EventType.SEASON_CLOSED.value, close_payload))
+        events.append((EventType.SEASON_CREATED.value, _payload(self.state.field_id, data)))
+        return FieldEffect(events)
 
     def record_activity(self, data: dict) -> FieldEffect:
         self._require_exists()
