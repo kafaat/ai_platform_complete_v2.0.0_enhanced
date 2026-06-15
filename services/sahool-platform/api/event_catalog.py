@@ -200,18 +200,18 @@ _CATALOG: dict[str, DomainEvent] = {
         category="irrigation",
         description_ar="أُنشئ جدول ريّ.",
     ),
-    # ملاحظة: الاسمان التاليان يُمرَّران لـ_emit_domain_event كسلسلتين منقّطتين
-    # حرفيّتين (لا كاسم عضو EventType بأحرف كبيرة) — نسجّلهما بالشكل المُصدَر فعلاً.
-    "irrigation.valve.registered": DomainEvent(
-        name="irrigation.valve.registered",
+    # ملاحظة: حدثا الصمّامات يُسجَّلان باسم عضو EventType (بأحرف كبيرة) تماشياً مع
+    # سائر مدخلات السجلّ؛ قيمة الوسيط NATS المنقّطة محفوظة في الوصف للمرجعيّة.
+    "IRRIGATION_VALVE_REGISTERED": DomainEvent(
+        name="IRRIGATION_VALVE_REGISTERED",
         category="irrigation",
-        description_ar="سُجِّل صمّام ريّ.",
+        description_ar="سُجِّل صمّام ريّ (الوسيط: irrigation.valve.registered).",
         payload_keys=("field_id", "valve_type"),
     ),
-    "irrigation.valve.state_changed": DomainEvent(
-        name="irrigation.valve.state_changed",
+    "IRRIGATION_VALVE_STATE_CHANGED": DomainEvent(
+        name="IRRIGATION_VALVE_STATE_CHANGED",
         category="irrigation",
-        description_ar="تبدّلت حالة صمّام ريّ.",
+        description_ar="تبدّلت حالة صمّام ريّ (الوسيط: irrigation.valve.state_changed).",
         payload_keys=("status",),
     ),
 }
