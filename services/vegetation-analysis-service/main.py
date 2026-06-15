@@ -87,6 +87,8 @@ security = HTTPBearer(auto_error=False)
 # ── تحقّق JWT حقيقيّ (كان يُقبل أيّ Bearer غير فارغ بلا تحقّق توقيع) ──
 _VEG_JWT_SECRET = os.getenv("JWT_SECRET", "")
 _VEG_JWT_ALG = "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 _ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
@@ -97,11 +99,15 @@ def _verify_claims(token) -> dict:
     if not _VEG_JWT_SECRET or len(_VEG_JWT_SECRET) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط")
     try:
-        return _jwt.decode(
+        payload = _jwt.decode(
             token.credentials, _VEG_JWT_SECRET, algorithms=[_VEG_JWT_ALG], audience="sahool"
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    return payload
 
 
 def _tenant_from_claims(claims: dict) -> str:

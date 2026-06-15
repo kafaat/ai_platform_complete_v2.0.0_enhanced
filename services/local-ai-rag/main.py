@@ -315,6 +315,8 @@ _rag_security = _B(auto_error=False)
 _RAG_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _RAG_SECRET = _RAG_PUBLIC if _RAG_PUBLIC else os.getenv("JWT_SECRET", "")
 _RAG_ALG = "RS256" if _RAG_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
@@ -332,9 +334,12 @@ async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
         payload = _jjwt.decode(
             creds.credentials, _RAG_SECRET, algorithms=[_RAG_ALG], audience="sahool"
         )
-        return payload
     except _JE as e:
         raise HTTPException(401, str(e)) from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    return payload
 
 
 app = FastAPI(title="SAHOOL Local AI RAG", version="9.1.0", lifespan=lifespan)

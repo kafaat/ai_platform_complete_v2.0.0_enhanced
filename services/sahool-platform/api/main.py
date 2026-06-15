@@ -66,6 +66,9 @@ logger = logging.getLogger("sahool.api")
 # ─── إعدادات ──────────────────────────────────────────────────────
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_HOURS = 24
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن لرفض توكن
+# من مُصدِر مجهول رغم صحّة التوقيع/الجمهور (تدقيق B: لم يكن iss يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 # سياسة أمنيّة: لا سرّ افتراضيّ معروف. السرّ الحرفيّ المنشور سابقاً
 # ("dev-secret-CHANGE-IN-PRODUCTION") كان يسمح لأيّ مَن يعرفه بتزوير توكن لأيّ
@@ -754,6 +757,7 @@ def create_token(user: UserSchema) -> str:
         "role": user.role.value,
         "name_ar": user.name_ar,
         "aud": "sahool",  # توحيد: يطابق auth ويُقبل عبر كلّ الخدمات
+        "iss": "sahool-platform",  # المُصدِر — تفرضه الخدمات للتحقّق من مصدر التوكن
         "jti": secrets.token_hex(16),  # معرّف توكن فريد — يتيح الإبطال (denylist)
         "iat": datetime.utcnow(),
         "exp": datetime.utcnow() + timedelta(hours=JWT_EXPIRY_HOURS),
@@ -804,6 +808,10 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except InvalidTokenError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
+
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — توكن من مُصدِر مجهول يُرفَض كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(status_code=401, detail="Invalid token issuer")
 
     # إبطال التوكن (denylist): توكن مُبطَل (سُجّل خروجه/أُلغي) ⇒ 401 رغم سريانه.
     # fail-open: تعذّر فحص القائمة (Redis ساقط) لا يقفل المستخدمين (داخل is_token_revoked).
@@ -947,6 +955,9 @@ def auth_logout(
     token = (authorization or "").replace("Bearer ", "", 1)
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
+        # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
+        if payload.get("iss") not in _ALLOWED_ISS:
+            raise InvalidTokenError("Invalid token issuer")
         jti = payload.get("jti")
         exp = payload.get("exp")
         if jti and exp:

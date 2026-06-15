@@ -312,6 +312,8 @@ async def lifespan(app: FastAPI):
 
 # HIGH-VIDEO-01 FIX: JWT authentication
 _v_bearer = _Bearer(auto_error=False)
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
@@ -320,7 +322,7 @@ async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
         raise HTTPException(401, "Authentication required")
     try:
         _v_pub = os.getenv("JWT_PUBLIC_KEY", "")
-        return _v_jwt.decode(
+        payload = _v_jwt.decode(
             creds.credentials,
             _v_pub or os.getenv("JWT_SECRET", ""),
             algorithms=["RS256" if _v_pub else "HS256"],
@@ -328,6 +330,10 @@ async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
         )
     except _v_JE as e:
         raise HTTPException(401, "Invalid token") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "Invalid token")
+    return payload
 
 
 def _assert_stream_tenant(state: StreamState, user: dict) -> None:

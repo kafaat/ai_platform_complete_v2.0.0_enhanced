@@ -286,6 +286,8 @@ app.add_middleware(
 _GR_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _GR_JWT_SECRET = _GR_JWT_PUBLIC if _GR_JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _GR_JWT_ALG = "RS256" if _GR_JWT_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 # توكن خدمة للنداءات خدمة-لخدمة على /validate (supervisor → guardrails)
 _GR_AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
@@ -320,6 +322,9 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     # الموافقة تتطلّب دور expert أو admin (بوابة بشريّة)
     if payload.get("role") not in ("expert", "admin"):
         raise HTTPException(403, "الموافقة تتطلّب صلاحيّة خبير أو مدير")
@@ -347,6 +352,9 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     if not payload.get("sub"):
         raise HTTPException(401, "توكن ناقص الهويّة")
     return payload

@@ -39,6 +39,7 @@ def _token(
             "tenant_id": tenant,
             "role": role,
             "name_ar": "مختبِر",
+            "iss": "sahool-platform",
             "iat": now,
             "exp": now + timedelta(hours=1),
         },

@@ -41,6 +41,7 @@ def _raw_token(m, role: str | None, tenant: str, user_id: str = "u_rbac") -> str
         "tenant_id": tenant,
         "name_ar": "مختبر",
         "aud": "sahool",
+        "iss": "sahool-platform",
         "iat": now,
         "exp": now + timedelta(hours=1),
     }

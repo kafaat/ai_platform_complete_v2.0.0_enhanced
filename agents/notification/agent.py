@@ -460,6 +460,10 @@ manager = ConnectionManager(max_per_user=5)
 
 
 # ── WebSocket JWT Validation ─────────────────────────────────────
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+
+
 def _validate_ws_token(token: str) -> dict:
     """Full JWT validation for WebSocket connections."""
     from jose import JWTError
@@ -470,6 +474,9 @@ def _validate_ws_token(token: str) -> dict:
         raise ValueError("Missing token or secret")
     try:
         payload = _jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
+        # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.
+        if payload.get("iss") not in _ALLOWED_ISS:
+            raise ValueError("Invalid token issuer")
         if not payload.get("sub"):
             raise ValueError("Missing sub claim")
         return payload

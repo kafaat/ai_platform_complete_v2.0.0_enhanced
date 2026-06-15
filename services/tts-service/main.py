@@ -45,6 +45,8 @@ VERSION = "9.1.0"
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/2")
 CACHE_TTL = int(os.getenv("TTS_CACHE_TTL", "86400"))  # 24h
 MAX_TEXT_LEN = int(os.getenv("TTS_MAX_TEXT_LEN", "1000"))
@@ -109,7 +111,7 @@ async def get_current_user(
     if not JWT_SECRET:
         raise HTTPException(500, "JWT_SECRET not configured")
     try:
-        return jwt.decode(
+        payload = jwt.decode(
             creds.credentials,
             JWT_SECRET,
             algorithms=[_JWT_ALG],
@@ -117,6 +119,10 @@ async def get_current_user(
         )
     except JWTError as e:
         raise HTTPException(401, f"Invalid token: {e}") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    return payload
 
 
 # ── Models ───────────────────────────────────────────────────

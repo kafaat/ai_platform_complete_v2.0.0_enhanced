@@ -575,14 +575,20 @@ async def lifespan(app: FastAPI):
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 def verify_token(token: str) -> dict:
     """Verify JWT with audience check."""
     try:
-        return _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
+        payload = _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
     except _JE as e:
         raise ValueError(f"Invalid token: {e}") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise ValueError("Invalid token issuer")
+    return payload
 
 
 def require_auth(authorization: str = Header(None)) -> dict:
