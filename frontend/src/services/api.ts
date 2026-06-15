@@ -14,6 +14,7 @@
 
 import axios, { type AxiosInstance } from 'axios';
 import { getAccessToken, getTenantId } from '../lib/authStorage';
+import { isAccessTokenExpired } from '../lib/jwt';
 
 // ── Environment detection ──────────────────────────────────────
 const IS_LOCAL = typeof window !== 'undefined' &&
@@ -37,6 +38,17 @@ function makeClient(baseURL: string): AxiosInstance {
     // localStorage هنا تُرجِع فارغاً ⇒ كلّ طلبات kongApi غير مُصادَقة. نقرأ من
     // sessionStorage حيث يُكتَب فعلاً (مصدر الحقيقة في useAuth.ts).
     const token = getAccessToken();
+    // فحص انتهاء الصلاحيّة جهة-العميل (Phase 2): بدل انتظار 401 من الخادم، نكتشف
+    // التوكن المنتهي محلياً فنُنظّف الجلسة ونُطلق حدث الخروج (يُسقطه App على شاشة
+    // الدخول) ونمنع إطلاق طلب محكوم بالفشل. وضع التجريب مُستثنى (isAccessTokenExpired
+    // يعيد false لتوكن التجريب) فلا يُكسَر. fail-closed: توكن مشوّه ⇒ يُعدّ منتهياً.
+    if (token && isAccessTokenExpired(token)) {
+      sessionStorage.removeItem('sahool_access_token');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('sahool:auth:unauthorized'));
+      }
+      return Promise.reject(new Error('access token expired'));
+    }
     if (token) config.headers.Authorization = `Bearer ${token}`;
     config.headers['X-Tenant-ID'] = getTenantId();
     return config;
