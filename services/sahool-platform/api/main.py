@@ -2256,6 +2256,7 @@ async def list_seasons(
                 "seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date, "
                 "season_end, stages, status, created_at, "
                 "target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source, "
+                "maturity, tillage_type, actual_yield_kg_ha, notes_ar, "
                 "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, "
                 "sim_water_mm, sim_ran_at "
                 "FROM seasons WHERE field_id = $1 ORDER BY created_at DESC",
