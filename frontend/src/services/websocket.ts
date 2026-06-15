@@ -14,6 +14,15 @@ type EventType =
 
 type Handler = (data: Record<string, unknown>) => void;
 
+// نتيجة الإرسال (P0.2): بدل bool صامت نُعيد حالة صريحة كي يعرف مُستدعو الأوامر
+// المُغيِّرة للحالة (ريّ/صمام/مضخّة) مصير أمره — أُرسل فوراً، أم طُوبِر، أم
+// أُسقط الأقدم لإفساح مكان (فقد بيانات صريح)، أم فشل التسلسل ولم يُحفَظ.
+//   'sent'       — كُتبت إلى قناة OPEN فوراً.
+//   'queued'     — القناة غير مفتوحة؛ حُفظت في الصندوق (يوجد متّسع).
+//   'queue_full' — الصندوق ممتلئ؛ أُسقط الأقدم وحُفظت الجديدة (إشارة فقد صريحة).
+//   'failed'     — تعذّر تسلسل الرسالة (JSON.stringify رمى) — لم تُحفظ.
+export type SendResult = 'sent' | 'queued' | 'queue_full' | 'failed';
+
 const WS_URL = import.meta.env.VITE_WS_URL || `ws://${typeof window !== 'undefined' ? window.location.host : 'localhost:8000'}/ws/notifications`;
 
 class WebSocketService {
@@ -128,22 +137,24 @@ class WebSocketService {
   /**
    * يُرسل رسالة عبر القناة. عند كون القناة غير مفتوحة (إعادة اتصال/إقلاع) تُحفظ
    * في صندوق صادر محدود وتُفرَّغ عند الفتح، بدل إسقاطها صامتةً (Phase 3).
-   * يعيد true إن أُرسلت فوراً، وfalse إن وُضِعت في الطابور (أو أُسقطت عند الامتلاء).
+   * يعيد {@link SendResult}: 'sent' إن أُرسلت فوراً، 'queued' إن وُضِعت في الطابور
+   * (مع متّسع)، 'queue_full' إن أُسقط الأقدم لإفساح مكان (فقد صريح)، 'failed' إن
+   * تعذّر تسلسلها (لم تُحفظ).
    */
-  send(data: Record<string, unknown>): boolean {
+  send(data: Record<string, unknown>): SendResult {
     let payload: string;
     try {
       payload = JSON.stringify(data);
     } catch (e) {
       console.warn('[WS] Dropping unserializable message:', e);
-      return false;
+      return 'failed';
     }
     if (this.ws?.readyState === WebSocket.OPEN) {
       // قد تُغلَق القناة بين فحص الحالة والإرسال (سباق) فيُرمى — نلتقط ونُعيد
       // الرسالة للطابور بدل فقدها صامتةً.
       try {
         this.ws.send(payload);
-        return true;
+        return 'sent';
       } catch (e) {
         console.warn('[WS] send failed, re-queuing message:', e);
       }
@@ -153,9 +164,11 @@ class WebSocketService {
     if (this.outbox.length >= this.maxOutbox) {
       this.outbox.shift();
       console.warn(`[WS] Outbox full (${this.maxOutbox}); dropped oldest queued message`);
+      this.outbox.push(payload);
+      return 'queue_full';
     }
     this.outbox.push(payload);
-    return false;
+    return 'queued';
   }
 
   // يُفرّغ الصندوق الصادر بالترتيب عند فتح القناة. ما يفشل إرساله (إغلاق/سباق)
