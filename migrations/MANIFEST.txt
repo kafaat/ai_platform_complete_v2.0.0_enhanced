@@ -194,3 +194,9 @@ v56_rls_dynamic_all.sql
 # له idx_<table>_tenant، فيُغلق مسح RLS التسلسليّ. توأم v56 (التغطية الديناميكيّة).
 # يكمّل المصفوفة الثابتة في v9_rls_tenant_isolation. idempotent.
 v57_rls_dynamic_indexes.sql
+# v58: نموذج بيانات حدود الحقل (#15) — أعمدة المصدر/الجودة على field_boundaries
+# (confidence_score/source_type/model_version/review_status) + جدول
+# field_boundary_graph للعلاقات المكانيّة بين الحقول (الجيران/الحواف المشتركة)
+# لتمكين التحليلات الإقليميّة. يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls
+# (المعرّفة في v9_rls_tenant_isolation سابقاً)، فترتيبه بعد v56/v57 آمن. idempotent.
+v58_field_boundary_quality.sql
