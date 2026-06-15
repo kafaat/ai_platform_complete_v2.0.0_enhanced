@@ -9,7 +9,7 @@ from storage import lite_store
 
 
 def _db():
-    db = Path(tempfile.mktemp(suffix=".db"))
+    db = Path(tempfile.mkdtemp()) / "test.db"
     lite_store.init_db(db)
     return db
 

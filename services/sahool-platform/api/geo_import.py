@@ -1,7 +1,7 @@
 """geo_import.py — محلّلات حدود الحقل من ملفّ/نقاط GPS → GeoJSON Polygon.
 
-دوالّ نقيّة offline (بلا I/O، بلا تبعيّات جديدة — xml.etree من المكتبة القياسيّة
-فقط) لاستيراد حدّ حقل بدل رسمه يدويّاً:
+دوالّ نقيّة offline (بلا I/O؛ تستخدم defusedxml لتحليل KML غير الموثوق
+بأمان) لاستيراد حدّ حقل بدل رسمه يدويّاً:
 
 * parse_geojson — يستخرج أوّل حلقة Polygon من نصّ GeoJSON (Polygon/Feature/
   FeatureCollection/MultiPolygon) ويُعيد {"type":"Polygon","coordinates":[ring]}.
@@ -17,7 +17,9 @@
 from __future__ import annotations
 
 import json
-import xml.etree.ElementTree as ET
+
+import defusedxml.ElementTree as ET
+from defusedxml.common import DefusedXmlException
 
 # الحدّ الأدنى لرؤوس حلقة صالحة (مثلّث) — التحقّق الكامل لاحقاً في
 # validate_field_geometry؛ هنا نرفض ما لا يمكن أن يكون مضلّعاً إطلاقاً.
@@ -140,14 +142,14 @@ def _parse_kml_coords(text: str) -> list[list[float]]:
 def parse_kml(text: str) -> dict:
     """نصّ KML → GeoJSON Polygon (أوّل <Polygon> خارجيّ).
 
-    يستخرج Polygon/outerBoundaryIs/LinearRing/coordinates. xml.etree فقط
-    (بلا تبعيّات). يرفع ValueError عند XML تالف أو غياب Polygon/coordinates.
+    يستخرج Polygon/outerBoundaryIs/LinearRing/coordinates. يستخدم defusedxml
+    للحماية من XXE وتوسّع الكيانات. يرفع ValueError عند XML تالف أو غياب Polygon/coordinates.
     """
     if not text or not text.strip():
         raise ValueError("محتوى KML فارغ.")
     try:
-        root = ET.fromstring(text)  # noqa: S314 — مدخل موثوق محليّاً، لا كيانات خارجيّة
-    except ET.ParseError as e:
+        root = ET.fromstring(text)  # defusedxml يحمي من XXE وتوسّع الكيانات.
+    except (ET.ParseError, DefusedXmlException) as e:
         raise ValueError(f"KML غير صالح (XML تالف): {e}") from e
 
     polygon = _find_first_local(root, "Polygon")
