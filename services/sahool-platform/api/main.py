@@ -2006,6 +2006,128 @@ async def delete_field(
     return {"field_id": field_id, "deleted": True}
 
 
+# ─── حدود الحقل: provenance + مراجعة بشريّة (HIL) — #15 ───────────────────
+# مجموعة حالات المراجعة المسموحة (تطابق قيد CHECK في v58:
+# field_boundaries_review_status_chk). 'unreviewed' هي القيمة الافتراضيّة في
+# القاعدة، فلا نقبلها كانتقال صريح من الواجهة — المراجِع يَنتقل إلى قرار نهائيّ.
+_BOUNDARY_REVIEW_STATES = {"approved", "rejected", "needs_edit"}
+
+
+class BoundaryReviewRequest(BaseModel):
+    """طلب مراجعة بشريّة (HIL) لحدّ الحقل — قرار المراجِع النهائيّ.
+
+    review_status: واحدة من approved|rejected|needs_edit (يُتحقّق منها مقابل
+    _BOUNDARY_REVIEW_STATES فيردّ 422 على ما عداها قبل لمس القاعدة).
+    """
+
+    review_status: str = Field(..., max_length=20)
+
+
+class BoundaryScoreRequest(BaseModel):
+    """طلب تهديف ثقة حدّ الحقل من خصائصه البنيويّة (props يحسبها العميل).
+
+    props: خصائص قابلة للحساب عن الحدّ (vertex_count, area_ha, is_valid,
+    ring_count, self_intersections, temporal_agreement?) — تُمرَّر كما هي إلى
+    score_boundary (دالّة نقيّة حتميّة). source_type اختياريّ يُسجَّل provenance.
+    لا تحليل هندسة على الخادم هنا (CI-safe، حتميّ) — اشتقاق props من geom متابعة.
+    """
+
+    props: dict = Field(default_factory=dict)
+    source_type: str | None = Field(default=None, max_length=30)
+
+
+@app.patch("/api/v1/fields/{field_id}/boundary/review")
+async def review_field_boundary(
+    field_id: str,
+    req: BoundaryReviewRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """مراجعة بشريّة (HIL) لحدّ الحقل: يضبط review_status (approve/reject/needs_edit).
+
+    يتحقّق أنّ الحالة ضمن المجموعة المسموحة (422 وإلّا) قبل القاعدة، ثمّ يُحدِّث
+    field_boundaries.review_status للحقل ضمن سياق المستأجِر (RLS). 404 لو لا حدّ
+    لهذا الحقل ضمن المستأجِر؛ 503 عند تعذّر القاعدة. يردّ الحالة المُحدَّثة + field_id.
+
+    لا يُصدِر حدث domain في هذا الـPR عمداً: لتفادي خطأ الحدث غير المُسجَّل السابق،
+    لا نخترع EventType جديداً غير مُعرَّف — إصدار حدث مراجعة بـEventType صالح متابعة.
+    """
+    if req.review_status not in _BOUNDARY_REVIEW_STATES:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": "حالة مراجعة غير صالحة — المسموح: approved|rejected|needs_edit.",
+                "code": "invalid_review_status",
+            },
+        )
+    try:
+        async with tenant_connection(user) as conn:
+            updated = await conn.fetchval(
+                "UPDATE field_boundaries SET review_status = $1 "
+                "WHERE field_id = $2 RETURNING field_id",
+                req.review_status,
+                field_id,
+            )
+            if updated is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="لا حدّ لهذا الحقل ضمن هذا المستأجِر",
+                )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("مراجعة حدّ الحقل", e) from e
+    return {"field_id": field_id, "review_status": req.review_status}
+
+
+@app.post("/api/v1/fields/{field_id}/boundary/score")
+async def score_field_boundary(
+    field_id: str,
+    req: BoundaryScoreRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """يهدّف ثقة حدّ الحقل من props البنيويّة ويُخزّنها (confidence as first-class).
+
+    يستدعي boundary_confidence.score_boundary (دالّة نقيّة حتميّة لا ترمي) على
+    props المُرسَلة، ثمّ يُحدِّث field_boundaries: confidence_score (من النتيجة)،
+    source_type (إن أُرسل)، ويضبط review_status='needs_edit' عند review_recommended
+    (وإلّا يُترَك كما هو — لا يُلغى قرار مراجِع سابق). كلّه ضمن سياق المستأجِر (RLS).
+    404 لو لا حدّ لهذا الحقل؛ 503 عند تعذّر القاعدة. يردّ نتيجة التهديف الكاملة.
+
+    صدق: تهديف من props يحسبها العميل (حتميّ، CI-safe) — اشتقاق props من geom
+    على الخادم متابعة (follow-up).
+    """
+    from api.boundary_confidence import score_boundary
+
+    result = score_boundary(req.props)
+    confidence = result["confidence"]
+    new_review_status = "needs_edit" if result["review_recommended"] else None
+    try:
+        async with tenant_connection(user) as conn:
+            # تحديث واحد: confidence_score دائماً؛ source_type عند إرساله؛ و
+            # review_status='needs_edit' فقط عند التوصية (COALESCE يُبقي الموجود وإلّا).
+            updated = await conn.fetchval(
+                "UPDATE field_boundaries SET "
+                "confidence_score = $1, "
+                "source_type = COALESCE($2, source_type), "
+                "review_status = COALESCE($3, review_status) "
+                "WHERE field_id = $4 RETURNING field_id",
+                confidence,
+                req.source_type,
+                new_review_status,
+                field_id,
+            )
+            if updated is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="لا حدّ لهذا الحقل ضمن هذا المستأجِر",
+                )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("تهديف حدّ الحقل", e) from e
+    return result
+
+
 @app.get("/api/v1/geo/reverse")
 def geo_reverse_endpoint(
     lat: float,
