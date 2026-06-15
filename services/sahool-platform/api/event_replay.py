@@ -289,7 +289,12 @@ class EventReplay:
         command_id: str,
         pool: asyncpg.Pool,
     ) -> CausalChain:
-        """يرجع كل الـevents الذي ولّدها هذا الـcommand."""
+        """يرجع كل الـevents الذي ولّدها هذا الـcommand.
+
+        مسار إداريّ/إعادة بناء عابر للمستأجِرين بالتصميم (يكتسب اتّصاله الخاصّ من
+        الـpool ولا يُضبط app.current_tenant). تحت الدور المُقيَّد (NOBYPASSRLS/FORCE
+        RLS) يحتاج دوراً خدميّاً مخصّصاً (BYPASSRLS) — متابعة نشر، لا تغيير سلوك.
+        """
         import uuid
 
         async with pool.acquire() as conn:

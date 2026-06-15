@@ -149,7 +149,13 @@ class EventBus:
 
     @_asynccontextmanager
     async def _acquire(self):
-        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي)."""
+        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي).
+
+        مسار الطلب يمرّر conn دائماً (main.py يُنشئ EventBus بـconn من
+        tenant_connection)، فيُطبَّق app.current_tenant. مسار الـpool احتياطيّ
+        خلفيّ بلا سياق مستأجِر؛ تحت الدور المُقيَّد (NOBYPASSRLS/FORCE RLS) إن
+        استُعمل خلفيّاً يحتاج دوراً خدميّاً مخصّصاً (BYPASSRLS).
+        """
         if getattr(self, "_conn", None) is not None:
             yield self._conn
         else:
@@ -325,6 +331,11 @@ class OutboxWorker:
         خلفيّ عبر المستأجِرين، يقرأ outbox مباشرةً). يلفّ الكلّ في **معاملة صريحة**
         كي تبقى أقفال FOR UPDATE SKIP LOCKED محتجَزة حتى تحديث الحالة إلى 'sent'
         — يمنع الإرسال المزدوج عند تعدّد العمّال.
+
+        عابر للمستأجِرين بالتصميم: لا يُضبط app.current_tenant هنا قصداً (يُرسِل
+        أحداث كلّ المستأجِرين). تحت الدور المُقيَّد (sahool_app: NOBYPASSRLS, FORCE
+        RLS) سيُرجع هذا صفر صفوف؛ لذا يحتاج هذا العامل دوراً خدميّاً مخصّصاً
+        (BYPASSRLS) عند نشر الدور المُقيَّد — متابعة نشر، لا تغيير سلوك هنا.
         """
         async with self.pool.acquire() as conn:
             async with conn.transaction():

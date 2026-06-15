@@ -192,6 +192,10 @@ class LineageAssembler:
 
     @_asynccontextmanager
     async def _acquire(self):
+        # مسار الطلب يمرّر conn (main.py يُنشئ LineageAssembler بـconn من
+        # tenant_connection) فيُطبَّق app.current_tenant. مسار الـpool احتياطيّ
+        # خلفيّ (قراءة تدقيق) بلا سياق مستأجِر؛ تحت الدور المُقيَّد (NOBYPASSRLS/
+        # FORCE RLS) إن استُعمل خلفيّاً يحتاج دوراً خدميّاً مخصّصاً (BYPASSRLS).
         if self._conn is not None:
             yield _ReadOnlyConn(self._conn)
         else:
