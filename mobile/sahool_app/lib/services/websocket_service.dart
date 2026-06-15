@@ -114,7 +114,10 @@ class WebSocketService {
     _reconnectTimer = Timer(delay, connect);
   }
 
-  void send(Map<String, dynamic> data) {
+  /// يُرسل رسالة عبر القناة. يعيد `true` إن أُرسلت فوراً، و`false` إن وُضِعت في
+  /// الطابور (القناة غير مفتوحة) — فيعرف المستدعي أنّ أمراً مُغيِّراً للحالة
+  /// (تشغيل ريّ/صمّام) لم يُنفَّذ بعد بدل أن يَظنّه نُفِّذ.
+  bool send(Map<String, dynamic> data) {
     // P1: idempotency — كلّ عمليّة قابلة للتغيير تحمل operation_id ثابتاً.
     // عند إعادة الإرسال (reconnect)، يبقى نفس المعرّف → الخلفيّة تكتشف التكرار
     // وتتجاهله (تمنع تنفيذ "تشغيل الري" مرّتين). مُولَّد مرّة واحدة عند الإنشاء.
@@ -123,14 +126,17 @@ class WebSocketService {
     }
     if (_socket?.readyState == WebSocket.open) {
       _socket!.add(json.encode(data));
-    } else {
-      // F05: Queue messages when offline (مع operation_id محفوظ للتكرار الآمن)
-      if (_messageQueue.length < _maxQueueSize) {
-        _messageQueue.add(data);
-      } else {
-        _logger.w('طابور الرسائل ممتلئ ($_maxQueueSize) — أُسقطت رسالة');
-      }
+      return true;
     }
+    // F05: تُحفَظ الرسائل أثناء عدم الاتّصال (مع operation_id للتكرار الآمن). عند
+    // امتلاء الطابور نُسقط الأقدم ونُبقي الأحدث (الأقرب للحالة الراهنة) مع تحذير
+    // صريح، فلا يكون فقد أمرٍ تشغيليّ خفيّاً. نعيد false (طُوبِرت، لم تُرسَل بعد).
+    if (_messageQueue.length >= _maxQueueSize) {
+      _messageQueue.removeAt(0);
+      _logger.w('طابور الرسائل ممتلئ ($_maxQueueSize) — أُسقطت أقدم رسالة');
+    }
+    _messageQueue.add(data);
+    return false;
   }
 
   // العمليّات المُغيِّرة للحالة (commands) تحتاج idempotency؛ pong/ping لا.

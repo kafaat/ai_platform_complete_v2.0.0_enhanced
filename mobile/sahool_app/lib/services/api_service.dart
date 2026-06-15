@@ -142,8 +142,11 @@ class ApiService {
   // للتحليل يُعدّ منتهياً بدل إرساله، لتفادي تمرير توكن فاسد/منتهٍ.
   bool _isTokenExpired(String token) => isJwtExpired(token);
 
+  // مايكروثانية + لاحقة عشوائيّة: يتفادى تكرار X-Request-ID بين طلبات متزامنة
+  // (الاعتماد على المللي‑ثانية وحدها كان يُنتج معرّفات متطابقة تحت التزامن).
   String _generateRequestId() =>
-      DateTime.now().millisecondsSinceEpoch.toRadixString(16);
+      '${DateTime.now().microsecondsSinceEpoch.toRadixString(16)}'
+      '${_rand.nextInt(0xFFFF).toRadixString(16).padLeft(4, '0')}';
 
   bool _shouldRetry(DioException error) =>
       error.response?.statusCode != null &&
