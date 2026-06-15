@@ -68,11 +68,111 @@ class ReconstructedState:
     pesticide_count: int = 0
     soil_samples_count: int = 0
 
+    # عدّادات بدء/إكمال العمليّات (أحداث operation.*.started/completed الحقيقيّة).
+    # ملاحظة صدق: أحداث operation.* تُسجَّل في المخزن بـentity_type='activity'
+    # (لا 'field') وتحمل field_id في الـpayload؛ فهذه العدّادات تُسقَط حين تُغذّى
+    # تلك الأحداث للمُسقِط (مثلاً عند بناء مجرى موحّد للحقل وأنشطته).
+    planting_started_count: int = 0
+    planting_completed_count: int = 0
+    irrigation_started_count: int = 0
+    harvest_started_count: int = 0
+    harvest_completed_count: int = 0
+
+    # المواسم (أحداث season.created/closed — entity_type='season' في المخزن،
+    # تحمل field_id في الـpayload). current_crop يُشتقّ من أوّل محصول في الموسم.
+    season_count: int = 0
+    season_closed_count: int = 0
+    current_crop: str | None = None
+    last_sowing_date: str | None = None
+
+    # التنبيهات (alert.created — entity_type='alert'، يحمل field_id).
+    alert_count: int = 0
+    last_alert_severity: str | None = None
+    last_alert_type: str | None = None
+
+    # الحالة القانونيّة الموحّدة (field.state_changed — entity_type='field').
+    validity: str | None = None
+    execution_mode: str | None = None
+
+    deleted: bool = False
+
     last_ndvi: float | None = None
     last_ndvi_date: str | None = None
 
     last_event_at: str | None = None
     total_events: int = 0
+
+    # ── تسلسل/فكّ تسلسل للقطة (snapshot) ────────────────────────────
+    # اللقطة **مخبّأ مُشتقّ** (derived cache) لتسريع إعادة البناء؛ ليست مصدر حقيقة.
+    # مصدر الحقيقة يبقى مخزن الأحداث append-only. الحقول الإسقاطيّة كلّها تُخزَّن في
+    # عمود state JSONB (entity_id/entity_type يُخزَّنان كأعمدة جدول مستقلّة).
+
+    # الحقول التي تنتمي للهويّة (تُخزَّن كأعمدة، لا داخل state JSONB).
+    _IDENTITY_FIELDS = ("entity_id", "entity_type")
+
+    def to_snapshot_dict(self) -> dict[str, Any]:
+        """يُسلسل الحقول الإسقاطيّة إلى شكل JSONB (نقيّ، حتميّ).
+
+        يستثني حقول الهويّة (entity_id/entity_type) لأنّها تُخزَّن كأعمدة الجدول.
+        مدفوع بحقول الـdataclass، فيبقى صحيحاً عند إضافة حقول إسقاط جديدة.
+        """
+        from dataclasses import fields as _dc_fields
+
+        return {
+            f.name: getattr(self, f.name)
+            for f in _dc_fields(self)
+            if f.name not in self._IDENTITY_FIELDS
+        }
+
+    @classmethod
+    def from_snapshot(cls, row: dict[str, Any]) -> ReconstructedState:
+        """يُعيد بناء state من صفّ لقطة (entity_type/entity_id + state JSONB).
+
+        نقيّ — لا I/O. يقبل صفّاً يحوي entity_type/entity_id والحقل state (قاموس
+        أو نصّ JSON). المفاتيح غير المعروفة تُتجاهَل (توافق أمام/خلف الإصدارات).
+        """
+        import json as _json
+        from dataclasses import fields as _dc_fields
+
+        raw_state = row.get("state") or {}
+        if isinstance(raw_state, str):
+            raw_state = _json.loads(raw_state) if raw_state else {}
+
+        known = {f.name for f in _dc_fields(cls)}
+        kwargs: dict[str, Any] = {
+            "entity_id": str(row["entity_id"]),
+            "entity_type": str(row["entity_type"]),
+        }
+        for key, val in raw_state.items():
+            if key in known and key not in cls._IDENTITY_FIELDS:
+                kwargs[key] = val
+        return cls(**kwargs)
+
+
+@dataclass
+class SnapshotCursor:
+    """موضع اللقطة في مجرى الأحداث — الحدّ الفاصل لإعادة البناء التزايديّة.
+
+    المخزن لا يملك عمود seq على جدول events (راجع v11_events_bus)، فالمؤشّر
+    الحتميّ هو (occurred_at, event_id): نُعيد تشغيل الأحداث الواقعة **بعد** هذا
+    المؤشّر فقط فوق اللقطة. last_seq محفوظ للتوافق مع مخطّط الجدول (قد يكون None).
+    """
+
+    last_event_id: str | None
+    last_occurred_at: str | None
+    last_seq: int | None
+    total_events: int
+
+    def is_after(self, event: dict[str, Any]) -> bool:
+        """هل هذا الحدث **بعد** المؤشّر؟ (ترتيب (occurred_at, event_id) الحتميّ).
+
+        نفس مفتاح الترتيب المستعمل في reconstruct (بلا seq لغيابه في events).
+        """
+        if self.last_occurred_at is None:
+            return True
+        ev_occurred = event.get("occurred_at") or ""
+        ev_id = str(event.get("event_id", ""))
+        return (ev_occurred, ev_id) > (self.last_occurred_at, self.last_event_id or "")
 
 
 @dataclass
@@ -186,6 +286,19 @@ class FieldStateReconstructor:
             if "area_ha" in payload:
                 state.area_ha = payload["area_ha"]
 
+        elif etype == "field.deleted":
+            # payload الحقيقيّ: {name, crop, farm_id} (main._delete_field). نسجّل
+            # الحذف كعَلَم (المخزن append-only؛ لا نمحو الحقول المُعاد بناؤها).
+            state.deleted = True
+
+        elif etype == "field.state_changed":
+            # payload الحقيقيّ: {validity, execution_mode, trigger}
+            # (main + field_state_projection). entity_type='field'.
+            if "validity" in payload:
+                state.validity = payload["validity"]
+            if "execution_mode" in payload:
+                state.execution_mode = payload["execution_mode"]
+
         elif etype == "lifecycle.transitioned":
             new_stage = payload.get("to_stage")
             if new_stage:
@@ -195,6 +308,18 @@ class FieldStateReconstructor:
                 elif new_stage == "HARVESTED":
                     state.harvest_date = event["occurred_at"]
 
+        elif etype == "operation.planting.started":
+            state.planting_started_count += 1
+
+        elif etype == "operation.planting.completed":
+            state.planting_completed_count += 1
+            # إكمال البذر يُثبت تاريخ الزراعة من زمن الحدث (لا مفتاح تاريخ في
+            # payload النشاط الحقيقيّ: {field_id, season_id, activity_type, status}).
+            state.planting_date = event["occurred_at"]
+
+        elif etype == "operation.irrigation.started":
+            state.irrigation_started_count += 1
+
         elif etype == "operation.irrigation.completed":
             state.irrigation_count += 1
 
@@ -203,6 +328,36 @@ class FieldStateReconstructor:
 
         elif etype == "operation.pesticide.applied":
             state.pesticide_count += 1
+
+        elif etype == "operation.harvest.started":
+            state.harvest_started_count += 1
+
+        elif etype == "operation.harvest.completed":
+            state.harvest_completed_count += 1
+            state.harvest_date = event["occurred_at"]
+
+        elif etype == "season.created":
+            # payload الحقيقيّ: {field_id, crops, cultivar, irrigation_type,
+            # sowing_date} (main._create_season). crops قائمة محاصيل.
+            state.season_count += 1
+            crops = payload.get("crops")
+            if isinstance(crops, list) and crops:
+                state.current_crop = crops[0]
+            elif isinstance(crops, str) and crops:
+                state.current_crop = crops
+            if payload.get("sowing_date"):
+                state.last_sowing_date = payload["sowing_date"]
+
+        elif etype == "season.closed":
+            state.season_closed_count += 1
+
+        elif etype == "alert.created":
+            # payload الحقيقيّ: {severity, alert_type, field_id} (main + event_catalog).
+            state.alert_count += 1
+            if "severity" in payload:
+                state.last_alert_severity = payload["severity"]
+            if "alert_type" in payload:
+                state.last_alert_type = payload["alert_type"]
 
         elif etype == "soil.sample.recorded":
             state.soil_samples_count += 1
@@ -227,13 +382,57 @@ class FieldStateReconstructor:
         # Apply in temporal order. tiebreaker للطوابع المتساوية (مراجعة #2):
         # occurred_at ثمّ seq ثمّ event_id → ترتيب حتمي حتّى عند تساوي الوقت
         # (وإلّا عكس ترتيب الإدخال يغيّر الحالة النهائيّة — لا حتميّة).
-        sorted_events = sorted(
-            events,
-            key=lambda e: (e.get("occurred_at", ""), e.get("seq", 0), str(e.get("event_id", ""))),
-        )
+        sorted_events = sorted(events, key=cls._event_sort_key)
         for ev in sorted_events:
             state = cls.apply_event(state, ev)
         return state
+
+    # ترتيب حتمي مشترك (full replay + incremental): occurred_at ثمّ seq ثمّ
+    # event_id. seq غير موجود على جدول events (راجع v11) فيؤول لـ0 — التيبريكر
+    # الفعليّ هو event_id. مُستخرَج كي يتطابق المساران حرفيّاً.
+    @staticmethod
+    def _event_sort_key(e: dict[str, Any]) -> tuple[str, int, str]:
+        return (e.get("occurred_at") or "", e.get("seq") or 0, str(e.get("event_id", "")))
+
+    @classmethod
+    def apply_incremental(
+        cls,
+        base: ReconstructedState,
+        events: list[dict[str, Any]],
+        cursor: SnapshotCursor | None = None,
+    ) -> ReconstructedState:
+        """يُطبّق events **بعد** المؤشّر فوق state أساس (لقطة) — نقيّ حتميّ.
+
+        يُرتّب الأحداث بنفس مفتاح reconstruct، ويتخطّى ما لم يتجاوز المؤشّر، ثمّ
+        يطبّق الباقي. النتيجة == full replay على كامل المجرى (يُثبته الاختبار
+        snapshot-at-k + replay-rest == full replay).
+        """
+        for ev in sorted(events, key=cls._event_sort_key):
+            if cursor is not None and not cursor.is_after(ev):
+                continue
+            base = cls.apply_event(base, ev)
+        return base
+
+    @staticmethod
+    def cursor_of(state: ReconstructedState, events: list[dict[str, Any]]) -> SnapshotCursor:
+        """يحسب مؤشّر اللقطة لـstate مبنيّة من events (آخر حدث بالترتيب الحتميّ).
+
+        يُمكِّن حفظ لقطة state مع حدّها الفاصل كي تُستأنف إعادة البناء منه.
+        """
+        if not events:
+            return SnapshotCursor(
+                last_event_id=None,
+                last_occurred_at=state.last_event_at,
+                last_seq=None,
+                total_events=state.total_events,
+            )
+        last = max(events, key=FieldStateReconstructor._event_sort_key)
+        return SnapshotCursor(
+            last_event_id=str(last.get("event_id", "")) or None,
+            last_occurred_at=last.get("occurred_at") or state.last_event_at,
+            last_seq=last.get("seq"),
+            total_events=state.total_events,
+        )
 
 
 # ─── Replay API ─────────────────────────────────────────────────
@@ -280,9 +479,111 @@ class EventReplay:
         entity_type: str,
         entity_id: str,
     ) -> ReconstructedState:
-        """يُعيد بناء الـstate الحاليّة من الـhistory."""
+        """يُعيد بناء الـstate الحاليّة من الـhistory (إعادة تشغيل كاملة دائماً)."""
         events = await self.bus.query_entity_history(entity_type, entity_id, limit=10000)
         return FieldStateReconstructor.reconstruct(entity_type, entity_id, events)
+
+    # ── مسار اللقطة (snapshot-aware) ────────────────────────────────
+    # اللقطة مخبّأ مُشتقّ (derived cache): تُسرّع إعادة البناء بإعادة تشغيل
+    # الأحداث الواقعة **بعد** مؤشّر اللقطة فقط. مخزن الأحداث append-only يبقى
+    # مصدر الحقيقة الوحيد؛ حذف اللقطات لا يفقد بيانات (يُعاد بناؤها كاملةً).
+
+    async def _load_latest_snapshot(
+        self,
+        entity_type: str,
+        entity_id: str,
+    ) -> dict[str, Any] | None:
+        """يجلب أحدث لقطة لـ(entity_type, entity_id) إن وُجدت، وإلّا None.
+
+        I/O رقيق يحاكي query_entity_history (اتّصال من _acquire للـbus، RLS مُطبَّق
+        عبر app.current_tenant حين يُمرَّر conn). الجدول field_state_snapshots (v60).
+        """
+        async with self.bus._acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT entity_type, entity_id, state, last_event_id,
+                       last_occurred_at, last_seq, total_events
+                FROM field_state_snapshots
+                WHERE entity_type = $1 AND entity_id = $2
+                ORDER BY last_occurred_at DESC NULLS LAST, id DESC
+                LIMIT 1
+                """,
+                entity_type,
+                entity_id,
+            )
+        if row is None:
+            return None
+        return dict(row)
+
+    async def reconstruct_with_snapshot(
+        self,
+        entity_type: str,
+        entity_id: str,
+    ) -> ReconstructedState:
+        """إعادة بناء مدعومة باللقطة: لقطة (إن وُجدت) + إعادة تشغيل ما بعدها فقط.
+
+        إن لا لقطة → إعادة تشغيل كاملة (سلوك reconstruct_state الحالي حرفيّاً).
+        النتيجة مطابقة لإعادة التشغيل الكاملة (تضمنه الاختبارات النقيّة).
+        """
+        snap_row = await self._load_latest_snapshot(entity_type, entity_id)
+
+        if snap_row is None:
+            # لا لقطة — إعادة تشغيل كاملة (السلوك الحاليّ).
+            events = await self.bus.query_entity_history(entity_type, entity_id, limit=10000)
+            return FieldStateReconstructor.reconstruct(entity_type, entity_id, events)
+
+        base = ReconstructedState.from_snapshot(snap_row)
+        cursor = SnapshotCursor(
+            last_event_id=str(snap_row["last_event_id"]) if snap_row["last_event_id"] else None,
+            last_occurred_at=(
+                snap_row["last_occurred_at"].isoformat()
+                if hasattr(snap_row["last_occurred_at"], "isoformat")
+                else snap_row["last_occurred_at"]
+            ),
+            last_seq=snap_row.get("last_seq"),
+            total_events=snap_row.get("total_events") or 0,
+        )
+        events = await self.bus.query_entity_history(entity_type, entity_id, limit=10000)
+        return FieldStateReconstructor.apply_incremental(base, events, cursor)
+
+    async def save_snapshot(
+        self,
+        tenant_id: str,
+        state: ReconstructedState,
+        cursor: SnapshotCursor,
+    ) -> None:
+        """يحفظ/يحدّث لقطة (upsert على (tenant_id, entity_type, entity_id)).
+
+        I/O رقيق. اللقطة مخبّأ مُشتقّ (لا تمسّ المخزن append-only). الكتابة
+        idempotent عبر ON CONFLICT — تُحدّث الحالة والمؤشّر لأحدث ما حُسب.
+        """
+        import json as _json
+        import uuid as _uuid
+
+        async with self.bus._acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO field_state_snapshots (
+                    tenant_id, entity_type, entity_id, state,
+                    last_event_id, last_occurred_at, last_seq, total_events
+                ) VALUES ($1::uuid, $2, $3, $4::jsonb, $5, $6::timestamptz, $7, $8)
+                ON CONFLICT (tenant_id, entity_type, entity_id) DO UPDATE SET
+                    state            = EXCLUDED.state,
+                    last_event_id    = EXCLUDED.last_event_id,
+                    last_occurred_at = EXCLUDED.last_occurred_at,
+                    last_seq         = EXCLUDED.last_seq,
+                    total_events     = EXCLUDED.total_events,
+                    created_at       = NOW()
+                """,
+                _uuid.UUID(tenant_id),
+                state.entity_type,
+                state.entity_id,
+                _json.dumps(state.to_snapshot_dict()),
+                _uuid.UUID(cursor.last_event_id) if cursor.last_event_id else None,
+                cursor.last_occurred_at,
+                cursor.last_seq,
+                cursor.total_events,
+            )
 
     async def get_causal_chain(
         self,
