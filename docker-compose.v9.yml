@@ -17,7 +17,12 @@ x-logging: &default_logging
 # ── المتطلبات البيئية (ضعها في .env) ─────────────────────────────
 # JWT_SECRET=your-min-32-char-secret-here
 # SAHOOL_AGENT_TOKEN=your-agent-token-here
-# DATABASE_URL=postgresql://sahool_user:${DB_PASSWORD}@sahool-postgres:5432/sahool
+# ── DATABASE_URL: التطبيق يجب أن يتّصل بالدور المقيّد sahool_app ──
+# (NOSUPERUSER NOBYPASSRLS) ليبقى عزل RLS فعّالاً وقت التشغيل. الهجرات وحدها
+# تُشغَّل بالمالك المُمتاز sahool_user؛ لو اتّصل التطبيق به (superuser) لتجاوز
+# RLS حتى مع FORCE وانهار العزل بين المستأجرين. أنشئ sahool_app عبر
+# migrations/bootstrap_postgres.sh (الخطوة ٥) واضبط APP_DB_PASSWORD.
+# DATABASE_URL=postgresql://sahool_app:${APP_DB_PASSWORD}@sahool-postgres:5432/sahool
 # REDIS_PASSWORD=your-redis-password-here
 # MINIO_ROOT_PASSWORD=your-minio-password-here
 # ODOO_PASSWORD=your-odoo-password-here
