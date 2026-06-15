@@ -28,6 +28,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
+from api.field_boundary_contracts import validate_ml_stage_output
+
 # نوع دالّة تنفيذ المرحلة: تأخذ السياق وتُعيد قاموس تحديثات يُدمج في السياق.
 StageImpl = Callable[[dict], dict]
 
@@ -214,14 +216,17 @@ def run_pipeline(ctx: dict | None = None) -> dict:
             ctx.update(updates)
 
         is_scaffold = stage.kind == "ml" and not overridden
-        summary.append(
-            {
-                "stage": stage.id,
-                "kind": stage.kind,
-                "ran": "scaffold" if is_scaffold else "real",
-                "overridden": overridden,
-            }
-        )
+        entry = {
+            "stage": stage.id,
+            "kind": stage.kind,
+            "ran": "scaffold" if is_scaffold else "real",
+            "overridden": overridden,
+        }
+        # تحقّق عقد المخرجات فقط لمراحل ML المُتجاوَزة بتنفيذ حقيقيّ —
+        # السقالات الصادقة وكلّ المراحل الحتميّة تبقى مدخلاتها كما هي.
+        if overridden and stage.kind == "ml":
+            entry["contract_violations"] = validate_ml_stage_output(stage.id, updates or {})
+        summary.append(entry)
 
     ctx["summary"] = summary
     return ctx
