@@ -106,6 +106,12 @@ class FieldLifecycleEngine:
         import asyncpg as _ap  # noqa: F401
 
         self.pool = pool
+        # ملاحظة عزل: هذا المحرّك يكتسب اتّصاله الخاصّ من الـpool ولا يضبط
+        # app.current_tenant عليه. غير موصَّل بمسار طلب في main.py حاليّاً (سقالة).
+        # كتابة الرفض الزمنيّ تمرّر tenant_id صراحةً (مأخوذاً من صفّ الـlifecycle)
+        # لا عبر GUC غير مضبوط. إن وُصِّل لاحقاً على مسار طلب، مرّر tenant_id واضبط
+        # الـGUC عبر _apply_tenant_guc قبل الاستعلامات المُنطّقة بالمستأجِر — وإلّا
+        # ستُرجع RLS صفراً تحت الدور المُقيَّد (sahool_app: NOBYPASSRLS/FORCE RLS).
 
     async def get_or_create(
         self,
@@ -168,13 +174,17 @@ class FieldLifecycleEngine:
         آخر انتقال مسجّل، يُرفَض الانتقال (منع stale/out-of-order يفسد الحالة).
         """
         async with self.pool.acquire() as conn:
-            # تحقّق pre-flight (يعطي رسالة خطأ أوضح من DB)
-            current = await conn.fetchval(
-                "SELECT current_stage FROM field_lifecycle WHERE lifecycle_id = $1",
+            # تحقّق pre-flight (يعطي رسالة خطأ أوضح من DB) + نجلب tenant_id من صفّ
+            # الـlifecycle نفسه (مصدر الحقيقة) لا من GUC قد لا يكون مضبوطاً على هذا
+            # الاتّصال الخام — لتُكتب الرفوض الزمنيّة بـtenant_id الصحيح لا NULL.
+            lc_row = await conn.fetchrow(
+                "SELECT current_stage, tenant_id FROM field_lifecycle WHERE lifecycle_id = $1",
                 uuid.UUID(lifecycle_id),
             )
+            current = lc_row["current_stage"] if lc_row else None
             if current is None:
                 raise LifecycleError(f"lifecycle {lifecycle_id} not found")
+            lifecycle_tenant_id = lc_row["tenant_id"]
 
             current_stage = LifecycleStage(current)
             if not is_valid_transition(current_stage, to_stage):
@@ -196,13 +206,15 @@ class FieldLifecycleEngine:
                     uuid.UUID(lifecycle_id),
                 )
                 if last and last["occurred_at"] is not None and occurred_at < last["occurred_at"]:
-                    # سجّل الرفض للتسوية (لا نرمي الحقيقة المتأخّرة)
+                    # سجّل الرفض للتسوية (لا نرمي الحقيقة المتأخّرة). نمرّر tenant_id
+                    # صراحةً من صفّ الـlifecycle (لا عبر GUC غير المضبوط على هذا
+                    # الاتّصال الخام) — وإلّا كُتب NULL وانكسر عزل/تسوية المستأجِر.
                     await conn.execute(
                         """INSERT INTO lifecycle_temporal_rejections
                              (tenant_id, lifecycle_id, to_stage, occurred_at,
                               last_occurred_at, reason)
-                           VALUES (NULLIF(current_setting('app.current_tenant',true),'')::uuid,
-                                   $1, $2, $3, $4, $5)""",
+                           VALUES ($1, $2, $3, $4, $5, $6)""",
+                        lifecycle_tenant_id,
                         uuid.UUID(lifecycle_id),
                         to_stage.value,
                         occurred_at,

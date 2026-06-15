@@ -356,6 +356,21 @@ async def tenant_connection(user):
             yield conn
 
 
+async def _apply_tenant_guc(conn, tenant_id: str) -> None:
+    """يضبط سياق المستأجِر على اتّصال خام (يُحاكي main.py:346 حرفيّاً).
+
+    `true` ⇒ transaction-local (SET LOCAL — آمن مع connection pooling). يُستخدَم
+    على المسارات التي تكتسب اتّصالها الخاصّ من الـpool (لا عبر tenant_connection)
+    لكنّها مع ذلك مُنطّقة بمستأجِر واحد، فتفعّل RLS فعليّاً تحت الدور المُقيَّد
+    (sahool_app: NOBYPASSRLS, FORCE RLS). يجب استدعاؤه داخل معاملة قبل أيّ
+    استعلام مُنطّق بمستأجِر.
+    """
+    await conn.execute(
+        "SELECT set_config('app.current_tenant', $1, true)",
+        str(tenant_id),
+    )
+
+
 async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id, payload):
     """يُصدر حدث domain ضمن نفس معاملة الكتابة (نمط outbox: الحدث + صفّ outbox
     يُكتبان ذرّيّاً مع تغيير الحالة)، لكن داخل **savepoint** — نجاحه ذرّيّ مع

@@ -108,7 +108,13 @@ class CommandStore:
 
     @_asynccontextmanager
     async def _acquire(self):
-        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي)."""
+        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي).
+
+        مسار الطلب يمرّر conn دائماً (main.py يُنشئ CommandStore بـconn من
+        tenant_connection)، فيُطبَّق app.current_tenant. مسار الـpool احتياطيّ
+        خلفيّ بلا سياق مستأجِر؛ تحت الدور المُقيَّد (NOBYPASSRLS/FORCE RLS) لا
+        يُستخدَم على مسار طلب — يحتاج دوراً خدميّاً مخصّصاً إن استُعمل خلفيّاً.
+        """
         if getattr(self, "_conn", None) is not None:
             yield self._conn
         else:
