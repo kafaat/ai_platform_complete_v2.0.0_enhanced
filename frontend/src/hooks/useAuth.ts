@@ -2,7 +2,7 @@
 // SAHOOL v8.0 — useAuth.ts (Zustand + persist)
 // ═══════════════════════════════════════════════════════════════
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { login as apiLogin, register as apiRegister } from '../services/api';
 
 interface AuthUser {
@@ -98,13 +98,23 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'sahool-auth',
-      // أمان: لا نحفظ token/isAuthenticated في localStorage (قابلة للسرقة عبر XSS).
-      // التوكن يبقى في sessionStorage؛ يُعاد ترطيب الحالة منه عند التحميل.
+      // FIX (مراجعة #241): التوكن يُكتَب في sessionStorage (جلسة لكلّ تبويب)، لكنّ
+      // persist الافتراضيّ يحفظ الحالة في localStorage — فيُعاد ترطيب
+      // isAuthenticated=true في تبويب جديد بينما sessionStorage فارغ (لا توكن)،
+      // فيظهر المستخدم مُصادَقاً بلا توكن حتى أوّل 401. توحيد التخزين على
+      // sessionStorage يجعل عمر حالة المصادقة مطابقاً لعمر التوكن (نفس التبويب)،
+      // ويُلغي أيضاً قلق #236 من تسريب التوكن لـlocalStorage (الكلّ session-scoped).
+      storage: createJSONStorage(() => sessionStorage),
+      // استثناء الـ actions من الحفظ
       partialize: (s) => ({
-        tenantId:   s.tenantId,
-        user:       s.user,
-        isDemoMode: s.isDemoMode,
+        token:           s.token,
+        tenantId:        s.tenantId,
+        user:            s.user,
+        isAuthenticated: s.isAuthenticated,
+        isDemoMode:      s.isDemoMode,
       }),
+      // ضمان تطابق token/isAuthenticated مع المفتاح القانونيّ (#236): التوكن مصدر
+      // الحقيقة في sessionStorage['sahool_access_token']؛ نُعيد المزامنة عند الترطيب.
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         const t = sessionStorage.getItem('sahool_access_token');
