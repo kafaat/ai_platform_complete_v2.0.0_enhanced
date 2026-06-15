@@ -189,3 +189,8 @@ v9_append_only_enforcement.sql
 # _sahool_apply_tenant_rls. يقتصر على «صفر سياسات» تجنّباً لتوسعة الوصول بـOR على
 # الجداول ذات السياسات المخصّصة. idempotent (الجدول المُغطّى يصبح ذا سياسة فيُتخطّى).
 v56_rls_dynamic_all.sql
+# v57: تغطية فهارس tenant_id ديناميكيّة — يُطبَّق أخيراً بعد إنشاء كلّ الجداول/
+# الأعمدة. يمسح كلّ جدول public يحوي tenant_id بلا فهرس صدارته tenant_id وينشئ
+# له idx_<table>_tenant، فيُغلق مسح RLS التسلسليّ. توأم v56 (التغطية الديناميكيّة).
+# يكمّل المصفوفة الثابتة في v9_rls_tenant_isolation. idempotent.
+v57_rls_dynamic_indexes.sql
