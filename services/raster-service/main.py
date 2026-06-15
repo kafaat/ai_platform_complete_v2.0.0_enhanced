@@ -1381,14 +1381,18 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             elif ind == "ndti":
                 arr = si.compute_ndti(swir1, swir2, np)
             elif ind == "dbsi":
-                _ndvi = (nir - red) / (nir + red)
+                _d = nir + red
+                _ndvi = (nir - red) / np.where(_d == 0, 1e-10, _d)  # حماية القسمة (اتّساقاً مع المؤشّرات أعلاه)
                 arr = si.compute_dbsi(green, swir1, _ndvi, np)
             elif ind == "ndsi":
                 arr = si.compute_ndsi(red, nir, np)
             else:  # satvi
                 arr = si.compute_satvi(red, swir1, swir2, np)
         else:  # fapar تقريب من ndvi
-            ndvi = (nir - red) / (nir + red)
+            _d = nir + red
+            # حماية القسمة: بكسل أسود/ماء عميق (nir+red=0) كان يعطي nan/inf، وclip
+            # كان يحوّل inf→fapar=1 خاطئة فيفسد المتوسّط بصمت. الآن →0 (لا غطاء).
+            ndvi = (nir - red) / np.where(_d == 0, 1e-10, _d)
             arr = np.clip(1.24 * ndvi - 0.168, 0, 1)
 
         # ── (٢) قناع الغيوم (SCL) ─────────────────────────────────────
