@@ -66,8 +66,16 @@ def test_ids_unique():
     assert len(names) == len(set(names))
 
 
-def test_irrigation_valve_literals_registered():
-    # السلسلتان المنقّطتان تُمرَّران حرفيّاً لـ_emit_domain_event ⇒ مسجَّلتان كما تُصدَران.
-    assert is_registered("irrigation.valve.registered")
-    assert is_registered("irrigation.valve.state_changed")
-    assert get_event("irrigation.valve.registered")["category"] == "irrigation"
+def test_irrigation_valve_events_registered_by_member_name():
+    # حدثا الصمّامات مسجَّلان باسم عضو EventType (بأحرف كبيرة) تماشياً مع سائر السجلّ.
+    assert is_registered("IRRIGATION_VALVE_REGISTERED")
+    assert is_registered("IRRIGATION_VALVE_STATE_CHANGED")
+    assert get_event("IRRIGATION_VALVE_REGISTERED")["category"] == "irrigation"
+
+
+def test_irrigation_valve_names_are_valid_event_type_members():
+    # أسماء حدثَي الصمّامات في السجلّ أعضاء صحيحة في EventType.
+    from api.event_bus import EventType
+
+    for name in ("IRRIGATION_VALVE_REGISTERED", "IRRIGATION_VALVE_STATE_CHANGED"):
+        assert get_event(name)["name"] in EventType.__members__
