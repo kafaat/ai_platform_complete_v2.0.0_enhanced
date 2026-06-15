@@ -2948,6 +2948,69 @@ async def _historical_rain_3d_mm(lat: float, lon: float, forecast_fallback: floa
         return round(forecast_fallback, 1)
 
 
+# ─── سياسة محرّكات التوصيات لكلّ مستأجِر (Dynamic Recommendation Policy) ─
+# المستأجِر يضبط أيّ محرّكات تعمل عبر نقطة الإعدادات الموجودة (لا نقطة كتابة جديدة):
+#   PUT /api/v1/settings  مع  scope='platform', key='recommendation_engines',
+#   value مثل {"disabled": ["yield"]}  أو  {"enabled": ["irrigation", "disease"]}.
+# القراءة تمرّ عبر الاتّصال المنطاقيّ (RLS يحصرها بالمستأجِر الحاليّ تلقائيّاً). صدق
+# وتوافق خلفيّ صارم: عند غياب السياسة (أو أيّ خطأ) نُرجع None ⇒ السلوك مطابق لليوم.
+
+
+async def _resolve_recommendation_policy(raw_value) -> set[str] | None:
+    """يحوّل قيمة السياسة الخام (JSONB) إلى مجموعة مُعرّفات مُفعَّلة، أو None.
+
+    دالّة نقيّة (لا قاعدة): تُفصَل عن القراءة كي يُعاد استخدامها في نقطة الاستبطان.
+    تدعم شكلين متبادلين حصريّاً:
+      • {"disabled": [...]} ⇒ المُفعَّل = كلّ المحرّكات المعروفة ناقص المُعطَّلة.
+      • {"enabled":  [...]} ⇒ المُفعَّل = هذه المُعرّفات فقط (مقاطَعة مع المعروفة).
+    أيّ شكل آخر (الاثنان معاً/لا شيء/فارغ/مُشوَّه) ⇒ None ⇒ «كلّ الافتراضيّ» (دون تغيير).
+    """
+    from api.recommendations_hub import list_engines
+
+    if not isinstance(raw_value, dict):
+        return None
+    known = {e["id"] for e in list_engines()}
+    has_disabled = "disabled" in raw_value
+    has_enabled = "enabled" in raw_value
+    # الشكلان حصريّان: وجود الاثنين أو غيابهما معاً ⇒ سياسة غير محدَّدة ⇒ None.
+    if has_disabled == has_enabled:
+        return None
+    if has_disabled:
+        disabled = raw_value.get("disabled")
+        if not isinstance(disabled, list) or not disabled:
+            return None
+        return known - {str(x) for x in disabled}
+    enabled = raw_value.get("enabled")
+    if not isinstance(enabled, list) or not enabled:
+        return None
+    return known & {str(x) for x in enabled}
+
+
+async def _load_recommendation_policy(conn) -> set[str] | None:
+    """يقرأ سياسة محرّكات التوصيات للمستأجِر من جدول settings (best-effort).
+
+    يستعلم الاتّصال المنطاقيّ (RLS يحصره بالمستأجِر): scope='platform',
+    key='recommendation_engines'. القيمة JSONB قد تعود dict أو نصّاً (نُحلّله).
+    أيّ خطأ (لا قاعدة، لا جدول، JSON مُشوَّه) ⇒ None — لا نرفع أبداً في مسار الطلب،
+    فيبقى السلوك مطابقاً لليوم عند غياب السياسة.
+    """
+    import json as _json
+
+    try:
+        row = await conn.fetchrow(
+            "SELECT value FROM settings WHERE scope = 'platform' AND key = 'recommendation_engines'"
+        )
+        if row is None:
+            return None
+        value = row["value"]
+        if isinstance(value, str):
+            value = _json.loads(value)
+        return await _resolve_recommendation_policy(value)
+    except Exception:  # noqa: BLE001 — best-effort: أيّ خطأ ⇒ None (سلوك افتراضيّ)
+        logging.exception("recommendation policy load failed; defaulting to all engines")
+        return None
+
+
 @app.get("/api/v1/fields/{field_id}/recommendations")
 async def field_recommendations(
     field_id: str,
@@ -2971,6 +3034,9 @@ async def field_recommendations(
             # نُحدِّث الإسقاط ونرفق صلاحيّة القرار + نمط التنفيذ بالاستجابة (مصدر حقيقة
             # واحد يحكم: تلقائيّ أم مراجعة بشريّة)، بدل قرار متفرّق لكلّ توصية.
             field_state = (await recompute_field_state(conn, field_id))["state"]
+            # سياسة محرّكات التوصيات لكلّ مستأجِر — قراءة صغيرة عبر نفس الاتّصال
+            # المنطاقيّ (RLS). None ⇒ لا سياسة ⇒ السلوك مطابق لليوم تماماً.
+            enabled_ids = await _load_recommendation_policy(conn)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -3010,7 +3076,8 @@ async def field_recommendations(
         except Exception:  # noqa: BLE001 — تعذّر الطقس ⇒ تدهور رشيق لا فشل
             logging.exception("recommendations: weather unavailable for %s", field_id)
 
-    recs = build_recommendations(ctx)
+    # enabled_ids=None ⇒ تُفعَّل كلّ المحرّكات بحسب default_enabled (سلوك مطابق لليوم).
+    recs = build_recommendations(ctx, enabled_ids=enabled_ids)
     if not recs:
         # لا توصية أمكن توليدها (لا طقس، لا محصول، لا بذار) — فشل صادق.
         raise HTTPException(
@@ -3033,6 +3100,53 @@ async def field_recommendations(
         },
         "requires_review": field_state["execution_mode"] != "auto",
         "recommendations": [r.to_dict() for r in recs],
+    }
+
+
+@app.get("/api/v1/recommendations/engines")
+async def recommendation_engines(
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+):
+    """كتالوج محرّكات التوصيات + السياسة الفعليّة لهذا المستأجِر (استبطان).
+
+    يُرجع: الكتالوج الكامل (list_engines)، السياسة الخام من settings (أو null)،
+    والمُعرّفات الفعليّة التي ستعمل لهذا المستأجِر (effective_enabled). السياسة
+    تُضبَط عبر النقطة الموجودة لا نقطة كتابة جديدة:
+        PUT /api/v1/settings  مع scope='platform', key='recommendation_engines',
+        value مثل {"disabled": ["yield"]}.
+    """
+    import json as _json
+
+    from api.recommendations_hub import list_engines
+
+    engines = list_engines()
+    policy_value = None
+    enabled_ids: set[str] | None = None
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT value FROM settings WHERE scope = 'platform' "
+                "AND key = 'recommendation_engines'"
+            )
+        if row is not None:
+            policy_value = row["value"]
+            if isinstance(policy_value, str):
+                policy_value = _json.loads(policy_value)
+            enabled_ids = await _resolve_recommendation_policy(policy_value)
+    except Exception:  # noqa: BLE001 — best-effort: تعذّر القراءة ⇒ افتراضيّ (null)
+        logging.exception("recommendation engines: policy read failed")
+        policy_value = None
+        enabled_ids = None
+
+    # المُعرّفات الفعليّة: عند غياب سياسة (None) ⇒ كلّ محرّك بـ default_enabled=True.
+    if enabled_ids is None:
+        effective = [e["id"] for e in engines if e["default_enabled"]]
+    else:
+        effective = [e["id"] for e in engines if e["id"] in enabled_ids]
+    return {
+        "engines": engines,
+        "policy": policy_value,
+        "effective_enabled": effective,
     }
 
 
