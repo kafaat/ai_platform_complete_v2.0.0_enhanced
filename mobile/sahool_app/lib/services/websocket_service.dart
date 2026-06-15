@@ -3,10 +3,27 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import '../utils/ids.dart';
 import 'auth_service.dart';
+
+/// نتيجة [WebSocketService.send] — تُخبر المستدعي بالمآل الفعليّ للرسالة بدل
+/// `bool` غامض، كي لا يَظنّ أمراً مُغيِّراً للحالة (تشغيل ريّ/صمّام) نُفِّذ بينما
+/// هو في الطابور أو سقط. تطابق دلالات وكيل الويب.
+enum SendResult {
+  /// أُرسلت فوراً عبر قناة مفتوحة.
+  sent,
+
+  /// القناة غير مفتوحة — حُفِظت في الطابور (به متّسع) لإرسالها لاحقاً.
+  queued,
+
+  /// القناة غير مفتوحة والطابور ممتلئ — أُسقطت أقدم رسالة لإفساح مكان للأحدث.
+  queueFull,
+
+  /// تعذّر تسلسل الرسالة (JSON) — لم تُرسَل ولم تُحفَظ.
+  failed,
+}
 
 class WebSocketService {
   static final WebSocketService instance = WebSocketService._internal();
@@ -114,29 +131,40 @@ class WebSocketService {
     _reconnectTimer = Timer(delay, connect);
   }
 
-  /// يُرسل رسالة عبر القناة. يعيد `true` إن أُرسلت فوراً، و`false` إن وُضِعت في
-  /// الطابور (القناة غير مفتوحة) — فيعرف المستدعي أنّ أمراً مُغيِّراً للحالة
-  /// (تشغيل ريّ/صمّام) لم يُنفَّذ بعد بدل أن يَظنّه نُفِّذ.
-  bool send(Map<String, dynamic> data) {
+  /// يُرسل رسالة عبر القناة ويعيد [SendResult] يصف المآل الفعليّ — كي يعرف
+  /// المستدعي أنّ أمراً مُغيِّراً للحالة (تشغيل ريّ/صمّام) أُرسِل أم طُوبِر أم سقط
+  /// أم تعذّر تسلسله، بدل `bool` غامض. الدلالات تطابق وكيل الويب.
+  SendResult send(Map<String, dynamic> data) {
     // P1: idempotency — كلّ عمليّة قابلة للتغيير تحمل operation_id ثابتاً.
     // عند إعادة الإرسال (reconnect)، يبقى نفس المعرّف → الخلفيّة تكتشف التكرار
     // وتتجاهله (تمنع تنفيذ "تشغيل الري" مرّتين). مُولَّد مرّة واحدة عند الإنشاء.
     if (_isMutating(data) && !data.containsKey('operation_id')) {
       data['operation_id'] = _generateOperationId();
     }
+    // حارس التسلسل: رسالة غير قابلة للترميز (JSON) لا تُرسَل ولا تُحفَظ، فلا
+    // تُسمِّم الطابور ولا تُرمى لاحقاً عند الـflush. نُبلّغ المستدعي صراحةً.
+    final String encoded;
+    try {
+      encoded = json.encode(data);
+    } catch (e) {
+      _logger.e('تعذّر تسلسل رسالة WS — أُسقطت: $e');
+      return SendResult.failed;
+    }
     if (_socket?.readyState == WebSocket.open) {
-      _socket!.add(json.encode(data));
-      return true;
+      _socket!.add(encoded);
+      return SendResult.sent;
     }
     // F05: تُحفَظ الرسائل أثناء عدم الاتّصال (مع operation_id للتكرار الآمن). عند
     // امتلاء الطابور نُسقط الأقدم ونُبقي الأحدث (الأقرب للحالة الراهنة) مع تحذير
-    // صريح، فلا يكون فقد أمرٍ تشغيليّ خفيّاً. نعيد false (طُوبِرت، لم تُرسَل بعد).
+    // صريح، فلا يكون فقد أمرٍ تشغيليّ خفيّاً.
     if (_messageQueue.length >= _maxQueueSize) {
       _messageQueue.removeAt(0);
       _logger.w('طابور الرسائل ممتلئ ($_maxQueueSize) — أُسقطت أقدم رسالة');
+      _messageQueue.add(data);
+      return SendResult.queueFull;
     }
     _messageQueue.add(data);
-    return false;
+    return SendResult.queued;
   }
 
   // العمليّات المُغيِّرة للحالة (commands) تحتاج idempotency؛ pong/ping لا.
@@ -146,11 +174,8 @@ class WebSocketService {
   }
 
   // معرّف عمليّة شبه-فريد (timestamp + عشوائي) — ثابت عبر إعادات الإرسال.
-  String _generateOperationId() {
-    final ts = DateTime.now().microsecondsSinceEpoch.toRadixString(16);
-    final rnd = Random().nextInt(0xFFFFFF).toRadixString(16).padLeft(6, '0');
-    return 'op_${ts}_$rnd';
-  }
+  // مركزيّ في utils/ids.dart (مصدر واحد للحقيقة، يُختبَر مباشرةً).
+  String _generateOperationId() => generateOperationId();
 
   // F04: Proper dispose
   Future<void> dispose() async {

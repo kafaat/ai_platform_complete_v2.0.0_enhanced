@@ -5,6 +5,7 @@
 // لكنّ اختبارات idempotency للـoperation_id تعمل مباشرةً.
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sahool_app/utils/ids.dart';
 
 void main() {
   group('P1: idempotency للـoffline queue', () {
@@ -32,9 +33,8 @@ void main() {
 
     test('operation_id بصيغة متوقّعة (op_<hex>_<hex>)', () {
       final regex = RegExp(r'^op_[0-9a-f]+_[0-9a-f]{6}$');
-      // محاكاة التوليد
-      final id = 'op_${DateTime.now().microsecondsSinceEpoch.toRadixString(16)}_abc123';
-      expect(regex.hasMatch(id), isTrue);
+      // الكود الفعليّ (utils/ids.dart) — لا نسخة مُعاد كتابتها inline.
+      expect(regex.hasMatch(generateOperationId()), isTrue);
     });
   });
 

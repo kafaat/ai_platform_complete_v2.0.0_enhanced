@@ -10,6 +10,7 @@ import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import '../services/auth_service.dart';
+import '../utils/ids.dart';
 import '../utils/jwt.dart';
 
 class ApiService {
@@ -142,11 +143,10 @@ class ApiService {
   // للتحليل يُعدّ منتهياً بدل إرساله، لتفادي تمرير توكن فاسد/منتهٍ.
   bool _isTokenExpired(String token) => isJwtExpired(token);
 
-  // مايكروثانية + لاحقة عشوائيّة: يتفادى تكرار X-Request-ID بين طلبات متزامنة
-  // (الاعتماد على المللي‑ثانية وحدها كان يُنتج معرّفات متطابقة تحت التزامن).
-  String _generateRequestId() =>
-      '${DateTime.now().microsecondsSinceEpoch.toRadixString(16)}'
-      '${_rand.nextInt(0xFFFF).toRadixString(16).padLeft(4, '0')}';
+  // UUIDv7 (utils/ids.dart): k-sortable زمنيّاً + 74 بت عشوائيّة، يتفادى تكرار
+  // X-Request-ID بين طلبات متزامنة (الاعتماد على المللي‑ثانية وحدها كان يُنتج
+  // معرّفات متطابقة تحت التزامن). مصدر واحد للحقيقة يُختبَر مباشرةً.
+  String _generateRequestId() => generateRequestId();
 
   bool _shouldRetry(DioException error) =>
       error.response?.statusCode != null &&
