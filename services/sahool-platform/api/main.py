@@ -2088,12 +2088,14 @@ async def _assert_field_in_tenant(conn, field_id: str) -> None:
 async def create_season(
     field_id: str,
     req: SeasonCreateRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     """ينشئ موسماً زراعيّاً للحقل — يُخزَّن فعليّاً (بدل /seasons المُبتلَع).
 
     يتحقّق من نوع الريّ وترتيب التواريخ، ويربط الموسم بالحقل ضمن سياق المستأجِر
-    (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ.
+    (RLS) بعد تأكيد أنّ الحقل يخصّه (404)، ويردّ الموسم المُنشأ. idempotent:
+    Idempotency-Key (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
     """
     import json as _json
     import uuid as _uuid
@@ -2124,97 +2126,137 @@ async def create_season(
 
     try:
         async with tenant_connection(user) as conn:
-            await _assert_field_in_tenant(conn, field_id)
-            # ثابت v44: حقل واحد ⇒ موسم نشط واحد على الأكثر. بدل رفض الإنشاء (409)،
-            # نُغلق آليّاً أيّ موسم نشط سابق لهذا الحقل ثمّ نُدرج الجديد ضمن نفس
-            # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
-            # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
-            async with conn.transaction():
-                closed = await conn.fetch(
-                    "UPDATE seasons SET status = 'closed' "
-                    "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
-                    field_id,
-                )
-                # حدث SEASON_CLOSED لكلّ موسم نشط أُغلق آليّاً (توسيع تغطية الأحداث).
-                for cr in closed:
+
+            async def _work():
+                await _assert_field_in_tenant(conn, field_id)
+                # ثابت v44: حقل واحد ⇒ موسم نشط واحد على الأكثر. بدل رفض الإنشاء (409)،
+                # نُغلق آليّاً أيّ موسم نشط سابق لهذا الحقل ثمّ نُدرج الجديد ضمن نفس
+                # المعاملة — فيكون «إنشاء موسم» انتقالاً نظيفاً للموسم النشط. الفهرس
+                # الفريد الجزئي (uq_seasons_one_active) هو الضمانة النهائيّة للثابت.
+                async with conn.transaction():
+                    closed = await conn.fetch(
+                        "UPDATE seasons SET status = 'closed' "
+                        "WHERE field_id = $1 AND status = 'active' RETURNING season_id",
+                        field_id,
+                    )
+                    # حدث SEASON_CLOSED لكلّ موسم نشط أُغلق آليّاً (توسيع تغطية الأحداث).
+                    for cr in closed:
+                        await _emit_domain_event(
+                            conn,
+                            user,
+                            "SEASON_CLOSED",
+                            "season",
+                            cr["season_id"],
+                            {
+                                "field_id": field_id,
+                                "reason": "superseded_by_new_season",
+                                "superseded_by": season_id,
+                            },
+                        )
+                    await conn.execute(
+                        """INSERT INTO seasons
+                        (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,
+                         seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date,
+                         season_end, stages, status,
+                         target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source,
+                         maturity, tillage_type, actual_yield_kg_ha, notes_ar)
+                       VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
+                               $8, $9, $10, $11, $12::jsonb, 'active',
+                               $13, $14, $15, $16,
+                               $17, $18, $19, $20)""",
+                        season_id,
+                        str(user.tenant_id),
+                        field_id,
+                        crops_json,
+                        req.cultivar,
+                        req.irrigation_type,
+                        req.seed_rate_kg_ha,
+                        land,
+                        plow,
+                        sow,
+                        end,
+                        stages_json,
+                        req.target_yield_kg_ha,
+                        req.plant_density,
+                        req.row_spacing_cm,
+                        req.seed_variety_source,
+                        req.maturity,
+                        req.tillage_type,
+                        req.actual_yield_kg_ha,
+                        req.notes_ar,
+                    )
+                    # حدث domain ضمن نفس معاملة إنشاء الموسم (نمط outbox).
                     await _emit_domain_event(
                         conn,
                         user,
-                        "SEASON_CLOSED",
+                        "SEASON_CREATED",
                         "season",
-                        cr["season_id"],
+                        season_id,
                         {
                             "field_id": field_id,
-                            "reason": "superseded_by_new_season",
-                            "superseded_by": season_id,
+                            "crops": req.crops,
+                            "cultivar": req.cultivar,
+                            "irrigation_type": req.irrigation_type,
+                            "sowing_date": req.sowing_date,
                         },
                     )
-                await conn.execute(
-                    """INSERT INTO seasons
-                    (season_id, tenant_id, field_id, crops, cultivar, irrigation_type,
-                     seed_rate_kg_ha, land_leveling_date, plowing_date, sowing_date,
-                     season_end, stages, status,
-                     target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source,
-                     maturity, tillage_type, actual_yield_kg_ha, notes_ar)
-                   VALUES ($1, $2::uuid, $3, $4::jsonb, $5, $6, $7,
-                           $8, $9, $10, $11, $12::jsonb, 'active',
-                           $13, $14, $15, $16,
-                           $17, $18, $19, $20)""",
-                    season_id,
-                    str(user.tenant_id),
-                    field_id,
-                    crops_json,
-                    req.cultivar,
-                    req.irrigation_type,
-                    req.seed_rate_kg_ha,
-                    land,
-                    plow,
-                    sow,
-                    end,
-                    stages_json,
-                    req.target_yield_kg_ha,
-                    req.plant_density,
-                    req.row_spacing_cm,
-                    req.seed_variety_source,
-                    req.maturity,
-                    req.tillage_type,
-                    req.actual_yield_kg_ha,
-                    req.notes_ar,
-                )
-                # حدث domain ضمن نفس معاملة إنشاء الموسم (نمط outbox).
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "SEASON_CREATED",
-                    "season",
-                    season_id,
-                    {
-                        "field_id": field_id,
-                        "crops": req.crops,
-                        "cultivar": req.cultivar,
-                        "irrigation_type": req.irrigation_type,
-                        "sowing_date": req.sowing_date,
-                    },
-                )
-                # Canonical Field State: إنشاء موسم يغيّر سياق القرار ⇒ أعِد حساب
-                # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
-                # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
-                from api.field_state_projection import recompute_field_state
+                    # Canonical Field State: إنشاء موسم يغيّر سياق القرار ⇒ أعِد حساب
+                    # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
+                    # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
+                    from api.field_state_projection import recompute_field_state
 
-                _fs = await recompute_field_state(conn, field_id)
-                if _fs["changed"]:
-                    await _emit_domain_event(
-                        conn,
-                        user,
-                        "FIELD_STATE_CHANGED",
-                        "field",
-                        field_id,
-                        {
-                            "validity": _fs["state"]["validity"],
-                            "execution_mode": _fs["state"]["execution_mode"],
-                            "trigger": "season.created",
-                        },
-                    )
+                    _fs = await recompute_field_state(conn, field_id)
+                    if _fs["changed"]:
+                        await _emit_domain_event(
+                            conn,
+                            user,
+                            "FIELD_STATE_CHANGED",
+                            "field",
+                            field_id,
+                            {
+                                "validity": _fs["state"]["validity"],
+                                "execution_mode": _fs["state"]["execution_mode"],
+                                "trigger": "season.created",
+                            },
+                        )
+                # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
+                # عند الإعادة (مع حفظ season_id الأصليّ) — response_model يتحقّق منه.
+                return SeasonSummary(
+                    season_id=season_id,
+                    field_id=field_id,
+                    crops=req.crops,
+                    cultivar=req.cultivar,
+                    irrigation_type=req.irrigation_type,
+                    seed_rate_kg_ha=req.seed_rate_kg_ha,
+                    land_leveling_date=land.isoformat() if land else None,
+                    plowing_date=plow.isoformat() if plow else None,
+                    sowing_date=sow.isoformat() if sow else None,
+                    season_end=end.isoformat() if end else None,
+                    stages=[s.model_dump() for s in clean_stages],  # نفس ما خُزّن (لا بناء)
+                    status="active",
+                    target_yield_kg_ha=req.target_yield_kg_ha,
+                    plant_density=req.plant_density,
+                    row_spacing_cm=req.row_spacing_cm,
+                    seed_variety_source=req.seed_variety_source,
+                    maturity=req.maturity,
+                    tillage_type=req.tillage_type,
+                    actual_yield_kg_ha=req.actual_yield_kg_ha,
+                    notes_ar=req.notes_ar,
+                ).model_dump()
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="season.create",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": field_id, "season_id": season_id},
+                )
+            else:
+                result = await _work()
     except HTTPException:
         raise
     except _asyncpg.UniqueViolationError as e:
@@ -2231,28 +2273,7 @@ async def create_season(
         ) from e
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("حفظ الموسم", e) from e
-    return SeasonSummary(
-        season_id=season_id,
-        field_id=field_id,
-        crops=req.crops,
-        cultivar=req.cultivar,
-        irrigation_type=req.irrigation_type,
-        seed_rate_kg_ha=req.seed_rate_kg_ha,
-        land_leveling_date=land.isoformat() if land else None,
-        plowing_date=plow.isoformat() if plow else None,
-        sowing_date=sow.isoformat() if sow else None,
-        season_end=end.isoformat() if end else None,
-        stages=[s.model_dump() for s in clean_stages],  # نفس ما خُزّن (لا إعادة بناء)
-        status="active",
-        target_yield_kg_ha=req.target_yield_kg_ha,
-        plant_density=req.plant_density,
-        row_spacing_cm=req.row_spacing_cm,
-        seed_variety_source=req.seed_variety_source,
-        maturity=req.maturity,
-        tillage_type=req.tillage_type,
-        actual_yield_kg_ha=req.actual_yield_kg_ha,
-        notes_ar=req.notes_ar,
-    )
+    return result
 
 
 @app.get("/api/v1/fields/{field_id}/seasons", response_model=list[SeasonSummary])
@@ -3879,12 +3900,14 @@ async def list_alerts(
 @app.post("/api/v1/alerts", status_code=201, response_model=AlertSummary)
 async def create_alert(
     req: AlertCreateRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
 ):
     """ينشئ تنبيهاً زراعيّاً للمستأجِر — يُخزَّن فعليّاً ضمن سياق المستأجِر (RLS).
 
     يتحقّق من النوع والخطورة (422)، ويؤكّد أنّ الحقل (إن مُرِّر) يخصّ المستأجِر
-    (404) قبل الإدراج، ثمّ يردّ التنبيه المُنشأ.
+    (404) قبل الإدراج، ثمّ يردّ التنبيه المُنشأ. idempotent: Idempotency-Key
+    (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
     """
     import uuid as _uuid
 
@@ -3895,71 +3918,90 @@ async def create_alert(
     alert_id = "alr_" + _uuid.uuid4().hex[:12]
     try:
         async with tenant_connection(user) as conn:
-            if req.field_id is not None:
-                await _assert_field_in_tenant(conn, req.field_id)
-            await conn.execute(
-                """INSERT INTO alerts
-                    (alert_id, tenant_id, field_id, alert_type, severity,
-                     title_ar, message_ar, status)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
-                alert_id,
-                str(user.tenant_id),
-                req.field_id,
-                req.alert_type,
-                req.severity,
-                req.title_ar,
-                req.message_ar,
-            )
-            created = AlertSummary(
-                alert_id=alert_id,
-                field_id=req.field_id,
-                alert_type=req.alert_type,
-                severity=req.severity,
-                title_ar=req.title_ar,
-                message_ar=req.message_ar,
-                status="active",
-            )
-            # تسجيل قنوات التسليم المقصودة (بلا إرسال فعليّ) — غير كاسر.
-            await _log_alert_deliveries(conn, user, created)
-            # حدث إنشاء التنبيه (تفاعليّ): يستهلكه وكيل الإشعارات للبثّ الفوريّ بدل
-            # المسح الدوريّ. نفس معاملة الكتابة (outbox) — فشل الإصدار لا يكسر الحفظ.
-            await _emit_domain_event(
-                conn,
-                user,
-                "ALERT_CREATED",
-                "alert",
-                alert_id,
-                {
-                    "severity": req.severity,
-                    "alert_type": req.alert_type,
-                    "field_id": req.field_id,
-                },
-            )
-            # Canonical Field State: تنبيه على حقل قد يعكس تبدّل قراره ⇒ أعِد حساب
-            # الإسقاط وأصدِر field.state_changed إن تبدّلت الصلاحيّة (نفس نمط الموسم،
-            # نفس معاملة الكتابة). التنبيهات تمرّ عبر مصدر الحقيقة الواحد.
-            if req.field_id is not None:
-                from api.field_state_projection import recompute_field_state
 
-                _fs = await recompute_field_state(conn, req.field_id)
-                if _fs["changed"]:
-                    await _emit_domain_event(
-                        conn,
-                        user,
-                        "FIELD_STATE_CHANGED",
-                        "field",
-                        req.field_id,
-                        {
-                            "validity": _fs["state"]["validity"],
-                            "execution_mode": _fs["state"]["execution_mode"],
-                            "trigger": "alert.created",
-                        },
-                    )
+            async def _work():
+                if req.field_id is not None:
+                    await _assert_field_in_tenant(conn, req.field_id)
+                await conn.execute(
+                    """INSERT INTO alerts
+                        (alert_id, tenant_id, field_id, alert_type, severity,
+                         title_ar, message_ar, status)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
+                    alert_id,
+                    str(user.tenant_id),
+                    req.field_id,
+                    req.alert_type,
+                    req.severity,
+                    req.title_ar,
+                    req.message_ar,
+                )
+                created = AlertSummary(
+                    alert_id=alert_id,
+                    field_id=req.field_id,
+                    alert_type=req.alert_type,
+                    severity=req.severity,
+                    title_ar=req.title_ar,
+                    message_ar=req.message_ar,
+                    status="active",
+                )
+                # تسجيل قنوات التسليم المقصودة (بلا إرسال فعليّ) — غير كاسر.
+                await _log_alert_deliveries(conn, user, created)
+                # حدث إنشاء التنبيه (تفاعليّ): يستهلكه وكيل الإشعارات للبثّ الفوريّ بدل
+                # المسح الدوريّ. نفس معاملة الكتابة (outbox) — فشل الإصدار لا يكسر الحفظ.
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "ALERT_CREATED",
+                    "alert",
+                    alert_id,
+                    {
+                        "severity": req.severity,
+                        "alert_type": req.alert_type,
+                        "field_id": req.field_id,
+                    },
+                )
+                # Canonical Field State: تنبيه على حقل قد يعكس تبدّل قراره ⇒ أعِد حساب
+                # الإسقاط وأصدِر field.state_changed إن تبدّلت الصلاحيّة (نفس نمط الموسم،
+                # نفس معاملة الكتابة). التنبيهات تمرّ عبر مصدر الحقيقة الواحد.
+                if req.field_id is not None:
+                    from api.field_state_projection import recompute_field_state
+
+                    _fs = await recompute_field_state(conn, req.field_id)
+                    if _fs["changed"]:
+                        await _emit_domain_event(
+                            conn,
+                            user,
+                            "FIELD_STATE_CHANGED",
+                            "field",
+                            req.field_id,
+                            {
+                                "validity": _fs["state"]["validity"],
+                                "execution_mode": _fs["state"]["execution_mode"],
+                                "trigger": "alert.created",
+                            },
+                        )
+                # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
+                # عند الإعادة (مع حفظ alert_id الأصليّ) — response_model يتحقّق منه.
+                return created.model_dump()
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="alert.create",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": req.field_id, "alert_id": alert_id},
+                )
+            else:
+                result = await _work()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("حفظ التنبيه", e) from e
-    return created
+    return result
 
 
 @app.patch("/api/v1/alerts/{alert_id}/acknowledge", response_model=AlertSummary)
@@ -5005,25 +5047,47 @@ def _parse_time(value: str):
 @app.post("/api/v1/irrigation/valves", status_code=201)
 async def register_valve(
     req: ValveRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
 ):
+    """يسجّل صمّام ريّ ضمن المستأجِر (RLS). idempotent: Idempotency-Key (UUID)
+    يمنع تكرار التسجيل عند إعادة الموبايل (offline)."""
     import uuid as _uuid
 
     valve_id = "vlv_" + _uuid.uuid4().hex[:12]
     async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO irrigation_valves
-                (valve_id, tenant_id, name, field_id, device_id, valve_type, flow_rate_lpm)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            valve_id,
-            str(user.tenant_id),
-            req.name,
-            req.field_id,
-            req.device_id,
-            req.valve_type,
-            req.flow_rate_lpm,
-        )
-    return {"valve_id": valve_id, "name": req.name, "message_ar": "سُجّل الصمّام"}
+
+        async def _work():
+            await conn.execute(
+                """INSERT INTO irrigation_valves
+                    (valve_id, tenant_id, name, field_id, device_id, valve_type, flow_rate_lpm)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
+                valve_id,
+                str(user.tenant_id),
+                req.name,
+                req.field_id,
+                req.device_id,
+                req.valve_type,
+                req.flow_rate_lpm,
+            )
+            # نُعيد النتيجة لتُخزَّن كنتيجة أمر idempotent وتُعاد حرفيّاً عند الإعادة
+            # (مع حفظ valve_id الأصليّ).
+            return {"valve_id": valve_id, "name": req.name, "message_ar": "سُجّل الصمّام"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="valve.register",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"valve_id": valve_id, "field_id": req.field_id},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @app.get("/api/v1/irrigation/valves")
@@ -5052,21 +5116,42 @@ async def list_valves(user: UserSchema = Depends(require_permission(Permission.I
 async def set_valve_state(
     valve_id: str,
     req: ValveStateRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
 ):
     """يسجّل نيّة فتح/إغلاق الصمّام + الحالة. التشغيل الفيزيائي الفعلي يمرّ عبر
     actuator-service/automation مع موافقة بشريّة (HIL) — هذه النقطة لا تُشغّل
-    العتاد مباشرةً (مبدأ: لا تشغيل آليّ بلا ضابط)."""
+    العتاد مباشرةً (مبدأ: لا تشغيل آليّ بلا ضابط). idempotent: Idempotency-Key
+    (UUID) يمنع تكرار أمر التشغيل عند إعادة الموبايل (offline)."""
     async with tenant_connection(user) as conn:
-        updated = await conn.fetchval(
-            "UPDATE irrigation_valves SET status = $1, last_changed_at = NOW() "
-            "WHERE valve_id = $2 RETURNING valve_id",
-            req.status,
-            valve_id,
-        )
-        if not updated:
-            raise HTTPException(status_code=404, detail="الصمّام غير موجود")
-    return {"valve_id": valve_id, "status": req.status, "message_ar": "سُجّلت حالة الصمّام"}
+
+        async def _work():
+            updated = await conn.fetchval(
+                "UPDATE irrigation_valves SET status = $1, last_changed_at = NOW() "
+                "WHERE valve_id = $2 RETURNING valve_id",
+                req.status,
+                valve_id,
+            )
+            if not updated:
+                # 404 داخل _work ⇒ يرتدّ إدراج الأمر معه (لا أمر «ناجح» يتيم على صمّام
+                # غير موجود)، فإعادة لاحقة بعد إنشاء الصمّام تُنفَّذ من جديد بأمان.
+                raise HTTPException(status_code=404, detail="الصمّام غير موجود")
+            return {"valve_id": valve_id, "status": req.status, "message_ar": "سُجّلت حالة الصمّام"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="valve.set_state",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"valve_id": valve_id, "status": req.status},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @app.post("/api/v1/irrigation/schedules", status_code=201)
