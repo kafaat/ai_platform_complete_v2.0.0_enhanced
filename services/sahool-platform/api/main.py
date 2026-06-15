@@ -41,10 +41,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import jwt  # PyJWT
 from core.api_adapter import (
-    ApiRequest,
     handle_healthz,
     handle_readyz,
-    handle_recommendation_request,
 )
 from core.authorization import Permission, has_permission
 from core.canonical_schemas import UserRole, UserSchema
@@ -1019,26 +1017,9 @@ def auth_signup(req: LoginRequest):
     )
 
 
-@app.post("/api/v1/recommendations")
-def recommendations(
-    req: RecommendationRequest,
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
-):
-    """نقطة التوصية الجوهرية — تستخدم api_adapter كاملاً."""
-    # تحقّق tenant isolation
-    if req.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=403, detail="Cross-tenant recommendation request forbidden")
-
-    api_req = ApiRequest(
-        user=user,
-        payload=req.model_dump(),
-        path="/api/v1/recommendations",
-        method="POST",
-    )
-    resp = handle_recommendation_request(api_req)
-    return JSONResponse(status_code=resp.status_code, content=resp.body)
-
-
+# نقطتا /api/v1/recommendations و /api/v1/recommendations/for-field نُقلتا إلى
+# api/routers/recommendations.py (نمط P0) — النموذج FieldRecommendationRequest
+# يبقى هنا (لا تُنقَل النماذج).
 class FieldRecommendationRequest(BaseModel):
     field_id: str
     farm_id: str = ""
@@ -1046,62 +1027,6 @@ class FieldRecommendationRequest(BaseModel):
     current_indicators: dict = Field(default_factory=dict)
     growth_stage: str | None = None
     district_id: str | None = None
-
-
-@app.post("/api/v1/recommendations/for-field")
-def recommendations_for_field(
-    req: FieldRecommendationRequest,
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
-):
-    """توصية لحقل دون أن يبني العميل «شهادة الجودة» (validation) يدويّاً.
-
-    الواجهة كانت تعجز عن استدعاء /api/v1/recommendations لأنّه يتطلّب dict
-    validation معقّداً (خرج بوّابة الجودة). هنا نبنيه خادميّاً من ملاحظات
-    المستأجر عبر validate_observations ثمّ نستدعي المحرّك الحقيقيّ نفسه. صدق:
-    عند نقص الملاحظات تُعاد توصية «محجوبة/محدودة» تُبيّن ما يلزم قياسه — لا
-    سيناريو مفبرَك، وهو السلوك المُصمَّم لبوّابة الجودة."""
-    import os as _os
-    from pathlib import Path as _Path
-
-    import validate_observations as _vo
-
-    # جذر بيانات المستأجر (قابل للضبط). غيابه ⇒ شهادة منخفضة الجودة بصدق
-    # (لا اختراع ملاحظات)، فيُعيد المحرّك توصية محدودة تُرشد لما يجب قياسه.
-    root = _os.getenv(
-        "SAHOOL_TENANT_DATA_ROOT",
-        _os.path.join(_os.path.dirname(__file__), "..", "tenants"),
-    )
-    # تقوية: نُطبّع المسار ونتأكّد أنّ مجلّد المستأجر داخل الجذر (دفاع ضدّ "../"
-    # أو فواصل مسار في tenant_id — تجنّب قراءة بيانات خارج عزل المستأجر).
-    root_path = _Path(root).resolve()
-    tenant_dir = (root_path / str(user.tenant_id)).resolve()
-    if not tenant_dir.is_relative_to(root_path):
-        raise HTTPException(status_code=400, detail="معرّف مستأجر غير صالح")
-    try:
-        validation = _vo.validate(tenant_dir)
-    except Exception as e:  # noqa: BLE001 — صدق: لا توصية بلا شهادة جودة
-        raise HTTPException(status_code=503, detail=f"تعذّر بناء شهادة الجودة: {e}") from e
-
-    api_req = ApiRequest(
-        user=user,
-        payload={
-            "tenant_id": user.tenant_id,
-            # لا نخلط farm_id بـfield_id (كيانان مختلفان؛ authorize يفحص
-            # farm_ids_access). نمرّره كما هو؛ المستخدم محدود الصلاحيّة يُرسله،
-            # وذو الوصول الشامل (farm_ids_access فارغة) يمرّ بـ"".
-            "farm_id": req.farm_id,
-            "field_id": req.field_id,
-            "crop": req.crop,
-            "validation": validation,
-            "current_indicators": req.current_indicators,
-            "growth_stage": req.growth_stage,
-            "district_id": req.district_id,
-        },
-        path="/api/v1/recommendations/for-field",
-        method="POST",
-    )
-    resp = handle_recommendation_request(api_req)
-    return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
 @app.post("/api/v1/observations")
@@ -3175,51 +3100,8 @@ async def field_recommendations(
     }
 
 
-@app.get("/api/v1/recommendations/engines")
-async def recommendation_engines(
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
-):
-    """كتالوج محرّكات التوصيات + السياسة الفعليّة لهذا المستأجِر (استبطان).
-
-    يُرجع: الكتالوج الكامل (list_engines)، السياسة الخام من settings (أو null)،
-    والمُعرّفات الفعليّة التي ستعمل لهذا المستأجِر (effective_enabled). السياسة
-    تُضبَط عبر النقطة الموجودة لا نقطة كتابة جديدة:
-        PUT /api/v1/settings  مع scope='platform', key='recommendation_engines',
-        value مثل {"disabled": ["yield"]}.
-    """
-    import json as _json
-
-    from api.recommendations_hub import list_engines
-
-    engines = list_engines()
-    policy_value = None
-    enabled_ids: set[str] | None = None
-    try:
-        async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(
-                "SELECT value FROM settings WHERE scope = 'platform' "
-                "AND key = 'recommendation_engines'"
-            )
-        if row is not None:
-            policy_value = row["value"]
-            if isinstance(policy_value, str):
-                policy_value = _json.loads(policy_value)
-            enabled_ids = await _resolve_recommendation_policy(policy_value)
-    except Exception:  # noqa: BLE001 — best-effort: تعذّر القراءة ⇒ افتراضيّ (null)
-        logging.exception("recommendation engines: policy read failed")
-        policy_value = None
-        enabled_ids = None
-
-    # المُعرّفات الفعليّة: عند غياب سياسة (None) ⇒ كلّ محرّك بـ default_enabled=True.
-    if enabled_ids is None:
-        effective = [e["id"] for e in engines if e["default_enabled"]]
-    else:
-        effective = [e["id"] for e in engines if e["id"] in enabled_ids]
-    return {
-        "engines": engines,
-        "policy": policy_value,
-        "effective_enabled": effective,
-    }
+# نقطة /api/v1/recommendations/engines نُقلت إلى api/routers/recommendations.py
+# (نمط P0) — المساعِد _resolve_recommendation_policy يبقى هنا (تبعية مشتركة).
 
 
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
@@ -5175,231 +5057,9 @@ def _parse_time(value: str):
         ) from None
 
 
-@app.post("/api/v1/irrigation/valves", status_code=201)
-async def register_valve(
-    req: ValveRequest,
-    idem: str | None = Depends(_idem_key),
-    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
-):
-    """يسجّل صمّام ريّ ضمن المستأجِر (RLS). idempotent: Idempotency-Key (UUID)
-    يمنع تكرار التسجيل عند إعادة الموبايل (offline)."""
-    import uuid as _uuid
-
-    valve_id = "vlv_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-
-        async def _work():
-            await conn.execute(
-                """INSERT INTO irrigation_valves
-                    (valve_id, tenant_id, name, field_id, device_id, valve_type, flow_rate_lpm)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-                valve_id,
-                str(user.tenant_id),
-                req.name,
-                req.field_id,
-                req.device_id,
-                req.valve_type,
-                req.flow_rate_lpm,
-            )
-            # حدث تسجيل الصمّام ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا
-            # حدث» فيصبح دورة حياة الصمّام مرئيّة لتيّار الأحداث/الوكلاء. داخل _work
-            # كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة.
-            await _emit_domain_event(
-                conn,
-                user,
-                "IRRIGATION_VALVE_REGISTERED",
-                "irrigation_valve",
-                valve_id,
-                {"field_id": req.field_id, "valve_type": req.valve_type},
-            )
-            # نُعيد النتيجة لتُخزَّن كنتيجة أمر idempotent وتُعاد حرفيّاً عند الإعادة
-            # (مع حفظ valve_id الأصليّ).
-            return {"valve_id": valve_id, "name": req.name, "message_ar": "سُجّل الصمّام"}
-
-        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
-        if idem:
-            result = await _idempotent(
-                CommandStore(get_pool(), conn=conn),
-                idem,
-                _work,
-                command_type="valve.register",
-                actor_id=str(user.user_id),
-                tenant_id=str(user.tenant_id),
-                payload={"valve_id": valve_id, "field_id": req.field_id},
-            )
-        else:
-            result = await _work()
-    return result
-
-
-@app.get("/api/v1/irrigation/valves")
-async def list_valves(user: UserSchema = Depends(require_permission(Permission.IRRIGATION_VIEW))):
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT valve_id, name, field_id, device_id, valve_type, status, flow_rate_lpm, "
-            "last_changed_at FROM irrigation_valves ORDER BY name"
-        )
-    return [
-        {
-            "valve_id": r["valve_id"],
-            "name": r["name"],
-            "field_id": r["field_id"],
-            "device_id": r["device_id"],
-            "valve_type": r["valve_type"],
-            "status": r["status"],
-            "flow_rate_lpm": float(r["flow_rate_lpm"]) if r["flow_rate_lpm"] is not None else None,
-            "last_changed_at": r["last_changed_at"].isoformat() if r["last_changed_at"] else None,
-        }
-        for r in rows
-    ]
-
-
-@app.post("/api/v1/irrigation/valves/{valve_id}/state")
-async def set_valve_state(
-    valve_id: str,
-    req: ValveStateRequest,
-    idem: str | None = Depends(_idem_key),
-    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
-):
-    """يسجّل نيّة فتح/إغلاق الصمّام + الحالة. التشغيل الفيزيائي الفعلي يمرّ عبر
-    actuator-service/automation مع موافقة بشريّة (HIL) — هذه النقطة لا تُشغّل
-    العتاد مباشرةً (مبدأ: لا تشغيل آليّ بلا ضابط). idempotent: Idempotency-Key
-    (UUID) يمنع تكرار أمر التشغيل عند إعادة الموبايل (offline)."""
-    async with tenant_connection(user) as conn:
-
-        async def _work():
-            updated = await conn.fetchval(
-                "UPDATE irrigation_valves SET status = $1, last_changed_at = NOW() "
-                "WHERE valve_id = $2 RETURNING valve_id",
-                req.status,
-                valve_id,
-            )
-            if not updated:
-                # 404 داخل _work ⇒ يرتدّ إدراج الأمر معه (لا أمر «ناجح» يتيم على صمّام
-                # غير موجود)، فإعادة لاحقة بعد إنشاء الصمّام تُنفَّذ من جديد بأمان.
-                raise HTTPException(status_code=404, detail="الصمّام غير موجود")
-            # حدث تغيّر حالة الصمّام ضمن نفس المعاملة (نمط outbox) — يجعل دورة فتح/إغلاق
-            # مرئيّة لتيّار الأحداث/الوكلاء (الحالة الجديدة في الحمولة، حقائق فقط). داخل
-            # _work كي يُحفظ ضمن حدود idempotent ويُعاد ذرّيّاً مع الكتابة.
-            await _emit_domain_event(
-                conn,
-                user,
-                "IRRIGATION_VALVE_STATE_CHANGED",
-                "irrigation_valve",
-                valve_id,
-                {"status": req.status},
-            )
-            return {"valve_id": valve_id, "status": req.status, "message_ar": "سُجّلت حالة الصمّام"}
-
-        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
-        if idem:
-            result = await _idempotent(
-                CommandStore(get_pool(), conn=conn),
-                idem,
-                _work,
-                command_type="valve.set_state",
-                actor_id=str(user.user_id),
-                tenant_id=str(user.tenant_id),
-                payload={"valve_id": valve_id, "status": req.status},
-            )
-        else:
-            result = await _work()
-    return result
-
-
-@app.post("/api/v1/irrigation/schedules", status_code=201)
-async def create_schedule(
-    req: ScheduleRequest,
-    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
-):
-    import uuid as _uuid
-
-    schedule_id = "sch_" + _uuid.uuid4().hex[:12]
-    start = _parse_time(req.start_time)
-    dows = req.days_of_week
-    if dows is not None and any(d < 0 or d > 6 for d in dows):
-        raise HTTPException(status_code=400, detail="days_of_week يجب أن تكون 0..6")
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO irrigation_schedules
-                (schedule_id, tenant_id, field_id, valve_id, name, start_time,
-                 duration_min, days_of_week, water_target_mm, enabled)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
-            schedule_id,
-            str(user.tenant_id),
-            req.field_id,
-            req.valve_id,
-            req.name,
-            start,
-            req.duration_min,
-            dows,
-            req.water_target_mm,
-            req.enabled,
-        )
-        # حدث إنشاء جدول الريّ (تفاعليّ): يبثّه وكيل الإشعارات. نفس المعاملة (outbox)؛
-        # _emit_domain_event آمن (يبتلع أخطاءه) فلا يكسر النقطة.
-        await _emit_domain_event(
-            conn,
-            user,
-            "IRRIGATION_SCHEDULE_CREATED",
-            "irrigation_schedule",
-            schedule_id,
-            {"field_id": req.field_id, "valve_id": req.valve_id},
-        )
-    return {"schedule_id": schedule_id, "name": req.name, "message_ar": "أُنشئ جدول الريّ"}
-
-
-@app.get("/api/v1/irrigation/schedules")
-async def list_schedules(
-    field_id: str | None = None,
-    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_VIEW)),
-):
-    async with tenant_connection(user) as conn:
-        if field_id:
-            rows = await conn.fetch(
-                "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
-                "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
-                "WHERE field_id = $1 ORDER BY start_time",
-                field_id,
-            )
-        else:
-            rows = await conn.fetch(
-                "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
-                "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
-                "ORDER BY start_time"
-            )
-    return [
-        {
-            "schedule_id": r["schedule_id"],
-            "field_id": r["field_id"],
-            "valve_id": r["valve_id"],
-            "name": r["name"],
-            "start_time": r["start_time"].isoformat() if r["start_time"] else None,
-            "duration_min": r["duration_min"],
-            "days_of_week": (list(r["days_of_week"]) if r["days_of_week"] is not None else None),
-            "water_target_mm": (
-                float(r["water_target_mm"]) if r["water_target_mm"] is not None else None
-            ),
-            "enabled": r["enabled"],
-            "last_run_at": r["last_run_at"].isoformat() if r["last_run_at"] else None,
-        }
-        for r in rows
-    ]
-
-
-@app.delete("/api/v1/irrigation/schedules/{schedule_id}")
-async def delete_schedule(
-    schedule_id: str,
-    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_MANAGE)),
-):
-    async with tenant_connection(user) as conn:
-        deleted = await conn.fetchval(
-            "DELETE FROM irrigation_schedules WHERE schedule_id = $1 RETURNING schedule_id",
-            schedule_id,
-        )
-        if not deleted:
-            raise HTTPException(status_code=404, detail="جدول الريّ غير موجود")
-    return {"schedule_id": schedule_id, "message_ar": "حُذف جدول الريّ"}
+# نقاط /api/v1/irrigation/{valves,valves/{id}/state,schedules,schedules/{id}}
+# نُقلت إلى api/routers/irrigation.py (نمط P0) — النماذج والمساعِدات (_parse_time
+# وValve*/Schedule*Request) تبقى هنا (لا تُنقَل النماذج/التبعيات).
 
 
 # ─── البيانات المرجعيّة (Master Data) + الدورات الزراعيّة — (v26) ─
@@ -5783,193 +5443,8 @@ def _shape_farm_summary(
     }
 
 
-@app.get("/api/v1/reports/farm-summary")
-async def report_farm_summary(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """ملخّص المزرعة على مستوى المستأجِر — عدّادات حيّة من الجداول القائمة.
-
-    يُجمّع: عدد المزارع/الحقول، إجماليّ المساحة، المواسم النشطة، العمليّات حسب
-    الحالة، التنبيهات المفتوحة (active)، والمساحة حسب المحصول. مُرشَّح بالمستأجِر
-    (RLS + tenant_id). 503 عند تعذّر القاعدة — لا أرقام مُلفَّقة.
-    """
-    try:
-        async with tenant_connection(user) as conn:
-            tid = str(user.tenant_id)
-            farms_count = await conn.fetchval(
-                "SELECT COUNT(*) FROM farms WHERE tenant_id = $1::uuid", tid
-            )
-            fields_count = await conn.fetchval(
-                "SELECT COUNT(*) FROM fields WHERE tenant_id = $1::uuid", tid
-            )
-            total_area = await conn.fetchval(
-                "SELECT COALESCE(SUM(area_ha), 0) FROM fields WHERE tenant_id = $1::uuid", tid
-            )
-            active_seasons = await conn.fetchval(
-                "SELECT COUNT(*) FROM seasons WHERE tenant_id = $1::uuid AND status = 'active'",
-                tid,
-            )
-            activity_rows = await conn.fetch(
-                "SELECT status, COUNT(*) AS count FROM activities "
-                "WHERE tenant_id = $1::uuid GROUP BY status",
-                tid,
-            )
-            open_alerts = await conn.fetchval(
-                "SELECT COUNT(*) FROM alerts WHERE tenant_id = $1::uuid AND status = 'active'",
-                tid,
-            )
-            crop_rows = await conn.fetch(
-                "SELECT crop, COALESCE(SUM(area_ha), 0) AS total_area_ha FROM fields "
-                "WHERE tenant_id = $1::uuid GROUP BY crop",
-                tid,
-            )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
-        raise _db_unavailable("قراءة ملخّص المزرعة", e) from e
-    return _shape_farm_summary(
-        farms_count=farms_count,
-        fields_count=fields_count,
-        total_area_ha=total_area,
-        active_seasons_count=active_seasons,
-        activities_by_status=_count_by_key(activity_rows, "status"),
-        open_alerts_count=open_alerts,
-        area_by_crop=_shape_area_by_crop(crop_rows),
-    )
-
-
-@app.get("/api/v1/reports/field/{field_id}/summary")
-async def report_field_summary(
-    field_id: str,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """ملخّص حقل واحد — مساحته/محصوله/تربته + موسمه النشط + عمليّاته + تنبيهاته.
-
-    يؤكّد أنّ الحقل يخصّ المستأجِر (404) قبل التجميع. العمليّات تُعدّ حسب النوع
-    والحالة، والتنبيهات الأخيرة تُعرض (٥). مُرشَّح بالمستأجِر (RLS). 503 عند تعذّر
-    القاعدة.
-    """
-    try:
-        async with tenant_connection(user) as conn:
-            field = await conn.fetchrow(
-                "SELECT field_id, name, area_ha, crop, soil_type FROM fields WHERE field_id = $1",
-                field_id,
-            )
-            if field is None:
-                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-            season = await conn.fetchrow(
-                "SELECT season_id, crops, cultivar, sowing_date, season_end, status "
-                "FROM seasons WHERE field_id = $1 AND status = 'active' "
-                "ORDER BY created_at DESC LIMIT 1",
-                field_id,
-            )
-            by_type_rows = await conn.fetch(
-                "SELECT activity_type, COUNT(*) AS count FROM activities "
-                "WHERE field_id = $1 GROUP BY activity_type",
-                field_id,
-            )
-            by_status_rows = await conn.fetch(
-                "SELECT status, COUNT(*) AS count FROM activities "
-                "WHERE field_id = $1 GROUP BY status",
-                field_id,
-            )
-            recent_alert_rows = await conn.fetch(
-                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
-                "message_ar, status, created_at FROM alerts "
-                "WHERE field_id = $1 ORDER BY created_at DESC LIMIT 5",
-                field_id,
-            )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001
-        raise _db_unavailable("قراءة ملخّص الحقل", e) from e
-
-    import json as _json
-
-    current_season = None
-    if season is not None:
-        crops = season["crops"]
-        if isinstance(crops, str):
-            try:
-                crops = _json.loads(crops)
-            except (ValueError, TypeError):
-                crops = []
-        current_season = {
-            "season_id": season["season_id"],
-            "crops": crops if isinstance(crops, list) else [],
-            "cultivar": season["cultivar"],
-            "sowing_date": season["sowing_date"].isoformat() if season["sowing_date"] else None,
-            "season_end": season["season_end"].isoformat() if season["season_end"] else None,
-            "status": season["status"],
-        }
-    by_status = _count_by_key(by_status_rows, "status")
-    return {
-        "field_id": field["field_id"],
-        "name": field["name"],
-        "area_ha": float(field["area_ha"]) if field["area_ha"] is not None else 0.0,
-        "crop": field["crop"],
-        "soil_type": field["soil_type"],
-        "current_season": current_season,
-        "activities_total": sum(by_status.values()),
-        "activities_by_type": _count_by_key(by_type_rows, "activity_type"),
-        "activities_by_status": by_status,
-        "recent_alerts": [_row_to_alert(r).model_dump() for r in recent_alert_rows],
-    }
-
-
-@app.get("/api/v1/reports/season/{season_id}/summary")
-async def report_season_summary(
-    season_id: str,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """ملخّص موسم واحد — محصوله/صنفه/تواريخه + عدد المراحل + العمليّات المرتبطة.
-
-    يؤكّد أنّ الموسم يخصّ المستأجِر (404). عدد المراحل من مصفوفة stages (JSONB)،
-    والعمليّات المرتبطة تُعدّ بـseason_id. مُرشَّح بالمستأجِر (RLS). 503 عند تعذّر
-    القاعدة.
-    """
-    try:
-        async with tenant_connection(user) as conn:
-            season = await conn.fetchrow(
-                "SELECT season_id, field_id, crops, cultivar, irrigation_type, "
-                "sowing_date, season_end, stages, status FROM seasons "
-                "WHERE season_id = $1",
-                season_id,
-            )
-            if season is None:
-                raise HTTPException(status_code=404, detail="الموسم غير موجود ضمن هذا المستأجِر")
-            activities_count = await conn.fetchval(
-                "SELECT COUNT(*) FROM activities WHERE season_id = $1", season_id
-            )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001
-        raise _db_unavailable("قراءة ملخّص الموسم", e) from e
-
-    import json as _json
-
-    def _arr(v):
-        if isinstance(v, str):
-            try:
-                return _json.loads(v)
-            except (ValueError, TypeError):
-                return []
-        return v or []
-
-    crops = _arr(season["crops"])
-    stages = _arr(season["stages"])
-    return {
-        "season_id": season["season_id"],
-        "field_id": season["field_id"],
-        "crops": crops if isinstance(crops, list) else [],
-        "cultivar": season["cultivar"],
-        "irrigation_type": season["irrigation_type"],
-        "sowing_date": season["sowing_date"].isoformat() if season["sowing_date"] else None,
-        "season_end": season["season_end"].isoformat() if season["season_end"] else None,
-        "status": season["status"],
-        "stage_count": len(stages) if isinstance(stages, list) else 0,
-        "activities_count": int(activities_count or 0),
-    }
+# نقاط /api/v1/reports/{farm-summary,field/{id}/summary,season/{id}/summary}
+# نُقلت إلى api/routers/reports.py (نمط P0).
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -6958,9 +6433,9 @@ def temporal_check(
 
 
 # ─── ٧. Reports (operation CSV) ──────────────────────────────────
-from fastapi.responses import PlainTextResponse  # noqa: E402
-
-from api.reports import FieldReport, OperationReport, operation_to_csv  # noqa: E402
+# نقطة /api/v1/reports/operation نُقلت إلى api/routers/reports.py (نمط P0)؛
+# واستيرادا fastapi PlainTextResponse و api.reports نُقلا معها لإزالة F401.
+# النموذجان ReportFieldInput/OperationReportRequest يبقيان هنا (لا تُنقَل النماذج).
 
 
 class ReportFieldInput(BaseModel):
@@ -6989,44 +6464,6 @@ class OperationReportRequest(BaseModel):
     period_end: str
     fields: list[ReportFieldInput]
     lang: str = "ar"
-
-
-@app.post("/api/v1/reports/operation", response_class=PlainTextResponse)
-def operation_report_csv(
-    req: OperationReportRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """تقرير المزرعة كاملة كـCSV (ثنائي اللغة + BOM للإكسل)."""
-    fields = [
-        FieldReport(
-            field_id=f.field_id,
-            field_name_ar=f.field_name_ar,
-            farm_id=f.farm_id,
-            tenant_id=f.tenant_id,
-            area_ha=f.area_ha,
-            crop=f.crop,
-            season_label=f.season_label,
-            planting_date=f.planting_date,
-            harvest_date=f.harvest_date,
-            lifecycle_stage=f.lifecycle_stage,
-            irrigation_events=f.irrigation_events,
-            total_water_m3=f.total_water_m3,
-            fertilizer_events=f.fertilizer_events,
-            total_nitrogen_kg=f.total_nitrogen_kg,
-            avg_ndvi=f.avg_ndvi,
-            estimated_yield_kg_ha=f.estimated_yield_kg_ha,
-        )
-        for f in req.fields
-    ]
-    report = OperationReport(
-        tenant_id=req.tenant_id,
-        operation_name_ar=req.operation_name_ar,
-        fields=fields,
-        period_start=req.period_start,
-        period_end=req.period_end,
-        generated_at=datetime.utcnow().isoformat(),
-    )
-    return operation_to_csv(report, lang=req.lang)
 
 
 # ─── ٨. Field lifecycle transition validation (pure) ─────────────
@@ -8201,95 +7638,8 @@ def regional_calendar(governorate: str | None = None):
     return get_regional_calendar(governorate)
 
 
-@app.post("/api/v1/recommendations/economic-adaptation")
-def economic_adaptation_endpoint(
-    crop_options: list[dict],
-    area_ha: float | None = None,
-    annual_revenue_usd: float | None = None,
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
-):
-    """يكيّف خيارات المحاصيل حسب القدرة الاقتصاديّة (اقتراح متدرّج لا فرض).
-
-    متّسق مع استقلاليّة المزارع: كلّ الخيارات تبقى مرئيّة، الترتيب اقتراح.
-    """
-    from core.economic_adaptation import adapt_recommendation
-
-    return adapt_recommendation(
-        crop_options, area_ha=area_ha, annual_revenue_usd=annual_revenue_usd
-    )
-
-
-@app.get("/api/v1/recommendations/capacity-profiles")
-def capacity_profiles_endpoint():
-    """ملفّات طبقات القدرة الاقتصاديّة (مرجع شفّاف)."""
-    from core.economic_adaptation import get_capacity_profiles
-
-    return get_capacity_profiles()
-
-
-@app.post("/api/v1/recommendations/candidates")
-def generate_crop_candidates(
-    candidates: list[dict],
-    goal: str = "max_profit",
-    top_n: int = 3,
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
-):
-    """يولّد بدائل زراعيّة مُقيَّمة حسب هدف المزارع — كلّ الخيارات مرئيّة (الوكالة).
-
-    candidates: قائمة خيارات، كلّ منها dict بصفات موثّقة (crop_id, name_ar, is_suited,
-    water_need_level, upfront_cost_level, profit_potential_level, is_staple, drought_score)
-    — تُملأ من محرّكات سهول (الملاءمة/الماء/الاقتصاد/تحمّل الجفاف). تقييم حتميّ شفّاف.
-    goal ∈ {max_profit, food_security, min_water, drought_resilience}.
-    """
-    from core.engines.candidate_generator import (
-        CropCandidate,
-        FarmerGoal,
-        generate_candidates,
-    )
-
-    try:
-        g = FarmerGoal(goal)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=f"هدف غير معروف: {goal}") from e
-    if not isinstance(top_n, int) or top_n < 1:
-        raise HTTPException(status_code=422, detail="top_n يجب أن يكون عدداً صحيحاً موجباً")
-
-    def _req_bool(c: dict, key: str) -> bool:
-        # JSON يجب أن يكون true/false صريحاً (لا "false" نصّاً تصبح True بصمت)
-        v = c.get(key, False)
-        if not isinstance(v, bool):
-            raise HTTPException(status_code=422, detail=f"{key} يجب أن يكون true/false")
-        return v
-
-    def _req_score(c: dict):
-        v = c.get("drought_score")
-        if v is None:
-            return None
-        if isinstance(v, bool) or not isinstance(v, (int, float)):
-            raise HTTPException(status_code=422, detail="drought_score يجب أن يكون رقماً [0,1]")
-        v = float(v)
-        if not 0.0 <= v <= 1.0:
-            raise HTTPException(status_code=422, detail="drought_score خارج المدى [0,1]")
-        return v
-
-    objs: list = []
-    for c in candidates:
-        if not isinstance(c, dict) or "crop_id" not in c:
-            raise HTTPException(status_code=422, detail="كلّ خيار يجب أن يكون كائناً فيه crop_id")
-        objs.append(
-            CropCandidate(
-                crop_id=str(c["crop_id"]),
-                name_ar=str(c.get("name_ar", c["crop_id"])),
-                is_suited=_req_bool(c, "is_suited"),
-                water_need_level=str(c.get("water_need_level", "mid")),
-                upfront_cost_level=str(c.get("upfront_cost_level", "mid")),
-                profit_potential_level=str(c.get("profit_potential_level", "unknown")),
-                is_staple=_req_bool(c, "is_staple"),
-                drought_score=_req_score(c),
-            )
-        )
-
-    return generate_candidates(objs, g, top_n=top_n)
+# نقاط /api/v1/recommendations/{economic-adaptation,capacity-profiles,candidates}
+# نُقلت إلى api/routers/recommendations.py (نمط P0).
 
 
 @app.get("/api/v1/learning/activation-status")
@@ -8681,48 +8031,8 @@ class OutcomeRecordRequest(BaseModel):
     matured_within_lag: bool = False
 
 
-@app.post("/api/v1/recommendations/outcomes", status_code=201)
-async def record_recommendation_outcome(
-    req: OutcomeRecordRequest,
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
-):
-    """يسجّل نتيجة توصية (توقّع/فعليّ + قبول/نضج) — مسار الكتابة لحلقة التعلّم (v49).
-
-    تقرأ هذه الصفوفَ نقطتا learning/activation-status و prediction-calibration حيّاً.
-    tenant عبر RLS (WITH CHECK يفرض المستأجِر). صدق: يسجّل المُرسَل فقط (لا اختراع).
-    """
-    # اتّساق: matured_within_lag يعني نضج نتيجة فعليّة — يستلزم actual_yield_t_ha.
-    if req.matured_within_lag and req.actual_yield_t_ha is None:
-        raise HTTPException(
-            status_code=422,
-            detail="matured_within_lag=true يستلزم actual_yield_t_ha (نتيجة فعليّة)",
-        )
-    try:
-        async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(
-                """INSERT INTO recommendation_outcomes
-                       (tenant_id, field_id, farm_id, season_id, crop, recommendation_id,
-                        predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag,
-                        outcome_recorded_at)
-                   VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                           CASE WHEN $8 IS NOT NULL THEN now() ELSE NULL END)
-                   RETURNING outcome_id""",
-                str(getattr(user, "tenant_id", "")),
-                req.field_id,
-                req.farm_id,
-                req.season_id,
-                req.crop,
-                req.recommendation_id,
-                req.predicted_yield_t_ha,
-                req.actual_yield_t_ha,
-                req.accepted,
-                req.matured_within_lag,
-            )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("تسجيل نتيجة التوصية", e) from e
-    return {"outcome_id": row["outcome_id"], "recorded": True}
+# نقطة /api/v1/recommendations/outcomes نُقلت إلى api/routers/recommendations.py
+# (نمط P0) — النموذج OutcomeRecordRequest يبقى هنا (نماذج/تبعيات لا تُنقَل).
 
 
 @app.get("/api/v1/fields/{field_id}/water-stress-spectral")
@@ -9481,54 +8791,8 @@ def propagation_rootstock_endpoint(stress: str = "salinity"):
 
 
 # ─── ٤٣. تصنيف الأقاليم المناخيّة-الزراعيّة لليمن (أين أنت → ماذا يناسبك) ──
-from api.agro_climate_zones import (  # noqa: E402
-    identify_zone,
-    list_zones,
-    suited_for_zone,
-    zone_profile,
-)
-
-
-@app.get("/api/v1/agro-zones/list")
-def agro_zones_list_endpoint():
-    """الأقاليم المناخيّة-الزراعيّة الستّة لليمن مع ملخّصها."""
-    return list_zones()
-
-
-@app.get("/api/v1/agro-zones/profile")
-def agro_zone_profile_endpoint(zone: str):
-    """الملفّ المناخي-الزراعي الكامل لإقليم (حرارة/مطر/محاصيل/تجنّب)."""
-    return zone_profile(zone)
-
-
-@app.get("/api/v1/agro-zones/identify")
-def agro_zone_identify_endpoint(location: str):
-    """يحدّد الإقليم المناخي من اسم محافظة/منطقة يمنيّة."""
-    return identify_zone(location)
-
-
-@app.get("/api/v1/agro-zones/suited-crops")
-def agro_zone_suited_endpoint(zone: str, irrigated: bool = True):
-    """المحاصيل الملائمة لإقليم + ما يُتجنّب + التنبيه المائي."""
-    return suited_for_zone(zone, irrigated)
-
-
-@app.get("/api/v1/agro-zones/by-elevation")
-def agro_zone_elevation_endpoint(altitude_m: float, is_western: bool = True):
-    """يحدّد الإقليم بالارتفاع — الأصدق مناخيّاً (المناخ دالّة الارتفاع)."""
-    from api.agro_climate_zones import zone_by_elevation
-
-    return zone_by_elevation(altitude_m, is_western=is_western)
-
-
-@app.get("/api/v1/agro-zones/identify-smart")
-def agro_zone_identify_smart_endpoint(
-    location: str, altitude_m: float | None = None, is_western: bool = True
-):
-    """تحديد ذكي: للمحافظات متعدّدة الأقاليم (كتعز) يطلب المديريّة/الارتفاع."""
-    from api.agro_climate_zones import identify_zone_v2
-
-    return identify_zone_v2(location, altitude_m, is_western)
+# نُقلت نقاط /api/v1/agro-zones/* إلى api/routers/agro_zones.py (نمط P0)؛
+# واستيراد api.agro_climate_zones المرافق نُقل معها لإزالة F401.
 
 
 # ─── ٤٤. تحديد الإقليم من إحداثيّات الحقل (GPS → محافظة + إقليم + مناخ) ──
@@ -9739,35 +9003,8 @@ def fodder_alternatives_list_endpoint():
 
 
 # ─── ٥٤. الريّ الذكي: قراءة مستشعر الرطوبة + قرار RWC ──
-from api.soil_moisture_advisor import (  # noqa: E402
-    irrigation_guidance,
-    list_soil_types,
-)
-
-
-@app.get("/api/v1/irrigation/soil-types")
-def irrigation_soil_types_endpoint():
-    """أنواع التربة وقيمها المرجعيّة (سعة حقليّة/نقطة ذبول)."""
-    return list_soil_types()
-
-
-@app.get("/api/v1/irrigation/moisture-decision")
-def irrigation_moisture_decision_endpoint(
-    vwc: float,
-    soil_type: str = "loam",
-    crop: str | None = None,
-    growth_stage: str | None = None,
-    theta_fc: float | None = None,
-    theta_wp: float | None = None,
-    root_depth_m: float | None = None,
-):
-    """قرار ريّ ذكي من قراءة مستشعر الرطوبة (VWC → RWC → قرار + كمّيّة).
-
-    vwc: الرطوبة الحجميّة من المستشعر (0-1). soil_type: sand/loam/clay.
-    theta_fc/theta_wp: قيم مُعايَرة ميدانيّاً (اختياري، الأدقّ).
-    root_depth_m: عمق منطقة الجذور لحساب كمّيّة الريّ (اختياري).
-    """
-    return irrigation_guidance(vwc, soil_type, crop, growth_stage, theta_fc, theta_wp, root_depth_m)
+# نُقلت نقاط /api/v1/irrigation/{soil-types,moisture-decision} إلى
+# api/routers/irrigation.py (نمط P0) — والاستيراد المرافق نُقل معها لإزالة F401.
 
 
 # ─── ٥٥. WOFOST عبر المحاصيل: دليل تعديل البارامترات ──
@@ -10273,21 +9510,6 @@ class WaterAnalysisRequest(BaseModel):
     sampled_at: str | None = None
 
 
-@app.post("/api/v1/irrigation/water-analysis")
-def irrigation_water_analysis(
-    req: WaterAnalysisRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يحلّل عيّنة ماء ريّ: SAR/RSC + تصنيف الملوحة/الصوديوم/القلويّة.
-
-    صدق: يُعلِن المؤشّر غير المحسوب (نقص أيونات) صراحةً — لا تقدير مفبرَك.
-    حسابيّ بحت (لا قاعدة)؛ التفويض مطلوب (سيادة الوصول)."""
-    from core.irrigation_water_analysis import WaterSample, analyze_water_sample
-
-    sample = WaterSample(**req.model_dump())
-    return analyze_water_sample(sample)
-
-
 # ═══════════════════════════════════════════════════════════════════
 # تصعيد الآفة — endpoint حيّ يشغّل/يستأنف workflow تصعيد الآفة (كان معزولاً)
 # يحقن المخزن المعمّر (PostgresWorkflowStore) إن DATABASE_URL مضبوط ⇒ الاستئناف
@@ -10403,12 +9625,20 @@ _rebuild_pydantic_models()
 # يُحلّ الاستيراد الدائريّ: routers/boundaries.py يستورد من api.main، وحين يصل
 # المُفسّر إلى هنا تكون كلّ تلك الرموز مُعرَّفة. التسجيل يحدث وقت الاستيراد فتُسجَّل
 # المسارات على ``app`` كما لو كانت مُعرَّفة هنا (مخطّط OpenAPI مطابق).
+from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
+from api.routers.irrigation import router as irrigation_router  # noqa: E402
+from api.routers.recommendations import router as recommendations_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
+from api.routers.reports import router as reports_router  # noqa: E402
 
 app.include_router(boundaries_router)
 app.include_router(registry_router)
 app.include_router(automation_router)
 app.include_router(devices_router)
+app.include_router(irrigation_router)
+app.include_router(recommendations_router)
+app.include_router(reports_router)
+app.include_router(agro_zones_router)
