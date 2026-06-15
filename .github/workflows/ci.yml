@@ -141,9 +141,15 @@ jobs:
       # Pillow: ملفّان (test_bivariate_raster/test_raster_export) يستوردان PIL
       # عبر core.spatial.raster_export — تبعيّة خفيفة (بلا GDAL) للإبقاء عليهما.
       - run: pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow
-      - name: Run platform pure-logic tests (no DB/services)
+      # بوّابة تغطية "ratchet" غير-كاسرة: تُقاس حزمتا api/core، والأرضيّة في
+      # .coveragerc مضبوطة عند المقيس الحاليّ (٦١٫٩٢٪) ناقص هامش ⇒ fail_under=60.
+      # لا تُفشل CI اليوم؛ يمكنها الصعود فقط (تُرفع الأرضيّة مع نموّ التغطية).
+      - name: Run platform pure-logic tests (no DB/services) + coverage ratchet
         working-directory: services/sahool-platform
-        run: PYTHONPATH=. pytest tests -q -p no:cacheprovider
+        run: >-
+          PYTHONPATH=. pytest tests -q -p no:cacheprovider
+          --cov=api --cov=core --cov-config=.coveragerc
+          --cov-report=term --cov-report=xml
 
   integration-tests:
     name: Integration Tests
