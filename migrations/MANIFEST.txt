@@ -200,3 +200,9 @@ v57_rls_dynamic_indexes.sql
 # لتمكين التحليلات الإقليميّة. يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls
 # (المعرّفة في v9_rls_tenant_isolation سابقاً)، فترتيبه بعد v56/v57 آمن. idempotent.
 v58_field_boundary_quality.sql
+# v59: محرّك الطوبولوجيا للحدود (#15) — دالّة sahool_clean_boundary_geom الحتميّة:
+# MakeValid + إزالة الرؤوس المكرّرة + استخراج وإبقاء المضلّع الأكبر مساحةً
+# (الحقل، إسقاط الشظايا) + تبسيط حافظ للطوبولوجيا. بلا ML — مضلّعات تشغيليّة.
+# تقريب المتر→درجة (÷111320) صالح قرب خطوط عرض اليمن. CREATE OR REPLACE فهي
+# idempotent. لا تُحدّث بيانات (تُنشئ الدالّة فقط). تعتمد PostGIS من v58 وما قبلها.
+v59_boundary_topology_fn.sql
