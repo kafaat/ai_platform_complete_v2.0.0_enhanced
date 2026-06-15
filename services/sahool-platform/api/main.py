@@ -3150,6 +3150,64 @@ async def recommendation_engines(
     }
 
 
+# ─── سجلّات النظام (introspection) ───────────────────────────────
+# نقاط قراءة فقط (read-only) تكشف بيانات وصفيّة (metadata) عن السجلّات
+# المُدمَجة على main: لا قاعدة بيانات ولا مستأجِر (tenant) — فقط مصادقة
+# عبر صلاحيّة قراءة خفيفة (Permission.FIELD_VIEW، نفس صلاحيّة نقاط القراءة).
+# الاستيراد محلّيّ داخل كلّ مُعالِج (مطابقة لنمط الاستيراد المحلّيّ) لتفادي
+# كلفة الاستيراد وقت بدء التشغيل.
+
+
+@app.get("/api/v1/registry/indices")
+async def registry_indices(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """سجلّ مؤشّرات الاستشعار عن بُعد (vegetation/water indices) — بيانات وصفيّة."""
+    from api.index_registry import list_indices
+
+    return {"indices": list_indices()}
+
+
+@app.get("/api/v1/registry/device-types")
+async def registry_device_types(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """سجلّ أنواع الأجهزة (device types) المدعومة — بيانات وصفيّة."""
+    from api.device_registry import list_device_types
+
+    return {"device_types": list_device_types()}
+
+
+@app.get("/api/v1/registry/events")
+async def registry_events(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """كتالوج أحداث المجال (domain events) — بيانات وصفيّة."""
+    from api.event_catalog import list_events
+
+    return {"events": list_events()}
+
+
+@app.get("/api/v1/registry/cost-profiles")
+async def registry_cost_profiles(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملفّات حوكمة الكلفة (cost profiles) — بيانات وصفيّة."""
+    from api.cost_governance import list_profiles
+
+    return {"cost_profiles": list_profiles()}
+
+
+@app.get("/api/v1/registry/data-quality-rules")
+async def registry_data_quality_rules(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """قواعد جودة البيانات (data-quality rules) — بيانات وصفيّة."""
+    from api.data_quality import list_rules
+
+    return {"data_quality_rules": list_rules()}
+
+
 # ─── العمليّات الزراعيّة (Activities) — نمط seasons (v35) ─────────
 _ACTIVITY_TYPES = {
     "planting",
@@ -4458,15 +4516,39 @@ async def _evaluate_field_alerts_persist(
     """
     import uuid as _uuid
 
-    from api.alert_rules import FieldAlertContext, evaluate_field_alerts
+    from api.alert_rules import (
+        FieldAlertContext,
+        evaluate_field_alerts,
+        thresholds_from_policy,
+    )
     from api.connectors.openmeteo import fetch_current, fetch_daily_forecast
     from api.weather_advice import irrigation_advice
 
+    # سياسة عتبات التنبيهات لكلّ مستأجِر (best-effort): تُضبَط عبر النقطة الموجودة
+    #   PUT /api/v1/settings  مع scope='platform', key='alert_thresholds',
+    #   value = قاموس تجاوزات (مثل {"low_moisture_pct": 20}).
+    # نقرؤها داخل الاتّصال المنطاقيّ القائم (RLS يحصره بالمستأجِر). أيّ خطأ ⇒ None،
+    # و thresholds_from_policy(None) يُرجع الافتراضات ⇒ سلوك مطابق تماماً للسابق.
+    alert_policy = None
     try:
         async with tenant_connection(user) as conn:
             lat, lon, crop, stage = await _field_weather_context(conn, field_id)
             # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي قاعدة low_moisture.
             soil_reading = await _latest_soil_moisture(conn, field_id)
+            try:
+                _policy_row = await conn.fetchrow(
+                    "SELECT value FROM settings "
+                    "WHERE scope = 'platform' AND key = 'alert_thresholds'"
+                )
+                if _policy_row is not None:
+                    alert_policy = _policy_row["value"]
+                    # القيمة JSONB قد تعود نصّاً — نُحلّله إلى قاموس.
+                    if isinstance(alert_policy, str):
+                        import json as _json
+
+                        alert_policy = _json.loads(alert_policy)
+            except Exception:  # noqa: BLE001 — best-effort: أيّ خطأ ⇒ None (افتراضات)
+                alert_policy = None
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -4514,7 +4596,9 @@ async def _evaluate_field_alerts_persist(
         tmin_c=today.temp_min_c if today is not None else None,
         crop=crop,
     )
-    generated = evaluate_field_alerts(ctx)
+    # نمرّر عتبات المستأجِر (أو الافتراضات حين لا سياسة). thresholds_from_policy(None)
+    # == AlertThresholds() ⇒ مسار «لا سياسة» مطابق تماماً للسلوك السابق.
+    generated = evaluate_field_alerts(ctx, thresholds=thresholds_from_policy(alert_policy))
 
     created: list[AlertSummary] = []
     skipped = 0
