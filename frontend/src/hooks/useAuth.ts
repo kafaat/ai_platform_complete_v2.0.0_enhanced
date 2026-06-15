@@ -2,7 +2,7 @@
 // SAHOOL v8.0 — useAuth.ts (Zustand + persist)
 // ═══════════════════════════════════════════════════════════════
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { login as apiLogin, register as apiRegister } from '../services/api';
 
 interface AuthUser {
@@ -96,6 +96,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'sahool-auth',
+      // FIX (مراجعة): التوكن يُكتَب في sessionStorage (جلسة لكلّ تبويب)، لكنّ
+      // persist الافتراضيّ يحفظ الحالة في localStorage — فيُعاد ترطيب
+      // isAuthenticated=true في تبويب جديد بينما sessionStorage فارغ (لا توكن)،
+      // فيظهر المستخدم مُصادَقاً بلا توكن حتى أوّل 401. توحيد التخزين على
+      // sessionStorage يجعل عمر حالة المصادقة مطابقاً لعمر التوكن (نفس التبويب).
+      storage: createJSONStorage(() => sessionStorage),
       // استثناء الـ actions من الحفظ
       partialize: (s) => ({
         token:           s.token,
