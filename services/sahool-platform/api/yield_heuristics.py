@@ -115,6 +115,45 @@ CROP_TYPICAL_GROWING_DAYS = {
 }
 
 
+def vegetative_growing_days(crop: str) -> int | None:
+    """أيّام النموّ الخضريّ (init+development+mid) بحلّ طبقيّ نقيّ.
+
+    ترتيب الحلّ (من الأخصّ للأعمّ):
+      1) CROP_TYPICAL_GROWING_DAYS[crop] — قاموس التجاوز الموثوق (يحفظ كلّ
+         القيم الحاليّة حرفيّاً؛ سلوك مطابق تماماً لكلّ محصول موجود فيه).
+      2) sum(stage_days[:3]) من بطاقة المحصول — مجموع المراحل الثلاث الأولى
+         (تأسيس + نموّ + منتصف) من `kc.stage_days`، أي يستثني المرحلة الأخيرة
+         (النضج/التشيّخ). يُحلّ فقط إن وُجدت بطاقة لها ≥٣ مراحل.
+      3) None — لا تجاوز ولا بطاقة صالحة.
+
+    هذا هو مقياس "النموّ الخضريّ" — متمايز عمداً عن
+    `crop_cycle.cycle_days_to_maturity` (الدورة الكاملة من البذار للنضج،
+    وهي مجموع كلّ المراحل). الكمّيّتان مختلفتان قصداً: الأولى تستثني مرحلة
+    النضج النهائيّة، والثانية تشملها. مثال القمح: الخضريّ ٩٠ (15+25+50)
+    مقابل الدورة الكاملة ١٢٠ (15+25+50+30).
+
+    نقيّ بالكامل (لا شبكة، لا قاعدة). أيّ خطأ في تحميل البطاقة ⇐ None.
+    """
+    typical = CROP_TYPICAL_GROWING_DAYS.get(crop)
+    if typical is not None:
+        return typical
+    try:
+        from core.crop_cards.loader import load_crop_card
+
+        card = load_crop_card(crop)
+        if not card:
+            return None
+        stage_days = card.get("kc", {}).get("stage_days")
+        if not isinstance(stage_days, list) or len(stage_days) < 3:
+            return None
+        first_three = stage_days[:3]
+        if not all(isinstance(d, (int, float)) for d in first_three):
+            return None
+        return int(sum(first_three))
+    except Exception:
+        return None
+
+
 # ─── Feature builder (from events) ──────────────────────────────
 
 
@@ -261,7 +300,7 @@ def estimate_yield(features: LifecycleFeatures) -> YieldEstimate:
     # ٤. Growing duration (anomaly detection)
     # صدق: لا نطبّق فحص المدّة إلّا لمحصول معروف مدّته. الأشجار المعمّرة
     # وغير المعروفة لا مدّة "نموذجيّة" لها — رقم افتراضي يولّد تحذيرات كاذبة.
-    typical = CROP_TYPICAL_GROWING_DAYS.get(crop)
+    typical = vegetative_growing_days(crop)
     if typical and features.days_in_growing > 0:
         ratio = features.days_in_growing / typical
         if ratio < 0.7:
@@ -399,7 +438,7 @@ def detect_anomalies(features: LifecycleFeatures) -> list[Anomaly]:
         )
 
     # Delayed maturity
-    typical = CROP_TYPICAL_GROWING_DAYS.get(features.crop)
+    typical = vegetative_growing_days(features.crop)
     if typical and features.days_in_growing > typical * 1.4:
         anomalies.append(
             Anomaly(
