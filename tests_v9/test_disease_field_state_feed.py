@@ -21,6 +21,7 @@ pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CORE = os.path.join(ROOT, "services/sahool-platform")
 MAIN = os.path.join(CORE, "api", "main.py")
+ROUTERS = os.path.join(CORE, "api", "routers")
 
 # أحرف bidi المحظورة (تخريب اتّجاه النصّ) — تُبنى من نقاط الترميز كي لا تظهر
 # حرفيّاً في هذا المصدر (وإلّا أخفقت فحوصها على نفسها).
@@ -37,12 +38,25 @@ def core_on_path():
 
 
 def _func_src(name: str) -> str:
-    with open(MAIN, encoding="utf-8") as f:
-        src = f.read()
-    start = src.index(f"async def {name}(")
-    nxt = re.search(r"\n(?:@\w|async def |def |class )", src[start + 1 :])
-    end = (start + 1 + nxt.start()) if nxt else len(src)
-    return src[start:end]
+    # المعالِج قد يكون في main.py أو في وحدات routers بعد تفكيك monolith (P0).
+    # نبحث في main.py أوّلاً ثمّ في كلّ ملفّات routers — فحص التعاقُد يبقى صحيحاً
+    # أينما استقرّ المعالِج.
+    sources = [MAIN]
+    if os.path.isdir(ROUTERS):
+        sources += [
+            os.path.join(ROUTERS, f) for f in sorted(os.listdir(ROUTERS)) if f.endswith(".py")
+        ]
+    needle = f"async def {name}("
+    for path in sources:
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+        start = src.find(needle)
+        if start == -1:
+            continue
+        nxt = re.search(r"\n(?:@\w|async def |def |class )", src[start + 1 :])
+        end = (start + 1 + nxt.start()) if nxt else len(src)
+        return src[start:end]
+    raise AssertionError(f"لم يُعثر على المعالِج `{name}` في main.py ولا في routers/")
 
 
 def test_diagnose_endpoint_feeds_canonical_state():
