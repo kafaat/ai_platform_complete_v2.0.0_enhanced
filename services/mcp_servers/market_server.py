@@ -33,13 +33,19 @@ SAHOOL_API_URL = os.getenv("SAHOOL_API_URL", "http://sahool-auth:8000")
 
 _pool: asyncpg.Pool | None = None
 security = HTTPBearer(auto_error=False)
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 def verify_token(token: str) -> dict:
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
     except InvalidTokenError as e:
         raise HTTPException(401, f"Invalid token: {e}") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "Invalid token issuer")
+    return payload
 
 
 async def get_pool() -> asyncpg.Pool:

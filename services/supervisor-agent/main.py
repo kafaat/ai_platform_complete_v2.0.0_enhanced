@@ -53,6 +53,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="SAHOOL Supervisor Agent", version="2026.1", lifespan=lifespan)
 security = HTTPBearer(auto_error=False)
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 mcp_client = MCPClient(
     servers={
@@ -147,6 +149,9 @@ async def _get_current_user(credentials: Optional = Depends(security)):
             algorithms=[_valg],
             audience="sahool",
         )
+        # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+        if payload.get("iss") not in _ALLOWED_ISS:
+            raise ValueError("Invalid token issuer")
         return payload
     except Exception as e:
         raise HTTPException(401, f"Invalid token: {e}") from e

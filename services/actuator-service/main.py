@@ -37,6 +37,8 @@ REDIS_URL = os.getenv("REDIS_URL", "")
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 JWT_ALGORITHM = "RS256" if _JWT_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 _pool: asyncpg.Pool | None = None
 
@@ -56,6 +58,9 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
         payload = _jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except Exception as e:
         raise HTTPException(401, "توكن غير صالح") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     if not payload.get("sub") or not payload.get("tenant_id"):
         raise HTTPException(401, "توكن ناقص الحقول الأساسيّة")
     return payload
