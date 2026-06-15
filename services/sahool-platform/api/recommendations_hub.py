@@ -24,6 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 
+from api.crop_cycle import cycle_days_to_maturity
 from api.weather_advice import disease_risk, irrigation_advice
 
 # ─── نموذج التوصية الموحَّد ────────────────────────────────────────
@@ -124,23 +125,11 @@ _FERT_SOURCE = (
 
 
 # ─── الحصاد: نافذة حصاد تقديريّة من طول دورة المحصول ───────────────
-# المرجع: أطوال دورة المحصول (أيّام من البذار للنضج) — تقديريّة لليمن، تُعاد من
-# yield_heuristics.CROP_TYPICAL_GROWING_DAYS حيث توفّرت، مع امتداد لمحاصيل أخرى
-# هنا. ⚠ تقديريّة تحتاج معايرة بحسب الصنف والموسم والارتفاع.
-_CROP_CYCLE_DAYS: dict[str, int] = {
-    "wheat": 130,
-    "barley": 110,
-    "sorghum": 120,
-    "maize": 110,
-    "corn": 110,
-    "millet": 90,
-    "tomato": 110,
-    "potato": 110,
-    "onion": 150,
-    "alfalfa": 60,  # دورة قصّ (متعدّد الحشّات) لا نضج نهائيّ
-    "citrus": 240,
-    "dates": 210,
-}
+# طول دورة المحصول (أيّام من البذار للنضج) صار يُحلّ عبر api.crop_cycle
+# (resolver طبقيّ: مستأجِر ← منطقة افتراضيّة ← بطاقة محصول محايدة ← None)، فلم
+# يَعُد هنا قاموس مُصلَّب. ملاحظة: yield_heuristics.CROP_TYPICAL_GROWING_DAYS
+# مقياس مختلف (أيّام النموّ الخضريّ ≈ مجموع المراحل الثلاث الأولى) سيُشتقّ من
+# البطاقة في تتبُّع لاحق — موثَّق هنا ولا يُمسّ في هذه المرحلة.
 
 # نافذة الحصاد: ±هامش حول يوم النضج التقديريّ.
 _HARVEST_WINDOW_MARGIN_DAYS = 10
@@ -234,7 +223,7 @@ def _yield_rec(ctx: RecommendationContext) -> Recommendation | None:
     crop = _normalize_crop(ctx.crop)
     if ctx.sowing_date is None or crop is None:
         return None
-    cycle = _CROP_CYCLE_DAYS.get(crop)
+    cycle = cycle_days_to_maturity(crop)
     if cycle is None:
         return None
     today = ctx.today or date.today()
