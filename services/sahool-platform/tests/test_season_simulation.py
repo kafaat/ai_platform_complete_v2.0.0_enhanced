@@ -6,11 +6,13 @@
 لا حاجة لقاعدة أو شبكة.
 """
 
+from dataclasses import asdict
 from datetime import date
 
 from api.season_simulation import (
     DayWeather,
     SimContext,
+    fapar_from_ndvi,
     gdd_day,
     normalize_crop,
     simulate_season,
@@ -164,6 +166,104 @@ class TestEstimationAssumptions:
             SimContext(crop="wheat", sowing_date=date(2026, 1, 1), weather=_warm_days(90))
         )
         assert r.days_simulated == 90
+
+
+class TestObservedFapar:
+    """fAPAR مرصود (نموذج كفاءة الإنتاج RS) — حافظ للسلوك، بلا ثوابت مُختلقة."""
+
+    def test_behavior_preserving_when_absent(self):
+        # غياب observed_fapar ⇒ النتيجة مطابقة تماماً للسلوك الحالي.
+        weather = _warm_days(120)
+        baseline = simulate_season(SimContext(crop="wheat", weather=weather))
+        explicit_none = simulate_season(
+            SimContext(crop="wheat", weather=weather, observed_fapar=None)
+        )
+        assert asdict(baseline) == asdict(explicit_none)
+        assert baseline.fapar_source == "modeled"
+
+    def test_fapar_source_modeled_by_default(self):
+        r = simulate_season(SimContext(crop="wheat", weather=_warm_days(60)))
+        assert r.fapar_source == "modeled"
+
+    def test_fapar_source_observed_when_supplied(self):
+        r = simulate_season(SimContext(crop="wheat", weather=_warm_days(60), observed_fapar=0.7))
+        assert r.fapar_source == "observed"
+        assert any("مرصود" in a for a in r.assumptions_ar)
+
+    def test_observed_scalar_drives_apar_exactly(self):
+        # APAR == f × PAR_incident ⇒ biomass == RUE × Σ(PAR × f) × 10 (g/m²→kg/ha).
+        # PAR = solar × 0.48؛ solar مُقدَّر ثابت لكلّ يوم (لا solar في الطقس).
+        from api.season_simulation import _PAR_FRACTION, _params_for
+
+        n = 50
+        f = 0.6
+        weather = _warm_days(n)
+        r = simulate_season(SimContext(crop="wheat", weather=weather, observed_fapar=f))
+        p = _params_for("wheat")
+        # solar مُقدَّر (لا تاريخ بذر) ⇒ المتوسّط السنويّ الاحتياطيّ 21.0 لكلّ يوم.
+        solar = 21.0
+        par = solar * _PAR_FRACTION
+        expected_biomass_g_m2 = p.rue_g_per_mj * (par * f) * n
+        expected_kg_ha = expected_biomass_g_m2 * 10.0
+        assert r.biomass_kg_ha == round(expected_kg_ha, 1)
+
+    def test_higher_observed_fapar_more_biomass(self):
+        weather = _warm_days(80)
+        low = simulate_season(SimContext(crop="wheat", weather=weather, observed_fapar=0.2))
+        high = simulate_season(SimContext(crop="wheat", weather=weather, observed_fapar=0.9))
+        assert high.biomass_kg_ha > low.biomass_kg_ha
+        assert high.yield_kg_ha > low.yield_kg_ha
+
+    def test_invalid_scalar_falls_back_to_modeled(self):
+        weather = _warm_days(60)
+        baseline = simulate_season(SimContext(crop="wheat", weather=weather))
+        r = simulate_season(SimContext(crop="wheat", weather=weather, observed_fapar=1.5))
+        assert r.fapar_source == "modeled"
+        assert r.biomass_kg_ha == baseline.biomass_kg_ha
+        assert any("غير صالح" in w for w in r.warnings_ar)
+
+    def test_observed_series_per_day(self):
+        n = 40
+        series = [0.5] * n
+        scalar = simulate_season(
+            SimContext(crop="wheat", weather=_warm_days(n), observed_fapar=0.5)
+        )
+        per_day = simulate_season(
+            SimContext(crop="wheat", weather=_warm_days(n), observed_fapar=series)
+        )
+        assert per_day.fapar_source == "observed"
+        assert per_day.biomass_kg_ha == scalar.biomass_kg_ha
+
+    def test_short_series_extends_with_last(self):
+        # سلسلة أقصر من أيّام الموسم ⇒ تُمدَّد بآخر قيمة (لا انهيار).
+        r = simulate_season(
+            SimContext(crop="wheat", weather=_warm_days(60), observed_fapar=[0.6, 0.7])
+        )
+        assert r.fapar_source == "observed"
+        assert r.biomass_kg_ha > 0
+
+
+class TestFaparFromNdvi:
+    """fAPAR ≈ 1.24·NDVI − 0.168 (Myneni & Williams, 1994) مقصوصة [0,1]."""
+
+    def test_matches_cited_formula(self):
+        # قيمة وسطيّة داخل النطاق المفتوح.
+        ndvi = 0.5
+        assert fapar_from_ndvi(ndvi) == 1.24 * ndvi - 0.168
+
+    def test_another_sample(self):
+        ndvi = 0.6
+        assert fapar_from_ndvi(ndvi) == 1.24 * ndvi - 0.168
+
+    def test_clamped_low(self):
+        # NDVI صغير ⇒ القيمة سالبة نظريّاً ⇒ تُقصّ إلى 0.
+        assert fapar_from_ndvi(0.1) == 0.0
+        assert fapar_from_ndvi(-0.2) == 0.0
+
+    def test_clamped_high(self):
+        # NDVI كبير ⇒ القيمة > 1 ⇒ تُقصّ إلى 1.
+        assert fapar_from_ndvi(0.99) == 1.0
+        assert fapar_from_ndvi(1.0) == 1.0
 
 
 class TestCropDifferences:
