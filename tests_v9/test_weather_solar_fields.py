@@ -15,6 +15,7 @@ pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CORE = os.path.join(ROOT, "services/sahool-platform")
 MAIN = os.path.join(CORE, "api", "main.py")
+ROUTERS = os.path.join(CORE, "api", "routers")
 
 
 @pytest.fixture(scope="module")
@@ -77,10 +78,23 @@ def test_daily_keys_request_solar(om):
 
 def test_forecast_endpoint_exposes_solar_fields():
     """نقطة /api/v1/weather/forecast تكشف الحقول الجديدة في كلّ يوم."""
-    with open(MAIN, encoding="utf-8") as f:
-        src = f.read()
-    start = src.index("async def weather_forecast(")
-    nxt = re.search(r"\n(?:@\w|async def |def |class )", src[start + 1 :])
-    body = src[start : start + 1 + nxt.start()]
+    # المعالِج انتقل إلى api/routers/weather.py بعد تفكيك monolith؛ نبحث في
+    # main.py ثمّ في كلّ ملفّات routers.
+    sources = [MAIN]
+    if os.path.isdir(ROUTERS):
+        sources += [
+            os.path.join(ROUTERS, f) for f in sorted(os.listdir(ROUTERS)) if f.endswith(".py")
+        ]
+    body = None
+    for path in sources:
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+        start = src.find("async def weather_forecast(")
+        if start == -1:
+            continue
+        nxt = re.search(r"\n(?:@\w|async def |def |class )", src[start + 1 :])
+        body = src[start : start + 1 + nxt.start()] if nxt else src[start:]
+        break
+    assert body is not None, "لم يُعثر على معالِج weather_forecast في main.py ولا routers/"
     for key in ('"sunrise"', '"sunset"', '"daylight_hours"', '"solar_radiation_mj_m2"'):
         assert key in body, f"نقطة التوقّع لا تكشف {key}"

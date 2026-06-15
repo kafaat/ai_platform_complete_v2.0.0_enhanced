@@ -26,6 +26,13 @@ def m():
     pytest.importorskip("fastapi")
     import api.main as main_mod
 
+    # المعالِج calendars_today انتقل إلى api/routers/calendars.py بعد تفكيك monolith؛
+    # نوفّره على نسق الوصول القديم m.calendars_today (نفس الدالّة، موقعها فقط تغيّر).
+    if not hasattr(main_mod, "calendars_today"):
+        from api.routers import calendars as _cal
+
+        main_mod.calendars_today = _cal.calendars_today
+
     yield main_mod
     if added and CORE in sys.path:
         sys.path.remove(CORE)
