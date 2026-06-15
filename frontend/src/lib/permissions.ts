@@ -20,12 +20,22 @@ export function normalizeRole(role?: string | null): Role {
 }
 
 // كلّ الصفحات (مرجع). owner/manager/agronomist: وصول كامل.
-const ALL_PAGES: PageId[] = [
+// ملاحظة: `as const satisfies readonly PageId[]` يحفظ الأنواع الحرفيّة لكلّ عنصر
+// (كي يعمل حارس الاكتمال أدناه)، وفي الوقت نفسه يضمن أنّ كلّ عنصر هو PageId صالح
+// (الاتّجاه العكسيّ مغطّى بـ`satisfies` — لا حاجة لشيفرة إضافيّة له).
+const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'recommendations',
   'irrigation', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
-];
+] as const satisfies readonly PageId[];
+
+// حارس وقت-التصريف: كلّ معرّف في اتّحاد PageId يجب أن يظهر في ALL_PAGES،
+// وإلّا فالصفحة غير قابلة للوصول. أيّ نقص يُفشل `npm run typecheck`.
+type _PagesMissingFromAllPages = Exclude<PageId, (typeof ALL_PAGES)[number]>;
+// إن ظهر خطأ هنا: المعرّف(ات) الظاهرة في النوع ناقصة من ALL_PAGES أعلاه.
+const _assertAllPagesComplete: _PagesMissingFromAllPages extends never ? true : never = true;
+void _assertAllPagesComplete;
 
 // worker (مزارع/عامل): الصفحات التشغيليّة فقط (وفق سياسة الإعدادات الموثّقة:
 // لوحة + أقمار + حقول + مهام، مع التنبيهات/المستشار/المكانيّة + أدوات حقله).
@@ -45,7 +55,7 @@ const NON_MANAGEMENT_PAGES: PageId[] = ALL_PAGES.filter(
   (p) => !MANAGEMENT_ONLY_PAGES.includes(p),
 );
 
-const ROLE_PAGES: Record<Role, PageId[]> = {
+const ROLE_PAGES: Record<Role, readonly PageId[]> = {
   owner: ALL_PAGES,
   manager: ALL_PAGES,
   agronomist: NON_MANAGEMENT_PAGES, // وصول كامل عدا الصفحات الإداريّة
