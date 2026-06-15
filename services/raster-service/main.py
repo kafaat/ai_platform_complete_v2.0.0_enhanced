@@ -1382,7 +1382,9 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
                 arr = si.compute_ndti(swir1, swir2, np)
             elif ind == "dbsi":
                 _d = nir + red
-                _ndvi = (nir - red) / np.where(_d == 0, 1e-10, _d)  # حماية القسمة (اتّساقاً مع المؤشّرات أعلاه)
+                _ndvi = (nir - red) / np.where(
+                    _d == 0, 1e-10, _d
+                )  # حماية القسمة (اتّساقاً مع المؤشّرات أعلاه)
                 arr = si.compute_dbsi(green, swir1, _ndvi, np)
             elif ind == "ndsi":
                 arr = si.compute_ndsi(red, nir, np)
