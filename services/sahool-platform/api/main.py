@@ -8804,73 +8804,6 @@ def compare_drought_resilience(
     )
 
 
-@app.get("/api/v1/calendars/today")
-def calendars_today(
-    date: str | None = None,
-    governorate: str | None = None,
-    crop: str | None = None,
-):
-    """سياق التقويم الزراعيّ لتاريخ (افتراضيّاً اليوم) في نداء واحد — يُسهّل بطاقة
-    «التقويم الزراعيّ» في الواجهة:
-      • المنزلة القمريّة النشطة + النوء (marker) + الشهر الحميريّ + ملف المنطقة.
-      • إن مُرِّر محصول: نافذة زراعته وملاءمة الشهر الحاليّ (تبكير/تأخير).
-    عرض/إرشاد تراثيّ-رصديّ صريحاً (display_only=true، خارج محرّك القرار) — التوقيت
-    الفعليّ يبقى على GDD/الفيزياء. تاريخ غير صالح ⇒ يُعاد error_ar من الجسر.
-    """
-    from datetime import date as _date
-
-    from api.yemeni_calendars import calendar_context_for_date
-
-    target_iso = date or _date.today().isoformat()
-    ctx = calendar_context_for_date(target_iso, governorate)
-    # تاريخ غير صالح ⇒ الجسر يُعيد {error_ar}: لا نُضيف planting (تجنّب خلط خطأ
-    # ببيانات مشتقّة من تاريخ آخر) — تدهور رشيق متّسق مع الـdocstring.
-    if crop and "error_ar" not in ctx:
-        from api.planting_calendar import check_planting_date, planting_window
-
-        month = _date.fromisoformat(target_iso).month  # صحيح هنا (مرّ الجسر)
-        ctx["planting"] = {
-            "window": planting_window(crop),
-            "current_month_fit": check_planting_date(crop, month),
-        }
-    return ctx
-
-
-@app.get("/api/v1/calendars/lunar-mansions")
-def calendars_lunar_mansions():
-    """المنازل القمريّة الـ٢٨ (نجوم الزراعة) — مرجع معرفي تراثي (عرض فقط)."""
-    from api.yemeni_calendars import get_lunar_mansions
-
-    return get_lunar_mansions()
-
-
-@app.get("/api/v1/calendars/himyarite-months")
-def calendars_himyarite_months():
-    """الشهور الحميريّة الـ١٢ + تنبيه التباين بين المصادر (عرض فقط)."""
-    from api.yemeni_calendars import get_himyarite_months
-
-    return get_himyarite_months()
-
-
-@app.get("/api/v1/calendars/regional-profiles")
-def calendars_regional_profiles(governorate: str | None = None):
-    """ملفّات التقاويم الإقليميّة (حضرموت/تهامة/المرتفعات/الجوف) — الربط المكانيّ."""
-    from api.yemeni_calendars import get_regional_profiles
-
-    return get_regional_profiles(governorate=governorate)
-
-
-@app.get("/api/v1/calendars/context")
-def calendars_context(date_iso: str, governorate: str | None = None):
-    """الجسر الزمني: تاريخ → المنزلة النشطة + الشهر الحميري + ملف المنطقة.
-
-    عرض ومعرفة فقط؛ لا يدخل القرار. التواريخ تقريبيّة، المقابلات تختلف.
-    """
-    from api.yemeni_calendars import calendar_context_for_date
-
-    return calendar_context_for_date(date_iso, governorate=governorate)
-
-
 @app.get("/api/v1/agricultural-proverbs/for-date")
 def agricultural_proverbs_for_date(date_iso: str, governorate: str | None = None):
     """أمثال التاريخ: تاريخ → المنزلة النشطة → أمثالها (الحلقة المكتملة)."""
@@ -9018,50 +8951,13 @@ def cameras_snapshot_evidence(
     return link_snapshot_as_evidence(snap)
 
 
-# ─── ٣٠. حساسيّة المراحل للإجهاد المائي (محاصيل اليمن، يكمّل ميزان الماء) ─
-from api.crop_water_sensitivity import (  # noqa: E402
-    assess_stress_risk,
-    integrated_irrigation_advice,
-    supported_crops,
-    water_calendar,
-    wheat_water_calendar,
-)
-
-
-@app.get("/api/v1/water-sensitivity/crops")
-def water_sensitivity_crops():
-    """قائمة المحاصيل اليمنيّة المدعومة بحساسيّة المراحل المائيّة."""
-    return {"crops": supported_crops()}
-
-
-@app.get("/api/v1/water-sensitivity/calendar")
-def water_sensitivity_calendar(crop: str = "wheat"):
-    """التقويم المائي لمحصول: المراحل + حرجيّتها + السياق اليمني.
-
-    المدعوم: wheat, maize, sorghum, millet, barley (أو أسماؤها العربيّة).
-    """
-    return water_calendar(crop)
-
-
-@app.get("/api/v1/water-sensitivity/wheat-calendar")
-def water_sensitivity_wheat_calendar():
-    """(توافق خلفي) التقويم المائي للقمح."""
-    return wheat_water_calendar()
-
-
+# ─── ٣٠. نماذج طلب حساسيّة المراحل للإجهاد المائي ─────────────────
+# الدوالّ نُقلت إلى api.routers.water_sensitivity؛ النماذج تبقى هنا وتُستورَد منه
+# (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
 class StressRiskRequest(BaseModel):
     crop: str = "wheat"
     stage_key: str
     depletion_pct: float
-
-
-@app.post("/api/v1/water-sensitivity/stress-risk")
-def water_sensitivity_stress(
-    req: StressRiskRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقيّم خطر الإجهاد المائي بناءً على المحصول والمرحلة ونضوب التربة."""
-    return assess_stress_risk(req.crop, req.stage_key, req.depletion_pct)
 
 
 class IntegratedAdviceRequest(BaseModel):
@@ -9069,20 +8965,6 @@ class IntegratedAdviceRequest(BaseModel):
     stage_key: str
     depletion_pct: float
     net_irrigation_mm: float | None = None
-
-
-@app.post("/api/v1/water-sensitivity/integrated-advice")
-def water_sensitivity_integrated(
-    req: IntegratedAdviceRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """توصية ريّ متكاملة: تجمع الحساسيّة (متى حرج) + الاحتياج (كم مم) في قرار واحد."""
-    return integrated_irrigation_advice(
-        req.crop,
-        req.stage_key,
-        req.depletion_pct,
-        req.net_irrigation_mm,
-    )
 
 
 # ─── ٣١. الدورة الزراعيّة (تعاقب المحاصيل — خصوبة وقائيّة) ──────────
@@ -9254,53 +9136,17 @@ def postharvest_practices_endpoint(crop: str | None = None):
 
 # ─── ٣٧. البذور المحسّنة + الأساليب الزراعيّة المحسّنة ─────────────
 from api.seed_and_practices import (  # noqa: E402
-    evaluate_seed_source,
     practice_guide,
-    seed_selection_criteria,
     supported_practices,
 )
 
 
-@app.get("/api/v1/seed/criteria")
-def seed_criteria_endpoint():
-    """معايير اختيار البذور/الأصناف المحسّنة (إطار قرار + توجيه لهيئة البحوث)."""
-    return seed_selection_criteria()
-
-
+# نموذج طلب تقييم مصدر البذار — يبقى مُعرَّفاً هنا ويُستورَد من api.routers.seed
+# (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
 class SeedSourceRequest(BaseModel):
     certified: bool
     purity_pct: float | None = None
     germination_pct: float | None = None
-
-
-@app.post("/api/v1/seed/evaluate-source")
-def seed_evaluate_endpoint(req: SeedSourceRequest):
-    """يقيّم جودة مصدر بذار (اعتماد + نقاوة + إنبات)."""
-    return evaluate_seed_source(req.certified, req.purity_pct, req.germination_pct)
-
-
-@app.get("/api/v1/seed/germination-rate")
-def seed_germination_endpoint(sprouted: int, total: int):
-    """يحسب معدّل الإنبات من اختبار عيّنة بسيط (المنبت ÷ الإجمالي)."""
-    from api.seed_and_practices import germination_rate
-
-    return germination_rate(sprouted, total)
-
-
-@app.get("/api/v1/seed/storage-check")
-def seed_storage_endpoint(temp_f: float, humidity_pct: float):
-    """قاعدة تخزين البذور: حرارة(°ف) + رطوبة% < 100."""
-    from api.seed_and_practices import storage_check
-
-    return storage_check(temp_f, humidity_pct)
-
-
-@app.get("/api/v1/seed/sowing-depth")
-def seed_sowing_depth_endpoint(seed_size_mm: float, precision: bool = False):
-    """عمق البذر المناسب (~5× حجم البذرة، 2× للدقيقة)."""
-    from api.seed_and_practices import sowing_depth
-
-    return sowing_depth(seed_size_mm, precision)
 
 
 @app.get("/api/v1/practices/list")
@@ -9379,34 +9225,6 @@ def soil_depth_endpoint(purpose: str = "general"):
 def soil_protocol_endpoint(area_ha: float | None = None, purpose: str = "general"):
     """البروتوكول الكامل لأخذ عيّنة تربة صحيحة (خطوات + تحذيرات + توقيت)."""
     return sampling_protocol(area_ha, purpose)
-
-
-# ─── ٤٠. حصاد مياه الأمطار (مصدر ماء بديل للمناطق الشحيحة) ────────
-from api.water_harvesting import (  # noqa: E402
-    harvest_potential,
-    harvesting_methods,
-    method_guide,
-)
-
-
-@app.get("/api/v1/water-harvesting/potential")
-def water_potential_endpoint(
-    catchment_area_m2: float, annual_rain_mm: float, surface: str = "roof"
-):
-    """يقدّر كميّة مياه الأمطار القابلة للحصاد سنويّاً (لتر/م³)."""
-    return harvest_potential(catchment_area_m2, annual_rain_mm, surface)
-
-
-@app.get("/api/v1/water-harvesting/methods")
-def water_methods_endpoint():
-    """طرق حصاد المياه المناسبة (مدرّجات/سدود/صهاريج/مصاطب كنتوريّة)."""
-    return harvesting_methods()
-
-
-@app.get("/api/v1/water-harvesting/method-guide")
-def water_method_guide_endpoint(method: str):
-    """دليل طريقة حصاد مياه محدّدة (الفوائد + الأنسب + التحذير)."""
-    return method_guide(method)
 
 
 # ─── ٤١. دراسة الجدوى الاقتصاديّة (هل سأربح؟) ─────────────────────
@@ -9573,40 +9391,6 @@ def seasonal_risk_chill_endpoint(zone: str):
     return chill_hours_estimate(zone)
 
 
-# ─── ٤٦. المناطق العالميّة المشابهة مناخيّاً + محاصيلها المثبتة ──
-from api.climate_analogs import (  # noqa: E402
-    analog_detail,
-    desert_proven_crops,
-    list_analog_regions,
-)
-
-
-@app.get("/api/v1/climate-analogs/list")
-def climate_analogs_list_endpoint():
-    """المناطق العالميّة المشابهة مناخيّاً للصحراء اليمنيّة (الحزم/الجوف)."""
-    return list_analog_regions()
-
-
-@app.get("/api/v1/climate-analogs/detail")
-def climate_analogs_detail_endpoint(region: str):
-    """تفصيل منطقة مشابهة + دروسها (الجوف السعوديّة/النقب/أريزونا...)."""
-    return analog_detail(region)
-
-
-@app.get("/api/v1/climate-analogs/desert-crops")
-def climate_analogs_crops_endpoint(category: str | None = None):
-    """المحاصيل المثبتة عالميّاً في المناخ الصحراوي (أشجار/موسميّة/حديثة)."""
-    return desert_proven_crops(category)
-
-
-@app.get("/api/v1/climate-analogs/strategic-tiers")
-def climate_analogs_strategic_endpoint(tier: str | None = None):
-    """التصنيف الاستراتيجي للمحاصيل الصحراويّة (قيمة × استدامة مائيّة × تصدير)."""
-    from api.climate_analogs import strategic_tiers
-
-    return strategic_tiers(tier)
-
-
 # ─── ٤٧. تحليل سجلّ الطقس اليومي → ذكاء زراعي (إجهاد حراري + ET0 + عجز مائي) ──
 from api.weather_analytics import analyze_weather_log, seasonal_planting_guide  # noqa: E402
 
@@ -9621,15 +9405,6 @@ def weather_analyze_endpoint(records: list[dict]):
 def weather_planting_guide_endpoint(records: list[dict]):
     """دليل المواسم من السجلّ: متى الزراعة الأمثل ومتى الإجهاد."""
     return seasonal_planting_guide(records)
-
-
-# ─── ٤٨. مورد السيول الواردة (الحزم تستقبل من أحواض أعلى) ──
-@app.get("/api/v1/water-harvesting/upstream-flood")
-def water_upstream_flood_endpoint(local_rain_mm: float, catchment_note: str = ""):
-    """مورد السيول الواردة من أحواض أعلى (يتجاوز المطر المحلّي)."""
-    from api.water_harvesting import upstream_flood_water
-
-    return upstream_flood_water(local_rain_mm, catchment_note)
 
 
 # ─── ٤٩. محرّك القرار الزراعي الموحّد (عقل الحقل) ──
@@ -10004,14 +9779,6 @@ class ImageryFieldRegister(BaseModel):
 # يُعرَض في scheduler-status. الافتراض ٦ ساعات (توقّع الطقس يومي عمليّاً؛
 # ٦ ساعات تلتقط تحوّلات الحرارة/المطر دون إغراق Open-Meteo). قابل للضبط عبر ENV.
 ALERTS_EVAL_INTERVAL_SECONDS = int(os.getenv("SAHOOL_ALERTS_EVAL_INTERVAL_SECONDS", "21600"))
-
-
-@app.get("/api/v1/climate-analogs/strategy")
-def climate_analogs_strategy_endpoint():
-    """الاستراتيجيّة المركّبة للجوف (مزيج من المناطق) + اتّجاه Premium Desert Ag."""
-    from api.climate_analogs import composite_strategy
-
-    return composite_strategy()
 
 
 # ─── استبيان دخول المزارع (ONBOARDING) ──────────────────────────
@@ -10405,10 +10172,20 @@ _rebuild_pydantic_models()
 # المسارات على ``app`` كما لو كانت مُعرَّفة هنا (مخطّط OpenAPI مطابق).
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
+from api.routers.calendars import router as calendars_router  # noqa: E402
+from api.routers.climate_analogs import router as climate_analogs_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
+from api.routers.seed import router as seed_router  # noqa: E402
+from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
+from api.routers.water_sensitivity import router as water_sensitivity_router  # noqa: E402
 
 app.include_router(boundaries_router)
 app.include_router(registry_router)
 app.include_router(automation_router)
 app.include_router(devices_router)
+app.include_router(water_sensitivity_router)
+app.include_router(seed_router)
+app.include_router(climate_analogs_router)
+app.include_router(calendars_router)
+app.include_router(water_harvesting_router)
