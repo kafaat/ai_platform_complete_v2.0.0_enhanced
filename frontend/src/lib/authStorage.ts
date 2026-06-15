@@ -35,3 +35,13 @@ export function getAccessToken(): string | null {
 export function getTenantId(): string {
   return safeRead(STORAGE_KEYS.tenantId) || DEFAULT_TENANT;
 }
+
+/** يمسح توكن الوصول من الجلسة (عند 401 أو اكتشاف انتهاء الصلاحيّة). */
+export function clearAccessToken(): void {
+  try {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.removeItem(STORAGE_KEYS.accessToken);
+  } catch {
+    /* تجاهل: بيئة بلا تخزين / خصوصيّة صارمة */
+  }
+}

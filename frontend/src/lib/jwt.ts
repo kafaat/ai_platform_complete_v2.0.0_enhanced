@@ -23,7 +23,7 @@ function decodeBase64Url(segment: string): string | null {
     const pad = s.length % 4;
     if (pad === 2) s += '==';
     else if (pad === 3) s += '=';
-    else     if (pad === 1) return null; // طول غير صالح
+    else if (pad === 1) return null; // طول غير صالح
     // atob متاح في المتصفّح وفي بيئة اختبار jsdom.
     if (typeof atob === 'function') return atob(s);
     return null;

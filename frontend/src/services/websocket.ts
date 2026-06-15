@@ -134,8 +134,14 @@ class WebSocketService {
       return false;
     }
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(payload);
-      return true;
+      // قد تُغلَق القناة بين فحص الحالة والإرسال (سباق) فيُرمى — نلتقط ونُعيد
+      // الرسالة للطابور بدل فقدها صامتةً.
+      try {
+        this.ws.send(payload);
+        return true;
+      } catch (e) {
+        console.warn('[WS] send failed, re-queuing message:', e);
+      }
     }
     // غير مفتوحة بعد: ضعها في الطابور لتُرسَل عند الفتح. عند الامتلاء أسقط الأقدم
     // (نُبقي الأحدث) مع تحذير صريح حتى لا يكون فقد الأوامر التشغيليّة خفيّاً.
@@ -147,16 +153,22 @@ class WebSocketService {
     return false;
   }
 
-  // يُفرّغ الصندوق الصادر بالترتيب عند فتح القناة. ما يفشل إرساله يُعاد لرأس
-  // الطابور ليُحاوَل عند الفتح التالي، فلا تُفقد رسائل بسبب إغلاق أثناء التفريغ.
+  // يُفرّغ الصندوق الصادر بالترتيب عند فتح القناة. ما يفشل إرساله (إغلاق/سباق)
+  // يُعاد لرأس الطابور ليُحاوَل عند الفتح التالي، فلا تُفقد رسائل بسبب إغلاق
+  // أثناء التفريغ.
   private _flushOutbox(): void {
     if (!this.outbox.length) return;
     const pending = this.outbox;
     this.outbox = [];
     for (let i = 0; i < pending.length; i++) {
-      if (this.ws?.readyState === WebSocket.OPEN) {
+      if (this.ws?.readyState !== WebSocket.OPEN) {
+        this.outbox.push(...pending.slice(i));
+        break;
+      }
+      try {
         this.ws.send(pending[i]);
-      } else {
+      } catch (e) {
+        console.warn('[WS] flush send failed, re-queuing remaining:', e);
         this.outbox.push(...pending.slice(i));
         break;
       }

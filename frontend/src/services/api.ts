@@ -13,7 +13,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import axios, { type AxiosInstance } from 'axios';
-import { getAccessToken, getTenantId } from '../lib/authStorage';
+import { clearAccessToken, getAccessToken, getTenantId } from '../lib/authStorage';
 import { isAccessTokenExpired } from '../lib/jwt';
 
 // ── Environment detection ──────────────────────────────────────
@@ -43,7 +43,7 @@ function makeClient(baseURL: string): AxiosInstance {
     // الدخول) ونمنع إطلاق طلب محكوم بالفشل. وضع التجريب مُستثنى (isAccessTokenExpired
     // يعيد false لتوكن التجريب) فلا يُكسَر. fail-closed: توكن مشوّه ⇒ يُعدّ منتهياً.
     if (token && isAccessTokenExpired(token)) {
-      sessionStorage.removeItem('sahool_access_token');
+      clearAccessToken();
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('sahool:auth:unauthorized'));
       }
@@ -58,7 +58,7 @@ function makeClient(baseURL: string): AxiosInstance {
     (r) => r,
     (err) => {
       if (err.response?.status === 401) {
-        sessionStorage.removeItem('sahool_access_token');
+        clearAccessToken();
         window.dispatchEvent(new CustomEvent('sahool:auth:unauthorized'));
       }
       return Promise.reject(err);
