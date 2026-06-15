@@ -1,8 +1,10 @@
 """اختبارات Field Aggregate Root (offline) — النواة النقيّة + مسار الـdispatcher.
 
-يتحقّق من: الـinvariants في مكان واحد (إنشاء مكرّر→409، حقل مفقود→404، موسم نشط
-موجود→409)؛ والأحداث الصحيحة؛ ومسار CommandDispatcher القائم كاملاً (نجاح/فشل/
-idempotency) بمتجر ومنافذ وهميّة بلا قاعدة.
+يتحقّق من أنّ النواة **مطابِقة لسلوك endpoints الإنتاج** (مصدر الحقيقة
+`api/routers/fields.py`): إنشاء مكرّر→409 (`duplicate_field_name`)، حقل مفقود→404
+(`_assert_field_in_tenant`)، وبدء موسم وهناك نشط = **استبدال (supersede) v44** لا
+رفض 409 (SEASON_CLOSED مُستبدَل ثمّ SEASON_CREATED)؛ والأحداث الصحيحة؛ ومسار
+CommandDispatcher القائم كاملاً (نجاح/فشل/idempotency) بمتجر ومنافذ وهميّة بلا قاعدة.
 """
 
 import pytest
@@ -37,17 +39,45 @@ def test_update_missing_field_is_404():
     assert e.value.http_status == 404
 
 
-def test_start_season_without_active_emits_season_created():
+def test_start_season_without_active_emits_only_season_created():
+    # لا موسم نشط ⇒ حدث واحد فقط: SEASON_CREATED (بلا إغلاق سابق).
     eff = FieldAggregate(FieldState("f1", exists=True)).start_season({"season_id": "s1"})
-    assert eff.events[0][0] == EventType.SEASON_CREATED.value
+    assert eff.events == [(EventType.SEASON_CREATED.value, {"field_id": "f1", "season_id": "s1"})]
 
 
-def test_start_season_with_active_conflicts_409():
-    state = FieldState("f1", exists=True, has_active_season=True, active_season_id="s0")
+def test_start_season_missing_field_is_404():
     with pytest.raises(FieldInvariantError) as e:
-        FieldAggregate(state).start_season({"season_id": "s1"})
-    assert e.value.http_status == 409
-    assert "s0" in e.value.message_ar
+        FieldAggregate(FieldState("f1", exists=False)).start_season({"season_id": "s1"})
+    assert e.value.http_status == 404
+
+
+def test_start_season_with_active_supersedes_not_409():
+    # ثابت v44 (مطابِق لـcreate_season): موسم نشط موجود ⇒ استبدال لا رفض —
+    # SEASON_CLOSED(superseded) ثمّ SEASON_CREATED بنفس الترتيب، بلا رفع 409.
+    state = FieldState("f1", exists=True, has_active_season=True, active_season_id="s0")
+    eff = FieldAggregate(state).start_season({"season_id": "s1"})
+    assert [et for et, _ in eff.events] == [
+        EventType.SEASON_CLOSED.value,
+        EventType.SEASON_CREATED.value,
+    ]
+    # payload الإغلاق يطابق ما يُصدِره الـendpoint حرفيّاً.
+    assert eff.events[0][1] == {
+        "field_id": "f1",
+        "reason": "superseded_by_new_season",
+        "superseded_by": "s1",
+    }
+
+
+def test_start_season_with_active_omits_superseded_by_when_season_id_absent():
+    # honesty: معرّف الموسم الجديد I/O؛ إن غاب يُحذف superseded_by (يملؤه apply_change).
+    state = FieldState("f1", exists=True, has_active_season=True, active_season_id="s0")
+    eff = FieldAggregate(state).start_season({"crops": ["wheat"]})
+    assert [et for et, _ in eff.events] == [
+        EventType.SEASON_CLOSED.value,
+        EventType.SEASON_CREATED.value,
+    ]
+    assert "superseded_by" not in eff.events[0][1]
+    assert eff.events[0][1] == {"field_id": "f1", "reason": "superseded_by_new_season"}
 
 
 def test_record_activity_requires_existing_field():
