@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from api.weather_advice import disease_risk
 
@@ -44,6 +44,38 @@ HEAT_STRESS_CRITICAL_TMAX_C = 40.0
 # تحت ٠°م تجمّد مؤكَّد ⇒ خطورة حرجة.
 FROST_RISK_TMIN_C = 2.0
 FROST_RISK_CRITICAL_TMIN_C = 0.0
+
+
+@dataclass(frozen=True)
+class AlertThresholds:
+    """عتبات محرّك التنبيهات قابلة للضبط بسياسة (policy) — افتراضاتها == اليوم.
+
+    كلّ حقل هنا يطابق ثابتاً موثَّقاً من ثوابت الوحدة أعلاه، وقيمته الافتراضيّة
+    هي نفسها قيمة ذلك الثابت — فالسلوك الافتراضيّ (thresholds=None) مطابق تماماً
+    للسلوك السابق. الثوابت أعلاه تبقى مصدر الحقيقة وأسماءً متوافقة للخلف.
+
+    ⚠ هذه heuristics agro-met مبسّطة موسومة بمرجعها — ليست نموذجاً مُعايَراً
+    يمنيّاً، وتحتاج معايرة ميدانيّة.
+    """
+
+    # رطوبة منخفضة: رطوبة التربة المتاحة تحت هذا الحدّ ⇒ إجهاد مائيّ وشيك.
+    # المرجع: FAO-56 (MAD ~50٪)؛ نتبنّى عتبة weather_advice._SOIL_CRITICAL_PCT (30٪).
+    LOW_MOISTURE_SOIL_PCT: float = LOW_MOISTURE_SOIL_PCT
+    # بديل حين تغيب قراءة رطوبة التربة: احتياج ريّ صافٍ مرتفع (mm) يدلّ على جفاف.
+    LOW_MOISTURE_IRRIGATION_MM: float = LOW_MOISTURE_IRRIGATION_MM
+    # أمطار غزيرة: مطر متوقّع (mm) فوق هذا الحدّ ⇒ خطر جريان/تشبّع.
+    # المرجع: تصنيفات هطول عامّة — ≥ ٢٠ مم/يوم مطر غزير يضرّ المحاصيل.
+    HEAVY_RAIN_MM: float = HEAVY_RAIN_MM
+    # هطول شديد ⇒ خطورة حرجة.
+    HEAVY_RAIN_CRITICAL_MM: float = HEAVY_RAIN_CRITICAL_MM
+    # إجهاد حراريّ: حرارة عظمى متوقّعة فوق هذا الحدّ ⇒ إجهاد حراريّ للنبات.
+    # المرجع: معظم محاصيل الحقل تعاني فوق ٣٥°م؛ ٤٠°م إجهاد شديد.
+    HEAT_STRESS_TMAX_C: float = HEAT_STRESS_TMAX_C
+    HEAT_STRESS_CRITICAL_TMAX_C: float = HEAT_STRESS_CRITICAL_TMAX_C
+    # خطر صقيع: حرارة صغرى متوقّعة تحت هذا الحدّ ⇒ خطر صقيع/تجمّد.
+    # المرجع: الصقيع يبدأ قرب ٢°م سطحيّاً؛ تحت ٠°م تجمّد مؤكَّد ⇒ خطورة حرجة.
+    FROST_RISK_TMIN_C: float = FROST_RISK_TMIN_C
+    FROST_RISK_CRITICAL_TMIN_C: float = FROST_RISK_CRITICAL_TMIN_C
 
 
 @dataclass(frozen=True)
@@ -85,19 +117,21 @@ class GeneratedAlert:
     message_ar: str
 
 
-def _low_moisture(ctx: FieldAlertContext) -> GeneratedAlert | None:
+def _low_moisture(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | None:
     """رطوبة منخفضة: رطوبة تربة حرجة أو احتياج ريّ مرتفع ⇒ إجهاد مائيّ."""
     sm = ctx.soil_moisture_pct
     need = ctx.irrigation_need_mm
     fired = False
     reason = ""
-    if sm is not None and sm < LOW_MOISTURE_SOIL_PCT:
-        fired = True
-        reason = f"رطوبة التربة المتاحة ({sm:.0f}٪) دون الحدّ الحرج ({LOW_MOISTURE_SOIL_PCT:.0f}٪)."
-    elif sm is None and need is not None and need >= LOW_MOISTURE_IRRIGATION_MM:
+    if sm is not None and sm < t.LOW_MOISTURE_SOIL_PCT:
         fired = True
         reason = (
-            f"احتياج الريّ الصافي مرتفع ({need:.0f} مم ≥ {LOW_MOISTURE_IRRIGATION_MM:.0f} مم) "
+            f"رطوبة التربة المتاحة ({sm:.0f}٪) دون الحدّ الحرج ({t.LOW_MOISTURE_SOIL_PCT:.0f}٪)."
+        )
+    elif sm is None and need is not None and need >= t.LOW_MOISTURE_IRRIGATION_MM:
+        fired = True
+        reason = (
+            f"احتياج الريّ الصافي مرتفع ({need:.0f} مم ≥ {t.LOW_MOISTURE_IRRIGATION_MM:.0f} مم) "
             "ولا قراءة رطوبة تربة."
         )
     if not fired:
@@ -110,12 +144,12 @@ def _low_moisture(ctx: FieldAlertContext) -> GeneratedAlert | None:
     )
 
 
-def _heavy_rain(ctx: FieldAlertContext) -> GeneratedAlert | None:
+def _heavy_rain(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | None:
     """أمطار غزيرة: مطر متوقّع فوق العتبة ⇒ خطر جريان/تشبّع/غرق."""
     rain = ctx.forecast_rain_mm
-    if rain is None or rain < HEAVY_RAIN_MM:
+    if rain is None or rain < t.HEAVY_RAIN_MM:
         return None
-    critical = rain >= HEAVY_RAIN_CRITICAL_MM
+    critical = rain >= t.HEAVY_RAIN_CRITICAL_MM
     severity = "critical" if critical else "warning"
     return GeneratedAlert(
         alert_type="heavy_rain",
@@ -128,7 +162,7 @@ def _heavy_rain(ctx: FieldAlertContext) -> GeneratedAlert | None:
     )
 
 
-def _disease_risk(ctx: FieldAlertContext) -> GeneratedAlert | None:
+def _disease_risk(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | None:
     """خطر مرض: نُعيد استخدام weather_advice.disease_risk؛ نُطلِق عند high فقط."""
     if ctx.temp_c is None or ctx.humidity_pct is None:
         return None
@@ -152,37 +186,37 @@ def _disease_risk(ctx: FieldAlertContext) -> GeneratedAlert | None:
     )
 
 
-def _heat_stress(ctx: FieldAlertContext) -> GeneratedAlert | None:
+def _heat_stress(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | None:
     """إجهاد حراريّ: حرارة عظمى متوقّعة فوق العتبة."""
     tmax = ctx.tmax_c
-    if tmax is None or tmax < HEAT_STRESS_TMAX_C:
+    if tmax is None or tmax < t.HEAT_STRESS_TMAX_C:
         return None
-    critical = tmax >= HEAT_STRESS_CRITICAL_TMAX_C
+    critical = tmax >= t.HEAT_STRESS_CRITICAL_TMAX_C
     severity = "critical" if critical else "warning"
     return GeneratedAlert(
         alert_type="heat_stress",
         severity=severity,
         title_ar="إجهاد حراريّ متوقّع",
         message_ar=(
-            f"حرارة عظمى متوقّعة {tmax:.0f}°م (فوق {HEAT_STRESS_TMAX_C:.0f}°م). "
+            f"حرارة عظمى متوقّعة {tmax:.0f}°م (فوق {t.HEAT_STRESS_TMAX_C:.0f}°م). "
             "زِد الريّ صباحاً/مساءً وتجنّب العمليّات وقت الذروة لحماية المحصول."
         ),
     )
 
 
-def _frost_risk(ctx: FieldAlertContext) -> GeneratedAlert | None:
+def _frost_risk(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | None:
     """خطر صقيع: حرارة صغرى متوقّعة تحت العتبة."""
     tmin = ctx.tmin_c
-    if tmin is None or tmin > FROST_RISK_TMIN_C:
+    if tmin is None or tmin > t.FROST_RISK_TMIN_C:
         return None
-    critical = tmin <= FROST_RISK_CRITICAL_TMIN_C
+    critical = tmin <= t.FROST_RISK_CRITICAL_TMIN_C
     severity = "critical" if critical else "warning"
     return GeneratedAlert(
         alert_type="frost_risk",
         severity=severity,
         title_ar="خطر صقيع متوقّع",
         message_ar=(
-            f"حرارة صغرى متوقّعة {tmin:.0f}°م (تحت {FROST_RISK_TMIN_C:.0f}°م). "
+            f"حرارة صغرى متوقّعة {tmin:.0f}°م (تحت {t.FROST_RISK_TMIN_C:.0f}°م). "
             "احمِ المحصول الحسّاس (تغطية/ريّ وقائيّ) لتفادي ضرر التجمّد."
         ),
     )
@@ -198,18 +232,55 @@ _RULES = (
 )
 
 
-def evaluate_field_alerts(ctx: FieldAlertContext) -> list[GeneratedAlert]:
+def evaluate_field_alerts(
+    ctx: FieldAlertContext,
+    thresholds: AlertThresholds | None = None,
+) -> list[GeneratedAlert]:
     """يُقيّم كلّ قواعد التنبيه على سياق حقل ويُرجع التنبيهات المُطلَقة.
 
     منطق نقيّ بالكامل (يُختبَر offline). كلّ قاعدة تُرجع GeneratedAlert واحداً
     أو None (لم تُطلَق). الترتيب ثابت حسب _RULES.
+
+    العتبات تأتي من thresholds؛ حين تكون None نستخدم AlertThresholds()
+    (== الافتراضات الموثَّقة) فيكون السلوك مطابقاً تماماً للسابق.
     """
+    t = thresholds or AlertThresholds()
     out: list[GeneratedAlert] = []
     for rule in _RULES:
-        alert = rule(ctx)
+        alert = rule(ctx, t)
         if alert is not None:
             out.append(alert)
     return out
+
+
+def thresholds_from_policy(policy: dict | None) -> AlertThresholds:
+    """يبني AlertThresholds من قاموس تجاوزات (overrides) فوق الافتراضات.
+
+    مفاتيح policy = أسماء حقول AlertThresholds؛ المفاتيح المجهولة تُتجاهل،
+    والقيم غير الرقميّة/المُشوّهة تُتجاهل (نرجع لافتراض ذلك الحقل). policy
+    فارغ/None ⇒ كلّ الافتراضات. منطق نقيّ لا يرفع استثناءً أبداً.
+
+    ملاحظة: هذا يُغذّى مستقبلاً بسياسة إعدادات لكلّ مستأجِر (per-tenant)
+    تُربط في main.py في خطوة لاحقة — لا نربط main.py هنا.
+    """
+    defaults = AlertThresholds()
+    if not policy or not isinstance(policy, dict):
+        return defaults
+    overrides: dict[str, float] = {}
+    for name in defaults.__dataclass_fields__:
+        if name not in policy:
+            continue
+        raw = policy[name]
+        # نتجاهل bool (isinstance(True, int)) والقيم غير الرقميّة/المُشوّهة.
+        if isinstance(raw, bool):
+            continue
+        try:
+            overrides[name] = float(raw)
+        except (TypeError, ValueError):
+            continue
+    if not overrides:
+        return defaults
+    return replace(defaults, **overrides)
 
 
 # ─── تشكيل ملخّص التشغيل الدوريّ لكلّ الحقول (منطق نقيّ — يُختبَر offline) ──
