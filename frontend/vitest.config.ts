@@ -7,7 +7,15 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    // نفس alias الخاصّ بـvite.config.ts: نُبقي ظِلّ leaflet-draw فعّالاً في الاختبار
+    // أيضاً (إن استورده اختبار transitively) فلا يتعارض حلّ الوحدات بين البناء والاختبار.
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+      {
+        find: /^leaflet-draw$/,
+        replacement: path.resolve(__dirname, './src/lib/leaflet-draw-shim.ts'),
+      },
+    ],
   },
   test: {
     environment: 'jsdom',

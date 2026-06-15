@@ -384,7 +384,7 @@ function TopBar({ page, onMenu, theme, setTheme, tenantName, tenantLogo }: TopBa
 }
 
 export default function App() {
-  const { isAuthenticated, user, isDemoMode } = useAuthStore();
+  const { isAuthenticated, user, isDemoMode, logout } = useAuthStore();
   // السمة (فاتح/داكن) على مستوى الجذر — تُطبَّق على <html> وتُحفظ في localStorage.
   const { theme, setTheme } = useTheme();
   // بوّابة التأهيل: بعد المصادقة نفحص وجود مزرعة. مُعطَّلة قبل المصادقة وفي الوضع
@@ -419,6 +419,16 @@ export default function App() {
   }, [isAuthenticated, user?.id]);
 
   useEffect(() => { setMobileOpen(false); }, [page]);
+
+  // خروج فعليّ عند انتهاء الجلسة (Phase 2): api.ts يُطلق 'sahool:auth:unauthorized'
+  // عند 401 أو عند اكتشاف توكن منتهٍ محلياً. نُحوّل ذلك إلى logout فترجع الواجهة
+  // لشاشة الدخول (سابقاً كان الحدث بلا مستمع فيبقى التطبيق عالقاً بلا توكن). وضع
+  // التجريب مُستثنى: لا نُخرج المستخدم التجريبيّ على 401 خلفيّ (توكنه وهميّ أصلاً).
+  useEffect(() => {
+    const onUnauthorized = () => { if (!isDemoMode) logout(); };
+    window.addEventListener('sahool:auth:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('sahool:auth:unauthorized', onUnauthorized);
+  }, [isDemoMode, logout]);
 
   if (!isAuthenticated) {
     return (

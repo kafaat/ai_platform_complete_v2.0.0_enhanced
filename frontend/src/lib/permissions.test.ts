@@ -23,6 +23,11 @@ describe('normalizeRole', () => {
     expect(normalizeRole(null)).toBe('viewer');
     expect(normalizeRole('')).toBe('viewer');
     expect(normalizeRole('superuser')).toBe('viewer');
+    expect(normalizeRole('superhacker')).toBe('viewer'); // (دمج #241) أيّ دور دخيل
+  });
+
+  it('(دمج #241) التطبيع غير حسّاس لحالة الأحرف على المرادفات أيضاً', () => {
+    expect(normalizeRole('OWNER')).toBe('owner');
   });
 });
 
@@ -52,6 +57,19 @@ describe('canAccess', () => {
   it('الدور المجهول يُعامَل كـviewer (fail-closed)', () => {
     expect(canAccess(undefined, 'master-data')).toBe(false);
     expect(canAccess(undefined, 'dashboard')).toBe(true);
+    // (دمج #241) دور غير معروف نصّيّ يُعامَل كـviewer كذلك.
+    expect(canAccess('???', 'governance')).toBe(false);
+    expect(canAccess('???', 'dashboard')).toBe(true);
+  });
+
+  it('(دمج #241) الصفحات الإداريّة الثلاث محصورة بـowner/manager عبر كلّ الأدوار', () => {
+    for (const page of ['master-data', 'documents', 'governance'] as const) {
+      expect(canAccess('owner', page)).toBe(true);
+      expect(canAccess('manager', page)).toBe(true);
+      expect(canAccess('agronomist', page)).toBe(false);
+      expect(canAccess('worker', page)).toBe(false);
+      expect(canAccess('viewer', page)).toBe(false);
+    }
   });
 });
 

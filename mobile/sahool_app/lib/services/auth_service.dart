@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
+import '../utils/jwt.dart';
 
 class AuthService {
   static final AuthService instance = AuthService._internal();
@@ -70,20 +71,10 @@ class AuthService {
     await _storage.deleteAll();
   }
 
-  // F13: Check JWT expiry
-  bool _isTokenExpired(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return true;
-      final payload = json.decode(
-        utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))
-      ) as Map<String, dynamic>;
-      final exp = payload['exp'] as int?;
-      if (exp == null) return true; // fail-closed: توكن بلا exp = منتهٍ (يطابق api_service)
-      // Expire 60s early to avoid edge cases
-      return DateTime.now().millisecondsSinceEpoch ~/ 1000 > exp - 60;
-    } catch (_) { return true; }
-  }
+  // F13: Check JWT expiry — مصدر واحد للحقيقة (utils/jwt.dart) يفشل-مغلقاً.
+  // سابقاً كان توكن بلا exp يُعدّ «غير منتهٍ» (fail-open) — ثغرة: جلسة لا تنتهي.
+  // الآن يطابق ApiService والاختبارات: بلا exp/مشوّه ⇒ منتهٍ.
+  bool _isTokenExpired(String token) => isJwtExpired(token);
 
   bool get isAuthenticated => _token != null && !_isTokenExpired(_token!);
   String? get userRole => _userProfile?['role'] as String?;
