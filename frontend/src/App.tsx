@@ -263,6 +263,7 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: SidebarProps) {
           </div>
         )}
         <button onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? 'توسيع الشريط الجانبيّ' : 'طيّ الشريط الجانبيّ'}
           className="p-1 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300">
           {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
@@ -350,7 +351,7 @@ function TopBar({ page, onMenu, theme, setTheme, tenantName, tenantLogo }: TopBa
     <ErrorBoundary>
     <header className="flex items-center gap-3 px-4 py-3 border-b"
       style={{ background:'#0d1117', borderColor:'#1e293b' }}>
-      <button onClick={onMenu} className="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400">
+      <button onClick={onMenu} aria-label="فتح القائمة" className="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400">
         <LayoutDashboard className="w-5 h-5" />
       </button>
       {/* شعار المستأجِر — يُعرَض فقط عند وجود رابط فعليّ (لا صورة مكسورة عند null). */}
