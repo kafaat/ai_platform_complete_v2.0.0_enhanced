@@ -264,3 +264,22 @@ def operation_report_csv(
         generated_at=datetime.utcnow().isoformat(),
     )
     return operation_to_csv(report, lang=req.lang)
+
+
+@router.post("/api/v1/reports/build")
+def build_report(
+    body: dict,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """يبني **مواصفة تقرير مُتحقَّق منها** من اختيار المستخدم — دالّة نقيّة (لا قاعدة).
+
+    جسم الطلب هو اختيار التقرير ({"fields": [...], "entity"?, "filters"?}). يُعيد
+    المواصفة المُتحقَّق منها + resolved_fields (metadata الحقول) + warnings (حقول
+    مجهولة/كيان غير صالح...). هذا يُعيد **المواصفة فقط** لا بيانات مُجمَّعة — تجميع
+    البيانات/التصيير (CSV/PDF) متابعة لاحقة. 422 عند اختيار غير صالح بنيويّاً."""
+    from api.report_builder import build_report_spec
+
+    try:
+        return build_report_spec(body)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e

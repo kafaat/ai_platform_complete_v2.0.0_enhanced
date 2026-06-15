@@ -1,0 +1,137 @@
+"""api/routers/sync.py — مزامنة العمليّات (Offline Sync)
+=====================================================================
+شريحة من تفكيك ``api/main.py`` إلى وحدات ``APIRouter`` (نمط P0).
+
+سلوك محفوظ بالكامل: مسارات/أذونات/مخرجات/مخطّط OpenAPI مطابقة تماماً لما كان
+في ``main.py`` — نُقلت الدالّة حرفيّاً مع تغيير ``@app`` إلى ``@router``.
+
+الاعتماديّات المشتركة (التبعيات/النماذج/الثوابت) تبقى مُعرَّفة في ``api.main``
+وتُستورَد من هنا. رموز ``core.offline_first`` (OperationKind/SyncStatus/
+record_operation_offline/apply_supersession) تُستورَد مباشرةً من وحدتها (نفس
+الرموز التي كان main يستوردها — نُقل استيرادها هنا لإزالة F401 من main بعد النقل).
+لتفادي الاستيراد الدائريّ: ``api.main`` يستورد هذا الموجِّه في نهايته فقط.
+"""
+
+from __future__ import annotations
+
+import logging
+from datetime import UTC, datetime
+
+from core.offline_first import (
+    OperationKind,
+    SyncStatus,
+    apply_supersession,
+    record_operation_offline,
+)
+from fastapi import APIRouter, Depends, HTTPException
+
+from api.main import (
+    _DB_POOL,
+    _OFFLINE_QUEUE,
+    SyncBatchRequest,
+    UserSchema,
+    get_current_user,
+    tenant_connection,
+)
+
+router = APIRouter()
+
+
+@router.post("/api/v1/sync")
+async def sync(
+    req: SyncBatchRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """دفعة عمليات من العميل offline-first.
+
+    العميل أنشأ ops محلّياً، يرسلها هنا حين يعود الاتصال.
+    لكلّ عملية: تُكتب للقاعدة فعليّاً (idempotent على op_id)، ثم تُسجَّل النتيجة.
+
+    fail-safe: لو فشلت كتابة عملية، تبقى في الـqueue للمحاولة لاحقاً (لا نُعلن
+    نجاحاً زائفاً). إن لم تكن القاعدة مفعّلة (DATABASE_URL غير مضبوط) تبقى الكلّ
+    في الـqueue.
+    """
+    if req.tenant_id != user.tenant_id:
+        raise HTTPException(status_code=403, detail="Tenant mismatch")
+
+    # ١) نُسجّل عمليّات هذا الطلب في الـqueue. نوع غير معروف ⇒ 400 صريح (لا 500):
+    #    OperationKind(قيمة مجهولة) يرفع ValueError، فنتحقّق قبل الإدخال.
+    op_ids = []
+    for raw_op in req.operations:
+        raw_kind = raw_op.get("kind", "observation_create")
+        try:
+            kind = OperationKind(raw_kind)
+        except ValueError:
+            valid = ", ".join(k.value for k in OperationKind)
+            raise HTTPException(
+                status_code=400,
+                detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
+            ) from None
+        op = record_operation_offline(
+            _OFFLINE_QUEUE,
+            tenant_id=req.tenant_id,
+            user_id=user.user_id,
+            kind=kind,
+            payload=raw_op.get("payload", {}),
+        )
+        op_ids.append(op.op_id)
+
+    # ٢) supersession أوّلاً (لا نُثبّت عمليّات قديمة حلّت محلّها أحدث منها)
+    superseded = apply_supersession(_OFFLINE_QUEUE, req.tenant_id)
+
+    # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
+    #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
+    #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
+    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(req.operations), 1))
+
+    # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
+    #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
+    #    فقط). إن لم تكن القاعدة مفعّلة، تبقى الكلّ QUEUED.
+    started = datetime.now(UTC)
+    synced = 0
+    pending_retry = 0
+    if _DB_POOL is not None:
+        from api.offline_sync_db import persist_synced_operation
+
+        async with tenant_connection(user) as conn:
+            for op in batch:
+                try:
+                    async with conn.transaction():  # savepoint لكلّ عمليّة
+                        await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
+                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
+                    synced += 1
+                except Exception as exc:  # noqa: BLE001 — تبقى QUEUED لإعادة المحاولة
+                    _OFFLINE_QUEUE.mark_status(
+                        req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
+                    )
+                    pending_retry += 1
+                    logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
+    else:
+        pending_retry = len(batch)
+        logging.warning(
+            "sync: DATABASE_URL غير مضبوط — بقيت %d عمليّة QUEUED لإعادة المحاولة", pending_retry
+        )
+
+    duration_ms = round((datetime.now(UTC) - started).total_seconds() * 1000, 2)
+    if not batch:
+        reason = "✅ لا عمليّات معلّقة للـsync"
+    elif pending_retry == 0:
+        reason = f"✅ {synced} عمليّة sync بنجاح"
+    else:
+        reason = f"⚠️ {synced} sync، {pending_retry} بقيت معلّقة لإعادة المحاولة"
+    if superseded:
+        reason += f" (+{superseded} مُلغاة بـsupersession)"
+
+    return {
+        "status": "completed",
+        "synced": synced,
+        # العمليّات غير المُثبّتة تبقى QUEUED لإعادة المحاولة (لا FAILED). نفصل
+        # العدّين: failed=الفشل النهائي الفعلي (0 هنا)، queued=ما سيُعاد.
+        "failed": 0,
+        "queued": pending_retry,
+        "conflicted": 0,
+        "superseded": superseded,
+        "duration_ms": duration_ms,
+        "reason_ar": reason,
+        "op_ids": op_ids,
+    }

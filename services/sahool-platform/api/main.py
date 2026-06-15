@@ -46,13 +46,7 @@ from core.api_adapter import (
 )
 from core.authorization import Permission, has_permission
 from core.canonical_schemas import UserRole, UserSchema
-from core.offline_first import (
-    OfflineQueue,
-    OperationKind,
-    SyncStatus,
-    apply_supersession,
-    record_operation_offline,
-)
+from core.offline_first import OfflineQueue
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -1033,140 +1027,14 @@ class FieldRecommendationRequest(BaseModel):
 # النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
-@app.post("/api/v1/sync")
-async def sync(
-    req: SyncBatchRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """دفعة عمليات من العميل offline-first.
-
-    العميل أنشأ ops محلّياً، يرسلها هنا حين يعود الاتصال.
-    لكلّ عملية: تُكتب للقاعدة فعليّاً (idempotent على op_id)، ثم تُسجَّل النتيجة.
-
-    fail-safe: لو فشلت كتابة عملية، تبقى في الـqueue للمحاولة لاحقاً (لا نُعلن
-    نجاحاً زائفاً). إن لم تكن القاعدة مفعّلة (DATABASE_URL غير مضبوط) تبقى الكلّ
-    في الـqueue.
-    """
-    if req.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=403, detail="Tenant mismatch")
-
-    # ١) نُسجّل عمليّات هذا الطلب في الـqueue. نوع غير معروف ⇒ 400 صريح (لا 500):
-    #    OperationKind(قيمة مجهولة) يرفع ValueError، فنتحقّق قبل الإدخال.
-    op_ids = []
-    for raw_op in req.operations:
-        raw_kind = raw_op.get("kind", "observation_create")
-        try:
-            kind = OperationKind(raw_kind)
-        except ValueError:
-            valid = ", ".join(k.value for k in OperationKind)
-            raise HTTPException(
-                status_code=400,
-                detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
-            ) from None
-        op = record_operation_offline(
-            _OFFLINE_QUEUE,
-            tenant_id=req.tenant_id,
-            user_id=user.user_id,
-            kind=kind,
-            payload=raw_op.get("payload", {}),
-        )
-        op_ids.append(op.op_id)
-
-    # ٢) supersession أوّلاً (لا نُثبّت عمليّات قديمة حلّت محلّها أحدث منها)
-    superseded = apply_supersession(_OFFLINE_QUEUE, req.tenant_id)
-
-    # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
-    #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
-    #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
-    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(req.operations), 1))
-
-    # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
-    #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
-    #    فقط). إن لم تكن القاعدة مفعّلة، تبقى الكلّ QUEUED.
-    started = datetime.now(UTC)
-    synced = 0
-    pending_retry = 0
-    if _DB_POOL is not None:
-        from api.offline_sync_db import persist_synced_operation
-
-        async with tenant_connection(user) as conn:
-            for op in batch:
-                try:
-                    async with conn.transaction():  # savepoint لكلّ عمليّة
-                        await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
-                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
-                    synced += 1
-                except Exception as exc:  # noqa: BLE001 — تبقى QUEUED لإعادة المحاولة
-                    _OFFLINE_QUEUE.mark_status(
-                        req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
-                    )
-                    pending_retry += 1
-                    logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
-    else:
-        pending_retry = len(batch)
-        logging.warning(
-            "sync: DATABASE_URL غير مضبوط — بقيت %d عمليّة QUEUED لإعادة المحاولة", pending_retry
-        )
-
-    duration_ms = round((datetime.now(UTC) - started).total_seconds() * 1000, 2)
-    if not batch:
-        reason = "✅ لا عمليّات معلّقة للـsync"
-    elif pending_retry == 0:
-        reason = f"✅ {synced} عمليّة sync بنجاح"
-    else:
-        reason = f"⚠️ {synced} sync، {pending_retry} بقيت معلّقة لإعادة المحاولة"
-    if superseded:
-        reason += f" (+{superseded} مُلغاة بـsupersession)"
-
-    return {
-        "status": "completed",
-        "synced": synced,
-        # العمليّات غير المُثبّتة تبقى QUEUED لإعادة المحاولة (لا FAILED). نفصل
-        # العدّين: failed=الفشل النهائي الفعلي (0 هنا)، queued=ما سيُعاد.
-        "failed": 0,
-        "queued": pending_retry,
-        "conflicted": 0,
-        "superseded": superseded,
-        "duration_ms": duration_ms,
-        "reason_ar": reason,
-        "op_ids": op_ids,
-    }
+# نقطة /api/v1/sync نُقلت إلى api/routers/sync.py (نمط P0) — والاستيرادات المرافقة
+# (OperationKind/SyncStatus/apply_supersession/record_operation_offline من
+# core.offline_first) نُقلت معها لإزالة F401. النموذج SyncBatchRequest يبقى هنا.
 
 
-@app.get("/api/v1/queue/status")
-def queue_status(user: UserSchema = Depends(get_current_user)):
-    """حالة الـoffline queue للـtenant الحالي."""
-    from core.offline_first import queue_summary
-
-    return queue_summary(_OFFLINE_QUEUE, user.tenant_id)
-
-
-@app.get("/api/v1/capabilities")
-def list_capabilities(user: UserSchema = Depends(get_current_user)):
-    """بوّابة القدرات المشروطة: أيّ قدرة مؤجَّلة مُفعَّلة/خاملة وكيف تُشغَّل.
-    لا يكشف أسراراً — قِيَم منطقيّة + تعليمات تفعيل فقط (شفافيّة تشغيليّة)."""
-    from core.capabilities import capabilities_report
-
-    return capabilities_report()
-
-
-@app.post("/api/v1/reports/build")
-def build_report(
-    body: dict,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """يبني **مواصفة تقرير مُتحقَّق منها** من اختيار المستخدم — دالّة نقيّة (لا قاعدة).
-
-    جسم الطلب هو اختيار التقرير ({"fields": [...], "entity"?, "filters"?}). يُعيد
-    المواصفة المُتحقَّق منها + resolved_fields (metadata الحقول) + warnings (حقول
-    مجهولة/كيان غير صالح...). هذا يُعيد **المواصفة فقط** لا بيانات مُجمَّعة — تجميع
-    البيانات/التصيير (CSV/PDF) متابعة لاحقة. 422 عند اختيار غير صالح بنيويّاً."""
-    from api.report_builder import build_report_spec
-
-    try:
-        return build_report_spec(body)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+# نقطة /api/v1/queue/status نُقلت إلى api/routers/queue.py،
+# /api/v1/capabilities إلى api/routers/capabilities.py، و/api/v1/reports/build إلى
+# api/routers/reports.py (مع بقيّة /reports) — نمط P0.
 
 
 def _centroid_from_bbox(bbox: dict | None) -> tuple[float | None, float | None]:
@@ -1626,16 +1494,8 @@ class BoundaryCleanRequest(BaseModel):
 # _rebuild_pydantic_models واستيرادات الاختبارات.
 
 
-@app.get("/api/v1/geo/reverse")
-def geo_reverse_endpoint(
-    lat: float,
-    lon: float,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """كشف عكسي خفيف: مركز الحقل → {country, region} — لعرض الموقع المكتشف آليّاً
-    في الواجهة فور رسم المضلّع (قبل الحفظ). دالّة نقيّة (لا قاعدة)."""
-    country, region = _reverse_geocode(lat, lon)
-    return {"country": country, "region": region}
+# نقطة /api/v1/geo/reverse نُقلت إلى api/routers/geo.py (نمط P0) — والمساعِد
+# _reverse_geocode يبقى هنا (يستخدمه أيضاً معالِج إنشاء الحقل) ويُستورَد من الموجِّه.
 
 
 # ─── المواسم الزراعيّة (Seasons) — نمط FieldView (v32) ────────────
@@ -3911,11 +3771,10 @@ class IrrigationConfRequest(BaseModel):
 
 
 # ─── ٥. Failure detection ────────────────────────────────────────
-from api.failure_modes import (  # noqa: E402
-    detect_sentinel_issues,
-    detect_soil_issues,
-    detect_weather_issues,
-)
+# نقطة /api/v1/failures/check نُقلت إلى api/routers/failures.py (نمط P0) —
+# والاستيرادات المرافقة (detect_sentinel_issues/detect_soil_issues/
+# detect_weather_issues) نُقلت معها لإزالة F401. النموذج FailureCheckRequest
+# يبقى هنا (يُستورَد من الموجِّه + _rebuild_pydantic_models).
 
 
 class FailureCheckRequest(BaseModel):
@@ -3923,27 +3782,6 @@ class FailureCheckRequest(BaseModel):
     days_since_observation: int | None = None
     weather_hours_since_update: int | None = None
     soil: dict | None = None
-
-
-@app.post("/api/v1/failures/check")
-def check_failures(
-    req: FailureCheckRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يفحص حالات الفشل المعروفة (سحب، طقس قديم، تربة)."""
-    failures = []
-    if req.cloud_pct is not None and req.days_since_observation is not None:
-        f = detect_sentinel_issues(req.cloud_pct, req.days_since_observation)
-        if f:
-            failures.append(f.to_dict())
-    if req.weather_hours_since_update is not None:
-        f = detect_weather_issues(req.weather_hours_since_update)
-        if f:
-            failures.append(f.to_dict())
-    if req.soil:
-        for f in detect_soil_issues(req.soil):
-            failures.append(f.to_dict())
-    return {"failures": failures, "count": len(failures)}
 
 
 # ─── ٦. Temporal arbitration ─────────────────────────────────────
@@ -4403,8 +4241,9 @@ class DiagnoseRequest(BaseModel):
 
 # ─── ٢١. بوابة الثقة الموحّدة (مُستلهَمة من DSS، مُكيّفة بصدق) ────
 # تجمع إشارات المحرّكات وتقرّر: واثقة/مراجعة/محجوبة. لا ML غامض.
-from api.confidence_gate import EngineSignal  # noqa: E402
-from api.confidence_gate import evaluate as _gate_eval  # noqa: E402
+# نقطة /api/v1/confidence-gate نُقلت إلى api/routers/confidence_gate.py (نمط P0) —
+# والاستيرادان المرافقان (EngineSignal/evaluate) نُقلا معها لإزالة F401. النماذج
+# (EngineSignalInput/ConfidenceGateRequest) تبقى هنا (تُستورَد من الموجِّه).
 
 
 class EngineSignalInput(BaseModel):
@@ -4419,25 +4258,6 @@ class ConfidenceGateRequest(BaseModel):
     signals: list[EngineSignalInput]
 
 
-@app.post("/api/v1/confidence-gate")
-def confidence_gate(
-    req: ConfidenceGateRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقيّم إشارات المحرّكات ويقرّر مستوى الثقة (واثقة/مراجعة/محجوبة)."""
-    signals = [
-        EngineSignal(
-            engine=s.engine,
-            has_recommendation=s.has_recommendation,
-            confidence=s.confidence,
-            blocking_reason_ar=s.blocking_reason_ar,
-            data_gaps_ar=s.data_gaps_ar,
-        )
-        for s in req.signals
-    ]
-    return _gate_eval(signals).to_dict()
-
-
 class EscalationAssessRequest(BaseModel):
     """تقييم تصعيد الشكّ لإنسان من ثقة مصدر (محرّك/RAG)."""
 
@@ -4445,28 +4265,6 @@ class EscalationAssessRequest(BaseModel):
     source: str = Field(min_length=1, max_length=60)
     has_answer: bool = True
     uncertain_points: list[str] = Field(default_factory=list)
-
-
-@app.post("/api/v1/escalation/assess")
-def escalation_assess(
-    req: EscalationAssessRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقرّر تصعيد الشكّ لإنسان من ثقة مصدر (محرّك/RAG) — actionable (مستلِم/أولويّة/مجهول).
-
-    يعمّم مبدأ confidence_gate لأيّ مصدر ثقة (لا المحرّكات فقط): بلا سند/ثقة كافية →
-    تصعيد لمرشد زراعي لا إجابة مولّدة (human-in-the-loop). confidence=None أو
-    has_answer=false ⇒ BLOCKED (لا تأليف). للمحرّكات استعمل /confidence-gate ثمّ
-    escalation_from_gate.
-    """
-    from core.engines.human_escalation import assess_escalation
-
-    return assess_escalation(
-        req.confidence,
-        source=req.source,
-        has_answer=req.has_answer,
-        uncertain_points=req.uncertain_points,
-    )
 
 
 class ExternalPriorBlendRequest(BaseModel):
@@ -4550,7 +4348,9 @@ class WhatIfRainRequest(BaseModel):
 
 
 # ─── ٢٤. تظافر القرائن ودرجات التوصية (اتّفاق: القرائن المتظافرة ترقى) ─
-from api.evidence_corroboration import Evidence, EvidenceType, corroborate  # noqa: E402
+# نقطة /api/v1/evidence/corroborate نُقلت إلى api/routers/evidence.py (نمط P0) —
+# والاستيراد المرافق (Evidence/EvidenceType/corroborate) نُقل معها لإزالة F401.
+# النماذج (EvidenceInput/CorroborationRequest) تبقى هنا (تُستورَد من الموجِّه).
 
 
 class EvidenceInput(BaseModel):
@@ -4563,21 +4363,6 @@ class CorroborationRequest(BaseModel):
     evidences: list[EvidenceInput]
     recommendation_key: str = "general"
     test_type_ar: str = "تربة"
-
-
-@app.post("/api/v1/evidence/corroborate")
-def evidence_corroborate(
-    req: CorroborationRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يحدّد درجة التوصية (إرشاديّة/مؤيَّدة/مؤكَّدة) بتظافر القرائن + حضّ على الفحص."""
-    try:
-        evs = [Evidence(EvidenceType(e.etype), e.agrees, e.note_ar) for e in req.evidences]
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=f"نوع قرينة غير معروف: {e}") from e
-    return corroborate(
-        evs, recommendation_key=req.recommendation_key, test_type_ar=req.test_type_ar
-    ).to_dict()
 
 
 # ─── ٢٥. التقويم الثقافي (عرض فقط — خارج محرّك القرار صراحةً) ────
@@ -4735,14 +4520,7 @@ class OutcomeRecordRequest(BaseModel):
 # (نمط P0) — النموذج OutcomeRecordRequest يبقى هنا (نماذج/تبعيات لا تُنقَل).
 
 
-@app.get("/api/v1/indices/coverage-report")
-def indices_coverage_report(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """تقرير شفّاف: أيّ مؤشّرات طيفيّة مربوطة بالقرار وأيّها عرض/سياق (حوكمة)."""
-    from core.engines.spectral_stress_bridge import index_coverage_report
-
-    return index_coverage_report()
+# نقطة /api/v1/indices/coverage-report نُقلت إلى api/routers/indices.py (نمط P0).
 
 
 # نقاط /api/v1/crops/* (drought-resilience) نُقلت إلى api/routers/crops.py (نمط P0).
@@ -4895,19 +4673,9 @@ class FeasibilityRequest(BaseModel):
 
 
 # ─── ٤٤. تحديد الإقليم من إحداثيّات الحقل (GPS → محافظة + إقليم + مناخ) ──
-from api.geo_zone_locator import locate_and_recommend, locate_field  # noqa: E402
-
-
-@app.get("/api/v1/geo-locate/field")
-def geo_locate_field_endpoint(lat: float, lon: float, elevation_m: float | None = None):
-    """يحدّد المحافظة + الإقليم المناخي + المناخ من إحداثيّات الحقل (GPS)."""
-    return locate_field(lat, lon, elevation_m)
-
-
-@app.get("/api/v1/geo-locate/recommend")
-def geo_locate_recommend_endpoint(lat: float, lon: float, elevation_m: float | None = None):
-    """تحديد الموقع + توصية مباشرة بالمحاصيل الملائمة (تدفّق كامل)."""
-    return locate_and_recommend(lat, lon, elevation_m)
+# نقطتا /api/v1/geo-locate/{field,recommend} نُقلتا إلى api/routers/geo_locate.py
+# (نمط P0) — والاستيراد المرافق (locate_field/locate_and_recommend) نُقل معها لإزالة
+# F401. (الكشف العكسي _reverse_geocode يبقى هنا — يستورد locate_field كسولاً داخله.)
 
 
 # ─── ٤٥. نوافذ المخاطر المناخيّة الموسميّة + ساعات البرودة ──
@@ -4963,37 +4731,8 @@ def geo_locate_recommend_endpoint(lat: float, lon: float, elevation_m: float | N
 
 
 # ─── ٥٧. الحالة التشغيليّة الموحّدة للحقل ──
-from api.field_operational_state import resolve_field_state  # noqa: E402
-
-
-@app.get("/api/v1/field/operational-state")
-def field_operational_state_endpoint(
-    field_id: str,
-    confidence_level: str | None = None,
-    irrigation_delta_pct: float | None = None,
-    rain_forecast_mm: float | None = None,
-    soil_moisture_ratio: float | None = None,
-    et0_mm: float | None = None,
-    ndvi_age_days: float | None = None,
-    soil_age_days: float | None = None,
-    weather_age_hours: float | None = None,
-):
-    """يركّب النضارة + الثقة + التناقض في حالة تشغيليّة واحدة رسميّة.
-
-    يُرجع: validity (valid/degraded/conflicted/insufficient) + نمط التنفيذ
-    (auto/human_review/blocked) + الأسباب. تركيب شفّاف للمكوّنات الموجودة.
-    """
-    return resolve_field_state(
-        field_id,
-        confidence_level,
-        irrigation_delta_pct,
-        rain_forecast_mm,
-        soil_moisture_ratio,
-        et0_mm,
-        ndvi_age_days,
-        soil_age_days,
-        weather_age_hours,
-    ).to_dict()
+# نقطة /api/v1/field/operational-state نُقلت إلى api/routers/field_single.py (نمط P0)
+# — والاستيراد المرافق (resolve_field_state) نُقل معها لإزالة F401.
 
 
 # ─── ٥٧-ب. الحالة القانونيّة الموحّدة للحقل (Canonical Field State — Phase 1) ──
@@ -5105,44 +4844,6 @@ class EdgeSyncRequest(BaseModel):
     field_id: str | None = None
 
 
-@app.post("/api/v1/edge/sync")
-@app.post("/v1/edge/sync")
-async def edge_sync_receive(
-    req: EdgeSyncRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يستقبل نتيجة من جهاز edge ويكتبها مع منع التكرار.
-
-    Hardening: ON CONFLICT على idempotency_key → إعادة الإرسال بعد انقطاع
-    الشبكة لا تُكرّر الصفّ. الهويّة من التوكن لا الجسم (أمان)."""
-    import json as _json
-
-    async with tenant_connection(user) as conn:
-        row = await conn.fetchrow(
-            """INSERT INTO edge_results
-                 (field_id, tenant_id, result_type, device, offline_mode,
-                  synced, result_data, idempotency_key, occurred_at)
-               VALUES ($1, $2::uuid, $3, $4, true, true, $5::jsonb, $6,
-                       COALESCE($7::timestamptz, NOW()))
-               ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL
-               DO NOTHING
-               RETURNING id""",
-            req.field_id,
-            str(user.tenant_id),
-            req.type,
-            req.device_id,
-            _json.dumps(req.data, ensure_ascii=False),
-            req.idempotency_key,
-            req.occurred_at,
-        )
-    # row=None يعني التكرار رُفض (نجح سابقاً) — نُرجع نجاحاً (idempotent)
-    return {
-        "status": "stored" if row else "duplicate_ignored",
-        "id": row["id"] if row else None,
-        "idempotency_key": req.idempotency_key,
-    }
-
-
 # ─── Entry point للتطوير ─────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -5167,84 +4868,6 @@ if __name__ == "__main__":
 # Field Intelligence — endpoint التشغيل الحيّ للمايسترو
 # يربط: auth → tenant → محوّلات حيّة → المايسترو → الحالة → حدث الحفظ
 # ═══════════════════════════════════════════════════════════════════
-@app.post("/api/v1/field-intelligence/analyze")
-def field_intelligence_analyze(
-    field_id: str,
-    lat: float | None = None,
-    lon: float | None = None,
-    crop: str | None = None,
-    notify: bool = False,
-    authorization: str = Header(None),
-    user: UserSchema = Depends(get_current_user),
-):
-    """يُشغّل المسار الكامل للمايسترو لحقل ويُرجِع الحالة الموحّدة + القرار.
-
-    سيادة البيانات: tenant_id من التوكن (موثوق) لا من الجسم (لا spoofing).
-    المصادر: محوّلات HTTP حيّة (weather/soil/raster). المتعذّر يُعلَن بصدق.
-    الحالة الناتجة جاهزة للحفظ في events (state_to_event_row) كذاكرة موسميّة.
-    """
-    from core.agronomic_state_engine import state_to_event_row
-    from core.alert_engine import evaluate_alerts, summarize_alerts
-    from core.correlation import set_correlation
-    from core.field_intelligence_adapters import build_live_adapters
-    from core.field_intelligence_coordinator import FieldRequest, run_field_intelligence
-
-    # ربط موحّد: correlation_id يمرّ بكلّ ما ينتج عن هذا الطلب (workflow/
-    # events/alerts) — لتتبّع "ماذا أنتج ماذا" عبر الخدمات (نمط OpenTelemetry).
-    correlation_id = set_correlation()
-
-    # tenant_id من التوكن الموثوق (لا من جسم الطلب — حماية multi-tenant)
-    req = FieldRequest(field_id=field_id, lat=lat, lon=lon, crop=crop, tenant_id=user.tenant_id)
-    # تمرير رأس التفويض للمحوّلات المحميّة (memory/simulate تنادي نقاط JWT داخليّة)
-    adapters = build_live_adapters(authorization=authorization)
-    result = run_field_intelligence(req, **adapters)
-
-    state = result.canonical_state
-    # التنبيهات الاستباقيّة: من الحالة الموحّدة (change_detection/FVC يُمرَّران عند
-    # توفّرهما من العامل — هنا الحالة فقط، فالمحرّك سلبيّ→استباقيّ على ما هو متاح).
-    alerts = evaluate_alerts(state)
-    # التوصيل اختياريّ (notify=true): warning فأعلى عبر القنوات المُهيّأة. صدق:
-    # الإرسال الخارجي يحدث فقط عند تهيئة القناة (لا ادّعاء إرسال).
-    alerts_delivery = None
-    if notify and alerts:
-        from core.alert_delivery import deliver_alerts
-
-        alerts_delivery = deliver_alerts(
-            alerts,
-            context={
-                "field_id": state.field_id,
-                "tenant_id": state.tenant_id,
-                "now": state.generated_at,
-            },
-        )
-    # حدث الحفظ جاهز (الكتابة الفعليّة في events عبر event_bus على بيئة التشغيل)
-    try:
-        event_row = state_to_event_row(state, actor_id=user.user_id)
-    except ValueError:
-        event_row = None  # بلا tenant — لا يُحفَظ (لن يحدث: tenant من التوكن)
-
-    return {
-        "field_id": state.field_id,
-        "tenant_id": state.tenant_id,
-        "generated_at": state.generated_at,
-        "operational_truths": state.operational_truths,
-        "confidence": state.confidence,
-        "confidence_reason": state.confidence_reason,
-        "provenance": state.provenance,
-        "contradictions": state.contradictions,
-        "missing_signals": state.missing_signals,
-        "policy_decision": result.policy_decision,
-        "governance": result.governance,
-        "farm_memory_context": result.farm_memory_context,  # السياق التاريخي
-        "correlation_id": correlation_id,  # خيط التتبّع الموحّد (OpenTelemetry-style)
-        "simulation": result.simulation,  # أثر what-if المتوقّع
-        "alerts": alerts,  # تنبيهات استباقيّة مُصنّفة (محرّك التنبيهات)
-        "alerts_summary": summarize_alerts(alerts),
-        "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
-        "_persistable_event": event_row,  # جاهز للإدراج في events table
-    }
-
-
 # ═══════════════════════════════════════════════════════════════════
 # تحليل ماء الريّ — endpoint حيّ يستدعي irrigation_water_analysis (كان معزولاً)
 # نقيّ-حسابيّ (SAR/RSC + تصنيف FAO-29/USDA-197/USSL)، بلا قاعدة. tenant من التوكن.
@@ -5309,49 +4932,6 @@ class PestEscalationRequest(BaseModel):
     approval_status: str | None = None
 
 
-@app.post("/api/v1/pest-escalation/run")
-async def pest_escalation_run(
-    req: PestEscalationRequest,
-    user: UserSchema = Depends(require_permission(Permission.PESTICIDE_APPROVE)),
-):
-    """يشغّل/يستأنف تدفّق تصعيد الآفة (durable + HIL).
-
-    أوّل نداء (بـpest_type/severity): يصل لخطوة الموافقة ثمّ يُعلَّق (suspended).
-    نداء ثانٍ بنفس workflow_id + approval_status=approved: يُستأنف فينفّذ ثمّ يُتابع.
-    سيادة: tenant_id من التوكن (لا من الجسم). HIL: لا تنفيذ قبل موافقة الخبير."""
-    import asyncio as _aio
-
-    from core.correlation import set_correlation
-    from core.pest_escalation_flow import run_pest_escalation
-    from core.workflow_engine import workflow_trace
-
-    set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
-    initial: dict = {}
-    if req.pest_type is not None:
-        initial["pest_type"] = req.pest_type
-    if req.severity:
-        initial["severity"] = req.severity
-    if req.field_id:
-        initial["field_id"] = req.field_id
-    if req.approval_status:
-        initial["approval_status"] = req.approval_status
-
-    store = _get_workflow_store(str(user.tenant_id))  # سياق RLS للقراءة/الاستئناف
-    # المخزن المعمّر متزامن (asyncio.run داخليّاً) ⇒ نُشغّله في thread لا في الحلقة
-    state = await _aio.to_thread(
-        run_pest_escalation,
-        req.workflow_id,
-        store=store,
-        tenant_id=str(user.tenant_id),
-        initial_context=initial or None,
-    )
-    return {
-        "workflow": workflow_trace(state),
-        "context": state.context,
-        "step_results": state.step_results,
-    }
-
-
 # ── OpenAPI FIX: إعادة بناء نماذج pydantic ذات التعليقات المؤجّلة ──────────
 # مع `from __future__ import annotations` تصبح كل التعليقات نصوصاً مؤجّلة، فبعض
 # النماذج (forward refs) تحتاج model_rebuild() وإلّا يفشل توليد مخطّط OpenAPI
@@ -5395,10 +4975,14 @@ from api.routers.calendars import router as calendars_router  # noqa: E402
 
 # الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
 from api.routers.cameras import router as cameras_router  # noqa: E402
+
+# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
+from api.routers.capabilities import router as capabilities_router  # noqa: E402
 from api.routers.chemical_safety import router as chemical_safety_router  # noqa: E402
 from api.routers.climate_analogs import router as climate_analogs_router  # noqa: E402
 from api.routers.coffee import router as coffee_router  # noqa: E402
 from api.routers.confidence import router as confidence_router  # noqa: E402
+from api.routers.confidence_gate import router as confidence_gate_router  # noqa: E402
 from api.routers.consistency import router as consistency_router  # noqa: E402
 from api.routers.crop_suitability import router as crop_suitability_router  # noqa: E402
 from api.routers.crops import router as crops_router  # noqa: E402
@@ -5409,12 +4993,23 @@ from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.diagnose import router as diagnose_router  # noqa: E402
 from api.routers.documents import router as documents_router  # noqa: E402
 from api.routers.economics import router as economics_router  # noqa: E402
+from api.routers.edge import router as edge_router  # noqa: E402
 from api.routers.equipment import router as equipment_router  # noqa: E402
+from api.routers.escalation import router as escalation_router  # noqa: E402
+from api.routers.evidence import router as evidence_router  # noqa: E402
+from api.routers.failures import router as failures_router  # noqa: E402
+from api.routers.field_intelligence import (  # noqa: E402
+    router as field_intelligence_router,
+)
+from api.routers.field_single import router as field_single_router  # noqa: E402
 from api.routers.fields import router as fields_router  # noqa: E402
 from api.routers.fodder_alternatives import router as fodder_alternatives_router  # noqa: E402
 from api.routers.gdd import router as gdd_router  # noqa: E402
+from api.routers.geo import router as geo_router  # noqa: E402
+from api.routers.geo_locate import router as geo_locate_router  # noqa: E402
 from api.routers.high_value_crops import router as high_value_crops_router  # noqa: E402
 from api.routers.indicators import router as indicators_router  # noqa: E402
+from api.routers.indices import router as indices_router  # noqa: E402
 from api.routers.introduction import router as introduction_router  # noqa: E402
 from api.routers.inventory import router as inventory_router  # noqa: E402
 from api.routers.ipm import router as ipm_router  # noqa: E402
@@ -5427,10 +5022,12 @@ from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
 from api.routers.onboarding import router as onboarding_router  # noqa: E402
 from api.routers.orchard import router as orchard_router  # noqa: E402
+from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
+from api.routers.queue import router as queue_router  # noqa: E402
 from api.routers.recommendations import router as recommendations_router  # noqa: E402
 from api.routers.regional_calendar import router as regional_calendar_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
@@ -5446,6 +5043,7 @@ from api.routers.settings import router as settings_router  # noqa: E402
 from api.routers.sharing import router as sharing_router  # noqa: E402
 from api.routers.simulate import router as simulate_router  # noqa: E402
 from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
+from api.routers.sync import router as sync_router  # noqa: E402
 from api.routers.temporal import router as temporal_router  # noqa: E402
 from api.routers.trials import router as trials_router  # noqa: E402
 from api.routers.water_balance import router as water_balance_router  # noqa: E402
@@ -5526,3 +5124,18 @@ app.include_router(salinity_router)
 app.include_router(postharvest_router)
 app.include_router(sampling_router)
 app.include_router(fields_router)
+# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
+app.include_router(sync_router)
+app.include_router(queue_router)
+app.include_router(capabilities_router)
+app.include_router(geo_router)
+app.include_router(failures_router)
+app.include_router(confidence_gate_router)
+app.include_router(escalation_router)
+app.include_router(evidence_router)
+app.include_router(indices_router)
+app.include_router(geo_locate_router)
+app.include_router(field_single_router)
+app.include_router(edge_router)
+app.include_router(field_intelligence_router)
+app.include_router(pest_escalation_router)
