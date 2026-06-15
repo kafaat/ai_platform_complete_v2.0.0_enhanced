@@ -103,6 +103,15 @@ def test_summary_ranks_top_priority():
 
 @pytest.mark.unit
 def test_engine_wired_into_endpoint():
-    main = open(os.path.join(ROOT, "services/sahool-platform/api/main.py"), encoding="utf-8").read()
+    # نقطة field-intelligence نُقلت إلى api/routers/field_intelligence.py (تفكيك main،
+    # نمط P0) — نبحث في main.py + موجِّهات api/routers معاً (location-agnostic).
+    api_dir = os.path.join(ROOT, "services/sahool-platform/api")
+    sources = [os.path.join(api_dir, "main.py")]
+    routers_dir = os.path.join(api_dir, "routers")
+    if os.path.isdir(routers_dir):
+        sources += [
+            os.path.join(routers_dir, f) for f in os.listdir(routers_dir) if f.endswith(".py")
+        ]
+    main = "\n".join(open(p, encoding="utf-8").read() for p in sources if os.path.isfile(p))
     assert "from core.alert_engine import evaluate_alerts" in main
     assert '"alerts": alerts' in main and '"alerts_summary"' in main

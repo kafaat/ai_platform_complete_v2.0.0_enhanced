@@ -31,7 +31,6 @@ import logging
 import os
 import secrets
 import sys
-import time
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
@@ -46,13 +45,7 @@ from core.api_adapter import (
 )
 from core.authorization import Permission, has_permission
 from core.canonical_schemas import UserRole, UserSchema
-from core.offline_first import (
-    OfflineQueue,
-    OperationKind,
-    SyncStatus,
-    apply_supersession,
-    record_operation_offline,
-)
+from core.offline_first import OfflineQueue
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -887,134 +880,9 @@ def readyz():
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
-@app.post("/api/v1/auth/login", response_model=TokenResponse)
-def login(req: LoginRequest):
-    """تسجيل دخول dev-mode (بلا كلمة مرور). مُعطَّل افتراضيّاً في كلّ البيئات؛
-    لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير الإنتاج. غير ذلك ⇒ 403.
-    المصادقة الحقيقيّة عبر خدمة sahool-auth (/auth/login بـbcrypt)."""
-    # C1 FIX: هذه نقطة تطوير تُصدر JWT بلا كلمة مرور. مُعطَّلة افتراضيّاً (وفي
-    # الإنتاج دائماً) — لا تُفعَّل إلّا بإقرار صريح SAHOOL_DEV_AUTH=1 في غير الإنتاج.
-    # يمنع تجاوز المصادقة وانهيار عزل المستأجرين لو أصابت الطلبات هذه النقطة.
-    if not _DEV_AUTH_ENABLED:
-        raise HTTPException(
-            status_code=403,
-            detail="نقطة dev معطّلة — استخدم خدمة المصادقة (/auth/login).",
-        )
-    # هنا: dev-mode فقط، نقبل أيّ user_id صالح
-    try:
-        role = UserRole(req.role)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid role: {req.role}") from None
-
-    user = UserSchema(
-        user_id=req.user_id,
-        tenant_id=req.tenant_id,
-        role=role,
-        name_ar=req.name_ar,
-    )
-    token = create_token(user)
-
-    return TokenResponse(
-        access_token=token,
-        expires_in=JWT_EXPIRY_HOURS * 3600,
-        user={
-            "user_id": user.user_id,
-            "tenant_id": user.tenant_id,
-            "role": user.role.value,
-            "name_ar": user.name_ar,
-        },
-    )
-
-
-@app.get("/api/v1/me")
-def me(user: UserSchema = Depends(get_current_user)):
-    """بيانات المستخدم الحالي (الهوية + المستأجر + الدور)."""
-    return {
-        "user_id": user.user_id,
-        "tenant_id": user.tenant_id,
-        "role": user.role.value,
-        "name_ar": user.name_ar,
-    }
-
-
-# ─── auth endpoints التي يطلبها التطبيق (مطابقة contract) ─────────
-# جلسة المطابقة: الموبايل (authService.ts) يستدعي /api/v1/auth/{me,logout,signup}
-# لكنّها لم تكن موجودة → تسجيل الدخول/الخروج كان يفشل بـ404.
-
-
-@app.get("/api/v1/auth/me")
-def auth_me(user: UserSchema = Depends(get_current_user)):
-    """alias لـ/api/v1/me — التطبيق يستدعي هذا المسار."""
-    return {
-        "user": {
-            "user_id": user.user_id,
-            "tenant_id": user.tenant_id,
-            "role": user.role.value,
-            "name_ar": user.name_ar,
-        }
-    }
-
-
-@app.post("/api/v1/auth/logout")
-def auth_logout(
-    authorization: str = Header(None),
-    user: UserSchema = Depends(get_current_user),
-):
-    """تسجيل خروج — يُبطِل التوكن فعليّاً عبر denylist (jti) لا على الجهاز فقط.
-
-    يُضيف jti التوكن للقائمة بمهلة = ما تبقّى حتى انتهائه، فيُرفَض في الطلبات اللاحقة
-    (get_current_user يستشير القائمة). fail-safe: فشل الإبطال لا يكسر الخروج.
-    """
-    token = (authorization or "").replace("Bearer ", "", 1)
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
-        # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
-        if payload.get("iss") not in _ALLOWED_ISS:
-            raise InvalidTokenError("Invalid token issuer")
-        jti = payload.get("jti")
-        exp = payload.get("exp")
-        if jti and exp:
-            ttl = max(1, int(exp) - int(time.time()))
-            _DENYLIST.revoke(jti, ttl)
-    except Exception as e:  # noqa: BLE001 — فشل الإبطال لا يكسر الخروج (العميل يحذف التوكن)
-        logger.warning("logout: تعذّر إبطال التوكن: %s", e)
-    return {"status": "logged_out", "message_ar": "تمّ تسجيل الخروج"}
-
-
-@app.post("/api/v1/auth/signup", response_model=TokenResponse)
-def auth_signup(req: LoginRequest):
-    """تسجيل مستخدم جديد (dev-mode — نفس منطق login بلا كلمة مرور).
-
-    مُعطَّل افتراضيّاً في كلّ البيئات؛ لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير
-    الإنتاج. غير ذلك ⇒ 403. التسجيل الحقيقيّ عبر خدمة auth (DB + bcrypt).
-    """
-    # C1 FIX: نفس منطق login بلا كلمة مرور → مُعطَّل افتراضيّاً وفي الإنتاج دائماً.
-    if not _DEV_AUTH_ENABLED:
-        raise HTTPException(
-            status_code=403,
-            detail="نقطة dev معطّلة — استخدم خدمة المصادقة.",
-        )
-    try:
-        role = UserRole(req.role)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid role: {req.role}") from None
-    user = UserSchema(
-        user_id=req.user_id,
-        tenant_id=req.tenant_id,
-        role=role,
-        name_ar=req.name_ar,
-    )
-    token = create_token(user)
-    return TokenResponse(
-        access_token=token,
-        expires_in=JWT_EXPIRY_HOURS * 3600,
-        user={
-            "user_id": user.user_id,
-            "tenant_id": user.tenant_id,
-            "role": user.role.value,
-            "name_ar": user.name_ar,
-        },
-    )
+# نقاط /api/v1/auth/{login,me,logout,signup} نُقلت إلى api/routers/auth.py (نمط P0).
+# نقطة /api/v1/me نُقلت إلى api/routers/me.py (نمط P0). النماذج (LoginRequest/
+# TokenResponse) والتبعيات/الأسرار تبقى هنا وتُستورَد من الموجِّهات (نماذج/تبعيات لا تُنقَل).
 
 
 # نقطتا /api/v1/recommendations و /api/v1/recommendations/for-field نُقلتا إلى
@@ -1033,140 +901,14 @@ class FieldRecommendationRequest(BaseModel):
 # النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
-@app.post("/api/v1/sync")
-async def sync(
-    req: SyncBatchRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """دفعة عمليات من العميل offline-first.
-
-    العميل أنشأ ops محلّياً، يرسلها هنا حين يعود الاتصال.
-    لكلّ عملية: تُكتب للقاعدة فعليّاً (idempotent على op_id)، ثم تُسجَّل النتيجة.
-
-    fail-safe: لو فشلت كتابة عملية، تبقى في الـqueue للمحاولة لاحقاً (لا نُعلن
-    نجاحاً زائفاً). إن لم تكن القاعدة مفعّلة (DATABASE_URL غير مضبوط) تبقى الكلّ
-    في الـqueue.
-    """
-    if req.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=403, detail="Tenant mismatch")
-
-    # ١) نُسجّل عمليّات هذا الطلب في الـqueue. نوع غير معروف ⇒ 400 صريح (لا 500):
-    #    OperationKind(قيمة مجهولة) يرفع ValueError، فنتحقّق قبل الإدخال.
-    op_ids = []
-    for raw_op in req.operations:
-        raw_kind = raw_op.get("kind", "observation_create")
-        try:
-            kind = OperationKind(raw_kind)
-        except ValueError:
-            valid = ", ".join(k.value for k in OperationKind)
-            raise HTTPException(
-                status_code=400,
-                detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
-            ) from None
-        op = record_operation_offline(
-            _OFFLINE_QUEUE,
-            tenant_id=req.tenant_id,
-            user_id=user.user_id,
-            kind=kind,
-            payload=raw_op.get("payload", {}),
-        )
-        op_ids.append(op.op_id)
-
-    # ٢) supersession أوّلاً (لا نُثبّت عمليّات قديمة حلّت محلّها أحدث منها)
-    superseded = apply_supersession(_OFFLINE_QUEUE, req.tenant_id)
-
-    # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
-    #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
-    #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
-    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(req.operations), 1))
-
-    # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
-    #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
-    #    فقط). إن لم تكن القاعدة مفعّلة، تبقى الكلّ QUEUED.
-    started = datetime.now(UTC)
-    synced = 0
-    pending_retry = 0
-    if _DB_POOL is not None:
-        from api.offline_sync_db import persist_synced_operation
-
-        async with tenant_connection(user) as conn:
-            for op in batch:
-                try:
-                    async with conn.transaction():  # savepoint لكلّ عمليّة
-                        await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
-                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
-                    synced += 1
-                except Exception as exc:  # noqa: BLE001 — تبقى QUEUED لإعادة المحاولة
-                    _OFFLINE_QUEUE.mark_status(
-                        req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
-                    )
-                    pending_retry += 1
-                    logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
-    else:
-        pending_retry = len(batch)
-        logging.warning(
-            "sync: DATABASE_URL غير مضبوط — بقيت %d عمليّة QUEUED لإعادة المحاولة", pending_retry
-        )
-
-    duration_ms = round((datetime.now(UTC) - started).total_seconds() * 1000, 2)
-    if not batch:
-        reason = "✅ لا عمليّات معلّقة للـsync"
-    elif pending_retry == 0:
-        reason = f"✅ {synced} عمليّة sync بنجاح"
-    else:
-        reason = f"⚠️ {synced} sync، {pending_retry} بقيت معلّقة لإعادة المحاولة"
-    if superseded:
-        reason += f" (+{superseded} مُلغاة بـsupersession)"
-
-    return {
-        "status": "completed",
-        "synced": synced,
-        # العمليّات غير المُثبّتة تبقى QUEUED لإعادة المحاولة (لا FAILED). نفصل
-        # العدّين: failed=الفشل النهائي الفعلي (0 هنا)، queued=ما سيُعاد.
-        "failed": 0,
-        "queued": pending_retry,
-        "conflicted": 0,
-        "superseded": superseded,
-        "duration_ms": duration_ms,
-        "reason_ar": reason,
-        "op_ids": op_ids,
-    }
+# نقطة /api/v1/sync نُقلت إلى api/routers/sync.py (نمط P0) — والاستيرادات المرافقة
+# (OperationKind/SyncStatus/apply_supersession/record_operation_offline من
+# core.offline_first) نُقلت معها لإزالة F401. النموذج SyncBatchRequest يبقى هنا.
 
 
-@app.get("/api/v1/queue/status")
-def queue_status(user: UserSchema = Depends(get_current_user)):
-    """حالة الـoffline queue للـtenant الحالي."""
-    from core.offline_first import queue_summary
-
-    return queue_summary(_OFFLINE_QUEUE, user.tenant_id)
-
-
-@app.get("/api/v1/capabilities")
-def list_capabilities(user: UserSchema = Depends(get_current_user)):
-    """بوّابة القدرات المشروطة: أيّ قدرة مؤجَّلة مُفعَّلة/خاملة وكيف تُشغَّل.
-    لا يكشف أسراراً — قِيَم منطقيّة + تعليمات تفعيل فقط (شفافيّة تشغيليّة)."""
-    from core.capabilities import capabilities_report
-
-    return capabilities_report()
-
-
-@app.post("/api/v1/reports/build")
-def build_report(
-    body: dict,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """يبني **مواصفة تقرير مُتحقَّق منها** من اختيار المستخدم — دالّة نقيّة (لا قاعدة).
-
-    جسم الطلب هو اختيار التقرير ({"fields": [...], "entity"?, "filters"?}). يُعيد
-    المواصفة المُتحقَّق منها + resolved_fields (metadata الحقول) + warnings (حقول
-    مجهولة/كيان غير صالح...). هذا يُعيد **المواصفة فقط** لا بيانات مُجمَّعة — تجميع
-    البيانات/التصيير (CSV/PDF) متابعة لاحقة. 422 عند اختيار غير صالح بنيويّاً."""
-    from api.report_builder import build_report_spec
-
-    try:
-        return build_report_spec(body)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+# نقطة /api/v1/queue/status نُقلت إلى api/routers/queue.py،
+# /api/v1/capabilities إلى api/routers/capabilities.py، و/api/v1/reports/build إلى
+# api/routers/reports.py (مع بقيّة /reports) — نمط P0.
 
 
 def _centroid_from_bbox(bbox: dict | None) -> tuple[float | None, float | None]:
@@ -1626,16 +1368,8 @@ class BoundaryCleanRequest(BaseModel):
 # _rebuild_pydantic_models واستيرادات الاختبارات.
 
 
-@app.get("/api/v1/geo/reverse")
-def geo_reverse_endpoint(
-    lat: float,
-    lon: float,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """كشف عكسي خفيف: مركز الحقل → {country, region} — لعرض الموقع المكتشف آليّاً
-    في الواجهة فور رسم المضلّع (قبل الحفظ). دالّة نقيّة (لا قاعدة)."""
-    country, region = _reverse_geocode(lat, lon)
-    return {"country": country, "region": region}
+# نقطة /api/v1/geo/reverse نُقلت إلى api/routers/geo.py (نمط P0) — والمساعِد
+# _reverse_geocode يبقى هنا (يستخدمه أيضاً معالِج إنشاء الحقل) ويُستورَد من الموجِّه.
 
 
 # ─── المواسم الزراعيّة (Seasons) — نمط FieldView (v32) ────────────
@@ -1834,139 +1568,9 @@ class SeasonSimResponse(BaseModel):
     sim_ran_at: str
 
 
-@app.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
-async def simulate_season_endpoint(
-    season_id: str,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
-):
-    """يشغّل محاكاة محصوليّة (RUE/FAO-56) للموسم ويحفظ الناتج على صفّه.
-
-    يؤكّد أنّ الموسم يخصّ المستأجِر (404 وإلّا)، يجمع المحصول/التواريخ من القاعدة
-    والطقس التاريخي من Open-Meteo لنافذة الموسم (sowing→end أو آخر ~160 يوماً)،
-    يستدعي api.season_simulation.simulate_season (نقيّ)، يكتب sim_* + sim_ran_at،
-    ويردّ النتيجة (تقديرات بنطاق وثقة). 503 إن تعذّرت القاعدة أو الطقس.
-    """
-    import json as _json
-
-    from api.connectors.openmeteo import fetch_historical
-    from api.season_simulation import DayWeather, SimContext, simulate_season
-
-    # ١) سياق الموسم من القاعدة (+ تأكيد المستأجِر عبر RLS ⇒ 404 إن غاب).
-    try:
-        async with tenant_connection(user) as conn:
-            srow = await conn.fetchrow(
-                "SELECT s.season_id, s.field_id, s.crops, s.sowing_date, s.season_end, "
-                "f.lat, f.lon FROM seasons s JOIN fields f ON f.field_id = s.field_id "
-                "WHERE s.season_id = $1",
-                season_id,
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة الموسم للمحاكاة", e) from e
-    if srow is None:
-        raise HTTPException(status_code=404, detail="الموسم غير موجود ضمن هذا المستأجِر")
-    if srow["lat"] is None or srow["lon"] is None:
-        raise HTTPException(
-            status_code=422,
-            detail="حقل الموسم بلا إحداثيّات (lat/lon) — لا يمكن جلب الطقس للمحاكاة.",
-        )
-
-    crops = srow["crops"]
-    if isinstance(crops, str):
-        try:
-            crops = _json.loads(crops)
-        except (ValueError, TypeError):
-            crops = []
-    crop = str(crops[0]) if isinstance(crops, list) and crops else None
-
-    # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بحدّ أقصى.
-    today = datetime.now(UTC).date()
-    sow = srow["sowing_date"]
-    end = srow["season_end"]
-    start = sow if sow is not None else (today - timedelta(days=_SIM_MAX_WINDOW_DAYS))
-    win_end = min(end, today) if end is not None else today
-    if win_end <= start:
-        win_end = min(start + timedelta(days=_SIM_MAX_WINDOW_DAYS), today)
-    if (win_end - start).days > _SIM_MAX_WINDOW_DAYS:
-        win_end = start + timedelta(days=_SIM_MAX_WINDOW_DAYS)
-    # ERA5 التاريخي يتأخّر ~5 أيّام — لا نطلب أحدث من ذلك.
-    win_end = min(win_end, today - timedelta(days=5))
-    if win_end <= start:
-        raise HTTPException(
-            status_code=422,
-            detail="نافذة الموسم قصيرة جدّاً أو في المستقبل — لا بيانات طقس تاريخيّة كافية للمحاكاة.",
-        )
-
-    # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
-    try:
-        days = await fetch_historical(
-            float(srow["lat"]),
-            float(srow["lon"]),
-            start.isoformat(),
-            win_end.isoformat(),
-        )
-    except Exception as e:  # noqa: BLE001 — تعذّر مصدر الطقس ⇒ 503 صريح
-        raise HTTPException(
-            status_code=503,
-            detail="تعذّر جلب الطقس التاريخي (Open-Meteo غير متاح). حاول لاحقاً.",
-        ) from e
-
-    weather = [
-        DayWeather(
-            t_min_c=d.temp_min_c,
-            t_max_c=d.temp_max_c,
-            solar_mj_m2=None,  # غير مطلوب من المصدر الحالي — يُقدَّر في النموذج
-            et0_mm=d.et0_mm,
-            rain_mm=d.precipitation_mm or 0.0,
-        )
-        for d in days
-    ]
-
-    # ٤) المحاكاة النقيّة.
-    result = simulate_season(
-        SimContext(crop=crop, sowing_date=sow, season_end=end, weather=weather)
-    )
-
-    # ٥) حفظ النتائج على صفّ الموسم (+ وقت التشغيل).
-    ran_at = datetime.now(UTC)
-    try:
-        async with tenant_connection(user) as conn:
-            await conn.execute(
-                "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
-                "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, sim_ran_at = $7 "
-                "WHERE season_id = $1",
-                season_id,
-                result.yield_kg_ha,
-                result.biomass_kg_ha,
-                result.gdd_total,
-                result.lai_max,
-                result.water_need_mm,
-                ran_at,
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("حفظ نتائج المحاكاة", e) from e
-
-    return SeasonSimResponse(
-        season_id=season_id,
-        crop=result.crop,
-        crop_recognized=result.crop_recognized,
-        days_simulated=result.days_simulated,
-        gdd_total=result.gdd_total,
-        gdd_to_maturity=result.gdd_to_maturity,
-        maturity_reached=result.maturity_reached,
-        lai_max=result.lai_max,
-        biomass_kg_ha=result.biomass_kg_ha,
-        yield_kg_ha=result.yield_kg_ha,
-        yield_low_kg_ha=result.yield_low_kg_ha,
-        yield_high_kg_ha=result.yield_high_kg_ha,
-        water_need_mm=result.water_need_mm,
-        water_supply_mm=result.water_supply_mm,
-        water_stress_factor=result.water_stress_factor,
-        confidence=result.confidence,
-        rationale_ar=result.rationale_ar,
-        assumptions_ar=result.assumptions_ar,
-        warnings_ar=result.warnings_ar,
-        sim_ran_at=ran_at.isoformat(),
-    )
+# نقطة /api/v1/seasons/{season_id}/simulate نُقلت إلى api/routers/seasons.py (نمط P0).
+# النموذج SeasonSimResponse والثابت _SIM_MAX_WINDOW_DAYS يبقيان هنا ويُستورَدان من
+# الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
 # ─── الطقس والريّ (Weather-driven advice) — Sprint 5a ────────────
@@ -2317,85 +1921,10 @@ def _row_to_task(r) -> TaskSummary:
     )
 
 
-@app.get("/api/v1/tasks", response_model=TaskListResponse)
-async def list_tasks(
-    field_id: str | None = None,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """مهامّ المستأجِر (مُرشَّحة بـRLS، واختياريّاً بحقل). الأعلى أولويّةً ثمّ الأقرب
-    موعداً. يُرجِع {tasks:[...]} (عقد الواجهة). 503 عند تعذّر القاعدة."""
-    try:
-        async with tenant_connection(user) as conn:
-            if field_id:
-                rows = await conn.fetch(
-                    f"SELECT {_TASK_COLS} FROM field_tasks WHERE field_id = $1 "
-                    "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC",
-                    field_id,
-                )
-            else:
-                rows = await conn.fetch(
-                    f"SELECT {_TASK_COLS} FROM field_tasks "
-                    "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC"
-                )
-    except Exception as e:  # noqa: BLE001
-        raise _db_unavailable("قراءة المهامّ", e) from e
-    return TaskListResponse(tasks=[_row_to_task(r) for r in rows])
-
-
-@app.patch("/api/v1/tasks/{task_id}", response_model=TaskSummary)
-async def update_task(
-    task_id: str,
-    req: TaskUpdateRequest,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
-):
-    """تحديث مهمّة (الحالة/صورة/ملاحظة) — مُرشَّح بالمستأجِر (RLS). 404 لو ليست
-    للمستأجِر؛ 422 على حالة غير معروفة أو لا حقول للتحديث."""
-    if req.status is not None and req.status not in _TASK_STATUSES:
-        raise HTTPException(status_code=422, detail="حالة مهمّة غير معروفة")
-    sets: list[str] = []
-    vals: list[object] = []
-    if req.status is not None:
-        vals.append(req.status)
-        sets.append(f"status = ${len(vals)}")
-        if req.status == "completed":
-            sets.append("completed_at = NOW()")
-    if req.photo_url is not None:
-        vals.append(req.photo_url)
-        sets.append(f"photo_url = ${len(vals)}")
-    if req.notes is not None:
-        vals.append(req.notes)
-        sets.append(f"notes = ${len(vals)}")
-    if not sets:
-        raise HTTPException(status_code=422, detail="لا حقول للتحديث")
-    sets.append("updated_at = NOW()")
-    vals.append(task_id)
-    query = (
-        f"UPDATE field_tasks SET {', '.join(sets)} "
-        f"WHERE task_id::TEXT = ${len(vals)} RETURNING {_TASK_COLS}"
-    )
-    try:
-        async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(query, *vals)
-            # حدث تحديث المهمّة (تفاعليّ): يبثّه وكيل الإشعارات للواجهة حيّاً. داخل
-            # المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
-            if row is not None:
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "TASK_UPDATED",
-                    "task",
-                    task_id,
-                    # القيم الفعليّة من الصفّ المُحدَّث (RETURNING) لا من req — req.status
-                    # قد تكون None عند تحديث photo/notes فقط (ملاحظة Copilot).
-                    {"status": row.get("status"), "field_id": row.get("field_id")},
-                )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001
-        raise _db_unavailable("تحديث المهمّة", e) from e
-    if row is None:
-        raise HTTPException(status_code=404, detail="المهمّة غير موجودة ضمن هذا المستأجِر")
-    return _row_to_task(row)
+# نقطتا /api/v1/tasks و/api/v1/tasks/{task_id} نُقلتا إلى api/routers/tasks.py (نمط P0).
+# النماذج/الثوابت/المساعِدات (TaskListResponse/TaskSummary/TaskUpdateRequest/_TASK_COLS/
+# _TASK_STATUSES/_row_to_task) تبقى هنا وتُستورَد من الموجِّه (حفظاً
+# لـ_rebuild_pydantic_models/الاختبارات).
 
 
 class NDVIObservationIn(BaseModel):
@@ -2529,186 +2058,10 @@ def _row_to_alert(r) -> AlertSummary:
     )
 
 
-@app.get("/api/v1/alerts", response_model=list[AlertSummary])
-async def list_alerts(
-    status: str | None = Query(default=None),
-    severity: str | None = Query(default=None),
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """تنبيهات المستأجِر (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS) + حالة/خطورة اختياريّة.
-
-    تُتحقَّق قيم الترشيح (422 على قيمة غير معروفة) قبل الاستعلام. 503 عند تعذّر القاعدة.
-    """
-    if status is not None and status not in _ALERT_STATUSES:
-        raise HTTPException(status_code=422, detail="حالة تنبيه غير معروفة")
-    if severity is not None and severity not in _ALERT_SEVERITIES:
-        raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
-    conds = ["tenant_id = $1::uuid"]
-    args: list = [str(user.tenant_id)]
-    if status is not None:
-        args.append(status)
-        conds.append(f"status = ${len(args)}")
-    if severity is not None:
-        args.append(severity)
-        conds.append(f"severity = ${len(args)}")
-    where = " AND ".join(conds)
-    try:
-        async with tenant_connection(user) as conn:
-            rows = await conn.fetch(
-                "SELECT alert_id, field_id, alert_type, severity, title_ar, "
-                "message_ar, status, created_at "
-                f"FROM alerts WHERE {where} ORDER BY created_at DESC",
-                *args,
-            )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001
-        raise _db_unavailable("قراءة التنبيهات", e) from e
-    return [_row_to_alert(r) for r in rows]
-
-
-@app.post("/api/v1/alerts", status_code=201, response_model=AlertSummary)
-async def create_alert(
-    req: AlertCreateRequest,
-    idem: str | None = Depends(_idem_key),
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
-):
-    """ينشئ تنبيهاً زراعيّاً للمستأجِر — يُخزَّن فعليّاً ضمن سياق المستأجِر (RLS).
-
-    يتحقّق من النوع والخطورة (422)، ويؤكّد أنّ الحقل (إن مُرِّر) يخصّ المستأجِر
-    (404) قبل الإدراج، ثمّ يردّ التنبيه المُنشأ. idempotent: Idempotency-Key
-    (UUID) يمنع تكرار الإنشاء عند إعادة الموبايل (offline).
-    """
-    import uuid as _uuid
-
-    if req.alert_type not in _ALERT_TYPES:
-        raise HTTPException(status_code=422, detail="نوع تنبيه غير معروف")
-    if req.severity not in _ALERT_SEVERITIES:
-        raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
-    alert_id = "alr_" + _uuid.uuid4().hex[:12]
-    try:
-        async with tenant_connection(user) as conn:
-
-            async def _work():
-                if req.field_id is not None:
-                    await _assert_field_in_tenant(conn, req.field_id)
-                await conn.execute(
-                    """INSERT INTO alerts
-                        (alert_id, tenant_id, field_id, alert_type, severity,
-                         title_ar, message_ar, status)
-                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
-                    alert_id,
-                    str(user.tenant_id),
-                    req.field_id,
-                    req.alert_type,
-                    req.severity,
-                    req.title_ar,
-                    req.message_ar,
-                )
-                created = AlertSummary(
-                    alert_id=alert_id,
-                    field_id=req.field_id,
-                    alert_type=req.alert_type,
-                    severity=req.severity,
-                    title_ar=req.title_ar,
-                    message_ar=req.message_ar,
-                    status="active",
-                )
-                # تسجيل قنوات التسليم المقصودة (بلا إرسال فعليّ) — غير كاسر.
-                await _log_alert_deliveries(conn, user, created)
-                # حدث إنشاء التنبيه (تفاعليّ): يستهلكه وكيل الإشعارات للبثّ الفوريّ بدل
-                # المسح الدوريّ. نفس معاملة الكتابة (outbox) — فشل الإصدار لا يكسر الحفظ.
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "ALERT_CREATED",
-                    "alert",
-                    alert_id,
-                    {
-                        "severity": req.severity,
-                        "alert_type": req.alert_type,
-                        "field_id": req.field_id,
-                    },
-                )
-                # Canonical Field State: تنبيه على حقل قد يعكس تبدّل قراره ⇒ أعِد حساب
-                # الإسقاط وأصدِر field.state_changed إن تبدّلت الصلاحيّة (نفس نمط الموسم،
-                # نفس معاملة الكتابة). التنبيهات تمرّ عبر مصدر الحقيقة الواحد.
-                if req.field_id is not None:
-                    from api.field_state_projection import recompute_field_state
-
-                    _fs = await recompute_field_state(conn, req.field_id)
-                    if _fs["changed"]:
-                        await _emit_domain_event(
-                            conn,
-                            user,
-                            "FIELD_STATE_CHANGED",
-                            "field",
-                            req.field_id,
-                            {
-                                "validity": _fs["state"]["validity"],
-                                "execution_mode": _fs["state"]["execution_mode"],
-                                "trigger": "alert.created",
-                            },
-                        )
-                # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
-                # عند الإعادة (مع حفظ alert_id الأصليّ) — response_model يتحقّق منه.
-                return created.model_dump()
-
-            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
-            if idem:
-                result = await _idempotent(
-                    CommandStore(get_pool(), conn=conn),
-                    idem,
-                    _work,
-                    command_type="alert.create",
-                    actor_id=str(user.user_id),
-                    tenant_id=str(user.tenant_id),
-                    payload={"field_id": req.field_id, "alert_id": alert_id},
-                )
-            else:
-                result = await _work()
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق لا 500
-        raise _db_unavailable("حفظ التنبيه", e) from e
-    return result
-
-
-@app.patch("/api/v1/alerts/{alert_id}/acknowledge", response_model=AlertSummary)
-async def acknowledge_alert(
-    alert_id: str,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
-):
-    """يُقِرّ تنبيهاً (status='acknowledged') للمستأجِر — مُرشَّح بالمستأجِر (RLS).
-
-    404 لو التنبيه ليس ضمن المستأجِر؛ 503 عند تعذّر القاعدة.
-    """
-    try:
-        async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(
-                "UPDATE alerts SET status = 'acknowledged' WHERE alert_id = $1 "
-                "RETURNING alert_id, field_id, alert_type, severity, title_ar, "
-                "message_ar, status, created_at",
-                alert_id,
-            )
-            # حدث الإقرار (تفاعليّ): يُمكّن المستهلكين من تتبّع دورة حياة التنبيه.
-            # داخل المعاملة وفقط عند وجود الصفّ (مرشَّح بالمستأجِر عبر RLS).
-            if row is not None:
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "ALERT_ACKNOWLEDGED",
-                    "alert",
-                    alert_id,
-                    {"field_id": row["field_id"], "severity": row["severity"]},
-                )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001
-        raise _db_unavailable("إقرار التنبيه", e) from e
-    if row is None:
-        raise HTTPException(status_code=404, detail="التنبيه غير موجود ضمن هذا المستأجِر")
-    return _row_to_alert(row)
+# نقاط /api/v1/alerts (قائمة/إنشاء/إقرار) نُقلت إلى api/routers/alerts.py (نمط P0).
+# النماذج/الثوابت/المساعِدات (AlertSummary/AlertCreateRequest/_ALERT_*/_row_to_alert/
+# _log_alert_deliveries) تبقى هنا وتُستورَد من الموجِّه (حفظاً
+# لـ_rebuild_pydantic_models/الاختبارات).
 
 
 # ─── تفضيلات الإشعار + قنوات التسليم (notification_preferences v9 + v38) ──
@@ -3128,111 +2481,9 @@ class FarmCreateRequest(BaseModel):
     activity_type: str | None = Field(default=None, max_length=40)
 
 
-@app.post("/api/v1/farms", status_code=201)
-async def create_farm(
-    req: FarmCreateRequest,
-    user: UserSchema = Depends(require_permission(Permission.FARM_CREATE)),
-):
-    """ينشئ مزرعة جديدة (أب الحقول). مُبوّب بصلاحية farm:create."""
-    import uuid as _uuid
-
-    farm_id = "frm_" + _uuid.uuid4().hex[:12]
-    try:
-        async with tenant_connection(user) as conn:
-            await conn.execute(
-                """INSERT INTO farms
-                    (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon,
-                     country, region, timezone, units, currency, description, activity_type)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)""",
-                farm_id,
-                str(user.tenant_id),
-                req.name,
-                req.location,
-                req.area_ha,
-                req.centroid_lat,
-                req.centroid_lon,
-                req.country,
-                req.region,
-                req.timezone,
-                req.units,
-                req.currency,
-                req.description,
-                req.activity_type,
-            )
-            # حدث إنشاء المزرعة (معلَم تأهيل): يُمكّن مستهلكي الأحداث من التفاعل
-            # (إشعار/تهيئة لاحقة). نفس المعاملة (outbox) — فشل الإصدار لا يكسر الحفظ.
-            await _emit_domain_event(
-                conn,
-                user,
-                "FARM_CREATED",
-                "farm",
-                farm_id,
-                {"name": req.name, "region": req.region},
-            )
-    except HTTPException:
-        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
-    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 موثَّق لا 500
-        raise _db_unavailable("حفظ المزرعة", e) from e
-    return {"farm_id": farm_id, "name": req.name, "message_ar": "أُنشئت المزرعة"}
-
-
-@app.get("/api/v1/farms")
-async def list_farms(user: UserSchema = Depends(require_permission(Permission.FARM_VIEW))):
-    """قائمة مزارع المستأجر (مُرشّحة بـRLS تلقائيّاً)."""
-    try:
-        async with tenant_connection(user) as conn:
-            rows = await conn.fetch(
-                "SELECT farm_id, name, location, area_ha, centroid_lat, centroid_lon, "
-                "country, region, timezone, units, currency, description, activity_type, "
-                "created_at FROM farms ORDER BY created_at DESC"
-            )
-    except HTTPException:
-        raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
-    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
-        raise _db_unavailable("قراءة المزارع", e) from e
-    return [
-        {
-            "farm_id": r["farm_id"],
-            "name": r["name"],
-            "location": r["location"],
-            "area_ha": float(r["area_ha"]) if r["area_ha"] is not None else None,
-            "centroid_lat": float(r["centroid_lat"]) if r["centroid_lat"] is not None else None,
-            "centroid_lon": float(r["centroid_lon"]) if r["centroid_lon"] is not None else None,
-            "country": r["country"],
-            "region": r["region"],
-            "timezone": r["timezone"],
-            "units": r["units"],
-            "currency": r["currency"],
-            "description": r["description"],
-            "activity_type": r["activity_type"],
-            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
-        }
-        for r in rows
-    ]
-
-
-@app.get("/api/v1/farms/{farm_id}/fields")
-async def list_farm_fields(
-    farm_id: str,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """حقول مزرعة محدّدة (هرميّة المزرعة→الحقل)."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT field_id, name, area_ha, crop, soil_type FROM fields "
-            "WHERE farm_id = $1 ORDER BY name",
-            farm_id,
-        )
-    return [
-        {
-            "field_id": r["field_id"],
-            "name": r["name"],
-            "area_ha": float(r["area_ha"]) if r["area_ha"] is not None else None,
-            "crop": r["crop"],
-            "soil_type": r["soil_type"],
-        }
-        for r in rows
-    ]
+# نقاط /api/v1/farms (إنشاء/قائمة/حقول-المزرعة) نُقلت إلى api/routers/farms.py (نمط P0).
+# النموذج FarmCreateRequest يبقى هنا ويُستورَد من الموجِّه (حفظاً
+# لـ_rebuild_pydantic_models/الاختبارات).
 
 
 def _parse_date(value: str | None, field: str) -> date | None:
@@ -3380,43 +2631,7 @@ class SettingRequest(BaseModel):
 
 
 # ─── تكوين المستأجِر (Tenant Config) — هويّة/وحدات/لغة/محاصيل — (#13) ─
-@app.get("/api/v1/tenant/config")
-async def get_tenant_config(
-    user: UserSchema = Depends(require_permission(Permission.SETTINGS_VIEW)),
-):
-    """التكوين **الفعّال** للمستأجِر — الافتراضات المحايدة مُركَّباً فوقها تخصيصُه.
-
-    يقرأ صفّ الإعداد القائم (scope='platform', key='tenant_config') من جدول
-    settings ضمن اتّصال المستأجِر (RLS)، ثمّ يُركّبه فوق القيم الافتراضيّة عبر
-    `merge_tenant_config`. القراءة best-effort: تعذّر القاعدة/غياب الصفّ ⇒ None ⇒
-    الافتراضات النقيّة (لا فشل — التكوين تحسين تجميليّ لا حرج).
-
-    ⚠ الكتابة لا تمرّ هنا — يضبط المستأجِر تخصيصه عبر النقطة القائمة
-    `PUT /api/v1/settings` (scope='platform', key='tenant_config', value=<جزئيّ>)
-    بصلاحيّة SETTINGS_MANAGE. لا نضيف نقطة كتابة جديدة (مصدر كتابة واحد).
-    """
-    import json as _json
-
-    from api.tenant_config import merge_tenant_config
-
-    value: dict | None = None
-    try:
-        async with tenant_connection(user) as conn:
-            value = await conn.fetchval(
-                "SELECT value FROM settings WHERE scope = 'platform' AND key = 'tenant_config'"
-            )
-    except Exception:  # noqa: BLE001 — تعذّر القاعدة ⇒ افتراضات محايدة لا فشل
-        value = None
-
-    # قيمة JSONB قد تعود نصّاً (asyncpg دون codec) — فُكّها بأمان قبل الدمج.
-    if isinstance(value, str):
-        try:
-            value = _json.loads(value)
-        except (ValueError, TypeError):
-            value = None
-
-    # merge_tenant_config نقيّة لا تستثني: تتعامل مع None/المُشوَّه ⇒ تكوين صالح.
-    return merge_tenant_config(value)
+# نقطة /api/v1/tenant/config نُقلت إلى api/routers/tenant.py (نمط P0).
 
 
 # ─── تحليلات التكاليف الفعليّة (Cost Analytics) ──────────────────
@@ -3911,11 +3126,10 @@ class IrrigationConfRequest(BaseModel):
 
 
 # ─── ٥. Failure detection ────────────────────────────────────────
-from api.failure_modes import (  # noqa: E402
-    detect_sentinel_issues,
-    detect_soil_issues,
-    detect_weather_issues,
-)
+# نقطة /api/v1/failures/check نُقلت إلى api/routers/failures.py (نمط P0) —
+# والاستيرادات المرافقة (detect_sentinel_issues/detect_soil_issues/
+# detect_weather_issues) نُقلت معها لإزالة F401. النموذج FailureCheckRequest
+# يبقى هنا (يُستورَد من الموجِّه + _rebuild_pydantic_models).
 
 
 class FailureCheckRequest(BaseModel):
@@ -3923,27 +3137,6 @@ class FailureCheckRequest(BaseModel):
     days_since_observation: int | None = None
     weather_hours_since_update: int | None = None
     soil: dict | None = None
-
-
-@app.post("/api/v1/failures/check")
-def check_failures(
-    req: FailureCheckRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يفحص حالات الفشل المعروفة (سحب، طقس قديم، تربة)."""
-    failures = []
-    if req.cloud_pct is not None and req.days_since_observation is not None:
-        f = detect_sentinel_issues(req.cloud_pct, req.days_since_observation)
-        if f:
-            failures.append(f.to_dict())
-    if req.weather_hours_since_update is not None:
-        f = detect_weather_issues(req.weather_hours_since_update)
-        if f:
-            failures.append(f.to_dict())
-    if req.soil:
-        for f in detect_soil_issues(req.soil):
-            failures.append(f.to_dict())
-    return {"failures": failures, "count": len(failures)}
 
 
 # ─── ٦. Temporal arbitration ─────────────────────────────────────
@@ -3998,7 +3191,10 @@ class OperationReportRequest(BaseModel):
 
 
 # ─── ٨. Field lifecycle transition validation (pure) ─────────────
-from api.field_lifecycle import LifecycleStage, is_valid_transition  # noqa: E402
+# نقطة /api/v1/lifecycle/validate-transition نُقلت إلى api/routers/lifecycle.py (نمط P0).
+# النموذج TransitionCheckRequest يبقى هنا ويُستورَد من الموجِّه (حفظاً
+# لـ_rebuild_pydantic_models/الاختبارات)؛ LifecycleStage/is_valid_transition صارتا
+# يتيمتين هنا فاستُورِدتا في الموجِّه من api.field_lifecycle مباشرةً.
 
 
 class TransitionCheckRequest(BaseModel):
@@ -4006,68 +3202,17 @@ class TransitionCheckRequest(BaseModel):
     to_stage: str
 
 
-@app.post("/api/v1/lifecycle/validate-transition")
-def validate_transition(
-    req: TransitionCheckRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يتحقّق هل انتقال مرحلة الحقل صالح (CREATED→PREPARED→...→HARVESTED)."""
-    try:
-        from_s = LifecycleStage(req.from_stage)
-        to_s = LifecycleStage(req.to_stage)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=f"مرحلة غير معروفة: {e}") from e
-    valid = is_valid_transition(from_s, to_s)
-    return {
-        "from_stage": from_s.value,
-        "to_stage": to_s.value,
-        "valid": valid,
-        "reason_ar": "انتقال صالح"
-        if valid
-        else f"لا يُسمح بالانتقال من {from_s.value} إلى {to_s.value}",
-    }
-
-
 # ─── ٩. Event replay — state reconstruction (pure) ───────────────
-from api.event_replay import FieldStateReconstructor  # noqa: E402
+# نقطة /api/v1/replay/reconstruct نُقلت إلى api/routers/replay.py (نمط P0).
+# النموذج ReplayRequest يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/
+# الاختبارات)؛ FieldStateReconstructor صار يتيماً هنا فاستُورِد في الموجِّه من
+# api.event_replay مباشرةً.
 
 
 class ReplayRequest(BaseModel):
     entity_type: str
     entity_id: str
     events: list[dict]  # [{event_type, occurred_at, payload}, ...]
-
-
-@app.post("/api/v1/replay/reconstruct")
-def replay_reconstruct(
-    req: ReplayRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يُعيد بناء حالة الـentity من سجلّ الأحداث (pure reconstruction).
-
-    ملاحظة: يأخذ الأحداث في الـrequest. النسخة المُوصَّلة بالـDB (تجلب
-    الأحداث من events table) تحتاج PostgreSQL — غير مُفعَّلة بعد.
-    """
-    state = FieldStateReconstructor.reconstruct(
-        req.entity_type,
-        req.entity_id,
-        req.events,
-    )
-    return {
-        "entity_id": state.entity_id,
-        "entity_type": state.entity_type,
-        "field_name": state.field_name,
-        "lifecycle_stage": state.lifecycle_stage,
-        "area_ha": state.area_ha,
-        "crop": state.crop,
-        "planting_date": state.planting_date,
-        "harvest_date": state.harvest_date,
-        "irrigation_count": state.irrigation_count,
-        "fertilizer_count": state.fertilizer_count,
-        "last_ndvi": state.last_ndvi,
-        "total_events": state.total_events,
-        "last_event_at": state.last_event_at,
-    }
 
 
 # ─── ١٠. Field Timeline (المرحلة ١، البند ٧) ─────────────────────
@@ -4232,73 +3377,14 @@ class ShareKeyRequest(BaseModel):
 
 # ─── ١٤. الوحدات المعتمدة على PostgreSQL (سدّ الفجوة ١) ──────────
 # توصيل command_store / event_bus / data_lineage / sharing (الحفظ).
-# ⚠ هذه الـendpoints تحتاج DATABASE_URL مضبوطاً (pool حقيقي). كُتِبت ووُصِّلت
-# لكنّها غير مُختبَرة ضدّ DB حيّ في هذه البيئة (لا PostgreSQL). تُختبَر عبر
-# tests_v9/test_db_integration.py بعد bootstrap_postgres.sh.
-from api.command_store import CommandStore  # noqa: E402
-from api.data_lineage import LineageAssembler  # noqa: E402
-from api.event_bus import EventBus  # noqa: E402
-
-
-@app.get("/api/v1/lineage/{entity_type}/{entity_id}")
-async def entity_lineage(
-    entity_type: str,
-    entity_id: str,
-    limit: int = 500,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يجمع lineage كامل للـentity (command+event+lifecycle+journal+trueup).
-
-    عبر tenant_connection — RLS مُطبَّق (لا تسريب عبر المستأجرين)."""
-    async with tenant_connection(user) as conn:
-        assembler = LineageAssembler(get_pool(), conn=conn)
-        result = await assembler.get_entity_lineage(entity_type, entity_id, limit=limit)
-    return {
-        "entity_type": result.entity_type,
-        "entity_id": result.entity_id,
-        "total_entries": result.total_entries,
-        "earliest_at": result.earliest_at,
-        "latest_at": result.latest_at,
-        "commands_count": result.commands_count,
-        "events_count": result.events_count,
-        "entries": [
-            {
-                "timestamp": e.timestamp,
-                "source_type": e.source_type.value,
-                "source_id": e.source_id,
-                "action": e.action,
-                "summary_ar": e.summary_ar,
-            }
-            for e in result.entries
-        ],
-    }
-
-
-@app.get("/api/v1/events/{entity_type}/{entity_id}")
-async def entity_events(
-    entity_type: str,
-    entity_id: str,
-    limit: int = 100,
-    user: UserSchema = Depends(get_current_user),
-):
-    """تاريخ أحداث entity من event_bus (عبر tenant_connection — RLS مُطبَّق)."""
-    async with tenant_connection(user) as conn:
-        bus = EventBus(get_pool(), conn=conn)
-        return {"events": await bus.query_entity_history(entity_type, entity_id, limit=limit)}
-
-
-@app.get("/api/v1/commands/{command_id}")
-async def get_command(
-    command_id: str,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يجلب أمراً من command_store (عبر tenant_connection — RLS مُطبَّق)."""
-    async with tenant_connection(user) as conn:
-        store = CommandStore(get_pool(), conn=conn)
-        cmd = await store.get(command_id)
-    if cmd is None:
-        raise HTTPException(status_code=404, detail="الأمر غير موجود")
-    return {"command_id": command_id, "found": True}
+# نقاط الاستبطان نُقلت إلى موجِّهات P0:
+#   GET /api/v1/lineage/{entity_type}/{entity_id} → api/routers/lineage.py
+#   GET /api/v1/events/{entity_type}/{entity_id}  → api/routers/events.py
+#   GET /api/v1/commands/{command_id}             → api/routers/commands.py
+# LineageAssembler/EventBus صارا يتيمين هنا فاستُورِدا في موجِّهيهما من وحدتيهما
+# الحقيقيّتين مباشرةً (data_lineage/event_bus). CommandStore يبقى مُستورَداً هنا لأنّ
+# موجِّهات أخرى (fields/irrigation) تستورده من api.main (إعادة تصدير).
+from api.command_store import CommandStore  # noqa: E402, F401  (إعادة تصدير لموجِّهات أخرى)
 
 
 class SharingKeyCreateRequest(BaseModel):
@@ -4403,8 +3489,9 @@ class DiagnoseRequest(BaseModel):
 
 # ─── ٢١. بوابة الثقة الموحّدة (مُستلهَمة من DSS، مُكيّفة بصدق) ────
 # تجمع إشارات المحرّكات وتقرّر: واثقة/مراجعة/محجوبة. لا ML غامض.
-from api.confidence_gate import EngineSignal  # noqa: E402
-from api.confidence_gate import evaluate as _gate_eval  # noqa: E402
+# نقطة /api/v1/confidence-gate نُقلت إلى api/routers/confidence_gate.py (نمط P0) —
+# والاستيرادان المرافقان (EngineSignal/evaluate) نُقلا معها لإزالة F401. النماذج
+# (EngineSignalInput/ConfidenceGateRequest) تبقى هنا (تُستورَد من الموجِّه).
 
 
 class EngineSignalInput(BaseModel):
@@ -4419,25 +3506,6 @@ class ConfidenceGateRequest(BaseModel):
     signals: list[EngineSignalInput]
 
 
-@app.post("/api/v1/confidence-gate")
-def confidence_gate(
-    req: ConfidenceGateRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقيّم إشارات المحرّكات ويقرّر مستوى الثقة (واثقة/مراجعة/محجوبة)."""
-    signals = [
-        EngineSignal(
-            engine=s.engine,
-            has_recommendation=s.has_recommendation,
-            confidence=s.confidence,
-            blocking_reason_ar=s.blocking_reason_ar,
-            data_gaps_ar=s.data_gaps_ar,
-        )
-        for s in req.signals
-    ]
-    return _gate_eval(signals).to_dict()
-
-
 class EscalationAssessRequest(BaseModel):
     """تقييم تصعيد الشكّ لإنسان من ثقة مصدر (محرّك/RAG)."""
 
@@ -4445,28 +3513,6 @@ class EscalationAssessRequest(BaseModel):
     source: str = Field(min_length=1, max_length=60)
     has_answer: bool = True
     uncertain_points: list[str] = Field(default_factory=list)
-
-
-@app.post("/api/v1/escalation/assess")
-def escalation_assess(
-    req: EscalationAssessRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقرّر تصعيد الشكّ لإنسان من ثقة مصدر (محرّك/RAG) — actionable (مستلِم/أولويّة/مجهول).
-
-    يعمّم مبدأ confidence_gate لأيّ مصدر ثقة (لا المحرّكات فقط): بلا سند/ثقة كافية →
-    تصعيد لمرشد زراعي لا إجابة مولّدة (human-in-the-loop). confidence=None أو
-    has_answer=false ⇒ BLOCKED (لا تأليف). للمحرّكات استعمل /confidence-gate ثمّ
-    escalation_from_gate.
-    """
-    from core.engines.human_escalation import assess_escalation
-
-    return assess_escalation(
-        req.confidence,
-        source=req.source,
-        has_answer=req.has_answer,
-        uncertain_points=req.uncertain_points,
-    )
 
 
 class ExternalPriorBlendRequest(BaseModel):
@@ -4550,7 +3596,9 @@ class WhatIfRainRequest(BaseModel):
 
 
 # ─── ٢٤. تظافر القرائن ودرجات التوصية (اتّفاق: القرائن المتظافرة ترقى) ─
-from api.evidence_corroboration import Evidence, EvidenceType, corroborate  # noqa: E402
+# نقطة /api/v1/evidence/corroborate نُقلت إلى api/routers/evidence.py (نمط P0) —
+# والاستيراد المرافق (Evidence/EvidenceType/corroborate) نُقل معها لإزالة F401.
+# النماذج (EvidenceInput/CorroborationRequest) تبقى هنا (تُستورَد من الموجِّه).
 
 
 class EvidenceInput(BaseModel):
@@ -4563,21 +3611,6 @@ class CorroborationRequest(BaseModel):
     evidences: list[EvidenceInput]
     recommendation_key: str = "general"
     test_type_ar: str = "تربة"
-
-
-@app.post("/api/v1/evidence/corroborate")
-def evidence_corroborate(
-    req: CorroborationRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يحدّد درجة التوصية (إرشاديّة/مؤيَّدة/مؤكَّدة) بتظافر القرائن + حضّ على الفحص."""
-    try:
-        evs = [Evidence(EvidenceType(e.etype), e.agrees, e.note_ar) for e in req.evidences]
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=f"نوع قرينة غير معروف: {e}") from e
-    return corroborate(
-        evs, recommendation_key=req.recommendation_key, test_type_ar=req.test_type_ar
-    ).to_dict()
 
 
 # ─── ٢٥. التقويم الثقافي (عرض فقط — خارج محرّك القرار صراحةً) ────
@@ -4595,123 +3628,9 @@ def evidence_corroborate(
 # نُقلت إلى api/routers/recommendations.py (نمط P0).
 
 
-@app.get("/api/v1/rbac/who-can")
-def rbac_who_can(
-    permission: str,
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """الاستعلام العكسي: أيّ الأدوار تملك صلاحيّة معيّنة؟ (تدقيق أمني)."""
-    from core.authorization import Permission as _P
-    from core.rbac_governance import who_can
-
-    try:
-        perm = _P(permission)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=f"صلاحيّة غير معروفة: {permission}") from e
-    return who_can(perm)
-
-
-@app.get("/api/v1/rbac/permission-matrix")
-def rbac_permission_matrix(
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """مصفوفة الصلاحيّات الكاملة (كلّ دور × كلّ صلاحيّة) — شفافيّة الحوكمة."""
-    from core.rbac_governance import permission_matrix
-
-    return permission_matrix()
-
-
-@app.get("/api/v1/admin/events/dead-letter")
-async def admin_events_dead_letter(
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """حوكمة الأحداث الفاشلة (DLQ): يعرض أحداث event_outbox الميّتة + تفاصيلها.
-
-    فوق v_event_dead_letter (v48). مُرشَّح بالمستأجِر (RLS على events) — كلّ مستأجِر
-    أحداثه الفاشلة. (عرض ops عابر المستأجرين = شأن superuser منفصل، مؤجَّل.)
-    """
-    rows: list = []
-    try:
-        async with tenant_connection(user) as conn:
-            recs = await conn.fetch(
-                """SELECT outbox_id, event_id::text, nats_subject, retry_count,
-                          last_error, last_attempt_at, created_at,
-                          event_type, entity_type, entity_id, occurred_at
-                   FROM v_event_dead_letter ORDER BY created_at DESC LIMIT 500"""
-            )
-            rows = [
-                {
-                    "outbox_id": r["outbox_id"],
-                    "event_id": r["event_id"],
-                    "nats_subject": r["nats_subject"],
-                    "retry_count": r["retry_count"],
-                    "last_error": r["last_error"],
-                    "last_attempt_at": r["last_attempt_at"].isoformat()
-                    if r["last_attempt_at"]
-                    else None,
-                    "event_type": r["event_type"],
-                    "entity_type": r["entity_type"],
-                    "entity_id": r["entity_id"],
-                }
-                for r in recs
-            ]
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة الأحداث الميّتة (DLQ)", e) from e
-    return {
-        "dead_letter": rows,
-        "total": len(rows),
-        "note_ar": (
-            "أحداث فشل نشرها إلى NATS بعد استنفاد المحاولات. بعد إصلاح السبب "
-            "(مثلاً NATS متوقّف) أعِد جدولتها عبر requeue. مراقبة: نبّه لو total>0."
-        ),
-    }
-
-
-@app.post("/api/v1/admin/events/dead-letter/{outbox_id}/requeue")
-async def admin_requeue_dead_letter(
-    outbox_id: int,
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """يعيد جدولة حدث ميّت واحد → pending (بعد إصلاح السبب). فوق requeue_dead_letter (v48)."""
-    try:
-        async with tenant_connection(user) as conn:
-            requeued = await conn.fetchval("SELECT requeue_dead_letter($1)", outbox_id)
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إعادة جدولة حدث ميّت", e) from e
-    if not requeued:
-        raise HTTPException(status_code=404, detail="لا حدث ميّت بهذا المعرّف (أو غير فاشل)")
-    return {"outbox_id": outbox_id, "requeued": True}
-
-
-@app.post("/api/v1/admin/events/dead-letter/requeue-all")
-async def admin_requeue_all_dead_letter(
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """يعيد جدولة كلّ الأحداث الميّتة (تشغيل ops بعد إصلاح NATS). فوق requeue_all_dead_letter."""
-    try:
-        async with tenant_connection(user) as conn:
-            count = await conn.fetchval("SELECT requeue_all_dead_letter()")
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إعادة جدولة كلّ الأحداث الميّتة", e) from e
-    return {"requeued_count": int(count or 0)}
-
-
-@app.get("/api/v1/rbac/preview-role-change")
-def rbac_preview_role_change(
-    current_role: str,
-    new_role: str,
-    user: UserSchema = Depends(require_permission(Permission.USER_CHANGE_ROLE)),
-):
-    """معاينة أثر تغيير دور قبل تطبيقه (ما يُكتسَب/يُفقَد + تنبيه التصعيد)."""
-    from core.rbac_governance import preview_role_change
-
-    return preview_role_change(current_role, new_role)
+# نقاط /api/v1/rbac/{who-can,permission-matrix,preview-role-change} نُقلت إلى
+# api/routers/rbac.py (نمط P0). نقاط /api/v1/admin/events/dead-letter[/...] نُقلت
+# إلى api/routers/admin.py (نمط P0). التبعيات/المساعِدات تبقى هنا وتُستورَد من الموجِّهات.
 
 
 class OutcomeRecordRequest(BaseModel):
@@ -4735,14 +3654,7 @@ class OutcomeRecordRequest(BaseModel):
 # (نمط P0) — النموذج OutcomeRecordRequest يبقى هنا (نماذج/تبعيات لا تُنقَل).
 
 
-@app.get("/api/v1/indices/coverage-report")
-def indices_coverage_report(
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
-):
-    """تقرير شفّاف: أيّ مؤشّرات طيفيّة مربوطة بالقرار وأيّها عرض/سياق (حوكمة)."""
-    from core.engines.spectral_stress_bridge import index_coverage_report
-
-    return index_coverage_report()
+# نقطة /api/v1/indices/coverage-report نُقلت إلى api/routers/indices.py (نمط P0).
 
 
 # نقاط /api/v1/crops/* (drought-resilience) نُقلت إلى api/routers/crops.py (نمط P0).
@@ -4895,19 +3807,9 @@ class FeasibilityRequest(BaseModel):
 
 
 # ─── ٤٤. تحديد الإقليم من إحداثيّات الحقل (GPS → محافظة + إقليم + مناخ) ──
-from api.geo_zone_locator import locate_and_recommend, locate_field  # noqa: E402
-
-
-@app.get("/api/v1/geo-locate/field")
-def geo_locate_field_endpoint(lat: float, lon: float, elevation_m: float | None = None):
-    """يحدّد المحافظة + الإقليم المناخي + المناخ من إحداثيّات الحقل (GPS)."""
-    return locate_field(lat, lon, elevation_m)
-
-
-@app.get("/api/v1/geo-locate/recommend")
-def geo_locate_recommend_endpoint(lat: float, lon: float, elevation_m: float | None = None):
-    """تحديد الموقع + توصية مباشرة بالمحاصيل الملائمة (تدفّق كامل)."""
-    return locate_and_recommend(lat, lon, elevation_m)
+# نقطتا /api/v1/geo-locate/{field,recommend} نُقلتا إلى api/routers/geo_locate.py
+# (نمط P0) — والاستيراد المرافق (locate_field/locate_and_recommend) نُقل معها لإزالة
+# F401. (الكشف العكسي _reverse_geocode يبقى هنا — يستورد locate_field كسولاً داخله.)
 
 
 # ─── ٤٥. نوافذ المخاطر المناخيّة الموسميّة + ساعات البرودة ──
@@ -4963,37 +3865,8 @@ def geo_locate_recommend_endpoint(lat: float, lon: float, elevation_m: float | N
 
 
 # ─── ٥٧. الحالة التشغيليّة الموحّدة للحقل ──
-from api.field_operational_state import resolve_field_state  # noqa: E402
-
-
-@app.get("/api/v1/field/operational-state")
-def field_operational_state_endpoint(
-    field_id: str,
-    confidence_level: str | None = None,
-    irrigation_delta_pct: float | None = None,
-    rain_forecast_mm: float | None = None,
-    soil_moisture_ratio: float | None = None,
-    et0_mm: float | None = None,
-    ndvi_age_days: float | None = None,
-    soil_age_days: float | None = None,
-    weather_age_hours: float | None = None,
-):
-    """يركّب النضارة + الثقة + التناقض في حالة تشغيليّة واحدة رسميّة.
-
-    يُرجع: validity (valid/degraded/conflicted/insufficient) + نمط التنفيذ
-    (auto/human_review/blocked) + الأسباب. تركيب شفّاف للمكوّنات الموجودة.
-    """
-    return resolve_field_state(
-        field_id,
-        confidence_level,
-        irrigation_delta_pct,
-        rain_forecast_mm,
-        soil_moisture_ratio,
-        et0_mm,
-        ndvi_age_days,
-        soil_age_days,
-        weather_age_hours,
-    ).to_dict()
+# نقطة /api/v1/field/operational-state نُقلت إلى api/routers/field_single.py (نمط P0)
+# — والاستيراد المرافق (resolve_field_state) نُقل معها لإزالة F401.
 
 
 # ─── ٥٧-ب. الحالة القانونيّة الموحّدة للحقل (Canonical Field State — Phase 1) ──
@@ -5105,44 +3978,6 @@ class EdgeSyncRequest(BaseModel):
     field_id: str | None = None
 
 
-@app.post("/api/v1/edge/sync")
-@app.post("/v1/edge/sync")
-async def edge_sync_receive(
-    req: EdgeSyncRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يستقبل نتيجة من جهاز edge ويكتبها مع منع التكرار.
-
-    Hardening: ON CONFLICT على idempotency_key → إعادة الإرسال بعد انقطاع
-    الشبكة لا تُكرّر الصفّ. الهويّة من التوكن لا الجسم (أمان)."""
-    import json as _json
-
-    async with tenant_connection(user) as conn:
-        row = await conn.fetchrow(
-            """INSERT INTO edge_results
-                 (field_id, tenant_id, result_type, device, offline_mode,
-                  synced, result_data, idempotency_key, occurred_at)
-               VALUES ($1, $2::uuid, $3, $4, true, true, $5::jsonb, $6,
-                       COALESCE($7::timestamptz, NOW()))
-               ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL
-               DO NOTHING
-               RETURNING id""",
-            req.field_id,
-            str(user.tenant_id),
-            req.type,
-            req.device_id,
-            _json.dumps(req.data, ensure_ascii=False),
-            req.idempotency_key,
-            req.occurred_at,
-        )
-    # row=None يعني التكرار رُفض (نجح سابقاً) — نُرجع نجاحاً (idempotent)
-    return {
-        "status": "stored" if row else "duplicate_ignored",
-        "id": row["id"] if row else None,
-        "idempotency_key": req.idempotency_key,
-    }
-
-
 # ─── Entry point للتطوير ─────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -5167,84 +4002,6 @@ if __name__ == "__main__":
 # Field Intelligence — endpoint التشغيل الحيّ للمايسترو
 # يربط: auth → tenant → محوّلات حيّة → المايسترو → الحالة → حدث الحفظ
 # ═══════════════════════════════════════════════════════════════════
-@app.post("/api/v1/field-intelligence/analyze")
-def field_intelligence_analyze(
-    field_id: str,
-    lat: float | None = None,
-    lon: float | None = None,
-    crop: str | None = None,
-    notify: bool = False,
-    authorization: str = Header(None),
-    user: UserSchema = Depends(get_current_user),
-):
-    """يُشغّل المسار الكامل للمايسترو لحقل ويُرجِع الحالة الموحّدة + القرار.
-
-    سيادة البيانات: tenant_id من التوكن (موثوق) لا من الجسم (لا spoofing).
-    المصادر: محوّلات HTTP حيّة (weather/soil/raster). المتعذّر يُعلَن بصدق.
-    الحالة الناتجة جاهزة للحفظ في events (state_to_event_row) كذاكرة موسميّة.
-    """
-    from core.agronomic_state_engine import state_to_event_row
-    from core.alert_engine import evaluate_alerts, summarize_alerts
-    from core.correlation import set_correlation
-    from core.field_intelligence_adapters import build_live_adapters
-    from core.field_intelligence_coordinator import FieldRequest, run_field_intelligence
-
-    # ربط موحّد: correlation_id يمرّ بكلّ ما ينتج عن هذا الطلب (workflow/
-    # events/alerts) — لتتبّع "ماذا أنتج ماذا" عبر الخدمات (نمط OpenTelemetry).
-    correlation_id = set_correlation()
-
-    # tenant_id من التوكن الموثوق (لا من جسم الطلب — حماية multi-tenant)
-    req = FieldRequest(field_id=field_id, lat=lat, lon=lon, crop=crop, tenant_id=user.tenant_id)
-    # تمرير رأس التفويض للمحوّلات المحميّة (memory/simulate تنادي نقاط JWT داخليّة)
-    adapters = build_live_adapters(authorization=authorization)
-    result = run_field_intelligence(req, **adapters)
-
-    state = result.canonical_state
-    # التنبيهات الاستباقيّة: من الحالة الموحّدة (change_detection/FVC يُمرَّران عند
-    # توفّرهما من العامل — هنا الحالة فقط، فالمحرّك سلبيّ→استباقيّ على ما هو متاح).
-    alerts = evaluate_alerts(state)
-    # التوصيل اختياريّ (notify=true): warning فأعلى عبر القنوات المُهيّأة. صدق:
-    # الإرسال الخارجي يحدث فقط عند تهيئة القناة (لا ادّعاء إرسال).
-    alerts_delivery = None
-    if notify and alerts:
-        from core.alert_delivery import deliver_alerts
-
-        alerts_delivery = deliver_alerts(
-            alerts,
-            context={
-                "field_id": state.field_id,
-                "tenant_id": state.tenant_id,
-                "now": state.generated_at,
-            },
-        )
-    # حدث الحفظ جاهز (الكتابة الفعليّة في events عبر event_bus على بيئة التشغيل)
-    try:
-        event_row = state_to_event_row(state, actor_id=user.user_id)
-    except ValueError:
-        event_row = None  # بلا tenant — لا يُحفَظ (لن يحدث: tenant من التوكن)
-
-    return {
-        "field_id": state.field_id,
-        "tenant_id": state.tenant_id,
-        "generated_at": state.generated_at,
-        "operational_truths": state.operational_truths,
-        "confidence": state.confidence,
-        "confidence_reason": state.confidence_reason,
-        "provenance": state.provenance,
-        "contradictions": state.contradictions,
-        "missing_signals": state.missing_signals,
-        "policy_decision": result.policy_decision,
-        "governance": result.governance,
-        "farm_memory_context": result.farm_memory_context,  # السياق التاريخي
-        "correlation_id": correlation_id,  # خيط التتبّع الموحّد (OpenTelemetry-style)
-        "simulation": result.simulation,  # أثر what-if المتوقّع
-        "alerts": alerts,  # تنبيهات استباقيّة مُصنّفة (محرّك التنبيهات)
-        "alerts_summary": summarize_alerts(alerts),
-        "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
-        "_persistable_event": event_row,  # جاهز للإدراج في events table
-    }
-
-
 # ═══════════════════════════════════════════════════════════════════
 # تحليل ماء الريّ — endpoint حيّ يستدعي irrigation_water_analysis (كان معزولاً)
 # نقيّ-حسابيّ (SAR/RSC + تصنيف FAO-29/USDA-197/USSL)، بلا قاعدة. tenant من التوكن.
@@ -5309,49 +4066,6 @@ class PestEscalationRequest(BaseModel):
     approval_status: str | None = None
 
 
-@app.post("/api/v1/pest-escalation/run")
-async def pest_escalation_run(
-    req: PestEscalationRequest,
-    user: UserSchema = Depends(require_permission(Permission.PESTICIDE_APPROVE)),
-):
-    """يشغّل/يستأنف تدفّق تصعيد الآفة (durable + HIL).
-
-    أوّل نداء (بـpest_type/severity): يصل لخطوة الموافقة ثمّ يُعلَّق (suspended).
-    نداء ثانٍ بنفس workflow_id + approval_status=approved: يُستأنف فينفّذ ثمّ يُتابع.
-    سيادة: tenant_id من التوكن (لا من الجسم). HIL: لا تنفيذ قبل موافقة الخبير."""
-    import asyncio as _aio
-
-    from core.correlation import set_correlation
-    from core.pest_escalation_flow import run_pest_escalation
-    from core.workflow_engine import workflow_trace
-
-    set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
-    initial: dict = {}
-    if req.pest_type is not None:
-        initial["pest_type"] = req.pest_type
-    if req.severity:
-        initial["severity"] = req.severity
-    if req.field_id:
-        initial["field_id"] = req.field_id
-    if req.approval_status:
-        initial["approval_status"] = req.approval_status
-
-    store = _get_workflow_store(str(user.tenant_id))  # سياق RLS للقراءة/الاستئناف
-    # المخزن المعمّر متزامن (asyncio.run داخليّاً) ⇒ نُشغّله في thread لا في الحلقة
-    state = await _aio.to_thread(
-        run_pest_escalation,
-        req.workflow_id,
-        store=store,
-        tenant_id=str(user.tenant_id),
-        initial_context=initial or None,
-    )
-    return {
-        "workflow": workflow_trace(state),
-        "context": state.context,
-        "step_results": state.step_results,
-    }
-
-
 # ── OpenAPI FIX: إعادة بناء نماذج pydantic ذات التعليقات المؤجّلة ──────────
 # مع `from __future__ import annotations` تصبح كل التعليقات نصوصاً مؤجّلة، فبعض
 # النماذج (forward refs) تحتاج model_rebuild() وإلّا يفشل توليد مخطّط OpenAPI
@@ -5380,25 +4094,38 @@ _rebuild_pydantic_models()
 # المسارات على ``app`` كما لو كانت مُعرَّفة هنا (مخطّط OpenAPI مطابق).
 # دفعة 7 (routers-batch7): ١٥ نطاقاً مُستخرَجاً (تحليلات/مؤشّرات/ثقة/زمن/تشخيص/
 # تعلّم/سوق/اتّساق/إدخال/اقتصاد/تهيئة/طقس-تحليلي/قرار/أمثال/توقيت-فلكي).
+# دفعة الأمن/الهوية (routers-sec) — نطاقات auth/me/tenant/rbac/admin مُفكَّكة من main
+# (نمط P0، سلوك محفوظ بالكامل: مسارات/أذونات/توكن/OpenAPI مطابقة).
+from api.routers.admin import router as admin_router  # noqa: E402
 from api.routers.agricultural_proverbs import (  # noqa: E402
     router as agricultural_proverbs_router,
 )
 from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
+
+# الدفعة ٩ (Batch 9) — نطاقات CQRS/استبطان + كتابات (commands/events/lineage/replay/
+# lifecycle/seasons/alerts/tasks/farms) مُفكَّكة من main (نمط P0).
+from api.routers.alerts import router as alerts_router  # noqa: E402
 from api.routers.analytics import router as analytics_router  # noqa: E402
 from api.routers.aromatic_crops import router as aromatic_crops_router  # noqa: E402
 from api.routers.astronomical_timing import (  # noqa: E402
     router as astronomical_timing_router,
 )
+from api.routers.auth import router as auth_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
 from api.routers.calendars import router as calendars_router  # noqa: E402
 
 # الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
 from api.routers.cameras import router as cameras_router  # noqa: E402
+
+# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
+from api.routers.capabilities import router as capabilities_router  # noqa: E402
 from api.routers.chemical_safety import router as chemical_safety_router  # noqa: E402
 from api.routers.climate_analogs import router as climate_analogs_router  # noqa: E402
 from api.routers.coffee import router as coffee_router  # noqa: E402
+from api.routers.commands import router as commands_router  # noqa: E402
 from api.routers.confidence import router as confidence_router  # noqa: E402
+from api.routers.confidence_gate import router as confidence_gate_router  # noqa: E402
 from api.routers.consistency import router as consistency_router  # noqa: E402
 from api.routers.crop_suitability import router as crop_suitability_router  # noqa: E402
 from api.routers.crops import router as crops_router  # noqa: E402
@@ -5409,31 +4136,51 @@ from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.diagnose import router as diagnose_router  # noqa: E402
 from api.routers.documents import router as documents_router  # noqa: E402
 from api.routers.economics import router as economics_router  # noqa: E402
+from api.routers.edge import router as edge_router  # noqa: E402
 from api.routers.equipment import router as equipment_router  # noqa: E402
+from api.routers.escalation import router as escalation_router  # noqa: E402
+from api.routers.events import router as events_router  # noqa: E402
+from api.routers.evidence import router as evidence_router  # noqa: E402
+from api.routers.failures import router as failures_router  # noqa: E402
+from api.routers.farms import router as farms_router  # noqa: E402
+from api.routers.field_intelligence import (  # noqa: E402
+    router as field_intelligence_router,
+)
+from api.routers.field_single import router as field_single_router  # noqa: E402
 from api.routers.fields import router as fields_router  # noqa: E402
 from api.routers.fodder_alternatives import router as fodder_alternatives_router  # noqa: E402
 from api.routers.gdd import router as gdd_router  # noqa: E402
+from api.routers.geo import router as geo_router  # noqa: E402
+from api.routers.geo_locate import router as geo_locate_router  # noqa: E402
 from api.routers.high_value_crops import router as high_value_crops_router  # noqa: E402
 from api.routers.indicators import router as indicators_router  # noqa: E402
+from api.routers.indices import router as indices_router  # noqa: E402
 from api.routers.introduction import router as introduction_router  # noqa: E402
 from api.routers.inventory import router as inventory_router  # noqa: E402
 from api.routers.ipm import router as ipm_router  # noqa: E402
 from api.routers.irrigation import router as irrigation_router  # noqa: E402
 from api.routers.learning import router as learning_router  # noqa: E402
+from api.routers.lifecycle import router as lifecycle_router  # noqa: E402
+from api.routers.lineage import router as lineage_router  # noqa: E402
 from api.routers.market import router as market_router  # noqa: E402
 from api.routers.master_data import router as master_data_router  # noqa: E402
+from api.routers.me import router as me_router  # noqa: E402
 from api.routers.niche_crops import router as niche_crops_router  # noqa: E402
 from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
 from api.routers.onboarding import router as onboarding_router  # noqa: E402
 from api.routers.orchard import router as orchard_router  # noqa: E402
+from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
+from api.routers.queue import router as queue_router  # noqa: E402
+from api.routers.rbac import router as rbac_router  # noqa: E402
 from api.routers.recommendations import router as recommendations_router  # noqa: E402
 from api.routers.regional_calendar import router as regional_calendar_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
+from api.routers.replay import router as replay_router  # noqa: E402
 from api.routers.reports import router as reports_router  # noqa: E402
 from api.routers.rotation import router as rotation_router  # noqa: E402
 from api.routers.salinity import router as salinity_router  # noqa: E402
@@ -5441,12 +4188,16 @@ from api.routers.sampling import router as sampling_router  # noqa: E402
 from api.routers.scenario import router as scenario_router  # noqa: E402
 from api.routers.scouting import router as scouting_router  # noqa: E402
 from api.routers.seasonal_risk import router as seasonal_risk_router  # noqa: E402
+from api.routers.seasons import router as seasons_router  # noqa: E402
 from api.routers.seed import router as seed_router  # noqa: E402
 from api.routers.settings import router as settings_router  # noqa: E402
 from api.routers.sharing import router as sharing_router  # noqa: E402
 from api.routers.simulate import router as simulate_router  # noqa: E402
 from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
+from api.routers.sync import router as sync_router  # noqa: E402
+from api.routers.tasks import router as tasks_router  # noqa: E402
 from api.routers.temporal import router as temporal_router  # noqa: E402
+from api.routers.tenant import router as tenant_router  # noqa: E402
 from api.routers.trials import router as trials_router  # noqa: E402
 from api.routers.water_balance import router as water_balance_router  # noqa: E402
 from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
@@ -5526,3 +4277,33 @@ app.include_router(salinity_router)
 app.include_router(postharvest_router)
 app.include_router(sampling_router)
 app.include_router(fields_router)
+app.include_router(auth_router)
+app.include_router(me_router)
+app.include_router(tenant_router)
+app.include_router(rbac_router)
+app.include_router(admin_router)
+# الدفعة ٩ (Batch 9)
+app.include_router(commands_router)
+app.include_router(events_router)
+app.include_router(lineage_router)
+app.include_router(replay_router)
+app.include_router(lifecycle_router)
+app.include_router(seasons_router)
+app.include_router(alerts_router)
+app.include_router(tasks_router)
+app.include_router(farms_router)
+# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
+app.include_router(sync_router)
+app.include_router(queue_router)
+app.include_router(capabilities_router)
+app.include_router(geo_router)
+app.include_router(failures_router)
+app.include_router(confidence_gate_router)
+app.include_router(escalation_router)
+app.include_router(evidence_router)
+app.include_router(indices_router)
+app.include_router(geo_locate_router)
+app.include_router(field_single_router)
+app.include_router(edge_router)
+app.include_router(field_intelligence_router)
+app.include_router(pest_escalation_router)

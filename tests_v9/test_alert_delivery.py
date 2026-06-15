@@ -78,6 +78,15 @@ def test_default_channels_and_endpoint_wired():
     ad = _ad()
     names = [c.name for c in ad.build_default_channels()]
     assert "log" in names and "in_app" in names  # دائماً
-    main = open(os.path.join(ROOT, "services/sahool-platform/api/main.py"), encoding="utf-8").read()
+    # نقطة field-intelligence نُقلت إلى api/routers/field_intelligence.py (تفكيك main،
+    # نمط P0) — نبحث في main.py + موجِّهات api/routers معاً (location-agnostic).
+    api_dir = os.path.join(ROOT, "services/sahool-platform/api")
+    sources = [os.path.join(api_dir, "main.py")]
+    routers_dir = os.path.join(api_dir, "routers")
+    if os.path.isdir(routers_dir):
+        sources += [
+            os.path.join(routers_dir, f) for f in os.listdir(routers_dir) if f.endswith(".py")
+        ]
+    main = "\n".join(open(p, encoding="utf-8").read() for p in sources if os.path.isfile(p))
     assert "from core.alert_delivery import deliver_alerts" in main
     assert "alerts_delivery" in main and "notify" in main
