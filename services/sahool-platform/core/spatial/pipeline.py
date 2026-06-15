@@ -22,8 +22,11 @@ core.spatial.pipeline
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
+
+_logger = logging.getLogger(__name__)
 
 
 class Satellite(str, Enum):
@@ -381,6 +384,28 @@ def estimate_lai_from_ndvi(ndvi: float) -> dict:
 
     ⚠️ موجّه: تقدير طيفي. المعايرة الدقيقة تحتاج LAI meter ميداني (P4).
     لا يُنتج إنتاجاً مطلقاً — لا معايرة إنتاج بعد (مبدأ الصدق)."""
+    # ── رصد جودة البيانات (إضافيّ فقط — لا يغيّر السلوك) ──
+    # نُمرّر القيمة على سجلّ سياسات الجودة (api.data_quality) لتسجيل أيّ مخالفة
+    # (مثل NDVI خارج [-1, 1]) كـ«مُلاحَظة» فقط. هذا يُظهِر مخالفات السياسة من
+    # السجلّ دون لمس التحقّق القديم أدناه (فلتر «< 0» قرار زراعيّ مقصود يبقى كما هو).
+    # الإنفاذ الكامل (استخدام السجلّ للبوابة/التنظيف) خطوة لاحقة مقصودة تحتاج
+    # إقراراً زراعيّاً. ملفوف كاملاً بـ try/except كي لا يُسقِط المسار أبداً.
+    try:
+        from api.data_quality import evaluate_record
+
+        _violations = evaluate_record({"ndvi": ndvi})
+        for _v in _violations:
+            _logger.warning(
+                "مخالفة جودة بيانات [%s] في الحقل '%s' بالقيمة %r: %s",
+                _v.get("rule_id"),
+                _v.get("field"),
+                _v.get("value"),
+                _v.get("message_ar"),
+            )
+    except Exception:
+        # api قد لا يكون قابلاً للاستيراد من core في بعض السياقات — نتجاوز بصمت.
+        pass
+
     if ndvi is None or ndvi < 0:
         return {"lai": None, "confidence": "none", "note_ar": "NDVI غير صالح"}
     # تقريب تجريبي شائع: LAI ≈ (NDVI relationship)، مقصوص [0, 7]
