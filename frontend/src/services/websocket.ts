@@ -28,6 +28,13 @@ class WebSocketService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
+  // صندوق صادر محدود (Phase 3): يحفظ الرسائل المُرسَلة بينما القناة ليست OPEN
+  // (إعادة اتصال/إقلاع) ويُفرِّغها عند الفتح، بدل إسقاطها صامتةً. فقدان أمر
+  // تشغيليّ (ريّ/صمام/مضخّة) صامتاً أخطر من تأخيره. محدود بسقفٍ لتجنّب نموّ
+  // غير محدود؛ عند الامتلاء نُسقط الأقدم (نُبقي الأحدث، الأقرب للحالة الراهنة)
+  // مع تحذير صريح فلا يكون الفقد خفيّاً.
+  private outbox: string[] = [];
+  private readonly maxOutbox = 100;
 
   connect(userId: number): void {
     if (this.isConnecting) return;
@@ -47,6 +54,7 @@ class WebSocketService {
         console.info('[WS] SAHOOL WebSocket connected');
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        this._flushOutbox();
         // Ping كل 30 ثانية للحفاظ على الاتصال
         this.pingInterval = setInterval(() => {
           if (this.ws?.readyState === WebSocket.OPEN) {
@@ -112,9 +120,46 @@ class WebSocketService {
     return () => { this.globalListeners = this.globalListeners.filter(h => h !== handler); };
   }
 
-  send(data: Record<string, unknown>): void {
+  /**
+   * يُرسل رسالة عبر القناة. عند كون القناة غير مفتوحة (إعادة اتصال/إقلاع) تُحفظ
+   * في صندوق صادر محدود وتُفرَّغ عند الفتح، بدل إسقاطها صامتةً (Phase 3).
+   * يعيد true إن أُرسلت فوراً، وfalse إن وُضِعت في الطابور (أو أُسقطت عند الامتلاء).
+   */
+  send(data: Record<string, unknown>): boolean {
+    let payload: string;
+    try {
+      payload = JSON.stringify(data);
+    } catch (e) {
+      console.warn('[WS] Dropping unserializable message:', e);
+      return false;
+    }
     if (this.ws?.readyState === WebSocket.OPEN) {
-      this.ws.send(JSON.stringify(data));
+      this.ws.send(payload);
+      return true;
+    }
+    // غير مفتوحة بعد: ضعها في الطابور لتُرسَل عند الفتح. عند الامتلاء أسقط الأقدم
+    // (نُبقي الأحدث) مع تحذير صريح حتى لا يكون فقد الأوامر التشغيليّة خفيّاً.
+    if (this.outbox.length >= this.maxOutbox) {
+      this.outbox.shift();
+      console.warn(`[WS] Outbox full (${this.maxOutbox}); dropped oldest queued message`);
+    }
+    this.outbox.push(payload);
+    return false;
+  }
+
+  // يُفرّغ الصندوق الصادر بالترتيب عند فتح القناة. ما يفشل إرساله يُعاد لرأس
+  // الطابور ليُحاوَل عند الفتح التالي، فلا تُفقد رسائل بسبب إغلاق أثناء التفريغ.
+  private _flushOutbox(): void {
+    if (!this.outbox.length) return;
+    const pending = this.outbox;
+    this.outbox = [];
+    for (let i = 0; i < pending.length; i++) {
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        this.ws.send(pending[i]);
+      } else {
+        this.outbox.push(...pending.slice(i));
+        break;
+      }
     }
   }
 
@@ -126,6 +171,8 @@ class WebSocketService {
     this.userId = null;
     this.reconnectAttempts = 0;
     this.isConnecting = false;
+    // خروج صريح: نُسقط الرسائل المُعلّقة (لا نُعيد إرسالها لجلسة/مستخدم آخر).
+    this.outbox = [];
   }
 
   isConnected(): boolean {
