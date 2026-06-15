@@ -12,6 +12,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
+import { useTenantConfig } from './hooks/useTenantConfig';
 import { useTheme, type Theme } from './hooks/useTheme';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
@@ -334,9 +335,12 @@ interface TopBarProps {
   onMenu: () => void;
   theme: Theme;
   setTheme: (t: Theme) => void;
+  // العلامة التجاريّة للمستأجِر (#206) — اختياريّة. غائبة ⇒ سلوك افتراضيّ كما اليوم.
+  tenantName?: string | null;
+  tenantLogo?: string | null;
 }
 
-function TopBar({ page, onMenu, theme, setTheme }: TopBarProps) {
+function TopBar({ page, onMenu, theme, setTheme, tenantName, tenantLogo }: TopBarProps) {
   const item = NAV_ITEMS.find(n => n.id === page);
   const Icon = item?.icon || LayoutDashboard;
   const { isDemoMode } = useAuthStore();
@@ -349,8 +353,19 @@ function TopBar({ page, onMenu, theme, setTheme }: TopBarProps) {
       <button onClick={onMenu} className="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400">
         <LayoutDashboard className="w-5 h-5" />
       </button>
+      {/* شعار المستأجِر — يُعرَض فقط عند وجود رابط فعليّ (لا صورة مكسورة عند null). */}
+      {tenantLogo && (
+        <img src={tenantLogo} alt={tenantName || 'شعار المستأجِر'}
+          className="h-6 w-auto max-w-[120px] object-contain flex-shrink-0" />
+      )}
       <Icon className="w-5 h-5 text-emerald-500" />
       <h1 className="text-base font-bold text-slate-100">{item?.label}</h1>
+      {/* اسم المستأجِر — يظهر بجوار العنوان فقط حين يوفّره التكوين. */}
+      {tenantName && (
+        <span className="hidden sm:inline text-sm text-slate-400 truncate max-w-[180px]">
+          · {tenantName}
+        </span>
+      )}
       <div className="mr-auto flex items-center gap-2">
         {isDemoMode && (
           <span className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-amber-950 text-amber-400 border border-amber-900">
@@ -375,6 +390,17 @@ export default function App() {
   // بوّابة التأهيل: بعد المصادقة نفحص وجود مزرعة. مُعطَّلة قبل المصادقة وفي الوضع
   // التجريبيّ (لا تُطلق الطلب، فالاستعلام لا يعمل إلا حين isAuthenticated && !isDemoMode).
   const farms = useFarms(isAuthenticated && !isDemoMode);
+  // تكوين المستأجِر (#206) — أفضل-جهد. null ⇒ تبقى الواجهة على الافتراضيّات تماماً.
+  const tenantConfig = useTenantConfig();
+  const branding = tenantConfig.data?.branding ?? null;
+  // اللون الأساسيّ للمستأجِر كمتغيّر CSS تراكُبيّ (--tenant-primary). نضبطه فقط حين
+  // يوفّره التكوين، ونُزيله عند غيابه كي يعود السلوك الافتراضيّ (لا تلوين عالق).
+  useEffect(() => {
+    const root = document.documentElement;
+    const color = branding?.primary_color;
+    if (color) root.style.setProperty('--tenant-primary', color);
+    else root.style.removeProperty('--tenant-primary');
+  }, [branding?.primary_color]);
   const [page,       setPage]       = useState<PageId>('dashboard');
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -515,7 +541,8 @@ export default function App() {
           </>
         )}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <TopBar page={page} onMenu={() => setMobileOpen(!mobileOpen)} theme={theme} setTheme={setTheme} />
+          <TopBar page={page} onMenu={() => setMobileOpen(!mobileOpen)} theme={theme} setTheme={setTheme}
+            tenantName={branding?.name_ar ?? null} tenantLogo={branding?.logo_url ?? null} />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Suspense fallback={<Loader />}>{renderPage()}</Suspense>
           </main>

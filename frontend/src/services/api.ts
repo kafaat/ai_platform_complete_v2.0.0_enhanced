@@ -280,6 +280,31 @@ export const confirmVerification = (
 // SAHOOL-PLATFORM (core) — وحدات قرار حيّة عبر البوابة الموحّدة (kong)
 // ربط حقيقيّ: لا fallback وهميّ (قرارات زراعيّة — الخطأ يُعلَن للـUI).
 // ══════════════════════════════════════════════════════════════════
+// ── Tenant Config (#206): تكوين المستأجِر للعلامة التجاريّة + الوحدات/اللغة ──
+// GET /api/v1/tenant/config → {branding:{logo_url, primary_color, name_ar}, units,
+// language, crops}. الحقول كلّها اختياريّة/قد تكون null (الافتراضيّ): الواجهة
+// تتجاهل أيّ حقل غائب وتُبقي سلوكها الحاليّ. أفضل-جهد: عند أيّ خطأ نُرجِع null
+// (لا fallback مُفبرَك، ولا كسر) فتعمل الواجهة بالافتراضيّات كما هي اليوم.
+export interface TenantBranding {
+  logo_url:      string | null;
+  primary_color: string | null;
+  name_ar:       string | null;
+}
+export interface TenantConfig {
+  branding: TenantBranding | null;
+  units:    string | null;
+  language: string | null;
+  crops:    string[] | null;
+}
+
+/** يجلب تكوين المستأجِر (#206). أفضل-جهد: أيّ خطأ/استجابة غير صالحة ⇒ null
+ *  فتُبقي الواجهة الافتراضيّات (لا كسر، لا علامة تجاريّة مُفبرَكة). */
+export const fetchTenantConfig = (): Promise<TenantConfig | null> =>
+  kongApi
+    .get<TenantConfig>('/api/v1/tenant/config')
+    .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
+    .catch(() => null);
+
 export interface WaterSampleInput {
   sample_id: string;
   source?: string;
