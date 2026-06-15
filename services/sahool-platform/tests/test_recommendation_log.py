@@ -14,7 +14,8 @@ from core.learning.recommendation_log import (
 
 
 def _csv_path():
-    return Path(tempfile.mkdtemp()) / "recommendations.csv"
+    with tempfile.NamedTemporaryFile(suffix=".csv", delete=False) as f:
+        return Path(f.name)
 
 
 def _rec(rec_id="r1", pred=5.0, actual=None):

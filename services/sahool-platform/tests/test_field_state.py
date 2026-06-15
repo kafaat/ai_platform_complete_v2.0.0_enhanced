@@ -8,7 +8,8 @@ from storage import lite_store
 
 
 def _db():
-    db = Path(tempfile.mkdtemp()) / "test.db"
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
+        db = Path(f.name)
     lite_store.init_db(db)
     return db
 
