@@ -27,12 +27,8 @@ import pytest
 _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _SQL_PATH = os.path.join(_REPO_ROOT, "migrations", "v35_activities.sql")
-_PY_PATH = os.path.join(
-    _REPO_ROOT, "services", "sahool-platform", "api", "main.py"
-)
-_TS_PATH = os.path.join(
-    _REPO_ROOT, "frontend", "src", "services", "api.ts"
-)
+_PY_PATH = os.path.join(_REPO_ROOT, "services", "sahool-platform", "api", "main.py")
+_TS_PATH = os.path.join(_REPO_ROOT, "frontend", "src", "services", "api.ts")
 
 
 def _read(path: str) -> str:
