@@ -1029,28 +1029,8 @@ class FieldRecommendationRequest(BaseModel):
     district_id: str | None = None
 
 
-@app.post("/api/v1/observations")
-def observations(
-    req: ObservationRequest,
-    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
-):
-    """تسجيل مشاهدة جديدة. في الإنتاج: يدخل DB. الآن: offline queue."""
-    if req.tenant_id != user.tenant_id:
-        raise HTTPException(status_code=403, detail="Tenant mismatch")
-
-    op = record_operation_offline(
-        _OFFLINE_QUEUE,
-        tenant_id=req.tenant_id,
-        user_id=user.user_id,
-        kind=OperationKind.OBSERVATION_CREATE,
-        payload=req.model_dump(),
-    )
-    return {
-        "status": "recorded",
-        "op_id": op.op_id,
-        "queued_for_sync": True,
-        "message_ar": "سُجّلت محلّياً، ستُحفظ عند الاتصال",
-    }
+# نقطة /api/v1/observations نُقلت إلى api/routers/observations.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
 @app.post("/api/v1/sync")
@@ -4819,78 +4799,8 @@ class RotationRequest(BaseModel):
     notes: str | None = None
 
 
-@app.post("/api/v1/master-data", status_code=201)
-async def create_master_data(
-    req: MasterDataRequest,
-    user: UserSchema = Depends(require_permission(Permission.MASTER_DATA_MANAGE)),
-):
-    import json as _json
-    import uuid as _uuid
-
-    md_id = "md_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        # نعتمد على قيد UNIQUE(tenant, category, code) لا SELECT-ثمّ-INSERT (سباق):
-        # طلبان متزامنان قد يمرّان الفحص ثم يفشل الثاني — نلتقط unique_violation
-        # (SQLSTATE 23505) ونُعيد 409 دائماً (لا 500). ملاحظة المراجعة.
-        try:
-            await conn.execute(
-                """INSERT INTO master_data
-                    (md_id, tenant_id, category, code, name_ar, name_en, metadata)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb)""",
-                md_id,
-                str(user.tenant_id),
-                req.category,
-                req.code,
-                req.name_ar,
-                req.name_en,
-                _json.dumps(req.metadata or {}),
-            )
-            await _emit_domain_event(
-                conn,
-                user,
-                "MASTER_DATA_CREATED",
-                "master_data",
-                md_id,
-                {"category": req.category, "code": req.code},
-            )
-        except Exception as e:  # noqa: BLE001 — نميّز unique_violation فقط
-            if getattr(e, "sqlstate", None) == "23505":
-                raise HTTPException(
-                    status_code=409, detail="الرمز موجود مسبقاً في هذه الفئة"
-                ) from None
-            raise
-    return {"md_id": md_id, "code": req.code, "message_ar": "أُضيف عنصر مرجعيّ"}
-
-
-@app.get("/api/v1/master-data")
-async def list_master_data(
-    category: str | None = None,
-    user: UserSchema = Depends(require_permission(Permission.MASTER_DATA_VIEW)),
-):
-    """كتالوج البيانات المرجعيّة (مُرشَّح اختياريّاً بالفئة)."""
-    async with tenant_connection(user) as conn:
-        if category:
-            rows = await conn.fetch(
-                "SELECT md_id, category, code, name_ar, name_en, metadata, active "
-                "FROM master_data WHERE category = $1 AND active ORDER BY name_ar",
-                category,
-            )
-        else:
-            rows = await conn.fetch(
-                "SELECT md_id, category, code, name_ar, name_en, metadata, active "
-                "FROM master_data WHERE active ORDER BY category, name_ar"
-            )
-    return [
-        {
-            "md_id": r["md_id"],
-            "category": r["category"],
-            "code": r["code"],
-            "name_ar": r["name_ar"],
-            "name_en": r["name_en"],
-            "metadata": r["metadata"] if isinstance(r["metadata"], dict) else {},
-        }
-        for r in rows
-    ]
+# نقاط /api/v1/master-data نُقلت إلى api/routers/master_data.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
 @app.post("/api/v1/fields/{field_id}/rotations", status_code=201)
@@ -4969,66 +4879,8 @@ class SettingRequest(BaseModel):
     value: dict | None = None
 
 
-@app.put("/api/v1/settings")
-async def upsert_setting(
-    req: SettingRequest,
-    user: UserSchema = Depends(require_permission(Permission.SETTINGS_MANAGE)),
-):
-    """يحفظ/يحدّث إعداداً (upsert idempotent لكلّ مستأجر+نطاق+مفتاح)."""
-    import json as _json
-    import uuid as _uuid
-
-    setting_id = "set_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        row = await conn.fetchrow(
-            """INSERT INTO settings
-                (setting_id, tenant_id, scope, key, value, updated_by)
-               VALUES ($1, $2::uuid, $3, $4, $5::jsonb, $6)
-               ON CONFLICT (tenant_id, scope, key) DO UPDATE
-                 SET value = EXCLUDED.value, updated_by = EXCLUDED.updated_by
-               RETURNING setting_id, scope, key""",
-            setting_id,
-            str(user.tenant_id),
-            req.scope,
-            req.key,
-            _json.dumps(req.value or {}),
-            str(user.user_id),
-        )
-    return {
-        "setting_id": row["setting_id"],
-        "scope": row["scope"],
-        "key": row["key"],
-        "message_ar": "حُفِظ الإعداد",
-    }
-
-
-@app.get("/api/v1/settings")
-async def list_settings(
-    scope: str | None = None,
-    user: UserSchema = Depends(require_permission(Permission.SETTINGS_VIEW)),
-):
-    """إعدادات المستأجر (مُرشَّحة اختياريّاً بالنطاق)."""
-    async with tenant_connection(user) as conn:
-        if scope:
-            rows = await conn.fetch(
-                "SELECT setting_id, scope, key, value, updated_by "
-                "FROM settings WHERE scope = $1 ORDER BY key",
-                scope,
-            )
-        else:
-            rows = await conn.fetch(
-                "SELECT setting_id, scope, key, value, updated_by FROM settings ORDER BY scope, key"
-            )
-    return [
-        {
-            "setting_id": r["setting_id"],
-            "scope": r["scope"],
-            "key": r["key"],
-            "value": r["value"] if isinstance(r["value"], dict) else {},
-            "updated_by": r["updated_by"],
-        }
-        for r in rows
-    ]
+# نقاط /api/v1/settings نُقلت إلى api/routers/settings.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
 # ─── تكوين المستأجِر (Tenant Config) — هويّة/وحدات/لغة/محاصيل — (#13) ─
@@ -5521,100 +5373,8 @@ class DocumentRequest(BaseModel):
     field_id: str | None = Field(default=None, max_length=50)  # يطابق fields.field_id VARCHAR(50)
 
 
-@app.post("/api/v1/documents", status_code=201)
-async def register_document(
-    req: DocumentRequest,
-    user: UserSchema = Depends(require_permission(Permission.DOCUMENT_MANAGE)),
-):
-    """يسجّل بيانات مستند وصفيّة (لا blob — storage_ref يشير لتخزين الكائنات)."""
-    import uuid as _uuid
-
-    doc_id = "doc_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO documents
-                (doc_id, tenant_id, category, field_id, title, storage_ref,
-                 content_type, size_bytes, uploaded_by)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
-            doc_id,
-            str(user.tenant_id),
-            req.category,
-            req.field_id,
-            req.title,
-            req.storage_ref,
-            req.content_type,
-            req.size_bytes,
-            user.user_id,
-        )
-    return {"doc_id": doc_id, "title": req.title, "message_ar": "سُجّل المستند"}
-
-
-@app.get("/api/v1/documents")
-async def list_documents(
-    category: str | None = None,
-    field_id: str | None = None,
-    user: UserSchema = Depends(require_permission(Permission.DOCUMENT_VIEW)),
-):
-    """سجلّ المستندات (مُرشَّح اختياريّاً بالفئة و/أو الحقل) — معزول بالمستأجر."""
-    clauses: list[str] = []
-    params: list = []
-    if category:
-        params.append(category)
-        clauses.append(f"category = ${len(params)}")
-    if field_id:
-        params.append(field_id)
-        clauses.append(f"field_id = ${len(params)}")
-    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT doc_id, category, field_id, title, storage_ref, content_type, "
-            "size_bytes, version, uploaded_by, created_at "
-            f"FROM documents{where} ORDER BY created_at DESC",
-            *params,
-        )
-    return [
-        {
-            "doc_id": r["doc_id"],
-            "category": r["category"],
-            "field_id": r["field_id"],
-            "title": r["title"],
-            "storage_ref": r["storage_ref"],
-            "content_type": r["content_type"],
-            "size_bytes": r["size_bytes"],
-            "version": r["version"],
-            "uploaded_by": r["uploaded_by"],
-        }
-        for r in rows
-    ]
-
-
-@app.get("/api/v1/documents/{doc_id}")
-async def get_document(
-    doc_id: str,
-    user: UserSchema = Depends(require_permission(Permission.DOCUMENT_VIEW)),
-):
-    """بيانات مستند مفرد (404 إن غير موجود) — معزول بالمستأجر."""
-    async with tenant_connection(user) as conn:
-        r = await conn.fetchrow(
-            "SELECT doc_id, category, field_id, title, storage_ref, content_type, "
-            "size_bytes, version, uploaded_by, created_at "
-            "FROM documents WHERE doc_id = $1",
-            doc_id,
-        )
-    if r is None:
-        raise HTTPException(status_code=404, detail="المستند غير موجود")
-    return {
-        "doc_id": r["doc_id"],
-        "category": r["category"],
-        "field_id": r["field_id"],
-        "title": r["title"],
-        "storage_ref": r["storage_ref"],
-        "content_type": r["content_type"],
-        "size_bytes": r["size_bytes"],
-        "version": r["version"],
-        "uploaded_by": r["uploaded_by"],
-        "created_at": r["created_at"].isoformat() if r["created_at"] else None,
-    }
+# نقاط /api/v1/documents نُقلت إلى api/routers/documents.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -6303,109 +6063,17 @@ class WhatIfRequest(BaseModel):
     scenario: str = "reduce_irrigation"  # reduce_irrigation | no_irrigation
 
 
-@app.post("/api/v1/simulate/what-if")
-async def simulate_what_if(
-    req: WhatIfRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يحاكي أثر سيناريو (مثلاً تقليل/إيقاف الريّ) على المحصول والماء.
-
-    Runtime Cohesion: يغذّي حلقة القرار بأثر متوقّع للإجراء المقترَح. يشغّل
-    WOFOST مرّتين (baseline مرويّ مقابل السيناريو) ويقارن. صدق: عند تعذّر
-    النموذج/الطقس يُعلَن (لا أرقام مخترَعة). lat/lon إلزاميّان للطقس الحيّ.
-    """
-    if req.lat is None or req.lon is None:
-        return {
-            "field_id": req.field_id,
-            "available": False,
-            "note_ar": "lat/lon مطلوبان للطقس الحيّ — لا محاكاة بلا موقع",
-        }
-    # استيراد آمن لمحرّك WOFOST (وحدة جذريّة — قد لا تكون على المسار)
-    try:
-        import importlib.util as _ilu
-        import os as _os
-
-        _root = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), "..", "..", ".."))
-        _eng_path = _os.path.join(_root, "wofost_real", "wofost_engine.py")
-        if not _os.path.exists(_eng_path):
-            return {
-                "field_id": req.field_id,
-                "available": False,
-                "note_ar": "محرّك WOFOST غير متاح على هذا المسار",
-            }
-        _spec = _ilu.spec_from_file_location("wofost_engine", _eng_path)
-        _eng = _ilu.module_from_spec(_spec)
-        _spec.loader.exec_module(_eng)
-    except Exception as e:  # noqa: BLE001 — صدق: نُعلن التعذّر
-        return {
-            "field_id": req.field_id,
-            "available": False,
-            "error": f"تعذّر تحميل محرّك المحاكاة: {e}",
-        }
-
-    from datetime import date as _date
-
-    try:
-        pd = _date.fromisoformat(req.planting_date) if req.planting_date else _date.today()
-    except ValueError:
-        pd = _date.today()
-
-    async def _run(irrigation: bool):
-        return await _eng.simulate_wofost(
-            req.field_id,
-            req.crop,
-            req.soil_type,
-            req.lat,
-            req.lon,
-            pd,
-            irrigation=irrigation,
-        )
-
-    try:
-        baseline = await _run(irrigation=True)  # مرويّ كاملاً (الأساس)
-        scenario = await _run(irrigation=False)  # السيناريو (بلا/تقليل ريّ)
-    except Exception as e:  # noqa: BLE001 — صدق: الطقس/النموذج تعذّر
-        return {
-            "field_id": req.field_id,
-            "available": False,
-            "error": f"تعذّرت المحاكاة (طقس/نموذج): {e}",
-        }
-
-    # b_yield = محصول الإجراء المقترَح (الريّ الموصى به)؛ s_yield = بلا إجراء (بلا ريّ)
-    b_yield = baseline.get("simulation", {}).get("yield_t_ha")
-    s_yield = scenario.get("simulation", {}).get("yield_t_ha")
-    b_irr = baseline.get("water_balance", {}).get("irrigation_needed_mm")
-    s_irr = scenario.get("water_balance", {}).get("irrigation_needed_mm")
-    water_saved = round(b_irr - s_irr, 1) if (b_irr is not None and s_irr is not None) else None
-    # هل "الإجراء المقترَح" (الريّ) يُجدي؟ مُجدٍ إن رفع المحصول >2% فوق خطّ الأساس
-    # (لا إجراء). خطّ الأساس = s_yield، الإجراء = b_yield ⇒ المقارنة ذات معنى.
-    helps = None
-    if b_yield is not None and s_yield is not None:
-        helps = b_yield > s_yield * 1.02  # الريّ الموصى به يرفع المحصول >2%
-
-    return {
-        "field_id": req.field_id,
-        "available": True,
-        "scenario": req.scenario,
-        # خطّ الأساس = لا إجراء (بلا ريّ)؛ الإجراء = الريّ الموصى به (قيمتان متمايزتان
-        # حتّى تكون recommended_action_helps مقارنةً فعليّةً لا قيمةً بنفسها).
-        "baseline_yield_t_ha": s_yield,  # لا إجراء (السيناريو بلا ريّ) — خطّ الأساس
-        "action_yield_t_ha": b_yield,  # الإجراء المقترَح (الريّ الموصى به)
-        "no_action_yield_t_ha": s_yield,  # مرادف صريح لخطّ الأساس (توافق خلفي)
-        "water_saved_mm": water_saved,
-        "recommended_action_helps": helps,
-    }
+# نقطة /api/v1/simulate/what-if نُقلت إلى api/routers/simulate.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 
 
 # ─── ١١. Scouting Pins (المرحلة ١، البند ٨) ──────────────────────
 # مشاهدات ميدانيّة: GPS + صورة + taxonomy يمنيّة + شدّة + حالة + موسمي/دائم.
 # التحقّق والـtaxonomy هنا (pure)؛ الحفظ في الموبايل SQLite + mediaStore + syncEngine.
-from api.scouting_pins import (  # noqa: E402
-    NUTRIENT_DEFICIENCY_GUIDE,
-    YEMEN_CROP_ISSUES,
-    get_crop_issues,
-    make_pin,
-)
+from api.scouting_pins import make_pin  # noqa: E402
+
+# كتالوجات scouting (NUTRIENT_DEFICIENCY_GUIDE/YEMEN_CROP_ISSUES/get_crop_issues)
+# انتقل استعمالها مع نقطة /api/v1/scouting/taxonomy إلى api/routers/scouting.py.
 
 
 class PinCreateRequest(BaseModel):
@@ -6454,19 +6122,7 @@ def create_pin(
         raise HTTPException(status_code=422, detail=str(e)) from e
 
 
-@app.get("/api/v1/scouting/taxonomy")
-def scouting_taxonomy(
-    crop: str | None = None,
-    user: UserSchema = Depends(get_current_user),
-):
-    """قوائم المشاكل (للقوائم المنسدلة). لو crop معطى، يُرجع مشاكله فقط."""
-    if crop:
-        return {"crop": crop, "issues": get_crop_issues(crop)}
-    return {
-        "crops": list(YEMEN_CROP_ISSUES.keys()),
-        "all_issues": YEMEN_CROP_ISSUES,
-        "nutrient_guide": NUTRIENT_DEFICIENCY_GUIDE,
-    }
+# نقطة /api/v1/scouting/taxonomy نُقلت إلى api/routers/scouting.py (نمط P0).
 
 
 # ─── ١٢. Manual Application Mode (المرحلة ١، البند ٩) ────────────
@@ -6661,9 +6317,8 @@ class SharingKeyCreateRequest(BaseModel):
 
 # ─── ١٥. محرّك التجارب t-test/LSD (المرحلة ٢، البند ١١) ──────────
 # الميزة الرئيسيّة لـ"الصدق الإحصائي": يُجيب هل الفرق مؤكّد أم تباين طبيعي.
-from api.trial_engine import BlockResult, analyze_paired_trial  # noqa: E402
-
-
+# نقطة /api/v1/trials/analyze نُقلت إلى api/routers/trials.py (نمط P0).
+# النماذج تبقى هنا وتُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 class TrialBlockInput(BaseModel):
     block_number: int
     treatment_yield: float
@@ -6676,29 +6331,10 @@ class TrialAnalysisRequest(BaseModel):
     treatment_label_ar: str = "المعالجة الجديدة"
 
 
-@app.post("/api/v1/trials/analyze")
-def analyze_trial(
-    req: TrialAnalysisRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يُحلّل تجربة مقترنة (t-test مزدوج + LSD) ويُعطي حُكماً صادقاً."""
-    blocks = [BlockResult(b.block_number, b.treatment_yield, b.control_yield) for b in req.blocks]
-    try:
-        verdict = analyze_paired_trial(
-            blocks,
-            confidence_level=req.confidence_level,
-            treatment_label_ar=req.treatment_label_ar,
-        )
-        return verdict.to_dict()
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
-
-
 # ─── ١٦. ميزان الماء ET0 (المرحلة ٢، البند ١٢) ──────────────────
 # توصية ريّ FAO-56 (Penman-Monteith / Hargreaves) — أزمة مياه اليمن.
-from api.water_balance import WeatherInput, water_balance  # noqa: E402
-
-
+# نقطة /api/v1/water-balance نُقلت إلى api/routers/water_balance.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 class WaterBalanceRequest(BaseModel):
     crop: str
     stage: str = "mid"  # initial|development|mid|late
@@ -6713,30 +6349,10 @@ class WaterBalanceRequest(BaseModel):
     day_of_year: int = 100
 
 
-@app.post("/api/v1/water-balance")
-def compute_water_balance(
-    req: WaterBalanceRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يحسب توصية الريّ (ET0 → ETc → احتياج صافٍ بعد المطر)."""
-    w = WeatherInput(
-        t_min_c=req.t_min_c,
-        t_max_c=req.t_max_c,
-        solar_rad_mj_m2=req.solar_rad_mj_m2,
-        rh_mean_pct=req.rh_mean_pct,
-        wind_2m_ms=req.wind_2m_ms,
-        latitude_deg=req.latitude_deg,
-        elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
-    )
-    return water_balance(w, req.crop, req.stage, rain_mm=req.rain_mm).to_dict()
-
-
 # ─── ١٧. قواعد 4R للتربة الكلسيّة (المرحلة ٢، البند ١٣) ──────────
 # توصية تسميد محجوبة حتى توفّر تحليل مختبر (الاستشعار يوجّه/المختبر يحكم).
-from api.nutrient_4r import SoilContext, full_4r_plan  # noqa: E402
-
-
+# نقطة /api/v1/nutrients/4r-plan نُقلت إلى api/routers/nutrients.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 class Soil4RRequest(BaseModel):
     caco3_pct: float | None = None
     ph: float | None = None
@@ -6745,23 +6361,6 @@ class Soil4RRequest(BaseModel):
     zn_ppm: float | None = None
     om_pct: float | None = None
     nutrients: list[str] | None = None
-
-
-@app.post("/api/v1/nutrients/4r-plan")
-def nutrient_4r_plan(
-    req: Soil4RRequest,
-    user: UserSchema = Depends(require_permission(Permission.ACTIVITY_PLAN)),
-):
-    """خطة تسميد 4R للتربة الكلسيّة (تحجب ما يحتاج تحليلاً)."""
-    soil = SoilContext(
-        caco3_pct=req.caco3_pct,
-        ph=req.ph,
-        p_ppm=req.p_ppm,
-        fe_ppm=req.fe_ppm,
-        zn_ppm=req.zn_ppm,
-        om_pct=req.om_pct,
-    )
-    return {"plan": full_4r_plan(soil, req.nutrients)}
 
 
 # ─── ١٨. مناطق NDVI k-means (المرحلة ٣، البند ١٤) ───────────────
@@ -6796,9 +6395,8 @@ def field_zones(
 
 # ─── ١٩. تتبّع GDD (المرحلة ٣، البند ١٥) ────────────────────────
 # النموّ بالحرارة المتراكمة لا بالأيّام — توقيت أدقّ للريّ/التسميد/الحصاد.
-from api.gdd_tracker import DailyTemp, track_gdd  # noqa: E402
-
-
+# نقطة /api/v1/gdd/track نُقلت إلى api/routers/gdd.py (نمط P0).
+# النماذج تبقى هنا وتُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 class DailyTempInput(BaseModel):
     t_min_c: float
     t_max_c: float
@@ -6807,19 +6405,6 @@ class DailyTempInput(BaseModel):
 class GDDRequest(BaseModel):
     crop: str
     temps: list[DailyTempInput]
-
-
-@app.post("/api/v1/gdd/track")
-def gdd_track(
-    req: GDDRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يتراكم GDD ويحدّد مرحلة المحصول الحاليّة + المتبقّي للتالية."""
-    temps = [DailyTemp(t.t_min_c, t.t_max_c) for t in req.temps]
-    try:
-        return track_gdd(req.crop, temps).to_dict()
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 # ─── ٢٠. تشخيص بقواعد الأعراض (المرحلة ٣، البند ١٦) ─────────────
@@ -6991,20 +6576,12 @@ def external_prior_blend(
 
 # ─── ٢٢. اكتمال البيانات + ملاءمة المحاصيل (مُستلهَم من المستندَين) ─
 from api.crop_suitability import FieldConditions, rank_crops  # noqa: E402
-from api.data_readiness import assess_readiness  # noqa: E402
 
 
+# نقطة /api/v1/data-readiness نُقلت إلى api/routers/data_readiness.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 class ReadinessRequest(BaseModel):
     provided_fields: list[str]
-
-
-@app.post("/api/v1/data-readiness")
-def data_readiness(
-    req: ReadinessRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقيّم اكتمال البيانات: ما المتاح الآن، ما المحجوب، وما التالي الأعلى أثراً."""
-    return assess_readiness(req.provided_fields).to_dict()
 
 
 class CropSuitabilityRequest(BaseModel):
@@ -7156,13 +6733,7 @@ def evidence_corroborate(
 
 
 # ─── ٢٥. التقويم الثقافي (عرض فقط — خارج محرّك القرار صراحةً) ────
-from api.cultural_calendar import get_cultural_calendar  # noqa: E402
-
-
-@app.get("/api/v1/cultural-calendar")
-def cultural_calendar(governorate: str | None = None):
-    """تقويم ثقافي تراثي للعرض فقط — لا يدخل أيّ توصية (وسم صريح)."""
-    return get_cultural_calendar(governorate)
+# نقطة /api/v1/cultural-calendar نُقلت إلى api/routers/cultural_calendar.py (نمط P0).
 
 
 # ─── ٢٦. التوقيت الفلكي الرصدي (مرساة موسميّة + تحقّق مع GDD) ────
@@ -7176,12 +6747,7 @@ def astronomical_stars():
     return get_calendar_stars()
 
 
-@app.get("/api/v1/regional-calendar")
-def regional_calendar(governorate: str | None = None):
-    """التقويم الزراعي الإقليمي للمحافظة (حِميري للهضبة، حضرمي للوادي)."""
-    from api.astronomical_timing import get_regional_calendar
-
-    return get_regional_calendar(governorate)
+# نقطة /api/v1/regional-calendar نُقلت إلى api/routers/regional_calendar.py (نمط P0).
 
 
 # نقاط /api/v1/recommendations/{economic-adaptation,capacity-profiles,candidates}
@@ -7740,13 +7306,8 @@ def chemical_safety_banned():
 
 
 # ─── ٢٩. مراقبة الحقول بالكاميرا (عين ميدانيّة، لا كشف آلي بالـML) ──
-from api.field_cameras import (  # noqa: E402
-    CameraSnapshot,
-    link_snapshot_as_evidence,
-    register_camera,
-)
-
-
+# مسارات /api/v1/cameras/* نُقلت إلى api/routers/cameras.py (نمط P0).
+# النماذج تبقى هنا وتُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 class RegisterCameraRequest(BaseModel):
     camera_id: str
     field_id: str
@@ -7758,27 +7319,6 @@ class RegisterCameraRequest(BaseModel):
     note_ar: str = ""
 
 
-@app.post("/api/v1/cameras/register")
-def cameras_register(
-    req: RegisterCameraRequest,
-    user: UserSchema = Depends(require_permission(Permission.DEVICE_MANAGE)),
-):
-    """يسجّل كاميرا مراقبة لحقل (عين ميدانيّة — لا كشف آلي بالذكاء الاصطناعي)."""
-    try:
-        return register_camera(
-            req.camera_id,
-            req.field_id,
-            req.name_ar,
-            req.camera_type,
-            lat=req.lat,
-            lon=req.lon,
-            capture_interval_min=req.capture_interval_min,
-            note_ar=req.note_ar,
-        )
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
-
-
 class SnapshotEvidenceRequest(BaseModel):
     snapshot_id: str
     camera_id: str
@@ -7787,24 +7327,6 @@ class SnapshotEvidenceRequest(BaseModel):
     captured_at: str
     linked_pin_id: str | None = None
     note_ar: str = ""
-
-
-@app.post("/api/v1/cameras/snapshot-evidence")
-def cameras_snapshot_evidence(
-    req: SnapshotEvidenceRequest,
-    user: UserSchema = Depends(require_permission(Permission.DEVICE_MANAGE)),
-):
-    """يحوّل لقطة كاميرا إلى قرينة ميدانيّة (field_obs) للتظافر — لا تشخيص آلي."""
-    snap = CameraSnapshot(
-        snapshot_id=req.snapshot_id,
-        camera_id=req.camera_id,
-        field_id=req.field_id,
-        media_uri=req.media_uri,
-        captured_at=req.captured_at,
-        linked_pin_id=req.linked_pin_id,
-        note_ar=req.note_ar,
-    )
-    return link_snapshot_as_evidence(snap)
 
 
 # ─── ٣٠. نماذج طلب حساسيّة المراحل للإجهاد المائي ─────────────────
@@ -7901,9 +7423,8 @@ def ipm_crop_pests_endpoint(crop: str):
 
 
 # ─── ٣٤. إدارة الملوحة (تصنيف + غسيل + صوديوم — معايير FAO) ────────
-from api.salinity_management import salinity_assessment  # noqa: E402
-
-
+# نقطة /api/v1/salinity/assess نُقلت إلى api/routers/salinity.py (نمط P0).
+# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
 class SalinityRequest(BaseModel):
     ece_dsm: float | None = None  # ملوحة التربة
     ecw_dsm: float | None = None  # ملوحة ماء الريّ
@@ -7911,48 +7432,12 @@ class SalinityRequest(BaseModel):
     crop_threshold_ece: float | None = None  # عتبة تحمّل المحصول
 
 
-@app.post("/api/v1/salinity/assess")
-def salinity_assess_endpoint(
-    req: SalinityRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """تقييم شامل للملوحة: تصنيف التربة/الماء + احتياج الغسيل + خطر الصوديوم."""
-    return salinity_assessment(
-        ece_dsm=req.ece_dsm,
-        ecw_dsm=req.ecw_dsm,
-        sar=req.sar,
-        crop_threshold_ece=req.crop_threshold_ece,
-    )
-
-
 # ─── ٣٥. دليل البنّ اليمني (محصول نقدي للمرتفعات — شجري دائم) ──────
 # مسارات /api/v1/coffee/* مُستخرَجة إلى routers/coffee.py.
 
 
 # ─── ٣٦. ما بعد الحصاد (التخزين وتقليل الفقد) ─────────────────────
-from api.postharvest_advisor import (  # noqa: E402
-    check_storage_moisture,
-    storage_best_practices,
-    storage_pests,
-)
-
-
-@app.get("/api/v1/postharvest/moisture-check")
-def postharvest_moisture_endpoint(crop: str, moisture_pct: float):
-    """يقيّم: هل رطوبة الحبوب آمنة للتخزين؟ (القمح ≤12%، الذرة ≤13%)"""
-    return check_storage_moisture(crop, moisture_pct)
-
-
-@app.get("/api/v1/postharvest/pests")
-def postharvest_pests_endpoint():
-    """الآفات المخزنيّة الرئيسيّة للحبوب (سوسة الأرز، الخابرا...)."""
-    return storage_pests()
-
-
-@app.get("/api/v1/postharvest/best-practices")
-def postharvest_practices_endpoint(crop: str | None = None):
-    """أفضل ممارسات التخزين لتقليل الفقد بعد الحصاد."""
-    return storage_best_practices(crop)
+# مسارات /api/v1/postharvest/* نُقلت إلى api/routers/postharvest.py (نمط P0).
 
 
 # ─── ٣٧. البذور المحسّنة + الأساليب الزراعيّة المحسّنة ─────────────
@@ -8616,23 +8101,7 @@ if __name__ == "__main__":
 
 
 # ─── مرشد أخذ عيّنات التربة (البند ٣ تكملة) ──────────────────────
-from api.zone_sampling import recommend_sampling_strategy, sampling_depth_advice  # noqa: E402
-
-
-@app.get("/api/v1/sampling/strategy")
-async def sampling_strategy(
-    area_ha: float,
-    has_history: bool = False,
-    variability: str = "unknown",
-    crop: str | None = None,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يوصي باستراتيجيّة أخذ عيّنات التربة (zone vs grid) + العدد + العمق.
-
-    إرشادي — يوفّر تكلفة التحاليل (zone: 3-6 vs grid: ~عيّنة/هكتار)."""
-    strat = recommend_sampling_strategy(area_ha, has_history, variability)
-    strat["depth_advice"] = sampling_depth_advice(crop)
-    return strat
+# نقطة /api/v1/sampling/strategy نُقلت إلى api/routers/sampling.py (نمط P0).
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -8854,19 +8323,38 @@ from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
 from api.routers.calendars import router as calendars_router  # noqa: E402
+
+# الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
+from api.routers.cameras import router as cameras_router  # noqa: E402
 from api.routers.climate_analogs import router as climate_analogs_router  # noqa: E402
 from api.routers.coffee import router as coffee_router  # noqa: E402
+from api.routers.cultural_calendar import router as cultural_calendar_router  # noqa: E402
+from api.routers.data_readiness import router as data_readiness_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
+from api.routers.documents import router as documents_router  # noqa: E402
 from api.routers.equipment import router as equipment_router  # noqa: E402
+from api.routers.gdd import router as gdd_router  # noqa: E402
 from api.routers.inventory import router as inventory_router  # noqa: E402
 from api.routers.irrigation import router as irrigation_router  # noqa: E402
+from api.routers.master_data import router as master_data_router  # noqa: E402
+from api.routers.nutrients import router as nutrients_router  # noqa: E402
+from api.routers.observations import router as observations_router  # noqa: E402
+from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
 from api.routers.recommendations import router as recommendations_router  # noqa: E402
+from api.routers.regional_calendar import router as regional_calendar_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
 from api.routers.reports import router as reports_router  # noqa: E402
+from api.routers.salinity import router as salinity_router  # noqa: E402
+from api.routers.sampling import router as sampling_router  # noqa: E402
+from api.routers.scouting import router as scouting_router  # noqa: E402
 from api.routers.seed import router as seed_router  # noqa: E402
+from api.routers.settings import router as settings_router  # noqa: E402
 from api.routers.sharing import router as sharing_router  # noqa: E402
+from api.routers.simulate import router as simulate_router  # noqa: E402
 from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
+from api.routers.trials import router as trials_router  # noqa: E402
+from api.routers.water_balance import router as water_balance_router  # noqa: E402
 from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
 from api.routers.water_sensitivity import router as water_sensitivity_router  # noqa: E402
 from api.routers.weather import router as weather_router  # noqa: E402
@@ -8891,3 +8379,21 @@ app.include_router(coffee_router)
 app.include_router(weather_router)
 app.include_router(soil_sampling_router)
 app.include_router(sharing_router)
+# الدفعة ٨ (Batch 8)
+app.include_router(observations_router)
+app.include_router(master_data_router)
+app.include_router(settings_router)
+app.include_router(documents_router)
+app.include_router(simulate_router)
+app.include_router(scouting_router)
+app.include_router(trials_router)
+app.include_router(water_balance_router)
+app.include_router(nutrients_router)
+app.include_router(gdd_router)
+app.include_router(data_readiness_router)
+app.include_router(cultural_calendar_router)
+app.include_router(regional_calendar_router)
+app.include_router(cameras_router)
+app.include_router(salinity_router)
+app.include_router(postharvest_router)
+app.include_router(sampling_router)
