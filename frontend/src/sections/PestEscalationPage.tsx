@@ -7,6 +7,8 @@
 import { useState, useEffect } from 'react';
 import { Bug, PlayCircle, ShieldCheck, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
 import { usePestEscalation, useGuardrailsValidate } from '../hooks/useApi';
+import { useAuthStore } from '../hooks/useAuth';
+import { canMutate } from '../lib/permissions';
 import { ErrorState } from '../components/StateViews';
 
 const RISK_COLOR: Record<string, string> = {
@@ -35,6 +37,8 @@ export default function PestEscalationPage() {
   const [workflowId, setWorkflowId] = useState('');
   const mut = usePestEscalation();
   const guard = useGuardrailsValidate();
+  const role = useAuthStore(s => s.user?.role);
+  const mutateAllowed = canMutate(role);
 
   const start = () => {
     const wid = `pest-${Date.now()}`;
@@ -43,7 +47,7 @@ export default function PestEscalationPage() {
     mut.mutate({ workflow_id: wid, pest_type: pestType, severity, field_id: fieldId || undefined });
   };
   const approve = () => {
-    if (!workflowId) return;
+    if (!workflowId || !mutateAllowed) return;
     mut.mutate({ workflow_id: workflowId, approval_status: 'approved' });
   };
 
@@ -219,13 +223,15 @@ export default function PestEscalationPage() {
           {status === 'suspended' && (
             <div className="rounded-xl border p-4 flex items-center justify-between" style={{ background: '#1a1000', borderColor: '#f59e0b33' }}>
               <div className="text-sm text-amber-200">
-                {hardBlocked
+                {!mutateAllowed
+                  ? 'دورك لا يملك صلاحيّة الاعتماد.'
+                  : hardBlocked
                   ? 'محجوب بحاجز السلامة — لا يمكن الموافقة على هذا الإجراء.'
                   : safetyBlocking
                     ? 'يجري فحص السلامة قبل إتاحة الموافقة…'
                     : 'التدفّق مُعلَّق بانتظار موافقة الخبير قبل التنفيذ.'}
               </div>
-              <button onClick={approve} disabled={mut.isPending || hardBlocked || safetyBlocking}
+              <button onClick={approve} disabled={mut.isPending || hardBlocked || safetyBlocking || !mutateAllowed}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
                 style={{ background: hardBlocked ? '#6b7280' : '#16a34a' }}>
                 <ShieldCheck className="w-4 h-4" />

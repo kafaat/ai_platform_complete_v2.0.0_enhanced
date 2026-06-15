@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useFieldRecommendations, useCreateActivity } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useAuthStore } from '../hooks/useAuth';
+import { canMutate } from '../lib/permissions';
 import type { ActivityType, FieldRecommendation } from '../services/api';
 import {
   T, Card, Pill, Badge, SectionLabel, Stepper, FieldCabin, Button,
@@ -71,6 +73,9 @@ export default function RecommendationFlow() {
 
   const createQ = useCreateActivity(fieldId);
 
+  const role = useAuthStore(s => s.user?.role);
+  const mutateAllowed = canMutate(role);
+
   const fieldName = fields.find((f) => f.id === fieldId)?.name ?? fieldId;
 
   function pickField(id: string) {
@@ -86,7 +91,7 @@ export default function RecommendationFlow() {
     setStep(3);
   }
   function submit() {
-    if (!chosen) return;
+    if (!chosen || !mutateAllowed) return;
     createQ.mutate({
       activity_type: activityType,
       title_ar: chosen.title_ar,
@@ -284,9 +289,14 @@ export default function RecommendationFlow() {
                 </div>
               )}
 
-              <CTA onClick={submit} disabled={createQ.isPending}>
+              <CTA onClick={submit} disabled={createQ.isPending || !mutateAllowed}>
                 {createQ.isPending ? 'جارٍ التسجيل…' : 'تسجيل العمليّة المخطّطة'}
               </CTA>
+              {!mutateAllowed && (
+                <div style={{ fontSize: 11, color: T.muted, textAlign: 'center', marginTop: 6 }}>
+                  دورك لا يملك صلاحيّة الإنشاء.
+                </div>
+              )}
               <div style={{ fontSize: 10, color: T.faint, textAlign: 'center', marginTop: 6 }}>
                 يُسجَّل كعمليّة مخطّطة (planned) — لا إرسال لشاشة الآلة (فجوة موثّقة).
               </div>
