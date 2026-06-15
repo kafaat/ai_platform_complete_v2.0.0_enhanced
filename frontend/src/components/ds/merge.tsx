@@ -55,6 +55,47 @@ export function RadialGauge({
   );
 }
 
+// ── MiniLine ── خطّ اتّجاه مُصغَّر (sparkline) داخل SVG خالص ──────
+// مقتبس نمطاً من «Operations Center» (مؤشّرات مُصغَّرة قرب الأرقام). بلا
+// مكتبات. يرسم سلسلة قيَم حقيقيّة فقط: لا يخترع نقاطاً. إن كانت values
+// فارغة أو أقلّ من نقطتين تُرسَم شَرطة مسطّحة باهتة (لا منحنى ملفّق).
+// القيم تُطبَّع على المدى [min..max] الفعليّ للسلسلة (مدى ثابت ⇒ خطّ وسطيّ).
+export function MiniLine({
+  values, color = T.green, width = 64, height = 20,
+}: {
+  values: number[];
+  color?: string;
+  width?: number;
+  height?: number;
+}) {
+  const pts = values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  // أقلّ من نقطتين ⇒ لا اتّجاه حقيقيّ ⇒ شَرطة مسطّحة باهتة (لا تلفيق).
+  if (pts.length < 2) {
+    return (
+      <svg width={width} height={height} role="img" aria-label="لا اتّجاه">
+        <line x1={2} y1={height / 2} x2={width - 2} y2={height / 2} stroke={T.line} strokeWidth={2} strokeDasharray="3 3" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  const min = Math.min(...pts);
+  const max = Math.max(...pts);
+  const span = max - min;
+  const pad = 2;
+  const innerW = width - pad * 2;
+  const innerH = height - pad * 2;
+  const coords = pts.map((v, i) => {
+    const x = pad + (i / (pts.length - 1)) * innerW;
+    // مدى صفر (كلّ القيَم متساوية) ⇒ خطّ في المنتصف (لا قسمة على صفر).
+    const y = pad + (span === 0 ? innerH / 2 : (1 - (v - min) / span) * innerH);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return (
+    <svg width={width} height={height} role="img" aria-label="اتّجاه">
+      <polyline points={coords} fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 // ── StatGrid ── شبكة إحصاءات سريعة ──────────────────────────────
 export function StatGrid({
   items, cols = 4,
