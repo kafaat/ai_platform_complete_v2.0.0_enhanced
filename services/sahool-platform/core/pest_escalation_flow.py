@@ -22,12 +22,46 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from types import MappingProxyType
 from typing import Any
 
 from core.workflow_engine import (
     InMemoryWorkflowStore,
     WorkflowStep,
     run_workflow,
+)
+
+# ── جدول التصعيد التصريحي (declarative escalation table) ──
+# العتبات والمصفوفة (شدّة → مستوى/إجراء) معرَّفة هنا بدل تشتّتها داخل المنطق
+# كأرقام سحريّة — تماماً كنمط alert_engine (عتبات مُسمّاة قابلة للمعايرة). صدق:
+# القيم مطابقة للسلوك السابق حرفيّاً؛ هذا تنظيم لا تغيير سلوك.
+
+# عتبات الشدّة (قابلة للمعايرة بحقول الجوف)
+_SEVERITY_CRITICAL = 0.7  # عندها فأعلى: خطورة حرجة + مكافحة عاجلة
+_SEVERITY_INTERVENTION = 0.4  # عتبة التدخّل: دونها لا تصعيد (تجنّب إنذار كاذب)
+
+# مصفوفة الإجراء حسب نطاق الشدّة (شدّة مؤكَّدة فقط). تُقرأ بالترتيب: أوّل نطاق
+# تتجاوز الشدّةُ حدَّه الأدنى يَحكم. كلّ صفّ تصريحيّ: (الحدّ الأدنى, الإجراء, التوصية).
+_ACTION_BANDS: tuple[tuple[float, str, str], ...] = (
+    (_SEVERITY_CRITICAL, "urgent_spray", "مكافحة عاجلة — رشّ موجّه + عزل البؤرة"),
+    (_SEVERITY_INTERVENTION, "biocontrol", "مراقبة مكثّفة + مكافحة حيويّة وقائيّة"),
+)
+
+# توصية «لا تصعيد» (دون عتبة التدخّل أو غير مؤكَّد)
+_NO_ESCALATION_ACTION = "none"
+_NO_ESCALATION_RECOMMENDATION = "لا تصعيد — الشدّة دون عتبة التدخّل"
+
+# حالات الموافقة التي تسمح بالتنفيذ / لا تتطلّب تعليقاً (HIL)
+_APPROVAL_CLEARED = frozenset({"approved", "not_required"})
+
+# عرض للقراءة فقط للجدول التصريحي (للاختبار/التفتيش دون كسر الثبات)
+ESCALATION_TABLE = MappingProxyType(
+    {
+        "severity_critical": _SEVERITY_CRITICAL,
+        "severity_intervention": _SEVERITY_INTERVENTION,
+        "action_bands": _ACTION_BANDS,
+        "approval_cleared": _APPROVAL_CLEARED,
+    }
 )
 
 
@@ -56,30 +90,34 @@ def build_pest_escalation_steps(
         return {"pest_type": res.get("pest_type"), "severity": float(res.get("severity", 0.0))}
 
     def step_confirm(ctx: dict) -> dict:
-        # تأكيد الخطورة عبر عتبات alert_engine (صدق: لا تأكيد بلا شدّة كافية)
+        # تأكيد الخطورة عبر عتبات alert_engine (صدق: لا تأكيد بلا شدّة كافية).
+        # العتبات من الجدول التصريحي أعلاه (لا أرقام سحريّة في المنطق).
         sev = float(ctx.get("severity", 0.0))
-        if sev >= 0.7:
+        if sev >= _SEVERITY_CRITICAL:
             level = CRITICAL
-        elif sev >= 0.4:
+        elif sev >= _SEVERITY_INTERVENTION:
             level = WARNING
         else:
             level = "info"
-        confirmed = sev >= 0.4  # دون ذلك: لا تصعيد (تجنّب إنذار كاذب)
+        confirmed = sev >= _SEVERITY_INTERVENTION  # دون ذلك: لا تصعيد (تجنّب إنذار كاذب)
         return {"alert_level": level, "confirmed": confirmed}
 
     def step_recommend(ctx: dict) -> dict:
-        # توصية الإجراء بحسب الخطورة (صدق: لا توصية إن لم يُؤكَّد)
+        # توصية الإجراء بحسب الخطورة (صدق: لا توصية إن لم يُؤكَّد). المصفوفة
+        # تصريحيّة (_ACTION_BANDS): أوّل نطاق تتجاوز الشدّةُ حدَّه الأدنى يَحكم.
         if not ctx.get("confirmed"):
-            return {"recommendation_ar": "لا تصعيد — الشدّة دون عتبة التدخّل", "action_type": "none"}
-        sev = float(ctx.get("severity", 0.0))
-        if sev >= 0.7:
             return {
-                "recommendation_ar": "مكافحة عاجلة — رشّ موجّه + عزل البؤرة",
-                "action_type": "urgent_spray",
+                "recommendation_ar": _NO_ESCALATION_RECOMMENDATION,
+                "action_type": _NO_ESCALATION_ACTION,
             }
+        sev = float(ctx.get("severity", 0.0))
+        for threshold, action_type, recommendation_ar in _ACTION_BANDS:
+            if sev >= threshold:
+                return {"recommendation_ar": recommendation_ar, "action_type": action_type}
+        # احتياط: شدّة مؤكَّدة لكن دون أدنى نطاق (لا يقع عمليّاً — التأكيد ≥ عتبة التدخّل)
         return {
-            "recommendation_ar": "مراقبة مكثّفة + مكافحة حيويّة وقائيّة",
-            "action_type": "biocontrol",
+            "recommendation_ar": _NO_ESCALATION_RECOMMENDATION,
+            "action_type": _NO_ESCALATION_ACTION,
         }
 
     def step_await_approval(ctx: dict) -> dict:
@@ -97,14 +135,14 @@ def build_pest_escalation_steps(
         # تعليق مشروط: نُعلّق فقط حين تكون الموافقة فعلاً معلّقة (pending). مسار
         # «لا تصعيد» (not_required) أو الموافقة المعتمَدة (approved) لا يُعلّق ⇒
         # لا حاجة لطلب استئناف بلا معنى للحالات التي لا تنتظر خبيراً.
-        return ctx.get("approval_status") not in ("approved", "not_required")
+        return ctx.get("approval_status") not in _APPROVAL_CLEARED
 
     def step_execute(ctx: dict) -> dict:
         # HIL فعليّ: لا تنفيذ إلّا بموافقة معتمَدة (أو لا حاجة لها). كان ينفّذ رغم
         # بقاء الموافقة "pending" ⇒ كان الـHIL شكليّاً.
-        if ctx.get("approval_status") not in ("approved", "not_required"):
+        if ctx.get("approval_status") not in _APPROVAL_CLEARED:
             return {"executed": False, "note_ar": "بانتظار موافقة الخبير — لم يُنفَّذ"}
-        if ctx.get("action_type") in (None, "none"):
+        if ctx.get("action_type") in (None, _NO_ESCALATION_ACTION):
             return {"executed": False, "note_ar": "لا إجراء للتنفيذ"}
         if execute_fn is not None:
             res = execute_fn(ctx)
