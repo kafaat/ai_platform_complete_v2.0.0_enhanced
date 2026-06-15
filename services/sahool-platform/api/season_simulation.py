@@ -5,7 +5,9 @@ api/season_simulation.py — محاكاة موسم محصوليّة صرفة (RU
   ١. تراكم GDD (Growing Degree Days) من سلسلة حرارة يوميّة (طريقة المتوسّط مع
      قصّ عند درجة الأساس t_base وسقف t_cap لكلّ محصول).
   ٢. الكتلة الحيويّة فوق الأرض عبر RUE (Monteith 1977): الكتلة = RUE × الإشعاع
-     المُمتصّ المتراكم. الإشعاع المُمتصّ = PAR × (1 − e^(−k·LAI)) (Beer-Lambert).
+     المُمتصّ المتراكم. الإشعاع المُمتصّ = PAR × fAPAR، حيث fAPAR إمّا **مُنمذَج**
+     من LAI عبر Beer-Lambert (1 − e^(−k·LAI))، وإمّا **مرصود** من القمر الصناعي
+     (نموذج كفاءة الإنتاج RS — Monteith 1972/1977، Running et al. MOD17) إن مُرِّر.
   ٣. مؤشّر LAI كمنحنى نموّ منطقيّ مع GDD (يصعد ثمّ يهبط حول النضج) — مؤشّر، لا
      قياس. أقصى LAI يُقيَّد بسقف المحصول.
   ٤. الإنتاج = الكتلة الحيويّة × مؤشّر الحصاد HI (Harvest Index).
@@ -156,6 +158,10 @@ class SimContext:
     season_end: date | None = None
     weather: list[DayWeather] = field(default_factory=list)
     irrigation_mm_total: float | None = None  # ريّ موسمي مُطبَّق (mm) إن عُرف
+    # fAPAR مرصود من القمر الصناعي (0..1): إمّا متوسّط موسمي (scalar) أو سلسلة
+    # يوميّة (list بطول أيّام الموسم). حين يتوفّر ويكون صالحاً يحلّ محلّ fAPAR
+    # المُنمذَج من LAI (نموذج كفاءة الإنتاج RS). غيابه/بطلانه ⇒ السلوك الحالي.
+    observed_fapar: float | list[float] | None = None
 
 
 @dataclass
@@ -176,6 +182,10 @@ class SimResult:
     water_stress_factor: float  # 0..1 (1 = بلا إجهاد)
     confidence: float  # 0..1
     rationale_ar: str
+    # مصدر fAPAR المُستعمَل في حساب الإشعاع المُمتصّ:
+    #   "modeled"  = الحدّ المُنمذَج (1 − e^(−k·LAI)) — السلوك الافتراضي.
+    #   "observed" = fAPAR مرصود من القمر الصناعي (نموذج كفاءة الإنتاج RS).
+    fapar_source: str = "modeled"
     assumptions_ar: list[str] = field(default_factory=list)
     warnings_ar: list[str] = field(default_factory=list)
 
@@ -216,10 +226,36 @@ def _lai_at(gdd_cum: float, gdd_mat: float, lai_max: float) -> float:
 
 
 def _absorbed_par(solar_mj: float, lai: float, k: float) -> float:
-    """الإشعاع المُمتصّ ضوئيّاً (MJ PAR/m²) = PAR × (1 − e^(−k·LAI)) — Beer-Lambert."""
+    """الإشعاع المُمتصّ ضوئيّاً (MJ PAR/m²) = PAR × (1 − e^(−k·LAI)) — Beer-Lambert.
+
+    الحدّ (1 − e^(−k·LAI)) هو fAPAR **المُنمذَج** من LAI. حين يتوفّر fAPAR مرصود
+    من القمر الصناعي يُستبدل هذا الحدّ بـ_absorbed_par_observed (نفس بنية المعادلة).
+    """
     par = solar_mj * _PAR_FRACTION
     fraction_intercepted = 1.0 - math.exp(-k * max(0.0, lai))
     return par * fraction_intercepted
+
+
+def _absorbed_par_observed(solar_mj: float, fapar: float) -> float:
+    """الإشعاع المُمتصّ من fAPAR **مرصود** (MJ PAR/m²) = PAR × fAPAR.
+
+    نموذج كفاءة الإنتاج (RS production-efficiency, Monteith 1972/1977؛
+    Running et al. MOD17): يحلّ fAPAR المُقاس من القمر الصناعي محلّ الحدّ
+    المُنمذَج (1 − e^(−k·LAI))، ويبقى RUE/HI كما هما (افتراضات الأدبيّات نفسها).
+    """
+    par = solar_mj * _PAR_FRACTION
+    return par * min(1.0, max(0.0, fapar))
+
+
+def fapar_from_ndvi(ndvi: float) -> float:
+    """تحويل NDVI → fAPAR بالعلاقة الخطّيّة المنشورة المُستشهَد بها.
+
+    fAPAR ≈ 1.24·NDVI − 0.168  (Myneni & Williams, 1994, "On the relationship
+    between FAPAR and NDVI", Remote Sensing of Environment 49(3):200–211)،
+    مقصوصة إلى [0, 1]. **لا ثابت مُختلق** — نفس المعادلة المستعملة في
+    services/raster-service لحساب طبقة fAPAR من NDVI.
+    """
+    return min(1.0, max(0.0, 1.24 * ndvi - 0.168))
 
 
 def _seasonal_water_need(crop_key: str, et0_series: list[float]) -> float:
@@ -250,11 +286,54 @@ def _seasonal_water_need(crop_key: str, et0_series: list[float]) -> float:
     return total
 
 
+def _resolve_observed_fapar(
+    observed: float | list[float] | None, n_days: int
+) -> tuple[list[float] | None, bool]:
+    """يحوّل observed_fapar (scalar/سلسلة/None) إلى سلسلة يوميّة بطول n_days.
+
+    يُرجع (سلسلة fAPAR لكلّ يوم أو None إن لا مرصود صالح، هل وُجد مُدخل غير صالح).
+    القيم الصالحة في [0, 1]. السلسلة تُقصّ/تُمدَّد (بآخر قيمة) لمطابقة عدد الأيّام.
+    scalar ⇒ يُكرَّر لكلّ يوم. None أو قيم خارج [0,1] ⇒ تجاهُل (السلوك المُنمذَج).
+    """
+
+    def _valid(v: object) -> bool:
+        return isinstance(v, int | float) and not isinstance(v, bool) and 0.0 <= v <= 1.0
+
+    if observed is None:
+        return None, False
+    if isinstance(observed, int | float) and not isinstance(observed, bool):
+        if not _valid(observed):
+            return None, True
+        return [float(observed)] * n_days, False
+    if isinstance(observed, list):
+        clean = [float(v) for v in observed if _valid(v)]
+        if not clean or len(clean) != len(observed):
+            # سلسلة فارغة أو فيها قيم غير صالحة ⇒ نُهمل المرصود ونوسم البطلان.
+            if not clean:
+                return None, True
+            had_invalid = len(clean) != len(observed)
+            series = (clean + [clean[-1]] * n_days)[:n_days]
+            return series, had_invalid
+        series = (clean + [clean[-1]] * n_days)[:n_days]
+        return series, False
+    return None, True
+
+
 def simulate_season(ctx: SimContext) -> SimResult:
     """يحاكي موسماً (RUE/FAO-56) ويُرجع SimResult بتقديرات + نطاق + ثقة.
 
     نقيّ بالكامل (لا قاعدة/شبكة). يتدهور برشاقة عند نقص المدخلات بافتراضات
     موسومة. لا يُرجع رقماً قاطعاً — يعرض نطاقاً وثقةً وافتراضات صريحة.
+
+    **متغيّر كفاءة الإنتاج (RS production-efficiency, Monteith 1972/1977؛
+    Running et al. MOD17):** حين يُمرَّر ``ctx.observed_fapar`` صالحاً (متوسّط
+    موسمي scalar أو سلسلة يوميّة، كلّ قيمة في [0,1])، يُستبدل الحدّ المُنمذَج
+    fAPAR = (1 − e^(−k·LAI)) بالـfAPAR **المرصود** من القمر الصناعي في حساب
+    الإشعاع المُمتصّ اليوميّ (APAR = PAR × fAPAR_مرصود)، فيقود الضوءُ المُقاس
+    الكتلةَ الحيويّة عبر **نفس** RUE والإنتاجَ عبر **نفس** HI الموجودَين أصلاً.
+    لا ثوابت زراعيّة جديدة: RUE/HI/k تبقى افتراضات الأدبيّات نفسها (UNVALIDATED
+    DEFAULTS — تحتاج معايرة يمنيّة ميدانيّة، نفس التحذير الصادق). عند غياب/بطلان
+    المرصود يعود السلوك مطابقاً تماماً للنسخة الحاليّة (fapar_source="modeled").
     """
     crop_key, recognized = normalize_crop(ctx.crop)
     p = _params_for(crop_key)
@@ -291,6 +370,16 @@ def simulate_season(ctx: SimContext) -> SimResult:
             warnings_ar=warnings,
         )
 
+    # fAPAR مرصود (إن مُرِّر) → سلسلة يوميّة. None ⇒ نُبقي الحدّ المُنمذَج (1−e^…).
+    fapar_series, fapar_invalid = _resolve_observed_fapar(ctx.observed_fapar, len(weather))
+    use_observed = fapar_series is not None
+    fapar_source = "observed" if use_observed else "modeled"
+    if fapar_invalid:
+        warnings.append(
+            "fAPAR المرصود المُمرَّر غير صالح (خارج [0,1] أو سلسلة فارغة) — "
+            "تجاهُلٌ والعودة إلى fAPAR المُنمذَج من LAI."
+        )
+
     # تراكم GDD + الكتلة الحيويّة (RUE) + متابعة أقصى LAI يوماً بيوم.
     gdd_cum = 0.0
     biomass_g_m2 = 0.0
@@ -315,8 +404,12 @@ def simulate_season(ctx: SimContext) -> SimResult:
             )
             solar = _solar_estimate(day_month)
             estimated_solar_days += 1
-        apar = _absorbed_par(solar, lai, p.k_extinction)
-        # RUE: g/MJ × MJ/m² ⇒ g/m² من الكتلة الحيويّة اليوميّة.
+        if use_observed:
+            # نموذج كفاءة الإنتاج RS: APAR = PAR × fAPAR_مرصود (بدل الحدّ المُنمذَج).
+            apar = _absorbed_par_observed(solar, fapar_series[day_idx])
+        else:
+            apar = _absorbed_par(solar, lai, p.k_extinction)
+        # RUE: g/MJ × MJ/m² ⇒ g/m² من الكتلة الحيويّة اليوميّة (نفس RUE في الحالتين).
         biomass_g_m2 += p.rue_g_per_mj * apar
 
         et0 = day.et0_mm
@@ -383,6 +476,12 @@ def simulate_season(ctx: SimContext) -> SimResult:
             f"لم يبلغ GDD التراكمي ({gdd_cum:.0f}) عتبة النضج ({p.gdd_to_maturity:.0f}) — "
             "التقدير لموسم غير مكتمل أو نافذة طقس أقصر من الدورة."
         )
+    if use_observed:
+        assumptions.append(
+            "استُعمل fAPAR **مرصود** من القمر الصناعي بدل المُنمذَج (نموذج كفاءة "
+            "الإنتاج RS — Monteith/MOD17). RUE/HI تبقى افتراضات الأدبيّات نفسها — "
+            "عايِر ميدانيّاً."
+        )
 
     # الثقة: تبدأ منخفضة، ترتفع بتعرّف المحصول + توفّر الطقس الحقيقي + اكتمال الموسم.
     confidence = 0.35
@@ -423,6 +522,7 @@ def simulate_season(ctx: SimContext) -> SimResult:
         water_stress_factor=round(water_stress, 3),
         confidence=confidence,
         rationale_ar=rationale,
+        fapar_source=fapar_source,
         assumptions_ar=assumptions,
         warnings_ar=warnings,
     )
