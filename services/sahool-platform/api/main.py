@@ -5228,7 +5228,7 @@ async def register_valve(
             await _emit_domain_event(
                 conn,
                 user,
-                "irrigation.valve.registered",
+                "IRRIGATION_VALVE_REGISTERED",
                 "irrigation_valve",
                 valve_id,
                 {"field_id": req.field_id, "valve_type": req.valve_type},
@@ -5305,7 +5305,7 @@ async def set_valve_state(
             await _emit_domain_event(
                 conn,
                 user,
-                "irrigation.valve.state_changed",
+                "IRRIGATION_VALVE_STATE_CHANGED",
                 "irrigation_valve",
                 valve_id,
                 {"status": req.status},
