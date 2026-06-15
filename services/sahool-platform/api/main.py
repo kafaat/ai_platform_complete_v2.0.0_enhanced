@@ -4722,142 +4722,6 @@ class InventoryBatchRequest(BaseModel):
     notes: str | None = None
 
 
-@app.post("/api/v1/inventory/items", status_code=201)
-async def create_inventory_item(
-    req: InventoryItemRequest,
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
-):
-    import uuid as _uuid
-
-    item_id = "inv_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO inventory_items
-                (item_id, tenant_id, category, name, unit, reorder_level, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            item_id,
-            str(user.tenant_id),
-            req.category,
-            req.name,
-            req.unit,
-            req.reorder_level,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "INVENTORY_ITEM_CREATED",
-            "inventory_item",
-            item_id,
-            {"category": req.category, "name": req.name},
-        )
-    return {"item_id": item_id, "name": req.name, "message_ar": "أُضيف عنصر المخزون"}
-
-
-@app.get("/api/v1/inventory/items")
-async def list_inventory_items(
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
-):
-    """عناصر المخزون مع الكمّيّة الكلّيّة (مجموع الدفعات) — مُرشّحة بـRLS."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            """SELECT i.item_id, i.category, i.name, i.unit, i.reorder_level,
-                      COALESCE(SUM(b.quantity), 0) AS total_quantity
-               FROM inventory_items i
-               LEFT JOIN inventory_batches b ON b.item_id = i.item_id
-               GROUP BY i.item_id, i.category, i.name, i.unit, i.reorder_level
-               ORDER BY i.category, i.name"""
-        )
-    return [
-        {
-            "item_id": r["item_id"],
-            "category": r["category"],
-            "name": r["name"],
-            "unit": r["unit"],
-            "reorder_level": float(r["reorder_level"]) if r["reorder_level"] is not None else None,
-            "total_quantity": float(r["total_quantity"]),
-            "low_stock": (
-                r["reorder_level"] is not None
-                and float(r["total_quantity"]) <= float(r["reorder_level"])
-            ),
-        }
-        for r in rows
-    ]
-
-
-@app.post("/api/v1/inventory/items/{item_id}/batches", status_code=201)
-async def add_inventory_batch(
-    item_id: str,
-    req: InventoryBatchRequest,
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
-):
-    import uuid as _uuid
-
-    batch_id = "bat_" + _uuid.uuid4().hex[:12]
-    expiry = _parse_date(req.expiry_date, "expiry_date")
-    received = _parse_date(req.received_at, "received_at") or date.today()
-    async with tenant_connection(user) as conn:
-        # تأكّد من وجود العنصر ضمن المستأجر (RLS يمنع عنصر مستأجر آخر)
-        exists = await conn.fetchval("SELECT 1 FROM inventory_items WHERE item_id = $1", item_id)
-        if not exists:
-            raise HTTPException(status_code=404, detail="عنصر المخزون غير موجود")
-        await conn.execute(
-            """INSERT INTO inventory_batches
-                (batch_id, tenant_id, item_id, quantity, unit, batch_code,
-                 expiry_date, received_at, supplier, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
-            batch_id,
-            str(user.tenant_id),
-            item_id,
-            req.quantity,
-            req.unit,
-            req.batch_code,
-            expiry,
-            received,
-            req.supplier,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "INVENTORY_BATCH_ADDED",
-            "inventory_batch",
-            batch_id,
-            {"item_id": item_id, "quantity": req.quantity},
-        )
-    return {"batch_id": batch_id, "item_id": item_id, "message_ar": "أُضيفت الدفعة"}
-
-
-@app.get("/api/v1/inventory/expiring")
-async def list_expiring_batches(
-    days: int = Query(30, ge=1, le=3650),  # مقيّد 1..10 سنوات (لا سالب/ضخم)
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
-):
-    """دفعات تنتهي خلال N يوماً (تنبيه قبل تلف المبيدات/الأسمدة)."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            """SELECT b.batch_id, b.item_id, i.name, b.quantity, b.unit, b.expiry_date
-               FROM inventory_batches b
-               JOIN inventory_items i ON i.item_id = b.item_id
-               WHERE b.expiry_date IS NOT NULL
-                 AND b.expiry_date <= CURRENT_DATE + make_interval(days => $1)
-                 AND b.quantity > 0
-               ORDER BY b.expiry_date ASC""",
-            days,
-        )
-    return [
-        {
-            "batch_id": r["batch_id"],
-            "item_id": r["item_id"],
-            "name": r["name"],
-            "quantity": float(r["quantity"]),
-            "unit": r["unit"],
-            "expiry_date": r["expiry_date"].isoformat() if r["expiry_date"] else None,
-        }
-        for r in rows
-    ]
-
-
 # ─── المعدّات (Equipment) — الطبقة ١١ (v23) ──────────────────────
 class EquipmentRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -4874,133 +4738,6 @@ class MaintenanceRequest(BaseModel):
     performed_date: str | None = None
     cost_usd: float | None = None
     notes: str | None = None
-
-
-@app.post("/api/v1/equipment", status_code=201)
-async def create_equipment(
-    req: EquipmentRequest,
-    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
-):
-    import uuid as _uuid
-
-    equipment_id = "eqp_" + _uuid.uuid4().hex[:12]
-    purchase = _parse_date(req.purchase_date, "purchase_date")
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO equipment
-                (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            equipment_id,
-            str(user.tenant_id),
-            req.name,
-            req.type,
-            req.operating_hours,
-            purchase,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "EQUIPMENT_CREATED",
-            "equipment",
-            equipment_id,
-            {"name": req.name, "type": req.type},
-        )
-    return {"equipment_id": equipment_id, "name": req.name, "message_ar": "سُجّلت المعدّة"}
-
-
-@app.get("/api/v1/equipment")
-async def list_equipment(user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW))):
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT equipment_id, name, type, status, operating_hours, purchase_date "
-            "FROM equipment ORDER BY type, name"
-        )
-    return [
-        {
-            "equipment_id": r["equipment_id"],
-            "name": r["name"],
-            "type": r["type"],
-            "status": r["status"],
-            "operating_hours": float(r["operating_hours"]),
-            "purchase_date": r["purchase_date"].isoformat() if r["purchase_date"] else None,
-        }
-        for r in rows
-    ]
-
-
-@app.post("/api/v1/equipment/{equipment_id}/maintenance", status_code=201)
-async def log_maintenance(
-    equipment_id: str,
-    req: MaintenanceRequest,
-    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
-):
-    import uuid as _uuid
-
-    maintenance_id = "mnt_" + _uuid.uuid4().hex[:12]
-    sched = _parse_date(req.scheduled_date, "scheduled_date")
-    performed = _parse_date(req.performed_date, "performed_date")
-    async with tenant_connection(user) as conn:
-        exists = await conn.fetchval(
-            "SELECT 1 FROM equipment WHERE equipment_id = $1", equipment_id
-        )
-        if not exists:
-            raise HTTPException(status_code=404, detail="المعدّة غير موجودة")
-        await conn.execute(
-            """INSERT INTO equipment_maintenance
-                (maintenance_id, tenant_id, equipment_id, kind, status,
-                 scheduled_date, performed_date, cost_usd, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
-            maintenance_id,
-            str(user.tenant_id),
-            equipment_id,
-            req.kind,
-            req.status,
-            sched,
-            performed,
-            req.cost_usd,
-            req.notes,
-        )
-        # عطل قيد التنفيذ ⇒ حدّث حالة المعدّة (تتبّع تشغيليّ)
-        if req.kind == "breakdown" and req.status != "done":
-            await conn.execute(
-                "UPDATE equipment SET status = 'broken' WHERE equipment_id = $1", equipment_id
-            )
-        await _emit_domain_event(
-            conn,
-            user,
-            "MAINTENANCE_LOGGED",
-            "equipment_maintenance",
-            maintenance_id,
-            {"equipment_id": equipment_id, "kind": req.kind, "status": req.status},
-        )
-    return {"maintenance_id": maintenance_id, "message_ar": "سُجّلت الصيانة"}
-
-
-@app.get("/api/v1/equipment/{equipment_id}/maintenance")
-async def list_maintenance(
-    equipment_id: str,
-    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW)),
-):
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT maintenance_id, kind, status, scheduled_date, performed_date, cost_usd, notes "
-            "FROM equipment_maintenance WHERE equipment_id = $1 "
-            "ORDER BY COALESCE(performed_date, scheduled_date) DESC NULLS LAST",
-            equipment_id,
-        )
-    return [
-        {
-            "maintenance_id": r["maintenance_id"],
-            "kind": r["kind"],
-            "status": r["status"],
-            "scheduled_date": r["scheduled_date"].isoformat() if r["scheduled_date"] else None,
-            "performed_date": r["performed_date"].isoformat() if r["performed_date"] else None,
-            "cost_usd": float(r["cost_usd"]) if r["cost_usd"] is not None else None,
-            "notes": r["notes"],
-        }
-        for r in rows
-    ]
 
 
 # ─── أجهزة IoT (سجلّ + صحّة + telemetry) — الطبقة ٤ (v24) ─────────
@@ -5883,105 +5620,6 @@ async def get_document(
 # ═══════════════════════════════════════════════════════════════════
 #   Open-Meteo Weather Integration (مجاني، بدون مفتاح)
 # ═══════════════════════════════════════════════════════════════════
-
-
-@app.get("/api/v1/weather/current")
-async def weather_current(lat: float, lon: float):
-    """الطقس الحالي من Open-Meteo. مفتوح بدون auth."""
-    try:
-        from api.connectors.openmeteo import describe_weather_ar, fetch_current
-
-        data = await fetch_current(lat, lon)
-        return {
-            "temperature_c": data.temperature_c,
-            "humidity_pct": data.humidity_pct,
-            "wind_speed_ms": data.wind_speed_ms,
-            "precipitation_mm": data.precipitation_mm,
-            "cloud_cover_pct": data.cloud_cover_pct,
-            "weather_code": data.weather_code,
-            "weather_ar": describe_weather_ar(data.weather_code),
-            "is_day": data.is_day,
-            "timestamp": data.timestamp,
-            "source": "open-meteo",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
-
-
-@app.get("/api/v1/weather/forecast")
-async def weather_forecast(lat: float, lon: float, days: int = 7):
-    """توقّعات ١-١٦ يوم + ET₀ (FAO-56) + spraying conditions."""
-    try:
-        from api.connectors.openmeteo import (
-            describe_weather_ar,
-            fetch_daily_forecast,
-            spraying_condition_score,
-        )
-
-        forecast = await fetch_daily_forecast(lat, lon, days=days)
-        return {
-            "location": {"lat": lat, "lon": lon},
-            "days": [
-                {
-                    "date": f.date,
-                    "temp_max_c": f.temp_max_c,
-                    "temp_min_c": f.temp_min_c,
-                    "precipitation_mm": f.precipitation_mm,
-                    "et0_mm": f.et0_mm,
-                    "sunshine_hours": f.sunshine_hours,
-                    # شمسيّ/نهاريّ — لجدولة الريّ بالطاقة الشمسيّة وتقدير الإنتاج
-                    "sunrise": f.sunrise,
-                    "sunset": f.sunset,
-                    "daylight_hours": f.daylight_hours,
-                    "solar_radiation_mj_m2": f.solar_radiation_mj_m2,
-                    "wind_max_ms": f.wind_max_ms,
-                    "weather_code": f.weather_code,
-                    "weather_ar": describe_weather_ar(f.weather_code),
-                    "spraying": (
-                        lambda s: {
-                            "status": s[0],
-                            "reason_ar": s[1],
-                        }
-                    )(spraying_condition_score(f)),
-                }
-                for f in forecast
-            ],
-            "source": "open-meteo",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
-
-
-@app.get("/api/v1/weather/historical")
-async def weather_historical(
-    lat: float,
-    lon: float,
-    start_date: str,
-    end_date: str,
-):
-    """ERA5 reanalysis — تاريخي من ١٩٤٠. مفيد لـGDD."""
-    try:
-        from api.connectors.openmeteo import fetch_historical
-
-        days = await fetch_historical(lat, lon, start_date, end_date)
-        return {
-            "location": {"lat": lat, "lon": lon},
-            "range": {"start": start_date, "end": end_date},
-            "days": [
-                {
-                    "date": d.date,
-                    "temp_max_c": d.temp_max_c,
-                    "temp_min_c": d.temp_min_c,
-                    "precipitation_mm": d.precipitation_mm,
-                    "et0_mm": d.et0_mm,
-                }
-                for d in days
-            ],
-            "source": "open-meteo-archive",
-            "model": "ERA5",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
 
 
 # ─── TrueUp (yield calibration) — موصَّل end-to-end ──────────────
@@ -6928,14 +6566,7 @@ def field_walk_plan_pdf(
 # توليد مفتاح مشاركة (نموذج "المهندس الزراعي الموثوق" من FieldView).
 # التوليد والـhashing pure؛ الحفظ/التحقّق في DB يحتاج PostgreSQL pool
 # (يبقى غير موصَّل بصدق — SharingKeyService.create_key/validate_key).
-import uuid as _uuid  # noqa: E402
-
-from api.sharing import (  # noqa: E402
-    SharingScope,
-    ThirdPartyType,
-    generate_key_plaintext,
-    hash_key,
-)
+# الـendpoint POST /api/v1/sharing/generate-key مُستخرَج إلى routers/sharing.py.
 
 
 class ShareKeyRequest(BaseModel):
@@ -6946,46 +6577,6 @@ class ShareKeyRequest(BaseModel):
     expires_in_days: int = 30
 
 
-@app.post("/api/v1/sharing/generate-key")
-def generate_share_key(
-    req: ShareKeyRequest,
-    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
-):
-    """يولّد مفتاح مشاركة (يُعرَض الـplaintext مرّة واحدة فقط).
-
-    ملاحظة: الحفظ في DB يحتاج PostgreSQL (غير موصَّل). هذا يولّد المفتاح
-    والـhash والبيانات الوصفيّة — جاهزة للحفظ لاحقاً.
-    """
-    try:
-        scope = SharingScope(req.scope)
-    except ValueError:
-        raise HTTPException(status_code=422, detail=f"نطاق غير صالح: {req.scope}") from None
-    tp_type = None
-    if req.third_party_type:
-        try:
-            tp_type = ThirdPartyType(req.third_party_type)
-        except ValueError:
-            raise HTTPException(
-                status_code=422, detail=f"نوع طرف غير صالح: {req.third_party_type}"
-            ) from None
-
-    plaintext = generate_key_plaintext()
-    now = datetime.now(UTC)
-    return {
-        "key_id": str(_uuid.uuid4()),
-        "key_plaintext": plaintext,  # يُعرَض مرّة واحدة
-        "key_hash": hash_key(plaintext),  # للحفظ في DB
-        "key_prefix": plaintext[:12],
-        "scope": scope.value,
-        "third_party_name": req.third_party_name,
-        "third_party_type": tp_type.value if tp_type else None,
-        "allowed_field_ids": req.allowed_field_ids,
-        "created_at": now.isoformat(),
-        "expires_at": (now + timedelta(days=req.expires_in_days)).isoformat(),
-        "note_ar": "احفظ هذا المفتاح الآن — لن يُعرَض مرّة أخرى. الحفظ في قاعدة البيانات يحتاج تفعيل الخادم.",
-    }
-
-
 # ─── ١٤. الوحدات المعتمدة على PostgreSQL (سدّ الفجوة ١) ──────────
 # توصيل command_store / event_bus / data_lineage / sharing (الحفظ).
 # ⚠ هذه الـendpoints تحتاج DATABASE_URL مضبوطاً (pool حقيقي). كُتِبت ووُصِّلت
@@ -6994,9 +6585,6 @@ def generate_share_key(
 from api.command_store import CommandStore  # noqa: E402
 from api.data_lineage import LineageAssembler  # noqa: E402
 from api.event_bus import EventBus  # noqa: E402
-from api.sharing import SharingKeyService  # noqa: E402
-from api.sharing import SharingScope as _SScope  # noqa: E402
-from api.sharing import ThirdPartyType as _TPType  # noqa: E402
 
 
 @app.get("/api/v1/lineage/{entity_type}/{entity_id}")
@@ -7068,49 +6656,7 @@ class SharingKeyCreateRequest(BaseModel):
     allowed_field_ids: list[str] = []
 
 
-@app.post("/api/v1/sharing/keys")
-async def create_sharing_key(
-    req: SharingKeyCreateRequest,
-    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
-):
-    """ينشئ ويحفظ مفتاح مشاركة (عبر tenant_connection — RLS مُطبَّق)."""
-    try:
-        scope = _SScope(req.scope)
-        tp = _TPType(req.third_party_type) if req.third_party_type else None
-        async with tenant_connection(user) as conn:
-            svc = SharingKeyService(get_pool(), conn=conn)
-            key = await svc.create_key(
-                tenant_id=getattr(user, "tenant_id", "default"),
-                created_by=user.user_id,
-                scope=scope,
-                valid_days=req.valid_days,
-                third_party_name=req.third_party_name,
-                third_party_type=tp,
-                allowed_field_ids=req.allowed_field_ids,
-            )
-        return {
-            "key_id": key.key_id,
-            "key_plaintext": key.key_plaintext,  # مرّة واحدة
-            "key_prefix": key.key_prefix,
-            "scope": key.scope.value,
-            "expires_at": key.expires_at,
-        }
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
-
-
-@app.get("/api/v1/sharing/keys")
-async def list_sharing_keys(
-    include_revoked: bool = False,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يسرد مفاتيح المشاركة للمستأجر (عبر tenant_connection — RLS مُطبَّق)."""
-    async with tenant_connection(user) as conn:
-        svc = SharingKeyService(get_pool(), conn=conn)
-        keys = await svc.list_keys(
-            getattr(user, "tenant_id", "default"), include_revoked=include_revoked
-        )
-    return {"keys": keys}
+# المساران POST/GET /api/v1/sharing/keys مُستخرَجان إلى routers/sharing.py.
 
 
 # ─── ١٥. محرّك التجارب t-test/LSD (المرحلة ٢، البند ١١) ──────────
@@ -8114,73 +7660,6 @@ def compare_drought_resilience(
     )
 
 
-@app.get("/api/v1/calendars/today")
-def calendars_today(
-    date: str | None = None,
-    governorate: str | None = None,
-    crop: str | None = None,
-):
-    """سياق التقويم الزراعيّ لتاريخ (افتراضيّاً اليوم) في نداء واحد — يُسهّل بطاقة
-    «التقويم الزراعيّ» في الواجهة:
-      • المنزلة القمريّة النشطة + النوء (marker) + الشهر الحميريّ + ملف المنطقة.
-      • إن مُرِّر محصول: نافذة زراعته وملاءمة الشهر الحاليّ (تبكير/تأخير).
-    عرض/إرشاد تراثيّ-رصديّ صريحاً (display_only=true، خارج محرّك القرار) — التوقيت
-    الفعليّ يبقى على GDD/الفيزياء. تاريخ غير صالح ⇒ يُعاد error_ar من الجسر.
-    """
-    from datetime import date as _date
-
-    from api.yemeni_calendars import calendar_context_for_date
-
-    target_iso = date or _date.today().isoformat()
-    ctx = calendar_context_for_date(target_iso, governorate)
-    # تاريخ غير صالح ⇒ الجسر يُعيد {error_ar}: لا نُضيف planting (تجنّب خلط خطأ
-    # ببيانات مشتقّة من تاريخ آخر) — تدهور رشيق متّسق مع الـdocstring.
-    if crop and "error_ar" not in ctx:
-        from api.planting_calendar import check_planting_date, planting_window
-
-        month = _date.fromisoformat(target_iso).month  # صحيح هنا (مرّ الجسر)
-        ctx["planting"] = {
-            "window": planting_window(crop),
-            "current_month_fit": check_planting_date(crop, month),
-        }
-    return ctx
-
-
-@app.get("/api/v1/calendars/lunar-mansions")
-def calendars_lunar_mansions():
-    """المنازل القمريّة الـ٢٨ (نجوم الزراعة) — مرجع معرفي تراثي (عرض فقط)."""
-    from api.yemeni_calendars import get_lunar_mansions
-
-    return get_lunar_mansions()
-
-
-@app.get("/api/v1/calendars/himyarite-months")
-def calendars_himyarite_months():
-    """الشهور الحميريّة الـ١٢ + تنبيه التباين بين المصادر (عرض فقط)."""
-    from api.yemeni_calendars import get_himyarite_months
-
-    return get_himyarite_months()
-
-
-@app.get("/api/v1/calendars/regional-profiles")
-def calendars_regional_profiles(governorate: str | None = None):
-    """ملفّات التقاويم الإقليميّة (حضرموت/تهامة/المرتفعات/الجوف) — الربط المكانيّ."""
-    from api.yemeni_calendars import get_regional_profiles
-
-    return get_regional_profiles(governorate=governorate)
-
-
-@app.get("/api/v1/calendars/context")
-def calendars_context(date_iso: str, governorate: str | None = None):
-    """الجسر الزمني: تاريخ → المنزلة النشطة + الشهر الحميري + ملف المنطقة.
-
-    عرض ومعرفة فقط؛ لا يدخل القرار. التواريخ تقريبيّة، المقابلات تختلف.
-    """
-    from api.yemeni_calendars import calendar_context_for_date
-
-    return calendar_context_for_date(date_iso, governorate=governorate)
-
-
 @app.get("/api/v1/agricultural-proverbs/for-date")
 def agricultural_proverbs_for_date(date_iso: str, governorate: str | None = None):
     """أمثال التاريخ: تاريخ → المنزلة النشطة → أمثالها (الحلقة المكتملة)."""
@@ -8328,50 +7807,13 @@ def cameras_snapshot_evidence(
     return link_snapshot_as_evidence(snap)
 
 
-# ─── ٣٠. حساسيّة المراحل للإجهاد المائي (محاصيل اليمن، يكمّل ميزان الماء) ─
-from api.crop_water_sensitivity import (  # noqa: E402
-    assess_stress_risk,
-    integrated_irrigation_advice,
-    supported_crops,
-    water_calendar,
-    wheat_water_calendar,
-)
-
-
-@app.get("/api/v1/water-sensitivity/crops")
-def water_sensitivity_crops():
-    """قائمة المحاصيل اليمنيّة المدعومة بحساسيّة المراحل المائيّة."""
-    return {"crops": supported_crops()}
-
-
-@app.get("/api/v1/water-sensitivity/calendar")
-def water_sensitivity_calendar(crop: str = "wheat"):
-    """التقويم المائي لمحصول: المراحل + حرجيّتها + السياق اليمني.
-
-    المدعوم: wheat, maize, sorghum, millet, barley (أو أسماؤها العربيّة).
-    """
-    return water_calendar(crop)
-
-
-@app.get("/api/v1/water-sensitivity/wheat-calendar")
-def water_sensitivity_wheat_calendar():
-    """(توافق خلفي) التقويم المائي للقمح."""
-    return wheat_water_calendar()
-
-
+# ─── ٣٠. نماذج طلب حساسيّة المراحل للإجهاد المائي ─────────────────
+# الدوالّ نُقلت إلى api.routers.water_sensitivity؛ النماذج تبقى هنا وتُستورَد منه
+# (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
 class StressRiskRequest(BaseModel):
     crop: str = "wheat"
     stage_key: str
     depletion_pct: float
-
-
-@app.post("/api/v1/water-sensitivity/stress-risk")
-def water_sensitivity_stress(
-    req: StressRiskRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يقيّم خطر الإجهاد المائي بناءً على المحصول والمرحلة ونضوب التربة."""
-    return assess_stress_risk(req.crop, req.stage_key, req.depletion_pct)
 
 
 class IntegratedAdviceRequest(BaseModel):
@@ -8379,20 +7821,6 @@ class IntegratedAdviceRequest(BaseModel):
     stage_key: str
     depletion_pct: float
     net_irrigation_mm: float | None = None
-
-
-@app.post("/api/v1/water-sensitivity/integrated-advice")
-def water_sensitivity_integrated(
-    req: IntegratedAdviceRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """توصية ريّ متكاملة: تجمع الحساسيّة (متى حرج) + الاحتياج (كم مم) في قرار واحد."""
-    return integrated_irrigation_advice(
-        req.crop,
-        req.stage_key,
-        req.depletion_pct,
-        req.net_irrigation_mm,
-    )
 
 
 # ─── ٣١. الدورة الزراعيّة (تعاقب المحاصيل — خصوبة وقائيّة) ──────────
@@ -8498,42 +7926,7 @@ def salinity_assess_endpoint(
 
 
 # ─── ٣٥. دليل البنّ اليمني (محصول نقدي للمرتفعات — شجري دائم) ──────
-from api.coffee_advisor import (  # noqa: E402
-    coffee_pests,
-)
-from api.coffee_advisor import (  # noqa: E402
-    cultivation_guide as coffee_guide,
-)
-from api.coffee_advisor import (  # noqa: E402
-    site_suitability as coffee_site,
-)
-from api.coffee_advisor import (  # noqa: E402
-    varieties as coffee_varieties,
-)
-
-
-@app.get("/api/v1/coffee/site-suitability")
-def coffee_site_endpoint(altitude_m: float):
-    """ملاءمة موقع لزراعة البنّ بناءً على الارتفاع (المثالي 1500-2400م)."""
-    return coffee_site(altitude_m)
-
-
-@app.get("/api/v1/coffee/guide")
-def coffee_guide_endpoint():
-    """دليل زراعة البنّ اليمني: المدرّجات، التظليل، الريّ، التجفيف الطبيعي."""
-    return coffee_guide()
-
-
-@app.get("/api/v1/coffee/varieties")
-def coffee_varieties_endpoint(region: str | None = None):
-    """أصناف البنّ اليمنيّة (كلّها أو حسب منطقة)."""
-    return coffee_varieties(region)
-
-
-@app.get("/api/v1/coffee/pests")
-def coffee_pests_endpoint():
-    """آفات البنّ الرئيسيّة (صدأ الأوراق، ثاقبة الثمار) مرتبطة بـIPM."""
-    return coffee_pests()
+# مسارات /api/v1/coffee/* مُستخرَجة إلى routers/coffee.py.
 
 
 # ─── ٣٦. ما بعد الحصاد (التخزين وتقليل الفقد) ─────────────────────
@@ -8564,53 +7957,17 @@ def postharvest_practices_endpoint(crop: str | None = None):
 
 # ─── ٣٧. البذور المحسّنة + الأساليب الزراعيّة المحسّنة ─────────────
 from api.seed_and_practices import (  # noqa: E402
-    evaluate_seed_source,
     practice_guide,
-    seed_selection_criteria,
     supported_practices,
 )
 
 
-@app.get("/api/v1/seed/criteria")
-def seed_criteria_endpoint():
-    """معايير اختيار البذور/الأصناف المحسّنة (إطار قرار + توجيه لهيئة البحوث)."""
-    return seed_selection_criteria()
-
-
+# نموذج طلب تقييم مصدر البذار — يبقى مُعرَّفاً هنا ويُستورَد من api.routers.seed
+# (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
 class SeedSourceRequest(BaseModel):
     certified: bool
     purity_pct: float | None = None
     germination_pct: float | None = None
-
-
-@app.post("/api/v1/seed/evaluate-source")
-def seed_evaluate_endpoint(req: SeedSourceRequest):
-    """يقيّم جودة مصدر بذار (اعتماد + نقاوة + إنبات)."""
-    return evaluate_seed_source(req.certified, req.purity_pct, req.germination_pct)
-
-
-@app.get("/api/v1/seed/germination-rate")
-def seed_germination_endpoint(sprouted: int, total: int):
-    """يحسب معدّل الإنبات من اختبار عيّنة بسيط (المنبت ÷ الإجمالي)."""
-    from api.seed_and_practices import germination_rate
-
-    return germination_rate(sprouted, total)
-
-
-@app.get("/api/v1/seed/storage-check")
-def seed_storage_endpoint(temp_f: float, humidity_pct: float):
-    """قاعدة تخزين البذور: حرارة(°ف) + رطوبة% < 100."""
-    from api.seed_and_practices import storage_check
-
-    return storage_check(temp_f, humidity_pct)
-
-
-@app.get("/api/v1/seed/sowing-depth")
-def seed_sowing_depth_endpoint(seed_size_mm: float, precision: bool = False):
-    """عمق البذر المناسب (~5× حجم البذرة، 2× للدقيقة)."""
-    from api.seed_and_practices import sowing_depth
-
-    return sowing_depth(seed_size_mm, precision)
 
 
 @app.get("/api/v1/practices/list")
@@ -8666,57 +8023,7 @@ def introduction_field_fit_endpoint(req: FieldFitRequest):
 
 
 # ─── ٣٩. بروتوكول أخذ عيّنة التربة (دقّة التحليل تبدأ من العيّنة) ──
-from api.soil_sampling_protocol import (  # noqa: E402
-    sampling_depth,
-    sampling_protocol,
-    subsamples_for_area,
-)
-
-
-@app.get("/api/v1/soil-sampling/subsamples")
-def soil_subsamples_endpoint(area_ha: float):
-    """عدد العيّنات الفرعيّة الموصى بها حسب مساحة الحقل."""
-    return subsamples_for_area(area_ha)
-
-
-@app.get("/api/v1/soil-sampling/depth")
-def soil_depth_endpoint(purpose: str = "general"):
-    """العمق المناسب لأخذ العيّنة حسب الغرض (general/nitrate/no_till/orchard)."""
-    return sampling_depth(purpose)
-
-
-@app.get("/api/v1/soil-sampling/protocol")
-def soil_protocol_endpoint(area_ha: float | None = None, purpose: str = "general"):
-    """البروتوكول الكامل لأخذ عيّنة تربة صحيحة (خطوات + تحذيرات + توقيت)."""
-    return sampling_protocol(area_ha, purpose)
-
-
-# ─── ٤٠. حصاد مياه الأمطار (مصدر ماء بديل للمناطق الشحيحة) ────────
-from api.water_harvesting import (  # noqa: E402
-    harvest_potential,
-    harvesting_methods,
-    method_guide,
-)
-
-
-@app.get("/api/v1/water-harvesting/potential")
-def water_potential_endpoint(
-    catchment_area_m2: float, annual_rain_mm: float, surface: str = "roof"
-):
-    """يقدّر كميّة مياه الأمطار القابلة للحصاد سنويّاً (لتر/م³)."""
-    return harvest_potential(catchment_area_m2, annual_rain_mm, surface)
-
-
-@app.get("/api/v1/water-harvesting/methods")
-def water_methods_endpoint():
-    """طرق حصاد المياه المناسبة (مدرّجات/سدود/صهاريج/مصاطب كنتوريّة)."""
-    return harvesting_methods()
-
-
-@app.get("/api/v1/water-harvesting/method-guide")
-def water_method_guide_endpoint(method: str):
-    """دليل طريقة حصاد مياه محدّدة (الفوائد + الأنسب + التحذير)."""
-    return method_guide(method)
+# مسارات /api/v1/soil-sampling/* مُستخرَجة إلى routers/soil_sampling.py.
 
 
 # ─── ٤١. دراسة الجدوى الاقتصاديّة (هل سأربح؟) ─────────────────────
@@ -8756,38 +8063,7 @@ def economics_break_even_endpoint(area_ha: float, yield_t_per_ha: float, total_c
 
 
 # ─── ٤٢. الإكثار الخضري (اللاجنسي) + اختيار الأصل المقاوم ─────────
-from api.propagation_advisor import (  # noqa: E402
-    crop_propagation,
-    propagation_methods,
-    rootstock_selection,
-)
-from api.propagation_advisor import (  # noqa: E402
-    method_guide as propagation_method_guide,
-)
-
-
-@app.get("/api/v1/propagation/methods")
-def propagation_methods_endpoint():
-    """طرق الإكثار الخضري الخمس (عقل/تطعيم/برعمة/تقسيم/ترقيد)."""
-    return propagation_methods()
-
-
-@app.get("/api/v1/propagation/method-guide")
-def propagation_method_guide_endpoint(method: str):
-    """دليل طريقة إكثار محدّدة (الأنواع + النصيحة + الأنسب)."""
-    return propagation_method_guide(method)
-
-
-@app.get("/api/v1/propagation/crop")
-def propagation_crop_endpoint(crop: str):
-    """طريقة الإكثار المناسبة لمحصول/شجرة من بطاقات الإدخال."""
-    return crop_propagation(crop)
-
-
-@app.get("/api/v1/propagation/rootstock")
-def propagation_rootstock_endpoint(stress: str = "salinity"):
-    """إرشاد اختيار الأصل المقاوم حسب الإجهاد (salinity/drought/disease/dwarfing)."""
-    return rootstock_selection(stress)
+# مسارات /api/v1/propagation/* مُستخرَجة إلى routers/propagation.py.
 
 
 # ─── ٤٣. تصنيف الأقاليم المناخيّة-الزراعيّة لليمن (أين أنت → ماذا يناسبك) ──
@@ -8837,40 +8113,6 @@ def seasonal_risk_chill_endpoint(zone: str):
     return chill_hours_estimate(zone)
 
 
-# ─── ٤٦. المناطق العالميّة المشابهة مناخيّاً + محاصيلها المثبتة ──
-from api.climate_analogs import (  # noqa: E402
-    analog_detail,
-    desert_proven_crops,
-    list_analog_regions,
-)
-
-
-@app.get("/api/v1/climate-analogs/list")
-def climate_analogs_list_endpoint():
-    """المناطق العالميّة المشابهة مناخيّاً للصحراء اليمنيّة (الحزم/الجوف)."""
-    return list_analog_regions()
-
-
-@app.get("/api/v1/climate-analogs/detail")
-def climate_analogs_detail_endpoint(region: str):
-    """تفصيل منطقة مشابهة + دروسها (الجوف السعوديّة/النقب/أريزونا...)."""
-    return analog_detail(region)
-
-
-@app.get("/api/v1/climate-analogs/desert-crops")
-def climate_analogs_crops_endpoint(category: str | None = None):
-    """المحاصيل المثبتة عالميّاً في المناخ الصحراوي (أشجار/موسميّة/حديثة)."""
-    return desert_proven_crops(category)
-
-
-@app.get("/api/v1/climate-analogs/strategic-tiers")
-def climate_analogs_strategic_endpoint(tier: str | None = None):
-    """التصنيف الاستراتيجي للمحاصيل الصحراويّة (قيمة × استدامة مائيّة × تصدير)."""
-    from api.climate_analogs import strategic_tiers
-
-    return strategic_tiers(tier)
-
-
 # ─── ٤٧. تحليل سجلّ الطقس اليومي → ذكاء زراعي (إجهاد حراري + ET0 + عجز مائي) ──
 from api.weather_analytics import analyze_weather_log, seasonal_planting_guide  # noqa: E402
 
@@ -8885,15 +8127,6 @@ def weather_analyze_endpoint(records: list[dict]):
 def weather_planting_guide_endpoint(records: list[dict]):
     """دليل المواسم من السجلّ: متى الزراعة الأمثل ومتى الإجهاد."""
     return seasonal_planting_guide(records)
-
-
-# ─── ٤٨. مورد السيول الواردة (الحزم تستقبل من أحواض أعلى) ──
-@app.get("/api/v1/water-harvesting/upstream-flood")
-def water_upstream_flood_endpoint(local_rain_mm: float, catchment_note: str = ""):
-    """مورد السيول الواردة من أحواض أعلى (يتجاوز المطر المحلّي)."""
-    from api.water_harvesting import upstream_flood_water
-
-    return upstream_flood_water(local_rain_mm, catchment_note)
 
 
 # ─── ٤٩. محرّك القرار الزراعي الموحّد (عقل الحقل) ──
@@ -9241,14 +8474,6 @@ class ImageryFieldRegister(BaseModel):
 # يُعرَض في scheduler-status. الافتراض ٦ ساعات (توقّع الطقس يومي عمليّاً؛
 # ٦ ساعات تلتقط تحوّلات الحرارة/المطر دون إغراق Open-Meteo). قابل للضبط عبر ENV.
 ALERTS_EVAL_INTERVAL_SECONDS = int(os.getenv("SAHOOL_ALERTS_EVAL_INTERVAL_SECONDS", "21600"))
-
-
-@app.get("/api/v1/climate-analogs/strategy")
-def climate_analogs_strategy_endpoint():
-    """الاستراتيجيّة المركّبة للجوف (مزيج من المناطق) + اتّجاه Premium Desert Ag."""
-    from api.climate_analogs import composite_strategy
-
-    return composite_strategy()
 
 
 # ─── استبيان دخول المزارع (ONBOARDING) ──────────────────────────
@@ -9628,11 +8853,23 @@ _rebuild_pydantic_models()
 from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
+from api.routers.calendars import router as calendars_router  # noqa: E402
+from api.routers.climate_analogs import router as climate_analogs_router  # noqa: E402
+from api.routers.coffee import router as coffee_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
+from api.routers.equipment import router as equipment_router  # noqa: E402
+from api.routers.inventory import router as inventory_router  # noqa: E402
 from api.routers.irrigation import router as irrigation_router  # noqa: E402
+from api.routers.propagation import router as propagation_router  # noqa: E402
 from api.routers.recommendations import router as recommendations_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
 from api.routers.reports import router as reports_router  # noqa: E402
+from api.routers.seed import router as seed_router  # noqa: E402
+from api.routers.sharing import router as sharing_router  # noqa: E402
+from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
+from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
+from api.routers.water_sensitivity import router as water_sensitivity_router  # noqa: E402
+from api.routers.weather import router as weather_router  # noqa: E402
 
 app.include_router(boundaries_router)
 app.include_router(registry_router)
@@ -9642,3 +8879,15 @@ app.include_router(irrigation_router)
 app.include_router(recommendations_router)
 app.include_router(reports_router)
 app.include_router(agro_zones_router)
+app.include_router(water_sensitivity_router)
+app.include_router(seed_router)
+app.include_router(climate_analogs_router)
+app.include_router(calendars_router)
+app.include_router(water_harvesting_router)
+app.include_router(propagation_router)
+app.include_router(inventory_router)
+app.include_router(equipment_router)
+app.include_router(coffee_router)
+app.include_router(weather_router)
+app.include_router(soil_sampling_router)
+app.include_router(sharing_router)
