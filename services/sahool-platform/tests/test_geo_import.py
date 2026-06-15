@@ -5,6 +5,8 @@ namespace) + نقاط GPS إلى GeoJSON Polygon مُغلَق، ورفض الم�
 بـValueError واضح. لا حاجة لقاعدة بيانات أو شبكة.
 """
 
+import math
+
 import pytest
 from api.geo_import import parse_geojson, parse_kml, points_to_polygon
 
@@ -154,3 +156,100 @@ def test_points_to_polygon_keeps_closed_ring():
 def test_points_to_polygon_rejects_malformed(bad):
     with pytest.raises(ValueError):
         points_to_polygon(bad)
+
+
+# ── تقوية: رفض NaN/Infinity (إحداثيّات غير محدودة) ───────────────
+# قيم غير محدودة تُنتج GeoJSON غير قياسيّ وتُفسد حساب المساحة/التقاطع لاحقاً؛
+# تُرفض عند الاستخراج لا تُمرَّر بصمت.
+@pytest.mark.parametrize(
+    "bad",
+    [
+        '{"type":"Polygon","coordinates":[[[NaN,15.0],[45.6,15.0],[45.6,15.1]]]}',
+        '{"type":"Polygon","coordinates":[[[Infinity,15.0],[45.6,15.0],[45.6,15.1]]]}',
+        '{"type":"Polygon","coordinates":[[[-Infinity,15.0],[45.6,15.0],[45.6,15.1]]]}',
+        '{"type":"Polygon","coordinates":[[[45.5,NaN],[45.6,15.0],[45.6,15.1]]]}',
+    ],
+)
+def test_parse_geojson_rejects_nan_infinity(bad):
+    with pytest.raises(ValueError):
+        parse_geojson(bad)
+
+
+@pytest.mark.parametrize(
+    "bad_lon",
+    [float("nan"), float("inf"), float("-inf")],
+)
+def test_points_to_polygon_rejects_non_finite(bad_lon):
+    with pytest.raises(ValueError):
+        points_to_polygon([[bad_lon, 15.0], [45.6, 15.0], [45.6, 15.1]])
+
+
+@pytest.mark.parametrize(
+    "coord_text",
+    [
+        "nan,15.0 45.6,15.0 45.6,15.1",
+        "inf,15.0 45.6,15.0 45.6,15.1",
+        "45.5,nan 45.6,15.0 45.6,15.1",
+    ],
+)
+def test_parse_kml_rejects_non_finite(coord_text):
+    kml = (
+        "<kml><Polygon><outerBoundaryIs><LinearRing>"
+        f"<coordinates>{coord_text}</coordinates>"
+        "</LinearRing></outerBoundaryIs></Polygon></kml>"
+    )
+    with pytest.raises(ValueError):
+        parse_kml(kml)
+
+
+def test_parse_geojson_output_is_all_finite():
+    """العيّنة الصالحة تُنتج إحداثيّات محدودة فقط (لا NaN/Infinity تتسرّب)."""
+    geom = parse_geojson(GEOJSON_POLYGON)
+    for lon, lat in geom["coordinates"][0]:
+        assert math.isfinite(lon) and math.isfinite(lat)
+
+
+# ── تقوية: أمان تحليل XML (defusedxml ضدّ XXE / billion-laughs) ───
+# محتوى KML قد يأتي من رفع مستخدم غير موثوق عبر import_field؛ يجب رفض
+# DTD/الكيانات والكيانات الخارجيّة بـValueError واضح لا توسيعها/قراءتها.
+def test_parse_kml_rejects_entity_expansion():
+    """billion-laughs: كيان داخليّ يجب أن يُرفض لا أن يُوسَّع."""
+    payload = (
+        '<?xml version="1.0"?>\n'
+        '<!DOCTYPE d [ <!ENTITY n "99"> ]>\n'
+        "<kml><Polygon><outerBoundaryIs><LinearRing>"
+        "<coordinates>&n;,1 2,2 3,3</coordinates>"
+        "</LinearRing></outerBoundaryIs></Polygon></kml>"
+    )
+    with pytest.raises(ValueError):
+        parse_kml(payload)
+
+
+def test_parse_kml_rejects_external_entity():
+    """XXE: كيان خارجيّ (قراءة ملفّ) يجب أن يُرفض لا أن يُحلّ."""
+    payload = (
+        '<?xml version="1.0"?>\n'
+        '<!DOCTYPE d [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>\n'
+        "<kml><Polygon><outerBoundaryIs><LinearRing>"
+        "<coordinates>&xxe;,1 2,2 3,3</coordinates>"
+        "</LinearRing></outerBoundaryIs></Polygon></kml>"
+    )
+    with pytest.raises(ValueError):
+        parse_kml(payload)
+
+
+def test_parse_kml_billion_laughs_rejected_fast():
+    """billion-laughs المتداخل: يُرفض دون توسّع (لا تجميد/استنزاف ذاكرة)."""
+    payload = (
+        '<?xml version="1.0"?>\n'
+        "<!DOCTYPE lolz [\n"
+        ' <!ENTITY lol "lol">\n'
+        ' <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">\n'
+        ' <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">\n'
+        "]>\n"
+        "<kml><Polygon><outerBoundaryIs><LinearRing>"
+        "<coordinates>&lol3;,1 2,2 3,3</coordinates>"
+        "</LinearRing></outerBoundaryIs></Polygon></kml>"
+    )
+    with pytest.raises(ValueError):
+        parse_kml(payload)
