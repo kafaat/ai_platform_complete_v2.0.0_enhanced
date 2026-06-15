@@ -31,7 +31,6 @@ import logging
 import os
 import secrets
 import sys
-import time
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Literal
@@ -887,134 +886,9 @@ def readyz():
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
-@app.post("/api/v1/auth/login", response_model=TokenResponse)
-def login(req: LoginRequest):
-    """تسجيل دخول dev-mode (بلا كلمة مرور). مُعطَّل افتراضيّاً في كلّ البيئات؛
-    لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير الإنتاج. غير ذلك ⇒ 403.
-    المصادقة الحقيقيّة عبر خدمة sahool-auth (/auth/login بـbcrypt)."""
-    # C1 FIX: هذه نقطة تطوير تُصدر JWT بلا كلمة مرور. مُعطَّلة افتراضيّاً (وفي
-    # الإنتاج دائماً) — لا تُفعَّل إلّا بإقرار صريح SAHOOL_DEV_AUTH=1 في غير الإنتاج.
-    # يمنع تجاوز المصادقة وانهيار عزل المستأجرين لو أصابت الطلبات هذه النقطة.
-    if not _DEV_AUTH_ENABLED:
-        raise HTTPException(
-            status_code=403,
-            detail="نقطة dev معطّلة — استخدم خدمة المصادقة (/auth/login).",
-        )
-    # هنا: dev-mode فقط، نقبل أيّ user_id صالح
-    try:
-        role = UserRole(req.role)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid role: {req.role}") from None
-
-    user = UserSchema(
-        user_id=req.user_id,
-        tenant_id=req.tenant_id,
-        role=role,
-        name_ar=req.name_ar,
-    )
-    token = create_token(user)
-
-    return TokenResponse(
-        access_token=token,
-        expires_in=JWT_EXPIRY_HOURS * 3600,
-        user={
-            "user_id": user.user_id,
-            "tenant_id": user.tenant_id,
-            "role": user.role.value,
-            "name_ar": user.name_ar,
-        },
-    )
-
-
-@app.get("/api/v1/me")
-def me(user: UserSchema = Depends(get_current_user)):
-    """بيانات المستخدم الحالي (الهوية + المستأجر + الدور)."""
-    return {
-        "user_id": user.user_id,
-        "tenant_id": user.tenant_id,
-        "role": user.role.value,
-        "name_ar": user.name_ar,
-    }
-
-
-# ─── auth endpoints التي يطلبها التطبيق (مطابقة contract) ─────────
-# جلسة المطابقة: الموبايل (authService.ts) يستدعي /api/v1/auth/{me,logout,signup}
-# لكنّها لم تكن موجودة → تسجيل الدخول/الخروج كان يفشل بـ404.
-
-
-@app.get("/api/v1/auth/me")
-def auth_me(user: UserSchema = Depends(get_current_user)):
-    """alias لـ/api/v1/me — التطبيق يستدعي هذا المسار."""
-    return {
-        "user": {
-            "user_id": user.user_id,
-            "tenant_id": user.tenant_id,
-            "role": user.role.value,
-            "name_ar": user.name_ar,
-        }
-    }
-
-
-@app.post("/api/v1/auth/logout")
-def auth_logout(
-    authorization: str = Header(None),
-    user: UserSchema = Depends(get_current_user),
-):
-    """تسجيل خروج — يُبطِل التوكن فعليّاً عبر denylist (jti) لا على الجهاز فقط.
-
-    يُضيف jti التوكن للقائمة بمهلة = ما تبقّى حتى انتهائه، فيُرفَض في الطلبات اللاحقة
-    (get_current_user يستشير القائمة). fail-safe: فشل الإبطال لا يكسر الخروج.
-    """
-    token = (authorization or "").replace("Bearer ", "", 1)
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
-        # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
-        if payload.get("iss") not in _ALLOWED_ISS:
-            raise InvalidTokenError("Invalid token issuer")
-        jti = payload.get("jti")
-        exp = payload.get("exp")
-        if jti and exp:
-            ttl = max(1, int(exp) - int(time.time()))
-            _DENYLIST.revoke(jti, ttl)
-    except Exception as e:  # noqa: BLE001 — فشل الإبطال لا يكسر الخروج (العميل يحذف التوكن)
-        logger.warning("logout: تعذّر إبطال التوكن: %s", e)
-    return {"status": "logged_out", "message_ar": "تمّ تسجيل الخروج"}
-
-
-@app.post("/api/v1/auth/signup", response_model=TokenResponse)
-def auth_signup(req: LoginRequest):
-    """تسجيل مستخدم جديد (dev-mode — نفس منطق login بلا كلمة مرور).
-
-    مُعطَّل افتراضيّاً في كلّ البيئات؛ لا يُفعَّل إلّا بـSAHOOL_DEV_AUTH=1 وفي غير
-    الإنتاج. غير ذلك ⇒ 403. التسجيل الحقيقيّ عبر خدمة auth (DB + bcrypt).
-    """
-    # C1 FIX: نفس منطق login بلا كلمة مرور → مُعطَّل افتراضيّاً وفي الإنتاج دائماً.
-    if not _DEV_AUTH_ENABLED:
-        raise HTTPException(
-            status_code=403,
-            detail="نقطة dev معطّلة — استخدم خدمة المصادقة.",
-        )
-    try:
-        role = UserRole(req.role)
-    except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid role: {req.role}") from None
-    user = UserSchema(
-        user_id=req.user_id,
-        tenant_id=req.tenant_id,
-        role=role,
-        name_ar=req.name_ar,
-    )
-    token = create_token(user)
-    return TokenResponse(
-        access_token=token,
-        expires_in=JWT_EXPIRY_HOURS * 3600,
-        user={
-            "user_id": user.user_id,
-            "tenant_id": user.tenant_id,
-            "role": user.role.value,
-            "name_ar": user.name_ar,
-        },
-    )
+# نقاط /api/v1/auth/{login,me,logout,signup} نُقلت إلى api/routers/auth.py (نمط P0).
+# نقطة /api/v1/me نُقلت إلى api/routers/me.py (نمط P0). النماذج (LoginRequest/
+# TokenResponse) والتبعيات/الأسرار تبقى هنا وتُستورَد من الموجِّهات (نماذج/تبعيات لا تُنقَل).
 
 
 # نقطتا /api/v1/recommendations و /api/v1/recommendations/for-field نُقلتا إلى
@@ -3380,43 +3254,7 @@ class SettingRequest(BaseModel):
 
 
 # ─── تكوين المستأجِر (Tenant Config) — هويّة/وحدات/لغة/محاصيل — (#13) ─
-@app.get("/api/v1/tenant/config")
-async def get_tenant_config(
-    user: UserSchema = Depends(require_permission(Permission.SETTINGS_VIEW)),
-):
-    """التكوين **الفعّال** للمستأجِر — الافتراضات المحايدة مُركَّباً فوقها تخصيصُه.
-
-    يقرأ صفّ الإعداد القائم (scope='platform', key='tenant_config') من جدول
-    settings ضمن اتّصال المستأجِر (RLS)، ثمّ يُركّبه فوق القيم الافتراضيّة عبر
-    `merge_tenant_config`. القراءة best-effort: تعذّر القاعدة/غياب الصفّ ⇒ None ⇒
-    الافتراضات النقيّة (لا فشل — التكوين تحسين تجميليّ لا حرج).
-
-    ⚠ الكتابة لا تمرّ هنا — يضبط المستأجِر تخصيصه عبر النقطة القائمة
-    `PUT /api/v1/settings` (scope='platform', key='tenant_config', value=<جزئيّ>)
-    بصلاحيّة SETTINGS_MANAGE. لا نضيف نقطة كتابة جديدة (مصدر كتابة واحد).
-    """
-    import json as _json
-
-    from api.tenant_config import merge_tenant_config
-
-    value: dict | None = None
-    try:
-        async with tenant_connection(user) as conn:
-            value = await conn.fetchval(
-                "SELECT value FROM settings WHERE scope = 'platform' AND key = 'tenant_config'"
-            )
-    except Exception:  # noqa: BLE001 — تعذّر القاعدة ⇒ افتراضات محايدة لا فشل
-        value = None
-
-    # قيمة JSONB قد تعود نصّاً (asyncpg دون codec) — فُكّها بأمان قبل الدمج.
-    if isinstance(value, str):
-        try:
-            value = _json.loads(value)
-        except (ValueError, TypeError):
-            value = None
-
-    # merge_tenant_config نقيّة لا تستثني: تتعامل مع None/المُشوَّه ⇒ تكوين صالح.
-    return merge_tenant_config(value)
+# نقطة /api/v1/tenant/config نُقلت إلى api/routers/tenant.py (نمط P0).
 
 
 # ─── تحليلات التكاليف الفعليّة (Cost Analytics) ──────────────────
@@ -4595,123 +4433,9 @@ def evidence_corroborate(
 # نُقلت إلى api/routers/recommendations.py (نمط P0).
 
 
-@app.get("/api/v1/rbac/who-can")
-def rbac_who_can(
-    permission: str,
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """الاستعلام العكسي: أيّ الأدوار تملك صلاحيّة معيّنة؟ (تدقيق أمني)."""
-    from core.authorization import Permission as _P
-    from core.rbac_governance import who_can
-
-    try:
-        perm = _P(permission)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=f"صلاحيّة غير معروفة: {permission}") from e
-    return who_can(perm)
-
-
-@app.get("/api/v1/rbac/permission-matrix")
-def rbac_permission_matrix(
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """مصفوفة الصلاحيّات الكاملة (كلّ دور × كلّ صلاحيّة) — شفافيّة الحوكمة."""
-    from core.rbac_governance import permission_matrix
-
-    return permission_matrix()
-
-
-@app.get("/api/v1/admin/events/dead-letter")
-async def admin_events_dead_letter(
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """حوكمة الأحداث الفاشلة (DLQ): يعرض أحداث event_outbox الميّتة + تفاصيلها.
-
-    فوق v_event_dead_letter (v48). مُرشَّح بالمستأجِر (RLS على events) — كلّ مستأجِر
-    أحداثه الفاشلة. (عرض ops عابر المستأجرين = شأن superuser منفصل، مؤجَّل.)
-    """
-    rows: list = []
-    try:
-        async with tenant_connection(user) as conn:
-            recs = await conn.fetch(
-                """SELECT outbox_id, event_id::text, nats_subject, retry_count,
-                          last_error, last_attempt_at, created_at,
-                          event_type, entity_type, entity_id, occurred_at
-                   FROM v_event_dead_letter ORDER BY created_at DESC LIMIT 500"""
-            )
-            rows = [
-                {
-                    "outbox_id": r["outbox_id"],
-                    "event_id": r["event_id"],
-                    "nats_subject": r["nats_subject"],
-                    "retry_count": r["retry_count"],
-                    "last_error": r["last_error"],
-                    "last_attempt_at": r["last_attempt_at"].isoformat()
-                    if r["last_attempt_at"]
-                    else None,
-                    "event_type": r["event_type"],
-                    "entity_type": r["entity_type"],
-                    "entity_id": r["entity_id"],
-                }
-                for r in recs
-            ]
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة الأحداث الميّتة (DLQ)", e) from e
-    return {
-        "dead_letter": rows,
-        "total": len(rows),
-        "note_ar": (
-            "أحداث فشل نشرها إلى NATS بعد استنفاد المحاولات. بعد إصلاح السبب "
-            "(مثلاً NATS متوقّف) أعِد جدولتها عبر requeue. مراقبة: نبّه لو total>0."
-        ),
-    }
-
-
-@app.post("/api/v1/admin/events/dead-letter/{outbox_id}/requeue")
-async def admin_requeue_dead_letter(
-    outbox_id: int,
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """يعيد جدولة حدث ميّت واحد → pending (بعد إصلاح السبب). فوق requeue_dead_letter (v48)."""
-    try:
-        async with tenant_connection(user) as conn:
-            requeued = await conn.fetchval("SELECT requeue_dead_letter($1)", outbox_id)
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إعادة جدولة حدث ميّت", e) from e
-    if not requeued:
-        raise HTTPException(status_code=404, detail="لا حدث ميّت بهذا المعرّف (أو غير فاشل)")
-    return {"outbox_id": outbox_id, "requeued": True}
-
-
-@app.post("/api/v1/admin/events/dead-letter/requeue-all")
-async def admin_requeue_all_dead_letter(
-    user: UserSchema = Depends(require_permission(Permission.AUDIT_VIEW)),
-):
-    """يعيد جدولة كلّ الأحداث الميّتة (تشغيل ops بعد إصلاح NATS). فوق requeue_all_dead_letter."""
-    try:
-        async with tenant_connection(user) as conn:
-            count = await conn.fetchval("SELECT requeue_all_dead_letter()")
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إعادة جدولة كلّ الأحداث الميّتة", e) from e
-    return {"requeued_count": int(count or 0)}
-
-
-@app.get("/api/v1/rbac/preview-role-change")
-def rbac_preview_role_change(
-    current_role: str,
-    new_role: str,
-    user: UserSchema = Depends(require_permission(Permission.USER_CHANGE_ROLE)),
-):
-    """معاينة أثر تغيير دور قبل تطبيقه (ما يُكتسَب/يُفقَد + تنبيه التصعيد)."""
-    from core.rbac_governance import preview_role_change
-
-    return preview_role_change(current_role, new_role)
+# نقاط /api/v1/rbac/{who-can,permission-matrix,preview-role-change} نُقلت إلى
+# api/routers/rbac.py (نمط P0). نقاط /api/v1/admin/events/dead-letter[/...] نُقلت
+# إلى api/routers/admin.py (نمط P0). التبعيات/المساعِدات تبقى هنا وتُستورَد من الموجِّهات.
 
 
 class OutcomeRecordRequest(BaseModel):
@@ -5380,6 +5104,9 @@ _rebuild_pydantic_models()
 # المسارات على ``app`` كما لو كانت مُعرَّفة هنا (مخطّط OpenAPI مطابق).
 # دفعة 7 (routers-batch7): ١٥ نطاقاً مُستخرَجاً (تحليلات/مؤشّرات/ثقة/زمن/تشخيص/
 # تعلّم/سوق/اتّساق/إدخال/اقتصاد/تهيئة/طقس-تحليلي/قرار/أمثال/توقيت-فلكي).
+# دفعة الأمن/الهوية (routers-sec) — نطاقات auth/me/tenant/rbac/admin مُفكَّكة من main
+# (نمط P0، سلوك محفوظ بالكامل: مسارات/أذونات/توكن/OpenAPI مطابقة).
+from api.routers.admin import router as admin_router  # noqa: E402
 from api.routers.agricultural_proverbs import (  # noqa: E402
     router as agricultural_proverbs_router,
 )
@@ -5389,6 +5116,7 @@ from api.routers.aromatic_crops import router as aromatic_crops_router  # noqa: 
 from api.routers.astronomical_timing import (  # noqa: E402
     router as astronomical_timing_router,
 )
+from api.routers.auth import router as auth_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
 from api.routers.calendars import router as calendars_router  # noqa: E402
@@ -5422,6 +5150,7 @@ from api.routers.irrigation import router as irrigation_router  # noqa: E402
 from api.routers.learning import router as learning_router  # noqa: E402
 from api.routers.market import router as market_router  # noqa: E402
 from api.routers.master_data import router as master_data_router  # noqa: E402
+from api.routers.me import router as me_router  # noqa: E402
 from api.routers.niche_crops import router as niche_crops_router  # noqa: E402
 from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
@@ -5431,6 +5160,7 @@ from api.routers.planting import router as planting_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
+from api.routers.rbac import router as rbac_router  # noqa: E402
 from api.routers.recommendations import router as recommendations_router  # noqa: E402
 from api.routers.regional_calendar import router as regional_calendar_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
@@ -5447,6 +5177,7 @@ from api.routers.sharing import router as sharing_router  # noqa: E402
 from api.routers.simulate import router as simulate_router  # noqa: E402
 from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
 from api.routers.temporal import router as temporal_router  # noqa: E402
+from api.routers.tenant import router as tenant_router  # noqa: E402
 from api.routers.trials import router as trials_router  # noqa: E402
 from api.routers.water_balance import router as water_balance_router  # noqa: E402
 from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
@@ -5526,3 +5257,8 @@ app.include_router(salinity_router)
 app.include_router(postharvest_router)
 app.include_router(sampling_router)
 app.include_router(fields_router)
+app.include_router(auth_router)
+app.include_router(me_router)
+app.include_router(tenant_router)
+app.include_router(rbac_router)
+app.include_router(admin_router)

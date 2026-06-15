@@ -25,6 +25,13 @@ def m():
     pytest.importorskip("fastapi")
     import api.main as main_mod
 
+    # المعالِج auth_logout انتقل إلى api/routers/auth.py بعد تفكيك monolith؛
+    # نوفّره على نسق الوصول القديم m.auth_logout (نفس الدالّة، موقعها فقط تغيّر).
+    if not hasattr(main_mod, "auth_logout"):
+        from api.routers import auth as _auth
+
+        main_mod.auth_logout = _auth.auth_logout
+
     return main_mod
 
 
