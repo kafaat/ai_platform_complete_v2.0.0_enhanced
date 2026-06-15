@@ -77,6 +77,9 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     TASK_UPDATED = "task.updated"
     FARM_CREATED = "farm.created"
     IRRIGATION_SCHEDULE_CREATED = "irrigation.schedule.created"
+    # أحداث الصمّامات (تسجيل + تغيير حالة) — لازمة لنقاط /irrigation/valves.
+    IRRIGATION_VALVE_REGISTERED = "irrigation.valve.registered"
+    IRRIGATION_VALVE_STATE_CHANGED = "irrigation.valve.state_changed"
     # المرحلة 2: مخزون/معدّات/مرجعيّة/دورة زراعيّة.
     INVENTORY_ITEM_CREATED = "inventory.item.created"
     INVENTORY_BATCH_ADDED = "inventory.batch.added"
