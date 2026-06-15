@@ -182,8 +182,9 @@ def find_similar_recommendations(
             outcome = "harvested"
             # outcome_quality: مقياس نجاح ميسّر (للـlearning loop المُؤجَّل)
             if hasattr(rec, "error_pct") and rec.error_pct is not None:
-                # دقّة عالية = جودة عالية
-                outcome_quality = max(0.0, 1.0 - abs(rec.error_pct))
+                # دقّة عالية = جودة عالية. error_pct نسبة مئويّة (مثلاً 15.0 = 15%)
+                # ⇒ نقسّم على 100 (كان يُعامَل ككسر فأيّ خطأ >1% يصفّر الجودة).
+                outcome_quality = max(0.0, 1.0 - abs(rec.error_pct) / 100.0)
         elif hasattr(rec, "error_pct") and rec.error_pct is not None:
             outcome = "evaluated"
 

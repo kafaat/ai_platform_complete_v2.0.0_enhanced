@@ -29,6 +29,24 @@ def test_catalog_known_categories_present():
         assert cat in out["categories"]
 
 
+def test_catalog_renderable_flag_is_consistent():
+    """كلّ عنصر يحمل renderable: bool، وrenderable_total يطابق العدّ، والطبقات
+    المكانيّة المعروفة renderable بينما القيَم القياسيّة (طقس/تربة كيميائيّة) لا."""
+    out = _shape_indicator_catalog()
+    by_id = {i["id"]: i for i in out["indicators"]}
+    # كلّ عنصر يحمل العلم منطقيّاً
+    assert all(isinstance(i.get("renderable"), bool) for i in out["indicators"])
+    # العدّ يطابق
+    assert out["renderable_total"] == sum(1 for i in out["indicators"] if i["renderable"])
+    assert out["renderable_total"] > 0
+    # طبقات راستر مكانيّة ⇒ renderable
+    for sid in ("ndvi", "ndmi", "msi", "salinity"):
+        assert by_id[sid]["renderable"] is True
+    # قيَم قياسيّة غير مكانيّة ⇒ ليست renderable (لا تُعرَض كطبقة خريطة)
+    for sid in ("et0", "gdd", "temperature", "soil_ph", "nitrogen"):
+        assert by_id[sid]["renderable"] is False
+
+
 # ── _shape_indicators_dashboard ──────────────────────────────────
 def test_dashboard_fields_summary_flags_active_season():
     fields_rows = [

@@ -255,9 +255,13 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> getDashboard({String? tag}) async {
-    final r = await _dio.get('/indicators/v1/overview',
+    // البوّابة (nginx) لا تملك موقع /indicators/ ⇒ المسار القديم كان يسقط إلى
+    // الـSPA ويعيد HTML فينهار _asMap. المسار الصحيح للوحة المُجمَّعة على المنصّة
+    // هو /api/v1/indicators/dashboard (يردّ {fields_summary, kpis, alerts،
+    // وكلّ fields_summary يحوي geometry لضبط الخريطة على حقل المستخدم}).
+    final r = await _dio.get('/api/v1/indicators/dashboard',
         cancelToken: tag != null ? _getToken(tag) : null);
-    return r.data as Map<String, dynamic>;
+    return _asMap(r.data); // حارس الشكل (كان as Map خاماً ينهار على استجابة غير Map)
   }
 
   Future<Map<String, dynamic>> getFieldIndicators(String fieldId, {String? tag}) async {
@@ -266,8 +270,56 @@ class ApiService {
     return r.data as Map<String, dynamic>;
   }
 
+  /// الحالة القانونيّة الموحّدة للحقل (Canonical Field State) —
+  /// GET /api/v1/fields/{field_id}/state. مصدر الحقيقة الواحد الذي تمرّ عبره
+  /// القرارات/التنبيهات: صلاحيّة القرار (validity)، نمط التنفيذ (execution_mode)،
+  /// والحقائق الزراعيّة (agronomic.operational_truths: حيويّة المحصول/صنف الملوحة)
+  /// مع أسباب عربيّة (reasons_ar). حارس الشكل (_asMap) كبقيّة المسارات. صدق: غياب
+  /// مصدر ⇒ الخادم يردّ حالة «بيانات ناقصة» (insufficient) لا أرقاماً مُلفَّقة.
+  Future<Map<String, dynamic>> getFieldState(String fieldId, {String? tag}) async {
+    final r = await _dio.get('/api/v1/fields/$fieldId/state',
+        cancelToken: tag != null ? _getToken(tag) : null);
+    return _asMap(r.data);
+  }
+
+  /// السلسلة الزمنيّة لمؤشّر NDVI للحقل بنمط Climate FieldView —
+  /// GET /v1/fields/{field_id}/timeseries?index=ndvi (raster-service، يُوصَل
+  /// عبر نفس الـDio/البوّابة كبقيّة مسارات raster مثل /process و/upload).
+  /// الخادم يردّ {available, points:[{datetime, mean, ...}]}. صدق: available=false
+  /// أو points فارغة ⇒ تُعاد قائمة فارغة (لا اختلاق نقاط)؛ تُتسامَح المفاتيح
+  /// الغائبة (stddev/cloudy_pct قد لا يُرسلها الخادم). كلّ عنصر خريطة آمنة الشكل.
+  Future<List<Map<String, dynamic>>> getFieldNdviTimeseries(
+    String fieldId, {
+    String? tag,
+  }) async {
+    final r = await _dio.get(
+      '/v1/fields/$fieldId/timeseries',
+      queryParameters: {'index': 'ndvi'},
+      cancelToken: tag != null ? _getToken(tag) : null,
+    );
+    final data = _asMap(r.data);
+    // صدق: غياب التوفّر ⇒ لا نقاط (الـUI يعرض «غير متاح»).
+    if (data['available'] == false) return const [];
+    final raw = data['points'];
+    if (raw is! List) return const [];
+    final out = <Map<String, dynamic>>[];
+    for (final e in raw) {
+      if (e is! Map) continue;
+      final m = e.cast<String, dynamic>();
+      // نمرّر فقط ما نحتاجه (datetime/mean/cloudy_pct)، مع تسامح المفاتيح الغائبة.
+      out.add({
+        'datetime': m['datetime'] ?? m['date'],
+        'mean': m['mean'],
+        if (m.containsKey('cloudy_pct')) 'cloudy_pct': m['cloudy_pct'],
+      });
+    }
+    return out;
+  }
+
   Future<Map<String, dynamic>> askAgent(String query, {String? fieldId}) async {
-    final r = await _dio.post('/agent/query', data: {
+    // البوّابة توجّه /api/agent/ → supervisor /agent/ (تطابق الويب kongApi).
+    // المسار القديم /agent/query بلا بادئة /api كان يسقط إلى الـSPA.
+    final r = await _dio.post('/api/agent/query', data: {
       'query': query,
       if (fieldId != null) 'field_id': fieldId,
     });
@@ -298,7 +350,9 @@ class ApiService {
   }
 
   Future<void> acknowledgeAlert(String alertId) async {
-    await _dio.patch('/indicators/alerts/$alertId/acknowledge');
+    // التنبيهات تُخدَّم على المنصّة تحت /api/v1/alerts/{id}/acknowledge
+    // (PATCH، يطابق الويب). المسار القديم /indicators/alerts/... غير موجود.
+    await _dio.patch('/api/v1/alerts/$alertId/acknowledge');
   }
 
   Future<Map<String, dynamic>> refreshTokenCall(String refreshToken) async {
@@ -559,6 +613,89 @@ class ApiService {
       if (waterSource != null) 'water_source': waterSource,
       if (manager != null) 'manager': manager,
       if (farmId != null) 'farm_id': farmId,
+    });
+    return _asMap(r.data);
+  }
+
+  // ── Field setup chain (موسم / فحص تربة / تقدير إنتاجيّة) ──
+  // تكملة معالج إنشاء الحقل على نمط Climate FieldView: بعد إنشاء الحقل تُسلسَل
+  // خطوات الإعداد (موسم ← فحوص تربة اختياريّة ← إنتاجيّة اختياريّة). كلّ طلب
+  // يستعمل نفس Dio (توكن، إعادة محاولة، كشف انقطاع) ويحرس الشكل بـ_asMap.
+  // المسارات تطابق عقد الخادم بدقّة — لا نقاط مُختلَقة.
+
+  /// ينشئ موسماً للحقل (POST /api/v1/fields/{field_id}/seasons).
+  /// [crop] لازم (يُرسَل ضمن مصفوفة crops). الحقول الأخرى اختياريّة وتُرسَل فقط
+  /// إن وُجدت (ملء تدريجيّ). يردّ الموسم المُنشأ. صدق: الخطأ يُرمى ليُعرَض كما هو.
+  Future<Map<String, dynamic>> createSeason(
+    String fieldId, {
+    required String crop,
+    String? cultivar,
+    String? irrigationType,
+    String? sowingDate, // "YYYY-MM-DD"
+    String? seasonEnd, // "YYYY-MM-DD"
+    num? targetYieldKgHa,
+    num? seedRateKgHa,
+    String? tillageType,
+    String? maturity, // early/medium/late
+    num? actualYieldKgHa,
+    String? notesAr,
+  }) async {
+    final r = await _dio.post('/api/v1/fields/$fieldId/seasons', data: {
+      'crops': [crop],
+      if (cultivar != null) 'cultivar': cultivar,
+      if (irrigationType != null) 'irrigation_type': irrigationType,
+      if (sowingDate != null) 'sowing_date': sowingDate,
+      if (seasonEnd != null) 'season_end': seasonEnd,
+      if (targetYieldKgHa != null) 'target_yield_kg_ha': targetYieldKgHa,
+      if (seedRateKgHa != null) 'seed_rate_kg_ha': seedRateKgHa,
+      if (tillageType != null) 'tillage_type': tillageType,
+      if (maturity != null) 'maturity': maturity,
+      if (actualYieldKgHa != null) 'actual_yield_kg_ha': actualYieldKgHa,
+      if (notesAr != null) 'notes_ar': notesAr,
+    });
+    return _asMap(r.data);
+  }
+
+  /// يسجّل نتيجة فحص تربة مخبريّ (POST /api/v1/fields/{field_id}/soil-lab-tests).
+  /// pH/المادّة العضويّة/CEC تُرسَل داخل result. كلّ الحقول اختياريّة (خطوة قابلة
+  /// للتخطّي). يردّ السجلّ المُنشأ. صدق: الخطأ يُرمى ليُعرَض كما هو.
+  Future<Map<String, dynamic>> submitSoilLabTest(
+    String fieldId, {
+    String? labName,
+    String? sampledOn, // "YYYY-MM-DD"
+    String? notesAr,
+    num? ph,
+    num? organicMatter,
+    num? cec,
+  }) async {
+    final result = <String, dynamic>{
+      if (ph != null) 'ph': ph,
+      if (organicMatter != null) 'organic_matter': organicMatter,
+      if (cec != null) 'cec': cec,
+    };
+    final r = await _dio.post('/api/v1/fields/$fieldId/soil-lab-tests', data: {
+      if (labName != null) 'lab_name': labName,
+      if (sampledOn != null) 'sampled_on': sampledOn,
+      if (notesAr != null) 'notes_ar': notesAr,
+      if (result.isNotEmpty) 'result': result,
+    });
+    return _asMap(r.data);
+  }
+
+  /// يطلب تقدير إنتاجيّة الحقل (POST /api/v1/fields/{field_id}/yield-estimate).
+  /// [crop] لازم. أيّام النموّ/متوسّط NDVI اختياريّان. يردّ التقدير (خطوة قابلة
+  /// للتخطّي). صدق: الخطأ يُرمى ليُعرَض كما هو.
+  Future<Map<String, dynamic>> requestYieldEstimate(
+    String fieldId, {
+    required String crop,
+    int? daysInGrowing,
+    num? avgNdviGrowing,
+  }) async {
+    final r = await _dio.post('/api/v1/fields/$fieldId/yield-estimate', data: {
+      'field_id': fieldId,
+      'crop': crop,
+      if (daysInGrowing != null) 'days_in_growing': daysInGrowing,
+      if (avgNdviGrowing != null) 'avg_ndvi_growing': avgNdviGrowing,
     });
     return _asMap(r.data);
   }

@@ -145,7 +145,7 @@ export interface GuardrailsResult {
 }
 
 // ── Indicator Grid (raster-service per-pixel grid) ──────────────
-export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture';
+export type GridIndex = 'ndvi' | 'ndmi' | 'ndwi' | 'salinity' | 'ndre' | 'msavi' | 'evi' | 'moisture' | 'msi' | 'savi' | 'gndvi';
 
 export interface IndicatorGridZone {
   id: string;
@@ -338,7 +338,9 @@ export function useFieldChange(
 }
 
 // ── Time series (real per-date index means for a field) ────────────
-export interface TimeseriesPoint { datetime: string; mean: number }
+// stddev/cloudy_pct اختياريّان: raster-service يزوّدهما لكلّ تاريخ COG؛ مصدر
+// vegetation-service البديل لا يملكهما (فيبقيان undefined — لا قيم مُختلَقة).
+export interface TimeseriesPoint { datetime: string; mean: number; stddev?: number; cloudy_pct?: number }
 
 export interface FieldTimeseriesResponse {
   field_id: string;
@@ -567,7 +569,7 @@ export function useCreateFarm(): UseMutationResult<FarmCreated, Error, FarmCreat
 export function useTasks(fieldId?: string) {
   return useQuery<{ tasks: Task[] }>({
     queryKey: QK.tasks(fieldId),
-    queryFn:  () => kongApi.get('/tasks', { params: fieldId ? { field_id: fieldId } : {} })
+    queryFn:  () => kongApi.get('/api/v1/tasks', { params: fieldId ? { field_id: fieldId } : {} })
       .then(r => r.data).catch(() => ({ tasks: [] })),
     staleTime:2 * 60_000,
     refetchInterval: 5 * 60_000,
@@ -577,7 +579,7 @@ export function useTasks(fieldId?: string) {
 export function useCompleteTask() {
   return useMutation({
     mutationFn: ({ taskId, photoUrl }: { taskId: string; photoUrl?: string }) =>
-      kongApi.patch(`/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
+      kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
   });
 }
 
@@ -1120,7 +1122,7 @@ export function useSharingKeys(includeRevoked = false): UseQueryResult<SharingKe
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useQuery<SharingKey[]>({
     queryKey: QK.sharingKeys(tid, includeRevoked),
-    queryFn:  () => listSharingKeys(includeRevoked).then((r) => r.keys),
+    queryFn:  () => listSharingKeys(includeRevoked).then((r) => (Array.isArray(r.keys) ? r.keys : [])),
     staleTime:60_000,
     retry:    false,
   });

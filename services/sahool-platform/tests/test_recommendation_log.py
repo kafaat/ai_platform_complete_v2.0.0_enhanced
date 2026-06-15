@@ -128,3 +128,27 @@ class TestConcurrencySafety:
         assert updated == 5  # no lost updates
         p.unlink()
         Path(str(p) + ".lock").unlink(missing_ok=True)
+
+
+def test_provenance_dict_survives_csv_roundtrip():
+    """provenance (dict) يجب أن يعود dict بعد الكتابة/القراءة — كان repr يكسره ويُعطِب replay."""
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "log.csv"
+        rec = _rec(rec_id="rp1")
+        rec.provenance = {"model_versions": {"yield": "v3"}, "inputs": ["ndvi", "soil"]}
+        log_recommendation(p, rec)
+        loaded = load_log(p)
+        assert len(loaded) == 1
+        assert isinstance(loaded[0].provenance, dict)  # لا نصّ repr
+        assert loaded[0].provenance == {
+            "model_versions": {"yield": "v3"},
+            "inputs": ["ndvi", "soil"],
+        }
+
+
+def test_none_provenance_roundtrips_as_none():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "log.csv"
+        log_recommendation(p, _rec(rec_id="rp2"))  # provenance=None افتراضاً
+        loaded = load_log(p)
+        assert loaded[0].provenance is None

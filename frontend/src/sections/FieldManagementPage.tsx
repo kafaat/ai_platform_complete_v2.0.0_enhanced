@@ -15,6 +15,7 @@ import {
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import AddSeasonWithStages from '../components/AddSeasonWithStages';
 import FieldDetailPanel from '../components/FieldDetailPanel';
+import FieldSetupWizard from '../components/fieldsetup/FieldSetupWizard';
 import { kongApi } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useFields, useSimulateSeason } from '../hooks/useApi';
@@ -91,6 +92,8 @@ export default function FieldManagementPage() {
   const [filterCrop,    setFilterCrop]    = useState('all');
   const [viewMode,      setViewMode]      = useState<'grid'|'table'>('grid');
   const [showAddField,  setShowAddField]  = useState(false);
+  // معالج تهيئة الحقل المتسلسل (حقل→موسم→تربة→إنتاجيّة→مساحة العمل) — نمط FieldView.
+  const [showWizard,    setShowWizard]    = useState(false);
   const [showSeason,    setShowSeason]    = useState<Field|null>(null);
   const [showDetail,    setShowDetail]    = useState<Field|null>(null);
   const [editField,     setEditField]     = useState<Field|null>(null);
@@ -143,6 +146,42 @@ export default function FieldManagementPage() {
         'تعذّر حفظ الحقل — تحقّق من القاعدة/الصلاحيّة أو صحّة الحدود.';
       toastStore.add('error', '⚠️ فشل حفظ الحقل', typeof msg === 'string' ? msg : 'خطأ غير متوقّع');
     }
+  };
+
+  // ── معالج التهيئة المتسلسل: نسخ تُرجِع سجلّ الحقل المُنشأ كي يلتقط المعالج
+  //    field_id ويُكمل السلسلة (موسم/تربة/إنتاجيّة). نفس النقاط الحقيقيّة
+  //    (POST /api/v1/fields و/fields/import). الخطأ يُرمى ليعرضه AddFieldWithMap.
+  const handleWizardSaveField = async (data: any): Promise<Record<string, unknown>> => {
+    const r = await kongApi.post('/api/v1/fields', {
+      name: data.name, crop: data.crop,
+      soil_type: data.soil_type ?? data.soil,
+      manager: data.manager,
+      field_code: data.field_code ?? null,
+      water_source: data.water_source ?? null,
+      ownership_type: data.ownership_type ?? null,
+      country: data.country ?? null,
+      region: data.region ?? null,
+      geometry: data.geometry,
+    });
+    const rec = r.data as Record<string, unknown>;
+    setFields(p => [...p, mapField(rec)]);
+    toastStore.add('success', '✅ تم إضافة الحقل', `${data.name}`);
+    return rec;
+  };
+
+  const handleWizardImportField = async (payload: any): Promise<Record<string, unknown>> => {
+    const r = await kongApi.post('/api/v1/fields/import', payload);
+    const rec = r.data as Record<string, unknown>;
+    setFields(p => [...p, mapField(rec)]);
+    toastStore.add('success', '✅ تم استيراد الحقل', `${payload.name}`);
+    return rec;
+  };
+
+  // اكتمال المعالج → الانتقال إلى مساحة عمل الحقل (لوحة التفاصيل) للحقل المُنشأ.
+  const handleWizardComplete = (fieldId: string) => {
+    setShowWizard(false);
+    const created = fields.find(f => f.field_id === fieldId);
+    if (created) setShowDetail(created);
   };
 
   const handleImportField = async (payload: any) => {
@@ -298,11 +337,20 @@ export default function FieldManagementPage() {
             ))}
           </div>
           {mutateAllowed && (
-            <button onClick={()=>setShowAddField(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-              style={{ background:'#16a34a' }}>
-              <Plus className="w-4 h-4" /> رسم حقل جديد
-            </button>
+            <>
+              {/* المسار الأساسيّ: معالج التهيئة المتسلسل (حقل→موسم→تربة→إنتاجيّة→مساحة عمل) */}
+              <button onClick={()=>setShowWizard(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                style={{ background:'#16a34a' }}>
+                <Plus className="w-4 h-4" /> تهيئة حقل جديد
+              </button>
+              {/* المسار البسيط (إضافة حقل فقط بلا سلسلة) — يبقى متاحاً كما كان */}
+              <button onClick={()=>setShowAddField(true)}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-300 border"
+                style={{ borderColor:'#334155' }}>
+                <Map className="w-4 h-4" /> رسم حقل فقط
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -405,6 +453,14 @@ export default function FieldManagementPage() {
       )}
 
       {/* Modals */}
+      {showWizard && (
+        <FieldSetupWizard
+          onSaveField={handleWizardSaveField}
+          onImportField={handleWizardImportField}
+          onComplete={handleWizardComplete}
+          onCancel={() => setShowWizard(false)}
+        />
+      )}
       {showAddField && (
         <AddFieldWithMap
           onSave={handleSaveField}

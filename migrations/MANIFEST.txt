@@ -30,7 +30,10 @@ v9_odoo_bridge.sql
 v9_edge_idempotency.sql
 v9_edge_occurred_at.sql
 v9_rls_tenant_isolation.sql
-v9_append_only_enforcement.sql
+# نُقِل v9_append_only_enforcement.sql إلى نهاية الـMANIFEST: كان يُطبَّق هنا
+# (موضع ١٤) قبل إنشاء events (v11) وfield_lifecycle_transitions (v10) و
+# lifecycle_temporal_rejections (v9_lifecycle_occurred_at)، فحارس IF EXISTS
+# يتخطّاها صامتاً ⇒ السجلّ غير المحميّ (UPDATE/DELETE ممكنان). idempotent فالنقل آمن.
 v10_command_store_lifecycle.sql
 # FIX: v9_lifecycle_occurred_at يُعدّل field_lifecycle_transitions المُنشأ في
 # v10 — لذا يجب أن يأتي بعده (كان قبله ⇒ "relation does not exist").
@@ -160,3 +163,51 @@ v48_activity_season_fk_dlq.sql
 # v49: تفعيل الربط الحيّ لـ#62/#63 — عمود fields.zone_key (مفتاح الإقليم القانوني)
 # + جدول recommendation_outcomes (أزواج توقّع/نتيجة + قبول/نضج) مع RLS. idempotent.
 v49_zone_key_recommendation_outcomes.sql
+# v50: Workflow مخبري للتربة — جدول soil_lab_tests (دورة حياة عيّنة→مختبر→نتيجة→اعتماد→نشر)
+# مع RLS وtrigger updated_at. قواعد الانتقال في core/engines/soil_lab_workflow. idempotent.
+v50_soil_lab_tests.sql
+# v51: إصلاحات المراجعة (جولة ٢) — توسيع events.entity_type (activity/soil_lab_test)،
+# RLS على lifecycle_temporal_rejections، وقصر requeue على مستأجِر السياق. idempotent.
+v51_review_round2_fixes.sql
+# v52: حقول أغرونوميّة للموسم (نمط FieldView) — maturity/tillage_type/
+# actual_yield_kg_ha/notes_ar على جدول seasons. كلّها اختياريّة. idempotent.
+v52_season_agronomy_fields.sql
+# v53: إسقاط الحالة القانونيّة الموحّدة للحقل (Canonical Field State read model) —
+# جدول field_state يُعاد حسابه من المصادر القانونيّة ويُقرأ من كلّ المستهلكين. idempotent.
+v53_field_state_projection.sql
+# v54: قيمة NDVI الحقيقيّة لكلّ حقل (Stage D) — عمودان على imagery_automation_fields
+# تقرأهما الحالة القانونيّة. idempotent (ADD COLUMN IF NOT EXISTS).
+v54_imagery_ndvi_value.sql
+# v55: تخزين الحقائق الزراعيّة الغنيّة (Stage E) — عمود agronomic JSONB على field_state.
+v55_field_state_agronomic.sql
+# فرض append-only (immutability) — يُطبَّق أخيراً كي توجد events/field_lifecycle_transitions/
+# lifecycle_temporal_rejections فعليّاً وقت تركيب trigger الحظر (كان موضعه الأصليّ يسبق
+# إنشاءها فيتخطّاها). idempotent (DROP TRIGGER IF EXISTS) — آمن إعادة التطبيق كلّ إقلاع.
+v9_append_only_enforcement.sql
+# v56: تغطية RLS ديناميكيّة (catch-all) — يُطبَّق أخيراً بعد إنشاء كلّ الجداول/الأعمدة.
+# يمسح كلّ جدول public يحوي tenant_id بلا أيّ سياسة RLS ويطبّق العزل عبر
+# _sahool_apply_tenant_rls. يقتصر على «صفر سياسات» تجنّباً لتوسعة الوصول بـOR على
+# الجداول ذات السياسات المخصّصة. idempotent (الجدول المُغطّى يصبح ذا سياسة فيُتخطّى).
+v56_rls_dynamic_all.sql
+# v57: تغطية فهارس tenant_id ديناميكيّة — يُطبَّق أخيراً بعد إنشاء كلّ الجداول/
+# الأعمدة. يمسح كلّ جدول public يحوي tenant_id بلا فهرس صدارته tenant_id وينشئ
+# له idx_<table>_tenant، فيُغلق مسح RLS التسلسليّ. توأم v56 (التغطية الديناميكيّة).
+# يكمّل المصفوفة الثابتة في v9_rls_tenant_isolation. idempotent.
+v57_rls_dynamic_indexes.sql
+# v58: نموذج بيانات حدود الحقل (#15) — أعمدة المصدر/الجودة على field_boundaries
+# (confidence_score/source_type/model_version/review_status) + جدول
+# field_boundary_graph للعلاقات المكانيّة بين الحقول (الجيران/الحواف المشتركة)
+# لتمكين التحليلات الإقليميّة. يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls
+# (المعرّفة في v9_rls_tenant_isolation سابقاً)، فترتيبه بعد v56/v57 آمن. idempotent.
+v58_field_boundary_quality.sql
+# v59: محرّك الطوبولوجيا للحدود (#15) — دالّة sahool_clean_boundary_geom الحتميّة:
+# MakeValid + إزالة الرؤوس المكرّرة + استخراج وإبقاء المضلّع الأكبر مساحةً
+# (الحقل، إسقاط الشظايا) + تبسيط حافظ للطوبولوجيا. بلا ML — مضلّعات تشغيليّة.
+# تقريب المتر→درجة (÷111320) صالح قرب خطوط عرض اليمن. CREATE OR REPLACE فهي
+# idempotent. لا تُحدّث بيانات (تُنشئ الدالّة فقط). تعتمد PostGIS من v58 وما قبلها.
+v59_boundary_topology_fn.sql
+# v60: لقطات حالة الحقل (field_state_snapshots) — مخبّأ مُشتقّ
+# لإعادة بناء state الحقل تزايديّاً: لقطة + إعادة تشغيل ما بعد
+# مؤشّرها فقط. ليست مصدر حقيقة — مخزن الأحداث append-only يبقى المصدر.
+# يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls (v9). idempotent.
+v60_event_snapshots.sql

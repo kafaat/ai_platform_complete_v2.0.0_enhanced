@@ -58,15 +58,24 @@ async def dispatch(registry: CommandRegistry, store: Any, command: Any) -> Any:
     """
     from api.command_store import CommandStatus, DispatchResult
 
-    # 1. idempotency: لو نُفِّذ سابقاً بنجاح → النتيجة المخزّنة بلا إعادة تنفيذ.
+    # 1. idempotency: أمر منفَّذ سابقاً (succeeded) → النتيجة المخزّنة بلا إعادة تنفيذ؛
+    #    أو قيد التنفيذ (processing — نسخة متزامنة/إعادة تشغيل أثناء الطلب) → لا نعيد
+    #    تنفيذه (يكسر exactly-once). فقط failed/pending يسقطان للأسفل لإعادة المحاولة.
     existing = await store.get(command.command_id)
-    if existing is not None and existing.status == CommandStatus.SUCCEEDED:
-        return DispatchResult(
-            command_id=command.command_id,
-            status=CommandStatus.SUCCEEDED,
-            result=existing.result,
-            was_duplicate=True,
-        )
+    if existing is not None:
+        if existing.status == CommandStatus.SUCCEEDED:
+            return DispatchResult(
+                command_id=command.command_id,
+                status=CommandStatus.SUCCEEDED,
+                result=existing.result,
+                was_duplicate=True,
+            )
+        if existing.status == CommandStatus.PROCESSING:
+            return DispatchResult(
+                command_id=command.command_id,
+                status=CommandStatus.PROCESSING,
+                was_duplicate=True,
+            )
 
     # توجيه: لا معالِج ⇒ فشل صريح (لا تنفيذ أعمى).
     handler = registry.handler_for(command.command_type)

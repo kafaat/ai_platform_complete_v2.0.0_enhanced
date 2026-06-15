@@ -95,6 +95,21 @@ jobs:
         run: mypy services/auth/main.py --ignore-missing-imports --explicit-package-bases
         continue-on-error: true
 
+  frontend-typecheck:
+    name: Frontend Typecheck
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "20"}
+      # بوّابة فحص نوعيّ للواجهة: كانت غائبة تماماً، فتراكمت أخطاء TS صامتة (مثل
+      # ضياع user_id في login). tsc --noEmit يكشفها قبل الدمج. لا يبني الإنتاج
+      # (vite build لا يفحص الأنواع) — هذا الفحص مكمّل له.
+      - run: npm ci
+        working-directory: frontend
+      - run: npm run typecheck
+        working-directory: frontend
+
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-24.04
@@ -111,6 +126,30 @@ jobs:
         run: pytest -m unit --cov=services --cov-fail-under=3 -q || (echo "التغطية انهارت دون الأرضيّة" && exit 1)
       - uses: codecov/codecov-action@v4
         with: {files: coverage.xml}
+
+  platform-unit-tests:
+    name: Platform Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      # اختبارات منطق المنصّة (services/sahool-platform/tests) كانت خارج نطاق CI
+      # كلّيّاً: pytest.ini يحصر testpaths في tests_v9، فلم تُجمَع هذه الاختبارات
+      # (~١٢٨٢، منطق صرف بلا قاعدة/خدمات) ولم تُشغَّل قطّ رغم نجاحها. هذه الوظيفة
+      # تشغّلها فعليّاً من جذر المنصّة (PYTHONPATH=.) لتغطية حقيقيّة في CI.
+      # Pillow: ملفّان (test_bivariate_raster/test_raster_export) يستوردان PIL
+      # عبر core.spatial.raster_export — تبعيّة خفيفة (بلا GDAL) للإبقاء عليهما.
+      - run: pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow
+      # بوّابة تغطية "ratchet" غير-كاسرة: تُقاس حزمتا api/core، والأرضيّة في
+      # .coveragerc مضبوطة عند المقيس الحاليّ (٦١٫٩٢٪) ناقص هامش ⇒ fail_under=60.
+      # لا تُفشل CI اليوم؛ يمكنها الصعود فقط (تُرفع الأرضيّة مع نموّ التغطية).
+      - name: Run platform pure-logic tests (no DB/services) + coverage ratchet
+        working-directory: services/sahool-platform
+        run: >-
+          PYTHONPATH=. pytest tests -q -p no:cacheprovider
+          --cov=api --cov=core --cov-config=.coveragerc
+          --cov-report=term --cov-report=xml
 
   integration-tests:
     name: Integration Tests

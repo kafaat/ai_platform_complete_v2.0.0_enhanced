@@ -24,6 +24,7 @@ from datetime import UTC, datetime
 
 import httpx
 from aiogram import Bot, Dispatcher, F, Router
+from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
@@ -38,6 +39,7 @@ from aiogram.types import (
     Message,
     ReplyKeyboardMarkup,
 )
+from aiogram.utils.token import TokenValidationError
 
 logger = logging.getLogger("sahool.telegram")
 
@@ -113,8 +115,8 @@ class RedisThrottlingMiddleware:
             if isinstance(event, Message):
                 try:
                     await event.answer("⚠️ طلبات كثيرة — انتظر لحظة ثم أعد المحاولة.")
-                except Exception:
-                    pass
+                except Exception as e:  # noqa: BLE001 — إشعار throttle تجميليّ: الفشل غير حرج
+                    logger.debug("تعذّر إرسال إشعار throttle: %s", e)
             return None
 
         return await handler(event, data)
@@ -138,7 +140,25 @@ if not BOT_TOKEN:
     _sys.exit(0)
 
 # ─── Bot Setup ─────────────────────────────────────────────
-bot = Bot(token=BOT_TOKEN, parse_mode=ParseMode.MARKDOWN_V2)
+# aiogram 3.7+ أزال parse_mode كمعامل لـBot() ⇒ نمرّره عبر DefaultBotProperties
+# (تمريره مباشرةً يرمي TypeError وقت التشغيل على 3.7+، بما فيها 3.10/3.28).
+# B3 fix (متابعة): التوكن قد يكون غير فارغ لكنّه placeholder غير صالح (مثل
+# "your-telegram-token-here") ⇒ aiogram يرمي TokenValidationError. حارس الفراغ
+# أعلاه لا يلتقطه، فيظلّ crash-loop مع restart:unless-stopped. نلتقطه هنا ونخرج
+# نظيفاً (exit 0، البوت معطّل) — مطابقةً لسلوك التوكن الفارغ، لا انهيار متكرّر.
+try:
+    bot = Bot(
+        token=BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN_V2),
+    )
+except TokenValidationError:
+    logger.warning(
+        "TELEGRAM_BOT_TOKEN غير صالح (placeholder/تنسيق خاطئ) — "
+        "البوت معطّل (خروج نظيف، لا crash-loop)"
+    )
+    import sys as _sys
+
+    _sys.exit(0)
 
 
 def _md2(text: str) -> str:
@@ -376,8 +396,8 @@ async def link_password(message: Message, state: FSMContext):
     # احذف رسالة كلمة المرور فوراً (لا تبقَ في سجلّ المحادثة)
     try:
         await message.delete()
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001 — خصوصيّة: فشل الحذف يُسجَّل (كلمة المرور تبقى بالسجلّ)
+        logger.warning("تعذّر حذف رسالة كلمة المرور من المحادثة: %s", e, exc_info=True)
     ok = await link_account(message.from_user.id, email, password)
     await state.clear()
     if ok:

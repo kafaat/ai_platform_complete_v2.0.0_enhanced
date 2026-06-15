@@ -358,13 +358,13 @@ def cached(ttl_seconds: int = 300, prefix: str = "cache"):
                 v = await rc.get(key)
                 if v:
                     return _json.loads(v)
-            except Exception:
-                pass
+            except Exception as e:  # noqa: BLE001 — كاش best-effort: الفشل ⇒ إعادة الحساب
+                logging.getLogger("sahool.cache").debug("cache get فشل (%s) — إعادة حساب", e)
             result = await func(*args, **kwargs)
             try:
                 await rc.setex(key, ttl_seconds, _json.dumps(result, ensure_ascii=False))
-            except Exception:
-                pass
+            except Exception as e:  # noqa: BLE001 — كاش best-effort: فشل الكتابة لا يكسر النتيجة
+                logging.getLogger("sahool.cache").debug("cache set فشل (%s)", e)
             return result
 
         return wrapper

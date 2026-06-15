@@ -35,14 +35,22 @@ class MockWebSocket {
 // يُستورد بعد حقن WebSocket حتى يلتقط الـsingleton المرجع الوهميّ.
 import { wsService } from './websocket';
 
+// إطار المصادقة (#241/#236): connect() يتطلّب توكناً في sessionStorage ولا يفتح
+// اتصالاً بدونه، ويُرسل {type:'auth',token} كأوّل رسالة عند الفتح. نضبط توكناً في
+// كلّ اختبار ونُصفّي إطار auth من المُرسَل كي نتحقّق من الصندوق الصادر فقط.
+const AUTH_FRAME = JSON.stringify({ type: 'auth', token: 'test-jwt' });
+const outboxOnly = (ws: MockWebSocket) => ws.sent.filter(m => m !== AUTH_FRAME);
+
 beforeEach(() => {
   MockWebSocket.instances = [];
   wsService.disconnect(); // يُفرّغ الطابور وأيّ حالة سابقة
+  sessionStorage.setItem('sahool_access_token', 'test-jwt');
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.spyOn(console, 'info').mockImplementation(() => {});
 });
 
 afterEach(() => {
+  sessionStorage.clear();
   vi.restoreAllMocks();
 });
 
@@ -53,7 +61,7 @@ describe('WebSocketService outbox (Phase 3)', () => {
     ws._open();
     const ok = wsService.send({ type: 'valve', state: 'open' });
     expect(ok).toBe(true);
-    expect(ws.sent).toContain(JSON.stringify({ type: 'valve', state: 'open' }));
+    expect(outboxOnly(ws)).toContain(JSON.stringify({ type: 'valve', state: 'open' }));
   });
 
   it('يحفظ الرسائل حين القناة غير مفتوحة ثمّ يُفرّغها عند الفتح (لا فقد صامت)', () => {
@@ -65,7 +73,7 @@ describe('WebSocketService outbox (Phase 3)', () => {
     const ws = MockWebSocket.instances[0];
     ws._open(); // التفريغ يحدث في onopen
 
-    expect(ws.sent).toEqual([
+    expect(outboxOnly(ws)).toEqual([
       JSON.stringify({ type: 'pump', id: 1 }),
       JSON.stringify({ type: 'pump', id: 2 }),
     ]);
@@ -79,9 +87,10 @@ describe('WebSocketService outbox (Phase 3)', () => {
     const ws = MockWebSocket.instances[0];
     ws._open();
 
-    expect(ws.sent).toHaveLength(100);
-    expect(ws.sent[0]).toBe(JSON.stringify({ seq: 5 }));        // أقدم محفوظ
-    expect(ws.sent[99]).toBe(JSON.stringify({ seq: 104 }));      // أحدث
+    const flushed = outboxOnly(ws);
+    expect(flushed).toHaveLength(100);
+    expect(flushed[0]).toBe(JSON.stringify({ seq: 5 }));        // أقدم محفوظ
+    expect(flushed[99]).toBe(JSON.stringify({ seq: 104 }));      // أحدث
   });
 
   it('disconnect يُسقط الرسائل المُعلّقة (لا تُسرَّب لجلسة لاحقة)', () => {
@@ -92,6 +101,6 @@ describe('WebSocketService outbox (Phase 3)', () => {
     const ws = MockWebSocket.instances[0];
     ws._open();
 
-    expect(ws.sent).toHaveLength(0);
+    expect(outboxOnly(ws)).toHaveLength(0);
   });
 });

@@ -52,6 +52,9 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     FIELD_UPDATED = "field.updated"
     FIELD_GEOMETRY_CHANGED = "field.geometry_changed"
     FIELD_DELETED = "field.deleted"
+    # تبدّل الحالة القانونيّة الموحّدة (Canonical Field State) — صلاحيّة القرار/نمط
+    # التنفيذ تغيّرا بعد تغيّر مدخلات (موسم/تربة/طقس). يستهلكه وكيل الإشعارات (تغذية حيّة).
+    FIELD_STATE_CHANGED = "field.state_changed"
 
     # Lifecycle transitions (state machine)
     LIFECYCLE_TRANSITIONED = "lifecycle.transitioned"
@@ -59,9 +62,31 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # Season
     SEASON_CREATED = "season.created"
     SEASON_CLOSED = "season.closed"
+    SEASON_UPDATED = "season.updated"
 
     # Activity (عمليّة حقليّة عامّة — تكمّل أحداث operation.* المحدّدة)
     ACTIVITY_RECORDED = "activity.recorded"
+
+    # Alerts (تنبيهات زراعيّة) — تجعل التنبيهات تفاعليّة عبر الأحداث بدل المسح الدوريّ.
+    # يستهلكها وكيل الإشعارات (sahool.events.>) لبثّ فوريّ عبر WebSocket/القنوات.
+    ALERT_CREATED = "alert.created"
+    ALERT_ACKNOWLEDGED = "alert.acknowledged"
+
+    # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
+    # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.
+    TASK_UPDATED = "task.updated"
+    FARM_CREATED = "farm.created"
+    IRRIGATION_SCHEDULE_CREATED = "irrigation.schedule.created"
+    # أحداث الصمّامات (تسجيل + تغيير حالة) — لازمة لنقاط /irrigation/valves.
+    IRRIGATION_VALVE_REGISTERED = "irrigation.valve.registered"
+    IRRIGATION_VALVE_STATE_CHANGED = "irrigation.valve.state_changed"
+    # المرحلة 2: مخزون/معدّات/مرجعيّة/دورة زراعيّة.
+    INVENTORY_ITEM_CREATED = "inventory.item.created"
+    INVENTORY_BATCH_ADDED = "inventory.batch.added"
+    EQUIPMENT_CREATED = "equipment.created"
+    MAINTENANCE_LOGGED = "equipment.maintenance.logged"
+    MASTER_DATA_CREATED = "master_data.created"
+    CROP_ROTATION_ADDED = "crop_rotation.added"
 
     # Operations
     PLANTING_STARTED = "operation.planting.started"
@@ -79,6 +104,7 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # Sensors / Remote sensing
     NDVI_OBSERVATION = "remote_sensing.ndvi.observed"
     SOIL_SAMPLE_RECORDED = "soil.sample.recorded"
+    SOIL_LAB_RESULT_PUBLISHED = "soil.lab.result.published"
     WEATHER_RAIN = "weather.rain"
     MOISTURE_LOW = "weather.moisture.low"
 
@@ -126,7 +152,13 @@ class EventBus:
 
     @_asynccontextmanager
     async def _acquire(self):
-        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي)."""
+        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي).
+
+        مسار الطلب يمرّر conn دائماً (main.py يُنشئ EventBus بـconn من
+        tenant_connection)، فيُطبَّق app.current_tenant. مسار الـpool احتياطيّ
+        خلفيّ بلا سياق مستأجِر؛ تحت الدور المُقيَّد (NOBYPASSRLS/FORCE RLS) إن
+        استُعمل خلفيّاً يحتاج دوراً خدميّاً مخصّصاً (BYPASSRLS).
+        """
         if getattr(self, "_conn", None) is not None:
             yield self._conn
         else:
@@ -302,6 +334,11 @@ class OutboxWorker:
         خلفيّ عبر المستأجِرين، يقرأ outbox مباشرةً). يلفّ الكلّ في **معاملة صريحة**
         كي تبقى أقفال FOR UPDATE SKIP LOCKED محتجَزة حتى تحديث الحالة إلى 'sent'
         — يمنع الإرسال المزدوج عند تعدّد العمّال.
+
+        عابر للمستأجِرين بالتصميم: لا يُضبط app.current_tenant هنا قصداً (يُرسِل
+        أحداث كلّ المستأجِرين). تحت الدور المُقيَّد (sahool_app: NOBYPASSRLS, FORCE
+        RLS) سيُرجع هذا صفر صفوف؛ لذا يحتاج هذا العامل دوراً خدميّاً مخصّصاً
+        (BYPASSRLS) عند نشر الدور المُقيَّد — متابعة نشر، لا تغيير سلوك هنا.
         """
         async with self.pool.acquire() as conn:
             async with conn.transaction():

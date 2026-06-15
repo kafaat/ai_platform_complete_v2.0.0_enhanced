@@ -7,7 +7,7 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname, './src') },
-      // عطل بناء Vite 8: react-leaflet-draw يستورد default من leaflet-draw الذي
+      // عطل بناء Vite: react-leaflet-draw يستورد default من leaflet-draw الذي
       // لا يُصدّر default (أثر جانبيّ فقط). نوجّه الـspecifier المجرّد فقط
       // (/^leaflet-draw$/) إلى ظِلّ يشغّل الأثر الجانبيّ ويُصدّر default، دون
       // التأثير على المسارات الفرعيّة مثل leaflet-draw/dist/leaflet.draw.css.
@@ -28,9 +28,5 @@ export default defineConfig({
         rewrite: (p) => p.replace(/^\/api/, ''),
       },
     },
-  },
-  test: {
-    environment: 'jsdom',
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
   },
 });

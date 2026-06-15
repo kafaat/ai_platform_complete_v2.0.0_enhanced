@@ -103,6 +103,8 @@ class TestSentinelHubMCP:
             {
                 "sub": "test",
                 "scope": "weather:read",
+                "iss": "sahool-auth",
+                "aud": "sahool",
                 "exp": datetime.now(UTC) + timedelta(hours=1),
             },
             os.environ["JWT_SECRET"],

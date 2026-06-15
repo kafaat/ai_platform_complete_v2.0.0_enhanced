@@ -1,0 +1,9 @@
+# Grafana datasource provisioning — Prometheus (docker-compose.fixed.yml)
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://sahool-prometheus:9090
+    isDefault: true
+    editable: true

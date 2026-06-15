@@ -136,3 +136,13 @@ class TestReadinessCheck:
             bias_assessment="high",
         )
         assert not readiness["ready_for_learning"]
+
+
+def test_aware_issued_date_does_not_crash():
+    # issued_date بمنطقة زمنيّة (+00:00) كان يرفع TypeError (aware مقابل naive).
+    from core.feedback_closure import is_outcome_ready_for_learning
+
+    ready, reason = is_outcome_ready_for_learning(
+        "2026-01-01T00:00:00+00:00", "wheat", current_date="2026-06-01"
+    )
+    assert isinstance(ready, bool)

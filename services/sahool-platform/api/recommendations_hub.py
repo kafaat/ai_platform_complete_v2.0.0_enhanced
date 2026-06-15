@@ -20,9 +20,11 @@ api/recommendations_hub.py — مُجمِّع التوصيات الموحَّد 
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 
+from api.crop_cycle import cycle_days_to_maturity
 from api.weather_advice import disease_risk, irrigation_advice
 
 # ─── نموذج التوصية الموحَّد ────────────────────────────────────────
@@ -43,6 +45,7 @@ class Recommendation:
     title_ar: str
     detail_ar: str
     source: str  # مرجع/أصل التوصية (heuristic موسوم — لا تلفيق)
+    safety: bool = False  # تنبيه سلامة من الحالة الموحّدة — يتصدّر عند تعادل الأولويّة
 
     def to_dict(self) -> dict:
         return {
@@ -51,6 +54,7 @@ class Recommendation:
             "title_ar": self.title_ar,
             "detail_ar": self.detail_ar,
             "source": self.source,
+            "safety": self.safety,
         }
 
 
@@ -74,6 +78,10 @@ class RecommendationContext:
     temp_c: float | None = None
     humidity_pct: float | None = None
     rain_mm_3d: float = 0.0
+    # Stage F (تغذية آمنة): مرجعيّة من الحالة القانونيّة الموحّدة (النواة الزراعيّة)
+    # — تُستخدَم للتصعيد/التنبيه فقط، لا تُغيّر أرقام التوصيات الأخرى.
+    salinity_class: str | None = None  # critical|moderate|low (compose_field_state)
+    crop_vigor: float | None = None  # 0..1 (مرجعيّة فقط)
 
 
 # ─── التسميد: إرشاد N/P/K مبسّط بحسب المرحلة ───────────────────────
@@ -117,23 +125,11 @@ _FERT_SOURCE = (
 
 
 # ─── الحصاد: نافذة حصاد تقديريّة من طول دورة المحصول ───────────────
-# المرجع: أطوال دورة المحصول (أيّام من البذار للنضج) — تقديريّة لليمن، تُعاد من
-# yield_heuristics.CROP_TYPICAL_GROWING_DAYS حيث توفّرت، مع امتداد لمحاصيل أخرى
-# هنا. ⚠ تقديريّة تحتاج معايرة بحسب الصنف والموسم والارتفاع.
-_CROP_CYCLE_DAYS: dict[str, int] = {
-    "wheat": 130,
-    "barley": 110,
-    "sorghum": 120,
-    "maize": 110,
-    "corn": 110,
-    "millet": 90,
-    "tomato": 110,
-    "potato": 110,
-    "onion": 150,
-    "alfalfa": 60,  # دورة قصّ (متعدّد الحشّات) لا نضج نهائيّ
-    "citrus": 240,
-    "dates": 210,
-}
+# طول دورة المحصول (أيّام من البذار للنضج) صار يُحلّ عبر api.crop_cycle
+# (resolver طبقيّ: مستأجِر ← منطقة افتراضيّة ← بطاقة محصول محايدة ← None)، فلم
+# يَعُد هنا قاموس مُصلَّب. ملاحظة: yield_heuristics.CROP_TYPICAL_GROWING_DAYS
+# مقياس مختلف (أيّام النموّ الخضريّ ≈ مجموع المراحل الثلاث الأولى) سيُشتقّ من
+# البطاقة في تتبُّع لاحق — موثَّق هنا ولا يُمسّ في هذه المرحلة.
 
 # نافذة الحصاد: ±هامش حول يوم النضج التقديريّ.
 _HARVEST_WINDOW_MARGIN_DAYS = 10
@@ -227,7 +223,7 @@ def _yield_rec(ctx: RecommendationContext) -> Recommendation | None:
     crop = _normalize_crop(ctx.crop)
     if ctx.sowing_date is None or crop is None:
         return None
-    cycle = _CROP_CYCLE_DAYS.get(crop)
+    cycle = cycle_days_to_maturity(crop)
     if cycle is None:
         return None
     today = ctx.today or date.today()
@@ -277,21 +273,163 @@ def _yield_rec(ctx: RecommendationContext) -> Recommendation | None:
     )
 
 
-_BUILDERS = (_irrigation_rec, _fertilizer_rec, _disease_rec, _yield_rec)
+def _salinity_caution_rec(ctx: RecommendationContext) -> Recommendation | None:
+    """Stage F (تغذية آمنة): تصعيد مرجعيّ من الحالة القانونيّة الموحّدة.
+
+    حين تحكم النواة الزراعيّة بملوحة تربة حرجة (salinity_class=critical عبر تحكيم
+    Salinity>Vigor)، نُضيف تنبيهاً عالي الأولويّة يربط التوصيات بحالة الحقل الموحّدة:
+    ريّ بماء هامشيّ قد يفاقم الملوحة؛ يُراجَع كسر التملّح (leaching fraction)/الصرف
+    واختيار أصناف متحمّلة — إرشاد عامّ (FAO 29) لا كمّيّة مخترعة. لا يغيّر أرقام
+    التوصيات الأخرى — يُضيف تصعيد سلامة فقط (يحترم قيد عدم تغيير الأرقام).
+    """
+    if ctx.salinity_class != "critical":
+        return None
+    return Recommendation(
+        category="irrigation",
+        priority="high",
+        title_ar="تنبيه ملوحة تربة حرجة — راجِع الريّ والصرف",
+        detail_ar=(
+            "الحالة الموحّدة للحقل تشير إلى ملوحة تربة حرجة (تحكُم رغم خُضرة المؤشّر "
+            "الطيفيّ). الريّ بماء هامشيّ قد يزيد تراكم الأملاح — راجِع كسر التملّح "
+            "(leaching) وكفاءة الصرف، وفضّل أصنافاً متحمّلة للملوحة. استشِر المهندس "
+            "الزراعيّ قبل زيادة الريّ."
+        ),
+        source="canonical_field_state:arbitration(salinity>vigor) — إرشاد FAO 29 عامّ",
+        safety=True,
+    )
 
 
-def build_recommendations(ctx: RecommendationContext) -> list[Recommendation]:
+# ─── سجلّ المحرّكات (Recommendation Engine Registry) ───────────────
+# نمط السجلّ: بدل قائمة بنّائين مُصلَّبة (hardcoded)، نَصِف كلّ بنّاء بـ«محرّك»
+# يحمل metadata قابلة للاستبطان: مُعرّف ثابت (id)، اسم عربيّ، فئة، المدخلات التي
+# يحتاجها فعليّاً (required_inputs)، وعلَم تفعيل افتراضيّ (default_enabled). الفائدة:
+#   • «سجّل محرّكاً ⇐ يشارك تلقائيّاً» دون تعديل حلقة البناء.
+#   • تفعيل/تعطيل لكلّ محرّك بالمُعرّف (enabled_ids) — أساس سياسة لكلّ مستأجر لاحقاً.
+#   • استبطان نقيّ (list_engines) لكتالوج/واجهة دون قاعدة.
+# ملاحظة توافق خلفيّ: required_inputs هي metadata فقط (للاستبطان والسياسة المستقبليّة)
+# ولا تُستخدَم للبوّابة (gating) — البنّاء نفسه يبوّب ذاتيّاً ويُرجع None عند غياب
+# مدخلاته، فيبقى السلوك مطابقاً تماماً حين تُفعَّل كلّ المحرّكات (enabled_ids=None).
+# الخطوة التالية المُخطَّطة (ليست في هذا الـPR — نُبقيه منطقاً نقيّاً): قراءة سياسة
+# التفعيل/التعطيل لكلّ مستأجر من جدول settings وتمريرها كـ enabled_ids — لا قاعدة هنا.
+
+
+@dataclass(frozen=True)
+class RecommendationEngine:
+    """وصف محرّك توصية واحد ضمن السجلّ (metadata قابلة للاستبطان).
+
+    required_inputs: أسماء حقول RecommendationContext التي يحتاجها المحرّك فعليّاً
+    (مُشتَقّة بصدق من بوّابة كلّ بنّاء). metadata فقط — لا تُستخدَم للبوّابة كي يبقى
+    السلوك مطابقاً؛ البنّاء يبوّب ذاتيّاً. عند عدم اليقين استخدِم () فيعمل دائماً.
+    """
+
+    id: str
+    name_ar: str
+    category: str
+    builder: Callable[[RecommendationContext], Recommendation | None]
+    required_inputs: tuple[str, ...] = ()
+    default_enabled: bool = True
+
+
+# السجلّ — يحفظ نفس ترتيب تشغيل البنّائين السابق (قبل الفرز) كي لا يتغيّر الإخراج.
+_REGISTRY: list[RecommendationEngine] = [
+    RecommendationEngine(
+        id="irrigation",
+        name_ar="الريّ",
+        category="irrigation",
+        builder=_irrigation_rec,
+        # يبوّب على ET₀ (الطقس) فقط؛ بقيّة المدخلات لها قيم افتراضيّة/اختياريّة.
+        required_inputs=("et0_mm",),
+    ),
+    RecommendationEngine(
+        id="fertilizer",
+        name_ar="التسميد",
+        category="fertilizer",
+        builder=_fertilizer_rec,
+        # لا بوّابة — يعمل دائماً (المرحلة افتراضيّاً mid). لذا () بصدق.
+        required_inputs=(),
+    ),
+    RecommendationEngine(
+        id="disease",
+        name_ar="الأمراض",
+        category="disease",
+        builder=_disease_rec,
+        # يبوّب على الحرارة والرطوبة (الطقس).
+        required_inputs=("temp_c", "humidity_pct"),
+    ),
+    RecommendationEngine(
+        id="yield",
+        name_ar="الحصاد/الإنتاج",
+        category="yield",
+        builder=_yield_rec,
+        # يبوّب على تاريخ البذار والمحصول (ثمّ توفّر دورة المحصول).
+        required_inputs=("sowing_date", "crop"),
+    ),
+    RecommendationEngine(
+        id="salinity_caution",
+        name_ar="تنبيه الملوحة",
+        category="irrigation",
+        builder=_salinity_caution_rec,
+        # يبوّب على صنف الملوحة (critical) من الحالة الموحّدة.
+        required_inputs=("salinity_class",),
+    ),
+]
+
+# اسم متوارَث مُشتَقّ من السجلّ (لمن قد يستورده) — نفس ترتيب البنّائين السابق.
+_BUILDERS = [e.builder for e in _REGISTRY]
+
+
+def list_engines() -> list[dict]:
+    """استبطان نقيّ لكلّ محرّكات السجلّ (metadata فقط — لا قاعدة، لا أثر جانبيّ).
+
+    يُرجع لكلّ محرّك: id, name_ar, category, required_inputs, default_enabled —
+    لكتالوج/واجهة مستقبليّة أو سياسة تفعيل لكلّ مستأجر.
+    """
+    return [
+        {
+            "id": e.id,
+            "name_ar": e.name_ar,
+            "category": e.category,
+            "required_inputs": list(e.required_inputs),
+            "default_enabled": e.default_enabled,
+        }
+        for e in _REGISTRY
+    ]
+
+
+def build_recommendations(
+    ctx: RecommendationContext, *, enabled_ids: set[str] | None = None
+) -> list[Recommendation]:
     """يبني قائمة التوصيات الموحَّدة من السياق، مفروزة بالأولويّة (الأعلى أولاً).
 
-    دالّة نقيّة (لا شبكة، لا قاعدة) — تُختبَر offline. كلّ بنّاء فئة يُرجع توصيته
-    أو None إن غاب مصدرها (تدهور رشيق بلا تلفيق). الفرز ثابت: الأولويّة ثمّ ترتيب
-    الفئات المعروف (لاستقرار العرض).
+    دالّة نقيّة (لا شبكة، لا قاعدة) — تُختبَر offline. تمرّ على السجلّ بنفس ترتيب
+    البنّائين السابق، وتشغّل كلّ محرّك مُفعَّل فيُرجع توصيته أو None إن غاب مصدرها
+    (تدهور رشيق بلا تلفيق). الفرز ثابت: الأولويّة ثمّ السلامة ثمّ ترتيب الفئة.
+
+    enabled_ids: سياسة التفعيل لكلّ مُعرّف.
+      • None  ⇒ تُفعَّل المحرّكات بحسب default_enabled (السلوك الافتراضيّ الأصليّ).
+      • set() ⇒ لا محرّك يعمل (قائمة فارغة).
+      • مجموعة مُعرّفات ⇒ تعمل المحرّكات الموجودة فيها فقط.
+    لا نبوّب على required_inputs (metadata فقط) كي يبقى السلوك مطابقاً تماماً حين
+    enabled_ids=None — البنّاء يبوّب ذاتيّاً.
     """
     recs: list[Recommendation] = []
-    for build in _BUILDERS:
-        rec = build(ctx)
+    for engine in _REGISTRY:
+        if enabled_ids is not None:
+            if engine.id not in enabled_ids:
+                continue
+        elif not engine.default_enabled:
+            continue
+        rec = engine.builder(ctx)
         if rec is not None:
             recs.append(rec)
     cat_order = {c: i for i, c in enumerate(CATEGORIES)}
-    recs.sort(key=lambda r: (PRIORITY_ORDER.get(r.priority, 99), cat_order.get(r.category, 99)))
+    # الفرز: الأولويّة، ثمّ تنبيهات السلامة (من الحالة الموحّدة) أوّلاً عند التعادل،
+    # ثمّ ترتيب الفئة — كي لا يُدفَن تنبيه السلامة تحت توصية ريّ بنفس الأولويّة.
+    recs.sort(
+        key=lambda r: (
+            PRIORITY_ORDER.get(r.priority, 99),
+            0 if r.safety else 1,
+            cat_order.get(r.category, 99),
+        )
+    )
     return recs

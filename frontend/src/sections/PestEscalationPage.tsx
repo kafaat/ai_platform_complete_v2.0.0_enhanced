@@ -7,6 +7,8 @@
 import { useState, useEffect } from 'react';
 import { Bug, PlayCircle, ShieldCheck, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
 import { usePestEscalation, useGuardrailsValidate } from '../hooks/useApi';
+import { useAuthStore } from '../hooks/useAuth';
+import { canMutate } from '../lib/permissions';
 import { ErrorState } from '../components/StateViews';
 
 const RISK_COLOR: Record<string, string> = {
@@ -35,6 +37,8 @@ export default function PestEscalationPage() {
   const [workflowId, setWorkflowId] = useState('');
   const mut = usePestEscalation();
   const guard = useGuardrailsValidate();
+  const role = useAuthStore(s => s.user?.role);
+  const mutateAllowed = canMutate(role);
 
   const start = () => {
     const wid = `pest-${Date.now()}`;
@@ -43,13 +47,13 @@ export default function PestEscalationPage() {
     mut.mutate({ workflow_id: wid, pest_type: pestType, severity, field_id: fieldId || undefined });
   };
   const approve = () => {
-    if (!workflowId) return;
+    if (!workflowId || !mutateAllowed) return;
     mut.mutate({ workflow_id: workflowId, approval_status: 'approved' });
   };
 
   const res = mut.data;
   const ctx = (res?.context ?? {}) as Record<string, unknown>;
-  const status = res?.workflow.status ?? '';
+  const status = res?.workflow?.status ?? '';
   const st = STATUS_STYLE[status] ?? { ar: status || '—', color: '#94a3b8', bg: '#1e293b' };
 
   // تحقّق السلامة (Guardrails) قبل القرار الحرج: عند تعليق التدفّق بانتظار موافقة
@@ -146,7 +150,7 @@ export default function PestEscalationPage() {
               <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${st.color}22`, color: st.color }}>{st.ar}</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {res.workflow.completed_steps.map(s => (
+              {(res.workflow?.completed_steps ?? []).map(s => (
                 <span key={s} className="text-[11px] px-2 py-0.5 rounded-full flex items-center gap-1"
                   style={{ background: '#16a34a18', color: '#4ade80' }}>
                   <CheckCircle2 className="w-3 h-3" />{STEP_AR[s] ?? s}
@@ -219,13 +223,15 @@ export default function PestEscalationPage() {
           {status === 'suspended' && (
             <div className="rounded-xl border p-4 flex items-center justify-between" style={{ background: '#1a1000', borderColor: '#f59e0b33' }}>
               <div className="text-sm text-amber-200">
-                {hardBlocked
+                {!mutateAllowed
+                  ? 'دورك لا يملك صلاحيّة الاعتماد.'
+                  : hardBlocked
                   ? 'محجوب بحاجز السلامة — لا يمكن الموافقة على هذا الإجراء.'
                   : safetyBlocking
                     ? 'يجري فحص السلامة قبل إتاحة الموافقة…'
                     : 'التدفّق مُعلَّق بانتظار موافقة الخبير قبل التنفيذ.'}
               </div>
-              <button onClick={approve} disabled={mut.isPending || hardBlocked || safetyBlocking}
+              <button onClick={approve} disabled={mut.isPending || hardBlocked || safetyBlocking || !mutateAllowed}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
                 style={{ background: hardBlocked ? '#6b7280' : '#16a34a' }}>
                 <ShieldCheck className="w-4 h-4" />

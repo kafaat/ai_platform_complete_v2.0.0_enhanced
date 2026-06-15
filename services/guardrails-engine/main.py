@@ -286,6 +286,8 @@ app.add_middleware(
 _GR_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _GR_JWT_SECRET = _GR_JWT_PUBLIC if _GR_JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _GR_JWT_ALG = "RS256" if _GR_JWT_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 # توكن خدمة للنداءات خدمة-لخدمة على /validate (supervisor → guardrails)
 _GR_AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
@@ -320,6 +322,9 @@ def _gr_verify(authorization: str = _Header(None)) -> dict:
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     # الموافقة تتطلّب دور expert أو admin (بوابة بشريّة)
     if payload.get("role") not in ("expert", "admin"):
         raise HTTPException(403, "الموافقة تتطلّب صلاحيّة خبير أو مدير")
@@ -347,11 +352,15 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
         )
     except Exception:
         raise HTTPException(401, "توكن غير صالح") from None
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     if not payload.get("sub"):
         raise HTTPException(401, "توكن ناقص الهويّة")
     return payload
 
 
+@app.post("/validate", response_model=GuardrailsResult)
 async def validate_action(request: GuardrailsRequest, _svc: bool = Depends(_require_service_token)):
     """Main validation endpoint — checks action against 3 tiers.
 
@@ -368,13 +377,19 @@ async def approve_workflow(
     workflow_id: str, approved: bool, reason: str = "", claims: dict = Depends(_gr_verify)
 ):
     """Human-in-the-Loop approval — الهويّة من التوكن المُتحقَّق لا من الطلب."""
-    # الأمان: expert_id يُشتقّ من التوكن (لا يُقبل من العميل) — منع انتحال الخبير
+    # الأمان: expert_id/expert_role/tenant_id كلّها من التوكن المُتحقَّق (لا من العميل):
+    #  • منع انتحال الخبير،
+    #  • منع IDOR عبر المستأجرين (تقييد الـworkflow بمستأجِر الطالب)،
+    #  • تمرير الدور الصحيح لبوّابة الدور (كان reason يُربَط خطأً بـexpert_role
+    #    فتفشل الموافقة دائماً، وreject كان يسقط لنقص وسيط إلزاميّ).
     expert_id = str(claims["sub"])
+    expert_role = str(claims.get("role", ""))
+    tenant_id = str(claims.get("tenant_id", ""))
     hil = HumanApprovalWorkflow()
     if approved:
-        return await hil.approve(workflow_id, expert_id, reason)
+        return await hil.approve(workflow_id, expert_id, expert_role, tenant_id, notes=reason)
     else:
-        return await hil.reject(workflow_id, expert_id, reason)
+        return await hil.reject(workflow_id, expert_id, expert_role, reason, tenant_id)
 
 
 @app.get("/workflow/{workflow_id}")

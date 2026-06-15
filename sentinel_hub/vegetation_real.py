@@ -519,8 +519,8 @@ async def _cache_set(key: str, value: dict, ttl: int = 21600):  # 6 ساعات
     if not _redis: return
     try:
         await _redis.setex(key, ttl, json.dumps(value, ensure_ascii=False))
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001 — كاش best-effort: فشل الكتابة لا يكسر المسار
+        logger.debug("vegetation cache set فشل (%s)", e)
 
 
 # ══════════════════════════════════════════════════════════════

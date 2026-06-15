@@ -4787,7 +4787,7 @@ def test_python313_asyncpg_compat():
     if new_pins >= 10:
         r.append(("\u2713", f"asyncpg>=0.30 في {new_pins} ملفّ (يدعم 3.11→3.13)"))
     # وثيقة التوافق موجودة
-    if os.path.exists(os.path.join(base, "PYTHON_COMPATIBILITY.md")):
+    if os.path.exists(os.path.join(base, "docs", "audits", "PYTHON_COMPATIBILITY.md")):
         r.append(("\u2713", "PYTHON_COMPATIBILITY.md: مصفوفة التوافق موثّقة"))
     return r
 

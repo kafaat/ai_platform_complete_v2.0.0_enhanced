@@ -113,10 +113,12 @@ def escalation_from_gate(gate_result: dict) -> dict:
             None, source="confidence_gate", has_answer=False, uncertain_points=sorted(set(pts))
         )
     else:  # review
-        # ثقة ضمن نطاق المراجعة (نضمن REVIEW حتى لو conf مفقودة).
+        # ثقة ضمن نطاق المراجعة — نقصّها من الطرفين لنضمن REVIEW (قرار البوّابة)
+        # حتى لو كانت conf مفقودة أو دون عتبة المراجعة (وإلّا قد تُصعَّد BLOCKED خطأً).
         c = conf if conf is not None else (REVIEW_FLOOR + CONFIDENT_FLOOR) / 2
+        c = min(max(c, REVIEW_FLOOR), CONFIDENT_FLOOR - 0.01)
         out = assess_escalation(
-            min(c, CONFIDENT_FLOOR - 0.01),
+            c,
             source="confidence_gate",
             uncertain_points=sorted(set(pts)),
         )

@@ -11,13 +11,14 @@ import asyncio
 import json
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 import asyncpg
 import jwt as _jwt
 from aiomqtt import Client as MQTTClient
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 try:
@@ -37,6 +38,18 @@ REDIS_URL = os.getenv("REDIS_URL", "")
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 JWT_ALGORITHM = "RS256" if _JWT_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+
+# نافذة إزالة التكرار (Saga / idempotency): لا يُعاد إطلاق نفس الأمر الفعّال
+# خلال هذه المدّة بالثواني. قابلة للضبط عبر البيئة، الافتراضيّ 60ث.
+ACTUATOR_DEDUP_WINDOW_SEC = float(os.getenv("ACTUATOR_DEDUP_WINDOW_SEC", "60"))
+
+# ذاكرة إزالة التكرار داخل العمليّة: مفتاح الأمر → آخر زمن إطلاق (time.monotonic).
+# ملاحظة صدق: هذا حارس داخل العمليّة (per-replica) لا على مستوى العنقود؛
+# مع عدّة نُسَخ قد يُطلَق الأمر مرّةً لكلّ نسخة. الـidempotency الحقيقيّ
+# (exactly-once عنقوديّ) يتطلّب مخزناً مشتركاً دائماً (Redis/DB) لا dict محلّيّاً.
+_dedup_last_fired: dict[tuple[str, str, str, str], float] = {}
 
 _pool: asyncpg.Pool | None = None
 
@@ -56,6 +69,9 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
         payload = _jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except Exception as e:
         raise HTTPException(401, "توكن غير صالح") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
     if not payload.get("sub") or not payload.get("tenant_id"):
         raise HTTPException(401, "توكن ناقص الحقول الأساسيّة")
     return payload
@@ -113,6 +129,105 @@ async def send_mqtt_command(device_id: str, command: str, payload: dict):
 
 
 # ══════════════════════════════════════════════════════════════
+# إزالة التكرار (Idempotency) — حارس داخل العمليّة
+# ══════════════════════════════════════════════════════════════
+def _dedup_should_fire(
+    key: tuple[str, str, str, str],
+    now: float,
+    window_sec: float,
+    store: dict[tuple[str, str, str, str], float],
+) -> bool:
+    """دالّة قرار نقيّة (قابلة للاختبار بزمن مُموَّه): هل يُسمح بإطلاق هذا الأمر؟
+
+    - `key`: (tenant_id, field_id, device_id, command) — الأمر الفعّال.
+    - `now`: زمن أحاديّ الاتّجاه (time.monotonic) للمقارنة.
+    - تُعيد True وتُحدّث آخر زمن إطلاق إن مرّت `window_sec` منذ آخر إطلاق
+      (أو لم يُطلَق من قبل)، وإلّا False (مكرّر ضمن النافذة).
+    - تُنظّف المدخلات الأقدم من النافذة في كلّ فحص لمنع نموّ الذاكرة بلا حدّ.
+    """
+    # تنظيف المدخلات القديمة (أقدم من النافذة) — يبقي القاموس صغيراً.
+    if window_sec > 0:
+        stale = [k for k, ts in store.items() if (now - ts) >= window_sec]
+        for k in stale:
+            del store[k]
+
+    last = store.get(key)
+    if last is not None and window_sec > 0 and (now - last) < window_sec:
+        return False  # مكرّر ضمن نافذة التهدئة — تخطَّ الإطلاق
+    store[key] = now
+    return True
+
+
+# الأوامر العكسيّة المعروفة للتعويض (Saga compensation): فتح↔إغلاق، تشغيل↔إيقاف.
+# إن لم يوجد عكس واضح ⇒ تُطلَب تسوية يدويّة (لا نُخمّن).
+_INVERSE_COMMANDS = {
+    "open": "close",
+    "close": "open",
+    "on": "off",
+    "off": "on",
+    "start": "stop",
+    "stop": "start",
+}
+
+
+def _inverse_command(command: str) -> str | None:
+    """يُعيد الأمر العكسيّ المعروف (تعويض)، أو None إن لم يوجد عكس واضح."""
+    return _INVERSE_COMMANDS.get((command or "").strip().lower())
+
+
+async def _compensate(
+    prior: list[dict], tenant_id: str, failed_device: str, failed_cmd: str
+) -> None:
+    """خطّاف تعويض أوّليّ (Saga compensation hook) — ليس آلة حالات كاملة.
+
+    عند فشل أمر ضمن تسلسل، نحاول إرسال العكس الواضح للأوامر السابقة الناجحة
+    (open↔close, on↔off, start↔stop). إن لم يوجد عكس واضح ⇒ نُسجّل أنّ
+    التعويض يتطلّب تدخّلاً يدويّاً (لا نُخمّن أمراً قد يكون خطيراً فيزيائيّاً).
+
+    حدود الصدق: هذا أوّل خطوة فقط — لا سجلّ Saga دائم، ولا إعادة محاولة،
+    ولا ضمان نجاح التعويض نفسه (نُسجّل فشله إن حدث). التعويض الكامل يحتاج
+    سجلّ Saga دائماً + آلة حالات + سياسة إعادة محاولة.
+    """
+    logger.warning(
+        f"COMPENSATION: فشل الأمر '{failed_cmd}' على {failed_device} ⇒ "
+        f"بدء تعويض {len(prior)} أمر/أوامر سابقة ناجحة"
+    )
+    # نعوّض بترتيب عكسيّ (الأحدث أوّلاً) — أقرب لإلغاء التسلسل.
+    for done in reversed(prior):
+        inv = _inverse_command(done["command"])
+        if inv is None:
+            logger.warning(
+                f"COMPENSATION: لا عكس واضح للأمر '{done['command']}' على "
+                f"{done['device']} ⇒ مطلوب تعويض يدويّ (manual compensation required)"
+            )
+            await log_command(
+                rule_id=done.get("rule_id"),
+                device_id=done["device"],
+                command=done["command"],
+                payload=done.get("payload") or {},
+                status="failed",
+                tenant_id=tenant_id,
+            )
+            continue
+        logger.warning(
+            f"COMPENSATION: إرسال العكس '{inv}' إلى {done['device']} (لإلغاء '{done['command']}')"
+        )
+        comp_ok = await send_mqtt_command(done["device"], inv, done.get("payload") or {})
+        await log_command(
+            rule_id=done.get("rule_id"),
+            device_id=done["device"],
+            command=inv,
+            payload=done.get("payload") or {},
+            status="sent" if comp_ok else "failed",
+            tenant_id=tenant_id,
+        )
+        if not comp_ok:
+            logger.error(
+                f"COMPENSATION: فشل أمر التعويض '{inv}' على {done['device']} ⇒ مطلوب تدخّل يدويّ"
+            )
+
+
+# ══════════════════════════════════════════════════════════════
 # Scene Linkage Engine
 # ══════════════════════════════════════════════════════════════
 async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_id: str):
@@ -140,6 +255,8 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
 
         now = datetime.now(UTC)
         triggered = []
+        # أوامر هذا التقييم التي نجحت — لاستخدامها في التعويض إن فشل أمر لاحق.
+        succeeded: list[dict] = []
 
         for row in rows:
             # Check day of week
@@ -184,7 +301,37 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                 device = row["action_device"]
                 cmd = row["action_command"]
                 payload = row["action_payload"] or {}
-                success = await send_mqtt_command(device, cmd, payload)
+
+                # إزالة التكرار (idempotency): تخطَّ إن أُطلق نفس الأمر الفعّال
+                # (tenant, field, device, command) خلال نافذة التهدئة.
+                dedup_key = (tenant_id, field_id, device, cmd)
+                if not _dedup_should_fire(
+                    dedup_key,
+                    time.monotonic(),
+                    ACTUATOR_DEDUP_WINDOW_SEC,
+                    _dedup_last_fired,
+                ):
+                    logger.info(
+                        f"إزالة تكرار: تخطّي أمر مكرّر '{cmd}' على {device} "
+                        f"(نافذة {ACTUATOR_DEDUP_WINDOW_SEC:.0f}ث، حقل {field_id})"
+                    )
+                    triggered.append(
+                        {
+                            "rule_id": str(row["rule_id"]),
+                            "device": device,
+                            "command": cmd,
+                            "sent": False,
+                            "deduped": True,
+                        }
+                    )
+                    continue
+
+                # إرسال الأمر مع التقاط الفشل/الاستثناء لتشغيل خطّاف التعويض.
+                try:
+                    success = await send_mqtt_command(device, cmd, payload)
+                except Exception as send_err:
+                    logger.error(f"send_mqtt_command raised for {device}: {send_err}")
+                    success = False
 
                 # Log command
                 await log_command(
@@ -195,6 +342,23 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     status="sent" if success else "failed",
                     tenant_id=tenant_id,
                 )
+
+                if not success:
+                    # فشل أمر ضمن التسلسل ⇒ شغّل تعويض الأوامر السابقة الناجحة.
+                    # نُسقط مفتاح dedup للأمر الفاشل كي لا تمنع النافذة إعادة محاولة
+                    # لاحقة مشروعة (الفشل لم يُحرّك الجهاز فعليّاً).
+                    _dedup_last_fired.pop(dedup_key, None)
+                    await _compensate(succeeded, tenant_id, device, cmd)
+                    triggered.append(
+                        {
+                            "rule_id": str(row["rule_id"]),
+                            "device": device,
+                            "command": cmd,
+                            "sent": False,
+                        }
+                    )
+                    # أوقف التسلسل بعد الفشل والتعويض (لا نُكمل أوامر تالية).
+                    return triggered
 
                 # Update rule counters
                 if _pool:
@@ -210,12 +374,20 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                             row["rule_id"],
                         )
 
-                triggered.append(
+                entry = {
+                    "rule_id": str(row["rule_id"]),
+                    "device": device,
+                    "command": cmd,
+                    "sent": success,
+                }
+                triggered.append(entry)
+                # سجّل النجاح (مع payload) كمرشّح للتعويض إن فشل أمر لاحق.
+                succeeded.append(
                     {
                         "rule_id": str(row["rule_id"]),
                         "device": device,
                         "command": cmd,
-                        "sent": success,
+                        "payload": payload,
                     }
                 )
 
@@ -350,7 +522,9 @@ async def send_command(req: CommandRequest, claims: dict = Depends(_verify_token
 
 
 @app.get("/commands")
-async def list_commands(limit: int = 50, claims: dict = Depends(_verify_token)):
+async def list_commands(
+    limit: int = Query(50, ge=1, le=500), claims: dict = Depends(_verify_token)
+):
     # الأمان: tenant_id من التوكن المُتحقَّق لا من المعامل (منع قراءة سجلّ مستأجر آخر)
     tenant_id = str(claims["tenant_id"])
     if not _pool:

@@ -7,8 +7,6 @@
 //   ✅ Toast notifications في الواجهة
 // ═══════════════════════════════════════════════════════════════
 
-import { getAccessToken } from '../lib/authStorage';
-
 type EventType =
   | 'satellite' | 'weather_alert' | 'pest_alert'
   | 'irrigation_rec' | 'fertilizer_rec' | 'low_stock'
@@ -39,13 +37,17 @@ class WebSocketService {
   connect(userId: number): void {
     if (this.isConnecting) return;
     this.userId = userId;
-    this.isConnecting = true;
 
-    // إصلاح: التوكن مخزّن في sessionStorage (lib/authStorage)، لا localStorage —
-    // القراءة السابقة من localStorage كانت تُرجِع فارغاً دائماً فتسقط على 'demo'،
-    // فيتصل WS لكلّ مستخدم مُصادَق بتوكن وهميّ بدل توكنه الحقيقيّ.
-    const token = getAccessToken() || 'demo';
-    const url   = `${WS_URL}?token=${token}&user_id=${userId}`;
+    // التوكن من sessionStorage (نفس مصدر الـ interceptor) — لا 'demo' احتياطيّ.
+    // بلا توكن صالح: لا نفتح اتصالاً (كان يتّصل دائماً بـtoken=demo).
+    const token = sessionStorage.getItem('sahool_access_token');
+    if (!token) return;
+
+    this.isConnecting = true;
+    // التوكن لم يَعُد في الرابط (كان يتسرّب إلى سجلّات الوكلاء/الخوادم)؛ نرسله
+    // الآن في أوّل رسالة (إطار auth) بعد فتح الاتصال. نُبقي user_id للتوجيه
+    // والتوافق الخلفيّ (الخادم يتجاهله للمصادقة — يعتمد sub من الـJWT).
+    const url = `${WS_URL}?user_id=${userId}`;
 
     try {
       this.ws = new WebSocket(url);
@@ -54,6 +56,9 @@ class WebSocketService {
         console.info('[WS] SAHOOL WebSocket connected');
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        // أوّلاً: أرسل إطار المصادقة قبل أيّ شيء آخر (التوكن في الرسالة الأولى).
+        this.ws?.send(JSON.stringify({ type: 'auth', token }));
+        // ثمّ فرّغ أيّ رسائل مُعلّقة طُوبِرت بينما كانت القناة مغلقة.
         this._flushOutbox();
         // Ping كل 30 ثانية للحفاظ على الاتصال
         this.pingInterval = setInterval(() => {

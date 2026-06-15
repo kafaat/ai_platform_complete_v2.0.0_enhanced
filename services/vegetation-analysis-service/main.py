@@ -17,11 +17,15 @@ NOTE ON DATA PROVENANCE (honesty):
   field + date), NOT from real per-pixel reflectance.
 
   Real per-pixel raster processing (decoding the GeoTIFF, masking via SCL,
-  averaging real reflectance) lives in the raster-service, which ships
-  rasterio. Accordingly, this service ALWAYS reports `real_data: false` and
-  labels `data_source`/`source` as a simulation/estimate. A
-  `provider_reachable` flag indicates whether the live API responded, but it
-  never upgrades the indices to "real".
+  averaging real reflectance) lives in the raster-service, which ships rasterio.
+
+  EXCEPTION — real NDVI pass-through (VEGETATION_PREFER_RASTER, ON by default):
+  /v1/analyze prefers the REAL per-pixel NDVI mean from raster-service when the
+  field has a processed layer. In that case it substitutes NDVI only and reports
+  `real_data: true` + `data_source: "raster-service"` (per-index `source` marks
+  NDVI as "raster-service" and the rest as "estimate"). Any failure/timeout/
+  missing layer falls back to the labeled estimate (behaviour never degrades).
+  `provider_reachable` indicates whether the live SH/CDSE metadata API responded.
 """
 
 from __future__ import annotations
@@ -31,10 +35,12 @@ import json
 import logging
 import math
 import os
+import re
 from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 
 import httpx
+import jwt as _jwt
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
@@ -55,6 +61,19 @@ except ImportError:
 NATS_URL = os.getenv("NATS_URL", "nats://sahool-nats:4222")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 
+# تفضيل NDVI الحقيقيّ من raster-service (بكسليّ، Sentinel-2) على التقدير التركيبيّ.
+# مُفعَّل افتراضيّاً؛ يبقى مفتاح إيقاف (=0) لأغراض التشغيل. fail-safe بالكامل:
+# أيّ تعذّر/مهلة/غياب طبقة ⇒ ارتداد للتقدير المُعلَّم الحاليّ (السلوك لا يسوء أبداً).
+RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+    "/"
+)
+VEGETATION_PREFER_RASTER = os.getenv("VEGETATION_PREFER_RASTER", "1") not in (
+    "0",
+    "false",
+    "False",
+    "",
+)
+
 SH_CLIENT_ID = os.getenv("SH_CLIENT_ID", "")
 SH_CLIENT_SECRET = os.getenv("SH_CLIENT_SECRET", "")
 SH_TOKEN_URL = "https://services.sentinel-hub.com/auth/realms/main/protocol/openid-connect/token"
@@ -64,6 +83,47 @@ CDSE_USER = os.getenv("COPERNICUS_USER", "")
 CDSE_PASSWORD = os.getenv("COPERNICUS_PASSWORD", "")
 
 security = HTTPBearer(auto_error=False)
+
+# ── تحقّق JWT حقيقيّ (كان يُقبل أيّ Bearer غير فارغ بلا تحقّق توقيع) ──
+_VEG_JWT_SECRET = os.getenv("JWT_SECRET", "")
+_VEG_JWT_ALG = "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+_ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _verify_claims(token) -> dict:
+    """يتحقّق من توقيع JWT وaudience، ويُرجِع المطالبات. fail-closed."""
+    if not token or not token.credentials:
+        raise HTTPException(401, "Authentication required")
+    if not _VEG_JWT_SECRET or len(_VEG_JWT_SECRET) < 32:
+        raise HTTPException(503, "JWT_SECRET غير مضبوط")
+    try:
+        payload = _jwt.decode(
+            token.credentials, _VEG_JWT_SECRET, algorithms=[_VEG_JWT_ALG], audience="sahool"
+        )
+    except Exception:
+        raise HTTPException(401, "توكن غير صالح") from None
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "مُصدِر التوكن غير مسموح")
+    return payload
+
+
+def _tenant_from_claims(claims: dict) -> str:
+    """المستأجِر من التوكن لا من العميل — يمنع حقن موضوع NATS عابر المستأجرين."""
+    tid = str(claims.get("tenant_id") or "")
+    if not tid:
+        raise HTTPException(401, "توكن بلا مستأجِر")
+    return tid
+
+
+def _valid_date(s: str) -> str:
+    """يتحقّق أنّ التاريخ بصيغة YYYY-MM-DD — يمنع حقن OData/الاستعلام المتسلسل."""
+    if not _ISO_DATE_RE.match(s):
+        raise HTTPException(400, "صيغة تاريخ غير صالحة (YYYY-MM-DD)")
+    return s
+
 
 # ── Prometheus (FIXED: removed field_id label to prevent cardinality explosion) ──
 ANALYSIS_COUNT = Counter(
@@ -502,6 +562,32 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
+async def _real_ndvi_mean_from_raster(field_id: str) -> float | None:
+    """متوسّط NDVI الحقيقيّ (بكسليّ) من raster-service إن توفّر — وإلّا None.
+
+    fail-safe مطلق: أيّ خطأ/مهلة/غياب طبقة/real_data=false ⇒ None (لا استثناء يصعد)،
+    فيُبقي المتّصِل على التقدير المُعلَّم. لا يغيّر صيَغ المؤشّرات — يستبدل القيمة فقط.
+    """
+    if not VEGETATION_PREFER_RASTER:
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=8) as c:
+            r = await c.get(
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-grid",
+                params={"index": "ndvi", "date": "latest", "grid": 16},
+            )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data.get("real_data"):
+            return None
+        mean = (data.get("stats") or {}).get("mean")
+        return float(mean) if isinstance(mean, (int, float)) else None
+    except Exception as e:  # noqa: BLE001 — fail-safe: ارتداد للتقدير، لا كسر
+        logger.debug("raster NDVI الحقيقيّ غير متاح لـ%s: %s", field_id, e)
+        return None
+
+
 async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: str) -> dict:
     field = FIELD_REGISTRY.get(field_id)
     if not field:
@@ -524,10 +610,18 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         cloud_pct = meta.get("cloud_pct", 0.0)
         bands = _realistic_bands(field_id, acq_date)
         indices = _compute_indices(bands)
+        # تفضيل NDVI الحقيقيّ (بكسليّ، Sentinel-2 عبر raster-service) عند توفّره —
+        # يستبدل قيمة NDVI فقط (لا يغيّر صيَغ المؤشّرات). بقيّة المؤشّرات تبقى تقديريّة.
+        real_ndvi = await _real_ndvi_mean_from_raster(field_id)
+        ndvi_is_real = real_ndvi is not None
+        if ndvi_is_real:
+            indices["ndvi"] = round(real_ndvi, 3)
         health = _health_classification(indices["ndvi"], indices["cwsi"])
         recs = _recommendations_ar(indices, health, field["crop"])
     await _publish_analysis(field_id, tenant_id, indices, source)
     ANALYSIS_COUNT.labels(source=source, status="success").inc()
+    # وسم مصدر كلّ مؤشّر بصدق: NDVI من raster الحقيقيّ عند توفّره، والباقي تقدير.
+    _ndvi_src = "raster-service" if ndvi_is_real else "estimate"
     return {
         "field_id": field_id,
         "field_name": field["name"],
@@ -536,17 +630,28 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         "tenant_id": tenant_id,
         "acquisition_date": acq_date,
         "cloud_coverage_pct": cloud_pct,
-        "data_source": source,
-        # HONESTY: indices are field-mean estimates from synthetic bands, never
-        # decoded pixels — so this is always False. provider_reachable tells the
-        # caller whether the live SH/CDSE API responded (metadata only).
-        "real_data": False,
+        # data_source يعكس مصدر NDVI (الرقم الرئيسيّ): raster الحقيقيّ أو التقدير.
+        "data_source": "raster-service" if ndvi_is_real else source,
+        # real_data يعكس NDVI تحديداً (بطاقة الصحّة تُبنى عليه): حقيقيّ من raster؟
+        "real_data": ndvi_is_real,
         "provider_reachable": provider_reachable,
+        # نصّ آليّ موحّد اللغة (إنجليزيّ) في الحالتين — لا تتغيّر لغته بتغيّر المصدر
+        # (تفادياً لكسر مستهلكين يطابقون النصّ، كما نبّهت مراجعة Copilot).
         "estimate_note": (
-            "Indices are field-mean estimates from deterministic synthetic bands; "
+            "NDVI is the real per-pixel mean from raster-service (Sentinel-2); "
+            "other indices remain field-mean estimates from synthetic bands."
+            if ndvi_is_real
+            else "Indices are field-mean estimates from deterministic synthetic bands; "
             "no satellite pixels were decoded. Real per-pixel processing lives in raster-service."
         ),
-        "indices": {k: {"value": v, "unit": "dimensionless"} for k, v in indices.items()},
+        "indices": {
+            k: {
+                "value": v,
+                "unit": "dimensionless",
+                "source": _ndvi_src if k == "ndvi" else "estimate",
+            }
+            for k, v in indices.items()
+        },
         "raw_bands": bands,
         "health": health,
         "recommendations_ar": recs,
@@ -648,10 +753,13 @@ async def analyze(
     date_to: str | None = Query(default=None),
     token: str = Depends(security),
 ):
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
-    date_to = date_to or date.today().isoformat()
-    date_from = date_from or (date.today() - timedelta(days=30)).isoformat()
+    claims = _verify_claims(token)
+    # المستأجِر من التوكن لا من الـquery (منع حقن موضوع NATS عابر المستأجرين)
+    tenant_id = _tenant_from_claims(claims)
+    date_to = _valid_date(date_to) if date_to else date.today().isoformat()
+    date_from = (
+        _valid_date(date_from) if date_from else (date.today() - timedelta(days=30)).isoformat()
+    )
     return await run_analysis(field_id, tenant_id, date_from, date_to)
 
 
@@ -659,8 +767,7 @@ async def analyze(
 async def timeseries(
     field_id: str, days: int = Query(default=90, ge=5, le=365), token: str = Depends(security)
 ):
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
+    _verify_claims(token)
     if field_id not in FIELD_REGISTRY:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     return {
@@ -679,25 +786,25 @@ async def current_ndvi(field_id: str, token: str = Depends(security)):
     _current_ndvi_payload. صدق المصدر: تقدير من نطاقات تركيبيّة (real_data=False)
     — لا بكسلات حقيقيّة (تلك في raster-service).
     """
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
+    claims = _verify_claims(token)
+    tenant_id = _tenant_from_claims(claims)
     if field_id not in FIELD_REGISTRY:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
-    analysis = await run_analysis(field_id, "default", date_from, date_to)
+    analysis = await run_analysis(field_id, tenant_id, date_from, date_to)
     return _current_ndvi_payload(field_id, FIELD_REGISTRY[field_id], analysis)
 
 
 @app.get("/v1/all_fields")
-async def all_fields(tenant_id: str = Query(default="default"), token: str = Depends(security)):
+async def all_fields(token: str = Depends(security)):
     """NDVI الحالي لكلّ الحقول المعروفة (يستهلكه useAllFieldsNdvi/لوحة المؤشّرات).
 
     يكرّر على FIELD_REGISTRY ويستدعي run_analysis لكلّ حقل. الردّ {fields:[...]}
     لكلّ منه field_id/name/crop/ndvi/health — تقدير صادق (real_data=False).
     """
-    if not token or not token.credentials:
-        raise HTTPException(401, "Authentication required")
+    claims = _verify_claims(token)
+    tenant_id = _tenant_from_claims(claims)
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
     fields_out = []

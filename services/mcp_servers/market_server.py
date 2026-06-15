@@ -33,15 +33,21 @@ SAHOOL_API_URL = os.getenv("SAHOOL_API_URL", "http://sahool-auth:8000")
 
 _pool: asyncpg.Pool | None = None
 security = HTTPBearer(auto_error=False)
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 def verify_token(token: str) -> dict:
     if not JWT_SECRET or len(JWT_SECRET) < 32:
         raise HTTPException(503, "JWT_SECRET غير مضبوط — الخدمة معطّلة بأمان")
     try:
-        return jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
     except InvalidTokenError as e:
         raise HTTPException(401, f"Invalid token: {e}") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(401, "Invalid token issuer")
+    return payload
 
 
 async def get_pool() -> asyncpg.Pool:
@@ -528,8 +534,15 @@ async def mcp_tools_list():
     }
 
 
-@app.post("/mcp/v1/tools/call", dependencies=[Depends(require_scope("market:read"))])
-async def mcp_tools_call(req: MCPCallRequest):
+_MARKET_WRITE_TOOLS = {
+    "market_create_procurement",
+    "market_create_sales_listing",
+    "create_forward_contract",
+}
+
+
+@app.post("/mcp/v1/tools/call")
+async def mcp_tools_call(req: MCPCallRequest, user: dict = Depends(require_scope("market:read"))):
     handlers = {
         "market_search_products": tool_search_products,
         "market_get_supplier": tool_get_supplier,
@@ -546,8 +559,20 @@ async def mcp_tools_call(req: MCPCallRequest):
     handler = handlers.get(req.name)
     if not handler:
         raise HTTPException(404, f"Unknown tool: {req.name}")
+
+    # عزل المستأجِر الحاسم: tenant_id من التوكن المُتحقَّق لا من جسم الطلب (كان قابلاً
+    # للانتحال ⇒ قراءة/كتابة عابرة المستأجرين). نحقن المُتحقَّق فوق أيّ قيمة مُرسَلة.
+    trusted_tenant = user.get("tenant_id")
+    if not trusted_tenant:
+        raise HTTPException(401, "Token missing tenant_id")
+    args = dict(req.arguments or {})
+    args["tenant_id"] = trusted_tenant
+    # أدوات الكتابة/الصرف تتطلّب market:write (كانت بـmarket:read فقط ⇒ توكن قراءة يشتري).
+    scopes = (user.get("scope", "") or "").split()
+    if req.name in _MARKET_WRITE_TOOLS and not ("market:write" in scopes or "admin" in scopes):
+        raise HTTPException(403, "scope 'market:write' required for write operations")
     try:
-        result = await handler(req.arguments)
+        result = await handler(args)
         return {
             "content": [
                 {"type": "text", "text": json.dumps(result, ensure_ascii=False, default=str)}
@@ -574,27 +599,32 @@ async def api_search_products(
     limit: int = 20,
     user: dict = Depends(_get_current_user),
 ):
-    return await tool_search_products({"query": q or "", "category": category, "limit": limit})
+    return await tool_search_products(
+        {"query": q or "", "category": category, "limit": limit, "tenant_id": user.get("tenant_id")}
+    )
 
 
 @app.get("/suppliers/{supplier_id}")
 async def api_get_supplier(supplier_id: str, user: dict = Depends(_get_current_user)):
-    return await tool_get_supplier({"supplier_id": supplier_id})
+    return await tool_get_supplier({"supplier_id": supplier_id, "tenant_id": user.get("tenant_id")})
 
 
 @app.post("/procurement")
 async def api_create_procurement(body: dict, user: dict = Depends(_get_current_user)):
-    return await tool_create_procurement(body)
+    # tenant من التوكن لا من الجسم (منع كتابة عابرة المستأجرين).
+    return await tool_create_procurement({**(body or {}), "tenant_id": user.get("tenant_id")})
 
 
 @app.get("/procurement/{order_id}")
 async def api_get_procurement(order_id: str, user: dict = Depends(_get_current_user)):
-    return await tool_get_procurement_status({"order_id": order_id})
+    return await tool_get_procurement_status(
+        {"order_id": order_id, "tenant_id": user.get("tenant_id")}
+    )
 
 
 @app.post("/sales")
 async def api_create_sales(body: dict, user: dict = Depends(_get_current_user)):
-    return await tool_create_sales_listing(body)
+    return await tool_create_sales_listing({**(body or {}), "tenant_id": user.get("tenant_id")})
 
 
 @app.get("/sales")
@@ -604,17 +634,27 @@ async def api_search_sales(
     limit: int = 20,
     user: dict = Depends(_get_current_user),
 ):
-    return await tool_search_sales({"crop_type": crop, "quality_grade": grade, "limit": limit})
+    return await tool_search_sales(
+        {
+            "crop_type": crop,
+            "quality_grade": grade,
+            "limit": limit,
+            "tenant_id": user.get("tenant_id"),
+        }
+    )
 
 
 @app.get("/price-history/{category}")
 async def api_price_history(category: str, days: int = 90, user: dict = Depends(_get_current_user)):
-    return await tool_price_history({"category": category, "days": days})
+    return await tool_price_history(
+        {"category": category, "days": days, "tenant_id": user.get("tenant_id")}
+    )
 
 
 @app.get("/analytics/{tenant_id}")
 async def api_analytics(tenant_id: str, user: dict = Depends(_get_current_user)):
-    return await tool_analytics_dashboard({"tenant_id": tenant_id})
+    # tenant من التوكن لا من المسار (منع قراءة تحليلات مستأجِر آخر).
+    return await tool_analytics_dashboard({"tenant_id": user.get("tenant_id")})
 
 
 @app.get("/healthz")

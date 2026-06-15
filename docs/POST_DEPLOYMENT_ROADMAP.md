@@ -79,9 +79,11 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
    + `dispatch(registry, store, cmd)` فوق `CommandStore` (idempotency + دورة حياة:
    succeeded→duplicate، unknown→fail، error→mark_failed). **مُنفَّذ + 6 اختبارات**.
    المتبقّي: توجيه endpoints فعليّة عبره (الخطوة ٣ أدناه).
-2. ☐ **FieldAggregate:** كائن يحمّل حالة الحقل (+ الموسم النشط + آخر lifecycle) ويعرّف
-   عمليّات (`create/update/start_season/record_activity`) تتحقّق من الـinvariants ثمّ
-   تُنتج (state change + events) ضمن معاملة واحدة.
+2. ◐ **FieldAggregate (النواة جاهزة):** `api/field_aggregate.py` — `FieldAggregate`
+   نقيّ (invariants في مكان واحد: إنشاء مكرّر→409، حقل مفقود→404، موسم نشط→409) +
+   `register_field_handlers` يسجّل المعالِجات على `CommandDispatcher` بمنافذ مُحقَنة
+   (تحميل حالة/حفظ/إصدار) + **١٠ اختبارات offline** (نواة + مسار dispatcher كامل).
+   انظر `docs/FIELD_AGGREGATE.md`. **المتبقّي:** توجيه endpoints حيّة عبرها (الخطوة ٣).
 3. ☐ **توجيه الـendpoints تدريجيّاً** إلى الـaggregate بدل الـINSERT المباشر — endpoint
    واحد كلّ مرّة، مع إبقاء التوافق الخلفيّ.
 4. ☐ **حارس قاعديّ (اختياريّ):** منع UPDATE/INSERT المباشر على جداول الحالة خارج
@@ -103,11 +105,20 @@ Dispatcher/Registry)** و**حدّ aggregate** يلفّ الحقل+الموسم+�
   — **مُنفَّذ** (AUDIT_VIEW، مُرشَّح بالمستأجِر). عرض ops عابر المستأجرين = شأن superuser مؤجَّل.
 - ✅ **توسيع تغطية الأحداث:** `DELETE /api/v1/fields/{id}` يُصدِر `FIELD_DELETED`
   (محروس: 409 لو موسم نشط)؛ و`SEASON_CLOSED` يُصدَر عند الإغلاق الآليّ في إنشاء
-  موسم جديد — **مُنفَّذ**. (تحديث الموسم الصريح: عند إضافة endpoint تحديث موسم.)
-- ☐ **`farm_id` إلزاميّ:** نافذة انتقاليّة (ترحيل البيانات بلا مزرعة → افتراضيّة، ثمّ
-  `NOT NULL` + إلزام الواجهة بإنشاء مزرعة أوّلاً — منطق `canCreateFarm` جاهز).
-- ☐ **Workflow مخبري للتربة:** عيّنة → نتيجة مختبر → اعتماد → إصدارات (جداول +
-  endpoints + شاشة)؛ يستبدل أعمدة soil_* الحاليّة بدورة حياة.
+  موسم جديد — **مُنفَّذ**. وتحديث الموسم الصريح: `PATCH /api/v1/fields/{id}/seasons/{sid}`
+  يُصدِر `SEASON_UPDATED` (+`SEASON_CLOSED` عند الإغلاق)، بانتقال حالة محقَّق
+  (`api/season_lifecycle.py` — planned→active/closed، active→closed، المُغلَق نهائيّ)
+  — **مُنفَّذ** (٧ اختبارات offline؛ انظر `docs/SEASON_UPDATE.md`).
+- ◐ **`farm_id` إلزاميّ:** نافذة انتقاليّة — **مُجهَّز للنشر** (`scripts/farm_id_backfill.sql`
+  backfill مزرعة افتراضيّة/مستأجِر + قيد إلزام NOT VALID، خارج MANIFEST؛ + runbook
+  `docs/FARM_ID_ROLLOUT.md`). **المتبقّي (وقت النشر):** تشغيل backfill كمالك (RLS)،
+  التحقّق، جعل `farm_id` إلزاميّاً في الـAPI (تغيير كاسر، سطر واحد)، ثمّ `VALIDATE`.
+  لا يُنفَّذ أعمى في الصندوق (backfill عابر مستأجرين تحت RLS + تغيير كاسر).
+- ◐ **Workflow مخبري للتربة:** عيّنة → مختبر → نتيجة → اعتماد → نشر — **مُنفَّذ**
+  (نواة `core/engines/soil_lab_workflow.py` + جدول `v50_soil_lab_tests` RLS +
+  `POST`/`GET`/`PATCH /api/v1/fields/{id}/soil-lab-tests` + أحداث + ١٠ اختبارات
+  offline؛ انظر `docs/SOIL_LAB_WORKFLOW.md`). **المتبقّي:** الشاشة (واجهة) + ربط
+  النتيجة المنشورة بأعمدة soil_* المرجعيّة عند النشر.
 - ◐ **الإثراء الجغرافيّ التلقائيّ:** النواة الحتميّة **مُنفَّذة** (`core/engines/dem_enrichment.py`
   — حساب Horn للمنحدر/السمت + تصنيف + تفسير زراعيّ، وendpoint
   `GET /api/v1/fields/{field_id}/terrain` يفسّر القيم المخزّنة فوراً؛ انظر

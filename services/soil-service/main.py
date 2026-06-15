@@ -78,9 +78,9 @@ async def readyz():
                 await conn.fetchval("SELECT 1")
         return {"status": "ready"}
     except Exception as e:
-        from fastapi import HTTPException
-
-        raise HTTPException(503, str(e)) from e
+        # لا نُرجِع str(e) (يسرّب DSN/تفاصيل اتّصال) — رسالة عامّة + تسجيل داخليّ
+        logger.warning("readyz فشل: %s", e)
+        raise HTTPException(503, "not ready") from e
 
 
 @app.get("/metrics")
@@ -89,8 +89,14 @@ async def metrics():
 
 
 @app.get("/soil/readings/{field_id}")
-async def get_readings(field_id: str, limit: int = 100):
-    """Get soil sensor readings for a field."""
+async def get_readings(field_id: str, limit: int = 100, x_agent_token: str = Header(None)):
+    """Get soil sensor readings for a field.
+
+    أمان: كان بلا مصادقة ⇒ أيّ مجهول يقرأ قراءات تربة أيّ حقل بمعرفة المعرّف.
+    نشترط توكن الخدمة (نفس نمط الإدخال) — ملكيّة الحقل مضمونة في طبقة المنصّة
+    (field_id فريد عالميّاً)، فالقصر على المستدعين الموثوقين يُغلق التسريب المجهول.
+    """
+    _require_service_token(x_agent_token)
     if not _pool:
         return {"error": "DB not connected"}
     async with _pool.acquire() as conn:

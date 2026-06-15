@@ -57,6 +57,8 @@ JWT_PUBLIC_KEY = os.getenv("JWT_PUBLIC_KEY", "")  # PEM (للتحقّق)
 JWT_ALGORITHM = "RS256" if JWT_PRIVATE_KEY else "HS256"
 JWT_SIGNING_KEY = JWT_PRIVATE_KEY if JWT_PRIVATE_KEY else JWT_SECRET
 JWT_VERIFY_KEY = JWT_PUBLIC_KEY if JWT_PUBLIC_KEY else JWT_SECRET
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))  # 1 hour
 REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))  # 30 days
 DATABASE_URL = os.getenv("DATABASE_URL", "")
@@ -164,6 +166,9 @@ async def tenant_header_middleware(request: Request, call_next):
             payload = jwt.decode(
                 auth[7:], JWT_VERIFY_KEY, algorithms=[JWT_ALGORITHM], audience="sahool"
             )
+            # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول لا يُشتقّ منه رأس tenant.
+            if payload.get("iss") not in _ALLOWED_ISS:
+                raise ValueError("Invalid token issuer")
             response.headers["X-Tenant-ID"] = payload.get("tenant_id", "")
         except Exception as e:  # noqa: BLE001
             # توكن غير صالح/منتهٍ — لا نضيف رأس tenant (سلوك مقصود، نسجّل للتتبّع)
@@ -326,6 +331,10 @@ async def get_current_user(
         )
     except JWTError as e:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {e}") from e
+
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
 
     jti = payload.get("jti")
     if jti and await is_jti_revoked(jti):
@@ -755,6 +764,9 @@ async def logout(
                 algorithms=[JWT_ALGORITHM],
                 audience="sahool",
             )
+            # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
+            if payload.get("iss") not in _ALLOWED_ISS:
+                raise JWTError("Invalid token issuer")
             jti = payload.get("jti")
             exp = payload.get("exp", 0)
             if jti:

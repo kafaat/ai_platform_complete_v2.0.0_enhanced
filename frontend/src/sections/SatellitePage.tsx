@@ -3,44 +3,39 @@
 //    بدل الشبكة المتدرّجة + NDVI الجيبيّ الوهميّ السابق.
 // ✅ الحقول من القاعدة (useFields) بدل قائمة مُبرمَجة.
 import { useState, useEffect, useMemo } from 'react';
-import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows } from 'lucide-react';
+import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows, Ruler } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFields, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { geomToPolygon } from '../lib/geo';
+import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useIndicatorsCatalog } from '../hooks/useApi';
 
-// أيّ مؤشّر من طبقات الواجهة يملك بلاطات/شبكة حقيقيّة في raster-service؟
-// غير المدعوم يسقط إلى ndvi (الخدمة تُرجِع بلاطات شفّافة لغير المدعوم).
-// Sprint 5b: أُضيف ndre/msavi/evi/moisture (band-math + بلاطات في raster-service).
-const GRID_INDEX_MAP: Record<string, GridIndex> = {
-  ndvi: 'ndvi',
-  ndwi: 'ndwi',
-  evi: 'evi',
-  ndre: 'ndre',
-  msavi: 'msavi',
-  moisture: 'moisture',
+// مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
+// لا بقائمة مُبرمَجة — مصدر حقيقة واحد للقابل للرسم (لا طبقة ميتة ولا مفقودة).
+// العرض فقط (لون/أيقونة/وصف) محلّيّ؛ الاسم والتوفّر من الكتالوج.
+interface IndOption { id: string; name: string; desc: string; color: string; icon: string }
+
+const IND_META: Record<string, { color: string; icon: string; desc: string }> = {
+  ndvi:     { color:'#16a34a', icon:'🌿', desc:'الغطاء النباتي' },
+  evi:      { color:'#dc2626', icon:'📊', desc:'الغطاء المحسّن' },
+  ndre:     { color:'#a855f7', icon:'🧪', desc:'النيتروجين (red-edge)' },
+  msavi:    { color:'#ea580c', icon:'🏜', desc:'تصحيح تربة ذاتي' },
+  savi:     { color:'#f59e0b', icon:'🏜', desc:'تصحيح التربة' },
+  gndvi:    { color:'#22c55e', icon:'🌱', desc:'NDVI أخضر' },
+  ndwi:     { color:'#3b82f6', icon:'💧', desc:'محتوى المياه' },
+  ndmi:     { color:'#0ea5e9', icon:'💦', desc:'محتوى الرطوبة' },
+  msi:      { color:'#0891b2', icon:'🌡', desc:'الإجهاد المائي (SWIR/NIR)' },
+  salinity: { color:'#b45309', icon:'🧂', desc:'مؤشّر الملوحة' },
 };
+const IND_META_DEFAULT = { color:'#6b7280', icon:'🛰️', desc:'' };
 
-const INDICES = [
-  { id:'ndvi',     name:'NDVI',  desc:'الغطاء النباتي', color:'#16a34a', icon:'🌿' },
-  { id:'evi',      name:'EVI',   desc:'الغطاء المحسّن', color:'#dc2626', icon:'📊' },
-  { id:'msavi',    name:'MSAVI', desc:'تصحيح تربة ذاتي', color:'#ea580c', icon:'🏜' },
-  { id:'ndre',     name:'NDRE',  desc:'النيتروجين (red-edge)', color:'#a855f7', icon:'🧪' },
-  { id:'moisture', name:'الرطوبة', desc:'محتوى الرطوبة (NDMI)', color:'#0ea5e9', icon:'💦' },
-  { id:'savi',     name:'SAVI',  desc:'تصحيح التربة',   color:'#f59e0b', icon:'🏜' },
-  { id:'ndwi',     name:'NDWI',  desc:'محتوى المياه',   color:'#3b82f6', icon:'💧' },
-  { id:'gndvi',    name:'GNDVI', desc:'NDVI أخضر',      color:'#22c55e', icon:'🌱' },
-  { id:'lai',      name:'LAI',   desc:'مساحة الورق',    color:'#8b5cf6', icon:'🍃' },
-  { id:'rgb',      name:'صورة حقيقية', desc:'Sentinel-2 RGB', color:'#6b7280', icon:'🛰️' },
-];
-
-interface SatField {
-  id: string; name: string; area: number; crop: string;
-  lat: number | null; lon: number | null; geometry: any;
-}
+// قائمة احتياطيّة (الطبقات القابلة للرسم) إن تعذّر الكتالوج — كي لا تنكسر الخريطة.
+const FALLBACK_RENDERABLE = ['ndvi','evi','ndre','msavi','savi','gndvi','ndwi','ndmi','msi','salinity'];
 
 function ndviColor(v: number) {
   if (v > 0.7) return '#16a34a';
@@ -56,40 +51,35 @@ function ndviLabel(v: number) {
   return 'منخفض';
 }
 
-// هندسة الحقل (GeoJSON Polygon، إحداثيّات [lon,lat]) → مضلّع Leaflet [lat,lng].
-function geomToPolygon(geometry: any): [number, number][] | undefined {
-  const ring = geometry?.coordinates?.[0];
-  if (!Array.isArray(ring) || ring.length < 3) return undefined;
-  return ring
-    .filter((c: any) => Array.isArray(c) && c.length >= 2)
-    .map((c: number[]) => [c[1], c[0]] as [number, number]);
-}
-
 export default function SatellitePage() {
-  const { data: fieldsData, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFields();
-  const fields: SatField[] = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
-    id: String(f.field_id ?? f.id),
-    name: String(f.name_ar ?? f.name ?? 'حقل'),
-    area: Number(f.area_ha ?? f.area ?? 0),
-    crop: String(f.crop ?? '—'),
-    lat: f.lat ?? f.centroid_lat ?? null,
-    lon: f.lon ?? f.centroid_lon ?? null,
-    geometry: f.geometry,
-  }));
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFieldOptions();
 
   const [fieldId,     setFieldId]     = useState('');
   const [activeIndex, setActiveIndex] = useState('ndvi');
   const [days,        setDays]        = useState(30);
   const [showLayers,  setShowLayers]  = useState(true);
+  // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
+  const [measureTools, setMeasureTools] = useState(false);
 
   // أوّل حقل حقيقيّ يصبح المختار افتراضيّاً عند توفّر القائمة.
   useEffect(() => {
     if (!fieldId && fields.length) setFieldId(fields[0].id);
   }, [fields, fieldId]);
 
+  // طبقات قابلة للرسم من الكتالوج (renderable=true)، مزيّنة بعرض محلّيّ. عند
+  // تعذّر الكتالوج تسقط لقائمة احتياطيّة فلا تنكسر الخريطة. الاسم من الكتالوج.
+  const catalogQ = useIndicatorsCatalog();
+  const indices: IndOption[] = useMemo(() => {
+    const items = Array.isArray((catalogQ.data as any)?.indicators) ? (catalogQ.data as any).indicators : null;
+    const base: { id: string; name: string }[] = items
+      ? items.filter((i: any) => i?.renderable).map((i: any) => ({ id: String(i.id), name: String(i.name_ar ?? i.id) }))
+      : FALLBACK_RENDERABLE.map((id) => ({ id, name: id.toUpperCase() }));
+    return base.map(({ id, name }) => ({ id, name, ...(IND_META[id] ?? IND_META_DEFAULT) }));
+  }, [catalogQ.data]);
+
   const field = fields.find((f) => f.id === fieldId) || fields[0];
-  const idx   = INDICES.find((i) => i.id === activeIndex) || INDICES[0];
-  const gridIndex = GRID_INDEX_MAP[activeIndex] ?? 'ndvi';
+  const idx   = indices.find((i) => i.id === activeIndex) || indices[0];
+  const gridIndex = (idx?.id ?? 'ndvi') as GridIndex;
 
   const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
   const { data: ndviNow }                        = useCurrentNDVI(fieldId);
@@ -128,12 +118,45 @@ export default function SatellitePage() {
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length - 1]?.ndvi ?? null;
   // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
   // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.
-  const stripPoints = rasterPoints.length
-    ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean }))
-    : ts.map((t) => ({ date: t.date, value: t.ndvi ?? 0 }));
-  const thumbs = stripPoints
-    .filter((_, i) => i % Math.max(1, Math.floor(stripPoints.length / 8)) === 0)
-    .slice(0, 8);
+  // cloud: نسبة الغيوم لكلّ تاريخ (raster فقط) — null في مصدر vegetation البديل.
+  const stripPoints = Array.isArray(rasterPoints) && rasterPoints.length
+    ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean, cloud: p.cloudy_pct ?? null }))
+    : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null }));
+
+  // هل يوفّر المصدر نسبة غيوم؟ (raster نعم، vegetation لا) — يضبط إتاحة المُبدِّل.
+  const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');
+
+  // إخفاء الأيّام الغائمة (نمط FieldView): يُسقط النقاط التي تتجاوز عتبة الغيوم.
+  // غير مُفعَّل ما لم يتوفّر cloudy_pct (تعطيل رشيق لمصدر vegetation البديل).
+  const [hideCloudy, setHideCloudy] = useState(false);
+  const CLOUD_THRESHOLD = 50;
+  const visiblePoints = (hideCloudy && hasCloudData)
+    ? stripPoints.filter((p) => !(typeof p.cloud === 'number' && p.cloud > CLOUD_THRESHOLD))
+    : stripPoints;
+
+  // البلاطات مدفوعة بالبيانات بالكامل (لا تواريخ ثابتة): تنمو مع وصول نقاط جديدة.
+  // الشريط قابل للتمرير أفقيّاً، فلا نحدّ العدد بثمانٍ — نعرض كلّ النقاط المرئيّة.
+  const thumbs = visiblePoints;
+
+  // قائمة التواريخ المرئيّة مُستقرّة المرجع (مفتاح نصّيّ) — كي لا يُعاد تشغيل
+  // التأثير كلّ تصيير (نمط availableDates أعلاه).
+  const visibleDates = useMemo(
+    () => visiblePoints.map((p) => p.date).filter(Boolean),
+    [visiblePoints.map((p) => p.date).join('|')], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // التاريخ المختار يقود طبقة الخريطة (نقر البلاطة). الافتراض: أحدث تاريخ مرئيّ.
+  // data-driven: لا قيمة ثابتة — نُعيد المزامنة كلّما تغيّرت النقاط/التصفية.
+  const [selectedDate, setSelectedDate] = useState('');
+  useEffect(() => {
+    if (!visibleDates.length) { setSelectedDate(''); return; }
+    setSelectedDate((prev) =>
+      prev && visibleDates.includes(prev) ? prev : visibleDates[visibleDates.length - 1],
+    );
+  }, [visibleDates]);
+
+  // طبقة الخريطة: التاريخ المختار إن وُجِد، وإلّا "latest" (سلوك سابق).
+  const mapDate = selectedDate || 'latest';
 
   // مضلّع الحقل + إطار احتياطيّ للخريطة من هندسة/مركز الحقل الحقيقيّ.
   const fieldPolygon = field ? geomToPolygon(field.geometry) : undefined;
@@ -154,6 +177,16 @@ export default function SatellitePage() {
           <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-900">
             <Wifi className="w-3 h-3" /> Copernicus CDSE
           </span>
+          {/* مُبدِّل أدوات القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً
+              فلا يتأثّر مستهلكو FieldIndicatorMap الآخرون (التمرير tools=measureTools). */}
+          <button onClick={() => setMeasureTools((v) => !v)}
+            aria-pressed={measureTools}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors"
+            style={measureTools
+              ? { background: '#0ea5e922', color: '#7dd3fc', borderColor: '#0ea5e966' }
+              : { background: '#1e293b', color: '#94a3b8', borderColor: '#334155' }}>
+            <Ruler className="w-3.5 h-3.5" /> أدوات القياس
+          </button>
           <button onClick={() => fieldId && analyze({ fieldId })} disabled={analyzing || !fieldId}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
             style={{ background: analyzing ? '#15803d' : '#16a34a' }}>
@@ -192,12 +225,13 @@ export default function SatellitePage() {
             key={fieldId}
             fieldId={fieldId}
             index={gridIndex}
-            date="latest"
+            date={mapDate}
             fieldPolygon={fieldPolygon}
             fallbackBounds={fallbackBounds}
             basemap="satellite"
             initialOpacity={0.75}
             height={400}
+            tools={measureTools}
           />
 
           {/* Thumbnail strip (سلسلة زمنيّة حقيقيّة من vegetation-service) */}
@@ -210,7 +244,20 @@ export default function SatellitePage() {
                   متوسّطات حقيقيّة · {gridIndex.toUpperCase()}
                 </span>
               )}
-              <div className="flex gap-1 mr-auto">
+              {/* إخفاء الأيّام الغائمة (نمط FieldView) — يظهر فقط حين يوفّر المصدر
+                  cloudy_pct؛ تعطيل رشيق لمصدر vegetation البديل. */}
+              {hasCloudData && (
+                <label className="flex items-center gap-1.5 mr-auto cursor-pointer select-none text-[11px] text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={hideCloudy}
+                    onChange={(e)=>setHideCloudy(e.target.checked)}
+                    style={{ accentColor:'#16a34a' }}
+                  />
+                  إخفاء الأيّام الغائمة
+                </label>
+              )}
+              <div className={`flex gap-1 ${hasCloudData ? '' : 'mr-auto'}`}>
                 {[14,30,60].map(d=>(
                   <button key={d} onClick={()=>setDays(d)}
                     className="px-2 py-0.5 rounded text-[11px]"
@@ -226,22 +273,46 @@ export default function SatellitePage() {
               <p className="text-amber-400/80 text-xs py-4 w-full text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
             ) : (
               <div className="flex gap-2 overflow-x-auto pb-1 min-h-[72px]">
-                {thumbs.map((t,i)=>{
+                {(Array.isArray(thumbs) ? thumbs : []).map((t,i)=>{
                   const v = t.value||0; const c = ndviColor(v);
+                  const selected = !!t.date && t.date === selectedDate;
+                  const cloudy = typeof t.cloud === 'number' && t.cloud > CLOUD_THRESHOLD;
+                  // نقر البلاطة يختار تاريخها ⇒ يتغيّر mapDate ⇒ طبقة الخريطة تتبدّل
+                  // (FieldIndicatorMap يُمرّر date عبر استعلام بلاطات/tilejson).
                   return (
-                    <div key={i} className="flex-shrink-0 cursor-default" style={{width:72}}>
-                      <div className="h-10 rounded-lg mb-1 border" style={{
-                        borderColor:'#334155',
+                    <button
+                      key={t.date || i}
+                      type="button"
+                      onClick={()=> t.date && setSelectedDate(t.date)}
+                      title={t.date ? (cloudy ? `${t.date} · غائم` : t.date) : ''}
+                      className="flex-shrink-0 cursor-pointer text-right rounded-lg p-0.5 transition-all"
+                      style={{ width:72,
+                        outline: selected ? `2px solid ${c}` : '2px solid transparent',
+                        outlineOffset: 1,
+                        background: selected ? `${c}1a` : 'transparent' }}
+                    >
+                      <div className="h-10 rounded-lg mb-1 border relative" style={{
+                        borderColor: selected ? c : '#334155',
                         background:`linear-gradient(135deg,${c}44,${c}88,${c}44)`
-                      }} />
+                      }}>
+                        {cloudy && (
+                          <span className="absolute top-0.5 left-0.5 text-[10px] leading-none" title="يوم غائم">☁️</span>
+                        )}
+                      </div>
                       <div className="text-center text-[10px]">
                         <div className="font-bold" style={{color:c}}>{v.toFixed(2)}</div>
-                        <div className="text-slate-500">{t.date?.slice(5)||''}</div>
+                        <div className={selected ? 'text-slate-200' : 'text-slate-500'}>{t.date?.slice(5)||''}</div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
-                {!thumbs.length && <p className="text-slate-500 text-xs py-4 w-full text-center">لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لمعالجة صور Sentinel-2.</p>}
+                {!thumbs.length && (
+                  <p className="text-slate-500 text-xs py-4 w-full text-center">
+                    {hideCloudy && hasCloudData
+                      ? 'كلّ التواريخ المتاحة غائمة — أوقِف «إخفاء الأيّام الغائمة» لعرضها.'
+                      : 'لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لمعالجة صور Sentinel-2.'}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -284,25 +355,20 @@ export default function SatellitePage() {
             </button>
             {showLayers && (
               <div className="px-2 pb-3 space-y-1">
-                {INDICES.map(ind=>{
-                  // فقط المؤشّرات التي لها بلاطات حقيقيّة قابلة للاختيار — تعطيل
-                  // الباقي يمنع تضليل المستخدم (خريطة NDVI تحت عنوان EVI مثلاً).
-                  const supported = ind.id in GRID_INDEX_MAP;
-                  return (
-                    <button key={ind.id} disabled={!supported}
-                      onClick={()=> supported && setActiveIndex(ind.id)}
-                      title={supported ? undefined : 'بلاطات هذا المؤشّر غير متوفّرة بعد'}
-                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right disabled:opacity-40 disabled:cursor-not-allowed"
-                      style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
-                        border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
-                      <span>{ind.icon}</span>
-                      <div className="flex-1">
-                        <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
-                        <div className="text-[10px] text-slate-600">{ind.desc}{!supported && ' · بلاطات قريباً'}</div>
-                      </div>
-                    </button>
-                  );
-                })}
+                {/* كلّ المعروض قابل للرسم (الكتالوج · renderable) — لا تعطيل ولا تضليل */}
+                {indices.map(ind=>(
+                  <button key={ind.id}
+                    onClick={()=> setActiveIndex(ind.id)}
+                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right"
+                    style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
+                      border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
+                    <span>{ind.icon}</span>
+                    <div className="flex-1">
+                      <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
+                      <div className="text-[10px] text-slate-600">{ind.desc}</div>
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
           </div>

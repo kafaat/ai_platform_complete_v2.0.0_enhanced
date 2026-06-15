@@ -53,6 +53,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="SAHOOL Supervisor Agent", version="2026.1", lifespan=lifespan)
 security = HTTPBearer(auto_error=False)
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 mcp_client = MCPClient(
     servers={
@@ -68,6 +70,32 @@ mcp_client = MCPClient(
 
 # بوّابة القرار المركزيّة — التوصيات تمرّ عبرها (حَوكمة موحّدة)
 GUARDRAILS_URL = os.getenv("GUARDRAILS_URL", "http://sahool-guardrails-engine:8000")
+# المنصّة — لجلب الحالة القانونيّة للحقل (Canonical Field State) وإرفاقها بسياق
+# الحَوكمة، فتمرّ قرارات guardrails عبر مصدر الحقيقة الواحد. نعتمد PLATFORM_SERVICE_URL
+# (نفس اسم field_intelligence_adapters) مع PLATFORM_URL توافقاً خلفيّاً.
+PLATFORM_URL = os.getenv(
+    "PLATFORM_SERVICE_URL", os.getenv("PLATFORM_URL", "http://sahool-platform:8000")
+)
+
+
+async def _fetch_field_state(client, field_id, tenant_id):
+    """best-effort: يجلب الحالة القانونيّة للحقل من المنصّة عبر القناة الداخليّة
+    (X-Agent-Token + tenant صريح). يُرجِع dict أو None — fail-safe: أيّ تعذّر ⇒
+    None فيتابع التحقّق بلا الحالة (لا يكسر مسار الحَوكمة الحاليّ)."""
+    if not field_id or not tenant_id:
+        return None
+    try:
+        r = await client.get(
+            f"{PLATFORM_URL}/internal/fields/{field_id}/state",
+            params={"tenant_id": str(tenant_id)},
+            headers={"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")},
+        )
+        if r.status_code == 200:
+            return r.json()
+    except Exception:  # noqa: BLE001 — best-effort، لا يكسر الحَوكمة
+        return None
+    return None
+
 
 skill_libraries = {
     "remote_sensing": RemoteSensingSkill(mcp_client),
@@ -121,6 +149,9 @@ async def _get_current_user(credentials: Optional = Depends(security)):
             algorithms=[_valg],
             audience="sahool",
         )
+        # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
+        if payload.get("iss") not in _ALLOWED_ISS:
+            raise ValueError("Invalid token issuer")
         return payload
     except Exception as e:
         raise HTTPException(401, f"Invalid token: {e}") from e
@@ -245,6 +276,11 @@ async def _validate_actions_via_guardrails(
     }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
+            # Canonical Field State: أرفِق الحالة القانونيّة (best-effort) ليحكم
+            # guardrails بها — قرار الحَوكمة يمرّ عبر مصدر الحقيقة الواحد.
+            _fs = await _fetch_field_state(client, getattr(query, "field_id", None), tenant_id)
+            if _fs is not None:
+                payload["farm_context"]["field_state"] = _fs
             resp = await client.post(
                 f"{GUARDRAILS_URL}/validate",
                 json=payload,
@@ -346,6 +382,13 @@ async def _validate_via_guardrails(
     }
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
+            # Canonical Field State: أرفِق الحالة القانونيّة (best-effort) ليحكم
+            # guardrails بها — قرار الحَوكمة يمرّ عبر مصدر الحقيقة الواحد.
+            _fs = await _fetch_field_state(
+                client, getattr(query, "field_id", None), trusted_tenant_id
+            )
+            if _fs is not None:
+                payload["farm_context"]["field_state"] = _fs
             resp = await client.post(
                 f"{GUARDRAILS_URL}/validate",
                 json=payload,
@@ -573,8 +616,8 @@ bootstrap_default_tools(_tool_registry)
 
 
 @app.get("/agent/tools")
-async def list_tools():
-    """يرجع كل الـtools المسجّلة + contracts."""
+async def list_tools(user: dict = Depends(_get_current_user)):
+    """يرجع كل الـtools المسجّلة + contracts. يتطلّب مصادقة (كان يكشف السجلّ علناً)."""
     tools = []
     for tool_id in _tool_registry.list_tools():
         contract = _tool_registry.get_contract(tool_id)
@@ -595,9 +638,14 @@ async def list_tools():
 
 
 @app.get("/agent/journal/{invocation_id}")
-async def get_journal_replay(invocation_id: str):
-    """Replay كامل لـinvocation معيّن (debugging / audit)."""
+async def get_journal_replay(invocation_id: str, user: dict = Depends(_get_current_user)):
+    """Replay لـinvocation (debug/audit) — مقصور على مستأجِر التوكن (كان مكشوفاً للجميع)."""
+    tenant = user.get("tenant_id")
     entries = await _execution_journal.replay(invocation_id)
+    # عزل المستأجِر: لا نكشف سجلّ invocation لمستأجِر آخر (404 لا 403 — لا تسريب وجود).
+    entries = [e for e in entries if e.tenant_id == tenant]
+    if not entries:
+        raise HTTPException(404, "Invocation not found")
     return {
         "invocation_id": invocation_id,
         "entries": [
@@ -614,10 +662,14 @@ async def get_journal_replay(invocation_id: str):
 
 
 @app.get("/agent/actuator-audit")
-async def get_actuator_audit(tenant_id: str | None = None):
-    """Audit log لكل actuator invocations (irrigation, pumps).
-    حسّاس — يتطلّب admin role في الإنتاج.
+async def get_actuator_audit(user: dict = Depends(_get_current_user)):
+    """Audit لكلّ actuator invocations (ريّ/مضخّات). حسّاس — admin + مستأجِر التوكن.
+
+    كان مكشوفاً بلا مصادقة وبـtenant_id من query ⇒ أيّ زائر يقرأ سجلّ actuator لأيّ مستأجِر.
     """
+    if user.get("role") != "admin":
+        raise HTTPException(403, "Admin role required")
+    tenant_id = user.get("tenant_id")  # من التوكن لا من query
     entries = await _execution_journal.get_entries()
     actuator_tools = set(_tool_registry.list_by_side_effect(SideEffectClass.ACTUATOR))
     audit = [
@@ -629,7 +681,7 @@ async def get_actuator_audit(tenant_id: str | None = None):
             "tenant_id": e.tenant_id,
         }
         for e in entries
-        if e.tool_id in actuator_tools and (tenant_id is None or e.tenant_id == tenant_id)
+        if e.tool_id in actuator_tools and e.tenant_id == tenant_id
     ]
     return {"total": len(audit), "entries": audit}
 

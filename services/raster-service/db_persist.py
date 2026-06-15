@@ -148,6 +148,7 @@ async def fetch_latest_asset(
             FROM raster_assets
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
+              AND tenant_id = $4::uuid   -- فلتر مستأجِر صريح (دفاع عميق فوق RLS)؛ None ⇒ لا صفوف
             ORDER BY acquisition_date DESC NULLS LAST, created_at DESC
             LIMIT 1
         ) s
@@ -158,7 +159,9 @@ async def fetch_latest_asset(
             "SELECT set_config('app.current_tenant', $1, true)",
             str(tenant_id) if tenant_id else "",
         )
-        row = await conn.fetchrow(sql, field_id, index_name, d)
+        row = await conn.fetchrow(
+            sql, field_id, index_name, d, str(tenant_id) if tenant_id else None
+        )
         if not row or not row["cog_uri"]:
             return None
         bounds = None

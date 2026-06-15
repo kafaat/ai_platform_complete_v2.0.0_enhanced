@@ -187,6 +187,13 @@ def is_outcome_ready_for_learning(
         # YYYY-MM-DD format
         issued = datetime.strptime(issued_date[:10], "%Y-%m-%d")
 
+    # توحيد الوعي بالمنطقة الزمنيّة: نقارن كقيم naive. issued قد يكون aware (offset
+    # مثل +00:00 يبقى بعد إزالة 'Z' فقط) بينما now naive ⇒ كان يرفع TypeError.
+    if now.tzinfo is not None:
+        now = now.replace(tzinfo=None)
+    if issued.tzinfo is not None:
+        issued = issued.replace(tzinfo=None)
+
     days_elapsed = (now - issued).days
 
     if days_elapsed < window.min_lag_days:

@@ -11,6 +11,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from models.errors import ModelNotProvisioned
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
 from pydantic import BaseModel, Field
@@ -157,6 +158,13 @@ async def detect_pest(
         detections = detector.predict(
             image_bytes, confidence_threshold=request.confidence_threshold
         )
+    except ModelNotProvisioned as e:
+        # لا نموذج ONNX حقيقيّ ⇒ 503 صريح بدل كشوف مُختلَقة (أمانةً مع المزارع)
+        raise HTTPException(
+            503,
+            "نموذج كشف الآفات غير مُجهَّز على هذه الحافة — المسار معطّل بأمانة "
+            "حتّى توفير نموذج ONNX (لا تُرجَع كشوف مُختلَقة).",
+        ) from e
     except Exception as e:
         # صورة تالفة/غير صالحة → 400 واضح بدل 500
         raise HTTPException(400, "تعذّر معالجة الصورة — تأكّد أنّها صورة صالحة") from e
@@ -213,9 +221,17 @@ async def estimate_yield(
             raise HTTPException(400, "تعذّر معالجة إحدى الصور — تأكّد أنّها صور صالحة") from e
         all_features.append(features)
     start = time.time()
-    yield_prediction = estimator.predict_yield(
-        features=all_features, crop=request.crop, growth_stage=request.growth_stage
-    )
+    try:
+        yield_prediction = estimator.predict_yield(
+            features=all_features, crop=request.crop, growth_stage=request.growth_stage
+        )
+    except ModelNotProvisioned as e:
+        # لا نموذج ONNX حقيقيّ ⇒ 503 صريح بدل رقم غلّة مُختلَق
+        raise HTTPException(
+            503,
+            "نموذج تقدير الغلّة غير مُجهَّز على هذه الحافة — المسار معطّل بأمانة "
+            "حتّى توفير نموذج ONNX (لا تُرجَع أرقام مُختلَقة).",
+        ) from e
     inference_time_ms = (time.time() - start) * 1000
     result = {
         "field_id": request.field_id,

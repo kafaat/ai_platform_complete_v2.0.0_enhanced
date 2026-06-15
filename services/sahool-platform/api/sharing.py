@@ -105,7 +105,13 @@ class SharingKeyService:
 
     @_asynccontextmanager
     async def _acquire(self):
-        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي)."""
+        """conn من tenant_connection (RLS مُطبَّق) أو من الـpool (توافق خلفي).
+
+        الاستعلامات هنا مُرشّحة صراحةً بـWHERE tenant_id = $1 (عزل على مستوى
+        التطبيق) إضافةً إلى RLS. مسار الطلب يمرّر conn (main.py)، فيُطبَّق
+        app.current_tenant. مسار الـpool احتياطيّ خلفيّ؛ تحت الدور المُقيَّد إن
+        استُعمل خلفيّاً يحتاج دوراً خدميّاً مخصّصاً (BYPASSRLS).
+        """
         if getattr(self, "_conn", None) is not None:
             yield self._conn
         else:

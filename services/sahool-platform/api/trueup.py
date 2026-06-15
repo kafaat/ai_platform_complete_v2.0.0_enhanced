@@ -297,6 +297,12 @@ class TrueUpEngine:
         """
         النسخة الكاملة: compute + persist + emit event.
         تحتاج pool + event_bus configured.
+
+        ملاحظة عزل: المثيل الموصَّل في main.py هو TrueUpEngine() بـpool=None
+        (يُستخدَم compute النقيّ فقط على مسار الطلب)، فمسار apply الخام هذا غير
+        مُفعَّل حاليّاً. يكتسب اتّصاله من الـpool بلا ضبط app.current_tenant؛ إن
+        وُصِّل لاحقاً على مسار طلب وجب تمرير tenant_id وضبط الـGUC عبر
+        _apply_tenant_guc — أو، إن صار عابراً للمستأجِرين، دور خدميّ مخصّص.
         """
         if self.pool is None:
             raise RuntimeError("TrueUpEngine: pool not configured for async apply()")

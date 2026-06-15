@@ -151,6 +151,7 @@ class WOverviewSection extends StatelessWidget {
     final alerts = wNum(field['active_alerts'] ??
         field['alerts_count'] ??
         field['alert_count']);
+    final fieldId = wText(field['field_id'] ?? field['id'], '');
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -172,7 +173,132 @@ class WOverviewSection extends StatelessWidget {
             ],
           ),
         ),
+        // الحالة القانونيّة الموحّدة (Canonical Field State) — مصدر الحقيقة الواحد
+        // الذي تمرّ عبره القرارات. يُجلب حيّاً لكلّ حقل (إن توفّر معرّفه).
+        if (fieldId.isNotEmpty) WFieldStateSection(fieldId: fieldId),
       ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// قسم الحالة القانونيّة الموحّدة — يجلب GET /api/v1/fields/{id}/state ويعرض
+// صلاحيّة القرار + نمط التنفيذ + الحقائق الزراعيّة (حيويّة المحصول/الملوحة) مع
+// الأسباب العربيّة. صدق: غياب الحالة ⇒ حالة فارغة/خطأ صريحة بلا اختلاق. مضمّن
+// داخل ListView النظرة العامّة فيُعيد بطاقة (لا ListView متداخلاً).
+// ════════════════════════════════════════════════════════════════════
+class WFieldStateSection extends StatefulWidget {
+  final String fieldId;
+  const WFieldStateSection({super.key, required this.fieldId});
+  @override
+  State<WFieldStateSection> createState() => _WFieldStateSectionState();
+}
+
+class _WFieldStateSectionState extends State<WFieldStateSection> {
+  late Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<Map<String, dynamic>> _load() =>
+      ApiService.instance.getFieldState(widget.fieldId);
+
+  void _retry() => setState(() => _future = _load());
+
+  static const _validityAr = {
+    'valid': 'صالحة',
+    'degraded': 'متدهورة',
+    'conflicted': 'متعارضة',
+    'insufficient': 'بيانات ناقصة',
+  };
+  static const _execAr = {
+    'auto': 'تلقائيّ',
+    'human_review': 'يحتاج مراجعة بشريّة',
+    'blocked': 'محجوب',
+  };
+  static const _salAr = {
+    'normal': 'طبيعيّة',
+    'low': 'منخفضة',
+    'moderate': 'متوسّطة',
+    'high': 'عالية',
+    'critical': 'حرجة',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            // kPrimary لتوحيد التباين مع السمة الداكنة (كبقيّة الشاشات/LoadingView).
+            child: Center(child: CircularProgressIndicator(color: kPrimary)),
+          );
+        }
+        if (snap.hasError) {
+          return WSectionCard(
+            title: 'الحالة القانونيّة الموحّدة',
+            icon: Icons.verified,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(apiErrorMessage(snap.error!),
+                    style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                const SizedBox(height: 8),
+                TextButton(
+                    onPressed: _retry, child: const Text('إعادة المحاولة')),
+              ],
+            ),
+          );
+        }
+        final s = snap.data ?? const <String, dynamic>{};
+        final validity = wText(s['validity'], 'insufficient');
+        final exec = wText(s['execution_mode']);
+        final agronomic = s['agronomic'];
+        final truths =
+            (agronomic is Map && agronomic['operational_truths'] is Map)
+                ? (agronomic['operational_truths'] as Map)
+                    .cast<String, dynamic>()
+                : const <String, dynamic>{};
+        final vigor = truths['crop_vigor'];
+        final sal = wText(truths['salinity_class'], '');
+        final reasons = (s['reasons_ar'] is List)
+            ? (s['reasons_ar'] as List).map((e) => e.toString()).toList()
+            : const <String>[];
+
+        return WSectionCard(
+          title: 'الحالة القانونيّة الموحّدة',
+          icon: Icons.verified,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              WInfoRow('صلاحيّة القرار', _validityAr[validity] ?? validity),
+              WInfoRow('نمط التنفيذ', _execAr[exec] ?? exec),
+              if (vigor != null)
+                WInfoRow(
+                    'حيويّة المحصول',
+                    vigor is num
+                        ? vigor.toStringAsFixed(2)
+                        : wText(vigor)),
+              if (sal.isNotEmpty)
+                WInfoRow('ملوحة التربة', _salAr[sal] ?? sal),
+              if (reasons.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                ...reasons.map((r) => Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text('• $r',
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 12)),
+                    )),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -256,7 +382,263 @@ class _WSatelliteSectionState extends State<WSatelliteSection> {
                     .toList(),
               ),
             ),
+            // شريط NDVI الزمنيّ الأفقيّ (بطاقات بالتاريخ) أسفل المؤشّرات الحاليّة.
+            WNdviTimelineStrip(fieldId: widget.fieldId),
           ],
+        );
+      },
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// شريط NDVI زمنيّ أفقيّ بنمط Climate FieldView — يجلب السلسلة الزمنيّة عبر
+// getFieldNdviTimeseries ويعرض بطاقات لكلّ تاريخ (تاريخ + قيمة NDVI ملوّنة).
+// قابل للتمرير أفقيّاً، ديناميكيّ بالبيانات (يُصيَّر ما يُرجِعه الخادم فقط، لا
+// تواريخ ثابتة، وينمو تلقائيّاً)، البطاقة المختارة مُحدَّدة بإطار. مفتاح «إخفاء
+// الأيّام الغائمة» يُخفي النقاط ذات cloudy_pct > 50 (يُعطَّل إن غاب المفتاح).
+// صدق: available=false/لا نقاط ⇒ حالة «غير متاح» بلا اختلاق، ولا تراكب خريطة.
+// ════════════════════════════════════════════════════════════════════
+class WNdviTimelineStrip extends StatefulWidget {
+  final String fieldId;
+  const WNdviTimelineStrip({super.key, required this.fieldId});
+  @override
+  State<WNdviTimelineStrip> createState() => _WNdviTimelineStripState();
+}
+
+class _WNdviTimelineStripState extends State<WNdviTimelineStrip> {
+  late Future<List<Map<String, dynamic>>> _future;
+  int _selected = -1;
+  bool _hideCloudy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<List<Map<String, dynamic>>> _load() =>
+      ApiService.instance.getFieldNdviTimeseries(widget.fieldId);
+
+  void _retry() => setState(() {
+        _selected = -1;
+        _future = _load();
+      });
+
+  // مقياس لون NDVI بسيط أحمر→أصفر→أخضر (لا اعتماد خارجيّ).
+  Color _ndviColor(double? v) {
+    if (v == null) return Colors.grey;
+    final t = v.clamp(0.0, 1.0);
+    if (t < 0.5) {
+      // أحمر → أصفر
+      return Color.lerp(const Color(0xFFD64545), const Color(0xFFE0B341),
+          (t / 0.5).clamp(0.0, 1.0))!;
+    }
+    // أصفر → أخضر (kPrimary)
+    return Color.lerp(const Color(0xFFE0B341), kPrimary,
+        ((t - 0.5) / 0.5).clamp(0.0, 1.0))!;
+  }
+
+  // تاريخ مختصر YYYY-MM-DD ⇒ MM-DD (يتسامح مع صيغ أخرى).
+  String _shortDate(dynamic raw) {
+    final s = wText(raw, '');
+    if (s.isEmpty || s == '—') return '—';
+    final dt = DateTime.tryParse(s);
+    if (dt != null) {
+      final mm = dt.month.toString().padLeft(2, '0');
+      final dd = dt.day.toString().padLeft(2, '0');
+      return '$mm-$dd';
+    }
+    // احتياطيّ: خذ آخر 5 محارف لو بدت كتاريخ نصّيّ
+    return s.length >= 10 ? s.substring(5, 10) : s;
+  }
+
+  bool _anyCloud(List<Map<String, dynamic>> pts) =>
+      pts.any((p) => p['cloudy_pct'] != null);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const WSectionCard(
+            title: 'خطّ NDVI الزمنيّ',
+            icon: Icons.timeline,
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: LoadingView(),
+            ),
+          );
+        }
+        if (snap.hasError) {
+          return WSectionCard(
+            title: 'خطّ NDVI الزمنيّ',
+            icon: Icons.timeline,
+            child: Column(
+              children: [
+                Text(apiErrorMessage(snap.error!),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: _retry,
+                  style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+                  child: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final all = snap.data ?? const <Map<String, dynamic>>[];
+        // صدق: لا نقاط (available=false أو points فارغة) ⇒ حالة «غير متاح».
+        if (all.isEmpty) {
+          return WSectionCard(
+            title: 'خطّ NDVI الزمنيّ',
+            icon: Icons.timeline,
+            child: Column(
+              children: const [
+                SizedBox(height: 8),
+                Icon(Icons.hourglass_empty, color: Colors.grey, size: 32),
+                SizedBox(height: 10),
+                Text('لا سلسلة NDVI زمنيّة متاحة لهذا الحقل بعد',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 13)),
+                SizedBox(height: 4),
+                Text('تظهر البطاقات تلقائيّاً عند توفّر مشاهد مقصوصة للحقل.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 11)),
+                SizedBox(height: 8),
+              ],
+            ),
+          );
+        }
+
+        final hasCloud = _anyCloud(all);
+        // تطبيق فلتر «إخفاء الأيّام الغائمة» (cloudy_pct > 50) إن توفّر المفتاح.
+        final points = (_hideCloudy && hasCloud)
+            ? all.where((p) {
+                final c = wNum(p['cloudy_pct']);
+                return c == null || c <= 50;
+              }).toList()
+            : all;
+
+        // ضبط المؤشّر المختار ضمن الحدود (آخر نقطة افتراضاً = الأحدث).
+        if (points.isNotEmpty &&
+            (_selected < 0 || _selected >= points.length)) {
+          _selected = points.length - 1;
+        }
+        final selected = (_selected >= 0 && _selected < points.length)
+            ? points[_selected]
+            : null;
+        final selMean = selected != null ? wNum(selected['mean']) : null;
+
+        return WSectionCard(
+          title: 'خطّ NDVI الزمنيّ',
+          icon: Icons.timeline,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ملخّص التاريخ المختار (يتحدّث عند اللمس) — لا تراكب خريطة.
+              WInfoRow(
+                'التاريخ المختار',
+                selected != null
+                    ? wText(selected['datetime'])
+                    : '—',
+              ),
+              WInfoRow(
+                'متوسّط NDVI',
+                selMean != null ? selMean.toStringAsFixed(2) : '—',
+              ),
+              const SizedBox(height: 8),
+              // مفتاح إخفاء الأيّام الغائمة — يُعطَّل بلطف إن غاب cloudy_pct.
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text('إخفاء الأيّام الغائمة',
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                  ),
+                  Switch(
+                    value: _hideCloudy && hasCloud,
+                    onChanged: hasCloud
+                        ? (v) => setState(() => _hideCloudy = v)
+                        : null,
+                    activeColor: kPrimary,
+                  ),
+                ],
+              ),
+              if (!hasCloud)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Text('نسبة الغيوم غير متوفّرة في هذه البيانات.',
+                      style: TextStyle(color: Colors.grey, fontSize: 11)),
+                ),
+              const SizedBox(height: 8),
+              if (points.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Text('كلّ الأيّام المتاحة غائمة — أوقف الفلتر لعرضها.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                )
+              else
+                SizedBox(
+                  height: 86,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: points.length,
+                    itemBuilder: (context, i) {
+                      final p = points[i];
+                      final mean = wNum(p['mean']);
+                      final isSel = i == _selected;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selected = i),
+                        child: Container(
+                          width: 72,
+                          margin: const EdgeInsets.only(left: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: kBg,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSel ? kPrimary : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(_shortDate(p['datetime']),
+                                  style: const TextStyle(
+                                      color: Colors.white70, fontSize: 11)),
+                              const SizedBox(height: 6),
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: _ndviColor(mean),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                mean != null ? mean.toStringAsFixed(2) : '—',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
         );
       },
     );

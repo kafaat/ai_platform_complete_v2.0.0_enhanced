@@ -72,9 +72,14 @@ class HumanApprovalWorkflow:
         workflow_id: str,
         expert_id: str,
         expert_role: str,
+        tenant_id: str,
         notes: str = "",
         modifications: dict | None = None,
     ) -> dict:
+        # أمان (IDOR عبر المستأجرين): tenant_id إلزاميّ — كلّ استعلام مقصور على
+        # مستأجِر الطالب، وإلّا أمكن لخبير مستأجِر A اعتماد/رفض workflow المستأجِر B.
+        if not tenant_id:
+            return {"error": "Workflow not found", "status": "not_found"}
         pool = await _get_pool()
         if not pool:
             return {"error": "Database not available", "status": "error"}
@@ -84,14 +89,19 @@ class HumanApprovalWorkflow:
             # تقرأ موافقتان "pending" معاً وتمرّان (double-approval).
             async with conn.transaction():
                 row = await conn.fetchrow(
-                    "SELECT * FROM approval_workflows WHERE workflow_id=$1 FOR UPDATE", workflow_id
+                    "SELECT * FROM approval_workflows WHERE workflow_id=$1 "
+                    "AND tenant_id::TEXT=$2 FOR UPDATE",
+                    workflow_id,
+                    tenant_id,
                 )
                 if not row:
                     return {"error": "Workflow not found", "status": "not_found"}
                 if row["status"] != "pending":
                     return {"error": f"Workflow already {row['status']}", "status": row["status"]}
                 required = row["required_roles"] or []
-                if expert_role not in required:
+                # admin مُعتمِد شامل (الأعلى ثقةً، مُمرَّر سلفاً عبر بوّابة _gr_verify)؛
+                # غيره يجب أن يطابق دوره المجاليّ المطلوب للـworkflow.
+                if expert_role != "admin" and expert_role not in required:
                     return {
                         "error": f"Expert role '{expert_role}' not authorized",
                         "authorized_roles": required,
@@ -154,8 +164,12 @@ class HumanApprovalWorkflow:
         expert_id: str,
         expert_role: str,
         reason: str,
+        tenant_id: str,
         suggested_alternative: dict | None = None,
     ) -> dict:
+        # أمان (IDOR عبر المستأجرين): مقصور على مستأجِر الطالب.
+        if not tenant_id:
+            return {"error": "Workflow not found", "status": "not_found"}
         pool = await _get_pool()
         if not pool:
             return {"error": "Database not available", "status": "error"}
@@ -163,7 +177,10 @@ class HumanApprovalWorkflow:
             # Hardening (مراجعة 7): قفل صفّي + فحص الحالة (لا رفض ما حُسم)
             async with conn.transaction():
                 row = await conn.fetchrow(
-                    "SELECT * FROM approval_workflows WHERE workflow_id=$1 FOR UPDATE", workflow_id
+                    "SELECT * FROM approval_workflows WHERE workflow_id=$1 "
+                    "AND tenant_id::TEXT=$2 FOR UPDATE",
+                    workflow_id,
+                    tenant_id,
                 )
                 if not row:
                     return {"error": "Workflow not found", "status": "not_found"}

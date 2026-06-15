@@ -20,13 +20,20 @@ import { isAccessTokenExpired } from '../lib/jwt';
 const IS_LOCAL = typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-const KONG_URL       = import.meta.env.VITE_API_URL             || (IS_LOCAL ? 'http://localhost:8000' : '/api');
-const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL         || 'http://localhost:8092';
-const SOIL_URL       = import.meta.env.VITE_SOIL_URL            || 'http://localhost:8094';
-const INDICATORS_URL = import.meta.env.VITE_INDICATORS_URL      || 'http://localhost:8091';
-const VEGETATION_URL = import.meta.env.VITE_VEGETATION_URL      || 'http://localhost:8090';
-const RASTER_URL     = import.meta.env.VITE_RASTER_URL          || 'http://localhost:8099';
-const AUTH_URL       = import.meta.env.VITE_AUTH_URL            || 'http://localhost:8120';
+// ملاحظة (إصلاح اتّصال الإنتاج): خارج التطوير المحلّيّ، تُوجَّه كلّ العملاء عبر
+// البوّابة (nginx) بمسارات نسبيّة — كان السقوط لـlocalhost:81xx يكسر تسجيل الدخول
+// وكلّ الخدمات في المتصفّح المنشور. المسارات النسبيّة مطابقة لتوجيه nginx:
+//   /auth → خدمة auth (nginx /auth/ يُجرّد ثمّ الخدمة تخدم /auth/*)
+//   /api/vegetation, /api/indicators, /api/raster → الخدمات (تجريد البادئة)
+//   /api(=KONG) + /weather/* → platform /api/v1/weather/* (nginx /api/weather/)
+// التطوير المحلّيّ (IS_LOCAL) يبقى على localhost كما كان (لا كسر)؛ وVITE_*_URL يَسبق.
+const KONG_URL       = import.meta.env.VITE_API_URL        || (IS_LOCAL ? 'http://localhost:8000' : '/api');
+const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL    || (IS_LOCAL ? 'http://localhost:8092' : '/api');
+const SOIL_URL       = import.meta.env.VITE_SOIL_URL       || (IS_LOCAL ? 'http://localhost:8094' : '/api/soil');
+const INDICATORS_URL = import.meta.env.VITE_INDICATORS_URL || (IS_LOCAL ? 'http://localhost:8091' : '/api/indicators');
+const VEGETATION_URL = import.meta.env.VITE_VEGETATION_URL || (IS_LOCAL ? 'http://localhost:8090' : '/api/vegetation');
+const RASTER_URL     = import.meta.env.VITE_RASTER_URL     || (IS_LOCAL ? 'http://localhost:8099' : '/api/raster');
+const AUTH_URL       = import.meta.env.VITE_AUTH_URL       || (IS_LOCAL ? 'http://localhost:8120' : '/auth');
 const MOCK_MODE      = import.meta.env.VITE_MOCK_MODE === 'true' || false;
 
 // ── Axios instances ────────────────────────────────────────────
@@ -55,7 +62,20 @@ function makeClient(baseURL: string): AxiosInstance {
   });
   // 401 → logout
   client.interceptors.response.use(
-    (r) => r,
+    (r) => {
+      // حارس: لو رجع HTML (SPA fallback لمسار API غير مُوجَّه) بدل JSON ⇒ عامله خطأً
+      // بدل تمرير نصّ HTML للمكوّنات فتنهار (مثل alerts.slice(...).map is not a function).
+      const ct = (r.headers?.['content-type'] || '') as string;
+      if (
+        typeof r.data === 'string' &&
+        (ct.includes('text/html') || r.data.trimStart().startsWith('<'))
+      ) {
+        return Promise.reject(
+          new Error('استجابة غير صالحة من الخادم (مسار API غير مُوجَّه للخلفيّة؟)')
+        );
+      }
+      return r;
+    },
     (err) => {
       if (err.response?.status === 401) {
         clearAccessToken();
@@ -90,7 +110,20 @@ async function tryReal<T>(fn: () => Promise<T>, fallback: () => T): Promise<T> {
 // ══════════════════════════════════════════════════════════════════
 // عقد auth-service: /auth/login و/auth/register يتوقّعان `email` (لا username).
 export interface LoginPayload { email: string; password: string; mfa_code?: string; }
-export interface AuthResponse { access_token: string; refresh_token: string; tenant_id?: string; role?: string; user: { username: string; role: string; tenant_id?: string; email?: string; full_name?: string } }
+// auth-service يردّ حقولاً مسطّحة (TokenResponse: user_id/role/full_name/tenant_id،
+// بلا كائن user مُتداخل). نُطبّعها أدناه إلى {user:{...}} كي يقرأها useAuth بثبات.
+// user اختياريّ (غائب في الردّ الخام) ويحوي id (من user_id) لتفادي ضياعه.
+export interface AuthResponse {
+  access_token: string;
+  // قد تكون null حين لا يتوفّر Redis (auth-service لا يُصدِر refresh) — نُبقيها كما
+  // هي بدل طمسها بـ'' (سلسلة فارغة تُلتبَس كتوكن صالح). يطابق عقد TokenResponse.
+  refresh_token: string | null;
+  tenant_id?: string;
+  role?: string;
+  user_id?: number;
+  full_name?: string;
+  user?: { id?: number; username?: string; role: string; tenant_id?: string; email?: string; full_name?: string };
+}
 
 export const login = (payload: LoginPayload): Promise<AuthResponse> =>
   // أمان (P0-2): المصادقة لا تسقط على fallback وهمي. الفشل يظهر بوضوح
@@ -98,11 +131,26 @@ export const login = (payload: LoginPayload): Promise<AuthResponse> =>
   // mfa_code يُرسَل فقط إن وُجد (الخادم يتطلّبه للحسابات المُفعّل لها MFA).
   MOCK_MODE
     ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh', user:{ username:payload.email, email:payload.email, role:'farmer' } } as AuthResponse)
-    : authApi.post<AuthResponse>('/auth/login', {
+    : authApi.post('/auth/login', {
         email: payload.email,
         password: payload.password,
         ...(payload.mfa_code ? { mfa_code: payload.mfa_code } : {}),
-      }).then(r => r.data);
+      }).then(r => {
+        // الردّ الخام مسطّح ⇒ نطبّعه إلى {user:{...}} (كان login يُعيد الخام مباشرةً
+        // فيصبح data.user = undefined وقت التشغيل، فيضيع user_id/full_name).
+        const d = r.data as { access_token: string; refresh_token?: string | null; role?: string;
+          full_name?: string; tenant_id?: string; user_id?: number };
+        return {
+          access_token: d.access_token,
+          refresh_token: d.refresh_token ?? null,
+          tenant_id: d.tenant_id,
+          role: d.role,
+          user_id: d.user_id,
+          full_name: d.full_name,
+          user: { id: d.user_id, username: payload.email, email: payload.email,
+            role: d.role ?? 'farmer', tenant_id: d.tenant_id, full_name: d.full_name },
+        } as AuthResponse;
+      });
 
 /** يفحص ما إذا كان خطأ تسجيل الدخول يعني "MFA مطلوب" (الخادم يردّ 401 مع
  *  الرأس X-MFA-Required: true حين تصحّ كلمة المرور لكن يلزم رمز TOTP). */
@@ -132,14 +180,16 @@ export const register = (payload: RegisterPayload): Promise<AuthResponse> =>
     ? Promise.resolve({ access_token:'demo_token', refresh_token:'demo_refresh',
         user:{ username:payload.email, email:payload.email, role:'farmer', full_name:payload.full_name } } as AuthResponse)
     : authApi.post('/auth/register', payload).then(r => {
-    const d = r.data as { access_token: string; refresh_token?: string; role?: string;
-      full_name?: string; tenant_id?: string };
+    const d = r.data as { access_token: string; refresh_token?: string | null; role?: string;
+      full_name?: string; tenant_id?: string; user_id?: number };
     return {
       access_token: d.access_token,
-      refresh_token: d.refresh_token ?? '',
+      refresh_token: d.refresh_token ?? null,
       tenant_id: d.tenant_id,
       role: d.role,
-      user: { username: payload.email, email: payload.email, role: d.role ?? 'farmer',
+      user_id: d.user_id,
+      full_name: d.full_name ?? payload.full_name,
+      user: { id: d.user_id, username: payload.email, email: payload.email, role: d.role ?? 'farmer',
         tenant_id: d.tenant_id, full_name: d.full_name ?? payload.full_name },
     } as AuthResponse;
   });
@@ -242,6 +292,31 @@ export const confirmVerification = (
 // SAHOOL-PLATFORM (core) — وحدات قرار حيّة عبر البوابة الموحّدة (kong)
 // ربط حقيقيّ: لا fallback وهميّ (قرارات زراعيّة — الخطأ يُعلَن للـUI).
 // ══════════════════════════════════════════════════════════════════
+// ── Tenant Config (#206): تكوين المستأجِر للعلامة التجاريّة + الوحدات/اللغة ──
+// GET /api/v1/tenant/config → {branding:{logo_url, primary_color, name_ar}, units,
+// language, crops}. الحقول كلّها اختياريّة/قد تكون null (الافتراضيّ): الواجهة
+// تتجاهل أيّ حقل غائب وتُبقي سلوكها الحاليّ. أفضل-جهد: عند أيّ خطأ نُرجِع null
+// (لا fallback مُفبرَك، ولا كسر) فتعمل الواجهة بالافتراضيّات كما هي اليوم.
+export interface TenantBranding {
+  logo_url:      string | null;
+  primary_color: string | null;
+  name_ar:       string | null;
+}
+export interface TenantConfig {
+  branding: TenantBranding | null;
+  units:    string | null;
+  language: string | null;
+  crops:    string[] | null;
+}
+
+/** يجلب تكوين المستأجِر (#206). أفضل-جهد: أيّ خطأ/استجابة غير صالحة ⇒ null
+ *  فتُبقي الواجهة الافتراضيّات (لا كسر، لا علامة تجاريّة مُفبرَكة). */
+export const fetchTenantConfig = (): Promise<TenantConfig | null> =>
+  kongApi
+    .get<TenantConfig>('/api/v1/tenant/config')
+    .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
+    .catch(() => null);
+
 export interface WaterSampleInput {
   sample_id: string;
   source?: string;
@@ -504,6 +579,16 @@ export interface SeasonSummary {
   stages:           Record<string, unknown>[];
   status:           string; // active | closed | ...
   created_at:       string | null;
+  // مؤشّرات الموسم الزراعيّة (v42) — تُدخَل عند الإنشاء/التحديث، وإلّا null
+  target_yield_kg_ha:  number | null; // الغلّة المستهدفة كجم/هـ
+  plant_density:       number | null; // كثافة النبات (نبتة/م²)
+  row_spacing_cm:      number | null; // المسافة بين الخطوط (سم)
+  seed_variety_source: string | null; // مصدر/صنف البذور
+  // حقول أغرونوميّة (v52) — اختياريّة، وإلّا null
+  maturity:            string | null; // فترة النضج (early/medium/late)
+  tillage_type:        string | null; // نوع الحراثة
+  actual_yield_kg_ha:  number | null; // الغلّة الفعليّة بعد الحصاد كجم/هـ
+  notes_ar:            string | null; // ملاحظات
   // نتائج المحاكاة (تُملأ عند تشغيل /simulate، وإلّا null — تقديريّة بنطاق وثقة)
   sim_yield_kg_ha:   number | null;
   sim_biomass_kg_ha: number | null;
@@ -514,7 +599,7 @@ export interface SeasonSummary {
 }
 
 export const fetchSeasons = (fieldId: string): Promise<SeasonSummary[]> =>
-  kongApi.get<SeasonSummary[]>(`/api/v1/fields/${fieldId}/seasons`).then(r => r.data);
+  kongApi.get<SeasonSummary[]>(`/api/v1/fields/${fieldId}/seasons`).then(r => (Array.isArray(r.data) ? r.data : []));
 
 // ══════════════════════════════════════════════════════════════════
 // INVENTORY — مخزون المدخلات (حيّ، مُقيَّد بالدور inventory:view/manage وبالمستأجِر)
@@ -556,10 +641,10 @@ export interface NewInventoryBatch {
 }
 
 export const getInventoryItems = (): Promise<InventoryItem[]> =>
-  kongApi.get<InventoryItem[]>('/api/v1/inventory/items').then(r => r.data);
+  kongApi.get<InventoryItem[]>('/api/v1/inventory/items').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const getExpiringBatches = (days = 30): Promise<ExpiringBatch[]> =>
-  kongApi.get<ExpiringBatch[]>('/api/v1/inventory/expiring', { params: { days } }).then(r => r.data);
+  kongApi.get<ExpiringBatch[]>('/api/v1/inventory/expiring', { params: { days } }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createInventoryItem = (payload: NewInventoryItem): Promise<InventoryItem> =>
   kongApi.post<InventoryItem>('/api/v1/inventory/items', payload).then(r => r.data);
@@ -612,13 +697,13 @@ export interface MaintenanceCreateInput {
 }
 
 export const fetchEquipment = (): Promise<Equipment[]> =>
-  kongApi.get<Equipment[]>('/api/v1/equipment').then(r => r.data);
+  kongApi.get<Equipment[]>('/api/v1/equipment').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createEquipment = (payload: EquipmentCreateInput): Promise<Equipment> =>
   kongApi.post<Equipment>('/api/v1/equipment', payload).then(r => r.data);
 
 export const fetchMaintenance = (equipmentId: string): Promise<MaintenanceRecord[]> =>
-  kongApi.get<MaintenanceRecord[]>(`/api/v1/equipment/${equipmentId}/maintenance`).then(r => r.data);
+  kongApi.get<MaintenanceRecord[]>(`/api/v1/equipment/${equipmentId}/maintenance`).then(r => (Array.isArray(r.data) ? r.data : []));
 
 // تسجيل صيانة. kind=breakdown يقلب حالة المعدّة إلى broken خادميّاً.
 export const logMaintenance = (
@@ -659,7 +744,7 @@ export interface ActivityCreateInput {
 }
 
 export const fetchActivities = (fieldId: string): Promise<Activity[]> =>
-  kongApi.get<Activity[]>(`/api/v1/fields/${fieldId}/activities`).then(r => r.data);
+  kongApi.get<Activity[]>(`/api/v1/fields/${fieldId}/activities`).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createActivity = (
   fieldId: string,
@@ -772,7 +857,7 @@ export interface AlertListFilters {
 }
 
 export const fetchAlerts = (filters: AlertListFilters = {}): Promise<AlertRecord[]> =>
-  kongApi.get<AlertRecord[]>('/api/v1/alerts', { params: filters }).then(r => r.data);
+  kongApi.get<AlertRecord[]>('/api/v1/alerts', { params: filters }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createAlert = (payload: AlertCreateInput): Promise<AlertRecord> =>
   kongApi.post<AlertRecord>('/api/v1/alerts', payload).then(r => r.data);
@@ -886,7 +971,7 @@ export interface TelemetryRecordInput {
 
 /** قائمة الأجهزة (device:view). online مُحتسَب على الخادم. */
 export const listDevices = (): Promise<Device[]> =>
-  kongApi.get<Device[]>('/api/v1/devices').then(r => r.data);
+  kongApi.get<Device[]>('/api/v1/devices').then(r => (Array.isArray(r.data) ? r.data : []));
 
 /** تسجيل جهاز جديد (device:manage). */
 export const registerDevice = (payload: DeviceRegisterInput): Promise<Device> =>
@@ -894,7 +979,7 @@ export const registerDevice = (payload: DeviceRegisterInput): Promise<Device> =>
 
 /** قياسات حديثة لجهاز (device:view). */
 export const getDeviceTelemetry = (deviceId: string, limit = 20): Promise<TelemetryPoint[]> =>
-  kongApi.get<TelemetryPoint[]>(`/api/v1/devices/${deviceId}/telemetry`, { params: { limit } }).then(r => r.data);
+  kongApi.get<TelemetryPoint[]>(`/api/v1/devices/${deviceId}/telemetry`, { params: { limit } }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 /** رفع قياس لجهاز (observation:record). */
 export const recordTelemetry = (deviceId: string, payload: TelemetryRecordInput): Promise<TelemetryPoint> =>
@@ -968,7 +1053,7 @@ export interface CreateScheduleInput {
 }
 
 export const listValves = (): Promise<Valve[]> =>
-  kongApi.get<Valve[]>('/api/v1/irrigation/valves').then(r => r.data);
+  kongApi.get<Valve[]>('/api/v1/irrigation/valves').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createValve = (payload: CreateValveInput): Promise<Valve> =>
   kongApi.post<Valve>('/api/v1/irrigation/valves', payload).then(r => r.data);
@@ -979,7 +1064,7 @@ export const setValveState = (valveId: string, status: ValveStateIntent): Promis
 export const listSchedules = (fieldId?: string): Promise<IrrigationSchedule[]> =>
   kongApi.get<IrrigationSchedule[]>('/api/v1/irrigation/schedules', {
     params: fieldId ? { field_id: fieldId } : {},
-  }).then(r => r.data);
+  }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createSchedule = (payload: CreateScheduleInput): Promise<IrrigationSchedule> =>
   kongApi.post<IrrigationSchedule>('/api/v1/irrigation/schedules', payload).then(r => r.data);
@@ -1015,7 +1100,7 @@ export interface MasterDataCreateInput {
 }
 
 export const fetchMasterData = (category: MasterDataCategory): Promise<MasterDataEntry[]> =>
-  kongApi.get<MasterDataEntry[]>('/api/v1/master-data', { params: { category } }).then(r => r.data);
+  kongApi.get<MasterDataEntry[]>('/api/v1/master-data', { params: { category } }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createMasterDataEntry = (payload: MasterDataCreateInput): Promise<MasterDataEntry> =>
   kongApi.post<MasterDataEntry>('/api/v1/master-data', payload).then(r => r.data);
@@ -1057,7 +1142,7 @@ export const listDocuments = (
       ...(filters?.category ? { category: filters.category } : {}),
       ...(filters?.field_id ? { field_id: filters.field_id } : {}),
     },
-  }).then(r => r.data);
+  }).then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const getDocument = (docId: string): Promise<DocumentRecord> =>
   kongApi.get<DocumentRecord>(`/api/v1/documents/${docId}`).then(r => r.data);
@@ -1196,7 +1281,7 @@ export interface FarmCreated {
 }
 
 export const fetchFarms = (): Promise<Farm[]> =>
-  kongApi.get<Farm[]>('/api/v1/farms').then(r => r.data);
+  kongApi.get<Farm[]>('/api/v1/farms').then(r => (Array.isArray(r.data) ? r.data : []));
 
 export const createFarm = (payload: FarmCreateInput): Promise<FarmCreated> =>
   kongApi.post<FarmCreated>('/api/v1/farms', payload).then(r => r.data);
@@ -1243,6 +1328,15 @@ export interface FieldDetail {
   owner_name?:     string | null;
   lease_years?:    number | null;
   registry_no?:    string | null;
+  // ملفّ الريّ/المياه التفصيليّ (v41) — يعيدها الخادم؛ تُعرَض للقراءة بحالة "—" صادقة
+  irrigation_type?:           string | null;
+  irrigation_efficiency_pct?: number | null;
+  flow_rate_m3h?:             number | null; // تدفّق المضخّة م³/ساعة
+  pump_type?:                 string | null;
+  well_depth_m?:              number | null;
+  water_ec?:                  number | null; // ملوحة الماء dS/m
+  zone_key?:                  string | null; // مفتاح الإقليم القانوني (v49)
+  manager_user_id?:           number | null; // FK إلى users(id) (v47)
 }
 
 // تحديث جزئيّ: كلّ الحقول اختياريّة — تُرسَل المُعدَّلة فقط (الخادم يحدّثها فقط).

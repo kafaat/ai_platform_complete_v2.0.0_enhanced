@@ -134,29 +134,20 @@ async def call_tool(request: dict):
 
 async def _execute(name: str, args: dict) -> dict:
     if name == "run_wofost_simulation":
-        req = WOFOSTRequest(**args)
-        result = _simulate_wofost(req)
-
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": json.dumps(
-                        {
-                            "model": "WOFOST-RUE",
-                            "version": "2026.1",
-                            "crop": req.crop,
-                            "planting_date": req.planting_date,
-                            "soil_type": req.soil_type,
-                            "location": {"lat": req.latitude, "lon": req.longitude},
-                            "results": result.model_dump(),
-                            "simulated_at": datetime.now(UTC).isoformat(),
-                        },
-                        ensure_ascii=False,
-                    ),
-                }
-            ]
-        }
+        # نتحقّق من صحّة المدخل أوّلاً (422 على المُدخل السيّئ)…
+        WOFOSTRequest(**args)
+        # …ثمّ نرفض بأمانة: لا محرّك WOFOST-RUE حقيقيّ هنا.
+        # كان _simulate_wofost يُرجِع تقديراً بثوابت مكتوبة (avg_solar=20، et0=5،
+        # kc=0.8، stress=10% ثابتة) ويتجاهل weather_data المُمرَّر، ثمّ يُوسَم
+        # "model":"WOFOST-RUE" — تقديمٌ لتقريبٍ على أنّه مُخرَج نموذج عمليّاتيّ.
+        # أمانةً نردّ 501 حتّى يُدمَج محرّك حقيقيّ (مثل PCSE/WOFOST) بدل الاختلاق.
+        raise HTTPException(
+            status_code=501,
+            detail=(
+                "محاكاة WOFOST-RUE غير مُنفَّذة بمحرّك حقيقيّ على هذا الخادم — "
+                "معطّلة بأمانة بدل إرجاع تقديرٍ بثوابت مُوسَّمٍ كمُخرَج نموذج."
+            ),
+        )
 
     elif name == "get_crop_parameters":
         crop = args["crop"]

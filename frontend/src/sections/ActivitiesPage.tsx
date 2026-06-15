@@ -8,7 +8,8 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { Sprout, Plus, AlertTriangle, ClipboardList, Calendar, CheckCircle2 } from 'lucide-react';
-import { useFields, useActivities, useCreateActivity } from '../hooks/useApi';
+import { useActivities, useCreateActivity } from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { Activity, ActivityType } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { useAuthStore } from '../hooks/useAuth';
@@ -193,13 +194,8 @@ function ActivityList({ fieldId }: { fieldId: string }) {
 export default function ActivitiesPage() {
   const role = useAuthStore(s => s.user?.role);
   const mutable = canMutate(role);
-  const { data: fieldsData, isLoading, isError, error, refetch } = useFields();
+  const { options: fields, isLoading, isError, error, refetch } = useFieldOptions();
   const [fieldId, setFieldId] = useState<string>('');
-
-  const fields = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
-    id: String(f.field_id ?? f.id),
-    name: String(f.name_ar ?? f.name ?? 'حقل'),
-  }));
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">

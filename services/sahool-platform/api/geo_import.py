@@ -1,7 +1,7 @@
 """geo_import.py — محلّلات حدود الحقل من ملفّ/نقاط GPS → GeoJSON Polygon.
 
-دوالّ نقيّة offline (بلا I/O؛ تستخدم defusedxml لتحليل KML غير الموثوق
-بأمان) لاستيراد حدّ حقل بدل رسمه يدويّاً:
+دوالّ نقيّة offline (بلا I/O، بلا تبعيّات جديدة — xml.etree من المكتبة القياسيّة
+فقط) لاستيراد حدّ حقل بدل رسمه يدويّاً:
 
 * parse_geojson — يستخرج أوّل حلقة Polygon من نصّ GeoJSON (Polygon/Feature/
   FeatureCollection/MultiPolygon) ويُعيد {"type":"Polygon","coordinates":[ring]}.
@@ -17,7 +17,13 @@
 from __future__ import annotations
 
 import json
+import math
+from xml.etree.ElementTree import Element as _Element
+from xml.etree.ElementTree import ParseError as _XMLParseError
 
+# defusedxml: محتوى KML يأتي من رفع المستخدم عبر import_field (مدخل غير موثوق)،
+# لذا نمنع توسّع الكيانات/DTD (billion-laughs) وكيانات XXE الخارجيّة بدل
+# xml.etree المكشوف. الواجهة (fromstring/ParseError) متطابقة مع المكتبة القياسيّة.
 import defusedxml.ElementTree as ET
 from defusedxml.common import DefusedXmlException
 
@@ -26,8 +32,16 @@ from defusedxml.common import DefusedXmlException
 _MIN_RING_POINTS = 3
 
 
+def _finite(value: float, *, ctx: str) -> float:
+    """يرفض NaN/Infinity — قيم غير محدودة تُنتج GeoJSON غير صالح (NaN/Infinity
+    ليسا JSON قياسيّاً) وتُفسد حساب المساحة/التقاطع لاحقاً قبل تحقّق النطاق."""
+    if not math.isfinite(value):
+        raise ValueError(f"إحداثيّة غير محدودة (NaN/Infinity) {ctx}.")
+    return value
+
+
 def _coerce_point(pt: object) -> list[float]:
-    """[lon, lat] → [float, float]. يرفض ما ليس زوجاً رقميّاً."""
+    """[lon, lat] → [float, float]. يرفض ما ليس زوجاً رقميّاً محدوداً."""
     if not isinstance(pt, (list, tuple)) or len(pt) < 2:
         raise ValueError("نقطة إحداثيّة غير صالحة — يجب أن تكون [lon, lat].")
     try:
@@ -35,7 +49,7 @@ def _coerce_point(pt: object) -> list[float]:
         lat = float(pt[1])
     except (TypeError, ValueError) as e:
         raise ValueError("إحداثيّات غير رقميّة في الحلقة.") from e
-    return [lon, lat]
+    return [_finite(lon, ctx="في الحلقة"), _finite(lat, ctx="في الحلقة")]
 
 
 def _close_ring(ring: list[list[float]]) -> list[list[float]]:
@@ -71,6 +85,11 @@ def _extract_first_polygon_ring(geom: dict) -> list[list[float]]:
     return [_coerce_point(p) for p in outer]
 
 
+def _reject_constant(token: str) -> float:
+    """يُمرَّر إلى json.loads لرفض ثوابت NaN/Infinity غير القياسيّة بوضوح."""
+    raise ValueError(f"قيمة غير صالحة في GeoJSON: {token} (NaN/Infinity غير مسموح).")
+
+
 def parse_geojson(text: str) -> dict:
     """نصّ GeoJSON → GeoJSON Polygon (أوّل حلقة Polygon).
 
@@ -81,7 +100,9 @@ def parse_geojson(text: str) -> dict:
     if not text or not text.strip():
         raise ValueError("محتوى GeoJSON فارغ.")
     try:
-        data = json.loads(text)
+        # parse_constant يرفض NaN/Infinity/-Infinity (ليست JSON قياسيّاً ولا
+        # إحداثيّات صالحة) قبل أن تتسرّب إلى الهندسة.
+        data = json.loads(text, parse_constant=_reject_constant)
     except (ValueError, TypeError) as e:
         raise ValueError(f"GeoJSON غير صالح (JSON تالف): {e}") from e
     if not isinstance(data, dict):
@@ -112,7 +133,7 @@ def _strip_ns(tag: str) -> str:
     return tag.rsplit("}", 1)[-1] if "}" in tag else tag
 
 
-def _find_first_local(root: ET.Element, name: str) -> ET.Element | None:
+def _find_first_local(root: _Element, name: str) -> _Element | None:
     """أوّل عنصر باسم محليّ مطابق (يتجاهل namespace الـKML)."""
     for el in root.iter():
         if _strip_ns(el.tag) == name:
@@ -135,21 +156,25 @@ def _parse_kml_coords(text: str) -> list[list[float]]:
             lat = float(parts[1])
         except ValueError as e:
             raise ValueError(f"إحداثيّة KML غير رقميّة: {token!r}.") from e
-        pts.append([lon, lat])
+        pts.append([_finite(lon, ctx=f"في {token!r}"), _finite(lat, ctx=f"في {token!r}")])
     return pts
 
 
 def parse_kml(text: str) -> dict:
     """نصّ KML → GeoJSON Polygon (أوّل <Polygon> خارجيّ).
 
-    يستخرج Polygon/outerBoundaryIs/LinearRing/coordinates. يستخدم defusedxml
-    للحماية من XXE وتوسّع الكيانات. يرفع ValueError عند XML تالف أو غياب Polygon/coordinates.
+    يستخرج Polygon/outerBoundaryIs/LinearRing/coordinates. xml.etree فقط
+    (بلا تبعيّات). يرفع ValueError عند XML تالف أو غياب Polygon/coordinates.
     """
     if not text or not text.strip():
         raise ValueError("محتوى KML فارغ.")
     try:
-        root = ET.fromstring(text)  # defusedxml يحمي من XXE وتوسّع الكيانات.
-    except (ET.ParseError, DefusedXmlException) as e:
+        # defusedxml.fromstring يرفض DTD/الكيانات (billion-laughs) والكيانات
+        # الخارجيّة (XXE) — محتوى KML قد يكون رفعاً غير موثوق من المستخدم.
+        root = ET.fromstring(text)
+    except DefusedXmlException as e:
+        raise ValueError(f"KML غير آمن (DTD/كيانات XML غير مسموح بها): {e}") from e
+    except _XMLParseError as e:
         raise ValueError(f"KML غير صالح (XML تالف): {e}") from e
 
     polygon = _find_first_local(root, "Polygon")

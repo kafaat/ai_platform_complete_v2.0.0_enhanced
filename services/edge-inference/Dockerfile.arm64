@@ -15,6 +15,9 @@ ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
+# نُثبّت إلى /opt/pylocal (لا /root/.local الافتراضيّ): /root وضعه 0700 فلا يقرأه
+# المستخدم غير الجذر (sahool) في طور التشغيل ⇒ تكسر الاستيرادات. /opt قابل للاجتياز.
+ENV PYTHONUSERBASE=/opt/pylocal
 RUN pip install --no-cache-dir --timeout 120 --retries 5 --user -r requirements.txt
 
 # Runtime stage
@@ -28,11 +31,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Python packages from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH
+# Copy Python packages from builder (/opt/pylocal — قابل للقراءة لـsahool، خلاف /root)
+COPY --from=builder /opt/pylocal /opt/pylocal
+ENV PATH=/opt/pylocal/bin:$PATH
 # نُضمّن مسار حزم --user في PYTHONPATH كي تُكتشَف الحزم المثبَّتة بـ--user مع /app.
-ENV PYTHONPATH=/root/.local/lib/python3.12/site-packages:/app
+ENV PYTHONPATH=/opt/pylocal/lib/python3.12/site-packages:/app
 
 # Copy application (الخدمة فقط، لا كامل المشروع — context هو الجذر)
 COPY services/edge-inference/ /app/
@@ -46,6 +49,11 @@ ENV OFFLINE_MODE=false
 ENV SYNC_INTERVAL=3600
 
 EXPOSE 8100
+
+# الصورة الوحيدة التي كانت بلا HEALTHCHECK (للتشغيل المستقلّ؛ compose يوفّر مثله).
+# python بدل curl (غير مثبَّت) — /healthz موجود في الخدمة.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8100/healthz').status==200 else 1)" || exit 1
 
 RUN useradd -m sahool && chown -R sahool:sahool /app 2>/dev/null || true
 USER sahool

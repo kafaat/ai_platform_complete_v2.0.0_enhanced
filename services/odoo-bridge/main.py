@@ -395,72 +395,191 @@ async def sync_procurement_orders_to_odoo():
                ORDER BY created_at LIMIT 50"""
         )
 
-    for row in rows:
-        try:
-            # 1. Find or create partner in Odoo
-            # 2. Create purchase.order
-            # 3. Create purchase.order.line for each item
-            items = await conn.fetch(
-                "SELECT * FROM procurement_order_items WHERE order_id=$1", row["order_id"]
-            )
-            if not items:
-                continue
+        for row in rows:
+            try:
+                # 1. Find or create partner in Odoo
+                # 2. Create purchase.order
+                # 3. Create purchase.order.line for each item
+                items = await conn.fetch(
+                    "SELECT * FROM procurement_order_items WHERE order_id=$1", row["order_id"]
+                )
+                if not items:
+                    continue
 
-            # Get supplier from first item (or default)
-            supplier_id = None
-            # Create PO header
-            po_vals = {
-                "partner_id": supplier_id or 1,  # default supplier
-                "origin": f"SAHOOL-{row['order_id']}",
-                "notes": row.get("notes", "") + "\nSynced from SAHOOL",
-                "date_order": row["created_at"].isoformat()
-                if row["created_at"]
-                else datetime.now(UTC).isoformat(),
-            }
-            po_id = await odoo.create("purchase.order", po_vals)
-
-            # Create lines
-            for it in items:
-                # Map product by name (or create if not exists)
-                prod_domain = [["name", "ilike", it["item_name"]]]
-                prods = await odoo.search_read("product.product", prod_domain, ["id"], limit=1)
-                prod_id = prods[0]["id"] if prods else 1
-
-                line_vals = {
-                    "order_id": po_id,
-                    "product_id": prod_id,
-                    "product_qty": float(it["quantity"]),
-                    "price_unit": float(it.get("unit_cost_usd", 0) or 0),
-                    "name": it["item_name"],
+                # Get supplier from first item (or default)
+                supplier_id = None
+                # Create PO header
+                po_vals = {
+                    "partner_id": supplier_id or 1,  # default supplier
+                    "origin": f"SAHOOL-{row['order_id']}",
+                    "notes": row.get("notes", "") + "\nSynced from SAHOOL",
+                    "date_order": row["created_at"].isoformat()
+                    if row["created_at"]
+                    else datetime.now(UTC).isoformat(),
                 }
-                await odoo.create("purchase.order.line", line_vals)
+                po_id = await odoo.create("purchase.order", po_vals)
 
-            # Update SAHOOL
-            await conn.execute(
-                "UPDATE procurement_orders SET odoo_sync_status='synced', odoo_document_id=$1 WHERE order_id=$2",
-                str(po_id),
-                row["order_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo", "purchase.order", po_id, str(row["order_id"]), "success"
-            )
-            logger.info(f"PO synced to Odoo: {po_id}")
+                # Create lines
+                for it in items:
+                    # Map product by name (or create if not exists)
+                    prod_domain = [["name", "ilike", it["item_name"]]]
+                    prods = await odoo.search_read("product.product", prod_domain, ["id"], limit=1)
+                    prod_id = prods[0]["id"] if prods else 1
 
-        except Exception as e:
-            await conn.execute(
-                "UPDATE procurement_orders SET odoo_sync_status='failed', odoo_sync_error=$1 WHERE order_id=$2",
-                str(e)[:500],
-                row["order_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo",
-                "purchase.order",
-                None,
-                str(row["order_id"]),
-                "failed",
-                str(e)[:500],
-            )
-            logger.error(f"PO sync failed {row['order_id']}: {e}")
+                    line_vals = {
+                        "order_id": po_id,
+                        "product_id": prod_id,
+                        "product_qty": float(it["quantity"]),
+                        "price_unit": float(it.get("unit_cost_usd", 0) or 0),
+                        "name": it["item_name"],
+                    }
+                    await odoo.create("purchase.order.line", line_vals)
+
+                # Update SAHOOL
+                await conn.execute(
+                    "UPDATE procurement_orders SET odoo_sync_status='synced', odoo_document_id=$1 WHERE order_id=$2",
+                    str(po_id),
+                    row["order_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo", "purchase.order", po_id, str(row["order_id"]), "success"
+                )
+                logger.info(f"PO synced to Odoo: {po_id}")
+
+            except Exception as e:
+                await conn.execute(
+                    "UPDATE procurement_orders SET odoo_sync_status='failed', odoo_sync_error=$1 WHERE order_id=$2",
+                    str(e)[:500],
+                    row["order_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo",
+                    "purchase.order",
+                    None,
+                    str(row["order_id"]),
+                    "failed",
+                    str(e)[:500],
+                )
+                logger.error(f"PO sync failed {row['order_id']}: {e}")
+
+
+# ══════════════════════════════════════════════════════════════
+# Odoo → SAHOOL (Purchase Order status pull-back / inbound leg)
+# ══════════════════════════════════════════════════════════════
+# خريطة حالات purchase.order في Odoo → مفردات حالة procurement_orders في SAHOOL.
+#
+# صدق المصدر: جدول procurement_orders يُنشأ في خدمة أخرى (لا DDL له داخل هذا
+# المستودع)، فلا CHECK enum قابل للاكتشاف هنا. المفردات المُعتمَدة مستخرَجة من
+# الكتابات الفعلية في المنصّة:
+#   - 'draft' / 'approved'        (docs/LIGHTWEIGHT_INTEGRATION.md, docs/UNIFIED_SETUP.md)
+#   - 'draft' / 'pending_approval' / 'approved'  (services/mcp_servers/market_server.py)
+# وامتدادات دورة الحياة الطبيعية ('ordered' / 'received' / 'cancelled') لتغطية
+# حالات Odoo التي لا مقابل مباشر لها. إن فرضت الخدمة المالكة enum أضيق، تُضبط
+# هذه القيم لاحقاً — لا نخترع حالة خارج هذه المفردات المرصودة.
+ODOO_PO_STATE_TO_SAHOOL_STATUS = {
+    "draft": "draft",  # RFQ مسوّدة
+    "sent": "pending_approval",  # RFQ أُرسلت للمورّد
+    "purchase": "ordered",  # أمر شراء مؤكَّد
+    "done": "received",  # مقفَل/مستلَم
+    "cancel": "cancelled",  # ملغى
+}
+
+
+async def sync_purchase_order_inbound(odoo_po_id: int):
+    """Odoo purchase.order تغيّرت → اسحب حالتها وحدّث صفّ procurement_orders المرتبط.
+
+    الاتجاه الوارد (odoo_to_sahool) المقابل للدفع الصادر في
+    sync_procurement_orders_to_odoo. الربط عبر procurement_orders.odoo_document_id
+    (الذي يُضبط = str(po_id) عند الدفع الصادر).
+    """
+    pool = await get_pool()
+    if not pool:
+        return
+    odoo = get_odoo()
+
+    # 1) اقرأ حالة الأمر من Odoo عبر search_read (طريقة القراءة الموجودة فعلاً
+    #    على العميل — لا browse/read منفصل). نُقيّد بالـid لجلب صفّ واحد.
+    try:
+        po_rows = await odoo.search_read(
+            "purchase.order",
+            [["id", "=", odoo_po_id]],
+            ["id", "name", "state"],
+            limit=1,
+        )
+    except Exception as e:  # noqa: BLE001 — صدق: نُسجّل الفشل لا نُخفيه بـpass صامت
+        await log_sync_record(
+            "odoo_to_sahool", "purchase.order", odoo_po_id, None, "failed", str(e)[:500]
+        )
+        logger.error(f"Inbound PO read failed {odoo_po_id}: {e}")
+        return
+
+    if not po_rows:
+        await log_sync_record(
+            "odoo_to_sahool",
+            "purchase.order",
+            odoo_po_id,
+            None,
+            "failed",
+            "purchase.order غير موجود في Odoo",
+        )
+        logger.warning(f"Inbound PO {odoo_po_id} not found in Odoo")
+        return
+
+    po = po_rows[0]
+    odoo_state = po.get("state")
+    sahool_status = ODOO_PO_STATE_TO_SAHOOL_STATUS.get(odoo_state)
+    if sahool_status is None:
+        # صدق: حالة Odoo غير معروفة — لا نخترع تطابقاً، نُسجّلها ونتوقّف.
+        await log_sync_record(
+            "odoo_to_sahool",
+            "purchase.order",
+            odoo_po_id,
+            None,
+            "failed",
+            f"حالة Odoo غير معروفة: {odoo_state}",
+        )
+        logger.warning(f"Inbound PO {odoo_po_id} unknown Odoo state: {odoo_state}")
+        return
+
+    # 2) حدّث صفّ SAHOOL المرتبط (الربط = odoo_document_id المضبوط عند الدفع الصادر).
+    async with pool.acquire() as conn:
+        updated = await conn.fetch(
+            """UPDATE procurement_orders
+               SET status=$1
+               WHERE odoo_document_id=$2
+               RETURNING order_id""",
+            sahool_status,
+            str(odoo_po_id),
+        )
+
+    if not updated:
+        # لا صفّ مرتبط: قد يكون الأمر أُنشئ في Odoo مباشرةً (لا أصل SAHOOL).
+        # صدق: لا نختلق صفّاً — نُسجّل الحالة ونخرج.
+        await log_sync_record(
+            "odoo_to_sahool",
+            "purchase.order",
+            odoo_po_id,
+            None,
+            "skipped",
+            f"لا procurement_orders مرتبط بـodoo_document_id={odoo_po_id} (state={odoo_state})",
+        )
+        logger.info(f"Inbound PO {odoo_po_id}: no linked SAHOOL order (state={odoo_state})")
+        return
+
+    sahool_order_id = str(updated[0]["order_id"])
+    # 3) سجّل المزامنة في الاتجاه الوارد (يطابق توقيع log_sync_record الصادر).
+    await log_sync_record(
+        "odoo_to_sahool",
+        "purchase.order",
+        odoo_po_id,
+        sahool_order_id,
+        "success",
+        f"{odoo_state} → {sahool_status}",
+    )
+    logger.info(
+        f"Inbound PO {odoo_po_id} ({po.get('name')}): "
+        f"{odoo_state} → {sahool_status} on order {sahool_order_id}"
+    )
 
 
 async def sync_field_costs_to_odoo():
@@ -476,44 +595,44 @@ async def sync_field_costs_to_odoo():
                WHERE odoo_sync_status='pending' ORDER BY recorded_at LIMIT 100"""
         )
 
-    for row in rows:
-        try:
-            # Map to Odoo analytic line or journal entry
-            # Requires analytic account per field in Odoo
-            vals = {
-                "name": f"{row['category']} — {row['item_name']}",
-                "amount": -float(row["total_cost_usd"]),  # negative = cost
-                "date": row["recorded_at"].strftime("%Y-%m-%d"),
-                "ref": f"SAHOOL-{row['ledger_id']}",
-            }
-            # Use analytic line if module installed
-            entry_id = await odoo.create("account.analytic.line", vals)
+        for row in rows:
+            try:
+                # Map to Odoo analytic line or journal entry
+                # Requires analytic account per field in Odoo
+                vals = {
+                    "name": f"{row['category']} — {row['item_name']}",
+                    "amount": -float(row["total_cost_usd"]),  # negative = cost
+                    "date": row["recorded_at"].strftime("%Y-%m-%d"),
+                    "ref": f"SAHOOL-{row['ledger_id']}",
+                }
+                # Use analytic line if module installed
+                entry_id = await odoo.create("account.analytic.line", vals)
 
-            await conn.execute(
-                "UPDATE field_cost_ledger SET odoo_sync_status='synced', odoo_entry_id=$1 WHERE ledger_id=$2",
-                str(entry_id),
-                row["ledger_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo",
-                "account.analytic.line",
-                entry_id,
-                str(row["ledger_id"]),
-                "success",
-            )
-        except Exception as e:
-            await conn.execute(
-                "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
-                row["ledger_id"],
-            )
-            await log_sync_record(
-                "sahool_to_odoo",
-                "account.analytic.line",
-                None,
-                str(row["ledger_id"]),
-                "failed",
-                str(e)[:500],
-            )
+                await conn.execute(
+                    "UPDATE field_cost_ledger SET odoo_sync_status='synced', odoo_entry_id=$1 WHERE ledger_id=$2",
+                    str(entry_id),
+                    row["ledger_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo",
+                    "account.analytic.line",
+                    entry_id,
+                    str(row["ledger_id"]),
+                    "success",
+                )
+            except Exception as e:
+                await conn.execute(
+                    "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
+                    row["ledger_id"],
+                )
+                await log_sync_record(
+                    "sahool_to_odoo",
+                    "account.analytic.line",
+                    None,
+                    str(row["ledger_id"]),
+                    "failed",
+                    str(e)[:500],
+                )
 
 
 # ══════════════════════════════════════════════════════════════
@@ -575,14 +694,20 @@ async def lifespan(app: FastAPI):
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
 _JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 def verify_token(token: str) -> dict:
     """Verify JWT with audience check."""
     try:
-        return _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
+        payload = _jwt.decode(token, _JWT_SECRET, algorithms=[_JWT_ALG], audience="sahool")
     except _JE as e:
         raise ValueError(f"Invalid token: {e}") from e
+    # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.
+    if payload.get("iss") not in _ALLOWED_ISS:
+        raise ValueError("Invalid token issuer")
+    return payload
 
 
 def require_auth(authorization: str = Header(None)) -> dict:
@@ -747,8 +872,9 @@ async def odoo_webhook(payload: WebhookPayload, x_webhook_secret: str = Header(N
     elif payload.model == "res.partner":
         asyncio.create_task(sync_suppliers())
     elif payload.model == "purchase.order":
-        # Odoo PO updated → pull status back to SAHOOL
-        pass
+        # Odoo PO updated → اسحب الحالة وحدّث procurement_orders + سجلّ مزامنة وارد.
+        # record_id = معرّف purchase.order في Odoo (راجع docs/ODOO_INTEGRATION.md).
+        asyncio.create_task(sync_purchase_order_inbound(payload.record_id))
 
     return {"received": True, "model": payload.model}
 

@@ -1,0 +1,20 @@
+# تغطية منصّة سهول (services/sahool-platform) — بوّابة "ratchet" غير-كاسرة.
+# تُقاس حزمتا المصدر api/ و core/ من جذر المنصّة (PYTHONPATH=.) في وظيفة CI
+# "Platform Unit Tests". الأرضيّة (fail_under) مضبوطة عند المقيس الحاليّ مطروحاً
+# منه هامش أمان صغير: المقيس ٦١٫٩٢٪ ⇒ الأرضيّة ٦٠٪. لا تُفشل البناء اليوم،
+# وتُرفع تدريجيّاً مع نمو التغطية (يمكنها الصعود فقط).
+[run]
+source =
+    api
+    core
+branch = false
+
+[report]
+# الأرضيّة الحاليّة: المقيس ٦١٫٩٢٪ ناقص هامش ~٢ نقطة.
+fail_under = 60
+show_missing = true
+skip_covered = true
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError

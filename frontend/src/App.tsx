@@ -6,12 +6,17 @@ import {
   User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
-  ShieldCheck, Sprout, CloudRain,
+  ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
+  ChevronDown,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
+import { useTenantConfig } from './hooks/useTenantConfig';
+import { useTheme, type Theme } from './hooks/useTheme';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
+import ThemeToggle from './components/ThemeToggle';
 import { canAccess, canCreateFarm } from './lib/permissions';
 import { LoadingState } from './components/StateViews';
 
@@ -72,6 +77,21 @@ const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
 const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
 const FarmCreatePage      = lazy(() => import('./sections/FarmCreatePage'));
+const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
+const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
+const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
+const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
+const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
+const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
+const AnalyzeCabin        = lazy(() => import('./sections/AnalyzeCabin'));
+const SetupCabin          = lazy(() => import('./sections/SetupCabin'));
+const UnifiedCabin        = lazy(() => import('./sections/UnifiedCabin'));
+const FieldRanking        = lazy(() => import('./sections/FieldRanking'));
+const ProblemFields       = lazy(() => import('./sections/ProblemFields'));
+const EconomicsDashboard  = lazy(() => import('./sections/EconomicsDashboard'));
+const PhenologyView       = lazy(() => import('./sections/PhenologyView'));
+const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
+const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields'
@@ -80,34 +100,90 @@ export type PageId =
   | 'irrigation' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report';
 
-const NAV: { id: PageId; label: string; icon: any; badge?: string }[] = [
-  { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
-  { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
-  { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
-  { id:'fields',       label:'إدارة الحقول',   icon:Map },
-  { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
-  { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
-  { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
-  { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
-  { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
-  { id:'field-intelligence', label:'المايسترو', icon:Activity },
-  { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
-  { id:'devices',      label:'أجهزة IoT',       icon:Cpu },
-  { id:'inventory',    label:'المخزون',         icon:Boxes },
-  { id:'equipment',    label:'المعدّات',         icon:Tractor },
-  { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
-  { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
-  { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
-  { id:'alerts',       label:'التنبيهات',       icon:Bell },
-  { id:'reports',      label:'التقارير',        icon:FileText },
-  { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
-  { id:'documents',    label:'الوثائق',         icon:FolderArchive },
-  { id:'governance',   label:'الحوكمة والتدقيق', icon:ShieldCheck },
-  { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
-  { id:'settings',     label:'الإعدادات',       icon:Settings },
+type NavItem = { id: PageId; label: string; icon: LucideIcon; badge?: string };
+type NavGroup = { id: string; label: string; defaultOpen: boolean; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    id: 'home', label: 'الرئيسية', defaultOpen: true,
+    items: [
+      { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
+      { id:'alerts',       label:'التنبيهات',       icon:Bell },
+      { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
+      { id:'reports',      label:'التقارير',        icon:FileText },
+    ],
+  },
+  {
+    id: 'unified', label: 'التطبيق الموحّد (معاينة)', defaultOpen: true,
+    items: [
+      { id:'unified-cabin', label:'التطبيق الموحّد (معاينة)', icon:Smartphone, badge:'٦ وجهات' },
+      { id:'command',      label:'مركز العمليّات (معاينة)', icon:Smartphone, badge:'دمج' },
+      { id:'map-center',   label:'مركز الخرائط (معاينة)', icon:Layers, badge:'دمج' },
+      { id:'tasks-cabin',  label:'كابينة المهام (معاينة)', icon:ListChecks, badge:'دمج' },
+      { id:'rec-flow',     label:'توصية ← تنفيذ (معاينة)', icon:ClipboardList, badge:'دمج' },
+      { id:'hybrid-monitor', label:'المراقبة الهجينة (معاينة)', icon:Activity, badge:'دمج' },
+      { id:'analyze-cabin', label:'التحليل (معاينة)', icon: BarChart3, badge:'دمج' },
+      { id:'setup-cabin', label:'الإعداد (معاينة)', icon: Settings, badge:'دمج' },
+      { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
+    ],
+  },
+  {
+    id: 'fields-sat', label: 'الحقول والأقمار', defaultOpen: false,
+    items: [
+      { id:'fields',       label:'إدارة الحقول',   icon:Map },
+      { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
+      { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
+      { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
+    ],
+  },
+  {
+    id: 'agri', label: 'الزراعة والري', defaultOpen: false,
+    items: [
+      { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
+      { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
+      { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
+      { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
+      { id:'phenology',    label:'مراحل النموّ',     icon:Sprout },
+      { id:'scouting',     label:'دليل الاستكشاف',   icon:Bug },
+      { id:'field-intelligence', label:'المايسترو', icon:Activity },
+    ],
+  },
+  {
+    id: 'analysis', label: 'التحليل والتقارير', defaultOpen: false,
+    items: [
+      { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
+      { id:'economics',    label:'الاقتصاد / ROI',   icon:BarChart3 },
+      { id:'field-ranking', label:'ترتيب الحقول',    icon:TrendingUp },
+      { id:'problem-fields', label:'حقول المشكلات',   icon:AlertTriangle },
+      { id:'advisory-report', label:'استشارة المزرعة', icon: FileText },
+      { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
+    ],
+  },
+  {
+    id: 'operations', label: 'التشغيل', defaultOpen: false,
+    items: [
+      { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
+      { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
+      { id:'inventory',    label:'المخزون',         icon:Boxes },
+      { id:'equipment',    label:'المعدّات',         icon:Tractor },
+      { id:'devices',      label:'أجهزة IoT',       icon:Cpu },
+    ],
+  },
+  {
+    id: 'admin', label: 'الإدارة', defaultOpen: false,
+    items: [
+      { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
+      { id:'documents',    label:'الوثائق',         icon:FolderArchive },
+      { id:'governance',   label:'الحوكمة والتدقيق', icon:ShieldCheck },
+      { id:'settings',     label:'الإعدادات',       icon:Settings },
+    ],
+  },
 ];
+
+// قائمة مُسطّحة لكل العناصر — للبحث عن العنوان/الأيقونة في TopBar عبر كل المجموعات.
+const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap(g => g.items);
 
 function Loader() {
   return (
@@ -119,9 +195,49 @@ function Loader() {
   );
 }
 
-function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
+interface SidebarProps {
+  page: PageId;
+  setPage: (p: PageId) => void;
+  collapsed: boolean;
+  setCollapsed: (c: boolean) => void;
+}
+
+function Sidebar({ page, setPage, collapsed, setCollapsed }: SidebarProps) {
   const { user, logout, isDemoMode } = useAuthStore();
   const wsOk = wsService.isConnected();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(NAV_GROUPS.map(g => [g.id, g.defaultOpen]))
+  );
+
+  // زرّ عنصر التنقّل — يحافظ على التمييز النشط، الشارات، ووضع الأيقونات المطويّ.
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const active = page === item.id;
+    return (
+      <button key={item.id} onClick={() => setPage(item.id)}
+        title={collapsed ? item.label : undefined}
+        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
+        style={{
+          background: active ? '#1e3a1e' : 'transparent',
+          borderRight: active ? '2px solid #16a34a' : '2px solid transparent',
+          color: active ? '#4ade80' : '#94a3b8',
+        }}>
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        {!collapsed && (
+          <>
+            <span className="text-sm flex-1 text-right">{item.label}</span>
+            {item.badge && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full"
+                style={{ background:item.badge==='2'||item.badge==='6'?'#dc262622':'#16a34a22',
+                  color:item.badge==='2'||item.badge==='6'?'#f87171':'#4ade80' }}>
+                {item.badge}
+              </span>
+            )}
+          </>
+        )}
+      </button>
+    );
+  };
 
   return (
     <ErrorBoundary>
@@ -160,36 +276,33 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
         </div>
       )}
 
-      {/* Nav — مُرشَّح حسب صلاحيّة الدور (RBAC فعليّ: لا تظهر صفحة لا يحقّ فتحها) */}
+      {/* Nav — مُرشَّح حسب صلاحيّة الدور (RBAC فعليّ: لا تظهر صفحة لا يحقّ فتحها).
+          مطويّ: كل العناصر المسموح بها كأيقونات (بلا رؤوس مجموعات).
+          مفتوح: مجموعات قابلة للطيّ؛ مجموعة بلا عناصر مسموح بها تُخفى بالكامل. */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {NAV.filter(item => canAccess(user?.role, item.id)).map(item => {
-          const Icon = item.icon;
-          const active = page === item.id;
-          return (
-            <button key={item.id} onClick={() => setPage(item.id)}
-              title={collapsed ? item.label : undefined}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
-              style={{
-                background: active ? '#1e3a1e' : 'transparent',
-                borderRight: active ? '2px solid #16a34a' : '2px solid transparent',
-                color: active ? '#4ade80' : '#94a3b8',
-              }}>
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {!collapsed && (
-                <>
-                  <span className="text-sm flex-1 text-right">{item.label}</span>
-                  {item.badge && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                      style={{ background:item.badge==='2'||item.badge==='6'?'#dc262622':'#16a34a22',
-                        color:item.badge==='2'||item.badge==='6'?'#f87171':'#4ade80' }}>
-                      {item.badge}
-                    </span>
+        {collapsed
+          ? NAV_ITEMS.filter(item => canAccess(user?.role, item.id)).map(renderItem)
+          : NAV_GROUPS.map(group => {
+              const items = group.items.filter(item => canAccess(user?.role, item.id));
+              if (items.length === 0) return null;
+              const open = openGroups[group.id];
+              return (
+                <div key={group.id} className="pt-1">
+                  <button
+                    onClick={() => setOpenGroups(s => ({ ...s, [group.id]: !s[group.id] }))}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 transition-colors">
+                    <span className="text-[11px] font-semibold tracking-wide flex-1 text-right">{group.label}</span>
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform"
+                      style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
+                  </button>
+                  {open && (
+                    <div className="space-y-0.5 mt-0.5">
+                      {items.map(renderItem)}
+                    </div>
                   )}
-                </>
-              )}
-            </button>
-          );
-        })}
+                </div>
+              );
+            })}
       </nav>
 
       {/* User */}
@@ -217,8 +330,18 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: any) {
   );
 }
 
-function TopBar({ page, onMenu }: any) {
-  const item = NAV.find(n => n.id === page);
+interface TopBarProps {
+  page: PageId;
+  onMenu: () => void;
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  // العلامة التجاريّة للمستأجِر (#206) — اختياريّة. غائبة ⇒ سلوك افتراضيّ كما اليوم.
+  tenantName?: string | null;
+  tenantLogo?: string | null;
+}
+
+function TopBar({ page, onMenu, theme, setTheme, tenantName, tenantLogo }: TopBarProps) {
+  const item = NAV_ITEMS.find(n => n.id === page);
   const Icon = item?.icon || LayoutDashboard;
   const { isDemoMode } = useAuthStore();
   const wsOk = wsService.isConnected();
@@ -230,8 +353,19 @@ function TopBar({ page, onMenu }: any) {
       <button onClick={onMenu} className="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400">
         <LayoutDashboard className="w-5 h-5" />
       </button>
+      {/* شعار المستأجِر — يُعرَض فقط عند وجود رابط فعليّ (لا صورة مكسورة عند null). */}
+      {tenantLogo && (
+        <img src={tenantLogo} alt={tenantName || 'شعار المستأجِر'}
+          className="h-6 w-auto max-w-[120px] object-contain flex-shrink-0" />
+      )}
       <Icon className="w-5 h-5 text-emerald-500" />
       <h1 className="text-base font-bold text-slate-100">{item?.label}</h1>
+      {/* اسم المستأجِر — يظهر بجوار العنوان فقط حين يوفّره التكوين. */}
+      {tenantName && (
+        <span className="hidden sm:inline text-sm text-slate-400 truncate max-w-[180px]">
+          · {tenantName}
+        </span>
+      )}
       <div className="mr-auto flex items-center gap-2">
         {isDemoMode && (
           <span className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-amber-950 text-amber-400 border border-amber-900">
@@ -242,6 +376,7 @@ function TopBar({ page, onMenu }: any) {
           {wsOk ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
           NATS
         </span>
+        <ThemeToggle theme={theme} setTheme={setTheme} />
       </div>
     </header>
     </ErrorBoundary>
@@ -250,24 +385,38 @@ function TopBar({ page, onMenu }: any) {
 
 export default function App() {
   const { isAuthenticated, user, isDemoMode, logout } = useAuthStore();
+  // السمة (فاتح/داكن) على مستوى الجذر — تُطبَّق على <html> وتُحفظ في localStorage.
+  const { theme, setTheme } = useTheme();
   // بوّابة التأهيل: بعد المصادقة نفحص وجود مزرعة. مُعطَّلة قبل المصادقة وفي الوضع
   // التجريبيّ (لا تُطلق الطلب، فالاستعلام لا يعمل إلا حين isAuthenticated && !isDemoMode).
   const farms = useFarms(isAuthenticated && !isDemoMode);
+  // تكوين المستأجِر (#206) — أفضل-جهد. null ⇒ تبقى الواجهة على الافتراضيّات تماماً.
+  const tenantConfig = useTenantConfig();
+  const branding = tenantConfig.data?.branding ?? null;
+  // اللون الأساسيّ للمستأجِر كمتغيّر CSS تراكُبيّ (--tenant-primary). نضبطه فقط حين
+  // يوفّره التكوين، ونُزيله عند غيابه كي يعود السلوك الافتراضيّ (لا تلوين عالق).
+  useEffect(() => {
+    const root = document.documentElement;
+    const color = branding?.primary_color;
+    if (color) root.style.setProperty('--tenant-primary', color);
+    else root.style.removeProperty('--tenant-primary');
+  }, [branding?.primary_color]);
   const [page,       setPage]       = useState<PageId>('dashboard');
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [authScreen, setAuthScreen] = useState<'login' | 'signup'>('login');
 
-  // Connect WebSocket after login
+  // Connect WebSocket after login — بهويّة المستخدم الفعليّة (لا الثابت 1 الذي كان
+  // يسرّب إشعارات المستخدم 1 للجميع). بلا id: لا نتّصل (الخادم يجب أن يتحقّق بالتوكن).
   useEffect(() => {
-    if (isAuthenticated && user) {
-      wsService.connect(1); // userId placeholder
+    if (isAuthenticated && user?.id) {
+      wsService.connect(user.id);
       wsService.requestNotificationPermission();
     } else {
       wsService.disconnect();
     }
     return () => {};
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user?.id]);
 
   useEffect(() => { setMobileOpen(false); }, [page]);
 
@@ -343,6 +492,21 @@ export default function App() {
     }
     switch(page) {
       case 'dashboard':    return <DashboardPage setPage={setPage} />;
+      case 'command':      return <OperationCommand />;
+      case 'map-center':   return <FieldMapCenter />;
+      case 'tasks-cabin':  return <FieldTasksCabin />;
+      case 'rec-flow':     return <RecommendationFlow />;
+      case 'hybrid-monitor': return <HybridMonitor />;
+      case 'analyze-cabin': return <AnalyzeCabin />;
+      case 'setup-cabin': return <SetupCabin />;
+      case 'unified-cabin': return <UnifiedCabin />;
+      case 'field-ranking': return <FieldRanking />;
+      case 'problem-fields': return <ProblemFields />;
+      case 'economics':    return <EconomicsDashboard />;
+      case 'phenology':    return <PhenologyView />;
+      case 'scouting':     return <ScoutingView />;
+      case 'advisory-report': return <FarmAdvisoryReport />;
+      case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
       case 'fields':       return <FieldManagementPage />;
@@ -387,7 +551,8 @@ export default function App() {
           </>
         )}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <TopBar page={page} onMenu={() => setMobileOpen(!mobileOpen)} />
+          <TopBar page={page} onMenu={() => setMobileOpen(!mobileOpen)} theme={theme} setTheme={setTheme}
+            tenantName={branding?.name_ar ?? null} tenantLogo={branding?.logo_url ?? null} />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Suspense fallback={<Loader />}>{renderPage()}</Suspense>
           </main>

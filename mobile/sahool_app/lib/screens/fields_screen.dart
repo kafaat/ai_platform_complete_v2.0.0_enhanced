@@ -4,6 +4,7 @@
 // دفاعيّ للشكل (قد تنقص الإحداثيّات ⇒ خريطة بلا مضلّعات، لا تعطّل). صدق: عند
 // التعذّر يُعرَض خطأ بإعادة محاولة — لا بيانات مخترَعة.
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../services/api_service.dart';
 import '../widgets/offline_field_map.dart';
@@ -90,13 +91,68 @@ class _FieldsScreenState extends State<FieldsScreen> {
 
   double? _num(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
 
-  LatLng _centerOf(List<Map<String, dynamic>> fields) {
-    for (final f in fields) {
-      final lat = _num(f['lat'] ?? f['latitude'] ?? f['centroid_lat']);
-      final lon = _num(f['lon'] ?? f['lng'] ?? f['longitude'] ?? f['centroid_lon']);
-      if (lat != null && lon != null) return LatLng(lat, lon);
+  LatLng? _centroidOf(Map<String, dynamic> f) {
+    final lat = _num(f['lat'] ?? f['latitude'] ?? f['centroid_lat']);
+    final lon = _num(f['lon'] ?? f['lng'] ?? f['longitude'] ?? f['centroid_lon']);
+    return (lat != null && lon != null) ? LatLng(lat, lon) : null;
+  }
+
+  // رؤوس مضلّع الحقل من GeoJSON Polygon {coordinates:[[[lon,lat],...]]} — دفاعيّ
+  // (يُعيد [] إن غابت/تشوّهت الهندسة، فلا تعطّل).
+  List<LatLng> _polyPoints(dynamic geometry) {
+    if (geometry is! Map) return const [];
+    final coords = geometry['coordinates'];
+    if (coords is! List || coords.isEmpty) return const [];
+    final ring = coords.first;
+    if (ring is! List) return const [];
+    final out = <LatLng>[];
+    for (final p in ring) {
+      if (p is List && p.length >= 2) {
+        final lon = _num(p[0]);
+        final lat = _num(p[1]);
+        if (lat != null && lon != null) out.add(LatLng(lat, lon));
+      }
     }
-    return _defaultCenter;
+    return out;
+  }
+
+  // مضلّعات حقول المستخدم للرسم على الخريطة (إن توفّرت geometry).
+  List<Polygon> _fieldPolygons() {
+    final polys = <Polygon>[];
+    for (final f in _fields) {
+      final pts = _polyPoints(f['geometry']);
+      if (pts.length >= 3) {
+        polys.add(Polygon(
+          points: pts,
+          color: const Color(0x3310B981),
+          borderColor: const Color(0xFF10B981),
+          borderStrokeWidth: 2,
+        ));
+      }
+    }
+    return polys;
+  }
+
+  // «التركيز على حقل المستخدم»: نُجمّع كلّ النقاط (رؤوس المضلّعات إن وُجدت، وإلّا
+  // المراكز) ونُؤطّرها. نقطة واحدة ⇒ تكبير أقرب؛ لا نقاط ⇒ الافتراضيّ (اليمن).
+  ({LatLng center, double zoom, LatLngBounds? bounds}) _mapView() {
+    final pts = <LatLng>[];
+    for (final f in _fields) {
+      final poly = _polyPoints(f['geometry']);
+      if (poly.isNotEmpty) {
+        pts.addAll(poly);
+      } else {
+        final c = _centroidOf(f);
+        if (c != null) pts.add(c);
+      }
+    }
+    if (pts.isEmpty) return (center: _defaultCenter, zoom: 13, bounds: null);
+    final b = LatLngBounds.fromPoints(pts);
+    final degenerate = b.south == b.north && b.east == b.west;
+    if (pts.length == 1 || degenerate) {
+      return (center: pts.first, zoom: 15, bounds: null); // حقل واحد ⇒ أقرب
+    }
+    return (center: pts.first, zoom: 13, bounds: b); // عدّة حقول ⇒ تأطيرها
   }
 
   Color _ndviColor(double? ndvi) {
@@ -148,10 +204,18 @@ class _FieldsScreenState extends State<FieldsScreen> {
 
     return Column(
       children: [
-        // خريطة الحقول (offline-أوّلاً عبر الـwidget الجاهز).
+        // خريطة الحقول (offline-أوّلاً) — مُؤطَّرة على حقول المستخدم وتَرسمها.
         SizedBox(
           height: 240,
-          child: OfflineFieldMap(center: _centerOf(_fields)),
+          child: Builder(builder: (_) {
+            final v = _mapView();
+            return OfflineFieldMap(
+              center: v.center,
+              zoom: v.zoom,
+              bounds: v.bounds,
+              fieldPolygons: _fieldPolygons(),
+            );
+          }),
         ),
         Expanded(
           child: _fields.isEmpty

@@ -15,8 +15,16 @@
 // تغيّر المضلّع عبر onPolygonChanged. النقر على الخريطة يضيف رأساً؛ التحكّم
 // (تراجع/مسح) يبقى مسؤوليّة الشاشة المضيفة عبر إعادة بناء drawingPoints.
 // العرض-فقط لا يتأثّر: كلّ معطيات الرسم اختياريّة بقيم افتراضيّة.
+//
+// أدوات الرسم (مستوحاة من Climate FieldView، إضافيّة غير كاسرة):
+//   • وضع النقاط (drawMode == DrawMode.points): السلوك القديم — نقرة = رأس.
+//   • وضع الدائرة (drawMode == DrawMode.circle): النقرة تحدّد مركزاً وتُبلّغ
+//     الشاشة المضيفة عبر onCenterTap كي تطلب نصف القطر بالأمتار (م) وتُولّد
+//     مضلّعاً دائريّاً (حقل محوريّ/center-pivot). وحدة الطول دائماً الأمتار.
 
 import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_mbtiles/flutter_map_mbtiles.dart';
@@ -29,6 +37,9 @@ import 'package:path_provider/path_provider.dart';
 // MBTiles (SQLite، ناضج). PMTiles أقرب لاتّجاه geospatial-first.
 enum OfflinePackType { pmtiles, mbtiles, none }
 
+// وضع الرسم على الخريطة: نقاط (مضلّع بالنقر) أو دائرة (مركز + نصف قطر بالأمتار).
+enum DrawMode { points, circle }
+
 class OfflineFieldMap extends StatefulWidget {
   final LatLng center;
   final double zoom;
@@ -37,6 +48,9 @@ class OfflineFieldMap extends StatefulWidget {
   // رابط بلاطات الشبكة (fallback عند توفّر اتّصال).
   final String networkTileUrl;
   final List<Polygon> fieldPolygons;
+  // إطار اختياريّ لتأطير حقل المستخدم (fitBounds): إن وُجد، تفتح الخريطة مُؤطِّرةً
+  // حقله بدل مركز/تكبير ثابتين — «التركيز على حقل المستخدم». بلا قيمة ⇒ center/zoom.
+  final LatLngBounds? bounds;
 
   // ── وضع الرسم (اختياريّ — لمعالج إنشاء الحقل) ──
   // عند true: النقر على الخريطة يضيف رأساً إلى المضلّع الجاري رسمه، وتُرسَم
@@ -48,6 +62,16 @@ class OfflineFieldMap extends StatefulWidget {
   // يُستدعى بعد كلّ إضافة رأس بالنقر — يردّ القائمة المُحدَّثة (بما فيها الرأس الجديد).
   final ValueChanged<List<LatLng>>? onPolygonChanged;
 
+  // وضع الرسم: نقاط (الافتراضيّ، متوافق مع القديم) أو دائرة (مركز + نصف قطر بالأمتار).
+  final DrawMode drawMode;
+  // في وضع الدائرة: تُستدعى عند النقر لتحديد المركز — تتولّى الشاشة طلب نصف القطر.
+  final ValueChanged<LatLng>? onCenterTap;
+  // معاينة الدائرة (اختياريّة): مركز + نصف قطر بالأمتار تُرسَم كحلقة شفّافة.
+  final LatLng? circlePreviewCenter;
+  final double? circlePreviewRadiusMeters;
+  // نصّ تعليمات يُعرَض كشريط أعلى الخريطة (إن وُجد) في وضع الرسم.
+  final String? instruction;
+
   const OfflineFieldMap({
     super.key,
     required this.center,
@@ -57,9 +81,15 @@ class OfflineFieldMap extends StatefulWidget {
         'https://server.arcgisonline.com/ArcGIS/rest/services/'
         'World_Imagery/MapServer/tile/{z}/{y}/{x}',
     this.fieldPolygons = const [],
+    this.bounds,
     this.drawingEnabled = false,
     this.drawingPoints = const [],
     this.onPolygonChanged,
+    this.drawMode = DrawMode.points,
+    this.onCenterTap,
+    this.circlePreviewCenter,
+    this.circlePreviewRadiusMeters,
+    this.instruction,
   });
 
   @override
@@ -126,11 +156,80 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
     );
   }
 
-  // النقر على الخريطة في وضع الرسم → أضف الرأس وبلّغ الشاشة المضيفة.
+  // النقر على الخريطة في وضع الرسم.
+  // وضع النقاط: يضيف رأساً ويبلّغ onPolygonChanged (السلوك القديم).
+  // وضع الدائرة: يبلّغ onCenterTap بالمركز (تتولّى الشاشة طلب نصف القطر بالأمتار).
   void _onMapTap(TapPosition _, LatLng latlng) {
     if (!widget.drawingEnabled) return;
+    if (widget.drawMode == DrawMode.circle) {
+      widget.onCenterTap?.call(latlng);
+      return;
+    }
     final updated = [...widget.drawingPoints, latlng];
     widget.onPolygonChanged?.call(updated);
+  }
+
+  // توليد رؤوس مضلّع دائريّ حول [center] بنصف قطر [radiusMeters] (بالأمتار).
+  // تقريب جيوديسيّ بسيط: 1 درجة خطّ عرض ≈ 111320 م، وخطّ الطول يُقاس بـcos(lat).
+  // يُستخدَم للمعاينة هنا، وتُكرَّره الشاشة المضيفة لإنتاج الهندسة النهائيّة.
+  static List<LatLng> circlePolygon(
+    LatLng center,
+    double radiusMeters, {
+    int segments = 48,
+  }) {
+    if (radiusMeters <= 0 || segments < 3) return const [];
+    const metersPerDegLat = 111320.0;
+    final cosLat = math.cos(center.latitude * math.pi / 180.0);
+    // حارس: قرب القطبين cos→0؛ نمنع القسمة على صفر.
+    final safeCos = cosLat.abs() < 1e-6 ? 1e-6 : cosLat;
+    final dLat = radiusMeters / metersPerDegLat;
+    final dLon = radiusMeters / (metersPerDegLat * safeCos);
+    final pts = <LatLng>[];
+    for (var i = 0; i < segments; i++) {
+      final theta = 2 * math.pi * i / segments;
+      pts.add(LatLng(
+        center.latitude + dLat * math.sin(theta),
+        center.longitude + dLon * math.cos(theta),
+      ));
+    }
+    return pts;
+  }
+
+  // معاينة الدائرة: حلقة + مركز مميّز (وضع الدائرة فقط، عند توفّر مركز ونصف قطر).
+  List<Widget> _circlePreviewLayers() {
+    final center = widget.circlePreviewCenter;
+    final r = widget.circlePreviewRadiusMeters;
+    if (center == null || r == null || r <= 0) return const [];
+    final ring = circlePolygon(center, r);
+    if (ring.length < 3) return const [];
+    return [
+      PolygonLayer(
+        polygons: [
+          Polygon(
+            points: ring,
+            color: const Color(0xFF10B981).withOpacity(0.18),
+            borderColor: const Color(0xFF10B981),
+            borderStrokeWidth: 2,
+          ),
+        ],
+      ),
+      MarkerLayer(
+        markers: [
+          Marker(
+            point: center,
+            width: 18,
+            height: 18,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ];
   }
 
   // طبقة الرسم: ملء المضلّع المغلق (≥3 نقاط) + خطّ الحدّ + علامات الرؤوس.
@@ -187,6 +286,14 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
       children: [
         FlutterMap(
           options: MapOptions(
+            // إن توفّر إطار حقل المستخدم نُؤطّره (fitBounds مع حاشية)؛ وإلّا
+            // مركز/تكبير ثابتان. flutter_map يُفضّل initialCameraFit إن وُجد.
+            initialCameraFit: widget.bounds != null
+                ? CameraFit.bounds(
+                    bounds: widget.bounds!,
+                    padding: const EdgeInsets.all(40),
+                  )
+                : null,
             initialCenter: widget.center,
             initialZoom: widget.zoom,
             onTap: widget.drawingEnabled ? _onMapTap : null,
@@ -199,6 +306,8 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
               PolygonLayer(polygons: widget.fieldPolygons),
             // طبقة الرسم (وضع المعالج فقط — فارغة في العرض-فقط).
             ..._drawingLayers(),
+            // معاينة الدائرة (وضع الدائرة فقط — فارغة ما لم يوجد مركز ونصف قطر).
+            ..._circlePreviewLayers(),
           ],
         ),
         // مؤشّر المصدر (شفّافيّة: المستخدم يعرف offline أم online).
@@ -228,9 +337,10 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
                 color: Colors.black54,
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Text(
-                'انقر لإضافة نقطة',
-                style: TextStyle(color: Colors.white, fontSize: 11),
+              child: Text(
+                // نصّ تعليمات الشاشة المضيفة إن توفّر، وإلّا تلميح افتراضيّ.
+                widget.instruction ?? 'انقر لإضافة نقطة',
+                style: const TextStyle(color: Colors.white, fontSize: 11),
               ),
             ),
           ),

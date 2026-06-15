@@ -43,11 +43,12 @@ export const useAuthStore = create<AuthState>()(
         const token    = data.access_token;
         const tenantId = data.user?.tenant_id || data.tenant_id || 'default';
         const user: AuthUser = {
+          id: data.user?.id,
           email: data.user?.email || email,
           full_name: data.user?.full_name,
           role: data.user?.role || data.role || 'farmer',
         };
-        // حفظ في localStorage للـ interceptors
+        // التوكن في sessionStorage فقط (لا localStorage) — يقرؤه الـ interceptor.
         sessionStorage.setItem('sahool_access_token', token);
         sessionStorage.setItem('sahool_tenant_id', tenantId);
         sessionStorage.setItem('sahool_user', JSON.stringify(user));
@@ -60,6 +61,7 @@ export const useAuthStore = create<AuthState>()(
         const token    = res.access_token;
         const tenantId = res.user?.tenant_id || res.tenant_id || 'default';
         const user: AuthUser = {
+          id: res.user?.id,
           email: res.user?.email || data.email,
           full_name: res.user?.full_name || data.full_name,
           role: res.user?.role || res.role || 'farmer',
@@ -96,11 +98,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'sahool-auth',
-      // FIX (مراجعة): التوكن يُكتَب في sessionStorage (جلسة لكلّ تبويب)، لكنّ
+      // FIX (مراجعة #241): التوكن يُكتَب في sessionStorage (جلسة لكلّ تبويب)، لكنّ
       // persist الافتراضيّ يحفظ الحالة في localStorage — فيُعاد ترطيب
       // isAuthenticated=true في تبويب جديد بينما sessionStorage فارغ (لا توكن)،
       // فيظهر المستخدم مُصادَقاً بلا توكن حتى أوّل 401. توحيد التخزين على
-      // sessionStorage يجعل عمر حالة المصادقة مطابقاً لعمر التوكن (نفس التبويب).
+      // sessionStorage يجعل عمر حالة المصادقة مطابقاً لعمر التوكن (نفس التبويب)،
+      // ويُلغي أيضاً قلق #236 من تسريب التوكن لـlocalStorage (الكلّ session-scoped).
       storage: createJSONStorage(() => sessionStorage),
       // استثناء الـ actions من الحفظ
       partialize: (s) => ({
@@ -110,6 +113,14 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: s.isAuthenticated,
         isDemoMode:      s.isDemoMode,
       }),
+      // ضمان تطابق token/isAuthenticated مع المفتاح القانونيّ (#236): التوكن مصدر
+      // الحقيقة في sessionStorage['sahool_access_token']؛ نُعيد المزامنة عند الترطيب.
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        const t = sessionStorage.getItem('sahool_access_token');
+        state.token = t;
+        state.isAuthenticated = !!t;
+      },
     }
   )
 );

@@ -8,7 +8,8 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { CloudRain, Droplets, Bug, Map, Clock, Thermometer, Wind } from 'lucide-react';
-import { useFields, useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
+import { useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { IrrigationAdvice, DiseaseRisk } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
@@ -129,9 +130,9 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
         <span className="inline-flex items-center gap-1"><Wind className="w-3 h-3 text-slate-500" /> رطوبة {r.humidity_pct}٪</span>
         <span className="inline-flex items-center gap-1"><CloudRain className="w-3 h-3 text-slate-500" /> مطر ٣ أيّام {r.rain_mm_3d} مم</span>
       </div>
-      {r.diseases_ar.length > 0 && (
+      {(r.diseases_ar ?? []).length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {r.diseases_ar.map((d) => (
+          {(r.diseases_ar ?? []).map((d) => (
             <span key={d} className="px-2 py-0.5 rounded-lg text-[11px]" style={{ background: '#1e293b', color: '#cbd5e1', border: '1px solid #334155' }}>
               {d}
             </span>
@@ -145,13 +146,8 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
 
 // ── الصفحة ──────────────────────────────────────────────────────
 export default function WeatherAdvicePage() {
-  const { data: fieldsData, isLoading, isError, error, refetch } = useFields();
+  const { options: fields, isLoading, isError, error, refetch } = useFieldOptions();
   const [fieldId, setFieldId] = useState<string>('');
-
-  const fields = ((fieldsData as { fields?: any[] } | undefined)?.fields ?? []).map((f) => ({
-    id: String(f.field_id ?? f.id),
-    name: String(f.name_ar ?? f.name ?? 'حقل'),
-  }));
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">

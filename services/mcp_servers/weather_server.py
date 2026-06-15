@@ -46,15 +46,16 @@ class ForecastRequest(BaseModel):
 
 
 class ET0Request(BaseModel):
-    lat: float
-    lon: float
+    # حدود تمنع math domain error (acos خارج [-1,1] عند خطوط عرض قطبيّة) و500
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
     date: str  # YYYY-MM-DD
-    t_max: float
-    t_min: float
-    solar_radiation: float  # MJ/m²/day
-    wind_speed: float  # m/s at 2m
-    altitude: float = 1000  # meters
-    latitude: float | None = None  # degrees
+    t_max: float = Field(ge=-90, le=60)
+    t_min: float = Field(ge=-90, le=60)
+    solar_radiation: float = Field(ge=0)  # MJ/m²/day
+    wind_speed: float = Field(ge=0)  # m/s at 2m
+    altitude: float = Field(default=1000, ge=-500, le=9000)  # meters
+    latitude: float | None = Field(default=None, ge=-90, le=90)  # degrees
 
 
 @app.get("/mcp/v1/tools", dependencies=[Depends(require_scope("weather:read"))])
@@ -155,7 +156,7 @@ async def _execute(name: str, args: dict) -> dict:
         }
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await retry_request(
-                client.get(f"{OPEN_METEO_URL}/forecast", params=params, timeout=30.0)
+                client.get, f"{OPEN_METEO_URL}/forecast", params=params, timeout=30.0
             )
             resp.raise_for_status()
             data = resp.json()
@@ -183,16 +184,23 @@ async def _execute(name: str, args: dict) -> dict:
 
     elif name == "calculate_hargreaves_et0":
         req = ET0Request(**args)
+        import math
+
+        # حارس: t_min>t_max ⇒ t_range سالب ⇒ sqrt يرمي ValueError/500. نرفض بـ400.
+        if req.t_min > req.t_max:
+            raise HTTPException(status_code=400, detail="t_min يجب ألّا يتجاوز t_max")
         t_mean = (req.t_max + req.t_min) / 2
         t_range = req.t_max - req.t_min
-        import math
 
         lat = req.latitude if req.latitude is not None else req.lat
         j_day = datetime.strptime(req.date, "%Y-%m-%d").timetuple().tm_yday
         phi = math.radians(lat)
         dr = 1 + 0.033 * math.cos(2 * math.pi * j_day / 365)
         delta = 0.409 * math.sin(2 * math.pi * j_day / 365 - 1.39)
-        ws = math.acos(-math.tan(phi) * math.tan(delta))
+        # قصّ معامل acos إلى [-1,1]: عند خطوط العرض العالية يتجاوز المدى فيرمي
+        # domain error (شمس دائمة/ليل قطبيّ) — القصّ يعطي ws=0 أو π بثبات.
+        _ws_arg = max(-1.0, min(1.0, -math.tan(phi) * math.tan(delta)))
+        ws = math.acos(_ws_arg)
         ra = (
             (24 * 60 / math.pi)
             * 0.082
@@ -239,7 +247,7 @@ async def _execute(name: str, args: dict) -> dict:
         }
         async with httpx.AsyncClient(timeout=20.0) as client:
             resp = await retry_request(
-                client.get(f"{OPEN_METEO_URL}/archive", params=params, timeout=30.0)
+                client.get, f"{OPEN_METEO_URL}/archive", params=params, timeout=30.0
             )
             resp.raise_for_status()
             data = resp.json()

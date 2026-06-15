@@ -35,7 +35,10 @@ CREATE INDEX IF NOT EXISTS idx_reco_outcomes_field  ON recommendation_outcomes (
 
 -- RLS لكلّ مستأجِر (مطابق نمط init_v8 — tenant_id UUID).
 ALTER TABLE recommendation_outcomes ENABLE ROW LEVEL SECURITY;
+-- FORCE صراحةً: يُنشأ هذا الجدول بعد v9_rls_force_all في MANIFEST فلا يلتقطه
+-- فرضُه في إقلاع نظيف (حاوية بإقلاع واحد) ⇒ يتجاوز المالكُ العزلَ. idempotent.
+ALTER TABLE recommendation_outcomes FORCE ROW LEVEL SECURITY;
 ALTER TABLE recommendation_outcomes FORCE  ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS tenant_isolation ON recommendation_outcomes;
 CREATE POLICY tenant_isolation ON recommendation_outcomes
-    USING (tenant_id = NULLIF(current_setting('app.current_tenant', TRUE), '')::UUID);
+    USING (tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', TRUE), ''));

@@ -1,6 +1,7 @@
 # ═══════════════════════════════════════════════════════════════════
-# SAHOOL v9.1.0 — docker-compose.fixed.yml
-# إصلاح 14 خطأ حرج في البنية التحتية
+# SAHOOL v9.1.0 — docker-compose.fixed.yml  (متغيّر/أصل تاريخيّ — ليس القانونيّ)
+# القانونيّ للإنتاج هو docker-compose.v9.yml (يعتمده Makefile). هذا الملفّ يُشار إليه
+# في بعض الوثائق التشغيليّة ويختلف عنه (config drift — راجع docs/ARCHITECTURE_AUDIT_2026-06-14.md).
 # التاريخ: 2026-05-20
 # ═══════════════════════════════════════════════════════════════════
 
@@ -32,10 +33,11 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
+      # FIX: كان ./nginx/nginx.conf (غير موجود) ⇒ nginx يفشل بالإقلاع. استُبدل
+      # بـnginx.fixed.conf (HTTP-فقط، بلا شهادات) لإقلاع محلّيّ نظيف. أُزيل ربط
+      # :443 وتركيب ./nginx/ssl (لا TLS هنا). للإنتاج بـTLS: docker-compose.v9.yml.
+      - ./nginx/nginx.fixed.conf:/etc/nginx/nginx.conf:ro
       - nginx-cache:/var/cache/nginx
     depends_on:
       sahool-auth:
@@ -56,6 +58,13 @@ services:
         condition: service_healthy
       sahool-local-ai-rag:
         condition: service_healthy
+      # FIX: nginx.fixed.conf يوجّه إليهما، وnginx يحلّ أسماء upstream عند الإقلاع
+      # ⇒ يجب وجود الحاويتين وإلّا "host not found in upstream". service_started
+      # يكفي لتسجيل اسم الشبكة (بلا انتظار صحّتهما).
+      sahool-frontend:
+        condition: service_started
+      sahool-notification-agent:
+        condition: service_started
     networks:
       - sahool-public
       - sahool-internal
@@ -213,14 +222,16 @@ services:
     image: ollama/ollama:latest
     container_name: sahool-ollama
     restart: unless-stopped
-    # GPU اختياري — أزل deploy.resources إذا لم تكن بحاجة لها
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # GPU اختياري ومُعطَّل افتراضيّاً: حجز جهاز nvidia يُفشِل `up` على مضيف بلا
+    # NVIDIA runtime ("could not select device driver nvidia"). إن توفّر GPU
+    # أزل التعليق عن البلوك التالي.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
     volumes:
       - ollama-models:/root/.ollama
     networks:
@@ -520,7 +531,10 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+      # لا وسيط MQTT (sahool-fastbee) في هذا الـcompose ⇒ نُعطّل مستمع MQTT صراحةً
+      # كي يقلع actuator نظيفاً (_mqtt_disabled) بدل حلقة "MQTT listener crashed" كلّ
+      # 10ث على مضيف وهميّ. للإنتاج بوسيط حقيقيّ اضبط MQTT_BROKER_URL=mqtt://host:1883.
+      MQTT_BROKER_URL: disabled
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-postgres:
@@ -774,15 +788,17 @@ services:
       dockerfile: Dockerfile
     container_name: sahool-frontend
     restart: unless-stopped
+    # FIX: حاوية الواجهة تستمع 8080 (frontend/Dockerfile EXPOSE 8080) لا 3000 ⇒
+    # كان ربط 3000:3000 وفحص :3000 يفشلان (لا شيء على 3000). صُحِّحا إلى 8080.
     ports:
-      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:3000:8080"
     environment:
       REACT_APP_API_URL: ${REACT_APP_API_URL:-https://api.sahool.ye}
       REACT_APP_WS_URL: ${REACT_APP_WS_URL:-wss://api.sahool.ye/ws}
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -22,6 +22,7 @@ import asyncio
 import json
 import logging
 import os
+import re
 from collections import defaultdict
 from contextlib import asynccontextmanager
 from email.mime.multipart import MIMEMultipart
@@ -29,7 +30,7 @@ from email.mime.text import MIMEText
 
 import asyncpg
 import httpx
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import Response
 from nats.aio.client import Client as NATS
 from nats.js import JetStreamContext
@@ -281,11 +282,18 @@ async def dispatch(data: dict):
     message = data.get("message", "")
     extra = data.get("data", {})
 
-    # Always send via WebSocket
+    # Always send via WebSocket. الأسماء الصحيحة send_to_user/broadcast — كان
+    # broadcast_user/broadcast_all غير موجودين ⇒ AttributeError يُعطّل كلّ الإشعارات
+    # ويُبقي رسائل JetStream دون ack فتُعاد بلا نهاية. المفتاح str (connections: dict[str,…]).
+    # عزل المستأجِر: حدث بلا user_id لكنّه يحمل tenant_id (مثل أحداث المنصّة
+    # sahool.events.*) يُبثّ لمستخدمي ذلك المستأجِر فقط — لا بثّ عابر للمستأجرين.
+    tenant_id = data.get("tenant_id")
     if user_id:
-        await manager.broadcast_user(int(user_id), data)
+        await manager.send_to_user(str(user_id), data)
+    elif tenant_id:
+        await manager.broadcast_tenant(str(tenant_id), data)
     else:
-        await manager.broadcast_all(data)
+        await manager.broadcast(data)
 
     if not user_id:
         return
@@ -329,6 +337,11 @@ SUBSCRIPTIONS = [
     ("sahool.inventory.low_stock", "notif_stock"),
     ("sahool.task.assigned", "notif_task"),
     ("sahool.economic.analysis", "notif_economic"),
+    # أحداث domain من المنصّة (OutboxWorker ينشر sahool.events.<event_type> مثل
+    # field.created / season.created / activity.recorded). كانت بلا أيّ مستهلك ⇒
+    # تُخزَّن في تيّار JetStream «sahool» ولا تصل أيّ مستخدم. نشترك بها كتغذية حيّة
+    # معزولة بالمستأجِر (المظروف يحمل tenant_id لا user_id ⇒ broadcast_tenant).
+    ("sahool.events.>", "notif_domain_events"),
 ]
 
 
@@ -391,6 +404,10 @@ except ImportError:
 class ConnectionManager:
     def __init__(self, max_per_user: int = 5):
         self.connections: dict[str, set] = defaultdict(set)
+        # عزل المستأجِر: نتتبّع مستأجِر كلّ مستخدم متّصل كي نوجّه أحداث المستأجِر
+        # (التى تحمل tenant_id لا user_id) لمستخدمي ذلك المستأجِر فقط — لا بثّ عابر
+        # للمستأجرين (كان broadcast يصل كلّ المستخدمين عبر كلّ المستأجرين = تسريب).
+        self._user_tenant: dict[str, str] = {}
         self._max_per_user = max_per_user
         self._lock = asyncio.Lock()
 
@@ -399,11 +416,13 @@ class ConnectionManager:
         """إجماليّ اتّصالات WebSocket الحيّة عبر كلّ المستخدمين (لـ/health)."""
         return sum(len(s) for s in self.connections.values())
 
-    async def connect(self, user_id: str, websocket) -> bool:
+    async def connect(self, user_id: str, websocket, tenant_id: str = "") -> bool:
         async with self._lock:
             if len(self.connections[user_id]) >= self._max_per_user:
                 return False
             self.connections[user_id].add(websocket)
+            if tenant_id:
+                self._user_tenant[user_id] = tenant_id
             return True
 
     async def disconnect(self, user_id: str, websocket):
@@ -411,6 +430,7 @@ class ConnectionManager:
             self.connections[user_id].discard(websocket)
             if not self.connections[user_id]:
                 del self.connections[user_id]
+                self._user_tenant.pop(user_id, None)
 
     async def send_to_user(self, user_id: str, data: dict):
         dead = set()
@@ -422,6 +442,15 @@ class ConnectionManager:
         for ws in dead:
             await self.disconnect(user_id, ws)
 
+    async def broadcast_tenant(self, tenant_id: str, data: dict):
+        """يبثّ لمستخدمي مستأجِر واحد فقط (عزل المستأجِر). إن خلا المستأجِر من
+        مستخدمين متّصلين فهو لا-عمل آمن (لا تسرّب لمستأجرين آخرين)."""
+        if not tenant_id:
+            return
+        for uid in list(self.connections):
+            if self._user_tenant.get(uid) == tenant_id:
+                await self.send_to_user(uid, data)
+
     async def broadcast(self, data: dict):
         for uid in list(self.connections):
             await self.send_to_user(uid, data)
@@ -431,6 +460,10 @@ manager = ConnectionManager(max_per_user=5)
 
 
 # ── WebSocket JWT Validation ─────────────────────────────────────
+# المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
+_ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+
+
 def _validate_ws_token(token: str) -> dict:
     """Full JWT validation for WebSocket connections."""
     from jose import JWTError
@@ -441,6 +474,9 @@ def _validate_ws_token(token: str) -> dict:
         raise ValueError("Missing token or secret")
     try:
         payload = _jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
+        # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول يُعامَل كتوكن غير صالح.
+        if payload.get("iss") not in _ALLOWED_ISS:
+            raise ValueError("Invalid token issuer")
         if not payload.get("sub"):
             raise ValueError("Missing sub claim")
         return payload
@@ -448,28 +484,9 @@ def _validate_ws_token(token: str) -> dict:
         raise ValueError(f"Invalid token: {e}") from e
 
 
-@app.websocket("/ws/notifications")
-async def ws_notifications(websocket, token: str = "", user_id: str = ""):
-    """Secure WebSocket with JWT auth, connection limit, timeout."""
-
-    # W01: Full JWT validation
-    try:
-        payload = _validate_ws_token(token)
-        verified_user_id = payload["sub"]
-        tenant_id = payload.get("tenant_id", "")
-    except ValueError as e:
-        await websocket.close(code=1008, reason=str(e))
-        return
-
-    # W03: Ignore client-supplied user_id — use JWT sub
-    # W09: Max connections per user
-    if not await manager.connect(verified_user_id, websocket):
-        await websocket.close(code=1008, reason="Max connections reached")
-        return
-
-    await websocket.accept()
-    logger.info(f"WS connected: user={verified_user_id} tenant={tenant_id}")
-
+async def _ws_receive_loop(websocket, verified_user_id: str):
+    """حلقة الاستقبال المشتركة بين المسارين (التوكن في الـquery أو في الرسالة
+    الأولى) لتفادي أيّ تباعد في السلوك. تحافظ على W04: مهلة 60ث على الاستقبال."""
     try:
         while True:
             try:
@@ -486,8 +503,90 @@ async def ws_notifications(websocket, token: str = "", user_id: str = ""):
         logger.info(f"WS disconnected: user={verified_user_id}")
 
 
+@app.websocket("/ws/notifications")
+async def ws_notifications(websocket, token: str = "", user_id: str = ""):
+    """Secure WebSocket with JWT auth, connection limit, timeout.
+
+    مساران للمصادقة (توافق خلفيّ صارم):
+      • توكن في الـquery (?token=…): السلوك القديم تماماً — يُتحقَّق منه قبل قبول
+        الاتصال. عيبه أنّ التوكن يتسرّب إلى سجلّات الوكلاء/الخوادم (access logs).
+      • توكن في الرسالة الأولى (handshake): إن خلا الـquery من التوكن، نقبل
+        الاتصال أوّلاً ثمّ ننتظر إطار {"type":"auth","token":"…"} ونتحقّق منه. هذا
+        يمنع تسرّب التوكن إلى السجلّات لأنّه لا يظهر في رابط الاتصال.
+    """
+
+    if token:
+        # ── المسار القديم: التوكن في الـquery (متروك كما هو للتوافق الخلفيّ) ──
+        # W01: Full JWT validation
+        try:
+            payload = _validate_ws_token(token)
+            verified_user_id = payload["sub"]
+            tenant_id = payload.get("tenant_id", "")
+        except ValueError as e:
+            await websocket.close(code=1008, reason=str(e))
+            return
+
+        # W03: Ignore client-supplied user_id — use JWT sub
+        # W09: Max connections per user. نمرّر tenant_id (من مطالبة JWT) لتوجيه أحداث
+        # المستأجِر إليه فقط (عزل المستأجِر في broadcast_tenant).
+        if not await manager.connect(verified_user_id, websocket, tenant_id):
+            await websocket.close(code=1008, reason="Max connections reached")
+            return
+
+        await websocket.accept()
+        logger.info(f"WS connected: user={verified_user_id} tenant={tenant_id}")
+        await _ws_receive_loop(websocket, verified_user_id)
+        return
+
+    # ── المسار الجديد: التوكن في الرسالة الأولى (يمنع تسرّبه في السجلّات) ──
+    # لا بدّ من قبول الاتصال قبل أن نستطيع استقبال إطار المصادقة (المتصفّح لا
+    # يملك وسيلة للتحقّق قبل القبول دون تمرير التوكن في الـquery).
+    await websocket.accept()
+    try:
+        # ننتظر إطار المصادقة بمهلة قصيرة كي لا يبقى اتصال مجهول مفتوحاً طويلاً.
+        auth_frame = await asyncio.wait_for(websocket.receive_json(), timeout=10.0)
+    except Exception:
+        await websocket.close(code=1008, reason="Auth handshake timeout")
+        return
+
+    auth_frame = auth_frame if isinstance(auth_frame, dict) else {}
+    ws_token = auth_frame.get("token", "")
+    if auth_frame.get("type") != "auth" or not ws_token:
+        await websocket.close(code=1008, reason="Missing auth frame")
+        return
+
+    # W01: Full JWT validation (بعد القبول، لكن قبل تقديم أيّ أحداث — نُبقي على
+    # خاصيّة "تحقّق قبل خدمة الأحداث").
+    try:
+        payload = _validate_ws_token(ws_token)
+        verified_user_id = payload["sub"]
+        tenant_id = payload.get("tenant_id", "")
+    except ValueError as e:
+        await websocket.close(code=1008, reason=str(e))
+        return
+
+    # W03: Ignore client-supplied user_id — use JWT sub
+    # W09: Max connections per user. نمرّر tenant_id (من مطالبة JWT) لعزل المستأجِر.
+    if not await manager.connect(verified_user_id, websocket, tenant_id):
+        await websocket.close(code=1008, reason="Max connections reached")
+        return
+
+    logger.info(f"WS connected: user={verified_user_id} tenant={tenant_id}")
+    await _ws_receive_loop(websocket, verified_user_id)
+
+
+def _require_agent_token(x_agent_token: str = Header(None, alias="X-Agent-Token")) -> None:
+    """يحمي نقاط الاختبار (تُرسِل إشعارات/تنشر NATS) بالتوكن الخدميّ — fail-closed.
+
+    كانت بلا مصادقة ⇒ انتحال إشعارات + حقن أحداث NATS عشوائيّة في الناقل الداخليّ.
+    """
+    expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if not expected or x_agent_token != expected:
+        raise HTTPException(403, "نقطة اختبار محميّة بـSAHOOL_AGENT_TOKEN")
+
+
 @app.post("/notifications/test")
-async def test_notification(payload: dict):
+async def test_notification(payload: dict, _: None = Depends(_require_agent_token)):
     test_event = {
         "event_type": "satellite",
         "user_id": payload.get("user_id"),
@@ -524,10 +623,15 @@ if __name__ == "__main__":
 
 # ══ Test publisher for NATS topics (development) ══
 @app.post("/notification/test")
-async def send_test_notification(tenant_id: str, event_type: str, data: dict):
+async def send_test_notification(
+    tenant_id: str, event_type: str, data: dict, _: None = Depends(_require_agent_token)
+):
     """Test endpoint to publish NATS events for testing notification subscriptions."""
     from shared.helpers import publish_event
 
+    # حصر نوع الحدث بأحرف/أرقام/فواصل (منع حقن subject NATS عشوائيّ).
+    if not re.fullmatch(r"[A-Za-z0-9_.\-]{1,64}", event_type or ""):
+        raise HTTPException(400, "event_type غير صالح")
     subject = f"sahool.{event_type}"
     await publish_event(subject, {"tenant_id": tenant_id, **data})
     return {"published": subject}
