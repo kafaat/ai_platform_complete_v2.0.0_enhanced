@@ -6990,7 +6990,9 @@ def external_prior_blend(
 
 
 # ─── ٢٢. اكتمال البيانات + ملاءمة المحاصيل (مُستلهَم من المستندَين) ─
-from api.crop_suitability import FieldConditions, rank_crops  # noqa: E402
+# ملاحظة: نقطة /api/v1/crop-suitability نُقلت إلى api/routers/crop_suitability.py
+# (نمط P0) — والاستيراد المرافق (FieldConditions/rank_crops) نُقل معها لإزالة F401.
+# نموذج CropSuitabilityRequest يبقى هنا (يُستورَد من الموجِّه + _rebuild_pydantic_models).
 from api.data_readiness import assess_readiness  # noqa: E402
 
 
@@ -7016,34 +7018,14 @@ class CropSuitabilityRequest(BaseModel):
     crops: list[str] | None = None
 
 
-@app.post("/api/v1/crop-suitability")
-def crop_suitability(
-    req: CropSuitabilityRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يرتّب المحاصيل بمعايير مرجّحة شفّافة (يحجب دون بيانات تربة حاكمة)."""
-    cond = FieldConditions(
-        ph=req.ph,
-        ec_dsm=req.ec_dsm,
-        season_rain_mm=req.season_rain_mm,
-        temp_mean_c=req.temp_mean_c,
-        irrigated=req.irrigated,
-    )
-    try:
-        return rank_crops(cond, req.crops)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+# نقطة /api/v1/crop-suitability نُقلت إلى api/routers/crop_suitability.py (نمط P0).
 
 
 # ─── ٢٣. سيناريوهات "ماذا لو" الفيزيائيّة (مُستلهَم من ورقة DT) ──
 # حساب فيزيائي offline فوق ميزان الماء/GDD — لا توأم رقمي، لا M2M، لا ML.
-from api.gdd_tracker import DailyTemp as _DTemp  # noqa: E402
-from api.scenario_whatif import (  # noqa: E402
-    whatif_planting_date,
-    whatif_rainfall_change,
-    whatif_temperature_shift,
-)
-from api.water_balance import WeatherInput as _WInput  # noqa: E402
+# نقاط /api/v1/scenario/* نُقلت إلى api/routers/scenario.py (نمط P0) — والاستيرادات
+# المرافقة (DailyTemp/WeatherInput/whatif_*) نُقلت معها لإزالة F401. النماذج تبقى هنا
+# (تُستورَد من الموجِّه + _rebuild_pydantic_models).
 
 
 class WhatIfTempRequest(BaseModel):
@@ -7058,20 +7040,7 @@ class WhatIfTempRequest(BaseModel):
     day_of_year: int = 100
 
 
-@app.post("/api/v1/scenario/temperature")
-def scenario_temperature(
-    req: WhatIfTempRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """ماذا لو تغيّرت الحرارة؟ أثر فيزيائي على ET0 والاحتياج المائي."""
-    w = _WInput(
-        t_min_c=req.t_min_c,
-        t_max_c=req.t_max_c,
-        latitude_deg=req.latitude_deg,
-        elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
-    )
-    return whatif_temperature_shift(w, req.crop, req.stage, req.temp_shift_c, rain_mm=req.rain_mm)
+# نقطة /api/v1/scenario/temperature نُقلت إلى api/routers/scenario.py (نمط P0).
 
 
 class WhatIfPlantingRequest(BaseModel):
@@ -7080,18 +7049,7 @@ class WhatIfPlantingRequest(BaseModel):
     temps_scenario: list[dict]
 
 
-@app.post("/api/v1/scenario/planting-date")
-def scenario_planting_date(
-    req: WhatIfPlantingRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """ماذا لو غيّرتُ تاريخ الزراعة؟ أثر على تراكم GDD وبلوغ المراحل."""
-    base = [_DTemp(t["t_min_c"], t["t_max_c"]) for t in req.temps_baseline]
-    scen = [_DTemp(t["t_min_c"], t["t_max_c"]) for t in req.temps_scenario]
-    try:
-        return whatif_planting_date(req.crop, base, scen)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+# نقطة /api/v1/scenario/planting-date نُقلت إلى api/routers/scenario.py (نمط P0).
 
 
 class WhatIfRainRequest(BaseModel):
@@ -7106,22 +7064,7 @@ class WhatIfRainRequest(BaseModel):
     day_of_year: int = 100
 
 
-@app.post("/api/v1/scenario/rainfall")
-def scenario_rainfall(
-    req: WhatIfRainRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """ماذا لو تغيّر المطر الموسمي؟ أثر على صافي الريّ المطلوب."""
-    w = _WInput(
-        t_min_c=req.t_min_c,
-        t_max_c=req.t_max_c,
-        latitude_deg=req.latitude_deg,
-        elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
-    )
-    return whatif_rainfall_change(
-        w, req.crop, req.stage, req.rain_baseline_mm, req.rain_scenario_mm
-    )
+# نقطة /api/v1/scenario/rainfall نُقلت إلى api/routers/scenario.py (نمط P0).
 
 
 # ─── ٢٤. تظافر القرائن ودرجات التوصية (اتّفاق: القرائن المتظافرة ترقى) ─
@@ -7623,41 +7566,7 @@ def indices_coverage_report(
     return index_coverage_report()
 
 
-@app.get("/api/v1/crops/drought-resilience")
-def crop_drought_resilience(
-    crop_id: str,
-    forecast_max_temp_c: float | None = None,
-    is_irrigated: bool | None = None,
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
-):
-    """درجة تحمّل الجفاف/الحرارة لمحصول من صفات موثّقة (مبدأ TRY، لا أرقام مخترعة).
-
-    يجمع صفات سهول (عمق الجذور، حدّ حرارة الإزهار، عتبة الملوحة) في درجة مركّبة.
-    يحذّر إن تجاوزت حرارة الهواء المتوقّعة حدّ الإزهار (قد تكون أخطر). على الحقل
-    المرويّ يُضاف تنويه أنّ الريّ يبرّد الغطاء فالهواء يبالغ (Zhu et al. 2022).
-    صدق: بلا صفات → لا درجة.
-    """
-    from core.engines.drought_resilience import compute_drought_resilience
-
-    return compute_drought_resilience(
-        crop_id, forecast_max_temp_c=forecast_max_temp_c, is_irrigated=is_irrigated
-    )
-
-
-@app.get("/api/v1/crops/compare-drought-resilience")
-def compare_drought_resilience(
-    crop_ids: str,
-    forecast_max_temp_c: float | None = None,
-    is_irrigated: bool | None = None,
-    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
-):
-    """يقارن تحمّل محاصيل للجفاف (قائمة مفصولة بفواصل) — لاختيار الأصمد."""
-    from core.engines.drought_resilience import compare_crops_resilience
-
-    crops = [c.strip() for c in crop_ids.split(",") if c.strip()]
-    return compare_crops_resilience(
-        crops, forecast_max_temp_c=forecast_max_temp_c, is_irrigated=is_irrigated
-    )
+# نقاط /api/v1/crops/* (drought-resilience) نُقلت إلى api/routers/crops.py (نمط P0).
 
 
 @app.get("/api/v1/agricultural-proverbs/for-date")
@@ -7716,27 +7625,12 @@ def astronomical_cross_check(
 
 
 # ─── ٢٨. حاجز سلامة المدخلات الكيميائيّة (مُكيَّف من v9، سدّ فجوة سلامة) ─
-from api.chemical_safety import check_chemical, list_banned  # noqa: E402
-
-
+# نقاط /api/v1/chemical-safety/* نُقلت إلى api/routers/chemical_safety.py (نمط P0) —
+# والاستيراد المرافق (check_chemical/list_banned) نُقل معها لإزالة F401. النموذج يبقى
+# هنا (يُستورَد من الموجِّه + _rebuild_pydantic_models).
 class ChemicalCheckRequest(BaseModel):
     chemical: str
     dose_kg_ha: float | None = None
-
-
-@app.post("/api/v1/chemical-safety/check")
-def chemical_safety_check(
-    req: ChemicalCheckRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يفحص مادّة كيميائيّة ضدّ الحظر الدولي والجرعة القصوى (فحص/تحذير، لا أتمتة)."""
-    return check_chemical(req.chemical, dose_kg_ha=req.dose_kg_ha).to_dict()
-
-
-@app.get("/api/v1/chemical-safety/banned")
-def chemical_safety_banned():
-    """قائمة المواد المحظورة/المقيّدة دوليّاً (شفافيّة)."""
-    return list_banned()
 
 
 # ─── ٢٩. مراقبة الحقول بالكاميرا (عين ميدانيّة، لا كشف آلي بالـML) ──
@@ -7824,80 +7718,18 @@ class IntegratedAdviceRequest(BaseModel):
 
 
 # ─── ٣١. الدورة الزراعيّة (تعاقب المحاصيل — خصوبة وقائيّة) ──────────
-from api.crop_rotation import (  # noqa: E402
-    evaluate_rotation,
-    rotation_principles,
-    suggest_next_crop,
-)
-
-
-@app.get("/api/v1/rotation/principles")
-def rotation_principles_endpoint():
-    """مبادئ الدورة الزراعيّة + المحاصيل المصنّفة (تثقيفي)."""
-    return rotation_principles()
-
-
-@app.get("/api/v1/rotation/evaluate")
-def rotation_evaluate(previous: str, candidate: str):
-    """يقيّم تعاقب محصولَين: هل candidate خيار جيّد بعد previous؟"""
-    return evaluate_rotation(previous, candidate)
-
-
-@app.get("/api/v1/rotation/suggest")
-def rotation_suggest(previous: str):
-    """يقترح أفضل المحاصيل التالية بعد محصول (مرتّبة)، بسياق يمني."""
-    return suggest_next_crop(previous)
+# نقاط /api/v1/rotation/* نُقلت إلى api/routers/rotation.py (نمط P0) — والاستيراد
+# المرافق (evaluate_rotation/rotation_principles/suggest_next_crop) نُقل معها لإزالة F401.
 
 
 # ─── ٣٢. تقويم مواعيد الزراعة المثلى (نوافذ + تحذيرات التبكير/التأخير) ─
-from api.planting_calendar import (  # noqa: E402
-    check_planting_date,
-    planting_window,
-)
-from api.planting_calendar import (  # noqa: E402
-    supported_crops as planting_crops,
-)
-
-
-@app.get("/api/v1/planting/crops")
-def planting_crops_endpoint():
-    """المحاصيل المدعومة بتقويم مواعيد الزراعة."""
-    return {"crops": planting_crops()}
-
-
-@app.get("/api/v1/planting/window")
-def planting_window_endpoint(crop: str = "wheat"):
-    """نافذة الزراعة المثلى لمحصول + مخاطر التبكير/التأخير + الحصاد."""
-    return planting_window(crop)
-
-
-@app.get("/api/v1/planting/check")
-def planting_check_endpoint(crop: str, month: int):
-    """يقيّم: هل الشهر مناسب لزراعة هذا المحصول؟ (1-12)"""
-    return check_planting_date(crop, month)
+# نقاط /api/v1/planting/* نُقلت إلى api/routers/planting.py (نمط P0) — والاستيرادات
+# المرافقة (check_planting_date/planting_window/supported_crops) نُقلت معها لإزالة F401.
 
 
 # ─── ٣٣. الإدارة المتكاملة للآفات (IPM — نهج متدرّج، الكيميائي ملاذ أخير) ─
-from api.ipm_advisor import ipm_plan, pests_for_crop  # noqa: E402
-from api.ipm_advisor import supported_pests as ipm_pests  # noqa: E402
-
-
-@app.get("/api/v1/ipm/pests")
-def ipm_pests_endpoint():
-    """الآفات المدعومة بخطّة إدارة متكاملة."""
-    return {"pests": ipm_pests()}
-
-
-@app.get("/api/v1/ipm/plan")
-def ipm_plan_endpoint(pest: str):
-    """خطّة الإدارة المتكاملة لآفة: وقاية → مراقبة → حيوي → كيميائي (ملاذ أخير)."""
-    return ipm_plan(pest)
-
-
-@app.get("/api/v1/ipm/crop-pests")
-def ipm_crop_pests_endpoint(crop: str):
-    """الآفات المحتملة لمحصول (للوقاية الاستباقيّة)."""
-    return pests_for_crop(crop)
+# نقاط /api/v1/ipm/* نُقلت إلى api/routers/ipm.py (نمط P0) — والاستيرادات المرافقة
+# (ipm_plan/pests_for_crop/supported_pests) نُقلت معها لإزالة F401.
 
 
 # ─── ٣٤. إدارة الملوحة (تصنيف + غسيل + صوديوم — معايير FAO) ────────
@@ -7956,10 +7788,9 @@ def postharvest_practices_endpoint(crop: str | None = None):
 
 
 # ─── ٣٧. البذور المحسّنة + الأساليب الزراعيّة المحسّنة ─────────────
-from api.seed_and_practices import (  # noqa: E402
-    practice_guide,
-    supported_practices,
-)
+# نقاط /api/v1/practices/* نُقلت إلى api/routers/practices.py (نمط P0) — والاستيراد
+# المرافق (practice_guide/supported_practices) نُقل معها لإزالة F401. نقاط /api/v1/seed/*
+# في api/routers/seed.py تستورد رموزها مباشرةً من api.seed_and_practices.
 
 
 # نموذج طلب تقييم مصدر البذار — يبقى مُعرَّفاً هنا ويُستورَد من api.routers.seed
@@ -7968,18 +7799,6 @@ class SeedSourceRequest(BaseModel):
     certified: bool
     purity_pct: float | None = None
     germination_pct: float | None = None
-
-
-@app.get("/api/v1/practices/list")
-def practices_list_endpoint():
-    """الأساليب الزراعيّة المحسّنة المدعومة."""
-    return {"practices": supported_practices()}
-
-
-@app.get("/api/v1/practices/guide")
-def practices_guide_endpoint(practice: str):
-    """دليل أسلوب زراعي محسّن (تحميل/زراعة حافظة/مدرّجات/ريّ تكميلي)."""
-    return practice_guide(practice)
 
 
 # ─── ٣٨. إدخال محاصيل/أشجار جديدة (استلهام من جازان/نجران) ─────────
@@ -8088,29 +7907,9 @@ def geo_locate_recommend_endpoint(lat: float, lon: float, elevation_m: float | N
 
 
 # ─── ٤٥. نوافذ المخاطر المناخيّة الموسميّة + ساعات البرودة ──
-from api.seasonal_risk import (  # noqa: E402
-    chill_hours_estimate,
-    stage_risk_check,
-    zone_risk_calendar,
-)
-
-
-@app.get("/api/v1/seasonal-risk/calendar")
-def seasonal_risk_calendar_endpoint(zone: str):
-    """نوافذ المخاطر المناخيّة الموسميّة لإقليم (موجات حرّ/صقيع/مطر حصاد)."""
-    return zone_risk_calendar(zone)
-
-
-@app.get("/api/v1/seasonal-risk/stage-check")
-def seasonal_risk_stage_endpoint(zone: str, stage_ar: str):
-    """يفحص مخاطر مرحلة نموّ محدّدة في إقليم (مثلاً الإزهار في الجوف)."""
-    return stage_risk_check(zone, stage_ar)
-
-
-@app.get("/api/v1/seasonal-risk/chill-hours")
-def seasonal_risk_chill_endpoint(zone: str):
-    """يقدّر ساعات البرودة ويقارنها باحتياج الأشجار المتساقطة."""
-    return chill_hours_estimate(zone)
+# نقاط /api/v1/seasonal-risk/* نُقلت إلى api/routers/seasonal_risk.py (نمط P0) —
+# والاستيرادات المرافقة (chill_hours_estimate/stage_risk_check/zone_risk_calendar)
+# نُقلت معها لإزالة F401.
 
 
 # ─── ٤٧. تحليل سجلّ الطقس اليومي → ذكاء زراعي (إجهاد حراري + ET0 + عجز مائي) ──
@@ -8172,67 +7971,24 @@ def decision_explain_endpoint(
 
 
 # ─── ٥٠. مخطّط البستان المختلط الاستثماري (لوز/زيتون/فستق) ──
-from api.orchard_planner import mixed_orchard_plan, orchard_economics_note  # noqa: E402
-
-
-@app.get("/api/v1/orchard/plan")
-def orchard_plan_endpoint(area_ha: float = 1.0):
-    """يخطّط بستاناً مختلطاً صحراويّاً: توزيع + كثافة + جدول عائد زمني."""
-    return mixed_orchard_plan(area_ha)
-
-
-@app.get("/api/v1/orchard/economics")
-def orchard_economics_endpoint(area_ha: float = 1.0):
-    """ملاحظات اقتصاديّة تقديريّة للبستان المختلط (سيناريو لا وعد)."""
-    return orchard_economics_note(area_ha)
+# نقاط /api/v1/orchard/* نُقلت إلى api/routers/orchard.py (نمط P0) — والاستيراد
+# المرافق (mixed_orchard_plan/orchard_economics_note) نُقل معها لإزالة F401.
 
 
 # ─── ٥١. محاصيل عالية القيمة قليلة الانتشار (فرص دخول مبكر) ──
-from api.high_value_crops import high_value_crop_detail, list_high_value_crops  # noqa: E402
-
-
-@app.get("/api/v1/high-value-crops/list")
-def high_value_crops_list_endpoint(tier: str | None = None):
-    """محاصيل عالية القيمة مصنّفة بصدق حسب ملاءمة الجوف (مثبتة/بحذر/غير مناسبة)."""
-    return list_high_value_crops(tier)
-
-
-@app.get("/api/v1/high-value-crops/detail")
-def high_value_crops_detail_endpoint(crop_ar: str):
-    """تفصيل محصول عالي القيمة (جوجوبا/مورينجا/ألوفيرا/كينوا...)."""
-    return high_value_crop_detail(crop_ar)
+# نقاط /api/v1/high-value-crops/* نُقلت إلى api/routers/high_value_crops.py (نمط P0) —
+# والاستيراد المرافق (high_value_crop_detail/list_high_value_crops) نُقل معها لإزالة F401.
 
 
 # ─── ٥٢. منتجات تصديريّة متخصّصة (موجة ثانية: أصماغ/توابل/أصباغ) ──
-from api.niche_export_crops import list_niche_crops, niche_crop_detail  # noqa: E402
-
-
-@app.get("/api/v1/niche-crops/list")
-def niche_crops_list_endpoint(category: str | None = None):
-    """منتجات تصديريّة متخصّصة عالية القيمة (صمغ عربي/جوار/حبّة سوداء/قرطم...)."""
-    return list_niche_crops(category)
-
-
-@app.get("/api/v1/niche-crops/detail")
-def niche_crops_detail_endpoint(crop_ar: str):
-    """تفصيل منتج متخصّص محدّد + ميزته اليمنيّة."""
-    return niche_crop_detail(crop_ar)
+# نقاط /api/v1/niche-crops/* نُقلت إلى api/routers/niche_crops.py (نمط P0) — والاستيراد
+# المرافق (list_niche_crops/niche_crop_detail) نُقل معها لإزالة F401.
 
 
 # ─── ٥٣. زيوت عطريّة + أعلاف موفّرة للماء (موجة رابعة) ──
-from api.aromatic_fodder_crops import list_aromatic_crops, list_fodder_alternatives  # noqa: E402
-
-
-@app.get("/api/v1/aromatic-crops/list")
-def aromatic_crops_list_endpoint():
-    """نباتات عطريّة/زيوت أساسيّة متحمّلة للجفاف (قيمة عالية لكلّ قطرة ماء)."""
-    return list_aromatic_crops()
-
-
-@app.get("/api/v1/fodder-alternatives/list")
-def fodder_alternatives_list_endpoint():
-    """أعلاف موفّرة للماء بديلة للبرسيم المستنزف (Blue panic/سورغم...)."""
-    return list_fodder_alternatives()
+# نقطة /api/v1/aromatic-crops/list نُقلت إلى api/routers/aromatic_crops.py ونقطة
+# /api/v1/fodder-alternatives/list إلى api/routers/fodder_alternatives.py (نمط P0) —
+# والاستيراد المرافق (list_aromatic_crops/list_fodder_alternatives) نُقل معها لإزالة F401.
 
 
 # ─── ٥٤. الريّ الذكي: قراءة مستشعر الرطوبة + قرار RWC ──
@@ -8241,26 +7997,8 @@ def fodder_alternatives_list_endpoint():
 
 
 # ─── ٥٥. WOFOST عبر المحاصيل: دليل تعديل البارامترات ──
-from api.wofost_crop_params import (  # noqa: E402
-    list_supported_crop_types,
-    wofost_adaptation_guidance,
-)
-
-
-@app.get("/api/v1/wofost/crop-types")
-def wofost_crop_types_endpoint():
-    """أنواع نماذج المحاصيل (حولي/شجرة/خضار/درنيّ) وإطار تعديل كلّ منها."""
-    return list_supported_crop_types()
-
-
-@app.get("/api/v1/wofost/adaptation-guidance")
-def wofost_adaptation_endpoint(crop: str):
-    """دليل تعديل بارامترات WOFOST لمحصول عن النموذج الأساسي (القمح).
-
-    يُرجع نوع النموذج، نسبة التغيير، البارامترات الرئيسيّة (مع المدى والمصدر)،
-    وتحذيرات الحدود — إرشاديّ للمعايرة لا قيم نهائيّة مُعايَرة لليمن.
-    """
-    return wofost_adaptation_guidance(crop)
+# نقاط /api/v1/wofost/* نُقلت إلى api/routers/wofost.py (نمط P0) — والاستيراد المرافق
+# (list_supported_crop_types/wofost_adaptation_guidance) نُقل معها لإزالة F401.
 
 
 # ─── ٥٦. فحص التناقض الزراعي + نضارة القرار ──
@@ -8851,25 +8589,40 @@ _rebuild_pydantic_models()
 # المُفسّر إلى هنا تكون كلّ تلك الرموز مُعرَّفة. التسجيل يحدث وقت الاستيراد فتُسجَّل
 # المسارات على ``app`` كما لو كانت مُعرَّفة هنا (مخطّط OpenAPI مطابق).
 from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
+from api.routers.aromatic_crops import router as aromatic_crops_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
 from api.routers.calendars import router as calendars_router  # noqa: E402
+from api.routers.chemical_safety import router as chemical_safety_router  # noqa: E402
 from api.routers.climate_analogs import router as climate_analogs_router  # noqa: E402
 from api.routers.coffee import router as coffee_router  # noqa: E402
+from api.routers.crop_suitability import router as crop_suitability_router  # noqa: E402
+from api.routers.crops import router as crops_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.equipment import router as equipment_router  # noqa: E402
+from api.routers.fodder_alternatives import router as fodder_alternatives_router  # noqa: E402
+from api.routers.high_value_crops import router as high_value_crops_router  # noqa: E402
 from api.routers.inventory import router as inventory_router  # noqa: E402
+from api.routers.ipm import router as ipm_router  # noqa: E402
 from api.routers.irrigation import router as irrigation_router  # noqa: E402
+from api.routers.niche_crops import router as niche_crops_router  # noqa: E402
+from api.routers.orchard import router as orchard_router  # noqa: E402
+from api.routers.planting import router as planting_router  # noqa: E402
+from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
 from api.routers.recommendations import router as recommendations_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
 from api.routers.reports import router as reports_router  # noqa: E402
+from api.routers.rotation import router as rotation_router  # noqa: E402
+from api.routers.scenario import router as scenario_router  # noqa: E402
+from api.routers.seasonal_risk import router as seasonal_risk_router  # noqa: E402
 from api.routers.seed import router as seed_router  # noqa: E402
 from api.routers.sharing import router as sharing_router  # noqa: E402
 from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
 from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
 from api.routers.water_sensitivity import router as water_sensitivity_router  # noqa: E402
 from api.routers.weather import router as weather_router  # noqa: E402
+from api.routers.wofost import router as wofost_router  # noqa: E402
 
 app.include_router(boundaries_router)
 app.include_router(registry_router)
@@ -8891,3 +8644,18 @@ app.include_router(coffee_router)
 app.include_router(weather_router)
 app.include_router(soil_sampling_router)
 app.include_router(sharing_router)
+app.include_router(crop_suitability_router)
+app.include_router(scenario_router)
+app.include_router(crops_router)
+app.include_router(chemical_safety_router)
+app.include_router(rotation_router)
+app.include_router(planting_router)
+app.include_router(ipm_router)
+app.include_router(practices_router)
+app.include_router(seasonal_risk_router)
+app.include_router(orchard_router)
+app.include_router(high_value_crops_router)
+app.include_router(niche_crops_router)
+app.include_router(aromatic_crops_router)
+app.include_router(fodder_alternatives_router)
+app.include_router(wofost_router)
