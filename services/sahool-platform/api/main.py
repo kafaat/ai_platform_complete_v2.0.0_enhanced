@@ -4840,142 +4840,6 @@ class InventoryBatchRequest(BaseModel):
     notes: str | None = None
 
 
-@app.post("/api/v1/inventory/items", status_code=201)
-async def create_inventory_item(
-    req: InventoryItemRequest,
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
-):
-    import uuid as _uuid
-
-    item_id = "inv_" + _uuid.uuid4().hex[:12]
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO inventory_items
-                (item_id, tenant_id, category, name, unit, reorder_level, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            item_id,
-            str(user.tenant_id),
-            req.category,
-            req.name,
-            req.unit,
-            req.reorder_level,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "INVENTORY_ITEM_CREATED",
-            "inventory_item",
-            item_id,
-            {"category": req.category, "name": req.name},
-        )
-    return {"item_id": item_id, "name": req.name, "message_ar": "أُضيف عنصر المخزون"}
-
-
-@app.get("/api/v1/inventory/items")
-async def list_inventory_items(
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
-):
-    """عناصر المخزون مع الكمّيّة الكلّيّة (مجموع الدفعات) — مُرشّحة بـRLS."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            """SELECT i.item_id, i.category, i.name, i.unit, i.reorder_level,
-                      COALESCE(SUM(b.quantity), 0) AS total_quantity
-               FROM inventory_items i
-               LEFT JOIN inventory_batches b ON b.item_id = i.item_id
-               GROUP BY i.item_id, i.category, i.name, i.unit, i.reorder_level
-               ORDER BY i.category, i.name"""
-        )
-    return [
-        {
-            "item_id": r["item_id"],
-            "category": r["category"],
-            "name": r["name"],
-            "unit": r["unit"],
-            "reorder_level": float(r["reorder_level"]) if r["reorder_level"] is not None else None,
-            "total_quantity": float(r["total_quantity"]),
-            "low_stock": (
-                r["reorder_level"] is not None
-                and float(r["total_quantity"]) <= float(r["reorder_level"])
-            ),
-        }
-        for r in rows
-    ]
-
-
-@app.post("/api/v1/inventory/items/{item_id}/batches", status_code=201)
-async def add_inventory_batch(
-    item_id: str,
-    req: InventoryBatchRequest,
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
-):
-    import uuid as _uuid
-
-    batch_id = "bat_" + _uuid.uuid4().hex[:12]
-    expiry = _parse_date(req.expiry_date, "expiry_date")
-    received = _parse_date(req.received_at, "received_at") or date.today()
-    async with tenant_connection(user) as conn:
-        # تأكّد من وجود العنصر ضمن المستأجر (RLS يمنع عنصر مستأجر آخر)
-        exists = await conn.fetchval("SELECT 1 FROM inventory_items WHERE item_id = $1", item_id)
-        if not exists:
-            raise HTTPException(status_code=404, detail="عنصر المخزون غير موجود")
-        await conn.execute(
-            """INSERT INTO inventory_batches
-                (batch_id, tenant_id, item_id, quantity, unit, batch_code,
-                 expiry_date, received_at, supplier, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
-            batch_id,
-            str(user.tenant_id),
-            item_id,
-            req.quantity,
-            req.unit,
-            req.batch_code,
-            expiry,
-            received,
-            req.supplier,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "INVENTORY_BATCH_ADDED",
-            "inventory_batch",
-            batch_id,
-            {"item_id": item_id, "quantity": req.quantity},
-        )
-    return {"batch_id": batch_id, "item_id": item_id, "message_ar": "أُضيفت الدفعة"}
-
-
-@app.get("/api/v1/inventory/expiring")
-async def list_expiring_batches(
-    days: int = Query(30, ge=1, le=3650),  # مقيّد 1..10 سنوات (لا سالب/ضخم)
-    user: UserSchema = Depends(require_permission(Permission.INVENTORY_VIEW)),
-):
-    """دفعات تنتهي خلال N يوماً (تنبيه قبل تلف المبيدات/الأسمدة)."""
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            """SELECT b.batch_id, b.item_id, i.name, b.quantity, b.unit, b.expiry_date
-               FROM inventory_batches b
-               JOIN inventory_items i ON i.item_id = b.item_id
-               WHERE b.expiry_date IS NOT NULL
-                 AND b.expiry_date <= CURRENT_DATE + make_interval(days => $1)
-                 AND b.quantity > 0
-               ORDER BY b.expiry_date ASC""",
-            days,
-        )
-    return [
-        {
-            "batch_id": r["batch_id"],
-            "item_id": r["item_id"],
-            "name": r["name"],
-            "quantity": float(r["quantity"]),
-            "unit": r["unit"],
-            "expiry_date": r["expiry_date"].isoformat() if r["expiry_date"] else None,
-        }
-        for r in rows
-    ]
-
-
 # ─── المعدّات (Equipment) — الطبقة ١١ (v23) ──────────────────────
 class EquipmentRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -4992,133 +4856,6 @@ class MaintenanceRequest(BaseModel):
     performed_date: str | None = None
     cost_usd: float | None = None
     notes: str | None = None
-
-
-@app.post("/api/v1/equipment", status_code=201)
-async def create_equipment(
-    req: EquipmentRequest,
-    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
-):
-    import uuid as _uuid
-
-    equipment_id = "eqp_" + _uuid.uuid4().hex[:12]
-    purchase = _parse_date(req.purchase_date, "purchase_date")
-    async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO equipment
-                (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            equipment_id,
-            str(user.tenant_id),
-            req.name,
-            req.type,
-            req.operating_hours,
-            purchase,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "EQUIPMENT_CREATED",
-            "equipment",
-            equipment_id,
-            {"name": req.name, "type": req.type},
-        )
-    return {"equipment_id": equipment_id, "name": req.name, "message_ar": "سُجّلت المعدّة"}
-
-
-@app.get("/api/v1/equipment")
-async def list_equipment(user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW))):
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT equipment_id, name, type, status, operating_hours, purchase_date "
-            "FROM equipment ORDER BY type, name"
-        )
-    return [
-        {
-            "equipment_id": r["equipment_id"],
-            "name": r["name"],
-            "type": r["type"],
-            "status": r["status"],
-            "operating_hours": float(r["operating_hours"]),
-            "purchase_date": r["purchase_date"].isoformat() if r["purchase_date"] else None,
-        }
-        for r in rows
-    ]
-
-
-@app.post("/api/v1/equipment/{equipment_id}/maintenance", status_code=201)
-async def log_maintenance(
-    equipment_id: str,
-    req: MaintenanceRequest,
-    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
-):
-    import uuid as _uuid
-
-    maintenance_id = "mnt_" + _uuid.uuid4().hex[:12]
-    sched = _parse_date(req.scheduled_date, "scheduled_date")
-    performed = _parse_date(req.performed_date, "performed_date")
-    async with tenant_connection(user) as conn:
-        exists = await conn.fetchval(
-            "SELECT 1 FROM equipment WHERE equipment_id = $1", equipment_id
-        )
-        if not exists:
-            raise HTTPException(status_code=404, detail="المعدّة غير موجودة")
-        await conn.execute(
-            """INSERT INTO equipment_maintenance
-                (maintenance_id, tenant_id, equipment_id, kind, status,
-                 scheduled_date, performed_date, cost_usd, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
-            maintenance_id,
-            str(user.tenant_id),
-            equipment_id,
-            req.kind,
-            req.status,
-            sched,
-            performed,
-            req.cost_usd,
-            req.notes,
-        )
-        # عطل قيد التنفيذ ⇒ حدّث حالة المعدّة (تتبّع تشغيليّ)
-        if req.kind == "breakdown" and req.status != "done":
-            await conn.execute(
-                "UPDATE equipment SET status = 'broken' WHERE equipment_id = $1", equipment_id
-            )
-        await _emit_domain_event(
-            conn,
-            user,
-            "MAINTENANCE_LOGGED",
-            "equipment_maintenance",
-            maintenance_id,
-            {"equipment_id": equipment_id, "kind": req.kind, "status": req.status},
-        )
-    return {"maintenance_id": maintenance_id, "message_ar": "سُجّلت الصيانة"}
-
-
-@app.get("/api/v1/equipment/{equipment_id}/maintenance")
-async def list_maintenance(
-    equipment_id: str,
-    user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_VIEW)),
-):
-    async with tenant_connection(user) as conn:
-        rows = await conn.fetch(
-            "SELECT maintenance_id, kind, status, scheduled_date, performed_date, cost_usd, notes "
-            "FROM equipment_maintenance WHERE equipment_id = $1 "
-            "ORDER BY COALESCE(performed_date, scheduled_date) DESC NULLS LAST",
-            equipment_id,
-        )
-    return [
-        {
-            "maintenance_id": r["maintenance_id"],
-            "kind": r["kind"],
-            "status": r["status"],
-            "scheduled_date": r["scheduled_date"].isoformat() if r["scheduled_date"] else None,
-            "performed_date": r["performed_date"].isoformat() if r["performed_date"] else None,
-            "cost_usd": float(r["cost_usd"]) if r["cost_usd"] is not None else None,
-            "notes": r["notes"],
-        }
-        for r in rows
-    ]
 
 
 # ─── أجهزة IoT (سجلّ + صحّة + telemetry) — الطبقة ٤ (v24) ─────────
@@ -6410,105 +6147,6 @@ async def get_document(
 # ═══════════════════════════════════════════════════════════════════
 
 
-@app.get("/api/v1/weather/current")
-async def weather_current(lat: float, lon: float):
-    """الطقس الحالي من Open-Meteo. مفتوح بدون auth."""
-    try:
-        from api.connectors.openmeteo import describe_weather_ar, fetch_current
-
-        data = await fetch_current(lat, lon)
-        return {
-            "temperature_c": data.temperature_c,
-            "humidity_pct": data.humidity_pct,
-            "wind_speed_ms": data.wind_speed_ms,
-            "precipitation_mm": data.precipitation_mm,
-            "cloud_cover_pct": data.cloud_cover_pct,
-            "weather_code": data.weather_code,
-            "weather_ar": describe_weather_ar(data.weather_code),
-            "is_day": data.is_day,
-            "timestamp": data.timestamp,
-            "source": "open-meteo",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
-
-
-@app.get("/api/v1/weather/forecast")
-async def weather_forecast(lat: float, lon: float, days: int = 7):
-    """توقّعات ١-١٦ يوم + ET₀ (FAO-56) + spraying conditions."""
-    try:
-        from api.connectors.openmeteo import (
-            describe_weather_ar,
-            fetch_daily_forecast,
-            spraying_condition_score,
-        )
-
-        forecast = await fetch_daily_forecast(lat, lon, days=days)
-        return {
-            "location": {"lat": lat, "lon": lon},
-            "days": [
-                {
-                    "date": f.date,
-                    "temp_max_c": f.temp_max_c,
-                    "temp_min_c": f.temp_min_c,
-                    "precipitation_mm": f.precipitation_mm,
-                    "et0_mm": f.et0_mm,
-                    "sunshine_hours": f.sunshine_hours,
-                    # شمسيّ/نهاريّ — لجدولة الريّ بالطاقة الشمسيّة وتقدير الإنتاج
-                    "sunrise": f.sunrise,
-                    "sunset": f.sunset,
-                    "daylight_hours": f.daylight_hours,
-                    "solar_radiation_mj_m2": f.solar_radiation_mj_m2,
-                    "wind_max_ms": f.wind_max_ms,
-                    "weather_code": f.weather_code,
-                    "weather_ar": describe_weather_ar(f.weather_code),
-                    "spraying": (
-                        lambda s: {
-                            "status": s[0],
-                            "reason_ar": s[1],
-                        }
-                    )(spraying_condition_score(f)),
-                }
-                for f in forecast
-            ],
-            "source": "open-meteo",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
-
-
-@app.get("/api/v1/weather/historical")
-async def weather_historical(
-    lat: float,
-    lon: float,
-    start_date: str,
-    end_date: str,
-):
-    """ERA5 reanalysis — تاريخي من ١٩٤٠. مفيد لـGDD."""
-    try:
-        from api.connectors.openmeteo import fetch_historical
-
-        days = await fetch_historical(lat, lon, start_date, end_date)
-        return {
-            "location": {"lat": lat, "lon": lon},
-            "range": {"start": start_date, "end": end_date},
-            "days": [
-                {
-                    "date": d.date,
-                    "temp_max_c": d.temp_max_c,
-                    "temp_min_c": d.temp_min_c,
-                    "precipitation_mm": d.precipitation_mm,
-                    "et0_mm": d.et0_mm,
-                }
-                for d in days
-            ],
-            "source": "open-meteo-archive",
-            "model": "ERA5",
-        }
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
-
-
 # ─── TrueUp (yield calibration) — موصَّل end-to-end ──────────────
 # جلسة التصحيح الذاتي: بند ١ — توصيل وحدة واحدة فعلاً بدل الجزر المعزولة.
 # TrueUpEngine.compute هو pure logic (مُختبَر في test_v12_modules.py: 23/23).
@@ -7491,14 +7129,7 @@ def field_walk_plan_pdf(
 # توليد مفتاح مشاركة (نموذج "المهندس الزراعي الموثوق" من FieldView).
 # التوليد والـhashing pure؛ الحفظ/التحقّق في DB يحتاج PostgreSQL pool
 # (يبقى غير موصَّل بصدق — SharingKeyService.create_key/validate_key).
-import uuid as _uuid  # noqa: E402
-
-from api.sharing import (  # noqa: E402
-    SharingScope,
-    ThirdPartyType,
-    generate_key_plaintext,
-    hash_key,
-)
+# الـendpoint POST /api/v1/sharing/generate-key مُستخرَج إلى routers/sharing.py.
 
 
 class ShareKeyRequest(BaseModel):
@@ -7509,46 +7140,6 @@ class ShareKeyRequest(BaseModel):
     expires_in_days: int = 30
 
 
-@app.post("/api/v1/sharing/generate-key")
-def generate_share_key(
-    req: ShareKeyRequest,
-    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
-):
-    """يولّد مفتاح مشاركة (يُعرَض الـplaintext مرّة واحدة فقط).
-
-    ملاحظة: الحفظ في DB يحتاج PostgreSQL (غير موصَّل). هذا يولّد المفتاح
-    والـhash والبيانات الوصفيّة — جاهزة للحفظ لاحقاً.
-    """
-    try:
-        scope = SharingScope(req.scope)
-    except ValueError:
-        raise HTTPException(status_code=422, detail=f"نطاق غير صالح: {req.scope}") from None
-    tp_type = None
-    if req.third_party_type:
-        try:
-            tp_type = ThirdPartyType(req.third_party_type)
-        except ValueError:
-            raise HTTPException(
-                status_code=422, detail=f"نوع طرف غير صالح: {req.third_party_type}"
-            ) from None
-
-    plaintext = generate_key_plaintext()
-    now = datetime.now(UTC)
-    return {
-        "key_id": str(_uuid.uuid4()),
-        "key_plaintext": plaintext,  # يُعرَض مرّة واحدة
-        "key_hash": hash_key(plaintext),  # للحفظ في DB
-        "key_prefix": plaintext[:12],
-        "scope": scope.value,
-        "third_party_name": req.third_party_name,
-        "third_party_type": tp_type.value if tp_type else None,
-        "allowed_field_ids": req.allowed_field_ids,
-        "created_at": now.isoformat(),
-        "expires_at": (now + timedelta(days=req.expires_in_days)).isoformat(),
-        "note_ar": "احفظ هذا المفتاح الآن — لن يُعرَض مرّة أخرى. الحفظ في قاعدة البيانات يحتاج تفعيل الخادم.",
-    }
-
-
 # ─── ١٤. الوحدات المعتمدة على PostgreSQL (سدّ الفجوة ١) ──────────
 # توصيل command_store / event_bus / data_lineage / sharing (الحفظ).
 # ⚠ هذه الـendpoints تحتاج DATABASE_URL مضبوطاً (pool حقيقي). كُتِبت ووُصِّلت
@@ -7557,9 +7148,6 @@ def generate_share_key(
 from api.command_store import CommandStore  # noqa: E402
 from api.data_lineage import LineageAssembler  # noqa: E402
 from api.event_bus import EventBus  # noqa: E402
-from api.sharing import SharingKeyService  # noqa: E402
-from api.sharing import SharingScope as _SScope  # noqa: E402
-from api.sharing import ThirdPartyType as _TPType  # noqa: E402
 
 
 @app.get("/api/v1/lineage/{entity_type}/{entity_id}")
@@ -7631,49 +7219,7 @@ class SharingKeyCreateRequest(BaseModel):
     allowed_field_ids: list[str] = []
 
 
-@app.post("/api/v1/sharing/keys")
-async def create_sharing_key(
-    req: SharingKeyCreateRequest,
-    user: UserSchema = Depends(require_permission(Permission.USER_INVITE)),
-):
-    """ينشئ ويحفظ مفتاح مشاركة (عبر tenant_connection — RLS مُطبَّق)."""
-    try:
-        scope = _SScope(req.scope)
-        tp = _TPType(req.third_party_type) if req.third_party_type else None
-        async with tenant_connection(user) as conn:
-            svc = SharingKeyService(get_pool(), conn=conn)
-            key = await svc.create_key(
-                tenant_id=getattr(user, "tenant_id", "default"),
-                created_by=user.user_id,
-                scope=scope,
-                valid_days=req.valid_days,
-                third_party_name=req.third_party_name,
-                third_party_type=tp,
-                allowed_field_ids=req.allowed_field_ids,
-            )
-        return {
-            "key_id": key.key_id,
-            "key_plaintext": key.key_plaintext,  # مرّة واحدة
-            "key_prefix": key.key_prefix,
-            "scope": key.scope.value,
-            "expires_at": key.expires_at,
-        }
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
-
-
-@app.get("/api/v1/sharing/keys")
-async def list_sharing_keys(
-    include_revoked: bool = False,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يسرد مفاتيح المشاركة للمستأجر (عبر tenant_connection — RLS مُطبَّق)."""
-    async with tenant_connection(user) as conn:
-        svc = SharingKeyService(get_pool(), conn=conn)
-        keys = await svc.list_keys(
-            getattr(user, "tenant_id", "default"), include_revoked=include_revoked
-        )
-    return {"keys": keys}
+# المساران POST/GET /api/v1/sharing/keys مُستخرَجان إلى routers/sharing.py.
 
 
 # ─── ١٥. محرّك التجارب t-test/LSD (المرحلة ٢، البند ١١) ──────────
@@ -9188,42 +8734,7 @@ def salinity_assess_endpoint(
 
 
 # ─── ٣٥. دليل البنّ اليمني (محصول نقدي للمرتفعات — شجري دائم) ──────
-from api.coffee_advisor import (  # noqa: E402
-    coffee_pests,
-)
-from api.coffee_advisor import (  # noqa: E402
-    cultivation_guide as coffee_guide,
-)
-from api.coffee_advisor import (  # noqa: E402
-    site_suitability as coffee_site,
-)
-from api.coffee_advisor import (  # noqa: E402
-    varieties as coffee_varieties,
-)
-
-
-@app.get("/api/v1/coffee/site-suitability")
-def coffee_site_endpoint(altitude_m: float):
-    """ملاءمة موقع لزراعة البنّ بناءً على الارتفاع (المثالي 1500-2400م)."""
-    return coffee_site(altitude_m)
-
-
-@app.get("/api/v1/coffee/guide")
-def coffee_guide_endpoint():
-    """دليل زراعة البنّ اليمني: المدرّجات، التظليل، الريّ، التجفيف الطبيعي."""
-    return coffee_guide()
-
-
-@app.get("/api/v1/coffee/varieties")
-def coffee_varieties_endpoint(region: str | None = None):
-    """أصناف البنّ اليمنيّة (كلّها أو حسب منطقة)."""
-    return coffee_varieties(region)
-
-
-@app.get("/api/v1/coffee/pests")
-def coffee_pests_endpoint():
-    """آفات البنّ الرئيسيّة (صدأ الأوراق، ثاقبة الثمار) مرتبطة بـIPM."""
-    return coffee_pests()
+# مسارات /api/v1/coffee/* مُستخرَجة إلى routers/coffee.py.
 
 
 # ─── ٣٦. ما بعد الحصاد (التخزين وتقليل الفقد) ─────────────────────
@@ -9356,29 +8867,7 @@ def introduction_field_fit_endpoint(req: FieldFitRequest):
 
 
 # ─── ٣٩. بروتوكول أخذ عيّنة التربة (دقّة التحليل تبدأ من العيّنة) ──
-from api.soil_sampling_protocol import (  # noqa: E402
-    sampling_depth,
-    sampling_protocol,
-    subsamples_for_area,
-)
-
-
-@app.get("/api/v1/soil-sampling/subsamples")
-def soil_subsamples_endpoint(area_ha: float):
-    """عدد العيّنات الفرعيّة الموصى بها حسب مساحة الحقل."""
-    return subsamples_for_area(area_ha)
-
-
-@app.get("/api/v1/soil-sampling/depth")
-def soil_depth_endpoint(purpose: str = "general"):
-    """العمق المناسب لأخذ العيّنة حسب الغرض (general/nitrate/no_till/orchard)."""
-    return sampling_depth(purpose)
-
-
-@app.get("/api/v1/soil-sampling/protocol")
-def soil_protocol_endpoint(area_ha: float | None = None, purpose: str = "general"):
-    """البروتوكول الكامل لأخذ عيّنة تربة صحيحة (خطوات + تحذيرات + توقيت)."""
-    return sampling_protocol(area_ha, purpose)
+# مسارات /api/v1/soil-sampling/* مُستخرَجة إلى routers/soil_sampling.py.
 
 
 # ─── ٤٠. حصاد مياه الأمطار (مصدر ماء بديل للمناطق الشحيحة) ────────
@@ -9446,38 +8935,7 @@ def economics_break_even_endpoint(area_ha: float, yield_t_per_ha: float, total_c
 
 
 # ─── ٤٢. الإكثار الخضري (اللاجنسي) + اختيار الأصل المقاوم ─────────
-from api.propagation_advisor import (  # noqa: E402
-    crop_propagation,
-    propagation_methods,
-    rootstock_selection,
-)
-from api.propagation_advisor import (  # noqa: E402
-    method_guide as propagation_method_guide,
-)
-
-
-@app.get("/api/v1/propagation/methods")
-def propagation_methods_endpoint():
-    """طرق الإكثار الخضري الخمس (عقل/تطعيم/برعمة/تقسيم/ترقيد)."""
-    return propagation_methods()
-
-
-@app.get("/api/v1/propagation/method-guide")
-def propagation_method_guide_endpoint(method: str):
-    """دليل طريقة إكثار محدّدة (الأنواع + النصيحة + الأنسب)."""
-    return propagation_method_guide(method)
-
-
-@app.get("/api/v1/propagation/crop")
-def propagation_crop_endpoint(crop: str):
-    """طريقة الإكثار المناسبة لمحصول/شجرة من بطاقات الإدخال."""
-    return crop_propagation(crop)
-
-
-@app.get("/api/v1/propagation/rootstock")
-def propagation_rootstock_endpoint(stress: str = "salinity"):
-    """إرشاد اختيار الأصل المقاوم حسب الإجهاد (salinity/drought/disease/dwarfing)."""
-    return rootstock_selection(stress)
+# مسارات /api/v1/propagation/* مُستخرَجة إلى routers/propagation.py.
 
 
 # ─── ٤٣. تصنيف الأقاليم المناخيّة-الزراعيّة لليمن (أين أنت → ماذا يناسبك) ──
@@ -10405,10 +9863,24 @@ _rebuild_pydantic_models()
 # المسارات على ``app`` كما لو كانت مُعرَّفة هنا (مخطّط OpenAPI مطابق).
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
+from api.routers.coffee import router as coffee_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
+from api.routers.equipment import router as equipment_router  # noqa: E402
+from api.routers.inventory import router as inventory_router  # noqa: E402
+from api.routers.propagation import router as propagation_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
+from api.routers.sharing import router as sharing_router  # noqa: E402
+from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
+from api.routers.weather import router as weather_router  # noqa: E402
 
 app.include_router(boundaries_router)
 app.include_router(registry_router)
 app.include_router(automation_router)
 app.include_router(devices_router)
+app.include_router(propagation_router)
+app.include_router(inventory_router)
+app.include_router(equipment_router)
+app.include_router(coffee_router)
+app.include_router(weather_router)
+app.include_router(soil_sampling_router)
+app.include_router(sharing_router)
