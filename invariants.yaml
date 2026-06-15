@@ -90,7 +90,7 @@ layers:
       - id: rls_contract_frozen
         desc: "عقد RLS مجمّد — أيّ تغيير يحتاج مراجعة معماريّة"
       - id: temporal_authority_frozen
-        desc: "occurred_at = المرجع السببي (TEMPORAL_AUTHORITY.md)"
+        desc: "occurred_at = المرجع السببي (docs/audits/TEMPORAL_AUTHORITY.md)"
 
 # ملاحظة صدق: المستويات static تعمل offline (make verify-static). المستوى
 # live يحتاج جهازك (postgres + non-superuser). لا يوجد L_AST منفصل في
