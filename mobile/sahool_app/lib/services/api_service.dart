@@ -3,7 +3,6 @@
 //        D04(offline detect), D05(retry), D06(exp check), D08(token redact),
 //        D09(correlation ID), D10(User-Agent)
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:dio/dio.dart';
@@ -11,6 +10,7 @@ import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import '../services/auth_service.dart';
+import '../utils/jwt.dart';
 
 class ApiService {
   static final ApiService instance = ApiService._internal();
@@ -138,20 +138,9 @@ class ApiService {
     }
   }
 
-  bool _isTokenExpired(String token) {
-    try {
-      final parts = token.split('.');
-      if (parts.length != 3) return true;
-      final payload = json.decode(
-        utf8.decode(base64Url.decode(base64Url.normalize(parts[1])))
-      );
-      final exp = payload['exp'] as int?;
-      // M10 FIX: يفشل-مغلقاً (كـauth_service.dart) — توكن بلا exp أو غير قابل
-      // للتحليل يُعدّ منتهياً بدل إرساله، لتفادي تمرير توكن فاسد/منتهٍ.
-      if (exp == null) return true;
-      return DateTime.now().millisecondsSinceEpoch / 1000 > exp - 60;
-    } catch (_) { return true; }
-  }
+  // مصدر واحد للحقيقة (utils/jwt.dart): يفشل-مغلقاً — توكن بلا exp أو غير قابل
+  // للتحليل يُعدّ منتهياً بدل إرساله، لتفادي تمرير توكن فاسد/منتهٍ.
+  bool _isTokenExpired(String token) => isJwtExpired(token);
 
   String _generateRequestId() =>
       DateTime.now().millisecondsSinceEpoch.toRadixString(16);
