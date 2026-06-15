@@ -15,8 +15,11 @@ describe('useAuth persistence', () => {
     useAuthStore.getState().loginDemo();
 
     // الحالة المُرطَّبة (persist) يجب أن تكون في sessionStorage فقط.
-    expect(sessionStorage.getItem('sahool-auth')).not.toBeNull();
+    const persisted = sessionStorage.getItem('sahool-auth');
+    expect(persisted).not.toBeNull();
     expect(localStorage.getItem('sahool-auth')).toBeNull();
+    // والبنية المحفوظة تعكس حالة مُصادَقة فعليّة (لا علَم معلّق بلا سياق).
+    expect(JSON.parse(persisted as string).state.isAuthenticated).toBe(true);
   });
 
   it('لا يُسرّب isAuthenticated إلى localStorage (لا حالة مُصادَقة بلا توكن)', () => {

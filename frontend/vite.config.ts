@@ -12,6 +12,9 @@ export default defineConfig({
       // (/^leaflet-draw$/) إلى ظِلّ يشغّل الأثر الجانبيّ ويُصدّر default، دون
       // التأثير على المسارات الفرعيّة مثل leaflet-draw/dist/leaflet.draw.css.
       {
+        // Exact match only: aliases the bare `leaflet-draw` import (no default
+        // export) to a side-effect shim, without rewriting subpaths such as
+        // `leaflet-draw/dist/leaflet.draw.css`.
         find: /^leaflet-draw$/,
         replacement: path.resolve(__dirname, './src/lib/leaflet-draw-shim.ts'),
       },

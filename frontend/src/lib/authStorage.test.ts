@@ -26,6 +26,13 @@ describe('authStorage', () => {
     expect(getAccessToken()).toBeNull();
   });
 
+  // الأسبقيّة: حين يحمل المخزَنان قيمة، يُقرأ sessionStorage فقط (لا localStorage).
+  it('يُفضّل sessionStorage حين يوجد توكن في الاثنين', () => {
+    sessionStorage.setItem(STORAGE_KEYS.accessToken, 'jwt-session');
+    localStorage.setItem(STORAGE_KEYS.accessToken, 'jwt-local');
+    expect(getAccessToken()).toBe('jwt-session');
+  });
+
   it('يقرأ المستأجِر من sessionStorage', () => {
     sessionStorage.setItem(STORAGE_KEYS.tenantId, 'tenant-42');
     expect(getTenantId()).toBe('tenant-42');
