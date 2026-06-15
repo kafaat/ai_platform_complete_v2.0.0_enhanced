@@ -13,6 +13,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import axios, { type AxiosInstance } from 'axios';
+import { getAccessToken, getTenantId } from '../lib/authStorage';
 
 // ── Environment detection ──────────────────────────────────────
 const IS_LOCAL = typeof window !== 'undefined' &&
@@ -35,10 +36,9 @@ function makeClient(baseURL: string): AxiosInstance {
     // FIX (مراجعة): useAuth يكتب التوكن/المستأجِر في sessionStorage، فكانت قراءة
     // localStorage هنا تُرجِع فارغاً ⇒ كلّ طلبات kongApi غير مُصادَقة. نقرأ من
     // sessionStorage حيث يُكتَب فعلاً (مصدر الحقيقة في useAuth.ts).
-    const token = sessionStorage.getItem('sahool_access_token');
+    const token = getAccessToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    const tenant = sessionStorage.getItem('sahool_tenant_id') || 'default';
-    config.headers['X-Tenant-ID'] = tenant;
+    config.headers['X-Tenant-ID'] = getTenantId();
     return config;
   });
   // 401 → logout

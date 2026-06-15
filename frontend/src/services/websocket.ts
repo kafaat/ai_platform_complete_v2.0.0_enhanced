@@ -7,6 +7,8 @@
 //   ✅ Toast notifications في الواجهة
 // ═══════════════════════════════════════════════════════════════
 
+import { getAccessToken } from '../lib/authStorage';
+
 type EventType =
   | 'satellite' | 'weather_alert' | 'pest_alert'
   | 'irrigation_rec' | 'fertilizer_rec' | 'low_stock'
@@ -32,7 +34,10 @@ class WebSocketService {
     this.userId = userId;
     this.isConnecting = true;
 
-    const token = localStorage.getItem('sahool_access_token') || 'demo';
+    // إصلاح: التوكن مخزّن في sessionStorage (lib/authStorage)، لا localStorage —
+    // القراءة السابقة من localStorage كانت تُرجِع فارغاً دائماً فتسقط على 'demo'،
+    // فيتصل WS لكلّ مستخدم مُصادَق بتوكن وهميّ بدل توكنه الحقيقيّ.
+    const token = getAccessToken() || 'demo';
     const url   = `${WS_URL}?token=${token}&user_id=${userId}`;
 
     try {
