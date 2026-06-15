@@ -13,6 +13,16 @@
 #
 # متغيّرات (اختياريّة):
 #   PGPASSWORD (افتراضي: sahool_dev_pw)، PGPORT (5432)، PGDATABASE (sahool)
+#
+# ── نموذج الدورين (مهمّ لأمان RLS) ────────────────────────────────
+#   مالك الهجرات (PGUSER، الافتراضي sahool_user) دور مُمتاز (superuser في صورة
+#   postgres الرسميّة) — يُنشئ الجداول/الامتدادات/السياسات. لكنّ superuser
+#   **يتجاوز RLS حتى مع FORCE**، فلو اتّصل التطبيق به لانهار عزل المستأجرين.
+#   لذلك نُنشئ بعد الهجرات دوراً مقيّداً للتشغيل: sahool_app
+#   (NOSUPERUSER NOBYPASSRLS LOGIN) بصلاحيّات DML + EXECUTE + USAGE فقط.
+#   على المُشغّل توجيه DATABASE_URL للتطبيق نحو sahool_app (لا sahool_user)
+#   ليبقى RLS فعّالاً وقت التشغيل.
+#   APP_DB_PASSWORD (افتراضي: sahool_app_pw) كلمة سرّ دور التطبيق المقيّد.
 # ══════════════════════════════════════════════════════════════════
 set -euo pipefail
 
@@ -22,6 +32,8 @@ PG_PASSWORD="${PGPASSWORD:-sahool_dev_pw}"
 PG_PORT="${PGPORT:-5432}"
 PG_DB="${PGDATABASE:-sahool}"
 PG_USER="${PGUSER:-sahool_user}"
+APP_ROLE="${APP_DB_ROLE:-sahool_app}"
+APP_PASSWORD="${APP_DB_PASSWORD:-sahool_app_pw}"
 MIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "═══ SAHOOL PostgreSQL Bootstrap ═══"
@@ -82,7 +94,48 @@ for t in fields commands events field_lifecycle sharing_keys; do
   [ "$exists" = "t" ] && echo "    ✓ $t" || echo "    ✗ $t مفقود"
 done
 
+# ٥. دور التطبيق المقيّد (least-privilege) لتفعيل عزل RLS وقت التشغيل
+# ──────────────────────────────────────────────────────────────────
+# يُنشأ **بعد** كلّ الهجرات (الجداول/الدوال/التسلسلات موجودة). الدور:
+#   NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE LOGIN
+# فلا يتجاوز RLS أبداً (عكس مالك الهجرات المُمتاز). يُمنح DML + EXECUTE + USAGE
+# فقط — وهو كافٍ لأنّ التطبيق لا ينفّذ DDL وقت التشغيل (DML + SET LOCAL +
+# استدعاء emit_event()). ALTER DEFAULT PRIVILEGES يغطّي كائنات الهجرات المستقبليّة.
+# آمن لإعادة التشغيل (idempotent): إنشاء الدور محروس، والمنح غير ضارّ بالتكرار.
+echo "─ ٥. إنشاء دور التطبيق المقيّد ($APP_ROLE — NOBYPASSRLS) ─"
+# ملاحظة: استبدال متغيّرات psql بصيغة colon-quote لا يحدث داخل سلاسل dollar-quoted
+# ($$...$$)، لذلك يُنشأ الدور عبر CREATE ROLE مشروط بـ\gexec (خارج أيّ DO)،
+# ثمّ تُثبَّت السمات وكلمة السرّ بـALTER ROLE (آمن للتكرار).
+psql_exec -v app_role="$APP_ROLE" -v app_pw="$APP_PASSWORD" <<'SQL'
+-- ١) أنشئ الدور فقط إن لم يكن موجوداً (يُولّد SQL ثمّ يُنفّذ بـ\gexec)
+SELECT format('CREATE ROLE %I LOGIN', :'app_role')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_role')
+\gexec
+
+-- ٢) ثبّت السمات الأمنيّة وكلمة السرّ (idempotent سواء أُنشئ الآن أو سابقاً)
+ALTER ROLE :"app_role"
+  LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
+
+-- صلاحيّات وقت التشغيل: DML + EXECUTE + USAGE فقط (لا DDL)
+GRANT USAGE ON SCHEMA public TO :"app_role";
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"app_role";
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :"app_role";
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO :"app_role";
+
+-- صلاحيّات افتراضيّة لكائنات الهجرات المستقبليّة (تُمنح للمالك الذي يُنشئ الكائنات)
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO :"app_role";
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO :"app_role";
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT EXECUTE ON FUNCTIONS TO :"app_role";
+SQL
+echo "  ✓ الدور $APP_ROLE جاهز (NOSUPERUSER NOBYPASSRLS) — وجّه DATABASE_URL للتطبيق إليه"
+
 echo ""
 echo "═══ تمّ ✓ ═══"
-echo "DATABASE_URL=postgresql://$PG_USER:$PG_PASSWORD@127.0.0.1:$PG_PORT/$PG_DB"
+# نموذج الدورين: الهجرات بالمالك المُمتاز، التطبيق بالدور المقيّد ليبقى RLS فعّالاً.
+echo "للهجرات/الإدارة:  DATABASE_URL=postgresql://$PG_USER:$PG_PASSWORD@127.0.0.1:$PG_PORT/$PG_DB"
+echo "للتطبيق (RLS فعّال): DATABASE_URL=postgresql://$APP_ROLE:$APP_PASSWORD@127.0.0.1:$PG_PORT/$PG_DB"
+echo "⚠ لا توجّه التطبيق لـ$PG_USER (مُمتاز/superuser ⇒ يتجاوز RLS ويُبطل عزل المستأجرين)."
 echo "للإيقاف:  docker rm -f $PG_CONTAINER"
