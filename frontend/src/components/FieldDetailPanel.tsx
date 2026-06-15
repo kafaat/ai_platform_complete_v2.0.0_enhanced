@@ -4,10 +4,11 @@
 // التربة + المناخ الدقيق + الملكيّة، وتحفظ عبر PATCH (تحديث جزئيّ — الحقول
 // المُعدَّلة فقط). حالات صادقة: تحميل/خطأ (مع إعادة)/حفظ — لا تلفيق قيم.
 // ═══════════════════════════════════════════════════════════════
+import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { X, Check, FlaskConical, Mountain, Scroll } from 'lucide-react';
-import { useFieldDetail, useUpdateField } from '../hooks/useApi';
-import { apiErrorMessage, type FieldDetail, type FieldUpdatePatch } from '../services/api';
+import { X, Check, FlaskConical, Mountain, Scroll, Droplets, Sprout } from 'lucide-react';
+import { useFieldDetail, useUpdateField, useSeasons } from '../hooks/useApi';
+import { apiErrorMessage, type FieldDetail, type FieldUpdatePatch, type SeasonSummary } from '../services/api';
 import { LoadingState, ErrorState } from './StateViews';
 import { toastStore } from '../services/websocket';
 
@@ -109,6 +110,72 @@ function Section({
   );
 }
 
+// ── عرض للقراءة فقط: قيم حقيقيّة يعيدها الخادم لكنّها كانت مخفيّة عن الواجهة. ──
+// null/undefined ⇒ شَرطة "—" صادقة، لا تلفيق. الوحدة (إن وُجدت) تُلحَق بالقيمة.
+interface ReadSpec {
+  label: string;
+  value: string | number | null | undefined;
+  unit?: string;
+}
+
+// ينسّق قيمة العرض: فارغة/خالية ⇒ "—"؛ وإلّا القيمة مع الوحدة (إن وُجدت).
+function fmtRead(value: string | number | null | undefined, unit?: string): string {
+  if (value == null || value === '') return '—';
+  return unit ? `${value} ${unit}` : String(value);
+}
+
+// قسم للقراءة فقط (شبكة تسمية/قيمة) — بنفس أسلوب أقسام التحرير أعلاه.
+function ReadSection({
+  icon, title, rows,
+}: {
+  icon:  ReactNode;
+  title: string;
+  rows:  ReadSpec[];
+}) {
+  return (
+    <div className="rounded-xl border p-4" style={{ borderColor: '#334155', background: '#0f1117' }}>
+      <div className="flex items-center gap-2 mb-3 text-slate-200 text-sm font-semibold">
+        {icon}{title}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {rows.map((r) => (
+          <div key={r.label}>
+            <span className="block text-xs text-slate-400 mb-1">{r.label}</span>
+            <span className="block text-sm text-slate-100">{fmtRead(r.value, r.unit)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// يبني صفوف «ملفّ الريّ» من تفاصيل الحقل الحيّة (v41) — كلّها للقراءة.
+function irrigationRows(d: FieldDetail): ReadSpec[] {
+  return [
+    { label: 'نوع الريّ',          value: d.irrigation_type },
+    { label: 'كفاءة الريّ',        value: d.irrigation_efficiency_pct, unit: '%' },
+    { label: 'معدّل التدفّق',      value: d.flow_rate_m3h, unit: 'م³/س' },
+    { label: 'نوع المضخّة',        value: d.pump_type },
+    { label: 'عمق البئر',          value: d.well_depth_m, unit: 'م' },
+    { label: 'ملوحة الماء',        value: d.water_ec, unit: 'dS/m' },
+    { label: 'المنطقة',            value: d.zone_key },
+  ];
+}
+
+// يبني صفوف «مؤشّرات الموسم» من أحدث موسم (الأوّل — الأحدث أوّلاً) — للقراءة.
+function seasonRows(s: SeasonSummary): ReadSpec[] {
+  return [
+    { label: 'الغلّة المستهدفة',  value: s.target_yield_kg_ha, unit: 'كجم/هـ' },
+    { label: 'الغلّة الفعليّة',   value: s.actual_yield_kg_ha, unit: 'كجم/هـ' },
+    { label: 'كثافة النبات',      value: s.plant_density, unit: 'نبتة/م²' },
+    { label: 'المسافة بين الخطوط', value: s.row_spacing_cm, unit: 'سم' },
+    { label: 'مصدر/صنف البذور',   value: s.seed_variety_source },
+    { label: 'فترة النضج',        value: s.maturity },
+    { label: 'نوع الحراثة',       value: s.tillage_type },
+    { label: 'ملاحظات',           value: s.notes_ar },
+  ];
+}
+
 export default function FieldDetailPanel({
   fieldId,
   fieldName,
@@ -119,8 +186,12 @@ export default function FieldDetailPanel({
   onClose: () => void;
 }) {
   const { data, isLoading, isError, error, refetch } = useFieldDetail(fieldId);
+  const seasonsQuery = useSeasons(fieldId);
   const update = useUpdateField(fieldId);
   const [draft, setDraft] = useState<Record<string, string>>({});
+
+  // أحدث موسم (القائمة مُرتَّبة الأحدث أوّلاً) — لعرض مؤشّراته للقراءة، إن وُجد.
+  const latestSeason = seasonsQuery.data?.[0];
 
   // بذر المسوّدة من التفاصيل الحيّة عند وصولها (تحرير محلّيّ بعدها).
   useEffect(() => {
@@ -192,6 +263,22 @@ export default function FieldDetailPanel({
                 fields={CLIMATE_FIELDS} draft={draft} onChange={onChange} />
               <Section icon={<Scroll className="w-4 h-4 text-amber-400" />} title="الملكيّة"
                 fields={OWNER_FIELDS} draft={draft} onChange={onChange} />
+
+              {/* ملفّ الريّ (v41) — بيانات حقيقيّة يعيدها الخادم، عرض للقراءة فقط */}
+              <ReadSection
+                icon={<Droplets className="w-4 h-4 text-cyan-400" />}
+                title="ملفّ الريّ"
+                rows={irrigationRows(data)}
+              />
+
+              {/* مؤشّرات الموسم (v42/v52) — من أحدث موسم للحقل، عرض للقراءة فقط */}
+              {latestSeason && (
+                <ReadSection
+                  icon={<Sprout className="w-4 h-4 text-lime-400" />}
+                  title="مؤشّرات الموسم"
+                  rows={seasonRows(latestSeason)}
+                />
+              )}
 
               <div className="flex gap-3 pt-1">
                 <button

@@ -542,6 +542,16 @@ export interface SeasonSummary {
   stages:           Record<string, unknown>[];
   status:           string; // active | closed | ...
   created_at:       string | null;
+  // مؤشّرات الموسم الزراعيّة (v42) — تُدخَل عند الإنشاء/التحديث، وإلّا null
+  target_yield_kg_ha:  number | null; // الغلّة المستهدفة كجم/هـ
+  plant_density:       number | null; // كثافة النبات (نبتة/م²)
+  row_spacing_cm:      number | null; // المسافة بين الخطوط (سم)
+  seed_variety_source: string | null; // مصدر/صنف البذور
+  // حقول أغرونوميّة (v52) — اختياريّة، وإلّا null
+  maturity:            string | null; // فترة النضج (early/medium/late)
+  tillage_type:        string | null; // نوع الحراثة
+  actual_yield_kg_ha:  number | null; // الغلّة الفعليّة بعد الحصاد كجم/هـ
+  notes_ar:            string | null; // ملاحظات
   // نتائج المحاكاة (تُملأ عند تشغيل /simulate، وإلّا null — تقديريّة بنطاق وثقة)
   sim_yield_kg_ha:   number | null;
   sim_biomass_kg_ha: number | null;
@@ -1281,6 +1291,15 @@ export interface FieldDetail {
   owner_name?:     string | null;
   lease_years?:    number | null;
   registry_no?:    string | null;
+  // ملفّ الريّ/المياه التفصيليّ (v41) — يعيدها الخادم؛ تُعرَض للقراءة بحالة "—" صادقة
+  irrigation_type?:           string | null;
+  irrigation_efficiency_pct?: number | null;
+  flow_rate_m3h?:             number | null; // تدفّق المضخّة م³/ساعة
+  pump_type?:                 string | null;
+  well_depth_m?:              number | null;
+  water_ec?:                  number | null; // ملوحة الماء dS/m
+  zone_key?:                  string | null; // مفتاح الإقليم القانوني (v49)
+  manager_user_id?:           number | null; // FK إلى users(id) (v47)
 }
 
 // تحديث جزئيّ: كلّ الحقول اختياريّة — تُرسَل المُعدَّلة فقط (الخادم يحدّثها فقط).
