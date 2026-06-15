@@ -26,19 +26,40 @@ import {
   LayerSwitcher, ColormapLegend, SideBySide, MachineMarker, FieldCabin,
 } from '../components/ds';
 import type { CmapId } from '../components/ds';
+import { layersOfKind } from '../lib/layerRegistry';
 
-// ── المؤشّرات (طبقات) — مفاتيح raster-service + لوحة الألوان الموحّدة ──
-// index: ما يفهمه raster-service (ndvi|ndmi|salinity). cmap: لوحة ألوان DS
-// الأقرب دلاليّاً (الرطوبة→moisture، الملوحة→ec). low/highLabel للمفتاح.
+// ── المؤشّرات (طبقات) — مُشتقّة من سجلّ الطبقات (Layer Registry) ──
+// قائمة المؤشّرات لم تعد ثابتة محلّيّاً: تُستمدّ من layersOfKind('index') في
+// lib/layerRegistry.ts (المصدر الوحيد). من السجلّ نأخذ: المعرّف (id = ما يقبله
+// raster-service) ولوحة الألوان (colormap → cmap لمفتاح DS). أمّا تفاصيل العرض
+// التي لا يحملها السجلّ (التسمية المختصرة، الأيقونة، حدّا المفتاح low/high،
+// التلميح) فتبقى هنا مفهرسةً بالمعرّف — فيظلّ الظاهر (الطبقات/التسميات/اللوحات)
+// مطابقاً تماماً لما كان، مع تحويل اختيار الطبقات إلى بيانات.
 type LayerId = 'ndvi' | 'ndmi' | 'salinity';
+
+// عرض الطبقة (ما لا يحمله السجلّ) — مفهرس بمعرّف الطبقة.
+const LAYER_PRESENTATION: Record<LayerId, {
+  label: string; icon: ReactNode; low: string; high: string; hint: string;
+}> = {
+  ndvi: { label: 'NDVI', icon: <Satellite style={{ width: 13, height: 13 }} />, low: 'إجهاد', high: 'كثيف', hint: 'صحّة الغطاء النباتيّ' },
+  ndmi: { label: 'NDMI', icon: <Droplets style={{ width: 13, height: 13 }} />, low: 'جافّ', high: 'رطب', hint: 'رطوبة المحتوى' },
+  salinity: { label: 'الملوحة', icon: <FlaskConical style={{ width: 13, height: 13 }} />, low: 'منخفضة', high: 'مرتفعة', hint: 'مؤشّر الملوحة' },
+};
+const isSupportedLayerId = (id: string): id is LayerId => id in LAYER_PRESENTATION;
+
+// المؤشّرات المعروضة مُشتقّة من السجلّ: نمرّ على طبقات kind:'index' ونُبقي فقط
+// ما تدعمه هذه الشاشة (عرض + لوحة DS موجودة) — فلا تُسقَط/تُضاف طبقة بصمت.
+// النتيجة (المعرّفات + التسميات + اللوحات) مطابقة للقائمة الثابتة السابقة.
 const LAYERS: {
   id: LayerId; label: string; icon: ReactNode; cmap: CmapId;
   low: string; high: string; hint: string;
-}[] = [
-  { id: 'ndvi', label: 'NDVI', icon: <Satellite style={{ width: 13, height: 13 }} />, cmap: 'ndvi', low: 'إجهاد', high: 'كثيف', hint: 'صحّة الغطاء النباتيّ' },
-  { id: 'ndmi', label: 'NDMI', icon: <Droplets style={{ width: 13, height: 13 }} />, cmap: 'moisture', low: 'جافّ', high: 'رطب', hint: 'رطوبة المحتوى' },
-  { id: 'salinity', label: 'الملوحة', icon: <FlaskConical style={{ width: 13, height: 13 }} />, cmap: 'ec', low: 'منخفضة', high: 'مرتفعة', hint: 'مؤشّر الملوحة' },
-];
+}[] = layersOfKind('index')
+  .filter((l) => isSupportedLayerId(l.id) && l.colormap != null)
+  .map((l) => {
+    const id = l.id as LayerId;
+    const p = LAYER_PRESENTATION[id];
+    return { id, label: p.label, icon: p.icon, cmap: l.colormap as CmapId, low: p.low, high: p.high, hint: p.hint };
+  });
 const layerOf = (id: LayerId) => LAYERS.find((l) => l.id === id) ?? LAYERS[0];
 // خيارات LayerSwitcher مشتقّة مرّة واحدة (LAYERS ثابتة) — هويّة مصفوفة مستقرّة.
 const LAYER_OPTS = LAYERS.map((l) => ({ id: l.id, label: l.label, icon: l.icon }));
