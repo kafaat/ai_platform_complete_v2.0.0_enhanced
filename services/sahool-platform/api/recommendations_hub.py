@@ -20,6 +20,7 @@ api/recommendations_hub.py — مُجمِّع التوصيات الموحَّد 
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 
@@ -309,19 +310,127 @@ def _salinity_caution_rec(ctx: RecommendationContext) -> Recommendation | None:
     )
 
 
-_BUILDERS = (_irrigation_rec, _fertilizer_rec, _disease_rec, _yield_rec, _salinity_caution_rec)
+# ─── سجلّ المحرّكات (Recommendation Engine Registry) ───────────────
+# نمط السجلّ: بدل قائمة بنّائين مُصلَّبة (hardcoded)، نَصِف كلّ بنّاء بـ«محرّك»
+# يحمل metadata قابلة للاستبطان: مُعرّف ثابت (id)، اسم عربيّ، فئة، المدخلات التي
+# يحتاجها فعليّاً (required_inputs)، وعلَم تفعيل افتراضيّ (default_enabled). الفائدة:
+#   • «سجّل محرّكاً ⇐ يشارك تلقائيّاً» دون تعديل حلقة البناء.
+#   • تفعيل/تعطيل لكلّ محرّك بالمُعرّف (enabled_ids) — أساس سياسة لكلّ مستأجر لاحقاً.
+#   • استبطان نقيّ (list_engines) لكتالوج/واجهة دون قاعدة.
+# ملاحظة توافق خلفيّ: required_inputs هي metadata فقط (للاستبطان والسياسة المستقبليّة)
+# ولا تُستخدَم للبوّابة (gating) — البنّاء نفسه يبوّب ذاتيّاً ويُرجع None عند غياب
+# مدخلاته، فيبقى السلوك مطابقاً تماماً حين تُفعَّل كلّ المحرّكات (enabled_ids=None).
+# الخطوة التالية المُخطَّطة (ليست في هذا الـPR — نُبقيه منطقاً نقيّاً): قراءة سياسة
+# التفعيل/التعطيل لكلّ مستأجر من جدول settings وتمريرها كـ enabled_ids — لا قاعدة هنا.
 
 
-def build_recommendations(ctx: RecommendationContext) -> list[Recommendation]:
+@dataclass(frozen=True)
+class RecommendationEngine:
+    """وصف محرّك توصية واحد ضمن السجلّ (metadata قابلة للاستبطان).
+
+    required_inputs: أسماء حقول RecommendationContext التي يحتاجها المحرّك فعليّاً
+    (مُشتَقّة بصدق من بوّابة كلّ بنّاء). metadata فقط — لا تُستخدَم للبوّابة كي يبقى
+    السلوك مطابقاً؛ البنّاء يبوّب ذاتيّاً. عند عدم اليقين استخدِم () فيعمل دائماً.
+    """
+
+    id: str
+    name_ar: str
+    category: str
+    builder: Callable[[RecommendationContext], Recommendation | None]
+    required_inputs: tuple[str, ...] = ()
+    default_enabled: bool = True
+
+
+# السجلّ — يحفظ نفس ترتيب تشغيل البنّائين السابق (قبل الفرز) كي لا يتغيّر الإخراج.
+_REGISTRY: list[RecommendationEngine] = [
+    RecommendationEngine(
+        id="irrigation",
+        name_ar="الريّ",
+        category="irrigation",
+        builder=_irrigation_rec,
+        # يبوّب على ET₀ (الطقس) فقط؛ بقيّة المدخلات لها قيم افتراضيّة/اختياريّة.
+        required_inputs=("et0_mm",),
+    ),
+    RecommendationEngine(
+        id="fertilizer",
+        name_ar="التسميد",
+        category="fertilizer",
+        builder=_fertilizer_rec,
+        # لا بوّابة — يعمل دائماً (المرحلة افتراضيّاً mid). لذا () بصدق.
+        required_inputs=(),
+    ),
+    RecommendationEngine(
+        id="disease",
+        name_ar="الأمراض",
+        category="disease",
+        builder=_disease_rec,
+        # يبوّب على الحرارة والرطوبة (الطقس).
+        required_inputs=("temp_c", "humidity_pct"),
+    ),
+    RecommendationEngine(
+        id="yield",
+        name_ar="الحصاد/الإنتاج",
+        category="yield",
+        builder=_yield_rec,
+        # يبوّب على تاريخ البذار والمحصول (ثمّ توفّر دورة المحصول).
+        required_inputs=("sowing_date", "crop"),
+    ),
+    RecommendationEngine(
+        id="salinity_caution",
+        name_ar="تنبيه الملوحة",
+        category="irrigation",
+        builder=_salinity_caution_rec,
+        # يبوّب على صنف الملوحة (critical) من الحالة الموحّدة.
+        required_inputs=("salinity_class",),
+    ),
+]
+
+# اسم متوارَث مُشتَقّ من السجلّ (لمن قد يستورده) — نفس ترتيب البنّائين السابق.
+_BUILDERS = [e.builder for e in _REGISTRY]
+
+
+def list_engines() -> list[dict]:
+    """استبطان نقيّ لكلّ محرّكات السجلّ (metadata فقط — لا قاعدة، لا أثر جانبيّ).
+
+    يُرجع لكلّ محرّك: id, name_ar, category, required_inputs, default_enabled —
+    لكتالوج/واجهة مستقبليّة أو سياسة تفعيل لكلّ مستأجر.
+    """
+    return [
+        {
+            "id": e.id,
+            "name_ar": e.name_ar,
+            "category": e.category,
+            "required_inputs": list(e.required_inputs),
+            "default_enabled": e.default_enabled,
+        }
+        for e in _REGISTRY
+    ]
+
+
+def build_recommendations(
+    ctx: RecommendationContext, *, enabled_ids: set[str] | None = None
+) -> list[Recommendation]:
     """يبني قائمة التوصيات الموحَّدة من السياق، مفروزة بالأولويّة (الأعلى أولاً).
 
-    دالّة نقيّة (لا شبكة، لا قاعدة) — تُختبَر offline. كلّ بنّاء فئة يُرجع توصيته
-    أو None إن غاب مصدرها (تدهور رشيق بلا تلفيق). الفرز ثابت: الأولويّة ثمّ ترتيب
-    الفئات المعروف (لاستقرار العرض).
+    دالّة نقيّة (لا شبكة، لا قاعدة) — تُختبَر offline. تمرّ على السجلّ بنفس ترتيب
+    البنّائين السابق، وتشغّل كلّ محرّك مُفعَّل فيُرجع توصيته أو None إن غاب مصدرها
+    (تدهور رشيق بلا تلفيق). الفرز ثابت: الأولويّة ثمّ السلامة ثمّ ترتيب الفئة.
+
+    enabled_ids: سياسة التفعيل لكلّ مُعرّف.
+      • None  ⇒ تُفعَّل المحرّكات بحسب default_enabled (السلوك الافتراضيّ الأصليّ).
+      • set() ⇒ لا محرّك يعمل (قائمة فارغة).
+      • مجموعة مُعرّفات ⇒ تعمل المحرّكات الموجودة فيها فقط.
+    لا نبوّب على required_inputs (metadata فقط) كي يبقى السلوك مطابقاً تماماً حين
+    enabled_ids=None — البنّاء يبوّب ذاتيّاً.
     """
     recs: list[Recommendation] = []
-    for build in _BUILDERS:
-        rec = build(ctx)
+    for engine in _REGISTRY:
+        if enabled_ids is not None:
+            if engine.id not in enabled_ids:
+                continue
+        elif not engine.default_enabled:
+            continue
+        rec = engine.builder(ctx)
         if rec is not None:
             recs.append(rec)
     cat_order = {c: i for i, c in enumerate(CATEGORIES)}
