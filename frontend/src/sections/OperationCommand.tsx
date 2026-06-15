@@ -21,7 +21,7 @@ import {
 import {
   T, Card, Pill, Badge, ProgressBar, Row, SectionLabel,
   StatGrid, RadialGauge, AlertChip, ExpandableCard, severityTone,
-  taskStatusAr, equipStatusAr, equipStatusTone, FieldCabin,
+  taskStatusAr, equipStatusAr, equipStatusTone, FieldCabin, MiniLine,
 } from '../components/ds';
 
 type FieldLike = { field_id?: string; ndvi?: number };
@@ -66,6 +66,23 @@ export default function OperationCommand() {
   // useTasks() يُرجع { tasks: Task[] } (لا مصفوفة مجرّدة) — نقرأ المفتاح الصحيح.
   const tasks: TaskLike[] = Array.isArray(tasksQ.data?.tasks) ? (tasksQ.data.tasks as TaskLike[]) : [];
   const cur = (weatherQ.data as any)?.current;
+
+  // ── سلسلة اتّجاه حقيقيّة (لا تلفيق) ──
+  // useWeatherForecast يضرب نقطة /weather/forecast الحقيقيّة مباشرةً (بلا ارتداد
+  // وهميّ في هذا الـhook). إن أعادت الخدمة مصفوفة أيّام يوميّة بقيَم حرارة منتهية،
+  // نشتقّ منها سلسلة متوسّط الحرارة لرسم MiniLine. غياب المصفوفة (أو قيَمها) ⇒
+  // لا سلسلة ⇒ لا مؤشّر (لا نخترع نقاطاً). نقبل tmean أو متوسّط tmax/tmin إن توفّرا.
+  const forecastDays: any[] = Array.isArray((weatherQ.data as any)?.forecast)
+    ? (weatherQ.data as any).forecast
+    : [];
+  const tmeanSeries = forecastDays
+    .map((d) => {
+      if (typeof d?.tmean === 'number' && Number.isFinite(d.tmean)) return d.tmean;
+      if (typeof d?.tmax === 'number' && typeof d?.tmin === 'number'
+        && Number.isFinite(d.tmax) && Number.isFinite(d.tmin)) return (d.tmax + d.tmin) / 2;
+      return null;
+    })
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
 
   // ── مشتقّات حقيقيّة (لا تلفيق) ──
   const ndviVals = fields.map((f) => f.ndvi).filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
@@ -118,7 +135,20 @@ export default function OperationCommand() {
 
           {/* ── عدّادات مشتقّة من بيانات حقيقيّة ── */}
           <Card pad={14} style={{ marginBottom: 10 }}>
-            <SectionLabel>المؤشّرات</SectionLabel>
+            <SectionLabel
+              action={
+                // مؤشّر اتّجاه مُصغَّر يُعرَض فقط عند توفّر سلسلة حرارة يوميّة حقيقيّة
+                // من /weather/forecast (نقطتان فأكثر). غيابها ⇒ لا يُرسَم شيء (لا تلفيق).
+                tmeanSeries.length >= 2 ? (
+                  <span className="inline-flex items-center gap-1" title="اتّجاه متوسّط الحرارة (توقّعات حقيقيّة)">
+                    <span style={{ fontSize: 10, color: T.muted }}>اتّجاه الحرارة</span>
+                    <MiniLine values={tmeanSeries} color={T.warn} />
+                  </span>
+                ) : undefined
+              }
+            >
+              المؤشّرات
+            </SectionLabel>
             <div className="flex" style={{ gap: 12, justifyContent: 'space-around' }}>
               <RadialGauge
                 pct={avgNdvi != null ? Math.round(avgNdvi * 100) : null}
@@ -127,6 +157,16 @@ export default function OperationCommand() {
               />
               <RadialGauge pct={onlinePct} label="اتّصال الأجهزة" color={T.info} />
               <RadialGauge pct={donePct} label="إنجاز المهام" color={T.gold} />
+            </div>
+            {/* ── إشعار توفّر رادار SAR (Sentinel-1) ── إعلاميّ محايد، لا ادّعاء ──
+                لا تكشف خطّافات هذه الشاشة عَلَماً فعليّاً لتغطية SAR، لذا نعرض إشعاراً
+                محايداً صادقاً: «يُظهَر عند توفّره» — لا نؤكّد «SAR نشط» بلا بيانات.
+                مفيد حين يحجب الغيمُ البصريّ/NDVI: رادار C-band يخترق الغيوم. */}
+            <div style={{ marginTop: 12 }}>
+              <AlertChip
+                type="info"
+                label="رادار SAR (Sentinel-1): يُظهَر توفّره عند ورود تغطية — يخترق الغيوم حين يُحجَب البصريّ/NDVI."
+              />
             </div>
           </Card>
 
