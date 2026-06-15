@@ -1,11 +1,11 @@
-"""اختبارات سجلّ جودة البيانات (api.data_quality) — منطق صرف offline.
+"""اختبارات سجلّ جودة البيانات (core.data_quality) — منطق صرف offline.
 
 يغطّي: إطلاق مخالفة المدى الفيزيائيّ، عدم إطلاقها على قيمة صالحة، تجاوز
 الحقل الغائب (graceful)، عدم الرمي على قيمة غير رقميّة، واستبطان القواعد
 (غير فارغ، معرّفات فريدة). لا حاجة لقاعدة أو شبكة — كلّه نقيّ.
 """
 
-from api.data_quality import (
+from core.data_quality import (
     QualityRule,
     evaluate_record,
     list_rules,
