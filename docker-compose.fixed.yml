@@ -5,8 +5,6 @@
 # التاريخ: 2026-05-20
 # ═══════════════════════════════════════════════════════════════════
 
-version: "3.8"
-
 # ── المتطلبات البيئية (ضعها في .env) ─────────────────────────────
 # JWT_SECRET=your-min-32-char-secret-here
 # SAHOOL_AGENT_TOKEN=your-agent-token-here
@@ -428,8 +426,8 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       SH_CLIENT_ID: ${SH_CLIENT_ID}
       SH_CLIENT_SECRET: ${SH_CLIENT_SECRET}
-      COPERNICUS_USER: ${COPERNICUS_USER}
-      COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD}
+      COPERNICUS_USER: ${COPERNICUS_USER:-}
+      COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD:-}
     depends_on:
       sahool-nats:
         condition: service_healthy
