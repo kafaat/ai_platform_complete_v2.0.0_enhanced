@@ -200,3 +200,17 @@ def test_write_endpoint_wires_idempotency(handler, command_type):
     assert f'"{command_type}"' in body or f"'{command_type}'" in body, (
         f"{handler}: نوع أمر {command_type} مفقود"
     )
+
+
+def test_create_field_path_wires_idempotency():
+    # مسار إنشاء الحقل خاصّ: نقطتا الدخول (create_field/import_field) تقبلان المفتاح
+    # وتمرّرانه، والمنطق المشترك _persist_field يلفّ الكتابة بـ_idempotent
+    # (نوع أمر field.create) — آخر مسار إنشاء كان بلا idempotency.
+    for entry in ("create_field", "import_field"):
+        src = _handler_src(entry)
+        assert "Depends(_idem_key)" in src, f"{entry} لا يقبل مفتاح idempotency"
+        assert "idem=idem" in src, f"{entry} لا يمرّر المفتاح إلى _persist_field"
+    pf = _handler_src("_persist_field")
+    assert "_idempotent(" in pf, "_persist_field لا يستدعي _idempotent"
+    assert "CommandStore(" in pf, "_persist_field لا يبني CommandStore"
+    assert '"field.create"' in pf, "_persist_field: نوع أمر field.create مفقود"
