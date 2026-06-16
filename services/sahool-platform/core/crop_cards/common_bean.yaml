@@ -1,0 +1,51 @@
+# SAHOOL CORE crop card — Common bean (الفاصولياء / Phaseolus vulgaris)
+# REGION-AGNOSTIC. Physics & physiology ONLY (FAO-56 / Maas-Hoffman / ECOCROP).
+# الأصناف اليمنية المحلّية في varieties/ (مصدرها دليل البقوليات الحبية 2023).
+crop_id: common_bean
+name_ar: الفاصولياء
+name_en: Common bean
+crop_family: legume_C3
+
+kc:
+  initial: 0.40
+  mid: 1.15
+  end: 0.35
+  stage_days: [20, 30, 40, 20]   # Lini/Ldev/Lmid/Llate ≈ 110 يوم (حبوب جافّة)
+  source: "FAO-56 Table 11/12 (Dry Beans)"
+
+salinity:
+  threshold_ece_ds_m: 1.0        # الفاصولياء حسّاسة للملوحة (Maas-Hoffman)
+  slope_pct_per_ds_m: 19.0       # انحدار حادّ: 19% نقص لكل dS/m فوق العتبة
+  germination_ece_max: 1.5       # الإنبات أكثر حساسية (لا يتجاوز ~1.5)
+  source: "Maas & Hoffman 1977; FAO-29 (Bean, Phaseolus vulgaris)"
+
+thermal:
+  gdd_base_c: 10.0               # بقوليّة دافئة الموسم (حرارة أساس ~10°م)
+  gdd_to_maturity: 1100
+  flowering_safe_max_c: 32.0     # تساقط الأزهار فوق ~32°م (إجهاد حراري)
+  chilling_hours_required: 0
+  source: "Common bean agronomy; GDD base 10C standard; heat-induced flower drop >32C"
+
+governing:
+  ph:        { min: 5.5, max: 8.0, error: 0.1, source: "ECOCROP Phaseolus vulgaris" }
+  ece_ds_m:  { min: 0.0, max: 4.0, error: 0.02, source: "Maas-Hoffman (sensitive)" }
+  drainage:  { needs: good }     # حسّاسة جدّاً للإغراق (waterlogging-intolerant)
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.0
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "ECOCROP / legume agronomy (knowledge prior)"
+    note_ar: "تقدير طيفي لـ OM يبقى قرينة؛ المختبر يحكم"
+  # بقوليّة مثبّتة للنيتروجين (Rhizobium): الاحتياج النيتروجينيّ منخفض (دفعة بادئة فقط).
+  nitrogen_kg_ha_required: 25
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 40
+
+pest_susceptibility:
+  pests: [aphids, bean_fly, rust, ascochyta, anthracnose]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"

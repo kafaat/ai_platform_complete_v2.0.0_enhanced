@@ -117,6 +117,96 @@ class TestVarietyCards:
         assert validate_variety_card(fake)["valid"] is False
 
 
+class TestCommonBeanFromLegumesGuide:
+    """الفاصولياء وأصنافها اليمنية الثلاثة — مُضافة من «الدليل الزراعي للبقوليات الحبية
+    الغذائية» (2023). فيزياء المحصول من FAO-56/Maas-Hoffman؛ الأصناف من الدليل."""
+
+    def test_common_bean_crop_card_present_and_valid(self):
+        card = load_crop_card("common_bean")
+        assert card is not None
+        assert validate_crop_card(card)["valid"]
+        assert card["crop_family"] == "legume_C3"
+
+    def test_common_bean_is_salt_sensitive(self):
+        # الفاصولياء حسّاسة للملوحة (عتبة 1.0) — أقلّ تحمّلاً من القمح (6.0) والشعير.
+        from core.crop_cards.loader import load_crop_card as _lc
+
+        bean = _lc("common_bean")["salinity"]["threshold_ece_ds_m"]
+        wheat = _lc("wheat")["salinity"]["threshold_ece_ds_m"]
+        assert bean == 1.0
+        assert bean < wheat
+        # انحدار حادّ (Maas-Hoffman): 19% نقص لكل dS/m فوق العتبة.
+        assert _lc("common_bean")["salinity"]["slope_pct_per_ds_m"] == 19.0
+
+    def test_common_bean_warm_season_legume_thermal(self):
+        t = load_crop_card("common_bean")["thermal"]
+        assert t["gdd_base_c"] == 10.0  # بقوليّة دافئة (لا قمح بارد base 0)
+        assert t["chilling_hours_required"] == 0
+        assert t["flowering_safe_max_c"] == 32.0
+
+    def test_common_bean_low_nitrogen_due_to_fixation(self):
+        # بقوليّة مثبّتة للنيتروجين ⇒ احتياج منخفض مقابل القمح (120).
+        bean_n = load_crop_card("common_bean")["modifying"]["nitrogen_kg_ha_required"]
+        wheat_n = load_crop_card("wheat")["modifying"]["nitrogen_kg_ha_required"]
+        assert bean_n < wheat_n
+
+    def test_three_yemeni_varieties_linked_and_valid(self):
+        from core.crop_cards.loader import (
+            load_variety_card,
+            validate_variety_card,
+            varieties_of_crop,
+        )
+
+        vids = varieties_of_crop("common_bean")
+        for v in ("common_bean_yemen_1", "common_bean_liena_24", "common_bean_rajm_1"):
+            assert v in vids
+            card = load_variety_card(v)
+            assert validate_variety_card(card)["valid"]
+            assert card["parent_crop_id"] == "common_bean"
+
+    def test_variety_passport_origin_types_match_guide(self):
+        from core.crop_cards.loader import load_variety_card
+
+        # يمن-1: مُنتخَب من سلالات محلّية ⇒ landrace.
+        assert load_variety_card("common_bean_yemen_1")["passport"]["origin_type"] == "landrace"
+        # لينا-24: مُدخَل من CIAT ⇒ introduced.
+        assert load_variety_card("common_bean_liena_24")["passport"]["origin_type"] == "introduced"
+        # رجم-1: مُستنبَط حديثاً ⇒ improved.
+        assert load_variety_card("common_bean_rajm_1")["passport"]["origin_type"] == "improved"
+
+    def test_rajm_1_is_earliest_maturity_class(self):
+        from core.crop_cards.loader import load_variety_card
+
+        # رجم-1 أبكر نضجاً (95 يوماً) ⇒ early؛ يمن-1/لينا-24 (~105) ⇒ medium.
+        assert load_variety_card("common_bean_rajm_1")["distinctness"]["maturity_class"] == "early"
+        assert (
+            load_variety_card("common_bean_yemen_1")["distinctness"]["maturity_class"] == "medium"
+        )
+
+    def test_liena_24_is_snap_bean_distinct_morphology(self):
+        from core.crop_cards.loader import load_variety_card
+
+        v = load_variety_card("common_bean_liena_24")
+        assert "موازيك الفاصولية" in " ".join(v["variety_traits"]["disease_resistance_ar"])
+        assert v["distinctness"]["plant_height_cm"] == 35  # قصير (نمو قائم)
+
+    def test_variety_cards_stay_region_agnostic_no_yield(self):
+        # الصنف محايد الموقع: لا غلّة/معايرة/منطقة كحقول عليا (رغم وفرتها في الدليل).
+        import core.crop_cards.loader as ldr
+
+        for v in ("common_bean_yemen_1", "common_bean_liena_24", "common_bean_rajm_1"):
+            card = ldr.load_variety_card(v)
+            assert "yield" not in card and "calibration" not in card and "region" not in card
+
+    def test_rajm_1_honest_empty_disease_resistance(self):
+        # الدليل لم يوثّق تحمّلاً مرضيّاً لرجم-1 ⇒ قائمة فارغة (صدق: لا يُخترَع).
+        from core.crop_cards.loader import load_variety_card
+
+        assert (
+            load_variety_card("common_bean_rajm_1")["variety_traits"]["disease_resistance_ar"] == []
+        )
+
+
 class TestCranberryCounterExample:
     """Cranberry is an intentional COUNTER-EXAMPLE: a crop that must be rejected
     for hot/dry/alkaline Yemen conditions. Review correctly flagged this was untested."""

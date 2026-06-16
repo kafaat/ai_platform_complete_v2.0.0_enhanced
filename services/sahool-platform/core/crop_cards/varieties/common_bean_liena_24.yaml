@@ -1,0 +1,31 @@
+# بطاقة صنف — فاصولياء لينا-24 (فاصوليا خضراء، introduced)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الفاصولياء (common_bean).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023).
+variety_id: common_bean_liena_24
+parent_crop_id: common_bean
+name_ar: فاصولياء لينا-24 (فاصوليا خضراء)
+name_en: Liena-24 snap bean
+
+passport:
+  origin_type: introduced
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "PHASE_VUL"
+  collection_note_ar: "سلالة مُدخَلة من المركز الدولي للزراعة الاستوائية (CIAT) وانتُخبت محلّياً"
+
+distinctness:
+  morphology_ar: "نمو قائم، زهرة بيضاء، قرون خضراء اسطوانية، بذور بنّية بيضاوية متطاولة"
+  maturity_class: medium           # ~105 يوماً للنضج، ~72 يوماً للقرون الخضراء
+  plant_height_cm: 35
+uniformity_note_ar: "صنف مُدخَل مُنتخَب — تجانس جيّد"
+stability_note_ar: "مستقرّ تحت الظروف المحلّية المُختبَرة"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: [مقاوم لموازيك الفاصولية, متوسّط المقاومة للصداء البرتقالي]
+  special_quality_ar: "صنف قرون خضراء (سناب) — الجزء المستهلَك القرون الخضراء؛ قرن ~15 سم"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "المرتفعات الوسطى والجنوبية والشمالية"
+  note_ar: "زراعة يناير–فبراير (مناطق إب) مع تفادي فترة الصقيع خلال الإنبات"

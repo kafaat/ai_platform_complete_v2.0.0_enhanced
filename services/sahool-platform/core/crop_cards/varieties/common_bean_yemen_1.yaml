@@ -1,0 +1,31 @@
+# بطاقة صنف — فاصولياء يمن-1 (landrace مُنتخَب)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الفاصولياء (common_bean).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023).
+variety_id: common_bean_yemen_1
+parent_crop_id: common_bean
+name_ar: فاصولياء يمن-1
+name_en: Yemen-1 common bean
+
+passport:
+  origin_type: landrace
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "PHASE_VUL"          # Phaseolus vulgaris
+  collection_note_ar: "مُنتخَب من سلالات محلّية مزروعة بمناطق المرتفعات اليمنية"
+
+distinctness:
+  morphology_ar: "نمو شبه قائم شبه متسلّق، زهرة بيضاء، بذرة بنّية فاتحة كبيرة الحجم"
+  maturity_class: medium           # ~105 يوماً حتى النضج، تزهير عند ~60 يوماً
+  plant_height_cm: 100
+uniformity_note_ar: "سلالة محلّية مُنتخَبة — تجانس متوسط (طبيعة الـlandrace)"
+stability_note_ar: "مستقرّة عبر أجيال الزراعة المحلّية"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0     # لا تعديل مُدّعى على عتبة الفاصولياء (1.0)
+  disease_resistance_ar: [تحمّل التبقّع الشوكولاتي, تحمّل الأسكوكايتي, تحمّل الأصداء, تحمّل المنّ]
+  special_quality_ar: "مقاوم للرقاد، لا انفراط؛ نضج متوسّط (~105 يوماً)"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "المرتفعات الوسطى والجنوبية والشمالية — موسم صيفي"
+  note_ar: "أُنتخب لمنطقة إب وما جاورها والمناطق المشابهة"
