@@ -13,16 +13,14 @@ from api.main import (
     _MIN_FIELD_OVERLAP_M2,
     FieldCreateRequest,
     FieldUpdateRequest,
-    SeasonCreateRequest,
-    SeasonUpdateRequest,
     _build_field_update,
     _build_versioned_update,
     _centroid_from_bbox,
     _clamp_list_window,
     _row_to_field_summary,
-    _row_to_season,
     _significant_overlaps,
 )
+from api.season_models import SeasonCreateRequest, SeasonUpdateRequest, _row_to_season
 
 
 def test_centroid_from_bbox_uses_lng_keys():

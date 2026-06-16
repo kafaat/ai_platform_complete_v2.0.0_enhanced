@@ -8,10 +8,10 @@
 ⚠ هذا الموجِّه للمسار ``/api/v1/seasons/{season_id}/simulate`` فقط؛ المسار المرتبط
 بالحقل ``/api/v1/fields/{id}/seasons`` يبقى ضمن نطاق الحقول (routers/fields.py).
 
-النموذج ``SeasonSimResponse`` والثابت ``_SIM_MAX_WINDOW_DAYS`` والمساعِد
-``_db_unavailable`` تبقى مُعرَّفة في ``api.main`` وتُستورَد من هنا. الاستيرادات
-الكسولة داخل الدالّة (openmeteo/season_simulation) تبقى كما هي. لتفادي الاستيراد
-الدائريّ: ``api.main`` يستورد هذا الموجِّه في نهايته فقط.
+النموذج ``SeasonSimResponse`` والثابت ``_SIM_MAX_WINDOW_DAYS`` نُقِلا إلى
+``api.season_models`` (تفكيك B1) ويُستورَدان من هناك؛ المساعِد ``_db_unavailable``
+يبقى في ``api.main``. الاستيرادات الكسولة داخل الدالّة (openmeteo/season_simulation)
+تبقى كما هي. لتفادي الاستيراد الدائريّ: ``api.main`` يستورد هذا الموجِّه في نهايته فقط.
 """
 
 from __future__ import annotations
@@ -21,14 +21,13 @@ from datetime import UTC, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
-    _SIM_MAX_WINDOW_DAYS,
     Permission,
-    SeasonSimResponse,
     UserSchema,
     _db_unavailable,
     require_permission,
     tenant_connection,
 )
+from api.season_models import _SIM_MAX_WINDOW_DAYS, SeasonSimResponse
 
 router = APIRouter()
 
