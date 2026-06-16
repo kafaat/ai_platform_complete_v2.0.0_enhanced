@@ -154,7 +154,11 @@ async def _get_current_user(credentials: Optional = Depends(security)):
             raise ValueError("Invalid token issuer")
         return payload
     except Exception as e:
-        raise HTTPException(401, f"Invalid token: {e}") from e
+        # عدم كشف المعلومات: نُرجِع رسالة عامّة للعميل (لا تفاصيل PyJWT الداخليّة
+        # كأيّ فحص فشل) حتى لا نُسرّب أيّ مؤشّر يُسهّل التزوير. السبب الحقيقيّ
+        # يُسجَّل خادميّاً للمراقبة فقط، مع الحفاظ على سلسلة الاستثناء (from e).
+        logger.warning("JWT verification failed: %s", e)
+        raise HTTPException(401, "Invalid token") from e
 
 
 def _degraded_response(

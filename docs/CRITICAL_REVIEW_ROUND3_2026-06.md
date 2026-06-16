@@ -42,14 +42,18 @@
   (منع حقن subject NATS).
 
 ## يحتاج متابعة (لبس تصميم/دفاع عميق — موثّق، أثر منخفض)
-- 🟡 **trueup compounding** · **evidence_class low_plus** · **farm_memory/data_lineage** مقارنات
-  نصّيّة · supervisor رسالة خطأ التوكن تسرّب تفاصيل PyJWT.
+- 🟡 **trueup compounding** · **evidence_class low_plus** · **farm_memory/data_lineage** مقارنات نصّيّة.
+- ✅ **supervisor تسريب تفاصيل PyJWT** — أُصلِح: رسالة عميل عامّة `"Invalid token"` + تسجيل
+  السبب خادميّاً فقط (مع اختبار يثبّت غياب التفاصيل الداخليّة).
 
-## فجوات اختبار عالية الأثر (وكيل الجودة) — تُقترَح إضافتها
-وحدات بلا اختبار: `workflow_engine` (Saga/تعويض)، `pest_escalation_flow` (تعليق الموافقة)،
-`agronomic_state_engine` (أرجحيّة الملوحة فوق NDVI). واختبارات ضعيفة (نوع/وجود فقط):
-`test_remaining_engines` (diesel/organic_matter)، `test_governance_modules` (who_can)،
-`test_field_geocode` (المحافظة لا تُتحقَّق).
+## فجوات اختبار عالية الأثر (وكيل الجودة) — أُغلِقت ✅
+- ✅ **وحدات «بلا اختبار»** عُمّقت سلوكيّاً (PR متابعة): `workflow_engine` (Saga/تعويض، 5→19)،
+  `agronomic_state_engine` (أرجحيّة الملوحة فوق NDVI، 3→33)، `pest_escalation_flow`
+  (تعليق الموافقة HIL، 6→20) — كانت ضحلة لا غائبة.
+- ✅ **اختبارات ضعيفة (نوع/وجود)** قُوِّيت لقيم محسوبة/قرارات فعليّة:
+  `test_remaining_engines` (diesel/organic_matter/Q10، 14→22)،
+  `test_governance_modules` (who_can: قرارات allow/deny لكلّ دور + fail-closed، 17→32)،
+  `test_field_geocode` (تحقّق اسم المحافظة فعليّاً + أصغر صندوق يفوز + خارج اليمن، 4→14).
 
 ✅ **أُغلِق:** `irrigation_water_analysis` (SAR/RSC) — مُغطّى سلوكيّاً
 (`tests/test_irrigation_water_analysis.py` + `tests_v9/test_new_modules.py`) مع تصليب

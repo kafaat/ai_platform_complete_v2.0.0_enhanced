@@ -59,3 +59,18 @@ def test_circuit_open_returns_graceful_degraded(monkeypatch):
     assert body["sources"] == []
     # رسالة عربيّة مفهومة للمزارع لا أثر استثناء
     assert "مؤقّت" in body["response_ar"]
+
+
+def test_invalid_token_returns_generic_detail(monkeypatch):
+    # عدم كشف المعلومات: توكن غير صالح يجب أن يُرجِع رسالة عامّة "Invalid token"
+    # بلا أيّ تفاصيل PyJWT داخليّة (السبب يُسجَّل خادميّاً فقط).
+    monkeypatch.setenv("JWT_SECRET", "x" * 32)  # >=32 لتجاوز فشل-مغلق 503
+    monkeypatch.delenv("JWT_PUBLIC_KEY", raising=False)
+    client = TestClient(main.app)
+    resp = client.post(
+        "/agent/query",
+        json={"query": "اختبار", "user_id": "u1", "tenant_id": "t1"},
+        headers={"Authorization": "Bearer not-a-valid-jwt"},
+    )
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "Invalid token"
