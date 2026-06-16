@@ -27,7 +27,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-nginx:
     image: nginx:alpine
-    container_name: sahool-nginx
     restart: unless-stopped
     ports:
       - "80:80"
@@ -79,7 +78,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-postgres:
     image: postgis/postgis:15-3.4
-    container_name: sahool-postgres
     restart: unless-stopped
     # منفذ مكشوف للمضيف فقط — إذا لم تحتاجه من الخارج، أزل السطر التالي
     ports:
@@ -106,7 +104,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-redis:
     image: redis:7-alpine
-    container_name: sahool-redis
     restart: unless-stopped
     # FIX: لا تكشف Redis للمضيف إلا إذا احتجت debugging
     # ports:
@@ -142,7 +139,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-nats:
     image: nats:2-alpine
-    container_name: sahool-nats
     restart: unless-stopped
     command: >
       --js
@@ -167,7 +163,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
-    container_name: sahool-minio
     restart: unless-stopped
     ports:
       - "9000:9000"
@@ -192,7 +187,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-qdrant:
     image: qdrant/qdrant:v1.17.1
-    container_name: sahool-qdrant
     restart: unless-stopped
     # لا تكشف Qdrant للمضيف إلا إذا احتجت debugging
     # ports:
@@ -218,7 +212,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-ollama:
     image: ollama/ollama:0.30.8
-    container_name: sahool-ollama
     restart: unless-stopped
     # GPU اختياري ومُعطَّل افتراضيّاً: حجز جهاز nvidia يُفشِل `up` على مضيف بلا
     # NVIDIA runtime ("could not select device driver nvidia"). إن توفّر GPU
@@ -253,7 +246,6 @@ services:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
-    container_name: sahool-auth
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
@@ -290,7 +282,6 @@ services:
     build:
       context: .
       dockerfile: services/supervisor-agent/Dockerfile
-    container_name: sahool-supervisor-agent
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -318,7 +309,6 @@ services:
     build:
       context: .
       dockerfile: services/guardrails-engine/Dockerfile
-    container_name: sahool-guardrails-engine
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -344,7 +334,6 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-sentinel-hub-mcp
     restart: unless-stopped
     environment:
       SH_CLIENT_ID: ${SH_CLIENT_ID:?SH_CLIENT_ID required}
@@ -362,7 +351,6 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-weather-mcp
     restart: unless-stopped
     environment:
       JWT_SECRET: ${JWT_SECRET}
@@ -378,7 +366,6 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-wofost-mcp
     restart: unless-stopped
     environment:
       JWT_SECRET: ${JWT_SECRET}
@@ -394,7 +381,6 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-market-mcp
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -419,7 +405,6 @@ services:
     build:
       context: .
       dockerfile: services/vegetation-analysis-service/Dockerfile
-    container_name: sahool-vegetation-analysis
     restart: unless-stopped
     environment:
       NATS_URL: nats://sahool-nats:4222
@@ -447,7 +432,6 @@ services:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
-    container_name: sahool-raster-service
     restart: unless-stopped
     ports:
       - "8001:8001"
@@ -472,7 +456,6 @@ services:
     build:
       context: .
       dockerfile: services/indicators-service/Dockerfile
-    container_name: sahool-indicators-service
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -501,7 +484,6 @@ services:
     build:
       context: .
       dockerfile: services/weather-service/Dockerfile
-    container_name: sahool-weather-service
     restart: unless-stopped
     environment:
       NATS_URL: nats://sahool-nats:4222
@@ -524,7 +506,6 @@ services:
     build:
       context: .
       dockerfile: services/actuator-service/Dockerfile
-    container_name: sahool-actuator-service
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -553,7 +534,6 @@ services:
     build:
       context: .
       dockerfile: services/edge-inference/Dockerfile.arm64
-    container_name: sahool-edge
     restart: unless-stopped
     environment:
       SAHOOL_CLOUD_URL: https://api.sahool.local
@@ -598,7 +578,6 @@ services:
     build:
       context: .
       dockerfile: services/local-ai-rag/Dockerfile
-    container_name: sahool-local-ai-rag
     restart: unless-stopped
     environment:
       QDRANT_HOST: sahool-qdrant
@@ -630,7 +609,6 @@ services:
     build:
       context: .
       dockerfile: services/qdrant-seed/Dockerfile
-    container_name: sahool-qdrant-seed
     restart: "no"
     environment:
       QDRANT_HOST: sahool-qdrant
@@ -654,7 +632,6 @@ services:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
-    container_name: sahool-odoo-bridge
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -682,7 +659,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-odoo:
     image: odoo:17.0
-    container_name: sahool-odoo
     restart: unless-stopped
     ports:
       - "127.0.0.1:8069:8069"
@@ -716,7 +692,6 @@ services:
     build:
       context: .
       dockerfile: bots/telegram/Dockerfile
-    container_name: sahool-telegram-bot
     restart: unless-stopped
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN required}
@@ -750,7 +725,6 @@ services:
     build:
       context: .
       dockerfile: agents/notification/Dockerfile
-    container_name: sahool-notification-agent
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -784,7 +758,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: sahool-frontend
     restart: unless-stopped
     # FIX: حاوية الواجهة تستمع 8080 (frontend/Dockerfile EXPOSE 8080) لا 3000 ⇒
     # كان ربط 3000:3000 وفحص :3000 يفشلان (لا شيء على 3000). صُحِّحا إلى 8080.
@@ -806,7 +779,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-prometheus:
     image: prom/prometheus:v2.55.1
-    container_name: sahool-prometheus
     restart: unless-stopped
     ports:
       - "127.0.0.1:9090:9090"
@@ -818,7 +790,6 @@ services:
 
   sahool-grafana:
     image: grafana/grafana:11.6.0
-    container_name: sahool-grafana
     restart: unless-stopped
     ports:
       - "127.0.0.1:3001:3000"
@@ -836,7 +807,6 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-jaeger:
     image: jaegertracing/all-in-one:1.62.0
-    container_name: sahool-jaeger
     restart: unless-stopped
     ports:
       - "127.0.0.1:16686:16686"
