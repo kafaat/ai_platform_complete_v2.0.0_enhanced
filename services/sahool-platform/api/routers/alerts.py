@@ -7,25 +7,29 @@
 إلى ``@router`` (بما فيها إصدار ALERT_CREATED/ALERT_ACKNOWLEDGED/FIELD_STATE_CHANGED
 حرفيّاً عبر ``_emit_domain_event``).
 
-النماذج/الثوابت/المساعِدات (AlertSummary/AlertCreateRequest/_ALERT_*/_row_to_alert/
-_idem_key/_idempotent/_assert_field_in_tenant/_log_alert_deliveries/_emit_domain_event …)
-تبقى مُعرَّفة في ``api.main`` وتُستورَد من هنا. ``CommandStore`` تُستورَد من وحدتها
-الحقيقيّة ``api.command_store`` مباشرةً. لتفادي الاستيراد الدائريّ: ``api.main``
-يستورد هذا الموجِّه في نهايته فقط.
+الطبقة النقيّة (AlertSummary/AlertCreateRequest/_ALERT_*/_row_to_alert) نُقِلت إلى
+``api.alert_models`` (تفكيك B1) وتُستورَد من هناك. محرّك التسليم ``_log_alert_deliveries``
+وبقيّة المساعِدات (_idem_key/_idempotent/_assert_field_in_tenant/_emit_domain_event …)
+تبقى في ``api.main`` وتُستورَد من هنا. ``CommandStore`` من وحدتها ``api.command_store``
+مباشرةً. لتفادي الاستيراد الدائريّ: ``api.main`` يستورد هذا الموجِّه في نهايته فقط.
 """
 
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-# CommandStore تُستورَد مباشرةً من وحدتها الحقيقيّة (نفس الرمز الذي كان main يستورده).
-from api.command_store import CommandStore
-from api.main import (
+from api.alert_models import (
     _ALERT_SEVERITIES,
     _ALERT_STATUSES,
     _ALERT_TYPES,
     AlertCreateRequest,
     AlertSummary,
+    _row_to_alert,
+)
+
+# CommandStore تُستورَد مباشرةً من وحدتها الحقيقيّة (نفس الرمز الذي كان main يستورده).
+from api.command_store import CommandStore
+from api.main import (
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -35,7 +39,6 @@ from api.main import (
     _idem_key,
     _idempotent,
     _log_alert_deliveries,
-    _row_to_alert,
     get_pool,
     require_permission,
     tenant_connection,

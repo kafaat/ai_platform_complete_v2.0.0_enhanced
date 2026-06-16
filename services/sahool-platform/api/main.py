@@ -1362,57 +1362,14 @@ def _row_to_soil_test(r) -> SoilLabTestSummary:
 
 
 # ─── التنبيهات الزراعيّة (Alerts) — نمط activities (v36) ──────────
-_ALERT_TYPES = {
-    "low_moisture",
-    "heavy_rain",
-    "disease_risk",
-    "heat_stress",
-    "frost_risk",
-    "other",
-}
-_ALERT_SEVERITIES = {"info", "warning", "critical"}
-_ALERT_STATUSES = {"active", "acknowledged", "resolved"}
-
-
-class AlertCreateRequest(BaseModel):
-    """طلب إنشاء تنبيه زراعيّ (نوع/خطورة/عنوان/نصّ/حقل اختياريّ)."""
-
-    alert_type: str
-    severity: str
-    title_ar: str | None = Field(default=None, max_length=200)
-    message_ar: str | None = None
-    field_id: str | None = None
-
-
-class AlertSummary(BaseModel):
-    alert_id: str
-    field_id: str | None = None
-    alert_type: str
-    severity: str
-    title_ar: str | None = None
-    message_ar: str | None = None
-    status: str
-    created_at: str | None = None
-
-
-def _row_to_alert(r) -> AlertSummary:
-    return AlertSummary(
-        alert_id=r["alert_id"],
-        field_id=r["field_id"],
-        alert_type=r["alert_type"],
-        severity=r["severity"],
-        title_ar=r["title_ar"],
-        message_ar=r["message_ar"],
-        status=r["status"],
-        created_at=r["created_at"].isoformat() if r["created_at"] else None,
-    )
-
-
-# نقاط /api/v1/alerts (قائمة/إنشاء/إقرار) نُقلت إلى api/routers/alerts.py (نمط P0).
-# النماذج/الثوابت/المساعِدات (AlertSummary/AlertCreateRequest/_ALERT_*/_row_to_alert/
-# _log_alert_deliveries) تبقى هنا وتُستورَد من الموجِّه (حفظاً
-# لـ_rebuild_pydantic_models/الاختبارات).
-
+# الطبقة النقيّة (ثوابت _ALERT_*/AlertCreateRequest/AlertSummary/_row_to_alert/
+# AlertEvaluateResponse) نُقِلت إلى api/alert_models.py (تفكيك B1) ويستوردها
+# routers/alerts/notifications/reports/fields. محرّك التوليد/التسليم
+# (_evaluate_field_alerts_persist/_log_alert_deliveries، I/O + اقتران بالإشعارات
+# + استدعاء داخليّ من جدولة الأتمتة) يبقى هنا. AlertSummary/_row_to_alert يُستورَدان
+# أعلاه من alert_models لمستهلِكَي main الداخليّين (المحرّك + مُشكِّل لوحة المؤشّرات).
+# نقاط /api/v1/alerts (قائمة/إنشاء/إقرار) في api/routers/alerts.py (نمط P0).
+from api.alert_models import AlertSummary, _row_to_alert  # noqa: E402
 
 # ─── تفضيلات الإشعار + قنوات التسليم (notification_preferences v9 + v38) ──
 # تخزّن قنوات المستخدم (بريد/SMS/Push/واتساب) + عناوينها + أنواع الأحداث المُشترَك
@@ -1560,11 +1517,7 @@ async def _log_alert_deliveries(conn, user, alert: AlertSummary) -> None:
 # لا جدول/هجرة جديدة. تعذّر الطقس/القاعدة ⇒ 503 صريح.
 
 
-class AlertEvaluateResponse(BaseModel):
-    """ناتج تقييم تنبيهات حقل: المُنشأ + عدد المُتجاوَز (موجود نشط مسبقاً)."""
-
-    created: list[AlertSummary]
-    skipped_existing: int
+# AlertEvaluateResponse نُقِل إلى api/alert_models.py (تفكيك B1) ويستوردها routers/fields.
 
 
 async def _evaluate_field_alerts_persist(

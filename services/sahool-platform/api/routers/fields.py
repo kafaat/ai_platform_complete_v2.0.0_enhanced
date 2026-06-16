@@ -24,6 +24,10 @@ from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
+# validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
+# يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
+from api.alert_models import AlertEvaluateResponse
+
 # نماذج/مساعدات الحقل نُقِلت إلى api.field_models (تفكيك B1 — نقل عنقوديّ) وتُستورَد
 # من هناك مباشرةً؛ معالِج الحفظ _persist_field يُعرَّف محليّاً أدناه (مستهلِكه الوحيد).
 from api.field_models import (
@@ -43,9 +47,6 @@ from api.field_models import (
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
 # مباشرةً (نفس الرموز التي كان main يستوردها) لإزالة تحذيرات F401 من main بعد النقل.
 from api.field_timeline import assemble_timeline
-
-# validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
-# يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
 from api.geospatial_integrity import validate_field_geometry
 
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
@@ -55,7 +56,6 @@ from api.main import (
     _SOIL_TEST_SELECT,
     ActivityCreateRequest,
     ActivitySummary,
-    AlertEvaluateResponse,
     CommandStore,
     GeometryValidateRequest,
     GrowthNarrativeRequest,

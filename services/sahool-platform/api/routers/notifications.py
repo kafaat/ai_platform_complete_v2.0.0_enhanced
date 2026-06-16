@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.alert_models import _ALERT_SEVERITIES
 from api.main import (
-    _ALERT_SEVERITIES,
     _NOTIF_EVENT_TYPES,
     _PREF_SELECT_COLS,
     NotificationPreferences,
