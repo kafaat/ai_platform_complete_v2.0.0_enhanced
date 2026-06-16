@@ -24,6 +24,7 @@ _ALERT_TYPES = {
     "disease_risk",
     "heat_stress",
     "frost_risk",
+    "vegetation_stress",
     "other",
 }
 _ALERT_SEVERITIES = {"info", "warning", "critical"}

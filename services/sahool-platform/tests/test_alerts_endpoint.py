@@ -22,6 +22,7 @@ def test_alert_types_cover_ui_options():
         "disease_risk",
         "heat_stress",
         "frost_risk",
+        "vegetation_stress",
         "other",
     }
 

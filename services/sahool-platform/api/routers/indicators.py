@@ -15,7 +15,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.analytics_shapers import _shape_indicator_catalog, _shape_indicators_dashboard
+from api.analytics_shapers import (
+    _shape_indicator_catalog,
+    _shape_indicators_dashboard,
+    _shape_map_layers,
+)
 from api.main import (
     Permission,
     UserSchema,
@@ -37,6 +41,19 @@ async def indicators_catalog(
     مؤشّراً وهميّاً. مُقيَّد بالدور (FIELD_VIEW) للاتّساق مع بقيّة لوحات الحقل.
     """
     return _shape_indicator_catalog()
+
+
+@router.get("/api/v1/indicators/map-layers")
+async def indicators_map_layers(
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """كتالوج طبقات الخريطة — المؤشّرات القابلة للرسم (renderable) فقط + band_math.
+
+    مشتقّ من كتالوج المؤشّرات نفسه (مصدر حقيقة واحد): يقود مبدّل طبقات الخريطة في
+    الواجهة بدل قائمة مُبرمَجة. كلّ طبقة تخدمها raster-service كبلاطات band_math
+    (تعبير Sentinel-2 قياسيّ). ثابت (لا قاعدة)، مُقيَّد بـFIELD_VIEW كبقيّة اللوحات.
+    """
+    return _shape_map_layers()
 
 
 @router.get("/api/v1/indicators/dashboard")

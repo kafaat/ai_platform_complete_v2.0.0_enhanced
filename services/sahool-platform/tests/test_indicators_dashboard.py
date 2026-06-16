@@ -7,7 +7,13 @@
 _row_to_alert (نموذج Pydantic) فنُغذّي صفوفاً بالأعمدة التي يتوقّعها.
 """
 
-from api.analytics_shapers import _shape_indicator_catalog, _shape_indicators_dashboard
+import pytest
+from api.analytics_shapers import (
+    _INDICATOR_CATALOG,
+    _shape_indicator_catalog,
+    _shape_indicators_dashboard,
+    _shape_map_layers,
+)
 
 
 # ── _shape_indicator_catalog ─────────────────────────────────────
@@ -45,6 +51,65 @@ def test_catalog_renderable_flag_is_consistent():
     # قيَم قياسيّة غير مكانيّة ⇒ ليست renderable (لا تُعرَض كطبقة خريطة)
     for sid in ("et0", "gdd", "temperature", "soil_ph", "nitrogen"):
         assert by_id[sid]["renderable"] is False
+
+
+# ── _shape_map_layers ────────────────────────────────────────────
+@pytest.mark.unit
+def test_map_layers_only_renderable_indicators():
+    """كتالوج طبقات الخريطة = المؤشّرات القابلة للرسم (renderable) فقط — لا غيرها."""
+    out = _shape_map_layers()
+    renderable_ids = {i["id"] for i in _INDICATOR_CATALOG if i["renderable"]}
+    layer_ids = {layer["id"] for layer in out["layers"]}
+    assert layer_ids == renderable_ids
+    # العدّ يطابق عدد القابلة للرسم في الكتالوج
+    assert out["total"] == len(renderable_ids)
+    assert len(out["layers"]) == out["total"]
+
+
+@pytest.mark.unit
+def test_map_layers_excludes_non_renderable():
+    """مؤشّر غير قابل للرسم (طقس/تربة قياسيّ) مُستبعَد من طبقات الخريطة."""
+    out = _shape_map_layers()
+    layer_ids = {layer["id"] for layer in out["layers"]}
+    for sid in ("et0", "gdd", "temperature", "soil_ph", "nitrogen"):
+        assert sid not in layer_ids
+
+
+@pytest.mark.unit
+def test_map_layers_have_required_keys():
+    """كلّ طبقة تحمل id/name_ar/category/unit/band_math/source."""
+    out = _shape_map_layers()
+    assert out["layers"], "يجب أن تكون هناك طبقات قابلة للرسم"
+    for layer in out["layers"]:
+        for key in ("id", "name_ar", "category", "unit", "band_math", "source"):
+            assert key in layer
+
+
+@pytest.mark.unit
+def test_map_layers_ndvi_band_math_is_standard_formula():
+    """طبقة NDVI تحمل صيغة band-math القياسيّة (NIR-RED)/(NIR+RED)."""
+    out = _shape_map_layers()
+    by_id = {layer["id"]: layer for layer in out["layers"]}
+    assert by_id["ndvi"]["band_math"] == "(NIR-RED)/(NIR+RED)"
+
+
+@pytest.mark.unit
+def test_map_layers_unmapped_renderable_has_note_and_none_band_math():
+    """طبقة قابلة للرسم بلا تعبير قياسيّ موثَّق ⇒ band_math=None + ملاحظة صادقة."""
+    out = _shape_map_layers()
+    for layer in out["layers"]:
+        if layer["band_math"] is None:
+            assert "note_ar" in layer and layer["note_ar"]
+
+
+@pytest.mark.unit
+def test_map_layers_route_registered_on_app():
+    """المسار /api/v1/indicators/map-layers مُسجّل فعليّاً على التطبيق."""
+    pytest.importorskip("fastapi")
+    from api.main import app
+
+    paths = {r.path for r in app.routes if isinstance(getattr(r, "path", None), str)}
+    assert "/api/v1/indicators/map-layers" in paths
 
 
 # ── _shape_indicators_dashboard ──────────────────────────────────
