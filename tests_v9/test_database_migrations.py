@@ -173,3 +173,46 @@ class TestConcurrencyDeterminismMigrations:
             assert trg == 1, "v64: trigger trg_seasons_row_version مفقود"
         finally:
             await pool.close()
+
+
+class TestHarvestTraceabilityMigration:
+    """حُرّاس v65 (تتبّع سلسلة الإمداد): الجدولان + RLS لكلّ مستأجِر."""
+
+    @pytest.mark.unit
+    def test_v65_creates_tables_with_rls(self):
+        """v65 ينشئ harvest_lots + custody_chain_events مع RLS صريح (ENABLE+FORCE+policy)."""
+        sql = read_sql(os.path.join(BASE, "migrations/v65_harvest_traceability.sql"))
+        assert "CREATE TABLE IF NOT EXISTS harvest_lots" in sql
+        assert "CREATE TABLE IF NOT EXISTS custody_chain_events" in sql
+        # ربط بالكيانات القائمة (لا تكرار).
+        assert "REFERENCES fields(field_id)" in sql
+        assert "REFERENCES seasons(season_id)" in sql
+        assert "REFERENCES harvest_lots(harvest_lot_id)" in sql
+        # RLS صريح لكلّ مستأجِر على الجدولين (يطابق حارس تغطية RLS).
+        for tbl in ("harvest_lots", "custody_chain_events"):
+            assert re.search(rf"ALTER TABLE {tbl} ENABLE ROW LEVEL SECURITY", sql)
+            assert re.search(rf"ALTER TABLE {tbl} FORCE\s+ROW LEVEL SECURITY", sql)
+            assert re.search(rf"CREATE POLICY tenant_isolation ON {tbl}", sql)
+
+    @pytest.mark.integration
+    async def test_v65_tables_exist_after_migration(self, http_client):
+        """تحقّق حيّ (للقراءة فقط): الجدولان موجودان ولهما سياسة RLS بعد الهجرة."""
+        import asyncpg
+        from conftest import TEST_DB_URL
+
+        pool = await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=2)
+        try:
+            for tbl in ("harvest_lots", "custody_chain_events"):
+                exists = await pool.fetchval(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema = 'public' AND table_name = $1",
+                    tbl,
+                )
+                assert exists == 1, f"v65: جدول {tbl} مفقود"
+                pol = await pool.fetchval(
+                    "SELECT 1 FROM pg_policies WHERE tablename = $1 AND policyname = 'tenant_isolation'",
+                    tbl,
+                )
+                assert pol == 1, f"v65: سياسة RLS على {tbl} مفقودة"
+        finally:
+            await pool.close()

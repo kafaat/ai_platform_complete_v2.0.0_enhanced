@@ -226,3 +226,8 @@ v63_events_seq_deterministic_order.sql
 # (bump_row_version) على كلّ UPDATE (يغطّي كلّ مسارات كتابة الموسم: تحديث/محاكاة/
 # إغلاق آليّ). update_season يقارن base_version ويردّ 409 عند التعارض. يكمّل v61.
 v64_seasons_row_version.sql
+# v65: تتبّع سلسلة الإمداد (farm-to-market) — جدولا harvest_lots (دفعة الحصاد،
+# تربط field/season) وcustody_chain_events (سلسلة حيازة append-only: حصاد→تخزين→
+# نقل→بيع + content_hash للتدقيق). RLS صريح لكلّ مستأجِر (نمط v50). يسدّ الفجوة
+# التنافسيّة (xFarm/Farmonaut) فوق input-traceability القائم. idempotent.
+v65_harvest_traceability.sql
