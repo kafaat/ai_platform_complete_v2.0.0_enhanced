@@ -17,13 +17,17 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.main import (
+from api.harvest_models import (
     _CUSTODY_EVENT_SELECT,
     _HARVEST_LOT_SELECT,
     CustodyEventCreateRequest,
     CustodyEventSummary,
     HarvestLotCreateRequest,
     HarvestLotSummary,
+    _row_to_custody_event,
+    _row_to_harvest_lot,
+)
+from api.main import (
     Permission,
     UserSchema,
     _assert_field_in_tenant,
@@ -31,8 +35,6 @@ from api.main import (
     _db_unavailable,
     _emit_domain_event,
     _parse_date,
-    _row_to_custody_event,
-    _row_to_harvest_lot,
     require_permission,
     tenant_connection,
 )
