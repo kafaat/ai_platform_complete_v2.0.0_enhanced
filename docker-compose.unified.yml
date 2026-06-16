@@ -25,7 +25,7 @@ volumes:
   ollama_models:
   qdrant_data:
   edge_data:  # FIX: مُستخدَم في edge-inference (- edge_data:/data) لكنه لم يكن مُعلَناً
-  odoo-filestore:  # FIX: مُستخدَم في sahool-odoo لكنه لم يكن مُعلَناً
+  odoo-filestore:  # FIX: مُستخدَم في sahool-unified-odoo لكنه لم يكن مُعلَناً
 
 x-logging: &logging
   logging:
@@ -33,15 +33,15 @@ x-logging: &logging
     options: { max-size: "10m", max-file: "3" }
 
 x-db-env: &db-env
-  DATABASE_URL: "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@sahool-postgis:5432/sahool"
-  REDIS_URL: "redis://sahool-redis:6379/0"
-  NATS_URL: "nats://sahool-nats:4222"
-  MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
+  DATABASE_URL: "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@sahool-unified-postgis:5432/sahool"
+  REDIS_URL: "redis://sahool-unified-redis:6379/0"
+  NATS_URL: "nats://sahool-unified-nats:4222"
+  MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
 
 services:
   nginx:
     image: nginx:alpine
-    container_name: sahool-nginx
+    container_name: sahool-unified-nginx
     restart: unless-stopped
     ports: ["80:80", "443:443"]
     volumes:
@@ -61,7 +61,7 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile
-    container_name: sahool-frontend
+    container_name: sahool-unified-frontend
     restart: unless-stopped
     expose: ["80"]
     depends_on: [auth-service, supervisor-agent]
@@ -72,7 +72,7 @@ services:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
-    container_name: sahool-auth
+    container_name: sahool-unified-auth
     restart: unless-stopped
     ports: ["8120:8000"]
     environment:
@@ -95,18 +95,18 @@ services:
     build:
       context: .
       dockerfile: services/supervisor-agent/Dockerfile
-    container_name: sahool-supervisor
+    container_name: sahool-unified-supervisor
     restart: unless-stopped
     ports: ["8096:8000"]
     environment:
       SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN}"
-      MCP_SENTINEL_HUB_URL: "http://sahool-sentinel-hub-mcp:8000/mcp/v1"
-      MCP_WEATHER_URL: "http://sahool-weather-mcp:8000/mcp/v1"
-      MCP_WOFOST_URL: "http://sahool-wofost-mcp:8000/mcp/v1"
-      MCP_MARKET_URL: "http://sahool-market-mcp:8000/mcp/v1"
-      MCP_AGRIAI_URL: "http://sahool-agriai-engine:8000/mcp/v1"
-      GUARDRAILS_URL: "http://sahool-guardrails:8000"
-      REDIS_URL: "redis://sahool-redis:6379/0"
+      MCP_SENTINEL_HUB_URL: "http://sahool-unified-sentinel-hub-mcp:8000/mcp/v1"
+      MCP_WEATHER_URL: "http://sahool-unified-weather-mcp:8000/mcp/v1"
+      MCP_WOFOST_URL: "http://sahool-unified-wofost-mcp:8000/mcp/v1"
+      MCP_MARKET_URL: "http://sahool-unified-market-mcp:8000/mcp/v1"
+      MCP_AGRIAI_URL: "http://sahool-unified-agriai-engine:8000/mcp/v1"
+      GUARDRAILS_URL: "http://sahool-unified-guardrails:8000"
+      REDIS_URL: "redis://sahool-unified-redis:6379/0"
       JWT_SECRET: "${JWT_SECRET}"
     depends_on:
       sentinel-hub-mcp: { condition: service_healthy }
@@ -129,7 +129,7 @@ services:
     build:
       context: .
       dockerfile: services/guardrails-engine/Dockerfile
-    container_name: sahool-guardrails
+    container_name: sahool-unified-guardrails
     restart: unless-stopped
     ports: ["8097:8000"]
     environment:
@@ -149,7 +149,7 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-sentinel-hub-mcp
+    container_name: sahool-unified-sentinel-hub-mcp
     restart: unless-stopped
     ports: ["8091:8000"]
     environment:
@@ -168,7 +168,7 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-weather-mcp
+    container_name: sahool-unified-weather-mcp
     restart: unless-stopped
     command: python weather_server.py
     ports: ["8092:8000"]
@@ -186,7 +186,7 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-wofost-mcp
+    container_name: sahool-unified-wofost-mcp
     restart: unless-stopped
     command: python wofost_server.py
     ports: ["8093:8000"]
@@ -204,14 +204,14 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-market-mcp
+    container_name: sahool-unified-market-mcp
     restart: unless-stopped
     command: python market_server.py
     ports: ["8094:8000"]
     environment:
       <<: *db-env
       JWT_SECRET: "${JWT_SECRET}"
-      ODOO_BRIDGE_URL: "http://sahool-odoo-bridge:8126"
+      ODOO_BRIDGE_URL: "http://sahool-unified-odoo-bridge:8126"
     depends_on:
       postgis: { condition: service_healthy }
     networks: [sahool-net]
@@ -226,13 +226,13 @@ services:
     build:
       context: .
       dockerfile: services/edge-inference/Dockerfile.arm64
-    container_name: sahool-edge
+    container_name: sahool-unified-edge
     restart: unless-stopped
     ports: ["8100:8000"]
     environment:
       EDGE_DEVICE: "${EDGE_DEVICE:-rpi5}"
       OFFLINE_MODE: "${OFFLINE_MODE:-false}"
-      SAHOOL_CLOUD_URL: "http://sahool-supervisor:8000"
+      SAHOOL_CLOUD_URL: "http://sahool-unified-supervisor:8000"
       EDGE_SYNC_TOKEN: "${EDGE_SYNC_TOKEN}"
       AUTO_DOWNLOAD_MODELS: "true"
     volumes:
@@ -250,14 +250,14 @@ services:
     build:
       context: .
       dockerfile: services/video-processor/Dockerfile
-    container_name: sahool-video-processor
+    container_name: sahool-unified-video-processor
     restart: unless-stopped
     ports: ["8110:8000"]
     environment:
-      MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
-      EDGE_INFERENCE_URL: "http://sahool-edge:8000"
-      ZLMEDIA_API_URL: "http://sahool-zlmediakit:8080"
-      REDIS_URL: "redis://sahool-redis:6379/3"
+      MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
+      EDGE_INFERENCE_URL: "http://sahool-unified-edge:8000"
+      ZLMEDIA_API_URL: "http://sahool-unified-zlmediakit:8080"
+      REDIS_URL: "redis://sahool-unified-redis:6379/3"
     depends_on:
       - fastbee
       - edge-inference
@@ -274,12 +274,12 @@ services:
     build:
       context: .
       dockerfile: services/actuator-service/Dockerfile
-    container_name: sahool-actuator
+    container_name: sahool-unified-actuator
     restart: unless-stopped
     ports: ["8111:8000"]
     environment:
       <<: *db-env
-      MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
+      MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
       JWT_SECRET: "${JWT_SECRET}"
     depends_on:
       - fastbee
@@ -295,13 +295,13 @@ services:
 
   fastbee:
     image: registry.cn-chengdu.aliyuncs.com/fastbee/fastbee:latest
-    container_name: sahool-fastbee
+    container_name: sahool-unified-fastbee
     restart: unless-stopped
     ports:
       - "1883:1883"
       - "8081:8080"
     environment:
-      - DB_HOST=sahool-postgis
+      - DB_HOST=sahool-unified-postgis
       - DB_PORT=5432
       - DB_NAME=fastbee
       - DB_USER=postgres
@@ -322,7 +322,7 @@ services:
 
   zlmediakit:
     image: panjjo/zlmediakit:v6.0.0  # pinned
-    container_name: sahool-zlmediakit
+    container_name: sahool-unified-zlmediakit
     restart: unless-stopped
     ports:
       - "8082:8080"
@@ -342,14 +342,14 @@ services:
     build:
       context: .
       dockerfile: services/local-ai-rag/Dockerfile
-    container_name: sahool-local-ai-rag
+    container_name: sahool-unified-local-ai-rag
     restart: unless-stopped
     ports: ["8125:8000"]
     environment:
-      OLLAMA_BASE_URL: "http://sahool-ollama:11434"
+      OLLAMA_BASE_URL: "http://sahool-unified-ollama:11434"
       LLM_MODEL: "${LLM_MODEL:-qwen3:32b}"
       EMBED_MODEL: "${EMBED_MODEL:-nomic-embed-text}"
-      QDRANT_URL: "http://sahool-qdrant:6333"
+      QDRANT_URL: "http://sahool-unified-qdrant:6333"
       COLLECTION_NAME: "sahool_agri_kb"
       NUM_CTX: "${NUM_CTX:-8192}"
     depends_on:
@@ -365,7 +365,7 @@ services:
 
   ollama:
     image: ollama/ollama:0.3.0  # HIGH-DOCKER-03: pinned
-    container_name: sahool-ollama
+    container_name: sahool-unified-ollama
     restart: unless-stopped
     ports: ["11434:11434"]
     volumes:
@@ -384,7 +384,7 @@ services:
 
   qdrant:
     image: qdrant/qdrant:v1.11.0  # HIGH-DOCKER-03: pinned
-    container_name: sahool-qdrant
+    container_name: sahool-unified-qdrant
     environment:
       QDRANT__SERVICE__API_KEY: "${QDRANT_API_KEY}"  # C-02 FIX
     restart: unless-stopped
@@ -404,16 +404,16 @@ services:
     build:
       context: .
       dockerfile: services/agriai-engine/Dockerfile
-    container_name: sahool-agriai-engine
+    container_name: sahool-unified-agriai-engine
     restart: unless-stopped
     ports: ["8127:8000"]
     environment:
       <<: *db-env
       JWT_SECRET: "${JWT_SECRET}"
-      SENTINEL_HUB_MCP_URL: "http://sahool-sentinel-hub-mcp:8000"
-      WEATHER_MCP_URL: "http://sahool-weather-mcp:8000"
-      WOFOST_MCP_URL: "http://sahool-wofost-mcp:8000"
-      EDGE_INFERENCE_URL: "http://sahool-edge:8000"
+      SENTINEL_HUB_MCP_URL: "http://sahool-unified-sentinel-hub-mcp:8000"
+      WEATHER_MCP_URL: "http://sahool-unified-weather-mcp:8000"
+      WOFOST_MCP_URL: "http://sahool-unified-wofost-mcp:8000"
+      EDGE_INFERENCE_URL: "http://sahool-unified-edge:8000"
     depends_on:
       postgis: { condition: service_healthy }
     networks: [sahool-net]
@@ -426,9 +426,9 @@ services:
 
 
   # ── Odoo ERP Server (C-11 FIX) ──────────────────────────────
-  sahool-odoo:
+  sahool-unified-odoo:
     image: odoo:17
-    container_name: sahool-odoo
+    container_name: sahool-unified-odoo
     restart: unless-stopped
     environment:
       HOST:     sahool-postgres
@@ -452,7 +452,7 @@ services:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
-    container_name: sahool-odoo-bridge
+    container_name: sahool-unified-odoo-bridge
     restart: unless-stopped
     ports: ["8126:8000"]
     environment:
@@ -462,7 +462,7 @@ services:
       ODOO_USER: "${ODOO_USER:-admin}"
       ODOO_PASSWORD: "${ODOO_PASSWORD:?must be set in .env}"
       ODOO_API_KEY: "${ODOO_API_KEY}"
-      SAHOOL_API_URL: "http://sahool-auth:8000"
+      SAHOOL_API_URL: "http://sahool-unified-auth:8000"
       SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN}"
       SYNC_INTERVAL_SEC: "300"
       WEBHOOK_SECRET: "${WEBHOOK_SECRET}"
@@ -481,14 +481,14 @@ services:
     build:
       context: .
       dockerfile: bots/telegram/Dockerfile
-    container_name: sahool-telegram-bot
+    container_name: sahool-unified-telegram-bot
     restart: unless-stopped
     environment:
       TELEGRAM_BOT_TOKEN: "${TELEGRAM_BOT_TOKEN}"
-      SUPERVISOR_AGENT_URL: "http://sahool-supervisor:8000"
-      AUTH_SERVICE_URL: "http://sahool-auth:8000"
+      SUPERVISOR_AGENT_URL: "http://sahool-unified-supervisor:8000"
+      AUTH_SERVICE_URL: "http://sahool-unified-auth:8000"
       JWT_SECRET: "${JWT_SECRET}"
-      REDIS_URL: "redis://sahool-redis:6379/2"
+      REDIS_URL: "redis://sahool-unified-redis:6379/2"
     depends_on:
       supervisor-agent: { condition: service_healthy }
       redis:             { condition: service_healthy }
@@ -497,7 +497,7 @@ services:
 
   postgis:
     image: postgis/postgis:15-3.4
-    container_name: sahool-postgis
+    container_name: sahool-unified-postgis
     restart: unless-stopped
     ports: ["127.0.0.1:5432:5432"]  # HIGH-DOCKER-01: localhost only
     environment:
@@ -518,7 +518,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: sahool-redis
+    container_name: sahool-unified-redis
     restart: unless-stopped
     ports: ["127.0.0.1:6379:6379"]  # HIGH-DOCKER-01: localhost only
     environment:
@@ -547,7 +547,7 @@ services:
 
   minio:
     image: minio/minio:RELEASE.2024-11-07T00-52-20Z
-    container_name: sahool-minio
+    container_name: sahool-unified-minio
     restart: unless-stopped
     ports: ["9000:9000", "9001:9001"]
     environment:
@@ -565,7 +565,7 @@ services:
 
   nats:
     image: nats:2-alpine
-    container_name: sahool-nats
+    container_name: sahool-unified-nats
     restart: unless-stopped
     ports: ["127.0.0.1:4222:4222"]  # HIGH-DOCKER-01: localhost only, "8222:8222"
     command: "--js --store_dir /data/jetstream --http_port 8222"
