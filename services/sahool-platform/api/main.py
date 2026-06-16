@@ -2443,44 +2443,10 @@ def _parse_date(value: str | None, field: str) -> date | None:
 
 
 # ─── الري التشغيلي (صمامات + جداول) — الطبقة ٣ (v25) ─────────────
-class ValveRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
-    field_id: str | None = None
-    device_id: str | None = None
-    valve_type: str = Field(default="solenoid", pattern="^(solenoid|manual|drip_header|gate)$")
-    flow_rate_lpm: float | None = Field(default=None, ge=0)
-
-
-class ValveStateRequest(BaseModel):
-    status: str = Field(pattern="^(open|closed)$")
-
-
-class ScheduleRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
-    field_id: str | None = None
-    valve_id: str | None = None
-    start_time: str  # HH:MM أو HH:MM:SS
-    duration_min: int = Field(ge=1, le=1440)
-    days_of_week: list[int] | None = None
-    water_target_mm: float | None = Field(default=None, ge=0)
-    enabled: bool = True
-
-
-def _parse_time(value: str):
-    """يحوّل HH:MM[:SS] إلى time؛ 400 على قيمة غير صالحة (لا 500)."""
-    from datetime import time as _time
-
-    try:
-        return _time.fromisoformat(value.strip())
-    except (ValueError, TypeError, AttributeError):
-        raise HTTPException(
-            status_code=400, detail="start_time غير صالح — استخدم HH:MM أو HH:MM:SS"
-        ) from None
-
-
+# نماذج الري (Valve*/Schedule*) والمساعِد _parse_time نُقِلت إلى
+# api/irrigation_models.py (تفكيك B1) ويستوردها routers/irrigation.
 # نقاط /api/v1/irrigation/{valves,valves/{id}/state,schedules,schedules/{id}}
-# نُقلت إلى api/routers/irrigation.py (نمط P0) — النماذج والمساعِدات (_parse_time
-# وValve*/Schedule*Request) تبقى هنا (لا تُنقَل النماذج/التبعيات).
+# في api/routers/irrigation.py.
 
 
 # ─── البيانات المرجعيّة (Master Data) + الدورات الزراعيّة — (v26) ─
@@ -3272,20 +3238,9 @@ class SharingKeyCreateRequest(BaseModel):
 
 # ─── ١٦. ميزان الماء ET0 (المرحلة ٢، البند ١٢) ──────────────────
 # توصية ريّ FAO-56 (Penman-Monteith / Hargreaves) — أزمة مياه اليمن.
-# نقطة /api/v1/water-balance نُقلت إلى api/routers/water_balance.py (نمط P0).
-# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
-class WaterBalanceRequest(BaseModel):
-    crop: str
-    stage: str = "mid"  # initial|development|mid|late
-    t_min_c: float
-    t_max_c: float
-    rain_mm: float = 0.0
-    solar_rad_mj_m2: float | None = None
-    rh_mean_pct: float | None = None
-    wind_2m_ms: float | None = None
-    latitude_deg: float = 15.5
-    elevation_m: float = 2000.0
-    day_of_year: int = 100
+# نقطة /api/v1/water-balance في api/routers/water_balance.py (نمط P0).
+# نموذج WaterBalanceRequest نُقِل إلى api/water_balance_models.py (تفكيك B1)
+# ويستوردها الموجِّه.
 
 
 # ─── ١٧. قواعد 4R للتربة الكلسيّة (المرحلة ٢، البند ١٣) ──────────
@@ -3643,14 +3598,8 @@ class FieldFitRequest(BaseModel):
 
 
 # ─── ٤١. دراسة الجدوى الاقتصاديّة (هل سأربح؟) ─────────────────────
-
-
-class FeasibilityRequest(BaseModel):
-    area_ha: float
-    yield_t_per_ha: float
-    price_per_t: float
-    costs: dict[str, float] | None = None
-    total_cost: float | None = None
+# نموذج FeasibilityRequest نُقِل إلى api/feasibility_models.py (تفكيك B1)
+# ويستوردها routers/economics.
 
 
 # ─── ٤٢. الإكثار الخضري (اللاجنسي) + اختيار الأصل المقاوم ─────────
@@ -3824,14 +3773,7 @@ class OnboardingSubmitRequest(BaseModel):
     answers: dict = {}
 
 
-# ─── استقبال مزامنة edge مع dedup (Hardening مراجعة 7) ───────────
-class EdgeSyncRequest(BaseModel):
-    type: str
-    data: dict
-    idempotency_key: str | None = None
-    occurred_at: str | None = None  # وقت حدوث القياس على الجهاز (مرجع سببي)
-    device_id: str | None = None
-    field_id: str | None = None
+# نموذج EdgeSyncRequest نُقِل إلى api/edge_models.py (تفكيك B1) ويستوردها routers/edge.
 
 
 # ─── Entry point للتطوير ─────────────────────────────────────────

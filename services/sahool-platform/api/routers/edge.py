@@ -6,16 +6,16 @@
 في ``main.py`` — نُقلت الدالّة حرفيّاً مع تغيير ``@app`` إلى ``@router`` (بمسارَيها
 المُسجَّلَين معاً: /api/v1/edge/sync و/v1/edge/sync).
 
-النموذج ``EdgeSyncRequest`` يبقى مُعرَّفاً في ``api.main`` ويُستورَد من هنا (حفظاً
-لـ_rebuild_pydantic_models). لتفادي الاستيراد الدائريّ: ``api.main`` يستورد هذا
-الموجِّه في نهايته فقط.
+النموذج ``EdgeSyncRequest`` نُقل إلى ``api.edge_models`` ويُستورَد من هناك (نمط
+B1). لتفادي الاستيراد الدائريّ: ``api.main`` يستورد هذا الموجِّه في نهايته فقط.
 """
 
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from api.main import EdgeSyncRequest, UserSchema, get_current_user, tenant_connection
+from api.edge_models import EdgeSyncRequest
+from api.main import UserSchema, get_current_user, tenant_connection
 
 router = APIRouter()
 
