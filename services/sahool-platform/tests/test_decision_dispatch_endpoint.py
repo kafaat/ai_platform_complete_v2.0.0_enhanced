@@ -126,6 +126,76 @@ def test_shape_dispatch_row_decodes_jsonb_and_time():
     assert out2["command"] is None
 
 
+def test_unified_flag_off_returns_404(monkeypatch):
+    from api.routers.decision_dispatch import (
+        UnifiedDecisionRequest,
+        unified_decision_endpoint,
+    )
+
+    monkeypatch.delenv("SAHOOL_DECISION_DISPATCH", raising=False)
+    req = UnifiedDecisionRequest(field_id="f1", signals=[])
+    with pytest.raises(HTTPException) as e:
+        unified_decision_endpoint(req=req, user=_USER)
+    assert e.value.status_code == 404
+
+
+def test_unified_reconciles_irrigation_vs_spray(monkeypatch):
+    from api.routers.decision_dispatch import (
+        DomainSignalIn,
+        UnifiedDecisionRequest,
+        unified_decision_endpoint,
+    )
+
+    monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
+    req = UnifiedDecisionRequest(
+        field_id="f1",
+        signals=[
+            DomainSignalIn(
+                domain="irrigation", action="irrigate", urgency="high", params={"water_mm": 20.0}
+            ),
+            DomainSignalIn(
+                domain="pest",
+                action="spray",
+                urgency="medium",
+                params={"needs_dry": True, "window_days": 3},
+            ),
+            DomainSignalIn(
+                domain="economics", action="reduce_water", params={"water_budget_pct": 80.0}
+            ),
+        ],
+    )
+    out = unified_decision_endpoint(req=req, user=_USER)
+    assert out["state"] == "ready"
+    assert out["dry_run"] is True
+    assert out["reconciled_by"] == "u-eval"
+    irr = next(a for a in out["action_plan"] if "irrig" in a["action"])
+    assert irr["action"] == "defer_irrigation"
+    assert irr["params"]["defer_hours"] == 24
+    assert irr["params"]["water_mm"] == 16.0  # 20 * 0.80
+    assert len(out["reconciliations_ar"]) == 2
+
+
+def test_unified_halt_blocks(monkeypatch):
+    from api.routers.decision_dispatch import (
+        DomainSignalIn,
+        UnifiedDecisionRequest,
+        unified_decision_endpoint,
+    )
+
+    monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "1")
+    req = UnifiedDecisionRequest(
+        field_id="f1",
+        signals=[
+            DomainSignalIn(domain="pest", action="spray", urgency="high"),
+            DomainSignalIn(domain="governance", action="none", halt=True, reason_ar="PHI"),
+        ],
+    )
+    out = unified_decision_endpoint(req=req, user=_USER)
+    assert out["state"] == "blocked"
+    assert out["action_plan"] == []
+    assert "PHI" in out["halt_reasons"]
+
+
 async def test_read_endpoints_flag_off_404(monkeypatch):
     from api.routers.decision_dispatch import list_dispatch_decisions, list_dispatch_queue
 

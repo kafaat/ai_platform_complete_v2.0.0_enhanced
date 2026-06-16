@@ -23,6 +23,7 @@ import os
 import uuid as _uuid
 
 from core.actuator_command import build_actuator_command
+from core.agronomic_decision import DomainSignal, reconcile_decision, to_urgency
 from core.decision_dispatch import evaluate_dispatch
 from core.dispatch_executor import execute_dispatch
 from core.guardrails import check_guardrails
@@ -76,6 +77,60 @@ def _shape_dispatch_row(row) -> dict:
         "created_by": row["created_by"],
         "created_at": created.isoformat() if created is not None else None,
     }
+
+
+class DomainSignalIn(BaseModel):
+    """إشارة مجال واحد كمدخل API — تُطبَّع إلى core.agronomic_decision.DomainSignal."""
+
+    domain: str  # weather | soil | irrigation | pest | economics | yield
+    action: str = "none"  # irrigate | spray | reduce_water | …
+    urgency: str = "none"  # none|low|moderate|high|critical (مرادفات تُطبَّع)
+    params: dict = {}
+    halt: bool = False
+    reason_ar: str = ""
+    confidence: float = 1.0
+
+
+class UnifiedDecisionRequest(BaseModel):
+    """مدخلات المصالحة الموحّدة: حقل + إشارات المجالات المتوازية لتُجمَع في قرار واحد."""
+
+    field_id: str
+    signals: list[DomainSignalIn]
+
+
+@router.post("/api/v1/decision/unified")
+def unified_decision_endpoint(
+    req: UnifiedDecisionRequest,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+) -> dict:
+    """مصالحة إشارات المجالات (طقس/تربة/ريّ/آفات/اقتصاد/غلّة) في قرار موحّد واحد.
+
+    معاينة نقيّة (dry-run) — لا تنفيذ ولا كتابة قاعدة: تُجمِع التوصيات المتوازية وتُصالح
+    تعارضاتها (الريّ↔الرشّ، قيد ميزانيّة الماء) بشفافيّة (reconciliations_ar). الخطّة
+    الناتجة تُغذّي بعدها الموزِّع المحروس (dispatch/evaluate→execute). 404 إن مُطفأ العلم.
+    """
+    if not _dispatch_enabled():
+        raise HTTPException(
+            status_code=404,
+            detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH).",
+        )
+    signals = [
+        DomainSignal(
+            domain=s.domain,
+            action=s.action or "none",
+            urgency=to_urgency(s.urgency),
+            params=dict(s.params),
+            halt=s.halt,
+            reason_ar=s.reason_ar,
+            confidence=s.confidence,
+        )
+        for s in req.signals
+    ]
+    decision = reconcile_decision(req.field_id, signals)
+    out = decision.to_dict()
+    out["reconciled_by"] = str(user.user_id)  # أثر: من طلب المصالحة
+    out["dry_run"] = True  # معاينة فقط — لم يُنفَّذ شيء
+    return out
 
 
 class DispatchEvaluateRequest(BaseModel):
