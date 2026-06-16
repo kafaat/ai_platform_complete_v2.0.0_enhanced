@@ -3,7 +3,7 @@
 نتحقّق من:
   • السلوك القديم (فلتر «< 0» والمخرجات) يبقى مطابقاً تماماً.
   • تُسجَّل مخالفة جودة عند NDVI خارج المدى الفيزيائيّ [-1, 1].
-  • لا يرمي المسار استثناءً حتى لو تعذّر استيراد api.data_quality (حارس الاستيراد).
+  • لا يرمي المسار استثناءً حتى لو تعذّر استيراد core.data_quality (حارس الاستيراد).
 """
 
 from __future__ import annotations
@@ -53,14 +53,14 @@ def test_no_violation_for_in_range_ndvi(caplog):
 
 
 def test_does_not_raise_when_dq_import_unavailable(monkeypatch):
-    """حارس الاستيراد: حتى لو فشل استيراد api.data_quality لا يُسقِط المسار."""
+    """حارس الاستيراد: حتى لو فشل استيراد core.data_quality لا يُسقِط المسار."""
     import builtins
 
     real_import = builtins.__import__
 
     def _blocking_import(name, *args, **kwargs):
-        if name == "api.data_quality" or name.startswith("api.data_quality"):
-            raise ImportError("api غير قابل للاستيراد في هذا السياق")
+        if name == "core.data_quality" or name.startswith("core.data_quality"):
+            raise ImportError("core.data_quality غير قابل للاستيراد في هذا السياق")
         return real_import(name, *args, **kwargs)
 
     monkeypatch.setattr(builtins, "__import__", _blocking_import)
