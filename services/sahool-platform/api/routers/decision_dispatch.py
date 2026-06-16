@@ -26,7 +26,7 @@ from core.actuator_command import build_actuator_command
 from core.decision_dispatch import evaluate_dispatch
 from core.dispatch_executor import execute_dispatch
 from core.guardrails import check_guardrails
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from api.main import (
@@ -45,6 +45,37 @@ _TRUTHY = {"1", "true", "yes", "on"}
 def _dispatch_enabled() -> bool:
     """هل ميزة موزِّع القرار مُفعَّلة؟ (مُطفأة افتراضاً — إنضاج تدريجيّ)."""
     return os.getenv("SAHOOL_DECISION_DISPATCH", "").strip().lower() in _TRUTHY
+
+
+def _shape_dispatch_row(row) -> dict:
+    """يحوّل صفّ dispatch_decisions إلى dict عرض — يفكّ JSONB ويُنسّق الوقت (نقيّ).
+
+    asyncpg يعيد JSONB كنصّ خام (بلا codec) فنفكّه بـjson.loads؛ created_at →ISO.
+    """
+
+    def _loads(v):
+        if v is None:
+            return None
+        return _json.loads(v) if isinstance(v, str) else v
+
+    created = row["created_at"]
+    return {
+        "decision_id": row["decision_id"],
+        "recommendation_id": row["recommendation_id"],
+        "action_type": row["action_type"],
+        "field_id": row["field_id"],
+        "state": row["state"],
+        "risk_level": row["risk_level"],
+        "required_approvals": row["required_approvals"],
+        "approvals_collected": row["approvals_collected"],
+        "halt_breaches": _loads(row["halt_breaches"]),
+        "warn_breaches": _loads(row["warn_breaches"]),
+        "reason_ar": row["reason_ar"],
+        "command": _loads(row["command"]),
+        "exec_status": row["exec_status"],
+        "created_by": row["created_by"],
+        "created_at": created.isoformat() if created is not None else None,
+    }
 
 
 class DispatchEvaluateRequest(BaseModel):
@@ -198,3 +229,60 @@ async def execute_dispatch_endpoint(
     out["decision_id"] = decision_id
     out["audit"] = decision.to_audit()
     return out
+
+
+@router.get("/api/v1/decision/dispatch/decisions")
+async def list_dispatch_decisions(
+    field_id: str | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+) -> dict:
+    """أثر تدقيق قرارات التوزيع للمستأجِر (الأحدث أوّلاً) — معزول بـRLS، خلف العلم.
+
+    قراءة فقط. 404 إن مُطفأ، 503 عند تعذّر القاعدة. field_id اختياريّ للتصفية.
+    """
+    if not _dispatch_enabled():
+        raise HTTPException(
+            status_code=404, detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH)."
+        )
+    try:
+        async with tenant_connection(user) as conn:
+            if field_id:
+                rows = await conn.fetch(
+                    "SELECT * FROM dispatch_decisions WHERE field_id = $1 "
+                    "ORDER BY created_at DESC LIMIT $2",
+                    field_id,
+                    limit,
+                )
+            else:
+                rows = await conn.fetch(
+                    "SELECT * FROM dispatch_decisions ORDER BY created_at DESC LIMIT $1", limit
+                )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة قرارات التوزيع", e) from e
+    return {"decisions": [_shape_dispatch_row(r) for r in rows], "count": len(rows)}
+
+
+@router.get("/api/v1/decision/dispatch/queue")
+async def list_dispatch_queue(
+    limit: int = Query(50, ge=1, le=200),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+) -> dict:
+    """طابور أوامر المُشغِّل المنتظِرة (exec_status=queued، الأقدم أوّلاً) للمستأجِر.
+
+    ما ينتظر استهلاك actuator-service. قراءة فقط، معزول بـRLS، خلف العلم.
+    """
+    if not _dispatch_enabled():
+        raise HTTPException(
+            status_code=404, detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH)."
+        )
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT * FROM dispatch_decisions WHERE exec_status = 'queued' "
+                "ORDER BY created_at ASC LIMIT $1",
+                limit,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة طابور التوزيع", e) from e
+    return {"queued": [_shape_dispatch_row(r) for r in rows], "count": len(rows)}
