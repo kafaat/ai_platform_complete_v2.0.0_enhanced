@@ -70,30 +70,45 @@ async def _connect():
 
 @pytest.mark.integration
 class TestRLSRoleHardening:
-    """دور الاتّصال الفعليّ بالقاعدة يجب ألّا يتجاوز RLS (وإلّا تسرّب عابر للمستأجِرين)."""
+    """الدور المخصّص للوصول المعزول بـRLS (sahool_app إنتاجاً / sahool_rls_test اختباراً)
+    يجب ألّا يكون superuser ولا BYPASSRLS — وإلّا يُتجاوَز RLS رغم FORCE (تسرّب مستأجِرين).
 
-    async def test_connection_role_not_superuser_and_not_bypassrls(self):
+    لا نفحص current_user: اتّصال الإعداد في الاختبار/CI يستعمل دوراً ممتازاً عمداً
+    (لتطبيق الهجرات وتهيئة البيانات)؛ العزل الفعليّ يُفرَض عبر دور غير ممتاز منفصل
+    (test_db_wiring يستعمل sahool_rls_test صراحةً لذلك). فالحارس الصحيح يفحص هذا الدور."""
+
+    # أدوار يُفترَض أن يُفرَض عليها RLS (إنتاج/اختبار) — نفحص الموجود منها.
+    _RLS_ROLE_CANDIDATES = ("sahool_app", "sahool_rls_test")
+
+    async def test_rls_enforcing_role_not_superuser_and_not_bypassrls(self):
         try:
             conn = await _connect()
         except Exception as e:  # noqa: BLE001
             pytest.skip(f"قاعدة البيانات غير متاحة: {type(e).__name__}")
 
         try:
-            row = await conn.fetchrow(
-                "SELECT current_user AS role, rolsuper, rolbypassrls "
-                "FROM pg_roles WHERE rolname = current_user"
+            rows = await conn.fetch(
+                "SELECT rolname, rolsuper, rolbypassrls FROM pg_roles "
+                "WHERE rolname = ANY($1::text[])",
+                list(self._RLS_ROLE_CANDIDATES),
             )
         finally:
             await conn.close()
 
-        assert row is not None, "تعذّر قراءة current_user من pg_roles — صفّ الدور مفقود."
+        if not rows:
+            pytest.skip(
+                "لا دور RLS مخصّص ("
+                + "/".join(self._RLS_ROLE_CANDIDATES)
+                + ") في هذه القاعدة — تعذّر التحقّق."
+            )
 
-        role = row["role"]
-        assert row["rolsuper"] is False, (
-            f"🚨 دور الاتّصال '{role}' superuser ⇒ يتجاوز RLS كليّاً "
-            "(عزل المستأجِرين مكسور، خطر IDOR). استخدم دوراً NOSUPERUSER للتطبيق."
-        )
-        assert row["rolbypassrls"] is False, (
-            f"🚨 دور الاتّصال '{role}' ذو BYPASSRLS ⇒ يتجاوز RLS كليّاً "
-            "(عزل المستأجِرين مكسور، خطر IDOR). استخدم دوراً NOBYPASSRLS للتطبيق."
-        )
+        for row in rows:
+            role = row["rolname"]
+            assert row["rolsuper"] is False, (
+                f"🚨 دور RLS '{role}' superuser ⇒ يتجاوز RLS كليّاً (عزل المستأجِرين "
+                "مكسور، خطر IDOR). يجب أن يكون NOSUPERUSER."
+            )
+            assert row["rolbypassrls"] is False, (
+                f"🚨 دور RLS '{role}' ذو BYPASSRLS ⇒ يتجاوز RLS كليّاً (عزل المستأجِرين "
+                "مكسور، خطر IDOR). يجب أن يكون NOBYPASSRLS."
+            )
