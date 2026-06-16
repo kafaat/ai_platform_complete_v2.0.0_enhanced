@@ -38,6 +38,8 @@ _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
 
 def verify_token(token: str) -> dict:
+    if not JWT_SECRET or len(JWT_SECRET) < 32:
+        raise HTTPException(503, "JWT_SECRET غير مضبوط — الخدمة معطّلة بأمان")
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], audience="sahool")
     except InvalidTokenError as e:

@@ -2,12 +2,12 @@
 # ============================
 # Minimal pinned deps. PyJWT for HS256 (dev). pydantic for type validation.
 
+defusedxml==0.7.1  # تحليل XML آمن لملفّات KML غير الموثوقة (مثبّت للتكرار)
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
 PyJWT==2.13.0   # مثبّت عند 2.13.0: يُغلق crit-bypass (PYSEC-2026-120) + خلط HMAC (179) + نواقل DoS/SSRF (175/177/178)
 python-multipart==0.0.31   # for form data؛ مثبّت ≥0.0.31: يُغلق DoS في تحليل multipart (CVE-2026-53538/53539/53540)
-defusedxml==0.7.1   # تحليل XML آمن لـKML المرفوع (geo_import): يمنع XXE/billion-laughs DoS
 
 # Open-Meteo integration
 httpx==0.27.0

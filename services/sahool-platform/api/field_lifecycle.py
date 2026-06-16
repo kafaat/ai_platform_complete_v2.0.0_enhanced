@@ -119,39 +119,66 @@ class FieldLifecycleEngine:
         tenant_id: str,
         season_id: str | None = None,
     ) -> FieldLifecycle:
+        season_uuid = uuid.UUID(season_id) if season_id else None
         async with self.pool.acquire() as conn:
-            # حاول الجلب أوّلاً
+            # حاول الجلب أوّلاً (المسار السعيد: الدورة موجودة سلفاً).
             row = await conn.fetchrow(
                 """
                 SELECT * FROM field_lifecycle
                 WHERE field_id = $1 AND (season_id = $2 OR (season_id IS NULL AND $2 IS NULL))
                 """,
                 field_id,  # نصّيّ منذ v18 (fields.field_id VARCHAR)
-                uuid.UUID(season_id) if season_id else None,
+                season_uuid,
             )
             if row:
                 return self._row_to_lifecycle(row)
 
-            # أنشئ جديد
+            # الإنشاء الذرّيّ — يسدّ سباق Read→Check→Insert (راجع v62).
+            # كان النمط السابق (SELECT ثمّ INSERT بلا حارس) يسمح بطلبين متزامنين
+            # بإنشاء دورتين مكرّرتين، خاصّةً مع season_id=NULL حيث NULL≠NULL يُبطل
+            # قيد UNIQUE(field_id, season_id). الآن INSERT ... ON CONFLICT ذرّيّ:
+            #   • season_id غير-NULL → التعارض على قيد UNIQUE(field_id, season_id).
+            #   • season_id IS NULL → التعارض على الفهرس الجزئيّ
+            #     ux_field_lifecycle_field_null_season (v62).
+            # في كلتا الحالتين: RETURNING يعيد الصفّ المُدرَج؛ وإن خُسِر السباق
+            # (DO NOTHING) يعيد لا شيء، فنُعيد القراءة لاسترجاع صفّ الفائز.
             lifecycle_id = str(uuid.uuid4())
-            await conn.execute(
-                """
+            conflict_target = (
+                "(field_id) WHERE season_id IS NULL"
+                if season_uuid is None
+                else "(field_id, season_id)"
+            )
+            inserted = await conn.fetchrow(
+                f"""
                 INSERT INTO field_lifecycle
                     (lifecycle_id, field_id, tenant_id, season_id, current_stage)
                 VALUES ($1, $2, $3, $4, 'CREATED')
+                ON CONFLICT {conflict_target} DO NOTHING
+                RETURNING *
                 """,
                 uuid.UUID(lifecycle_id),
                 field_id,  # نصّيّ منذ v18 (fields.field_id VARCHAR)
                 uuid.UUID(tenant_id),
-                uuid.UUID(season_id) if season_id else None,
+                season_uuid,
             )
-            return FieldLifecycle(
-                lifecycle_id=lifecycle_id,
-                field_id=field_id,
-                tenant_id=tenant_id,
-                season_id=season_id,
-                current_stage=LifecycleStage.CREATED,
-                stage_entered_at=datetime.now(UTC),
+            if inserted is not None:
+                return self._row_to_lifecycle(inserted)
+
+            # خُسِر السباق: طلب متزامن أنشأ الصفّ. أعِد قراءته (الفائز موجود الآن).
+            winner = await conn.fetchrow(
+                """
+                SELECT * FROM field_lifecycle
+                WHERE field_id = $1 AND (season_id = $2 OR (season_id IS NULL AND $2 IS NULL))
+                """,
+                field_id,
+                season_uuid,
+            )
+            if winner is not None:
+                return self._row_to_lifecycle(winner)
+            # نادر جدّاً: حُذِف بين ON CONFLICT والقراءة. أعلِنها صراحةً لا صامتةً.
+            raise RuntimeError(
+                f"field_lifecycle get_or_create فشل ذرّيّاً للحقل {field_id} "
+                f"(season={season_id}): لا إدراج ولا صفّ فائز."
             )
 
     async def transition(
@@ -177,87 +204,124 @@ class FieldLifecycleEngine:
             # تحقّق pre-flight (يعطي رسالة خطأ أوضح من DB) + نجلب tenant_id من صفّ
             # الـlifecycle نفسه (مصدر الحقيقة) لا من GUC قد لا يكون مضبوطاً على هذا
             # الاتّصال الخام — لتُكتب الرفوض الزمنيّة بـtenant_id الصحيح لا NULL.
-            lc_row = await conn.fetchrow(
-                "SELECT current_stage, tenant_id FROM field_lifecycle WHERE lifecycle_id = $1",
-                uuid.UUID(lifecycle_id),
-            )
-            current = lc_row["current_stage"] if lc_row else None
-            if current is None:
-                raise LifecycleError(f"lifecycle {lifecycle_id} not found")
-            lifecycle_tenant_id = lc_row["tenant_id"]
-
-            current_stage = LifecycleStage(current)
-            if not is_valid_transition(current_stage, to_stage):
-                allowed = VALID_TRANSITIONS.get(current_stage, [])
-                raise LifecycleError(
-                    f"Invalid transition: {current_stage.value} → {to_stage.value}. "
-                    f"Allowed from {current_stage.value}: {[s.value for s in allowed]}"
-                )
-
-            # Temporal Invariant (مراجعة 10): امنع الانتقال المتأخّر/خارج الترتيب.
-            # المقارنة ضدّ آخر occurred_at (وقت الحقيقة) لا transitioned_at (NOW).
-            # mode=LIVE يرفض الـregression؛ mode=REPLAY يسمح (إعادة بناء تاريخيّة).
-            # الرفض لا يُفقَد — يُسجَّل في lifecycle_temporal_rejections للتسوية.
-            if occurred_at is not None and enforcement_mode == "LIVE":
-                last = await conn.fetchrow(
-                    """SELECT occurred_at, seq FROM field_lifecycle_transitions
-                       WHERE lifecycle_id = $1 AND occurred_at IS NOT NULL
-                       ORDER BY occurred_at DESC, seq DESC LIMIT 1""",
+            #
+            # FOR UPDATE (v62): يقفل صفّ الـlifecycle حتّى نهاية المعاملة، فيُسلسِل
+            # الانتقالات المتزامنة على نفس الحقل. بدونه، طلبان متزامنان يقرآن نفس
+            # current_stage ثمّ يُدرجان انتقالين متضاربين (lost update / حالة فاسدة).
+            # نلفّ التحقّق+الإدراج في معاملة صريحة كي يدوم القفل عبرهما.
+            async with conn.transaction():
+                lc_row = await conn.fetchrow(
+                    "SELECT current_stage, tenant_id FROM field_lifecycle "
+                    "WHERE lifecycle_id = $1 FOR UPDATE",
                     uuid.UUID(lifecycle_id),
                 )
-                if last and last["occurred_at"] is not None and occurred_at < last["occurred_at"]:
-                    # سجّل الرفض للتسوية (لا نرمي الحقيقة المتأخّرة). نمرّر tenant_id
-                    # صراحةً من صفّ الـlifecycle (لا عبر GUC غير المضبوط على هذا
-                    # الاتّصال الخام) — وإلّا كُتب NULL وانكسر عزل/تسوية المستأجِر.
-                    await conn.execute(
-                        """INSERT INTO lifecycle_temporal_rejections
-                             (tenant_id, lifecycle_id, to_stage, occurred_at,
-                              last_occurred_at, reason)
-                           VALUES ($1, $2, $3, $4, $5, $6)""",
-                        lifecycle_tenant_id,
-                        uuid.UUID(lifecycle_id),
-                        to_stage.value,
-                        occurred_at,
-                        last["occurred_at"],
-                        "temporal regression: occurred_at أقدم من آخر انتقال",
-                    )
-                    raise LifecycleError(
-                        f"Temporal regression مرفوض (LIVE): occurred_at "
-                        f"({occurred_at.isoformat()}) أقدم من آخر occurred_at "
-                        f"({last['occurred_at'].isoformat()}). سُجِّل للتسوية، لم يُفقَد."
-                    )
-
-            # نفّذ الـtransition (الـtrigger سيُحدّث current_stage تلقائياً)
-            transition_id = str(uuid.uuid4())
-            try:
-                await conn.execute(
-                    """
-                    INSERT INTO field_lifecycle_transitions
-                        (transition_id, lifecycle_id, to_stage, changed_by, command_id, reason, occurred_at)
-                    VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7::timestamptz, NOW()))
-                    """,
-                    uuid.UUID(transition_id),
-                    uuid.UUID(lifecycle_id),
-                    to_stage.value,
+                return await self._transition_locked(
+                    conn,
+                    lc_row,
+                    lifecycle_id,
+                    to_stage,
                     changed_by,
-                    uuid.UUID(command_id) if command_id else None,
+                    command_id,
                     reason,
                     occurred_at,
+                    enforcement_mode,
                 )
-            except asyncpg.PostgresError as e:
-                # الـtrigger رفض (نادر لأنّنا تحقّقنا فوق، لكن دفاعياً)
-                raise LifecycleError(f"DB rejected transition: {e}") from e
 
-            return LifecycleTransition(
-                transition_id=transition_id,
-                lifecycle_id=lifecycle_id,
-                from_stage=current_stage,
-                to_stage=to_stage,
-                transitioned_at=datetime.now(UTC),
-                changed_by=changed_by,
-                command_id=command_id,
-                reason=reason,
+    async def _transition_locked(
+        self,
+        conn,
+        lc_row,
+        lifecycle_id: str,
+        to_stage: LifecycleStage,
+        changed_by: str,
+        command_id: str | None,
+        reason: str | None,
+        occurred_at: datetime | None,
+        enforcement_mode: str,
+    ) -> LifecycleTransition:
+        """منطق الانتقال بعد قفل الصفّ (FOR UPDATE). يفترض conn داخل معاملة.
+
+        فُصِل عن transition() كي يدوم قفل الصفّ من القراءة حتّى الإدراج ضمن
+        نفس المعاملة، فيُسلسِل المتزامنين على نفس الـlifecycle حتميّاً.
+        """
+        # (منطق مقفول بـFOR UPDATE ضمن المعاملة أعلاه)
+        current = lc_row["current_stage"] if lc_row else None
+        if current is None:
+            raise LifecycleError(f"lifecycle {lifecycle_id} not found")
+        lifecycle_tenant_id = lc_row["tenant_id"]
+
+        current_stage = LifecycleStage(current)
+        if not is_valid_transition(current_stage, to_stage):
+            allowed = VALID_TRANSITIONS.get(current_stage, [])
+            raise LifecycleError(
+                f"Invalid transition: {current_stage.value} → {to_stage.value}. "
+                f"Allowed from {current_stage.value}: {[s.value for s in allowed]}"
             )
+
+        # Temporal Invariant (مراجعة 10): امنع الانتقال المتأخّر/خارج الترتيب.
+        # المقارنة ضدّ آخر occurred_at (وقت الحقيقة) لا transitioned_at (NOW).
+        # mode=LIVE يرفض الـregression؛ mode=REPLAY يسمح (إعادة بناء تاريخيّة).
+        # الرفض لا يُفقَد — يُسجَّل في lifecycle_temporal_rejections للتسوية.
+        if occurred_at is not None and enforcement_mode == "LIVE":
+            last = await conn.fetchrow(
+                """SELECT occurred_at, seq FROM field_lifecycle_transitions
+                   WHERE lifecycle_id = $1 AND occurred_at IS NOT NULL
+                   ORDER BY occurred_at DESC, seq DESC LIMIT 1""",
+                uuid.UUID(lifecycle_id),
+            )
+            if last and last["occurred_at"] is not None and occurred_at < last["occurred_at"]:
+                # سجّل الرفض للتسوية (لا نرمي الحقيقة المتأخّرة). نمرّر tenant_id
+                # صراحةً من صفّ الـlifecycle (لا عبر GUC غير المضبوط على هذا
+                # الاتّصال الخام) — وإلّا كُتب NULL وانكسر عزل/تسوية المستأجِر.
+                await conn.execute(
+                    """INSERT INTO lifecycle_temporal_rejections
+                         (tenant_id, lifecycle_id, to_stage, occurred_at,
+                          last_occurred_at, reason)
+                       VALUES ($1, $2, $3, $4, $5, $6)""",
+                    lifecycle_tenant_id,
+                    uuid.UUID(lifecycle_id),
+                    to_stage.value,
+                    occurred_at,
+                    last["occurred_at"],
+                    "temporal regression: occurred_at أقدم من آخر انتقال",
+                )
+                raise LifecycleError(
+                    f"Temporal regression مرفوض (LIVE): occurred_at "
+                    f"({occurred_at.isoformat()}) أقدم من آخر occurred_at "
+                    f"({last['occurred_at'].isoformat()}). سُجِّل للتسوية، لم يُفقَد."
+                )
+
+        # نفّذ الـtransition (الـtrigger سيُحدّث current_stage تلقائياً)
+        transition_id = str(uuid.uuid4())
+        try:
+            await conn.execute(
+                """
+                INSERT INTO field_lifecycle_transitions
+                    (transition_id, lifecycle_id, to_stage, changed_by, command_id, reason, occurred_at)
+                VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7::timestamptz, NOW()))
+                """,
+                uuid.UUID(transition_id),
+                uuid.UUID(lifecycle_id),
+                to_stage.value,
+                changed_by,
+                uuid.UUID(command_id) if command_id else None,
+                reason,
+                occurred_at,
+            )
+        except asyncpg.PostgresError as e:
+            # الـtrigger رفض (نادر لأنّنا تحقّقنا فوق، لكن دفاعياً)
+            raise LifecycleError(f"DB rejected transition: {e}") from e
+
+        return LifecycleTransition(
+            transition_id=transition_id,
+            lifecycle_id=lifecycle_id,
+            from_stage=current_stage,
+            to_stage=to_stage,
+            transitioned_at=datetime.now(UTC),
+            changed_by=changed_by,
+            command_id=command_id,
+            reason=reason,
+        )
 
     async def get_history(self, lifecycle_id: str) -> list[LifecycleTransition]:
         async with self.pool.acquire() as conn:

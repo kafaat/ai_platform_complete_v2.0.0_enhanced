@@ -23,7 +23,7 @@
 // محصول الحقل المختار (FieldOption.crop) يُغذّي هوك مشاكل الاستكشاف.
 // فجوات موثّقة: تصدير PDF والتقارير الدوريّة التلقائيّة غير مبنيّة (انظر الحاشية).
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { ReactNode } from 'react';
 import {
   Sprout, Leaf, Calendar, Flag, FlaskConical, Bug, Activity,
@@ -34,7 +34,7 @@ import {
   useDiseaseRisk, useCurrentNDVI, useFieldReport,
 } from '../hooks/useApi';
 import { useCropScoutingIssues, type ScoutingIssue } from '../hooks/useScouting';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import type { SeasonSummary, FieldReportSummary, DiseaseRisk } from '../services/api';
 import { fmtDateAr } from '../lib/dates';
 import {
@@ -156,13 +156,8 @@ function LiveBadge({ loading, error }: { loading: boolean; error: boolean }) {
 }
 
 export default function FarmAdvisoryReport() {
-  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFieldOptions();
-  const [fieldId, setFieldId] = useState('');
-
-  // أوّل حقل حقيقيّ يصبح المختار افتراضيّاً عند توفّر القائمة.
-  useEffect(() => {
-    if (!fieldId && fields.length) setFieldId(fields[0].id);
-  }, [fields, fieldId]);
+  // «الحقل النشط» المشترك (useSelectedField) — يتبع المستخدم عبر الشاشات.
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch, fieldId, setFieldId } = useSelectedField();
 
   const selectedField = useMemo(
     () => fields.find((f) => f.id === fieldId) ?? null,

@@ -133,7 +133,7 @@ async def seed():
     # نولّد تضميناً حقيقيّاً للنصوص عبر Ollama أوّلاً. تدهور رشيق: لو تعذّر خادم
     # التضمين، نُحذّر بوضوح ونتخطّى البذر (لا نُلوّث الفهرس بمتجهات عشوائية تُفسد
     # البحث الدلاليّ — فهرس فارغ أصدق من نتائج عشوائية، وRAG يسقط على البحث الرمزيّ).
-    async with httpx.AsyncClient() as http:
+    async with httpx.AsyncClient(timeout=30.0) as http:
         try:
             vectors = [await _embed(doc["text"], http) for doc in KNOWLEDGE_BASE]
         except Exception as e:

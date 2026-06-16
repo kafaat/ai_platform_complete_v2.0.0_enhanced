@@ -50,7 +50,8 @@ async def register_device(
         if get_device_type(req.type) is None:
             logging.warning("سُجّل جهاز بنوع غير مُعرَّف في سجلّ الأنواع: %s", req.type)
     except Exception:  # noqa: BLE001 — تحذير اختياريّ لا يجوز أن يُفشل التسجيل
-        pass
+        # كان pass صامتاً؛ نسجّل debug للتشخيص دون تغيير السلوك (لا رفع/لا رفض).
+        logging.debug("تعذّر التحقّق الاختياريّ من نوع الجهاز %s", req.type, exc_info=True)
     async with tenant_connection(user) as conn:
         await conn.execute(
             """INSERT INTO iot_devices
