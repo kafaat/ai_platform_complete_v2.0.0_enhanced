@@ -211,4 +211,14 @@ v59_boundary_topology_fn.sql
 # مؤشّرها فقط. ليست مصدر حقيقة — مخزن الأحداث append-only يبقى المصدر.
 # يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls (v9). idempotent.
 v60_event_snapshots.sql
+# v61: عمّاد تزامن تفاؤليّ (row_version) على fields — يتزايد كلّ تحديث، يمكّن
+# كشف تعارض تعديلات offline (409) عند تمرير العميل base_version. idempotent.
 v61_fields_row_version.sql
+# v62: حارس سباق دورة حياة الحقل — فهرس فريد جزئيّ على (field_id) حيث
+# season_id IS NULL، يسدّ ثغرة NULL≠NULL في UNIQUE(field_id, season_id) فيمنع
+# تكرار دورة الحياة قبل-البذر. ينظّف تكرارات سابقة ثمّ يُنشئ الفهرس. idempotent.
+v62_field_lifecycle_null_season_guard.sql
+# v63: عمود seq (BIGINT IDENTITY) على events — مؤشّر إدراج تسلسليّ صارم يكسر
+# تعادل occurred_at حتميّاً (يسدّ Projection Drift الذي اعترف به تعليق v60) +
+# فهرسا ترتيب لإعادة البناء ومسار الأمر. append-only فالـseq لا يتغيّر. idempotent.
+v63_events_seq_deterministic_order.sql

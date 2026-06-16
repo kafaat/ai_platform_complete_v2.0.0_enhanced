@@ -203,13 +203,22 @@ class SnapshotCursor:
     total_events: int
 
     def is_after(self, event: dict[str, Any]) -> bool:
-        """هل هذا الحدث **بعد** المؤشّر؟ (ترتيب (occurred_at, event_id) الحتميّ).
+        """هل هذا الحدث **بعد** المؤشّر؟
 
-        نفس مفتاح الترتيب المستعمل في reconstruct (بلا seq لغيابه في events).
+        مفتاح الترتيب الحتميّ الرسميّ (v63) هو (occurred_at, seq) — seq مؤشّر
+        إدراج تسلسليّ صارم يكسر تعادل occurred_at. نستعمله متى توفّر في طرفَي
+        المقارنة (المؤشّر والحدث). تراجُع متوافق رجعيّاً إلى (occurred_at,
+        event_id) للقطات القديمة المحفوظة قبل v63 (حيث last_seq=NULL) أو لأحداث
+        قديمة بلا seq — يحفظ السلوك السابق دون كسر.
         """
         if self.last_occurred_at is None:
             return True
         ev_occurred = event.get("occurred_at") or ""
+        ev_seq = event.get("seq")
+        # المسار الحتميّ: كلا الطرفين يملك seq → قارن (occurred_at, seq).
+        if self.last_seq is not None and ev_seq is not None:
+            return (ev_occurred, ev_seq) > (self.last_occurred_at, self.last_seq)
+        # تراجُع متوافق رجعيّاً: (occurred_at, event_id) كما قبل v63.
         ev_id = str(event.get("event_id", ""))
         return (ev_occurred, ev_id) > (self.last_occurred_at, self.last_event_id or "")
 
@@ -481,8 +490,10 @@ class FieldStateReconstructor:
         return state
 
     # ترتيب حتمي مشترك (full replay + incremental): occurred_at ثمّ seq ثمّ
-    # event_id. seq غير موجود على جدول events (راجع v11) فيؤول لـ0 — التيبريكر
-    # الفعليّ هو event_id. مُستخرَج كي يتطابق المساران حرفيّاً.
+    # event_id. seq أُضيف على جدول events في v63 (BIGINT IDENTITY) — صار التيبريكر
+    # الفعليّ حتميّاً صارماً عند تصادم occurred_at. للقطات/أحداث ما قبل v63 (seq
+    # غائب) يؤول لـ0 ويبقى event_id كاسر التعادل (توافق رجعيّ). مُستخرَج كي
+    # يتطابق المساران (full + incremental) حرفيّاً.
     @staticmethod
     def _event_sort_key(e: dict[str, Any]) -> tuple[str, int, str]:
         return (e.get("occurred_at") or "", e.get("seq") or 0, str(e.get("event_id", "")))

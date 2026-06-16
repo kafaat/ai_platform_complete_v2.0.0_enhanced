@@ -252,10 +252,10 @@ class EventBus:
             rows = await conn.fetch(
                 """
                 SELECT event_id, event_type, payload, source, actor_id,
-                       command_id, occurred_at, recorded_at
+                       command_id, occurred_at, recorded_at, seq
                 FROM events
                 WHERE entity_type = $1 AND entity_id = $2
-                ORDER BY occurred_at ASC
+                ORDER BY occurred_at ASC, seq ASC
                 LIMIT $3
                 """,
                 entity_type,
@@ -274,6 +274,7 @@ class EventBus:
                     "command_id": str(r["command_id"]) if r["command_id"] else None,
                     "occurred_at": r["occurred_at"].isoformat() if r["occurred_at"] else None,
                     "recorded_at": r["recorded_at"].isoformat() if r["recorded_at"] else None,
+                    "seq": r["seq"],  # مؤشّر الترتيب الحتميّ (v63) — كاسر تعادل occurred_at
                 }
                 for r in rows
             ]
