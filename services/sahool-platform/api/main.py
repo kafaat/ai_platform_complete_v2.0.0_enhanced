@@ -2958,6 +2958,7 @@ from api.routers.events import router as events_router  # noqa: E402
 from api.routers.evidence import router as evidence_router  # noqa: E402
 from api.routers.failures import router as failures_router  # noqa: E402
 from api.routers.farms import router as farms_router  # noqa: E402
+from api.routers.field_completeness import router as field_completeness_router  # noqa: E402
 from api.routers.field_intelligence import (  # noqa: E402
     router as field_intelligence_router,
 )
@@ -2993,6 +2994,7 @@ from api.routers.orchard import router as orchard_router  # noqa: E402
 from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
 from api.routers.phenology import router as phenology_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
+from api.routers.policy_learning import router as policy_learning_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
@@ -3030,6 +3032,7 @@ from api.routers.weather_analytics import (  # noqa: E402
     router as weather_analytics_router,
 )
 from api.routers.wofost import router as wofost_router  # noqa: E402
+from api.routers.yield_interval import router as yield_interval_router  # noqa: E402
 
 app.include_router(boundaries_router)
 app.include_router(harvest_traceability_router)
@@ -3139,3 +3142,6 @@ app.include_router(crop_operations_router)
 app.include_router(ndvi_analysis_router)
 app.include_router(readiness_router)
 app.include_router(security_audit_router)
+app.include_router(field_completeness_router)
+app.include_router(policy_learning_router)
+app.include_router(yield_interval_router)
