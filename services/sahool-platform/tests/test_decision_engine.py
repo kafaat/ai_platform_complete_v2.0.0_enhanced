@@ -122,16 +122,27 @@ def test_gps_inland_desert_full_decision():
     assert "niche_export_opportunities_ar" in r
 
 
-def test_gps_inland_desert_attaches_actual_climate_reference():
-    # inland_desert ⇒ يُرفق ملخّص طقس الجوف الفعلي من ملف المرجع
-    r = decide_for_location(lat=16.0, lon=45.5, elevation_m=1100)
+def test_gps_inland_desert_attaches_actual_climate_reference(monkeypatch):
+    # inland_desert ⇒ يُرفق ملخّص طقس الجوف الفعلي. ملفّ المرجع مُولَّد ضمن data/
+    # (مُتجاهَل في git) فقد يغيب — نحقن قيمة معروفة كي يكون الاختبار حتميّاً ويختبر
+    # منطق الإرفاق نفسه لا توفّر الملف.
+    import api.decision_engine as de
+
+    fake_ref = {
+        "annual_rainfall_mm": 80.4,
+        "heat_stress_days_per_year": 118,
+        "temp_max_record": 50.7,
+        "temp_min_record": 1.0,
+        "source": "NASA POWER (2019–2023)",
+    }
+    monkeypatch.setattr(de, "_load_jawf_climate_ref", lambda: fake_ref)
+    r = de.decide_for_location(lat=16.0, lon=45.5, elevation_m=1100)
     assert "actual_climate_data_ar" in r
     acd = r["actual_climate_data_ar"]
-    ref = _load_jawf_climate_ref()
-    assert acd["annual_rainfall_mm"] == ref["annual_rainfall_mm"]
-    assert acd["heat_stress_days_per_year"] == ref["heat_stress_days_per_year"]
+    assert acd["annual_rainfall_mm"] == fake_ref["annual_rainfall_mm"]
+    assert acd["heat_stress_days_per_year"] == fake_ref["heat_stress_days_per_year"]
     # النصّ يدمج سجلّ الحرارة الفعلي
-    assert str(ref["temp_max_record"]) in acd["temp_record_ar"]
+    assert str(fake_ref["temp_max_record"]) in acd["temp_record_ar"]
     assert "④ قُيّمت المخاطر الموسميّة + ساعات البرودة" in r["steps_ar"]
 
 
@@ -316,12 +327,15 @@ def test_decision_summary_matches_build_summary():
 # ─── _load_jawf_climate_ref: قارئ ملف المرجع ───────────────────────
 
 
-def test_load_jawf_climate_ref_returns_expected_fields():
+def test_load_jawf_climate_ref_resilient_contract():
+    # عقد القارئ: ملفّ المرجع مُولَّد تحت data/ (مُتجاهَل في git) فقد يغيب في CI/النشر.
+    # يجب أن يُرجِع dict إن وُجد، None إن غاب — بلا استثناء أبداً (تدهور رشيق).
+    # القيم الموثّقة تُتحقَّق فقط حين يتوفّر الملف (محليّاً) — لا نعتمد توفّره.
     ref = _load_jawf_climate_ref()
-    assert ref is not None
-    # حقول موثّقة من ملف data/reference/aljawf_climate_summary.json
-    assert ref["annual_rainfall_mm"] == 80.4
-    assert ref["heat_stress_days_per_year"] == 118
-    assert ref["temp_max_record"] == 50.7
-    assert ref["temp_min_record"] == 1.0
-    assert "NASA POWER" in ref["source"]
+    assert ref is None or isinstance(ref, dict)
+    if ref is not None:
+        assert ref["annual_rainfall_mm"] == 80.4
+        assert ref["heat_stress_days_per_year"] == 118
+        assert ref["temp_max_record"] == 50.7
+        assert ref["temp_min_record"] == 1.0
+        assert "NASA POWER" in ref["source"]
