@@ -45,6 +45,10 @@ HEAT_STRESS_CRITICAL_TMAX_C = 40.0
 FROST_RISK_TMIN_C = 2.0
 FROST_RISK_CRITICAL_TMIN_C = 0.0
 
+# طور التكاثر/التزهير (FAO-56 stage = "mid") — الأكثر حسّاسيّة للإجهاد:
+# إجهاد الحرارة أو الماء عنده يُسبّب تساقط الأزهار/القرون ⇒ نُصعّد الخطورة.
+_REPRODUCTIVE_STAGE = "mid"
+
 
 @dataclass(frozen=True)
 class AlertThresholds:
@@ -105,6 +109,10 @@ class FieldAlertContext:
     tmin_c: float | None = None
     # المحصول (lowercase) إن عُرف — يُمرَّر لتهديف الأمراض.
     crop: str | None = None
+    # طور النموّ (FAO-56): "initial"/"development"/"mid"/"late"؛ None ⇒ مجهول.
+    # 'mid' هو طور التكاثر/التزهير — الأكثر حسّاسيّة للإجهاد (الحرارة والماء)؛
+    # عنده يُصعَّد إجهاد الحرارة/الرطوبة إلى "critical" حتى تحت العتبة الحرجة العامّة.
+    growth_stage: str | None = None
 
 
 @dataclass(frozen=True)
@@ -136,11 +144,17 @@ def _low_moisture(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert 
         )
     if not fired:
         return None
+    severity = "warning"
+    message_ar = reason + " رُيّ الحقل عاجلاً لتفادي إجهاد المحصول."
+    # تصعيد عند التزهير: الإجهاد المائيّ في طور التكاثر يُسقط الأزهار/القرون.
+    if ctx.growth_stage == _REPRODUCTIVE_STAGE:
+        severity = "critical"
+        message_ar += " المحصول في طور التزهير ⇒ إجهاد مائيّ يُسقط الأزهار/القرون."
     return GeneratedAlert(
         alert_type="low_moisture",
-        severity="warning",
+        severity=severity,
         title_ar="رطوبة تربة منخفضة",
-        message_ar=reason + " رُيّ الحقل عاجلاً لتفادي إجهاد المحصول.",
+        message_ar=message_ar,
     )
 
 
@@ -193,14 +207,20 @@ def _heat_stress(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert |
         return None
     critical = tmax >= t.HEAT_STRESS_CRITICAL_TMAX_C
     severity = "critical" if critical else "warning"
+    message_ar = (
+        f"حرارة عظمى متوقّعة {tmax:.0f}°م (فوق {t.HEAT_STRESS_TMAX_C:.0f}°م). "
+        "زِد الريّ صباحاً/مساءً وتجنّب العمليّات وقت الذروة لحماية المحصول."
+    )
+    # تصعيد عند التزهير: الإجهاد الحراريّ في طور التكاثر أشدّ ضرراً ⇒ critical
+    # حتى تحت العتبة الحرجة العامّة (يبقى critical إن كان قد تجاوزها أصلاً).
+    if not critical and ctx.growth_stage == _REPRODUCTIVE_STAGE:
+        severity = "critical"
+        message_ar += " المحصول في طور التزهير ⇒ الحرارة أشدّ ضرراً على العقد."
     return GeneratedAlert(
         alert_type="heat_stress",
         severity=severity,
         title_ar="إجهاد حراريّ متوقّع",
-        message_ar=(
-            f"حرارة عظمى متوقّعة {tmax:.0f}°م (فوق {t.HEAT_STRESS_TMAX_C:.0f}°م). "
-            "زِد الريّ صباحاً/مساءً وتجنّب العمليّات وقت الذروة لحماية المحصول."
-        ),
+        message_ar=message_ar,
     )
 
 
