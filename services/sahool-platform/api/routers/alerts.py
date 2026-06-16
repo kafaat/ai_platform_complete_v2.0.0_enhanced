@@ -29,6 +29,7 @@ from api.main import (
     Permission,
     UserSchema,
     _assert_field_in_tenant,
+    _clamp_list_window,
     _db_unavailable,
     _emit_domain_event,
     _idem_key,
@@ -47,16 +48,20 @@ router = APIRouter()
 async def list_alerts(
     status: str | None = Query(default=None),
     severity: str | None = Query(default=None),
+    limit: int | None = Query(default=None, ge=1),
+    offset: int | None = Query(default=None, ge=0),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """تنبيهات المستأجِر (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS) + حالة/خطورة اختياريّة.
 
-    تُتحقَّق قيم الترشيح (422 على قيمة غير معروفة) قبل الاستعلام. 503 عند تعذّر القاعدة.
+    تُتحقَّق قيم الترشيح (422 على قيمة غير معروفة) قبل الاستعلام. مُرقَّمة (limit/offset)
+    بسقف أمان يمنع over-fetch على قائمة غير محدودة — الافتراضيّ أحدث 100. 503 عند تعذّر القاعدة.
     """
     if status is not None and status not in _ALERT_STATUSES:
         raise HTTPException(status_code=422, detail="حالة تنبيه غير معروفة")
     if severity is not None and severity not in _ALERT_SEVERITIES:
         raise HTTPException(status_code=422, detail="درجة خطورة غير معروفة")
+    lim, off = _clamp_list_window(limit, offset)
     conds = ["tenant_id = $1::uuid"]
     args: list = [str(user.tenant_id)]
     if status is not None:
@@ -66,12 +71,17 @@ async def list_alerts(
         args.append(severity)
         conds.append(f"severity = ${len(args)}")
     where = " AND ".join(conds)
+    args.append(lim)
+    limit_ph = f"${len(args)}"
+    args.append(off)
+    offset_ph = f"${len(args)}"
     try:
         async with tenant_connection(user) as conn:
             rows = await conn.fetch(
                 "SELECT alert_id, field_id, alert_type, severity, title_ar, "
                 "message_ar, status, created_at "
-                f"FROM alerts WHERE {where} ORDER BY created_at DESC",
+                f"FROM alerts WHERE {where} ORDER BY created_at DESC "
+                f"LIMIT {limit_ph} OFFSET {offset_ph}",
                 *args,
             )
     except HTTPException:

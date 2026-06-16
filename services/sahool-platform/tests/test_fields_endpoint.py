@@ -18,6 +18,7 @@ from api.main import (
     _build_field_update,
     _build_versioned_update,
     _centroid_from_bbox,
+    _clamp_list_window,
     _row_to_field_summary,
     _row_to_season,
     _significant_overlaps,
@@ -180,6 +181,30 @@ def test_field_update_request_accepts_base_version():
     assert req.base_version == 3
     set_clause, _ = _build_field_update(req)
     assert "base_version" not in set_clause  # ليس عمود DB
+
+
+# ─── حدّ نافذة القائمة (limit/offset) — تقييد القوائم غير المحدودة ────────
+
+
+def test_clamp_list_window_defaults_when_absent():
+    """غياب limit/offset ⇒ الافتراضيّ (100) وoffset=0."""
+    assert _clamp_list_window(None, None) == (100, 0)
+
+
+def test_clamp_list_window_caps_at_maximum():
+    """limit فوق السقف يُقصَر إلى 500 (يمنع over-fetch مهما طلب العميل)."""
+    assert _clamp_list_window(10_000, 0) == (500, 0)
+
+
+def test_clamp_list_window_enforces_floor_and_nonneg_offset():
+    """limit<1 ⇒ 1، وoffset سالب ⇒ 0 (قيم آمنة للاستعلام)."""
+    assert _clamp_list_window(0, -5) == (1, 0)
+    assert _clamp_list_window(-3, -1) == (1, 0)
+
+
+def test_clamp_list_window_passes_through_valid():
+    """قيم ضمن المجال تمرّ كما هي."""
+    assert _clamp_list_window(50, 20) == (50, 20)
 
 
 # ─── KPIs الموسم (v42) ───────────────────────────────────────────────────
