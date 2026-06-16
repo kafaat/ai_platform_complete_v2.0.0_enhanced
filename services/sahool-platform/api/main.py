@@ -1574,6 +1574,11 @@ async def _evaluate_field_alerts_persist(
             lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
             # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي قاعدة low_moisture.
             soil_reading = await _latest_soil_moisture(conn, field_id)
+            # NDVI الحاليّ من آخر صورة Sentinel (imagery_automation يكتب last_ndvi_mean) —
+            # يُغذّي قاعدة vegetation_stress (هبوط النباتيّ ⇒ تنبيه كشف ميدانيّ).
+            ndvi_current = await conn.fetchval(
+                "SELECT last_ndvi_mean FROM fields WHERE field_id = $1", field_id
+            )
             try:
                 _policy_row = await conn.fetchrow(
                     "SELECT value FROM settings "
@@ -1629,6 +1634,11 @@ async def _evaluate_field_alerts_persist(
     rain_fc_3d = sum(f.precipitation_mm or 0.0 for f in forecast[:3])  # مطر متوقّع (heavy_rain)
     # مطر آخر ٣ أيام تاريخيّاً (disease_risk = رطوبة سابقة)؛ fallback للتوقّع.
     rain_hist_3d = await _historical_rain_3d_mm(lat, lon, rain_fc_3d)
+    # خطّ أساس NDVI متوقّع حسب الطور (قرينة محافِظة: النباتيّ يرتفع خلال النموّ ويبلغ
+    # ذروته في mid). يُقارَن بـndvi_current؛ هبوط معتبَر ⇒ تنبيه كشف ميدانيّ (لا تشخيص).
+    # غياب الطور/NDVI ⇒ None ⇒ القاعدة لا تُطلَق (صدق، لا إنذار كاذب).
+    _STAGE_EXPECTED_NDVI = {"initial": 0.35, "development": 0.55, "mid": 0.65, "late": 0.45}
+    ndvi_baseline = _STAGE_EXPECTED_NDVI.get(stage) if ndvi_current is not None else None
     ctx = FieldAlertContext(
         field_id=field_id,
         soil_moisture_pct=soil_pct,  # رطوبة تربة حيّة من telemetry إن وُجدت، وإلّا None.
@@ -1641,6 +1651,8 @@ async def _evaluate_field_alerts_persist(
         tmin_c=today.temp_min_c if today is not None else None,
         crop=crop,
         growth_stage=stage,  # طور خاصّ بالمحصول ⇒ تصعيد الإجهاد عند التزهير (mid)
+        ndvi_current=float(ndvi_current) if ndvi_current is not None else None,
+        ndvi_baseline=ndvi_baseline,
     )
     # نمرّر عتبات المستأجِر (أو الافتراضات حين لا سياسة). thresholds_from_policy(None)
     # == AlertThresholds() ⇒ مسار «لا سياسة» مطابق تماماً للسلوك السابق.
@@ -2955,6 +2967,7 @@ from api.routers.lineage import router as lineage_router  # noqa: E402
 from api.routers.market import router as market_router  # noqa: E402
 from api.routers.master_data import router as master_data_router  # noqa: E402
 from api.routers.me import router as me_router  # noqa: E402
+from api.routers.ndvi_analysis import router as ndvi_analysis_router  # noqa: E402
 from api.routers.niche_crops import router as niche_crops_router  # noqa: E402
 from api.routers.notifications import router as notifications_router  # noqa: E402
 from api.routers.nutrients import router as nutrients_router  # noqa: E402
@@ -3105,3 +3118,4 @@ app.include_router(crop_cards_router)
 app.include_router(phenology_router)
 app.include_router(districts_router)
 app.include_router(crop_operations_router)
+app.include_router(ndvi_analysis_router)
