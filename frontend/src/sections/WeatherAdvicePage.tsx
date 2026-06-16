@@ -6,10 +6,9 @@
 // تُحسبان من الطقس الحيّ (Open-Meteo) ومحصول الموسم النشط. لا بيانات مُلفَّقة —
 // عند الخطأ/الفراغ تُعرض حالة صادقة (StateViews). 503 = الطقس/القاعدة معطّلة.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { CloudRain, Droplets, Bug, Map, Clock, Thermometer, Wind } from 'lucide-react';
 import { useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { IrrigationAdvice, DiseaseRisk } from '../services/api';
 import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -147,8 +146,9 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
 
 // ── الصفحة ──────────────────────────────────────────────────────
 export default function WeatherAdvicePage() {
-  const { options: fields, isLoading, isError, error, refetch } = useFieldOptions();
-  const [fieldId, setFieldId] = useState<string>('');
+  // «الحقل النشط» المشترك (useSelectedField) — يتبع المستخدم عبر الشاشات؛ يُهيّأ
+  // بأوّل حقل بدل بدء فارغ، فينتقل المزارع من الأقمار إلى الطقس بحقله محفوظاً.
+  const { options: fields, isLoading, isError, error, refetch, fieldId, setFieldId } = useSelectedField();
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">

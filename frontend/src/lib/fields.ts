@@ -46,3 +46,15 @@ export function toFieldOption(f: RawField): FieldOption {
     crop: String(f.crop ?? '—'),
   };
 }
+
+// resolveActiveFieldId — يختار «الحقل النشط» المشترك: المُختار إن كان لا يزال
+// موجوداً ضمن الخيارات، وإلّا أوّل حقل (افتراض موحّد عبر الشاشات). يعالج الحذف
+// أو تغيّر المستأجِر (id مخزَّن لم يَعُد موجوداً) ⇒ يسقط لأوّل حقل لا يتجمّد على
+// اختيار ميّت. نقيّ (لا React/تخزين) ⇒ قابل للاختبار. يُرجِع '' إن لا حقول.
+export function resolveActiveFieldId(
+  options: ReadonlyArray<{ id: string }>,
+  selectedId: string | null | undefined,
+): string {
+  if (selectedId && options.some((o) => o.id === selectedId)) return selectedId;
+  return options[0]?.id ?? '';
+}

@@ -12,7 +12,7 @@ import {
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { geomToPolygon } from '../lib/geo';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { useIndicatorsCatalog } from '../hooks/useApi';
 import type { CatalogIndicator } from '../hooks/useApi';
 
@@ -53,19 +53,15 @@ function ndviLabel(v: number) {
 }
 
 export default function SatellitePage() {
-  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFieldOptions();
+  // «الحقل النشط» المشترك (useSelectedField): قائمة الحقول + الاختيار المشترك +
+  // الافتراض للأوّل — يتبع المستخدم عبر الشاشات بدل اختيار محليّ يضيع عند التنقّل.
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch, fieldId, setFieldId } = useSelectedField();
 
-  const [fieldId,     setFieldId]     = useState('');
   const [activeIndex, setActiveIndex] = useState('ndvi');
   const [days,        setDays]        = useState(30);
   const [showLayers,  setShowLayers]  = useState(true);
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
   const [measureTools, setMeasureTools] = useState(false);
-
-  // أوّل حقل حقيقيّ يصبح المختار افتراضيّاً عند توفّر القائمة.
-  useEffect(() => {
-    if (!fieldId && fields.length) setFieldId(fields[0].id);
-  }, [fields, fieldId]);
 
   // طبقات قابلة للرسم من الكتالوج (renderable=true)، مزيّنة بعرض محلّيّ. عند
   // تعذّر الكتالوج تسقط لقائمة احتياطيّة فلا تنكسر الخريطة. الاسم من الكتالوج.

@@ -11,7 +11,7 @@
 // useSeasons (حقول sim_* تكون null ما لم تُشغَّل المحاكاة ⇒ تُعرَض «—»).
 // كلّ الحالات (تحميل/فراغ/خطأ) صريحة. شاشة قراءة فقط (معاينة دمج).
 // ═══════════════════════════════════════════════════════════════
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { BarChart3, TrendingUp, TrendingDown, Minus, Bug, Sprout, Leaf, Activity } from 'lucide-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -20,7 +20,7 @@ import {
   useFieldTimeseries, useVegetationTimeseries, useDiseaseRisk, useSeasons,
   type TimeseriesPoint as VegTimeseriesPoint,
 } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { fmtDateAr } from '../lib/dates';
 import {
   T, Card, Pill, Badge, SectionLabel, Row, StatGrid, RadialGauge,
@@ -50,10 +50,11 @@ const fmtNum = (n?: number | null) =>
   typeof n === 'number' && Number.isFinite(n) ? Math.round(n).toLocaleString('ar') : '—';
 
 export default function AnalyzeCabin() {
-  const fieldsQ = useFieldOptions();
+  // «الحقل النشط» المشترك (useSelectedField) — يتبع المستخدم عبر الشاشات.
+  const fieldsQ = useSelectedField();
   const fields = fieldsQ.options;
 
-  const [fieldId, setFieldId] = useState('');
+  const { fieldId, setFieldId } = fieldsQ;
   const field = fields.find((f) => f.id === fieldId) ?? fields[0];
   const activeId = field?.id ?? '';
 

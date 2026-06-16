@@ -1,6 +1,6 @@
 // اختبارات تطبيع خيار الحقل — أولويّة المفاتيح، تحويل id لنصّ، احتياط الاسم/المساحة.
 import { describe, it, expect } from 'vitest';
-import { toFieldOption } from './fields';
+import { toFieldOption, resolveActiveFieldId } from './fields';
 
 describe('toFieldOption', () => {
   it('يفضّل field_id ويحوّل id إلى نصّ', () => {
@@ -40,5 +40,28 @@ describe('toFieldOption', () => {
   it('يمرّر الهندسة كما هي', () => {
     const geometry = { type: 'Polygon', coordinates: [] };
     expect(toFieldOption({ field_id: 1, geometry }).geometry).toBe(geometry);
+  });
+});
+
+describe('resolveActiveFieldId (الحقل النشط المشترك)', () => {
+  const opts = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+
+  it('يُبقي المُختار إن كان لا يزال موجوداً', () => {
+    expect(resolveActiveFieldId(opts, 'b')).toBe('b');
+  });
+
+  it('يسقط لأوّل حقل إن لم يُختَر شيء بعد (null/undefined/فارغ)', () => {
+    expect(resolveActiveFieldId(opts, null)).toBe('a');
+    expect(resolveActiveFieldId(opts, undefined)).toBe('a');
+    expect(resolveActiveFieldId(opts, '')).toBe('a');
+  });
+
+  it('يسقط لأوّل حقل إن صار المُختار غير موجود (حذف/تغيّر مستأجِر)', () => {
+    expect(resolveActiveFieldId(opts, 'zzz')).toBe('a');
+  });
+
+  it('يُرجِع فارغاً إن لا حقول', () => {
+    expect(resolveActiveFieldId([], 'a')).toBe('');
+    expect(resolveActiveFieldId([], null)).toBe('');
   });
 });

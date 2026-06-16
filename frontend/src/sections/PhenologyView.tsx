@@ -13,11 +13,11 @@
 // تاريخُها ≤ اليوم). إن غابت التواريخ ⇒ لا تمييز زمنيّ (تُعرَض قائمةً محايدة).
 // GDD يُعرَض «—» إن لم يُشغَّل /simulate. الحالات (تحميل/خطأ/فراغ) صريحة.
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Sprout, Leaf, Calendar, Thermometer, Flag, MapPin, CircleDot } from 'lucide-react';
 import { useSeasons } from '../hooks/useApi';
 import { type SeasonSummary } from '../services/api';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { fmtDateAr } from '../lib/dates';
 import { T, Card, Pill, Badge, SectionLabel, ProgressBar, FieldCabin } from '../components/ds';
 
@@ -56,13 +56,8 @@ function seasonStatusAr(status: string): string {
 }
 
 export default function PhenologyView() {
-  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch } = useFieldOptions();
-  const [fieldId, setFieldId] = useState('');
-
-  // أوّل حقل حقيقيّ يصبح المختار افتراضيّاً عند توفّر القائمة.
-  useEffect(() => {
-    if (!fieldId && fields.length) setFieldId(fields[0].id);
-  }, [fields, fieldId]);
+  // «الحقل النشط» المشترك (useSelectedField) — يتبع المستخدم عبر الشاشات.
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch, fieldId, setFieldId } = useSelectedField();
 
   const seasonsQ = useSeasons(fieldId || undefined);
   const seasons = useMemo<SeasonSummary[]>(
