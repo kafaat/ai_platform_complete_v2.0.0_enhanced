@@ -24,9 +24,13 @@ from api.device_models import (
     TelemetryRequest,
 )
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
     _db_unavailable,
+    _idem_key,
+    _idempotent,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -37,6 +41,7 @@ router = APIRouter()
 @router.post("/api/v1/devices", status_code=201)
 async def register_device(
     req: DeviceRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.DEVICE_MANAGE)),
 ):
     """يسجّل جهاز IoT جديد في سجلّ المستأجر."""
@@ -55,18 +60,37 @@ async def register_device(
         # كان pass صامتاً؛ نسجّل debug للتشخيص دون تغيير السلوك (لا رفع/لا رفض).
         logging.debug("تعذّر التحقّق الاختياريّ من نوع الجهاز %s", req.type, exc_info=True)
     async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO iot_devices
-                (device_id, tenant_id, name, type, field_id, firmware_version)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6)""",
-            device_id,
-            str(user.tenant_id),
-            req.name,
-            req.type,
-            req.field_id,
-            req.firmware_version,
-        )
-    return {"device_id": device_id, "name": req.name, "message_ar": "سُجّل الجهاز"}
+
+        async def _work():
+            await conn.execute(
+                """INSERT INTO iot_devices
+                    (device_id, tenant_id, name, type, field_id, firmware_version)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6)""",
+                device_id,
+                str(user.tenant_id),
+                req.name,
+                req.type,
+                req.field_id,
+                req.firmware_version,
+            )
+            # نُعيد JSON ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً عند الإعادة
+            # (مع حفظ device_id الأصليّ) — قيم نصّيّة بحتة (قابلة للتسلسل).
+            return {"device_id": device_id, "name": req.name, "message_ar": "سُجّل الجهاز"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="device.create",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"device_id": device_id},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/devices")

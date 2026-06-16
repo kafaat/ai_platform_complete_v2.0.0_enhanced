@@ -16,9 +16,13 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
     _emit_domain_event,
+    _idem_key,
+    _idempotent,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -30,6 +34,7 @@ router = APIRouter()
 @router.post("/api/v1/master-data", status_code=201)
 async def create_master_data(
     req: MasterDataRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.MASTER_DATA_MANAGE)),
 ):
     import json as _json
@@ -37,37 +42,54 @@ async def create_master_data(
 
     md_id = "md_" + _uuid.uuid4().hex[:12]
     async with tenant_connection(user) as conn:
-        # نعتمد على قيد UNIQUE(tenant, category, code) لا SELECT-ثمّ-INSERT (سباق):
-        # طلبان متزامنان قد يمرّان الفحص ثم يفشل الثاني — نلتقط unique_violation
-        # (SQLSTATE 23505) ونُعيد 409 دائماً (لا 500). ملاحظة المراجعة.
-        try:
-            await conn.execute(
-                """INSERT INTO master_data
-                    (md_id, tenant_id, category, code, name_ar, name_en, metadata)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb)""",
-                md_id,
-                str(user.tenant_id),
-                req.category,
-                req.code,
-                req.name_ar,
-                req.name_en,
-                _json.dumps(req.metadata or {}),
+
+        async def _work():
+            # نعتمد على قيد UNIQUE(tenant, category, code) لا SELECT-ثمّ-INSERT (سباق):
+            # طلبان متزامنان قد يمرّان الفحص ثم يفشل الثاني — نلتقط unique_violation
+            # (SQLSTATE 23505) ونُعيد 409 دائماً (لا 500). ملاحظة المراجعة.
+            try:
+                await conn.execute(
+                    """INSERT INTO master_data
+                        (md_id, tenant_id, category, code, name_ar, name_en, metadata)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb)""",
+                    md_id,
+                    str(user.tenant_id),
+                    req.category,
+                    req.code,
+                    req.name_ar,
+                    req.name_en,
+                    _json.dumps(req.metadata or {}),
+                )
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "MASTER_DATA_CREATED",
+                    "master_data",
+                    md_id,
+                    {"category": req.category, "code": req.code},
+                )
+            except Exception as e:  # noqa: BLE001 — نميّز unique_violation فقط
+                if getattr(e, "sqlstate", None) == "23505":
+                    raise HTTPException(
+                        status_code=409, detail="الرمز موجود مسبقاً في هذه الفئة"
+                    ) from None
+                raise
+            return {"md_id": md_id, "code": req.code, "message_ar": "أُضيف عنصر مرجعيّ"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="master_data.create",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"md_id": md_id},
             )
-            await _emit_domain_event(
-                conn,
-                user,
-                "MASTER_DATA_CREATED",
-                "master_data",
-                md_id,
-                {"category": req.category, "code": req.code},
-            )
-        except Exception as e:  # noqa: BLE001 — نميّز unique_violation فقط
-            if getattr(e, "sqlstate", None) == "23505":
-                raise HTTPException(
-                    status_code=409, detail="الرمز موجود مسبقاً في هذه الفئة"
-                ) from None
-            raise
-    return {"md_id": md_id, "code": req.code, "message_ar": "أُضيف عنصر مرجعيّ"}
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/master-data")

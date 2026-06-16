@@ -16,9 +16,13 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from api.main import (
+    CommandStore,
     OnboardingSubmitRequest,
     UserSchema,
+    _idem_key,
+    _idempotent,
     get_current_user,
+    get_pool,
     tenant_connection,
 )
 from api.onboarding import get_questionnaire
@@ -41,6 +45,7 @@ async def onboarding_questionnaire(
 @router.post("/api/v1/onboarding/responses")
 async def submit_onboarding(
     req: OnboardingSubmitRequest,
+    idem: str | None = Depends(_idem_key),
     # خدمة ذاتيّة لإعداد المستأجِر — مفتوحة عمداً لأيّ مستخدم مُصادَق (معزولة بالمستأجِر/RLS، لا حارس صلاحيّة).
     user: UserSchema = Depends(get_current_user),
 ):
@@ -51,24 +56,41 @@ async def submit_onboarding(
     import json as _json
 
     async with tenant_connection(user) as conn:
-        row = await conn.fetchrow(
-            """INSERT INTO onboarding_responses
-                 (tenant_id, farmer_id, field_id, answers, is_complete, answered_count)
-               VALUES ($1::uuid, $2, $3, $4::jsonb, $5, $6)
-               RETURNING id""",
-            str(user.tenant_id),
-            str(user.user_id),
-            req.field_id,
-            _json.dumps(req.answers, ensure_ascii=False),
-            check["valid"],
-            check["answered"],
-        )
-    return {
-        "id": row["id"] if row else None,
-        "valid": check["valid"],
-        "missing_required": check["missing"],
-        "answered_count": check["answered"],
-    }
+
+        async def _work():
+            row = await conn.fetchrow(
+                """INSERT INTO onboarding_responses
+                     (tenant_id, farmer_id, field_id, answers, is_complete, answered_count)
+                   VALUES ($1::uuid, $2, $3, $4::jsonb, $5, $6)
+                   RETURNING id""",
+                str(user.tenant_id),
+                str(user.user_id),
+                req.field_id,
+                _json.dumps(req.answers, ensure_ascii=False),
+                check["valid"],
+                check["answered"],
+            )
+            return {
+                "id": row["id"] if row else None,
+                "valid": check["valid"],
+                "missing_required": check["missing"],
+                "answered_count": check["answered"],
+            }
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="onboarding.submit",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"field_id": req.field_id},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/onboarding/responses")
