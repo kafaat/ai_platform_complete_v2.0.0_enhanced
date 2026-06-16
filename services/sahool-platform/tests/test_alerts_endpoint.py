@@ -6,7 +6,7 @@
 
 import datetime as _dt
 
-from api.main import (
+from api.alert_models import (
     _ALERT_SEVERITIES,
     _ALERT_STATUSES,
     _ALERT_TYPES,
