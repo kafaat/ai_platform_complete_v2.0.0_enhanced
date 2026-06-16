@@ -713,12 +713,31 @@ async def update_season(
             await _assert_field_in_tenant(conn, field_id)
             async with conn.transaction():
                 current = await conn.fetchrow(
-                    "SELECT status FROM seasons WHERE season_id = $1 AND field_id = $2 FOR UPDATE",
+                    "SELECT status, row_version FROM seasons "
+                    "WHERE season_id = $1 AND field_id = $2 FOR UPDATE",
                     season_id,
                     field_id,
                 )
                 if current is None:
                     raise HTTPException(status_code=404, detail="الموسم غير موجود لهذا الحقل")
+
+                # تزامن تفاؤليّ (v64): إن مرّر العميل base_version ولم يطابق الإصدار
+                # الحاليّ ⇒ عُدِّل الموسم من جلسة أخرى منذ قراءته ⇒ 409 (لا فقد صامت).
+                # الصفّ مقفول (FOR UPDATE) فالفحص خالٍ من السباق. الرفض قبل أيّ كتابة
+                # أو إصدار حدث ⇒ المعاملة تتراجع نظيفةً. trg_seasons_row_version يرفع
+                # row_version آليّاً على كلّ UPDATE فلا رفعَ يدويّ هنا.
+                if req.base_version is not None and current["row_version"] != req.base_version:
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "error": "version_conflict",
+                            "message_ar": (
+                                "عُدِّل الموسم من جلسة أخرى منذ قراءتك — أعد المزامنة ثمّ طبّق تعديلك."
+                            ),
+                            "current_version": current["row_version"],
+                            "your_base_version": req.base_version,
+                        },
+                    )
 
                 status_changed = False
                 if req.status is not None:

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useFieldRecommendations, useCreateActivity } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useFieldContextStore } from '../hooks/useFieldContext';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import type { ActivityType, FieldRecommendation } from '../services/api';
@@ -59,7 +60,11 @@ const CTA = (props: { children: ReactNode; onClick?: () => void; disabled?: bool
 
 export default function RecommendationFlow() {
   const [step, setStep] = useState(1);
-  const [fieldId, setFieldId] = useState('');
+  // المعالج يحتفظ بحالة fieldId محليّة (لتدفّقه وإعادة تعيينه)، لكنّه يُهيّأ من
+  // «الحقل النشط» المشترك ويكتب إليه عند الاختيار (pickField) فيتبع المستخدم عبر
+  // الشاشات؛ reset يمسح المحليّ فقط (لا يطمس الاختيار العالميّ).
+  const setSelectedField = useFieldContextStore((s) => s.setSelectedField);
+  const [fieldId, setFieldId] = useState(() => useFieldContextStore.getState().selectedFieldId ?? '');
   const [recIdx, setRecIdx] = useState<number | null>(null);
   const [activityType, setActivityType] = useState<ActivityType>('scouting');
   const [scheduledFor, setScheduledFor] = useState('');
@@ -80,6 +85,7 @@ export default function RecommendationFlow() {
 
   function pickField(id: string) {
     setFieldId(id);
+    setSelectedField(id); // انشر الاختيار للحقل النشط المشترك (يتبع باقي الشاشات)
     setRecIdx(null);
     createQ.reset();
     setStep(2);

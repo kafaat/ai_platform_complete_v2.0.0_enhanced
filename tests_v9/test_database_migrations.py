@@ -104,3 +104,72 @@ class TestSQLSyntax:
             assert result == 1
         finally:
             await pool.close()
+
+
+class TestConcurrencyDeterminismMigrations:
+    """حُرّاس ثابتة (static) لهجرات التزامن/الحتميّة v62/v63/v64 — تمنع انحدار
+    البُنى الأمنيّة الحرجة فيها (الفهرس الجزئيّ، عمود seq، عمّاد row_version)."""
+
+    @pytest.mark.unit
+    def test_v62_partial_unique_index_guards_null_season(self):
+        """v62: فهرس فريد جزئيّ على (field_id) حيث season_id IS NULL — يسدّ ثغرة
+        NULL≠NULL في UNIQUE(field_id, season_id) فيمنع تكرار دورة الحياة قبل-البذر."""
+        sql = read_sql(os.path.join(BASE, "migrations/v62_field_lifecycle_null_season_guard.sql"))
+        assert "CREATE UNIQUE INDEX" in sql
+        assert "ux_field_lifecycle_field_null_season" in sql
+        # الشرطيّة الجزئيّة WHERE season_id IS NULL هي جوهر الإصلاح — لا تُسقَط.
+        assert re.search(r"ON\s+field_lifecycle\s*\(\s*field_id\s*\)", sql)
+        assert re.search(r"WHERE\s+season_id\s+IS\s+NULL", sql)
+
+    @pytest.mark.unit
+    def test_v63_events_seq_identity_and_order_index(self):
+        """v63: عمود seq (IDENTITY) كاسر تعادل occurred_at + فهرس ترتيب إعادة البناء."""
+        sql = read_sql(os.path.join(BASE, "migrations/v63_events_seq_deterministic_order.sql"))
+        assert re.search(r"ADD COLUMN IF NOT EXISTS\s+seq\s+BIGINT", sql)
+        assert "GENERATED ALWAYS AS IDENTITY" in sql  # لا كتابة يدويّة للـseq
+        # فهرس يخدم (occurred_at, seq) لإعادة بناء حتميّة بلا فرز إضافيّ.
+        assert re.search(r"occurred_at\s+ASC,\s*seq\s+ASC", sql)
+
+    @pytest.mark.unit
+    def test_v64_seasons_row_version_column_and_bump_trigger(self):
+        """v64: عمّاد row_version + trigger يرفعه على كلّ UPDATE (يغطّي كلّ مسارات الكتابة)."""
+        sql = read_sql(os.path.join(BASE, "migrations/v64_seasons_row_version.sql"))
+        assert re.search(r"ADD COLUMN IF NOT EXISTS\s+row_version\s+INTEGER", sql)
+        assert "bump_row_version" in sql
+        assert re.search(r"BEFORE\s+UPDATE\s+ON\s+seasons", sql)
+        # الرفع = OLD.row_version + 1 (لا تثبيت/إعادة تعيين).
+        assert re.search(r"row_version\s*:=\s*OLD\.row_version\s*\+\s*1", sql)
+
+    @pytest.mark.integration
+    async def test_concurrency_schema_objects_exist_after_migration(self, http_client):
+        """تحقّق حيّ (للقراءة فقط) أنّ بُنى v62/v63/v64 موجودة فعلاً في المخطّط بعد
+        تطبيق الهجرات — استعلامات كتالوج بلا كتابة (لا RLS/FK)، حتميّة."""
+        import asyncpg
+        from conftest import TEST_DB_URL
+
+        pool = await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=2)
+        try:
+            # v62: الفهرس الجزئيّ موجود.
+            idx = await pool.fetchval(
+                "SELECT 1 FROM pg_indexes WHERE indexname = $1",
+                "ux_field_lifecycle_field_null_season",
+            )
+            assert idx == 1, "v62: ux_field_lifecycle_field_null_season مفقود"
+            # v63: عمود events.seq موجود (IDENTITY).
+            seq_col = await pool.fetchval(
+                "SELECT is_identity FROM information_schema.columns "
+                "WHERE table_name = 'events' AND column_name = 'seq'"
+            )
+            assert seq_col == "YES", f"v63: events.seq ليس IDENTITY (={seq_col})"
+            # v64: عمود seasons.row_version + trigger الرفع.
+            rv_col = await pool.fetchval(
+                "SELECT 1 FROM information_schema.columns "
+                "WHERE table_name = 'seasons' AND column_name = 'row_version'"
+            )
+            assert rv_col == 1, "v64: seasons.row_version مفقود"
+            trg = await pool.fetchval(
+                "SELECT 1 FROM pg_trigger WHERE tgname = $1", "trg_seasons_row_version"
+            )
+            assert trg == 1, "v64: trigger trg_seasons_row_version مفقود"
+        finally:
+            await pool.close()

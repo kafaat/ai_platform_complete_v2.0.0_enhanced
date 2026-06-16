@@ -15,7 +15,7 @@ import {
   Cpu, Tractor, Droplets, Thermometer, FlaskConical, Battery, Gauge, Activity, Wrench,
 } from 'lucide-react';
 import { useDevices, useDeviceTelemetry, useEquipment } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import type { TelemetryPoint } from '../services/api';
 import { fmtDateAr } from '../lib/dates';
 import {
@@ -52,13 +52,14 @@ function sensorIcon(s?: string) {
 const fmtTime = (s?: string) => fmtDateAr(s, { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
 
 export default function HybridMonitor() {
-  const fieldsQ = useFieldOptions();
+  // «الحقل النشط» المشترك (useSelectedField) — يتبع المستخدم عبر الشاشات.
+  const fieldsQ = useSelectedField();
   const devicesQ = useDevices();
   const equipQ = useEquipment();
 
   const fields = fieldsQ.options;
 
-  const [fieldId, setFieldId] = useState('');
+  const { fieldId, setFieldId } = fieldsQ;
   const field = fields.find((f) => f.id === fieldId) ?? fields[0];
 
   const allDevices = Array.isArray(devicesQ.data) ? devicesQ.data : [];

@@ -222,3 +222,7 @@ v62_field_lifecycle_null_season_guard.sql
 # تعادل occurred_at حتميّاً (يسدّ Projection Drift الذي اعترف به تعليق v60) +
 # فهرسا ترتيب لإعادة البناء ومسار الأمر. append-only فالـseq لا يتغيّر. idempotent.
 v63_events_seq_deterministic_order.sql
+# v64: توسيع التزامن التفاؤليّ إلى seasons — عمّاد row_version يرفعه trigger
+# (bump_row_version) على كلّ UPDATE (يغطّي كلّ مسارات كتابة الموسم: تحديث/محاكاة/
+# إغلاق آليّ). update_season يقارن base_version ويردّ 409 عند التعارض. يكمّل v61.
+v64_seasons_row_version.sql

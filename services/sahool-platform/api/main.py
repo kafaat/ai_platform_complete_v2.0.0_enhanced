@@ -1468,6 +1468,8 @@ class SeasonSummary(BaseModel):
     sim_lai_max: float | None = None
     sim_water_mm: float | None = None
     sim_ran_at: str | None = None
+    # عمّاد التزامن التفاؤليّ (v64) — يتزايد كلّ تحديث؛ يرسله العميل كـbase_version
+    row_version: int | None = None
 
 
 def _row_to_season(r) -> SeasonSummary:
@@ -1523,6 +1525,11 @@ def _row_to_season(r) -> SeasonSummary:
             if "sim_ran_at" in keys and r["sim_ran_at"] is not None
             else None
         ),
+        row_version=(
+            int(r["row_version"])
+            if "row_version" in keys and r["row_version"] is not None
+            else None
+        ),
     )
 
 
@@ -1552,6 +1559,10 @@ class SeasonUpdateRequest(BaseModel):
     tillage_type: str | None = Field(default=None, max_length=40)
     actual_yield_kg_ha: float | None = Field(default=None, ge=0)
     notes_ar: str | None = Field(default=None, max_length=2000)
+    # تزامن تفاؤليّ (v64، اختياريّ/متوافق رجعيّاً): إصدار الموسم الأساس وقت قراءة
+    # العميل. إن مُرِّر ولم يطابق row_version الحاليّ ⇒ 409 تعارض (كشف تعديل offline
+    # متباعد). ليس عموداً يُكتَب — لا يدخل قائمة updates في update_season.
+    base_version: int | None = Field(default=None, ge=1)
 
 
 _SEASON_SELECT_COLS = (
@@ -1559,7 +1570,8 @@ _SEASON_SELECT_COLS = (
     "land_leveling_date, plowing_date, sowing_date, season_end, stages, status, "
     "created_at, target_yield_kg_ha, plant_density, row_spacing_cm, seed_variety_source, "
     "maturity, tillage_type, actual_yield_kg_ha, notes_ar, "
-    "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, sim_water_mm, sim_ran_at"
+    "sim_yield_kg_ha, sim_biomass_kg_ha, sim_gdd_total, sim_lai_max, sim_water_mm, sim_ran_at, "
+    "row_version"
 )
 
 
