@@ -7,7 +7,7 @@
 لا حاجة لاتّصال قاعدة — كلّ دالّة تستقبل صفوفاً (dict) جاهزة.
 """
 
-from api.main import _count_by_key, _shape_area_by_crop, _shape_farm_summary
+from api.analytics_shapers import _count_by_key, _shape_area_by_crop, _shape_farm_summary
 
 
 # ── _count_by_key ────────────────────────────────────────────────

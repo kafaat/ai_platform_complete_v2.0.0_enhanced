@@ -23,8 +23,9 @@ CORE = os.path.join(ROOT, "services/sahool-platform")
 def app_mod():
     if CORE not in sys.path:
         sys.path.insert(0, CORE)
-    pytest.importorskip("fastapi")
-    import api.main as m
+    # _shape_indicators_dashboard نُقِل إلى api.analytics_shapers (تفكيك B1) — دالّة
+    # نقيّة بلا fastapi/قاعدة، فلا حاجة لتخطّي fastapi بعد اليوم.
+    import api.analytics_shapers as m
 
     return m
 

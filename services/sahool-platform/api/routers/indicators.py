@@ -15,12 +15,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.analytics_shapers import _shape_indicator_catalog, _shape_indicators_dashboard
 from api.main import (
     Permission,
     UserSchema,
     _db_unavailable,
-    _shape_indicator_catalog,
-    _shape_indicators_dashboard,
     require_permission,
     tenant_connection,
 )

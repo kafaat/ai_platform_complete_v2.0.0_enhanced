@@ -22,14 +22,12 @@ from fastapi.responses import PlainTextResponse
 # تُستورَد مباشرةً من وحدتها — نفس الرموز التي كان main يُعيد تصديرها (نُقل
 # استيرادها هنا لإزالة F401 من main بعد نقل الدالّة).
 from api.alert_models import _row_to_alert
+from api.analytics_shapers import _count_by_key, _shape_area_by_crop, _shape_farm_summary
 from api.main import (
     OperationReportRequest,
     Permission,
     UserSchema,
-    _count_by_key,
     _db_unavailable,
-    _shape_area_by_crop,
-    _shape_farm_summary,
     get_current_user,
     require_permission,
     tenant_connection,

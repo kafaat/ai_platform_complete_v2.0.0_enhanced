@@ -7,7 +7,7 @@
 _row_to_alert (نموذج Pydantic) فنُغذّي صفوفاً بالأعمدة التي يتوقّعها.
 """
 
-from api.main import _shape_indicator_catalog, _shape_indicators_dashboard
+from api.analytics_shapers import _shape_indicator_catalog, _shape_indicators_dashboard
 
 
 # ── _shape_indicator_catalog ─────────────────────────────────────
