@@ -33,7 +33,10 @@ x-logging: &logging
     options: { max-size: "10m", max-file: "3" }
 
 x-db-env: &db-env
-  DATABASE_URL: "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@sahool-unified-postgis:5432/sahool"
+  # أمان RLS: التطبيق يتّصل بدور مقيّد (NOSUPERUSER NOBYPASSRLS) لا بـsuperuser
+  # postgres الذي يتجاوز عزل المستأجِرين حتى مع FORCE. أنشئ الدور عبر
+  # migrations/bootstrap_postgres.sh (أو apply_in_compose.sh). كلمة سرّه APP_DB_PASSWORD.
+  DATABASE_URL: "postgresql+asyncpg://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-unified-postgis:5432/sahool"
   REDIS_URL: "redis://sahool-unified-redis:6379/0"
   NATS_URL: "nats://sahool-unified-nats:4222"
   MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"

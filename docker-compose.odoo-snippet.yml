@@ -7,7 +7,8 @@
     restart: unless-stopped
     ports: ["8126:8000"]
     environment:
-      DATABASE_URL: "postgresql+asyncpg://postgres:${POSTGRES_PASSWORD}@sahool-postgis:5432/sahool"
+      # أمان RLS: دور مقيّد (NOBYPASSRLS) لا superuser postgres (يتجاوز عزل المستأجِرين).
+      DATABASE_URL: "postgresql+asyncpg://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgis:5432/sahool"
       ODOO_URL: "${ODOO_URL:-http://odoo:8069}"
       ODOO_DB: "${ODOO_DB:-sahool_erp}"
       ODOO_USER: "${ODOO_USER:-admin}"
