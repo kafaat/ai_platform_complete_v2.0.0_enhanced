@@ -56,6 +56,7 @@ import {
   importField, type FieldImportInput,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
+import { useDashboardKPIs } from './useIndicators';
 
 // ── Query Keys ─────────────────────────────────────────────────
 export const QK = {
@@ -807,7 +808,7 @@ export function useAgentQuery() {
       kongApi.post('/api/agent/query', {
         query,
         field_id:             fieldId,
-        user_id:              (user as any)?.sub ?? 'unknown',
+        user_id:              user?.id != null ? String(user.id) : 'unknown',
         tenant_id:            user?.tenant_id ?? 'default',
         preferred_objectives: objectives ?? ['balanced'],
       }).then(r => r.data),
@@ -820,7 +821,7 @@ export function useFarmOptimize() {
     mutationFn: ({ fieldId, objectives }) =>
       kongApi.post('/api/agent/optimize', {
         query: 'optimize farm', field_id: fieldId,
-        user_id:   (user as any)?.sub ?? 'unknown',
+        user_id:   user?.id != null ? String(user.id) : 'unknown',
         tenant_id: user?.tenant_id ?? 'default',
         preferred_objectives: objectives,
       }).then(r => r.data),
@@ -840,7 +841,7 @@ export function useGuardrailsValidate() {
         action_type:  actionType,
         action_data:  actionData,
         farm_context: farmContext,
-        user_id:      (user as any)?.sub ?? 'unknown',
+        user_id:      user?.id != null ? String(user.id) : 'unknown',
         tenant_id:    user?.tenant_id ?? 'default',
         auto_approve_low_risk: true,
       }).then(r => r.data),
@@ -1198,17 +1199,84 @@ export function useSeasonReport(seasonId?: string): UseQueryResult<SeasonReportS
   });
 }
 
+// ── Dashboard aggregation types ────────────────────────────────
+// شكل عدّادات اللوحة كما يُصدِرها الخادم الحقيقيّ (sahool-platform
+// `_shape_indicators_dashboard`): id/name_ar/value/unit/status من جداول
+// fields/seasons/alerts — لا أرقام مخترعة.
+export interface DashboardKpi {
+  id: string;
+  category?: string;
+  name?: string;
+  name_ar?: string;
+  value: number | string;
+  unit?: string;
+  status?: string;
+}
+
+export interface DashboardFieldSummary {
+  field_id: string;
+  field_name: string;
+  crop?: string;
+  area_ha?: number;
+  has_active_season?: boolean;
+  ndvi?: number; // مُلحَق من vegetation `/v1/all_fields` بمطابقة field_id (إن توفّر)
+}
+
+export interface DashboardData {
+  kpis: DashboardKpi[];
+  fields_summary: DashboardFieldSummary[];
+  alerts: unknown[];
+  total_fields: number;
+  active_alerts: number;
+  generated_at?: string;
+  // لا مصدر خلفيّ حقيقيّ لهذين ⇒ يُتركان undefined لتعرض اللوحة قيمها الاحتياطيّة
+  // الثابتة (حجم كتالوج المؤشّرات / تسمية المصدر) بصدق بدل عدد مخترع.
+  total_indicators?: number;
+  data_freshness?: { source?: string };
+}
+
+// شكل ردّ vegetation `/v1/all_fields` (مصدر NDVI الحقليّ) — للمطابقة بـfield_id.
+interface AllFieldsNdviResponse {
+  fields?: Array<{ field_id: string; ndvi?: number }>;
+  generated_at?: string;
+}
+
 // ── Dashboard aggregation hook ─────────────────────────────────
+// المصدر الحقيقيّ للوحة: عدّادات + ملخّص الحقول + التنبيهات من الخادم المُجمِّع
+// (`useDashboardKPIs` → GET /api/v1/indicators/dashboard، tenant-scoped + FIELD_VIEW).
+// NDVI لكلّ حقل يُلحَق من vegetation `/v1/all_fields` بمطابقة field_id (مصدران حقيقيّان،
+// بلا تلفيق). كانت النسخة السابقة تبني مفاتيح (allNdvi/indicators/…) لا يقرؤها
+// المُستهلِك (kpis/fields_summary/total_fields…) ⇒ بيانات حيّة تُجلب ثمّ تُهمَل.
 export function useDashboardData(primaryFieldId = 'field_01') {
+  const dash       = useDashboardKPIs();
   const allNdvi    = useAllFieldsNdvi();
   const indicators = useIndicators(primaryFieldId);
   const weather    = useWeatherForecast();
   const tasks      = useTasks();
   const alerts     = useAlerts();
   const health     = useAllServicesHealth();
-  const isLoading  = allNdvi.isLoading || indicators.isLoading;
-  const isError    = indicators.isError;
-  const refetch    = () => { allNdvi.refetch?.(); indicators.refetch?.(); };
-  const data: any  = { allNdvi: allNdvi.data, indicators: indicators.data, weather: weather.data, tasks: tasks.data, alerts: alerts.data };
-  return { data, refetch, allNdvi, indicators, weather, tasks, alerts, health, isLoading, isError };
+  const isLoading  = dash.isLoading || allNdvi.isLoading;
+  const isError    = dash.isError;
+  const refetch    = () => { dash.refetch?.(); allNdvi.refetch?.(); };
+
+  // مطابقة NDVI الحقليّ (vegetation) إلى ملخّص الحقول (DB) عبر field_id.
+  const allFields = allNdvi.data as AllFieldsNdviResponse | undefined;
+  const ndviByField = new Map<string, number>();
+  for (const f of allFields?.fields ?? []) {
+    if (typeof f.ndvi === 'number') ndviByField.set(f.field_id, f.ndvi);
+  }
+  const kpis = (dash.data?.kpis ?? []) as DashboardKpi[];
+  const fieldsSrc = (dash.data?.fields_summary ?? []) as DashboardFieldSummary[];
+  const fields_summary = fieldsSrc.map((f) => ({ ...f, ndvi: ndviByField.get(f.field_id) ?? f.ndvi }));
+  const alertRows = (dash.data?.alerts ?? []) as unknown[];
+
+  const data: DashboardData = {
+    kpis,
+    fields_summary,
+    alerts: alertRows,
+    total_fields: fields_summary.length,
+    active_alerts: alertRows.length,
+    generated_at: allFields?.generated_at,
+  };
+  return { data, refetch, dash, allNdvi, indicators, weather, tasks, alerts, health, isLoading, isError };
 }
