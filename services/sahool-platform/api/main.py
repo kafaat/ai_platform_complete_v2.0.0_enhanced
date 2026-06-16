@@ -197,7 +197,11 @@ async def _start_scheduler():
             logging.warning("أتمتة التنبيهات: تعذّر سرد المستأجرين: %s", type(e).__name__)
             return
 
-        total_created = 0
+        from core.automation_ledger import LEDGER
+
+        # مرحلة الجمع: اجمع (مستخدم النظام، حقل) عبر المستأجِرين أوّلاً — لمعرفة
+        # إجماليّ الحقول المُخطَّط تقييمها (سجلّ التشغيل)، مع عزل خطأ كلّ مستأجِر.
+        pairs: list[tuple[UserSchema, str]] = []
         for tr in trows:
             tid = str(tr["tenant_id"])
             sys_user = UserSchema(
@@ -211,18 +215,23 @@ async def _start_scheduler():
                     frows = await conn.fetch(
                         "SELECT field_id FROM fields WHERE tenant_id = $1::uuid", tid
                     )
-                for fr in frows:
-                    try:
-                        created, _ = await _evaluate_field_alerts_persist(sys_user, fr["field_id"])
-                        total_created += len(created)
-                    except Exception as fe:  # noqa: BLE001 — عزل لكلّ حقل
-                        logging.debug(
-                            "أتمتة التنبيهات: تخطّي حقل %s: %s",
-                            fr["field_id"],
-                            type(fe).__name__,
-                        )
+                pairs.extend((sys_user, fr["field_id"]) for fr in frows)
             except Exception as te:  # noqa: BLE001 — عزل لكلّ مستأجِر
                 logging.warning("أتمتة التنبيهات: تخطّي مستأجِر %s: %s", tid, type(te).__name__)
+
+        # مرحلة التقييم: سجلّ تشغيل واحد يرصد المُقيَّم/المُخفِق + التنبيهات المُنشأة.
+        rec = LEDGER.start_run("alerts_evaluation", len(pairs))
+        total_created = 0
+        for sys_user, field_id in pairs:
+            try:
+                created, _ = await _evaluate_field_alerts_persist(sys_user, field_id)
+                rec.mark_evaluated()
+                rec.add_alerts(len(created))
+                total_created += len(created)
+            except Exception as fe:  # noqa: BLE001 — عزل لكلّ حقل
+                rec.mark_errored(field_id, fe)
+                logging.debug("أتمتة التنبيهات: تخطّي حقل %s: %s", field_id, type(fe).__name__)
+        rec.finish()
         if total_created:
             logging.info("أتمتة التنبيهات: أُنشئ %s تنبيهاً عبر كلّ الحقول", total_created)
 
