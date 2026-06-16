@@ -231,3 +231,8 @@ v64_seasons_row_version.sql
 # نقل→بيع + content_hash للتدقيق). RLS صريح لكلّ مستأجِر (نمط v50). يسدّ الفجوة
 # التنافسيّة (xFarm/Farmonaut) فوق input-traceability القائم. idempotent.
 v65_harvest_traceability.sql
+# v66: سجلّ قرارات الإرسال المحروسة (dispatch_decisions) — سجلّ تدقيق
+# decision→execution لكلّ guarded-dispatch (محظور/بانتظار موافقة/جاهز) مع خروقات
+# الحظر/التحذير والموافقات، ويعمل كطابور أوامر يستهلكه الـactuator
+# (exec_status='queued'). tenant-isolated عبر _sahool_apply_tenant_rls (v9). idempotent.
+v66_dispatch_decisions.sql
