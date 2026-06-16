@@ -13,9 +13,9 @@ ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 # trusted-host فقط إن مُرِّر (مرآة تتطلّبه) — وإلّا لا نخفّض أمان TLS.
 RUN if [ -n "${PIP_TRUSTED_HOST}" ]; then \
-        pip install --no-cache-dir --timeout 120 --retries 5 --trusted-host "${PIP_TRUSTED_HOST}" -r /tmp/requirements.txt; \
+        pip install --no-cache-dir --timeout 300 --retries 10 --trusted-host "${PIP_TRUSTED_HOST}" -r /tmp/requirements.txt; \
     else \
-        pip install --no-cache-dir --timeout 120 --retries 5 -r /tmp/requirements.txt; \
+        pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt; \
     fi
 COPY shared/ /app/shared/
 COPY services/local-ai-rag/ /app/
