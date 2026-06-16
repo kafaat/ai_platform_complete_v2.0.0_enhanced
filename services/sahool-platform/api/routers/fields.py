@@ -542,12 +542,18 @@ async def update_field(
     field_id: str,
     req: FieldUpdateRequest,
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+    idem: str | None = Depends(_idem_key),
 ):
     """تحديث جزئيّ لتفاصيل حقل (ملء تدريجيّ) — يُحدِّث الأعمدة المُرسَلة فقط.
 
     يتأكّد أنّ الحقل يخصّ المستأجِر (404) ضمن سياق المستأجِر (RLS)، يبني UPDATE
     من الحقول المُرسَلة فقط (دالّة نقيّة _build_field_update)، ويردّ الحقل المُحدَّث.
     422 لو لم تُرسَل أيّ حقول (لا UPDATE فارغ). 503 عند تعذّر القاعدة.
+
+    idempotent عند توفّر Idempotency-Key (UUID): يُسجَّل الأمر مرّة واحدة في
+    command_store (نوع `field.update`)؛ إعادة الموبايل (offline) تُعيد النتيجة
+    المخزّنة بلا إعادة تحديث — موحِّداً مسار كتابة الحقل مع create_season/
+    create_activity. بلا مفتاح ⇒ سلوك سابق حرفيّاً (توافق خلفيّ كامل).
     """
     try:
         set_clause, values = _build_field_update(req)
@@ -557,49 +563,68 @@ async def update_field(
     sql, exec_values = _build_versioned_update(set_clause, values, field_id, req.base_version)
     try:
         async with tenant_connection(user) as conn:
-            await _assert_field_in_tenant(conn, field_id)
-            result = await conn.execute(sql, *exec_values)
-            # تعارض تزامن تفاؤليّ: الحقل موجود (تأكّدنا) لكن UPDATE أصاب 0 صفّ ⇒
-            # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
-            # وكتابته. نرفض 409 (لا فقد صامت) قبل إصدار أيّ حدث — المعاملة تتراجع.
-            if req.base_version is not None and result.rsplit(" ", 1)[-1] == "0":
-                current = await conn.fetchval(
-                    "SELECT row_version FROM fields WHERE field_id = $1", field_id
+
+            async def _work():
+                await _assert_field_in_tenant(conn, field_id)
+                upd = await conn.execute(sql, *exec_values)
+                # تعارض تزامن تفاؤليّ: الحقل موجود (تأكّدنا) لكن UPDATE أصاب 0 صفّ ⇒
+                # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
+                # وكتابته. نرفض 409 (لا فقد صامت) قبل إصدار أيّ حدث — المعاملة تتراجع.
+                if req.base_version is not None and upd.rsplit(" ", 1)[-1] == "0":
+                    current = await conn.fetchval(
+                        "SELECT row_version FROM fields WHERE field_id = $1", field_id
+                    )
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "error": "version_conflict",
+                            "message_ar": (
+                                "عُدِّل الحقل من جلسة أخرى منذ قراءتك — أعد المزامنة ثمّ طبّق تعديلك."
+                            ),
+                            "current_version": current,
+                            "your_base_version": req.base_version,
+                        },
+                    )
+                row = await conn.fetchrow(
+                    f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                    field_id,
                 )
-                raise HTTPException(
-                    status_code=409,
-                    detail={
-                        "error": "version_conflict",
-                        "message_ar": (
-                            "عُدِّل الحقل من جلسة أخرى منذ قراءتك — أعد المزامنة ثمّ طبّق تعديلك."
-                        ),
-                        "current_version": current,
-                        "your_base_version": req.base_version,
-                    },
+                if row is None:
+                    # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ نرفع 404 **داخل** المعاملة
+                    # قبل إصدار الحدث، فتتراجع المعاملة ولا يُكتب حدث لتحديث لم يقع فعلاً.
+                    raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+                # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "FIELD_UPDATED",
+                    "field",
+                    field_id,
+                    # base_version عمّاد تزامن لا تغييرَ حقل ⇒ يُستثنى من حدث الـdomain.
+                    req.model_dump(exclude_unset=True, exclude={"base_version"}),
                 )
-            row = await conn.fetchrow(
-                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
-                field_id,
-            )
-            if row is None:
-                # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ نرفع 404 **داخل** المعاملة
-                # قبل إصدار الحدث، فتتراجع المعاملة ولا يُكتب حدث لتحديث لم يقع فعلاً.
-                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-            # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
-            await _emit_domain_event(
-                conn,
-                user,
-                "FIELD_UPDATED",
-                "field",
-                field_id,
-                # base_version عمّاد تزامن لا تغييرَ حقل ⇒ يُستثنى من حدث الـdomain.
-                req.model_dump(exclude_unset=True, exclude={"base_version"}),
-            )
+                # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
+                # عند الإعادة — response_model=FieldDetail يتحقّق منه.
+                return _row_to_field_detail(row).model_dump()
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="field.update",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": field_id},
+                )
+            else:
+                result = await _work()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
         raise _db_unavailable("تحديث تفاصيل الحقل", e) from e
-    return _row_to_field_detail(row)
+    return result
 
 
 @router.delete("/api/v1/fields/{field_id}")
