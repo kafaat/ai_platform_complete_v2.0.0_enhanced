@@ -47,9 +47,14 @@
 
 ## فجوات اختبار عالية الأثر (وكيل الجودة) — تُقترَح إضافتها
 وحدات بلا اختبار: `workflow_engine` (Saga/تعويض)، `pest_escalation_flow` (تعليق الموافقة)،
-`irrigation_water_analysis` (SAR/RSC — نقيّ سهل)، `agronomic_state_engine` (أرجحيّة الملوحة
-فوق NDVI). واختبارات ضعيفة (نوع/وجود فقط): `test_remaining_engines` (diesel/organic_matter)،
-`test_governance_modules` (who_can)، `test_field_geocode` (المحافظة لا تُتحقَّق).
+`agronomic_state_engine` (أرجحيّة الملوحة فوق NDVI). واختبارات ضعيفة (نوع/وجود فقط):
+`test_remaining_engines` (diesel/organic_matter)، `test_governance_modules` (who_can)،
+`test_field_geocode` (المحافظة لا تُتحقَّق).
+
+✅ **أُغلِق:** `irrigation_water_analysis` (SAR/RSC) — مُغطّى سلوكيّاً
+(`tests/test_irrigation_water_analysis.py` + `tests_v9/test_new_modules.py`) مع تصليب
+حدود العتبات الموثَّقة بالضبط (USSL 10/18/26 · USDA Bull.197 1.25 · FAO-29 0.7/3.0)
+والمسار النظيف وحوكمة الرايات (المتوسّط/الهامشيّ لا يُصعّد).
 
 ## نظيف ومؤكَّد
 guardrails-engine (مصادقة/حسابات) · local-ai-rag (عزل tenant + grounded + ingest مُبوَّب) ·

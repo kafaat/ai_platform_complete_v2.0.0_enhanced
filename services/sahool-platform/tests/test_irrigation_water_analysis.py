@@ -89,3 +89,52 @@ def test_analyze_declares_missing_inputs_no_fabrication():
     assert out["indices"]["rsc_meq_l"] is None  # غير محسوب (لا تأليف)
     assert set(out["missing_inputs"]) >= {"hco3", "co3", "ec_dsm"}
     assert out["data_complete"] is False
+
+
+# ─── حدود التصنيف بالضبط (حارس انحدار < مقابل ≤) — العتبات الموثَّقة ───────
+# الاختبارات أعلاه تستخدم قيماً وسط النطاقات؛ هذه تثبّت القيمة الحدّيّة نفسها كي
+# لا ينزلق `<` إلى `≤` (أو العكس) صامتاً على عتبة علميّة موثَّقة.
+
+
+def test_classify_sar_exact_band_edges():
+    # USSL: <10 منخفض · <18 متوسّط · <26 مرتفع · ≥26 جدّاً — الحدّ يقع في النطاق الأعلى.
+    assert classify_sar(10.0)["class"] == "medium"  # 10 ليس <10 ⇒ متوسّط لا منخفض
+    assert classify_sar(18.0)["class"] == "high"  # 18 ليس <18 ⇒ مرتفع لا متوسّط
+    assert classify_sar(26.0)["class"] == "very_high"  # 26 ليس <26 ⇒ جدّاً لا مرتفع
+
+
+def test_classify_rsc_lower_edge_inclusive_safe():
+    # USDA Bull.197: <1.25 آمن — الحدّ 1.25 نفسه هامشيّ (ليس آمناً).
+    assert classify_rsc(1.24)["class"] == "safe"
+    assert classify_rsc(1.25)["class"] == "marginal"
+
+
+def test_classify_ec_exact_band_edges():
+    # FAO-29: <0.7 منخفض · ≤3.0 متوسّط · >3.0 شديد.
+    assert classify_ec(0.7)["class"] == "moderate"  # 0.7 ليس <0.7 ⇒ متوسّط لا منخفض
+    assert classify_ec(3.0)["class"] == "moderate"  # 3.0 مشمول في المتوسّط (≤3.0)
+    assert classify_ec(3.01)["class"] == "severe"  # فوق 3.0 ⇒ شديد
+
+
+# ─── المسار النظيف + حوكمة الرايات (متوسّط/هامشيّ لا يرفع راية) ────────────
+
+
+def test_analyze_clean_water_is_suitable_with_no_flags():
+    # ماء نظيف: EC منخفض + SAR منخفض + RSC آمن ⇒ لا رايات، «صالح للريّ»، مكتمل.
+    s = WaterSample(sample_id="w3", na=4, ca=3, mg=3, co3=0, hco3=1, ec_dsm=0.5)
+    out = analyze_water_sample(s)
+    assert out["hazard_flags_ar"] == []
+    assert out["suitable_ar"] == "صالح للريّ"
+    assert out["data_complete"] is True
+
+
+def test_analyze_mid_band_classes_do_not_raise_flags():
+    # متوسّط EC + هامشيّ RSC + متوسّط SAR: كلّها دون عتبة الراية ⇒ لا رايات رغم
+    # وجود تصنيفات غير «آمنة» (الراية للأسوأ فقط: severe/unsuitable/high+).
+    s = WaterSample(sample_id="w4", na=20, ca=2, mg=2, co3=1, hco3=5, ec_dsm=2.0)
+    out = analyze_water_sample(s)
+    assert out["classification"]["salinity"]["class"] == "moderate"
+    assert out["classification"]["alkalinity_rsc"]["class"] == "marginal"
+    assert out["classification"]["sodicity_sar"]["class"] == "medium"
+    assert out["hazard_flags_ar"] == []  # لا راية: المتوسّط/الهامشيّ لا يُصعّد
+    assert out["suitable_ar"] == "صالح للريّ"
