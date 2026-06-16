@@ -123,7 +123,9 @@ router = APIRouter()
 # ─── معالِج حفظ الحقل المشترك (مرسوم/مستورَد) — نُقل من main.py (تفكيك B1) ──────
 # مستهلِكه الوحيد هنا (create_field/import_field)؛ يستورد النماذج/المساعِدات النقيّة
 # من api.field_models والبنية التحتيّة (الاتّصال/الحدث/الترميز الجغرافيّ) من api.main.
-async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSummary:
+async def _persist_field(
+    req: FieldCreateRequest, user: UserSchema, *, idem: str | None = None
+) -> FieldSummary:
     """مسار التحقّق + الإدراج المشترك للحقل (مرسوم أو مستورَد).
 
     يتحقّق من الهندسة (CRS 4326، تقاطع ذاتي، مساحة معقولة، داخل اليمن) ويحسب
@@ -160,169 +162,188 @@ async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSumm
     geom_json = _json.dumps(req.geometry)
     try:
         async with tenant_connection(user) as conn:
-            # التحقّق أنّ المزرعة المرتبطة موجودة وتخصّ المستأجِر الحالي (إن أُرسلت).
-            # farm_id يبقى اختياريّاً (ملف تعريف تدريجي)؛ نتحقّق فقط عند توفّره.
-            # RLS يحصر farms أصلاً — لكن نضيف الفحص الصريح (دفاع + خطأ واضح).
-            if req.farm_id:
-                farm_ok = await conn.fetchrow(
-                    "SELECT 1 FROM farms WHERE farm_id = $1 AND tenant_id = $2::uuid",
-                    req.farm_id,
+
+            async def _work():
+                # التحقّق أنّ المزرعة المرتبطة موجودة وتخصّ المستأجِر الحالي (إن أُرسلت).
+                # farm_id يبقى اختياريّاً (ملف تعريف تدريجي)؛ نتحقّق فقط عند توفّره.
+                # RLS يحصر farms أصلاً — لكن نضيف الفحص الصريح (دفاع + خطأ واضح).
+                if req.farm_id:
+                    farm_ok = await conn.fetchrow(
+                        "SELECT 1 FROM farms WHERE farm_id = $1 AND tenant_id = $2::uuid",
+                        req.farm_id,
+                        str(user.tenant_id),
+                    )
+                    if farm_ok is None:
+                        raise HTTPException(
+                            status_code=404,
+                            detail={
+                                "message_ar": "المزرعة غير موجودة أو ليست لك",
+                                "code": "farm_not_found",
+                            },
+                        )
+                # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
+                dup = await conn.fetchrow(
+                    "SELECT field_id FROM fields WHERE tenant_id = $1::uuid "
+                    "AND farm_id IS NOT DISTINCT FROM $2 AND lower(name) = lower($3) LIMIT 1",
                     str(user.tenant_id),
+                    req.farm_id,
+                    req.name,
                 )
-                if farm_ok is None:
+                if dup is not None:
                     raise HTTPException(
-                        status_code=404,
+                        status_code=409,
                         detail={
-                            "message_ar": "المزرعة غير موجودة أو ليست لك",
-                            "code": "farm_not_found",
+                            "message_ar": f"يوجد حقل بالاسم نفسه «{req.name}» في هذه المزرعة.",
+                            "code": "duplicate_field_name",
+                            "existing_field_id": dup["field_id"],
                         },
                     )
-            # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
-            dup = await conn.fetchrow(
-                "SELECT field_id FROM fields WHERE tenant_id = $1::uuid "
-                "AND farm_id IS NOT DISTINCT FROM $2 AND lower(name) = lower($3) LIMIT 1",
-                str(user.tenant_id),
-                req.farm_id,
-                req.name,
-            )
-            if dup is not None:
-                raise HTTPException(
-                    status_code=409,
-                    detail={
-                        "message_ar": f"يوجد حقل بالاسم نفسه «{req.name}» في هذه المزرعة.",
-                        "code": "duplicate_field_name",
-                        "existing_field_id": dup["field_id"],
-                    },
-                )
-            # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
-            # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
-            # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
-            try:
-                overlaps = await conn.fetch(
-                    """
-                    SELECT field_id, name,
-                           ST_Area(ST_Intersection(
-                               ST_GeomFromGeoJSON($1), geom
-                           )::geography) AS overlap_m2
-                    FROM fields
-                    WHERE tenant_id = $2::uuid AND geom IS NOT NULL
-                      AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
-                    ORDER BY overlap_m2 DESC NULLS LAST
-                    LIMIT 5
-                    """,
-                    geom_json,
+                # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
+                # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
+                # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
+                try:
+                    overlaps = await conn.fetch(
+                        """
+                        SELECT field_id, name,
+                               ST_Area(ST_Intersection(
+                                   ST_GeomFromGeoJSON($1), geom
+                               )::geography) AS overlap_m2
+                        FROM fields
+                        WHERE tenant_id = $2::uuid AND geom IS NOT NULL
+                          AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
+                        ORDER BY overlap_m2 DESC NULLS LAST
+                        LIMIT 5
+                        """,
+                        geom_json,
+                        str(user.tenant_id),
+                    )
+                except (asyncpg.UndefinedFunctionError, asyncpg.UndefinedObjectError) as ovl_err:
+                    # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
+                    logging.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
+                    overlaps = []
+                significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
+                if significant:
+                    top = significant[0]
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "message_ar": (
+                                f"حدود الحقل تتداخل مع «{top['name']}» "
+                                f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
+                            ),
+                            "code": "field_geometry_overlap",
+                            "overlaps": [
+                                {
+                                    "field_id": o["field_id"],
+                                    "name": o["name"],
+                                    "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
+                                }
+                                for o in significant
+                            ],
+                        },
+                    )
+                await conn.execute(
+                    """INSERT INTO fields
+                        (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
+                         area_ha, lat, lon, gov, geometry,
+                         field_code, description, water_source, ownership_type,
+                         country, region)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
+                         $13, $14, $15, $16, $17, $18)""",
+                    field_id,
                     str(user.tenant_id),
+                    req.farm_id,
+                    req.name,
+                    req.crop,
+                    req.soil_type,
+                    req.manager,
+                    area_ha,
+                    lat,
+                    lon,
+                    req.gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
+                    _json.dumps(req.geometry),
+                    req.field_code,
+                    req.description,
+                    req.water_source,
+                    req.ownership_type,
+                    country,
+                    region,
                 )
-            except (asyncpg.UndefinedFunctionError, asyncpg.UndefinedObjectError) as ovl_err:
-                # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
-                logging.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
-                overlaps = []
-            significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
-            if significant:
-                top = significant[0]
-                raise HTTPException(
-                    status_code=409,
-                    detail={
-                        "message_ar": (
-                            f"حدود الحقل تتداخل مع «{top['name']}» "
-                            f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
-                        ),
-                        "code": "field_geometry_overlap",
-                        "overlaps": [
-                            {
-                                "field_id": o["field_id"],
-                                "name": o["name"],
-                                "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
-                            }
-                            for o in significant
-                        ],
-                    },
-                )
-            await conn.execute(
-                """INSERT INTO fields
-                    (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
-                     area_ha, lat, lon, gov, geometry,
-                     field_code, description, water_source, ownership_type,
-                     country, region)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
-                     $13, $14, $15, $16, $17, $18)""",
-                field_id,
-                str(user.tenant_id),
-                req.farm_id,
-                req.name,
-                req.crop,
-                req.soil_type,
-                req.manager,
-                area_ha,
-                lat,
-                lon,
-                req.gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
-                _json.dumps(req.geometry),
-                req.field_code,
-                req.description,
-                req.water_source,
-                req.ownership_type,
-                country,
-                region,
-            )
-            # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
-            await _emit_domain_event(
-                conn,
-                user,
-                "FIELD_CREATED",
-                "field",
-                field_id,
-                {
-                    "name": req.name,
-                    "crop": req.crop,
-                    "area_ha": area_ha,
-                    "farm_id": req.farm_id,
-                    "soil_type": req.soil_type,
-                },
-            )
-            # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب
-            # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
-            # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
-            from api.field_state_projection import recompute_field_state
-
-            _fs = await recompute_field_state(conn, field_id)
-            if _fs["changed"]:
+                # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
                 await _emit_domain_event(
                     conn,
                     user,
-                    "FIELD_STATE_CHANGED",
+                    "FIELD_CREATED",
                     "field",
                     field_id,
                     {
-                        "validity": _fs["state"]["validity"],
-                        "execution_mode": _fs["state"]["execution_mode"],
-                        "trigger": "field.created",
+                        "name": req.name,
+                        "crop": req.crop,
+                        "area_ha": area_ha,
+                        "farm_id": req.farm_id,
+                        "soil_type": req.soil_type,
                     },
                 )
+                # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب
+                # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
+                # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
+                from api.field_state_projection import recompute_field_state
+
+                _fs = await recompute_field_state(conn, field_id)
+                if _fs["changed"]:
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "FIELD_STATE_CHANGED",
+                        "field",
+                        field_id,
+                        {
+                            "validity": _fs["state"]["validity"],
+                            "execution_mode": _fs["state"]["execution_mode"],
+                            "trigger": "field.created",
+                        },
+                    )
+                # نُعيد JSON (model_dump mode=json) ليُخزَّن كنتيجة أمر idempotent
+                # ويُعاد حرفيّاً عند الإعادة — response_model=FieldSummary يتحقّق منه.
+                return FieldSummary(
+                    field_id=field_id,
+                    farm_id=req.farm_id or "",
+                    name_ar=req.name,
+                    crop=req.crop or "—",
+                    area_ha=area_ha,
+                    quality_grade="PENDING_LAB",
+                    health_summary_ar="حقل جديد — بانتظار قياسات",
+                    soil_type=req.soil_type,
+                    manager=req.manager,
+                    field_code=req.field_code,
+                    description=req.description,
+                    water_source=req.water_source,
+                    ownership_type=req.ownership_type,
+                    country=country,
+                    region=region,
+                    lat=lat,
+                    lon=lon,
+                    geometry=req.geometry,
+                ).model_dump(mode="json")
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="field.create",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": field_id, "name": req.name},
+                )
+            else:
+                result = await _work()
     except HTTPException:
         raise  # get_pool() يرفع 503 أصلاً
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
         raise _db_unavailable("حفظ الحقل", e) from e
-    return FieldSummary(
-        field_id=field_id,
-        farm_id=req.farm_id or "",
-        name_ar=req.name,
-        crop=req.crop or "—",
-        area_ha=area_ha,
-        quality_grade="PENDING_LAB",
-        health_summary_ar="حقل جديد — بانتظار قياسات",
-        soil_type=req.soil_type,
-        manager=req.manager,
-        field_code=req.field_code,
-        description=req.description,
-        water_source=req.water_source,
-        ownership_type=req.ownership_type,
-        country=country,
-        region=region,
-        lat=lat,
-        lon=lon,
-        geometry=req.geometry,
-    )
+    return result
 
 
 @router.get("/api/v1/fields", response_model=list[FieldSummary])
@@ -352,19 +373,21 @@ async def list_fields(user: UserSchema = Depends(get_current_user)):
 async def create_field(
     req: FieldCreateRequest,
     user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
+    idem: str | None = Depends(_idem_key),
 ):
     """ينشئ حقلاً من مضلّع مرسوم — يُخزَّن فعليّاً في القاعدة (لا تلفيق).
 
     يتحقّق من الهندسة ويحسب المساحة + المركز، ثمّ يُدرج ضمن سياق المستأجر (RLS).
     يردّ الحقل المُنشأ بهندسته كي ترسمه الواجهة فوراً.
     """
-    return await _persist_field(req, user)
+    return await _persist_field(req, user, idem=idem)
 
 
 @router.post("/api/v1/fields/import", status_code=201, response_model=FieldSummary)
 async def import_field(
     req: FieldImportRequest,
     user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
+    idem: str | None = Depends(_idem_key),
 ):
     """يستورد حدّ حقل من GeoJSON/KML/نقاط GPS → GeoJSON Polygon ثمّ يُخزّنه.
 
@@ -409,7 +432,7 @@ async def import_field(
         country=req.country,
         region=req.region,
     )
-    return await _persist_field(create_req, user)
+    return await _persist_field(create_req, user, idem=idem)
 
 
 @router.get("/api/v1/fields/{field_id}", response_model=FieldDetail)
