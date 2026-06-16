@@ -45,6 +45,15 @@ HEAT_STRESS_CRITICAL_TMAX_C = 40.0
 FROST_RISK_TMIN_C = 2.0
 FROST_RISK_CRITICAL_TMIN_C = 0.0
 
+# إجهاد الغطاء النباتيّ (NDVI-drop): هبوط مؤشّر NDVI الحاليّ تحت خطّ الأساس
+# المتوقَّع/الصحّيّ (يُورّده النواة: أرضيّة متوقّعة للطور أو قراءة سابقة) بمقدار
+# مطلق فوق هذه العتبات ⇒ إشارة استشعار عن بُعد لإجهاد محتمل.
+# ⚠ هبوط NDVI **إشارة كشف ميدانيّ** (scouting trigger) لا تشخيص: قد يدلّ على
+# إجهاد مائيّ/مرض/آفة/نقص مغذّيات — يحتاج معاينةً ميدانيّة لتحديد السبب.
+# المرجع: NDVI صحّيّ للمحاصيل النشطة ٠٫٦–٠٫٩؛ هبوط مطلق ~٠٫١٠ ملحوظ، ~٠٫٢٠ كبير.
+NDVI_DROP_WARN = 0.10  # هبوط مطلق تحت خطّ الأساس ⇒ تحذير (كشف ميدانيّ)
+NDVI_DROP_CRITICAL = 0.20  # هبوط مطلق كبير ⇒ خطورة حرجة
+
 # طور التكاثر/التزهير (FAO-56 stage = "mid") — الأكثر حسّاسيّة للإجهاد:
 # إجهاد الحرارة أو الماء عنده يُسبّب تساقط الأزهار/القرون ⇒ نُصعّد الخطورة.
 _REPRODUCTIVE_STAGE = "mid"
@@ -80,6 +89,11 @@ class AlertThresholds:
     # المرجع: الصقيع يبدأ قرب ٢°م سطحيّاً؛ تحت ٠°م تجمّد مؤكَّد ⇒ خطورة حرجة.
     FROST_RISK_TMIN_C: float = FROST_RISK_TMIN_C
     FROST_RISK_CRITICAL_TMIN_C: float = FROST_RISK_CRITICAL_TMIN_C
+    # إجهاد الغطاء النباتيّ: هبوط NDVI المطلق تحت خطّ الأساس فوق هذا الحدّ ⇒ تحذير.
+    # المرجع: هبوط مطلق ~٠٫١٠ ملحوظ، ~٠٫٢٠ كبير. إشارة كشف ميدانيّ لا تشخيص.
+    NDVI_DROP_WARN: float = NDVI_DROP_WARN
+    # هبوط NDVI مطلق كبير ⇒ خطورة حرجة.
+    NDVI_DROP_CRITICAL: float = NDVI_DROP_CRITICAL
 
 
 @dataclass(frozen=True)
@@ -113,6 +127,11 @@ class FieldAlertContext:
     # 'mid' هو طور التكاثر/التزهير — الأكثر حسّاسيّة للإجهاد (الحرارة والماء)؛
     # عنده يُصعَّد إجهاد الحرارة/الرطوبة إلى "critical" حتى تحت العتبة الحرجة العامّة.
     growth_stage: str | None = None
+    # متوسّط NDVI الحاليّ للحقل (استشعار عن بُعد، المدى -1..1). None ⇒ لا تقييم.
+    ndvi_current: float | None = None
+    # خطّ أساس NDVI المتوقَّع/الصحّيّ للمقارنة — يُورّده النواة (أرضيّة متوقّعة
+    # لطور النموّ أو قراءة سابقة). None ⇒ لا تقييم (لا نُلفّق مرجعاً غائباً).
+    ndvi_baseline: float | None = None
 
 
 @dataclass(frozen=True)
@@ -242,6 +261,40 @@ def _frost_risk(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | 
     )
 
 
+def _vegetation_stress(ctx: FieldAlertContext, t: AlertThresholds) -> GeneratedAlert | None:
+    """إجهاد الغطاء النباتيّ: هبوط NDVI الحاليّ تحت خطّ الأساس المتوقَّع.
+
+    يتطلّب **كلتا** القيمتين (الحاليّة وخطّ الأساس)؛ غياب أيّهما ⇒ None
+    (صدق: لا نُقيّم بلا مرجع). الهبوط = الأساس − الحاليّ؛ تحت عتبة التحذير ⇒
+    لا تنبيه. هذا **إشارة كشف ميدانيّ** لا تشخيص — نؤطّره صراحةً كذلك.
+    """
+    cur = ctx.ndvi_current
+    base = ctx.ndvi_baseline
+    if cur is None or base is None:
+        return None
+    drop = base - cur
+    if drop < t.NDVI_DROP_WARN:
+        return None
+    critical = drop >= t.NDVI_DROP_CRITICAL
+    severity = "critical" if critical else "warning"
+    message_ar = (
+        f"هبوط في مؤشّر الغطاء النباتيّ NDVI بمقدار {drop:.2f} "
+        f"(من {base:.2f} إلى {cur:.2f}). قد يدلّ على إجهاد مائيّ أو مرض/آفة أو "
+        "نقص مغذّيات — هذه إشارة تستلزم كشفاً ميدانيّاً لتحديد السبب، وليست "
+        "تشخيصاً نهائيّاً."
+    )
+    # تصعيد عند التزهير: طور التكاثر أشدّ حسّاسيّة ⇒ critical حتى تحت العتبة الحرجة.
+    if not critical and ctx.growth_stage == _REPRODUCTIVE_STAGE:
+        severity = "critical"
+        message_ar += " المحصول في طور التزهير ⇒ الإجهاد أشدّ ضرراً على العقد."
+    return GeneratedAlert(
+        alert_type="vegetation_stress",
+        severity=severity,
+        title_ar="إجهاد محتمل في الغطاء النباتيّ (هبوط NDVI)",
+        message_ar=message_ar,
+    )
+
+
 # ترتيب التقييم ثابت — يحدّد ترتيب التنبيهات المُولَّدة (متوقَّع في الاختبارات).
 _RULES = (
     _low_moisture,
@@ -249,6 +302,7 @@ _RULES = (
     _disease_risk,
     _heat_stress,
     _frost_risk,
+    _vegetation_stress,
 )
 
 

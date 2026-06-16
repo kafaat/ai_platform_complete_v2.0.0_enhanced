@@ -246,6 +246,59 @@ def _shape_indicator_catalog() -> dict:
     }
 
 
+# تعبيرات band-math القياسيّة (Sentinel-2) للمؤشّرات القابلة للرسم (renderable).
+# صِيَغ معياريّة معروفة لا مُلفَّقة: NIR=B8, RED=B4, GREEN=B3, REDEDGE=B5, SWIR=B11.
+# المصدر: standard band math (Sentinel-2). المؤشّر renderable بلا تعبير هنا يُدرَج
+# بـband_math=None + ملاحظة صادقة (لا اختلاق صيغة غير قياسيّة).
+_BAND_MATH: dict[str, str] = {
+    "ndvi": "(NIR-RED)/(NIR+RED)",
+    "evi": "2.5*((NIR-RED)/(NIR+6*RED-7.5*BLUE+1))",
+    "ndre": "(NIR-REDEDGE)/(NIR+REDEDGE)",
+    "msavi": "(2*NIR+1-sqrt((2*NIR+1)^2-8*(NIR-RED)))/2",
+    "savi": "((NIR-RED)/(NIR+RED+0.5))*1.5",
+    "gndvi": "(NIR-GREEN)/(NIR+GREEN)",
+    "ndwi": "(GREEN-NIR)/(GREEN+NIR)",
+    "ndmi": "(NIR-SWIR)/(NIR+SWIR)",
+}
+
+
+def _shape_map_layers() -> dict:
+    """يبني كتالوج طبقات الخريطة من _INDICATOR_CATALOG — نقيّ (لا قاعدة، لا I/O).
+
+    يرشّح المؤشّرات القابلة للرسم (renderable=True) فقط — أي ما يخدمه raster-service
+    كطبقة بلاطات/شبكة مكانيّة عبر band_math — فيقود مبدّل طبقات الخريطة في الواجهة
+    من مصدر حقيقة واحد (العلم renderable) لا قائمة مُبرمَجة. لكلّ طبقة:
+    {id, name_ar, category, unit, band_math, source}. band_math = تعبير Sentinel-2
+    القياسيّ من _BAND_MATH، أو None مع ملاحظة صادقة إن لم يُوثَّق تعبير قياسيّ
+    (لا اختلاق صيغة). region-agnostic ومصدر-صادق.
+    """
+    layers = []
+    for ind in _INDICATOR_CATALOG:
+        if not ind.get("renderable"):
+            continue
+        band_math = _BAND_MATH.get(ind["id"])
+        layer = {
+            "id": ind["id"],
+            "name_ar": ind["name_ar"],
+            "category": ind["category"],
+            "unit": ind["unit"],
+            "band_math": band_math,
+            "source": ind["source"],
+        }
+        if band_math is None:
+            layer["note_ar"] = (
+                "طبقة مكانيّة يخدمها raster-service لكن دون تعبير band-math قياسيّ "
+                "موثَّق هنا — يحدّده raster-service وقت التنفيذ (لا صيغة مُختلَقة)."
+            )
+        layers.append(layer)
+    return {
+        "total": len(layers),
+        "layers": layers,
+        "note_ar": "طبقات الخريطة = المؤشّرات القابلة للرسم (renderable) فقط — "
+        "تعبيرات band-math قياسيّة (Sentinel-2). مصدر حقيقة واحد يقود مبدّل الطبقات.",
+    }
+
+
 def _shape_indicators_dashboard(
     *,
     fields_rows,

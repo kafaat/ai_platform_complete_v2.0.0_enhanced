@@ -14,6 +14,8 @@ from api.alert_rules import (
     HEAVY_RAIN_MM,
     LOW_MOISTURE_IRRIGATION_MM,
     LOW_MOISTURE_SOIL_PCT,
+    NDVI_DROP_CRITICAL,
+    NDVI_DROP_WARN,
     FieldAlertContext,
     evaluate_field_alerts,
 )
@@ -190,6 +192,74 @@ class TestFrostRisk:
         assert _by_type(ctx).get("frost_risk") == "critical"
 
 
+class TestVegetationStress:
+    _BASELINE = 0.70
+
+    def test_no_ndvi_values_fires_nothing(self):
+        # توافق خلفيّ: الافتراض None ⇒ لا تنبيه إجهاد غطاء نباتيّ.
+        assert "vegetation_stress" not in _types(FieldAlertContext(field_id=FID))
+
+    def test_baseline_only_does_not_fire(self):
+        ctx = FieldAlertContext(field_id=FID, ndvi_baseline=self._BASELINE)
+        assert "vegetation_stress" not in _types(ctx)
+
+    def test_current_only_does_not_fire(self):
+        ctx = FieldAlertContext(field_id=FID, ndvi_current=0.40)
+        assert "vegetation_stress" not in _types(ctx)
+
+    def test_warning_on_moderate_drop(self):
+        # هبوط ٠٫١٥ (بين عتبة التحذير والحرجة) ⇒ warning.
+        ctx = FieldAlertContext(field_id=FID, ndvi_baseline=0.70, ndvi_current=0.55)
+        assert _by_type(ctx).get("vegetation_stress") == "warning"
+
+    def test_critical_on_large_drop(self):
+        # هبوط ٠٫٢٥ (≥ العتبة الحرجة) ⇒ critical.
+        ctx = FieldAlertContext(field_id=FID, ndvi_baseline=0.70, ndvi_current=0.45)
+        assert _by_type(ctx).get("vegetation_stress") == "critical"
+
+    def test_drop_below_warn_does_not_fire(self):
+        small = NDVI_DROP_WARN / 2
+        ctx = FieldAlertContext(
+            field_id=FID, ndvi_baseline=self._BASELINE, ndvi_current=self._BASELINE - small
+        )
+        assert "vegetation_stress" not in _types(ctx)
+
+    def test_drop_just_above_warn_fires_warning(self):
+        # هبوط فوق عتبة التحذير بقليل ⇒ warning (العتبة شاملة: drop >= WARN).
+        ctx = FieldAlertContext(
+            field_id=FID,
+            ndvi_baseline=self._BASELINE,
+            ndvi_current=self._BASELINE - (NDVI_DROP_WARN + 0.01),
+        )
+        assert _by_type(ctx).get("vegetation_stress") == "warning"
+
+    def test_warning_escalates_to_critical_at_flowering(self):
+        warn = (NDVI_DROP_WARN + NDVI_DROP_CRITICAL) / 2
+        ctx = FieldAlertContext(
+            field_id=FID,
+            ndvi_baseline=self._BASELINE,
+            ndvi_current=self._BASELINE - warn,
+            growth_stage="mid",
+        )
+        assert _by_type(ctx).get("vegetation_stress") == "critical"
+
+    def test_warning_unchanged_on_initial_stage(self):
+        warn = (NDVI_DROP_WARN + NDVI_DROP_CRITICAL) / 2
+        ctx = FieldAlertContext(
+            field_id=FID,
+            ndvi_baseline=self._BASELINE,
+            ndvi_current=self._BASELINE - warn,
+            growth_stage="initial",
+        )
+        assert _by_type(ctx).get("vegetation_stress") == "warning"
+
+    def test_message_frames_drop_as_scouting_trigger(self):
+        ctx = FieldAlertContext(field_id=FID, ndvi_baseline=0.70, ndvi_current=0.55)
+        alert = next(a for a in evaluate_field_alerts(ctx) if a.alert_type == "vegetation_stress")
+        assert "كشف" in alert.message_ar
+        assert "تشخيص" in alert.message_ar
+
+
 class TestMultipleRules:
     def test_multiple_alerts_fire_in_stable_order(self):
         # رطوبة منخفضة + إجهاد حراريّ معاً.
@@ -201,6 +271,19 @@ class TestMultipleRules:
         result = evaluate_field_alerts(ctx)
         ordered = [a.alert_type for a in result]
         assert ordered == ["low_moisture", "heat_stress"]
+
+    def test_vegetation_stress_appended_after_existing_rules(self):
+        # رطوبة منخفضة + إجهاد حراريّ + هبوط NDVI ⇒ الترتيب يُحافظ على القواعد
+        # السابقة ثمّ يُلحق vegetation_stress في النهاية (_RULES order).
+        ctx = FieldAlertContext(
+            field_id=FID,
+            soil_moisture_pct=10.0,
+            tmax_c=HEAT_STRESS_TMAX_C + 5,
+            ndvi_baseline=0.70,
+            ndvi_current=0.55,
+        )
+        ordered = [a.alert_type for a in evaluate_field_alerts(ctx)]
+        assert ordered == ["low_moisture", "heat_stress", "vegetation_stress"]
 
     def test_each_alert_has_arabic_title_and_message(self):
         ctx = FieldAlertContext(field_id=FID, forecast_rain_mm=HEAVY_RAIN_MM + 1)
