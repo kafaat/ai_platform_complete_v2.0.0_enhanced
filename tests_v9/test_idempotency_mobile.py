@@ -169,3 +169,27 @@ def test_update_field_wires_idempotency():
     assert "_idempotent(" in body, "update_field لا يستدعي _idempotent"
     assert "CommandStore(" in body
     assert '"field.update"' in body or "'field.update'" in body, "نوع أمر field.update مفقود"
+
+
+# توحيد مسار كتابة الكيانات: نقاط الإنشاء/الإدراج التي كانت بلا idempotency أصبحت
+# تمرّ عبر _idempotent (نفس آليّة create_activity المُختبَرة) — إعادة الموبايل
+# (offline) لا تُكرّر الإدراج. (handler, command_type) لكلّ نقطة.
+_IDEMPOTENT_WRITE_HANDLERS = [
+    ("create_farm", "farm.create"),
+    ("create_equipment", "equipment.create"),
+    ("log_maintenance", "equipment.maintenance.log"),
+    ("create_inventory_item", "inventory.item.create"),
+    ("add_inventory_batch", "inventory.batch.add"),
+    ("register_document", "document.register"),
+]
+
+
+@pytest.mark.parametrize("handler,command_type", _IDEMPOTENT_WRITE_HANDLERS)
+def test_write_endpoint_wires_idempotency(handler, command_type):
+    body = _handler_src(handler)
+    assert "Depends(_idem_key)" in body, f"{handler} لا يقبل مفتاح idempotency"
+    assert "_idempotent(" in body, f"{handler} لا يستدعي _idempotent"
+    assert "CommandStore(" in body, f"{handler} لا يبني CommandStore"
+    assert f'"{command_type}"' in body or f"'{command_type}'" in body, (
+        f"{handler}: نوع أمر {command_type} مفقود"
+    )

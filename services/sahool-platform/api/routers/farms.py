@@ -16,11 +16,15 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
+    CommandStore,
     FarmCreateRequest,
     Permission,
     UserSchema,
     _db_unavailable,
     _emit_domain_event,
+    _idem_key,
+    _idempotent,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -31,49 +35,70 @@ router = APIRouter()
 @router.post("/api/v1/farms", status_code=201)
 async def create_farm(
     req: FarmCreateRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.FARM_CREATE)),
 ):
-    """ينشئ مزرعة جديدة (أب الحقول). مُبوّب بصلاحية farm:create."""
+    """ينشئ مزرعة جديدة (أب الحقول). مُبوّب بصلاحية farm:create. idempotent:
+    Idempotency-Key (UUID) يمنع تكرار الإدراج عند إعادة الموبايل (offline)."""
     import uuid as _uuid
 
     farm_id = "frm_" + _uuid.uuid4().hex[:12]
     try:
         async with tenant_connection(user) as conn:
-            await conn.execute(
-                """INSERT INTO farms
-                    (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon,
-                     country, region, timezone, units, currency, description, activity_type)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)""",
-                farm_id,
-                str(user.tenant_id),
-                req.name,
-                req.location,
-                req.area_ha,
-                req.centroid_lat,
-                req.centroid_lon,
-                req.country,
-                req.region,
-                req.timezone,
-                req.units,
-                req.currency,
-                req.description,
-                req.activity_type,
-            )
-            # حدث إنشاء المزرعة (معلَم تأهيل): يُمكّن مستهلكي الأحداث من التفاعل
-            # (إشعار/تهيئة لاحقة). نفس المعاملة (outbox) — فشل الإصدار لا يكسر الحفظ.
-            await _emit_domain_event(
-                conn,
-                user,
-                "FARM_CREATED",
-                "farm",
-                farm_id,
-                {"name": req.name, "region": req.region},
-            )
+
+            async def _work():
+                await conn.execute(
+                    """INSERT INTO farms
+                        (farm_id, tenant_id, name, location, area_ha, centroid_lat, centroid_lon,
+                         country, region, timezone, units, currency, description, activity_type)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)""",
+                    farm_id,
+                    str(user.tenant_id),
+                    req.name,
+                    req.location,
+                    req.area_ha,
+                    req.centroid_lat,
+                    req.centroid_lon,
+                    req.country,
+                    req.region,
+                    req.timezone,
+                    req.units,
+                    req.currency,
+                    req.description,
+                    req.activity_type,
+                )
+                # حدث إنشاء المزرعة (معلَم تأهيل): يُمكّن مستهلكي الأحداث من التفاعل
+                # (إشعار/تهيئة لاحقة). نفس المعاملة (outbox) — فشل الإصدار لا يكسر الحفظ.
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "FARM_CREATED",
+                    "farm",
+                    farm_id,
+                    {"name": req.name, "region": req.region},
+                )
+                # نُعيد JSON ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً عند الإعادة
+                # (مع حفظ farm_id الأصليّ) — قيم نصّيّة بحتة (قابلة للتسلسل).
+                return {"farm_id": farm_id, "name": req.name, "message_ar": "أُنشئت المزرعة"}
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="farm.create",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"farm_id": farm_id, "name": req.name},
+                )
+            else:
+                result = await _work()
     except HTTPException:
         raise  # get_pool() يرفع 503 أصلاً — مرّره كما هو
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 موثَّق لا 500
         raise _db_unavailable("حفظ المزرعة", e) from e
-    return {"farm_id": farm_id, "name": req.name, "message_ar": "أُنشئت المزرعة"}
+    return result
 
 
 @router.get("/api/v1/farms")
