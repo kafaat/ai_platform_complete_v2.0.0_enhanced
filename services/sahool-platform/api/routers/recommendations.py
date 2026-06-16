@@ -24,12 +24,16 @@ from fastapi.responses import JSONResponse
 # بعد نقل دالّتي التوصية).
 from api.field_models import FieldRecommendationRequest
 from api.main import (
+    CommandStore,
     OutcomeRecordRequest,
     Permission,
     RecommendationRequest,
     UserSchema,
     _db_unavailable,
+    _idem_key,
+    _idempotent,
     _resolve_recommendation_policy,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -254,6 +258,7 @@ def generate_crop_candidates(
 @router.post("/api/v1/recommendations/outcomes", status_code=201)
 async def record_recommendation_outcome(
     req: OutcomeRecordRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ):
     """يسجّل نتيجة توصية (توقّع/فعليّ + قبول/نضج) — مسار الكتابة لحلقة التعلّم (v49).
@@ -269,27 +274,46 @@ async def record_recommendation_outcome(
         )
     try:
         async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(
-                """INSERT INTO recommendation_outcomes
-                       (tenant_id, field_id, farm_id, season_id, crop, recommendation_id,
-                        predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag,
-                        outcome_recorded_at)
-                   VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
-                           CASE WHEN $8 IS NOT NULL THEN now() ELSE NULL END)
-                   RETURNING outcome_id""",
-                str(getattr(user, "tenant_id", "")),
-                req.field_id,
-                req.farm_id,
-                req.season_id,
-                req.crop,
-                req.recommendation_id,
-                req.predicted_yield_t_ha,
-                req.actual_yield_t_ha,
-                req.accepted,
-                req.matured_within_lag,
-            )
+
+            async def _work():
+                row = await conn.fetchrow(
+                    """INSERT INTO recommendation_outcomes
+                           (tenant_id, field_id, farm_id, season_id, crop, recommendation_id,
+                            predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag,
+                            outcome_recorded_at)
+                       VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                               CASE WHEN $8 IS NOT NULL THEN now() ELSE NULL END)
+                       RETURNING outcome_id""",
+                    str(getattr(user, "tenant_id", "")),
+                    req.field_id,
+                    req.farm_id,
+                    req.season_id,
+                    req.crop,
+                    req.recommendation_id,
+                    req.predicted_yield_t_ha,
+                    req.actual_yield_t_ha,
+                    req.accepted,
+                    req.matured_within_lag,
+                )
+                # نُعيد النتيجة لتُخزَّن كنتيجة أمر idempotent وتُعاد حرفيّاً عند الإعادة
+                # (مع حفظ outcome_id الأصليّ) — قيم قابلة للتسلسل.
+                return {"outcome_id": row["outcome_id"], "recorded": True}
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر الإدراج)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="recommendation.outcome.record",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": req.field_id, "crop": req.crop},
+                )
+            else:
+                result = await _work()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("تسجيل نتيجة التوصية", e) from e
-    return {"outcome_id": row["outcome_id"], "recorded": True}
+    return result

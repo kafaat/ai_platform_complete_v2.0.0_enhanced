@@ -181,6 +181,13 @@ _IDEMPOTENT_WRITE_HANDLERS = [
     ("create_inventory_item", "inventory.item.create"),
     ("add_inventory_batch", "inventory.batch.add"),
     ("register_document", "document.register"),
+    # الدفعة الثانية — نقاط إنشاء إضافيّة
+    ("register_device", "device.create"),
+    ("create_harvest_lot", "harvest_lot.create"),
+    ("add_custody_event", "custody.event.add"),
+    ("create_master_data", "master_data.create"),
+    ("submit_onboarding", "onboarding.submit"),
+    ("record_recommendation_outcome", "recommendation.outcome.record"),
 ]
 
 
