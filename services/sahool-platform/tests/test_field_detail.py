@@ -7,7 +7,7 @@
 """
 
 import pytest
-from api.main import (
+from api.field_models import (
     _FIELD_ADVANCED_COLUMNS,
     FieldDetail,
     FieldUpdateRequest,

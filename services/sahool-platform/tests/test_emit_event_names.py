@@ -1,8 +1,10 @@
-"""حارس انحدار: أسماء الأحداث المُمرَّرة لـ_emit_domain_event في main.py صالحة.
+"""حارس انحدار: أسماء الأحداث المُمرَّرة لـ_emit_domain_event صالحة (main + الراوترات).
 
 بعد نقل بحث EventType[name] خارج الـtry (لم يعد يُبتلَع)، اسم حدث مُخطئ يرفع KeyError
 وقت التشغيل. هذا الحارس يكشف أيّ اسم غير موجود في EventType **قبل** النشر (لا أحداث
-مفقودة صامتة ولا 500 مفاجئ). يستخرج وسائط _emit_domain_event الحرفيّة من main.py.
+مفقودة صامتة ولا 500 مفاجئ). يستخرج وسائط _emit_domain_event الحرفيّة من main.py
+وكلّ ملفّات api/routers/ (تفكيك B1/P0 نقل معظم نقاط الإصدار إلى الراوترات — مثل نقل
+_persist_field FIELD_CREATED/FIELD_STATE_CHANGED إلى routers/fields).
 
 ملاحظة (سبب التشديد): الإصدار السابق التقط فقط `[A-Z_]+`، فكان يتخطّى بصمت السلاسل
 الحرفيّة منخفضة الحالة المنقّطة (مثل "irrigation.valve.registered") — وهي بالضبط
@@ -15,22 +17,26 @@ from pathlib import Path
 
 from api.event_bus import EventType
 
-_MAIN = Path(__file__).resolve().parent.parent / "api" / "main.py"
+_API_DIR = Path(__file__).resolve().parent.parent / "api"
+# مصادر الإصدار: الوحدة المركزيّة + كلّ الراوترات (نقاط الإصدار انتقلت إليها).
+_EMIT_SOURCES = [_API_DIR / "main.py", *sorted((_API_DIR / "routers").glob("*.py"))]
 
 
 def _emitted_event_names() -> set[str]:
     """يلتقط الوسيط الثالث (اسم الحدث) من نداءات _emit_domain_event(conn, user, "NAME", ...).
 
-    يلتقط **أيّ** سلسلة حرفيّة (لا أسماء كبيرة فقط) حتى تُكشَف السلاسل المنقّطة
-    منخفضة الحالة التي كانت تُسقِط الكتابة بـKeyError بدل أن تُتخطّى بصمت.
+    يمسح main.py وكلّ ملفّات api/routers/. يلتقط **أيّ** سلسلة حرفيّة (لا أسماء كبيرة
+    فقط) حتى تُكشَف السلاسل المنقّطة منخفضة الحالة التي كانت تُسقِط الكتابة بـKeyError.
     """
-    src = _MAIN.read_text(encoding="utf-8")
     # _emit_domain_event(\n conn,\n user,\n "<أيّ سلسلة>", ...
     pattern = re.compile(
         r"_emit_domain_event\(\s*conn\s*,\s*user\s*,\s*\"([^\"]+)\"",
         re.MULTILINE,
     )
-    return set(pattern.findall(src))
+    names: set[str] = set()
+    for src_path in _EMIT_SOURCES:
+        names.update(pattern.findall(src_path.read_text(encoding="utf-8")))
+    return names
 
 
 def test_all_emitted_event_names_are_valid_eventtype_members():
