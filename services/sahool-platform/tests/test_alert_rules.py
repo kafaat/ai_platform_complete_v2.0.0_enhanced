@@ -117,6 +117,65 @@ class TestHeatStress:
         assert _by_type(ctx).get("heat_stress") == "critical"
 
 
+class TestGrowthStageEscalation:
+    # tmax بين عتبة التحذير والعتبة الحرجة ⇒ عادةً "warning".
+    _WARN_TMAX = (HEAT_STRESS_TMAX_C + HEAT_STRESS_CRITICAL_TMAX_C) / 2
+
+    def test_heat_warning_escalates_to_critical_at_flowering(self):
+        ctx = FieldAlertContext(field_id=FID, tmax_c=self._WARN_TMAX, growth_stage="mid")
+        assert _by_type(ctx).get("heat_stress") == "critical"
+
+    def test_heat_warning_unchanged_when_stage_unknown(self):
+        # نفس الحرارة بلا طور معروف ⇒ يبقى "warning" (توافق خلفيّ).
+        ctx = FieldAlertContext(field_id=FID, tmax_c=self._WARN_TMAX, growth_stage=None)
+        assert _by_type(ctx).get("heat_stress") == "warning"
+
+    def test_heat_warning_not_escalated_on_vegetative_stages(self):
+        for stage in ("initial", "development", "late"):
+            ctx = FieldAlertContext(field_id=FID, tmax_c=self._WARN_TMAX, growth_stage=stage)
+            assert _by_type(ctx).get("heat_stress") == "warning"
+
+    def test_heat_already_critical_stays_critical_regardless_of_stage(self):
+        hot = HEAT_STRESS_CRITICAL_TMAX_C + 3
+        for stage in ("mid", "initial", None):
+            ctx = FieldAlertContext(field_id=FID, tmax_c=hot, growth_stage=stage)
+            assert _by_type(ctx).get("heat_stress") == "critical"
+
+    def test_heat_flowering_message_notes_flowering(self):
+        ctx = FieldAlertContext(field_id=FID, tmax_c=self._WARN_TMAX, growth_stage="mid")
+        alert = next(a for a in evaluate_field_alerts(ctx) if a.alert_type == "heat_stress")
+        assert "التزهير" in alert.message_ar
+
+    def test_low_moisture_warning_escalates_to_critical_at_flowering(self):
+        ctx = FieldAlertContext(
+            field_id=FID,
+            soil_moisture_pct=LOW_MOISTURE_SOIL_PCT - 5,
+            growth_stage="mid",
+        )
+        assert _by_type(ctx).get("low_moisture") == "critical"
+
+    def test_low_moisture_warning_unchanged_on_initial_stage(self):
+        ctx = FieldAlertContext(
+            field_id=FID,
+            soil_moisture_pct=LOW_MOISTURE_SOIL_PCT - 5,
+            growth_stage="initial",
+        )
+        assert _by_type(ctx).get("low_moisture") == "warning"
+
+    def test_low_moisture_warning_unchanged_when_stage_unknown(self):
+        ctx = FieldAlertContext(field_id=FID, soil_moisture_pct=LOW_MOISTURE_SOIL_PCT - 5)
+        assert _by_type(ctx).get("low_moisture") == "warning"
+
+    def test_low_moisture_flowering_message_notes_flowering(self):
+        ctx = FieldAlertContext(
+            field_id=FID,
+            soil_moisture_pct=LOW_MOISTURE_SOIL_PCT - 5,
+            growth_stage="mid",
+        )
+        alert = next(a for a in evaluate_field_alerts(ctx) if a.alert_type == "low_moisture")
+        assert "التزهير" in alert.message_ar
+
+
 class TestFrostRisk:
     def test_fires_below_threshold(self):
         ctx = FieldAlertContext(field_id=FID, tmin_c=FROST_RISK_TMIN_C - 1)

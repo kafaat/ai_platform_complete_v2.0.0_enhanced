@@ -77,6 +77,45 @@ class TestIrrigationAdvice:
         assert r["recommended_mm"] == 0.0
 
 
+class TestPhenologyKcOverride:
+    """Kc الفينولوجي الدقيق (FAO-56) عبر kc_override — متوافق رجعيّاً."""
+
+    def test_without_override_is_backward_compatible(self):
+        # بلا override: السلوك مطابق للمسار القديم المعتمِد على المرحلة.
+        r = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", rain_recent_mm=0.0)
+        # snapshot لحقول أساسيّة (ET0=6, Kc(wheat,mid)=1.15 ⇒ ETc=6.9).
+        assert r["kc"] == 1.15
+        assert r["kc_used"] == 1.15
+        assert r["recommended_mm"] == 6.9
+        assert r["urgency"] == "moderate"
+        # المصدر يظلّ الوسم المعتمِد على المرحلة (عربيّ FAO-56)، لا الفينولوجي.
+        assert r["kc_source"] != "phenology_fao56"
+        assert "FAO-56" in r["kc_source"]
+
+    def test_none_override_keeps_stage_based_source(self):
+        r = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", kc_override=None)
+        assert r["kc_source"] != "phenology_fao56"
+        assert r["kc"] == KC_BY_CROP_STAGE["wheat"]["mid"]
+
+    def test_override_scales_etc_higher_than_low_override(self):
+        # نفس ET0/المدخلات: Kc أعلى ⇒ ETc أعلى ⇒ ريّ موصى به أكبر.
+        high = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", kc_override=1.15)
+        low = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", kc_override=0.40)
+        assert high["recommended_mm"] > low["recommended_mm"]
+
+    def test_override_sets_kc_used_and_source(self):
+        r = irrigation_advice(et0_mm=6.0, crop="wheat", stage="mid", kc_override=1.15)
+        assert r["kc_used"] == 1.15
+        assert r["kc"] == 1.15
+        assert r["kc_source"] == "phenology_fao56"
+
+    def test_override_ignores_stage_derivation(self):
+        # المرحلة "initial" تعطي Kc منخفضاً عادةً، لكن الـoverride يتجاوزها.
+        r = irrigation_advice(et0_mm=6.0, crop="wheat", stage="initial", kc_override=1.20)
+        assert r["kc_used"] == 1.20
+        assert r["kc_source"] == "phenology_fao56"
+
+
 class TestDiseaseRisk:
     def test_returns_required_keys(self):
         r = disease_risk(temp_c=22.0, humidity_pct=85.0, rain_mm_3d=12.0)

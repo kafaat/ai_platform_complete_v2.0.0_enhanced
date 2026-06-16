@@ -943,13 +943,19 @@ def _growth_stage(days_since_sowing: int | None) -> str:
     return "late"
 
 
-async def _field_weather_context(conn, field_id: str) -> tuple[float, float, str | None, str]:
-    """يجلب (lat, lon, crop, stage) للحقل + موسمه النشط بعد تأكيد المُستأجِر (404).
+async def _field_weather_context(
+    conn, field_id: str
+) -> tuple[float, float, str | None, str, int | None]:
+    """يجلب (lat, lon, crop, stage, days_since_sowing) للحقل + موسمه النشط (404).
 
     المحصول من الموسم النشط (أحدث active) إن وُجد، وإلّا من عمود fields.crop.
-    المرحلة من sowing_date للموسم النشط إن توفّر، وإلّا 'mid'.
+    المرحلة خاصّة بالمحصول من بطاقته (phenology عبر season_phenology) إن توفّرت
+    وتاريخ البذار معروف، وإلّا التقدير العامّ _growth_stage، وإلّا 'mid'.
+    days_since_sowing عمر المحصول (لـKc الطوريّ) أو None إن غاب تاريخ البذار.
     يرفع 404 إن غاب الحقل، و422 إن لم تتوفّر إحداثيّات الحقل (الطقس يحتاجها).
     """
+    from core.season_phenology import current_stage, resolve_crop_id
+
     row = await conn.fetchrow("SELECT lat, lon, crop FROM fields WHERE field_id = $1", field_id)
     if row is None:
         raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
@@ -965,6 +971,7 @@ async def _field_weather_context(conn, field_id: str) -> tuple[float, float, str
     )
     crop: str | None = row["crop"]
     stage = "mid"
+    days_since_sowing: int | None = None
     if season is not None:
         import json as _json
 
@@ -977,9 +984,11 @@ async def _field_weather_context(conn, field_id: str) -> tuple[float, float, str
         if isinstance(crops, list) and crops:
             crop = str(crops[0])
         if season["sowing_date"] is not None:
-            days = (date.today() - season["sowing_date"]).days
-            stage = _growth_stage(days)
-    return float(row["lat"]), float(row["lon"]), crop, stage
+            days_since_sowing = (date.today() - season["sowing_date"]).days
+            # مرحلة خاصّة بالمحصول من بطاقته إن وُجدت phenology، وإلّا التقدير العامّ.
+            _ph = current_stage(resolve_crop_id(crop), days_since_sowing)
+            stage = _ph["stage"] if _ph else _growth_stage(days_since_sowing)
+    return float(row["lat"]), float(row["lon"]), crop, stage, days_since_sowing
 
 
 async def _latest_soil_moisture(conn, field_id: str):
@@ -1553,7 +1562,7 @@ async def _evaluate_field_alerts_persist(
     alert_policy = None
     try:
         async with tenant_connection(user) as conn:
-            lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+            lat, lon, crop, stage, days_since_sowing = await _field_weather_context(conn, field_id)
             # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي قاعدة low_moisture.
             soil_reading = await _latest_soil_moisture(conn, field_id)
             try:
@@ -1591,7 +1600,12 @@ async def _evaluate_field_alerts_persist(
     # احتياج الريّ الصافي (FAO-56) — يُستخدم لقاعدة low_moisture حين لا قراءة تربة.
     irrigation_need_mm: float | None = None
     if today is not None and today.et0_mm is not None:
+        from core.season_phenology import resolve_crop_id, stage_kc
+
         forecast_rain_48h = sum(f.precipitation_mm or 0.0 for f in forecast[1:3])
+        # Kc طوريّ (FAO-56) من بطاقة المحصول إن توفّرت phenology وعمر المحصول — أدقّ
+        # من اشتقاق المرحلة الخشن داخل irrigation_advice؛ None ⇒ سلوك ثابت (رجعيّ).
+        kc_phen = stage_kc(resolve_crop_id(crop), days_since_sowing)
         advice = irrigation_advice(
             et0_mm=today.et0_mm,
             crop=crop,
@@ -1599,6 +1613,7 @@ async def _evaluate_field_alerts_persist(
             rain_recent_mm=current.precipitation_mm or 0.0,
             forecast_rain_mm=forecast_rain_48h,
             soil_moisture_pct=soil_pct,
+            kc_override=kc_phen,
         )
         irrigation_need_mm = advice.get("recommended_mm")
 
@@ -1616,6 +1631,7 @@ async def _evaluate_field_alerts_persist(
         tmax_c=today.temp_max_c if today is not None else None,
         tmin_c=today.temp_min_c if today is not None else None,
         crop=crop,
+        growth_stage=stage,  # طور خاصّ بالمحصول ⇒ تصعيد الإجهاد عند التزهير (mid)
     )
     # نمرّر عتبات المستأجِر (أو الافتراضات حين لا سياسة). thresholds_from_policy(None)
     # == AlertThresholds() ⇒ مسار «لا سياسة» مطابق تماماً للسلوك السابق.
@@ -2935,6 +2951,7 @@ from api.routers.observations import router as observations_router  # noqa: E402
 from api.routers.onboarding import router as onboarding_router  # noqa: E402
 from api.routers.orchard import router as orchard_router  # noqa: E402
 from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
+from api.routers.phenology import router as phenology_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
@@ -3074,3 +3091,4 @@ app.include_router(edge_router)
 app.include_router(field_intelligence_router)
 app.include_router(pest_escalation_router)
 app.include_router(crop_cards_router)
+app.include_router(phenology_router)

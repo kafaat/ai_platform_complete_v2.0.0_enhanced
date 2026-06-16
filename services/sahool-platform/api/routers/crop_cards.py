@@ -8,6 +8,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from core.crop_cards.loader import (
     list_crop_cards,
     list_variety_cards,
@@ -15,7 +17,12 @@ from core.crop_cards.loader import (
     load_variety_card,
     varieties_of_crop,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from core.variety_suitability import (
+    expected_harvest,
+    salinity_suitability,
+    variety_disease_watch,
+)
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api.main import Permission, UserSchema, require_permission
 
@@ -69,3 +76,45 @@ async def variety_card_detail(
     if card is None:
         raise HTTPException(status_code=404, detail="بطاقة الصنف غير موجودة")
     return card
+
+
+# ─── دعم القرار الواعي بالصنف (variety_suitability) — حساب لكلّ حقل ──────────
+@router.get("/api/v1/crop-cards/variety/{variety_id}/salinity-suitability")
+async def variety_salinity_suitability(
+    variety_id: str,
+    ece: float = Query(description="ملوحة التربة/الماء المقيسة ECe (dS/m)"),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """ملاءمة ملوحة حقل لصنف: عتبة الصنف (عتبة المحصول + معامل تحمّل الصنف) مقابل
+    القياس + خسارة الغلّة المتوقّعة (Maas-Hoffman). 404 إن جُهِل الصنف."""
+    if load_variety_card(variety_id) is None:
+        raise HTTPException(status_code=404, detail="بطاقة الصنف غير موجودة")
+    return salinity_suitability(variety_id, ece)
+
+
+@router.get("/api/v1/crop-cards/variety/{variety_id}/expected-harvest")
+async def variety_expected_harvest(
+    variety_id: str,
+    sowing_date: str = Query(description="تاريخ البذار ISO (YYYY-MM-DD)"),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """تواريخ التزهير/الحصاد المتوقّعة للصنف من تاريخ بذار + أيّام النضج (phenology).
+    404 إن جُهِل الصنف، 422 على تاريخ غير صالح."""
+    if load_variety_card(variety_id) is None:
+        raise HTTPException(status_code=404, detail="بطاقة الصنف غير موجودة")
+    try:
+        sow = date.fromisoformat(sowing_date.strip())
+    except (ValueError, AttributeError) as e:
+        raise HTTPException(status_code=422, detail="تاريخ بذار غير صالح (YYYY-MM-DD)") from e
+    return expected_harvest(variety_id, sow)
+
+
+@router.get("/api/v1/crop-cards/variety/{variety_id}/disease-watch")
+async def variety_disease_watch_endpoint(
+    variety_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مقاومات الصنف المُوثَّقة + إرشاد المسح الميدانيّ. 404 إن جُهِل الصنف."""
+    if load_variety_card(variety_id) is None:
+        raise HTTPException(status_code=404, detail="بطاقة الصنف غير موجودة")
+    return variety_disease_watch(variety_id)

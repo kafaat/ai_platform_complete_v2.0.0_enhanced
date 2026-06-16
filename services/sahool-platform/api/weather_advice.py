@@ -51,6 +51,7 @@ def irrigation_advice(
     rain_recent_mm: float = 0.0,
     forecast_rain_mm: float = 0.0,
     soil_moisture_pct: float | None = None,
+    kc_override: float | None = None,
 ) -> dict:
     """توصية ريّ بنمط FAO-56 — دالّة نقيّة (تُختبَر offline).
 
@@ -60,6 +61,14 @@ def irrigation_advice(
       المطر المتوقّع (forecast_rain_mm) لا يدخل في الكمّيّة — يُستخدم فقط لخفض
       الإلحاح/تأخير الريّ (لتفادي خصم مطر قد لا يهطل). رطوبة التربة تضبط الإلحاح.
 
+    مصدر Kc:
+      افتراضيّاً يُشتقّ Kc من (المحصول، المرحلة) عبر resolve_kc (جدول FAO-56
+      الخشِن على مستوى المرحلة). عند تمرير kc_override نُفضّله ونستخدمه مباشرةً
+      بوصفه معامل المحصول — وهو Kc الدقيق المحسوب من فينولوجيا المحصول حسب العمر
+      (FAO-56 phenology-stage، عبر النواة: season_phenology.stage_kc). في هذه
+      الحالة يدخل الـoverride في كلّ ما يليه (ETc = ET₀ × Kc، recommended_mm…).
+      حين يكون kc_override = None يبقى السلوك مطابقاً تماماً للمسار القديم.
+
     Args:
         et0_mm: التبخّر-نتح المرجعي اليومي (mm) — من Open-Meteo (FAO-56).
         crop: المحصول (lowercase). None/غير مُعرّف ⇒ منحنى Kc عامّ.
@@ -67,13 +76,22 @@ def irrigation_advice(
         rain_recent_mm: مطر فعليّ في النافذة الأخيرة (mm).
         forecast_rain_mm: مطر متوقّع خلال ٤٨ ساعة القادمة (mm) — يؤخّر الريّ.
         soil_moisture_pct: رطوبة التربة المتاحة % (اختياري) — يضبط الإلحاح.
+        kc_override: معامل المحصول Kc الدقيق من الفينولوجيا (FAO-56 حسب العمر).
+            عند تمريره يُستخدم بدل اشتقاق (المحصول، المرحلة). None ⇒ المسار القديم.
 
     Returns:
-        {recommended_mm, urgency, timing_ar, et0, kc, rationale_ar}
+        {recommended_mm, urgency, timing_ar, et0, kc, kc_used, kc_source,
+         rationale_ar}
         urgency ∈ {none, low, moderate, high}
+        kc_used: قيمة Kc المستخدمة فعليّاً في الحساب.
+        kc_source: مصدرها — "phenology_fao56" عند تمرير kc_override، وإلّا الوسم
+        المعتمِد على المرحلة من resolve_kc.
     """
     et0 = max(0.0, float(et0_mm))
     kc, _known, kc_source = resolve_kc(crop, stage)
+    if kc_override is not None:
+        kc = float(kc_override)
+        kc_source = "phenology_fao56"
     etc = et0 * kc
     # المطر الفعّال من المطر الأخير (USDA-SCS مبسّط، مُعاد استخدامه).
     eff_rain = _effective_rain(max(0.0, rain_recent_mm))
@@ -137,6 +155,8 @@ def irrigation_advice(
         "timing_ar": timing_ar,
         "et0": round(et0, 2),
         "kc": round(kc, 2),
+        "kc_used": round(kc, 2),
+        "kc_source": kc_source,
         "rationale_ar": rationale_ar,
     }
 
