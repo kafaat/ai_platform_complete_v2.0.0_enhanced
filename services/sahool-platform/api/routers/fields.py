@@ -1067,7 +1067,7 @@ async def field_irrigation_advice(
 
     try:
         async with tenant_connection(user) as conn:
-            lat, lon, crop, stage = await _field_weather_context(conn, field_id)
+            lat, lon, crop, stage, _days = await _field_weather_context(conn, field_id)
             # رطوبة تربة حيّة من telemetry الأجهزة (إن وُجدت) — تُغذّي إلحاح التوصية.
             soil_reading = await _latest_soil_moisture(conn, field_id)
     except HTTPException:
@@ -1134,7 +1134,7 @@ async def field_disease_risk(
 
     try:
         async with tenant_connection(user) as conn:
-            lat, lon, crop, _stage = await _field_weather_context(conn, field_id)
+            lat, lon, crop, _stage, _days = await _field_weather_context(conn, field_id)
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
