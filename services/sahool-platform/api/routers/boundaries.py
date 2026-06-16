@@ -15,11 +15,13 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.main import (
+from api.boundary_models import (
     _BOUNDARY_REVIEW_STATES,
     BoundaryCleanRequest,
     BoundaryReviewRequest,
     BoundaryScoreRequest,
+)
+from api.main import (
     Permission,
     UserSchema,
     _db_unavailable,
