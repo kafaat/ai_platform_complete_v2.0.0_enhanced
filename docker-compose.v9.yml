@@ -5,8 +5,6 @@
 # التاريخ: 2026-05-20
 # ═══════════════════════════════════════════════════════════════════
 
-version: "3.8"
-
 # ── دوران السجلّات الموحّد (يمنع امتلاء القرص بالسجلّات) — *default_logging ──
 x-logging: &default_logging
   driver: json-file
@@ -552,8 +550,8 @@ services:
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
       SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
       SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
-      COPERNICUS_USER: ${COPERNICUS_USER}
-      COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD}
+      COPERNICUS_USER: ${COPERNICUS_USER:-}
+      COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD:-}
     depends_on:
       sahool-nats:
         condition: service_healthy
