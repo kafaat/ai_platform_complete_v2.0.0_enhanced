@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import NotificationSettingsPage from './NotificationSettingsPage';
-import { useAllServicesHealth } from '../hooks/useApi';
+import { useAllServicesHealth, type ServiceHealth } from '../hooks/useApi';
 import { wsService } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
@@ -193,8 +193,10 @@ export default function SettingsPage() {
                 <Loader2 className="w-5 h-5 text-emerald-500 animate-spin" />
               </div>
             ) : (
-              (services || []).map((svc: any, i: number) => {
-                const ok = svc.status === 'ok' || svc.status === 'ready' || svc.status === 'alive';
+              (services || []).map((svc: ServiceHealth, i: number) => {
+                // ServiceHealth.status ∈ {'ok','error','unknown'} (checkAll يصدر ok/error فقط)؛
+                // 'ready'/'alive' كانتا شرطين ميّتين لا يتحقّقان أبداً — أُزيلتا.
+                const ok = svc.status === 'ok';
                 return (
                   <div key={i} className="flex items-center justify-between py-2 border-b last:border-0"
                     style={{ borderColor:'#334155' }}>
