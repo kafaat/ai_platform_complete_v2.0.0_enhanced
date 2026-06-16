@@ -124,15 +124,34 @@ async def test_dispatch_decision_roundtrip(conn):
     assert json.loads(row["command"]) == command
 
 
+_RLS_ROLE = "sahool_rls_test"  # دور غير ممتاز (NOBYPASSRLS) يُطبَّق عليه RLS
+
+
 async def test_dispatch_decision_rls_isolation(conn):
-    """عزل RLS: صفّ المستأجِر A غير مرئيّ عند ضبط GUC للمستأجِر B (0 صفوف)."""
+    """عزل RLS: صفّ المستأجِر A غير مرئيّ للمستأجِر B — يُقرأ عبر دور **غير ممتاز**.
+
+    حرِج: ``sahool_test`` (مالك الهجرات) **superuser يتجاوز RLS** حتى مع FORCE، فلا
+    يكشف العزل. لذا نُنشئ دور تشغيل مقيّداً (NOBYPASSRLS) ونقرأ عبره (SET ROLE) —
+    نفس نمط ``test_rls_isolation.py`` والدور الإنتاجيّ ``sahool_app``.
+    """
     c, ctx = conn
     tenant_a = ctx["tenant_a"]
     tenant_b = ctx["tenant_b"]
     decision_id = f"dec_{uuid.uuid4().hex[:12]}"
     ctx["decision_ids"].append(decision_id)
 
-    # GUC مضبوط للمستأجِر A (من الـfixture) — أدرِج تحته.
+    # هيّئ الدور المقيّد + صلاحيّاته (idempotent، كـsuperuser).
+    await c.execute(f"""
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='{_RLS_ROLE}') THEN
+                CREATE ROLE {_RLS_ROLE} NOSUPERUSER NOBYPASSRLS;
+            END IF;
+        END $$;
+    """)
+    await c.execute(f"GRANT USAGE ON SCHEMA public TO {_RLS_ROLE}")
+    await c.execute(f"GRANT SELECT, INSERT ON dispatch_decisions TO {_RLS_ROLE}")
+
+    # GUC مضبوط للمستأجِر A (من الـfixture) — أدرِج تحته (كـsuperuser للإعداد).
     await c.execute(
         """
         INSERT INTO dispatch_decisions (
@@ -146,18 +165,23 @@ async def test_dispatch_decision_rls_isolation(conn):
         "spray.apply",
     )
 
-    # مرئيّ تحت المستأجِر A.
-    seen_a = await c.fetchval(
-        "SELECT count(*) FROM dispatch_decisions WHERE decision_id = $1", decision_id
-    )
-    assert seen_a == 1
+    try:
+        # اقرأ عبر الدور المقيّد (RLS مُطبَّق): تحت المستأجِر A يُرى الصفّ.
+        await c.execute(f"SET ROLE {_RLS_ROLE}")
+        await c.execute("SELECT set_config('app.current_tenant', $1, false)", tenant_a)
+        seen_a = await c.fetchval(
+            "SELECT count(*) FROM dispatch_decisions WHERE decision_id = $1", decision_id
+        )
+        assert seen_a == 1, "RLS يحجب المستأجِر عن صفّه"
 
-    # بدّل GUC إلى المستأجِر B — يجب ألّا يُرى صفّ A (عزل المستأجرين).
-    await c.execute("SELECT set_config('app.current_tenant', $1, false)", tenant_b)
-    seen_b = await c.fetchval(
-        "SELECT count(*) FROM dispatch_decisions WHERE decision_id = $1", decision_id
-    )
-    assert seen_b == 0, "خرق RLS: صفّ المستأجِر A مرئيّ للمستأجِر B"
+        # تحت المستأجِر B — يجب ألّا يُرى صفّ A (عزل المستأجرين).
+        await c.execute("SELECT set_config('app.current_tenant', $1, false)", tenant_b)
+        seen_b = await c.fetchval(
+            "SELECT count(*) FROM dispatch_decisions WHERE decision_id = $1", decision_id
+        )
+        assert seen_b == 0, "خرق RLS: صفّ المستأجِر A مرئيّ للمستأجِر B"
+    finally:
+        await c.execute("RESET ROLE")
 
 
 async def test_dispatch_decision_queued_partial_index(conn):
