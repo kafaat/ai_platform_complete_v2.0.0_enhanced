@@ -1,0 +1,38 @@
+# بطاقة صنف — فول ظفار-2 (improved، منتخب R-27 / ICARDA)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الفول (faba_bean).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023).
+variety_id: faba_bean_dhafar_2
+parent_crop_id: faba_bean
+name_ar: فول ظفار-2
+name_en: Dhafar-2 faba bean
+
+passport:
+  origin_type: improved
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "VICIA_FAB"          # Vicia faba — الصنف R-27
+  collection_note_ar: "مُنتخَب بطريقة الانتخاب من مجموعة الأصناف في محطة أبحاث المرتفعات الوسطى — ذمار"
+
+distinctness:
+  morphology_ar: "نمو قائم، أوراق خضراء، زهرة بيضاء كبيرة الحجم، بذرة ناضجة بنّية فاتحة متوسطة الحجم"
+  maturity_class: medium           # 120–140 يوماً حتى النضج، تزهير 50% عند ~74 يوماً
+  plant_height_cm: 78
+uniformity_note_ar: "صنف مُنتخَب — تجانس مقبول"
+stability_note_ar: "مستقرّ عبر مواسم الزراعة في المرتفعات الوسطى والشمالية"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0     # لا تعديل مُدّعى على عتبة الفول (1.0)
+  disease_resistance_ar: [مقاوم للأمراض, مقاوم للحشرات]
+  special_quality_ar: "مقاوم للرقاد، لا انفراط؛ زهرة كبيرة، بذرة بنّية فاتحة متوسطة الحجم"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "المرتفعات الوسطى والجنوبية (إب) والمناطق المشابهة — الموسم الشتوي"
+  note_ar: "تُزرع في الموسم الشتوي حتى أواخر ديسمبر، ويمكن زراعتها في الموسم الصيفي (مايو–يونيو)"
+
+# ── توقيت مراحل النمو (phenology) — قياسات الدليل (محايدة الموقع) ──
+# النضج في الدليل مدى 120–140 يوماً — نُسجّل الحدّ الأعلى المؤكّد من الصور.
+phenology:
+  days_to_50pct_flowering: 74
+  days_to_maturity: 140
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"

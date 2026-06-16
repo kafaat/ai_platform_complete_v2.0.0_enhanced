@@ -1,0 +1,37 @@
+# بطاقة صنف — عدس ذمار-2 (هجين بين محلّي ومُدخَل)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات العدس (lentil).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023) — ص39–40.
+variety_id: lentil_dhamar_2
+parent_crop_id: lentil
+name_ar: عدس ذمار-2
+name_en: Dhamar-2 lentil
+
+passport:
+  origin_type: improved
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "LENS_CUL"          # Lens culinaris
+  collection_note_ar: "ناتج التهجين بين الصنف المحلّي والصنف المُدخَل ذمار-1، من مجموعات أصناف المرتفعات الوسطى بمحافظة ذمار؛ بذور صغيرة الحجم. التصنيف: Culinaries"
+
+distinctness:
+  morphology_ar: "سلوك نمو قائم، أوراق خضراء، زهرة صغيرة، بذرة ناضجة بنّية صغيرة الحجم"
+  maturity_class: early            # ~90 يوماً حتى النضج، تزهير عند ~38 يوماً
+  plant_height_cm: 30
+uniformity_note_ar: "صنف مُحسَّن بالتهجين — تجانس مقبول"
+stability_note_ar: "مستقرّ عبر مواسم التقييم بمنطقة ذمار"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0     # لا تعديل مُدّعى على عتبة العدس (1.5)
+  disease_resistance_ar: [مقاوم للأمراض الفطرية, مقاوم للحشرات]
+  special_quality_ar: "مقاوم للرقاد؛ يتحمّل الإصابة بالأمراض الفطرية؛ مبكّر النضج (~90 يوماً)"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "المرتفعات الوسطى بمحافظة ذمار وما جاورها"
+  note_ar: "أُنتخب للمرتفعات الوسطى منتصف يوليو في المناطق الدافئة"
+
+# ── توقيت مراحل النمو (phenology) — قياسات الدليل (محايدة الموقع) ──
+phenology:
+  days_to_50pct_flowering: 38
+  days_to_maturity: 90
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023) — ص39"

@@ -248,3 +248,78 @@ class TestCranberryCounterExample:
         card_text = open("core/crop_cards/cranberry.yaml", encoding="utf-8").read()
         for token in ("sakha", "6.17", "142ha", "aljawf", "الجوف"):
             assert token not in card_text
+
+
+class TestPhenologyGrowthStages:
+    """مراحل النمو (phenology) — كتلة اختياريّة محايدة الموقع تُتحقَّق فقط إن وُجدت."""
+
+    def test_growth_stages_returns_ordered_named_stages(self):
+        from core.crop_cards.loader import growth_stages
+
+        stages = growth_stages("common_bean")
+        assert [s["stage"] for s in stages] == ["initial", "development", "mid", "late"]
+        # تسلسل غير متراجع + تطابق مع kc.stage_days التراكميّة (0→110).
+        assert stages[0]["day_start"] == 0
+        assert stages[-1]["day_end"] == 110
+        prev = 0
+        for s in stages:
+            assert s["day_start"] >= prev - 0 and s["day_start"] < s["day_end"]
+            prev = s["day_end"]
+
+    def test_mid_stage_is_peak_kc_flowering(self):
+        from core.crop_cards.loader import growth_stages
+
+        mid = next(s for s in growth_stages("common_bean") if s["stage"] == "mid")
+        assert mid["kc"] == 1.15  # ذروة الاحتياج المائي
+        assert "التزهير" in mid["name_ar"]
+
+    def test_cards_without_phenology_still_valid_and_empty(self):
+        # توافق رجعيّ: القمح بلا phenology ⇒ valid + مراحل فارغة (لا يكسر القديم).
+        from core.crop_cards.loader import growth_stages, load_crop_card, validate_crop_card
+
+        assert validate_crop_card(load_crop_card("wheat"))["valid"]
+        assert growth_stages("wheat") == []
+        assert growth_stages("nonexistent") == []
+
+    def test_invalid_phenology_caught_by_validator(self):
+        # حارس: مراحل متراجعة/ناقصة تُرفَض (يحمي التوسعة المستقبليّة).
+        from core.crop_cards.loader import validate_crop_card
+
+        base = load_crop_card("common_bean")
+        bad = dict(base)
+        bad["phenology"] = {
+            "source": "x",
+            "stages": [
+                {"stage": "a", "name_ar": "أ", "day_start": 0, "day_end": 30},
+                {"stage": "b", "name_ar": "ب", "day_start": 10, "day_end": 40},  # تداخل
+            ],
+        }
+        assert validate_crop_card(bad)["valid"] is False
+        worse = dict(base)
+        worse["phenology"] = {"stages": [{"stage": "a"}]}  # بلا مصدر + مفاتيح ناقصة
+        assert validate_crop_card(worse)["valid"] is False
+
+    def test_variety_phenology_timing_from_guide(self):
+        from core.crop_cards.loader import load_variety_card
+
+        # توقيت الصنف محايد الموقع: تزهير/نضج من الدليل، مع مصدر.
+        rajm = load_variety_card("common_bean_rajm_1")["phenology"]
+        assert rajm["days_to_maturity"] == 95 and rajm["days_to_50pct_flowering"] == 53
+        liena = load_variety_card("common_bean_liena_24")["phenology"]
+        assert liena["days_to_50pct_green_pods"] == 72  # خاصّ بصنف القرون الخضراء
+
+    def test_variety_phenology_requires_source_and_maturity(self):
+        from core.crop_cards.loader import validate_variety_card
+
+        base = load_crop_card  # noqa: F841 (تأكيد توفّر المحصول الأمّ)
+        bad = {
+            "variety_id": "x",
+            "parent_crop_id": "common_bean",
+            "name_ar": "x",
+            "name_en": "x",
+            "passport": {"origin_type": "landrace", "source_ar": "x"},
+            "distinctness": {},
+            "variety_traits": {},
+            "phenology": {"days_to_50pct_flowering": 50},  # بلا مصدر + بلا نضج
+        }
+        assert validate_variety_card(bad)["valid"] is False
