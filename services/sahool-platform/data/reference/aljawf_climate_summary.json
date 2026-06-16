@@ -1,0 +1,10 @@
+{
+  "source": "NASA POWER + Open-Meteo (2021-2025)",
+  "location": "الجوف (16.0N, 45.5E)",
+  "days": 1826,
+  "temp_max_record": 50.7,
+  "temp_min_record": 1.0,
+  "annual_rainfall_mm": 80.4,
+  "heat_stress_days_per_year": 118,
+  "verified_against": "تقرير الحزم الرسمي (~120 يوم إجهاد) + 3 مصادر مطر"
+}
