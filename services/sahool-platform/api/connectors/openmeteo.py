@@ -30,8 +30,79 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import httpx
+from core.circuit_breaker import CircuitBreaker
 
 logger = logging.getLogger("sahool.api.openmeteo")
+
+
+# ─── قاطع الدائرة (circuit breaker) ────────────────────────────────
+#
+# قاطع واحد مشترك لكامل خدمة Open-Meteo. الاختيار: قاطع لكلّ الخدمة لا لكلّ
+# نقطة نهاية، لأنّ الـforecast والـarchive والـgeocoding تشترك في نفس البنية
+# التحتيّة الخلفيّة؛ سقوط أحدها مؤشّر على عطل مشترك، والعزل على مستوى الخدمة
+# يعطي fail-fast أوضح وأبسط للرصد. عتبات محافظة: ٥ إخفاقات متتالية تفتح
+# القاطع، ٣٠ ثانية تبريد، ونجاح واحد في HALF_OPEN يُعيد الإغلاق.
+_OPENMETEO_BREAKER = CircuitBreaker(
+    name="openmeteo",
+    failure_threshold=5,
+    recovery_timeout_s=30.0,
+    success_threshold=1,
+)
+
+# أنواع الأعطال التي يعدّها الموصِّل فشلاً «منبعيّاً» (upstream) — وهي ذاتها
+# ما يرفعه الموصِّل أصلاً: أخطاء شبكة/مهلة (RequestError) ورموز HTTP ≥4xx/5xx
+# (HTTPStatusError من raise_for_status). الحالات التجاريّة (٤٠٤ منطقيّ، نتيجة
+# فارغة) لا تمرّ هنا لأنّ الموصِّل لا يرفعها كفشل أصلاً.
+_UPSTREAM_ERRORS = (httpx.HTTPStatusError, httpx.RequestError)
+
+
+def openmeteo_breaker_state() -> dict:
+    """إسقاط رصديّ لحالة قاطع Open-Meteo (للـ/healthz/deps والرصد).
+
+    accessor على مستوى الوحدة — لا نقطة نهاية جديدة. يعكس العدّادات الحقيقيّة.
+    """
+    return _OPENMETEO_BREAKER.snapshot()
+
+
+def _guard_breaker() -> None:
+    """يفشل سريعاً إن كان القاطع مفتوحاً (قبل لمس الشبكة).
+
+    يرفع نفس نوع استثناء العطل المنبعيّ الذي يلتقطه المتّصلون أصلاً
+    (httpx.ConnectError ⊂ httpx.RequestError) فيُحفَظ تعاملهم 503. لا يغيّر
+    تواقيع الدوالّ العامّة ولا أنواع الاستثناءات التي يلتقطها المتّصلون.
+    """
+    if not _OPENMETEO_BREAKER.allow():
+        snap = _OPENMETEO_BREAKER.snapshot()
+        logger.warning(
+            "openmeteo.circuit_open fail_fast failures=%s retry_in=%ss",
+            snap["consecutive_failures"],
+            snap["seconds_until_retry"],
+        )
+        raise httpx.ConnectError(
+            "circuit open — Open-Meteo unavailable (fail-fast, "
+            f"retry in {snap['seconds_until_retry']}s)"
+        )
+
+
+async def _fetch_json(url: str, params: dict, timeout_s: float):
+    """ينفّذ طلب GET ويُرجِع JSON مع لفّ القاطع حول الاستدعاء المنبعيّ.
+
+    - قبل اللمس: إن كان القاطع مفتوحاً ← fail-fast (نفس نوع الاستثناء).
+    - عند نجاح الطلب (HTTP 2xx + JSON) ← record_success.
+    - عند عطل منبعيّ (شبكة/مهلة/HTTP error) ← record_failure ثم إعادة الرفع
+      كما هي، فيبقى سلوك المتّصلين والاستثناءات الملتقَطة دون تغيير.
+    """
+    _guard_breaker()
+    try:
+        async with httpx.AsyncClient(timeout=timeout_s) as client:
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+    except _UPSTREAM_ERRORS:
+        _OPENMETEO_BREAKER.record_failure()
+        raise
+    _OPENMETEO_BREAKER.record_success()
+    return data
 
 
 def _daily_at(daily: dict, key: str, i: int, default):
@@ -164,10 +235,7 @@ async def fetch_current(
         "wind_speed_unit": "ms",
     }
 
-    async with httpx.AsyncClient(timeout=timeout_s) as client:
-        resp = await client.get(FORECAST_URL, params=params)
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _fetch_json(FORECAST_URL, params, timeout_s)
 
     c = data.get("current", {})
     return CurrentWeather(
@@ -213,10 +281,7 @@ async def fetch_current_batch(
         "timezone": "auto",
         "wind_speed_unit": "ms",
     }
-    async with httpx.AsyncClient(timeout=timeout_s) as client:
-        resp = await client.get(FORECAST_URL, params=params)
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _fetch_json(FORECAST_URL, params, timeout_s)
 
     # عند عدّة إحداثيّات يُرجِع Open-Meteo قائمة؛ عند واحدة يُرجِع كائناً.
     if isinstance(data, dict):
@@ -256,10 +321,7 @@ async def fetch_daily_forecast(
         "forecast_days": days,
     }
 
-    async with httpx.AsyncClient(timeout=timeout_s) as client:
-        resp = await client.get(FORECAST_URL, params=params)
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _fetch_json(FORECAST_URL, params, timeout_s)
 
     d = data.get("daily", {})
     dates = d.get("time", [])
@@ -284,10 +346,7 @@ async def fetch_historical(
         "wind_speed_unit": "ms",
     }
 
-    async with httpx.AsyncClient(timeout=timeout_s) as client:
-        resp = await client.get(HISTORICAL_URL, params=params)
-        resp.raise_for_status()
-        data = resp.json()
+    data = await _fetch_json(HISTORICAL_URL, params, timeout_s)
 
     d = data.get("daily", {})
     dates = d.get("time", [])

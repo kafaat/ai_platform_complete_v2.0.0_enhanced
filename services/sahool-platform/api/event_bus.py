@@ -43,6 +43,71 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# ─── Outbox retry backoff (pure) ────────────────────────────────
+
+# أساس وسقف التراجع الأسّيّ (exponential backoff) للـoutbox. القيم module-level
+# كي تتطابق دالّة بايثون النقيّة `outbox_backoff_seconds` مع بوّابة الزمن في SQL
+# (انظر OutboxWorker._process_batch). تغييرهما هنا يغيّر السلوكين معاً.
+OUTBOX_BACKOFF_BASE_SECONDS: float = 2.0
+OUTBOX_BACKOFF_MAX_SECONDS: float = 3600.0  # سقف ساعة واحدة
+
+
+def outbox_backoff_seconds(
+    retry_count: int,
+    base: float = OUTBOX_BACKOFF_BASE_SECONDS,
+    cap: float = OUTBOX_BACKOFF_MAX_SECONDS,
+) -> float:
+    """تأخير التراجع الأسّيّ (بالثواني) قبل إعادة محاولة صفّ outbox فاشل.
+
+    الصيغة: ``min(cap, base * 2**retry_count)`` — نقيّة، حتميّة، بلا آثار جانبيّة.
+
+    ``retry_count`` هنا هو عدد المحاولات الفاشلة السابقة (العمود
+    ``event_outbox.retry_count``). صفٌّ لم يُحاوَل بعد (retry_count=0) يحصل على
+    أصغر تأخير = ``base`` ثانية، لكن البوّابة الزمنيّة في SELECT تتجاوزه عملياً
+    عندما يكون ``last_attempt_at IS NULL`` (محاولة فوريّة، سلوك غير متغيّر).
+
+    الجدول الافتراضيّ (base=2s, cap=3600s):
+        retry_count=0 →    2s
+        retry_count=1 →    4s
+        retry_count=2 →    8s
+        retry_count=3 →   16s
+        retry_count=4 →   32s
+        retry_count=5 →   64s
+        ...
+        retry_count=11 → 4096s → يُقصّ إلى 3600s (السقف)
+    وكلّ ما بعده مُثبَّت عند 3600s (ساعة).
+    """
+    if retry_count < 0:
+        retry_count = 0
+    return min(cap, base * (2.0**retry_count))
+
+
+def dead_letter_summary(rows: list[dict[str, Any]] | None) -> dict[str, Any]:
+    """يُشكّل ملخّص DLQ من صفوف خام (pure) — لا قاعدة بيانات، قابل للاختبار offline.
+
+    ``rows`` صفوف الأحداث الميّتة (status='failed' AND retry_count>=max). يُرجع
+    عدّاً + عيّنة (أوّل 50) مُشكَّلة بمفاتيح ثابتة، فيبقى تشكيل الخرج منفصلاً عن
+    تنفيذ الـSQL ويمكن اختباره بلا خدمات.
+    """
+    rows = rows or []
+
+    def _shape(r: dict[str, Any]) -> dict[str, Any]:
+        last = r.get("last_attempt_at")
+        return {
+            "outbox_id": r.get("outbox_id"),
+            "event_id": str(r["event_id"]) if r.get("event_id") is not None else None,
+            "nats_subject": r.get("nats_subject"),
+            "retry_count": r.get("retry_count"),
+            "last_error": r.get("last_error"),
+            "last_attempt_at": last.isoformat() if hasattr(last, "isoformat") else last,
+        }
+
+    return {
+        "total": len(rows),
+        "sample": [_shape(r) for r in rows[:50]],
+    }
+
+
 # ─── Event types (catalog) ──────────────────────────────────────
 
 
@@ -348,6 +413,11 @@ class OutboxWorker:
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 # SELECT FOR UPDATE SKIP LOCKED للـconcurrent workers safety
+                # بوّابة زمنيّة (TRUE backoff): صفّ فشل سابقاً لا يُعاد إلا بعد
+                # انقضاء تأخيره الأسّيّ — make_interval(secs => LEAST(cap,
+                # base*power(2, retry_count)))، مطابق لـoutbox_backoff_seconds.
+                # صفّ لم يُحاوَل بعد (last_attempt_at IS NULL) = فوريّ (بلا تغيير).
+                # SQL صرف: لا حساب لكلّ صفّ في بايثون.
                 rows = await conn.fetch(
                     """
                     SELECT o.outbox_id, o.event_id, o.nats_subject, o.retry_count,
@@ -357,12 +427,23 @@ class OutboxWorker:
                     JOIN events e ON e.event_id = o.event_id
                     WHERE o.status IN ('pending', 'failed')
                       AND o.retry_count < $1
+                      AND (
+                            o.last_attempt_at IS NULL
+                            OR o.last_attempt_at <= NOW() - make_interval(
+                                secs => LEAST(
+                                    $3::float8,
+                                    $4::float8 * power(2, o.retry_count)
+                                )
+                            )
+                      )
                     ORDER BY o.created_at ASC
                     LIMIT $2
                     FOR UPDATE OF o SKIP LOCKED
                     """,
                     self.max_retries,
                     self.batch_size,
+                    OUTBOX_BACKOFF_MAX_SECONDS,
+                    OUTBOX_BACKOFF_BASE_SECONDS,
                 )
 
                 if not rows:
@@ -429,3 +510,58 @@ class OutboxWorker:
                 )
             else:
                 logger.warning(f"outbox send failed ({new_retry}/{self.max_retries}): {err_msg}")
+
+    # ─── Dead-letter (DLQ) inspect / requeue ────────────────────
+
+    async def list_dead_letter(self, conn, limit: int = 500) -> dict[str, Any]:
+        """يُحصي الصفوف الميّتة (status='failed' AND retry_count>=max) ويُرجع عيّنة.
+
+        صفّ ميّت = استُنفدت محاولاته فلم يعد SELECT الرئيسيّ يلتقطه. الـSQL أدنويّ
+        (فلتر + ترتيب + حدّ)؛ تشكيل الخرج عبر dead_letter_summary النقيّة.
+        """
+        recs = await conn.fetch(
+            """
+            SELECT outbox_id, event_id, nats_subject, retry_count,
+                   last_error, last_attempt_at
+            FROM event_outbox
+            WHERE status = 'failed' AND retry_count >= $1
+            ORDER BY last_attempt_at DESC NULLS LAST
+            LIMIT $2
+            """,
+            self.max_retries,
+            limit,
+        )
+        return dead_letter_summary([dict(r) for r in recs])
+
+    async def requeue_dead_letter(self, conn, outbox_id: int | None = None) -> int:
+        """يعيد جدولة الصفوف الميّتة → pending (retry_count=0, last_attempt_at=NULL).
+
+        ``outbox_id`` محدّد ⇒ صفّ واحد، أو None ⇒ كلّ الصفوف الميّتة. يُرجع عدد
+        الصفوف المُعاد جدولتها كي يلتقطها العامل في الدورة التالية فوراً.
+        """
+        if outbox_id is not None:
+            status = await conn.execute(
+                """
+                UPDATE event_outbox
+                SET status = 'pending', retry_count = 0,
+                    last_attempt_at = NULL, last_error = NULL
+                WHERE outbox_id = $1 AND status = 'failed' AND retry_count >= $2
+                """,
+                outbox_id,
+                self.max_retries,
+            )
+        else:
+            status = await conn.execute(
+                """
+                UPDATE event_outbox
+                SET status = 'pending', retry_count = 0,
+                    last_attempt_at = NULL, last_error = NULL
+                WHERE status = 'failed' AND retry_count >= $1
+                """,
+                self.max_retries,
+            )
+        # asyncpg execute يُرجع نصّاً مثل "UPDATE 3" — استخرج العدد.
+        try:
+            return int(str(status).rsplit(" ", 1)[-1])
+        except (ValueError, IndexError):
+            return 0
