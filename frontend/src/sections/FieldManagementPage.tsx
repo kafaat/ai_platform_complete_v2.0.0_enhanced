@@ -16,7 +16,7 @@ import AddFieldWithMap from '../components/AddFieldWithMap';
 import AddSeasonWithStages from '../components/AddSeasonWithStages';
 import FieldDetailPanel from '../components/FieldDetailPanel';
 import FieldSetupWizard from '../components/fieldsetup/FieldSetupWizard';
-import { kongApi } from '../services/api';
+import { kongApi, asApiError } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useFields, useSimulateSeason } from '../hooks/useApi';
 import type { SeasonSimResult } from '../services/api';
@@ -73,12 +73,13 @@ const SOIL_AR: Record<string,string> = {
 };
 
 function healthConfig(h: string) {
-  return ({
+  const table: Record<string, { label: string; color: string; bg: string }> = {
     excellent:{ label:'ممتاز', color:'#16a34a', bg:'#1e3a1e' },
     good:     { label:'جيد',   color:'#65a30d', bg:'#1a2e0a' },
     fair:     { label:'مقبول', color:'#ca8a04', bg:'#2a1a00' },
     poor:     { label:'منخفض', color:'#dc2626', bg:'#1a0000' },
-  } as any)[h] || { label:h, color:'#6b7280', bg:'#1e293b' };
+  };
+  return table[h] || { label:h, color:'#6b7280', bg:'#1e293b' };
 }
 
 export default function FieldManagementPage() {
@@ -216,7 +217,7 @@ export default function FieldManagementPage() {
         season_end: data.season_end || null,
         custom_stages: data.custom_stages,
       });
-      seasonId = (r?.data as any)?.season_id ?? null;
+      seasonId = (r?.data as { season_id?: string } | undefined)?.season_id ?? null;
     } catch (e: any) {
       const detail = e?.response?.data?.detail;
       throw new Error((detail && (detail.message_ar || detail)) ||
@@ -537,7 +538,7 @@ function SeasonSimModal({ seasonId, crops, onClose }: {
 
           {sim.isError && (
             <div className="rounded-lg p-3 text-xs" style={{ background: '#3f1d1d', color: '#fca5a5' }}>
-              تعذّرت المحاكاة: {(sim.error as any)?.response?.data?.detail ||
+              تعذّرت المحاكاة: {asApiError(sim.error).response?.data?.detail as string | undefined ||
                 (sim.error as Error)?.message || 'خطأ غير معروف (طقس/قاعدة غير متاحة).'}
             </div>
           )}

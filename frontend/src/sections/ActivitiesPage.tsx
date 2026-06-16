@@ -11,6 +11,7 @@ import { Sprout, Plus, AlertTriangle, ClipboardList, Calendar, CheckCircle2 } fr
 import { useActivities, useCreateActivity } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { Activity, ActivityType } from '../services/api';
+import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -41,7 +42,7 @@ const fmtDate = (d: string | null) => d || '—';
 
 // رسالة خطأ صادقة مُشتقّة من رمز الحالة.
 function errorDetail(err: unknown): string {
-  const status = (err as any)?.response?.status;
+  const status = asApiError(err).response?.status;
   if (status === 503) return 'خدمة العمليّات غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
   if (status === 404) return 'الحقل غير موجود ضمن هذا المستأجِر.';
   if (status === 403) return 'لا تملك صلاحية هذه العملية (field:view / field:edit).';

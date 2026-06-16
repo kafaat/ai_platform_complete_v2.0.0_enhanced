@@ -14,6 +14,7 @@ import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { geomToPolygon } from '../lib/geo';
 import { useFieldOptions } from '../hooks/useFieldOptions';
 import { useIndicatorsCatalog } from '../hooks/useApi';
+import type { CatalogIndicator } from '../hooks/useApi';
 
 // مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
 // لا بقائمة مُبرمَجة — مصدر حقيقة واحد للقابل للرسم (لا طبقة ميتة ولا مفقودة).
@@ -70,9 +71,9 @@ export default function SatellitePage() {
   // تعذّر الكتالوج تسقط لقائمة احتياطيّة فلا تنكسر الخريطة. الاسم من الكتالوج.
   const catalogQ = useIndicatorsCatalog();
   const indices: IndOption[] = useMemo(() => {
-    const items = Array.isArray((catalogQ.data as any)?.indicators) ? (catalogQ.data as any).indicators : null;
+    const items = Array.isArray(catalogQ.data?.indicators) ? catalogQ.data.indicators : null;
     const base: { id: string; name: string }[] = items
-      ? items.filter((i: any) => i?.renderable).map((i: any) => ({ id: String(i.id), name: String(i.name_ar ?? i.id) }))
+      ? items.filter((i: CatalogIndicator) => i?.renderable).map((i: CatalogIndicator) => ({ id: String(i.id), name: String(i.name_ar ?? i.id) }))
       : FALLBACK_RENDERABLE.map((id) => ({ id, name: id.toUpperCase() }));
     return base.map(({ id, name }) => ({ id, name, ...(IND_META[id] ?? IND_META_DEFAULT) }));
   }, [catalogQ.data]);
@@ -114,7 +115,10 @@ export default function SatellitePage() {
   const { data: change, isLoading: changeLoading, isError: changeError } =
     useFieldChange(fieldId, gridIndex, dateA, dateB, { enabled: !!dateA && !!dateB && dateA !== dateB });
 
-  const ts: any[] = tsData?.timeseries || (tsData as { data?: any[] } | undefined)?.data || [];
+  // نقطة سلسلة زمنيّة كما تقرؤها هذه الشاشة: تاريخ (موجود دائماً للنقطة) + NDVI اختياريّ.
+  type TsPoint = { date: string; ndvi?: number };
+  const tsRaw = tsData as { timeseries?: TsPoint[]; data?: TsPoint[] } | undefined;
+  const ts: TsPoint[] = tsRaw?.timeseries || tsRaw?.data || [];
   const currentNdvi = ndviNow?.ndvi?.current ?? ts[ts.length - 1]?.ndvi ?? null;
   // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
   // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.

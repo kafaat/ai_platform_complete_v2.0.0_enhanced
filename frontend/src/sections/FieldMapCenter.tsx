@@ -64,7 +64,7 @@ const layerOf = (id: LayerId) => LAYERS.find((l) => l.id === id) ?? LAYERS[0];
 // خيارات LayerSwitcher مشتقّة مرّة واحدة (LAYERS ثابتة) — هويّة مصفوفة مستقرّة.
 const LAYER_OPTS = LAYERS.map((l) => ({ id: l.id, label: l.label, icon: l.icon }));
 
-interface MapField { id: string; name: string; lat: number | null; lon: number | null; geometry: any }
+interface MapField { id: string; name: string; lat: number | null; lon: number | null; geometry: unknown }
 
 // نغمة/حالة مؤشّر الجهاز — online→يعمل، غير ذلك→غير متّصل (alert إن غير متّصل).
 function deviceMarkerStatus(online?: boolean): 'working' | 'offline' {

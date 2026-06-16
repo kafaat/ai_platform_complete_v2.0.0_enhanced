@@ -5,13 +5,13 @@
 // نعلن التوقيعات يدويّاً (مطابقة لتعريفات turf الرسميّة) — لا any مُبهَم.
 declare module '@turf/area' {
   // مساحة هندسة GeoJSON بالمتر المربّع (م²).
-  export default function area(geojson: any): number;
+  export default function area(geojson: GeoJSON.Feature | GeoJSON.Geometry): number;
 }
 
 declare module '@turf/length' {
   // طول خطّ GeoJSON؛ الوحدة افتراضيّاً كيلومتر، نمرّر units: 'meters' للأمتار.
   export default function length(
-    geojson: any,
+    geojson: GeoJSON.Feature | GeoJSON.Geometry,
     options?: { units?: string },
   ): number;
 }

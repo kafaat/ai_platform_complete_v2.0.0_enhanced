@@ -2,14 +2,17 @@
 // نكتفي بـEditControl الذي نستخدمه؛ خصائصه مُمرَّرة إلى leaflet-draw.
 declare module 'react-leaflet-draw' {
   import type { FC } from 'react';
+  // أحداث leaflet-draw مُعرَّفة في @types/leaflet-draw (L.DrawEvents) — نستعملها
+  // بدل any كي تُعرَف layer/layerType على المعالِجات.
+  import type { DrawEvents } from 'leaflet';
 
   export interface EditControlProps {
     position?: 'topright' | 'topleft' | 'bottomright' | 'bottomleft';
-    onCreated?: (e: any) => void;
-    onEdited?: (e: any) => void;
-    onDeleted?: (e: any) => void;
-    draw?: Record<string, any>;
-    edit?: Record<string, any>;
+    onCreated?: (e: DrawEvents.Created) => void;
+    onEdited?: (e: DrawEvents.Edited) => void;
+    onDeleted?: (e: DrawEvents.Deleted) => void;
+    draw?: Record<string, unknown>;
+    edit?: Record<string, unknown>;
   }
 
   export const EditControl: FC<EditControlProps>;

@@ -11,6 +11,7 @@ import { CloudRain, Droplets, Bug, Map, Clock, Thermometer, Wind } from 'lucide-
 import { useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
 import type { IrrigationAdvice, DiseaseRisk } from '../services/api';
+import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 // ── ألوان/تسميات الإلحاح والخطر ──────────────────────────────────
@@ -31,7 +32,7 @@ const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: 
 
 // رسالة خطأ صادقة مُشتقّة من رمز الحالة.
 function errorDetail(err: unknown): string {
-  const status = (err as any)?.response?.status;
+  const status = asApiError(err).response?.status;
   if (status === 503) return 'خدمة الطقس غير متاحة حاليّاً (مصدر الطقس أو القاعدة معطّل).';
   if (status === 422) return 'الحقل بلا إحداثيّات — حدّد موقعه أوّلاً لجلب الطقس.';
   if (status === 404) return 'الحقل غير موجود ضمن هذا المستأجِر.';

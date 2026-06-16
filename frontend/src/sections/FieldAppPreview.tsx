@@ -36,6 +36,20 @@ type AlertLike = {
   created_at?: string | null;
 };
 
+// الطقس الحاليّ واليوم الأوّل كما تقرؤهما هذه الشاشة — كلّ الحقول اختياريّة.
+type WeatherCurrentLike = {
+  tmean?: number;
+  humidity_pct?: number;
+  wind_speed_kmh?: number;
+  et0_mm?: number | null;
+};
+type WeatherDayLike = {
+  daylight_hours?: number;
+  sunrise?: string;
+  sunset?: string;
+  solar_radiation_mj_m2?: number;
+};
+
 const TABS = [
   { id: 'fields', label: 'الحقول', icon: <Sprout style={{ width: 15, height: 15 }} /> },
   { id: 'weather', label: 'الطقس', icon: <CloudSun style={{ width: 15, height: 15 }} /> },
@@ -54,8 +68,9 @@ export default function FieldAppPreview() {
   const alertsQ = useAlerts();
 
   const fields: FieldLike[] = Array.isArray(fieldsQ.data?.fields) ? fieldsQ.data.fields : [];
-  const cur = (weatherQ.data as any)?.current;
-  const day0 = (weatherQ.data as any)?.daily?.[0];
+  const weatherData = weatherQ.data as { current?: WeatherCurrentLike; daily?: WeatherDayLike[] } | undefined;
+  const cur = weatherData?.current;
+  const day0 = weatherData?.daily?.[0];
   const alerts: AlertLike[] = Array.isArray(alertsQ.data) ? (alertsQ.data as AlertLike[]) : [];
 
   const today = new Date().toLocaleDateString('ar-SA', {
@@ -80,7 +95,7 @@ export default function FieldAppPreview() {
               <div style={{ fontSize: 18, fontWeight: 800 }}>تطبيق الحقل</div>
             </div>
             <Pill tone="warn" icon={<Sun style={{ width: 12, height: 12 }} />}>
-              {cur ? `${Math.round(cur.tmean)}°` : '—'}
+              {cur ? `${Math.round(cur.tmean!)}°` : '—'}
             </Pill>
           </div>
           <div style={{ fontSize: 11, color: '#D8C7B3', marginTop: 6 }}>{today}</div>
@@ -203,8 +218,8 @@ function WeatherTab({
   q, cur, day0,
 }: {
   q: { isLoading: boolean; isError: boolean };
-  cur: any;
-  day0: any;
+  cur: WeatherCurrentLike | undefined;
+  day0: WeatherDayLike | undefined;
 }) {
   if (q.isLoading) return <Hint>جارٍ تحميل الطقس…</Hint>;
   if (q.isError || !cur) return <Hint tone="danger">تعذّر تحميل بيانات الطقس.</Hint>;
@@ -213,7 +228,7 @@ function WeatherTab({
     <div className="space-y-3">
       <SectionLabel>الطقس الآن</SectionLabel>
       <div className="grid grid-cols-4 gap-2">
-        <StatBox label="الحرارة" value={Math.round(cur.tmean)} unit="°C" color={T.warn}
+        <StatBox label="الحرارة" value={Math.round(cur.tmean!)} unit="°C" color={T.warn}
           icon={<Thermometer style={{ width: 16, height: 16 }} />} />
         <StatBox label="الرطوبة" value={cur.humidity_pct} unit="%" color={T.info}
           icon={<Droplets style={{ width: 16, height: 16 }} />} />
