@@ -1,0 +1,37 @@
+# بطاقة صنف — فول سوداني كرز (Karz)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الفول السوداني (peanut).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023).
+variety_id: peanut_karz
+parent_crop_id: peanut
+name_ar: كرز
+name_en: Karz groundnut
+
+passport:
+  origin_type: landrace
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "ARACH_HYP"          # Arachis hypogaea
+  collection_note_ar: "صنف فول سوداني محلّي مزروع بالمناطق المطرية اليمنية (المحويت، حجة)"
+
+distinctness:
+  morphology_ar: "حجم حبوب كبير؛ متوسّط نحو 45 قرناً في النبات"
+  maturity_class: late             # ~150 يوماً حتى النضج، تزهير عند ~45 يوماً
+uniformity_note_ar: "صنف محلّي — تجانس متوسط (طبيعة الزراعة المحلّية)"
+stability_note_ar: "مستقرّ عبر أجيال الزراعة المحلّية المطرية"
+
+variety_traits:
+  drought_tolerance: high          # متحمّل للجفاف في المناطق المطرية (الدليل)
+  salt_tolerance_modifier: 0.0     # لا تعديل مُدّعى على عتبة الفول السوداني (3.2)
+  disease_resistance_ar: []        # لم يُذكر في الدليل
+  special_quality_ar: "حجم حبوب كبير؛ ~45 قرناً في النبات؛ متحمّل للجفاف في المناطق المطرية"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "المناطق المطرية — المحويت وحجة (شرس) وما جاورها"
+  note_ar: "موعد الزراعة: مايو في المحويت، يونيو في حجة (شرس)"
+
+# ── توقيت مراحل النمو (phenology) — قياسات الدليل (محايدة الموقع) ──
+# الأرقام مقروءة من صور الجدول بصفحة 65 من الدليل (التزهير 45 يوم، النضج 150 يوم).
+phenology:
+  days_to_50pct_flowering: 45
+  days_to_maturity: 150
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023) — ص 65"

@@ -1,0 +1,37 @@
+# بطاقة صنف — عدس ذمار-1 (صنف مُدخَل/مُنتخَب)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات العدس (lentil).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023) — ص36–37.
+variety_id: lentil_dhamar_1
+parent_crop_id: lentil
+name_ar: عدس ذمار-1
+name_en: Dhamar-1 lentil
+
+passport:
+  origin_type: introduced
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "LENS_CUL"          # Lens culinaris
+  collection_note_ar: "مُنتخَب من أصناف مُدخَلة من المركز الدولي (إيكاردا) حلب-سوريا، ومصدره الأرجنتين؛ تأقلم على الظروف اليمنية. التصنيف: Precoz"
+
+distinctness:
+  morphology_ar: "سلوك نمو شبه قائم، أوراق خضراء، زهرة كبيرة، بذرة ناضجة مائلة للاصفرار كبيرة الحجم"
+  maturity_class: medium           # ~105 يوماً حتى النضج، تزهير عند ~65 يوماً
+  plant_height_cm: 38
+uniformity_note_ar: "صنف مُدخَل مُنتخَب — تجانس مقبول"
+stability_note_ar: "مستقرّ عبر مواسم التقييم في المرتفعات اليمنية"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0     # لا تعديل مُدّعى على عتبة العدس (1.5)
+  disease_resistance_ar: [مقاوم للتبقّع, تحمّل عفن الجذور والذبول, مقاوم للحشرات]
+  special_quality_ar: "مقاوم للرقاد والانفراط؛ يتفوّق على الصنف المحلّي بحوالي 76.9%؛ يتحمّل زيادة المياه بالتربة"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "المرتفعات اليمنية — يصلح للزراعة الشتوية والصيفية المطرية"
+  note_ar: "مُدخَل من إيكاردا وتأقلم على الظروف البيئية اليمنية"
+
+# ── توقيت مراحل النمو (phenology) — قياسات الدليل (محايدة الموقع) ──
+phenology:
+  days_to_50pct_flowering: 65
+  days_to_maturity: 105
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023) — ص36"

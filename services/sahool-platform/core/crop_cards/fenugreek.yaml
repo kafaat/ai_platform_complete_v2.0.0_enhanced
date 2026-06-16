@@ -1,0 +1,86 @@
+# SAHOOL CORE crop card — Fenugreek (الحلبة / Trigonella foenum-graecum)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+# ملاحظة أمانة: FAO-56 لا يضمّ الحلبة؛ القيم الفسيولوجية أدناه قرينة معرفية (ECOCROP/أدبيّات)
+# أقلّ معياريّة من محاصيل FAO-56 — تُذكر المصادر بصدق دون ادّعاء دقّة زائدة.
+# الأصناف اليمنية المحلّية في varieties/ (مصدرها الدليل الزراعي للبقوليات الحبية 2023، قسم «رابعاً: محصول الحلبة»).
+crop_id: fenugreek
+name_ar: الحلبة
+name_en: Fenugreek
+crop_family: legume_C3
+
+kc:
+  initial: 0.35
+  mid: 1.00
+  end: 0.40
+  stage_days: [20, 30, 35, 25]   # Lini/Ldev/Lmid/Llate ≈ 110 يوم (تقدير)
+  source: "ECOCROP / fenugreek agronomy literature (FAO-56 lacks fenugreek)"
+  note_ar: "فسيولوجيا الحلبة قرينة معرفية (knowledge prior) أقلّ معياريّة من محاصيل FAO-56؛ Kc تقديريّ من أدبيّات الحلبة لا من جداول FAO-56"
+
+salinity:
+  threshold_ece_ds_m: 2.5        # الحلبة متوسّطة التحمّل للملوحة
+  slope_pct_per_ds_m: 10.0       # ~10% نقص لكل dS/m فوق العتبة
+  germination_ece_max: 2.0       # الإنبات أكثر حساسية (لا يتجاوز ~2.0)
+  source: "Fenugreek salinity literature (moderately tolerant)"
+
+thermal:
+  gdd_base_c: 5.0                # بقوليّة باردة/معتدلة الموسم (حرارة أساس ~5°م)
+  gdd_to_maturity: 1300
+  flowering_safe_max_c: 30.0     # إجهاد التزهير فوق ~30°م
+  chilling_hours_required: 0
+  source: "Fenugreek (cool-season legume) agronomy literature; GDD base ~5C"
+  note_ar: "فسيولوجيا الحلبة الحرارية قرينة معرفية (knowledge prior) أقلّ معياريّة من محاصيل FAO-56؛ القيم تقديريّة من الأدبيّات"
+
+governing:
+  ph:        { min: 6.0, max: 8.0, error: 0.1, source: "ECOCROP Trigonella foenum-graecum" }
+  ece_ds_m:  { min: 0.0, max: 6.0, error: 0.02, source: "Fenugreek salinity literature (moderately tolerant)" }
+  drainage:  { needs: good }     # تتأثّر بسوء الصرف والإغراق
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.0
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "ECOCROP / legume agronomy (knowledge prior)"
+    note_ar: "تقدير طيفي لـ OM يبقى قرينة؛ المختبر يحكم"
+  # بقوليّة مثبّتة للنيتروجين (Rhizobium): الاحتياج النيتروجينيّ منخفض (دفعة بادئة فقط).
+  nitrogen_kg_ha_required: 20
+  phosphorus_kg_ha_required: 40
+  potassium_kg_ha_required: 30
+
+pest_susceptibility:
+  pests: [downy_mildew, powdery_mildew, root_rot, aphids]
+  note: "أهمّ أمراض الحلبة فطرية (البياض الزغبي)؛ نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو (Phenology) — محايدة الموقع، تقدير ECOCROP/أدبيّات الحلبة ──
+# الحدود اليوميّة تطابق kc.stage_days التراكميّة [0–20, 20–50, 50–85, 85–110].
+phenology:
+  source: "ECOCROP stage estimate (fenugreek); fenugreek agronomy literature"
+  total_cycle_days: 110
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.35
+      key_action_ar: "ريّ خفيف متكرّر لضمان إنبات منتظم"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 20
+      day_end: 50
+      kc_end: 1.00
+      key_action_ar: "تعشيب مبكّر (الحلبة ضعيفة المنافسة للأعشاب) + تسميد فوسفاتي بادئ"
+    - stage: mid
+      name_ar: "التزهير وتكوين القرون"
+      day_start: 50
+      day_end: 85
+      kc: 1.00
+      key_action_ar: "ذروة الاحتياج المائي — تجنّب الإجهاد المائي والحراري (>30°م)"
+    - stage: late
+      name_ar: "امتلاء البذور والنضج"
+      day_start: 85
+      day_end: 110
+      kc: 0.40
+      key_action_ar: "تقليل الريّ تدريجيّاً قبل الحصاد (يبدأ النضج باصفرار النبات وامتلاء القرون)"

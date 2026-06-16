@@ -1,0 +1,37 @@
+# بطاقة صنف — فول شبام-1 (improved، منتخب من FLIP-84-14FB / ICARDA)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الفول (faba_bean).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023).
+variety_id: faba_bean_shabam_1
+parent_crop_id: faba_bean
+name_ar: فول شبام-1
+name_en: Shabam-1 faba bean
+
+passport:
+  origin_type: improved
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "VICIA_FAB"          # Vicia faba
+  collection_note_ar: "مُنتخَب بطريقة الانتخاب من الصنف FLIP-84-14FB المُدخَل من المركز الدولي إيكاردا (حلب، سوريا) في محطة أبحاث المرتفعات الوسطى والشمالية"
+
+distinctness:
+  morphology_ar: "نمو شبه قائم، أوراق خضراء، زهرة بيضاء متوسطة الحجم، بذرة ناضجة بنّية فاتحة كبيرة الحجم"
+  maturity_class: early            # ~95 يوماً حتى النضج، تزهير 50% عند ~53 يوماً
+  plant_height_cm: 80
+uniformity_note_ar: "صنف مُنتخَب — تجانس مقبول"
+stability_note_ar: "مستقرّ عبر مواسم الزراعة في المرتفعات الوسطى والشمالية"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0     # لا تعديل مُدّعى على عتبة الفول (1.0)
+  disease_resistance_ar: [تحمّل التبقع الشوكولاتي, تحمّل الأسكوكايتا, تحمّل الأصداء, تحمّل المنّ]
+  special_quality_ar: "مقاوم للرقاد، لا انفراط؛ نضج مبكّر (~95 يوماً)، بذرة كبيرة الحجم"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "المرتفعات الوسطى والجنوبية والشمالية — الموسم الشتوي"
+  note_ar: "تُزرع من منتصف ديسمبر إلى النصف الثاني من يناير (موسم شتوي) ومن مايو إلى يونيو (موسم صيفي)"
+
+# ── توقيت مراحل النمو (phenology) — قياسات الدليل (محايدة الموقع) ──
+phenology:
+  days_to_50pct_flowering: 53
+  days_to_maturity: 95
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
