@@ -2435,21 +2435,7 @@ def _parse_date(value: str | None, field: str) -> date | None:
 
 
 # ─── المعدّات (Equipment) — الطبقة ١١ (v23) ──────────────────────
-class EquipmentRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
-    type: str = Field(pattern="^(tractor|pump|harvester|sprayer|other)$")
-    operating_hours: float = Field(default=0, ge=0)
-    purchase_date: str | None = None
-    notes: str | None = None
-
-
-class MaintenanceRequest(BaseModel):
-    kind: str = Field(pattern="^(scheduled|repair|breakdown|inspection)$")
-    status: str = Field(default="planned", pattern="^(planned|done|cancelled)$")
-    scheduled_date: str | None = None
-    performed_date: str | None = None
-    cost_usd: float | None = None
-    notes: str | None = None
+# نماذج المعدّات/الصيانة نُقِلت إلى api/equipment_models.py (تفكيك B1) ويستوردها routers/equipment.
 
 
 # ─── أجهزة IoT (سجلّ + صحّة + telemetry) — الطبقة ٤ (v24) ─────────
@@ -2498,16 +2484,8 @@ def _parse_time(value: str):
 
 
 # ─── البيانات المرجعيّة (Master Data) + الدورات الزراعيّة — (v26) ─
-class MasterDataRequest(BaseModel):
-    category: str = Field(
-        pattern="^(crop|soil_type|fertilizer|pesticide|seed_variety|equipment_type|other)$"
-    )
-    code: str = Field(min_length=1, max_length=60)
-    name_ar: str = Field(min_length=1, max_length=160)
-    name_en: str | None = None
-    metadata: dict | None = None
-
-
+# MasterDataRequest نُقِل إلى api/master_data_models.py (تفكيك B1) ويستورده
+# routers/master_data. RotationRequest يبقى هنا (يستهلكه routers/fields).
 class RotationRequest(BaseModel):
     crop: str = Field(min_length=1, max_length=80)
     season_label: str | None = None
@@ -2522,14 +2500,8 @@ class RotationRequest(BaseModel):
 
 
 # ─── الإعدادات (Settings) — منصّة/مزرعة/ريّ/إشعارات — (v28) ───────
-class SettingRequest(BaseModel):
-    scope: str = Field(pattern="^(platform|farm|irrigation|notification)$")
-    key: str = Field(min_length=1, max_length=80)
-    value: dict | None = None
-
-
-# نقاط /api/v1/settings نُقلت إلى api/routers/settings.py (نمط P0).
-# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
+# نقاط /api/v1/settings في api/routers/settings.py، ونموذج SettingRequest نُقِل
+# إلى api/setting_models.py (تفكيك B1) ويستورده الموجِّه منه.
 
 
 # ─── تكوين المستأجِر (Tenant Config) — هويّة/وحدات/لغة/محاصيل — (#13) ─
@@ -3293,18 +3265,9 @@ class SharingKeyCreateRequest(BaseModel):
 
 # ─── ١٥. محرّك التجارب t-test/LSD (المرحلة ٢، البند ١١) ──────────
 # الميزة الرئيسيّة لـ"الصدق الإحصائي": يُجيب هل الفرق مؤكّد أم تباين طبيعي.
-# نقطة /api/v1/trials/analyze نُقلت إلى api/routers/trials.py (نمط P0).
-# النماذج تبقى هنا وتُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
-class TrialBlockInput(BaseModel):
-    block_number: int
-    treatment_yield: float
-    control_yield: float
-
-
-class TrialAnalysisRequest(BaseModel):
-    blocks: list[TrialBlockInput]
-    confidence_level: float = 0.95
-    treatment_label_ar: str = "المعالجة الجديدة"
+# نقطة /api/v1/trials/analyze في api/routers/trials.py، ونماذجها
+# (TrialBlockInput المتداخل + TrialAnalysisRequest) نُقِلت إلى api/trial_models.py
+# (تفكيك B1) ويستوردها الموجِّه منها.
 
 
 # ─── ١٦. ميزان الماء ET0 (المرحلة ٢، البند ١٢) ──────────────────
