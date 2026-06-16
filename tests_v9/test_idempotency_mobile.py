@@ -158,3 +158,14 @@ def test_create_activity_wires_idempotency():
     assert "Depends(_idem_key)" in body, "create_activity لا يقبل مفتاح idempotency"
     assert "_idempotent(" in body, "create_activity لا يستدعي _idempotent"
     assert "CommandStore(" in body
+
+
+def test_update_field_wires_idempotency():
+    # توحيد مسار كتابة الحقل: update_field يجب أن يقبل Idempotency-Key ويمرّ عبر
+    # _idempotent (نوع أمر field.update) كنظيرَيه create_season/create_activity —
+    # وإلّا كان تحديث الحقل ثغرة المسار الوحيدة بلا idempotency (إعادة الموبايل تُكرّر).
+    body = _handler_src("update_field")
+    assert "Depends(_idem_key)" in body, "update_field لا يقبل مفتاح idempotency"
+    assert "_idempotent(" in body, "update_field لا يستدعي _idempotent"
+    assert "CommandStore(" in body
+    assert '"field.update"' in body or "'field.update'" in body, "نوع أمر field.update مفقود"
