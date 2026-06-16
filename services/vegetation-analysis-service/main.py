@@ -19,17 +19,21 @@ NOTE ON DATA PROVENANCE (honesty):
   Real per-pixel raster processing (decoding the GeoTIFF, masking via SCL,
   averaging real reflectance) lives in the raster-service, which ships rasterio.
 
-  EXCEPTION — real NDVI pass-through (VEGETATION_PREFER_RASTER, ON by default):
-  /v1/analyze prefers the REAL per-pixel NDVI mean from raster-service when the
-  field has a processed layer. In that case it substitutes NDVI only and reports
-  `real_data: true` + `data_source: "raster-service"` (per-index `source` marks
-  NDVI as "raster-service" and the rest as "estimate"). Any failure/timeout/
-  missing layer falls back to the labeled estimate (behaviour never degrades).
+  EXCEPTION — real per-pixel pass-through (VEGETATION_PREFER_RASTER, ON by default):
+  /v1/analyze prefers the REAL per-pixel mean from raster-service (band_math over
+  free public Sentinel-2 via STAC, no credentials) when the field has a processed
+  layer — for NDVI, EVI, SAVI (MSAVI2) and NDMI (moisture). It substitutes those
+  values only and marks each per-index `source` as "raster-service"; the rest
+  (lai/cwsi/ndwi/gndvi/recl) stay "estimate" — lai needs a model, cwsi a thermal
+  band (LST), the others bands/formulas outside band_math. `data_source`/`real_data`
+  remain NDVI-centric (the health card is built on NDVI). Any failure/timeout/
+  missing layer falls back per-index to the labeled estimate (behaviour never degrades).
   `provider_reachable` indicates whether the live SH/CDSE metadata API responded.
 """
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -73,6 +77,12 @@ VEGETATION_PREFER_RASTER = os.getenv("VEGETATION_PREFER_RASTER", "1") not in (
     "False",
     "",
 )
+
+# خريطة مؤشّر vegetation → اسم المؤشّر الحقيقيّ في raster band_math (يُحسب per-pixel
+# من Sentinel-2 الحقيقيّ عبر STAC العامّ المجّانيّ — بلا اعتمادات). ما ليس هنا يبقى
+# تقديريّاً بصدق: lai (يحتاج نموذجاً)، cwsi (يحتاج نطاقاً حراريّاً LST)، ndwi/gndvi/
+# recl (نطاقات/صيَغ خارج band_math). SAVI ⇐ MSAVI2 (نسخة محسّنة، تصحيح تربة ذاتيّ).
+_RASTER_REAL_INDEX = {"evi": "evi", "savi": "msavi", "ndmi": "moisture"}
 
 SH_CLIENT_ID = os.getenv("SH_CLIENT_ID", "")
 SH_CLIENT_SECRET = os.getenv("SH_CLIENT_SECRET", "")
@@ -562,9 +572,11 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
-async def _real_ndvi_mean_from_raster(field_id: str) -> float | None:
-    """متوسّط NDVI الحقيقيّ (بكسليّ) من raster-service إن توفّر — وإلّا None.
+async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi") -> float | None:
+    """متوسّط المؤشّر الحقيقيّ (بكسليّ) من raster-service (band_math، Sentinel-2) إن
+    توفّر — وإلّا None.
 
+    `raster_index`: اسم المؤشّر في raster band_math (ndvi|evi|msavi|moisture|ndre).
     fail-safe مطلق: أيّ خطأ/مهلة/غياب طبقة/real_data=false ⇒ None (لا استثناء يصعد)،
     فيُبقي المتّصِل على التقدير المُعلَّم. لا يغيّر صيَغ المؤشّرات — يستبدل القيمة فقط.
     """
@@ -574,7 +586,7 @@ async def _real_ndvi_mean_from_raster(field_id: str) -> float | None:
         async with httpx.AsyncClient(timeout=8) as c:
             r = await c.get(
                 f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-grid",
-                params={"index": "ndvi", "date": "latest", "grid": 16},
+                params={"index": raster_index, "date": "latest", "grid": 16},
             )
         if r.status_code != 200:
             return None
@@ -584,7 +596,7 @@ async def _real_ndvi_mean_from_raster(field_id: str) -> float | None:
         mean = (data.get("stats") or {}).get("mean")
         return float(mean) if isinstance(mean, (int, float)) else None
     except Exception as e:  # noqa: BLE001 — fail-safe: ارتداد للتقدير، لا كسر
-        logger.debug("raster NDVI الحقيقيّ غير متاح لـ%s: %s", field_id, e)
+        logger.debug("raster %s الحقيقيّ غير متاح لـ%s: %s", raster_index, field_id, e)
         return None
 
 
@@ -610,18 +622,26 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         cloud_pct = meta.get("cloud_pct", 0.0)
         bands = _realistic_bands(field_id, acq_date)
         indices = _compute_indices(bands)
-        # تفضيل NDVI الحقيقيّ (بكسليّ، Sentinel-2 عبر raster-service) عند توفّره —
-        # يستبدل قيمة NDVI فقط (لا يغيّر صيَغ المؤشّرات). بقيّة المؤشّرات تبقى تقديريّة.
-        real_ndvi = await _real_ndvi_mean_from_raster(field_id)
-        ndvi_is_real = real_ndvi is not None
-        if ndvi_is_real:
-            indices["ndvi"] = round(real_ndvi, 3)
+        # تفضيل القيم الحقيقيّة (بكسليّ، Sentinel-2 عبر raster band_math) عند توفّرها:
+        # ndvi + evi + savi(msavi) + ndmi(moisture). تُجلب بالتوازي (gather) ويُستبدَل
+        # القيمة فقط (لا تتغيّر الصيَغ). lai/cwsi/ndwi/gndvi/recl تبقى تقديريّة بصدق.
+        index_sources: dict[str, str] = dict.fromkeys(indices, "estimate")
+        _veg_keys = ["ndvi", *_RASTER_REAL_INDEX.keys()]
+        _raster_idxs = ["ndvi", *_RASTER_REAL_INDEX.values()]
+        _real_means = await asyncio.gather(
+            *(_real_index_mean_from_raster(field_id, ri) for ri in _raster_idxs)
+        )
+        for _vk, _rv in zip(_veg_keys, _real_means, strict=True):
+            if _rv is not None:
+                indices[_vk] = round(_rv, 3)
+                index_sources[_vk] = "raster-service"
+        ndvi_is_real = index_sources["ndvi"] == "raster-service"
         health = _health_classification(indices["ndvi"], indices["cwsi"])
         recs = _recommendations_ar(indices, health, field["crop"])
     await _publish_analysis(field_id, tenant_id, indices, source)
     ANALYSIS_COUNT.labels(source=source, status="success").inc()
-    # وسم مصدر كلّ مؤشّر بصدق: NDVI من raster الحقيقيّ عند توفّره، والباقي تقدير.
-    _ndvi_src = "raster-service" if ndvi_is_real else "estimate"
+    # وسم مصدر كلّ مؤشّر بصدق من index_sources: الحقيقيّ (raster) عند توفّره، وإلّا تقدير.
+    _real_keys = [k for k, s in index_sources.items() if s == "raster-service"]
     return {
         "field_id": field_id,
         "field_name": field["name"],
@@ -638,9 +658,10 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         # نصّ آليّ موحّد اللغة (إنجليزيّ) في الحالتين — لا تتغيّر لغته بتغيّر المصدر
         # (تفادياً لكسر مستهلكين يطابقون النصّ، كما نبّهت مراجعة Copilot).
         "estimate_note": (
-            "NDVI is the real per-pixel mean from raster-service (Sentinel-2); "
-            "other indices remain field-mean estimates from synthetic bands."
-            if ndvi_is_real
+            "Real per-pixel means from raster-service (Sentinel-2): "
+            + ", ".join(_real_keys)
+            + ". Other indices (incl. lai/cwsi) remain field-mean estimates from synthetic bands."
+            if _real_keys
             else "Indices are field-mean estimates from deterministic synthetic bands; "
             "no satellite pixels were decoded. Real per-pixel processing lives in raster-service."
         ),
@@ -648,7 +669,7 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
             k: {
                 "value": v,
                 "unit": "dimensionless",
-                "source": _ndvi_src if k == "ndvi" else "estimate",
+                "source": index_sources.get(k, "estimate"),
             }
             for k, v in indices.items()
         },
