@@ -79,3 +79,14 @@ def test_flag_on_salinity_halt_via_guardrails(monkeypatch):
     )
     assert out["state"] == "blocked"
     assert any("salinity" in b for b in out["halt_breaches"])
+
+
+async def test_execute_flag_off_returns_404(monkeypatch):
+    # نقطة التنفيذ محروسة بنفس العلم — مُطفأة ⇒ 404 قبل أيّ قاعدة.
+    from api.routers.decision_dispatch import DispatchExecuteRequest, execute_dispatch_endpoint
+
+    monkeypatch.delenv("SAHOOL_DECISION_DISPATCH", raising=False)
+    req = DispatchExecuteRequest(recommendation_id="r", action_type="irrigation", risk_level="LOW")
+    with pytest.raises(HTTPException) as e:
+        await execute_dispatch_endpoint(req=req, user=_USER)
+    assert e.value.status_code == 404
