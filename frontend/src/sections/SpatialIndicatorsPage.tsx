@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   useIndicatorGrid, useFieldPrescription, useIndicatorsCatalog,
-  type GridIndex, type IndicatorGridResponse,
+  type GridIndex, type IndicatorGridResponse, type CatalogIndicator,
 } from "../hooks/useApi";
 import FieldIndicatorMap from "../components/FieldIndicatorMap";
 
@@ -176,11 +176,11 @@ export default function SpatialView() {
   // فلا تنكسر الصفحة. النتيجة دائماً ضمن مفاتيح IND_META فتبقى آمنة الأنواع.
   const catalogQ = useIndicatorsCatalog();
   const indices = useMemo<IndexKey[]>(() => {
-    const items = Array.isArray((catalogQ.data as any)?.indicators)
-      ? (catalogQ.data as any).indicators
+    const items = Array.isArray(catalogQ.data?.indicators)
+      ? catalogQ.data.indicators
       : null;
     const ids: string[] = items
-      ? items.filter((i: any) => i?.renderable).map((i: any) => String(i.id))
+      ? items.filter((i: CatalogIndicator) => i?.renderable).map((i: CatalogIndicator) => String(i.id))
       : FALLBACK_RENDERABLE;
     const keys = ids.filter((id): id is IndexKey => id in IND_META);
     // ضمان وجود عنصر واحد على الأقلّ كي يبقى المبدّل صالحاً ولا يفرغ المختار.

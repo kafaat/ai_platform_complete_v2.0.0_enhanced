@@ -39,6 +39,9 @@ type TaskLike = {
   status?: string; recommended_date?: string; priority?: number;
 };
 
+// يوم من سلسلة التنبّؤ اليوميّ كما تقرؤه هذه الشاشة (حرارة فقط) — حقول اختياريّة.
+interface ForecastDay { tmean?: number; tmax?: number; tmin?: number }
+
 // أيقونة نوع المعدّة (مطابقة لأنواع الخادم).
 function equipIcon(type?: string) {
   const s = (type ?? '').toLowerCase();
@@ -65,16 +68,15 @@ export default function OperationCommand() {
   const alerts: AlertLike[] = Array.isArray(alertsQ.data) ? (alertsQ.data as AlertLike[]) : [];
   // useTasks() يُرجع { tasks: Task[] } (لا مصفوفة مجرّدة) — نقرأ المفتاح الصحيح.
   const tasks: TaskLike[] = Array.isArray(tasksQ.data?.tasks) ? (tasksQ.data.tasks as TaskLike[]) : [];
-  const cur = (weatherQ.data as any)?.current;
+  const cur = (weatherQ.data as { current?: { tmean?: number } } | undefined)?.current;
 
   // ── سلسلة اتّجاه حقيقيّة (لا تلفيق) ──
   // useWeatherForecast يضرب نقطة /weather/forecast الحقيقيّة مباشرةً (بلا ارتداد
   // وهميّ في هذا الـhook). إن أعادت الخدمة مصفوفة أيّام يوميّة بقيَم حرارة منتهية،
   // نشتقّ منها سلسلة متوسّط الحرارة لرسم MiniLine. غياب المصفوفة (أو قيَمها) ⇒
   // لا سلسلة ⇒ لا مؤشّر (لا نخترع نقاطاً). نقبل tmean أو متوسّط tmax/tmin إن توفّرا.
-  const forecastDays: any[] = Array.isArray((weatherQ.data as any)?.forecast)
-    ? (weatherQ.data as any).forecast
-    : [];
+  const wForecast = (weatherQ.data as { forecast?: ForecastDay[] } | undefined)?.forecast;
+  const forecastDays: ForecastDay[] = Array.isArray(wForecast) ? wForecast : [];
   const tmeanSeries = forecastDays
     .map((d) => {
       if (typeof d?.tmean === 'number' && Number.isFinite(d.tmean)) return d.tmean;

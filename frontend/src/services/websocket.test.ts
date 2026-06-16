@@ -29,8 +29,8 @@ class MockWebSocket {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).WebSocket = MockWebSocket;
+// حقن WebSocket وهميّ في النطاق العامّ للاختبار (بلا any: تأكيد مضبوط للمفتاح).
+(globalThis as unknown as { WebSocket: unknown }).WebSocket = MockWebSocket;
 
 // يُستورد بعد حقن WebSocket حتى يلتقط الـsingleton المرجع الوهميّ.
 import { wsService } from './websocket';

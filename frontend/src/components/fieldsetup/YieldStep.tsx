@@ -52,7 +52,7 @@ export default function YieldStep({
       });
       // حارس شكل: نقبل كائناً فقط؛ غير ذلك ⇒ نعامله كغياب نتيجة (لا انهيار).
       setResult(r?.data && typeof r.data === 'object' ? (r.data as Record<string, unknown>) : null);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiErrorMessage(e, 'تعذّر تقدير الإنتاجيّة — تحقّق من القاعدة/الطقس/الصلاحيّة.'));
     } finally {
       setSaving(false);

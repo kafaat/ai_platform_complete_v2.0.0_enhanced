@@ -96,7 +96,7 @@ export default function SetupCabin() {
   // كي يلتقط المعالج field_id. لا تلفيق ولا مسار حفظ جديد.
   const mutateAllowed = canMutate(userRole);
   const qc = useQueryClient();
-  const tid = (useAuthStore((s) => s.user) as any)?.tenant_id ?? 'default';
+  const tid = useAuthStore((s) => s.user)?.tenant_id ?? 'default';
   const [showWizard, setShowWizard] = useState(false);
 
   // بعد الإنشاء/الاستيراد نُبطِل كاش قائمة الحقول كي تُعيد SetupCabin الجلب

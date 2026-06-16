@@ -16,6 +16,7 @@ import {
 import type {
   Equipment, EquipmentType, MaintenanceKind,
 } from '../services/api';
+import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -53,7 +54,7 @@ const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('en-CA
 
 // رسالة خطأ صادقة مُشتقّة من رمز الحالة (يُستخدم في كلّ الاستعلامات/الطفرات).
 function errorDetail(err: unknown): string {
-  const status = (err as any)?.response?.status;
+  const status = asApiError(err).response?.status;
   if (status === 503) return 'خدمة المعدّات غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
   if (status === 403) return 'لا تملك صلاحية هذه العملية (equipment:view / equipment:manage).';
   if (status === 401) return 'انتهت الجلسة. يُرجى تسجيل الدخول من جديد.';

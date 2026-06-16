@@ -57,7 +57,7 @@ export default function SoilTestStep({
           : {}),
       });
       onNext();
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiErrorMessage(e, 'تعذّر حفظ فحص التربة — تحقّق من القاعدة/الصلاحيّة.'));
     } finally {
       setSaving(false);

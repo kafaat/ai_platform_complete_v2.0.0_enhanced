@@ -15,6 +15,7 @@ import { useAuthStore } from '../hooks/useAuth';
 import { canManage } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import type { DocumentCategory, DocumentCreateInput } from '../services/api';
+import { asApiError } from '../services/api';
 import { toastStore } from '../services/websocket';
 
 // تصنيفات الوثائق المعتمدة خادميّاً + تسمية عربيّة + أيقونة/لون لكلّ تصنيف.
@@ -91,7 +92,7 @@ function RegisterForm({ onClose }: { onClose: () => void }) {
       toastStore.add('success', 'تمّ التسجيل', 'تمّ تسجيل الوثيقة (بيانات وصفيّة).');
       onClose();
     } catch (err) {
-      const status = (err as any)?.response?.status;
+      const status = asApiError(err).response?.status;
       const detail = status === 503
         ? 'الخدمة غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
         : status === 403
@@ -194,7 +195,7 @@ export default function DocumentsPage() {
   const docs = data ?? [];
 
   const errorDetail = (() => {
-    const status = (error as any)?.response?.status;
+    const status = asApiError(error).response?.status;
     if (status === 503) return 'خدمة الوثائق غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
     if (status === 403) return 'لا تملك صلاحية عرض الوثائق (document:view).';
     return 'تعذّر الاتصال بخدمة الوثائق.';

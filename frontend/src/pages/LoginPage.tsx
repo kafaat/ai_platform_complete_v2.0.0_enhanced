@@ -31,7 +31,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
     setLoading(true); setError('');
     try {
       await login(email, password, mfaRequired ? mfaCode.trim() : undefined);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // الخادم يردّ 401 + X-MFA-Required حين تصحّ كلمة المرور لكن يلزم رمز TOTP.
       if (!mfaRequired && isMfaRequiredError(err)) {
         setMfaRequired(true);
@@ -232,7 +232,7 @@ function ResetFlow({
       const res = await requestPasswordReset(email.trim());
       setInfo(res.message || 'إذا كان البريد مسجلاً، ستصلك رسالة إعادة التعيين');
       setView('reset-confirm');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiErrorMessage(err, 'تعذّر إرسال طلب إعادة التعيين'));
     } finally {
       setLoading(false);
@@ -248,7 +248,7 @@ function ResetFlow({
     try {
       await confirmPasswordReset(token.trim(), newPw);
       setDone(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(apiErrorMessage(err, 'رمز غير صالح أو منتهٍ'));
     } finally {
       setLoading(false);

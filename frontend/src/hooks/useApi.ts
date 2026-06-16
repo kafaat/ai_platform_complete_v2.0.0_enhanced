@@ -227,7 +227,7 @@ export function useVegetationTimeseries(fieldId: string, days = 30) {
 
 export function useAllFieldsNdvi() {
   const { user } = useAuthStore();
-  const tid = (user as any)?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? 'default';
   return useQuery({
     queryKey: QK.allFieldsNdvi(tid),
     queryFn:  () => vegetationApi.get('/v1/all_fields', { params: { tenant_id: tid } }).then(r => r.data),
@@ -425,10 +425,20 @@ export function useFieldPrescription(
 
 // FIX (ربط حيّ): الكتالوج الحقيقيّ مُخدَّم من sahool-platform عبر البوّابة
 // (/api/v1/indicators/catalog) لا من indicators-service الـstub. tenant-scoped + FIELD_VIEW.
-export function useIndicatorsCatalog() {
+// عنصر كتالوج المؤشّرات كما تقرؤه الشاشات: id + اسم عربيّ اختياريّ + قابليّة التصيير.
+export interface CatalogIndicator {
+  id: string;
+  name_ar?: string;
+  renderable?: boolean;
+}
+export interface IndicatorsCatalogResponse {
+  indicators?: CatalogIndicator[];
+}
+
+export function useIndicatorsCatalog(): UseQueryResult<IndicatorsCatalogResponse> {
   return useQuery({
     queryKey: QK.indicatorsCatalog,
-    queryFn:  () => kongApi.get('/api/v1/indicators/catalog').then(r => r.data),
+    queryFn:  () => kongApi.get<IndicatorsCatalogResponse>('/api/v1/indicators/catalog').then(r => r.data),
     staleTime:60 * 60_000,
     retry:    false,
   });
@@ -484,7 +494,7 @@ export function useSoilNRecommendation(fieldId: string, targetYield = 3.5) {
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();
-  const tid = (user as any)?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? 'default';
   return useQuery({
     queryKey: QK.fields(tid),
     // الخلفيّة: GET /api/v1/fields تُرجع قائمة FieldSummary (مع lat/lon/geometry
@@ -798,7 +808,7 @@ export function useAgentQuery() {
         query,
         field_id:             fieldId,
         user_id:              (user as any)?.sub ?? 'unknown',
-        tenant_id:            (user as any)?.tenant_id ?? 'default',
+        tenant_id:            user?.tenant_id ?? 'default',
         preferred_objectives: objectives ?? ['balanced'],
       }).then(r => r.data),
   });
@@ -811,7 +821,7 @@ export function useFarmOptimize() {
       kongApi.post('/api/agent/optimize', {
         query: 'optimize farm', field_id: fieldId,
         user_id:   (user as any)?.sub ?? 'unknown',
-        tenant_id: (user as any)?.tenant_id ?? 'default',
+        tenant_id: user?.tenant_id ?? 'default',
         preferred_objectives: objectives,
       }).then(r => r.data),
   });
@@ -831,7 +841,7 @@ export function useGuardrailsValidate() {
         action_data:  actionData,
         farm_context: farmContext,
         user_id:      (user as any)?.sub ?? 'unknown',
-        tenant_id:    (user as any)?.tenant_id ?? 'default',
+        tenant_id:    user?.tenant_id ?? 'default',
         auto_approve_low_risk: true,
       }).then(r => r.data),
   });

@@ -21,8 +21,16 @@ import {
   Pentagon, Square, Circle,
 } from 'lucide-react';
 import shp from 'shpjs';
-import { kongApi } from '../services/api';
+import { kongApi, asApiError } from '../services/api';
 import type { FieldImportInput } from '../services/api';
+
+// الطبقة المرسومة من leaflet-draw: circle يحمل getLatLng/getRadius؛
+// polygon/rectangle يحملان getLatLngs. نستخدمه لتضييق layer داخل المعالِج.
+interface DrawnLayer extends L.Layer {
+  getLatLng?: () => L.LatLng;
+  getRadius?: () => number;
+  getLatLngs?: () => L.LatLng[] | L.LatLng[][];
+}
 
 interface FieldData {
   name:          string;
@@ -201,14 +209,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
   }, []);
 
   // أداة الرسم (leaflet-draw): مضلّع / مستطيل / دائرة (ريّ محوريّ).
-  const handleCreated = useCallback((e: any) => {
-    const layer = e.layer;
+  const handleCreated = useCallback((e: L.DrawEvents.Created) => {
+    const layer = e.layer as DrawnLayer;
     let pts: L.LatLng[];
     if (e.layerType === 'circle') {
-      pts = circleToPolygon(layer.getLatLng(), layer.getRadius());
+      pts = circleToPolygon(layer.getLatLng!(), layer.getRadius!());
     } else {
       // polygon / rectangle: الحلقة الخارجيّة
-      const ring = layer.getLatLngs?.()[0];
+      const ring = (layer.getLatLngs?.() as L.LatLng[][] | undefined)?.[0];
       pts = Array.isArray(ring) ? (ring as L.LatLng[]) : [];
     }
     if (pts.length >= 3) handlePolygonDone(pts);
@@ -265,8 +273,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
         area_ha: +(geodesicAreaHa(finalPts).toFixed(2)),
         geometry: { type: 'Polygon', coordinates: [coords] },
       });
-    } catch (e: any) {
-      setError(e?.message || 'فشل الحفظ');
+    } catch (e: unknown) {
+      setError(asApiError(e).message || 'فشل الحفظ');
     } finally {
       setSaving(false);
     }
@@ -336,8 +344,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
           setFileName(f.name);
           setFileText(JSON.stringify(geojson));
           setFileFmt('geojson'); // الخلفيّة تستقبله كـGeoJSON بعد التحويل
-        } catch (e: any) {
-          setError(e?.message || 'تعذّر تحليل ملفّ Shapefile — تأكّد أنّه ملفّ .shp/.zip صالح.');
+        } catch (e: unknown) {
+          setError(asApiError(e).message || 'تعذّر تحليل ملفّ Shapefile — تأكّد أنّه ملفّ .shp/.zip صالح.');
           setFileName(''); setFileText(''); setFileFmt(null);
         } finally {
           setParsing(false);
@@ -380,9 +388,9 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
         field_code: fieldCode.trim() || undefined,
         water_source: waterSource,
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       // رسالة صادقة من الخادم (400 تحليل / 422 هندسة غير صالحة) لا ابتلاع.
-      setError(e?.message || 'فشل الاستيراد');
+      setError(asApiError(e).message || 'فشل الاستيراد');
     } finally {
       setSaving(false);
     }

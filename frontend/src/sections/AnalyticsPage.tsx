@@ -15,6 +15,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from 'recharts';
 import { TrendingUp, BarChart3, Activity, Droplets, Lightbulb } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import {
   useFields, useFieldTimeseries, useSeasons,
   useIndicatorGrid, useFieldRecommendations,
@@ -31,7 +32,7 @@ const CAT_AR: Record<string, string> = {
   irrigation: 'الريّ', fertilizer: 'التسميد', disease: 'الأمراض', yield: 'الإنتاج',
 };
 
-function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
+function ChartCard({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
     <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
       <div className="flex items-center gap-2 mb-4">
@@ -58,9 +59,19 @@ function Panel({
   return <>{children}</>;
 }
 
+// الحقول كما تقرؤها هذه الشاشة من /api/v1/fields (مفاتيح متباينة، كلّها اختياريّة).
+interface AnalyticsField {
+  field_id?: string;
+  field_name?: string;
+  name_ar?: string;
+}
+
 export default function AnalyticsPage() {
   const fieldsQ = useFields();
-  const fields: any[] = useMemo(() => fieldsQ.data?.fields ?? [], [fieldsQ.data]);
+  const fields: AnalyticsField[] = useMemo(
+    () => (fieldsQ.data as { fields?: AnalyticsField[] } | undefined)?.fields ?? [],
+    [fieldsQ.data],
+  );
 
   const [picked, setPicked] = useState<string>('');
   const activeFieldId = picked || (fields[0]?.field_id ?? '');
