@@ -168,7 +168,7 @@ services:
   # FIX-05: MINIO_ROOT_PASSWORD من .env
   # ═══════════════════════════════════════════════════════════════
   sahool-minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: sahool-minio
     restart: unless-stopped
     ports:
@@ -193,7 +193,7 @@ services:
   # FIX-06: Qdrant API Key
   # ═══════════════════════════════════════════════════════════════
   sahool-qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:v1.17.1
     container_name: sahool-qdrant
     restart: unless-stopped
     # لا تكشف Qdrant للمضيف إلا إذا احتجت debugging
@@ -219,7 +219,7 @@ services:
   # FIX-07: أضف Ollama لخدمة local-ai-rag
   # ═══════════════════════════════════════════════════════════════
   sahool-ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:0.30.8
     container_name: sahool-ollama
     restart: unless-stopped
     # GPU اختياري ومُعطَّل افتراضيّاً: حجز جهاز nvidia يُفشِل `up` على مضيف بلا
@@ -807,7 +807,7 @@ services:
   # 25. Prometheus + Grafana (Observability)
   # ═══════════════════════════════════════════════════════════════
   sahool-prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.55.1
     container_name: sahool-prometheus
     restart: unless-stopped
     ports:
@@ -819,7 +819,7 @@ services:
       - sahool-internal
 
   sahool-grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.6.0
     container_name: sahool-grafana
     restart: unless-stopped
     ports:
@@ -837,7 +837,7 @@ services:
   # 26. Jaeger (Tracing)
   # ═══════════════════════════════════════════════════════════════
   sahool-jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/all-in-one:1.62.0
     container_name: sahool-jaeger
     restart: unless-stopped
     ports:
