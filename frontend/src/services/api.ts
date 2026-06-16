@@ -28,8 +28,12 @@ const IS_LOCAL = typeof window !== 'undefined' &&
 //   /api(=KONG) + /weather/* → platform /api/v1/weather/* (nginx /api/weather/)
 // التطوير المحلّيّ (IS_LOCAL) يبقى على localhost كما كان (لا كسر)؛ وVITE_*_URL يَسبق.
 const KONG_URL       = import.meta.env.VITE_API_URL        || (IS_LOCAL ? 'http://localhost:8000' : '/api');
-const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL    || (IS_LOCAL ? 'http://localhost:8092' : '/api');
-const SOIL_URL       = import.meta.env.VITE_SOIL_URL       || (IS_LOCAL ? 'http://localhost:8094' : '/api/soil');
+// الطقس/التربة: مساراتهما تُحَلّ عبر إعادة كتابة nginx (/api/weather/ →
+// platform /api/v1/weather/؛ soil خدمة مستقلّة)، فتمرّ عبر البوّابة لا منفذ مباشر.
+// منفذا 8092/8094 السابقان (dev) كانا stubs تُرجِع 501 — إيهام خدمة عاملة. الافتراضيّ
+// الآن البوّابة في dev وprod؛ يلزم تشغيل dev خلف nginx لعمل هذه الشاشات (أو ضبط VITE_*_URL).
+const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL    || '/api';
+const SOIL_URL       = import.meta.env.VITE_SOIL_URL       || '/api/soil';
 const INDICATORS_URL = import.meta.env.VITE_INDICATORS_URL || (IS_LOCAL ? 'http://localhost:8091' : '/api/indicators');
 const VEGETATION_URL = import.meta.env.VITE_VEGETATION_URL || (IS_LOCAL ? 'http://localhost:8090' : '/api/vegetation');
 const RASTER_URL     = import.meta.env.VITE_RASTER_URL     || (IS_LOCAL ? 'http://localhost:8099' : '/api/raster');

@@ -578,12 +578,16 @@ export function useCreateFarm(): UseMutationResult<FarmCreated, Error, FarmCreat
 }
 
 export function useTasks(fieldId?: string) {
+  // صدق: لا ابتلاع صامت للأخطاء. كان .catch(() => ({tasks:[]})) يُحوّل فشل الخادم/
+  // المصادقة إلى «لا مهامّ» فلا يُفعَّل isError أبداً (pseudo-mock). الآن يَطفو الخطأ
+  // فتعرض TasksPage حالة ErrorState بصدق (retry:false كبقيّة قوائم المنصّة).
   return useQuery<{ tasks: Task[] }>({
     queryKey: QK.tasks(fieldId),
     queryFn:  () => kongApi.get('/api/v1/tasks', { params: fieldId ? { field_id: fieldId } : {} })
-      .then(r => r.data).catch(() => ({ tasks: [] })),
+      .then(r => r.data),
     staleTime:2 * 60_000,
     refetchInterval: 5 * 60_000,
+    retry: false,
   });
 }
 

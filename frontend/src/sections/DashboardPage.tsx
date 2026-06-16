@@ -56,7 +56,7 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
         <div>
           <h2 className="text-xl font-bold text-slate-100">لوحة المعلومات</h2>
           <p className="text-sm text-slate-400">
-            {dashboard?.total_fields||8} حقل · {dashboard?.total_indicators||33} مؤشر · {dashboard?.active_alerts||0} تنبيه
+            {dashboard?.total_fields ?? '—'} حقل · {dashboard?.total_indicators ?? '—'} مؤشر · {dashboard?.active_alerts ?? 0} تنبيه
           </p>
         </div>
         <div className="flex items-center gap-2">
