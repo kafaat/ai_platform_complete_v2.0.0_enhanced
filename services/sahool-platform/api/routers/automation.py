@@ -49,6 +49,25 @@ def scheduler_status_endpoint():
     return scheduler.status()
 
 
+@router.get("/api/v1/automation/runs")
+def automation_runs_endpoint(
+    limit: int | None = None,
+    user: UserSchema = Depends(get_current_user),
+):
+    """سجلّ تشغيل الأتمتة الدوريّة (مراقبة): ماذا فعلت كلّ دورة فعليّاً.
+
+    يُكمّل ``scheduler-status`` (الذي يكشف آخر تشغيل/فشل فقط) بسجلّ منظّم لكلّ
+    دورة: كم حقلاً قُيّم/تُخطّى/تعثّر، كم تنبيهاً أُنشئ، المدّة، والحالة
+    (ok/partial/error). حلقة حلقيّة في الذاكرة (آخر ~50 دورة) — الأحدث أوّلاً.
+    """
+    from core.automation_ledger import LEDGER
+
+    return {
+        "runs": LEDGER.recent(limit=limit),
+        "summary": LEDGER.summary(),
+    }
+
+
 @router.post("/api/v1/automation/weather/register")
 async def weather_register_endpoint(
     lat: float,
