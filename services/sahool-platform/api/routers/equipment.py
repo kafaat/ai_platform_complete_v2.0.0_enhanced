@@ -14,9 +14,11 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.main import (
+from api.equipment_models import (
     EquipmentRequest,
     MaintenanceRequest,
+)
+from api.main import (
     Permission,
     UserSchema,
     _emit_domain_event,

@@ -16,13 +16,13 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
-    MasterDataRequest,
     Permission,
     UserSchema,
     _emit_domain_event,
     require_permission,
     tenant_connection,
 )
+from api.master_data_models import MasterDataRequest
 
 router = APIRouter()
 

@@ -17,11 +17,11 @@ from fastapi import APIRouter, Depends
 
 from api.main import (
     Permission,
-    SettingRequest,
     UserSchema,
     require_permission,
     tenant_connection,
 )
+from api.setting_models import SettingRequest
 
 router = APIRouter()
 
