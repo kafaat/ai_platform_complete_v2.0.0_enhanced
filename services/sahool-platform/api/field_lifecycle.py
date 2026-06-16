@@ -216,8 +216,15 @@ class FieldLifecycleEngine:
                     uuid.UUID(lifecycle_id),
                 )
                 return await self._transition_locked(
-                    conn, lc_row, lifecycle_id, to_stage, changed_by,
-                    command_id, reason, occurred_at, enforcement_mode,
+                    conn,
+                    lc_row,
+                    lifecycle_id,
+                    to_stage,
+                    changed_by,
+                    command_id,
+                    reason,
+                    occurred_at,
+                    enforcement_mode,
                 )
 
     async def _transition_locked(

@@ -77,9 +77,7 @@ def test_snapshot_cursor_uses_seq_when_available():
 
     # مؤشّر عند (ts, seq=5). حدث بنفس ts و seq=6 ⇒ بعده. seq=4 ⇒ قبله.
     ts = "2026-03-01T10:00:00+00:00"
-    cur = SnapshotCursor(
-        last_event_id="x", last_occurred_at=ts, last_seq=5, total_events=1
-    )
+    cur = SnapshotCursor(last_event_id="x", last_occurred_at=ts, last_seq=5, total_events=1)
     assert cur.is_after({"occurred_at": ts, "seq": 6, "event_id": "a"}) is True
     assert cur.is_after({"occurred_at": ts, "seq": 4, "event_id": "z"}) is False
 
@@ -89,9 +87,7 @@ def test_snapshot_cursor_backward_compat_no_seq():
     from api.event_replay import SnapshotCursor
 
     ts = "2026-03-01T10:00:00+00:00"
-    cur = SnapshotCursor(
-        last_event_id="m", last_occurred_at=ts, last_seq=None, total_events=1
-    )
+    cur = SnapshotCursor(last_event_id="m", last_occurred_at=ts, last_seq=None, total_events=1)
     # بلا seq في المؤشّر → يسقط لمقارنة (occurred_at, event_id).
     assert cur.is_after({"occurred_at": ts, "event_id": "z"}) is True  # z > m
     assert cur.is_after({"occurred_at": ts, "event_id": "a"}) is False  # a < m
