@@ -41,7 +41,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-nginx:
     image: nginx:1.27-alpine
-    container_name: sahool-nginx
+    container_name: sahool-v9-nginx
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -97,7 +97,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-postgres:
     image: postgis/postgis:15-3.4
-    container_name: sahool-postgres
+    container_name: sahool-v9-postgres
     mem_limit: 1g
     security_opt:
       - no-new-privileges:true
@@ -128,7 +128,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-redis:
     image: redis:7-alpine
-    container_name: sahool-redis
+    container_name: sahool-v9-redis
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -170,7 +170,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-nats:
     image: nats:2-alpine
-    container_name: sahool-nats
+    container_name: sahool-v9-nats
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -204,7 +204,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-minio:
     image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-10-13T13-34-11Z}  # تحقّق/حدّث الوسم؛ digest أقوى
-    container_name: sahool-minio
+    container_name: sahool-v9-minio
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -235,7 +235,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-qdrant:
     image: qdrant/qdrant:v1.17.1  # مثبّت على مستقرّ حديث (آخر GitHub، مارس 2026)؛ نشر جديد فلا هجرة RocksDB
-    container_name: sahool-qdrant
+    container_name: sahool-v9-qdrant
     mem_limit: 2g
     security_opt:
       - no-new-privileges:true
@@ -266,7 +266,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-ollama:
     image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}  # تحقّق/حدّث الوسم؛ digest أقوى
-    container_name: sahool-ollama
+    container_name: sahool-v9-ollama
     mem_limit: 4g
     security_opt:
       - no-new-privileges:true
@@ -305,7 +305,7 @@ services:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
-    container_name: sahool-auth
+    container_name: sahool-v9-auth
     mem_limit: 512m
     security_opt:
       - no-new-privileges:true
@@ -346,7 +346,7 @@ services:
     build:
       context: .
       dockerfile: services/sahool-platform/Dockerfile
-    container_name: sahool-platform
+    container_name: sahool-v9-platform
     mem_limit: 1g
     security_opt:
       - no-new-privileges:true
@@ -380,7 +380,7 @@ services:
     build:
       context: .
       dockerfile: services/supervisor-agent/Dockerfile
-    container_name: sahool-supervisor-agent
+    container_name: sahool-v9-supervisor-agent
     mem_limit: 768m
     security_opt:
       - no-new-privileges:true
@@ -414,7 +414,7 @@ services:
     build:
       context: .
       dockerfile: services/guardrails-engine/Dockerfile
-    container_name: sahool-guardrails-engine
+    container_name: sahool-v9-guardrails-engine
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -446,7 +446,7 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-sentinel-hub-mcp
+    container_name: sahool-v9-sentinel-hub-mcp
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -468,7 +468,7 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-weather-mcp
+    container_name: sahool-v9-weather-mcp
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -488,7 +488,7 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-wofost-mcp
+    container_name: sahool-v9-wofost-mcp
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -508,7 +508,7 @@ services:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
-    container_name: sahool-market-mcp
+    container_name: sahool-v9-market-mcp
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -537,7 +537,7 @@ services:
     build:
       context: .
       dockerfile: services/vegetation-analysis-service/Dockerfile
-    container_name: sahool-vegetation-analysis
+    container_name: sahool-v9-vegetation-analysis
     mem_limit: 768m
     security_opt:
       - no-new-privileges:true
@@ -572,7 +572,7 @@ services:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
-    container_name: sahool-raster-service
+    container_name: sahool-v9-raster-service
     mem_limit: 1536m
     security_opt:
       - no-new-privileges:true
@@ -610,7 +610,7 @@ services:
   # من COG مع تمدّد ألوان ديناميكي. بديل عن البلاطات الثابتة المُولَّدة مسبقاً.
   sahool-titiler:
     image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}  # تحقّق/حدّث الوسم؛ digest أقوى
-    container_name: sahool-titiler
+    container_name: sahool-v9-titiler
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
     mem_limit: 1024m
     security_opt:
@@ -635,7 +635,7 @@ services:
     build:
       context: .
       dockerfile: services/indicators-service/Dockerfile
-    container_name: sahool-indicators-service
+    container_name: sahool-v9-indicators-service
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -668,7 +668,7 @@ services:
     build:
       context: .
       dockerfile: services/weather-service/Dockerfile
-    container_name: sahool-weather-service
+    container_name: sahool-v9-weather-service
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -695,7 +695,7 @@ services:
     build:
       context: .
       dockerfile: services/actuator-service/Dockerfile
-    container_name: sahool-actuator-service
+    container_name: sahool-v9-actuator-service
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -725,7 +725,7 @@ services:
     build:
       context: .
       dockerfile: services/edge-inference/Dockerfile.arm64
-    container_name: sahool-edge
+    container_name: sahool-v9-edge
     mem_limit: 1536m
     security_opt:
       - no-new-privileges:true
@@ -759,7 +759,7 @@ services:
   #   build:
   #     context: .
   #     dockerfile: services/video-processor/Dockerfile
-  #   container_name: sahool-video-processor
+  #   container_name: sahool-v9-video-processor
   #   restart: unless-stopped
   #   environment:
   #     MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
@@ -776,7 +776,7 @@ services:
     build:
       context: .
       dockerfile: services/local-ai-rag/Dockerfile
-    container_name: sahool-local-ai-rag
+    container_name: sahool-v9-local-ai-rag
     mem_limit: 2g
     security_opt:
       - no-new-privileges:true
@@ -813,7 +813,7 @@ services:
     build:
       context: .
       dockerfile: services/qdrant-seed/Dockerfile
-    container_name: sahool-qdrant-seed
+    container_name: sahool-v9-qdrant-seed
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -841,7 +841,7 @@ services:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
-    container_name: sahool-odoo-bridge
+    container_name: sahool-v9-odoo-bridge
     mem_limit: 512m
     security_opt:
       - no-new-privileges:true
@@ -884,7 +884,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-odoo:
     image: odoo:17.0
-    container_name: sahool-odoo
+    container_name: sahool-v9-odoo
     # مفتاح التبديل: يعمل فقط مع --profile odoo (أو ERP_PROVIDER=odoo)
     profiles: ["odoo"]
     mem_limit: 1536m   # FIX: Odoo 17 يحتاج ~1GB+ — 384m كان يسبّب OOM kill عند البدء
@@ -944,7 +944,7 @@ services:
     build:
       context: .
       dockerfile: bots/telegram/Dockerfile
-    container_name: sahool-telegram-bot
+    container_name: sahool-v9-telegram-bot
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -985,7 +985,7 @@ services:
     build:
       context: .
       dockerfile: agents/notification/Dockerfile
-    container_name: sahool-notification-agent
+    container_name: sahool-v9-notification-agent
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -1028,7 +1028,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-/api}
         VITE_WS_URL: ${VITE_WS_URL:-/ws}
-    container_name: sahool-frontend
+    container_name: sahool-v9-frontend
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -1052,7 +1052,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-prometheus:
     image: prom/prometheus:v2.53.0
-    container_name: sahool-prometheus
+    container_name: sahool-v9-prometheus
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -1078,7 +1078,7 @@ services:
   # تراكب النشر (Slack/email/Telegram) — الافتراضيّ no-op (لا ضجيج).
   sahool-alertmanager:
     image: prom/alertmanager:v0.27.0
-    container_name: sahool-alertmanager
+    container_name: sahool-v9-alertmanager
     mem_limit: 128m
     security_opt:
       - no-new-privileges:true
@@ -1100,7 +1100,7 @@ services:
 
   sahool-grafana:
     image: grafana/grafana:10.4.5
-    container_name: sahool-grafana
+    container_name: sahool-v9-grafana
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -1128,7 +1128,7 @@ services:
   # ═══════════════════════════════════════════════════════════════
   sahool-jaeger:
     image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.57}
-    container_name: sahool-jaeger
+    container_name: sahool-v9-jaeger
     mem_limit: 384m
     security_opt:
       - no-new-privileges:true
@@ -1157,7 +1157,7 @@ services:
   #   build:
   #     context: .
   #     dockerfile: services/soil-service/Dockerfile
-  #   container_name: sahool-soil-service
+  #   container_name: sahool-v9-soil-service
   #   restart: unless-stopped
   #   environment:
   #     DATABASE_URL: ${DATABASE_URL}
@@ -1173,7 +1173,7 @@ services:
   #   build:
   #     context: .
   #     dockerfile: services/agriai-engine/Dockerfile
-  #   container_name: sahool-agriai-engine
+  #   container_name: sahool-v9-agriai-engine
   #   restart: unless-stopped
   #   environment:
   #     DATABASE_URL: ${DATABASE_URL}
