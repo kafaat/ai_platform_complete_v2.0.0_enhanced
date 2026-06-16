@@ -144,7 +144,7 @@ async def _start_scheduler():
     بـOpen-Meteo عبر weather_automation (يسحب فقط للإحداثيّات المسجّلة).
     فحص النضارة لا يحتاج تبعيّات. لا نسجّل مهمّة فارغة تدّعي عملاً.
     """
-    from api.agronomic_consistency import check_decision_freshness
+    from api.agronomic_consistency import check_decision_freshness, compute_data_ages
     from api.imagery_automation import imagery_automation
     from api.scheduler import register_default_tasks, scheduler
     from api.weather_automation import weather_automation
@@ -161,7 +161,109 @@ async def _start_scheduler():
             logging.warning("فشل تحميل حالة الأتمتة من القاعدة: %s", e)
 
     async def _freshness_sweep():
-        check_decision_freshness(ndvi_age_days=0, soil_age_days=0, weather_age_hours=0)
+        # فحص نضارة بيانات القرار لكلّ حقل عبر المستأجِرين دوريّاً. يقرأ آخر طابع
+        # زمنيّ فعليّ لكلّ مصدر من القاعدة (NDVI من imagery_automation_fields،
+        # رطوبة التربة من device_telemetry، الطقس من weather_automation_cache)،
+        # يحسب الأعمار عبر المنطق النقيّ compute_data_ages، ثمّ يمرّرها لفحص النضارة.
+        # صدق: النضارة لا تحجب شيئاً — تُسجّل وتُعلِم فقط (طبقة ثقة لا بوّابة).
+        # معزول: فشل حقل/مستأجِر لا يُسقط البقيّة. لو لا حقول → لا عمل.
+        if _DB_POOL is None:
+            return
+        import time as _time
+
+        from core.canonical_schemas import UserRole, UserSchema
+
+        try:
+            async with _DB_POOL.acquire() as conn:
+                trows = await conn.fetch(
+                    "SELECT DISTINCT tenant_id FROM fields WHERE tenant_id IS NOT NULL"
+                )
+        except Exception as e:  # noqa: BLE001 — تعذّر سرد المستأجرين ⇒ تخطٍّ صامت
+            logging.warning("فحص النضارة: تعذّر سرد المستأجرين: %s", type(e).__name__)
+            return
+
+        from core.automation_ledger import LEDGER
+
+        # مرحلة الجمع: اجمع (مستخدم النظام، حقل) عبر المستأجِرين — مع عزل كلّ مستأجِر.
+        pairs: list[tuple[UserSchema, str]] = []
+        for tr in trows:
+            tid = str(tr["tenant_id"])
+            sys_user = UserSchema(
+                user_id="system-scheduler",
+                tenant_id=tid,
+                role=UserRole.OWNER,
+                name_ar="نظام الجدولة",
+            )
+            try:
+                async with tenant_connection(sys_user) as conn:
+                    frows = await conn.fetch(
+                        "SELECT field_id FROM fields WHERE tenant_id = $1::uuid", tid
+                    )
+                pairs.extend((sys_user, fr["field_id"]) for fr in frows)
+            except Exception as te:  # noqa: BLE001 — عزل لكلّ مستأجِر
+                logging.warning("فحص النضارة: تخطّي مستأجِر %s: %s", tid, type(te).__name__)
+
+        # مرحلة التقييم: سجلّ تشغيل واحد يرصد المُقيَّم/المُخفِق + عدد الحقول القديمة.
+        rec = LEDGER.start_run("freshness_check", len(pairs))
+        stale_fields = 0
+        for sys_user, field_id in pairs:
+            try:
+                async with tenant_connection(sys_user) as conn:
+                    now_epoch = _time.time()
+                    # NDVI: آخر تاريخ صورة محسوبة (DATE) — منتصف اليوم تقريباً.
+                    ndvi_row = await conn.fetchrow(
+                        "SELECT EXTRACT(EPOCH FROM last_ndvi_date::timestamptz) AS e "
+                        "FROM imagery_automation_fields WHERE field_id = $1",
+                        field_id,
+                    )
+                    ndvi_at = (
+                        float(ndvi_row["e"])
+                        if ndvi_row is not None and ndvi_row["e"] is not None
+                        else None
+                    )
+                    # رطوبة التربة: أحدث قراءة صالحة من telemetry الأجهزة.
+                    soil_reading = await _latest_soil_moisture(conn, field_id)
+                    soil_at = (
+                        soil_reading.recorded_at.timestamp() if soil_reading is not None else None
+                    )
+                    # الطقس: آخر جلب مُخزَّن للإحداثيّة المرتبطة بالحقل.
+                    wx_row = await conn.fetchrow(
+                        "SELECT EXTRACT(EPOCH FROM c.fetched_at) AS e "
+                        "FROM weather_automation_cache c "
+                        "JOIN weather_automation_locations l "
+                        "  ON l.location_key = c.location_key "
+                        "WHERE l.field_id = $1 "
+                        "ORDER BY c.fetched_at DESC LIMIT 1",
+                        field_id,
+                    )
+                    weather_at = (
+                        float(wx_row["e"])
+                        if wx_row is not None and wx_row["e"] is not None
+                        else None
+                    )
+
+                ages = compute_data_ages(
+                    now_epoch,
+                    ndvi_at_epoch=ndvi_at,
+                    soil_at_epoch=soil_at,
+                    weather_at_epoch=weather_at,
+                )
+                result = check_decision_freshness(
+                    ndvi_age_days=ages["ndvi_age_days"],
+                    soil_age_days=ages["soil_age_days"],
+                    weather_age_hours=ages["weather_age_hours"],
+                )
+                rec.mark_evaluated()
+                if not result.consistent:
+                    stale_fields += 1
+                    reasons = ", ".join(c.rule_id for c in result.conflicts)
+                    logging.warning("فحص النضارة: بيانات قديمة للحقل %s — %s", field_id, reasons)
+            except Exception as fe:  # noqa: BLE001 — عزل لكلّ حقل
+                rec.mark_errored(field_id, fe)
+                logging.debug("فحص النضارة: تخطّي حقل %s: %s", field_id, type(fe).__name__)
+        rec.finish()
+        if stale_fields:
+            logging.info("فحص النضارة: %s حقل ببيانات قديمة (تُعلِم لا تحجب)", stale_fields)
 
     async def _weather_sweep():
         # سحب الطقس دوريّاً للإحداثيّات المسجّلة (Open-Meteo، مجّاني).

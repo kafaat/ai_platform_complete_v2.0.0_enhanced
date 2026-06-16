@@ -138,6 +138,42 @@ def check_irrigation_consistency(
     return ConsistencyResult(consistent, conflicts, checked)
 
 
+def compute_data_ages(
+    now_epoch: float,
+    *,
+    ndvi_at_epoch: float | None,
+    soil_at_epoch: float | None,
+    weather_at_epoch: float | None,
+) -> dict:
+    """يحوّل طوابع زمنيّة (epoch ثوانٍ) إلى أعمار بيانات لفحص النضارة.
+
+    دالّة نقيّة (لا I/O) لتُختبَر offline: تأخذ الآن (epoch) وآخر طابع لكلّ مصدر،
+    وتُرجع قاموساً بأعمار جاهزة لـ``check_decision_freshness``:
+      • ndvi_age_days   = (now − ndvi_at) / 86400
+      • soil_age_days   = (now − soil_at) / 86400
+      • weather_age_hours = (now − weather_at) / 3600
+
+    صدق: ``None`` يمرّ كما هو (المصدر غير متوفّر ⇒ يتخطّاه الفحص). العمر السالب
+    (طابع في المستقبل — انحراف ساعة) يُثبَّت عند 0 لا يُخترع.
+    """
+
+    def _days(at: float | None) -> float | None:
+        if at is None:
+            return None
+        return max(0.0, (now_epoch - at) / 86400.0)
+
+    def _hours(at: float | None) -> float | None:
+        if at is None:
+            return None
+        return max(0.0, (now_epoch - at) / 3600.0)
+
+    return {
+        "ndvi_age_days": _days(ndvi_at_epoch),
+        "soil_age_days": _days(soil_at_epoch),
+        "weather_age_hours": _hours(weather_at_epoch),
+    }
+
+
 def check_decision_freshness(
     ndvi_age_days: float | None = None,
     soil_age_days: float | None = None,
