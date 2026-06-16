@@ -70,4 +70,16 @@ pest_susceptibility:
   pests: []
   note: "نوافذ الخطر الإقليمية تعيش في districts/<region>/pests.yaml"
 
+# ── مراحل النمو (Phenology) — اختياريّة، محايدة الموقع (FAO-56 stages) ──
+# تُتحقَّق فقط إن وُجدت: كل مرحلة بـ stage/name_ar/day_start/day_end (+ kc/إجراء).
+# الحدود اليوميّة متسلسلة غير متراجعة (day_start < day_end، لا تداخل بين المراحل).
+phenology:
+  source: "FAO-56 stage lengths (<المحصول>)"
+  total_cycle_days: 0
+  stages:
+    - { stage: initial,     name_ar: "الإنبات/التأسيس", day_start: 0, day_end: 0, kc: 0.0, key_action_ar: "" }
+    - { stage: development, name_ar: "النموّ الخضري",    day_start: 0, day_end: 0, key_action_ar: "" }
+    - { stage: mid,         name_ar: "التزهير/الإثمار",  day_start: 0, day_end: 0, kc: 0.0, key_action_ar: "" }
+    - { stage: late,        name_ar: "النضج",            day_start: 0, day_end: 0, kc: 0.0, key_action_ar: "" }
+
 # ملاحظة: لا كتلة معايرة، لا إنتاج، لا zone_factor. تلك مخرجات districts/tenant.

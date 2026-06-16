@@ -29,3 +29,10 @@ variety_traits:
 adaptation:
   agro_ecological_zone_ar: "المرتفعات الوسطى والجنوبية والشمالية"
   note_ar: "زراعة يناير–فبراير (مناطق إب) مع تفادي فترة الصقيع خلال الإنبات"
+
+# ── توقيت مراحل النمو (phenology) — قياسات الدليل (محايدة الموقع) ──
+phenology:
+  days_to_50pct_flowering: 60
+  days_to_50pct_green_pods: 72        # خاصّ بصنف القرون الخضراء (موعد القطف)
+  days_to_maturity: 105
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"

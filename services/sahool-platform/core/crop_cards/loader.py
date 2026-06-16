@@ -40,8 +40,39 @@ REQUIRED_TOP = {
 }
 REQUIRED_KC = {"initial", "mid", "end", "stage_days", "source"}
 REQUIRED_SALINITY = {"threshold_ece_ds_m", "slope_pct_per_ds_m", "source"}
+# مراحل النمو (phenology) — كتلة اختياريّة محايدة الموقع. تُتحقَّق فقط إن وُجدت.
+REQUIRED_PHENOLOGY_STAGE = {"stage", "name_ar", "day_start", "day_end"}
 # حقول ممنوعة (تكسر حياد الموقع)
 FORBIDDEN = {"zone_factor", "yield", "expected_yield", "calibration", "region", "farm", "tenant"}
+
+
+def _validate_phenology(card: dict, errors: list) -> None:
+    """يتحقّق من كتلة مراحل النمو (إن وُجدت) — اختياريّة لكلّ البطاقات.
+
+    لبطاقة المحصول: stages قائمة مراحل مُرتّبة بمصدر، كلّ مرحلة بمفاتيح
+    REQUIRED_PHENOLOGY_STAGE وحدود يوميّة متّسقة (day_start < day_end، وتسلسل غير متراجع).
+    لا تُغيّر سلوك البطاقات القديمة (التي بلا phenology).
+    """
+    ph = card.get("phenology")
+    if ph is None:
+        return
+    if "source" not in ph:
+        errors.append("phenology بلا مصدر موثّق")
+    stages = ph.get("stages")
+    if not isinstance(stages, list) or not stages:
+        errors.append("phenology بلا قائمة stages")
+        return
+    prev_end = None
+    for i, st in enumerate(stages):
+        miss = REQUIRED_PHENOLOGY_STAGE - set(st.keys())
+        if miss:
+            errors.append(f"مرحلة[{i}] ينقصها: {miss}")
+            continue
+        if st["day_start"] >= st["day_end"]:
+            errors.append(f"مرحلة '{st['stage']}': day_start ≥ day_end")
+        if prev_end is not None and st["day_start"] < prev_end:
+            errors.append(f"مرحلة '{st['stage']}': تتداخل مع السابقة (تسلسل متراجع)")
+        prev_end = st["day_end"]
 
 
 def load_crop_card(crop_id: str) -> dict | None:
@@ -78,7 +109,20 @@ def validate_crop_card(card: dict) -> dict:
     for block in ("kc", "salinity"):
         if block in card and "source" not in card[block]:
             errors.append(f"{block} بلا مصدر موثّق")
+    _validate_phenology(card, errors)  # مراحل النمو (اختياريّة — تُتحقَّق إن وُجدت)
     return {"valid": len(errors) == 0, "errors": errors, "crop_id": card.get("crop_id", "?")}
+
+
+def growth_stages(crop_id: str) -> list[dict]:
+    """يُرجع مراحل نمو المحصول (phenology.stages) أو قائمة فارغة إن لم تُعرَّف.
+
+    مراحل مُهيكَلة محايدة الموقع (بداية/نهاية باليوم + Kc + إجراء مفتاحيّ) — أدقّ من
+    التقدير العامّ في main._STAGE_DAY_BOUNDS؛ تُغذّي «بطاقة المحصول» وتوقيت التوصيات.
+    """
+    card = load_crop_card(crop_id)
+    if card is None:
+        return []
+    return list(card.get("phenology", {}).get("stages", []))
 
 
 # ════════════════════════════════════════════════════════════
@@ -145,4 +189,11 @@ def validate_variety_card(card: dict) -> dict:
     forbidden = FORBIDDEN & set(card.keys())
     if forbidden:
         errors.append(f"حقول تكسر حياد الموقع: {forbidden}")
+    # توقيت مراحل النمو للصنف (اختياريّ): إن وُجد فلا بدّ من مصدر + نضج موثّق.
+    ph = card.get("phenology")
+    if ph is not None:
+        if "source" not in ph:
+            errors.append("phenology بلا مصدر موثّق")
+        if "days_to_maturity" not in ph:
+            errors.append("phenology بلا days_to_maturity")
     return {"valid": len(errors) == 0, "errors": errors, "variety_id": card.get("variety_id", "?")}

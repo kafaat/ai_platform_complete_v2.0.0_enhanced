@@ -49,3 +49,34 @@ modifying:
 pest_susceptibility:
   pests: [aphids, bean_fly, rust, ascochyta, anthracnose]
   note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
+# الحدود اليوميّة تطابق kc.stage_days التراكميّة [0–20, 20–50, 50–90, 90–110].
+phenology:
+  source: "FAO-56 stage lengths (Dry Beans); common bean agronomy"
+  total_cycle_days: 110
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.40
+      key_action_ar: "ريّ خفيف متكرّر لضمان إنبات منتظم"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 20
+      day_end: 50
+      kc_end: 1.15
+      key_action_ar: "تسميد + مكافحة الأعشاب + دعامات للأصناف المتسلّقة"
+    - stage: mid
+      name_ar: "التزهير وتكوين القرون"
+      day_start: 50
+      day_end: 90
+      kc: 1.15
+      key_action_ar: "ذروة الاحتياج المائي — تجنّب الإجهاد المائي والحراري (>32°م)"
+    - stage: late
+      name_ar: "امتلاء البذور والنضج"
+      day_start: 90
+      day_end: 110
+      kc: 0.35
+      key_action_ar: "تقليل الريّ تدريجيّاً قبل الحصاد"
