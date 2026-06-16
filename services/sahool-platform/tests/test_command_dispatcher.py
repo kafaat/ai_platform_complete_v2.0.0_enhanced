@@ -27,7 +27,12 @@ class _FakeStore:
         self.cmds.setdefault(cmd.command_id, cmd)
 
     async def mark_processing(self, command_id):
-        self.cmds[command_id].status = CommandStatus.PROCESSING
+        # التقاط ذرّيّ مُحاكى (v65): pending|failed → processing، يُرجِع نجاح الالتقاط.
+        c = self.cmds[command_id]
+        if c.status in (CommandStatus.PENDING, CommandStatus.FAILED):
+            c.status = CommandStatus.PROCESSING
+            return True
+        return False
 
     async def mark_succeeded(self, command_id, result):
         c = self.cmds[command_id]

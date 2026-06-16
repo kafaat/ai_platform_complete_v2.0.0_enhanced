@@ -86,9 +86,27 @@ async def dispatch(registry: CommandRegistry, store: Any, command: Any) -> Any:
             error=f"لا معالِج مُسجَّل لنوع الأمر '{command.command_type}'",
         )
 
-    # 2. حفظ (ON CONFLICT DO NOTHING) ثمّ 3. تنفيذ ضمن دورة الحياة.
+    # 2. حفظ (ON CONFLICT DO NOTHING) ثمّ 3. التقاط ذرّيّ قبل التنفيذ.
     await store.save(command)
-    await store.mark_processing(command.command_id)
+    # mark_processing ذرّيّ (pending|failed → processing) يُرجِع نجاح الالتقاط:
+    # عاملان متزامنان على نفس الأمر ⇒ الفائز وحده ينفّذ (exactly-once). بدونه كان
+    # كلاهما "يلتقط" فيُنفَّذ المعالِج مرّتين (راجع v65).
+    claimed = await store.mark_processing(command.command_id)
+    if not claimed:
+        # سبقنا عاملٌ آخر ⇒ لا تنفيذ مزدوج. أعِد الحالة الراهنة (succeeded المخزّن أو processing).
+        cur = await store.get(command.command_id)
+        if cur is not None and cur.status == CommandStatus.SUCCEEDED:
+            return DispatchResult(
+                command_id=command.command_id,
+                status=CommandStatus.SUCCEEDED,
+                result=cur.result,
+                was_duplicate=True,
+            )
+        return DispatchResult(
+            command_id=command.command_id,
+            status=CommandStatus.PROCESSING,
+            was_duplicate=True,
+        )
     try:
         result = await handler(command)
         result = result if isinstance(result, dict) else {}
