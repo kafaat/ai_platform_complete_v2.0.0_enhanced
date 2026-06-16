@@ -17,11 +17,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
-    TrialAnalysisRequest,
     UserSchema,
     get_current_user,
 )
 from api.trial_engine import BlockResult, analyze_paired_trial
+from api.trial_models import TrialAnalysisRequest
 
 router = APIRouter()
 
