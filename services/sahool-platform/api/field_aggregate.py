@@ -9,7 +9,8 @@
   • النواة النقيّة `FieldAggregate` (بلا I/O) — تأخذ لقطة حالة، تُرجِع الأحداث
     المقصودة أو ترفع `FieldInvariantError`. قابلة للاختبار offline بالكامل.
   • معالِجات أوامر تُسجَّل على `CommandDispatcher` القائم (`command_store.py`)،
-    مُحقَّنة بمنافذ (تحميل حالة/حفظ/إصدار) فتُختبَر بمتجر ومنافذ وهميّة.
+    مُحقَّنة بمنفذَي (تحميل الحالة + تطبيق ذرّيّ يكتب الحالة ويُصدِر الأحداث معاً)
+    فتُختبَر بمتجر ومنافذ وهميّة.
 
 ⚠ هذا التعريف **مطابِق لسلوك endpoints الإنتاج الحيّة** (مصدر الحقيقة:
 `api/routers/fields.py` + المساعِدات في `api/main.py`) — فُصِّل ليكون مواصفةً
@@ -35,7 +36,7 @@ POST_DEPLOYMENT_ROADMAP المرحلة ٣، خطوة ٣). حتى ذلك يبقى
   ملاحظة حدّ نقاء (honesty): معرّف الموسم الجديد (`season_id`) يُولّده الـendpoint
   (I/O، `ssn_…uuid`) لا النواة. نمرّره عبر `data["season_id"]` كي يتمكّن الأثر من
   الإشارة إليه في `superseded_by`؛ وإن غاب، نُصدِر SEASON_CLOSED **دون** المفتاح
-  `superseded_by` ويملؤه منفذ `apply_change` بعد توليد المعرّف (نفس المعاملة).
+  `superseded_by` ويملؤه منفذ `apply` بعد توليد المعرّف (نفس المعاملة).
 """
 
 from __future__ import annotations
@@ -137,7 +138,7 @@ class FieldAggregate:
         ترتيب الأحداث (مطابِق لترتيب الـendpoint): SEASON_CLOSED ثمّ SEASON_CREATED.
         payload الإغلاق: {field_id, reason:"superseded_by_new_season", superseded_by}.
         معرّف الموسم الجديد I/O (يولّده الـendpoint) — يُمرَّر عبر `data["season_id"]`؛
-        وإن غاب يُحذف `superseded_by` ويملؤه `apply_change` بعد التوليد (نفس المعاملة).
+        وإن غاب يُحذف `superseded_by` ويملؤه منفذ `apply` بعد التوليد (نفس المعاملة).
         """
         self._require_exists()
         events: list[tuple[str, dict]] = []
@@ -166,8 +167,12 @@ class FieldAggregate:
 
 # منافذ مُحقَنة (تجعل المعالِجات قابلة للاختبار بلا قاعدة):
 StateLoader = Callable[[str], Awaitable[FieldState]]  # field_id → لقطة الحالة
-ChangeApplier = Callable[[Any, FieldState], Awaitable[None]]  # (command, state) → حفظ التغيير
-EventEmitter = Callable[[str, str, dict], Awaitable[None]]  # (event_type, field_id, payload)
+# منفذ تطبيق **ذرّيّ** واحد: يكتب الحالة ويُصدِر الأحداث في وحدة واحدة (معاملة واحدة).
+# (command, state, events) → dict نتيجة. سبب الدمج (إصلاح عقد): مسار الكتابة الحيّ
+# يُصدِر حدث الـdomain ضمن **نفس معاملة** كتابة الحالة (نمط outbox — راجع
+# `_emit_domain_event`/savepoint)؛ فصلُ apply ثمّ emit كان يكسر الذرّيّة (كتابة بلا
+# حدث عند فشل بينهما). المنفذ الواحد يضمن state+events معاً أو لا شيء.
+ApplyPort = Callable[[Any, FieldState, "list[tuple[str, dict]]"], Awaitable[dict]]
 
 _OP_BY_COMMAND = {
     FieldCommandType.CREATE_FIELD.value: "create",
@@ -180,14 +185,15 @@ _OP_BY_COMMAND = {
 def build_field_handlers(
     *,
     load_state: StateLoader,
-    apply_change: ChangeApplier,
-    emit_event: EventEmitter,
+    apply: ApplyPort,
 ) -> dict[str, Callable[[Any], Awaitable[dict]]]:
     """يبني معالِجات أوامر الحقل فوق منافذ مُحقَنة (للتسجيل على CommandDispatcher).
 
-    كلّ معالِج: حمّل الحالة → FieldAggregate (تحقّق invariant) → طبّق التغيير + أصدِر
-    الأحداث. انتهاك invariant يرفع FieldInvariantError (يلتقطه الـdispatcher → FAILED؛
-    والـendpoint لاحقاً يترجمه لرمز HTTP). الذرّيّة مسؤوليّة apply_change (معاملة واحدة).
+    كلّ معالِج: حمّل الحالة → FieldAggregate (تحقّق invariant + يحسب الأحداث المقصودة)
+    → `apply(command, state, events)` يكتب الحالة ويُصدِر الأحداث **ذرّيّاً** (معاملة
+    واحدة). انتهاك invariant يرفع FieldInvariantError (يلتقطه الـdispatcher → FAILED؛
+    والـendpoint لاحقاً يترجمه لرمز HTTP). يُرجِع المعالِج نتيجة apply (dict) إن كانت
+    dict، وإلّا ملخّصاً قياسيّاً (field_id + الأحداث المُصدَرة).
     """
 
     async def _handle(command: Any) -> dict:
@@ -197,9 +203,9 @@ def build_field_handlers(
         state = await load_state(field_id)
         agg = FieldAggregate(state)
         effect: FieldEffect = getattr(agg, _OP_BY_COMMAND[command.command_type])(command.payload)
-        await apply_change(command, state)
-        for event_type, payload in effect.events:
-            await emit_event(event_type, field_id, payload)
+        result = await apply(command, state, effect.events)
+        if isinstance(result, dict):
+            return result
         return {
             "field_id": field_id,
             "command_type": command.command_type,
@@ -213,13 +219,10 @@ def register_field_handlers(
     dispatcher: Any,
     *,
     load_state: StateLoader,
-    apply_change: ChangeApplier,
-    emit_event: EventEmitter,
+    apply: ApplyPort,
 ) -> list[str]:
     """يسجّل معالِجات الحقل على CommandDispatcher القائم. يُرجِع الأنواع المُسجَّلة."""
-    handlers = build_field_handlers(
-        load_state=load_state, apply_change=apply_change, emit_event=emit_event
-    )
+    handlers = build_field_handlers(load_state=load_state, apply=apply)
     for command_type, handler in handlers.items():
         dispatcher.register(command_type, handler)
     return sorted(handlers)

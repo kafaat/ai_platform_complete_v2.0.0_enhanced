@@ -154,23 +154,26 @@ class _FakeStore:
 
 
 def _wire(initial_states: dict[str, FieldState]):
-    """يبني dispatcher + منافذ وهميّة، ويُرجِع (dispatcher, emitted, applied)."""
+    """يبني dispatcher + منافذ وهميّة، ويُرجِع (dispatcher, emitted, applied).
+
+    المنفذ الواحد الذرّيّ `apply(command, state, events)` يحاكي مسار الكتابة الحيّ:
+    يكتب الحالة (applied) ويُصدِر الأحداث (emitted) معاً — كما يفعل المنفذ الحيّ ضمن
+    معاملة واحدة. يُرجِع dict نتيجة (يمرّره المعالِج كما هو)."""
     emitted: list[tuple[str, str, dict]] = []
     applied: list[str] = []
 
     async def load_state(field_id):
         return initial_states.get(field_id, FieldState(field_id, exists=False))
 
-    async def apply_change(command, state):
+    async def apply(command, state, events):
         applied.append(command.command_id)
-
-    async def emit_event(event_type, field_id, payload):
-        emitted.append((event_type, field_id, payload))
+        field_id = (command.payload or {}).get("field_id")
+        for event_type, payload in events:
+            emitted.append((event_type, field_id, payload))
+        return {"field_id": field_id, "events_emitted": [et for et, _ in events]}
 
     dispatcher = CommandDispatcher(_FakeStore())
-    register_field_handlers(
-        dispatcher, load_state=load_state, apply_change=apply_change, emit_event=emit_event
-    )
+    register_field_handlers(dispatcher, load_state=load_state, apply=apply)
     return dispatcher, emitted, applied
 
 
