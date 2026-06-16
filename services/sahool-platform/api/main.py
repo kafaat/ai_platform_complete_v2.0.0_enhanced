@@ -672,6 +672,7 @@ class FieldDetail(FieldSummary):
     well_depth_m: float | None = None
     water_ec: float | None = None  # ملوحة الماء dS/m
     manager_user_id: int | None = None  # FK إلى users(id) (v47)
+    row_version: int | None = None  # عمّاد التزامن التفاؤليّ (v61) — يتزايد كلّ تحديث
 
 
 class FieldUpdateRequest(BaseModel):
@@ -704,6 +705,10 @@ class FieldUpdateRequest(BaseModel):
     well_depth_m: float | None = Field(default=None, ge=0)
     water_ec: float | None = Field(default=None, ge=0)
     manager_user_id: int | None = Field(default=None, ge=1)  # FK users(id) (v47)
+    # تزامن تفاؤليّ (v61، اختياريّ/متوافق رجعيّاً): إصدار الحقل الأساس وقت قراءة
+    # العميل. إن مُرِّر ولم يطابق row_version الحاليّ ⇒ 409 تعارض (كشف تعديل متباعد
+    # offline). ليس عموداً يُكتَب — مستثنى من _build_field_update (ليس في الأعمدة).
+    base_version: int | None = Field(default=None, ge=1)
 
 
 def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
@@ -728,6 +733,31 @@ def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
     if not assignments:
         raise ValueError("no fields to update")
     return ", ".join(assignments), values
+
+
+def _build_versioned_update(
+    set_clause: str, values: list, field_id: str, base_version: int | None
+) -> tuple[str, list]:
+    """يبني UPDATE الحقل مع رفع row_version دائماً + حارس تزامن تفاؤليّ اختياريّ — نقيّ.
+
+    - يُلحق ``row_version = row_version + 1`` بجملة SET فيتغيّر الإصدار كلّ كتابة.
+    - field_id يأخذ placeholder ``${len(values)+1}`` في WHERE.
+    - إن مُرِّر ``base_version`` (اختيار العميل): يُضاف ``AND row_version = ${…+2}``
+      فلا يطابق الصفّ إلّا إن لم يتغيّر منذ قراءة العميل ⇒ كتابة قديمة تُصيب 0 صفّ
+      (يترجمها الـendpoint إلى 409). غيابه ⇒ سلوك سابق (لا فحص، متوافق رجعيّاً).
+
+    يُرجِع (sql, exec_values). لا I/O.
+    """
+    field_idx = len(values) + 1
+    sql = (
+        f"UPDATE fields SET {set_clause}, row_version = row_version + 1 "
+        f"WHERE field_id = ${field_idx}"
+    )
+    exec_values = [*values, field_id]
+    if base_version is not None:
+        sql += f" AND row_version = ${field_idx + 1}"
+        exec_values.append(base_version)
+    return sql, exec_values
 
 
 # ─── Auth helpers ────────────────────────────────────────────────
@@ -1304,6 +1334,7 @@ def _row_to_field_detail(r) -> FieldDetail:
         well_depth_m=_f("well_depth_m"),
         water_ec=_f("water_ec"),
         manager_user_id=_i("manager_user_id"),
+        row_version=_i("row_version"),
     )
 
 
@@ -1311,7 +1342,7 @@ def _row_to_field_detail(r) -> FieldDetail:
 _FIELD_DETAIL_SELECT = (
     "field_id, farm_id, name, area_ha, crop, soil_type, manager, "
     "field_code, description, water_source, ownership_type, country, region, "
-    "lat, lon, geometry, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
+    "lat, lon, geometry, row_version, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
 )
 
 

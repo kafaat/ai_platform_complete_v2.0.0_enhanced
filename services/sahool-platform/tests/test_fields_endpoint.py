@@ -15,6 +15,7 @@ from api.main import (
     FieldUpdateRequest,
     SeasonCreateRequest,
     _build_field_update,
+    _build_versioned_update,
     _centroid_from_bbox,
     _row_to_field_summary,
     _row_to_season,
@@ -148,6 +149,36 @@ def test_build_field_update_emits_only_sent_advanced_columns():
     assert "irrigation_type = $1" in set_clause
     assert "well_depth_m = $2" in set_clause
     assert values == ["drip", 120.0]  # فقط المُرسَل، بالترتيب
+
+
+# ─── تزامن تفاؤليّ: row_version + كشف تعارض offline (v61) ────────────────
+
+
+def test_versioned_update_always_bumps_row_version():
+    """بلا base_version: يُرفع row_version دائماً، WHERE = field_id فقط (سلوك رجعيّ)."""
+    set_clause, values = _build_field_update(FieldUpdateRequest(irrigation_type="drip"))
+    sql, exec_values = _build_versioned_update(set_clause, values, "field_01", None)
+    assert "row_version = row_version + 1" in sql
+    assert "WHERE field_id = $2" in sql
+    assert "AND row_version" not in sql  # لا حارس تزامن
+    assert exec_values == ["drip", "field_01"]
+
+
+def test_versioned_update_adds_optimistic_guard_when_base_version_given():
+    """مع base_version: يُضاف AND row_version = $N والقيمة تُلحَق آخر exec_values."""
+    set_clause, values = _build_field_update(FieldUpdateRequest(irrigation_type="drip"))
+    sql, exec_values = _build_versioned_update(set_clause, values, "field_01", 7)
+    assert "row_version = row_version + 1" in sql
+    assert "WHERE field_id = $2 AND row_version = $3" in sql
+    assert exec_values == ["drip", "field_01", 7]
+
+
+def test_field_update_request_accepts_base_version():
+    """base_version اختياريّ (ge=1) وليس عموداً يُكتَب (غائب عن جملة SET)."""
+    req = FieldUpdateRequest(irrigation_type="drip", base_version=3)
+    assert req.base_version == 3
+    set_clause, _ = _build_field_update(req)
+    assert "base_version" not in set_clause  # ليس عمود DB
 
 
 # ─── KPIs الموسم (v42) ───────────────────────────────────────────────────

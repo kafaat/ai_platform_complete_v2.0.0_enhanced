@@ -66,6 +66,7 @@ from api.main import (
     _activity_event_type,
     _assert_field_in_tenant,
     _build_field_update,
+    _build_versioned_update,
     _build_walk_plan,
     _db_unavailable,
     _emit_domain_event,
@@ -331,16 +332,30 @@ async def update_field(
         set_clause, values = _build_field_update(req)
     except ValueError as e:
         raise HTTPException(status_code=422, detail="لا حقول للتحديث") from e
-    # معرّف الحقل يأخذ آخر رقم placeholder في WHERE.
-    field_idx = len(values) + 1
+    # رفع row_version دائماً + حارس تزامن تفاؤليّ إن مرّر العميل base_version (v61).
+    sql, exec_values = _build_versioned_update(set_clause, values, field_id, req.base_version)
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
-            await conn.execute(
-                f"UPDATE fields SET {set_clause} WHERE field_id = ${field_idx}",
-                *values,
-                field_id,
-            )
+            result = await conn.execute(sql, *exec_values)
+            # تعارض تزامن تفاؤليّ: الحقل موجود (تأكّدنا) لكن UPDATE أصاب 0 صفّ ⇒
+            # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
+            # وكتابته. نرفض 409 (لا فقد صامت) قبل إصدار أيّ حدث — المعاملة تتراجع.
+            if req.base_version is not None and result.rsplit(" ", 1)[-1] == "0":
+                current = await conn.fetchval(
+                    "SELECT row_version FROM fields WHERE field_id = $1", field_id
+                )
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "error": "version_conflict",
+                        "message_ar": (
+                            "عُدِّل الحقل من جلسة أخرى منذ قراءتك — أعد المزامنة ثمّ طبّق تعديلك."
+                        ),
+                        "current_version": current,
+                        "your_base_version": req.base_version,
+                    },
+                )
             row = await conn.fetchrow(
                 f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
                 field_id,
@@ -356,7 +371,8 @@ async def update_field(
                 "FIELD_UPDATED",
                 "field",
                 field_id,
-                req.model_dump(exclude_unset=True),
+                # base_version عمّاد تزامن لا تغييرَ حقل ⇒ يُستثنى من حدث الـdomain.
+                req.model_dump(exclude_unset=True, exclude={"base_version"}),
             )
     except HTTPException:
         raise
