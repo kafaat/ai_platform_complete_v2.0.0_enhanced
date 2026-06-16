@@ -18,11 +18,13 @@ from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.main import (
+from api.device_models import (
     _DEVICE_ONLINE_WINDOW_MIN,
     DeviceRequest,
-    Permission,
     TelemetryRequest,
+)
+from api.main import (
+    Permission,
     UserSchema,
     _db_unavailable,
     require_permission,

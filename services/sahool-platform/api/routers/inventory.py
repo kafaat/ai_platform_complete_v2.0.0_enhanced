@@ -16,9 +16,11 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.main import (
+from api.inventory_models import (
     InventoryBatchRequest,
     InventoryItemRequest,
+)
+from api.main import (
     Permission,
     UserSchema,
     _emit_domain_event,

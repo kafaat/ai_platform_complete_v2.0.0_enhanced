@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.document_models import DocumentRequest
 from api.main import (
-    DocumentRequest,
     Permission,
     UserSchema,
     require_permission,
