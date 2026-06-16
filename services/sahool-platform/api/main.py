@@ -3048,6 +3048,7 @@ from api.routers.crops import router as crops_router  # noqa: E402
 from api.routers.cultural_calendar import router as cultural_calendar_router  # noqa: E402
 from api.routers.data_readiness import router as data_readiness_router  # noqa: E402
 from api.routers.decision import router as decision_router  # noqa: E402
+from api.routers.decision_dispatch import router as decision_dispatch_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.diagnose import router as diagnose_router  # noqa: E402
 from api.routers.districts import router as districts_router  # noqa: E402
@@ -3186,6 +3187,7 @@ app.include_router(economics_router)
 app.include_router(onboarding_router)
 app.include_router(weather_analytics_router)
 app.include_router(decision_router)
+app.include_router(decision_dispatch_router)
 app.include_router(agricultural_proverbs_router)
 app.include_router(astronomical_timing_router)
 # الدفعة ٨ (Batch 8)
