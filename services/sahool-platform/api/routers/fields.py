@@ -21,7 +21,7 @@ from __future__ import annotations
 import logging
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
 # رموز صارت يتيمة في api.main بعد نقل المعالِجات — تُستورَد هنا من وحداتها الحقيقيّة
@@ -68,6 +68,7 @@ from api.main import (
     _build_field_update,
     _build_versioned_update,
     _build_walk_plan,
+    _clamp_list_window,
     _db_unavailable,
     _emit_domain_event,
     _evaluate_field_alerts_persist,
@@ -1183,17 +1184,24 @@ async def create_activity(
 @router.get("/api/v1/fields/{field_id}/activities", response_model=list[ActivitySummary])
 async def list_field_activities(
     field_id: str,
+    limit: int | None = Query(default=None, ge=1),
+    offset: int | None = Query(default=None, ge=0),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """عمليّات الحقل (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS). 503 عند تعذّر القاعدة."""
+    """عمليّات الحقل (الأحدث أولاً) — مُرشَّحة بالمستأجِر (RLS). مُرقَّمة (limit/offset)
+    بسقف أمان يمنع over-fetch على قائمة غير محدودة — الافتراضيّ أحدث 100. 503 عند تعذّر القاعدة."""
+    lim, off = _clamp_list_window(limit, offset)
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)  # 404 لو الحقل ليس للمستأجِر
             rows = await conn.fetch(
                 "SELECT activity_id, field_id, season_id, activity_type, title_ar, "
                 "details, scheduled_for, performed_on, status, created_at "
-                "FROM activities WHERE field_id = $1 ORDER BY created_at DESC",
+                "FROM activities WHERE field_id = $1 ORDER BY created_at DESC "
+                "LIMIT $2 OFFSET $3",
                 field_id,
+                lim,
+                off,
             )
     except HTTPException:
         raise

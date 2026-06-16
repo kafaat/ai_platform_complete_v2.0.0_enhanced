@@ -4,7 +4,8 @@
 // إقرار يُثبَّت على الخادم (useAcknowledgeAlert) تفاؤليّاً، حالات موحّدة
 // (StateViews)، وأزرار محكومة بالدور (RBAC: المُشاهِد لا يُقِرّ/يحذف).
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
+import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X, Zap, Play } from 'lucide-react';
 import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useRunAllAlerts } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
@@ -36,6 +37,19 @@ const SEV_MAP: Record<string, Severity> = {
   critical: 'critical', high: 'high', warning: 'medium', medium: 'medium', low: 'low', info: 'low',
 };
 const normSev = (s?: string): Severity => SEV_MAP[(s ?? '').toLowerCase()] ?? 'low';
+
+// تفتراض القائمة (react-window): قوائم قصيرة تُعرَض كما هي (لا تغيير سلوك للحالة
+// الشائعة)؛ الأطول من العتبة تُفترَض لتفادي إثقال DOM على الأجهزة الضعيفة (سياق
+// سهول). ROW_H ثابت ⇒ تُحدَّد رسالة البطاقة بسطرين (line-clamp) ليطابق كلّ صفّ.
+const VIRTUALIZE_THRESHOLD = 30;
+const ROW_GAP = 12; // مطابِق لـ space-y-3
+const ROW_H = 116; // ارتفاع الصفّ الثابت (بطاقة ~104 + فجوة)
+const _CLAMP2: CSSProperties = {
+  display: '-webkit-box',
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: 'vertical',
+  overflow: 'hidden',
+};
 
 function relTime(ts?: string): string {
   if (!ts) return '';
@@ -146,6 +160,50 @@ export function AlertSystemPage() {
   if (isLoading) return <LoadingState message="جارٍ تحميل التنبيهات…" />;
   if (isError) return <ErrorState title="تعذّر تحميل التنبيهات" onRetry={() => refetch()} />;
 
+  // بطاقة التنبيه — مُستخرَجة كي يتشاركها المسارُ المسطّح (قوائم قصيرة) والمُفترَض
+  // (react-window). clamp=true في المسار المُفترَض يحدّ الرسالة بسطرين فيثبُت الارتفاع.
+  const renderAlertCard = (a: (typeof filtered)[number], clamp: boolean) => {
+    const cfg = SEVERITY_CONFIG[a.severity];
+    const Icon = cfg.icon;
+    return (
+      <div className="rounded-xl p-4 border transition-all"
+        style={{
+          background: a.acknowledged ? '#1e293b' : cfg.bg,
+          borderColor: a.acknowledged ? '#334155' : cfg.border,
+          opacity: a.acknowledged ? 0.6 : 1,
+          ...(clamp ? { height: ROW_H - ROW_GAP, overflow: 'hidden' } : {}),
+        }}>
+        <div className="flex items-start gap-3">
+          <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: cfg.color }} aria-hidden="true" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-semibold text-slate-100 text-sm">{a.title}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: `${cfg.color}22`, color: cfg.color }}>{cfg.label}</span>
+              {a.acknowledged && <span className="text-[10px] text-emerald-500">✓ مُعترف بها</span>}
+            </div>
+            {a.message && <p className="text-xs text-slate-300 mb-2" style={clamp ? _CLAMP2 : undefined}>{a.message}</p>}
+            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+              {a.field && <span>📍 {a.field}</span>}
+              {a.time && <span>⏱ {a.time}</span>}
+            </div>
+          </div>
+          {mutateAllowed && !a.acknowledged && (
+            <div className="flex gap-1.5">
+              <button onClick={() => acknowledge(a.id)} title="إقرار"
+                className="p-1.5 rounded-lg hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
+                <Check className="w-4 h-4" />
+              </button>
+              <button onClick={() => dismiss(a.id)} title="إخفاء"
+                className="p-1.5 rounded-lg hover:bg-red-950 text-slate-400 hover:text-red-400 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex flex-wrap items-center gap-3 justify-between">
@@ -225,52 +283,34 @@ export function AlertSystemPage() {
         })}
       </div>
 
-      {/* Alert list */}
-      <div className="space-y-3">
-        {filtered.length === 0 && (
-          <EmptyState
-            icon={<CheckCircle className="w-10 h-10 text-emerald-700" />}
-            title="لا توجد تنبيهات نشطة 🎉"
-            hint={apiAlerts.length === 0 ? 'لا تنبيهات واردة من الخدمة حاليّاً' : undefined}
-          />
-        )}
-        {filtered.map(a => {
-          const cfg = SEVERITY_CONFIG[a.severity];
-          const Icon = cfg.icon;
-          return (
-            <div key={a.id} className="rounded-xl p-4 border transition-all"
-              style={{ background: a.acknowledged ? '#1e293b' : cfg.bg, borderColor: a.acknowledged ? '#334155' : cfg.border, opacity: a.acknowledged ? 0.6 : 1 }}>
-              <div className="flex items-start gap-3">
-                <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: cfg.color }} aria-hidden="true" />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-slate-100 text-sm">{a.title}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: `${cfg.color}22`, color: cfg.color }}>{cfg.label}</span>
-                    {a.acknowledged && <span className="text-[10px] text-emerald-500">✓ مُعترف بها</span>}
-                  </div>
-                  {a.message && <p className="text-xs text-slate-300 mb-2">{a.message}</p>}
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-                    {a.field && <span>📍 {a.field}</span>}
-                    {a.time && <span>⏱ {a.time}</span>}
-                  </div>
-                </div>
-                {mutateAllowed && !a.acknowledged && (
-                  <div className="flex gap-1.5">
-                    <button onClick={() => acknowledge(a.id)} title="إقرار"
-                      className="p-1.5 rounded-lg hover:bg-emerald-950 text-slate-400 hover:text-emerald-400 transition-colors">
-                      <Check className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => dismiss(a.id)} title="إخفاء"
-                      className="p-1.5 rounded-lg hover:bg-red-950 text-slate-400 hover:text-red-400 transition-colors">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+      {/* Alert list — مسطّح للقوائم القصيرة، مُفترَض (react-window) للطويلة */}
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={<CheckCircle className="w-10 h-10 text-emerald-700" />}
+          title="لا توجد تنبيهات نشطة 🎉"
+          hint={apiAlerts.length === 0 ? 'لا تنبيهات واردة من الخدمة حاليّاً' : undefined}
+        />
+      ) : filtered.length <= VIRTUALIZE_THRESHOLD ? (
+        <div className="space-y-3">
+          {filtered.map(a => <div key={a.id}>{renderAlertCard(a, false)}</div>)}
+        </div>
+      ) : (
+        <FixedSizeList
+          height={Math.min(filtered.length * ROW_H, 640)}
+          itemCount={filtered.length}
+          itemSize={ROW_H}
+          width="100%"
+        >
+          {({ index, style }: ListChildComponentProps) => {
+            const a = filtered[index];
+            return (
+              <div style={style} key={a.id}>
+                <div style={{ paddingBottom: ROW_GAP }}>{renderAlertCard(a, true)}</div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          }}
+        </FixedSizeList>
+      )}
     </div>
   );
 }

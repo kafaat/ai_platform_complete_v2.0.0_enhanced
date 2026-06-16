@@ -640,6 +640,31 @@ def _significant_overlaps(overlaps, min_m2: float = _MIN_FIELD_OVERLAP_M2) -> li
     return [o for o in overlaps if (o["overlap_m2"] or 0.0) > min_m2]
 
 
+# الحدّ الأقصى الصلب لنافذة القائمة — سقف أمان يمنع over-fetch على القوائم غير
+# المحدودة (alerts/activities…) مهما طلب العميل.
+_LIST_WINDOW_MAX = 500
+_LIST_WINDOW_DEFAULT = 100
+
+
+def _clamp_list_window(
+    limit: int | None,
+    offset: int | None,
+    *,
+    default: int = _LIST_WINDOW_DEFAULT,
+    maximum: int = _LIST_WINDOW_MAX,
+) -> tuple[int, int]:
+    """يحُدّ نافذة القائمة (limit/offset) لتقييد القوائم غير المحدودة — دالّة نقيّة.
+
+    - ``limit``: غياب ⇒ ``default``؛ وإلّا يُقصَر إلى المجال [1, ``maximum``] (يمنع
+      طلب صفوف لا نهائيّة + تحميل DOM زائد في الواجهة).
+    - ``offset``: غياب/سالب ⇒ 0؛ وإلّا قيمته (للترقيم المستقبليّ).
+    يُرجِع (limit, offset) جاهزَين للاستعلام. لا I/O — قابل للاختبار offline.
+    """
+    lim = default if limit is None else max(1, min(int(limit), maximum))
+    off = 0 if offset is None else max(0, int(offset))
+    return lim, off
+
+
 class FieldDetail(FieldSummary):
     """تفاصيل حقل كاملة (لوحة التفاصيل) — يرث الملخّص ويضيف الأعمدة المتقدّمة.
 
