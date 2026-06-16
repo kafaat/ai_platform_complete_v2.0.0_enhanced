@@ -292,6 +292,32 @@ services:
   # 8. Auth Service (FIX: JWT_SECRET فارغ → required)
   # FIX-08: JWT_SECRET مطلوب
   # ═══════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════
+  # 7b. DB Migrate (one-shot) — يُهيّئ المخطّط + دور sahool_app المقيّد قبل
+  #     auth/platform. يجعل `docker compose up` ذاتيّ التهيئة: قبله كان الإقلاع
+  #     يفشل (auth يُدرج في users غير الموجود ⇒ ينهار) ما لم تُطبَّق الهجرات يدويّاً.
+  # ═══════════════════════════════════════════════════════════════
+  sahool-migrate:
+    image: postgis/postgis:15-3.4
+    restart: "no"
+    logging: *default_logging
+    environment:
+      PGHOST: sahool-postgres
+      PGPORT: 5432
+      PGUSER: sahool_user
+      PGPASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+      PGDATABASE: sahool
+      APP_DB_ROLE: ${APP_DB_ROLE:-sahool_app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-sahool_app_pw}
+    volumes:
+      - ./migrations:/migrations:ro
+    command: ["bash", "/migrations/apply_in_compose.sh"]
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+
   sahool-auth:
     build:
       context: .
@@ -320,6 +346,8 @@ services:
         condition: service_healthy
       sahool-redis:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
     networks:
       - sahool-internal
     healthcheck:
@@ -353,6 +381,13 @@ services:
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-redis:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
     networks:
       - sahool-internal
     healthcheck:
