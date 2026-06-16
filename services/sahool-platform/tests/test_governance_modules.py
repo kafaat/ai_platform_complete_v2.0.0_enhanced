@@ -68,6 +68,233 @@ def test_preview_role_change_rejects_invalid_role():
     assert "error_ar" in out
 
 
+# ─── who_can: قرارات تفويض سلوكيّة (من يقدر فعلاً على ماذا) ───────────────
+# تُثبِّت نتائج التفويض الحقيقيّة لكلّ زوج (دور+فعل)، لا مجرّد الأنواع/الوجود.
+# المرجع الوحيد للحقيقة: _ROLE_PERMISSIONS في core.authorization.
+
+
+def test_who_can_harvest_authorize_is_owner_only():
+    # تخطّي بوّابة PHI (إذن الحصاد) صلاحيّة حرجة قصوى ⇒ المالك حصراً.
+    # المهندس لا يملكها عمداً (التعليق في الوحدة: HARVEST_AUTHORIZE يحتاج OWNER).
+    from core.authorization import Permission
+
+    out = who_can(Permission.HARVEST_AUTHORIZE)
+    assert out["roles_with_permission"] == ["owner"]
+    assert out["role_count"] == 1
+    assert out["is_safety_critical"] is True
+    # تأكيد صريح على المنع: لا أحد سوى المالك (مدير/مهندس/عامل/مشاهد ممنوعون)
+    for denied in ("manager", "agronomist", "worker", "viewer"):
+        assert denied not in out["roles_with_permission"]
+
+
+def test_who_can_change_role_is_owner_only_no_privilege_escalation():
+    # تغيير الأدوار = مفتاح التصعيد. لو ملكه المدير لاستطاع ترقية نفسه مالكاً.
+    # يجب أن يبقى حكراً على المالك (حارس تصعيد الامتياز الجوهري).
+    from core.authorization import Permission
+
+    out = who_can(Permission.USER_CHANGE_ROLE)
+    assert out["roles_with_permission"] == ["owner"]
+    assert out["is_safety_critical"] is True
+    assert "manager" not in out["roles_with_permission"]
+
+
+def test_who_can_pesticide_approve_owner_and_agronomist_only():
+    # الموافقة على المبيدات (سلامة) ⇒ المالك + المهندس الزراعي فقط.
+    # العامل ينفّذ ميدانيّاً لكنه لا يوافق؛ المشاهد قراءة فقط.
+    from core.authorization import Permission
+
+    out = who_can(Permission.PESTICIDE_APPROVE)
+    assert set(out["roles_with_permission"]) == {"owner", "agronomist"}
+    assert out["is_safety_critical"] is True
+    for denied in ("manager", "worker", "viewer"):
+        assert denied not in out["roles_with_permission"]
+
+
+def test_who_can_recommendation_override_is_owner_only():
+    # تجاوز توصية المحرّك قرار حرج (يبطل ضمانة السلامة) ⇒ المالك حصراً.
+    from core.authorization import Permission
+
+    out = who_can(Permission.RECOMMENDATION_OVERRIDE)
+    assert out["roles_with_permission"] == ["owner"]
+    assert out["is_safety_critical"] is True
+
+
+def test_who_can_farm_delete_is_owner_only():
+    # حذف مزرعة عمليّة هدّامة لا رجعة فيها ⇒ المالك حصراً (لا المدير).
+    from core.authorization import Permission
+
+    out = who_can(Permission.FARM_DELETE)
+    assert out["roles_with_permission"] == ["owner"]
+    assert out["is_safety_critical"] is True
+    assert "manager" not in out["roles_with_permission"]
+
+
+def test_who_can_user_invite_owner_and_manager_not_agronomist():
+    # دعوة مستخدم (إدارة فريق، غير حرجة) ⇒ المالك + المدير. المدير يدعو
+    # لكن لا يغيّر أدواراً (الفصل بين USER_INVITE وUSER_CHANGE_ROLE).
+    from core.authorization import Permission
+
+    out = who_can(Permission.USER_INVITE)
+    assert set(out["roles_with_permission"]) == {"owner", "manager"}
+    assert out["is_safety_critical"] is False
+    for denied in ("agronomist", "worker", "viewer"):
+        assert denied not in out["roles_with_permission"]
+
+
+def test_who_can_activity_execute_excludes_agronomist_and_viewer():
+    # تنفيذ نشاط ميداني (إكمال/تخطّي) ⇒ المالك + المدير + العامل.
+    # المهندس يخطّط ولا ينفّذ؛ المشاهد قراءة فقط — تمييز التخطيط عن التنفيذ.
+    from core.authorization import Permission
+
+    out = who_can(Permission.ACTIVITY_EXECUTE)
+    assert set(out["roles_with_permission"]) == {"owner", "manager", "worker"}
+    assert "agronomist" not in out["roles_with_permission"]
+    assert "viewer" not in out["roles_with_permission"]
+
+
+def test_who_can_farm_view_is_granted_to_every_role():
+    # الرؤية الأساسيّة (farm:view) ممنوحة لكلّ الأدوار الخمسة دون استثناء —
+    # حدّ القراءة الأدنى المشترك (حتى المشاهد يراها).
+    from core.authorization import Permission
+
+    out = who_can(Permission.FARM_VIEW)
+    assert set(out["roles_with_permission"]) == {
+        "owner",
+        "manager",
+        "agronomist",
+        "worker",
+        "viewer",
+    }
+    assert out["role_count"] == 5
+    assert out["is_safety_critical"] is False
+
+
+def test_who_can_master_data_manage_excludes_worker_and_viewer():
+    # إدارة البيانات المرجعيّة ⇒ المالك + المدير + المهندس. العامل والمشاهد
+    # يريانها (master_data:view) لكن لا يديرانها (تمييز العرض عن الإدارة).
+    from core.authorization import Permission
+
+    out = who_can(Permission.MASTER_DATA_MANAGE)
+    assert set(out["roles_with_permission"]) == {"owner", "manager", "agronomist"}
+    assert "worker" not in out["roles_with_permission"]
+    assert "viewer" not in out["roles_with_permission"]
+
+
+def test_viewer_is_read_only_no_mutating_permission():
+    # المشاهد قراءة فقط بصدق: لا يملك أيّ صلاحيّة كتابة/تنفيذ/إدارة.
+    # نتحقّق سلوكيّاً بأنّ كلّ فعل مُغيِّر لا يضمّ "viewer" في حامليه.
+    from core.authorization import Permission
+
+    mutating = [
+        Permission.FARM_CREATE,
+        Permission.FARM_EDIT,
+        Permission.FARM_DELETE,
+        Permission.FIELD_CREATE,
+        Permission.ACTIVITY_EXECUTE,
+        Permission.OBSERVATION_RECORD,
+        Permission.PESTICIDE_APPROVE,
+        Permission.USER_INVITE,
+        Permission.USER_CHANGE_ROLE,
+        Permission.MASTER_DATA_MANAGE,
+        Permission.IRRIGATION_MANAGE,
+    ]
+    for perm in mutating:
+        assert "viewer" not in who_can(perm)["roles_with_permission"], (
+            f"المشاهد يجب ألّا يملك صلاحيّة مُغيِّرة: {perm.value}"
+        )
+
+
+def test_every_safety_critical_permission_denied_to_viewer_and_worker():
+    # حدّ امتياز: لا الدور المشاهد ولا العامل يملك أيّ صلاحيّة حرجة (سلامة).
+    # نشتقّ القائمة الحرجة من الوحدة نفسها (لا قائمة مكرّرة في الاختبار).
+    from core.authorization import Permission, is_safety_critical_permission
+
+    critical = [p for p in Permission if is_safety_critical_permission(p)]
+    assert critical, "يجب أن توجد صلاحيّات حرجة معرّفة"
+    for perm in critical:
+        holders = who_can(perm)["roles_with_permission"]
+        assert "viewer" not in holders, f"المشاهد يملك صلاحيّة حرجة: {perm.value}"
+        assert "worker" not in holders, f"العامل يملك صلاحيّة حرجة: {perm.value}"
+
+
+# ─── has_permission / authorize: الفرض الفعلي + fail-closed ───────────────
+
+
+def _make_user(role, *, is_active=True, tenant_id="t1", farm_ids=None):
+    """مساعد: يبني UserSchema حقيقيّاً لاختبار قرارات الفرض الفعليّة."""
+    from core.canonical_schemas import UserRole, UserSchema
+
+    return UserSchema(
+        user_id="u1",
+        tenant_id=tenant_id,
+        role=UserRole(role),
+        name_ar="مستخدم اختبار",
+        farm_ids_access=farm_ids or [],
+        is_active=is_active,
+    )
+
+
+def test_has_permission_allows_owner_denies_viewer_for_delete():
+    # الفرض الفعلي يطابق مصفوفة الأدوار: المالك يحذف، المشاهد لا.
+    from core.authorization import Permission, has_permission
+
+    owner = _make_user("owner")
+    viewer = _make_user("viewer")
+    assert has_permission(owner, Permission.FARM_DELETE) is True
+    assert has_permission(viewer, Permission.FARM_DELETE) is False
+
+
+def test_has_permission_fail_closed_for_inactive_user():
+    # مستخدم مُعطَّل = منع مطلق حتى لو كان مالكاً (Fail closed: شكّ = منع).
+    from core.authorization import Permission, has_permission
+
+    inactive_owner = _make_user("owner", is_active=False)
+    assert has_permission(inactive_owner, Permission.FARM_VIEW) is False
+
+
+def test_authorize_denies_cross_tenant_even_with_permission():
+    # الخطّ الأحمر المطلق: المالك يملك الصلاحيّة لكن عزل tenant يمنع الوصول
+    # لمورد مستأجر آخر — الفرض لا يكفي بصلاحيّة الدور وحدها.
+    from core.authorization import Permission, authorize
+
+    owner = _make_user("owner", tenant_id="t1")
+    decision = authorize(owner, Permission.FARM_VIEW, resource_tenant_id="t2")
+    assert decision.allowed is False
+    assert "tenant" in decision.reason_ar
+
+
+def test_authorize_denies_farm_outside_access_scope():
+    # وصول مزرعة مُقيَّد: المالك له farm_ids_access=['f1'] فقط ⇒ يُمنَع عن 'f9'
+    # رغم امتلاكه الصلاحيّة (الطبقة الثالثة من الحراسة).
+    from core.authorization import Permission, authorize
+
+    scoped_owner = _make_user("owner", tenant_id="t1", farm_ids=["f1"])
+    denied = authorize(scoped_owner, Permission.FIELD_VIEW, resource_tenant_id="t1", farm_id="f9")
+    assert denied.allowed is False
+    allowed = authorize(scoped_owner, Permission.FIELD_VIEW, resource_tenant_id="t1", farm_id="f1")
+    assert allowed.allowed is True
+
+
+def test_preview_role_change_worker_to_owner_flags_escalation():
+    # ترقية عامل ⇒ مالك تصعيد امتياز: تكتسب صلاحيّات حرجة ⇒ يجب أن تُعلَّم.
+    out = preview_role_change("worker", "owner")
+    assert out["is_escalation"] is True
+    assert out["gained_count"] > 0
+    # تكتسب صلاحيّات حرجة فعليّة (تغيير أدوار + موافقة مبيدات + حذف مزرعة...)
+    assert "user:change_role" in out["gained_safety_critical"]
+    assert "harvest:authorize" in out["gained_safety_critical"]
+
+
+def test_preview_role_change_owner_to_viewer_is_demotion_not_escalation():
+    # تنزيل مالك ⇒ مشاهد: لا اكتساب (is_escalation=False) لكن فقدان حرج كبير
+    # يجب الإفصاح عنه للتأكّد أنّه مقصود.
+    out = preview_role_change("owner", "viewer")
+    assert out["is_escalation"] is False
+    assert out["gained_count"] == 0
+    assert out["lost_count"] > 0
+    assert "user:change_role" in out["lost_safety_critical"]
+
+
 # ─── learning_activation ─────────────────────────────────────────────────
 
 
