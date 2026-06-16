@@ -274,11 +274,12 @@ class TestPhenologyGrowthStages:
         assert "التزهير" in mid["name_ar"]
 
     def test_cards_without_phenology_still_valid_and_empty(self):
-        # توافق رجعيّ: القمح بلا phenology ⇒ valid + مراحل فارغة (لا يكسر القديم).
+        # توافق رجعيّ: بطاقة بلا phenology ⇒ valid + مراحل فارغة (لا يكسر القديم).
+        # (cranberry بلا كتلة phenology بعد إضافة الحبوب الأربعة.)
         from core.crop_cards.loader import growth_stages, load_crop_card, validate_crop_card
 
-        assert validate_crop_card(load_crop_card("wheat"))["valid"]
-        assert growth_stages("wheat") == []
+        assert validate_crop_card(load_crop_card("cranberry"))["valid"]
+        assert growth_stages("cranberry") == []
         assert growth_stages("nonexistent") == []
 
     def test_invalid_phenology_caught_by_validator(self):
@@ -323,3 +324,97 @@ class TestPhenologyGrowthStages:
             "phenology": {"days_to_50pct_flowering": 50},  # بلا مصدر + بلا نضج
         }
         assert validate_variety_card(bad)["valid"] is False
+
+
+class TestCerealPhenology:
+    """مراحل النمو (phenology) للحبوب الأساسية الأربعة — مُحاذاة لمراحل FAO-56،
+    حدودها اليوميّة هي المجاميع التراكميّة لـ kc.stage_days لكلّ بطاقة. المرحلة
+    الوسطى (mid) هي مرحلة الإزهار/السنبلة الأكثر حساسيّة للإجهاد."""
+
+    # (المحصول، إجمالي الدورة، kc.mid) — الحدود مشتقّة من stage_days الفعليّة.
+    CEREALS = {
+        "wheat": (120, 1.15),
+        "barley": (120, 1.15),
+        "sorghum": (125, 1.05),
+        "millet": (105, 1.00),
+    }
+
+    def test_all_cereals_validate_with_phenology(self):
+        for cid in self.CEREALS:
+            card = load_crop_card(cid)
+            assert validate_crop_card(card)["valid"], cid
+            assert "phenology" in card
+            assert "source" in card["phenology"]
+            assert "FAO-56" in card["phenology"]["source"]
+
+    def test_each_cereal_has_four_ordered_stages(self):
+        from core.crop_cards.loader import growth_stages
+
+        for cid, (total, _kc_mid) in self.CEREALS.items():
+            stages = growth_stages(cid)
+            assert len(stages) == 4, cid
+            assert [s["stage"] for s in stages] == [
+                "initial",
+                "development",
+                "mid",
+                "late",
+            ], cid
+            # تبدأ من 0 وتنتهي عند الإجمالي الحقيقيّ (مجموع stage_days).
+            assert stages[0]["day_start"] == 0, cid
+            assert stages[-1]["day_end"] == total, cid
+
+    def test_stage_ranges_match_cumulative_stage_days(self):
+        # الحدود اليوميّة = المجاميع التراكميّة لـ kc.stage_days (متّصلة، بلا فجوات).
+        from core.crop_cards.loader import growth_stages
+
+        for cid in self.CEREALS:
+            card = load_crop_card(cid)
+            stage_days = card["kc"]["stage_days"]
+            stages = growth_stages(cid)
+            cum = 0
+            for sd, st in zip(stage_days, stages, strict=True):
+                assert st["day_start"] == cum, cid
+                cum += sd
+                assert st["day_end"] == cum, cid
+            assert cum == card["phenology"]["total_cycle_days"], cid
+
+    def test_mid_stage_is_peak_kc_matching_card_mid(self):
+        # المرحلة الوسطى = ذروة Kc = kc.mid للبطاقة (تقود تصعيد الإجهاد المائي/الحراري).
+        from core.crop_cards.loader import growth_stages
+
+        for cid, (_total, kc_mid) in self.CEREALS.items():
+            mid = next(s for s in growth_stages(cid) if s["stage"] == "mid")
+            assert mid["kc"] == kc_mid, cid
+
+    def test_stage_kc_endpoints_track_card_kc(self):
+        # initial→kc.initial، late→kc.end، والتطوّر يرتقي إلى kc.mid (kc_end).
+        from core.crop_cards.loader import growth_stages
+
+        for cid in self.CEREALS:
+            card = load_crop_card(cid)
+            by_stage = {s["stage"]: s for s in growth_stages(cid)}
+            assert by_stage["initial"]["kc"] == card["kc"]["initial"], cid
+            assert by_stage["late"]["kc"] == card["kc"]["end"], cid
+            assert by_stage["development"]["kc_end"] == card["kc"]["mid"], cid
+
+    def test_wheat_mid_stage_names_heading_flowering(self):
+        # المرحلة الوسطى للقمح هي مرحلة السنبلة/الإزهار (الأكثر حساسيّة للإجهاد).
+        from core.crop_cards.loader import growth_stages
+
+        mid = next(s for s in growth_stages("wheat") if s["stage"] == "mid")
+        assert "إزهار" in mid["name_ar"] or "سنبلة" in mid["name_ar"]
+
+    def test_wheat_explicit_day_ranges(self):
+        # توثيق صريح: قمح stage_days [15,25,50,30] ⇒ [0–15,15–40,40–90,90–120].
+        from core.crop_cards.loader import growth_stages
+
+        bounds = [(s["day_start"], s["day_end"]) for s in growth_stages("wheat")]
+        assert bounds == [(0, 15), (15, 40), (40, 90), (90, 120)]
+
+    def test_cereal_phenology_region_agnostic(self):
+        # الكتلة محايدة الموقع: لا غلّة/منطقة/معايرة في phenology.
+        for cid in self.CEREALS:
+            ph = load_crop_card(cid)["phenology"]
+            assert "yield" not in ph
+            assert "region" not in ph
+            assert "calibration" not in ph

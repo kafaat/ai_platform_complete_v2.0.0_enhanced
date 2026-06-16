@@ -47,3 +47,34 @@ modifying:
 pest_susceptibility:
   pests: [aphids, net_blotch]
   note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
+# الحدود اليوميّة تطابق kc.stage_days التراكميّة [15,25,50,30] ⇒ [0–15, 15–40, 40–90, 90–120].
+phenology:
+  source: "FAO-56 Table 12 (Barley) stage lengths"
+  total_cycle_days: 120
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 15
+      kc: 0.30
+      key_action_ar: "ريّ تأسيس لضمان إنبات منتظم"
+    - stage: development
+      name_ar: "النموّ الخضري والإشطاء"
+      day_start: 15
+      day_end: 40
+      kc_end: 1.15
+      key_action_ar: "تسميد آزوتي + مكافحة الحشائش"
+    - stage: mid
+      name_ar: "الاستطالة والسنبلة والإزهار"
+      day_start: 40
+      day_end: 90
+      kc: 1.15
+      key_action_ar: "ذروة الاحتياج المائي عند الإزهار — تجنّب الإجهاد المائي والحراري"
+    - stage: late
+      name_ar: "امتلاء الحبّ والنضج"
+      day_start: 90
+      day_end: 120
+      kc: 0.25
+      key_action_ar: "تقليل الريّ قبل الحصاد"

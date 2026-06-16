@@ -51,7 +51,7 @@ def test_current_stage_boundaries_are_half_open():
 def test_current_stage_past_cycle_or_unknown_is_none():
     assert current_stage("common_bean", 200) is None  # تجاوز دورة المحصول
     assert current_stage("common_bean", None) is None
-    assert current_stage("wheat", 30) is None  # القمح بلا كتلة phenology بعد
+    assert current_stage("cranberry", 30) is None  # cranberry البطاقة الوحيدة بلا phenology
     assert current_stage(None, 30) is None
 
 
@@ -104,4 +104,4 @@ def test_timeline_absolute_dates_and_status():
 def test_timeline_empty_when_unknown():
     assert season_timeline(None, date(2026, 1, 1)) == []
     assert season_timeline("common_bean", None) == []
-    assert season_timeline("wheat", date(2026, 1, 1)) == []  # لا phenology للقمح بعد
+    assert season_timeline("cranberry", date(2026, 1, 1)) == []  # cranberry بلا phenology

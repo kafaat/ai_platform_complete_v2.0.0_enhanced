@@ -1,0 +1,37 @@
+# SAHOOL districts — Central Highlands (المرتفعات الوسطى — إب/ذمار)
+# REGION-SPECIFIC pest-risk windows. These are agronomic KNOWLEDGE-PRIORS
+# (قرائن معرفيّة) to be REFINED with local scouting / extension data — NOT a
+# precise local outbreak calendar. Each window cites an honest source.
+# نوافذ خطر إقليميّة عامّة؛ تُصقَل بالمسح الميدانيّ ودوائر الإرشاد.
+district_id: central_highlands
+name_ar: المرتفعات الوسطى (إب/ذمار)
+agro_ecological_zone_ar: مرتفعات معتدلة رطبة موسميّاً (~1800–2400 م)
+altitude_range_m: [1800, 2400]
+
+pest_windows:
+  # البقعة الشوكولاتيّة على الفول: مرض المرتفعات الباردة الرطبة بامتياز.
+  - pest: faba_bean_chocolate_spot
+    pest_ar: البقعة الشوكولاتيّة على الفول (Botrytis fabae)
+    crops: [faba_bean]
+    risk_months: [12, 1, 2, 3]
+    severity: high
+    scouting_cue_ar: "بقع بنّيّة محمرّة على الأوراق في الجوّ البارد الرطب وكثافة المجموع الخضري"
+    source: "FAO/ICARDA IPM general guidance — مرض الفول المعروف في المرتفعات الباردة الرطبة (قرينة معرفيّة)"
+
+  # المنّ (الأرقات) على البقوليّات/الحبوب في الأشهر الباردة المعتدلة.
+  - pest: aphids
+    pest_ar: المنّ (الأرقات)
+    crops: [faba_bean, lentil, wheat, barley]
+    risk_months: [11, 12, 1, 2, 3]
+    severity: medium
+    scouting_cue_ar: "تجمّعات حشريّة على القمم النامية والسطح السفلي للأوراق + ندوة عسليّة"
+    source: "قرينة زراعيّة عامّة: المنّ ينشط على البقوليّات/الحبوب في الأشهر الباردة المعتدلة (FAO/ICARDA IPM)"
+
+  # دودة الحشد الخريفيّة على الذرة في موسم الأمطار الدافئ.
+  - pest: fall_armyworm
+    pest_ar: دودة الحشد الخريفيّة (Spodoptera frugiperda)
+    crops: [maize, sorghum]
+    risk_months: [6, 7, 8, 9]
+    severity: high
+    scouting_cue_ar: "ثقوب وتآكل في البراعم القلبيّة (whorl) ونشارة برازيّة رطبة"
+    source: "FAO Fall Armyworm IPM — آفة معروفة على الذرة في موسم الأمطار الدافئ (قرينة معرفيّة)"

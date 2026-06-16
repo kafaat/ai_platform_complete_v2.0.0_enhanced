@@ -1,0 +1,37 @@
+# SAHOOL districts — Eastern Plateau (الهضبة الشرقيّة — مأرب/الجوف)
+# REGION-SPECIFIC pest-risk windows. These are agronomic KNOWLEDGE-PRIORS
+# (قرائن معرفيّة) to be REFINED with local scouting / extension data — NOT a
+# precise local outbreak calendar. Each window cites an honest source.
+# هضبة قاحلة حارّة نهاراً؛ نوافذ عامّة تُصقَل بالمسح والإرشاد.
+district_id: eastern_plateau
+name_ar: الهضبة الشرقيّة (مأرب/الجوف)
+agro_ecological_zone_ar: هضبة قاحلة شبه صحراويّة حارّة (~700–1100 م)
+altitude_range_m: [700, 1100]
+
+pest_windows:
+  # دودة الحشد الخريفيّة على الذرة المرويّة في الموسم الدافئ.
+  - pest: fall_armyworm
+    pest_ar: دودة الحشد الخريفيّة (Spodoptera frugiperda)
+    crops: [sorghum, maize, millet]
+    risk_months: [5, 6, 7, 8, 9]
+    severity: high
+    scouting_cue_ar: "تآكل البراعم القلبيّة (whorl) ونشارة برازيّة على الذرة المرويّة في الحرّ"
+    source: "FAO Fall Armyworm IPM — آفة معروفة على الذرة في الموسم الدافئ (قرينة معرفيّة)"
+
+  # المنّ على الحبوب الشتويّة المرويّة في الأشهر الباردة.
+  - pest: aphids
+    pest_ar: المنّ (الأرقات)
+    crops: [wheat, barley]
+    risk_months: [12, 1, 2]
+    severity: medium
+    scouting_cue_ar: "تجمّعات حشريّة على السنابل والأوراق + ندوة عسليّة في برد الشتاء"
+    source: "قرينة زراعيّة عامّة: المنّ ينشط على الحبوب في الأشهر الباردة (FAO/ICARDA IPM)"
+
+  # الجراد الصحراويّ: خطر معروف في البيئات القاحلة شبه الصحراويّة عند توفّر الرطوبة.
+  - pest: desert_locust
+    pest_ar: الجراد الصحراويّ (Schistocerca gregaria)
+    crops: [sorghum, millet, wheat, barley]
+    risk_months: [3, 4, 5, 10, 11]
+    severity: high
+    scouting_cue_ar: "تجمّعات حوريّات/حشرات كاملة وتعرية مفاجئة للمجموع الخضري؛ بلّغ مركز مكافحة الجراد"
+    source: "FAO Desert Locust guidance — خطر معروف في البيئات القاحلة عند توفّر الرطوبة والغطاء (قرينة معرفيّة)"

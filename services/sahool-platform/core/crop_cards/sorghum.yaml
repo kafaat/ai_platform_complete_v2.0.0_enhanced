@@ -48,4 +48,35 @@ pest_susceptibility:
   pests: [stem_borer, aphids]
   note: "Region-specific risk windows live in districts/<region>/pests.yaml"
 
+# ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
+# الحدود اليوميّة تطابق kc.stage_days التراكميّة [20,35,40,30] ⇒ [0–20, 20–55, 55–95, 95–125].
+phenology:
+  source: "FAO-56 Table 11/12 (Sorghum) stage lengths"
+  total_cycle_days: 125
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.30
+      key_action_ar: "ريّ تأسيس لضمان إنبات منتظم"
+    - stage: development
+      name_ar: "النموّ الخضري والإشطاء"
+      day_start: 20
+      day_end: 55
+      kc_end: 1.05
+      key_action_ar: "تسميد آزوتي + مكافحة الحشائش"
+    - stage: mid
+      name_ar: "الاستطالة والسنبلة والإزهار"
+      day_start: 55
+      day_end: 95
+      kc: 1.05
+      key_action_ar: "ذروة الاحتياج المائي عند الإزهار — تجنّب الإجهاد المائي والحراري"
+    - stage: late
+      name_ar: "امتلاء الحبّ والنضج"
+      day_start: 95
+      day_end: 125
+      kc: 0.55
+      key_action_ar: "تقليل الريّ قبل الحصاد"
+
 # NO calibration block. NO yield. NO zone_factor. Those are districts/tenant OUTPUTS.
