@@ -17,18 +17,20 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from api.irrigation_models import (
+    ScheduleRequest,
+    ValveRequest,
+    ValveStateRequest,
+    _parse_time,
+)
 from api.main import (
     CommandStore,
     Permission,
-    ScheduleRequest,
     UserSchema,
-    ValveRequest,
-    ValveStateRequest,
     WaterAnalysisRequest,
     _emit_domain_event,
     _idem_key,
     _idempotent,
-    _parse_time,
     get_current_user,
     get_pool,
     require_permission,
