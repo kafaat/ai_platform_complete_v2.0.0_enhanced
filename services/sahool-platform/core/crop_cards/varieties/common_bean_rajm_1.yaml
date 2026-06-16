@@ -1,0 +1,31 @@
+# بطاقة صنف — فاصولياء رجم-1 (مُستنبَط حديثاً، improved)
+# يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الفاصولياء (common_bean).
+# المصدر: الدليل الزراعي للبقوليات الحبية الغذائية، اليمن (2023).
+variety_id: common_bean_rajm_1
+parent_crop_id: common_bean
+name_ar: فاصولياء رجم-1
+name_en: Rajm-1 common bean
+
+passport:
+  origin_type: improved
+  source_ar: "الدليل الزراعي للبقوليات الحبية الغذائية — هيئة البحوث والإرشاد الزراعي، اليمن (2023)"
+  upov_code: "PHASE_VUL"
+  collection_note_ar: "مُستنبَط حديثاً من أصناف محلّية بمنطقة الرجم (محافظة المحويت)"
+
+distinctness:
+  morphology_ar: "نمو شبه قائم شبه متسلّق، زهرة بنفسجية، بذرة بنّية متوسّطة الحجم"
+  maturity_class: early            # ~95 يوماً حتى النضج، تزهير عند ~53 يوماً (الأبكر)
+  plant_height_cm: 85
+uniformity_note_ar: "صنف مُستنبَط — تجانس جيّد"
+stability_note_ar: "مستقرّ عبر التكاثر المحلّي"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []        # لم يُوثّق الدليل تحمّلاً مرضيّاً محدّداً (صدق: لا يُدّعى)
+  special_quality_ar: "أبكر الأصناف نضجاً (~95 يوماً)، مقاوم للرقاد"
+  source: "الدليل الزراعي للبقوليات الحبية الغذائية (2023)"
+
+adaptation:
+  agro_ecological_zone_ar: "منطقة الرجم (المحويت) والمناطق المشابهة العالية الأمطار"
+  note_ar: "زراعة الموسم الصيفي في منطقة الرجم وما جاورها"

@@ -2886,6 +2886,7 @@ from api.routers.commands import router as commands_router  # noqa: E402
 from api.routers.confidence import router as confidence_router  # noqa: E402
 from api.routers.confidence_gate import router as confidence_gate_router  # noqa: E402
 from api.routers.consistency import router as consistency_router  # noqa: E402
+from api.routers.crop_cards import router as crop_cards_router  # noqa: E402
 from api.routers.crop_suitability import router as crop_suitability_router  # noqa: E402
 from api.routers.crops import router as crops_router  # noqa: E402
 from api.routers.cultural_calendar import router as cultural_calendar_router  # noqa: E402
@@ -3072,3 +3073,4 @@ app.include_router(field_single_router)
 app.include_router(edge_router)
 app.include_router(field_intelligence_router)
 app.include_router(pest_escalation_router)
+app.include_router(crop_cards_router)
