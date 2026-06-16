@@ -1,7 +1,65 @@
 // اختبارات أدوات الهندسة — geomToPolygon (تحويل ترتيب الإحداثيّات + الحدّ الأدنى
 // للرؤوس) وقياسات turf (مساحة/طول مع التسامح مع المُدخَل غير الصالح).
 import { describe, it, expect } from 'vitest';
-import { geomToPolygon, areaSqMeters, lengthMeters } from './geo';
+import {
+  geomToPolygon,
+  areaSqMeters,
+  lengthMeters,
+  fieldRepresentativePoint,
+  collectFieldBoundsPoints,
+} from './geo';
+
+const _poly = {
+  coordinates: [
+    [
+      [44.0, 15.0],
+      [44.2, 15.0],
+      [44.2, 15.2],
+      [44.0, 15.2],
+      [44.0, 15.0],
+    ],
+  ],
+};
+
+describe('fieldRepresentativePoint (خريطة المزرعة الشاملة)', () => {
+  it('مركز المضلّع (متوسّط الرؤوس) كـ[lat,lng] إن توفّرت هندسة', () => {
+    const p = fieldRepresentativePoint({ geometry: _poly, lat: null, lon: null });
+    expect(p).not.toBeNull();
+    // متوسّط lat/lng للرؤوس الخمسة (الإغلاق مكرّر فيرجّح زاوية — قيمة محصورة ضمن الحدود).
+    expect(p![0]).toBeGreaterThan(14.9);
+    expect(p![0]).toBeLessThan(15.3);
+    expect(p![1]).toBeGreaterThan(43.9);
+    expect(p![1]).toBeLessThan(44.3);
+  });
+
+  it('يسقط إلى lat/lon حين لا هندسة', () => {
+    expect(fieldRepresentativePoint({ geometry: null, lat: 15.5, lon: 44.5 })).toEqual([15.5, 44.5]);
+  });
+
+  it('null حين لا هندسة ولا إحداثيّات', () => {
+    expect(fieldRepresentativePoint({ geometry: undefined, lat: null, lon: null })).toBeNull();
+  });
+});
+
+describe('collectFieldBoundsPoints', () => {
+  it('يجمع رؤوس مضلّع الحقول + نقاط الحقول بلا هندسة', () => {
+    const pts = collectFieldBoundsPoints([
+      { geometry: _poly, lat: null, lon: null }, // 5 رؤوس
+      { geometry: null, lat: 16.0, lon: 45.0 }, // نقطة احتياطيّة
+    ]);
+    expect(pts.length).toBe(6);
+    expect(pts).toContainEqual([16.0, 45.0]);
+    // كلّ النقاط [lat,lng] صالحة عدديّاً.
+    for (const [lat, lng] of pts) {
+      expect(Number.isFinite(lat) && Number.isFinite(lng)).toBe(true);
+    }
+  });
+
+  it('يتجاهل الحقول التي لا هندسة ولا إحداثيّات لها', () => {
+    const pts = collectFieldBoundsPoints([{ geometry: null, lat: null, lon: null }]);
+    expect(pts).toEqual([]);
+  });
+});
 
 describe('geomToPolygon', () => {
   it('يقلب [lon,lat] إلى [lat,lng] لكلّ رأس', () => {

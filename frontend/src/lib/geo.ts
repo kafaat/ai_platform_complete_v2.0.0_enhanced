@@ -18,6 +18,45 @@ export function geomToPolygon(geometry: unknown): LatLngPolygon | undefined {
     .map((c: number[]) => [c[1], c[0]] as [number, number]);
 }
 
+// ── خريطة المزرعة الشاملة: نقاط الحقول للإطار والعلامات ──────────────
+// حقلٌ بأقلّ ما يلزم لوضعه على خريطة عامّة (مضلّع أو نقطة احتياطيّة).
+export interface MappableField {
+  geometry: unknown;
+  lat: number | null;
+  lon: number | null;
+}
+
+// النقطة الممثِّلة للحقل على الخريطة [lat, lng]: مركز المضلّع (متوسّط الرؤوس)
+// إن توفّرت هندسة، وإلّا lat/lon. null إن غاب الاثنان (لا يُرسَم). دالّة نقيّة.
+export function fieldRepresentativePoint(f: MappableField): [number, number] | null {
+  const poly = geomToPolygon(f.geometry);
+  if (poly && poly.length) {
+    const [sumLat, sumLng] = poly.reduce(
+      ([a, b], [lat, lng]) => [a + lat, b + lng],
+      [0, 0] as [number, number],
+    );
+    return [sumLat / poly.length, sumLng / poly.length];
+  }
+  if (f.lat != null && f.lon != null) return [f.lat, f.lon];
+  return null;
+}
+
+// كلّ النقاط [lat, lng] اللازمة لضبط إطار الخريطة على جميع الحقول: رؤوس مضلّع
+// كلّ حقل ذي هندسة + نقطة lat/lon لكلّ حقل بلا هندسة. تُستعمل في fitBounds.
+// دالّة نقيّة (لا Leaflet) — قابلة للاختبار offline.
+export function collectFieldBoundsPoints(fields: ReadonlyArray<MappableField>): [number, number][] {
+  const points: [number, number][] = [];
+  for (const f of fields) {
+    const poly = geomToPolygon(f.geometry);
+    if (poly && poly.length) {
+      points.push(...poly);
+    } else if (f.lat != null && f.lon != null) {
+      points.push([f.lat, f.lon]);
+    }
+  }
+  return points;
+}
+
 // ── قياسات على هندسة GeoJSON حقيقيّة (turf) ─────────────────────────
 // تُستعمل لأدوات القياس على الخريطة (FieldIndicatorMap · tools): تستقبل
 // مباشرةً ناتج layer.toGeoJSON() من leaflet-draw فتُحسَب من الرؤوس الفعليّة.
