@@ -112,6 +112,10 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     AI_SUGGESTION = "ai.suggestion.generated"
     AI_ANOMALY_DETECTED = "ai.anomaly.detected"
 
+    # Supply-chain traceability (farm-to-market) — v65
+    HARVEST_LOT_CREATED = "harvest.lot.created"
+    CUSTODY_EVENT_RECORDED = "harvest.custody.recorded"
+
 
 class EventSource(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydantic value serialization)
     MOBILE = "mobile"
