@@ -14,8 +14,8 @@ httpx==0.27.0
 
 # FIX (إقلاع الحاوية): api/main.py يستورد trial_engine→numpy؛ وzones_kmeans/
 # core.spatial يستوردان numpy/scipy. غيابها ⇒ ModuleNotFoundError وتعطّل المنصّة.
-numpy>=1.24.0
-scipy>=1.10.0
-PyYAML>=6.0  # FIX: core/crop_cards/loader.py + core/learning/calibration_loop.py يستوردان yaml
-nats-py>=2.6.0  # OutboxWorker → NATS (relay الأحداث الموثوق)
-redis>=5.0.0  # denylist (إبطال JWT) — مشترك مع خدمة auth (sahool:jti:revoked)
+numpy==1.26.4
+scipy==1.13.1
+PyYAML==6.0.2  # FIX: core/crop_cards/loader.py + core/learning/calibration_loop.py يستوردان yaml
+nats-py==2.10.0  # OutboxWorker → NATS (relay الأحداث الموثوق)
+redis==5.3.1  # denylist (إبطال JWT) — مشترك مع خدمة auth (sahool:jti:revoked)

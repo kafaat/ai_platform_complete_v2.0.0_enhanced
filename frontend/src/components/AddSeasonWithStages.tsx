@@ -13,6 +13,7 @@ import {
   X, Check, Plus, Trash2, Loader2, Sprout, Droplets,
   Calendar, Wheat, ChevronDown, AlertCircle, Info,
 } from 'lucide-react';
+import { asApiError } from '../services/api';
 
 interface Stage { name: string; date: string; notes: string; }
 
@@ -114,8 +115,8 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
         irrigation_type:    irrType,
         custom_stages:      stages,
       });
-    } catch (e: any) {
-      setErrors({ general: e?.message || 'فشل الحفظ' });
+    } catch (e: unknown) {
+      setErrors({ general: asApiError(e).message || 'فشل الحفظ' });
     } finally {
       setSaving(false);
     }

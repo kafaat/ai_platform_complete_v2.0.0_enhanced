@@ -94,7 +94,8 @@ export default function ProblemFields() {
 
   // بناء كلّ الحقول مع درجتها، ثمّ إبقاء «المشكلات» فقط (score > 0) مرتّبة تنازليّاً.
   const problems = useMemo<ProblemField[]>(() => {
-    const raw: RawField[] = Array.isArray((ndviQ.data as any)?.fields) ? (ndviQ.data as any).fields : [];
+    const data = ndviQ.data as { fields?: RawField[] } | undefined;
+    const raw: RawField[] = Array.isArray(data?.fields) ? data.fields : [];
     return raw
       .map((f): ProblemField => {
         const id = String(f.field_id ?? '');

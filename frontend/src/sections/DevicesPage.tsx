@@ -16,6 +16,7 @@ import { canMutate } from '../lib/permissions';
 import { toastStore } from '../services/websocket';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import type { Device, DeviceType, TelemetryPoint } from '../services/api';
+import { asApiError } from '../services/api';
 
 // تكوين الأنواع: تسمية عربيّة + أيقونة + لون لكل نوع جهاز مدعوم.
 const TYPE_CONFIG: Record<DeviceType, { label: string; icon: typeof Cpu; color: string }> = {
@@ -120,7 +121,7 @@ function DeviceTelemetry({ device }: { device: Device }) {
 
   if (isLoading) return <LoadingState message="جارٍ تحميل القياسات…" />;
   if (isError) {
-    const status = (error as any)?.response?.status;
+    const status = asApiError(error).response?.status;
     const detail = status === 503
       ? 'خدمة الأجهزة غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
       : status === 403
@@ -221,7 +222,7 @@ function RegisterDeviceForm() {
       toastStore.add('success', '✅ تم تسجيل الجهاز', '');
       setName(''); setFieldId(''); setFirmware('');
     } catch (err) {
-      const status = (err as any)?.response?.status;
+      const status = asApiError(err).response?.status;
       const detail = status === 503
         ? 'خدمة الأجهزة غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
         : status === 403
@@ -313,7 +314,7 @@ export default function DevicesPage() {
         <LoadingState message="جارٍ تحميل الأجهزة…" />
       ) : isError ? (
         (() => {
-          const status = (error as any)?.response?.status;
+          const status = asApiError(error).response?.status;
           const detail = status === 503
             ? 'خدمة الأجهزة غير متاحة حاليّاً (قاعدة البيانات معطّلة).'
             : status === 403

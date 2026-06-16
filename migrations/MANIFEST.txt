@@ -211,3 +211,4 @@ v59_boundary_topology_fn.sql
 # مؤشّرها فقط. ليست مصدر حقيقة — مخزن الأحداث append-only يبقى المصدر.
 # يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls (v9). idempotent.
 v60_event_snapshots.sql
+v61_fields_row_version.sql

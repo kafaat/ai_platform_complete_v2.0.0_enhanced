@@ -126,11 +126,6 @@ export const useAuthStore = create<AuthState>()(
 );
 
 // ── Helper hooks ──────────────────────────────────────────────
-export const useIsAdmin = () => {
-  const role = useAuthStore(s => s.user?.role);
-  return role === 'admin';
-};
-
 export const useIsAuthenticated = () =>
   useAuthStore(s => s.isAuthenticated);
 

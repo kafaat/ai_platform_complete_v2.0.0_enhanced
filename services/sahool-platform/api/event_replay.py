@@ -94,6 +94,45 @@ class ReconstructedState:
     validity: str | None = None
     execution_mode: str | None = None
 
+    # الأنشطة العامّة (activity.recorded — entity_type='activity', يحمل field_id).
+    # هذا حدث ACTIVITY_RECORDED الاحتياطيّ الحقيقيّ (field_aggregate.activity_event_for):
+    # يُصدَر حين لا يُطابَق نوع النشاط+حالته أيّ operation.* محدَّد (مثل scouting/عامّ).
+    # payload الحقيقيّ: {field_id, season_id, activity_type, status} (routers/fields).
+    activity_recorded_count: int = 0
+    last_activity_type: str | None = None
+
+    # معايرة الإنتاج (trueup.applied — entity_type='field'). payload الحقيقيّ:
+    # {operation_id, k_old, k_new, measured_yield_kg_ha, adjusted_yield_kg_ha,
+    # error_pct, moisture_corrected} (trueup.TrueUpEngine). نُسقِط آخر معايرة فقط.
+    trueup_count: int = 0
+    last_trueup_error_pct: float | None = None
+    last_adjusted_yield_kg_ha: float | None = None
+
+    # نشر نتيجة فحص التربة (soil.lab.result.published — entity_type='soil_lab_test'،
+    # يحمل field_id). payload الحقيقيّ: {field_id} (routers/fields). يُكمّل
+    # soil.sample.recorded (طلب الفحص) بحدث «نُشِرت النتيجة».
+    soil_lab_published_count: int = 0
+
+    # الصمّامات (irrigation.valve.* — entity_type='irrigation_valve'، entity_id=valve_id).
+    # registered payload: {field_id, valve_type}؛ state_changed payload: {status}
+    # (routers/irrigation). نُسقِط آخر حالة صمّام معروفة.
+    valve_registered_count: int = 0
+    valve_state_changed_count: int = 0
+    last_valve_status: str | None = None
+
+    # جداول الريّ (irrigation.schedule.created — entity_type='irrigation_schedule').
+    # payload الحقيقيّ: {field_id, valve_id} (routers/irrigation).
+    irrigation_schedule_count: int = 0
+
+    # الدورة الزراعيّة (crop_rotation.added — entity_type='crop_rotation').
+    # payload الحقيقيّ: {field_id, crop} (routers/fields).
+    crop_rotation_count: int = 0
+    last_rotation_crop: str | None = None
+
+    # تحديث الموسم (season.updated — entity_type='season'). payload الحقيقيّ:
+    # {field_id, changed_fields} (routers/fields). عدّاد تحديثات الموسم فقط.
+    season_updated_count: int = 0
+
     deleted: bool = False
 
     last_ndvi: float | None = None
@@ -201,8 +240,15 @@ _EVENT_SUMMARY_AR: dict[str, str] = {
     "operation.harvest.started": "بدأ الحصاد",
     "operation.harvest.completed": "اكتمل الحصاد",
     "trueup.applied": "معايرة الإنتاج (TrueUp)",
+    "activity.recorded": "تسجيل عمليّة حقليّة",
+    "season.updated": "حُدِّث الموسم",
+    "irrigation.valve.registered": "سُجِّل صمّام ريّ",
+    "irrigation.valve.state_changed": "تغيّرت حالة الصمّام",
+    "irrigation.schedule.created": "أُنشئ جدول ريّ",
+    "crop_rotation.added": "أُضيفت دورة زراعيّة",
     "remote_sensing.ndvi.observed": "وصول قراءة NDVI",
     "soil.sample.recorded": "تسجيل عيّنة تربة",
+    "soil.lab.result.published": "نُشِرت نتيجة فحص التربة",
     "weather.rain": "حدث مطر",
     "weather.moisture.low": "إجهاد مائي",
     "ai.suggestion.generated": "اقتراح من سهول",
@@ -350,6 +396,53 @@ class FieldStateReconstructor:
 
         elif etype == "season.closed":
             state.season_closed_count += 1
+
+        elif etype == "season.updated":
+            # payload الحقيقيّ: {field_id, changed_fields} (routers/fields._update_season).
+            # حدث تحديث الموسم — نعدّه فقط (لا محصول/تاريخ في الحمولة، لا اشتقاق زائف).
+            state.season_updated_count += 1
+
+        elif etype == "activity.recorded":
+            # payload الحقيقيّ: {field_id, season_id, activity_type, status}
+            # (routers/fields، حدث ACTIVITY_RECORDED الاحتياطيّ). نشاط عامّ لا يُطابَق
+            # operation.* محدَّداً (مثل scouting). نعدّه ونحفظ آخر نوع نشاط.
+            state.activity_recorded_count += 1
+            if "activity_type" in payload:
+                state.last_activity_type = payload["activity_type"]
+
+        elif etype == "trueup.applied":
+            # payload الحقيقيّ: {operation_id, k_old, k_new, measured_yield_kg_ha,
+            # adjusted_yield_kg_ha, error_pct, moisture_corrected} (trueup.TrueUpEngine).
+            state.trueup_count += 1
+            if "error_pct" in payload:
+                state.last_trueup_error_pct = payload["error_pct"]
+            if "adjusted_yield_kg_ha" in payload:
+                state.last_adjusted_yield_kg_ha = payload["adjusted_yield_kg_ha"]
+
+        elif etype == "soil.lab.result.published":
+            # payload الحقيقيّ: {field_id} (routers/fields._update_soil_test عند النشر).
+            # يُكمّل soil.sample.recorded (الطلب) بحدث «نُشِرت النتيجة».
+            state.soil_lab_published_count += 1
+
+        elif etype == "irrigation.valve.registered":
+            # payload الحقيقيّ: {field_id, valve_type} (routers/irrigation.register_valve).
+            state.valve_registered_count += 1
+
+        elif etype == "irrigation.valve.state_changed":
+            # payload الحقيقيّ: {status} (routers/irrigation.set_valve_state).
+            state.valve_state_changed_count += 1
+            if "status" in payload:
+                state.last_valve_status = payload["status"]
+
+        elif etype == "irrigation.schedule.created":
+            # payload الحقيقيّ: {field_id, valve_id} (routers/irrigation.create_schedule).
+            state.irrigation_schedule_count += 1
+
+        elif etype == "crop_rotation.added":
+            # payload الحقيقيّ: {field_id, crop} (routers/fields.add_crop_rotation).
+            state.crop_rotation_count += 1
+            if "crop" in payload:
+                state.last_rotation_crop = payload["crop"]
 
         elif etype == "alert.created":
             # payload الحقيقيّ: {severity, alert_type, field_id} (main + event_catalog).

@@ -116,7 +116,7 @@ export default function SeasonStep({
         notes_ar: notesAr.trim() || undefined,
       });
       onNext();
-    } catch (e: any) {
+    } catch (e: unknown) {
       setError(apiErrorMessage(e, 'تعذّر حفظ الموسم — تحقّق من القاعدة/الصلاحيّة والتواريخ.'));
     } finally {
       setSaving(false);

@@ -13,11 +13,12 @@ import {
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import type { InventoryItem, NewInventoryItem, NewInventoryBatch } from '../services/api';
+import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 // تفسير عربيّ صادق لأخطاء الخادم (يطابق سلوك ReportsPage/CostSummary).
 function errDetail(error: unknown, fallback: string): string {
-  const status = (error as any)?.response?.status;
+  const status = asApiError(error).response?.status;
   if (status === 503) return 'خدمة المخزون غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
   if (status === 403) return 'لا تملك صلاحية عرض المخزون (inventory:view).';
   return fallback;

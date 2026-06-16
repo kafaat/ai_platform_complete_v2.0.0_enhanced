@@ -12,8 +12,9 @@ import {
   Wifi, WifiOff, KeyRound, Lock, Copy, AlertTriangle, CheckCircle2,
   Mail, Phone, BadgeCheck,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import NotificationSettingsPage from './NotificationSettingsPage';
-import { useAllServicesHealth } from '../hooks/useApi';
+import { useAllServicesHealth, type ServiceHealth } from '../hooks/useApi';
 import { wsService } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
@@ -35,7 +36,7 @@ function loadSettings(): { lang?: string; map?: string } {
   }
 }
 
-const TABS: { id: Tab; label: string; icon: any }[] = [
+const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id:'general',       label:'عام',         icon:Globe  },
   { id:'notifications', label:'الإشعارات',   icon:Bell   },
   { id:'services',      label:'الاتصالات',   icon:Server },
@@ -67,7 +68,7 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2500);
   };
 
-  const Section = ({ title, children }: any) => (
+  const Section = ({ title, children }: { title?: string; children: React.ReactNode }) => (
     <div className="rounded-xl border overflow-hidden" style={{ background:'#1e293b', borderColor:'#334155' }}>
       {title && (
         <div className="px-4 py-3 border-b text-sm font-semibold text-slate-300"
@@ -77,7 +78,7 @@ export default function SettingsPage() {
     </div>
   );
 
-  const Row = ({ label, hint, children }: any) => (
+  const Row = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
       <div className="sm:w-44 flex-shrink-0">
         <div className="text-sm text-slate-300">{label}</div>
@@ -192,8 +193,10 @@ export default function SettingsPage() {
                 <Loader2 className="w-5 h-5 text-emerald-500 animate-spin" />
               </div>
             ) : (
-              (services || []).map((svc: any, i: number) => {
-                const ok = svc.status === 'ok' || svc.status === 'ready' || svc.status === 'alive';
+              (services || []).map((svc: ServiceHealth, i: number) => {
+                // ServiceHealth.status ∈ {'ok','error','unknown'} (checkAll يصدر ok/error فقط)؛
+                // 'ready'/'alive' كانتا شرطين ميّتين لا يتحقّقان أبداً — أُزيلتا.
+                const ok = svc.status === 'ok';
                 return (
                   <div key={i} className="flex items-center justify-between py-2 border-b last:border-0"
                     style={{ borderColor:'#334155' }}>
@@ -316,8 +319,8 @@ export default function SettingsPage() {
 // الحالات صادقة عبر apiErrorMessage — لا حجب للدخول (تحقّق ناعم).
 // ═══════════════════════════════════════════════════════════════
 function AccountVerification({ Section, Row, inputCls, inputSty }: {
-  Section: (p: { title?: string; children: any }) => React.ReactNode;
-  Row: (p: { label: string; hint?: string; children: any }) => React.ReactNode;
+  Section: (p: { title?: string; children: React.ReactNode }) => React.ReactNode;
+  Row: (p: { label: string; hint?: string; children: React.ReactNode }) => React.ReactNode;
   inputCls: string;
   inputSty: React.CSSProperties;
 }) {
@@ -381,7 +384,7 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
     </div>
   );
 
-  const channelRow = (channel: VerifyChannel, label: string, Icon: any, verified: boolean) => (
+  const channelRow = (channel: VerifyChannel, label: string, Icon: LucideIcon, verified: boolean) => (
     <div className="p-3 rounded-lg space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2 text-sm text-slate-300">
@@ -450,8 +453,8 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
 // بصدق عبر apiErrorMessage. الأشكال تطابق services/auth/main.py.
 // ═══════════════════════════════════════════════════════════════
 function AccountSecurity({ Section, Row, inputCls, inputSty }: {
-  Section: (p: { title?: string; children: any }) => React.ReactNode;
-  Row: (p: { label: string; hint?: string; children: any }) => React.ReactNode;
+  Section: (p: { title?: string; children: React.ReactNode }) => React.ReactNode;
+  Row: (p: { label: string; hint?: string; children: React.ReactNode }) => React.ReactNode;
   inputCls: string;
   inputSty: React.CSSProperties;
 }) {

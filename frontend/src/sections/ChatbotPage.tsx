@@ -36,7 +36,21 @@ import { useFields, useWeatherForecast } from '../hooks/useApi';
 // كان ثابتاً مُلفَّقاً (NDVI=0.62 و«8 حقول 249هـ» و15.7°م) يُحقَن في كلّ طلب —
 // يُضلّل النموذج بأرقام لا تخصّ المستخدم. الآن يُبنى من بياناته الفعليّة (الحقول
 // + الطقس). عند غياب مصدر نقول ذلك صراحةً بدل اختراع قيمة.
-interface LiveContext { count: number; totalArea: number; avgNdvi: number | null; crops: string[]; w: any }
+// الطقس الحاليّ (current) كما تقرؤه هذه الشاشة من خدمة الطقس — حقول اختياريّة.
+interface WeatherCurrent {
+  tmean?: number;
+  humidity_pct?: number;
+  wind_speed_kmh?: number;
+  et0_mm?: number | null;
+}
+// الحقل كما تقرؤه هذه الشاشة لبناء سياق المزرعة — حقول اختياريّة، قيم قد تصل نصّاً.
+interface ChatbotField {
+  ndvi?: string | number;
+  crop_ar?: string;
+  crop?: string;
+  area_ha?: string | number;
+}
+interface LiveContext { count: number; totalArea: number; avgNdvi: number | null; crops: string[]; w: WeatherCurrent | null }
 
 function buildSystemPrompt(c: LiveContext): string {
   const farm = c.count === 0
@@ -201,7 +215,7 @@ export function ChatbotPage() {
   const fieldsQ  = useFields();
   const weatherQ = useWeatherForecast();
   const ctx: LiveContext = useMemo(() => {
-    const list: any[] = fieldsQ.data?.fields ?? [];
+    const list: ChatbotField[] = (fieldsQ.data as { fields?: ChatbotField[] } | undefined)?.fields ?? [];
     const ndvis = list.map((f) => +(f.ndvi || 0)).filter((n) => n > 0);
     const crops = Array.from(new Set(
       list.map((f) => f.crop_ar || f.crop).filter((c): c is string => !!c),
@@ -211,7 +225,7 @@ export function ChatbotPage() {
       totalArea: list.reduce((s, f) => s + (+(f.area_ha || 0)), 0),
       avgNdvi: ndvis.length ? ndvis.reduce((a, b) => a + b, 0) / ndvis.length : null,
       crops,
-      w: (weatherQ.data as any)?.current ?? null,
+      w: (weatherQ.data as { current?: WeatherCurrent } | undefined)?.current ?? null,
     };
   }, [fieldsQ.data, weatherQ.data]);
 

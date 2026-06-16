@@ -158,7 +158,7 @@ export default function FieldSetupWizard() {
 }
 
 function H({ icon, t, s }: { icon: ReactNode; t: ReactNode; s: ReactNode }) { return <div style={{ marginBottom: 18 }}><div style={{ fontSize: 19, fontWeight: 800, color: "#fff" }}>{icon} {t}</div><div style={{ fontSize: 13, color: "#9cb8a3", marginTop: 4 }}>{s}</div></div>; }
-function F({ label, e, children }: { label: string; e?: any; children: any }) { return <div style={{ marginBottom: 16, flex: 1 }}><label style={{ fontSize: 13, color: "#9cb8a3", display: "block", marginBottom: 6 }}>{label}</label>{children}{e && <div style={{ fontSize: 11, color: "#d4593a", marginTop: 4 }}>⚠ {e}</div>}</div>; }
+function F({ label, e, children }: { label: string; e?: string | false; children: ReactNode }) { return <div style={{ marginBottom: 16, flex: 1 }}><label style={{ fontSize: 13, color: "#9cb8a3", display: "block", marginBottom: 6 }}>{label}</label>{children}{e && <div style={{ fontSize: 11, color: "#d4593a", marginTop: 4 }}>⚠ {e}</div>}</div>; }
 function Row({ k, v, c = "#e8eee9" }: { k: ReactNode; v: ReactNode; c?: string }) { return <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 14 }}><span style={{ color: "#9cb8a3" }}>{k}</span><span style={{ color: c, fontWeight: 600 }}>{v}</span></div>; }
 const inp = (e: unknown): CSSProperties => ({ width: "100%", padding: "12px 14px", borderRadius: 10, boxSizing: "border-box", background: "#0d1611", color: "#e8eee9", fontSize: 15, border: `1px solid ${e ? "#d4593a" : "#2d4a37"}`, outline: "none" });
 const hint: CSSProperties = { fontSize: 12, color: "#7fae8c", background: "#0d1611", borderRadius: 8, padding: "10px 14px", marginTop: 8, lineHeight: 1.6 };

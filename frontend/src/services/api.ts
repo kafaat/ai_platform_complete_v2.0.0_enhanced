@@ -152,24 +152,46 @@ export const login = (payload: LoginPayload): Promise<AuthResponse> =>
         } as AuthResponse;
       });
 
+// شكل خطأ أكسيوس/FastAPI كما تقرؤه الواجهة (response.status/data.detail + message).
+// نوع موحّد بدل any المتناثر في معالِجات catch وحُرّاس .response?.status عبر الشاشات.
+export interface ApiErrorDetailItem { msg?: string; message_ar?: string }
+export interface ApiError {
+  response?: {
+    status?: number;
+    headers?: Record<string, string | boolean | undefined>;
+    data?: {
+      detail?: string | ApiErrorDetailItem[] | { message_ar?: string; msg?: string };
+      message_ar?: string;
+    };
+  };
+  message?: string;
+}
+
+// يضيّق unknown → ApiError بأمان (يقرأ الحقول كاختياريّة فقط، لا يفترض شكلاً صلباً).
+export function asApiError(e: unknown): ApiError {
+  return (e ?? {}) as ApiError;
+}
+
 /** يفحص ما إذا كان خطأ تسجيل الدخول يعني "MFA مطلوب" (الخادم يردّ 401 مع
  *  الرأس X-MFA-Required: true حين تصحّ كلمة المرور لكن يلزم رمز TOTP). */
-export function isMfaRequiredError(e: any): boolean {
-  const status = e?.response?.status;
-  const header = e?.response?.headers?.['x-mfa-required'];
+export function isMfaRequiredError(e: unknown): boolean {
+  const err = asApiError(e);
+  const status = err.response?.status;
+  const header = err.response?.headers?.['x-mfa-required'];
   return status === 401 && (header === 'true' || header === true);
 }
 
 // يستخرج رسالة خطأ مقروءة من ردّ FastAPI (detail قد يكون نصّاً أو مصفوفة كائنات).
-export function apiErrorMessage(e: any, fallback: string): string {
-  const d = e?.response?.data?.detail ?? e?.response?.data?.message_ar;
+export function apiErrorMessage(e: unknown, fallback: string): string {
+  const err = asApiError(e);
+  const d = err.response?.data?.detail ?? err.response?.data?.message_ar;
   if (Array.isArray(d)) {
-    const msgs = d.map((x: any) => x?.msg || x?.message_ar || '').filter(Boolean);
+    const msgs = d.map((x) => x?.msg || x?.message_ar || '').filter(Boolean);
     return msgs.length ? msgs.join('، ') : fallback;
   }
   if (typeof d === 'string') return d;
   if (d && typeof d === 'object') return d.message_ar || d.msg || fallback;
-  return e?.message || fallback;
+  return err.message || fallback;
 }
 
 export interface RegisterPayload { full_name: string; email: string; password: string }

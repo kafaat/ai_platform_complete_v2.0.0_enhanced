@@ -78,10 +78,12 @@ function fmtLength(m: number): string {
 }
 
 // يستخرج قياساً من طبقة leaflet-draw بالاعتماد على هندسة GeoJSON الحقيقيّة.
-function measureLayer(layer: any): Measurement | null {
+function measureLayer(layer: L.Layer): Measurement | null {
   const id = L.stamp(layer);
-  let gj: any;
-  try { gj = layer.toGeoJSON?.(); } catch { gj = null; }
+  // toGeoJSON موجودة على طبقات الأشكال (Path/FeatureGroup) لا على L.Layer الأساس.
+  const toGeoJSON = (layer as { toGeoJSON?: () => GeoJSON.Feature }).toGeoJSON;
+  let gj: GeoJSON.Feature | null;
+  try { gj = toGeoJSON?.() ?? null; } catch { gj = null; }
   const type = gj?.geometry?.type;
   if (type === 'Polygon' || type === 'MultiPolygon') {
     return { id, kind: 'polygon', areaM2: areaSqMeters(gj) };

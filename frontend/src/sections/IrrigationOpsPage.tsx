@@ -19,6 +19,7 @@ import {
 import type {
   Valve, ValveType, ValveStatus, CreateScheduleInput,
 } from '../services/api';
+import { asApiError } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -41,7 +42,7 @@ const STATUS_META: Record<ValveStatus, { label: string; color: string; bg: strin
 const DAYS_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
 function errDetail(error: unknown): string {
-  const status = (error as any)?.response?.status;
+  const status = asApiError(error).response?.status;
   if (status === 503) return 'خدمة الريّ غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
   if (status === 403) return 'لا تملك صلاحية عرض الريّ التشغيليّ (irrigation:view).';
   return 'تعذّر الاتصال بخدمة الريّ.';

@@ -29,8 +29,8 @@ class MockWebSocket {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-(globalThis as any).WebSocket = MockWebSocket;
+// حقن WebSocket وهميّ في النطاق العامّ للاختبار (بلا any: تأكيد مضبوط للمفتاح).
+(globalThis as unknown as { WebSocket: unknown }).WebSocket = MockWebSocket;
 
 // يُستورد بعد حقن WebSocket حتى يلتقط الـsingleton المرجع الوهميّ.
 import { wsService } from './websocket';
@@ -55,19 +55,19 @@ afterEach(() => {
 });
 
 describe('WebSocketService outbox (Phase 3)', () => {
-  it('يُرسل فوراً حين تكون القناة مفتوحة (يعيد true)', () => {
+  it("يُرسل فوراً حين تكون القناة مفتوحة (يعيد 'sent')", () => {
     wsService.connect(1);
     const ws = MockWebSocket.instances[0];
     ws._open();
-    const ok = wsService.send({ type: 'valve', state: 'open' });
-    expect(ok).toBe(true);
+    const result = wsService.send({ type: 'valve', state: 'open' });
+    expect(result).toBe('sent');
     expect(outboxOnly(ws)).toContain(JSON.stringify({ type: 'valve', state: 'open' }));
   });
 
   it('يحفظ الرسائل حين القناة غير مفتوحة ثمّ يُفرّغها عند الفتح (لا فقد صامت)', () => {
-    // مُرسَلة قبل أيّ اتصال ⇒ تُحفظ (تعيد false) لا تُفقد.
-    expect(wsService.send({ type: 'pump', id: 1 })).toBe(false);
-    expect(wsService.send({ type: 'pump', id: 2 })).toBe(false);
+    // مُرسَلة قبل أيّ اتصال ⇒ تُحفظ (تعيد 'queued') لا تُفقد.
+    expect(wsService.send({ type: 'pump', id: 1 })).toBe('queued');
+    expect(wsService.send({ type: 'pump', id: 2 })).toBe('queued');
 
     wsService.connect(1);
     const ws = MockWebSocket.instances[0];
@@ -80,8 +80,14 @@ describe('WebSocketService outbox (Phase 3)', () => {
   });
 
   it('عند امتلاء الطابور يُسقط الأقدم ويُبقي الأحدث (سقف 100)', () => {
-    // 105 رسالة والقناة مغلقة ⇒ يبقى آخر 100 (تُسقط 0..4).
-    for (let i = 0; i < 105; i++) wsService.send({ seq: i });
+    // 105 رسالة والقناة مغلقة ⇒ يبقى آخر 100 (تُسقط 0..4). أوّل 100 تُعيد
+    // 'queued' (يوجد متّسع)، والخمس الأخيرة تُعيد 'queue_full' (أُسقط الأقدم).
+    for (let i = 0; i < 100; i++) {
+      expect(wsService.send({ seq: i })).toBe('queued');
+    }
+    for (let i = 100; i < 105; i++) {
+      expect(wsService.send({ seq: i })).toBe('queue_full');
+    }
 
     wsService.connect(1);
     const ws = MockWebSocket.instances[0];

@@ -46,7 +46,7 @@ export default function SignupPage({ onLogin }: { onLogin?: () => void }) {
       localStorage.setItem('sahool_locale', JSON.stringify({ country, language }));
       await signup({ full_name: fullName.trim(), email: email.trim(), password });
       // النجاح ⇒ توكن محفوظ ⇒ التطبيق ينتقل تلقائيّاً (isAuthenticated).
-    } catch (err: any) {
+    } catch (err: unknown) {
       // detail قد يكون مصفوفة كائنات (Pydantic 422) — نستخرج نصّاً مقروءاً.
       setError(apiErrorMessage(err, 'تعذّر إنشاء الحساب'));
     } finally {

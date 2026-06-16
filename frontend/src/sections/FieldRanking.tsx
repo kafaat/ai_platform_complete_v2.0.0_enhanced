@@ -47,7 +47,8 @@ export default function FieldRanking() {
   const q = useAllFieldsNdvi();
 
   const ranked = useMemo<RankedField[]>(() => {
-    const raw: RawField[] = Array.isArray((q.data as any)?.fields) ? (q.data as any).fields : [];
+    const data = q.data as { fields?: RawField[] } | undefined;
+    const raw: RawField[] = Array.isArray(data?.fields) ? data.fields : [];
     const mapped: { id: string; name: string; crop?: string; ndvi: number | null | undefined }[] = raw.map((f) => ({
       id: String(f.field_id ?? ''),
       name: f.field_name || f.name || 'حقل',

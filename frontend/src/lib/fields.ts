@@ -9,13 +9,33 @@ export interface FieldOption {
   name: string;
   lat: number | null;
   lon: number | null;
-  geometry: any;
+  // هندسة تمرّ كما هي من الخادم (قد تكون غائبة/جزئيّة) ⇒ unknown، لا any.
+  geometry: unknown;
   area: number;
   crop: string;
 }
 
+// الحقل الخام كما يصل من useFields: مفاتيح متباينة بين الخدمات (field_id/id،
+// name_ar/name/field_code، lat/centroid_lat، area_ha/area...). كلّها اختياريّة،
+// والقيم العدديّة قد تصل نصّاً من الخادم (لذا string | number ثمّ Number(...)).
+export interface RawField {
+  field_id?: string | number;
+  id?: string | number;
+  name_ar?: string;
+  name?: string;
+  field_code?: string;
+  lat?: number | null;
+  centroid_lat?: number | null;
+  lon?: number | null;
+  centroid_lon?: number | null;
+  geometry?: unknown;
+  area_ha?: string | number;
+  area?: string | number;
+  crop?: string;
+}
+
 // حقل خام (من useFields) → FieldOption مُطبَّع. id دائماً نصّ (للمطابقة المستقرّة).
-export function toFieldOption(f: any): FieldOption {
+export function toFieldOption(f: RawField): FieldOption {
   return {
     id: String(f.field_id ?? f.id),
     name: String(f.name_ar ?? f.name ?? f.field_code ?? f.field_id ?? 'حقل'),

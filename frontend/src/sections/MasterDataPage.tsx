@@ -13,6 +13,7 @@ import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { canManage } from '../lib/permissions';
 import { useAuthStore } from '../hooks/useAuth';
 import type { MasterDataCategory } from '../services/api';
+import { asApiError } from '../services/api';
 
 const CATEGORIES: { id: MasterDataCategory; label: string }[] = [
   { id: 'crop',           label: 'المحاصيل' },
@@ -26,7 +27,7 @@ const CATEGORIES: { id: MasterDataCategory; label: string }[] = [
 
 // رسالة خطأ صادقة حسب رمز الحالة من الخادم (لا قيمة مُلفَّقة).
 function errorDetail(error: unknown): string {
-  const status = (error as any)?.response?.status;
+  const status = asApiError(error).response?.status;
   if (status === 503) return 'خدمة البيانات المرجعيّة غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
   if (status === 403) return 'لا تملك صلاحية عرض البيانات المرجعيّة (master_data:view).';
   return 'تعذّر الاتصال بخدمة البيانات المرجعيّة.';
@@ -38,7 +39,7 @@ function AddEntryForm({ category }: { category: MasterDataCategory }) {
   const [nameAr, setNameAr] = useState('');
   const [nameEn, setNameEn] = useState('');
 
-  const status   = (create.error as any)?.response?.status;
+  const status   = asApiError(create.error).response?.status;
   const isDup     = status === 409;
   const errMsg    = create.isError
     ? isDup

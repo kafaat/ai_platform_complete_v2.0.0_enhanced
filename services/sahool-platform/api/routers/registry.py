@@ -99,6 +99,6 @@ async def registry_data_quality_rules(
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """قواعد جودة البيانات (data-quality rules) — بيانات وصفيّة."""
-    from api.data_quality import list_rules
+    from core.data_quality import list_rules
 
     return {"data_quality_rules": list_rules()}
