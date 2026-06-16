@@ -569,75 +569,15 @@ class SyncBatchRequest(BaseModel):
     operations: list[dict]
 
 
-class FieldSummary(BaseModel):
-    """ملخّص حقل للقائمة (HomeScreen)."""
-
-    field_id: str
-    farm_id: str
-    name_ar: str
-    crop: str
-    area_ha: float
-    quality_grade: str  # READY/LIMITED/PENDING_LAB/BLOCKED
-    last_observation_at: str | None = None
-    pending_activities: int = 0
-    health_summary_ar: str  # "صحّي" / "يحتاج ريّ" / "إجهاد ملحي"
-    soil_type: str | None = None  # نوع التربة (يُمرَّر للواجهة بدل ضياعه)
-    manager: str | None = None  # المسؤول عن الحقل
-    # حقول مُثراة (v33): كود الحقل + مصدر الماء + الملكيّة + الكشف الآلي للموقع.
-    field_code: str | None = None  # كود الحقل (مرجع المزارع)
-    description: str | None = None  # وصف حرّ
-    water_source: str | None = None  # well/canal/river/rainfed/tank/mixed
-    ownership_type: str | None = None  # نوع الملكيّة
-    country: str | None = None  # الدولة (مكتشفة آليّاً من المركز)
-    region: str | None = None  # الإقليم/المحافظة (مكتشفة آليّاً من المركز)
-    # حقول الخريطة (اختياريّة، توافق خلفيّ): مركز الحقل وهندسته لرسم المضلّع.
-    lat: float | None = None
-    lon: float | None = None
-    geometry: dict | None = None
-
-
-# ─── تفاصيل الحقل المتقدّمة (v37) — ملء تدريجيّ بعد الإنشاء ────────
-# القائمة (list_fields) تبقى رشيقة؛ هذه الأعمدة تُقرأ عبر GET /fields/{id}
-# وتُحدَّث جزئيّاً عبر PATCH /fields/{id}. مصدر واحد لأسماء الأعمدة (يُعاد
-# استخدامه في SELECT التفصيليّ وفي بنّاء التحديث الجزئيّ + الاختبارات).
-_FIELD_ADVANCED_COLUMNS: tuple[str, ...] = (
-    "soil_ph",
-    "soil_ec",
-    "soil_om",
-    "soil_n",
-    "soil_p",
-    "soil_k",
-    "elevation_m",
-    "slope_pct",
-    "aspect",
-    "climate_zone",
-    "zone_key",  # v49: مفتاح الإقليم القانوني (agro_climate_zones) — يُفعّل تحليل السوق الإقليمي
-    "annual_rainfall_mm",
-    "owner_name",
-    "lease_years",
-    "registry_no",
-    # نموذج الريّ/المياه التفصيليّ (v41) — ملء تدريجيّ عبر PATCH (Progressive Profiling)
-    "irrigation_type",
-    "irrigation_efficiency_pct",
-    "flow_rate_m3h",
-    "pump_type",
-    "well_depth_m",
-    "water_ec",
-    # ربط المدير بمستخدم حقيقيّ (v41) — إضافيّ بجانب manager النصّيّ
-    "manager_user_id",
-)
-
-# حدّ التداخل المعتبَر (م²) — أكبر منه ⇒ تداخل حقيقيّ لا مجرّد ملامسة حدود/انزياح GPS.
-_MIN_FIELD_OVERLAP_M2 = 25.0
-
-
-def _significant_overlaps(overlaps, min_m2: float = _MIN_FIELD_OVERLAP_M2) -> list:
-    """يُرشّح صفوف التداخل بحيث يبقى ما تجاوزت مساحة تقاطعه الحدّ — دالّة نقيّة (لا DB).
-
-    يقبل صفوف asyncpg.Record أو dict (كلاهما يدعم o["overlap_m2"]). قيمة None تُعامَل
-    كصفر. يُستخدَم لتحويل قرار «تداخل معتبَر» إلى منطق قابل للاختبار offline.
-    """
-    return [o for o in overlaps if (o["overlap_m2"] or 0.0) > min_m2]
+# ─── نطاق الحقول (Fields) — تفكيك B1 (نقل عنقوديّ) ────────────────
+# نماذج الحقل (FieldSummary/FieldDetail/FieldCreate/Import/Update/Recommendation)
+# ومُطبِّعاتها (_row_to_field_summary/_row_to_field_detail) وبنّاء التحديث الجزئيّ
+# (_build_field_update) وأعمدة SELECT (_FIELD_ADVANCED_COLUMNS/_FIELD_DETAIL_SELECT)
+# ومُرشِّح التداخل (_significant_overlaps/_MIN_FIELD_OVERLAP_M2) نُقِلت إلى
+# api/field_models.py ويستوردها routers/fields وrouters/recommendations مباشرةً.
+# المساعِدات العامّة (_clamp_list_window/_build_versioned_update) ومساعِدا الترميز
+# الجغرافيّ (_centroid_from_bbox/_reverse_geocode) يبقيان هنا (مشتركان عبر نطاقات).
+# معالِج الحفظ _persist_field (I/O) انتقل إلى routers/fields (مستهلِكه الوحيد).
 
 
 # الحدّ الأقصى الصلب لنافذة القائمة — سقف أمان يمنع over-fetch على القوائم غير
@@ -665,99 +605,8 @@ def _clamp_list_window(
     return lim, off
 
 
-class FieldDetail(FieldSummary):
-    """تفاصيل حقل كاملة (لوحة التفاصيل) — يرث الملخّص ويضيف الأعمدة المتقدّمة.
-
-    كلّها اختياريّة (ملء تدريجيّ): كيمياء التربة + المناخ الدقيق + الملكيّة.
-    """
-
-    # كيمياء التربة (نتائج مختبر)
-    soil_ph: float | None = None
-    soil_ec: float | None = None
-    soil_om: float | None = None  # المادّة العضويّة %
-    soil_n: float | None = None
-    soil_p: float | None = None
-    soil_k: float | None = None
-    # المناخ الدقيق / التضاريس
-    elevation_m: float | None = None
-    slope_pct: float | None = None
-    aspect: str | None = None
-    climate_zone: str | None = None
-    zone_key: str | None = None
-    annual_rainfall_mm: float | None = None
-    # تفاصيل الملكيّة
-    owner_name: str | None = None
-    lease_years: int | None = None
-    registry_no: str | None = None
-    # الريّ/المياه التفصيليّ (v41)
-    irrigation_type: str | None = None  # drip/pivot/flood/sprinkler/rainfed/subsurface
-    irrigation_efficiency_pct: float | None = None
-    flow_rate_m3h: float | None = None  # تدفّق المضخّة م³/ساعة
-    pump_type: str | None = None
-    well_depth_m: float | None = None
-    water_ec: float | None = None  # ملوحة الماء dS/m
-    manager_user_id: int | None = None  # FK إلى users(id) (v47)
-    row_version: int | None = None  # عمّاد التزامن التفاؤليّ (v61) — يتزايد كلّ تحديث
-
-
-class FieldUpdateRequest(BaseModel):
-    """طلب تحديث جزئيّ لتفاصيل حقل — كلّ الحقول اختياريّة (ملء تدريجيّ).
-
-    تُحدَّث الأعمدة المُرسَلة فقط (الموجودة في الـpayload) — لا تُمسح غير المُرسَلة.
-    التمييز بين «لم يُرسَل» و«أُرسِل null» عبر model_fields_set (انظر _build_field_update).
-    """
-
-    soil_ph: float | None = Field(default=None, ge=0, le=14)
-    soil_ec: float | None = Field(default=None, ge=0)
-    soil_om: float | None = Field(default=None, ge=0)  # المادّة العضويّة %
-    soil_n: float | None = Field(default=None, ge=0)
-    soil_p: float | None = Field(default=None, ge=0)
-    soil_k: float | None = Field(default=None, ge=0)
-    elevation_m: float | None = None
-    slope_pct: float | None = Field(default=None, ge=0)
-    aspect: str | None = Field(default=None, max_length=20)
-    climate_zone: str | None = Field(default=None, max_length=40)
-    zone_key: str | None = Field(default=None, max_length=64)
-    annual_rainfall_mm: float | None = Field(default=None, ge=0)
-    owner_name: str | None = Field(default=None, max_length=100)
-    lease_years: int | None = Field(default=None, ge=0)
-    registry_no: str | None = Field(default=None, max_length=50)
-    # الريّ/المياه التفصيليّ (v41)
-    irrigation_type: str | None = Field(default=None, max_length=20)
-    irrigation_efficiency_pct: float | None = Field(default=None, ge=0, le=100)
-    flow_rate_m3h: float | None = Field(default=None, ge=0)
-    pump_type: str | None = Field(default=None, max_length=30)
-    well_depth_m: float | None = Field(default=None, ge=0)
-    water_ec: float | None = Field(default=None, ge=0)
-    manager_user_id: int | None = Field(default=None, ge=1)  # FK users(id) (v47)
-    # تزامن تفاؤليّ (v61، اختياريّ/متوافق رجعيّاً): إصدار الحقل الأساس وقت قراءة
-    # العميل. إن مُرِّر ولم يطابق row_version الحاليّ ⇒ 409 تعارض (كشف تعديل متباعد
-    # offline). ليس عموداً يُكتَب — مستثنى من _build_field_update (ليس في الأعمدة).
-    base_version: int | None = Field(default=None, ge=1)
-
-
-def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
-    """يبني جملة SET للتحديث الجزئيّ من الحقول المُرسَلة فقط — دالّة نقيّة (لا DB).
-
-    يُرجِع (set_clause, values) حيث set_clause = "col1 = $1, col2 = $2 …" والقيم
-    بالترتيب نفسه. تُستخدَم القيم لاحقاً بعد إلحاق معرّف الحقل ($N) في WHERE.
-    يُميّز «لم يُرسَل» (يُتجاهَل) عن «أُرسِل null» (يُمسح العمود) عبر model_fields_set.
-
-    يرفع ValueError لو لم تُرسَل أيّ حقول — لا UPDATE فارغ (يعالجه الـendpoint 422).
-    """
-    sent = req.model_fields_set
-    data = req.model_dump()
-    assignments: list[str] = []
-    values: list = []
-    idx = 1
-    for col in _FIELD_ADVANCED_COLUMNS:
-        if col in sent:
-            assignments.append(f"{col} = ${idx}")
-            values.append(data[col])
-            idx += 1
-    if not assignments:
-        raise ValueError("no fields to update")
-    return ", ".join(assignments), values
+# نماذج FieldDetail/FieldUpdateRequest وبنّاء _build_field_update نُقِلت إلى
+# api/field_models.py (تفكيك B1) ويستوردها routers/fields.
 
 
 def _build_versioned_update(
@@ -943,13 +792,8 @@ def readyz():
 # نقطتا /api/v1/recommendations و /api/v1/recommendations/for-field نُقلتا إلى
 # api/routers/recommendations.py (نمط P0) — النموذج FieldRecommendationRequest
 # يبقى هنا (لا تُنقَل النماذج).
-class FieldRecommendationRequest(BaseModel):
-    field_id: str
-    farm_id: str = ""
-    crop: str
-    current_indicators: dict = Field(default_factory=dict)
-    growth_stage: str | None = None
-    district_id: str | None = None
+# FieldRecommendationRequest نُقِل إلى api/field_models.py (تفكيك B1)
+# ويستوردها routers/recommendations.
 
 
 # نقطة /api/v1/observations نُقلت إلى api/routers/observations.py (نمط P0).
@@ -1012,43 +856,7 @@ def _reverse_geocode(lat: float | None, lon: float | None) -> tuple[str | None, 
     return country, region
 
 
-def _row_to_field_summary(r) -> FieldSummary:
-    """صفّ DB → FieldSummary (يفكّ geometry لو رجعت نصّاً من JSONB)."""
-    import json as _json
-
-    def _opt(key):
-        # عمود اختياري قد يغيب (صفّ قديم/اختبار) — None بدل KeyError
-        try:
-            return r[key]
-        except (KeyError, IndexError):
-            return None
-
-    geom = r["geometry"]
-    if isinstance(geom, str):
-        try:
-            geom = _json.loads(geom)
-        except (ValueError, TypeError):
-            geom = None
-    return FieldSummary(
-        field_id=r["field_id"],
-        farm_id=r["farm_id"] or "",
-        name_ar=r["name"],
-        crop=r["crop"] or "—",
-        area_ha=float(r["area_ha"]) if r["area_ha"] is not None else 0.0,
-        quality_grade="READY",
-        health_summary_ar="—",
-        soil_type=r["soil_type"],
-        manager=r["manager"],
-        field_code=_opt("field_code"),
-        description=_opt("description"),
-        water_source=_opt("water_source"),
-        ownership_type=_opt("ownership_type"),
-        country=_opt("country"),
-        region=_opt("region"),
-        lat=float(r["lat"]) if r["lat"] is not None else None,
-        lon=float(r["lon"]) if r["lon"] is not None else None,
-        geometry=geom,
-    )
+# _row_to_field_summary نُقِل إلى api/field_models.py (تفكيك B1) ويستوردها routers/fields.
 
 
 def _db_unavailable(action_ar: str, exc: Exception) -> HTTPException:
@@ -1064,311 +872,10 @@ def _db_unavailable(action_ar: str, exc: Exception) -> HTTPException:
     )
 
 
-class FieldCreateRequest(BaseModel):
-    """طلب إنشاء حقل من مضلّع مرسوم على الخريطة."""
-
-    name: str = Field(min_length=1, max_length=100)
-    crop: str | None = None
-    soil_type: str | None = None
-    manager: str | None = Field(default=None, max_length=100)
-    geometry: dict  # GeoJSON Polygon: {"type":"Polygon","coordinates":[[[lon,lat],...]]}
-    farm_id: str | None = None
-    gov: str | None = None
-    # حقول مُثراة (v33): اختياريّة. country/region تُكتشف آليّاً إن لم تُرسَل.
-    field_code: str | None = Field(default=None, max_length=50)
-    description: str | None = None
-    water_source: str | None = Field(default=None, max_length=20)
-    ownership_type: str | None = Field(default=None, max_length=20)
-    country: str | None = Field(default=None, max_length=60)
-    region: str | None = Field(default=None, max_length=80)
-
-
-async def _persist_field(req: FieldCreateRequest, user: UserSchema) -> FieldSummary:
-    """مسار التحقّق + الإدراج المشترك للحقل (مرسوم أو مستورَد).
-
-    يتحقّق من الهندسة (CRS 4326، تقاطع ذاتي، مساحة معقولة، داخل اليمن) ويحسب
-    المساحة + المركز منها، يكشف الدولة/الإقليم آليّاً إن لم يُرسَلا، ثمّ يُدرج
-    ضمن سياق المستأجر (RLS). يردّ الحقل المُنشأ بهندسته. مصدر واحد للحقيقة
-    يُعيد استخدامه create_field و import_field — لا تكرار للتحقّق/الإدراج.
-    """
-    import json as _json
-    import uuid as _uuid
-
-    import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
-
-    validation = validate_field_geometry(req.geometry)
-    if not validation.valid:
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
-                "issues": [
-                    {"code": i.code, "severity": i.severity.value, "message_ar": i.message_ar}
-                    for i in validation.issues
-                ],
-            },
-        )
-    area_ha = round(validation.computed_area_ha or 0.0, 2)
-    lat, lon = _centroid_from_bbox(validation.computed_bbox)
-    # الكشف الآلي للدولة + الإقليم من مركز المضلّع (إن لم يُرسلهما العميل)
-    country, region = req.country, req.region
-    if country is None or region is None:
-        auto_country, auto_region = _reverse_geocode(lat, lon)
-        country = country or auto_country
-        region = region or auto_region
-    field_id = "fld_" + _uuid.uuid4().hex[:12]
-    geom_json = _json.dumps(req.geometry)
-    try:
-        async with tenant_connection(user) as conn:
-            # التحقّق أنّ المزرعة المرتبطة موجودة وتخصّ المستأجِر الحالي (إن أُرسلت).
-            # farm_id يبقى اختياريّاً (ملف تعريف تدريجي)؛ نتحقّق فقط عند توفّره.
-            # RLS يحصر farms أصلاً — لكن نضيف الفحص الصريح (دفاع + خطأ واضح).
-            if req.farm_id:
-                farm_ok = await conn.fetchrow(
-                    "SELECT 1 FROM farms WHERE farm_id = $1 AND tenant_id = $2::uuid",
-                    req.farm_id,
-                    str(user.tenant_id),
-                )
-                if farm_ok is None:
-                    raise HTTPException(
-                        status_code=404,
-                        detail={
-                            "message_ar": "المزرعة غير موجودة أو ليست لك",
-                            "code": "farm_not_found",
-                        },
-                    )
-            # منع تكرار اسم الحقل داخل نفس المزرعة/المستأجر (تطبيع حالة الأحرف).
-            dup = await conn.fetchrow(
-                "SELECT field_id FROM fields WHERE tenant_id = $1::uuid "
-                "AND farm_id IS NOT DISTINCT FROM $2 AND lower(name) = lower($3) LIMIT 1",
-                str(user.tenant_id),
-                req.farm_id,
-                req.name,
-            )
-            if dup is not None:
-                raise HTTPException(
-                    status_code=409,
-                    detail={
-                        "message_ar": f"يوجد حقل بالاسم نفسه «{req.name}» في هذه المزرعة.",
-                        "code": "duplicate_field_name",
-                        "existing_field_id": dup["field_id"],
-                    },
-                )
-            # منع تداخل الهندسة مع حقول المستأجِر (ST_Intersects على عمود geom المفهرس
-            # GiST — v43) — يكشف أيضاً «النسخ» الهندسيّة ولو اختلف الاسم. يتطلّب PostGIS؛
-            # تدهور رشيق فقط عند غيابه (دالّة/نوع غير معرّف)؛ أيّ خطأ DB آخر ⇒ 503.
-            try:
-                overlaps = await conn.fetch(
-                    """
-                    SELECT field_id, name,
-                           ST_Area(ST_Intersection(
-                               ST_GeomFromGeoJSON($1), geom
-                           )::geography) AS overlap_m2
-                    FROM fields
-                    WHERE tenant_id = $2::uuid AND geom IS NOT NULL
-                      AND ST_Intersects(ST_GeomFromGeoJSON($1), geom)
-                    ORDER BY overlap_m2 DESC NULLS LAST
-                    LIMIT 5
-                    """,
-                    geom_json,
-                    str(user.tenant_id),
-                )
-            except (asyncpg.UndefinedFunctionError, asyncpg.UndefinedObjectError) as ovl_err:
-                # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
-                logger.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
-                overlaps = []
-            significant = _significant_overlaps(overlaps, _MIN_FIELD_OVERLAP_M2)
-            if significant:
-                top = significant[0]
-                raise HTTPException(
-                    status_code=409,
-                    detail={
-                        "message_ar": (
-                            f"حدود الحقل تتداخل مع «{top['name']}» "
-                            f"(~{top['overlap_m2']:.0f} م²). صحّح الحدود."
-                        ),
-                        "code": "field_geometry_overlap",
-                        "overlaps": [
-                            {
-                                "field_id": o["field_id"],
-                                "name": o["name"],
-                                "overlap_m2": round(o["overlap_m2"] or 0.0, 1),
-                            }
-                            for o in significant
-                        ],
-                    },
-                )
-            await conn.execute(
-                """INSERT INTO fields
-                    (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
-                     area_ha, lat, lon, gov, geometry,
-                     field_code, description, water_source, ownership_type,
-                     country, region)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
-                     $13, $14, $15, $16, $17, $18)""",
-                field_id,
-                str(user.tenant_id),
-                req.farm_id,
-                req.name,
-                req.crop,
-                req.soil_type,
-                req.manager,
-                area_ha,
-                lat,
-                lon,
-                req.gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
-                _json.dumps(req.geometry),
-                req.field_code,
-                req.description,
-                req.water_source,
-                req.ownership_type,
-                country,
-                region,
-            )
-            # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
-            await _emit_domain_event(
-                conn,
-                user,
-                "FIELD_CREATED",
-                "field",
-                field_id,
-                {
-                    "name": req.name,
-                    "crop": req.crop,
-                    "area_ha": area_ha,
-                    "farm_id": req.farm_id,
-                    "soil_type": req.soil_type,
-                },
-            )
-            # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب
-            # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
-            # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
-            from api.field_state_projection import recompute_field_state
-
-            _fs = await recompute_field_state(conn, field_id)
-            if _fs["changed"]:
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "FIELD_STATE_CHANGED",
-                    "field",
-                    field_id,
-                    {
-                        "validity": _fs["state"]["validity"],
-                        "execution_mode": _fs["state"]["execution_mode"],
-                        "trigger": "field.created",
-                    },
-                )
-    except HTTPException:
-        raise  # get_pool() يرفع 503 أصلاً
-    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
-        raise _db_unavailable("حفظ الحقل", e) from e
-    return FieldSummary(
-        field_id=field_id,
-        farm_id=req.farm_id or "",
-        name_ar=req.name,
-        crop=req.crop or "—",
-        area_ha=area_ha,
-        quality_grade="PENDING_LAB",
-        health_summary_ar="حقل جديد — بانتظار قياسات",
-        soil_type=req.soil_type,
-        manager=req.manager,
-        field_code=req.field_code,
-        description=req.description,
-        water_source=req.water_source,
-        ownership_type=req.ownership_type,
-        country=country,
-        region=region,
-        lat=lat,
-        lon=lon,
-        geometry=req.geometry,
-    )
-
-
-class FieldImportRequest(BaseModel):
-    """طلب استيراد حدّ حقل من ملفّ (GeoJSON/KML) أو نقاط GPS بدل الرسم اليدويّ.
-
-    format يحدّد المصدر: 'geojson'/'kml' يستخدمان content (نصّ الملفّ)؛ 'gps'
-    يستخدم points ([[lon,lat],...] مسار المشي). بقيّة الحقول كـFieldCreateRequest
-    (تُمرَّر لنفس مسار الحفظ المشترك).
-    """
-
-    format: Literal["geojson", "kml", "gps"]
-    content: str | None = None
-    points: list[list[float]] | None = None
-    name: str = Field(min_length=1, max_length=100)
-    crop: str | None = None
-    soil_type: str | None = None
-    manager: str | None = Field(default=None, max_length=100)
-    farm_id: str | None = None
-    gov: str | None = None
-    field_code: str | None = Field(default=None, max_length=50)
-    description: str | None = None
-    water_source: str | None = Field(default=None, max_length=20)
-    ownership_type: str | None = Field(default=None, max_length=20)
-    country: str | None = Field(default=None, max_length=60)
-    region: str | None = Field(default=None, max_length=80)
-
-
-def _row_to_field_detail(r) -> FieldDetail:
-    """صفّ DB (مع الأعمدة المتقدّمة) → FieldDetail. يعيد استخدام تطبيع الملخّص ثمّ
-    يضيف الأعمدة المتقدّمة (v37). NUMERIC من asyncpg يأتي Decimal ⇒ float للـJSON."""
-    base = _row_to_field_summary(r)
-
-    def _f(key):
-        try:
-            v = r[key]
-        except (KeyError, IndexError):
-            return None
-        return float(v) if v is not None else None
-
-    def _s(key):
-        try:
-            return r[key]
-        except (KeyError, IndexError):
-            return None
-
-    def _i(key):
-        try:
-            v = r[key]
-        except (KeyError, IndexError):
-            return None
-        return int(v) if v is not None else None
-
-    return FieldDetail(
-        **base.model_dump(),
-        soil_ph=_f("soil_ph"),
-        soil_ec=_f("soil_ec"),
-        soil_om=_f("soil_om"),
-        soil_n=_f("soil_n"),
-        soil_p=_f("soil_p"),
-        soil_k=_f("soil_k"),
-        elevation_m=_f("elevation_m"),
-        slope_pct=_f("slope_pct"),
-        aspect=_s("aspect"),
-        climate_zone=_s("climate_zone"),
-        zone_key=_s("zone_key"),
-        annual_rainfall_mm=_f("annual_rainfall_mm"),
-        owner_name=_s("owner_name"),
-        lease_years=_i("lease_years"),
-        registry_no=_s("registry_no"),
-        irrigation_type=_s("irrigation_type"),
-        irrigation_efficiency_pct=_f("irrigation_efficiency_pct"),
-        flow_rate_m3h=_f("flow_rate_m3h"),
-        pump_type=_s("pump_type"),
-        well_depth_m=_f("well_depth_m"),
-        water_ec=_f("water_ec"),
-        manager_user_id=_i("manager_user_id"),
-        row_version=_i("row_version"),
-    )
-
-
-# أعمدة SELECT لقراءة الحقل التفصيليّة: أساس الملخّص + الأعمدة المتقدّمة (v37).
-_FIELD_DETAIL_SELECT = (
-    "field_id, farm_id, name, area_ha, crop, soil_type, manager, "
-    "field_code, description, water_source, ownership_type, country, region, "
-    "lat, lon, geometry, row_version, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
-)
+# نماذج FieldCreateRequest/FieldImportRequest ومُطبِّع _row_to_field_detail وأعمدة
+# _FIELD_DETAIL_SELECT نُقِلت إلى api/field_models.py (تفكيك B1) ويستوردها
+# routers/fields. معالِج الحفظ _persist_field (I/O على القاعدة) انتقل إلى
+# routers/fields أيضاً (مستهلِكه الوحيد).
 
 
 # ─── حدود الحقل: provenance + مراجعة + تنظيف (HIL) — #15 ──────────────────
@@ -2674,8 +2181,6 @@ class TrueUpRequest(BaseModel):
 # جلسة التصحيح الذاتي: توصيل وحدة ثانية. geospatial_integrity.py مُختبَر
 # (test_geospatial.py: 29/29). هذا الـendpoint يستخدمه للتحقّق من حدود الحقل
 # قبل الحفظ — يمنع CRS mismatch + self-intersection + إحداثيّات خارج اليمن.
-
-from api.geospatial_integrity import validate_field_geometry  # noqa: E402
 
 
 class GeometryValidateRequest(BaseModel):

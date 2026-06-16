@@ -22,8 +22,8 @@ from fastapi.responses import JSONResponse
 # ApiRequest/handle_recommendation_request تُستورَدان مباشرةً من core.api_adapter —
 # نفس الرمزين اللذين كان main يستوردهما (نُقل استيرادهما هنا لإزالة F401 من main
 # بعد نقل دالّتي التوصية).
+from api.field_models import FieldRecommendationRequest
 from api.main import (
-    FieldRecommendationRequest,
     OutcomeRecordRequest,
     Permission,
     RecommendationRequest,

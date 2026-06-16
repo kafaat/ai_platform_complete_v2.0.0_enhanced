@@ -7,18 +7,20 @@ geometry من JSONB نصّاً)، وتحقّق الهندسة الذي يعتم�
 
 import json
 
-from api.geospatial_integrity import validate_field_geometry
-from api.main import (
+from api.field_models import (
     _FIELD_ADVANCED_COLUMNS,
     _MIN_FIELD_OVERLAP_M2,
     FieldCreateRequest,
     FieldUpdateRequest,
     _build_field_update,
+    _row_to_field_summary,
+    _significant_overlaps,
+)
+from api.geospatial_integrity import validate_field_geometry
+from api.main import (
     _build_versioned_update,
     _centroid_from_bbox,
     _clamp_list_window,
-    _row_to_field_summary,
-    _significant_overlaps,
 )
 from api.season_models import SeasonCreateRequest, SeasonUpdateRequest, _row_to_season
 
