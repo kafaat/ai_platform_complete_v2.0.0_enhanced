@@ -2912,6 +2912,7 @@ from api.routers.confidence import router as confidence_router  # noqa: E402
 from api.routers.confidence_gate import router as confidence_gate_router  # noqa: E402
 from api.routers.consistency import router as consistency_router  # noqa: E402
 from api.routers.crop_cards import router as crop_cards_router  # noqa: E402
+from api.routers.crop_operations import router as crop_operations_router  # noqa: E402
 from api.routers.crop_suitability import router as crop_suitability_router  # noqa: E402
 from api.routers.crops import router as crops_router  # noqa: E402
 from api.routers.cultural_calendar import router as cultural_calendar_router  # noqa: E402
@@ -2919,6 +2920,7 @@ from api.routers.data_readiness import router as data_readiness_router  # noqa: 
 from api.routers.decision import router as decision_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.diagnose import router as diagnose_router  # noqa: E402
+from api.routers.districts import router as districts_router  # noqa: E402
 from api.routers.documents import router as documents_router  # noqa: E402
 from api.routers.economics import router as economics_router  # noqa: E402
 from api.routers.edge import router as edge_router  # noqa: E402
@@ -3101,3 +3103,5 @@ app.include_router(field_intelligence_router)
 app.include_router(pest_escalation_router)
 app.include_router(crop_cards_router)
 app.include_router(phenology_router)
+app.include_router(districts_router)
+app.include_router(crop_operations_router)

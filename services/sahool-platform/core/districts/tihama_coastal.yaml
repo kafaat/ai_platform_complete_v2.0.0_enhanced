@@ -1,0 +1,37 @@
+# SAHOOL districts — Tihama Coastal (تهامة الساحليّة — الحديدة)
+# REGION-SPECIFIC pest-risk windows. These are agronomic KNOWLEDGE-PRIORS
+# (قرائن معرفيّة) to be REFINED with local scouting / extension data — NOT a
+# precise local outbreak calendar. Each window cites an honest source.
+# سهل ساحلي حارّ رطب؛ نوافذ عامّة تُصقَل بالمسح والإرشاد.
+district_id: tihama_coastal
+name_ar: تهامة الساحليّة (الحديدة)
+agro_ecological_zone_ar: سهل ساحلي حارّ رطب (~0–300 م)
+altitude_range_m: [0, 300]
+
+pest_windows:
+  # دودة الحشد الخريفيّة: ضغط شبه دائم في الحرارة الساحليّة على الذرة الرفيعة/الشاميّة.
+  - pest: fall_armyworm
+    pest_ar: دودة الحشد الخريفيّة (Spodoptera frugiperda)
+    crops: [sorghum, maize, millet]
+    risk_months: [3, 4, 5, 6, 7, 8, 9, 10]
+    severity: high
+    scouting_cue_ar: "تآكل البراعم القلبيّة (whorl) ونشارة برازيّة؛ ضغط ممتدّ في الحرّ الساحلي"
+    source: "FAO Fall Armyworm IPM — ضغط مرتفع للآفة في السهول الساحليّة الحارّة (قرينة معرفيّة)"
+
+  # الذبابة البيضاء: ناقل/آفة دافئة على الخضر والقطن في الأجواء الحارّة.
+  - pest: whitefly
+    pest_ar: الذبابة البيضاء (Bemisia tabaci)
+    crops: [vegetables, cotton]
+    risk_months: [4, 5, 6, 7, 8, 9, 10]
+    severity: high
+    scouting_cue_ar: "سحابة حشرات بيضاء صغيرة تتطاير عند هزّ النبات + ندوة عسليّة وعفن أسود"
+    source: "FAO/ICARDA IPM general guidance — الذبابة البيضاء آفة دافئة المناخ على الخضر/القطن (قرينة معرفيّة)"
+
+  # العنكبوت الأحمر: يشتدّ في الحرّ الجافّ، يضرب الخضر والباذنجانيّات.
+  - pest: spider_mites
+    pest_ar: العنكبوت الأحمر (Tetranychus spp.)
+    crops: [vegetables]
+    risk_months: [5, 6, 7, 8, 9]
+    severity: medium
+    scouting_cue_ar: "اصفرار/تنقّط دقيق على الأوراق ونسيج عنكبوتي على السطح السفلي في الجوّ الحارّ"
+    source: "قرينة زراعيّة عامّة: العنكبوت الأحمر يشتدّ في الحرارة الجافّة (FAO/ICARDA IPM)"
