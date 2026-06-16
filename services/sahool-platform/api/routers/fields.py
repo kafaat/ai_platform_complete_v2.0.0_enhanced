@@ -33,8 +33,6 @@ from api.main import (
     _ACTIVITY_TYPES,
     _DB_POOL,
     _FIELD_DETAIL_SELECT,
-    _IRRIGATION_TYPES,
-    _SEASON_SELECT_COLS,
     _SOIL_TEST_SELECT,
     ActivityCreateRequest,
     ActivitySummary,
@@ -51,9 +49,6 @@ from api.main import (
     Permission,
     PinCreateRequest,
     RotationRequest,
-    SeasonCreateRequest,
-    SeasonSummary,
-    SeasonUpdateRequest,
     SoilLabTestCreateRequest,
     SoilLabTestSummary,
     SoilLabTestUpdateRequest,
@@ -85,7 +80,6 @@ from api.main import (
     _row_to_activity,
     _row_to_field_detail,
     _row_to_field_summary,
-    _row_to_season,
     _row_to_soil_test,
     _rx_generator,
     _trueup_engine,
@@ -97,6 +91,16 @@ from api.main import (
 )
 from api.prescriptions import ZoneCharacteristics, ZoneClass, prescription_to_dict
 from api.scouting_pins import make_pin
+
+# نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
+from api.season_models import (
+    _IRRIGATION_TYPES,
+    _SEASON_SELECT_COLS,
+    SeasonCreateRequest,
+    SeasonSummary,
+    SeasonUpdateRequest,
+    _row_to_season,
+)
 from api.trueup import TrueUpInput, TrueUpStatus
 from api.walk_plan_pdf import walk_plan_to_pdf_bytes
 from api.yield_heuristics import LifecycleFeatures, detect_anomalies, estimate_yield

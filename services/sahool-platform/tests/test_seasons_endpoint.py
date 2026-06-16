@@ -7,7 +7,7 @@
 import datetime as _dt
 import json
 
-from api.main import (
+from api.season_models import (
     _IRRIGATION_TYPES,
     SeasonCreateRequest,
     StageItem,
