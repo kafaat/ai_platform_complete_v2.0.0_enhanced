@@ -220,6 +220,11 @@ jobs:
       # معروفة في المسار الحرج (المصادقة/الصلاحيات/وقت التشغيل). كانت safety
       # تُثبَّت ولا تُشغَّل أبداً ⇒ لا فحص تبعيّات مفروض (الفجوة المعياريّة #٧).
       # هذه الملفّات مُتحقَّقة نظافتها؛ فشلها لاحقاً = تبعيّة جديدة ضعيفة دخلت.
+      # توسعة C1: البوّابة كانت تفحص ٤ مسارات فقط فتفلت خدمات كاملة. وُسِّعت لتشمل
+      # كلّ ملفّات requirements الحقيقيّة المُتحقَّق خلوّها من ثغرات معروفة (فُحصت
+      # فعليّاً بـpip-audit، كلّها نظيفة). يُستثنى services/local-ai-rag/requirements.txt
+      # عمداً: يحمل ثغرة out-of-range (PYSEC-2026-77 في langchain-text-splitters،
+      # وقيود langchain 0.3.x/pypdf) — يبقى تحت المسح الإرشاديّ أدناه لا البوّابة.
       - name: pip-audit (gating — critical path)
         run: >-
           pip-audit
@@ -227,6 +232,20 @@ jobs:
           -r services/auth/requirements.txt
           -r services/guardrails-engine/requirements.txt
           -r requirements_real.txt
+          -r services/actuator-service/requirements.txt
+          -r services/agriai-engine/requirements.txt
+          -r services/edge-inference/requirements.txt
+          -r services/indicators-service/requirements.txt
+          -r services/mcp_servers/requirements.txt
+          -r services/odoo-bridge/requirements.txt
+          -r services/qdrant-seed/requirements.txt
+          -r services/raster-service/requirements.txt
+          -r services/soil-service/requirements.txt
+          -r services/supervisor-agent/requirements.txt
+          -r services/tts-service/requirements.txt
+          -r services/vegetation-analysis-service/requirements.txt
+          -r services/video-processor/requirements.txt
+          -r services/weather-service/requirements.txt
           --progress-spinner off
       # مسح إرشادي شامل: يكشف ثغرات بقيّة الخدمات (مثلاً RAG: pypdf/langchain —
       # إصلاحها خارج سقوف توافق langchain، يحتاج ترقية متعمّدة) دون حجب الدمج.
