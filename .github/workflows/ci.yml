@@ -119,11 +119,12 @@ jobs:
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt
       - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
-      # بوّابة تغطية واقعيّة: اختبارات الوحدة (pure-logic) تغطّي ~4% فقط لأنّ معظم
-      # الكود يتطلّب خدمات/تكامل؛ العتبة هنا أرضيّة لكشف الانهيار الكامل لا هدف جودة.
-      # تُرفع تدريجيّاً مع ربط تغطية اختبارات التكامل.
+      # بوّابة تغطية حقيقيّة (A1): في بيئة الوحدة الدنيا (بلا fastapi/خدمات) تبلغ
+      # تغطية اختبارات الوحدة لـservices ~24% فعليّاً (قياس من سجلّ CI نفسه؛ القياس
+      # المحلّيّ بتبعيّات كاملة يُظهر ~40% لكنّ البوّابة هنا تعمل بالبيئة الدنيا).
+      # الأرضيّة 20% (هامش دون 24%) — راتشِت حقيقيّ يمنع الانحدار بدل 3% الشكليّة.
       - name: Coverage gate (fail-under)
-        run: pytest -m unit --cov=services --cov-fail-under=3 -q || (echo "التغطية انهارت دون الأرضيّة" && exit 1)
+        run: pytest -m unit --cov=services --cov-fail-under=20 -q || (echo "التغطية انهارت دون الأرضيّة 20%" && exit 1)
       - uses: codecov/codecov-action@v4
         with: {files: coverage.xml}
 
