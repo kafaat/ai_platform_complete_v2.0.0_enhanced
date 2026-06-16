@@ -16,9 +16,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from api.farm_economics import break_even_price, cost_categories, feasibility
-from api.main import (
-    FeasibilityRequest,
-)
+from api.feasibility_models import FeasibilityRequest
 
 router = APIRouter()
 

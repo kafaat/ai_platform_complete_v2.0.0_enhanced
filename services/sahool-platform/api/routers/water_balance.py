@@ -18,10 +18,10 @@ from fastapi import APIRouter, Depends
 
 from api.main import (
     UserSchema,
-    WaterBalanceRequest,
     get_current_user,
 )
 from api.water_balance import WeatherInput, water_balance
+from api.water_balance_models import WaterBalanceRequest
 
 router = APIRouter()
 
