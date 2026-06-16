@@ -151,12 +151,21 @@ class CommandStore:
             # asyncpg.execute returns "INSERT 0 N" — N=1 if inserted
             return result.endswith("1")
 
-    async def mark_processing(self, command_id: str) -> None:
+    async def mark_processing(self, command_id: str) -> bool:
+        """التقاط ذرّيّ للأمر: ``pending|failed → processing`` فقط، يُرجِع نجاح الالتقاط.
+
+        UPDATE شرطيّ (WHERE status IN …) يجعل الانتقال ذرّيّاً على مستوى القاعدة:
+        عاملان متزامنان على نفس الأمر ⇒ صفّ واحد فقط يُحدَّث ⇒ ``True`` لواحد و
+        ``False`` للآخر، فيُنفِّذ الفائز وحده (exactly-once). يحلّ التنفيذ المزدوج
+        الذي كان ممكناً مع UPDATE بلا حارس حالة (راجع v65)."""
         async with self._acquire() as conn:
-            await conn.execute(
-                "UPDATE commands SET status = 'processing' WHERE command_id = $1",
+            result = await conn.execute(
+                "UPDATE commands SET status = 'processing' "
+                "WHERE command_id = $1 AND status IN ('pending', 'failed')",
                 uuid.UUID(command_id),
             )
+            # asyncpg.execute ⇒ "UPDATE N" — N=1 إن نجح الالتقاط، 0 إن سبقنا غيرُنا.
+            return result.endswith("1")
 
     async def mark_succeeded(self, command_id: str, result: dict[str, Any]) -> None:
         async with self._acquire() as conn:
@@ -218,6 +227,10 @@ class CommandDispatcher:
         result = await dispatcher.dispatch(cmd)
     """
 
+    # سقف إعادة المحاولة قبل الـdead-letter: أمرٌ يفشل حتميّاً (مثلاً معالِج مفقود)
+    # كان يُعاد بلا نهاية مع كلّ طلب ⇒ استنزاف. بعد MAX_RETRIES يُرجَع فشلاً نهائيّاً.
+    MAX_RETRIES = 5
+
     def __init__(self, store: CommandStore):
         self.store = store
         self._handlers: dict[str, HandlerFn] = {}
@@ -228,11 +241,11 @@ class CommandDispatcher:
         self._handlers[command_type] = handler
 
     async def dispatch(self, cmd: Command) -> DispatchResult:
-        # ١. Idempotency gate
+        # ١. بوّابة Idempotency / dead-letter على الحالة القائمة.
         existing = await self.store.get(cmd.command_id)
         if existing:
             if existing.status == CommandStatus.SUCCEEDED:
-                # Duplicate — أرجع الـcached result
+                # تكرار — أرجِع النتيجة المخزّنة بلا إعادة تنفيذ.
                 return DispatchResult(
                     command_id=cmd.command_id,
                     status=CommandStatus.SUCCEEDED,
@@ -240,26 +253,59 @@ class CommandDispatcher:
                     was_duplicate=True,
                 )
             if existing.status == CommandStatus.PROCESSING:
-                # في الـmiddle of processing — أرجع pending
+                # قيد التنفيذ (عامل آخر) — لا نعيد (exactly-once).
                 return DispatchResult(
                     command_id=cmd.command_id,
                     status=CommandStatus.PROCESSING,
                     was_duplicate=True,
                 )
             if existing.status == CommandStatus.FAILED:
-                # Retry attempt — مسموح، نعيد التنفيذ
+                # dead-letter: تجاوز سقف الإعادة ⇒ فشل نهائيّ لا إعادة لا نهائيّة.
+                if existing.retry_count >= self.MAX_RETRIES:
+                    err = f"max_retries_exceeded ({existing.retry_count}/{self.MAX_RETRIES})"
+                    logger.warning("command %s ⇒ dead-letter: %s", cmd.command_id, err)
+                    return DispatchResult(
+                        command_id=cmd.command_id,
+                        status=CommandStatus.FAILED,
+                        error=err,
+                    )
                 logger.info(
-                    f"Retrying failed command {cmd.command_id} (attempt {existing.retry_count + 1})"
+                    "Retrying failed command %s (attempt %d)",
+                    cmd.command_id,
+                    existing.retry_count + 1,
                 )
-            # else PENDING → fall through to insert (race condition fix below)
+            # FAILED-قابل-للإعادة أو PENDING ⇒ موجود سلفاً، لا insert — نلتقطه ذرّيّاً أدناه.
+        else:
+            # أمر جديد ⇒ insert ذرّيّ (ON CONFLICT DO NOTHING). خسارة سباق الإدراج ⇒
+            # الصفّ موجود الآن، فيلتقطه الحارس الذرّيّ أدناه (لا recursion ولا حلقة).
+            await self.store.insert(cmd)
 
-        # ٢. Insert (idempotent — ON CONFLICT DO NOTHING)
-        was_new = await self.store.insert(cmd)
-        if not was_new:
-            # Race condition: تمّ insert من thread آخر — أعد المحاولة
-            return await self.dispatch(cmd)
+        # ٢. الالتقاط الذرّيّ: pending|failed → processing. الفائز وحده ينفّذ.
+        claimed = await self.store.mark_processing(cmd.command_id)
+        if not claimed:
+            # سبقنا عاملٌ آخر (التقطه أو أكمله) ⇒ لا تنفيذ مزدوج. أعِد الحالة الراهنة.
+            cur = await self.store.get(cmd.command_id)
+            if cur and cur.status == CommandStatus.SUCCEEDED:
+                return DispatchResult(
+                    command_id=cmd.command_id,
+                    status=CommandStatus.SUCCEEDED,
+                    result=cur.result,
+                    was_duplicate=True,
+                )
+            return DispatchResult(
+                command_id=cmd.command_id,
+                status=CommandStatus.PROCESSING,
+                was_duplicate=True,
+            )
 
-        # ٣. Resolve handler
+        # ٣. التنفيذ بعد الالتقاط (مفصول كي لا يتكرّر مسار الالتقاط).
+        return await self._execute(cmd)
+
+    async def _execute(self, cmd: Command) -> DispatchResult:
+        """ينفّذ معالِج الأمر بعد الالتقاط الذرّيّ (الأمر في حالة processing).
+
+        فُصِل عن dispatch كي لا يمرّ التنفيذ ثانيةً بمسار الالتقاط/الإدراج — وهو ما
+        كان يسبّب الحلقة اللانهائيّة في إعادة الأمر الفاشل (return dispatch المتكرّر)."""
         handler = self._handlers.get(cmd.command_type)
         if not handler:
             err = f"no handler for command type: {cmd.command_type}"
@@ -269,9 +315,6 @@ class CommandDispatcher:
                 status=CommandStatus.FAILED,
                 error=err,
             )
-
-        # ٤. Execute
-        await self.store.mark_processing(cmd.command_id)
         try:
             result = await handler(cmd)
             await self.store.mark_succeeded(cmd.command_id, result)
