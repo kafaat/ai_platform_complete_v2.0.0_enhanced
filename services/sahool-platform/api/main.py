@@ -471,8 +471,14 @@ app.add_middleware(
     allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Correlation-Id", "X-Causation-Id"],
 )
+
+# تتبّع موزّع: معرّف ربط (Correlation-Id) لكلّ طلب — يُضبَط في السياق ويُعاد في
+# الاستجابة (انتشار عبر الخدمات/السجلّات). يستهلك core.correlation القائم.
+from api.correlation_middleware import CorrelationIdMiddleware  # noqa: E402
+
+app.add_middleware(CorrelationIdMiddleware)
 
 
 # ─── حدّ المعدّل (Rate Limiting) ─────────────────────────────────
@@ -767,6 +773,16 @@ def require_permission(permission: Permission):
 
     def _dep(user: UserSchema = Depends(get_current_user)) -> UserSchema:
         if not has_permission(user, permission):
+            # سجلّ تدقيق الرفض الأمنيّ (صلاحية غير كافية) — يُرى عبر /admin/security/denials.
+            from core.tenant_audit import AUDIT
+
+            AUDIT.record(
+                "permission",
+                user_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                action=permission.value,
+                reason_ar=f"الدور '{user.role.value}' لا يملك الصلاحية",
+            )
             raise HTTPException(
                 status_code=403,
                 detail=f"الدور '{user.role.value}' لا يملك صلاحية '{permission.value}'",
@@ -2982,6 +2998,7 @@ from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
 from api.routers.queue import router as queue_router  # noqa: E402
 from api.routers.rbac import router as rbac_router  # noqa: E402
+from api.routers.readiness import router as readiness_router  # noqa: E402
 from api.routers.recommendations import router as recommendations_router  # noqa: E402
 from api.routers.regional_calendar import router as regional_calendar_router  # noqa: E402
 from api.routers.registry import router as registry_router  # noqa: E402
@@ -2994,6 +3011,7 @@ from api.routers.scenario import router as scenario_router  # noqa: E402
 from api.routers.scouting import router as scouting_router  # noqa: E402
 from api.routers.seasonal_risk import router as seasonal_risk_router  # noqa: E402
 from api.routers.seasons import router as seasons_router  # noqa: E402
+from api.routers.security_audit import router as security_audit_router  # noqa: E402
 from api.routers.seed import router as seed_router  # noqa: E402
 from api.routers.settings import router as settings_router  # noqa: E402
 from api.routers.sharing import router as sharing_router  # noqa: E402
@@ -3119,3 +3137,5 @@ app.include_router(phenology_router)
 app.include_router(districts_router)
 app.include_router(crop_operations_router)
 app.include_router(ndvi_analysis_router)
+app.include_router(readiness_router)
+app.include_router(security_audit_router)
