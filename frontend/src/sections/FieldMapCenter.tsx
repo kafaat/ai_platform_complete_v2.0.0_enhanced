@@ -19,6 +19,7 @@ import type { ReactNode } from 'react';
 import { Layers, Satellite, Droplets, FlaskConical, Cpu, Columns2, Square } from 'lucide-react';
 import { useDevices } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useFieldContextStore } from '../hooks/useFieldContext';
 import { geomToPolygon } from '../lib/geo';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import {
@@ -111,17 +112,23 @@ export default function FieldMapCenter() {
 
   const fields = fieldsQ.options;
 
-  const [fieldId, setFieldId] = useState('');
+  // «الحقل النشط» المشترك (متجر useFieldContext) — يتبع المستخدم عبر الشاشات.
+  // نقرأ الاختيار مباشرةً (لا useSelectedField) كي نُبقي الافتراض الخاصّ بالخريطة:
+  // أوّل حقل ذي هندسة (فتُظهر مضلّعاً لا مستطيل حدود) بدل أوّل حقل مطلقاً.
+  const selectedFieldId = useFieldContextStore((s) => s.selectedFieldId);
+  const setFieldId = useFieldContextStore((s) => s.setSelectedField);
+  const fieldId = selectedFieldId && fields.some((f) => f.id === selectedFieldId) ? selectedFieldId : '';
   const [compare, setCompare] = useState(false);
   const [leftLayer, setLeftLayer] = useState<LayerId>('ndvi');
   const [rightLayer, setRightLayer] = useState<LayerId>('ndmi');
 
-  // أوّل حقل افتراضيّاً (يفضّل ذا الهندسة) متى وصلت البيانات.
+  // لا اختيار صالح بعد (أوّل تحميل/حُذف المُختار) ⇒ ثبّت أوّل حقل ذي هندسة (يفضَّل)
+  // في المتجر المشترك، فيراه باقي الشاشات.
   useEffect(() => {
     if (fieldId || !fields.length) return;
     const withGeom = fields.find((f) => geomToPolygon(f.geometry)) ?? fields[0];
     setFieldId(withGeom.id);
-  }, [fields, fieldId]);
+  }, [fields, fieldId, setFieldId]);
 
   const field = fields.find((f) => f.id === fieldId) ?? fields[0];
   const polygon = field ? geomToPolygon(field.geometry) : undefined;

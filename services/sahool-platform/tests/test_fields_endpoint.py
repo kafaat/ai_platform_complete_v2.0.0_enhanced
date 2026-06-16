@@ -14,6 +14,7 @@ from api.main import (
     FieldCreateRequest,
     FieldUpdateRequest,
     SeasonCreateRequest,
+    SeasonUpdateRequest,
     _build_field_update,
     _build_versioned_update,
     _centroid_from_bbox,
@@ -223,6 +224,63 @@ def test_row_to_season_maps_kpis():
     assert s.plant_density == 250.0
     assert s.row_spacing_cm == 20.0
     assert s.seed_variety_source == "ICARDA"
+
+
+# ─── تزامن تفاؤليّ للموسم (v64) — يكمّل v61 (fields) ──────────────────────
+
+
+def test_season_update_request_accepts_base_version():
+    """base_version اختياريّ (ge=1) ولا يُحسب حقلاً يُحدَّث (لا يدخل model_fields_set كعمود)."""
+    req = SeasonUpdateRequest(cultivar="Saba", base_version=5)
+    assert req.base_version == 5
+    # base_version عمّاد تزامن لا عمود seasons ⇒ يجب ألّا يُعدّ ضمن أعمدة DB القابلة
+    # للتحديث (update_season يبني updates من مفاتيح بعينها، base_version ليس منها).
+    db_cols = {
+        "crops",
+        "cultivar",
+        "irrigation_type",
+        "seed_rate_kg_ha",
+        "sowing_date",
+        "season_end",
+        "target_yield_kg_ha",
+        "plant_density",
+        "row_spacing_cm",
+        "seed_variety_source",
+        "maturity",
+        "tillage_type",
+        "actual_yield_kg_ha",
+        "notes_ar",
+    }
+    assert "base_version" not in db_cols
+
+
+def test_season_update_request_base_version_defaults_none():
+    """غياب base_version ⇒ None (سلوك رجعيّ: لا فحص تعارض)."""
+    assert SeasonUpdateRequest(cultivar="Saba").base_version is None
+
+
+def test_row_to_season_maps_row_version():
+    """_row_to_season يمرّر row_version (الإصدار الحاليّ يعود للعميل لمزامنته التالية)."""
+    row = {
+        "season_id": "ssn_1",
+        "field_id": "fld_1",
+        "crops": json.dumps(["wheat"]),
+        "cultivar": "Saba",
+        "irrigation_type": "drip",
+        "seed_rate_kg_ha": None,
+        "land_leveling_date": None,
+        "plowing_date": None,
+        "sowing_date": None,
+        "season_end": None,
+        "stages": json.dumps([]),
+        "status": "active",
+        "created_at": None,
+        "row_version": 7,
+    }
+    assert _row_to_season(row).row_version == 7
+    # غياب العمود (مثلاً SELECT قديم) ⇒ None بأمان (محروس بالمفاتيح).
+    row.pop("row_version")
+    assert _row_to_season(row).row_version is None
 
 
 # ─── عقد أحداث domain (مسارات الكتابة تُصدر هذه الأنواع — يجب أن توجد) ─────
