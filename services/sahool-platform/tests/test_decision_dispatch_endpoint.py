@@ -90,3 +90,49 @@ async def test_execute_flag_off_returns_404(monkeypatch):
     with pytest.raises(HTTPException) as e:
         await execute_dispatch_endpoint(req=req, user=_USER)
     assert e.value.status_code == 404
+
+
+def test_shape_dispatch_row_decodes_jsonb_and_time():
+    from datetime import UTC, datetime
+
+    from api.routers.decision_dispatch import _shape_dispatch_row
+
+    row = {
+        "decision_id": "disp_1",
+        "recommendation_id": "rec-9",
+        "action_type": "irrigation",
+        "field_id": "fld_1",
+        "state": "ready",
+        "risk_level": "LOW",
+        "required_approvals": 0,
+        "approvals_collected": 0,
+        "halt_breaches": "[]",  # JSONB كنصّ خام من asyncpg
+        "warn_breaches": '["salinity_high"]',
+        "reason_ar": "محروس",
+        "command": '{"device_id": "d1", "command": "open_valve"}',
+        "exec_status": "queued",
+        "created_by": "u1",
+        "created_at": datetime(2026, 6, 16, 12, 0, tzinfo=UTC),
+    }
+    out = _shape_dispatch_row(row)
+    assert out["warn_breaches"] == ["salinity_high"]
+    assert out["halt_breaches"] == []
+    assert out["command"]["command"] == "open_valve"
+    assert out["created_at"].startswith("2026-06-16T12:00")
+    # قيمة list أصلاً (لا نصّ) تمرّ كما هي
+    row2 = dict(row, warn_breaches=["x"], command=None)
+    out2 = _shape_dispatch_row(row2)
+    assert out2["warn_breaches"] == ["x"]
+    assert out2["command"] is None
+
+
+async def test_read_endpoints_flag_off_404(monkeypatch):
+    from api.routers.decision_dispatch import list_dispatch_decisions, list_dispatch_queue
+
+    monkeypatch.delenv("SAHOOL_DECISION_DISPATCH", raising=False)
+    with pytest.raises(HTTPException) as e1:
+        await list_dispatch_decisions(field_id=None, limit=50, user=_USER)
+    assert e1.value.status_code == 404
+    with pytest.raises(HTTPException) as e2:
+        await list_dispatch_queue(limit=50, user=_USER)
+    assert e2.value.status_code == 404
