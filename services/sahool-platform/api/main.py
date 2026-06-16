@@ -1371,57 +1371,10 @@ _FIELD_DETAIL_SELECT = (
 )
 
 
-# ─── حدود الحقل: provenance + مراجعة بشريّة (HIL) — #15 ───────────────────
-# مجموعة حالات المراجعة المسموحة (تطابق قيد CHECK في v58:
-# field_boundaries_review_status_chk). 'unreviewed' هي القيمة الافتراضيّة في
-# القاعدة، فلا نقبلها كانتقال صريح من الواجهة — المراجِع يَنتقل إلى قرار نهائيّ.
-_BOUNDARY_REVIEW_STATES = {"approved", "rejected", "needs_edit"}
-
-
-class BoundaryReviewRequest(BaseModel):
-    """طلب مراجعة بشريّة (HIL) لحدّ الحقل — قرار المراجِع النهائيّ.
-
-    review_status: واحدة من approved|rejected|needs_edit (يُتحقّق منها مقابل
-    _BOUNDARY_REVIEW_STATES فيردّ 422 على ما عداها قبل لمس القاعدة).
-    """
-
-    review_status: str = Field(..., max_length=20)
-
-
-class BoundaryScoreRequest(BaseModel):
-    """طلب تهديف ثقة حدّ الحقل من خصائصه البنيويّة.
-
-    props: خصائص قابلة للحساب عن الحدّ (vertex_count, area_ha, is_valid,
-    ring_count, self_intersections, temporal_agreement?) — تُمرَّر كما هي إلى
-    score_boundary (دالّة نقيّة حتميّة). source_type اختياريّ يُسجَّل provenance.
-
-    props أصبحت اختياريّة (#15): إن لم تُرسَل (None) يَشتقّ الخادم الخصائص
-    البنيويّة من field_boundaries.geom المخزَّنة عبر استعلام PostGIS واحد ثمّ
-    يهدّفها — مع بقاء التوافق الخلفيّ عند إرسالها صراحةً.
-    """
-
-    props: dict | None = Field(default=None)
-    source_type: str | None = Field(default=None, max_length=30)
-
-
-# ─── حدود الحقل: تنظيف طوبولوجيّ (v59) + شبكة الجوار (#15) ────────────────
-
-
-class BoundaryCleanRequest(BaseModel):
-    """طلب تنظيف طوبولوجيّ حتميّ لحدّ الحقل المخزَّن (v59).
-
-    tolerance_m: وحدة تحمّل التبسيط بالمتر (افتراضيّ 5.0) — تُمرَّر إلى
-    sahool_clean_boundary_geom التي تحوّلها داخليّاً إلى درجات (تقريب صالح قرب
-    خطوط عرض اليمن — انظر تعليق الـmigration).
-    """
-
-    tolerance_m: float = Field(default=5.0)
-
-
-# نقاط حدود الحقل الخمس (review/score/clean/boundary-graph) نُقلت إلى
-# api/routers/boundaries.py وتُسجَّل عبر app.include_router في نهاية الوحدة.
-# نماذج الطلب أعلاه تبقى هنا (تُستورَد من الموجِّه) حفاظاً على
-# _rebuild_pydantic_models واستيرادات الاختبارات.
+# ─── حدود الحقل: provenance + مراجعة + تنظيف (HIL) — #15 ──────────────────
+# نقاط حدود الحقل في api/routers/boundaries.py، ونماذجها وثابتها
+# (_BOUNDARY_REVIEW_STATES + Boundary{Review,Score,Clean}Request) نُقِلت إلى
+# api/boundary_models.py (تفكيك B1) ويستوردها الموجِّه منه مباشرةً.
 
 
 # نقطة /api/v1/geo/reverse نُقلت إلى api/routers/geo.py (نمط P0) — والمساعِد
@@ -2478,22 +2431,7 @@ def _parse_date(value: str | None, field: str) -> date | None:
 
 
 # ─── المخزون (Inventory) — الطبقة ١٠ (v22) ───────────────────────
-class InventoryItemRequest(BaseModel):
-    category: str = Field(pattern="^(fertilizer|pesticide|seed|spare_part|other)$")
-    name: str = Field(min_length=1, max_length=120)
-    unit: str = "unit"
-    reorder_level: float | None = Field(default=None, ge=0)
-    notes: str | None = None
-
-
-class InventoryBatchRequest(BaseModel):
-    quantity: float = Field(ge=0)
-    unit: str | None = None
-    batch_code: str | None = None
-    expiry_date: str | None = None  # ISO date
-    received_at: str | None = None
-    supplier: str | None = None
-    notes: str | None = None
+# نماذج المخزون نُقِلت إلى api/inventory_models.py (تفكيك B1) ويستوردها routers/inventory.
 
 
 # ─── المعدّات (Equipment) — الطبقة ١١ (v23) ──────────────────────
@@ -2515,21 +2453,7 @@ class MaintenanceRequest(BaseModel):
 
 
 # ─── أجهزة IoT (سجلّ + صحّة + telemetry) — الطبقة ٤ (v24) ─────────
-class DeviceRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
-    type: str = Field(pattern="^(soil_moisture|weather_station|water_meter|camera|actuator|other)$")
-    field_id: str | None = None
-    firmware_version: str | None = None
-
-
-class TelemetryRequest(BaseModel):
-    sensor_type: str = Field(min_length=1, max_length=40)
-    value: float
-    unit: str | None = None
-    recorded_at: str | None = None  # ISO datetime اختياري (افتراض: الآن)
-
-
-_DEVICE_ONLINE_WINDOW_MIN = 15  # جهاز يُعتبر online إن ظهر خلال هذه المدّة
+# نماذج/ثوابت الأجهزة نُقِلت إلى api/device_models.py (تفكيك B1) ويستوردها routers/devices.
 
 
 # ─── الري التشغيلي (صمامات + جداول) — الطبقة ٣ (v25) ─────────────
@@ -2959,17 +2883,8 @@ def _shape_indicators_dashboard(
 # ─── إدارة المستندات (Document Management — سجلّ بيانات وصفيّة) — (v29) ─
 # ⚠️ سجلّ بيانات وصفيّة فقط: لا يخزّن الملفّ الثنائيّ (blob). تخزين الكائنات
 #    الفعليّ (PDF/صورة/...) يحتاج S3/MinIO — نحفظ هنا storage_ref فقط.
-class DocumentRequest(BaseModel):
-    category: str = Field(pattern="^(contract|report|image|map|lab_result|other)$")
-    title: str = Field(min_length=1, max_length=200)
-    storage_ref: str | None = None
-    content_type: str | None = Field(default=None, max_length=80)
-    size_bytes: int | None = Field(default=None, ge=0)
-    field_id: str | None = Field(default=None, max_length=50)  # يطابق fields.field_id VARCHAR(50)
-
-
-# نقاط /api/v1/documents نُقلت إلى api/routers/documents.py (نمط P0).
-# النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
+# نقاط /api/v1/documents في api/routers/documents.py، ونموذج DocumentRequest نُقِل
+# إلى api/document_models.py (تفكيك B1) ويستورده الموجِّه منه مباشرةً.
 
 
 # ═══════════════════════════════════════════════════════════════════
