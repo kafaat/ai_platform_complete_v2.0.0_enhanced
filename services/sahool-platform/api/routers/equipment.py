@@ -19,10 +19,14 @@ from api.equipment_models import (
     MaintenanceRequest,
 )
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
     _emit_domain_event,
+    _idem_key,
+    _idempotent,
     _parse_date,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -33,6 +37,7 @@ router = APIRouter()
 @router.post("/api/v1/equipment", status_code=201)
 async def create_equipment(
     req: EquipmentRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
 ):
     import uuid as _uuid
@@ -40,27 +45,48 @@ async def create_equipment(
     equipment_id = "eqp_" + _uuid.uuid4().hex[:12]
     purchase = _parse_date(req.purchase_date, "purchase_date")
     async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO equipment
-                (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            equipment_id,
-            str(user.tenant_id),
-            req.name,
-            req.type,
-            req.operating_hours,
-            purchase,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "EQUIPMENT_CREATED",
-            "equipment",
-            equipment_id,
-            {"name": req.name, "type": req.type},
-        )
-    return {"equipment_id": equipment_id, "name": req.name, "message_ar": "سُجّلت المعدّة"}
+
+        async def _work():
+            await conn.execute(
+                """INSERT INTO equipment
+                    (equipment_id, tenant_id, name, type, operating_hours, purchase_date, notes)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
+                equipment_id,
+                str(user.tenant_id),
+                req.name,
+                req.type,
+                req.operating_hours,
+                purchase,
+                req.notes,
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "EQUIPMENT_CREATED",
+                "equipment",
+                equipment_id,
+                {"name": req.name, "type": req.type},
+            )
+            return {
+                "equipment_id": equipment_id,
+                "name": req.name,
+                "message_ar": "سُجّلت المعدّة",
+            }
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="equipment.create",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"equipment_id": equipment_id},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/equipment")
@@ -87,6 +113,7 @@ async def list_equipment(user: UserSchema = Depends(require_permission(Permissio
 async def log_maintenance(
     equipment_id: str,
     req: MaintenanceRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.EQUIPMENT_MANAGE)),
 ):
     import uuid as _uuid
@@ -95,40 +122,57 @@ async def log_maintenance(
     sched = _parse_date(req.scheduled_date, "scheduled_date")
     performed = _parse_date(req.performed_date, "performed_date")
     async with tenant_connection(user) as conn:
-        exists = await conn.fetchval(
-            "SELECT 1 FROM equipment WHERE equipment_id = $1", equipment_id
-        )
-        if not exists:
-            raise HTTPException(status_code=404, detail="المعدّة غير موجودة")
-        await conn.execute(
-            """INSERT INTO equipment_maintenance
-                (maintenance_id, tenant_id, equipment_id, kind, status,
-                 scheduled_date, performed_date, cost_usd, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
-            maintenance_id,
-            str(user.tenant_id),
-            equipment_id,
-            req.kind,
-            req.status,
-            sched,
-            performed,
-            req.cost_usd,
-            req.notes,
-        )
-        # عطل قيد التنفيذ ⇒ حدّث حالة المعدّة (تتبّع تشغيليّ)
-        if req.kind == "breakdown" and req.status != "done":
-            await conn.execute(
-                "UPDATE equipment SET status = 'broken' WHERE equipment_id = $1", equipment_id
+
+        async def _work():
+            exists = await conn.fetchval(
+                "SELECT 1 FROM equipment WHERE equipment_id = $1", equipment_id
             )
-        await _emit_domain_event(
-            conn,
-            user,
-            "MAINTENANCE_LOGGED",
-            "equipment_maintenance",
-            maintenance_id,
-            {"equipment_id": equipment_id, "kind": req.kind, "status": req.status},
-        )
-    return {"maintenance_id": maintenance_id, "message_ar": "سُجّلت الصيانة"}
+            if not exists:
+                raise HTTPException(status_code=404, detail="المعدّة غير موجودة")
+            await conn.execute(
+                """INSERT INTO equipment_maintenance
+                    (maintenance_id, tenant_id, equipment_id, kind, status,
+                     scheduled_date, performed_date, cost_usd, notes)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
+                maintenance_id,
+                str(user.tenant_id),
+                equipment_id,
+                req.kind,
+                req.status,
+                sched,
+                performed,
+                req.cost_usd,
+                req.notes,
+            )
+            # عطل قيد التنفيذ ⇒ حدّث حالة المعدّة (تتبّع تشغيليّ)
+            if req.kind == "breakdown" and req.status != "done":
+                await conn.execute(
+                    "UPDATE equipment SET status = 'broken' WHERE equipment_id = $1", equipment_id
+                )
+            await _emit_domain_event(
+                conn,
+                user,
+                "MAINTENANCE_LOGGED",
+                "equipment_maintenance",
+                maintenance_id,
+                {"equipment_id": equipment_id, "kind": req.kind, "status": req.status},
+            )
+            return {"maintenance_id": maintenance_id, "message_ar": "سُجّلت الصيانة"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="equipment.maintenance.log",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"equipment_id": equipment_id, "maintenance_id": maintenance_id},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/equipment/{equipment_id}/maintenance")

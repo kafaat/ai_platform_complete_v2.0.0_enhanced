@@ -21,10 +21,14 @@ from api.inventory_models import (
     InventoryItemRequest,
 )
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
     _emit_domain_event,
+    _idem_key,
+    _idempotent,
     _parse_date,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -35,33 +39,51 @@ router = APIRouter()
 @router.post("/api/v1/inventory/items", status_code=201)
 async def create_inventory_item(
     req: InventoryItemRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
 ):
     import uuid as _uuid
 
     item_id = "inv_" + _uuid.uuid4().hex[:12]
     async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO inventory_items
-                (item_id, tenant_id, category, name, unit, reorder_level, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
-            item_id,
-            str(user.tenant_id),
-            req.category,
-            req.name,
-            req.unit,
-            req.reorder_level,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "INVENTORY_ITEM_CREATED",
-            "inventory_item",
-            item_id,
-            {"category": req.category, "name": req.name},
-        )
-    return {"item_id": item_id, "name": req.name, "message_ar": "أُضيف عنصر المخزون"}
+
+        async def _work():
+            await conn.execute(
+                """INSERT INTO inventory_items
+                    (item_id, tenant_id, category, name, unit, reorder_level, notes)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7)""",
+                item_id,
+                str(user.tenant_id),
+                req.category,
+                req.name,
+                req.unit,
+                req.reorder_level,
+                req.notes,
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "INVENTORY_ITEM_CREATED",
+                "inventory_item",
+                item_id,
+                {"category": req.category, "name": req.name},
+            )
+            return {"item_id": item_id, "name": req.name, "message_ar": "أُضيف عنصر المخزون"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="inventory.item.create",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"item_id": item_id},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/inventory/items")
@@ -99,6 +121,7 @@ async def list_inventory_items(
 async def add_inventory_batch(
     item_id: str,
     req: InventoryBatchRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.INVENTORY_MANAGE)),
 ):
     import uuid as _uuid
@@ -107,35 +130,54 @@ async def add_inventory_batch(
     expiry = _parse_date(req.expiry_date, "expiry_date")
     received = _parse_date(req.received_at, "received_at") or date.today()
     async with tenant_connection(user) as conn:
-        # تأكّد من وجود العنصر ضمن المستأجر (RLS يمنع عنصر مستأجر آخر)
-        exists = await conn.fetchval("SELECT 1 FROM inventory_items WHERE item_id = $1", item_id)
-        if not exists:
-            raise HTTPException(status_code=404, detail="عنصر المخزون غير موجود")
-        await conn.execute(
-            """INSERT INTO inventory_batches
-                (batch_id, tenant_id, item_id, quantity, unit, batch_code,
-                 expiry_date, received_at, supplier, notes)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
-            batch_id,
-            str(user.tenant_id),
-            item_id,
-            req.quantity,
-            req.unit,
-            req.batch_code,
-            expiry,
-            received,
-            req.supplier,
-            req.notes,
-        )
-        await _emit_domain_event(
-            conn,
-            user,
-            "INVENTORY_BATCH_ADDED",
-            "inventory_batch",
-            batch_id,
-            {"item_id": item_id, "quantity": req.quantity},
-        )
-    return {"batch_id": batch_id, "item_id": item_id, "message_ar": "أُضيفت الدفعة"}
+
+        async def _work():
+            # تأكّد من وجود العنصر ضمن المستأجر (RLS يمنع عنصر مستأجر آخر)
+            exists = await conn.fetchval(
+                "SELECT 1 FROM inventory_items WHERE item_id = $1", item_id
+            )
+            if not exists:
+                raise HTTPException(status_code=404, detail="عنصر المخزون غير موجود")
+            await conn.execute(
+                """INSERT INTO inventory_batches
+                    (batch_id, tenant_id, item_id, quantity, unit, batch_code,
+                     expiry_date, received_at, supplier, notes)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10)""",
+                batch_id,
+                str(user.tenant_id),
+                item_id,
+                req.quantity,
+                req.unit,
+                req.batch_code,
+                expiry,
+                received,
+                req.supplier,
+                req.notes,
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "INVENTORY_BATCH_ADDED",
+                "inventory_batch",
+                batch_id,
+                {"item_id": item_id, "quantity": req.quantity},
+            )
+            return {"batch_id": batch_id, "item_id": item_id, "message_ar": "أُضيفت الدفعة"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="inventory.batch.add",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"batch_id": batch_id, "item_id": item_id},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/inventory/expiring")

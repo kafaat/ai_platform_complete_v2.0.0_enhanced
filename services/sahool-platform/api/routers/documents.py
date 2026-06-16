@@ -19,8 +19,12 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from api.document_models import DocumentRequest
 from api.main import (
+    CommandStore,
     Permission,
     UserSchema,
+    _idem_key,
+    _idempotent,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -31,29 +35,53 @@ router = APIRouter()
 @router.post("/api/v1/documents", status_code=201)
 async def register_document(
     req: DocumentRequest,
+    idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.DOCUMENT_MANAGE)),
 ):
-    """يسجّل بيانات مستند وصفيّة (لا blob — storage_ref يشير لتخزين الكائنات)."""
+    """يسجّل بيانات مستند وصفيّة (لا blob — storage_ref يشير لتخزين الكائنات).
+
+    idempotent عند توفّر Idempotency-Key (UUID): يُسجَّل الأمر مرّة واحدة في
+    command_store (نوع `document.register`)؛ إعادة الموبايل (offline) تُعيد النتيجة
+    المخزّنة بلا إعادة إدراج — موحِّداً مسار الكتابة مع create_activity/update_field.
+    بلا مفتاح ⇒ سلوك سابق حرفيّاً (توافق خلفيّ كامل).
+    """
     import uuid as _uuid
 
     doc_id = "doc_" + _uuid.uuid4().hex[:12]
     async with tenant_connection(user) as conn:
-        await conn.execute(
-            """INSERT INTO documents
-                (doc_id, tenant_id, category, field_id, title, storage_ref,
-                 content_type, size_bytes, uploaded_by)
-               VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
-            doc_id,
-            str(user.tenant_id),
-            req.category,
-            req.field_id,
-            req.title,
-            req.storage_ref,
-            req.content_type,
-            req.size_bytes,
-            user.user_id,
-        )
-    return {"doc_id": doc_id, "title": req.title, "message_ar": "سُجّل المستند"}
+
+        async def _work():
+            await conn.execute(
+                """INSERT INTO documents
+                    (doc_id, tenant_id, category, field_id, title, storage_ref,
+                     content_type, size_bytes, uploaded_by)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9)""",
+                doc_id,
+                str(user.tenant_id),
+                req.category,
+                req.field_id,
+                req.title,
+                req.storage_ref,
+                req.content_type,
+                req.size_bytes,
+                user.user_id,
+            )
+            return {"doc_id": doc_id, "title": req.title, "message_ar": "سُجّل المستند"}
+
+        # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
+        if idem:
+            result = await _idempotent(
+                CommandStore(get_pool(), conn=conn),
+                idem,
+                _work,
+                command_type="document.register",
+                actor_id=str(user.user_id),
+                tenant_id=str(user.tenant_id),
+                payload={"doc_id": doc_id, "title": req.title},
+            )
+        else:
+            result = await _work()
+    return result
 
 
 @router.get("/api/v1/documents")
