@@ -150,7 +150,7 @@ def vegetative_growing_days(crop: str) -> int | None:
         if not all(isinstance(d, (int, float)) for d in first_three):
             return None
         return int(sum(first_three))
-    except Exception:
+    except Exception:  # noqa: BLE001 — بطاقة محصول غائبة/معطوبة ⇒ لا تقدير (degrade صادق)
         return None
 
 
