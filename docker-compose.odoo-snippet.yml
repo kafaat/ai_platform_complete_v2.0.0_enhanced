@@ -9,6 +9,7 @@
     environment:
       # أمان RLS: دور مقيّد (NOBYPASSRLS) لا superuser postgres (يتجاوز عزل المستأجِرين).
       DATABASE_URL: "postgresql+asyncpg://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgis:5432/sahool"
+      SAHOOL_ENFORCE_RLS_ROLE: "1"  # fail-closed: ارفض الإقلاع إن تجاوز دور القاعدة RLS
       ODOO_URL: "${ODOO_URL:-http://odoo:8069}"
       ODOO_DB: "${ODOO_DB:-sahool_erp}"
       ODOO_USER: "${ODOO_USER:-admin}"

@@ -131,9 +131,45 @@ async def _init_db_pool():
         # statement_cache_size=0 لتوافق PgBouncer (مبدأ موثّق)
         _DB_POOL = await asyncpg.create_pool(dsn, statement_cache_size=0, min_size=1, max_size=10)
         logging.info("✓ pool القاعدة جاهز")
+        await _assert_db_role_rls_safe(_DB_POOL)
+    except RuntimeError:
+        raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS + الفرض مُفعَّل) — لا تبتلعه
     except Exception as e:  # noqa: BLE001
         logging.error("فشل إنشاء pool القاعدة: %s", e)
         _DB_POOL = None
+
+
+async def _assert_db_role_rls_safe(pool) -> None:
+    """يتحقّق أنّ دور الاتّصال لا يتجاوز RLS (لينشين عزل المستأجرين) — fail-closed.
+
+    إن كان الدور superuser/BYPASSRLS: يُسجَّل تحذير حرج دائماً، ويُرفَض الإقلاع إذا
+    SAHOOL_ENFORCE_RLS_ROLE مُفعَّل (الإنتاج). لا يحجب إقلاعاً عند تعذّر الفحص (لا يكسر
+    بيئات بلا pg_roles)."""
+    from core.db_role_guard import (
+        ROLE_PROBE_SQL,
+        enforcement_enabled,
+        role_can_bypass_rls,
+        role_guard_message,
+        should_refuse_startup,
+    )
+
+    try:
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(ROLE_PROBE_SQL)
+    except Exception as e:  # noqa: BLE001 — تعذّر الفحص ⇒ لا يحجب الإقلاع
+        logging.debug("تعذّر فحص دور RLS: %s", e)
+        return
+    if row is None:
+        return
+    unsafe = role_can_bypass_rls(row["rolsuper"], row["rolbypassrls"])
+    if not unsafe:
+        return
+    enforce = enforcement_enabled(os.getenv("SAHOOL_ENFORCE_RLS_ROLE"))
+    refuse = should_refuse_startup(unsafe, enforce)
+    msg = role_guard_message(row["rolsuper"], row["rolbypassrls"], refuse)
+    logging.critical("🔓 %s", msg)
+    if refuse:
+        raise RuntimeError(msg)
 
 
 @app.on_event("startup")
