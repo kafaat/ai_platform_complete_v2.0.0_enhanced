@@ -261,3 +261,7 @@ v70_rls_with_check_propagate.sql
 # field_lifecycle بالمفتاح الأجنبيّ). weather_automation_locations يبقى عالميّاً
 # عمداً (مجدوِل عابر للمستأجرين — يُعالَج بدور خدميّ، لا RLS). idempotent.
 v71_rls_missing_tables.sql
+
+# v72: HIGH-002 (شهادة) — RLS على event_outbox (عزل عبر FK للأب events). يُمكَّن لأنّ
+# المرسِل صار على دور sahool_jobs (BYPASSRLS) عبر JOBS_DATABASE_URL. idempotent.
+v72_event_outbox_rls.sql

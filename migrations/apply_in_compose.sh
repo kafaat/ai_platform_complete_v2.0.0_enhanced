@@ -19,6 +19,10 @@ set -euo pipefail
 MIG_DIR="${MIG_DIR:-/migrations}"
 APP_ROLE="${APP_DB_ROLE:-sahool_app}"
 APP_PASSWORD="${APP_DB_PASSWORD:-sahool_app_pw}"
+# دور المهامّ الخلفيّة (المرسِل/المجدوِل): BYPASSRLS مقصود — يقرأ عابراً للمستأجرين
+# (event_outbox/الطقس). يُستعمَل فقط من مسارات الوظائف عبر JOBS_DATABASE_URL، لا التطبيق.
+JOBS_ROLE="${JOBS_DB_ROLE:-sahool_jobs}"
+JOBS_PASSWORD="${JOBS_DB_PASSWORD:-sahool_jobs_pw}"
 
 # انتظار جاهزيّة القاعدة (depends_on: service_healthy يكفي عادةً — تأمين إضافيّ)
 for i in $(seq 1 30); do
@@ -68,4 +72,29 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
 SQL
 
-echo "✓ التهيئة اكتملت — الهجرات مُطبَّقة ودور ${APP_ROLE} جاهز (وجّه DATABASE_URL للتطبيق إليه)."
+echo "─ إنشاء دور المهامّ الخلفيّة (${JOBS_ROLE} — BYPASSRLS لمسار الوظائف فقط) ─"
+psql_exec -v jobs_role="$JOBS_ROLE" -v jobs_pw="$JOBS_PASSWORD" <<'SQL'
+-- HIGH-002: المرسِل (event_outbox→NATS) والمجدوِل (الطقس) يقرآن عابراً للمستأجرين
+-- بلا app.current_tenant بالتصميم. تحت RLS الجديدة على تلك الجداول، يحتاجان دوراً
+-- يتجاوز RLS. هذا الدور مخصّص لهما عبر JOBS_DATABASE_URL — التطبيق يبقى على sahool_app
+-- المعزول. (لا CREATEDB/CREATEROLE/SUPERUSER — أضيق صلاحيّة تُنجز المهمّة.)
+SELECT format('CREATE ROLE %I LOGIN', :'jobs_role')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'jobs_role')
+\gexec
+
+ALTER ROLE :"jobs_role"
+  LOGIN NOSUPERUSER BYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'jobs_pw';
+
+GRANT USAGE ON SCHEMA public TO :"jobs_role";
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"jobs_role";
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :"jobs_role";
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO :"jobs_role";
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO :"jobs_role";
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT USAGE, SELECT ON SEQUENCES TO :"jobs_role";
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT EXECUTE ON FUNCTIONS TO :"jobs_role";
+SQL
+
+echo "✓ التهيئة اكتملت — الهجرات مُطبَّقة، ودورا ${APP_ROLE} (تطبيق) و${JOBS_ROLE} (مهامّ) جاهزان."

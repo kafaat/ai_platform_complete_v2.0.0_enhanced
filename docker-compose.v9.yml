@@ -307,6 +307,9 @@ services:
       PGDATABASE: sahool
       APP_DB_ROLE: ${APP_DB_ROLE:-sahool_app}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:-sahool_app_pw}
+      # دور المهامّ الخلفيّة (BYPASSRLS) — يجب أن تطابق كلمته كلمة JOBS_DATABASE_URL.
+      JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
+      JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:-sahool_jobs_pw}
     volumes:
       - ./migrations:/migrations:ro
     command: ["bash", "/migrations/apply_in_compose.sh"]
@@ -374,6 +377,9 @@ services:
       SAHOOL_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       DATABASE_URL: ${DATABASE_URL:-}
+      # HIGH-002: مسار المهامّ الخلفيّة (مرسِل event_outbox) يقرأ عابراً للمستأجرين ⇒
+      # دور sahool_jobs (BYPASSRLS). غيابه ⇒ يعود للتطبيق فيفشل المرسِل تحت RLS v72.
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
