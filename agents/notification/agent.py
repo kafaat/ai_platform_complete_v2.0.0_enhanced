@@ -245,7 +245,7 @@ async def get_prefs(user_id: int) -> dict | None:
                 "SELECT * FROM notification_preferences WHERE user_id=$1", user_id
             )
             return dict(row) if row else None
-    except Exception:
+    except Exception:  # noqa: BLE001 — تعذّر قراءة التفضيلات ⇒ None (تُستعمَل الافتراضات)
         return None
 
 
