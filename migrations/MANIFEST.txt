@@ -265,3 +265,8 @@ v71_rls_missing_tables.sql
 # v72: HIGH-002 (شهادة) — RLS على event_outbox (عزل عبر FK للأب events). يُمكَّن لأنّ
 # المرسِل صار على دور sahool_jobs (BYPASSRLS) عبر JOBS_DATABASE_URL. idempotent.
 v72_event_outbox_rls.sql
+
+# v73: HIGH-002 (شهادة) — RLS على weather_automation_locations (عزل عبر field_id→fields،
+# NULL=عالميّ) وweather_automation_cache (يرث رؤية موقعه). يُمكَّن لأنّ مجدوِل الطقس صار
+# على دور sahool_jobs (BYPASSRLS). idempotent.
+v73_weather_automation_rls.sql

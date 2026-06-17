@@ -205,7 +205,11 @@ async def _start_scheduler():
 
     # اربط pool القاعدة للاستمرار الدائم + حمّل ما سبق تسجيله (إن توفّر)
     if _DB_POOL is not None:
-        weather_automation.set_pool(_DB_POOL)
+        # HIGH-002: مجدوِل الطقس (load_from_db/refresh_all) يقرأ إحداثيّات كلّ المستأجرين
+        # بلا سياق ⇒ مسبح المهامّ (sahool_jobs/BYPASSRLS) كي لا تكسره RLS الجديدة (v73)
+        # على weather_automation_locations/cache. التطبيق يقرأ طقس حقله بسياق المستأجِر
+        # (RLS) في مسار آخر. imagery يبقى على مسبح التطبيق (لا RLS جديدة على جداوله هنا).
+        weather_automation.set_pool(_JOBS_POOL or _DB_POOL)
         imagery_automation.set_pool(_DB_POOL)
         try:
             wn = await weather_automation.load_from_db()
