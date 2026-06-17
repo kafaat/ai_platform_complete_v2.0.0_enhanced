@@ -167,9 +167,10 @@ services:
   sahool-minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     restart: unless-stopped
+    # MEDIUM (تدقيق): تخزين داخليّ — لا يُكشَف على 0.0.0.0. حصر على loopback (المضيف فقط).
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
     environment:
       MINIO_ROOT_USER: sahool-admin
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
@@ -325,6 +326,9 @@ services:
       SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
+      # FINDING-003: /validate يتطلّب X-Agent-Token مطابقاً لـSAHOOL_AGENT_TOKEN؛ بلا حقنه
+      # هنا تُرجِع الحَوكمة 503 (مغلقة بأمان لكنّها معطّلة). نفس قيمة supervisor-agent.
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -448,8 +452,9 @@ services:
       context: .
       dockerfile: services/raster-service/Dockerfile
     restart: unless-stopped
+    # MEDIUM (تدقيق): خدمة داخليّة خلف nginx — لا تُكشَف على 0.0.0.0. حصر على loopback.
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
     environment:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
