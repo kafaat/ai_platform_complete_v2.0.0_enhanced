@@ -644,7 +644,12 @@ async def _ensure_admin_user():
         return
     hashed = bcrypt.hashpw(admin_pass.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
     async with _pool.acquire() as conn:
-        await conn.execute("SELECT set_config('app.current_tenant', '', true)")
+        # FINDING-001 collateral: تحت دور sahool_app (FORCE RLS)، إدراج المدير يجب أن
+        # يجري بسياق فارغ (WITH CHECK يسمح كتابة بلا سياق). set_config بـlocal=true
+        # ينحصر في معاملة العبارة الأولى فيُفقَد قبل INSERT (عبارة منفصلة)، وقد يحمل
+        # اتّصال المسبح سياق مستأجِر قديماً ⇒ يفشل WITH CHECK. session-level (false)
+        # يُبقي السياق الفارغ ساريّاً حتى INSERT (وهو الافتراضي الآمن: فشل-مغلق).
+        await conn.execute("SELECT set_config('app.current_tenant', '', false)")
         await conn.execute(
             """
             INSERT INTO users (email, password_hash, full_name, role)

@@ -49,8 +49,12 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_role')
 ALTER ROLE :"app_role"
   LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
 
--- صلاحيّات وقت التشغيل: DML + EXECUTE + USAGE فقط (لا DDL)
+-- صلاحيّات وقت التشغيل: DML + EXECUTE + USAGE
 GRANT USAGE ON SCHEMA public TO :"app_role";
+-- FINDING-001 collateral: بعض الخدمات تُنشئ جداولها (IF NOT EXISTS) عند الإقلاع
+-- (مثل odoo-bridge _run_migrations). تحتاج CREATE على المخطّط. لا يمسّ عزل المستأجرين:
+-- CREATE ليس BYPASSRLS — تبقى RLS سارية على كلّ الجداول (الخاصّيّة الحرجة محفوظة).
+GRANT CREATE ON SCHEMA public TO :"app_role";
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"app_role";
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :"app_role";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO :"app_role";
