@@ -34,12 +34,17 @@ def test_weather_locations_force_rls_via_field():
     assert "FROM fields f" in sql
 
 
-def test_weather_cache_force_rls_inherits_location():
-    """weather_automation_cache: RLS+FORCE يرث رؤية موقعه (location_key ضمن المرئيّة)."""
+def test_weather_cache_force_rls_via_location_chain():
+    """weather_automation_cache: RLS+FORCE معزول صريحاً عبر سلسلة موقعه (location→field→
+    tenant)، مستنداً إلى current_setting (لا عزل وهميّ — يطابق حارس العزل السلبيّ)."""
     sql = _read("migrations/v73_weather_automation_rls.sql")
     assert "ALTER TABLE weather_automation_cache ENABLE ROW LEVEL SECURITY" in sql
     assert "ALTER TABLE weather_automation_cache FORCE ROW LEVEL SECURITY" in sql
-    assert "location_key IN (SELECT location_key FROM weather_automation_locations)" in sql
+    assert "FROM weather_automation_locations l" in sql
+    assert "l.location_key = weather_automation_cache.location_key" in sql
+    # السياسة نفسها تستند إلى current_setting صراحةً (لا تتّكل على RLS جدول آخر ضمنيّاً).
+    cache_policy = sql.split("ON weather_automation_cache", 1)[1]
+    assert "current_setting('app.current_tenant', true)" in cache_policy
 
 
 def test_weather_scheduler_uses_jobs_pool():
