@@ -206,3 +206,40 @@ async def test_read_endpoints_flag_off_404(monkeypatch):
     with pytest.raises(HTTPException) as e2:
         await list_dispatch_queue(limit=50, user=_USER)
     assert e2.value.status_code == 404
+
+
+async def test_consume_flag_off_404(monkeypatch):
+    from api.routers.decision_dispatch import consume_dispatch_queue
+
+    monkeypatch.delenv("SAHOOL_DECISION_DISPATCH", raising=False)
+    with pytest.raises(HTTPException) as e:
+        await consume_dispatch_queue(channel="sms", limit=20, user=_USER)
+    assert e.value.status_code == 404
+
+
+async def test_ledger_endpoints_flag_off_404(monkeypatch):
+    from api.routers.decision_dispatch import (
+        LedgerRecordRequest,
+        list_execution_ledger,
+        record_execution_outcome,
+    )
+
+    monkeypatch.delenv("SAHOOL_DECISION_DISPATCH", raising=False)
+    req = LedgerRecordRequest(decision_id="disp_1", outcome="executed")
+    with pytest.raises(HTTPException) as e1:
+        await record_execution_outcome(req=req, user=_USER)
+    assert e1.value.status_code == 404
+    with pytest.raises(HTTPException) as e2:
+        await list_execution_ledger(field_id=None, decision_id=None, limit=50, user=_USER)
+    assert e2.value.status_code == 404
+
+
+async def test_ledger_record_bad_outcome_400(monkeypatch):
+    # نتيجة مجهولة ⇒ 400 قبل أيّ قاعدة (fail-closed على مستوى المُدخل).
+    from api.routers.decision_dispatch import LedgerRecordRequest, record_execution_outcome
+
+    monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
+    req = LedgerRecordRequest(decision_id="disp_1", outcome="maybe")
+    with pytest.raises(HTTPException) as e:
+        await record_execution_outcome(req=req, user=_USER)
+    assert e.value.status_code == 400
