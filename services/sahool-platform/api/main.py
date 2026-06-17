@@ -147,7 +147,7 @@ async def _assert_db_role_rls_safe(pool) -> None:
     بيئات بلا pg_roles)."""
     from core.db_role_guard import (
         ROLE_PROBE_SQL,
-        enforcement_enabled,
+        enforcement_active,
         role_can_bypass_rls,
         role_guard_message,
         should_refuse_startup,
@@ -164,7 +164,9 @@ async def _assert_db_role_rls_safe(pool) -> None:
     unsafe = role_can_bypass_rls(row["rolsuper"], row["rolbypassrls"])
     if not unsafe:
         return
-    enforce = enforcement_enabled(os.getenv("SAHOOL_ENFORCE_RLS_ROLE"))
+    enforce = enforcement_active(
+        os.getenv("SAHOOL_ALLOW_RLS_BYPASS_ROLE"), os.getenv("SAHOOL_ENFORCE_RLS_ROLE")
+    )
     refuse = should_refuse_startup(unsafe, enforce)
     msg = role_guard_message(row["rolsuper"], row["rolbypassrls"], refuse)
     logging.critical("🔓 %s", msg)

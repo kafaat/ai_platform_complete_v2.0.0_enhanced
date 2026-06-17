@@ -65,6 +65,10 @@ async def lifespan(app: FastAPI):
     if DATABASE_URL:
         _pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=5)
         logger.info("✅ Market MCP DB connected")
+        # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
+        from shared.db_role_guard import assert_db_role_rls_safe
+
+        await assert_db_role_rls_safe(_pool, service="market-mcp")
     else:
         logger.warning("DATABASE_URL not set — running in demo mode")
     logger.info("📦 Market MCP ready")

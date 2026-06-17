@@ -55,6 +55,10 @@ async def lifespan(app: FastAPI):
         _pool = await asyncpg.create_pool(
             DATABASE_URL, min_size=1, max_size=5, statement_cache_size=0
         )
+        # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
+        from shared.db_role_guard import assert_db_role_rls_safe
+
+        await assert_db_role_rls_safe(_pool, service="soil-service")
     logger.info("✅ soil-service started")
     yield
     if _pool:

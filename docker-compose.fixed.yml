@@ -288,6 +288,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000/mcp/v1
       MCP_WEATHER_URL: http://sahool-weather-mcp:8000/mcp/v1
       MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
@@ -315,6 +319,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
@@ -387,6 +395,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       JWT_SECRET: ${JWT_SECRET}
       ODOO_BRIDGE_URL: http://sahool-odoo-bridge:8126
       SAHOOL_API_URL: http://sahool-auth:8000
@@ -462,6 +474,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -512,6 +528,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       # لا وسيط MQTT (sahool-fastbee) في هذا الـcompose ⇒ نُعطّل مستمع MQTT صراحةً
       # كي يقلع actuator نظيفاً (_mqtt_disabled) بدل حلقة "MQTT listener crashed" كلّ
@@ -638,6 +658,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
       ODOO_DB: ${ODOO_DB:-sahool_erp}  # قاعدة Odoo المنفصلة (لا قاعدة المنصّة sahool)
       ODOO_USER: ${ODOO_USER:-admin}
@@ -709,6 +733,10 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN required}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET required}
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       EDGE_INFERENCE_URL: http://sahool-edge:8100
@@ -740,6 +768,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
+      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
+      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       SMTP_HOST: ${SMTP_HOST}

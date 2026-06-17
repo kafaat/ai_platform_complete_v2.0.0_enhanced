@@ -125,6 +125,11 @@ async def lifespan(app: FastAPI):
         max_size=10,
         statement_cache_size=0,
     )
+    # FINDING-001: لينشين عزل المستأجرين — ارفض الإقلاع إن تجاوز دور الاتّصال RLS
+    # (superuser/BYPASSRLS) ما لم يُعطَّل صراحةً للتطوير. fail-closed افتراضيّاً.
+    from shared.db_role_guard import assert_db_role_rls_safe
+
+    await assert_db_role_rls_safe(_pool, service="auth")
     try:
         import redis.asyncio as aioredis
 
