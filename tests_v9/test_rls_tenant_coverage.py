@@ -114,6 +114,107 @@ def test_every_tenant_table_has_rls():
     )
 
 
+def _forced_tables(sql: str) -> set[str]:
+    """الجداول التي يُطبَّق عليها FORCE ROW LEVEL SECURITY **استاتيكيّاً** (لا عبر الحلقة
+    الديناميكيّة العمياء): صريحاً، أو عبر الدالّة المساعِدة (تُطبّق FORCE داخليّاً)، أو ضمن
+    ARRAY[...] داخل بلوك DO يذكر FORCE."""
+    forced: set[str] = set()
+    # 1) صريح: ALTER TABLE name FORCE ROW LEVEL SECURITY
+    for m in re.finditer(
+        r"ALTER TABLE\s+(?:IF EXISTS\s+)?([A-Za-z_]\w*)\s+FORCE ROW LEVEL SECURITY", sql, re.I
+    ):
+        forced.add(m.group(1).lower())
+    # 2) عبر الدالّة المساعِدة (تُطبّق ENABLE+FORCE+POLICY) بقيمة حرفيّة
+    for m in re.finditer(r"_sahool_apply_tenant_rls\(\s*'([A-Za-z_]\w*)'\s*\)", sql, re.I):
+        forced.add(m.group(1).lower())
+    # 3) ARRAY[...] داخل بلوك DO يُطبّق FORCE (أو الدالّة المساعِدة)
+    for do_block in re.finditer(r"DO\s*\$\$(.*?)\$\$", sql, re.S | re.I):
+        block = do_block.group(1)
+        if re.search(r"FORCE ROW LEVEL SECURITY|_sahool_apply_tenant_rls", block, re.I):
+            for arr in re.finditer(r"ARRAY\s*\[(.*?)\]", block, re.S):
+                for q in re.finditer(r"'([A-Za-z_]\w*)'", arr.group(1)):
+                    forced.add(q.group(1).lower())
+    return forced
+
+
+# اسم ملفّ الهجرة الذي يطبّق FORCE شاملاً على كلّ جدول مُستأجَر قائم (حلقة ديناميكيّة).
+_BLANKET_FORCE_MIGRATION = "v9_rls_force_all.sql"
+
+
+def _manifest_order() -> list[str]:
+    """ترتيب ملفّات الهجرة كما في MANIFEST.txt (يتجاهل التعليقات والفراغات)."""
+    lines = (MIGRATIONS_DIR / "MANIFEST.txt").read_text(encoding="utf-8").splitlines()
+    return [s for ln in lines if (s := ln.strip()) and not s.startswith("#")]
+
+
+def _late_tenant_tables() -> set[str]:
+    """جداول tenant_id المُنشأة في هجرات **تالية** لـv9_rls_force_all في MANIFEST.
+
+    الحلقة الشاملة في v9_rls_force_all تغطّي الجداول الموجودة حين تشغيلها فقط؛ الجداول
+    المُنشأة بعدها (في تمريرة تطبيق واحدة) لا تغطّيها، فيجب أن تُطبّق FORCE صراحةً/عبر
+    الدالّة المساعِدة — وإلّا يتجاوزها مالك الجدول (FORCE وحده يُخضِع المالك للسياسة)."""
+    order = _manifest_order()
+    try:
+        cut = order.index(_BLANKET_FORCE_MIGRATION)
+    except ValueError:
+        pytest.fail(f"{_BLANKET_FORCE_MIGRATION} غير موجود في MANIFEST — حلقة FORCE الشاملة مفقودة")
+    late: set[str] = set()
+    for fname in order[cut + 1 :]:
+        path = MIGRATIONS_DIR / fname
+        if not path.exists():
+            continue
+        late |= _tables_with_tenant_id(path.read_text(encoding="utf-8"))
+    return late
+
+
+@pytest.mark.unit
+@pytest.mark.security
+def test_blanket_force_migration_present():
+    """حلقة FORCE الشاملة (v9_rls_force_all) موجودة وتطبّق FORCE ديناميكيّاً.
+
+    إزالتها تكشف الجداول القديمة (التي تعتمد عليها لا على FORCE الصريح) لتجاوز المالك."""
+    order = _manifest_order()
+    assert _BLANKET_FORCE_MIGRATION in order, "حلقة FORCE الشاملة غير مُدرَجة في MANIFEST"
+    text = (MIGRATIONS_DIR / _BLANKET_FORCE_MIGRATION).read_text(encoding="utf-8")
+    assert re.search(r"FORCE ROW LEVEL SECURITY", text, re.I), "v9_rls_force_all لا يطبّق FORCE"
+
+
+@pytest.mark.unit
+@pytest.mark.security
+def test_late_tenant_tables_have_explicit_force():
+    """كلّ جدول مُستأجَر مُنشأ بعد حلقة FORCE الشاملة يجب أن يطبّق FORCE صراحةً/عبر الدالّة.
+
+    يحوّل «انضباط FORCE» إلى بوّابة CI: جدول جديد يُفعّل RLS لكن ينسى FORCE (ولا يستعمل
+    _sahool_apply_tenant_rls) ⇒ يتجاوزه مالك الجدول رغم RLS (دفاع عمق ناقص) — يُكتشَف هنا."""
+    sql = _forward_sql_text()
+    forced = _forced_tables(sql)
+    late = _late_tenant_tables()
+
+    missing = sorted(late - forced - INTENTIONAL_GLOBAL)
+    assert not missing, (
+        "جداول مُستأجَرة مُنشأة بعد v9_rls_force_all بلا FORCE صريح (خطر تجاوز المالك):\n  "
+        + "\n  ".join(missing)
+        + "\n\nالإصلاح: استعمل _sahool_apply_tenant_rls('<table>') (يطبّق ENABLE+FORCE+POLICY) "
+        "أو أضِف ALTER TABLE <table> FORCE ROW LEVEL SECURITY في الـmigration."
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.security
+def test_force_guard_detects_unforced_late_table():
+    """سلامة حارس FORCE: جدول يُفعّل RLS بسياسة لكن دون FORCE ⇒ يُرصَد كثغرة."""
+    fake_sql = (
+        "CREATE TABLE late_unforced (\n"
+        "  id UUID PRIMARY KEY,\n"
+        "  tenant_id UUID NOT NULL\n"
+        ");\n"
+        "ALTER TABLE late_unforced ENABLE ROW LEVEL SECURITY;\n"
+        "CREATE POLICY tenant_isolation ON late_unforced USING (true);\n"
+    )
+    assert "late_unforced" in _tables_with_tenant_id(fake_sql)
+    assert "late_unforced" not in _forced_tables(fake_sql)  # بلا FORCE/helper ⇒ يُرصَد
+
+
 @pytest.mark.unit
 @pytest.mark.security
 def test_rls_guard_detects_unprotected_table():

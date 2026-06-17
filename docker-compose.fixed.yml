@@ -8,7 +8,10 @@
 # ── المتطلبات البيئية (ضعها في .env) ─────────────────────────────
 # JWT_SECRET=your-min-32-char-secret-here
 # SAHOOL_AGENT_TOKEN=your-agent-token-here
-# DATABASE_URL=postgresql://sahool_user:${DB_PASSWORD}@sahool-postgres:5432/sahool
+# أمان RLS: التطبيق يتّصل بدور مقيّد sahool_app (NOSUPERUSER NOBYPASSRLS) لا بـsahool_user
+# (مالك الجداول يتجاوز RLS ما لم يُفرَض FORCE) — مطابقةً لـlight/unified/odoo. أنشئ الدور:
+#   CREATE ROLE sahool_app LOGIN NOSUPERUSER NOBYPASSRLS PASSWORD '...'; GRANT … على الجداول.
+# DATABASE_URL=postgresql://sahool_app:${APP_DB_PASSWORD}@sahool-postgres:5432/sahool
 # REDIS_PASSWORD=your-redis-password-here
 # MINIO_ROOT_PASSWORD=your-minio-password-here
 # ODOO_PASSWORD=your-odoo-password-here
