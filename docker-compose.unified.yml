@@ -37,6 +37,9 @@ x-db-env: &db-env
   # postgres الذي يتجاوز عزل المستأجِرين حتى مع FORCE. أنشئ الدور عبر
   # migrations/bootstrap_postgres.sh (أو apply_in_compose.sh). كلمة سرّه APP_DB_PASSWORD.
   DATABASE_URL: "postgresql+asyncpg://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-unified-postgis:5432/sahool"
+  # fail-closed: ارفض الإقلاع إن اتّصل التطبيق بدور يتجاوز RLS (superuser/BYPASSRLS) —
+  # يحوّل لينشين العزل من «مفترَض» إلى «مُثبَت عند الإقلاع» (core/db_role_guard).
+  SAHOOL_ENFORCE_RLS_ROLE: "1"
   REDIS_URL: "redis://sahool-unified-redis:6379/0"
   NATS_URL: "nats://sahool-unified-nats:4222"
   MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
