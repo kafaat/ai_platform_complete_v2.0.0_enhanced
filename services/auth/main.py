@@ -291,6 +291,10 @@ async def create_refresh_token(user_id: int, tenant_id: str) -> str | None:
     token = secrets.token_urlsafe(48)
     key = f"sahool:refresh:{token}"
     await _redis.setex(key, REFRESH_EXPIRE_DAYS * 86400, f"{user_id}:{tenant_id}")
+    # سجّل التوكن في مجموعة المستخدم لإبطالها جماعيّاً عند تغيير كلمة المرور/الدور/التعطيل.
+    setkey = f"sahool:user:refreshset:{user_id}"
+    await _redis.sadd(setkey, token)
+    await _redis.expire(setkey, REFRESH_EXPIRE_DAYS * 86400)
     return token
 
 
@@ -311,6 +315,53 @@ async def is_jti_revoked(jti: str) -> bool:
 async def revoke_refresh_token(token: str) -> None:
     if _redis:
         await _redis.delete(f"sahool:refresh:{token}")
+
+
+# ── إبطال جماعيّ لجلسات المستخدم (تغيير كلمة المرور/إعادتها/التعطيل/تغيير الدور) ──
+# الفجوة (مراجعة أمنيّة): النقاط المُغيِّرة للحساب لم تُبطل التوكنات القائمة ⇒ بعد اختراق/
+# إعادة تعيين تبقى جلسات المهاجم صالحة حتى ساعة، والتعطيل/خفض الدور غير فوريَّين. الحلّ:
+#   • أرضيّة توكن لكلّ مستخدم (token floor): طابع زمنيّ؛ أيّ access token بـiat أقدم منه
+#     يُرفَض ⇒ إبطال فوريّ لكلّ التوكنات القائمة دفعةً واحدة (لا حاجة لمعرفة كلّ jti).
+#   • حذف كلّ refresh tokens للمستخدم (من مجموعته) ⇒ لا تجديد بعد الإبطال.
+async def set_user_token_floor(user_id: int) -> None:
+    """يضبط أرضيّة التوكن للمستخدم = الآن — يُبطل كلّ access token أُصدِر قبلها."""
+    if not _redis:
+        return
+    now_ts = int(datetime.now(UTC).timestamp())
+    # TTL = عمر التوكن الأقصى (+هامش): بعده تكون كلّ التوكنات القديمة منتهية أصلاً.
+    await _redis.setex(
+        f"sahool:user:token_floor:{user_id}", JWT_EXPIRE_MINUTES * 60 + 60, str(now_ts)
+    )
+
+
+async def is_token_below_floor(payload: dict) -> bool:
+    """هل أُصدِر هذا التوكن قبل أرضيّة المستخدم؟ (⇒ مُبطَل جماعيّاً). fail-open بلا Redis."""
+    if not _redis:
+        return False
+    sub = payload.get("sub")
+    iat = payload.get("iat")
+    if sub is None or iat is None:
+        return False
+    floor = await _redis.get(f"sahool:user:token_floor:{sub}")
+    if not floor:
+        return False
+    try:
+        return int(iat) < int(floor)
+    except (TypeError, ValueError):
+        return False
+
+
+async def revoke_all_user_sessions(user_id: int) -> None:
+    """يُبطل كلّ جلسات المستخدم: أرضيّة access + حذف كلّ refresh tokens (idempotent)."""
+    if not _redis:
+        return
+    await set_user_token_floor(user_id)
+    setkey = f"sahool:user:refreshset:{user_id}"
+    tokens = await _redis.smembers(setkey)
+    if tokens:
+        keys = [f"sahool:refresh:{t.decode() if isinstance(t, bytes) else t}" for t in tokens]
+        await _redis.delete(*keys)
+    await _redis.delete(setkey)
 
 
 # ── Security ───────────────────────────────────────────────────
@@ -338,6 +389,9 @@ async def get_current_user(
 
     jti = payload.get("jti")
     if jti and await is_jti_revoked(jti):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
+    # إبطال جماعيّ: توكن أُصدِر قبل أرضيّة المستخدم (تغيير كلمة المرور/الدور/التعطيل) ⇒ مرفوض.
+    if await is_token_below_floor(payload):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Token revoked")
     return payload
 
@@ -828,6 +882,7 @@ async def confirm_password_reset(req: PasswordResetConfirm):
         )
 
     await _redis.delete(f"sahool:reset:{req.token}")
+    await revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات القائمة بعد إعادة التعيين
     await audit_log("password_reset_confirm", user_id, "system")
     return {"message": "تم تغيير كلمة المرور بنجاح"}
 
@@ -849,6 +904,7 @@ async def change_password(
         await conn.execute(
             "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
         )
+    await revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات (يشمل الحاليّة) ⇒ إعادة دخول
     await audit_log("change_password", user_id, "authenticated")
     return {"message": "تم تغيير كلمة المرور بنجاح"}
 
@@ -1059,6 +1115,8 @@ async def change_role(user_id: int, role: ValidRole):
         )
     if not row:
         raise HTTPException(404, "المستخدم غير موجود")
+    # إبطال جلسات المستخدم ⇒ يُعاد تحميل الدور الجديد فوريّاً (لا يبقى التوكن القديم بدوره القديم)
+    await revoke_all_user_sessions(user_id)
     return dict(row)
 
 
@@ -1066,6 +1124,7 @@ async def change_role(user_id: int, role: ValidRole):
 async def deactivate_user(user_id: int):
     async with _pool.acquire() as conn:
         await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
+    await revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
     return {"message": "تم إلغاء تفعيل الحساب"}
 
 
