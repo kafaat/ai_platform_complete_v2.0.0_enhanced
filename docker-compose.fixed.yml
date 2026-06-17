@@ -115,13 +115,13 @@ services:
       # expose the password inside the container so the healthcheck can
       # authenticate (redis-cli -a) and avoid NOAUTH failures.
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
+    # FIX: redis:7-alpine لا يُنشئ /usr/local/etc/redis/، فالكتابة إليه تفشل
+    # ("No such file or directory") فينكسر سلسلة && ولا يبدأ redis ⇒ unhealthy ⇒
+    # تتالي فشل المعتمدين. الحلّ (مطابق لـunified/light العاملَين): تمرير الإعدادات
+    # كوسائط سطر أمر مباشرةً — لا ملفّ إعداد ولا مجلّد مفقود.
     command: >
-      sh -c '
-        echo "requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD required}" > /usr/local/etc/redis/redis.conf &&
-        echo "maxmemory 256mb" >> /usr/local/etc/redis/redis.conf &&
-        echo "maxmemory-policy allkeys-lru" >> /usr/local/etc/redis/redis.conf &&
-        redis-server /usr/local/etc/redis/redis.conf
-      '
+      redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD required}"
+      --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redis-data:/data
     networks:
