@@ -639,7 +639,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
-      ODOO_DB: ${ODOO_DB:-sahool}
+      ODOO_DB: ${ODOO_DB:-sahool_erp}  # قاعدة Odoo المنفصلة (لا قاعدة المنصّة sahool)
       ODOO_USER: ${ODOO_USER:-admin}
       ODOO_PASSWORD: ${ODOO_PASSWORD:?ODOO_PASSWORD required}
       JWT_SECRET: ${JWT_SECRET}
@@ -665,11 +665,20 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:8069:8069"
+    # FIX (تشغيليّ): كان Odoo بلا command فلا يُهيّئ قاعدته (entrypoint الافتراضي لا
+    # يُثبّت base)، وكان ODOO_DB يُطمَس إلى «sahool» = قاعدة المنصّة (RLS) نفسها.
+    # العَرَض: relation "ir_module_module" does not exist / KeyError 'ir.http'.
+    # الحلّ (مطابق docker-compose.v9.yml): قاعدة Odoo منفصلة (sahool_erp) + تهيئة
+    # base أوّل تشغيل + db-filter يحصر Odoo على قاعدته فلا يمسّ قاعدة المنصّة.
+    # (يتطلّب أن يملك sahool_user صلاحيّة CREATEDB — وهو POSTGRES_USER المُمتاز هنا.)
+    command: >
+      odoo -d ${ODOO_DB:-sahool_erp} -i base --without-demo=all
+      --db-filter=^${ODOO_DB:-sahool_erp}$$
     environment:
       HOST: sahool-postgres
       USER: sahool_user
       PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${ODOO_DB:-sahool}
+      DB_NAME: ${ODOO_DB:-sahool_erp}  # منفصلة عن قاعدة المنصّة sahool
     volumes:
       - odoo-web-data:/var/lib/odoo
       - odoo-config:/etc/odoo
