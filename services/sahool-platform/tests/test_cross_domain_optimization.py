@@ -10,7 +10,36 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
-from core.cross_domain_optimization import optimize_irrigation  # noqa: E402
+from core.cross_domain_optimization import _clamp01, optimize_irrigation  # noqa: E402
+
+
+# ── تقوية بالطفرات: _clamp01 (تُستعمَل لكلّ درجات الأهداف) — قيم دقيقة تقتل الطفرات ──
+def test_clamp01_exact_values():
+    assert _clamp01(-5.0) == 0.0  # دون الصفر ⇒ 0
+    assert _clamp01(0.0) == 0.0
+    assert _clamp01(0.37) == 0.37  # داخل [0,1] ⇒ كما هو
+    assert _clamp01(1.0) == 1.0  # الحدّ ⇒ 1
+    assert _clamp01(2.5) == 1.0  # فوق 1 ⇒ 1 (يقتل const 1.0→False)
+    # القيم منطقيّة-عدديّة صارمة (1.0 لا True، 0.0 لا False)
+    assert _clamp01(2.5) is not True and _clamp01(-1.0) is not False
+
+
+# ── تقوية بالطفرات: قيم ذهبيّة دقيقة للمخرج (تقتل طفرات الحساب في الحلقة) ──
+def test_exact_optimum_balanced():
+    # مطلوب 20، حدّ غلّة 10، أوزان متساوية، 10 خطوات ⇒ الأمثل عند الحدّ تماماً = 10.0
+    r = optimize_irrigation(20.0, min_mm_for_yield=10.0, steps=10)
+    assert r.applied_water_mm == 10.0  # دقيق لا تقريبيّ
+    assert r.water_saved_mm == 10.0
+    assert r.objective_scores == {"water_efficiency": 0.5, "yield_security": 1.0}
+    assert r.candidates_evaluated == 11  # steps+1 بالضبط (يقتل طفرة Add→Sub / const)
+
+
+def test_exact_budget_cap_value():
+    # ميزانيّة 8 < مطلوب 20؛ حدّ غلّة 18 فوق المتاح ⇒ يختار الأعلى المتاح = 8.0 بالضبط
+    r = optimize_irrigation(20.0, min_mm_for_yield=18.0, budget_mm=8.0, steps=8)
+    assert r.applied_water_mm == 8.0
+    assert r.requested_water_mm == 20.0
+    assert r.water_saved_mm == 12.0
 
 
 def test_optimum_at_yield_minimum_when_equal_weights():
