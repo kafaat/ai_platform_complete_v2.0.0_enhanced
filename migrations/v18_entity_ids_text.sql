@@ -20,8 +20,15 @@ BEGIN;
 -- ════════════════════════════════════════════════════════════════
 -- ١. events.entity_id: UUID → TEXT
 -- ════════════════════════════════════════════════════════════════
--- الـview يعتمد على العمود ⇒ يُسقَط ويُعاد إنشاؤه بعد التحويل.
+-- الـviews تعتمد على العمود ⇒ تُسقَط قبل التحويل (ALTER ... USING يُعيد كتابة
+-- العمود فيرفضه أيّ كائن تابع). v_entity_latest_event يُعاد إنشاؤه هنا أدناه؛
+-- أمّا v_event_dead_letter فمصدره v48 (لاحق في MANIFEST، CREATE OR REPLACE) فيُعاد
+-- إنشاؤه تلقائيّاً في نفس المرور. هذا الإسقاط يجعل v18 آمناً على **إعادة التشغيل**:
+-- في تشغيل أوّل v_event_dead_letter غير موجود بعد (IF EXISTS = لا عمل)؛ في إعادة
+-- تشغيل يكون قائماً من مرور v48 السابق فيُسقَط هنا فينجح ALTER (كان يفشل بـ
+-- «cannot alter type of a column used by a view or rule» على entity_id).
 DROP VIEW IF EXISTS v_entity_latest_event;
+DROP VIEW IF EXISTS v_event_dead_letter;
 
 ALTER TABLE events
     ALTER COLUMN entity_id TYPE TEXT USING entity_id::text;

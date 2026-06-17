@@ -175,6 +175,59 @@ class TestConcurrencyDeterminismMigrations:
             await pool.close()
 
 
+class TestV18EntityIdReRunSafety:
+    """حارس ثابت: v18 (events.entity_id: UUID→TEXT) يجب أن يُسقِط **كلّ** view يعتمد
+    على العمود قبل ALTER، وإلّا فشل على **إعادة التشغيل**.
+
+    الجذر التشغيليّ (ظهر في sahool-migrate): `ALTER TABLE events ALTER COLUMN
+    entity_id TYPE TEXT USING …` يُعيد كتابة العمود فيرفضه أيّ كائن تابع
+    («cannot alter type of a column used by a view or rule»). على تشغيل أوّل،
+    v18 يسبق v48 فلا يوجد v_event_dead_letter بعد؛ لكن على إعادة تشغيل المانيفست،
+    يكون v48 قد أنشأه فيفشل ALTER. الإصلاح: يُسقِطه v18 قبل ALTER (وv48 لاحقاً
+    يُعيد إنشاءه بـCREATE OR REPLACE في نفس المرور)."""
+
+    _V18 = "migrations/v18_entity_ids_text.sql"
+
+    def _views_on_events_entity_id(self):
+        """يجمع أسماء كلّ view عبر الهجرات يعتمد على events.entity_id."""
+        names = set()
+        mig_dir = os.path.join(BASE, "migrations")
+        for fn in os.listdir(mig_dir):
+            if not fn.endswith(".sql"):
+                continue
+            sql = read_sql(os.path.join(mig_dir, fn))
+            for m in re.finditer(
+                r"CREATE\s+(?:OR\s+REPLACE\s+)?VIEW\s+(\w+)\s+AS(.*?);",
+                sql,
+                re.IGNORECASE | re.DOTALL,
+            ):
+                body = m.group(2)
+                # يعتمد على events.entity_id إن أشار للجدول events وللعمود entity_id.
+                if re.search(r"\bevents\b", body, re.IGNORECASE) and "entity_id" in body:
+                    names.add(m.group(1))
+        return names
+
+    @pytest.mark.unit
+    def test_v18_drops_every_dependent_view_before_alter(self):
+        sql = read_sql(os.path.join(BASE, self._V18))
+        assert sql, "v18 مفقود — الحارس مكسور"
+        alter_pos = sql.find("ALTER COLUMN entity_id TYPE TEXT")
+        assert alter_pos > 0, "لم يُعثر على ALTER events.entity_id في v18"
+        dependent = self._views_on_events_entity_id()
+        # على الأقلّ الـview المعروفان (وإلّا فالماسح مكسور).
+        assert {"v_entity_latest_event", "v_event_dead_letter"} <= dependent, (
+            f"الماسح لم يكتشف الـviews التابعة المتوقّعة (وجد {dependent})"
+        )
+        for view in dependent:
+            drop = re.search(rf"DROP\s+VIEW\s+IF\s+EXISTS\s+{view}\b", sql, re.IGNORECASE)
+            assert drop, (
+                f"v18 لا يُسقِط {view} المعتمد على events.entity_id ⇒ يفشل ALTER على إعادة التشغيل."
+            )
+            assert drop.start() < alter_pos, (
+                f"v18 يُسقِط {view} بعد ALTER لا قبله — الترتيب خاطئ (يفشل ALTER)."
+            )
+
+
 class TestHarvestTraceabilityMigration:
     """حُرّاس v65 (تتبّع سلسلة الإمداد): الجدولان + RLS لكلّ مستأجِر."""
 
