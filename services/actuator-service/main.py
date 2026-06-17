@@ -77,6 +77,45 @@ def _verify_token(authorization: str | None = Header(None)) -> dict:
     return payload
 
 
+# أدوار التحكّم الفيزيائيّ بالأجهزة — تطابق صلاحيّة المنصّة DEVICE_MANAGE
+# (owner/manager فقط؛ agronomist/worker/viewer لهم DEVICE_VIEW لا MANAGE).
+# السلامة الفيزيائيّة: تشغيل صمّام/مضخّة قرار إدارة لا قراءة.
+_DEVICE_CONTROL_ROLES = {"owner", "manager"}
+
+
+async def _authorize_device_control(claims: dict, device_id: str) -> None:
+    """يحرس التحكّم الفيزيائيّ: فحص الدور + ملكيّة الجهاز للمستأجر (fail-closed).
+
+    أمان السلامة الفيزيائيّة + عزل المستأجرين:
+      • الدور: لا يُشغّل الأجهزةَ إلّا owner/manager (مطابقة DEVICE_MANAGE) — viewer/
+        worker/agronomist ⇒ 403.
+      • الملكيّة: device_id يجب أن يخصّ مستأجِر التوكن (iot_devices.tenant_id) — وإلّا
+        يستطيع مستأجِر A تشغيل جهاز مستأجِر B (كسر عزل + خطر فيزيائيّ). غير موجود/لمستأجِر
+        آخر ⇒ 404 (لا تسريب وجود عابر للمستأجرين).
+      • fail-closed: تعذّر التحقّق من القاعدة (لا pool/خطأ) ⇒ 503، لا تشغيل بلا تحقّق.
+    """
+    role = str(claims.get("role", "")).strip().lower()
+    if role not in _DEVICE_CONTROL_ROLES:
+        raise HTTPException(403, "الدور لا يملك صلاحيّة التحكّم بالأجهزة (owner/manager فقط)")
+
+    tenant_id = str(claims["tenant_id"])
+    if not _pool:
+        # لا يمكن التحقّق من ملكيّة الجهاز بلا قاعدة ⇒ ارفض (لا تشغيل أعمى).
+        raise HTTPException(503, "تعذّر التحقّق من ملكيّة الجهاز — التحكّم معطّل بأمان")
+    try:
+        async with _pool.acquire() as conn:
+            owner_tenant = await conn.fetchval(
+                "SELECT tenant_id::text FROM iot_devices WHERE device_id = $1", device_id
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ قاعدة ⇒ fail-closed
+        raise HTTPException(503, "تعذّر التحقّق من ملكيّة الجهاز — التحكّم معطّل بأمان") from e
+    # غير موجود أو لمستأجِر آخر ⇒ 404 موحّد (لا تمييز يكشف وجود أجهزة مستأجِر آخر).
+    if owner_tenant is None or owner_tenant != tenant_id:
+        raise HTTPException(404, "الجهاز غير موجود")
+
+
 # ══════════════════════════════════════════════════════════════
 # MQTT Command Publisher
 # ══════════════════════════════════════════════════════════════
@@ -502,6 +541,8 @@ async def send_command(req: CommandRequest, claims: dict = Depends(_verify_token
     # الأمان: tenant_id يُشتقّ من التوكن المُتحقَّق، لا من جسم الطلب (منع انتحال).
     tenant_id = str(claims["tenant_id"])
     user_id = claims.get("sub")
+    # حارس السلامة الفيزيائيّة + العزل: فحص الدور + ملكيّة الجهاز للمستأجِر (fail-closed).
+    await _authorize_device_control(claims, req.device_id)
     success = await send_mqtt_command(req.device_id, req.command, req.payload)
     await log_command(
         rule_id=None,

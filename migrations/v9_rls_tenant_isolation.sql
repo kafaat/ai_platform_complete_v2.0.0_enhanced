@@ -17,10 +17,16 @@ BEGIN
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', p_table);
     EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', p_table);
     -- سياسة العزل (تُسقط القديمة أوّلاً للـidempotency)
+    -- USING: القراءة فشل-مغلق (سياق فارغ ⇒ صفر صفوف). WITH CHECK: عزل الكتابة (دفاع
+    -- عمق) — تحت سياق مستأجِر لا تُكتَب إلّا صفوف tenant_id المطابق (يمنع INSERT/UPDATE
+    -- عابر للمستأجرين). بلا سياق (هجرات/مهامّ نظام) تُسمح الكتابة كما كانت (لا كسر).
     EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', p_table);
     EXECUTE format(
         $ddl$CREATE POLICY tenant_isolation ON %I USING (
           tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', true), '')
+        ) WITH CHECK (
+          NULLIF(current_setting('app.current_tenant', true), '') IS NULL
+          OR tenant_id::TEXT = current_setting('app.current_tenant', true)
         )$ddl$, p_table
     );
 END;
