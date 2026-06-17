@@ -119,11 +119,23 @@ async def lifespan(app: FastAPI):
 
     # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم — في
     # server_settings يفشل الاتصال بـ"unrecognized configuration parameter".
+    #
+    # CRITICAL (شهادة الإنتاج): جدول users عليه FORCE RLS بسياسة user_self التي
+    # تسمح بالوصول عبر app.current_user_id أو app.current_tenant أو
+    # app.current_role='admin'. خدمة الهويّة **يجب** أن تقرأ users بالبريد قبل معرفة
+    # المستأجِر (تسجيل الدخول)، فتحتاج سياق admin. تحت دور sahool_app (NOBYPASSRLS)
+    # بلا هذا السياق تُرشَّح كلّ الصفوف ⇒ register=500، login=401 (المنصّة كلّها معطّلة).
+    # نضبطه على **كلّ** اتّصال في المسبح عبر init (session-level) فيغطّي كلّ استعلامات
+    # users (تسجيل/دخول/MFA/استرجاع…) بلا تكرار. auth وحدها تعمل بسياق admin بحكم دورها.
+    async def _init_auth_conn(conn):
+        await conn.execute("SELECT set_config('app.current_role', 'admin', false)")
+
     _pool = await asyncpg.create_pool(
         DATABASE_URL,
         min_size=2,
         max_size=10,
         statement_cache_size=0,
+        init=_init_auth_conn,
     )
     # FINDING-001: لينشين عزل المستأجرين — ارفض الإقلاع إن تجاوز دور الاتّصال RLS
     # (superuser/BYPASSRLS) ما لم يُعطَّل صراحةً للتطوير. fail-closed افتراضيّاً.
@@ -644,12 +656,7 @@ async def _ensure_admin_user():
         return
     hashed = bcrypt.hashpw(admin_pass.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
     async with _pool.acquire() as conn:
-        # FINDING-001 collateral: تحت دور sahool_app (FORCE RLS)، إدراج المدير يجب أن
-        # يجري بسياق فارغ (WITH CHECK يسمح كتابة بلا سياق). set_config بـlocal=true
-        # ينحصر في معاملة العبارة الأولى فيُفقَد قبل INSERT (عبارة منفصلة)، وقد يحمل
-        # اتّصال المسبح سياق مستأجِر قديماً ⇒ يفشل WITH CHECK. session-level (false)
-        # يُبقي السياق الفارغ ساريّاً حتى INSERT (وهو الافتراضي الآمن: فشل-مغلق).
-        await conn.execute("SELECT set_config('app.current_tenant', '', false)")
+        # سياق admin مضبوط على مستوى المسبح (init) ⇒ WITH CHECK لسياسة user_self يمرّ.
         await conn.execute(
             """
             INSERT INTO users (email, password_hash, full_name, role)
