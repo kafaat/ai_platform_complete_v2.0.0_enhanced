@@ -163,6 +163,11 @@ class ProcessRequest(BaseModel):
     bands: BandMapping
     clip_polygon_geojson: dict | None = None
     apply_cloud_mask: bool = True
+    # تحويل DN→انعكاس [0,1] للمؤشّرات المعتمِدة على المقياس (EVI/SAVI/MSAVI). افتراضيّاً
+    # تُحترَم بيانات scale/offset المُعلَنة في الراستر؛ هذان يتجاوزانها يدويّاً لمصادر
+    # تورّد DN خاماً دون إعلان (مثل بعض أصول Sentinel-2: reflectance_scale=0.0001).
+    reflectance_scale: float | None = None
+    reflectance_offset: float | None = None
     tiling_strategy: str = "pyramid"
     zoom_min: int = 10
     zoom_max: int = 18
@@ -1278,8 +1283,21 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
 
         from rasterio.mask import mask as _rio_mask
 
+        def _refl_params(idx):
+            """(scale, offset) لتحويل DN→انعكاس: تجاوز الطلب أوّلاً، وإلّا المُعلَن في الراستر.
+
+            صدق: لا يُطبَّق إلّا ما هو مُعلَن أو مُمرَّر صراحةً — لا تخمين. هويّة (1,0) ⇒ لا تغيير.
+            """
+            scale = req.reflectance_scale
+            offset = req.reflectance_offset
+            if scale is None and src.scales:  # scale/offset المُعلَن في GDAL (per-band)
+                scale = src.scales[idx - 1]
+            if offset is None and src.offsets:
+                offset = src.offsets[idx - 1]
+            return scale, offset
+
         def band(idx):
-            """يقرأ نطاقاً كـfloat32 مع قصّ اختياري على مضلّع الحقل."""
+            """يقرأ نطاقاً كـfloat32 مع قصّ اختياري + تحويل DN→انعكاس [0,1]."""
             if not idx:
                 return None
             if clip_geom_src is not None:
@@ -1295,10 +1313,13 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
                 a = arr_b[0].astype("float32")
             else:
                 a = src.read(idx).astype("float32")
-            # حوّل nodata إلى NaN كي لا يلوّث حساب المؤشّر
+            # حوّل nodata إلى NaN كي لا يلوّث حساب المؤشّر (قبل المقياس كي لا يُزاح الحارس)
             if src.nodata is not None:
                 a = np.where(a == src.nodata, np.nan, a)
             a = np.where(a == nodata_val, np.nan, a)
+            # تحويل DN→انعكاس [0,1] لصحّة المؤشّرات المعتمِدة على المقياس (EVI/SAVI/MSAVI).
+            _sc, _of = _refl_params(idx)
+            a = band_math.to_reflectance(a, _sc, _of, np)
             return a
 
         def band_raw(idx):
