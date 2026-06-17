@@ -95,7 +95,7 @@ def test_odoo_initializes_base(fname, svc_name, svc):
     cmd = " ".join(cmd) if isinstance(cmd, list) else str(cmd)
     assert "-i base" in cmd or "--init base" in cmd, (
         f"{fname}:{svc_name} بلا أمر تهيئة Odoo (`-i base`) ⇒ entrypoint الافتراضي "
-        "لا يُثبّت base ⇒ relation \"ir_module_module\" does not exist."
+        'لا يُثبّت base ⇒ relation "ir_module_module" does not exist.'
     )
 
 
