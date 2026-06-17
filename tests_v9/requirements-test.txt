@@ -29,3 +29,4 @@ pyotp>=2.9.0
 PyYAML>=6.0
 # raster-service/change_detection يستخدم numpy (test_change_detection يختبره).
 numpy>=1.24.0
+hypothesis>=6.100.0
