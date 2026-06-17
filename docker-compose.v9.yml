@@ -446,6 +446,9 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
+      # FINDING-003: /validate يتطلّب X-Agent-Token مطابقاً لـSAHOOL_AGENT_TOKEN؛ بلا حقنه
+      # هنا تُرجِع الحَوكمة 503 (مغلقة بأمان لكنّها معطّلة). نفس قيمة supervisor-agent.
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     depends_on:
       sahool-postgres:
         condition: service_healthy

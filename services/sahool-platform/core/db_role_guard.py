@@ -13,6 +13,7 @@ RLS (superuser أو BYPASSRLS) — مثل sahool_user (مالك) أو postgres. 
 from __future__ import annotations
 
 _TRUTHY = {"1", "true", "yes", "on"}
+_FALSY = {"0", "false", "no", "off"}
 
 # استعلام probe (يُجريه المُنادي): دور الاتّصال الحاليّ وقدرته على تجاوز RLS.
 ROLE_PROBE_SQL = "SELECT rolsuper, rolbypassrls FROM pg_roles WHERE rolname = current_user"
@@ -24,8 +25,21 @@ def role_can_bypass_rls(rolsuper, rolbypassrls) -> bool:
 
 
 def enforcement_enabled(env_value: str | None) -> bool:
-    """هل فرض دور RLS مُفعَّل؟ (SAHOOL_ENFORCE_RLS_ROLE) — مُطفأ ⇒ تحذير لا رفض."""
+    """[مُتقادِم] دلالة opt-in القديمة (SAHOOL_ENFORCE_RLS_ROLE) — مُبقاة للتوافق.
+    استعمل enforcement_active (fail-closed افتراضيّاً) للمنطق الجديد."""
     return (env_value or "").strip().lower() in _TRUTHY
+
+
+def enforcement_active(allow_bypass_env: str | None, enforce_env: str | None = None) -> bool:
+    """هل فرض دور RLS مُفعَّل؟ **fail-closed افتراضيّاً** (FINDING-001، نقيّ).
+
+    يُفرَض إلّا إذا SAHOOL_ALLOW_RLS_BYPASS_ROLE صريحاً truthy (مهرب التطوير) أو
+    SAHOOL_ENFORCE_RLS_ROLE صريحاً falsy. الغياب ⇒ يُفرَض (آمن في الإنتاج دون ضبط)."""
+    if (allow_bypass_env or "").strip().lower() in _TRUTHY:
+        return False
+    if (enforce_env or "").strip().lower() in _FALSY:
+        return False
+    return True
 
 
 def should_refuse_startup(role_unsafe: bool, enforce: bool) -> bool:

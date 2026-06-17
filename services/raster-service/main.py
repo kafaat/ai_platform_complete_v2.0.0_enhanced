@@ -411,6 +411,13 @@ async def lifespan(app: FastAPI):
     logger.info("raster-service starting (Element84 Earth Search)")
     # اضبط GDAL لـ/vsis3 عند ضبط S3 (no-op إن لم يُضبط) — تخزين COG قابل للتوسّع.
     object_store.gdal_configure()
+    # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
+    # raster يكتب أصول NDVI لكلّ مستأجِر (db_persist، اتّصال per-call).
+    import os as _os
+
+    from shared.db_role_guard import assert_dsn_role_rls_safe
+
+    await assert_dsn_role_rls_safe(_os.getenv("DATABASE_URL", ""), service="raster-service")
     yield
     logger.info("raster-service stopping")
 

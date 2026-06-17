@@ -669,6 +669,10 @@ async def lifespan(app: FastAPI):
     if SAHOOL_DB_URL:
         _pool = await asyncpg.create_pool(SAHOOL_DB_URL, min_size=1, max_size=5)
         logger.info("DB pool ready")
+        # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
+        from shared.db_role_guard import assert_db_role_rls_safe
+
+        await assert_db_role_rls_safe(_pool, service="odoo-bridge")
         await _run_migrations()
     # Odoo: نتّصل فقط حين يكون المزوّد المختار odoo (الأساسي erpnext لا يحتاج Odoo
     # — فلا محاولات اتصال/تحذيرات في بيئة بلا حاوية Odoo).

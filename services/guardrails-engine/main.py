@@ -264,6 +264,11 @@ def get_guardrails_engine() -> SAHOOLGuardrailsEngine:
 @asynccontextmanager
 async def lifespan(app):
     get_guardrails_engine()  # warm up
+    # FINDING-001: لينشين عزل المستأجرين — ارفض الإقلاع إن تجاوز دور الاتّصال RLS
+    # (fail-closed افتراضيّاً). guardrails يكتب قرارات الحوكمة/الموافقات في القاعدة.
+    from shared.db_role_guard import assert_dsn_role_rls_safe
+
+    await assert_dsn_role_rls_safe(os.getenv("DATABASE_URL", ""), service="guardrails-engine")
     yield
 
 
