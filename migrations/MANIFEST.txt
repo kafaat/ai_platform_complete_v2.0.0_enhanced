@@ -236,3 +236,13 @@ v65_harvest_traceability.sql
 # الحظر/التحذير والموافقات، ويعمل كطابور أوامر يستهلكه الـactuator
 # (exec_status='queued'). tenant-isolated عبر _sahool_apply_tenant_rls (v9). idempotent.
 v66_dispatch_decisions.sql
+# v67: تصليب موزِّع القرار — idempotency_key (مفتاح لاتكرار حتميّ) + فهرس فريد جزئيّ
+# على الحالات الحيّة (queued/dispatched) يمنع الإطلاق المزدوج، وتوسيع exec_status
+# بـdispatched/failed لإغلاق دورة الحياة (مستهلِك+سجلّ). يعدّل dispatch_decisions (v66).
+# دورة الحياة محروسة في core/dispatch_lifecycle. idempotent.
+v67_dispatch_hardening.sql
+# v68: سجلّ التنفيذ append-only (execution_ledger) — يُغلِق الحلقة ويقيسها: لكلّ قرار
+# مُسلَّم قيدٌ بنتيجته (executed/failed) + content_hash للتدقيق (مرآة custody_chain v65).
+# مرجع متبادَل مع dispatch_decisions (decision_id) وfarm_ledger الماليّ. tenant-isolated
+# عبر _sahool_apply_tenant_rls (v9). append-only. idempotent.
+v68_execution_ledger.sql

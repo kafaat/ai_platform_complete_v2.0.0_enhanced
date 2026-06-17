@@ -21,10 +21,15 @@ from __future__ import annotations
 import json as _json
 import os
 import uuid as _uuid
+from datetime import UTC, datetime
 
 from core.actuator_command import build_actuator_command
+from core.agronomic_decision import DomainSignal, reconcile_decision, to_urgency
 from core.decision_dispatch import evaluate_dispatch
 from core.dispatch_executor import execute_dispatch
+from core.dispatch_lifecycle import assert_transition, derive_idempotency_key
+from core.dispatch_notification import build_dispatch_notification, normalize_channel
+from core.execution_ledger_entry import build_ledger_entry, normalize_outcome
 from core.guardrails import check_guardrails
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -76,6 +81,60 @@ def _shape_dispatch_row(row) -> dict:
         "created_by": row["created_by"],
         "created_at": created.isoformat() if created is not None else None,
     }
+
+
+class DomainSignalIn(BaseModel):
+    """إشارة مجال واحد كمدخل API — تُطبَّع إلى core.agronomic_decision.DomainSignal."""
+
+    domain: str  # weather | soil | irrigation | pest | economics | yield
+    action: str = "none"  # irrigate | spray | reduce_water | …
+    urgency: str = "none"  # none|low|moderate|high|critical (مرادفات تُطبَّع)
+    params: dict = {}
+    halt: bool = False
+    reason_ar: str = ""
+    confidence: float = 1.0
+
+
+class UnifiedDecisionRequest(BaseModel):
+    """مدخلات المصالحة الموحّدة: حقل + إشارات المجالات المتوازية لتُجمَع في قرار واحد."""
+
+    field_id: str
+    signals: list[DomainSignalIn]
+
+
+@router.post("/api/v1/decision/unified")
+def unified_decision_endpoint(
+    req: UnifiedDecisionRequest,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+) -> dict:
+    """مصالحة إشارات المجالات (طقس/تربة/ريّ/آفات/اقتصاد/غلّة) في قرار موحّد واحد.
+
+    معاينة نقيّة (dry-run) — لا تنفيذ ولا كتابة قاعدة: تُجمِع التوصيات المتوازية وتُصالح
+    تعارضاتها (الريّ↔الرشّ، قيد ميزانيّة الماء) بشفافيّة (reconciliations_ar). الخطّة
+    الناتجة تُغذّي بعدها الموزِّع المحروس (dispatch/evaluate→execute). 404 إن مُطفأ العلم.
+    """
+    if not _dispatch_enabled():
+        raise HTTPException(
+            status_code=404,
+            detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH).",
+        )
+    signals = [
+        DomainSignal(
+            domain=s.domain,
+            action=s.action or "none",
+            urgency=to_urgency(s.urgency),
+            params=dict(s.params),
+            halt=s.halt,
+            reason_ar=s.reason_ar,
+            confidence=s.confidence,
+        )
+        for s in req.signals
+    ]
+    decision = reconcile_decision(req.field_id, signals)
+    out = decision.to_dict()
+    out["reconciled_by"] = str(user.user_id)  # أثر: من طلب المصالحة
+    out["dry_run"] = True  # معاينة فقط — لم يُنفَّذ شيء
+    return out
 
 
 class DispatchEvaluateRequest(BaseModel):
@@ -190,18 +249,44 @@ async def execute_dispatch_endpoint(
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e)) from e
 
+    # مفتاح اللاتكرار يُحسَب لقرار READY فقط (هو وحده يُدرَج حيّاً في الطابور). تصليب
+    # الموزِّع (v67): فهرس فريد جزئيّ يمنع إدراج أمرين حيّين لنفس التوصية ⇒ لا إطلاق مزدوج.
+    idem_key = (
+        derive_idempotency_key(req.recommendation_id, req.action_type, req.field_id)
+        if decision.executable
+        else None
+    )
     decision_id = "disp_" + _uuid.uuid4().hex[:16]
     try:
         async with tenant_connection(user) as conn:
+            # لاتكرار: إن وُجد قرار حيّ (queued/dispatched) بنفس المفتاح ⇒ نُعيده دون
+            # إدراج جديد (إعادة نداء آمنة) — والفهرس الفريد هو الحارس النهائيّ ضدّ السباق.
+            if idem_key is not None:
+                existing = await conn.fetchrow(
+                    "SELECT * FROM dispatch_decisions WHERE idempotency_key = $1 "
+                    "AND exec_status IN ('queued', 'dispatched') ORDER BY created_at DESC LIMIT 1",
+                    idem_key,
+                )
+                if existing is not None:
+                    out = _shape_dispatch_row(existing)
+                    out["replayed"] = True  # صدق: لم يُدرَج جديد — أُعيد القرار الحيّ القائم
+                    out["audit"] = decision.to_audit()
+                    return out
 
             async def _persist(dec, command_dict, exec_status):
+                # ON CONFLICT DO NOTHING على الفهرس الفريد الجزئيّ — حارس قاعديّ ضدّ السباق.
                 await conn.execute(
                     """INSERT INTO dispatch_decisions
                         (decision_id, tenant_id, recommendation_id, action_type, field_id,
                          state, risk_level, required_approvals, approvals_collected,
-                         halt_breaches, warn_breaches, reason_ar, command, exec_status, created_by)
+                         halt_breaches, warn_breaches, reason_ar, command, exec_status,
+                         created_by, idempotency_key)
                        VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9,
-                         $10::jsonb, $11::jsonb, $12, $13::jsonb, $14, $15)""",
+                         $10::jsonb, $11::jsonb, $12, $13::jsonb, $14, $15, $16)
+                       ON CONFLICT (tenant_id, idempotency_key)
+                         WHERE idempotency_key IS NOT NULL
+                           AND exec_status IN ('queued', 'dispatched')
+                       DO NOTHING""",
                     decision_id,
                     str(user.tenant_id),
                     dec.recommendation_id,
@@ -217,6 +302,7 @@ async def execute_dispatch_endpoint(
                     (_json.dumps(command_dict) if command_dict is not None else None),
                     exec_status,
                     str(user.user_id),
+                    (idem_key if exec_status == "queued" else None),
                 )
 
             result = await execute_dispatch(decision, persist=_persist, command=command)
@@ -229,6 +315,53 @@ async def execute_dispatch_endpoint(
     out["decision_id"] = decision_id
     out["audit"] = decision.to_audit()
     return out
+
+
+@router.post("/api/v1/decision/dispatch/consume")
+async def consume_dispatch_queue(
+    channel: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
+) -> dict:
+    """يستهلك طابور القرارات المُدرَجة (queued) ويترجمها إلى إخطارات بشريّة (الشريحة 3).
+
+    المبدأ الصريح: **نبدأ بالبشر لا بالمضخّات** — يطالب القرارات الجاهزة، يبني لكلٍّ حمولة
+    إخطار (SMS/واتساب/مهمّة تطبيق) ليُنفّذها المزارع/الفنّيّ يدويّاً، ثمّ ينقل حالتها
+    queued→dispatched (سُلِّمت للمستهلِك). لا أمر MQTT أعمى. الصدق: يبني الحمولة وينقل
+    الحالة فقط؛ التسليم الفعليّ عبر مُسلِّم القنوات القائم/صفّ المهام طبقة لاحقة. النتيجة
+    النهائيّة (نُفِّذ/فشل) تُسجَّل في السجلّ (الشريحة 4). 404 إن مُطفأ، 503 عند تعذّر القاعدة.
+
+    FOR UPDATE SKIP LOCKED: مستهلِكان متزامنان لا يلتقطان نفس القرار (لا إخطار مزدوج).
+    """
+    if not _dispatch_enabled():
+        raise HTTPException(
+            status_code=404, detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH)."
+        )
+    chan = normalize_channel(channel)
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT * FROM dispatch_decisions WHERE exec_status = 'queued' "
+                "ORDER BY created_at ASC LIMIT $1 FOR UPDATE SKIP LOCKED",
+                limit,
+            )
+            notifications = []
+            for row in rows:
+                target = assert_transition(row["exec_status"], "dispatched")  # fail-closed
+                await conn.execute(
+                    "UPDATE dispatch_decisions SET exec_status = $1 WHERE decision_id = $2",
+                    target,
+                    row["decision_id"],
+                )
+                notifications.append(build_dispatch_notification(row, chan))
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("استهلاك طابور التوزيع", e) from e
+    return {
+        "consumed": len(notifications),
+        "channel": chan,
+        "consumed_by": str(user.user_id),
+        "notifications": notifications,
+    }
 
 
 @router.get("/api/v1/decision/dispatch/decisions")
@@ -286,3 +419,151 @@ async def list_dispatch_queue(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("قراءة طابور التوزيع", e) from e
     return {"queued": [_shape_dispatch_row(r) for r in rows], "count": len(rows)}
+
+
+def _shape_ledger_row(row) -> dict:
+    """يحوّل صفّ execution_ledger إلى dict عرض — يفكّ JSONB ويُنسّق الوقت (نقيّ)."""
+    detail = row["detail"]
+    if isinstance(detail, str):
+        detail = _json.loads(detail)
+    recorded = row["recorded_at"]
+    return {
+        "ledger_id": row["ledger_id"],
+        "decision_id": row["decision_id"],
+        "action_type": row["action_type"],
+        "field_id": row["field_id"],
+        "channel": row["channel"],
+        "outcome": row["outcome"],
+        "note_ar": row["note_ar"],
+        "detail": detail,
+        "content_hash": row["content_hash"],
+        "recorded_by": row["recorded_by"],
+        "recorded_at": recorded.isoformat() if recorded is not None else None,
+    }
+
+
+class LedgerRecordRequest(BaseModel):
+    """مدخلات تسجيل نتيجة تنفيذ قرار مُسلَّم: القرار + النتيجة + سياق بشريّ."""
+
+    decision_id: str
+    outcome: str  # executed | failed (غيرها ⇒ 400)
+    channel: str | None = None
+    note_ar: str = ""
+    detail: dict = {}
+
+
+@router.post("/api/v1/decision/ledger")
+async def record_execution_outcome(
+    req: LedgerRecordRequest,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
+) -> dict:
+    """يسجّل نتيجة تنفيذ قرار مُسلَّم (executed/failed) ويُغلِق الحلقة (الشريحة 4).
+
+    يربط القرار بنتيجته المُقاسة في execution_ledger (append-only، content_hash للتدقيق)
+    وينقل dispatch_decisions.exec_status من dispatched إلى executed/failed (محروس). الصدق:
+    لا يُسجَّل إلّا لقرار في حالة dispatched (سبق تسليمه للمستهلِك) — وإلّا 409. 400 لنتيجة
+    مجهولة، 404 إن غاب القرار (أو لمستأجِر آخر — RLS)، 503 عند تعذّر القاعدة. خلف العلم.
+    """
+    if not _dispatch_enabled():
+        raise HTTPException(
+            status_code=404, detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH)."
+        )
+    try:
+        outcome = normalize_outcome(req.outcome)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    ledger_id = "led_" + _uuid.uuid4().hex[:16]
+    recorded_at = datetime.now(UTC)
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT * FROM dispatch_decisions WHERE decision_id = $1 FOR UPDATE",
+                req.decision_id,
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="القرار غير موجود (أو لمستأجِر آخر).")
+            try:
+                target = assert_transition(row["exec_status"], outcome)  # dispatched→outcome
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"لا يُسجَّل تنفيذ لقرار في حالة {row['exec_status']!r}: {e}",
+                ) from e
+
+            entry = build_ledger_entry(
+                row,
+                outcome=target,
+                recorded_at=recorded_at.isoformat(),
+                channel=req.channel,
+                note_ar=req.note_ar,
+                detail=req.detail,
+            )
+            await conn.execute(
+                """INSERT INTO execution_ledger
+                    (ledger_id, tenant_id, decision_id, action_type, field_id, channel,
+                     outcome, note_ar, detail, content_hash, recorded_by, recorded_at)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12)""",
+                ledger_id,
+                str(user.tenant_id),
+                entry["decision_id"],
+                entry["action_type"],
+                entry["field_id"],
+                entry["channel"],
+                entry["outcome"],
+                entry["note_ar"],
+                _json.dumps(entry["detail"]),
+                entry["content_hash"],
+                str(user.user_id),
+                recorded_at,
+            )
+            await conn.execute(
+                "UPDATE dispatch_decisions SET exec_status = $1 WHERE decision_id = $2",
+                target,
+                req.decision_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تسجيل نتيجة التنفيذ", e) from e
+
+    out = dict(entry)
+    out["ledger_id"] = ledger_id
+    out["recorded_by"] = str(user.user_id)
+    return out
+
+
+@router.get("/api/v1/decision/ledger")
+async def list_execution_ledger(
+    field_id: str | None = None,
+    decision_id: str | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+) -> dict:
+    """سجلّ التنفيذ للمستأجِر (الأحدث أوّلاً) — معزول بـRLS، خلف العلم.
+
+    قراءة فقط. تصفية اختياريّة بـfield_id/decision_id. 404 إن مُطفأ، 503 عند تعذّر القاعدة.
+    """
+    if not _dispatch_enabled():
+        raise HTTPException(
+            status_code=404, detail="ميزة موزِّع القرار غير مُفعَّلة (اضبط SAHOOL_DECISION_DISPATCH)."
+        )
+    clauses, args = [], []
+    if field_id:
+        args.append(field_id)
+        clauses.append(f"field_id = ${len(args)}")
+    if decision_id:
+        args.append(decision_id)
+        clauses.append(f"decision_id = ${len(args)}")
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    args.append(limit)
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                f"SELECT * FROM execution_ledger{where} "
+                f"ORDER BY recorded_at DESC LIMIT ${len(args)}",
+                *args,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سجلّ التنفيذ", e) from e
+    return {"ledger": [_shape_ledger_row(r) for r in rows], "count": len(rows)}
