@@ -115,12 +115,17 @@ app = FastAPI(
 # يُنشأ pool واحد عند الإقلاع لو DATABASE_URL مضبوط؛ وإلّا يبقى None
 # (الـendpoints المعتمدة على DB تُرجع 503 بوضوح بدل التعطّل).
 # لتشغيل القاعدة: migrations/bootstrap_postgres.sh ثم ضبط DATABASE_URL.
-_DB_POOL = None  # asyncpg.Pool | None
+_DB_POOL = None  # asyncpg.Pool | None — مسبح التطبيق (sahool_app، NOBYPASSRLS، معزول)
+# مسبح المهامّ الخلفيّة (المرسِل/المجدوِل) — دور sahool_jobs (BYPASSRLS) يقرأ عابراً
+# للمستأجرين قصداً (HIGH-002: جداول event_outbox/الطقس تُقرأ بلا سياق مستأجِر بالتصميم).
+# منفصل عن _DB_POOL: التطبيق يبقى معزولاً (RLS)، والوظائف وحدها تتجاوز عبر هذا المسبح.
+# JOBS_DATABASE_URL يشير لدور sahool_jobs؛ غيابه ⇒ يعود إلى DATABASE_URL (تطوير).
+_JOBS_POOL = None  # asyncpg.Pool | None
 
 
 @app.on_event("startup")
 async def _init_db_pool():
-    global _DB_POOL
+    global _DB_POOL, _JOBS_POOL
     dsn = os.getenv("DATABASE_URL", "")
     if not dsn:
         logging.warning("DATABASE_URL غير مضبوط — endpoints القاعدة معطّلة (503)")
@@ -137,6 +142,17 @@ async def _init_db_pool():
     except Exception as e:  # noqa: BLE001
         logging.error("فشل إنشاء pool القاعدة: %s", e)
         _DB_POOL = None
+        return
+    # مسبح الوظائف: لا يُطبَّق عليه حارس RLS (BYPASSRLS مقصود لمساره فقط).
+    jobs_dsn = os.getenv("JOBS_DATABASE_URL", "") or dsn
+    try:
+        _JOBS_POOL = await asyncpg.create_pool(
+            jobs_dsn, statement_cache_size=0, min_size=1, max_size=4
+        )
+        logging.info("✓ pool المهامّ الخلفيّة جاهز (sahool_jobs)")
+    except Exception as e:  # noqa: BLE001 — غيابه يُعطّل المرسِل لا المنصّة
+        logging.warning("فشل pool المهامّ: %s — المرسِل سيعود إلى مسبح التطبيق", e)
+        _JOBS_POOL = None
 
 
 async def _assert_db_role_rls_safe(pool) -> None:
@@ -414,7 +430,9 @@ async def _start_outbox_worker():
         async def _publish(subject: str, payload: bytes) -> None:
             await _NATS_CONN.publish(subject, payload)
 
-        _OUTBOX_WORKER = OutboxWorker(_DB_POOL, _publish)
+        # المرسِل يقرأ event_outbox عابراً للمستأجرين ⇒ يستعمل مسبح الوظائف
+        # (sahool_jobs/BYPASSRLS). تحت RLS الجديدة (v72) لا يصلح مسبح التطبيق هنا.
+        _OUTBOX_WORKER = OutboxWorker(_JOBS_POOL or _DB_POOL, _publish)
         _OUTBOX_TASK = asyncio.create_task(_OUTBOX_WORKER.run())
         logging.info("✓ OutboxWorker بدأ — relay الأحداث إلى %s", nats_url)
     except Exception as e:  # noqa: BLE001 — غياب NATS لا يُسقط المنصّة
