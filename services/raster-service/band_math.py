@@ -20,6 +20,25 @@ def _eps(arr, _np):
     return _np.where(arr == 0, 1e-10, arr)
 
 
+def to_reflectance(arr, scale, offset, _np):
+    """يحوّل قيم النطاق الخام إلى انعكاس [0,1] بتطبيق scale/offset المُعلَن (نقيّ).
+
+    **لماذا**: صيغ EVI/SAVI/MSAVI تحوي ثوابت جمعيّة (‎+1‎، ‎+0.5‎، ‎6·RED−7.5·BLUE‎)
+    مُعايَرة لانعكاس [0,1]. مصادر مثل Sentinel-2 L2A تخزّن الانعكاس كأعداد صحيحة
+    (DN = انعكاس × 10000، وقد يضاف إزاحة baseline). تمرير DN الخام لهذه المؤشّرات
+    يشوّهها بصمت. هذه الدالّة تُطبّق التحويل القانونيّ ‎reflectance = DN·scale + offset‎.
+
+    هويّة آمنة: scale=None/1.0 وoffset=None/0.0 ⇒ تُعيد المصفوفة كما هي (لا انحدار
+    للمصادر التي لا تُعلن مقياساً). المؤشّرات النسبيّة (NDVI…) غير متأثّرة بالمقياس،
+    لكنّ الإزاحة (offset) تؤثّر فيها أيضاً — فتطبيقها يصحّحها كذلك.
+    """
+    s = 1.0 if scale is None else float(scale)
+    o = 0.0 if offset is None else float(offset)
+    if s == 1.0 and o == 0.0:
+        return arr
+    return arr * s + o
+
+
 def ndvi(red, nir, _np):
     """NDVI = (NIR - RED) / (NIR + RED) — الغطاء النباتي."""
     return (nir - red) / _eps(nir + red, _np)
