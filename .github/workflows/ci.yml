@@ -86,7 +86,11 @@ jobs:
         with: {python-version: "3.12"}
       # المشروع موحّد على ruff (ruff.toml): يغطّي lint + تنسيق + ترتيب الاستيراد،
       # فاستُبدل black/isort بـ`ruff format --check` لتطابق التنسيق المعتمد.
-      - run: pip install ruff mypy
+      # ثبّت إصدار ruff: `pip install ruff` (طليق) يجلب أحدث إصدار، وقواعد التنسيق
+      # تتغيّر بين الإصدارات ⇒ تنسيق محلّيّ سليم يفشل في CI لا لشيء سوى انجراف الإصدار
+      # (حدث فعلاً: ملفّ «already formatted» محلّيّاً صار «would reformat» في CI).
+      # التثبيت يجعل التنسيق حتميّاً وقابلاً لإعادة الإنتاج محلّيّاً. حدّثه عمداً عند الرغبة.
+      - run: pip install ruff==0.15.8 mypy
       - run: ruff check services/ bots/ agents/ tests_v9/
       - run: ruff format --check services/ bots/ agents/ tests_v9/
       # mypy إرشادي: أسماء مجلّدات الخدمات مُشرطَنة (services/guardrails-engine)
