@@ -251,3 +251,8 @@ v68_execution_ledger.sql
 # وأولويّة، تُستشار في core/policy_registry ضمن مسار القرار الموحّد والموزِّع. تكمّل
 # الحواجز لا تستبدلها. tenant-isolated عبر _sahool_apply_tenant_rls (v9). idempotent.
 v69_decision_policies.sql
+# v70: عزل كتابة المستأجرين (WITH CHECK) — دفاع عمق على RLS. v9 صار يعرّف السياسة
+# بـWITH CHECK (يمنع INSERT/UPDATE عابر المستأجرين تحت سياق مستأجِر، ويُبقي كتابة
+# النظام/الهجرات بلا سياق). هذا الملفّ يَنشُر التغيير: يُعيد تطبيق _sahool_apply_tenant_rls
+# على كلّ جدول يحمل سياسة tenant_isolation (حلقة v56 لا تلمس المُمَأسَسة). idempotent.
+v70_rls_with_check_propagate.sql

@@ -2030,7 +2030,9 @@ class PrescriptionRequest(BaseModel):
 
 
 @app.post("/v1/fields/{field_id}/prescription")
-async def field_prescription(field_id: str, req: PrescriptionRequest):
+async def field_prescription(
+    field_id: str, req: PrescriptionRequest, x_agent_token: str = Header(None)
+):
     """وصفة مناطق الإدارة (VRT) من شبكة المؤشّر — سدّ Sprint 5b.
 
     يبني شبكة المؤشّر للحقل (نفس مسار indicator-grid: COG حقيقي إن وُجد وإلّا
@@ -2041,6 +2043,7 @@ async def field_prescription(field_id: str, req: PrescriptionRequest):
     صدق: real_data ينعكس من مصدر الشبكة؛ المعدّلات إرشاديّة (قرار agronomic
     يحتاج تحقّقاً ميدانيّاً).
     """
+    _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
     import indicator_grid as ig
     import management_zones as mz
 
@@ -2096,13 +2099,14 @@ async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> d
 
 
 @app.post("/v1/fields/{field_id}/change")
-async def field_change(field_id: str, req: FieldChangeRequest):
+async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: str = Header(None)):
     """كشف التغيّر المكاني (per-pixel 2D) للحقل بين تاريخين — أين تدهور/تحسّن.
 
     يبني شبكتي المؤشّر الحقيقيّتين (من COG المقصوص لكلّ تاريخ، نفس مسار
     indicator-grid) ويُمرّرهما لـdetect_change. صدق: إن لم تتوفّر شبكة حقيقيّة
     لأحد التاريخين (لا COG / لا rasterio) يُرجِع real_data=False بلا تغيّر مُفبرَك.
     """
+    _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
     grid_a = await _real_field_grid(field_id, req.index, req.date_a, req.grid)
     grid_b = await _real_field_grid(field_id, req.index, req.date_b, req.grid)
 
