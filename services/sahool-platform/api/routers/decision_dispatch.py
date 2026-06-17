@@ -25,6 +25,7 @@ from datetime import UTC, datetime
 
 from core.actuator_command import build_actuator_command
 from core.agronomic_decision import DomainSignal, reconcile_decision, to_urgency
+from core.cross_domain_optimization import optimize_irrigation
 from core.decision_dispatch import evaluate_dispatch
 from core.dispatch_executor import execute_dispatch
 from core.dispatch_lifecycle import assert_transition, derive_idempotency_key
@@ -96,10 +97,16 @@ class DomainSignalIn(BaseModel):
 
 
 class UnifiedDecisionRequest(BaseModel):
-    """مدخلات المصالحة الموحّدة: حقل + إشارات المجالات المتوازية لتُجمَع في قرار واحد."""
+    """مدخلات المصالحة الموحّدة: حقل + إشارات المجالات المتوازية لتُجمَع في قرار واحد.
+
+    `min_mm_for_yield` (اختياريّ): إن وُجد، تُفعَّل أمثَلة الماء متعدّدة الأهداف (الشريحة 7)
+    على إجراء الريّ — توازن كفاءة الماء وأمان الغلّة وتُرفَق المفاضلة في الناتج.
+    """
 
     field_id: str
     signals: list[DomainSignalIn]
+    min_mm_for_yield: float | None = None
+    water_budget_mm: float | None = None
 
 
 @router.post("/api/v1/decision/unified")
@@ -110,8 +117,9 @@ def unified_decision_endpoint(
     """مصالحة إشارات المجالات (طقس/تربة/ريّ/آفات/اقتصاد/غلّة) في قرار موحّد واحد.
 
     معاينة نقيّة (dry-run) — لا تنفيذ ولا كتابة قاعدة: تُجمِع التوصيات المتوازية وتُصالح
-    تعارضاتها (الريّ↔الرشّ، قيد ميزانيّة الماء) بشفافيّة (reconciliations_ar). الخطّة
-    الناتجة تُغذّي بعدها الموزِّع المحروس (dispatch/evaluate→execute). 404 إن مُطفأ العلم.
+    تعارضاتها (الريّ↔الرشّ، قيد ميزانيّة الماء) بشفافيّة (reconciliations_ar). عند تمرير
+    `min_mm_for_yield` تُطبَّق أمثَلة الماء متعدّدة الأهداف على إجراء الريّ (الشريحة 7).
+    الخطّة الناتجة تُغذّي بعدها الموزِّع المحروس (dispatch/evaluate→execute). 404 إن مُطفأ.
     """
     if not _dispatch_enabled():
         raise HTTPException(
@@ -132,6 +140,20 @@ def unified_decision_endpoint(
     ]
     decision = reconcile_decision(req.field_id, signals)
     out = decision.to_dict()
+
+    # أمثَلة الماء متعدّدة الأهداف (الشريحة 7) — اختياريّة، تُطبَّق على إجراء الريّ المُصالَح.
+    if req.min_mm_for_yield is not None and decision.is_ready:
+        for action in out["action_plan"]:
+            if "irrig" in action["action"] and "water_mm" in action.get("params", {}):
+                opt = optimize_irrigation(
+                    float(action["params"]["water_mm"]),
+                    min_mm_for_yield=req.min_mm_for_yield,
+                    budget_mm=req.water_budget_mm,
+                )
+                action["params"]["water_mm"] = opt.applied_water_mm
+                action["optimization"] = opt.to_dict()
+                break
+
     out["reconciled_by"] = str(user.user_id)  # أثر: من طلب المصالحة
     out["dry_run"] = True  # معاينة فقط — لم يُنفَّذ شيء
     return out

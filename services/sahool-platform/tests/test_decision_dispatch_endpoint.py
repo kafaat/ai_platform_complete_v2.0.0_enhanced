@@ -175,6 +175,32 @@ def test_unified_reconciles_irrigation_vs_spray(monkeypatch):
     assert len(out["reconciliations_ar"]) == 2
 
 
+def test_unified_applies_water_optimization(monkeypatch):
+    from api.routers.decision_dispatch import (
+        DomainSignalIn,
+        UnifiedDecisionRequest,
+        unified_decision_endpoint,
+    )
+
+    monkeypatch.setenv("SAHOOL_DECISION_DISPATCH", "true")
+    req = UnifiedDecisionRequest(
+        field_id="f1",
+        signals=[
+            DomainSignalIn(
+                domain="irrigation", action="irrigate", urgency="high", params={"water_mm": 20.0}
+            ),
+        ],
+        min_mm_for_yield=12.0,  # يفعّل أمثَلة الماء (الشريحة 7)
+    )
+    out = unified_decision_endpoint(req=req, user=_USER)
+    irr = next(a for a in out["action_plan"] if "irrig" in a["action"])
+    # أُمثِلت الكمّيّة إلى حدّ الغلّة تقريباً (وُفِّر ماء) مع إرفاق المفاضلة.
+    assert irr["params"]["water_mm"] <= 20.0
+    assert "optimization" in irr
+    assert irr["optimization"]["requested_water_mm"] == 20.0
+    assert irr["optimization"]["water_saved_mm"] >= 0
+
+
 def test_unified_halt_blocks(monkeypatch):
     from api.routers.decision_dispatch import (
         DomainSignalIn,

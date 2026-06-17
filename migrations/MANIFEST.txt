@@ -246,3 +246,8 @@ v67_dispatch_hardening.sql
 # مرجع متبادَل مع dispatch_decisions (decision_id) وfarm_ledger الماليّ. tenant-isolated
 # عبر _sahool_apply_tenant_rls (v9). append-only. idempotent.
 v68_execution_ledger.sql
+# v69: سجلّ سياسات القرار (decision_policies) — حوكمة معلنة قابلة للتهيئة لكلّ مستأجِر:
+# لكلّ سياسة نطاق (scope) وأثر (effect: auto_block/require_approvals/water_cap_pct)
+# وأولويّة، تُستشار في core/policy_registry ضمن مسار القرار الموحّد والموزِّع. تكمّل
+# الحواجز لا تستبدلها. tenant-isolated عبر _sahool_apply_tenant_rls (v9). idempotent.
+v69_decision_policies.sql
