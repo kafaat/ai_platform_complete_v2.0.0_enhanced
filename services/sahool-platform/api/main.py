@@ -40,6 +40,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import jwt  # PyJWT
 from core.api_adapter import (
+    db_probe_ok,
     handle_healthz,
     handle_readyz,
 )
@@ -965,9 +966,19 @@ def healthz():
 
 
 @app.get("/readyz")
-def readyz():
-    """Readiness — يفحص النواة (skills_registry، canonical_schemas، ...)."""
+async def readyz():
+    """Readiness — يفحص النواة (skills_registry/schemas) + اعتماديّة القاعدة الفعليّة.
+
+    MED-001 (شهادة P12): كان يفحص النواة (in-memory) فقط فيُرجِع ready رغم سقوط
+    Postgres (إيجابيّة كاذبة). الآن يفحص المسبح فعليّاً (SELECT 1) عبر db_probe_ok."""
     resp = handle_readyz()
+    if resp.status_code != 200:
+        return JSONResponse(status_code=resp.status_code, content=resp.body)
+    if not await db_probe_ok(_DB_POOL):
+        body = dict(resp.body)
+        body.update({"status": "not ready", "db": "down"})
+        logging.warning("readyz: فحص القاعدة فشل — not ready (503)")
+        return JSONResponse(status_code=503, content=body)
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 

@@ -265,6 +265,23 @@ def handle_readyz() -> ApiResponse:
     )
 
 
+async def db_probe_ok(pool) -> bool:
+    """فحص اعتماديّة القاعدة الفعليّ للجاهزيّة (MED-001، شهادة P12).
+
+    handle_readyz يفحص النواة (in-memory) فقط، فكان readyz يُرجِع ready رغم سقوط
+    Postgres (إيجابيّة كاذبة توجّه المنظّم حركةً لنسخة لا تخدم القاعدة). هذه الدالّة
+    تُجري SELECT 1 فعليّاً. pool=None ⇒ True (تشغيل بلا قاعدة مقصود — endpoints
+    القاعدة تُرجِع 503 صراحةً)؛ pool قائم لكن الفحص يفشل ⇒ False (سقوط أثناء التشغيل)."""
+    if pool is None:
+        return True
+    try:
+        async with pool.acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        return True
+    except Exception:  # noqa: BLE001 — أيّ تعذّر اتّصال = ليست جاهزة
+        return False
+
+
 # ─── Reset (لاختبارات؛ لا للإنتاج) ────────────────────────────────
 
 
