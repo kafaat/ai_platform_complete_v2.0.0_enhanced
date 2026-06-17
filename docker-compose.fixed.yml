@@ -311,6 +311,43 @@ services:
       retries: 3
 
   # ═══════════════════════════════════════════════════════════════
+  # 9b. SAHOOL Platform — المنطق الأساسي (الحقول/الحصاد/TrueUp/الأنشطة)
+  # FINDING-002 (تدقيق): كانت مفقودة هنا ⇒ نداءات supervisor-agent إليها تفشل
+  # صامتاً (PLATFORM_URL=http://sahool-platform:8000). أُضيفت من تعريف v9.yml
+  # (بلا اعتماد sahool-migrate غير الموجود هنا — fixed.yml يُهيّئ عبر initdb).
+  # ═══════════════════════════════════════════════════════════════
+  sahool-platform:
+    build:
+      context: .
+      dockerfile: services/sahool-platform/Dockerfile
+    restart: unless-stopped
+    environment:
+      SAHOOL_JWT_SECRET: ${JWT_SECRET}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      # تطوير محلّيّ فقط (انظر بقيّة الخدمات): fixed.yml لا يُنشئ sahool_app ⇒ نُعطّل
+      # حارس FINDING-001 صراحةً. الإنتاج v9.yml يستعمل sahool_app ⇒ يبقى مُفعَّلاً.
+      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
+      WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
+      SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-redis:
+        condition: service_healthy
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+
+  # ═══════════════════════════════════════════════════════════════
   # 10. Guardrails Engine
   # ═══════════════════════════════════════════════════════════════
   sahool-guardrails-engine:
