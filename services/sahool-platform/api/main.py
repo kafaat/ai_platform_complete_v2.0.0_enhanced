@@ -135,8 +135,14 @@ async def _init_db_pool():
         import asyncpg
 
         # statement_cache_size=0 لتوافق PgBouncer (مبدأ موثّق)
-        _DB_POOL = await asyncpg.create_pool(dsn, statement_cache_size=0, min_size=1, max_size=10)
-        logging.info("✓ pool القاعدة جاهز")
+        # BLOCKER-01: max_size=10 ثابت كان يوقف المنصّة عند 10 طلبات متزامنة. صار
+        # قابلاً للضبط عبر DB_POOL_MIN/MAX (افتراض 5/20) لتوسّع الإنتاج.
+        _pool_min = int(os.getenv("DB_POOL_MIN", "5"))
+        _pool_max = max(_pool_min, int(os.getenv("DB_POOL_MAX", "20")))
+        _DB_POOL = await asyncpg.create_pool(
+            dsn, statement_cache_size=0, min_size=_pool_min, max_size=_pool_max
+        )
+        logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
         raise  # رفض إقلاع متعمَّد (دور يتجاوز RLS + الفرض مُفعَّل) — لا تبتلعه
