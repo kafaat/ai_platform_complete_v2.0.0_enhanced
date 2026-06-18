@@ -63,3 +63,27 @@
 | `services/sahool-platform/api/imagery_automation.py:340` | imagery_automation_fields |
 
 > البوّابة: `tests_v9/test_tenant_query_audit.py` — أيّ RAW جديد خارج الـallowlist يُفشِل CI.
+
+---
+
+## تحديث (شهادة الإنتاج HIGH-001): تدقيق الاستعلامات الخام تحت السياقات المُتجاوِزة لـRLS
+
+أبلغت شهادة الإنتاج عن «30 استعلاماً خاماً غير مُصنَّف على جداول المستأجرين» (auth 16،
+guardrails/human_in_loop 6، event_replay 3، field_lifecycle 3، actuator 1، soil 1)
+مع خطر تسرّب عابر. أداة `tenant_query_audit.py` تُصنّفها أصلاً (275 استعلاماً: 129
+RLS_CONN، 84 DELEGATED، 21 APP_FILTER، 10 EXPLICIT، 31 RAW مُبرَّر). لكنّ هذه الجولة
+أدخلت **سياقَين يتجاوزان RLS قصداً**، فأُعيد تدقيق المواقع تحتهما:
+
+| السياق | المسار | الجداول الملموسة | الحكم |
+|---|---|---|---|
+| `app.current_role='admin'` (مسبح auth) | `services/auth/main.py` (16) | `users`, `audit_log` فقط | **آمن** — نطاق الهويّة؛ auth يقرأ بالبريد قبل معرفة المستأجِر (تصميم) |
+| `sahool_jobs` (BYPASSRLS) | `api/event_bus.py` (المرسِل) | `event_outbox`, `events` فقط | **آمن** — نطاق المرسِل |
+| `sahool_jobs` (BYPASSRLS) | `api/weather_automation.py` (المجدوِل) | `weather_automation_cache/locations` فقط | **آمن** — نطاق المجدوِل |
+| `sahool_app` (NOBYPASSRLS) | guardrails/event_replay/field_lifecycle/actuator/soil | جداول مستأجَرة | **آمن بـfail-closed** — استعلام بلا سياق ⇒ صفر صفوف (لا يُسرِّب) |
+
+**الخلاصة:** لا تسرّب عابر. السياقان المتجاوِزان محصوران بجداول نطاقهما (مُتحقَّق آليّاً)،
+وبقيّة المواقع محميّة بـfail-closed RLS تحت الدور المقيّد.
+
+**حارس جديد:** `tests_v9/test_elevated_context_scope.py` يثبت أنّ auth (سياق admin) لا
+يلمس إلّا جداول الهويّة، وأنّ مساري `sahool_jobs` محصوران بنطاقهما — فأيّ استعلام مستقبليّ
+يُوسّع نطاق سياق متجاوِز (تسرّب محتمل) يُفشِل CI.
