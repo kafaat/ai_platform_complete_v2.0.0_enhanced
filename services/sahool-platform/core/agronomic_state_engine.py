@@ -195,9 +195,13 @@ def _signal_age_days(observed_at: str | None) -> float | None:
         return None
     try:
         dt = datetime.fromisoformat(observed_at.replace("Z", "+00:00"))
+        # BLOCKER-02: طابع بلا منطقة زمنيّة (mobile/IoT) ⇒ naive؛ طرحه من now(UTC)
+        # المُدرَكة يرفع TypeError (غير مُلتقَط) فيُسقِط محرّك الحالة. نفترض UTC.
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
         now = datetime.now(UTC)
         return (now - dt).total_seconds() / 86400.0
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError, TypeError):
         return None
 
 
