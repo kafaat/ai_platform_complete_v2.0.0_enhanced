@@ -1,0 +1,6 @@
+{"ts":"2026-06-18","type":"merge","ref":"PR#340","summary":"weather-polygon-worker (P0): ربط التنبّؤ بالحقول مكانيّاً عبر ST_Within، دور sahool_jobs، نمط outbox"}
+{"ts":"2026-06-18","type":"merge","ref":"PR#341","summary":"أساس FOES (work_orders + v75) + weather-signal-engine (P1)"}
+{"ts":"2026-06-18","type":"merge","ref":"PR#342","summary":"3 نوى نقيّة: recommendation→work_order + season_comparison + crop_risk"}
+{"ts":"2026-06-18","type":"discovery","area":"divergence","summary":"v05 المحليّة تباعدت: لا weather-map-api ولا منفذ 8210/8084 في هذا المستودع؛ المعتمَد v74_weather_intelligence.sql"}
+{"ts":"2026-06-18","type":"build","area":"core","summary":"طبقة Plant-Soil Feedback (P3 من ورقة Science): crop_rotation_intelligence + soil_feedback_proxy (نقيّتان)"}
+{"ts":"2026-06-18","type":"build","area":"agent-memory","summary":"إنشاء طبقة ذاكرة الوكلاء (MEMORY/FACTS/CORRECTIONS/SCHEMA_FACTS/TEST_FACTS/CHECKLIST) مُتحقَّقة مقابل الكود"}
