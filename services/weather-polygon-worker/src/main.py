@@ -1,0 +1,137 @@
+"""weather-polygon-worker — يربط تنبّؤ الطقس بالحقول مكانيّاً (P0، غلاف رفيع).
+
+عند حدث sahool.weather.forecast.updated: لكلّ حقل، يجد خلايا شبكة الطقس داخل مضلّعه
+(ST_Within على fields.geom)، يجمع تنبّؤها، ويحسب سجلّ التراكب + الإشارات عبر **النواة
+النقيّة المُختبَرة** (core.weather_overlay_pipeline)، ثمّ يكتبها وينشر اكتمال التراكب.
+
+أمن: يتّصل بدور **sahool_jobs** (BYPASSRLS) عبر JOBS_DATABASE_URL — مهمّة خلفيّة عابرة
+للمستأجرين بالتصميم (تقرأ كلّ الحقول، تكتب تراكب كلّ مستأجِر). لا postgres superuser.
+النشر بعد إتمام المعاملة (نمط outbox: نجاح القاعدة أوّلاً، ثمّ NATS — فشل النشر لا يُفقِد
+التراكب). asyncpg (لا SQLAlchemy) مطابقةً للمنصّة، ومواضيع NATS ببادئة sahool.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+import os
+
+import asyncpg
+import nats
+from core.weather_overlay_pipeline import build_overlay_record, build_signal_records
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger("weather-polygon-worker")
+
+JOBS_DSN = os.getenv("JOBS_DATABASE_URL") or os.getenv("DATABASE_URL", "")
+NATS_URL = os.getenv("NATS_URL", "nats://sahool-nats:4222")
+HORIZON_HOURS = int(os.getenv("WEATHER_HORIZON_HOURS", "168"))
+
+_FIELDS_SQL = "SELECT field_id, tenant_id FROM fields WHERE geom IS NOT NULL"
+_GRID_IN_FIELD_SQL = (
+    "SELECT g.grid_id AS cell_key FROM weather_grid g "
+    "JOIN fields f ON ST_Within(g.geom, f.geom) WHERE f.field_id = $1"
+)
+_FORECAST_SQL = (
+    "SELECT date_trunc('hour', wf.time) AS hour, wf.grid_id AS cell_key, "
+    "wf.temperature_2m_c AS temp_avg, wf.temperature_2m_c AS temp_min, "
+    "wf.temperature_2m_c AS temp_max, wf.humidity_percent AS humidity, "
+    "wf.wind_speed_10m_ms AS wind_speed, wf.wind_speed_10m_ms AS wind_gust, "
+    "wf.precipitation_mm AS precip_sum, wf.precipitation_probability AS precip_prob, "
+    "wf.et0_mm AS et0, wf.delta_t_c AS delta_t "
+    "FROM weather_forecasts wf "
+    "WHERE wf.grid_id = ANY($1::text[]) "
+    "AND wf.time BETWEEN NOW() AND NOW() + ($2 || ' hours')::interval"
+)
+_UPSERT_OVERLAY = (
+    "INSERT INTO field_weather_overlay (field_id, tenant_id, time, temperature_min_c, "
+    "temperature_max_c, temperature_avg_c, humidity_avg_percent, wind_speed_avg_ms, "
+    "wind_gust_max_ms, precipitation_sum_mm, precipitation_probability, et0_sum_mm, "
+    "delta_t_avg_c, spray_suitability_score, disease_risk_score, heat_stress_hours, "
+    "frost_risk_hours, trafficability_score, grid_cells_count, spatial_coverage) "
+    "VALUES ($1,$2,NOW(),$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) "
+    "ON CONFLICT (tenant_id, field_id, time) DO NOTHING"
+)
+_INSERT_SIGNAL = (
+    "INSERT INTO weather_signals (tenant_id, field_id, signal_type, confidence_score, "
+    "time, valid_until, payload) VALUES ($1,$2,$3,$4,NOW(), "
+    "NOW() + ($5 || ' hours')::interval, CAST($6 AS jsonb))"
+)
+
+
+async def process_field(conn, field_id: str, tenant_id: str) -> dict | None:
+    cells = [r["cell_key"] for r in await conn.fetch(_GRID_IN_FIELD_SQL, field_id)]
+    if not cells:
+        return None
+    rows = [dict(r) for r in await conn.fetch(_FORECAST_SQL, cells, str(HORIZON_HOURS))]
+    overlay = build_overlay_record(field_id, tenant_id, rows)
+    if overlay is None:
+        return None
+    async with conn.transaction():
+        o = overlay
+        await conn.execute(
+            _UPSERT_OVERLAY,
+            o["field_id"],
+            o["tenant_id"],
+            o["temperature_min_c"],
+            o["temperature_max_c"],
+            o["temperature_avg_c"],
+            o["humidity_avg_percent"],
+            o["wind_speed_avg_ms"],
+            o["wind_gust_max_ms"],
+            o["precipitation_sum_mm"],
+            o["precipitation_probability"],
+            o["et0_sum_mm"],
+            o["delta_t_avg_c"],
+            o["spray_suitability_score"],
+            o["disease_risk_score"],
+            o["heat_stress_hours"],
+            o["frost_risk_hours"],
+            o["trafficability_score"],
+            o["grid_cells_count"],
+            o["spatial_coverage"],
+        )
+        for s in build_signal_records(field_id, tenant_id, overlay):
+            await conn.execute(
+                _INSERT_SIGNAL,
+                s["tenant_id"],
+                s["field_id"],
+                s["signal_type"],
+                s["confidence_score"],
+                str(HORIZON_HOURS),
+                json.dumps(s["payload"]),
+            )
+    return overlay
+
+
+async def run() -> None:
+    if not JOBS_DSN:
+        log.error("JOBS_DATABASE_URL/DATABASE_URL غير مضبوط — العامل معطّل")
+        return
+    pool = await asyncpg.create_pool(JOBS_DSN, statement_cache_size=0, min_size=1, max_size=4)
+    nc = await nats.connect(NATS_URL, max_reconnect_attempts=-1)
+    js = nc.jetstream()
+    sub = await js.subscribe("sahool.weather.forecast.updated", durable="polygon-worker")
+    log.info("✓ weather-polygon-worker بدأ — يستمع sahool.weather.forecast.updated")
+    async for msg in sub:
+        try:
+            async with pool.acquire() as conn:
+                fields = await conn.fetch(_FIELDS_SQL)
+                done = 0
+                for f in fields:
+                    if await process_field(conn, f["field_id"], str(f["tenant_id"])):
+                        done += 1
+            # نشر بعد إتمام القاعدة (outbox): فشل النشر لا يُفقِد التراكب المحفوظ.
+            await js.publish(
+                "sahool.weather.field.overlay.completed",
+                json.dumps({"fields_processed": done}).encode(),
+            )
+        except Exception as e:  # noqa: BLE001 — لا يُسقِط العامل على حدث واحد
+            log.warning("تعذّر معالجة حدث التنبّؤ: %s", e)
+        finally:
+            await msg.ack()
+
+
+if __name__ == "__main__":
+    asyncio.run(run())

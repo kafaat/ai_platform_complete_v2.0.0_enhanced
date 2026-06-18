@@ -401,6 +401,32 @@ services:
       retries: 3
 
   # ═══════════════════════════════════════════════════════════════
+  # 8c. Weather Polygon Worker (P0) — يربط تنبّؤ الطقس بالحقول مكانيّاً
+  #     مهمّة خلفيّة عابرة للمستأجرين ⇒ تتّصل بدور sahool_jobs (BYPASSRLS).
+  # ═══════════════════════════════════════════════════════════════
+  sahool-weather-polygon-worker:
+    build:
+      context: .
+      dockerfile: services/weather-polygon-worker/Dockerfile
+    restart: unless-stopped
+    logging: *default_logging
+    environment:
+      # دور المهامّ (BYPASSRLS) — يقرأ كلّ الحقول ويكتب تراكب كلّ مستأجِر. لا superuser.
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-}
+      DATABASE_URL: ${DATABASE_URL:-}
+      NATS_URL: nats://sahool-nats:4222
+      WEATHER_HORIZON_HOURS: ${WEATHER_HORIZON_HOURS:-168}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-nats:
+        condition: service_started
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+      - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
   # 9. Supervisor Agent (FIX: SAHOOL_AGENT_TOKEN فارغ → required)
   # FIX-09: SAHOOL_AGENT_TOKEN مطلوب
   # ═══════════════════════════════════════════════════════════════
