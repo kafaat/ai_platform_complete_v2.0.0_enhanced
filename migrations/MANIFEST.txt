@@ -275,3 +275,7 @@ v73_weather_automation_rls.sql
 # RLS+FORCE بسياسة current_setting، PK مع tenant_id، قيود الدرجات). weather_grid/
 # weather_forecasts عالميّة بلا tenant (موثّق). idempotent.
 v74_weather_intelligence.sql
+
+# v75: FOES (نظام تنفيذ العمليّات الزراعيّة) — جدول work_orders: أمر عمل من توصية
+# (ري/تسميد/رشّ/فحص/حصاد) بآلة حالات (planned→…→verified). field_id نصّ، RLS+FORCE.
+v75_work_orders.sql

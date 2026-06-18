@@ -427,6 +427,28 @@ services:
       - sahool-internal
 
   # ═══════════════════════════════════════════════════════════════
+  # 8d. Weather Signal Engine (P1) — يولّد الإشارات تلقائيّاً مجدوَلاً من التراكب
+  #     مهمّة خلفيّة عابرة للمستأجرين ⇒ دور sahool_jobs (BYPASSRLS).
+  # ═══════════════════════════════════════════════════════════════
+  sahool-weather-signal-engine:
+    build:
+      context: .
+      dockerfile: services/weather-signal-engine/Dockerfile
+    restart: unless-stopped
+    logging: *default_logging
+    environment:
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-}
+      DATABASE_URL: ${DATABASE_URL:-}
+      WEATHER_SIGNAL_INTERVAL_SEC: ${WEATHER_SIGNAL_INTERVAL_SEC:-300}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+      - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
   # 9. Supervisor Agent (FIX: SAHOOL_AGENT_TOKEN فارغ → required)
   # FIX-09: SAHOOL_AGENT_TOKEN مطلوب
   # ═══════════════════════════════════════════════════════════════
