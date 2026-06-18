@@ -270,3 +270,8 @@ v72_event_outbox_rls.sql
 # NULL=عالميّ) وweather_automation_cache (يرث رؤية موقعه). يُمكَّن لأنّ مجدوِل الطقس صار
 # على دور sahool_jobs (BYPASSRLS). idempotent.
 v73_weather_automation_rls.sql
+
+# v74: طبقة ذكاء الطقس — جداول التراكب/الإشارات/التنبيهات (field_id TEXT لا UUID،
+# RLS+FORCE بسياسة current_setting، PK مع tenant_id، قيود الدرجات). weather_grid/
+# weather_forecasts عالميّة بلا tenant (موثّق). idempotent.
+v74_weather_intelligence.sql
