@@ -3161,6 +3161,7 @@ from api.routers.field_completeness import router as field_completeness_router  
 from api.routers.field_intelligence import (  # noqa: E402
     router as field_intelligence_router,
 )
+from api.routers.field_portfolio import router as field_portfolio_router  # noqa: E402
 from api.routers.field_single import router as field_single_router  # noqa: E402
 from api.routers.field_twin import router as field_twin_router  # noqa: E402
 from api.routers.fields import router as fields_router  # noqa: E402
@@ -3313,6 +3314,7 @@ app.include_router(salinity_router)
 app.include_router(postharvest_router)
 app.include_router(sampling_router)
 app.include_router(fields_router)
+app.include_router(field_portfolio_router)
 app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(tenant_router)
