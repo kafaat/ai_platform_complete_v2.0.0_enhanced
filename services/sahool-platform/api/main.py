@@ -1881,6 +1881,21 @@ async def _evaluate_field_alerts_persist(
                     ga.title_ar,
                     ga.message_ar,
                 )
+                # حدث ALERT_CREATED للتنبيه المُولَّد آليّاً — مطابقةً للمسار اليدويّ
+                # (routers/alerts.py): بلا هذا كانت التنبيهات التلقائيّة غير مرئيّة في
+                # الإعادة/التدقيق ولا تصل البثّ الحيّ. نفس معاملة الكتابة (outbox).
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "ALERT_CREATED",
+                    "alert",
+                    alert_id,
+                    {
+                        "severity": ga.severity,
+                        "alert_type": ga.alert_type,
+                        "field_id": field_id,
+                    },
+                )
                 # نمنع تكراراً ضمن نفس التشغيل أيضاً (قاعدة واحدة لكلّ نوع).
                 existing_types.add(ga.alert_type)
                 created.append(
