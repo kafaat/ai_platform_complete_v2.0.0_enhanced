@@ -81,5 +81,32 @@ def test_profit_without_prices_falls_back_to_water_saving():
 def test_response_shape():
     req = IrrigationPlanRequest(forecast=_days(3), taw_mm=100.0, raw_fraction=0.5)
     out = compute_irrigation_plan(req=req, user=_USER)
-    assert set(out) >= {"soil", "taw_mm_used", "plan"}
+    assert set(out) >= {"soil", "taw_mm_used", "quality", "plan"}
     assert set(out["plan"]) >= {"policy", "taw_mm", "raw_mm", "total_irrigation_mm", "days"}
+
+
+def test_quality_block_structured():
+    # taw_mm مُمرَّر مباشرةً ⇒ لا default_soil/estimated_root_depth ⇒ medium (uncalibrated).
+    req = IrrigationPlanRequest(forecast=_days(3), taw_mm=100.0, raw_fraction=0.5)
+    out = compute_irrigation_plan(req=req, user=_USER)
+    q = out["quality"]
+    assert set(q) >= {"confidence", "data_quality", "assumptions", "assumptions_ar"}
+    assert "uncalibrated_model" in q["assumptions"]
+    assert q["data_quality"] in {"low", "medium", "high"}
+    assert q["data_quality"] != "high"  # غير معايَر ⇒ لا high أبداً
+
+
+def test_quality_flags_default_soil_and_depth():
+    # نسيج مجهول + بلا عمق + اشتقاق TAW (لا taw_mm) ⇒ افتراضات أكثر ⇒ ثقة أدنى.
+    req = IrrigationPlanRequest(forecast=_days(3), soil_texture="moon_dust", raw_fraction=0.5)
+    out = compute_irrigation_plan(req=req, user=_USER)
+    assert "default_soil" in out["quality"]["assumptions"]
+    assert "estimated_root_depth" in out["quality"]["assumptions"]
+
+
+def test_quality_flags_policy_fallback():
+    # profit بلا أسعار ⇒ تراجع ⇒ policy_fallback في الافتراضات.
+    req = IrrigationPlanRequest(forecast=_days(3), taw_mm=100.0, raw_fraction=0.5, policy="profit")
+    out = compute_irrigation_plan(req=req, user=_USER)
+    assert out["plan"]["policy"] == "water_saving"
+    assert "policy_fallback" in out["quality"]["assumptions"]

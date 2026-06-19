@@ -14,6 +14,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from api.data_quality import assess_data_quality
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.main import UserSchema, get_current_user
 from api.soil_water import soil_water_params
@@ -74,8 +75,23 @@ def compute_irrigation_plan(
         water_price_per_m3=req.water_price_per_m3,
         yield_value_per_ha=req.yield_value_per_ha,
     )
+    plan_dict = plan.to_dict()
+
+    # حقول جودة منظَّمة (بدل اشتقاق الواجهة من warnings_ar): الافتراضات المتحقَّقة خادميّاً.
+    assumptions = ["uncalibrated_model", "no_moisture_sensor"]
+    if req.taw_mm is None and not soil["texture_known"]:
+        assumptions.insert(0, "default_soil")
+    if req.taw_mm is None and (req.root_depth_m is None or req.root_depth_m <= 0):
+        assumptions.append("estimated_root_depth")
+    requested = (req.policy or "water_saving").strip().lower()
+    if requested == "profit":
+        requested = "profit_max"
+    if plan_dict["policy"] != requested:
+        assumptions.append("policy_fallback")
+
     return {
         "soil": soil,
         "taw_mm_used": round(taw_mm, 2),
-        "plan": plan.to_dict(),
+        "quality": assess_data_quality(assumptions),
+        "plan": plan_dict,
     }

@@ -428,9 +428,17 @@ export interface IrrigationPlan {
   notes_ar: string[];
   days: PlannedDay[];
 }
+export interface DataQuality {
+  confidence: number;       // مقياس اكتمال/جودة مدخلات شفّاف [0,1] (لا فاصل إحصائيّ)
+  data_quality: string;     // low | medium | high
+  assumptions: string[];    // رموز آليّة
+  assumptions_ar: string[]; // وصف عربيّ للمستخدم
+  calibrated: boolean;
+}
 export interface IrrigationPlanResult {
   soil: SoilWaterParams;
   taw_mm_used: number;
+  quality: DataQuality;
   plan: IrrigationPlan;
 }
 export const computeIrrigationPlan = (payload: IrrigationPlanInput): Promise<IrrigationPlanResult> =>

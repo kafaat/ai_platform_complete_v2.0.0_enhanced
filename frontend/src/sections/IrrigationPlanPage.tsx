@@ -118,25 +118,25 @@ export default function IrrigationPlanPage() {
     return out;
   };
 
+  const QUALITY_AR: Record<string, string> = { low: 'منخفضة', medium: 'متوسطة', high: 'عالية' };
+  const qualityColor = (q: string): string =>
+    q === 'high' ? riskColor('منخفض') : q === 'medium' ? riskColor('متوسط') : riskColor('مرتفع');
+
   const risks = (r: IrrigationPlanResult): { label: string; v: RiskLevel }[] => {
     const sd = r.plan.stress_days.length;
     const water = sd === 0 ? 'منخفض' : sd <= 2 ? 'متوسط' : 'مرتفع';
+    // الثقة من حقل الجودة المنظَّم في الخادم (لا اشتقاق نصّيّ).
+    const conf = `${(r.quality.confidence * 100).toFixed(0)}٪ · ${QUALITY_AR[r.quality.data_quality] ?? r.quality.data_quality}`;
     return [
       { label: 'مائي', v: { label: water, cls: riskColor(water) } },
       { label: 'حراريّ', v: { label: 'يحتاج بيانات', cls: riskColor('—') } },
       { label: 'ملوحة', v: { label: 'يحتاج بيانات', cls: riskColor('—') } },
-      { label: 'الثقة', v: { label: r.plan.calibrated ? 'عالية' : 'متوسطة', cls: riskColor(r.plan.calibrated ? 'منخفض' : 'متوسط') } },
+      { label: 'الثقة', v: { label: conf, cls: qualityColor(r.quality.data_quality) } },
     ];
   };
 
-  const uncalibReasons = (r: IrrigationPlanResult): string[] => {
-    const reasons: string[] = [];
-    if (!r.soil.texture_known) reasons.push('نوع تربة افتراضيّ (لم يُحدَّد نسيج معروف)');
-    reasons.push(...r.soil.warnings_ar);
-    reasons.push('بدون حسّاس رطوبة ميدانيّ (Dr مُقدَّر من الميزان لا مقيس)');
-    reasons.push('قد تختلف النتائج ±20٪ حتى المعايرة المحلّيّة');
-    return reasons;
-  };
+  // أسباب عدم المعايرة من الحقول المنظَّمة في الخادم (assumptions_ar) لا من تحليل نصوص.
+  const uncalibReasons = (r: IrrigationPlanResult): string[] => [...r.quality.assumptions_ar];
 
   return (
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
