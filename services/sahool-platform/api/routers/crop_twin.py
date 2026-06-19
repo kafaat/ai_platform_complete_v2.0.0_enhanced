@@ -19,8 +19,10 @@ from pydantic import BaseModel, Field
 
 from api.crop_twin import TwinDay, crop_twin_state
 from api.data_quality import assess_data_quality
+from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.main import UserSchema, get_current_user
 from api.soil_water import soil_water_params
+from api.unified_decision import unified_decision
 from api.water_balance import KC_BY_CROP_STAGE, kc_from_ndvi
 
 router = APIRouter()
@@ -62,15 +64,10 @@ class CropTwinComposeRequest(BaseModel):
     management: ComposeManagement = Field(default_factory=ComposeManagement)
 
 
-@router.post("/api/v1/crop-twin/compose")
-def compose_crop_twin(
-    req: CropTwinComposeRequest,
-    user: UserSchema = Depends(get_current_user),
-):
-    """يركّب حالة المحصول الموحّدة من مدخلات الطقس/التربة/NDVI/الإدارة — نقيّ في جوهره.
+def _compose_state(req: CropTwinComposeRequest) -> dict:
+    """تركيب مشترك (نقيّ في جوهره): soil_water ⇒ Kc ديناميكيّ ⇒ crop_twin ⇒ quality.
 
-    صدق: Kc ديناميكيّ من NDVI إن توفّر وإلّا ثابت للمرحلة؛ كلّ القيم موسومة
-    calibrated=False مع quality/assumptions صريحة (لا لقطة حيّة مُدّعاة).
+    يعيد القطع التي تحتاجها نقطتا compose وdecision (تفادي تكرار الغراء).
     """
     soil_in = req.soil
     sp = soil_water_params(
@@ -82,12 +79,15 @@ def compose_crop_twin(
     kc_map = KC_BY_CROP_STAGE.get((req.crop or "").strip().lower(), _GENERIC_KC_MAP)
     dyn_kc, kc_fapar = kc_from_ndvi(req.ndvi, kc_map, req.stage)
 
+    def _kc(d: ComposeForecastDay) -> float:
+        return d.kc if d.kc is not None else dyn_kc
+
     days = [
         TwinDay(
             t_min_c=d.t_min_c,
             t_max_c=d.t_max_c,
             et0_mm=d.et0_mm,
-            kc=d.kc if d.kc is not None else dyn_kc,
+            kc=_kc(d),
             rain_mm=d.rain_mm,
             irrigation_mm=d.irrigation_mm,
             runoff_mm=d.runoff_mm,
@@ -105,13 +105,6 @@ def compose_crop_twin(
         auto_irrigate=req.management.auto_irrigate,
     )
 
-    # أعلام الإجهاد (من حالة التوأم — لا اختلاق).
-    stress_flags: list[dict] = []
-    if twin["water"]["needs_irrigation"]:
-        stress_flags.append({"code": "water_deficit", "label_ar": "عجز مائيّ — الريّ مستحقّ"})
-    if twin["phenology"]["past_maturity"]:
-        stress_flags.append({"code": "past_maturity", "label_ar": "تجاوز النضج المتوقّع"})
-
     # جودة المدخلات (نفس صدق irrigation-plan): افتراضات متحقَّقة خادميّاً.
     assumptions = ["uncalibrated_model", "no_moisture_sensor"]
     if soil_in.taw_mm is None and not sp["texture_known"]:
@@ -121,11 +114,42 @@ def compose_crop_twin(
     quality = assess_data_quality(assumptions)
 
     return {
+        "twin": twin,
+        "sp": sp,
+        "taw_mm": taw_mm,
+        "raw_fraction": soil_in.raw_fraction,
+        "dyn_kc": dyn_kc,
+        "kc_fapar": kc_fapar,
+        "quality": quality,
+        "kc_of": _kc,  # لإعادة استخدام Kc الفعّال في خطّة الريّ
+    }
+
+
+@router.post("/api/v1/crop-twin/compose")
+def compose_crop_twin(
+    req: CropTwinComposeRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يركّب حالة المحصول الموحّدة من مدخلات الطقس/التربة/NDVI/الإدارة — نقيّ في جوهره.
+
+    صدق: Kc ديناميكيّ من NDVI إن توفّر وإلّا ثابت للمرحلة؛ كلّ القيم موسومة
+    calibrated=False مع quality/assumptions صريحة (لا لقطة حيّة مُدّعاة).
+    """
+    st = _compose_state(req)
+    twin = st["twin"]
+
+    stress_flags: list[dict] = []
+    if twin["water"]["needs_irrigation"]:
+        stress_flags.append({"code": "water_deficit", "label_ar": "عجز مائيّ — الريّ مستحقّ"})
+    if twin["phenology"]["past_maturity"]:
+        stress_flags.append({"code": "past_maturity", "label_ar": "تجاوز النضج المتوقّع"})
+
+    return {
         "field_id": req.field_id,
         "crop": twin["crop"],
         "crop_known": twin["crop_known"],
-        "dynamic_kc": round(dyn_kc, 3),
-        "kc_fapar": round(kc_fapar, 3) if kc_fapar is not None else None,
+        "dynamic_kc": round(st["dyn_kc"], 3),
+        "kc_fapar": round(st["kc_fapar"], 3) if st["kc_fapar"] is not None else None,
         "kc_source_ar": "ديناميكيّ من NDVI"
         if req.ndvi is not None
         else f"ثابت للمرحلة ({req.stage})",
@@ -134,8 +158,53 @@ def compose_crop_twin(
         "water_state": twin["water"],
         "nutrient_state": twin["nutrient"],
         "stress_flags": stress_flags,
-        "quality": quality,
+        "quality": st["quality"],
         "calibrated": False,
-        "assumptions": quality["assumptions"],
+        "assumptions": st["quality"]["assumptions"],
         "warnings_ar": twin["warnings_ar"],
     }
+
+
+class CropDecisionRequest(CropTwinComposeRequest):
+    """طلب القرار الموحّد = طلب التركيب + سياسة الريّ وقيوده."""
+
+    policy: str = "water_saving"
+    max_application_mm: float | None = None
+    season_budget_mm: float | None = None
+    water_price_per_m3: float | None = None
+    yield_value_per_ha: float | None = None
+
+
+@router.post("/api/v1/crop-twin/decision")
+def compose_crop_decision(
+    req: CropDecisionRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """قرار المحصول الموحّد: ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة — تركيب نقيّ.
+
+    يجمع crop_twin + خطّة الريّ (وفق السياسة) + حالة العنصر عبر unified_decision.
+    الاقتصاد مؤجَّل (economic_state=not_configured محجوز، لا مُختلق).
+    """
+    st = _compose_state(req)
+    kc_of = st["kc_of"]
+
+    plan = plan_irrigation(
+        [
+            ForecastDay(et0_mm=d.et0_mm, kc=kc_of(d), rain_mm=d.rain_mm, runoff_mm=d.runoff_mm)
+            for d in req.forecast
+        ],
+        taw_mm=st["taw_mm"],
+        raw_fraction=st["raw_fraction"],
+        policy=req.policy,
+        initial_depletion_mm=req.management.initial_depletion_mm,
+        max_application_mm=req.max_application_mm,
+        season_budget_mm=req.season_budget_mm,
+        water_price_per_m3=req.water_price_per_m3,
+        yield_value_per_ha=req.yield_value_per_ha,
+    )
+
+    decision = unified_decision(st["twin"], plan.to_dict(), st["quality"])
+    decision["field_id"] = req.field_id
+    decision["dynamic_kc"] = round(st["dyn_kc"], 3)
+    decision["irrigation_plan"] = plan.to_dict()
+    return decision
