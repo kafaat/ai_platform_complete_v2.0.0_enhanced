@@ -6,7 +6,13 @@
 
 import api.main  # noqa: F401 — تهيئة api.main قبل استيراد الموجِّه
 import pytest
-from api.routers.calibration import get_region_calibration, list_calibration
+from api.routers.calibration import (
+    EvidenceRequest,
+    OutcomeRecord,
+    compute_region_evidence,
+    get_region_calibration,
+    list_calibration,
+)
 from core.canonical_schemas import UserRole, UserSchema
 
 pytestmark = pytest.mark.unit
@@ -36,3 +42,18 @@ def test_get_region_arabic():
 def test_unknown_region_generic():
     out = get_region_calibration(region="nowhere", user=_USER)
     assert out["region"] == "_generic"
+
+
+def test_evidence_endpoint_aggregates():
+    req = EvidenceRequest(
+        region="jawf",
+        outcomes=[
+            OutcomeRecord(n_evaluated=4, n_success=3, success_flags=["irrigation_followed"]),
+            OutcomeRecord(n_evaluated=0, n_success=0),  # فارغة لا تُحتسب
+        ],
+    )
+    out = compute_region_evidence(region="jawf", req=req, user=_USER)
+    assert out["region"] == "jawf"
+    assert out["sample_count"] == 1
+    assert out["evidence_level"] == "field_preliminary"
+    assert out["success_flag_counts"]["irrigation_followed"] == 1
