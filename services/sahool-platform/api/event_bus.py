@@ -141,6 +141,11 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # الموحّد والإعادة، ويصل البثّ الحيّ. يُصدَر عبر outbox ضمن معاملة التخزين.
     RECOMMENDATION_CREATED = "recommendation.created"
 
+    # توزيع القرار (FOES) — تدقيق نقاط كتابة decision_dispatch (خلف علم تشغيليّ، H3).
+    # تجعل سجلّ القرار/التنفيذ متتبَّعاً في مجرى الأحداث الموحّد بدل كتابة صامتة.
+    DISPATCH_DECISION_RECORDED = "dispatch.decision.recorded"
+    DISPATCH_EXECUTION_RECORDED = "dispatch.execution.recorded"
+
     # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
     # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.
     TASK_UPDATED = "task.updated"

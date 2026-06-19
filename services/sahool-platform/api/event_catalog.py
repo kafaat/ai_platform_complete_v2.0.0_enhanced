@@ -214,6 +214,19 @@ _CATALOG: dict[str, DomainEvent] = {
         description_ar="تبدّلت حالة صمّام ريّ (الوسيط: irrigation.valve.state_changed).",
         payload_keys=("status",),
     ),
+    # ── توزيع القرار (dispatch): تدقيق نقاط كتابة decision_dispatch (H3) ──────────
+    "DISPATCH_DECISION_RECORDED": DomainEvent(
+        name="DISPATCH_DECISION_RECORDED",
+        category="dispatch",
+        description_ar="سُجِّل قرار توزيع (الوسيط: dispatch.decision.recorded).",
+        payload_keys=("state", "action_type", "field_id", "exec_status"),
+    ),
+    "DISPATCH_EXECUTION_RECORDED": DomainEvent(
+        name="DISPATCH_EXECUTION_RECORDED",
+        category="dispatch",
+        description_ar="سُجِّلت نتيجة تنفيذ قرار (الوسيط: dispatch.execution.recorded).",
+        payload_keys=("outcome", "decision_id", "field_id"),
+    ),
 }
 
 
