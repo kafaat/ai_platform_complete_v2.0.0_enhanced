@@ -3137,6 +3137,7 @@ from api.routers.consistency import router as consistency_router  # noqa: E402
 from api.routers.crop_cards import router as crop_cards_router  # noqa: E402
 from api.routers.crop_operations import router as crop_operations_router  # noqa: E402
 from api.routers.crop_suitability import router as crop_suitability_router  # noqa: E402
+from api.routers.crop_twin import router as crop_twin_router  # noqa: E402
 from api.routers.crops import router as crops_router  # noqa: E402
 from api.routers.cultural_calendar import router as cultural_calendar_router  # noqa: E402
 from api.routers.data_readiness import router as data_readiness_router  # noqa: E402
@@ -3259,6 +3260,7 @@ app.include_router(weather_router)
 app.include_router(soil_sampling_router)
 app.include_router(sharing_router)
 app.include_router(crop_suitability_router)
+app.include_router(crop_twin_router)
 app.include_router(scenario_router)
 app.include_router(crops_router)
 app.include_router(chemical_safety_router)
