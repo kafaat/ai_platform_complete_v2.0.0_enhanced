@@ -13,6 +13,46 @@ Validates actions against:
 """
 
 
+# ── EC محلول التسميد لكلّ محصول/مرحلة (dS/m) — حسّاسيّة الصنف ────────────────────
+# عتبة عامّة (يطابق core.thresholds.FERTIGATION_EC_MAX_DS_M، خدمة منفصلة).
+FERTIGATION_EC_DEFAULT_DS_M = 2.0
+# ⚠ قيم أوّليّة (أدبيّات/مدخلات الخبير) — تحتاج معايرة يمنيّة موسّعة (محاصيل/مراحل أكثر).
+# "_default" لكلّ محصول، مع تجاوز اختياريّ لكلّ مرحلة نموّ.
+FERTIGATION_EC_BY_CROP = {
+    "citrus": {"_default": 2.0, "flowering": 1.7},
+    "potato": {"_default": 1.8, "tuber_initiation": 1.5},
+    "alfalfa": {"_default": 2.5},
+    "tomato": {"_default": 2.5, "flowering": 2.2},
+}
+# هامش التحذير: ضمن +15% فوق العتبة ⇒ WARN (حدّيّ)، فوقه ⇒ REJECT (حرق مؤكَّد). قابل للمعايرة.
+FERTIGATION_EC_WARN_MARGIN = 1.15
+
+
+def crop_ec_threshold(
+    crop: str | None, stage: str | None, soil_texture: str | None = None
+) -> float:
+    """عتبة EC محلول التسميد للمحصول/المرحلة (dS/m) — حسّاسيّة الصنف.
+
+    محصول مجهول ⇒ العتبة العامّة. soil_texture محجوز (لا تعديل بلا معايرة قوام).
+    """
+    crop_map = FERTIGATION_EC_BY_CROP.get((crop or "").strip().lower())
+    if not crop_map:
+        return FERTIGATION_EC_DEFAULT_DS_M
+    return crop_map.get((stage or "").strip().lower(), crop_map["_default"])
+
+
+def check_fertigation_ec(
+    crop: str | None, stage: str | None, ec_result: float, soil_texture: str | None = None
+) -> tuple[str, float]:
+    """تصنيف EC المحلول مقابل عتبة المحصول ⇒ (PASS | WARN | REJECT, العتبة)."""
+    ec_max = crop_ec_threshold(crop, stage, soil_texture)
+    if ec_result <= ec_max:
+        return "PASS", ec_max
+    if ec_result <= ec_max * FERTIGATION_EC_WARN_MARGIN:
+        return "WARN", ec_max
+    return "REJECT", ec_max
+
+
 class EnvironmentalSafetyTier:
     """
     Environmental impact validation for farm actions.
@@ -34,10 +74,9 @@ class EnvironmentalSafetyTier:
         "erosion_risk_slope_pct": 15,
     }
 
-    # EC محلول التسميد (fertigation) dS/m — يعكس core.thresholds.FERTIGATION_EC_MAX_DS_M
-    # (خدمة منفصلة). الخطر = EC المحلول النهائيّ المرتفع يحرق الجذور فوراً (لا تملّح
-    # تراكميّ — مفهوم مختلف عن salinity_ec_max للتربة أعلاه).
-    FERTIGATION_EC_MAX_DS_M = 2.0
+    # EC محلول التسميد العامّ (dS/m) — يعكس core.thresholds.FERTIGATION_EC_MAX_DS_M
+    # (خدمة منفصلة). العتبة لكلّ محصول/مرحلة في FERTIGATION_EC_BY_CROP أعلاه.
+    FERTIGATION_EC_MAX_DS_M = FERTIGATION_EC_DEFAULT_DS_M
 
     # Carbon budget per hectare (kg CO2e/season)
     CARBON_BUDGET = {
@@ -122,33 +161,44 @@ class EnvironmentalSafetyTier:
                 )
 
         elif action_type == "fertilization":
-            # حرق الجذور: EC محلول التسميد النهائيّ المرتفع يقتل الجذور فوراً (fail-closed).
-            # فحص شرطيّ — يُطبَّق فقط حين يُمرَّر fertigation_ec_ds_m (لا يكسر التسميد الجافّ).
+            # حرق الجذور: EC المحلول النهائيّ مقابل عتبة **حسّاسيّة الصنف/المرحلة** (لا عتبة
+            # ثابتة) ⇒ PASS/WARN/REJECT. فحص شرطيّ — فقط حين يُمرَّر fertigation_ec_ds_m.
             fert_ec = action_data.get("fertigation_ec_ds_m")
-            if fert_ec is not None and fert_ec > self.FERTIGATION_EC_MAX_DS_M:
-                findings.append(
-                    {
-                        "severity": "HIGH",
-                        "message": (
-                            f"Fertigation solution EC {fert_ec} dS/m exceeds root-burn "
-                            f"threshold {self.FERTIGATION_EC_MAX_DS_M}"
-                        ),
-                        "message_ar": (
-                            f"EC محلول التسميد {fert_ec} ديسي سيمنز/م يتجاوز عتبة حرق "
-                            f"الجذور ({self.FERTIGATION_EC_MAX_DS_M}) — خفّف أو جزّئ على دفعات."
-                        ),
-                        "rule": "fertigation_ec_exceeded",
-                    }
-                )
-                passed = False
-                suggestions.append(
-                    {
-                        "field": "fertigation_ec_ds_m",
-                        "value": self.FERTIGATION_EC_MAX_DS_M,
-                        "text": "Dilute the nutrient solution or split into more passes",
-                        "text_ar": "خفّف محلول التسميد أو جزّئه على دفعات أكثر",
-                    }
-                )
+            if fert_ec is not None:
+                stage = action_data.get("growth_stage") or farm_context.get("growth_stage")
+                soil_texture = farm_context.get("soil_texture")
+                status, ec_max = check_fertigation_ec(crop, stage, fert_ec, soil_texture)
+                if status in ("REJECT", "WARN"):
+                    sev = "HIGH" if status == "REJECT" else "MEDIUM"
+                    verb_ar = "يتجاوز" if status == "REJECT" else "يقترب من"
+                    findings.append(
+                        {
+                            "severity": sev,
+                            "message": (
+                                f"Fertigation solution EC {fert_ec} dS/m vs root-burn "
+                                f"threshold {ec_max} for {crop}/{stage or 'any'} ({status})"
+                            ),
+                            "message_ar": (
+                                f"EC محلول التسميد {fert_ec} ديسي سيمنز/م {verb_ar} عتبة حرق "
+                                f"الجذور ({ec_max}) لـ{crop}/{stage or 'أيّ مرحلة'} — خفّف أو جزّئ."
+                            ),
+                            "rule": (
+                                "fertigation_ec_exceeded"
+                                if status == "REJECT"
+                                else "fertigation_ec_borderline"
+                            ),
+                        }
+                    )
+                    if status == "REJECT":
+                        passed = False
+                    suggestions.append(
+                        {
+                            "field": "fertigation_ec_ds_m",
+                            "value": ec_max,
+                            "text": "Dilute the nutrient solution or split into more passes",
+                            "text_ar": "خفّف محلول التسميد أو جزّئه على دفعات أكثر",
+                        }
+                    )
 
             # Check carbon footprint of synthetic fertilizer production
             n_kg = action_data.get("N_kg_ha", 0)

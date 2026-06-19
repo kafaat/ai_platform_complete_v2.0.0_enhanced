@@ -59,3 +59,14 @@ def test_forecast_defer_pure_guards():
     assert _forecast_defer(0.0, 50.0, 3) == ""  # لا احتياج
     assert _forecast_defer(5.0, 0.0, 3) == ""  # تنبّؤ صفر
     assert "أجّل" in _forecast_defer(5.0, 40.0, 3)  # كافٍ
+
+
+def test_effective_rain_uses_confidence_and_infiltration():
+    # مثال المستخدم: 20 مم × ثقة 0.8 × ترشّح 0.7 = 11.2 مم فعّال.
+    assert "أجّل" in _forecast_defer(10.0, 20.0, 3, confidence=0.8, infiltration=0.7)  # 11.2≥10
+    assert _forecast_defer(12.0, 20.0, 3, confidence=0.8, infiltration=0.7) == ""  # 11.2<12
+
+
+def test_low_confidence_prevents_defer():
+    # تنبّؤ منخفض الاحتماليّة لا يُؤجّل (صدق: لا نراهن على مطر غير مؤكَّد).
+    assert _forecast_defer(10.0, 20.0, 3, confidence=0.1, infiltration=0.7) == ""  # 1.4<10
