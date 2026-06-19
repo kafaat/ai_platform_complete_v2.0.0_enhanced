@@ -3195,6 +3195,7 @@ from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
 from api.routers.onboarding import router as onboarding_router  # noqa: E402
 from api.routers.orchard import router as orchard_router  # noqa: E402
+from api.routers.outcome import router as outcome_router  # noqa: E402
 from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
 from api.routers.phenology import router as phenology_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
@@ -3273,6 +3274,7 @@ app.include_router(ipm_router)
 app.include_router(practices_router)
 app.include_router(seasonal_risk_router)
 app.include_router(orchard_router)
+app.include_router(outcome_router)
 app.include_router(high_value_crops_router)
 app.include_router(niche_crops_router)
 app.include_router(aromatic_crops_router)

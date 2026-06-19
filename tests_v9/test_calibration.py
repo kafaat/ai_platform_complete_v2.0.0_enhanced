@@ -60,6 +60,35 @@ def test_regions_inherit_generic_unvalidated():
         assert any("لم تُعايَر" in n or "قياسات" in n for n in prof.notes_ar)
 
 
+def test_evidence_fields_default_none():
+    # أساس Adaptive Calibration: دليل لا اكتفاء بـvalidated.
+    for region in (None, "jawf", "ibb"):
+        prof = get_calibration(region)
+        assert prof.evidence_level == "none"
+        assert prof.sample_count == 0
+        assert prof.last_evaluated_at is None
+
+
+def test_calibrated_region_carries_evidence(monkeypatch):
+    # تجاوز ميدانيّ بدليل ⇒ يحمل evidence_level/sample_count.
+    monkeypatch.setitem(
+        C._REGION_OVERRIDES,
+        "jawf",
+        {"raw_fraction": 0.45, "evidence_level": "field_verified", "sample_count": 187},
+    )
+    prof = get_calibration("jawf")
+    assert prof.validated is True
+    assert prof.evidence_level == "field_verified"
+    assert prof.sample_count == 187
+
+
+def test_calibrated_without_explicit_evidence_defaults_expert(monkeypatch):
+    monkeypatch.setitem(C._REGION_OVERRIDES, "marib", {"root_depth_m": 0.8})
+    prof = get_calibration("marib")
+    assert prof.validated is True
+    assert prof.evidence_level == "expert_opinion"  # قيم مُعايَرة بلا دليل ميدانيّ صريح
+
+
 def test_arabic_region_keys():
     assert get_calibration("الجوف").region == "jawf"
     assert get_calibration("تهامة").region == "tihama"

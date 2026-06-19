@@ -59,6 +59,10 @@ class CalibrationProfile:
     uptake_fractions: dict[str, float]
     yield_uncertainty: float
     price_uncertainty: float
+    # دليل المعايرة (أساس Adaptive Calibration لاحقاً): لا اكتفاء بـvalidated فقط.
+    evidence_level: str = "none"  # none | expert_opinion | field_verified
+    sample_count: int = 0  # عدد القياسات الميدانيّة المتراكمة لهذه المنطقة
+    last_evaluated_at: str | None = None  # ISO؛ آخر تقييم نتائج غذّى هذه المعايرة
     notes_ar: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -75,6 +79,9 @@ class CalibrationProfile:
             "uptake_fractions": dict(self.uptake_fractions),
             "yield_uncertainty": self.yield_uncertainty,
             "price_uncertainty": self.price_uncertainty,
+            "evidence_level": self.evidence_level,
+            "sample_count": self.sample_count,
+            "last_evaluated_at": self.last_evaluated_at,
             "notes_ar": self.notes_ar,
         }
 
@@ -143,12 +150,15 @@ def get_calibration(region: str | None) -> CalibrationProfile:
         ]
         return prof
 
-    # عند توفّر تجاوزات مُعايَرة لاحقاً.
+    # عند توفّر تجاوزات مُعايَرة لاحقاً (قد تحمل دليلاً: evidence_level/sample_count/...).
     for fld, val in overrides.items():
         if hasattr(prof, fld):
             setattr(prof, fld, val)
     prof.validated = True
-    prof.source_ar = f"منطقة {prof.region_ar}: قيم مُعايَرة ميدانيّاً"
+    # وجود قيم مُعايَرة ⇒ دليل لا يقلّ عن رأي خبير (ما لم يحدّده التجاوز صراحةً).
+    if prof.evidence_level == "none":
+        prof.evidence_level = "expert_opinion"
+    prof.source_ar = f"منطقة {prof.region_ar}: قيم مُعايَرة ({prof.evidence_level})"
     prof.notes_ar = []
     return prof
 
