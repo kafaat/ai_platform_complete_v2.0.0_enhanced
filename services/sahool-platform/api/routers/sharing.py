@@ -121,7 +121,5 @@ async def list_sharing_keys(
     """يسرد مفاتيح المشاركة للمستأجر (عبر tenant_connection — RLS مُطبَّق)."""
     async with tenant_connection(user) as conn:
         svc = SharingKeyService(get_pool(), conn=conn)
-        keys = await svc.list_keys(
-            user.tenant_id, include_revoked=include_revoked
-        )
+        keys = await svc.list_keys(user.tenant_id, include_revoked=include_revoked)
     return {"keys": keys}
