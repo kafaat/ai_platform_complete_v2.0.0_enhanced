@@ -29,7 +29,9 @@ def test_all_subscription_subjects_use_sahool_prefix():
     subjects = _subscription_subjects()
     assert subjects, "لا مواضيع اشتراك — تحقّق من التحليل"
     offenders = [s for s in subjects if not s.startswith("sahool.")]
-    assert offenders == [], f"مواضيع بلا بادئة `sahool.` (حسّاسة للحالة، تكسر الـstream): {offenders}"
+    assert offenders == [], (
+        f"مواضيع بلا بادئة `sahool.` (حسّاسة للحالة، تكسر الـstream): {offenders}"
+    )
 
 
 def test_no_uppercase_sahool_prefix_anywhere_in_agent():
