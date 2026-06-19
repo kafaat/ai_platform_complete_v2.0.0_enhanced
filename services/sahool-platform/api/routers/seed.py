@@ -15,9 +15,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from api.main import SeedSourceRequest
+from api.main import SeedSourceRequest, UserSchema, get_current_user
 from api.seed_and_practices import (
     evaluate_seed_source,
     seed_selection_criteria,
@@ -33,7 +33,7 @@ def seed_criteria_endpoint():
 
 
 @router.post("/api/v1/seed/evaluate-source")
-def seed_evaluate_endpoint(req: SeedSourceRequest):
+def seed_evaluate_endpoint(req: SeedSourceRequest, user: UserSchema = Depends(get_current_user)):
     """يقيّم جودة مصدر بذار (اعتماد + نقاوة + إنبات)."""
     return evaluate_seed_source(req.certified, req.purity_pct, req.germination_pct)
 

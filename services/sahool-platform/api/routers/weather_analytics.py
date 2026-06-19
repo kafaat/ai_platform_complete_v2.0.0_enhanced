@@ -13,20 +13,23 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
+from api.main import UserSchema, get_current_user
 from api.weather_analytics import analyze_weather_log, seasonal_planting_guide
 
 router = APIRouter()
 
 
 @router.post("/api/v1/weather-analytics/analyze")
-def weather_analyze_endpoint(records: list[dict]):
+def weather_analyze_endpoint(records: list[dict], user: UserSchema = Depends(get_current_user)):
     """يحلّل سجلّ طقس يومي → إجهاد حراري + ET0 محسوب + عجز مائي + توصية."""
     return analyze_weather_log(records)
 
 
 @router.post("/api/v1/weather-analytics/planting-guide")
-def weather_planting_guide_endpoint(records: list[dict]):
+def weather_planting_guide_endpoint(
+    records: list[dict], user: UserSchema = Depends(get_current_user)
+):
     """دليل المواسم من السجلّ: متى الزراعة الأمثل ومتى الإجهاد."""
     return seasonal_planting_guide(records)

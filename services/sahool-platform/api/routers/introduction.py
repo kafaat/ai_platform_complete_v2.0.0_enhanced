@@ -13,11 +13,13 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from api.crop_introduction import crop_card, list_candidates
 from api.main import (
     FieldFitRequest,
+    UserSchema,
+    get_current_user,
 )
 
 router = APIRouter()
@@ -36,7 +38,9 @@ def introduction_card_endpoint(crop: str):
 
 
 @router.post("/api/v1/introduction/field-fit")
-def introduction_field_fit_endpoint(req: FieldFitRequest):
+def introduction_field_fit_endpoint(
+    req: FieldFitRequest, user: UserSchema = Depends(get_current_user)
+):
     """فحص آلي: هل تربة/ظروف حقلك تناسب محصول الإدخال؟ (ربط بمحرّك الملاءمة)."""
     from api.crop_introduction import check_field_fit
 
