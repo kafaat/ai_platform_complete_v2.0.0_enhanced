@@ -179,12 +179,36 @@ def kc_from_ndvi(ndvi: float | None, kc_map: dict, stage: str) -> tuple[float, f
     return min(KC_DYN_MAX, max(KC_DYN_MIN, kc)), fapar
 
 
+# عتبة تأجيل الريّ التنبّؤيّ — ⚠ قرار منتَج قابل للمعايرة: المطر المتوقّع الفعّال ≥ هذه
+# النسبة من الاحتياج الصافي ⇒ أجّل. المطر المتوقّع يضبط **التوقيت لا الكمّيّة** (صدق:
+# لا نخصم مطراً قد لا يهطل من العمق الموصى به).
+FORECAST_DEFER_FRACTION = 1.0
+
+
+def _forecast_defer(net_mm: float, forecast_rain_mm: float | None, window_days: int) -> str:
+    """ملاحظة تأجيل عربيّة إن غطّى المطر المتوقّع الاحتياج، وإلّا "" — دالّة نقيّة.
+
+    محفوظة السلوك: forecast_rain_mm غائب/≤0 أو لا احتياج (net≤0) ⇒ "" (لا تغيير).
+    """
+    if not forecast_rain_mm or forecast_rain_mm <= 0 or net_mm <= 0:
+        return ""
+    eff_fc = _effective_rain(forecast_rain_mm)
+    if eff_fc >= net_mm * FORECAST_DEFER_FRACTION:
+        return (
+            f"⏸ أجّل الريّ — مطر متوقّع {forecast_rain_mm:.0f} مم ({eff_fc:.1f} فعّال) "
+            f"خلال {window_days} يوم يغطّي الاحتياج."
+        )
+    return ""
+
+
 def water_balance(
     w: WeatherInput,
     crop: str,
     stage: str,
     rain_mm: float = 0.0,
     ndvi: float | None = None,
+    forecast_rain_mm: float | None = None,
+    forecast_window_days: int = 3,
 ) -> WaterBalanceResult:
     """يحسب توصية الريّ ليوم/فترة.
 
@@ -218,6 +242,11 @@ def water_balance(
             f"الاحتياج الصافي {net:.1f} مم (ETc {etc:.1f} − مطر فعّال {eff_rain:.1f}). "
             f"رُيّ بهذا العمق. الطريقة: {method.value}."
         )
+
+    # ريّ تنبّؤيّ: المطر المتوقّع يُقدَّم كتأجيل (لا يُخصَم من net) — التوقيت لا الكمّيّة.
+    defer_note = _forecast_defer(net, forecast_rain_mm, forecast_window_days)
+    if defer_note:
+        advice = f"{defer_note} {advice}"
 
     return WaterBalanceResult(
         et0_mm=et0,
