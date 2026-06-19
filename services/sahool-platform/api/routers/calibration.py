@@ -1,0 +1,33 @@
+"""api/routers/calibration.py — كشف ملفّات المعايرة الإقليميّة (#382)
+
+GET فقط (قراءة بنية ثابتة): يكشف الملفّ العامّ وملفّات المناطق اليمنيّة الخمس مع
+وسم `validated` صريح — فيرى المستخدم أيّ القيم مُعايَرة ميدانيّاً وأيّها افتراضات عامّة.
+
+محفوظ النمط: مُسجَّل في main (يمرّ حارس التفكيك). `Depends(get_current_user)` اتّساقاً.
+"""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends
+
+from api.calibration import all_regions, get_calibration
+from api.main import UserSchema, get_current_user
+
+router = APIRouter()
+
+
+@router.get("/api/v1/calibration")
+def list_calibration(user: UserSchema = Depends(get_current_user)):
+    """كلّ ملفّات المعايرة (العامّ + المناطق اليمنيّة) مع وسم التحقّق."""
+    return {
+        "generic": get_calibration(None).to_dict(),
+        "regions": [get_calibration(r).to_dict() for r in all_regions()],
+        "validated_count": sum(get_calibration(r).validated for r in all_regions()),
+        "note_ar": "المناطق غير المُتحقَّقة ترث الافتراضات العامّة — تحتاج قياسات ميدانيّة",
+    }
+
+
+@router.get("/api/v1/calibration/{region}")
+def get_region_calibration(region: str, user: UserSchema = Depends(get_current_user)):
+    """ملفّ معايرة منطقة واحدة (يطبّع العربيّة؛ المجهولة ⇒ العامّ)."""
+    return get_calibration(region).to_dict()

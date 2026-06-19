@@ -3121,6 +3121,7 @@ from api.routers.auth import router as auth_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
 from api.routers.calendars import router as calendars_router  # noqa: E402
+from api.routers.calibration import router as calibration_router  # noqa: E402
 
 # الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
 from api.routers.cameras import router as cameras_router  # noqa: E402
@@ -3194,6 +3195,7 @@ from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
 from api.routers.onboarding import router as onboarding_router  # noqa: E402
 from api.routers.orchard import router as orchard_router  # noqa: E402
+from api.routers.outcome import router as outcome_router  # noqa: E402
 from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
 from api.routers.phenology import router as phenology_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
@@ -3252,6 +3254,7 @@ app.include_router(water_sensitivity_router)
 app.include_router(seed_router)
 app.include_router(climate_analogs_router)
 app.include_router(calendars_router)
+app.include_router(calibration_router)
 app.include_router(water_harvesting_router)
 app.include_router(propagation_router)
 app.include_router(inventory_router)
@@ -3271,6 +3274,7 @@ app.include_router(ipm_router)
 app.include_router(practices_router)
 app.include_router(seasonal_risk_router)
 app.include_router(orchard_router)
+app.include_router(outcome_router)
 app.include_router(high_value_crops_router)
 app.include_router(niche_crops_router)
 app.include_router(aromatic_crops_router)
