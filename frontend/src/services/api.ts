@@ -374,6 +374,68 @@ export interface WaterAnalysisResult {
 export const analyzeWaterSample = (payload: WaterSampleInput): Promise<WaterAnalysisResult> =>
   kongApi.post<WaterAnalysisResult>('/api/v1/irrigation/water-analysis', payload).then(r => r.data);
 
+// ── خطّة الريّ التنبّؤيّة (POST /api/v1/irrigation-plan) — خطّ «مركز المحاصيل» ──
+// نسيج+عمق ⇒ TAW ⇒ سياسة ⇒ جدول ريّ عبر أفق التنبّؤ (FAO-56). كلّ القيم موسومة calibrated.
+export interface ForecastDayInput {
+  et0_mm: number; kc: number; rain_mm?: number; runoff_mm?: number;
+}
+export interface IrrigationPlanInput {
+  forecast: ForecastDayInput[];
+  soil_texture?: string | null;
+  root_depth_m?: number | null;
+  taw_mm?: number | null;
+  raw_fraction?: number;
+  policy?: string;
+  initial_depletion_mm?: number;
+  max_application_mm?: number | null;
+  season_budget_mm?: number | null;
+  water_price_per_m3?: number | null;
+  yield_value_per_ha?: number | null;
+}
+export interface SoilWaterParams {
+  texture: string | null;
+  texture_known: boolean;
+  taw_mm_per_m: number;
+  root_depth_m: number;
+  taw_mm: number;
+  raw_fraction: number;
+  raw_mm: number;
+  calibrated: boolean;
+  warnings_ar: string[];
+}
+export interface PlannedDay {
+  day_index: number;
+  etc_mm: number;
+  eff_rain_mm: number;
+  dr_before_irrig_mm: number;
+  irrigation_mm: number;
+  dr_end_mm: number;
+  deep_perc_mm: number;
+  stressed: boolean;
+}
+export interface IrrigationPlan {
+  policy: string;
+  taw_mm: number;
+  raw_mm: number;
+  total_irrigation_mm: number;
+  total_irrigation_m3_ha: number;
+  n_events: number;
+  stress_days: number[];
+  total_deep_perc_mm: number;
+  final_depletion_mm: number;
+  budget_exhausted: boolean;
+  calibrated: boolean;
+  notes_ar: string[];
+  days: PlannedDay[];
+}
+export interface IrrigationPlanResult {
+  soil: SoilWaterParams;
+  taw_mm_used: number;
+  plan: IrrigationPlan;
+}
+export const computeIrrigationPlan = (payload: IrrigationPlanInput): Promise<IrrigationPlanResult> =>
+  kongApi.post<IrrigationPlanResult>('/api/v1/irrigation-plan', payload).then(r => r.data);
+
 export interface PestEscalationInput {
   workflow_id: string;
   field_id?: string;
