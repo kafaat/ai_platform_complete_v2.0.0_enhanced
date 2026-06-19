@@ -73,6 +73,33 @@ describe('canAccess', () => {
   });
 });
 
+describe('viewer tightening (مواءمة الواجهة مع RBAC الخلفيّة)', () => {
+  const FINANCIAL_ANALYTICAL = [
+    'economics', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
+  ] as const;
+
+  it('viewer لا يرى الصفحات الماليّة/التحليليّة (الخلفيّة لا تمنحه ANALYTICS/AUDIT)', () => {
+    for (const page of FINANCIAL_ANALYTICAL) {
+      expect(canAccess('viewer', page)).toBe(false);
+      expect(canAccess(undefined, page)).toBe(false); // fail-closed → viewer
+    }
+  });
+
+  it('viewer يبقى يرى الصفحات التشغيليّة (قراءةً)', () => {
+    for (const page of ['dashboard', 'fields', 'satellite', 'recommendations', 'irrigation', 'alerts'] as const) {
+      expect(canAccess('viewer', page)).toBe(true);
+    }
+  });
+
+  it('viewer مجموعة جزئيّة فعليّة من agronomist (حارس انحدار: لا يعودان متساويين)', () => {
+    // agronomist يرى الماليّ/التحليليّ، viewer لا — فلا يمكن أن يتشاركا نفس القائمة.
+    for (const page of FINANCIAL_ANALYTICAL) {
+      expect(canAccess('agronomist', page)).toBe(true);
+      expect(canAccess('viewer', page)).toBe(false);
+    }
+  });
+});
+
 describe('canMutate / canManage / canCreateFarm', () => {
   it('viewer قراءة فقط؛ بقيّة الأدوار تعدّل', () => {
     expect(canMutate('viewer')).toBe(false);
