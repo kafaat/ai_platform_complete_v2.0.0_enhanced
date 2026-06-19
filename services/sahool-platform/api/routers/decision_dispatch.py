@@ -39,6 +39,7 @@ from api.main import (
     Permission,
     UserSchema,
     _db_unavailable,
+    _emit_domain_event,
     require_permission,
     tenant_connection,
 )
@@ -328,6 +329,21 @@ async def execute_dispatch_endpoint(
                 )
 
             result = await execute_dispatch(decision, persist=_persist, command=command)
+            # تدقيق (H3): حدث domain عبر outbox ضمن المعاملة — مسار غير مُعاد فقط
+            # (replayed يعود مبكّراً أعلاه ولا يصل هنا). best-effort داخل _emit.
+            await _emit_domain_event(
+                conn,
+                user,
+                "DISPATCH_DECISION_RECORDED",
+                "dispatch_decision",
+                decision_id,
+                {
+                    "state": decision.state.value,
+                    "action_type": decision.action_type,
+                    "field_id": decision.field_id,
+                    "exec_status": result.status.value,
+                },
+            )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -543,6 +559,19 @@ async def record_execution_outcome(
                 "UPDATE dispatch_decisions SET exec_status = $1 WHERE decision_id = $2",
                 target,
                 req.decision_id,
+            )
+            # تدقيق (H3): حدث domain عبر outbox ضمن المعاملة (best-effort داخل _emit).
+            await _emit_domain_event(
+                conn,
+                user,
+                "DISPATCH_EXECUTION_RECORDED",
+                "dispatch_decision",
+                req.decision_id,
+                {
+                    "outcome": target,
+                    "decision_id": req.decision_id,
+                    "field_id": entry["field_id"],
+                },
             )
     except HTTPException:
         raise
