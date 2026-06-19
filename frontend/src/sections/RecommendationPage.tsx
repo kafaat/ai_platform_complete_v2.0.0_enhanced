@@ -16,7 +16,7 @@ import {
 import { useFieldRecommendation, useFields, useFieldRecommendations } from '../hooks/useApi';
 import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
 import SpeakButton from '../components/SpeakButton';
-import type { FieldRecommendation } from '../services/api';
+import type { FieldRecommendation, FieldRecommendationsResult } from '../services/api';
 
 const CROPS = ['قمح صلب', 'شعير', 'ذرة صفراء', 'طماطم', 'بطاطس', 'خضروات', 'برسيم', 'سورغم'];
 
@@ -43,6 +43,49 @@ function asText(v: unknown): string {
   if (v == null) return '';
   if (typeof v === 'object') return JSON.stringify(v);
   return String(v);
+}
+
+// ثقة المحرّك الزراعيّ (نصّيّة لا رقميّة — تُورَّث من أدنى سقف مصدر).
+const CONF_META: Record<string, { label: string; color: string }> = {
+  high:   { label: 'ثقة عالية',       color: '#22c55e' },
+  medium: { label: 'ثقة متوسّطة',     color: '#eab308' },
+  low:    { label: 'ثقة منخفضة',      color: '#f97316' },
+  none:   { label: 'بلا ثقة كافية',   color: '#ef4444' },
+};
+
+// شارة الثقة/الجاهزيّة + أسباب الحالة (Provenance UX) — من field_state الذي ترسله
+// الخلفيّة أصلاً مع التوصيات. لا تخمين: تظهر فقط حين تتوفّر الحقول.
+function FieldStateBanner({ data }: { data: FieldRecommendationsResult }) {
+  const fs = data.field_state;
+  if (!fs && !data.requires_review) return null;
+  const conf = fs?.confidence_level ? CONF_META[fs.confidence_level] : null;
+  const reasons = fs?.reasons_ar ?? [];
+  return (
+    <div className="rounded-lg border border-slate-700 bg-[#16202e] px-3 py-2 space-y-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        {conf && (
+          <span
+            className="text-xs px-2 py-0.5 rounded-full font-semibold"
+            style={{ background: `${conf.color}22`, color: conf.color }}
+          >
+            {conf.label}
+          </span>
+        )}
+        {data.requires_review && (
+          <span className="text-xs px-2 py-0.5 rounded-full font-semibold text-amber-300 bg-amber-500/15">
+            يحتاج مراجعة بشريّة
+          </span>
+        )}
+      </div>
+      {reasons.length > 0 && (
+        <ul className="text-[11px] text-slate-400 list-disc pr-4 space-y-0.5">
+          {reasons.slice(0, 3).map((r, i) => (
+            <li key={i}>{r}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 // ── القسم ١: عمود التوصيات الموحَّد ───────────────────────────
@@ -86,6 +129,7 @@ function UnifiedRecommendations({ fieldId }: { fieldId: string }) {
 
   return (
     <div className="space-y-3">
+      {data && <FieldStateBanner data={data} />}
       {data && !data.weather_available && (
         <p className="text-xs text-amber-300 bg-[#2a2310] rounded-lg px-3 py-2">
           الطقس غير متاح حاليّاً — تُعرض توصيات التسميد/الحصاد فقط (لا ريّ/أمراض). لا بيانات وهميّة.
@@ -114,6 +158,11 @@ function RecCard({ rec }: { rec: FieldRecommendation }) {
           <span className="text-sm font-semibold text-slate-100 truncate">{rec.title_ar}</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          {rec.safety && (
+            <span className="text-xs px-2 py-0.5 rounded-full font-semibold text-red-300 bg-red-500/15">
+              سلامة
+            </span>
+          )}
           <span
             className="text-xs px-2 py-0.5 rounded-full font-semibold"
             style={{ background: `${pri.color}22`, color: pri.color }}
