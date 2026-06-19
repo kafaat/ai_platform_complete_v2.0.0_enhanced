@@ -33,9 +33,11 @@ Sources (cite explicitly per the critique's requirement):
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from enum import Enum
+
+# المصدر الموحّد لـET0 (H4): نواة Penman-Monteith واحدة (لا نُعيد كتابة الصيغة هنا).
+from core.engines.et0 import penman_monteith_et0 as _pm_core
 
 
 # ── Growth stages (FAO-56 Ch.6) ──────────────────────────────────────
@@ -95,65 +97,20 @@ class CropKcProfile:
 def penman_monteith_et0(w: WeatherDay) -> float:
     """Reference evapotranspiration (mm/day) via FAO-56 Penman-Monteith.
 
-    This is the VARIABLE — recomputed every day from weather.
-    Returns ET0 in mm/day.
+    Delegates to the unified core (`core.engines.et0`) — behaviour preserved.
+    `WeatherDay.temp_mean_c` = (max+min)/2, passed explicitly.
     """
-    # Atmospheric pressure (kPa) from elevation — FAO-56 Eq. 7
-    P = 101.3 * ((293.0 - 0.0065 * w.elevation_m) / 293.0) ** 5.26
-    # Psychrometric constant (kPa/°C) — FAO-56 Eq. 8
-    gamma = 0.000665 * P
-
-    # Saturation vapour pressure (kPa) — FAO-56 Eq. 11/12
-    def es_t(t: float) -> float:
-        return 0.6108 * math.exp((17.27 * t) / (t + 237.3))
-
-    es = (es_t(w.temp_max_c) + es_t(w.temp_min_c)) / 2.0
-    ea = es * (w.humidity_pct / 100.0)  # actual vapour pressure
-
-    # Slope of vapour pressure curve (kPa/°C) — FAO-56 Eq. 13
-    delta = (4098.0 * es_t(w.temp_mean_c)) / ((w.temp_mean_c + 237.3) ** 2)
-
-    # Net radiation estimate (simplified; full version uses Rs/Rso)
-    # Rn ~ 0.77 * Rs (albedo 0.23) minus net longwave (FAO-56 Eq. 38-40)
-    lat_rad = math.radians(w.latitude_deg)
-    dr = 1.0 + 0.033 * math.cos(2 * math.pi * w.day_of_year / 365.0)
-    decl = 0.409 * math.sin(2 * math.pi * w.day_of_year / 365.0 - 1.39)
-    ws = math.acos(max(-1.0, min(1.0, -math.tan(lat_rad) * math.tan(decl))))
-    ra = (
-        (24 * 60 / math.pi)
-        * 0.0820
-        * dr
-        * (
-            ws * math.sin(lat_rad) * math.sin(decl)
-            + math.cos(lat_rad) * math.cos(decl) * math.sin(ws)
-        )
+    return _pm_core(
+        w.temp_max_c,
+        w.temp_min_c,
+        w.temp_mean_c,
+        w.solar_radiation_mj_m2,
+        w.humidity_pct,
+        w.wind_speed_m_s,
+        w.latitude_deg,
+        w.elevation_m,
+        w.day_of_year,
     )
-    rso = (0.75 + 2e-5 * w.elevation_m) * ra
-    rs = w.solar_radiation_mj_m2
-    rns = 0.77 * rs
-    # Net longwave (FAO-56 Eq. 39)
-    sigma = 4.903e-9
-    tmaxk = w.temp_max_c + 273.16
-    tmink = w.temp_min_c + 273.16
-    rs_rso = min(1.0, rs / rso) if rso > 0 else 0.5
-    rnl = (
-        sigma
-        * ((tmaxk**4 + tmink**4) / 2.0)
-        * (0.34 - 0.14 * math.sqrt(ea))
-        * (1.35 * rs_rso - 0.35)
-    )
-    rn = rns - rnl
-
-    # Soil heat flux (daily ~ 0)
-    g = 0.0
-
-    # FAO-56 Penman-Monteith — Eq. 6
-    numerator = 0.408 * delta * (rn - g) + gamma * (
-        900.0 / (w.temp_mean_c + 273.0)
-    ) * w.wind_speed_m_s * (es - ea)
-    denominator = delta + gamma * (1.0 + 0.34 * w.wind_speed_m_s)
-    et0 = numerator / denominator
-    return max(0.0, et0)
 
 
 # ── Kc by age (FAO-56 Ch.6) ──────────────────────────────────────────
