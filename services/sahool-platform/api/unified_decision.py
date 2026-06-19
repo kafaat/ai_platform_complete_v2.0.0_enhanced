@@ -23,11 +23,17 @@ def _water_risk(stress_days: int) -> str:
     return "منخفض" if stress_days == 0 else "متوسط" if stress_days <= 2 else "مرتفع"
 
 
-def unified_decision(crop_twin: dict, irrigation_plan: dict, quality: dict) -> dict:
+def unified_decision(
+    crop_twin: dict,
+    irrigation_plan: dict,
+    quality: dict,
+    economic: dict | None = None,
+) -> dict:
     """يؤلّف قراراً موحّداً من حالات محسوبة مسبقاً — نقيّ حتميّ.
 
     crop_twin: ناتج crop_twin_state. irrigation_plan: ناتج plan_irrigation.to_dict.
     quality: ناتج assess_data_quality. لا يعيد الحساب — يجمع ويصوغ التوصية.
+    economic: كتلة economic_state إن توفّرت (تملأ المكان المحجوز)؛ وإلّا not_configured.
     """
     pheno = crop_twin.get("phenology", {})
     water = crop_twin.get("water", {})
@@ -98,8 +104,10 @@ def unified_decision(crop_twin: dict, irrigation_plan: dict, quality: dict) -> d
         "data_quality": quality.get("data_quality"),
         "assumptions": quality.get("assumptions", []),
         "assumptions_ar": quality.get("assumptions_ar", []),
-        # الاقتصاد مؤجَّل لطبقة مستقلّة — محجوز صراحةً، لا مُختلق.
-        "economic_state": {
+        # الاقتصاد: يُملأ من economic_state إن مُرِّر، وإلّا محجوز صراحةً (لا مُختلق).
+        "economic_state": economic
+        if economic is not None
+        else {
             "status": "not_configured",
             "required_inputs": list(_ECONOMIC_REQUIRED_INPUTS),
         },

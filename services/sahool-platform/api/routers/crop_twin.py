@@ -19,7 +19,9 @@ from pydantic import BaseModel, Field
 
 from api.crop_twin import TwinDay, crop_twin_state
 from api.data_quality import assess_data_quality
+from api.economic_state import economic_state
 from api.irrigation_mpc import ForecastDay, plan_irrigation
+from api.irrigation_policy import PolicyContext, resolve_policy
 from api.main import UserSchema, get_current_user
 from api.soil_water import soil_water_params
 from api.unified_decision import unified_decision
@@ -207,4 +209,100 @@ def compose_crop_decision(
     decision["field_id"] = req.field_id
     decision["dynamic_kc"] = round(st["dyn_kc"], 3)
     decision["irrigation_plan"] = plan.to_dict()
+    return decision
+
+
+class ProfitAwareDecisionRequest(CropDecisionRequest):
+    """طلب القرار الواعي بالربح = طلب القرار + مدخلات اقتصاديّة + اختيار سياسة آليّ.
+
+    auto_policy=True يدع الاقتصاد/السياق يختار السياسة (resolve_policy) بدل policy المُمرَّر.
+    """
+
+    auto_policy: bool = False
+    water_source: str | None = None  # surface | shallow_well | deep_well | rain
+    water_cost: str | None = None  # cheap | moderate | expensive
+    energy_cost: str | None = None  # cheap | moderate | expensive
+    region: str | None = None
+    expected_yield_t_ha: float | None = None
+    crop_price_per_t: float | None = None
+    energy_kwh_ha: float | None = None
+    energy_price_per_kwh: float | None = None
+    fertilizer_price_per_kg: float | None = None
+
+
+@router.post("/api/v1/crop-twin/decision/profit-aware")
+def compose_profit_aware_decision(
+    req: ProfitAwareDecisionRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """القرار الموحّد الواعي بالربح: يملأ economic_state ويسمح للاقتصاد بتعديل السياسة.
+
+    إن auto_policy=True ⇒ resolve_policy يختار السياسة من سياق التكلفة (بئر عميق/ماء
+    غالٍ ⇒ profit_max...). يحسب economic_state من ماء الخطّة (م³/ها) والتسميد المتبقّي
+    والأسعار المُمرَّرة. صدق: لا أسعار مُختلقة — الغائب يظهر missing_inputs/partial.
+    """
+    st = _compose_state(req)
+    kc_of = st["kc_of"]
+
+    # ١) السياسة: آليّة من سياق التكلفة، أو المُمرَّرة.
+    policy = req.policy
+    policy_reasons: list[str] = []
+    policy_auto = False
+    if req.auto_policy:
+        chosen, policy_reasons = resolve_policy(
+            PolicyContext(
+                region=req.region,
+                crop=req.crop,
+                water_source=req.water_source,
+                water_cost=req.water_cost,
+                energy_cost=req.energy_cost,
+            )
+        )
+        policy = chosen.value
+        policy_auto = True
+
+    plan = plan_irrigation(
+        [
+            ForecastDay(et0_mm=d.et0_mm, kc=kc_of(d), rain_mm=d.rain_mm, runoff_mm=d.runoff_mm)
+            for d in req.forecast
+        ],
+        taw_mm=st["taw_mm"],
+        raw_fraction=st["raw_fraction"],
+        policy=policy,
+        initial_depletion_mm=req.management.initial_depletion_mm,
+        max_application_mm=req.max_application_mm,
+        season_budget_mm=req.season_budget_mm,
+        water_price_per_m3=req.water_price_per_m3,
+        yield_value_per_ha=req.yield_value_per_ha,
+    )
+    plan_dict = plan.to_dict()
+
+    # ٢) economic_state من كمّيّات الخطّة + الأسعار المُمرَّرة (لا اختلاق).
+    nut = st["twin"]["nutrient"]
+    fert_remaining = max(
+        0.0,
+        (nut.get("target_uptake_kg_ha", 0.0) or 0.0)
+        - (nut.get("uptake_to_date_kg_ha", 0.0) or 0.0),
+    )
+    econ = economic_state(
+        expected_yield_t_ha=req.expected_yield_t_ha,
+        crop_price_per_t=req.crop_price_per_t,
+        irrigation_m3_ha=plan_dict["total_irrigation_m3_ha"],
+        water_price_per_m3=req.water_price_per_m3,
+        energy_kwh_ha=req.energy_kwh_ha,
+        energy_price_per_kwh=req.energy_price_per_kwh,
+        fertilizer_kg_ha=fert_remaining if fert_remaining > 0 else None,
+        fertilizer_price_per_kg=req.fertilizer_price_per_kg,
+    )
+
+    decision = unified_decision(st["twin"], plan_dict, st["quality"], economic=econ)
+    decision["field_id"] = req.field_id
+    decision["dynamic_kc"] = round(st["dyn_kc"], 3)
+    decision["irrigation_plan"] = plan_dict
+    decision["policy_decision"] = {
+        "resolved_policy": policy,  # ما اختاره الاقتصاد/السياق
+        "applied_policy": plan_dict["policy"],  # ما طبّقته الخطّة فعلاً (قد يتراجع لنقص الأسعار)
+        "auto": policy_auto,
+        "reasons_ar": policy_reasons,
+    }
     return decision
