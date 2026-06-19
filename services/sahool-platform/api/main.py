@@ -3121,6 +3121,7 @@ from api.routers.auth import router as auth_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
 from api.routers.calendars import router as calendars_router  # noqa: E402
+from api.routers.calibration import router as calibration_router  # noqa: E402
 
 # الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
 from api.routers.cameras import router as cameras_router  # noqa: E402
@@ -3252,6 +3253,7 @@ app.include_router(water_sensitivity_router)
 app.include_router(seed_router)
 app.include_router(climate_analogs_router)
 app.include_router(calendars_router)
+app.include_router(calibration_router)
 app.include_router(water_harvesting_router)
 app.include_router(propagation_router)
 app.include_router(inventory_router)
