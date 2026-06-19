@@ -38,6 +38,7 @@ import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
+from contextvars import ContextVar
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from urllib.parse import urlparse
@@ -430,6 +431,32 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
     allow_credentials=True,
 )
+
+
+# ─── سياق المستأجِر للطلب (إصلاح ترطيب raster_assets عبر RLS) ──────
+# مسار قراءة الراستر كان بلا هويّة مستأجِر ⇒ db_persist.fetch_latest_asset(tenant_id=None)
+# يفشل دائماً (RLS في v14 + الفلتر الصريح يحتاجان app.current_tenant). نلتقط الترويسة
+# الموثوقة X-Tenant-Id (يحقنها البوّابة بعد التحقّق من JWT؛ proxy_params يُفرغ أيّ ترويسة
+# منتحَلة من العميل) ونمرّرها لطبقة القاعدة عند إعادة الترطيب. غيابها ⇒ None ⇒ سلوك
+# fail-closed الحالي (لا انحدار: RLS يحجب بلا مستأجِر).
+_REQ_TENANT: ContextVar[str | None] = ContextVar("req_tenant", default=None)
+
+
+def _tenant_from_header(value: str | None) -> str | None:
+    """يطبّع ترويسة X-Tenant-Id: فراغ/None ⇒ None (لا مستأجِر)."""
+    if not value:
+        return None
+    return value.strip() or None
+
+
+@app.middleware("http")
+async def _tenant_context_mw(request, call_next):
+    """يضبط سياق المستأجِر لكلّ طلب من الترويسة الموثوقة، ويُعيده بعد الطلب."""
+    token = _REQ_TENANT.set(_tenant_from_header(request.headers.get("X-Tenant-Id")))
+    try:
+        return await call_next(request)
+    finally:
+        _REQ_TENANT.reset(token)
 
 
 # ─── مسارات بحث الصور ─────────────────────────────────────────────
@@ -1902,7 +1929,9 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
         import db_persist
 
         internal = _GRID_INDEX_ALIASES.get(index, index)
-        asset = await db_persist.fetch_latest_asset(field_id, internal, date)
+        asset = await db_persist.fetch_latest_asset(
+            field_id, internal, date, tenant_id=_REQ_TENANT.get()
+        )
         if not asset or not asset.get("cog_url"):
             return None
         # لـfile:// نفحص القرص؛ لـs3:// نؤجّل الوجود إلى rasterio (لا نرفضه هنا).
