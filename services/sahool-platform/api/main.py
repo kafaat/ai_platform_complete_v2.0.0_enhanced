@@ -3091,6 +3091,7 @@ from api.routers.admin import router as admin_router  # noqa: E402
 from api.routers.agricultural_proverbs import (  # noqa: E402
     router as agricultural_proverbs_router,
 )
+from api.routers.agro_intelligence import router as agro_intelligence_router  # noqa: E402
 from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
 
 # الدفعة ٩ (Batch 9) — نطاقات CQRS/استبطان + كتابات (commands/events/lineage/replay/
@@ -3332,3 +3333,6 @@ app.include_router(security_audit_router)
 app.include_router(field_completeness_router)
 app.include_router(policy_learning_router)
 app.include_router(yield_interval_router)
+# نقاط ذكاء النظام الزراعيّ-البيئيّ (agro-ecosystem): مخاطر المحصول، التغذية الراجعة
+# نبات-تربة واتّجاهها، الدورة الزراعيّة، مقارنة المواسم، Playbook القرار، أمر عمل من توصية.
+app.include_router(agro_intelligence_router)
