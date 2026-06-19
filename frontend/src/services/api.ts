@@ -444,6 +444,55 @@ export interface IrrigationPlanResult {
 export const computeIrrigationPlan = (payload: IrrigationPlanInput): Promise<IrrigationPlanResult> =>
   kongApi.post<IrrigationPlanResult>('/api/v1/irrigation-plan', payload).then(r => r.data);
 
+// ── قرار المحصول الموحّد (POST /api/v1/crop-twin/decision) ──
+// ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة. الاقتصاد محجوز (not_configured).
+export interface CropDecisionForecastDay {
+  t_min_c: number; t_max_c: number; et0_mm: number;
+  kc?: number | null; rain_mm?: number; irrigation_mm?: number; runoff_mm?: number;
+}
+export interface CropDecisionInput {
+  field_id?: string | null;
+  crop?: string | null;
+  stage?: string;
+  forecast: CropDecisionForecastDay[];
+  ndvi?: number | null;
+  soil?: { texture?: string | null; root_depth_m?: number | null; raw_fraction?: number; taw_mm?: number | null };
+  management?: { target_uptake_kg_ha?: number; initial_depletion_mm?: number; auto_irrigate?: boolean };
+  policy?: string;
+  max_application_mm?: number | null;
+  season_budget_mm?: number | null;
+  water_price_per_m3?: number | null;
+  yield_value_per_ha?: number | null;
+}
+export interface UnifiedRisk { key: string; label_ar: string; level_ar: string }
+export interface UnifiedFlag { code: string; label_ar: string }
+export interface CropDecisionResult {
+  crop: string | null;
+  crop_known: boolean;
+  dynamic_kc: number;
+  phenology: { stage: string; progress: number; past_maturity: boolean; gdd_cumulative?: number };
+  water_state: { taw_mm: number; raw_mm: number; depletion_mm: number; depletion_pct?: number; needs_irrigation: boolean };
+  nutrient_state: { stage: string | null; target_uptake_kg_ha: number; uptake_to_date_kg_ha: number };
+  irrigation: {
+    policy: string; total_mm: number; n_events: number;
+    next_event_day: number | null; next_event_mm: number; stress_days: number; action_ar: string;
+  };
+  fertilization: {
+    stage: string | null; uptake_to_date_kg_ha: number; remaining_need_kg_ha: number; due: boolean; action_ar: string;
+  };
+  risks: UnifiedRisk[];
+  stress_flags: UnifiedFlag[];
+  confidence: number;
+  data_quality: string;
+  assumptions: string[];
+  assumptions_ar: string[];
+  economic_state: { status: string; required_inputs: string[] };
+  calibrated: boolean;
+  warnings_ar: string[];
+}
+export const computeCropDecision = (payload: CropDecisionInput): Promise<CropDecisionResult> =>
+  kongApi.post<CropDecisionResult>('/api/v1/crop-twin/decision', payload).then(r => r.data);
+
 export interface PestEscalationInput {
   workflow_id: string;
   field_id?: string;
