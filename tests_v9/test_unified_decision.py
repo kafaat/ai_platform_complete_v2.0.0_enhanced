@@ -123,6 +123,13 @@ def test_economic_state_reserved():
     assert "crop_price" in d["economic_state"]["required_inputs"]
 
 
+def test_economic_state_filled_when_provided():
+    econ = {"status": "ok", "expected_margin": 1640.0, "confidence": 0.85}
+    d = unified_decision(_twin(), _plan(), _quality(), economic=econ)
+    assert d["economic_state"] == econ  # يملأ المكان المحجوز
+    assert d["economic_state"]["status"] == "ok"
+
+
 def test_unified_flags():
     d = unified_decision(_twin(needs_irrig=True, past_maturity=True), _plan(), _quality())
     codes = {f["code"] for f in d["stress_flags"]}
