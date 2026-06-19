@@ -34,6 +34,11 @@ class EnvironmentalSafetyTier:
         "erosion_risk_slope_pct": 15,
     }
 
+    # EC محلول التسميد (fertigation) dS/m — يعكس core.thresholds.FERTIGATION_EC_MAX_DS_M
+    # (خدمة منفصلة). الخطر = EC المحلول النهائيّ المرتفع يحرق الجذور فوراً (لا تملّح
+    # تراكميّ — مفهوم مختلف عن salinity_ec_max للتربة أعلاه).
+    FERTIGATION_EC_MAX_DS_M = 2.0
+
     # Carbon budget per hectare (kg CO2e/season)
     CARBON_BUDGET = {
         "wheat": 500,
@@ -117,6 +122,34 @@ class EnvironmentalSafetyTier:
                 )
 
         elif action_type == "fertilization":
+            # حرق الجذور: EC محلول التسميد النهائيّ المرتفع يقتل الجذور فوراً (fail-closed).
+            # فحص شرطيّ — يُطبَّق فقط حين يُمرَّر fertigation_ec_ds_m (لا يكسر التسميد الجافّ).
+            fert_ec = action_data.get("fertigation_ec_ds_m")
+            if fert_ec is not None and fert_ec > self.FERTIGATION_EC_MAX_DS_M:
+                findings.append(
+                    {
+                        "severity": "HIGH",
+                        "message": (
+                            f"Fertigation solution EC {fert_ec} dS/m exceeds root-burn "
+                            f"threshold {self.FERTIGATION_EC_MAX_DS_M}"
+                        ),
+                        "message_ar": (
+                            f"EC محلول التسميد {fert_ec} ديسي سيمنز/م يتجاوز عتبة حرق "
+                            f"الجذور ({self.FERTIGATION_EC_MAX_DS_M}) — خفّف أو جزّئ على دفعات."
+                        ),
+                        "rule": "fertigation_ec_exceeded",
+                    }
+                )
+                passed = False
+                suggestions.append(
+                    {
+                        "field": "fertigation_ec_ds_m",
+                        "value": self.FERTIGATION_EC_MAX_DS_M,
+                        "text": "Dilute the nutrient solution or split into more passes",
+                        "text_ar": "خفّف محلول التسميد أو جزّئه على دفعات أكثر",
+                    }
+                )
+
             # Check carbon footprint of synthetic fertilizer production
             n_kg = action_data.get("N_kg_ha", 0)
             # Synthetic N fertilizer: ~8 kg CO2e per kg N (production + transport)
