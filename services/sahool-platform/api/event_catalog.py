@@ -227,6 +227,13 @@ _CATALOG: dict[str, DomainEvent] = {
         description_ar="سُجِّلت نتيجة تنفيذ قرار (الوسيط: dispatch.execution.recorded).",
         payload_keys=("outcome", "decision_id", "field_id"),
     ),
+    # ── المزامنة offline: دمج آليّ غير متقاطع (Auto-merge L3) ────────────────────
+    "OFFLINE_MERGE_AUTO": DomainEvent(
+        name="OFFLINE_MERGE_AUTO",
+        category="offline",
+        description_ar="دُمِجت تعديلات offline غير متقاطعة آليّاً (الوسيط: offline.merge.auto).",
+        payload_keys=("merged_fields", "server_version_before"),
+    ),
 }
 
 
