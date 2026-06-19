@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 
 from core.api_adapter import ApiRequest, handle_recommendation_request
@@ -30,6 +31,7 @@ from api.main import (
     RecommendationRequest,
     UserSchema,
     _db_unavailable,
+    _emit_domain_event,
     _idem_key,
     _idempotent,
     _resolve_recommendation_policy,
@@ -39,14 +41,69 @@ from api.main import (
 )
 
 router = APIRouter()
+logger = logging.getLogger("sahool.recommendations")
+
+
+def _jsonb(value) -> str:
+    """تسلسل آمن لحقل JSONB (يقبل None ⇒ {})."""
+    return json.dumps(value or {}, ensure_ascii=False, default=str)
+
+
+async def _persist_recommendation(
+    user: UserSchema, req: RecommendationRequest, enriched: dict
+) -> None:
+    """تخزين التوصية + إصدار RECOMMENDATION_CREATED (C1/C2).
+
+    أفضل-جهد: فشل التخزين/التدقيق لا يكسر استجابة المستخدم (التوصية حُسِبت بالفعل).
+    الحدث ضمن نفس معاملة الكتابة (نمط outbox) — يُجلب الشرح لاحقاً بـrec_id."""
+    rec_id = enriched.get("rec_id")
+    if not rec_id:
+        return
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO recommendations
+                    (rec_id, tenant_id, farm_id, field_id, crop, delivered,
+                     reason_ar, recommendation, cross_reference, provenance, issued_at)
+                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7,
+                           $8::jsonb, $9::jsonb, $10::jsonb, $11::timestamptz)""",
+                rec_id,
+                str(user.tenant_id),
+                getattr(req, "farm_id", None),
+                getattr(req, "field_id", None),
+                getattr(req, "crop", None),
+                bool(enriched.get("delivered")),
+                enriched.get("reason_ar"),
+                _jsonb(enriched.get("base_recommendation")),
+                _jsonb(enriched.get("cross_reference")),
+                _jsonb(enriched.get("provenance")),
+                enriched.get("timestamp") or None,
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "RECOMMENDATION_CREATED",
+                "recommendation",
+                rec_id,
+                {
+                    "delivered": bool(enriched.get("delivered")),
+                    "field_id": getattr(req, "field_id", None),
+                    "crop": getattr(req, "crop", None),
+                },
+            )
+    except Exception:  # noqa: BLE001 — تدقيق أفضل-جهد لا يكسر المسار الحرج
+        logger.warning("recommendation persist/audit failed (best-effort)", exc_info=True)
 
 
 @router.post("/api/v1/recommendations")
-def recommendations(
+async def recommendations(
     req: RecommendationRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ):
-    """نقطة التوصية الجوهرية — تستخدم api_adapter كاملاً."""
+    """نقطة التوصية الجوهرية — تستخدم api_adapter كاملاً.
+
+    C1/C2: بعد الحساب تُخزَّن التوصية + يُصدَر RECOMMENDATION_CREATED (أفضل-جهد، لا يكسر
+    الاستجابة) ⇒ تصبح متتبَّعة/مدقَّقة ويُجلب شرحها بـrec_id. جسم HTTP لم يتغيّر."""
     # تحقّق tenant isolation
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Cross-tenant recommendation request forbidden")
@@ -58,11 +115,14 @@ def recommendations(
         method="POST",
     )
     resp = handle_recommendation_request(api_req)
+    enriched = getattr(resp, "enriched", None)
+    if enriched:
+        await _persist_recommendation(user, req, enriched)
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
 @router.post("/api/v1/recommendations/for-field")
-def recommendations_for_field(
+async def recommendations_for_field(
     req: FieldRecommendationRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ):
@@ -114,6 +174,9 @@ def recommendations_for_field(
         method="POST",
     )
     resp = handle_recommendation_request(api_req)
+    enriched = getattr(resp, "enriched", None)
+    if enriched:
+        await _persist_recommendation(user, req, enriched)
     return JSONResponse(status_code=resp.status_code, content=resp.body)
 
 
@@ -317,3 +380,47 @@ async def record_recommendation_outcome(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("تسجيل نتيجة التوصية", e) from e
     return result
+
+
+# مُسجَّل أخيراً عمداً: مسار البارامتر {rec_id} يجب ألّا يسبق المسارات الساكنة
+# (/engines /capacity-profiles …) وإلّا التقطها — FastAPI يطابق بترتيب التسجيل.
+@router.get("/api/v1/recommendations/{rec_id}")
+async def get_recommendation(
+    rec_id: str,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
+):
+    """جلب توصية مُخزَّنة + شرحها الكامل بـrec_id (C2 — الشرح متتبَّع).
+
+    معزول بالمستأجِر عبر RLS (tenant_connection). يُعيد الأحدث إن تكرّر rec_id."""
+
+    def _jb(v):
+        return json.loads(v) if isinstance(v, str) else (v or {})
+
+    async with tenant_connection(user) as conn:
+        row = await conn.fetchrow(
+            """SELECT rec_id, farm_id, field_id, crop, delivered, reason_ar,
+                      recommendation, cross_reference, provenance, issued_at, created_at
+               FROM recommendations
+               WHERE rec_id = $1
+               ORDER BY created_at DESC
+               LIMIT 1""",
+            rec_id,
+        )
+    if row is None:
+        raise HTTPException(status_code=404, detail="recommendation not found")
+    return {
+        "rec_id": row["rec_id"],
+        "farm_id": row["farm_id"],
+        "field_id": row["field_id"],
+        "crop": row["crop"],
+        "delivered": row["delivered"],
+        "reason_ar": row["reason_ar"],
+        "recommendation": _jb(row["recommendation"]),
+        # الشرح (forensic): نسخ النماذج + مصدر الطقس + لقطة المدخلات + حالات مشابهة.
+        "explanation": {
+            "provenance": _jb(row["provenance"]),
+            "cross_reference": _jb(row["cross_reference"]),
+        },
+        "issued_at": row["issued_at"].isoformat() if row["issued_at"] else None,
+        "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+    }

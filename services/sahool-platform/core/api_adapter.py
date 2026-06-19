@@ -33,7 +33,7 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 from core.canonical_schemas import UserSchema
 from core.internal_orchestrator import orchestrate_recommendation
@@ -59,6 +59,10 @@ class ApiResponse:
     status_code: int  # 200, 400, 401, 403, 404, 429, 500
     body: dict
     headers: dict = field(default_factory=dict)
+    # الكائن المُغنّى الكامل (EnrichedRecommendation كـdict) للمستهلِك الذي يريد
+    # التخزين/التدقيق — لا يُسلسَل في جسم HTTP (الجسم يبقى كما هو). يُملأ فقط حين
+    # تُجرى توصية فعليّة (لا في رفض المعدّل/المستخدم غير النشط).
+    enriched: dict | None = None
 
 
 # ─── Rate Limiter (AI Workaholic Guard) ──────────────────────────
@@ -212,6 +216,7 @@ def handle_recommendation_request(
                 "rec_id": result.rec_id,
             },
             headers={"X-RateLimit-Remaining": str(remaining)},
+            enriched=asdict(result),
         )
 
     # 200 — مُسلَّمة
@@ -227,6 +232,7 @@ def handle_recommendation_request(
             "timestamp": result.timestamp,
         },
         headers={"X-RateLimit-Remaining": str(remaining)},
+        enriched=asdict(result),
     )
 
 

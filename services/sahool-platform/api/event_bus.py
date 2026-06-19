@@ -137,6 +137,10 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     ALERT_CREATED = "alert.created"
     ALERT_ACKNOWLEDGED = "alert.acknowledged"
 
+    # توصية: حدث عند توليد توصية (C1/C2) — يجعلها متتبَّعة/مدقَّقة في مجرى الأحداث
+    # الموحّد والإعادة، ويصل البثّ الحيّ. يُصدَر عبر outbox ضمن معاملة التخزين.
+    RECOMMENDATION_CREATED = "recommendation.created"
+
     # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
     # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.
     TASK_UPDATED = "task.updated"

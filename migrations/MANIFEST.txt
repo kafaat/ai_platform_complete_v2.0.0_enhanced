@@ -284,3 +284,8 @@ v75_work_orders.sql
 # (FAO-56) لكلّ حقل×محصول×موسم×سيناريو، للمقارنة التاريخيّة. field_id نصّ، RLS+FORCE
 # بسياسة current_setting، UNIQUE(tenant,field,crop,season,scenario) للـupsert. idempotent.
 v76_crop_kc_timeseries.sql
+
+# v77: تخزين + تدقيق التوصية — جدول recommendations: يحفظ كلّ توصية مُولَّدة مع شرحها
+# (provenance + cross_reference)، PK بديل UUID + rec_id نصّ مفهرس، field_id نصّ،
+# RLS+FORCE بسياسة current_setting. يُصدِر RECOMMENDATION_CREATED عبر outbox. idempotent.
+v77_recommendations.sql
