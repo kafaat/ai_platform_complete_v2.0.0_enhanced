@@ -21,6 +21,9 @@ from __future__ import annotations
 
 import logging
 
+# مصدر ET0 الموحّد (H4): نواة Hargreaves + ثابت Ra الافتراضيّ. لا نُعيد كتابة الصيغة.
+from core.engines.et0 import DEFAULT_RA_MM, hargreaves_et0
+
 _log = logging.getLogger("weather_analytics")
 
 
@@ -32,12 +35,11 @@ _HIGH_WIND_KMH = 30  # فوقها إجهاد رياح/تعرية
 
 
 def _hargreaves_et0(tmax: float, tmin: float, ra_mm: float) -> float:
-    """ET0 بطريقة Hargreaves-Samani (حرارة + إشعاع خارج الغلاف).
+    """ET0 بطريقة Hargreaves-Samani — يفوّض للمصدر الموحّد (سلوك محفوظ تماماً).
+
     ra_mm: الإشعاع خارج الغلاف الجوّي معبَّراً عنه بمكافئ التبخّر (مم/يوم).
     """
-    tmean = (tmax + tmin) / 2.0
-    dt = max(tmax - tmin, 0.0)
-    return max(0.0, 0.0023 * (tmean + 17.8) * (dt**0.5) * ra_mm)
+    return hargreaves_et0(tmax, tmin, ra_mm)
 
 
 def heat_stress_index(temp_max_c: float) -> dict:
@@ -121,8 +123,9 @@ def analyze_weather_log(
                 total_rain += float(p)
             except (ValueError, TypeError):
                 _log.debug("تخطّي قيمة مطر غير رقميّة: %r", p)
-        # ET0 محسوب
-        total_et0 += _hargreaves_et0(tmax, tmin, ra.get(mon, 14.0))
+        # ET0 محسوب — Ra من الجدول الشهريّ، وعند غياب الشهر يُستعمل الثابت الموحّد
+        # (DEFAULT_RA_MM=15.0 بدل 14.0 سابقاً — توحيد H4؛ مسار نادر للأشهر الغائبة).
+        total_et0 += _hargreaves_et0(tmax, tmin, ra.get(mon, DEFAULT_RA_MM))
         valid_et0 += 1
 
     water_deficit = total_et0 - total_rain

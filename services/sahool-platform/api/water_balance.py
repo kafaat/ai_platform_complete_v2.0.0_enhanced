@@ -24,6 +24,9 @@ import math
 from dataclasses import dataclass
 from enum import StrEnum
 
+# مصدر ET0 الموحّد (H4): نواة Hargreaves + Ra. لا نُعيد كتابة الصيغة هنا.
+from core.engines.et0 import extraterrestrial_radiation_mj, hargreaves_et0_geo
+
 
 class ET0Method(StrEnum):
     PENMAN_MONTEITH = "penman_monteith"
@@ -94,30 +97,19 @@ class WaterBalanceResult:
 
 
 def _extraterrestrial_radiation(lat_deg: float, doy: int) -> float:
-    """الإشعاع خارج الغلاف الجوّي Ra (MJ/m²/يوم) — FAO-56 eq. 21."""
-    lat = math.radians(lat_deg)
-    dr = 1 + 0.033 * math.cos(2 * math.pi / 365 * doy)  # المسافة الشمسيّة
-    decl = 0.409 * math.sin(2 * math.pi / 365 * doy - 1.39)  # الميل الشمسي
-    ws = math.acos(max(-1, min(1, -math.tan(lat) * math.tan(decl))))  # زاوية الغروب
-    gsc = 0.0820  # الثابت الشمسي MJ/m²/min
-    ra = (
-        (24 * 60 / math.pi)
-        * gsc
-        * dr
-        * (ws * math.sin(lat) * math.sin(decl) + math.cos(lat) * math.cos(decl) * math.sin(ws))
-    )
-    return ra
+    """الإشعاع خارج الغلاف الجوّي Ra (MJ/m²/يوم) — FAO-56 eq. 21.
+
+    يفوّض للمصدر الموحّد (core.engines.et0). يبقى الاسم لاستعمال Penman-Monteith أدناه.
+    """
+    return extraterrestrial_radiation_mj(lat_deg, doy)
 
 
 def et0_hargreaves(w: WeatherInput) -> float:
-    """Hargreaves-Samani ET0 (حرارة فقط) — FAO-56 eq. 52.
+    """Hargreaves-Samani ET0 (حرارة فقط) — FAO-56 eq. 52، عبر المصدر الموحّد.
 
-    ET0 = 0.0023 × (Tmean+17.8) × √(Tmax−Tmin) × Ra×0.408
-    (0.408 يحوّل Ra من MJ/m² إلى mm equivalent)
+    Ra محسوب من (خطّ العرض، اليوم). سلوك محفوظ تماماً (نفس الصيغة والثوابت).
     """
-    ra = _extraterrestrial_radiation(w.latitude_deg, w.day_of_year)
-    td = max(0.0, w.t_max_c - w.t_min_c)
-    return 0.0023 * (w.t_mean + 17.8) * math.sqrt(td) * ra * 0.408
+    return hargreaves_et0_geo(w.t_max_c, w.t_min_c, w.latitude_deg, w.day_of_year, w.t_mean)
 
 
 def et0_penman_monteith(w: WeatherInput) -> float:

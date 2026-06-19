@@ -29,6 +29,8 @@ import math
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
+from core.engines.et0 import DEFAULT_RA_MM, hargreaves_et0
+
 from api.water_balance import KC_BY_CROP_STAGE
 
 # ─── معرفة المحاصيل (معاملات نموذجيّة إرشاديّة) ───────────────────
@@ -414,14 +416,9 @@ def simulate_season(ctx: SimContext) -> SimResult:
 
         et0 = day.et0_mm
         if et0 is None:
-            # تقدير ET₀ خشن من المدى الحراري (Hargreaves مبسّط) حين يغيب القياس.
-            et0 = max(
-                0.0,
-                0.0023
-                * ((day.t_max_c + day.t_min_c) / 2 + 17.8)
-                * math.sqrt(max(0.0, day.t_max_c - day.t_min_c))
-                * 15.0,
-            )
+            # تقدير ET₀ خشن من المدى الحراري (Hargreaves) حين يغيب القياس — عبر المصدر
+            # الموحّد بثابت Ra الافتراضيّ (لا جغرافيا هنا). سلوك محفوظ (15.0=DEFAULT_RA_MM).
+            et0 = hargreaves_et0(day.t_max_c, day.t_min_c, DEFAULT_RA_MM)
             estimated_et0_days += 1
         et0_series.append(et0)
         rain_total += max(0.0, day.rain_mm)
