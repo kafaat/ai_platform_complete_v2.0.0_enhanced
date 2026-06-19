@@ -13,10 +13,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from api.farm_economics import break_even_price, cost_categories, feasibility
 from api.feasibility_models import FeasibilityRequest
+from api.main import UserSchema, get_current_user
 
 router = APIRouter()
 
@@ -28,7 +29,9 @@ def economics_categories_endpoint():
 
 
 @router.post("/api/v1/economics/feasibility")
-def economics_feasibility_endpoint(req: FeasibilityRequest):
+def economics_feasibility_endpoint(
+    req: FeasibilityRequest, user: UserSchema = Depends(get_current_user)
+):
     """جدوى المحصول: الإيراد المتوقّع + صافي الربح + الهامل + فحص السوق."""
     return feasibility(
         req.area_ha,
