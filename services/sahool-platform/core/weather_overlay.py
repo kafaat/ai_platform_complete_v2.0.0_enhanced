@@ -13,6 +13,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from core.thresholds import FROST_RISK_C, HEAT_STRESS_HOURLY_C
+
 # ── عتبات الرشّ (drift/inversion) ──
 _DELTA_T_MIN, _DELTA_T_MAX = 2.0, 8.0  # °C: <2 خطر انقلاب حراريّ، >8 تبخّر مفرط للرذاذ
 _WIND_MIN_MS, _WIND_MAX_MS = 0.8, 4.2  # م/ث ≈ 3–15 كم/س: أقلّ=انجراف انقلاب، أكثر=انجراف ريح
@@ -22,9 +24,9 @@ _SPRAY_RAIN_MM = 0.2  # مطر يُلغي الرشّ
 _DISEASE_RH = 85.0  # رطوبة % تُفضّل العدوى الفطريّة
 _DISEASE_T_MIN, _DISEASE_T_MAX = 10.0, 30.0  # °C نافذة حرارة مواتية لأغلب الممرضات
 
-# ── عتبات الإجهاد ──
-_HEAT_C = 38.0  # °C إجهاد حراريّ
-_FROST_C = 2.0  # °C خطر صقيع
+# ── عتبات الإجهاد (من المصدر الموحّد core.thresholds — نفس القيم) ──
+_HEAT_C = HEAT_STRESS_HOURLY_C  # عدّ ساعات الإجهاد الحراريّ (أساس ساعيّ)
+_FROST_C = FROST_RISK_C  # °C خطر صقيع
 _TRAFFIC_PRECIP_CAP_MM = 40.0  # تراكم مطر يُشبِع التربة فتنعدم صلاحيّة المرور
 
 

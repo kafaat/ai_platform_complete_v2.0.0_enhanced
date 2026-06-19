@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from core.thresholds import HIGH_PH_THRESHOLD, SALINITY_MODERATE_ECE
+
 
 # ═══════════════════════════════════════════════════════════════════
 # حالات مرجعيّة (golden set) — قيم حقيقيّة/واقعيّة بنتائج تصنيف معروفة.
@@ -96,7 +98,10 @@ GOLDEN_CASES: list[DecisionCase] = [
 
 
 def _classify(
-    ec: float | None, ph: float | None, ec_threshold: float = 4.0, ph_threshold: float = 7.8
+    ec: float | None,
+    ph: float | None,
+    ec_threshold: float = SALINITY_MODERATE_ECE,
+    ph_threshold: float = HIGH_PH_THRESHOLD,
 ) -> dict:
     """يطبّق منطق تصنيف القرار الحالي (نفس عتبات decision_engine).
 
@@ -108,7 +113,9 @@ def _classify(
     }
 
 
-def run_regression(ec_threshold: float = 4.0, ph_threshold: float = 7.8) -> dict:
+def run_regression(
+    ec_threshold: float = SALINITY_MODERATE_ECE, ph_threshold: float = HIGH_PH_THRESHOLD
+) -> dict:
     """يشغّل منطق القرار على الحالات المرجعيّة ويتحقّق من عدم التدهور.
 
     الاستخدام: قبل تغيير عتبة في الإنتاج، شغّل بالعتبة الجديدة وتأكّد أنّ

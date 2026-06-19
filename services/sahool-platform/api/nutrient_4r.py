@@ -22,6 +22,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
+from core.thresholds import HIGH_PH_THRESHOLD
+
 
 class Nutrient(str, Enum):
     N = "nitrogen"
@@ -75,7 +77,7 @@ class FourRRecommendation:
 
 # عتبة CaCO3 التي تُفعّل تحذيرات التربة الكلسيّة (أدبيّات التربة)
 _CALCAREOUS_THRESHOLD = 15.0  # %
-_HIGH_PH_THRESHOLD = 7.8
+_HIGH_PH_THRESHOLD = HIGH_PH_THRESHOLD  # قلويّة (المصدر الموحّد core.thresholds)
 
 
 def recommend_nitrogen(soil: SoilContext) -> FourRRecommendation:

@@ -21,13 +21,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
+from core.thresholds import SALINITY_CRITICAL_ECE, SALINITY_MODERATE_ECE
+
 # إصدارات (المراجعة الثانية: القرارات historical-sensitive — replay/audit)
 SCHEMA_VERSION = "1.0"
 FUSION_STRATEGY_VERSION = "1.0"
 
-# عتبات حلّ التعارض (مُسنَدة لقواعد القرار الموجودة SAL-SOIL-*)
-SALINITY_CRITICAL_ECE = 8.0  # > 8 dS/m: ملحية حرجة (SAL-SOIL-03)
-SALINITY_MODERATE_ECE = 4.0  # 4-8: متوسّطة (SAL-SOIL-02/06)
+# عتبات حلّ التعارض من المصدر الموحّد core.thresholds (SAL-SOIL-*؛ نفس القيم 8/4 dS/m).
+# مُعاد تصديرها هنا (مُستعمَلة أدناه) للحفاظ على المستورِدين الحاليّين لهذين الاسمين.
 
 # مصفوفة الأسبقيّة الصريحة (arbitration matrix) — من يحكم عند التعارض؟
 # المبدأ (من المراجعة): القيود البنيويّة طويلة الأمد تتقدّم على القرائن اللحظيّة.
