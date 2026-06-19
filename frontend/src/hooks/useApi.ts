@@ -11,6 +11,7 @@ import {
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
   computeIrrigationPlan, type IrrigationPlanInput, type IrrigationPlanResult,
+  computeCropDecision, type CropDecisionInput, type CropDecisionResult,
   fetchSeasons, type SeasonSummary,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
@@ -786,6 +787,13 @@ export function useWaterAnalysis() {
 export function useComputeIrrigationPlan(): UseMutationResult<IrrigationPlanResult, Error, IrrigationPlanInput> {
   return useMutation<IrrigationPlanResult, Error, IrrigationPlanInput>({
     mutationFn: (payload) => computeIrrigationPlan(payload),
+  });
+}
+
+// قرار المحصول الموحّد: ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة.
+export function useCropDecision(): UseMutationResult<CropDecisionResult, Error, CropDecisionInput> {
+  return useMutation<CropDecisionResult, Error, CropDecisionInput>({
+    mutationFn: (payload) => computeCropDecision(payload),
   });
 }
 
