@@ -49,10 +49,21 @@ const WORKER_PAGES: PageId[] = [
 // لا تظهر لـagronomist/viewer حتى لو كان الخادم سيردّ 403 — منعٌ من المصدر في الواجهة.
 const MANAGEMENT_ONLY_PAGES: PageId[] = ['master-data', 'documents', 'governance'];
 
-// كلّ ما عدا الصفحات الإداريّة (لـagronomist والمُشاهِد). يحافظ على وصولهما الكامل
-// للصفحات التشغيليّة/التحليليّة، مع استبعاد الإداريّة فقط.
+// كلّ ما عدا الصفحات الإداريّة (لـagronomist). يحافظ على وصوله الكامل للصفحات
+// التشغيليّة/التحليليّة، مع استبعاد الإداريّة فقط.
 const NON_MANAGEMENT_PAGES: PageId[] = ALL_PAGES.filter(
   (p) => !MANAGEMENT_ONLY_PAGES.includes(p),
+);
+
+// المُشاهِد (viewer): عرض تشغيليّ قراءةً فقط. يُحجَب عنه إضافةً الماليّ/التحليليّ/
+// التقارير — مواءمةً مع RBAC الخلفيّة التي لا تمنح VIEWER صلاحيّات
+// ANALYTICS_VIEW/AUDIT_VIEW ولا أيّ صلاحيّة ماليّة (core/authorization.py: VIEWER
+// = 12 صلاحيّة عرض فقط). قائمة قابلة للضبط من المنتَج بمصفوفة واحدة.
+const VIEWER_BLOCKED_PAGES: PageId[] = [
+  'economics', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
+];
+const VIEWER_PAGES: PageId[] = NON_MANAGEMENT_PAGES.filter(
+  (p) => !VIEWER_BLOCKED_PAGES.includes(p),
 );
 
 const ROLE_PAGES: Record<Role, readonly PageId[]> = {
@@ -60,7 +71,7 @@ const ROLE_PAGES: Record<Role, readonly PageId[]> = {
   manager: ALL_PAGES,
   agronomist: NON_MANAGEMENT_PAGES, // وصول كامل عدا الصفحات الإداريّة
   worker: WORKER_PAGES,
-  viewer: NON_MANAGEMENT_PAGES, // يرى كلّ شيء (عدا الإداريّة) قراءةً فقط (انظر canMutate)
+  viewer: VIEWER_PAGES, // عرض تشغيليّ فقط (عدا الإداريّة والماليّة/التحليليّة) — قراءةً (canMutate)
 };
 
 /** هل يحقّ للدور فتح هذه الصفحة؟ */
