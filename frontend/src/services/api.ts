@@ -831,6 +831,15 @@ export interface FieldRecommendation {
   title_ar:  string;
   detail_ar: string;
   source:    string;
+  safety?:   boolean;   // توصية سلامة (تُبرَز) — تُرسلها الخلفيّة (recommendations_hub)
+}
+
+// حالة الحقل القانونيّة المُرفقة بالتوصيات (تُرسلها الخلفيّة أصلاً — Provenance UX).
+export interface RecFieldState {
+  validity?:         string;
+  execution_mode?:   string;
+  confidence_level?: string | null;  // high | medium | low | none — نصّ لا رقم
+  reasons_ar?:       string[];
 }
 
 export interface FieldRecommendationsResult {
@@ -839,6 +848,8 @@ export interface FieldRecommendationsResult {
   stage:              string;
   weather_available:  boolean;
   recommendations:    FieldRecommendation[];
+  requires_review?:   boolean;        // execution_mode != auto ⇒ مراجعة بشريّة
+  field_state?:       RecFieldState;
 }
 
 export const fetchFieldRecommendations = (fieldId: string): Promise<FieldRecommendationsResult> =>
