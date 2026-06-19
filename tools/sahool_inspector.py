@@ -220,7 +220,9 @@ def check_endpoint_authz() -> Result:
             has_auth = "get_current_user" in sig or "require_permission" in sig
             if has_auth:
                 continue
-            touches_db = any(mk in sig + fnbody for mk in db_markers) or "field_id" in sig
+            # الخطر الحقيقيّ = وصول قاعدة فعليّ في الجسم؛ وجود وسيط field_id وحده لا يكفي
+            # (نقاط حسابيّة نقيّة تأخذ field_id كوسم فقط — تحقّقنا: field/operational-state).
+            touches_db = any(mk in sig + fnbody for mk in db_markers)
             loc = f"{rel}:{_lineno(src, dm.start())} — {fn}"
             if touches_db:
                 findings.append(

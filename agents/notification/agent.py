@@ -330,7 +330,7 @@ _js: JetStreamContext | None = None
 
 SUBSCRIPTIONS = [
     ("sahool.tenant.*.satellite.*.computed", "notif_satellite"),
-    ("SAHOOL.alerts.weather", "notif_weather"),
+    ("sahool.alerts.weather", "notif_weather"),
     ("sahool.pest.alert", "notif_pest"),
     ("sahool.irrigation.recommendation", "notif_irrigation"),
     ("sahool.fertilizer.recommendation", "notif_fertilizer"),

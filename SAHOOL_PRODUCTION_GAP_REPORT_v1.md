@@ -40,7 +40,7 @@
 | **Weather Service** | 🔴 معطّل المسار | لا ناشر NATS لـ`forecast.updated` ⇒ polygon-worker خامل | تراكب الطقس لا يُحسب |
 | **Raster Service** | 🟠 جزئيّ | COG مشروط بـrasterio؛ `ndvi_timeseries`/`zonal_stats` بلا كاتب | NDVI لكلّ تاريخ غائب |
 | **AI Services** | 🟠 جزئيّ | vegetation تحسب نطاقات صناعيّة ولا تكتب قاعدة | بكسل حقيقيّ عبر pass-through فقط |
-| **AuthZ layer** | 🔴 فاشل-مفتوح | لا middleware/غطاء عالميّ؛ مصادقة لكلّ نقطة يدويّاً | IDOR على حالة الحقل |
+| **AuthZ layer** | 🟠 فاشل-مفتوح | لا middleware/غطاء عالميّ؛ مصادقة لكلّ نقطة يدويّاً | نمط فاشل-مفتوح (لا IDOR مؤكَّد — انظر H1) |
 
 ---
 
@@ -59,7 +59,7 @@
 
 ## 3. المخاطر العالية (High Risks)
 
-- **H1 — تفويض فاشل-مفتوح:** لا middleware مصادقة عالميّ ولا `APIRouter(dependencies=[...])`؛ ~96 نقطة بلا تبعيّة مصادقة. الأخطر **IDOR على حالة الحقل**: `GET /api/v1/field/operational-state` يأخذ `field_id` بلا مصادقة. `routers/field_single.py:22`، `api/main.py` (لا غطاء). [ساكن] *(أكّدته أداة الفاحص: 1 نقطة تمسّ قاعدة + 97 عامّة).*
+- **H1 — تفويض فاشل-مفتوح (المخاطرة معماريّة لا تسرّب مؤكَّد):** لا middleware مصادقة عالميّ ولا `APIRouter(dependencies=[...])`؛ ~96 نقطة بلا تبعيّة مصادقة، فأيّ نقطة جديدة تُنسى تبعيّتها تُكشَف. **تصحيح صدق (تحقّق لاحق):** ما رشّحه الفاحص الأوّليّ كـ«IDOR على `GET /api/v1/field/operational-state`» تبيّن **إنذاراً كاذباً** — `resolve_field_state` دالّة نقيّة متزامنة تأخذ كلّ مدخلاتها من query وتستعمل `field_id` **وسماً فقط بلا قراءة قاعدة** (`api/field_operational_state.py:84`)، فلا بيانات مستأجِر تتسرّب. صُحِّحت heuristic الفاحص تبعاً لذلك (وجود `field_id` وحده لم يعد يرفع HIGH). النقاط العامّة الأخرى (أمثال/أقاليم/قرار-بالإحداثيّات) حسابيّة نقيّة كذلك. **الخطر الحقيقيّ المتبقّي = النمط فاشل-مفتوح نفسه**، لا تسرّب نشط. `routers/field_single.py:22`، `api/main.py` (لا غطاء). [ساكن — مُتحقَّق]
 - **H2 — 7 اشتراكات NATS يتيمة:** `pest.alert`/`irrigation.recommendation`/`fertilizer.recommendation`/`inventory.low_stock`/`task.assigned`/`economic.analysis`/`weather.forecast.updated` مُشترَك بها بلا ناشر ⇒ تغذية الإشعارات الحيّة موصولة من جهة المستهلك فقط. `agents/notification/agent.py:334-339`، `weather-polygon-worker/src/main.py:115`. [ساكن]
 - **H3 — فجوات سجلّ التدقيق:** إدراج التنبيهات بالجملة بلا `ALERT_CREATED` (`api/main.py:1871`)؛ تنفيذ موزِّع القرار بلا حدث domain (`routers/decision_dispatch.py:298`)؛ توصية→أمر عمل بلا حدث ولا `WORK_ORDER_*` في الكتالوج (`routers/agro_intelligence.py:253`). [ساكن]
 - **H4 — ET0 Hargreaves مُكرَّر ×4 بقيم Ra متعارضة:** `Ra=15.0` (`season_simulation.py:423`) مقابل `14.0` (`weather_analytics.py:125`) مقابل المحسوب (`water_balance.py:120`) ⇒ نفس الحقل يعطي ET0 مختلفاً. [ساكن]
