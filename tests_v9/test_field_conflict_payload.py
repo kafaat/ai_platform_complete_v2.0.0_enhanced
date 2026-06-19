@@ -53,3 +53,44 @@ def test_ignores_keys_absent_from_server(fields_mod):
 def test_empty_client_changes(fields_mod):
     cf = fields_mod._conflict_changed_fields
     assert cf({}, {"crop_type": "ذرة"}) == []
+
+
+# ── Auto-merge (Level 3): خطّة الدمج 3-way ──
+
+
+def test_merge_non_overlapping_auto(fields_mod):
+    # العميل غيّر soil_type، والطرف الآخر غيّر crop_type ⇒ دمج آليّ بلا تعارض.
+    plan = fields_mod._field_merge_plan
+    client = {"soil_type": "طينية"}
+    server = {"soil_type": "رملية", "crop_type": "ذرة"}
+    base = {"soil_type": "رملية"}  # الخادم لم يمسّ soil_type (server == base)
+    can_merge, conflicts = plan(client, server, base)
+    assert can_merge is True
+    assert conflicts == []
+
+
+def test_merge_overlapping_conflict(fields_mod):
+    # الطرفان غيّرا crop_type ⇒ تعارض حقيقيّ، لا دمج.
+    plan = fields_mod._field_merge_plan
+    client = {"crop_type": "قمح"}
+    server = {"crop_type": "ذرة"}
+    base = {"crop_type": "بطاطس"}  # server(ذرة) != base(بطاطس) ⇒ الطرف الآخر غيّره
+    can_merge, conflicts = plan(client, server, base)
+    assert can_merge is False
+    assert conflicts == ["crop_type"]
+
+
+def test_no_base_values_cannot_merge(fields_mod):
+    # بلا base_values لا يمكن تحديد الأمان ⇒ fail-closed (تعارض، لا دمج).
+    plan = fields_mod._field_merge_plan
+    can_merge, conflicts = plan({"soil_type": "X"}, {"soil_type": "old"}, None)
+    assert can_merge is False
+    assert conflicts == ["soil_type"]
+
+
+def test_noop_when_server_matches_intent(fields_mod):
+    # الخادم يطابق نيّة العميل أصلاً ⇒ لا-عمل، دمج آمن (لا تعارض).
+    plan = fields_mod._field_merge_plan
+    can_merge, conflicts = plan({"crop_type": "ذرة"}, {"crop_type": "ذرة"}, {"crop_type": "قمح"})
+    assert can_merge is True
+    assert conflicts == []

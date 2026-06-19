@@ -160,6 +160,11 @@ class FieldUpdateRequest(BaseModel):
     # العميل. إن مُرِّر ولم يطابق row_version الحاليّ ⇒ 409 تعارض (كشف تعديل متباعد
     # offline). ليس عموداً يُكتَب — مستثنى من _build_field_update (ليس في الأعمدة).
     base_version: int | None = Field(default=None, ge=1)
+    # دمج آليّ 3-way (اختياريّ): قيم الأعمدة كما قرأها العميل وقت base_version. عند
+    # تعارض الإصدار، إن كان الخادم لم يمسّ عموداً (server == base) فتغيير العميل عليه
+    # آمن ⇒ يُدمَج آليّاً؛ التعارض الحقيقيّ فقط حين غيّر الطرفان العمود نفسه. ليس
+    # عموداً يُكتَب — مستثنى من _build_field_update (ليس في الأعمدة).
+    base_values: dict | None = Field(default=None)
 
 
 def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:

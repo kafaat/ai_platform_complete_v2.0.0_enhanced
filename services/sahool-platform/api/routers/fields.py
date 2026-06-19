@@ -569,6 +569,30 @@ def _conflict_changed_fields(client_changes: dict, server_record: dict) -> list[
     return [k for k, v in client_changes.items() if k in server_record and server_record[k] != v]
 
 
+def _field_merge_plan(
+    client_changes: dict, server_record: dict, base_values: dict | None
+) -> tuple[bool, list[str]]:
+    """خطّة دمج 3-way لتعارض تحديث الحقل (دالّة نقيّة، Level 3).
+
+    لكلّ عمود غيّره العميل: إن طابق الخادمُ نيّةَ العميل (server == new) ⇒ لا-عمل؛
+    وإلّا إن طابق الخادمُ أساسَ العميل (server == base) ⇒ آمن للدمج (الطرف الآخر لم
+    يمسّ العمود)؛ وإلّا ⇒ تعارض حقيقيّ (غيّر الطرفان العمود نفسه، أو لا أساس لتحديد
+    الأمان ⇒ fail-closed). يُرجِع (can_auto_merge, conflict_fields). الدمج الآليّ
+    ممكن فقط حين تُتاح base_values ولا تعارض حقيقيّ.
+    """
+    conflicts: list[str] = []
+    for col, new_val in client_changes.items():
+        if col not in server_record:
+            continue
+        srv = server_record[col]
+        if srv == new_val:
+            continue  # الخادم == نيّة العميل (لا-عمل)
+        if base_values is not None and col in base_values and srv == base_values[col]:
+            continue  # الخادم لم يتغيّر عن أساس العميل ⇒ آمن للدمج
+        conflicts.append(col)
+    return (bool(base_values) and not conflicts), conflicts
+
+
 @router.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def update_field(
     field_id: str,
@@ -603,9 +627,7 @@ async def update_field(
                 # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
                 # وكتابته. نرفض 409 (لا فقد صامت) قبل إصدار أيّ حدث — المعاملة تتراجع.
                 if req.base_version is not None and upd.rsplit(" ", 1)[-1] == "0":
-                    # Conflict Resolution Workflow (Level 2): بدل 409 خام، نُرجِع سجلّ
-                    # الخادم الحاليّ + الحقول المتغيّرة ليحسم العميل (الخادم/نسختي/دمج)
-                    # — يحوّل التعارض من خطأ تقنيّ إلى تجربة قابلة للحلّ (لا فقد صامت).
+                    # تعارض إصدار: نقرأ سجلّ الخادم الحاليّ لتصنيف تغييرات العميل.
                     srow = await conn.fetchrow(
                         f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
                         field_id,
@@ -615,9 +637,34 @@ async def update_field(
                             status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر"
                         )
                     server_detail = _row_to_field_detail(srow)
-                    server_py = server_detail.model_dump()  # للمقارنة (أنواع بايثون)
-                    server_json = server_detail.model_dump(mode="json")  # للردّ (JSON آمن)
-                    client_changes = req.model_dump(exclude_unset=True, exclude={"base_version"})
+                    server_py = server_detail.model_dump()
+                    client_changes = req.model_dump(
+                        exclude_unset=True, exclude={"base_version", "base_values"}
+                    )
+                    can_merge, conflicts = _field_merge_plan(
+                        client_changes, server_py, req.base_values
+                    )
+                    if can_merge:
+                        # Auto-merge (Level 3): لا تقاطع فعليّ ⇒ نُعيد تطبيق تغييرات
+                        # العميل على النسخة الحاليّة بلا حارس الإصدار (دمج آمن، لا فقد).
+                        merge_sql, merge_vals = _build_versioned_update(
+                            set_clause, values, field_id, None
+                        )
+                        await conn.execute(merge_sql, *merge_vals)
+                        mrow = await conn.fetchrow(
+                            f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                            field_id,
+                        )
+                        await _emit_domain_event(
+                            conn,
+                            user,
+                            "FIELD_UPDATED",
+                            "field",
+                            field_id,
+                            {**client_changes, "_auto_merged": True},
+                        )
+                        return _row_to_field_detail(mrow).model_dump()
+                    # تعارض حقيقيّ (تقاطع أو بلا base_values) ⇒ 409 مُثرى (Workflow).
                     raise HTTPException(
                         status_code=409,
                         detail={
@@ -629,8 +676,8 @@ async def update_field(
                             ),
                             "server_version": server_py.get("row_version"),
                             "client_version": req.base_version,
-                            "server_record": server_json,
-                            "changed_fields": _conflict_changed_fields(client_changes, server_py),
+                            "server_record": server_detail.model_dump(mode="json"),
+                            "changed_fields": conflicts,
                             # أسماء قديمة للتوافق الخلفيّ مع عملاء يقرؤونها:
                             "current_version": server_py.get("row_version"),
                             "your_base_version": req.base_version,
