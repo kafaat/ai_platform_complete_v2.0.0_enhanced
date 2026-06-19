@@ -102,3 +102,24 @@ def soil_water_params(
         "calibrated": False,
         "warnings_ar": warnings_ar,
     }
+
+
+def available_water_fraction(depletion_mm: float, taw_mm: float) -> float:
+    """جزء الماء المتاح المتبقّي في منطقة الجذور = 1 − Dr/TAW، مقصوص [0,1].
+
+    1.0 = السعة الحقليّة (تربة ممتلئة)، 0.0 = نقطة الذبول (نفد المتاح). هذا هو
+    **الأساس الفيزيائيّ للقرار الواعي بالتربة**: نفس ETc (⇒ نفس Dr) يستنزف الرمل
+    (TAW منخفض) إلى كسر أدنى أسرع من الطين (TAW مرتفع) — فيُستحقّ الريّ في الرمل أوّلاً.
+    """
+    if taw_mm <= 0:
+        return 0.0
+    return max(0.0, min(1.0, 1.0 - depletion_mm / taw_mm))
+
+
+def irrigation_due_by_soil(depletion_mm: float, taw_mm: float, raw_fraction: float) -> bool:
+    """قرار توقيت الريّ الواعي بالتربة — يعتمد كسر الماء المتاح لا ETc وحده.
+
+    مستحقّ حين ينزل الماء المتاح إلى عتبة الاستنفاد: AWF ≤ 1 − p (مكافئ Dr ≥ RAW).
+    نفس Dr يستحقّ الريّ في الرمل (AWF أدنى) قبل الطين — فيزياء التربة تحكم التوقيت.
+    """
+    return available_water_fraction(depletion_mm, taw_mm) <= (1.0 - raw_fraction)

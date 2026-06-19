@@ -18,7 +18,11 @@ _PLATFORM = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platf
 if _PLATFORM not in sys.path:
     sys.path.insert(0, _PLATFORM)
 
-from api.soil_water import soil_water_params  # noqa: E402
+from api.soil_water import (  # noqa: E402
+    available_water_fraction,
+    irrigation_due_by_soil,
+    soil_water_params,
+)
 
 
 def test_taw_is_per_m_times_depth():
@@ -70,6 +74,33 @@ def test_sand_holds_less_than_clay_than_loam():
     clay = soil_water_params("clay", 1.0)["taw_mm"]
     loam = soil_water_params("loam", 1.0)["taw_mm"]
     assert sand < clay < loam  # 65 < 135 < 175 (FAO-56 Table 19)
+
+
+def test_available_water_fraction_bounds():
+    assert available_water_fraction(0.0, 100.0) == 1.0  # ممتلئة
+    assert available_water_fraction(100.0, 100.0) == 0.0  # ذبول
+    assert available_water_fraction(40.0, 100.0) == pytest.approx(0.6)
+    assert available_water_fraction(200.0, 100.0) == 0.0  # مقصوص
+    assert available_water_fraction(10.0, 0.0) == 0.0  # TAW صفر آمن
+
+
+def test_soil_aware_timing_sand_before_clay():
+    # نقطة المستخدم: نفس Dr (نفس ETc) ⇒ الرمل يستحقّ الريّ قبل الطين.
+    sand = soil_water_params("sand", 1.0)  # TAW=65 ⇒ RAW=32.5
+    clay = soil_water_params("clay", 1.0)  # TAW=135 ⇒ RAW=67.5
+    dr = 40.0
+    assert irrigation_due_by_soil(dr, sand["taw_mm"], sand["raw_fraction"]) is True
+    assert irrigation_due_by_soil(dr, clay["taw_mm"], clay["raw_fraction"]) is False
+    # القرار من كسر الماء المتاح لا ETc وحده.
+    assert available_water_fraction(dr, sand["taw_mm"]) < available_water_fraction(
+        dr, clay["taw_mm"]
+    )
+
+
+def test_irrigation_due_equivalent_to_dr_ge_raw():
+    sp = soil_water_params("loam", 1.0, raw_fraction=0.5)  # RAW=87.5
+    assert irrigation_due_by_soil(sp["raw_mm"], sp["taw_mm"], sp["raw_fraction"]) is True
+    assert irrigation_due_by_soil(sp["raw_mm"] - 1.0, sp["taw_mm"], sp["raw_fraction"]) is False
 
 
 def test_feeds_root_zone_balance():

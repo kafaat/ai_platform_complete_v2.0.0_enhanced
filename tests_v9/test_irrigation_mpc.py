@@ -102,7 +102,9 @@ def test_under_irrigation_flags_stress():
 
 
 def test_profit_without_prices_uses_water_saving():
-    plan = plan_irrigation(_days(6), taw_mm=100.0, raw_fraction=0.5, policy=IrrigationPolicy.PROFIT)
+    plan = plan_irrigation(
+        _days(6), taw_mm=100.0, raw_fraction=0.5, policy=IrrigationPolicy.PROFIT_MAX
+    )
     assert plan.policy == "water_saving"
 
 
