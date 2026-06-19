@@ -560,6 +560,15 @@ async def get_field_workspace(
     return assemble_workspace(field_d, terrain, events)
 
 
+def _conflict_changed_fields(client_changes: dict, server_record: dict) -> list[str]:
+    """الحقول التي حاول العميل تغييرها وتختلف عن قيمة الخادم الحاليّة (لحلّ التعارض).
+
+    دالّة نقيّة: تُقارن ما أرسله العميل بما في سجلّ الخادم — المفاتيح المشتركة فقط
+    (تُقارَن في نفس وضع التسلسُل). تُغذّي Conflict Resolution Workflow في الواجهة.
+    """
+    return [k for k, v in client_changes.items() if k in server_record and server_record[k] != v]
+
+
 @router.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def update_field(
     field_id: str,
@@ -594,17 +603,36 @@ async def update_field(
                 # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
                 # وكتابته. نرفض 409 (لا فقد صامت) قبل إصدار أيّ حدث — المعاملة تتراجع.
                 if req.base_version is not None and upd.rsplit(" ", 1)[-1] == "0":
-                    current = await conn.fetchval(
-                        "SELECT row_version FROM fields WHERE field_id = $1", field_id
+                    # Conflict Resolution Workflow (Level 2): بدل 409 خام، نُرجِع سجلّ
+                    # الخادم الحاليّ + الحقول المتغيّرة ليحسم العميل (الخادم/نسختي/دمج)
+                    # — يحوّل التعارض من خطأ تقنيّ إلى تجربة قابلة للحلّ (لا فقد صامت).
+                    srow = await conn.fetchrow(
+                        f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                        field_id,
                     )
+                    if srow is None:
+                        raise HTTPException(
+                            status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر"
+                        )
+                    server_detail = _row_to_field_detail(srow)
+                    server_py = server_detail.model_dump()  # للمقارنة (أنواع بايثون)
+                    server_json = server_detail.model_dump(mode="json")  # للردّ (JSON آمن)
+                    client_changes = req.model_dump(exclude_unset=True, exclude={"base_version"})
                     raise HTTPException(
                         status_code=409,
                         detail={
                             "error": "version_conflict",
+                            "conflict": True,
                             "message_ar": (
-                                "عُدِّل الحقل من جلسة أخرى منذ قراءتك — أعد المزامنة ثمّ طبّق تعديلك."
+                                "عُدِّل الحقل من جلسة أخرى منذ قراءتك — راجع الفروق ثمّ احسم "
+                                "(نسخة الخادم/نسختي/دمج)."
                             ),
-                            "current_version": current,
+                            "server_version": server_py.get("row_version"),
+                            "client_version": req.base_version,
+                            "server_record": server_json,
+                            "changed_fields": _conflict_changed_fields(client_changes, server_py),
+                            # أسماء قديمة للتوافق الخلفيّ مع عملاء يقرؤونها:
+                            "current_version": server_py.get("row_version"),
                             "your_base_version": req.base_version,
                         },
                     )
