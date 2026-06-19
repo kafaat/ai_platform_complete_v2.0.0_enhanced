@@ -94,7 +94,7 @@ async def create_sharing_key(
         async with tenant_connection(user) as conn:
             svc = SharingKeyService(get_pool(), conn=conn)
             key = await svc.create_key(
-                tenant_id=getattr(user, "tenant_id", "default"),
+                tenant_id=user.tenant_id,
                 created_by=user.user_id,
                 scope=scope,
                 valid_days=req.valid_days,
@@ -121,7 +121,5 @@ async def list_sharing_keys(
     """يسرد مفاتيح المشاركة للمستأجر (عبر tenant_connection — RLS مُطبَّق)."""
     async with tenant_connection(user) as conn:
         svc = SharingKeyService(get_pool(), conn=conn)
-        keys = await svc.list_keys(
-            getattr(user, "tenant_id", "default"), include_revoked=include_revoked
-        )
+        keys = await svc.list_keys(user.tenant_id, include_revoked=include_revoked)
     return {"keys": keys}
