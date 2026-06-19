@@ -164,6 +164,127 @@ def recommend_micronutrient(soil: SoilContext, nutrient: Nutrient) -> FourRRecom
     )
 
 
+# ─── منحنى امتصاص العنصر عبر المراحل (Nutrient Uptake Curve) ────────────────────
+# يربط الاحتياج الكلّيّ (crop_demand_kg_ha من fertilizer.compute) بتوزيعه الزمنيّ:
+# الامتصاص ليس خطّيّاً — بطيء بدئيّاً، يبلغ ذروته في مرحلة النموّ الفعّال/الإزهار،
+# ثمّ يتباطأ أواخر الموسم. هذا يحوّل "كم سماد" إلى "متى" (Right Time في 4R).
+#
+# ترتيب المراحل من _STAGE_FRACTIONS (مصدر موحّد) — أمّا نِسَب الامتصاص فمستقلّة عن
+# أطوال المراحل (الامتصاص مدفوع بالكتلة الحيويّة لا بالزمن).
+# ⚠ نِسَب أوّليّة من شكل منحنى الامتصاص العامّ (أدبيّات) — تحتاج معايرة يمنيّة لكلّ
+# محصول/عنصر. موسومة calibrated=False. Σ=1.0.
+_UPTAKE_FRACTIONS: dict[str, float] = {
+    "initial": 0.10,
+    "development": 0.35,
+    "mid": 0.40,
+    "late": 0.15,
+}
+
+
+def _stage_order() -> list[str]:
+    """ترتيب المراحل من المصدر الموحّد في season_simulation."""
+    from api.season_simulation import _STAGE_FRACTIONS
+
+    return [name for name, _ in _STAGE_FRACTIONS]
+
+
+def _stage_length_bounds() -> list[tuple[str, float, float]]:
+    """حدود التقدّم [start, end] لكلّ مرحلة من أطوالها النسبيّة (لتفسير progress)."""
+    from api.season_simulation import _STAGE_FRACTIONS
+
+    bounds: list[tuple[str, float, float]] = []
+    acc = 0.0
+    for name, length in _STAGE_FRACTIONS:
+        bounds.append((name, acc, acc + length))
+        acc += length
+    return bounds
+
+
+def nutrient_uptake(
+    crop: str | None,
+    stage_or_progress: str | float | None,
+    target_uptake_kg_ha: float,
+) -> dict:
+    """يوزّع الاحتياج الكلّيّ من عنصر على منحنى الامتصاص عبر المراحل — نقيّ حتميّ.
+
+    المدخلات:
+      • crop: لمعايرة مستقبليّة لكلّ محصول (حاليّاً منحنى عامّ موسوم غير معايَر).
+      • stage_or_progress: اسم مرحلة (تراكم *شامل* لها)، أو تقدّم موسمي [0,1]
+        (استيفاء خطّيّ عبر حدود أطوال المراحل)، أو None (المنحنى الكامل بلا "حتى الآن").
+      • target_uptake_kg_ha: الاحتياج الموسمي الكلّيّ (مثلاً crop_demand_kg_ha من
+        fertilizer.compute). سالب أو صفر ⇒ كمّيّات صفريّة (لا تلفيق).
+
+    المخرجات (dict): المنحنى لكلّ مرحلة + التراكم "حتى الآن" + calibrated=False + تحذيرات.
+    صدق: نِسَب الامتصاص غير معايَرة يمنيّاً (موسومة)؛ عند غياب الهدف لا نخترع رقماً.
+    """
+    warnings_ar: list[str] = [
+        "منحنى امتصاص عامّ غير معايَر يمنيّاً — النِّسَب تقديريّة لكلّ محصول/عنصر",
+    ]
+    target = max(0.0, float(target_uptake_kg_ha or 0.0))
+    if target_uptake_kg_ha is not None and target_uptake_kg_ha < 0:
+        warnings_ar.append("هدف الامتصاص سالب — عومل كصفر")
+
+    order = _stage_order()
+    stages: list[dict] = []
+    cum_frac = 0.0
+    cum_kg = 0.0
+    for name in order:
+        frac = _UPTAKE_FRACTIONS.get(name, 0.0)
+        kg = frac * target
+        cum_frac += frac
+        cum_kg += kg
+        stages.append(
+            {
+                "stage": name,
+                "stage_fraction": round(frac, 4),
+                "uptake_kg_ha": round(kg, 2),
+                "cumulative_fraction": round(cum_frac, 4),
+                "cumulative_kg_ha": round(cum_kg, 2),
+            }
+        )
+
+    # التراكم "حتى الآن" حسب نوع stage_or_progress.
+    to_date_fraction = 0.0
+    matched_stage: str | None = None
+    if isinstance(stage_or_progress, str):
+        key = stage_or_progress.strip().lower()
+        if key in _UPTAKE_FRACTIONS:
+            matched_stage = key
+            for name in order:
+                to_date_fraction += _UPTAKE_FRACTIONS.get(name, 0.0)
+                if name == key:
+                    break
+        else:
+            warnings_ar.append(f"مرحلة غير معروفة ({stage_or_progress}) — التراكم حتى الآن=0")
+    elif isinstance(stage_or_progress, (int, float)) and not isinstance(stage_or_progress, bool):
+        p = min(1.0, max(0.0, float(stage_or_progress)))
+        for name, start, end in _stage_length_bounds():
+            frac = _UPTAKE_FRACTIONS.get(name, 0.0)
+            if p >= end:
+                to_date_fraction += frac
+                matched_stage = name
+            elif p > start:
+                span = end - start
+                portion = (p - start) / span if span > 0 else 1.0
+                to_date_fraction += frac * portion
+                matched_stage = name
+                break
+            else:
+                break
+
+    to_date_fraction = min(1.0, to_date_fraction)
+    return {
+        "crop": (crop or "").strip().lower() or None,
+        "target_uptake_kg_ha": round(target, 2),
+        "stages": stages,
+        "matched_stage": matched_stage,
+        "cumulative_fraction_to_date": round(to_date_fraction, 4),
+        "uptake_to_date_kg_ha": round(to_date_fraction * target, 2),
+        "calibrated": False,
+        "warnings_ar": warnings_ar,
+    }
+
+
 def full_4r_plan(soil: SoilContext, nutrients: list[str] | None = None) -> list[dict]:
     """خطة 4R كاملة لقائمة عناصر (افتراضي: N, P, Fe, Zn — شائعة النقص يمنيّاً)."""
     if nutrients is None:
