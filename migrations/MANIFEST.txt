@@ -279,3 +279,8 @@ v74_weather_intelligence.sql
 # v75: FOES (نظام تنفيذ العمليّات الزراعيّة) — جدول work_orders: أمر عمل من توصية
 # (ري/تسميد/رشّ/فحص/حصاد) بآلة حالات (planned→…→verified). field_id نصّ، RLS+FORCE.
 v75_work_orders.sql
+
+# v76: تخزين Kc الدائم — جدول crop_kc_timeseries: معاملات Kc الثلاثيّة المُشتقّة
+# (FAO-56) لكلّ حقل×محصول×موسم×سيناريو، للمقارنة التاريخيّة. field_id نصّ، RLS+FORCE
+# بسياسة current_setting، UNIQUE(tenant,field,crop,season,scenario) للـupsert. idempotent.
+v76_crop_kc_timeseries.sql
