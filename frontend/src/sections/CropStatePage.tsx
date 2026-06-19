@@ -175,7 +175,7 @@ export default function CropStatePage() {
           <div className="rounded-xl border p-3 flex items-center gap-2" style={{ background: '#161616', borderColor: '#33415533' }}>
             <Coins className="w-4 h-4 text-slate-500" />
             <div className="text-[12px] text-slate-400">
-              الحالة الاقتصاديّة: <span className="text-slate-300">لم تُفعَّل بعد</span> — تحتاج: {res.economic_state.required_inputs.join('، ')}
+              الحالة الاقتصاديّة: <span className="text-slate-300">لم تُفعَّل بعد</span> — تحتاج: {(res.economic_state.required_inputs ?? []).join('، ')}
             </div>
           </div>
 

@@ -486,12 +486,50 @@ export interface CropDecisionResult {
   data_quality: string;
   assumptions: string[];
   assumptions_ar: string[];
-  economic_state: { status: string; required_inputs: string[] };
+  economic_state: EconomicState;
   calibrated: boolean;
   warnings_ar: string[];
 }
+export interface EconomicState {
+  status: string;                       // not_configured | partial | ok
+  required_inputs?: string[];
+  gross_revenue?: number | null;
+  water_cost?: number | null;
+  energy_cost?: number | null;
+  fertilizer_cost?: number | null;
+  total_cost?: number | null;
+  expected_margin?: number | null;
+  margin_uncertainty?: number | null;
+  confidence?: number;
+  missing_inputs?: string[];
+}
 export const computeCropDecision = (payload: CropDecisionInput): Promise<CropDecisionResult> =>
   kongApi.post<CropDecisionResult>('/api/v1/crop-twin/decision', payload).then(r => r.data);
+
+// ── القرار الواعي بالربح (POST /api/v1/crop-twin/decision/profit-aware) ──
+export interface ProfitAwareDecisionInput extends CropDecisionInput {
+  auto_policy?: boolean;
+  water_source?: string | null;
+  water_cost?: string | null;
+  energy_cost?: string | null;
+  region?: string | null;
+  expected_yield_t_ha?: number | null;
+  crop_price_per_t?: number | null;
+  energy_kwh_ha?: number | null;
+  energy_price_per_kwh?: number | null;
+  fertilizer_price_per_kg?: number | null;
+}
+export interface PolicyDecision {
+  resolved_policy: string;
+  applied_policy: string;
+  auto: boolean;
+  reasons_ar: string[];
+}
+export interface ProfitAwareDecisionResult extends CropDecisionResult {
+  policy_decision: PolicyDecision;
+}
+export const computeProfitAwareDecision = (payload: ProfitAwareDecisionInput): Promise<ProfitAwareDecisionResult> =>
+  kongApi.post<ProfitAwareDecisionResult>('/api/v1/crop-twin/decision/profit-aware', payload).then(r => r.data);
 
 export interface PestEscalationInput {
   workflow_id: string;
