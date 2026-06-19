@@ -3162,6 +3162,7 @@ from api.routers.introduction import router as introduction_router  # noqa: E402
 from api.routers.inventory import router as inventory_router  # noqa: E402
 from api.routers.ipm import router as ipm_router  # noqa: E402
 from api.routers.irrigation import router as irrigation_router  # noqa: E402
+from api.routers.kc_timeseries import router as kc_timeseries_router  # noqa: E402
 from api.routers.learning import router as learning_router  # noqa: E402
 from api.routers.lifecycle import router as lifecycle_router  # noqa: E402
 from api.routers.lineage import router as lineage_router  # noqa: E402
@@ -3336,3 +3337,5 @@ app.include_router(yield_interval_router)
 # نقاط ذكاء النظام الزراعيّ-البيئيّ (agro-ecosystem): مخاطر المحصول، التغذية الراجعة
 # نبات-تربة واتّجاهها، الدورة الزراعيّة، مقارنة المواسم، Playbook القرار، أمر عمل من توصية.
 app.include_router(agro_intelligence_router)
+# تخزين Kc الدائم (crop_kc_timeseries v76): حفظ/قراءة/مقارنة Kc المُشتقّ عبر المواسم.
+app.include_router(kc_timeseries_router)
