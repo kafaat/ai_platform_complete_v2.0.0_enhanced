@@ -156,17 +156,41 @@ def _effective_rain(rain_mm: float) -> float:
     return 0.1 * rain_mm + 92.5
 
 
+# حدود قصّ Kc الديناميكيّ — ⚠ UNVALIDATED: تحتاج معايرة يمنيّة (القات/البنّ/الذرة الرفيعة).
+KC_DYN_MIN = 0.15
+KC_DYN_MAX = 1.35
+
+
+def kc_from_ndvi(ndvi: float | None, kc_map: dict, stage: str) -> tuple[float, float | None]:
+    """Kc ديناميكيّ مُعكَس من NDVI عبر الغطاء النباتيّ (fAPAR) — دالّة نقيّة.
+
+    محفوظة السلوك: NDVI غائب ⇒ تُرجِع Kc الثابت بالمرحلة تماماً (FAO-56). متاح ⇒
+    تطعّم Kc خطّيّاً بين Kc الابتدائيّ (غطاء ضئيل) وKc الذرويّ (غطاء كامل) حسب fAPAR.
+    تُرجِع (kc, fAPAR أو None). fAPAR = 1.24·NDVI−0.168 (Myneni & Williams 1994 —
+    نفس صيغة season_simulation.fapar_from_ndvi و raster-service).
+    """
+    static_kc = kc_map.get(stage, 1.0)
+    if ndvi is None:
+        return static_kc, None
+    fapar = min(1.0, max(0.0, 1.24 * ndvi - 0.168))
+    kc_min = kc_map.get("initial", 0.4)
+    kc_max = kc_map.get("mid", 1.1)
+    kc = kc_min + (kc_max - kc_min) * fapar
+    return min(KC_DYN_MAX, max(KC_DYN_MIN, kc)), fapar
+
+
 def water_balance(
     w: WeatherInput,
     crop: str,
     stage: str,
     rain_mm: float = 0.0,
+    ndvi: float | None = None,
 ) -> WaterBalanceResult:
     """يحسب توصية الريّ ليوم/فترة.
 
     Args:
         w: الطقس. crop: المحصول. stage: initial|development|mid|late.
-        rain_mm: المطر في الفترة.
+        rain_mm: المطر في الفترة. ndvi: إن توفّر ⇒ Kc ديناميكيّ (وإلّا ثابت بالمرحلة).
     """
     et0, method = compute_et0(w)
     crop_known = crop in KC_BY_CROP_STAGE
@@ -178,7 +202,9 @@ def water_balance(
         if crop_known
         else f"عامّ — '{crop}' غير مُعرّف، استُخدم منحنى Kc افتراضي (تقدير، عايِر ميدانيّاً)"
     )
-    kc = kc_map.get(stage, 1.0)
+    kc, kc_fapar = kc_from_ndvi(ndvi, kc_map, stage)
+    if kc_fapar is not None:
+        kc_source = f"Kc ديناميكيّ من NDVI={ndvi:.2f} (fAPAR={kc_fapar:.2f}) — عايِر يمنيّاً"
     etc = et0 * kc
     eff_rain = _effective_rain(rain_mm)
     net = max(0.0, etc - eff_rain)

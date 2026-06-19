@@ -42,4 +42,4 @@ def compute_water_balance(
         elevation_m=req.elevation_m,
         day_of_year=req.day_of_year,
     )
-    return water_balance(w, req.crop, req.stage, rain_mm=req.rain_mm).to_dict()
+    return water_balance(w, req.crop, req.stage, rain_mm=req.rain_mm, ndvi=req.ndvi).to_dict()
