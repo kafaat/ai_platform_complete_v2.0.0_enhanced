@@ -116,6 +116,8 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     FIELD_CREATED = "field.created"
     FIELD_UPDATED = "field.updated"
     FIELD_GEOMETRY_CHANGED = "field.geometry_changed"
+    # دمج آليّ لتعديل offline متعارض غير متقاطع (Auto-merge L3) — تدقيق صريح.
+    OFFLINE_MERGE_AUTO = "offline.merge.auto"
     FIELD_DELETED = "field.deleted"
     # تبدّل الحالة القانونيّة الموحّدة (Canonical Field State) — صلاحيّة القرار/نمط
     # التنفيذ تغيّرا بعد تغيّر مدخلات (موسم/تربة/طقس). يستهلكه وكيل الإشعارات (تغذية حيّة).

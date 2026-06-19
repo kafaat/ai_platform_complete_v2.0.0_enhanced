@@ -94,3 +94,24 @@ def test_noop_when_server_matches_intent(fields_mod):
     can_merge, conflicts = plan({"crop_type": "ذرة"}, {"crop_type": "ذرة"}, {"crop_type": "قمح"})
     assert can_merge is True
     assert conflicts == []
+
+
+# ── صقل الـpayload + حدث التدقيق (ملاحظات المستخدم) ──
+
+
+def test_offline_merge_auto_event_registered(fields_mod):
+    from api import event_catalog
+    from api.event_bus import EventType
+
+    assert EventType["OFFLINE_MERGE_AUTO"].value == "offline.merge.auto"
+    assert event_catalog.is_registered("OFFLINE_MERGE_AUTO")
+
+
+def test_conflict_payload_has_refined_keys(fields_mod):
+    # مسح المصدر: استجابة 409 تحوي الحقول التي طلبها المستخدم + الدمج يُصدِر الحدث.
+    import inspect
+
+    src = inspect.getsource(fields_mod.update_field)
+    for key in ('"safe_to_retry"', '"client_record"', '"base_record"', '"conflicting_fields"'):
+        assert key in src, f"مفتاح ناقص في payload التعارض: {key}"
+    assert '"OFFLINE_MERGE_AUTO"' in src  # الدمج الآليّ يُصدِر حدث التدقيق

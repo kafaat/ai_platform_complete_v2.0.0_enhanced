@@ -663,6 +663,18 @@ async def update_field(
                             field_id,
                             {**client_changes, "_auto_merged": True},
                         )
+                        # تدقيق صريح للدمج الآليّ (إضافةً لحدث تغيّر الحقل).
+                        await _emit_domain_event(
+                            conn,
+                            user,
+                            "OFFLINE_MERGE_AUTO",
+                            "field",
+                            field_id,
+                            {
+                                "merged_fields": sorted(client_changes),
+                                "server_version_before": server_py.get("row_version"),
+                            },
+                        )
                         return _row_to_field_detail(mrow).model_dump()
                     # تعارض حقيقيّ (تقاطع أو بلا base_values) ⇒ 409 مُثرى (Workflow).
                     raise HTTPException(
@@ -670,14 +682,19 @@ async def update_field(
                         detail={
                             "error": "version_conflict",
                             "conflict": True,
+                            "safe_to_retry": False,  # إعادة عمياء تدهس عمل الطرف الآخر
                             "message_ar": (
                                 "عُدِّل الحقل من جلسة أخرى منذ قراءتك — راجع الفروق ثمّ احسم "
                                 "(نسخة الخادم/نسختي/دمج)."
                             ),
                             "server_version": server_py.get("row_version"),
                             "client_version": req.base_version,
+                            "base_version": req.base_version,
                             "server_record": server_detail.model_dump(mode="json"),
-                            "changed_fields": conflicts,
+                            "client_record": client_changes,  # ما حاول العميل كتابته
+                            "base_record": req.base_values,  # لقطة الأساس إن توفّرت
+                            "conflicting_fields": conflicts,  # المتقاطعة فعليّاً (تحتاج حسماً)
+                            "changed_fields": conflicts,  # اسم سابق (توافق خلفيّ)
                             # أسماء قديمة للتوافق الخلفيّ مع عملاء يقرؤونها:
                             "current_version": server_py.get("row_version"),
                             "your_base_version": req.base_version,
