@@ -10,6 +10,7 @@ import {
   analyzeFieldIntelligence, getCostAnalytics,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
+  computeIrrigationPlan, type IrrigationPlanInput, type IrrigationPlanResult,
   fetchSeasons, type SeasonSummary,
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
@@ -778,6 +779,13 @@ export function useUpdateNotificationPreferences(): UseMutationResult<
 export function useWaterAnalysis() {
   return useMutation<WaterAnalysisResult, Error, WaterSampleInput>({
     mutationFn: (payload) => analyzeWaterSample(payload),
+  });
+}
+
+// خطّة الريّ التنبّؤيّة (خطّ «مركز المحاصيل»): نسيج+عمق ⇒ TAW ⇒ سياسة ⇒ جدول ريّ.
+export function useComputeIrrigationPlan(): UseMutationResult<IrrigationPlanResult, Error, IrrigationPlanInput> {
+  return useMutation<IrrigationPlanResult, Error, IrrigationPlanInput>({
+    mutationFn: (payload) => computeIrrigationPlan(payload),
   });
 }
 

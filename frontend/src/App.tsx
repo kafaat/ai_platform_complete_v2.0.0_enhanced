@@ -7,7 +7,7 @@ import {
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
-  ChevronDown,
+  ChevronDown, CalendarRange,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -66,6 +66,7 @@ const ActivitiesPage      = lazy(() => import('./sections/ActivitiesPage'));
 const RecommendationPage  = lazy(() => import('./sections/RecommendationPage'));
 const SpatialIndicatorsPage = lazy(() => import('./sections/SpatialIndicatorsPage'));
 const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'));
+const IrrigationPlanPage = lazy(() => import('./sections/IrrigationPlanPage'));
 const PestEscalationPage  = lazy(() => import('./sections/PestEscalationPage'));
 const FieldIntelligencePage = lazy(() => import('./sections/FieldIntelligencePage'));
 const InventoryPage       = lazy(() => import('./sections/InventoryPage'));
@@ -98,7 +99,7 @@ export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'pest-escalation' | 'field-intelligence'
+  | 'irrigation' | 'irrigation-plan' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report';
@@ -144,6 +145,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: 'agri', label: 'الزراعة والري', defaultOpen: false,
     items: [
       { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
+      { id:'irrigation-plan', label:'خطّة الريّ المتنبّأ', icon:CalendarRange },
       { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
       { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
       { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
@@ -516,6 +518,7 @@ export default function App() {
       case 'fields':       return <FieldManagementPage />;
       case 'recommendations': return <RecommendationPage />;
       case 'irrigation':   return <IrrigationWaterPage />;
+      case 'irrigation-plan': return <IrrigationPlanPage />;
       case 'pest-escalation': return <PestEscalationPage />;
       case 'field-intelligence': return <FieldIntelligencePage />;
       case 'spatial-indicators': return <SpatialIndicatorsPage />;
