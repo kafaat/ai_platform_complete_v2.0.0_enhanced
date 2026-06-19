@@ -56,6 +56,37 @@ class GuardrailsResult(BaseModel):
     processing_time_ms: int
 
 
+# عقد اكتمال السياق (fail-closed): الحقول الجوهريّة دنيا لكلّ نوع إجراء. غيابها كان
+# يُقرأ .get(key, 0) فيمرّ كصفر صامت ⇒ حوكمة شكليّة (LOW/allowed). نرفض النقص بدل
+# تقييم أعمى. نقتصر على الحالات المُبرهَنة بيقين من منطق الطبقات (جرعة المبيد، الإيراد
+# السنويّ الذي تُشترَط `>0` لكلّ الفحص الاقتصاديّ، وماء الريّ). نميّز «غياب المفتاح/None»
+# (نقص سياق ⇒ يُرفَض) عن «قيمة 0 صريحة» (مشروعة ⇒ تُفحَص).
+_REQUIRED_CONTEXT: dict[str, dict[str, list[str]]] = {
+    "pesticide": {"action_data": ["chemical", "dosage_kg_ha"], "farm_context": []},
+    "irrigation": {"action_data": ["water_m3"], "farm_context": []},
+    "loan": {"action_data": [], "farm_context": ["annual_revenue_usd"]},
+    "contract": {"action_data": [], "farm_context": ["annual_revenue_usd"]},
+    "investment": {"action_data": [], "farm_context": ["annual_revenue_usd"]},
+}
+
+
+def contract_violations(action_type: str, action_data: dict, farm_context: dict) -> list[str]:
+    """أسماء الحقول الجوهريّة الغائبة (أو None) لنوع الإجراء — [] إن اكتمل السياق.
+
+    «غياب المفتاح أو None» فقط = نقص (يُرفَض)؛ القيمة 0 الصريحة مشروعة (لا تُرفَض).
+    دالّة نقيّة قابلة للاختبار وحدويّاً.
+    """
+    spec = _REQUIRED_CONTEXT.get(action_type)
+    if not spec:
+        return []
+    sources = {"action_data": action_data or {}, "farm_context": farm_context or {}}
+    missing: list[str] = []
+    for src_name, keys in spec.items():
+        src = sources[src_name]
+        missing.extend(f"{src_name}.{k}" for k in keys if src.get(k) is None)
+    return missing
+
+
 class SAHOOLGuardrailsEngine:
     """
     Production-grade guardrails combining policy + network + privacy layers.
@@ -77,6 +108,38 @@ class SAHOOLGuardrailsEngine:
 
     async def validate(self, request: GuardrailsRequest) -> GuardrailsResult:
         start_time = datetime.now(UTC)
+
+        # عقد الاكتمال (fail-closed): سياق ناقص لطبقة جوهريّة ⇒ رفض موثّق بدل حوكمة
+        # شكليّة. لا يبتلع فحوص الطبقات اللاحقة — يسبقها فقط حين ينقص الجوهريّ.
+        missing = contract_violations(
+            request.action_type, request.action_data, request.farm_context
+        )
+        if missing:
+            fields_ar = "، ".join(missing)
+            return GuardrailsResult(
+                allowed=False,
+                tier_checks=[
+                    {
+                        "tier": "context_contract",
+                        "passed": False,
+                        "findings": [
+                            {
+                                "severity": "HIGH",
+                                "rule": "incomplete_context",
+                                "message_ar": f"سياق حوكمة ناقص: {fields_ar}",
+                                "missing_fields": missing,
+                            }
+                        ],
+                    }
+                ],
+                overall_risk="HIGH",
+                requires_human_approval=False,
+                arabic_explanation=(
+                    f"❌ رُفض: سياق الحوكمة ناقص للنوع «{request.action_type}» — الحقول "
+                    f"المطلوبة: {fields_ar}. لا يُقيَّم الإجراء بسياق ناقص (fail-closed)."
+                ),
+                processing_time_ms=int((datetime.now(UTC) - start_time).total_seconds() * 1000),
+            )
 
         checks = []
 
