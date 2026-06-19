@@ -97,6 +97,27 @@ async def _fetch_field_state(client, field_id, tenant_id):
     return None
 
 
+def bind_field_context(context, field_state):
+    """يحقن الحالة القانونيّة للحقل في سياق سؤال المستشار (دالّة نقيّة — grounding).
+
+    يقلّل الهلوسة بربط الجواب بمصدر الحقيقة الواحد (Canonical Field State). صدق:
+    لا يدهس مفاتيح أرسلها العميل (setdefault)، ولا يلفّق (يكتب المتاح فقط)، ولا يُعدّل
+    الأصل. `field_state` dict الحالة (validity/execution_mode/confidence_level/
+    remote_sensing/inputs...) أو None ⇒ يُعيد السياق كما هو.
+    """
+    out = dict(context or {})
+    if not field_state:
+        return out
+    out["field_state"] = field_state
+    rs = field_state.get("remote_sensing") or {}
+    if rs.get("available") and rs.get("ndvi_mean") is not None:
+        out.setdefault("ndvi_mean", rs.get("ndvi_mean"))
+    inputs = field_state.get("inputs") or {}
+    if inputs.get("weather_age_hours") is not None:
+        out.setdefault("weather_age_hours", inputs.get("weather_age_hours"))
+    return out
+
+
 skill_libraries = {
     "remote_sensing": RemoteSensingSkill(mcp_client),
     "crop_model": CropModelSkill(mcp_client),
@@ -199,6 +220,16 @@ async def process_query(
     # الهويّة من التوكن المُتحقَّق لا من جسم الطلب (منع انتحال المستأجر)
     trusted_user_id = user.get("sub") or user.get("user_id") or query.user_id
     trusted_tenant_id = user.get("tenant_id") or query.tenant_id
+    # Advisor Context Binding: حين يتوفّر field_id نُرفِق الحالة القانونيّة للحقل
+    # (grounding) في السياق قبل المهارة — best-effort، يحفظ العقد تماماً (غياب
+    # field_id أو تعذّر الجلب ⇒ السياق كما ورد، بلا 500 ولا حجب).
+    agro_context = query.context
+    if query.field_id:
+        import httpx
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            _fs = await _fetch_field_state(client, query.field_id, trusted_tenant_id)
+        agro_context = bind_field_context(query.context, _fs)
     try:
         result = await skill.execute(
             intent=sub_intent,
@@ -206,7 +237,7 @@ async def process_query(
             field_id=query.field_id,
             user_id=trusted_user_id,
             tenant_id=trusted_tenant_id,
-            context=query.context,
+            context=agro_context,
             objectives=query.preferred_objectives,
         )
     except CircuitOpenError as e:
