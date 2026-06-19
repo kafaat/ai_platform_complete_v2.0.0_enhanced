@@ -6,3 +6,4 @@
 {"ts":"2026-06-18","type":"build","area":"agent-memory","summary":"إنشاء طبقة ذاكرة الوكلاء (MEMORY/FACTS/CORRECTIONS/SCHEMA_FACTS/TEST_FACTS/CHECKLIST) مُتحقَّقة مقابل الكود"}
 {"ts":"2026-06-18","type":"merge","ref":"PR#343","summary":"دمج طبقة P3 (التغذية الراجعة نبات-تربة) + بنية ذاكرة الوكلاء"}
 {"ts":"2026-06-18","type":"build","area":"core","summary":"P4 Decision Playbooks (decision_playbook) + اتّجاه التغذية الراجعة عبر المواسم (soil_feedback_trend) — وكيلان طبّقا طبقة الذاكرة (قرآ CHECKLIST أوّلاً)"}
+{"ts":"2026-06-19","type":"build","area":"api","summary":"ربط 7 نوى قرار بـapi/routers/agro_intelligence (crop-risk/plant-soil-feedback/+trend/crop-rotation/season-comparison/decision-playbook/work-orders-from-recommendation) — غلاف رفيع، tenant من المستخدم، حارس التفكيك أخضر"}
