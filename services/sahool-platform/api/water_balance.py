@@ -183,19 +183,31 @@ def kc_from_ndvi(ndvi: float | None, kc_map: dict, stage: str) -> tuple[float, f
 # النسبة من الاحتياج الصافي ⇒ أجّل. المطر المتوقّع يضبط **التوقيت لا الكمّيّة** (صدق:
 # لا نخصم مطراً قد لا يهطل من العمق الموصى به).
 FORECAST_DEFER_FRACTION = 1.0
+# ترشّح المطر الافتراضيّ (جزء من المطر المتوقّع يصل منطقة الجذور) — ⚠ قابل للمعايرة
+# حسب التربة/الشدّة. المطر المتوقّع الفعّال = المتوقّع × ثقة التنبّؤ × الترشّح.
+FORECAST_INFILTRATION_DEFAULT = 0.7
 
 
-def _forecast_defer(net_mm: float, forecast_rain_mm: float | None, window_days: int) -> str:
-    """ملاحظة تأجيل عربيّة إن غطّى المطر المتوقّع الاحتياج، وإلّا "" — دالّة نقيّة.
+def _forecast_defer(
+    net_mm: float,
+    forecast_rain_mm: float | None,
+    window_days: int,
+    confidence: float = 1.0,
+    infiltration: float = FORECAST_INFILTRATION_DEFAULT,
+) -> str:
+    """ملاحظة تأجيل عربيّة إن غطّى المطر المتوقّع **الفعّال** الاحتياج، وإلّا "" — نقيّة.
 
-    محفوظة السلوك: forecast_rain_mm غائب/≤0 أو لا احتياج (net≤0) ⇒ "" (لا تغيير).
+    المطر الفعّال = المتوقّع × ثقة التنبّؤ × عامل الترشّح (أدقّ من عتبة خام — صدق:
+    مطر منخفض الاحتماليّة/ضعيف الترشّح لا يُؤجِّل). محفوظة السلوك: forecast_rain_mm
+    غائب/≤0 أو لا احتياج (net≤0) ⇒ "" (لا تغيير).
     """
     if not forecast_rain_mm or forecast_rain_mm <= 0 or net_mm <= 0:
         return ""
-    eff_fc = _effective_rain(forecast_rain_mm)
+    eff_fc = forecast_rain_mm * max(0.0, min(1.0, confidence)) * max(0.0, min(1.0, infiltration))
     if eff_fc >= net_mm * FORECAST_DEFER_FRACTION:
         return (
-            f"⏸ أجّل الريّ — مطر متوقّع {forecast_rain_mm:.0f} مم ({eff_fc:.1f} فعّال) "
+            f"⏸ أجّل الريّ — مطر متوقّع {forecast_rain_mm:.0f} مم (ثقة "
+            f"{confidence * 100:.0f}% × ترشّح {infiltration:.1f} = {eff_fc:.1f} فعّال) "
             f"خلال {window_days} يوم يغطّي الاحتياج."
         )
     return ""
@@ -209,6 +221,8 @@ def water_balance(
     ndvi: float | None = None,
     forecast_rain_mm: float | None = None,
     forecast_window_days: int = 3,
+    forecast_confidence: float = 1.0,
+    forecast_infiltration: float = FORECAST_INFILTRATION_DEFAULT,
 ) -> WaterBalanceResult:
     """يحسب توصية الريّ ليوم/فترة.
 
@@ -244,7 +258,9 @@ def water_balance(
         )
 
     # ريّ تنبّؤيّ: المطر المتوقّع يُقدَّم كتأجيل (لا يُخصَم من net) — التوقيت لا الكمّيّة.
-    defer_note = _forecast_defer(net, forecast_rain_mm, forecast_window_days)
+    defer_note = _forecast_defer(
+        net, forecast_rain_mm, forecast_window_days, forecast_confidence, forecast_infiltration
+    )
     if defer_note:
         advice = f"{defer_note} {advice}"
 

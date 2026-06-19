@@ -50,4 +50,6 @@ def compute_water_balance(
         ndvi=req.ndvi,
         forecast_rain_mm=req.forecast_rain_mm,
         forecast_window_days=req.forecast_window_days,
+        forecast_confidence=req.forecast_confidence,
+        forecast_infiltration=req.forecast_infiltration,
     ).to_dict()
