@@ -69,3 +69,53 @@ def hargreaves_et0_geo(
 ) -> float:
     """Hargreaves مع Ra محسوب من (خطّ العرض، اليوم) — الأدقّ حين تتوفّر الجغرافيا."""
     return hargreaves_et0(t_max_c, t_min_c, extraterrestrial_radiation_mm(lat_deg, doy), t_mean_c)
+
+
+def penman_monteith_et0(
+    t_max_c: float,
+    t_min_c: float,
+    t_mean_c: float,
+    solar_rad_mj_m2: float,
+    rh_mean_pct: float,
+    wind_2m_ms: float,
+    lat_deg: float,
+    elevation_m: float,
+    doy: int,
+) -> float:
+    """نواة FAO-56 Penman-Monteith (eq. 6) — قيم أوّليّة لا dataclass (H4).
+
+    توحّد نسختين كانتا مكرّرتين حرفيّاً: `api/water_balance.et0_penman_monteith`
+    (WeatherInput) و`core/engines/fao56.penman_monteith_et0` (WeatherDay). تأخذ
+    `t_mean_c` صريحاً ليحفظ كلٌّ من الغلافين دلالته (water_balance قد يستعمل t_mean_c
+    صريحاً؛ fao56 يستعمل (Tmax+Tmin)/2).
+
+    الحالة الحدّيّة Rso≤0 (غير قابلة للوصول لخطوط عرض/ارتفاعات واقعيّة، Ra>0 دوماً)
+    تستعمل الاحتياط 1.0 — يحفظ القيمة المرجعيّة المُثبتة في water_balance.
+    """
+
+    def _svp(t: float) -> float:  # ضغط البخار المشبع — eq. 11
+        return 0.6108 * math.exp(17.27 * t / (t + 237.3))
+
+    es = (_svp(t_max_c) + _svp(t_min_c)) / 2.0
+    ea = es * rh_mean_pct / 100.0  # ضغط البخار الفعليّ
+    delta = 4098.0 * _svp(t_mean_c) / (t_mean_c + 237.3) ** 2  # ميل المنحنى — eq. 13
+    p = 101.3 * ((293.0 - 0.0065 * elevation_m) / 293.0) ** 5.26  # الضغط الجوّي — eq. 7
+    gamma = 0.000665 * p  # الثابت السيكرومتري — eq. 8
+    rns = (1.0 - 0.23) * solar_rad_mj_m2  # الموجة القصيرة (albedo 0.23)
+    ra = extraterrestrial_radiation_mj(lat_deg, doy)
+    rso = (0.75 + 2e-5 * elevation_m) * ra
+    rs_rso = min(1.0, solar_rad_mj_m2 / rso) if rso > 0 else 1.0
+    tmaxk = t_max_c + 273.16
+    tmink = t_min_c + 273.16
+    rnl = (  # صافي الموجة الطويلة — eq. 39
+        4.903e-9
+        * (tmaxk**4 + tmink**4)
+        / 2.0
+        * (0.34 - 0.14 * math.sqrt(ea))
+        * (1.35 * rs_rso - 0.35)
+    )
+    rn = rns - rnl
+    g = 0.0  # تدفّق حراريّ أرضيّ يوميّ ≈ 0
+    num = 0.408 * delta * (rn - g) + gamma * 900.0 / (t_mean_c + 273.0) * wind_2m_ms * (es - ea)
+    den = delta + gamma * (1.0 + 0.34 * wind_2m_ms)
+    return max(0.0, num / den)

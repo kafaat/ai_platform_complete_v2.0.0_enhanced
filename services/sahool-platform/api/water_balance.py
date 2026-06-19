@@ -20,12 +20,17 @@ api/water_balance.py — توصية ميزان الماء (ET0 + المطر)
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from enum import StrEnum
 
 # مصدر ET0 الموحّد (H4): نواة Hargreaves + Ra. لا نُعيد كتابة الصيغة هنا.
-from core.engines.et0 import extraterrestrial_radiation_mj, hargreaves_et0_geo
+from core.engines.et0 import (
+    extraterrestrial_radiation_mj,
+    hargreaves_et0_geo,
+)
+from core.engines.et0 import (
+    penman_monteith_et0 as et0_penman_monteith_core,
+)
 
 
 class ET0Method(StrEnum):
@@ -120,39 +125,18 @@ def et0_penman_monteith(w: WeatherInput) -> float:
     if w.solar_rad_mj_m2 is None or w.rh_mean_pct is None or w.wind_2m_ms is None:
         raise ValueError("Penman-Monteith يحتاج solar_rad + rh + wind")
 
-    t = w.t_mean
-
-    # ضغط البخار المشبع es و الفعلي ea
-    def svp(temp):  # FAO-56 eq. 11
-        return 0.6108 * math.exp(17.27 * temp / (temp + 237.3))
-
-    es = (svp(w.t_max_c) + svp(w.t_min_c)) / 2
-    ea = es * w.rh_mean_pct / 100
-    # ميل منحنى ضغط البخار Δ (eq. 13)
-    delta = 4098 * svp(t) / (t + 237.3) ** 2
-    # الثابت السيكرومتري γ (eq. 8) — يعتمد على الارتفاع
-    p = 101.3 * ((293 - 0.0065 * w.elevation_m) / 293) ** 5.26
-    gamma = 0.000665 * p
-    # صافي الإشعاع Rn (تقدير مبسّط من الإشعاع الشمسي)
-    rns = (1 - 0.23) * w.solar_rad_mj_m2  # الموجة القصيرة (albedo 0.23)
-    ra = _extraterrestrial_radiation(w.latitude_deg, w.day_of_year)
-    rso = (0.75 + 2e-5 * w.elevation_m) * ra
-    tmaxk = w.t_max_c + 273.16
-    tmink = w.t_min_c + 273.16
-    rnl = (
-        4.903e-9
-        * (tmaxk**4 + tmink**4)
-        / 2
-        * (0.34 - 0.14 * math.sqrt(ea))
-        * (1.35 * min(1.0, w.solar_rad_mj_m2 / rso if rso > 0 else 1) - 0.35)
+    # المصدر الموحّد (H4): نواة PM واحدة. نمرّر w.t_mean (يحترم t_mean_c الصريح).
+    return et0_penman_monteith_core(
+        w.t_max_c,
+        w.t_min_c,
+        w.t_mean,
+        w.solar_rad_mj_m2,
+        w.rh_mean_pct,
+        w.wind_2m_ms,
+        w.latitude_deg,
+        w.elevation_m,
+        w.day_of_year,
     )
-    rn = rns - rnl
-    g = 0  # تدفّق حراري أرضي يومي ≈ 0
-    u2 = w.wind_2m_ms
-    # FAO-56 eq. 6
-    num = 0.408 * delta * (rn - g) + gamma * 900 / (t + 273) * u2 * (es - ea)
-    den = delta + gamma * (1 + 0.34 * u2)
-    return max(0.0, num / den)
 
 
 def compute_et0(w: WeatherInput) -> tuple:
