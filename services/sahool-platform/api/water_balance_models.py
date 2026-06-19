@@ -19,6 +19,8 @@ class WaterBalanceRequest(BaseModel):
     t_max_c: float
     rain_mm: float = 0.0
     ndvi: float | None = None  # إن توفّر ⇒ Kc ديناميكيّ من الغطاء (وإلّا ثابت بالمرحلة)
+    forecast_rain_mm: float | None = None  # مطر متوقّع خلال النافذة ⇒ تأجيل (لا خصم كمّيّة)
+    forecast_window_days: int = 3
     solar_rad_mj_m2: float | None = None
     rh_mean_pct: float | None = None
     wind_2m_ms: float | None = None
