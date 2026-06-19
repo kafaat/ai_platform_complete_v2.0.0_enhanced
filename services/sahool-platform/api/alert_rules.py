@@ -19,6 +19,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
+from core.thresholds import (
+    FROST_CRITICAL_C,
+    FROST_RISK_C,
+    HEAT_STRESS_CRITICAL_DAILY_TMAX_C,
+    HEAT_STRESS_DAILY_TMAX_C,
+)
+
 from api.weather_advice import disease_risk
 
 # ─── العتبات الموثَّقة (agro-met heuristics) ─────────────────────────
@@ -34,16 +41,12 @@ LOW_MOISTURE_IRRIGATION_MM = 8.0
 HEAVY_RAIN_MM = 20.0
 HEAVY_RAIN_CRITICAL_MM = 40.0  # هطول شديد ⇒ خطورة حرجة
 
-# إجهاد حراريّ: حرارة عظمى متوقّعة فوق هذا الحدّ ⇒ إجهاد حراريّ للنبات.
-# المرجع: معظم محاصيل الحقل تعاني فوق ٣٥°م؛ ٤٠°م إجهاد شديد.
-HEAT_STRESS_TMAX_C = 35.0
-HEAT_STRESS_CRITICAL_TMAX_C = 40.0
-
-# خطر صقيع: حرارة صغرى متوقّعة تحت هذا الحدّ ⇒ خطر صقيع/تجمّد.
-# المرجع: الصقيع يبدأ قرب ٢°م سطحيّاً (التجمّع الأرضيّ أبرد من المظلّة)؛
-# تحت ٠°م تجمّد مؤكَّد ⇒ خطورة حرجة.
-FROST_RISK_TMIN_C = 2.0
-FROST_RISK_CRITICAL_TMIN_C = 0.0
+# إجهاد حراريّ (حرارة عظمى يوميّة) + خطر صقيع — من المصدر الموحّد core.thresholds
+# (نفس القيم؛ التوحيد يمنع الانجراف). أسماء محلّيّة محفوظة لعقد AlertThresholds أدناه.
+HEAT_STRESS_TMAX_C = HEAT_STRESS_DAILY_TMAX_C
+HEAT_STRESS_CRITICAL_TMAX_C = HEAT_STRESS_CRITICAL_DAILY_TMAX_C
+FROST_RISK_TMIN_C = FROST_RISK_C
+FROST_RISK_CRITICAL_TMIN_C = FROST_CRITICAL_C
 
 # إجهاد الغطاء النباتيّ (NDVI-drop): هبوط مؤشّر NDVI الحاليّ تحت خطّ الأساس
 # المتوقَّع/الصحّيّ (يُورّده النواة: أرضيّة متوقّعة للطور أو قراءة سابقة) بمقدار

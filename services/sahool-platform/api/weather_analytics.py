@@ -23,14 +23,19 @@ import logging
 
 # مصدر ET0 الموحّد (H4): نواة Hargreaves + ثابت Ra الافتراضيّ. لا نُعيد كتابة الصيغة.
 from core.engines.et0 import DEFAULT_RA_MM, hargreaves_et0
+from core.thresholds import (
+    CLIMATE_HOT_DAY_TMAX_C,
+    CLIMATE_SEVERE_HEAT_TMAX_C,
+    FROST_RISK_C,
+)
 
 _log = logging.getLogger("weather_analytics")
 
 
-# عتبات الإجهاد الحراري (°م) — للمحاصيل عموماً في المناخ الصحراوي
-_HEAT_STRESS_C = 38  # فوقها إجهاد حراري على معظم المحاصيل
-_SEVERE_HEAT_C = 42  # فوقها إجهاد شديد (فشل عقد ثمار محتمل)
-_FROST_C = 2  # تحتها خطر صقيع
+# عتبات إحصاء المناخ (°م) — من المصدر الموحّد core.thresholds (نفس القيم).
+_HEAT_STRESS_C = CLIMATE_HOT_DAY_TMAX_C  # «يوم حارّ» في الإحصاء المناخيّ
+_SEVERE_HEAT_C = CLIMATE_SEVERE_HEAT_TMAX_C  # «حرّ شديد»
+_FROST_C = FROST_RISK_C  # تحتها خطر صقيع
 _HIGH_WIND_KMH = 30  # فوقها إجهاد رياح/تعرية
 
 

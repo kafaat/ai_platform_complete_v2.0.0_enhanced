@@ -19,6 +19,8 @@ api/decision_engine.py — محرّك القرار الزراعي الموحّد
 
 from __future__ import annotations
 
+from core.thresholds import HIGH_PH_THRESHOLD, SALINITY_MODERATE_ECE
+
 
 def decide_for_location(
     location: str | None = None,
@@ -182,13 +184,13 @@ def decide_for_location(
             "محصول محدّد عبر محرّك الملاءمة (crop-suitability) للحصول على "
             "نتيجة كمّيّة. "
         )
-        # تنبيه ملوحة مبكّر
-        if soil_ec_dsm is not None and soil_ec_dsm >= 4:
+        # تنبيه ملوحة مبكّر (عتبة الملوحة المتوسّطة الموحّدة)
+        if soil_ec_dsm is not None and soil_ec_dsm >= SALINITY_MODERATE_ECE:
             result["salinity_alert_ar"] = (
                 f"⚠ ملوحة مرتفعة (EC={soil_ec_dsm}) — اختر محاصيل/أصولاً "
                 "متحمّلة (نخيل/زيتون/رمّان) وراجع وحدة إدارة الملوحة."
             )
-        if soil_ph is not None and soil_ph >= 7.8:
+        if soil_ph is not None and soil_ph >= HIGH_PH_THRESHOLD:
             result["alkalinity_alert_ar"] = (
                 f"⚠ قلويّة عالية (pH={soil_ph}) — تثبيت الفوسفور/الحديد/الزنك "
                 "محتمل. راجع برنامج التسميد (4R)."

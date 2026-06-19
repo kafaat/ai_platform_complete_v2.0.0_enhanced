@@ -31,6 +31,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, fields
 
+from core.thresholds import SALINITY_CRITICAL_ECE
+
 # ── عتبات الاتّجاه (من net_feedback في [-100,100]) ──
 _POSITIVE_THRESHOLD = 8.0  # net ≥ هذا ⇒ اتّجاه موجب
 _NEGATIVE_THRESHOLD = -8.0  # net ≤ هذا ⇒ اتّجاه سالب (وإلّا محايد)
@@ -43,7 +45,7 @@ _DRIVER_STRENGTH = 55.0
 
 # المعايرة المرجعيّة للمدخلات غير [0,1] (لتطبيعها إلى [0,1]).
 _SOC_REF_PCT = 3.0  # SOC% ~3 يُعدّ ممتازاً (نطاق زراعيّ ~0.5–3)
-_SALINITY_REF_DS_M = 8.0  # ECe ~8 dS/m يُعدّ إجهاداً ملحيّاً شديداً
+_SALINITY_REF_DS_M = SALINITY_CRITICAL_ECE  # ECe ~8 dS/m إجهاد شديد (المصدر الموحّد)
 _DISEASE_REF_COUNT = 4.0  # ~4 حوادث مرضيّة حديثة تُعدّ ضغطاً مرتفعاً
 _ORGANIC_REF_COUNT = 4.0  # ~4 إضافات عضويّة/سنة تُعدّ كثافة مرتفعة
 
