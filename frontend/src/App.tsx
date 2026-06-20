@@ -8,7 +8,7 @@ import {
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
   ChevronDown, CalendarRange, GitCompare, GitBranch,
-  FlaskConical, GitCommitHorizontal, SlidersHorizontal,
+  FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -105,6 +105,7 @@ const EconomicsDashboard  = lazy(() => import('./sections/EconomicsDashboard'));
 const PhenologyView       = lazy(() => import('./sections/PhenologyView'));
 const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
 const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
+const OperationCenterWallPage = lazy(() => import('./sections/OperationCenterWallPage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
@@ -113,7 +114,8 @@ export type PageId =
   | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'portfolio' | 'calibration' | 'calibration-workbench' | 'lineage' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
+  | 'operations-wall';
 
 type NavItem = { id: PageId; label: string; icon: LucideIcon; badge?: string };
 type NavGroup = { id: string; label: string; defaultOpen: boolean; items: NavItem[] };
@@ -123,6 +125,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: 'home', label: 'الرئيسية', defaultOpen: true,
     items: [
       { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
+      { id:'operations-wall', label:'جدار مركز العمليّات', icon:MonitorPlay, badge:'جديد' },
       { id:'alerts',       label:'التنبيهات',       icon:Bell },
       { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
       { id:'reports',      label:'التقارير',        icon:FileText },
@@ -534,6 +537,7 @@ export default function App() {
       case 'phenology':    return <PhenologyView />;
       case 'scouting':     return <ScoutingView />;
       case 'advisory-report': return <FarmAdvisoryReport />;
+      case 'operations-wall': return <OperationCenterWallPage />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;

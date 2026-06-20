@@ -38,6 +38,8 @@ import {
   listDevices, registerDevice, getDeviceTelemetry, recordTelemetry, getFieldSoilMoisture,
   type Device, type DeviceRegisterInput, type TelemetryPoint, type TelemetryRecordInput,
   type FieldSoilMoisture,
+  fetchFleetHealth, type FleetHealth,
+  fetchOperationsSummary, type OperationsSummary,
   listValves, createValve, setValveState, listSchedules, createSchedule, deleteSchedule,
   type Valve, type CreateValveInput, type ValveStateIntent,
   type IrrigationSchedule, type CreateScheduleInput,
@@ -1233,6 +1235,40 @@ export function useDevices(): UseQueryResult<Device[]> {
     queryFn:         () => listDevices(),
     staleTime:       60_000,
     refetchInterval: 60_000, // online مُحتسَب خادميّاً ⇒ نُحدّث دوريّاً
+    retry:           false,
+  });
+}
+
+// ── Fleet Health: صحّة أسطول الأجهزة (كشف استباقي للصامت، مرتّب بالخطورة) ──
+// قراءة حيّة (device:view) عبر البوّابة. لا fallback وهميّ: عند الخطأ (503 DB / 403
+// RBAC) يُرفض الاستعلام لتعرض البلاطة حالة خطأ صادقة. ينعش دوريّاً (الصمت مُحتسَب
+// من آخر ظهور). refetchInterval اختياريّ لجدار العرض المستمرّ.
+export function useFleetHealth(
+  opts: { refetchInterval?: number | false } = {},
+): UseQueryResult<FleetHealth, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FleetHealth, Error>({
+    queryKey:        ['devices', 'fleet-health', tid],
+    queryFn:         () => fetchFleetHealth(),
+    staleTime:       60_000,
+    refetchInterval: opts.refetchInterval ?? false,
+    retry:           false,
+  });
+}
+
+// ── Operation Center Wall: التلخيص التشغيليّ الموحّد (المصدر الأساسيّ للجدار) ──
+// أفضل-جهد: fetchOperationsSummary يُرجِع null عند 404/أيّ خطأ (العلم
+// FEATURE_OPERATIONS_WALL قد يكون مُطفأً) فترتدّ الصفحة لكلّ بلاطة لنقطتها المنفصلة.
+// data=null حالةٌ صريحة لا خطأ ⇒ لا يُفعَّل isError. retry:false. refetchInterval اختياريّ.
+export function useOperationsSummary(
+  opts: { refetchInterval?: number | false } = {},
+): UseQueryResult<OperationsSummary | null, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<OperationsSummary | null, Error>({
+    queryKey:        ['operations-summary', tid],
+    queryFn:         () => fetchOperationsSummary(),
+    staleTime:       30_000,
+    refetchInterval: opts.refetchInterval ?? false,
     retry:           false,
   });
 }

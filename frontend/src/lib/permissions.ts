@@ -28,6 +28,7 @@ const ALL_PAGES = [
   'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'calibration', 'calibration-workbench', 'lineage', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
+  'operations-wall',
 ] as const satisfies readonly PageId[];
 
 // حارس وقت-التصريف: كلّ معرّف في اتّحاد PageId يجب أن يظهر في ALL_PAGES،
@@ -61,6 +62,8 @@ const NON_MANAGEMENT_PAGES: PageId[] = ALL_PAGES.filter(
 // = 12 صلاحيّة عرض فقط). قائمة قابلة للضبط من المنتَج بمصفوفة واحدة.
 const VIEWER_BLOCKED_PAGES: PageId[] = [
   'economics', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
+  // جدار مركز العمليّات شاشة قيادة — owner/manager/agronomist فقط (لا worker ولا viewer).
+  'operations-wall',
 ];
 const VIEWER_PAGES: PageId[] = NON_MANAGEMENT_PAGES.filter(
   (p) => !VIEWER_BLOCKED_PAGES.includes(p),

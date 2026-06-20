@@ -2516,6 +2516,100 @@ export const checkAllServices = async () => {
 };
 
 // ══════════════════════════════════════════════════════════════════
+// FLEET HEALTH — صحّة أسطول الأجهزة (كشف استباقي للأجهزة الصامتة، مرتّب بالخطورة).
+// تستهلك GET /api/v1/devices/fleet-health (devices.py ⇒ assess_fleet): ملخّص عدديّ
+// + قائمة الأجهزة الصامتة. مُقيَّد device:view. لا fallback وهميّ: عند الخطأ (503 DB
+// مُعطَّلة / 403 RBAC) يُرمى ليعرض الـUI حالة صادقة (بلاطة المعدّات لها حالة خطأ مستقلّة).
+// ══════════════════════════════════════════════════════════════════
+export type DeviceCriticalityLevel = 'critical' | 'important' | 'optional';
+
+/** جهاز صامت واحد في تقرير صحّة الأسطول (مرتّب: الحرج أوّلاً). */
+export interface SilentDeviceHealth {
+  device_id:            string;
+  name:                 string;
+  type:                 string;
+  field_id:             string | null;
+  silent:               boolean;
+  criticality:          DeviceCriticalityLevel | string;
+  detail_ar:            string;
+  criticality_note_ar:  string;
+  threshold_minutes:    number;
+}
+
+/** صحّة الأسطول كاملة (ملخّص عدديّ + الأجهزة الصامتة مرتّبة بالخطورة). */
+export interface FleetHealth {
+  total_devices:    number;
+  online:           number;
+  silent:           number;
+  critical_silent:  number;
+  fleet_status_ar:  string;
+  silent_devices:   SilentDeviceHealth[];
+  proactive_note_ar?: string;
+}
+
+/** يجلب صحّة الأسطول (device:view). الخطأ (503/403) يُرفع لحالة صادقة. نطبّع
+ *  silent_devices دفاعيّاً إن اختلف شكلها (لا انهيار .map). */
+export const fetchFleetHealth = (): Promise<FleetHealth> =>
+  kongApi.get<FleetHealth>('/api/v1/devices/fleet-health').then((r) => {
+    const d = (r.data ?? {}) as Partial<FleetHealth>;
+    return {
+      total_devices:   typeof d.total_devices === 'number' ? d.total_devices : 0,
+      online:          typeof d.online === 'number' ? d.online : 0,
+      silent:          typeof d.silent === 'number' ? d.silent : 0,
+      critical_silent: typeof d.critical_silent === 'number' ? d.critical_silent : 0,
+      fleet_status_ar: typeof d.fleet_status_ar === 'string' ? d.fleet_status_ar : '',
+      silent_devices:  Array.isArray(d.silent_devices) ? d.silent_devices : [],
+      proactive_note_ar: typeof d.proactive_note_ar === 'string' ? d.proactive_note_ar : undefined,
+    };
+  });
+
+// ══════════════════════════════════════════════════════════════════
+// OPERATION CENTER WALL — التلخيص التشغيليّ الموحّد للمستأجِر (جدار مركز العمليّات).
+// المصدر الأساسيّ: GET /api/v1/operations/summary خلف العلم FEATURE_OPERATIONS_WALL
+// (حقول/تنبيهات بالخطورة/معدّات+أجهزة/قرارات/ريّ). أفضل-جهد: قد يكون العلم مُطفأً أو
+// النقطة غير منشورة ⇒ 404. fetchOperationsSummary يُرجِع null عند 404/أيّ خطأ (لا
+// تلفيق)، فترتدّ الصفحة إلى النقاط المنفصلة لكلّ بلاطة (تدهور رشيق، صدق المصدر).
+// كلّ الحقول اختياريّة (عقد غير مُثبَّت في هذا الفرع) ⇒ قراءة دفاعيّة، لا any.
+// ══════════════════════════════════════════════════════════════════
+export interface OpsSeverityCounts {
+  critical?: number;
+  warning?:  number;
+  info?:     number;
+}
+
+export interface OperationsSummary {
+  fields_total?:    number | null;
+  alerts?:          OpsSeverityCounts | null;
+  alerts_total?:    number | null;
+  fleet?:           Partial<FleetHealth> | null;
+  decisions_total?: number | null;
+  irrigation?: {
+    valves_total?:    number | null;
+    valves_open?:     number | null;
+    schedules_total?: number | null;
+  } | null;
+  generated_at?:    string | null;
+  // صدق التشغيل (source/freshness-aware): partial=أيّ قسم ليس ok؛ sections لكلّ قسم
+  // status حيّ/متدهور/غير متاح + عمر البيانات + سبب — يُمكّن الجدار من إظهار ما هو
+  // حيّ وما هو متدهور وما هو غير متاح بصدق (لا تلفيق).
+  partial?:         boolean | null;
+  sections?:        Record<
+    string,
+    { status: 'ok' | 'degraded' | 'unavailable'; freshness_sec?: number; error?: string }
+  > | null;
+  [k: string]:      unknown;
+}
+
+/** يجلب التلخيص التشغيليّ الموحّد. أفضل-جهد: 404 (العلم مُطفأ / النقطة غير منشورة)
+ *  أو أيّ خطأ/استجابة غير كائن ⇒ null، فترتدّ الصفحة لكلّ بلاطة لنقطتها المنفصلة.
+ *  لا تلفيق: null حالةٌ صريحة لا خطأ. */
+export const fetchOperationsSummary = (): Promise<OperationsSummary | null> =>
+  kongApi
+    .get<OperationsSummary>('/api/v1/operations/summary')
+    .then((r) => (r.data && typeof r.data === 'object' && !Array.isArray(r.data) ? r.data : null))
+    .catch(() => null);
+
+// ══════════════════════════════════════════════════════════════════
 // MOCK DATA
 // ══════════════════════════════════════════════════════════════════
 export const MOCK_FIELDS = [
