@@ -100,6 +100,20 @@ describe('viewer tightening (مواءمة الواجهة مع RBAC الخلفي�
   });
 });
 
+describe('operations-wall (جدار مركز العمليّات — شاشة قيادة)', () => {
+  it('owner/manager/agronomist فقط يصلون للجدار', () => {
+    expect(canAccess('owner', 'operations-wall')).toBe(true);
+    expect(canAccess('manager', 'operations-wall')).toBe(true);
+    expect(canAccess('agronomist', 'operations-wall')).toBe(true);
+  });
+
+  it('worker و viewer لا يصلان للجدار (والمجهول fail-closed → viewer)', () => {
+    expect(canAccess('worker', 'operations-wall')).toBe(false);
+    expect(canAccess('viewer', 'operations-wall')).toBe(false);
+    expect(canAccess(undefined, 'operations-wall')).toBe(false);
+  });
+});
+
 describe('canMutate / canManage / canCreateFarm', () => {
   it('viewer قراءة فقط؛ بقيّة الأدوار تعدّل', () => {
     expect(canMutate('viewer')).toBe(false);

@@ -167,6 +167,9 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # معايرة إقليميّة مُدارة DB-backed (البند 3): إدامة قيم معايرة مُتحقَّقة لكلّ
     # مستأجِر×منطقة بدل تعديل الكود — تجعل التغيير متتبَّعاً/مدقَّقاً في مجرى الأحداث.
     CALIBRATION_OVERRIDE_SET = "calibration.override.set"
+    # سجلّ تدقيق المعايرة (v84): قيد append-only لكلّ تغيير معايرة (override_set/
+    # reverted/adaptation_applied) مع لقطة القيم قبل/بعد — يجعل التغيير متتبَّعاً/مدقَّقاً.
+    CALIBRATION_AUDIT_RECORDED = "calibration.audit.recorded"
 
     # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
     # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.

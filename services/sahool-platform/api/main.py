@@ -3107,6 +3107,7 @@ from api.routers.agricultural_proverbs import (  # noqa: E402
 )
 from api.routers.agro_intelligence import router as agro_intelligence_router  # noqa: E402
 from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
+from api.routers.agronomic_replay import router as agronomic_replay_router  # noqa: E402
 
 # الدفعة ٩ (Batch 9) — نطاقات CQRS/استبطان + كتابات (commands/events/lineage/replay/
 # lifecycle/seasons/alerts/tasks/farms) مُفكَّكة من main (نمط P0).
@@ -3143,6 +3144,7 @@ from api.routers.cultural_calendar import router as cultural_calendar_router  # 
 from api.routers.data_readiness import router as data_readiness_router  # noqa: E402
 from api.routers.decision import router as decision_router  # noqa: E402
 from api.routers.decision_dispatch import router as decision_dispatch_router  # noqa: E402
+from api.routers.decision_explain import router as decision_explain_router  # noqa: E402
 from api.routers.decision_impact import router as decision_impact_router  # noqa: E402
 from api.routers.decision_policies import router as decision_policies_router  # noqa: E402
 from api.routers.decision_record import router as decision_record_router  # noqa: E402
@@ -3156,6 +3158,7 @@ from api.routers.equipment import router as equipment_router  # noqa: E402
 from api.routers.escalation import router as escalation_router  # noqa: E402
 from api.routers.events import router as events_router  # noqa: E402
 from api.routers.evidence import router as evidence_router  # noqa: E402
+from api.routers.evidence_map import router as evidence_map_router  # noqa: E402
 from api.routers.execution_lineage import router as execution_lineage_router  # noqa: E402
 from api.routers.failures import router as failures_router  # noqa: E402
 from api.routers.farms import router as farms_router  # noqa: E402
@@ -3186,6 +3189,7 @@ from api.routers.irrigation_method import router as irrigation_method_router  # 
 from api.routers.irrigation_plan import router as irrigation_plan_router  # noqa: E402
 from api.routers.kc_timeseries import router as kc_timeseries_router  # noqa: E402
 from api.routers.learning import router as learning_router  # noqa: E402
+from api.routers.learning_summary import router as learning_summary_router  # noqa: E402
 from api.routers.lifecycle import router as lifecycle_router  # noqa: E402
 from api.routers.lineage import router as lineage_router  # noqa: E402
 from api.routers.market import router as market_router  # noqa: E402
@@ -3193,16 +3197,19 @@ from api.routers.master_data import router as master_data_router  # noqa: E402
 from api.routers.me import router as me_router  # noqa: E402
 from api.routers.ndvi_analysis import router as ndvi_analysis_router  # noqa: E402
 from api.routers.niche_crops import router as niche_crops_router  # noqa: E402
+from api.routers.nl_gis import router as nl_gis_router  # noqa: E402
 from api.routers.notifications import router as notifications_router  # noqa: E402
 from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
 from api.routers.onboarding import router as onboarding_router  # noqa: E402
+from api.routers.operations import router as operations_router  # noqa: E402
 from api.routers.orchard import router as orchard_router  # noqa: E402
 from api.routers.outcome import router as outcome_router  # noqa: E402
 from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
 from api.routers.phenology import router as phenology_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
 from api.routers.policy_learning import router as policy_learning_router  # noqa: E402
+from api.routers.portfolio_command import router as portfolio_command_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
@@ -3290,14 +3297,18 @@ app.include_router(confidence_router)
 app.include_router(temporal_router)
 app.include_router(diagnose_router)
 app.include_router(learning_router)
+app.include_router(learning_summary_router)
 app.include_router(market_router)
 app.include_router(consistency_router)
 app.include_router(introduction_router)
 app.include_router(economics_router)
 app.include_router(onboarding_router)
+app.include_router(operations_router)
+app.include_router(nl_gis_router)
 app.include_router(weather_analytics_router)
 app.include_router(decision_router)
 app.include_router(decision_dispatch_router)
+app.include_router(decision_explain_router)
 app.include_router(decision_policies_router)
 app.include_router(decision_impact_router)
 app.include_router(decision_record_router)
@@ -3325,6 +3336,7 @@ app.include_router(postharvest_router)
 app.include_router(sampling_router)
 app.include_router(fields_router)
 app.include_router(field_portfolio_router)
+app.include_router(portfolio_command_router)
 app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(tenant_router)
@@ -3349,6 +3361,8 @@ app.include_router(failures_router)
 app.include_router(confidence_gate_router)
 app.include_router(escalation_router)
 app.include_router(evidence_router)
+app.include_router(evidence_map_router)
+app.include_router(agronomic_replay_router)
 app.include_router(indices_router)
 app.include_router(geo_locate_router)
 app.include_router(gis_kernel_router)

@@ -7,7 +7,8 @@ import {
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
-  ChevronDown, CalendarRange, GitCompare, GitBranch,
+  ChevronDown, CalendarRange, GitCompare, GitBranch, Crosshair, Search,
+  FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -69,9 +70,16 @@ const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'))
 const IrrigationPlanPage = lazy(() => import('./sections/IrrigationPlanPage'));
 const CropStatePage = lazy(() => import('./sections/CropStatePage'));
 const ScenarioComparePage = lazy(() => import('./sections/ScenarioComparePage'));
+const NlGisPage = lazy(() => import('./sections/NlGisPage'));
 const PortfolioPage = lazy(() => import('./sections/PortfolioPage'));
+const PortfolioCommandPage = lazy(() => import('./sections/PortfolioCommandPage'));
 const CalibrationPage = lazy(() => import('./sections/CalibrationPage'));
+const CalibrationWorkbenchPage = lazy(() => import('./sections/CalibrationWorkbenchPage'));
 const LineagePage = lazy(() => import('./sections/LineagePage'));
+const EvidenceMapPage = lazy(() => import('./sections/EvidenceMapPage'));
+const LearningDashboardPage = lazy(() => import('./sections/LearningDashboardPage'));
+const DecisionStudioPage = lazy(() => import('./sections/DecisionStudioPage'));
+const AgronomicTimelinePage = lazy(() => import('./sections/AgronomicTimelinePage'));
 const PestEscalationPage  = lazy(() => import('./sections/PestEscalationPage'));
 const FieldIntelligencePage = lazy(() => import('./sections/FieldIntelligencePage'));
 const InventoryPage       = lazy(() => import('./sections/InventoryPage'));
@@ -87,6 +95,7 @@ const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
 const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
 const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 const FarmMapOverview     = lazy(() => import('./sections/FarmMapOverview'));
+const FieldWorkspaceMapCard = lazy(() => import('./sections/FieldWorkspaceMapCard'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
 const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
 const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
@@ -99,15 +108,17 @@ const EconomicsDashboard  = lazy(() => import('./sections/EconomicsDashboard'));
 const PhenologyView       = lazy(() => import('./sections/PhenologyView'));
 const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
 const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
+const OperationCenterWallPage = lazy(() => import('./sections/OperationCenterWallPage'));
 
 export type PageId =
-  | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map'
+  | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'portfolio' | 'calibration' | 'lineage' | 'pest-escalation' | 'field-intelligence'
+  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report';
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
+  | 'operations-wall';
 
 type NavItem = { id: PageId; label: string; icon: LucideIcon; badge?: string };
 type NavGroup = { id: string; label: string; defaultOpen: boolean; items: NavItem[] };
@@ -117,6 +128,7 @@ const NAV_GROUPS: NavGroup[] = [
     id: 'home', label: 'الرئيسية', defaultOpen: true,
     items: [
       { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
+      { id:'operations-wall', label:'جدار مركز العمليّات', icon:MonitorPlay, badge:'جديد' },
       { id:'alerts',       label:'التنبيهات',       icon:Bell },
       { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
       { id:'reports',      label:'التقارير',        icon:FileText },
@@ -141,6 +153,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id:'fields',       label:'إدارة الحقول',   icon:Map },
       { id:'farm-map',     label:'خريطة المزرعة',  icon:Map },
+      { id:'field-workspace', label:'مساحة عمل الحقل', icon:Layers, badge:'جديد' },
       { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
       { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
       { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
@@ -153,9 +166,16 @@ const NAV_GROUPS: NavGroup[] = [
       { id:'irrigation-plan', label:'خطّة الريّ المتنبّأ', icon:CalendarRange },
       { id:'crop-state', label:'حالة المحصول الموحّدة', icon:Sprout },
       { id:'scenario-compare', label:'مقارنة السياسات', icon:GitCompare },
+      { id:'nl-gis', label:'استعلام GIS باللغة الطبيعيّة', icon:Search, badge:'جديد' },
       { id:'portfolio', label:'توزيع ماء المزرعة', icon:Layers },
+      { id:'portfolio-command', label:'مركز قيادة المحفظة', icon:Crosshair, badge:'جديد' },
       { id:'calibration', label:'حالة المعايرة الإقليميّة', icon:Activity },
+      { id:'calibration-workbench', label:'منضدة المعايرة', icon:SlidersHorizontal, badge:'جديد' },
       { id:'lineage', label:'سلسلة النَّسَب والدليل', icon:GitBranch },
+      { id:'evidence-map', label:'خريطة الدليل', icon:ShieldCheck, badge:'جديد' },
+      { id:'learning-dashboard', label:'لوحة رصد التعلّم', icon:BarChart3 },
+      { id:'decision-studio', label:'استوديو القرار', icon:FlaskConical, badge:'جديد' },
+      { id:'agronomic-timeline', label:'الخطّ الزمنيّ الأغرونوميّ', icon:GitCommitHorizontal, badge:'جديد' },
       { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
       { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
       { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
@@ -510,6 +530,7 @@ export default function App() {
       case 'command':      return <OperationCommand />;
       case 'map-center':   return <FieldMapCenter />;
       case 'farm-map':     return <FarmMapOverview />;
+      case 'field-workspace': return <FieldWorkspaceMapCard />;
       case 'tasks-cabin':  return <FieldTasksCabin />;
       case 'rec-flow':     return <RecommendationFlow />;
       case 'hybrid-monitor': return <HybridMonitor />;
@@ -522,6 +543,7 @@ export default function App() {
       case 'phenology':    return <PhenologyView />;
       case 'scouting':     return <ScoutingView />;
       case 'advisory-report': return <FarmAdvisoryReport />;
+      case 'operations-wall': return <OperationCenterWallPage />;
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
@@ -531,9 +553,16 @@ export default function App() {
       case 'irrigation-plan': return <IrrigationPlanPage />;
       case 'crop-state': return <CropStatePage />;
       case 'scenario-compare': return <ScenarioComparePage />;
+      case 'nl-gis': return <NlGisPage />;
       case 'portfolio': return <PortfolioPage />;
+      case 'portfolio-command': return <PortfolioCommandPage />;
       case 'calibration': return <CalibrationPage />;
+      case 'calibration-workbench': return <CalibrationWorkbenchPage />;
       case 'lineage': return <LineagePage />;
+      case 'evidence-map': return <EvidenceMapPage />;
+      case 'learning-dashboard': return <LearningDashboardPage />;
+      case 'decision-studio': return <DecisionStudioPage />;
+      case 'agronomic-timeline': return <AgronomicTimelinePage />;
       case 'pest-escalation': return <PestEscalationPage />;
       case 'field-intelligence': return <FieldIntelligencePage />;
       case 'spatial-indicators': return <SpatialIndicatorsPage />;

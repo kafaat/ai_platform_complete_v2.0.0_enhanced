@@ -24,10 +24,11 @@ export function normalizeRole(role?: string | null): Role {
 // (كي يعمل حارس الاكتمال أدناه)، وفي الوقت نفسه يضمن أنّ كلّ عنصر هو PageId صالح
 // (الاتّجاه العكسيّ مغطّى بـ`satisfies` — لا حاجة لشيفرة إضافيّة له).
 const ALL_PAGES = [
-  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'recommendations',
-  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'calibration', 'lineage', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
+  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
+  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'nl-gis', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
+  'operations-wall',
 ] as const satisfies readonly PageId[];
 
 // حارس وقت-التصريف: كلّ معرّف في اتّحاد PageId يجب أن يظهر في ALL_PAGES،
@@ -40,8 +41,8 @@ void _assertAllPagesComplete;
 // worker (مزارع/عامل): الصفحات التشغيليّة فقط (وفق سياسة الإعدادات الموثّقة:
 // لوحة + أقمار + حقول + مهام، مع التنبيهات/المستشار/المكانيّة + أدوات حقله).
 const WORKER_PAGES: PageId[] = [
-  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators',
-  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'calibration', 'lineage', 'weather-advice', 'pest-escalation', 'field-intelligence',
+  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'field-workspace', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators',
+  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'nl-gis', 'portfolio', 'portfolio-command', 'calibration', 'lineage', 'evidence-map', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'pest-escalation', 'field-intelligence',
   'inventory', 'equipment', 'devices', 'irrigation-ops',
 ];
 
@@ -61,6 +62,8 @@ const NON_MANAGEMENT_PAGES: PageId[] = ALL_PAGES.filter(
 // = 12 صلاحيّة عرض فقط). قائمة قابلة للضبط من المنتَج بمصفوفة واحدة.
 const VIEWER_BLOCKED_PAGES: PageId[] = [
   'economics', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
+  // جدار مركز العمليّات شاشة قيادة — owner/manager/agronomist فقط (لا worker ولا viewer).
+  'operations-wall',
 ];
 const VIEWER_PAGES: PageId[] = NON_MANAGEMENT_PAGES.filter(
   (p) => !VIEWER_BLOCKED_PAGES.includes(p),

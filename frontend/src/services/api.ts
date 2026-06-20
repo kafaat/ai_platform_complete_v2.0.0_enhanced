@@ -495,6 +495,121 @@ export interface PortfolioAllocResult {
 export const computePortfolioAllocation = (payload: PortfolioAllocInput): Promise<PortfolioAllocResult> =>
   kongApi.post<PortfolioAllocResult>('/api/v1/field-portfolio/allocate', payload).then(r => r.data);
 
+// ── استعلام GIS باللغة الطبيعيّة (POST /api/v1/nl-gis/query) — قراءة فقط ──
+// يصنّف استعلاماً عربيّاً حرّاً إلى نيّة مغلقة (تنبيه/انخفاض NDVI/فجوة ريّ) ويُعيد
+// معاينة قراءة-فقط للحقول المطابقة من بيانات المستأجِر — لا تنفيذ ولا تعديل (read_only).
+// خلف العلم FEATURE_NATURAL_LANGUAGE_GIS؛ مُطفأً ⇒ 404 (تلتقطه الواجهة برسالة «الميزة
+// غير مُفعَّلة»). 503 ⇒ القاعدة غير متاحة (حالة خطأ صادقة). العناصر متغايرة المفاتيح
+// حسب النيّة (تُعرَض أعمدةً ديناميكيّةً)، وقيمها بدائيّات JSON (نصّ/رقم/null؛ التواريخ
+// مُنصَّصة مسبقاً). لا fallback وهميّ: الخطأ يُرفع لتعرض الواجهة حالة صادقة عبر
+// .response?.status (مطابقةً لبقيّة الصفحات التي تكشف 404).
+export interface NlGisQueryInput {
+  query: string;
+}
+// عنصر نتيجة متغاير المفاتيح حسب النيّة — قيمه بدائيّات JSON فقط (لا كائنات متداخلة).
+export type NlGisItem = Record<string, string | number | boolean | null>;
+export interface NlGisResult {
+  read_only:   boolean;
+  intent:      string;                 // alert_filter | ndvi_drop | irrigation_gap | unsupported
+  supported:   boolean;
+  status:      string;                 // ok | needs_data | unsupported
+  slots?:      Record<string, string | number | null>;
+  confidence?: number;
+  api_called?: string;
+  items:       NlGisItem[];
+  count:       number;
+  note_ar?:    string | null;          // شرح الفراغ/الحاجة للبيانات
+  reason_ar?:  string | null;          // سبب عدم الدعم (intent=unsupported)
+  tenant_id?:  string;
+}
+/** يستعلم GIS باللغة الطبيعيّة (POST /api/v1/nl-gis/query) — قراءة فقط لا تنفيذ.
+ *  يرمي عند الخطأ (404 العلم مُطفأ — تلتقطه الواجهة برسالة «الميزة غير مُفعَّلة»؛
+ *  503 القاعدة غير متاحة تُعرَض كحالة خطأ صادقة). */
+export const queryNlGis = (payload: NlGisQueryInput): Promise<NlGisResult> =>
+  kongApi.post<NlGisResult>('/api/v1/nl-gis/query', payload).then(r => r.data);
+
+// ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
+// يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة
+// لكلّ سياسة ويوصي بأفضلها — توصية فقط لا تنفيذ ولا حجز ماء. خلف العلم
+// FEATURE_PORTFOLIO_COMMAND؛ مُطفأً ⇒ 404 (تتعامل معه الواجهة برسالة «الميزة غير مُفعَّلة»).
+// kind للمصدر: well | pump | pivot | network. للمضخّة: السعة الفعليّة =
+// min(capacity, max_rate_m3_per_day × window_days). source_ids على الحقل = أيّ المصادر
+// تخدمه (تغطية المحور)؛ فارغة ⇒ كلّ المصادر.
+export type PortfolioCommandSourceKind = 'well' | 'pump' | 'pivot' | 'network';
+export interface PortfolioCommandFieldInput {
+  field_id: string;
+  expected_margin: number;
+  water_demand_m3: number;
+  priority?: number;
+  min_water_fraction?: number;
+  source_ids?: string[];
+}
+export interface PortfolioCommandSourceInput {
+  source_id: string;
+  capacity_m3: number;
+  kind?: PortfolioCommandSourceKind;
+  max_rate_m3_per_day?: number | null;
+  window_days?: number | null;
+}
+export interface PortfolioCommandScenarioInput {
+  policy_label: string;
+  fields: PortfolioCommandFieldInput[];
+  sources: PortfolioCommandSourceInput[];
+}
+export interface PortfolioCommandInput {
+  scenarios: PortfolioCommandScenarioInput[];
+  risk_aversion?: number;
+}
+// قيد مصدر مُحلّ لسياسة (السعة الفعليّة مقابل الاسميّة + هل قيَّده تدفّقه/نافذته).
+export interface PortfolioCommandConstraint {
+  source_id: string;
+  kind: PortfolioCommandSourceKind | string;
+  capacity_m3: number;
+  effective_capacity_m3: number;
+  throughput_bound: boolean;
+}
+// التوزيع التفصيليّ لسياسة (نفس عقد field-portfolio/allocate تقريباً) — شكل مرن.
+export interface PortfolioCommandAllocation {
+  fields: Array<Record<string, unknown>>;
+  sources: Array<Record<string, unknown>>;
+  total_expected_margin: number;
+  total_allocated_m3: number;
+  protected_fields: string[];
+  stressed_fields: string[];
+  unmet_fields: string[];
+  calibrated: boolean;
+  warnings_ar: string[];
+}
+export interface PortfolioCommandPolicyResult {
+  policy: string;
+  total_expected_margin: number;
+  total_allocated_m3: number;
+  total_demand_m3: number;
+  served_fraction: number;
+  risk_score: number;
+  fields_count: number;
+  protected_count: number;
+  stressed_count: number;
+  unmet_count: number;
+  constraints: PortfolioCommandConstraint[];
+  constraints_bound: string[];
+  objective_score: number;
+  allocation: PortfolioCommandAllocation;
+}
+export interface PortfolioCommandResult {
+  policies: PortfolioCommandPolicyResult[];
+  recommended_policy: string;
+  risk_aversion: number;
+  calibrated: boolean;
+  warnings_ar: string[];
+  tenant_id: string;
+}
+/** يقارن سياسات الريّ عبر الحقول تحت قيود المصادر (POST /api/v1/portfolio/command).
+ *  توصية فقط لا تنفيذ. يرمي عند الخطأ (404 العلم مُطفأ — تلتقطه الواجهة برسالة
+ *  «الميزة غير مُفعَّلة»؛ 503/422 تُعرَض كحالة خطأ صادقة). */
+export const computePortfolioCommand = (payload: PortfolioCommandInput): Promise<PortfolioCommandResult> =>
+  kongApi.post<PortfolioCommandResult>('/api/v1/portfolio/command', payload).then(r => r.data);
+
 // ── حالة المعايرة الإقليميّة (GET /api/v1/calibration) — قراءة فقط ──
 // يكشف لكلّ إقليم يمنيّ هل ثوابته الأغرونوميّة مُتحقَّق منها ميدانيّاً أم ما تزال
 // افتراضات FAO عامّة — فيرى المستخدم أين تنقص بيانات المعايرة الحقيقيّة. صدق: لا
@@ -525,6 +640,201 @@ export interface CalibrationOverview {
 }
 export const fetchCalibration = (): Promise<CalibrationOverview> =>
   kongApi.get<CalibrationOverview>('/api/v1/calibration').then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// CALIBRATION WORKBENCH — منضدة معايرة الخبير الزراعيّ (مقارنة/اقتراح/موافقة/رفض/تدقيق)
+// تستهلك نقاط calibration.py الحقيقيّة: القاعدة (GET /{region}) مقابل المُدام
+// (GET /{region}/resolved)، التحقّق (POST /{region}/propose-values — يقترح لا يكتب)،
+// الإدامة (POST /{region}/override مع source_ar) وعكسها (DELETE /{region}/override)،
+// وتطبيق التكيّف بدليل مُدام (POST /{region}/adapt-from-evidence/apply, confirm=true).
+// صدق: لا قيمة بلا API؛ POST/DELETE ترمي عند الخطأ ليعرض الـUI حالة صادقة؛ لا any.
+// ══════════════════════════════════════════════════════════════════
+
+// ملفّ المنطقة بعد دمج التجاوز المُدام (GET /{region}/resolved) — يطابق
+// apply_region_override: CalibrationProfile + وسما المصدر/الحقول المُطبَّقة.
+export interface ResolvedCalibration extends CalibrationProfile {
+  override_applied: string[];               // الحقول التي طُبِّق فيها تجاوز مُدام
+  override_source:  'db_override' | 'inherited' | string;
+}
+/** القاعدة الموروثة لمنطقة (GET /api/v1/calibration/{region}). */
+export const fetchRegionCalibration = (region: string): Promise<CalibrationProfile> =>
+  kongApi
+    .get<CalibrationProfile>(`/api/v1/calibration/${encodeURIComponent(region)}`)
+    .then(r => r.data);
+/** الملفّ المُحلّ مع التجاوز المُدام (GET /api/v1/calibration/{region}/resolved). */
+export const fetchResolvedCalibration = (region: string): Promise<ResolvedCalibration> =>
+  kongApi
+    .get<ResolvedCalibration>(`/api/v1/calibration/${encodeURIComponent(region)}/resolved`)
+    .then(r => r.data);
+
+// نتيجة التحقّق (validate_region_calibration) — مشتركة بين propose-values/override.
+export interface CalibrationRejection { field: string; value: unknown; reason_ar: string }
+export interface CalibrationValidation {
+  region:           string;
+  accepted:         Record<string, number | Record<string, number>>;
+  rejected:         CalibrationRejection[];
+  override_block:   Record<string, number | Record<string, number>>;
+  validated:        boolean;
+  source_ar:        string | null;
+  ready_to_persist: boolean;
+  calibrated:       false;
+  warnings_ar:      string[];
+}
+// مدخلات الاقتراح/الإدامة (ProposeValuesRequest) — كلّ الحقول اختياريّة؛ نرسل
+// المُعرَّف فقط. source_ar إلزاميّ للإدامة (الخادم يرفض 422 بلا مصدر).
+export interface CalibrationValuesInput {
+  raw_fraction?:          number;
+  root_depth_m?:          number;
+  kc_dyn_min?:            number;
+  kc_dyn_max?:            number;
+  forecast_infiltration?: number;
+  yield_uncertainty?:     number;
+  price_uncertainty?:     number;
+  uptake_fractions?:      Record<string, number>;
+  source_ar?:             string;
+}
+/** يتحقّق من قيم مقترَحة ضدّ حدود آمنة (POST /{region}/propose-values) — يقترح لا يكتب.
+ *  الخادم يُرجِع 200 مع accepted/rejected (لا 422 هنا)؛ أخطاء الشبكة/503 تُرمى. */
+export const proposeCalibrationValues = (
+  region: string,
+  values: CalibrationValuesInput,
+): Promise<CalibrationValidation> =>
+  kongApi
+    .post<CalibrationValidation>(
+      `/api/v1/calibration/${encodeURIComponent(region)}/propose-values`,
+      values,
+    )
+    .then(r => r.data);
+
+// نتيجة الإدامة الناجحة (set_region_override) — يُعيد المقبول + الملفّ المُحلّ.
+export interface CalibrationOverrideResult {
+  region:    string;
+  persisted: true;
+  accepted:  Record<string, number | Record<string, number>>;
+  source_ar: string | null;
+  resolved:  ResolvedCalibration;
+}
+/** يُدِيم قيماً مُتحقَّقة لمنطقة (POST /{region}/override). source_ar إلزاميّ.
+ *  يرمي عند الخطأ (422 رفض/نقص مصدر، 503 DB) ليعرض الـUI سببه بصدق. */
+export const setRegionOverride = (
+  region: string,
+  values: CalibrationValuesInput,
+): Promise<CalibrationOverrideResult> =>
+  kongApi
+    .post<CalibrationOverrideResult>(
+      `/api/v1/calibration/${encodeURIComponent(region)}/override`,
+      values,
+    )
+    .then(r => r.data);
+
+/** يحذف التجاوز المُدام ويعيد المنطقة للوراثة (DELETE /{region}/override).
+ *  يرمي عند الخطأ (503 DB) — لا حذف تفاؤليّ صامت. */
+export const deleteRegionOverride = (
+  region: string,
+): Promise<{ region: string; reverted: boolean }> =>
+  kongApi
+    .delete<{ region: string; reverted: boolean }>(
+      `/api/v1/calibration/${encodeURIComponent(region)}/override`,
+    )
+    .then(r => r.data);
+
+// تطبيق التكيّف بدليل مُدام (apply_region_adaptation_from_evidence) — confirm=true
+// إلزاميّ صريح. الردّ هو الاقتراح (propose_calibration_adjustment) + applied/persisted.
+// الشكل دفاعيّ: غير مؤهَّل ⇒ applied=false ويُعاد الاقتراح كما هو (لا تطبيق خفيّ).
+export interface AdaptProposalItem {
+  parameter: string;
+  current?:  number;
+  proposed?: number;
+  [k: string]: unknown;
+}
+export interface AdaptApplyResult {
+  status:              string;            // auto_apply_eligible | gated | …
+  applied:             boolean;           // أُدِيم فعلاً؟ (false ⇒ لم يُطبَّق)
+  proposals:           AdaptProposalItem[];
+  decision_id?:        string;
+  evidence_used?:      Record<string, unknown>;
+  source_ar?:          string | null;
+  persisted_override?: Record<string, number>;
+  resolved?:           ResolvedCalibration;
+  warnings_ar?:        string[];
+  [k: string]:         unknown;
+}
+export interface AdaptApplyInput {
+  confirm: boolean;                       // يجب أن يكون true (الخادم يرفض 422 بلا تأكيد)
+  source_ar?:          string;
+  mean_stress_delta?:  number;
+  decision_id?:        string;
+}
+/** يُطبّق تكيّف المعايرة المحروس بالدليل المُدام (POST /{region}/adapt-from-evidence/apply).
+ *  confirm=true إلزاميّ. يرمي عند الخطأ (422 بلا تأكيد/خارج الأمان، 503 DB). */
+export const applyAdaptFromEvidence = (
+  region: string,
+  input: AdaptApplyInput,
+): Promise<AdaptApplyResult> =>
+  kongApi
+    .post<AdaptApplyResult>(
+      `/api/v1/calibration/${encodeURIComponent(region)}/adapt-from-evidence/apply`,
+      input,
+    )
+    .then(r => r.data);
+
+// كلّ التجاوزات المُدامة للمستأجِر (GET /api/v1/calibration/overrides/all) — لإدارة
+// أيّ المناطق صار لها قيم مُدامة ومصدرها/وقت تحديثها (بديل سجلّ التدقيق إن غاب).
+export interface CalibrationOverrideEntry {
+  region:          string;
+  override_values: Record<string, number | Record<string, number>>;
+  source_ar:       string | null;
+  validated:       boolean;
+  updated_at:      string | null;
+}
+export interface CalibrationOverridesResult {
+  overrides: CalibrationOverrideEntry[];
+  count:     number;
+}
+export const fetchCalibrationOverrides = (): Promise<CalibrationOverridesResult> =>
+  kongApi
+    .get<CalibrationOverridesResult>('/api/v1/calibration/overrides/all')
+    .then(r => ({
+      overrides: Array.isArray(r.data?.overrides) ? r.data.overrides : [],
+      count: typeof r.data?.count === 'number' ? r.data.count : 0,
+    }));
+
+// سجلّ التدقيق لمنطقة (GET /api/v1/calibration/{region}/audit) — قد لا تتوفّر النقطة
+// بعد. صدق: نستهلكها إن نجحت، ونُعيد null عند 404 (لا تلفيق) فترتدّ المنضدة إلى
+// overrides/all (source_ar + updated_at). أيّ خطأ آخر يُعاد null كذلك (أفضل-جهد).
+// الشكل دفاعيّ (كلّ الحقول اختياريّة) لتفادي افتراض عقد غير مُثبَّت في هذا الفرع.
+export interface CalibrationAuditEntry {
+  action?:     string;
+  field?:      string;
+  old_value?:  unknown;
+  new_value?:  unknown;
+  source_ar?:  string | null;
+  actor?:      string | null;
+  created_at?: string | null;
+  [k: string]: unknown;
+}
+export interface CalibrationAudit {
+  region:  string;
+  entries: CalibrationAuditEntry[];
+}
+/** يجلب سجلّ تدقيق منطقة. أفضل-جهد: 404 (نقطة غير متاحة) أو أيّ خطأ ⇒ null،
+ *  فترتدّ المنضدة إلى overrides/all (حالة صادقة لا تلفيق). الأحدث أوّلاً يُتوقَّع
+ *  من الخادم؛ نطبّع المصفوفة دفاعيّاً إن غابت/اختلف شكلها. */
+export const fetchCalibrationAudit = (region: string): Promise<CalibrationAudit | null> =>
+  kongApi
+    .get<{ entries?: CalibrationAuditEntry[]; audit?: CalibrationAuditEntry[] }>(
+      `/api/v1/calibration/${encodeURIComponent(region)}/audit`,
+    )
+    .then((r) => {
+      const raw = r.data ?? {};
+      const entries = Array.isArray(raw.entries)
+        ? raw.entries
+        : Array.isArray(raw.audit)
+          ? raw.audit
+          : [];
+      return { region, entries };
+    })
+    .catch(() => null);
 
 // ── سلسلة النَّسَب المُدامة + الدليل المتراكم (قراءة فقط) ──
 // تُظهر للمستخدم أثر القرار المحفوظ ونتائجه التالية (decision → outcomes)، وتراكم
@@ -585,6 +895,412 @@ export const fetchPersistedEvidence = (region: string): Promise<PersistedEvidenc
   kongApi
     .get<PersistedEvidence>(`/api/v1/calibration/${encodeURIComponent(region)}/evidence/persisted`)
     .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// EVIDENCE MAP — خريطة الدليل (GET /api/v1/evidence/map) — قراءة فقط ──
+// لكلّ حقل للمستأجِر: مستوى الدليل خلف قراراته (مؤكَّد/مدعوم/إرشاديّ/يحتاج بيانات)
+// على خريطة 2D حقيقيّة + قائمة. خلف العلم FEATURE_EVIDENCE_MAP؛ مُطفأً ⇒ 404
+// (تلتقطه الواجهة برسالة «الميزة غير مُفعَّلة»). 503 ⇒ القاعدة غير متاحة (حالة خطأ
+// صادقة). صدق: مستوى الدليل من القرارات/القياسات المُدامة فقط؛ عتبة التحقّق الميدانيّ
+// تقديريّة. الحقول بلا إحداثيّات (has_coords=false) لا تُرسَم (لا إحداثيّات مُختلَقة).
+// needs_data «لا دليل بعد» صادق (رماديّ) لا حالة إيجابيّة. لا fallback وهميّ: الخطأ
+// يُرفع لتعرض الواجهة حالة صادقة عبر .response?.status (مطابقةً لبقيّة صفحات العلم).
+export type EvidenceMapTier =
+  | 'field_verified' | 'field_preliminary' | 'indicative' | 'needs_data';
+// لون الفئة من الخادم — يُربَط بألوان CSS/علامات محدّدة في الواجهة (لا فئات إضافيّة).
+export type EvidenceMapColor = 'green' | 'amber' | 'blue' | 'gray';
+export interface EvidenceMapLegendItem {
+  tier:    EvidenceMapTier;
+  tier_ar: string;
+  color:   EvidenceMapColor | string;
+}
+export interface EvidenceMapField {
+  field_id:            string;
+  name:                string;
+  crop:                string;
+  gov:                 string;
+  lat:                 number | null;
+  lon:                 number | null;
+  has_coords:          boolean;       // false ⇒ لا يُرسَم (لا إحداثيّات مُختلَقة)
+  decisions:           number;
+  outcomes:            number;
+  successes:           number;
+  success_rate:        number | null; // null ⇒ «—» (لا تلفيق)
+  samples_to_verified: number;
+  last_outcome_at:     string | null;
+  tier:                EvidenceMapTier;
+  tier_ar:             string;
+  color:               EvidenceMapColor | string;
+}
+export interface EvidenceMapResult {
+  generated_at:       string;
+  legend:             EvidenceMapLegendItem[];
+  fields:             EvidenceMapField[];
+  totals_by_tier:     Record<string, number>;
+  field_count:        number;
+  plottable_count:    number;
+  verified_threshold: number;
+  provenance:         { calibrated: string; note_ar: string };
+  tenant_id:          string;
+}
+/** يجلب خريطة الدليل (GET /api/v1/evidence/map) — قراءة فقط لا تنفيذ.
+ *  يرمي عند الخطأ (404 العلم مُطفأ — تلتقطه الواجهة برسالة «الميزة غير مُفعَّلة»؛
+ *  503 القاعدة غير متاحة تُعرَض كحالة خطأ صادقة). */
+export const fetchEvidenceMap = (): Promise<EvidenceMapResult> =>
+  kongApi.get<EvidenceMapResult>('/api/v1/evidence/map').then(r => r.data);
+
+// ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) — سرد القرارات المُدامة + تلخيص حلقة التعلّم ──
+// تستهلك GET /api/v1/decision/records (سرد القرارات المُدامة للمستأجِر، معزولة بـRLS):
+//   {decisions: DecisionRecord[], count}. شكل القرار مطابق لـ_shape_decision_row
+//   (نفس LineageDecision: decision_id/field_id/decision_type/region/stage/decision_value/
+//   confidence/created_by/created_at). صدق: لا fallback وهميّ — 503 (تعذّر القاعدة)
+//   يُرفع لتعرض الواجهة حالة صادقة.
+export type DecisionRecord = LineageDecision;
+export interface DecisionRecordsResult {
+  decisions: DecisionRecord[];
+  count:     number;
+}
+export const fetchDecisionRecords = (limit = 200): Promise<DecisionRecordsResult> =>
+  kongApi
+    .get<DecisionRecordsResult>('/api/v1/decision/records', { params: { limit } })
+    .then(r => ({
+      decisions: Array.isArray(r.data?.decisions) ? r.data.decisions : [],
+      count: typeof r.data?.count === 'number' ? r.data.count : 0,
+    }));
+
+// تلخيص حلقة التعلّم لكلّ منطقة (GET /api/v1/learning/summary) — قد لا تتوفّر النقطة بعد.
+// صدق: نستهلكها إن نجحت، ونُعيد null عند 404/أيّ خطأ (لا تلفيق) فتعرض الواجهة حالةً
+// فارغة صادقة بدل أرقام مُختلَقة. الشكل دفاعيّ (كلّ الحقول اختياريّة) لتفادي افتراض
+// عقد غير مُثبَّت في هذا الفرع.
+export interface LearningSummaryRegion {
+  region?:                     string;
+  sample_count?:               number;
+  evidence_level?:             EvidenceLevel | string;
+  success_rate?:               number | null;
+  outcome_count?:              number;
+  samples_to_verified?:        number;
+  field_verified_min_samples?: number;
+  calibrated?:                 boolean;
+  warnings_ar?:                string[];
+}
+export interface LearningSummary {
+  regions?:           LearningSummaryRegion[];
+  decision_count?:    number;
+  outcome_count?:     number;
+  success_rate?:      number | null;
+  regions_verified?:  number;
+  calibrated?:        boolean;
+  warnings_ar?:       string[];
+  [k: string]:        unknown;
+}
+/** يجلب تلخيص حلقة التعلّم. أفضل-جهد: أيّ خطأ/استجابة غير صالحة (404 نقطة غير
+ *  مُتاحة بعد، 503 DB) ⇒ null فتعرض الواجهة حالةً فارغة صادقة (لا تلفيق). */
+export const fetchLearningSummary = (): Promise<LearningSummary | null> =>
+  kongApi
+    .get<LearningSummary>('/api/v1/learning/summary')
+    .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
+    .catch(() => null);
+
+// ══════════════════════════════════════════════════════════════════
+// DECISION STUDIO — شرح القرار (Signals → Policy → Constraints → Final) + إعادة
+// التشغيل (قراءة فقط). تستهلك أوّلاً GET /api/v1/decision/{id}/explain (خلف العلم
+// FEATURE_DECISION_STUDIO؛ قد يكون مُطفأً ⇒ 404)، وترتدّ عند 404 إلى السلسلة
+// المُدامة GET /api/v1/decision/{id}/lineage فتشتقّ منها شرحاً صادقاً من
+// decision_value (policy_decision.reasons_ar/risks/confidence). صدق: لا تلفيق —
+// القرار غير المُدام يُعرَض «غير متاح»، وغياب المعايرة (calibrated=false) يُبرَز.
+// ══════════════════════════════════════════════════════════════════
+
+/** إشارة قرار واحدة (مدخَل أثّر في القرار) — مع حالة لونيّة صادقة من الخادم. */
+export interface DecisionSignal {
+  key:      string;
+  label_ar: string;
+  value:    unknown;
+  status:   string; // ok | warn | risk | info | neutral … (من الخادم، لا نفترض حصراً)
+}
+/** قرار السياسة المُحلّ (auto/manual) مع أسبابه العربيّة. */
+export interface DecisionPolicyView {
+  resolved:   string | null;
+  applied:    string | null;
+  auto:       boolean;
+  reasons_ar: string[];
+}
+/** قيد واحد على القرار (سقف ميزانيّة/تطبيق…). شكل مرن (الخادم قد يثريه). */
+export interface DecisionConstraint {
+  key?:      string;
+  label_ar?: string;
+  value?:    unknown;
+  [k: string]: unknown;
+}
+/** جوهر الشرح: ثقة + إشارات + سياسة + قيود + القرار النهائيّ. */
+export interface DecisionExplanation {
+  confidence:  number | null;
+  calibrated:  boolean;          // false ⇒ تقديريّ غير مُعايَر (يُبرَز صراحةً)
+  signals:     DecisionSignal[];
+  policy:      DecisionPolicyView | null;
+  constraints: DecisionConstraint[];
+  final:       Record<string, unknown>;
+  warnings_ar: string[];
+}
+/** نتيجة الشرح الكاملة: شرح + «ماذا حدث فعلاً» (outcomes) + دليل. */
+export interface DecisionExplainResult {
+  decision_id:   string;
+  decision_type: string;
+  found:         boolean;        // false ⇒ القرار غير مُدام (لا نختلق شرحاً)
+  source:        'explain' | 'lineage_derived'; // من أين جاء الشرح (شفافيّة)
+  explanation:   DecisionExplanation | null;
+  outcomes:      LineageOutcome[];
+  evidence:      Record<string, unknown> | null;
+}
+
+// شكل ردّ /explain الخام من الخادم (حين يكون العلم مُفعَّلاً) — كلّ الحقول دفاعيّة.
+interface RawExplainResponse {
+  decision_id?:   string;
+  decision_type?: string;
+  found?:         boolean;
+  explanation?: {
+    confidence?:  number | null;
+    calibrated?:  boolean;
+    signals?:     Partial<DecisionSignal>[];
+    policy?: {
+      resolved?:   string | null;
+      applied?:    string | null;
+      auto?:       boolean;
+      reasons_ar?: string[];
+    } | null;
+    constraints?: DecisionConstraint[];
+    final?:       Record<string, unknown>;
+    warnings_ar?: string[];
+  } | null;
+  outcomes?: LineageOutcome[];
+  evidence?: Record<string, unknown> | null;
+}
+
+// يطبّع ردّ /explain الخام إلى DecisionExplainResult (حقول غائبة ⇒ افتراضات صادقة).
+function _normalizeExplain(d: RawExplainResponse, decisionId: string): DecisionExplainResult {
+  const ex = d.explanation ?? null;
+  return {
+    decision_id:   d.decision_id ?? decisionId,
+    decision_type: d.decision_type ?? '—',
+    found:         d.found ?? !!ex,
+    source:        'explain',
+    explanation: ex
+      ? {
+          confidence:  typeof ex.confidence === 'number' ? ex.confidence : null,
+          calibrated:  ex.calibrated === true,
+          signals:     (ex.signals ?? []).map((s) => ({
+            key:      String(s.key ?? ''),
+            label_ar: String(s.label_ar ?? s.key ?? ''),
+            value:    s.value ?? null,
+            status:   String(s.status ?? 'neutral'),
+          })),
+          policy: ex.policy
+            ? {
+                resolved:   ex.policy.resolved ?? null,
+                applied:    ex.policy.applied ?? null,
+                auto:       ex.policy.auto === true,
+                reasons_ar: Array.isArray(ex.policy.reasons_ar) ? ex.policy.reasons_ar : [],
+              }
+            : null,
+          constraints: Array.isArray(ex.constraints) ? ex.constraints : [],
+          final:       ex.final && typeof ex.final === 'object' ? ex.final : {},
+          warnings_ar: Array.isArray(ex.warnings_ar) ? ex.warnings_ar : [],
+        }
+      : null,
+    outcomes: Array.isArray(d.outcomes) ? d.outcomes : [],
+    evidence: d.evidence && typeof d.evidence === 'object' ? d.evidence : null,
+  };
+}
+
+// يقرأ مصفوفة نصوص عربيّة بأمان من قيمة مجهولة (reasons_ar/risks/warnings الخام).
+function _strList(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((x) =>
+      typeof x === 'string'
+        ? x
+        : typeof x === 'object' && x
+          ? String(
+              (x as Record<string, unknown>).label_ar ??
+                (x as Record<string, unknown>).level_ar ??
+                '',
+            )
+          : String(x ?? ''),
+    )
+    .filter(Boolean);
+}
+
+// يشتقّ شرحاً صادقاً من decision_value المُدام (ارتداد عند 404 على /explain).
+// الإشارات تُبنى من الحقائق المُدامة فعلاً فقط (لا اختلاق): ثقة/سياسة/مخاطر/تحذيرات.
+function _deriveFromLineage(lin: DecisionLineage): DecisionExplainResult {
+  const dec = lin.decision;
+  if (!dec) {
+    return {
+      decision_id:   lin.decision_id,
+      decision_type: '—',
+      found:         false,
+      source:        'lineage_derived',
+      explanation:   null,
+      outcomes:      lin.outcomes,
+      evidence:      null,
+    };
+  }
+  const val = dec.decision_value ?? {};
+  const pd = (val.policy_decision ?? null) as Record<string, unknown> | null;
+  const confidence =
+    typeof dec.confidence === 'number'
+      ? dec.confidence
+      : typeof val.confidence === 'number'
+        ? (val.confidence as number)
+        : null;
+  const calibrated = val.calibrated === true;
+
+  // إشارات من الحقائق المُدامة (كلّ إشارة مرتبطة بقيمة فعليّة موجودة — لا اختلاق).
+  const signals: DecisionSignal[] = [];
+  const ws = (val.water_state ?? null) as Record<string, unknown> | null;
+  if (ws && typeof ws.needs_irrigation === 'boolean') {
+    signals.push({
+      key: 'needs_irrigation',
+      label_ar: 'حاجة الريّ',
+      value: ws.needs_irrigation ? 'نعم' : 'لا',
+      status: ws.needs_irrigation ? 'warn' : 'ok',
+    });
+  }
+  const irr = (val.irrigation ?? null) as Record<string, unknown> | null;
+  if (irr && typeof irr.stress_days === 'number') {
+    signals.push({
+      key: 'stress_days',
+      label_ar: 'أيّام الإجهاد',
+      value: irr.stress_days,
+      status: (irr.stress_days as number) > 0 ? 'risk' : 'ok',
+    });
+  }
+  if (typeof val.data_quality === 'string') {
+    signals.push({ key: 'data_quality', label_ar: 'جودة البيانات', value: val.data_quality, status: 'info' });
+  }
+  for (const r of (Array.isArray(val.risks) ? val.risks : []) as Record<string, unknown>[]) {
+    if (r && typeof r === 'object') {
+      signals.push({
+        key: String(r.key ?? 'risk'),
+        label_ar: String(r.label_ar ?? 'مخاطرة'),
+        value: String(r.level_ar ?? ''),
+        status: 'risk',
+      });
+    }
+  }
+
+  const policy: DecisionPolicyView | null = pd
+    ? {
+        resolved:   (pd.resolved_policy as string) ?? null,
+        applied:    (pd.applied_policy as string) ?? null,
+        auto:       pd.auto === true,
+        reasons_ar: _strList(pd.reasons_ar),
+      }
+    : null;
+
+  // القيود: سقوف التطبيق/الميزانيّة إن أُدِيمت فعلاً (لا نخترعها).
+  const constraints: DecisionConstraint[] = [];
+  if (irr && irr.policy != null) constraints.push({ key: 'policy', label_ar: 'سياسة الريّ', value: irr.policy });
+  if (irr && irr.total_mm != null) constraints.push({ key: 'total_mm', label_ar: 'إجماليّ الريّ (مم)', value: irr.total_mm });
+
+  // القرار النهائيّ: ملخّص الأفعال المُدامة (ريّ/تسميد) — أرقام حقيقيّة لا مُلفَّقة.
+  const final: Record<string, unknown> = {};
+  if (irr && irr.action_ar != null) final['الريّ'] = irr.action_ar;
+  const fert = (val.fertilization ?? null) as Record<string, unknown> | null;
+  if (fert && fert.action_ar != null) final['التسميد'] = fert.action_ar;
+
+  return {
+    decision_id:   lin.decision_id,
+    decision_type: dec.decision_type,
+    found:         true,
+    source:        'lineage_derived',
+    explanation: {
+      confidence,
+      calibrated,
+      signals,
+      policy,
+      constraints,
+      final,
+      warnings_ar: _strList(val.warnings_ar),
+    },
+    outcomes: lin.outcomes,
+    evidence: null,
+  };
+}
+
+/** يجلب شرح القرار: يجرّب /explain أوّلاً، ويرتدّ عند 404 (العلم مُطفأ) إلى
+ *  /lineage فيشتقّ شرحاً صادقاً من decision_value. أيّ خطأ آخر (503/403) يُرفع
+ *  لتعرض الواجهة حالة خطأ صادقة. */
+export const fetchDecisionExplain = (decisionId: string): Promise<DecisionExplainResult> => {
+  const id = decisionId.trim();
+  return kongApi
+    .get<RawExplainResponse>(`/api/v1/decision/${encodeURIComponent(id)}/explain`)
+    .then((r) => _normalizeExplain(r.data ?? {}, id))
+    .catch((e: unknown) => {
+      // 404 فقط ⇒ العلم FEATURE_DECISION_STUDIO مُطفأ/النقطة غير موجودة: ارتدّ للنسَب.
+      if (asApiError(e).response?.status === 404) {
+        return fetchDecisionLineage(id).then(_deriveFromLineage);
+      }
+      throw e;
+    });
+};
+
+// ══════════════════════════════════════════════════════════════════
+// AGRONOMIC TIMELINE — الخطّ الزمنيّ الموحّد للحقل (مثل Git history، قراءة فقط).
+// تستهلك GET /api/v1/fields/{field_id}/unified-timeline (assemble_timeline:
+// تصنيف+فرز+إحصاءات عبر RLS). صدق: عند تعطّل القاعدة يُرجِع خطّاً فارغاً + note_ar
+// (لا تاريخ مخترَع) — تعرضه الواجهة EmptyState. لا fallback وهميّ.
+// ══════════════════════════════════════════════════════════════════
+export type AgronomicTimelineCategory =
+  | 'lifecycle' | 'operation' | 'observation' | 'calibration' | 'weather' | 'system' | string;
+
+/** حدث واحد في الخطّ الزمنيّ (يطابق TimelineEvent.to_dict الخلفيّ). */
+export interface UnifiedTimelineEvent {
+  timestamp:   string;
+  event_type:  string;
+  category:    AgronomicTimelineCategory;
+  summary_ar:  string;
+  actor_id:    string | null;
+  payload:     Record<string, unknown>;
+}
+/** الخطّ الزمنيّ الكامل (يطابق FieldTimeline.to_dict). */
+export interface UnifiedTimeline {
+  field_id:        string;
+  total_events:    number;
+  earliest_at:     string | null;
+  latest_at:       string | null;
+  category_counts: Record<string, number>;
+  events:          UnifiedTimelineEvent[];
+  note_ar?:        string; // يظهر عند تعطّل القاعدة (لا تاريخ حيّ) — حالة فارغة صادقة
+  error?:          string; // يظهر عند فشل الجلب الداخليّ (الخادم يُعلنه لا يخترع)
+}
+
+export const fetchUnifiedTimeline = (
+  fieldId: string,
+  opts: { limit?: number; newestFirst?: boolean; category?: string } = {},
+): Promise<UnifiedTimeline> => {
+  const { limit = 200, newestFirst = true, category } = opts;
+  return kongApi
+    .get<UnifiedTimeline>(`/api/v1/fields/${encodeURIComponent(fieldId)}/unified-timeline`, {
+      params: {
+        limit,
+        newest_first: newestFirst,
+        ...(category ? { category } : {}),
+      },
+    })
+    .then((r) => {
+      const d = r.data ?? ({} as UnifiedTimeline);
+      return {
+        field_id:        d.field_id ?? fieldId,
+        total_events:    typeof d.total_events === 'number' ? d.total_events : 0,
+        earliest_at:     d.earliest_at ?? null,
+        latest_at:       d.latest_at ?? null,
+        category_counts: d.category_counts && typeof d.category_counts === 'object' ? d.category_counts : {},
+        events:          Array.isArray(d.events) ? d.events : [],
+        note_ar:         d.note_ar,
+        error:           d.error,
+      };
+    });
+};
 
 // ── قرار المحصول الموحّد (POST /api/v1/crop-twin/decision) ──
 // ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة. الاقتصاد محجوز (not_configured).
@@ -1724,6 +2440,99 @@ export const importField = (payload: FieldImportInput): Promise<unknown> =>
   kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// FIELD WORKSPACE — مساحة عمل الحقل (المصدر الأساسيّ لكرت «Field Workspace Map»)
+// GET /api/v1/fields/{field_id}/workspace (fields.py:508 ⇒ assemble_workspace):
+// ملخّص الحقل + كتالوج طبقات قابلة للتبديل (كلّ طبقة تُعلن توفّرها بصدق:
+// available/on_demand/missing) + تفسير التضاريس + خطّ زمنيّ من أحداث مسجّلة فقط.
+// عرض صرف (display_only) — لا قرار مفروض. لا fallback وهميّ: عند الخطأ (404 حقل
+// ليس للمستأجِر / 503 DB) يُرمى ليعرض الـUI حالة صادقة. الحدود (geometry) تُجلب
+// عبر fetchFieldDetail، وطبقة NDVI الحقيقيّة من خدمة الراستر (rasterApi) عند الطلب.
+// ══════════════════════════════════════════════════════════════════
+
+/** حالة توفّر طبقة كما يُعلنها الخادم بصدق. */
+export type WorkspaceLayerStatus = 'available' | 'on_demand' | 'missing';
+
+/** طبقة عرض واحدة في كتالوج مساحة العمل (display_only — لا تفرض قراراً). */
+export interface WorkspaceLayer {
+  key:          string;
+  label_ar:     string;
+  category:     string; // vegetation | terrain | soil | water
+  available:    boolean;
+  status:       WorkspaceLayerStatus | string;
+  display_only: boolean;
+  note_ar:      string;
+}
+
+/** ملخّص الحقل المُضمَّن في مساحة العمل (مأخوذ من أعمدة الحقل، قد يكون null). */
+export interface WorkspaceFieldSummary {
+  name_ar:   string | null;
+  crop:      string | null;
+  area_ha:   number | null;
+  soil_type: string | null;
+}
+
+/** بطاقة خطّ زمنيّ واحدة (من أحداث مسجّلة فقط — لا تاريخ مخترَع). */
+export interface WorkspaceTimelineCard {
+  occurred_at: string;
+  event_type:  string;
+  op_ar:       string;
+  category:    string;
+  issue_tags:  string[];
+}
+
+/** تفسير التضاريس المُضمَّن (enrich_terrain) — شكل مفتوح، اختياريّ بالكامل. */
+export interface WorkspaceTerrain {
+  field_id?:        string;
+  elevation_m?:     number | null;
+  slope_pct?:       number | null;
+  aspect?:          string | null;
+  [k: string]:      unknown;
+}
+
+/** مساحة عمل الحقل الكاملة (GET /workspace) — عرض صرف. */
+export interface FieldWorkspace {
+  field_id:               string | null;
+  display_only:           boolean;
+  field:                  WorkspaceFieldSummary;
+  layers:                 WorkspaceLayer[];
+  available_layer_count:  number;
+  terrain:                WorkspaceTerrain | null;
+  timeline:               WorkspaceTimelineCard[];
+  timeline_total:         number;
+  honesty_note_ar:        string;
+}
+
+/** يجلب مساحة عمل الحقل (field:view). 404 لو ليس للمستأجِر، 503 عند تعطيل DB.
+ *  لا fallback وهميّ — الخطأ يُرمى ليعرض الـUI حالة صادقة. */
+export const fetchFieldWorkspace = (
+  fieldId: string,
+  timelineLimit = 50,
+): Promise<FieldWorkspace> =>
+  kongApi
+    .get<FieldWorkspace>(`/api/v1/fields/${fieldId}/workspace`, {
+      params: { timeline_limit: timelineLimit },
+    })
+    .then(r => r.data);
+
+/** قاعدة عنوان خدمة الراستر (بلا شرطة لاحقة) — لبناء رابط قالب بلاطات NDVI
+ *  الحقيقيّة ({z}/{x}/{y}) التي يفسّرها Leaflet. نفس مصدر FieldIndicatorMap. */
+export const rasterBaseUrl = (): string =>
+  (rasterApi.defaults.baseURL || '').replace(/\/+$/, '');
+
+/** رابط قالب بلاطات مؤشّر حقل من خدمة الراستر (NDVI افتراضيّاً). نُبقي
+ *  {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet. لا تلوين مفبرك: إن لم تتوفّر صورة COG
+ *  صافية للحقل/التاريخ تُرجِع الخدمة بلاطات فارغة (لا طبقة مُختلَقة). */
+export const fieldIndicatorTileUrl = (
+  fieldId: string,
+  index = 'ndvi',
+  date = 'latest',
+): string => {
+  const qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
+};
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
 // صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج
 // الحقيقيّان مُخدَّمان من sahool-platform عبر /api/v1/indicators/* (تجميع من
@@ -1873,6 +2682,100 @@ export const checkAllServices = async () => {
       : { name:['indicators','vegetation','weather','soil','kong'][i], status:'unavailable' }
   );
 };
+
+// ══════════════════════════════════════════════════════════════════
+// FLEET HEALTH — صحّة أسطول الأجهزة (كشف استباقي للأجهزة الصامتة، مرتّب بالخطورة).
+// تستهلك GET /api/v1/devices/fleet-health (devices.py ⇒ assess_fleet): ملخّص عدديّ
+// + قائمة الأجهزة الصامتة. مُقيَّد device:view. لا fallback وهميّ: عند الخطأ (503 DB
+// مُعطَّلة / 403 RBAC) يُرمى ليعرض الـUI حالة صادقة (بلاطة المعدّات لها حالة خطأ مستقلّة).
+// ══════════════════════════════════════════════════════════════════
+export type DeviceCriticalityLevel = 'critical' | 'important' | 'optional';
+
+/** جهاز صامت واحد في تقرير صحّة الأسطول (مرتّب: الحرج أوّلاً). */
+export interface SilentDeviceHealth {
+  device_id:            string;
+  name:                 string;
+  type:                 string;
+  field_id:             string | null;
+  silent:               boolean;
+  criticality:          DeviceCriticalityLevel | string;
+  detail_ar:            string;
+  criticality_note_ar:  string;
+  threshold_minutes:    number;
+}
+
+/** صحّة الأسطول كاملة (ملخّص عدديّ + الأجهزة الصامتة مرتّبة بالخطورة). */
+export interface FleetHealth {
+  total_devices:    number;
+  online:           number;
+  silent:           number;
+  critical_silent:  number;
+  fleet_status_ar:  string;
+  silent_devices:   SilentDeviceHealth[];
+  proactive_note_ar?: string;
+}
+
+/** يجلب صحّة الأسطول (device:view). الخطأ (503/403) يُرفع لحالة صادقة. نطبّع
+ *  silent_devices دفاعيّاً إن اختلف شكلها (لا انهيار .map). */
+export const fetchFleetHealth = (): Promise<FleetHealth> =>
+  kongApi.get<FleetHealth>('/api/v1/devices/fleet-health').then((r) => {
+    const d = (r.data ?? {}) as Partial<FleetHealth>;
+    return {
+      total_devices:   typeof d.total_devices === 'number' ? d.total_devices : 0,
+      online:          typeof d.online === 'number' ? d.online : 0,
+      silent:          typeof d.silent === 'number' ? d.silent : 0,
+      critical_silent: typeof d.critical_silent === 'number' ? d.critical_silent : 0,
+      fleet_status_ar: typeof d.fleet_status_ar === 'string' ? d.fleet_status_ar : '',
+      silent_devices:  Array.isArray(d.silent_devices) ? d.silent_devices : [],
+      proactive_note_ar: typeof d.proactive_note_ar === 'string' ? d.proactive_note_ar : undefined,
+    };
+  });
+
+// ══════════════════════════════════════════════════════════════════
+// OPERATION CENTER WALL — التلخيص التشغيليّ الموحّد للمستأجِر (جدار مركز العمليّات).
+// المصدر الأساسيّ: GET /api/v1/operations/summary خلف العلم FEATURE_OPERATIONS_WALL
+// (حقول/تنبيهات بالخطورة/معدّات+أجهزة/قرارات/ريّ). أفضل-جهد: قد يكون العلم مُطفأً أو
+// النقطة غير منشورة ⇒ 404. fetchOperationsSummary يُرجِع null عند 404/أيّ خطأ (لا
+// تلفيق)، فترتدّ الصفحة إلى النقاط المنفصلة لكلّ بلاطة (تدهور رشيق، صدق المصدر).
+// كلّ الحقول اختياريّة (عقد غير مُثبَّت في هذا الفرع) ⇒ قراءة دفاعيّة، لا any.
+// ══════════════════════════════════════════════════════════════════
+export interface OpsSeverityCounts {
+  critical?: number;
+  warning?:  number;
+  info?:     number;
+}
+
+export interface OperationsSummary {
+  fields_total?:    number | null;
+  alerts?:          OpsSeverityCounts | null;
+  alerts_total?:    number | null;
+  fleet?:           Partial<FleetHealth> | null;
+  decisions_total?: number | null;
+  irrigation?: {
+    valves_total?:    number | null;
+    valves_open?:     number | null;
+    schedules_total?: number | null;
+  } | null;
+  generated_at?:    string | null;
+  // صدق التشغيل (source/freshness-aware): partial=أيّ قسم ليس ok؛ sections لكلّ قسم
+  // status حيّ/متدهور/غير متاح + عمر البيانات + سبب — يُمكّن الجدار من إظهار ما هو
+  // حيّ وما هو متدهور وما هو غير متاح بصدق (لا تلفيق).
+  partial?:         boolean | null;
+  sections?:        Record<
+    string,
+    { status: 'ok' | 'degraded' | 'unavailable'; freshness_sec?: number; error?: string }
+  > | null;
+  [k: string]:      unknown;
+}
+
+/** يجلب التلخيص التشغيليّ الموحّد. أفضل-جهد: 404 (العلم مُطفأ / النقطة غير منشورة)
+ *  أو أيّ خطأ/استجابة غير كائن ⇒ null، فترتدّ الصفحة لكلّ بلاطة لنقطتها المنفصلة.
+ *  لا تلفيق: null حالةٌ صريحة لا خطأ. */
+export const fetchOperationsSummary = (): Promise<OperationsSummary | null> =>
+  kongApi
+    .get<OperationsSummary>('/api/v1/operations/summary')
+    .then((r) => (r.data && typeof r.data === 'object' && !Array.isArray(r.data) ? r.data : null))
+    .catch(() => null);
 
 // ══════════════════════════════════════════════════════════════════
 // MOCK DATA

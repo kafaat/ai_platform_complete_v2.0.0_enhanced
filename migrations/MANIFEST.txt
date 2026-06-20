@@ -324,3 +324,16 @@ v82_lineage_link.sql
 # للـupsert، error provenance) — يُغلق دورة الإشعار (تتبّع «هل وصل؟» + إعادة محاولة + تدقيق).
 # تُحدِّثه نقطة POST في موجِّه notifications. يُصدِر NOTIFICATION_DELIVERED. RLS+FORCE معزول. idempotent.
 v83_notification_delivery.sql
+
+# v84: سجلّ تدقيق المعايرة — جدول calibration_audit append-only (لا UPDATE/DELETE): يُدوّن كلّ
+# تغيير على calibration_override (override_set/reverted/adaptation_applied) مع old_values/new_values
+# JSONB + actor + source_ar، فيصبح «من غيّر المعايرة ومتى وما القيم قبل/بعد» متتبَّعاً ومدقَّقاً.
+# تُدرِجه نقاط المعايرة الثلاث (best-effort داخل savepoint). يُصدِر CALIBRATION_AUDIT_RECORDED.
+# فهرس (tenant,region,created_at DESC). RLS+FORCE معزول. idempotent.
+v84_calibration_audit.sql
+
+# v85: سجلّ تدقيق NL-GIS — جدول nl_gis_audit append-only (لا UPDATE/DELETE): يُدوّن كلّ استعلام
+# لُغة-طبيعيّة قراءة-فقط (النصّ الخام/النيّة المُصنَّفة/الخانات/المصدر المُستدعى/حالة النتيجة).
+# read_only=TRUE دائماً. الخانات من النصّ فقط (لا تلفيق). تُدرِجه نقطة /api/v1/nl-gis/query
+# (best-effort داخل savepoint). فهرس (tenant,created_at DESC). RLS+FORCE معزول. idempotent.
+v85_nl_gis_audit.sql
