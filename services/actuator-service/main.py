@@ -21,7 +21,12 @@ from aiomqtt import Client as MQTTClient
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from shared.actuator_idempotency import decide_fire, resolve_idempotency_mode
+from shared.actuator_idempotency import (
+    decide_fire,
+    idempotency_counters,
+    resolve_idempotency_mode,
+)
+from shared.actuator_mode import resolve_actuator_mode
 
 try:
     from shared.logging_config import setup_logging
@@ -35,6 +40,11 @@ except ImportError:
 
 # ── Config ────────────────────────────────────────────────────
 MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
+# وضع المُشغِّل (الإغلاق المرن، PR #394): real | simulation | disabled.
+# الافتراضيّ يحفظ السلوك الحاليّ تماماً — إن لم يُضبط ACTUATOR_MODE يُستنتَج من
+# MQTT_BROKER_URL (فارغ/'disabled' ⇒ disabled، وإلّا real). simulation لا ينشر
+# لكن يُبقي السلسلة (command → ledger → simulated_ack) حيّةً دون وسيط FastBee.
+ACTUATOR_MODE = resolve_actuator_mode(os.getenv("ACTUATOR_MODE"), MQTT_BROKER_URL)
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "")
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
@@ -137,15 +147,20 @@ def _parse_mqtt_broker_url(url: str) -> tuple[str, int]:
     return (parsed.hostname or "localhost"), (parsed.port or 1883)
 
 
-def _mqtt_disabled() -> bool:
-    """MQTT معطّل إذا لم يُضبط العنوان أو بدأ بـ'disabled' — للتشغيل بلا وسيط."""
-    return not MQTT_BROKER_URL or MQTT_BROKER_URL.startswith("disabled")
-
-
 async def send_mqtt_command(device_id: str, command: str, payload: dict):
-    if _mqtt_disabled():
-        logger.debug(f"MQTT معطّل — تخطّي الأمر إلى {device_id}: {command}")
+    # وضع المُشغِّل (الإغلاق المرن): يتفرّع السلوك حسب ACTUATOR_MODE مع حفظ التوقيع/المستدعين.
+    if ACTUATOR_MODE == "disabled":
+        # لا عمليّة — السلوك الحاليّ عند غياب الوسيط (يُعيد False).
+        logger.debug(f"المُشغِّل معطّل (disabled) — تخطّي الأمر إلى {device_id}: {command}")
         return False
+    if ACTUATOR_MODE == "simulation":
+        # محاكاة صريحة: لا نشر MQTT. نُعيد نجاحاً موسوماً (simulated=true) ونُسجّل log
+        # كي تبقى السلسلة كاملة (command → ledger → simulated_ack) دون وسيط حقيقيّ.
+        # صدق: هذا أثرٌ محاكى لا تنفيذ فيزيائيّ — لا تحرّك الصمّام/المضخّة فعليّاً.
+        logger.info(
+            f"SIMULATION → {device_id}: {command} (simulated=true، لا نشر MQTT، لا تنفيذ فيزيائيّ)"
+        )
+        return True
     topic = f"sahool/actuator/{device_id}/command"
     ts = datetime.now(UTC).isoformat()
     # A1: وقّع الأمر بـHMAC-SHA256 ليتحقّق منه الـfirmware قبل تحريك الصمّام
@@ -416,15 +431,26 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     dedup_key, time.monotonic(), ACTUATOR_DEDUP_WINDOW_SEC, _dedup_last_fired
                 )
                 if ACTUATOR_IDEMPOTENCY_MODE == "local":
-                    fire, _metric = local_fire, "local"
+                    fire = local_fire
+                    cluster_fire, cluster_ok = False, False
                 else:
                     cluster_fire, cluster_ok = await _cluster_should_fire(
                         tenant_id, field_id, device, cmd, ACTUATOR_DEDUP_WINDOW_SEC
                     )
-                    fire, _metric = decide_fire(
+                    fire, _ = decide_fire(
                         ACTUATOR_IDEMPOTENCY_MODE, local_fire, cluster_fire, cluster_ok
                     )
-                _IDEM_METRICS[_metric] = _IDEM_METRICS.get(_metric, 0) + 1
+                    # شرط القبول 4: تعذّر المخزن في cluster ⇒ سجّل صراحةً (رجوع محلّيّ، لا crash).
+                    if ACTUATOR_IDEMPOTENCY_MODE == "cluster" and not cluster_ok:
+                        logger.warning(
+                            "cluster_idempotency_unavailable=true — رجوع محلّيّ مؤقّت "
+                            f"(حقل {field_id}، جهاز {device})"
+                        )
+                # المقاييس المعتمدة (الأسماء الموحّدة) — تُرصَد قبل الفرض (shadow_divergence=0 معيار الانتقال).
+                for _name in idempotency_counters(
+                    ACTUATOR_IDEMPOTENCY_MODE, local_fire, cluster_fire, cluster_ok, fire
+                ):
+                    _IDEM_METRICS[_name] = _IDEM_METRICS.get(_name, 0) + 1
                 if not fire:
                     logger.info(
                         f"إزالة تكرار ({ACTUATOR_IDEMPOTENCY_MODE}): تخطّي أمر مكرّر '{cmd}' على "
@@ -544,8 +570,11 @@ async def log_command(
 # ══════════════════════════════════════════════════════════════
 async def mqtt_sensor_listener():
     """Listen to sensor telemetry and evaluate rules."""
-    if _mqtt_disabled():
-        logger.info("MQTT_BROKER_URL غير مضبوط — مستمع MQTT معطّل")
+    # المستمع يتطلّب وسيطاً حقيقيّاً للاشتراك — يعمل في وضع real فقط. في simulation/
+    # disabled لا وسيط (أو لا نشر) ⇒ يُعطَّل المستمع (يطابق سلوك _mqtt_disabled الحاليّ
+    # عند الاستنتاج الافتراضيّ، دون تغيير سلوك real).
+    if ACTUATOR_MODE != "real":
+        logger.info(f"المُشغِّل في وضع {ACTUATOR_MODE} — مستمع MQTT معطّل (لا وسيط للاشتراك)")
         return
     topic = "sahool/+/+/telemetry/+"  # tenant/field/telemetry/sensor_type
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
@@ -667,7 +696,13 @@ async def list_commands(
 @app.get("/healthz")
 @app.get("/health")
 async def health():
-    return {"status": "alive", "service": "actuator", "mqtt": MQTT_BROKER_URL}
+    # نكشف الوضع الفعّال للمراقبة (الصدق): simulation يُعلَن صراحةً فلا يُظنّ تنفيذاً حقيقيّاً.
+    return {
+        "status": "alive",
+        "service": "actuator",
+        "mqtt": MQTT_BROKER_URL,
+        "mode": ACTUATOR_MODE,
+    }
 
 
 @app.get("/readyz")
