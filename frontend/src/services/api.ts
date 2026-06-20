@@ -495,6 +495,88 @@ export interface PortfolioAllocResult {
 export const computePortfolioAllocation = (payload: PortfolioAllocInput): Promise<PortfolioAllocResult> =>
   kongApi.post<PortfolioAllocResult>('/api/v1/field-portfolio/allocate', payload).then(r => r.data);
 
+// ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
+// يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة
+// لكلّ سياسة ويوصي بأفضلها — توصية فقط لا تنفيذ ولا حجز ماء. خلف العلم
+// FEATURE_PORTFOLIO_COMMAND؛ مُطفأً ⇒ 404 (تتعامل معه الواجهة برسالة «الميزة غير مُفعَّلة»).
+// kind للمصدر: well | pump | pivot | network. للمضخّة: السعة الفعليّة =
+// min(capacity, max_rate_m3_per_day × window_days). source_ids على الحقل = أيّ المصادر
+// تخدمه (تغطية المحور)؛ فارغة ⇒ كلّ المصادر.
+export type PortfolioCommandSourceKind = 'well' | 'pump' | 'pivot' | 'network';
+export interface PortfolioCommandFieldInput {
+  field_id: string;
+  expected_margin: number;
+  water_demand_m3: number;
+  priority?: number;
+  min_water_fraction?: number;
+  source_ids?: string[];
+}
+export interface PortfolioCommandSourceInput {
+  source_id: string;
+  capacity_m3: number;
+  kind?: PortfolioCommandSourceKind;
+  max_rate_m3_per_day?: number | null;
+  window_days?: number | null;
+}
+export interface PortfolioCommandScenarioInput {
+  policy_label: string;
+  fields: PortfolioCommandFieldInput[];
+  sources: PortfolioCommandSourceInput[];
+}
+export interface PortfolioCommandInput {
+  scenarios: PortfolioCommandScenarioInput[];
+  risk_aversion?: number;
+}
+// قيد مصدر مُحلّ لسياسة (السعة الفعليّة مقابل الاسميّة + هل قيَّده تدفّقه/نافذته).
+export interface PortfolioCommandConstraint {
+  source_id: string;
+  kind: PortfolioCommandSourceKind | string;
+  capacity_m3: number;
+  effective_capacity_m3: number;
+  throughput_bound: boolean;
+}
+// التوزيع التفصيليّ لسياسة (نفس عقد field-portfolio/allocate تقريباً) — شكل مرن.
+export interface PortfolioCommandAllocation {
+  fields: Array<Record<string, unknown>>;
+  sources: Array<Record<string, unknown>>;
+  total_expected_margin: number;
+  total_allocated_m3: number;
+  protected_fields: string[];
+  stressed_fields: string[];
+  unmet_fields: string[];
+  calibrated: boolean;
+  warnings_ar: string[];
+}
+export interface PortfolioCommandPolicyResult {
+  policy: string;
+  total_expected_margin: number;
+  total_allocated_m3: number;
+  total_demand_m3: number;
+  served_fraction: number;
+  risk_score: number;
+  fields_count: number;
+  protected_count: number;
+  stressed_count: number;
+  unmet_count: number;
+  constraints: PortfolioCommandConstraint[];
+  constraints_bound: string[];
+  objective_score: number;
+  allocation: PortfolioCommandAllocation;
+}
+export interface PortfolioCommandResult {
+  policies: PortfolioCommandPolicyResult[];
+  recommended_policy: string;
+  risk_aversion: number;
+  calibrated: boolean;
+  warnings_ar: string[];
+  tenant_id: string;
+}
+/** يقارن سياسات الريّ عبر الحقول تحت قيود المصادر (POST /api/v1/portfolio/command).
+ *  توصية فقط لا تنفيذ. يرمي عند الخطأ (404 العلم مُطفأ — تلتقطه الواجهة برسالة
+ *  «الميزة غير مُفعَّلة»؛ 503/422 تُعرَض كحالة خطأ صادقة). */
+export const computePortfolioCommand = (payload: PortfolioCommandInput): Promise<PortfolioCommandResult> =>
+  kongApi.post<PortfolioCommandResult>('/api/v1/portfolio/command', payload).then(r => r.data);
+
 // ── حالة المعايرة الإقليميّة (GET /api/v1/calibration) — قراءة فقط ──
 // يكشف لكلّ إقليم يمنيّ هل ثوابته الأغرونوميّة مُتحقَّق منها ميدانيّاً أم ما تزال
 // افتراضات FAO عامّة — فيرى المستخدم أين تنقص بيانات المعايرة الحقيقيّة. صدق: لا
