@@ -113,6 +113,44 @@ def test_severity_only_unavailable_when_alerts_dict_none():
     assert out["irrigation"]["available"] is True  # 0 موجود (لا None)
 
 
+def test_sections_status_and_partial_all_ok():
+    """كلّ المصادر حاضرة ⇒ كلّ قسم status=ok (freshness حيّ)، partial=False، generated_at مُمرَّر."""
+    out = shape_operations_summary(
+        {
+            "fields": 1,
+            "alerts_active": {"info": 0, "warning": 0, "critical": 0},
+            "equipment": 1,
+            "iot_devices": 1,
+            "decision_records": 1,
+            "irrigation_valves": 1,
+            "irrigation_schedules": 1,
+        },
+        generated_at="2026-06-20T12:00:00+00:00",
+    )
+    assert out["generated_at"] == "2026-06-20T12:00:00+00:00"
+    assert out["partial"] is False
+    for sec in ("fields", "alerts", "equipment", "iot_devices", "decision_records", "irrigation"):
+        assert out["sections"][sec]["status"] == "ok"
+        assert out["sections"][sec]["freshness_sec"] == 0
+
+
+def test_sections_unavailable_marks_partial_with_reason():
+    """قسم بمصدر غائب ⇒ status=unavailable + سبب، و partial=True (صدق التشغيل)."""
+    out = shape_operations_summary({"fields": 3, "equipment": None})
+    assert out["partial"] is True
+    assert out["sections"]["fields"]["status"] == "ok"
+    assert out["sections"]["equipment"]["status"] == "unavailable"
+    assert out["sections"]["equipment"]["error"]  # سبب صريح غير فارغ
+
+
+def test_section_error_yields_degraded():
+    """مصدر متاح مع خطأ مُمرَّر ⇒ degraded (بيانات جزئيّة)، لا unavailable."""
+    out = shape_operations_summary({"fields": 3}, errors={"fields": "بطء في القاعدة"})
+    assert out["sections"]["fields"]["status"] == "degraded"
+    assert out["sections"]["fields"]["error"] == "بطء في القاعدة"
+    assert out["partial"] is True
+
+
 def test_negative_or_bad_count_coerced_safely():
     # قيم شاذّة (سالب/نصّ) ⇒ 0 لا انهيار (حارس _as_count).
     out = shape_operations_summary({"fields": -5, "equipment": "x", "iot_devices": 3})

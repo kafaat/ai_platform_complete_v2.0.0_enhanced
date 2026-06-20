@@ -49,7 +49,26 @@ def _shape_alerts_by_severity(raw) -> tuple[dict[str, int], int, bool]:
     return by_severity, total, True
 
 
-def shape_operations_summary(counts: dict) -> dict:
+def _section_status(available: bool, error: str | None) -> dict:
+    """حالة قسم واحد في الجدار — صدق التشغيل (live/degraded/unavailable).
+
+    available=False ⇒ ``unavailable`` (جدول غائب/استعلام تعذّر) مع سبب. متاح مع خطأ
+    ⇒ ``degraded`` (بيانات جزئيّة). متاح بلا خطأ ⇒ ``ok`` حيّ (freshness_sec=0، قراءة
+    آنيّة؛ يرفعها الموجِّه لاحقاً إن أُضيف cache قصير). لا تلفيق: القسم غير المتاح يُعلَن.
+    """
+    if not available:
+        return {"status": "unavailable", "error": error or "غير متاح (جدول غائب أو استعلام تعذّر)"}
+    if error:
+        return {"status": "degraded", "freshness_sec": 0, "error": error}
+    return {"status": "ok", "freshness_sec": 0}
+
+
+def shape_operations_summary(
+    counts: dict,
+    *,
+    generated_at: str | None = None,
+    errors: dict | None = None,
+) -> dict:
     """يبني جسم التلخيص التشغيليّ من قواميس العدّ الخام — نقيّ (لا قاعدة).
 
     ``counts`` المتوقَّعة (كلّ مفتاح best-effort؛ غيابه/``None`` ⇒ 0/None + note):
@@ -62,10 +81,15 @@ def shape_operations_summary(counts: dict) -> dict:
       • ``irrigation_schedules`` (int|None) — عدد جداول الريّ.
       • ``last_activity_at`` (str|None) — آخر نشاط (ISO) عبر المصادر، أو None.
 
-    الناتج: ``totals`` + ``alerts`` (تصنيف الخطورة) + ``irrigation`` + ``last_activity_at``
-    + ``provenance`` (وسوم صدق: calibrated=not_applicable، note_ar عند غياب أيّ مصدر).
+    ``generated_at`` (ISO): لحظة تجميع التلخيص (يمرّرها الموجِّه). ``errors`` (dict):
+    {section: رسالة} لأقسام تدهورت/تعذّرت — لإثراء حالة القسم بسبب صريح.
+
+    الناتج: ``generated_at`` + ``partial`` (أيّ قسم ليس ok) + ``sections`` (لكلّ قسم
+    status: ok|degraded|unavailable + freshness_sec/error) + ``totals`` + ``alerts``
+    + ``irrigation`` + ``last_activity_at`` + ``provenance``. صدق: القسم غير المتاح يُعلَن.
     """
     c = counts or {}
+    errs = errors or {}
 
     fields = _as_count(c.get("fields"))
     equipment = _as_count(c.get("equipment"))
@@ -78,22 +102,21 @@ def shape_operations_summary(counts: dict) -> dict:
         c.get("alerts_active")
     )
 
-    # وسوم الصدق: أيّ مصدر خام None ⇒ ملاحظة صريحة (المصدر غير متاح، لا تلفيق).
-    missing: list[str] = []
-    if fields is None:
-        missing.append("fields")
-    if not alerts_available:
-        missing.append("alerts")
-    if equipment is None:
-        missing.append("equipment")
-    if devices is None:
-        missing.append("iot_devices")
-    if decisions is None:
-        missing.append("decision_records")
-    if valves is None:
-        missing.append("irrigation_valves")
-    if schedules is None:
-        missing.append("irrigation_schedules")
+    # توفّر كلّ قسم (مصدره الخام ليس None) — أساس حالة القسم + ملاحظة الصدق.
+    availability = {
+        "fields": fields is not None,
+        "alerts": alerts_available,
+        "equipment": equipment is not None,
+        "iot_devices": devices is not None,
+        "decision_records": decisions is not None,
+        "irrigation": valves is not None or schedules is not None,
+    }
+
+    sections = {sec: _section_status(ok, errs.get(sec)) for sec, ok in availability.items()}
+    partial = any(s["status"] != "ok" for s in sections.values())
+
+    # وسوم الصدق: أيّ مصدر غير متاح ⇒ ملاحظة صريحة (لا تلفيق).
+    missing = [sec for sec, ok in availability.items() if not ok]
 
     provenance: dict = {
         "calibrated": "not_applicable",  # عدّ تجميعيّ — لا معايرة تنطبق
@@ -106,6 +129,9 @@ def shape_operations_summary(counts: dict) -> dict:
         )
 
     return {
+        "generated_at": generated_at,
+        "partial": partial,
+        "sections": sections,
         "totals": {
             "fields": fields if fields is not None else 0,
             "equipment": equipment if equipment is not None else 0,

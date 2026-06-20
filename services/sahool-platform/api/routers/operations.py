@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -120,6 +121,7 @@ async def operations_summary_endpoint(
     except Exception as e:  # noqa: BLE001 — تعذّر فتح اتّصال المستأجِر ⇒ 503 موثَّق
         raise _db_unavailable("تلخيص العمليّات", e) from e
 
-    out = shape_operations_summary(counts)
+    # generated_at: لحظة التجميع (freshness/صدق الجدار)؛ partial + sections من الطبقة النقيّة.
+    out = shape_operations_summary(counts, generated_at=datetime.now(UTC).isoformat())
     out["tenant_id"] = str(user.tenant_id)  # أثر: لِمن هذا التلخيص (RLS)
     return out
