@@ -3206,6 +3206,7 @@ from api.routers.pest_escalation import router as pest_escalation_router  # noqa
 from api.routers.phenology import router as phenology_router  # noqa: E402
 from api.routers.planting import router as planting_router  # noqa: E402
 from api.routers.policy_learning import router as policy_learning_router  # noqa: E402
+from api.routers.portfolio_command import router as portfolio_command_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
@@ -3331,6 +3332,7 @@ app.include_router(postharvest_router)
 app.include_router(sampling_router)
 app.include_router(fields_router)
 app.include_router(field_portfolio_router)
+app.include_router(portfolio_command_router)
 app.include_router(auth_router)
 app.include_router(me_router)
 app.include_router(tenant_router)
