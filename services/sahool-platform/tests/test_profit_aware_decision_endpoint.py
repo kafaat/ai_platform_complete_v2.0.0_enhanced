@@ -104,6 +104,24 @@ def test_missing_prices_not_fabricated():
     assert econ["status"] in {"partial", "not_configured"}
 
 
+def test_flood_costs_more_water_than_drip():
+    # الغمر (Ea 0.55) يسحب ماءً إجماليّاً أكبر من التقطير (Ea 0.90) لنفس الصافي ⇒ تكلفة ماء أعلى.
+    common = dict(expected_yield_t_ha=5.0, crop_price_per_t=400.0, water_price_per_m3=0.1)
+    flood = compose_profit_aware_decision(req=_req(irrigation_method="flood", **common), user=_USER)
+    drip = compose_profit_aware_decision(req=_req(irrigation_method="drip", **common), user=_USER)
+    assert flood["economic_state"]["water_cost"] is not None
+    assert drip["economic_state"]["water_cost"] is not None
+    assert flood["economic_state"]["water_cost"] > drip["economic_state"]["water_cost"]
+    assert flood["gross_irrigation_mm"] > drip["gross_irrigation_mm"]
+
+
+def test_response_carries_gross_and_method():
+    out = compose_profit_aware_decision(req=_req(irrigation_method="drip"), user=_USER)
+    assert out["irrigation_method"] == "drip"
+    assert "gross_irrigation_mm" in out
+    assert out["gross_irrigation_mm"] >= out["irrigation_plan"]["total_irrigation_mm"]
+
+
 def test_calibrated_false_and_unified_shape():
     out = compose_profit_aware_decision(
         req=_req(expected_yield_t_ha=5.0, crop_price_per_t=400.0), user=_USER

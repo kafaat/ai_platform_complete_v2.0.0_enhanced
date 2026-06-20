@@ -444,6 +444,57 @@ export interface IrrigationPlanResult {
 export const computeIrrigationPlan = (payload: IrrigationPlanInput): Promise<IrrigationPlanResult> =>
   kongApi.post<IrrigationPlanResult>('/api/v1/irrigation-plan', payload).then(r => r.data);
 
+// ── توزيع ماء المزرعة (POST /api/v1/field-portfolio/allocate) ──
+// يوزّع ماء آبار محدودة على حقول متعدّدة وفق الأولويّة والحدّ الأدنى لكلّ حقل،
+// فيُظهر أيّ الحقول مَحميّ وأيّها مُجهَد/غير مُلبّى — قرار محفظة لا حقل واحد.
+export interface PortfolioFieldInput {
+  field_id: string;
+  expected_margin: number;
+  water_demand_m3: number;
+  priority?: number;
+  min_water_fraction?: number;
+  source_ids?: string[];
+}
+export interface PortfolioSourceInput {
+  source_id: string;
+  capacity_m3: number;
+}
+export interface PortfolioAllocInput {
+  fields: PortfolioFieldInput[];
+  sources: PortfolioSourceInput[];
+}
+export interface PortfolioFieldResult {
+  field_id: string;
+  priority: number;
+  water_demand_m3: number;
+  allocated_m3: number;
+  fraction: number;
+  water_productivity: number | null;
+  expected_margin_captured: number;
+  stressed: boolean;
+  status: string; // full | partial | protected_min | unmet
+  sources_used: Record<string, number>;
+}
+export interface PortfolioSourceResult {
+  source_id: string;
+  capacity_m3: number;
+  used_m3: number;
+  remaining_m3: number;
+}
+export interface PortfolioAllocResult {
+  fields: PortfolioFieldResult[];
+  sources: PortfolioSourceResult[];
+  total_expected_margin: number;
+  total_allocated_m3: number;
+  protected_fields: string[];
+  stressed_fields: string[];
+  unmet_fields: string[];
+  calibrated: boolean;
+  warnings_ar: string[];
+}
+export const computePortfolioAllocation = (payload: PortfolioAllocInput): Promise<PortfolioAllocResult> =>
+  kongApi.post<PortfolioAllocResult>('/api/v1/field-portfolio/allocate', payload).then(r => r.data);
+
 // ── قرار المحصول الموحّد (POST /api/v1/crop-twin/decision) ──
 // ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة. الاقتصاد محجوز (not_configured).
 export interface CropDecisionForecastDay {
