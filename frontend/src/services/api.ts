@@ -1776,6 +1776,99 @@ export const importField = (payload: FieldImportInput): Promise<unknown> =>
   kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// FIELD WORKSPACE — مساحة عمل الحقل (المصدر الأساسيّ لكرت «Field Workspace Map»)
+// GET /api/v1/fields/{field_id}/workspace (fields.py:508 ⇒ assemble_workspace):
+// ملخّص الحقل + كتالوج طبقات قابلة للتبديل (كلّ طبقة تُعلن توفّرها بصدق:
+// available/on_demand/missing) + تفسير التضاريس + خطّ زمنيّ من أحداث مسجّلة فقط.
+// عرض صرف (display_only) — لا قرار مفروض. لا fallback وهميّ: عند الخطأ (404 حقل
+// ليس للمستأجِر / 503 DB) يُرمى ليعرض الـUI حالة صادقة. الحدود (geometry) تُجلب
+// عبر fetchFieldDetail، وطبقة NDVI الحقيقيّة من خدمة الراستر (rasterApi) عند الطلب.
+// ══════════════════════════════════════════════════════════════════
+
+/** حالة توفّر طبقة كما يُعلنها الخادم بصدق. */
+export type WorkspaceLayerStatus = 'available' | 'on_demand' | 'missing';
+
+/** طبقة عرض واحدة في كتالوج مساحة العمل (display_only — لا تفرض قراراً). */
+export interface WorkspaceLayer {
+  key:          string;
+  label_ar:     string;
+  category:     string; // vegetation | terrain | soil | water
+  available:    boolean;
+  status:       WorkspaceLayerStatus | string;
+  display_only: boolean;
+  note_ar:      string;
+}
+
+/** ملخّص الحقل المُضمَّن في مساحة العمل (مأخوذ من أعمدة الحقل، قد يكون null). */
+export interface WorkspaceFieldSummary {
+  name_ar:   string | null;
+  crop:      string | null;
+  area_ha:   number | null;
+  soil_type: string | null;
+}
+
+/** بطاقة خطّ زمنيّ واحدة (من أحداث مسجّلة فقط — لا تاريخ مخترَع). */
+export interface WorkspaceTimelineCard {
+  occurred_at: string;
+  event_type:  string;
+  op_ar:       string;
+  category:    string;
+  issue_tags:  string[];
+}
+
+/** تفسير التضاريس المُضمَّن (enrich_terrain) — شكل مفتوح، اختياريّ بالكامل. */
+export interface WorkspaceTerrain {
+  field_id?:        string;
+  elevation_m?:     number | null;
+  slope_pct?:       number | null;
+  aspect?:          string | null;
+  [k: string]:      unknown;
+}
+
+/** مساحة عمل الحقل الكاملة (GET /workspace) — عرض صرف. */
+export interface FieldWorkspace {
+  field_id:               string | null;
+  display_only:           boolean;
+  field:                  WorkspaceFieldSummary;
+  layers:                 WorkspaceLayer[];
+  available_layer_count:  number;
+  terrain:                WorkspaceTerrain | null;
+  timeline:               WorkspaceTimelineCard[];
+  timeline_total:         number;
+  honesty_note_ar:        string;
+}
+
+/** يجلب مساحة عمل الحقل (field:view). 404 لو ليس للمستأجِر، 503 عند تعطيل DB.
+ *  لا fallback وهميّ — الخطأ يُرمى ليعرض الـUI حالة صادقة. */
+export const fetchFieldWorkspace = (
+  fieldId: string,
+  timelineLimit = 50,
+): Promise<FieldWorkspace> =>
+  kongApi
+    .get<FieldWorkspace>(`/api/v1/fields/${fieldId}/workspace`, {
+      params: { timeline_limit: timelineLimit },
+    })
+    .then(r => r.data);
+
+/** قاعدة عنوان خدمة الراستر (بلا شرطة لاحقة) — لبناء رابط قالب بلاطات NDVI
+ *  الحقيقيّة ({z}/{x}/{y}) التي يفسّرها Leaflet. نفس مصدر FieldIndicatorMap. */
+export const rasterBaseUrl = (): string =>
+  (rasterApi.defaults.baseURL || '').replace(/\/+$/, '');
+
+/** رابط قالب بلاطات مؤشّر حقل من خدمة الراستر (NDVI افتراضيّاً). نُبقي
+ *  {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet. لا تلوين مفبرك: إن لم تتوفّر صورة COG
+ *  صافية للحقل/التاريخ تُرجِع الخدمة بلاطات فارغة (لا طبقة مُختلَقة). */
+export const fieldIndicatorTileUrl = (
+  fieldId: string,
+  index = 'ndvi',
+  date = 'latest',
+): string => {
+  const qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
+};
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
 // صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج
 // الحقيقيّان مُخدَّمان من sahool-platform عبر /api/v1/indicators/* (تجميع من

@@ -88,6 +88,7 @@ const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
 const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
 const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 const FarmMapOverview     = lazy(() => import('./sections/FarmMapOverview'));
+const FieldWorkspaceMapCard = lazy(() => import('./sections/FieldWorkspaceMapCard'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
 const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
 const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
@@ -102,7 +103,7 @@ const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
 const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
 
 export type PageId =
-  | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map'
+  | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'portfolio' | 'calibration' | 'lineage' | 'learning-dashboard' | 'pest-escalation' | 'field-intelligence'
@@ -142,6 +143,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id:'fields',       label:'إدارة الحقول',   icon:Map },
       { id:'farm-map',     label:'خريطة المزرعة',  icon:Map },
+      { id:'field-workspace', label:'مساحة عمل الحقل', icon:Layers, badge:'جديد' },
       { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
       { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
       { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
@@ -512,6 +514,7 @@ export default function App() {
       case 'command':      return <OperationCommand />;
       case 'map-center':   return <FieldMapCenter />;
       case 'farm-map':     return <FarmMapOverview />;
+      case 'field-workspace': return <FieldWorkspaceMapCard />;
       case 'tasks-cabin':  return <FieldTasksCabin />;
       case 'rec-flow':     return <RecommendationFlow />;
       case 'hybrid-monitor': return <HybridMonitor />;

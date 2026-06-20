@@ -54,6 +54,8 @@ import {
   // ── تفاصيل الحقل المتقدّمة (v37): قراءة + تحديث جزئيّ (ملء تدريجيّ) ──
   fetchFieldDetail, updateField,
   type FieldDetail, type FieldUpdatePatch,
+  // ── مساحة عمل الحقل (Field Workspace Map): ملخّص + طبقات + خطّ زمنيّ ──
+  fetchFieldWorkspace, type FieldWorkspace,
   // ── استيراد حدّ حقل من ملفّ/نقاط GPS (بدل الرسم اليدويّ) ──
   importField, type FieldImportInput,
   // ── حالة المعايرة الإقليميّة (قراءة فقط) ──
@@ -82,6 +84,7 @@ export const QK = {
   soilNRec:         (fid: string)        => ['soil', 'nrec', fid],
   fields:           (tid: string)        => ['fields', tid],
   fieldDetail:      (tid: string, fid: string) => ['field-detail', tid, fid],
+  fieldWorkspace:   (tid: string, fid: string) => ['field-workspace', tid, fid],
   farms:            (tid: string)        => ['farms', tid],
   tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
@@ -526,6 +529,22 @@ export function useFieldDetail(fieldId?: string): UseQueryResult<FieldDetail, Er
   return useQuery<FieldDetail, Error>({
     queryKey: QK.fieldDetail(tid, fieldId ?? 'none'),
     queryFn:  () => fetchFieldDetail(fieldId as string),
+    enabled:  !!fieldId,
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// ── Field Workspace: مساحة عمل الحقل (المصدر الأساسيّ لكرت Field Workspace Map) ──
+// قراءة حيّة (field:view) عبر البوّابة: ملخّص الحقل + كتالوج الطبقات (كلّ طبقة
+// تُعلن توفّرها بصدق) + خطّ زمنيّ من أحداث مسجّلة فقط. مُفعَّلة فقط مع fieldId.
+// لا fallback وهميّ: عند الخطأ (404 حقل ليس للمستأجِر / 503 DB) يُرفض الاستعلام
+// لتعرض الواجهة حالة صادقة (StateViews). retry:false كبقيّة قوائم المنصّة.
+export function useFieldWorkspace(fieldId?: string): UseQueryResult<FieldWorkspace, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldWorkspace, Error>({
+    queryKey: QK.fieldWorkspace(tid, fieldId ?? 'none'),
+    queryFn:  () => fetchFieldWorkspace(fieldId as string),
     enabled:  !!fieldId,
     staleTime:60_000,
     retry:    false,
