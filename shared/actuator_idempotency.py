@@ -55,3 +55,44 @@ def decide_fire(
             return local_fire, "shadow_agree"
         return local_fire, "shadow_store_unavailable"
     return local_fire, "local"
+
+
+# أسماء العدّادات المعتمدة (شروط القبول) — مصدر واحد للحقيقة كي تتطابق المقاييس والاختبارات.
+METRIC_LOCAL_HIT = "idempotency_local_hit"
+METRIC_CLUSTER_HIT = "idempotency_cluster_hit"
+METRIC_SHADOW_DIVERGENCE = "idempotency_shadow_divergence"
+METRIC_CLUSTER_UNAVAILABLE = "idempotency_cluster_unavailable"
+METRIC_DUPLICATE_BLOCKED = "actuator_command_duplicate_blocked"
+
+
+def idempotency_counters(
+    mode: str,
+    local_fire: bool,
+    cluster_fire: bool,
+    cluster_available: bool,
+    fire: bool,
+) -> tuple[str, ...]:
+    """يُعيد أسماء العدّادات الواجب رفعها لهذا القرار — نقيّ حتميّ (مواءمة شروط القبول).
+
+    العدّادات المعتمدة (تُرصَد قبل الفرض):
+      • idempotency_local_hit         — المحلّيّ التقط تكراراً (قراره: لا تُطلِق) — أيّ وضع.
+      • idempotency_cluster_hit       — العنقوديّ (متاح) التقط تكراراً — shadow/cluster.
+      • idempotency_shadow_divergence — في shadow اختلف المحلّيّ والعنقوديّ. **معيار الانتقال**:
+        يجب أن يبلغ صفراً عبر N أيّام/أوامر قبل تفعيل cluster.
+      • idempotency_cluster_unavailable — في cluster تعذّر المخزن (حدث fail-soft للمحلّيّ).
+      • actuator_command_duplicate_blocked — القرار النهائيّ منع تكراراً (المقياس القابل للتنفيذ).
+
+    صدق: local لا يلمس عدّادات العنقود (مَحروسة بالوضع)؛ فالافتراض يبقى صفر-تأثير.
+    """
+    out: list[str] = []
+    if not local_fire:
+        out.append(METRIC_LOCAL_HIT)
+    if mode in ("shadow", "cluster") and cluster_available and not cluster_fire:
+        out.append(METRIC_CLUSTER_HIT)
+    if mode == "shadow" and cluster_available and local_fire != cluster_fire:
+        out.append(METRIC_SHADOW_DIVERGENCE)
+    if mode == "cluster" and not cluster_available:
+        out.append(METRIC_CLUSTER_UNAVAILABLE)
+    if not fire:
+        out.append(METRIC_DUPLICATE_BLOCKED)
+    return tuple(out)
