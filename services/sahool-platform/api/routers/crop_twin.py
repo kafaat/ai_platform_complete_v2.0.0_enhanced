@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 from api.crop_twin import TwinDay, crop_twin_state
 from api.data_quality import assess_data_quality
 from api.economic_state import economic_state
+from api.irrigation_method import gross_irrigation_mm, method_profile
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.irrigation_policy import PolicyContext, resolve_policy
 from api.main import UserSchema, get_current_user
@@ -228,6 +229,7 @@ class ProfitAwareDecisionRequest(CropDecisionRequest):
     energy_kwh_ha: float | None = None
     energy_price_per_kwh: float | None = None
     fertilizer_price_per_kg: float | None = None
+    irrigation_method: str | None = None  # flood|furrow|sprinkler|pivot|drip — يصحّح الماء الإجماليّ
 
 
 @router.post("/api/v1/crop-twin/decision/profit-aware")
@@ -284,10 +286,13 @@ def compose_profit_aware_decision(
         (nut.get("target_uptake_kg_ha", 0.0) or 0.0)
         - (nut.get("uptake_to_date_kg_ha", 0.0) or 0.0),
     )
+    # الماء الإجماليّ المسحوب = الصافي ÷ كفاءة التطبيق (Ea). طريقة مجهولة/غير ممرَّرة ⇒
+    # كفاءة عامّة محافظة (0.70) — يبقى الصافي مصحَّحاً بـEa عامّة (مقبول وموسوم calibrated=false).
+    gross_total_mm = gross_irrigation_mm(plan_dict["total_irrigation_mm"], req.irrigation_method)
     econ = economic_state(
         expected_yield_t_ha=req.expected_yield_t_ha,
         crop_price_per_t=req.crop_price_per_t,
-        irrigation_m3_ha=plan_dict["total_irrigation_m3_ha"],
+        irrigation_m3_ha=gross_total_mm * 10.0,  # إجماليّ مسحوب (لا الصافي) ⇒ تكلفة ماء صادقة
         water_price_per_m3=req.water_price_per_m3,
         energy_kwh_ha=req.energy_kwh_ha,
         energy_price_per_kwh=req.energy_price_per_kwh,
@@ -299,6 +304,8 @@ def compose_profit_aware_decision(
     decision["field_id"] = req.field_id
     decision["dynamic_kc"] = round(st["dyn_kc"], 3)
     decision["irrigation_plan"] = plan_dict
+    decision["irrigation_method"] = method_profile(req.irrigation_method)["method"]
+    decision["gross_irrigation_mm"] = round(gross_total_mm, 2)
     decision["policy_decision"] = {
         "resolved_policy": policy,  # ما اختاره الاقتصاد/السياق
         "applied_policy": plan_dict["policy"],  # ما طبّقته الخطّة فعلاً (قد يتراجع لنقص الأسعار)
