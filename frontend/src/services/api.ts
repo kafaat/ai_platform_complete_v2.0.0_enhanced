@@ -991,6 +991,44 @@ export interface EvidenceMapResult {
 export const fetchEvidenceMap = (): Promise<EvidenceMapResult> =>
   kongApi.get<EvidenceMapResult>('/api/v1/evidence/map').then(r => r.data);
 
+// ── توائم الأجهزة وثقة الحسّاس (Device Twin & Sensor Confidence) — قراءة فقط ──
+// لكلّ جهاز IoT توأم رقميّ: هويّة + حالة + درجة صحّة/ثقة شفّافة (موزونة على الإشارات
+// المتوفّرة فقط)، مع تلخيص ثقة الأسطول. صدق: missing_signals مُعلَنة لا مُفترَضة؛
+// health_score/fleet_confidence قد تكون null ⇒ «غير محسوبة» لا 0. لا أوامر تشغيل.
+// level من الخادم (healthy|degraded|stale|offline|poor|unknown) — تُربَط بألوان الواجهة.
+export type DeviceTwinLevel =
+  | 'healthy' | 'degraded' | 'stale' | 'offline' | 'poor' | 'unknown';
+export interface DeviceTwin {
+  device_id:       string;
+  name:            string;
+  type:            string;
+  field_id:        string | null;
+  status:          string;
+  firmware:        string | null;
+  age_sec:         number | null;            // ثوانٍ منذ آخر ظهور؛ null ⇒ لم يُرسِل بعد
+  health_score:    number | null;            // 0..1، أو null عند الغياب ⇒ «—»
+  level:           DeviceTwinLevel | string;
+  level_ar:        string;
+  factors:         Record<string, number>;   // الإشارات المتوفّرة فقط
+  missing_signals: string[];                  // مُعلَنة لا مُفترَضة
+  note_ar:         string | null;
+}
+export interface DeviceTwinResult {
+  generated_at:     string;
+  devices:          DeviceTwin[];
+  device_count:     number;
+  scored_count:     number;
+  by_level:         Record<string, number>;
+  fleet_confidence: number | null;           // متوسّط المُسجَّلين؛ null ⇒ «غير محسوبة»
+  provenance:       { calibrated: string; note_ar: string };
+  tenant_id:        string;
+}
+/** يجلب توائم الأجهزة (GET /api/v1/devices/twin) — قراءة فقط لا أوامر.
+ *  يرمي عند الخطأ (404 العلم FEATURE_DEVICE_TWIN مُطفأ — تلتقطه الواجهة برسالة
+ *  «الميزة غير مُفعَّلة»؛ 503 القاعدة غير متاحة تُعرَض كحالة خطأ صادقة). */
+export const fetchDeviceTwin = (): Promise<DeviceTwinResult> =>
+  kongApi.get<DeviceTwinResult>('/api/v1/devices/twin').then(r => r.data);
+
 // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) — سرد القرارات المُدامة + تلخيص حلقة التعلّم ──
 // تستهلك GET /api/v1/decision/records (سرد القرارات المُدامة للمستأجِر، معزولة بـRLS):
 //   {decisions: DecisionRecord[], count}. شكل القرار مطابق لـ_shape_decision_row

@@ -337,3 +337,10 @@ v84_calibration_audit.sql
 # read_only=TRUE دائماً. الخانات من النصّ فقط (لا تلفيق). تُدرِجه نقطة /api/v1/nl-gis/query
 # (best-effort داخل savepoint). فهرس (tenant,created_at DESC). RLS+FORCE معزول. idempotent.
 v85_nl_gis_audit.sql
+
+# v86: trigger تجميع الدليل التراكمي — جدول calibration_evidence يُحدَّثه trigger على
+# outcome_record (AFTER INSERT): يُدِيم sample_count/success_count/success_rate/
+# evidence_level مُسبَقاً ⇒ GET /evidence قراءة O(1) بدل إعادة الحساب O(n). RLS+FORCE،
+# فهرس فريد تعبيريّ COALESCE(crop_type). idempotent. (دُمِج من مرفق مع تصحيحَي صحّة:
+# فهرس فريد بدل قيد UNIQUE تعبيريّ، والنجاح من عمود success القانونيّ.)
+v86_calibration_evidence_trigger.sql

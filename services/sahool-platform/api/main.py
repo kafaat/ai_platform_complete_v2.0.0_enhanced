@@ -3148,6 +3148,7 @@ from api.routers.decision_explain import router as decision_explain_router  # no
 from api.routers.decision_impact import router as decision_impact_router  # noqa: E402
 from api.routers.decision_policies import router as decision_policies_router  # noqa: E402
 from api.routers.decision_record import router as decision_record_router  # noqa: E402
+from api.routers.device_twin import router as device_twin_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.diagnose import router as diagnose_router  # noqa: E402
 from api.routers.districts import router as districts_router  # noqa: E402
@@ -3363,6 +3364,7 @@ app.include_router(escalation_router)
 app.include_router(evidence_router)
 app.include_router(evidence_map_router)
 app.include_router(agronomic_replay_router)
+app.include_router(device_twin_router)
 app.include_router(indices_router)
 app.include_router(geo_locate_router)
 app.include_router(gis_kernel_router)
