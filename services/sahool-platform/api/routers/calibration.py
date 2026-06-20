@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from api.adaptive_calibration import propose_calibration_adjustment
 from api.calibration import all_regions, get_calibration
 from api.calibration_ingest import validate_region_calibration
+from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.evidence_registry import aggregate_evidence
 from api.learning_feedback import learning_feedback
 from api.main import UserSchema, get_current_user
@@ -98,6 +99,7 @@ def compute_learning_feedback(
 class AdaptRequest(BaseModel):
     evidence: EvidenceRecord
     mean_stress_delta: float | None = None  # متوسّط (مرصود − متنبَّأ) لأيّام الإجهاد
+    decision_id: str | None = None  # نَسَب: يربط التكيّف بسلسلة القرار/الدليل
 
 
 @router.post("/api/v1/calibration/{region}/adapt")
@@ -119,9 +121,13 @@ def propose_region_adaptation(
     )
     # نستعمل دليل الطلب المُمرَّر (المتراكم) لا الفارغ.
     ev.update(req.evidence.model_dump())
-    return propose_calibration_adjustment(
+    out = propose_calibration_adjustment(
         prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
     )
+    did = ensure_decision_id(req.decision_id)
+    out["decision_id"] = did
+    out["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
+    return out
 
 
 class ProposeValuesRequest(BaseModel):

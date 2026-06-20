@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from api.crop_twin import TwinDay, crop_twin_state
 from api.data_quality import assess_data_quality
+from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.economic_state import economic_state
 from api.irrigation_method import gross_irrigation_mm, method_profile
 from api.irrigation_mpc import ForecastDay, plan_irrigation
@@ -176,6 +177,7 @@ class CropDecisionRequest(CropTwinComposeRequest):
     season_budget_mm: float | None = None
     water_price_per_m3: float | None = None
     yield_value_per_ha: float | None = None
+    decision_id: str | None = None  # نَسَب: يُمرَّر لإعادة استخدام السلسلة، أو يُسَكّ جديداً
 
 
 @router.post("/api/v1/crop-twin/decision")
@@ -207,9 +209,12 @@ def compose_crop_decision(
     )
 
     decision = unified_decision(st["twin"], plan.to_dict(), st["quality"])
+    did = ensure_decision_id(req.decision_id)
     decision["field_id"] = req.field_id
     decision["dynamic_kc"] = round(st["dyn_kc"], 3)
     decision["irrigation_plan"] = plan.to_dict()
+    decision["decision_id"] = did
+    decision["lineage"] = lineage_stage(did, "decision", field_id=req.field_id)
     return decision
 
 
@@ -301,11 +306,14 @@ def compose_profit_aware_decision(
     )
 
     decision = unified_decision(st["twin"], plan_dict, st["quality"], economic=econ)
+    did = ensure_decision_id(req.decision_id)
     decision["field_id"] = req.field_id
     decision["dynamic_kc"] = round(st["dyn_kc"], 3)
     decision["irrigation_plan"] = plan_dict
     decision["irrigation_method"] = method_profile(req.irrigation_method)["method"]
     decision["gross_irrigation_mm"] = round(gross_total_mm, 2)
+    decision["decision_id"] = did
+    decision["lineage"] = lineage_stage(did, "decision", field_id=req.field_id)
     decision["policy_decision"] = {
         "resolved_policy": policy,  # ما اختاره الاقتصاد/السياق
         "applied_policy": plan_dict["policy"],  # ما طبّقته الخطّة فعلاً (قد يتراجع لنقص الأسعار)

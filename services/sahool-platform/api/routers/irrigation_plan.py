@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from api.data_quality import assess_data_quality
+from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.main import UserSchema, get_current_user
 from api.soil_water import soil_water_params
@@ -44,6 +45,7 @@ class IrrigationPlanRequest(BaseModel):
     # اقتصاد (مطلوب فقط لسياسة profit).
     water_price_per_m3: float | None = None
     yield_value_per_ha: float | None = None
+    decision_id: str | None = None  # نَسَب: يُمرَّر لإعادة استخدام السلسلة، أو يُسَكّ جديداً
 
 
 @router.post("/api/v1/irrigation-plan")
@@ -89,9 +91,12 @@ def compute_irrigation_plan(
     if plan_dict["policy"] != requested:
         assumptions.append("policy_fallback")
 
+    did = ensure_decision_id(req.decision_id)
     return {
         "soil": soil,
         "taw_mm_used": round(taw_mm, 2),
         "quality": assess_data_quality(assumptions),
         "plan": plan_dict,
+        "decision_id": did,
+        "lineage": lineage_stage(did, "decision"),
     }

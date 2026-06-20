@@ -11,6 +11,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.main import UserSchema, get_current_user
 from api.outcome_measurement import measure_outcome
 
@@ -33,6 +34,7 @@ class OutcomeActual(BaseModel):
 
 class OutcomeRequest(BaseModel):
     field_id: str | None = None
+    decision_id: str | None = None  # نَسَب: معرّف القرار الذي تقيس نتيجته
     planned: OutcomePlanned
     actual: OutcomeActual
 
@@ -47,5 +49,8 @@ def measure_decision_outcome(
     صدق: يُقيِّم فقط المقاييس المتوفّر طرفاها (مُخطَّط + مرصود)؛ الناقص needs_data.
     """
     out = measure_outcome(req.planned.model_dump(), req.actual.model_dump())
+    did = ensure_decision_id(req.decision_id)
     out["field_id"] = req.field_id
+    out["decision_id"] = did
+    out["lineage"] = lineage_stage(did, "outcome", field_id=req.field_id)
     return out
