@@ -259,6 +259,12 @@ _CATALOG: dict[str, DomainEvent] = {
         description_ar="أُدِيمت قيم معايرة إقليميّة مُتحقَّقة لمنطقة (الوسيط: calibration.override.set).",
         payload_keys=("region", "fields"),
     ),
+    "CALIBRATION_AUDIT_RECORDED": DomainEvent(
+        name="CALIBRATION_AUDIT_RECORDED",
+        category="calibration",
+        description_ar="دُوِّن قيد تدقيق append-only لتغيير معايرة منطقة (الوسيط: calibration.audit.recorded).",
+        payload_keys=("region", "action"),
+    ),
     # ── المزامنة offline: دمج آليّ غير متقاطع (Auto-merge L3) ────────────────────
     "OFFLINE_MERGE_AUTO": DomainEvent(
         name="OFFLINE_MERGE_AUTO",

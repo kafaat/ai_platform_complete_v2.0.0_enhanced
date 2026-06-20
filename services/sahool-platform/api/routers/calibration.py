@@ -30,6 +30,67 @@ from api.main import (
 router = APIRouter()
 
 
+# ── سجلّ تدقيق المعايرة (Calibration Audit Trail, v84) ─────────────────────────
+# يُدوّن كلّ تغيير معايرة (تثبيت/عَكْس/تطبيق تكيّف) في جدول append-only calibration_audit
+# مع لقطة القيم قبل/بعد + المصدر + المنفِّذ — فيصبح «من غيّر المعايرة ومتى وماذا» متتبَّعاً.
+async def _read_override_values(conn, region: str) -> dict | None:
+    """يقرأ القيم المُدامة الحاليّة لمنطقة (قبل upsert/delete) لتدقيق old_values —
+    best-effort: لا تجاوز/تعذّر القراءة ⇒ None (لا تلفيق)."""
+    try:
+        row = await conn.fetchrow(
+            "SELECT override_values FROM calibration_override WHERE region = $1", region
+        )
+    except Exception:  # noqa: BLE001 — قراءة تدقيق best-effort لا تكسر الكتابة
+        return None
+    if row is None:
+        return None
+    ov = row["override_values"]
+    if isinstance(ov, str):
+        ov = _json.loads(ov)
+    return ov
+
+
+async def _append_calibration_audit(
+    conn,
+    user: UserSchema,
+    region: str,
+    action: str,
+    old_values: dict | None,
+    new_values: dict | None,
+    source_ar: str | None,
+) -> None:
+    """يُدرِج قيد تدقيق append-only ضمن **نفس معاملة** نقطة الكتابة (بعد كتابة
+    calibration_override مباشرةً)، داخل **savepoint** best-effort: نجاحه ذرّيّ مع
+    الكتابة الأصليّة، وفشله (مثلاً غياب الجدول قبل تطبيق v84) يُبتلَع ولا يُجهض الكتابة
+    الأصليّة. الصدق: append-only (لا UPDATE/DELETE للسجلّ)؛ old_values قد تكون None إن
+    لم تُقرأ القيم السابقة (لا تلفيق). يُصدِر CALIBRATION_AUDIT_RECORDED.
+    """
+    try:
+        async with conn.transaction():  # SAVEPOINT داخل معاملة tenant_connection
+            await conn.execute(
+                """INSERT INTO calibration_audit
+                    (tenant_id, region, action, old_values, new_values, source_ar, actor)
+                   VALUES ($1::uuid, $2, $3, $4::jsonb, $5::jsonb, $6, $7)""",
+                str(user.tenant_id),
+                region,
+                action,
+                _json.dumps(old_values) if old_values is not None else None,
+                _json.dumps(new_values) if new_values is not None else None,
+                source_ar,
+                str(user.user_id),
+            )
+        await _emit_domain_event(
+            conn,
+            user,
+            "CALIBRATION_AUDIT_RECORDED",
+            "calibration_audit",
+            region,
+            {"region": region, "action": action},
+        )
+    except Exception:  # noqa: BLE001 — تدقيق best-effort: فشله لا يكسر الكتابة الأصليّة
+        pass
+
+
 @router.get("/api/v1/calibration")
 def list_calibration(user: UserSchema = Depends(get_current_user)):
     """كلّ ملفّات المعايرة (العامّ + المناطق اليمنيّة) مع وسم التحقّق."""
@@ -325,6 +386,11 @@ async def apply_region_adaptation_from_evidence(
                 prof.region,
                 {"region": prof.region, "fields": list(accepted.keys()), "via": "adaptation"},
             )
+            # تدقيق append-only: تطبيق تكيّف آليّ محروس بالدليل (نفس المعاملة، best-effort).
+            # old_values=None (لا نقرأ السابق هنا — لا تلفيق)؛ new_values=القيم المُدامة.
+            await _append_calibration_audit(
+                conn, user, prof.region, "adaptation_applied", None, accepted, source_ar
+            )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
@@ -395,6 +461,9 @@ async def set_region_override(
     accepted = result["accepted"]
     try:
         async with tenant_connection(user) as conn:
+            # نقرأ القيم السابقة قبل الـupsert لتدقيق old_values (best-effort؛ تبقى
+            # None إن لم يوجد تجاوز سابق أو تعذّرت القراءة — لا تلفيق).
+            old_values = await _read_override_values(conn, prof.region)
             await conn.execute(
                 """INSERT INTO calibration_override
                     (tenant_id, region, override_values, source_ar, validated, created_by)
@@ -417,6 +486,10 @@ async def set_region_override(
                 "calibration_override",
                 prof.region,
                 {"region": prof.region, "fields": list(accepted.keys())},
+            )
+            # تدقيق append-only: تثبيت تجاوز (نفس المعاملة، best-effort). new=المقبول.
+            await _append_calibration_audit(
+                conn, user, prof.region, "override_set", old_values, accepted, req.source_ar
             )
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("إدامة معايرة المنطقة", e) from e
@@ -504,7 +577,61 @@ async def delete_region_override(
     prof = get_calibration(region)
     try:
         async with tenant_connection(user) as conn:
+            # نقرأ السابق قبل الحذف لتدقيق old_values (best-effort — لا تلفيق).
+            old_values = await _read_override_values(conn, prof.region)
             await conn.execute("DELETE FROM calibration_override WHERE region = $1", prof.region)
+            # تدقيق append-only: عَكْس/حذف التجاوز (نفس المعاملة، best-effort).
+            # old=السابق، new=None (عاد للوراثة العامّة).
+            await _append_calibration_audit(
+                conn, user, prof.region, "reverted", old_values, None, None
+            )
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("حذف معايرة المنطقة", e) from e
     return {"region": prof.region, "reverted": True}
+
+
+def _audit_row(r) -> dict:
+    """يُشكّل صفّ تدقيق نقيّاً (يفكّ JSONB إن جاء نصّاً، يطبّع التواريخ ISO) — للقراءة."""
+    old = r["old_values"]
+    if isinstance(old, str):
+        old = _json.loads(old)
+    new = r["new_values"]
+    if isinstance(new, str):
+        new = _json.loads(new)
+    created = r["created_at"]
+    return {
+        "audit_id": str(r["audit_id"]),
+        "region": r["region"],
+        "action": r["action"],
+        "old_values": old,
+        "new_values": new,
+        "source_ar": r["source_ar"],
+        "actor": r["actor"],
+        "created_at": created.isoformat() if created is not None else None,
+    }
+
+
+@router.get("/api/v1/calibration/{region}/audit")
+async def get_region_calibration_audit(
+    region: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """سجلّ تدقيق المعايرة لمنطقة المستأجِر (الأحدث أوّلاً، معزول بـRLS) — قراءة فقط.
+
+    يكشف كلّ تغيير معايرة مُدوَّن (override_set/reverted/adaptation_applied) مع لقطة القيم
+    قبل/بعد + المصدر + المنفِّذ + الزمن — append-only فلا يُعدَّل ولا يُمحى. 503 عند تعذّر
+    القاعدة. مسار قراءة (يتطلّب Postgres؛ مُختبَر تكامليّاً).
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT audit_id, region, action, old_values, new_values, source_ar, actor, "
+                "created_at FROM calibration_audit WHERE region = $1 ORDER BY created_at DESC",
+                prof.region,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سجلّ تدقيق المعايرة", e) from e
+
+    items = [_audit_row(r) for r in rows]
+    return {"region": prof.region, "audit": items, "count": len(items)}
