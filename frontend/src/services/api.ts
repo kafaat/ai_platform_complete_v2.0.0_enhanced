@@ -495,6 +495,37 @@ export interface PortfolioAllocResult {
 export const computePortfolioAllocation = (payload: PortfolioAllocInput): Promise<PortfolioAllocResult> =>
   kongApi.post<PortfolioAllocResult>('/api/v1/field-portfolio/allocate', payload).then(r => r.data);
 
+// ── حالة المعايرة الإقليميّة (GET /api/v1/calibration) — قراءة فقط ──
+// يكشف لكلّ إقليم يمنيّ هل ثوابته الأغرونوميّة مُتحقَّق منها ميدانيّاً أم ما تزال
+// افتراضات FAO عامّة — فيرى المستخدم أين تنقص بيانات المعايرة الحقيقيّة. صدق: لا
+// تلفيق؛ الأقاليم غير المُتحقَّق منها (validated=false) ترث الافتراضات العامّة.
+export interface CalibrationProfile {
+  region:                string;
+  region_ar:             string;
+  validated:             boolean;
+  source_ar:             string;
+  raw_fraction:          number;
+  root_depth_m:          number;
+  kc_dyn_min:            number;
+  kc_dyn_max:            number;
+  forecast_infiltration: number;
+  uptake_fractions:      Record<string, number>;
+  yield_uncertainty:     number;
+  price_uncertainty:     number;
+  evidence_level:        'none' | 'expert_opinion' | 'field_preliminary' | 'field_verified' | string;
+  sample_count:          number;
+  last_evaluated_at:     string | null;
+  notes_ar:              string[];
+}
+export interface CalibrationOverview {
+  generic:         CalibrationProfile;
+  regions:         CalibrationProfile[];
+  validated_count: number;
+  note_ar:         string;
+}
+export const fetchCalibration = (): Promise<CalibrationOverview> =>
+  kongApi.get<CalibrationOverview>('/api/v1/calibration').then(r => r.data);
+
 // ── قرار المحصول الموحّد (POST /api/v1/crop-twin/decision) ──
 // ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة. الاقتصاد محجوز (not_configured).
 export interface CropDecisionForecastDay {
