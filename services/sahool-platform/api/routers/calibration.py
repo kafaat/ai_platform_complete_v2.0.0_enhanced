@@ -171,6 +171,59 @@ def propose_region_adaptation(
     return out
 
 
+class AdaptFromEvidenceRequest(BaseModel):
+    mean_stress_delta: float | None = None  # متوسّط (مرصود − متنبَّأ) لأيّام الإجهاد
+    decision_id: str | None = None  # نَسَب: يربط التكيّف بسلسلة القرار/الدليل
+
+
+@router.post("/api/v1/calibration/{region}/adapt-from-evidence")
+async def propose_region_adaptation_from_evidence(
+    region: str,
+    req: AdaptFromEvidenceRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يقترح تعديل المعايرة محروساً بدليل **مُدام** متراكم (لا حمولة طلب).
+
+    يُغلق حلقة التعلّم: يقرأ نتائج outcome_record المحفوظة للمنطقة (معزولة بـRLS) ويبني منها
+    الدليل التراكميّ، ثمّ يطبّق بوّابة التكيّف عليه — فيعتمد القرار على دليل حقيقيّ مُتراكم عبر
+    الزمن لا على نتائج مُمرَّرة في الطلب. صدق: applied=False (يقترح ولا يطبّق)؛ البوّابة كما هي.
+    مسار قراءة (يتطلّب Postgres؛ مُختبَر تكامليّاً).
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            db_rows = await conn.fetch(
+                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "ORDER BY created_at ASC",
+                prof.region,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة دليل المنطقة للتكيّف", e) from e
+
+    rows: list[dict] = []
+    for r in db_rows:
+        m = r["metrics"]
+        if isinstance(m, str):
+            m = _json.loads(m)
+        created = r["created_at"]
+        rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+
+    ev = evidence_from_persisted_outcomes(
+        prof.region,
+        rows,
+        expert_calibrated=prof.evidence_level == "expert_opinion",
+    )
+    out = propose_calibration_adjustment(
+        prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
+    )
+    did = ensure_decision_id(req.decision_id)
+    out["decision_id"] = did
+    out["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
+    out["evidence_source"] = "persisted_outcomes"
+    out["evidence_used"] = ev
+    return out
+
+
 class ProposeValuesRequest(BaseModel):
     raw_fraction: float | None = None
     root_depth_m: float | None = None

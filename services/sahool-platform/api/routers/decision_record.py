@@ -290,3 +290,91 @@ async def get_decision_lineage(
         "outcome_count": len(outcomes),
         "stages_present": stages_present,
     }
+
+
+@router.get("/api/v1/decision/records")
+async def list_decision_records(
+    field_id: str | None = None,
+    decision_type: str | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+) -> dict:
+    """يسرد قرارات المستأجِر المُدامة (الأحدث أوّلاً) — معزولة بـRLS.
+
+    قراءة فقط. تصفية اختياريّة بـfield_id/decision_type (WHERE ديناميكيّ). 503 عند
+    تعذّر القاعدة. مسار القراءة تكامليّ (يتطلّب Postgres، كـdecision_dispatch).
+    """
+    clauses, args = [], []
+    if field_id:
+        args.append(field_id)
+        clauses.append(f"field_id = ${len(args)}")
+    if decision_type:
+        args.append(decision_type)
+        clauses.append(f"decision_type = ${len(args)}")
+    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
+    args.append(limit)
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                f"SELECT * FROM decision_record{where} ORDER BY created_at DESC LIMIT ${len(args)}",
+                *args,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سجلّ القرارات", e) from e
+    return {"decisions": [_shape_decision_row(r) for r in rows], "count": len(rows)}
+
+
+def _group_outcomes_by_decision(decision_ids, orows):
+    """يجمع نتائج الحقل تحت قراراتها بمطابقة decision_id (نقيّ، لا قاعدة).
+
+    يعيد (grouped, orphans): grouped قاموس {decision_id: [نتائج مُشكَّلة]}، وorphans
+    قائمة النتائج التي لا قرار مُدام لها (decision_id خارج المُمرَّر) — تُكشَف لا تُخفى.
+    """
+    known = set(decision_ids)
+    grouped: dict = {did: [] for did in known}
+    orphans: list = []
+    for r in orows:
+        shaped = _shape_outcome_row(r)
+        did = shaped["decision_id"]
+        if did in known:
+            grouped[did].append(shaped)
+        else:
+            orphans.append(shaped)
+    return grouped, orphans
+
+
+@router.get("/api/v1/field/{field_id}/lineage")
+async def get_field_lineage(
+    field_id: str,
+    limit: int = Query(50, ge=1, le=200),
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
+) -> dict:
+    """يجمّع سلسلة حقل: قراراته المُدامة (الأحدث أوّلاً)، ولكلّ قرار نتائجه المربوطة.
+
+    قراءة فقط، معزول بـRLS. النتائج التي لا قرار مُدام لها (حُسِبت عبر المسار النقيّ بلا
+    إدامة رأس) تُكشَف تحت orphan_outcomes — صدق: لا تُخفى. 503 عند تعذّر القاعدة. مسار
+    القراءة تكامليّ (يتطلّب Postgres، كـdecision_dispatch).
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            drows = await conn.fetch(
+                "SELECT * FROM decision_record WHERE field_id = $1 "
+                "ORDER BY created_at DESC LIMIT $2",
+                field_id,
+                limit,
+            )
+            orows = await conn.fetch(
+                "SELECT * FROM outcome_record WHERE field_id = $1 ORDER BY created_at ASC",
+                field_id,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سجلّ القرارات", e) from e
+
+    grouped, orphans = _group_outcomes_by_decision([d["decision_id"] for d in drows], orows)
+    decisions = [{**_shape_decision_row(d), "outcomes": grouped[d["decision_id"]]} for d in drows]
+    return {
+        "field_id": field_id,
+        "decisions": decisions,
+        "orphan_outcomes": orphans,
+        "count": len(drows),
+    }
