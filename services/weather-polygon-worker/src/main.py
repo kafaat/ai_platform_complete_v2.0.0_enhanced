@@ -18,8 +18,9 @@ import logging
 import os
 
 import asyncpg
-import nats
 from core.weather_overlay_pipeline import build_overlay_record, build_signal_records
+
+import nats
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("weather-polygon-worker")

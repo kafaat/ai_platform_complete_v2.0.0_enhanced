@@ -311,3 +311,10 @@ v80_calibration_override.sql
 # التنفيذ المزدوج على المضخّات/الصمّامات. يُستهلَك خلف علم ACTUATOR_IDEMPOTENCY_MODE
 # (local→shadow→cluster، إغلاق مرن). RLS+FORCE معزول بالمستأجر. idempotent.
 v81_actuator_command_dedup.sql
+
+# v82: توحيد نَسَب التنفيذ (PR #396) — جدول lineage_link: جسر ربط يُضيف معرّفاً عالميّاً
+# lin_ **فوق** المعرّفات القائمة (dec_/disp_/command_id) دون إعادة تسمية — صفّ لكلّ
+# (lineage_id↔مرجع) يجمع decision/dispatch/command/execution/outcome في سلسلة واحدة.
+# UNIQUE(tenant,ref_type,ref_id) للربط مرّةً، فهرس (tenant,lineage_id) للجلب. يُستهلَك خلف
+# علم FEATURE_UNIFIED_LINEAGE (إغلاق مرن). يُصدِر LINEAGE_LINKED. RLS+FORCE معزول. idempotent.
+v82_lineage_link.sql

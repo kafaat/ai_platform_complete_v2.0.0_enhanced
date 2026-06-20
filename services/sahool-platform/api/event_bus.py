@@ -148,6 +148,11 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     DISPATCH_DECISION_RECORDED = "dispatch.decision.recorded"
     DISPATCH_EXECUTION_RECORDED = "dispatch.execution.recorded"
 
+    # توحيد نَسَب التنفيذ (PR #396): ربط معرّف عالميّ موحّد (lin_) بمرجع قائم
+    # (decision/dispatch/command/execution/outcome) **فوق** المعرّفات القائمة دون إعادة
+    # تسمية — يجعل ربط السلسلة متتبَّعاً/مدقَّقاً. يُصدَر عبر outbox خلف FEATURE_UNIFIED_LINEAGE.
+    LINEAGE_LINKED = "lineage.linked"
+
     # سلسلة النَّسَب المُدامة (Decision→Outcome→Evidence→Learning, P0-1/P0-3): إدامة
     # رأس القرار (decision_record) ونتيجته الميدانيّة (outcome_record) بمعرّف موحّد —
     # تجعل القرار وأثره متتبَّعَين/مدقَّقَين للتراكم المعرفيّ بدل حساب عابر يُنسى.

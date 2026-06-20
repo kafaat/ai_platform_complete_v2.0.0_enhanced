@@ -240,6 +240,12 @@ _CATALOG: dict[str, DomainEvent] = {
         description_ar="أُدِيمت نتيجة قرار ميدانيّة مربوطة بـdecision_id (الوسيط: outcome.measured).",
         payload_keys=("decision_id", "field_id", "success"),
     ),
+    "LINEAGE_LINKED": DomainEvent(
+        name="LINEAGE_LINKED",
+        category="lineage",
+        description_ar="رُبِط مرجع قائم بمعرّف نَسَب عالميّ موحّد lin_ (الوسيط: lineage.linked).",
+        payload_keys=("lineage_id", "ref_type", "ref_id"),
+    ),
     # ── المعايرة الإقليميّة المُدارة (calibration): إدامة قيم مُتحقَّقة DB-backed ──────
     "CALIBRATION_OVERRIDE_SET": DomainEvent(
         name="CALIBRATION_OVERRIDE_SET",

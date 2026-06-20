@@ -48,7 +48,13 @@ import jwt as _jwt
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Histogram,
+    generate_latest,
+)
 from starlette.responses import Response
 
 try:
@@ -165,11 +171,28 @@ def _valid_date(s: str) -> str:
 
 
 # ── Prometheus (FIXED: removed field_id label to prevent cardinality explosion) ──
-ANALYSIS_COUNT = Counter(
-    "sahool_vegetation_analysis_total", "Vegetation analysis requests", ["source", "status"]
+def _safe_metric(factory, *args, **kwargs):
+    """مقياس Prometheus آمن عند إعادة الاستيراد: الاختبارات تُحمّل هذه الوحدة عبر
+    exec_module أكثر من مرّة، فالتسجيل المكرّر في السجلّ الافتراضيّ العالميّ يرمي
+    ValueError. عندها نُنشئ المقياس في سجلّ خاصّ معزول كي تبقى الوحدة قابلة للتحميل
+    (الإنتاج يُحمّلها مرّة واحدة فتُسجَّل عادةً في السجلّ الافتراضيّ)."""
+    try:
+        return factory(*args, **kwargs)
+    except ValueError:
+        return factory(*args, registry=CollectorRegistry(), **kwargs)
+
+
+ANALYSIS_COUNT = _safe_metric(
+    Counter,
+    "sahool_vegetation_analysis_total",
+    "Vegetation analysis requests",
+    ["source", "status"],
 )
-ANALYSIS_LATENCY = Histogram(
-    "sahool_vegetation_analysis_duration_seconds", "Vegetation analysis duration", ["source"]
+ANALYSIS_LATENCY = _safe_metric(
+    Histogram,
+    "sahool_vegetation_analysis_duration_seconds",
+    "Vegetation analysis duration",
+    ["source"],
 )
 
 # ── Field geometry registry ────────────────────────────────────
