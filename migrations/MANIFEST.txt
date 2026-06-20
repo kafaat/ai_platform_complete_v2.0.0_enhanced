@@ -305,3 +305,9 @@ v79_outcome_record.sql
 # إلزاميّ) بدل تعديل _REGION_OVERRIDES في الكود — عكوسيّ (DELETE يعيد الوراثة). يُصدِر
 # CALIBRATION_OVERRIDE_SET عبر outbox. RLS+FORCE معزول بالمستأجر. idempotent.
 v80_calibration_override.sql
+
+# v81: مخزن إزالة التكرار العنقوديّ للـactuator — جدول actuator_command_dedup: يجعل dedup
+# الأوامر cluster-safe (فحص-وتثبيت ذرّيّ عبر القاعدة بدل dict محلّيّ per-replica) ⇒ يمنع
+# التنفيذ المزدوج على المضخّات/الصمّامات. يُستهلَك خلف علم ACTUATOR_IDEMPOTENCY_MODE
+# (local→shadow→cluster، إغلاق مرن). RLS+FORCE معزول بالمستأجر. idempotent.
+v81_actuator_command_dedup.sql

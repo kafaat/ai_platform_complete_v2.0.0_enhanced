@@ -21,6 +21,8 @@ from aiomqtt import Client as MQTTClient
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from shared.actuator_idempotency import decide_fire, resolve_idempotency_mode
+
 try:
     from shared.logging_config import setup_logging
 
@@ -45,10 +47,17 @@ _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 # خلال هذه المدّة بالثواني. قابلة للضبط عبر البيئة، الافتراضيّ 60ث.
 ACTUATOR_DEDUP_WINDOW_SEC = float(os.getenv("ACTUATOR_DEDUP_WINDOW_SEC", "60"))
 
+# وضع إزالة التكرار (الإغلاق المرن، PR #393): local (افتراضيّ — داخل العمليّة، السلوك الحاليّ)
+# | shadow (يستشير المخزن العنقوديّ ويرصد التباين، لكنّ المحلّيّ يقرّر) | cluster (العنقوديّ
+# يحسم cluster-safe، fail-soft للمحلّيّ عند تعذّره). يُغلق فجوة dict المحلّيّ per-replica دون كسر.
+ACTUATOR_IDEMPOTENCY_MODE = resolve_idempotency_mode(os.getenv("ACTUATOR_IDEMPOTENCY_MODE"))
+# مقاييس المراقبة (Observe قبل Enforce): عدّ القرارات حسب المفتاح (local/cluster_skip/divergence…).
+_IDEM_METRICS: dict[str, int] = {}
+
 # ذاكرة إزالة التكرار داخل العمليّة: مفتاح الأمر → آخر زمن إطلاق (time.monotonic).
-# ملاحظة صدق: هذا حارس داخل العمليّة (per-replica) لا على مستوى العنقود؛
-# مع عدّة نُسَخ قد يُطلَق الأمر مرّةً لكلّ نسخة. الـidempotency الحقيقيّ
-# (exactly-once عنقوديّ) يتطلّب مخزناً مشتركاً دائماً (Redis/DB) لا dict محلّيّاً.
+# ملاحظة صدق: هذا حارس داخل العمليّة (per-replica) لا على مستوى العنقود؛ مع عدّة نُسَخ قد
+# يُطلَق الأمر مرّةً لكلّ نسخة. لذا يُكمَّل بمخزن عنقوديّ دائم (actuator_command_dedup، v81)
+# تحت ACTUATOR_IDEMPOTENCY_MODE — هذا الـdict يبقى مساراً محلّيّاً/احتياطيّاً (fail-soft).
 _dedup_last_fired: dict[tuple[str, str, str, str], float] = {}
 
 _pool: asyncpg.Pool | None = None
@@ -195,6 +204,64 @@ def _dedup_should_fire(
         return False  # مكرّر ضمن نافذة التهدئة — تخطَّ الإطلاق
     store[key] = now
     return True
+
+
+def _cluster_dedup_key(tenant_id: str, field_id: str, device: str, cmd: str) -> str:
+    """المفتاح الفعّال للمخزن العنقوديّ (نصّ): tenant:field:device:command."""
+    return f"{tenant_id}:{field_id}:{device}:{cmd}"
+
+
+async def _cluster_should_fire(
+    tenant_id: str, field_id: str, device: str, cmd: str, window_sec: float
+) -> tuple[bool, bool]:
+    """فحص-وتثبيت ذرّيّ عنقوديّ عبر القاعدة (cluster-safe) ⇒ (يُطلَق؟، المخزن متاح؟).
+
+    INSERT … ON CONFLICT … DO UPDATE … WHERE last_fired_at < now()-window RETURNING:
+    صفّ عائد ⇒ امتلكنا فتحة الإطلاق (جديد أو مرّت النافذة) ⇒ يُطلَق. لا صفّ ⇒ مكرّر ضمن
+    النافذة عبر **كلّ** النُّسَخ ⇒ تخطٍّ (يمنع التنفيذ المزدوج). يضبط app.current_tenant
+    قبل الاستعلام (RLS). **fail-soft**: تعذّر القاعدة ⇒ (False, available=False) ليتولّى
+    decide_fire الرجوع المحلّيّ — لا نوقف الفعل الميدانيّ كلّيّاً لعطل قاعدة.
+    """
+    if not _pool:
+        return False, False
+    key = _cluster_dedup_key(tenant_id, field_id, device, cmd)
+    try:
+        async with _pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute(
+                    "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id)
+                )
+                got = await conn.fetchval(
+                    """INSERT INTO actuator_command_dedup (dedup_key, tenant_id, last_fired_at)
+                       VALUES ($1, $2::uuid, now())
+                       ON CONFLICT (dedup_key) DO UPDATE SET last_fired_at = now()
+                         WHERE actuator_command_dedup.last_fired_at
+                               < now() - make_interval(secs => $3)
+                       RETURNING dedup_key""",
+                    key,
+                    str(tenant_id),
+                    float(window_sec),
+                )
+        return (got is not None), True
+    except Exception as e:  # noqa: BLE001 — fail-soft: عطل المخزن لا يوقف الفعل (رجوع محلّيّ)
+        logger.warning("مخزن idempotency العنقوديّ غير متاح (رجوع محلّيّ): %s", e)
+        return False, False
+
+
+async def _cluster_clear(tenant_id: str, field_id: str, device: str, cmd: str) -> None:
+    """يحذف مفتاح المخزن العنقوديّ (فشل الأمر ⇒ لا تمنع النافذة إعادة محاولة مشروعة). best-effort."""
+    if not _pool:
+        return
+    key = _cluster_dedup_key(tenant_id, field_id, device, cmd)
+    try:
+        async with _pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute(
+                    "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id)
+                )
+                await conn.execute("DELETE FROM actuator_command_dedup WHERE dedup_key = $1", key)
+    except Exception as e:  # noqa: BLE001 — best-effort: فشل التنظيف لا يكسر مسار الفشل/التعويض
+        logger.warning("تعذّر مسح مفتاح idempotency العنقوديّ: %s", e)
 
 
 # الأوامر العكسيّة المعروفة للتعويض (Saga compensation): فتح↔إغلاق، تشغيل↔إيقاف.
@@ -344,15 +411,24 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                 # إزالة التكرار (idempotency): تخطَّ إن أُطلق نفس الأمر الفعّال
                 # (tenant, field, device, command) خلال نافذة التهدئة.
                 dedup_key = (tenant_id, field_id, device, cmd)
-                if not _dedup_should_fire(
-                    dedup_key,
-                    time.monotonic(),
-                    ACTUATOR_DEDUP_WINDOW_SEC,
-                    _dedup_last_fired,
-                ):
+                # الإغلاق المرن: المحلّيّ يُحسَب دائماً (يبقى دافئاً للرجوع)؛ العنقوديّ حسب الوضع.
+                local_fire = _dedup_should_fire(
+                    dedup_key, time.monotonic(), ACTUATOR_DEDUP_WINDOW_SEC, _dedup_last_fired
+                )
+                if ACTUATOR_IDEMPOTENCY_MODE == "local":
+                    fire, _metric = local_fire, "local"
+                else:
+                    cluster_fire, cluster_ok = await _cluster_should_fire(
+                        tenant_id, field_id, device, cmd, ACTUATOR_DEDUP_WINDOW_SEC
+                    )
+                    fire, _metric = decide_fire(
+                        ACTUATOR_IDEMPOTENCY_MODE, local_fire, cluster_fire, cluster_ok
+                    )
+                _IDEM_METRICS[_metric] = _IDEM_METRICS.get(_metric, 0) + 1
+                if not fire:
                     logger.info(
-                        f"إزالة تكرار: تخطّي أمر مكرّر '{cmd}' على {device} "
-                        f"(نافذة {ACTUATOR_DEDUP_WINDOW_SEC:.0f}ث، حقل {field_id})"
+                        f"إزالة تكرار ({ACTUATOR_IDEMPOTENCY_MODE}): تخطّي أمر مكرّر '{cmd}' على "
+                        f"{device} (نافذة {ACTUATOR_DEDUP_WINDOW_SEC:.0f}ث، حقل {field_id})"
                     )
                     triggered.append(
                         {
@@ -387,6 +463,8 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                     # نُسقط مفتاح dedup للأمر الفاشل كي لا تمنع النافذة إعادة محاولة
                     # لاحقة مشروعة (الفشل لم يُحرّك الجهاز فعليّاً).
                     _dedup_last_fired.pop(dedup_key, None)
+                    if ACTUATOR_IDEMPOTENCY_MODE != "local":
+                        await _cluster_clear(tenant_id, field_id, device, cmd)
                     await _compensate(succeeded, tenant_id, device, cmd)
                     triggered.append(
                         {
@@ -595,6 +673,22 @@ async def health():
 @app.get("/readyz")
 async def readyz():
     return {"status": "ready", "version": "9.1.0"}
+
+
+@app.get("/idempotency/metrics")
+async def idempotency_metrics():
+    """مقاييس إزالة التكرار (المراقبة قبل الفرض): الوضع + عدّ القرارات حسب المفتاح.
+
+    قراءة فقط — يُمكّن مرحلة Observe من نمط الإغلاق المرن: قبل ترقية الوضع إلى cluster،
+    راقِب shadow_divergence (كم مرّة كان العنقوديّ سيمنع تكراراً فاتَ المحلّيّ) و
+    cluster_unavailable_fallback (صحّة المخزن). لا أسرار — عدّادات مجرّدة فقط.
+    """
+    return {
+        "mode": ACTUATOR_IDEMPOTENCY_MODE,
+        "dedup_window_sec": ACTUATOR_DEDUP_WINDOW_SEC,
+        "metrics": dict(_IDEM_METRICS),
+        "local_store_size": len(_dedup_last_fired),
+    }
 
 
 if __name__ == "__main__":
