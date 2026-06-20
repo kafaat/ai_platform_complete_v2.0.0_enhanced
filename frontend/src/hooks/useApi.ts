@@ -66,6 +66,10 @@ import {
   // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) ──
   fetchDecisionRecords, type DecisionRecordsResult,
   fetchLearningSummary, type LearningSummary,
+  // ── Decision Studio: شرح القرار + إعادة التشغيل (قراءة فقط) ──
+  fetchDecisionExplain, type DecisionExplainResult,
+  // ── Agronomic Timeline: الخطّ الزمنيّ الموحّد للحقل (قراءة فقط) ──
+  fetchUnifiedTimeline, type UnifiedTimeline,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
@@ -875,6 +879,41 @@ export function useLearningSummary(): UseQueryResult<LearningSummary | null, Err
     queryFn:  () => fetchLearningSummary(),
     staleTime:5 * 60_000,
     retry:    false,
+  });
+}
+
+// ── Decision Studio: شرح القرار + إعادة التشغيل (قراءة فقط، عند الطلب) ──
+// مُفعَّل فقط عند توفّر decision_id (إدخال المستخدم). fetchDecisionExplain يجرّب
+// /explain ثمّ يرتدّ عند 404 إلى /lineage (العلم FEATURE_DECISION_STUDIO قد يكون
+// مُطفأً). لا fallback وهميّ: 503/403 يُرفض الاستعلام لحالة صادقة. retry:false كي
+// لا تُعاد المحاولة على نقطة غائبة (الارتداد يُعالَج داخل الـfetcher نفسه).
+export function useDecisionExplain(decisionId?: string): UseQueryResult<DecisionExplainResult, Error> {
+  const id = (decisionId ?? '').trim();
+  return useQuery<DecisionExplainResult, Error>({
+    queryKey: ['decision-explain', id],
+    queryFn:  () => fetchDecisionExplain(id),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled:  !!id,
+  });
+}
+
+// ── Agronomic Timeline: الخطّ الزمنيّ الموحّد للحقل (قراءة فقط) ──
+// GET /api/v1/fields/{id}/unified-timeline. مُفعَّل فقط مع fieldId. الفئة (category)
+// جزءٌ من المفتاح: تغييرها يُعيد الجلب المُرشَّح خادميّاً. لا fallback وهميّ — عند
+// تعطّل القاعدة يُرجِع الخادم خطّاً فارغاً + note_ar (حالة فارغة صادقة لا خطأ).
+export function useUnifiedTimeline(
+  fieldId?: string,
+  opts: { limit?: number; newestFirst?: boolean; category?: string } = {},
+): UseQueryResult<UnifiedTimeline, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  const { limit = 200, newestFirst = true, category } = opts;
+  return useQuery<UnifiedTimeline, Error>({
+    queryKey: ['unified-timeline', tid, fieldId ?? 'none', limit, newestFirst, category ?? 'all'],
+    queryFn:  () => fetchUnifiedTimeline(fieldId as string, { limit, newestFirst, category }),
+    staleTime:2 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
   });
 }
 

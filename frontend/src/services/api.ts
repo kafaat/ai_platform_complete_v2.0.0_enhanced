@@ -638,6 +638,307 @@ export const fetchLearningSummary = (): Promise<LearningSummary | null> =>
     .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
     .catch(() => null);
 
+// ══════════════════════════════════════════════════════════════════
+// DECISION STUDIO — شرح القرار (Signals → Policy → Constraints → Final) + إعادة
+// التشغيل (قراءة فقط). تستهلك أوّلاً GET /api/v1/decision/{id}/explain (خلف العلم
+// FEATURE_DECISION_STUDIO؛ قد يكون مُطفأً ⇒ 404)، وترتدّ عند 404 إلى السلسلة
+// المُدامة GET /api/v1/decision/{id}/lineage فتشتقّ منها شرحاً صادقاً من
+// decision_value (policy_decision.reasons_ar/risks/confidence). صدق: لا تلفيق —
+// القرار غير المُدام يُعرَض «غير متاح»، وغياب المعايرة (calibrated=false) يُبرَز.
+// ══════════════════════════════════════════════════════════════════
+
+/** إشارة قرار واحدة (مدخَل أثّر في القرار) — مع حالة لونيّة صادقة من الخادم. */
+export interface DecisionSignal {
+  key:      string;
+  label_ar: string;
+  value:    unknown;
+  status:   string; // ok | warn | risk | info | neutral … (من الخادم، لا نفترض حصراً)
+}
+/** قرار السياسة المُحلّ (auto/manual) مع أسبابه العربيّة. */
+export interface DecisionPolicyView {
+  resolved:   string | null;
+  applied:    string | null;
+  auto:       boolean;
+  reasons_ar: string[];
+}
+/** قيد واحد على القرار (سقف ميزانيّة/تطبيق…). شكل مرن (الخادم قد يثريه). */
+export interface DecisionConstraint {
+  key?:      string;
+  label_ar?: string;
+  value?:    unknown;
+  [k: string]: unknown;
+}
+/** جوهر الشرح: ثقة + إشارات + سياسة + قيود + القرار النهائيّ. */
+export interface DecisionExplanation {
+  confidence:  number | null;
+  calibrated:  boolean;          // false ⇒ تقديريّ غير مُعايَر (يُبرَز صراحةً)
+  signals:     DecisionSignal[];
+  policy:      DecisionPolicyView | null;
+  constraints: DecisionConstraint[];
+  final:       Record<string, unknown>;
+  warnings_ar: string[];
+}
+/** نتيجة الشرح الكاملة: شرح + «ماذا حدث فعلاً» (outcomes) + دليل. */
+export interface DecisionExplainResult {
+  decision_id:   string;
+  decision_type: string;
+  found:         boolean;        // false ⇒ القرار غير مُدام (لا نختلق شرحاً)
+  source:        'explain' | 'lineage_derived'; // من أين جاء الشرح (شفافيّة)
+  explanation:   DecisionExplanation | null;
+  outcomes:      LineageOutcome[];
+  evidence:      Record<string, unknown> | null;
+}
+
+// شكل ردّ /explain الخام من الخادم (حين يكون العلم مُفعَّلاً) — كلّ الحقول دفاعيّة.
+interface RawExplainResponse {
+  decision_id?:   string;
+  decision_type?: string;
+  found?:         boolean;
+  explanation?: {
+    confidence?:  number | null;
+    calibrated?:  boolean;
+    signals?:     Partial<DecisionSignal>[];
+    policy?: {
+      resolved?:   string | null;
+      applied?:    string | null;
+      auto?:       boolean;
+      reasons_ar?: string[];
+    } | null;
+    constraints?: DecisionConstraint[];
+    final?:       Record<string, unknown>;
+    warnings_ar?: string[];
+  } | null;
+  outcomes?: LineageOutcome[];
+  evidence?: Record<string, unknown> | null;
+}
+
+// يطبّع ردّ /explain الخام إلى DecisionExplainResult (حقول غائبة ⇒ افتراضات صادقة).
+function _normalizeExplain(d: RawExplainResponse, decisionId: string): DecisionExplainResult {
+  const ex = d.explanation ?? null;
+  return {
+    decision_id:   d.decision_id ?? decisionId,
+    decision_type: d.decision_type ?? '—',
+    found:         d.found ?? !!ex,
+    source:        'explain',
+    explanation: ex
+      ? {
+          confidence:  typeof ex.confidence === 'number' ? ex.confidence : null,
+          calibrated:  ex.calibrated === true,
+          signals:     (ex.signals ?? []).map((s) => ({
+            key:      String(s.key ?? ''),
+            label_ar: String(s.label_ar ?? s.key ?? ''),
+            value:    s.value ?? null,
+            status:   String(s.status ?? 'neutral'),
+          })),
+          policy: ex.policy
+            ? {
+                resolved:   ex.policy.resolved ?? null,
+                applied:    ex.policy.applied ?? null,
+                auto:       ex.policy.auto === true,
+                reasons_ar: Array.isArray(ex.policy.reasons_ar) ? ex.policy.reasons_ar : [],
+              }
+            : null,
+          constraints: Array.isArray(ex.constraints) ? ex.constraints : [],
+          final:       ex.final && typeof ex.final === 'object' ? ex.final : {},
+          warnings_ar: Array.isArray(ex.warnings_ar) ? ex.warnings_ar : [],
+        }
+      : null,
+    outcomes: Array.isArray(d.outcomes) ? d.outcomes : [],
+    evidence: d.evidence && typeof d.evidence === 'object' ? d.evidence : null,
+  };
+}
+
+// يقرأ مصفوفة نصوص عربيّة بأمان من قيمة مجهولة (reasons_ar/risks/warnings الخام).
+function _strList(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .map((x) =>
+      typeof x === 'string'
+        ? x
+        : typeof x === 'object' && x
+          ? String(
+              (x as Record<string, unknown>).label_ar ??
+                (x as Record<string, unknown>).level_ar ??
+                '',
+            )
+          : String(x ?? ''),
+    )
+    .filter(Boolean);
+}
+
+// يشتقّ شرحاً صادقاً من decision_value المُدام (ارتداد عند 404 على /explain).
+// الإشارات تُبنى من الحقائق المُدامة فعلاً فقط (لا اختلاق): ثقة/سياسة/مخاطر/تحذيرات.
+function _deriveFromLineage(lin: DecisionLineage): DecisionExplainResult {
+  const dec = lin.decision;
+  if (!dec) {
+    return {
+      decision_id:   lin.decision_id,
+      decision_type: '—',
+      found:         false,
+      source:        'lineage_derived',
+      explanation:   null,
+      outcomes:      lin.outcomes,
+      evidence:      null,
+    };
+  }
+  const val = dec.decision_value ?? {};
+  const pd = (val.policy_decision ?? null) as Record<string, unknown> | null;
+  const confidence =
+    typeof dec.confidence === 'number'
+      ? dec.confidence
+      : typeof val.confidence === 'number'
+        ? (val.confidence as number)
+        : null;
+  const calibrated = val.calibrated === true;
+
+  // إشارات من الحقائق المُدامة (كلّ إشارة مرتبطة بقيمة فعليّة موجودة — لا اختلاق).
+  const signals: DecisionSignal[] = [];
+  const ws = (val.water_state ?? null) as Record<string, unknown> | null;
+  if (ws && typeof ws.needs_irrigation === 'boolean') {
+    signals.push({
+      key: 'needs_irrigation',
+      label_ar: 'حاجة الريّ',
+      value: ws.needs_irrigation ? 'نعم' : 'لا',
+      status: ws.needs_irrigation ? 'warn' : 'ok',
+    });
+  }
+  const irr = (val.irrigation ?? null) as Record<string, unknown> | null;
+  if (irr && typeof irr.stress_days === 'number') {
+    signals.push({
+      key: 'stress_days',
+      label_ar: 'أيّام الإجهاد',
+      value: irr.stress_days,
+      status: (irr.stress_days as number) > 0 ? 'risk' : 'ok',
+    });
+  }
+  if (typeof val.data_quality === 'string') {
+    signals.push({ key: 'data_quality', label_ar: 'جودة البيانات', value: val.data_quality, status: 'info' });
+  }
+  for (const r of (Array.isArray(val.risks) ? val.risks : []) as Record<string, unknown>[]) {
+    if (r && typeof r === 'object') {
+      signals.push({
+        key: String(r.key ?? 'risk'),
+        label_ar: String(r.label_ar ?? 'مخاطرة'),
+        value: String(r.level_ar ?? ''),
+        status: 'risk',
+      });
+    }
+  }
+
+  const policy: DecisionPolicyView | null = pd
+    ? {
+        resolved:   (pd.resolved_policy as string) ?? null,
+        applied:    (pd.applied_policy as string) ?? null,
+        auto:       pd.auto === true,
+        reasons_ar: _strList(pd.reasons_ar),
+      }
+    : null;
+
+  // القيود: سقوف التطبيق/الميزانيّة إن أُدِيمت فعلاً (لا نخترعها).
+  const constraints: DecisionConstraint[] = [];
+  if (irr && irr.policy != null) constraints.push({ key: 'policy', label_ar: 'سياسة الريّ', value: irr.policy });
+  if (irr && irr.total_mm != null) constraints.push({ key: 'total_mm', label_ar: 'إجماليّ الريّ (مم)', value: irr.total_mm });
+
+  // القرار النهائيّ: ملخّص الأفعال المُدامة (ريّ/تسميد) — أرقام حقيقيّة لا مُلفَّقة.
+  const final: Record<string, unknown> = {};
+  if (irr && irr.action_ar != null) final['الريّ'] = irr.action_ar;
+  const fert = (val.fertilization ?? null) as Record<string, unknown> | null;
+  if (fert && fert.action_ar != null) final['التسميد'] = fert.action_ar;
+
+  return {
+    decision_id:   lin.decision_id,
+    decision_type: dec.decision_type,
+    found:         true,
+    source:        'lineage_derived',
+    explanation: {
+      confidence,
+      calibrated,
+      signals,
+      policy,
+      constraints,
+      final,
+      warnings_ar: _strList(val.warnings_ar),
+    },
+    outcomes: lin.outcomes,
+    evidence: null,
+  };
+}
+
+/** يجلب شرح القرار: يجرّب /explain أوّلاً، ويرتدّ عند 404 (العلم مُطفأ) إلى
+ *  /lineage فيشتقّ شرحاً صادقاً من decision_value. أيّ خطأ آخر (503/403) يُرفع
+ *  لتعرض الواجهة حالة خطأ صادقة. */
+export const fetchDecisionExplain = (decisionId: string): Promise<DecisionExplainResult> => {
+  const id = decisionId.trim();
+  return kongApi
+    .get<RawExplainResponse>(`/api/v1/decision/${encodeURIComponent(id)}/explain`)
+    .then((r) => _normalizeExplain(r.data ?? {}, id))
+    .catch((e: unknown) => {
+      // 404 فقط ⇒ العلم FEATURE_DECISION_STUDIO مُطفأ/النقطة غير موجودة: ارتدّ للنسَب.
+      if (asApiError(e).response?.status === 404) {
+        return fetchDecisionLineage(id).then(_deriveFromLineage);
+      }
+      throw e;
+    });
+};
+
+// ══════════════════════════════════════════════════════════════════
+// AGRONOMIC TIMELINE — الخطّ الزمنيّ الموحّد للحقل (مثل Git history، قراءة فقط).
+// تستهلك GET /api/v1/fields/{field_id}/unified-timeline (assemble_timeline:
+// تصنيف+فرز+إحصاءات عبر RLS). صدق: عند تعطّل القاعدة يُرجِع خطّاً فارغاً + note_ar
+// (لا تاريخ مخترَع) — تعرضه الواجهة EmptyState. لا fallback وهميّ.
+// ══════════════════════════════════════════════════════════════════
+export type AgronomicTimelineCategory =
+  | 'lifecycle' | 'operation' | 'observation' | 'calibration' | 'weather' | 'system' | string;
+
+/** حدث واحد في الخطّ الزمنيّ (يطابق TimelineEvent.to_dict الخلفيّ). */
+export interface UnifiedTimelineEvent {
+  timestamp:   string;
+  event_type:  string;
+  category:    AgronomicTimelineCategory;
+  summary_ar:  string;
+  actor_id:    string | null;
+  payload:     Record<string, unknown>;
+}
+/** الخطّ الزمنيّ الكامل (يطابق FieldTimeline.to_dict). */
+export interface UnifiedTimeline {
+  field_id:        string;
+  total_events:    number;
+  earliest_at:     string | null;
+  latest_at:       string | null;
+  category_counts: Record<string, number>;
+  events:          UnifiedTimelineEvent[];
+  note_ar?:        string; // يظهر عند تعطّل القاعدة (لا تاريخ حيّ) — حالة فارغة صادقة
+  error?:          string; // يظهر عند فشل الجلب الداخليّ (الخادم يُعلنه لا يخترع)
+}
+
+export const fetchUnifiedTimeline = (
+  fieldId: string,
+  opts: { limit?: number; newestFirst?: boolean; category?: string } = {},
+): Promise<UnifiedTimeline> => {
+  const { limit = 200, newestFirst = true, category } = opts;
+  return kongApi
+    .get<UnifiedTimeline>(`/api/v1/fields/${encodeURIComponent(fieldId)}/unified-timeline`, {
+      params: {
+        limit,
+        newest_first: newestFirst,
+        ...(category ? { category } : {}),
+      },
+    })
+    .then((r) => {
+      const d = r.data ?? ({} as UnifiedTimeline);
+      return {
+        field_id:        d.field_id ?? fieldId,
+        total_events:    typeof d.total_events === 'number' ? d.total_events : 0,
+        earliest_at:     d.earliest_at ?? null,
+        latest_at:       d.latest_at ?? null,
+        category_counts: d.category_counts && typeof d.category_counts === 'object' ? d.category_counts : {},
+        events:          Array.isArray(d.events) ? d.events : [],
+        note_ar:         d.note_ar,
+        error:           d.error,
+      };
+    });
+};
+
 // ── قرار المحصول الموحّد (POST /api/v1/crop-twin/decision) ──
 // ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة. الاقتصاد محجوز (not_configured).
 export interface CropDecisionForecastDay {
