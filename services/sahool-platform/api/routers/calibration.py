@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from api.calibration import all_regions, get_calibration
 from api.evidence_registry import aggregate_evidence
+from api.learning_feedback import learning_feedback
 from api.main import UserSchema, get_current_user
 
 router = APIRouter()
@@ -65,3 +66,28 @@ def compute_region_evidence(
         [o.model_dump() for o in req.outcomes],
         expert_calibrated=expert,
     )
+
+
+class EvidenceRecord(BaseModel):
+    region: str
+    evidence_level: str = "none"
+    sample_count: int = 0
+    success_rate: float | None = None
+    success_flag_counts: dict[str, int] = Field(default_factory=dict)
+    samples_to_verified: int = 0
+
+
+class FeedbackRequest(BaseModel):
+    evidence_records: list[EvidenceRecord] = Field(default_factory=list)
+
+
+@router.post("/api/v1/calibration/feedback")
+def compute_learning_feedback(
+    req: FeedbackRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """حلقة التغذية الراجعة: تقترح أين المعايرة ضعيفة وأيّ المعاملات تحتاج مراجعة بشريّة.
+
+    صدق: اقتراحات فقط — `auto_adjust=False` صريح؛ القرار للإنسان (Adaptive لاحقاً).
+    """
+    return learning_feedback([r.model_dump() for r in req.evidence_records])
