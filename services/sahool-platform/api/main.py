@@ -3171,6 +3171,7 @@ from api.routers.fodder_alternatives import router as fodder_alternatives_router
 from api.routers.gdd import router as gdd_router  # noqa: E402
 from api.routers.geo import router as geo_router  # noqa: E402
 from api.routers.geo_locate import router as geo_locate_router  # noqa: E402
+from api.routers.gis_kernel import router as gis_kernel_router  # noqa: E402
 from api.routers.harvest_traceability import (  # noqa: E402
     router as harvest_traceability_router,
 )
@@ -3350,6 +3351,7 @@ app.include_router(escalation_router)
 app.include_router(evidence_router)
 app.include_router(indices_router)
 app.include_router(geo_locate_router)
+app.include_router(gis_kernel_router)
 app.include_router(field_single_router)
 app.include_router(edge_router)
 app.include_router(field_intelligence_router)

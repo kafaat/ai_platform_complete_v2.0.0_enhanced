@@ -30,8 +30,10 @@ def adv_mod(monkeypatch):
     """يحمّل advisory_skill.py باسم فريد عبر importlib مع LOCAL_AI_RAG_URL غائب.
 
     إزالة العلم قبل الاستيراد ⇒ ثابت الوحدة LOCAL_AI_RAG_URL == "" (السلوك السابق).
-    httpx مطلوب للاستيراد (لكن لا استدعاء حيّ في هذه الاختبارات)."""
+    httpx/fastapi مطلوبان للاستيراد (لكن لا استدعاء حيّ هنا)؛ بيئة الوحدة الخفيفة في CI
+    لا تثبّت fastapi ⇒ نتخطّى بدل الفشل (يُغطّيه job المنصّة الأثقل)."""
     pytest.importorskip("httpx")
+    pytest.importorskip("fastapi")
     monkeypatch.delenv("LOCAL_AI_RAG_URL", raising=False)
     added = SUPERVISOR not in sys.path
     if added:
