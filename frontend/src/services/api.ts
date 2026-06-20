@@ -495,6 +495,39 @@ export interface PortfolioAllocResult {
 export const computePortfolioAllocation = (payload: PortfolioAllocInput): Promise<PortfolioAllocResult> =>
   kongApi.post<PortfolioAllocResult>('/api/v1/field-portfolio/allocate', payload).then(r => r.data);
 
+// ── استعلام GIS باللغة الطبيعيّة (POST /api/v1/nl-gis/query) — قراءة فقط ──
+// يصنّف استعلاماً عربيّاً حرّاً إلى نيّة مغلقة (تنبيه/انخفاض NDVI/فجوة ريّ) ويُعيد
+// معاينة قراءة-فقط للحقول المطابقة من بيانات المستأجِر — لا تنفيذ ولا تعديل (read_only).
+// خلف العلم FEATURE_NATURAL_LANGUAGE_GIS؛ مُطفأً ⇒ 404 (تلتقطه الواجهة برسالة «الميزة
+// غير مُفعَّلة»). 503 ⇒ القاعدة غير متاحة (حالة خطأ صادقة). العناصر متغايرة المفاتيح
+// حسب النيّة (تُعرَض أعمدةً ديناميكيّةً)، وقيمها بدائيّات JSON (نصّ/رقم/null؛ التواريخ
+// مُنصَّصة مسبقاً). لا fallback وهميّ: الخطأ يُرفع لتعرض الواجهة حالة صادقة عبر
+// .response?.status (مطابقةً لبقيّة الصفحات التي تكشف 404).
+export interface NlGisQueryInput {
+  query: string;
+}
+// عنصر نتيجة متغاير المفاتيح حسب النيّة — قيمه بدائيّات JSON فقط (لا كائنات متداخلة).
+export type NlGisItem = Record<string, string | number | boolean | null>;
+export interface NlGisResult {
+  read_only:   boolean;
+  intent:      string;                 // alert_filter | ndvi_drop | irrigation_gap | unsupported
+  supported:   boolean;
+  status:      string;                 // ok | needs_data | unsupported
+  slots?:      Record<string, string | number | null>;
+  confidence?: number;
+  api_called?: string;
+  items:       NlGisItem[];
+  count:       number;
+  note_ar?:    string | null;          // شرح الفراغ/الحاجة للبيانات
+  reason_ar?:  string | null;          // سبب عدم الدعم (intent=unsupported)
+  tenant_id?:  string;
+}
+/** يستعلم GIS باللغة الطبيعيّة (POST /api/v1/nl-gis/query) — قراءة فقط لا تنفيذ.
+ *  يرمي عند الخطأ (404 العلم مُطفأ — تلتقطه الواجهة برسالة «الميزة غير مُفعَّلة»؛
+ *  503 القاعدة غير متاحة تُعرَض كحالة خطأ صادقة). */
+export const queryNlGis = (payload: NlGisQueryInput): Promise<NlGisResult> =>
+  kongApi.post<NlGisResult>('/api/v1/nl-gis/query', payload).then(r => r.data);
+
 // ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
 // يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة
 // لكلّ سياسة ويوصي بأفضلها — توصية فقط لا تنفيذ ولا حجز ماء. خلف العلم

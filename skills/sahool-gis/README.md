@@ -27,6 +27,37 @@
 | المعدّات والأجهزة | [EQUIPMENT_OVERLAY.md](EQUIPMENT_OVERLAY.md) | `GET /equipment`، `GET /devices`، `GET /devices/{id}/telemetry` | overlay |
 | تصدير لقطة وتقرير | [EXPORT_SNAPSHOT.md](EXPORT_SNAPSHOT.md) | canvas + `POST /fields/{id}/walk-plan/pdf` | تصدير |
 | القرار الموحّد | [UNIFIED_DECISION.md](UNIFIED_DECISION.md) | `POST /crop-twin/decision`، `GET /fields/{id}/workspace` | قرار |
+| GIS باللغة الطبيعيّة (قراءة فقط) | [NL_GIS_QUERY.md](NL_GIS_QUERY.md) | `POST /nl-gis/query` (نيّات مغلقة → `alerts⋈fields`/`ndvi_timeseries`/`irrigation_schedules`) | لغة→نيّة |
+
+---
+
+## عائلات المهارات (Skill Families)
+
+الفكرة الجوهريّة المُستنبَطة من نمط ClientX-skills: **لا ننقل SDK، ننقل عقد المهارة** —
+الوكيل لا يكتب شاشة من الصفر، بل **يركّبها من مهارات موثوقة مقيَّدة بالبيانات الحقيقيّة**.
+كلّ مهارة تُحدّد ثمانية أقسام إلزاميّة: الغرض · API · المدخلات · المخرجات · empty/loading/
+error · tenant/RLS · قاعدة عدم الاختلاق · ربط `field_id` · اختبارات القبول.
+
+تنتظم المهارات في أربع عائلات:
+
+| العائلة | المهارات | الغرض |
+|---|---|---|
+| **GIS Skills** | MAP_VIEWER · FIELD_BOUNDARY · RASTER_LAYER · NDVI_TIMELINE · PIXEL_FIELD_POPUP · PIVOT_SEGMENTATION · TERRAIN_DEM · IRRIGATION_NETWORK · EQUIPMENT_OVERLAY · EXPORT_SNAPSHOT | طبقات الخريطة وتفاعلها على Leaflet/PostGIS/TiTiler |
+| **Crop-Decision Skills** | UNIFIED_DECISION · (مرجع: Portfolio Command · Scenario Compare · Decision Studio) | تحويل القرار الزراعيّ الموحّد إلى لوحة/مقارنة فوق الخريطة |
+| **Evidence Skills** | (مُخطَّط: EVIDENCE_MAP · AGRONOMIC_REPLAY) | عرض **مستوى الدليل** (مؤكَّد/مدعوم/إرشاديّ/needs_data) لا النتيجة وحدها |
+| **Operations-Wall Skills** | (مرجع: Operation Center Wall) · NL_GIS_QUERY | تلخيص تشغيليّ + استعلام لُغة-طبيعيّة قراءة فقط بنيّات مغلقة |
+
+## خارطة الطريق (مُحاذاة المراجعة النهائيّة)
+
+1. ✅ **SAHOOL GIS Skills Pack** — هذه الحزمة (عقد المهارة الثمانيّ).
+2. ✅ **Field Workspace Map Card** — `FieldWorkspaceMapCard.tsx` فوق `assemble_workspace`.
+3. ✅ **Natural Language GIS (read-only)** — `NL_GIS_QUERY` + `POST /nl-gis/query` خلف علم.
+4. ⏳ **Evidence / Replay Map** — خريطة تعرض مستوى الدليل + إعادة تشغيل الموسم (NDVI/طقس/ريّ/قرار/نتيجة/دليل على خطّ زمنيّ واحد).
+5. ⏸ **CesiumJS Field 3D Workbench** — **تطبيق مستقل** `apps/field-3d-workbench/` لاحقاً (terrain/DEM، حدود، شبكة ريّ، محاور، آبار، معدّات، NDVI مُسقَط، خطّ زمنيّ) — **بعد** تثبيت 3 و4، لا داخل الواجهة الرئيسيّة، ولا SuperMap/ClientX/Tianditu.
+
+> **لا يُنقَل**: SuperMap ClientX / SuperMap3D / Tianditu (SDK مملوك، سياق صينيّ، تبعيّة
+> ثقيلة، لا يخدم اليمن، يكسر بنية Leaflet/PostGIS/TiTiler/STAC). **يُنقَل**: *نمط*
+> ClientX-Skills — واجهات وخرائط يركّبها الوكيل من مهارات موثوقة مقيَّدة بالبيانات الحقيقيّة.
 
 ---
 

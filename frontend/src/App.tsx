@@ -7,7 +7,7 @@ import {
   Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
-  ChevronDown, CalendarRange, GitCompare, GitBranch, Crosshair,
+  ChevronDown, CalendarRange, GitCompare, GitBranch, Crosshair, Search,
   FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -70,6 +70,7 @@ const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'))
 const IrrigationPlanPage = lazy(() => import('./sections/IrrigationPlanPage'));
 const CropStatePage = lazy(() => import('./sections/CropStatePage'));
 const ScenarioComparePage = lazy(() => import('./sections/ScenarioComparePage'));
+const NlGisPage = lazy(() => import('./sections/NlGisPage'));
 const PortfolioPage = lazy(() => import('./sections/PortfolioPage'));
 const PortfolioCommandPage = lazy(() => import('./sections/PortfolioCommandPage'));
 const CalibrationPage = lazy(() => import('./sections/CalibrationPage'));
@@ -112,7 +113,7 @@ export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
+  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
@@ -164,6 +165,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id:'irrigation-plan', label:'خطّة الريّ المتنبّأ', icon:CalendarRange },
       { id:'crop-state', label:'حالة المحصول الموحّدة', icon:Sprout },
       { id:'scenario-compare', label:'مقارنة السياسات', icon:GitCompare },
+      { id:'nl-gis', label:'استعلام GIS باللغة الطبيعيّة', icon:Search, badge:'جديد' },
       { id:'portfolio', label:'توزيع ماء المزرعة', icon:Layers },
       { id:'portfolio-command', label:'مركز قيادة المحفظة', icon:Crosshair, badge:'جديد' },
       { id:'calibration', label:'حالة المعايرة الإقليميّة', icon:Activity },
@@ -549,6 +551,7 @@ export default function App() {
       case 'irrigation-plan': return <IrrigationPlanPage />;
       case 'crop-state': return <CropStatePage />;
       case 'scenario-compare': return <ScenarioComparePage />;
+      case 'nl-gis': return <NlGisPage />;
       case 'portfolio': return <PortfolioPage />;
       case 'portfolio-command': return <PortfolioCommandPage />;
       case 'calibration': return <CalibrationPage />;
