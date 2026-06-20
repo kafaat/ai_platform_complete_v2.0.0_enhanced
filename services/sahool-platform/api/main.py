@@ -3107,6 +3107,7 @@ from api.routers.agricultural_proverbs import (  # noqa: E402
 )
 from api.routers.agro_intelligence import router as agro_intelligence_router  # noqa: E402
 from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
+from api.routers.agronomic_replay import router as agronomic_replay_router  # noqa: E402
 
 # الدفعة ٩ (Batch 9) — نطاقات CQRS/استبطان + كتابات (commands/events/lineage/replay/
 # lifecycle/seasons/alerts/tasks/farms) مُفكَّكة من main (نمط P0).
@@ -3361,6 +3362,7 @@ app.include_router(confidence_gate_router)
 app.include_router(escalation_router)
 app.include_router(evidence_router)
 app.include_router(evidence_map_router)
+app.include_router(agronomic_replay_router)
 app.include_router(indices_router)
 app.include_router(geo_locate_router)
 app.include_router(gis_kernel_router)

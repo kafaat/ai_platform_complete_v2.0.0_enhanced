@@ -896,6 +896,59 @@ export const fetchPersistedEvidence = (region: string): Promise<PersistedEvidenc
     .get<PersistedEvidence>(`/api/v1/calibration/${encodeURIComponent(region)}/evidence/persisted`)
     .then(r => r.data);
 
+// ══════════════════════════════════════════════════════════════════
+// EVIDENCE MAP — خريطة الدليل (GET /api/v1/evidence/map) — قراءة فقط ──
+// لكلّ حقل للمستأجِر: مستوى الدليل خلف قراراته (مؤكَّد/مدعوم/إرشاديّ/يحتاج بيانات)
+// على خريطة 2D حقيقيّة + قائمة. خلف العلم FEATURE_EVIDENCE_MAP؛ مُطفأً ⇒ 404
+// (تلتقطه الواجهة برسالة «الميزة غير مُفعَّلة»). 503 ⇒ القاعدة غير متاحة (حالة خطأ
+// صادقة). صدق: مستوى الدليل من القرارات/القياسات المُدامة فقط؛ عتبة التحقّق الميدانيّ
+// تقديريّة. الحقول بلا إحداثيّات (has_coords=false) لا تُرسَم (لا إحداثيّات مُختلَقة).
+// needs_data «لا دليل بعد» صادق (رماديّ) لا حالة إيجابيّة. لا fallback وهميّ: الخطأ
+// يُرفع لتعرض الواجهة حالة صادقة عبر .response?.status (مطابقةً لبقيّة صفحات العلم).
+export type EvidenceMapTier =
+  | 'field_verified' | 'field_preliminary' | 'indicative' | 'needs_data';
+// لون الفئة من الخادم — يُربَط بألوان CSS/علامات محدّدة في الواجهة (لا فئات إضافيّة).
+export type EvidenceMapColor = 'green' | 'amber' | 'blue' | 'gray';
+export interface EvidenceMapLegendItem {
+  tier:    EvidenceMapTier;
+  tier_ar: string;
+  color:   EvidenceMapColor | string;
+}
+export interface EvidenceMapField {
+  field_id:            string;
+  name:                string;
+  crop:                string;
+  gov:                 string;
+  lat:                 number | null;
+  lon:                 number | null;
+  has_coords:          boolean;       // false ⇒ لا يُرسَم (لا إحداثيّات مُختلَقة)
+  decisions:           number;
+  outcomes:            number;
+  successes:           number;
+  success_rate:        number | null; // null ⇒ «—» (لا تلفيق)
+  samples_to_verified: number;
+  last_outcome_at:     string | null;
+  tier:                EvidenceMapTier;
+  tier_ar:             string;
+  color:               EvidenceMapColor | string;
+}
+export interface EvidenceMapResult {
+  generated_at:       string;
+  legend:             EvidenceMapLegendItem[];
+  fields:             EvidenceMapField[];
+  totals_by_tier:     Record<string, number>;
+  field_count:        number;
+  plottable_count:    number;
+  verified_threshold: number;
+  provenance:         { calibrated: string; note_ar: string };
+  tenant_id:          string;
+}
+/** يجلب خريطة الدليل (GET /api/v1/evidence/map) — قراءة فقط لا تنفيذ.
+ *  يرمي عند الخطأ (404 العلم مُطفأ — تلتقطه الواجهة برسالة «الميزة غير مُفعَّلة»؛
+ *  503 القاعدة غير متاحة تُعرَض كحالة خطأ صادقة). */
+export const fetchEvidenceMap = (): Promise<EvidenceMapResult> =>
+  kongApi.get<EvidenceMapResult>('/api/v1/evidence/map').then(r => r.data);
+
 // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) — سرد القرارات المُدامة + تلخيص حلقة التعلّم ──
 // تستهلك GET /api/v1/decision/records (سرد القرارات المُدامة للمستأجِر، معزولة بـRLS):
 //   {decisions: DecisionRecord[], count}. شكل القرار مطابق لـ_shape_decision_row

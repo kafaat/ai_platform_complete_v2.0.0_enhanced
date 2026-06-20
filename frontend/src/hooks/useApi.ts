@@ -73,6 +73,8 @@ import {
   // ── سلسلة النَّسَب المُدامة + الدليل المتراكم (قراءة فقط) ──
   fetchDecisionLineage, type DecisionLineage,
   fetchPersistedEvidence, type PersistedEvidence,
+  // ── خريطة الدليل (Evidence Map): مستوى الدليل خلف قرارات كلّ حقل (قراءة فقط) ──
+  fetchEvidenceMap, type EvidenceMapResult,
   // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) ──
   fetchDecisionRecords, type DecisionRecordsResult,
   fetchLearningSummary, type LearningSummary,
@@ -977,6 +979,21 @@ export function usePersistedEvidence(region?: string): UseQueryResult<PersistedE
     staleTime:5 * 60_000,
     retry:    false,
     enabled:  !!r,
+  });
+}
+
+// خريطة الدليل (GET /api/v1/evidence/map) — قراءة فقط. مستوى الدليل خلف قرارات كلّ
+// حقل (مؤكَّد/مدعوم/إرشاديّ/يحتاج بيانات) على خريطة 2D + قائمة. مُفهرَسة بالمستأجِر
+// (العزل بـRLS خادميّاً). لا fallback وهميّ: الخطأ (404 العلم مُطفأ، 503 DB) يُرفض
+// الاستعلام لتعرض الواجهة حالة صادقة (الصفحة تكشف 404 عبر error.response?.status
+// لرسالة «الميزة غير مُفعَّلة»). retry:false كبقيّة صفحات العلم.
+export function useEvidenceMap(): UseQueryResult<EvidenceMapResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<EvidenceMapResult, Error>({
+    queryKey: ['evidence-map', tid],
+    queryFn:  () => fetchEvidenceMap(),
+    staleTime:5 * 60_000,
+    retry:    false,
   });
 }
 

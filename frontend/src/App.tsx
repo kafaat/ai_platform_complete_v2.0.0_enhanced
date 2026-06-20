@@ -76,6 +76,7 @@ const PortfolioCommandPage = lazy(() => import('./sections/PortfolioCommandPage'
 const CalibrationPage = lazy(() => import('./sections/CalibrationPage'));
 const CalibrationWorkbenchPage = lazy(() => import('./sections/CalibrationWorkbenchPage'));
 const LineagePage = lazy(() => import('./sections/LineagePage'));
+const EvidenceMapPage = lazy(() => import('./sections/EvidenceMapPage'));
 const LearningDashboardPage = lazy(() => import('./sections/LearningDashboardPage'));
 const DecisionStudioPage = lazy(() => import('./sections/DecisionStudioPage'));
 const AgronomicTimelinePage = lazy(() => import('./sections/AgronomicTimelinePage'));
@@ -113,7 +114,7 @@ export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
+  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
@@ -171,6 +172,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id:'calibration', label:'حالة المعايرة الإقليميّة', icon:Activity },
       { id:'calibration-workbench', label:'منضدة المعايرة', icon:SlidersHorizontal, badge:'جديد' },
       { id:'lineage', label:'سلسلة النَّسَب والدليل', icon:GitBranch },
+      { id:'evidence-map', label:'خريطة الدليل', icon:ShieldCheck, badge:'جديد' },
       { id:'learning-dashboard', label:'لوحة رصد التعلّم', icon:BarChart3 },
       { id:'decision-studio', label:'استوديو القرار', icon:FlaskConical, badge:'جديد' },
       { id:'agronomic-timeline', label:'الخطّ الزمنيّ الأغرونوميّ', icon:GitCommitHorizontal, badge:'جديد' },
@@ -557,6 +559,7 @@ export default function App() {
       case 'calibration': return <CalibrationPage />;
       case 'calibration-workbench': return <CalibrationWorkbenchPage />;
       case 'lineage': return <LineagePage />;
+      case 'evidence-map': return <EvidenceMapPage />;
       case 'learning-dashboard': return <LearningDashboardPage />;
       case 'decision-studio': return <DecisionStudioPage />;
       case 'agronomic-timeline': return <AgronomicTimelinePage />;
