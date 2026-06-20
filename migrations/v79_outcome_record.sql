@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS outcome_record (
     actual          JSONB        NOT NULL,                -- ما رُصِد ميدانيّاً
     metrics         JSONB        NOT NULL,                -- مخرجات measure_outcome (نجاح/إجهاد/وفر …)
     success         BOOLEAN,                              -- خلاصة النجاح إن أمكن حسمها، وإلا NULL
+    idempotency_key VARCHAR(80),                          -- لاتكرار اختياريّ: إعادة POST لا تُكرّر العيّنة
     created_by      VARCHAR(80),                          -- من سجّل القياس
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
@@ -36,6 +37,11 @@ CREATE INDEX IF NOT EXISTS idx_outcome_record_tenant   ON outcome_record (tenant
 CREATE INDEX IF NOT EXISTS idx_outcome_record_decision ON outcome_record (decision_id);
 CREATE INDEX IF NOT EXISTS idx_outcome_record_field    ON outcome_record (tenant_id, field_id);
 CREATE INDEX IF NOT EXISTS idx_outcome_record_created  ON outcome_record (created_at DESC);
+-- لاتكرار قاعديّ (cluster-safe): إعادة /outcome/record بنفس المفتاح لا تُدرِج عيّنة ثانية
+-- ⇒ لا يتضخّم sample_count الذي يحرس عتبة field_verified (سلامة حلقة التعلّم). جزئيّ على
+-- غير-NULL فقط (المفتاح اختياريّ؛ القياسات بلا مفتاح تبقى متعدّدة كالسابق).
+CREATE UNIQUE INDEX IF NOT EXISTS ux_outcome_record_idem
+    ON outcome_record (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 COMMENT ON TABLE  outcome_record IS
     'سجلّ نتائج القرارات المُدام — يُغلق حلقة Decision→Outcome (P0-1). tenant-isolated عبر RLS. v79.';

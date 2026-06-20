@@ -260,6 +260,7 @@ class OutcomeRecordRequest(BaseModel):
     region: str | None = None
     planned: OutcomePlannedIn = Field(default_factory=OutcomePlannedIn)
     actual: OutcomeActualIn = Field(default_factory=OutcomeActualIn)
+    idempotency_key: str | None = None  # لاتكرار: إعادة POST بنفس المفتاح لا تُكرّر العيّنة
 
 
 @router.post("/api/v1/outcome/record")
@@ -272,6 +273,10 @@ async def record_outcome(
     يُغلق P0-1 (إدامة النتيجة): يجعل أثر القرار يتراكم كدليل ميدانيّ — الأساس الذي يبني
     عليه evidence_registry لاحقاً. + حدث OUTCOME_MEASURED. 503 عند تعذّر القاعدة. مسار
     كتابة (يتطلّب Postgres). الصدق: القياس نقيّ (measure_outcome)؛ success الناقص ⇒ NULL.
+
+    لاتكرار (cluster-safe عبر القاعدة): مع idempotency_key، إعادة POST لا تُدرِج عيّنة
+    ثانية (ON CONFLICT) — فلا يتضخّم sample_count الذي يحرس عتبة field_verified (سلامة
+    حلقة التعلّم). الإعادة تُعيد القياس القائم (replayed=true) بلا حدث جديد.
     """
     metrics = measure_outcome(req.planned.model_dump(), req.actual.model_dump())
     success = _derive_success(metrics["metrics"])
@@ -280,12 +285,16 @@ async def record_outcome(
     lineage = lineage_stage(did, "outcome", field_id=req.field_id, region=req.region)
     try:
         async with tenant_connection(user) as conn:
-            await conn.execute(
+            inserted = await conn.fetchval(
                 """INSERT INTO outcome_record
                     (outcome_id, tenant_id, decision_id, field_id, region,
-                     stage, planned, actual, metrics, success, created_by)
+                     stage, planned, actual, metrics, success, created_by, idempotency_key)
                    VALUES ($1, $2::uuid, $3, $4, $5, $6,
-                     $7::jsonb, $8::jsonb, $9::jsonb, $10, $11)""",
+                     $7::jsonb, $8::jsonb, $9::jsonb, $10, $11, $12)
+                   ON CONFLICT (tenant_id, idempotency_key)
+                     WHERE idempotency_key IS NOT NULL
+                   DO NOTHING
+                   RETURNING outcome_id""",
                 outcome_id,
                 str(user.tenant_id),
                 did,
@@ -297,7 +306,26 @@ async def record_outcome(
                 _json.dumps(metrics),
                 success,
                 str(user.user_id),
+                req.idempotency_key,
             )
+            # تكرار (نفس idempotency_key) ⇒ لم يُدرَج جديد؛ نُعيد القياس القائم بلا حدث.
+            if inserted is None and req.idempotency_key is not None:
+                existing = await conn.fetchrow(
+                    "SELECT * FROM outcome_record WHERE idempotency_key = $1 "
+                    "ORDER BY created_at ASC LIMIT 1",
+                    req.idempotency_key,
+                )
+                if existing is not None:
+                    out = _shape_outcome_row(existing)
+                    out["lineage"] = lineage_stage(
+                        out["decision_id"],
+                        "outcome",
+                        field_id=out["field_id"],
+                        region=out["region"],
+                    )
+                    out["persisted"] = True
+                    out["replayed"] = True  # صدق: أُعيد القياس القائم — لم تُكرَّر العيّنة
+                    return out
             await _emit_domain_event(
                 conn,
                 user,
@@ -316,6 +344,7 @@ async def record_outcome(
         "metrics": metrics,
         "success": success,
         "persisted": True,
+        "replayed": False,
         "recorded_by": str(user.user_id),
     }
 

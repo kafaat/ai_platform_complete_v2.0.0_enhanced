@@ -48,6 +48,9 @@ def test_v79_outcome_record_links_decision_and_rls():
     assert "decision_id     VARCHAR(40)  NOT NULL" in sql
     # جوهر النَّسَب: فهرس decision_id (الانضمام Decision→Outcome) لا يُسقَط.
     assert "idx_outcome_record_decision ON outcome_record (decision_id)" in sql
+    # لاتكرار قاعديّ: فهرس فريد جزئيّ على (tenant, idempotency_key) يحمي sample_count.
+    assert "ux_outcome_record_idem" in sql
+    assert "WHERE idempotency_key IS NOT NULL" in sql
     _assert_explicit_rls(sql, "outcome_record")
 
 
