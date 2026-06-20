@@ -526,6 +526,66 @@ export interface CalibrationOverview {
 export const fetchCalibration = (): Promise<CalibrationOverview> =>
   kongApi.get<CalibrationOverview>('/api/v1/calibration').then(r => r.data);
 
+// ── سلسلة النَّسَب المُدامة + الدليل المتراكم (قراءة فقط) ──
+// تُظهر للمستخدم أثر القرار المحفوظ ونتائجه التالية (decision → outcomes)، وتراكم
+// الدليل الميدانيّ لكلّ منطقة نحو التحقّق. صدق: الدليل المتراكم تقديريّ غير مُعايَر
+// (calibrated=false, source=persisted_outcomes) حتى تُجمَع عيّنات كافية — تُعرَض
+// warnings_ar صراحةً. لا fallback وهميّ: الخطأ (404/503) يُرفع لتعرض الواجهة حالة صادقة.
+export interface LineageDecision {
+  decision_id:    string;
+  field_id:       string;
+  decision_type:  string;
+  region:         string;
+  stage:          string;
+  decision_value: Record<string, unknown>;
+  confidence:     number | null;
+  created_by:     string;
+  created_at:     string;
+}
+export interface LineageOutcome {
+  outcome_id:  string;
+  decision_id: string;
+  field_id:    string;
+  region:      string;
+  stage:       string;
+  planned:     Record<string, unknown>;
+  actual:      Record<string, unknown>;
+  metrics:     Record<string, unknown>;
+  success:     boolean | null;
+  created_at:  string;
+}
+export interface DecisionLineage {
+  decision_id:    string;
+  decision:       LineageDecision | null;
+  outcomes:       LineageOutcome[];
+  outcome_count:  number;
+  stages_present: string[];
+}
+export const fetchDecisionLineage = (decisionId: string): Promise<DecisionLineage> =>
+  kongApi
+    .get<DecisionLineage>(`/api/v1/decision/${encodeURIComponent(decisionId)}/lineage`)
+    .then(r => r.data);
+
+export type EvidenceLevel = 'none' | 'field_preliminary' | 'field_verified' | 'expert_opinion';
+export interface PersistedEvidence {
+  region:                     string;
+  sample_count:               number;
+  evidence_level:             EvidenceLevel;
+  success_rate:               number | null;
+  success_flag_counts:        Record<string, number>;
+  last_evaluated_at:          string | null;
+  field_verified_min_samples: number;
+  samples_to_verified:        number;
+  calibrated:                 false;
+  source:                     'persisted_outcomes';
+  persisted_rows:             number;
+  warnings_ar:                string[];
+}
+export const fetchPersistedEvidence = (region: string): Promise<PersistedEvidence> =>
+  kongApi
+    .get<PersistedEvidence>(`/api/v1/calibration/${encodeURIComponent(region)}/evidence/persisted`)
+    .then(r => r.data);
+
 // ── قرار المحصول الموحّد (POST /api/v1/crop-twin/decision) ──
 // ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة. الاقتصاد محجوز (not_configured).
 export interface CropDecisionForecastDay {

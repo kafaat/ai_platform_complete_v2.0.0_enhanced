@@ -58,6 +58,9 @@ import {
   importField, type FieldImportInput,
   // ── حالة المعايرة الإقليميّة (قراءة فقط) ──
   fetchCalibration, type CalibrationOverview,
+  // ── سلسلة النَّسَب المُدامة + الدليل المتراكم (قراءة فقط) ──
+  fetchDecisionLineage, type DecisionLineage,
+  fetchPersistedEvidence, type PersistedEvidence,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
@@ -794,6 +797,34 @@ export function useCalibration(): UseQueryResult<CalibrationOverview, Error> {
     queryFn:  () => fetchCalibration(),
     staleTime:60 * 60_000,
     retry:    false,
+  });
+}
+
+// سلسلة النَّسَب المُدامة (GET /api/v1/decision/{id}/lineage) — قراءة فقط، عند الطلب.
+// مُفعَّلة فقط عند توفّر decision_id (إدخال المستخدم). لا fallback وهميّ: الخطأ
+// (404 قرار غير مُدام / 503 DB) يُرفض الاستعلام لتعرض الواجهة حالة صادقة.
+export function useDecisionLineage(decisionId?: string): UseQueryResult<DecisionLineage, Error> {
+  const id = (decisionId ?? '').trim();
+  return useQuery<DecisionLineage, Error>({
+    queryKey: ['decision-lineage', id],
+    queryFn:  () => fetchDecisionLineage(id),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled:  !!id,
+  });
+}
+
+// الدليل المتراكم لمنطقة (GET /api/v1/calibration/{region}/evidence/persisted) — قراءة
+// فقط. يُظهر تقدّم العيّنات نحو التحقّق ومستوى الدليل. صدق: تقديريّ غير مُعايَر
+// (calibrated=false) حتى تكفي العيّنات. لا fallback وهميّ — الخطأ يُرفض الاستعلام.
+export function usePersistedEvidence(region?: string): UseQueryResult<PersistedEvidence, Error> {
+  const r = (region ?? '').trim();
+  return useQuery<PersistedEvidence, Error>({
+    queryKey: ['persisted-evidence', r],
+    queryFn:  () => fetchPersistedEvidence(r),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled:  !!r,
   });
 }
 
