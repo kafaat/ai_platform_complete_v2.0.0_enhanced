@@ -3157,6 +3157,7 @@ from api.routers.equipment import router as equipment_router  # noqa: E402
 from api.routers.escalation import router as escalation_router  # noqa: E402
 from api.routers.events import router as events_router  # noqa: E402
 from api.routers.evidence import router as evidence_router  # noqa: E402
+from api.routers.evidence_map import router as evidence_map_router  # noqa: E402
 from api.routers.execution_lineage import router as execution_lineage_router  # noqa: E402
 from api.routers.failures import router as failures_router  # noqa: E402
 from api.routers.farms import router as farms_router  # noqa: E402
@@ -3359,6 +3360,7 @@ app.include_router(failures_router)
 app.include_router(confidence_gate_router)
 app.include_router(escalation_router)
 app.include_router(evidence_router)
+app.include_router(evidence_map_router)
 app.include_router(indices_router)
 app.include_router(geo_locate_router)
 app.include_router(gis_kernel_router)
