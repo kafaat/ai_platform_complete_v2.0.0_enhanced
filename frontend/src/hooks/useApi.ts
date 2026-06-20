@@ -56,6 +56,8 @@ import {
   // ── تفاصيل الحقل المتقدّمة (v37): قراءة + تحديث جزئيّ (ملء تدريجيّ) ──
   fetchFieldDetail, updateField,
   type FieldDetail, type FieldUpdatePatch,
+  // ── إعادة تشغيل الموسم (Agronomic Replay): خطّ زمنيّ واحد قابل للـscrub ──
+  fetchAgronomicReplay, type AgronomicReplayResult,
   // ── مساحة عمل الحقل (Field Workspace Map): ملخّص + طبقات + خطّ زمنيّ ──
   fetchFieldWorkspace, type FieldWorkspace,
   // ── استيراد حدّ حقل من ملفّ/نقاط GPS (بدل الرسم اليدويّ) ──
@@ -547,6 +549,21 @@ export function useFieldDetail(fieldId?: string): UseQueryResult<FieldDetail, Er
     queryFn:  () => fetchFieldDetail(fieldId as string),
     enabled:  !!fieldId,
     staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// ── Agronomic Replay: إعادة تشغيل الموسم (قراءة فقط، نطاق حقل) ──
+// GET /api/v1/fields/{id}/agronomic-replay. مُفعَّل فقط مع fieldId. retry:false كي
+// يُكشَف 404 (العلم FEATURE_REPLAY_MAP مُطفأ) فوراً ⇒ إشعار «الميزة غير مُفعَّلة»،
+// و503 ⇒ حالة خطأ صادقة. لا fallback وهميّ. المفتاح يضمّ المستأجِر لعزل الكاش.
+export function useAgronomicReplay(fieldId?: string): UseQueryResult<AgronomicReplayResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<AgronomicReplayResult, Error>({
+    queryKey: ['agronomic-replay', tid, fieldId ?? 'none'],
+    queryFn:  () => fetchAgronomicReplay(fieldId as string),
+    enabled:  !!fieldId,
+    staleTime:2 * 60_000,
     retry:    false,
   });
 }
