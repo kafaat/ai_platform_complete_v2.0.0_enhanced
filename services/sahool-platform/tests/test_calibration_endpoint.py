@@ -7,8 +7,11 @@
 import api.main  # noqa: F401 — تهيئة api.main قبل استيراد الموجِّه
 import pytest
 from api.routers.calibration import (
+    EvidenceRecord,
     EvidenceRequest,
+    FeedbackRequest,
     OutcomeRecord,
+    compute_learning_feedback,
     compute_region_evidence,
     get_region_calibration,
     list_calibration,
@@ -57,3 +60,18 @@ def test_evidence_endpoint_aggregates():
     assert out["sample_count"] == 1
     assert out["evidence_level"] == "field_preliminary"
     assert out["success_flag_counts"]["irrigation_followed"] == 1
+
+
+def test_feedback_endpoint_suggests_no_auto_adjust():
+    req = FeedbackRequest(
+        evidence_records=[
+            EvidenceRecord(region="jawf", evidence_level="none", sample_count=0),
+            EvidenceRecord(
+                region="ibb", evidence_level="field_verified", sample_count=40, success_rate=0.9
+            ),
+        ]
+    )
+    out = compute_learning_feedback(req=req, user=_USER)
+    assert out["auto_adjust"] is False
+    assert "jawf" in out["summary"]["regions_needing_data"]
+    assert out["regions"][0]["region"] == "jawf"  # الأولويّة الأعلى أوّلاً
