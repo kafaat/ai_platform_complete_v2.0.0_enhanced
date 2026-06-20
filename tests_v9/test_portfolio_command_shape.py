@@ -35,7 +35,9 @@ def _field(fid, margin, demand, **kw):
 def test_pump_throughput_binds_below_capacity():
     # مضخّة: سعة 1000 لكن تدفّق 100/يوم × 5 أيّام = 500 < 1000 ⇒ السعة الفعّالة 500 مُلزِمة.
     cap, bound = _effective_capacity(
-        ConstraintSource("p1", capacity_m3=1000, kind="pump", max_rate_m3_per_day=100, window_days=5)
+        ConstraintSource(
+            "p1", capacity_m3=1000, kind="pump", max_rate_m3_per_day=100, window_days=5
+        )
     )
     assert cap == 500
     assert bound is True
@@ -124,7 +126,11 @@ def test_bound_sources_surface_in_warnings():
         PolicyScenario(
             "p",
             [_field("f1", 100, 1000)],
-            [ConstraintSource("pump1", capacity_m3=1000, kind="pump", max_rate_m3_per_day=50, window_days=4)],
+            [
+                ConstraintSource(
+                    "pump1", capacity_m3=1000, kind="pump", max_rate_m3_per_day=50, window_days=4
+                )
+            ],
         )
     ]
     out = compare_portfolio_policies(scenarios)

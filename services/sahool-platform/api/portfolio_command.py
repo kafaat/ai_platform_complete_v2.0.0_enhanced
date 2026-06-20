@@ -53,9 +53,7 @@ def _effective_capacity(s: ConstraintSource) -> tuple[float, bool]:
     return cap, False
 
 
-def _risk_score(
-    n_fields: int, unmet: int, stressed: int, unmet_water_frac: float
-) -> float:
+def _risk_score(n_fields: int, unmet: int, stressed: int, unmet_water_frac: float) -> float:
     """درجة مخاطرة شفّافة في [0,1] — أعلى = أخطر (فقد محصول/إجهاد أوسع).
 
     تركيبة موزونة مُوثَّقة (ليست نموذجاً معايَراً): 0.5 لنسبة الحقول بلا ريّ (الأخطر:
