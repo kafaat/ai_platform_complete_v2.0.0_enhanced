@@ -15,6 +15,7 @@ record_operation_offline/apply_supersession) تُستورَد مباشرةً م�
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime
 
 from core.offline_first import (
@@ -33,14 +34,27 @@ from api.main import (
     get_current_user,
     tenant_connection,
 )
+from api.sync_delta import filter_since, newest_cursor
 
 router = APIRouter()
+
+_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def _delta_sync_enabled() -> bool:
+    """هل المزامنة التفاضليّة مُفعَّلة؟ (مُطفأة افتراضاً — إغلاق مرن).
+
+    عند الإطفاء: يُتجاهَل ``since`` تماماً ويبقى السلوك الحاليّ (full replay)
+    بايتاً ببايت — صفر كسر على العقد القائم.
+    """
+    return os.getenv("FEATURE_DELTA_SYNC", "").strip().lower() in _TRUTHY
 
 
 @router.post("/api/v1/sync")
 async def sync(
     req: SyncBatchRequest,
     user: UserSchema = Depends(get_current_user),
+    since: str | None = None,
 ):
     """دفعة عمليات من العميل offline-first.
 
@@ -50,14 +64,31 @@ async def sync(
     fail-safe: لو فشلت كتابة عملية، تبقى في الـqueue للمحاولة لاحقاً (لا نُعلن
     نجاحاً زائفاً). إن لم تكن القاعدة مفعّلة (DATABASE_URL غير مضبوط) تبقى الكلّ
     في الـqueue.
+
+    مزامنة تفاضليّة (Delta-Sync) — خلف ``FEATURE_DELTA_SYNC`` (إغلاق مرن):
+      • العلم مُطفأ ⇒ ``since`` يُتجاهَل تماماً والسلوك الحاليّ (full replay).
+      • العلم مُفعَّل و``since`` مُمرَّر ⇒ تُرشَّح عمليّات هذا الطلب بـ``filter_since``
+        فلا تُسجَّل/تُثبَّت إلّا الأحدث من cursor العميل (إقصاء ما استلمه سابقاً)
+        ⇒ توفير نطاق. cursor فاسد ⇒ ارتداد آمن لـfull (لا فقدان عمليّات).
+      • الاستجابة تُرفِق ``cursor`` (أحدث طابع لِيُرسله العميل تالياً) و
+        ``delta_applied`` (هل طُبّق الترشيح فعلاً). stateless: لا جدول/migration.
     """
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
+    # ٠) مزامنة تفاضليّة اختياريّة: خلف العلم وبتمرير since فقط نرشّح عمليّات الطلب
+    #    لِما هو أحدث من cursor العميل (filter_since نقيّ: cursor فاسد ⇒ full).
+    #    خارج هذا الشرط: incoming_ops = req.operations حرفيّاً (السلوك الحاليّ).
+    delta_applied = False
+    incoming_ops = req.operations
+    if _delta_sync_enabled() and since is not None:
+        incoming_ops = filter_since(req.operations, since)
+        delta_applied = True
+
     # ١) نُسجّل عمليّات هذا الطلب في الـqueue. نوع غير معروف ⇒ 400 صريح (لا 500):
     #    OperationKind(قيمة مجهولة) يرفع ValueError، فنتحقّق قبل الإدخال.
     op_ids = []
-    for raw_op in req.operations:
+    for raw_op in incoming_ops:
         raw_kind = raw_op.get("kind", "observation_create")
         try:
             kind = OperationKind(raw_kind)
@@ -82,7 +113,7 @@ async def sync(
     # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
     #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
     #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
-    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(req.operations), 1))
+    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(incoming_ops), 1))
 
     # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
     #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
@@ -122,7 +153,7 @@ async def sync(
     if superseded:
         reason += f" (+{superseded} مُلغاة بـsupersession)"
 
-    return {
+    result = {
         "status": "completed",
         "synced": synced,
         # العمليّات غير المُثبّتة تبقى QUEUED لإعادة المحاولة (لا FAILED). نفصل
@@ -135,3 +166,15 @@ async def sync(
         "reason_ar": reason,
         "op_ids": op_ids,
     }
+
+    # مزامنة تفاضليّة: نُرفِق الـcursor الجديد (أحدث طابع في الدفعة) ليُرسله العميل
+    # تالياً، ونُعلِن delta_applied بوضوح. حقول إضافيّة فقط — العقد القائم محفوظ
+    # (لا يُرفَق شيء حين العلم مُطفأ ⇒ استجابة مطابقة للسلوك الحاليّ تماماً).
+    if delta_applied:
+        next_cursor = newest_cursor(batch)
+        # ارتداد آمن: إن لم نحسب طابعاً جديداً (دفعة بلا تأريخ) نُعيد cursor العميل
+        # كما هو حتى لا يفقد موضعه (لا يُعاد للصفر).
+        result["cursor"] = next_cursor if next_cursor is not None else since
+        result["delta_applied"] = True
+
+    return result
