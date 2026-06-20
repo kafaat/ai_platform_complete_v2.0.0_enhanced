@@ -194,6 +194,12 @@ _CATALOG: dict[str, DomainEvent] = {
         category="alert",
         description_ar="أُقِرّ (acknowledged) تنبيه.",
     ),
+    "NOTIFICATION_DELIVERED": DomainEvent(
+        name="NOTIFICATION_DELIVERED",
+        category="notification",
+        description_ar="أُدِيمت/حُدِّثت حالة تسليم إشعار عبر قناة (الوسيط: notification.delivered).",
+        payload_keys=("alert_key", "channel", "status"),
+    ),
     # ── الريّ (irrigation): جدولة + دورة حياة الصمّامات ─────────────────────────
     "IRRIGATION_SCHEDULE_CREATED": DomainEvent(
         name="IRRIGATION_SCHEDULE_CREATED",
@@ -226,6 +232,32 @@ _CATALOG: dict[str, DomainEvent] = {
         category="dispatch",
         description_ar="سُجِّلت نتيجة تنفيذ قرار (الوسيط: dispatch.execution.recorded).",
         payload_keys=("outcome", "decision_id", "field_id"),
+    ),
+    # ── سلسلة النَّسَب المُدامة (lineage): إدامة القرار ونتيجته (P0-1/P0-3) ──────────
+    "DECISION_RECORDED": DomainEvent(
+        name="DECISION_RECORDED",
+        category="lineage",
+        description_ar="أُدِيم قرار زراعيّ (رأس السلسلة؛ الوسيط: decision.recorded).",
+        payload_keys=("decision_type", "field_id", "region", "confidence"),
+    ),
+    "OUTCOME_MEASURED": DomainEvent(
+        name="OUTCOME_MEASURED",
+        category="lineage",
+        description_ar="أُدِيمت نتيجة قرار ميدانيّة مربوطة بـdecision_id (الوسيط: outcome.measured).",
+        payload_keys=("decision_id", "field_id", "success"),
+    ),
+    "LINEAGE_LINKED": DomainEvent(
+        name="LINEAGE_LINKED",
+        category="lineage",
+        description_ar="رُبِط مرجع قائم بمعرّف نَسَب عالميّ موحّد lin_ (الوسيط: lineage.linked).",
+        payload_keys=("lineage_id", "ref_type", "ref_id"),
+    ),
+    # ── المعايرة الإقليميّة المُدارة (calibration): إدامة قيم مُتحقَّقة DB-backed ──────
+    "CALIBRATION_OVERRIDE_SET": DomainEvent(
+        name="CALIBRATION_OVERRIDE_SET",
+        category="calibration",
+        description_ar="أُدِيمت قيم معايرة إقليميّة مُتحقَّقة لمنطقة (الوسيط: calibration.override.set).",
+        payload_keys=("region", "fields"),
     ),
     # ── المزامنة offline: دمج آليّ غير متقاطع (Auto-merge L3) ────────────────────
     "OFFLINE_MERGE_AUTO": DomainEvent(

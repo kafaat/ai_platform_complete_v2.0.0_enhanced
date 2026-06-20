@@ -168,16 +168,14 @@ services:
       - no-new-privileges:true
     restart: unless-stopped
     logging: *default_logging
-    # TODO (تحصين، يحتاج تحقّقاً حيّاً): حدّ تخزين JetStream لمنع امتلاء القرص
-    # (الافتراضيّ غير محدود). يُضبط عبر ملفّ إعداد nats (max_file_store/
-    # max_memory_store) لا أعلام CLI غير المؤكَّدة في هذا الإصدار — لم يُطبَّق هنا
-    # تفادياً لكسر الإقلاع دون أن تلتقطه بوّابة "Validate Docker Compose".
-    command: >
-      --js
-      --store_dir /data/jetstream
-      --http_port 8222
+    # PR #394: حدّ تخزين JetStream (max_memory_store/max_file_store) عبر ملفّ إعداد
+    # nats (nats/nats.conf) لا أعلام CLI غير المؤكَّدة عبر الإصدارات. الملفّ يضبط أيضاً
+    # jetstream + store_dir + http:8222 (يطابق الـhealthcheck)، فيستبدل الأعلام العارية.
+    # غير كاسر: صياغة الملفّ مستقرّة، والـcompose يبقى صالحاً (بوّابة Validate Docker Compose).
+    command: ["-c", "/etc/nats/nats.conf"]
     volumes:
       - nats-js:/data/jetstream
+      - ./nats/nats.conf:/etc/nats/nats.conf:ro
     networks:
       - sahool-internal
     healthcheck:

@@ -139,6 +139,11 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     ALERT_CREATED = "alert.created"
     ALERT_ACKNOWLEDGED = "alert.acknowledged"
 
+    # إيصال تسليم الإشعار (إغلاق دورة الإشعار) — يُصدَر عند إدامة/تحديث حالة تسليم
+    # تنبيه عبر قناة (queued/sent/failed/delivered). يجعل «هل وصل؟» متتبَّعاً/مدقَّقاً
+    # في مجرى الأحداث الموحّد. يُستهلَك للبثّ الحيّ (WebSocket) وإعادة المحاولة.
+    NOTIFICATION_DELIVERED = "notification.delivered"
+
     # توصية: حدث عند توليد توصية (C1/C2) — يجعلها متتبَّعة/مدقَّقة في مجرى الأحداث
     # الموحّد والإعادة، ويصل البثّ الحيّ. يُصدَر عبر outbox ضمن معاملة التخزين.
     RECOMMENDATION_CREATED = "recommendation.created"
@@ -147,6 +152,21 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # تجعل سجلّ القرار/التنفيذ متتبَّعاً في مجرى الأحداث الموحّد بدل كتابة صامتة.
     DISPATCH_DECISION_RECORDED = "dispatch.decision.recorded"
     DISPATCH_EXECUTION_RECORDED = "dispatch.execution.recorded"
+
+    # توحيد نَسَب التنفيذ (PR #396): ربط معرّف عالميّ موحّد (lin_) بمرجع قائم
+    # (decision/dispatch/command/execution/outcome) **فوق** المعرّفات القائمة دون إعادة
+    # تسمية — يجعل ربط السلسلة متتبَّعاً/مدقَّقاً. يُصدَر عبر outbox خلف FEATURE_UNIFIED_LINEAGE.
+    LINEAGE_LINKED = "lineage.linked"
+
+    # سلسلة النَّسَب المُدامة (Decision→Outcome→Evidence→Learning, P0-1/P0-3): إدامة
+    # رأس القرار (decision_record) ونتيجته الميدانيّة (outcome_record) بمعرّف موحّد —
+    # تجعل القرار وأثره متتبَّعَين/مدقَّقَين للتراكم المعرفيّ بدل حساب عابر يُنسى.
+    DECISION_RECORDED = "decision.recorded"
+    OUTCOME_MEASURED = "outcome.measured"
+
+    # معايرة إقليميّة مُدارة DB-backed (البند 3): إدامة قيم معايرة مُتحقَّقة لكلّ
+    # مستأجِر×منطقة بدل تعديل الكود — تجعل التغيير متتبَّعاً/مدقَّقاً في مجرى الأحداث.
+    CALIBRATION_OVERRIDE_SET = "calibration.override.set"
 
     # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
     # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.

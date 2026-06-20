@@ -18,6 +18,7 @@ from api.data_quality import assess_data_quality
 from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.main import UserSchema, get_current_user
+from api.routers.decision_record import persist_decision_if_enabled
 from api.soil_water import soil_water_params
 
 router = APIRouter()
@@ -48,7 +49,6 @@ class IrrigationPlanRequest(BaseModel):
     decision_id: str | None = None  # نَسَب: يُمرَّر لإعادة استخدام السلسلة، أو يُسَكّ جديداً
 
 
-@router.post("/api/v1/irrigation-plan")
 def compute_irrigation_plan(
     req: IrrigationPlanRequest,
     user: UserSchema = Depends(get_current_user),
@@ -56,7 +56,8 @@ def compute_irrigation_plan(
     """يخطّط جدول الريّ للأيّام القادمة عبر خطّ «مركز المحاصيل» كاملاً.
 
     يشتقّ TAW من النسيج×العمق (إن لم يُمرَّر taw_mm)، ثمّ يخطّط الريّ وفق السياسة.
-    صدق: القيم المُشتقّة غير معايَرة يمنيّاً (موسومة calibrated=False في الكتلتَين).
+    صدق: القيم المُشتقّة غير معايَرة يمنيّاً (موسومة calibrated=False في الكتلتَين). نقيّ
+    بلا قاعدة؛ الإدامة في الغلاف async (irrigation_plan_endpoint) خلف علم تشغيليّ.
     """
     soil = soil_water_params(
         req.soil_texture, root_depth_m=req.root_depth_m, raw_fraction=req.raw_fraction
@@ -100,3 +101,24 @@ def compute_irrigation_plan(
         "decision_id": did,
         "lineage": lineage_stage(did, "decision"),
     }
+
+
+@router.post("/api/v1/irrigation-plan")
+async def irrigation_plan_endpoint(
+    req: IrrigationPlanRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يخطّط الريّ ويلتقط القرار في السلسلة المُدامة تلقائيّاً عند المصدر.
+
+    يحسب الخطّة نقيّاً (compute_irrigation_plan) ثمّ يُدِيمها إن فُعِّل علم الإدامة التلقائيّة
+    — فيُلتقَط قرار الريّ في سلسلة النَّسَب بلا نداء /decision/record منفصل. الصدق: أثر جانبيّ
+    best-effort؛ persisted=false عند الإطفاء أو تعذّر القاعدة (لا يكسر الخطّة).
+    """
+    out = compute_irrigation_plan(req=req, user=user)
+    out["persisted"] = await persist_decision_if_enabled(
+        user,
+        decision_id=out["decision_id"],
+        decision_type="irrigation_plan",
+        decision_value=out,
+    )
+    return out

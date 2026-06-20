@@ -48,7 +48,13 @@ import jwt as _jwt
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Histogram,
+    generate_latest,
+)
 from starlette.responses import Response
 
 try:
@@ -91,6 +97,35 @@ SH_PROCESS_URL = "https://services.sentinel-hub.com/api/v1/process"
 
 CDSE_USER = os.getenv("COPERNICUS_USER", "")
 CDSE_PASSWORD = os.getenv("COPERNICUS_PASSWORD", "")
+
+
+# ── مصدر الحقول (Field source) — إغلاق مرن نحو القاعدة ──────────────
+# هذه الخدمة لا تملك pool قاعدة (لا asyncpg ولا DATABASE_URL — راجع رأس الملفّ
+# واللايف‌سايكل). لذلك «القاعدة» تُقرأ عبر **platform API** (sahool-platform يملك
+# جدول fields + RLS + PostGIS؛ راجع GET /api/v1/fields/{id} الذي يُرجِع هندسة
+# GeoJSON). نحوّل الهندسة إلى bbox محليّاً (مكافئ ST_Envelope) بصدق — لا نلفّق
+# هندسة. كلّ المسار fail-soft خلف علم مُطفأ افتراضيّاً ⇒ السلوك الحاليّ تماماً.
+#
+# FEATURE_SENTINEL_DB_FIELDS: علم تفعيل قراءة الحقول من القاعدة/المنصّة. off ⇒
+#   السجلّ التركيبيّ القديم حصراً (لا تغيير سلوكيّ).
+# ALLOW_LEGACY_FIELD_REGISTRY: عند false، فشلُ مصدر القاعدة لا يرتدّ للسجلّ القديم
+#   (يُعيد None). الافتراض true ⇒ ارتداد مرن موسوم `legacy_field_registry_used`.
+# PLATFORM_API_URL: قاعدة عنوان sahool-platform لقراءة الحقل (إن غاب ⇒ لا منفذ
+#   قاعدة، فيرتدّ للسجلّ بحسب ALLOW_LEGACY_FIELD_REGISTRY).
+def _flag_enabled(value: str | None, *, default: bool) -> bool:
+    """تطبيع علم بيئة منطقيّ (منطق نقيّ قابل للعزل — يُختبَر في الوحدة).
+
+    قيم الإطفاء المتعارَفة: "0"/"false"/"False"/"" ⇒ False. أيّ شيء آخر ⇒ True.
+    None (المتغيّر غير مضبوط) ⇒ القيمة الافتراضيّة.
+    """
+    if value is None:
+        return default
+    return value not in ("0", "false", "False", "")
+
+
+FEATURE_SENTINEL_DB_FIELDS = _flag_enabled(os.getenv("FEATURE_SENTINEL_DB_FIELDS"), default=False)
+ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(os.getenv("ALLOW_LEGACY_FIELD_REGISTRY"), default=True)
+PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", "").rstrip("/")
 
 security = HTTPBearer(auto_error=False)
 
@@ -136,11 +171,28 @@ def _valid_date(s: str) -> str:
 
 
 # ── Prometheus (FIXED: removed field_id label to prevent cardinality explosion) ──
-ANALYSIS_COUNT = Counter(
-    "sahool_vegetation_analysis_total", "Vegetation analysis requests", ["source", "status"]
+def _safe_metric(factory, *args, **kwargs):
+    """مقياس Prometheus آمن عند إعادة الاستيراد: الاختبارات تُحمّل هذه الوحدة عبر
+    exec_module أكثر من مرّة، فالتسجيل المكرّر في السجلّ الافتراضيّ العالميّ يرمي
+    ValueError. عندها نُنشئ المقياس في سجلّ خاصّ معزول كي تبقى الوحدة قابلة للتحميل
+    (الإنتاج يُحمّلها مرّة واحدة فتُسجَّل عادةً في السجلّ الافتراضيّ)."""
+    try:
+        return factory(*args, **kwargs)
+    except ValueError:
+        return factory(*args, registry=CollectorRegistry(), **kwargs)
+
+
+ANALYSIS_COUNT = _safe_metric(
+    Counter,
+    "sahool_vegetation_analysis_total",
+    "Vegetation analysis requests",
+    ["source", "status"],
 )
-ANALYSIS_LATENCY = Histogram(
-    "sahool_vegetation_analysis_duration_seconds", "Vegetation analysis duration", ["source"]
+ANALYSIS_LATENCY = _safe_metric(
+    Histogram,
+    "sahool_vegetation_analysis_duration_seconds",
+    "Vegetation analysis duration",
+    ["source"],
 )
 
 # ── Field geometry registry ────────────────────────────────────
@@ -202,6 +254,135 @@ FIELD_REGISTRY: dict[str, dict] = {
         "soil": "sandy_loam",
     },
 }
+
+
+# ── مُحمِّل الحقول المرن (graceful field loader) ─────────────────────
+def select_field_source(
+    *,
+    feature_db: bool,
+    allow_legacy: bool,
+    db_available: bool,
+) -> str:
+    """يختار مصدر الحقل (منطق نقيّ قابل للعزل — يُختبَر في الوحدة).
+
+    يُرجِع أحد: "db" (اقرأ من القاعدة/المنصّة)، "legacy" (السجلّ التركيبيّ مع وسم
+    صدق)، أو "none" (لا مصدر — العلم يمنع السجلّ القديم وفشل القاعدة).
+
+    القرار لا يعتمد على I/O؛ `db_available` يُمرَّر من المتّصِل بعد محاولة القراءة.
+      - العلم مُطفأ ⇒ السجلّ القديم دائماً (السلوك الحاليّ تماماً).
+      - العلم مُفعَّل + قراءة قاعدة ناجحة ⇒ "db".
+      - العلم مُفعَّل + فشل قاعدة + ارتداد مسموح ⇒ "legacy".
+      - العلم مُفعَّل + فشل قاعدة + ارتداد ممنوع ⇒ "none".
+    """
+    if not feature_db:
+        return "legacy"
+    if db_available:
+        return "db"
+    return "legacy" if allow_legacy else "none"
+
+
+def _geometry_to_bbox(geometry: dict | None) -> list[float] | None:
+    """GeoJSON Polygon/MultiPolygon ⇒ bbox [minx, miny, maxx, maxy] (مكافئ
+    ST_Envelope محليّاً). صدق: لا تلفيق — يُرجِع None لو الهندسة غائبة/غير صالحة.
+    """
+    if not isinstance(geometry, dict):
+        return None
+    coords = geometry.get("coordinates")
+    if not coords:
+        return None
+    xs: list[float] = []
+    ys: list[float] = []
+
+    def _walk(node) -> None:
+        # ورقة الإحداثيّة [x, y, ...] أو قائمة متداخلة.
+        if (
+            isinstance(node, (list, tuple))
+            and len(node) >= 2
+            and all(isinstance(v, (int, float)) for v in node[:2])
+        ):
+            xs.append(float(node[0]))
+            ys.append(float(node[1]))
+            return
+        if isinstance(node, (list, tuple)):
+            for child in node:
+                _walk(child)
+
+    _walk(coords)
+    if not xs or not ys:
+        return None
+    return [min(xs), min(ys), max(xs), max(ys)]
+
+
+async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> dict | None:
+    """يقرأ الحقل من «القاعدة» عبر platform API (sahool-platform يملك fields + RLS
+    + PostGIS). يُحوّل هندسة GeoJSON ⇒ bbox (مكافئ ST_Envelope) بصدق.
+
+    قيد معماريّ صريح: هذه الخدمة بلا pool قاعدة خاصّ بها (لا asyncpg/DATABASE_URL)،
+    فالعزل عبر المستأجِر (RLS / set app.current_tenant) يُفرَض في **المنصّة** خلف
+    GET /api/v1/fields/{id} (مُرشَّح بالمستأجِر هناك). نمرّر المستأجِر ترويسةً
+    إرشاديّة. لو غاب PLATFORM_API_URL ⇒ لا منفذ قاعدة (None، fail-soft).
+
+    fail-soft مطلق: أيّ تعذّر/مهلة/هندسة غير صالحة ⇒ None (يقرّر المتّصِل الارتداد).
+    """
+    if not PLATFORM_API_URL:
+        return None
+    headers = {"Accept": "application/json"}
+    if tenant_id:
+        headers["X-Tenant-Id"] = str(tenant_id)
+    try:
+        async with httpx.AsyncClient(timeout=8) as c:
+            r = await c.get(f"{PLATFORM_API_URL}/api/v1/fields/{field_id}", headers=headers)
+        if r.status_code != 200:
+            return None
+        data = r.json()
+    except Exception as e:  # noqa: BLE001 — fail-soft: ارتداد، لا كسر
+        logger.debug("platform field load فشل لـ%s: %s", field_id, e)
+        return None
+    bbox = _geometry_to_bbox(data.get("geometry"))
+    if bbox is None:
+        return None
+    return {
+        "name": data.get("name") or field_id,
+        "bbox": bbox,
+        "area_ha": data.get("area_ha"),
+        "crop": data.get("crop") or data.get("crop_type"),
+        "soil": data.get("soil") or data.get("soil_type"),
+        "source": "platform-db",
+    }
+
+
+async def load_field(field_id: str, tenant_id: str | None = None) -> dict | None:
+    """مُحمِّل الحقول المرن (الإغلاق المرن — لا كسر).
+
+    خلف FEATURE_SENTINEL_DB_FIELDS (مُطفأ افتراضيّاً) يحاول قراءة الحقل من القاعدة/
+    المنصّة؛ وإلّا — أو عند الفشل المسموح بارتداده — يرتدّ للسجلّ التركيبيّ القديم
+    مع وسم صدق `legacy_field_registry_used`. لا يرفع استثناءً على مسار القراءة.
+
+    ملاحظة صدق: السجلّ القديم تقدير تركيبيّ (synthetic)، لا هندسة per-pixel حقيقيّة.
+    """
+    db_field: dict | None = None
+    if FEATURE_SENTINEL_DB_FIELDS:
+        try:
+            db_field = await _load_field_from_db(field_id, tenant_id)
+        except Exception as e:  # noqa: BLE001 — fail-soft شامل
+            logger.warning("db_field_load_error field_id=%s err=%s", field_id, e)
+            db_field = None
+
+    source = select_field_source(
+        feature_db=FEATURE_SENTINEL_DB_FIELDS,
+        allow_legacy=ALLOW_LEGACY_FIELD_REGISTRY,
+        db_available=db_field is not None,
+    )
+    if source == "db":
+        return db_field
+    if source == "none":
+        # العلم يمنع السجلّ القديم وفشلت القاعدة ⇒ لا مصدر (لا ارتداد تركيبيّ).
+        logger.warning("field_source_unavailable field_id=%s (legacy disabled)", field_id)
+        return None
+    # ارتداد صريح موسوم للسجلّ التركيبيّ القديم.
+    logger.warning("legacy_field_registry_used field_id=%s", field_id)
+    return FIELD_REGISTRY.get(field_id)
+
 
 # ── Sentinel Hub token cache ───────────────────────────────────
 _sh_token: str | None = None
@@ -284,12 +465,14 @@ function evaluatePixel(sample) {
 """
 
 
-async def fetch_from_sentinel_hub(field_id: str, date_from: str, date_to: str) -> dict | None:
+async def fetch_from_sentinel_hub(
+    field_id: str, date_from: str, date_to: str, tenant_id: str | None = None
+) -> dict | None:
     token = await _get_sh_token()
     if not token:
         return None
-    field = FIELD_REGISTRY.get(field_id)
-    if not field:
+    field = await load_field(field_id, tenant_id)
+    if not field or not field.get("bbox"):
         return None
     bbox = field["bbox"]
     payload = {
@@ -354,11 +537,13 @@ async def fetch_from_sentinel_hub(field_id: str, date_from: str, date_to: str) -
         return None
 
 
-async def fetch_from_cdse(field_id: str, date_from: str, date_to: str) -> dict | None:
+async def fetch_from_cdse(
+    field_id: str, date_from: str, date_to: str, tenant_id: str | None = None
+) -> dict | None:
     if not CDSE_USER or not CDSE_PASSWORD:
         return None
-    field = FIELD_REGISTRY.get(field_id)
-    if not field:
+    field = await load_field(field_id, tenant_id)
+    if not field or not field.get("bbox"):
         return None
     bbox = field["bbox"]
     query_url = (
@@ -422,6 +607,8 @@ def _deterministic_seed(field_id: str, acquisition_date: str) -> int:
 
 def _realistic_bands(field_id: str, acquisition_date: str) -> dict[str, float]:
     seed = _deterministic_seed(field_id, acquisition_date)
+    # سياق متزامن (لا async) داخل توليد النطاقات التركيبيّة؛ يبقى على السجلّ القديم
+    # كرجوع موثَّق لاختيار نطاق NDVI حسب المحصول (طبقة تقدير synthetic أصلاً).
     field = FIELD_REGISTRY.get(field_id, {})
     crop = field.get("crop", "wheat")
     crop_ndvi_range = {
@@ -559,6 +746,8 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
                 "source": source,
                 "timestamp": datetime.now(UTC).isoformat(),
                 "event_type": "satellite",
+                # عنوان عرضيّ فقط — يبقى على اسم السجلّ التركيبيّ (لا حِمل قراءة
+                # قاعدة إضافيّ على مسار النشر؛ غير حسّاس وموثَّق).
                 "title": f"🛰️ صورة جديدة — {FIELD_REGISTRY.get(field_id, {}).get('name', field_id)}",
                 "message": f"NDVI={indices.get('ndvi')} | EVI={indices.get('evi')}",
                 **indices,
@@ -601,14 +790,14 @@ async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi"
 
 
 async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: str) -> dict:
-    field = FIELD_REGISTRY.get(field_id)
+    field = await load_field(field_id, tenant_id)
     if not field:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     with ANALYSIS_LATENCY.labels(source="total").time():
-        sh_meta = await fetch_from_sentinel_hub(field_id, date_from, date_to)
+        sh_meta = await fetch_from_sentinel_hub(field_id, date_from, date_to, tenant_id)
         cdse_meta = None
         if not sh_meta:
-            cdse_meta = await fetch_from_cdse(field_id, date_from, date_to)
+            cdse_meta = await fetch_from_cdse(field_id, date_from, date_to, tenant_id)
         meta = sh_meta or cdse_meta or {}
         # HONESTY FIX: indices below are computed from deterministic synthetic
         # bands (no GeoTIFF decode here), so the data is ALWAYS a simulation.
@@ -637,16 +826,16 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
                 index_sources[_vk] = "raster-service"
         ndvi_is_real = index_sources["ndvi"] == "raster-service"
         health = _health_classification(indices["ndvi"], indices["cwsi"])
-        recs = _recommendations_ar(indices, health, field["crop"])
+        recs = _recommendations_ar(indices, health, field.get("crop") or "wheat")
     await _publish_analysis(field_id, tenant_id, indices, source)
     ANALYSIS_COUNT.labels(source=source, status="success").inc()
     # وسم مصدر كلّ مؤشّر بصدق من index_sources: الحقيقيّ (raster) عند توفّره، وإلّا تقدير.
     _real_keys = [k for k, s in index_sources.items() if s == "raster-service"]
     return {
         "field_id": field_id,
-        "field_name": field["name"],
-        "crop": field["crop"],
-        "area_ha": field["area_ha"],
+        "field_name": field.get("name") or field_id,
+        "crop": field.get("crop"),
+        "area_ha": field.get("area_ha"),
         "tenant_id": tenant_id,
         "acquisition_date": acq_date,
         "cloud_coverage_pct": cloud_pct,
@@ -788,8 +977,9 @@ async def analyze(
 async def timeseries(
     field_id: str, days: int = Query(default=90, ge=5, le=365), token: str = Depends(security)
 ):
-    _verify_claims(token)
-    if field_id not in FIELD_REGISTRY:
+    claims = _verify_claims(token)
+    tenant_id = str(claims.get("tenant_id") or "") or None
+    if await load_field(field_id, tenant_id) is None:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     return {
         "field_id": field_id,
@@ -809,36 +999,40 @@ async def current_ndvi(field_id: str, token: str = Depends(security)):
     """
     claims = _verify_claims(token)
     tenant_id = _tenant_from_claims(claims)
-    if field_id not in FIELD_REGISTRY:
+    field = await load_field(field_id, tenant_id)
+    if field is None:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
     analysis = await run_analysis(field_id, tenant_id, date_from, date_to)
-    return _current_ndvi_payload(field_id, FIELD_REGISTRY[field_id], analysis)
+    return _current_ndvi_payload(field_id, field, analysis)
 
 
 @app.get("/v1/all_fields")
 async def all_fields(token: str = Depends(security)):
     """NDVI الحالي لكلّ الحقول المعروفة (يستهلكه useAllFieldsNdvi/لوحة المؤشّرات).
 
-    يكرّر على FIELD_REGISTRY ويستدعي run_analysis لكلّ حقل. الردّ {fields:[...]}
-    لكلّ منه field_id/name/crop/ndvi/health — تقدير صادق (real_data=False).
+    يكرّر على فهرس الحقول (FIELD_REGISTRY هو كتالوج التعداد التركيبيّ — لا توجد
+    نقطة «list fields» مستأجَرة هنا) ويُحمّل ميتاداتا كلّ حقل عبر load_field (قد
+    تأتي من القاعدة/المنصّة عند تفعيل العلم). الردّ {fields:[...]} لكلّ منه
+    field_id/name/crop/ndvi/health — تقدير صادق (real_data=False افتراضيّاً).
     """
     claims = _verify_claims(token)
     tenant_id = _tenant_from_claims(claims)
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
     fields_out = []
-    for fid, field in FIELD_REGISTRY.items():
+    for fid in FIELD_REGISTRY:
+        field = await load_field(fid, tenant_id) or {}
         analysis = await run_analysis(fid, tenant_id, date_from, date_to)
         payload = _current_ndvi_payload(fid, field, analysis)
         fields_out.append(
             {
                 "field_id": fid,
-                "field_name": field["name"],
-                "name": field["name"],
-                "crop": field["crop"],
-                "area_ha": field["area_ha"],
+                "field_name": field.get("name") or fid,
+                "name": field.get("name") or fid,
+                "crop": field.get("crop"),
+                "area_ha": field.get("area_ha"),
                 "ndvi": payload["ndvi"]["current"],
                 "status": payload["classification"].get("status"),
                 "health": payload["classification"],

@@ -8,16 +8,24 @@ GET فقط (قراءة بنية ثابتة): يكشف الملفّ العامّ 
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+import json as _json
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from api.adaptive_calibration import propose_calibration_adjustment
-from api.calibration import all_regions, get_calibration
+from api.calibration import all_regions, apply_region_override, get_calibration
 from api.calibration_ingest import validate_region_calibration
 from api.decision_lineage import ensure_decision_id, lineage_stage
-from api.evidence_registry import aggregate_evidence
+from api.evidence_registry import aggregate_evidence, evidence_from_persisted_outcomes
 from api.learning_feedback import learning_feedback
-from api.main import UserSchema, get_current_user
+from api.main import (
+    UserSchema,
+    _db_unavailable,
+    _emit_domain_event,
+    get_current_user,
+    tenant_connection,
+)
 
 router = APIRouter()
 
@@ -68,6 +76,45 @@ def compute_region_evidence(
         prof.region,
         [o.model_dump() for o in req.outcomes],
         expert_calibrated=expert,
+    )
+
+
+@router.get("/api/v1/calibration/{region}/evidence/persisted")
+async def get_persisted_region_evidence(
+    region: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """دليل المنطقة التراكميّ المُدام — يُجمّع نتائج outcome_record المحفوظة (P0-2).
+
+    يُغلق فجوة «دليل عابر»: بدل تمرير النتائج في الطلب (compute_region_evidence)، يقرأ هنا
+    النتائج **المُدامة** للمستأجِر في هذه المنطقة (معزولة بـRLS) ويجمّعها — فيتراكم الدليل
+    نحو عتبة التحقّق عبر الزمن، ويُغذّي /feedback و/adapt بدليل حقيقيّ. قراءة فقط؛ 503 عند
+    تعذّر القاعدة. مسار قراءة (يتطلّب Postgres؛ مُختبَر تكامليّاً). الصدق: المنطق نفسه
+    (evidence_from_persisted_outcomes ⇒ aggregate_evidence) — لا عتبة مكرّرة.
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            db_rows = await conn.fetch(
+                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "ORDER BY created_at ASC",
+                prof.region,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة دليل المنطقة المُدام", e) from e
+
+    rows: list[dict] = []
+    for r in db_rows:
+        m = r["metrics"]
+        if isinstance(m, str):
+            m = _json.loads(m)
+        created = r["created_at"]
+        rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+
+    return evidence_from_persisted_outcomes(
+        prof.region,
+        rows,
+        expert_calibrated=prof.evidence_level == "expert_opinion",
     )
 
 
@@ -130,6 +177,166 @@ def propose_region_adaptation(
     return out
 
 
+class AdaptFromEvidenceRequest(BaseModel):
+    mean_stress_delta: float | None = None  # متوسّط (مرصود − متنبَّأ) لأيّام الإجهاد
+    decision_id: str | None = None  # نَسَب: يربط التكيّف بسلسلة القرار/الدليل
+
+
+@router.post("/api/v1/calibration/{region}/adapt-from-evidence")
+async def propose_region_adaptation_from_evidence(
+    region: str,
+    req: AdaptFromEvidenceRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يقترح تعديل المعايرة محروساً بدليل **مُدام** متراكم (لا حمولة طلب).
+
+    يُغلق حلقة التعلّم: يقرأ نتائج outcome_record المحفوظة للمنطقة (معزولة بـRLS) ويبني منها
+    الدليل التراكميّ، ثمّ يطبّق بوّابة التكيّف عليه — فيعتمد القرار على دليل حقيقيّ مُتراكم عبر
+    الزمن لا على نتائج مُمرَّرة في الطلب. صدق: applied=False (يقترح ولا يطبّق)؛ البوّابة كما هي.
+    مسار قراءة (يتطلّب Postgres؛ مُختبَر تكامليّاً).
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            db_rows = await conn.fetch(
+                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "ORDER BY created_at ASC",
+                prof.region,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة دليل المنطقة للتكيّف", e) from e
+
+    rows: list[dict] = []
+    for r in db_rows:
+        m = r["metrics"]
+        if isinstance(m, str):
+            m = _json.loads(m)
+        created = r["created_at"]
+        rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+
+    ev = evidence_from_persisted_outcomes(
+        prof.region,
+        rows,
+        expert_calibrated=prof.evidence_level == "expert_opinion",
+    )
+    out = propose_calibration_adjustment(
+        prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
+    )
+    did = ensure_decision_id(req.decision_id)
+    out["decision_id"] = did
+    out["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
+    out["evidence_source"] = "persisted_outcomes"
+    out["evidence_used"] = ev
+    return out
+
+
+class AdaptApplyRequest(BaseModel):
+    mean_stress_delta: float | None = None  # إشارة الاتّجاه (مرصود − متنبَّأ)
+    decision_id: str | None = None  # نَسَب: يربط التطبيق بسلسلة القرار
+    confirm: bool = False  # تأكيد صريح إلزاميّ (لا تطبيق عَرَضيّ — مبدأ الصدق)
+    source_ar: str | None = None  # provenance؛ يُولَّد من الدليل إن غاب
+
+
+@router.post("/api/v1/calibration/{region}/adapt-from-evidence/apply")
+async def apply_region_adaptation_from_evidence(
+    region: str,
+    req: AdaptApplyRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يُطبّق تكيّف المعايرة المحروس بالدليل المُدام على متجر المعايرة (v80) — يُغلق الحلقة.
+
+    يربط طرفَي الحلقة: نتيجة⇒دليل⇒تكيّف⇒**معايرة مُدامة**⇒قرارات لاحقة. لا يُدِيم إلا إذا:
+    (أ) confirm=True صريح (موافقة بشريّة)، (ب) الاقتراح auto_apply_eligible (دليل
+    field_verified + ≥العتبة + إشارة اتّجاه + تغيير فعليّ)، (ج) القيم تجتاز حدود الأمان.
+    غير ذلك ⇒ لا إدامة، يُرجِع الاقتراح كما هو (applied=False). الخطوة محدودة ومقصوصة (±0.05)
+    وعكوسيّة (DELETE override). 422 بلا تأكيد/خارج الأمان، 503 عند تعذّر القاعدة. مسار كتابة.
+    """
+    did = ensure_decision_id(req.decision_id)
+    if not req.confirm:
+        raise HTTPException(
+            status_code=422,
+            detail="تطبيق التكيّف يتطلّب تأكيداً صريحاً (confirm=true) — مبدأ الصدق (لا تطبيق خفيّ).",
+        )
+    prof = get_calibration(region)
+    accepted: dict | None = None
+    source_ar: str | None = None
+    try:
+        async with tenant_connection(user) as conn:
+            db_rows = await conn.fetch(
+                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "ORDER BY created_at ASC",
+                prof.region,
+            )
+            rows: list[dict] = []
+            for r in db_rows:
+                m = r["metrics"]
+                if isinstance(m, str):
+                    m = _json.loads(m)
+                created = r["created_at"]
+                rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+
+            ev = evidence_from_persisted_outcomes(
+                prof.region, rows, expert_calibrated=prof.evidence_level == "expert_opinion"
+            )
+            proposal = propose_calibration_adjustment(
+                prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
+            )
+            proposal["decision_id"] = did
+            proposal["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
+            proposal["evidence_used"] = ev
+
+            # غير مؤهَّل (محروس/بلا إشارة/بلا تغيير) ⇒ لا إدامة، نُعيد الاقتراح كما هو.
+            if proposal.get("status") != "auto_apply_eligible":
+                proposal["applied"] = False
+                return proposal
+
+            new_values = {p["parameter"]: p["proposed"] for p in proposal["proposals"]}
+            source_ar = req.source_ar or (
+                f"تكيّف آليّ محروس بدليل field_verified ({ev.get('sample_count', 0)} عيّنة) — {prof.region}"
+            )
+            # بوّابة أمان ثانية: القيم المقترَحة (المقصوصة) تجتاز حدود calibration_ingest.
+            vres = validate_region_calibration(prof.region, new_values, source_ar=source_ar)
+            if not (vres["validated"] and vres["ready_to_persist"]):
+                proposal["applied"] = False
+                proposal["validation"] = vres
+                raise HTTPException(status_code=422, detail=proposal)
+            accepted = vres["accepted"]
+
+            await conn.execute(
+                """INSERT INTO calibration_override
+                    (tenant_id, region, override_values, source_ar, validated, created_by)
+                   VALUES ($1::uuid, $2, $3::jsonb, $4, TRUE, $5)
+                   ON CONFLICT (tenant_id, region) DO UPDATE SET
+                     override_values = EXCLUDED.override_values,
+                     source_ar       = EXCLUDED.source_ar,
+                     validated       = TRUE,
+                     updated_at      = now()""",
+                str(user.tenant_id),
+                prof.region,
+                _json.dumps(accepted),
+                source_ar,
+                str(user.user_id),
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "CALIBRATION_OVERRIDE_SET",
+                "calibration_override",
+                prof.region,
+                {"region": prof.region, "fields": list(accepted.keys()), "via": "adaptation"},
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تطبيق تكيّف المعايرة", e) from e
+
+    proposal["applied"] = True  # أُدِيم فعلاً في متجر المعايرة (عكوسيّ عبر DELETE)
+    proposal["persisted_override"] = accepted
+    proposal["source_ar"] = source_ar
+    proposal["resolved"] = apply_region_override(prof.region, accepted, source_ar=source_ar)
+    return proposal
+
+
 class ProposeValuesRequest(BaseModel):
     raw_fraction: float | None = None
     root_depth_m: float | None = None
@@ -158,3 +365,146 @@ def propose_region_values(
         {k: v for k, v in req.model_dump().items() if k != "source_ar" and v is not None},
         source_ar=req.source_ar,
     )
+
+
+# ── المعايرة الإقليميّة المُدارة DB-backed (يُكمل البند 3) ─────────────────────────
+# بدل تعديل _REGION_OVERRIDES في الكود، يُدِيم المستأجِر قيمه المُتحقَّقة في القاعدة
+# (calibration_override، معزول بـRLS) — قابل للإدارة والتدقيق والعكس، بلا تلفيق.
+
+
+@router.post("/api/v1/calibration/{region}/override")
+async def set_region_override(
+    region: str,
+    req: ProposeValuesRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يُدِيم قيم معايرة مُتحقَّقة لمنطقة (المستأجِر) في القاعدة — معايرة مُدارة DB-backed.
+
+    يتحقّق أوّلاً (validate_region_calibration: حدود زراعيّة آمنة + مصدر provenance)؛ لا
+    يُدِيم إلا قيماً **مقبولة مع مصدر** (upsert على tenant×region) + حدث CALIBRATION_OVERRIDE_SET.
+    422 إن رُفِض حقل أو غاب المصدر (لا تلفيق، يُرجِع تفصيل التحقّق). 503 عند تعذّر القاعدة.
+    مسار كتابة (يتطلّب Postgres). الصدق: يُدِيم المقبول فقط؛ القرار يبقى للمستخدم (لا تعديل خفيّ).
+    """
+    submitted = {k: v for k, v in req.model_dump().items() if k != "source_ar" and v is not None}
+    result = validate_region_calibration(region, submitted, source_ar=req.source_ar)
+    if not (result["validated"] and result["ready_to_persist"]):
+        # لم يُتحقَّق (رفض/نقص مصدر) ⇒ لا إدامة؛ نُعيد سبب الرفض للمستخدم.
+        raise HTTPException(status_code=422, detail=result)
+
+    prof = get_calibration(region)
+    accepted = result["accepted"]
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO calibration_override
+                    (tenant_id, region, override_values, source_ar, validated, created_by)
+                   VALUES ($1::uuid, $2, $3::jsonb, $4, TRUE, $5)
+                   ON CONFLICT (tenant_id, region) DO UPDATE SET
+                     override_values = EXCLUDED.override_values,
+                     source_ar       = EXCLUDED.source_ar,
+                     validated       = TRUE,
+                     updated_at      = now()""",
+                str(user.tenant_id),
+                prof.region,
+                _json.dumps(accepted),
+                req.source_ar,
+                str(user.user_id),
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "CALIBRATION_OVERRIDE_SET",
+                "calibration_override",
+                prof.region,
+                {"region": prof.region, "fields": list(accepted.keys())},
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("إدامة معايرة المنطقة", e) from e
+
+    return {
+        "region": prof.region,
+        "persisted": True,
+        "accepted": accepted,
+        "source_ar": req.source_ar,
+        "resolved": apply_region_override(prof.region, accepted, source_ar=req.source_ar),
+    }
+
+
+@router.get("/api/v1/calibration/{region}/resolved")
+async def get_resolved_region_calibration(
+    region: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """ملفّ المنطقة بعد دمج تجاوز المستأجِر المُدام (إن وُجد) — معزول بـRLS.
+
+    لا تجاوز مُدام ⇒ القاعدة الموروثة (override_source=inherited، validated=false). تجاوز
+    مُدام ⇒ القيم المُعايَرة مطبَّقة (override_source=db_override). 503 عند تعذّر القاعدة.
+    مسار قراءة (يتطلّب Postgres؛ مُختبَر تكامليّاً). الصدق: المنطق نفسه (apply_region_override).
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT override_values, source_ar FROM calibration_override WHERE region = $1",
+                prof.region,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة معايرة المنطقة المُدامة", e) from e
+
+    if row is None:
+        return apply_region_override(prof.region, {})  # القاعدة الموروثة (لا تجاوز)
+    ov = row["override_values"]
+    if isinstance(ov, str):
+        ov = _json.loads(ov)
+    return apply_region_override(prof.region, ov, source_ar=row["source_ar"])
+
+
+@router.get("/api/v1/calibration/overrides/all")
+async def list_region_overrides(user: UserSchema = Depends(get_current_user)):
+    """تجاوزات المعايرة المُدامة للمستأجِر (كلّ المناطق) — معزولة بـRLS، قراءة فقط.
+
+    لإدارة الملفّات المُعايَرة (أيّ المناطق صار لها قيم مُدامة ومصدرها). 503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT region, override_values, source_ar, validated, updated_at "
+                "FROM calibration_override ORDER BY region"
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة تجاوزات المعايرة", e) from e
+
+    items = []
+    for r in rows:
+        ov = r["override_values"]
+        if isinstance(ov, str):
+            ov = _json.loads(ov)
+        updated = r["updated_at"]
+        items.append(
+            {
+                "region": r["region"],
+                "override_values": ov,
+                "source_ar": r["source_ar"],
+                "validated": r["validated"],
+                "updated_at": updated.isoformat() if updated is not None else None,
+            }
+        )
+    return {"overrides": items, "count": len(items)}
+
+
+@router.delete("/api/v1/calibration/{region}/override")
+async def delete_region_override(
+    region: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يحذف تجاوز المنطقة المُدام ويعيدها للوراثة العامّة — عكوسيّة (مبدأ الصدق). معزول بـRLS.
+
+    لا حالة خفيّة دائمة: المعايرة المُدارة قابلة للعكس متى تبيّن خطؤها. 503 عند تعذّر القاعدة.
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute("DELETE FROM calibration_override WHERE region = $1", prof.region)
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("حذف معايرة المنطقة", e) from e
+    return {"region": prof.region, "reverted": True}

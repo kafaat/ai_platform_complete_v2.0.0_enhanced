@@ -432,7 +432,6 @@ async def _start_outbox_worker():
         return
     try:
         import nats
-
         from api.event_bus import OutboxWorker
 
         nats_url = os.getenv("NATS_URL", "nats://sahool-nats:4222")
@@ -3146,6 +3145,7 @@ from api.routers.decision import router as decision_router  # noqa: E402
 from api.routers.decision_dispatch import router as decision_dispatch_router  # noqa: E402
 from api.routers.decision_impact import router as decision_impact_router  # noqa: E402
 from api.routers.decision_policies import router as decision_policies_router  # noqa: E402
+from api.routers.decision_record import router as decision_record_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.diagnose import router as diagnose_router  # noqa: E402
 from api.routers.districts import router as districts_router  # noqa: E402
@@ -3156,6 +3156,7 @@ from api.routers.equipment import router as equipment_router  # noqa: E402
 from api.routers.escalation import router as escalation_router  # noqa: E402
 from api.routers.events import router as events_router  # noqa: E402
 from api.routers.evidence import router as evidence_router  # noqa: E402
+from api.routers.execution_lineage import router as execution_lineage_router  # noqa: E402
 from api.routers.failures import router as failures_router  # noqa: E402
 from api.routers.farms import router as farms_router  # noqa: E402
 from api.routers.field_completeness import router as field_completeness_router  # noqa: E402
@@ -3170,6 +3171,7 @@ from api.routers.fodder_alternatives import router as fodder_alternatives_router
 from api.routers.gdd import router as gdd_router  # noqa: E402
 from api.routers.geo import router as geo_router  # noqa: E402
 from api.routers.geo_locate import router as geo_locate_router  # noqa: E402
+from api.routers.gis_kernel import router as gis_kernel_router  # noqa: E402
 from api.routers.harvest_traceability import (  # noqa: E402
     router as harvest_traceability_router,
 )
@@ -3298,6 +3300,8 @@ app.include_router(decision_router)
 app.include_router(decision_dispatch_router)
 app.include_router(decision_policies_router)
 app.include_router(decision_impact_router)
+app.include_router(decision_record_router)
+app.include_router(execution_lineage_router)
 app.include_router(field_twin_router)
 app.include_router(agricultural_proverbs_router)
 app.include_router(astronomical_timing_router)
@@ -3347,6 +3351,7 @@ app.include_router(escalation_router)
 app.include_router(evidence_router)
 app.include_router(indices_router)
 app.include_router(geo_locate_router)
+app.include_router(gis_kernel_router)
 app.include_router(field_single_router)
 app.include_router(edge_router)
 app.include_router(field_intelligence_router)
