@@ -56,6 +56,8 @@ import {
   type FieldDetail, type FieldUpdatePatch,
   // ── استيراد حدّ حقل من ملفّ/نقاط GPS (بدل الرسم اليدويّ) ──
   importField, type FieldImportInput,
+  // ── حالة المعايرة الإقليميّة (قراءة فقط) ──
+  fetchCalibration, type CalibrationOverview,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
@@ -780,6 +782,18 @@ export function useUpdateNotificationPreferences(): UseMutationResult<
 export function useWaterAnalysis() {
   return useMutation<WaterAnalysisResult, Error, WaterSampleInput>({
     mutationFn: (payload) => analyzeWaterSample(payload),
+  });
+}
+
+// حالة المعايرة الإقليميّة (GET /api/v1/calibration) — قراءة فقط. تكشف لكلّ إقليم
+// هل ثوابته الأغرونوميّة مُتحقَّق منها ميدانيّاً أم ما تزال افتراضات FAO عامّة. ثابتة
+// نسبيّاً (تتغيّر مع جمع بيانات ميدانيّة) ⇒ staleTime طويل. لا fallback وهميّ.
+export function useCalibration(): UseQueryResult<CalibrationOverview, Error> {
+  return useQuery<CalibrationOverview, Error>({
+    queryKey: ['calibration'],
+    queryFn:  () => fetchCalibration(),
+    staleTime:60 * 60_000,
+    retry:    false,
   });
 }
 

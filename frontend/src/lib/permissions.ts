@@ -25,7 +25,7 @@ export function normalizeRole(role?: string | null): Role {
 // (الاتّجاه العكسيّ مغطّى بـ`satisfies` — لا حاجة لشيفرة إضافيّة له).
 const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'recommendations',
-  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
+  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'calibration', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
 ] as const satisfies readonly PageId[];
@@ -41,7 +41,7 @@ void _assertAllPagesComplete;
 // لوحة + أقمار + حقول + مهام، مع التنبيهات/المستشار/المكانيّة + أدوات حقله).
 const WORKER_PAGES: PageId[] = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators',
-  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'weather-advice', 'pest-escalation', 'field-intelligence',
+  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'calibration', 'weather-advice', 'pest-escalation', 'field-intelligence',
   'inventory', 'equipment', 'devices', 'irrigation-ops',
 ];
 
