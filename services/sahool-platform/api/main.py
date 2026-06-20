@@ -3199,6 +3199,7 @@ from api.routers.notifications import router as notifications_router  # noqa: E4
 from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
 from api.routers.onboarding import router as onboarding_router  # noqa: E402
+from api.routers.operations import router as operations_router  # noqa: E402
 from api.routers.orchard import router as orchard_router  # noqa: E402
 from api.routers.outcome import router as outcome_router  # noqa: E402
 from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
@@ -3298,6 +3299,7 @@ app.include_router(consistency_router)
 app.include_router(introduction_router)
 app.include_router(economics_router)
 app.include_router(onboarding_router)
+app.include_router(operations_router)
 app.include_router(weather_analytics_router)
 app.include_router(decision_router)
 app.include_router(decision_dispatch_router)
