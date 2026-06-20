@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from api.field_portfolio import FieldInput, optimize_field_portfolio
 from api.main import UserSchema, get_current_user
+from api.portfolio_allocation import PortfolioField, WaterSource, allocate_portfolio
 
 router = APIRouter()
 
@@ -50,3 +51,45 @@ def optimize_portfolio(
         for f in req.fields
     ]
     return optimize_field_portfolio(fields, total_water_m3=req.total_water_m3)
+
+
+class AllocFieldModel(BaseModel):
+    field_id: str
+    expected_margin: float
+    water_demand_m3: float
+    priority: int = 1
+    min_water_fraction: float = 0.0
+    source_ids: list[str] = Field(default_factory=list)
+
+
+class WaterSourceModel(BaseModel):
+    source_id: str
+    capacity_m3: float
+
+
+class PortfolioAllocationRequest(BaseModel):
+    fields: list[AllocFieldModel] = Field(default_factory=list)
+    sources: list[WaterSourceModel] = Field(default_factory=list)
+
+
+@router.post("/api/v1/field-portfolio/allocate")
+def allocate_portfolio_endpoint(
+    req: PortfolioAllocationRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """توزيع ماء المزرعة متعدّد المصادر مع أولويّات وأرضيّات (#386): إجهاد مقبول في حقل
+    لحماية أعلى أولويّة. صدق: الهوامش/الطلبات/السعات مُمرَّرة؛ الجزئيّ خطّيّ تقريبيّ موسوم.
+    """
+    fields = [
+        PortfolioField(
+            field_id=f.field_id,
+            expected_margin=f.expected_margin,
+            water_demand_m3=f.water_demand_m3,
+            priority=f.priority,
+            min_water_fraction=f.min_water_fraction,
+            source_ids=f.source_ids,
+        )
+        for f in req.fields
+    ]
+    sources = [WaterSource(source_id=s.source_id, capacity_m3=s.capacity_m3) for s in req.sources]
+    return allocate_portfolio(fields, sources)
