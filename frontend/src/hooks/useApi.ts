@@ -61,6 +61,9 @@ import {
   // ── سلسلة النَّسَب المُدامة + الدليل المتراكم (قراءة فقط) ──
   fetchDecisionLineage, type DecisionLineage,
   fetchPersistedEvidence, type PersistedEvidence,
+  // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) ──
+  fetchDecisionRecords, type DecisionRecordsResult,
+  fetchLearningSummary, type LearningSummary,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
@@ -825,6 +828,34 @@ export function usePersistedEvidence(region?: string): UseQueryResult<PersistedE
     staleTime:5 * 60_000,
     retry:    false,
     enabled:  !!r,
+  });
+}
+
+// ── لوحة رصد التعلّم (Learning/Lineage Observability) — قراءة فقط ──
+// سرد القرارات المُدامة (GET /api/v1/decision/records). لا fallback وهميّ: الخطأ
+// (503 DB / 403 RBAC) يُرفض الاستعلام لتعرض الواجهة حالة صادقة. retry:false كبقيّة
+// قوائم المنصّة. مُفهرَس بالمستأجِر الفعّال (العزل بـRLS خادميّاً).
+export function useDecisionRecords(limit = 200): UseQueryResult<DecisionRecordsResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<DecisionRecordsResult, Error>({
+    queryKey: ['decision-records', tid, limit],
+    queryFn:  () => fetchDecisionRecords(limit),
+    staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+// تلخيص حلقة التعلّم لكلّ منطقة (GET /api/v1/learning/summary) — قراءة فقط، أفضل-جهد.
+// النقطة قد لا تتوفّر بعد: fetchLearningSummary يُعيد null عند 404/خطأ (لا تلفيق)،
+// فلا يُفعَّل isError — تعرض الواجهة حالةً فارغة صادقة. retry:false (لا إعادة محاولة
+// على نقطة غائبة). data=null حالةٌ صريحة لا خطأ.
+export function useLearningSummary(): UseQueryResult<LearningSummary | null, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<LearningSummary | null, Error>({
+    queryKey: ['learning-summary', tid],
+    queryFn:  () => fetchLearningSummary(),
+    staleTime:5 * 60_000,
+    retry:    false,
   });
 }
 

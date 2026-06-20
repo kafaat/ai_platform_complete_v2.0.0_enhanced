@@ -3186,6 +3186,7 @@ from api.routers.irrigation_method import router as irrigation_method_router  # 
 from api.routers.irrigation_plan import router as irrigation_plan_router  # noqa: E402
 from api.routers.kc_timeseries import router as kc_timeseries_router  # noqa: E402
 from api.routers.learning import router as learning_router  # noqa: E402
+from api.routers.learning_summary import router as learning_summary_router  # noqa: E402
 from api.routers.lifecycle import router as lifecycle_router  # noqa: E402
 from api.routers.lineage import router as lineage_router  # noqa: E402
 from api.routers.market import router as market_router  # noqa: E402
@@ -3290,6 +3291,7 @@ app.include_router(confidence_router)
 app.include_router(temporal_router)
 app.include_router(diagnose_router)
 app.include_router(learning_router)
+app.include_router(learning_summary_router)
 app.include_router(market_router)
 app.include_router(consistency_router)
 app.include_router(introduction_router)

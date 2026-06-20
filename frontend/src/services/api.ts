@@ -586,6 +586,58 @@ export const fetchPersistedEvidence = (region: string): Promise<PersistedEvidenc
     .get<PersistedEvidence>(`/api/v1/calibration/${encodeURIComponent(region)}/evidence/persisted`)
     .then(r => r.data);
 
+// ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) — سرد القرارات المُدامة + تلخيص حلقة التعلّم ──
+// تستهلك GET /api/v1/decision/records (سرد القرارات المُدامة للمستأجِر، معزولة بـRLS):
+//   {decisions: DecisionRecord[], count}. شكل القرار مطابق لـ_shape_decision_row
+//   (نفس LineageDecision: decision_id/field_id/decision_type/region/stage/decision_value/
+//   confidence/created_by/created_at). صدق: لا fallback وهميّ — 503 (تعذّر القاعدة)
+//   يُرفع لتعرض الواجهة حالة صادقة.
+export type DecisionRecord = LineageDecision;
+export interface DecisionRecordsResult {
+  decisions: DecisionRecord[];
+  count:     number;
+}
+export const fetchDecisionRecords = (limit = 200): Promise<DecisionRecordsResult> =>
+  kongApi
+    .get<DecisionRecordsResult>('/api/v1/decision/records', { params: { limit } })
+    .then(r => ({
+      decisions: Array.isArray(r.data?.decisions) ? r.data.decisions : [],
+      count: typeof r.data?.count === 'number' ? r.data.count : 0,
+    }));
+
+// تلخيص حلقة التعلّم لكلّ منطقة (GET /api/v1/learning/summary) — قد لا تتوفّر النقطة بعد.
+// صدق: نستهلكها إن نجحت، ونُعيد null عند 404/أيّ خطأ (لا تلفيق) فتعرض الواجهة حالةً
+// فارغة صادقة بدل أرقام مُختلَقة. الشكل دفاعيّ (كلّ الحقول اختياريّة) لتفادي افتراض
+// عقد غير مُثبَّت في هذا الفرع.
+export interface LearningSummaryRegion {
+  region?:                     string;
+  sample_count?:               number;
+  evidence_level?:             EvidenceLevel | string;
+  success_rate?:               number | null;
+  outcome_count?:              number;
+  samples_to_verified?:        number;
+  field_verified_min_samples?: number;
+  calibrated?:                 boolean;
+  warnings_ar?:                string[];
+}
+export interface LearningSummary {
+  regions?:           LearningSummaryRegion[];
+  decision_count?:    number;
+  outcome_count?:     number;
+  success_rate?:      number | null;
+  regions_verified?:  number;
+  calibrated?:        boolean;
+  warnings_ar?:       string[];
+  [k: string]:        unknown;
+}
+/** يجلب تلخيص حلقة التعلّم. أفضل-جهد: أيّ خطأ/استجابة غير صالحة (404 نقطة غير
+ *  مُتاحة بعد، 503 DB) ⇒ null فتعرض الواجهة حالةً فارغة صادقة (لا تلفيق). */
+export const fetchLearningSummary = (): Promise<LearningSummary | null> =>
+  kongApi
+    .get<LearningSummary>('/api/v1/learning/summary')
+    .then((r) => (r.data && typeof r.data === 'object' ? r.data : null))
+    .catch(() => null);
+
 // ── قرار المحصول الموحّد (POST /api/v1/crop-twin/decision) ──
 // ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة. الاقتصاد محجوز (not_configured).
 export interface CropDecisionForecastDay {
