@@ -22,6 +22,8 @@ Postgres (مُختبَر تكامليّاً كـdecision_dispatch، لا وحد�
 from __future__ import annotations
 
 import json as _json
+import logging
+import os
 import uuid as _uuid
 
 from fastapi import APIRouter, Depends, Query
@@ -39,6 +41,72 @@ from api.main import (
 from api.outcome_measurement import measure_outcome
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def _auto_persist_enabled() -> bool:
+    """هل إدامة القرار التلقائيّة عند المصدر مُفعَّلة؟ (مُطفأة افتراضاً — إنضاج تدريجيّ)."""
+    return os.getenv("SAHOOL_AUTO_PERSIST_DECISIONS", "").strip().lower() in _TRUTHY
+
+
+async def persist_decision_if_enabled(
+    user: UserSchema,
+    *,
+    decision_id: str,
+    decision_type: str,
+    decision_value: dict,
+    field_id: str | None = None,
+    region: str | None = None,
+    confidence: float | None = None,
+) -> bool:
+    """يُدِيم القرار في decision_record إن فُعِّل العلم — **best-effort عند المصدر**.
+
+    تُستدعى من نقاط القرار (crop-twin/decision، irrigation-plan) لتلتقط كلّ قرار في
+    السلسلة المُدامة تلقائيّاً بلا نداء /decision/record منفصل. الصدق: الحساب نقيّ وقد تمّ
+    سلفاً؛ الإدامة أثر جانبيّ — إطفاء العلم أو تعذّر القاعدة لا يكسر إصدار القرار (يُسجَّل
+    ويُتابَع)، ويعيد هل أُدِيم فعلاً (persisted). مسار كتابة (يتطلّب Postgres؛ تكامليّ).
+    نفس INSERT الصريح في record_decision (ON CONFLICT DO NOTHING — لاتكرار آمن).
+    """
+    if not _auto_persist_enabled():
+        return False
+    conf = confidence if isinstance(confidence, (int, float)) else None
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO decision_record
+                    (decision_id, tenant_id, field_id, decision_type, region,
+                     stage, decision_value, confidence, created_by)
+                   VALUES ($1, $2::uuid, $3, $4, $5, 'decision', $6::jsonb, $7, $8)
+                   ON CONFLICT (decision_id) DO NOTHING""",
+                decision_id,
+                str(user.tenant_id),
+                field_id,
+                decision_type,
+                region,
+                _json.dumps(decision_value),
+                conf,
+                str(user.user_id),
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "DECISION_RECORDED",
+                "decision_record",
+                decision_id,
+                {
+                    "decision_type": decision_type,
+                    "field_id": field_id,
+                    "region": region,
+                    "confidence": conf,
+                },
+            )
+        return True
+    except Exception as e:  # noqa: BLE001 — أثر جانبيّ: فشل الإدامة لا يكسر إصدار القرار
+        logger.warning("auto-persist decision %s تخطّي: %s", decision_id, e)
+        return False
+
 
 # حالات المقاييس السلبيّة (انحراف عن هدف القرار) — أيّ مقياس مُقيَّم فيها ⇒ ليس نجاحاً.
 # المحايد/الإيجابيّ: followed | better | as_predicted | above | met | within.

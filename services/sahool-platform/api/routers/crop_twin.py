@@ -25,6 +25,7 @@ from api.irrigation_method import gross_irrigation_mm, method_profile
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.irrigation_policy import PolicyContext, resolve_policy
 from api.main import UserSchema, get_current_user
+from api.routers.decision_record import persist_decision_if_enabled
 from api.soil_water import soil_water_params
 from api.unified_decision import unified_decision
 from api.water_balance import KC_BY_CROP_STAGE, kc_from_ndvi
@@ -180,7 +181,6 @@ class CropDecisionRequest(CropTwinComposeRequest):
     decision_id: str | None = None  # نَسَب: يُمرَّر لإعادة استخدام السلسلة، أو يُسَكّ جديداً
 
 
-@router.post("/api/v1/crop-twin/decision")
 def compose_crop_decision(
     req: CropDecisionRequest,
     user: UserSchema = Depends(get_current_user),
@@ -188,7 +188,8 @@ def compose_crop_decision(
     """قرار المحصول الموحّد: ريّ + تسميد + مخاطر + ثقة من حالة محصول واحدة — تركيب نقيّ.
 
     يجمع crop_twin + خطّة الريّ (وفق السياسة) + حالة العنصر عبر unified_decision.
-    الاقتصاد مؤجَّل (economic_state=not_configured محجوز، لا مُختلق).
+    الاقتصاد مؤجَّل (economic_state=not_configured محجوز، لا مُختلق). نقيّ بلا قاعدة؛
+    الإدامة في الغلاف async (crop_decision_endpoint) خلف علم تشغيليّ.
     """
     st = _compose_state(req)
     kc_of = st["kc_of"]
@@ -218,6 +219,29 @@ def compose_crop_decision(
     return decision
 
 
+@router.post("/api/v1/crop-twin/decision")
+async def crop_decision_endpoint(
+    req: CropDecisionRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يُصدر قرار المحصول الموحّد ويلتقطه في السلسلة المُدامة تلقائيّاً عند المصدر.
+
+    يحسب القرار نقيّاً (compose_crop_decision) ثمّ يُدِيمه إن فُعِّل SAHOOL_AUTO_PERSIST_DECISIONS
+    — فيُلتقَط كلّ قرار في سلسلة النَّسَب بلا نداء /decision/record منفصل. الصدق: الإدامة أثر
+    جانبيّ best-effort؛ persisted=false عند الإطفاء أو تعذّر القاعدة (لا يكسر القرار).
+    """
+    decision = compose_crop_decision(req=req, user=user)
+    decision["persisted"] = await persist_decision_if_enabled(
+        user,
+        decision_id=decision["decision_id"],
+        decision_type="crop_twin",
+        decision_value=decision,
+        field_id=req.field_id,
+        confidence=decision.get("confidence"),
+    )
+    return decision
+
+
 class ProfitAwareDecisionRequest(CropDecisionRequest):
     """طلب القرار الواعي بالربح = طلب القرار + مدخلات اقتصاديّة + اختيار سياسة آليّ.
 
@@ -237,7 +261,6 @@ class ProfitAwareDecisionRequest(CropDecisionRequest):
     irrigation_method: str | None = None  # flood|furrow|sprinkler|pivot|drip — يصحّح الماء الإجماليّ
 
 
-@router.post("/api/v1/crop-twin/decision/profit-aware")
 def compose_profit_aware_decision(
     req: ProfitAwareDecisionRequest,
     user: UserSchema = Depends(get_current_user),
@@ -320,4 +343,28 @@ def compose_profit_aware_decision(
         "auto": policy_auto,
         "reasons_ar": policy_reasons,
     }
+    return decision
+
+
+@router.post("/api/v1/crop-twin/decision/profit-aware")
+async def profit_aware_decision_endpoint(
+    req: ProfitAwareDecisionRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يُصدر القرار الواعي بالربح ويلتقطه في السلسلة المُدامة تلقائيّاً عند المصدر.
+
+    يحسب القرار نقيّاً (compose_profit_aware_decision) ثمّ يُدِيمه إن فُعِّل علم الإدامة
+    التلقائيّة — مع المنطقة (req.region) للمعايرة. الصدق: أثر جانبيّ best-effort؛
+    persisted=false عند الإطفاء/تعذّر القاعدة (لا يكسر القرار).
+    """
+    decision = compose_profit_aware_decision(req=req, user=user)
+    decision["persisted"] = await persist_decision_if_enabled(
+        user,
+        decision_id=decision["decision_id"],
+        decision_type="profit_aware",
+        decision_value=decision,
+        field_id=req.field_id,
+        region=req.region,
+        confidence=decision.get("confidence"),
+    )
     return decision
