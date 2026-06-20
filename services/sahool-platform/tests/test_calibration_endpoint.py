@@ -12,11 +12,13 @@ from api.routers.calibration import (
     EvidenceRequest,
     FeedbackRequest,
     OutcomeRecord,
+    ProposeValuesRequest,
     compute_learning_feedback,
     compute_region_evidence,
     get_region_calibration,
     list_calibration,
     propose_region_adaptation,
+    propose_region_values,
 )
 from core.canonical_schemas import UserRole, UserSchema
 
@@ -98,3 +100,23 @@ def test_adapt_eligible_under_evidence():
     assert out["status"] == "auto_apply_eligible"
     assert out["applied"] is False  # يقترح لا يطبّق
     assert out["proposals"][0]["proposed"] < out["proposals"][0]["current"]
+
+
+def test_propose_values_accepts_good():
+    req = ProposeValuesRequest(raw_fraction=0.5, source_ar="قياس ميدانيّ — مأرب")
+    out = propose_region_values(region="marib", req=req, user=_USER)
+    assert out["region"] == "marib"
+    assert out["accepted"] == {"raw_fraction": 0.5}
+    assert out["rejected"] == []
+    assert out["validated"] is True
+    assert out["ready_to_persist"] is True
+    assert out["calibrated"] is False  # لا يكتب آليّاً
+
+
+def test_propose_values_rejects_bad():
+    req = ProposeValuesRequest(raw_fraction=0.9)  # خارج المدى
+    out = propose_region_values(region="marib", req=req, user=_USER)
+    assert out["accepted"] == {}
+    assert out["rejected"][0]["field"] == "raw_fraction"
+    assert out["validated"] is False
+    assert out["ready_to_persist"] is False

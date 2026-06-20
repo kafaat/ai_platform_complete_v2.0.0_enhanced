@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from api.adaptive_calibration import propose_calibration_adjustment
 from api.calibration import all_regions, get_calibration
+from api.calibration_ingest import validate_region_calibration
 from api.evidence_registry import aggregate_evidence
 from api.learning_feedback import learning_feedback
 from api.main import UserSchema, get_current_user
@@ -120,4 +121,34 @@ def propose_region_adaptation(
     ev.update(req.evidence.model_dump())
     return propose_calibration_adjustment(
         prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
+    )
+
+
+class ProposeValuesRequest(BaseModel):
+    raw_fraction: float | None = None
+    root_depth_m: float | None = None
+    kc_dyn_min: float | None = None
+    kc_dyn_max: float | None = None
+    forecast_infiltration: float | None = None
+    yield_uncertainty: float | None = None
+    price_uncertainty: float | None = None
+    uptake_fractions: dict[str, float] | None = None
+    source_ar: str | None = None
+
+
+@router.post("/api/v1/calibration/{region}/propose-values")
+def propose_region_values(
+    region: str,
+    req: ProposeValuesRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يتحقّق من قيم معايرة مقترَحة لمنطقة ضدّ حدود زراعيّة آمنة — يقترح ولا يكتب.
+
+    صدق: لا يُلفّق قيمة ولا يكتب إلى `_REGION_OVERRIDES`؛ يُرجِع `override_block`
+    مُتحقَّقة لينسخها التشغيل يدويّاً بعد المراجعة (الاستمرار خطوة منفصلة).
+    """
+    return validate_region_calibration(
+        region,
+        {k: v for k, v in req.model_dump().items() if k != "source_ar" and v is not None},
+        source_ar=req.source_ar,
     )
