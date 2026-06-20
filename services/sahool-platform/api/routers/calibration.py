@@ -11,6 +11,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from api.adaptive_calibration import propose_calibration_adjustment
 from api.calibration import all_regions, get_calibration
 from api.evidence_registry import aggregate_evidence
 from api.learning_feedback import learning_feedback
@@ -91,3 +92,32 @@ def compute_learning_feedback(
     صدق: اقتراحات فقط — `auto_adjust=False` صريح؛ القرار للإنسان (Adaptive لاحقاً).
     """
     return learning_feedback([r.model_dump() for r in req.evidence_records])
+
+
+class AdaptRequest(BaseModel):
+    evidence: EvidenceRecord
+    mean_stress_delta: float | None = None  # متوسّط (مرصود − متنبَّأ) لأيّام الإجهاد
+
+
+@router.post("/api/v1/calibration/{region}/adapt")
+def propose_region_adaptation(
+    region: str,
+    req: AdaptRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يقترح تعديل معايرة المنطقة تحت بوّابة الدليل — يقترح ولا يطبّق (#388).
+
+    صدق: applied=False (لا تعديل خفيّ)؛ الخطوة محدودة ومقصوصة وعكوسيّة؛ بلا دليل
+    field_verified كافٍ ⇒ gated.
+    """
+    prof = get_calibration(region)
+    ev = aggregate_evidence(
+        prof.region,
+        [],
+        expert_calibrated=prof.evidence_level == "expert_opinion",
+    )
+    # نستعمل دليل الطلب المُمرَّر (المتراكم) لا الفارغ.
+    ev.update(req.evidence.model_dump())
+    return propose_calibration_adjustment(
+        prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
+    )

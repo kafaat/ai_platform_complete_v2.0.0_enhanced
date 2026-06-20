@@ -7,6 +7,7 @@
 import api.main  # noqa: F401 — تهيئة api.main قبل استيراد الموجِّه
 import pytest
 from api.routers.calibration import (
+    AdaptRequest,
     EvidenceRecord,
     EvidenceRequest,
     FeedbackRequest,
@@ -15,6 +16,7 @@ from api.routers.calibration import (
     compute_region_evidence,
     get_region_calibration,
     list_calibration,
+    propose_region_adaptation,
 )
 from core.canonical_schemas import UserRole, UserSchema
 
@@ -75,3 +77,24 @@ def test_feedback_endpoint_suggests_no_auto_adjust():
     assert out["auto_adjust"] is False
     assert "jawf" in out["summary"]["regions_needing_data"]
     assert out["regions"][0]["region"] == "jawf"  # الأولويّة الأعلى أوّلاً
+
+
+def test_adapt_gated_without_evidence():
+    req = AdaptRequest(
+        evidence=EvidenceRecord(region="jawf", evidence_level="field_preliminary", sample_count=5),
+        mean_stress_delta=2.0,
+    )
+    out = propose_region_adaptation(region="jawf", req=req, user=_USER)
+    assert out["status"] == "gated"
+    assert out["applied"] is False
+
+
+def test_adapt_eligible_under_evidence():
+    req = AdaptRequest(
+        evidence=EvidenceRecord(region="jawf", evidence_level="field_verified", sample_count=40),
+        mean_stress_delta=2.0,  # إجهاد أسوأ ⇒ خفض p
+    )
+    out = propose_region_adaptation(region="jawf", req=req, user=_USER)
+    assert out["status"] == "auto_apply_eligible"
+    assert out["applied"] is False  # يقترح لا يطبّق
+    assert out["proposals"][0]["proposed"] < out["proposals"][0]["current"]
