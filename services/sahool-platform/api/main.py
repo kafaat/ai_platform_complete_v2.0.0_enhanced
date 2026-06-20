@@ -3195,6 +3195,7 @@ from api.routers.master_data import router as master_data_router  # noqa: E402
 from api.routers.me import router as me_router  # noqa: E402
 from api.routers.ndvi_analysis import router as ndvi_analysis_router  # noqa: E402
 from api.routers.niche_crops import router as niche_crops_router  # noqa: E402
+from api.routers.nl_gis import router as nl_gis_router  # noqa: E402
 from api.routers.notifications import router as notifications_router  # noqa: E402
 from api.routers.nutrients import router as nutrients_router  # noqa: E402
 from api.routers.observations import router as observations_router  # noqa: E402
@@ -3301,6 +3302,7 @@ app.include_router(introduction_router)
 app.include_router(economics_router)
 app.include_router(onboarding_router)
 app.include_router(operations_router)
+app.include_router(nl_gis_router)
 app.include_router(weather_analytics_router)
 app.include_router(decision_router)
 app.include_router(decision_dispatch_router)
