@@ -35,6 +35,73 @@ def _alert_key(field_id: Any, alert: dict) -> str:
     return f"{field_id}:{alert.get('code')}:{alert.get('severity')}"
 
 
+# ─── احترام تفضيلات المستخدم (channel selection) ────────────────────
+# خريطة قناة التوصيل ↔ مفتاح التفعيل في تفضيلات المستخدم. القنوات التشغيليّة
+# الدائمة (log / in_app) ليست في الخريطة: لا يُفترض أنّ المستخدم يُسكِت السجلّ أو
+# لوحة الـIn-App، فتبقى دائماً (المرشِّح يمرّرها بلا شرط — السلوك القائم).
+_CHANNEL_PREF_KEY: dict[str, str] = {
+    "webhook": "push_enabled",  # القناة العامّة (تطبيق/Push/Slack) ⇔ تفعيل الدفع
+    "whatsapp": "whatsapp_enabled",
+    "sms": "sms_enabled",
+    "email": "email_enabled",
+    "push": "push_enabled",
+}
+
+# القنوات التشغيليّة التي لا تُرشَّح أبداً (تسجيل + لوحة داخل التطبيق) — بثّ داخليّ
+# لا إرسال خارجيّ، فلا معنى لإسكاتها بتفضيلات المستخدم.
+_ALWAYS_ON_CHANNELS = frozenset({"log", "in_app"})
+
+
+def select_channels_for_user(
+    prefs: dict | None,
+    severity: str | None,
+    channels: list,
+) -> list:
+    """يُرشّح القنوات وفق تفضيلات المستخدم (نقيّة، بلا آثار جانبيّة).
+
+    تُرشَّح القناة الخارجيّة إن وُجدت تفضيلات وكانت قناتها مُفعَّلة، وكانت خطورة
+    التنبيه ≥ ``min_severity`` للمستخدم. القنوات التشغيليّة الدائمة (log/in_app)
+    تمرّ دائماً.
+
+    الصدق/التوافق الخلفيّ التامّ:
+      • ``prefs`` فارغة/``None`` (مستخدم بلا تفضيلات، أو علم الاحترام مُطفأ) ⇒
+        تُعاد ``channels`` كما هي **حرفيّاً** — السلوك الحاليّ تماماً، لا انحدار.
+      • ``min_severity`` غير مضبوطة في التفضيلات ⇒ لا تُرشَّح بالخطورة.
+
+    prefs: قاموس تفضيلات (مفاتيح ``*_enabled`` + ``min_severity``) بشكل
+           ``NotificationPreferences``؛ أو ``None`` لتعطيل الاحترام.
+    severity: خطورة التنبيه ("critical"/"warning"/"info").
+    channels: قائمة القنوات المبنيّة (build_default_channels أو مُمرَّرة).
+    """
+    if not prefs:
+        return channels
+
+    # بوّابة الخطورة على مستوى المستخدم (تكمّل _filter_by_severity على مستوى الإصدار):
+    # خطورة أدنى من حدّ المستخدم ⇒ لا قناة خارجيّة (تبقى log/in_app التشغيليّة فقط).
+    min_sev = prefs.get("min_severity")
+    sev_ok = True
+    if min_sev:
+        sev_ok = _RANK.get(severity, 1) >= _RANK.get(min_sev, 2)
+
+    selected: list = []
+    for ch in channels:
+        name = getattr(ch, "name", "")
+        if name in _ALWAYS_ON_CHANNELS:
+            selected.append(ch)  # تشغيليّة دائمة — لا تُرشَّح
+            continue
+        pref_key = _CHANNEL_PREF_KEY.get(name)
+        if pref_key is None:
+            # قناة غير معروفة في خريطة التفضيلات — لا نُسقِطها صامتاً (لا ابتلاع)
+            selected.append(ch)
+            continue
+        if not bool(prefs.get(pref_key)):
+            continue  # القناة غير مُفعَّلة لدى المستخدم
+        if not sev_ok:
+            continue  # دون حدّ خطورة المستخدم
+        selected.append(ch)
+    return selected
+
+
 class LogChannel:
     name = "log"
 
@@ -157,10 +224,15 @@ def deliver_alerts(
     context: dict | None = None,
     min_severity: str = "warning",
     seen: set | None = None,
+    prefs: dict | None = None,
 ) -> dict:
     """يوصّل تنبيهات (warning فأعلى افتراضيّاً) عبر القنوات.
 
     seen: مجموعة مفاتيح سبق توصيلها (idempotency) — تُحدَّث؛ يمنع تكرار الإزعاج.
+    prefs: تفضيلات المستخدم (اختياريّة). عند تمريرها تُرشَّح القنوات الخارجيّة عبر
+        ``select_channels_for_user`` وفق التفعيل/min_severity؛ بلا تفضيلات (None) =
+        السلوك القائم تماماً (كلّ القنوات). درجة الفلترة بأعلى خطورة في الدُّفعة كي
+        لا يُسكَت تنبيه حرج بسبب أخفّ منه.
     يُرجِع ملخّص: المُحاوَل + المُصفّى (info) + المتخطّى (تكرار) + نتائج القنوات.
     """
     context = context or {}
@@ -180,7 +252,18 @@ def deliver_alerts(
     else:
         fresh = eligible
 
-    results = [ch.send(fresh, context) for ch in channels] if fresh else []
+    # احترام تفضيلات المستخدم: تُرشَّح القنوات الخارجيّة بأعلى خطورة في الدُّفعة
+    # (الأشدّ تحكم البوّابة — لا يُسكَت critical بوجود warning). نقيّ + توافق خلفيّ.
+    eff_channels = channels
+    if prefs and fresh:
+        top_severity = max(
+            (a.get("severity") for a in fresh),
+            key=lambda s: _RANK.get(s, 1),
+            default=None,
+        )
+        eff_channels = select_channels_for_user(prefs, top_severity, channels)
+
+    results = [ch.send(fresh, context) for ch in eff_channels] if fresh else []
     return {
         "attempted": len(fresh),
         "filtered_out": len(alerts) - len(eligible),

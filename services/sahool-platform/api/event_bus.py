@@ -139,6 +139,11 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     ALERT_CREATED = "alert.created"
     ALERT_ACKNOWLEDGED = "alert.acknowledged"
 
+    # إيصال تسليم الإشعار (إغلاق دورة الإشعار) — يُصدَر عند إدامة/تحديث حالة تسليم
+    # تنبيه عبر قناة (queued/sent/failed/delivered). يجعل «هل وصل؟» متتبَّعاً/مدقَّقاً
+    # في مجرى الأحداث الموحّد. يُستهلَك للبثّ الحيّ (WebSocket) وإعادة المحاولة.
+    NOTIFICATION_DELIVERED = "notification.delivered"
+
     # توصية: حدث عند توليد توصية (C1/C2) — يجعلها متتبَّعة/مدقَّقة في مجرى الأحداث
     # الموحّد والإعادة، ويصل البثّ الحيّ. يُصدَر عبر outbox ضمن معاملة التخزين.
     RECOMMENDATION_CREATED = "recommendation.created"

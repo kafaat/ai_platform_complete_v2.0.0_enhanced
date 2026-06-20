@@ -318,3 +318,9 @@ v81_actuator_command_dedup.sql
 # UNIQUE(tenant,ref_type,ref_id) للربط مرّةً، فهرس (tenant,lineage_id) للجلب. يُستهلَك خلف
 # علم FEATURE_UNIFIED_LINEAGE (إغلاق مرن). يُصدِر LINEAGE_LINKED. RLS+FORCE معزول. idempotent.
 v82_lineage_link.sql
+
+# v83: إيصالات تسليم الإشعار — جدول notification_delivery: يُدِيم حالة كلّ تسليم
+# (queued|sent|failed|delivered) لكلّ مستأجِر×تنبيه×قناة (UNIQUE(tenant,alert_key,channel)
+# للـupsert، error provenance) — يُغلق دورة الإشعار (تتبّع «هل وصل؟» + إعادة محاولة + تدقيق).
+# تُحدِّثه نقطة POST في موجِّه notifications. يُصدِر NOTIFICATION_DELIVERED. RLS+FORCE معزول. idempotent.
+v83_notification_delivery.sql

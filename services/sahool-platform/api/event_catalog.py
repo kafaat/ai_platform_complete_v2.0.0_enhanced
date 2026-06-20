@@ -194,6 +194,12 @@ _CATALOG: dict[str, DomainEvent] = {
         category="alert",
         description_ar="أُقِرّ (acknowledged) تنبيه.",
     ),
+    "NOTIFICATION_DELIVERED": DomainEvent(
+        name="NOTIFICATION_DELIVERED",
+        category="notification",
+        description_ar="أُدِيمت/حُدِّثت حالة تسليم إشعار عبر قناة (الوسيط: notification.delivered).",
+        payload_keys=("alert_key", "channel", "status"),
+    ),
     # ── الريّ (irrigation): جدولة + دورة حياة الصمّامات ─────────────────────────
     "IRRIGATION_SCHEDULE_CREATED": DomainEvent(
         name="IRRIGATION_SCHEDULE_CREATED",
