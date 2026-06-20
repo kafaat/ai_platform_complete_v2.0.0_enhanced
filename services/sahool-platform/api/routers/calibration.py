@@ -230,6 +230,113 @@ async def propose_region_adaptation_from_evidence(
     return out
 
 
+class AdaptApplyRequest(BaseModel):
+    mean_stress_delta: float | None = None  # إشارة الاتّجاه (مرصود − متنبَّأ)
+    decision_id: str | None = None  # نَسَب: يربط التطبيق بسلسلة القرار
+    confirm: bool = False  # تأكيد صريح إلزاميّ (لا تطبيق عَرَضيّ — مبدأ الصدق)
+    source_ar: str | None = None  # provenance؛ يُولَّد من الدليل إن غاب
+
+
+@router.post("/api/v1/calibration/{region}/adapt-from-evidence/apply")
+async def apply_region_adaptation_from_evidence(
+    region: str,
+    req: AdaptApplyRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يُطبّق تكيّف المعايرة المحروس بالدليل المُدام على متجر المعايرة (v80) — يُغلق الحلقة.
+
+    يربط طرفَي الحلقة: نتيجة⇒دليل⇒تكيّف⇒**معايرة مُدامة**⇒قرارات لاحقة. لا يُدِيم إلا إذا:
+    (أ) confirm=True صريح (موافقة بشريّة)، (ب) الاقتراح auto_apply_eligible (دليل
+    field_verified + ≥العتبة + إشارة اتّجاه + تغيير فعليّ)، (ج) القيم تجتاز حدود الأمان.
+    غير ذلك ⇒ لا إدامة، يُرجِع الاقتراح كما هو (applied=False). الخطوة محدودة ومقصوصة (±0.05)
+    وعكوسيّة (DELETE override). 422 بلا تأكيد/خارج الأمان، 503 عند تعذّر القاعدة. مسار كتابة.
+    """
+    did = ensure_decision_id(req.decision_id)
+    if not req.confirm:
+        raise HTTPException(
+            status_code=422,
+            detail="تطبيق التكيّف يتطلّب تأكيداً صريحاً (confirm=true) — مبدأ الصدق (لا تطبيق خفيّ).",
+        )
+    prof = get_calibration(region)
+    accepted: dict | None = None
+    source_ar: str | None = None
+    try:
+        async with tenant_connection(user) as conn:
+            db_rows = await conn.fetch(
+                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "ORDER BY created_at ASC",
+                prof.region,
+            )
+            rows: list[dict] = []
+            for r in db_rows:
+                m = r["metrics"]
+                if isinstance(m, str):
+                    m = _json.loads(m)
+                created = r["created_at"]
+                rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+
+            ev = evidence_from_persisted_outcomes(
+                prof.region, rows, expert_calibrated=prof.evidence_level == "expert_opinion"
+            )
+            proposal = propose_calibration_adjustment(
+                prof.to_dict(), ev, mean_stress_delta=req.mean_stress_delta
+            )
+            proposal["decision_id"] = did
+            proposal["lineage"] = lineage_stage(did, "adaptation", region=prof.region)
+            proposal["evidence_used"] = ev
+
+            # غير مؤهَّل (محروس/بلا إشارة/بلا تغيير) ⇒ لا إدامة، نُعيد الاقتراح كما هو.
+            if proposal.get("status") != "auto_apply_eligible":
+                proposal["applied"] = False
+                return proposal
+
+            new_values = {p["parameter"]: p["proposed"] for p in proposal["proposals"]}
+            source_ar = req.source_ar or (
+                f"تكيّف آليّ محروس بدليل field_verified ({ev.get('sample_count', 0)} عيّنة) — {prof.region}"
+            )
+            # بوّابة أمان ثانية: القيم المقترَحة (المقصوصة) تجتاز حدود calibration_ingest.
+            vres = validate_region_calibration(prof.region, new_values, source_ar=source_ar)
+            if not (vres["validated"] and vres["ready_to_persist"]):
+                proposal["applied"] = False
+                proposal["validation"] = vres
+                raise HTTPException(status_code=422, detail=proposal)
+            accepted = vres["accepted"]
+
+            await conn.execute(
+                """INSERT INTO calibration_override
+                    (tenant_id, region, override_values, source_ar, validated, created_by)
+                   VALUES ($1::uuid, $2, $3::jsonb, $4, TRUE, $5)
+                   ON CONFLICT (tenant_id, region) DO UPDATE SET
+                     override_values = EXCLUDED.override_values,
+                     source_ar       = EXCLUDED.source_ar,
+                     validated       = TRUE,
+                     updated_at      = now()""",
+                str(user.tenant_id),
+                prof.region,
+                _json.dumps(accepted),
+                source_ar,
+                str(user.user_id),
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "CALIBRATION_OVERRIDE_SET",
+                "calibration_override",
+                prof.region,
+                {"region": prof.region, "fields": list(accepted.keys()), "via": "adaptation"},
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تطبيق تكيّف المعايرة", e) from e
+
+    proposal["applied"] = True  # أُدِيم فعلاً في متجر المعايرة (عكوسيّ عبر DELETE)
+    proposal["persisted_override"] = accepted
+    proposal["source_ar"] = source_ar
+    proposal["resolved"] = apply_region_override(prof.region, accepted, source_ar=source_ar)
+    return proposal
+
+
 class ProposeValuesRequest(BaseModel):
     raw_fraction: float | None = None
     root_depth_m: float | None = None
