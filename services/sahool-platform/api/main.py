@@ -3143,6 +3143,7 @@ from api.routers.cultural_calendar import router as cultural_calendar_router  # 
 from api.routers.data_readiness import router as data_readiness_router  # noqa: E402
 from api.routers.decision import router as decision_router  # noqa: E402
 from api.routers.decision_dispatch import router as decision_dispatch_router  # noqa: E402
+from api.routers.decision_explain import router as decision_explain_router  # noqa: E402
 from api.routers.decision_impact import router as decision_impact_router  # noqa: E402
 from api.routers.decision_policies import router as decision_policies_router  # noqa: E402
 from api.routers.decision_record import router as decision_record_router  # noqa: E402
@@ -3300,6 +3301,7 @@ app.include_router(onboarding_router)
 app.include_router(weather_analytics_router)
 app.include_router(decision_router)
 app.include_router(decision_dispatch_router)
+app.include_router(decision_explain_router)
 app.include_router(decision_policies_router)
 app.include_router(decision_impact_router)
 app.include_router(decision_record_router)
