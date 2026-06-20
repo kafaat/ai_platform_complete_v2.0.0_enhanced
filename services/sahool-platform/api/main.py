@@ -3146,6 +3146,7 @@ from api.routers.decision import router as decision_router  # noqa: E402
 from api.routers.decision_dispatch import router as decision_dispatch_router  # noqa: E402
 from api.routers.decision_impact import router as decision_impact_router  # noqa: E402
 from api.routers.decision_policies import router as decision_policies_router  # noqa: E402
+from api.routers.decision_record import router as decision_record_router  # noqa: E402
 from api.routers.devices import router as devices_router  # noqa: E402
 from api.routers.diagnose import router as diagnose_router  # noqa: E402
 from api.routers.districts import router as districts_router  # noqa: E402
@@ -3298,6 +3299,7 @@ app.include_router(decision_router)
 app.include_router(decision_dispatch_router)
 app.include_router(decision_policies_router)
 app.include_router(decision_impact_router)
+app.include_router(decision_record_router)
 app.include_router(field_twin_router)
 app.include_router(agricultural_proverbs_router)
 app.include_router(astronomical_timing_router)

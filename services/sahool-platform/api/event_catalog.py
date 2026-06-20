@@ -227,6 +227,19 @@ _CATALOG: dict[str, DomainEvent] = {
         description_ar="سُجِّلت نتيجة تنفيذ قرار (الوسيط: dispatch.execution.recorded).",
         payload_keys=("outcome", "decision_id", "field_id"),
     ),
+    # ── سلسلة النَّسَب المُدامة (lineage): إدامة القرار ونتيجته (P0-1/P0-3) ──────────
+    "DECISION_RECORDED": DomainEvent(
+        name="DECISION_RECORDED",
+        category="lineage",
+        description_ar="أُدِيم قرار زراعيّ (رأس السلسلة؛ الوسيط: decision.recorded).",
+        payload_keys=("decision_type", "field_id", "region", "confidence"),
+    ),
+    "OUTCOME_MEASURED": DomainEvent(
+        name="OUTCOME_MEASURED",
+        category="lineage",
+        description_ar="أُدِيمت نتيجة قرار ميدانيّة مربوطة بـdecision_id (الوسيط: outcome.measured).",
+        payload_keys=("decision_id", "field_id", "success"),
+    ),
     # ── المزامنة offline: دمج آليّ غير متقاطع (Auto-merge L3) ────────────────────
     "OFFLINE_MERGE_AUTO": DomainEvent(
         name="OFFLINE_MERGE_AUTO",

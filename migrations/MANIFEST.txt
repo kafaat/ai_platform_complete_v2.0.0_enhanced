@@ -289,3 +289,13 @@ v76_crop_kc_timeseries.sql
 # (provenance + cross_reference)، PK بديل UUID + rec_id نصّ مفهرس، field_id نصّ،
 # RLS+FORCE بسياسة current_setting. يُصدِر RECOMMENDATION_CREATED عبر outbox. idempotent.
 v77_recommendations.sql
+
+# v78: إدامة رأس القرار — جدول decision_record: يُدِيم كلّ قرار مُتّخذ (decision_id،
+# نوعه، حقله، قيمته الكاملة JSONB، ثقته) كرأس سلسلة النَّسَب (Decision→Outcome→Evidence).
+# يُصدِر DECISION_RECORDED عبر outbox. RLS إلزاميّ معزول بالمستأجر. idempotent.
+v78_decision_record.sql
+
+# v79: إدامة نتيجة القرار — جدول outcome_record: يُدِيم قياس النتيجة (مُخطَّط/مرصود/مقاييس)
+# مربوطاً بـdecision_id (ربط ليّن مفهرس بلا FK صلب، يحفظ RLS) — يُغلق حلقة Decision→Outcome
+# (P0-1). يُصدِر OUTCOME_MEASURED عبر outbox. RLS إلزاميّ معزول بالمستأجر. idempotent.
+v79_outcome_record.sql

@@ -148,6 +148,12 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     DISPATCH_DECISION_RECORDED = "dispatch.decision.recorded"
     DISPATCH_EXECUTION_RECORDED = "dispatch.execution.recorded"
 
+    # سلسلة النَّسَب المُدامة (Decision→Outcome→Evidence→Learning, P0-1/P0-3): إدامة
+    # رأس القرار (decision_record) ونتيجته الميدانيّة (outcome_record) بمعرّف موحّد —
+    # تجعل القرار وأثره متتبَّعَين/مدقَّقَين للتراكم المعرفيّ بدل حساب عابر يُنسى.
+    DECISION_RECORDED = "decision.recorded"
+    OUTCOME_MEASURED = "outcome.measured"
+
     # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
     # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.
     TASK_UPDATED = "task.updated"
