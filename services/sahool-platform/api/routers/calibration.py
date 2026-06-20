@@ -8,6 +8,8 @@ GET فقط (قراءة بنية ثابتة): يكشف الملفّ العامّ 
 
 from __future__ import annotations
 
+import json as _json
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
@@ -15,9 +17,9 @@ from api.adaptive_calibration import propose_calibration_adjustment
 from api.calibration import all_regions, get_calibration
 from api.calibration_ingest import validate_region_calibration
 from api.decision_lineage import ensure_decision_id, lineage_stage
-from api.evidence_registry import aggregate_evidence
+from api.evidence_registry import aggregate_evidence, evidence_from_persisted_outcomes
 from api.learning_feedback import learning_feedback
-from api.main import UserSchema, get_current_user
+from api.main import UserSchema, _db_unavailable, get_current_user, tenant_connection
 
 router = APIRouter()
 
@@ -68,6 +70,45 @@ def compute_region_evidence(
         prof.region,
         [o.model_dump() for o in req.outcomes],
         expert_calibrated=expert,
+    )
+
+
+@router.get("/api/v1/calibration/{region}/evidence/persisted")
+async def get_persisted_region_evidence(
+    region: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """دليل المنطقة التراكميّ المُدام — يُجمّع نتائج outcome_record المحفوظة (P0-2).
+
+    يُغلق فجوة «دليل عابر»: بدل تمرير النتائج في الطلب (compute_region_evidence)، يقرأ هنا
+    النتائج **المُدامة** للمستأجِر في هذه المنطقة (معزولة بـRLS) ويجمّعها — فيتراكم الدليل
+    نحو عتبة التحقّق عبر الزمن، ويُغذّي /feedback و/adapt بدليل حقيقيّ. قراءة فقط؛ 503 عند
+    تعذّر القاعدة. مسار قراءة (يتطلّب Postgres؛ مُختبَر تكامليّاً). الصدق: المنطق نفسه
+    (evidence_from_persisted_outcomes ⇒ aggregate_evidence) — لا عتبة مكرّرة.
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            db_rows = await conn.fetch(
+                "SELECT metrics, created_at FROM outcome_record WHERE region = $1 "
+                "ORDER BY created_at ASC",
+                prof.region,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة دليل المنطقة المُدام", e) from e
+
+    rows: list[dict] = []
+    for r in db_rows:
+        m = r["metrics"]
+        if isinstance(m, str):
+            m = _json.loads(m)
+        created = r["created_at"]
+        rows.append({"metrics": m, "created_at": created.isoformat() if created else None})
+
+    return evidence_from_persisted_outcomes(
+        prof.region,
+        rows,
+        expert_calibrated=prof.evidence_level == "expert_opinion",
     )
 
 

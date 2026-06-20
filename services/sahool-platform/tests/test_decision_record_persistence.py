@@ -73,3 +73,5 @@ def test_persistence_endpoints_wired():
     assert ("/api/v1/decision/record", "POST") in routes
     assert ("/api/v1/outcome/record", "POST") in routes
     assert ("/api/v1/decision/{decision_id}/lineage", "GET") in routes
+    # P0-2: دليل المنطقة المُدام (يُجمّع outcome_record المحفوظة).
+    assert ("/api/v1/calibration/{region}/evidence/persisted", "GET") in routes

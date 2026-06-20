@@ -71,3 +71,36 @@ def aggregate_evidence(
         "calibrated": False,
         "warnings_ar": warnings_ar,
     }
+
+
+def evidence_from_persisted_outcomes(
+    region: str,
+    rows: list[dict],
+    expert_calibrated: bool = False,
+) -> dict:
+    """يبني الدليل التراكميّ من صفوف outcome_record المُدامة — يُغلق P0-2 (إدامة الدليل).
+
+    rows: صفوف outcome_record المُدامة، كلّ صفّ {metrics, created_at}؛ metrics هي مخرجات
+    measure_outcome المخزّنة (فيها n_evaluated/n_success/success_flags). يستخرج منها مدخلات
+    aggregate_evidence (evaluated_at=created_at) ثمّ يفوّض إليه — **مصدر واحد** لمنطق العتبة
+    والمستوى (لا تكرار). نقيّ حتميّ (لا I/O): الاستعلام يجري في الموجِّه ويُمرَّر ناتجه هنا.
+
+    صدق: الدليل الآن مدعوم بنتائج **مُدامة** (لا حمولة طلب عابرة) — يتراكم نحو عتبة التحقّق
+    عبر الزمن. الناقص (metrics فارغة) لا يُحتسب عيّنة (aggregate_evidence يُسقِط n_evaluated=0).
+    """
+    outcomes: list[dict] = []
+    for r in rows:
+        m = r.get("metrics") or {}
+        outcomes.append(
+            {
+                "n_evaluated": m.get("n_evaluated", 0),
+                "n_success": m.get("n_success", 0),
+                "success_flags": m.get("success_flags", []),
+                "evaluated_at": r.get("created_at"),
+            }
+        )
+    out = aggregate_evidence(region, outcomes, expert_calibrated=expert_calibrated)
+    # صدق: نوضّح مصدر الدليل (نتائج مُدامة) وعدد الصفوف المقروءة (قد يفوق العيّنات المُحتسَبة).
+    out["source"] = "persisted_outcomes"
+    out["persisted_rows"] = len(rows)
+    return out
