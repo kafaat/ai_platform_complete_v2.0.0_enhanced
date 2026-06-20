@@ -10,16 +10,22 @@ from __future__ import annotations
 
 import json as _json
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from api.adaptive_calibration import propose_calibration_adjustment
-from api.calibration import all_regions, get_calibration
+from api.calibration import all_regions, apply_region_override, get_calibration
 from api.calibration_ingest import validate_region_calibration
 from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.evidence_registry import aggregate_evidence, evidence_from_persisted_outcomes
 from api.learning_feedback import learning_feedback
-from api.main import UserSchema, _db_unavailable, get_current_user, tenant_connection
+from api.main import (
+    UserSchema,
+    _db_unavailable,
+    _emit_domain_event,
+    get_current_user,
+    tenant_connection,
+)
 
 router = APIRouter()
 
@@ -252,3 +258,146 @@ def propose_region_values(
         {k: v for k, v in req.model_dump().items() if k != "source_ar" and v is not None},
         source_ar=req.source_ar,
     )
+
+
+# ── المعايرة الإقليميّة المُدارة DB-backed (يُكمل البند 3) ─────────────────────────
+# بدل تعديل _REGION_OVERRIDES في الكود، يُدِيم المستأجِر قيمه المُتحقَّقة في القاعدة
+# (calibration_override، معزول بـRLS) — قابل للإدارة والتدقيق والعكس، بلا تلفيق.
+
+
+@router.post("/api/v1/calibration/{region}/override")
+async def set_region_override(
+    region: str,
+    req: ProposeValuesRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يُدِيم قيم معايرة مُتحقَّقة لمنطقة (المستأجِر) في القاعدة — معايرة مُدارة DB-backed.
+
+    يتحقّق أوّلاً (validate_region_calibration: حدود زراعيّة آمنة + مصدر provenance)؛ لا
+    يُدِيم إلا قيماً **مقبولة مع مصدر** (upsert على tenant×region) + حدث CALIBRATION_OVERRIDE_SET.
+    422 إن رُفِض حقل أو غاب المصدر (لا تلفيق، يُرجِع تفصيل التحقّق). 503 عند تعذّر القاعدة.
+    مسار كتابة (يتطلّب Postgres). الصدق: يُدِيم المقبول فقط؛ القرار يبقى للمستخدم (لا تعديل خفيّ).
+    """
+    submitted = {k: v for k, v in req.model_dump().items() if k != "source_ar" and v is not None}
+    result = validate_region_calibration(region, submitted, source_ar=req.source_ar)
+    if not (result["validated"] and result["ready_to_persist"]):
+        # لم يُتحقَّق (رفض/نقص مصدر) ⇒ لا إدامة؛ نُعيد سبب الرفض للمستخدم.
+        raise HTTPException(status_code=422, detail=result)
+
+    prof = get_calibration(region)
+    accepted = result["accepted"]
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO calibration_override
+                    (tenant_id, region, override_values, source_ar, validated, created_by)
+                   VALUES ($1::uuid, $2, $3::jsonb, $4, TRUE, $5)
+                   ON CONFLICT (tenant_id, region) DO UPDATE SET
+                     override_values = EXCLUDED.override_values,
+                     source_ar       = EXCLUDED.source_ar,
+                     validated       = TRUE,
+                     updated_at      = now()""",
+                str(user.tenant_id),
+                prof.region,
+                _json.dumps(accepted),
+                req.source_ar,
+                str(user.user_id),
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "CALIBRATION_OVERRIDE_SET",
+                "calibration_override",
+                prof.region,
+                {"region": prof.region, "fields": list(accepted.keys())},
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("إدامة معايرة المنطقة", e) from e
+
+    return {
+        "region": prof.region,
+        "persisted": True,
+        "accepted": accepted,
+        "source_ar": req.source_ar,
+        "resolved": apply_region_override(prof.region, accepted, source_ar=req.source_ar),
+    }
+
+
+@router.get("/api/v1/calibration/{region}/resolved")
+async def get_resolved_region_calibration(
+    region: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """ملفّ المنطقة بعد دمج تجاوز المستأجِر المُدام (إن وُجد) — معزول بـRLS.
+
+    لا تجاوز مُدام ⇒ القاعدة الموروثة (override_source=inherited، validated=false). تجاوز
+    مُدام ⇒ القيم المُعايَرة مطبَّقة (override_source=db_override). 503 عند تعذّر القاعدة.
+    مسار قراءة (يتطلّب Postgres؛ مُختبَر تكامليّاً). الصدق: المنطق نفسه (apply_region_override).
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT override_values, source_ar FROM calibration_override WHERE region = $1",
+                prof.region,
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة معايرة المنطقة المُدامة", e) from e
+
+    if row is None:
+        return apply_region_override(prof.region, {})  # القاعدة الموروثة (لا تجاوز)
+    ov = row["override_values"]
+    if isinstance(ov, str):
+        ov = _json.loads(ov)
+    return apply_region_override(prof.region, ov, source_ar=row["source_ar"])
+
+
+@router.get("/api/v1/calibration/overrides/all")
+async def list_region_overrides(user: UserSchema = Depends(get_current_user)):
+    """تجاوزات المعايرة المُدامة للمستأجِر (كلّ المناطق) — معزولة بـRLS، قراءة فقط.
+
+    لإدارة الملفّات المُعايَرة (أيّ المناطق صار لها قيم مُدامة ومصدرها). 503 عند تعذّر القاعدة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            rows = await conn.fetch(
+                "SELECT region, override_values, source_ar, validated, updated_at "
+                "FROM calibration_override ORDER BY region"
+            )
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة تجاوزات المعايرة", e) from e
+
+    items = []
+    for r in rows:
+        ov = r["override_values"]
+        if isinstance(ov, str):
+            ov = _json.loads(ov)
+        updated = r["updated_at"]
+        items.append(
+            {
+                "region": r["region"],
+                "override_values": ov,
+                "source_ar": r["source_ar"],
+                "validated": r["validated"],
+                "updated_at": updated.isoformat() if updated is not None else None,
+            }
+        )
+    return {"overrides": items, "count": len(items)}
+
+
+@router.delete("/api/v1/calibration/{region}/override")
+async def delete_region_override(
+    region: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """يحذف تجاوز المنطقة المُدام ويعيدها للوراثة العامّة — عكوسيّة (مبدأ الصدق). معزول بـRLS.
+
+    لا حالة خفيّة دائمة: المعايرة المُدارة قابلة للعكس متى تبيّن خطؤها. 503 عند تعذّر القاعدة.
+    """
+    prof = get_calibration(region)
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute("DELETE FROM calibration_override WHERE region = $1", prof.region)
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("حذف معايرة المنطقة", e) from e
+    return {"region": prof.region, "reverted": True}

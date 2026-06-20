@@ -154,6 +154,10 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     DECISION_RECORDED = "decision.recorded"
     OUTCOME_MEASURED = "outcome.measured"
 
+    # معايرة إقليميّة مُدارة DB-backed (البند 3): إدامة قيم معايرة مُتحقَّقة لكلّ
+    # مستأجِر×منطقة بدل تعديل الكود — تجعل التغيير متتبَّعاً/مدقَّقاً في مجرى الأحداث.
+    CALIBRATION_OVERRIDE_SET = "calibration.override.set"
+
     # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
     # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.
     TASK_UPDATED = "task.updated"

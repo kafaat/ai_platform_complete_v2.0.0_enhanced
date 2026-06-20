@@ -166,3 +166,43 @@ def get_calibration(region: str | None) -> CalibrationProfile:
 def all_regions() -> list[str]:
     """مفاتيح المناطق اليمنيّة المستهدفة (دون العامّ)."""
     return list(_REGION_OVERRIDES.keys())
+
+
+# الحقول القابلة للتجاوز المُدار (تطابق حدود calibration_ingest._BOUNDS + نِسَب الامتصاص).
+_OVERRIDABLE_FIELDS = (
+    "raw_fraction",
+    "root_depth_m",
+    "kc_dyn_min",
+    "kc_dyn_max",
+    "forecast_infiltration",
+    "uptake_fractions",
+    "yield_uncertainty",
+    "price_uncertainty",
+)
+
+
+def apply_region_override(
+    region: str | None, overrides: dict, *, source_ar: str | None = None
+) -> dict:
+    """يُرجع ملفّ المنطقة بعد تطبيق تجاوزات مُتحقَّقة فوق القاعدة — نقيّ حتميّ (لا I/O).
+
+    أساس المعايرة المُدارة DB-backed (البند 3): يأخذ القاعدة (get_calibration) ويطبّق فوقها
+    القيم المُدامة المُتحقَّقة (المعروفة منها فقط)، فيضبط validated=True وevidence_level ويوسم
+    المصدر. لا يكتب شيئاً (الإدامة في الموجِّه). overrides فارغة ⇒ القاعدة كما هي (موروثة).
+    صدق: يطبّق الحقول المعروفة المُمرَّرة فقط؛ لا يُلفّق ولا يخترع قيمة.
+    """
+    data = get_calibration(region).to_dict()
+    applied: list[str] = []
+    for fld in _OVERRIDABLE_FIELDS:
+        if overrides.get(fld) is not None:
+            data[fld] = overrides[fld]
+            applied.append(fld)
+    if applied:
+        data["validated"] = True
+        if data.get("evidence_level", "none") == "none":
+            data["evidence_level"] = "expert_opinion"
+        data["source_ar"] = source_ar or f"منطقة {data['region_ar']}: قيم مُعايَرة مُدامة (DB)"
+        data["notes_ar"] = []
+    data["override_applied"] = applied
+    data["override_source"] = "db_override" if applied else "inherited"
+    return data

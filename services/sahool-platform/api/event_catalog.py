@@ -240,6 +240,13 @@ _CATALOG: dict[str, DomainEvent] = {
         description_ar="أُدِيمت نتيجة قرار ميدانيّة مربوطة بـdecision_id (الوسيط: outcome.measured).",
         payload_keys=("decision_id", "field_id", "success"),
     ),
+    # ── المعايرة الإقليميّة المُدارة (calibration): إدامة قيم مُتحقَّقة DB-backed ──────
+    "CALIBRATION_OVERRIDE_SET": DomainEvent(
+        name="CALIBRATION_OVERRIDE_SET",
+        category="calibration",
+        description_ar="أُدِيمت قيم معايرة إقليميّة مُتحقَّقة لمنطقة (الوسيط: calibration.override.set).",
+        payload_keys=("region", "fields"),
+    ),
     # ── المزامنة offline: دمج آليّ غير متقاطع (Auto-merge L3) ────────────────────
     "OFFLINE_MERGE_AUTO": DomainEvent(
         name="OFFLINE_MERGE_AUTO",

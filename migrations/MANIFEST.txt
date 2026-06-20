@@ -299,3 +299,9 @@ v78_decision_record.sql
 # مربوطاً بـdecision_id (ربط ليّن مفهرس بلا FK صلب، يحفظ RLS) — يُغلق حلقة Decision→Outcome
 # (P0-1). يُصدِر OUTCOME_MEASURED عبر outbox. RLS إلزاميّ معزول بالمستأجر. idempotent.
 v79_outcome_record.sql
+
+# v80: معايرة إقليميّة مُدارة DB-backed — جدول calibration_override: يُدِيم قيم المعايرة
+# المُتحقَّقة لكلّ مستأجِر×منطقة (UNIQUE للـupsert، override_values JSONB، مصدر provenance
+# إلزاميّ) بدل تعديل _REGION_OVERRIDES في الكود — عكوسيّ (DELETE يعيد الوراثة). يُصدِر
+# CALIBRATION_OVERRIDE_SET عبر outbox. RLS+FORCE معزول بالمستأجر. idempotent.
+v80_calibration_override.sql
