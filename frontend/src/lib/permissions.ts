@@ -25,7 +25,7 @@ export function normalizeRole(role?: string | null): Role {
 // (الاتّجاه العكسيّ مغطّى بـ`satisfies` — لا حاجة لشيفرة إضافيّة له).
 const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
-  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'calibration', 'lineage', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
+  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'portfolio', 'calibration', 'calibration-workbench', 'lineage', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
 ] as const satisfies readonly PageId[];

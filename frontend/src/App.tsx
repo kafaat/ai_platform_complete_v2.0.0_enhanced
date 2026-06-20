@@ -8,7 +8,7 @@ import {
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
   ChevronDown, CalendarRange, GitCompare, GitBranch,
-  FlaskConical, GitCommitHorizontal,
+  FlaskConical, GitCommitHorizontal, SlidersHorizontal,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -72,6 +72,7 @@ const CropStatePage = lazy(() => import('./sections/CropStatePage'));
 const ScenarioComparePage = lazy(() => import('./sections/ScenarioComparePage'));
 const PortfolioPage = lazy(() => import('./sections/PortfolioPage'));
 const CalibrationPage = lazy(() => import('./sections/CalibrationPage'));
+const CalibrationWorkbenchPage = lazy(() => import('./sections/CalibrationWorkbenchPage'));
 const LineagePage = lazy(() => import('./sections/LineagePage'));
 const LearningDashboardPage = lazy(() => import('./sections/LearningDashboardPage'));
 const DecisionStudioPage = lazy(() => import('./sections/DecisionStudioPage'));
@@ -109,7 +110,7 @@ export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'portfolio' | 'calibration' | 'lineage' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
+  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'portfolio' | 'calibration' | 'calibration-workbench' | 'lineage' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report';
@@ -161,6 +162,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id:'scenario-compare', label:'مقارنة السياسات', icon:GitCompare },
       { id:'portfolio', label:'توزيع ماء المزرعة', icon:Layers },
       { id:'calibration', label:'حالة المعايرة الإقليميّة', icon:Activity },
+      { id:'calibration-workbench', label:'منضدة المعايرة', icon:SlidersHorizontal, badge:'جديد' },
       { id:'lineage', label:'سلسلة النَّسَب والدليل', icon:GitBranch },
       { id:'learning-dashboard', label:'لوحة رصد التعلّم', icon:BarChart3 },
       { id:'decision-studio', label:'استوديو القرار', icon:FlaskConical, badge:'جديد' },
@@ -543,6 +545,7 @@ export default function App() {
       case 'scenario-compare': return <ScenarioComparePage />;
       case 'portfolio': return <PortfolioPage />;
       case 'calibration': return <CalibrationPage />;
+      case 'calibration-workbench': return <CalibrationWorkbenchPage />;
       case 'lineage': return <LineagePage />;
       case 'learning-dashboard': return <LearningDashboardPage />;
       case 'decision-studio': return <DecisionStudioPage />;
