@@ -897,6 +897,48 @@ export const fetchPersistedEvidence = (region: string): Promise<PersistedEvidenc
     .then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// AGRONOMIC REPLAY — إعادة تشغيل الموسم: خطّ زمنيّ واحد قابل للـscrub يعيد
+// تشغيل موسم الحقل كاملاً (NDVI/طقس/ريّ/قرار/نتيجة ميدانيّة) من سجلّات مُدامة
+// فقط. تستهلك GET /api/v1/fields/{field_id}/agronomic-replay.
+// صدق: العلم مُطفأً (FEATURE_REPLAY_MAP) ⇒ 404؛ القاعدة غير متاحة ⇒ 503. span قد
+// يكون null (لا أحداث) ⇒ حالة فارغة صادقة لا خطّ زمنيّ مخترَع. value متغايرة
+// (رقم/منطقيّ/كائن/null) — تُصيَّر دفاعيّاً. الأحداث مرتّبة تصاعديّاً بالتاريخ.
+// ══════════════════════════════════════════════════════════════════
+export type ReplayTrackKey = 'ndvi' | 'weather' | 'irrigation' | 'decision' | 'outcome';
+
+/** وصف مسار (track) واحد: المفتاح + تسميته العربيّة. */
+export interface ReplayTrackMeta {
+  track:    ReplayTrackKey;
+  track_ar: string;
+}
+/** حدث واحد على الخطّ الزمنيّ. value متغايرة (رقم/منطقيّ/كائن/null). */
+export interface ReplayEvent {
+  date:     string;          // ISO (تاريخ فقط أو طابع زمنيّ كامل)
+  track:    ReplayTrackKey;
+  track_ar: string;
+  label_ar: string;
+  value:    number | boolean | Record<string, unknown> | null;
+  ref_id:   string | null;
+}
+/** نتيجة إعادة التشغيل الكاملة (يطابق عقد agronomic-replay). */
+export interface AgronomicReplayResult {
+  field_id:        string;
+  generated_at:    string;
+  tracks:          ReplayTrackMeta[];
+  events:          ReplayEvent[];
+  counts_by_track: Record<string, number>;
+  event_count:     number;
+  span:            { start: string; end: string } | null; // null حين لا أحداث
+  provenance:      { calibrated: string; note_ar: string };
+  tenant_id:       string;
+}
+
+export const fetchAgronomicReplay = (fieldId: string): Promise<AgronomicReplayResult> =>
+  kongApi
+    .get<AgronomicReplayResult>(`/api/v1/fields/${encodeURIComponent(fieldId)}/agronomic-replay`)
+    .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // EVIDENCE MAP — خريطة الدليل (GET /api/v1/evidence/map) — قراءة فقط ──
 // لكلّ حقل للمستأجِر: مستوى الدليل خلف قراراته (مؤكَّد/مدعوم/إرشاديّ/يحتاج بيانات)
 // على خريطة 2D حقيقيّة + قائمة. خلف العلم FEATURE_EVIDENCE_MAP؛ مُطفأً ⇒ 404
