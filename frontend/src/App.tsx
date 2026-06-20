@@ -77,6 +77,7 @@ const CalibrationPage = lazy(() => import('./sections/CalibrationPage'));
 const CalibrationWorkbenchPage = lazy(() => import('./sections/CalibrationWorkbenchPage'));
 const LineagePage = lazy(() => import('./sections/LineagePage'));
 const EvidenceMapPage = lazy(() => import('./sections/EvidenceMapPage'));
+const DeviceTwinPage = lazy(() => import('./sections/DeviceTwinPage'));
 const ReplayMapPage = lazy(() => import('./sections/ReplayMapPage'));
 const LearningDashboardPage = lazy(() => import('./sections/LearningDashboardPage'));
 const DecisionStudioPage = lazy(() => import('./sections/DecisionStudioPage'));
@@ -116,7 +117,7 @@ export type PageId =
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
-  | 'inventory' | 'equipment' | 'devices' | 'irrigation-ops'
+  | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
   | 'operations-wall';
@@ -205,6 +206,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id:'inventory',    label:'المخزون',         icon:Boxes },
       { id:'equipment',    label:'المعدّات',         icon:Tractor },
       { id:'devices',      label:'أجهزة IoT',       icon:Cpu },
+      { id:'device-twin',  label:'توائم الأجهزة وثقة الحسّاس', icon:Activity, badge:'جديد' },
     ],
   },
   {
@@ -572,6 +574,7 @@ export default function App() {
       case 'inventory':    return <InventoryPage />;
       case 'equipment':    return <EquipmentPage />;
       case 'devices':      return <DevicesPage />;
+      case 'device-twin':  return <DeviceTwinPage />;
       case 'irrigation-ops': return <IrrigationOpsPage />;
       case 'weather-advice': return <WeatherAdvicePage />;
       case 'master-data':  return <MasterDataPage />;

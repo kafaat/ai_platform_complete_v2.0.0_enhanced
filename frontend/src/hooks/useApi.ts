@@ -77,6 +77,8 @@ import {
   fetchPersistedEvidence, type PersistedEvidence,
   // ── خريطة الدليل (Evidence Map): مستوى الدليل خلف قرارات كلّ حقل (قراءة فقط) ──
   fetchEvidenceMap, type EvidenceMapResult,
+  // ── توائم الأجهزة وثقة الحسّاس (Device Twin): توأم رقميّ + درجة ثقة لكلّ جهاز ──
+  fetchDeviceTwin, type DeviceTwinResult,
   // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) ──
   fetchDecisionRecords, type DecisionRecordsResult,
   fetchLearningSummary, type LearningSummary,
@@ -1009,6 +1011,21 @@ export function useEvidenceMap(): UseQueryResult<EvidenceMapResult, Error> {
   return useQuery<EvidenceMapResult, Error>({
     queryKey: ['evidence-map', tid],
     queryFn:  () => fetchEvidenceMap(),
+    staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+// ── توائم الأجهزة وثقة الحسّاس (Device Twin) — قراءة فقط ──
+// يجلب التوأم الرقميّ + درجة الثقة لكلّ جهاز (GET /api/v1/devices/twin). لا fallback
+// وهميّ: الخطأ (404 العلم FEATURE_DEVICE_TWIN مُطفأ، 503 DB) يُرفض الاستعلام لتعرض
+// الواجهة حالة صادقة (الصفحة تكشف 404 عبر error.response?.status لرسالة «الميزة غير
+// مُفعَّلة»). retry:false كبقيّة صفحات العلم. مُفهرَس بالمستأجِر الفعّال (عزل RLS خادميّاً).
+export function useDeviceTwin(): UseQueryResult<DeviceTwinResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<DeviceTwinResult, Error>({
+    queryKey: ['device-twin', tid],
+    queryFn:  () => fetchDeviceTwin(),
     staleTime:5 * 60_000,
     retry:    false,
   });
