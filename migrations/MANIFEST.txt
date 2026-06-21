@@ -345,3 +345,4 @@ v85_nl_gis_audit.sql
 # فهرس فريد بدل قيد UNIQUE تعبيريّ، والنجاح من عمود success القانونيّ.)
 v86_calibration_evidence_trigger.sql
 v87_audit_log_tenant.sql
+v88_field_owner_function.sql

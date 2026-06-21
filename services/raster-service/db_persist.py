@@ -179,3 +179,27 @@ async def fetch_latest_asset(
         return None
     finally:
         await conn.close()
+
+
+async def field_owner_tenant(field_id: str) -> str | None:
+    """مالك الحقل (tenant_id نصّاً) من المصدر الموثوق: جدول fields.
+
+    تفويض ملكيّة الحقل: المسارات المكشوفة للمتصفّح تُنادى بالـfield_id فقط، ففحص
+    الذاكرة (_field_layers) وحده يضعف بعد إعادة التشغيل/بلا طبقة مخبّأة. هنا نستعلم
+    المالك الحقيقيّ عبر الدالّة SECURITY DEFINER `sahool_field_owner_tenant` (تتجاوز
+    RLS/FORCE على fields فتقرأ المالك عبر المستأجرين، وتُعيد المعرّف فقط لا بيانات
+    الحقل). field_id مفتاح أساسيّ ⇒ مالك واحد عالميّاً.
+
+    fail-safe: None إذا تعذّرت القاعدة/غابت الدالّة/الحقل غير موجود — فلا تُتّخذ قرار
+    حجب من القاعدة (يبقى فحص الذاكرة)، تجنّباً لرفض زائف عند انقطاع القاعدة."""
+    conn = await _connect()
+    if conn is None:
+        return None
+    try:
+        owner = await conn.fetchval("SELECT sahool_field_owner_tenant($1)", field_id)
+        return str(owner) if owner else None
+    except Exception as e:  # noqa: BLE001 — غياب الدالّة/القاعدة ⇒ fail-safe (لا حجب)
+        logger.warning("field_owner_tenant skipped (%s): %s", field_id, type(e).__name__)
+        return None
+    finally:
+        await conn.close()
