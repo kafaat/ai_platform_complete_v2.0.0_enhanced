@@ -11,11 +11,11 @@ import {
   Tractor, Layers, Maximize2, Sprout, BellRing,
 } from 'lucide-react';
 import {
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, PieChart, Pie, Cell, Legend,
+  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import { useCostAnalytics, useFields, useFarmSummary, useFieldReport } from '../hooks/useApi';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { BarChartCard, ChartShell, tooltipContentStyle, CHART_THEME } from '../components/ds';
 
 // أسماء عربية لمصادر التكلفة القادمة من الخادم (fallback: اسم المصدر كما هو).
 const SOURCE_LABELS: Record<string, string> = {
@@ -71,7 +71,8 @@ function exportToCSV(data: Record<string, unknown>[], filename: string) {
 
 const CARD = 'rounded-xl p-4 border';
 const CARD_STYLE = { background: '#1e293b', borderColor: '#334155' } as const;
-const TOOLTIP_STYLE = { background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 } as const;
+// نمط Tooltip الموحّد من نظام التصميم (ds/charts) — لا تكرار للقيَم.
+const TOOLTIP_STYLE = tooltipContentStyle;
 
 function KpiCard({ label, value, icon: Icon, color }: {
   label: string; value: string; icon: typeof Tractor; color: string;
@@ -121,60 +122,51 @@ function FarmDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* العمليّات حسب الحالة */}
-        <div className={CARD} style={CARD_STYLE}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-slate-200">العمليّات حسب الحالة</span>
-            {hasActivities && (
-              <button onClick={() => exportToCSV(statusData, 'SAHOOL_Activities_By_Status.csv')}
-                className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300">
-                <Download className="w-3 h-3" /> CSV
-              </button>
-            )}
-          </div>
-          {hasActivities ? (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={statusData} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="status" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#e2e8f0' }}
-                  formatter={(v: number) => [num(v), 'عدد']} />
-                <Bar dataKey="count" fill="#16a34a" radius={[4, 4, 0, 0]} name="العدد" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyState title="لا عمليّات مُسجَّلة بعد" hint="سجّل عمليّات للحقول لتظهر هنا." />
-          )}
-        </div>
+        {/* العمليّات حسب الحالة (BarChartCard — حالة الفراغ صادقة) */}
+        <BarChartCard
+          title="العمليّات حسب الحالة"
+          data={hasActivities ? statusData : []}
+          xKey="status"
+          series={[{ dataKey: 'count', name: 'العدد', color: '#16a34a' }]}
+          barSize={28}
+          height={180}
+          tooltipFormatter={(v) => [num(Number(v)), 'عدد']}
+          emptyTitle="لا عمليّات مُسجَّلة بعد"
+          emptyHint="سجّل عمليّات للحقول لتظهر هنا."
+          action={hasActivities ? (
+            <button onClick={() => exportToCSV(statusData, 'SAHOOL_Activities_By_Status.csv')}
+              className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300">
+              <Download className="w-3 h-3" /> CSV
+            </button>
+          ) : undefined}
+        />
 
-        {/* المساحة حسب المحصول */}
-        <div className={CARD} style={CARD_STYLE}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-semibold text-slate-200">المساحة حسب المحصول (هـ)</span>
-            {hasCrops && (
-              <button onClick={() => exportToCSV(cropData, 'SAHOOL_Area_By_Crop.csv')}
-                className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300">
-                <Download className="w-3 h-3" /> CSV
-              </button>
-            )}
-          </div>
-          {hasCrops ? (
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie data={cropData} dataKey="area_ha" nameKey="crop" cx="50%" cy="50%"
-                  outerRadius={70} label={(e: { crop: string }) => e.crop}>
-                  {cropData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                </Pie>
-                <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#e2e8f0' }}
-                  formatter={(v: number) => [`${num(v)} هـ`, 'المساحة']} />
-                <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <EmptyState title="لا مساحات مُسجَّلة بعد" hint="أضِف حقولاً بمحاصيل ومساحات لتظهر هنا." />
-          )}
-        </div>
+        {/* المساحة حسب المحصول (Pie — يبقى داخل ChartShell بالثيم الموحّد) */}
+        <ChartShell
+          title="المساحة حسب المحصول (هـ)"
+          height={180}
+          isEmpty={!hasCrops}
+          emptyTitle="لا مساحات مُسجَّلة بعد"
+          emptyHint="أضِف حقولاً بمحاصيل ومساحات لتظهر هنا."
+          action={hasCrops ? (
+            <button onClick={() => exportToCSV(cropData, 'SAHOOL_Area_By_Crop.csv')}
+              className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300">
+              <Download className="w-3 h-3" /> CSV
+            </button>
+          ) : undefined}
+        >
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie data={cropData} dataKey="area_ha" nameKey="crop" cx="50%" cy="50%"
+                outerRadius={70} label={(e: { crop: string }) => e.crop}>
+                {cropData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: CHART_THEME.itemColor }}
+                formatter={(v: number) => [`${num(v)} هـ`, 'المساحة']} />
+              <Legend wrapperStyle={{ fontSize: 11, color: CHART_THEME.legendColor }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartShell>
       </div>
     </div>
   );
@@ -251,27 +243,24 @@ function FieldSummaryView() {
           </div>
 
           {/* العمليّات حسب النوع */}
-          <div className={CARD} style={CARD_STYLE}>
-            <span className="text-sm font-semibold text-slate-200">العمليّات حسب النوع</span>
-            {Object.keys(report.data.activities_by_type ?? {}).length > 0 ? (
-              <ResponsiveContainer width="100%" height={170}>
-                <BarChart
-                  data={Object.entries(report.data.activities_by_type ?? {}).map(([k, v]) => ({
-                    type: ACTIVITY_TYPE_LABELS[k] ?? k, count: v,
-                  }))}
-                  barSize={26}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                  <XAxis dataKey="type" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#e2e8f0' }}
-                    formatter={(v: number) => [num(v), 'عدد']} />
-                  <Bar dataKey="count" fill="#a855f7" radius={[4, 4, 0, 0]} name="العدد" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
+          {Object.keys(report.data.activities_by_type ?? {}).length > 0 ? (
+            <BarChartCard
+              title="العمليّات حسب النوع"
+              data={Object.entries(report.data.activities_by_type ?? {}).map(([k, v]) => ({
+                type: ACTIVITY_TYPE_LABELS[k] ?? k, count: v,
+              }))}
+              xKey="type"
+              series={[{ dataKey: 'count', name: 'العدد', color: '#a855f7' }]}
+              barSize={26}
+              height={170}
+              tooltipFormatter={(v) => [num(Number(v)), 'عدد']}
+            />
+          ) : (
+            <div className={CARD} style={CARD_STYLE}>
+              <span className="text-sm font-semibold text-slate-200">العمليّات حسب النوع</span>
               <p className="mt-2 text-xs text-slate-400">لا عمليّات مُسجَّلة لهذا الحقل.</p>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* أحدث التنبيهات */}
           <div className={CARD} style={CARD_STYLE}>
@@ -349,28 +338,21 @@ function CostSummary() {
 
       {bySource.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-slate-200">التكلفة حسب المصدر (USD)</span>
+          <BarChartCard
+            title="التكلفة حسب المصدر (USD)"
+            data={chartData}
+            xKey="source"
+            series={[{ dataKey: 'total_usd', name: 'التكلفة', color: '#f59e0b' }]}
+            barSize={28}
+            height={160}
+            tooltipFormatter={(v) => [usd(Number(v)), 'التكلفة']}
+            action={
               <button onClick={() => exportToCSV(chartData, 'SAHOOL_Cost_By_Source.csv')}
                 className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300">
                 <Download className="w-3 h-3" /> CSV
               </button>
-            </div>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={chartData} barSize={28}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="source" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={44} />
-                <Tooltip
-                  contentStyle={TOOLTIP_STYLE}
-                  itemStyle={{ color: '#e2e8f0' }}
-                  formatter={(v: number) => [usd(Number(v)), 'التكلفة']}
-                />
-                <Bar dataKey="total_usd" fill="#f59e0b" radius={[4, 4, 0, 0]} name="التكلفة" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+            }
+          />
 
           <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
             <span className="text-sm font-semibold text-slate-200">تفصيل المصادر</span>
