@@ -20,7 +20,7 @@ import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet +
 import { rasterApi } from '../services/api';
 import { areaSqMeters, lengthMeters } from '../lib/geo';
 
-// قاعدة خدمة الراستر (نفس الأساس المستخدم في useIndicatorGrid / VITE_RASTER_URL)
+// قاعدة خدمة الراستر (نفس الأساس المستخدم في useIndicatorGrid / VITE_RASTER_BASE_URL)
 const RASTER = (rasterApi.defaults.baseURL || '').replace(/\/+$/, '');
 
 // روابط خرائط الأساس (نفس AddFieldWithMap.tsx)

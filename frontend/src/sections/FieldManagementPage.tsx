@@ -229,20 +229,36 @@ export default function FieldManagementPage() {
     if (seasonId) setSimSeason({ seasonId, crops: data.crops || [] });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('هل أنت متأكد من حذف هذا الحقل؟')) return;
+    // حذف حقيقيّ: DELETE /api/v1/fields/{id} (كان محليّاً فقط ⇒ يعود عند التحديث).
+    try {
+      await kongApi.delete(`/api/v1/fields/${id}`);
+    } catch (e) {
+      toastStore.add('error', 'تعذّر حذف الحقل', asApiError(e).message || 'تحقّق من الصلاحيّة/القاعدة.');
+      return;
+    }
     setFields(p => p.filter(f => f.field_id !== id));
-    toastStore.add('info', '🗑️ تم الحذف', '');
+    refetch();
+    toastStore.add('success', '🗑️ تم حذف الحقل', '');
   };
 
   const handleEditSave = async (data: any) => {
-    setFields(p => p.map(f =>
-      f.field_id === editField?.field_id
-        ? { ...f, name:data.name, area_ha:data.area_ha, crop:data.crop }
-        : f
-    ));
+    if (!editField) return;
+    // تعديل حقيقيّ: PATCH /api/v1/fields/{id} (الاسم/المحصول). area_ha مُشتقّة من
+    // الهندسة (لا تُحفَظ يدويّاً)؛ refetch يُعيد القيمة الحقيقيّة من الخادم.
+    try {
+      await kongApi.patch(`/api/v1/fields/${editField.field_id}`, {
+        name: data.name,
+        crop: data.crop,
+      });
+    } catch (e) {
+      throw new Error(asApiError(e).message ||
+        'تعذّر حفظ التعديل — تحقّق من القاعدة/الصلاحيّة.');
+    }
     setEditField(null);
-    toastStore.add('success', '✅ تم التعديل', data.name);
+    await refetch();
+    toastStore.add('success', '✅ تم تعديل الحقل', data.name);
   };
 
   // ── Field card ─────────────────────────────────────────────────

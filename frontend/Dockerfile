@@ -23,23 +23,14 @@ RUN if [ -f package-lock.json ]; then \
 # نسخ الكود وبناء المشروع
 COPY . .
 
-# متغيّرات البناء (تُمرَّر عبر --build-arg أو compose)
-ARG VITE_API_URL=/api
-ARG VITE_AUTH_URL=/api
-ARG VITE_INDICATORS_URL=/api
-ARG VITE_SOIL_URL=/api
-ARG VITE_VEGETATION_URL=/api
-ARG VITE_WEATHER_URL=/api
-ARG VITE_WS_URL=/ws
+# متغيّرات البناء — الصورة تُخدَّم خلف nginx :80 (المرجع القانونيّ)، فالافتراضيّ
+# 'gateway' (مسارات نسبيّة) هو الصحيح. لا نُعرّف VITE_*_BASE_URL هنا كي لا تُلغي
+# افتراضات الكود الصحيحة؛ نُثبّت الوضع صراحةً فقط. وضع التطوير المباشر يُضبَط
+# وقت البناء بـ--build-arg VITE_API_MODE=dev عند الحاجة.
+ARG VITE_API_MODE=gateway
 ARG VITE_MOCK_MODE=false
 
-ENV VITE_API_URL=$VITE_API_URL \
-    VITE_AUTH_URL=$VITE_AUTH_URL \
-    VITE_INDICATORS_URL=$VITE_INDICATORS_URL \
-    VITE_SOIL_URL=$VITE_SOIL_URL \
-    VITE_VEGETATION_URL=$VITE_VEGETATION_URL \
-    VITE_WEATHER_URL=$VITE_WEATHER_URL \
-    VITE_WS_URL=$VITE_WS_URL \
+ENV VITE_API_MODE=$VITE_API_MODE \
     VITE_MOCK_MODE=$VITE_MOCK_MODE
 
 RUN npm run build:docker

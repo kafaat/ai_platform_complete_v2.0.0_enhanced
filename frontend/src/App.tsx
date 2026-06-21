@@ -125,6 +125,30 @@ export type PageId =
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
   | 'operations-wall';
 
+// ── أعلام الميزات (إخفاء شاشة فقط حين تكون خلفيّتها غير جاهزة فعليّاً) ──────────
+// weather: شاشة weather-advice **موصولة بخلفيّة حقيقيّة** — نقاط المنصّة
+// /api/v1/fields/{id}/weather/irrigation-advice و/disease-risk تقرأ سياق الحقل من
+// القاعدة وتجلب الطقس من Open-Meteo مباشرةً (لا تعتمد على weather-service الجذعيّة)،
+// وتُعيد 503 بصدق عند تعذّر المصدر. لذا **مُفعَّلة افتراضيّاً**؛ تُعطَّل صراحةً
+// بـVITE_ENABLE_WEATHER=false (مثلاً إن مُنِع egress لـOpen-Meteo في بيئة ما).
+// soil: لا شاشة مستقلّة لها (تُستهلَك ضمن تقرير الاستشارة)؛ العلم متاح للمستهلكين فقط.
+// لا حذف للمكوّنات ولا تقليص لاتّحاد PageId (حارس permissions.ts يبقى سليماً).
+export const FEATURE_FLAGS = {
+  weather: import.meta.env.VITE_ENABLE_WEATHER !== 'false',
+  soil:    import.meta.env.VITE_ENABLE_SOIL === 'true',
+} as const;
+
+// الصفحات المحجوبة خلف علم مُطفأ ⇒ تُحذف من القائمة وتُمنَع في المُصيِّر.
+// (التربة لا تملك شاشةً مستقلّةً في القائمة — تُستهلَك ضمن تقرير الاستشارة المركّب —
+// فعلمها متاح للمستهلكين عبر FEATURE_FLAGS.soil دون إدخال في القائمة هنا.)
+const FLAG_GATED_PAGES: Partial<Record<PageId, boolean>> = {
+  'weather-advice': FEATURE_FLAGS.weather,
+};
+/** هل الصفحة مُفعّلة؟ (الصفحات غير المحجوبة دائماً مُفعّلة). */
+function isPageEnabled(id: PageId): boolean {
+  return FLAG_GATED_PAGES[id] !== false;
+}
+
 type NavItem = { id: PageId; label: string; icon: LucideIcon; badge?: string };
 type NavGroup = { id: string; label: string; defaultOpen: boolean; items: NavItem[] };
 
@@ -326,9 +350,9 @@ function Sidebar({ page, setPage, collapsed, setCollapsed }: SidebarProps) {
           مفتوح: مجموعات قابلة للطيّ؛ مجموعة بلا عناصر مسموح بها تُخفى بالكامل. */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {collapsed
-          ? NAV_ITEMS.filter(item => canAccess(user?.role, item.id)).map(renderItem)
+          ? NAV_ITEMS.filter(item => isPageEnabled(item.id) && canAccess(user?.role, item.id)).map(renderItem)
           : NAV_GROUPS.map(group => {
-              const items = group.items.filter(item => canAccess(user?.role, item.id));
+              const items = group.items.filter(item => isPageEnabled(item.id) && canAccess(user?.role, item.id));
               if (items.length === 0) return null;
               const open = openGroups[group.id];
               return (
@@ -528,6 +552,21 @@ export default function App() {
           <Shield className="w-10 h-10 text-amber-500 mb-3" />
           <h2 className="text-lg font-bold text-slate-100">لا تملك صلاحيّة هذه الصفحة</h2>
           <p className="text-sm text-slate-400 mt-1">دورك الحاليّ لا يسمح بالوصول إلى هذا القسم.</p>
+          <button onClick={() => setPage('dashboard')}
+            className="mt-4 px-4 py-2 rounded-lg text-sm text-emerald-400 border border-emerald-900 hover:bg-emerald-950">
+            العودة للوحة المعلومات
+          </button>
+        </div>
+      );
+    }
+    // حارس الميزة: صفحة محجوبة خلف علم مُطفأ (لا خلفيّة جاهزة) ⇒ لافتة صريحة بدل
+    // شاشة مكسورة. تبقى في اتّحاد PageId والمُصيِّر؛ تُعاد بالتفعيل (VITE_ENABLE_*).
+    if (!isPageEnabled(page)) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-center" dir="rtl">
+          <Shield className="w-10 h-10 text-amber-500 mb-3" />
+          <h2 className="text-lg font-bold text-slate-100">الميزة غير مفعّلة</h2>
+          <p className="text-sm text-slate-400 mt-1">هذه الشاشة بانتظار جهوزيّة خدمتها الخلفيّة.</p>
           <button onClick={() => setPage('dashboard')}
             className="mt-4 px-4 py-2 rounded-lg text-sm text-emerald-400 border border-emerald-900 hover:bg-emerald-950">
             العودة للوحة المعلومات

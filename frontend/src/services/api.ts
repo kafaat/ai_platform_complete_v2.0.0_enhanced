@@ -16,28 +16,41 @@ import axios, { type AxiosInstance } from 'axios';
 import { clearAccessToken, getAccessToken, getTenantId } from '../lib/authStorage';
 import { isAccessTokenExpired } from '../lib/jwt';
 
-// ── Environment detection ──────────────────────────────────────
-const IS_LOCAL = typeof window !== 'undefined' &&
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+// ── توجيه العملاء: البوّابة (nginx/Kong :80) هي المرجع القانونيّ ──────────────
+// القرار التصميميّ: الإنتاج المرجعيّ هو nginx/Kong على :80، فتنادي الواجهةُ
+// مساراتٍ نسبيّةً تُوجَّه عبر البوّابة (لا اكتشاف اسم مضيف، لا منافذ مباشرة). أمّا
+// `vite dev` فللتطوير فقط عبر وكيل vite (vite.config.ts) الذي يُحاكي نفس مسارات
+// nginx. الوضع يُضبَط صراحةً بـVITE_API_MODE (الافتراضيّ 'gateway').
+//
+// مهمّ: مسارات الاستدعاء تحمل بادئاتها أصلاً (kongApi ينادي '/api/v1/...' و
+// '/api/agent/...' و'/api/guardrails/...'، وauthApi ينادي '/auth/...')، لذا
+// قاعدة kong/auth فارغة ('') كي لا تتكرّر البادئة:
+//   kongApi.get('/api/v1/fields') + base '' = '/api/v1/fields' → nginx /api/v1/ ✓
+// (الخلل السابق: base='/api' + '/api/v1/...' = '/api/api/v1/...' → 404).
+// أمّا raster/vegetation/weather/soil فمساراتها لا تحمل بادئة البوّابة، فقاعدتها
+// هي مسار البوّابة الذي يُجرّده nginx:
+//   rasterApi.get('/v1/.../tilejson') + base '/api/raster' = '/api/raster/v1/...'
+//   → nginx /api/raster/ يُجرّد ⇒ الخدمة تتلقّى '/v1/...' ✓
+//
+// VITE_API_MODE=gateway (الافتراضيّ): مسارات نسبيّة (nginx :80 أو وكيل vite).
+// VITE_API_MODE=dev: منافذ localhost المباشرة (تشغيل الخدمات بلا بوّابة).
+// أيّ VITE_*_BASE_URL صريح يَسبق الافتراضَين (يُحترَم حتى لو كان سلسلةً فارغة).
+const API_MODE = import.meta.env.VITE_API_MODE || 'gateway';
+const _dev = API_MODE === 'dev';
 
-// ملاحظة (إصلاح اتّصال الإنتاج): خارج التطوير المحلّيّ، تُوجَّه كلّ العملاء عبر
-// البوّابة (nginx) بمسارات نسبيّة — كان السقوط لـlocalhost:81xx يكسر تسجيل الدخول
-// وكلّ الخدمات في المتصفّح المنشور. المسارات النسبيّة مطابقة لتوجيه nginx:
-//   /auth → خدمة auth (nginx /auth/ يُجرّد ثمّ الخدمة تخدم /auth/*)
-//   /api/vegetation, /api/indicators, /api/raster → الخدمات (تجريد البادئة)
-//   /api(=KONG) + /weather/* → platform /api/v1/weather/* (nginx /api/weather/)
-// التطوير المحلّيّ (IS_LOCAL) يبقى على localhost كما كان (لا كسر)؛ وVITE_*_URL يَسبق.
-const KONG_URL       = import.meta.env.VITE_API_URL        || (IS_LOCAL ? 'http://localhost:8000' : '/api');
-// الطقس/التربة: مساراتهما تُحَلّ عبر إعادة كتابة nginx (/api/weather/ →
-// platform /api/v1/weather/؛ soil خدمة مستقلّة)، فتمرّ عبر البوّابة لا منفذ مباشر.
-// منفذا 8092/8094 السابقان (dev) كانا stubs تُرجِع 501 — إيهام خدمة عاملة. الافتراضيّ
-// الآن البوّابة في dev وprod؛ يلزم تشغيل dev خلف nginx لعمل هذه الشاشات (أو ضبط VITE_*_URL).
-const WEATHER_URL    = import.meta.env.VITE_WEATHER_URL    || '/api';
-const SOIL_URL       = import.meta.env.VITE_SOIL_URL       || '/api/soil';
-const INDICATORS_URL = import.meta.env.VITE_INDICATORS_URL || (IS_LOCAL ? 'http://localhost:8091' : '/api/indicators');
-const VEGETATION_URL = import.meta.env.VITE_VEGETATION_URL || (IS_LOCAL ? 'http://localhost:8090' : '/api/vegetation');
-const RASTER_URL     = import.meta.env.VITE_RASTER_URL     || (IS_LOCAL ? 'http://localhost:8099' : '/api/raster');
-const AUTH_URL       = import.meta.env.VITE_AUTH_URL       || (IS_LOCAL ? 'http://localhost:8120' : '/auth');
+// يَحُلّ قاعدة عميل: المتغيّر الصريح إن عُرّف (?? يحترم '' الفارغة)، وإلّا
+// الافتراضيّ حسب الوضع. قيم import.meta.env إمّا سلسلة أو undefined.
+function resolveBase(envVal: string | undefined, gateway: string, dev: string): string {
+  return envVal ?? (_dev ? dev : gateway);
+}
+
+const KONG_URL       = resolveBase(import.meta.env.VITE_API_BASE_URL,        '',                'http://localhost:8000');
+const AUTH_URL       = resolveBase(import.meta.env.VITE_AUTH_BASE_URL,       '',                'http://localhost:8120');
+const RASTER_URL     = resolveBase(import.meta.env.VITE_RASTER_BASE_URL,     '/api/raster',     'http://localhost:8001');
+const VEGETATION_URL = resolveBase(import.meta.env.VITE_VEGETATION_BASE_URL, '/api/vegetation', 'http://localhost:8090');
+const INDICATORS_URL = resolveBase(import.meta.env.VITE_INDICATORS_BASE_URL, '/api/indicators', 'http://localhost:8091');
+const WEATHER_URL    = resolveBase(import.meta.env.VITE_WEATHER_BASE_URL,    '/api/weather',    'http://localhost:8092');
+const SOIL_URL       = resolveBase(import.meta.env.VITE_SOIL_BASE_URL,       '/api/soil',       'http://localhost:8094');
 const MOCK_MODE      = import.meta.env.VITE_MOCK_MODE === 'true' || false;
 
 // ── Axios instances ────────────────────────────────────────────
