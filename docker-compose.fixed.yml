@@ -90,8 +90,11 @@ services:
       POSTGRES_USER: sahool_user
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
     volumes:
+      # أُزيل تركيب /docker-entrypoint-initdb.d: كان يُطبّق migrations/*.sql **أبجديّاً**
+      # (لا بترتيب MANIFEST) ومرّةً واحدةً على volume فارغ فقط ⇒ v9_foundation (users/
+      # fields) يعمل بعد v13/v14… التي تعتمد عليه ⇒ فشل/سباق. الآن يطبّقها sahool-migrate
+      # بترتيب MANIFEST (انظر أدناه).
       - postgres-data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d:ro
     networks:
       - sahool-internal
     healthcheck:
@@ -100,6 +103,34 @@ services:
       timeout: 5s
       retries: 10
       start_period: 40s
+
+  # ═══════════════════════════════════════════════════════════════
+  # 2.5 مُطبّق الهجرات (لمرّة واحدة) — يطبّق migrations بترتيب MANIFEST ثمّ يُنشئ
+  #     دورَي sahool_app/sahool_jobs. يسدّ فجوة fixed.yml: بلا هذا كانت الهجرات
+  #     تُطبَّق أبجديّاً عبر initdb (ترتيب خاطئ) ولا تُنشأ الأدوار. الخدمات التي
+  #     تحتاج المخطّط تنتظره (service_completed_successfully) لا مجرّد postgres صحّيّاً.
+  # ═══════════════════════════════════════════════════════════════
+  sahool-migrate:
+    image: postgis/postgis:15-3.4
+    restart: "no"
+    environment:
+      PGHOST: sahool-postgres
+      PGPORT: "5432"
+      PGUSER: sahool_user
+      PGPASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
+      PGDATABASE: sahool
+      APP_DB_ROLE: ${APP_DB_ROLE:-sahool_app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-sahool_app_pw}
+      JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
+      JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:-sahool_jobs_pw}
+    volumes:
+      - ./migrations:/migrations:ro
+    command: ["bash", "/migrations/apply_in_compose.sh"]
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+    networks:
+      - sahool-internal
 
   # ═══════════════════════════════════════════════════════════════
   # 3. Redis (FIX: بدون كلمة سر → requirepass)
@@ -272,6 +303,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
       sahool-redis:
         condition: service_healthy
     networks:
@@ -346,6 +379,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
       sahool-redis:
         condition: service_healthy
     networks:
@@ -378,6 +413,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
       sahool-redis:
         condition: service_healthy
     networks:
@@ -535,6 +572,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
       sahool-redis:
         condition: service_healthy
       sahool-nats:
@@ -797,6 +836,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
       sahool-redis:
         condition: service_healthy
       sahool-nats:
@@ -833,6 +874,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
       sahool-redis:
         condition: service_healthy
       sahool-nats:

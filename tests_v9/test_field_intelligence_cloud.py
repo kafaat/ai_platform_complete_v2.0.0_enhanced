@@ -81,8 +81,9 @@ def test_sar_rvi_dominates_under_cloud():
 @pytest.mark.unit
 def test_sensing_adapter_passes_cloud_cover(monkeypatch):
     adapters = _load("fia", "services/sahool-platform/core/field_intelligence_adapters.py")
+    # **kw يتقبّل agent_token الجديد (توكن الخدمة لـ/indices) دون تغيير نيّة الاختبار.
     monkeypatch.setattr(
-        adapters, "_get_json", lambda url, params=None: {"ndvi": 0.55, "cloud_cover": 42.0}
+        adapters, "_get_json", lambda url, params=None, **kw: {"ndvi": 0.55, "cloud_cover": 42.0}
     )
 
     class _Req:
