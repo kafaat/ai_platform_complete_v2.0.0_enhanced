@@ -51,6 +51,14 @@ class FieldSummary(BaseModel):
 # القائمة (list_fields) تبقى رشيقة؛ هذه الأعمدة تُقرأ عبر GET /fields/{id}
 # وتُحدَّث جزئيّاً عبر PATCH /fields/{id}. مصدر واحد لأسماء الأعمدة (يُعاد
 # استخدامه في SELECT التفصيليّ وفي بنّاء التحديث الجزئيّ + الاختبارات).
+# أعمدة أساسيّة قابلة للتعديل عبر PATCH (اسم الحقل ومحصوله). منفصلة عن المتقدّمة
+# لأنّ الأخيرة تُعاد استخدامها في _FIELD_DETAIL_SELECT الذي يسرد name/crop سلفاً —
+# فإضافتهما هناك تُكرّر العمود. تُستعمل هذه فقط في بناء جملة UPDATE.
+_FIELD_BASIC_COLUMNS: tuple[str, ...] = (
+    "name",
+    "crop",
+)
+
 _FIELD_ADVANCED_COLUMNS: tuple[str, ...] = (
     "soil_ph",
     "soil_ec",
@@ -133,6 +141,9 @@ class FieldUpdateRequest(BaseModel):
     التمييز بين «لم يُرسَل» و«أُرسِل null» عبر model_fields_set (انظر _build_field_update).
     """
 
+    # أساسيّة قابلة للتعديل (اسم/محصول الحقل) — تُمكّن زرّ «تعديل الحقل» من الحفظ.
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    crop: str | None = Field(default=None, max_length=50)
     soil_ph: float | None = Field(default=None, ge=0, le=14)
     soil_ec: float | None = Field(default=None, ge=0)
     soil_om: float | None = Field(default=None, ge=0)  # المادّة العضويّة %
@@ -181,7 +192,7 @@ def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
     assignments: list[str] = []
     values: list = []
     idx = 1
-    for col in _FIELD_ADVANCED_COLUMNS:
+    for col in (*_FIELD_BASIC_COLUMNS, *_FIELD_ADVANCED_COLUMNS):
         if col in sent:
             assignments.append(f"{col} = ${idx}")
             values.append(data[col])

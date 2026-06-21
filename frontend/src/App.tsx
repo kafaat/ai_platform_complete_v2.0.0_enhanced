@@ -125,13 +125,16 @@ export type PageId =
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
   | 'operations-wall';
 
-// ── أعلام الميزات (إخفاء شاشات بلا خلفيّة جاهزة) ──────────────────────────────
-// الطقس/التربة بلا توجيه خلفيّ عامل حاليّاً (soil-service مُعطّلة، توجيه weather
-// غير مكتمل)، فنُخفيها افتراضيّاً لتفادي شاشات مكسورة — بلا حذف المكوّنات ولا
-// تقليص اتّحاد PageId (الحارس الشموليّ في permissions.ts يبقى سليماً). تُفعَّل
-// بـVITE_ENABLE_WEATHER/VITE_ENABLE_SOIL=true حين تجهز خدمتاهما خلف البوّابة.
+// ── أعلام الميزات (إخفاء شاشة فقط حين تكون خلفيّتها غير جاهزة فعليّاً) ──────────
+// weather: شاشة weather-advice **موصولة بخلفيّة حقيقيّة** — نقاط المنصّة
+// /api/v1/fields/{id}/weather/irrigation-advice و/disease-risk تقرأ سياق الحقل من
+// القاعدة وتجلب الطقس من Open-Meteo مباشرةً (لا تعتمد على weather-service الجذعيّة)،
+// وتُعيد 503 بصدق عند تعذّر المصدر. لذا **مُفعَّلة افتراضيّاً**؛ تُعطَّل صراحةً
+// بـVITE_ENABLE_WEATHER=false (مثلاً إن مُنِع egress لـOpen-Meteo في بيئة ما).
+// soil: لا شاشة مستقلّة لها (تُستهلَك ضمن تقرير الاستشارة)؛ العلم متاح للمستهلكين فقط.
+// لا حذف للمكوّنات ولا تقليص لاتّحاد PageId (حارس permissions.ts يبقى سليماً).
 export const FEATURE_FLAGS = {
-  weather: import.meta.env.VITE_ENABLE_WEATHER === 'true',
+  weather: import.meta.env.VITE_ENABLE_WEATHER !== 'false',
   soil:    import.meta.env.VITE_ENABLE_SOIL === 'true',
 } as const;
 
