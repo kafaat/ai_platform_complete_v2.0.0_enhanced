@@ -3187,6 +3187,7 @@ from api.routers.inventory import router as inventory_router  # noqa: E402
 from api.routers.ipm import router as ipm_router  # noqa: E402
 from api.routers.irrigation import router as irrigation_router  # noqa: E402
 from api.routers.irrigation_method import router as irrigation_method_router  # noqa: E402
+from api.routers.irrigation_network import router as irrigation_network_router  # noqa: E402
 from api.routers.irrigation_plan import router as irrigation_plan_router  # noqa: E402
 from api.routers.kc_timeseries import router as kc_timeseries_router  # noqa: E402
 from api.routers.learning import router as learning_router  # noqa: E402
@@ -3257,6 +3258,7 @@ app.include_router(registry_router)
 app.include_router(automation_router)
 app.include_router(devices_router)
 app.include_router(irrigation_router)
+app.include_router(irrigation_network_router)
 app.include_router(irrigation_method_router)
 app.include_router(irrigation_plan_router)
 app.include_router(recommendations_router)
