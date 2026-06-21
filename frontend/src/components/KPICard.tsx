@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
+import { STATUS_COLORS, statusColor } from './ds/tokens';
 
 interface KPIData {
   id?: string;
@@ -19,12 +20,10 @@ interface KPICardProps {
   kpi: KPIData;
 }
 
-// مصدر وحيد لألوان الحالة (نفس قيم status-* في index.css). يُصدَّر ليستورده
-// Dashboard وغيره بدل إعادة تعريفه (كان مكرّراً ⇒ ازدواج صيانة).
-export const STATUS_COLOR: Record<string, string> = {
-  excellent: '#16a34a', good: '#65a30d', fair: '#ca8a04',
-  poor: '#f97316', critical: '#dc2626',
-};
+// مصدر ألوان الحالة الموحّد صار في ds/tokens (STATUS_COLORS). نُعيد تصديره
+// تحت الاسم التاريخيّ STATUS_COLOR كي تبقى مستورِداته (Dashboard) دون تعديل،
+// بلا ازدواج القيَم (مصدر واحد للحقيقة في tokens).
+export const STATUS_COLOR: Record<string, string> = STATUS_COLORS;
 
 // الاتّجاه نصّيّاً (a11y): يُعلَن للقارئ الشاشي بدل الاعتماد على اللون فقط.
 const TREND_AR: Record<string, string> = {
@@ -32,7 +31,7 @@ const TREND_AR: Record<string, string> = {
 };
 
 export function KPICard({ kpi }: KPICardProps) {
-  const color  = kpi.color || STATUS_COLOR[kpi.status ?? ''] || '#6b7280';
+  const color  = kpi.color || statusColor(kpi.status);
   const td     = kpi.trend_direction;
   const TIcon  = td === 'improving' ? TrendingUp : td === 'declining' ? TrendingDown : Minus;
   const tColor = td === 'improving' ? '#16a34a'  : td === 'declining' ? '#dc2626'    : '#f59e0b';

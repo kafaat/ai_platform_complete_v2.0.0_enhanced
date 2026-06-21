@@ -81,6 +81,8 @@ body {
 }
 
 /* ── Status colors ── */
+/* مصدر الحقيقة لهذه الألوان هو src/components/ds/tokens.ts (STATUS_COLORS).
+   هذه نسخة عرض ثابتة للاستخدام في CSS فقط؛ أبقِها متطابقة مع القيَم هناك. */
 .status-excellent { color: #16a34a; }
 .status-good      { color: #65a30d; }
 .status-fair      { color: #ca8a04; }
