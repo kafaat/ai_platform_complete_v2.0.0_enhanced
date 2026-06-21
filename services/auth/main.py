@@ -657,6 +657,9 @@ async def _ensure_admin_user():
     hashed = bcrypt.hashpw(admin_pass.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
     async with _pool.acquire() as conn:
         # سياق admin مضبوط على مستوى المسبح (init) ⇒ WITH CHECK لسياسة user_self يمرّ.
+        # حزام أمان: نُعيد ضبطه محليّاً للمعاملة أيضاً تحسّباً لأيّ RESET ALL على
+        # تحرير الاتّصال يمحو GUC الجلسة — الإقحام التأسيسيّ للمدير يبقى متيناً.
+        await conn.execute("SELECT set_config('app.current_role', 'admin', true)")
         await conn.execute(
             """
             INSERT INTO users (email, password_hash, full_name, role)
