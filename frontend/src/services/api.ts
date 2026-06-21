@@ -1126,6 +1126,43 @@ export interface ExecutionFeedbackResult {
 export const fetchExecutionFeedback = (): Promise<ExecutionFeedbackResult> =>
   kongApi.get<ExecutionFeedbackResult>('/api/v1/execution/feedback').then(r => r.data);
 
+// ── ثقة القرار الموحَّدة (Decision Confidence) — قراءة فقط، نطاق حقل ──
+// GET /api/v1/fields/{id}/decision-confidence: درجة ثقة موحَّدة مدموجة من أربعة
+// مصادر (حسّاس + دليل ميدانيّ + استشعار + طقس)، كلٌّ بوزنه وقيمته وتوفّره. صدق:
+// confidence/level قد تكونان null/«insufficient» حين لا مصدر متاح ⇒ «غير كافية»
+// (رماديّ) لا 0%. كلّ مكوّن يُعلِن available — غير المتوفّر رماديّ «يحتاج بيانات» لا
+// مساهم بصفر. الدرجة المدموجة محسوبة خادميّاً على المتوفّر فقط — عرض فقط لا تعديل.
+// العلم FEATURE_DECISION_CONFIDENCE مُطفأً ⇒ 404 (تلتقطه الواجهة برسالة «الميزة غير
+// مُفعَّلة»)؛ 503 ⇒ القاعدة غير متاحة (حالة خطأ صادقة). لا fallback وهميّ.
+export type DecisionConfidenceLevel = 'high' | 'medium' | 'low' | 'insufficient';
+export interface DecisionConfidenceComponent {
+  source:    string;          // sensor | evidence | satellite | weather
+  label_ar:  string;
+  weight:    number;          // 0..1
+  value:     number | null;   // 0..1، أو null حين غير متوفّر ⇒ «—» (لا 0)
+  available: boolean;         // false ⇒ رماديّ «يحتاج بيانات» (لا مساهم بصفر)
+  detail_ar: string;
+}
+export interface DecisionConfidenceResult {
+  generated_at:  string;
+  confidence:    number | null;            // 0..1، أو null حين لا مصدر ⇒ «غير كافية» (لا 0)
+  level:         DecisionConfidenceLevel | string;
+  level_ar:      string;
+  components:    DecisionConfidenceComponent[];
+  present_count: number;
+  missing:       string[];
+  provenance:    { calibrated: string; note_ar: string };
+  field_id:      string;
+  tenant_id:     string;
+}
+/** يجلب ثقة القرار الموحَّدة لحقل (GET /api/v1/fields/{id}/decision-confidence) — قراءة فقط.
+ *  يرمي عند الخطأ (404 العلم FEATURE_DECISION_CONFIDENCE مُطفأ — تلتقطه الواجهة برسالة
+ *  «الميزة غير مُفعَّلة»؛ 503 القاعدة غير متاحة تُعرَض كحالة خطأ صادقة). */
+export const fetchDecisionConfidence = (fieldId: string): Promise<DecisionConfidenceResult> =>
+  kongApi
+    .get<DecisionConfidenceResult>(`/api/v1/fields/${encodeURIComponent(fieldId)}/decision-confidence`)
+    .then(r => r.data);
+
 // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) — سرد القرارات المُدامة + تلخيص حلقة التعلّم ──
 // تستهلك GET /api/v1/decision/records (سرد القرارات المُدامة للمستأجِر، معزولة بـRLS):
 //   {decisions: DecisionRecord[], count}. شكل القرار مطابق لـ_shape_decision_row
