@@ -385,6 +385,7 @@ async def apply_region_adaptation_from_evidence(
                 "calibration_override",
                 prof.region,
                 {"region": prof.region, "fields": list(accepted.keys()), "via": "adaptation"},
+                critical=True,  # حوكمة المعايرة — fail-closed
             )
             # تدقيق append-only: تطبيق تكيّف آليّ محروس بالدليل (نفس المعاملة، best-effort).
             # old_values=None (لا نقرأ السابق هنا — لا تلفيق)؛ new_values=القيم المُدامة.
@@ -486,6 +487,7 @@ async def set_region_override(
                 "calibration_override",
                 prof.region,
                 {"region": prof.region, "fields": list(accepted.keys())},
+                critical=True,  # حوكمة المعايرة — fail-closed
             )
             # تدقيق append-only: تثبيت تجاوز (نفس المعاملة، best-effort). new=المقبول.
             await _append_calibration_audit(

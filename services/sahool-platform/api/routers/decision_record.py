@@ -201,6 +201,7 @@ async def persist_decision_if_enabled(
                     "region": region,
                     "confidence": conf,
                 },
+                critical=True,  # رأس سلسلة النَّسَب — fail-closed
             )
         return True
     except HTTPException:
@@ -330,6 +331,7 @@ async def record_decision(
                     "region": req.region,
                     "confidence": req.confidence,
                 },
+                critical=True,  # رأس سلسلة النَّسَب — fail-closed
             )
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("إدامة القرار", e) from e
@@ -440,6 +442,7 @@ async def record_outcome(
                 "outcome_record",
                 outcome_id,
                 {"decision_id": did, "field_id": req.field_id, "success": success},
+                critical=True,  # نتيجة القرار (سلسلة النَّسَب) — fail-closed
             )
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("إدامة نتيجة القرار", e) from e

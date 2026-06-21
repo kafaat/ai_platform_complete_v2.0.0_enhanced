@@ -549,12 +549,53 @@ async def _apply_tenant_guc(conn, tenant_id: str) -> None:
     )
 
 
-async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id, payload):
+# ─── الأحداث الحرجة (fail-closed) ───────────────────────────────────────────────
+# قائمة بيضاء صريحة دنيا لأنواع الأحداث التي لا يجوز فيها «كتابة عمل بلا حدث»: أحداث
+# الحوكمة/المال/تبدّل الحالة (توزيع قرار/تنفيذ، سجلّ قرار/نتيجة، نَسَب التنفيذ، تبدّل
+# حالة الصمّام الفيزيائيّ، تعيين/تدقيق المعايرة). لهذه الأنواع: لو فشل إدراج الـoutbox
+# يُعاد رفع الخطأ ⇒ تُجهَض معاملة العمل الخارجيّة (لا commit بلا حدثه ⇒ at-least-once).
+# أيّ نوع خارج هذه القائمة (تيليمتري/إشارات لينة: تنبيهات، توصيات، إشعارات، تحديث مهمّة،
+# إنشاء مزرعة/مخزون/معدّة …) يبقى best-effort (تحذير-ومتابعة) كي لا تتحوّل الإشارة اللينة
+# إلى انقطاع صلب. المجهول ⇒ غير حرج افتراضاً (تجنّباً لانقطاعات مفاجئة)، والحرج مُعلَّم هنا.
+CRITICAL_EVENT_TYPES: frozenset[str] = frozenset(
+    {
+        # توزيع/تنفيذ القرار (FOES) — حوكمة موافقات الإرسال (ريّ/تسميد/رشّ) وتنفيذها.
+        "DISPATCH_DECISION_RECORDED",
+        "DISPATCH_EXECUTION_RECORDED",
+        # سجلّ القرار ونتيجته الميدانيّة — رأس سلسلة النَّسَب (decision→outcome).
+        "DECISION_RECORDED",
+        "OUTCOME_MEASURED",
+        # ربط نَسَب التنفيذ الموحّد (lineage) — سلامة سلسلة المساءلة.
+        "LINEAGE_LINKED",
+        # تبدّل حالة الصمّام الفيزيائيّ — تحوّل حالة فِعليّ (actuator state transition).
+        "IRRIGATION_VALVE_STATE_CHANGED",
+        # حوكمة المعايرة — تعيين قيمة معايرة مُتحكِّمة (تغيّر سلوك القرار لكلّ منطقة).
+        # ملحوظة: قيد التدقيق CALIBRATION_AUDIT_RECORDED مقصودٌ best-effort (يُصدَر داخل
+        # ``_append_calibration_audit`` ذي savepoint+ابتلاع صريح) فلا يُدرَج هنا.
+        "CALIBRATION_OVERRIDE_SET",
+    }
+)
+
+
+async def _emit_domain_event(
+    conn, user, event_type_name, entity_type, entity_id, payload, *, critical: bool | None = None
+):
     """يُصدر حدث domain ضمن نفس معاملة الكتابة (نمط outbox: الحدث + صفّ outbox
-    يُكتبان ذرّيّاً مع تغيير الحالة)، لكن داخل **savepoint** — نجاحه ذرّيّ مع
-    الحالة، وفشله (مثلاً غياب جداول الأحداث v11) يُسجَّل ولا يُجهض الكتابة. هكذا
-    نُغلق فجوة «كتابة بلا حدث» دون جعل مسار الكتابة قابلاً للكسر."""
+    يُكتبان ذرّيّاً مع تغيير الحالة) داخل **savepoint**.
+
+    سلوك الفشل يحكمه ``critical``:
+      - حرج (``critical=True`` أو نوع ضمن ``CRITICAL_EVENT_TYPES``): فشل الإدراج
+        **يُعاد رفعه** ⇒ تُجهَض معاملة العمل الخارجيّة (fail-closed: لا commit بلا
+        حدثه — يضمن at-least-once للأحداث الحرجة). لا نبتلع الخطأ هنا.
+      - غير حرج: يُسجَّل تحذير ويُتابَع (best-effort) — فلا تكسر إشارةٌ لينة (تنبيه/
+        توصية/إشعار) مسارَ الكتابة (غياب جداول الأحداث في dev/CI لا يُسقط النقطة).
+
+    ``critical=None`` (الافتراضيّ) ⇒ يُشتقّ من ``CRITICAL_EVENT_TYPES`` حسب النوع،
+    فلا حاجة لتعديل كلّ نقطة نداء؛ التمرير الصريح يَغلِب الاشتقاق عند الحاجة.
+    """
     from api.event_bus import EventBus, EventSource, EventType
+
+    is_critical = (event_type_name in CRITICAL_EVENT_TYPES) if critical is None else critical
 
     # اسم حدث غير معروف = خطأ مطوّر (لا فشل قاعدة) — يُكشَف فوراً (KeyError) لا يُبتلَع
     # صامتاً؛ خارج try حتى لا يُخفيه التقاط فشل الإصدار التالي.
@@ -570,7 +611,13 @@ async def _emit_domain_event(conn, user, event_type_name, entity_type, entity_id
                 source=EventSource.WEB,
                 actor_id=str(user.user_id),
             )
-    except Exception as e:  # noqa: BLE001 — فشل الإصدار (غياب جداول/DB) لا يكسر الكتابة (تصميم متعمّد)
+    except Exception as e:  # noqa: BLE001
+        if is_critical:
+            # fail-closed: حدث حرج تعذّرت كتابته للـoutbox ⇒ أعِد الرفع كي تُجهَض
+            # معاملة العمل الخارجيّة (لا «كتابة عمل بلا حدثها الحرج»).
+            logger.error("emit حدث حرج %s فشل ⇒ إجهاض المعاملة: %s", event_type_name, e)
+            raise
+        # غير حرج: فشل الإصدار (غياب جداول/DB) لا يكسر الكتابة (تصميم متعمّد).
         logger.warning("emit %s تخطّي: %s", event_type_name, e)
 
 
