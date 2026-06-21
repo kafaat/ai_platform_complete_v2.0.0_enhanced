@@ -88,14 +88,34 @@ def test_odoo_db_not_platform_db(fname, svc_name, svc):
             )
 
 
+def _init_script_inits_base(cmd: str) -> bool:
+    """هل الأمر يستدعي entrypoint تهيئة (odoo-init.sh) يُثبّت base داخله؟
+
+    التهيئة الذاتيّة‑التعافي نقلت `-i base` من أمر compose إلى السكربت (يُنشئ/يُهيّئ
+    القاعدة عند الحاجة فقط). نتبع المرجع إلى scripts/ ونتحقّق أنّ base يُثبَّت فيه.
+    """
+    m = re.search(r"([\w./-]*odoo-init\.sh)", cmd)
+    if not m:
+        return False
+    script = os.path.join(ROOT, "scripts", os.path.basename(m.group(1)))
+    if not os.path.exists(script):
+        return False
+    with open(script, encoding="utf-8") as fh:
+        body = fh.read()
+    return "-i base" in body or "--init base" in body
+
+
 @pytest.mark.parametrize("fname,svc_name,svc", _odoo_image_services())
 def test_odoo_initializes_base(fname, svc_name, svc):
-    """خدمة Odoo تُهيّئ base أوّل تشغيل (`-i base`) وإلّا فلا جداول ⇒ فشل دائم."""
+    """خدمة Odoo تُهيّئ base أوّل تشغيل وإلّا فلا جداول ⇒ فشل دائم.
+
+    يُقبَل أحد مسارين: `-i base` مباشرةً في أمر compose، أو استدعاء entrypoint
+    ذاتيّ‑التعافي (odoo-init.sh) يُثبّت base داخله (المسار المعتمد حاليّاً)."""
     cmd = svc.get("command", "")
     cmd = " ".join(cmd) if isinstance(cmd, list) else str(cmd)
-    assert "-i base" in cmd or "--init base" in cmd, (
-        f"{fname}:{svc_name} بلا أمر تهيئة Odoo (`-i base`) ⇒ entrypoint الافتراضي "
-        'لا يُثبّت base ⇒ relation "ir_module_module" does not exist.'
+    assert "-i base" in cmd or "--init base" in cmd or _init_script_inits_base(cmd), (
+        f"{fname}:{svc_name} بلا تهيئة Odoo (`-i base` مباشرةً ولا عبر odoo-init.sh) ⇒ "
+        'entrypoint الافتراضي لا يُثبّت base ⇒ relation "ir_module_module" does not exist.'
     )
 
 
