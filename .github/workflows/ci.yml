@@ -264,3 +264,24 @@ jobs:
       - run: pip install -r requirements_real.txt
         continue-on-error: true
       - run: pytest -v -m security tests_v9/test_security.py tests_v9/test_auth_service.py -k "security"
+
+  flutter-analyze:
+    name: Flutter Analyze & Test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.27.4"  # Dart 3.6.2 — تتطلّبه flutter_map_mbtiles ^1.0.4 (≥3.6.0)
+          channel: stable
+          cache: true
+      # بوّابة فحص الموبايل: كانت غائبة تماماً (Dart يُشحَن بلا أيّ فحص — لا analyze
+      # ولا test في CI). تحجب على الأخطاء الحقيقيّة (errors) وفشل الاختبارات فقط؛
+      # infos/warnings الأسلوبيّة لا تحجب (--no-fatal-*) كي لا يُعطَّل الدمج على لينت
+      # أسلوبيّ. هذا يجعل كلّ عمل Flutter لاحق مفحوصاً قبل الدمج.
+      - run: flutter pub get
+        working-directory: mobile/sahool_app
+      - run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        working-directory: mobile/sahool_app
+      - run: flutter test
+        working-directory: mobile/sahool_app
