@@ -24,10 +24,11 @@ Decision Confidence = Satellite + Weather + Sensor Confidence + Evidence
 | المهارة | الحالة | الغرض |
 |---|---|---|
 | [DEVICE_TWIN.md](DEVICE_TWIN.md) | ✅ مبنيّة | توأم رقميّ + درجة صحّة/ثقة لكلّ جهاز (`GET /devices/twin`) |
-| WEATHER_STATION_SKILL | ⏳ | محطّة طقس: قياسات/معايرة/قواعد صحّة |
-| SOIL_SENSOR_SKILL | ⏳ | رطوبة التربة موحّدة عبر Capacitive/TDR/FDR/Tensiometer |
-| FLOW_METER_SKILL · VALVE_SKILL · PUMP_SKILL · PIVOT_CONTROLLER_SKILL | ⏳ | Water OS: قياس/أوامر (طبقة Execution بحُرّاسها) |
-| DRONE_SKILL | ⏳ | كاميرا متعدّدة الأطياف (Crop Twin/Stress) |
+| [WEATHER_STATION.md](WEATHER_STATION.md) | ✅ مبنيّة | محطّة طقس: قياسات/معايرة/صحّة ⇒ ET₀/تنبيهات (قراءة فقط) |
+| [SOIL_SENSOR.md](SOIL_SENSOR.md) | ✅ مبنيّة | رطوبة تربة موحّدة (`soil_moisture`) عبر Capacitive/TDR/FDR/Tensiometer |
+| [WATER_METER.md](WATER_METER.md) | ✅ مبنيّة | عدّاد تدفّق/حجم (Water OS): المُنفَّذ المقيس ⇒ EXECUTION_FEEDBACK |
+| [ACTUATOR.md](ACTUATOR.md) | ✅ مبنيّة | صمّام/مضخّة/محور — **حالة قراءة فقط؛ الأوامر مؤجَّلة خلف Execution** |
+| DRONE_SKILL | ⏳ | كاميرا متعدّدة الأطياف (Crop Twin/Stress) — يحتاج بيانات/تكامل فعليّ |
 
 كلّ مهارة جهاز تُحدّد: **Capabilities · Protocols · Telemetry schema · Commands ·
 Calibration · Health rules · Alert rules · Decision impact** + عقد المهارة الثمانيّ
