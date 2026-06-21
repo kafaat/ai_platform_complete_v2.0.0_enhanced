@@ -102,6 +102,7 @@ async def link_lineage_ref(
                     "ref_type": link["ref_type"],
                     "ref_id": link["ref_id"],
                 },
+                critical=True,  # سلامة سلسلة المساءلة — fail-closed
             )
     except HTTPException:
         raise

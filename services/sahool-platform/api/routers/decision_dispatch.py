@@ -350,6 +350,7 @@ async def execute_dispatch_endpoint(
                     "field_id": decision.field_id,
                     "exec_status": result.status.value,
                 },
+                critical=True,  # حوكمة توزيع القرار — fail-closed (لا commit بلا حدثه)
             )
     except HTTPException:
         raise
@@ -579,6 +580,7 @@ async def record_execution_outcome(
                     "decision_id": req.decision_id,
                     "field_id": entry["field_id"],
                 },
+                critical=True,  # تنفيذ القرار — fail-closed (لا commit بلا حدثه)
             )
     except HTTPException:
         raise

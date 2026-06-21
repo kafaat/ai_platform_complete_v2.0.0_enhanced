@@ -125,7 +125,11 @@ async def send_tts_voice(text: str, telegram_chat_id: int, voice: str = "yemeni_
             resp = await client.post(
                 f"{tts_url}/tts/synthesize",
                 json={"text": text[:1000], "voice": voice},
-                headers={"Authorization": f"Bearer {tts_token}"},
+                # مصادقة خدمة-لخدمة: tts يتحقّق من السرّ المشترك X-Agent-Token
+                # (== SAHOOL_AGENT_TOKEN)، لا من حاملة Bearer لتوكن وكيل. كان
+                # Bearer هو نوع الاعتماد الخاطئ (tts يتوقّع JWT بـaud=sahool في
+                # حاملة Bearer) فيُرفَض دوماً. نُرسل الاعتماد الذي يتحقّق منه tts.
+                headers={"X-Agent-Token": tts_token},
             )
         if resp.status_code != 200:
             return False
@@ -504,41 +508,14 @@ async def _ws_receive_loop(websocket, verified_user_id: str):
 
 
 @app.websocket("/ws/notifications")
-async def ws_notifications(websocket, token: str = "", user_id: str = ""):
+async def ws_notifications(websocket):
     """Secure WebSocket with JWT auth, connection limit, timeout.
 
-    مساران للمصادقة (توافق خلفيّ صارم):
-      • توكن في الـquery (?token=…): السلوك القديم تماماً — يُتحقَّق منه قبل قبول
-        الاتصال. عيبه أنّ التوكن يتسرّب إلى سجلّات الوكلاء/الخوادم (access logs).
-      • توكن في الرسالة الأولى (handshake): إن خلا الـquery من التوكن، نقبل
-        الاتصال أوّلاً ثمّ ننتظر إطار {"type":"auth","token":"…"} ونتحقّق منه. هذا
-        يمنع تسرّب التوكن إلى السجلّات لأنّه لا يظهر في رابط الاتصال.
+    مصادقة بإطار-أوّل حصراً (auth-frame): لم نعُد نقرأ التوكن من الـquery
+    (?token=…) إطلاقاً — كان يتسرّب إلى سجلّات الوكلاء/الخوادم (access logs)
+    والوسطاء. العميل يتّصل أوّلاً ثمّ يُرسل إطاراً أوّل {"type":"auth","token":"…"}
+    ونتحقّق منه قبل تقديم أيّ أحداث. غياب الإطار/بطلانه ⇒ إغلاق (fail-closed).
     """
-
-    if token:
-        # ── المسار القديم: التوكن في الـquery (متروك كما هو للتوافق الخلفيّ) ──
-        # W01: Full JWT validation
-        try:
-            payload = _validate_ws_token(token)
-            verified_user_id = payload["sub"]
-            tenant_id = payload.get("tenant_id", "")
-        except ValueError as e:
-            await websocket.close(code=1008, reason=str(e))
-            return
-
-        # W03: Ignore client-supplied user_id — use JWT sub
-        # W09: Max connections per user. نمرّر tenant_id (من مطالبة JWT) لتوجيه أحداث
-        # المستأجِر إليه فقط (عزل المستأجِر في broadcast_tenant).
-        if not await manager.connect(verified_user_id, websocket, tenant_id):
-            await websocket.close(code=1008, reason="Max connections reached")
-            return
-
-        await websocket.accept()
-        logger.info(f"WS connected: user={verified_user_id} tenant={tenant_id}")
-        await _ws_receive_loop(websocket, verified_user_id)
-        return
-
-    # ── المسار الجديد: التوكن في الرسالة الأولى (يمنع تسرّبه في السجلّات) ──
     # لا بدّ من قبول الاتصال قبل أن نستطيع استقبال إطار المصادقة (المتصفّح لا
     # يملك وسيلة للتحقّق قبل القبول دون تمرير التوكن في الـquery).
     await websocket.accept()

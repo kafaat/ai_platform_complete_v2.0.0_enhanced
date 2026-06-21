@@ -270,10 +270,13 @@ class TestMarketMCP:
         assert "price_yer_kg" in content
         assert content["price_yer_kg"] > 0
 
-    async def test_create_contract(
+    async def test_create_contract_honestly_not_implemented(
         self, http_client: AsyncClient, mock_jwt_token: str, mock_field_data: dict
     ):
-        """TC-MCP-015: Forward contract creation returns contract ID."""
+        """TC-MCP-015 (صدق): العقد الآجل لم يعد يلفّق أرقاماً — يردّ 501.
+
+        كانت الأداة تخترع agreed_price وtotal_contract_value ومعرّفاً عشوائيّاً دون
+        أيّ حفظ ولا جدول. الآن تُصرّح بعدم التنفيذ بصدق (501) فلا يصل سعرٌ مُلفّق."""
         payload = {
             "name": "create_forward_contract",
             "arguments": {
@@ -287,13 +290,14 @@ class TestMarketMCP:
         response = await http_client.post(
             "http://localhost:8094/mcp/v1/tools/call",
             json=payload,
+            # create_forward_contract أداة كتابة الآن ⇒ تتطلّب market:write.
             headers={"Authorization": f"Bearer {mock_jwt_token}"},
         )
-        assert response.status_code == 200
-        data = response.json()
-        content = json.loads(data["content"][0]["text"])
-        assert "contract_id" in content
-        assert "total_contract_value_yer" in content
+        # 501 (غير مُنفَّذة) أو 403 (التوكن بلا market:write) — لا 200 بأرقام مُلفّقة.
+        assert response.status_code in (501, 403), response.text
+        # لا سعرٌ أو قيمة عقدٍ مُلفّقة في أيّ مسار.
+        assert "agreed_price_yer_kg" not in response.text
+        assert "total_contract_value_yer" not in response.text
 
     async def test_price_trend(self, http_client: AsyncClient, mock_jwt_token: str):
         """TC-MCP-016: Price trend returns 30-day data."""

@@ -8,13 +8,13 @@ from __future__ import annotations
 import json
 import logging
 import os
-import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import asyncpg
 import jwt
+import market_db_authz  # FIX(أمان): تفويض ملكيّة field/batch (fail-closed)
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPBearer
 from jwt.exceptions import InvalidTokenError
@@ -202,6 +202,17 @@ async def tool_create_procurement(args: dict) -> dict:
     delivery_date = args.get("delivery_date")
     notes = args.get("notes", "")
     auto_approve = args.get("auto_approve_below_usd", 500)
+    # FIX(أمان IDOR): إن مُرِّر field_id، أثبت أنّه يخصّ مستأجِر الأمر قبل ربطه.
+    # المصدر الموثوق: دالّة SECURITY DEFINER sahool_field_owner_tenant (تتجاوز RLS
+    # على fields). fail-closed: قاعدة مُهيّأة وتعذّر الإثبات ⇒ 503؛ مالك ≠ مستأجِر
+    # ⇒ 403. بلا قاعدة (DB-less/CI) ⇒ owner=None ⇒ لا حجب (CI أخضر).
+    if field_id:
+        try:
+            owner = await market_db_authz.field_owner_tenant(str(field_id))
+        except market_db_authz.OwnerLookupUnavailable as e:
+            raise HTTPException(503, "تعذّر إثبات ملكيّة الحقل — أعد المحاولة لاحقاً") from e
+        if owner is not None and owner != str(tenant_id):
+            raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
     total_estimated = 0.0
     for it in items:
         qty = float(it.get("quantity", 0))
@@ -301,6 +312,17 @@ async def tool_create_sales_listing(args: dict) -> dict:
     until_date = args.get("available_until")
     pickup = args.get("pickup_location", "")
     notes = args.get("notes", "")
+    # FIX(أمان IDOR): إن مُرِّر batch_id، أثبت أنّه مرئيّ/مملوك تحت RLS لمستأجِر
+    # العرض (جدول inventory_batches مُعزَّل لكلّ مستأجِر). fail-closed: قاعدة مُهيّأة
+    # ولا صفّ مرئيّ ⇒ 403/404؛ تعذّر الإثبات ⇒ 503. بلا قاعدة (DB-less/CI) ⇒
+    # None ⇒ لا حجب (CI أخضر).
+    if batch_id:
+        try:
+            visible = await market_db_authz.batch_visible_under_tenant(str(batch_id), tenant_id)
+        except market_db_authz.OwnerLookupUnavailable as e:
+            raise HTTPException(503, "تعذّر إثبات ملكيّة الدفعة — أعد المحاولة لاحقاً") from e
+        if visible is False:
+            raise HTTPException(403, "الدفعة لا تخصّ مستأجِرك")
     async with pool.acquire() as conn:
         await conn.execute(
             "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id) if tenant_id else ""
@@ -327,7 +349,7 @@ async def tool_create_sales_listing(args: dict) -> dict:
     return {
         "listing_id": str(listing_id),
         "status": "active",
-        "": round(qty * price, 2),
+        "total_value_usd": round(qty * price, 2),  # FIX: كان المفتاح "" فارغاً
         "qr_trace_url": f"/trace/{batch_id}" if batch_id else None,
     }
 
@@ -501,13 +523,15 @@ async def tool_get_price_trend(args: dict) -> dict:
 
 
 async def tool_create_forward_contract(args: dict) -> dict:
-    return {
-        "contract_id": f"SAHOOL-FC-{uuid.uuid4().hex[:8].upper()}",
-        "agreed_price_yer_kg": round(float(args.get("estimated_yield_kg", 1000)) * 0.3, 2),
-        "total_contract_value_yer": round(float(args.get("estimated_yield_kg", 1000)) * 300, 2),
-        "status": "pending",
-        "next_steps": ["Verify crop quality at harvest", "Schedule delivery", "Issue invoice"],
-    }
+    # FIX(صدق): كانت هذه الأداة تلفّق عقداً — تخترع agreed_price و
+    # total_contract_value ومعرّفاً عشوائيّاً وحالة "pending" دون أيّ حفظ في القاعدة
+    # ولا جدول عقود آجلة موجود في المهاجرات. تلفيق أرقام ماليّة وسجلّ عقدٍ لا وجود
+    # له ينتهك مبدأ «صدق». حتى يُصمَّم جدول العقود الآجلة ومنطق التسعير الحقيقيّ،
+    # نُصرّح بعدم التنفيذ بصدق (501) بدل إعادة أرقام مُلفّقة.
+    raise HTTPException(
+        501,
+        "العقود الآجلة غير مُنفَّذة بعد — لا يُصدَر سعرٌ أو عقدٌ مُلفّق (لا جدول/تسعير حقيقيّ).",
+    )
 
 
 # ── MCP Endpoints ────────────────────────────────────────────
@@ -533,7 +557,10 @@ async def mcp_tools_list():
             {"name": "market_analytics_dashboard", "description": "Market analytics snapshot"},
             {"name": "get_market_price", "description": "Current market price for crop"},
             {"name": "get_price_trend", "description": "Price trend analysis"},
-            {"name": "create_forward_contract", "description": "Create forward sales contract"},
+            {
+                "name": "create_forward_contract",
+                "description": "Create forward sales contract (NOT IMPLEMENTED — returns 501; no fabricated price)",
+            },
         ]
     }
 
@@ -681,7 +708,25 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
-    return {"status": "ready", "version": "9.1.0"}
+    # FIX: كان يُعيد "ready" ثابتاً دون فحص القاعدة ⇒ المُنسّق يوجّه حركةً حتى وقاعدة
+    # البيانات معطّلة. الآن نفحص جاهزيّة القاعدة فعليّاً (مرآة لمسبار /healthz):
+    # احصل على pool ونفّذ SELECT 1. fail-closed: قاعدة **مُهيّأة** لكن غير قابلة
+    # للوصول ⇒ 503 (لا توجّه حركة). وضع بلا قاعدة مقصود (DATABASE_URL غير مضبوط) ⇒
+    # نبقى جاهزين كي لا يرفّ CI (نُحاكي تدرّج /healthz: لا قاعدة ⇒ ليس فشلاً).
+    if not DATABASE_URL:
+        return {"status": "ready", "version": "9.1.0", "db_configured": False}
+    try:
+        pool = await get_pool()
+        async with pool.acquire() as conn:
+            # مسبار جاهزيّة بلا سياق مستأجِر (كـ/healthz).
+            await conn.execute(
+                "SELECT set_config('app.current_tenant', $1, true)", ""
+            )  # CRIT-10/11 FIX
+            await conn.fetchval("SELECT 1")
+    except Exception as e:  # noqa: BLE001
+        logger.warning("readyz: فحص جاهزيّة القاعدة فشل: %s", type(e).__name__)
+        raise HTTPException(503, "قاعدة البيانات غير جاهزة") from e
+    return {"status": "ready", "version": "9.1.0", "db_configured": True}
 
 
 if __name__ == "__main__":

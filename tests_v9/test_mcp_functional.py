@@ -190,10 +190,14 @@ def test_market_mcp_call_endpoint_enforces_scope():
     require_scope("market:read") — matching wofost. No token → 401, wrong
     scope → 403, correct scope → passes auth (then the tool runs / 404 / 422,
     not 401/403). (Previously the MCP endpoint was unauthenticated.)
+
+    NOTE: نختبر مرور الحارس عبر أداة قراءة (get_market_price) لا
+    create_forward_contract — فالأخيرة صارت أداة كتابة (تتطلّب market:write) فيردّها
+    market:read بـ403 بحقّ. تمرير الحارس = ليس 401/403 (قد يصل التنفيذ 200/500/503).
     """
     mod = _import_server("market_server")
     client = _test_client(mod.app)
-    body = {"name": "create_forward_contract", "arguments": {"estimated_yield_kg": 1000}}
+    body = {"name": "get_market_price", "arguments": {"crop": "wheat", "market": "sanaa"}}
 
     r_no = client.post("/mcp/v1/tools/call", json=body)
     assert r_no.status_code == 401, f"بلا توكن متوقّع 401: {r_no.status_code} {r_no.text!r}"

@@ -157,6 +157,7 @@ async def set_valve_state(
                 "irrigation_valve",
                 valve_id,
                 {"status": req.status},
+                critical=True,  # تحوّل حالة actuator فيزيائيّ — fail-closed
             )
             return {"valve_id": valve_id, "status": req.status, "message_ar": "سُجّلت حالة الصمّام"}
 

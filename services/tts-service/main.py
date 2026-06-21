@@ -12,6 +12,7 @@ Voices supported:
 from __future__ import annotations
 
 import hashlib
+import hmac
 import io
 import logging
 import os
@@ -20,7 +21,7 @@ from contextlib import asynccontextmanager
 
 import edge_tts
 import redis.asyncio as aioredis
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.responses import Response, StreamingResponse
 from fastapi.security import (
     HTTPAuthorizationCredentials,
@@ -47,6 +48,9 @@ JWT_SECRET = _JWT_PUBLIC if _JWT_PUBLIC else os.getenv("JWT_SECRET", "")
 _JWT_ALG = "RS256" if _JWT_PUBLIC else "HS256"
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+# توكن خدمة للنداءات خدمة-لخدمة (notification → tts). يطابق نمط بقيّة الخدمات
+# (soil/guardrails): X-Agent-Token == SAHOOL_AGENT_TOKEN. يُقرأ وقت التشغيل في
+# الدالّة كي تلتقط الاختبارات ضبط البيئة (monkeypatch) دون إعادة استيراد.
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/2")
 CACHE_TTL = int(os.getenv("TTS_CACHE_TTL", "86400"))  # 24h
 MAX_TEXT_LEN = int(os.getenv("TTS_MAX_TEXT_LEN", "1000"))
@@ -102,10 +106,35 @@ app = FastAPI(
 
 
 # ── Auth ─────────────────────────────────────────────────────
+def _agent_token_valid(x_agent_token: str | None) -> bool:
+    """مصادقة خدمة-لخدمة عبر السرّ المشترك X-Agent-Token == SAHOOL_AGENT_TOKEN.
+
+    fail-closed: بلا سرّ مضبوط (التطوير/CI) ⇒ يُرفض هذا المسار (لا يفتح باباً
+    بمفتاح فارغ) — كبقيّة الخدمات (soil/guardrails). يُقرأ السرّ وقت النداء كي
+    تلتقط الاختبارات ضبط البيئة (monkeypatch) دون إعادة استيراد. مقارنة بزمن ثابت.
+    """
+    expected = os.getenv("SAHOOL_AGENT_TOKEN", "")
+    if not expected or not x_agent_token:
+        return False
+    return hmac.compare_digest(x_agent_token, expected)
+
+
 async def get_current_user(
     creds: HTTPAuthorizationCredentials = Depends(_security),
+    x_agent_token: str | None = Header(None, alias="X-Agent-Token"),
 ) -> dict:
-    """Verify JWT token and return payload."""
+    """Authenticate the caller via EITHER a service token OR a JWT (aud=sahool).
+
+    مساران صريحان وكلاهما فشل-مغلق:
+      • خدمة-لخدمة: رأس X-Agent-Token مطابق لـSAHOOL_AGENT_TOKEN (notification → tts).
+        يُعيد هويّة خدميّة داخليّة بمستأجِر معزول (لا يخلط ذاكرة المستأجرين).
+      • مستخدم: JWT بحاملة Bearer، aud=sahool، ومُصدِر داخليّ مسموح.
+    إن غاب كلاهما/كانا غير صالحين ⇒ 401 (لا قبول لطلب غير مُصادَق).
+    """
+    # المسار الأوّل: توكن الخدمة المشترك (لا يتطلّب JWT_SECRET).
+    if _agent_token_valid(x_agent_token):
+        return {"sub": "service:internal", "iss": "sahool-service", "tenant_id": "__service__"}
+
     if not creds:
         raise HTTPException(401, "Authentication required")
     if not JWT_SECRET:
@@ -156,11 +185,17 @@ class VoicesResponse(BaseModel):
 
 
 # ── Core TTS ─────────────────────────────────────────────────
-def _cache_key(text: str, voice: str, rate: str, pitch: str, volume: str) -> str:
-    """Generate deterministic cache key."""
-    raw = f"{voice}:{rate}:{pitch}:{volume}:{text}"
+def _cache_key(tenant_id: str, text: str, voice: str, rate: str, pitch: str, volume: str) -> str:
+    """Generate deterministic, tenant-scoped cache key.
+
+    عزل المستأجِر: tenant_id جزء من المفتاح (وبادئة منفصلة) كي لا يُقدَّم صوت
+    مُخزَّن لمستأجِر إلى آخر (تسميم/تسريب ذاكرة عابر للمستأجرين). tenant فارغ
+    يُطبَّع إلى '_' فلا يصطدم نطاقه بنطاق مستأجِر مُسمّى.
+    """
+    tid = tenant_id or "_"
+    raw = f"{tid}:{voice}:{rate}:{pitch}:{volume}:{text}"
     digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
-    return f"sahool:tts:{digest}"
+    return f"sahool:tts:{tid}:{digest}"
 
 
 async def _generate_speech(
@@ -232,7 +267,7 @@ async def synthesize(
     Cached by content hash for 24h to reduce API calls.
     """
     tenant_id = user.get("tenant_id", "")
-    cache_key = _cache_key(req.text, req.voice, req.rate, req.pitch, req.volume)
+    cache_key = _cache_key(tenant_id, req.text, req.voice, req.rate, req.pitch, req.volume)
 
     # Try cache first
     if _redis:
@@ -246,7 +281,9 @@ async def synthesize(
                     media_type="audio/mpeg",
                     headers={
                         "X-Cache": "HIT",
-                        "Cache-Control": "public, max-age=86400",
+                        # private: أصل TTS لكلّ مستأجِر يجب ألّا يُخزَّن في وسطاء/CDN
+                        # مشتركة (تسريب عابر للمستأجرين). يبقى قابلاً للتخزين بالمتصفّح.
+                        "Cache-Control": "private, max-age=86400",
                     },
                 )
         except Exception as e:
@@ -277,7 +314,8 @@ async def synthesize(
         media_type="audio/mpeg",
         headers={
             "X-Cache": "MISS",
-            "Cache-Control": "public, max-age=86400",
+            # private: انظر مسار الـHIT أعلاه — عزل المستأجِر يمنع التخزين العامّ.
+            "Cache-Control": "private, max-age=86400",
         },
     )
 

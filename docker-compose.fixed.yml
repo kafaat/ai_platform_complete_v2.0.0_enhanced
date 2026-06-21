@@ -922,7 +922,30 @@ services:
       - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # FIX: تحميل ملف قواعد التنبيهات. prometheus.yml يعلن rule_files: [alerts.yml]
+      # ويُحلّ نسبةً لمجلّد ملف الإعداد (/etc/prometheus) ⇒ لزم ربط alerts.yml هنا.
+      # كان مفقوداً ⇒ rule_files يفشل بصمت ولا تُحمَّل أيّ قاعدة تنبيه.
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
       - prometheus-data:/prometheus
+    networks:
+      - sahool-internal
+
+  # FIX: AlertManager كان غائباً تماماً رغم أنّ prometheus.yml يدفع التنبيهات إلى
+  # sahool-alertmanager:9093 ⇒ التنبيهات كانت تُطلَق للعدم (مضيف غير موجود).
+  # الاسم هنا يجب أن يطابق هدف alerting بالضبط ليُحلّ عبر DNS داخل الشبكة.
+  # المُستقبِل null في monitoring/alertmanager.yml مقصود (مكافحة الإزعاج)؛ المُستقبِلات
+  # الحقيقيّة تأتي عبر render-alertmanager.sh + alertmanager.overlay.example.yml.
+  sahool-alertmanager:
+    image: prom/alertmanager:v0.27.0
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
+      - "--storage.path=/alertmanager"
+    ports:
+      - "127.0.0.1:9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
     networks:
       - sahool-internal
 
@@ -1014,6 +1037,7 @@ volumes:
   odoo-addons:
   odoo-filestore:
   prometheus-data:
+  alertmanager-data:
   grafana-data:
   jaeger-data:
   nginx-cache:
