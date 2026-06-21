@@ -533,7 +533,35 @@ async def _require_field_tenant(field_id: str) -> None:
         raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
 
 
-# ─── مسارات بحث الصور ─────────────────────────────────────────────
+def _require_layer_tenant(layer_id: str) -> None:
+    """تفويض ملكيّة الطبقة (دفاع عمق للمسارات layer-scoped المكشوفة: /tiles/{layer_id}،
+    /layers/{layer_id}/tilejson). الطبقة تحمل tenant_id (سُجِّل عند /process وإعادة
+    الترطيب)؛ مالكٌ معروف ≠ مستأجِر الطلب ⇒ 403 (إغلاق IDOR عبر layer_id). الطبقة
+    المجهولة (غير مخبّأة) ⇒ يتولّاها 404 في المُعالِج (لا بيانات تُسرَّب)."""
+    req_tenant = _REQ_TENANT.get()
+    lyr = _layers.get(layer_id)
+    owner = lyr.get("tenant_id") if lyr else None
+    if owner and owner != req_tenant:
+        raise HTTPException(403, "الطبقة لا تخصّ مستأجِرك")
+
+
+def _public_cog_url(cog_url: str | None) -> str | None:
+    """يُعيد cog_url فقط إن كان رابطاً عامّاً http(s) — وإلّا None.
+
+    منع تسريب مسارات التخزين الداخليّة (file:// ، s3:// ، مضيف داخليّ) في استجابة
+    tilejson المكشوفة للعميل (titiler_tiles). البلاطات الذاتيّة تعمل دون كشف المصدر."""
+    if not cog_url:
+        return None
+    low = cog_url.strip().lower()
+    if not (low.startswith("http://") or low.startswith("https://")):
+        return None  # file://, s3://, مسار داخليّ ⇒ لا يُكشَف
+    # استبعاد المضيفات الداخليّة الشائعة (compose/k8s) — لا تُكشَف للعميل.
+    if any(h in low for h in ("sahool-", "minio", "localhost", "127.0.0.1", ":9000", ".internal")):
+        return None
+    return cog_url
+
+
+# ─── مسارات بحث الصور (public_catalog: بحث صور أقمار عامّة بـbbox — لا بيانات مستأجِر) ──
 @app.get("/imagery/search/recent")
 async def imagery_search_recent(
     west: float,
@@ -1776,6 +1804,7 @@ _TRANSPARENT_PNG = bytes.fromhex(
 async def get_tile(layer_id: str, z: int, x: int, y: int):
     """بلاطة خريطة لطبقة (MapLibre). عند توفّر البلاطات المُنتجة تُخدَم من
     القرص؛ وإلّا تُرجع بلاطة شفّافة (بنية صحيحة للعرض)."""
+    _require_layer_tenant(layer_id)  # تفويض: الطبقة تخصّ مستأجِر الطلب (إغلاق IDOR)
     if layer_id not in _layers:
         raise HTTPException(404, "طبقة غير موجودة")
     tile_path = os.path.join(UPLOAD_DIR, layer_id, f"{z}_{x}_{y}.png")
@@ -1902,10 +1931,12 @@ async def layer_tilejson(
     وخريطة ألوان عند الطلب، بلا إعادة توليد). وإلّا → البلاطات الثابتة fallback.
     صدق: لا يدّعي ديناميكيّة غير متوفّرة — يُبلّغ بالمصدر الفعلي.
     """
+    _require_layer_tenant(layer_id)  # تفويض: الطبقة تخصّ مستأجِر الطلب (إغلاق IDOR)
     if layer_id not in _layers:
         raise HTTPException(404, "طبقة غير موجودة")
     layer = _layers[layer_id]
-    cog_url = layer.get("cog_url") or layer.get("raster_url")
+    # cog_url للعميل: عامّ http(s) فقط (لا تسريب مسارات داخليّة عبر titiler)
+    cog_url = _public_cog_url(layer.get("cog_url") or layer.get("raster_url"))
 
     if TITILER_URL and cog_url:
         # رابط TiTiler ديناميكي من COG. rescale مثل "0,1" لـNDVI.
@@ -2477,8 +2508,9 @@ async def field_tilejson(
             else "لا COG مقصوص للحقل — شغّل /process أوّلاً (الحدود عالميّة محايدة لا بيانات حقل)"
         ),
     }
-    # اختياري: رابط TiTiler الديناميكي إن توفّر (لا يُلغي الذاتي)
-    cog_url = layer.get("cog_url") if layer else None
+    # اختياري: رابط TiTiler الديناميكي إن توفّر (لا يُلغي الذاتي). cog_url للعميل:
+    # عامّ http(s) فقط — لا نكشف مسارات التخزين الداخليّة (file://، s3://، مضيف داخليّ).
+    cog_url = _public_cog_url(layer.get("cog_url") if layer else None)
     if TITILER_URL and cog_url:
         internal = _GRID_INDEX_ALIASES.get(index, index)
         colormap = "RdYlGn_r" if internal in ("ndsi", "salinity") else "RdYlGn"

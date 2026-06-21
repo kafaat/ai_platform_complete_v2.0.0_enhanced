@@ -181,6 +181,47 @@ async def test_db_configured_but_lookup_unavailable_fails_closed(rm):
     assert ei.value.status_code == 503
 
 
+# ─── تفويض الطبقة (layer-scoped): /tiles/{layer_id} و/layers/{layer_id}/tilejson ──
+def test_layer_owner_allowed(rm):
+    """tenant_a → طبقة يملكها ⇒ يمرّ (دفاع عمق layer-scoped)."""
+    rm._layers["lyr1"] = {"cog_url": "file:///x.tif", "tenant_id": "tenant_a"}
+    rm._REQ_TENANT.set("tenant_a")
+    rm._require_layer_tenant("lyr1")  # لا يرفع
+
+
+def test_layer_other_tenant_forbidden(rm):
+    """tenant_b → طبقة يملكها tenant_a ⇒ 403 (إغلاق IDOR عبر layer_id)."""
+    from fastapi import HTTPException
+
+    rm._layers["lyr1"] = {"cog_url": "file:///x.tif", "tenant_id": "tenant_a"}
+    rm._REQ_TENANT.set("tenant_b")
+    with pytest.raises(HTTPException) as ei:
+        rm._require_layer_tenant("lyr1")
+    assert ei.value.status_code == 403
+
+
+def test_layer_unknown_no_decision(rm):
+    """طبقة مجهولة (غير مخبّأة) ⇒ لا حجب هنا (يتولّاها 404 في المُعالِج)."""
+    rm._REQ_TENANT.set("tenant_b")
+    rm._require_layer_tenant("never_seen")  # لا يرفع
+
+
+def test_public_cog_url_hides_internal_paths(rm):
+    """tilejson لا يكشف مسارات التخزين الداخليّة في titiler_tiles."""
+    f = rm._public_cog_url
+    assert f("file:///srv/cogs/x.tif") is None
+    assert f("s3://internal-bucket/x.tif") is None
+    assert f("http://sahool-minio:9000/cogs/x.tif") is None
+    assert f("http://minio/x.tif") is None
+    assert f("https://localhost/x.tif") is None
+    assert f(None) is None
+    # رابط عامّ صريح يُسمَح به (متاح للعميل أصلاً)
+    assert (
+        f("https://public-cdn.example.com/cogs/x.tif")
+        == "https://public-cdn.example.com/cogs/x.tif"
+    )
+
+
 # ─── حُرّاس مصدر (دفاع عمق) ────────────────────────────────────────
 def test_rehydrated_layer_stores_tenant():
     """الطبقة المُعاد ترطيبها من القاعدة يجب أن تحمل tenant_id (وإلّا تسريب عبر cache)."""
