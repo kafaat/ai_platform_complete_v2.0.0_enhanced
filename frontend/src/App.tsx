@@ -1,24 +1,22 @@
 // SAHOOL v8.0 — App.tsx (النهائية)
-import { useState, useEffect, Suspense, lazy } from 'react';
-import {
-  LayoutDashboard, Satellite, Map, BarChart3, Bell,
-  FileText, Bot, Settings, Loader2, Leaf, LogOut,
-  User, ChevronLeft, ChevronRight, Shield, AlertTriangle,
-  Wifi, WifiOff, ClipboardList, Droplets, Bug, Activity,
-  Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
-  ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
-  ChevronDown, CalendarRange, GitCompare, GitBranch, Crosshair, Search, History,
-  FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay, Share2, Repeat, Gauge,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+// ترحيل إلى React Router + قشرة FieldView: التوجيه القائم على الحالة سابقاً
+// (page/setPage) صار محوّلاً رقيقاً فوق الراوتر — page يُشتقّ من مسار URL،
+// و setPage = navigate(path). هذا يحفظ renderPage() وكلّ الصفحات (٦٦) بلا
+// إعادة كتابة، ويُمكّن الروابط العميقة وزرّ الرجوع، مع حفظ كلّ البوّابات
+// (canAccess + isPageEnabled) كما هي تماماً.
+import { useState, useEffect, Suspense, lazy, useCallback } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Loader2, Shield } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
 import { useTenantConfig } from './hooks/useTenantConfig';
-import { useTheme, type Theme } from './hooks/useTheme';
+import { useTheme } from './hooks/useTheme';
 import { wsService } from './services/websocket';
 import ToastContainer from './components/ToastContainer';
-import ThemeToggle from './components/ThemeToggle';
 import { canAccess, canCreateFarm } from './lib/permissions';
+import { isPageEnabled } from './lib/featureFlags';
+import { ALL_ROUTES, pageForPath, pathForPage } from './lib/routes';
+import AppShell from './components/shell/AppShell';
 import { LoadingState } from './components/StateViews';
 
 // ── Error Boundary ──────────────────────────────────────────
@@ -126,133 +124,10 @@ export type PageId =
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
   | 'operations-wall';
 
-// ── أعلام الميزات (إخفاء شاشة فقط حين تكون خلفيّتها غير جاهزة فعليّاً) ──────────
-// weather: شاشة weather-advice **موصولة بخلفيّة حقيقيّة** — نقاط المنصّة
-// /api/v1/fields/{id}/weather/irrigation-advice و/disease-risk تقرأ سياق الحقل من
-// القاعدة وتجلب الطقس من Open-Meteo مباشرةً (لا تعتمد على weather-service الجذعيّة)،
-// وتُعيد 503 بصدق عند تعذّر المصدر. لذا **مُفعَّلة افتراضيّاً**؛ تُعطَّل صراحةً
-// بـVITE_ENABLE_WEATHER=false (مثلاً إن مُنِع egress لـOpen-Meteo في بيئة ما).
-// soil: لا شاشة مستقلّة لها (تُستهلَك ضمن تقرير الاستشارة)؛ العلم متاح للمستهلكين فقط.
-// لا حذف للمكوّنات ولا تقليص لاتّحاد PageId (حارس permissions.ts يبقى سليماً).
-export const FEATURE_FLAGS = {
-  weather: import.meta.env.VITE_ENABLE_WEATHER !== 'false',
-  soil:    import.meta.env.VITE_ENABLE_SOIL === 'true',
-} as const;
-
-// الصفحات المحجوبة خلف علم مُطفأ ⇒ تُحذف من القائمة وتُمنَع في المُصيِّر.
-// (التربة لا تملك شاشةً مستقلّةً في القائمة — تُستهلَك ضمن تقرير الاستشارة المركّب —
-// فعلمها متاح للمستهلكين عبر FEATURE_FLAGS.soil دون إدخال في القائمة هنا.)
-const FLAG_GATED_PAGES: Partial<Record<PageId, boolean>> = {
-  'weather-advice': FEATURE_FLAGS.weather,
-};
-/** هل الصفحة مُفعّلة؟ (الصفحات غير المحجوبة دائماً مُفعّلة). */
-function isPageEnabled(id: PageId): boolean {
-  return FLAG_GATED_PAGES[id] !== false;
-}
-
-type NavItem = { id: PageId; label: string; icon: LucideIcon; badge?: string };
-type NavGroup = { id: string; label: string; defaultOpen: boolean; items: NavItem[] };
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    id: 'home', label: 'الرئيسية', defaultOpen: true,
-    items: [
-      { id:'dashboard',    label:'لوحة المعلومات', icon:LayoutDashboard },
-      { id:'operations-wall', label:'جدار مركز العمليّات', icon:MonitorPlay, badge:'جديد' },
-      { id:'alerts',       label:'التنبيهات',       icon:Bell },
-      { id:'chatbot',      label:'المستشار الذكي',  icon:Bot, badge:'AI' },
-      { id:'reports',      label:'التقارير',        icon:FileText },
-    ],
-  },
-  {
-    id: 'unified', label: 'التطبيق الموحّد (معاينة)', defaultOpen: true,
-    items: [
-      { id:'unified-cabin', label:'التطبيق الموحّد (معاينة)', icon:Smartphone, badge:'٦ وجهات' },
-      { id:'command',      label:'مركز العمليّات (معاينة)', icon:Smartphone, badge:'دمج' },
-      { id:'map-center',   label:'مركز الخرائط (معاينة)', icon:Layers, badge:'دمج' },
-      { id:'tasks-cabin',  label:'كابينة المهام (معاينة)', icon:ListChecks, badge:'دمج' },
-      { id:'rec-flow',     label:'توصية ← تنفيذ (معاينة)', icon:ClipboardList, badge:'دمج' },
-      { id:'hybrid-monitor', label:'المراقبة الهجينة (معاينة)', icon:Activity, badge:'دمج' },
-      { id:'analyze-cabin', label:'التحليل (معاينة)', icon: BarChart3, badge:'دمج' },
-      { id:'setup-cabin', label:'الإعداد (معاينة)', icon: Settings, badge:'دمج' },
-      { id:'field-app',    label:'تطبيق الحقل (معاينة)', icon:Smartphone, badge:'جديد' },
-    ],
-  },
-  {
-    id: 'fields-sat', label: 'الحقول والأقمار', defaultOpen: false,
-    items: [
-      { id:'fields',       label:'إدارة الحقول',   icon:Map },
-      { id:'farm-map',     label:'خريطة المزرعة',  icon:Map },
-      { id:'field-workspace', label:'مساحة عمل الحقل', icon:Layers, badge:'جديد' },
-      { id:'satellite',    label:'الأقمار الصناعية', icon:Satellite },
-      { id:'hybrid-index', label:'المؤشرات (17)',  icon:BarChart3, badge:'WOFOST' },
-      { id:'spatial-indicators', label:'المؤشرات المكانية', icon:Map },
-    ],
-  },
-  {
-    id: 'agri', label: 'الزراعة والري', defaultOpen: false,
-    items: [
-      { id:'irrigation',   label:'تحليل ماء الريّ', icon:Droplets },
-      { id:'irrigation-plan', label:'خطّة الريّ المتنبّأ', icon:CalendarRange },
-      { id:'crop-state', label:'حالة المحصول الموحّدة', icon:Sprout },
-      { id:'scenario-compare', label:'مقارنة السياسات', icon:GitCompare },
-      { id:'nl-gis', label:'استعلام GIS باللغة الطبيعيّة', icon:Search, badge:'جديد' },
-      { id:'portfolio', label:'توزيع ماء المزرعة', icon:Layers },
-      { id:'portfolio-command', label:'مركز قيادة المحفظة', icon:Crosshair, badge:'جديد' },
-      { id:'calibration', label:'حالة المعايرة الإقليميّة', icon:Activity },
-      { id:'calibration-workbench', label:'منضدة المعايرة', icon:SlidersHorizontal, badge:'جديد' },
-      { id:'lineage', label:'سلسلة النَّسَب والدليل', icon:GitBranch },
-      { id:'evidence-map', label:'خريطة الدليل', icon:ShieldCheck, badge:'جديد' },
-      { id:'replay-map', label:'إعادة تشغيل الموسم', icon:History, badge:'جديد' },
-      { id:'learning-dashboard', label:'لوحة رصد التعلّم', icon:BarChart3 },
-      { id:'decision-studio', label:'استوديو القرار', icon:FlaskConical, badge:'جديد' },
-      { id:'decision-confidence', label:'ثقة القرار الموحَّدة', icon:Gauge, badge:'جديد' },
-      { id:'execution-feedback', label:'رصد حلقة التنفيذ', icon:Repeat, badge:'جديد' },
-      { id:'agronomic-timeline', label:'الخطّ الزمنيّ الأغرونوميّ', icon:GitCommitHorizontal, badge:'جديد' },
-      { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
-      { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
-      { id:'irrigation-network', label:'توأم شبكة الريّ', icon:Share2, badge:'جديد' },
-      { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
-      { id:'phenology',    label:'مراحل النموّ',     icon:Sprout },
-      { id:'scouting',     label:'دليل الاستكشاف',   icon:Bug },
-      { id:'field-intelligence', label:'المايسترو', icon:Activity },
-    ],
-  },
-  {
-    id: 'analysis', label: 'التحليل والتقارير', defaultOpen: false,
-    items: [
-      { id:'analytics',    label:'التحليلات',       icon:BarChart3 },
-      { id:'economics',    label:'الاقتصاد / ROI',   icon:BarChart3 },
-      { id:'field-ranking', label:'ترتيب الحقول',    icon:TrendingUp },
-      { id:'problem-fields', label:'حقول المشكلات',   icon:AlertTriangle },
-      { id:'advisory-report', label:'استشارة المزرعة', icon: FileText },
-      { id:'recommendations', label:'التوصيات',    icon:ClipboardList },
-    ],
-  },
-  {
-    id: 'operations', label: 'التشغيل', defaultOpen: false,
-    items: [
-      { id:'tasks',        label:'المهام الميدانية',icon:ClipboardList },
-      { id:'activities',   label:'العمليّات الزراعيّة', icon:Sprout },
-      { id:'inventory',    label:'المخزون',         icon:Boxes },
-      { id:'equipment',    label:'المعدّات',         icon:Tractor },
-      { id:'devices',      label:'أجهزة IoT',       icon:Cpu },
-      { id:'device-twin',  label:'توائم الأجهزة وثقة الحسّاس', icon:Activity, badge:'جديد' },
-    ],
-  },
-  {
-    id: 'admin', label: 'الإدارة', defaultOpen: false,
-    items: [
-      { id:'master-data',  label:'البيانات المرجعيّة', icon:Database },
-      { id:'documents',    label:'الوثائق',         icon:FolderArchive },
-      { id:'governance',   label:'الحوكمة والتدقيق', icon:ShieldCheck },
-      { id:'settings',     label:'الإعدادات',       icon:Settings },
-    ],
-  },
-];
-
-// قائمة مُسطّحة لكل العناصر — للبحث عن العنوان/الأيقونة في TopBar عبر كل المجموعات.
-const NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap(g => g.items);
+// ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
+// وبنية القائمة (المجموعات) انتقلت إلى سجلّ المسارات `lib/routes.ts` (بنية معلومات
+// جديدة بأقسام). القشرة (NavRail/ContextBar/MobileTabBar) تُشتقّ منهما، و App هنا
+// يبقى محوّلاً للتوجيه فوق الراوتر مع حفظ renderPage وكلّ البوّابات.
 
 function Loader() {
   return (
@@ -264,194 +139,9 @@ function Loader() {
   );
 }
 
-interface SidebarProps {
-  page: PageId;
-  setPage: (p: PageId) => void;
-  collapsed: boolean;
-  setCollapsed: (c: boolean) => void;
-}
+// ملاحظة ترحيل: مكوّنا Sidebar/TopBar السابقان حلّ محلّهما القشرة الجديدة
+// (components/shell/*): NavRail + ContextBar + MobileTabBar، مُشتقّة من lib/routes.ts.
 
-function Sidebar({ page, setPage, collapsed, setCollapsed }: SidebarProps) {
-  const { user, logout, isDemoMode } = useAuthStore();
-  const wsOk = wsService.isConnected();
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(
-    () => Object.fromEntries(NAV_GROUPS.map(g => [g.id, g.defaultOpen]))
-  );
-
-  // زرّ عنصر التنقّل — يحافظ على التمييز النشط، الشارات، ووضع الأيقونات المطويّ.
-  const renderItem = (item: NavItem) => {
-    const Icon = item.icon;
-    const active = page === item.id;
-    return (
-      <button key={item.id} onClick={() => setPage(item.id)}
-        title={collapsed ? item.label : undefined}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
-        style={{
-          background: active ? '#1e3a1e' : 'transparent',
-          borderRight: active ? '2px solid #16a34a' : '2px solid transparent',
-          color: active ? '#4ade80' : '#94a3b8',
-        }}>
-        <Icon className="w-4 h-4 flex-shrink-0" />
-        {!collapsed && (
-          <>
-            <span className="text-sm flex-1 text-right">{item.label}</span>
-            {item.badge && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                style={{ background:item.badge==='2'||item.badge==='6'?'#dc262622':'#16a34a22',
-                  color:item.badge==='2'||item.badge==='6'?'#f87171':'#4ade80' }}>
-                {item.badge}
-              </span>
-            )}
-          </>
-        )}
-      </button>
-    );
-  };
-
-  return (
-    <ErrorBoundary>
-    <aside className="flex flex-col h-full" style={{
-      width: collapsed ? 64 : 240,
-      background:'#0d1117',
-      borderLeft:'1px solid #1e293b',
-      flexShrink: 0,
-      transition: 'width .3s',
-    }}>
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-800">
-        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
-          <Leaf className="w-4 h-4 text-white" />
-        </div>
-        {!collapsed && (
-          <div className="flex-1 min-w-0">
-            <div className="text-emerald-400 font-bold text-sm">سهول</div>
-            <div className="flex items-center gap-1 text-[10px]">
-              <span className={`w-1.5 h-1.5 rounded-full ${wsOk?'bg-emerald-400 animate-pulse':'bg-slate-600'}`} />
-              <span className="text-slate-500">{wsOk?'NATS متصل':'offline'}</span>
-            </div>
-          </div>
-        )}
-        <button onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'توسيع الشريط الجانبيّ' : 'طيّ الشريط الجانبيّ'}
-          className="p-1 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300">
-          {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-        </button>
-      </div>
-
-      {/* Demo badge */}
-      {isDemoMode && !collapsed && (
-        <div className="mx-2 mt-2 px-2 py-1 rounded text-[10px] text-amber-400 text-center"
-          style={{ background:'#2a1a00', border:'1px solid #f59e0b44' }}>
-          ⚠️ وضع تجريبي
-        </div>
-      )}
-
-      {/* Nav — مُرشَّح حسب صلاحيّة الدور (RBAC فعليّ: لا تظهر صفحة لا يحقّ فتحها).
-          مطويّ: كل العناصر المسموح بها كأيقونات (بلا رؤوس مجموعات).
-          مفتوح: مجموعات قابلة للطيّ؛ مجموعة بلا عناصر مسموح بها تُخفى بالكامل. */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {collapsed
-          ? NAV_ITEMS.filter(item => isPageEnabled(item.id) && canAccess(user?.role, item.id)).map(renderItem)
-          : NAV_GROUPS.map(group => {
-              const items = group.items.filter(item => isPageEnabled(item.id) && canAccess(user?.role, item.id));
-              if (items.length === 0) return null;
-              const open = openGroups[group.id];
-              return (
-                <div key={group.id} className="pt-1">
-                  <button
-                    onClick={() => setOpenGroups(s => ({ ...s, [group.id]: !s[group.id] }))}
-                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-300 transition-colors">
-                    <span className="text-[11px] font-semibold tracking-wide flex-1 text-right">{group.label}</span>
-                    <ChevronDown className="w-3.5 h-3.5 transition-transform"
-                      style={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)' }} />
-                  </button>
-                  {open && (
-                    <div className="space-y-0.5 mt-0.5">
-                      {items.map(renderItem)}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-      </nav>
-
-      {/* User */}
-      {!collapsed && (
-        <div className="px-3 py-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 px-2 py-2 rounded-lg" style={{ background:'#1e293b' }}>
-            <div className="w-7 h-7 rounded-full bg-emerald-700 flex items-center justify-center flex-shrink-0">
-              <User className="w-3.5 h-3.5 text-emerald-300" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-slate-200 truncate">{user?.full_name||user?.email||'مستخدم'}</div>
-              <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                <Shield className="w-2.5 h-2.5" />{user?.role||'farmer'}
-              </div>
-            </div>
-            <button onClick={logout} title="خروج"
-              className="p-1 hover:text-red-400 text-slate-500 transition-colors">
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
-    </aside>
-    </ErrorBoundary>
-  );
-}
-
-interface TopBarProps {
-  page: PageId;
-  onMenu: () => void;
-  theme: Theme;
-  setTheme: (t: Theme) => void;
-  // العلامة التجاريّة للمستأجِر (#206) — اختياريّة. غائبة ⇒ سلوك افتراضيّ كما اليوم.
-  tenantName?: string | null;
-  tenantLogo?: string | null;
-}
-
-function TopBar({ page, onMenu, theme, setTheme, tenantName, tenantLogo }: TopBarProps) {
-  const item = NAV_ITEMS.find(n => n.id === page);
-  const Icon = item?.icon || LayoutDashboard;
-  const { isDemoMode } = useAuthStore();
-  const wsOk = wsService.isConnected();
-
-  return (
-    <ErrorBoundary>
-    <header className="flex items-center gap-3 px-4 py-3 border-b"
-      style={{ background:'#0d1117', borderColor:'#1e293b' }}>
-      <button onClick={onMenu} aria-label="فتح القائمة" className="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400">
-        <LayoutDashboard className="w-5 h-5" />
-      </button>
-      {/* شعار المستأجِر — يُعرَض فقط عند وجود رابط فعليّ (لا صورة مكسورة عند null). */}
-      {tenantLogo && (
-        <img src={tenantLogo} alt={tenantName || 'شعار المستأجِر'}
-          className="h-6 w-auto max-w-[120px] object-contain flex-shrink-0" />
-      )}
-      <Icon className="w-5 h-5 text-emerald-500" />
-      <h1 className="text-base font-bold text-slate-100">{item?.label}</h1>
-      {/* اسم المستأجِر — يظهر بجوار العنوان فقط حين يوفّره التكوين. */}
-      {tenantName && (
-        <span className="hidden sm:inline text-sm text-slate-400 truncate max-w-[180px]">
-          · {tenantName}
-        </span>
-      )}
-      <div className="mr-auto flex items-center gap-2">
-        {isDemoMode && (
-          <span className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-amber-950 text-amber-400 border border-amber-900">
-            <AlertTriangle className="w-3 h-3" /> تجريبي
-          </span>
-        )}
-        <span className={`hidden sm:flex items-center gap-1 px-2 py-1 rounded-full text-[11px] border ${wsOk?'bg-emerald-950 text-emerald-400 border-emerald-900':'bg-slate-800 text-slate-500 border-slate-700'}`}>
-          {wsOk ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-          NATS
-        </span>
-        <ThemeToggle theme={theme} setTheme={setTheme} />
-      </div>
-    </header>
-    </ErrorBoundary>
-  );
-}
 
 export default function App() {
   const { isAuthenticated, user, isDemoMode, logout } = useAuthStore();
@@ -471,9 +161,14 @@ export default function App() {
     if (color) root.style.setProperty('--tenant-primary', color);
     else root.style.removeProperty('--tenant-primary');
   }, [branding?.primary_color]);
-  const [page,       setPage]       = useState<PageId>('dashboard');
-  const [collapsed,  setCollapsed]  = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  // ── محوّل التوجيه (Router Adapter) ──────────────────────────────
+  // page يُشتقّ من مسار URL الحاليّ (مصدر الحقيقة)؛ المسار المجهول/القديم يقع
+  // على 'dashboard' (تُعيد <Routes> توجيهه لـ«/»). setPage يصبح navigate(path)
+  // — فتُبقي الصفحات (التي تستدعي setPage) عاملةً بلا تعديل، مع روابط عميقة ورجوع.
+  const location = useLocation();
+  const navigate = useNavigate();
+  const page: PageId = pageForPath(location.pathname) ?? 'dashboard';
+  const setPage = useCallback((p: PageId) => { navigate(pathForPage(p)); }, [navigate]);
   // الشاشة الأوّليّة ما قبل المصادقة: إن حمل الرابط ?token= نعرض قبول الدعوة
   // (شاشة عموميّة محميّة بالـtoken — ليست PageId، مثل signup). وإلّا تسجيل الدخول.
   const [authScreen, setAuthScreen] = useState<'login' | 'signup' | 'accept-invitation'>(
@@ -494,7 +189,7 @@ export default function App() {
     return () => {};
   }, [isAuthenticated, user?.id]);
 
-  useEffect(() => { setMobileOpen(false); }, [page]);
+  // (إغلاق درج الموبايل عند تغيّر المسار انتقل إلى AppShell.)
 
   // خروج فعليّ عند انتهاء الجلسة (Phase 2): api.ts يُطلق 'sahool:auth:unauthorized'
   // عند 401 أو عند اكتشاف توكن منتهٍ محلياً. نُحوّل ذلك إلى logout فترجع الواجهة
@@ -648,30 +343,27 @@ export default function App() {
     }
   };
 
+  // محتوى الصفحة الحاليّة (نفس renderPage السابق) ملفوفاً بـSuspense — هدف عرض
+  // واحد لكلّ مسار مُسجَّل (page مُشتقّ من URL، فالمحتوى يتبع المسار تلقائيّاً).
+  const pageContent = <Suspense fallback={<Loader />}>{renderPage()}</Suspense>;
+
   return (
     <ErrorBoundary>
     <>
-      <div className="flex h-screen overflow-hidden" style={{ background:'#0f1117' }}>
-        <div className="hidden md:flex">
-          <Sidebar page={page} setPage={setPage} collapsed={collapsed} setCollapsed={setCollapsed} />
-        </div>
-        {mobileOpen && (
-          <>
-            <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setMobileOpen(false)} />
-            <div className="fixed right-0 top-0 h-full z-50 md:hidden">
-              <Sidebar page={page} setPage={(p: PageId) => { setPage(p); setMobileOpen(false); }}
-                collapsed={false} setCollapsed={() => {}} />
-            </div>
-          </>
-        )}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <TopBar page={page} onMenu={() => setMobileOpen(!mobileOpen)} theme={theme} setTheme={setTheme}
-            tenantName={branding?.name_ar ?? null} tenantLogo={branding?.logo_url ?? null} />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
-            <Suspense fallback={<Loader />}>{renderPage()}</Suspense>
-          </main>
-        </div>
-      </div>
+      <AppShell
+        theme={theme} setTheme={setTheme}
+        tenantName={branding?.name_ar ?? null} tenantLogo={branding?.logo_url ?? null}
+      >
+        {/* جدول المسارات: كلّ مسار مُسجَّل يعرض نفس محتوى renderPage (المُصيِّر القديم
+            سليم بالكامل). المسار المجهول/القديم ⇒ إعادة توجيه إلى «/». بوّابات RBAC
+            وعلم الميزة تبقى داخل renderPage تماماً كما كانت (لا تغيير في السياسة). */}
+        <Routes>
+          {ALL_ROUTES.map((r) => (
+            <Route key={r.id} path={r.path} element={pageContent} />
+          ))}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AppShell>
       {/* Toast overlay — يظهر فوق كل شيء */}
       <ToastContainer />
     </>
