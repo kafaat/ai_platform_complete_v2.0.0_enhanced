@@ -231,10 +231,11 @@ export default function SettingsPage() {
 
           <Section title="متغيرات البيئة">
             {[
-              {k:'VITE_API_URL',    v:import.meta.env.VITE_API_URL   || '—'},
-              {k:'VITE_INDICATORS', v:import.meta.env.VITE_INDICATORS_URL || '—'},
-              {k:'VITE_WEATHER',    v:import.meta.env.VITE_WEATHER_URL || '—'},
-              {k:'VITE_MOCK_MODE',  v:import.meta.env.VITE_MOCK_MODE || 'false'},
+              {k:'VITE_API_MODE',       v:import.meta.env.VITE_API_MODE || 'gateway'},
+              {k:'VITE_API_BASE_URL',   v:import.meta.env.VITE_API_BASE_URL ?? '(gateway: نسبيّ)'},
+              {k:'VITE_INDICATORS',     v:import.meta.env.VITE_INDICATORS_BASE_URL || '/api/indicators'},
+              {k:'VITE_WEATHER',        v:import.meta.env.VITE_WEATHER_BASE_URL || '/api/weather'},
+              {k:'VITE_MOCK_MODE',      v:import.meta.env.VITE_MOCK_MODE || 'false'},
             ].map((e,i)=>(
               <div key={i} className="flex justify-between text-xs py-1 border-b last:border-0" style={{ borderColor:'#334155' }}>
                 <span className="text-slate-500 font-mono">{e.k}</span>

@@ -23,7 +23,22 @@ type Handler = (data: Record<string, unknown>) => void;
 //   'failed'     — تعذّر تسلسل الرسالة (JSON.stringify رمى) — لم تُحفظ.
 export type SendResult = 'sent' | 'queued' | 'queue_full' | 'failed';
 
-const WS_URL = import.meta.env.VITE_WS_URL || `ws://${typeof window !== 'undefined' ? window.location.host : 'localhost:8000'}/ws/notifications`;
+// قاعدة WebSocket: مرجعيّة البوّابة (nginx /ws/ يُوجِّه لخدمة الإشعارات :8123).
+// الافتراضيّ مسار نسبيّ '/ws' يُحَلّ على مضيف الصفحة الحاليّ بمخطّط ws/wss الصحيح
+// (يطابق توجيه nginx)، بلا منفذ مباشر مكشوف. يمكن تجاوزه بـVITE_WS_BASE_URL
+// (نسبيّ مثل '/ws' أو مطلق مثل 'ws://localhost:8123/ws' للتطوير بلا بوّابة).
+function resolveWsBase(): string {
+  const raw = import.meta.env.VITE_WS_BASE_URL || '/ws';
+  // مطلق بالفعل (ws://، wss://) ⇒ استخدمه كما هو.
+  if (/^wss?:\/\//i.test(raw)) return raw.replace(/\/+$/, '');
+  // نسبيّ ⇒ اشتقّ المخطّط/المضيف من الصفحة (https ⇒ wss).
+  if (typeof window !== 'undefined') {
+    const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    return `${scheme}://${window.location.host}${raw.startsWith('/') ? raw : `/${raw}`}`.replace(/\/+$/, '');
+  }
+  return `ws://localhost:8000${raw.startsWith('/') ? raw : `/${raw}`}`.replace(/\/+$/, '');
+}
+const WS_URL = `${resolveWsBase()}/notifications`;
 
 class WebSocketService {
   private ws: WebSocket | null = null;
