@@ -19,7 +19,15 @@ WEATHER_URL = os.getenv("WEATHER_SERVICE_URL", "http://sahool-weather-service:80
 SOIL_URL = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000")
 RASTER_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
 PLATFORM_URL = os.getenv("PLATFORM_SERVICE_URL", "http://sahool-platform:8000")
+# بوّابة القرار المركزيّة (guardrails-engine /validate) — نفس افتراض supervisor-agent
+# (main.py:72). كلّ قرار قابل للتنفيذ يجب أن يمرّ بها فعليّاً قبل أن يصير executable.
+GUARDRAILS_URL = os.getenv("GUARDRAILS_URL", "http://sahool-guardrails-engine:8000")
 HTTP_TIMEOUT = float(os.getenv("ADAPTER_TIMEOUT", "20.0"))
+
+# راية تفعيل المحوّل الحيّ للحَوكمة (DEFAULT ON — هذه دعوة تفعيل صريحة). عند ضبطها
+# "false" يُحذَف guardrails_fn من build_live_adapters ⇒ تبقى الحَوكمة not_evaluated
+# ⇒ كلّ قرار استشاريّ فقط (executable=False) — رجوع آمن لسلوك ما قبل التفعيل بلا كود.
+LIVE_GUARDRAILS_ENABLED = os.getenv("ENABLE_LIVE_GUARDRAILS", "true").strip().lower() != "false"
 
 # Open-Meteo — توقّع مجّاني بلا مفتاح API (المصدر الافتراضي للتوقّع الجوّي).
 # يُحاوَل دائماً متى توفّرت lat/lon (بلا راية تفعيل — keyless). الانسحاب للنشر
@@ -72,16 +80,27 @@ def _get_json(
 
 
 def _post_json(
-    url: str, payload: dict | None = None, *, authorization: str | None = None
+    url: str,
+    payload: dict | None = None,
+    *,
+    authorization: str | None = None,
+    agent_token: str | None = None,
 ) -> dict | None:
-    """نداء POST آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع)."""
+    """نداء POST آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع).
+
+    يمرّر رأس التفويض (Bearer) و/أو توكن الخدمة (X-Agent-Token) إن وُجدا — نقطة
+    guardrails /validate محميّة بـ_require_service_token ⇒ بدونه 401/503 (⇒ None).
+    """
     try:
         import httpx
     except ImportError:
         return None
+    headers = _auth_headers(authorization) or {}
+    if agent_token:
+        headers["X-Agent-Token"] = agent_token
     try:
         with httpx.Client(timeout=HTTP_TIMEOUT) as client:
-            resp = client.post(url, json=payload or {}, headers=_auth_headers(authorization))
+            resp = client.post(url, json=payload or {}, headers=headers or None)
             resp.raise_for_status()
             return resp.json()
     except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر
@@ -271,12 +290,174 @@ def simulate_adapter(req, decision, state, *, authorization: str | None = None) 
     }
 
 
+# ── محوّل الحَوكمة الحيّ (guardrails-engine /validate) — الأكثر حساسيّة للسلامة ──
+#
+# مبدأ حاكم: fail-closed. القرار لا يصير executable إلّا إذا أقرّت guardrails فعليّاً
+# (allowed==True). أيّ غموض/خطأ/تعذّر ⇒ حالة ليست في GOVERNANCE_APPROVED_STATES ⇒
+# يبقى استشاريّاً. لا نختلق موافقة أبداً.
+#
+# خريطة صريحة: نوع إجراء field-intelligence (decision["action_type"] أو قضيّة
+# decision["structured"]["issue"]) → نوع إجراء guardrails. نُدرِج فقط التناظر السلاميّ
+# **القاطع** الذي لا لبس فيه. أيّ نوع غير مُدرَج (تقييم/متابعة/استشارة) ⇒ لا إجراء سلامة
+# حرج ⇒ not_applicable (يبقى executable=False — لا موافقة تلقائيّة).
+#
+# الحالة الراهنة لـ_derive_policy تُنتج action_type واحداً من اثنين فقط:
+#   • "soil_remediation" (ملوحة حرجة، غسيل/صرف) → ماء ريّ → "irrigation"  [قاطع]
+#   • "investigate_stress" (حيويّة منخفضة — افحص ميدانيّاً) → تقييم لا إجراء → not_applicable
+# المداخل الأخرى (fertilization/pesticide/harvest) مُدرَجة استباقيّاً للتوافق إن أنتجها
+# المنطق مستقبلاً؛ لا يُولّدها الكود اليوم.
+_DECISION_TO_GUARDRAILS_ACTION: dict[str, str] = {
+    # القاطع اليقينيّ اليوم: معالجة الملوحة بالغسيل = ماء ريّ ⇒ irrigation.
+    "soil_remediation": "irrigation",
+    "salinity": "irrigation",  # عبر structured["issue"]
+    # توافق استباقيّ (لا يُنتجها _derive_policy حاليّاً، لكن التناظر قاطع إن وُجدت):
+    "fertilization": "fertilization",
+    "nutrient": "fertilization",
+    "pesticide": "pesticide",
+    "pest": "pesticide",
+    "harvest": "harvest",
+    "harvest_timing": "harvest",
+    # صريح: قرار تقييميّ/استشاريّ بحت — لا إجراء سلامة حرج (يبقى استشاريّاً).
+    "investigate_stress": "not_applicable",
+    "monitor": "not_applicable",
+    "investigate": "not_applicable",
+}
+
+
+def _map_decision_to_guardrails_action(decision: dict) -> str | None:
+    """يُرجِع نوع إجراء guardrails القاطع لقرار field-intelligence، أو None.
+
+    صدق + fail-closed: نطابق فقط حين يوجد تناظر سلاميّ **قاطع**. الأولويّة للـ
+    action_type الصريح، ثمّ لقضيّة structured["issue"]. غياب أيّ تطابق ⇒ None
+    (يُعامَل كـnot_applicable من المُنادي — لا موافقة). نتجاهل مداخل not_applicable
+    المُدرَجة (نُرجِع None لها صراحةً) فلا تُرسَل أصلاً لـguardrails.
+    """
+    candidates: list[str] = []
+    at = decision.get("action_type")
+    if isinstance(at, str) and at:
+        candidates.append(at.strip().lower())
+    structured = decision.get("structured")
+    if isinstance(structured, dict):
+        issue = structured.get("issue")
+        if isinstance(issue, str) and issue:
+            candidates.append(issue.strip().lower())
+    for key in candidates:
+        mapped = _DECISION_TO_GUARDRAILS_ACTION.get(key)
+        if mapped and mapped != "not_applicable":
+            return mapped
+    return None
+
+
+def guardrails_adapter(decision: dict, state, *, authorization: str | None = None) -> dict:
+    """محوّل الحَوكمة الحيّ — يُرجِع dict حَوكمة لـrun_field_intelligence (SYNC).
+
+    عقد القيمة المُرجَعة (يُستهلَك في governance_permits_dispatch):
+      • allowed==True   → {"status": "approved", ...}     → executable يصير True
+      • allowed==False  → {"status": "halted", ...}       → NOT approved (False)
+      • لا تناظر سلاميّ  → {"status": "not_applicable", ...} → NOT approved (False)
+      • أيّ خطأ/تعذّر    → {"status": "error", ...}         → NOT approved (False)
+
+    fail-closed مطلق: لا نُرجِع approved إلّا إذا أقرّت guardrails فعليّاً. لا نرفع
+    استثناءً أبداً (المُنادي يلفّه أيضاً، لكنّنا دفاعيّون). غياب توكن الخدمة ⇒ خطأ.
+    """
+    try:
+        action_type = _map_decision_to_guardrails_action(decision)
+        if action_type is None:
+            # قرار استشاريّ/تقييميّ بحت — لا إجراء سلامة حرج ⇒ يبقى استشاريّاً.
+            # ملاحظة: not_applicable ليست في GOVERNANCE_APPROVED_STATES ⇒ executable=False.
+            return {
+                "status": "not_applicable",
+                "note": "قرار استشاريّ/تقييميّ — لا إجراء سلامة حرج",
+            }
+        if not AGENT_TOKEN:
+            # بلا توكن خدمة /validate يردّ 401/503 ويُبتلَع ⇒ نُعلنه صراحةً (fail-closed).
+            return {
+                "status": "error",
+                "note": "SAHOOL_AGENT_TOKEN غير مضبوط — تعذّر التحقّق من الحَوكمة",
+            }
+
+        truths = getattr(state, "operational_truths", {}) or {}
+        tenant_id = getattr(state, "tenant_id", None) or ""
+        field_id = getattr(state, "field_id", None)
+
+        # action_data: حمولة القرار المنظَّمة + توصياته (ما يُحكَم عليه).
+        action_data: dict = {}
+        structured = decision.get("structured")
+        if isinstance(structured, dict):
+            action_data.update(structured)
+        recs = decision.get("recommendations_ar")
+        if recs:
+            action_data["recommendations_ar"] = recs
+
+        # farm_context: حدّ أدنى من الحالة الموحّدة (مؤشّرات السلامة ذات الصلة).
+        farm_context: dict = {
+            "field_id": field_id,
+            "tenant_id": tenant_id,
+            "crop": getattr(state, "crop", None),
+            "effective_status": truths.get("effective_status"),
+            "salinity_class": truths.get("salinity_class"),
+            "salinity_risk": truths.get("salinity_risk"),
+            "crop_vigor": truths.get("crop_vigor"),
+            "ndvi_trend": truths.get("ndvi_trend"),
+            "growth_stage": truths.get("growth_stage") or truths.get("fao56_stage"),
+        }
+        # تنظيف None لتقليل ضوضاء السياق (لا يؤثّر على عقد الاكتمال — حقوله مختلفة).
+        farm_context = {k: v for k, v in farm_context.items() if v is not None}
+
+        payload = {
+            "action_type": action_type,
+            "action_data": action_data or {"advisory": True},
+            "farm_context": farm_context,
+            "user_id": "field-intelligence",
+            "tenant_id": str(tenant_id),
+            "request_source": "system",
+            "auto_approve_low_risk": True,
+        }
+
+        result = _post_json(
+            f"{GUARDRAILS_URL}/validate",
+            payload,
+            authorization=authorization,
+            agent_token=AGENT_TOKEN,
+        )
+        if not result:
+            return {
+                "status": "error",
+                "note": "تعذّر الوصول لمحرّك الحَوكمة (/validate) — استشاريّ فقط",
+            }
+        allowed = result.get("allowed")
+        if allowed is True:
+            return {
+                "status": "approved",
+                "overall_risk": result.get("overall_risk"),
+                "tier_checks": result.get("tier_checks"),
+                "requires_human_approval": result.get("requires_human_approval"),
+                "action_type": action_type,
+            }
+        # allowed==False أو None/مجهول ⇒ NOT approved (fail-closed — لا نختلق موافقة).
+        return {
+            "status": "halted",
+            "reason": result.get("arabic_explanation") or "لم تُقَرّ الحَوكمة",
+            "overall_risk": result.get("overall_risk"),
+            "tier_checks": result.get("tier_checks"),
+            "requires_human_approval": result.get("requires_human_approval"),
+            "action_type": action_type,
+        }
+    except Exception as e:  # noqa: BLE001 — دفاعيّ: لا نرفع أبداً من guardrails_fn
+        return {"status": "error", "note": f"تعذّر التحقّق من الحَوكمة: {e}"}
+
+
 def build_live_adapters(authorization: str | None = None) -> dict:
     """يُرجِع قاموس المحوّلات الحيّة لتمريرها لـrun_field_intelligence.
 
     authorization: رأس التفويض القادم من الطلب. يُمرَّر للمحوّلات المحميّة بـJWT
     (memory/simulate تنادي نقاط المنصّة المحميّة ⇒ بدونه تُرجِع 401 ثمّ None).
     الطقس/التربة/الاستشعار خدمات داخليّة لا تتطلّبه (تبقى كما هي).
+
+    الحَوكمة الحيّة (الأكثر حساسيّة للسلامة): يُضاف guardrails_fn فقط حين
+    LIVE_GUARDRAILS_ENABLED (افتراضيّاً مفعّل). عند تعطيله (ENABLE_LIVE_GUARDRAILS=
+    false) يُحذَف guardrails_fn ⇒ تبقى الحَوكمة not_evaluated ⇒ كلّ قرار استشاريّ فقط
+    (executable=False) — رجوع آمن لسلوك ما قبل التفعيل بلا تغيير كود.
 
     الاستخدام في endpoint:
         adapters = build_live_adapters(authorization=authorization)
@@ -293,7 +474,7 @@ def build_live_adapters(authorization: str | None = None) -> dict:
         # التوقّع الحيّ (Open-Meteo، keyless) — يُجلَب فعليّاً في run_field_intelligence.
         return weather_forecast_adapter(req, authorization=authorization)
 
-    return {
+    adapters: dict = {
         "weather_fn": weather_adapter,
         "soil_fn": soil_adapter,
         "sensing_fn": sensing_adapter,
@@ -301,3 +482,13 @@ def build_live_adapters(authorization: str | None = None) -> dict:
         "simulate_fn": simulate_fn,
         "forecast_fn": forecast_fn,
     }
+
+    # تفعيل الحَوكمة الحيّة (DEFAULT ON). غيابها ⇒ not_evaluated ⇒ استشاريّ فقط.
+    if LIVE_GUARDRAILS_ENABLED:
+
+        def guardrails_fn(decision, state):
+            return guardrails_adapter(decision, state, authorization=authorization)
+
+        adapters["guardrails_fn"] = guardrails_fn
+
+    return adapters
