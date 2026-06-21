@@ -25,7 +25,7 @@ export function normalizeRole(role?: string | null): Role {
 // (الاتّجاه العكسيّ مغطّى بـ`satisfies` — لا حاجة لشيفرة إضافيّة له).
 const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
-  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'nl-gis', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'pest-escalation', 'field-intelligence',
+  'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'nl-gis', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'device-twin', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
   'operations-wall',
@@ -43,7 +43,7 @@ void _assertAllPagesComplete;
 const WORKER_PAGES: PageId[] = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'field-workspace', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators',
   'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'nl-gis', 'portfolio', 'portfolio-command', 'calibration', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'agronomic-timeline', 'weather-advice', 'pest-escalation', 'field-intelligence',
-  'inventory', 'equipment', 'devices', 'device-twin', 'irrigation-ops',
+  'inventory', 'equipment', 'devices', 'device-twin', 'irrigation-ops', 'irrigation-network',
 ];
 
 // صفحات إداريّة (owner/manager فقط): البيانات المرجعيّة + الوثائق.

@@ -610,6 +610,65 @@ export interface PortfolioCommandResult {
 export const computePortfolioCommand = (payload: PortfolioCommandInput): Promise<PortfolioCommandResult> =>
   kongApi.post<PortfolioCommandResult>('/api/v1/portfolio/command', payload).then(r => r.data);
 
+// ── توأم شبكة الريّ (irrigation network feasibility) ──────────────────────────
+// المستخدم يُعرّف شبكة ريّ (عُقد + حوافّ: بئر→مضخّة→…→منطقة)، والمحرّك يفحص جدوى
+// التنفيذ قبل أيّ ريّ (اتّصاليّة/توفّر ماء/تدفّق/ضغط) ويُبرِز الاختناقات. توصية فقط
+// لا تنفيذ ولا فتح صمّامات. القيود غير المحدَّدة تُعرَض صراحةً كـunchecked (لا تُفترَض ناجحة).
+export type IrrigationNetworkNodeKind =
+  'well' | 'pump' | 'filter' | 'fertilizer' | 'main_line' | 'submain' | 'valve' | 'zone';
+export interface IrrigationNetworkNode {
+  node_id: string;
+  kind: IrrigationNetworkNodeKind;
+  capacity_m3?: number | null;
+  max_throughput_m3?: number | null;
+  max_pressure_bar?: number | null;
+  min_pressure_bar?: number | null;
+  demand_m3?: number | null;
+}
+export interface IrrigationNetworkEdge {
+  from_id: string;
+  to_id: string;
+}
+export interface IrrigationNetworkInput {
+  nodes: IrrigationNetworkNode[];
+  edges: IrrigationNetworkEdge[];
+}
+// حالة جدوى المنطقة: feasible (كلّ الفحوص المعروفة تمرّ ولا شيء غير مفحوص)،
+// feasible_unverified (تمرّ المعروفة لكن توجد قيود غير مفحوصة — تُعرَض بلون كهرمانيّ
+// مع قائمة unchecked)، infeasible (انتهاك صلب في reasons_ar).
+export type IrrigationZoneStatus = 'feasible' | 'feasible_unverified' | 'infeasible';
+export interface IrrigationZoneFeasibility {
+  zone_id: string;
+  demand_m3: number;
+  status: IrrigationZoneStatus;
+  path: string[] | null;
+  reasons_ar?: string[];
+  bottlenecks: string[];
+  unchecked: string[];
+}
+export interface IrrigationWellLoad {
+  well_id: string;
+  capacity_m3: number;
+  load_m3: number;
+  over_capacity: boolean;
+}
+export interface IrrigationNetworkResult {
+  zones: IrrigationZoneFeasibility[];
+  wells: IrrigationWellLoad[];
+  overall_feasible: boolean;
+  zone_count: number;
+  feasible_count: number;
+  calibrated: string;
+  warnings_ar: string[];
+  tenant_id: string;
+}
+/** يفحص جدوى تنفيذ شبكة الريّ قبل أيّ ريّ (POST /api/v1/irrigation/network/feasibility).
+ *  توصية فقط لا تنفيذ ولا فتح صمّامات. يرمي عند الخطأ (404 العلم مُطفأ
+ *  FEATURE_IRRIGATION_NETWORK — تلتقطه الواجهة برسالة «الميزة غير مُفعَّلة»؛
+ *  503/422 تُعرَض كحالة خطأ صادقة). */
+export const checkIrrigationNetworkFeasibility = (payload: IrrigationNetworkInput): Promise<IrrigationNetworkResult> =>
+  kongApi.post<IrrigationNetworkResult>('/api/v1/irrigation/network/feasibility', payload).then(r => r.data);
+
 // ── حالة المعايرة الإقليميّة (GET /api/v1/calibration) — قراءة فقط ──
 // يكشف لكلّ إقليم يمنيّ هل ثوابته الأغرونوميّة مُتحقَّق منها ميدانيّاً أم ما تزال
 // افتراضات FAO عامّة — فيرى المستخدم أين تنقص بيانات المعايرة الحقيقيّة. صدق: لا

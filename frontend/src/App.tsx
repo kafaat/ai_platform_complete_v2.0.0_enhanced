@@ -8,7 +8,7 @@ import {
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
   ChevronDown, CalendarRange, GitCompare, GitBranch, Crosshair, Search, History,
-  FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay,
+  FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay, Share2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -88,6 +88,7 @@ const InventoryPage       = lazy(() => import('./sections/InventoryPage'));
 const EquipmentPage       = lazy(() => import('./sections/EquipmentPage'));
 const DevicesPage         = lazy(() => import('./sections/DevicesPage'));
 const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
+const IrrigationNetworkPage = lazy(() => import('./sections/IrrigationNetworkPage'));
 const WeatherAdvicePage   = lazy(() => import('./sections/WeatherAdvicePage'));
 const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
@@ -117,7 +118,7 @@ export type PageId =
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
-  | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops'
+  | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
   | 'operations-wall';
@@ -181,6 +182,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id:'agronomic-timeline', label:'الخطّ الزمنيّ الأغرونوميّ', icon:GitCommitHorizontal, badge:'جديد' },
       { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
       { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
+      { id:'irrigation-network', label:'توأم شبكة الريّ', icon:Share2, badge:'جديد' },
       { id:'pest-escalation', label:'تصعيد الآفة',  icon:Bug },
       { id:'phenology',    label:'مراحل النموّ',     icon:Sprout },
       { id:'scouting',     label:'دليل الاستكشاف',   icon:Bug },
@@ -576,6 +578,7 @@ export default function App() {
       case 'devices':      return <DevicesPage />;
       case 'device-twin':  return <DeviceTwinPage />;
       case 'irrigation-ops': return <IrrigationOpsPage />;
+      case 'irrigation-network': return <IrrigationNetworkPage />;
       case 'weather-advice': return <WeatherAdvicePage />;
       case 'master-data':  return <MasterDataPage />;
       case 'documents':    return <DocumentsPage />;
