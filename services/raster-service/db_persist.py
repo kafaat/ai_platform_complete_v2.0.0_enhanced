@@ -181,6 +181,13 @@ async def fetch_latest_asset(
         await conn.close()
 
 
+class OwnerLookupUnavailable(Exception):
+    """تعذّر إثبات ملكيّة الحقل رغم أنّ القاعدة **مُهيّأة** (DATABASE_URL مضبوط) —
+    اتّصال/استعلام فاشل أو الدالّة غائبة. يُميَّز عن «وضع بلا قاعدة» (DATABASE_URL
+    غير مضبوط) كي تستطيع المسارات المكشوفة fail-closed عند تعذّر الإثبات فقط، دون
+    كسر التشغيل المقصود بلا قاعدة."""
+
+
 async def field_owner_tenant(field_id: str) -> str | None:
     """مالك الحقل (tenant_id نصّاً) من المصدر الموثوق: جدول fields.
 
@@ -190,16 +197,23 @@ async def field_owner_tenant(field_id: str) -> str | None:
     RLS/FORCE على fields فتقرأ المالك عبر المستأجرين، وتُعيد المعرّف فقط لا بيانات
     الحقل). field_id مفتاح أساسيّ ⇒ مالك واحد عالميّاً.
 
-    fail-safe: None إذا تعذّرت القاعدة/غابت الدالّة/الحقل غير موجود — فلا تُتّخذ قرار
-    حجب من القاعدة (يبقى فحص الذاكرة)، تجنّباً لرفض زائف عند انقطاع القاعدة."""
+    تعاقُد الإرجاع:
+    - نصّ المالك إن وُجد الحقل في fields.
+    - None إن: (أ) DATABASE_URL غير مضبوط (وضع بلا قاعدة مقصود) أو (ب) الحقل غير
+      موجود فعلاً (استعلام نجح بلا صفّ) — الحالتان لا تُوجبان الحجب.
+    - يرفع OwnerLookupUnavailable إن كان DATABASE_URL **مضبوطاً** لكن تعذّر الاتّصال/
+      الاستعلام/الدالّة غائبة ⇒ لا يمكن إثبات الملكيّة ⇒ يقرّر المنادي fail-closed."""
+    if not DATABASE_URL:
+        return None  # وضع بلا قاعدة مقصود — لا مصدر ملكيّة (يبقى فحص الذاكرة فقط)
     conn = await _connect()
     if conn is None:
-        return None
+        # DATABASE_URL مضبوط لكنّ الاتّصال فشل ⇒ الإثبات غير متاح (لا fail-safe صامت)
+        raise OwnerLookupUnavailable(f"connect failed for field {field_id}")
     try:
         owner = await conn.fetchval("SELECT sahool_field_owner_tenant($1)", field_id)
-        return str(owner) if owner else None
-    except Exception as e:  # noqa: BLE001 — غياب الدالّة/القاعدة ⇒ fail-safe (لا حجب)
-        logger.warning("field_owner_tenant skipped (%s): %s", field_id, type(e).__name__)
-        return None
+        return str(owner) if owner else None  # مالك، أو None = غير موجود فعلاً
+    except Exception as e:  # noqa: BLE001 — DB مُهيّأة لكن الاستعلام/الدالّة تعذّرا
+        logger.warning("field_owner_tenant unavailable (%s): %s", field_id, type(e).__name__)
+        raise OwnerLookupUnavailable(str(e)) from e
     finally:
         await conn.close()

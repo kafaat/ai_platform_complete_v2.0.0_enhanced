@@ -154,11 +154,31 @@ async def test_db_unavailable_failsafe_still_blocks_cache(rm):
     assert ei.value.status_code == 403
 
 
-async def test_db_unavailable_failsafe_no_false_reject(rm):
-    """fail-safe: قاعدة متعذّرة + لا طبقة ⇒ لا رفض زائف (لا حجب)."""
+async def test_db_unavailable_no_db_configured_no_block(rm):
+    """وضع بلا قاعدة (DATABASE_URL غير مضبوط ⇒ المالك None) ⇒ لا حجب (يبقى فحص الذاكرة)."""
     rm._field_owner = _const_owner(None)
     rm._REQ_TENANT.set("tenant_b")
     await rm._require_field_tenant("field_x")  # لا يرفع
+
+
+async def test_db_configured_but_lookup_unavailable_fails_closed(rm):
+    """fail-closed: قاعدة **مُهيّأة** لكن تعذّر إثبات الملكيّة ⇒ 503 (لا نخدم بلا إثبات).
+
+    يُغلق ملاحظة المراجعة: سابقاً كان تعذّر القاعدة يُعيد None ⇒ لا حجب (fail-open)."""
+    import sys
+
+    from fastapi import HTTPException
+
+    db_persist = sys.modules.get("db_persist") or __import__("db_persist")
+
+    async def _unavailable(field_id):
+        raise db_persist.OwnerLookupUnavailable("connect failed")
+
+    rm._field_owner = _unavailable
+    rm._REQ_TENANT.set("tenant_b")
+    with pytest.raises(HTTPException) as ei:
+        await rm._require_field_tenant("field_a")
+    assert ei.value.status_code == 503
 
 
 # ─── حُرّاس مصدر (دفاع عمق) ────────────────────────────────────────
@@ -177,6 +197,13 @@ def test_db_backed_owner_lookup_wired():
     dbp = open(os.path.join(RASTER, "db_persist.py"), encoding="utf-8").read()
     assert "async def field_owner_tenant(" in dbp
     assert "sahool_field_owner_tenant" in dbp
+    # fail-closed: قاعدة مُهيّأة + تعذّر الإثبات ⇒ OwnerLookupUnavailable ⇒ 503 (لا fail-open)
+    assert "class OwnerLookupUnavailable" in dbp
+    assert "raise OwnerLookupUnavailable" in dbp
+    main_src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
+    assert "OwnerLookupUnavailable" in main_src and "HTTPException(503" in main_src, (
+        "_require_field_tenant لا يُغلق fail-closed عند تعذّر إثبات الملكيّة"
+    )
     mig = os.path.join(ROOT, "migrations/v88_field_owner_function.sql")
     assert os.path.exists(mig), "migration v88 مفقود"
     sql = open(mig, encoding="utf-8").read()

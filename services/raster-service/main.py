@@ -476,21 +476,20 @@ _FIELD_OWNER_TTL_MISS = 15.0  # غير محسوم: إعادة الفحص أسر�
 
 async def _field_owner(field_id: str) -> str | None:
     """مالك الحقل من المصدر الموثوق (جدول fields عبر دالّة SECURITY DEFINER)، مع
-    ذاكرة TTL. None ⇒ غير محسوم (لا يُحجَب من القاعدة — fail-safe)."""
+    ذاكرة TTL. None ⇒ غير محسوم (بلا قاعدة/الحقل غير موجود). يرفع
+    OwnerLookupUnavailable إن كانت القاعدة مُهيّأة لكن تعذّر الإثبات (يُترَك للمنادي
+    ليُقرّر fail-closed). لا نُخبّئ حالة التعذّر."""
     import time as _t
 
     now = _t.monotonic()
     hit = _field_owner_cache.get(field_id)
     if hit is not None and hit[1] > now:
         return hit[0]
-    owner: str | None = None
-    try:
-        import db_persist
+    import db_persist
 
-        owner = await db_persist.field_owner_tenant(field_id)
-    except Exception as e:  # noqa: BLE001 — تعذّر القاعدة لا يُفشل القراءة
-        logger.warning("field owner lookup skipped (%s): %s", field_id, type(e).__name__)
-        owner = None
+    # OwnerLookupUnavailable يُمرَّر (لا يُلتقَط ولا يُخبّأ) ⇒ يقرّر _require_field_tenant
+    # الحجب 503. None هنا = بلا قاعدة (DB-less مقصود) أو الحقل غير موجود ⇒ لا حجب.
+    owner = await db_persist.field_owner_tenant(field_id)
     ttl = _FIELD_OWNER_TTL_OK if owner else _FIELD_OWNER_TTL_MISS
     _field_owner_cache[field_id] = (owner, now + ttl)
     return owner
@@ -510,7 +509,8 @@ async def _require_field_tenant(field_id: str) -> None:
        التشغيل، وبلا طبقة مخبّأة، **وحتى عند غياب X-Tenant-Id** (مالكٌ معروف ≠ بلا
        مستأجِر ⇒ 403). field_id مفتاح أساسيّ ⇒ مالك واحد عالميّاً.
 
-    fail-safe: إن تعذّرت القاعدة/الحقل غير موجود ⇒ المالك None ⇒ لا حجب من القاعدة
+    fail-closed: قاعدة مُهيّأة + تعذّر إثبات الملكيّة ⇒ 503. أمّا «بلا قاعدة» أو «الحقل
+    غير موجود» ⇒ المالك None ⇒ لا حجب من القاعدة
     (تجنّب رفض زائف عند انقطاع القاعدة؛ مسار القراءة مُنطّق بالمستأجِر أصلاً)."""
     req_tenant = _REQ_TENANT.get()
     # ١) دفاع عمق فوريّ من الذاكرة
@@ -519,8 +519,16 @@ async def _require_field_tenant(field_id: str) -> None:
         owner = lyr.get("tenant_id") if lyr else None
         if owner and owner != req_tenant:
             raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
-    # ٢) المصدر الموثوق: جدول fields (يحسم بلا طبقة/بعد إعادة التشغيل/بلا مستأجِر)
-    owner = await _field_owner(field_id)
+    # ٢) المصدر الموثوق: جدول fields (يحسم بلا طبقة/بعد إعادة التشغيل/بلا مستأجِر).
+    # fail-closed: إن كانت القاعدة مُهيّأة لكن تعذّر إثبات الملكيّة ⇒ 503 (لا نخدم بلا
+    # إثبات). يُميَّز عن وضع DB-less المقصود (DATABASE_URL غير مضبوط ⇒ owner=None ⇒
+    # لا حجب، يكفي فحص الذاكرة) — فالحجب يقع فقط حين يُفترَض وجود المصدر ويتعذّر.
+    import db_persist
+
+    try:
+        owner = await _field_owner(field_id)
+    except db_persist.OwnerLookupUnavailable as e:
+        raise HTTPException(503, "تعذّر إثبات ملكيّة الحقل — أعد المحاولة لاحقاً") from e
     if owner and owner != req_tenant:
         raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
 
