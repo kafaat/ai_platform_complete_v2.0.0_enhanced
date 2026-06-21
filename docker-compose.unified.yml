@@ -442,9 +442,11 @@ services:
     # فيفشل Odoo بـ relation "ir_module_module" does not exist / KeyError 'ir.http'.
     # الحلّ المعتمد (v9/fixed): قاعدة Odoo منفصلة (sahool_erp) + تهيئة base + db-filter
     # يحصر Odoo على قاعدته فلا يمسّ قاعدة المنصّة sahool (RLS). الجسر هنا يتوقّع sahool_erp.
-    command: >
-      odoo -d ${ODOO_DB:-sahool_erp} -i base --without-demo=all
-      --db-filter=^${ODOO_DB:-sahool_erp}$$
+    # FIX (ذاتيّ‑التعافي): entrypoint مخصّص (scripts/odoo-init.sh) يُنشئ القاعدة إن
+    # غابت ويُثبّت base مرّة واحدة فقط (كشف عبر to_regclass) ثمّ يُقلع العمليّة الطويلة
+    # بلا -i — فلا إعادة تثبيت كلّ إقلاع ولا حلقة فشل من تهيئة جزئيّة. entrypoint الصورة
+    # الافتراضي يبقى (يولّد odoo.conf من البيئة HOST/USER/PASSWORD).
+    command: ["bash", "/opt/odoo-init.sh"]
     environment:
       # FIX: كان sahool-postgres (مضيف غير موجود هنا) — خدمة القاعدة في هذا الملفّ
       # تُحَلّ بـsahool-unified-postgis (كما في DATABASE_URL وبقيّة الخدمات).
@@ -455,6 +457,7 @@ services:
     ports:
       - "127.0.0.1:8069:8069"
     volumes:
+      - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro
       - odoo-filestore:/var/lib/odoo
     depends_on:
       postgis: { condition: service_healthy }  # FIX: كان sahool-postgres (خدمة غير معرّفة) — اسم خدمة قاعدة البيانات هنا 'postgis'
