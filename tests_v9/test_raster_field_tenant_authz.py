@@ -5,10 +5,13 @@
 مفروضة عند البوّابة (JWT → حقن X-Tenant-Id موثوق)، لكنّ غياب فحص **التفويض**
 (ملكيّة الحقل للمستأجِر) يسمح لمستأجِر بقراءة حقل آخر بمعرفة المعرّف (IDOR).
 
-`_require_field_tenant` يغلق هذا: الطبقات تحمل tenant_id (سُجِّل عند /process وعند
-إعادة الترطيب من القاعدة)، وأيّ طبقة معروفة بمستأجِر مختلف عن مستأجِر الطلب ⇒ 403.
+`_require_field_tenant` يغلق هذا بطبقتين:
+  ١) ذاكرة الطبقات المخبّأة (tenant_id) — كشف فوريّ بلا I/O.
+  ٢) المصدر الموثوق: جدول fields عبر دالّة SECURITY DEFINER (`_field_owner`) — يحسم
+     بعد إعادة التشغيل، وبلا طبقة مخبّأة، **وحتى عند غياب X-Tenant-Id**.
 
-تعاقُد الاختبار المطلوب: tenant_a→field_a = يمرّ؛ tenant_b→field_a = 403.
+تعاقُد الاختبار: tenant_a→field_a = يمرّ؛ tenant_b→field_a = 403 (عبر الذاكرة أو
+القاعدة)؛ وبلا X-Tenant-Id لحقلٍ مملوك = 403؛ وحقلٌ مجهول = لا حجب (لا تسريب).
 """
 
 from __future__ import annotations
@@ -27,19 +30,28 @@ RASTER = os.path.join(ROOT, "services/raster-service")
 _fastapi = importlib.util.find_spec("fastapi") is not None
 
 
+def _const_owner(value):
+    """يصنع بديلاً async لـ_field_owner يُعيد مالكاً ثابتاً (يحاكي جدول fields)."""
+
+    async def _f(field_id):
+        return value
+
+    return _f
+
+
 @pytest.fixture
 def rm():
-    """يستورد وحدة raster-service.main مع تنظيف الحالة العالميّة قبل/بعد كلّ اختبار."""
+    """يستورد raster-service.main وينظّف الحالة العالميّة + ذاكرة المالك قبل/بعد كلّ
+    اختبار. يستبدل _field_owner ببديل افتراضيّ يُعيد None (لا قاعدة) كي تحكم الذاكرة
+    ما لم يُعيّن الاختبار مالكاً صراحةً."""
     if not _fastapi:
         pytest.skip("fastapi غير متاح في هذه البيئة — يُنفَّذ في وظيفة الوحدات الكاملة")
     import sys
 
     if RASTER not in sys.path:
         sys.path.insert(0, RASTER)
-    # عزل: اسم الوحدة 'main' عامّ عبر الخدمات (لكلٍّ main.py). لو استورد اختبارٌ آخر
-    # في نفس الجلسة main خدمة مختلفة، يبقى مُخبّأً في sys.modules فيلتقطه `import main`
-    # خطأً ⇒ AttributeError على _field_layers. نُسقط المُخبّأ ونُعيد الاستيراد من مسار
-    # raster (المُدرَج في مقدّمة sys.path)، ونتحقّق أنّه فعلاً raster.
+    # عزل: اسم الوحدة 'main' عامّ عبر الخدمات. نُسقط المُخبّأ ونُعيد الاستيراد من مسار
+    # raster، ونتحقّق أنّه فعلاً raster (لا تصادم أسماء عبر الخدمات).
     import importlib
 
     sys.modules.pop("main", None)
@@ -50,61 +62,124 @@ def rm():
 
     raster_main._layers.clear()
     raster_main._field_layers.clear()
+    raster_main._field_owner_cache.clear()
+    _orig_owner = raster_main._field_owner
+    raster_main._field_owner = _const_owner(None)  # لا قاعدة افتراضيّاً
     tok = raster_main._REQ_TENANT.set(None)
     try:
         yield raster_main
     finally:
         raster_main._REQ_TENANT.reset(tok)
+        raster_main._field_owner = _orig_owner
         raster_main._layers.clear()
         raster_main._field_layers.clear()
-        # لا نُلوّث الجلسة: نُسقط 'main' raster كي لا يلتقطه اختبار آخر بالخطأ.
+        raster_main._field_owner_cache.clear()
         sys.modules.pop("main", None)
 
 
 def _seed_field(rm, field_id: str, owner_tenant: str) -> None:
-    """يُسجّل طبقة للحقل مملوكة لمستأجِر (كما يفعل /process)."""
+    """يُسجّل طبقة مخبّأة للحقل مملوكة لمستأجِر (كما يفعل /process)."""
     lid = f"lyr_{field_id}"
     rm._layers[lid] = {"cog_url": "file:///x.tif", "index": "ndvi", "tenant_id": owner_tenant}
     rm._field_layers[field_id] = [lid]
 
 
-def test_owner_tenant_allowed(rm):
-    """tenant_a → field_a (يملكه) ⇒ يمرّ بلا استثناء."""
+# ─── الطبقة ١: ذاكرة الطبقات المخبّأة ──────────────────────────────
+async def test_owner_tenant_allowed(rm):
+    """tenant_a → field_a (يملكه، طبقة مخبّأة) ⇒ يمرّ."""
     _seed_field(rm, "field_a", "tenant_a")
     rm._REQ_TENANT.set("tenant_a")
-    rm._require_field_tenant("field_a")  # لا يرفع
+    await rm._require_field_tenant("field_a")  # لا يرفع
 
 
-def test_other_tenant_forbidden(rm):
-    """tenant_b → field_a (يملكه tenant_a) ⇒ 403 (إغلاق IDOR)."""
+async def test_other_tenant_forbidden_via_cache(rm):
+    """tenant_b → field_a (طبقة مخبّأة لـtenant_a) ⇒ 403 (كشف cache فوريّ)."""
     from fastapi import HTTPException
 
     _seed_field(rm, "field_a", "tenant_a")
     rm._REQ_TENANT.set("tenant_b")
     with pytest.raises(HTTPException) as ei:
-        rm._require_field_tenant("field_a")
+        await rm._require_field_tenant("field_a")
     assert ei.value.status_code == 403
 
 
-def test_unknown_field_no_decision(rm):
-    """بلا طبقات معروفة للحقل ⇒ لا حجب (مسار القاعدة مُنطّق بالمستأجِر فلا تسريب)."""
+# ─── الطبقة ٢: المصدر الموثوق (جدول fields) — بلا طبقة مخبّأة ───────
+async def test_other_tenant_forbidden_via_db(rm):
+    """tenant_b → field_a بلا طبقة مخبّأة، لكنّ جدول fields يملكه tenant_a ⇒ 403.
+
+    يغلق الفجوة: لا اعتماد على الذاكرة وحدها (بعد إعادة التشغيل/worker آخر)."""
+    from fastapi import HTTPException
+
+    rm._field_owner = _const_owner("tenant_a")  # المصدر الموثوق
     rm._REQ_TENANT.set("tenant_b")
-    rm._require_field_tenant("field_never_seen")  # لا يرفع
+    with pytest.raises(HTTPException) as ei:
+        await rm._require_field_tenant("field_a")
+    assert ei.value.status_code == 403
 
 
-def test_no_tenant_context_no_decision(rm):
-    """بلا سياق مستأجِر (نداء داخليّ بلا X-Tenant-Id) ⇒ لا حجب هنا."""
-    _seed_field(rm, "field_a", "tenant_a")
+async def test_db_owner_allows(rm):
+    """tenant_a → field_a بلا طبقة، وجدول fields يملكه tenant_a ⇒ يمرّ."""
+    rm._field_owner = _const_owner("tenant_a")
+    rm._REQ_TENANT.set("tenant_a")
+    await rm._require_field_tenant("field_a")  # لا يرفع
+
+
+async def test_missing_tenant_with_owned_field_forbidden(rm):
+    """بلا X-Tenant-Id لحقلٍ مملوك (جدول fields) ⇒ 403 (إغلاق فجوة «غياب المستأجِر»)."""
+    from fastapi import HTTPException
+
+    rm._field_owner = _const_owner("tenant_a")
     rm._REQ_TENANT.set(None)
-    rm._require_field_tenant("field_a")  # لا يرفع
+    with pytest.raises(HTTPException) as ei:
+        await rm._require_field_tenant("field_a")
+    assert ei.value.status_code == 403
 
 
-def test_rehydrated_layer_stores_tenant(rm):
-    """دفاع عمق: الطبقة المُعاد ترطيبها من القاعدة يجب أن تحمل tenant_id (لا None)
-    وإلّا يمرّ مستأجِر آخر على الـcache. نتحقّق أنّ كود الترطيب يضبط tenant_id."""
+# ─── حقل مجهول / قاعدة متعذّرة: لا حجب (لا تسريب، لا رفض زائف) ──────
+async def test_unknown_field_no_decision(rm):
+    """حقل لا طبقة له ولا في fields (المالك None) ⇒ لا حجب (لا بيانات تُسرَّب)."""
+    rm._REQ_TENANT.set("tenant_b")
+    await rm._require_field_tenant("field_never_seen")  # لا يرفع
+
+
+async def test_db_unavailable_failsafe_still_blocks_cache(rm):
+    """fail-safe: القاعدة متعذّرة (المالك None) لكنّ طبقة مخبّأة لمستأجِر آخر ⇒ يبقى 403."""
+    from fastapi import HTTPException
+
+    _seed_field(rm, "field_a", "tenant_a")  # cache يكشف
+    rm._field_owner = _const_owner(None)  # قاعدة متعذّرة
+    rm._REQ_TENANT.set("tenant_b")
+    with pytest.raises(HTTPException) as ei:
+        await rm._require_field_tenant("field_a")
+    assert ei.value.status_code == 403
+
+
+async def test_db_unavailable_failsafe_no_false_reject(rm):
+    """fail-safe: قاعدة متعذّرة + لا طبقة ⇒ لا رفض زائف (لا حجب)."""
+    rm._field_owner = _const_owner(None)
+    rm._REQ_TENANT.set("tenant_b")
+    await rm._require_field_tenant("field_x")  # لا يرفع
+
+
+# ─── حُرّاس مصدر (دفاع عمق) ────────────────────────────────────────
+def test_rehydrated_layer_stores_tenant():
+    """الطبقة المُعاد ترطيبها من القاعدة يجب أن تحمل tenant_id (وإلّا تسريب عبر cache)."""
     src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
-    # كتلة إعادة الترطيب (lid = f"db_...") تُسند tenant_id من سياق الطلب.
     block = src[src.index('lid = f"db_') : src.index('lid = f"db_') + 600]
     assert '"tenant_id": _REQ_TENANT.get()' in block, (
         "طبقة DB المُعاد ترطيبها بلا tenant_id ⇒ ثغرة تسريب عبر الـcache"
     )
+
+
+def test_db_backed_owner_lookup_wired():
+    """المصدر الموثوق موصول: db_persist.field_owner_tenant + migration v88 بدالّة
+    SECURITY DEFINER على fields، مُدرَجة في MANIFEST."""
+    dbp = open(os.path.join(RASTER, "db_persist.py"), encoding="utf-8").read()
+    assert "async def field_owner_tenant(" in dbp
+    assert "sahool_field_owner_tenant" in dbp
+    mig = os.path.join(ROOT, "migrations/v88_field_owner_function.sql")
+    assert os.path.exists(mig), "migration v88 مفقود"
+    sql = open(mig, encoding="utf-8").read()
+    assert "SECURITY DEFINER" in sql and "FROM fields WHERE field_id" in sql
+    manifest = open(os.path.join(ROOT, "migrations/MANIFEST.txt"), encoding="utf-8").read()
+    assert "v88_field_owner_function.sql" in manifest, "v88 غير مُدرَج في MANIFEST"

@@ -459,26 +459,64 @@ async def _tenant_context_mw(request, call_next):
         _REQ_TENANT.reset(token)
 
 
-def _require_field_tenant(field_id: str) -> None:
+# تفويض الحقل: ذاكرة TTL لمالك الحقل (tenant_id) تجنّباً لاستعلام قاعدة لكلّ بلاطة
+# (البلاطات عالية التردّد). الملكيّة ثابتة (لا تتغيّر) ⇒ تخزين قصير آمن. القيمة None
+# تعني «غير محسوم» (لم يُوجَد/قاعدة متعذّرة) وتُخزَّن مدّةً أقصر لتقليل الحِمل على
+# مسار الهجوم دون تثبيت سلبيّ طويل.
+_field_owner_cache: dict[str, tuple[str | None, float]] = {}
+_FIELD_OWNER_TTL_OK = 300.0  # مالك معروف: ثابت ⇒ 5 دقائق
+_FIELD_OWNER_TTL_MISS = 15.0  # غير محسوم: إعادة الفحص أسرع
+
+
+async def _field_owner(field_id: str) -> str | None:
+    """مالك الحقل من المصدر الموثوق (جدول fields عبر دالّة SECURITY DEFINER)، مع
+    ذاكرة TTL. None ⇒ غير محسوم (لا يُحجَب من القاعدة — fail-safe)."""
+    import time as _t
+
+    now = _t.monotonic()
+    hit = _field_owner_cache.get(field_id)
+    if hit is not None and hit[1] > now:
+        return hit[0]
+    owner: str | None = None
+    try:
+        import db_persist
+
+        owner = await db_persist.field_owner_tenant(field_id)
+    except Exception as e:  # noqa: BLE001 — تعذّر القاعدة لا يُفشل القراءة
+        logger.warning("field owner lookup skipped (%s): %s", field_id, type(e).__name__)
+        owner = None
+    ttl = _FIELD_OWNER_TTL_OK if owner else _FIELD_OWNER_TTL_MISS
+    _field_owner_cache[field_id] = (owner, now + ttl)
+    return owner
+
+
+async def _require_field_tenant(field_id: str) -> None:
     """تفويض ملكيّة الحقل (عزل متعدّد المستأجرين على المسارات المكشوفة للمتصفّح).
 
     المصادقة مفروضة عند البوّابة (تتحقّق JWT وتحقن X-Tenant-Id موثوقاً)، لكنّ هذه
     المسارات (tiles/tilejson/timeseries/indicator-grid) تُنادى مباشرةً من المتصفّح
     بالـfield_id فقط — فبلا فحص ملكيّة يقرأ مستأجِرٌ حقلَ آخر بتخمين/معرفة المعرّف
-    (IDOR). الطبقات تحمل tenant_id (سُجِّل عند /process وعند إعادة الترطيب من القاعدة).
-    field_id فريد عالميّاً ⇒ مالك واحد؛ فأيّ طبقة معروفة بمستأجِر مختلف ⇒ 403.
+    (IDOR). فحصان طبقيّان:
 
-    بلا سياق مستأجِر (نداء داخليّ بلا X-Tenant-Id) أو بلا طبقات معروفة: لا قرار حجب
-    هنا — مسار القاعدة مُنطّق بالمستأجِر أصلاً (fetch_latest_asset(tenant_id=…)) فلا
-    يُسرَّب شيء (يُعاد available=False/بلاطة شفّافة)."""
+    ١) **ذاكرة سريعة بلا I/O**: الطبقات المخبّأة تحمل tenant_id (سُجِّل عند /process
+       وإعادة الترطيب) — يكشف تصادم الـcache فوراً.
+    ٢) **المصدر الموثوق (جدول fields)**: عبر دالّة SECURITY DEFINER، فيحسم بعد إعادة
+       التشغيل، وبلا طبقة مخبّأة، **وحتى عند غياب X-Tenant-Id** (مالكٌ معروف ≠ بلا
+       مستأجِر ⇒ 403). field_id مفتاح أساسيّ ⇒ مالك واحد عالميّاً.
+
+    fail-safe: إن تعذّرت القاعدة/الحقل غير موجود ⇒ المالك None ⇒ لا حجب من القاعدة
+    (تجنّب رفض زائف عند انقطاع القاعدة؛ مسار القراءة مُنطّق بالمستأجِر أصلاً)."""
     req_tenant = _REQ_TENANT.get()
-    if not req_tenant:
-        return
+    # ١) دفاع عمق فوريّ من الذاكرة
     for lid in _field_layers.get(field_id, []):
         lyr = _layers.get(lid)
         owner = lyr.get("tenant_id") if lyr else None
         if owner and owner != req_tenant:
             raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
+    # ٢) المصدر الموثوق: جدول fields (يحسم بلا طبقة/بعد إعادة التشغيل/بلا مستأجِر)
+    owner = await _field_owner(field_id)
+    if owner and owner != req_tenant:
+        raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
 
 
 # ─── مسارات بحث الصور ─────────────────────────────────────────────
@@ -2087,7 +2125,7 @@ async def field_indicator_grid(
     إلى grid×grid مع تصنيف مناطق الشدّة (real_data=True). وإلّا → شبكة محاكاة
     مُعلَّمة بصدق (real_data=False, source="simulation") — نفس شكل العقد دائماً.
     """
-    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
+    await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
     import indicator_grid as ig
 
     # تطبيع اسم المؤشّر المعروض (salinity مقبول للواجهة)
@@ -2261,7 +2299,7 @@ async def field_timeseries(
 
     أُزيل x_agent_token (كان مُعلَناً بلا فرض — مسار متصفّح). التفويض عبر ملكيّة الحقل.
     """
-    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
+    await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
     requested_dates = [d.strip() for d in dates.split(",") if d.strip()]
     if not requested_dates:
         # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر (من الذاكرة)
@@ -2331,7 +2369,7 @@ async def field_tile(
     صدق + لا 500: عند غياب COG/rasterio/تقاطع البيانات → بلاطة شفّافة (الخريطة
     لا تُظهر شيئاً فوق الحقل) بدل خطأ خادم.
     """
-    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
+    await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
     layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None and layer.get("cog_url"):
         try:
@@ -2368,7 +2406,7 @@ async def field_tilejson(
     COG بـ4326. إن ضُبط TITILER_URL ووُجد cog_url نعرض رابط TiTiler إضافيّاً
     (اختياري)، لكنّ البلاطات الذاتيّة تعمل دائماً.
     """
-    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
+    await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
     layer = await _resolve_field_layer(field_id, index, date)
     bounds = None
     if layer is not None and layer.get("bounds_4326"):
