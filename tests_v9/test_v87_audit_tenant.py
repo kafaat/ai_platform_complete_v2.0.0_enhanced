@@ -29,12 +29,12 @@ def test_v87_adds_tenant_id_and_forces_rls():
     assert re.search(r"ADD COLUMN IF NOT EXISTS\s+tenant_id\s+UUID", sql, re.I), (
         "v87 لا تضيف عمود tenant_id UUID"
     )
-    assert re.search(
-        r"ALTER TABLE\s+audit_log\s+FORCE ROW LEVEL SECURITY", sql, re.I
-    ), "v87 لا تطبّق FORCE ROW LEVEL SECURITY (دفاع عمق مفقود)"
-    assert re.search(
-        r"ALTER TABLE\s+audit_log\s+ENABLE ROW LEVEL SECURITY", sql, re.I
-    ), "v87 لا تُفعّل RLS"
+    assert re.search(r"ALTER TABLE\s+audit_log\s+FORCE ROW LEVEL SECURITY", sql, re.I), (
+        "v87 لا تطبّق FORCE ROW LEVEL SECURITY (دفاع عمق مفقود)"
+    )
+    assert re.search(r"ALTER TABLE\s+audit_log\s+ENABLE ROW LEVEL SECURITY", sql, re.I), (
+        "v87 لا تُفعّل RLS"
+    )
 
 
 @pytest.mark.unit

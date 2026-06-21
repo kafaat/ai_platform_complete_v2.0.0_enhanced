@@ -28,8 +28,10 @@ def _load_auth_main():
         sys.path.insert(0, _AUTH_DIR)
     try:
         return importlib.import_module("main")
-    except ImportError as e:  # تبعيّات الخدمة غير مثبّتة في بيئة الوحدات
-        pytest.skip(f"auth main.py غير قابل للاستيراد (تبعيّة ناقصة): {e}")
+    except ImportError as e:  # تبعيّات الخدمة (fastapi…) غير مثبّتة في بيئة الوحدات
+        # allow_module_level: التخطّي يحدث عند الاستيراد على مستوى الوحدة (لا داخل
+        # اختبار)، فبدونه يرفع pytest خطأ تجميع يُفشِل التشغيل كلّه في CI.
+        pytest.skip(f"auth main.py غير قابل للاستيراد (تبعيّة ناقصة): {e}", allow_module_level=True)
 
 
 main = _load_auth_main()

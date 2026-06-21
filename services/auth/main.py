@@ -549,9 +549,7 @@ async def audit_log(
             )
     except Exception as e:  # noqa: BLE001
         # غير قاتل (لا نكسر مسار المصادقة)، لكن فشل كتابة سجلّ التدقيق حسّاس ⇒ error لا warning.
-        logger.error(
-            "فشل كتابة سجلّ التدقيق (غير قاتل) action=%s: %s", action, type(e).__name__
-        )
+        logger.error("فشل كتابة سجلّ التدقيق (غير قاتل) action=%s: %s", action, type(e).__name__)
 
 
 # ── Password Reset Helpers ─────────────────────────────────────
