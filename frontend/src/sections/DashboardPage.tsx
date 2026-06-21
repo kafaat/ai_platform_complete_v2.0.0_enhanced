@@ -46,6 +46,20 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
     ndvi: +(f.ndvi||0),
   }));
 
+  // ملخّص «مزرعتك بلمحة» (طراز FieldView) — محسوب بصدق من بيانات الحقول القائمة.
+  const ndviVals = fields.map((f: any) => +(f.ndvi||0)).filter((n: number) => n > 0);
+  const avgNdvi = ndviVals.length ? ndviVals.reduce((a: number, b: number) => a + b, 0) / ndviVals.length : null;
+  const rankedFields = [...fields].filter((f: any) => (f.ndvi||0) > 0).sort((a: any, b: any) => (b.ndvi||0) - (a.ndvi||0));
+  const bestField  = rankedFields[0];
+  const totalFields = dashboard?.total_fields ?? fields.length;
+  const activeAlerts = dashboard?.active_alerts ?? alerts.length;
+  const glanceCards = [
+    { label:'الحقول', value: String(totalFields), hint:'حقل مُسجّل', color:'#38bdf8', icon:Map, page:'fields' as PageId },
+    { label:'متوسّط NDVI', value: avgNdvi != null ? avgNdvi.toFixed(2) : '—', hint: avgNdvi != null ? ({excellent:'ممتاز',good:'جيّد',fair:'متوسّط',poor:'ضعيف'} as any)[ndviStatus(avgNdvi)] : 'لا بيانات', color: avgNdvi != null ? STATUS_COLOR[ndviStatus(avgNdvi)] : '#64748b', icon:Leaf, page:'satellite' as PageId },
+    { label:'تنبيهات نشطة', value: String(activeAlerts), hint: activeAlerts ? 'تحتاج مراجعة' : 'لا تنبيهات', color: activeAlerts ? '#f59e0b' : '#10b981', icon:AlertTriangle, page:'alerts' as PageId },
+    { label:'أفضل حقل', value: bestField ? (+(bestField.ndvi||0)).toFixed(2) : '—', hint: bestField ? (bestField.field_name||'').replace('حقل ','').substring(0,10) : 'لا حقول', color: bestField ? STATUS_COLOR[ndviStatus(+(bestField.ndvi||0))] : '#64748b', icon:BarChart3, page:'field-ranking' as PageId },
+  ];
+
   if (loadDash && kpis.length === 0)
     return <LoadingState message="جارٍ تحميل البيانات من indicators-service…" />;
 
@@ -68,6 +82,25 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
             <RefreshCw className={`w-4 h-4 ${loadDash ? 'animate-spin' : ''}`} />
           </button>
         </div>
+      </div>
+
+      {/* مزرعتك بلمحة — بطاقات ملخّص معياريّة (طراز FieldView) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {glanceCards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <button key={c.label} onClick={() => setPage(c.page)}
+              className="text-right rounded-xl p-3 border transition-all hover:scale-[1.02] hover:border-emerald-800"
+              style={{ background:'#1e293b', borderColor:'#334155' }}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] text-slate-400">{c.label}</span>
+                <Icon className="w-4 h-4" style={{ color:c.color }} />
+              </div>
+              <div className="text-2xl font-bold leading-none" style={{ color:c.color }}>{c.value}</div>
+              <div className="text-[10px] text-slate-500 mt-1 truncate">{c.hint}</div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Live weather — موحّد على المنصّة (/api/v1/weather). GDD غير متاح للحاضر من
