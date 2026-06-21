@@ -3143,6 +3143,7 @@ from api.routers.astronomical_timing import (  # noqa: E402
 from api.routers.auth import router as auth_router  # noqa: E402
 from api.routers.automation import router as automation_router  # noqa: E402
 from api.routers.boundaries import router as boundaries_router  # noqa: E402
+from api.routers.break_glass import router as break_glass_router  # noqa: E402
 from api.routers.calendars import router as calendars_router  # noqa: E402
 from api.routers.calibration import router as calibration_router  # noqa: E402
 
@@ -3277,6 +3278,7 @@ from api.routers.wofost import router as wofost_router  # noqa: E402
 from api.routers.yield_interval import router as yield_interval_router  # noqa: E402
 
 app.include_router(boundaries_router)
+app.include_router(break_glass_router)
 app.include_router(harvest_traceability_router)
 app.include_router(notifications_router)
 app.include_router(registry_router)

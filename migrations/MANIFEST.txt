@@ -347,3 +347,10 @@ v86_calibration_evidence_trigger.sql
 v87_audit_log_tenant.sql
 v88_field_owner_function.sql
 v89_invitations.sql
+
+# v90: break_glass_grants — وصول مدير المنصّة العابر للمستأجرين مُدقَّق (break-glass).
+# جدول منح: محدود بالزمن (expires_at)، مُتحقّق بـMFA (mfa_verified)، مُعلَّل (reason)،
+# مُدقَّق على كلّ استخدام (access_count/last_used_at + audit_log). عابر للمستأجرين عمداً
+# (target_tenant_id لا tenant_id ⇒ لا يلتقطه حارس RLS). RLS+FORCE بسياسة سياق
+# خدمة/إدارة فقط (لا مطابقة per-tenant). idempotent.
+v90_break_glass.sql
