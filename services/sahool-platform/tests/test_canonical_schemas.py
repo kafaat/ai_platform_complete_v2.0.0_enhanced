@@ -117,18 +117,22 @@ class TestCatalog:
 class TestEnumsCompleteness:
     """التحقّق من اكتمال Enums الجوهرية."""
 
-    def test_user_roles_are_five(self):
-        # المراجعة الاستراتيجية حدّدت 5 أدوار
+    def test_user_roles_are_five_tenant_plus_platform_admin(self):
+        # خمسة أدوار **داخل المستأجِر** + دور إدارة منصّة منفصل (platform_admin).
+        # حوكمة: platform_admin ≠ tenant_owner (مدير المنصّة لا يملك بيانات المستأجِر).
         roles = list(UserRole)
-        assert len(roles) == 5
-        for r in [
+        tenant_roles = [
             UserRole.OWNER,
             UserRole.MANAGER,
             UserRole.AGRONOMIST,
             UserRole.WORKER,
             UserRole.VIEWER,
-        ]:
+        ]
+        for r in tenant_roles:
             assert r in roles
+        assert UserRole.PLATFORM_ADMIN in roles
+        assert len(roles) == 6  # 5 داخل المستأجِر + platform_admin
+        assert UserRole.PLATFORM_ADMIN not in tenant_roles
 
     def test_field_quality_matches_lifecycle(self):
         # FieldQuality يجب أن يطابق field_lifecycle

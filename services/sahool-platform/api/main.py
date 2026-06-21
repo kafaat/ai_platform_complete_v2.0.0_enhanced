@@ -826,7 +826,11 @@ def _build_versioned_update(
 # أدنى صلاحية. fail-closed: المجهول/الناقص ⇒ viewer (أقلّ صلاحية، مبدأ "شكّ = منع").
 _ROLE_ALIASES: dict[str, UserRole] = {
     "owner": UserRole.OWNER,
-    "admin": UserRole.OWNER,
+    # حوكمة: 'admin' (خدمة الهويّة) ⇒ PLATFORM_ADMIN لا OWNER. مدير المنصّة ليس
+    # مالك مستأجِر — لا يملك بيانات المستأجِر افتراضيّاً (يدير مستخدمين/تدقيق/منصّة
+    # فقط). الوصول العابر للمستأجرين عبر break-glass صريح (بند لاحق). يُجسّد التصميم
+    # platform_admin ≠ tenant_owner. (تعيين الواجهة للصفحات بندٌ منفصل لاحق.)
+    "admin": UserRole.PLATFORM_ADMIN,
     "manager": UserRole.MANAGER,
     "agronomist": UserRole.AGRONOMIST,
     "expert": UserRole.AGRONOMIST,

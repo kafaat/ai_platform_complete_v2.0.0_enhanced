@@ -5751,7 +5751,7 @@ def test_rbac_platform_enforcement():
     """حارس فرض RBAC في طبقة platform (الفجوة المعياريّة): محرّك الصلاحيات كان
     مفروضاً في خطّ التوصيات فقط لا عند نقاط HTTP. جزآن: ① سلوكيّ نقيّ عبر
     core.authorization (لا FastAPI)؛ ② فحص مصدر أنّ main.py يربط require_permission
-    + يطبّع الأدوار عبر الحدود (admin→owner)."""
+    + يطبّع الأدوار عبر الحدود (admin→platform_admin، expert→agronomist…)."""
     r = []
     # ① مصفوفة الصلاحيات السلوكيّة (استيراد خفيف — لا pydantic/fastapi)
     from core.authorization import Permission, has_permission
@@ -5784,10 +5784,11 @@ def test_rbac_platform_enforcement():
         r.append(("✓", "RBAC طبقة HTTP: نقاط حسّاسة مُبوّبة بالصلاحية"))
     else:
         r.append(("✗", "RBAC طبقة HTTP: لا نقطة مُبوّبة (require_permission غير مستخدَم)"))
-    if '"admin": UserRole.OWNER' in main_src and '"farmer": UserRole.WORKER' in main_src:
-        r.append(("✓", "تطبيع الأدوار: admin/expert/farmer يُجسَّر للنموذج الخماسي"))
+    # حوكمة: admin ⇒ PLATFORM_ADMIN (لا OWNER) — فصل مدير المنصّة عن مالك المستأجِر
+    if '"admin": UserRole.PLATFORM_ADMIN' in main_src and '"farmer": UserRole.WORKER' in main_src:
+        r.append(("✓", "تطبيع الأدوار: admin→platform_admin، expert/farmer مُجسَّران"))
     else:
-        r.append(("✗", "تطبيع الأدوار: غير مُجسَّر (admin قد يهبط صامتاً لأدنى صلاحية)"))
+        r.append(("✗", "تطبيع الأدوار: غير مُجسَّر (admin قد يهبط صامتاً أو يصير OWNER)"))
     return r
 
 

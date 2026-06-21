@@ -96,6 +96,8 @@ class Permission(str, Enum):
     # التقارير والمراجعة
     AUDIT_VIEW = "audit:view"
     REPLAY_RECOMMENDATION = "replay:recommendation"  # recommendation_replay
+    # ── إدارة المنصّة (نطاق platform_admin — منفصل عن بيانات المستأجِر) ──
+    PLATFORM_MANAGE = "platform:manage"  # إدارة بنية/خدمات/مستأجِرين على مستوى المنصّة
 
 
 # ─── مصفوفة الصلاحيات الافتراضية ──────────────────────────────────
@@ -240,6 +242,21 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.MASTER_DATA_VIEW,
         Permission.SETTINGS_VIEW,
         Permission.DOCUMENT_VIEW,
+    },
+    # مدير المنصّة: نطاق إداريّ منفصل عن بيانات المستأجِر. يدير المستخدمين والتدقيق
+    # وحوكمة الأحداث الفاشلة (DLQ) وإعدادات المنصّة — لكنّه **لا يملك** أيّ صلاحية على
+    # بيانات المستأجِر (حقول/توصيات/أنشطة/ري/مخزون…). هذا يُجسّد `platform_admin ≠
+    # tenant_owner`: الوصول لبيانات مستأجِر يكون عبر break-glass صريح (دور مؤقّت
+    # tenant-scoped بسبب+مدّة+MFA+تدقيق) لا تلقائيّاً عبر هذا الدور.
+    UserRole.PLATFORM_ADMIN: {
+        Permission.PLATFORM_MANAGE,  # إدارة المنصّة/تهيئة المستأجرين (نطاق منصّة لا tenant)
+        Permission.AUDIT_VIEW,  # حوكمة DLQ + سجلّ الأمان (admin_router)
+        Permission.ANALYTICS_VIEW,
+        Permission.SETTINGS_VIEW,
+        # ملاحظة: عمداً **بلا** USER_INVITE/USER_REMOVE/USER_CHANGE_ROLE — تلك إدارة
+        # مستخدمي **المستأجِر** (مهمّة tenant_owner؛ تحفظها لامركزيّةُ منع تصعيد
+        # الصلاحيات). تهيئة مستأجِر جديد + أوّل مالك تكون عبر نقطة منصّة مُبوّبة
+        # بـPLATFORM_MANAGE (بند لاحق)، لا عبر صلاحيات مستخدمي المستأجِر.
     },
 }
 
