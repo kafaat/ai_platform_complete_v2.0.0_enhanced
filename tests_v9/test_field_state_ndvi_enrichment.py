@@ -102,7 +102,9 @@ class _FakeClient:
         self._status = status
         self.calls: list[str] = []
 
-    async def get(self, url):
+    async def get(self, url, **kwargs):
+        # **kwargs: يقبل headers=… (توكن الخدمة X-Agent-Token الذي تُرسله الأتمتة
+        # لـraster /jobs/{id}/result بعد فرض _require_service_token) — يحاكي httpx.
         self.calls.append(url)
         if url.endswith("_ndvi/result"):
             return _Resp(self._status, self._result)
