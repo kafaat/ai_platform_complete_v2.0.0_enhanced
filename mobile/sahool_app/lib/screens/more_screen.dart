@@ -11,6 +11,7 @@ import 'documents_screen.dart';
 import 'equipment_screen.dart';
 import 'inventory_screen.dart';
 import 'master_data_screen.dart';
+import 'operations_hub_screen.dart';
 import 'profile_screen.dart';
 import 'satellite_screen.dart';
 
@@ -27,6 +28,10 @@ class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key});
 
   static final List<_MoreItem> _items = [
+    // مركز العمليّات (تجميعة الوحدات التشغيليّة) — خرج من شريط FieldView لكنّه
+    // يبقى مُتاحاً هنا بالكامل (لم يُحذَف).
+    _MoreItem('مركز العمليّات', Icons.grid_view,
+        () => const OperationsHubScreen()),
     _MoreItem('الأقمار', Icons.satellite_alt, () => const SatelliteScreen()),
     _MoreItem('المخزون', Icons.inventory_2_outlined,
         () => const InventoryScreen()),

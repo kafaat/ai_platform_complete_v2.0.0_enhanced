@@ -3,6 +3,7 @@
 // تحفظ التوكن في التخزين الآمن، ثمّ تعيد بناء AuthGate (يوصِل WebSocket ويعرض
 // الواجهة). صدق: الفشل يُعرَض للمستخدم بالعربيّة، لا جلسة زائفة.
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show FilteringTextInputFormatter;
 import '../main.dart';
 import '../services/api_service.dart';
 
@@ -17,36 +18,84 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _email = TextEditingController();
   final _password = TextEditingController();
+  final _mfaCode = TextEditingController();
   bool _loading = false;
   bool _obscure = true;
   String? _error;
+  // كُشِف حقل MFA بعد أن أعاد الخادم X-MFA-Required لهذه البيانات. عند ظهوره
+  // يتحوّل الزرّ الرئيسيّ من «تسجيل الدخول» إلى «تحقّق» (يعيد النداء مع الرمز).
+  bool _mfaRequired = false;
 
   @override
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _mfaCode.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    // إن كان حقل MFA مكشوفاً، الإرسال يساوي «تحقّق» (لا تكرار للمنطق).
+    if (_mfaRequired) return _verifyMfa();
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
       await ApiService.instance.login(_email.text.trim(), _password.text);
-      if (!mounted) return;
-      // إعادة بناء AuthGate: التوكن محفوظ ⇒ يوصِل WebSocket ويعرض MainNavigation.
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const AuthGate()),
-        (route) => false,
-      );
+      _onLoginSuccess();
+    } on MfaRequiredException {
+      // كلمة المرور صحّت لكن يلزم رمز TOTP ⇒ اكشف الحقل بدل إعلان فشل.
+      if (mounted) {
+        setState(() {
+          _mfaRequired = true;
+          _error = null;
+        });
+      }
     } catch (e) {
       if (mounted) setState(() => _error = _humanize(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  /// إعادة النداء مع رمز MFA. رمز خاطئ ⇒ 401 «رمز MFA غير صحيح» يُعرَض سطريّاً
+  /// دون إخفاء الحقل (يصحّح المستخدم رمزه ويعيد المحاولة).
+  Future<void> _verifyMfa() async {
+    final code = _mfaCode.text.trim();
+    if (code.length != 6) {
+      setState(() => _error = 'أدخل رمز المصادقة المكوّن من 6 أرقام');
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await ApiService.instance
+          .login(_email.text.trim(), _password.text, mfaCode: code);
+      _onLoginSuccess();
+    } on MfaRequiredException {
+      // الخادم ما زال يطلب الرمز (سباق نادر) ⇒ أبقِ الحقل واطلب إعادة الإدخال.
+      if (mounted) setState(() => _error = 'رمز MFA غير صحيح');
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error =
+            e.toString().contains('401') ? 'رمز MFA غير صحيح' : _humanize(e));
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _onLoginSuccess() {
+    if (!mounted) return;
+    // إعادة بناء AuthGate: التوكن محفوظ ⇒ يوصِل WebSocket ويعرض MainNavigation.
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthGate()),
+      (route) => false,
+    );
   }
 
   String _humanize(Object e) {
@@ -115,6 +164,34 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? 'كلمة المرور قصيرة جدّاً'
                         : null,
                   ),
+                  // حقل رمز MFA (TOTP) — يُكشَف فقط بعد أن يطلبه الخادم. 6 أرقام،
+                  // لوحة أرقام، يُرسَل بزرّ «تحقّق» (onSubmitted) أو الزرّ الرئيسيّ.
+                  if (_mfaRequired) ...[
+                    const SizedBox(height: 14),
+                    const Text('أدخل رمز المصادقة الثنائيّة (MFA)',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _mfaCode,
+                      autofocus: true,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      textAlign: TextAlign.center,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          letterSpacing: 8),
+                      decoration: _dec('______', Icons.shield_outlined)
+                          .copyWith(counterText: ''),
+                      onSubmitted: (_) {
+                        if (!_loading) _verifyMfa();
+                      },
+                    ),
+                  ],
                   if (_error != null) ...[
                     const SizedBox(height: 14),
                     Text(_error!,
@@ -137,8 +214,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 20,
                             child: CircularProgressIndicator(
                                 strokeWidth: 2, color: Colors.white))
-                        : const Text('تسجيل الدخول',
-                            style: TextStyle(
+                        : Text(_mfaRequired ? 'تحقّق' : 'تسجيل الدخول',
+                            style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold)),
