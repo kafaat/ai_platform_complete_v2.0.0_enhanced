@@ -151,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _buildResourceCards(data),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildStatsRow(Map<String, dynamic> data) {
@@ -756,7 +756,6 @@ class _AlertCard extends StatelessWidget {
           // Navigate to alert detail
         },
       ),
-    ));
-  }
     );
+  }
 }

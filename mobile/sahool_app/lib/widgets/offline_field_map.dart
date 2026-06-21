@@ -92,6 +92,32 @@ class OfflineFieldMap extends StatefulWidget {
     this.instruction,
   });
 
+  // تقريب جيوديسيّ بسيط: 1 درجة خطّ عرض ≈ 111320 م، وخطّ الطول يُقاس بـcos(lat).
+  // مضلّع دائريّ (~48 رأساً) حول مركز بنصف قطر بالأمتار — تستعمله الشاشة المضيفة لإنتاج
+  // حدّ الحقل، وتُعيد استعماله المعاينة الداخليّة. static على الودجت ليصل إليه المضيف.
+  static List<LatLng> circlePolygon(
+    LatLng center,
+    double radiusMeters, {
+    int segments = 48,
+  }) {
+    if (radiusMeters <= 0 || segments < 3) return const [];
+    const metersPerDegLat = 111320.0;
+    final cosLat = math.cos(center.latitude * math.pi / 180.0);
+    // حارس: قرب القطبين cos→0؛ نمنع القسمة على صفر.
+    final safeCos = cosLat.abs() < 1e-6 ? 1e-6 : cosLat;
+    final dLat = radiusMeters / metersPerDegLat;
+    final dLon = radiusMeters / (metersPerDegLat * safeCos);
+    final pts = <LatLng>[];
+    for (var i = 0; i < segments; i++) {
+      final theta = 2 * math.pi * i / segments;
+      pts.add(LatLng(
+        center.latitude + dLat * math.sin(theta),
+        center.longitude + dLon * math.cos(theta),
+      ));
+    }
+    return pts;
+  }
+
   @override
   State<OfflineFieldMap> createState() => _OfflineFieldMapState();
 }
@@ -170,37 +196,12 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
   }
 
   // توليد رؤوس مضلّع دائريّ حول [center] بنصف قطر [radiusMeters] (بالأمتار).
-  // تقريب جيوديسيّ بسيط: 1 درجة خطّ عرض ≈ 111320 م، وخطّ الطول يُقاس بـcos(lat).
-  // يُستخدَم للمعاينة هنا، وتُكرَّره الشاشة المضيفة لإنتاج الهندسة النهائيّة.
-  static List<LatLng> circlePolygon(
-    LatLng center,
-    double radiusMeters, {
-    int segments = 48,
-  }) {
-    if (radiusMeters <= 0 || segments < 3) return const [];
-    const metersPerDegLat = 111320.0;
-    final cosLat = math.cos(center.latitude * math.pi / 180.0);
-    // حارس: قرب القطبين cos→0؛ نمنع القسمة على صفر.
-    final safeCos = cosLat.abs() < 1e-6 ? 1e-6 : cosLat;
-    final dLat = radiusMeters / metersPerDegLat;
-    final dLon = radiusMeters / (metersPerDegLat * safeCos);
-    final pts = <LatLng>[];
-    for (var i = 0; i < segments; i++) {
-      final theta = 2 * math.pi * i / segments;
-      pts.add(LatLng(
-        center.latitude + dLat * math.sin(theta),
-        center.longitude + dLon * math.cos(theta),
-      ));
-    }
-    return pts;
-  }
-
   // معاينة الدائرة: حلقة + مركز مميّز (وضع الدائرة فقط، عند توفّر مركز ونصف قطر).
   List<Widget> _circlePreviewLayers() {
     final center = widget.circlePreviewCenter;
     final r = widget.circlePreviewRadiusMeters;
     if (center == null || r == null || r <= 0) return const [];
-    final ring = circlePolygon(center, r);
+    final ring = OfflineFieldMap.circlePolygon(center, r);
     if (ring.length < 3) return const [];
     return [
       PolygonLayer(

@@ -32,7 +32,7 @@ void main() {
   group('generateOperationId — صيغة websocket الثابتة', () {
     final opRegex = RegExp(r'^op_[0-9a-f]+_[0-9a-f]{6}$');
 
-    test('يطابق ^op_<hex>_<6hex>$', () {
+    test('يطابق ^op_<hex>_<6hex>\$', () {
       expect(opRegex.hasMatch(generateOperationId()), isTrue);
     });
 

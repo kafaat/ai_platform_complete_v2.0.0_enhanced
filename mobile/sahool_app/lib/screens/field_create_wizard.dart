@@ -346,8 +346,7 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
         return;
       }
       final pos = await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(accuracy: LocationAccuracy.high),
+        desiredAccuracy: LocationAccuracy.high,
       );
       if (!mounted) return;
       setState(() => _points.add(LatLng(pos.latitude, pos.longitude)));
