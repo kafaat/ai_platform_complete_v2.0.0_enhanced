@@ -68,13 +68,26 @@ class TestEnumValues:
         assert isinstance(OperationKind.ACTIVITY_SKIP.value, str)
 
     def test_operation_kind_membership_complete(self):
-        assert {k.value for k in OperationKind} == {
+        present = {k.value for k in OperationKind}
+        # القيم الأصليّة محفوظة (عقد ثابت — لا كسر للبيانات المُخزّنة).
+        assert {
             "observation_create",
             "activity_complete",
             "activity_skip",
             "recommendation_request",
             "calibration_record",
-        }
+        } <= present
+        # توسيع Stage A P2: عمليّات mutating أخرى يُنشئها العميل offline.
+        assert {
+            "task_update",
+            "decision_record",
+            "outcome_record",
+            "irrigation_plan",
+            "harvest_lot_create",
+            "recommendation_outcome",
+            "soil_lab_test",
+            "photo_upload",
+        } <= present
 
     def test_sync_status_values(self):
         assert SyncStatus.QUEUED.value == "queued"

@@ -360,3 +360,10 @@ v90_break_glass.sql
 # ليصمد عبر إعادة التشغيل ويظهر في الرصد. status يكتسب قيمة compensation_failed
 # (تراجع جزئيّ نهائيّ يحتاج تدخّلاً). RLS+FORCE قائمة من v16. idempotent.
 v91_workflow_compensation_failures.sql
+# v92: طابور العمليّات المعلّقة الدائم — جدول offline_pending_ops يُدِيم عمليّات
+# offline-first **قبل** مزامنتها (status='pending') فتنجو من إعادة تشغيل العمليّة،
+# ثمّ تُعلَّم 'processed' بعد نجاح المزامنة. مفتاح op_id ⇒ إدخال/مزامنة idempotent
+# (ON CONFLICT). يُكمِّل offline_synced_operations (v15) الذي يُدوّن المُكتمِل فقط.
+# فهارس جزئيّة (pending FIFO / processed retention). RLS+FORCE عبر
+# _sahool_apply_tenant_rls (نفس نمط v15). idempotent.
+v92_offline_pending_ops.sql

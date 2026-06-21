@@ -31,11 +31,16 @@ router = APIRouter()
 
 
 @router.post("/api/v1/observations")
-def observations(
+async def observations(
     req: ObservationRequest,
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
-    """تسجيل مشاهدة جديدة. في الإنتاج: يدخل DB. الآن: offline queue."""
+    """تسجيل مشاهدة جديدة. في الإنتاج: يدخل DB. الآن: offline queue.
+
+    إدامة: بعد التسجيل في الـqueue الذاكريّ، تُكتب العمليّة best-effort في جدول
+    ‎offline_pending_ops‎ (إن توفّرت القاعدة) فتنجو من إعادة تشغيل العمليّة. لا
+    قاعدة (CI/تطوير) ⇒ يبقى المسار الذاكريّ كما هو (لا كسر، fail-safe).
+    """
     if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
@@ -46,6 +51,9 @@ def observations(
         kind=OperationKind.OBSERVATION_CREATE,
         payload=req.model_dump(),
     )
+    from api.offline_pending_db import persist_pending_best_effort
+
+    await persist_pending_best_effort(op, user)
     return {
         "status": "recorded",
         "op_id": op.op_id,

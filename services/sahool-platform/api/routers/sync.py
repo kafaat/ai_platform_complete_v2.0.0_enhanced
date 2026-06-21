@@ -122,19 +122,39 @@ async def sync(
     synced = 0
     pending_retry = 0
     if _DB_POOL is not None:
+        from api.offline_pending_db import enqueue_pending, mark_failed, mark_processed
         from api.offline_sync_db import persist_synced_operation
 
         async with tenant_connection(user) as conn:
+            # إدامة الطابور المعلّق أوّلاً: تنجو العمليّات من إعادة تشغيل العمليّة
+            # حتّى لو فشلت مزامنتها الآن (idempotent على op_id ⇒ لا تكرار).
+            for op in batch:
+                try:
+                    async with conn.transaction():  # savepoint
+                        await enqueue_pending(conn, op=op, tenant_id=req.tenant_id)
+                except Exception as exc:  # noqa: BLE001 — fail-safe: الذاكريّ يبقى مرجعاً
+                    logging.warning("sync: pending enqueue failed for %s: %s", op.op_id, exc)
             for op in batch:
                 try:
                     async with conn.transaction():  # savepoint لكلّ عمليّة
                         await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
                     _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
+                    # طابور الإدامة: تُعلَّم processed (best-effort ضمن savepoint).
+                    try:
+                        async with conn.transaction():
+                            await mark_processed(conn, op_id=op.op_id)
+                    except Exception as exc2:  # noqa: BLE001 — لا يُفشِل المزامنة
+                        logging.warning("sync: mark_processed failed for %s: %s", op.op_id, exc2)
                     synced += 1
                 except Exception as exc:  # noqa: BLE001 — تبقى QUEUED لإعادة المحاولة
                     _OFFLINE_QUEUE.mark_status(
                         req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
                     )
+                    try:
+                        async with conn.transaction():
+                            await mark_failed(conn, op_id=op.op_id, error=str(exc))
+                    except Exception:  # noqa: BLE001 — تدوين أفضل-جهد فقط
+                        pass
                     pending_retry += 1
                     logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
     else:
