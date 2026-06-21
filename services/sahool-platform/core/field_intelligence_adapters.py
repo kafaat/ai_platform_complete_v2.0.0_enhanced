@@ -37,20 +37,34 @@ def _auth_headers(authorization: str | None) -> dict | None:
     return {"Authorization": authorization} if authorization else None
 
 
+# توكن خدمة-لخدمة (X-Agent-Token == SAHOOL_AGENT_TOKEN) — تطلبه نقاط raster المحميّة
+# بـ_require_service_token (مثل /indices الذي يغذّي sensing_adapter). بدونه تُرفَض
+# النداءات (503/401) وتُبتلَع ⇒ تغذية الاستشعار ميتة صامتاً (نفس صنف خطأ imagery).
+AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+
+
 def _get_json(
-    url: str, params: dict | None = None, *, authorization: str | None = None
+    url: str,
+    params: dict | None = None,
+    *,
+    authorization: str | None = None,
+    agent_token: str | None = None,
 ) -> dict | None:
     """نداء GET آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع).
 
-    يمرّر رأس التفويض إن وُجد (النقاط المحميّة بـJWT تُرجع 401 بدونه ⇒ None دائماً).
+    يمرّر رأس التفويض (Bearer) و/أو توكن الخدمة (X-Agent-Token) إن وُجدا — النقاط
+    المحميّة تُرجع 401/503 بدونهما ⇒ None دائماً.
     """
     try:
         import httpx
     except ImportError:
         return None  # بيئة بلا httpx — يُعلَن كمتعذّر
+    headers = _auth_headers(authorization) or {}
+    if agent_token:
+        headers["X-Agent-Token"] = agent_token
     try:
         with httpx.Client(timeout=HTTP_TIMEOUT) as client:
-            resp = client.get(url, params=params or {}, headers=_auth_headers(authorization))
+            resp = client.get(url, params=params or {}, headers=headers or None)
             resp.raise_for_status()
             return resp.json()
     except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر (لا نُسقط الطلب)
@@ -168,7 +182,9 @@ def sensing_adapter(req) -> dict | None:
     if req.lat is None or req.lon is None:
         return None
     data = _get_json(
-        f"{RASTER_URL}/indices", {"field_id": req.field_id, "lat": req.lat, "lon": req.lon}
+        f"{RASTER_URL}/indices",
+        {"field_id": req.field_id, "lat": req.lat, "lon": req.lon},
+        agent_token=AGENT_TOKEN,  # /indices محميّ بـ_require_service_token
     )
     if not data:
         return None

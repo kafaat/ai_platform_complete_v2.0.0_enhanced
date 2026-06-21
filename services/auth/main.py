@@ -256,8 +256,9 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=2, max_length=100)
-    # ملاحظة أمنيّة: لا حقل role هنا عمداً. التسجيل يُنشئ 'farmer' دائماً.
-    # الترقية عبر /auth/users/{id}/role المحمي فقط (منع تصعيد الصلاحيات).
+    # ملاحظة أمنيّة: لا حقل role هنا عمداً — العميل لا يختار دوره. التسجيل الذاتيّ
+    # يُنشئ مستأجِراً معزولاً جديداً ويُسنِد 'owner' (مؤسِّس مستأجِره؛ انظر register).
+    # تغيير الأدوار عبر /auth/users/{id}/role المحمي بـadmin فقط (منع تصعيد الصلاحيات).
 
     @field_validator("password")
     @classmethod
