@@ -483,6 +483,20 @@ async def healthz():
 
 @app.get("/readyz")
 async def readyz():
+    # جاهزيّة حقيقيّة: guardrails يُديم قرارات الموافقة البشريّة (HIL) في القاعدة
+    # — إنشاء/اعتماد/رفض workflow و/validate حين يولّد workflow كلّها تكتب فيها
+    # عبر تجمّع human_in_loop. حين تُضبط DATABASE_URL نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503
+    # لا «جاهز» كاذب. حين لا DATABASE_URL (وضع متدرّج معلَن) ⇒ جاهز بصدق.
+    if os.getenv("DATABASE_URL", ""):
+        from human_in_loop import _get_pool
+
+        try:
+            pool = await _get_pool()
+            if pool is not None:
+                async with pool.acquire() as conn:
+                    await conn.fetchval("SELECT 1")
+        except Exception as e:
+            raise HTTPException(503, {"status": "not_ready", "reason": "db"}) from e
     return {"status": "ready"}
 
 

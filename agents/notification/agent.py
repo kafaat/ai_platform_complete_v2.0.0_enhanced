@@ -606,6 +606,26 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
+    # جاهزيّة حقيقيّة: الوكيل يستهلك أحداث NATS (8 اشتراكات JetStream) ويكتب/يقرأ
+    # تفضيلات الإشعارات في القاعدة. كلاهما متطلّب فعليّ لخدمة الطلبات:
+    #   • NATS: لينشين الإقلاع يتّصل به (غير ملفوف) فبدونه لا يقلع أصلاً — نتحقّق
+    #     أنّ الاتّصال حيّ (is_connected) لا مجرّد كائن منشأ.
+    #   • القاعدة: حين تُضبط DATABASE_URL نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503.
+    # أيّ تعذّر ⇒ 503 لا «جاهز» كاذب. (FCM/البريد/تيليجرام اختياريّة بإغلاق مرن
+    # — لا نُبنى عليها الجاهزيّة كي لا نُنتج عدم-جاهزيّة كاذبة.)
+    if _nc is None or not _nc.is_connected:
+        raise HTTPException(503, {"status": "not_ready", "reason": "nats"})
+    if DB_URL:
+        try:
+            pool = await get_pool()
+            # get_pool يبتلع فشل الاتّصال ويُعيد None — مع DB_URL مضبوطة، pool=None
+            # يعني القاعدة متعذّرة فعلاً ⇒ غير جاهز (لا جاهز كاذب).
+            if pool is None:
+                raise RuntimeError("db pool unavailable")
+            async with pool.acquire() as conn:
+                await conn.fetchval("SELECT 1")
+        except Exception as e:
+            raise HTTPException(503, {"status": "not_ready", "reason": "db"}) from e
     return {"status": "ready"}
 
 

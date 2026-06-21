@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import {
   useSeasons, useSoilParams, useSoilNRecommendation,
-  useDiseaseRisk, useCurrentNDVI, useFieldReport,
+  useDiseaseRisk, useCurrentNDVI, useFieldReport, SOIL_ENABLED,
 } from '../hooks/useApi';
 import { useCropScoutingIssues, type ScoutingIssue } from '../hooks/useScouting';
 import { useSelectedField } from '../hooks/useSelectedField';
@@ -202,14 +202,31 @@ export default function FarmAdvisoryReport() {
       { label: 'البوتاسيوم K', value: k, unit: 'ppm' },
     ];
   }, [soil]);
-  // التربة فارغة إن لم نتمكّن من قراءة أيّ خاصّيّة معروفة (لا نختلق صفراً).
-  const soilEmpty = !soilQ.isLoading && !soilQ.isError && soilRows.every((r) => r.value == null);
+  // صدق: حين تكون التربة معطّلة (soil-service غير منشورة ولا مكافئ على المنصّة)
+  // لا نعرض «تحميلاً» أبديّاً (الاستعلام معطّل ⇒ pending إلى الأبد) ولا خطأً — بل
+  // حالة فراغ صريحة «بيانات التربة غير متاحة». الأعلام أدناه تُحيّد التحميل/الخطأ
+  // عند التعطيل وتُجبر الفراغ، فيقرأ المستخدم سبباً صادقاً لا دوّامة تحميل.
+  const soilDisabled = !SOIL_ENABLED;
+  const soilLoading = !soilDisabled && soilQ.isLoading;
+  const soilError = !soilDisabled && soilQ.isError;
+  // التربة فارغة إن لم نتمكّن من قراءة أيّ خاصّيّة معروفة (لا نختلق صفراً)، أو معطّلة.
+  const soilEmpty = soilDisabled
+    || (!soilQ.isLoading && !soilQ.isError && soilRows.every((r) => r.value == null));
+  const soilEmptyText = soilDisabled
+    ? 'بيانات التربة غير متاحة — خدمة التربة غير منشورة بعد.'
+    : 'غير متاح لهذا الحقل — لا قراءات تربة.';
 
   // توصية النيتروجين — رقم + نصّ سبب إن توفّرا (شكل غير مُنمَّط، قراءة متسامحة).
   const nRec = nRecQ.data;
   const nRate = pickNum(nRec, ['n_recommendation_kg_ha', 'n_kg_ha', 'recommended_n_kg_ha', 'n_rate', 'nitrogen_kg_ha']);
   const nRationale = pickStr(nRec, ['rationale_ar', 'note_ar', 'rationale', 'note', 'message']);
-  const nRecEmpty = !nRecQ.isLoading && !nRecQ.isError && nRate == null && nRationale == null;
+  const nRecLoading = !soilDisabled && nRecQ.isLoading;
+  const nRecError = !soilDisabled && nRecQ.isError;
+  const nRecEmpty = soilDisabled
+    || (!nRecQ.isLoading && !nRecQ.isError && nRate == null && nRationale == null);
+  const nRecEmptyText = soilDisabled
+    ? 'توصية النيتروجين غير متاحة — خدمة التربة غير منشورة بعد.'
+    : 'غير متاح لهذا الحقل — لا توصية نيتروجين.';
 
   // ٣) الأمراض + مشاكل المحصول ──────────────────────────────────
   const disease = diseaseQ.data as DiseaseRisk | undefined;
@@ -395,16 +412,16 @@ export default function FarmAdvisoryReport() {
 
           {/* ─────────── ٢) إدارة الأسمدة والتربة ─────────── */}
           <Card pad={14} style={{ marginBottom: 10 }}>
-            <SectionLabel action={<LiveBadge loading={soilQ.isLoading} error={soilQ.isError} />}>
+            <SectionLabel action={<LiveBadge loading={soilLoading} error={soilError} />}>
               إدارة الأسمدة والتربة
             </SectionLabel>
 
             <SectionState
-              loading={soilQ.isLoading}
-              error={soilQ.isError}
+              loading={soilLoading}
+              error={soilError}
               empty={soilEmpty}
               icon={<FlaskConical style={{ width: 26, height: 26 }} />}
-              emptyText="غير متاح لهذا الحقل — لا قراءات تربة."
+              emptyText={soilEmptyText}
             >
               <div>
                 {soilRows.map((r) => (
@@ -423,15 +440,15 @@ export default function FarmAdvisoryReport() {
 
             {/* توصية النيتروجين (هوك منفصل بحالته الخاصّة) */}
             <div style={{ marginTop: 12 }}>
-              <SectionLabel action={<LiveBadge loading={nRecQ.isLoading} error={nRecQ.isError} />}>
+              <SectionLabel action={<LiveBadge loading={nRecLoading} error={nRecError} />}>
                 توصية النيتروجين (N)
               </SectionLabel>
               <SectionState
-                loading={nRecQ.isLoading}
-                error={nRecQ.isError}
+                loading={nRecLoading}
+                error={nRecError}
                 empty={nRecEmpty}
                 icon={<FlaskConical style={{ width: 24, height: 24 }} />}
-                emptyText="غير متاح لهذا الحقل — لا توصية نيتروجين."
+                emptyText={nRecEmptyText}
               >
                 {nRate != null && (
                   <div className="flex items-center justify-between" style={{ marginBottom: nRationale ? 6 : 0 }}>
