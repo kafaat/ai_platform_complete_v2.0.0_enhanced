@@ -26,7 +26,7 @@ from uuid import uuid4
 import asyncpg
 import bcrypt
 import pyotp  # TOTP (RFC 6238) — المصادقة الثنائيّة MFA
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
@@ -122,6 +122,22 @@ def _mfa_required_but_missing(
     if mfa_enabled:
         return False
     return (role or "").strip().lower() in required_roles
+
+
+# ── Step-up MFA لعمليّات admin الحسّاسة (تغيير الدور/التعطيل) ──────────
+# مبدأ: جلسة admin مسروقة/معلّقة وحدها يجب ألّا تكفي لتغيير دور أو تعطيل حساب.
+# نطلب رمز TOTP حديثاً (step-up) يُتحقَّق منه ضدّ سرّ المُنفِّذ نفسه عند كلّ
+# عمليّة مُحوِّرة. مُعطَّل افتراضيّاً (ENV) كي لا يكسر CI/التطوير — أيّ القرار
+# مفصول في دالّة نقيّة قابلة للاختبار.
+def _admin_stepup_required() -> bool:
+    """هل يجب فرض step-up MFA على عمليّات admin المُحوِّرة؟ (قرار نقيّ).
+
+    True فقط حين ENFORCE_ADMIN_STEPUP_MFA=true أو SAHOOL_ENV=production.
+    الافتراضيّ (لا بيئة) ⇒ False ⇒ لا تغيير في السلوك (يبقى CI/التطوير أخضر،
+    لا يُطلَب mfa_code). يقرأ os.getenv عند الاستدعاء كي يبقى قابلاً للاختبار.
+    """
+    enforce = os.getenv("ENFORCE_ADMIN_STEPUP_MFA", "false").strip().lower() == "true"
+    return enforce or _is_production()
 
 
 # ── OTP (تأكيد البريد/الهاتف) — الدوالّ/الثوابت النقيّة في otp.py (معزولة عن
@@ -1264,6 +1280,28 @@ async def verify_status(user: Annotated[dict, Depends(get_current_user)]):
 
 
 # ── Admin endpoints ───────────────────────────────────────────
+async def _verify_caller_mfa(admin_user_id: int, mfa_code: str | None) -> bool:
+    """يتحقّق من رمز TOTP حديث ضدّ سرّ المُنفِّذ نفسه (step-up).
+
+    fail-closed: يُرجِع True فقط حين يكون المستخدم موجوداً وMFA مفعّلاً ولديه سرّ
+    والرمز صحيح (نافذة ±30s، مطابِق تماماً لتحقّق الدخول). أيّ نقص (لا مستخدم،
+    MFA غير مفعّل، لا سرّ، رمز غائب/خاطئ) ⇒ False (يُرفض الإجراء).
+    """
+    if not mfa_code or not _pool:
+        return False
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT mfa_enabled, mfa_secret FROM users WHERE id=$1", admin_user_id
+        )
+    if not row or not row["mfa_enabled"]:
+        return False
+    secret = row["mfa_secret"]
+    if not secret:
+        return False
+    # نفس التحقّق المُستخدَم في الدخول حرفيّاً (pyotp.TOTP(...).verify(..., valid_window=1)).
+    return bool(pyotp.TOTP(secret).verify(mfa_code.strip(), valid_window=1))
+
+
 @app.get("/auth/users", dependencies=[Depends(require_role("admin"))])
 async def list_users():
     async with _pool.acquire() as conn:
@@ -1273,8 +1311,28 @@ async def list_users():
     return [dict(r) for r in rows]
 
 
-@app.patch("/auth/users/{user_id}/role", dependencies=[Depends(require_role("admin"))])
-async def change_role(user_id: int, role: ValidRole):
+@app.patch("/auth/users/{user_id}/role")
+async def change_role(
+    user_id: int,
+    role: ValidRole,
+    request: Request,
+    admin: Annotated[dict, Depends(require_role("admin"))],
+    x_mfa_code: Annotated[str | None, Header()] = None,
+):
+    # Step-up MFA (مُفعَّل بالبيئة): جلسة admin وحدها لا تكفي لتغيير دور — يلزم
+    # رمز TOTP حديث من المُنفِّذ نفسه. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر.
+    if _admin_stepup_required():
+        caller_id = int(admin["sub"])
+        if not await _verify_caller_mfa(caller_id, x_mfa_code):
+            ip = request.client.host if request.client else "unknown"
+            await audit_log(
+                "admin_op_mfa_denied",
+                caller_id,
+                ip,
+                details=f"change_role target={user_id}",
+                tenant_id=admin.get("tenant_id"),
+            )
+            raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
     async with _pool.acquire() as conn:
         row = await conn.fetchrow(
             "UPDATE users SET role=$1 WHERE id=$2 RETURNING id, email, role", role, user_id
@@ -1283,14 +1341,49 @@ async def change_role(user_id: int, role: ValidRole):
         raise HTTPException(404, "المستخدم غير موجود")
     # إبطال جلسات المستخدم ⇒ يُعاد تحميل الدور الجديد فوريّاً (لا يبقى التوكن القديم بدوره القديم)
     await revoke_all_user_sessions(user_id)
+    ip = request.client.host if request.client else "unknown"
+    await audit_log(
+        "change_role",
+        int(admin["sub"]),
+        ip,
+        details=f"target={user_id} new_role={role} stepup={_admin_stepup_required()}",
+        tenant_id=admin.get("tenant_id"),
+    )
     return dict(row)
 
 
-@app.patch("/auth/users/{user_id}/deactivate", dependencies=[Depends(require_role("admin"))])
-async def deactivate_user(user_id: int):
+@app.patch("/auth/users/{user_id}/deactivate")
+async def deactivate_user(
+    user_id: int,
+    request: Request,
+    admin: Annotated[dict, Depends(require_role("admin"))],
+    x_mfa_code: Annotated[str | None, Header()] = None,
+):
+    # Step-up MFA (مُفعَّل بالبيئة): تعطيل حساب إجراء حسّاس — يلزم رمز TOTP حديث
+    # من المُنفِّذ. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر (لا mfa_code).
+    if _admin_stepup_required():
+        caller_id = int(admin["sub"])
+        if not await _verify_caller_mfa(caller_id, x_mfa_code):
+            ip = request.client.host if request.client else "unknown"
+            await audit_log(
+                "admin_op_mfa_denied",
+                caller_id,
+                ip,
+                details=f"deactivate target={user_id}",
+                tenant_id=admin.get("tenant_id"),
+            )
+            raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
     async with _pool.acquire() as conn:
         await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
     await revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
+    ip = request.client.host if request.client else "unknown"
+    await audit_log(
+        "deactivate_user",
+        int(admin["sub"]),
+        ip,
+        details=f"target={user_id} stepup={_admin_stepup_required()}",
+        tenant_id=admin.get("tenant_id"),
+    )
     return {"message": "تم إلغاء تفعيل الحساب"}
 
 

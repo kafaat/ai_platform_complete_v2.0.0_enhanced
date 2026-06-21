@@ -422,7 +422,12 @@ function updateStats(data) {
 function connectWS() {
     if (!token) return;
     try {
-        wsLive = new WebSocket(`${WS_BASE}/ws/notifications?token=${encodeURIComponent(token)}`);
+        // التوكن لم يَعُد في الرابط (كان يتسرّب إلى سجلّات الوكلاء/الخوادم وتاريخ
+        // المتصفح)؛ نرسله الآن في أوّل رسالة (إطار auth) بعد فتح الاتصال.
+        wsLive = new WebSocket(`${WS_BASE}/ws/notifications`);
+        wsLive.onopen = () => {
+            wsLive.send(JSON.stringify({ type: 'auth', token }));
+        };
         wsLive.onmessage = (e) => {
             const msg = JSON.parse(e.data);
             if (msg.type === 'dashboard_update') {
