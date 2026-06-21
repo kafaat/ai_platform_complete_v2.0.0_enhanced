@@ -50,6 +50,7 @@ import salinity_calibration as _sal
 from fastapi import BackgroundTasks, FastAPI, File, Form, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from job_store import JobStore
 from pydantic import BaseModel, Field
 from stac_client import ResilientStacClient
 
@@ -204,8 +205,13 @@ class SearchRequest(BaseModel):
     limit: int = 20
 
 
-# ─── حالة في الذاكرة (للإنتاج: Redis/DB) ──────────────────────────
-_jobs: dict[str, dict] = {}
+# ─── حالة المهامّ: Redis (مشترك + يبقى بعد إعادة التشغيل) مع ارتداد للذاكرة ──
+# كانت _jobs مجرّد dict في الذاكرة ⇒ تُفقد عند إعادة التشغيل ولا تُشارَك عبر
+# العمّال (فيفشل /jobs/{id}/result على عامل آخر). JobStore يخزّن في Redis إن
+# توفّر REDIS_URL وكان قابلاً للوصول، وإلّا يرتدّ للذاكرة (تطوير/CI بلا Redis).
+# يستخدم عميل redis متزامن (sync) لتجنّب كسر حلقة الحدث: الكتابة تجري في خيط
+# الخلفيّة (threadpool) والقراءة في حلقة الخادم — انظر job_store.py.
+_jobs = JobStore(redis_url=os.getenv("REDIS_URL"))
 _layers: dict[str, dict] = {}
 # فهرس حقل→قائمة معرّفات الطبقات (لإيجاد أحدث COG لحقل في شبكة المؤشّر)
 _field_layers: dict[str, list[str]] = {}
@@ -1173,10 +1179,13 @@ def _persist_raster_asset(
 def _run_processing(job_id: str, req: ProcessRequest):
     """ينفّذ معالجة المؤشّر. البنية كاملة؛ حساب البكسلات الفعلي يتمّ عند
     توفّر rasterio في بيئة التشغيل (يُحقن هنا)."""
-    job = _jobs[job_id]
+    # نحمّل المهمّة، نطفّرها محليّاً، ونثبّتها في المخزن (Redis/ذاكرة) عند
+    # نقاط الانتقال — كي تَنفُذ التغييرات عبر العمليّات لا في dict محلّيّ فقط.
+    job = _jobs.get(job_id) or {"job_id": job_id}
     job["status"] = JobStatus.processing
     job["started_at"] = datetime.now(UTC).isoformat()
     job["progress_pct"] = 10
+    _jobs.set(job_id, job)
     try:
         # نقطة حقن المعالجة الفعليّة (rasterio/numpy):
         #   1. اقرأ الراستر من req.raster_url
@@ -1269,10 +1278,12 @@ def _run_processing(job_id: str, req: ProcessRequest):
         job["status"] = JobStatus.completed
         job["progress_pct"] = 100
         job["finished_at"] = now
+        _jobs.set(job_id, job)  # تثبيت النتيجة المكتملة (Redis/ذاكرة)
         logger.info(f"job {job_id} completed → layer {layer_id}")
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
         job["error_message"] = str(e)
+        _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
         logger.error(f"job {job_id} failed: {e}")
 
 
@@ -1283,9 +1294,11 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
     المشهد مرّة (في الإنتاج مع rasterio)؛ بنيويّاً نتتبّع الكلّ في job واحد مع
     عزل فشل كلّ مؤشّر (فشل واحد لا يُسقط الباقي).
     """
-    job = _jobs[job_id]
+    # نطفّر المهمّة محليّاً ونثبّتها في المخزن (Redis/ذاكرة) عند نقاط الانتقال.
+    job = _jobs.get(job_id) or {"job_id": job_id}
     job["status"] = JobStatus.processing
     job["started_at"] = datetime.now(UTC).isoformat()
+    _jobs.set(job_id, job)
     results = {}
     failed = {}
     total = len(req.indicators)
@@ -1304,15 +1317,18 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
             capture_datetime=req.capture_datetime,
         )
         sub_job_id = f"{job_id}_{ind.value}"
-        _jobs[sub_job_id] = {
-            "job_id": sub_job_id,
-            "status": JobStatus.pending,
-            "progress_pct": 0,
-            "created_at": datetime.now(UTC).isoformat(),
-        }
+        _jobs.set(
+            sub_job_id,
+            {
+                "job_id": sub_job_id,
+                "status": JobStatus.pending,
+                "progress_pct": 0,
+                "created_at": datetime.now(UTC).isoformat(),
+            },
+        )
         try:
             _run_processing(sub_job_id, single)
-            sj = _jobs[sub_job_id]
+            sj = _jobs.get(sub_job_id) or {}
             if sj["status"] == JobStatus.completed:
                 results[ind.value] = sj.get("layer_id") or sub_job_id
             else:
@@ -1325,6 +1341,7 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
     job["finished_at"] = datetime.now(UTC).isoformat()
     job["batch_results"] = results
     job["batch_failed"] = failed
+    _jobs.set(job_id, job)  # تثبيت نتيجة الدفعة (Redis/ذاكرة)
     logger.info("batch %s: %d نجح، %d فشل", job_id, len(results), len(failed))
 
 
@@ -1574,15 +1591,15 @@ async def process_raster(
     if not req.raster_url:
         raise HTTPException(400, "raster_url مطلوب (ارفع الراستر أوّلاً).")
     job_id = f"job_{uuid.uuid4().hex[:12]}"
-    _jobs[job_id] = {
+    j = {
         "job_id": job_id,
         "status": JobStatus.pending,
         "progress_pct": 0,
         "created_at": datetime.now(UTC).isoformat(),
     }
+    _jobs.set(job_id, j)
     # معالجة في الخلفيّة — لا تحجب الطلب (مهمّ لقلب النظام تحت الحمل).
     background_tasks.add_task(_run_processing, job_id, req)
-    j = _jobs[job_id]
     return {
         "job_id": job_id,
         "status": j["status"],
@@ -1644,12 +1661,15 @@ async def process_from_stac(
         clip_polygon_geojson=req.clip_polygon_geojson,
     )
     job_id = f"stac_{uuid.uuid4().hex[:12]}"
-    _jobs[job_id] = {
-        "job_id": job_id,
-        "status": JobStatus.pending,
-        "progress_pct": 0,
-        "created_at": datetime.now(UTC).isoformat(),
-    }
+    _jobs.set(
+        job_id,
+        {
+            "job_id": job_id,
+            "status": JobStatus.pending,
+            "progress_pct": 0,
+            "created_at": datetime.now(UTC).isoformat(),
+        },
+    )
     background_tasks.add_task(_run_processing, job_id, preq)
     return {
         "job_id": job_id,
@@ -1674,13 +1694,16 @@ async def process_batch(
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
     job_id = f"batch_{uuid.uuid4().hex[:12]}"
-    _jobs[job_id] = {
-        "job_id": job_id,
-        "status": JobStatus.pending,
-        "progress_pct": 0,
-        "created_at": datetime.now(UTC).isoformat(),
-        "indicators": [i.value for i in req.indicators],
-    }
+    _jobs.set(
+        job_id,
+        {
+            "job_id": job_id,
+            "status": JobStatus.pending,
+            "progress_pct": 0,
+            "created_at": datetime.now(UTC).isoformat(),
+            "indicators": [i.value for i in req.indicators],
+        },
+    )
     background_tasks.add_task(_run_batch_processing, job_id, req)
     return {
         "job_id": job_id,

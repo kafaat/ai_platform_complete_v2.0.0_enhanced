@@ -80,6 +80,34 @@ class DispatchDecision:
         return d
 
 
+# حالات الحَوكمة التي تَسمح بالتوزيع (مطابِقة لـcoordinator). أيّ حالة أخرى
+# (not_evaluated/error/مجهول) ⇒ القرار لم تُقَرّ حوكمته ⇒ لا يُوزَّع (fail-closed).
+_GOVERNANCE_APPROVED_STATES = frozenset({"approved", "passed", "cleared", "ok"})
+
+
+class GovernanceNotEvaluatedError(RuntimeError):
+    """يُرفع عند محاولة توزيع قرار لم تُقَرّ حوكمته (governance.status != approved).
+
+    الخطّ الأحمر للحوكمة: قرار من field_intelligence_coordinator بحالة
+    not_evaluated **لا يصل** إلى evaluate_dispatch — لا تُختلق موافقة، لا تنفيذ.
+    """
+
+
+def assert_governance_evaluated(governance: dict | None) -> None:
+    """حارس بوّابة التوزيع: يرفض القرار إن لم تُقَرّ حوكمته (fail-closed، نقيّ).
+
+    يُستدعى قبل توزيع أيّ قرار من المسار القانونيّ (field_intelligence). إن كانت
+    `governance.status` not_evaluated/error/مجهولة ⇒ يرفع GovernanceNotEvaluatedError
+    بسبب صريح (governance_not_evaluated). صدق: لا نُعامل المجهول كموافقة.
+    """
+    status = str((governance or {}).get("status", "")).strip().lower()
+    if status not in _GOVERNANCE_APPROVED_STATES:
+        raise GovernanceNotEvaluatedError(
+            f"governance_not_evaluated: حالة الحَوكمة {status or 'مجهولة'!r} "
+            "لا تسمح بالتوزيع — القرار استشاريّ فقط حتى تمرّ القواعد الحاكمة."
+        )
+
+
 def evaluate_dispatch(
     *,
     recommendation_id: str,

@@ -1,5 +1,8 @@
 """api/routers/decision.py — القرار الزراعي المتكامل (Decision Engine)
 ===================================================================
+# DECISION-PATH: legacy — قرار قواعديّ من موقع/تربة (decide_for_location/explain).
+# استشاريّ/شرحيّ فقط: لا يُوزَّع للتنفيذ ولا يمرّ ببوّابة الحَوكمة. المسار القانونيّ
+# (canonical) هو core.field_intelligence_coordinator.run_field_intelligence.
 شريحة من تفكيك ``api/main.py`` إلى وحدات ``APIRouter`` (نمط P0).
 
 سلوك محفوظ بالكامل: مسارات/أذونات/مخرجات/مخطّط OpenAPI مطابقة تماماً لما كان

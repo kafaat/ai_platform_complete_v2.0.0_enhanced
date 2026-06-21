@@ -164,12 +164,36 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
 
 
 # ── الطبقة ٣+٤+٥: Fusion → Policy → Guardrails (المسار الكامل) ──
+
+# حالات الحَوكمة التي تَسمح بتنفيذ/توزيع القرار. أيّ حالة أخرى (وبخاصّة
+# not_evaluated/error) ⇒ القرار **استشاريّ فقط** ولا يُوزَّع (fail-closed:
+# لا نُخلّص ما لم تمرّ عليه القواعد الحاكمة فعليّاً).
+GOVERNANCE_APPROVED_STATES = frozenset({"approved", "passed", "cleared", "ok"})
+
+
+def governance_permits_dispatch(governance: dict | None) -> bool:
+    """هل حالة الحَوكمة تسمح بتوزيع/تنفيذ القرار؟ (fail-closed، نقيّ).
+
+    تُرجِع True فقط إذا كانت `governance.status` ضمن الحالات الموافِقة المعلومة.
+    not_evaluated / error / مجهول ⇒ False (لا تُختلق موافقة — صدق + أمان).
+    """
+    if not governance:
+        return False
+    status = str(governance.get("status", "")).strip().lower()
+    return status in GOVERNANCE_APPROVED_STATES
+
+
 @dataclass
 class FieldIntelligenceResult:
     """ناتج المسار الكامل: الحالة الموحّدة + القرار + حالة الحَوكمة.
 
     Runtime Cohesion: يضمّ الآن السياق التاريخي (farm_memory) والمحاكاة
     (simulation) في graph قرار واحد — لا أنظمة فرعيّة منفصلة.
+
+    حَوكمة (enforcement): القرار **لا يكون قابلاً للتنفيذ/التوزيع** ما لم تمرّ
+    الحَوكمة فعليّاً بحالة موافِقة. `executable=False` عند governance.status ==
+    not_evaluated (لم تُطبَّق القواعد الحاكمة) — لا تُختلق موافقة. هذا العَلَم
+    (لا `policy_decision["actionable"]` الزراعيّ) هو ما تستهلكه طبقة التوزيع.
     """
 
     field_id: str
@@ -180,6 +204,10 @@ class FieldIntelligenceResult:
     farm_memory_context: dict = field(default_factory=dict)  # السياق التاريخي
     simulation: dict = field(default_factory=dict)  # أثر what-if المتوقّع
     forecast: dict = field(default_factory=dict)  # توقّع جوّي حيّ (Open-Meteo) — إثراء
+    # بوّابة التنفيذ المحكومة (تُحسَب في run_field_intelligence). صدق: القرار
+    # الزراعيّ قد يكون actionable لكنّه **غير قابل للتنفيذ** حتى تُقَرّ الحَوكمة.
+    executable: bool = False
+    dispatch_block_reason: str | None = "governance_not_evaluated"
 
 
 def run_field_intelligence(
@@ -196,12 +224,21 @@ def run_field_intelligence(
     simulate_fn: Callable | None = None,
     forecast_fn: Callable | None = None,
 ) -> FieldIntelligenceResult:
-    """المسار الكامل: جمع → تطبيع → دمج (مايسترو) → سياسة → حَوكمة.
+    """# DECISION-PATH: canonical — خطّ القرار المُعتمَد للمنصّة.
+
+    المسار الكامل: جمع → تطبيع → دمج (مايسترو) → سياسة → حَوكمة → بوّابة التنفيذ.
+    هذا هو **مسار القرار القانونيّ (canonical)**: كلّ قرار قابل للتوزيع يجب أن
+    يمرّ به (compose_field_state → policy → guardrails → executable gate → dispatch).
 
     الدمج يحدث مرّة واحدة في compose_field_state. منطق القرار يعمل فوق
     الحالة الموحّدة (policy-over-state)، ثمّ يمرّ بالقواعد الحاكمة قبل الإصدار.
     crop_context يضيف: مرحلة النمو + Kc/GDD + التقويم النجمي + المكان + الصنف.
     economic_context يضيف: قيد اقتصادي (قد يجعل 'لا تدخّل' أصحّ).
+
+    حَوكمة (enforcement): إن لم يُمرَّر `guardrails_fn` تبقى الحَوكمة
+    not_evaluated ⇒ القرار **استشاريّ فقط** (executable=False،
+    dispatch_block_reason="governance_not_evaluated"). لا يصير القرار قابلاً
+    للتنفيذ إلّا إذا أقرّت الحَوكمة بحالة موافِقة فعليّاً — لا تُختلق موافقة.
     """
     now = datetime.now(UTC).isoformat()
 
@@ -286,6 +323,24 @@ def run_field_intelligence(
         except Exception as e:  # noqa: BLE001 — صدق: التوقّع إثراء لا شرط
             forecast = {"error": f"تعذّر التوقّع: {e}"}
 
+    # ⑨ بوّابة التنفيذ المحكومة (ENFORCEMENT) — قرار not_evaluated **لا يُنفَّذ**.
+    # القرار قابل للتنفيذ فقط إذا كان زراعيّاً actionable **و** أقرّت الحَوكمة
+    # بحالة موافِقة فعليّاً. غياب guardrails_fn ⇒ not_evaluated ⇒ استشاريّ فقط
+    # (لا تُختلق موافقة). نُعلن سبب المنع صراحةً في القرار (للواجهة وطبقة التوزيع).
+    governance_ok = governance_permits_dispatch(governance)
+    executable = bool(decision.get("actionable")) and governance_ok
+    if executable:
+        dispatch_block_reason = None
+    elif not decision.get("actionable"):
+        dispatch_block_reason = "not_actionable"  # القرار نفسه لا يستدعي تدخّلاً
+    elif str(governance.get("status", "")).strip().lower() == "error":
+        dispatch_block_reason = "governance_error"
+    else:
+        dispatch_block_reason = "governance_not_evaluated"
+    # نعكس البوّابة في القرار نفسه لئلّا يُعامَل actionable كأنّه مُخلَّص للتنفيذ.
+    decision["executable"] = executable
+    decision["dispatch_block_reason"] = dispatch_block_reason
+
     return FieldIntelligenceResult(
         field_id=req.field_id,
         canonical_state=state,
@@ -295,6 +350,8 @@ def run_field_intelligence(
         farm_memory_context=farm_memory_context,
         simulation=simulation,
         forecast=forecast,
+        executable=executable,
+        dispatch_block_reason=dispatch_block_reason,
     )
 
 

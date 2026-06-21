@@ -87,6 +87,11 @@ def field_intelligence_analyze(
         "missing_signals": state.missing_signals,
         "policy_decision": result.policy_decision,
         "governance": result.governance,
+        # بوّابة التنفيذ المحكومة: القرار غير قابل للتوزيع ما لم تُقَرّ الحَوكمة.
+        # في المسار الحيّ لا يُمرَّر guardrails_fn ⇒ executable=False (استشاريّ فقط)،
+        # وسبب المنع صريح (governance_not_evaluated) — لا تُختلق موافقة.
+        "executable": result.executable,
+        "dispatch_block_reason": result.dispatch_block_reason,
         "farm_memory_context": result.farm_memory_context,  # السياق التاريخي
         "correlation_id": correlation_id,  # خيط التتبّع الموحّد (OpenTelemetry-style)
         "simulation": result.simulation,  # أثر what-if المتوقّع

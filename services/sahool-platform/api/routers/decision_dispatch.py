@@ -1,5 +1,10 @@
 """api/routers/decision_dispatch.py — موزِّع القرار المحروس (الحلقة المغلقة، P1).
 
+# DECISION-PATH: adapter (feeds field-intelligence) — بوّابة التوزيع/التنفيذ للمسار
+# القانونيّ: حواجز → تقييم (core.decision_dispatch.evaluate_dispatch) → إدراج READY.
+# حارس الحَوكمة: core.decision_dispatch.assert_governance_evaluated يرفض قراراً لم
+# تُقَرّ حوكمته (governance_not_evaluated) قبل التوزيع — لا تنفيذ لقرار not_evaluated.
+
 يُسطِّح دماغ الموزِّع (`core.decision_dispatch`) عبر نقطتين، محروستين بعلم
 `SAHOOL_DECISION_DISPATCH` (مُطفأ افتراضاً ⇒ 404؛ إنضاج تدريجيّ):
 
@@ -116,6 +121,8 @@ def unified_decision_endpoint(
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ) -> dict:
     """مصالحة إشارات المجالات (طقس/تربة/ريّ/آفات/اقتصاد/غلّة) في قرار موحّد واحد.
+
+    # DECISION-PATH: preview — مصالحة dry-run تُغذّي الموزِّع المحروس لاحقاً (لا تنفيذ).
 
     معاينة نقيّة (dry-run) — لا تنفيذ ولا كتابة قاعدة: تُجمِع التوصيات المتوازية وتُصالح
     تعارضاتها (الريّ↔الرشّ، قيد ميزانيّة الماء) بشفافيّة (reconciliations_ar). عند تمرير
