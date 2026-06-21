@@ -336,12 +336,22 @@ async def _get_current_user(creds: _Creds = Depends(_v_bearer)) -> dict:
     return payload
 
 
+def _token_tenant(user: dict) -> str:
+    """مستأجِر الرمز الموثوق: من مطالبة tenant_id في الـJWT المُتحقَّق منه فقط
+    (لا من جسم الطلب). فارغ ⇒ يُعامَل كعدم تطابق (fail-closed)."""
+    return str(user.get("tenant_id", "") or "")
+
+
 def _assert_stream_tenant(state: StreamState, user: dict) -> None:
-    """يمنع IDOR عبر المستأجرين: مالك غير admin يرى بثّ مستأجِره فقط. 404 عند
-    عدم التطابق (لا 403) كي لا يُكشَف وجود الـstream عبر المستأجرين."""
-    if user.get("role") == "admin":
-        return
-    if str(state.config.tenant_id) != str(user.get("tenant_id", "")):
+    """يمنع IDOR عبر المستأجرين: مالك بثّ ⇒ مستأجِر الرمز فقط. 404 عند عدم
+    التطابق (لا 403) كي لا يُكشَف وجود الـstream عبر المستأجرين.
+
+    لا تجاوز admin شامل (أُزيل): دور 'admin' هو admin **مستأجِر واحد** ويبقى محصوراً
+    في مستأجِره. الوصول العابر للمستأجرين المشروع يمرّ حصراً عبر آليّة break-glass
+    الصريحة (migrations/v90_break_glass.sql) على مستوى المنصّة — لا عبر اختصار دور
+    هنا. fail-closed: مستأجِر رمز فارغ/مفقود ⇒ لا يطابق أيّ بثّ مملوك ⇒ 404."""
+    token_tenant = _token_tenant(user)
+    if not token_tenant or str(state.config.tenant_id) != token_tenant:
         raise HTTPException(404, "Stream not found")
 
 
@@ -381,7 +391,20 @@ async def create_stream(req: CreateStreamRequest, user: dict = Depends(_get_curr
     if len(STREAMS) >= MAX_CONCURRENT_STREAMS:
         raise HTTPException(503, "Max concurrent streams reached")
 
-    cfg = StreamConfig(**req.model_dump())
+    # عزل المستأجرين: tenant_id يُشتقّ من مطالبة الرمز المُتحقَّق منه — لا يُوثَق به
+    # من جسم الطلب أبداً (مثل raster/soil: الملكيّة تُربَط بالرمز عند الإنشاء).
+    token_tenant = _token_tenant(user)
+    if not token_tenant:
+        # fail-closed: رمز بلا مستأجِر لا يستطيع امتلاك بثّ.
+        raise HTTPException(403, "Token has no tenant_id")
+    body = req.model_dump()
+    body_tenant = str(body.get("tenant_id", "") or "")
+    # رفض tenant_id متعارض في الجسم (لا تجاوز صامت) — وإلّا اربط بمستأجِر الرمز.
+    if body_tenant and body_tenant != "default" and body_tenant != token_tenant:
+        raise HTTPException(403, "tenant_id mismatch: body must not override token tenant")
+    body["tenant_id"] = token_tenant  # الربط الموثوق
+
+    cfg = StreamConfig(**body)
     state = StreamState(cfg)
     STREAMS[req.stream_id] = state
     state.task = asyncio.create_task(process_stream_loop(req.stream_id))
@@ -422,9 +445,10 @@ async def get_stream(stream_id: str, user: dict = Depends(_get_current_user)):
 
 @app.get("/streams")
 async def list_streams(user: dict = Depends(_get_current_user)):
-    # تقييد بالمستأجِر: كان بلا مصادقة ويعدّد بثوث كلّ المستأجرين + مصادرها
-    is_admin = user.get("role") == "admin"
-    tid = str(user.get("tenant_id", ""))
+    # تقييد بالمستأجِر: كلّ مستأجِر يرى بثوثه فقط. لا تجاوز admin شامل (أُزيل):
+    # admin المستأجِر محصور في مستأجِره؛ العبور المشروع عبر break-glass فقط.
+    # fail-closed: رمز بلا مستأجِر ⇒ لا شيء (tid فارغ لا يطابق أيّ بثّ مملوك).
+    tid = _token_tenant(user)
     return {
         "streams": [
             {
@@ -434,7 +458,7 @@ async def list_streams(user: dict = Depends(_get_current_user)):
                 "source": s.config.rtsp_url or s.config.http_url or f"usb:{s.config.usb_index}",
             }
             for sid, s in STREAMS.items()
-            if is_admin or str(s.config.tenant_id) == tid
+            if tid and str(s.config.tenant_id) == tid
         ],
         "max_streams": MAX_CONCURRENT_STREAMS,
     }
