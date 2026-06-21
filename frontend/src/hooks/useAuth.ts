@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { login as apiLogin, register as apiRegister } from '../services/api';
+import { login as apiLogin, register as apiRegister, acceptInvitation as apiAcceptInvitation } from '../services/api';
 
 interface AuthUser {
   id?: number;
@@ -22,6 +22,7 @@ interface AuthState {
   // Actions
   login: (email: string, password: string, mfaCode?: string) => Promise<void>;
   signup: (data: { full_name: string; email: string; password: string }) => Promise<void>;
+  acceptInvite: (data: { token: string; password: string; full_name: string }) => Promise<void>;
   loginDemo: () => void;
   logout: () => void;
   setTenant: (id: string) => void;
@@ -65,6 +66,25 @@ export const useAuthStore = create<AuthState>()(
           email: res.user?.email || data.email,
           full_name: res.user?.full_name || data.full_name,
           role: res.user?.role || res.role || 'farmer',
+          tenant_id: tenantId,
+        };
+        sessionStorage.setItem('sahool_access_token', token);
+        sessionStorage.setItem('sahool_tenant_id', tenantId);
+        sessionStorage.setItem('sahool_user', JSON.stringify(user));
+        set({ token, tenantId, user, isAuthenticated: true, isDemoMode: false });
+      },
+
+      acceptInvite: async (data: { token: string; password: string; full_name: string }) => {
+        // قبول دعوة → توكن مباشر (دخول تلقائيّ). الدور والمستأجِر من صفّ الدعوة
+        // خادم-جانبيّاً (لا يختارهما العميل) — العضو ينضمّ لمستأجِر الداعي بدوره المدعوّ.
+        const res = await apiAcceptInvitation(data);
+        const token    = res.access_token;
+        const tenantId = res.user?.tenant_id || res.tenant_id || 'default';
+        const user: AuthUser = {
+          id: res.user?.id,
+          email: res.user?.email || '',
+          full_name: res.user?.full_name || data.full_name,
+          role: res.user?.role || res.role || 'viewer',
           tenant_id: tenantId,
         };
         sessionStorage.setItem('sahool_access_token', token);

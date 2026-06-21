@@ -10,7 +10,7 @@ import {
   Settings, Bell, Globe, Shield, Server, Save,
   Check, Loader2, Eye, EyeOff, RefreshCw,
   Wifi, WifiOff, KeyRound, Lock, Copy, AlertTriangle, CheckCircle2,
-  Mail, Phone, BadgeCheck,
+  Mail, Phone, BadgeCheck, Users, Trash2, UserPlus,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import NotificationSettingsPage from './NotificationSettingsPage';
@@ -21,10 +21,12 @@ import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
 import {
   mfaSetup, mfaActivate, mfaDisable, changePassword, apiErrorMessage,
   getVerificationStatus, requestVerification, confirmVerification,
+  createInvitation, listInvitations, revokeInvitation,
   type MfaSetupResponse, type VerifyChannel, type VerificationStatus,
+  type InviteableRole, type PendingInvitation,
 } from '../services/api';
 
-type Tab = 'general' | 'notifications' | 'services' | 'security';
+type Tab = 'general' | 'notifications' | 'services' | 'security' | 'team';
 
 // حفظ إعدادات العميل فعليّاً (كانت حالة محلّيّة تُفقَد عند التحديث).
 const SETTINGS_KEY = 'sahool_settings';
@@ -36,12 +38,14 @@ function loadSettings(): { lang?: string; map?: string } {
   }
 }
 
-const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+const BASE_TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id:'general',       label:'عام',         icon:Globe  },
   { id:'notifications', label:'الإشعارات',   icon:Bell   },
   { id:'services',      label:'الاتصالات',   icon:Server },
   { id:'security',      label:'الأمان',      icon:Shield },
 ];
+// تبويب «الفريق» (الدعوات) لمالك المستأجِر فقط — يدير دعوة الأعضاء بأدوار أدنى.
+const TEAM_TAB: { id: Tab; label: string; icon: LucideIcon } = { id:'team', label:'الفريق', icon:Users };
 
 export default function SettingsPage() {
   const [tab,     setTab]    = useState<Tab>('general');
@@ -53,6 +57,10 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false);
 
   const { user } = useAuthStore();
+  // إدارة الفريق/الدعوات لمالك المستأجِر فقط (owner). الواجهة حارس عرض؛ الإنفاذ
+  // الحقيقيّ خادم-جانبيّ (auth يرفض غير owner/admin بـ403).
+  const isOwner = normalizeRole(user?.role) === 'owner';
+  const TABS = isOwner ? [...BASE_TABS, TEAM_TAB] : BASE_TABS;
   const { data: services, isLoading: svLoading, refetch: refetchSv } = useAllServicesHealth();
   const wsOk = wsService.isConnected();
 
@@ -306,9 +314,182 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* ── Team / Invitations (owner only) ──────────────────── */}
+      {tab === 'team' && isOwner && (
+        <TeamManagement Section={Section} inputCls={inputCls} inputSty={inputSty} />
+      )}
+
       <div className="text-center text-[10px] text-slate-700 py-2">
         SAHOOL v8.0.0 · 88 ملف · 16,181 سطر · MIT License
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TeamManagement — إدارة الفريق/الدعوات (لمالك المستأجِر فقط).
+// نموذج (بريد + دور من {expert/farmer/viewer}) ⇒ createInvitation ⇒ يعرض رابط
+// القبول للنسخ. + قائمة الدعوات المعلّقة مع إلغاء. ربط حيّ مع auth-service.
+// الأدوار المعروضة تطابق التسميات الخماسيّة في الواجهة عبر تخطيط auth→منصّة:
+//   expert→خبير زراعيّ (agronomist) · farmer→عامل (worker) · viewer→مشاهد.
+// owner/admin غير معروضَين عمداً (auth يرفضهما — منع تصعيد الصلاحيّات).
+// ═══════════════════════════════════════════════════════════════
+const INVITE_ROLE_OPTIONS: { value: InviteableRole; label: string }[] = [
+  { value: 'expert', label: 'خبير زراعيّ' },
+  { value: 'farmer', label: 'عامل' },
+  { value: 'viewer', label: 'مشاهد (قراءة فقط)' },
+];
+
+function TeamManagement({ Section, inputCls, inputSty }: {
+  Section: (p: { title?: string; children: React.ReactNode }) => React.JSX.Element;
+  inputCls: string;
+  inputSty: React.CSSProperties;
+}) {
+  const [email, setEmail]   = useState('');
+  const [role, setRole]     = useState<InviteableRole>('viewer');
+  const [busy, setBusy]     = useState(false);
+  const [error, setError]   = useState('');
+  const [acceptUrl, setAcceptUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [invites, setInvites] = useState<PendingInvitation[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
+
+  const refresh = async () => {
+    setLoadingList(true);
+    try {
+      setInvites(await listInvitations());
+    } catch (err: unknown) {
+      setError(apiErrorMessage(err, 'تعذّر جلب الدعوات'));
+    } finally {
+      setLoadingList(false);
+    }
+  };
+
+  useEffect(() => { refresh(); /* mount */ }, []);
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) { setError('أدخل بريد العضو'); return; }
+    setBusy(true); setError(''); setAcceptUrl(''); setCopied(false);
+    try {
+      const res = await createInvitation({ email: email.trim(), role });
+      // رابط مطلق قابل للنسخ (origin + المسار النسبيّ الذي تُعيده الخلفيّة).
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      setAcceptUrl(`${origin}${res.accept_url}`);
+      setEmail('');
+      await refresh();
+    } catch (err: unknown) {
+      setError(apiErrorMessage(err, 'تعذّر إنشاء الدعوة'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRevoke = async (id: number) => {
+    setError('');
+    try {
+      await revokeInvitation(id);
+      await refresh();
+    } catch (err: unknown) {
+      setError(apiErrorMessage(err, 'تعذّر إلغاء الدعوة'));
+    }
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(acceptUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* الحافظة غير متاحة — يبقى الرابط ظاهراً للنسخ اليدويّ */
+    }
+  };
+
+  return (
+    <div className="space-y-4" dir="rtl">
+      <Section title="دعوة عضو جديد">
+        <p className="text-[11px] text-slate-500">
+          الأعضاء ينضمّون لمؤسّستك بأدوار أدنى عبر دعوة (لا عبر التسجيل الذاتيّ). لا يمكن
+          الدعوة بدور مالك/مشرف (منع تصعيد الصلاحيّات).
+        </p>
+        <form onSubmit={handleInvite} className="space-y-3">
+          <div>
+            <label className="block text-sm text-slate-400 mb-1.5">البريد الإلكتروني</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="member@example.com" autoComplete="email"
+              className={inputCls} style={inputSty} />
+          </div>
+          <div>
+            <label className="block text-sm text-slate-400 mb-1.5">الدور</label>
+            <select value={role} onChange={e => setRole(e.target.value as InviteableRole)}
+              className={inputCls} style={inputSty}>
+              {INVITE_ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          </div>
+          {error && (
+            <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
+              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
+              <span className="text-red-300">{error}</span>
+            </div>
+          )}
+          <div className="flex justify-end">
+            <button type="submit" disabled={busy}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ background: busy ? '#15803d' : '#16a34a', opacity: busy ? 0.8 : 1 }}>
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />} إنشاء الدعوة
+            </button>
+          </div>
+        </form>
+
+        {acceptUrl && (
+          <div className="mt-2 p-3 rounded-xl text-sm" style={{ background:'#0f1117', border:'1px solid #16a34a44' }}>
+            <div className="flex items-center gap-2 mb-2 text-emerald-400">
+              <CheckCircle2 className="w-4 h-4" /> أُنشئت الدعوة — انسخ الرابط وأرسله للعضو:
+            </div>
+            <div className="flex items-center gap-2">
+              <input readOnly value={acceptUrl}
+                className="flex-1 px-3 py-2 rounded-lg text-xs font-mono"
+                style={{ ...inputSty, direction:'ltr' }} />
+              <button type="button" onClick={copyLink}
+                className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-slate-300 hover:text-white"
+                style={{ background:'#1e293b', border:'1px solid #334155' }}>
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? 'نُسخ' : 'نسخ'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Section>
+
+      <Section title="الدعوات المعلّقة">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs text-slate-500">{invites.length} دعوة معلّقة</span>
+          <button type="button" onClick={refresh}
+            className="flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-400 hover:text-slate-200">
+            <RefreshCw className={`w-3 h-3 ${loadingList ? 'animate-spin' : ''}`} /> تحديث
+          </button>
+        </div>
+        {invites.length === 0 && !loadingList && (
+          <p className="text-xs text-slate-500 py-2">لا دعوات معلّقة.</p>
+        )}
+        {invites.map(inv => (
+          <div key={inv.id} className="flex items-center justify-between py-2 border-b last:border-0"
+            style={{ borderColor:'#334155' }}>
+            <div className="min-w-0">
+              <div className="text-sm text-slate-300 truncate">{inv.email}</div>
+              <div className="text-[11px] text-slate-500">
+                {INVITE_ROLE_OPTIONS.find(o => o.value === inv.role)?.label ?? inv.role}
+                {inv.expires_at ? ` · تنتهي ${new Date(inv.expires_at).toLocaleDateString('ar')}` : ''}
+              </div>
+            </div>
+            <button type="button" onClick={() => handleRevoke(inv.id)}
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400 hover:text-red-300"
+              style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
+              <Trash2 className="w-3.5 h-3.5" /> إلغاء
+            </button>
+          </div>
+        ))}
+      </Section>
     </div>
   );
 }

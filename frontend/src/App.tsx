@@ -53,6 +53,7 @@ class ErrorBoundary extends React.Component<
 
 const LoginPage           = lazy(() => import('./pages/LoginPage'));
 const SignupPage          = lazy(() => import('./pages/SignupPage'));
+const AcceptInvitationPage = lazy(() => import('./pages/AcceptInvitationPage'));
 const DashboardPage       = lazy(() => import('./sections/DashboardPage'));
 const SatellitePage       = lazy(() => import('./sections/SatellitePage'));
 const FieldManagementPage = lazy(() => import('./sections/FieldManagementPage'));
@@ -473,7 +474,13 @@ export default function App() {
   const [page,       setPage]       = useState<PageId>('dashboard');
   const [collapsed,  setCollapsed]  = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [authScreen, setAuthScreen] = useState<'login' | 'signup'>('login');
+  // الشاشة الأوّليّة ما قبل المصادقة: إن حمل الرابط ?token= نعرض قبول الدعوة
+  // (شاشة عموميّة محميّة بالـtoken — ليست PageId، مثل signup). وإلّا تسجيل الدخول.
+  const [authScreen, setAuthScreen] = useState<'login' | 'signup' | 'accept-invitation'>(
+    () => (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('token')
+      ? 'accept-invitation'
+      : 'login')
+  );
 
   // Connect WebSocket after login — بهويّة المستخدم الفعليّة (لا الثابت 1 الذي كان
   // يسرّب إشعارات المستخدم 1 للجميع). بلا id: لا نتّصل (الخادم يجب أن يتحقّق بالتوكن).
@@ -503,9 +510,11 @@ export default function App() {
     return (
       <>
         <Suspense fallback={<Loader />}>
-          {authScreen === 'signup'
-            ? <SignupPage onLogin={() => setAuthScreen('login')} />
-            : <LoginPage onSignup={() => setAuthScreen('signup')} />}
+          {authScreen === 'accept-invitation'
+            ? <AcceptInvitationPage onLogin={() => setAuthScreen('login')} />
+            : authScreen === 'signup'
+              ? <SignupPage onLogin={() => setAuthScreen('login')} />
+              : <LoginPage onSignup={() => setAuthScreen('signup')} />}
         </Suspense>
         <ToastContainer />
       </>

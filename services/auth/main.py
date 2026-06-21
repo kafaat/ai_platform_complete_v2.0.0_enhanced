@@ -251,6 +251,31 @@ async def tenant_header_middleware(request: Request, call_next):
 # ── Models ─────────────────────────────────────────────────────
 ValidRole = Literal["owner", "admin", "expert", "farmer", "viewer"]
 
+# ── أدوار الدعوة (governance: انضمام بأدوار أدنى) ───────────────────
+# الأدوار التي يجوز **الدعوة** إليها: الأدنى/غير المميَّزة حصراً. owner/admin
+# **مستبعَدان عمداً** (منع تصعيد الصلاحيّات: لا يُنشَأ مالك/مشرف عبر دعوة — المالك
+# عبر التسجيل الذاتيّ فقط، والمشرف عبر إجراء إداريّ منفصل). دالّة التحقّق نقيّة كي
+# تُختبَر وحدةً دون رفع الخدمة (CI).
+INVITEABLE_ROLES: frozenset[str] = frozenset({"expert", "farmer", "viewer"})
+# الأدوار التي يحقّ لها **توجيه** دعوة (مالك المستأجِر أو مشرف المنصّة فقط).
+INVITER_ROLES: frozenset[str] = frozenset({"owner", "admin"})
+# الدور المدعوّ إليه — Literal يرفض owner/admin عند التحقّق (422) قبل أيّ منطق.
+InviteableRole = Literal["expert", "farmer", "viewer"]
+
+
+def is_inviteable_role(role: str | None) -> bool:
+    """هل يجوز الدعوة لهذا الدور؟ True فقط لـ{expert,farmer,viewer}.
+
+    fail-closed: None/فراغ/أيّ دور مميَّز (owner/admin) ⇒ False (منع تصعيد).
+    دالّة نقيّة (لا I/O) لتُختبَر وحدةً في CI دون تبعيّات الخدمة.
+    """
+    return (role or "").strip().lower() in INVITEABLE_ROLES
+
+
+def can_invite(role: str | None) -> bool:
+    """هل يحقّ لهذا الدور توجيه دعوات؟ True لـowner/admin فقط. fail-closed."""
+    return (role or "").strip().lower() in INVITER_ROLES
+
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -307,6 +332,31 @@ class PasswordResetConfirm(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# ── Invitation models ──────────────────────────────────────────
+class InvitationCreateRequest(BaseModel):
+    email: EmailStr
+    # InviteableRole (Literal) يرفض owner/admin بـ422 قبل المنطق — حزام أوّل ضدّ
+    # تصعيد الصلاحيّات؛ يليه فحص is_inviteable_role صريح في المعالِج (دفاع عمق).
+    role: InviteableRole
+
+
+class InvitationAcceptRequest(BaseModel):
+    token: str = Field(min_length=16, max_length=128)
+    password: str = Field(min_length=8, max_length=128)
+    full_name: str = Field(min_length=2, max_length=100)
+
+    @field_validator("password")
+    @classmethod
+    def strong_password(cls, v: str) -> str:
+        if not any(c.isupper() for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
+        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
+            raise ValueError("كلمة المرور يجب أن تحتوي على رمز خاص")
+        return v
 
 
 # قناة التحقّق: بريد أو هاتف. Literal يرفض أيّ قيمة أخرى عند التحقّق (422).
@@ -1226,6 +1276,203 @@ async def deactivate_user(user_id: int):
         await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
     await revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
     return {"message": "تم إلغاء تفعيل الحساب"}
+
+
+# ── Tenant member invitations ─────────────────────────────────
+# القرار: الأعضاء الإضافيّون ينضمّون لمستأجِر **قائم** عبر دعوة بأدوار **أدنى**
+# (expert/farmer/viewer) — لا عبر التسجيل الذاتيّ. owner/admin لا يُدعى إليهما
+# (منع تصعيد). القبول يأخذ الدور والمستأجِر من صفّ الدعوة فقط (لا يختارهما العميل).
+INVITATION_EXPIRY_DAYS = 7
+
+
+@app.post("/auth/invitations", status_code=201)
+async def create_invitation(
+    req: InvitationCreateRequest,
+    request: Request,
+    user: Annotated[dict, Depends(get_current_user)],
+):
+    """يُنشئ دعوة عضو لمستأجِر الداعي. owner/admin فقط، وبأدوار أدنى حصراً.
+
+    أمان: tenant_id يُؤخَذ من توكن الداعي (لا من العميل)؛ الدور مُقيَّد بـ
+    {expert,farmer,viewer} (Literal + فحص صريح) — owner/admin مرفوضان (تصعيد).
+    """
+    ip = request.client.host if request.client else "unknown"
+    if not can_invite(user.get("role")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "الدعوة تتطلّب دور مالك المستأجِر")
+    # دفاع عمق: حتى لو تجاوز Literal، نرفض أيّ دور غير قابل للدعوة صراحةً.
+    if not is_inviteable_role(req.role):
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "الدور غير قابل للدعوة — المسموح: expert/farmer/viewer (لا owner/admin)",
+        )
+
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "لا مستأجِر مرتبط بالحساب الداعي")
+    inviter_id = int(user["sub"])
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(UTC) + timedelta(days=INVITATION_EXPIRY_DAYS)
+
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            INSERT INTO invitations
+                (token, email, tenant_id, role, invited_by, status, expires_at)
+            VALUES ($1, $2, $3, $4, $5, 'pending', $6)
+            RETURNING id, email, role, tenant_id, expires_at, created_at
+            """,
+            token,
+            req.email,
+            tenant_id,
+            req.role,
+            inviter_id,
+            expires_at,
+        )
+
+    await audit_log("invite_created", inviter_id, ip, details=req.email, tenant_id=tenant_id)
+    # لا إرسال بريد هنا (SMTP غير مضمون) — نُعيد الرابط لتعرضه الواجهة للنسخ.
+    accept_url = f"/accept-invitation?token={token}"
+    return {
+        "id": row["id"],
+        "email": row["email"],
+        "role": row["role"],
+        "tenant_id": str(row["tenant_id"]),
+        "token": token,
+        "accept_url": accept_url,
+        "expires_at": row["expires_at"].isoformat(),
+        "status": "pending",
+    }
+
+
+@app.get("/auth/invitations")
+async def list_invitations(user: Annotated[dict, Depends(get_current_user)]):
+    """يسرد الدعوات المعلّقة لمستأجِر الداعي (owner/admin فقط)، tenant-scoped."""
+    if not can_invite(user.get("role")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "يتطلّب دور مالك المستأجِر")
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        return []
+    async with _pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, email, role, status, expires_at, created_at
+            FROM invitations
+            WHERE tenant_id = $1 AND status = 'pending'
+            ORDER BY created_at DESC
+            """,
+            tenant_id,
+        )
+    return [
+        {
+            "id": r["id"],
+            "email": r["email"],
+            "role": r["role"],
+            "status": r["status"],
+            "expires_at": r["expires_at"].isoformat() if r["expires_at"] else None,
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        }
+        for r in rows
+    ]
+
+
+@app.post("/auth/invitations/accept", response_model=TokenResponse, status_code=201)
+async def accept_invitation(req: InvitationAcceptRequest, request: Request):
+    """قبول دعوة (عموميّ، محميّ بالـtoken): يُنشئ مستخدِماً ينضمّ لمستأجِر الداعي.
+
+    أمان: الدور والمستأجِر يُؤخذان من **صفّ الدعوة فقط** — العميل لا يختارهما.
+    يرفض إن كان الـtoken غير صالح/منتهٍ/مستهلَكاً أو البريد مسجّلاً مسبقاً.
+    """
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+    now = datetime.now(UTC)
+
+    async with _pool.acquire() as conn:
+        inv = await conn.fetchrow(
+            """
+            SELECT id, email, tenant_id, role, status, expires_at
+            FROM invitations
+            WHERE token = $1
+            """,
+            req.token,
+        )
+        if not inv or inv["status"] != "pending":
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "دعوة غير صالحة أو مستهلَكة")
+        if inv["expires_at"] and inv["expires_at"] <= now:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "انتهت صلاحيّة الدعوة")
+        # حزام أمان نهائيّ: ارفض الدور المميَّز ولو سرّب إلى صفّ الدعوة بأيّ شكل.
+        if not is_inviteable_role(inv["role"]):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "دور الدعوة غير مسموح")
+
+        hashed = bcrypt.hashpw(req.password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+        # المستخدِم الجديد ينضمّ لمستأجِر الداعي بدوره المدعوّ — كلاهما من صفّ الدعوة.
+        try:
+            new_user = await conn.fetchrow(
+                """
+                INSERT INTO users (email, password_hash, full_name, role, tenant_id)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, email, role, full_name, tenant_id
+                """,
+                inv["email"],
+                hashed,
+                req.full_name,
+                inv["role"],
+                inv["tenant_id"],
+            )
+        except asyncpg.UniqueViolationError as e:
+            raise HTTPException(status.HTTP_409_CONFLICT, "البريد مسجّل مسبقاً") from e
+
+        # وسم الدعوة مقبولة (idempotent: شرط status='pending' يمنع قبولاً مزدوجاً متسابِقاً).
+        await conn.execute(
+            "UPDATE invitations SET status='accepted', accepted_at=$1 WHERE id=$2",
+            now,
+            inv["id"],
+        )
+
+    tid = str(new_user["tenant_id"])
+    token, _jti = create_access_token(
+        new_user["id"], new_user["email"], new_user["role"], new_user["full_name"], tid
+    )
+    refresh = await create_refresh_token(new_user["id"], tid)
+    await audit_log("invite_accepted", new_user["id"], ip, details=new_user["email"], tenant_id=tid)
+
+    return TokenResponse(
+        access_token=token,
+        refresh_token=refresh,
+        expires_in=JWT_EXPIRE_MINUTES * 60,
+        user_id=new_user["id"],
+        role=new_user["role"],
+        full_name=new_user["full_name"],
+        tenant_id=tid,
+    )
+
+
+@app.delete("/auth/invitations/{invitation_id}")
+async def revoke_invitation(
+    invitation_id: int,
+    request: Request,
+    user: Annotated[dict, Depends(get_current_user)],
+):
+    """يلغي دعوة معلّقة (owner/admin فقط)، tenant-scoped — لا يطال دعوات مستأجِر آخر."""
+    ip = request.client.host if request.client else "unknown"
+    if not can_invite(user.get("role")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "يتطلّب دور مالك المستأجِر")
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "الدعوة غير موجودة")
+    async with _pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            UPDATE invitations SET status='revoked'
+            WHERE id=$1 AND tenant_id=$2 AND status='pending'
+            RETURNING id
+            """,
+            invitation_id,
+            tenant_id,
+        )
+    if not row:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "الدعوة غير موجودة أو غير معلّقة")
+    await audit_log("invite_revoked", int(user["sub"]), ip, tenant_id=tenant_id)
+    return {"message": "تم إلغاء الدعوة", "id": invitation_id}
 
 
 # ── Observability ─────────────────────────────────────────────

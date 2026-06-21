@@ -327,6 +327,71 @@ export const confirmVerification = (
     )
     .then(r => r.data);
 
+// ── دعوات أعضاء المستأجِر (انضمام بأدوار أدنى لا عبر التسجيل الذاتيّ) ─────
+// ربط حيّ مع auth-service (/auth/invitations*). المالك (owner) يدعو أعضاءً بأدوار
+// أدنى حصراً (expert/farmer/viewer)؛ owner/admin مرفوضان خادم-جانبيّاً (منع تصعيد).
+// القبول عموميّ محميّ بالـtoken: الدور والمستأجِر يُؤخذان من صفّ الدعوة فقط (لا من
+// العميل). لا fallback وهميّ — أخطاء FastAPI تُقرأ عبر apiErrorMessage.
+export type InviteableRole = 'expert' | 'farmer' | 'viewer';
+
+export interface CreateInvitationResult {
+  id: number;
+  email: string;
+  role: string;
+  tenant_id: string;
+  token: string;
+  accept_url: string;     // مثل /accept-invitation?token=… (يُعرَض للنسخ)
+  expires_at: string;
+  status: string;
+}
+export interface PendingInvitation {
+  id: number;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string | null;
+  created_at: string | null;
+}
+
+/** يُنشئ دعوة عضو لمستأجِر الداعي (owner/admin فقط). 403 لغير المخوّل،
+ *  422 لدور غير قابل للدعوة (owner/admin). يُعيد الـtoken ورابط القبول للنسخ. */
+export const createInvitation = (payload: {
+  email: string;
+  role: InviteableRole;
+}): Promise<CreateInvitationResult> =>
+  authApi.post<CreateInvitationResult>('/auth/invitations', payload).then(r => r.data);
+
+/** يسرد الدعوات المعلّقة لمستأجِر الداعي (owner/admin فقط)، tenant-scoped. */
+export const listInvitations = (): Promise<PendingInvitation[]> =>
+  authApi.get<PendingInvitation[]>('/auth/invitations').then(r => Array.isArray(r.data) ? r.data : []);
+
+/** قبول دعوة (عموميّ، محميّ بالـtoken): يُنشئ المستخدِم وينضمّ لمستأجِر الداعي
+ *  بدوره المدعوّ، ويُصدِر توكناً (دخول تلقائيّ). 400 لرمز غير صالح/منتهٍ/مستهلَك،
+ *  409 لبريد مسجّل مسبقاً. الردّ بشكل AuthResponse (مطبَّع كـlogin/register). */
+export const acceptInvitation = (payload: {
+  token: string;
+  password: string;
+  full_name: string;
+}): Promise<AuthResponse> =>
+  authApi.post('/auth/invitations/accept', payload).then(r => {
+    const d = r.data as { access_token: string; refresh_token?: string | null; role?: string;
+      full_name?: string; tenant_id?: string; user_id?: number };
+    return {
+      access_token: d.access_token,
+      refresh_token: d.refresh_token ?? null,
+      tenant_id: d.tenant_id,
+      role: d.role,
+      user_id: d.user_id,
+      full_name: d.full_name ?? payload.full_name,
+      user: { id: d.user_id, username: '', email: '', role: d.role ?? 'viewer',
+        tenant_id: d.tenant_id, full_name: d.full_name ?? payload.full_name },
+    } as AuthResponse;
+  });
+
+/** يلغي دعوة معلّقة (owner/admin فقط)، tenant-scoped. 404 لدعوة غير موجودة/غير معلّقة. */
+export const revokeInvitation = (id: number): Promise<{ message: string; id: number }> =>
+  authApi.delete<{ message: string; id: number }>(`/auth/invitations/${id}`).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // SAHOOL-PLATFORM (core) — وحدات قرار حيّة عبر البوابة الموحّدة (kong)
 // ربط حقيقيّ: لا fallback وهميّ (قرارات زراعيّة — الخطأ يُعلَن للـUI).
