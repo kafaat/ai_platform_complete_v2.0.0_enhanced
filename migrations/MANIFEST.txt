@@ -344,3 +344,4 @@ v85_nl_gis_audit.sql
 # فهرس فريد تعبيريّ COALESCE(crop_type). idempotent. (دُمِج من مرفق مع تصحيحَي صحّة:
 # فهرس فريد بدل قيد UNIQUE تعبيريّ، والنجاح من عمود success القانونيّ.)
 v86_calibration_evidence_trigger.sql
+v87_audit_log_tenant.sql

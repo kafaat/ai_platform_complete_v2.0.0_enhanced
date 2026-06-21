@@ -523,24 +523,35 @@ async def check_ip_rate(ip: str) -> None:
 
 
 # ── Audit Log ─────────────────────────────────────────────────
-async def audit_log(action: str, user_id: int | None, ip: str, details: str | None = None) -> None:
+async def audit_log(
+    action: str,
+    user_id: int | None,
+    ip: str,
+    details: str | None = None,
+    tenant_id: object | None = None,
+) -> None:
     if not _pool:
         return
     try:
         async with _pool.acquire() as conn:
             await conn.execute(
                 """
-                INSERT INTO audit_log (action, user_id, ip_address, details, created_at)
-                VALUES ($1, $2, $3, $4, NOW())
+                INSERT INTO audit_log (action, user_id, ip_address, details, tenant_id, created_at)
+                VALUES ($1, $2, $3, $4, $5, NOW())
                 -- HIGH-01 FIX: removed  (no UNIQUE constraint on audit_log)
+                -- governance #407: tenant_id للتحقيق الجنائيّ المُنطّق بالمستأجِر
             """,
                 action,
                 user_id,
                 ip,
                 details,
+                tenant_id,
             )
     except Exception as e:  # noqa: BLE001
-        logger.warning("فشل كتابة سجلّ التدقيق (غير قاتل): %s", type(e).__name__)
+        # غير قاتل (لا نكسر مسار المصادقة)، لكن فشل كتابة سجلّ التدقيق حسّاس ⇒ error لا warning.
+        logger.error(
+            "فشل كتابة سجلّ التدقيق (غير قاتل) action=%s: %s", action, type(e).__name__
+        )
 
 
 # ── Password Reset Helpers ─────────────────────────────────────
@@ -760,7 +771,7 @@ async def register(req: RegisterRequest, request: Request):
     token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)
     refresh = await create_refresh_token(row["id"], tid)
 
-    await audit_log("register", row["id"], ip)
+    await audit_log("register", row["id"], ip, tenant_id=row["tenant_id"])
     REGISTER_COUNTER.labels(status="success").inc()
 
     return TokenResponse(
@@ -835,7 +846,7 @@ async def login(req: LoginRequest, request: Request):
     refresh = await create_refresh_token(row["id"], tid)
 
     logger.info(f"Login OK: user={row['id']} role={row['role']} ip={ip}")
-    await audit_log("login", row["id"], ip)
+    await audit_log("login", row["id"], ip, tenant_id=row["tenant_id"])
     LOGIN_COUNTER.labels(status="success").inc()
 
     return TokenResponse(
