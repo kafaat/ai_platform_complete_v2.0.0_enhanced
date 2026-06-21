@@ -62,13 +62,23 @@ JWT_EXPIRY_HOURS = 24
 # من مُصدِر مجهول رغم صحّة التوقيع/الجمهور (تدقيق B: لم يكن iss يُفحَص).
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
+
 # سياسة أمنيّة: لا سرّ افتراضيّ معروف. السرّ الحرفيّ المنشور سابقاً
 # ("dev-secret-CHANGE-IN-PRODUCTION") كان يسمح لأيّ مَن يعرفه بتزوير توكن لأيّ
 # مستأجِر/دور (owner). الآن:
 #   • الإنتاج (SAHOOL_ENV=production): يجب ضبط سرّ قويّ (≥32) وإلّا توقّف (fail-closed).
 #   • التطوير: إن غاب/ضعف نولّد سرّاً عشوائيّاً لهذه العمليّة فقط — لا يُزوَّر عبر
 #     سرّ منشور، والتوكنات تُمنَح وتُتحقَّق داخل العمليّة نفسها (يكفي للاختبار/dev).
-_IS_PRODUCTION = os.getenv("SAHOOL_ENV", "development").lower() == "production"
+def _is_production() -> bool:
+    """True إن كانت SAHOOL_ENV=production — إشارة الإنتاج الموحّدة (قابلة للاختبار وحدةً).
+
+    تقرأ os.getenv عند الاستدعاء (لا تُجمَّد عند الاستيراد) كي تتمكّن البوّابات التي
+    تُقيَّم وقت الإقلاع (مثل بنّاء denylist) من رؤية البيئة الفعليّة.
+    """
+    return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+
+
+_IS_PRODUCTION = _is_production()
 # strip: مسافات/أسطر لاحقة لا تُحوّل سرّاً ضعيفاً/افتراضيّاً إلى «قويّ» (التفاف على الفحص).
 _ENV_SECRET = os.getenv("SAHOOL_JWT_SECRET", "").strip()
 _WEAK_SECRET = (
@@ -875,8 +885,12 @@ from core.jwt_denylist import (  # noqa: E402
 def _build_denylist():
     """backend الإبطال: Redis (مشترك مع auth) إن توفّر REDIS_URL وحيّ، وإلّا ذاكرة.
 
-    fail-safe: أيّ تعذّر اتّصال/استيراد ⇒ ذاكرة (يُبطِل داخل العمليّة على الأقلّ، مع
-    fail-open على الفحص). الإنتاج متعدّد العمّال يحتاج Redis لمشاركة الإبطال.
+    fail-safe (تطوير): أيّ تعذّر اتّصال/استيراد ⇒ ذاكرة (يُبطِل داخل العمليّة على الأقلّ،
+    مع fail-open على الفحص). الإنتاج متعدّد العمّال يحتاج Redis لمشاركة الإبطال.
+
+    حوكمة #408 — Redis إلزاميّ في الإنتاج (fail-closed): الذاكرة لا تُشارَك بين العمّال
+    وتفقد الإبطالات عند إعادة التشغيل، و«fail-open على الفحص» يُمرّر التوكنات المُبطَلة.
+    لذا في الإنتاج (SAHOOL_ENV=production) نرفض الإقلاع إن غاب Redis بدل التنازل صامتاً.
     """
     url = os.getenv("REDIS_URL", "")
     if url:
@@ -887,8 +901,13 @@ def _build_denylist():
             client.ping()
             logger.info("denylist: Redis مفعّل (إبطال مشترك مع auth)")
             return RedisDenylist(client)
-        except Exception as e:  # noqa: BLE001 — تعذّر Redis ⇒ ذاكرة (fail-safe)
+        except Exception as e:  # noqa: BLE001 — تعذّر Redis
+            if _is_production():
+                raise RuntimeError("Redis مطلوب في الإنتاج — الإبطال/lockout fail-closed") from e
             logger.warning("denylist: تعذّر Redis (%s) — fallback ذاكرة داخل العمليّة", e)
+    elif _is_production():
+        # لا REDIS_URL أصلاً في الإنتاج ⇒ رفض الإقلاع (لا إبطال مشترك ممكن).
+        raise RuntimeError("Redis مطلوب في الإنتاج — الإبطال/lockout fail-closed")
     return InMemoryDenylist()
 
 

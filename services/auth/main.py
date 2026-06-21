@@ -76,6 +76,16 @@ SMS_FROM = os.getenv("SMS_FROM", "SAHOOL")
 BCRYPT_ROUNDS = 12
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
+
+
+# ── إشارة الإنتاج (SAHOOL_ENV) — اصطلاح موحّد عبر المنصّة ──────────
+# القيم: production / development (الافتراضيّ development). دالّة نقيّة (تقرأ
+# os.getenv عند الاستدعاء) كي تكون قابلة للاختبار وحدةً دون رفع الخدمة.
+def _is_production() -> bool:
+    """True إن كانت SAHOOL_ENV=production (غير حسّاسة لحالة الأحرف)."""
+    return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+
+
 # ── OTP (تأكيد البريد/الهاتف) — الدوالّ/الثوابت النقيّة في otp.py (معزولة عن
 # fastapi كي تُختبَر وحدةً في CI دون تثبيت fastapi). نعيد تصديرها هنا. ──
 from otp import (  # noqa: E402
@@ -149,6 +159,13 @@ async def lifespan(app: FastAPI):
         await _redis.ping()
         logger.info("✅ Redis connected")
     except Exception as e:
+        # حوكمة #408 — Redis إلزاميّ في الإنتاج (fail-closed):
+        # بلا Redis يصبح فحص الإبطال (is_jti_revoked) و«قفل الحساب»/الحدّ الأدنى للتوكنات
+        # fail-open: توكن مُبطَل/مُسجَّل خروجه يمرّ، والقفل يتعطّل. هذا غير مقبول في الإنتاج.
+        # لذا في الإنتاج نرفض الإقلاع بدل التشغيل صامتاً بإبطال معطّل.
+        if _is_production():
+            raise RuntimeError("Redis مطلوب في الإنتاج — الإبطال/lockout fail-closed") from e
+        # التطوير: نُبقي السلوك القديم (تحذير + تنازل) كي يعمل dev/CI بلا Redis.
         logger.warning(f"Redis unavailable: {e} — refresh tokens disabled")
         _redis = None
 
