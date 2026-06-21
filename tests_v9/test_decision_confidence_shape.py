@@ -86,3 +86,8 @@ def test_provenance_and_levels():
     assert out["generated_at"] == "2026-06-21T00:00:00+00:00"
     assert out["provenance"]["calibrated"] == "not_applicable"
     assert "عرض فقط" in out["provenance"]["note_ar"]
+
+
+def test_thresholds_estimated_flagged():
+    out = fuse_decision_confidence({"sensor": {"value": 0.5}})
+    assert out["provenance"]["thresholds_estimated"] is True

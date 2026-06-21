@@ -25,7 +25,7 @@ _WEIGHTS = {
     "signal": 0.1,
 }
 
-# عتبات عمر آخر إرسال (ثوانٍ) → درجة نضارة.
+# عتبات عمر آخر إرسال (ثوانٍ) → درجة نضارة. ⚠ تقديريّة موسومة، غير معايَرة (thresholds_estimated).
 _HOUR = 3600
 _FRESHNESS_BANDS = ((1 * _HOUR, 1.0), (6 * _HOUR, 0.8), (24 * _HOUR, 0.5), (72 * _HOUR, 0.25))
 _STALE_AFTER_SEC = 24 * _HOUR  # أقدم من يوم ⇒ «بائت» (stale)
@@ -194,6 +194,7 @@ def shape_device_twin(devices: list[dict], *, generated_at: str | None = None) -
         "fleet_confidence": fleet_confidence,
         "provenance": {
             "calibrated": "not_applicable",
+            "thresholds_estimated": True,  # عتبات النضارة/البطّاريّة/المعايرة تقديريّة غير معايَرة
             "note_ar": (
                 "ثقة الحسّاس معادلة موزونة شفّافة (نضارة/بطّاريّة/معايرة/إشارة) على "
                 "الإشارات المتوفّرة فقط — العتبات تقديريّة غير معايَرة، والجهاز بلا إشارة "

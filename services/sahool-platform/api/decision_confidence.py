@@ -105,6 +105,7 @@ def fuse_decision_confidence(components: dict, *, generated_at: str | None = Non
         "missing": missing,
         "provenance": {
             "calibrated": "not_applicable",
+            "thresholds_estimated": True,  # الأوزان/العتبات تقديريّة غير معايَرة
             "note_ar": (
                 "ثقة القرار تركيبة موزونة شفّافة (حسّاس/دليل/استشعار/طقس) على المصادر "
                 "المتوفّرة فقط — الأوزان تقديريّة غير معايَرة، والمصدر الغائب يُعلَن missing "

@@ -141,3 +141,9 @@ def test_empty_network_safe():
     assert out["zone_count"] == 0
     assert out["overall_feasible"] is True
     assert out["wells"] == []
+
+
+def test_thresholds_estimated_flagged():
+    nodes, edges = _chain(well_cap=1000, zone_demand=100)
+    out = check_network_feasibility(nodes, edges)
+    assert out["thresholds_estimated"] is True
