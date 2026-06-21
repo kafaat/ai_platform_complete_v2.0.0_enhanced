@@ -88,6 +88,8 @@ import {
   fetchDecisionExplain, type DecisionExplainResult,
   // ── Agronomic Timeline: الخطّ الزمنيّ الموحّد للحقل (قراءة فقط) ──
   fetchUnifiedTimeline, type UnifiedTimeline,
+  // ── Decision Confidence: ثقة القرار الموحَّدة لحقل (قراءة فقط) ──
+  fetchDecisionConfidence, type DecisionConfidenceResult,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
@@ -1106,6 +1108,21 @@ export function useUnifiedTimeline(
   return useQuery<UnifiedTimeline, Error>({
     queryKey: ['unified-timeline', tid, fieldId ?? 'none', limit, newestFirst, category ?? 'all'],
     queryFn:  () => fetchUnifiedTimeline(fieldId as string, { limit, newestFirst, category }),
+    staleTime:2 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
+  });
+}
+
+// ── Decision Confidence: ثقة القرار الموحَّدة لحقل (قراءة فقط، نطاق حقل) ──
+// GET /api/v1/fields/{id}/decision-confidence. مُفعَّل فقط مع fieldId. retry:false كي
+// يُكشَف 404 (العلم FEATURE_DECISION_CONFIDENCE مُطفأ) فوراً ⇒ إشعار «الميزة غير مُفعَّلة»،
+// و503 ⇒ حالة خطأ صادقة. لا fallback وهميّ. المفتاح يضمّ المستأجِر لعزل الكاش.
+export function useDecisionConfidence(fieldId?: string): UseQueryResult<DecisionConfidenceResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<DecisionConfidenceResult, Error>({
+    queryKey: ['decision-confidence', tid, fieldId ?? 'none'],
+    queryFn:  () => fetchDecisionConfidence(fieldId as string),
     staleTime:2 * 60_000,
     retry:    false,
     enabled:  !!fieldId,
