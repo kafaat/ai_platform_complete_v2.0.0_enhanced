@@ -367,3 +367,9 @@ v91_workflow_compensation_failures.sql
 # فهارس جزئيّة (pending FIFO / processed retention). RLS+FORCE عبر
 # _sahool_apply_tenant_rls (نفس نمط v15). idempotent.
 v92_offline_pending_ops.sql
+# v93: processed_events — استهلاك outbox مُتعاضد (idempotent consumption، at-most-once).
+# مخزن تعاضُد على مستوى الحدث: المُستهلِك يُطالِب الحدث (INSERT … ON CONFLICT DO NOTHING)
+# داخل نفس معاملة الأثر الجانبيّ ⇒ تعطّل في المنتصف يُرجِع كليهما (لا أثر مزدوج رغم
+# تسليم outbox at-least-once). عالميّ عمداً (لا tenant_id) — مُستهلِك عابر للمستأجرين
+# على دور sahool_jobs/BYPASSRLS، مرآةً لـevent_outbox/weather_grid. idempotent.
+v93_processed_events.sql
