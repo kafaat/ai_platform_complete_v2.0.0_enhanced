@@ -26,7 +26,7 @@ import logging
 import os
 import uuid as _uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api.decision_lineage import ensure_decision_id, lineage_stage
@@ -45,10 +45,101 @@ logger = logging.getLogger(__name__)
 
 _TRUTHY = {"1", "true", "yes", "on"}
 
+# حالات الحَوكمة التي تُقِرّ التوزيع (مطابِقة لـcoordinator/decision_dispatch). أيّ حالة
+# أخرى (not_evaluated/error/مجهولة) ⇒ القرار استشاريّ فقط (fail-closed، لا موافقة مُختلقة).
+_GOVERNANCE_APPROVED_STATES = frozenset({"approved", "passed", "cleared", "ok"})
+
+# مصدر الملكيّة الموثوق (جدول fields عبر دالّة SECURITY DEFINER). نقرؤه محليّاً —
+# لا نعبر استيراداً بين الخدمات (نمط raster-service/db_persist محفوظ، لا مشترك).
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+
 
 def _auto_persist_enabled() -> bool:
-    """هل إدامة القرار التلقائيّة عند المصدر مُفعَّلة؟ (مُطفأة افتراضاً — إنضاج تدريجيّ)."""
+    """هل إدامة القرار **الاستشاريّ** التلقائيّة عند المصدر مُفعَّلة؟ (مُطفأة افتراضاً).
+
+    العلم يحكم القرارات الاستشاريّة فقط؛ القرار **القابل للتنفيذ** يُدام دائماً
+    (إلزاميّ، fail-closed) بغضّ النظر عن العلم — auditability غير قابلة للتفاوض."""
     return os.getenv("SAHOOL_AUTO_PERSIST_DECISIONS", "").strip().lower() in _TRUTHY
+
+
+def _decision_is_executable(decision_value: dict, executable: bool | None) -> bool:
+    """هل القرار قابل للتنفيذ؟ (executable = actionable AND governance_permits_dispatch).
+
+    يُؤخذ من المُمرَّر صراحةً (executable) إن وُجد، وإلّا يُستنبَط من decision_value
+    (مفتاح executable الصريح، أو actionable مع governance.status موافِقة). fail-closed:
+    أيّ غموض ⇒ يُعامَل القرار كاستشاريّ في تحديد الإلزاميّة، لكنّ كلّ ما هو executable
+    يقيناً يُحجَز للإدامة الإلزاميّة (لا يُتصرَّف به بلا سجلّ دائم)."""
+    if executable is not None:
+        return bool(executable)
+    if not isinstance(decision_value, dict):
+        return False
+    if isinstance(decision_value.get("executable"), bool):
+        return decision_value["executable"]
+    gov = decision_value.get("governance")
+    status = ""
+    if isinstance(gov, dict):
+        status = str(gov.get("status", "")).strip().lower()
+    actionable = bool(decision_value.get("actionable"))
+    return actionable and status in _GOVERNANCE_APPROVED_STATES
+
+
+class OwnerLookupUnavailable(Exception):
+    """تعذّر إثبات ملكيّة الحقل رغم أنّ القاعدة **مُهيّأة** (DATABASE_URL مضبوط) —
+    اتّصال/استعلام فاشل أو الدالّة غائبة. يُميَّز عن «وضع بلا قاعدة» (DATABASE_URL غير
+    مضبوط) كي يستطيع المسار fail-closed عند تعذّر الإثبات فقط، دون كسر التشغيل بلا قاعدة."""
+
+
+async def _field_owner_tenant(field_id: str) -> str | None:
+    """مالك الحقل (tenant_id نصّاً) من المصدر الموثوق عبر `sahool_field_owner_tenant`.
+
+    تعاقُد الإرجاع (مطابق لـraster-service/db_persist.field_owner_tenant):
+    - نصّ المالك إن وُجد الحقل في fields.
+    - None إن: (أ) DATABASE_URL غير مضبوط (وضع بلا قاعدة مقصود — لا حجب) أو (ب) الحقل
+      غير موجود فعلاً (استعلام نجح بلا صفّ).
+    - يرفع OwnerLookupUnavailable إن كان DATABASE_URL **مضبوطاً** لكن تعذّر الاتّصال/
+      الاستعلام/الدالّة غائبة ⇒ لا يمكن إثبات الملكيّة ⇒ يقرّر المنادي fail-closed (503)."""
+    if not DATABASE_URL:
+        return None  # وضع بلا قاعدة مقصود (DB-less/CI) — لا مصدر ملكيّة، لا حجب
+    try:
+        import asyncpg
+    except ImportError:  # القاعدة مضبوطة لكنّ السائق غائب ⇒ لا يمكن الإثبات
+        raise OwnerLookupUnavailable("asyncpg غير متاح") from None
+    try:
+        conn = await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
+    except Exception as e:  # noqa: BLE001 — DATABASE_URL مضبوط لكنّ الاتّصال فشل
+        raise OwnerLookupUnavailable(f"connect failed for field {field_id}") from e
+    try:
+        owner = await conn.fetchval("SELECT sahool_field_owner_tenant($1)", field_id)
+        return str(owner) if owner else None  # مالك، أو None = غير موجود فعلاً
+    except Exception as e:  # noqa: BLE001 — DB مُهيّأة لكن الاستعلام/الدالّة تعذّرا
+        logger.warning("field_owner_tenant unavailable (%s): %s", field_id, type(e).__name__)
+        raise OwnerLookupUnavailable(str(e)) from e
+    finally:
+        await conn.close()
+
+
+async def _assert_field_ownership(user: UserSchema, field_id: str | None) -> None:
+    """يرفض كتابة قرار على حقلٍ لا يملكه المنادي (دفاع عميق فوق RLS، fail-closed).
+
+    - field_id فارغ ⇒ لا حقل لِيُتحقَّق (قرار بلا حقل) — يمرّ.
+    - بلا DATABASE_URL (DB-less/CI) ⇒ المالك None ⇒ لا حجب (يحفظ خضرة CI).
+    - الحقل غير موجود (None رغم القاعدة) ⇒ 404 (لا نكتب قراراً على حقل مجهول).
+    - المالك ≠ مستأجِر المنادي ⇒ 403 (لا نكتب قراراً على حقل غيره — صدق + أمان).
+    - OwnerLookupUnavailable ⇒ 503 (تعذّر الإثبات ⇒ fail-closed، لا نكتب على غموض)."""
+    if not field_id:
+        return
+    try:
+        owner = await _field_owner_tenant(field_id)
+    except OwnerLookupUnavailable as e:
+        raise _db_unavailable("إثبات ملكيّة الحقل", e) from e
+    if owner is None:
+        if not DATABASE_URL:
+            return  # وضع بلا قاعدة — لا مصدر ملكيّة، لا حجب (CI)
+        raise HTTPException(status_code=404, detail="الحقل غير موجود")
+    if str(owner) != str(user.tenant_id):
+        raise HTTPException(
+            status_code=403, detail="غير مصرَّح: الحقل ليس ضمن مستأجِرك"
+        )
 
 
 async def persist_decision_if_enabled(
@@ -60,17 +151,26 @@ async def persist_decision_if_enabled(
     field_id: str | None = None,
     region: str | None = None,
     confidence: float | None = None,
+    executable: bool | None = None,
 ) -> bool:
-    """يُدِيم القرار في decision_record إن فُعِّل العلم — **best-effort عند المصدر**.
+    """يُدِيم القرار في decision_record — **إلزاميّ للقابل للتنفيذ، اختياريّ للاستشاريّ**.
 
-    تُستدعى من نقاط القرار (crop-twin/decision، irrigation-plan) لتلتقط كلّ قرار في
-    السلسلة المُدامة تلقائيّاً بلا نداء /decision/record منفصل. الصدق: الحساب نقيّ وقد تمّ
-    سلفاً؛ الإدامة أثر جانبيّ — إطفاء العلم أو تعذّر القاعدة لا يكسر إصدار القرار (يُسجَّل
-    ويُتابَع)، ويعيد هل أُدِيم فعلاً (persisted). مسار كتابة (يتطلّب Postgres؛ تكامليّ).
-    نفس INSERT الصريح في record_decision (ON CONFLICT DO NOTHING — لاتكرار آمن).
+    قرار قابل للتنفيذ (executable = actionable AND governance_permits_dispatch) **يجب**
+    أن يُدام أيّاً كان حال SAHOOL_AUTO_PERSIST_DECISIONS — لا يُتصرَّف بقرارٍ بلا سجلّ دائم
+    (صدق: auditability غير قابلة للتفاوض). فشل إدامة قرار قابل للتنفيذ ⇒ fail-closed
+    (يُرفع 503 لا يُمضى كأنّه سُجِّل). القرار الاستشاريّ يبقى محكوماً بالعلم (best-effort:
+    إطفاء العلم/تعذّر القاعدة لا يكسر إصداره).
+
+    قبل أيّ إدراج: فحص ملكيّة الحقل (`sahool_field_owner_tenant`) — لا يُكتَب قرار على حقلٍ
+    لا يملكه المنادي (403/404)، وتعذّر الإثبات ⇒ 503. بلا DATABASE_URL ⇒ لا حجب (CI).
     """
-    if not _auto_persist_enabled():
-        return False
+    is_executable = _decision_is_executable(decision_value, executable)
+    if not is_executable and not _auto_persist_enabled():
+        return False  # استشاريّ والعلم مُطفأ ⇒ لا إدامة (best-effort، لا مسّ بالقاعدة)
+
+    # فحص الملكيّة قبل أيّ كتابة (يرفع 403/404/503). لا يلمس القاعدة بلا DATABASE_URL.
+    await _assert_field_ownership(user, field_id)
+
     conf = confidence if isinstance(confidence, (int, float)) else None
     try:
         async with tenant_connection(user) as conn:
@@ -103,7 +203,14 @@ async def persist_decision_if_enabled(
                 },
             )
         return True
-    except Exception as e:  # noqa: BLE001 — أثر جانبيّ: فشل الإدامة لا يكسر إصدار القرار
+    except HTTPException:
+        raise  # 403/404/503 من فحص الملكيّة لا يُبتلَع
+    except Exception as e:  # noqa: BLE001
+        if is_executable:
+            # قرار قابل للتنفيذ بلا سجلّ ⇒ fail-closed: لا نُمضي كأنّه سُجِّل (503 موثَّق).
+            logger.error("إدامة قرار قابل للتنفيذ %s فشلت — fail-closed: %s", decision_id, e)
+            raise _db_unavailable("إدامة قرار قابل للتنفيذ", e) from e
+        # استشاريّ: أثر جانبيّ — فشل الإدامة لا يكسر إصدار القرار.
         logger.warning("auto-persist decision %s تخطّي: %s", decision_id, e)
         return False
 
