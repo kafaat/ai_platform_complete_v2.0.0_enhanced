@@ -1701,20 +1701,13 @@ def test_security_hardening():
     def rd(p):
         return open(os.path.join(base, p), encoding="utf-8").read()
 
-    # ١. register يثبّت farmer (منع تصعيد)
+    # ١. register يُسنِد owner لمؤسِّس المستأجِر الجديد + لا حقل role من العميل
+    #    (التسجيل الذاتيّ يُنشئ مستأجِراً معزولاً ⇒ المُسجِّل مالكه؛ لا تصعيد عابر).
     auth = rd("services/auth/main.py")
-    reg = auth[auth.index("async def register") : auth.index("async def register") + 700]
-    if (
-        "'farmer'" in reg
-        and "role:"
-        not in rd("services/auth/main.py")[
-            rd("services/auth/main.py").index("class RegisterRequest") : rd(
-                "services/auth/main.py"
-            ).index("class RegisterRequest")
-            + 250
-        ]
-    ):
-        r.append(("\u2713", "register يثبّت 'farmer' + لا حقل role (منع تصعيد)"))
+    reg = auth[auth.index("async def register") : auth.index("async def register") + 900]
+    rr = auth[auth.index("class RegisterRequest") : auth.index("class RegisterRequest") + 250]
+    if "'owner'" in reg and "role:" not in rr:
+        r.append(("\u2713", "register يُسنِد 'owner' لمؤسِّس المستأجِر + لا حقل role (لا تصعيد)"))
     # ٢. actuator مصادقة + هويّة من التوكن
     act = rd("services/actuator-service/main.py")
     if "Depends(_verify_token)" in act and 'claims["tenant_id"]' in act:

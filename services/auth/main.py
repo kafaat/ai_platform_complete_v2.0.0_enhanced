@@ -8,7 +8,7 @@ SAHOOL v9.1 — services/auth/main.py (المُحسَّن)
   ✅ Account Lockout (5 محاولات → 15 دقيقة)
   ✅ X-Tenant-ID header في كل responses
   ✅ Logout endpoint (يُبطل access + refresh)
-  ✅ RBAC roles: admin / expert / farmer / viewer
+  ✅ RBAC roles: owner (تسجيل ذاتيّ) / admin / expert / farmer / viewer
   ✅ audit_log table for sensitive operations
 """
 
@@ -249,7 +249,7 @@ async def tenant_header_middleware(request: Request, call_next):
 
 
 # ── Models ─────────────────────────────────────────────────────
-ValidRole = Literal["admin", "expert", "farmer", "viewer"]
+ValidRole = Literal["owner", "admin", "expert", "farmer", "viewer"]
 
 
 class RegisterRequest(BaseModel):
@@ -751,16 +751,21 @@ async def register(req: RegisterRequest, request: Request):
             row = await conn.fetchrow(
                 """
                 INSERT INTO users (email, password_hash, full_name, role)
-                VALUES ($1, $2, $3, 'farmer')
+                VALUES ($1, $2, $3, 'owner')
                 RETURNING id, email, role, full_name, tenant_id
             """,
                 req.email,
                 hashed,
                 req.full_name,
             )
-            # الأمان: الدور مثبّت 'farmer' خادم-جانبيّاً. الترقية لأدوار أعلى
-            # تتمّ فقط عبر /auth/users/{id}/role المحمي بـrequire_role("admin").
-            # الدور المُرسَل من العميل يُتجاهَل تماماً لمنع تصعيد الصلاحيات.
+            # الأمان + الإقلاع: التسجيل الذاتيّ يُنشئ **مستأجِراً جديداً معزولاً**
+            # (users.tenant_id افتراضه gen_random_uuid)، فالمُسجِّل هو مؤسِّس مؤسّسته ⇒
+            # دوره 'owner' (TENANT_OWNER) كي يستطيع إنشاء/إدارة حقوله وفريقه — وإلّا
+            # «Bootstrap Deadlock»: يملك مستأجِراً لا يقدر على تأسيسه. آمن: RLS يعزل
+            # المستأجرين فلا تصعيد عابر؛ وهو مالك مستأجِره وحده. الدور المُرسَل من
+            # العميل يُتجاهَل (لا حقل role في RegisterRequest). الأعضاء اللاحقون
+            # يُضافون لمستأجِر قائم بأدوار أدنى عبر دعوة (manager/agronomist/worker/
+            # viewer) — لا عبر التسجيل الذاتيّ.
         except asyncpg.UniqueViolationError as e:
             REGISTER_COUNTER.labels(status="conflict").inc()
             raise HTTPException(status.HTTP_409_CONFLICT, "البريد الإلكتروني مسجّل مسبقاً") from e
