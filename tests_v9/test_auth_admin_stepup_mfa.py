@@ -103,7 +103,9 @@ class _FakePool:
 
 
 def _run(coro):
-    return asyncio.get_event_loop().run_until_complete(coro)
+    # asyncio.run: حلقة جديدة لكلّ نداء — متين في الدفعة (auto mode). get_event_loop
+    # قد يُعيد حلقة مُغلقة من اختبار async سابق ⇒ فشل في الدفعة لا في العزل.
+    return asyncio.run(coro)
 
 
 class TestVerifyCallerMfa:
