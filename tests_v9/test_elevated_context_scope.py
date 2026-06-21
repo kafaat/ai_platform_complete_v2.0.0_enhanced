@@ -28,8 +28,11 @@ BASE = os.path.dirname(os.path.dirname(__file__))
 _AUTH_DOMAIN_TABLES = {"users", "audit_log", "invitations"}
 
 # مرسِل/مجدوِل sahool_jobs: نطاقه فقط.
+# processed_events: مخزن تعاضُد الاستهلاك (v91) — جدول بنية تحتيّة عالميّ بلا tenant_id
+# (لا بيانات مستأجِر تتسرّب، مفتاحه event_id فقط). المرسِل يُطالِب الحدث فيه تحت BYPASSRLS
+# قبل النشر (idempotent consumption، at-most-once) — ضمن نطاقه عمداً.
 _JOBS_SCOPE = {
-    "services/sahool-platform/api/event_bus.py": {"event_outbox", "events"},
+    "services/sahool-platform/api/event_bus.py": {"event_outbox", "events", "processed_events"},
     "services/sahool-platform/api/weather_automation.py": {
         "weather_automation_cache",
         "weather_automation_locations",

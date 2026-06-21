@@ -58,13 +58,30 @@ class SyncStatus(str, Enum):
 
 
 class OperationKind(str, Enum):
-    """أنواع العمليات القابلة للـqueue."""
+    """أنواع العمليات القابلة للـqueue.
 
+    القيم القديمة محفوظة بقيمها النصّيّة كما هي (لا كسر للعقد ولا للبيانات
+    المُخزّنة سلفاً). الإضافات تُعدِّد العمليّات القابلة للإنشاء offline التي
+    تقبلها/تُرسلها مسارات المنصّة فعليّاً (تدقيق ‎api/routers/*‎)، فيتّسع
+    التعداد ليطابق ما يُرسله العميل بدل رفضه بـ400.
+    """
+
+    # ── قيم أصليّة (محفوظة — لا تُغيَّر قيمها النصّيّة) ──────────────────
     OBSERVATION_CREATE = "observation_create"
     ACTIVITY_COMPLETE = "activity_complete"
     ACTIVITY_SKIP = "activity_skip"
     RECOMMENDATION_REQUEST = "recommendation_request"
     CALIBRATION_RECORD = "calibration_record"
+
+    # ── توسيع: عمليّات mutating أخرى يُنشئها العميل offline ───────────
+    TASK_UPDATE = "task_update"  # PATCH /api/v1/tasks/{id} (إكمال/تأجيل مهمّة)
+    DECISION_RECORD = "decision_record"  # POST /api/v1/decision/record
+    OUTCOME_RECORD = "outcome_record"  # POST /api/v1/outcome/record|measure
+    IRRIGATION_PLAN = "irrigation_plan"  # POST /api/v1/irrigation-plan
+    HARVEST_LOT_CREATE = "harvest_lot_create"  # POST /api/v1/harvest-lots
+    RECOMMENDATION_OUTCOME = "recommendation_outcome"  # POST …/recommendations/outcomes
+    SOIL_LAB_TEST = "soil_lab_test"  # نتيجة مختبر تربة تُسجَّل ميدانيّاً
+    PHOTO_UPLOAD = "photo_upload"  # رفع صورة حقل ملتقطة offline
 
 
 @dataclass

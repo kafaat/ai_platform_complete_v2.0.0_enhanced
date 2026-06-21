@@ -84,6 +84,42 @@ def test_outbox_publish_then_mark_sent():
     assert pub < sent, "وسم 'sent' يجب أن يلي النشر (at-least-once، لا فقدان)"
 
 
+# ── 3b. استهلاك مُتعاضد (processed_events، at-most-once) ──
+def test_processed_events_dedup_table_present():
+    sql = _read("migrations/v93_processed_events.sql")
+    assert "CREATE TABLE IF NOT EXISTS processed_events" in sql, "جدول processed_events مفقود"
+    assert "event_id     UUID         PRIMARY KEY" in sql or "event_id UUID PRIMARY KEY" in sql, (
+        "processed_events.event_id ليس PRIMARY KEY (مفتاح التعاضُد)"
+    )
+    # عالميّ عمداً: لا عمود tenant_id (مُستهلِك عابر للمستأجرين على sahool_jobs/BYPASSRLS).
+    # نفحص جسم الـCREATE TABLE فقط (لا التعليقات/الـCOMMENT التي تشرح غياب tenant_id قصداً).
+    import re
+
+    body = re.search(r"CREATE TABLE[^(]*\((.*?)\)\s*;", sql, re.S).group(1)
+    assert not re.search(r"\btenant_id\b", body), (
+        "processed_events جدول بنية تحتيّة عالميّ — لا يجب أن يحوي عمود tenant_id"
+    )
+
+
+def test_processed_events_in_manifest_order():
+    manifest = _read("migrations/MANIFEST.txt")
+    assert "v93_processed_events.sql" in manifest, "v93 غير مُدرَج في MANIFEST (لن يُطبَّق)"
+
+
+def test_consumer_claims_before_side_effect_atomically():
+    src = _read("services/sahool-platform/api/event_bus.py")
+    # المطالبة عبر ON CONFLICT DO NOTHING (idempotency key).
+    assert "INSERT INTO processed_events" in src, "لا مطالبة عبر processed_events"
+    assert "ON CONFLICT (event_id) DO NOTHING" in src, "المطالبة ليست idempotent"
+    # المطالبة (claim) تسبق النشر (الأثر الجانبيّ) ⇒ لا أثر مزدوج.
+    claim = src.index("claim_event(conn, row[")
+    pub = src.index("await self.publish(", claim)
+    assert claim < pub, "المطالبة يجب أن تسبق النشر (تعاضُد قبل الأثر الجانبيّ)"
+    # الذرّيّة: claim+publish داخل conn.transaction() (SAVEPOINT) ⇒ فشل يُرجِع كليهما.
+    tx = src.rindex("async with conn.transaction():", 0, claim)
+    assert tx < claim < pub, "المطالبة والنشر ليسا داخل معاملة متداخلة (لا ذرّيّة)"
+
+
 # ── 4. ترتيب حتميّ ──
 def test_deterministic_ordering():
     src = _read("services/sahool-platform/api/event_bus.py")

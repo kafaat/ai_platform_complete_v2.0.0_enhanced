@@ -197,7 +197,9 @@ def test_step_without_compensate_is_skipped_but_others_still_compensated():
 
 def test_failing_compensate_does_not_halt_remaining_compensations():
     # فشل دالّة تعويض واحدة لا يوقف سلسلة التعويض (نُعوّض ما نستطيع)، والخطوة
-    # التي فشل تعويضها لا تُسجَّل في compensated_steps (لم يكتمل تراجعها).
+    # التي فشل تعويضها لا تُسجَّل في compensated_steps (لم يكتمل تراجعها). صدق
+    # fail-loud: تُسجَّل في compensation_failures والحالة COMPENSATION_FAILED
+    # (تراجع جزئيّ غير متّسق — لا تُبتلَع ولا تُدّعى COMPENSATED زائفة).
     store = InMemoryWorkflowStore()
     undone: list[str] = []
 
@@ -210,9 +212,12 @@ def test_failing_compensate_does_not_halt_remaining_compensations():
         WorkflowStep("s3", lambda ctx: (_ for _ in ()).throw(RuntimeError("x"))),
     ]
     st = run_workflow("wf-compfail", steps, store=store, compensate_on_failure=True)
-    assert st.status == WorkflowStatus.COMPENSATED
+    assert st.status == WorkflowStatus.COMPENSATION_FAILED  # تراجع جزئيّ مُعلَن
     assert undone == ["s1"]  # رغم فشل تعويض s2، استمرّ التعويض إلى s1
     assert st.compensated_steps == ["s1"]  # s2 لم تُسجَّل (تعويضها فشل)
+    # فشل التعويض مُدوَّن في الحالة (لا ابتلاع صامت) — يصمد ويظهر للرصد.
+    assert [f["step_id"] for f in st.compensation_failures] == ["s2"]
+    assert "compensation failed" in st.compensation_failures[0]["error"]
 
 
 def test_compensation_runs_exactly_once_per_step():

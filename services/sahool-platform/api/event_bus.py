@@ -383,6 +383,56 @@ class EventBus:
             ]
 
 
+# ─── Idempotent consumption (processed_events dedup) ────────────
+
+# وسم المُستهلِك الافتراضيّ في processed_events.consumer — مُستهلِك relay الـoutbox.
+OUTBOX_CONSUMER_NAME: str = "outbox_relay"
+
+
+def claim_is_first(insert_status: str | None) -> bool:
+    """هل المطالبة (claim) هي أوّل استهلاك للحدث؟ — نقيّة، حتميّة، بلا قاعدة.
+
+    asyncpg ``conn.execute`` يُرجع وسماً نصّيّاً مثل ``"INSERT 0 1"`` (نُسِخ صفّ واحد)
+    أو ``"INSERT 0 0"`` (تعارض على الـPK ⇒ DO NOTHING، لم يُدرَج شيء). نفصل تفسير
+    rowcount عن تنفيذ الـSQL كي يُختبَر offline:
+
+      • أُدرِج صفّ (rowcount ≥ 1)  ⇒ أوّل استهلاك  ⇒ True  (طبّق الأثر الجانبيّ).
+      • تعارض (rowcount = 0)      ⇒ عولِج سابقاً  ⇒ False (تخطَّ — لا أثر مزدوج).
+
+    أيّ وسم غير مفهوم (None/خالٍ/مشوَّه) يُعامَل **محافِظاً** كأوّل استهلاك (True):
+    أثر جانبيّ مُعاد (at-least-once) أأمن من ابتلاع صامت لحدث لم يُعالَج قطّ.
+    """
+    if not insert_status:
+        return True
+    try:
+        count = int(str(insert_status).rsplit(" ", 1)[-1])
+    except (ValueError, IndexError):
+        return True
+    return count >= 1
+
+
+async def claim_event(conn, event_id, consumer: str = OUTBOX_CONSUMER_NAME) -> bool:
+    """يُطالِب حدثاً للاستهلاك مرّةً واحدة عبر processed_events (idempotency key).
+
+    INSERT … ON CONFLICT (event_id) DO NOTHING داخل **معاملة المُستدعي** (لا معاملة
+    جديدة هنا) — كي تُثبَّت المطالبة والأثر الجانبيّ معاً أو يُرجَعا معاً (ذرّيّة).
+    يُرجع True إن كانت أوّل مطالبة (طبّق الأثر) أو False إن عولِج سابقاً (تخطَّ).
+
+    DB-less: المُستدعي يقرّر استدعاءها (المرسِل يفعل ذلك فقط حين توفّر conn حقيقيّ).
+    قابلة للاختبار بـconn زائف يُرجع وسم INSERT.
+    """
+    status = await conn.execute(
+        """
+        INSERT INTO processed_events (event_id, consumer)
+        VALUES ($1::uuid, $2)
+        ON CONFLICT (event_id) DO NOTHING
+        """,
+        str(event_id),
+        consumer,
+    )
+    return claim_is_first(status)
+
+
 # ─── OutboxWorker (background task) ─────────────────────────────
 
 
@@ -489,7 +539,18 @@ class OutboxWorker:
                 return len(rows)
 
     async def _send_one(self, conn, row):
-        """يرسل event واحد إلى NATS مع retry tracking."""
+        """يرسل event واحد إلى NATS مع retry tracking + تعاضُد استهلاك (idempotent).
+
+        التعاضُد (P1): تسليم الـoutbox at-least-once (صفّ مُرسَل قبيل تعطّل قبل وسمه
+        'sent' يُعاد). لذا قبل النشر (الأثر الجانبيّ) نُطالِب الحدث عبر processed_events.
+
+        الذرّيّة (savepoint): المطالبة + النشر + وسم 'sent' داخل معاملة متداخلة
+        (conn.transaction() = SAVEPOINT داخل معاملة الدُّفعة). فشل النشر ⇒ يُرجَع
+        SAVEPOINT ⇒ تُلغى المطالبة (processed_events) معاً ⇒ لا «معالَج» بلا نشر،
+        ويُعاد الحدث في دورة لاحقة. تتبّع المحاولة (retry/dead-letter) يُحدَّث **بعد**
+        التراجع (خارج SAVEPOINT) فيبقى مُثبَّتاً. مطالبة مُتعارِضة (عولِج سابقاً) ⇒
+        نتخطّى النشر ونُجرّد الصفّ بوسمه 'sent' (لا أثر مزدوج، ولا إعادة محاولة عبثيّة).
+        """
         envelope = {
             "event_id": str(row["event_id"]),
             "event_type": row["event_type"],
@@ -503,15 +564,34 @@ class OutboxWorker:
         }
 
         try:
-            await self.publish(row["nats_subject"], json.dumps(envelope).encode())
-            await conn.execute(
-                """
-                UPDATE event_outbox
-                SET status = 'sent', sent_at = NOW(), last_error = NULL
-                WHERE outbox_id = $1
-                """,
-                row["outbox_id"],
-            )
+            async with conn.transaction():  # SAVEPOINT: مطالبة+نشر+وسم ذرّيّاً
+                # المطالبة الذرّيّة أوّلاً: عولِج سابقاً (إعادة تسليم) ⇒ تخطَّ النشر.
+                claimed = await claim_event(conn, row["event_id"])
+                if not claimed:
+                    logger.debug(
+                        "event already processed (skip publish): event_id=%s outbox_id=%s",
+                        row["event_id"],
+                        row["outbox_id"],
+                    )
+                    await conn.execute(
+                        """
+                        UPDATE event_outbox
+                        SET status = 'sent', sent_at = NOW(), last_error = NULL
+                        WHERE outbox_id = $1
+                        """,
+                        row["outbox_id"],
+                    )
+                    return
+
+                await self.publish(row["nats_subject"], json.dumps(envelope).encode())
+                await conn.execute(
+                    """
+                    UPDATE event_outbox
+                    SET status = 'sent', sent_at = NOW(), last_error = NULL
+                    WHERE outbox_id = $1
+                    """,
+                    row["outbox_id"],
+                )
         except Exception as e:
             err_msg = f"{type(e).__name__}: {str(e)[:200]}"
             new_retry = row["retry_count"] + 1
