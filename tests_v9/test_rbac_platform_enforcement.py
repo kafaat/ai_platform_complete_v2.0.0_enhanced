@@ -79,14 +79,15 @@ def test_role_normalization_bridges_auth_to_core(app_mod):
 
     cases = {
         "owner": UserRole.OWNER,
-        "admin": UserRole.OWNER,  # خدمة auth → owner (لا هبوط صامت)
+        # حوكمة: admin ⇒ PLATFORM_ADMIN لا OWNER (platform_admin ≠ tenant_owner)
+        "admin": UserRole.PLATFORM_ADMIN,
         "manager": UserRole.MANAGER,
         "agronomist": UserRole.AGRONOMIST,
         "expert": UserRole.AGRONOMIST,  # auth → agronomist
         "worker": UserRole.WORKER,
         "farmer": UserRole.WORKER,  # auth → worker
         "viewer": UserRole.VIEWER,
-        "ADMIN": UserRole.OWNER,  # غير حسّاس لحالة الأحرف
+        "ADMIN": UserRole.PLATFORM_ADMIN,  # غير حسّاس لحالة الأحرف
         "  expert ": UserRole.AGRONOMIST,  # يُشذَّب
     }
     for raw, expected in cases.items():
@@ -117,6 +118,47 @@ def test_permission_matrix_sanity(app_mod):
         user_id="u", tenant_id="t", role=UserRole.OWNER, name_ar="x", is_active=False
     )
     assert has_permission(inactive, Permission.OBSERVATION_RECORD) is False
+
+
+@pytest.mark.unit
+def test_platform_admin_separated_from_tenant_owner(app_mod):
+    """حوكمة: platform_admin يدير المنصّة ولا يملك بيانات المستأجِر افتراضيّاً.
+
+    يُجسّد `platform_admin ≠ tenant_owner`: للمدير صلاحيات منصّة (تدقيق/مستخدمون/
+    إدارة منصّة) لكن **بلا** أيّ صلاحية على بيانات المستأجِر (حقول/توصيات/ري/
+    مبيدات). OWNER يبقى كامل الصلاحيات داخل مستأجِره (لا انحدار)."""
+    from core.authorization import Permission, has_permission
+    from core.canonical_schemas import UserRole, UserSchema
+
+    def u(role):
+        return UserSchema(user_id="u", tenant_id="t", role=role, name_ar="x")
+
+    pa = u(UserRole.PLATFORM_ADMIN)
+    # يملك: نطاق إدارة المنصّة فقط
+    assert has_permission(pa, Permission.PLATFORM_MANAGE) is True
+    assert has_permission(pa, Permission.AUDIT_VIEW) is True  # حوكمة DLQ (admin_router)
+    # لا يملك: بيانات المستأجِر **ولا** إدارة مستخدمي المستأجِر (الجوهر الحوكميّ —
+    # USER_* مهمّة tenant_owner، وحفظها لامركزيّةً يمنع تصعيد الصلاحيات)
+    for denied in (
+        Permission.FIELD_CREATE,
+        Permission.FIELD_VIEW,
+        Permission.FARM_VIEW,
+        Permission.RECOMMENDATION_REQUEST,
+        Permission.RECOMMENDATION_OVERRIDE,
+        Permission.PESTICIDE_APPROVE,
+        Permission.IRRIGATION_MANAGE,
+        Permission.ACTIVITY_EXECUTE,
+        Permission.USER_CHANGE_ROLE,
+        Permission.USER_INVITE,
+    ):
+        assert has_permission(pa, denied) is False, denied
+
+    # OWNER (مالك المستأجِر) يبقى كامل الصلاحيات داخل مستأجِره — لا انحدار
+    owner = u(UserRole.OWNER)
+    assert has_permission(owner, Permission.FIELD_CREATE) is True
+    assert has_permission(owner, Permission.RECOMMENDATION_OVERRIDE) is True
+    # OWNER ليس مدير منصّة (الفصل في الاتّجاهين)
+    assert has_permission(owner, Permission.PLATFORM_MANAGE) is False
 
 
 # ─── الفرض الفعلي عبر HTTP (TestClient) ────────────────────────────
@@ -173,9 +215,9 @@ def test_worker_allowed_on_observations(app_mod):
 
 
 @pytest.mark.integration
-def test_admin_alias_normalized_and_allowed(app_mod):
-    """توكن خدمة auth بدور 'admin' يُطبَّع إلى owner ⇒ يمرّ على نقطة محميّة
-    (لا يهبط صامتاً إلى viewer/worker فيُرفَض زوراً)."""
+def test_admin_denied_on_tenant_data(app_mod):
+    """حوكمة: 'admin' ⇒ PLATFORM_ADMIN ≠ tenant_owner. مدير المنصّة **يُرفَض** على
+    بيانات المستأجِر (توصيات) — لا يملكها افتراضيّاً. (سابقاً كان admin→owner يمرّ.)"""
     from fastapi.testclient import TestClient
 
     m = app_mod
@@ -186,7 +228,8 @@ def test_admin_alias_normalized_and_allowed(app_mod):
         json=_rec_body(tenant),
         headers={"Authorization": f"Bearer {_raw_token(m, 'admin', tenant)}"},
     )
-    assert r.status_code != 403, r.text
+    assert r.status_code == 403, r.text
+    assert "recommendation:request" in r.text
 
 
 @pytest.mark.integration
