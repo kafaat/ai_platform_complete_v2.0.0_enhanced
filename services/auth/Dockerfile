@@ -12,6 +12,10 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
 COPY shared/ /app/shared/
 COPY services/auth/main.py /app/main.py
+# otp.py وحدة شقيقة نقيّة (مفصولة عن fastapi للاختبار في CI) يستوردها main.py:
+# `from otp import …`. كانت غير منسوخة ⇒ ModuleNotFoundError: No module named 'otp'
+# عند الإقلاع. نسخها إلزاميّ.
+COPY services/auth/otp.py /app/otp.py
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 EXPOSE 8000

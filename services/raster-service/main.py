@@ -459,6 +459,28 @@ async def _tenant_context_mw(request, call_next):
         _REQ_TENANT.reset(token)
 
 
+def _require_field_tenant(field_id: str) -> None:
+    """تفويض ملكيّة الحقل (عزل متعدّد المستأجرين على المسارات المكشوفة للمتصفّح).
+
+    المصادقة مفروضة عند البوّابة (تتحقّق JWT وتحقن X-Tenant-Id موثوقاً)، لكنّ هذه
+    المسارات (tiles/tilejson/timeseries/indicator-grid) تُنادى مباشرةً من المتصفّح
+    بالـfield_id فقط — فبلا فحص ملكيّة يقرأ مستأجِرٌ حقلَ آخر بتخمين/معرفة المعرّف
+    (IDOR). الطبقات تحمل tenant_id (سُجِّل عند /process وعند إعادة الترطيب من القاعدة).
+    field_id فريد عالميّاً ⇒ مالك واحد؛ فأيّ طبقة معروفة بمستأجِر مختلف ⇒ 403.
+
+    بلا سياق مستأجِر (نداء داخليّ بلا X-Tenant-Id) أو بلا طبقات معروفة: لا قرار حجب
+    هنا — مسار القاعدة مُنطّق بالمستأجِر أصلاً (fetch_latest_asset(tenant_id=…)) فلا
+    يُسرَّب شيء (يُعاد available=False/بلاطة شفّافة)."""
+    req_tenant = _REQ_TENANT.get()
+    if not req_tenant:
+        return
+    for lid in _field_layers.get(field_id, []):
+        lyr = _layers.get(lid)
+        owner = lyr.get("tenant_id") if lyr else None
+        if owner and owner != req_tenant:
+            raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
+
+
 # ─── مسارات بحث الصور ─────────────────────────────────────────────
 @app.get("/imagery/search/recent")
 async def imagery_search_recent(
@@ -1631,8 +1653,9 @@ async def process_batch(
 
 
 @app.get("/jobs/{job_id}")
-async def job_status(job_id: str):
+async def job_status(job_id: str, x_agent_token: str = Header(None)):
     """حالة المهمّة."""
+    _require_service_token(x_agent_token)
     j = _jobs.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
@@ -1648,8 +1671,9 @@ async def job_status(job_id: str):
 
 
 @app.get("/jobs/{job_id}/result")
-async def job_result(job_id: str):
+async def job_result(job_id: str, x_agent_token: str = Header(None)):
     """نتيجة المهمّة (بعد الاكتمال)."""
+    _require_service_token(x_agent_token)
     j = _jobs.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
@@ -1659,8 +1683,9 @@ async def job_result(job_id: str):
 
 
 @app.get("/info/{layer_id}")
-async def raster_info(layer_id: str):
+async def raster_info(layer_id: str, x_agent_token: str = Header(None)):
     """معلومات طبقة راستر معالَجة."""
+    _require_service_token(x_agent_token)
     layer = _layers.get(layer_id)
     if not layer:
         raise HTTPException(404, "طبقة غير موجودة")
@@ -1944,6 +1969,10 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
             "index": internal,
             "acquisition_date": asset.get("acquisition_date"),
             "bounds_4326": asset.get("bounds_4326"),
+            # تفويض: نُثبّت مالك الطبقة (مستأجِر الطلب الذي جُلبت تحت سياقه — الجلب
+            # مُنطّق بـtenant_id). بدونه يصبح للطبقة المُعاد ترطيبها owner=None فيمرّ
+            # طلب مستأجِر آخر على نفس الـcache (تسريب). field_id فريد عالميّاً ⇒ مالك واحد.
+            "tenant_id": _REQ_TENANT.get(),
             "created_at": asset.get("acquisition_date") or _t.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         _field_layers.setdefault(field_id, [])
@@ -2058,6 +2087,7 @@ async def field_indicator_grid(
     إلى grid×grid مع تصنيف مناطق الشدّة (real_data=True). وإلّا → شبكة محاكاة
     مُعلَّمة بصدق (real_data=False, source="simulation") — نفس شكل العقد دائماً.
     """
+    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
     import indicator_grid as ig
 
     # تطبيع اسم المؤشّر المعروض (salinity مقبول للواجهة)
@@ -2222,14 +2252,16 @@ async def field_timeseries(
         description="تواريخ مفصولة بفواصل (YYYY-MM-DD). فارغ ⇒ كلّ تواريخ COG المتاحة للحقل.",
     ),
     grid: int = Query(16, ge=2, le=64),
-    x_agent_token: str = Header(None),
 ):
     """السلسلة الزمنيّة الحقيقيّة لمتوسّط المؤشّر للحقل عبر التواريخ المتاحة.
 
     لكلّ تاريخ يبني شبكة المؤشّر من COG الحقل المقصوص ويأخذ متوسّطها الحقيقي
     (real_data). يجمّعها شهريّاً ويحسب الاتّجاه/الشذوذ عبر time_series. صدق:
     لا COG ⇒ نقطة محذوفة (لا تُخترع قيمة)؛ لا نقاط حقيقيّة ⇒ available=False.
+
+    أُزيل x_agent_token (كان مُعلَناً بلا فرض — مسار متصفّح). التفويض عبر ملكيّة الحقل.
     """
+    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
     requested_dates = [d.strip() for d in dates.split(",") if d.strip()]
     if not requested_dates:
         # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر (من الذاكرة)
@@ -2299,6 +2331,7 @@ async def field_tile(
     صدق + لا 500: عند غياب COG/rasterio/تقاطع البيانات → بلاطة شفّافة (الخريطة
     لا تُظهر شيئاً فوق الحقل) بدل خطأ خادم.
     """
+    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
     layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None and layer.get("cog_url"):
         try:
@@ -2335,15 +2368,19 @@ async def field_tilejson(
     COG بـ4326. إن ضُبط TITILER_URL ووُجد cog_url نعرض رابط TiTiler إضافيّاً
     (اختياري)، لكنّ البلاطات الذاتيّة تعمل دائماً.
     """
+    _require_field_tenant(field_id)  # تفويض: الحقل يخصّ مستأجِر الطلب (403 إن لا)
     layer = await _resolve_field_layer(field_id, index, date)
     bounds = None
     if layer is not None and layer.get("bounds_4326"):
         b = layer["bounds_4326"]
         if b and len(b) == 4 and any(v != 0.0 for v in b):
             bounds = [round(float(v), 6) for v in b]
+    # صدق: غياب COG ⇒ لا حدود حقيقيّة. لا نختلق حدوداً ضيّقة (الجوف) كأنّها بيانات
+    # الحقل — نعلن available=False ونعطي حدوداً عالميّة محايدة (لا تُقفِز الخريطة لمكان
+    # خاطئ)، فيستطيع المستهلِك (FieldIndicatorMap) أن يميّز "لا طبقة" من بيانات فعليّة.
+    has_data = bounds is not None
     if bounds is None:
-        # حدود افتراضيّة (الجوف، اليمن) عند غياب COG — TileJSON يبقى صالحاً
-        bounds = [44.0, 16.0, 44.01, 16.01]
+        bounds = [-180.0, -85.0, 180.0, 85.0]
 
     center = [
         round((bounds[0] + bounds[2]) / 2.0, 6),
@@ -2364,6 +2401,12 @@ async def field_tilejson(
         "bounds": bounds,
         "center": center,
         "source": "self-rendered",
+        "available": has_data,
+        "note": (
+            None
+            if has_data
+            else "لا COG مقصوص للحقل — شغّل /process أوّلاً (الحدود عالميّة محايدة لا بيانات حقل)"
+        ),
     }
     # اختياري: رابط TiTiler الديناميكي إن توفّر (لا يُلغي الذاتي)
     cog_url = layer.get("cog_url") if layer else None

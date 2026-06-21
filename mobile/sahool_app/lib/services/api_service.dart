@@ -219,7 +219,12 @@ class ApiService {
   void clearCache() => _cache.clear();
 
   Future<Map<String, dynamic>> getDashboardCached({bool forceRefresh = false}) async {
-    const key = 'dashboard';
+    // أمان: المفتاح مُنطّق بالمستأجِر+المستخدم. كان ثابتاً ('dashboard') فيُعيد
+    // لوحة مستخدِم سابق لمستخدِم لاحق على نفس الجهاز ضمن مهلة الـTTL (تسريب عبر
+    // الحسابات). تنطيقه بالهويّة يجعل كلّ حساب يرى كاشه فقط.
+    final tenant = AuthService.instance.tenantId ?? '_';
+    final user = AuthService.instance.userId ?? '_';
+    final key = 'dashboard:$tenant:$user';
     if (!forceRefresh) {
       final cached = _getCache(key);
       if (cached != null) return cached as Map<String, dynamic>;
