@@ -80,7 +80,7 @@ services:
       dockerfile: services/auth/Dockerfile
     container_name: sahool-unified-auth
     restart: unless-stopped
-    ports: ["8120:8000"]
+    ports: ["127.0.0.1:8120:8000"]  # loopback فقط — لا تُكشف خدمة الهويّة على الشبكة (gateway-only)
     environment:
       <<: *db-env
       JWT_SECRET: "${JWT_SECRET}"
@@ -103,7 +103,7 @@ services:
       dockerfile: services/supervisor-agent/Dockerfile
     container_name: sahool-unified-supervisor
     restart: unless-stopped
-    ports: ["8096:8000"]
+    ports: ["127.0.0.1:8096:8000"]  # loopback فقط (مطابقة v9) — وكيل داخليّ لا يُكشف
     environment:
       SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN}"
       MCP_SENTINEL_HUB_URL: "http://sahool-unified-sentinel-hub-mcp:8000/mcp/v1"
@@ -137,7 +137,7 @@ services:
       dockerfile: services/guardrails-engine/Dockerfile
     container_name: sahool-unified-guardrails
     restart: unless-stopped
-    ports: ["8097:8000"]
+    ports: ["127.0.0.1:8097:8000"]  # loopback فقط (مطابقة v9) — محرّك حواجز داخليّ
     environment:
       JWT_SECRET: "${JWT_SECRET}"
       # FINDING-003: بلا SAHOOL_AGENT_TOKEN تُرجِع /validate الحوكمة 503 (معطّلة).
@@ -159,7 +159,7 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     container_name: sahool-unified-sentinel-hub-mcp
     restart: unless-stopped
-    ports: ["8091:8000"]
+    ports: ["127.0.0.1:8091:8000"]  # loopback فقط — خادم MCP داخليّ
     environment:
       SH_CLIENT_ID: "${SH_CLIENT_ID}"
       SH_CLIENT_SECRET: "${SH_CLIENT_SECRET}"
@@ -179,7 +179,7 @@ services:
     container_name: sahool-unified-weather-mcp
     restart: unless-stopped
     command: python weather_server.py
-    ports: ["8092:8000"]
+    ports: ["127.0.0.1:8092:8000"]  # loopback فقط — خادم MCP داخليّ
     environment:
       JWT_SECRET: "${JWT_SECRET}"
     networks: [sahool-net]
@@ -197,7 +197,7 @@ services:
     container_name: sahool-unified-wofost-mcp
     restart: unless-stopped
     command: python wofost_server.py
-    ports: ["8093:8000"]
+    ports: ["127.0.0.1:8093:8000"]  # loopback فقط — خادم MCP داخليّ
     environment:
       JWT_SECRET: "${JWT_SECRET}"
     networks: [sahool-net]
@@ -215,7 +215,7 @@ services:
     container_name: sahool-unified-market-mcp
     restart: unless-stopped
     command: python market_server.py
-    ports: ["8094:8000"]
+    ports: ["127.0.0.1:8094:8000"]  # loopback فقط — خادم MCP داخليّ
     environment:
       <<: *db-env
       JWT_SECRET: "${JWT_SECRET}"
@@ -236,7 +236,7 @@ services:
       dockerfile: services/edge-inference/Dockerfile.arm64
     container_name: sahool-unified-edge
     restart: unless-stopped
-    ports: ["8100:8000"]
+    ports: ["127.0.0.1:8100:8000"]  # loopback فقط — استدلال حافّيّ داخليّ
     environment:
       EDGE_DEVICE: "${EDGE_DEVICE:-rpi5}"
       OFFLINE_MODE: "${OFFLINE_MODE:-false}"
@@ -260,7 +260,7 @@ services:
       dockerfile: services/video-processor/Dockerfile
     container_name: sahool-unified-video-processor
     restart: unless-stopped
-    ports: ["8110:8000"]
+    ports: ["127.0.0.1:8110:8000"]  # loopback فقط — معالج فيديو داخليّ
     environment:
       MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
       EDGE_INFERENCE_URL: "http://sahool-unified-edge:8000"
@@ -284,7 +284,7 @@ services:
       dockerfile: services/actuator-service/Dockerfile
     container_name: sahool-unified-actuator
     restart: unless-stopped
-    ports: ["8111:8000"]
+    ports: ["127.0.0.1:8111:8000"]  # loopback فقط — مشغّل (actuator) حسّاس داخليّ
     environment:
       <<: *db-env
       MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
@@ -352,7 +352,7 @@ services:
       dockerfile: services/local-ai-rag/Dockerfile
     container_name: sahool-unified-local-ai-rag
     restart: unless-stopped
-    ports: ["8125:8000"]
+    ports: ["127.0.0.1:8125:8000"]  # loopback فقط — RAG داخليّ
     environment:
       OLLAMA_BASE_URL: "http://sahool-unified-ollama:11434"
       LLM_MODEL: "${LLM_MODEL:-qwen3:32b}"
@@ -375,7 +375,7 @@ services:
     image: ollama/ollama:0.3.0  # HIGH-DOCKER-03: pinned
     container_name: sahool-unified-ollama
     restart: unless-stopped
-    ports: ["11434:11434"]
+    ports: ["127.0.0.1:11434:11434"]  # loopback فقط — Ollama (LLM بلا مصادقة) يجب ألّا يُكشف أبداً
     volumes:
       - ollama_models:/root/.ollama
     networks: [sahool-net]
@@ -414,7 +414,7 @@ services:
       dockerfile: services/agriai-engine/Dockerfile
     container_name: sahool-unified-agriai-engine
     restart: unless-stopped
-    ports: ["8127:8000"]
+    ports: ["127.0.0.1:8127:8000"]  # loopback فقط — محرّك agriai داخليّ
     environment:
       <<: *db-env
       JWT_SECRET: "${JWT_SECRET}"
@@ -472,7 +472,7 @@ services:
       dockerfile: services/odoo-bridge/Dockerfile
     container_name: sahool-unified-odoo-bridge
     restart: unless-stopped
-    ports: ["8126:8000"]
+    ports: ["127.0.0.1:8126:8000"]  # loopback فقط — جسر odoo داخليّ
     environment:
       <<: *db-env
       ODOO_URL: "${ODOO_URL:-http://odoo:8069}"

@@ -30,6 +30,12 @@ from datetime import UTC
 logger = logging.getLogger("sahool.imagery_automation")
 
 RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
+# توكن الخدمة (خدمة-لخدمة): raster-service يحمي /imagery/search و/process/batch
+# و/jobs/*/result بـ_require_service_token (X-Agent-Token == SAHOOL_AGENT_TOKEN).
+# بدونه كانت نداءات الأتمتة تُرفَض (503/403) وتُبتلَع في الـexcept ⇒ الأتمتة معطّلة
+# صامتاً. نرسله على كلّ نداء. fail-closed: إن لم يُضبط، raster يرفض (لا تجاوز).
+AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+_RASTER_HEADERS = {"X-Agent-Token": AGENT_TOKEN}
 # مؤشّرات تُحسب تلقائيّاً عند صورة جديدة (دفعةً من نفس المشهد):
 #   NDVI صحّة نباتيّة · NDRE نيتروجين (red-edge) · NDSI ملوحة (حرج لليمن الجافّ)
 DEFAULT_INDICATORS = ["ndvi", "ndre", "ndsi"]
@@ -221,6 +227,7 @@ class ImageryAutomation:
                             "datetime_end": end,
                             "limit": 5,
                         },
+                        headers=_RASTER_HEADERS,
                     )
                     resp.raise_for_status()
                     items = resp.json().get("items", [])
@@ -291,6 +298,7 @@ class ImageryAutomation:
             resp = await client.post(
                 f"{RASTER_SERVICE_URL}/process/batch",
                 json=payload,
+                headers=_RASTER_HEADERS,
             )
             resp.raise_for_status()
             body = resp.json()
@@ -317,7 +325,9 @@ class ImageryAutomation:
             job_id = batch_body.get("job_id") or tf.last_indicator_job
             if not job_id:
                 return
-            rr = await client.get(f"{RASTER_SERVICE_URL}/jobs/{job_id}_ndvi/result")
+            rr = await client.get(
+                f"{RASTER_SERVICE_URL}/jobs/{job_id}_ndvi/result", headers=_RASTER_HEADERS
+            )
             if rr.status_code != 200:
                 return
             stats = (rr.json() or {}).get("stats") or {}
