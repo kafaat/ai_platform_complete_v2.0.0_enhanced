@@ -15,3 +15,5 @@ export * from './modal';      // المودال الموحّد (framer-motion + 
 export * from './tooltip';    // تلميح RTL
 export * from './breadcrumb'; // مسار التنقّل
 export * from './combobox';   // قائمة منسدلة باحثة (اختيار أحاديّ)
+// مُغلِّفات الرسوم (recharts) — ثيم/Tooltip/حالات موحّدة لصفحات التحليل
+export * from './charts';

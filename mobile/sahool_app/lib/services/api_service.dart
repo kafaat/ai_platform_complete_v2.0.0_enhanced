@@ -13,6 +13,15 @@ import '../services/auth_service.dart';
 import '../utils/ids.dart';
 import '../utils/jwt.dart';
 
+/// يُرمى من [ApiService.login] حين تكون كلمة المرور صحيحة لكن الحساب يتطلّب رمز
+/// المصادقة الثنائيّة (TOTP). يكتشفها الـUI ليكشف حقل الرمز ثمّ يعيد النداء مع
+/// `mfaCode`. عقد الخادم: 401 + ترويسة `X-MFA-Required: true`.
+class MfaRequiredException implements Exception {
+  const MfaRequiredException();
+  @override
+  String toString() => 'MfaRequiredException: يتطلّب الحساب رمز المصادقة الثنائيّة';
+}
+
 class ApiService {
   static final ApiService instance = ApiService._internal();
   ApiService._internal() { _init(); }
@@ -238,9 +247,34 @@ class ApiService {
 
   /// تسجيل الدخول (POST /auth/login). يحفظ التوكنات + الملفّ في التخزين الآمن.
   /// صدق: يفشل برسالة واضحة إن نقص رمز الوصول (لا جلسة زائفة).
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    final r = await _dio.post('/auth/login',
-        data: {'email': email, 'password': password});
+  ///
+  /// المصادقة الثنائيّة (MFA): إن كان الحساب مفعِّلاً لها، يردّ الخادم
+  /// (services/auth/main.py:903‑917) على دخول بلا [mfaCode] بـ HTTP 401 +
+  /// ترويسة `X-MFA-Required: true` ⇒ نرمي [MfaRequiredException] ليكشف الـUI
+  /// حقل رمز TOTP. رمز خاطئ ⇒ 401 «رمز MFA غير صحيح» (يمرّ كـ DioException عاديّ).
+  Future<Map<String, dynamic>> login(
+    String email,
+    String password, {
+    String? mfaCode,
+  }) async {
+    final Response r;
+    try {
+      r = await _dio.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+        if (mfaCode != null) 'mfa_code': mfaCode,
+      });
+    } on DioException catch (e) {
+      // 401 + X-MFA-Required: true ⇒ كلمة المرور صحّت لكن يلزم رمز MFA.
+      // (ترويسات Dio تُقرأ بمفتاح صغير الأحرف بصرف النظر عن حالة الإرسال.)
+      if (e.response?.statusCode == 401) {
+        final mfa = e.response?.headers.value('x-mfa-required');
+        if (mfa?.toLowerCase() == 'true') {
+          throw const MfaRequiredException();
+        }
+      }
+      rethrow;
+    }
     final data = r.data as Map<String, dynamic>;
     final access = data['access_token'] as String?;
     if (access == null) {

@@ -8,13 +8,22 @@ import 'screens/dashboard_screen.dart';
 import 'screens/advisor_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/fields_screen.dart';
-import 'screens/operations_hub_screen.dart';
+import 'screens/satellite_screen.dart';
 import 'screens/more_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/field_workspace_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
 import 'services/websocket_service.dart';
+import 'theme/app_theme.dart';
+
+// ملاحظة بيئة التشغيل المحليّة (dart-define): مرّر عنوان الـAPI/الـWS عند التشغيل
+// دون تثبيتهما في الشيفرة (انظر String.fromEnvironment في api/websocket service؛
+// يُلحَق المسار /ws/notifications بقيمة WS_URL داخليّاً):
+//   flutter run \
+//     --dart-define=API_URL=http://10.0.2.2:8000 \
+//     --dart-define=WS_URL=ws://10.0.2.2:8000
+// الافتراضيّ للإنتاج: API_URL=https://api.sahool.ye و WS_URL=wss://api.sahool.ye.
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,24 +84,8 @@ class SAHOOLApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar', 'YE'),
       supportedLocales: const [Locale('ar', 'YE'), Locale('en', 'US')],
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.dark(
-          primary: const Color(0xFF10B981),
-          secondary: const Color(0xFF3B82F6),
-          surface: const Color(0xFF1A1D29),
-          background: const Color(0xFF0F1117),
-          onPrimary: Colors.white,
-          onSecondary: Colors.white,
-          onSurface: Colors.white,
-          onBackground: Colors.white,
-        ),
-        fontFamily: 'Cairo',
-        textTheme: const TextTheme(
-          bodyMedium: TextStyle(fontFamily: 'Cairo'),
-          titleLarge: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
-        ),
-      ),
+      // سمة «تطبيق الحقل» على طراز FieldView (كريميّ/أخضر/ذهبيّ) — lib/theme.
+      theme: AppTheme.light,
       builder: (context, child) => Directionality(
         textDirection: TextDirection.rtl,
         child: child!,
@@ -179,8 +172,9 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
 
-  // فهرس تبويب «الحقول» — وجهة زرّ «إنشاء أوّل حقل» (من الترحيب أو اللوحة).
-  static const int _fieldsTabIndex = 1;
+  // فهرس تبويب «بيانات» (الحقول) — وجهة زرّ «إنشاء أوّل حقل» (من الترحيب/اللوحة).
+  // في تنظيم FieldView: نظرة عامّة(0)/صحّة الحقل(1)/بيانات(2)/تحليل(3)/إعدادات(4).
+  static const int _fieldsTabIndex = 2;
 
   // بوّابة الترحيب: نتحقّق مرّة من وجود حقول للمستخدم المُصادَق عليه. حتّى تكتمل
   // المحاولة نُبقي العرض على اللوحة العاديّة (لا نحجب الواجهة بمؤشّر تحميل ثانٍ).
@@ -228,14 +222,17 @@ class _MainNavigationState extends State<MainNavigation> {
     });
   }
 
-  // ترتيب جديد يخدم المزارع: لوحة/حقول/عمليّات/مستشار/المزيد. الأقمار والوحدات
-  // الثانويّة (مخزون/معدّات/أجهزة/مرجعيّة/وثائق/الحساب) انتقلت إلى «المزيد».
+  // تنظيم المعلومات على طراز FieldView (5 وجهات، تسميات عربيّة):
+  //   نظرة عامّة → DashboardScreen | صحّة الحقل → SatelliteScreen (مؤشّرات/NDVI)
+  //   بيانات → FieldsScreen (حقول المستخدم وبياناتها) | تحليل → AdvisorScreen
+  //   إعدادات → MoreScreen (الوحدات الثانويّة + الحساب/الإعدادات).
+  // العمليّات (OperationsHubScreen) تبقى موجودة وتُفتَح من «المزيد» (لم تُحذَف).
   static const List<BottomNavigationBarItem> _navItems = [
-    BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'لوحة'),
-    BottomNavigationBarItem(icon: Icon(Icons.terrain), label: 'الحقول'),
-    BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: 'العمليّات'),
-    BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'المستشار'),
-    BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'المزيد'),
+    BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'نظرة عامّة'),
+    BottomNavigationBarItem(icon: Icon(Icons.eco_outlined), label: 'صحّة الحقل'),
+    BottomNavigationBarItem(icon: Icon(Icons.layers_outlined), label: 'بيانات'),
+    BottomNavigationBarItem(icon: Icon(Icons.insights_outlined), label: 'تحليل'),
+    BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'إعدادات'),
   ];
 
   @override
@@ -246,12 +243,13 @@ class _MainNavigationState extends State<MainNavigation> {
     }
 
     // قائمة الشاشات تُبنى هنا (لا const) لتمرير الـcallback إلى اللوحة.
+    // ترتيب FieldView: نظرة عامّة/صحّة الحقل/بيانات/تحليل/إعدادات.
     final screens = <Widget>[
-      DashboardScreen(onCreateField: _goToFields),
-      const FieldsScreen(),
-      const OperationsHubScreen(),
-      const AdvisorScreen(),
-      const MoreScreen(),
+      DashboardScreen(onCreateField: _goToFields), // نظرة عامّة
+      const SatelliteScreen(),                     // صحّة الحقل (مؤشّرات/NDVI)
+      const FieldsScreen(),                        // بيانات (الحقول)
+      const AdvisorScreen(),                       // تحليل (المستشار)
+      const MoreScreen(),                          // إعدادات (+ الوحدات الثانويّة)
     ];
 
     // H01: Handle Android back button
@@ -264,13 +262,11 @@ class _MainNavigationState extends State<MainNavigation> {
       },
       child: Scaffold(
         body: IndexedStack(index: _selectedIndex, children: screens),
+        // الألوان من bottomNavigationBarTheme (سمة FieldView) — لا تثبيت هنا.
         bottomNavigationBar: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: (i) => setState(() => _selectedIndex = i),
           type: BottomNavigationBarType.fixed,
-          backgroundColor: const Color(0xFF1A1D29),
-          selectedItemColor: const Color(0xFF10B981),
-          unselectedItemColor: Colors.grey,
           items: _navItems,
         ),
       ),
@@ -278,7 +274,8 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// الشاشات في ملفّاتها المستقلّة (screens/*.dart). شريط التنقّل أُعيد ترتيبه
-// لخمسة تبويبات تخدم المزارع (لوحة/حقول/عمليّات/مستشار/المزيد)؛ الأقمار والوحدات
-// الثانويّة والحساب انتقلت إلى MoreScreen. بوّابة الترحيب (OnboardingScreen)
-// تُعرَض للمستخدم المُصادَق عليه حين لا يملك حقولاً بعد.
+// الشاشات في ملفّاتها المستقلّة (screens/*.dart). شريط التنقّل أُعيد تنظيمه على
+// طراز FieldView لخمس وجهات (نظرة عامّة/صحّة الحقل/بيانات/تحليل/إعدادات) بإعادة
+// استعمال الشاشات القائمة (لوحة→نظرة، أقمار→صحّة، حقول→بيانات، مستشار→تحليل،
+// المزيد→إعدادات). العمليّات والوحدات الثانويّة تبقى مُتاحة من «المزيد» (لم تُحذَف).
+// بوّابة الترحيب (OnboardingScreen) تُعرَض للمستخدم المُصادَق عليه بلا حقول بعد.

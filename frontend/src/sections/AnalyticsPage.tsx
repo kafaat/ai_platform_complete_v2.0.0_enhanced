@@ -8,19 +8,19 @@
 //   • رطوبة المناطق       ← useIndicatorGrid ndmi (شبكة بكسليّة حقيقيّة)
 //   • رؤى/توصيات          ← useFieldRecommendations (المحرّك الموحَّد)
 // كلّ بطاقة تعرض حالة صادقة (تحميل/فراغ/خطأ) عند غياب البيانات — لا قيم مخترعة.
+//
+// عرضيّاً: مُوحَّدة على نظام التصميم — البطاقات/الرسوم عبر مُغلِّفات ds/charts
+// (LineChartCard/BarChartCard/ChartShell) بثيم Tooltip داكن موحّد بدل تكرار
+// ResponsiveContainer + المحاور inline. البيانات والسلوك دون تغيير.
 // ═══════════════════════════════════════════════════════════════
 import { useMemo, useState } from 'react';
-import {
-  LineChart, Line, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
-} from 'recharts';
-import { TrendingUp, BarChart3, Activity, Droplets, Lightbulb } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { TrendingUp, Activity, Droplets, BarChart3, Lightbulb } from 'lucide-react';
 import {
   useFields, useFieldTimeseries, useSeasons,
   useIndicatorGrid, useFieldRecommendations,
 } from '../hooks/useApi';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { LineChartCard, BarChartCard, ChartShell } from '../components/ds';
 
 const PRIORITY_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
   high:   { bg: '#3f1d1d', fg: '#f87171', label: 'عالية' },
@@ -31,33 +31,6 @@ const PRIORITY_STYLE: Record<string, { bg: string; fg: string; label: string }> 
 const CAT_AR: Record<string, string> = {
   irrigation: 'الريّ', fertilizer: 'التسميد', disease: 'الأمراض', yield: 'الإنتاج',
 };
-
-function ChartCard({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl p-4 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <div className="flex items-center gap-2 mb-4">
-        <Icon className="w-4 h-4 text-emerald-400" />
-        <span className="text-sm font-semibold text-slate-200">{title}</span>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-// حاوية صغيرة: تختار حالة العرض الصادقة (تحميل/خطأ/فراغ) أو ترسم المحتوى.
-function Panel({
-  isLoading, isError, isEmpty, onRetry, height = 200, emptyHint, children,
-}: {
-  isLoading: boolean; isError: boolean; isEmpty: boolean;
-  onRetry?: () => void; height?: number; emptyHint?: string; children: React.ReactNode;
-}) {
-  if (isLoading) return <div style={{ height }}><LoadingState message="جارٍ التحميل…" /></div>;
-  if (isError)   return <div style={{ height }}><ErrorState onRetry={onRetry} /></div>;
-  if (isEmpty)   return <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <EmptyState title="لا توجد بيانات بعد" hint={emptyHint} />
-  </div>;
-  return <>{children}</>;
-}
 
 // الحقول كما تقرؤها هذه الشاشة من /api/v1/fields (مفاتيح متباينة، كلّها اختياريّة).
 interface AnalyticsField {
@@ -144,100 +117,82 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* الإنتاجيّة المقدَّرة (محاكاة الموسم) */}
-        <ChartCard title="الإنتاجيّة المقدَّرة (طن/هـ)" icon={TrendingUp}>
-          <Panel
-            isLoading={seasQ.isLoading}
-            isError={seasQ.isError}
-            isEmpty={yieldData.length === 0}
-            onRetry={() => seasQ.refetch()}
-            emptyHint="شغّل محاكاة الموسم لعرض تقدير الإنتاجيّة."
-          >
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={yieldData} barSize={42}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 10 }} tickLine={false} />
-                <YAxis tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={28} />
-                <Tooltip contentStyle={{ background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#e2e8f0' }} />
-                <Bar dataKey="yield" name="طن/هـ" radius={[6, 6, 0, 0]} fill="#16a34a" />
-              </BarChart>
-            </ResponsiveContainer>
-          </Panel>
-        </ChartCard>
+        <BarChartCard
+          title="الإنتاجيّة المقدَّرة (طن/هـ)"
+          icon={TrendingUp}
+          data={yieldData}
+          xKey="label"
+          series={[{ dataKey: 'yield', name: 'طن/هـ', color: '#16a34a' }]}
+          barSize={42}
+          height={200}
+          isLoading={seasQ.isLoading}
+          isError={seasQ.isError}
+          onRetry={() => seasQ.refetch()}
+          emptyHint="شغّل محاكاة الموسم لعرض تقدير الإنتاجيّة."
+        />
 
         {/* اتّجاه NDVI الحقيقيّ */}
-        <ChartCard title="اتّجاه NDVI عبر الزمن" icon={Activity}>
-          <Panel
-            isLoading={tsQ.isLoading}
-            isError={tsQ.isError}
-            isEmpty={ndviData.length === 0}
-            onRetry={() => tsQ.refetch()}
-            emptyHint="لا توجد مشاهد Sentinel-2 صافية لهذا الحقل بعد."
-          >
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={ndviData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 9 }} tickLine={false} interval="preserveStartEnd" />
-                <YAxis domain={[0, 1]} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
-                <Tooltip contentStyle={{ background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#e2e8f0' }} />
-                <Line type="monotone" dataKey="ndvi" stroke="#16a34a" strokeWidth={2} dot={false} name="NDVI" />
-              </LineChart>
-            </ResponsiveContainer>
-          </Panel>
-        </ChartCard>
+        <LineChartCard
+          title="اتّجاه NDVI عبر الزمن"
+          icon={Activity}
+          data={ndviData}
+          xKey="date"
+          series={[{ dataKey: 'ndvi', name: 'NDVI', color: '#16a34a' }]}
+          yDomain={[0, 1]}
+          height={200}
+          isLoading={tsQ.isLoading}
+          isError={tsQ.isError}
+          onRetry={() => tsQ.refetch()}
+          emptyHint="لا توجد مشاهد Sentinel-2 صافية لهذا الحقل بعد."
+        />
 
-        {/* رطوبة المناطق (NDMI حقيقيّ) */}
-        <ChartCard title="رطوبة المناطق (NDMI)" icon={Droplets}>
-          <Panel
-            isLoading={moistQ.isLoading}
-            isError={moistQ.isError}
-            isEmpty={moistureData.length === 0}
-            onRetry={() => moistQ.refetch()}
-            height={180}
-            emptyHint="لا تتوفّر شبكة رطوبة حقيقيّة لهذا الحقل بعد."
-          >
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={moistureData} barSize={36}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="zone" tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} />
-                <YAxis domain={[-1, 1]} tick={{ fill: '#64748b', fontSize: 11 }} tickLine={false} width={32} />
-                <Tooltip contentStyle={{ background: '#0f1117', border: '1px solid #334155', borderRadius: 8, fontSize: 12 }} itemStyle={{ color: '#e2e8f0' }} />
-                <Bar dataKey="value" name="NDMI" radius={[6, 6, 0, 0]}>
-                  {moistureData.map((m, i) => <Cell key={i} fill={m.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </Panel>
-        </ChartCard>
+        {/* رطوبة المناطق (NDMI حقيقيّ) — تلوين فرديّ لكلّ منطقة حسب شدّتها */}
+        <BarChartCard
+          title="رطوبة المناطق (NDMI)"
+          icon={Droplets}
+          data={moistureData}
+          xKey="zone"
+          series={[{ dataKey: 'value', name: 'NDMI' }]}
+          barColors={moistureData.map((m) => m.color)}
+          barSize={36}
+          yDomain={[-1, 1]}
+          height={180}
+          isLoading={moistQ.isLoading}
+          isError={moistQ.isError}
+          onRetry={() => moistQ.refetch()}
+          emptyHint="لا تتوفّر شبكة رطوبة حقيقيّة لهذا الحقل بعد."
+        />
 
         {/* رؤى/توصيات حقيقيّة من المحرّك الموحَّد */}
-        <ChartCard title="رؤى وتوصيات الحقل" icon={BarChart3}>
-          <Panel
-            isLoading={recQ.isLoading}
-            isError={recQ.isError}
-            isEmpty={recs.length === 0}
-            onRetry={() => recQ.refetch()}
-            height={200}
-            emptyHint="لا توجد توصيات حاليّة لهذا الحقل."
-          >
-            <div className="space-y-2" style={{ maxHeight: 220, overflowY: 'auto' }}>
-              {recs.map((r, i) => {
-                const ps = PRIORITY_STYLE[r.priority] ?? PRIORITY_STYLE.low;
-                return (
-                  <div key={i} className="rounded-lg p-3" style={{ background: '#0f1117', border: '1px solid #334155' }}>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-sm font-semibold text-slate-100">{r.title_ar}</span>
-                      <span className="text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap"
-                        style={{ background: ps.bg, color: ps.fg }}>
-                        {CAT_AR[r.category] ?? r.category} · {ps.label}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 leading-relaxed">{r.detail_ar}</p>
+        <ChartShell
+          title="رؤى وتوصيات الحقل"
+          icon={BarChart3}
+          height={200}
+          isLoading={recQ.isLoading}
+          isError={recQ.isError}
+          isEmpty={recs.length === 0}
+          onRetry={() => recQ.refetch()}
+          emptyTitle="لا توجد بيانات بعد"
+          emptyHint="لا توجد توصيات حاليّة لهذا الحقل."
+        >
+          <div className="space-y-2" style={{ maxHeight: 220, overflowY: 'auto' }}>
+            {recs.map((r, i) => {
+              const ps = PRIORITY_STYLE[r.priority] ?? PRIORITY_STYLE.low;
+              return (
+                <div key={i} className="rounded-lg p-3" style={{ background: '#0f1117', border: '1px solid #334155' }}>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="text-sm font-semibold text-slate-100">{r.title_ar}</span>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full whitespace-nowrap"
+                      style={{ background: ps.bg, color: ps.fg }}>
+                      {CAT_AR[r.category] ?? r.category} · {ps.label}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
-          </Panel>
-        </ChartCard>
+                  <p className="text-xs text-slate-400 leading-relaxed">{r.detail_ar}</p>
+                </div>
+              );
+            })}
+          </div>
+        </ChartShell>
       </div>
 
       {!recQ.data?.weather_available && recs.length > 0 && (
