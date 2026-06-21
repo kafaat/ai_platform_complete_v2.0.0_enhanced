@@ -118,7 +118,12 @@ async def test_critical_false_forces_best_effort(main_mod, monkeypatch):
     _patch_emit(monkeypatch, main_mod, raise_exc=RuntimeError("ignored"))
     user = _FakeUser()
     await main_mod._emit_domain_event(
-        _FakeConn(), user, "DISPATCH_DECISION_RECORDED", "dispatch_decision", "d1", {},
+        _FakeConn(),
+        user,
+        "DISPATCH_DECISION_RECORDED",
+        "dispatch_decision",
+        "d1",
+        {},
         critical=False,
     )  # لا يرفع
 

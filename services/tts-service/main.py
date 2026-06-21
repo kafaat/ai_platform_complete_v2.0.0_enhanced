@@ -185,9 +185,7 @@ class VoicesResponse(BaseModel):
 
 
 # ── Core TTS ─────────────────────────────────────────────────
-def _cache_key(
-    tenant_id: str, text: str, voice: str, rate: str, pitch: str, volume: str
-) -> str:
+def _cache_key(tenant_id: str, text: str, voice: str, rate: str, pitch: str, volume: str) -> str:
     """Generate deterministic, tenant-scoped cache key.
 
     عزل المستأجِر: tenant_id جزء من المفتاح (وبادئة منفصلة) كي لا يُقدَّم صوت

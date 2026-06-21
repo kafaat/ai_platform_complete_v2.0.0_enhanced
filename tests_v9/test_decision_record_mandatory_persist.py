@@ -22,7 +22,11 @@ import sys
 from contextlib import asynccontextmanager
 
 import pytest
-from fastapi import HTTPException
+
+# تبعيّات الخدمة (fastapi…) غير مثبّتة في بيئة الوحدات بـCI ⇒ تخطٍّ على مستوى الوحدة
+# (لا خطأ تجميع يُقاطع الجلسة كلّها)، مطابقةً لبقيّة اختبارات الخدمة في tests_v9.
+pytest.importorskip("fastapi")
+from fastapi import HTTPException  # noqa: E402
 
 CORE = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform")
 if CORE not in sys.path:
@@ -322,16 +326,40 @@ async def test_db_less_does_not_block_ownership(captured_inserts, monkeypatch):
 # ── منطق استنباط القابليّة للتنفيذ (نقيّ) ────────────────────────────────────
 @pytest.mark.unit
 def test_executable_derivation_pure():
-    assert dr._decision_is_executable({"actionable": True, "governance": {"status": "approved"}}, None) is True
-    assert dr._decision_is_executable({"actionable": True, "governance": {"status": "passed"}}, None) is True
+    assert (
+        dr._decision_is_executable({"actionable": True, "governance": {"status": "approved"}}, None)
+        is True
+    )
+    assert (
+        dr._decision_is_executable({"actionable": True, "governance": {"status": "passed"}}, None)
+        is True
+    )
     # actionable لكن الحوكمة غير مُقَرّة ⇒ ليس قابلاً للتنفيذ.
-    assert dr._decision_is_executable({"actionable": True, "governance": {"status": "not_evaluated"}}, None) is False
-    assert dr._decision_is_executable({"actionable": True, "governance": {"status": "error"}}, None) is False
+    assert (
+        dr._decision_is_executable(
+            {"actionable": True, "governance": {"status": "not_evaluated"}}, None
+        )
+        is False
+    )
+    assert (
+        dr._decision_is_executable({"actionable": True, "governance": {"status": "error"}}, None)
+        is False
+    )
     # actionable بلا حوكمة ⇒ ليس قابلاً للتنفيذ (fail-closed).
     assert dr._decision_is_executable({"actionable": True}, None) is False
     # مفتاح executable صريح يُحترَم.
     assert dr._decision_is_executable({"executable": True}, None) is True
-    assert dr._decision_is_executable({"executable": False, "actionable": True, "governance": {"status": "approved"}}, None) is False
+    assert (
+        dr._decision_is_executable(
+            {"executable": False, "actionable": True, "governance": {"status": "approved"}}, None
+        )
+        is False
+    )
     # تمرير صريح يَسبق الاستنباط.
     assert dr._decision_is_executable({"governance": {"status": "not_evaluated"}}, True) is True
-    assert dr._decision_is_executable({"governance": {"status": "approved"}, "actionable": True}, False) is False
+    assert (
+        dr._decision_is_executable(
+            {"governance": {"status": "approved"}, "actionable": True}, False
+        )
+        is False
+    )

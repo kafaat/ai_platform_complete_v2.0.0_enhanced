@@ -137,9 +137,7 @@ async def _assert_field_ownership(user: UserSchema, field_id: str | None) -> Non
             return  # وضع بلا قاعدة — لا مصدر ملكيّة، لا حجب (CI)
         raise HTTPException(status_code=404, detail="الحقل غير موجود")
     if str(owner) != str(user.tenant_id):
-        raise HTTPException(
-            status_code=403, detail="غير مصرَّح: الحقل ليس ضمن مستأجِرك"
-        )
+        raise HTTPException(status_code=403, detail="غير مصرَّح: الحقل ليس ضمن مستأجِرك")
 
 
 async def persist_decision_if_enabled(

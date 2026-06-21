@@ -119,7 +119,8 @@ async def _call_create(vp, req_kwargs, user):
 async def test_create_binds_token_tenant(vp):
     """الإنشاء يربط tenant_id من الرمز (لا من الجسم) — حتى لو الجسم 'default'."""
     res = await _call_create(
-        vp, {"stream_id": "s1", "usb_index": 0},
+        vp,
+        {"stream_id": "s1", "usb_index": 0},
         {"tenant_id": "tenant_a", "role": "user"},
     )
     assert res["stream_id"] == "s1"
@@ -159,7 +160,8 @@ async def test_create_requires_token_tenant(vp):
 
     with pytest.raises(HTTPException) as ei:
         await _call_create(
-            vp, {"stream_id": "s1", "usb_index": 0},
+            vp,
+            {"stream_id": "s1", "usb_index": 0},
             {"role": "admin"},
         )
     assert ei.value.status_code == 403

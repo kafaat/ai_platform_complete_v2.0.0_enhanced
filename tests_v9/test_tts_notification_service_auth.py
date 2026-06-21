@@ -21,6 +21,10 @@ import types
 import pytest
 from jose import jwt
 
+# تحميل وحدة tts يستورد fastapi (غير مثبّت في بيئة الوحدات بـCI) ⇒ تخطٍّ على مستوى
+# الوحدة كي لا تفشل اختبارات تحتاج الخدمة وقت التشغيل، مطابقةً لبقيّة اختبارات الخدمة.
+pytest.importorskip("fastapi")
+
 pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -136,9 +140,7 @@ async def test_get_current_user_rejects_unknown_issuer(monkeypatch):
     tts = _load_tts(monkeypatch)
     from fastapi.security import HTTPAuthorizationCredentials
 
-    creds = HTTPAuthorizationCredentials(
-        scheme="Bearer", credentials=_jwt_for("t1", iss="evil")
-    )
+    creds = HTTPAuthorizationCredentials(scheme="Bearer", credentials=_jwt_for("t1", iss="evil"))
     with pytest.raises(tts.HTTPException) as exc:
         await tts.get_current_user(creds=creds, x_agent_token=None)
     assert exc.value.status_code == 401
@@ -164,9 +166,7 @@ def test_cache_key_empty_tenant_normalized(monkeypatch):
 
 # ── (ج) Cache-Control = private (مصدريّ، يغطّي مساري HIT/MISS) ────────────────
 def test_cache_control_is_private_not_public():
-    src = open(
-        os.path.join(ROOT, "services/tts-service/main.py"), encoding="utf-8"
-    ).read()
+    src = open(os.path.join(ROOT, "services/tts-service/main.py"), encoding="utf-8").read()
     assert "Cache-Control" in src
     assert "public" not in src.split("Cache-Control")[1][:60], (
         "أصل TTS لكلّ مستأجِر يجب ألّا يكون public"
@@ -180,9 +180,7 @@ def test_cache_control_is_private_not_public():
 
 # ── (د) وكيل الإشعارات يُرسل X-Agent-Token (لا Bearer) إلى tts ────────────────
 def test_notification_sends_x_agent_token_source():
-    src = open(
-        os.path.join(ROOT, "agents/notification/agent.py"), encoding="utf-8"
-    ).read()
+    src = open(os.path.join(ROOT, "agents/notification/agent.py"), encoding="utf-8").read()
     block = src[src.index("async def send_tts_voice") :]
     block = block[: block.index("async def send_telegram")]
     assert '"X-Agent-Token"' in block, "نداء tts لا يُرسل رأس X-Agent-Token"
@@ -243,10 +241,10 @@ async def test_notification_tts_call_sends_agent_token_header(monkeypatch):
 # ── (هـ) WebSocket: رفض حين غياب/بطلان إطار المصادقة ─────────────────────────
 def test_ws_no_query_token_param_source():
     """تأكيد مصدريّ: مسار ?token= أُزيل — التوقيع لم يعُد يقبل token من الـquery."""
-    src = open(
-        os.path.join(ROOT, "agents/notification/agent.py"), encoding="utf-8"
-    ).read()
-    sig = src[src.index("async def ws_notifications") : src.index("async def ws_notifications") + 120]
+    src = open(os.path.join(ROOT, "agents/notification/agent.py"), encoding="utf-8").read()
+    sig = src[
+        src.index("async def ws_notifications") : src.index("async def ws_notifications") + 120
+    ]
     assert "token: str" not in sig, "WS لا يزال يقرأ token من الـquery"
 
 
