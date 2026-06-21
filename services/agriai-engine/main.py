@@ -38,6 +38,8 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
+    # بلا تبعيّات خارجيّة قصداً: حوسبة صرفة (توصيات/تحسين غلّة بلا قاعدة/Redis/NATS).
+    # لا شيء ننتظره ⇒ جاهز دائماً بصدق.
     return {"status": "ready"}
 
 

@@ -467,6 +467,9 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
+    # بلا تبعيّة صلبة قصداً: لا pool قاعدة ولا عميل Redis متّصل (REDIS_URL غير
+    # مُستهلَك هنا). النشر عبر MQTT والنداءات الخلفيّة (edge/zlmedia) محاولة-أفضل
+    # لا تُعطِّل الإقلاع. لا شيء صلب ننتظره ⇒ جاهز بصدق.
     return {"status": "ready", "version": "9.1.0"}
 
 
