@@ -86,6 +86,44 @@ def _is_production() -> bool:
     return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
 
 
+# ── فرض MFA للأدوار الحسّاسة (governance #411) ─────────────────────
+# الأدوار التي يجب أن تملك MFA مفعّلاً قبل أن تُمنح جلسة. تُحلَّل مرّة واحدة
+# عند التحميل (fail-safe). الافتراضيّ 'admin' (المشرف الأعلى للمنصّة).
+def _parse_required_mfa_roles(raw: str | None) -> frozenset[str]:
+    """يحوّل قائمة أدوار مفصولة بفواصل إلى مجموعة مُطبَّعة (lowercase, trimmed)."""
+    if not raw:
+        raw = "admin"
+    return frozenset(r.strip().lower() for r in raw.split(",") if r.strip())
+
+
+REQUIRE_MFA_ROLES = _parse_required_mfa_roles(os.getenv("REQUIRE_MFA_ROLES"))
+# مفتاح رئيسيّ: الفرض مُعطَّل افتراضيّاً كي لا يكسر CI/التطوير (الإدمن بلا MFA).
+# يُفعَّل في الإنتاج عبر ENFORCE_SENSITIVE_MFA=true أو SAHOOL_ENV=production.
+_ENFORCE_SENSITIVE_MFA = os.getenv("ENFORCE_SENSITIVE_MFA", "false").lower() == "true"
+_IS_PRODUCTION = os.getenv("SAHOOL_ENV", "").lower() == "production"
+MFA_ENFORCEMENT_ENABLED = _ENFORCE_SENSITIVE_MFA or _IS_PRODUCTION
+
+
+def _mfa_required_but_missing(
+    role: str | None,
+    mfa_enabled: bool,
+    *,
+    enforcement_enabled: bool = MFA_ENFORCEMENT_ENABLED,
+    required_roles: frozenset[str] = REQUIRE_MFA_ROLES,
+) -> bool:
+    """قرار نقيّ: هل يجب رفض الدخول لأنّ دوراً حسّاساً لا يملك MFA؟
+
+    يُرجِع True فقط حين يكون الفرض مُفعَّلاً والدور ضمن القائمة وMFA غير مفعّل.
+    افتراضيّاً (لا بيئة) ⇒ enforcement_enabled=False ⇒ يُرجِع False دائماً
+    (لا تغيير في السلوك، يبقى CI أخضر).
+    """
+    if not enforcement_enabled:
+        return False
+    if mfa_enabled:
+        return False
+    return (role or "").strip().lower() in required_roles
+
+
 # ── OTP (تأكيد البريد/الهاتف) — الدوالّ/الثوابت النقيّة في otp.py (معزولة عن
 # fastapi كي تُختبَر وحدةً في CI دون تثبيت fastapi). نعيد تصديرها هنا. ──
 from otp import (  # noqa: E402
@@ -780,6 +818,16 @@ async def login(req: LoginRequest, request: Request):
             await record_failed_login(req.email)
             LOGIN_COUNTER.labels(status="mfa_failed").inc()
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "رمز MFA غير صحيح")
+
+    # فرض MFA للأدوار الحسّاسة (governance #411): دور حسّاس بلا MFA مفعّل
+    # يُرفض دخوله ويُوجَّه للإعداد. مُعطَّل افتراضيّاً (ENV) كي لا يكسر CI/التطوير.
+    if _mfa_required_but_missing(row["role"], row["mfa_enabled"]):
+        LOGIN_COUNTER.labels(status="mfa_enrollment_required").inc()
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "حسابك بدور حسّاس يتطلّب تفعيل MFA — أكمِل الإعداد عبر /auth/mfa/setup",
+            headers={"X-MFA-Enrollment-Required": "true"},
+        )
 
     await clear_failed_logins(req.email)  # ✅ reset on success
     tid = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
