@@ -102,3 +102,8 @@ def test_legend_and_threshold_and_provenance():
     assert out["provenance"]["calibrated"] == "not_applicable"
     assert "needs_data" in out["provenance"]["note_ar"]
     assert out["field_count"] == 0
+
+
+def test_thresholds_estimated_flagged():
+    out = shape_evidence_map([{"field_id": "f1", "decisions": 1, "outcomes": 1, "successes": 1}])
+    assert out["provenance"]["thresholds_estimated"] is True

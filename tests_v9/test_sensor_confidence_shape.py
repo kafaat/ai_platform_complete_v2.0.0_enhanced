@@ -106,3 +106,11 @@ def test_twin_empty_is_safe():
     assert out["device_count"] == 0
     assert out["fleet_confidence"] is None
     assert out["provenance"]["calibrated"] == "not_applicable"
+
+
+def test_thresholds_estimated_flagged():
+    # العتبات تقديريّة ⇒ تُوسَم مُهيكَلةً (اتّساق مع مبدأ المعايرة).
+    out = shape_device_twin(
+        [{"device_id": "d1", "status": "online", "age_sec": 300, "battery_pct": 90}]
+    )
+    assert out["provenance"]["thresholds_estimated"] is True

@@ -133,6 +133,7 @@ def shape_evidence_map(fields: list[dict], *, generated_at: str | None = None) -
         "verified_threshold": EVIDENCE_VERIFIED_MIN_SAMPLES,
         "provenance": {
             "calibrated": "not_applicable",
+            "thresholds_estimated": True,  # عتبة التحقّق الميدانيّ تقديريّة غير معايَرة
             "note_ar": (
                 "مستوى الدليل من القرارات/القياسات المُدامة فقط؛ عتبة التحقّق الميدانيّ "
                 f"({EVIDENCE_VERIFIED_MIN_SAMPLES}) تقديريّة غير معايَرة. الحقل بلا دليل ⇒ "

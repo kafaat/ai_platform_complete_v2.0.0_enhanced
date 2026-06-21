@@ -198,5 +198,6 @@ def check_network_feasibility(nodes: list[NetworkNode], edges: list[NetworkEdge]
         "zone_count": len(out_zones),
         "feasible_count": sum(1 for z in out_zones if z["status"] != "infeasible"),
         "calibrated": "not_applicable",
+        "thresholds_estimated": True,  # عتبات الجدوى (سعة/إنتاجيّة/ضغط) تقديريّة غير معايَرة
         "warnings_ar": warnings_ar,
     }
