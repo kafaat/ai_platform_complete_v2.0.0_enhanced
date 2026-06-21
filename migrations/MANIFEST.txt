@@ -354,3 +354,9 @@ v89_invitations.sql
 # (target_tenant_id لا tenant_id ⇒ لا يلتقطه حارس RLS). RLS+FORCE بسياسة سياق
 # خدمة/إدارة فقط (لا مطابقة per-tenant). idempotent.
 v90_break_glass.sql
+
+# v91: workflow_state.compensation_failures — تقوية محرّك Saga (Stage A P1). فشل
+# خطوة تعويض كان يُبتلَع صامتاً؛ الآن يُسجَّل (ERROR) ويُحفَظ في هذا العمود (fail-loud)
+# ليصمد عبر إعادة التشغيل ويظهر في الرصد. status يكتسب قيمة compensation_failed
+# (تراجع جزئيّ نهائيّ يحتاج تدخّلاً). RLS+FORCE قائمة من v16. idempotent.
+v91_workflow_compensation_failures.sql
