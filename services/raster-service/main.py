@@ -1631,8 +1631,9 @@ async def process_batch(
 
 
 @app.get("/jobs/{job_id}")
-async def job_status(job_id: str):
+async def job_status(job_id: str, x_agent_token: str = Header(None)):
     """حالة المهمّة."""
+    _require_service_token(x_agent_token)
     j = _jobs.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
@@ -1648,8 +1649,9 @@ async def job_status(job_id: str):
 
 
 @app.get("/jobs/{job_id}/result")
-async def job_result(job_id: str):
+async def job_result(job_id: str, x_agent_token: str = Header(None)):
     """نتيجة المهمّة (بعد الاكتمال)."""
+    _require_service_token(x_agent_token)
     j = _jobs.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
@@ -1659,8 +1661,9 @@ async def job_result(job_id: str):
 
 
 @app.get("/info/{layer_id}")
-async def raster_info(layer_id: str):
+async def raster_info(layer_id: str, x_agent_token: str = Header(None)):
     """معلومات طبقة راستر معالَجة."""
+    _require_service_token(x_agent_token)
     layer = _layers.get(layer_id)
     if not layer:
         raise HTTPException(404, "طبقة غير موجودة")
@@ -2341,9 +2344,12 @@ async def field_tilejson(
         b = layer["bounds_4326"]
         if b and len(b) == 4 and any(v != 0.0 for v in b):
             bounds = [round(float(v), 6) for v in b]
+    # صدق: غياب COG ⇒ لا حدود حقيقيّة. لا نختلق حدوداً ضيّقة (الجوف) كأنّها بيانات
+    # الحقل — نعلن available=False ونعطي حدوداً عالميّة محايدة (لا تُقفِز الخريطة لمكان
+    # خاطئ)، فيستطيع المستهلِك (FieldIndicatorMap) أن يميّز "لا طبقة" من بيانات فعليّة.
+    has_data = bounds is not None
     if bounds is None:
-        # حدود افتراضيّة (الجوف، اليمن) عند غياب COG — TileJSON يبقى صالحاً
-        bounds = [44.0, 16.0, 44.01, 16.01]
+        bounds = [-180.0, -85.0, 180.0, 85.0]
 
     center = [
         round((bounds[0] + bounds[2]) / 2.0, 6),
@@ -2364,6 +2370,12 @@ async def field_tilejson(
         "bounds": bounds,
         "center": center,
         "source": "self-rendered",
+        "available": has_data,
+        "note": (
+            None
+            if has_data
+            else "لا COG مقصوص للحقل — شغّل /process أوّلاً (الحدود عالميّة محايدة لا بيانات حقل)"
+        ),
     }
     # اختياري: رابط TiTiler الديناميكي إن توفّر (لا يُلغي الذاتي)
     cog_url = layer.get("cog_url") if layer else None

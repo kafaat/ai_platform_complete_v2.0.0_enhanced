@@ -45,9 +45,11 @@ class WebSocketService {
   final List<Map<String, dynamic>> _messageQueue = [];
 
   String get _wsUrl {
+    // أمان: لا نُمرّر التوكن في الـquery (كان يتسرّب إلى access logs للوكلاء/الخوادم).
+    // نُرسله بدلاً عنه في إطار المصادقة الأوّل بعد فتح الاتصال — مطابقةً لعميل الويب
+    // وللمسار الجديد في الخادم (agents/notification/agent.py: {"type":"auth","token":…}).
     const base = String.fromEnvironment('WS_URL', defaultValue: 'wss://api.sahool.ye');
-    final token = AuthService.instance.token ?? '';
-    return '$base/ws/notifications?token=${Uri.encodeComponent(token)}';
+    return '$base/ws/notifications';
   }
 
   Future<void> connect() async {
@@ -71,6 +73,11 @@ class WebSocketService {
       _socket = ws;
       _reconnectAttempts = 0;
       _logger.i('WS connected ✅');
+
+      // أوّلاً: إطار المصادقة (التوكن في الرسالة الأولى لا في الرابط). الخادم يتحقّق
+      // منه قبل تقديم أيّ أحداث ويعتمد sub من الـJWT (يتجاهل أيّ user_id من العميل).
+      final token = AuthService.instance.token ?? '';
+      _socket!.add(json.encode({'type': 'auth', 'token': token}));
 
       // Flush queued messages
       for (final msg in _messageQueue) {

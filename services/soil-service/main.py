@@ -102,7 +102,9 @@ async def get_readings(field_id: str, limit: int = 100, x_agent_token: str = Hea
     """
     _require_service_token(x_agent_token)
     if not _pool:
-        return {"error": "DB not connected"}
+        # fail-closed: قاعدة البيانات غير موصولة ⇒ 503 (لا 200 بجسم خطأ يخدع
+        # المستدعي ويُمرَّر للمكوّنات كأنّه نجاح). متّسق مع بقيّة الخدمات.
+        raise HTTPException(503, "قاعدة البيانات غير متاحة — حاول لاحقاً")
     async with _pool.acquire() as conn:
         # H5 FIX: أعمدة soil_readings الفعليّة (init_v8.sql) هي
         # temperature_c/ph/ec_ds_m/nitrogen_mg_kg/... — نُسمّيها بأسماء الـAPI
@@ -148,7 +150,9 @@ async def ingest_reading(reading: SoilReading, x_agent_token: str = Header(None)
     """Ingest IoT soil sensor data — يتطلّب توكن خدمة + تحقّق Pydantic."""
     _require_service_token(x_agent_token)
     if not _pool:
-        return {"error": "DB not connected"}
+        # fail-closed: قاعدة البيانات غير موصولة ⇒ 503 (لا 200 بجسم خطأ يخدع
+        # المستدعي ويُمرَّر للمكوّنات كأنّه نجاح). متّسق مع بقيّة الخدمات.
+        raise HTTPException(503, "قاعدة البيانات غير متاحة — حاول لاحقاً")
     async with _pool.acquire() as conn:
         # H5 FIX: نكتب الأعمدة الفعليّة بما فيها NPK. tenant_id عمود UUID
         # nullable ⇒ نحوّل "" إلى NULL لتفادي فشل الإدخال.
