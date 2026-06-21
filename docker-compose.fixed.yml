@@ -251,6 +251,10 @@ services:
       context: .
       dockerfile: services/auth/Dockerfile
     restart: unless-stopped
+    # تطوير محلّيّ: تُنشَر على loopback ليصلها المتصفّح مباشرةً (frontend/.env.local:
+    # VITE_AUTH_URL=http://localhost:8120). الإنتاج (v9.yml) خلف nginx فقط.
+    ports:
+      - "127.0.0.1:8120:8000"
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -321,6 +325,11 @@ services:
       context: .
       dockerfile: services/sahool-platform/Dockerfile
     restart: unless-stopped
+    # تطوير محلّيّ: تُنشَر على loopback ليصلها المتصفّح مباشرةً (frontend/.env.local:
+    # VITE_API_URL=http://localhost:8000). بدونها كلّ نداءات /api/v1/* تفشل (الواجهة
+    # على :3000 لا تصل المنصّة). الإنتاج (v9.yml) خلف nginx فقط (لا منفذ مضيف).
+    ports:
+      - "127.0.0.1:8000:8000"
     environment:
       SAHOOL_JWT_SECRET: ${JWT_SECRET}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
