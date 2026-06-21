@@ -22,7 +22,10 @@ pytestmark = pytest.mark.unit
 BASE = os.path.dirname(os.path.dirname(__file__))
 
 # جداول نطاق الهويّة المسموح لـauth لمسها تحت سياق admin (موثّقة في التدقيق).
-_AUTH_DOMAIN_TABLES = {"users", "audit_log"}
+# invitations: جدول هويّة (إلحاق أعضاء بمستأجِر قائم) تديره خدمة auth. آمن تحت سياق
+# admin لأنّ نقاطه تُنطّق المستأجِر يدويّاً (list يُرشّح بـtenant_id الداعي؛ accept/
+# revoke عبر token فريد) — لا قراءة عابرة للمستأجرين.
+_AUTH_DOMAIN_TABLES = {"users", "audit_log", "invitations"}
 
 # مرسِل/مجدوِل sahool_jobs: نطاقه فقط.
 _JOBS_SCOPE = {
