@@ -1,6 +1,10 @@
 """
 api/recommendations_hub.py — مُجمِّع التوصيات الموحَّد لكلّ حقل (Sprint — recommendations).
 
+# DECISION-PATH: legacy — مُجمِّع توصيات heuristic للعرض (ريّ/تسميد/أمراض/غلّة).
+# استشاريّ فقط: لا يُوزَّع للتنفيذ ولا يمرّ ببوّابة الحَوكمة. التنفيذ يمرّ بالمسار
+# القانونيّ (canonical) core.field_intelligence_coordinator.run_field_intelligence.
+
 الهدف: عمود توصيات موحَّد لكلّ حقل يجمع في مكان واحد:
   • الريّ (irrigation) — من api.weather_advice.irrigation_advice (FAO-56).
   • التسميد (fertilizer) — إرشاد N/P/K مبسّط بحسب محصول الموسم النشط ومرحلته.

@@ -1,5 +1,9 @@
 """api/routers/irrigation_plan.py — نقطة تخطيط الريّ التنبّؤيّ (مركز المحاصيل)
 
+# DECISION-PATH: adapter (feeds field-intelligence) — يحسب خطّة ريّ FAO-56 ويلتقطها
+# في سلسلة النَّسَب (decision_record) لتُغذّي القرار/التوزيع لاحقاً. لا يُوزَّع للتنفيذ
+# بنفسه؛ التنفيذ يمرّ بالمسار القانونيّ (run_field_intelligence ⇒ بوّابة الحَوكمة).
+
 تربط طبقات خطّ «مركز المحاصيل» في نقطة واحدة قابلة للاستدعاء:
   نسيج+عمق ⇒ soil_water (TAW) ⇒ irrigation_policy (الهدف) ⇒ irrigation_mpc
   (جدول الريّ عبر أفق التنبّؤ، FAO-56 eq.85).
