@@ -359,6 +359,22 @@ class InvitationAcceptRequest(BaseModel):
         return v
 
 
+# ── Tenant provisioning model (تهيئة مستأجِر B2B بيد مدير المنصّة) ────
+class TenantProvisionRequest(BaseModel):
+    """طلب تهيئة مستأجِر جديد + أوّل مالك له (إعداد B2B، لا تسجيل ذاتيّ).
+
+    لا حقل role/password/tenant_id هنا عمداً: الدور دائماً 'owner' (يُفرَض في
+    المعالِج)، والمالك يضبط كلمة مروره لاحقاً عبر رمز إعادة تعيين (لا كلمة مرور
+    من المُهيِّئ)، والمستأجِر جديد معزول (gen_random_uuid) لا يختاره المُهيِّئ
+    (منع تصادم/تصعيد). tenant_name اختياريّ ويُسجَّل في التدقيق فقط — لا يوجد
+    جدول tenants؛ المستأجرون ضمنيّون عبر users.tenant_id (اتّساقاً مع التسجيل الذاتيّ).
+    """
+
+    owner_email: EmailStr
+    owner_full_name: str = Field(min_length=2, max_length=100)
+    tenant_name: str | None = Field(default=None, max_length=200)
+
+
 # قناة التحقّق: بريد أو هاتف. Literal يرفض أيّ قيمة أخرى عند التحقّق (422).
 VerifyChannel = Literal["email", "phone"]
 
@@ -1276,6 +1292,103 @@ async def deactivate_user(user_id: int):
         await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
     await revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
     return {"message": "تم إلغاء تفعيل الحساب"}
+
+
+# ── Tenant provisioning (تهيئة مستأجِر B2B بيد مدير المنصّة) ────────────
+# القرار التصميميّ: التسجيل الذاتيّ (register) يُنشئ مستأجِراً + مالكاً معاً بكلمة
+# مرور يختارها المُسجِّل. التهيئة الإداريّة (هنا) تختلف: مدير المنصّة (دور auth
+# 'admin' ⇒ PLATFORM_ADMIN) يُنشئ مستأجِراً جديداً معزولاً + أوّل مالك له دون
+# أن يعرف المالكُ كلمةَ مرور مسبقة — يضبطها بنفسه عبر **رمز إعادة تعيين** (نعيد
+# استخدام آليّة password-reset القائمة: مفتاح Redis sahool:reset:{token} مدّته
+# ٣٠ دقيقة + send_reset_email). كلمة المرور الأوّليّة عشوائيّة غير قابلة للاستعمال.
+#
+# الأمان (لا تصعيد عابر للمستأجرين): المالك المُهيَّأ هو مالك مستأجِر **جديد
+# منفصل** (tenant_id فريد جديد، gen_random_uuid) — لا علاقة له بمستأجِر المُهيِّئ.
+# المُهيِّئ (admin) لا ينضمّ للمستأجِر الجديد ولا يحصل على توكن له ⇒ لا يصل لبياناته
+# (RLS يعزل المستأجرين). إذن منح 'owner' لمستأجِر مولود حديثاً ليس رفعاً للصلاحيّة
+# داخل مستأجِر قائم، بل تأسيس مستأجِر فارغ معزول (نفس منطق register).
+#
+# جدول tenants: لا يوجد في الهجرات — المستأجرون **ضمنيّون** عبر users.tenant_id
+# (افتراضه gen_random_uuid)، اتّساقاً مع التسجيل الذاتيّ. لذا لا صفّ tenants يُدرَج؛
+# tenant_name (إن أُرسِل) يُدوَّن في سجلّ التدقيق فقط.
+@app.post("/auth/tenants", status_code=201)
+async def provision_tenant(
+    req: TenantProvisionRequest,
+    request: Request,
+    admin: Annotated[dict, Depends(require_role("admin"))],
+):
+    """يُهيّئ مستأجِراً جديداً معزولاً + أوّل مالك له (مدير المنصّة فقط).
+
+    يُنشئ مستخدِم المالك بدور 'owner' وكلمة مرور أوّليّة عشوائيّة غير قابلة
+    للاستعمال، ثمّ يُصدر رمز إعادة تعيين (Redis) ليضبط المالك كلمة مروره. يرفض
+    إن كان البريد مسجّلاً مسبقاً (409). يُدوّن tenant_provisioned في التدقيق.
+    """
+    ip = request.client.host if request.client else "unknown"
+    admin_id = int(admin["sub"])
+
+    # كلمة مرور أوّليّة عشوائيّة غير قابلة للاستعمال: يُهشَّر سرّ عشوائيّ لا يُكشَف
+    # لأحد ⇒ لا يمكن تسجيل الدخول بها؛ المالك يضبط كلمته عبر رمز إعادة التعيين.
+    unusable = bcrypt.hashpw(secrets.token_urlsafe(48).encode(), bcrypt.gensalt(BCRYPT_ROUNDS))
+    hashed = unusable.decode()
+
+    async with _pool.acquire() as conn:
+        try:
+            # tenant_id يُترَك للافتراضيّ gen_random_uuid ⇒ مستأجِر جديد معزول
+            # (نفس نمط register). الدور 'owner' مكتوب نصّاً هنا (لا من العميل).
+            row = await conn.fetchrow(
+                """
+                INSERT INTO users (email, password_hash, full_name, role)
+                VALUES ($1, $2, $3, 'owner')
+                RETURNING id, email, role, full_name, tenant_id
+                """,
+                req.owner_email,
+                hashed,
+                req.owner_full_name,
+            )
+        except asyncpg.UniqueViolationError as e:
+            raise HTTPException(status.HTTP_409_CONFLICT, "البريد الإلكتروني مسجّل مسبقاً") from e
+
+    new_tenant_id = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
+
+    # رمز إعداد كلمة المرور: إعادة استخدام آليّة password-reset القائمة (Redis، ٣٠ دقيقة).
+    # نتدهور برشاقة بلا Redis (التطوير): نُعيد الحقول دون رمز (المالك يطلب إعادة تعيين لاحقاً).
+    setup_token: str | None = None
+    if _redis:
+        setup_token = secrets.token_urlsafe(32)
+        await _redis.setex(f"sahool:reset:{setup_token}", 1800, str(row["id"]))  # 30 دقيقة
+        # إرسال بريد الإعداد (نفس قالب إعادة التعيين) — best-effort (SMTP قد لا يكون مهيّأً).
+        await send_reset_email(req.owner_email, setup_token)
+
+    # التدقيق: tenant_provisioned بمستأجِر جديد + معرّف المُهيِّئ (admin). نُدوّن tenant_name
+    # في details للتتبّع (لا جدول tenants لتخزينه). tenant_id = المستأجِر الجديد المُهيَّأ.
+    details = req.tenant_name or req.owner_email
+    await audit_log("tenant_provisioned", admin_id, ip, details=details, tenant_id=row["tenant_id"])
+    logger.info(
+        "tenant provisioned: tenant=%s owner_user=%s by_admin=%s",
+        new_tenant_id,
+        row["id"],
+        admin_id,
+    )
+
+    # رابط الإعداد للواجهة (نفس مسار إعادة التعيين) — يُعرَض إن لم يُهيّأ SMTP.
+    setup_link = (
+        f"{os.getenv('FRONTEND_URL', 'https://app.sahool.ye')}/reset-password?token={setup_token}"
+        if setup_token
+        else None
+    )
+    return {
+        "tenant_id": new_tenant_id,
+        "owner_user_id": row["id"],
+        "owner_email": row["email"],
+        "owner_role": row["role"],  # دائماً 'owner'
+        "setup_token": setup_token,
+        "setup_link": setup_link,
+        "message": (
+            "تمّت تهيئة المستأجِر؛ أُرسِل/أُتيح رابط ضبط كلمة المرور للمالك"
+            if setup_token
+            else "تمّت تهيئة المستأجِر؛ يطلب المالك إعادة تعيين كلمة المرور (Redis غير متاح)"
+        ),
+    }
 
 
 # ── Tenant member invitations ─────────────────────────────────
