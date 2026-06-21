@@ -8,3 +8,10 @@ export * from './merge';
 export * from './status';
 // قشرة الكابينة المحمولة الموحّدة
 export * from './cabin';
+// أساسيّات نظام التصميم (المرحلة 0 · نحو تجربة Climate-FieldView)
+export * from './forms';      // عناصر النموذج (Input/Textarea/Select/Checkbox/Radio/FormField)
+export * from './table';      // جدول البيانات العامّ DataTable<T>
+export * from './modal';      // المودال الموحّد (framer-motion + حبس تركيز)
+export * from './tooltip';    // تلميح RTL
+export * from './breadcrumb'; // مسار التنقّل
+export * from './combobox';   // قائمة منسدلة باحثة (اختيار أحاديّ)

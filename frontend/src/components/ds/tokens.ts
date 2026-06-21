@@ -100,6 +100,26 @@ export type CmapId = keyof typeof CMAP;
 export const RADIUS = { sm: 8, md: 12, lg: 16, pill: 999 } as const;
 export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 } as const;
 
+// ── ألوان مستويات الحالة (excellent…critical) — مصدر وحيد ────────
+// هذه هي القيَم القانونيّة الوحيدة لألوان الحالة. تطابق صفوف .status-* في
+// index.css وخريطة STATUS_COLOR التاريخيّة في KPICard (التي صارت تستورد من هنا).
+// عند تغيير لون حالة: غيّره هنا فقط (index.css نسخة عرض ثابتة موثَّقة هناك).
+export const STATUS_COLORS = {
+  excellent: '#16a34a',
+  good:      '#65a30d',
+  fair:      '#ca8a04',
+  poor:      '#f97316',
+  critical:  '#dc2626',
+} as const;
+
+export type StatusLevel = keyof typeof STATUS_COLORS;
+
+/** لون مستوى الحالة؛ المستوى المجهول/الغائب ⇒ رماديّ محايد (لا اختراع لون). */
+export function statusColor(level?: string | null): string {
+  const key = (level ?? '').toLowerCase() as StatusLevel;
+  return STATUS_COLORS[key] ?? '#6b7280';
+}
+
 /** لون مورد متناقص (وقود/DEF/بطّاريّة): أخضر→برتقاليّ→أحمر حسب النسبة [0..100]. */
 export function resourceColor(pct: number): string {
   if (pct > 25) return T.ok;
