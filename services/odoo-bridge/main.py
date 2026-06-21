@@ -51,6 +51,20 @@ SAHOOL_AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 SYNC_INTERVAL_SEC = int(os.getenv("SYNC_INTERVAL_SEC", "300"))  # 5 min
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "")
 
+# ── صدق عزل المستأجر للكتالوج الوارد من Odoo ─────────────────────
+# كتالوج Odoo (product.product / res.partner المورّدون) عالميّ على مستوى المنصّة
+# بطبيعته، لا مملوكاً لمستأجر واحد: المفتاح الفريد لمزامنته في المنصّة هو معرّف
+# Odoo نفسه عالميّاً — `ON CONFLICT (odoo_product_id)` و`ON CONFLICT (odoo_partner_id)`
+# (راجع الفهارس الفريدة بلا tenant_id في migrations/v9_odoo_bridge.sql على
+# market_products/market_suppliers: صفّ واحد لكلّ سجلّ Odoo عبر كلّ المنصّة).
+# لذا لا نفرض tenant_id على صفوف الكتالوج المُزامَنة — فرضه يناقض المفتاح الفريد
+# العالميّ ويُلفّق ملكيّةً لا وجود لها (الفهرس الفريد لـinventory_stock يُرحّب صراحةً
+# بـtenant_id=NULL: COALESCE(tenant_id::text,'default')).
+#
+# لكن إن قرّر مشغّل أنّ نشره أحاديّ المستأجر وأراد إسناد الكتالوج لمستأجر صريح،
+# نقرأ ODOO_SYNC_TENANT_ID من البيئة (UUID صريح، لا تلفيق). فارغ ⇒ كتالوج عالميّ.
+ODOO_SYNC_TENANT_ID = os.getenv("ODOO_SYNC_TENANT_ID", "").strip() or None
+
 _pool: asyncpg.Pool | None = None
 _odoo_uid: int | None = None
 _odoo_auth_cache: dict = {}
@@ -271,22 +285,46 @@ async def sync_products():
             category = p.get("categ_id")[1] if isinstance(p.get("categ_id"), list) else "General"
             uom = p.get("uom_id")[1] if isinstance(p.get("uom_id"), list) else "Unit"
 
-            await conn.execute(
-                """INSERT INTO inventory_stock (item_name, category, unit, unit_cost_usd,
-                        quantity_in_stock, reorder_level, supplier, odoo_product_id, last_synced_at)
-                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
-                    ON CONFLICT (odoo_product_id) DO UPDATE SET
-                        item_name=$1, category=$2, unit=$3, unit_cost_usd=$4,
-                        last_synced_at=NOW()""",
-                p["name"],
-                category,
-                uom,
-                float(p.get("standard_price", 0) or 0),
-                0,  # qty managed by inventory moves
-                10,
-                "Odoo Sync",
-                str(p["id"]),
-            )
+            # عزل المستأجر: الكتالوج عالميّ افتراضيّاً (tenant_id=NULL)؛ لا نُسنده
+            # لمستأجر إلّا حين يُضبط ODOO_SYNC_TENANT_ID صراحةً (لا تلفيق). نُدرج
+            # العمود ديناميكيّاً ليبقى INSERT صالحاً سواء كان الكتالوج عالميّاً أو
+            # مُسنداً، دون فرض tenant_id على مفتاح odoo_product_id الفريد العالميّ.
+            if ODOO_SYNC_TENANT_ID:
+                await conn.execute(
+                    """INSERT INTO inventory_stock (item_name, category, unit, unit_cost_usd,
+                            quantity_in_stock, reorder_level, supplier, odoo_product_id,
+                            tenant_id, last_synced_at)
+                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
+                        ON CONFLICT (odoo_product_id) DO UPDATE SET
+                            item_name=$1, category=$2, unit=$3, unit_cost_usd=$4,
+                            tenant_id=$9, last_synced_at=NOW()""",
+                    p["name"],
+                    category,
+                    uom,
+                    float(p.get("standard_price", 0) or 0),
+                    0,  # qty managed by inventory moves
+                    10,
+                    "Odoo Sync",
+                    str(p["id"]),
+                    ODOO_SYNC_TENANT_ID,
+                )
+            else:
+                await conn.execute(
+                    """INSERT INTO inventory_stock (item_name, category, unit, unit_cost_usd,
+                            quantity_in_stock, reorder_level, supplier, odoo_product_id, last_synced_at)
+                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
+                        ON CONFLICT (odoo_product_id) DO UPDATE SET
+                            item_name=$1, category=$2, unit=$3, unit_cost_usd=$4,
+                            last_synced_at=NOW()""",
+                    p["name"],
+                    category,
+                    uom,
+                    float(p.get("standard_price", 0) or 0),
+                    0,  # qty managed by inventory moves
+                    10,
+                    "Odoo Sync",
+                    str(p["id"]),
+                )
             synced += 1
 
     await set_last_sync("product.product", "odoo_to_sahool", datetime.now(UTC))
@@ -330,22 +368,46 @@ async def sync_suppliers():
     async with pool.acquire() as conn:
         for p in partners:
             country = p.get("country_id")[1] if isinstance(p.get("country_id"), list) else ""
-            await conn.execute(
-                """INSERT INTO suppliers (name, contact_person, phone, email, address,
-                        rating, categories, active, odoo_partner_id, last_synced_at)
-                    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
-                    ON CONFLICT (odoo_partner_id) DO UPDATE SET
-                        name=$1, phone=$3, email=$4, address=$5, last_synced_at=NOW()""",
-                p["name"],
-                p["name"],
-                p.get("phone", ""),
-                p.get("email", ""),
-                f"{p.get('street', '')} {p.get('city', '')} {country}".strip(),
-                4.0,
-                ["general"],
-                True,
-                str(p["id"]),
-            )
+            address = f"{p.get('street', '')} {p.get('city', '')} {country}".strip()
+            # عزل المستأجر: كتالوج المورّدين عالميّ افتراضيّاً (المفتاح الفريد
+            # odoo_partner_id عالميّ بلا tenant_id). نُسنده لمستأجر فقط حين يُضبط
+            # ODOO_SYNC_TENANT_ID صراحةً — لا نُلفّق ملكيّة.
+            if ODOO_SYNC_TENANT_ID:
+                await conn.execute(
+                    """INSERT INTO suppliers (name, contact_person, phone, email, address,
+                            rating, categories, active, odoo_partner_id, tenant_id, last_synced_at)
+                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,NOW())
+                        ON CONFLICT (odoo_partner_id) DO UPDATE SET
+                            name=$1, phone=$3, email=$4, address=$5,
+                            tenant_id=$10, last_synced_at=NOW()""",
+                    p["name"],
+                    p["name"],
+                    p.get("phone", ""),
+                    p.get("email", ""),
+                    address,
+                    4.0,
+                    ["general"],
+                    True,
+                    str(p["id"]),
+                    ODOO_SYNC_TENANT_ID,
+                )
+            else:
+                await conn.execute(
+                    """INSERT INTO suppliers (name, contact_person, phone, email, address,
+                            rating, categories, active, odoo_partner_id, last_synced_at)
+                        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
+                        ON CONFLICT (odoo_partner_id) DO UPDATE SET
+                            name=$1, phone=$3, email=$4, address=$5, last_synced_at=NOW()""",
+                    p["name"],
+                    p["name"],
+                    p.get("phone", ""),
+                    p.get("email", ""),
+                    address,
+                    4.0,
+                    ["general"],
+                    True,
+                    str(p["id"]),
+                )
             synced += 1
 
     await set_last_sync("res.partner", "odoo_to_sahool", datetime.now(UTC))
@@ -406,11 +468,86 @@ async def sync_procurement_orders_to_odoo():
                 if not items:
                     continue
 
-                # Get supplier from first item (or default)
+                # صدق: لا تُلفّق تطابق مورّد/منتج. حُلّ كلّ ربط من Odoo فعليّاً؛
+                # إن تعذّر ربط حقيقيّ، لا تدفع أمر شراء مُزيَّفاً مربوطاً بشريك/منتج
+                # عشوائيّ (partner_id=1 / prod_id=1 السابقان كانا يخترعان تطابقاً
+                # خاطئاً-لكن-معقولاً صامتاً). نفشل صريحاً ونعلّم الأمر failed ونتابع.
+                #
+                # ١) حُلّ المورّد (partner) من Odoo. لا مصدر مورّد على مستوى الأمر
+                #    هنا، لكن لكي لا نُلفّق partner عشوائيّاً نُلزم وجود مفتاح صريح:
+                #    procurement_orders.supplier_id (إن وُجد) أو procurement_order_items
+                #    عبر اسم المورّد. غياب أيّ ربط ⇒ فشل صريح لا partner_id=1.
+                supplier_name = items[0].get("supplier") if items else None
                 supplier_id = None
-                # Create PO header
+                if supplier_name:
+                    partner_rows = await odoo.search_read(
+                        "res.partner",
+                        [["name", "ilike", supplier_name], ["supplier_rank", ">", 0]],
+                        ["id"],
+                        limit=1,
+                    )
+                    supplier_id = partner_rows[0]["id"] if partner_rows else None
+
+                if not supplier_id:
+                    reason = (
+                        "لا مورّد قابل للحلّ في Odoo "
+                        f"(supplier={supplier_name!r}) — لن يُدفع أمر شراء مُلفَّق"
+                    )
+                    await conn.execute(
+                        "UPDATE procurement_orders SET odoo_sync_status='failed', "
+                        "odoo_sync_error=$1 WHERE order_id=$2",
+                        reason[:500],
+                        row["order_id"],
+                    )
+                    await log_sync_record(
+                        "sahool_to_odoo",
+                        "purchase.order",
+                        None,
+                        str(row["order_id"]),
+                        "failed",
+                        reason[:500],
+                    )
+                    logger.error(f"PO {row['order_id']} غير مدفوع: {reason}")
+                    continue
+
+                # ٢) حُلّ كلّ منتج فعليّاً قبل أيّ كتابة في Odoo. أيّ منتج غير قابل
+                #    للحلّ ⇒ فشل صريح للأمر كلّه (لا prod_id=1 مُلفَّق).
+                resolved_lines = []
+                unresolved_item = None
+                for it in items:
+                    prod_domain = [["name", "ilike", it["item_name"]]]
+                    prods = await odoo.search_read("product.product", prod_domain, ["id"], limit=1)
+                    if not prods:
+                        unresolved_item = it["item_name"]
+                        break
+                    resolved_lines.append((prods[0]["id"], it))
+
+                if unresolved_item is not None:
+                    reason = (
+                        f"لا منتج قابل للحلّ في Odoo (item={unresolved_item!r}) — "
+                        "لن يُدفع أمر شراء مُلفَّق"
+                    )
+                    await conn.execute(
+                        "UPDATE procurement_orders SET odoo_sync_status='failed', "
+                        "odoo_sync_error=$1 WHERE order_id=$2",
+                        reason[:500],
+                        row["order_id"],
+                    )
+                    await log_sync_record(
+                        "sahool_to_odoo",
+                        "purchase.order",
+                        None,
+                        str(row["order_id"]),
+                        "failed",
+                        reason[:500],
+                    )
+                    logger.error(f"PO {row['order_id']} غير مدفوع: {reason}")
+                    continue
+
+                # ٣) كلّ الروابط حقيقيّة — ادفع أمر الشراء وأسطره (السلوك دون تغيير
+                #    عند توفّر ربط حقيقيّ).
                 po_vals = {
-                    "partner_id": supplier_id or 1,  # default supplier
+                    "partner_id": supplier_id,  # مورّد محلول فعليّاً (لا default=1)
                     "origin": f"SAHOOL-{row['order_id']}",
                     "notes": row.get("notes", "") + "\nSynced from SAHOOL",
                     "date_order": row["created_at"].isoformat()
@@ -419,13 +556,7 @@ async def sync_procurement_orders_to_odoo():
                 }
                 po_id = await odoo.create("purchase.order", po_vals)
 
-                # Create lines
-                for it in items:
-                    # Map product by name (or create if not exists)
-                    prod_domain = [["name", "ilike", it["item_name"]]]
-                    prods = await odoo.search_read("product.product", prod_domain, ["id"], limit=1)
-                    prod_id = prods[0]["id"] if prods else 1
-
+                for prod_id, it in resolved_lines:
                     line_vals = {
                         "order_id": po_id,
                         "product_id": prod_id,
