@@ -1088,6 +1088,44 @@ export interface DeviceTwinResult {
 export const fetchDeviceTwin = (): Promise<DeviceTwinResult> =>
   kongApi.get<DeviceTwinResult>('/api/v1/devices/twin').then(r => r.data);
 
+// ── رصد حلقة التنفيذ (Execution Feedback) — قراءة فقط ──
+// تستهلك GET /api/v1/execution/feedback: لكلّ قرار حديث هل نُفِّذ (من سجلّ التنفيذ)
+// وهل طابقت النتيجة الخطّة — إغلاق حلقة القرار→التنفيذ→النتيجة. لا إصدار أوامر ولا
+// إعادة تنفيذ. صدق: loop_status من سجلّات مُدامة فقط؛ execution_unknown «يحتاج بيانات»
+// (رماديّ) لا «نُفِّذ»؛ executed_unmeasured كهرمانيّ لا نجاح؛ closure_rate قد تكون null.
+export type ExecutionLoopStatus =
+  | 'closed_ok' | 'executed_off_plan' | 'executed_unmeasured' | 'execution_failed' | 'execution_unknown';
+export interface ExecutionFeedbackDecision {
+  decision_id:       string;
+  decision_type:     string;
+  field_id:          string | null;
+  created_at:        string;
+  execution_outcome: 'executed' | 'failed' | null; // null ⇒ لا قيد في سجلّ التنفيذ
+  executed_at:       string | null;
+  exec_note_ar:      string | null;
+  outcome_measured:  boolean;
+  outcome_success:   boolean | null;               // null حين لا تُقاس ⇒ «—» لا false
+  loop_status:       ExecutionLoopStatus;
+  loop_status_ar:    string;
+  color:             'green' | 'red' | 'amber' | 'gray';
+  note_ar:           string | null;                // تفسير صادق للحالة المجهولة/غير المقيسة
+}
+export interface ExecutionFeedbackResult {
+  generated_at:   string;
+  decisions:      ExecutionFeedbackDecision[];
+  decision_count: number;
+  by_status:      Record<ExecutionLoopStatus, number>;
+  totals:         { executed: number; failed: number; measured: number; closed_ok: number };
+  closure_rate:   number | null;                   // closed_ok/executed؛ null حين لا تنفيذ ⇒ «غير محسوبة»
+  provenance:     { calibrated: string; note_ar: string };
+  tenant_id:      string;
+}
+/** يجلب رصد حلقة التنفيذ (GET /api/v1/execution/feedback) — قراءة فقط لا أوامر.
+ *  يرمي عند الخطأ (404 العلم FEATURE_EXECUTION_FEEDBACK مُطفأ — تلتقطه الواجهة برسالة
+ *  «الميزة غير مُفعَّلة»؛ 503 القاعدة غير متاحة تُعرَض كحالة خطأ صادقة). */
+export const fetchExecutionFeedback = (): Promise<ExecutionFeedbackResult> =>
+  kongApi.get<ExecutionFeedbackResult>('/api/v1/execution/feedback').then(r => r.data);
+
 // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) — سرد القرارات المُدامة + تلخيص حلقة التعلّم ──
 // تستهلك GET /api/v1/decision/records (سرد القرارات المُدامة للمستأجِر، معزولة بـRLS):
 //   {decisions: DecisionRecord[], count}. شكل القرار مطابق لـ_shape_decision_row

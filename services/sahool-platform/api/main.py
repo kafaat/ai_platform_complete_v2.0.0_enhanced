@@ -3160,6 +3160,7 @@ from api.routers.escalation import router as escalation_router  # noqa: E402
 from api.routers.events import router as events_router  # noqa: E402
 from api.routers.evidence import router as evidence_router  # noqa: E402
 from api.routers.evidence_map import router as evidence_map_router  # noqa: E402
+from api.routers.execution_feedback import router as execution_feedback_router  # noqa: E402
 from api.routers.execution_lineage import router as execution_lineage_router  # noqa: E402
 from api.routers.failures import router as failures_router  # noqa: E402
 from api.routers.farms import router as farms_router  # noqa: E402
@@ -3316,6 +3317,7 @@ app.include_router(decision_policies_router)
 app.include_router(decision_impact_router)
 app.include_router(decision_record_router)
 app.include_router(execution_lineage_router)
+app.include_router(execution_feedback_router)
 app.include_router(field_twin_router)
 app.include_router(agricultural_proverbs_router)
 app.include_router(astronomical_timing_router)

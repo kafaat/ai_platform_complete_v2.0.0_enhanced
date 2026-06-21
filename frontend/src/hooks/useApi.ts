@@ -79,6 +79,8 @@ import {
   fetchEvidenceMap, type EvidenceMapResult,
   // ── توائم الأجهزة وثقة الحسّاس (Device Twin): توأم رقميّ + درجة ثقة لكلّ جهاز ──
   fetchDeviceTwin, type DeviceTwinResult,
+  // ── رصد حلقة التنفيذ (Execution Feedback): القرار→التنفيذ→النتيجة (قراءة فقط) ──
+  fetchExecutionFeedback, type ExecutionFeedbackResult,
   // ── لوحة رصد التعلّم/النَّسَب (قراءة فقط) ──
   fetchDecisionRecords, type DecisionRecordsResult,
   fetchLearningSummary, type LearningSummary,
@@ -1026,6 +1028,22 @@ export function useDeviceTwin(): UseQueryResult<DeviceTwinResult, Error> {
   return useQuery<DeviceTwinResult, Error>({
     queryKey: ['device-twin', tid],
     queryFn:  () => fetchDeviceTwin(),
+    staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+// ── رصد حلقة التنفيذ (Execution Feedback) — قراءة فقط ──
+// يجلب لكلّ قرار حديث هل نُفِّذ وهل طابقت النتيجة الخطّة (GET /api/v1/execution/feedback)
+// — إغلاق حلقة القرار→التنفيذ→النتيجة. لا fallback وهميّ: الخطأ (404 العلم
+// FEATURE_EXECUTION_FEEDBACK مُطفأ، 503 DB) يُرفض الاستعلام لتعرض الواجهة حالة صادقة
+// (الصفحة تكشف 404 عبر error.response?.status لرسالة «الميزة غير مُفعَّلة»). retry:false
+// كبقيّة صفحات العلم. مُفهرَس بالمستأجِر الفعّال (عزل RLS خادميّاً). قراءة فقط لا أوامر.
+export function useExecutionFeedback(): UseQueryResult<ExecutionFeedbackResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<ExecutionFeedbackResult, Error>({
+    queryKey: ['execution-feedback', tid],
+    queryFn:  () => fetchExecutionFeedback(),
     staleTime:5 * 60_000,
     retry:    false,
   });

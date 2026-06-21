@@ -8,7 +8,7 @@ import {
   Boxes, Tractor, Cpu, Waypoints, Database, FolderArchive,
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
   ChevronDown, CalendarRange, GitCompare, GitBranch, Crosshair, Search, History,
-  FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay, Share2,
+  FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay, Share2, Repeat,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
@@ -81,6 +81,7 @@ const DeviceTwinPage = lazy(() => import('./sections/DeviceTwinPage'));
 const ReplayMapPage = lazy(() => import('./sections/ReplayMapPage'));
 const LearningDashboardPage = lazy(() => import('./sections/LearningDashboardPage'));
 const DecisionStudioPage = lazy(() => import('./sections/DecisionStudioPage'));
+const ExecutionFeedbackPage = lazy(() => import('./sections/ExecutionFeedbackPage'));
 const AgronomicTimelinePage = lazy(() => import('./sections/AgronomicTimelinePage'));
 const PestEscalationPage  = lazy(() => import('./sections/PestEscalationPage'));
 const FieldIntelligencePage = lazy(() => import('./sections/FieldIntelligencePage'));
@@ -117,7 +118,7 @@ export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
+  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'phenology' | 'scouting' | 'advisory-report'
@@ -179,6 +180,7 @@ const NAV_GROUPS: NavGroup[] = [
       { id:'replay-map', label:'إعادة تشغيل الموسم', icon:History, badge:'جديد' },
       { id:'learning-dashboard', label:'لوحة رصد التعلّم', icon:BarChart3 },
       { id:'decision-studio', label:'استوديو القرار', icon:FlaskConical, badge:'جديد' },
+      { id:'execution-feedback', label:'رصد حلقة التنفيذ', icon:Repeat, badge:'جديد' },
       { id:'agronomic-timeline', label:'الخطّ الزمنيّ الأغرونوميّ', icon:GitCommitHorizontal, badge:'جديد' },
       { id:'weather-advice', label:'الطقس والريّ',  icon:CloudRain },
       { id:'irrigation-ops', label:'الري التشغيلي', icon:Waypoints },
@@ -569,6 +571,7 @@ export default function App() {
       case 'replay-map': return <ReplayMapPage />;
       case 'learning-dashboard': return <LearningDashboardPage />;
       case 'decision-studio': return <DecisionStudioPage />;
+      case 'execution-feedback': return <ExecutionFeedbackPage />;
       case 'agronomic-timeline': return <AgronomicTimelinePage />;
       case 'pest-escalation': return <PestEscalationPage />;
       case 'field-intelligence': return <FieldIntelligencePage />;
