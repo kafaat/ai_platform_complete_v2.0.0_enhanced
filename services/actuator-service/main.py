@@ -707,6 +707,16 @@ async def health():
 
 @app.get("/readyz")
 async def readyz():
+    # جاهزيّة حقيقيّة: حين تُضبط DATABASE_URL يجب أن يكون pool القاعدة حيّاً
+    # (تسجيل أوامر الأجهزة يعتمد عليه). نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503 لا «جاهز» كاذب.
+    # حين لا DATABASE_URL مضبوطة (وضع متدرّج معلَن: تسجيل الأوامر معطّل) ⇒ جاهز بصدق.
+    if _pool is not None:
+        try:
+            async with _pool.acquire() as conn:
+                await conn.fetchval("SELECT 1")
+        except Exception as e:
+            logger.warning(f"readyz: قاعدة البيانات غير جاهزة — {e}")
+            raise HTTPException(503, {"status": "not_ready", "reason": "db"}) from e
     return {"status": "ready", "version": "9.1.0"}
 
 

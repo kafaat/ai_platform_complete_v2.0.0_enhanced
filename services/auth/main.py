@@ -76,6 +76,54 @@ SMS_FROM = os.getenv("SMS_FROM", "SAHOOL")
 BCRYPT_ROUNDS = 12
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
+
+
+# ── إشارة الإنتاج (SAHOOL_ENV) — اصطلاح موحّد عبر المنصّة ──────────
+# القيم: production / development (الافتراضيّ development). دالّة نقيّة (تقرأ
+# os.getenv عند الاستدعاء) كي تكون قابلة للاختبار وحدةً دون رفع الخدمة.
+def _is_production() -> bool:
+    """True إن كانت SAHOOL_ENV=production (غير حسّاسة لحالة الأحرف)."""
+    return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+
+
+# ── فرض MFA للأدوار الحسّاسة (governance #411) ─────────────────────
+# الأدوار التي يجب أن تملك MFA مفعّلاً قبل أن تُمنح جلسة. تُحلَّل مرّة واحدة
+# عند التحميل (fail-safe). الافتراضيّ 'admin' (المشرف الأعلى للمنصّة).
+def _parse_required_mfa_roles(raw: str | None) -> frozenset[str]:
+    """يحوّل قائمة أدوار مفصولة بفواصل إلى مجموعة مُطبَّعة (lowercase, trimmed)."""
+    if not raw:
+        raw = "admin"
+    return frozenset(r.strip().lower() for r in raw.split(",") if r.strip())
+
+
+REQUIRE_MFA_ROLES = _parse_required_mfa_roles(os.getenv("REQUIRE_MFA_ROLES"))
+# مفتاح رئيسيّ: الفرض مُعطَّل افتراضيّاً كي لا يكسر CI/التطوير (الإدمن بلا MFA).
+# يُفعَّل في الإنتاج عبر ENFORCE_SENSITIVE_MFA=true أو SAHOOL_ENV=production.
+_ENFORCE_SENSITIVE_MFA = os.getenv("ENFORCE_SENSITIVE_MFA", "false").lower() == "true"
+_IS_PRODUCTION = os.getenv("SAHOOL_ENV", "").lower() == "production"
+MFA_ENFORCEMENT_ENABLED = _ENFORCE_SENSITIVE_MFA or _IS_PRODUCTION
+
+
+def _mfa_required_but_missing(
+    role: str | None,
+    mfa_enabled: bool,
+    *,
+    enforcement_enabled: bool = MFA_ENFORCEMENT_ENABLED,
+    required_roles: frozenset[str] = REQUIRE_MFA_ROLES,
+) -> bool:
+    """قرار نقيّ: هل يجب رفض الدخول لأنّ دوراً حسّاساً لا يملك MFA؟
+
+    يُرجِع True فقط حين يكون الفرض مُفعَّلاً والدور ضمن القائمة وMFA غير مفعّل.
+    افتراضيّاً (لا بيئة) ⇒ enforcement_enabled=False ⇒ يُرجِع False دائماً
+    (لا تغيير في السلوك، يبقى CI أخضر).
+    """
+    if not enforcement_enabled:
+        return False
+    if mfa_enabled:
+        return False
+    return (role or "").strip().lower() in required_roles
+
+
 # ── OTP (تأكيد البريد/الهاتف) — الدوالّ/الثوابت النقيّة في otp.py (معزولة عن
 # fastapi كي تُختبَر وحدةً في CI دون تثبيت fastapi). نعيد تصديرها هنا. ──
 from otp import (  # noqa: E402
@@ -149,6 +197,13 @@ async def lifespan(app: FastAPI):
         await _redis.ping()
         logger.info("✅ Redis connected")
     except Exception as e:
+        # حوكمة #408 — Redis إلزاميّ في الإنتاج (fail-closed):
+        # بلا Redis يصبح فحص الإبطال (is_jti_revoked) و«قفل الحساب»/الحدّ الأدنى للتوكنات
+        # fail-open: توكن مُبطَل/مُسجَّل خروجه يمرّ، والقفل يتعطّل. هذا غير مقبول في الإنتاج.
+        # لذا في الإنتاج نرفض الإقلاع بدل التشغيل صامتاً بإبطال معطّل.
+        if _is_production():
+            raise RuntimeError("Redis مطلوب في الإنتاج — الإبطال/lockout fail-closed") from e
+        # التطوير: نُبقي السلوك القديم (تحذير + تنازل) كي يعمل dev/CI بلا Redis.
         logger.warning(f"Redis unavailable: {e} — refresh tokens disabled")
         _redis = None
 
@@ -468,24 +523,33 @@ async def check_ip_rate(ip: str) -> None:
 
 
 # ── Audit Log ─────────────────────────────────────────────────
-async def audit_log(action: str, user_id: int | None, ip: str, details: str | None = None) -> None:
+async def audit_log(
+    action: str,
+    user_id: int | None,
+    ip: str,
+    details: str | None = None,
+    tenant_id: object | None = None,
+) -> None:
     if not _pool:
         return
     try:
         async with _pool.acquire() as conn:
             await conn.execute(
                 """
-                INSERT INTO audit_log (action, user_id, ip_address, details, created_at)
-                VALUES ($1, $2, $3, $4, NOW())
+                INSERT INTO audit_log (action, user_id, ip_address, details, tenant_id, created_at)
+                VALUES ($1, $2, $3, $4, $5, NOW())
                 -- HIGH-01 FIX: removed  (no UNIQUE constraint on audit_log)
+                -- governance #407: tenant_id للتحقيق الجنائيّ المُنطّق بالمستأجِر
             """,
                 action,
                 user_id,
                 ip,
                 details,
+                tenant_id,
             )
     except Exception as e:  # noqa: BLE001
-        logger.warning("فشل كتابة سجلّ التدقيق (غير قاتل): %s", type(e).__name__)
+        # غير قاتل (لا نكسر مسار المصادقة)، لكن فشل كتابة سجلّ التدقيق حسّاس ⇒ error لا warning.
+        logger.error("فشل كتابة سجلّ التدقيق (غير قاتل) action=%s: %s", action, type(e).__name__)
 
 
 # ── Password Reset Helpers ─────────────────────────────────────
@@ -705,7 +769,7 @@ async def register(req: RegisterRequest, request: Request):
     token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)
     refresh = await create_refresh_token(row["id"], tid)
 
-    await audit_log("register", row["id"], ip)
+    await audit_log("register", row["id"], ip, tenant_id=row["tenant_id"])
     REGISTER_COUNTER.labels(status="success").inc()
 
     return TokenResponse(
@@ -764,13 +828,23 @@ async def login(req: LoginRequest, request: Request):
             LOGIN_COUNTER.labels(status="mfa_failed").inc()
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "رمز MFA غير صحيح")
 
+    # فرض MFA للأدوار الحسّاسة (governance #411): دور حسّاس بلا MFA مفعّل
+    # يُرفض دخوله ويُوجَّه للإعداد. مُعطَّل افتراضيّاً (ENV) كي لا يكسر CI/التطوير.
+    if _mfa_required_but_missing(row["role"], row["mfa_enabled"]):
+        LOGIN_COUNTER.labels(status="mfa_enrollment_required").inc()
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "حسابك بدور حسّاس يتطلّب تفعيل MFA — أكمِل الإعداد عبر /auth/mfa/setup",
+            headers={"X-MFA-Enrollment-Required": "true"},
+        )
+
     await clear_failed_logins(req.email)  # ✅ reset on success
     tid = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
     token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)
     refresh = await create_refresh_token(row["id"], tid)
 
     logger.info(f"Login OK: user={row['id']} role={row['role']} ip={ip}")
-    await audit_log("login", row["id"], ip)
+    await audit_log("login", row["id"], ip, tenant_id=row["tenant_id"])
     LOGIN_COUNTER.labels(status="success").inc()
 
     return TokenResponse(

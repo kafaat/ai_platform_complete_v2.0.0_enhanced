@@ -13,7 +13,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 # استيراد مباشر من الوحدة الأصليّة: بعد نقل المعالِجَين لم يبقَ في main.py
 # مستخدِم آخر لهذين الرمزين فأصبح استيرادهما هناك يتيماً (F401) — حُلّ بنقل
@@ -21,6 +21,11 @@ from fastapi import APIRouter
 from api.agronomic_consistency import (
     check_decision_freshness,
     check_irrigation_consistency,
+)
+from api.main import (
+    Permission,
+    UserSchema,
+    require_permission,
 )
 
 router = APIRouter()
@@ -33,6 +38,7 @@ def consistency_irrigation_endpoint(
     soil_moisture_ratio: float | None = None,
     et0_mm: float | None = None,
     recommendation_confidence: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     """يفحص توصية ريّ ضدّ الظروف الحاليّة لكشف التناقضات المنطقيّة.
 
@@ -52,6 +58,7 @@ def consistency_freshness_endpoint(
     ndvi_age_days: float | None = None,
     soil_age_days: float | None = None,
     weather_age_hours: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     """يفحص أعمار البيانات الداخلة في القرار (عتبات: NDVI≤5ي، تربة≤2ي، طقس≤6س)."""
     return check_decision_freshness(ndvi_age_days, soil_age_days, weather_age_hours).to_dict()

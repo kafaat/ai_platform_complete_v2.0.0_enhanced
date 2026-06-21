@@ -291,6 +291,9 @@ async def _periodic_sync():
 
 @app.get("/readyz")
 async def readyz():
+    # بلا تبعيّة صلبة قصداً: خدمة طرفيّة تعمل دون اتّصال (offline). نماذج ONNX
+    # تُحمَّل كسولاً عند أوّل طلب، وغيابها يُعالَج بـ503 صريح لكلّ طلب (ModelNotProvisioned)
+    # لا بفشل الجاهزيّة؛ والمزامنة السحابيّة محاولة-أفضل. لا شيء صلب ننتظره ⇒ جاهز.
     return {"status": "ready", "version": "9.1.0"}
 
 

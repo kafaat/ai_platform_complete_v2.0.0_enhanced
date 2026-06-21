@@ -36,7 +36,17 @@ def rm():
 
     if RASTER not in sys.path:
         sys.path.insert(0, RASTER)
-    import main as raster_main
+    # عزل: اسم الوحدة 'main' عامّ عبر الخدمات (لكلٍّ main.py). لو استورد اختبارٌ آخر
+    # في نفس الجلسة main خدمة مختلفة، يبقى مُخبّأً في sys.modules فيلتقطه `import main`
+    # خطأً ⇒ AttributeError على _field_layers. نُسقط المُخبّأ ونُعيد الاستيراد من مسار
+    # raster (المُدرَج في مقدّمة sys.path)، ونتحقّق أنّه فعلاً raster.
+    import importlib
+
+    sys.modules.pop("main", None)
+    raster_main = importlib.import_module("main")
+    assert hasattr(raster_main, "_field_layers"), (
+        "استُورد main خاطئ (تصادم أسماء عبر الخدمات) — ليس raster-service"
+    )
 
     raster_main._layers.clear()
     raster_main._field_layers.clear()
@@ -47,6 +57,8 @@ def rm():
         raster_main._REQ_TENANT.reset(tok)
         raster_main._layers.clear()
         raster_main._field_layers.clear()
+        # لا نُلوّث الجلسة: نُسقط 'main' raster كي لا يلتقطه اختبار آخر بالخطأ.
+        sys.modules.pop("main", None)
 
 
 def _seed_field(rm, field_id: str, owner_tenant: str) -> None:

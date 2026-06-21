@@ -13,10 +13,15 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from api.decision_engine import decide_for_location
 from api.decision_explainer import explain_decision
+from api.main import (
+    Permission,
+    UserSchema,
+    require_permission,
+)
 
 router = APIRouter()
 
@@ -30,6 +35,7 @@ def decision_for_location_endpoint(
     soil_ph: float | None = None,
     soil_ec_dsm: float | None = None,
     area_ha: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     """قرار زراعي متكامل: موقع → إقليم → محاصيل → مخاطر → دليل → خطوات."""
     return decide_for_location(location, lat, lon, elevation_m, soil_ph, soil_ec_dsm, area_ha)
@@ -44,6 +50,7 @@ def decision_explain_endpoint(
     soil_ph: float | None = None,
     soil_ec_dsm: float | None = None,
     area_ha: float | None = None,
+    user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_VIEW)),
 ):
     """يفسّر القرار بلغة طبيعيّة. يُرجع prompt جاهزاً لـClaude + بديل offline.
 
