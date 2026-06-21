@@ -98,6 +98,10 @@ const FarmCreatePage      = lazy(() => import('./sections/FarmCreatePage'));
 const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
 const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
 const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
+// Map Hub الموحّد (المرحلة 1) — السطح الأساسيّ «الحقول والخريطة» طراز FieldView:
+// قائمة حقول باحثة + خريطة طبقات/مقارنة/رسم/دبابيس + درج تفاصيل + إنشاء داخل المركز،
+// مع وضع تضاريس 3D كسول. يَخلُف FieldManagementPage كافتراضيّ لصفحة fields.
+const MapHub              = lazy(() => import('./sections/MapHub'));
 const FarmMapOverview     = lazy(() => import('./sections/FarmMapOverview'));
 const FieldWorkspaceMapCard = lazy(() => import('./sections/FieldWorkspaceMapCard'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
@@ -281,7 +285,9 @@ export default function App() {
     switch(page) {
       case 'dashboard':    return <DashboardPage setPage={setPage} />;
       case 'command':      return <OperationCommand />;
-      case 'map-center':   return <FieldMapCenter />;
+      // مركز الخرائط: السطح الموحّد الجديد (Map Hub). FieldMapCenter السابق يبقى
+      // مُستورَداً ومتاحاً (يُحتفَظ به مرجعاً) لكنّ الـMap Hub يَخلُفه افتراضيّاً.
+      case 'map-center':   return <MapHub />;
       case 'farm-map':     return <FarmMapOverview />;
       case 'field-workspace': return <FieldWorkspaceMapCard />;
       case 'tasks-cabin':  return <FieldTasksCabin />;
@@ -300,7 +306,10 @@ export default function App() {
       case 'field-app':    return <FieldAppPreview />;
       case 'hybrid-index': return <HybridIndexPage />;
       case 'satellite':    return <SatellitePage />;
-      case 'fields':       return <FieldManagementPage />;
+      // «الحقول والخريطة»: المرحلة 1 تجعل Map Hub الموحّد السطح الأساسيّ.
+      // FieldManagementPage السابق يبقى مُستورَداً ومتاحاً (لم يُحذَف) لكنّه لم يَعُد
+      // الافتراضيّ لهذا المسار — الـMap Hub يَخلُفه (يشمل إنشاء/استيراد الحقل داخله).
+      case 'fields':       return <MapHub />;
       case 'recommendations': return <RecommendationPage />;
       case 'irrigation':   return <IrrigationWaterPage />;
       case 'irrigation-plan': return <IrrigationPlanPage />;
