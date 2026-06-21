@@ -70,15 +70,15 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
         </div>
       </div>
 
-      {/* Live weather */}
+      {/* Live weather — موحّد على المنصّة (/api/v1/weather). GDD غير متاح للحاضر من
+          المنصّة (لا قيمة current) فأُسقِط بصدق بدل عرض undefined. */}
       {weather && (
-        <div className="grid grid-cols-5 gap-2 rounded-xl p-3 border" style={{ background:'#172032', borderColor:'#1e3a4a' }}>
+        <div className="grid grid-cols-4 gap-2 rounded-xl p-3 border" style={{ background:'#172032', borderColor:'#1e3a4a' }}>
           {[
-            { label:'الحرارة', val:`${weather.tmean}°C`, color:'#f97316' },
-            { label:'الرطوبة', val:`${weather.humidity_pct}%`, color:'#38bdf8' },
-            { label:'الرياح', val:`${weather.wind_speed_kmh}كم/س`, color:'#94a3b8' },
-            { label:'ET0', val:`${weather.et0_mm}mm`, color:'#0ea5e9' },
-            { label:'GDD', val:`${weather.gdd}`, color:'#16a34a' },
+            { label:'الحرارة', val:weather.tmean != null ? `${weather.tmean}°C` : '—', color:'#f97316' },
+            { label:'الرطوبة', val:weather.humidity_pct != null ? `${weather.humidity_pct}%` : '—', color:'#38bdf8' },
+            { label:'الرياح', val:weather.wind_speed_kmh != null ? `${weather.wind_speed_kmh}كم/س` : '—', color:'#94a3b8' },
+            { label:'ET0', val:weather.et0_mm != null ? `${weather.et0_mm}mm` : '—', color:'#0ea5e9' },
           ].map((w,i) => (
             <div key={i} className="text-center">
               <div className="font-bold text-sm" style={{ color:w.color }}>{w.val}</div>
