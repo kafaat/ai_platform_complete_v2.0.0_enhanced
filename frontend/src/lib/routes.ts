@@ -111,6 +111,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'analytics',     path: '/analysis',            label: 'التحليلات', icon: BarChart3, maturity: 'stable' },
       { id: 'economics',     path: '/analysis/economics',  label: 'الاقتصاد / ROI', icon: BarChart3, maturity: 'stable' },
+      { id: 'yield-analysis', path: '/analysis/yield',     label: 'تحليل الغلّة', icon: Sprout, maturity: 'beta' },
       { id: 'field-ranking', path: '/analysis/field-ranking', label: 'ترتيب الحقول', icon: TrendingUp, maturity: 'stable' },
       { id: 'problem-fields', path: '/analysis/problem-fields', label: 'حقول المشكلات', icon: AlertTriangle, maturity: 'stable' },
       { id: 'nl-gis',        path: '/analysis/nl-gis',     label: 'استعلام GIS باللغة الطبيعيّة', icon: Search, maturity: 'alpha' },

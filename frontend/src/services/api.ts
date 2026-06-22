@@ -1796,6 +1796,60 @@ export const getCostAnalytics = (): Promise<CostAnalytics> =>
   kongApi.get<CostAnalytics>('/api/v1/analytics/costs').then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// YIELD ANALYSIS — تحليل الغلّة (نمط FieldView، حيّ، tenant-scoped + analytics:view)
+// GET /api/v1/analysis/yield: زراعة↔حصاد لكلّ موسم + أداء الهجن — من بيانات مُخزَّنة
+// فقط (جدول seasons). لا fallback وهميّ: حين تغيب الغلّة الفعليّة تكون القوائم فارغة
+// وتُعلَن الفجوة عبر provenance.note_ar. 503 (DB) / 403 / 404 يُرفع لتعرض الواجهة
+// حالة صادقة. الغلّة بالطنّ/هكتار (t/ha). null = فجوة بيانات (لا 0 مُختلَق).
+// ══════════════════════════════════════════════════════════════════
+export interface YieldPlantingHarvestRow {
+  season_id:         string | null;
+  field_id:          string | null;
+  field_name:        string | null;
+  crop:              string | null;
+  hybrid:            string | null;
+  maturity:          string | null;
+  sowing_date:       string | null;
+  season_end:        string | null;
+  status:            string | null;
+  target_yield_t_ha: number | null;
+  actual_yield_t_ha: number | null;
+  yield_gap_t_ha:    number | null;
+  has_harvest:       boolean;
+}
+export interface YieldHybridPerformanceRow {
+  hybrid:         string;
+  crops:          string[];
+  season_count:   number;
+  field_count:    number;
+  avg_yield_t_ha: number;
+  min_yield_t_ha: number;
+  max_yield_t_ha: number;
+}
+export interface YieldAnalysisResult {
+  scope:   { field_id: string | null; season: string | null };
+  summary: {
+    seasons_total:        number;
+    seasons_with_harvest: number;
+    hybrids_compared:     number;
+  };
+  planting_vs_harvest: YieldPlantingHarvestRow[];
+  hybrid_performance:  YieldHybridPerformanceRow[];
+  units:      { yield: string };
+  provenance: { source: string; honesty: string; note_ar: string | null };
+  tenant_id?: string;
+}
+export const getYieldAnalysis = (
+  fieldId?: string,
+  season?: string,
+): Promise<YieldAnalysisResult> =>
+  kongApi
+    .get<YieldAnalysisResult>('/api/v1/analysis/yield', {
+      params: { field_id: fieldId || undefined, season: season || undefined },
+    })
+    .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // REPORTS — تقارير وتحليلات (حيّة، tenant-scoped + RBAC field:view)
 // تجميع من جداول قائمة (مزارع/حقول/مواسم/عمليّات/تنبيهات) عبر COUNT/SUM/GROUP BY.
 // لا fallback وهميّ — الخطأ (503 DB / 404 / 403) يُرفع لتعرض الواجهة حالة صادقة.

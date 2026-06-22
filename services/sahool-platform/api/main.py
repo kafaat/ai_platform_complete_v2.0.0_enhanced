@@ -3325,6 +3325,7 @@ from api.routers.weather_analytics import (  # noqa: E402
     router as weather_analytics_router,
 )
 from api.routers.wofost import router as wofost_router  # noqa: E402
+from api.routers.yield_analysis import router as yield_analysis_router  # noqa: E402
 from api.routers.yield_interval import router as yield_interval_router  # noqa: E402
 
 app.include_router(boundaries_router)
@@ -3372,6 +3373,7 @@ app.include_router(aromatic_crops_router)
 app.include_router(fodder_alternatives_router)
 app.include_router(wofost_router)
 app.include_router(analytics_router)
+app.include_router(yield_analysis_router)
 app.include_router(indicators_router)
 app.include_router(confidence_router)
 app.include_router(temporal_router)
