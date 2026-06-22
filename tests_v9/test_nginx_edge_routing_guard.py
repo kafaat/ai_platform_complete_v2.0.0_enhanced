@@ -52,17 +52,21 @@ def test_edge_upstream_uses_correct_port(conf: Path):
 
 
 @pytest.mark.unit
-def test_v9_exposes_edge_securely():
-    """البوّابة القانونيّة (v9) تكشف /api/edge/ بتحقّق JWT + حقن توكن الخدمة."""
+def test_v9_exposes_edge_via_platform_proxy():
+    """البوّابة القانونيّة (v9) توجّه /api/edge/ إلى المنصّة (service_proxy) لا إلى edge مباشرةً.
+
+    المعماريّة المعتمَدة: المنصّة (sahool-platform) تتحقّق من JWT ثمّ تحقن X-Agent-Token
+    خادميّاً قبل تمريره إلى edge — فالبوّابة تمرّر فقط، ولا تحقن السرّ ولا تذهب للجذع.
+    """
     v9 = NGINX_DIR / "nginx.v9.conf"
     text = v9.read_text(encoding="utf-8")
     assert _is_platform_arch(text)
     block = _edge_location_block(text)
     assert block is not None, "nginx.v9.conf: مسار /api/edge/ مفقود (pest-detect لا يصل)"
-    assert "auth_request /_auth_verify" in block, (
-        "nginx.v9.conf: /api/edge/ يجب أن يتحقّق من JWT عبر auth_request"
+    assert "platform_backend" in block, (
+        "nginx.v9.conf: /api/edge/ يجب أن يُمرَّر إلى platform_backend (service_proxy يحقن التوكن)"
     )
-    assert "X-Agent-Token" in block, (
-        "nginx.v9.conf: /api/edge/ يجب أن يحقن X-Agent-Token (سرّ الخدمة) خادميّاً"
+    # لا يُمرَّر مباشرةً إلى upstream edge (الحقن صار في المنصّة لا البوّابة).
+    assert "edge_backend" not in block, (
+        "nginx.v9.conf: /api/edge/ لم يعد يذهب مباشرةً إلى edge_backend — يمرّ عبر المنصّة."
     )
-    assert "edge_backend" in block

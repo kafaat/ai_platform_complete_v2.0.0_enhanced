@@ -16,6 +16,24 @@ from fastapi import APIRouter, HTTPException
 router = APIRouter()
 
 
+@router.get("/api/v1/weather/health")
+def weather_health():
+    """مسبار صحّة لطبقة الطقس الموحّدة (منطق محلّيّ فقط، بلا استدعاء خارجيّ).
+
+    يؤكّد أنّ راوتر الطقس مُركَّب ويكشف حالة قاطع Open-Meteo دون استدعاء المزوّد.
+    nginx /api/weather/health يُوجَّه هنا فلا تضرب واجهات فحص الخدمات جذع weather-service.
+    """
+    from api.connectors.openmeteo import openmeteo_breaker_state
+
+    return {
+        "status": "ok",
+        "service": "weather",
+        "provider": "open-meteo",
+        "mode": "platform",
+        "breaker": openmeteo_breaker_state(),
+    }
+
+
 @router.get("/api/v1/weather/current")
 async def weather_current(lat: float, lon: float):
     """الطقس الحالي من Open-Meteo. مفتوح بدون auth."""

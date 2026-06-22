@@ -3472,3 +3472,9 @@ app.include_router(yield_interval_router)
 app.include_router(agro_intelligence_router)
 # تخزين Kc الدائم (crop_kc_timeseries v76): حفظ/قراءة/مقارنة Kc المُشتقّ عبر المواسم.
 app.include_router(kc_timeseries_router)
+# بوّابات الخدمات الداخلية (edge/soil): المستخدم بـJWT → المنصّة تتحقّق ثمّ تحقن
+# X-Agent-Token + X-Tenant-Id خادميّاً (السرّ لا يصل العميل). يُستورَد متأخّراً
+# (api.main مكتمل) لتفادي دورة الاستيراد.
+from api.routers.service_proxy import router as service_proxy_router  # noqa: E402
+
+app.include_router(service_proxy_router)

@@ -102,7 +102,7 @@ describe('PrescriptionBuilderPage', () => {
   });
 
   it('(د) 503: قائمة الوصفات تعرض حالة خطأ صادقة', () => {
-    stubList({ isError: true, error: { response: { status: 503 } } });
+    stubList({ isError: true, error: { response: { status: 503 } } as unknown as Error });
     render(<PrescriptionBuilderPage />);
     expect(screen.getByText(/غير متاحة \(503\)/)).toBeInTheDocument();
   });
