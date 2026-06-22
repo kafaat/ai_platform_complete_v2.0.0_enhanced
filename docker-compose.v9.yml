@@ -385,6 +385,7 @@ services:
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
+      SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
       # أعلام الميزات المتقدّمة (تحرس راوترات؛ مُطفأة افتراضاً ⇒ 404 والواجهة تعرض حالة
       # «معطّلة» صادقة). فعّل ما تريد عبر .env (1/true). انظر RUNBOOK.md +
       # services/sahool-platform/api/feature_registry.py + frontend featureFlags.ts.
@@ -409,6 +410,8 @@ services:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+      sahool-field-segmentation:
+        condition: service_started
     networks:
       - sahool-internal
     healthcheck:
@@ -1239,6 +1242,36 @@ services:
   #     NATS_URL: nats://sahool-nats:4222
   #   networks:
   #     - sahool-internal
+
+  # ═══════════════════════════════════════════════════════════════
+  # 27b. Field Segmentation (تقطيع الحقل) — عديم الحالة، بلا ML/torch.
+  #   المسار اليدويّ حقيقيّ (تحقّق/تطبيع مضلّع المستخدم). auto/hybrid عقدُ خدمة
+  #   فقط: يرُدّ 503 صادقاً إن لم يُهيّأ نموذج (SAM2/GeoSAM) — لا تلفيق نتائج.
+  #   اضبط SEGMENTATION_MODEL_PATH (+ SEGMENTATION_BACKEND) لتفعيل الخطّاف لاحقاً.
+  # ═══════════════════════════════════════════════════════════════
+  sahool-field-segmentation:
+    build:
+      context: .
+      dockerfile: services/field-segmentation/Dockerfile
+    container_name: sahool-v9-field-segmentation
+    mem_limit: 512m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *default_logging
+    environment:
+      # توكن خدمة-لخدمة (تحقنه المنصّة عبر service_proxy بعد التحقّق من JWT).
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      # خطّاف النموذج — فارغ افتراضاً ⇒ auto/hybrid ترُدّ 503 صادقاً.
+      SEGMENTATION_MODEL_PATH: ${SEGMENTATION_MODEL_PATH:-}
+      SEGMENTATION_BACKEND: ${SEGMENTATION_BACKEND:-}
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/readyz"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
 
   # ═══════════════════════════════════════════════════════════════
   # 28. AgriAI Engine (FIX: لا يوجد كود → مُعلق)
