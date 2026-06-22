@@ -673,6 +673,67 @@ export const createScoutingPin = (input: ScoutingPinCreateInput): Promise<Scouti
     )
     .then(r => r.data);
 
+// ── تقطيع الحقل المُساعَد (POST /api/segmentation/segment) — اقتراح حدّ لا فرضه ──
+// خدمة تقطيع الحقول المُوكَّلة عبر البوّابة: تأخذ نطاق (bbox) ووضعاً (تلقائيّ/هجين)
+// فتقترح مضلّع حدود يُحمَّل في طبقة الرسم القابلة للتحرير ليؤكّده المستخدم أو يعدّله —
+// لا يُعتمَد بلا مراجعة بشريّة. صدق صارم: لا مضلّع مُفبرَك عند غياب النموذج. الخادم
+// يردّ 503 برمز model_not_configured حين لا يُهيَّأ نموذج (SAM2/GeoSAM) — تعرضه الواجهة
+// كرسالة صريحة وتُبقي الرسم اليدويّ. غياب النشر (404) يُعامَل كـ«غير متاح» بلطف.
+// bbox بترتيب GeoJSON: [minLon, minLat, maxLon, maxLat]. mode: auto (تلقائيّ كامل)
+// أو hybrid (هجين — تلميح بشريّ + نموذج). قد يُمرَّر field_id/crop اختياريّاً للسياق.
+export type SegmentationMode = 'auto' | 'hybrid';
+export interface SegmentFieldInput {
+  bbox:      [number, number, number, number]; // [minLon, minLat, maxLon, maxLat]
+  mode:      SegmentationMode;
+  field_id?: string;
+  crop?:     string | null;
+  // تلميحات نقطيّة [lon, lat] للوضع الهجين (اختياريّة — النموذج يستخدمها كبذور).
+  hints?:    Array<[number, number]>;
+}
+// الردّ الناجح: مضلّع GeoJSON مُقترَح (إحداثيّات [lon, lat]) + ثقة اختياريّة وعلَم
+// تقريبيّ. الحقول كلّها دفاعيّة (مصدر نموذج خارجيّ) — تُقرأ بحذر في الواجهة.
+export interface SegmentFieldResult {
+  // هندسة Polygon GeoJSON المُقترَحة — تُحمَّل في طبقة التحرير للمراجعة.
+  geometry:    { type: 'Polygon'; coordinates: number[][][] };
+  mode:        SegmentationMode | string;
+  confidence?: number | null;     // [0,1] إن توفّرت — تُعرَض كمؤشّر، لا تُعتمَد آليّاً
+  model?:      string | null;     // sam2 | geosam | … (شفافيّة المصدر)
+  approximate?: boolean;          // علَم صريح أنّ النتيجة تقريبيّة تتطلّب تحريراً
+  note_ar?:    string | null;
+}
+
+// تصنيف خطأ التقطيع لرسالة صادقة في الواجهة (بلا تخمين، بلا مضلّع مزيّف):
+//   model_not_configured → 503 ورمز model_not_configured (نموذج غير مُهيَّأ).
+//   unavailable          → 404 (الخدمة غير منشورة) أو 503 بلا رمز معروف.
+//   error                → أيّ خطأ آخر (شبكة/4xx/5xx) — يُعرَض نصّه عبر apiErrorMessage.
+export type SegmentationErrorKind = 'model_not_configured' | 'unavailable' | 'error';
+
+/** يصنّف خطأ التقطيع إلى نوع تتعامل معه الواجهة بصدق (لا تلفيق هندسة).
+ *  503 + detail/error == 'model_not_configured' ⇒ نموذج غير مُهيَّأ (رسالة صريحة).
+ *  404 (غير منشورة) ⇒ غير متاح بلطف. ما عداه ⇒ خطأ عامّ يُعرَض نصّه. */
+export function classifySegmentationError(e: unknown): SegmentationErrorKind {
+  const err = asApiError(e);
+  const status = err.response?.status;
+  const data = err.response?.data as
+    | { detail?: unknown; error?: unknown; code?: unknown }
+    | undefined;
+  // يقرأ رمز السبب من أيّ من الحقول الشائعة (detail نصّ، أو error، أو code).
+  const codeFields = [data?.detail, data?.error, data?.code];
+  const hasModelCode = codeFields.some(
+    (v) => typeof v === 'string' && v.includes('model_not_configured'),
+  );
+  if (status === 503 && hasModelCode) return 'model_not_configured';
+  if (status === 404) return 'unavailable';
+  if (status === 503) return 'unavailable'; // 503 بلا رمز معروف ⇒ الخدمة غير متاحة مؤقّتاً
+  return 'error';
+}
+
+/** يطلب تقطيعاً مُساعَداً لحدّ الحقل (POST /api/segmentation/segment) — اقتراح فقط.
+ *  يرمي عند الخطأ ليصنّفه classifySegmentationError في الواجهة (503 نموذج غير مُهيَّأ
+ *  ⇒ رسالة صريحة + رسم يدويّ؛ 404 غير منشورة ⇒ غير متاح بلطف). لا fallback مُفبرَك. */
+export const segmentField = (payload: SegmentFieldInput): Promise<SegmentFieldResult> =>
+  kongApi.post<SegmentFieldResult>('/api/segmentation/segment', payload).then(r => r.data);
+
 // ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
 // يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة
 // لكلّ سياسة ويوصي بأفضلها — توصية فقط لا تنفيذ ولا حجز ماء. خلف العلم
