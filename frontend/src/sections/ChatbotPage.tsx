@@ -11,9 +11,9 @@ const renderMarkdown = (s: string) =>
     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-emerald-700">$1</strong>')
     .replace(/^•\s/gm, '<span class="text-emerald-500">•</span> ');
 // ═══════════════════════════════════════════════════════════════════
-// SAHOOL v8.0 — ChatbotPage محسّن مع Claude API حقيقي
-// التحسينات عن v7.5:
-//   ✅ Claude API (claude-sonnet-4-20250514) بدلاً من KB ثابت
+// SAHOOL — ChatbotPage موصول بوكيل المنصّة الحقيقيّ (POST /api/agent/query)
+// التحسينات:
+//   ✅ وكيل المنصّة المؤصَّل والمحوكَم (/api/agent/query، مصادَق JWT) بدل KB ثابت
 //   ✅ حقن سياق المزرعة في كل رسالة (NDVI الحالي + الطقس + المحصول)
 //   ✅ Streaming simulation (typewriter effect)
 //   ✅ اقتراحات ذكية بناءً على بيانات الحقل
@@ -31,6 +31,7 @@ import {
   ChevronDown, Wheat, BarChart3,
 } from 'lucide-react';
 import { useFields, useWeatherForecast } from '../hooks/useApi';
+import { kongApi } from '../services/api';
 
 // ── سياق المزرعة الحيّ ────────────────────────────────────────────
 // كان ثابتاً مُلفَّقاً (NDVI=0.62 و«8 حقول 249هـ» و15.7°م) يُحقَن في كلّ طلب —
@@ -245,29 +246,29 @@ export function ChatbotPage() {
       .map(m => ({ role: m.role, content: m.content }));
 
     try {
-      // الأمان: الاستدعاء عبر backend proxy (/api/chat) لا Anthropic مباشرة.
-      // هذا يمنع كشف مفتاح API في المتصفّح (DevTools)، ويتيح
-      // rate-limiting و JWT auth في الـbackend. لا مفتاح في الواجهة إطلاقاً.
-      const res = await fetch('/api/chat', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',  // يمرّر جلسة المصادقة
-        body: JSON.stringify({
-          model:      'claude-sonnet-4-20250514',
-          max_tokens: 600,
-          system:     buildSystemPrompt(ctx),
-          messages:   [...history, { role:'user', content:text }],
-        }),
+      // الدردشة عبر وكيل المنصّة الحقيقيّ: POST /api/agent/query (supervisor) عبر بوّابة
+      // nginx /api/agent/، مصادَقاً بـJWT (kongApi يحقن Bearer) ومُؤصَّلاً بحالة المزرعة
+      // خادميّاً. لا مفتاح Anthropic في الواجهة، ولا اعتماد خارجيّ. الهويّة (user/tenant)
+      // تُشتَقّ من التوكن خادميّاً — الحقلان هنا مطلوبان بمخطّط AgentQuery شكليّاً فقط.
+      const res = await kongApi.post('/api/agent/query', {
+        query:      text,
+        user_id:    '',
+        tenant_id:  '',
+        context: {
+          farm_summary:    buildSystemPrompt(ctx),
+          avg_ndvi:        ctx.avgNdvi,
+          field_count:     ctx.count,
+          weather_current: ctx.w,
+          recent_turns:    history,
+        },
       });
 
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      const reply = data.content?.[0]?.text || 'عذراً، لم أتمكن من الإجابة.';
-      const tokens = data.usage?.output_tokens;
+      const data = res.data as { response_ar?: string };
+      const reply = data.response_ar || 'عذراً، لم أتمكن من الإجابة.';
 
       const botMsg: Msg = {
         id:`b_${Date.now()}`, role:'assistant', source:'claude',
-        content:reply, timestamp:new Date(), tokens,
+        content:reply, timestamp:new Date(),
       };
       setMessages(m => [...m, botMsg]);
       setLatestId(botMsg.id);
