@@ -997,7 +997,12 @@ services:
       - odoo-web-data:/var/lib/odoo
       - odoo-config:/etc/odoo
       - odoo-addons:/mnt/extra-addons
-      - odoo-filestore:/var/lib/odoo/filestore
+      # FIX: لا تُركّب filestore كـvolume متداخل منفصل. كان volume مستقلّ مُركَّب على
+      # /var/lib/odoo/filestore يُنشأ بملكية root (volume فارغ والصورة لا تورّث ملكية
+      # المسار المتداخل)، فيمنع مستخدم odoo (uid 101) من إنشاء
+      # /var/lib/odoo/filestore/<db> ⇒ PermissionError [Errno 13] أثناء تثبيت base
+      # (تظهر كأخطاء res_lang_data.xml / lang_ar / ir_module_module — أعراض لاحقة).
+      # filestore الآن داخل odoo-web-data الذي يرث ملكية odoo من /var/lib/odoo في الصورة.
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -1315,7 +1320,6 @@ volumes:
   odoo-web-data:
   odoo-config:
   odoo-addons:
-  odoo-filestore:
   prometheus-data:
   alertmanager-data:
   grafana-data:
