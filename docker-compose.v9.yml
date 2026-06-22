@@ -87,7 +87,8 @@ services:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/healthz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 2. PostgreSQL + PostGIS (FIX: was postgres:15, now postgis)
@@ -157,7 +158,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 20s
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 4. NATS JetStream (FIX: بدون persistence → JetStream store)
@@ -188,7 +189,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 8
-      start_period: 25s
+      start_period: 60s
 
   # ═══════════════════════════════════════════════════════════════
   # 5. MinIO (FIX: كلمة سر جذرية مكشوفة → env var)
@@ -218,7 +219,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 60s
 
   # ═══════════════════════════════════════════════════════════════
   # 6. Qdrant (FIX: بدون API key → مُحمي)
@@ -355,7 +357,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 8b. SAHOOL Platform — المنطق الأساسي (143 endpoint)
@@ -418,7 +421,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 8c. Weather Polygon Worker (P0) — يربط تنبّؤ الطقس بالحقول مكانيّاً
@@ -500,7 +504,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 10. Guardrails Engine
@@ -534,7 +539,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 11. MCP Servers (4 خدمات — منافذ داخلية مختلفة ليست ضرورية)
@@ -558,7 +564,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   sahool-weather-mcp:
     build:
@@ -577,7 +584,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   sahool-wofost-mcp:
     build:
@@ -596,7 +604,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   sahool-market-mcp:
     build:
@@ -621,7 +630,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 12. Vegetation Analysis
@@ -655,7 +665,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 12b. Raster Service — صور Sentinel-2/1 (Element84 Earth Search)
@@ -692,7 +703,8 @@ services:
       test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8001/healthz')"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 12b. TiTiler — خادم بلاطات COG ديناميكي (Development Seed)
@@ -716,7 +728,8 @@ services:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 13. Indicators Service
@@ -748,7 +761,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 14. Weather Service
@@ -774,7 +788,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 15. Actuator Service
@@ -802,7 +817,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 16. Edge Inference (FIX: صورة عامة → build)
@@ -835,7 +851,8 @@ services:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/healthz', timeout=3).read()"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 17. Video Processor (FIX: ملف مقطوع → مُعلق حتى الإصلاح)
@@ -888,7 +905,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 19. Qdrant Seed (FIX: restart دائم → "no")
@@ -959,7 +977,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8126/healthz"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 21. Odoo ERP (FIX: مفقود في unified.yml → أضفه)
@@ -1065,7 +1084,8 @@ services:
       test: ["CMD-SHELL", "pgrep -f 'python main.py' || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 23. Notification Agent
@@ -1103,7 +1123,8 @@ services:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz', timeout=3).read()"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 24. Frontend React (FIX: npm install كـ root)
@@ -1132,7 +1153,8 @@ services:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 25. Prometheus + Grafana (Observability)
@@ -1156,8 +1178,8 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
       interval: 30s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 6
+      start_period: 30s
 
   # AlertManager — يستقبل إنذارات Prometheus ويوجّهها (ملاحظة المراجعة: كان
   # prometheus يشير لـalertmanager غير موجود). المستقبِلات الحقيقيّة تُضاف عبر
@@ -1180,8 +1202,8 @@ services:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
       interval: 30s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 6
+      start_period: 30s
 
   sahool-grafana:
     image: grafana/grafana:10.4.5
@@ -1204,8 +1226,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 26. Jaeger (Tracing)
@@ -1229,8 +1251,8 @@ services:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:14269/ || exit 1"]
       interval: 30s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 27. Soil Service (FIX: ملف فارغ → مُعلق)
@@ -1276,7 +1298,8 @@ services:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/readyz"]
       interval: 20s
       timeout: 5s
-      retries: 3
+      retries: 6
+      start_period: 30s
 
   # ═══════════════════════════════════════════════════════════════
   # 28. AgriAI Engine (FIX: لا يوجد كود → مُعلق)
