@@ -81,9 +81,7 @@ def test_manual_accepts_geojson(client):
         "type": "Polygon",
         "coordinates": [[[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.0]]],
     }
-    r = client.post(
-        "/segment", json={"mode": "manual", "user_polygon": gj}, headers=_hdr()
-    )
+    r = client.post("/segment", json={"mode": "manual", "user_polygon": gj}, headers=_hdr())
     assert r.status_code == 200, r.text
     assert r.json()["source"] == "manual"
 
@@ -111,17 +109,13 @@ def test_hybrid_without_model_returns_503(client):
 # ── ٣. تحقّق المضلّع (مسار حقيقيّ يرفض القمامة) ──
 def test_manual_rejects_out_of_range(client):
     poly = [[999.0, 24.0], [46.1, 24.0], [46.1, 24.1]]
-    r = client.post(
-        "/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr()
-    )
+    r = client.post("/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr())
     assert r.status_code == 422, r.text
 
 
 def test_manual_rejects_too_few_points(client):
     poly = [[46.0, 24.0], [46.1, 24.0]]
-    r = client.post(
-        "/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr()
-    )
+    r = client.post("/segment", json={"mode": "manual", "user_polygon": poly}, headers=_hdr())
     assert r.status_code == 422, r.text
 
 

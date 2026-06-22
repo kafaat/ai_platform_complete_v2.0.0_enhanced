@@ -146,9 +146,7 @@ def run_segmentation_model(
     لا تُلفّق هنا أقنعة ولا تُخترع هندسة. حتى يُوصَل نموذج حقيقيّ، لا يُبلَغ هذا
     الموضع إطلاقاً — المستدعي يُرجِع 503 صادقاً أعلاه عبر _model_configured().
     """
-    raise NotImplementedError(
-        "نقطة تكامل النموذج (SAM2/GeoSAM) لم تُنفَّذ بعد — لا تلفيق نتائج"
-    )
+    raise NotImplementedError("نقطة تكامل النموذج (SAM2/GeoSAM) لم تُنفَّذ بعد — لا تلفيق نتائج")
 
 
 # ─── المسارات ───────────────────────────────────────────────────────────
@@ -185,9 +183,7 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
             status_code=503,
             detail={
                 "error": "model_not_configured",
-                "note_ar": (
-                    "نموذج التقطيع (SAM2/GeoSAM) غير مُهيّأ — اضبط SEGMENTATION_MODEL_PATH"
-                ),
+                "note_ar": ("نموذج التقطيع (SAM2/GeoSAM) غير مُهيّأ — اضبط SEGMENTATION_MODEL_PATH"),
             },
         )
 

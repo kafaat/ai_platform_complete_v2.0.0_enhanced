@@ -20,9 +20,7 @@ pytestmark = pytest.mark.unit
 _VALID = {
     "geometry": {
         "type": "Polygon",
-        "coordinates": [
-            [[44.0, 15.0], [44.2, 15.0], [44.2, 15.2], [44.0, 15.2], [44.0, 15.0]]
-        ],
+        "coordinates": [[[44.0, 15.0], [44.2, 15.0], [44.2, 15.2], [44.0, 15.2], [44.0, 15.0]]],
     },
     "area_ha": 12.3456,
     "bbox": {"min_lng": 44.0, "min_lat": 15.0, "max_lng": 44.2, "max_lat": 15.2},
