@@ -329,6 +329,29 @@ class _WSatelliteSectionState extends State<WSatelliteSection> {
 
   List<MapEntry<String, String>> _parse(Map<String, dynamic> data) {
     final out = <MapEntry<String, String>>[];
+    // الشكل الثالث (المصدر الفعليّ — vegetation /v1/analyze): خريطة indices حيث
+    // كلّ مفتاح (ndvi/evi/...) → {value, unit, source}. نضيف صفّ «الحالة» من
+    // health['label_ar'] أوّلاً (مصدر واحد للصحّة) ثمّ كلّ مؤشّر بقيمته ووحدته.
+    final indices = data['indices'];
+    if (indices is Map) {
+      final health = data['health'];
+      if (health is Map) {
+        final statusAr = wText(health['label_ar'] ?? health['status'], '');
+        if (statusAr.isNotEmpty) out.add(MapEntry('الحالة', statusAr));
+      }
+      indices.forEach((k, v) {
+        if (v is! Map) return;
+        final inner = v.cast<String, dynamic>();
+        final value = inner['value'];
+        final unit = wText(inner['unit'], '');
+        final vStr = value is num
+            ? value.toStringAsFixed(value.abs() < 1 ? 3 : 2)
+            : wText(value);
+        out.add(MapEntry(
+            k.toString().toUpperCase(), unit.isEmpty ? vStr : '$vStr $unit'));
+      });
+      if (out.isNotEmpty) return out;
+    }
     final list = data['indicators'];
     if (list is List) {
       for (final m in list.whereType<Map>()) {
