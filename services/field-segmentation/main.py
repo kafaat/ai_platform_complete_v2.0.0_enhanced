@@ -6,8 +6,12 @@ SAHOOL — services/field-segmentation/main.py
   • المسار اليدويّ (manual) حقيقيّ بالكامل: نتحقّق/نطبّع مضلّع المستخدم محليّاً
     (مدقّق هندسيّ خفيف، بلا تبعيّات ثقيلة) ونعيده مصدره "manual".
   • المساران auto/hybrid يتطلّبان نموذجاً حقيقيّاً (SAM2/GeoSAM) + أوزاناً + GPU.
-    لا نُلفّق أقنعة تقطيع ولا نخترع نتائج. حين لا يُهيّأ نموذج (SEGMENTATION_MODEL_PATH/
-    SEGMENTATION_BACKEND غير مضبوط أو غير متاح) نُرجِع 503 صادقاً مع خطّاف بيئة موثّق.
+    الأوزان وعتاد GPU يعيشان *خارج* هذه الخدمة، في خادم استدلال منفصل. هذه الخدمة
+    عميل HTTP حقيقيّ مُدقَّق لذلك الخادم: تُرسِل الطلب، تتحقّق من الهندسة العائدة عبر
+    normalize_polygon، ولا تُلفّق أقنعة أو هندسة إطلاقاً. حين لا يُهيّأ خادم استدلال
+    (SEGMENTATION_BACKEND/SEGMENTATION_INFERENCE_URL غير مضبوطين) نُرجِع 503 صادقاً.
+    حين يتعذّر الوصول للخادم أو يُرجِع هندسة ناقصة/فاسدة نُرجِع 5xx صادقاً (بلا اختراع
+    مضلّع). أنظر run_segmentation_model أدناه.
 
 المصادقة: خدمة-لخدمة عبر X-Agent-Token (مثل بقيّة الخدمات الداخليّة). تحقن البوّابة
 (service_proxy) التوكن خادميّاً بعد التحقّق من JWT المستخدم.
@@ -18,6 +22,7 @@ from __future__ import annotations
 import logging
 import os
 
+import httpx
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
@@ -33,8 +38,14 @@ VERSION = "1.0.0"
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 # خطّاف النموذج (auto/hybrid). غيابهما ⇒ 503 صادق. لا تلفيق.
+# SEGMENTATION_MODEL_PATH: اختياريّ/توثيقيّ — خادم الاستدلال البعيد يملك الأوزان.
 SEGMENTATION_MODEL_PATH = os.getenv("SEGMENTATION_MODEL_PATH", "").strip()
+# اسم الخلفيّة (مثل "sam2"/"geosam") — يُستخدم كـ source في الاستجابة.
 SEGMENTATION_BACKEND = os.getenv("SEGMENTATION_BACKEND", "").strip()
+# عنوان نقطة predict لخادم الاستدلال الخارجيّ (SAM2/GeoSAM). غيابه ⇒ 503 صادق.
+SEGMENTATION_INFERENCE_URL = os.getenv("SEGMENTATION_INFERENCE_URL", "").strip()
+# مهلة استدعاء الاستدلال (ثوانٍ) — قابلة للضبط بيئيّاً.
+SEGMENTATION_TIMEOUT = float(os.getenv("SEGMENTATION_TIMEOUT", "30").strip() or "30")
 
 app = FastAPI(title="SAHOOL Field Segmentation", version=VERSION)
 
@@ -124,10 +135,28 @@ def normalize_polygon(user_polygon: list[list[float]] | dict | None) -> dict:
     return {"type": "Polygon", "coordinates": [cleaned]}
 
 
-# ─── خطّاف تكامل النموذج (auto/hybrid) ──────────────────────────────────
+# ─── محوّل الاستدلال البعيد (auto/hybrid) ────────────────────────────────
 def _model_configured() -> bool:
-    """هل هُيّئ نموذج تقطيع حقيقيّ؟ (مسار الأوزان + خلفيّة)."""
-    return bool(SEGMENTATION_MODEL_PATH) and bool(SEGMENTATION_BACKEND)
+    """هل هُيّئ خادم استدلال حقيقيّ؟ (خلفيّة + عنوان نقطة الاستدلال البعيدة).
+
+    SEGMENTATION_MODEL_PATH اختياريّ/توثيقيّ: الخادم البعيد يملك الأوزان+GPU.
+    التهيئة الصالحة = اسم خلفيّة + عنوان نقطة استدلال قابل للاستخدام.
+    """
+    return bool(SEGMENTATION_BACKEND) and bool(SEGMENTATION_INFERENCE_URL)
+
+
+def _post_inference(payload: dict) -> httpx.Response:
+    """مَفصِل (seam) لاستدعاء خادم الاستدلال البعيد عبر HTTP.
+
+    مفصول قصداً في دالّة خاصّة صغيرة كي تتمكّن الاختبارات من ترقيعه
+    (monkeypatch main._post_inference) دون لمس الشبكة. يُرجِع httpx.Response خاماً؛
+    معالجة الأخطاء والتحقّق الهندسيّ يحدثان في run_segmentation_model.
+
+    يُمرَّر توكن الخدمة عبر X-Agent-Token (نفس عقد المصادقة الداخليّ).
+    """
+    headers = {"X-Agent-Token": AGENT_TOKEN} if AGENT_TOKEN else {}
+    with httpx.Client(timeout=SEGMENTATION_TIMEOUT) as cli:
+        return cli.post(SEGMENTATION_INFERENCE_URL, json=payload, headers=headers)
 
 
 def run_segmentation_model(
@@ -137,16 +166,80 @@ def run_segmentation_model(
     image_ref: str | None,
     user_polygon: list[list[float]] | dict | None,
 ) -> dict:
-    """TODO(segmentation-model): نقطة تكامل SAM2 / GeoSAM.
+    """محوّل استدلال بعيد لـSAM2 / GeoSAM (عميل HTTP حقيقيّ، بلا تلفيق).
 
-    هنا يُحمَّل النموذج من SEGMENTATION_MODEL_PATH عبر الخلفيّة SEGMENTATION_BACKEND
-    (مثلاً "sam2" أو "geosam")، تُجلب الصورة من image_ref ضمن field_bbox، ويُشغَّل
-    الاستدلال (GPU). في hybrid يُستخدم user_polygon كبادرة (prompt) للنموذج.
+    TODO(segmentation-model): المحوّل البعيد مُنفَّذ. لتفعيل auto/hybrid إنتاجيّاً:
+    انشر خادم استدلال SAM2/GeoSAM (أوزان+GPU خارج هذه الخدمة) واضبط
+    SEGMENTATION_INFERENCE_URL (+ SEGMENTATION_BACKEND). لا تغيير كود لاحقاً.
 
-    لا تُلفّق هنا أقنعة ولا تُخترع هندسة. حتى يُوصَل نموذج حقيقيّ، لا يُبلَغ هذا
-    الموضع إطلاقاً — المستدعي يُرجِع 503 صادقاً أعلاه عبر _model_configured().
+    التدفّق: نُرسِل {mode, field_bbox, image_ref, user_polygon} إلى خادم الاستدلال،
+    ننتظر استجابة تحوي GeoJSON Polygon (إمّا {"geometry": <Polygon>} أو Polygon خام)،
+    *ونتحقّق منها عبر normalize_polygon الموجود* — فالاستجابة الفاسدة تُرفَع 502 بدل
+    تمرير هندسة مُلفَّقة. لا نخترع مضلّعاً ولا قناعاً في أيّ مسار خطأ.
+
+    خريطة الأخطاء الصادقة:
+      • تعذّر اتصال/مهلة → 503 inference_unreachable.
+      • استجابة غير 2xx → 502 inference_failed (+ status).
+      • 2xx بهندسة ناقصة/فاسدة → 502 inference_bad_geometry.
     """
-    raise NotImplementedError("نقطة تكامل النموذج (SAM2/GeoSAM) لم تُنفَّذ بعد — لا تلفيق نتائج")
+    payload = {
+        "mode": mode,
+        "field_bbox": field_bbox,
+        "image_ref": image_ref,
+        "user_polygon": user_polygon,
+    }
+
+    try:
+        resp = _post_inference(payload)
+    except (httpx.ConnectError, httpx.TimeoutException, httpx.TransportError) as e:
+        # تعذّر الوصول لخادم الاستدلال — صادق، بلا اختراع نتيجة.
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "inference_unreachable",
+                "note_ar": "تعذّر الوصول لخادم استدلال التقطيع (SAM2/GeoSAM)",
+            },
+        ) from e
+
+    if resp.status_code < 200 or resp.status_code >= 300:
+        # الخادم ردّ بفشل — لا نُلفّق هندسة بديلة.
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "inference_failed", "status": resp.status_code},
+        )
+
+    # استخراج دفاعيّ للهندسة: {"geometry": <Polygon>} أو Polygon خام.
+    try:
+        body = resp.json()
+    except (ValueError, TypeError) as e:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "inference_bad_geometry"},
+        ) from e
+
+    if isinstance(body, dict) and isinstance(body.get("geometry"), dict):
+        candidate = body["geometry"]
+    elif isinstance(body, dict) and str(body.get("type", "")).lower() == "polygon":
+        candidate = body
+    else:
+        candidate = None
+
+    if candidate is None:
+        # 2xx لكن بلا هندسة قابلة للاستخراج — صادق، بلا تلفيق.
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "inference_bad_geometry"},
+        )
+
+    # التحقّق الهندسيّ الحقيقيّ يُعاد استخدامه: هندسة الخادم الفاسدة تُرفَع هنا.
+    try:
+        return normalize_polygon(candidate)
+    except HTTPException as e:
+        # normalize_polygon يرفع 422 على القمامة — نحوّله 502 (خطأ الخادم، لا المستخدم).
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "inference_bad_geometry"},
+        ) from e
 
 
 # ─── المسارات ───────────────────────────────────────────────────────────
@@ -183,7 +276,10 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
             status_code=503,
             detail={
                 "error": "model_not_configured",
-                "note_ar": ("نموذج التقطيع (SAM2/GeoSAM) غير مُهيّأ — اضبط SEGMENTATION_MODEL_PATH"),
+                "note_ar": (
+                    "خادم استدلال التقطيع (SAM2/GeoSAM) غير مُهيّأ — اضبط "
+                    "SEGMENTATION_BACKEND وSEGMENTATION_INFERENCE_URL"
+                ),
             },
         )
 
