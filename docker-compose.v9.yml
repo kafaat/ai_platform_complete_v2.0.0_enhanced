@@ -879,8 +879,8 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      # صورة edge (arm64) لا تثبّت curl — نستخدم python (متوفّر) لطلب /healthz.
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/healthz', timeout=3).read()"]
+      # صورة edge (arm64) لا تثبّت curl — نستخدم python (متوفّر) لطلب /healthz على 8100.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/healthz', timeout=3).read()\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 6
@@ -1111,9 +1111,9 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      # البوت polling بلا خادم HTTP → curl دائماً يفشل. pgrep هو الصحيح
-      # (يطابق Dockerfile). أُزيل JWT_SECRET — البوت لم يعد يصكّ توكنات (B5).
-      test: ["CMD-SHELL", "pgrep -f 'python main.py' || exit 1"]
+      # البوت polling بلا خادم HTTP، ولا curl/pgrep في الصورة (python فقط).
+      # نفحص أمر PID 1 عبر /proc للتأكّد أنّ main.py يعمل. أُزيل JWT_SECRET (B5).
+      test: ["CMD-SHELL", "python -c \"import sys; sys.exit(0 if b'main.py' in open('/proc/1/cmdline','rb').read() else 1)\""]
       interval: 30s
       timeout: 10s
       retries: 6
@@ -1150,9 +1150,8 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      # وكيل الإشعارات يستمع على 8123. نستخدم python (متوفّر في الصورة، لا curl)
-      # ونطلب /readyz (200 عند جاهزيّة التطبيق).
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz', timeout=3).read()"]
+      # وكيل الإشعارات يستمع على 8123، ولا curl في الصورة (python فقط) — نطلب /readyz.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz', timeout=3).read()\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 6

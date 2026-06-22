@@ -696,7 +696,8 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8100/healthz"]
+      # صورة edge (arm64) لا تثبّت curl — نستخدم python (متوفّر) لطلب /healthz على 8100.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/healthz', timeout=3).read()\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 6
@@ -891,7 +892,9 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      # البوت polling بلا خادم HTTP، ولا curl/pgrep في الصورة (python فقط).
+      # نفحص أمر PID 1 عبر /proc للتأكّد أنّ main.py يعمل.
+      test: ["CMD-SHELL", "python -c \"import sys; sys.exit(0 if b'main.py' in open('/proc/1/cmdline','rb').read() else 1)\""]
       interval: 30s
       timeout: 10s
       retries: 6
@@ -930,7 +933,8 @@ services:
     networks:
       - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      # وكيل الإشعارات يستمع على 8123، ولا curl في الصورة (python فقط) — نطلب /readyz.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz', timeout=3).read()\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 6
