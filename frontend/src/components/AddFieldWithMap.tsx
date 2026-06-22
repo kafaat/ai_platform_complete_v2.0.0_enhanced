@@ -8,9 +8,9 @@
 //   ✅ نموذج اسم + مسؤول يظهر بعد الرسم فقط
 //   ✅ حفظ GeoJSON → API
 // ═══════════════════════════════════════════════════════════════
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
-  MapContainer, TileLayer, FeatureGroup,
+  MapContainer, TileLayer, FeatureGroup, useMap,
 } from 'react-leaflet';
 import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
@@ -33,6 +33,19 @@ interface DrawnLayer extends L.Layer {
   getLatLng?: () => L.LatLng;
   getRadius?: () => number;
   getLatLngs?: () => L.LatLng[] | L.LatLng[][];
+}
+
+// تُعيد حساب أبعاد الخريطة بعد فتح المودال: عند التركيب قد لا يكون حجم الحاوية
+// نهائيّاً (انتقال/تخطيط المودال) فيحتفظ Leaflet بحجم قديم ⇒ انحراف بين موضع
+// النقر وموضع الرسم. نطلب invalidateSize مرّتين (بعد التركيب وبعد استقرار التخطيط).
+function InvalidateMapSize() {
+  const map = useMap();
+  useEffect(() => {
+    const t1 = setTimeout(() => map.invalidateSize(true), 50);
+    const t2 = setTimeout(() => map.invalidateSize(true), 250);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [map]);
+  return null;
 }
 
 interface FieldData {
@@ -719,6 +732,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
             doubleClickZoom={false}
             ref={(m: L.Map | null) => { mapRef.current = m; }}
           >
+            <InvalidateMapSize />
             <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
               attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
             <FeatureGroup ref={fgRef}>
