@@ -55,10 +55,12 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - nginx-cache:/var/cache/nginx
     environment:
-      # envsubst يعالج فقط DOMAIN (الفلتر يحمي متغيّرات nginx: $host, $request_uri...)
+      # envsubst يعالج DOMAIN + SAHOOL_AGENT_TOKEN فقط (الفلتر يحمي متغيّرات nginx: $host…).
+      # SAHOOL_AGENT_TOKEN يُحقَن في رأس X-Agent-Token لمسار /api/edge/ (سرّ خادميّ، لا يصل العميل).
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
-      NGINX_ENVSUBST_FILTER: "DOMAIN"
+      NGINX_ENVSUBST_FILTER: "DOMAIN|SAHOOL_AGENT_TOKEN"
       DOMAIN: ${DOMAIN:-localhost}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
     depends_on:
       sahool-auth:
         condition: service_healthy
