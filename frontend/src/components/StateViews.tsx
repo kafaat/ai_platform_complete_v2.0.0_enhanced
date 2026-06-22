@@ -5,7 +5,10 @@
 // الألوان من نظام التصميم الموحّد (tokens sahool/status) لا inline.
 // ═══════════════════════════════════════════════════════════════
 import type { ReactNode } from 'react';
-import { Loader2, Inbox, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Loader2, Inbox, AlertTriangle, RefreshCw, ShieldAlert } from 'lucide-react';
+import { advancedFeatureForPage } from '../lib/featureFlags';
+import { maturityBadge, routeForPage } from '../lib/routes';
+import type { PageId } from '../App';
 
 export function LoadingState({ message = 'جارٍ التحميل…' }: { message?: string }) {
   return (
@@ -90,6 +93,69 @@ export function ErrorState({
           إعادة المحاولة
         </button>
       )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FeatureDisabledState — حالة «ميزة غير مُفعَّلة» الموحّدة (بدل 404 خام/فراغ)
+// ───────────────────────────────────────────────────────────────
+// الإصلاح الجوهريّ: صفحة متقدّمة محروسة بعَلَم خلفيّ مُطفأ تُرجِع 404. بدل انهيار
+// أو شاشة فارغة، تعرض الصفحة هذه اللوحة الواضحة باسم العَلَم الخلفيّ (FEATURE_X)
+// ودرجة النضج، فيفهم المستخدم/المسؤول أنّ الميزة تحت علم تشغيل لا عطل. RTL + a11y.
+// تُشتقّ التفاصيل من سجلّ الأعلام (advancedFeatureForPage) وسجلّ المسارات (النضج)،
+// فلا تكرار نصوص لكلّ صفحة. غياب الصفحة عن السجلّ ⇒ رسالة عامّة آمنة.
+// ═══════════════════════════════════════════════════════════════
+
+/** هل يدلّ خطأ ما على ميزة معطّلة (نقطة محروسة بعَلَم مُطفأ ⇒ 404)؟
+ *  يقرأ شكل خطأ أكسيوس الموحّد (response.status) بأمان دون افتراض بنية صلبة. */
+export function isFeatureDisabledError(error: unknown): boolean {
+  const status = (error as { response?: { status?: number } } | null | undefined)
+    ?.response?.status;
+  return status === 404;
+}
+
+export function FeatureDisabledState({
+  page,
+  detail,
+}: {
+  page: PageId;     // الصفحة المتقدّمة (تُشتقّ منها بيانات العَلَم/النضج)
+  detail?: string;  // تفصيل اختياريّ يَخلُف الافتراضيّ
+}) {
+  const feature = advancedFeatureForPage(page);
+  const route = routeForPage(page);
+  const badge = maturityBadge(route?.maturity);
+  const title = feature
+    ? `هذه الميزة غير مُفعَّلة — تتطلّب ضبط ${feature.backendFlag} في الخادم`
+    : 'هذه الميزة غير مُفعَّلة على الخادم';
+  const body =
+    detail ??
+    (feature
+      ? `${feature.labelAr} خلف علم تشغيل (${feature.backendFlag}) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.`
+      : 'هذه الميزة خلف علم تشغيل لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.');
+
+  return (
+    <div
+      className="rounded-xl border border-sahool-border bg-sahool-surface/40 p-4 flex items-start gap-3"
+      dir="rtl"
+      role="status"
+      aria-live="polite"
+    >
+      <ShieldAlert className="w-5 h-5 text-sahool-muted flex-shrink-0 mt-0.5" aria-hidden="true" />
+      <div className="space-y-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-sm font-semibold text-sahool-text">{title}</span>
+          {badge && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded-md font-medium"
+              style={{ color: badge.fg, background: badge.bg }}
+            >
+              {badge.label}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-sahool-muted">{body}</p>
+      </div>
     </div>
   );
 }

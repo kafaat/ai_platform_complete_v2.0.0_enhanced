@@ -293,6 +293,35 @@ class ApiService {
     return data;
   }
 
+  // ── MFA (TOTP / RFC 6238) — اقتران/تفعيل/تعطيل ──────────────────
+  // العقود تطابق services/auth/main.py (mfa_setup/activate/disable) تماماً،
+  // والواجهة الويبيّة (frontend/src/services/api.ts). كلّ المسارات تتطلّب توكناً
+  // صالحاً (يُحقَن تلقائيّاً عبر interceptor أعلاه). لا قيم مُلفَّقة: الأخطاء
+  // تُمرَّر كـ DioException ليعرضها الـUI بصدق عبر apiErrorMessage.
+
+  /// يبدأ اقتران MFA (POST /auth/mfa/setup). يولّد سرّاً ويُعيد
+  /// `secret` + `provisioning_uri` (otpauth://) لعرضهما/توليد QR. لا يُفعّل MFA
+  /// بعد — التفعيل يتطلّب تأكيد أوّل رمز عبر [mfaActivate]. السرّ يُعرَض مرّة
+  /// واحدة فقط خادميّاً (لا يُعاد بعدها). يردّ الخادم 400 إن كان MFA مفعّلاً سلفاً.
+  Future<Map<String, dynamic>> mfaSetup() async {
+    final r = await _dio.post('/auth/mfa/setup');
+    return _asMap(r.data);
+  }
+
+  /// يفعّل MFA بعد تأكيد أوّل رمز صحيح (POST /auth/mfa/activate).
+  /// [code] رمز TOTP من تطبيق المصادقة. رمز خاطئ ⇒ 400 (يُعرَض سطريّاً).
+  Future<Map<String, dynamic>> mfaActivate(String code) async {
+    final r = await _dio.post('/auth/mfa/activate', data: {'code': code});
+    return _asMap(r.data);
+  }
+
+  /// يعطّل MFA (POST /auth/mfa/disable). يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله
+  /// توكن مسروق بلا الجهاز). [code] رمز TOTP. خطأ/تعطيل بلا تفعيل ⇒ 400.
+  Future<Map<String, dynamic>> mfaDisable(String code) async {
+    final r = await _dio.post('/auth/mfa/disable', data: {'code': code});
+    return _asMap(r.data);
+  }
+
   Future<Map<String, dynamic>> getDashboard({String? tag}) async {
     // البوّابة (nginx) لا تملك موقع /indicators/ ⇒ المسار القديم كان يسقط إلى
     // الـSPA ويعيد HTML فينهار _asMap. المسار الصحيح للوحة المُجمَّعة على المنصّة
