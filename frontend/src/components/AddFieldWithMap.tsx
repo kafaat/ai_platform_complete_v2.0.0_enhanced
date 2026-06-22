@@ -12,7 +12,7 @@ import { useState, useRef, useCallback, useMemo } from 'react';
 import {
   MapContainer, TileLayer, FeatureGroup,
 } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
+import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ لـLeaflet + الأداة + الأيقونات (حاسم للتصيير)
 import {
@@ -644,7 +644,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
               attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
             <FeatureGroup ref={fgRef}>
               {stage === 'draw' && (
-                <EditControl
+                <DrawControl
                   position="topright"
                   onCreated={handleCreated}
                   draw={{

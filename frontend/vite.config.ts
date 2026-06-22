@@ -7,9 +7,9 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: '@', replacement: path.resolve(__dirname, './src') },
-      // عطل بناء Vite: react-leaflet-draw يستورد default من leaflet-draw الذي
-      // لا يُصدّر default (أثر جانبيّ فقط). نوجّه الـspecifier المجرّد فقط
-      // (/^leaflet-draw$/) إلى ظِلّ يشغّل الأثر الجانبيّ ويُصدّر default، دون
+      // leaflet-draw مكتبة CommonJS أثرها جانبيّ فقط (لا default). نوجّه
+      // الـspecifier المجرّد فقط (/^leaflet-draw$/) إلى ظِلّ يشغّل الأثر الجانبيّ
+      // ويُصدّر default — تستورده أداتنا maphub/DrawControl كأثر جانبيّ — دون
       // التأثير على المسارات الفرعيّة مثل leaflet-draw/dist/leaflet.draw.css.
       {
         // Exact match only: aliases the bare `leaflet-draw` import (no default

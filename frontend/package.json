@@ -15,11 +15,11 @@
     "build:docker": "vite build"
   },
   "dependencies": {
+    "@react-leaflet/core": "^3.0.0",
     "@tanstack/react-query": "^5.28.0",
     "@turf/area": "^6.5.0",
     "@turf/helpers": "^6.5.0",
     "@turf/length": "^6.5.0",
-    "@types/leaflet-draw": "^0.4.6",
     "axios": "^1.6.8",
     "cmdk": "^1.1.1",
     "framer-motion": "^11.1.7",
@@ -28,19 +28,19 @@
     "lucide-react": "^0.400.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-leaflet": "^4.2.1",
-    "react-leaflet-draw": "^0.20.4",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^6.23.0",
     "react-window": "^1.8.11",
     "recharts": "^2.12.3",
     "shpjs": "^6.2.0",
-    "zustand": "^4.5.2"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/leaflet": "^1.9.12",
+    "@types/leaflet-draw": "^0.4.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/react-window": "^1.8.8",

@@ -10,14 +10,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-// ── ظِلّ react-leaflet / react-leaflet-draw / leaflet (jsdom بلا خريطة فعليّة) ──
+// ── ظِلّ react-leaflet / DrawControl / leaflet (jsdom بلا خريطة فعليّة) ──
+// ملاحظة: استُبدِل EditControl (react-leaflet-draw — كاسر React 19) بأداة
+// maphub/DrawControl المبنيّة على leaflet-draw الخام؛ نُمثّلها بظِلّ خفيف.
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children?: ReactNode }) => <div data-testid="map">{children}</div>,
   TileLayer: () => <div data-testid="tile" />,
   Polygon: () => <div data-testid="polygon" />,
   FeatureGroup: ({ children }: { children?: ReactNode }) => <div data-testid="fg">{children}</div>,
 }));
-vi.mock('react-leaflet-draw', () => ({ EditControl: () => <div data-testid="draw" /> }));
+vi.mock('../components/maphub/DrawControl', () => ({ default: () => <div data-testid="draw" /> }));
 vi.mock('leaflet', () => ({ default: { stamp: () => 1 } }));
 vi.mock('../lib/leafletSetup', () => ({}));
 

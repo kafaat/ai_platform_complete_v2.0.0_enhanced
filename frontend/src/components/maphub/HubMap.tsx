@@ -17,7 +17,7 @@ import {
   MapContainer, TileLayer, Polygon, CircleMarker, Marker, Tooltip,
   FeatureGroup, useMap, useMapEvents,
 } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
+import DrawControl from './DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../../lib/leafletSetup';
 import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters } from '../../lib/geo';
@@ -101,7 +101,7 @@ function MeasureTools() {
   return (
     <>
       <FeatureGroup ref={(r: L.FeatureGroup | null) => setFg(r)}>
-        <EditControl
+        <DrawControl
           position="topright"
           onCreated={handleChange}
           onEdited={handleChange}
