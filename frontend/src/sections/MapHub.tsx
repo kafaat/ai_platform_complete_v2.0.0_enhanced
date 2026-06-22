@@ -21,7 +21,7 @@
 import { Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import {
   Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
-  Search as SearchIcon, Trash2, CloudSun, Bell, Radio,
+  Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine,
 } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast } from '../hooks/useApi';
@@ -41,6 +41,7 @@ import HubMap, {
   type ScoutPin, type AlertMarker, type DeviceMarker, type WeatherMarker,
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
+import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
@@ -90,6 +91,7 @@ export default function MapHub() {
   const [pinCategory, setPinCategory] = useState(PIN_CATEGORIES[0]);
   const [detailOpen, setDetailOpen] = useState(false);
   const [showAddField, setShowAddField] = useState(false);
+  const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
   const [search, setSearch] = useState('');
 
   const selected = fields.find((f) => f.id === fieldId);
@@ -259,6 +261,15 @@ export default function MapHub() {
               <Mountain className="w-3.5 h-3.5" /> تضاريس(3D)
             </button>
           </div>
+          {mutateAllowed && (
+            <button
+              type="button" onClick={() => setShowSplitMerge(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+            >
+              <Combine className="w-3.5 h-3.5" /> دمج/تقسيم
+            </button>
+          )}
           {mutateAllowed && (
             <button
               type="button" onClick={() => setShowAddField(true)}
@@ -529,6 +540,17 @@ export default function MapHub() {
           onSave={handleSaveField}
           onImport={handleImportField}
           onCancel={() => setShowAddField(false)}
+        />
+      )}
+
+      {/* أداة دمج/تقسيم الحقول (CRUD حقيقيّ مُتلِف — فحص الموسم النشط مسبقاً، أمانة صارمة).
+          البوّابة الأماميّة mutateAllowed؛ صلاحيّة FIELD_DELETE يفرضها الخادم (403 يُعرَض بصدق). */}
+      {showSplitMerge && mutateAllowed && (
+        <FieldSplitMergeTool
+          fields={fields}
+          selectedId={fieldId}
+          onClose={() => setShowSplitMerge(false)}
+          refetch={refetch}
         />
       )}
     </div>
