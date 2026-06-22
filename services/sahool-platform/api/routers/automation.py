@@ -39,10 +39,14 @@ router = APIRouter()
 
 # ─── ٥٨. حالة جدولة الأتمتة (مراقبة) ──
 @router.get("/api/v1/automation/scheduler-status")
-def scheduler_status_endpoint():
+def scheduler_status_endpoint(
+    user: UserSchema = Depends(get_current_user),
+):
     """حالة المهامّ الدوريّة المُؤتمتة: آخر تشغيل/نجاح/فشل لكلّ مهمّة.
 
     للمراقبة التشغيليّة — يكشف إن توقّفت أتمتة (سحب طقس/صور) أو تكرّر فشلها.
+    H1 FIX: يتطلّب مصادقة — حالة تشغيليّة داخليّة (شبيهة بـ/metrics) لا فحص
+    صحّة عامّ؛ مُتّسق مع شقيقها ``weather/status``.
     """
     from api.scheduler import scheduler
 
@@ -145,8 +149,14 @@ async def imagery_register_field_endpoint(
 
 
 @router.get("/api/v1/automation/imagery/status")
-def imagery_automation_status_endpoint():
-    """حالة أتمتة الصور: الحقول المتابَعة + آخر صورة/مؤشّر لكلّ حقل."""
+def imagery_automation_status_endpoint(
+    user: UserSchema = Depends(get_current_user),
+):
+    """حالة أتمتة الصور: الحقول المتابَعة + آخر صورة/مؤشّر لكلّ حقل.
+
+    H1 FIX: يتطلّب مصادقة — حالة تشغيليّة داخليّة (شبيهة بـ/metrics) لا فحص
+    صحّة عامّ؛ مُتّسق مع شقيقها ``weather/status``.
+    """
     return imagery_automation.status()
 
 
