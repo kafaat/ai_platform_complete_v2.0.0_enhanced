@@ -37,9 +37,7 @@ _YIELD_SELECT = (
 
 @router.get("/api/v1/analysis/yield")
 async def yield_analysis_endpoint(
-    field_id: str | None = Query(
-        default=None, description="حصر التحليل بحقل واحد (اختياريّ)."
-    ),
+    field_id: str | None = Query(default=None, description="حصر التحليل بحقل واحد (اختياريّ)."),
     season: str | None = Query(
         default=None, description="حصر التحليل بموسم واحد عبر season_id (اختياريّ)."
     ),
@@ -75,8 +73,6 @@ async def yield_analysis_endpoint(
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("قراءة بيانات الغلّة", e) from e
 
-    result = assemble_yield_analysis(
-        [dict(r) for r in rows], field_id=field_id, season=season
-    )
+    result = assemble_yield_analysis([dict(r) for r in rows], field_id=field_id, season=season)
     result["tenant_id"] = str(user.tenant_id)
     return result

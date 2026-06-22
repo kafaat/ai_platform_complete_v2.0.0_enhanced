@@ -149,9 +149,7 @@ def _patch_conn(monkeypatch, conn=None, raise_open=False):
             raise RuntimeError("pool unavailable")
         yield conn
 
-    monkeypatch.setattr(
-        "api.routers.yield_analysis.tenant_connection", _fake_tenant_connection
-    )
+    monkeypatch.setattr("api.routers.yield_analysis.tenant_connection", _fake_tenant_connection)
 
 
 async def test_endpoint_shapes_result(monkeypatch):
