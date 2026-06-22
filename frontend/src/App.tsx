@@ -116,6 +116,7 @@ const EconomicsDashboard  = lazy(() => import('./sections/EconomicsDashboard'));
 const YieldAnalysisPage   = lazy(() => import('./sections/YieldAnalysisPage'));
 const PhenologyView       = lazy(() => import('./sections/PhenologyView'));
 const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
+const PrescriptionBuilderPage = lazy(() => import('./sections/PrescriptionBuilderPage'));
 const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
 const OperationCenterWallPage = lazy(() => import('./sections/OperationCenterWallPage'));
 
@@ -126,7 +127,7 @@ export type PageId =
   | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'decision-confidence' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance'
-  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'advisory-report'
+  | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
   | 'operations-wall';
 
 // ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
@@ -303,6 +304,7 @@ export default function App() {
       case 'yield-analysis': return <YieldAnalysisPage />;
       case 'phenology':    return <PhenologyView />;
       case 'scouting':     return <ScoutingView />;
+      case 'prescriptions': return <PrescriptionBuilderPage />;
       case 'advisory-report': return <FarmAdvisoryReport />;
       case 'operations-wall': return <OperationCenterWallPage />;
       case 'field-app':    return <FieldAppPreview />;

@@ -3290,6 +3290,7 @@ from api.routers.policy_learning import router as policy_learning_router  # noqa
 from api.routers.portfolio_command import router as portfolio_command_router  # noqa: E402
 from api.routers.postharvest import router as postharvest_router  # noqa: E402
 from api.routers.practices import router as practices_router  # noqa: E402
+from api.routers.prescriptions import router as prescriptions_router  # noqa: E402
 from api.routers.propagation import router as propagation_router  # noqa: E402
 from api.routers.queue import router as queue_router  # noqa: E402
 from api.routers.rbac import router as rbac_router  # noqa: E402
@@ -3407,6 +3408,7 @@ app.include_router(settings_router)
 app.include_router(documents_router)
 app.include_router(simulate_router)
 app.include_router(scouting_router)
+app.include_router(prescriptions_router)
 app.include_router(trials_router)
 app.include_router(water_balance_router)
 app.include_router(nutrients_router)

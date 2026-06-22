@@ -90,6 +90,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'phenology',          path: '/health/phenology', label: 'مراحل النموّ', icon: Sprout, maturity: 'stable' },
       { id: 'scouting',           path: '/health/scouting',  label: 'دليل الاستكشاف', icon: Bug, maturity: 'stable' },
       { id: 'pest-escalation',    path: '/health/pest',      label: 'تصعيد الآفة', icon: Bug, maturity: 'beta' },
+      { id: 'prescriptions',      path: '/health/prescriptions', label: 'منشئ الوصفات (يدويّ)', icon: SlidersHorizontal, maturity: 'alpha' },
       { id: 'field-intelligence', path: '/health/maestro',   label: 'المايسترو', icon: Activity, maturity: 'beta' },
     ],
   },

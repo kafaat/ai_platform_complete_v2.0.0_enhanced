@@ -57,6 +57,9 @@ import {
   // ── تفاصيل الحقل المتقدّمة (v37): قراءة + تحديث جزئيّ (ملء تدريجيّ) ──
   fetchFieldDetail, updateField,
   type FieldDetail, type FieldUpdatePatch,
+  // ── وصفات المعدّل المتغيّر اليدويّة (Manual VRT، v95): سرد + حفظ ──
+  fetchPrescriptions, createPrescription,
+  type SavedPrescription, type PrescriptionListResponse, type PrescriptionCreateInput,
   // ── إعادة تشغيل الموسم (Agronomic Replay): خطّ زمنيّ واحد قابل للـscrub ──
   fetchAgronomicReplay, type AgronomicReplayResult,
   // ── مساحة عمل الحقل (Field Workspace Map): ملخّص + طبقات + خطّ زمنيّ ──
@@ -126,6 +129,7 @@ export const QK = {
                        ['field-timeseries', fid, index, dates],
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
+  savedPrescriptions: (tid: string, fid: string) => ['saved-prescriptions', tid, fid],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
   yieldAnalysis:    (tid: string, fid: string, season: string) => ['analysis', 'yield', tid, fid, season],
   farmSummary:      (tid: string)        => ['reports', 'farm-summary', tid],
@@ -729,6 +733,37 @@ export function useUpdateField(
       qc.invalidateQueries({ queryKey: QK.fieldDetail(tid, fieldId) });
       qc.invalidateQueries({ queryKey: QK.fields(tid) });
     },
+  });
+}
+
+// ── وصفات المعدّل المتغيّر اليدويّة (Manual VRT Prescriptions، v95) ──
+// سرد الوصفات المحفوظة لحقل (field:view، tenant-scoped + RLS). لا fallback وهميّ:
+// 503 (DB مُعطَّلة) / 404 (حقل خارج المستأجِر) يُرفع ليعرض الـUI خطأً صادقاً؛ والقائمة
+// الفارغة تُعرَض كما هي (note_ar من الخادم) — لا اختراع وصفات.
+export function useFieldPrescriptions(
+  fieldId: string,
+  enabled = true,
+): UseQueryResult<PrescriptionListResponse> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<PrescriptionListResponse>({
+    queryKey: QK.savedPrescriptions(tid, fieldId),
+    queryFn:  () => fetchPrescriptions(fieldId),
+    staleTime:5 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId && enabled,
+  });
+}
+
+// حفظ وصفة يدويّة — يُبطِل كاش وصفات الحقل كي تظهر فوراً في القائمة. الخطأ
+// (422 نوع منتج / 404 حقل / 503 DB / 403 RBAC) يُرمى ليعرضه النموذج بصدق.
+export function useCreatePrescription(
+  fieldId: string,
+): UseMutationResult<SavedPrescription & { persisted: boolean }, Error, PrescriptionCreateInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<SavedPrescription & { persisted: boolean }, Error, PrescriptionCreateInput>({
+    mutationFn: (payload) => createPrescription(fieldId, payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.savedPrescriptions(tid, fieldId) }); },
   });
 }
 
