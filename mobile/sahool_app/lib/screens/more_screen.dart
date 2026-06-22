@@ -11,6 +11,7 @@ import 'documents_screen.dart';
 import 'equipment_screen.dart';
 import 'inventory_screen.dart';
 import 'master_data_screen.dart';
+import 'mfa_setup_screen.dart';
 import 'operations_hub_screen.dart';
 import 'profile_screen.dart';
 import 'satellite_screen.dart';
@@ -45,6 +46,8 @@ class MoreScreen extends StatelessWidget {
         managementOnly: true),
     _MoreItem('الحساب والإعدادات', Icons.settings_outlined,
         () => const ProfileScreen()),
+    _MoreItem('تفعيل المصادقة الثنائيّة (MFA)', Icons.shield_outlined,
+        () => const MfaSetupScreen()),
   ];
 
   @override
