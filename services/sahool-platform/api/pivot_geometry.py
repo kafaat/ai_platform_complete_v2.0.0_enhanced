@@ -96,3 +96,44 @@ def maybe_canonicalize_pivot_geometry(
     if spec is None:
         return None
     return generate_pivot_polygon(spec)
+
+
+class PivotPolygonDriftError(ValueError):
+    """مضلّع حقل محوريّ حُرِّر مباشرةً دون بارامترات (مركز/نصف قطر/زوايا) لإعادة اشتقاقه."""
+
+    message_ar = "حقل محوريّ: عدّل المركز/نصف القطر/الزوايا — لا يُحرّر المضلّع مباشرةً"
+
+
+def is_pivot_irrigation(*irrigation_types: str | None) -> bool:
+    """True إن دلّ أيّ من قيم نوع الريّ المُمرَّرة على حقل محوريّ (pivot).
+
+    دالّة نقيّة: تُعيد استخدامها قرارات التحديث لتحديد «محوريّة» الحقل من نوع الريّ
+    المُرسَل في الطلب أو المخزَّن في القاعدة دون تكرار التطبيع (حالة الأحرف/None).
+    """
+    return any((t or "").lower() == "pivot" for t in irrigation_types)
+
+
+def resolve_pivot_update_geometry(
+    payload: dict[str, Any],
+    *,
+    field_irrigation_type: str | None,
+    request_irrigation_type: str | None = None,
+) -> dict[str, Any] | None:
+    """قرار هندسة تحديث الحقل المحوريّ — دالّة نقيّة (لا DB، قابلة للاختبار).
+
+    إن لم يكن الحقل محوريّاً (حسب نوع الريّ المُرسَل في الطلب أو المخزَّن) ⇒ يُعيد
+    ``None`` (لا تدخُّل: يسلك المضلّع مسار الحارس العاديّ كسائر الحقول).
+
+    إن كان محوريّاً:
+      • إن وُجدت بارامترات المحور (مركز/نصف قطر/زوايا) في الـ``payload`` ⇒ يُعيد
+        اشتقاق المضلّع canonical منها ويردّه (re-derive — مصدر الحقيقة هو البارامترات
+        لا المضلّع المُحرَّر).
+      • إن لم تُوجَد (مضلّع خام فقط) ⇒ يرفع ``PivotPolygonDriftError`` ليرفض المسارُ
+        الانحرافَ بـ422 (لا تخزين صامت لمضلّع منحرف).
+    """
+    if not is_pivot_irrigation(request_irrigation_type, field_irrigation_type):
+        return None
+    canonical = maybe_canonicalize_pivot_geometry(payload, "pivot")
+    if canonical is None:
+        raise PivotPolygonDriftError()
+    return canonical

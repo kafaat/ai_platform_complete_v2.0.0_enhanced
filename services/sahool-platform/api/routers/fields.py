@@ -100,7 +100,11 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.pivot_geometry import maybe_canonicalize_pivot_geometry
+from api.pivot_geometry import (
+    PivotPolygonDriftError,
+    maybe_canonicalize_pivot_geometry,
+    resolve_pivot_update_geometry,
+)
 from api.prescriptions import ZoneCharacteristics, ZoneClass, prescription_to_dict
 from api.scouting_pins import make_pin
 
@@ -651,33 +655,67 @@ async def update_field(
     المخزّنة بلا إعادة تحديث — موحِّداً مسار كتابة الحقل مع create_season/
     create_activity. بلا مفتاح ⇒ سلوك سابق حرفيّاً (توافق خلفيّ كامل).
     """
-    # Geometry update path: validate/normalize before building SQL, and forbid raw polygon
-    # drift for pivot fields unless canonical pivot metadata is provided.
+    # Geometry update path: forbid raw-polygon drift for pivot fields. We cannot decide
+    # pivot-ness from the PATCH alone (irrigation_type may be omitted), so the geometry
+    # guard/re-derive/reject is resolved INSIDE the tenant transaction, right after we read
+    # the field's current irrigation_type from the DB (see _work below). Non-geometry-change
+    # requests skip this entirely.
     geometry_changed = "geometry" in req.model_fields_set
-    if geometry_changed and req.geometry is not None:
-        try:
-            guarded = guard_field_geometry(req.geometry)
-        except ValueError as exc:
-            raise HTTPException(
-                status_code=422,
-                detail={
-                    "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
-                    "code": "invalid_field_geometry",
-                    "issues": str(exc).split(","),
-                },
-            ) from exc
-        req = req.model_copy(update={"geometry": guarded.geometry})
-    try:
-        set_clause, values = _build_field_update(req)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail="لا حقول للتحديث") from e
-    # رفع row_version دائماً + حارس تزامن تفاؤليّ إن مرّر العميل base_version (v61).
-    sql, exec_values = _build_versioned_update(set_clause, values, field_id, req.base_version)
     try:
         async with tenant_connection(user) as conn:
 
             async def _work():
+                nonlocal req
                 await _assert_field_in_tenant(conn, field_id)
+                if geometry_changed and req.geometry is not None:
+                    # نوع الريّ المخزَّن (قد لا يُرسله الـPATCH) لتحديد محوريّة الحقل.
+                    irow = await conn.fetchrow(
+                        "SELECT irrigation_type FROM fields WHERE field_id = $1",
+                        field_id,
+                    )
+                    field_irrigation_type = irow["irrigation_type"] if irow else None
+                    # حقل محوريّ: أعد اشتقاق المضلّع من البارامترات إن وُجدت، وإلّا ارفض
+                    # (422) بدل تخزين مضلّع منحرف. حقل غير محوريّ: None ⇒ المسار العاديّ.
+                    try:
+                        canonical = resolve_pivot_update_geometry(
+                            req.model_dump(mode="json"),
+                            field_irrigation_type=field_irrigation_type,
+                            request_irrigation_type=(
+                                req.irrigation_type
+                                if "irrigation_type" in req.model_fields_set
+                                else None
+                            ),
+                        )
+                    except PivotPolygonDriftError as exc:
+                        raise HTTPException(
+                            status_code=422,
+                            detail={
+                                "message_ar": exc.message_ar,
+                                "code": "pivot_polygon_drift_forbidden",
+                            },
+                        ) from exc
+                    raw_geometry = canonical if canonical is not None else req.geometry
+                    # حارس الهندسة (CRS/تقاطع ذاتي/مساحة) على الناتج (الخام أو المُشتقّ).
+                    try:
+                        guarded = guard_field_geometry(raw_geometry)
+                    except ValueError as exc:
+                        raise HTTPException(
+                            status_code=422,
+                            detail={
+                                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
+                                "code": "invalid_field_geometry",
+                                "issues": str(exc).split(","),
+                            },
+                        ) from exc
+                    req = req.model_copy(update={"geometry": guarded.geometry})
+                try:
+                    set_clause, values = _build_field_update(req)
+                except ValueError as e:
+                    raise HTTPException(status_code=422, detail="لا حقول للتحديث") from e
+                # رفع row_version دائماً + حارس تزامن تفاؤليّ إن مرّر base_version (v61).
+                sql, exec_values = _build_versioned_update(
+                    set_clause, values, field_id, req.base_version
+                )
                 upd = await conn.execute(sql, *exec_values)
                 # تعارض تزامن تفاؤليّ: الحقل موجود (تأكّدنا) لكن UPDATE أصاب 0 صفّ ⇒
                 # row_version لا يطابق base_version ⇒ عُدِّل من جلسة أخرى بين قراءة العميل
