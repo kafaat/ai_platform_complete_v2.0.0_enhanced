@@ -95,6 +95,26 @@ body {
   border-radius: 12px;
 }
 
+/* RTL guard: body is dir=rtl, but Leaflet computes pointer↔layer positions from an
+   LTR container coordinate system. Without forcing LTR on the map panes/controls the
+   drawn shape is offset from the cursor inside RTL pages/modals. Scope to Leaflet only
+   (panes + draw/zoom controls) so the surrounding Arabic UI stays RTL. */
+.leaflet-container,
+.leaflet-pane,
+.leaflet-map-pane,
+.leaflet-tile-pane,
+.leaflet-overlay-pane,
+.leaflet-marker-pane,
+.leaflet-shadow-pane,
+.leaflet-tooltip-pane,
+.leaflet-popup-pane,
+.leaflet-control-container,
+.leaflet-control,
+.leaflet-draw,
+.leaflet-draw-toolbar {
+  direction: ltr !important;
+}
+
 /* ── Animations ── */
 @keyframes pulse-green {
   0%, 100% { opacity: 1; }

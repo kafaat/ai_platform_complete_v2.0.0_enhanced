@@ -15,3 +15,48 @@ declare module '@turf/length' {
     options?: { units?: string },
   ): number;
 }
+
+// وحدات دمج/تقسيم الحقول (fieldGeometryOps.ts) — نفس سبب الإعلان اليدويّ أعلاه:
+// @turf/{helpers,union,intersect,difference}@6.5 تعرّف types في dist لكن "exports"
+// لا يتضمّن شرط "types" فلا يحلّها TS تحت moduleResolution: bundler. التوقيعات
+// مطابقة لتعريفات turf v6 الرسميّة (لا any مُبهَم).
+declare module '@turf/helpers' {
+  import type { Feature, Polygon, MultiPolygon, Position } from 'geojson';
+  export function polygon<P = Record<string, unknown>>(
+    coordinates: Position[][],
+    properties?: P,
+  ): Feature<Polygon, P>;
+  export function multiPolygon<P = Record<string, unknown>>(
+    coordinates: Position[][][],
+    properties?: P,
+  ): Feature<MultiPolygon, P>;
+}
+
+declare module '@turf/union' {
+  import type { Feature, Polygon, MultiPolygon } from 'geojson';
+  // اتّحاد مضلّعين؛ يُرجِع Polygon أو MultiPolygon (عند عدم التجاور)، أو null.
+  export default function union(
+    poly1: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon,
+    poly2: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon,
+    options?: { properties?: Record<string, unknown> },
+  ): Feature<Polygon | MultiPolygon> | null;
+}
+
+declare module '@turf/intersect' {
+  import type { Feature, Polygon, MultiPolygon } from 'geojson';
+  // تقاطع مضلّعين؛ يُرجِع الجزء المشترك (Polygon/MultiPolygon) أو null إن لم يتقاطعا.
+  export default function intersect(
+    poly1: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon,
+    poly2: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon,
+    options?: { properties?: Record<string, unknown> },
+  ): Feature<Polygon | MultiPolygon> | null;
+}
+
+declare module '@turf/difference' {
+  import type { Feature, Polygon, MultiPolygon } from 'geojson';
+  // فرق مضلّعين (poly1 ناقص poly2)؛ يُرجِع الباقي أو null إن فرغ.
+  export default function difference(
+    poly1: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon,
+    poly2: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon,
+  ): Feature<Polygon | MultiPolygon> | null;
+}

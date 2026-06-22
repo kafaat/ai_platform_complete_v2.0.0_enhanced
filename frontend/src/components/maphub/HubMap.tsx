@@ -24,6 +24,10 @@ import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, area
 import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import type { FieldOption } from '../../lib/fields';
+import {
+  AlertOverlay, DeviceOverlay, WeatherOverlay,
+  type AlertMarker, type DeviceMarker, type WeatherMarker,
+} from './OverlayMarkers';
 
 const YEMEN_CENTER: [number, number] = [15.0, 44.0];
 const SELECTED_COLOR = '#22d3ee';
@@ -53,7 +57,15 @@ export interface HubMapProps {
   pins: ScoutPin[];
   onAddPin: (lat: number, lng: number) => void;
   height?: number | string;
+  // طبقات تراكب اختياريّة (طقس/تنبيهات/أجهزة) — بيانات حيّة مُبسَّطة من MapHub.
+  // كلّها افتراضيّاً فارغة/null (لا تُعرَض في المقارنة). الإحداثيّات محسوبة في
+  // MapHub من النقطة الممثِّلة لحقل العنصر — لا اختراع هنا.
+  alertMarkers?: AlertMarker[];
+  deviceMarkers?: DeviceMarker[];
+  weatherMarker?: WeatherMarker | null;
 }
+
+export type { AlertMarker, DeviceMarker, WeatherMarker };
 
 // ── تنسيق عرض القياسات (نفس FieldIndicatorMap) ──────────────────
 function fmtArea(m2: number): string {
@@ -214,6 +226,7 @@ const PIN_ICON = L.divIcon({
 export default function HubMap({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity,
   drawTools, pinMode, pins, onAddPin, height = 520,
+  alertMarkers = [], deviceMarkers = [], weatherMarker = null,
 }: HubMapProps) {
   const basemap = getLayer(basemapId);
   const basemapUrl = basemap?.source
@@ -309,6 +322,12 @@ export default function HubMap({
             <Tooltip>{p.note || p.category}</Tooltip>
           </Marker>
         ))}
+
+        {/* طبقات التراكب (طقس/تنبيهات/أجهزة) — تُرسَم فقط عند توفّر عناصر قابلة
+            للعرض. الحرّاس داخل المكوّنات تتكفّل بالفراغ/الـnull. */}
+        <AlertOverlay markers={alertMarkers} />
+        <DeviceOverlay markers={deviceMarkers} />
+        <WeatherOverlay marker={weatherMarker} />
 
         <PinClickHandler enabled={pinMode} onAddPin={onAddPin} />
         {drawTools && <MeasureTools />}

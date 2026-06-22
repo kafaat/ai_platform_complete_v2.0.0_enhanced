@@ -8,9 +8,9 @@
 //   ✅ نموذج اسم + مسؤول يظهر بعد الرسم فقط
 //   ✅ حفظ GeoJSON → API
 // ═══════════════════════════════════════════════════════════════
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
-  MapContainer, TileLayer, FeatureGroup,
+  MapContainer, TileLayer, FeatureGroup, useMap,
 } from 'react-leaflet';
 import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
@@ -19,6 +19,7 @@ import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle, Upload, FileUp,
   Pentagon, Square, Circle, Magnet,
+  Undo2, Redo2,
 } from 'lucide-react';
 import shp from 'shpjs';
 import { kongApi, asApiError, segmentField, classifySegmentationError, apiErrorMessage } from '../services/api';
@@ -32,6 +33,19 @@ interface DrawnLayer extends L.Layer {
   getLatLng?: () => L.LatLng;
   getRadius?: () => number;
   getLatLngs?: () => L.LatLng[] | L.LatLng[][];
+}
+
+// تُعيد حساب أبعاد الخريطة بعد فتح المودال: عند التركيب قد لا يكون حجم الحاوية
+// نهائيّاً (انتقال/تخطيط المودال) فيحتفظ Leaflet بحجم قديم ⇒ انحراف بين موضع
+// النقر وموضع الرسم. نطلب invalidateSize مرّتين (بعد التركيب وبعد استقرار التخطيط).
+function InvalidateMapSize() {
+  const map = useMap();
+  useEffect(() => {
+    const t1 = setTimeout(() => map.invalidateSize(true), 50);
+    const t2 = setTimeout(() => map.invalidateSize(true), 250);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [map]);
+  return null;
 }
 
 interface FieldData {
@@ -186,6 +200,17 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   // (إعادة رسم سريعة قد تُظهر موقعاً لا يطابق المضلّع الحاليّ).
   const geoReqRef = useRef(0);
 
+  // ── تاريخ تراجع/إعادة (Undo/Redo) لحدّ الحقل ───────────────────────────────
+  // كلّ لقطة = حلقة رؤوس كأزواج [lat,lng] أرقام صرفة (غير قابلة للتغيّر ورخيصة، لا L.LatLng).
+  // history: قائمة لقطات؛ pointer: مؤشّر اللقطة الحاليّة. الحدّ الحاليّ = history[pointer].
+  // الدفع يقتطع أيّ «مستقبل» بعد pointer ثمّ يُلحِق ويُقدّم المؤشّر (دلالات Undo/Redo القياسيّة).
+  const [history, setHistory] = useState<number[][][]>([]);
+  const [pointer, setPointer] = useState(-1);
+  // علم حارس: حين نُعيد تطبيق لقطة (Undo/Redo)، لا يجوز لمسار الدفع أن يُعيد الدخول.
+  const applyingRef = useRef(false);
+  // مرآة للمؤشّر الحاليّ كي يقرأها مستمع Leaflet طويل العمر بلا إغلاق قديم.
+  const pointerRef = useRef(-1);
+
   // G — أهداف الالتقاط: حلقات حدود الحقول القائمة كـ[lat,lng] (مصدر الالتقاط).
   // نشتقّها مرّة عبر geomToPolygon (المصدر الموحّد للهندسة) ونُحدّثها فقط عند تغيّر
   // المُدخَل. رأس بداية الرسم يُضاف داخل snapRing نفسها (إغلاق نظيف).
@@ -208,9 +233,29 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     return snapped.map(([lat, lng]) => L.latLng(lat, lng));
   }, [snapEnabled, snapTargets]);
 
-  const handlePolygonDone = useCallback((rawPts: L.LatLng[]) => {
-    const pts = maybeSnap(rawPts);
-    if (!fgRef.current) return;
+  // يدفع لقطة حلقة (أزواج [lat,lng]) إلى التاريخ: يقتطع أيّ «مستقبل» بعد المؤشّر
+  // الحاليّ ثمّ يُلحِق ويُقدّم المؤشّر. يُتجاهَل أثناء إعادة تطبيق لقطة (حارس applyingRef)
+  // أو إن كانت الحلقة أقصر من مثلّث. يقرأ المؤشّر من pointerRef (مرآة محدّثة فوراً)
+  // كي يعمل بأمان من مستمع Leaflet طويل العمر بلا إغلاق قديم على pointer.
+  const pushSnapshot = useCallback((pts: L.LatLng[]) => {
+    if (applyingRef.current) return;
+    if (!Array.isArray(pts) || pts.length < 3) return;
+    const ring: number[][] = pts.map(p => [p.lat, p.lng]);
+    setHistory(prev => {
+      const trimmed = prev.slice(0, pointerRef.current + 1);
+      trimmed.push(ring);
+      pointerRef.current = trimmed.length - 1;
+      setPointer(pointerRef.current);
+      return trimmed;
+    });
+  }, []);
+
+  // يبني مضلّعاً قابلاً للتحرير في fgRef بنفس النمط/التفعيل، ويعيد حساب
+  // latlngs/areaHa/perimeterM، ويربط مستمع 'edit' (يلتقط سحب الرؤوس → لقطة جديدة).
+  // pushOnDone=true ⇒ يدفع لقطة لهذا الحدّ (مسار الالتزام)؛ false ⇒ إعادة تطبيق
+  // لقطة موجودة (Undo/Redo) بلا دفع. يُعيد الطبقة المبنيّة.
+  const buildEditablePolygon = useCallback((pts: L.LatLng[], pushOnDone: boolean): L.Polygon | null => {
+    if (!fgRef.current) return null;
     const fg = fgRef.current;
     fg.clearLayers();
     const poly = L.polygon(pts, {
@@ -219,11 +264,28 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     fg.addLayer(poly);
     // تفعيل التحرير
     (poly as any).editing?.enable();
-    const ha = geodesicAreaHa(pts);
     setLatlngs(pts);
-    setAreaHa(ha);
+    setAreaHa(geodesicAreaHa(pts));
     setPerimeterM(geodesicPerimeterM(pts));
     setPolygon(poly);
+    // التقاط تعديل الرؤوس اليدويّ: leaflet-draw يُطلق 'edit' على الطبقة بعد سحب رأس.
+    // نقرأ الحلقة المحدّثة، نُحدّث القياسات، ونُسجّل لقطة (محروسة بـapplyingRef).
+    poly.on('edit', () => {
+      const edited = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
+      if (edited.length < 3) return;
+      setLatlngs(edited);
+      setAreaHa(geodesicAreaHa(edited));
+      setPerimeterM(geodesicPerimeterM(edited));
+      pushSnapshot(edited);
+    });
+    if (pushOnDone) pushSnapshot(pts);
+    return poly;
+  }, [pushSnapshot]);
+
+  const handlePolygonDone = useCallback((rawPts: L.LatLng[]) => {
+    const pts = maybeSnap(rawPts);
+    if (!fgRef.current) return;
+    buildEditablePolygon(pts, true);
     setStage('form');
     // كشف عكسي للموقع (دولة + إقليم) من مركز bbox المضلّع — عرض تلقائي قبل الحفظ.
     const lats = pts.map(p => p.lat);
@@ -241,7 +303,33 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         setAutoRegion(r.data?.region ?? null);
       })
       .catch(() => { /* الكشف التلقائي اختياري — لا يُفشل الإضافة */ });
-  }, [maybeSnap]);
+  }, [maybeSnap, buildEditablePolygon]);
+
+  // يُعيد تطبيق لقطة عند مؤشّر هدف: يُعيد بناء المضلّع القابل للتحرير ويعيد حساب
+  // القياسات بلا دفع لقطة جديدة (حارس applyingRef) وبلا كشف عكسي (إبقاء سريع).
+  const applySnapshot = useCallback((targetPtr: number) => {
+    const ring = history[targetPtr];
+    if (!Array.isArray(ring) || ring.length < 3) return;
+    applyingRef.current = true;
+    try {
+      const pts = ring.map(([lat, lng]) => L.latLng(lat, lng));
+      buildEditablePolygon(pts, false);
+      pointerRef.current = targetPtr;
+      setPointer(targetPtr);
+    } finally {
+      applyingRef.current = false;
+    }
+  }, [history, buildEditablePolygon]);
+
+  const handleUndo = useCallback(() => {
+    if (pointer <= 0) return;
+    applySnapshot(pointer - 1);
+  }, [pointer, applySnapshot]);
+
+  const handleRedo = useCallback(() => {
+    if (pointer >= history.length - 1) return;
+    applySnapshot(pointer + 1);
+  }, [pointer, history.length, applySnapshot]);
 
   // أداة الرسم (leaflet-draw): مضلّع / مستطيل / دائرة (ريّ محوريّ).
   const handleCreated = useCallback((e: L.DrawEvents.Created) => {
@@ -346,6 +434,10 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setAutoRegion(null);
     setError('');
     setSegNotice(null);
+    // تفريغ تاريخ التراجع/الإعادة مع بقيّة الحالة.
+    setHistory([]);
+    setPointer(-1);
+    pointerRef.current = -1;
   };
 
   const handleSave = async () => {
@@ -494,10 +586,10 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background:'rgba(0,0,0,0.7)' }}>
-      <div className="relative w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl" style={{ background:'#1e293b', border:'1px solid #334155' }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor:'#334155' }}>
+    <div className="fixed inset-0 z-50 flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
+      {/* Top bar (ملء العرض): العنوان + التبويبات على جهة البداية، تبديل الطبقة + الإغلاق على جهة النهاية */}
+      <header className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{ borderColor:'#334155', background:'#1e293b' }}>
+        <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-emerald-400" />
             <h2 className="font-bold text-slate-100">
@@ -506,298 +598,302 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 : stage === 'draw' ? 'ارسم حدود الحقل على الخريطة' : 'بيانات الحقل'}
             </h2>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Layer toggle (الرسم فقط) */}
-            {mode === 'draw' && (
-              <button onClick={() => setTileType(t => t === 'street' ? 'satellite' : 'street')}
-                className="px-2 py-1 rounded text-xs border" style={{ borderColor:'#334155', color:'#94a3b8' }}>
-                {tileType === 'satellite' ? '🗺 خريطة' : '🛰 قمر صناعي'}
+          {/* Tabs: رسم يدويّ / استيراد ملفّ (التبويب يظهر فقط إن وُفّر onImport) */}
+          {onImport && (
+            <div className="flex gap-1">
+              <button
+                onClick={() => { setMode('draw'); setError(''); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold"
+                style={mode === 'draw'
+                  ? { background:'#0f1117', color:'#34d399', border:'1px solid #334155' }
+                  : { color:'#94a3b8' }}>
+                <MapPin className="w-4 h-4" /> رسم على الخريطة
               </button>
-            )}
-            <button onClick={onCancel} className="p-1 rounded hover:bg-slate-700 text-slate-400">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+              <button
+                onClick={() => { setMode('import'); setError(''); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold"
+                style={mode === 'import'
+                  ? { background:'#0f1117', color:'#34d399', border:'1px solid #334155' }
+                  : { color:'#94a3b8' }}>
+                <FileUp className="w-4 h-4" /> استيراد ملفّ
+              </button>
+            </div>
+          )}
         </div>
-
-        {/* Tabs: رسم يدويّ / استيراد ملفّ (التبويب يظهر فقط إن وُفّر onImport) */}
-        {onImport && (
-          <div className="flex gap-1 px-5 pt-3" dir="rtl">
-            <button
-              onClick={() => { setMode('draw'); setError(''); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-sm font-semibold"
-              style={mode === 'draw'
-                ? { background:'#0f1117', color:'#34d399', border:'1px solid #334155', borderBottom:'none' }
-                : { color:'#94a3b8' }}>
-              <MapPin className="w-4 h-4" /> رسم على الخريطة
+        <div className="flex items-center gap-2">
+          {/* Layer toggle (الرسم فقط) */}
+          {mode === 'draw' && (
+            <button onClick={() => setTileType(t => t === 'street' ? 'satellite' : 'street')}
+              className="px-2 py-1 rounded text-xs border" style={{ borderColor:'#334155', color:'#94a3b8' }}>
+              {tileType === 'satellite' ? '🗺 خريطة' : '🛰 قمر صناعي'}
             </button>
-            <button
-              onClick={() => { setMode('import'); setError(''); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-sm font-semibold"
-              style={mode === 'import'
-                ? { background:'#0f1117', color:'#34d399', border:'1px solid #334155', borderBottom:'none' }
-                : { color:'#94a3b8' }}>
-              <FileUp className="w-4 h-4" /> استيراد ملفّ
-            </button>
-          </div>
-        )}
+          )}
+          <button onClick={onCancel} className="p-1 rounded hover:bg-slate-700 text-slate-400">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
 
-        {/* لوحة الأدوات + شريط الإرشاد (إلهام FieldView) — رسم فقط */}
-        {mode === 'draw' && stage === 'draw' && (
-          <div className="px-5 py-3 space-y-2" style={{ background:'#172032' }} dir="rtl">
-            {/* سطر الإرشاد العربيّ الأصليّ — يبقى كما هو */}
-            <p className="text-sm" style={{ color:'#94a3b8' }}>
-              💡 <strong className="text-emerald-400">ارسم حدود الحقل على الخريطة</strong> — اختر أداة الرسم من أعلى يسار الخريطة.
-            </p>
-            {/* لوحة أدوات مرتّبة: المضلّع/المستطيل/الدائرة من شريط Leaflet (أعلى الخريطة) */}
-            <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color:'#cbd5e1' }}>
-              <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                style={{ background:'#0f1117', border:'1px solid #334155' }}>
-                <Pentagon className="w-3.5 h-3.5 text-emerald-400" /> مضلّع
-              </span>
-              <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                style={{ background:'#0f1117', border:'1px solid #334155' }}>
-                <Square className="w-3.5 h-3.5 text-emerald-400" /> مستطيل
-              </span>
-              <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                style={{ background:'#0f1117', border:'1px solid #334155' }}>
-                <Circle className="w-3.5 h-3.5 text-emerald-400" /> دائرة (ريّ محوريّ)
-              </span>
-              {onImport && (
-                <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                  style={{ background:'#0f1117', border:'1px solid #334155' }}>
-                  <FileUp className="w-3.5 h-3.5 text-emerald-400" /> أو استيراد ملفّ
-                </span>
+      {/* صفّ العمل: درج التحكّم (البداية) + خريطة ملء الشاشة (flex-1) */}
+      <div className="flex-1 flex min-h-0">
+        {mode === 'draw' ? (
+          <>
+            <aside className="w-full sm:w-[400px] shrink-0 overflow-y-auto border-l" style={{ borderColor:'#334155', background:'#1e293b' }} dir="rtl">
+              {stage === 'draw' ? (
+                /* لوحة الأدوات + شريط الإرشاد (إلهام FieldView) */
+                <div className="px-5 py-3 space-y-2" dir="rtl">
+                  {/* سطر الإرشاد العربيّ الأصليّ — يبقى كما هو */}
+                  <p className="text-sm" style={{ color:'#94a3b8' }}>
+                    💡 <strong className="text-emerald-400">ارسم حدود الحقل على الخريطة</strong> — اختر أداة الرسم من أعلى يسار الخريطة.
+                  </p>
+                  {/* لوحة أدوات مرتّبة: المضلّع/المستطيل/الدائرة من شريط Leaflet (أعلى الخريطة) */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color:'#cbd5e1' }}>
+                    <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                      style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                      <Pentagon className="w-3.5 h-3.5 text-emerald-400" /> مضلّع
+                    </span>
+                    <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                      style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                      <Square className="w-3.5 h-3.5 text-emerald-400" /> مستطيل
+                    </span>
+                    <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                      style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                      <Circle className="w-3.5 h-3.5 text-emerald-400" /> دائرة (ريّ محوريّ)
+                    </span>
+                    {onImport && (
+                      <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
+                        style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                        <FileUp className="w-3.5 h-3.5 text-emerald-400" /> أو استيراد ملفّ
+                      </span>
+                    )}
+                  </div>
+                  {/* مدخل: دائرة بنصف قطر بالمتر (م) — يُنشئ حقلاً دائريّاً عند مركز الخريطة */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label className="text-xs" style={{ color:'#94a3b8' }}>
+                      دائرة بنصف قطر:
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={1}
+                        inputMode="numeric"
+                        value={radiusInput}
+                        onChange={e => setRadiusInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCircleByRadius(); } }}
+                        placeholder="مثال: 250"
+                        className="w-28 px-2 py-1 rounded-lg text-sm"
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}
+                      />
+                      <span className="text-xs font-semibold text-emerald-400">م</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCreateCircleByRadius}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white"
+                      style={{ background:'#16a34a' }}>
+                      <Circle className="w-3.5 h-3.5" /> إنشاء دائرة
+                    </button>
+                    <span className="text-[11px]" style={{ color:'#64748b' }}>
+                      (تُنشأ عند مركز الخريطة — نصف القطر بالمتر)
+                    </span>
+                  </div>
+
+                  {/* G — تبديل الالتقاط للحدود (افتراضيّ مُفعَّل) */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSnapEnabled(s => !s)}
+                      aria-pressed={snapEnabled}
+                      title="إلصاق رؤوس الرسم بحدود الحقول القائمة وبرأس البداية ضمن تسامح صغير"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold"
+                      style={snapEnabled
+                        ? { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }
+                        : { background:'#0f1117', color:'#94a3b8', border:'1px solid #334155' }}>
+                      <Magnet className="w-3.5 h-3.5" />
+                      التقاط للحدود{snapEnabled ? ' · مُفعَّل' : ' · مُعطَّل'}
+                    </button>
+                    <span className="text-[11px]" style={{ color:'#64748b' }}>
+                      (يُلصِق الرؤوس بأقرب حدّ قائم ويُغلق البداية بنظافة)
+                    </span>
+                  </div>
+
+                  {/* H-UI — أزرار التقطيع المُساعَد (تلقائيّ/هجين) — تعامل صادق عند غياب النموذج */}
+                  <AutoSegmentControl
+                    onSegment={handleSegment}
+                    loading={segLoading}
+                    pendingMode={segMode}
+                    notice={segNotice}
+                  />
+                </div>
+              ) : (
+                <div className="px-5 py-4 space-y-4" dir="rtl">
+                  {/* Form */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">اسم الحقل *</label>
+                      <input value={name} onChange={e => setName(e.target.value)}
+                        placeholder="مثال: حقل وادي سبأ"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">المسؤول *</label>
+                      <input value={mgr} onChange={e => setMgr(e.target.value)}
+                        placeholder="اسم المسؤول"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">المحصول</label>
+                      <select value={crop} onChange={e => setCrop(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                        {CROPS.map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">نوع التربة</label>
+                      <select value={soil} onChange={e => setSoil(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                        {SOIL_TYPES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">كود الحقل</label>
+                      <input value={fieldCode} onChange={e => setFieldCode(e.target.value)}
+                        placeholder="مثال: F-01"
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-slate-400 mb-1">مصدر الماء</label>
+                      <select value={waterSource} onChange={e => setWaterSource(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg text-sm"
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
+                        {WATER_SOURCES.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* الموقع المكتشف آليّاً (دولة + إقليم) — للعرض فقط */}
+                  {(autoCountry || autoRegion) && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                      style={{ background:'#0f1117', border:'1px solid #334155', color:'#94a3b8' }}>
+                      <MapPin className="w-4 h-4 text-emerald-400" />
+                      <span>
+                        الموقع: <strong className="text-slate-200">{autoCountry || '—'}</strong>
+                        {autoRegion ? <> · <strong className="text-slate-200">{autoRegion}</strong></> : null}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px]"
+                        style={{ background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a44' }}>
+                        تلقائيّ
+                      </span>
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
+                      style={{ background:'#1a000022', border:'1px solid #dc262633', color:'#f87171' }}>
+                      <AlertCircle className="w-4 h-4" /> {error}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-2 justify-end">
+                    <button onClick={handleUndo} disabled={pointer <= 0}
+                      title="تراجع عن آخر تعديل للحدّ"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+                      style={{ borderColor:'#334155' }}>
+                      <Undo2 className="w-4 h-4" /> تراجع
+                    </button>
+                    <button onClick={handleRedo} disabled={pointer >= history.length - 1}
+                      title="إعادة تطبيق التعديل المُتراجَع عنه"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
+                      style={{ borderColor:'#334155' }}>
+                      <Redo2 className="w-4 h-4" /> إعادة
+                    </button>
+                    <button onClick={handleReset}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200"
+                      style={{ borderColor:'#334155' }}>
+                      <Trash2 className="w-4 h-4" /> إعادة الرسم
+                    </button>
+                    <button onClick={onCancel}
+                      className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 border"
+                      style={{ borderColor:'#334155' }}>
+                      إلغاء
+                    </button>
+                    <button onClick={handleSave} disabled={saving}
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+                      style={{ background: saving ? '#15803d' : '#16a34a' }}>
+                      {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الحفظ...</> : <><Check className="w-4 h-4" /> حفظ الحقل</>}
+                    </button>
+                  </div>
+                </div>
               )}
-            </div>
-            {/* مدخل: دائرة بنصف قطر بالمتر (م) — يُنشئ حقلاً دائريّاً عند مركز الخريطة */}
-            <div className="flex flex-wrap items-center gap-2">
-              <label className="text-xs" style={{ color:'#94a3b8' }}>
-                دائرة بنصف قطر:
-              </label>
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  min={1}
-                  inputMode="numeric"
-                  value={radiusInput}
-                  onChange={e => setRadiusInput(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCircleByRadius(); } }}
-                  placeholder="مثال: 250"
-                  className="w-28 px-2 py-1 rounded-lg text-sm"
-                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}
-                />
-                <span className="text-xs font-semibold text-emerald-400">م</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleCreateCircleByRadius}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white"
-                style={{ background:'#16a34a' }}>
-                <Circle className="w-3.5 h-3.5" /> إنشاء دائرة
-              </button>
-              <span className="text-[11px]" style={{ color:'#64748b' }}>
-                (تُنشأ عند مركز الخريطة — نصف القطر بالمتر)
-              </span>
-            </div>
+            </aside>
 
-            {/* G — تبديل الالتقاط للحدود (افتراضيّ مُفعَّل) */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setSnapEnabled(s => !s)}
-                aria-pressed={snapEnabled}
-                title="إلصاق رؤوس الرسم بحدود الحقول القائمة وبرأس البداية ضمن تسامح صغير"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold"
-                style={snapEnabled
-                  ? { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }
-                  : { background:'#0f1117', color:'#94a3b8', border:'1px solid #334155' }}>
-                <Magnet className="w-3.5 h-3.5" />
-                التقاط للحدود{snapEnabled ? ' · مُفعَّل' : ' · مُعطَّل'}
-              </button>
-              <span className="text-[11px]" style={{ color:'#64748b' }}>
-                (يُلصِق الرؤوس بأقرب حدّ قائم ويُغلق البداية بنظافة)
-              </span>
-            </div>
+            {/* Map (الرسم اليدويّ فقط) — تملأ العمود الطويل */}
+            <div className="flex-1 relative min-w-0">
+              <MapContainer
+                center={[15.05, 45.55]}
+                zoom={10}
+                style={{ height:'100%', width:'100%' }}
+                doubleClickZoom={false}
+                ref={(m: L.Map | null) => { mapRef.current = m; }}
+              >
+                <InvalidateMapSize />
+                <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
+                  attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
+                <FeatureGroup ref={fgRef}>
+                  {stage === 'draw' && (
+                    <DrawControl
+                      position="topright"
+                      onCreated={handleCreated}
+                      draw={{
+                        // showArea:false — يتفادى عطل leaflet-draw المعروف (readableArea)
+                        // مع Leaflet 1.9؛ المساحة تُحسَب وتُعرَض من geodesicAreaHa لدينا.
+                        polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#16a34a' } },
+                        rectangle: { shapeOptions: { color: '#16a34a' } },
+                        circle: { shapeOptions: { color: '#16a34a' } },
+                        polyline: false,
+                        marker: false,
+                        circlemarker: false,
+                      }}
+                      edit={{ edit: false, remove: false }}
+                    />
+                  )}
+                </FeatureGroup>
+              </MapContainer>
 
-            {/* H-UI — أزرار التقطيع المُساعَد (تلقائيّ/هجين) — تعامل صادق عند غياب النموذج */}
-            <AutoSegmentControl
-              onSegment={handleSegment}
-              loading={segLoading}
-              pendingMode={segMode}
-              notice={segNotice}
-            />
-          </div>
-        )}
+              {/* شارة القياسات: المساحة (هكتار + متر مربّع) + المحيط (متر) — الطول دائماً بالمتر */}
+              {areaHa > 0 && (
+                <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl text-sm font-bold"
+                  style={{ background:'#16a34acc', color:'white', backdropFilter:'blur(8px)' }}>
+                  <Ruler className="w-3.5 h-3.5 inline mr-1" />
+                  {areaHa.toFixed(2)} هكتار
+                  {/* م² مفيد للحقول الصغيرة/الريّ المحوريّ — تحويل بسيط (1 هكتار = 10000 م²) */}
+                  {areaHa < 10 && (
+                    <span className="font-semibold"> ({Math.round(areaHa * 10000).toLocaleString('en-US')} م²)</span>
+                  )}
+                  {perimeterM > 0 && (
+                    <span className="font-semibold"> · المحيط: {formatLengthM(perimeterM)}</span>
+                  )}
+                </div>
+              )}
 
-        {/* Map (الرسم اليدويّ فقط) */}
-        {mode === 'draw' && (
-        <div style={{ height: 380, position:'relative' }}>
-          <MapContainer
-            center={[15.05, 45.55]}
-            zoom={10}
-            style={{ height:'100%', width:'100%' }}
-            doubleClickZoom={false}
-            ref={(m: L.Map | null) => { mapRef.current = m; }}
-          >
-            <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
-              attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
-            <FeatureGroup ref={fgRef}>
+              {/* Draw status */}
               {stage === 'draw' && (
-                <DrawControl
-                  position="topright"
-                  onCreated={handleCreated}
-                  draw={{
-                    // showArea:false — يتفادى عطل leaflet-draw المعروف (readableArea)
-                    // مع Leaflet 1.9؛ المساحة تُحسَب وتُعرَض من geodesicAreaHa لدينا.
-                    polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#16a34a' } },
-                    rectangle: { shapeOptions: { color: '#16a34a' } },
-                    circle: { shapeOptions: { color: '#16a34a' } },
-                    polyline: false,
-                    marker: false,
-                    circlemarker: false,
-                  }}
-                  edit={{ edit: false, remove: false }}
-                />
-              )}
-            </FeatureGroup>
-          </MapContainer>
-
-          {/* شارة القياسات: المساحة (هكتار + متر مربّع) + المحيط (متر) — الطول دائماً بالمتر */}
-          {areaHa > 0 && (
-            <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl text-sm font-bold"
-              style={{ background:'#16a34acc', color:'white', backdropFilter:'blur(8px)' }}>
-              <Ruler className="w-3.5 h-3.5 inline mr-1" />
-              {areaHa.toFixed(2)} هكتار
-              {/* م² مفيد للحقول الصغيرة/الريّ المحوريّ — تحويل بسيط (1 هكتار = 10000 م²) */}
-              {areaHa < 10 && (
-                <span className="font-semibold"> ({Math.round(areaHa * 10000).toLocaleString('en-US')} م²)</span>
-              )}
-              {perimeterM > 0 && (
-                <span className="font-semibold"> · المحيط: {formatLengthM(perimeterM)}</span>
+                <div className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl text-xs"
+                  style={{ background:'#0f1117cc', color:'#94a3b8', backdropFilter:'blur(8px)' }}>
+                  اختر أداة من أعلى يمين الخريطة: مضلّع · مستطيل · دائرة
+                </div>
               )}
             </div>
-          )}
-
-          {/* Draw status */}
-          {stage === 'draw' && (
-            <div className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl text-xs"
-              style={{ background:'#0f1117cc', color:'#94a3b8', backdropFilter:'blur(8px)' }}>
-              اختر أداة من أعلى يمين الخريطة: مضلّع · مستطيل · دائرة
-            </div>
-          )}
-        </div>
-        )}
-
-        {/* Bottom panel (الرسم اليدويّ) */}
-        {mode === 'draw' && (
-        <div className="px-5 py-4" dir="rtl">
-          {stage === 'draw' ? (
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">ارسم حدود الحقل بإحدى أدوات الرسم (مضلّع / مستطيل / دائرة) أعلى يمين الخريطة</p>
-              <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200"
-                style={{ borderColor:'#334155' }}>إلغاء</button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Form */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">اسم الحقل *</label>
-                  <input value={name} onChange={e => setName(e.target.value)}
-                    placeholder="مثال: حقل وادي سبأ"
-                    className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">المسؤول *</label>
-                  <input value={mgr} onChange={e => setMgr(e.target.value)}
-                    placeholder="اسم المسؤول"
-                    className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">المحصول</label>
-                  <select value={crop} onChange={e => setCrop(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
-                    {CROPS.map(c => <option key={c}>{c}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">نوع التربة</label>
-                  <select value={soil} onChange={e => setSoil(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
-                    {SOIL_TYPES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">كود الحقل</label>
-                  <input value={fieldCode} onChange={e => setFieldCode(e.target.value)}
-                    placeholder="مثال: F-01"
-                    className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }} />
-                </div>
-                <div>
-                  <label className="block text-xs text-slate-400 mb-1">مصدر الماء</label>
-                  <select value={waterSource} onChange={e => setWaterSource(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg text-sm"
-                    style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}>
-                    {WATER_SOURCES.map(w => <option key={w.value} value={w.value}>{w.label}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              {/* الموقع المكتشف آليّاً (دولة + إقليم) — للعرض فقط */}
-              {(autoCountry || autoRegion) && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
-                  style={{ background:'#0f1117', border:'1px solid #334155', color:'#94a3b8' }}>
-                  <MapPin className="w-4 h-4 text-emerald-400" />
-                  <span>
-                    الموقع: <strong className="text-slate-200">{autoCountry || '—'}</strong>
-                    {autoRegion ? <> · <strong className="text-slate-200">{autoRegion}</strong></> : null}
-                  </span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px]"
-                    style={{ background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a44' }}>
-                    تلقائيّ
-                  </span>
-                </div>
-              )}
-
-              {error && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm"
-                  style={{ background:'#1a000022', border:'1px solid #dc262633', color:'#f87171' }}>
-                  <AlertCircle className="w-4 h-4" /> {error}
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex gap-2 justify-end">
-                <button onClick={handleReset}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200"
-                  style={{ borderColor:'#334155' }}>
-                  <Trash2 className="w-4 h-4" /> إعادة الرسم
-                </button>
-                <button onClick={onCancel}
-                  className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 border"
-                  style={{ borderColor:'#334155' }}>
-                  إلغاء
-                </button>
-                <button onClick={handleSave} disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
-                  style={{ background: saving ? '#15803d' : '#16a34a' }}>
-                  {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الحفظ...</> : <><Check className="w-4 h-4" /> حفظ الحقل</>}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-        )}
-
-        {/* لوحة الاستيراد من ملفّ (GeoJSON/KML) */}
-        {mode === 'import' && (
-          <div className="px-5 py-4 space-y-4" dir="rtl">
+          </>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-2xl mx-auto px-5 py-4 space-y-4" dir="rtl">
             <p className="text-sm text-slate-400">
               استورد حدود الحقل من ملفّ <strong className="text-emerald-400">GeoJSON</strong> أو
               {' '}<strong className="text-emerald-400">KML</strong> أو
@@ -898,6 +994,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 style={{ background: (saving || parsing || !fileText) ? '#15803d' : '#16a34a' }}>
                 {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> جاري الاستيراد...</> : <><Check className="w-4 h-4" /> استيراد الحقل</>}
               </button>
+            </div>
             </div>
           </div>
         )}

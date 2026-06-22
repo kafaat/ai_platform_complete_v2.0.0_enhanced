@@ -21,10 +21,12 @@
 import { Suspense, lazy, useCallback, useMemo, useState } from 'react';
 import {
   Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
-  Search as SearchIcon, Trash2,
+  Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine,
 } from 'lucide-react';
+import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast } from '../hooks/useApi';
+import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, asApiError } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
@@ -36,12 +38,23 @@ import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
   LayerSwitcher, ColormapLegend, SideBySide, type CmapId,
 } from '../components/ds';
-import HubMap, { type ScoutPin } from '../components/maphub/HubMap';
+import HubMap, {
+  type ScoutPin, type AlertMarker, type DeviceMarker, type WeatherMarker,
+} from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
+import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
 const TerrainView3D = lazy(() => import('../components/maphub/TerrainView3D'));
+
+// محرّك MapLibre GL (WebGL) — إثبات مفهوم المرحلة 2 خلف عَلَم MAP_ENGINE. مقسوم
+// بالكود (lazy) فلا يُحمَّل maplibre-gl الثقيل (~250KB) إلا عند تفعيل العَلَم.
+const HubMapGL = lazy(() => import('../components/maphub/HubMapGL'));
+
+// هل محرّك MapLibre مُفعَّل؟ (الافتراض leaflet). المرحلة 2ب: الرسم/القياس (Terra
+// Draw) والدبابيس والتراكبات متاحة في كِلا المحرّكين (تكافؤ المزايا).
+const GL_ENGINE = MAP_ENGINE === 'maplibre';
 
 // ── الطبقات القابلة للعرض كبلاطات مؤشّر (raster) — من السجلّ ──
 // نُبقي فقط ما تنتجه خدمة الراستر فعلاً (ndvi/ndmi/salinity) مع لوحة DS موجودة.
@@ -79,10 +92,15 @@ export default function MapHub() {
   const [rightLayer, setRightLayer] = useState<string>(INDICATOR_LAYERS[1]?.id ?? 'ndmi');
   const [drawTools, setDrawTools] = useState(false);
   const [pinMode, setPinMode] = useState(false);
+  // ── طبقات التراكب (افتراضيّاً مُطفأة؛ مستقلّة عن بعضها) ──────────
+  const [showWeather, setShowWeather] = useState(false);
+  const [showAlerts, setShowAlerts] = useState(false);
+  const [showDevices, setShowDevices] = useState(false);
   const [pins, setPins] = useState<ScoutPin[]>([]);
   const [pinCategory, setPinCategory] = useState(PIN_CATEGORIES[0]);
   const [detailOpen, setDetailOpen] = useState(false);
   const [showAddField, setShowAddField] = useState(false);
+  const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
   const [search, setSearch] = useState('');
 
   const selected = fields.find((f) => f.id === fieldId);
@@ -94,6 +112,86 @@ export default function MapHub() {
     return fields.filter((f) =>
       f.name.toLowerCase().includes(q) || (f.crop ?? '').toLowerCase().includes(q));
   }, [fields, search]);
+
+  // ── بيانات طبقات التراكب (حيّة، أمانة صارمة) ──────────────────
+  // تنبيهات/أجهزة استعلامات React Query رخيصة مُخزَّنة — نُشغّلها دوماً (لا نُهدر
+  // طلبات؛ مفعّل دائماً ويُعاد الاستخدام من الكاش). نُظهرها فقط حين التبديل مفعّل.
+  const alertsQ = useAlerts({ status: 'active' });
+  const devicesQ = useDevices();
+
+  // فهرس النقطة الممثِّلة لكلّ حقل (lat/lng) — حقول بلا هندسة/نقطة غير قابلة للعرض.
+  const fieldPointById = useMemo(() => {
+    const m = new Map<string, [number, number]>();
+    for (const f of fields) {
+      const pt = fieldRepresentativePoint(f);
+      if (pt) m.set(f.id, pt);
+    }
+    return m;
+  }, [fields]);
+  const fieldNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const f of fields) m.set(f.id, f.name);
+    return m;
+  }, [fields]);
+
+  // علامات التنبيهات: تُوضَع عند النقطة الممثِّلة لحقل التنبيه فقط. تنبيه بلا
+  // field_id أو بحقلٍ بلا هندسة/نقطة = غير قابل للعرض ⇒ يُحتسَب، لا تُختلَق نقطة.
+  const { alertMarkers, alertsUnplaceable } = useMemo(() => {
+    const list = alertsQ.data ?? [];
+    const markers: AlertMarker[] = [];
+    let unplaceable = 0;
+    for (const a of list) {
+      const pt = a.field_id ? fieldPointById.get(a.field_id) : undefined;
+      if (!pt) { unplaceable += 1; continue; }
+      markers.push({
+        id: a.alert_id,
+        lat: pt[0], lng: pt[1],
+        severity: String(a.severity ?? 'info'),
+        title: a.title_ar ?? a.alert_type ?? 'تنبيه',
+        fieldName: a.field_id ? (fieldNameById.get(a.field_id) ?? '') : '',
+      });
+    }
+    return { alertMarkers: markers, alertsUnplaceable: unplaceable };
+  }, [alertsQ.data, fieldPointById, fieldNameById]);
+
+  // علامات الأجهزة: عند النقطة الممثِّلة لحقل الجهاز فقط. جهاز بلا field_id أو
+  // بحقلٍ بلا هندسة/نقطة = غير قابل للعرض ⇒ يُحتسَب، لا تُختلَق إحداثيّة.
+  const { deviceMarkers, devicesUnplaceable } = useMemo(() => {
+    const list = devicesQ.data ?? [];
+    const markers: DeviceMarker[] = [];
+    let unplaceable = 0;
+    for (const d of list) {
+      const pt = d.field_id ? fieldPointById.get(d.field_id) : undefined;
+      if (!pt) { unplaceable += 1; continue; }
+      markers.push({
+        id: d.device_id,
+        lat: pt[0], lng: pt[1],
+        name: d.name,
+        dtype: d.type,
+        online: !!d.online,
+      });
+    }
+    return { deviceMarkers: markers, devicesUnplaceable: unplaceable };
+  }, [devicesQ.data, fieldPointById]);
+
+  // الطقس: نقطة واحدة فقط للحقل المختار (تجنّب N طلبات لكلّ الحقول). نحسب lat/lon
+  // من النقطة الممثِّلة للمختار؛ الافتراضات الآمنة تُمرَّر حين لا حقل/نقطة، لكنّنا
+  // لا نَعرض الشارة إلّا حين يوجد حقل مختار له نقطة (selectedPoint).
+  const selectedPoint = useMemo<[number, number] | null>(
+    () => (selected ? fieldRepresentativePoint(selected) : null),
+    [selected],
+  );
+  const weatherQ = useWeatherForecast(selectedPoint?.[0] ?? 15.05, selectedPoint?.[1] ?? 45.55);
+  const weatherMarker = useMemo<WeatherMarker | null>(() => {
+    if (!selectedPoint) return null;
+    const cur = weatherQ.data?.current;
+    return {
+      lat: selectedPoint[0], lng: selectedPoint[1],
+      tempC: cur?.tmean ?? null,
+      humidityPct: cur?.humidity_pct ?? null,
+      conditionAr: cur?.weather_ar ?? null,
+    };
+  }, [selectedPoint, weatherQ.data]);
 
   // ── دبابيس الاستكشاف (حالة محلّيّة) ──────────────────────────
   // TODO(maphub-scouting): الخلفيّة تعرض إنشاء استكشاف (POST) فقط بلا نقطة قراءة
@@ -172,6 +270,15 @@ export default function MapHub() {
               <Mountain className="w-3.5 h-3.5" /> تضاريس(3D)
             </button>
           </div>
+          {mutateAllowed && (
+            <button
+              type="button" onClick={() => setShowSplitMerge(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+            >
+              <Combine className="w-3.5 h-3.5" /> دمج/تقسيم
+            </button>
+          )}
           {mutateAllowed && (
             <button
               type="button" onClick={() => setShowAddField(true)}
@@ -302,7 +409,8 @@ export default function MapHub() {
                     </div>
                   )}
 
-                  {/* أزرار الوضع: مقارنة / رسم / دبابيس */}
+                  {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
+                      (Leaflet · MapLibre GL · المرحلة 2ب). */}
                   <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
                     <ToolToggle active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
                     <ToolToggle active={drawTools} onClick={() => setDrawTools((v) => !v)} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
@@ -310,7 +418,35 @@ export default function MapHub() {
                   </div>
                 </div>
 
-                {/* صفّ الدبابيس: التصنيف + المسح (يظهر في وضع الدبابيس أو حين توجد دبابيس) */}
+                {/* صفّ طبقات التراكب: طقس / تنبيهات / أجهزة (مستقلّة، لا تظهر في
+                    المقارنة) — متاحة في كِلا المحرّكين. */}
+                {!compare && (
+                  <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
+                    <span className="text-xs font-semibold" style={{ color: T.muted }}>طبقات التراكب</span>
+                    <ToolToggle active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس" />
+                    <ToolToggle active={showAlerts} onClick={() => setShowAlerts((v) => !v)} icon={<Bell className="w-3.5 h-3.5" />} label="تنبيهات" />
+                    <ToolToggle active={showDevices} onClick={() => setShowDevices((v) => !v)} icon={<Radio className="w-3.5 h-3.5" />} label="أجهزة" />
+                    {/* ملاحظات الأمانة: عناصر بلا حقل/هندسة غير قابلة للعرض — تُحتسَب لا تُختلَق */}
+                    {showAlerts && alertsUnplaceable > 0 && (
+                      <span className="text-[11px]" style={{ color: T.faint }}>
+                        {alertsUnplaceable} تنبيه غير قابل للعرض على الخريطة (بلا حقل/هندسة)
+                      </span>
+                    )}
+                    {showDevices && devicesUnplaceable > 0 && (
+                      <span className="text-[11px]" style={{ color: T.faint }}>
+                        {devicesUnplaceable} جهاز غير قابل للعرض على الخريطة (بلا حقل/هندسة)
+                      </span>
+                    )}
+                    {showWeather && !selectedPoint && (
+                      <span className="text-[11px]" style={{ color: T.faint }}>
+                        اختر حقلاً ذا هندسة/نقطة لعرض طقسه الحاليّ
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* صفّ الدبابيس: التصنيف + المسح (يظهر في وضع الدبابيس أو حين توجد دبابيس)
+                    — متاح في كِلا المحرّكين. */}
                 {(pinMode || pins.length > 0) && (
                   <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
                     <span className="text-xs font-semibold" style={{ color: T.muted }}>تصنيف الدبّوس</span>
@@ -365,18 +501,43 @@ export default function MapHub() {
               </Card>
             ) : (
               <div style={{ position: 'relative' }}>
-                <HubMap
-                  fields={fields}
-                  selectedId={fieldId}
-                  onSelect={setFieldId}
-                  basemapId={basemapId}
-                  indicatorId={indicatorActive}
-                  indicatorOpacity={opacity}
-                  drawTools={drawTools}
-                  pinMode={pinMode}
-                  pins={pins}
-                  onAddPin={handleAddPin}
-                />
+                {GL_ENGINE ? (
+                  // محرّك MapLibre GL (WebGL) — المرحلة 2ب: تكافؤ مزايا Leaflet
+                  // (رسم/قياس Terra Draw + دبابيس + تراكبات). مقسوم بالكود (lazy).
+                  <Suspense fallback={<LoadingState message="جارٍ تحميل محرّك MapLibre GL…" />}>
+                    <HubMapGL
+                      fields={fields}
+                      selectedId={fieldId}
+                      onSelect={setFieldId}
+                      basemapId={basemapId}
+                      indicatorId={indicatorActive}
+                      indicatorOpacity={opacity}
+                      drawTools={drawTools}
+                      pinMode={pinMode}
+                      pins={pins}
+                      onAddPin={handleAddPin}
+                      alertMarkers={showAlerts ? alertMarkers : []}
+                      deviceMarkers={showDevices ? deviceMarkers : []}
+                      weatherMarker={showWeather ? weatherMarker : null}
+                    />
+                  </Suspense>
+                ) : (
+                  <HubMap
+                    fields={fields}
+                    selectedId={fieldId}
+                    onSelect={setFieldId}
+                    basemapId={basemapId}
+                    indicatorId={indicatorActive}
+                    indicatorOpacity={opacity}
+                    drawTools={drawTools}
+                    pinMode={pinMode}
+                    pins={pins}
+                    onAddPin={handleAddPin}
+                    alertMarkers={showAlerts ? alertMarkers : []}
+                    deviceMarkers={showDevices ? deviceMarkers : []}
+                    weatherMarker={showWeather ? weatherMarker : null}
+                  />
+                )}
                 {/* مفتاح ألوان الطبقة النشطة */}
                 {indicatorActive && LAYER_LEGEND[indicatorActive] && (
                   <div style={{ position: 'absolute', insetInlineStart: 10, bottom: 10, zIndex: 600, pointerEvents: 'none' }}>
@@ -413,6 +574,17 @@ export default function MapHub() {
           onSave={handleSaveField}
           onImport={handleImportField}
           onCancel={() => setShowAddField(false)}
+        />
+      )}
+
+      {/* أداة دمج/تقسيم الحقول (CRUD حقيقيّ مُتلِف — فحص الموسم النشط مسبقاً، أمانة صارمة).
+          البوّابة الأماميّة mutateAllowed؛ صلاحيّة FIELD_DELETE يفرضها الخادم (403 يُعرَض بصدق). */}
+      {showSplitMerge && mutateAllowed && (
+        <FieldSplitMergeTool
+          fields={fields}
+          selectedId={fieldId}
+          onClose={() => setShowSplitMerge(false)}
+          refetch={refetch}
         />
       )}
     </div>

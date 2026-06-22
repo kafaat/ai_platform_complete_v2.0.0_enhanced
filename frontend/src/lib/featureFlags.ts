@@ -52,6 +52,15 @@ export const FEATURE_FLAGS = {
   soil:    import.meta.env.VITE_ENABLE_SOIL === 'true',
 } as const;
 
+// ── محرّك عرض الخريطة (Map Hub) — Leaflet افتراضيّ، MapLibre GL اختياريّ ─────
+// إثبات مفهوم المرحلة 2: مسار عرض WebGL متّجهيّ (طراز FieldView/John Deere) خلف
+// عَلَم صريح. الافتراض دائماً Leaflet (المكدّس العامل الحاليّ بلا انحدار)؛ يُفعَّل
+// MapLibre فقط بضبط VITE_MAP_ENGINE=maplibre وقت البناء. أيّ قيمة أخرى (غياب/
+// 'leaflet'/فارغ) ⇒ Leaflet. المكوّن GL مقسوم بالكود (React.lazy) فلا يُثقِل الحزمة
+// الأساسيّة حين العَلَم مُطفأ.
+export const MAP_ENGINE: 'leaflet' | 'maplibre' =
+  import.meta.env.VITE_MAP_ENGINE === 'maplibre' ? 'maplibre' : 'leaflet';
+
 // ── سجلّ الميزات المتقدّمة (مرآة الخلفيّة) ───────────────────────────
 // لكلّ صفحة متقدّمة محروسة بعَلَم خلفيّ: اسم عَلَم الواجهة (VITE_ENABLE_*)، واسم
 // العَلَم الخلفيّ المُطابِق (FEATURE_*)، وعنوان عربيّ موجز يُعرَض في لوحة «معطّلة».
