@@ -164,6 +164,24 @@ _redis = None
 
 
 @asynccontextmanager
+async def _acquire():
+    """يكتسب اتّصالاً من المسبح ويضبط سياق admin عليه **على كلّ اكتساب**.
+
+    لماذا ليس في init فقط: asyncpg ينفّذ RESET ALL عند تحرير الاتّصال للمسبح فيمحو
+    app.current_role='admin' (session-level) الذي ضبطه _init_auth_conn؛ والاكتساب
+    التالي يحصل على اتّصال نظيف بلا سياق دور ⇒ سياسة user_self (USING للقراءة، WITH
+    CHECK للكتابة) ترفض users ⇒ login=401 وregister=RLS violation. إعادة الضبط هنا
+    تصمد أمام RESET ALL. auth خدمة هويّة عابرة للمستأجرين بحكم دورها (init يبقى حزام
+    أمان للاستخدام الأوّل). يستعمل _pool.acquire/release مباشرةً (لا تكرار ذاتيّ)."""
+    conn = await _pool.acquire()
+    try:
+        await conn.execute("SELECT set_config('app.current_role', 'admin', false)")
+        yield conn
+    finally:
+        await _pool.release(conn)
+
+
+@asynccontextmanager
 async def lifespan(app: FastAPI):
     global _pool, _redis
     # fail-closed: إمّا مفتاحا RS256 (موصى به) أو سرّ HS256 صالح (≥32 حرف)
@@ -616,7 +634,7 @@ async def audit_log(
     if not _pool:
         return
     try:
-        async with _pool.acquire() as conn:
+        async with _acquire() as conn:
             await conn.execute(
                 """
                 INSERT INTO audit_log (action, user_id, ip_address, details, tenant_id, created_at)
@@ -802,7 +820,7 @@ async def _ensure_admin_user():
         logger.warning("ADMIN_PASSWORD not set — admin login disabled")
         return
     hashed = bcrypt.hashpw(admin_pass.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         # سياق admin مضبوط على مستوى المسبح (init) ⇒ WITH CHECK لسياسة user_self يمرّ.
         # حزام أمان: نُعيد ضبطه محليّاً للمعاملة أيضاً تحسّباً لأيّ RESET ALL على
         # تحرير الاتّصال يمحو GUC الجلسة — الإقحام التأسيسيّ للمدير يبقى متيناً.
@@ -829,7 +847,7 @@ async def register(req: RegisterRequest, request: Request):
     await check_ip_rate(ip)
 
     hashed = bcrypt.hashpw(req.password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         try:
             row = await conn.fetchrow(
                 """
@@ -877,7 +895,7 @@ async def login(req: LoginRequest, request: Request):
     await check_ip_rate(ip)
     await check_lockout(req.email)  # ✅ account lockout check
 
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow(
             "SELECT id, email, password_hash, role, full_name, tenant_id, active, "
             "mfa_enabled, mfa_secret FROM users WHERE email=$1",
@@ -959,7 +977,7 @@ async def refresh_token(req: RefreshRequest):
     user_id_str, tenant_id = value.split(":", 1)
     user_id = int(user_id_str)
 
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow(
             "SELECT id, email, role, full_name, tenant_id, active FROM users WHERE id=$1", user_id
         )
@@ -1033,7 +1051,7 @@ async def request_password_reset(req: PasswordResetRequest, request: Request):
     RESET_COUNTER.inc()
 
     # Always return success (prevent email enumeration)
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow("SELECT id FROM users WHERE email=$1", req.email)
 
     if row and _redis:
@@ -1058,7 +1076,7 @@ async def confirm_password_reset(req: PasswordResetConfirm):
     user_id = int(user_id_str)
     hashed = bcrypt.hashpw(req.new_password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
 
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         await conn.execute(
             "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
         )
@@ -1076,13 +1094,13 @@ async def change_password(
 ):
     """✅ NEW: Change password for authenticated user."""
     user_id = int(user["sub"])
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow("SELECT password_hash FROM users WHERE id=$1", user_id)
     if not row or not bcrypt.checkpw(req.current_password.encode(), row["password_hash"].encode()):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "كلمة المرور الحالية غير صحيحة")
 
     hashed = bcrypt.hashpw(req.new_password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         await conn.execute(
             "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
         )
@@ -1101,7 +1119,7 @@ async def mfa_setup(user: dict = Depends(get_current_user)):
     مرّة واحدة فقط (لا يُعاد بعدها أبداً).
     """
     user_id = int(user["sub"])
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow("SELECT email, mfa_enabled FROM users WHERE id=$1", user_id)
     if not row:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "المستخدم غير موجود")
@@ -1111,7 +1129,7 @@ async def mfa_setup(user: dict = Depends(get_current_user)):
         )
 
     secret = pyotp.random_base32()
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         # نخزّن السرّ لكن mfa_enabled يبقى FALSE حتى التأكيد
         await conn.execute(
             "UPDATE users SET mfa_secret=$1, mfa_enabled=FALSE, updated_at=NOW() WHERE id=$2",
@@ -1131,13 +1149,13 @@ async def mfa_setup(user: dict = Depends(get_current_user)):
 async def mfa_activate(req: MfaCodeRequest, user: dict = Depends(get_current_user)):
     """يفعّل MFA بعد تأكيد أوّل رمز صحيح (إثبات الاقتران)."""
     user_id = int(user["sub"])
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow("SELECT mfa_secret, mfa_enabled FROM users WHERE id=$1", user_id)
     if not row or not row["mfa_secret"]:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "ابدأ الاقتران أولاً عبر /auth/mfa/setup")
     if not pyotp.TOTP(row["mfa_secret"]).verify(req.code.strip(), valid_window=1):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح — تأكّد من تطبيق المصادقة")
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         await conn.execute(
             "UPDATE users SET mfa_enabled=TRUE, updated_at=NOW() WHERE id=$1", user_id
         )
@@ -1149,7 +1167,7 @@ async def mfa_activate(req: MfaCodeRequest, user: dict = Depends(get_current_use
 async def mfa_disable(req: MfaCodeRequest, user: dict = Depends(get_current_user)):
     """يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله مهاجم بتوكن مسروق بلا الجهاز)."""
     user_id = int(user["sub"])
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow("SELECT mfa_secret, mfa_enabled FROM users WHERE id=$1", user_id)
     if not row or not row["mfa_enabled"]:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA غير مفعّل")
@@ -1158,7 +1176,7 @@ async def mfa_disable(req: MfaCodeRequest, user: dict = Depends(get_current_user
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "حالة MFA غير متّسقة — تواصل مع المسؤول")
     if not pyotp.TOTP(row["mfa_secret"]).verify(req.code.strip(), valid_window=1):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح")
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         await conn.execute(
             "UPDATE users SET mfa_enabled=FALSE, mfa_secret=NULL, updated_at=NOW() WHERE id=$1",
             user_id,
@@ -1232,7 +1250,7 @@ async def verify_confirm(
     # نجاح: نُثبّت العلَم في القاعدة أوّلاً ثم نستهلك الرمز — لو فشل التحديث يبقى
     # الرمز صالحاً لإعادة المحاولة (لا نخسره). جملتان ثابتتان بلا SQL ديناميكيّ
     # (اسم العمود لا يأتي من المستخدم، لكن نتجنّب البناء النصّيّ مبدئيّاً).
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         if req.channel == "email":
             await conn.execute(
                 "UPDATE users SET verified_email=TRUE, updated_at=NOW() WHERE id=$1",
@@ -1267,7 +1285,7 @@ async def me(user: Annotated[dict, Depends(get_current_user)]):
 async def verify_status(user: Annotated[dict, Depends(get_current_user)]):
     """حالة تحقّق الحساب (بريد/هاتف) من القاعدة — لعرضها في الواجهة."""
     user_id = int(user["sub"])
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow(
             "SELECT verified_email, verified_phone FROM users WHERE id=$1", user_id
         )
@@ -1289,7 +1307,7 @@ async def _verify_caller_mfa(admin_user_id: int, mfa_code: str | None) -> bool:
     """
     if not mfa_code or not _pool:
         return False
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow(
             "SELECT mfa_enabled, mfa_secret FROM users WHERE id=$1", admin_user_id
         )
@@ -1304,7 +1322,7 @@ async def _verify_caller_mfa(admin_user_id: int, mfa_code: str | None) -> bool:
 
 @app.get("/auth/users", dependencies=[Depends(require_role("admin"))])
 async def list_users():
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         rows = await conn.fetch(
             "SELECT id, email, full_name, role, active, created_at, tenant_id FROM users ORDER BY id"
         )
@@ -1333,7 +1351,7 @@ async def change_role(
                 tenant_id=admin.get("tenant_id"),
             )
             raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow(
             "UPDATE users SET role=$1 WHERE id=$2 RETURNING id, email, role", role, user_id
         )
@@ -1373,7 +1391,7 @@ async def deactivate_user(
                 tenant_id=admin.get("tenant_id"),
             )
             raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
     await revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
     ip = request.client.host if request.client else "unknown"
@@ -1424,7 +1442,7 @@ async def provision_tenant(
     unusable = bcrypt.hashpw(secrets.token_urlsafe(48).encode(), bcrypt.gensalt(BCRYPT_ROUNDS))
     hashed = unusable.decode()
 
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         try:
             # tenant_id يُترَك للافتراضيّ gen_random_uuid ⇒ مستأجِر جديد معزول
             # (نفس نمط register). الدور 'owner' مكتوب نصّاً هنا (لا من العميل).
@@ -1519,7 +1537,7 @@ async def create_invitation(
     token = secrets.token_urlsafe(32)
     expires_at = datetime.now(UTC) + timedelta(days=INVITATION_EXPIRY_DAYS)
 
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow(
             """
             INSERT INTO invitations
@@ -1558,7 +1576,7 @@ async def list_invitations(user: Annotated[dict, Depends(get_current_user)]):
     tenant_id = user.get("tenant_id")
     if not tenant_id:
         return []
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         rows = await conn.fetch(
             """
             SELECT id, email, role, status, expires_at, created_at
@@ -1592,7 +1610,7 @@ async def accept_invitation(req: InvitationAcceptRequest, request: Request):
     await check_ip_rate(ip)
     now = datetime.now(UTC)
 
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         inv = await conn.fetchrow(
             """
             SELECT id, email, tenant_id, role, status, expires_at
@@ -1665,7 +1683,7 @@ async def revoke_invitation(
     tenant_id = user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "الدعوة غير موجودة")
-    async with _pool.acquire() as conn:
+    async with _acquire() as conn:
         row = await conn.fetchrow(
             """
             UPDATE invitations SET status='revoked'
@@ -1696,7 +1714,7 @@ async def health():
 @app.get("/readyz")
 async def readyz():
     try:
-        async with _pool.acquire() as conn:
+        async with _acquire() as conn:
             await conn.fetchval("SELECT 1")
         return {"status": "ready", "redis": _redis is not None}
     except Exception as e:
