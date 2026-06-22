@@ -389,3 +389,8 @@ v94_scouting_pins.sql
 # RLS+FORCE بسياسة tenant_isolation (نمط v94/v92، fail-closed). فهرس
 # (tenant_id, field_id, created_at DESC) للقراءة. idempotent.
 v95_prescriptions.sql
+# v96: spatial geometry integrity — سجلّ مراجعات هندسة الحقل (field_geometry_history)
+# + طابور إبطال كاش الراستر/المؤشّرات (raster_cache_invalidations). idempotent، معزول
+# بالمستأجِر عبر _sahool_apply_tenant_rls، وآمن لإعادة التشغيل محلّيّاً. (كان v94 في
+# الأرشيف — أُعيد ترقيمه لأنّ v94/v95 مأخوذان: scouting_pins/prescriptions.)
+v96_spatial_geometry_integrity.sql

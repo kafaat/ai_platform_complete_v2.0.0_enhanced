@@ -48,6 +48,7 @@ from api.field_models import (
 # مباشرةً (نفس الرموز التي كان main يستوردها) لإزالة تحذيرات F401 من main بعد النقل.
 from api.field_timeline import assemble_timeline
 from api.geospatial_integrity import validate_field_geometry
+from api.gis_geometry_guard import geometry_metadata, guard_field_geometry
 
 # بقيّة التبعيّات/النماذج/المساعِدات المشتركة تبقى في api.main وتُستورَد من هناك.
 from api.main import (
@@ -76,7 +77,6 @@ from api.main import (
     _assert_field_in_tenant,
     _build_versioned_update,
     _build_walk_plan,
-    _centroid_from_bbox,
     _clamp_list_window,
     _db_unavailable,
     _emit_domain_event,
@@ -100,6 +100,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.pivot_geometry import maybe_canonicalize_pivot_geometry
 from api.prescriptions import ZoneCharacteristics, ZoneClass, prescription_to_dict
 from api.scouting_pins import make_pin
 
@@ -112,6 +113,7 @@ from api.season_models import (
     SeasonUpdateRequest,
     _row_to_season,
 )
+from api.spatial_sync import mark_raster_cache_stale, save_field_geometry_revision
 from api.trueup import TrueUpInput, TrueUpStatus
 from api.walk_plan_pdf import walk_plan_to_pdf_bytes
 from api.yield_heuristics import LifecycleFeatures, detect_anomalies, estimate_yield
@@ -138,20 +140,28 @@ async def _persist_field(
 
     import asyncpg  # لتضييق التقاط أخطاء PostGIS الغائب في فحص التداخل
 
-    validation = validate_field_geometry(req.geometry)
-    if not validation.valid:
+    # Geometry Guard: كل حدود الحقول تدخل النظام كـPolygon canonical في EPSG:4326.
+    # Pivot fields are canonicalized from center/radius/angles when the client sends
+    # pivot metadata, so irrigation geometry and map polygon cannot drift apart.
+    raw_payload = req.model_dump(mode="json")
+    canonical_pivot = maybe_canonicalize_pivot_geometry(
+        raw_payload, req.irrigation_type or req.water_source or None
+    )
+    raw_geometry = canonical_pivot or req.geometry
+    try:
+        guarded = guard_field_geometry(raw_geometry)
+    except ValueError as exc:
         raise HTTPException(
             status_code=422,
             detail={
                 "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
-                "issues": [
-                    {"code": i.code, "severity": i.severity.value, "message_ar": i.message_ar}
-                    for i in validation.issues
-                ],
+                "code": "invalid_field_geometry",
+                "issues": str(exc).split(","),
             },
-        )
-    area_ha = round(validation.computed_area_ha or 0.0, 2)
-    lat, lon = _centroid_from_bbox(validation.computed_bbox)
+        ) from exc
+    geometry = guarded.geometry
+    area_ha = round(guarded.area_ha, 2)
+    lat, lon = guarded.centroid
     # الكشف الآلي للدولة + الإقليم من مركز المضلّع (إن لم يُرسلهما العميل)
     country, region = req.country, req.region
     if country is None or region is None:
@@ -159,7 +169,7 @@ async def _persist_field(
         country = country or auto_country
         region = region or auto_region
     field_id = "fld_" + _uuid.uuid4().hex[:12]
-    geom_json = _json.dumps(req.geometry)
+    geom_json = _json.dumps(geometry)
     try:
         async with tenant_connection(user) as conn:
 
@@ -246,10 +256,10 @@ async def _persist_field(
                     """INSERT INTO fields
                         (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
                          area_ha, lat, lon, gov, geometry,
-                         field_code, description, water_source, ownership_type,
+                         field_code, description, water_source, irrigation_type, ownership_type,
                          country, region)
                        VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
-                         $13, $14, $15, $16, $17, $18)""",
+                         $13, $14, $15, $16, $17, $18, $19)""",
                     field_id,
                     str(user.tenant_id),
                     req.farm_id,
@@ -261,10 +271,11 @@ async def _persist_field(
                     lat,
                     lon,
                     req.gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
-                    _json.dumps(req.geometry),
+                    _json.dumps(geometry),
                     req.field_code,
                     req.description,
                     req.water_source,
+                    req.irrigation_type,
                     req.ownership_type,
                     country,
                     region,
@@ -283,6 +294,33 @@ async def _persist_field(
                         "farm_id": req.farm_id,
                         "soil_type": req.soil_type,
                     },
+                )
+                # Geometry ledger + raster invalidation: أي حد جديد ينتج revision
+                # ويعلّم طبقات raster/indicators أنها مبنية على هندسة محددة.
+                rev = await save_field_geometry_revision(
+                    conn,
+                    tenant_id=str(user.tenant_id),
+                    field_id=field_id,
+                    geometry=geometry,
+                    changed_by=str(user.user_id),
+                    reason="field.created",
+                    source="draw_or_import",
+                    metadata=geometry_metadata(field_revision=1),
+                )
+                await mark_raster_cache_stale(
+                    conn,
+                    tenant_id=str(user.tenant_id),
+                    field_id=field_id,
+                    reason="field.created",
+                    metadata={"geometry_revision": rev, "scope": ["tiles", "indices", "zones"]},
+                )
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "FIELD_GEOMETRY_CHANGED",
+                    "field",
+                    field_id,
+                    {"geometry_revision": rev, "reason": "field.created"},
                 )
                 # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب
                 # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
@@ -323,7 +361,7 @@ async def _persist_field(
                     region=region,
                     lat=lat,
                     lon=lon,
-                    geometry=req.geometry,
+                    geometry=geometry,
                 ).model_dump(mode="json")
 
             # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
@@ -428,6 +466,8 @@ async def import_field(
         field_code=req.field_code,
         description=req.description,
         water_source=req.water_source,
+        irrigation_type=req.irrigation_type,
+        pivot=req.pivot,
         ownership_type=req.ownership_type,
         country=req.country,
         region=req.region,
@@ -611,6 +651,22 @@ async def update_field(
     المخزّنة بلا إعادة تحديث — موحِّداً مسار كتابة الحقل مع create_season/
     create_activity. بلا مفتاح ⇒ سلوك سابق حرفيّاً (توافق خلفيّ كامل).
     """
+    # Geometry update path: validate/normalize before building SQL, and forbid raw polygon
+    # drift for pivot fields unless canonical pivot metadata is provided.
+    geometry_changed = "geometry" in req.model_fields_set
+    if geometry_changed and req.geometry is not None:
+        try:
+            guarded = guard_field_geometry(req.geometry)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
+                    "code": "invalid_field_geometry",
+                    "issues": str(exc).split(","),
+                },
+            ) from exc
+        req = req.model_copy(update={"geometry": guarded.geometry})
     try:
         set_clause, values = _build_field_update(req)
     except ValueError as e:
@@ -716,8 +772,38 @@ async def update_field(
                     "field",
                     field_id,
                     # base_version عمّاد تزامن لا تغييرَ حقل ⇒ يُستثنى من حدث الـdomain.
-                    req.model_dump(exclude_unset=True, exclude={"base_version"}),
+                    req.model_dump(exclude_unset=True, exclude={"base_version", "base_values"}),
                 )
+                if geometry_changed and req.geometry is not None:
+                    updated_detail = _row_to_field_detail(row)
+                    rev = await save_field_geometry_revision(
+                        conn,
+                        tenant_id=str(user.tenant_id),
+                        field_id=field_id,
+                        geometry=req.geometry,
+                        changed_by=str(user.user_id),
+                        reason="field.updated",
+                        source="api.patch",
+                        metadata=geometry_metadata(field_revision=updated_detail.row_version),
+                    )
+                    await mark_raster_cache_stale(
+                        conn,
+                        tenant_id=str(user.tenant_id),
+                        field_id=field_id,
+                        reason="field.geometry.updated",
+                        metadata={
+                            "geometry_revision": rev,
+                            "scope": ["tiles", "indices", "zones", "statistics"],
+                        },
+                    )
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "FIELD_GEOMETRY_CHANGED",
+                        "field",
+                        field_id,
+                        {"geometry_revision": rev, "reason": "field.updated"},
+                    )
                 # نُعيد JSON (model_dump) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
                 # عند الإعادة — response_model=FieldDetail يتحقّق منه.
                 return _row_to_field_detail(row).model_dump()
@@ -740,6 +826,53 @@ async def update_field(
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
         raise _db_unavailable("تحديث تفاصيل الحقل", e) from e
     return result
+
+
+@router.get("/api/v1/fields/{field_id}/geometry/history")
+async def field_geometry_history(
+    field_id: str,
+    limit: int = Query(20, ge=1, le=200),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """Geometry revision ledger for map/raster alignment and rollback UI.
+
+    Returns append-only geometry revisions written by Geometry Guard. The response
+    includes revision metadata so the map can compare field_revision with raster
+    products and warn on stale overlays.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            rows = await conn.fetch(
+                """
+                SELECT revision, geometry, changed_by, changed_at, reason, source, metadata
+                FROM field_geometry_history
+                WHERE field_id = $1
+                ORDER BY revision DESC
+                LIMIT $2
+                """,
+                field_id,
+                limit,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة سجل هندسة الحقل", e) from e
+    return {
+        "field_id": field_id,
+        "revisions": [
+            {
+                "revision": int(r["revision"]),
+                "geometry": r["geometry"],
+                "changed_by": r["changed_by"],
+                "changed_at": r["changed_at"].isoformat() if r["changed_at"] else None,
+                "reason": r["reason"],
+                "source": r["source"],
+                "metadata": r["metadata"] or {},
+            }
+            for r in rows
+        ],
+    }
 
 
 @router.delete("/api/v1/fields/{field_id}")
