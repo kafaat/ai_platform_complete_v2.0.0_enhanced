@@ -52,12 +52,15 @@ services:
         condition: service_healthy
       sahool-weather-service:
         condition: service_healthy
+      # خدمات اختياريّة ثقيلة (سوق/Odoo/RAG): service_started بدل service_healthy كي لا
+      # تُعلِّق إقلاع البوّابة للتطوير الأساسيّ — اسم الحاوية يُسجَّل في الشبكة فيُحلّ
+      # upstream دون «host not found»، بلا انتظار صحّتها (نفس نمط frontend/notification).
       sahool-market-mcp:
-        condition: service_healthy
+        condition: service_started
       sahool-odoo-bridge:
-        condition: service_healthy
+        condition: service_started
       sahool-local-ai-rag:
-        condition: service_healthy
+        condition: service_started
       # FIX: nginx.fixed.conf يوجّه إليهما، وnginx يحلّ أسماء upstream عند الإقلاع
       # ⇒ يجب وجود الحاويتين وإلّا "host not found in upstream". service_started
       # يكفي لتسجيل اسم الشبكة (بلا انتظار صحّتهما).
@@ -376,6 +379,23 @@ services:
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
+      # أعلام الميزات المتقدّمة (تحرس راوترات؛ مُطفأة افتراضاً ⇒ 404 والواجهة تعرض حالة
+      # «معطّلة» صادقة). فعّل ما تريد عبر .env (1/true). انظر RUNBOOK.md +
+      # services/sahool-platform/api/feature_registry.py + frontend featureFlags.ts.
+      FEATURE_PORTFOLIO_COMMAND: ${FEATURE_PORTFOLIO_COMMAND:-0}
+      FEATURE_DEVICE_TWIN: ${FEATURE_DEVICE_TWIN:-0}
+      FEATURE_DELTA_SYNC: ${FEATURE_DELTA_SYNC:-0}
+      FEATURE_NATURAL_LANGUAGE_GIS: ${FEATURE_NATURAL_LANGUAGE_GIS:-0}
+      FEATURE_DECISION_STUDIO: ${FEATURE_DECISION_STUDIO:-0}
+      FEATURE_OPERATIONS_WALL: ${FEATURE_OPERATIONS_WALL:-0}
+      FEATURE_REPLAY_MAP: ${FEATURE_REPLAY_MAP:-0}
+      FEATURE_EVIDENCE_MAP: ${FEATURE_EVIDENCE_MAP:-0}
+      FEATURE_LEARNING_DASHBOARD: ${FEATURE_LEARNING_DASHBOARD:-0}
+      FEATURE_DECISION_CONFIDENCE: ${FEATURE_DECISION_CONFIDENCE:-0}
+      FEATURE_UNIFIED_LINEAGE: ${FEATURE_UNIFIED_LINEAGE:-0}
+      FEATURE_GIS_KERNEL: ${FEATURE_GIS_KERNEL:-0}
+      FEATURE_IRRIGATION_NETWORK: ${FEATURE_IRRIGATION_NETWORK:-0}
+      FEATURE_EXECUTION_FEEDBACK: ${FEATURE_EXECUTION_FEEDBACK:-0}
     depends_on:
       sahool-postgres:
         condition: service_healthy
