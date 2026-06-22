@@ -1,9 +1,11 @@
 // SAHOOL — lib/screens/satellite_screen.dart
 // مؤشّرات الأقمار (كان placeholder). يختار المستخدم حقلاً (من النظرة العامّة)
-// فتُجلَب مؤشّراته الحيّة عبر /indicators/v1/indicators/{fieldId} وتُعرَض كبطاقات.
-// تحليل دفاعيّ (قائمة indicators أو مفاتيح رقميّة). صدق: التعذّر يُعلَن بإعادة محاولة.
+// فتُجلَب مؤشّراته الحيّة عبر /api/vegetation/v1/analyze وتُعرَض كبطاقات. تحليل
+// دفاعيّ (خريطة indices أو قائمة indicators أو مفاتيح رقميّة). زرّ تحديث صور
+// Sentinel-2 (imagery/refresh) يُطلق المعالجة الحقيقيّة ويُبلِغ بالنتيجة بصدق.
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../widgets/state_views.dart';
 
 class SatelliteScreen extends StatefulWidget {
   const SatelliteScreen({super.key});
@@ -17,6 +19,7 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
   String? _selectedId;
   bool _loadingFields = true;
   bool _loadingIndicators = false;
+  bool _refreshingImagery = false;
   String? _error;
   List<_Indicator> _indicators = const [];
 
@@ -75,7 +78,57 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
     }
   }
 
+  // يُطلق تحديث صور Sentinel-2 الحقيقيّة للحقل المُختار (imagery/refresh). صدق:
+  // لا نزعم نجاحاً — نعرض رسالة من نتيجة الخادم (status/queued/note) أو الخطأ كما
+  // هو. مُعطَّل حين لا حقل مُختار أو أثناء طلب جارٍ (يمنع طلبات متراكمة).
+  Future<void> _refreshImagery() async {
+    final id = _selectedId;
+    if (id == null || id.isEmpty || _refreshingImagery) return;
+    setState(() => _refreshingImagery = true);
+    try {
+      final result = await ApiService.instance.refreshFieldImagery(id);
+      if (!mounted) return;
+      final queued = result['queued'] == true;
+      final status = (result['status'] ?? '').toString();
+      final note = (result['note'] ?? result['message_ar'] ?? '').toString();
+      final msg = queued
+          ? 'تم إطلاق تحديث صور Sentinel-2 — قد يستغرق دقائق'
+          : (note.isNotEmpty
+              ? note
+              : (status.isNotEmpty
+                  ? 'حالة التحديث: $status'
+                  : 'لا مشهد جديد متاح بعد لهذا الحقل'));
+      showSnack(context, msg);
+    } catch (e) {
+      if (mounted) showSnack(context, apiErrorMessage(e), error: true);
+    } finally {
+      if (mounted) setState(() => _refreshingImagery = false);
+    }
+  }
+
   List<_Indicator> _parseIndicators(Map<String, dynamic> data) {
+    // الشكل الثالث (المصدر الفعليّ — vegetation /v1/analyze): خريطة indices حيث
+    // كلّ مفتاح (ndvi/evi/...) → {value, unit, source}. الحالة العامّة من
+    // health['label_ar'] (تُعرَض على كلّ بطاقة بصدق — مصدر واحد للصحّة).
+    final indices = data['indices'];
+    if (indices is Map) {
+      final health = data['health'];
+      final statusAr = (health is Map)
+          ? (health['label_ar'] ?? health['status'] ?? '').toString()
+          : '';
+      final out = <_Indicator>[];
+      indices.forEach((k, v) {
+        if (v is! Map) return;
+        final inner = v.cast<String, dynamic>();
+        out.add(_Indicator(
+          name: k.toString().toUpperCase(),
+          value: _fmt(inner['value']),
+          unit: (inner['unit'] ?? '').toString(),
+          status: statusAr,
+        ));
+      });
+      if (out.isNotEmpty) return out;
+    }
     // الشكل الأوّل: قائمة indicators صريحة.
     final list = data['indicators'];
     if (list is List) {
@@ -115,11 +168,33 @@ class _SatelliteScreenState extends State<SatelliteScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('مؤشّرات الأقمار الصناعيّة',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text('مؤشّرات الأقمار الصناعيّة',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold)),
+                ),
+                // تحديث صور Sentinel-2 الحقيقيّة للحقل المُختار — مُعطَّل بلا حقل
+                // أو أثناء طلب جارٍ. مؤشّر دوّار أثناء الطلب بدل الأيقونة.
+                IconButton(
+                  tooltip: 'تحديث صور الأقمار',
+                  onPressed: (_selectedId == null || _refreshingImagery)
+                      ? null
+                      : _refreshImagery,
+                  icon: _refreshingImagery
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Color(0xFF10B981)),
+                        )
+                      : const Icon(Icons.satellite_alt, color: Colors.white),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             if (_error != null && _fields.isEmpty)
               // لا نُخفي خطأ الشبكة خلف «لا توجد حقول» — نُعلنه مع إعادة محاولة.

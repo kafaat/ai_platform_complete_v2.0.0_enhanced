@@ -332,10 +332,28 @@ class ApiService {
     return _asMap(r.data); // حارس الشكل (كان as Map خاماً ينهار على استجابة غير Map)
   }
 
+  /// مؤشّرات الحقل الطيفيّة (NDVI/EVI/...) من خدمة الغطاء النباتيّ —
+  /// GET /api/vegetation/v1/analyze?field_id={id} (vegetation-analysis-service،
+  /// يُوصَل عبر البوّابة location /api/vegetation/ → /v1/analyze). المسار القديم
+  /// /indicators/v1/indicators/{id} لا يطابقه nginx ⇒ 404 يسقط إلى الـSPA.
+  /// الخادم يردّ {field_id, real_data, health:{label_ar,...}, indices:{ndvi:{value,
+  /// unit, source}, ...}}. حارس الشكل (_asMap) كبقيّة المسارات. صدق المصدر:
+  /// المؤشّرات تقديرات متوسّط-حقل (real_data=false) إلّا حين توفّر raster حقيقيّ.
   Future<Map<String, dynamic>> getFieldIndicators(String fieldId, {String? tag}) async {
-    final r = await _dio.get('/indicators/v1/indicators/$fieldId',
+    final r = await _dio.get('/api/vegetation/v1/analyze',
+        queryParameters: {'field_id': fieldId},
         cancelToken: tag != null ? _getToken(tag) : null);
-    return r.data as Map<String, dynamic>;
+    return _asMap(r.data);
+  }
+
+  /// يطلق تحديث صور Sentinel-2 الحقيقيّة للحقل عند الطلب —
+  /// POST /api/v1/fields/{field_id}/imagery/refresh (يطابق refreshFieldImagery
+  /// في الويب). يبحث عن مَشاهد STAC حقيقيّة ويُدرج معالجة COG في raster-service.
+  /// صدق: لا بيانات مُلفَّقة — يردّ {status, queued, ...}؛ queued=false/no_scene
+  /// حين لا مشهد بعد. الخطأ يُرمى ليعرضه الـUI بصدق.
+  Future<Map<String, dynamic>> refreshFieldImagery(String fieldId) async {
+    final r = await _dio.post('/api/v1/fields/$fieldId/imagery/refresh');
+    return _asMap(r.data);
   }
 
   /// الحالة القانونيّة الموحّدة للحقل (Canonical Field State) —
@@ -812,6 +830,24 @@ class ApiService {
   Future<Map<String, dynamic>> createDocument(
       Map<String, dynamic> payload) async {
     final r = await _dio.post('/api/v1/documents', data: payload);
+    return _asMap(r.data);
+  }
+
+  // ── Farms (farm:view / farm:create) — أب الحقول (هرميّة المزرعة→الحقل) ──
+  // المسارات/الحقول تطابق api/routers/farms.py والويب (farmsApi). صدق: 503 (DB)
+  // /403 (RBAC) يُرمى ليعرض الـUI حالة صادقة — لا مزارع مُلفَّقة.
+
+  /// قائمة مزارع المستأجِر (GET /api/v1/farms). يردّ الخادم مصفوفة JSON صريحة
+  /// (مُرشّحة بـRLS). كلّ عنصر: {farm_id, name, location, area_ha, region, ...}.
+  Future<List<Map<String, dynamic>>> listFarms() async {
+    final r = await _dio.get('/api/v1/farms');
+    return _asList(r.data);
+  }
+
+  /// ينشئ مزرعة جديدة (POST /api/v1/farms). [payload] يطابق FarmCreateRequest:
+  /// name لازم؛ location/area_ha/region/... اختياريّة. يردّ {farm_id, name, ...}.
+  Future<Map<String, dynamic>> createFarm(Map<String, dynamic> payload) async {
+    final r = await _dio.post('/api/v1/farms', data: payload);
     return _asMap(r.data);
   }
 }
