@@ -17,6 +17,8 @@
 
 from __future__ import annotations
 
+import json
+import logging
 from dataclasses import asdict
 
 from core.crop_risk import assess_crop_risk
@@ -30,9 +32,10 @@ from core.work_order_from_recommendation import recommendation_to_work_order
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
-from api.main import UserSchema, get_current_user
+from api.main import UserSchema, _emit_domain_event, get_current_user, tenant_connection
 
 router = APIRouter()
+logger = logging.getLogger("sahool.agro_intelligence")
 
 
 # ════════════════════════════════════════════════════════════
@@ -249,14 +252,73 @@ def decision_playbook_endpoint(
     return asdict(build_playbook(ctx))
 
 
+async def _persist_work_order(user: UserSchema, wo: dict) -> str | None:
+    """يُثبّت أمر العمل المُشتقّ (INSERT INTO work_orders) ثمّ يُصدِر WORK_ORDER_CREATED.
+
+    persist-first: نُدرِج الصفّ فعليّاً (جدول v75، ضمن سياق RLS عبر tenant_connection
+    وWITH CHECK يفرض المستأجِر) ثمّ — **فقط لأنّ صفّاً صار موجوداً** — نُصدِر الحدث عبر
+    الـoutbox ضمن نفس المعاملة (مرآة _persist_recommendation). «لا أحداث مُخترَعة»: لا حدث
+    بلا تثبيت. القيم تُمرَّر كبارامترات ($1…) لا تُدخَل في نصّ الـSQL.
+
+    يُرجِع work_order_id (نصّاً) عند النجاح، أو None إن تعذّر التثبيت (best-effort —
+    لا يكسر استجابة المستخدم؛ wo المُشتقّ يبقى مُعاداً).
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                """INSERT INTO work_orders
+                       (tenant_id, field_id, wo_type, status, recommendation_id, payload)
+                   VALUES ($1::uuid, $2, $3, $4, $5, $6::jsonb)
+                   RETURNING work_order_id""",
+                str(user.tenant_id),
+                wo["field_id"],
+                wo["wo_type"],
+                wo["status"],
+                wo.get("recommendation_id"),
+                json.dumps(wo.get("payload") or {}, ensure_ascii=False, default=str),
+            )
+            work_order_id = str(row["work_order_id"])
+            # الحدث يُصدَر فقط بعد نجاح الإدراج (صفّ حقيقيّ موجود). best-effort افتراضاً
+            # (WORK_ORDER_CREATED ليس في CRITICAL_EVENT_TYPES) فلا يكسر فشلُ الإصدار الكتابةَ.
+            await _emit_domain_event(
+                conn,
+                user,
+                "WORK_ORDER_CREATED",
+                "work_order",
+                work_order_id,
+                {
+                    "field_id": wo["field_id"],
+                    "wo_type": wo["wo_type"],
+                    "status": wo["status"],
+                    "recommendation_id": wo.get("recommendation_id"),
+                },
+            )
+            return work_order_id
+    except Exception:  # noqa: BLE001 — تثبيت/تدقيق أفضل-جهد لا يكسر المسار
+        logger.warning("work_order persist/audit failed (best-effort)", exc_info=True)
+        return None
+
+
 @router.post("/api/v1/work-orders/from-recommendation")
-def work_order_from_recommendation_endpoint(
+async def work_order_from_recommendation_endpoint(
     req: WorkOrderFromRecommendationRequest, user: UserSchema = Depends(get_current_user)
 ):
-    """يحوّل توصية إلى أمر عمل (FOES) جاهز للإدراج؛ المستأجِر من المستخدم المُصادَق.
+    """يحوّل توصية إلى أمر عمل (FOES) ويُثبّته ثمّ يُصدِر WORK_ORDER_CREATED.
 
-    `inferred=false` إن تعذّر استنتاج نوع أمر العمل من التوصية (لا نخترع نوعاً)."""
+    `inferred=false` إن تعذّر استنتاج نوع أمر العمل من التوصية (لا نخترع نوعاً) ⇒ لا
+    تثبيت ولا حدث. عند الاستنتاج: يُدرَج صفّ work_orders فعليّاً (persist-first) ثمّ
+    يُصدَر الحدث عبر outbox — «لا حدث بلا تثبيت»."""
     wo = recommendation_to_work_order(
         req.recommendation, field_id=req.field_id, tenant_id=str(user.tenant_id)
     )
-    return {"inferred": wo is not None, "work_order": wo}
+    work_order_id = None
+    if wo is not None:
+        work_order_id = await _persist_work_order(user, wo)
+    return {
+        "inferred": wo is not None,
+        # persisted=true فقط حين أُدرِج صفّ فعليّاً (وأُصدِر حدثه). الاستنتاج بلا قاعدة
+        # مفعّلة أو بفشل إدراج ⇒ inferred=true لكن persisted=false (صدق: لا ادّعاء تثبيت).
+        "persisted": work_order_id is not None,
+        "work_order_id": work_order_id,
+        "work_order": wo,
+    }

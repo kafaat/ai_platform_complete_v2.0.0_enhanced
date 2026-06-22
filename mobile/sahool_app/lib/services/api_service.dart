@@ -414,6 +414,36 @@ class ApiService {
     await _dio.post('/auth/password-reset/request', data: {'email': email});
   }
 
+  /// C4/M1: يسجّل رمز جهاز FCM لتفعيل إشعارات الدفع للمستخدم الحاليّ.
+  ///
+  /// عقد الخادم: لا مسار تسجيل رمز مفرد — العمود `push_token` يُدار ضمن
+  /// تفضيلات الإشعار (services/sahool-platform/api/routers/notifications.py،
+  /// PUT /api/v1/notifications/preferences، upsert يستبدل الصفّ كاملاً).
+  /// لذا نقرأ التفضيلات الحاليّة أوّلاً ثمّ نُعيد إرسالها مع
+  /// `push_enabled: true` + `push_token` كي لا نمحو بقيّة القنوات
+  /// (بريد/SMS/واتساب) المُفعَّلة سابقاً. صدق: الخطأ يُرمى ليُعالَج عند
+  /// المستدعي (PushService يبتلعه دفاعيّاً — تسجيل الرمز ليس حرجاً للإقلاع).
+  Future<void> registerPushToken(String token) async {
+    // اقرأ التفضيلات الحاليّة (لا صفّ ⇒ الخادم يردّ افتراضيّات: كلّ القنوات مُعطَّلة).
+    Map<String, dynamic> prefs;
+    try {
+      final r = await _dio.get('/api/v1/notifications/preferences');
+      prefs = _asMap(r.data);
+    } catch (_) {
+      // تعذّرت القراءة ⇒ ابدأ من تفضيلات فارغة (نفعّل الدفع فقط دون افتراض غيره).
+      prefs = <String, dynamic>{};
+    }
+
+    // ادمج: فعّل الدفع وثبّت الرمز، وحافظ على بقيّة الحقول كما وردت من الخادم.
+    final payload = <String, dynamic>{
+      ...prefs,
+      'push_enabled': true,
+      'push_token': token,
+    };
+
+    await _dio.put('/api/v1/notifications/preferences', data: payload);
+  }
+
   Future<void> confirmPasswordReset(String token, String newPassword) async {
     await _dio.post('/auth/password-reset/confirm',
         data: {'token': token, 'new_password': newPassword});

@@ -8,6 +8,18 @@
 للمستأجرين بالتصميم (تقرأ كلّ الحقول، تكتب تراكب كلّ مستأجِر). لا postgres superuser.
 النشر بعد إتمام المعاملة (نمط outbox: نجاح القاعدة أوّلاً، ثمّ NATS — فشل النشر لا يُفقِد
 التراكب). asyncpg (لا SQLAlchemy) مطابقةً للمنصّة، ومواضيع NATS ببادئة sahool.
+
+────────────────────────────────────────────────────────────────────────────────
+حالة التشغيل (H2 — سقالة ساكنة عمداً):
+هذا الخطّ (مسار الطقس الشبكيّ grid) **معطّل افتراضيّاً**. الاشتراك على
+`sahool.weather.forecast.updated` **يتيم**: لا ناشر له في المستودع بعدُ (M2 في تقرير
+الفجوات). تشغيله بلا منتِج يجعل العامل يتّصل بـPostgres/NATS ثمّ ينتظر إلى الأبد دون أيّ
+عمل — لا‑عمليّة صامتة تُربك التشغيل والمراقبة. لذا نحرس الاشتراك خلف راية بيئيّة
+`WEATHER_GRID_PIPELINE_ENABLED` (افتراضها OFF)، ونطبع عند الإقلاع سطراً يوضّح أنّها سقالة
+غير نشطة بانتظار منتِج. **مسار الطقس الحيّ المستعمَل فعليّاً منفصل تماماً** ويعيش في
+المنصّة (`api/connectors/openmeteo.py` + `api/weather_automation.py`) — لا علاقة له بهذا
+العامل ولا يتأثّر بهذه الراية. لتفعيل هذا الخطّ مستقبلاً: ابنِ منتِجاً ينشر الموضوع أعلاه
+ثمّ اضبط `WEATHER_GRID_PIPELINE_ENABLED=1`.
 """
 
 from __future__ import annotations
@@ -28,6 +40,18 @@ log = logging.getLogger("weather-polygon-worker")
 JOBS_DSN = os.getenv("JOBS_DATABASE_URL") or os.getenv("DATABASE_URL", "")
 NATS_URL = os.getenv("NATS_URL", "nats://sahool-nats:4222")
 HORIZON_HOURS = int(os.getenv("WEATHER_HORIZON_HOURS", "168"))
+
+
+def _grid_pipeline_enabled() -> bool:
+    """راية تفعيل مسار الطقس الشبكيّ (H2). افتراضها OFF لأنّ الاشتراك يتيم بلا منتِج.
+    تُعتبر مفعّلة فقط بقيم صريحة موجبة كي لا يُفعَّل الخطّ بالخطأ."""
+    return os.getenv("WEATHER_GRID_PIPELINE_ENABLED", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
 
 _FIELDS_SQL = "SELECT field_id, tenant_id FROM fields WHERE geom IS NOT NULL"
 _GRID_IN_FIELD_SQL = (
@@ -107,6 +131,15 @@ async def process_field(conn, field_id: str, tenant_id: str) -> dict | None:
 
 
 async def run() -> None:
+    # H2: السقالة الساكنة. الاشتراك يتيم (لا منتِج لـsahool.weather.forecast.updated بعدُ).
+    # نخرج صراحةً بسطر واضح بدل التعطّل الصامت على اشتراك لن يصله حدث أبداً.
+    if not _grid_pipeline_enabled():
+        log.info(
+            "weather-polygon-worker معطّل (سقالة غير نشطة): مسار الطقس الشبكيّ بانتظار "
+            "منتِج لـsahool.weather.forecast.updated. فعّله بـWEATHER_GRID_PIPELINE_ENABLED=1 "
+            "بعد بناء المنتِج. مسار الطقس الحيّ في المنصّة لا يتأثّر."
+        )
+        return
     if not JOBS_DSN:
         log.error("JOBS_DATABASE_URL/DATABASE_URL غير مضبوط — العامل معطّل")
         return

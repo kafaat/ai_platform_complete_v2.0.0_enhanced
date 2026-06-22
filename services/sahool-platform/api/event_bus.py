@@ -148,6 +148,12 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # الموحّد والإعادة، ويصل البثّ الحيّ. يُصدَر عبر outbox ضمن معاملة التخزين.
     RECOMMENDATION_CREATED = "recommendation.created"
 
+    # أمر عمل (FOES): حدث عند تثبيت أمر عمل مُشتقّ من توصية (persist-first). يُصدَر
+    # **فقط** بعد إدراج صفّ work_orders فعليّاً (لا حدث بلا تثبيت — «لا أحداث مُخترَعة»)
+    # عبر outbox ضمن معاملة الكتابة، مرآةً لـRECOMMENDATION_CREATED. best-effort (غير
+    # حرج): فشل الإصدار لا يكسر استجابة إنشاء أمر العمل (الصفّ مُثبَّت سلفاً).
+    WORK_ORDER_CREATED = "work_order.created"
+
     # توزيع القرار (FOES) — تدقيق نقاط كتابة decision_dispatch (خلف علم تشغيليّ، H3).
     # تجعل سجلّ القرار/التنفيذ متتبَّعاً في مجرى الأحداث الموحّد بدل كتابة صامتة.
     DISPATCH_DECISION_RECORDED = "dispatch.decision.recorded"
