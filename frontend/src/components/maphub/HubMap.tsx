@@ -243,8 +243,9 @@ export default function HubMap({
   const selectedPoly = selected ? geomToPolygon(selected.geometry) : undefined;
 
   return (
-    <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
+    <div data-testid="leaflet-map" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
       <MapContainer
+        className="leaflet-map"
         center={center}
         zoom={11}
         style={{ height, width: '100%', cursor: pinMode ? 'crosshair' : undefined }}

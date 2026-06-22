@@ -114,6 +114,31 @@ jobs:
       - run: npm run typecheck
         working-directory: frontend
 
+  frontend-e2e:
+    name: Frontend E2E (Playwright · MapLibre/WebGL QA)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "20"}
+      # بوّابة QA الوظيفيّة لمحرّك MapLibre/WebGL على Chromium حقيقيّ (SwiftShader).
+      # هرمسيّة: لا خلفيّة — التركيبات تُعترَض في طبقة Playwright (e2e/support/seed.ts).
+      # الـconfig يبني الواجهة بـVITE_MAP_ENGINE=maplibre ويُشغّل preview على :4173.
+      # الخطوتان البصريّتان الصرفتان (٧ إزاحة المؤشّر، ٩ تطابق leaflet↔maplibre)
+      # مُعلَّمتان @visual ومُخطّاتان (test.fixme) ⇒ تُتخطّى تلقائيّاً، فلا تحجب.
+      - run: npm ci
+        working-directory: frontend
+      - run: npx playwright install --with-deps chromium
+        working-directory: frontend
+      - run: npx playwright test
+        working-directory: frontend
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 14
+
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-24.04

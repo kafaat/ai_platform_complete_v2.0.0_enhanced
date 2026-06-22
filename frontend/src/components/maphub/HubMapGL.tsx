@@ -642,8 +642,8 @@ export default function HubMapGL({
   }
 
   return (
-    <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
-      <div ref={containerRef} style={{ height, width: '100%' }} />
+    <div data-testid="hubmapgl-wrapper" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
+      <div data-testid="hubmapgl-container" ref={containerRef} style={{ height, width: '100%' }} />
 
       {/* شارة المحرّك — المرحلة 3: التقاط حيّ للحدود مُفعَّل في محرّك GL.
           أمانة: التقطيع التلقائيّ (SAM2) للمرحلة 4، ومحرّر Leaflet يلتقط بعد-الإتمام. */}
@@ -664,6 +664,7 @@ export default function HubMapGL({
       {drawTools && (
         <div
           dir="rtl"
+          data-testid="draw-panel"
           style={{
             position: 'absolute', top: 12, left: 12, zIndex: 6,
             background: 'rgba(13,22,17,.92)', borderRadius: 10, padding: '10px 12px',
@@ -674,7 +675,7 @@ export default function HubMapGL({
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <span style={{ fontWeight: 700, color: '#5cbf6e' }}>الرسم/القياس</span>
             <button
-              type="button" onClick={handleClearDraw}
+              type="button" onClick={handleClearDraw} data-testid="btn-clear-draw"
               style={{
                 marginRight: 'auto', fontSize: 11, color: '#fca5a5', background: 'transparent',
                 border: '1px solid #7a2a2a', borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
@@ -684,12 +685,12 @@ export default function HubMapGL({
           {/* مبدّل الوضع: مضلّع / خطّ / تحديد */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
             {([
-              ['polygon', 'مضلّع'],
-              ['linestring', 'خطّ'],
-              ['select', 'تحديد'],
-            ] as [DrawMode, string][]).map(([m, label]) => (
+              ['polygon', 'مضلّع', 'btn-mode-polygon'],
+              ['linestring', 'خطّ', 'btn-mode-line'],
+              ['select', 'تحديد', 'btn-mode-select'],
+            ] as [DrawMode, string, string][]).map(([m, label, tid]) => (
               <button
-                key={m} type="button" onClick={() => setDrawMode(m)}
+                key={m} type="button" onClick={() => setDrawMode(m)} data-testid={tid}
                 style={{
                   flex: 1, fontSize: 11, fontWeight: 600, padding: '4px 6px', borderRadius: 6,
                   cursor: 'pointer',
@@ -706,6 +707,7 @@ export default function HubMapGL({
               type="button"
               onClick={() => setSnapOn((v) => !v)}
               aria-pressed={snapOn}
+              data-testid="btn-snap-toggle"
               title="التقاط مغناطيسيّ لحدود الحقول القائمة أثناء الرسم"
               style={{
                 display: 'flex', alignItems: 'center', gap: 6, width: '100%',
@@ -732,13 +734,13 @@ export default function HubMapGL({
               {measure.polys > 0 && (
                 <div>
                   <div style={{ color: '#7dd3fc', fontWeight: 600 }}>المساحة ({measure.polys})</div>
-                  <div style={{ color: '#cdddd2' }}>{fmtArea(measure.areaM2)}</div>
+                  <div data-testid="measure-area" style={{ color: '#cdddd2' }}>{fmtArea(measure.areaM2)}</div>
                 </div>
               )}
               {measure.lines > 0 && (
                 <div>
                   <div style={{ color: '#fcd34d', fontWeight: 600 }}>الطول ({measure.lines})</div>
-                  <div style={{ color: '#cdddd2' }}>{fmtLength(measure.lengthM)}</div>
+                  <div data-testid="measure-length" style={{ color: '#cdddd2' }}>{fmtLength(measure.lengthM)}</div>
                 </div>
               )}
             </div>

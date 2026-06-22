@@ -8,6 +8,13 @@ __pycache__/
 node_modules/
 dist/
 build/
+# Playwright E2E (تقارير/نتائج/متصفّحات/لقطات) — لا تُلتزَم
+playwright-report/
+test-results/
+.playwright/
+playwright/.cache/
+**/playwright-report/
+**/test-results/
 .dart_tool/
 .flutter-plugins
 *.log

@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "preview": "vite preview",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
     "lint": "eslint src --ext ts,tsx",
     "format": "prettier --write src/**/*.{ts,tsx}",
     "build:docker": "vite build"
@@ -42,6 +44,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.49.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
