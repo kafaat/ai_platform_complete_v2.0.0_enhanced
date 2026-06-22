@@ -145,13 +145,32 @@ async def _kick_imagery_processing(
         from api.imagery_automation import imagery_automation
 
         guarded = guard_field_geometry(geometry)
-        await imagery_automation.trigger_field_imagery_processing(
+        res = await imagery_automation.trigger_field_imagery_processing(
             field_id=field_id,
             tenant_id=tenant_id,
             bbox=guarded.bbox,
             geometry=guarded.geometry,
             reason=reason,
         )
+        # تشخيص: أظهِر نتيجة الإطلاق في docker logs بدل الصمت — يكشف سبب عدم ظهور NDVI
+        # الحقيقيّ (queued / no_scene / missing_bands / error) دون الحاجة لتتبّع الراستر.
+        status = (res or {}).get("status")
+        if (res or {}).get("queued"):
+            logging.info(
+                "إطلاق معالجة صور الحقل %s (%s): %s · scene=%s",
+                field_id,
+                reason,
+                status,
+                (res or {}).get("scene_id"),
+            )
+        else:
+            logging.warning(
+                "لم تُطلَق معالجة صور الحقل %s (%s): %s · %s",
+                field_id,
+                reason,
+                status,
+                (res or {}).get("note_ar") or (res or {}).get("error"),
+            )
     except Exception as e:  # noqa: BLE001 — أفضل-جهد
         logging.warning(
             "تعذّر إطلاق معالجة الصور المُستهدَفة للحقل %s (%s): %s",

@@ -65,7 +65,11 @@ class WebSocketService {
     // التوكن من sessionStorage (نفس مصدر الـ interceptor) — لا 'demo' احتياطيّ.
     // بلا توكن صالح: لا نفتح اتصالاً (كان يتّصل دائماً بـtoken=demo).
     const token = sessionStorage.getItem('sahool_access_token');
-    if (!token) return;
+    if (!token) {
+      // تشخيص: بلا تحذير كانت الشارة تبقى offline بصمت (لا أثر في devtools).
+      console.warn('[WS] لا توكن في sessionStorage — تخطّي اتّصال WebSocket (الشارة offline).');
+      return;
+    }
 
     this.isConnecting = true;
     // التوكن لم يَعُد في الرابط (كان يتسرّب إلى سجلّات الوكلاء/الخوادم)؛ نرسله

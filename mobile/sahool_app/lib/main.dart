@@ -23,9 +23,13 @@ import 'theme/app_theme.dart';
 // دون تثبيتهما في الشيفرة (انظر String.fromEnvironment في api/websocket service؛
 // يُلحَق المسار /ws/notifications بقيمة WS_URL داخليّاً):
 //   flutter run \
-//     --dart-define=API_URL=http://10.0.2.2:8000 \
-//     --dart-define=WS_URL=ws://10.0.2.2:8000
-// الافتراضيّ للإنتاج: API_URL=https://api.sahool.ye و WS_URL=wss://api.sahool.ye.
+//     --dart-define=API_URL=http://10.0.2.2 \
+//     --dart-define=WS_URL=ws://10.0.2.2
+// 10.0.2.2 = مضيف المُحاكي (Android emulator)، وبلا منفذ ⇒ بوّابة nginx على :80
+// (المرجع القانونيّ في docker-compose.v9.yml). لا تستعمل :8000 — منفذ المنصّة الداخليّ
+// غير مكشوف للمضيف في v9 (نظير توحيد وكيل تطوير الويب مع nginx). لجهاز حقيقيّ: عنوان
+// مضيفك على الشبكة (مثلاً http://192.168.x.x). الافتراضيّ للإنتاج: https://api.sahool.ye
+// وWS_URL=wss://api.sahool.ye.
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
