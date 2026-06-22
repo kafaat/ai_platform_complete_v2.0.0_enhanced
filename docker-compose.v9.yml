@@ -111,7 +111,10 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./migrations:/docker-entrypoint-initdb.d:ro
+      # FIX (مراجعة F5): أُزيل تركيب /docker-entrypoint-initdb.d. كان يطبّق
+      # migrations/*.sql **أبجديّاً** عند أوّل إقلاع Postgres (v13/v14 قبل v9_foundation
+      # الذي تعتمد عليه ⇒ فشل/سباق + تطبيق مزدوج). خدمة sahool-migrate وحدها تطبّق
+      # الهجرات بترتيب MANIFEST الصحيح (نمط مطابق لـdocker-compose.fixed.yml).
     networks:
       - sahool-internal
     healthcheck:
@@ -308,10 +311,10 @@ services:
       PGPASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
       PGDATABASE: sahool
       APP_DB_ROLE: ${APP_DB_ROLE:-sahool_app}
-      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-sahool_app_pw}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
       # دور المهامّ الخلفيّة (BYPASSRLS) — يجب أن تطابق كلمته كلمة JOBS_DATABASE_URL.
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
-      JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:-sahool_jobs_pw}
+      JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
     volumes:
       - ./migrations:/migrations:ro
     command: ["bash", "/migrations/apply_in_compose.sh"]
