@@ -361,7 +361,7 @@ class ApiService {
     String? tag,
   }) async {
     final r = await _dio.get(
-      '/v1/fields/$fieldId/timeseries',
+      '/api/raster/v1/fields/$fieldId/timeseries',
       queryParameters: {'index': 'ndvi'},
       cancelToken: tag != null ? _getToken(tag) : null,
     );
