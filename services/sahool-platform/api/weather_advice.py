@@ -16,7 +16,30 @@ api/weather_advice.py — منطق صرف (pure) لتوصية الريّ ومخ�
 
 from __future__ import annotations
 
+# H5 — تصحيح ملوحة محافظ: نُعيد استخدام رياضيّات Maas-Hoffman من نواة FAO-56
+# (مصدر واحد للحقيقة) وعتبة الملوحة المتوسّطة الموحّدة من core.thresholds.
+# لا نُعيد كتابة الصيغة هنا، ولا نضيف غسيلاً (لا مصدر موثوق لـECw).
+from core.engines.fao56 import salinity_stress_ks as _salinity_stress_ks
+from core.thresholds import SALINITY_MODERATE_ECE as _SALINITY_MODERATE_ECE
+
 from api.water_balance import KC_BY_CROP_STAGE, _effective_rain
+
+
+class _SaltToleranceShim:
+    """غلاف خفيف يحمل سمتَي الملوحة اللتين تحتاجهما salinity_stress_ks فقط
+    (salt_tolerance_ece, salt_slope_pct) — كي نُعيد استخدام دالّة النواة بلا
+    إعادة كتابة معادلة Maas-Hoffman ولا بناء CropKcProfile كامل."""
+
+    __slots__ = ("salt_tolerance_ece", "salt_slope_pct")
+
+    def __init__(self, salt_tolerance_ece: float, salt_slope_pct: float) -> None:
+        self.salt_tolerance_ece = float(salt_tolerance_ece)
+        self.salt_slope_pct = float(salt_slope_pct)
+
+
+# ميل Maas-Hoffman الافتراضيّ (% فقد غلّة لكلّ dS/m فوق العتبة) حين لا يُمرَّر ميل
+# المحصول. 7.1 قيمة معتدلة (قمح، FAO-56 T23) — تُستخدم فقط كـfallback محافظ.
+_DEFAULT_SALT_SLOPE_PCT = 7.1
 
 # منحنى Kc عامّ حين يكون المحصول غير مُعرّف — نفس fallback في water_balance.
 _DEFAULT_KC = {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6}
@@ -52,6 +75,9 @@ def irrigation_advice(
     forecast_rain_mm: float = 0.0,
     soil_moisture_pct: float | None = None,
     kc_override: float | None = None,
+    soil_ece: float | None = None,
+    crop_salt_tolerance_ece: float | None = None,
+    salt_slope_pct: float | None = None,
 ) -> dict:
     """توصية ريّ بنمط FAO-56 — دالّة نقيّة (تُختبَر offline).
 
@@ -78,14 +104,29 @@ def irrigation_advice(
         soil_moisture_pct: رطوبة التربة المتاحة % (اختياري) — يضبط الإلحاح.
         kc_override: معامل المحصول Kc الدقيق من الفينولوجيا (FAO-56 حسب العمر).
             عند تمريره يُستخدم بدل اشتقاق (المحصول، المرحلة). None ⇒ المسار القديم.
+        soil_ece: ملوحة التربة المُتحقَّقة ECe (dS/m). None ⇒ لا تصحيح ملوحة.
+        crop_salt_tolerance_ece: عتبة تحمّل المحصول للملوحة ECe (dS/m، FAO-56 T23).
+            None ⇒ تحمّل المحصول مجهول ⇒ لا تصحيح ملوحة (محافظ، لا نخمّن عتبة).
+        salt_slope_pct: ميل Maas-Hoffman (% فقد لكلّ dS/m فوق العتبة). None ⇒
+            افتراضيّ محافظ 7.1٪. يُستخدم فقط حين يُطبَّق التصحيح.
+
+    تصحيح الملوحة (H5 — محافظ، بلا غسيل):
+        يُطبَّق Ks = salinity_stress_ks(Maas-Hoffman) على ETc (وبالتالي الاحتياج
+        الصافي) **فقط** حين تتوفّر ملوحة تربة مُتحقَّقة ≥ العتبة المتوسّطة
+        (SALINITY_MODERATE_ECE) **و** عتبة تحمّل المحصول معلومة. الملوحة تخفض
+        امتصاص النبات للماء ⇒ احتياج صافٍ أقل (يخدم توفير الماء). لا يُضاف عمق
+        غسيل (لا مصدر موثوق لـECw). إن غابت أيّ شرط ⇒ السلوك مطابق تماماً للقديم
+        (salinity_ks = 1.0).
 
     Returns:
         {recommended_mm, urgency, timing_ar, et0, kc, kc_used, kc_source,
-         rationale_ar}
+         salinity_ks, rationale_ar}
         urgency ∈ {none, low, moderate, high}
         kc_used: قيمة Kc المستخدمة فعليّاً في الحساب.
         kc_source: مصدرها — "phenology_fao56" عند تمرير kc_override، وإلّا الوسم
         المعتمِد على المرحلة من resolve_kc.
+        salinity_ks: معامل إجهاد الملوحة المُطبَّق (0..1). 1.0 ⇒ لا تصحيح (صريح
+        ومُتتبَّع، غير مخفيّ).
     """
     et0 = max(0.0, float(et0_mm))
     kc, _known, kc_source = resolve_kc(crop, stage)
@@ -93,13 +134,37 @@ def irrigation_advice(
         kc = float(kc_override)
         kc_source = "phenology_fao56"
     etc = et0 * kc
-    # المطر الفعّال من المطر الأخير (USDA-SCS مبسّط، مُعاد استخدامه).
-    eff_rain = _effective_rain(max(0.0, rain_recent_mm))
-    net = max(0.0, etc - eff_rain)
 
     reasons: list[str] = [
         f"ETc = ET₀ ({et0:.1f} مم) × Kc ({kc:.2f}) = {etc:.1f} مم؛ {kc_source}.",
     ]
+
+    # ── تصحيح ملوحة محافظ (H5، Maas-Hoffman) — بلا غسيل ──
+    # يُطبَّق فقط حين: ملوحة تربة مُتحقَّقة موجودة ≥ العتبة المتوسّطة، وعتبة تحمّل
+    # المحصول معلومة. غير ذلك ⇒ Ks = 1.0 (السلوك القديم تماماً، صريح في الـpayload).
+    salinity_ks = 1.0
+    if (
+        soil_ece is not None
+        and crop_salt_tolerance_ece is not None
+        and float(soil_ece) >= _SALINITY_MODERATE_ECE
+    ):
+        slope = _DEFAULT_SALT_SLOPE_PCT if salt_slope_pct is None else float(salt_slope_pct)
+        shim = _SaltToleranceShim(crop_salt_tolerance_ece, slope)
+        # نُعيد استخدام دالّة النواة (مصدر واحد لرياضيّات Maas-Hoffman) ثمّ نُثبّت
+        # النتيجة في [0,1] دفاعيّاً (الدالّة تُرجِع ≥0؛ نقصّ السقف احترازاً).
+        salinity_ks = max(0.0, min(1.0, _salinity_stress_ks(shim, float(soil_ece))))
+        if salinity_ks < 1.0:
+            etc = etc * salinity_ks
+            reasons.append(
+                f"تصحيح ملوحة محافظ: ECe التربة {float(soil_ece):.1f} dS/m يتجاوز عتبة "
+                f"المحصول {float(crop_salt_tolerance_ece):.1f} dS/m ⇒ Ks={salinity_ks:.2f} "
+                f"خفّض ETc إلى {etc:.1f} مم (الملوحة تقلّل امتصاص الماء؛ لا غسيل مضاف)."
+            )
+
+    # المطر الفعّال من المطر الأخير (USDA-SCS مبسّط، مُعاد استخدامه).
+    eff_rain = _effective_rain(max(0.0, rain_recent_mm))
+    net = max(0.0, etc - eff_rain)
+
     if eff_rain > 0:
         reasons.append(f"المطر الفعّال الأخير {eff_rain:.1f} مم خُصِم من الاحتياج.")
 
@@ -157,6 +222,7 @@ def irrigation_advice(
         "kc": round(kc, 2),
         "kc_used": round(kc, 2),
         "kc_source": kc_source,
+        "salinity_ks": round(salinity_ks, 3),
         "rationale_ar": rationale_ar,
     }
 
