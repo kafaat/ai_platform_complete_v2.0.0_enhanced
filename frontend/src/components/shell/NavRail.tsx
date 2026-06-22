@@ -14,7 +14,7 @@ import {
 import { useAuthStore } from '../../hooks/useAuth';
 import { wsService } from '../../services/websocket';
 import { canAccess } from '../../lib/permissions';
-import { NAV_SECTIONS, ALL_ROUTES, pageForPath, type RouteDef } from '../../lib/routes';
+import { NAV_SECTIONS, ALL_ROUTES, pageForPath, maturityBadge, type RouteDef } from '../../lib/routes';
 import { isPageEnabled } from '../../lib/featureFlags';
 
 interface NavRailProps {
@@ -44,6 +44,9 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
   const renderItem = (item: RouteDef) => {
     const Icon = item.icon;
     const active = activePage === item.id;
+    // شارة النضج (alpha/beta) تَخلُف «جديد» العشوائيّة؛ الشارة الدلاليّة
+    // (AI/WOFOST/دمج…) تبقى مكمّلةً لها حين توجد.
+    const mat = maturityBadge(item.maturity);
     return (
       <button key={item.id} onClick={() => go(item)}
         title={collapsed ? item.label : undefined}
@@ -57,6 +60,13 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
         {!collapsed && (
           <>
             <span className="text-sm flex-1 text-right">{item.label}</span>
+            {mat && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                title={`درجة النضج: ${mat.label}`}
+                style={{ background: mat.bg, color: mat.fg }}>
+                {mat.label}
+              </span>
+            )}
             {item.badge && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-full"
                 style={{ background: '#16a34a22', color: '#4ade80' }}>

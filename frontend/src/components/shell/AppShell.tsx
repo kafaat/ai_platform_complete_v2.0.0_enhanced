@@ -8,10 +8,12 @@
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import type { Theme } from '../../hooks/useTheme';
 import NavRail from './NavRail';
 import ContextBar from './ContextBar';
 import MobileTabBar from './MobileTabBar';
+import CommandPalette from './CommandPalette';
 
 interface AppShellProps {
   theme: Theme;
@@ -23,6 +25,7 @@ interface AppShellProps {
 
 export default function AppShell({ theme, setTheme, tenantName, tenantLogo, children }: AppShellProps) {
   const location = useLocation();
+  const reduce = useReducedMotion();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -54,10 +57,26 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
             tenantName={tenantName} tenantLogo={tenantLogo}
           />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
-            {children}
+            {/* انتقال صفحة لطيف (تلاشٍ/انزلاق) مفتاحه مسار URL — مع mode="wait"
+                كي يخرج القديم قبل دخول الجديد. يحترم prefers-reduced-motion
+                (يُلغى التحريك تماماً، فيبقى التبديل فوريّاً بلا حركة). */}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8 }}
+                animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
+                transition={{ duration: reduce ? 0 : 0.18, ease: 'easeOut' }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </main>
         </div>
       </div>
+
+      {/* لوحة الأوامر (⌘K) — تُدار حالتها داخليّاً، تُفتح عالميّاً. */}
+      <CommandPalette />
 
       {/* الشريط السفليّ — الموبايل فقط */}
       <MobileTabBar />

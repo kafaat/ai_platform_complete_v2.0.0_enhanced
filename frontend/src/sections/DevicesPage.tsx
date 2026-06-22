@@ -17,6 +17,10 @@ import { toastStore } from '../services/websocket';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import type { Device, DeviceType, TelemetryPoint } from '../services/api';
 import { asApiError } from '../services/api';
+import { Card, Button, Pill, SectionLabel } from '../components/ds/atoms';
+import { Input, Select } from '../components/ds/forms';
+import { DataTable, type Column } from '../components/ds/table';
+import { T } from '../components/ds/tokens';
 
 // تكوين الأنواع: تسمية عربيّة + أيقونة + لون لكل نوع جهاز مدعوم.
 const TYPE_CONFIG: Record<DeviceType, { label: string; icon: typeof Cpu; color: string }> = {
@@ -58,20 +62,16 @@ function fmtTime(iso: string): string {
   });
 }
 
-// ── مؤشّر الصحّة: نقطة خضراء (متصل) / رماديّة (غير متصل) ──────────────
+// ── مؤشّر الصحّة: نقطة خضراء (متصل) / محايدة (غير متصل) ──────────────
 function HealthDot({ online }: { online: boolean }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <span
-        className={`w-2.5 h-2.5 rounded-full ${online ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`}
-        aria-hidden="true"
-      />
-      <span className={`text-[11px] ${online ? 'text-emerald-400' : 'text-slate-500'}`}>
+    <Pill tone={online ? 'ok' : 'neutral'}>
+      <span className="inline-flex items-center gap-1">
         {online
           ? <span className="inline-flex items-center gap-1"><Wifi className="w-3 h-3" /> متصل</span>
           : <span className="inline-flex items-center gap-1"><WifiOff className="w-3 h-3" /> غير متصل</span>}
       </span>
-    </span>
+    </Pill>
   );
 }
 
@@ -82,35 +82,35 @@ function FieldSoilMoistureCard({ fieldId }: { fieldId: string }) {
   const { data, isLoading, isError } = useFieldSoilMoisture(fieldId);
 
   const wrap = (body: React.ReactNode) => (
-    <div className="rounded-lg p-3 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+    <Card pad={12} style={{ background: T.card2 }}>
       <div className="flex items-center gap-1.5 mb-1.5">
-        <Droplets className="w-3.5 h-3.5 text-sky-400" />
-        <span className="text-[11px] text-slate-400">رطوبة تربة الحقل (تُغذّي التنبيهات والريّ)</span>
-        <span className="text-[10px] text-slate-600 mr-auto">{fieldId}</span>
+        <Droplets className="w-3.5 h-3.5" style={{ color: T.info }} />
+        <span className="text-[11px]" style={{ color: T.muted }}>رطوبة تربة الحقل (تُغذّي التنبيهات والريّ)</span>
+        <span className="text-[10px] mr-auto" style={{ color: T.faint }}>{fieldId}</span>
       </div>
       {body}
-    </div>
+    </Card>
   );
 
   if (isLoading) {
-    return wrap(<span className="text-xs text-slate-500">جارٍ التحميل…</span>);
+    return wrap(<span className="text-xs" style={{ color: T.muted }}>جارٍ التحميل…</span>);
   }
   if (isError) {
-    return wrap(<span className="text-xs text-amber-500">تعذّر جلب رطوبة التربة.</span>);
+    return wrap(<span className="text-xs" style={{ color: T.warn }}>تعذّر جلب رطوبة التربة.</span>);
   }
   const reading = data?.reading ?? null;
   if (!reading) {
     return wrap(
-      <span className="text-xs text-slate-500">لا قراءة رطوبة تربة بعد لهذا الحقل.</span>,
+      <span className="text-xs" style={{ color: T.muted }}>لا قراءة رطوبة تربة بعد لهذا الحقل.</span>,
     );
   }
   return wrap(
     <div className="flex items-baseline gap-2">
-      <span className="text-2xl font-bold text-sky-400">
+      <span className="text-2xl font-bold" style={{ color: T.info }}>
         {reading.soil_moisture_pct.toFixed(0)}
-        <span className="text-sm font-normal text-slate-500"> {reading.unit ?? '٪'}</span>
+        <span className="text-sm font-normal" style={{ color: T.muted }}> {reading.unit ?? '٪'}</span>
       </span>
-      <span className="text-[11px] text-slate-500 mr-auto">آخر قراءة: {fmtTime(reading.recorded_at)}</span>
+      <span className="text-[11px] mr-auto" style={{ color: T.muted }}>آخر قراءة: {fmtTime(reading.recorded_at)}</span>
     </div>,
   );
 }
@@ -149,14 +149,31 @@ function DeviceTelemetry({ device }: { device: Device }) {
   const max = Math.max(...vals);
   const span = max - min || 1;
 
+  type TelemetryRow = TelemetryPoint & Record<string, unknown>;
+  const columns: Column<TelemetryRow>[] = [
+    { key: 'sensor_type', label: 'المستشعر', render: (p) => <span style={{ color: T.brownSoft }}>{p.sensor_type}</span> },
+    {
+      key: 'value', label: 'القيمة',
+      render: (p) => (
+        <span className="font-semibold" style={{ color: T.green }}>
+          {p.value}{p.unit ? <span className="font-normal" style={{ color: T.muted }}> {p.unit}</span> : null}
+        </span>
+      ),
+    },
+    {
+      key: 'recorded_at', label: 'الوقت',
+      render: (p) => <span className="text-xs" style={{ color: T.muted }}>{fmtTime(p.recorded_at)}</span>,
+    },
+  ];
+
   return (
     <div className="space-y-3">
       {/* sparkline-ish bars لأحدث نوع استشعار */}
       {series.length > 1 && (
-        <div className="rounded-lg p-3 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+        <Card pad={12} style={{ background: T.card2 }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] text-slate-400">{latestType}</span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px]" style={{ color: T.muted }}>{latestType}</span>
+            <span className="text-[11px]" style={{ color: T.muted }}>
               {series[series.length - 1].value}
               {series[series.length - 1].unit ? ` ${series[series.length - 1].unit}` : ''}
             </span>
@@ -165,38 +182,21 @@ function DeviceTelemetry({ device }: { device: Device }) {
             {series.map((p, i) => (
               <div
                 key={i}
-                className="flex-1 rounded-sm bg-emerald-500/70"
-                style={{ height: `${8 + ((p.value - min) / span) * 92}%` }}
+                className="flex-1 rounded-sm"
+                style={{ height: `${8 + ((p.value - min) / span) * 92}%`, background: T.green, opacity: 0.7 }}
                 title={`${p.value}${p.unit ? ' ' + p.unit : ''} · ${fmtTime(p.recorded_at)}`}
               />
             ))}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* جدول القياسات الحديثة */}
-      <div className="rounded-lg border overflow-hidden" style={{ borderColor: '#334155' }}>
-        <table className="w-full text-sm" dir="rtl">
-          <thead>
-            <tr className="text-[11px] text-slate-400" style={{ background: '#1e293b' }}>
-              <th className="text-right font-medium px-3 py-2">المستشعر</th>
-              <th className="text-right font-medium px-3 py-2">القيمة</th>
-              <th className="text-right font-medium px-3 py-2">الوقت</th>
-            </tr>
-          </thead>
-          <tbody>
-            {points.map((p, i) => (
-              <tr key={i} className="border-t" style={{ borderColor: '#1e293b' }}>
-                <td className="px-3 py-2 text-slate-300">{p.sensor_type}</td>
-                <td className="px-3 py-2 font-semibold text-emerald-400">
-                  {p.value}{p.unit ? <span className="text-slate-500 font-normal"> {p.unit}</span> : null}
-                </td>
-                <td className="px-3 py-2 text-slate-500 text-xs">{fmtTime(p.recorded_at)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable<TelemetryRow>
+        columns={columns}
+        rows={points as TelemetryRow[]}
+        rowKey={(_p, i) => String(i)}
+      />
     </div>
   );
 }
@@ -232,50 +232,51 @@ function RegisterDeviceForm() {
     }
   };
 
-  const inputCls = 'w-full px-3 py-2 rounded-lg text-sm';
-  const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
-
   return (
-    <form onSubmit={submit} className="rounded-xl p-4 border space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <div className="flex items-center gap-2">
-        <Plus className="w-4 h-4 text-emerald-400" />
-        <span className="text-sm font-semibold text-slate-200">تسجيل جهاز جديد</span>
-      </div>
+    <Card>
+      <form onSubmit={submit} className="space-y-3">
+        <SectionLabel>
+          <span className="inline-flex items-center gap-2">
+            <Plus className="w-4 h-4" style={{ color: T.green }} />
+            تسجيل جهاز جديد
+          </span>
+        </SectionLabel>
 
-      <div>
-        <label className="block text-xs text-slate-400 mb-1">اسم الجهاز *</label>
-        <input value={name} onChange={e => setName(e.target.value)} className={inputCls} style={inputStyle}
-          placeholder="مثال: مستشعر رطوبة وادي سبأ" />
-      </div>
+        <Input
+          label="اسم الجهاز" required
+          value={name} onChange={v => setName(v)}
+          placeholder="مثال: مستشعر رطوبة وادي سبأ"
+        />
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">النوع</label>
-          <select value={type} onChange={e => setType(e.target.value as DeviceType)} className={inputCls} style={inputStyle}>
-            {TYPE_ORDER.map(t => <option key={t} value={t}>{TYPE_CONFIG[t].label}</option>)}
-          </select>
+        <div className="grid grid-cols-2 gap-3">
+          <Select<DeviceType>
+            label="النوع"
+            value={type} onChange={v => setType(v)}
+            options={TYPE_ORDER.map(t => ({ value: t, label: TYPE_CONFIG[t].label }))}
+          />
+          <Input
+            label="معرّف الحقل (اختياري)"
+            value={fieldId} onChange={v => setFieldId(v)}
+            placeholder="field_01"
+          />
         </div>
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">معرّف الحقل (اختياري)</label>
-          <input value={fieldId} onChange={e => setFieldId(e.target.value)} className={inputCls} style={inputStyle}
-            placeholder="field_01" />
-        </div>
-      </div>
 
-      <div>
-        <label className="block text-xs text-slate-400 mb-1">إصدار البرنامج (اختياري)</label>
-        <input value={firmware} onChange={e => setFirmware(e.target.value)} className={inputCls} style={inputStyle}
-          placeholder="v1.0.0" />
-      </div>
+        <Input
+          label="إصدار البرنامج (اختياري)"
+          value={firmware} onChange={v => setFirmware(v)}
+          placeholder="v1.0.0"
+        />
 
-      <button type="submit" disabled={reg.isPending || !name.trim()}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-white disabled:opacity-50"
-        style={{ background: reg.isPending ? '#15803d' : '#16a34a' }}>
-        {reg.isPending
-          ? <><Loader2 className="w-4 h-4 animate-spin" /> جارٍ التسجيل…</>
-          : <><Plus className="w-4 h-4" /> تسجيل الجهاز</>}
-      </button>
-    </form>
+        <Button
+          disabled={reg.isPending || !name.trim()}
+          onClick={() => { void submit({ preventDefault: () => {} } as React.FormEvent); }}
+        >
+          {reg.isPending
+            ? <span className="inline-flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> جارٍ التسجيل…</span>
+            : <span className="inline-flex items-center justify-center gap-2"><Plus className="w-4 h-4" /> تسجيل الجهاز</span>}
+        </Button>
+      </form>
+    </Card>
   );
 }
 
@@ -294,19 +295,25 @@ export default function DevicesPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">أجهزة IoT</h2>
-          <p className="text-sm text-slate-400">أجهزة الاستشعار الميدانيّة وقياساتها الحيّة</p>
+          <h2 className="text-xl font-bold" style={{ color: T.ink }}>أجهزة IoT</h2>
+          <p className="text-sm" style={{ color: T.muted }}>أجهزة الاستشعار الميدانيّة وقياساتها الحيّة</p>
         </div>
         <div className="flex items-center gap-2">
           {!isLoading && !isError && (
-            <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-900">
-              <Wifi className="w-3 h-3" /> {onlineCount}/{devices.length} متصل
-            </span>
+            <Pill tone="ok" icon={<Wifi className="w-3 h-3" />}>
+              {onlineCount}/{devices.length} متصل
+            </Pill>
           )}
-          <button onClick={() => refetch()} disabled={isFetching}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-200 border border-slate-700 hover:border-emerald-700 disabled:opacity-50">
-            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} /> تحديث
-          </button>
+          <Button
+            tone="gold" full={false}
+            disabled={isFetching}
+            onClick={() => refetch()}
+            style={{ padding: '7px 12px', fontSize: 13 }}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} /> تحديث
+            </span>
+          </Button>
         </div>
       </div>
 
@@ -339,12 +346,16 @@ export default function DevicesPage() {
                   const Icon = cfg.icon;
                   const active = d.device_id === selectedId;
                   return (
-                    <button key={d.device_id} onClick={() => setSelectedId(d.device_id)}
-                      className="text-right rounded-xl p-3 border transition-all hover:border-emerald-700"
+                    <Card
+                      key={d.device_id}
+                      pad={12}
+                      onClick={() => setSelectedId(d.device_id)}
                       style={{
-                        background: active ? '#1e3a1e' : '#1e293b',
-                        borderColor: active ? '#16a34a' : '#334155',
-                      }}>
+                        textAlign: 'right',
+                        background: active ? T.card2 : T.card,
+                        border: `1px solid ${active ? T.green : T.line}`,
+                      }}
+                    >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
@@ -352,17 +363,17 @@ export default function DevicesPage() {
                             <Icon className="w-4 h-4" style={{ color: cfg.color }} />
                           </span>
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold text-slate-100 truncate">{d.name}</div>
-                            <div className="text-[11px] text-slate-500">{cfg.label}</div>
+                            <div className="text-sm font-semibold truncate" style={{ color: T.ink }}>{d.name}</div>
+                            <div className="text-[11px]" style={{ color: T.muted }}>{cfg.label}</div>
                           </div>
                         </div>
                         <HealthDot online={d.online} />
                       </div>
-                      <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                      <div className="mt-2 flex items-center justify-between text-[11px]" style={{ color: T.muted }}>
                         <span>آخر ظهور: {lastSeenAr(d.last_seen_at)}</span>
-                        {d.field_id && <span className="text-slate-600">{d.field_id}</span>}
+                        {d.field_id && <span style={{ color: T.faint }}>{d.field_id}</span>}
                       </div>
-                    </button>
+                    </Card>
                   );
                 })}
               </div>
@@ -370,11 +381,11 @@ export default function DevicesPage() {
 
             {/* قياسات الجهاز المحدّد */}
             {selected && (
-              <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+              <Card>
                 <div className="flex items-center gap-2 mb-3">
-                  <Activity className="w-4 h-4 text-emerald-400" />
-                  <span className="text-sm font-semibold text-slate-200">قياسات {selected.name}</span>
-                  <span className="text-[10px] text-slate-500 mr-auto">
+                  <Activity className="w-4 h-4" style={{ color: T.green }} />
+                  <span className="text-sm font-semibold" style={{ color: T.ink }}>قياسات {selected.name}</span>
+                  <span className="text-[10px] mr-auto" style={{ color: T.muted }}>
                     {selected.firmware_version ? `إصدار ${selected.firmware_version}` : ''}
                   </span>
                 </div>
@@ -384,7 +395,7 @@ export default function DevicesPage() {
                   </div>
                 )}
                 <DeviceTelemetry device={selected} />
-              </div>
+              </Card>
             )}
           </div>
 
@@ -393,9 +404,11 @@ export default function DevicesPage() {
             {mutateAllowed ? (
               <RegisterDeviceForm />
             ) : (
-              <div className="rounded-xl p-4 border text-center text-xs text-slate-500" style={{ background: '#1e293b', borderColor: '#334155' }}>
-                دورك الحاليّ للقراءة فقط — لا يمكن تسجيل الأجهزة.
-              </div>
+              <Card>
+                <div className="text-center text-xs" style={{ color: T.muted }}>
+                  دورك الحاليّ للقراءة فقط — لا يمكن تسجيل الأجهزة.
+                </div>
+              </Card>
             )}
           </div>
         </div>

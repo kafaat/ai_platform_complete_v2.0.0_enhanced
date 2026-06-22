@@ -13,13 +13,17 @@ import {
 } from 'lucide-react';
 import {
   getEntityLineage, getEntityEvents, getCommand,
-  type EntityLineage,
+  type EntityLineage, type SharingKey,
 } from '../services/api';
 import { useSharingKeys, useCreateSharingKey } from '../hooks/useApi';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { canManage } from '../lib/permissions';
 import { useAuthStore } from '../hooks/useAuth';
 import { toastStore } from '../services/websocket';
+import { Card as DSCard, Button, Pill, StatBox } from '../components/ds/atoms';
+import { Input, Select } from '../components/ds/forms';
+import { DataTable, type Column } from '../components/ds/table';
+import { T, RADIUS } from '../components/ds/tokens';
 
 // رسالة خطأ صادقة حسب رمز الحالة من الخادم (يطابق بقيّة الصفحات).
 function errorDetail(error: unknown): string {
@@ -42,11 +46,11 @@ export default function GovernancePage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto" dir="rtl">
       <header>
-        <h2 className="text-xl font-bold text-sahool-text flex items-center gap-2">
-          <ShieldCheck className="w-5 h-5 text-sahool-green" />
+        <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: T.ink }}>
+          <ShieldCheck className="w-5 h-5" style={{ color: T.green }} />
           الحوكمة والتدقيق
         </h2>
-        <p className="text-sm text-sahool-muted mt-1">
+        <p className="text-sm mt-1" style={{ color: T.muted }}>
           تتبّع أصل الكيانات وأحداثها وأوامرها، وإدارة مفاتيح المشاركة. سجلّ حقيقيّ
           عبر قاعدة البيانات (يُعرَض 503 بصدق عند تعطّلها) — بلا أيّ بيانات مُختلَقة.
         </p>
@@ -60,16 +64,16 @@ export default function GovernancePage() {
   );
 }
 
-// ── قسم بطاقة موحّد ──
+// ── قسم بطاقة موحّد (DS Card) ──
 function Card({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border border-sahool-border bg-sahool-surface/40 p-4">
-      <h3 className="text-sm font-bold text-sahool-text flex items-center gap-2 mb-3">
+    <DSCard>
+      <h3 className="text-sm font-bold flex items-center gap-2 mb-3" style={{ color: T.ink }}>
         {icon}
         {title}
       </h3>
       {children}
-    </section>
+    </DSCard>
   );
 }
 
@@ -83,33 +87,20 @@ function EntityInputs({
   const disabled = busy || !entityId.trim();
   return (
     <div className="flex flex-wrap items-end gap-2">
-      <label className="flex flex-col gap-1 text-xs text-sahool-muted">
-        نوع الكيان
-        <input
-          value={entityType}
-          onChange={(e) => setEntityType(e.target.value)}
-          placeholder="field"
-          className="px-2 py-1.5 rounded-lg bg-sahool-bg border border-sahool-border text-sm text-sahool-text w-32"
-        />
-      </label>
-      <label className="flex flex-col gap-1 text-xs text-sahool-muted flex-1 min-w-[180px]">
-        معرّف الكيان
-        <input
-          value={entityId}
-          onChange={(e) => setEntityId(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && !disabled) onSubmit(); }}
-          placeholder="field_..."
-          className="px-2 py-1.5 rounded-lg bg-sahool-bg border border-sahool-border text-sm text-sahool-text w-full"
-        />
-      </label>
-      <button
-        onClick={onSubmit}
-        disabled={disabled}
-        className="px-3 py-1.5 rounded-lg bg-sahool-green text-white text-sm disabled:opacity-50 flex items-center gap-1.5"
+      <div style={{ width: 128 }}>
+        <Input label="نوع الكيان" value={entityType} onChange={setEntityType} placeholder="field" />
+      </div>
+      <div
+        className="flex-1 min-w-[180px]"
+        onKeyDown={(e) => { if (e.key === 'Enter' && !disabled) onSubmit(); }}
       >
+        <Input label="معرّف الكيان" value={entityId} onChange={setEntityId} placeholder="field_..." />
+      </div>
+      <Button tone="green" full={false} disabled={disabled} onClick={onSubmit}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
         تتبّع
-      </button>
+      </Button>
     </div>
   );
 }
@@ -130,7 +121,7 @@ function LineageSection() {
   };
 
   return (
-    <Card icon={<GitBranch className="w-4 h-4 text-sahool-green" />} title="أصل الكيان (Lineage)">
+    <Card icon={<GitBranch className="w-4 h-4" style={{ color: T.green }} />} title="أصل الكيان (Lineage)">
       <EntityInputs
         entityType={entityType} setEntityType={setEntityType}
         entityId={entityId} setEntityId={setEntityId}
@@ -146,24 +137,27 @@ function LineageSection() {
             <EmptyState title="لا سجلّات أصل لهذا الكيان" />
           ) : (
             <div className="space-y-3">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                <Stat label="الإجمالي" value={st.data.total_entries} />
-                <Stat label="أوامر" value={st.data.commands_count} />
-                <Stat label="أحداث" value={st.data.events_count} />
-                <Stat label="الأحدث" value={fmtDate(st.data.latest_at)} />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <StatBox label="الإجمالي" value={st.data.total_entries} />
+                <StatBox label="أوامر" value={st.data.commands_count} />
+                <StatBox label="أحداث" value={st.data.events_count} />
+                <StatBox label="الأحدث" value={fmtDate(st.data.latest_at)} />
               </div>
-              <ol className="relative border-r border-sahool-border pr-4 space-y-2">
+              <ol className="relative space-y-2 pr-4" style={{ borderInlineStart: `1px solid ${T.line}` }}>
                 {st.data.entries.map((e, i) => (
                   <li key={i} className="text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] px-1.5 py-0.5 rounded bg-sahool-bg text-sahool-muted">
+                      <span
+                        className="text-[11px]"
+                        style={{ padding: '2px 6px', borderRadius: RADIUS.sm, background: T.card2, color: T.muted }}
+                      >
                         {e.source_type}
                       </span>
-                      <span className="text-sahool-text font-medium">{e.action ?? '—'}</span>
-                      <span className="text-[11px] text-sahool-muted">{fmtDate(e.timestamp)}</span>
+                      <span style={{ color: T.ink, fontWeight: 600 }}>{e.action ?? '—'}</span>
+                      <span className="text-[11px]" style={{ color: T.muted }}>{fmtDate(e.timestamp)}</span>
                     </div>
                     {e.summary_ar && (
-                      <p className="text-xs text-sahool-muted mt-0.5">{e.summary_ar}</p>
+                      <p className="text-xs mt-0.5" style={{ color: T.muted }}>{e.summary_ar}</p>
                     )}
                   </li>
                 ))}
@@ -192,7 +186,7 @@ function EventsSection() {
   };
 
   return (
-    <Card icon={<Search className="w-4 h-4 text-sahool-green" />} title="أحداث الكيان (Events)">
+    <Card icon={<Search className="w-4 h-4" style={{ color: T.green }} />} title="أحداث الكيان (Events)">
       <EntityInputs
         entityType={entityType} setEntityType={setEntityType}
         entityId={entityId} setEntityId={setEntityId}
@@ -207,7 +201,10 @@ function EventsSection() {
           st.data.length === 0 ? (
             <EmptyState title="لا أحداث لهذا الكيان" />
           ) : (
-            <pre className="text-xs text-sahool-muted bg-sahool-bg rounded-lg p-3 overflow-x-auto max-h-64">
+            <pre
+              className="text-xs rounded-lg p-3 overflow-x-auto max-h-64"
+              style={{ color: T.muted, background: T.card2 }}
+            >
               {JSON.stringify(st.data, null, 2)}
             </pre>
           )
@@ -233,26 +230,19 @@ function CommandSection() {
 
   const disabled = st.loading || !commandId.trim();
   return (
-    <Card icon={<Search className="w-4 h-4 text-sahool-green" />} title="البحث عن أمر (Command)">
+    <Card icon={<Search className="w-4 h-4" style={{ color: T.green }} />} title="البحث عن أمر (Command)">
       <div className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-col gap-1 text-xs text-sahool-muted flex-1 min-w-[180px]">
-          معرّف الأمر
-          <input
-            value={commandId}
-            onChange={(e) => setCommandId(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !disabled) run(); }}
-            placeholder="cmd_..."
-            className="px-2 py-1.5 rounded-lg bg-sahool-bg border border-sahool-border text-sm text-sahool-text w-full"
-          />
-        </label>
-        <button
-          onClick={run}
-          disabled={disabled}
-          className="px-3 py-1.5 rounded-lg bg-sahool-green text-white text-sm disabled:opacity-50 flex items-center gap-1.5"
+        <div
+          className="flex-1 min-w-[180px]"
+          onKeyDown={(e) => { if (e.key === 'Enter' && !disabled) run(); }}
         >
+          <Input label="معرّف الأمر" value={commandId} onChange={setCommandId} placeholder="cmd_..." />
+        </div>
+        <Button tone="green" full={false} disabled={disabled} onClick={run}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           {st.loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
           بحث
-        </button>
+        </Button>
       </div>
       <div className="mt-3">
         {st.loading && <LoadingState message="جارٍ البحث…" />}
@@ -264,7 +254,7 @@ function CommandSection() {
           )
         )}
         {!st.loading && st.done && st.error == null && st.data?.found && (
-          <p className="text-sm text-sahool-green flex items-center gap-2">
+          <p className="text-sm flex items-center gap-2" style={{ color: T.green }}>
             <ShieldCheck className="w-4 h-4" /> الأمر موجود: {st.data.command_id}
           </p>
         )}
@@ -304,68 +294,92 @@ function SharingSection({ manageable }: { manageable: boolean }) {
     );
   };
 
+  const columns: Column<SharingKey>[] = [
+    {
+      key: 'key_prefix',
+      label: 'المفتاح',
+      render: (k) => <code className="font-mono" style={{ color: T.ink }} dir="ltr">{k.key_prefix ?? k.key_id}</code>,
+    },
+    {
+      key: 'scope',
+      label: 'النطاق',
+      render: (k) => (k.scope ? <Pill tone="neutral">{k.scope}</Pill> : <span style={{ color: T.faint }}>—</span>),
+    },
+    {
+      key: 'expires_at',
+      label: 'تنتهي في',
+      render: (k) => <span style={{ color: T.muted }}>{fmtDate(k.expires_at as string | null)}</span>,
+    },
+    {
+      key: 'revoked_at',
+      label: 'الحالة',
+      render: (k) => (k.revoked_at != null ? <Pill tone="danger">ملغى</Pill> : <Pill tone="ok">فعّال</Pill>),
+    },
+  ];
+
   return (
-    <Card icon={<KeyRound className="w-4 h-4 text-sahool-green" />} title="مفاتيح المشاركة">
+    <Card icon={<KeyRound className="w-4 h-4" style={{ color: T.green }} />} title="مفاتيح المشاركة">
       {manageable && (
-        <div className="mb-4 p-3 rounded-lg border border-sahool-border bg-sahool-bg space-y-3">
+        <div
+          className="mb-4 space-y-3"
+          style={{ padding: 12, borderRadius: RADIUS.md, border: `1px solid ${T.line}`, background: T.card2 }}
+        >
           <div className="flex flex-wrap items-end gap-2">
-            <label className="flex flex-col gap-1 text-xs text-sahool-muted">
-              النطاق
-              <select
+            <div style={{ minWidth: 140 }}>
+              <Select<'read' | 'read_write'>
+                label="النطاق"
                 value={scope}
-                onChange={(e) => setScope(e.target.value as 'read' | 'read_write')}
-                className="px-2 py-1.5 rounded-lg bg-sahool-surface border border-sahool-border text-sm text-sahool-text"
-              >
-                <option value="read">قراءة</option>
-                <option value="read_write">قراءة وكتابة</option>
-              </select>
-            </label>
-            <label className="flex flex-col gap-1 text-xs text-sahool-muted">
-              صلاحيّة (يوم)
-              <input
+                onChange={setScope}
+                options={[
+                  { value: 'read', label: 'قراءة' },
+                  { value: 'read_write', label: 'قراءة وكتابة' },
+                ]}
+              />
+            </div>
+            <div style={{ width: 110 }}>
+              <Input
+                label="صلاحيّة (يوم)"
                 type="number"
-                min={1}
-                value={validDays}
-                onChange={(e) => setValidDays(Math.max(1, Number(e.target.value) || 1))}
-                className="px-2 py-1.5 rounded-lg bg-sahool-surface border border-sahool-border text-sm text-sahool-text w-24"
+                inputMode="numeric"
+                value={String(validDays)}
+                onChange={(v) => setValidDays(Math.max(1, Number(v) || 1))}
               />
-            </label>
-            <label className="flex flex-col gap-1 text-xs text-sahool-muted flex-1 min-w-[160px]">
-              اسم الطرف (اختياري)
-              <input
+            </div>
+            <div className="flex-1 min-w-[160px]">
+              <Input
+                label="اسم الطرف (اختياري)"
                 value={partyName}
-                onChange={(e) => setPartyName(e.target.value)}
+                onChange={setPartyName}
                 placeholder="المهندس الزراعيّ الموثوق"
-                className="px-2 py-1.5 rounded-lg bg-sahool-surface border border-sahool-border text-sm text-sahool-text w-full"
               />
-            </label>
-            <button
-              onClick={submit}
-              disabled={create.isPending}
-              className="px-3 py-1.5 rounded-lg bg-sahool-green text-white text-sm disabled:opacity-50 flex items-center gap-1.5"
-            >
+            </div>
+            <Button tone="green" full={false} disabled={create.isPending} onClick={submit}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               {create.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />}
               إنشاء مفتاح
-            </button>
+            </Button>
           </div>
 
           {plaintext && (
-            <div className="p-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-xs">
-              <p className="text-amber-400 flex items-center gap-1.5 mb-1">
+            <div
+              className="text-xs"
+              style={{ padding: 10, borderRadius: RADIUS.sm, border: `1px solid ${T.warn}66`, background: T.warnBg }}
+            >
+              <p className="flex items-center gap-1.5 mb-1" style={{ color: T.warn, fontWeight: 700 }}>
                 <AlertTriangle className="w-3.5 h-3.5" />
                 انسخ المفتاح الآن — لن يُعرَض مجدّداً.
               </p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 break-all text-sahool-text">{plaintext}</code>
+                <code className="flex-1 break-all" style={{ color: T.ink }}>{plaintext}</code>
                 <button
                   onClick={() => {
                     void navigator.clipboard?.writeText(plaintext);
                     toastStore.add('success', 'نسخ', 'نُسخ المفتاح');
                   }}
-                  className="p-1.5 rounded-lg border border-sahool-border hover:border-sahool-green"
+                  style={{ padding: 6, borderRadius: RADIUS.sm, border: `1px solid ${T.line}`, background: T.card, cursor: 'pointer' }}
                   title="نسخ"
                 >
-                  <Copy className="w-3.5 h-3.5 text-sahool-text" />
+                  <Copy className="w-3.5 h-3.5" style={{ color: T.ink }} />
                 </button>
               </div>
             </div>
@@ -381,39 +395,14 @@ function SharingSection({ manageable }: { manageable: boolean }) {
         !data || data.length === 0 ? (
           <EmptyState title="لا مفاتيح مشاركة" hint={manageable ? 'أنشئ مفتاحاً من الأعلى' : undefined} />
         ) : (
-          <ul className="space-y-2">
-            {data.map((k) => (
-              <li
-                key={k.key_id}
-                className="flex items-center justify-between p-2.5 rounded-lg border border-sahool-border bg-sahool-bg text-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <code className="text-sahool-text">{k.key_prefix ?? k.key_id}</code>
-                  {k.scope && (
-                    <span className="text-[11px] px-1.5 py-0.5 rounded bg-sahool-surface text-sahool-muted">
-                      {k.scope}
-                    </span>
-                  )}
-                  {k.revoked_at != null && (
-                    <span className="text-[11px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400">ملغى</span>
-                  )}
-                </div>
-                <span className="text-[11px] text-sahool-muted">{fmtDate(k.expires_at as string | null)}</span>
-              </li>
-            ))}
-          </ul>
+          <DataTable<SharingKey>
+            columns={columns}
+            rows={data}
+            rowKey={(k) => k.key_id}
+          />
         )
       )}
     </Card>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-lg bg-sahool-bg border border-sahool-border py-2">
-      <div className="text-sahool-text font-bold text-sm">{value}</div>
-      <div className="text-[11px] text-sahool-muted">{label}</div>
-    </div>
   );
 }
 

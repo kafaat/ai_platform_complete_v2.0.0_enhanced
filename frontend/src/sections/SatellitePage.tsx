@@ -1,13 +1,22 @@
-// SAHOOL v9 — SatellitePage.tsx (v3)
-// ✅ خريطة Leaflet حقيقيّة (FieldIndicatorMap) ببلاطات مؤشّر من raster-service
-//    بدل الشبكة المتدرّجة + NDVI الجيبيّ الوهميّ السابق.
-// ✅ الحقول من القاعدة (useFields) بدل قائمة مُبرمَجة.
-import { useState, useEffect, useMemo } from 'react';
-import { Satellite, Layers, Calendar, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows, Ruler } from 'lucide-react';
+// SAHOOL v9 — SatellitePage.tsx (v4 · صحّة الحقل طراز FieldView)
+// ✅ سطح «صحّة الحقل» بثلاثة أوضاع عبر مبدّل مقسَّم (LayerSwitcher):
+//    • الاستطلاع (Scouting): تباين مناطقيّ (management zones) + دبابيس مشاهدات
+//      محلّيّة للجلسة (لا GET للقراءة في الخادم — TODO موثّق).
+//    • النباتيّ (Vegetation): NDVI/NDMI زمنيّاً ببلاطات المؤشّر + شريط زمنيّ.
+//    • اللون الحقيقيّ (True-Color): صور الأساس فقط (طبقة المؤشّر مخفيّة).
+// ✅ شريط/منزلق زمنيّ (DateScrubber) يصفّح تواريخ COG الحقيقيّة من raster-service.
+// ✅ خريطة Leaflet حقيقيّة (FieldIndicatorMap) ببلاطات مؤشّر من raster-service.
+// ✅ الحقول من القاعدة (useSelectedField). كلّ البيانات حقيقيّة أو حالة فارغة صادقة.
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Satellite, Layers, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows, Ruler,
+  Sprout, Leaf, Image as ImageIcon,
+} from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFieldTimeseries, useFieldChange, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -15,6 +24,11 @@ import { geomToPolygon } from '../lib/geo';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useIndicatorsCatalog } from '../hooks/useApi';
 import type { CatalogIndicator } from '../hooks/useApi';
+import { LayerSwitcher } from '../components/ds';
+import {
+  DateScrubber, ScoutingMap, ScoutingPinPanel,
+  type ScrubberPoint, type ScoutPin, type PinCategory,
+} from '../components/fieldhealth';
 
 // مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
 // لا بقائمة مُبرمَجة — مصدر حقيقة واحد للقابل للرسم (لا طبقة ميتة ولا مفقودة).
@@ -38,6 +52,9 @@ const IND_META_DEFAULT = { color:'#6b7280', icon:'🛰️', desc:'' };
 // قائمة احتياطيّة (الطبقات القابلة للرسم) إن تعذّر الكتالوج — كي لا تنكسر الخريطة.
 const FALLBACK_RENDERABLE = ['ndvi','evi','ndre','msavi','savi','gndvi','ndwi','ndmi','msi','salinity'];
 
+// أوضاع «صحّة الحقل» الثلاثة (FieldView Field Health).
+type HealthMode = 'scouting' | 'vegetation' | 'truecolor';
+
 function ndviColor(v: number) {
   if (v > 0.7) return '#16a34a';
   if (v > 0.5) return '#65a30d';
@@ -52,16 +69,46 @@ function ndviLabel(v: number) {
   return 'منخفض';
 }
 
+// لون شدّة منطقة الإدارة (low→high) — للعرض في لوحة الاستطلاع.
+const ZONE_COLOR: Record<string, string> = {
+  low: '#dc2626', medium: '#f59e0b', high: '#16a34a',
+};
+function zoneColor(zone: string): string {
+  return ZONE_COLOR[zone] ?? '#0ea5e9';
+}
+
 export default function SatellitePage() {
   // «الحقل النشط» المشترك (useSelectedField): قائمة الحقول + الاختيار المشترك +
   // الافتراض للأوّل — يتبع المستخدم عبر الشاشات بدل اختيار محليّ يضيع عند التنقّل.
   const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch, fieldId, setFieldId } = useSelectedField();
+
+  // وضع صحّة الحقل (افتراضيّاً النباتيّ — السلوك السابق للصفحة).
+  const [mode, setMode] = useState<HealthMode>('vegetation');
 
   const [activeIndex, setActiveIndex] = useState('ndvi');
   const [days,        setDays]        = useState(30);
   const [showLayers,  setShowLayers]  = useState(true);
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
   const [measureTools, setMeasureTools] = useState(false);
+
+  // ── دبابيس الاستطلاع المحلّيّة للجلسة (لا GET للقراءة في الخادم — TODO موثّق) ──
+  // الخادم لا يوفّر قراءة (GET) لمشاهدات مُخزَّنة (scouting pins/timeline POST فقط).
+  // فالدبابيس هنا state في الذاكرة فقط: لا تُحفَظ ولا تُجلَب، وتختفي بإعادة التحميل.
+  const [pins, setPins] = useState<ScoutPin[]>([]);
+  const [pinCategory, setPinCategory] = useState<PinCategory>('disease');
+  // مفتاح الجلسة لكلّ حقل — تبديل الحقل يُفرِغ الدبابيس (مشاهدات مرتبطة بحقلها).
+  useEffect(() => { setPins([]); }, [fieldId]);
+
+  const handleDropPin = useCallback((lat: number, lon: number) => {
+    setPins((prev) => [
+      ...prev,
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, lat, lon, category: pinCategory, note: '', createdAt: new Date().toISOString() },
+    ]);
+  }, [pinCategory]);
+  const handleRemovePin = useCallback((id: string) => {
+    setPins((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+  const handleClearPins = useCallback(() => setPins([]), []);
 
   // طبقات قابلة للرسم من الكتالوج (renderable=true)، مزيّنة بعرض محلّيّ. عند
   // تعذّر الكتالوج تسقط لقائمة احتياطيّة فلا تنكسر الخريطة. الاسم من الكتالوج.
@@ -111,6 +158,14 @@ export default function SatellitePage() {
   const { data: change, isLoading: changeLoading, isError: changeError } =
     useFieldChange(fieldId, gridIndex, dateA, dateB, { enabled: !!dateA && !!dateB && dateA !== dateB });
 
+  // ── وصفة مناطق الإدارة (variability المناطقيّ) — لوضع الاستطلاع ──
+  // تقسيم كوانتايل من شبكة المؤشّر (raster-service). real_data=false ⇒ توضيحيّ.
+  const { data: rxResp } = useFieldPrescription(fieldId, gridIndex, 'latest', { nZones: 3, enabled: mode === 'scouting' && !!fieldId });
+  const rxZones = useMemo(
+    () => (Array.isArray(rxResp?.zones) ? rxResp.zones : []),
+    [rxResp],
+  );
+
   // نقطة سلسلة زمنيّة كما تقرؤها هذه الشاشة: تاريخ (موجود دائماً للنقطة) + NDVI اختياريّ.
   type TsPoint = { date: string; ndvi?: number };
   const tsRaw = tsData as { timeseries?: TsPoint[]; data?: TsPoint[] } | undefined;
@@ -119,7 +174,7 @@ export default function SatellitePage() {
   // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
   // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.
   // cloud: نسبة الغيوم لكلّ تاريخ (raster فقط) — null في مصدر vegetation البديل.
-  const stripPoints = Array.isArray(rasterPoints) && rasterPoints.length
+  const stripPoints: ScrubberPoint[] = Array.isArray(rasterPoints) && rasterPoints.length
     ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean, cloud: p.cloudy_pct ?? null }))
     : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null }));
 
@@ -127,26 +182,20 @@ export default function SatellitePage() {
   const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');
 
   // إخفاء الأيّام الغائمة (نمط FieldView): يُسقط النقاط التي تتجاوز عتبة الغيوم.
-  // غير مُفعَّل ما لم يتوفّر cloudy_pct (تعطيل رشيق لمصدر vegetation البديل).
   const [hideCloudy, setHideCloudy] = useState(false);
   const CLOUD_THRESHOLD = 50;
   const visiblePoints = (hideCloudy && hasCloudData)
     ? stripPoints.filter((p) => !(typeof p.cloud === 'number' && p.cloud > CLOUD_THRESHOLD))
     : stripPoints;
 
-  // البلاطات مدفوعة بالبيانات بالكامل (لا تواريخ ثابتة): تنمو مع وصول نقاط جديدة.
-  // الشريط قابل للتمرير أفقيّاً، فلا نحدّ العدد بثمانٍ — نعرض كلّ النقاط المرئيّة.
-  const thumbs = visiblePoints;
-
   // قائمة التواريخ المرئيّة مُستقرّة المرجع (مفتاح نصّيّ) — كي لا يُعاد تشغيل
-  // التأثير كلّ تصيير (نمط availableDates أعلاه).
+  // التأثير كلّ تصيير.
   const visibleDates = useMemo(
     () => visiblePoints.map((p) => p.date).filter(Boolean),
     [visiblePoints.map((p) => p.date).join('|')], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  // التاريخ المختار يقود طبقة الخريطة (نقر البلاطة). الافتراض: أحدث تاريخ مرئيّ.
-  // data-driven: لا قيمة ثابتة — نُعيد المزامنة كلّما تغيّرت النقاط/التصفية.
+  // التاريخ المختار يقود طبقة الخريطة (تمرير/نقر الشريط). الافتراض: أحدث تاريخ مرئيّ.
   const [selectedDate, setSelectedDate] = useState('');
   useEffect(() => {
     if (!visibleDates.length) { setSelectedDate(''); return; }
@@ -165,20 +214,33 @@ export default function SatellitePage() {
       ? [field.lon - 0.01, field.lat - 0.01, field.lon + 0.01, field.lat + 0.01]
       : undefined;
 
+  // وسم مصدر بيانات الشريط الزمنيّ (متوسّطات حقيقيّة من raster عند توفّرها).
+  const scrubberBadge = rasterPoints.length > 0 ? (
+    <span style={{ fontSize: 10, padding: '2px 6px', borderRadius: 999, background: '#052e16', color: '#4ade80', border: '1px solid #14532d' }}>
+      متوسّطات حقيقيّة · {gridIndex.toUpperCase()}
+    </span>
+  ) : undefined;
+
+  // مبدّل الأوضاع الثلاثة (LayerSwitcher من نظام التصميم).
+  const modeLayers = [
+    { id: 'scouting' as const,  label: 'الاستطلاع',     icon: <Sprout style={{ width: 13, height: 13 }} /> },
+    { id: 'vegetation' as const, label: 'النباتيّ',      icon: <Leaf style={{ width: 13, height: 13 }} /> },
+    { id: 'truecolor' as const,  label: 'اللون الحقيقيّ', icon: <ImageIcon style={{ width: 13, height: 13 }} /> },
+  ];
+
   return (
     <div className="space-y-4 max-w-7xl mx-auto" dir="rtl">
       {/* Header */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">الأقمار الصناعية</h2>
+          <h2 className="text-xl font-bold text-slate-100">صحّة الحقل</h2>
           <p className="text-sm text-slate-400">Sentinel-2 L2A · Copernicus · كل 5 أيام</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] bg-emerald-950 text-emerald-400 border border-emerald-900">
             <Wifi className="w-3 h-3" /> Copernicus CDSE
           </span>
-          {/* مُبدِّل أدوات القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً
-              فلا يتأثّر مستهلكو FieldIndicatorMap الآخرون (التمرير tools=measureTools). */}
+          {/* مُبدِّل أدوات القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً. */}
           <button onClick={() => setMeasureTools((v) => !v)}
             aria-pressed={measureTools}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors"
@@ -195,6 +257,16 @@ export default function SatellitePage() {
         </div>
       </div>
 
+      {/* مبدّل أوضاع صحّة الحقل (استطلاع · نباتيّ · لون حقيقيّ) */}
+      <div className="rounded-xl p-2.5 border flex items-center gap-3 flex-wrap" style={{ background:'#1e293b', borderColor:'#334155' }}>
+        <LayerSwitcher layers={modeLayers} active={mode} onChange={setMode} />
+        <span className="text-[11px] text-slate-500 mr-auto">
+          {mode === 'scouting'   && 'تباين مناطقيّ + دبابيس مشاهدات (محلّيّة للجلسة)'}
+          {mode === 'vegetation' && 'مؤشّر نباتيّ زمنيّ (NDVI/NDMI) — بلاطات + سلسلة'}
+          {mode === 'truecolor'  && 'صور الأساس الحقيقيّة فقط (بلا طبقة مؤشّر)'}
+        </span>
+      </div>
+
       {/* لا حقول حقيقيّة بعد → حالة صادقة بدل خريطة وهميّة */}
       {fieldsLoading ? (
         <LoadingState message="جارٍ تحميل الحقول…" />
@@ -207,115 +279,118 @@ export default function SatellitePage() {
         />
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* Map */}
+        {/* Map column */}
         <div className="lg:col-span-3 space-y-3">
           {/* شريط مصدر البيانات: بلاطات حقيقيّة أم لا توجد بعد (صدق المصدر) */}
-          <div className="flex items-center gap-2 text-[11px] px-3 py-2 rounded-lg border"
-            style={hasGrid
-              ? { background:'#13301f', borderColor:'#2d6a3e', color:'#9fe6b4' }
-              : { background:'#3a2e14', borderColor:'#7a5a1a', color:'#f0d68a' }}>
-            <MapIcon className="w-3.5 h-3.5" />
-            {hasGrid
-              ? `بلاطات حقيقيّة · Sentinel-2 (Element84)${gridResp?.date ? ` · ${gridResp.date}` : ''}`
-              : 'لا توجد بلاطات مؤشّر لهذا الحقل بعد — اضغط «تحليل الآن» أو تحقّق من معالجة الراستر. الخريطة تعرض الأساس والحدود فقط.'}
-          </div>
-
-          {/* خريطة Leaflet حقيقيّة ببلاطات المؤشّر مقصوصة فوق الحقل */}
-          <FieldIndicatorMap
-            key={fieldId}
-            fieldId={fieldId}
-            index={gridIndex}
-            date={mapDate}
-            fieldPolygon={fieldPolygon}
-            fallbackBounds={fallbackBounds}
-            basemap="satellite"
-            initialOpacity={0.75}
-            height={400}
-            tools={measureTools}
-          />
-
-          {/* Thumbnail strip (سلسلة زمنيّة حقيقيّة من vegetation-service) */}
-          <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-semibold text-slate-300">الشريط الزمني</span>
-              {rasterPoints.length > 0 && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-900">
-                  متوسّطات حقيقيّة · {gridIndex.toUpperCase()}
-                </span>
-              )}
-              {/* إخفاء الأيّام الغائمة (نمط FieldView) — يظهر فقط حين يوفّر المصدر
-                  cloudy_pct؛ تعطيل رشيق لمصدر vegetation البديل. */}
-              {hasCloudData && (
-                <label className="flex items-center gap-1.5 mr-auto cursor-pointer select-none text-[11px] text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={hideCloudy}
-                    onChange={(e)=>setHideCloudy(e.target.checked)}
-                    style={{ accentColor:'#16a34a' }}
-                  />
-                  إخفاء الأيّام الغائمة
-                </label>
-              )}
-              <div className={`flex gap-1 ${hasCloudData ? '' : 'mr-auto'}`}>
-                {[14,30,60].map(d=>(
-                  <button key={d} onClick={()=>setDays(d)}
-                    className="px-2 py-0.5 rounded text-[11px]"
-                    style={{ background:days===d?'#16a34a22':'transparent', color:days===d?'#4ade80':'#64748b', border:`1px solid ${days===d?'#16a34a44':'#334155'}` }}>
-                    {d}ي
-                  </button>
-                ))}
-              </div>
+          {mode !== 'truecolor' && (
+            <div className="flex items-center gap-2 text-[11px] px-3 py-2 rounded-lg border"
+              style={hasGrid
+                ? { background:'#13301f', borderColor:'#2d6a3e', color:'#9fe6b4' }
+                : { background:'#3a2e14', borderColor:'#7a5a1a', color:'#f0d68a' }}>
+              <MapIcon className="w-3.5 h-3.5" />
+              {hasGrid
+                ? `بلاطات حقيقيّة · Sentinel-2 (Element84)${gridResp?.date ? ` · ${gridResp.date}` : ''}`
+                : 'لا توجد بلاطات مؤشّر لهذا الحقل بعد — اضغط «تحليل الآن» أو تحقّق من معالجة الراستر. الخريطة تعرض الأساس والحدود فقط.'}
             </div>
-            {(rasterTsLoading || tsLoading) ? (
-              <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 text-emerald-500 animate-spin" /></div>
-            ) : rasterTsError && !thumbs.length ? (
-              <p className="text-amber-400/80 text-xs py-4 w-full text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
-            ) : (
-              <div className="flex gap-2 overflow-x-auto pb-1 min-h-[72px]">
-                {(Array.isArray(thumbs) ? thumbs : []).map((t,i)=>{
-                  const v = t.value||0; const c = ndviColor(v);
-                  const selected = !!t.date && t.date === selectedDate;
-                  const cloudy = typeof t.cloud === 'number' && t.cloud > CLOUD_THRESHOLD;
-                  // نقر البلاطة يختار تاريخها ⇒ يتغيّر mapDate ⇒ طبقة الخريطة تتبدّل
-                  // (FieldIndicatorMap يُمرّر date عبر استعلام بلاطات/tilejson).
-                  return (
-                    <button
-                      key={t.date || i}
-                      type="button"
-                      onClick={()=> t.date && setSelectedDate(t.date)}
-                      title={t.date ? (cloudy ? `${t.date} · غائم` : t.date) : ''}
-                      className="flex-shrink-0 cursor-pointer text-right rounded-lg p-0.5 transition-all"
-                      style={{ width:72,
-                        outline: selected ? `2px solid ${c}` : '2px solid transparent',
-                        outlineOffset: 1,
-                        background: selected ? `${c}1a` : 'transparent' }}
-                    >
-                      <div className="h-10 rounded-lg mb-1 border relative" style={{
-                        borderColor: selected ? c : '#334155',
-                        background:`linear-gradient(135deg,${c}44,${c}88,${c}44)`
-                      }}>
-                        {cloudy && (
-                          <span className="absolute top-0.5 left-0.5 text-[10px] leading-none" title="يوم غائم">☁️</span>
-                        )}
-                      </div>
-                      <div className="text-center text-[10px]">
-                        <div className="font-bold" style={{color:c}}>{v.toFixed(2)}</div>
-                        <div className={selected ? 'text-slate-200' : 'text-slate-500'}>{t.date?.slice(5)||''}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-                {!thumbs.length && (
-                  <p className="text-slate-500 text-xs py-4 w-full text-center">
-                    {hideCloudy && hasCloudData
-                      ? 'كلّ التواريخ المتاحة غائمة — أوقِف «إخفاء الأيّام الغائمة» لعرضها.'
-                      : 'لا توجد متوسّطات مؤشّر بعد — اضغط "تحليل الآن" لمعالجة صور Sentinel-2.'}
-                  </p>
+          )}
+
+          {/* الخريطة — تتبدّل حسب الوضع، بانتقال framer-motion */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18 }}
+            >
+              {mode === 'scouting' ? (
+                <ScoutingMap
+                  fieldId={fieldId}
+                  index={gridIndex}
+                  date={mapDate}
+                  fieldPolygon={fieldPolygon}
+                  fallbackBounds={fallbackBounds}
+                  pins={pins}
+                  onDropPin={handleDropPin}
+                  onRemovePin={handleRemovePin}
+                  height={400}
+                />
+              ) : mode === 'truecolor' ? (
+                // اللون الحقيقيّ: صور الأساس (Esri World Imagery) فقط. طبقة المؤشّر
+                // تبدأ بشفافيّة صفر (مخفيّة) — صدق: لا نُلفّق مشهد لون-حقيقيّ من
+                // Sentinel، نعرض الأساس الجوّيّ. يمكن للمستخدم رفع الشفافيّة لكشف
+                // المؤشّر فوق نفس الأساس إن رغب (نفس التاريخ الحقيقيّ، لا طلب وهميّ).
+                <FieldIndicatorMap
+                  key={`${fieldId}-truecolor`}
+                  fieldId={fieldId}
+                  index={gridIndex}
+                  date={mapDate}
+                  fieldPolygon={fieldPolygon}
+                  fallbackBounds={fallbackBounds}
+                  basemap="satellite"
+                  initialOpacity={0}
+                  height={400}
+                  tools={measureTools}
+                />
+              ) : (
+                <FieldIndicatorMap
+                  key={fieldId}
+                  fieldId={fieldId}
+                  index={gridIndex}
+                  date={mapDate}
+                  fieldPolygon={fieldPolygon}
+                  fallbackBounds={fallbackBounds}
+                  basemap="satellite"
+                  initialOpacity={0.75}
+                  height={400}
+                  tools={measureTools}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+
+          {/* الشريط الزمنيّ (date scrubber) — تواريخ COG حقيقيّة. يظهر للأوضاع
+              التي تعتمد طبقة المؤشّر (استطلاع/نباتيّ)؛ اللون الحقيقيّ لا يحتاجه. */}
+          {mode !== 'truecolor' && (
+            <div className="space-y-2">
+              {/* مبدّلات الفترة + إخفاء الغائم (نمط FieldView) */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {hasCloudData && (
+                  <label className="flex items-center gap-1.5 cursor-pointer select-none text-[11px] text-slate-300">
+                    <input type="checkbox" checked={hideCloudy} onChange={(e)=>setHideCloudy(e.target.checked)} style={{ accentColor:'#16a34a' }} />
+                    إخفاء الأيّام الغائمة
+                  </label>
                 )}
+                <div className="flex gap-1 mr-auto">
+                  {[14,30,60].map(d=>(
+                    <button key={d} onClick={()=>setDays(d)}
+                      className="px-2 py-0.5 rounded text-[11px]"
+                      style={{ background:days===d?'#16a34a22':'transparent', color:days===d?'#4ade80':'#64748b', border:`1px solid ${days===d?'#16a34a44':'#334155'}` }}>
+                      {d}ي
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
+
+              {(rasterTsLoading || tsLoading) ? (
+                <div className="flex justify-center py-4 rounded-xl border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+                  <Loader2 className="w-5 h-5 text-emerald-500 animate-spin" />
+                </div>
+              ) : rasterTsError && !visiblePoints.length ? (
+                <div className="rounded-xl border p-3" style={{ background:'#1e293b', borderColor:'#334155' }}>
+                  <p className="text-amber-400/80 text-xs text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
+                </div>
+              ) : (
+                <DateScrubber
+                  points={visiblePoints}
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  cloudThreshold={CLOUD_THRESHOLD}
+                  badge={scrubberBadge}
+                />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Side panel */}
@@ -343,46 +418,95 @@ export default function SatellitePage() {
             </div>
           </div>
 
-          {/* Layers */}
-          <div className="rounded-xl border overflow-hidden" style={{ background:'#1e293b', borderColor:'#334155' }}>
-            <button onClick={()=>setShowLayers(!showLayers)}
-              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-800 transition-colors">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-slate-400" />
-                <span className="text-sm font-semibold text-slate-200">الطبقات</span>
-              </div>
-              <span className="text-slate-500 text-xs">{showLayers?'▲':'▼'}</span>
-            </button>
-            {showLayers && (
-              <div className="px-2 pb-3 space-y-1">
-                {/* كلّ المعروض قابل للرسم (الكتالوج · renderable) — لا تعطيل ولا تضليل */}
-                {indices.map(ind=>(
-                  <button key={ind.id}
-                    onClick={()=> setActiveIndex(ind.id)}
-                    className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right"
-                    style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
-                      border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
-                    <span>{ind.icon}</span>
-                    <div className="flex-1">
-                      <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
-                      <div className="text-[10px] text-slate-600">{ind.desc}</div>
+          {/* ── لوحة جانبيّة خاصّة بالوضع ── */}
+          {mode === 'scouting' ? (
+            <>
+              {/* دبابيس الاستطلاع (محلّيّة للجلسة — TODO موثّق) */}
+              <ScoutingPinPanel
+                pins={pins}
+                activeCategory={pinCategory}
+                onCategoryChange={setPinCategory}
+                onRemove={handleRemovePin}
+                onClear={handleClearPins}
+              />
+
+              {/* مناطق التباين (management zones) — من raster-service */}
+              <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Layers className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-semibold text-slate-200">مناطق التباين</span>
+                  <span className="text-[10px] text-slate-500 mr-auto">{gridIndex.toUpperCase()}</span>
+                </div>
+                {rxZones.length === 0 ? (
+                  <p className="text-[11px] text-slate-500 py-2">
+                    لا تقسيم مناطقيّ بعد — يلزم شبكة مؤشّر مُعالَجة (اضغط «تحليل الآن»).
+                  </p>
+                ) : (
+                  <>
+                    {!rxResp?.real_data && (
+                      <p className="text-[10px] text-amber-400/80 mb-2">⚠️ عرض توضيحيّ (لا شبكة حقيقيّة) — لا تتّخذ قرارات بناءً عليه.</p>
+                    )}
+                    <div className="space-y-1.5">
+                      {rxZones.map((z) => (
+                        <div key={z.zone} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background:'#0f1117' }}>
+                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: zoneColor(z.zone) }} />
+                          <span className="text-xs text-slate-200 flex-1">{z.zone}</span>
+                          <span className="text-[10px] text-slate-400">{z.pct}%</span>
+                          <span className="text-[10px] text-slate-500">
+                            [{z.value_range[0].toFixed(2)}–{z.value_range[1].toFixed(2)}]
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  </button>
-                ))}
+                  </>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <>
+              {/* Layers (اختيار المؤشّر) — للأوضاع النباتيّة/اللون الحقيقيّ */}
+              <div className="rounded-xl border overflow-hidden" style={{ background:'#1e293b', borderColor:'#334155' }}>
+                <button onClick={()=>setShowLayers(!showLayers)}
+                  className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-800 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-slate-400" />
+                    <span className="text-sm font-semibold text-slate-200">الطبقات</span>
+                  </div>
+                  <span className="text-slate-500 text-xs">{showLayers?'▲':'▼'}</span>
+                </button>
+                {showLayers && (
+                  <div className="px-2 pb-3 space-y-1">
+                    {indices.map(ind=>(
+                      <button key={ind.id}
+                        onClick={()=> setActiveIndex(ind.id)}
+                        className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all text-right"
+                        style={{ background:activeIndex===ind.id?`${ind.color}22`:'transparent',
+                          border:`1px solid ${activeIndex===ind.id?ind.color+'44':'transparent'}` }}>
+                        <span>{ind.icon}</span>
+                        <div className="flex-1">
+                          <div className="text-sm" style={{color:activeIndex===ind.id?ind.color:'#94a3b8'}}>{ind.name}</div>
+                          <div className="text-[10px] text-slate-600">{ind.desc}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-          {/* Legend */}
-          <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
-            <div className="text-[11px] text-slate-400 mb-1.5">مقياس {idx.name}</div>
-            <div className="h-3 rounded-full" style={{ background:'linear-gradient(to right,#dc2626,#f97316,#f59e0b,#65a30d,#16a34a)' }} />
-            <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-              <span>0.2- (تربة)</span><span>0.9+ (صحي)</span>
-            </div>
-          </div>
+              {/* Legend */}
+              <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
+                <div className="text-[11px] text-slate-400 mb-1.5">مقياس {idx.name}</div>
+                <div className="h-3 rounded-full" style={{ background:'linear-gradient(to right,#dc2626,#f97316,#f59e0b,#65a30d,#16a34a)' }} />
+                <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                  <span>0.2- (تربة)</span><span>0.9+ (صحي)</span>
+                </div>
+              </div>
+            </>
+          )}
 
-          {/* كشف التغيّر بين تاريخين (per-pixel، بيانات COG حقيقيّة فقط) */}
+          {/* كشف التغيّر بين تاريخين (per-pixel، بيانات COG حقيقيّة فقط) — للأوضاع
+              المعتمدة على المؤشّر (لا في اللون الحقيقيّ). */}
+          {mode !== 'truecolor' && (
           <div className="rounded-xl p-3 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
             <div className="flex items-center gap-2 mb-2">
               <GitCompareArrows className="w-4 h-4 text-sky-400" />
@@ -456,11 +580,13 @@ export default function SatellitePage() {
               </>
             )}
           </div>
+          )}
         </div>
       </div>
       )}
 
-      {/* Time-series chart */}
+      {/* Time-series chart — للأوضاع المعتمدة على المؤشّر (لا في اللون الحقيقيّ) */}
+      {mode !== 'truecolor' && (
       <div className="rounded-xl p-4 border" style={{ background:'#1e293b', borderColor:'#334155' }}>
         <div className="flex items-center gap-2 mb-4">
           <Satellite className="w-4 h-4 text-emerald-400" />
@@ -493,6 +619,7 @@ export default function SatellitePage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

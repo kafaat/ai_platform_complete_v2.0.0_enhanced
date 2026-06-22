@@ -4,17 +4,27 @@
 // على الانتهاء. الكتابة (إضافة صنف/دفعة) مُقيَّدة بالدور (canMutate). لا أرقام
 // مُلفَّقة — عند الخطأ/الفراغ تُعرض حالة صادقة (StateViews). 503 عند تعطيل DB.
 // ═══════════════════════════════════════════════════════════════
-import { useState, Fragment } from 'react';
-import { Boxes, PackagePlus, PlusCircle, AlertTriangle, CalendarClock, X } from 'lucide-react';
+import { useState } from 'react';
+import { Boxes, PackagePlus, PlusCircle, AlertTriangle, CalendarClock } from 'lucide-react';
 import {
   useInventoryItems, useExpiringBatches,
   useCreateInventoryItem, useAddInventoryBatch,
 } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
-import type { InventoryItem, NewInventoryItem, NewInventoryBatch } from '../services/api';
+import type { InventoryItem, ExpiringBatch, NewInventoryItem, NewInventoryBatch } from '../services/api';
 import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { Card, Button, Pill } from '../components/ds/atoms';
+import { Input } from '../components/ds/forms';
+import { Modal } from '../components/ds/modal';
+import { DataTable, type Column } from '../components/ds/table';
+import { T } from '../components/ds/tokens';
+
+// DataTable يتطلّب صفوفاً تطابق Record<string, unknown> (فهرس مفتوح). واجهات
+// المخزون مغلقة الحقول، فنوسّعها بفهرس صريح لتوافق القيد دون فقدان حقولها.
+type ItemRow = InventoryItem & Record<string, unknown>;
+type ExpiringRow = ExpiringBatch & Record<string, unknown>;
 
 // تفسير عربيّ صادق لأخطاء الخادم (يطابق سلوك ReportsPage/CostSummary).
 function errDetail(error: unknown, fallback: string): string {
@@ -24,11 +34,7 @@ function errDetail(error: unknown, fallback: string): string {
   return fallback;
 }
 
-const CARD = { background: '#1e293b', borderColor: '#334155' } as const;
-const PANEL = { background: '#0f1117', borderColor: '#334155' } as const;
-const INPUT = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
-
-// ── نموذج إضافة صنف ──────────────────────────────────────────────
+// ── نموذج إضافة صنف (داخل Modal) ─────────────────────────────────
 function AddItemForm({ onClose }: { onClose: () => void }) {
   const mut = useCreateInventoryItem();
   const [f, setF] = useState<{ category: string; name: string; unit: string; reorder_level: string; notes: string }>({
@@ -48,61 +54,37 @@ function AddItemForm({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="rounded-xl border p-4 space-y-3" style={CARD}>
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-          <PlusCircle className="w-4 h-4 text-emerald-400" /> إضافة صنف جديد
-        </span>
-        <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-300" title="إغلاق">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+    <Modal
+      open
+      onClose={onClose}
+      title="إضافة صنف جديد"
+      footer={
+        <>
+          <Button tone="gold" full={false} onClick={onClose} style={{ background: 'transparent', color: T.muted, border: `1px solid ${T.line}` }}>
+            إلغاء
+          </Button>
+          <Button full={false} onClick={onSubmit} disabled={mut.isPending || !f.category.trim() || !f.name.trim()}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <PlusCircle className="w-4 h-4" />
+            {mut.isPending ? 'جارٍ الحفظ…' : 'حفظ الصنف'}
+          </Button>
+        </>
+      }
+    >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">الفئة *</span>
-          <input value={f.category} onChange={e => setF(v => ({ ...v, category: e.target.value }))}
-            placeholder="مثال: أسمدة"
-            className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">الاسم *</span>
-          <input value={f.name} onChange={e => setF(v => ({ ...v, name: e.target.value }))}
-            placeholder="مثال: يوريا 46%"
-            className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">الوحدة</span>
-          <input value={f.unit} onChange={e => setF(v => ({ ...v, unit: e.target.value }))}
-            placeholder="مثال: كيس"
-            className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-xs text-slate-400">حدّ إعادة الطلب</span>
-          <input type="number" inputMode="decimal" step="any"
-            value={f.reorder_level} onChange={e => setF(v => ({ ...v, reorder_level: e.target.value }))}
-            className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-        </label>
-        <label className="flex flex-col gap-1 sm:col-span-2">
-          <span className="text-xs text-slate-400">ملاحظات</span>
-          <input value={f.notes} onChange={e => setF(v => ({ ...v, notes: e.target.value }))}
-            className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-        </label>
+        <Input label="الفئة" required value={f.category} onChange={val => setF(v => ({ ...v, category: val }))} placeholder="مثال: أسمدة" />
+        <Input label="الاسم" required value={f.name} onChange={val => setF(v => ({ ...v, name: val }))} placeholder="مثال: يوريا 46%" />
+        <Input label="الوحدة" value={f.unit} onChange={val => setF(v => ({ ...v, unit: val }))} placeholder="مثال: كيس" />
+        <Input label="حدّ إعادة الطلب" type="number" inputMode="decimal"
+          value={f.reorder_level} onChange={val => setF(v => ({ ...v, reorder_level: val }))} />
+        <div className="sm:col-span-2">
+          <Input label="ملاحظات" value={f.notes} onChange={val => setF(v => ({ ...v, notes: val }))} />
+        </div>
       </div>
       {mut.isError && (
-        <p className="text-xs text-orange-300">{errDetail(mut.error, 'تعذّر إضافة الصنف. حاول مرّة أخرى.')}</p>
+        <p className="text-xs mt-3" style={{ color: T.warn }}>{errDetail(mut.error, 'تعذّر إضافة الصنف. حاول مرّة أخرى.')}</p>
       )}
-      <div className="flex justify-end gap-2">
-        <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-300 border" style={{ borderColor: '#334155' }}>
-          إلغاء
-        </button>
-        <button onClick={onSubmit} disabled={mut.isPending || !f.category.trim() || !f.name.trim()}
-          className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
-          style={{ background: '#16a34a' }}>
-          <PlusCircle className="w-4 h-4" />
-          {mut.isPending ? 'جارٍ الحفظ…' : 'حفظ الصنف'}
-        </button>
-      </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -128,62 +110,37 @@ function AddBatchForm({ item, onClose }: { item: InventoryItem; onClose: () => v
   };
 
   return (
-    <tr>
-      <td colSpan={5} className="p-3" style={{ background: '#0f1117' }}>
-        <div className="rounded-lg border p-3 space-y-3" style={CARD}>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-200 flex items-center gap-2">
-              <PackagePlus className="w-4 h-4 text-sky-400" /> إضافة دفعة إلى: {item.name}
-            </span>
-            <button onClick={onClose} className="p-1 text-slate-500 hover:text-slate-300" title="إغلاق">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">الكميّة *{item.unit ? ` (${item.unit})` : ''}</span>
-              <input type="number" inputMode="decimal" step="any"
-                value={f.quantity} onChange={e => setF(v => ({ ...v, quantity: e.target.value }))}
-                className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">رمز الدفعة</span>
-              <input value={f.batch_code} onChange={e => setF(v => ({ ...v, batch_code: e.target.value }))}
-                className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">تاريخ الانتهاء</span>
-              <input type="date" value={f.expiry_date} onChange={e => setF(v => ({ ...v, expiry_date: e.target.value }))}
-                className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">المورّد</span>
-              <input value={f.supplier} onChange={e => setF(v => ({ ...v, supplier: e.target.value }))}
-                className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-            </label>
-            <label className="flex flex-col gap-1 sm:col-span-2">
-              <span className="text-xs text-slate-400">ملاحظات</span>
-              <input value={f.notes} onChange={e => setF(v => ({ ...v, notes: e.target.value }))}
-                className="px-3 py-2 rounded-lg text-sm" style={INPUT} />
-            </label>
-          </div>
-          {mut.isError && (
-            <p className="text-xs text-orange-300">{errDetail(mut.error, 'تعذّر إضافة الدفعة. حاول مرّة أخرى.')}</p>
-          )}
-          <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm text-slate-300 border" style={{ borderColor: '#334155' }}>
-              إلغاء
-            </button>
-            <button onClick={onSubmit} disabled={mut.isPending || f.quantity.trim() === '' || isNaN(Number(f.quantity))}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
-              style={{ background: '#0ea5e9' }}>
-              <PackagePlus className="w-4 h-4" />
-              {mut.isPending ? 'جارٍ الحفظ…' : 'حفظ الدفعة'}
-            </button>
-          </div>
+    <Modal
+      open
+      onClose={onClose}
+      title={`إضافة دفعة إلى: ${item.name}`}
+      footer={
+        <>
+          <Button tone="gold" full={false} onClick={onClose} style={{ background: 'transparent', color: T.muted, border: `1px solid ${T.line}` }}>
+            إلغاء
+          </Button>
+          <Button tone="gold" full={false} onClick={onSubmit} disabled={mut.isPending || f.quantity.trim() === '' || isNaN(Number(f.quantity))}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <PackagePlus className="w-4 h-4" />
+            {mut.isPending ? 'جارٍ الحفظ…' : 'حفظ الدفعة'}
+          </Button>
+        </>
+      }
+    >
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Input label={`الكميّة${item.unit ? ` (${item.unit})` : ''}`} required type="number" inputMode="decimal"
+          value={f.quantity} onChange={val => setF(v => ({ ...v, quantity: val }))} />
+        <Input label="رمز الدفعة" value={f.batch_code} onChange={val => setF(v => ({ ...v, batch_code: val }))} />
+        <Input label="تاريخ الانتهاء" type="date" value={f.expiry_date} onChange={val => setF(v => ({ ...v, expiry_date: val }))} />
+        <Input label="المورّد" value={f.supplier} onChange={val => setF(v => ({ ...v, supplier: val }))} />
+        <div className="sm:col-span-2">
+          <Input label="ملاحظات" value={f.notes} onChange={val => setF(v => ({ ...v, notes: val }))} />
         </div>
-      </td>
-    </tr>
+      </div>
+      {mut.isError && (
+        <p className="text-xs mt-3" style={{ color: T.warn }}>{errDetail(mut.error, 'تعذّر إضافة الدفعة. حاول مرّة أخرى.')}</p>
+      )}
+    </Modal>
   );
 }
 
@@ -202,35 +159,17 @@ function ExpiringSection() {
       title="لا توجد أصناف قاربة على الانتهاء" hint="خلال الـ30 يوماً القادمة." />;
   }
 
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm text-right">
-        <thead>
-          <tr className="text-[11px] text-slate-400 border-b" style={{ borderColor: '#334155' }}>
-            <th className="py-2 px-2 font-medium">الصنف</th>
-            <th className="py-2 px-2 font-medium">الكميّة</th>
-            <th className="py-2 px-2 font-medium">الوحدة</th>
-            <th className="py-2 px-2 font-medium">تاريخ الانتهاء</th>
-          </tr>
-        </thead>
-        <tbody>
-          {batches.map(b => (
-            <tr key={b.batch_id} className="border-b last:border-0" style={{ borderColor: '#1e293b' }}>
-              <td className="py-2 px-2 text-slate-200">{b.name}</td>
-              <td className="py-2 px-2 text-slate-300">{b.quantity.toLocaleString('en-US')}</td>
-              <td className="py-2 px-2 text-slate-400">{b.unit ?? '—'}</td>
-              <td className="py-2 px-2">
-                <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                  style={{ background: '#2a1a00', color: '#fbbf24', border: '1px solid #f59e0b44' }}>
-                  <CalendarClock className="w-3 h-3" /> {b.expiry_date}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  const columns: Column<ExpiringRow>[] = [
+    { key: 'name', label: 'الصنف' },
+    { key: 'quantity', label: 'الكميّة', render: b => b.quantity.toLocaleString('en-US') },
+    { key: 'unit', label: 'الوحدة', render: b => b.unit ?? '—' },
+    {
+      key: 'expiry_date', label: 'تاريخ الانتهاء',
+      render: b => <Pill tone="warn" icon={<CalendarClock className="w-3 h-3" />}>{b.expiry_date}</Pill>,
+    },
+  ];
+
+  return <DataTable<ExpiringRow> columns={columns} rows={batches as ExpiringRow[]} rowKey={b => b.batch_id} />;
 }
 
 // ── الصفحة ────────────────────────────────────────────────────────
@@ -243,35 +182,70 @@ export default function InventoryPage() {
   const [batchFor, setBatchFor] = useState<string | null>(null);
 
   const items = data ?? [];
+  // الصنف المُختار لإضافة دفعة (يقود فتح المودال).
+  const batchItem = batchFor ? items.find(it => it.item_id === batchFor) ?? null : null;
+
+  // أعمدة جدول الأصناف (DataTable). عمود «إجراء» يظهر للمخوّلين فقط.
+  const itemColumns: Column<ItemRow>[] = [
+    { key: 'category', label: 'الفئة', render: it => <span style={{ color: T.muted }}>{it.category}</span> },
+    {
+      key: 'name', label: 'الاسم',
+      render: it => (
+        <span className="inline-flex items-center gap-2 flex-wrap">
+          <span style={{ color: T.ink }}>{it.name}</span>
+          {it.low_stock && (
+            <Pill tone="danger" icon={<AlertTriangle className="w-2.5 h-2.5" />}>مخزون منخفض</Pill>
+          )}
+        </span>
+      ),
+    },
+    { key: 'total_quantity', label: 'الكميّة', render: it => it.total_quantity.toLocaleString('en-US') },
+    { key: 'unit', label: 'الوحدة', render: it => it.unit ?? '—' },
+    ...(mayMutate
+      ? [{
+          key: 'item_id' as const, label: 'إجراء',
+          render: (it: ItemRow) => (
+            <Button tone="gold" full={false} onClick={() => setBatchFor(it.item_id)}
+              style={{ padding: '6px 12px', fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <PackagePlus className="w-3.5 h-3.5" /> إضافة دفعة
+            </Button>
+          ),
+        }]
+      : []),
+  ];
 
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
       {/* رأس الصفحة */}
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div className="flex items-center gap-2">
-          <Boxes className="w-5 h-5 text-emerald-400" />
+          <Boxes className="w-5 h-5" style={{ color: T.green }} />
           <div>
-            <h2 className="text-xl font-bold text-slate-100">المخزون</h2>
-            <p className="text-sm text-slate-400">مخزون المدخلات الزراعيّة: الكميّات، حدّ إعادة الطلب، والصلاحيّة.</p>
+            <h2 className="text-xl font-bold" style={{ color: T.ink }}>المخزون</h2>
+            <p className="text-sm" style={{ color: T.muted }}>مخزون المدخلات الزراعيّة: الكميّات، حدّ إعادة الطلب، والصلاحيّة.</p>
           </div>
         </div>
-        {mayMutate && !showAddItem && (
-          <button onClick={() => setShowAddItem(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: '#16a34a' }}>
+        {mayMutate && (
+          <Button full={false} onClick={() => setShowAddItem(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <PlusCircle className="w-4 h-4" /> إضافة صنف
-          </button>
+          </Button>
         )}
       </div>
 
-      {/* نموذج إضافة صنف (للمخوّلين فقط) */}
+      {/* نموذج إضافة صنف (للمخوّلين فقط) — داخل Modal */}
       {mayMutate && showAddItem && <AddItemForm onClose={() => setShowAddItem(false)} />}
 
+      {/* نموذج إضافة دفعة — داخل Modal مدفوع بـbatchFor */}
+      {mayMutate && batchItem && (
+        <AddBatchForm item={batchItem} onClose={() => setBatchFor(null)} />
+      )}
+
       {/* قائمة الأصناف */}
-      <div className="rounded-xl p-4 border" style={PANEL}>
+      <Card style={{ background: T.card2 }}>
         <div className="flex items-center gap-2 mb-3">
-          <Boxes className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-semibold text-slate-200">الأصناف</span>
+          <Boxes className="w-4 h-4" style={{ color: T.green }} />
+          <span className="text-sm font-semibold" style={{ color: T.ink }}>الأصناف</span>
         </div>
 
         {isLoading && <LoadingState message="جارٍ تحميل المخزون…" />}
@@ -288,61 +262,18 @@ export default function InventoryPage() {
         )}
 
         {!isLoading && !isError && items.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-right">
-              <thead>
-                <tr className="text-[11px] text-slate-400 border-b" style={{ borderColor: '#334155' }}>
-                  <th className="py-2 px-2 font-medium">الفئة</th>
-                  <th className="py-2 px-2 font-medium">الاسم</th>
-                  <th className="py-2 px-2 font-medium">الكميّة</th>
-                  <th className="py-2 px-2 font-medium">الوحدة</th>
-                  {mayMutate && <th className="py-2 px-2 font-medium">إجراء</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {items.map(it => (
-                  <Fragment key={it.item_id}>
-                    <tr className="border-b last:border-0" style={{ borderColor: '#1e293b' }}>
-                      <td className="py-2 px-2 text-slate-400">{it.category}</td>
-                      <td className="py-2 px-2">
-                        <span className="text-slate-200">{it.name}</span>
-                        {it.low_stock && (
-                          <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full mr-2"
-                            style={{ background: '#2a0a0a', color: '#f87171', border: '1px solid #dc262644' }}>
-                            <AlertTriangle className="w-2.5 h-2.5" /> مخزون منخفض
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2 px-2 text-slate-300">{it.total_quantity.toLocaleString('en-US')}</td>
-                      <td className="py-2 px-2 text-slate-400">{it.unit ?? '—'}</td>
-                      {mayMutate && (
-                        <td className="py-2 px-2">
-                          <button onClick={() => setBatchFor(batchFor === it.item_id ? null : it.item_id)}
-                            className="inline-flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300">
-                            <PackagePlus className="w-3.5 h-3.5" /> إضافة دفعة
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                    {mayMutate && batchFor === it.item_id && (
-                      <AddBatchForm item={it} onClose={() => setBatchFor(null)} />
-                    )}
-                  </Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<ItemRow> columns={itemColumns} rows={items as ItemRow[]} rowKey={it => it.item_id} />
         )}
-      </div>
+      </Card>
 
       {/* الأصناف القاربة على الانتهاء */}
-      <div className="rounded-xl p-4 border" style={PANEL}>
+      <Card style={{ background: T.card2 }}>
         <div className="flex items-center gap-2 mb-3">
-          <CalendarClock className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-semibold text-slate-200">قاربت على الانتهاء (خلال 30 يوماً)</span>
+          <CalendarClock className="w-4 h-4" style={{ color: T.warn }} />
+          <span className="text-sm font-semibold" style={{ color: T.ink }}>قاربت على الانتهاء (خلال 30 يوماً)</span>
         </div>
         <ExpiringSection />
-      </div>
+      </Card>
     </div>
   );
 }

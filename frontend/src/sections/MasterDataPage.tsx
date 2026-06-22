@@ -12,8 +12,12 @@ import { useMasterData, useCreateMasterData } from '../hooks/useApi';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { canManage } from '../lib/permissions';
 import { useAuthStore } from '../hooks/useAuth';
-import type { MasterDataCategory } from '../services/api';
+import type { MasterDataCategory, MasterDataEntry } from '../services/api';
 import { asApiError } from '../services/api';
+import { Card, Button } from '../components/ds/atoms';
+import { Input } from '../components/ds/forms';
+import { DataTable, type Column } from '../components/ds/table';
+import { T, RADIUS } from '../components/ds/tokens';
 
 const CATEGORIES: { id: MasterDataCategory; label: string }[] = [
   { id: 'crop',           label: 'المحاصيل' },
@@ -70,75 +74,67 @@ function AddEntryForm({ category }: { category: MasterDataCategory }) {
   };
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="rounded-xl p-4 border"
-      style={{ background: '#1e293b', borderColor: '#334155' }}
-      dir="rtl"
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <Plus className="w-4 h-4 text-emerald-400" />
-        <span className="text-sm font-semibold text-slate-200">إضافة مُدخَل مرجعيّ</span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">الرمز *</label>
-          <input
+    <Card pad={16}>
+      <form onSubmit={onSubmit} dir="rtl">
+        <div className="flex items-center gap-2 mb-3">
+          <Plus className="w-4 h-4" style={{ color: T.green }} />
+          <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>إضافة مُدخَل مرجعيّ</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Input
+            label="الرمز"
+            required
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={setCode}
             placeholder="مثال: WHEAT_01"
-            className="w-full px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
           />
-        </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">الاسم العربيّ *</label>
-          <input
+          <Input
+            label="الاسم العربيّ"
+            required
             value={nameAr}
-            onChange={(e) => setNameAr(e.target.value)}
+            onChange={setNameAr}
             placeholder="مثال: قمح صلب"
-            className="w-full px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
           />
-        </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">الاسم الإنجليزيّ</label>
-          <input
+          <Input
+            label="الاسم الإنجليزيّ"
             value={nameEn}
-            onChange={(e) => setNameEn(e.target.value)}
+            onChange={setNameEn}
             placeholder="Durum wheat"
-            dir="ltr"
-            className="w-full px-3 py-2 rounded-lg text-sm text-left"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
           />
         </div>
-      </div>
 
-      {errMsg && (
-        <p
-          className="mt-3 text-xs"
-          style={{ color: isDup ? '#fbbf24' : '#f87171' }}
-          role="alert"
-          aria-live="assertive"
-        >
-          {errMsg}
-        </p>
-      )}
+        {errMsg && (
+          <p
+            className="mt-3"
+            style={{ fontSize: 12, color: isDup ? T.warn : T.danger, fontWeight: 600 }}
+            role="alert"
+            aria-live="assertive"
+          >
+            {errMsg}
+          </p>
+        )}
 
-      <div className="mt-3 flex justify-end">
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: '#16a34a', color: '#fff' }}
-        >
-          {create.isPending
-            ? <Loader2 className="w-4 h-4 animate-spin" />
-            : <Plus className="w-4 h-4" />}
-          إضافة
-        </button>
-      </div>
-    </form>
+        <div className="mt-3 flex justify-end">
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '11px 18px', borderRadius: RADIUS.md, border: 'none',
+              background: !canSubmit ? T.line : T.green,
+              color: !canSubmit ? T.muted : '#fff',
+              fontSize: 14, fontWeight: 800,
+              cursor: !canSubmit ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {create.isPending
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <Plus className="w-4 h-4" />}
+            إضافة
+          </button>
+        </div>
+      </form>
+    </Card>
   );
 }
 
@@ -156,38 +152,37 @@ function EntriesTable({ category }: { category: MasterDataCategory }) {
     );
   }
 
-  const entries = data ?? [];
-  if (entries.length === 0) {
-    return (
-      <EmptyState
-        icon={<Database className="w-8 h-8" />}
-        title="لا توجد مُدخَلات في هذه الفئة بعد"
-        hint="أضِف مُدخَلاً مرجعيّاً جديداً للبدء."
-      />
-    );
-  }
+  // DataTable يقيّد الصفّ بـRecord<string,unknown>؛ نوسّع النوع محليّاً دون تغيير الـAPI.
+  type Row = MasterDataEntry & Record<string, unknown>;
+  const entries = (data ?? []) as Row[];
+
+  const columns: Column<Row>[] = [
+    {
+      key: 'code',
+      label: 'الرمز',
+      render: (e) => (
+        <span className="font-mono" style={{ color: T.gold, fontSize: 12 }} dir="ltr">{e.code}</span>
+      ),
+    },
+    { key: 'name_ar', label: 'الاسم العربيّ' },
+    {
+      key: 'name_en',
+      label: 'الاسم الإنجليزيّ',
+      render: (e) => (
+        <span style={{ color: T.muted }} dir="ltr">{e.name_en ?? '—'}</span>
+      ),
+    },
+  ];
 
   return (
-    <div className="rounded-xl border overflow-x-auto" style={{ background: '#1e293b', borderColor: '#334155' }}>
-      <table className="w-full text-sm text-right" dir="rtl">
-        <thead>
-          <tr className="text-[11px] text-slate-400" style={{ borderBottom: '1px solid #334155' }}>
-            <th className="px-4 py-3 font-medium">الرمز</th>
-            <th className="px-4 py-3 font-medium">الاسم العربيّ</th>
-            <th className="px-4 py-3 font-medium">الاسم الإنجليزيّ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entries.map((e) => (
-            <tr key={e.md_id} className="hover:bg-slate-800/40" style={{ borderBottom: '1px solid #1e293b' }}>
-              <td className="px-4 py-3 font-mono text-xs text-amber-400" dir="ltr">{e.code}</td>
-              <td className="px-4 py-3 text-slate-200">{e.name_ar}</td>
-              <td className="px-4 py-3 text-slate-400" dir="ltr">{e.name_en ?? '—'}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable<Row>
+      columns={columns}
+      rows={entries}
+      rowKey={(e) => e.md_id}
+      emptyIcon={<Database className="w-8 h-8" />}
+      emptyTitle="لا توجد مُدخَلات في هذه الفئة بعد"
+      emptyHint="أضِف مُدخَلاً مرجعيّاً جديداً للبدء."
+    />
   );
 }
 
@@ -200,11 +195,11 @@ export function MasterDataPage() {
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
       <div>
-        <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-          <Database className="w-5 h-5 text-emerald-500" />
+        <h2 className="text-xl font-bold flex items-center gap-2" style={{ color: T.ink }}>
+          <Database className="w-5 h-5" style={{ color: T.green }} />
           البيانات المرجعيّة
         </h2>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm" style={{ color: T.muted }}>
           كتالوج موحّد للمحاصيل وأنواع التربة والأسمدة والمبيدات وأصناف البذور وأنواع المعدّات.
         </p>
       </div>
@@ -219,11 +214,15 @@ export function MasterDataPage() {
               role="tab"
               aria-selected={active}
               onClick={() => setCategory(c.id)}
-              className="px-3 py-1.5 rounded-lg text-sm transition-all"
+              className="text-sm transition-all"
               style={{
-                background: active ? '#1e3a1e' : '#1e293b',
-                border: active ? '1px solid #16a34a' : '1px solid #334155',
-                color: active ? '#4ade80' : '#94a3b8',
+                padding: '6px 12px',
+                borderRadius: RADIUS.sm,
+                background: active ? T.greenSoft : T.card,
+                border: `1px solid ${active ? T.green : T.line}`,
+                color: active ? T.greenDark : T.muted,
+                fontWeight: active ? 700 : 600,
+                cursor: 'pointer',
               }}
             >
               {c.label}
