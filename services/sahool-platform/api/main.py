@@ -681,7 +681,10 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
 
 # المتغيّر: SAHOOL_CORS_ORIGINS = "https://app.sahool.ye,https://www.sahool.ye"
 # للتطوير: SAHOOL_CORS_ORIGINS = "http://localhost:3000,http://10.0.2.2:8000"
-_cors_raw = os.getenv("SAHOOL_CORS_ORIGINS", "")
+# مرونة: بقيّة الخدمات (auth/raster/vegetation/guardrails) تقرأ CORS_ORIGINS. نقبله
+# كاحتياط حتى لا ينكسر CORS إن غُذِّيت المنصّة بـCORS_ORIGINS وحدها. الأسبقيّة:
+# SAHOOL_CORS_ORIGINS ⇐ CORS_ORIGINS ⇐ "" (فيبقى منطق dev-مفتوح/prod-مغلق أدناه كما هو).
+_cors_raw = os.getenv("SAHOOL_CORS_ORIGINS") or os.getenv("CORS_ORIGINS") or ""
 _cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
 
 if not _cors_origins:
