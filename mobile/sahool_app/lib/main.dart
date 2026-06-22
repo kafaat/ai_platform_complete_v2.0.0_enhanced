@@ -1,5 +1,6 @@
 // SAHOOL v9.1.0 — lib/main.dart (مُحسَّن)
 // Fixes: F01(BlocProvider), F02(WS connect), F03(ErrorBoundary)
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -14,6 +15,7 @@ import 'screens/onboarding_screen.dart';
 import 'screens/field_workspace_screen.dart';
 import 'services/api_service.dart';
 import 'services/auth_service.dart';
+import 'services/push_service.dart';
 import 'services/websocket_service.dart';
 import 'theme/app_theme.dart';
 
@@ -128,6 +130,10 @@ class _AuthGateState extends State<AuthGate> {
     if (AuthService.instance.token != null) {
       // F02: Connect WebSocket when authenticated
       await WebSocketService.instance.connect();
+      // C4/M1: تهيئة الدفع (FCM) بعد المصادقة — غير حاجبة ودفاعيّة بالكامل
+      // (PushService.init لا يرمي أبداً؛ يبقى no-op بلا google-services). لا
+      // ننتظرها كي لا تؤخّر ظهور الواجهة، ونبتلع أيّ تعذّر احتياطاً.
+      unawaited(PushService.instance.init().catchError((Object _) {}));
     }
     if (mounted) setState(() => _isReady = true);
   }
