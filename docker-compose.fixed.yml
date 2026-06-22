@@ -1048,6 +1048,60 @@ services:
   #     - sahool-internal
 
   # ═══════════════════════════════════════════════════════════════
+  # 27c. SAM2 Inference (استدلال SAM2 على GPU/CUDA) — OPT-IN خلف profile=gpu.
+  #   يفعّل auto/hybrid في field-segmentation. الحزمة الافتراضيّة (CPU فقط) لا
+  #   تشغّله ولا تعتمد عليه — field-segmentation تردّ 503 صادقاً بدونه.
+  #   يتطلّب NVIDIA Container Toolkit + GPU على المضيف. الأوزان تُركَّب على /models
+  #   (volume sam2-models:ro). راجع docs/SAM2_DEPLOYMENT.md.
+  #   التشغيل: docker compose -f docker-compose.fixed.yml --profile gpu up -d \
+  #            sahool-sam2-inference
+  #   ولتفعيل المسار من field-segmentation اضبط في .env:
+  #     SEGMENTATION_BACKEND=sam2
+  #     SEGMENTATION_INFERENCE_URL=http://sahool-sam2-inference:8080/predict
+  # ═══════════════════════════════════════════════════════════════
+  sahool-sam2-inference:
+    build:
+      context: .
+      dockerfile: services/sam2-inference/Dockerfile
+    container_name: sahool-sam2-inference
+    profiles: ["gpu"]
+    mem_limit: 12g
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    # تمرير GPU عبر Compose v2 (deploy.resources). للإعداد الأقدم استبدلها
+    # بـ`runtime: nvidia` على مستوى الخدمة.
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    environment:
+      # توكن خدمة-لخدمة (نفس عقد field-segmentation/X-Agent-Token).
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      # مسار الأوزان داخل volume sam2-models (للقراءة فقط).
+      SAM2_CHECKPOINT: ${SAM2_CHECKPOINT:-/models/sam2_hiera_large.pt}
+      SAM2_MODEL_CFG: ${SAM2_MODEL_CFG:-sam2_hiera_l.yaml}
+    volumes:
+      # أوزان SAM2 (للقراءة فقط) — املأها قبل التشغيل (انظر الـrunbook).
+      - sam2-models:/models:ro
+    networks:
+      - sahool-internal
+    healthcheck:
+      # python-urllib (لا curl في صورة CUDA). /readyz يعكس model_loaded بالمنطق.
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/readyz', timeout=4).status==200 else 1)"
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+
+  # ═══════════════════════════════════════════════════════════════
   # 28. AgriAI Engine (FIX: لا يوجد كود → مُعلق)
   # FIX-19: مُعلق حتى تُكمل services/agriai-engine/main.py
   # ═══════════════════════════════════════════════════════════════
@@ -1093,3 +1147,5 @@ volumes:
   grafana-data:
   jaeger-data:
   nginx-cache:
+  # أوزان SAM2 (يملؤها المستخدم قبل رفع profile gpu) — راجع docs/SAM2_DEPLOYMENT.md.
+  sam2-models:
