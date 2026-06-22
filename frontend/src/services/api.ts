@@ -3098,6 +3098,10 @@ export const analyzeVegetation = (fieldId: string, _satellite = 'sentinel-2', te
     () => mockVegetationAnalysis(fieldId)
   );
 
+/** تشغيل معالجة صور Sentinel-2 الحقيقيّة للحقل عبر المنصّة/raster-service. */
+export const refreshFieldImagery = (fieldId: string) =>
+  kongApi.post(`/api/v1/fields/${fieldId}/imagery/refresh`).then(r => r.data);
+
 /** سلسلة زمنية NDVI — GET /v1/timeseries/{fieldId} */
 export const fetchVegetationTimeseries = (fieldId: string, days = 30) =>
   tryReal(

@@ -16,7 +16,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useRefreshFieldImagery, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
@@ -204,6 +204,7 @@ export default function SatellitePage() {
   const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
   const { data: ndviNow }                        = useCurrentNDVI(fieldId);
   const { mutateAsync: analyze, isPending: analyzing } = useAnalyzeVegetation();
+  const { mutateAsync: refreshImagery, isPending: refreshingImagery } = useRefreshFieldImagery();
 
   // شبكة المؤشّر الحقيقيّة — لوسم مصدر البيانات بصدق (حقيقيّة / لا توجد بعد).
   const { data: gridResp } = useIndicatorGrid(fieldId, gridIndex, 'latest');
@@ -329,6 +330,17 @@ export default function SatellitePage() {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
             style={{ background: analyzing ? '#15803d' : '#16a34a' }}>
             {analyzing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحليل...</> : <><RefreshCw className="w-3.5 h-3.5" /> تحليل الآن</>}
+          </button>
+          <button
+            onClick={() => fieldId && refreshImagery({ fieldId })}
+            disabled={refreshingImagery || !fieldId}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border disabled:opacity-50"
+            style={{ background: '#1e293b', color: '#fbbf24', borderColor: '#92400e' }}
+            title="يبحث عن أفضل مشهد Sentinel-2 حقيقي ويطلق معالجة COG؛ لا ينشئ قيماً وهمية."
+          >
+            {refreshingImagery
+              ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحديث الصور...</>
+              : <><Satellite className="w-3.5 h-3.5" /> تحديث صور الأقمار</>}
           </button>
         </div>
       </div>

@@ -25,7 +25,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from datetime import UTC
+from datetime import UTC, datetime, timedelta
 
 logger = logging.getLogger("sahool.imagery_automation")
 
@@ -190,6 +190,183 @@ class ImageryAutomation:
             "fields": [f.to_dict() for f in self._fields.values()],
         }
 
+    @staticmethod
+    def _bbox_from_guard_bbox(bbox: dict) -> list[float]:
+        """Convert SAHOOL guard bbox dict to STAC bbox [west,south,east,north]."""
+        return [
+            float(bbox["min_lng"]),
+            float(bbox["min_lat"]),
+            float(bbox["max_lng"]),
+            float(bbox["max_lat"]),
+        ]
+
+    @staticmethod
+    def _scene_id(scene: dict) -> str | None:
+        return scene.get("item_id") or scene.get("id") or scene.get("image_id")
+
+    @staticmethod
+    def _band_hrefs_from_scene(scene: dict) -> dict[str, str]:
+        """Normalize raster-service /imagery/best STAC asset names to process-from-stac names.
+
+        Element84 returns `bands_urls` with Sentinel-2 asset keys such as rededge1,
+        swir16 and swir22. raster-service/stac_vrt expects canonical names:
+        red/nir/green/blue/swir1/swir2/rededge/scl. We only pass existing links;
+        missing bands make the raster service fail honestly instead of inventing data.
+        """
+        bands = scene.get("bands_urls") or scene.get("band_urls") or scene.get("assets") or {}
+
+        def pick(*keys: str) -> str | None:
+            for k in keys:
+                v = bands.get(k)
+                if isinstance(v, dict):
+                    v = v.get("href")
+                if v:
+                    return str(v)
+            return None
+
+        out = {
+            "red": pick("red", "B04"),
+            "nir": pick("nir", "nir08", "B08", "B8A"),
+            "green": pick("green", "B03"),
+            "blue": pick("blue", "B02"),
+            "rededge": pick("rededge", "rededge1", "rededge2", "rededge3", "B05", "B06", "B07"),
+            "swir1": pick("swir1", "swir16", "B11"),
+            "swir2": pick("swir2", "swir22", "B12"),
+            "scl": pick("scl", "SCL"),
+        }
+        return {k: v for k, v in out.items() if v}
+
+    async def trigger_field_imagery_processing(
+        self,
+        *,
+        field_id: str,
+        tenant_id: str,
+        bbox: list[float] | dict,
+        geometry: dict | None = None,
+        reason: str = "manual.refresh",
+        lookback_days: int = 30,
+        max_cloud_pct: float = 40.0,
+        indicators: list[str] | None = None,
+    ) -> dict:
+        """Find the best real Sentinel-2 STAC scene and launch raster processing.
+
+        This is the real-data activation bridge. It does not synthesize values:
+        - no STAC scene => no job, honest `queued:false`;
+        - missing band hrefs => no job, honest `queued:false`;
+        - raster-service error => propagated in `status:error` for UI/operator visibility.
+        """
+        import httpx
+
+        if isinstance(bbox, dict):
+            stac_bbox = self._bbox_from_guard_bbox(bbox)
+        else:
+            stac_bbox = [float(x) for x in bbox]
+        if len(stac_bbox) != 4:
+            raise ValueError("bbox must be [west,south,east,north]")
+        inds = indicators or DEFAULT_INDICATORS
+        # Ensure the field is tracked by the scheduler as well as processed once now.
+        self.register_field(field_id, stac_bbox, tenant_id=tenant_id)
+        tf = self._fields[field_id]
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            try:
+                best_resp = await client.get(
+                    f"{RASTER_SERVICE_URL}/imagery/best",
+                    params={
+                        "west": stac_bbox[0],
+                        "south": stac_bbox[1],
+                        "east": stac_bbox[2],
+                        "north": stac_bbox[3],
+                        "lookback_days": lookback_days,
+                        "max_cloud_pct": max_cloud_pct,
+                    },
+                    headers=_RASTER_HEADERS,
+                )
+                best_resp.raise_for_status()
+                best_body = best_resp.json()
+            except Exception as e:  # noqa: BLE001
+                tf.check_errors += 1
+                await self._persist_field(tf)
+                return {
+                    "status": "error",
+                    "queued": False,
+                    "field_id": field_id,
+                    "reason": reason,
+                    "error": type(e).__name__,
+                    "note_ar": "تعذّر البحث عن مشهد Sentinel-2 حقيقي عبر raster-service.",
+                }
+
+            scene = best_body.get("best")
+            if not scene:
+                await self._persist_field(tf)
+                return {
+                    "status": "no_scene",
+                    "queued": False,
+                    "field_id": field_id,
+                    "reason": reason,
+                    "candidates": best_body.get("candidates", 0),
+                    "note_ar": best_body.get("note")
+                    or "لا يوجد مشهد Sentinel-2 مطابق ضمن المعايير.",
+                }
+
+            band_hrefs = self._band_hrefs_from_scene(scene)
+            required = {"red", "nir"}
+            if not required.issubset(band_hrefs):
+                await self._persist_field(tf)
+                return {
+                    "status": "missing_bands",
+                    "queued": False,
+                    "field_id": field_id,
+                    "reason": reason,
+                    "scene_id": self._scene_id(scene),
+                    "available_bands": sorted(band_hrefs),
+                    "note_ar": "المشهد لا يحتوي على نطاقات كافية لحساب NDVI الحقيقي.",
+                }
+
+            jobs: list[dict] = []
+            failures: list[dict] = []
+            for indicator in inds:
+                try:
+                    resp = await client.post(
+                        f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/process-from-stac",
+                        json={
+                            "tenant_id": tenant_id,
+                            "indicator": indicator,
+                            "band_hrefs": band_hrefs,
+                            "scene_id": self._scene_id(scene),
+                            "capture_datetime": scene.get("datetime") or scene.get("date"),
+                            "apply_cloud_mask": True,
+                            "clip_polygon_geojson": geometry,
+                            "source_format": "sentinel2_l2a",
+                        },
+                        headers=_RASTER_HEADERS,
+                    )
+                    resp.raise_for_status()
+                    jobs.append({"indicator": indicator, **(resp.json() or {})})
+                except Exception as e:  # noqa: BLE001
+                    failures.append({"indicator": indicator, "error": type(e).__name__})
+
+            tf.last_image_id = self._scene_id(scene)
+            tf.last_image_date = scene.get("datetime") or scene.get("date")
+            tf.new_images_found += 1 if jobs else 0
+            if jobs:
+                tf.last_indicator_job = jobs[0].get("job_id")
+            if failures:
+                tf.check_errors += len(failures)
+            await self._persist_field(tf)
+            return {
+                "status": "queued" if jobs else "error",
+                "queued": bool(jobs),
+                "field_id": field_id,
+                "reason": reason,
+                "scene_id": tf.last_image_id,
+                "capture_datetime": tf.last_image_date,
+                "jobs": jobs,
+                "failures": failures,
+                "real_data": False,
+                "note_ar": "أُطلقت معالجة COG من Sentinel-2 الحقيقي. تصبح real_data=true فقط بعد اكتمال COG وقراءته.",
+            }
+
     async def scan_all(self, lookback_days: int = 10) -> dict:
         """يفحص كلّ الحقول المتابَعة عن صور جديدة (تُستدعى من scheduler).
 
@@ -200,8 +377,6 @@ class ImageryAutomation:
             return {"scanned": 0, "new_images": 0, "failed": 0, "note": "لا حقول مُتابَعة"}
 
         # استيراد متأخّر (httpx متاح في الحاوية)
-        from datetime import datetime, timedelta
-
         import httpx
 
         now = datetime.now(UTC)

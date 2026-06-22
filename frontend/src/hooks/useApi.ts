@@ -62,6 +62,7 @@ import {
   type SavedPrescription, type PrescriptionListResponse, type PrescriptionCreateInput,
   // ── إعادة تشغيل الموسم (Agronomic Replay): خطّ زمنيّ واحد قابل للـscrub ──
   fetchAgronomicReplay, type AgronomicReplayResult,
+  refreshFieldImagery,
   // ── مساحة عمل الحقل (Field Workspace Map): ملخّص + طبقات + خطّ زمنيّ ──
   fetchFieldWorkspace, type FieldWorkspace,
   // ── استيراد حدّ حقل من ملفّ/نقاط GPS (بدل الرسم اليدويّ) ──
@@ -287,6 +288,17 @@ export function useAnalyzeVegetation() {
       vegetationApi.get('/v1/analyze', {
         params: { field_id: fieldId, ...(dateFrom ? { date_from: dateFrom } : {}) }
       }).then(r => r.data),
+  });
+}
+
+export function useRefreshFieldImagery() {
+  const qc = useQueryClient();
+  return useMutation<unknown, Error, { fieldId: string }>({
+    mutationFn: ({ fieldId }) => refreshFieldImagery(fieldId),
+    onSuccess: (_data, vars) => {
+      qc.invalidateQueries({ queryKey: QK.fieldTimeseries(vars.fieldId, 'ndvi', '') });
+      qc.invalidateQueries({ queryKey: QK.indicatorGrid(vars.fieldId, 'ndvi', 'latest') });
+    },
   });
 }
 

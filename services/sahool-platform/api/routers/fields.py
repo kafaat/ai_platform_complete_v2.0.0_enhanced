@@ -127,32 +127,38 @@ router = APIRouter()
 
 
 # ─── تفعيل الصور الحقيقيّة (Sentinel-2 عبر raster-service) ────────────────────
-# عند إنشاء حقل نُسجّله في أتمتة الصور (imagery_automation) فيلتقطه المجدول الدوريّ
-# (scan_new_imagery كلّ ٦ ساعات) → بحث Sentinel عبر raster-service /imagery/search →
-# معالجة NDVI/COG (/process/batch) → real_data=true في «المؤشّرات المكانيّة» (بدل
-# المحاكاة الصادقة). كما نُطلِق فحصاً فوريّاً (BackgroundTasks) كي لا ينتظر المستخدم
-# دورة المجدول. كلّه أفضل-جهد: لا يكسر إنشاء الحقل إن تعذّرت الأتمتة/raster.
-def _bbox_from_geometry(geom: object) -> list[float] | None:
-    """bbox ‎[minLon, minLat, maxLon, maxLat] من GeoJSON Polygon — تحتاجه أتمتة الصور."""
-    try:
-        ring = geom["coordinates"][0]  # type: ignore[index]
-        lons = [float(p[0]) for p in ring]
-        lats = [float(p[1]) for p in ring]
-        return [min(lons), min(lats), max(lons), max(lats)]
-    except Exception:  # noqa: BLE001 — هندسة غير متوقّعة ⇒ لا bbox (تخطٍّ صامت أفضل-جهد)
-        return None
+# عند إنشاء/تحديث حدّ حقل نُطلِق مساراً مُستهدَفاً للبيانات الحقيقيّة: بحث «أفضل مشهد»
+# (raster GET /imagery/best عبر Element84) ثمّ معالجة COG لكلّ مؤشّر (raster POST
+# /v1/fields/{id}/process-from-stac) → real_data=true في «المؤشّرات المكانيّة» فقط بعد
+# قراءة COG حقيقيّ (لا محاكاة). نُشغّله عبر BackgroundTasks (بعد الالتزام، خارج معاملة
+# المستأجِر) كي لا تُحبَس وصلة القاعدة طوال نداءات HTTP (حتى ٣٠ث). أفضل-جهد تامّ: فشل
+# الأتمتة/raster لا يكسر إنشاء/تحديث الحقل (يُسجَّل تحذير، لا تلفيق).
+async def _kick_imagery_processing(
+    *, field_id: str, tenant_id: str, geometry: object, reason: str
+) -> None:
+    """يُطلِق المعالجة المُستهدَفة بعد إنشاء/تحديث حقل (BackgroundTasks، بعد الالتزام).
 
-
-async def _kick_imagery_scan() -> None:
-    """يُطلِق فحص صور فوريّاً بعد إنشاء حقل (بدل انتظار المجدول ٦ ساعات) كي تظهر بيانات
-    Sentinel الحقيقيّة سريعاً. معزول وأفضل-جهد — لا يؤثّر على ردّ الإنشاء. صدق: يعتمد
-    raster-service الحقيقيّ (Element84)؛ لا يُختلَق شيء عند تعذّره."""
+    يحسب bbox من الهندسة عبر حارس الهندسة ثمّ يستدعي trigger_field_imagery_processing
+    (imagery/best + process-from-stac). معزول وأفضل-جهد: أيّ تعذّر يُبتلَع بصمت (لا يؤثّر
+    على ردّ الكتابة). صدق: يعتمد raster-service الحقيقيّ؛ لا يُختلَق شيء عند تعذّره."""
     try:
         from api.imagery_automation import imagery_automation
 
-        await imagery_automation.scan_all(lookback_days=14)
+        guarded = guard_field_geometry(geometry)
+        await imagery_automation.trigger_field_imagery_processing(
+            field_id=field_id,
+            tenant_id=tenant_id,
+            bbox=guarded.bbox,
+            geometry=guarded.geometry,
+            reason=reason,
+        )
     except Exception as e:  # noqa: BLE001 — أفضل-جهد
-        logging.warning("تعذّر إطلاق فحص الصور الفوريّ بعد إنشاء الحقل: %s", e)
+        logging.warning(
+            "تعذّر إطلاق معالجة الصور المُستهدَفة للحقل %s (%s): %s",
+            field_id,
+            reason,
+            type(e).__name__,
+        )
 
 
 # ─── معالِج حفظ الحقل المشترك (مرسوم/مستورَد) — نُقل من main.py (تفكيك B1) ──────
@@ -415,18 +421,8 @@ async def _persist_field(
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
         raise _db_unavailable("حفظ الحقل", e) from e
 
-    # تفعيل الصور الحقيقيّة: سجّل الحقل المُنشأ في أتمتة الصور (best-effort، بعد الالتزام).
-    try:
-        from api.imagery_automation import imagery_automation
-
-        _bbox = _bbox_from_geometry(geometry)
-        if _bbox is not None:
-            await imagery_automation.register_field_persistent(
-                field_id, _bbox, tenant_id=str(user.tenant_id)
-            )
-    except Exception as e:  # noqa: BLE001 — أتمتة الصور أفضل-جهد؛ لا تُفشل حفظ الحقل
-        logging.warning("تعذّر تسجيل الحقل %s في أتمتة الصور: %s", field_id, e)
-
+    # تفعيل الصور الحقيقيّة يُطلَق عبر BackgroundTasks من create_field/import_field (بعد
+    # الالتزام، خارج معاملة المستأجِر) — لا نداء HTTP داخل هذه الدالّة (لا حبس وصلة DB).
     return result
 
 
@@ -463,11 +459,17 @@ async def create_field(
     """ينشئ حقلاً من مضلّع مرسوم — يُخزَّن فعليّاً في القاعدة (لا تلفيق).
 
     يتحقّق من الهندسة ويحسب المساحة + المركز، ثمّ يُدرج ضمن سياق المستأجر (RLS).
-    يردّ الحقل المُنشأ بهندسته كي ترسمه الواجهة فوراً، ويُطلِق فحص صور Sentinel فوريّاً
-    (BackgroundTasks، بعد الردّ) فتظهر بيانات NDVI الحقيقيّة دون انتظار دورة المجدول.
+    يردّ الحقل المُنشأ بهندسته كي ترسمه الواجهة فوراً، ويُطلِق معالجة صور Sentinel المُستهدَفة
+    (BackgroundTasks، بعد الردّ: imagery/best + process-from-stac) فتظهر بيانات NDVI الحقيقيّة.
     """
     result = await _persist_field(req, user, idem=idem)
-    background_tasks.add_task(_kick_imagery_scan)
+    background_tasks.add_task(
+        _kick_imagery_processing,
+        field_id=result["field_id"],
+        tenant_id=str(user.tenant_id),
+        geometry=result["geometry"],
+        reason="field.created",
+    )
     return result
 
 
@@ -524,40 +526,65 @@ async def import_field(
         region=req.region,
     )
     result = await _persist_field(create_req, user, idem=idem)
-    background_tasks.add_task(_kick_imagery_scan)
+    background_tasks.add_task(
+        _kick_imagery_processing,
+        field_id=result["field_id"],
+        tenant_id=str(user.tenant_id),
+        geometry=result["geometry"],
+        reason="field.created",
+    )
     return result
 
 
-@router.post("/api/v1/fields/{field_id}/refresh-imagery")
+@router.post("/api/v1/fields/{field_id}/imagery/refresh")
 async def refresh_field_imagery(
     field_id: str,
-    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
-    """تحديث يدويّ لصور Sentinel-2 للحقل (زرّ «تحديث صور الأقمار»): يسجّله في أتمتة
-    الصور إن لزم ثمّ يُطلِق فحصاً فوريّاً (بحث Element84 + معالجة NDVI/COG عبر
-    raster-service). صدق: بيانات حقيقيّة فقط؛ يُرجَع ملخّص الفحص كما هو (لا تلفيق)."""
-    import json as _json
+    """Launch real Sentinel-2 imagery processing for a field on demand.
 
-    async with tenant_connection(user) as conn:
-        row = await conn.fetchrow("SELECT geometry FROM fields WHERE field_id = $1", field_id)
-    if row is None:
-        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+    No fabricated data: this endpoint only searches real STAC scenes and queues
+    raster-service COG processing. If no scene/COG exists yet, it returns an honest
+    queued=false/no_scene/missing_bands response; raster endpoints expose real_data=true
+    only after reading a real generated COG.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT field_id, geometry FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            geometry = row["geometry"]
+            if isinstance(geometry, str):
+                import json as _json
 
-    from api.imagery_automation import imagery_automation
+                geometry = _json.loads(geometry)
+            guarded = guard_field_geometry(geometry)
+            from api.imagery_automation import imagery_automation
 
-    geom = row["geometry"]
-    if isinstance(geom, str):
-        try:
-            geom = _json.loads(geom)
-        except Exception:  # noqa: BLE001 — هندسة مخزّنة تالفة ⇒ لا bbox
-            geom = None
-    bbox = _bbox_from_geometry(geom) if geom is not None else None
-    if bbox is not None:
-        await imagery_automation.register_field_persistent(
-            field_id, bbox, tenant_id=str(user.tenant_id)
-        )
-    scan = await imagery_automation.scan_all(lookback_days=14)
-    return {"field_id": field_id, "status": "scan_triggered", "scan": scan}
+            result = await imagery_automation.trigger_field_imagery_processing(
+                field_id=field_id,
+                tenant_id=str(user.tenant_id),
+                bbox=guarded.bbox,
+                geometry=guarded.geometry,
+                reason="manual.refresh",
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "FIELD_IMAGERY_REFRESH_REQUESTED",
+                "field",
+                field_id,
+                {"status": result.get("status"), "queued": result.get("queued")},
+            )
+            return result
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("تحديث صور الأقمار للحقل", e) from e
 
 
 @router.get("/api/v1/fields/{field_id}", response_model=FieldDetail)
@@ -722,6 +749,7 @@ def _field_merge_plan(
 async def update_field(
     field_id: str,
     req: FieldUpdateRequest,
+    background_tasks: BackgroundTasks,
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
     idem: str | None = Depends(_idem_key),
 ):
@@ -944,6 +972,16 @@ async def update_field(
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
         raise _db_unavailable("تحديث تفاصيل الحقل", e) from e
+    # تغيّر الحدّ ⇒ المؤشّرات/البلاطات القديمة أصبحت قديمة: أطلِق معالجة مُستهدَفة جديدة
+    # (BackgroundTasks، بعد الالتزام — لا نداء HTTP داخل المعاملة فلا تُحبَس وصلة DB).
+    if geometry_changed and isinstance(result, dict) and result.get("geometry"):
+        background_tasks.add_task(
+            _kick_imagery_processing,
+            field_id=field_id,
+            tenant_id=str(user.tenant_id),
+            geometry=result["geometry"],
+            reason="field.geometry.updated",
+        )
     return result
 
 
