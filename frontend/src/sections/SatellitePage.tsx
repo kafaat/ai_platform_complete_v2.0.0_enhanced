@@ -28,7 +28,10 @@ import { LayerSwitcher } from '../components/ds';
 import {
   DateScrubber, ScoutingMap, ScoutingPinPanel,
   type ScrubberPoint, type ScoutPin, type PinCategory,
+  type PinPersistence, type PinSeverity,
 } from '../components/fieldhealth';
+import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
+import type { ScoutingPinRecord } from '../hooks/useScouting';
 
 // مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
 // لا بقائمة مُبرمَجة — مصدر حقيقة واحد للقابل للرسم (لا طبقة ميتة ولا مفقودة).
@@ -91,24 +94,88 @@ export default function SatellitePage() {
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
   const [measureTools, setMeasureTools] = useState(false);
 
-  // ── دبابيس الاستطلاع المحلّيّة للجلسة (لا GET للقراءة في الخادم — TODO موثّق) ──
-  // الخادم لا يوفّر قراءة (GET) لمشاهدات مُخزَّنة (scouting pins/timeline POST فقط).
-  // فالدبابيس هنا state في الذاكرة فقط: لا تُحفَظ ولا تُجلَب، وتختفي بإعادة التحميل.
-  const [pins, setPins] = useState<ScoutPin[]>([]);
+  // ── دبابيس الاستطلاع الدائمة (v94 — تُجلَب من الخادم وتُحفَظ، تبقى عبر الجلسات) ──
+  // GET /api/v1/scouting/pins?field_id=… يُرجِع المُخزَّنة (RLS)؛ الإنشاء عبر POST
+  // /api/v1/fields/{id}/pins (تفاؤليّ + إعادة جلب). صدق: القاعدة غير مفعّلة ⇒ note_ar.
+  const pinsQ = useScoutingPins(fieldId);
+  const createPin = useCreateScoutingPin(fieldId);
+
+  // إعداد الدبّوس التالي (FieldView pin UX): فئة · دوام · شدّة · مشكلة · ملاحظة.
   const [pinCategory, setPinCategory] = useState<PinCategory>('disease');
-  // مفتاح الجلسة لكلّ حقل — تبديل الحقل يُفرِغ الدبابيس (مشاهدات مرتبطة بحقلها).
-  useEffect(() => { setPins([]); }, [fieldId]);
+  const [pinPersistence, setPinPersistence] = useState<PinPersistence>('seasonal');
+  const [pinSeverity, setPinSeverity] = useState<PinSeverity>('medium');
+  const [pinIssueCode, setPinIssueCode] = useState<string>('');
+  const [pinNote, setPinNote] = useState<string>('');
+
+  // دبابيس تفاؤليّة محلّيّة (قبل تأكيد إعادة الجلب) — تُدمَج مع المُخزَّنة بلا تكرار.
+  const [optimisticPins, setOptimisticPins] = useState<ScoutPin[]>([]);
+  // تبديل الحقل يُفرِغ التفاؤليّة (المُخزَّنة تأتي من استعلام الحقل الجديد).
+  useEffect(() => { setOptimisticPins([]); setPinIssueCode(''); }, [fieldId]);
+
+  // المُخزَّنة من الخادم → ScoutPin (مفتاح pin_id؛ persisted=true).
+  const serverPins: ScoutPin[] = useMemo(
+    () => (pinsQ.data?.pins ?? []).map((r: ScoutingPinRecord) => ({
+      id: r.pin_id,
+      lat: r.lat,
+      lon: r.lng,
+      category: (r.issue_category as PinCategory),
+      note: r.note_ar ?? '',
+      createdAt: r.created_at,
+      persistence: (r.persistence as PinPersistence),
+      severity: (r.severity as PinSeverity),
+      issueCode: r.issue_code,
+      persisted: true,
+    })),
+    [pinsQ.data],
+  );
+
+  // الدمج: المُخزَّنة + التفاؤليّة التي لم تظهر بعد في استجابة الخادم (بمعرّف pin_id).
+  const pins: ScoutPin[] = useMemo(() => {
+    const serverIds = new Set(serverPins.map((p) => p.id));
+    return [...serverPins, ...optimisticPins.filter((p) => !serverIds.has(p.id))];
+  }, [serverPins, optimisticPins]);
 
   const handleDropPin = useCallback((lat: number, lon: number) => {
-    setPins((prev) => [
-      ...prev,
-      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, lat, lon, category: pinCategory, note: '', createdAt: new Date().toISOString() },
-    ]);
-  }, [pinCategory]);
+    const pinId = `pin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic: ScoutPin = {
+      id: pinId, lat, lon, category: pinCategory, note: pinNote,
+      createdAt: new Date().toISOString(), persistence: pinPersistence,
+      severity: pinSeverity, issueCode: pinIssueCode || null, persisted: false,
+    };
+    setOptimisticPins((prev) => [...prev, optimistic]);
+    createPin.mutate(
+      {
+        pin_id: pinId, field_id: fieldId, lat, lng: lon,
+        issue_category: pinCategory, severity: pinSeverity, persistence: pinPersistence,
+        issue_code: pinIssueCode || null, note_ar: pinNote || null,
+      },
+      {
+        // عند نجاح الإنشاء تُعيد useCreateScoutingPin إبطال المخبّأ ⇒ إعادة جلب؛
+        // نزيل التفاؤليّ عند ظهوره من الخادم (effect أدناه). الفشل ⇒ تراجُع فوريّ.
+        onError: () => setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId)),
+      },
+    );
+  }, [fieldId, pinCategory, pinPersistence, pinSeverity, pinIssueCode, pinNote, createPin]);
+
+  // تنظيف التفاؤليّة بعد أن تصبح مُخزَّنة فعليّاً (ظهرت في استجابة الخادم).
+  useEffect(() => {
+    const serverIds = new Set(serverPins.map((p) => p.id));
+    setOptimisticPins((prev) => prev.filter((p) => !serverIds.has(p.id)));
+  }, [serverPins]);
+
+  // إخفاء من العرض فقط (لا DELETE في الخادم) — يُعيد الظهور عند إعادة الجلب إن كان
+  // مُخزَّناً. للتفاؤليّ (غير محفوظ) يُزيله نهائيّاً.
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  useEffect(() => { setHiddenIds(new Set()); }, [fieldId]);
   const handleRemovePin = useCallback((id: string) => {
-    setPins((prev) => prev.filter((p) => p.id !== id));
+    setOptimisticPins((prev) => prev.filter((p) => p.id !== id));
+    setHiddenIds((prev) => new Set(prev).add(id));
   }, []);
-  const handleClearPins = useCallback(() => setPins([]), []);
+  const handleClearPins = useCallback(() => {
+    setOptimisticPins([]);
+    setHiddenIds(new Set(pins.map((p) => p.id)));
+  }, [pins]);
+  const visiblePins = useMemo(() => pins.filter((p) => !hiddenIds.has(p.id)), [pins, hiddenIds]);
 
   // طبقات قابلة للرسم من الكتالوج (renderable=true)، مزيّنة بعرض محلّيّ. عند
   // تعذّر الكتالوج تسقط لقائمة احتياطيّة فلا تنكسر الخريطة. الاسم من الكتالوج.
@@ -124,6 +191,14 @@ export default function SatellitePage() {
   const field = fields.find((f) => f.id === fieldId) || fields[0];
   const idx   = indices.find((i) => i.id === activeIndex) || indices[0];
   const gridIndex = (idx?.id ?? 'ndvi') as GridIndex;
+
+  // مشاكل محصول الحقل من الـtaxonomy (قائمة المشكلة في لوحة الدبابيس). تظهر القائمة
+  // فقط عند مطابقة المحصول لمفتاح معروف بالخادم — وإلّا تُخفى (لا خيارات مخترَعة).
+  const cropIssuesQ = useCropScoutingIssues(field?.crop);
+  const issueOptions = useMemo(
+    () => (cropIssuesQ.data?.issues ?? []).map((i) => ({ code: i.code, name_ar: i.name_ar })),
+    [cropIssuesQ.data],
+  );
 
   const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
   const { data: ndviNow }                        = useCurrentNDVI(fieldId);
@@ -310,7 +385,7 @@ export default function SatellitePage() {
                   date={mapDate}
                   fieldPolygon={fieldPolygon}
                   fallbackBounds={fallbackBounds}
-                  pins={pins}
+                  pins={visiblePins}
                   onDropPin={handleDropPin}
                   onRemovePin={handleRemovePin}
                   height={400}
@@ -421,13 +496,25 @@ export default function SatellitePage() {
           {/* ── لوحة جانبيّة خاصّة بالوضع ── */}
           {mode === 'scouting' ? (
             <>
-              {/* دبابيس الاستطلاع (محلّيّة للجلسة — TODO موثّق) */}
+              {/* دبابيس الاستطلاع الدائمة (تُحفَظ وتُجلَب من الخادم — v94) */}
               <ScoutingPinPanel
-                pins={pins}
+                pins={visiblePins}
                 activeCategory={pinCategory}
                 onCategoryChange={setPinCategory}
+                persistence={pinPersistence}
+                onPersistenceChange={setPinPersistence}
+                severity={pinSeverity}
+                onSeverityChange={setPinSeverity}
+                note={pinNote}
+                onNoteChange={setPinNote}
+                issueOptions={issueOptions}
+                issueCode={pinIssueCode}
+                onIssueChange={setPinIssueCode}
                 onRemove={handleRemovePin}
                 onClear={handleClearPins}
+                isLoading={pinsQ.isLoading}
+                isError={pinsQ.isError}
+                dbDisabledNote={pinsQ.data?.note_ar ?? null}
               />
 
               {/* مناطق التباين (management zones) — من raster-service */}

@@ -606,6 +606,73 @@ export interface NlGisResult {
 export const queryNlGis = (payload: NlGisQueryInput): Promise<NlGisResult> =>
   kongApi.post<NlGisResult>('/api/v1/nl-gis/query', payload).then(r => r.data);
 
+// ── دبابيس الاستطلاع الدائمة (FieldView Scouting Pins) ──
+// نقطة القراءة GET /api/v1/scouting/pins?field_id=… تُرجِع المشاهدات المُثبَّتة في
+// scouting_pins (v94) معزولةً بالمستأجِر (RLS) — تكتبها نقطة الإنشاء
+// POST /api/v1/fields/{field_id}/pins. صدق: القاعدة غير مفعّلة ⇒ pins:[] + note_ar
+// (لا اختراع مشاهدات)؛ 503 ⇒ القاعدة غير متاحة (حالة خطأ صادقة تكشفها الواجهة).
+// الحقول مطابقة لـ ScoutingPin.to_dict في api/scouting_pins.py حقلاً بحقل.
+export interface ScoutingPinRecord {
+  pin_id:         string;
+  field_id:       string;
+  lat:            number;
+  lng:            number;
+  issue_category: string;            // disease|pest|weed|nutrient|water_stress|abiotic|other
+  severity:       string;            // low|medium|high
+  status:         string;            // new|confirmed|under_treatment|resolved
+  persistence:    string;            // seasonal|permanent
+  crop:           string | null;
+  issue_code:     string | null;     // من الـtaxonomy (مثل tomato.tuta)
+  note_ar:        string | null;
+  photo_uri:      string | null;
+  color:          string | null;     // ترميز لوني (واجهة)
+  created_by:     string | null;
+  created_at:     string;            // ISO
+}
+
+export interface ScoutingPinsResponse {
+  field_id: string;
+  pins:     ScoutingPinRecord[];
+  total:    number;
+  note_ar?: string;                  // سبب الفراغ (القاعدة غير مفعّلة)
+}
+
+/** يجلب دبابيس مشاهدة الحقل المُخزَّنة (GET /api/v1/scouting/pins?field_id=…). */
+export const fetchScoutingPins = (fieldId: string): Promise<ScoutingPinsResponse> =>
+  kongApi
+    .get<ScoutingPinsResponse>('/api/v1/scouting/pins', { params: { field_id: fieldId } })
+    .then(r => r.data);
+
+// حمولة إنشاء دبّوس — مطابقة لـ PinCreateRequest في الخادم (pin_id من العميل،
+// idempotency عبر ON CONFLICT). الإنشاء يبقى على نقطة الحقل القائمة (POST).
+export interface ScoutingPinCreateInput {
+  pin_id:         string;
+  field_id:       string;
+  lat:            number;
+  lng:            number;
+  issue_category: string;
+  severity?:      string;
+  status?:        string;
+  persistence?:   string;
+  crop?:          string | null;
+  issue_code?:    string | null;
+  note_ar?:       string | null;
+  photo_uri?:     string | null;
+  color?:         string | null;
+}
+
+// استجابة الإنشاء = الدبّوس المُطبَّع + علم persisted (هل ثُبِّت في القاعدة؟ best-effort).
+export type ScoutingPinCreated = ScoutingPinRecord & { persisted?: boolean };
+
+/** ينشئ دبّوس مشاهدة (POST /api/v1/fields/{field_id}/pins) — يتحقّق ثمّ يُديم (RLS). */
+export const createScoutingPin = (input: ScoutingPinCreateInput): Promise<ScoutingPinCreated> =>
+  kongApi
+    .post<ScoutingPinCreated>(
+      `/api/v1/fields/${encodeURIComponent(input.field_id)}/pins`,
+      input,
+    )
+    .then(r => r.data);
+
 // ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
 // يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة
 // لكلّ سياسة ويوصي بأفضلها — توصية فقط لا تنفيذ ولا حجز ماء. خلف العلم

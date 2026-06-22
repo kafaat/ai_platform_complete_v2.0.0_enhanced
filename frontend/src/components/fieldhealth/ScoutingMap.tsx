@@ -5,13 +5,13 @@
 // (صور جوّيّة) + طبقة بلاطات المؤشّر (variability المنطقيّة) فوق حدود
 // الحقل + دبابيس مشاهدات (pins) يُسقطها المستخدم بالنقر.
 //
-// ⚠️ صدق المصدر (TODO موثّق): الخادم لا يوفّر نقطة قراءة (GET) لدبابيس
-// المشاهدات — نقطتا /api/v1/scouting/pins و/timeline في الخادم POST فقط
-// (إنشاء/تجميع من حمولة الطلب) ولا تُرجِعان قائمة مُخزَّنة تُقرأ بـGET
-// (راجع hooks/useScouting.ts و scouting_pins.py). لذا الدبابيس هنا
-// **محلّيّة للجلسة فقط** (state في الذاكرة): لا تُحفَظ ولا تُجلَب من الخادم،
-// وتختفي بإعادة التحميل. لا نخترع endpoint قراءة ولا نُلفّق مشاهدات مُخزَّنة.
-// عند توفّر GET /scouting/pins?field_id=… مستقبلاً تُربَط هنا (نقطة تمديد).
+// ✅ الدبابيس دائمة الآن (v94): تُجلَب من GET /api/v1/scouting/pins?field_id=…
+// وتُنشأ عبر POST /api/v1/fields/{id}/pins (راجع hooks/useScouting.ts). تنجو من
+// إعادة التحميل (مُخزَّنة في القاعدة، معزولة بالمستأجِر RLS). صدق: القاعدة غير
+// مفعّلة ⇒ حالة فارغة صريحة (لا اختراع مشاهدات) — يتولّاها المستهلِك (SatellitePage).
+//
+// ترميز العرض: اللون من الفئة (category)، والشكل من الدوام (persistence): الموسميّ
+// دائرة ممتلئة، والدائم حلقة مزدوجة (إشارة بصريّة لمشكلة بنيويّة تبقى عبر المواسم).
 // ═══════════════════════════════════════════════════════════════
 import { useMemo } from 'react';
 import { MapContainer, TileLayer, Polygon, CircleMarker, Popup, useMapEvents } from 'react-leaflet';
@@ -27,15 +27,37 @@ const BASEMAP_SAT =
 // فئة مشاهدة (مطابقة لـ IssueCategory في scouting_pins.py — للعرض/اللون).
 export type PinCategory = 'disease' | 'pest' | 'weed' | 'nutrient' | 'water_stress' | 'abiotic' | 'other';
 
-// دبّوس مشاهدة محلّيّ للجلسة (لا مُعرّف خادم — مُعرّف محلّيّ فقط).
+// دوام المشاهدة (مطابق لـ Persistence في scouting_pins.py): موسميّ vs دائم.
+export type PinPersistence = 'seasonal' | 'permanent';
+
+// شدّة المشاهدة (مطابقة لـ Severity في scouting_pins.py).
+export type PinSeverity = 'low' | 'medium' | 'high';
+
+// دبّوس مشاهدة. ``pin_id`` معرّف العميل (idempotency للخادم). ``persisted`` يُميّز
+// الدبّوس المُثبَّت في القاعدة عن التفاؤليّ ريثما تكتمل إعادة الجلب (false مؤقّتاً).
 export interface ScoutPin {
-  id: string;
+  id: string;                      // = pin_id (معرّف العميل المُرسَل للخادم)
   lat: number;
   lon: number;
   category: PinCategory;
   note: string;
-  createdAt: string; // ISO محلّيّ — وقت الإسقاط في المتصفّح
+  createdAt: string;               // ISO — وقت الإنشاء
+  persistence: PinPersistence;     // موسميّ | دائم
+  severity?: PinSeverity;          // الشدّة (افتراضيّاً medium)
+  issueCode?: string | null;       // رمز من الـtaxonomy (مثل tomato.tuta)
+  persisted?: boolean;             // هل ثُبِّت في القاعدة؟ (false = تفاؤليّ/غير محفوظ)
 }
+
+export const PIN_PERSISTENCE_AR: Record<PinPersistence, string> = {
+  seasonal: 'موسميّة',
+  permanent: 'دائمة',
+};
+
+export const PIN_SEVERITY_AR: Record<PinSeverity, string> = {
+  low: 'خفيفة',
+  medium: 'متوسّطة',
+  high: 'شديدة',
+};
 
 export const PIN_CATEGORY_AR: Record<PinCategory, string> = {
   disease: 'مرض',
@@ -132,37 +154,59 @@ export default function ScoutingMap({
           <Polygon positions={fieldPolygon} pathOptions={{ color: '#5cbf6e', weight: 2, fill: false }} />
         )}
 
-        {/* دبابيس المشاهدات (محلّيّة للجلسة) */}
-        {pins.map((p) => (
-          <CircleMarker
-            key={p.id}
-            center={[p.lat, p.lon]}
-            radius={8}
-            pathOptions={{ color: pinColor(p.category), fillColor: pinColor(p.category), fillOpacity: 0.9, weight: 2 }}
-          >
-            <Popup>
-              <div dir="rtl" style={{ minWidth: 160 }}>
-                <div style={{ fontWeight: 700, color: pinColor(p.category) }}>
-                  {PIN_CATEGORY_AR[p.category]}
+        {/* دبابيس المشاهدات (مُخزَّنة) — اللون من الفئة، الشكل من الدوام */}
+        {pins.map((p) => {
+          const col = pinColor(p.category);
+          const isPermanent = p.persistence === 'permanent';
+          return (
+            <CircleMarker
+              key={p.id}
+              center={[p.lat, p.lon]}
+              // الدائم: حلقة مزدوجة (حدّ أعرض شفّاف + لبّ ممتلئ) — إشارة بنيويّة.
+              radius={isPermanent ? 9 : 8}
+              pathOptions={{
+                color: col,
+                fillColor: col,
+                fillOpacity: isPermanent ? 0.35 : 0.9,
+                weight: isPermanent ? 4 : 2,
+                // التفاؤليّ (لم يُثبَّت بعد) — خطّ متقطّع حتى تكتمل إعادة الجلب.
+                dashArray: p.persisted === false ? '4 3' : undefined,
+              }}
+            >
+              <Popup>
+                <div dir="rtl" style={{ minWidth: 170 }}>
+                  <div style={{ fontWeight: 700, color: col }}>
+                    {PIN_CATEGORY_AR[p.category]}
+                    {p.severity ? ` · ${PIN_SEVERITY_AR[p.severity]}` : ''}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#475569', marginTop: 2 }}>
+                    {PIN_PERSISTENCE_AR[p.persistence]}
+                    {p.issueCode ? ` · ${p.issueCode}` : ''}
+                  </div>
+                  {p.note && <div style={{ fontSize: 12, marginTop: 4, color: '#334155' }}>{p.note}</div>}
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+                    📍 {p.lat.toFixed(5)}، {p.lon.toFixed(5)}
+                  </div>
+                  {p.persisted === false && (
+                    <div style={{ fontSize: 10, color: '#b45309', marginTop: 3 }}>
+                      لم يُحفَظ بعد (بانتظار التزامن)
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onRemovePin(p.id)}
+                    style={{
+                      marginTop: 6, fontSize: 11, color: '#dc2626', background: 'transparent',
+                      border: '1px solid #fca5a5', borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
+                    }}
+                  >
+                    إخفاء من العرض
+                  </button>
                 </div>
-                {p.note && <div style={{ fontSize: 12, marginTop: 4, color: '#334155' }}>{p.note}</div>}
-                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
-                  📍 {p.lat.toFixed(5)}، {p.lon.toFixed(5)}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onRemovePin(p.id)}
-                  style={{
-                    marginTop: 6, fontSize: 11, color: '#dc2626', background: 'transparent',
-                    border: '1px solid #fca5a5', borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
-                  }}
-                >
-                  حذف الدبّوس
-                </button>
-              </div>
-            </Popup>
-          </CircleMarker>
-        ))}
+              </Popup>
+            </CircleMarker>
+          );
+        })}
 
         <ClickToDrop onDrop={onDropPin} />
       </MapContainer>
@@ -174,10 +218,10 @@ export default function ScoutingMap({
           position: 'absolute', bottom: 12, insetInlineEnd: 12, zIndex: 1000,
           background: 'rgba(13,22,17,.88)', borderRadius: 10, padding: '6px 10px',
           fontSize: 11, color: '#cdddd2', border: '1px solid #2d4a37', backdropFilter: 'blur(6px)',
-          maxWidth: 230,
+          maxWidth: 240,
         }}
       >
-        انقر الخريطة لإسقاط دبّوس مشاهدة (محلّيّ للجلسة — لا يُحفَظ على الخادم).
+        انقر الخريطة لإسقاط دبّوس مشاهدة — يُحفَظ على الخادم ويبقى عبر الجلسات.
       </div>
     </div>
   );

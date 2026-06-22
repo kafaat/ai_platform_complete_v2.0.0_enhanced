@@ -373,3 +373,10 @@ v92_offline_pending_ops.sql
 # تسليم outbox at-least-once). عالميّ عمداً (لا tenant_id) — مُستهلِك عابر للمستأجرين
 # على دور sahool_jobs/BYPASSRLS، مرآةً لـevent_outbox/weather_grid. idempotent.
 v93_processed_events.sql
+# v94: scouting_pins — دبابيس المشاهدات الميدانيّة الدائمة (FieldView Scouting Pins).
+# يُديم ما كانت نقطة POST /fields/{id}/pins تتحقّق منه وتُرجِعه فقط (حفظ موبايل سابقاً)
+# فيصير قابلاً للقراءة عبر GET /api/v1/scouting/pins?field_id=… (كان session-only في
+# الواجهة). النموذج يطابق dataclass ScoutingPin حقلاً بحقل (موقع/فئة/شدّة/حالة/علم
+# موسمي-دائم/ملاحظة/صورة/لون). RLS+FORCE بسياسة tenant_isolation (نمط v92/v89،
+# fail-closed). فهرس (tenant_id, field_id, created_at DESC) للقراءة. idempotent.
+v94_scouting_pins.sql

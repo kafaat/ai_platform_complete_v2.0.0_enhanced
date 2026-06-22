@@ -1,15 +1,37 @@
-// useScouting — ربط حيّ بتصنيف المشاهدات الميدانيّة (Scouting Taxonomy).
+// useScouting — ربط حيّ بتصنيف المشاهدات الميدانيّة + دبابيسها الدائمة.
 //
-// المصدر الوحيد القابل للوصول (GET) في الخادم هو
+// التصنيف (GET موجود سابقاً):
 //   GET /api/v1/scouting/taxonomy        → التصنيف الكامل + دليل نقص العناصر
 //   GET /api/v1/scouting/taxonomy?crop=X → مشاكل محصول واحد فقط
-// (api/scouting_pins.py عبر main.py). نقطتا pins/timeline في الخادم POST فقط
-// (إنشاء/تجميع من حمولة الطلب) ولا تُرجِعان قائمة مُخزَّنة تُقرأ بـGET، فلا
-// تُلَفّان هنا — صدق: لا نخترع endpoint للقراءة غير موجود.
 //
-// ملفّ مكتفٍ ذاتيّاً: يستورد kongApi مباشرةً ولا يلمس useApi.ts/api.ts.
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { kongApi } from '../services/api';
+// الدبابيس الدائمة (v94 — صار للخادم نقطة قراءة فعليّة):
+//   GET  /api/v1/scouting/pins?field_id=… → المشاهدات المُثبَّتة (RLS، معزولة بالمستأجِر)
+//   POST /api/v1/fields/{field_id}/pins   → إنشاء + إدامة (idempotent عبر pin_id)
+// كان الإنشاء سابقاً POST-فقط بلا قراءة (فبقيت الدبابيس محلّيّة للجلسة)؛ الآن تُجلَب
+// وتُعرَض. صدق: القاعدة غير مفعّلة ⇒ pins:[] + note_ar (لا اختراع مشاهدات).
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryResult,
+  type UseMutationResult,
+} from '@tanstack/react-query';
+import {
+  kongApi,
+  fetchScoutingPins,
+  createScoutingPin,
+  type ScoutingPinRecord,
+  type ScoutingPinsResponse,
+  type ScoutingPinCreateInput,
+  type ScoutingPinCreated,
+} from '../services/api';
+
+export type {
+  ScoutingPinRecord,
+  ScoutingPinsResponse,
+  ScoutingPinCreateInput,
+  ScoutingPinCreated,
+};
 
 // ── أشكال الاستجابة المُتحقَّق منها (main.py:7121-7133, scouting_pins.py) ──
 
@@ -66,5 +88,38 @@ export function useCropScoutingIssues(
     staleTime: 30 * 60_000,
     retry: false,
     enabled: !!crop,
+  });
+}
+
+// ── دبابيس الاستطلاع الدائمة (v94) ──
+
+const pinsQueryKey = (fieldId: string) => ['scouting', 'pins', fieldId] as const;
+
+// دبابيس مشاهدة الحقل المُخزَّنة (GET /api/v1/scouting/pins?field_id=…). مُفعَّل فقط
+// عند وجود fieldId. صدق: القاعدة غير مفعّلة ⇒ pins:[] + note_ar؛ 503 ⇒ خطأ يُكشَف.
+export function useScoutingPins(
+  fieldId?: string,
+): UseQueryResult<ScoutingPinsResponse, Error> {
+  return useQuery<ScoutingPinsResponse, Error>({
+    queryKey: pinsQueryKey(fieldId ?? 'none'),
+    queryFn: () => fetchScoutingPins(fieldId as string),
+    staleTime: 60_000,
+    retry: false,
+    enabled: !!fieldId,
+  });
+}
+
+// إنشاء دبّوس (POST) ثمّ إبطال مخبّأ دبابيس الحقل لإعادة الجلب (المصدر القانونيّ
+// هو القاعدة بعد الإنشاء). التفاؤل يتولّاه المستهلِك بإضافة الدبّوس محلّيّاً ريثما
+// تكتمل إعادة الجلب — وإن فشل الإنشاء يتراجع المستهلِك. يُرجِع الدبّوس + علم persisted.
+export function useCreateScoutingPin(
+  fieldId?: string,
+): UseMutationResult<ScoutingPinCreated, Error, ScoutingPinCreateInput> {
+  const qc = useQueryClient();
+  return useMutation<ScoutingPinCreated, Error, ScoutingPinCreateInput>({
+    mutationFn: (input) => createScoutingPin(input),
+    onSuccess: () => {
+      if (fieldId) qc.invalidateQueries({ queryKey: pinsQueryKey(fieldId) });
+    },
   });
 }

@@ -2342,12 +2342,20 @@ async def field_unified_timeline(
 
 
 @router.post("/api/v1/fields/{field_id}/pins")
-def create_pin(
+async def create_pin(
     field_id: str,
     req: PinCreateRequest,
     user: UserSchema = Depends(get_current_user),
 ):
-    """يتحقّق من مشاهدة ميدانيّة ويُرجعها مُطبَّعة (الحفظ على الموبايل)."""
+    """يتحقّق من مشاهدة ميدانيّة ثمّ يُديمها (RLS) ويُرجعها مُطبَّعة.
+
+    سابقاً: تحقّق + إرجاع فقط (الحفظ كان على الموبايل offline-first) — فلا قراءة
+    خادميّة. الآن يُثبَّت الدبّوس في ``scouting_pins`` (v94، معزول بالمستأجِر) ليُقرأ
+    عبر ``GET /api/v1/scouting/pins?field_id=…`` (نظير FieldView). صدق: التحقّق هو
+    مصدر الحقيقة؛ الإدامة best-effort — لو تعذّرت القاعدة يبقى الدبّوس صالحاً ويُعلَن
+    ``persisted=false`` (لا اختراع نجاح، يبقى المسار offline-first سليماً). idempotent
+    عبر ``ON CONFLICT (pin_id) DO NOTHING`` (إعادة المزامنة لا تُكرّر).
+    """
     try:
         pin = make_pin(
             req.pin_id,
@@ -2365,9 +2373,55 @@ def create_pin(
             color=req.color,
             created_by=req.created_by or user.user_id,
         )
-        return pin.to_dict()
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
+
+    out = pin.to_dict()
+    persisted = await _persist_scouting_pin(user, pin)
+    out["persisted"] = persisted
+    return out
+
+
+async def _persist_scouting_pin(user: UserSchema, pin) -> bool:
+    """يُثبّت دبّوس مشاهدة في ``scouting_pins`` تحت سياق المستأجِر (RLS) — best-effort.
+
+    يُرجِع ``True`` لو ثُبِّت (أو كان موجوداً مسبقاً idempotent)، و``False`` لو تعذّرت
+    القاعدة (لا استثناء يصعد — المسار offline-first يبقى سليماً). SQL بارامتريّ
+    بالكامل (لا حقن). ``created_at`` يُمرَّر كنصّ ISO من النواة ويُحوَّل بـ``::timestamptz``.
+    """
+    if _DB_POOL is None:
+        return False
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                "INSERT INTO scouting_pins "
+                "(pin_id, tenant_id, field_id, lat, lng, issue_category, severity, "
+                " status, persistence, crop, issue_code, note_ar, photo_uri, color, "
+                " created_by, created_at) "
+                "VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, "
+                " $13, $14, $15, $16::timestamptz) "
+                "ON CONFLICT (pin_id) DO NOTHING",
+                pin.pin_id,
+                str(user.tenant_id),
+                pin.field_id,
+                pin.lat,
+                pin.lng,
+                pin.issue_category.value,
+                pin.severity.value,
+                pin.status.value,
+                pin.persistence.value,
+                pin.crop,
+                pin.issue_code,
+                pin.note_ar,
+                pin.photo_uri,
+                pin.color,
+                pin.created_by,
+                pin.created_at or None,
+            )
+        return True
+    except Exception:  # noqa: BLE001 — إدامة best-effort: تعذّر القاعدة ⇒ persisted=false
+        logging.warning("scouting pin persistence failed for pin %s", pin.pin_id)
+        return False
 
 
 @router.post("/api/v1/fields/{field_id}/walk-plan")
