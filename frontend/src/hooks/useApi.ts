@@ -8,6 +8,7 @@ import {
   weatherApi, soilApi, authApi, rasterApi,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
   analyzeFieldIntelligence, getCostAnalytics,
+  getYieldAnalysis, type YieldAnalysisResult,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
   computeIrrigationPlan, type IrrigationPlanInput, type IrrigationPlanResult,
@@ -126,6 +127,7 @@ export const QK = {
   prescription:     (fid: string, index: string, date: string, n: number, baseRate: number | null, strategy: string) =>
                        ['prescription', fid, index, date, n, baseRate ?? 'auto', strategy],
   costAnalytics:    (tid: string)        => ['analytics', 'costs', tid],
+  yieldAnalysis:    (tid: string, fid: string, season: string) => ['analysis', 'yield', tid, fid, season],
   farmSummary:      (tid: string)        => ['reports', 'farm-summary', tid],
   fieldReport:      (tid: string, fid: string) => ['reports', 'field', tid, fid],
   seasonReport:     (tid: string, sid: string) => ['reports', 'season', tid, sid],
@@ -1684,6 +1686,24 @@ export function useCostAnalytics(): UseQueryResult<CostAnalytics> {
     queryKey: QK.costAnalytics(tid),
     queryFn:  () => getCostAnalytics(),
     staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+// ── Yield Analysis: تحليل الغلّة (نمط FieldView، حيّ، tenant-scoped + analytics:view) ──
+// GET /api/v1/analysis/yield: زراعة↔حصاد + أداء الهجن من جدول seasons المُخزَّن فقط.
+// fieldId/season اختياريّان (فراغهما ⇒ كلّ المواسم للمستأجِر). لا fallback وهميّ:
+// عند الخطأ (503 DB / 403 RBAC) يُرفض الاستعلام لتعرض الواجهة حالة صادقة. الفراغ
+// (لا مواسم/لا حصاد) عقدٌ صحيح بقوائم فارغة + note_ar (لا 404 ولا تلفيق).
+export function useYieldAnalysis(
+  fieldId?: string,
+  season?: string,
+): UseQueryResult<YieldAnalysisResult, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<YieldAnalysisResult, Error>({
+    queryKey: QK.yieldAnalysis(tid, fieldId ?? 'all', season ?? 'all'),
+    queryFn:  () => getYieldAnalysis(fieldId, season),
+    staleTime:60_000,
     retry:    false,
   });
 }

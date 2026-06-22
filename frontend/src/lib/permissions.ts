@@ -27,7 +27,7 @@ const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
   'irrigation', 'irrigation-plan', 'crop-state', 'scenario-compare', 'nl-gis', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'devices', 'device-twin', 'inventory', 'equipment',
-  'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
+  'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'yield-analysis', 'phenology', 'scouting', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'chatbot', 'settings',
   'operations-wall',
 ] as const satisfies readonly PageId[];
 
@@ -61,7 +61,7 @@ const NON_MANAGEMENT_PAGES: PageId[] = ALL_PAGES.filter(
 // ANALYTICS_VIEW/AUDIT_VIEW ولا أيّ صلاحيّة ماليّة (core/authorization.py: VIEWER
 // = 12 صلاحيّة عرض فقط). قائمة قابلة للضبط من المنتَج بمصفوفة واحدة.
 const VIEWER_BLOCKED_PAGES: PageId[] = [
-  'economics', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
+  'economics', 'yield-analysis', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
   // جدار مركز العمليّات شاشة قيادة — owner/manager/agronomist فقط (لا worker ولا viewer).
   'operations-wall',
 ];

@@ -606,6 +606,73 @@ export interface NlGisResult {
 export const queryNlGis = (payload: NlGisQueryInput): Promise<NlGisResult> =>
   kongApi.post<NlGisResult>('/api/v1/nl-gis/query', payload).then(r => r.data);
 
+// ── دبابيس الاستطلاع الدائمة (FieldView Scouting Pins) ──
+// نقطة القراءة GET /api/v1/scouting/pins?field_id=… تُرجِع المشاهدات المُثبَّتة في
+// scouting_pins (v94) معزولةً بالمستأجِر (RLS) — تكتبها نقطة الإنشاء
+// POST /api/v1/fields/{field_id}/pins. صدق: القاعدة غير مفعّلة ⇒ pins:[] + note_ar
+// (لا اختراع مشاهدات)؛ 503 ⇒ القاعدة غير متاحة (حالة خطأ صادقة تكشفها الواجهة).
+// الحقول مطابقة لـ ScoutingPin.to_dict في api/scouting_pins.py حقلاً بحقل.
+export interface ScoutingPinRecord {
+  pin_id:         string;
+  field_id:       string;
+  lat:            number;
+  lng:            number;
+  issue_category: string;            // disease|pest|weed|nutrient|water_stress|abiotic|other
+  severity:       string;            // low|medium|high
+  status:         string;            // new|confirmed|under_treatment|resolved
+  persistence:    string;            // seasonal|permanent
+  crop:           string | null;
+  issue_code:     string | null;     // من الـtaxonomy (مثل tomato.tuta)
+  note_ar:        string | null;
+  photo_uri:      string | null;
+  color:          string | null;     // ترميز لوني (واجهة)
+  created_by:     string | null;
+  created_at:     string;            // ISO
+}
+
+export interface ScoutingPinsResponse {
+  field_id: string;
+  pins:     ScoutingPinRecord[];
+  total:    number;
+  note_ar?: string;                  // سبب الفراغ (القاعدة غير مفعّلة)
+}
+
+/** يجلب دبابيس مشاهدة الحقل المُخزَّنة (GET /api/v1/scouting/pins?field_id=…). */
+export const fetchScoutingPins = (fieldId: string): Promise<ScoutingPinsResponse> =>
+  kongApi
+    .get<ScoutingPinsResponse>('/api/v1/scouting/pins', { params: { field_id: fieldId } })
+    .then(r => r.data);
+
+// حمولة إنشاء دبّوس — مطابقة لـ PinCreateRequest في الخادم (pin_id من العميل،
+// idempotency عبر ON CONFLICT). الإنشاء يبقى على نقطة الحقل القائمة (POST).
+export interface ScoutingPinCreateInput {
+  pin_id:         string;
+  field_id:       string;
+  lat:            number;
+  lng:            number;
+  issue_category: string;
+  severity?:      string;
+  status?:        string;
+  persistence?:   string;
+  crop?:          string | null;
+  issue_code?:    string | null;
+  note_ar?:       string | null;
+  photo_uri?:     string | null;
+  color?:         string | null;
+}
+
+// استجابة الإنشاء = الدبّوس المُطبَّع + علم persisted (هل ثُبِّت في القاعدة؟ best-effort).
+export type ScoutingPinCreated = ScoutingPinRecord & { persisted?: boolean };
+
+/** ينشئ دبّوس مشاهدة (POST /api/v1/fields/{field_id}/pins) — يتحقّق ثمّ يُديم (RLS). */
+export const createScoutingPin = (input: ScoutingPinCreateInput): Promise<ScoutingPinCreated> =>
+  kongApi
+    .post<ScoutingPinCreated>(
+      `/api/v1/fields/${encodeURIComponent(input.field_id)}/pins`,
+      input,
+    )
+    .then(r => r.data);
+
 // ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
 // يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة
 // لكلّ سياسة ويوصي بأفضلها — توصية فقط لا تنفيذ ولا حجز ماء. خلف العلم
@@ -1794,6 +1861,60 @@ export interface CostAnalytics {
 }
 export const getCostAnalytics = (): Promise<CostAnalytics> =>
   kongApi.get<CostAnalytics>('/api/v1/analytics/costs').then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// YIELD ANALYSIS — تحليل الغلّة (نمط FieldView، حيّ، tenant-scoped + analytics:view)
+// GET /api/v1/analysis/yield: زراعة↔حصاد لكلّ موسم + أداء الهجن — من بيانات مُخزَّنة
+// فقط (جدول seasons). لا fallback وهميّ: حين تغيب الغلّة الفعليّة تكون القوائم فارغة
+// وتُعلَن الفجوة عبر provenance.note_ar. 503 (DB) / 403 / 404 يُرفع لتعرض الواجهة
+// حالة صادقة. الغلّة بالطنّ/هكتار (t/ha). null = فجوة بيانات (لا 0 مُختلَق).
+// ══════════════════════════════════════════════════════════════════
+export interface YieldPlantingHarvestRow {
+  season_id:         string | null;
+  field_id:          string | null;
+  field_name:        string | null;
+  crop:              string | null;
+  hybrid:            string | null;
+  maturity:          string | null;
+  sowing_date:       string | null;
+  season_end:        string | null;
+  status:            string | null;
+  target_yield_t_ha: number | null;
+  actual_yield_t_ha: number | null;
+  yield_gap_t_ha:    number | null;
+  has_harvest:       boolean;
+}
+export interface YieldHybridPerformanceRow {
+  hybrid:         string;
+  crops:          string[];
+  season_count:   number;
+  field_count:    number;
+  avg_yield_t_ha: number;
+  min_yield_t_ha: number;
+  max_yield_t_ha: number;
+}
+export interface YieldAnalysisResult {
+  scope:   { field_id: string | null; season: string | null };
+  summary: {
+    seasons_total:        number;
+    seasons_with_harvest: number;
+    hybrids_compared:     number;
+  };
+  planting_vs_harvest: YieldPlantingHarvestRow[];
+  hybrid_performance:  YieldHybridPerformanceRow[];
+  units:      { yield: string };
+  provenance: { source: string; honesty: string; note_ar: string | null };
+  tenant_id?: string;
+}
+export const getYieldAnalysis = (
+  fieldId?: string,
+  season?: string,
+): Promise<YieldAnalysisResult> =>
+  kongApi
+    .get<YieldAnalysisResult>('/api/v1/analysis/yield', {
+      params: { field_id: fieldId || undefined, season: season || undefined },
+    })
+    .then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
 // REPORTS — تقارير وتحليلات (حيّة، tenant-scoped + RBAC field:view)
