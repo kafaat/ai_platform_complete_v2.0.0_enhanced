@@ -1,21 +1,39 @@
 // ═══════════════════════════════════════════════════════════════
-// SAHOOL — ReportsPage (تقارير وتحليلات حيّة)
+// SAHOOL — ReportsPage (تقارير وتحليلات حيّة + ملخّصات طراز FieldView)
 // لوحة المزرعة + ملخّص الحقل من نقاط /api/v1/reports/* (تجميع جداول قائمة،
-// مُقيَّد بالدور field:view وبالمستأجِر). ملخّص التكلفة حيّ أيضاً
-// (/api/v1/analytics/costs). لا أرقام مُلفَّقة — كلّ بطاقة/مخطّط يعرض حالة
-// تحميل/فراغ/خطأ صادقة (StateViews) بدل بيانات وهميّة.
+// مُقيَّد بالدور field:view وبالمستأجِر). ملخّص التكلفة حيّ (/api/v1/analytics/costs).
+//
+// تقارير الملخّص (طراز FieldView): زراعة / حصاد / تطبيق — مُجمَّعة على العميل من
+// بياناتك الفعليّة فقط: المواسم (/api/v1/fields/{id}/seasons) + العمليّات
+// (/api/v1/fields/{id}/activities) عبر كلّ الحقول. صدق أوّلاً — لا أرقام مُلفَّقة:
+//   • الغلّة غير المُسجَّلة (actual_yield_kg_ha = null) تُعرَض «—» لا 0.
+//   • المساحة لكلّ موسم من خيار الحقل؛ إن لم تتوفّر مساحة حقيقيّة ⇒ «—».
+//   • التصدير: CSV (موجود) + طباعة/PDF عبر window.print() بنطاق طباعة مخصّص.
+// كلّ بطاقة/مخطّط يعرض حالة تحميل/فراغ/خطأ صادقة (StateViews) بدل بيانات وهميّة.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import {
-  Download, BarChart3, DollarSign, ListChecks, Wallet,
-  Tractor, Layers, Maximize2, Sprout, BellRing,
+  Download, BarChart3, DollarSign, ListChecks, Wallet, Printer,
+  Tractor, Layers, Maximize2, Sprout, BellRing, Wheat, ClipboardList,
 } from 'lucide-react';
 import {
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from 'recharts';
-import { useCostAnalytics, useFields, useFarmSummary, useFieldReport } from '../hooks/useApi';
+import {
+  useCostAnalytics, useFields, useFarmSummary, useFieldReport,
+} from '../hooks/useApi';
+import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useAuthStore } from '../hooks/useAuth';
+import { fetchSeasons, fetchActivities } from '../services/api';
+import type { SeasonSummary, Activity } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
-import { BarChartCard, ChartShell, tooltipContentStyle, CHART_THEME } from '../components/ds';
+import { BarChartCard, ChartShell, DataTable, tooltipContentStyle, CHART_THEME } from '../components/ds';
+import type { Column } from '../components/ds';
+import {
+  buildPlantingRows, buildHarvestRows, summarizeActivities, harvestedCount, tHa,
+  type PlantingRow, type HarvestRow,
+} from '../lib/reports';
 
 // أسماء عربية لمصادر التكلفة القادمة من الخادم (fallback: اسم المصدر كما هو).
 const SOURCE_LABELS: Record<string, string> = {
@@ -30,16 +48,20 @@ const STATUS_LABELS: Record<string, string> = {
   done:        'مُنجَزة',
   completed:   'مُكتملة',
   cancelled:   'مُلغاة',
+  skipped:     'مُتجاوَزة',
+  closed:      'مُغلَق',
+  active:      'نشط',
   unknown:     'غير محدّدة',
 };
 
 const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  planting:      'بذر/زراعة',
   fertilization: 'تسميد',
   irrigation:    'ريّ',
   spraying:      'رشّ',
   pruning:       'تقليم',
   harvest:       'حصاد',
-  scouting:      'استكشاف',
+  scouting:      'كشف/مسح',
   unknown:       'غير محدّد',
 };
 
@@ -377,34 +399,394 @@ function CostSummary() {
   );
 }
 
-type Tab = 'farm' | 'field';
+// ════════════════════════════════════════════════════════════════
+// ملخّصات طراز FieldView — مُجمَّعة على العميل من المواسم/العمليّات الفعليّة.
+// نجلب لكلّ حقل مواسمه وعمليّاته عبر useQueries (مُفعَّل لكلّ حقل)، ثمّ نُجمِّع
+// منطقاً نقيّاً (lib/reports). صدق: لا تلفيق — null ⇒ «—».
+// ════════════════════════════════════════════════════════════════
 
-export function ReportsPage() {
-  const [tab, setTab] = useState<Tab>('farm');
+// عنوان قسم موحّد للملخّصات (RTL) — أيقونة + عنوان + إجراء (تصدير).
+function SummaryHeader({ icon: Icon, title, color, action }: {
+  icon: typeof Wheat; title: string; color: string; action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 mb-3">
+      <div className="flex items-center gap-2">
+        <Icon className="w-4 h-4" style={{ color }} />
+        <span className="text-sm font-semibold text-slate-200">{title}</span>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+// hook التجميع: يجلب مواسم/عمليّات كلّ الحقول. يبقى ضمن ReportsPage (لا hook عامّ
+// جديد) — يستعمل دوال الجلب المُصدَّرة من api.ts عبر useQueries.
+function useAllFieldsReportData() {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  const fieldsQuery = useFieldOptions();
+  const fieldIds = useMemo(
+    () => fieldsQuery.options.map((f) => f.id),
+    [fieldsQuery.options],
+  );
+
+  const seasonQueries = useQueries({
+    queries: fieldIds.map((id) => ({
+      queryKey: ['seasons', tid, id] as const,
+      queryFn: () => fetchSeasons(id),
+      staleTime: 5 * 60_000,
+      retry: false,
+    })),
+  });
+
+  const activityQueries = useQueries({
+    queries: fieldIds.map((id) => ({
+      queryKey: ['activities', tid, id] as const,
+      queryFn: () => fetchActivities(id),
+      staleTime: 2 * 60_000,
+      retry: false,
+    })),
+  });
+
+  const seasons: SeasonSummary[] = useMemo(
+    () => seasonQueries.flatMap((q) => (Array.isArray(q.data) ? q.data : [])),
+    [seasonQueries],
+  );
+  const activities: Activity[] = useMemo(
+    () => activityQueries.flatMap((q) => (Array.isArray(q.data) ? q.data : [])),
+    [activityQueries],
+  );
+
+  const isLoading =
+    fieldsQuery.isLoading ||
+    seasonQueries.some((q) => q.isLoading) ||
+    activityQueries.some((q) => q.isLoading);
+  // خطأ الحقول وحده يُعتبر فشلاً صريحاً للقسم؛ فشل جلب حقل مفرد لا يُسقِط الكلّ
+  // (نعرض ما نجح بصدق). يُعلَن وجود فشل جزئيّ ليُذكَر بنزاهة في الواجهة.
+  const fieldsError = fieldsQuery.isError;
+  const partialError =
+    seasonQueries.some((q) => q.isError) || activityQueries.some((q) => q.isError);
+
+  return {
+    fields: fieldsQuery.options,
+    seasons,
+    activities,
+    isLoading,
+    fieldsError,
+    partialError,
+    refetch: () => fieldsQuery.refetch(),
+    fieldsErrorObj: fieldsQuery.error,
+  };
+}
+
+// رسالة خطأ صادقة من رمز الحالة (مشترَكة بين أقسام الملخّص).
+function honestDetail(err: unknown): string {
+  const status = (err as { response?: { status?: number } })?.response?.status;
+  if (status === 503) return 'الخدمة غير متاحة حاليّاً (قاعدة البيانات معطّلة).';
+  if (status === 403) return 'لا تملك صلاحية عرض هذه البيانات (field:view).';
+  return 'تعذّر الاتصال بالخدمة.';
+}
+
+// ملاحظة نزاهة عند فشل جلب بعض الحقول (لا نُخفي نقصاً).
+function PartialNote() {
+  return (
+    <p className="text-[11px] text-amber-400/90 mt-2" dir="rtl">
+      تنبيه نزاهة: تعذّر جلب بيانات بعض الحقول — الملخّص أدناه مبنيّ على ما تَوفّر فقط.
+    </p>
+  );
+}
+
+// ── ملخّص الزراعة ────────────────────────────────────────────────
+function PlantingSummary() {
+  const { fields, seasons, isLoading, fieldsError, partialError, refetch, fieldsErrorObj } =
+    useAllFieldsReportData();
+
+  if (isLoading) return <LoadingState message="جارٍ تجميع ملخّص الزراعة…" />;
+  if (fieldsError)
+    return <ErrorState title="تعذّر تحميل ملخّص الزراعة" detail={honestDetail(fieldsErrorObj)} onRetry={refetch} />;
+
+  const rows = buildPlantingRows(seasons, fields);
+
+  if (rows.length === 0) {
+    return (
+      <>
+        {partialError && <PartialNote />}
+        <EmptyState
+          icon={<Sprout className="w-8 h-8" />}
+          title="لا مواسم مُسجَّلة بعد"
+          hint="أنشئ موسماً لحقل (محصول/صنف/تاريخ بذار) ليظهر في ملخّص الزراعة."
+        />
+      </>
+    );
+  }
+
+  const columns: Column<PlantingRow & Record<string, unknown>>[] = [
+    { key: 'field_name', label: 'الحقل', sortable: true },
+    { key: 'crop', label: 'المحصول', sortable: true,
+      render: (r) => ACTIVITY_TYPE_LABELS[r.crop] ?? r.crop },
+    { key: 'cultivar', label: 'الصنف/الهجين',
+      render: (r) => r.cultivar ?? '—' },
+    { key: 'sowing_date', label: 'تاريخ البذار', sortable: true,
+      render: (r) => r.sowing_date ?? '—' },
+    { key: 'area_ha', label: 'المساحة (هـ)', align: 'end', sortable: true,
+      render: (r) => (r.area_ha != null ? r.area_ha.toLocaleString('en-US') : '—') },
+    { key: 'status', label: 'الحالة', align: 'center',
+      render: (r) => STATUS_LABELS[r.status] ?? r.status },
+  ];
+
+  const csv = rows.map((r) => ({
+    field: r.field_name, crop: r.crop, cultivar: r.cultivar ?? '',
+    sowing_date: r.sowing_date ?? '', area_ha: r.area_ha ?? '', status: r.status,
+  }));
 
   return (
-    <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
-      <div className="flex flex-wrap items-center gap-3 justify-between">
+    <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+      <SummaryHeader
+        icon={Sprout} title="ملخّص الزراعة (لكلّ موسم/حقل)" color="#16a34a"
+        action={
+          <button onClick={() => exportToCSV(csv, 'SAHOOL_Planting_Summary.csv')}
+            className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 print:hidden">
+            <Download className="w-3 h-3" /> CSV
+          </button>
+        }
+      />
+      {partialError && <PartialNote />}
+      <div className="mt-2">
+        <DataTable
+          rows={rows as (PlantingRow & Record<string, unknown>)[]}
+          columns={columns}
+          rowKey={(r) => r.season_id}
+          emptyTitle="لا مواسم مُسجَّلة بعد"
+        />
+      </div>
+    </div>
+  );
+}
+
+// ── ملخّص الحصاد ─────────────────────────────────────────────────
+function HarvestSummary() {
+  const { fields, seasons, isLoading, fieldsError, partialError, refetch, fieldsErrorObj } =
+    useAllFieldsReportData();
+
+  if (isLoading) return <LoadingState message="جارٍ تجميع ملخّص الحصاد…" />;
+  if (fieldsError)
+    return <ErrorState title="تعذّر تحميل ملخّص الحصاد" detail={honestDetail(fieldsErrorObj)} onRetry={refetch} />;
+
+  const rows = buildHarvestRows(seasons, fields);
+
+  if (rows.length === 0) {
+    return (
+      <>
+        {partialError && <PartialNote />}
+        <EmptyState
+          icon={<Wheat className="w-8 h-8" />}
+          title="لا مواسم مُسجَّلة بعد"
+          hint="بعد الحصاد، سجّل الغلّة الفعليّة للموسم لتظهر هنا مقابل الغلّة المستهدفة."
+        />
+      </>
+    );
+  }
+
+  const harvested = harvestedCount(rows);
+
+  const columns: Column<HarvestRow & Record<string, unknown>>[] = [
+    { key: 'field_name', label: 'الحقل', sortable: true },
+    { key: 'crop', label: 'المحصول', sortable: true,
+      render: (r) => ACTIVITY_TYPE_LABELS[r.crop] ?? r.crop },
+    { key: 'actual_t_ha', label: 'الغلّة الفعليّة (ط/هـ)', align: 'end', sortable: true,
+      render: (r) => tHa(r.actual_t_ha) },
+    { key: 'target_t_ha', label: 'المستهدفة (ط/هـ)', align: 'end', sortable: true,
+      render: (r) => tHa(r.target_t_ha) },
+    { key: 'gap_t_ha', label: 'الفجوة (ط/هـ)', align: 'end', sortable: true,
+      render: (r) => {
+        if (r.gap_t_ha == null) return '—';
+        const c = r.gap_t_ha > 0 ? '#16a34a' : r.gap_t_ha < 0 ? '#dc2626' : '#9ca3af';
+        const sign = r.gap_t_ha > 0 ? '+' : '';
+        return <span style={{ color: c, fontWeight: 600 }}>{sign}{r.gap_t_ha.toFixed(2)}</span>;
+      } },
+    { key: 'status', label: 'الحالة', align: 'center',
+      render: (r) => STATUS_LABELS[r.status] ?? r.status },
+  ];
+
+  const csv = rows.map((r) => ({
+    field: r.field_name, crop: r.crop,
+    actual_t_ha: r.actual_t_ha ?? '', target_t_ha: r.target_t_ha ?? '',
+    gap_t_ha: r.gap_t_ha ?? '', status: r.status,
+  }));
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <KpiCard label="مواسم"               value={num(rows.length)} icon={Sprout}     color="#a855f7" />
+        <KpiCard label="مواسم بغلّة مُسجَّلة" value={num(harvested)}   icon={Wheat}      color="#16a34a" />
+        <KpiCard label="بانتظار الحصاد"       value={num(rows.length - harvested)} icon={ListChecks} color="#f59e0b" />
+      </div>
+
+      <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+        <SummaryHeader
+          icon={Wheat} title="ملخّص الحصاد (الفعليّ مقابل المستهدف)" color="#16a34a"
+          action={
+            <button onClick={() => exportToCSV(csv, 'SAHOOL_Harvest_Summary.csv')}
+              className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 print:hidden">
+              <Download className="w-3 h-3" /> CSV
+            </button>
+          }
+        />
+        {partialError && <PartialNote />}
+        <div className="mt-2">
+          <DataTable
+            rows={rows as (HarvestRow & Record<string, unknown>)[]}
+            columns={columns}
+            rowKey={(r) => r.season_id}
+            emptyTitle="لا مواسم مُسجَّلة بعد"
+          />
+        </div>
+        <p className="text-[11px] text-slate-500 mt-2">«—» تعني أنّ الغلّة لم تُسجَّل بعد — لا أرقام مُلفَّقة.</p>
+      </div>
+    </div>
+  );
+}
+
+// ── ملخّص التطبيق/العمليّات ───────────────────────────────────────
+function ApplicationSummary() {
+  const { activities, isLoading, fieldsError, partialError, refetch, fieldsErrorObj } =
+    useAllFieldsReportData();
+
+  if (isLoading) return <LoadingState message="جارٍ تجميع ملخّص العمليّات…" />;
+  if (fieldsError)
+    return <ErrorState title="تعذّر تحميل ملخّص العمليّات" detail={honestDetail(fieldsErrorObj)} onRetry={refetch} />;
+
+  const summary = summarizeActivities(activities);
+
+  if (summary.total === 0) {
+    return (
+      <>
+        {partialError && <PartialNote />}
+        <EmptyState
+          icon={<ClipboardList className="w-8 h-8" />}
+          title="لا عمليّات مُسجَّلة بعد"
+          hint="سجّل عمليّات ميدانيّة (رشّ/تسميد/ريّ/حصاد…) لتظهر هنا حسب النوع والحالة."
+        />
+      </>
+    );
+  }
+
+  const byType = Object.entries(summary.by_type).map(([k, v]) => ({
+    type: ACTIVITY_TYPE_LABELS[k] ?? k, count: v,
+  }));
+  const byStatus = Object.entries(summary.by_status).map(([k, v]) => ({
+    status: STATUS_LABELS[k] ?? k, count: v,
+  }));
+
+  const csv = Object.entries(summary.by_type).map(([k, v]) => ({
+    activity_type: ACTIVITY_TYPE_LABELS[k] ?? k, count: v,
+  }));
+
+  return (
+    <div className="space-y-4">
+      {partialError && <PartialNote />}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <KpiCard label="إجماليّ العمليّات" value={num(summary.total)}                       icon={ClipboardList} color="#14b8a6" />
+        <KpiCard label="أنواع العمليّات"   value={num(Object.keys(summary.by_type).length)}  icon={Layers}        color="#38bdf8" />
+        <KpiCard label="حالات"             value={num(Object.keys(summary.by_status).length)} icon={ListChecks}    color="#f59e0b" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <BarChartCard
+          title="العمليّات حسب النوع"
+          data={byType}
+          xKey="type"
+          series={[{ dataKey: 'count', name: 'العدد', color: '#14b8a6' }]}
+          barSize={26}
+          height={200}
+          tooltipFormatter={(v) => [num(Number(v)), 'عدد']}
+          action={
+            <button onClick={() => exportToCSV(csv, 'SAHOOL_Application_Summary.csv')}
+              className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 print:hidden">
+              <Download className="w-3 h-3" /> CSV
+            </button>
+          }
+        />
+        <BarChartCard
+          title="العمليّات حسب الحالة"
+          data={byStatus}
+          xKey="status"
+          series={[{ dataKey: 'count', name: 'العدد', color: '#a855f7' }]}
+          barSize={26}
+          height={200}
+          tooltipFormatter={(v) => [num(Number(v)), 'عدد']}
+        />
+      </div>
+      <p className="text-[11px] text-slate-500" dir="rtl">
+        ملاحظة نزاهة: لا تُسجَّل تكلفة لكلّ عمليّة في مصدر البيانات الحاليّ، لذا يقتصر الملخّص على
+        العدد حسب النوع/الحالة. تكاليف المهام متاحة في تبويب «لوحة المزرعة» (ملخّص التكلفة).
+      </p>
+    </div>
+  );
+}
+
+// CSS نطاق الطباعة: عند الطباعة (print) نُخفي عناصر التحكّم (التبويبات/الأزرار)
+// ونضبط الخلفيّة بيضاء لمخرج PDF نظيف عبر window.print() — لا تبعيّة PDF ثقيلة.
+const PRINT_CSS = `
+@media print {
+  body { background: #ffffff !important; }
+  .reports-no-print { display: none !important; }
+  .reports-print-area { color: #111 !important; }
+  .reports-print-area .rounded-xl { box-shadow: none !important; }
+}
+`;
+
+type Tab = 'planting' | 'harvest' | 'application' | 'farm' | 'field';
+
+const TABS: [Tab, string][] = [
+  ['planting',    'ملخّص الزراعة'],
+  ['harvest',     'ملخّص الحصاد'],
+  ['application', 'ملخّص العمليّات'],
+  ['farm',        'لوحة المزرعة'],
+  ['field',       'ملخّص حقل'],
+];
+
+export function ReportsPage() {
+  const [tab, setTab] = useState<Tab>('planting');
+
+  return (
+    <div className="space-y-5 max-w-5xl mx-auto reports-print-area" dir="rtl">
+      <style>{PRINT_CSS}</style>
+      <div className="flex flex-wrap items-center gap-3 justify-between reports-no-print">
         <div>
           <h2 className="text-xl font-bold text-slate-100">التقارير والتحليلات</h2>
-          <p className="text-sm text-slate-400">ملخّصات حيّة للمزرعة والحقول — مُجمَّعة من بياناتك الفعليّة</p>
+          <p className="text-sm text-slate-400">ملخّصات طراز FieldView — مُجمَّعة من بياناتك الفعليّة (زراعة/حصاد/عمليّات)</p>
         </div>
-        <div className="flex gap-2">
-          {([['farm', 'لوحة المزرعة'], ['field', 'ملخّص حقل']] as [Tab, string][]).map(([t, label]) => (
-            <button key={t} onClick={() => setTab(t)}
-              className="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                background: tab === t ? '#16a34a' : '#1e293b',
-                border: '1px solid #334155',
-                color: tab === t ? '#fff' : '#e2e8f0',
-              }}>
-              {label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2">
+            {TABS.map(([t, label]) => (
+              <button key={t} onClick={() => setTab(t)}
+                className="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  background: tab === t ? '#16a34a' : '#1e293b',
+                  border: '1px solid #334155',
+                  color: tab === t ? '#fff' : '#e2e8f0',
+                }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => window.print()}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium"
+            style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}
+            title="طباعة التقرير الحاليّ كـPDF (طباعة المتصفّح)">
+            <Printer className="w-4 h-4" /> طباعة / PDF
+          </button>
         </div>
       </div>
 
-      {tab === 'farm' ? (
+      {tab === 'planting' ? (
+        <PlantingSummary />
+      ) : tab === 'harvest' ? (
+        <HarvestSummary />
+      ) : tab === 'application' ? (
+        <ApplicationSummary />
+      ) : tab === 'farm' ? (
         <>
           <FarmDashboard />
           {/* ملخّص التكلفة — بيانات حيّة من /api/v1/analytics/costs */}

@@ -2830,6 +2830,53 @@ export const fetchFieldDetail = (fieldId: string): Promise<FieldDetail> =>
 export const updateField = (fieldId: string, patch: FieldUpdatePatch): Promise<FieldDetail> =>
   kongApi.patch<FieldDetail>(`/api/v1/fields/${fieldId}`, patch).then(r => r.data);
 
+// ── وصفات المعدّل المتغيّر اليدويّة (Manual VRT Prescriptions، v95) ──
+// FieldView "manual prescriptions": وصفة **يدويّة** صرفة — المستخدِم يرسم المناطق
+// (geometry GeoJSON) ويضبط لكلّ منطقة معدّلاً + وحدة، ثمّ يحفظها (tenant-scoped، RLS).
+// لا توليد agronomic آليّ هنا. التصدير (GeoJSON/CSV) يتمّ في الواجهة (Blob/URL).
+export interface SavedPrescriptionZone {
+  geometry: unknown;   // GeoJSON Polygon (يرسمه المستخدِم)
+  rate:     number;    // المعدّل (seeds/m² أو kg/ha)
+  unit:     string;    // الوحدة
+}
+
+export interface SavedPrescription {
+  prescription_id: string;
+  field_id:        string;
+  name:            string;
+  product_type:    'seed' | 'fertility';
+  zones:           SavedPrescriptionZone[];
+  created_by?:     string | null;
+  created_at?:     string;
+}
+
+export interface PrescriptionCreateInput {
+  prescription_id: string;
+  name:            string;
+  product_type:    'seed' | 'fertility';
+  zones:           SavedPrescriptionZone[];
+}
+
+export interface PrescriptionListResponse {
+  field_id:      string;
+  prescriptions: SavedPrescription[];
+  total:         number;
+  note_ar?:      string;   // سبب صادق حين القائمة فارغة (DB مُعطَّلة)
+}
+
+/** سرد الوصفات المحفوظة لحقل (field:view). 503 عند تعطّل DB، فارغ صادق حين لا وصفات. */
+export const fetchPrescriptions = (fieldId: string): Promise<PrescriptionListResponse> =>
+  kongApi.get<PrescriptionListResponse>(`/api/v1/fields/${fieldId}/prescriptions`).then(r => r.data);
+
+/** حفظ وصفة يدويّة (field:edit). 422 نوع منتج غير مدعوم، 503 عند تعطّل DB. */
+export const createPrescription = (
+  fieldId: string,
+  payload: PrescriptionCreateInput,
+): Promise<SavedPrescription & { persisted: boolean }> =>
+  kongApi.post<SavedPrescription & { persisted: boolean }>(
+    `/api/v1/fields/${fieldId}/prescriptions`, payload,
+  ).then(r => r.data);
+
 // ── استيراد حدّ حقل من ملفّ (GeoJSON/KML) أو نقاط GPS (field:create) ──
 // بدل الرسم اليدويّ: نرسل نصّ الملفّ (content) أو نقاط GPS (points) للخادم،
 // الذي يحلّلها إلى GeoJSON Polygon ثمّ يعيد استخدام نفس مسار التحقّق/الحفظ

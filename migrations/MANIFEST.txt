@@ -380,3 +380,12 @@ v93_processed_events.sql
 # موسمي-دائم/ملاحظة/صورة/لون). RLS+FORCE بسياسة tenant_isolation (نمط v92/v89،
 # fail-closed). فهرس (tenant_id, field_id, created_at DESC) للقراءة. idempotent.
 v94_scouting_pins.sql
+# v95: prescriptions — وصفات المعدّل المتغيّر اليدويّة (FieldView Manual Prescriptions).
+# يُديم وصفةً **يدويّة** (المستخدِم يرسم المناطق ويضبط المعدّلات) قابلةً للقراءة عبر
+# GET /api/v1/fields/{field_id}/prescriptions — كانت Generators في الذاكرة فقط
+# (api/prescriptions.py / core/vrt_manual_maps.py) وقراءةُ تقطيع كمّيّ في الواجهة
+# (useFieldPrescription) لا وصفةً محفوظة. النموذج: معرّف نصّيّ + مستأجِر + حقل + اسم +
+# نوع منتج {seed|fertility} + مناطق JSONB [{geometry GeoJSON, rate, unit}] + مُنشئ + وقت.
+# RLS+FORCE بسياسة tenant_isolation (نمط v94/v92، fail-closed). فهرس
+# (tenant_id, field_id, created_at DESC) للقراءة. idempotent.
+v95_prescriptions.sql
