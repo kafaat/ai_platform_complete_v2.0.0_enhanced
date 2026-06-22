@@ -15,6 +15,7 @@ god-module): نماذج Pydantic للحقل (ملخّص/تفاصيل/إنشاء/
 
 from __future__ import annotations
 
+import json as _json
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -167,6 +168,7 @@ class FieldUpdateRequest(BaseModel):
     well_depth_m: float | None = Field(default=None, ge=0)
     water_ec: float | None = Field(default=None, ge=0)
     manager_user_id: int | None = Field(default=None, ge=1)  # FK users(id) (v47)
+    geometry: dict | None = None  # update field boundary after Geometry Guard validation
     # تزامن تفاؤليّ (v61، اختياريّ/متوافق رجعيّاً): إصدار الحقل الأساس وقت قراءة
     # العميل. إن مُرِّر ولم يطابق row_version الحاليّ ⇒ 409 تعارض (كشف تعديل متباعد
     # offline). ليس عموداً يُكتَب — مستثنى من _build_field_update (ليس في الأعمدة).
@@ -192,10 +194,14 @@ def _build_field_update(req: FieldUpdateRequest) -> tuple[str, list]:
     assignments: list[str] = []
     values: list = []
     idx = 1
-    for col in (*_FIELD_BASIC_COLUMNS, *_FIELD_ADVANCED_COLUMNS):
+    for col in ("geometry", *_FIELD_BASIC_COLUMNS, *_FIELD_ADVANCED_COLUMNS):
         if col in sent:
-            assignments.append(f"{col} = ${idx}")
-            values.append(data[col])
+            if col == "geometry":
+                assignments.append(f"{col} = ${idx}::jsonb")
+                values.append(_json.dumps(data[col]) if data[col] is not None else None)
+            else:
+                assignments.append(f"{col} = ${idx}")
+                values.append(data[col])
             idx += 1
     if not assignments:
         raise ValueError("no fields to update")
@@ -264,6 +270,10 @@ class FieldCreateRequest(BaseModel):
     field_code: str | None = Field(default=None, max_length=50)
     description: str | None = None
     water_source: str | None = Field(default=None, max_length=20)
+    irrigation_type: str | None = Field(default=None, max_length=20)
+    pivot: dict | None = (
+        None  # canonical pivot params: center/radius/angles; backend generates polygon
+    )
     ownership_type: str | None = Field(default=None, max_length=20)
     country: str | None = Field(default=None, max_length=60)
     region: str | None = Field(default=None, max_length=80)
@@ -289,6 +299,10 @@ class FieldImportRequest(BaseModel):
     field_code: str | None = Field(default=None, max_length=50)
     description: str | None = None
     water_source: str | None = Field(default=None, max_length=20)
+    irrigation_type: str | None = Field(default=None, max_length=20)
+    pivot: dict | None = (
+        None  # canonical pivot params: center/radius/angles; backend generates polygon
+    )
     ownership_type: str | None = Field(default=None, max_length=20)
     country: str | None = Field(default=None, max_length=60)
     region: str | None = Field(default=None, max_length=80)
