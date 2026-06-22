@@ -116,6 +116,10 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     FIELD_CREATED = "field.created"
     FIELD_UPDATED = "field.updated"
     FIELD_GEOMETRY_CHANGED = "field.geometry_changed"
+    # طلب تحديث صور الأقمار للحقل (زرّ «تحديث صور الأقمار» / مسار manual.refresh) — يُصدَر
+    # عند نقطة POST /imagery/refresh بعد استدعاء raster (imagery/best + process-from-stac)،
+    # مرساةً لفعل حقيقيّ (طلب معالجة مُستهدَفة) يجعله متتبَّعاً/مدقَّقاً في مجرى الأحداث.
+    FIELD_IMAGERY_REFRESH_REQUESTED = "field.imagery.refresh_requested"
     # دمج آليّ لتعديل offline متعارض غير متقاطع (Auto-merge L3) — تدقيق صريح.
     OFFLINE_MERGE_AUTO = "offline.merge.auto"
     FIELD_DELETED = "field.deleted"
