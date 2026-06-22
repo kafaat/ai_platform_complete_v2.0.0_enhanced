@@ -34,6 +34,7 @@ from api.main import (
     get_current_user,
     tenant_connection,
 )
+from api.offline_sync_db import FIELD_UPDATE_KIND
 from api.sync_delta import filter_since, newest_cursor
 
 router = APIRouter()
@@ -87,17 +88,24 @@ async def sync(
 
     # ١) نُسجّل عمليّات هذا الطلب في الـqueue. نوع غير معروف ⇒ 400 صريح (لا 500):
     #    OperationKind(قيمة مجهولة) يرفع ValueError، فنتحقّق قبل الإدخال.
+    #    استثناء: شريحة التوزيع field.update (FIELD_UPDATE_KIND) ليست قيمة في
+    #    OperationKind (تُطبَّق فعليّاً لا تُدوَّن فقط) — نمرّرها كسلسلة كما هي ليلتقطها
+    #    التوزيع (dispatch_decision) في خطوة الإثبات. PendingOperation/persist يقرآن
+    #    op.kind نصّاً بأمان (hasattr(.,"value")) فلا كسر بنمرير سلسلة.
     op_ids = []
     for raw_op in incoming_ops:
         raw_kind = raw_op.get("kind", "observation_create")
-        try:
-            kind = OperationKind(raw_kind)
-        except ValueError:
-            valid = ", ".join(k.value for k in OperationKind)
-            raise HTTPException(
-                status_code=400,
-                detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
-            ) from None
+        if raw_kind == FIELD_UPDATE_KIND:
+            kind = FIELD_UPDATE_KIND  # سلسلة منقّطة — تُوزَّع لمسار التطبيق الفعليّ
+        else:
+            try:
+                kind = OperationKind(raw_kind)
+            except ValueError:
+                valid = ", ".join(k.value for k in OperationKind)
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
+                ) from None
         op = record_operation_offline(
             _OFFLINE_QUEUE,
             tenant_id=req.tenant_id,
@@ -121,9 +129,18 @@ async def sync(
     started = datetime.now(UTC)
     synced = 0
     pending_retry = 0
+    applied = 0
+    conflicted = 0
+    # حالة لكلّ عمليّة (op_id → applied/conflict/synced/queued) لتعرفها الواجهة وتحسم
+    # تعارض field.update (409) محلّياً بدل تخمين عامّ من العدّادات الكلّيّة.
+    op_status: dict[str, str] = {}
     if _DB_POOL is not None:
         from api.offline_pending_db import enqueue_pending, mark_failed, mark_processed
-        from api.offline_sync_db import persist_synced_operation
+        from api.offline_sync_db import (
+            apply_field_update,
+            dispatch_decision,
+            persist_synced_operation,
+        )
 
         async with tenant_connection(user) as conn:
             # إدامة الطابور المعلّق أوّلاً: تنجو العمليّات من إعادة تشغيل العمليّة
@@ -136,8 +153,36 @@ async def sync(
                     logging.warning("sync: pending enqueue failed for %s: %s", op.op_id, exc)
             for op in batch:
                 try:
-                    async with conn.transaction():  # savepoint لكلّ عمليّة
-                        await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
+                    # التوزيع (dispatch): field.update يُطبَّق فعليّاً بسلطة الخادم؛ كلّ
+                    # نوع آخر يبقى سجلّ فقط (ledger-only، idempotent ON CONFLICT DO NOTHING).
+                    if dispatch_decision(op.kind) == "apply":
+                        async with conn.transaction():  # savepoint لكلّ عمليّة
+                            outcome = await apply_field_update(
+                                conn, op=op, tenant_id=req.tenant_id
+                            )
+                        if outcome == "conflict":
+                            # سلطة الخادم: الإصدار القديم لا يطابق ⇒ 409. لا كتابة فوقيّة
+                            # صامتة. نُعلّمها CONFLICTED (لا تُعاد محاولتها عمياءً — العميل
+                            # يحسم ثمّ يُعيد بإصدار أحدث).
+                            _OFFLINE_QUEUE.mark_status(
+                                req.tenant_id, op.op_id, SyncStatus.CONFLICTED
+                            )
+                            op_status[op.op_id] = "conflict"
+                            conflicted += 1
+                            continue
+                        # طُبِّق فعليّاً ⇒ نُدوّنه أيضاً في السجلّ (تتبّع/تدقيق) ثمّ SYNCED.
+                        async with conn.transaction():
+                            await persist_synced_operation(
+                                conn, op=op, tenant_id=req.tenant_id
+                            )
+                        op_status[op.op_id] = "applied"
+                        applied += 1
+                    else:
+                        async with conn.transaction():  # savepoint لكلّ عمليّة
+                            await persist_synced_operation(
+                                conn, op=op, tenant_id=req.tenant_id
+                            )
+                        op_status[op.op_id] = "synced"
                     _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
                     # طابور الإدامة: تُعلَّم processed (best-effort ضمن savepoint).
                     try:
@@ -150,6 +195,7 @@ async def sync(
                     _OFFLINE_QUEUE.mark_status(
                         req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
                     )
+                    op_status[op.op_id] = "queued"
                     try:
                         async with conn.transaction():
                             await mark_failed(conn, op_id=op.op_id, error=str(exc))
@@ -159,6 +205,8 @@ async def sync(
                     logging.warning("sync: persist failed for op %s: %s", op.op_id, exc)
     else:
         pending_retry = len(batch)
+        for op in batch:
+            op_status[op.op_id] = "queued"
         logging.warning(
             "sync: DATABASE_URL غير مضبوط — بقيت %d عمليّة QUEUED لإعادة المحاولة", pending_retry
         )
@@ -166,10 +214,12 @@ async def sync(
     duration_ms = round((datetime.now(UTC) - started).total_seconds() * 1000, 2)
     if not batch:
         reason = "✅ لا عمليّات معلّقة للـsync"
-    elif pending_retry == 0:
+    elif pending_retry == 0 and conflicted == 0:
         reason = f"✅ {synced} عمليّة sync بنجاح"
     else:
-        reason = f"⚠️ {synced} sync، {pending_retry} بقيت معلّقة لإعادة المحاولة"
+        reason = f"⚠️ {synced} sync، {pending_retry} معلّقة لإعادة المحاولة"
+        if conflicted:
+            reason += f"، {conflicted} تعارض (409) بانتظار حسم العميل"
     if superseded:
         reason += f" (+{superseded} مُلغاة بـsupersession)"
 
@@ -180,11 +230,16 @@ async def sync(
         # العدّين: failed=الفشل النهائي الفعلي (0 هنا)، queued=ما سيُعاد.
         "failed": 0,
         "queued": pending_retry,
-        "conflicted": 0,
+        # تعارض field.update (سلطة الخادم، 409): عُلِّم CONFLICTED ولم يُكتَب فوقيّاً.
+        "conflicted": conflicted,
+        # طُبِّق فعليّاً على fields (شريحة field.update). بقيّة الأنواع سجلّ فقط ضمن synced.
+        "applied": applied,
         "superseded": superseded,
         "duration_ms": duration_ms,
         "reason_ar": reason,
         "op_ids": op_ids,
+        # حالة لكلّ عمليّة (applied/conflict/synced/queued) — حقل إضافيّ، لا يكسر العقد.
+        "op_status": op_status,
     }
 
     # مزامنة تفاضليّة: نُرفِق الـcursor الجديد (أحدث طابع في الدفعة) ليُرسله العميل
