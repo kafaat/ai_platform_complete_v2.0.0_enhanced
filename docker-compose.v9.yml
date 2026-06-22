@@ -814,12 +814,40 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-fastbee:
+        condition: service_started
     networks:
       - sahool-internal
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
       interval: 30s
       timeout: 10s
+      retries: 6
+      start_period: 30s
+
+  # ═══════════════════════════════════════════════════════════════
+  # وسيط MQTT (Eclipse Mosquitto) — أوامر المُشغّلات من actuator-service
+  # (مراجعة F1): كان MQTT_BROKER_URL=mqtt://sahool-fastbee:1883 يشير إلى خدمة غير
+  # معرَّفة ⇒ أوامر الصمّامات/المضخّات تُفقَد. هذا وسيط MQTT حقيقيّ خفيف بلا اقتران
+  # قاعدة بيانات. (لمنصّة FastBee الكاملة بإدارة الأجهزة: متابعة منفصلة.)
+  # ═══════════════════════════════════════════════════════════════
+  sahool-fastbee:
+    image: eclipse-mosquitto:2
+    mem_limit: 128m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    logging: *default_logging
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - fastbee-data:/mosquitto/data
+    networks:
+      - sahool-internal
+    healthcheck:
+      # liveness: اتّصال + نشر فعليّ (يثبت قبول الوسيط للاتّصالات المجهولة على 1883).
+      test: ["CMD-SHELL", "mosquitto_pub -h 127.0.0.1 -p 1883 -t healthcheck/ping -m ok -q 0 >/dev/null 2>&1"]
+      interval: 20s
+      timeout: 5s
       retries: 6
       start_period: 30s
 
@@ -1337,6 +1365,7 @@ volumes:
   postgres-data:
   raster-data:
   redis-data:
+  fastbee-data:
   nats-js:
   minio-data:
   qdrant-storage:
