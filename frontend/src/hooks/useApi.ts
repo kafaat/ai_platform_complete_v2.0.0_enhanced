@@ -67,6 +67,8 @@ import {
   fetchFieldWorkspace, type FieldWorkspace,
   // ── استيراد حدّ حقل من ملفّ/نقاط GPS (بدل الرسم اليدويّ) ──
   importField, type FieldImportInput,
+  // ── دمج/انقسام الحقول ذرّيّاً (نقطتا backend تستبدلان لاذرّيّة الواجهة) ──
+  mergeFields, splitField, type FieldMergeInput, type FieldSplitInput,
   // ── حالة المعايرة الإقليميّة (قراءة فقط) ──
   fetchCalibration, type CalibrationOverview,
   // ── منضدة المعايرة (Calibration Workbench): مقارنة/اقتراح/موافقة/رفض/تدقيق ──
@@ -789,6 +791,34 @@ export function useImportField(): UseMutationResult<unknown, Error, FieldImportI
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation<unknown, Error, FieldImportInput>({
     mutationFn: (payload) => importField(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.fields(tid) }); },
+  });
+}
+
+/**
+ * دمج عدّة حقول مصدر في حقل واحد ذرّيّاً (field:create) — POST /api/v1/fields/merge.
+ * يستبدل لاذرّيّة الواجهة (POST + حلقة DELETE). عند النجاح يُبطِل قائمة الحقول كي
+ * يختفي المصادر ويظهر المدموج فوراً. الخطأ (404/409/422/503) يُرمى ليُعرَض بصدق.
+ */
+export function useMergeFields(): UseMutationResult<unknown, Error, FieldMergeInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<unknown, Error, FieldMergeInput>({
+    mutationFn: (payload) => mergeFields(payload),
+    onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.fields(tid) }); },
+  });
+}
+
+/**
+ * انقسام حقل واحد إلى حقول وليدة ذرّيّاً (field:create) — POST /api/v1/fields/split.
+ * يستبدل لاذرّيّة الواجهة (POST×n + DELETE). عند النجاح يُبطِل قائمة الحقول كي يختفي
+ * الأصل وتظهر الأطفال فوراً. الخطأ (404/409/422/503) يُرمى ليُعرَض بصدق.
+ */
+export function useSplitField(): UseMutationResult<unknown, Error, FieldSplitInput> {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useMutation<unknown, Error, FieldSplitInput>({
+    mutationFn: (payload) => splitField(payload),
     onSuccess:  () => { qc.invalidateQueries({ queryKey: QK.fields(tid) }); },
   });
 }

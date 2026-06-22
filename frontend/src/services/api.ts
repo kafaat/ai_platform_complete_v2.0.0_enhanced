@@ -2960,6 +2960,55 @@ export interface FieldImportInput {
 export const importField = (payload: FieldImportInput): Promise<unknown> =>
   kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
 
+// ── دمج/انقسام الحقول ذرّيّاً (POST /merge · /split) — معاملة خادميّة واحدة ──
+// تستبدل لاذرّيّة الواجهة (POST جديد + حلقة DELETE) التي كانت تُخلّف حقولاً يتيمة
+// عند فشل الحذف. الخادم يُنشئ المدموج/الأطفال ويحذف المصادر في معاملة واحدة (الكلّ
+// أو لا شيء)؛ الخطأ (404/409/422/503) يُرمى ليُعرَض بصدق. الهندسة محسوبة @turf في
+// الواجهة ويتحقّق منها الخادم (guard_field_geometry).
+export interface FieldMergeInput {
+  source_field_ids: string[];     // ≥2 معرّفات الحقول المصدر
+  name:             string;       // اسم الحقل المدموج
+  geometry:         unknown;      // GeoJSON Polygon المدموج (اتّحاد @turf)
+  crop?:            string | null;
+  soil_type?:       string | null;
+  manager?:         string | null;
+  farm_id?:         string | null;
+  field_code?:      string | null;
+  description?:     string | null;
+  water_source?:    string | null;
+  irrigation_type?: string | null;
+  ownership_type?:  string | null;
+  gov?:             string | null;
+  country?:         string | null;
+  region?:          string | null;
+}
+
+export interface SplitChildInput {
+  name:             string;
+  geometry:         unknown;      // GeoJSON Polygon للجزء (محسوب @turf)
+  crop?:            string | null;
+  soil_type?:       string | null;
+  manager?:         string | null;
+  field_code?:      string | null;
+  description?:     string | null;
+  water_source?:    string | null;
+  irrigation_type?: string | null;
+  ownership_type?:  string | null;
+}
+
+export interface FieldSplitInput {
+  source_field_id: string;
+  children:        SplitChildInput[];   // 2..10 حقول وليدة
+}
+
+/** يدمج حقولاً مصدر في حقل واحد ذرّيّاً (field:create). يُرجِع FieldSummary المدموج. */
+export const mergeFields = (payload: FieldMergeInput): Promise<unknown> =>
+  kongApi.post('/api/v1/fields/merge', payload).then(r => r.data);
+
+/** يقسّم حقلاً إلى حقول وليدة ذرّيّاً (field:create). يُرجِع قائمة FieldSummary للأطفال. */
+export const splitField = (payload: FieldSplitInput): Promise<unknown> =>
+  kongApi.post('/api/v1/fields/split', payload).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // FIELD WORKSPACE — مساحة عمل الحقل (المصدر الأساسيّ لكرت «Field Workspace Map»)
 // GET /api/v1/fields/{field_id}/workspace (fields.py:508 ⇒ assemble_workspace):

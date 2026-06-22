@@ -2,17 +2,22 @@
 // SAHOOL — تغطية أداة دمج/تقسيم الحقول (FieldSplitMergeTool) — F3
 // ───────────────────────────────────────────────────────────────
 // العمليّة الوحيدة المُتلِفة في الخريطة (تُنشئ حقولاً جديدة ثمّ تحذف الأصول).
+// الذرّيّة الآن خادميّة: نقطتا POST /fields/merge و/split تُنفّذان الإنشاء+الحذف في
+// معاملة قاعدة واحدة (الكلّ أو لا شيء) — لا «دمج/تقسيم جزئيّ» بعد الآن. لذا تختبر هذه
+// التغطية أنّ الواجهة تنادي النقطة الذرّيّة مرّة واحدة بالحمولة الصحيحة، وتُظهر رسالة
+// خطأ صادقة من ردّ النقطة عند الفشل (تراجع كامل خادميّ، لا تنظيف يدويّ).
+//
 // jsdom بلا خريطة فعليّة ⇒ نُظلّل react-leaflet / DrawControl / leaflet (نفس نهج
-// PrescriptionBuilderPage.test + HubMapGL.test)، ونُظلّل kongApi/fetchSeasons
-// (services/api) وtoastStore (services/websocket) لِنُثبت أسلاك/منطق العمليّة
-// بصدق بلا شبكة. هذه تغطية منطق/أسلاك عبر التظليل — لا تُغني عن متصفّح حيّ
-// (الرسم الفعليّ للقصّ عبر leaflet-draw مُؤجَّل، موثّق أدناه).
+// PrescriptionBuilderPage.test + HubMapGL.test)، ونُظلّل mergeFields/splitField/
+// fetchSeasons (services/api) وtoastStore (services/websocket). تغطية منطق/أسلاك عبر
+// التظليل — لا تُغني عن متصفّح حيّ (الرسم الفعليّ للقصّ عبر leaflet-draw مُؤجَّل).
 //
 // نغطّي بصدق المسارات عالية الخطورة:
-//   (أ) فحص الموسم النشط مسبقاً يحجب العمليّة قبل أيّ create/delete.
-//   (ب) ترتيب create-before-delete + أمانة الفشل الجزئيّ (إنشاء نجح، حذف فشل).
-//   (ج) حارس MultiPolygon (حقول غير متجاورة) يُحجَب برسالة صريحة.
-//   (د) حارس التقاطع الفارغ في التقسيم (قصّ لا يتقاطع) يُحجَب برسالة صريحة.
+//   (أ) فحص الموسم النشط مسبقاً يحجب العمليّة قبل أيّ نداء.
+//   (ب) دمج ناجح ⇒ نداء واحد لـ/fields/merge بـsource_field_ids+geometry + invalidate.
+//   (ج) خطأ النقطة ⇒ toast صادق (لا ادّعاء نجاح، لا «جزئيّ»).
+//   (د) حارس MultiPolygon (حقول غير متجاورة) يُحجَب برسالة صريحة قبل أيّ نداء.
+//   (هـ) حارس القصّ المفقود في التقسيم يُحجَب برسالة صريحة قبل أيّ نداء.
 // ═══════════════════════════════════════════════════════════════
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -35,19 +40,20 @@ vi.mock('leaflet', () => ({
   },
 }));
 
-// ── ظِلّ خدمة الـAPI: kongApi (post/delete) + fetchSeasons + مساعِدات الأخطاء ──
-// نُبقي asApiError/apiErrorMessage حقيقيّتين عبر التفويض، فالرسائل الجزئيّة تُختبَر
-// كما يراها المستخدم. kongApi/fetchSeasons تظليلات قابلة للضبط لكلّ اختبار.
+// ── ظِلّ خدمة الـAPI: نقطتا الدمج/التقسيم الذرّيّتان + fetchSeasons + مساعِدات الأخطاء ──
+// نُبقي asApiError/apiErrorMessage حقيقيّتين عبر التفويض، فرسالة الخطأ تُختبَر كما يراها
+// المستخدم. mergeFields/splitField/fetchSeasons تظليلات قابلة للضبط لكلّ اختبار.
 const mockApi = vi.hoisted(() => ({
-  post: vi.fn(),
-  del: vi.fn(),
+  merge: vi.fn(),
+  split: vi.fn(),
   fetchSeasons: vi.fn(),
 }));
 vi.mock('../../services/api', async () => {
   const actual = await vi.importActual<typeof import('../../services/api')>('../../services/api');
   return {
     ...actual,
-    kongApi: { post: mockApi.post, delete: mockApi.del },
+    mergeFields: mockApi.merge,
+    splitField: mockApi.split,
     fetchSeasons: mockApi.fetchSeasons,
   };
 });
@@ -92,14 +98,14 @@ function seasonsResolving(status: 'active' | 'closed') {
 
 beforeEach(() => {
   toasts.length = 0;
-  mockApi.post.mockReset();
-  mockApi.del.mockReset();
+  mockApi.merge.mockReset();
+  mockApi.split.mockReset();
   mockApi.fetchSeasons.mockReset();
 });
 
-describe('FieldSplitMergeTool — دمج/تقسيم (عمليّة مُتلِفة) — F3', () => {
-  // (أ) فحص الموسم النشط مسبقاً يحجب قبل أيّ create/delete.
-  it('(أ) موسم نشط على حقل سيُحذَف ⇒ يُحجَب الدمج قبل أيّ POST/DELETE', async () => {
+describe('FieldSplitMergeTool — دمج/تقسيم ذرّيّ (نقطتا backend) — F3', () => {
+  // (أ) فحص الموسم النشط مسبقاً يحجب قبل أيّ نداء دمج/تقسيم.
+  it('(أ) موسم نشط على حقل سيُحذَف ⇒ يُحجَب الدمج قبل أيّ نداء', async () => {
     seasonsResolving('active'); // كلا الحقلين «نشط» ⇒ الفحص المسبق يُرجِع أوّل اسم
     renderTool([SQUARE_A, SQUARE_B]);
 
@@ -114,46 +120,61 @@ describe('FieldSplitMergeTool — دمج/تقسيم (عمليّة مُتلِفة
     // الفحص المسبق غير متزامن ⇒ ننتظر ظهور رسالة الحجب.
     await waitFor(() =>
       expect(toasts.some((t) => /موسم نشط يمنع الدمج/.test(t.title))).toBe(true));
-    // الجوهر: لا إنشاء ولا حذف إطلاقاً (لا حالة نصف منجَزة).
-    expect(mockApi.post).not.toHaveBeenCalled();
-    expect(mockApi.del).not.toHaveBeenCalled();
+    // الجوهر: لا نداء دمج إطلاقاً (الحجب قبل النقطة).
+    expect(mockApi.merge).not.toHaveBeenCalled();
   });
 
-  // (ب) ترتيب create-before-delete + أمانة الفشل الجزئيّ.
-  it('(ب) الإنشاء نجح والحذف فشل ⇒ رسالة دمج جزئيّ صريحة (لا ادّعاء نجاح)', async () => {
+  // (ب) دمج ناجح ⇒ نداء واحد لـ/fields/merge بالحمولة الصحيحة + refetch (invalidate).
+  it('(ب) دمج ناجح ⇒ نداء /fields/merge واحد بـsource_field_ids+geometry ثمّ refetch', async () => {
     seasonsResolving('closed'); // لا موسم نشط ⇒ يمضي الفحص المسبق
-    mockApi.post.mockResolvedValue({ data: { id: 'new_1' } } as never);
-    // الحذف يفشل لكلا الأصلين (سباق ⇒ 409) — رسالة عربيّة من apiErrorMessage.
-    mockApi.del.mockRejectedValue({
-      response: { status: 409, data: { detail: 'لا يمكن الحذف لوجود ارتباطات' } },
-    } as never);
+    mockApi.merge.mockResolvedValue({ field_id: 'fld_new' } as never);
 
-    renderTool([SQUARE_A, SQUARE_B]);
+    const { refetch, onClose } = renderTool([SQUARE_A, SQUARE_B]);
     const boxes = screen.getAllByRole('checkbox');
     fireEvent.click(boxes[0]);
     fireEvent.click(boxes[1]);
     fireEvent.change(screen.getByPlaceholderText('اسم الحقل الناتج…'), { target: { value: 'المدموج' } });
     fireEvent.click(screen.getByRole('button', { name: /تأكيد الدمج/ }));
 
-    await waitFor(() =>
-      expect(toasts.some((t) => /دمج جزئيّ — يلزم تدخّل/.test(t.title))).toBe(true));
-
-    // ترتيب ذرّيّ: أُنشئ المدموج أوّلاً (post واحد) ثمّ حُذِفت الأصول (del لكلّ أصل).
-    expect(mockApi.post).toHaveBeenCalledTimes(1);
-    const postOrder = mockApi.post.mock.invocationCallOrder[0];
-    const delOrder = Math.min(...mockApi.del.mock.invocationCallOrder);
-    expect(postOrder).toBeLessThan(delOrder); // create-before-delete
-    expect(mockApi.del).toHaveBeenCalledTimes(2);
-
-    // الرسالة الجزئيّة تُسمّي ما أُنشئ وما تعذّر حذفه (لا ابتلاع صامت).
-    const partial = toasts.find((t) => /دمج جزئيّ/.test(t.title))!;
-    expect(partial.message).toMatch(/المدموج/); // ما أُنشئ
-    expect(partial.message).toMatch(/«حقل أ»/); // أصل تعذّر حذفه
-    expect(partial.message).toMatch(/لا يمكن الحذف لوجود ارتباطات/); // سبب الفشل الصريح
+    await waitFor(() => expect(mockApi.merge).toHaveBeenCalledTimes(1));
+    // نداء واحد ذرّيّ بالحمولة: المصادر + الاسم + الهندسة المدموجة (Polygon واحد).
+    const payload = mockApi.merge.mock.calls[0][0];
+    expect(payload.source_field_ids).toEqual(['a', 'b']);
+    expect(payload.name).toBe('المدموج');
+    expect(payload.geometry?.type).toBe('Polygon'); // اتّحاد @turf لحقلين متجاورين
+    // نجاح ⇒ رسالة نجاح + إغلاق + refetch (إبطال قائمة الحقول).
+    await waitFor(() => expect(toasts.some((t) => /تمّ دمج الحقول/.test(t.title))).toBe(true));
+    expect(onClose).toHaveBeenCalled();
+    expect(refetch).toHaveBeenCalled();
   });
 
-  // (ج) حارس MultiPolygon (حقول غير متجاورة) يُحجَب — لا create/delete.
-  it('(ج) دمج حقول غير متجاورة (MultiPolygon) ⇒ يُحجَب برسالة «غير متجاورة»', async () => {
+  // (ج) خطأ النقطة ⇒ toast صادق من ردّ الخادم (لا ادّعاء نجاح، لا «جزئيّ»).
+  it('(ج) فشل /fields/merge (مثلاً 409) ⇒ toast خطأ صادق (تراجع خادميّ كامل)', async () => {
+    seasonsResolving('closed');
+    // الخادم يرفض ذرّيّاً (مثلاً موسم نشط/تداخل) — رسالة عربيّة من apiErrorMessage.
+    mockApi.merge.mockRejectedValue({
+      response: { status: 409, data: { detail: 'لا يمكن الدمج: موسم نشط على حقل مصدر' } },
+    } as never);
+
+    const { refetch } = renderTool([SQUARE_A, SQUARE_B]);
+    const boxes = screen.getAllByRole('checkbox');
+    fireEvent.click(boxes[0]);
+    fireEvent.click(boxes[1]);
+    fireEvent.change(screen.getByPlaceholderText('اسم الحقل الناتج…'), { target: { value: 'المدموج' } });
+    fireEvent.click(screen.getByRole('button', { name: /تأكيد الدمج/ }));
+
+    await waitFor(() => expect(toasts.some((t) => /فشل الدمج/.test(t.title))).toBe(true));
+    // نداء واحد فقط (لا حلقة حذف، لا حالة جزئيّة) — والرسالة تحمل سبب الخادم الصريح.
+    expect(mockApi.merge).toHaveBeenCalledTimes(1);
+    const err = toasts.find((t) => /فشل الدمج/.test(t.title))!;
+    expect(err.message).toMatch(/لا يمكن الدمج: موسم نشط على حقل مصدر/);
+    // لا رسالة «جزئيّ» إطلاقاً (الذرّيّة الخادميّة ألغتها).
+    expect(toasts.some((t) => /جزئيّ/.test(t.title))).toBe(false);
+    expect(refetch).toHaveBeenCalled();
+  });
+
+  // (د) حارس MultiPolygon (حقول غير متجاورة) يُحجَب — لا نداء دمج.
+  it('(د) دمج حقول غير متجاورة (MultiPolygon) ⇒ يُحجَب برسالة «غير متجاورة»', async () => {
     seasonsResolving('closed');
     renderTool([SQUARE_A, SQUARE_FAR]);
     const boxes = screen.getAllByRole('checkbox');
@@ -169,13 +190,12 @@ describe('FieldSplitMergeTool — دمج/تقسيم (عمليّة مُتلِفة
     // الحجب تزامنيّ (قبل الفحص المسبق) ⇒ رسالة صريحة ولا شبكة إطلاقاً.
     await waitFor(() =>
       expect(toasts.some((t) => /الحقول غير متجاورة/.test(t.title))).toBe(true));
-    expect(mockApi.post).not.toHaveBeenCalled();
-    expect(mockApi.del).not.toHaveBeenCalled();
+    expect(mockApi.merge).not.toHaveBeenCalled();
     expect(mockApi.fetchSeasons).not.toHaveBeenCalled();
   });
 
-  // (د) حارس التقاطع الفارغ في التقسيم (قصّ لا يتقاطع) يُحجَب — لا create/delete.
-  it('(د) تقسيم بلا مضلّع قصّ ⇒ يُطلَب الرسم ولا تُنفَّذ شبكة', async () => {
+  // (هـ) حارس القصّ المفقود في التقسيم يُحجَب — لا نداء تقسيم.
+  it('(هـ) تقسيم بلا مضلّع قصّ ⇒ يُطلَب الرسم ولا تُنفَّذ شبكة', async () => {
     seasonsResolving('closed');
     renderTool([SQUARE_A, SQUARE_B], 'a'); // selectedId يُهيّئ حقل التقسيم
 
@@ -188,7 +208,6 @@ describe('FieldSplitMergeTool — دمج/تقسيم (عمليّة مُتلِفة
     fireEvent.click(screen.getByRole('button', { name: /تأكيد التقسيم/ }));
     await waitFor(() =>
       expect(toasts.some((t) => /ارسم مضلّع القصّ/.test(t.title))).toBe(true));
-    expect(mockApi.post).not.toHaveBeenCalled();
-    expect(mockApi.del).not.toHaveBeenCalled();
+    expect(mockApi.split).not.toHaveBeenCalled();
   });
 });
