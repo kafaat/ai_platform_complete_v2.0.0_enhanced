@@ -23,6 +23,7 @@ import {
   Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine,
 } from 'lucide-react';
+import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
@@ -46,6 +47,14 @@ import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
 const TerrainView3D = lazy(() => import('../components/maphub/TerrainView3D'));
+
+// محرّك MapLibre GL (WebGL) — إثبات مفهوم المرحلة 2 خلف عَلَم MAP_ENGINE. مقسوم
+// بالكود (lazy) فلا يُحمَّل maplibre-gl الثقيل (~250KB) إلا عند تفعيل العَلَم.
+const HubMapGL = lazy(() => import('../components/maphub/HubMapGL'));
+
+// هل محرّك MapLibre مُفعَّل؟ (الافتراض leaflet). تحت GL تُعطَّل أدوات الرسم/الدبابيس/
+// التراكبات (غير مُنفَّذة بعد في PoC) وتبقى متاحة في محرّك Leaflet.
+const GL_ENGINE = MAP_ENGINE === 'maplibre';
 
 // ── الطبقات القابلة للعرض كبلاطات مؤشّر (raster) — من السجلّ ──
 // نُبقي فقط ما تنتجه خدمة الراستر فعلاً (ndvi/ndmi/salinity) مع لوحة DS موجودة.
@@ -400,16 +409,29 @@ export default function MapHub() {
                     </div>
                   )}
 
-                  {/* أزرار الوضع: مقارنة / رسم / دبابيس */}
+                  {/* أزرار الوضع: مقارنة / رسم / دبابيس — الرسم/الدبابيس متاحان في
+                      محرّك Leaflet فقط (لم يُنفَّذا بعد في محرّك MapLibre GL · PoC). */}
                   <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
                     <ToolToggle active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
-                    <ToolToggle active={drawTools} onClick={() => setDrawTools((v) => !v)} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    <ToolToggle active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                    {!GL_ENGINE && (
+                      <>
+                        <ToolToggle active={drawTools} onClick={() => setDrawTools((v) => !v)} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
+                        <ToolToggle active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* صفّ طبقات التراكب: طقس / تنبيهات / أجهزة (مستقلّة، لا تظهر في المقارنة) */}
-                {!compare && (
+                {/* ملاحظة أمانة: أدوات معطّلة تحت محرّك MapLibre GL (PoC) */}
+                {GL_ENGINE && !compare && (
+                  <div className="text-[11px] mt-2" style={{ color: T.faint }}>
+                    أدوات الرسم/الدبابيس/التراكبات متاحة حاليّاً في محرّك Leaflet (تُنقَل إلى MapLibre في المرحلة 2ب).
+                  </div>
+                )}
+
+                {/* صفّ طبقات التراكب: طقس / تنبيهات / أجهزة (مستقلّة، لا تظهر في المقارنة
+                    ولا في محرّك MapLibre GL — غير مُنفَّذة بعد في PoC) */}
+                {!compare && !GL_ENGINE && (
                   <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
                     <span className="text-xs font-semibold" style={{ color: T.muted }}>طبقات التراكب</span>
                     <ToolToggle active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس" />
@@ -434,8 +456,9 @@ export default function MapHub() {
                   </div>
                 )}
 
-                {/* صفّ الدبابيس: التصنيف + المسح (يظهر في وضع الدبابيس أو حين توجد دبابيس) */}
-                {(pinMode || pins.length > 0) && (
+                {/* صفّ الدبابيس: التصنيف + المسح (يظهر في وضع الدبابيس أو حين توجد دبابيس)
+                    — معطّل تحت محرّك MapLibre GL (PoC). */}
+                {!GL_ENGINE && (pinMode || pins.length > 0) && (
                   <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
                     <span className="text-xs font-semibold" style={{ color: T.muted }}>تصنيف الدبّوس</span>
                     <select
@@ -489,21 +512,36 @@ export default function MapHub() {
               </Card>
             ) : (
               <div style={{ position: 'relative' }}>
-                <HubMap
-                  fields={fields}
-                  selectedId={fieldId}
-                  onSelect={setFieldId}
-                  basemapId={basemapId}
-                  indicatorId={indicatorActive}
-                  indicatorOpacity={opacity}
-                  drawTools={drawTools}
-                  pinMode={pinMode}
-                  pins={pins}
-                  onAddPin={handleAddPin}
-                  alertMarkers={showAlerts ? alertMarkers : []}
-                  deviceMarkers={showDevices ? deviceMarkers : []}
-                  weatherMarker={showWeather ? weatherMarker : null}
-                />
+                {GL_ENGINE ? (
+                  // محرّك MapLibre GL (WebGL) — PoC المرحلة 2 خلف العَلَم. بلا
+                  // أدوات رسم/دبابيس/تراكبات بعد (تبقى في Leaflet). مقسوم بالكود.
+                  <Suspense fallback={<LoadingState message="جارٍ تحميل محرّك MapLibre GL…" />}>
+                    <HubMapGL
+                      fields={fields}
+                      selectedId={fieldId}
+                      onSelect={setFieldId}
+                      basemapId={basemapId}
+                      indicatorId={indicatorActive}
+                      indicatorOpacity={opacity}
+                    />
+                  </Suspense>
+                ) : (
+                  <HubMap
+                    fields={fields}
+                    selectedId={fieldId}
+                    onSelect={setFieldId}
+                    basemapId={basemapId}
+                    indicatorId={indicatorActive}
+                    indicatorOpacity={opacity}
+                    drawTools={drawTools}
+                    pinMode={pinMode}
+                    pins={pins}
+                    onAddPin={handleAddPin}
+                    alertMarkers={showAlerts ? alertMarkers : []}
+                    deviceMarkers={showDevices ? deviceMarkers : []}
+                    weatherMarker={showWeather ? weatherMarker : null}
+                  />
+                )}
                 {/* مفتاح ألوان الطبقة النشطة */}
                 {indicatorActive && LAYER_LEGEND[indicatorActive] && (
                   <div style={{ position: 'absolute', insetInlineStart: 10, bottom: 10, zIndex: 600, pointerEvents: 'none' }}>
