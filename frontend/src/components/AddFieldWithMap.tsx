@@ -8,7 +8,7 @@
 //   ✅ نموذج اسم + مسؤول يظهر بعد الرسم فقط
 //   ✅ حفظ GeoJSON → API
 // ═══════════════════════════════════════════════════════════════
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import {
   MapContainer, TileLayer, FeatureGroup,
 } from 'react-leaflet';
@@ -18,11 +18,13 @@ import '../lib/leafletSetup'; // CSS الأساسيّ لـLeaflet + الأداة
 import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle, Upload, FileUp,
-  Pentagon, Square, Circle,
+  Pentagon, Square, Circle, Magnet,
 } from 'lucide-react';
 import shp from 'shpjs';
-import { kongApi, asApiError } from '../services/api';
-import type { FieldImportInput } from '../services/api';
+import { kongApi, asApiError, segmentField, classifySegmentationError, apiErrorMessage } from '../services/api';
+import type { FieldImportInput, SegmentationMode } from '../services/api';
+import { geomToPolygon, snapRing, type SnapTarget } from '../lib/geo';
+import AutoSegmentControl, { type SegmentNotice } from './maphub/AutoSegmentControl';
 
 // الطبقة المرسومة من leaflet-draw: circle يحمل getLatLng/getRadius؛
 // polygon/rectangle يحملان getLatLngs. نستخدمه لتضييق layer داخل المعالِج.
@@ -51,6 +53,9 @@ interface Props {
   // استيراد حدّ حقل من ملفّ (GeoJSON/KML). اختياريّ: إن لم يُمرَّر يبقى تبويب
   // الاستيراد مخفيّاً ويعمل الرسم اليدويّ كما هو (توافق خلفيّ).
   onImport?: (payload: FieldImportInput) => Promise<void>;
+  // حدود الحقول القائمة (هندسات GeoJSON) لالتقاط الرؤوس إليها أثناء الرسم.
+  // اختياريّة وتوافقيّة خلفيّاً: إن غابت يبقى الالتقاط مقتصراً على إغلاق رأس البداية.
+  existingFields?: ReadonlyArray<{ geometry: unknown }>;
 }
 
 const CROPS = ['قمح صلب','شعير','ذرة صفراء','طماطم','بطاطس','خضروات','برسيم'];
@@ -145,10 +150,17 @@ function circleToPolygon(center: L.LatLng, radiusM: number, n = 48): L.LatLng[] 
 }
 
 // ── Main component ─────────────────────────────────────────────
-export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
+export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFields }: Props) {
   const fgRef = useRef<L.FeatureGroup>(null);
   // mode: 'draw' (الرسم اليدويّ — الافتراضيّ) أو 'import' (استيراد ملفّ).
   const [mode, setMode] = useState<'draw' | 'import'>('draw');
+  // G — الالتقاط للحدود أثناء الرسم (افتراضيّ مُفعَّل). يُلصِق الرؤوس بحدود الحقول
+  // القائمة وبرأس بداية الرسم (إغلاق نظيف) ضمن تسامح صغير بالمتر — هندسة جهة-العميل.
+  const [snapEnabled, setSnapEnabled] = useState(true);
+  // H — حالة التقطيع المُساعَد: الوضع قيد الطلب + رسالة صادقة (نموذج غير مُهيَّأ/غير متاح).
+  const [segLoading, setSegLoading] = useState(false);
+  const [segMode, setSegMode] = useState<SegmentationMode | null>(null);
+  const [segNotice, setSegNotice] = useState<SegmentNotice | null>(null);
   const [stage, setStage] = useState<'draw' | 'form'>('draw');
   const [latlngs, setLatlngs] = useState<L.LatLng[]>([]);
   const [areaHa, setAreaHa] = useState(0);
@@ -174,7 +186,30 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
   // (إعادة رسم سريعة قد تُظهر موقعاً لا يطابق المضلّع الحاليّ).
   const geoReqRef = useRef(0);
 
-  const handlePolygonDone = useCallback((pts: L.LatLng[]) => {
+  // G — أهداف الالتقاط: حلقات حدود الحقول القائمة كـ[lat,lng] (مصدر الالتقاط).
+  // نشتقّها مرّة عبر geomToPolygon (المصدر الموحّد للهندسة) ونُحدّثها فقط عند تغيّر
+  // المُدخَل. رأس بداية الرسم يُضاف داخل snapRing نفسها (إغلاق نظيف).
+  const snapTargets = useMemo<SnapTarget[]>(() => {
+    if (!Array.isArray(existingFields)) return [];
+    const rings: SnapTarget[] = [];
+    for (const f of existingFields) {
+      const ring = geomToPolygon(f?.geometry);
+      if (ring && ring.length >= 2) rings.push(ring);
+    }
+    return rings;
+  }, [existingFields]);
+
+  // يطبّق الالتقاط على حلقة رؤوس Leaflet إن كان مُفعَّلاً (وإلّا يُعيدها كما هي).
+  // تسامح ~8م مناسب لحدود الحقول؛ snapRing نقيّة ومُختبَرة offline (lib/geo).
+  const maybeSnap = useCallback((pts: L.LatLng[]): L.LatLng[] => {
+    if (!snapEnabled || pts.length < 3) return pts;
+    const ring = pts.map(p => [p.lat, p.lng] as [number, number]);
+    const snapped = snapRing(ring, snapTargets, 8);
+    return snapped.map(([lat, lng]) => L.latLng(lat, lng));
+  }, [snapEnabled, snapTargets]);
+
+  const handlePolygonDone = useCallback((rawPts: L.LatLng[]) => {
+    const pts = maybeSnap(rawPts);
     if (!fgRef.current) return;
     const fg = fgRef.current;
     fg.clearLayers();
@@ -206,7 +241,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
         setAutoRegion(r.data?.region ?? null);
       })
       .catch(() => { /* الكشف التلقائي اختياري — لا يُفشل الإضافة */ });
-  }, []);
+  }, [maybeSnap]);
 
   // أداة الرسم (leaflet-draw): مضلّع / مستطيل / دائرة (ريّ محوريّ).
   const handleCreated = useCallback((e: L.DrawEvents.Created) => {
@@ -239,6 +274,67 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
     if (pts.length >= 3) handlePolygonDone(pts);
   }, [radiusInput, handlePolygonDone]);
 
+  // ── H-UI — تقطيع مُساعَد (تلقائيّ/هجين) عبر خدمة التقطيع المُوكَّلة ─────────────
+  // يأخذ النطاق الظاهر للخريطة (bbox) والوضع فيطلب اقتراح حدّ، ثمّ يُحمّل المضلّع
+  // المُقترَح في طبقة الرسم القابلة للتحرير (handlePolygonDone) ليؤكّده المستخدم أو
+  // يعدّله. صدق صارم: 503 model_not_configured ⇒ رسالة صريحة «استخدم الرسم اليدويّ»
+  // (لا مضلّع مُفبرَك)؛ 404 (غير منشورة) ⇒ «غير متاح» بلطف؛ غيرهما ⇒ نصّ الخطأ.
+  const handleSegment = useCallback(async (segReqMode: SegmentationMode) => {
+    const map = mapRef.current;
+    if (!map) { setSegNotice({ tone: 'error', text: 'الخريطة غير جاهزة بعد.' }); return; }
+    setSegLoading(true);
+    setSegMode(segReqMode);
+    setSegNotice(null);
+    const b = map.getBounds();
+    // bbox بترتيب GeoJSON: [minLon, minLat, maxLon, maxLat].
+    const bbox: [number, number, number, number] = [
+      b.getWest(), b.getSouth(), b.getEast(), b.getNorth(),
+    ];
+    // للوضع الهجين: نمرّر مركز الخريطة كتلميح بذرة [lon, lat] (سياق بشريّ خفيف).
+    const c = map.getCenter();
+    const hints: Array<[number, number]> | undefined =
+      segReqMode === 'hybrid' ? [[c.lng, c.lat]] : undefined;
+    try {
+      const res = await segmentField({ mode: segReqMode, bbox, ...(hints ? { hints } : {}) });
+      const ring = geomToPolygon(res?.geometry);
+      if (!ring || ring.length < 3) {
+        // ردّ بلا هندسة صالحة — لا نُلفّق مضلّعاً، نُبقي الرسم اليدويّ.
+        setSegNotice({
+          tone: 'warning',
+          text: 'لم تُرجِع الخدمة مضلّعاً صالحاً — استخدم الرسم اليدويّ.',
+        });
+        return;
+      }
+      // نُحمّل الاقتراح في طبقة التحرير (الالتقاط يبقى مُحترَماً عبر handlePolygonDone).
+      const pts = ring.map(([lat, lng]) => L.latLng(lat, lng));
+      handlePolygonDone(pts);
+      const conf = typeof res?.confidence === 'number' ? ` (ثقة ${(res.confidence * 100).toFixed(0)}٪)` : '';
+      setSegNotice({
+        tone: 'info',
+        text: `حُمِّل اقتراح ${segReqMode === 'auto' ? 'تلقائيّ' : 'هجين'} للحدّ${conf} — راجِعه وعدّله قبل الحفظ.`,
+      });
+    } catch (e: unknown) {
+      const kind = classifySegmentationError(e);
+      if (kind === 'model_not_configured') {
+        // صدق: لا مضلّع مزيّف. رسالة صريحة بأنّ النموذج غير مُهيَّأ + بديل يدويّ.
+        setSegNotice({
+          tone: 'warning',
+          text: 'التقطيع التلقائيّ يتطلّب تهيئة نموذج (SAM2/GeoSAM) — استخدم الرسم اليدويّ.',
+        });
+      } else if (kind === 'unavailable') {
+        setSegNotice({
+          tone: 'warning',
+          text: 'خدمة التقطيع التلقائيّ غير متاحة حاليّاً — استخدم الرسم اليدويّ.',
+        });
+      } else {
+        setSegNotice({ tone: 'error', text: apiErrorMessage(e, 'تعذّر التقطيع التلقائيّ.') });
+      }
+    } finally {
+      setSegLoading(false);
+      setSegMode(null);
+    }
+  }, [handlePolygonDone]);
+
   const handleReset = () => {
     if (fgRef.current) fgRef.current.clearLayers();
     setStage('draw');
@@ -249,6 +345,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
     setAutoCountry(null);
     setAutoRegion(null);
     setError('');
+    setSegNotice(null);
   };
 
   const handleSave = async () => {
@@ -503,6 +600,33 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport }: Props) {
                 (تُنشأ عند مركز الخريطة — نصف القطر بالمتر)
               </span>
             </div>
+
+            {/* G — تبديل الالتقاط للحدود (افتراضيّ مُفعَّل) */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSnapEnabled(s => !s)}
+                aria-pressed={snapEnabled}
+                title="إلصاق رؤوس الرسم بحدود الحقول القائمة وبرأس البداية ضمن تسامح صغير"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold"
+                style={snapEnabled
+                  ? { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }
+                  : { background:'#0f1117', color:'#94a3b8', border:'1px solid #334155' }}>
+                <Magnet className="w-3.5 h-3.5" />
+                التقاط للحدود{snapEnabled ? ' · مُفعَّل' : ' · مُعطَّل'}
+              </button>
+              <span className="text-[11px]" style={{ color:'#64748b' }}>
+                (يُلصِق الرؤوس بأقرب حدّ قائم ويُغلق البداية بنظافة)
+              </span>
+            </div>
+
+            {/* H-UI — أزرار التقطيع المُساعَد (تلقائيّ/هجين) — تعامل صادق عند غياب النموذج */}
+            <AutoSegmentControl
+              onSegment={handleSegment}
+              loading={segLoading}
+              pendingMode={segMode}
+              notice={segNotice}
+            />
           </div>
         )}
 

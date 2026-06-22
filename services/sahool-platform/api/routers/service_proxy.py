@@ -116,3 +116,18 @@ async def proxy_soil(
     """واجهة التربة → JWT → platform → X-Agent-Token + X-Tenant-Id → soil-service."""
     base = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000")
     return await _proxy(request=request, user=user, base_url=base, path=path, timeout=60.0)
+
+
+@router.api_route(
+    "/api/segmentation/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"]
+)
+async def proxy_segmentation(
+    path: str,
+    request: Request,
+    user: UserSchema = Depends(get_current_user),
+) -> Response:
+    """واجهة تقطيع الحقل → JWT → platform → X-Agent-Token + X-Tenant-Id →
+    field-segmentation. الهدف ثابت (لا SSRF). المسار اليدويّ حقيقيّ؛ auto/hybrid
+    يردّ 503 صادق إن لم يُهيّأ نموذج (SAM2/GeoSAM)."""
+    base = os.getenv("SEGMENTATION_URL", "http://sahool-field-segmentation:8000")
+    return await _proxy(request=request, user=user, base_url=base, path=path, timeout=120.0)

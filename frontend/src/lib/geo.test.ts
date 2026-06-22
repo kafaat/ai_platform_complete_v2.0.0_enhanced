@@ -7,6 +7,9 @@ import {
   lengthMeters,
   fieldRepresentativePoint,
   collectFieldBoundsPoints,
+  snapPoint,
+  snapRing,
+  type SnapTarget,
 } from './geo';
 
 const _poly = {
@@ -144,5 +147,94 @@ describe('lengthMeters', () => {
   it('يُرجِع صفراً عند مُدخَل غير صالح', () => {
     expect(lengthMeters(undefined)).toBe(0);
     expect(lengthMeters({})).toBe(0);
+  });
+});
+
+// ── G — الالتقاط للحدود (snapPoint / snapRing) ───────────────────────
+// حدّ حقل قائم: مربّع صغير قرب خطّ الاستواء (~111م ضلعاً عند 0.001 درجة).
+// [lat, lng] كما تستهلكه الواجهة. ملاحظة: 1e-5 درجة ≈ 1.1م (ضمن التسامح ~8م).
+const _existingRing: SnapTarget = [
+  [15.0,       44.0],
+  [15.0,       44.001],
+  [15.001,     44.001],
+  [15.001,     44.0],
+  [15.0,       44.0],
+];
+
+describe('snapPoint (الالتقاط لأقرب رأس/ضلع ضمن التسامح)', () => {
+  it('يلتقط لرأس قائم قريب جدّاً (kind=vertex)', () => {
+    // نقطة على بعد ~1م من رأس [15.0, 44.0].
+    const r = snapPoint([15.00001, 44.0], [_existingRing], 8);
+    expect(r.snapped).toBe(true);
+    expect(r.kind).toBe('vertex');
+    expect(r.point[0]).toBeCloseTo(15.0, 6);
+    expect(r.point[1]).toBeCloseTo(44.0, 6);
+    expect(r.distM).toBeLessThan(8);
+  });
+
+  it('يلتقط لأقرب ضلع (إسقاط عموديّ) لا لرأس حين النقطة على منتصف ضلع', () => {
+    // نقطة قرب منتصف الضلع السفليّ (lng≈44.0005) بإزاحة طفيفة عن الخطّ.
+    const r = snapPoint([15.00001, 44.0005], [_existingRing], 8);
+    expect(r.snapped).toBe(true);
+    expect(r.kind).toBe('edge');
+    // تُسقَط على الضلع (lat≈15.0) فتقترب من خطّ الحدّ.
+    expect(r.point[0]).toBeCloseTo(15.0, 4);
+    expect(r.point[1]).toBeCloseTo(44.0005, 4);
+  });
+
+  it('لا يلتقط حين النقطة أبعد من التسامح (snapped=false، تُعاد كما هي)', () => {
+    // ~110م بعيداً عن الحدّ (0.001 درجة) — خارج تسامح 8م.
+    const p: [number, number] = [15.0, 43.999];
+    const r = snapPoint(p, [_existingRing], 8);
+    expect(r.snapped).toBe(false);
+    expect(r.kind).toBe('none');
+    expect(r.point).toEqual(p);
+    expect(r.distM).toBe(0);
+  });
+
+  it('بلا أهداف ⇒ لا التقاط (تُعاد النقطة كما هي)', () => {
+    const p: [number, number] = [15.0, 44.0];
+    expect(snapPoint(p, [], 8).snapped).toBe(false);
+  });
+
+  it('يتسامح مع رؤوس/أهداف غير صالحة دون أن يرمي', () => {
+    const bad = [[NaN, 1], [2]] as unknown as SnapTarget;
+    const r = snapPoint([15.0, 44.0], [bad], 8);
+    expect(r.snapped).toBe(false);
+  });
+});
+
+describe('snapRing (التقاط حلقة الرسم — حدود قائمة + إغلاق البداية)', () => {
+  it('يلتقط الرؤوس القريبة من حدّ قائم ويُبقي البعيدة', () => {
+    // رأس قريب من زاوية الحدّ القائم (يُلتقَط) + رأسان بعيدان (يبقيان).
+    const ring: [number, number][] = [
+      [15.00001, 44.00001], // قرب رأس الحدّ [15.0, 44.0] ⇒ يُلتقَط
+      [16.0, 45.0],
+      [16.0, 45.5],
+    ];
+    const out = snapRing(ring, [_existingRing], 8);
+    expect(out).toHaveLength(3);
+    expect(out[0][0]).toBeCloseTo(15.0, 5); // التُقِط للرأس
+    expect(out[1]).toEqual([16.0, 45.0]);   // بعيد ⇒ كما هو
+    expect(out[2]).toEqual([16.0, 45.5]);
+  });
+
+  it('يُغلق البداية: رأس قريب من رأس البداية يُلتقَط إليه حتى بلا حدود قائمة', () => {
+    // مربّع ~110م ضلعاً؛ الرأس الأخير قرب رأس البداية ⇒ يُلتقَط لإغلاق نظيف.
+    const ring: [number, number][] = [
+      [15.0, 44.0],
+      [15.001, 44.0],
+      [15.001, 44.001],
+      [15.000005, 44.000005], // قرب البداية (~0.7م) ⇒ يُلتقَط لرأس [0]
+    ];
+    const out = snapRing(ring, [], 8);
+    expect(out[3][0]).toBeCloseTo(15.0, 5);
+    expect(out[3][1]).toBeCloseTo(44.0, 5);
+  });
+
+  it('مُدخَل قصير/فارغ يُعاد بأمان', () => {
+    expect(snapRing([], [_existingRing], 8)).toEqual([]);
+    const two: [number, number][] = [[15.0, 44.0], [15.001, 44.0]];
+    expect(snapRing(two, [], 8)).toEqual(two); // أقصر من 3 ⇒ لا التقاط بداية
   });
 });

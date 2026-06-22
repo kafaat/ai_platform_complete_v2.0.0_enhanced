@@ -5,13 +5,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // عميل axios وهميّ: كلّ الأفعال vi.fn، والـinterceptors بلا أثر.
 // نستخدم vi.hoisted كي يتوفّر الكائن لمصنع vi.mock المرفوع لأعلى الوحدة.
-const { mockGet, mockClient } = vi.hoisted(() => {
+const { mockGet, mockPost, mockClient } = vi.hoisted(() => {
   const get = vi.fn();
+  const post = vi.fn();
   return {
     mockGet: get,
+    mockPost: post,
     mockClient: {
       get,
-      post: vi.fn(),
+      post,
       put: vi.fn(),
       patch: vi.fn(),
       interceptors: {
@@ -33,6 +35,8 @@ import {
   apiErrorMessage,
   isMfaRequiredError,
   fetchTenantConfig,
+  classifySegmentationError,
+  segmentField,
 } from './api';
 
 beforeEach(() => {
@@ -105,5 +109,63 @@ describe('fetchTenantConfig', () => {
   it('أفضل-جهد: أيّ خطأ → null (لا كسر، لا تلفيق)', async () => {
     mockGet.mockRejectedValueOnce(new Error('503'));
     expect(await fetchTenantConfig()).toBeNull();
+  });
+});
+
+// ── H — التقطيع المُساعَد: تصنيف الخطأ الصادق + شكل الطلب ─────────────
+describe('classifySegmentationError (تعامل صادق عند غياب النموذج/الخدمة)', () => {
+  it('503 + detail=model_not_configured ⇒ model_not_configured (رسالة صريحة)', () => {
+    expect(
+      classifySegmentationError({ response: { status: 503, data: { detail: 'model_not_configured' } } }),
+    ).toBe('model_not_configured');
+    // الرمز قد يأتي في error أو code كذلك.
+    expect(
+      classifySegmentationError({ response: { status: 503, data: { error: 'model_not_configured' } } }),
+    ).toBe('model_not_configured');
+    expect(
+      classifySegmentationError({ response: { status: 503, data: { code: 'model_not_configured' } } }),
+    ).toBe('model_not_configured');
+  });
+
+  it('404 (الخدمة غير منشورة) ⇒ unavailable بلطف', () => {
+    expect(classifySegmentationError({ response: { status: 404 } })).toBe('unavailable');
+  });
+
+  it('503 بلا رمز معروف ⇒ unavailable (غير متاح مؤقّتاً)', () => {
+    expect(
+      classifySegmentationError({ response: { status: 503, data: { detail: 'overloaded' } } }),
+    ).toBe('unavailable');
+  });
+
+  it('أيّ خطأ آخر (شبكة/4xx/5xx) ⇒ error', () => {
+    expect(classifySegmentationError({ response: { status: 422, data: { detail: 'bad bbox' } } })).toBe('error');
+    expect(classifySegmentationError(new Error('network'))).toBe('error');
+    expect(classifySegmentationError(undefined)).toBe('error');
+  });
+});
+
+describe('segmentField (POST /api/segmentation/segment)', () => {
+  it('يطلب المسار الصحيح بالحمولة (bbox/mode) ويُعيد الهندسة المُقترَحة', async () => {
+    const result = {
+      geometry: { type: 'Polygon', coordinates: [[[44, 15], [44.01, 15], [44.01, 15.01], [44, 15]]] },
+      mode: 'auto',
+      confidence: 0.91,
+    };
+    mockPost.mockResolvedValueOnce({ data: result });
+    const payload = { mode: 'auto' as const, bbox: [44, 15, 44.01, 15.01] as [number, number, number, number] };
+    const out = await segmentField(payload);
+    expect(mockPost).toHaveBeenCalledWith('/api/segmentation/segment', payload);
+    expect(out).toEqual(result);
+  });
+
+  it('يرمي عند 503 model_not_configured (لا تلفيق) — يُصنَّف للواجهة', async () => {
+    const err = { response: { status: 503, data: { detail: 'model_not_configured' } } };
+    mockPost.mockRejectedValueOnce(err);
+    const caught = await segmentField({ mode: 'auto', bbox: [44, 15, 44.01, 15.01] })
+      .then(() => null)
+      .catch(e => e);
+    expect(caught).toBe(err);
+    // الواجهة تصنّف الخطأ المرفوع إلى رسالة صريحة (لا مضلّع مُفبرَك):
+    expect(classifySegmentationError(caught)).toBe('model_not_configured');
   });
 });

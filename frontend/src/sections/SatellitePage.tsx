@@ -19,6 +19,7 @@ import {
   useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
+import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { geomToPolygon } from '../lib/geo';
 import { useSelectedField } from '../hooks/useSelectedField';
@@ -367,6 +368,20 @@ export default function SatellitePage() {
                 ? `بلاطات حقيقيّة · Sentinel-2 (Element84)${gridResp?.date ? ` · ${gridResp.date}` : ''}`
                 : 'لا توجد بلاطات مؤشّر لهذا الحقل بعد — اضغط «تحليل الآن» أو تحقّق من معالجة الراستر. الخريطة تعرض الأساس والحدود فقط.'}
             </div>
+          )}
+
+          {/* تحذير عدم تطابق توقيت بيانات الطبقة/المشهد (FieldView) — يقارن تاريخ
+              مشهد الطبقة (gridResp.date = acquisition_date من raster-service) بالتاريخ
+              المختار للعرض (selectedDate). mismatch ⇒ تحذير؛ match ⇒ شارة حداثة؛
+              unknown (لا تاريخ طبقة / العرض «الأحدث») ⇒ لا شيء. صدق: المقارنة الكاملة
+              (scene_id/field_revision) تنتظر تسطيح geometry_metadata على استجابة الراستر
+              (TODO موثّق في lib/sceneFreshness.ts). */}
+          {mode !== 'truecolor' && hasGrid && (
+            <DataFreshnessBadge
+              layerDate={gridResp?.date}
+              displayDate={selectedDate}
+              indexLabel={gridIndex.toUpperCase()}
+            />
           )}
 
           {/* الخريطة — تتبدّل حسب الوضع، بانتقال framer-motion */}
