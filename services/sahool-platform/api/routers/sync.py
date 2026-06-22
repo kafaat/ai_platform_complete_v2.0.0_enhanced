@@ -157,9 +157,7 @@ async def sync(
                     # نوع آخر يبقى سجلّ فقط (ledger-only، idempotent ON CONFLICT DO NOTHING).
                     if dispatch_decision(op.kind) == "apply":
                         async with conn.transaction():  # savepoint لكلّ عمليّة
-                            outcome = await apply_field_update(
-                                conn, op=op, tenant_id=req.tenant_id
-                            )
+                            outcome = await apply_field_update(conn, op=op, tenant_id=req.tenant_id)
                         if outcome == "conflict":
                             # سلطة الخادم: الإصدار القديم لا يطابق ⇒ 409. لا كتابة فوقيّة
                             # صامتة. نُعلّمها CONFLICTED (لا تُعاد محاولتها عمياءً — العميل
@@ -172,16 +170,12 @@ async def sync(
                             continue
                         # طُبِّق فعليّاً ⇒ نُدوّنه أيضاً في السجلّ (تتبّع/تدقيق) ثمّ SYNCED.
                         async with conn.transaction():
-                            await persist_synced_operation(
-                                conn, op=op, tenant_id=req.tenant_id
-                            )
+                            await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
                         op_status[op.op_id] = "applied"
                         applied += 1
                     else:
                         async with conn.transaction():  # savepoint لكلّ عمليّة
-                            await persist_synced_operation(
-                                conn, op=op, tenant_id=req.tenant_id
-                            )
+                            await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
                         op_status[op.op_id] = "synced"
                     _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
                     # طابور الإدامة: تُعلَّم processed (best-effort ضمن savepoint).

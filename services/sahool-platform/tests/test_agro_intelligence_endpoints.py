@@ -5,6 +5,8 @@
 كلّ نقطة تُسلسِل مخرَج نواتها الصحيح وتأخذ المستأجِر من المستخدم.
 """
 
+import asyncio
+
 import api.main  # noqa: F401 — تهيئة api.main قبل استيراد الموجِّه (تفادي دورة استيراد)
 import pytest
 from api.routers.agro_intelligence import (
@@ -172,11 +174,13 @@ def test_decision_playbook_endpoint_empty_neutral():
 
 
 def test_work_order_from_recommendation_infers_type():
-    out = work_order_from_recommendation_endpoint(
-        WorkOrderFromRecommendationRequest(
-            field_id="fld_1", recommendation={"action": "ابدأ ريّ الحقل اليوم", "id": "rec_9"}
-        ),
-        user=_USER,
+    out = asyncio.run(
+        work_order_from_recommendation_endpoint(
+            WorkOrderFromRecommendationRequest(
+                field_id="fld_1", recommendation={"action": "ابدأ ريّ الحقل اليوم", "id": "rec_9"}
+            ),
+            user=_USER,
+        )
     )
     assert out["inferred"] is True
     assert out["work_order"]["wo_type"] == "irrigation"
@@ -186,11 +190,13 @@ def test_work_order_from_recommendation_infers_type():
 
 
 def test_work_order_from_recommendation_unknown_type_not_inferred():
-    out = work_order_from_recommendation_endpoint(
-        WorkOrderFromRecommendationRequest(
-            field_id="fld_1", recommendation={"action": "خطوة غامضة بلا نوع"}
-        ),
-        user=_USER,
+    out = asyncio.run(
+        work_order_from_recommendation_endpoint(
+            WorkOrderFromRecommendationRequest(
+                field_id="fld_1", recommendation={"action": "خطوة غامضة بلا نوع"}
+            ),
+            user=_USER,
+        )
     )
     assert out["inferred"] is False
     assert out["work_order"] is None

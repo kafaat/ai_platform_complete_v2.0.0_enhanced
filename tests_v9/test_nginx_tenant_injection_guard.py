@@ -79,9 +79,9 @@ def test_microservice_location_verifies_and_injects_tenant(prefix):
         f"{prefix} يجب أن يُضمّن proxy_params (مسح X-Tenant-Id العميل)"
     )
     # (3) التقاط المستأجِر الموثّق من ردّ التحقّق.
-    assert (
-        "auth_request_set $tenant $upstream_http_x_tenant_id;" in block
-    ), f"{prefix} يجب أن يلتقط $tenant من ردّ /auth/verify"
+    assert "auth_request_set $tenant $upstream_http_x_tenant_id;" in block, (
+        f"{prefix} يجب أن يلتقط $tenant من ردّ /auth/verify"
+    )
     # (4) إعادة حقن القيمة الموثّقة.
     assert "proxy_set_header X-Tenant-Id $tenant;" in block, (
         f"{prefix} يجب أن يعيد حقن X-Tenant-Id $tenant الموثّق"
@@ -95,6 +95,4 @@ def test_blank_precedes_verified_injection(prefix):
     block = _location_block(conf, prefix)
     blank_at = block.index("/etc/nginx/proxy_params.conf")
     inject_at = block.index("proxy_set_header X-Tenant-Id $tenant;")
-    assert blank_at < inject_at, (
-        f"{prefix}: يجب مسح رأس العميل أوّلاً ثمّ حقن المستأجِر الموثّق بعده"
-    )
+    assert blank_at < inject_at, f"{prefix}: يجب مسح رأس العميل أوّلاً ثمّ حقن المستأجِر الموثّق بعده"

@@ -52,6 +52,7 @@ def _grid_pipeline_enabled() -> bool:
         "on",
     }
 
+
 _FIELDS_SQL = "SELECT field_id, tenant_id FROM fields WHERE geom IS NOT NULL"
 _GRID_IN_FIELD_SQL = (
     "SELECT g.grid_id AS cell_key FROM weather_grid g "
