@@ -4,7 +4,7 @@
 
 ## الاختبارات — ابدأ بـ`pytest -m unit`
 
-- **الافتراضيّ للتغذية الراجعة السريعة محليّاً:** `pytest -m unit`. هذه اختبارات منطق صرف بلا خدمات، وعليها تُبنى بوّابة CI (وظيفة *Unit Tests*: `pytest -v -m unit --cov=services` + أرضيّة تغطية `--cov-fail-under=3`).
+- **الافتراضيّ للتغذية الراجعة السريعة محليّاً:** `pytest -m unit`. هذه اختبارات منطق صرف بلا خدمات، وعليها تُبنى بوّابة CI (وظيفة *Unit Tests*: `pytest -v -m unit --cov=services` + أرضيّة تغطية `--cov-fail-under=20`).
 - **العلامات (markers) في `pytest.ini`:** `unit` / `integration` / `security` / `slow` / `mcp`، و`testpaths = tests_v9`.
 - **احتفظ بـ`-m integration` لِما بعد رفع الخدمات/PostGIS** (تتطلّب Postgres+PostGIS وRedis قيد التشغيل). لا تُشغّلها كافتراضيّ.
 - **حارس تفكيك الراوترات:** `services/sahool-platform/tests/test_router_decomposition_guard.py` (مُعلَّم `unit`) يمنع انحدار تفكيك `main.py` إلى `api/routers/` — أبقِه أخضر عند تعديل نقاط `/api/v1/*`.

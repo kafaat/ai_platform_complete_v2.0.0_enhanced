@@ -231,8 +231,11 @@ async def get_pool() -> asyncpg.Pool | None:
     global _pool
     if not _pool and DB_URL:
         try:
+            # statement_cache_size معامل عميل asyncpg (لا server_settings): وضعه في
+            # server_settings يجعل asyncpg يرسل «SET statement_cache_size» للخادم فيفشل
+            # الاتّصال ⇒ /readyz يعيد 503. =0 يعطّل ذاكرة العبارات المُحضّرة (توافق pgbouncer).
             _pool = await asyncpg.create_pool(
-                DB_URL, min_size=1, max_size=5, server_settings={"statement_cache_size": "0"}
+                DB_URL, min_size=1, max_size=5, statement_cache_size=0
             )
         except Exception as e:
             logger.warning(f"DB connection failed: {e}")

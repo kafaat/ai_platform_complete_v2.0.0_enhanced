@@ -394,3 +394,7 @@ v95_prescriptions.sql
 # بالمستأجِر عبر _sahool_apply_tenant_rls، وآمن لإعادة التشغيل محلّيّاً. (كان v94 في
 # الأرشيف — أُعيد ترقيمه لأنّ v94/v95 مأخوذان: scouting_pins/prescriptions.)
 v96_spatial_geometry_integrity.sql
+# v97: إصلاح سياسة user_self على users (WITH CHECK صريح) — يسمح بالتسجيل الذاتيّ
+# التأسيسيّ (مستأجِر جديد بلا سياق app.current_*) دون كسر عزل المستأجِر. يُصلح فشل
+# /auth/register بـasyncpg InsufficientPrivilegeError (RLS). idempotent.
+v97_user_self_with_check.sql
