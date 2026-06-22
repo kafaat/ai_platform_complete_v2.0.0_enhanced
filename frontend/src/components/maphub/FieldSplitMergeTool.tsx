@@ -9,12 +9,11 @@
 //       = فرق → عند التأكيد: أنشئ الحقلين الوليدين ثمّ احذف الأصل. حقل → حقلان.
 //
 // القيود الصارمة (عقود الخلفيّة):
-//   • DELETE /fields/{id} يردّ 409 إن للحقل موسم نشط — لذا نفحص مسبقاً كلّ حقل
-//     سيُحذَف عبر useSeasons؛ إن وُجد موسم نشط نحجب العمليّة كاملةً (لا create/
-//     delete) برسالة عربيّة واضحة. يتفادى الحالة نصف المنجَزة.
-//   • الترتيب الذرّيّ: ننشئ الوليد/المدموج أوّلاً (فلا تضيع الهندسة) ثمّ نحذف
-//     الأصول. إن فشل حذفٌ لاحقاً (سباق → 409/503) لا نزعم النجاح: نُبلِّغ بالضبط
-//     أيّ حقول أُنشئت وأيّ أصول تعذّر حذفها، ثمّ نُعيد جلب القائمة دائماً.
+//   • الذرّيّة الآن خادميّة: نقطتا POST /fields/merge و/split تُنفّذان الإنشاء
+//     والحذف في **معاملة قاعدة واحدة** (الكلّ أو لا شيء). فشلٌ ⇒ تراجع كامل ورسالة
+//     صادقة من ردّ النقطة — لا «دمج/تقسيم جزئيّ» بعد الآن (سُدّ خطر الحقول اليتيمة).
+//   • فحص الموسم النشط مسبقاً يبقى (UX سريع): الخادم يردّ 409 إن لمصدر موسم نشط،
+//     لكن نفحص مسبقاً عبر fetchSeasons لِنحجب بوضوح قبل النداء (تجربة أفضل).
 //   • أمانة الهندسة: لا اختراع. قصّ لا يتقاطع → خطأ صريح. دمج ينتج MultiPolygon
 //     (حقول غير متجاورة) والخادم يخزّن Polygon فقط → نحجب بطلب اختيار متجاور.
 // ═══════════════════════════════════════════════════════════════
@@ -28,7 +27,7 @@ import { geomToPolygon, collectFieldBoundsPoints, areaSqMeters } from '../../lib
 import {
   mergeFieldGeometries, splitFieldGeometry, isMultiPolygon, type ArealGeometry,
 } from '../../lib/fieldGeometryOps';
-import { kongApi, asApiError, apiErrorMessage, fetchSeasons } from '../../services/api';
+import { mergeFields, splitField as apiSplitField, asApiError, apiErrorMessage, fetchSeasons } from '../../services/api';
 import { toastStore } from '../../services/websocket';
 import type { FieldOption } from '../../lib/fields';
 import { T, RADIUS, Card, Pill, Badge, SectionLabel } from '../ds';
@@ -142,39 +141,12 @@ export default function FieldSplitMergeTool({ fields, selectedId, onClose, refet
     return null;
   }, [fieldById]);
 
-  // ── إنشاء حقل واحد (يُرجِع معرّف الحقل المُنشأ من ردّ الخادم) ───
-  const createField = useCallback(async (
-    name: string, geometry: ArealGeometry, source?: FieldOption,
-  ): Promise<void> => {
-    // نقل سمات المصدر المعروفة (المحصول) — البقيّة تُترَك للخادم/التحرير اللاحق.
-    const crop = source && source.crop && source.crop !== '—' ? source.crop : null;
-    await kongApi.post('/api/v1/fields', {
-      name,
-      crop,
-      soil_type: null,
-      manager: null,
-      field_code: null,
-      water_source: null,
-      country: null,
-      region: null,
-      geometry,
-    });
-  }, []);
-
-  // حذف الأصول؛ يُجمّع أيّ فشل ولا يتظاهر بالنجاح.
-  const deleteOriginals = useCallback(async (ids: string[]): Promise<string[]> => {
-    const failed: string[] = [];
-    for (const id of ids) {
-      try {
-        await kongApi.delete(`/api/v1/fields/${id}`);
-      } catch (e) {
-        const name = fieldById.get(id)?.name ?? id;
-        const msg = apiErrorMessage(e, 'تعذّر الحذف');
-        failed.push(`«${name}»: ${msg}`);
-      }
-    }
-    return failed;
-  }, [fieldById]);
+  // ── سمة المحصول الموروثة من حقل مصدر (المعروفة فقط؛ البقيّة للخادم/التحرير) ──
+  const inheritedCrop = useCallback(
+    (source?: FieldOption): string | null =>
+      source && source.crop && source.crop !== '—' ? source.crop : null,
+    [],
+  );
 
   // ── تنفيذ الدمج ───────────────────────────────────────────────
   const runMerge = useCallback(async () => {
@@ -201,34 +173,33 @@ export default function FieldSplitMergeTool({ fields, selectedId, onClose, refet
     }
     setBusy(true);
     try {
-      // فحص الموسم النشط مسبقاً لكلّ أصل (سيُحذَف).
+      // فحص الموسم النشط مسبقاً لكلّ أصل (UX سريع؛ الخادم يردّ 409 أيضاً).
       const blocked = await findActiveSeasonField(mergeIds);
       if (blocked) {
         toastStore.add('error', '⚠️ موسم نشط يمنع الدمج', `أغلِق الموسم النشط للحقل «${blocked}» قبل الدمج.`);
         return;
       }
-      const sources = mergeIds.map((id) => fieldById.get(id));
-      // 1) أنشئ المدموج أوّلاً (الهندسة لا تضيع أبداً).
-      await createField(mergeName.trim(), merged, sources[0]);
-      // 2) ثمّ احذف الأصول.
-      const failed = await deleteOriginals(mergeIds);
-      if (failed.length === 0) {
-        toastStore.add('success', '✅ تمّ دمج الحقول', `أُنشئ «${mergeName.trim()}» وحُذِفت ${mergeIds.length} حقول.`);
-        setMergeIds([]); setMergeName('');
-        onClose();
-      } else {
-        toastStore.add(
-          'warning', '⚠️ دمج جزئيّ — يلزم تدخّل',
-          `أُنشئ «${mergeName.trim()}» لكن تعذّر حذف: ${failed.join(' · ')}. احذفها يدويّاً.`,
-        );
-      }
+      // نداء واحد ذرّيّ: الخادم يُنشئ المدموج ويحذف المصادر في معاملة واحدة (الكلّ
+      // أو لا شيء) — لا «دمج جزئيّ» ولا حقول يتيمة. السمات الموروثة من أوّل مصدر.
+      const first = fieldById.get(mergeIds[0]);
+      await mergeFields({
+        source_field_ids: mergeIds,
+        name: mergeName.trim(),
+        crop: inheritedCrop(first),
+        geometry: merged,
+      });
+      toastStore.add('success', '✅ تمّ دمج الحقول', `أُنشئ «${mergeName.trim()}» وحُذِفت ${mergeIds.length} حقول.`);
+      setMergeIds([]); setMergeName('');
+      onClose();
     } catch (e) {
-      toastStore.add('error', '⚠️ فشل الدمج', apiErrorMessage(e, asApiError(e).message || 'تعذّر إنشاء الحقل المدموج.'));
+      // رسالة صادقة من ردّ النقطة (404 مصدر / 409 موسم / 422 هندسة / 503) — المعاملة
+      // تراجعت فلا حقل مدموج يتيَّم ولا مصدر محذوف بلا بديل.
+      toastStore.add('error', '⚠️ فشل الدمج', apiErrorMessage(e, asApiError(e).message || 'تعذّر دمج الحقول.'));
     } finally {
       setBusy(false);
       refetch();
     }
-  }, [mergeIds, mergeName, mergePreview, findActiveSeasonField, fieldById, createField, deleteOriginals, onClose, refetch]);
+  }, [mergeIds, mergeName, mergePreview, findActiveSeasonField, fieldById, inheritedCrop, onClose, refetch]);
 
   // ── تنفيذ التقسيم ─────────────────────────────────────────────
   const runSplit = useCallback(async () => {
@@ -260,34 +231,34 @@ export default function FieldSplitMergeTool({ fields, selectedId, onClose, refet
     }
     setBusy(true);
     try {
-      // فحص الموسم النشط مسبقاً للأصل (سيُحذَف).
+      // فحص الموسم النشط مسبقاً للأصل (UX سريع؛ الخادم يردّ 409 أيضاً).
       const blocked = await findActiveSeasonField([splitId]);
       if (blocked) {
         toastStore.add('error', '⚠️ موسم نشط يمنع التقسيم', `أغلِق الموسم النشط للحقل «${blocked}» قبل التقسيم.`);
         return;
       }
-      // 1) أنشئ الجزأين أوّلاً (الهندسة لا تضيع).
-      await createField(nameA.trim(), parts.partA, field);
-      await createField(nameB.trim(), parts.partB, field);
-      // 2) ثمّ احذف الأصل.
-      const failed = await deleteOriginals([splitId]);
-      if (failed.length === 0) {
-        toastStore.add('success', '✅ تمّ تقسيم الحقل', `أُنشئ «${nameA.trim()}» و«${nameB.trim()}» وحُذِف الأصل.`);
-        setCutGeom(null); setNameA(''); setNameB('');
-        onClose();
-      } else {
-        toastStore.add(
-          'warning', '⚠️ تقسيم جزئيّ — يلزم تدخّل',
-          `أُنشئ الجزآن «${nameA.trim()}» و«${nameB.trim()}» لكن تعذّر حذف الأصل: ${failed.join(' · ')}. احذفه يدويّاً.`,
-        );
-      }
+      // نداء واحد ذرّيّ: الخادم يُنشئ الجزأين ويحذف الأصل في معاملة واحدة (الكلّ أو
+      // لا شيء) — لا «تقسيم جزئيّ» ولا أصل محذوف بلا أطفال. المحصول موروث من الأصل.
+      const crop = inheritedCrop(field);
+      await apiSplitField({
+        source_field_id: splitId,
+        children: [
+          { name: nameA.trim(), geometry: parts.partA, crop },
+          { name: nameB.trim(), geometry: parts.partB, crop },
+        ],
+      });
+      toastStore.add('success', '✅ تمّ تقسيم الحقل', `أُنشئ «${nameA.trim()}» و«${nameB.trim()}» وحُذِف الأصل.`);
+      setCutGeom(null); setNameA(''); setNameB('');
+      onClose();
     } catch (e) {
-      toastStore.add('error', '⚠️ فشل التقسيم', apiErrorMessage(e, asApiError(e).message || 'تعذّر إنشاء الجزأين.'));
+      // رسالة صادقة من ردّ النقطة (404 مصدر / 409 موسم / 422 هندسة / 503) — المعاملة
+      // تراجعت فلا جزء يتيَّم ولا أصل محذوف بلا أطفال.
+      toastStore.add('error', '⚠️ فشل التقسيم', apiErrorMessage(e, asApiError(e).message || 'تعذّر تقسيم الحقل.'));
     } finally {
       setBusy(false);
       refetch();
     }
-  }, [splitId, cutGeom, nameA, nameB, fieldById, findActiveSeasonField, createField, deleteOriginals, onClose, refetch]);
+  }, [splitId, cutGeom, nameA, nameB, fieldById, findActiveSeasonField, inheritedCrop, onClose, refetch]);
 
   // عند تبديل الوضع نُصفّر الحالة المتعلّقة بالوضع الآخر (تفادي خلط).
   const switchMode = useCallback((m: Mode) => {

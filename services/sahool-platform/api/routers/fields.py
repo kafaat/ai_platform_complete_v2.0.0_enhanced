@@ -23,6 +23,7 @@ from datetime import date
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import Response
+from pydantic import BaseModel, Field, field_validator
 
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
@@ -180,6 +181,162 @@ async def _kick_imagery_processing(
         )
 
 
+# ─── جوهر إدراج حقل واحد ضمن معاملة قائمة (DRY) ───────────────────────────────
+# مُستخرَج من _persist_field._work() ليُعاد استخدامه حرفيّاً في create_field
+# (عبر _persist_field) وفي نقطتَي merge/split الذرّيّتين. يفترض أنّ المستدعي يُمرّر
+# conn ضمن معاملة tenant_connection مفتوحة (RLS مضبوط)؛ يُدرج الصفّ ثمّ يُصدِر
+# FIELD_CREATED + سجلّ الهندسة + إبطال الراستر + FIELD_GEOMETRY_CHANGED + إعادة حساب
+# حالة الحقل + FIELD_STATE_CHANGED — نفس التسلسل والأعمدة تماماً (سلوك محفوظ). أيّ خطأ
+# (مثلاً DELETE مصدر لاحق في الدمج) يُترَك ليتصاعد فتتراجع المعاملة كاملةً (لا ابتلاع).
+async def _insert_field_within_tx(
+    conn,
+    user: UserSchema,
+    *,
+    field_id: str,
+    name: str,
+    crop: str | None,
+    geometry: dict,
+    area_ha: float,
+    lat: float | None,
+    lon: float | None,
+    soil_type: str | None = None,
+    manager: str | None = None,
+    farm_id: str | None = None,
+    gov: str | None = None,
+    field_code: str | None = None,
+    description: str | None = None,
+    water_source: str | None = None,
+    irrigation_type: str | None = None,
+    ownership_type: str | None = None,
+    country: str | None = None,
+    region: str | None = None,
+    reason: str = "field.created",
+    extra_event_meta: dict | None = None,
+) -> dict:
+    """يُدرج حقلاً واحداً ويُصدِر أحداثه ضمن معاملة قائمة، ويُرجِع FieldSummary (JSON).
+
+    مصدر واحد للحقيقة لتسلسل «إدراج حقل»: يستدعيه _persist_field (المسار المرسوم/
+    المستورَد) ونقطتا merge/split. لا I/O خارج conn (لا نداء HTTP، لا التزام/تراجع
+    يدويّ) — المستدعي يملك معاملة tenant_connection. extra_event_meta يُدمَج في
+    حمولة FIELD_CREATED (مثلاً merged_from / split_from) للتدقيق.
+    """
+    import json as _json
+
+    await conn.execute(
+        """INSERT INTO fields
+            (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
+             area_ha, lat, lon, gov, geometry,
+             field_code, description, water_source, irrigation_type, ownership_type,
+             country, region)
+           VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
+             $13, $14, $15, $16, $17, $18, $19)""",
+        field_id,
+        str(user.tenant_id),
+        farm_id,
+        name,
+        crop,
+        soil_type,
+        manager,
+        area_ha,
+        lat,
+        lon,
+        gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
+        _json.dumps(geometry),
+        field_code,
+        description,
+        water_source,
+        irrigation_type,
+        ownership_type,
+        country,
+        region,
+    )
+    # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
+    _created_payload = {
+        "name": name,
+        "crop": crop,
+        "area_ha": area_ha,
+        "farm_id": farm_id,
+        "soil_type": soil_type,
+    }
+    if extra_event_meta:
+        _created_payload.update(extra_event_meta)
+    await _emit_domain_event(
+        conn,
+        user,
+        "FIELD_CREATED",
+        "field",
+        field_id,
+        _created_payload,
+    )
+    # Geometry ledger + raster invalidation: أي حد جديد ينتج revision
+    # ويعلّم طبقات raster/indicators أنها مبنية على هندسة محددة.
+    rev = await save_field_geometry_revision(
+        conn,
+        tenant_id=str(user.tenant_id),
+        field_id=field_id,
+        geometry=geometry,
+        changed_by=str(user.user_id),
+        reason=reason,
+        source="draw_or_import",
+        metadata=geometry_metadata(field_revision=1),
+    )
+    await mark_raster_cache_stale(
+        conn,
+        tenant_id=str(user.tenant_id),
+        field_id=field_id,
+        reason=reason,
+        metadata={"geometry_revision": rev, "scope": ["tiles", "indices", "zones"]},
+    )
+    await _emit_domain_event(
+        conn,
+        user,
+        "FIELD_GEOMETRY_CHANGED",
+        "field",
+        field_id,
+        {"geometry_revision": rev, "reason": reason},
+    )
+    # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب الإسقاط،
+    # وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ (نمط outbox).
+    from api.field_state_projection import recompute_field_state
+
+    _fs = await recompute_field_state(conn, field_id)
+    if _fs["changed"]:
+        await _emit_domain_event(
+            conn,
+            user,
+            "FIELD_STATE_CHANGED",
+            "field",
+            field_id,
+            {
+                "validity": _fs["state"]["validity"],
+                "execution_mode": _fs["state"]["execution_mode"],
+                "trigger": reason,
+            },
+        )
+    # نُعيد JSON (model_dump mode=json) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
+    # عند الإعادة — response_model=FieldSummary يتحقّق منه.
+    return FieldSummary(
+        field_id=field_id,
+        farm_id=farm_id or "",
+        name_ar=name,
+        crop=crop or "—",
+        area_ha=area_ha,
+        quality_grade="PENDING_LAB",
+        health_summary_ar="حقل جديد — بانتظار قياسات",
+        soil_type=soil_type,
+        manager=manager,
+        field_code=field_code,
+        description=description,
+        water_source=water_source,
+        ownership_type=ownership_type,
+        country=country,
+        region=region,
+        lat=lat,
+        lon=lon,
+        geometry=geometry,
+    ).model_dump(mode="json")
+
+
 # ─── معالِج حفظ الحقل المشترك (مرسوم/مستورَد) — نُقل من main.py (تفكيك B1) ──────
 # مستهلِكه الوحيد هنا (create_field/import_field)؛ يستورد النماذج/المساعِدات النقيّة
 # من api.field_models والبنية التحتيّة (الاتّصال/الحدث/الترميز الجغرافيّ) من api.main.
@@ -310,117 +467,32 @@ async def _persist_field(
                             ],
                         },
                     )
-                await conn.execute(
-                    """INSERT INTO fields
-                        (field_id, tenant_id, farm_id, name, crop, soil_type, manager,
-                         area_ha, lat, lon, gov, geometry,
-                         field_code, description, water_source, irrigation_type, ownership_type,
-                         country, region)
-                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb,
-                         $13, $14, $15, $16, $17, $18, $19)""",
-                    field_id,
-                    str(user.tenant_id),
-                    req.farm_id,
-                    req.name,
-                    req.crop,
-                    req.soil_type,
-                    req.manager,
-                    area_ha,
-                    lat,
-                    lon,
-                    req.gov or region,  # المحافظة المكتشفة؛ خارج اليمن ⇒ NULL (لا تلفيق «البيضاء»)
-                    _json.dumps(geometry),
-                    req.field_code,
-                    req.description,
-                    req.water_source,
-                    req.irrigation_type,
-                    req.ownership_type,
-                    country,
-                    region,
-                )
-                # حدث domain ضمن نفس المعاملة (نمط outbox) — يُغلق فجوة «كتابة بلا حدث».
-                await _emit_domain_event(
+                # جوهر الإدراج المشترك (INSERT + FIELD_CREATED + سجلّ الهندسة + إبطال
+                # الراستر + FIELD_GEOMETRY_CHANGED + حالة الحقل) — مصدر واحد للحقيقة
+                # يُعاد استخدامه في merge/split (سلوك محفوظ حرفيّاً).
+                return await _insert_field_within_tx(
                     conn,
                     user,
-                    "FIELD_CREATED",
-                    "field",
-                    field_id,
-                    {
-                        "name": req.name,
-                        "crop": req.crop,
-                        "area_ha": area_ha,
-                        "farm_id": req.farm_id,
-                        "soil_type": req.soil_type,
-                    },
-                )
-                # Geometry ledger + raster invalidation: أي حد جديد ينتج revision
-                # ويعلّم طبقات raster/indicators أنها مبنية على هندسة محددة.
-                rev = await save_field_geometry_revision(
-                    conn,
-                    tenant_id=str(user.tenant_id),
                     field_id=field_id,
+                    name=req.name,
+                    crop=req.crop,
                     geometry=geometry,
-                    changed_by=str(user.user_id),
-                    reason="field.created",
-                    source="draw_or_import",
-                    metadata=geometry_metadata(field_revision=1),
-                )
-                await mark_raster_cache_stale(
-                    conn,
-                    tenant_id=str(user.tenant_id),
-                    field_id=field_id,
-                    reason="field.created",
-                    metadata={"geometry_revision": rev, "scope": ["tiles", "indices", "zones"]},
-                )
-                await _emit_domain_event(
-                    conn,
-                    user,
-                    "FIELD_GEOMETRY_CHANGED",
-                    "field",
-                    field_id,
-                    {"geometry_revision": rev, "reason": "field.created"},
-                )
-                # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب
-                # الإسقاط، وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ
-                # (تغذية حيّة لوكيل الإشعارات، نفس معاملة الكتابة — نمط outbox).
-                from api.field_state_projection import recompute_field_state
-
-                _fs = await recompute_field_state(conn, field_id)
-                if _fs["changed"]:
-                    await _emit_domain_event(
-                        conn,
-                        user,
-                        "FIELD_STATE_CHANGED",
-                        "field",
-                        field_id,
-                        {
-                            "validity": _fs["state"]["validity"],
-                            "execution_mode": _fs["state"]["execution_mode"],
-                            "trigger": "field.created",
-                        },
-                    )
-                # نُعيد JSON (model_dump mode=json) ليُخزَّن كنتيجة أمر idempotent
-                # ويُعاد حرفيّاً عند الإعادة — response_model=FieldSummary يتحقّق منه.
-                return FieldSummary(
-                    field_id=field_id,
-                    farm_id=req.farm_id or "",
-                    name_ar=req.name,
-                    crop=req.crop or "—",
                     area_ha=area_ha,
-                    quality_grade="PENDING_LAB",
-                    health_summary_ar="حقل جديد — بانتظار قياسات",
+                    lat=lat,
+                    lon=lon,
                     soil_type=req.soil_type,
                     manager=req.manager,
+                    farm_id=req.farm_id,
+                    gov=req.gov,
                     field_code=req.field_code,
                     description=req.description,
                     water_source=req.water_source,
+                    irrigation_type=req.irrigation_type,
                     ownership_type=req.ownership_type,
                     country=country,
                     region=region,
-                    lat=lat,
-                    lon=lon,
-                    geometry=geometry,
-                ).model_dump(mode="json")
+                    reason="field.created",
+                )
 
             # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
             if idem:
@@ -1095,6 +1167,346 @@ async def delete_field(
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("حذف الحقل", e) from e
     return {"field_id": field_id, "deleted": True}
+
+
+# ─── دمج/انقسام الحقول ذرّيّاً (نقطتان تستبدلان لاذرّيّة الواجهة) ───────────────
+# الواجهة سابقاً كانت تُنفّذ الدمج/الانقسام بعمليّات HTTP منفصلة (POST جديد ثمّ حلقة
+# DELETE) بلا معاملة — فشل الحذف بعد الإنشاء يُخلّف حقولاً يتيمة (فقد بيانات). هاتان
+# النقطتان تُنفّذان الكلّ-أو-لا-شيء داخل معاملة tenant_connection واحدة: إنشاء
+# المدموج/الأطفال أوّلاً (الهندسة لا تضيع) ثمّ FIELD_DELETED + DELETE للمصادر؛ أيّ
+# خطأ يتصاعد فتتراجع المعاملة كاملةً (لا حقل مدموج يتيَّم، لا مصدر محذوف بلا بديل).
+# الهندسة client-computed (@turf) ويتحقّق منها الخادم عبر guard_field_geometry (لا ثقة).
+
+
+class FieldMergeRequest(BaseModel):
+    """طلب دمج عدّة حقول مصدر في حقل واحد (الهندسة المدموجة محسوبة @turf في الواجهة)."""
+
+    source_field_ids: list[str] = Field(min_length=2, max_length=50)
+    name: str = Field(min_length=1, max_length=100)
+    geometry: dict  # GeoJSON Polygon المدموج (اتّحاد @turf) — يتحقّق منه الخادم
+    crop: str | None = None
+    soil_type: str | None = None
+    manager: str | None = Field(default=None, max_length=100)
+    farm_id: str | None = None
+    field_code: str | None = Field(default=None, max_length=50)
+    description: str | None = None
+    water_source: str | None = Field(default=None, max_length=20)
+    irrigation_type: str | None = Field(default=None, max_length=20)
+    ownership_type: str | None = Field(default=None, max_length=20)
+    gov: str | None = None
+    country: str | None = Field(default=None, max_length=60)
+    region: str | None = Field(default=None, max_length=80)
+
+    @field_validator("source_field_ids")
+    @classmethod
+    def _dedupe_sources(cls, v: list[str]) -> list[str]:
+        if len(set(v)) != len(v):
+            raise ValueError("معرّفات الحقول المصدر مكرّرة")
+        return v
+
+
+class ChildField(BaseModel):
+    """حقل وليد ناتج عن انقسام (اسم + هندسة @turf؛ المحصول اختياريّ يُورَّث/يُحدَّد)."""
+
+    name: str = Field(min_length=1, max_length=100)
+    geometry: dict  # GeoJSON Polygon للجزء (محسوب @turf) — يتحقّق منه الخادم
+    crop: str | None = None
+    soil_type: str | None = None
+    manager: str | None = Field(default=None, max_length=100)
+    field_code: str | None = Field(default=None, max_length=50)
+    description: str | None = None
+    water_source: str | None = Field(default=None, max_length=20)
+    irrigation_type: str | None = Field(default=None, max_length=20)
+    ownership_type: str | None = Field(default=None, max_length=20)
+
+
+class FieldSplitRequest(BaseModel):
+    """طلب انقسام حقل واحد إلى عدّة حقول وليدة (٢..١٠؛ كلّ وليد بهندسته @turf)."""
+
+    source_field_id: str
+    children: list[ChildField] = Field(min_length=2, max_length=10)
+
+
+def _guard_merge_split_geometry(
+    raw_geometry: object,
+) -> tuple[dict, float, tuple[float | None, float | None]]:
+    """حارس هندسة موحَّد للدمج/الانقسام — نفس شكل خطأ _persist_field (422) عند الفشل.
+
+    يُرجِع (geometry, area_ha, (lat, lon)). لا I/O — منطق تحقّق صرف عبر guard_field_geometry.
+    """
+    try:
+        guarded = guard_field_geometry(raw_geometry)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
+                "code": "invalid_field_geometry",
+                "issues": str(exc).split(","),
+            },
+        ) from exc
+    return guarded.geometry, round(guarded.area_ha, 2), guarded.centroid
+
+
+@router.post("/api/v1/fields/merge", status_code=201, response_model=FieldSummary)
+async def merge_fields(
+    req: FieldMergeRequest,
+    background_tasks: BackgroundTasks,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
+    idem: str | None = Depends(_idem_key),
+):
+    """يدمج عدّة حقول مصدر في حقل واحد ذرّيّاً (معاملة واحدة: الكلّ أو لا شيء).
+
+    يستبدل لاذرّيّة الواجهة (POST جديد + حلقة DELETE بلا معاملة) التي كانت تُخلّف
+    حقولاً يتيمة عند فشل الحذف. داخل tenant_connection (معاملة واحدة): يتحقّق ملكيّة
+    كلّ مصدر (404)، يرفض أيّ مصدر بموسم نشط (409)، يتحقّق الهندسة المدموجة (422)،
+    يُنشئ المدموج (FIELD_CREATED + سجلّ هندسة + حالة)، ثمّ FIELD_DELETED + DELETE لكلّ
+    مصدر. أيّ خطأ يتصاعد فتتراجع المعاملة كاملةً. بعد الالتزام: معالجة صور مُستهدَفة.
+    idempotent عبر Idempotency-Key (إعادة الموبايل لا تُكرّر).
+    """
+    import uuid as _uuid
+
+    field_id = "fld_" + _uuid.uuid4().hex[:12]
+    geometry, area_ha, (lat, lon) = _guard_merge_split_geometry(req.geometry)
+    country, region = req.country, req.region
+    if country is None or region is None:
+        auto_country, auto_region = _reverse_geocode(lat, lon)
+        country = country or auto_country
+        region = region or auto_region
+    try:
+        async with tenant_connection(user) as conn:
+
+            async def _work():
+                # 1) ملكيّة كلّ مصدر (404) + رفض الموسم النشط (409) — قبل أيّ كتابة.
+                for src_id in req.source_field_ids:
+                    src = await conn.fetchrow(
+                        "SELECT field_id, name, crop FROM fields "
+                        "WHERE field_id = $1 AND tenant_id = $2::uuid",
+                        src_id,
+                        str(user.tenant_id),
+                    )
+                    if src is None:
+                        raise HTTPException(
+                            status_code=404,
+                            detail=f"الحقل المصدر {src_id} غير موجود ضمن هذا المستأجِر",
+                        )
+                    active = await conn.fetchval(
+                        "SELECT COUNT(*) FROM seasons WHERE field_id = $1 AND status = 'active'",
+                        src_id,
+                    )
+                    if active and int(active) > 0:
+                        raise HTTPException(
+                            status_code=409,
+                            detail="لا يمكن الدمج: موسم نشط على حقل مصدر",
+                        )
+                # 2) أنشئ المدموج أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
+                result = await _insert_field_within_tx(
+                    conn,
+                    user,
+                    field_id=field_id,
+                    name=req.name,
+                    crop=req.crop,
+                    geometry=geometry,
+                    area_ha=area_ha,
+                    lat=lat,
+                    lon=lon,
+                    soil_type=req.soil_type,
+                    manager=req.manager,
+                    farm_id=req.farm_id,
+                    gov=req.gov,
+                    field_code=req.field_code,
+                    description=req.description,
+                    water_source=req.water_source,
+                    irrigation_type=req.irrigation_type,
+                    ownership_type=req.ownership_type,
+                    country=country,
+                    region=region,
+                    reason="field.merged",
+                    extra_event_meta={"merged_from": req.source_field_ids},
+                )
+                # 3) احذف كلّ مصدر (FIELD_DELETED قبل الحذف — نمط outbox، نفس
+                #    دلالات delete_field). أيّ فشل هنا يتصاعد ⇒ تتراجع المعاملة كاملةً
+                #    (لا حقل مدموج يتيَّم، لا مصدر محذوف بلا بديل) — سدّ خطر اللاذرّيّة.
+                for src_id in req.source_field_ids:
+                    src = await conn.fetchrow(
+                        "SELECT name, crop FROM fields WHERE field_id = $1",
+                        src_id,
+                    )
+                    await _emit_domain_event(
+                        conn,
+                        user,
+                        "FIELD_DELETED",
+                        "field",
+                        src_id,
+                        {
+                            "name": src["name"] if src else None,
+                            "crop": src["crop"] if src else None,
+                            "merged_into": field_id,
+                        },
+                    )
+                    await conn.execute("DELETE FROM fields WHERE field_id = $1", src_id)
+                return result
+
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="field.merge",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"source_ids": req.source_field_ids, "name": req.name},
+                )
+            else:
+                result = await _work()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("دمج الحقول", e) from e
+    background_tasks.add_task(
+        _kick_imagery_processing,
+        field_id=result["field_id"],
+        tenant_id=str(user.tenant_id),
+        geometry=result["geometry"],
+        reason="field.merged",
+    )
+    return result
+
+
+@router.post("/api/v1/fields/split", status_code=201, response_model=list[FieldSummary])
+async def split_field(
+    req: FieldSplitRequest,
+    background_tasks: BackgroundTasks,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_CREATE)),
+    idem: str | None = Depends(_idem_key),
+):
+    """يقسّم حقلاً واحداً إلى عدّة حقول وليدة ذرّيّاً (معاملة واحدة: الكلّ أو لا شيء).
+
+    يستبدل لاذرّيّة الواجهة (POST×n للأطفال + DELETE للأصل بلا معاملة). داخل
+    tenant_connection (معاملة واحدة): يتحقّق ملكيّة المصدر (404) ورفض الموسم النشط
+    (409)، يتحقّق هندسة كلّ وليد (422)، يُنشئ الأطفال (FIELD_CREATED + سجلّ + حالة)،
+    ثمّ FIELD_DELETED + DELETE للأصل. أيّ خطأ يتصاعد فتتراجع المعاملة كاملةً. بعد
+    الالتزام: معالجة صور مُستهدَفة لكلّ وليد. idempotent عبر Idempotency-Key.
+    """
+    import uuid as _uuid
+
+    # تحقّق هندسة كلّ وليد + اشتقاق مساحته/مركزه قبل فتح المعاملة (422 مبكّر، لا I/O).
+    prepared: list[dict] = []
+    for child in req.children:
+        geometry, area_ha, (lat, lon) = _guard_merge_split_geometry(child.geometry)
+        c_country, c_region = _reverse_geocode(lat, lon)
+        prepared.append(
+            {
+                "field_id": "fld_" + _uuid.uuid4().hex[:12],
+                "child": child,
+                "geometry": geometry,
+                "area_ha": area_ha,
+                "lat": lat,
+                "lon": lon,
+                "country": c_country,
+                "region": c_region,
+            }
+        )
+    try:
+        async with tenant_connection(user) as conn:
+
+            async def _work():
+                # 1) ملكيّة المصدر (404) + رفض الموسم النشط (409) — قبل أيّ كتابة.
+                src = await conn.fetchrow(
+                    "SELECT field_id, name, crop FROM fields "
+                    "WHERE field_id = $1 AND tenant_id = $2::uuid",
+                    req.source_field_id,
+                    str(user.tenant_id),
+                )
+                if src is None:
+                    raise HTTPException(
+                        status_code=404,
+                        detail=f"الحقل المصدر {req.source_field_id} غير موجود ضمن هذا المستأجِر",
+                    )
+                active = await conn.fetchval(
+                    "SELECT COUNT(*) FROM seasons WHERE field_id = $1 AND status = 'active'",
+                    req.source_field_id,
+                )
+                if active and int(active) > 0:
+                    raise HTTPException(
+                        status_code=409,
+                        detail="لا يمكن الانقسام: موسم نشط على الحقل المصدر",
+                    )
+                # 2) أنشئ كلّ وليد أوّلاً (الهندسة لا تضيع) ضمن نفس المعاملة.
+                children_out: list[dict] = []
+                for p in prepared:
+                    child: ChildField = p["child"]
+                    children_out.append(
+                        await _insert_field_within_tx(
+                            conn,
+                            user,
+                            field_id=p["field_id"],
+                            name=child.name,
+                            crop=child.crop,
+                            geometry=p["geometry"],
+                            area_ha=p["area_ha"],
+                            lat=p["lat"],
+                            lon=p["lon"],
+                            soil_type=child.soil_type,
+                            manager=child.manager,
+                            field_code=child.field_code,
+                            description=child.description,
+                            water_source=child.water_source,
+                            irrigation_type=child.irrigation_type,
+                            ownership_type=child.ownership_type,
+                            country=p["country"],
+                            region=p["region"],
+                            reason="field.split",
+                            extra_event_meta={"split_from": req.source_field_id},
+                        )
+                    )
+                # 3) احذف المصدر (FIELD_DELETED قبل الحذف — نفس دلالات delete_field).
+                #    أيّ فشل يتصاعد ⇒ تتراجع المعاملة كاملةً (لا وليد يتيَّم، لا أصل
+                #    محذوف بلا أطفال) — سدّ خطر اللاذرّيّة.
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "FIELD_DELETED",
+                    "field",
+                    req.source_field_id,
+                    {
+                        "name": src["name"],
+                        "crop": src["crop"],
+                        "split_into": [c["field_id"] for c in children_out],
+                    },
+                )
+                await conn.execute("DELETE FROM fields WHERE field_id = $1", req.source_field_id)
+                return children_out
+
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="field.split",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={
+                        "source_id": req.source_field_id,
+                        "children": [c.name for c in req.children],
+                    },
+                )
+            else:
+                result = await _work()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB (هجرة/اتّصال) ⇒ 503 لا 500
+        raise _db_unavailable("انقسام الحقل", e) from e
+    # بعد الالتزام: معالجة صور مُستهدَفة لكلّ وليد (مهمّة خلفيّة لكلّ طفل).
+    for child_result in result:
+        background_tasks.add_task(
+            _kick_imagery_processing,
+            field_id=child_result["field_id"],
+            tenant_id=str(user.tenant_id),
+            geometry=child_result["geometry"],
+            reason="field.split",
+        )
+    return result
 
 
 @router.post(
