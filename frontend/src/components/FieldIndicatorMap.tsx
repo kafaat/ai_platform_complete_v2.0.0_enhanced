@@ -14,7 +14,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Polygon, FeatureGroup, useMap } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
+import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet + أداة الرسم (side-effect) — حاسم للتصيير
 import { rasterApi } from '../services/api';
@@ -128,7 +128,7 @@ function MeasureTools() {
   return (
     <>
       <FeatureGroup ref={(r: L.FeatureGroup | null) => setFg(r)}>
-        <EditControl
+        <DrawControl
           position="topright"
           onCreated={handleCreated}
           onEdited={handleEdited}

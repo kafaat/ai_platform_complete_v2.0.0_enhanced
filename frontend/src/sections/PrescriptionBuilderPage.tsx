@@ -18,7 +18,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { useCallback, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Polygon, FeatureGroup } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
+import DrawControl from '../components/maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import type * as GeoJSONNS from 'geojson';
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS + أيقونات Leaflet + أداة الرسم (side-effect) — حاسم للتصيير
@@ -252,7 +252,7 @@ export default function PrescriptionBuilderPage() {
                   <Polygon positions={polygon} pathOptions={{ color: '#5cbf6e', weight: 2, fill: false }} />
                 )}
                 <FeatureGroup ref={(r: L.FeatureGroup | null) => setFg(r)}>
-                  <EditControl
+                  <DrawControl
                     position="topright"
                     onCreated={handleDrawn}
                     onEdited={handleDrawn}
