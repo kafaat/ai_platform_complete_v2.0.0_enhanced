@@ -11,11 +11,10 @@
 // العلم مُطفأً (FEATURE_DEVICE_TWIN) ⇒ 404 ⇒ «الميزة غير مُفعَّلة» (لا انهيار).
 // 503 ⇒ القاعدة غير متاحة (ErrorState صادقة). devices:[] ⇒ «لا أجهزة مُسجَّلة».
 // ═══════════════════════════════════════════════════════════════
-import { Cpu, AlertTriangle, ShieldAlert, Lock, Clock, CircleHelp } from 'lucide-react';
+import { Cpu, AlertTriangle, Lock, Clock, CircleHelp } from 'lucide-react';
 import { useDeviceTwin } from '../hooks/useApi';
-import { asApiError } from '../services/api';
 import type { DeviceTwin, DeviceTwinLevel, DeviceTwinResult } from '../services/api';
-import { ErrorState, LoadingState } from '../components/StateViews';
+import { ErrorState, LoadingState, FeatureDisabledState, isFeatureDisabledError } from '../components/StateViews';
 import { Card, StatBox, ProgressBar } from '../components/ds/atoms';
 import { T } from '../components/ds/tokens';
 
@@ -206,8 +205,8 @@ export default function DeviceTwinPage() {
   const query = useDeviceTwin();
   const data: DeviceTwinResult | undefined = query.data;
 
-  // كشف 404 (العلم مُطفأ) عبر شكل خطأ أكسيوس الموحّد — رسالة ودودة لا حالة خطأ.
-  const featureOff = query.isError && asApiError(query.error).response?.status === 404;
+  // كشف 404 (العلم مُطفأ) عبر المُساعِد الموحّد — رسالة ودودة لا حالة خطأ.
+  const featureOff = query.isError && isFeatureDisabledError(query.error);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto" dir="rtl">
@@ -225,20 +224,8 @@ export default function DeviceTwinPage() {
       {/* ── الحالات ── */}
       {query.isLoading && <LoadingState message="جارٍ جلب توائم الأجهزة…" />}
 
-      {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
-      {featureOff && (
-        <Card>
-          <div className="flex items-start gap-3" role="status">
-            <ShieldAlert className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: T.muted }} aria-hidden="true" />
-            <div className="space-y-1">
-              <div className="text-sm font-semibold" style={{ color: T.ink }}>الميزة غير مُفعَّلة (FEATURE_DEVICE_TWIN)</div>
-              <div className="text-[12px]" style={{ color: T.muted }}>
-                توائم الأجهزة خلف علم تشغيل (FEATURE_DEVICE_TWIN) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
+      {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) · لوحة StateViews الموحّدة */}
+      {featureOff && <FeatureDisabledState page="device-twin" />}
 
       {/* 503/أيّ خطأ آخر — حالة خطأ صادقة */}
       {query.isError && !featureOff && (
