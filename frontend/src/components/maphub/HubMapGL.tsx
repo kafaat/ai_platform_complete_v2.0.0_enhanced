@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// SAHOOL — Map Hub · محرّك MapLibre GL (WebGL) · المرحلة 2ب (تكافؤ المزايا)
+// SAHOOL — Map Hub · محرّك MapLibre GL (WebGL) · المرحلة 3 (التقاط حيّ أثناء الرسم)
 // ───────────────────────────────────────────────────────────────
 // مُصيِّر متّجهيّ بـWebGL (MapLibre GL) لمركز الخرائط — يُثبت مسار العرض المتّجهيّ
 // الذي تستعمله FieldView/John Deere، دون نزع مكدّس Leaflet العامل. يُحمَّل فقط
@@ -10,22 +10,31 @@
 // دبابيس استكشاف، وتراكبات (طقس/تنبيهات/أجهزة) عبر علامات MapLibre أصليّة بعناصر
 // DOM بسيطة (لا Leaflet يدخل هذه الحزمة المقسومة).
 //
+// المرحلة 3: الالتقاط المغناطيسيّ الحيّ أثناء الرسم. حدود الحقول القائمة ليست في
+// مخزن Terra Draw (هي مصدر MapLibre منفصل SRC_FIELDS)، لذا لا يكفي toLine/
+// toCoordinate المدمجان — نستعمل toCustom في وضعَي المضلّع والخطّ، فنُحوّل المؤشّر
+// إلى [lat, lng] ونمرّره عبر snapPoint من lib/geo (نفس محرّك الالتقاط المُختبَر
+// الذي يستعمله محرّر Leaflet)، مع أهداف = حدود الحقول + حلقة الرسم الجاري (إغلاق
+// نظيف ذاتيّ). تبديل تشغيل/إيقاف في الشريط (افتراضيّاً مُفعَّل).
+//
 // صدق البيانات: نفس الحقول الحقيقيّة (FieldOption.geometry)، نفس بلاطات الأساس
 // (lib/layerRegistry)، ونفس بلاطات مؤشّر الحقل (raster-service). لا طبقات مُختلَقة.
 //
 // تنبيه إحداثيّات: مساعِدات lib/geo تُرجِع [lat, lng] (طراز Leaflet)؛ بينما
-// MapLibre/GeoJSON يستعملان [lng, lat]. نحوّل بعناية عند كلّ حدّ.
+// MapLibre/GeoJSON/Terra Draw تستعمل [lng, lat]. نحوّل بعناية عند كلّ حدّ.
 //
-// قيود لاحقة (أمانة): الالتقاط المغناطيسيّ الحيّ أثناء الرسم والتقطيع التلقائيّ
-// للقطاعات يبقيان للمرحلة 3 — لا ندّعيهما هنا (لا نُفعّل خيار snapping عامل).
+// قيود لاحقة (أمانة): التقطيع التلقائيّ للقطاعات (SAM2) يبقى للمرحلة 4 — لا ندّعيه
+// هنا. كما أنّ محرّر Leaflet (AddFieldWithMap) يحتفظ بالتقاطه بعد-الإتمام (snapRing)
+// دون تغيير؛ الالتقاط الحيّ هنا يخصّ أداة رسم محرّك GL وحدها.
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint,
-  areaSqMeters, lengthMeters,
+  areaSqMeters, lengthMeters, snapPoint,
 } from '../../lib/geo';
+import type { SnapTarget } from '../../lib/geo';
 import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import type { FieldOption } from '../../lib/fields';
@@ -49,6 +58,14 @@ const LYR_SELECTED = 'sahool-fields-selected';
 
 // أسماء أوضاع Terra Draw القياسيّة (من getters .mode في الحزمة).
 type DrawMode = 'polygon' | 'linestring' | 'select';
+
+// تسامح الالتقاط الحيّ بالمتر. يوازي قصد محرّر Leaflet (~8 م في snapRing) مع هامش
+// طفيف ليُسهّل الالتصاق بالحدود على شاشات اللمس/التكبير المتوسّط.
+const SNAP_TOLERANCE_M = 10;
+
+// لون/عرض نقطة الالتقاط التي يرسمها Terra Draw حين يلتقط toCustom (تلميح بصريّ).
+const SNAP_POINT_COLOR = '#22d3ee';
+const SNAP_POINT_WIDTH = 6;
 
 export interface HubMapGLProps {
   fields: FieldOption[];
@@ -112,6 +129,17 @@ function fieldsToGeoJSON(fields: FieldOption[]): GeoJSON.FeatureCollection {
     });
   }
   return { type: 'FeatureCollection', features };
+}
+
+// أهداف الالتقاط = حلقة [lat, lng] لكلّ حقل ذي مضلّع صالح (يتخطّى ما بلا حلقة —
+// لا هندسة مُختلَقة). تُمرَّر إلى snapPoint من lib/geo كما يفعل محرّر Leaflet.
+function buildSnapTargets(fields: FieldOption[]): SnapTarget[] {
+  const targets: SnapTarget[] = [];
+  for (const f of fields) {
+    const poly = geomToPolygon(f.geometry); // [lat, lng]
+    if (poly && poly.length >= 2) targets.push(poly);
+  }
+  return targets;
 }
 
 // حدود [[lngW, latS], [lngE, latN]] من نقاط الحقول، أو null إن لا نقاط.
@@ -243,6 +271,16 @@ export default function HubMapGL({
   const drawModeRef = useRef<DrawMode>('polygon');
   drawModeRef.current = drawMode;
   const [measure, setMeasure] = useState<MeasureState>(EMPTY_MEASURE);
+
+  // ── الالتقاط الحيّ (المرحلة 3) ──────────────────────────────────────
+  // أهداف الالتقاط (حدود الحقول) في مرجع حيّ كي تقرأ إغلاقة toCustom — المُنشأة
+  // مرّة واحدة عند بناء Terra Draw — أحدثها دائماً بعد تغيّر fields بلا إعادة بناء.
+  const snapTargetsRef = useRef<SnapTarget[]>(buildSnapTargets(fields));
+  snapTargetsRef.current = buildSnapTargets(fields);
+  // تبديل الالتقاط (افتراضيّاً مُفعَّل) + مرجع حيّ تقرأه الإغلاقة.
+  const [snapOn, setSnapOn] = useState(true);
+  const snapOnRef = useRef(true);
+  snapOnRef.current = snapOn;
 
   // ── إنشاء الخريطة مرّة واحدة (حارس double-init لـStrictMode) ──────────
   useEffect(() => {
@@ -418,11 +456,49 @@ export default function HubMapGL({
           TerraDraw, TerraDrawPolygonMode, TerraDrawLineStringMode, TerraDrawSelectMode,
         } = td;
         const { TerraDrawMapLibreGLAdapter } = adapterMod;
+
+        // ── إغلاقة الالتقاط الحيّ (toCustom) ──────────────────────────
+        // Terra Draw يُمرّر الحدث بإحداثيّات جغرافيّة (lng/lat) وبكسلات الحاوية،
+        // ويُتيح لقطة الهندسة الجارية. نُحوّل المؤشّر إلى [lat, lng] ونلتقط عبر
+        // snapPoint (lib/geo) مقابل: حدود الحقول القائمة + رؤوس الرسم الجاري
+        // (لإغلاق نظيف على رأس البداية). نُعيد [lng, lat] إن التُقِط، وإلّا
+        // undefined (رسم حرّ). إيقاف التبديل ⇒ undefined دائماً.
+        type TDEvent = { lng: number; lat: number };
+        type TDContext = {
+          getCurrentGeometrySnapshot: () => GeoJSON.Polygon | GeoJSON.LineString | null;
+        };
+        const snapToCustom = (event: TDEvent, context: TDContext): GeoJSON.Position | undefined => {
+          if (!snapOnRef.current) return undefined;
+          const cursor: [number, number] = [event.lat, event.lng]; // [lat, lng] لـlib/geo
+          // أهداف = حدود الحقول + حلقة الرسم الجاري (إغلاق ذاتيّ نظيف).
+          const targets: SnapTarget[] = [...snapTargetsRef.current];
+          const snap = context.getCurrentGeometrySnapshot?.();
+          if (snap) {
+            const coords = snap.type === 'Polygon' ? snap.coordinates[0] : snap.coordinates;
+            if (Array.isArray(coords) && coords.length >= 1) {
+              // إحداثيّات GeoJSON [lng, lat] → [lat, lng].
+              const ring = coords
+                .filter((c): c is GeoJSON.Position => Array.isArray(c) && c.length >= 2)
+                .map((c) => [c[1], c[0]] as [number, number]);
+              if (ring.length) targets.push(ring);
+            }
+          }
+          const res = snapPoint(cursor, targets, SNAP_TOLERANCE_M);
+          if (!res.snapped) return undefined;
+          return [res.point[1], res.point[0]]; // [lat, lng] → [lng, lat] = Position
+        };
+
+        const snapping = { toCustom: snapToCustom } as unknown as Record<string, unknown>;
+        const snapStyles = {
+          snappingPointColor: SNAP_POINT_COLOR,
+          snappingPointWidth: SNAP_POINT_WIDTH,
+        };
+
         const draw = new TerraDraw({
           adapter: new TerraDrawMapLibreGLAdapter({ map }),
           modes: [
-            new TerraDrawPolygonMode(),
-            new TerraDrawLineStringMode(),
+            new TerraDrawPolygonMode({ snapping, styles: snapStyles } as never),
+            new TerraDrawLineStringMode({ snapping, styles: snapStyles } as never),
             new TerraDrawSelectMode(),
           ],
         });
@@ -569,9 +645,11 @@ export default function HubMapGL({
     <div style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
       <div ref={containerRef} style={{ height, width: '100%' }} />
 
-      {/* شارة محرّك المرحلة 2ب */}
+      {/* شارة المحرّك — المرحلة 3: التقاط حيّ للحدود مُفعَّل في محرّك GL.
+          أمانة: التقطيع التلقائيّ (SAM2) للمرحلة 4، ومحرّر Leaflet يلتقط بعد-الإتمام. */}
       <div
         dir="rtl"
+        title="التقاط حيّ للحدود أثناء الرسم (المرحلة 3). التقطيع التلقائيّ SAM2 لاحقاً (المرحلة 4)."
         style={{
           position: 'absolute', top: 12, right: 12, zIndex: 5,
           background: 'rgba(13,22,17,.92)', borderRadius: 10, padding: '6px 12px',
@@ -579,7 +657,7 @@ export default function HubMapGL({
           backdropFilter: 'blur(6px)', pointerEvents: 'none', whiteSpace: 'nowrap',
         }}
       >
-        MapLibre GL · المرحلة 2ب
+        MapLibre GL · المرحلة 3 · التقاط حيّ
       </div>
 
       {/* لوحة الرسم/القياس (Terra Draw) — تظهر فقط حين drawTools */}
@@ -622,6 +700,29 @@ export default function HubMapGL({
               >{label}</button>
             ))}
           </div>
+          {/* تبديل الالتقاط الحيّ للحدود (المرحلة 3) — يظهر في وضعَي الرسم فقط */}
+          {drawMode !== 'select' && (
+            <button
+              type="button"
+              onClick={() => setSnapOn((v) => !v)}
+              aria-pressed={snapOn}
+              title="التقاط مغناطيسيّ لحدود الحقول القائمة أثناء الرسم"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6, width: '100%',
+                marginBottom: 8, fontSize: 11, fontWeight: 600, padding: '5px 8px',
+                borderRadius: 6, cursor: 'pointer', textAlign: 'right',
+                background: snapOn ? 'rgba(34,211,238,.12)' : 'transparent',
+                color: snapOn ? '#7dd3fc' : '#9fb3a6',
+                border: `1px solid ${snapOn ? '#22d3ee' : '#2d4a37'}`,
+              }}
+            >
+              <span style={{
+                width: 8, height: 8, borderRadius: '50%',
+                background: snapOn ? '#22d3ee' : '#5a6b60',
+              }} />
+              التقاط للحدود · {snapOn ? 'مُفعَّل' : 'مُعطَّل'}
+            </button>
+          )}
           {measure.polys === 0 && measure.lines === 0 ? (
             <p style={{ color: '#9fb3a6', lineHeight: 1.6, margin: 0 }}>
               اختر «مضلّع» للمساحة أو «خطّ» للطول ثمّ ارسم على الخريطة. «تحديد» لتعديل المرسوم.
