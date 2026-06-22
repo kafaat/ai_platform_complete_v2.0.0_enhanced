@@ -256,14 +256,14 @@ export default function MapHub() {
           {/* مبدّل وضع 2D / تضاريس(3D) */}
           <div className="flex rounded-lg overflow-hidden" style={{ border: `1px solid ${T.line}` }}>
             <button
-              type="button" onClick={() => setMode('2d')}
+              type="button" onClick={() => setMode('2d')} data-testid="btn-mode-2d"
               className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold"
               style={{ background: mode === '2d' ? T.green : 'transparent', color: mode === '2d' ? '#fff' : T.muted }}
             >
               <Box className="w-3.5 h-3.5" /> 2D
             </button>
             <button
-              type="button" onClick={() => setMode('3d')}
+              type="button" onClick={() => setMode('3d')} data-testid="btn-mode-3d"
               className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold"
               style={{ background: mode === '3d' ? T.green : 'transparent', color: mode === '3d' ? '#fff' : T.muted }}
             >
@@ -328,6 +328,7 @@ export default function MapHub() {
                   return (
                     <button
                       key={f.id}
+                      data-testid={`field-${f.id}`}
                       onClick={() => setFieldId(f.id)}
                       className="w-full text-right rounded-lg px-3 py-2 border transition-colors"
                       style={{
@@ -378,14 +379,14 @@ export default function MapHub() {
               <Card pad={12}>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                   {/* خريطة الأساس */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2" data-testid="basemap-switcher">
                     <span className="text-xs font-semibold" style={{ color: T.muted }}>الأساس</span>
                     <LayerSwitcher layers={BASEMAPS} active={basemapId} onChange={setBasemapId} />
                   </div>
 
                   {/* طبقات المؤشّر (تشمل «بلا» لإيقاف الطبقة) */}
                   {!compare && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2" data-testid="indicator-switcher">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>الطبقة</span>
                       <LayerSwitcher
                         layers={[{ id: '__none__', label: 'بلا' }, ...INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))]}
@@ -412,9 +413,9 @@ export default function MapHub() {
                   {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
                       (Leaflet · MapLibre GL · المرحلة 2ب). */}
                   <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
-                    <ToolToggle active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
-                    <ToolToggle active={drawTools} onClick={() => setDrawTools((v) => !v)} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    <ToolToggle active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
+                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => setDrawTools((v) => !v)} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
+                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
                   </div>
                 </div>
 
@@ -423,9 +424,9 @@ export default function MapHub() {
                 {!compare && (
                   <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
                     <span className="text-xs font-semibold" style={{ color: T.muted }}>طبقات التراكب</span>
-                    <ToolToggle active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس" />
-                    <ToolToggle active={showAlerts} onClick={() => setShowAlerts((v) => !v)} icon={<Bell className="w-3.5 h-3.5" />} label="تنبيهات" />
-                    <ToolToggle active={showDevices} onClick={() => setShowDevices((v) => !v)} icon={<Radio className="w-3.5 h-3.5" />} label="أجهزة" />
+                    <ToolToggle testid="btn-weather" active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس" />
+                    <ToolToggle testid="btn-alerts" active={showAlerts} onClick={() => setShowAlerts((v) => !v)} icon={<Bell className="w-3.5 h-3.5" />} label="تنبيهات" />
+                    <ToolToggle testid="btn-devices" active={showDevices} onClick={() => setShowDevices((v) => !v)} icon={<Radio className="w-3.5 h-3.5" />} label="أجهزة" />
                     {/* ملاحظات الأمانة: عناصر بلا حقل/هندسة غير قابلة للعرض — تُحتسَب لا تُختلَق */}
                     {showAlerts && alertsUnplaceable > 0 && (
                       <span className="text-[11px]" style={{ color: T.faint }}>
@@ -592,10 +593,10 @@ export default function MapHub() {
 }
 
 // زرّ تبديل أداة (مقارنة/رسم/دبابيس) — موحّد الشكل.
-function ToolToggle({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+function ToolToggle({ active, onClick, icon, label, testid }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; testid?: string }) {
   return (
     <button
-      type="button" onClick={onClick}
+      type="button" onClick={onClick} data-testid={testid}
       className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold"
       style={{
         background: active ? T.green : T.card2, color: active ? '#fff' : T.ink,
