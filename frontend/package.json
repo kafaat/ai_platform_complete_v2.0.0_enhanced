@@ -37,6 +37,8 @@
     "react-window": "^1.8.11",
     "recharts": "^2.12.3",
     "shpjs": "^6.2.0",
+    "terra-draw": "^1.31.2",
+    "terra-draw-maplibre-gl-adapter": "^1.4.1",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
