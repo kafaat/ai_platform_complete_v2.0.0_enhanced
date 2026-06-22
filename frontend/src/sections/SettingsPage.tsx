@@ -1,23 +1,28 @@
 // ═══════════════════════════════════════════════════════════════
-// SAHOOL v8.0 — SettingsPage.tsx (مُحدّثة)
-// ✅ تبويبات: عام | إشعارات | اتصالات | أمان
+// SAHOOL v8.0 — SettingsPage.tsx (مكسوّة على نظام التصميم DS)
+// ✅ تبويبات: عام | إشعارات | اتصالات | أمان | (مشاركة | فريق — owner)
 // ✅ ربط NotificationSettingsPage كتبويب
 // ✅ حالة الخدمات الحقيقية (checkAllServices)
 // ✅ إعدادات الخريطة والمظهر
+// ✅ تبويب «المشاركة»: واجهة مشاركة بمستوى الحقل (components/sharing/SharingPanel)
+// عبر نقاط sharing-keys القائمة. الكسوة عرضيّة فقط — كلّ المنطق/النداءات محفوظة.
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useState } from 'react';
 import {
   Settings, Bell, Globe, Shield, Server, Save,
   Check, Loader2, Eye, EyeOff, RefreshCw,
   Wifi, WifiOff, KeyRound, Lock, Copy, AlertTriangle, CheckCircle2,
-  Mail, Phone, BadgeCheck, Users, Trash2, UserPlus,
+  Mail, Phone, BadgeCheck, Users, Trash2, UserPlus, Share2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import NotificationSettingsPage from './NotificationSettingsPage';
+import SharingPanel from '../components/sharing/SharingPanel';
 import { useAllServicesHealth, type ServiceHealth } from '../hooks/useApi';
 import { wsService } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
+import { Card, Button, Pill, TabBar } from '../components/ds/atoms';
+import { T } from '../components/ds/tokens';
 import {
   mfaSetup, mfaActivate, mfaDisable, changePassword, apiErrorMessage,
   getVerificationStatus, requestVerification, confirmVerification,
@@ -26,7 +31,7 @@ import {
   type InviteableRole, type PendingInvitation,
 } from '../services/api';
 
-type Tab = 'general' | 'notifications' | 'services' | 'security' | 'team';
+type Tab = 'general' | 'notifications' | 'services' | 'security' | 'sharing' | 'team';
 
 // حفظ إعدادات العميل فعليّاً (كانت حالة محلّيّة تُفقَد عند التحديث).
 const SETTINGS_KEY = 'sahool_settings';
@@ -43,6 +48,9 @@ const BASE_TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id:'notifications', label:'الإشعارات',   icon:Bell   },
   { id:'services',      label:'الاتصالات',   icon:Server },
   { id:'security',      label:'الأمان',      icon:Shield },
+  // تبويب «المشاركة» متاح للجميع: العرض tenant-scoped؛ الإنشاء محكوم بالصلاحيّة
+  // داخل SharingPanel (والإنفاذ الحقيقيّ خادم-جانبيّ).
+  { id:'sharing',       label:'المشاركة',    icon:Share2 },
 ];
 // تبويب «الفريق» (الدعوات) لمالك المستأجِر فقط — يدير دعوة الأعضاء بأدوار أدنى.
 const TEAM_TAB: { id: Tab; label: string; icon: LucideIcon } = { id:'team', label:'الفريق', icon:Users };
@@ -76,52 +84,54 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2500);
   };
 
+  // ── غلاف قسم موحّد (DS): عنوان + سطح بطاقة. يُمرَّر للأقسام الفرعيّة كي ترث
+  //    الكسوة الجديدة دون إعادة كتابة منطقها (تعديل عرضيّ فقط).
   const Section = ({ title, children }: { title?: string; children: React.ReactNode }) => (
-    <div className="rounded-xl border overflow-hidden" style={{ background:'#1e293b', borderColor:'#334155' }}>
+    <Card pad={0} style={{ overflow: 'hidden' }}>
       {title && (
-        <div className="px-4 py-3 border-b text-sm font-semibold text-slate-300"
-          style={{ background:'#0f1117', borderColor:'#334155' }}>{title}</div>
+        <div
+          style={{
+            padding: '12px 16px',
+            borderBottom: `1px solid ${T.line}`,
+            background: T.card2,
+            fontSize: 14, fontWeight: 700, color: T.brownSoft,
+          }}
+        >
+          {title}
+        </div>
       )}
-      <div className="p-4 space-y-4">{children}</div>
-    </div>
+      <div className="space-y-4" style={{ padding: 16 }}>{children}</div>
+    </Card>
   );
 
   const Row = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
       <div className="sm:w-44 flex-shrink-0">
-        <div className="text-sm text-slate-300">{label}</div>
-        {hint && <div className="text-[11px] text-slate-500">{hint}</div>}
+        <div style={{ fontSize: 13, color: T.ink, fontWeight: 600 }}>{label}</div>
+        {hint && <div style={{ fontSize: 11, color: T.faint }}>{hint}</div>}
       </div>
       <div className="flex-1">{children}</div>
     </div>
   );
 
   const inputCls = "w-full px-3 py-2 rounded-lg text-sm";
-  const inputSty = { background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' };
+  // قيَم DS فاتحة — تُمرَّر للأقسام الفرعيّة (تحقّق/أمان/فريق) فترث الكسوة.
+  const inputSty: React.CSSProperties = { background: T.card, border: `1px solid ${T.line}`, color: T.ink, outline: 'none' };
   const selSty   = { ...inputSty };
 
   return (
     <div className="space-y-5 max-w-2xl mx-auto" dir="rtl">
       <div className="flex items-center gap-2">
-        <Settings className="w-5 h-5 text-emerald-400" />
-        <h2 className="text-xl font-bold text-slate-100">الإعدادات</h2>
+        <Settings style={{ width: 20, height: 20, color: T.gold }} />
+        <h2 style={{ fontSize: 20, fontWeight: 800, color: T.ink }}>الإعدادات</h2>
       </div>
 
-      {/* Tab bar */}
-      <div className="flex flex-wrap gap-1 p-1 rounded-xl" style={{ background:'#0f1117' }}>
-        {TABS.map(t => {
-          const Icon = t.icon;
-          const active = tab === t.id;
-          return (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm flex-1 justify-center transition-all"
-              style={{ background:active?'#1e3a1e':'transparent', color:active?'#4ade80':'#64748b',
-                border:`1px solid ${active?'#16a34a44':'transparent'}` }}>
-              <Icon className="w-4 h-4" />{t.label}
-            </button>
-          );
-        })}
-      </div>
+      {/* شريط التبويبات (DS) */}
+      <TabBar<Tab>
+        tabs={TABS.map(t => ({ id: t.id, label: t.label, icon: <t.icon className="w-4 h-4" /> }))}
+        active={tab}
+        onChange={setTab}
+      />
 
       {/* ── General ──────────────────────────────────────────── */}
       {tab === 'general' && (
@@ -151,23 +161,22 @@ export default function SettingsPage() {
                   placeholder="sk-ant-api03-..."
                   className={inputCls+' pl-10'} style={inputSty} />
                 <button onClick={()=>setShowKey(!showKey)}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+                  className="absolute left-3 top-1/2 -translate-y-1/2"
+                  style={{ color: T.muted }}>
                   {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </Row>
-            <p className="text-[11px] text-slate-500">
-              احصل على مفتاح من <a href="https://console.anthropic.com" target="_blank" className="text-emerald-500 hover:underline">console.anthropic.com</a>
+            <p style={{ fontSize: 11, color: T.faint }}>
+              احصل على مفتاح من <a href="https://console.anthropic.com" target="_blank" style={{ color: T.green }} className="hover:underline">console.anthropic.com</a>
               {' '}· لا يُخزَّن (يبقى في الذاكرة للجلسة فقط — حمايةً من XSS؛ المستشار يعمل عبر الخدمة الخلفيّة).
             </p>
           </Section>
 
           <div className="flex justify-end">
-            <button onClick={handleSave}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white"
-              style={{ background: saved ? '#15803d' : '#16a34a' }}>
+            <Button full={false} onClick={handleSave} style={{ padding: '10px 20px', background: saved ? T.greenDark : T.green }}>
               {saved ? <><Check className="w-4 h-4" /> تم الحفظ ✓</> : <><Save className="w-4 h-4" /> حفظ</>}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -180,25 +189,25 @@ export default function SettingsPage() {
         <div className="space-y-4">
           <Section title="حالة الخدمات">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-slate-400">آخر فحص</span>
+              <span style={{ fontSize: 12, color: T.muted }}>آخر فحص</span>
               <button onClick={() => refetchSv()}
-                className="flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-400 hover:text-slate-200">
+                className="flex items-center gap-1 px-2 py-1 rounded"
+                style={{ fontSize: 12, color: T.muted }}>
                 <RefreshCw className={`w-3 h-3 ${svLoading?'animate-spin':''}`} /> تحديث
               </button>
             </div>
 
             {/* WebSocket */}
-            <div className="flex items-center justify-between py-2 border-b" style={{ borderColor:'#334155' }}>
-              <span className="text-sm text-slate-300">WebSocket (الإشعارات)</span>
-              <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${wsOk?'bg-emerald-950 text-emerald-400':'bg-slate-800 text-slate-500'}`}>
-                {wsOk ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+            <div className="flex items-center justify-between py-2" style={{ borderBottom: `1px solid ${T.line}` }}>
+              <span style={{ fontSize: 13, color: T.ink }}>WebSocket (الإشعارات)</span>
+              <Pill tone={wsOk ? 'ok' : 'neutral'} icon={wsOk ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}>
                 {wsOk ? 'متصل' : 'غير متصل'}
-              </span>
+              </Pill>
             </div>
 
             {svLoading ? (
               <div className="flex justify-center py-4">
-                <Loader2 className="w-5 h-5 text-emerald-500 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" style={{ color: T.green }} />
               </div>
             ) : (
               (services || []).map((svc: ServiceHealth, i: number) => {
@@ -206,13 +215,10 @@ export default function SettingsPage() {
                 // 'ready'/'alive' كانتا شرطين ميّتين لا يتحقّقان أبداً — أُزيلتا.
                 const ok = svc.status === 'ok';
                 return (
-                  <div key={i} className="flex items-center justify-between py-2 border-b last:border-0"
-                    style={{ borderColor:'#334155' }}>
-                    <span className="text-sm text-slate-300 capitalize">{svc.name}</span>
-                    <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${ok?'bg-emerald-950 text-emerald-400 border border-emerald-900':'bg-red-950 text-red-400 border border-red-900'}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${ok?'bg-emerald-400':'bg-red-400'}`} />
-                      {ok ? 'متاح' : 'غير متاح'}
-                    </span>
+                  <div key={i} className="flex items-center justify-between py-2"
+                    style={{ borderBottom: `1px solid ${T.line}` }}>
+                    <span className="capitalize" style={{ fontSize: 13, color: T.ink }}>{svc.name}</span>
+                    <Pill tone={ok ? 'ok' : 'danger'}>{ok ? 'متاح' : 'غير متاح'}</Pill>
                   </div>
                 );
               })
@@ -229,8 +235,8 @@ export default function SettingsPage() {
                   {n:'kong-gateway (:8000)',      ok:false},
                 ].map((s,i)=>(
                   <div key={i} className="flex justify-between items-center py-1">
-                    <span className="text-xs text-slate-400">{s.n}</span>
-                    <span className="text-xs text-slate-600">—</span>
+                    <span style={{ fontSize: 12, color: T.muted }}>{s.n}</span>
+                    <span style={{ fontSize: 12, color: T.faint }}>—</span>
                   </div>
                 ))}
               </div>
@@ -245,9 +251,9 @@ export default function SettingsPage() {
               {k:'VITE_WEATHER',        v:import.meta.env.VITE_WEATHER_BASE_URL || '/api/weather'},
               {k:'VITE_MOCK_MODE',      v:import.meta.env.VITE_MOCK_MODE || 'false'},
             ].map((e,i)=>(
-              <div key={i} className="flex justify-between text-xs py-1 border-b last:border-0" style={{ borderColor:'#334155' }}>
-                <span className="text-slate-500 font-mono">{e.k}</span>
-                <span className="text-slate-300 font-mono truncate max-w-48">{e.v}</span>
+              <div key={i} className="flex justify-between text-xs py-1" style={{ borderBottom: `1px solid ${T.line}` }}>
+                <span className="font-mono" style={{ color: T.muted }}>{e.k}</span>
+                <span className="font-mono truncate max-w-48" style={{ color: T.ink }}>{e.v}</span>
               </div>
             ))}
           </Section>
@@ -276,18 +282,18 @@ export default function SettingsPage() {
               {k:'2FA',                v:'غير مفعّل',   ok:false},
               {k:'Audit Log',          v:'جزئي',        ok:false},
             ].map((s,i)=>(
-              <div key={i} className="flex justify-between items-center py-1.5 border-b last:border-0 text-sm"
-                style={{ borderColor:'#334155' }}>
-                <span className="text-slate-400">{s.k}</span>
-                <span className={s.ok?'text-emerald-400':'text-amber-400'} style={{ fontWeight:500 }}>{s.v}</span>
+              <div key={i} className="flex justify-between items-center py-1.5 text-sm"
+                style={{ borderBottom: `1px solid ${T.line}` }}>
+                <span style={{ color: T.muted }}>{s.k}</span>
+                <span style={{ color: s.ok ? T.green : T.warn, fontWeight: 600 }}>{s.v}</span>
               </div>
             ))}
           </Section>
 
           <Section title="أدوار المستخدمين (RBAC — مُطبَّق فعليّاً)">
-            <p className="text-[11px] text-slate-500 mb-1">
+            <p style={{ fontSize: 11, color: T.muted, marginBottom: 4 }}>
               دورك الحاليّ:{' '}
-              <span className="text-emerald-400">{ROLE_LABEL_AR[normalizeRole(user?.role)]}</span>
+              <span style={{ color: T.green, fontWeight: 700 }}>{ROLE_LABEL_AR[normalizeRole(user?.role)]}</span>
             </p>
             {([
               { r: 'owner',      perms: 'كل الصفحات + الإدارة' },
@@ -298,15 +304,15 @@ export default function SettingsPage() {
             ] as const).map((row, i) => {
               const isCurrent = normalizeRole(user?.role) === row.r;
               return (
-                <div key={i} className="flex gap-3 py-1.5 border-b last:border-0 text-sm items-center"
-                  style={{ borderColor: '#334155' }}>
+                <div key={i} className="flex gap-3 py-1.5 text-sm items-center"
+                  style={{ borderBottom: `1px solid ${T.line}` }}>
                   <span className="px-2 py-0.5 rounded text-[11px]"
-                    style={{ background: isCurrent ? '#16a34a22' : '#1e293b',
-                      border: `1px solid ${isCurrent ? '#16a34a' : '#334155'}`,
-                      color: isCurrent ? '#4ade80' : '#38bdf8' }}>
+                    style={{ background: isCurrent ? T.greenSoft : T.card2,
+                      border: `1px solid ${isCurrent ? T.green : T.line}`,
+                      color: isCurrent ? T.greenDark : T.info, fontWeight: 600 }}>
                     {ROLE_LABEL_AR[row.r]}{isCurrent ? ' ●' : ''}
                   </span>
-                  <span className="text-slate-400 text-xs">{row.perms}</span>
+                  <span style={{ fontSize: 12, color: T.muted }}>{row.perms}</span>
                 </div>
               );
             })}
@@ -314,12 +320,15 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* ── Sharing (واجهة مشاركة بمستوى الحقل عبر نقاط sharing-keys القائمة) ── */}
+      {tab === 'sharing' && <SharingPanel />}
+
       {/* ── Team / Invitations (owner only) ──────────────────── */}
       {tab === 'team' && isOwner && (
         <TeamManagement Section={Section} inputCls={inputCls} inputSty={inputSty} />
       )}
 
-      <div className="text-center text-[10px] text-slate-700 py-2">
+      <div className="text-center py-2" style={{ fontSize: 10, color: T.faint }}>
         SAHOOL v8.0.0 · 88 ملف · 16,181 سطر · MIT License
       </div>
     </div>
@@ -408,42 +417,40 @@ function TeamManagement({ Section, inputCls, inputSty }: {
   return (
     <div className="space-y-4" dir="rtl">
       <Section title="دعوة عضو جديد">
-        <p className="text-[11px] text-slate-500">
+        <p style={{ fontSize: 11, color: T.muted }}>
           الأعضاء ينضمّون لمؤسّستك بأدوار أدنى عبر دعوة (لا عبر التسجيل الذاتيّ). لا يمكن
           الدعوة بدور مالك/مشرف (منع تصعيد الصلاحيّات).
         </p>
         <form onSubmit={handleInvite} className="space-y-3">
           <div>
-            <label className="block text-sm text-slate-400 mb-1.5">البريد الإلكتروني</label>
+            <label className="block mb-1.5" style={{ fontSize: 13, color: T.brownSoft, fontWeight: 600 }}>البريد الإلكتروني</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="member@example.com" autoComplete="email"
               className={inputCls} style={inputSty} />
           </div>
           <div>
-            <label className="block text-sm text-slate-400 mb-1.5">الدور</label>
+            <label className="block mb-1.5" style={{ fontSize: 13, color: T.brownSoft, fontWeight: 600 }}>الدور</label>
             <select value={role} onChange={e => setRole(e.target.value as InviteableRole)}
               className={inputCls} style={inputSty}>
               {INVITE_ROLE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
-              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
-              <span className="text-red-300">{error}</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background: T.dangerBg, border: `1px solid ${T.danger}` }}>
+              <AlertTriangle className="w-4 h-4 flex-shrink-0" style={{ color: T.danger }} />
+              <span style={{ color: T.danger }}>{error}</span>
             </div>
           )}
           <div className="flex justify-end">
-            <button type="submit" disabled={busy}
-              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white"
-              style={{ background: busy ? '#15803d' : '#16a34a', opacity: busy ? 0.8 : 1 }}>
+            <Button full={false} onClick={() => handleInvite({ preventDefault: () => {} } as React.FormEvent)} disabled={busy} style={{ padding: '10px 20px' }}>
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />} إنشاء الدعوة
-            </button>
+            </Button>
           </div>
         </form>
 
         {acceptUrl && (
-          <div className="mt-2 p-3 rounded-xl text-sm" style={{ background:'#0f1117', border:'1px solid #16a34a44' }}>
-            <div className="flex items-center gap-2 mb-2 text-emerald-400">
+          <div className="mt-2 p-3 rounded-xl text-sm" style={{ background: T.okBg, border: `1px solid ${T.green}` }}>
+            <div className="flex items-center gap-2 mb-2" style={{ color: T.greenDark }}>
               <CheckCircle2 className="w-4 h-4" /> أُنشئت الدعوة — انسخ الرابط وأرسله للعضو:
             </div>
             <div className="flex items-center gap-2">
@@ -451,9 +458,9 @@ function TeamManagement({ Section, inputCls, inputSty }: {
                 className="flex-1 px-3 py-2 rounded-lg text-xs font-mono"
                 style={{ ...inputSty, direction:'ltr' }} />
               <button type="button" onClick={copyLink}
-                className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs text-slate-300 hover:text-white"
-                style={{ background:'#1e293b', border:'1px solid #334155' }}>
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                className="flex items-center gap-1 px-3 py-2 rounded-lg text-xs"
+                style={{ background: T.card2, border: `1px solid ${T.line}`, color: T.brownSoft }}>
+                {copied ? <Check className="w-3.5 h-3.5" style={{ color: T.green }} /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'نُسخ' : 'نسخ'}
               </button>
             </div>
@@ -463,28 +470,29 @@ function TeamManagement({ Section, inputCls, inputSty }: {
 
       <Section title="الدعوات المعلّقة">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-slate-500">{invites.length} دعوة معلّقة</span>
+          <span style={{ fontSize: 12, color: T.muted }}>{invites.length} دعوة معلّقة</span>
           <button type="button" onClick={refresh}
-            className="flex items-center gap-1 px-2 py-1 rounded text-xs text-slate-400 hover:text-slate-200">
+            className="flex items-center gap-1 px-2 py-1 rounded"
+            style={{ fontSize: 12, color: T.muted }}>
             <RefreshCw className={`w-3 h-3 ${loadingList ? 'animate-spin' : ''}`} /> تحديث
           </button>
         </div>
         {invites.length === 0 && !loadingList && (
-          <p className="text-xs text-slate-500 py-2">لا دعوات معلّقة.</p>
+          <p className="py-2" style={{ fontSize: 12, color: T.muted }}>لا دعوات معلّقة.</p>
         )}
         {invites.map(inv => (
-          <div key={inv.id} className="flex items-center justify-between py-2 border-b last:border-0"
-            style={{ borderColor:'#334155' }}>
+          <div key={inv.id} className="flex items-center justify-between py-2"
+            style={{ borderBottom: `1px solid ${T.line}` }}>
             <div className="min-w-0">
-              <div className="text-sm text-slate-300 truncate">{inv.email}</div>
-              <div className="text-[11px] text-slate-500">
+              <div className="truncate" style={{ fontSize: 13, color: T.ink }}>{inv.email}</div>
+              <div style={{ fontSize: 11, color: T.muted }}>
                 {INVITE_ROLE_OPTIONS.find(o => o.value === inv.role)?.label ?? inv.role}
                 {inv.expires_at ? ` · تنتهي ${new Date(inv.expires_at).toLocaleDateString('ar')}` : ''}
               </div>
             </div>
             <button type="button" onClick={() => handleRevoke(inv.id)}
-              className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400 hover:text-red-300"
-              style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
+              className="flex items-center gap-1 px-2 py-1 rounded text-xs"
+              style={{ background: T.dangerBg, border: `1px solid ${T.danger}`, color: T.danger }}>
               <Trash2 className="w-3.5 h-3.5" /> إلغاء
             </button>
           </div>
@@ -560,34 +568,32 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
   };
 
   const errBox = (msg: string) => (
-    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
-      <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-      <span className="text-red-300">{msg}</span>
+    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.dangerBg, border: `1px solid ${T.danger}` }}>
+      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.danger }} />
+      <span style={{ color: T.danger }}>{msg}</span>
     </div>
   );
 
   const channelRow = (channel: VerifyChannel, label: string, Icon: LucideIcon, verified: boolean) => (
-    <div className="p-3 rounded-lg space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
+    <div className="p-3 rounded-lg space-y-2" style={{ background: T.card2, border: `1px solid ${T.line}` }}>
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-2 text-sm text-slate-300">
-          <Icon className="w-4 h-4 text-slate-400" /> {label}
+        <span className="flex items-center gap-2 text-sm" style={{ color: T.ink }}>
+          <Icon className="w-4 h-4" style={{ color: T.muted }} /> {label}
         </span>
         {verified ? (
-          <span className="flex items-center gap-1 text-xs text-emerald-300">
+          <span className="flex items-center gap-1 text-xs" style={{ color: T.greenDark }}>
             <BadgeCheck className="w-4 h-4" /> مُتحقَّق منه
           </span>
         ) : (
-          <span className="text-xs text-amber-400">غير مُتحقَّق منه</span>
+          <span className="text-xs" style={{ color: T.warn }}>غير مُتحقَّق منه</span>
         )}
       </div>
 
       {!verified && activeChannel !== channel && (
-        <button onClick={() => handleRequest(channel)} disabled={busy}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white"
-          style={{ background: busy ? '#15803d' : '#16a34a', opacity: busy ? 0.8 : 1 }}>
+        <Button full={false} onClick={() => handleRequest(channel)} disabled={busy} style={{ padding: '8px 12px', fontSize: 12 }}>
           {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Icon className="w-3.5 h-3.5" />}
           {channel === 'email' ? 'تأكيد البريد' : 'تأكيد الهاتف'}
-        </button>
+        </Button>
       )}
 
       {!verified && activeChannel === channel && (
@@ -597,13 +603,11 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
               onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="123456" inputMode="numeric"
               className={inputCls + ' tracking-[0.3em] text-center'} style={inputSty} />
-            <button onClick={handleConfirm} disabled={busy}
-              className="flex items-center gap-1.5 px-4 rounded-lg text-sm font-medium text-white whitespace-nowrap"
-              style={{ background: busy ? '#15803d' : '#16a34a', opacity: busy ? 0.8 : 1 }}>
+            <Button full={false} onClick={handleConfirm} disabled={busy} style={{ padding: '0 16px', whiteSpace: 'nowrap' }}>
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} تأكيد
-            </button>
+            </Button>
             <button onClick={() => handleRequest(channel)} disabled={busy}
-              className="px-3 rounded-lg text-xs text-slate-400" style={{ border:'1px solid #334155' }}>
+              className="px-3 rounded-lg text-xs" style={{ border: `1px solid ${T.line}`, color: T.muted }}>
               إعادة إرسال
             </button>
           </div>
@@ -614,13 +618,13 @@ function AccountVerification({ Section, Row, inputCls, inputSty }: {
 
   return (
     <Section title="تأكيد البريد/الهاتف">
-      <p className="text-[11px] text-slate-500">
+      <p style={{ fontSize: 11, color: T.muted }}>
         تحقّق ناعم لتعزيز ثقة الحساب — لا يحجب الدخول. سنرسل رمزاً مؤقّتاً (٦ أرقام) للقناة، ثمّ تؤكّده هنا.
       </p>
       {channelRow('email', 'البريد الإلكتروني', Mail, status?.verified_email ?? false)}
       {channelRow('phone', 'الهاتف', Phone, status?.verified_phone ?? false)}
       {sentMsg && (
-        <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs text-sky-300" style={{ background:'#0c1a2e', border:'1px solid #0ea5e933' }}>
+        <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.infoBg, border: `1px solid ${T.info}`, color: T.info }}>
           <Mail className="w-3.5 h-3.5 flex-shrink-0" /> {sentMsg}
         </div>
       )}
@@ -743,13 +747,13 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
   };
 
   const errBox = (msg: string) => (
-    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
-      <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-      <span className="text-red-300">{msg}</span>
+    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.dangerBg, border: `1px solid ${T.danger}` }}>
+      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: T.danger }} />
+      <span style={{ color: T.danger }}>{msg}</span>
     </div>
   );
   const okBox = (msg: string) => (
-    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs text-emerald-300" style={{ background:'#052e16', border:'1px solid #16a34a33' }}>
+    <div className="flex items-center gap-2 p-2.5 rounded-lg text-xs" style={{ background: T.okBg, border: `1px solid ${T.green}`, color: T.greenDark }}>
       <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> {msg}
     </div>
   );
@@ -758,7 +762,7 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
     <>
       {/* ── MFA (TOTP) ──────────────────────────────────────── */}
       <Section title="المصادقة الثنائيّة (TOTP)">
-        <p className="text-[11px] text-slate-500">
+        <p style={{ fontSize: 11, color: T.muted }}>
           طبقة حماية إضافيّة: عند الدخول يُطلب رمز مؤقّت من تطبيق مصادقة (Google Authenticator / Authy).
         </p>
 
@@ -767,26 +771,24 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
 
         {/* بدء الاقتران */}
         {!setupData && !mfaActivated && (
-          <button onClick={handleSetup} disabled={mfaBusy}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white"
-            style={{ background: mfaBusy ? '#15803d' : '#16a34a', opacity: mfaBusy ? 0.8 : 1 }}>
+          <Button full={false} onClick={handleSetup} disabled={mfaBusy} style={{ padding: '10px 16px' }}>
             {mfaBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
             بدء تفعيل المصادقة الثنائيّة
-          </button>
+          </Button>
         )}
 
         {/* عرض السرّ + إدخال الرمز للتفعيل */}
         {setupData && (
           <div className="space-y-3">
-            <div className="p-3 rounded-lg space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
-              <p className="text-[11px] text-slate-400">امسح هذا الرابط كـ QR أو أدخل السرّ يدويّاً في تطبيق المصادقة. <span className="text-amber-400">يُعرَض مرّة واحدة فقط.</span></p>
+            <div className="p-3 rounded-lg space-y-2" style={{ background: T.card2, border: `1px solid ${T.line}` }}>
+              <p style={{ fontSize: 11, color: T.muted }}>امسح هذا الرابط كـ QR أو أدخل السرّ يدويّاً في تطبيق المصادقة. <span style={{ color: T.warn }}>يُعرَض مرّة واحدة فقط.</span></p>
               <div className="flex items-center gap-2">
-                <code className="flex-1 text-xs text-emerald-300 font-mono break-all">{setupData.secret}</code>
-                <button onClick={copySecret} className="flex items-center gap-1 px-2 py-1 rounded text-[11px] text-slate-300 hover:text-white" style={{ border:'1px solid #334155' }}>
-                  {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />} {copied ? 'نُسخ' : 'نسخ'}
+                <code className="flex-1 text-xs font-mono break-all" style={{ color: T.greenDark }}>{setupData.secret}</code>
+                <button onClick={copySecret} className="flex items-center gap-1 px-2 py-1 rounded text-[11px]" style={{ border: `1px solid ${T.line}`, color: T.brownSoft }}>
+                  {copied ? <Check className="w-3 h-3" style={{ color: T.green }} /> : <Copy className="w-3 h-3" />} {copied ? 'نُسخ' : 'نسخ'}
                 </button>
               </div>
-              <div className="text-[10px] text-slate-600 font-mono break-all border-t pt-2" style={{ borderColor:'#334155' }}>
+              <div className="text-[10px] font-mono break-all pt-2" style={{ color: T.faint, borderTop: `1px solid ${T.line}` }}>
                 {setupData.provisioning_uri}
               </div>
             </div>
@@ -796,11 +798,9 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
                   onChange={e => setActivateCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                   placeholder="123456" inputMode="numeric"
                   className={inputCls + ' tracking-[0.3em] text-center'} style={inputSty} />
-                <button onClick={handleActivate} disabled={mfaBusy}
-                  className="flex items-center gap-1.5 px-4 rounded-lg text-sm font-medium text-white whitespace-nowrap"
-                  style={{ background: mfaBusy ? '#15803d' : '#16a34a', opacity: mfaBusy ? 0.8 : 1 }}>
+                <Button full={false} onClick={handleActivate} disabled={mfaBusy} style={{ padding: '0 16px', whiteSpace: 'nowrap' }}>
                   {mfaBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} تفعيل
-                </button>
+                </Button>
               </div>
             </Row>
           </div>
@@ -809,15 +809,15 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
         {mfaErr && errBox(mfaErr)}
 
         {/* تعطيل MFA */}
-        <div className="border-t pt-3" style={{ borderColor:'#334155' }}>
+        <div className="pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
           {!showDisable ? (
             <button onClick={() => { setShowDisable(true); setDisableErr(''); setDisabledOk(false); }}
-              className="text-xs text-slate-400 hover:text-red-400">
+              className="text-xs" style={{ color: T.muted }}>
               تعطيل المصادقة الثنائيّة (إن كانت مفعّلة)
             </button>
           ) : (
             <div className="space-y-2">
-              <p className="text-[11px] text-slate-500">أدخل رمزاً صحيحاً حاليّاً لتأكيد التعطيل.</p>
+              <p style={{ fontSize: 11, color: T.muted }}>أدخل رمزاً صحيحاً حاليّاً لتأكيد التعطيل.</p>
               <div className="flex gap-2">
                 <input value={disableCode}
                   onChange={e => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -825,11 +825,11 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
                   className={inputCls + ' tracking-[0.3em] text-center'} style={inputSty} />
                 <button onClick={handleDisable} disabled={disableBusy}
                   className="flex items-center gap-1.5 px-4 rounded-lg text-sm font-medium text-white whitespace-nowrap"
-                  style={{ background: disableBusy ? '#7f1d1d' : '#dc2626', opacity: disableBusy ? 0.8 : 1 }}>
+                  style={{ background: disableBusy ? '#7f1d1d' : T.danger, opacity: disableBusy ? 0.8 : 1 }}>
                   {disableBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : null} تعطيل
                 </button>
                 <button onClick={() => setShowDisable(false)}
-                  className="px-3 rounded-lg text-xs text-slate-400" style={{ border:'1px solid #334155' }}>إلغاء</button>
+                  className="px-3 rounded-lg text-xs" style={{ border: `1px solid ${T.line}`, color: T.muted }}>إلغاء</button>
               </div>
               {disableErr && errBox(disableErr)}
             </div>
@@ -845,7 +845,7 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
             <input type={showPw ? 'text' : 'password'} value={curPw} onChange={e => setCurPw(e.target.value)}
               placeholder="••••••••" autoComplete="current-password"
               className={inputCls + ' pl-10'} style={inputSty} />
-            <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: T.faint }} />
           </div>
         </Row>
         <Row label="كلمة المرور الجديدة" hint="8 أحرف، حرف كبير، رقم، رمز">
@@ -854,7 +854,7 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
               placeholder="••••••••" autoComplete="new-password"
               className={inputCls + ' pl-10'} style={inputSty} />
             <button type="button" onClick={() => setShowPw(!showPw)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
+              className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: T.muted }}>
               {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
@@ -866,11 +866,9 @@ function AccountSecurity({ Section, Row, inputCls, inputSty }: {
         </Row>
         {pwErr && errBox(pwErr)}
         <div className="flex justify-end">
-          <button onClick={handleChangePw} disabled={pwBusy}
-            className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: pwBusy ? '#15803d' : '#16a34a', opacity: pwBusy ? 0.8 : 1 }}>
+          <Button full={false} onClick={handleChangePw} disabled={pwBusy} style={{ padding: '10px 20px' }}>
             {pwBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <KeyRound className="w-4 h-4" />} تحديث كلمة المرور
-          </button>
+          </Button>
         </div>
       </Section>
     </>

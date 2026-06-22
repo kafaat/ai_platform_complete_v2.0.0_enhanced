@@ -16,6 +16,10 @@ import { useTasks, useCompleteTask } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { Card, Button, Pill } from '../components/ds/atoms';
+import { Select } from '../components/ds/forms';
+import { T, RADIUS, toneColors } from '../components/ds/tokens';
+import { taskStatusAr, taskStatusTone } from '../components/ds/status';
 
 interface Task {
   task_id:               string;
@@ -42,12 +46,8 @@ const TASK_CONFIG: Record<string, { icon: typeof Wrench; label: string; color: s
   soil_sampling: { icon: Wrench,   label: 'أخذ عينات تربة',  color: '#92400e' },
 };
 
-const STATUS_CONFIG = {
-  pending:     { label: 'معلقة', color: '#f59e0b', bg: '#2a1a00' },
-  in_progress: { label: 'جارية', color: '#3b82f6', bg: '#001a2a' },
-  completed:   { label: 'منجزة', color: '#16a34a', bg: '#1e3a1e' },
-  cancelled:   { label: 'ملغاة', color: '#6b7280', bg: '#1e293b' },
-};
+// حالات المهام (تسمية + نغمة) موحّدة عبر DS (status.ts/tokens.ts) بدل
+// خريطة الألوان الداكنة المحلّيّة السابقة.
 
 const PRIORITY_MAP: Record<number, string> = { 1: 'حرج', 2: 'عالٍ', 3: 'متوسط', 4: 'منخفض', 5: 'روتيني' };
 
@@ -119,13 +119,11 @@ export default function TasksPage() {
 
   const TaskCard = ({ task }: { task: Task }) => {
     const cfg = TASK_CONFIG[task.task_type] || TASK_CONFIG.scouting;
-    const sCfg = STATUS_CONFIG[task.status];
     const Icon = cfg.icon;
     const isOld = new Date(task.recommended_date) < new Date() && task.status === 'pending';
 
     return (
-      <div className="rounded-xl border p-4 transition-all hover:border-emerald-900"
-        style={{ background: '#1e293b', borderColor: isOld ? '#dc262644' : '#334155' }}>
+      <Card style={{ border: `1px solid ${isOld ? T.danger : T.line}` }}>
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{ background: `${cfg.color}22` }}>
@@ -133,47 +131,44 @@ export default function TasksPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-              <span className="font-semibold text-slate-100 text-sm">{cfg.label}</span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full"
-                style={{ background: `${sCfg.color}22`, color: sCfg.color }}>{sCfg.label}</span>
-              <span className="text-[10px] text-slate-500">أولوية: {PRIORITY_MAP[task.priority] || task.priority}</span>
-              {isOld && <span className="text-[10px] text-red-400 flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" /> متأخرة</span>}
+              <span className="font-semibold text-sm" style={{ color: T.ink }}>{cfg.label}</span>
+              <Pill tone={taskStatusTone(task.status)}>{taskStatusAr(task.status)}</Pill>
+              <span className="text-[10px]" style={{ color: T.faint }}>أولوية: {PRIORITY_MAP[task.priority] || task.priority}</span>
+              {isOld && <span className="text-[10px] flex items-center gap-0.5" style={{ color: T.danger }}><AlertTriangle className="w-3 h-3" /> متأخرة</span>}
             </div>
-            <div className="text-xs text-slate-400 mb-1">{task.field_name || task.field_id}</div>
-            {task.notes && <p className="text-xs text-slate-300 leading-relaxed mb-2">{task.notes}</p>}
-            <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
+            <div className="text-xs mb-1" style={{ color: T.muted }}>{task.field_name || task.field_id}</div>
+            {task.notes && <p className="text-xs leading-relaxed mb-2" style={{ color: T.brownSoft }}>{task.notes}</p>}
+            <div className="flex flex-wrap items-center gap-3 text-[11px]" style={{ color: T.faint }}>
               {task.recommended_date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{task.recommended_date}</span>}
               {task.estimated_duration_min != null && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{task.estimated_duration_min} دقيقة</span>}
-              {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: '#f59e0b' }}>${task.estimated_cost_usd}</span>}
+              {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.gold }}>${task.estimated_cost_usd}</span>}
             </div>
             {task.photo_url && <img src={task.photo_url} alt="توثيق" className="mt-2 h-20 rounded-lg object-cover" />}
           </div>
           {mutateAllowed && task.status !== 'completed' && task.status !== 'cancelled' && (
             <div className="flex flex-col gap-1.5 flex-shrink-0">
               {task.status === 'pending' && (
-                <button onClick={() => startTask(task.task_id)}
-                  className="px-3 py-1.5 rounded-lg text-[11px] font-medium border text-blue-400 hover:text-blue-300"
-                  style={{ borderColor: '#3b82f644' }}>
+                <Button tone="gold" full={false} onClick={() => startTask(task.task_id)}
+                  style={{ padding: '6px 12px', fontSize: 11, fontWeight: 700 }}>
                   بدء
-                </button>
+                </Button>
               )}
-              <button onClick={() => completeTask(task.task_id)} disabled={completing === task.task_id}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-medium text-white"
-                style={{ background: '#16a34a' }}>
+              <Button onClick={() => completeTask(task.task_id)} disabled={completing === task.task_id}
+                full={false} style={{ padding: '6px 12px', fontSize: 11, fontWeight: 700, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                 {completing === task.task_id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
                 إنجاز
-              </button>
-              <label className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] cursor-pointer border"
-                style={{ borderColor: '#334155', color: '#94a3b8' }}>
+              </Button>
+              <label className="flex items-center justify-center gap-1 cursor-pointer"
+                style={{ padding: '6px 12px', borderRadius: RADIUS.md, border: `1px solid ${T.line}`, color: T.muted, fontSize: 11, fontWeight: 700 }}>
                 <Camera className="w-3 h-3" /> صورة
                 <input type="file" accept="image/*" className="hidden"
                   onChange={e => e.target.files?.[0] && handlePhotoUpload(task.task_id, e.target.files[0])} />
               </label>
             </div>
           )}
-          {task.status === 'completed' && <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-1" />}
+          {task.status === 'completed' && <CheckCircle className="w-5 h-5 flex-shrink-0 mt-1" style={{ color: T.ok }} />}
         </div>
-      </div>
+      </Card>
     );
   };
 
@@ -184,36 +179,41 @@ export default function TasksPage() {
     <div className="space-y-5 max-w-4xl mx-auto" dir="rtl">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">المهام الميدانية</h2>
-          <p className="text-sm text-slate-400">مُنشأة تلقائياً من وكلاء الري والتسميد والمكافحة</p>
+          <h2 className="text-xl font-bold" style={{ color: T.ink }}>المهام الميدانية</h2>
+          <p className="text-sm" style={{ color: T.muted }}>مُنشأة تلقائياً من وكلاء الري والتسميد والمكافحة</p>
         </div>
         <button onClick={() => refetch()}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 border"
-          style={{ borderColor: '#334155' }}>
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm"
+          style={{ border: `1px solid ${T.line}`, color: T.muted }}>
           <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} /> تحديث
         </button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 items-end">
         {statusTypes.map(s => {
           const active = filter === s;
+          // النغمات الدافئة من DS: all = ذهبيّ، والبقيّة عبر taskStatusTone.
+          const { fg, bg } = s === 'all' ? { fg: T.gold, bg: T.warnBg } : toneColors(taskStatusTone(s));
           const cnt = counts[s as keyof typeof counts] ?? 0;
-          const color = s === 'pending' ? '#f59e0b' : s === 'in_progress' ? '#3b82f6' : s === 'completed' ? '#16a34a' : '#6b7280';
           return (
             <button key={s} onClick={() => setFilter(s)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all"
-              style={{ background: active ? `${color}22` : '#1e293b', border: `1px solid ${active ? color + '44' : '#334155'}`, color: active ? color : '#64748b' }}>
-              {s === 'all' ? 'الكل' : STATUS_CONFIG[s as Task['status']]?.label}
-              <span className="text-[11px] px-1.5 rounded-full" style={{ background: `${color}33` }}>{cnt}</span>
+              style={{ background: active ? bg : T.card, border: `1px solid ${active ? fg : T.line}`, color: active ? fg : T.muted }}>
+              {s === 'all' ? 'الكل' : taskStatusAr(s)}
+              <span className="text-[11px] px-1.5 rounded-full" style={{ background: active ? `${fg}22` : T.card2, color: active ? fg : T.muted }}>{cnt}</span>
             </button>
           );
         })}
-        <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-sm mr-auto"
-          style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}>
-          <option value="all">كل الأنواع</option>
-          {Object.entries(TASK_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
-        </select>
+        <div className="mr-auto" style={{ minWidth: 160 }}>
+          <Select
+            value={typeFilter}
+            onChange={v => setTypeFilter(v)}
+            options={[
+              { value: 'all', label: 'كل الأنواع' },
+              ...Object.entries(TASK_CONFIG).map(([k, v]) => ({ value: k, label: v.label })),
+            ]}
+          />
+        </div>
       </div>
 
       <div className="space-y-3">

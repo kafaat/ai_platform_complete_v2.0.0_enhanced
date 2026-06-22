@@ -20,6 +20,11 @@ import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
+import { Card, Button, Pill, SectionLabel } from '../components/ds/atoms';
+import { Input, Select } from '../components/ds/forms';
+import { DataTable, type Column } from '../components/ds/table';
+import { equipStatusAr, equipStatusTone } from '../components/ds/status';
+import { T } from '../components/ds/tokens';
 
 // ── أسماء عربيّة للأنواع/حالات/أنواع الصيانة ─────────────────────
 const TYPE_LABELS: Record<string, string> = {
@@ -39,14 +44,6 @@ const KIND_LABELS: Record<string, string> = {
 };
 const KIND_OPTIONS: MaintenanceKind[] = ['scheduled', 'repair', 'breakdown', 'inspection'];
 
-// حالة المعدّة → تسمية ولون (من الخادم؛ fallback للقيمة الخام).
-const STATUS_STYLE: Record<string, { label: string; bg: string; fg: string }> = {
-  active:      { label: 'نشطة',     bg: '#16a34a22', fg: '#4ade80' },
-  broken:      { label: 'معطّلة',   bg: '#dc262622', fg: '#f87171' },
-  maintenance: { label: 'في الصيانة', bg: '#f59e0b22', fg: '#fbbf24' },
-  retired:     { label: 'مُتقاعدة',  bg: '#64748b22', fg: '#94a3b8' },
-};
-
 const usd = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(n ?? 0);
 
@@ -61,13 +58,15 @@ function errorDetail(err: unknown): string {
   return 'تعذّر الاتصال بخدمة المعدّات.';
 }
 
+// تسمية الحالة من مصدر DS الموحّد (equipStatusAr)، مع استثناء «retired» الذي لا
+// يضمّه المصدر العامّ — نُبقي تسميته العربيّة الأصليّة هنا (حفظاً للسلوك).
+function statusLabel(status: string): string {
+  if ((status ?? '').toLowerCase() === 'retired') return 'مُتقاعدة';
+  return equipStatusAr(status);
+}
+
 function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_STYLE[status] ?? { label: status, bg: '#33415544', fg: '#cbd5e1' };
-  return (
-    <span className="px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ background: s.bg, color: s.fg }}>
-      {s.label}
-    </span>
-  );
+  return <Pill tone={equipStatusTone(status)}>{statusLabel(status)}</Pill>;
 }
 
 // ── نموذج تسجيل معدّة جديدة ──────────────────────────────────────
@@ -96,53 +95,53 @@ function RegisterForm() {
     );
   };
 
-  const input = 'px-3 py-2 rounded-lg text-sm w-full';
-  const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
-
   return (
-    <form onSubmit={onSubmit} className="rounded-xl p-4 border space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }} dir="rtl">
-      <div className="flex items-center gap-2">
-        <Plus className="w-4 h-4 text-emerald-400" />
-        <span className="text-sm font-semibold text-slate-200">تسجيل معدّة</span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">الاسم *</label>
-          <input className={input} style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="مثال: جرّار جون دير 5075" />
+    <Card>
+      <form onSubmit={onSubmit} className="space-y-3" dir="rtl">
+        <SectionLabel>
+          <span className="inline-flex items-center gap-2">
+            <Plus className="w-4 h-4" style={{ color: T.green }} />
+            تسجيل معدّة
+          </span>
+        </SectionLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Input
+            label="الاسم" required
+            value={name} onChange={v => setName(v)}
+            placeholder="مثال: جرّار جون دير 5075"
+          />
+          <Select<EquipmentType>
+            label="النوع" required
+            value={type} onChange={v => setType(v)}
+            options={TYPE_OPTIONS.map(t => ({ value: t, label: TYPE_LABELS[t] }))}
+          />
+          <Input
+            label="ساعات التشغيل" type="number" inputMode="decimal"
+            value={hours} onChange={v => setHours(v)} placeholder="0"
+          />
+          <Input
+            label="تاريخ الشراء" type="date"
+            value={purchase} onChange={v => setPurchase(v)}
+          />
+          <Input
+            label="ملاحظات" style={{ gridColumn: '1 / -1' }}
+            value={notes} onChange={v => setNotes(v)} placeholder="اختياري"
+          />
         </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">النوع *</label>
-          <select className={input} style={inputStyle} value={type} onChange={e => setType(e.target.value as EquipmentType)}>
-            {TYPE_OPTIONS.map(t => <option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">ساعات التشغيل</label>
-          <input className={input} style={inputStyle} type="number" min={0} step="any" value={hours} onChange={e => setHours(e.target.value)} placeholder="0" />
-        </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">تاريخ الشراء</label>
-          <input className={input} style={inputStyle} type="date" value={purchase} onChange={e => setPurchase(e.target.value)} />
-        </div>
-        <div className="sm:col-span-2">
-          <label className="block text-[11px] text-slate-400 mb-1">ملاحظات</label>
-          <input className={input} style={inputStyle} value={notes} onChange={e => setNotes(e.target.value)} placeholder="اختياري" />
-        </div>
-      </div>
-      {create.isError && (
-        <p className="text-xs text-red-400 flex items-center gap-1">
-          <AlertTriangle className="w-3 h-3" /> {errorDetail(create.error)}
-        </p>
-      )}
-      <button
-        type="submit"
-        disabled={!name.trim() || create.isPending}
-        className="px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
-        style={{ background: '#16a34a', color: '#fff' }}
-      >
-        {create.isPending ? 'جارٍ الحفظ…' : 'تسجيل المعدّة'}
-      </button>
-    </form>
+        {create.isError && (
+          <p className="text-xs flex items-center gap-1" style={{ color: T.danger }}>
+            <AlertTriangle className="w-3 h-3" /> {errorDetail(create.error)}
+          </p>
+        )}
+        <Button
+          full={false}
+          disabled={!name.trim() || create.isPending}
+          onClick={() => onSubmit({ preventDefault: () => {} } as React.FormEvent)}
+        >
+          {create.isPending ? 'جارٍ الحفظ…' : 'تسجيل المعدّة'}
+        </Button>
+      </form>
+    </Card>
   );
 }
 
@@ -173,75 +172,72 @@ function LogMaintenanceForm({ equipment }: { equipment: Equipment }) {
     );
   };
 
-  const input = 'px-3 py-2 rounded-lg text-sm w-full';
-  const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
-
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all"
-        style={{ background: '#f59e0b22', color: '#fbbf24', border: '1px solid #f59e0b44' }}
-      >
-        <Wrench className="w-3.5 h-3.5" /> تسجيل صيانة
-      </button>
+      <Button tone="gold" full={false} onClick={() => setOpen(true)} style={{ padding: '7px 12px', fontSize: 13 }}>
+        <span className="inline-flex items-center gap-1.5">
+          <Wrench className="w-3.5 h-3.5" /> تسجيل صيانة
+        </span>
+      </Button>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="rounded-xl p-3 border space-y-3 mt-2" style={{ background: '#0f1117', borderColor: '#334155' }} dir="rtl">
-      <div className="flex items-center gap-2">
-        <Wrench className="w-4 h-4 text-amber-400" />
-        <span className="text-sm font-semibold text-slate-200">صيانة: {equipment.name}</span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">النوع *</label>
-          <select className={input} style={inputStyle} value={kind} onChange={e => setKind(e.target.value as MaintenanceKind)}>
-            {KIND_OPTIONS.map(k => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
-          </select>
+    <Card style={{ background: T.card2, marginTop: 8 }}>
+      <form onSubmit={onSubmit} className="space-y-3" dir="rtl">
+        <SectionLabel>
+          <span className="inline-flex items-center gap-2">
+            <Wrench className="w-4 h-4" style={{ color: T.warn }} />
+            صيانة: {equipment.name}
+          </span>
+        </SectionLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Select<MaintenanceKind>
+            label="النوع" required
+            value={kind} onChange={v => setKind(v)}
+            options={KIND_OPTIONS.map(k => ({ value: k, label: KIND_LABELS[k] }))}
+          />
+          <Input
+            label="التكلفة (USD)" type="number" inputMode="decimal"
+            value={cost} onChange={v => setCost(v)} placeholder="0"
+          />
+          <Input
+            label="تاريخ الجدولة" type="date"
+            value={scheduled} onChange={v => setScheduled(v)}
+          />
+          <Input
+            label="تاريخ التنفيذ" type="date"
+            value={performed} onChange={v => setPerformed(v)}
+          />
+          <Input
+            label="ملاحظات" style={{ gridColumn: '1 / -1' }}
+            value={notes} onChange={v => setNotes(v)} placeholder="اختياري"
+          />
         </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">التكلفة (USD)</label>
-          <input className={input} style={inputStyle} type="number" min={0} step="any" value={cost} onChange={e => setCost(e.target.value)} placeholder="0" />
+        {kind === 'breakdown' && (
+          <p className="text-[11px] flex items-center gap-1" style={{ color: T.warn }}>
+            <AlertTriangle className="w-3 h-3" /> تسجيل عطل سيقلب حالة المعدّة إلى «معطّلة».
+          </p>
+        )}
+        {log.isError && (
+          <p className="text-xs flex items-center gap-1" style={{ color: T.danger }}>
+            <AlertTriangle className="w-3 h-3" /> {errorDetail(log.error)}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Button
+            tone="gold" full={false}
+            disabled={log.isPending}
+            onClick={() => onSubmit({ preventDefault: () => {} } as React.FormEvent)}
+          >
+            {log.isPending ? 'جارٍ الحفظ…' : 'حفظ الصيانة'}
+          </Button>
+          <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg text-sm" style={{ color: T.muted }}>
+            إلغاء
+          </button>
         </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">تاريخ الجدولة</label>
-          <input className={input} style={inputStyle} type="date" value={scheduled} onChange={e => setScheduled(e.target.value)} />
-        </div>
-        <div>
-          <label className="block text-[11px] text-slate-400 mb-1">تاريخ التنفيذ</label>
-          <input className={input} style={inputStyle} type="date" value={performed} onChange={e => setPerformed(e.target.value)} />
-        </div>
-        <div className="sm:col-span-2">
-          <label className="block text-[11px] text-slate-400 mb-1">ملاحظات</label>
-          <input className={input} style={inputStyle} value={notes} onChange={e => setNotes(e.target.value)} placeholder="اختياري" />
-        </div>
-      </div>
-      {kind === 'breakdown' && (
-        <p className="text-[11px] text-amber-400 flex items-center gap-1">
-          <AlertTriangle className="w-3 h-3" /> تسجيل عطل سيقلب حالة المعدّة إلى «معطّلة».
-        </p>
-      )}
-      {log.isError && (
-        <p className="text-xs text-red-400 flex items-center gap-1">
-          <AlertTriangle className="w-3 h-3" /> {errorDetail(log.error)}
-        </p>
-      )}
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          disabled={log.isPending}
-          className="px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
-          style={{ background: '#f59e0b', color: '#1c1917' }}
-        >
-          {log.isPending ? 'جارٍ الحفظ…' : 'حفظ الصيانة'}
-        </button>
-        <button type="button" onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200">
-          إلغاء
-        </button>
-      </div>
-    </form>
+      </form>
+    </Card>
   );
 }
 
@@ -268,17 +264,19 @@ function MaintenanceHistory({ equipment }: { equipment: Equipment }) {
   return (
     <ul className="space-y-2" dir="rtl">
       {records.map(r => (
-        <li key={r.maintenance_id} className="rounded-lg p-3 border" style={{ background: '#1e293b', borderColor: '#334155' }}>
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-slate-200">{KIND_LABELS[r.kind] ?? r.kind}</span>
-            {r.cost_usd != null && <span className="text-sm font-semibold text-amber-400">{usd(r.cost_usd)}</span>}
-          </div>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
-            {r.status && <span>الحالة: {r.status}</span>}
-            <span>الجدولة: {fmtDate(r.scheduled_date)}</span>
-            <span>التنفيذ: {fmtDate(r.performed_date)}</span>
-          </div>
-          {r.notes && <p className="mt-1 text-xs text-slate-300">{r.notes}</p>}
+        <li key={r.maintenance_id}>
+          <Card pad={12} style={{ background: T.card2 }}>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold" style={{ color: T.ink }}>{KIND_LABELS[r.kind] ?? r.kind}</span>
+              {r.cost_usd != null && <span className="text-sm font-semibold" style={{ color: T.warn }}>{usd(r.cost_usd)}</span>}
+            </div>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px]" style={{ color: T.muted }}>
+              {r.status && <span>الحالة: {r.status}</span>}
+              <span>الجدولة: {fmtDate(r.scheduled_date)}</span>
+              <span>التنفيذ: {fmtDate(r.performed_date)}</span>
+            </div>
+            {r.notes && <p className="mt-1 text-xs" style={{ color: T.brownSoft }}>{r.notes}</p>}
+          </Card>
         </li>
       ))}
     </ul>
@@ -295,23 +293,41 @@ export default function EquipmentPage() {
   const equipment = data ?? [];
   const selected = equipment.find(e => e.equipment_id === selectedId) ?? null;
 
+  type EquipmentRow = Equipment & Record<string, unknown>;
+  const columns: Column<EquipmentRow>[] = [
+    { key: 'name', label: 'الاسم', render: (eq) => <span style={{ fontWeight: 600 }}>{eq.name}</span> },
+    { key: 'type', label: 'النوع', render: (eq) => <span style={{ color: T.muted }}>{TYPE_LABELS[eq.type] ?? eq.type}</span> },
+    { key: 'status', label: 'الحالة', render: (eq) => <StatusBadge status={eq.status} /> },
+    {
+      key: 'operating_hours', label: 'ساعات التشغيل',
+      render: (eq) => (
+        <span className="inline-flex items-center gap-1" style={{ color: T.brownSoft }}>
+          <Clock className="w-3 h-3" style={{ color: T.faint }} />
+          {Number(eq.operating_hours ?? 0).toLocaleString('en-US')}
+        </span>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-5 max-w-5xl mx-auto" dir="rtl">
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-100">المعدّات</h2>
-          <p className="text-sm text-slate-400">إدارة المعدّات وسجلّ الصيانة</p>
+          <h2 className="text-xl font-bold" style={{ color: T.ink }}>المعدّات</h2>
+          <p className="text-sm" style={{ color: T.muted }}>إدارة المعدّات وسجلّ الصيانة</p>
         </div>
       </div>
 
       {mutable && <RegisterForm />}
 
       {/* قائمة المعدّات */}
-      <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <Tractor className="w-4 h-4 text-emerald-400" />
-          <span className="text-sm font-semibold text-slate-200">قائمة المعدّات</span>
-        </div>
+      <Card>
+        <SectionLabel>
+          <span className="inline-flex items-center gap-2">
+            <Tractor className="w-4 h-4" style={{ color: T.green }} />
+            قائمة المعدّات
+          </span>
+        </SectionLabel>
 
         {isLoading ? (
           <LoadingState message="جارٍ تحميل المعدّات…" />
@@ -324,63 +340,31 @@ export default function EquipmentPage() {
             hint={mutable ? 'استخدم نموذج «تسجيل معدّة» أعلاه لإضافة أوّل معدّة.' : 'لم تُسجَّل أي معدّات حتى الآن.'}
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-[11px] text-slate-500 border-b" style={{ borderColor: '#334155' }}>
-                  <th className="text-right font-medium py-2 px-2">الاسم</th>
-                  <th className="text-right font-medium py-2 px-2">النوع</th>
-                  <th className="text-right font-medium py-2 px-2">الحالة</th>
-                  <th className="text-right font-medium py-2 px-2">ساعات التشغيل</th>
-                </tr>
-              </thead>
-              <tbody>
-                {equipment.map(eq => {
-                  const active = eq.equipment_id === selectedId;
-                  return (
-                    <tr
-                      key={eq.equipment_id}
-                      onClick={() => setSelectedId(active ? null : eq.equipment_id)}
-                      className="cursor-pointer transition-colors border-b"
-                      style={{
-                        borderColor: '#1e293b',
-                        background: active ? '#1e3a1e' : 'transparent',
-                      }}
-                    >
-                      <td className="py-2.5 px-2 text-slate-200 font-medium">{eq.name}</td>
-                      <td className="py-2.5 px-2 text-slate-400">{TYPE_LABELS[eq.type] ?? eq.type}</td>
-                      <td className="py-2.5 px-2"><StatusBadge status={eq.status} /></td>
-                      <td className="py-2.5 px-2 text-slate-300">
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-slate-500" />
-                          {Number(eq.operating_hours ?? 0).toLocaleString('en-US')}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <DataTable<EquipmentRow>
+            columns={columns}
+            rows={equipment as EquipmentRow[]}
+            rowKey={(eq) => eq.equipment_id}
+            onRowClick={(eq) => setSelectedId(eq.equipment_id === selectedId ? null : eq.equipment_id)}
+          />
         )}
-      </div>
+      </Card>
 
       {/* تفاصيل المعدّة المحدّدة: صيانة + سجلّ */}
       {selected && (
-        <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+        <Card>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-semibold text-slate-200">سجلّ صيانة: {selected.name}</span>
+              <History className="w-4 h-4" style={{ color: T.warn }} />
+              <span className="text-sm font-semibold" style={{ color: T.ink }}>سجلّ صيانة: {selected.name}</span>
               <StatusBadge status={selected.status} />
             </div>
             {mutable && <LogMaintenanceForm equipment={selected} />}
           </div>
-          <div className="text-[11px] text-slate-500 mb-3">
+          <div className="text-[11px] mb-3" style={{ color: T.muted }}>
             تاريخ الشراء: {fmtDate(selected.purchase_date)} · ساعات التشغيل: {Number(selected.operating_hours ?? 0).toLocaleString('en-US')}
           </div>
           <MaintenanceHistory equipment={selected} />
-        </div>
+        </Card>
       )}
     </div>
   );
