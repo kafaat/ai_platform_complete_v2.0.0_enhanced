@@ -18,12 +18,13 @@
 // القيود: عربيّ-RTL، framer-motion للانتقالات، DS atoms/StateViews/ToastContainer،
 // صدق البيانات (لا قيم ملفّقة؛ الغائب «—»). البوّابات (RBAC/العلم) تبقى في App.
 // ═══════════════════════════════════════════════════════════════
-import { Suspense, lazy, useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
   Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
 } from 'lucide-react';
 import { buildProject, downloadProject, parseProjectFile } from '../lib/projectFile';
+import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast } from '../hooks/useApi';
@@ -83,22 +84,23 @@ export default function MapHub() {
 
   const detailQ = useFieldDetail(fieldId || undefined);
 
-  // ── حالة العرض ──────────────────────────────────────────────
-  const [mode, setMode] = useState<'2d' | '3d'>('2d');
-  const [basemapId, setBasemapId] = useState<string>(BASEMAPS[0]?.id ?? 'satellite');
-  const [activeIndicator, setActiveIndicator] = useState<string | null>(null); // null = لا مؤشّر
-  const [opacity, setOpacity] = useState(0.75);
-  const [compare, setCompare] = useState(false);
-  const [leftLayer, setLeftLayer] = useState<string>(INDICATOR_LAYERS[0]?.id ?? 'ndvi');
-  const [rightLayer, setRightLayer] = useState<string>(INDICATOR_LAYERS[1]?.id ?? 'ndmi');
-  const [drawTools, setDrawTools] = useState(false);
-  const [pinMode, setPinMode] = useState(false);
-  // ── طبقات التراكب (افتراضيّاً مُطفأة؛ مستقلّة عن بعضها) ──────────
-  const [showWeather, setShowWeather] = useState(false);
-  const [showAlerts, setShowAlerts] = useState(false);
-  const [showDevices, setShowDevices] = useState(false);
+  // ── حالة العرض (تُستعاد تلقائيّاً من localStorage — «العودة لنفس البيئة») ──────
+  const savedWorkspace = useMemo(() => loadWorkspace(), []);
+  const [mode, setMode] = useState<'2d' | '3d'>(savedWorkspace?.mode === '3d' ? '3d' : '2d');
+  const [basemapId, setBasemapId] = useState<string>(savedWorkspace?.basemapId ?? (BASEMAPS[0]?.id ?? 'satellite'));
+  const [activeIndicator, setActiveIndicator] = useState<string | null>(savedWorkspace?.activeIndicator ?? null); // null = لا مؤشّر
+  const [opacity, setOpacity] = useState(savedWorkspace?.opacity ?? 0.75);
+  const [compare, setCompare] = useState(savedWorkspace?.compare ?? false);
+  const [leftLayer, setLeftLayer] = useState<string>(savedWorkspace?.leftLayer ?? (INDICATOR_LAYERS[0]?.id ?? 'ndvi'));
+  const [rightLayer, setRightLayer] = useState<string>(savedWorkspace?.rightLayer ?? (INDICATOR_LAYERS[1]?.id ?? 'ndmi'));
+  const [drawTools, setDrawTools] = useState(savedWorkspace?.drawTools ?? false);
+  const [pinMode, setPinMode] = useState(savedWorkspace?.pinMode ?? false);
+  // ── طبقات التراكب (مستقلّة؛ تُستعاد من المخزن) ──────────
+  const [showWeather, setShowWeather] = useState(savedWorkspace?.showWeather ?? false);
+  const [showAlerts, setShowAlerts] = useState(savedWorkspace?.showAlerts ?? false);
+  const [showDevices, setShowDevices] = useState(savedWorkspace?.showDevices ?? false);
   const [pins, setPins] = useState<ScoutPin[]>([]);
-  const [pinCategory, setPinCategory] = useState(PIN_CATEGORIES[0]);
+  const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
   const [detailOpen, setDetailOpen] = useState(false);
   const [showAddField, setShowAddField] = useState(false);
   const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
@@ -145,6 +147,15 @@ export default function MapHub() {
         err instanceof Error ? err.message : 'ملفّ غير صالح');
     }
   }, [setFieldId]);
+
+  // حفظ تلقائيّ لإعدادات مساحة العمل عند أيّ تغيير ⇒ تُستعاد عند الفتح التالي (بلا حفظ يدويّ).
+  useEffect(() => {
+    saveWorkspace({
+      mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
+      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory,
+    });
+  }, [mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
+      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory]);
 
   const selected = fields.find((f) => f.id === fieldId);
 
