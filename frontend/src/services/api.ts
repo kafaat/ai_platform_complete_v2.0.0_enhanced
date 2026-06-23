@@ -606,6 +606,14 @@ export interface NlGisResult {
 export const queryNlGis = (payload: NlGisQueryInput): Promise<NlGisResult> =>
   kongApi.post<NlGisResult>('/api/v1/nl-gis/query', payload).then(r => r.data);
 
+export interface NlSqlResult {
+  sql: string;
+}
+/** مساعد NL→SQL (POST /api/v1/nl-sql): يُرسِل سؤالاً عربيّاً، يعيد SELECT (للقراءة) يُنفَّذ في
+ *  DuckDB العميل. يرمي عند الخطأ (404 العلم مُطفأ · 503 المفتاح مفقود) — تلتقطه الواجهة برسالة صادقة. */
+export const generateSqlFromNl = (question: string): Promise<NlSqlResult> =>
+  kongApi.post<NlSqlResult>('/api/v1/nl-sql', { question }).then(r => r.data);
+
 // ── دبابيس الاستطلاع الدائمة (FieldView Scouting Pins) ──
 // نقطة القراءة GET /api/v1/scouting/pins?field_id=… تُرجِع المشاهدات المُثبَّتة في
 // scouting_pins (v94) معزولةً بالمستأجِر (RLS) — تكتبها نقطة الإنشاء

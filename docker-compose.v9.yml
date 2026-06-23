@@ -399,6 +399,10 @@ services:
       FEATURE_DEVICE_TWIN: ${FEATURE_DEVICE_TWIN:-0}
       FEATURE_DELTA_SYNC: ${FEATURE_DELTA_SYNC:-0}
       FEATURE_NATURAL_LANGUAGE_GIS: ${FEATURE_NATURAL_LANGUAGE_GIS:-0}
+      # مساعد NL→SQL (api/routers/nl_sql.py): المفتاح خادميّ حصراً (لا يصل المتصفّح). غيابه ⇒
+      # honest-503 رغم تفعيل العلم. النموذج افتراضيّ claude-opus-4-8 (قابل للضبط، مثلاً claude-haiku-4-5 للكلفة).
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      NL_SQL_MODEL: ${NL_SQL_MODEL:-claude-opus-4-8}
       FEATURE_DECISION_STUDIO: ${FEATURE_DECISION_STUDIO:-0}
       FEATURE_OPERATIONS_WALL: ${FEATURE_OPERATIONS_WALL:-0}
       FEATURE_REPLAY_MAP: ${FEATURE_REPLAY_MAP:-0}

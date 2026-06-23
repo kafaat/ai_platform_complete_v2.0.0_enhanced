@@ -10,6 +10,7 @@ import { LoadingState, ErrorState, EmptyState } from '../StateViews';
 import { T } from '../ds/tokens';
 import { loadHistory, pushHistory } from '../../lib/sqlHistory';
 import { toastStore } from '../../services/websocket';
+import { generateSqlFromNl } from '../../services/api';
 
 const DEFAULT_SQL = `SELECT crop, count(*) AS n, round(sum(area_ha), 1) AS ha
 FROM fields
@@ -104,6 +105,38 @@ export default function SQLEditor() {
   const [running, setRunning] = useState(false);
   const [history, setHistory] = useState<string[]>(() => loadHistory());
 
+  // مساعد الذكاء (NL→SQL): سؤال عربيّ → الخادم يستدعي Claude → يملأ المحرّر للمراجعة.
+  const [nlQuestion, setNlQuestion] = useState('');
+  const [nlLoading, setNlLoading] = useState(false);
+  const [nlError, setNlError] = useState<string | null>(null);
+  const [nlGenerated, setNlGenerated] = useState(false);
+
+  /** يولّد SQL من سؤال عربيّ عبر الخادم — يملأ المحرّر فقط (لا تشغيل تلقائيّ). أخطاء صادقة. */
+  async function generateFromNl() {
+    const q = nlQuestion.trim();
+    if (!q) return;
+    setNlLoading(true);
+    setNlError(null);
+    setNlGenerated(false);
+    try {
+      const r = await generateSqlFromNl(q);
+      setSql(r.sql);
+      setNlGenerated(true);
+    } catch (e) {
+      const ax = e as { response?: { status?: number; data?: { detail?: string } } };
+      const status = ax.response?.status;
+      const detail = ax.response?.data?.detail;
+      setNlError(
+        status === 404 ? 'المساعد الذكيّ غير مُفعَّل'
+          : status === 503 ? (detail || 'المساعد غير مُهيّأ (مفتاح مفقود)')
+          : status === 429 ? 'طلبات كثيرة — حاول بعد قليل'
+          : detail || 'تعذّر توليد الاستعلام',
+      );
+    } finally {
+      setNlLoading(false);
+    }
+  }
+
   async function run() {
     setRunning(true);
     setQueryError(null);
@@ -155,6 +188,38 @@ export default function SQLEditor() {
         {' '}<code>id, name, crop, area_ha, lat, lon</code>) — {options.length} حقل.
         <br />
         بيانات الحقول الحاليّة فقط؛ المؤشّرات (NDVI) والاستعلام المكانيّ (<code>ST_*</code>) قادمة لاحقاً.
+      </div>
+
+      {/* مساعد الذكاء: سؤال عربيّ → SQL (خادميّ؛ يملأ المحرّر للمراجعة قبل التشغيل) */}
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs" style={{ color: T.muted }}>
+          اسأل بالعربيّة (تجريبيّ) — يولّد SQL تراجعه قبل التشغيل:
+        </span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <input
+            type="text"
+            value={nlQuestion}
+            onChange={(e) => setNlQuestion(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') generateFromNl(); }}
+            placeholder="مثال: حقول القمح التي مساحتها أكبر من 50 هكتاراً"
+            aria-label="سؤال باللغة الطبيعيّة"
+            className="flex-1 min-w-[14rem] rounded-lg px-3 py-2 text-sm"
+            style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+          />
+          <button
+            type="button"
+            onClick={generateFromNl}
+            disabled={nlLoading || !nlQuestion.trim()}
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: T.green }}
+          >
+            {nlLoading ? 'جارٍ التوليد…' : '✨ ولّد SQL'}
+          </button>
+        </div>
+        {nlGenerated && (
+          <span className="text-xs" style={{ color: T.muted }}>مُولَّد بالذكاء — راجِعه ثمّ اضغط «تشغيل».</span>
+        )}
+        {nlError && <span className="text-xs" style={{ color: '#f87171' }}>{nlError}</span>}
       </div>
 
       <div className="flex flex-col gap-1.5">

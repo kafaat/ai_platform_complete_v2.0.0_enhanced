@@ -20,3 +20,4 @@ PyYAML==6.0.2  # FIX: core/crop_cards/loader.py + core/learning/calibration_loop
 nats-py==2.10.0  # OutboxWorker → NATS (relay الأحداث الموثوق)
 redis==5.3.1  # denylist (إبطال JWT) — مشترك مع خدمة auth (sahool:jti:revoked)
 pyotp==2.9.0  # TOTP (RFC 6238) — تحقّق MFA لمنح break-glass (نفس آليّة خدمة auth، قاعدة users مشتركة)
+anthropic>=0.69,<1.0  # مساعد NL→SQL (api/routers/nl_sql.py) — استدعاء Claude خادميّاً، المفتاح لا يصل المتصفّح
