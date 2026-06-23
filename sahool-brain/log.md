@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-06-23 (ن) — اكتمال ذكاء المياه: Open-Meteo + Zr + لوحة etc-dual (٣ وكلاء، #463)
+
+**رأس `main`:** `1e112a7` (#462 مُدمج). فرع مستقلّ `claude/water-intel-self-sufficient`. ثلاث مهامّ
+جاهزة مستقلّة بثلاثة وكلاء (بصمات منفصلة؛ A أعدته يدويّاً بعد فشل اتّصال وكيله؛ B/C cherry-pick نظيف):
+- **A — طقس Open-Meteo حيّ:** نقطة `etc-dual` صارت ذاتيّة-الاكتفاء — الطقس اختياريّ يُجلب من
+  Open-Meteo بإحداثيّات الحقل (`api/connectors/openmeteo`) خارج اتّصال القاعدة؛ `weather_source` مُعلَن؛
+  تعذّر ولا طقس ⇒ 503 صادق. `_resolve_weather` نقيّ + ٤ اختبارات.
+- **B — عمق جذور ديناميكيّ Zr:** `core/engines/fao56.py` (إضافيّ نقيّ) — `root_depth_m`/
+  `root_depth_for_crop`/`taw_from_root_depth` + جدول θFC/θWP (FAO-56 §8/Table 19) + ١٨ اختباراً.
+- **C — لوحة واجهة:** `EtcDualPage.tsx` («ETc المزدوج» تحت الريّ) — منتقي حقل + طقس + تجاوزات +
+  عرض ETc/Kcb/مصدر NDVI/الافتراضات. مُسجَّلة في App/routes/permissions (`PageId 'etc-dual'`).
+
+اتّساقاً مع الاستراتيجيّة: نُفِّذت الجاهزة المستقلّة فقط؛ أُبقي المُعطَّل بسببه (H5 إقرار زراعيّ · H2
+معماريّ · C5/C4/SAM2 ميدان/Flutter/GPU · LULC بيانات · CanonicalFieldState أكبر). **صدق:** كلّ القيم
+تقديريّة مُعلَنة المصدر؛ لا اختلاق طقس/NDVI. تحقّق: `pytest -m unit` 1739 (فشل MFA الـ5 سابقٌ) ·
+حارس التفكيك · ruff · typecheck/build/vitest 332.
+
+---
+
 ## 2026-06-23 (م) — الربط الاستهلاكيّ: نقطة etc-dual تحقن NDVI الحيّ (#462)
 
 **رأس `main`:** `56f2f79` (#461 مُدمج). فرع مستقلّ `claude/etc-dual-ndvi`. يُغلق حلقة #461: محرّك
