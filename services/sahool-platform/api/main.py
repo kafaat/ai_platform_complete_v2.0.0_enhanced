@@ -3232,6 +3232,7 @@ from api.routers.economics import router as economics_router  # noqa: E402
 from api.routers.edge import router as edge_router  # noqa: E402
 from api.routers.equipment import router as equipment_router  # noqa: E402
 from api.routers.escalation import router as escalation_router  # noqa: E402
+from api.routers.etc_dual import router as etc_dual_router  # noqa: E402
 from api.routers.events import router as events_router  # noqa: E402
 from api.routers.evidence import router as evidence_router  # noqa: E402
 from api.routers.evidence_map import router as evidence_map_router  # noqa: E402
@@ -3415,6 +3416,7 @@ app.include_router(scouting_router)
 app.include_router(prescriptions_router)
 app.include_router(water_ledger_router)
 app.include_router(water_twin_router)
+app.include_router(etc_dual_router)
 app.include_router(trials_router)
 app.include_router(water_balance_router)
 app.include_router(nutrients_router)

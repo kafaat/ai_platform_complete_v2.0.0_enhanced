@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-06-23 (م) — الربط الاستهلاكيّ: نقطة etc-dual تحقن NDVI الحيّ (#462)
+
+**رأس `main`:** `56f2f79` (#461 مُدمج). فرع مستقلّ `claude/etc-dual-ndvi`. يُغلق حلقة #461: محرّك
+`compute_etc_dual` كان كامناً (غير مكشوف)؛ الآن نقطة field-scoped تستهلكه بـNDVI حيّ:
+- **`api/routers/etc_dual.py`:** `POST /api/v1/fields/{id}/etc-dual` (FIELD_VIEW، RLS) — يقرأ الحقل
+  (محصول/تاريخ زراعة) + أحدث NDVI/ملوحة مخزَّنة، يبني `WeatherDay` (الطقس يمرّره المتّصِل)، ويستدعي
+  المحرّك. NDVI من `gather_field_freshness` (`imagery_automation_fields.last_ndvi_mean`) — **تجاوز >
+  مخزَّن > none** (تدرّج صادق، مصدر مُعلَن). بطاقة/عمر مفقودان ⇒ 422؛ خارج المستأجِر ⇒ 404؛ DB ⇒ 503.
+- **DRY:** استُخرِج `crop_kc_profile(crop_id)` في `core/season_phenology.py` (يُستدعى من `stage_kc`
+  القائمة ومن النقطة) — بلا تغيير سلوك. أُعيد استخدام `resolve_crop_id` + `gather_field_freshness`.
+- **صدق:** لا اختلاق NDVI؛ الطقس صريح (لا اعتماد شبكة جديد)؛ مصدر كلّ قيمة في الردّ (`ndvi.source`،
+  `soil_ece_source`). **متبقٍّ موثَّق:** طقس Open-Meteo حيّ · NDVI من COG طازج · لوحة واجهة.
+
+تحقّق: ٤ اختبارات جديدة (`tests_v9/test_etc_dual_router.py`) + حارس التفكيك · `pytest -m unit` 1717
+ناجح (فشل MFA الـ5 سابقٌ) · ١٧+٦ انحدار dual-Kc/NDVI أخضر · ruff/format.
+
+---
+
 ## 2026-06-23 (ل) — Kc ديناميكيّ من NDVI (FAO-56 §9.4، #461)
 
 **رأس `main`:** `5ed73c0` (#460 مُدمج). فرع مستقلّ `claude/dynamic-kc-ndvi`. يربط محرّك المياه
