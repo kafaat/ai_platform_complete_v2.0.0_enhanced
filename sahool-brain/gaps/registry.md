@@ -13,7 +13,7 @@
 | C1/C2 | التوصية تُولَّد + تُخزَّن وتُدقَّق وتُربَط بالشرح (جدول v77 + `RECOMMENDATION_CREATED` + `GET /{rec_id}`) | platform/التوصيات | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:19` (#350)؛ أصل: `:116-117` | fixed (يحتاج تأكيداً حيّاً) |
 | C5 | NDVI الحقيقيّ معلوماتيّ لا يُغيّر صلاحيّة القرار | platform/الحالة القانونيّة | `api/field_state_projection.py:206-215`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:120` | open (معماريّ — تغيير العتبات يحتاج تحقّقاً ميدانيّاً) |
 | H2 | اشتراكات NATS يتيمة (مُشترَك بها بلا ناشر) | notification/الأحداث | `agents/notification/agent.py:334-339`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:128` | open |
-| H4 | ET0 Hargreaves مُكرَّر بقيم Ra متعارضة — وُحِّد في `core/engines/et0.py` | platform/الأغرونوميا الكمّيّة | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:23` (#351)؛ أصل: `:130` | fixed (يحتاج تأكيداً حيّاً) |
+| H4 | ET0 Hargreaves مُكرَّر بقيم Ra متعارضة — وُحِّد في `core/engines/et0.py` | platform/الأغرونوميا الكمّيّة | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:23` (#351/#356)؛ تأكيد #457 | ✅ fixed + مؤكَّد باختبارات انحدار (#457؛ متبقٍّ موثَّق: إعادتان عبر-خدمات weather_server/wofost) |
 | H5 | احتياج الريّ بصيغتين (مع/بلا ملوحة) | platform/الريّ | `core/engines/fao56.py:249` مقابل `api/water_balance.py:183`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:38,131` | open (يحتاج إقراراً زراعيّاً) |
 | H6 | عتبات الملوحة/pH/الحرارة مُكرَّرة — وُحِّدت في `core/thresholds.py` | platform/العتبات | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:21` (#352)؛ أصل: `:132` | fixed (يحتاج تأكيداً حيّاً) |
 | C4/M1 | الموبايل: بنية push (FCM/APNs) + عميل WebSocket في Flutter | mobile | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:40,119,150` | open (يتطلّب بيئة Flutter) |

@@ -176,6 +176,9 @@ class ProcessRequest(BaseModel):
     # provenance (#7): تثبيت المصدر لإعادة الإنتاج
     scene_id: str | None = None  # item_id من STAC search
     capture_datetime: str | None = None  # وقت التقاط القمر
+    # مؤشّر محسوب مسبقاً (CDSE Process API): الراستر نطاق-واحد جاهز للمؤشّر — لا band math.
+    precomputed_index: bool = False
+    provider: str | None = None  # مصدر الصورة (مثل "cdse" / "element84") للأصل (provenance)
 
 
 class BatchProcessRequest(BaseModel):
@@ -1242,7 +1245,11 @@ def _run_processing(job_id: str, req: ProcessRequest):
         meta: dict = {}
         if _has_raster_libs and req.raster_url:
             # المعالجة الفعليّة (تتمّ في بيئة التشغيل مع rasterio)
-            stats, bounds, res_m, meta = _process_pixels(req, layer_id)
+            if req.precomputed_index:
+                # CDSE: المؤشّر محسوب خادميّاً — اقرأه نطاقاً واحداً جاهزاً.
+                stats, bounds, res_m, meta = _process_precomputed_pixels(req, layer_id)
+            else:
+                stats, bounds, res_m, meta = _process_pixels(req, layer_id)
         else:
             # بنية بلا حساب فعلي (البيئة بلا rasterio) — ترجع هيكلاً صحيحاً
             stats = {
@@ -1290,6 +1297,7 @@ def _run_processing(job_id: str, req: ProcessRequest):
             "resolution_m": res_m,
             "cog_url": cog_url,  # (٤) كي يجده tilejson + شبكة المؤشّر
             "acquisition_date": req.capture_datetime,
+            "provider": req.provider,  # مصدر الصورة (cdse/element84) — شفافيّة الأصل
             "created_at": now,
             "provenance": provenance,
         }
@@ -1379,6 +1387,64 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
     job["batch_failed"] = failed
     _jobs.set(job_id, job)  # تثبيت نتيجة الدفعة (Redis/ذاكرة)
     logger.info("batch %s: %d نجح، %d فشل", job_id, len(results), len(failed))
+
+
+def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
+    """مسار CDSE: المؤشّر محسوب خادميّاً (evalscript) فالراستر نطاق-واحد جاهز.
+
+    يقرأ النطاق الأوّل مباشرةً (لا band math، لا تحويل انعكاس)، يعيد إسقاط الحدود إلى
+    EPSG:4326، يحسب الإحصاءات، ويكتب COG محسّناً (نفس مسار التخزين/الأصل). يُرجِع
+    ``(stats, bounds_4326, resolution_m, meta)`` بنفس تعاقُد :func:`_process_pixels`.
+    صدق: لا قناع SCL (CDSE يقنّع الغيوم بـdataMask/maxCloudCoverage خادميّاً)؛ ``NaN`` = لا بيانات.
+    """
+    import numpy as np
+    import rasterio
+    from rasterio.warp import transform_bounds
+
+    with rasterio.open(_safe_raster_source(req.raster_url)) as src:
+        res_m = abs(src.res[0])
+        src_crs = src.crs
+        if src_crs is not None:
+            bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
+        else:
+            bounds = list(src.bounds)
+        arr = src.read(1).astype("float32")
+        if src.nodata is not None:
+            arr = np.where(arr == src.nodata, np.nan, arr)
+        transform = src.transform
+
+    valid = np.isfinite(arr)
+    vals = arr[valid]
+    stats = {
+        "min": float(np.min(vals)) if vals.size else 0.0,
+        "max": float(np.max(vals)) if vals.size else 0.0,
+        "mean": float(np.mean(vals)) if vals.size else 0.0,
+        "std": float(np.std(vals)) if vals.size else 0.0,
+        "valid_pixels": int(valid.sum()),
+        "nodata_pixels": int((~valid).sum()),
+    }
+    cog_url = None
+    cog_crs = str(src_crs or "EPSG:4326")
+    try:
+        import cog_writer
+
+        cog_uid = uuid.uuid4().hex[:8]
+        cog_path = os.path.join(UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
+        cog_info = cog_writer.write_cog(arr, cog_path, transform, crs=cog_crs, nodata=float("nan"))
+        stats["cog"] = cog_info
+        if cog_info.get("written"):
+            cog_url = object_store.upload_cog(
+                cog_path, f"{req.field_id or 'nofield'}/{req.indicator.value}_{cog_uid}.tif"
+            )
+    except Exception as _e:  # noqa: BLE001 — حفظ COG اختياري لا يُفشل الحساب
+        stats["cog"] = {"written": False, "reason": str(_e)}
+    meta = {
+        "cog_url": cog_url,
+        "cog_crs": cog_crs,
+        "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+        "nodata": float("nan"),
+    }
+    return stats, bounds, res_m, meta
 
 
 def _process_pixels(req: ProcessRequest, layer_id: str):
@@ -1746,6 +1812,149 @@ async def process_batch(
         "status": JobStatus.pending,
         "indicators": [i.value for i in req.indicators],
         "note": "استعلم /jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
+    }
+
+
+# ─── CDSE (Copernicus Data Space) — المزوّد الافتراضيّ + fallback إلى Element84 ──
+# CDSE أقوى: يحسب المؤشّر خادميّاً (evalscript على نطاقات Sentinel-2 L2A الكاملة، فسيفساء
+# أقلّ غيوماً) فيعيد GeoTIFF نطاق-واحد جاهزاً → مسار precomputed_index (لا band math).
+# المنسّق (api/imagery_automation) يجرّبه أوّلاً ثمّ يسقط إلى Element84 عند تعذّره. صدق:
+# بلا اعتمادات ⇒ available=false ⇒ يسقط المنسّق بصمت (لا كسر، لا تلفيق).
+class ProcessCdseRequest(BaseModel):
+    """مدخل معالجة CDSE: bbox + هندسة + مؤشّرات + نافذة زمنيّة."""
+
+    tenant_id: str | None = None
+    indicators: list[str] = ["ndvi"]
+    bbox: list[float]  # [west, south, east, north] بـEPSG:4326
+    geometry: dict | None = None  # Polygon GeoJSON (قصّ على الحقل)
+    lookback_days: int = 30
+    max_cloud_pct: float = 40.0
+
+
+def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
+    """يحسب مؤشّرات CDSE (evalscript خادميّ) لكلّ مؤشّر ثمّ يسجّلها كطبقات (precomputed).
+
+    لكلّ مؤشّر: Process API → GeoTIFF → ملفّ → ``_run_processing`` بمسار precomputed
+    (قراءة نطاق-واحد + COG + persist + provenance). عزل لكلّ مؤشّر (فشل واحد لا يُسقط الباقي).
+    """
+    import cdse_client
+
+    job = _jobs.get(job_id) or {"job_id": job_id}
+    job["status"] = JobStatus.processing
+    job["started_at"] = datetime.now(UTC).isoformat()
+    _jobs.set(job_id, job)
+
+    dt_to = datetime.now(UTC)
+    dt_from = dt_to - timedelta(days=max(int(req.lookback_days), 1))
+    time_from = dt_from.strftime("%Y-%m-%dT00:00:00Z")
+    time_to = dt_to.strftime("%Y-%m-%dT23:59:59Z")
+
+    client = cdse_client.get_client()
+    supported = cdse_client.supported_indices()
+    results: dict[str, str] = {}
+    failed: dict[str, str] = {}
+    total = max(len(req.indicators), 1)
+    for i, ind in enumerate(req.indicators):
+        if ind not in supported:
+            failed[ind] = "unsupported_index"
+            continue
+        try:
+            tiff = client.process_index(
+                index=ind,
+                bbox=req.bbox,
+                time_from=time_from,
+                time_to=time_to,
+                geometry=req.geometry,
+                max_cloud_pct=req.max_cloud_pct,
+            )
+            if not tiff:
+                failed[ind] = "empty_response"
+                continue
+            tif_path = os.path.join(UPLOAD_DIR, f"cdse_{ind}_{uuid.uuid4().hex[:8]}.tif")
+            with open(tif_path, "wb") as fh:
+                fh.write(tiff)
+            preq = ProcessRequest(
+                tenant_id=req.tenant_id or "",
+                field_id=field_id,
+                raster_url=tif_path,
+                indicator=IndicatorKind(ind),
+                source_format=SourceFormat.sentinel2_l2a,
+                bands=BandMapping(),
+                precomputed_index=True,
+                provider="cdse",
+                scene_id=f"cdse:{ind}",
+                capture_datetime=time_to,
+                clip_polygon_geojson=req.geometry,
+                apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (dataMask + maxCloudCoverage)
+            )
+            sub_job_id = f"{job_id}_{ind}"
+            _run_processing(sub_job_id, preq)
+            sj = _jobs.get(sub_job_id) or {}
+            if sj.get("status") == JobStatus.completed:
+                results[ind] = (sj.get("result") or {}).get("layer_id") or sub_job_id
+            else:
+                failed[ind] = sj.get("error_message", "unknown")
+        except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر (فشل CDSE → يُسجَّل)
+            failed[ind] = type(e).__name__
+        job["progress_pct"] = int((i + 1) / total * 100)
+        _jobs.set(job_id, job)
+
+    job["status"] = JobStatus.completed if results else JobStatus.failed
+    job["finished_at"] = datetime.now(UTC).isoformat()
+    job["provider"] = "cdse"
+    job["cdse_results"] = results
+    job["cdse_failed"] = failed
+    _jobs.set(job_id, job)
+    logger.info("cdse %s: %d نجح، %d فشل", job_id, len(results), len(failed))
+
+
+@app.post("/v1/fields/{field_id}/process-cdse")
+async def process_cdse(
+    field_id: str,
+    req: ProcessCdseRequest,
+    background_tasks: BackgroundTasks,
+    x_agent_token: str = Header(None),
+):
+    """يحسب مؤشّرات الحقل عبر CDSE (المزوّد الافتراضيّ الأقوى). خلفيّة، يُرجِع job_id.
+
+    صدق: بلا اعتمادات CDSE (``CDSE_CLIENT_ID``/``SECRET`` أو ``CDSE_ENABLED=false``) ⇒
+    ``available=false`` (200، لا خطأ) كي يسقط المنسّق إلى Element84 بصمت — لا توقّف ولا تلفيق.
+    """
+    _require_service_token(x_agent_token)
+    import cdse_client
+
+    if not cdse_client.is_configured():
+        return {
+            "provider": "cdse",
+            "available": False,
+            "queued": False,
+            "note_ar": "CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET) — يسقط المنسّق إلى Element84.",
+        }
+    if not req.bbox or len(req.bbox) != 4:
+        raise HTTPException(400, "bbox مطلوب [west,south,east,north] (EPSG:4326).")
+    if not req.indicators:
+        raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
+    job_id = f"cdse_{uuid.uuid4().hex[:12]}"
+    _jobs.set(
+        job_id,
+        {
+            "job_id": job_id,
+            "status": JobStatus.pending,
+            "progress_pct": 0,
+            "created_at": datetime.now(UTC).isoformat(),
+            "indicators": list(req.indicators),
+            "provider": "cdse",
+        },
+    )
+    background_tasks.add_task(_run_cdse_processing, job_id, field_id, req)
+    return {
+        "provider": "cdse",
+        "available": True,
+        "queued": True,
+        "job_id": job_id,
+        "status": JobStatus.pending,
+        "indicators": list(req.indicators),
+        "note": "معالجة CDSE خلفيّة — استعلم /jobs/{job_id} (cdse_results + cdse_failed).",
     }
 
 

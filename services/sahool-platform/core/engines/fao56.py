@@ -152,6 +152,242 @@ def salinity_stress_ks(profile: CropKcProfile, soil_ece: float) -> float:
     return max(0.0, 1.0 - loss_pct / 100.0)
 
 
+# ─────────────────────────────────────────────────────────────────────
+# معامل المحصول المزدوج (Dual Crop Coefficient) — FAO-56 الفصل 7
+# ─────────────────────────────────────────────────────────────────────
+# المسار المفرد أعلاه (Kc واحد) يدمج النتح + التبخّر السطحيّ في معامل واحد.
+# في الظروف الجافّة/التربة العارية/المراحل المبكّرة (وهي القاعدة في اليمن)،
+# يكون التبخّر السطحيّ مكوّناً رئيساً لا ثانويّاً. النهج المزدوج يفصلهما:
+#
+#     ETc = (Kcb · Ks + Ke) · ET0                       (FAO-56 Eq. 80)
+#
+#   Kcb = معامل المحصول الأساسيّ (النتح فقط، تربة سطحيّة جافّة)
+#   Ke  = معامل تبخّر التربة (يرتفع بعد الرّيّ/المطر، ينهار مع جفاف السطح)
+#   Ks  = إجهاد مائيّ/ملحيّ يُخفّض الأساس (لا يُخفّض Ke — التبخّر فيزيائيّ)
+#
+# هذا المسار **إضافيّ واختياريّ**: المسار المفرد (compute_irrigation) يبقى
+# الافتراضيّ وغير متغيّر. استخدم compute_etc_dual عند توفّر بيانات التربة السطحيّة.
+#
+# مراجع المعادلات (Allen et al. 1998, Ch.7):
+#   Eq. 71  Ke = min( Kr·(Kc_max − Kcb) , few·Kc_max )
+#   Eq. 72  Kc_max = max( {1.2 + [0.04(u2−2) − 0.004(RHmin−45)]·(h/3)^0.3} , Kcb+0.05 )
+#   Eq. 73  TEW = 1000·(θFC − 0.5·θWP)·Ze
+#   Eq. 74  Kr = (TEW − De) / (TEW − REW)   لـDe>REW ، وإلّا Kr=1
+#   Eq. 75  few = min(1−fc , fw)
+#   Eq. 80  ETc = (Kcb·Ks + Ke)·ET0
+
+
+# جداول REW/TEW الافتراضيّة حسب القوام (FAO-56 Table 19, Ze=0.10–0.15م).
+# REW = الماء المتبخّر بسهولة (المرحلة الأولى)، TEW = إجماليّ الماء المتبخّر.
+# قيم تقريبيّة لعمق تبخّر Ze=0.10م — تُستخدم حين تغيب قياسات التربة السطحيّة.
+# (mm) — مصدر: FAO-56 Table 19 / مثال الفصل 7.
+_TEW_REW_BY_TEXTURE: dict[str, tuple[float, float]] = {
+    # texture: (TEW_mm, REW_mm)  لعمق Ze=0.10م
+    "sand": (8.0, 3.0),
+    "sandy": (8.0, 3.0),
+    "loamy sand": (10.0, 4.0),
+    "sandy loam": (12.0, 6.0),
+    "loam": (16.0, 8.0),
+    "silt loam": (20.0, 9.0),
+    "silt": (22.0, 10.0),
+    "clay loam": (20.0, 10.0),
+    "silty clay": (21.0, 11.0),
+    "clay": (18.0, 12.0),
+    "mixed": (16.0, 8.0),
+}
+
+
+def tew_rew_for_texture(texture: str) -> tuple[float, float]:
+    """يُرجِع (TEW, REW) بالملّيمتر لقوام تربة، من جدول FAO-56 الافتراضيّ.
+
+    ⚠️ افتراض صريح: حين تغيب قياسات التربة السطحيّة (θFC/θWP/Ze)، نستخدم قيم
+    جدول FAO-56 Table 19 لعمق تبخّر Ze=0.10م. هذه تقديرات نوعيّة لا قياسات
+    موقعيّة — تُحدَّد دقّتها بدقّة تصنيف القوام. القوام المجهول ⇐ "loam".
+    """
+    return _TEW_REW_BY_TEXTURE.get(texture.strip().lower(), _TEW_REW_BY_TEXTURE["loam"])
+
+
+def kc_max(kcb: float, wind_speed_m_s: float, rh_min_pct: float, crop_height_m: float) -> float:
+    """الحدّ الأعلى لمعامل المحصول بعد الرّيّ/المطر (FAO-56 Eq. 72).
+
+    Kc_max = max( 1.2 + [0.04(u2−2) − 0.004(RHmin−45)]·(h/3)^0.3 , Kcb+0.05 )
+
+    يُمثّل الطاقة المتاحة للتبخّر+النتح من سطح مبلّل. u2 = سرعة الرياح عند 2م،
+    RHmin = أدنى رطوبة نسبيّة (%)، h = ارتفاع المحصول (م). القيم تُقصّ للنطاق
+    الموصى به في FAO-56 (1.0 ≤ u2 ≤ 6، 20% ≤ RHmin ≤ 80%).
+    """
+    u2 = min(6.0, max(1.0, wind_speed_m_s))
+    rh = min(80.0, max(20.0, rh_min_pct))
+    h = max(0.05, crop_height_m)
+    adj = 1.2 + (0.04 * (u2 - 2.0) - 0.004 * (rh - 45.0)) * (h / 3.0) ** 0.3
+    return max(adj, kcb + 0.05)
+
+
+def evaporation_reduction_kr(de_mm: float, tew_mm: float, rew_mm: float) -> float:
+    """معامل تخفيض التبخّر Kr (FAO-56 Eq. 74) من موازنة ماء الطبقة السطحيّة.
+
+    المرحلة 1 (طاقة-محدودة): De ≤ REW ⇒ Kr = 1 (تبخّر بالحدّ الأعلى).
+    المرحلة 2 (انتشار-محدودة): De > REW ⇒ Kr = (TEW − De)/(TEW − REW).
+    De = استنزاف الطبقة السطحيّة (mm)، يرتفع بالتبخّر وينخفض بالرّيّ/المطر.
+    يُرجِع Kr في [0, 1].
+    """
+    if de_mm <= rew_mm:
+        return 1.0
+    denom = tew_mm - rew_mm
+    if denom <= 0:
+        return 0.0
+    return max(0.0, min(1.0, (tew_mm - de_mm) / denom))
+
+
+def few_exposed_wetted(fc: float, fw: float) -> float:
+    """الكسر المعرّض-والمبلّل من سطح التربة few (FAO-56 Eq. 75).
+
+    few = min(1 − fc , fw)
+    fc = كسر الغطاء النباتيّ (الظلّ)، fw = كسر السطح المبلّل بالرّيّ.
+    رّيّ بالتنقيط ⇒ fw صغير (~0.3)، رّيّ سطحيّ/مطر ⇒ fw≈1.
+    التبخّر يحدث فقط من الجزء المكشوف وغير المظلَّل والمبلّل.
+    """
+    return max(0.0, min(1.0 - max(0.0, min(1.0, fc)), max(0.0, min(1.0, fw))))
+
+
+def kcb_for_age(
+    profile: CropKcProfile, days_after_planting: int, kcb_offset: float = 0.05
+) -> tuple[float, GrowthStage]:
+    """معامل المحصول الأساسيّ Kcb (النتح فقط) من منحنى Kc القائم.
+
+    ⚠️ افتراض صريح: بطاقات SAHOOL تحمل Kc واحداً (مدمج) لا Kcb منفصلاً. نشتقّ
+    Kcb بإزاحة ثابتة أسفل Kc (FAO-56: Kcb ≈ Kc − [0.05..0.10] في المراحل
+    النشطة، إذ الفارق هو متوسّط مكوّن التبخّر السطحيّ). الإزاحة الافتراضيّة 0.05.
+    هذا تقريب: القيمة الدقيقة تتطلّب بطاقة Kcb مُعايَرة (Table 17) غير متوفّرة.
+    Kcb لا ينزل دون 0.15 (تربة عارية ⇒ نتح شبه معدوم في المرحلة الأوليّة).
+    """
+    kc, stage = kc_for_age(profile, days_after_planting)
+    kcb = max(0.15, kc - kcb_offset)
+    return kcb, stage
+
+
+@dataclass
+class DualKcResult:
+    """نتيجة الحساب المزدوج لمعامل المحصول (FAO-56 Ch.7)."""
+
+    et0_mm: float
+    kcb: float
+    ks: float
+    kc_max: float
+    kr: float
+    few: float
+    ke: float
+    kc_dual: float  # Kcb·Ks + Ke (المعامل الفعّال المركّب)
+    etc_dual_mm: float  # (Kcb·Ks + Ke)·ET0
+    etc_single_mm: float  # Kc·Ks·ET0 (للمقارنة الشفّافة)
+    stage: str
+    assumptions: list[str] = field(default_factory=list)
+
+
+def compute_etc_dual(
+    weather: WeatherDay,
+    crop: CropKcProfile,
+    days_after_planting: int,
+    *,
+    soil_ece: float = 0.0,
+    de_mm: float = 0.0,
+    tew_mm: float | None = None,
+    rew_mm: float | None = None,
+    texture: str = "loam",
+    fc: float | None = None,
+    fw: float = 1.0,
+    rh_min_pct: float | None = None,
+    crop_height_m: float = 0.5,
+    kcb_offset: float = 0.05,
+) -> DualKcResult:
+    """يحسب ETc بنهج المعامل المزدوج FAO-56 (Eq. 80) — إضافيّ واختياريّ.
+
+        ETc = (Kcb · Ks + Ke) · ET0
+
+    Ke يفصل التبخّر السطحيّ ويرفع ETc على التربة العارية/المبكّرة؛ Ks يُخفّض
+    الأساس تحت الإجهاد الملحيّ/المائيّ. هذا المسار **لا يكسر** المسار المفرد
+    (compute_irrigation) الذي يبقى الافتراضيّ.
+
+    المُدخلات (مع افتراضات صريحة حين تغيب):
+      de_mm     استنزاف الطبقة السطحيّة (mm). الافتراضيّ 0 = سطح مبلّل حديثاً
+                (Ke أعلى ما يكون). مرّر De الفعليّ من موازنة الماء السطحيّ.
+      tew/rew   إن غابا ⇒ من جدول FAO-56 حسب `texture` (tew_rew_for_texture).
+      fc        كسر الغطاء النباتيّ. إن غاب ⇒ يُقدَّر من (Kcb−Kc_min)/(Kc_max−Kc_min)
+                (FAO-56 Eq. 76 المبسّطة) — تقدير لا قياس.
+      fw        كسر السطح المبلّل (1=رّيّ سطحيّ/مطر، ~0.3=تنقيط).
+      rh_min    إن غاب ⇒ يُقرَّب من الرطوبة المتوسّطة في WeatherDay (افتراض).
+      crop_height_m, kcb_offset  بارامترات FAO-56 افتراضيّة موثّقة.
+
+    ⚠️ القيود (صدق منهجيّ): Kcb مُشتقّ بإزاحة من Kc المدمج لا من بطاقة Kcb
+    مُعايَرة؛ موازنة ماء الطبقة السطحيّة (De) تُمرَّر من الخارج ولا تُحتسب هنا
+    تراكميّاً؛ TEW/REW افتراضيّة جدوليّة ما لم تُمرَّر صراحةً. النتيجة سليمة
+    اتّجاهيّاً وكمّياً ضمن تساهُل FAO-56، لكنّها ليست قياساً موقعيّاً.
+    """
+    assumptions: list[str] = []
+
+    # 1. ET0 — المتغيّر (طقس)
+    et0 = penman_monteith_et0(weather)
+
+    # 2. Kcb — الأساس (نتح) المُشتقّ من المنحنى القائم
+    kcb, stage = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
+    assumptions.append(f"Kcb مُشتقّ بإزاحة {kcb_offset:.2f} أسفل Kc المدمج (لا بطاقة Kcb مُعايَرة)")
+
+    # 3. Ks — إجهاد ملحيّ (يُعاد استخدام منطق Maas-Hoffman القائم)
+    ks = salinity_stress_ks(crop, soil_ece)
+
+    # 4. TEW/REW — قياسيّة أو من الجدول حسب القوام
+    if tew_mm is None or rew_mm is None:
+        t_def, r_def = tew_rew_for_texture(texture)
+        tew_mm = t_def if tew_mm is None else tew_mm
+        rew_mm = r_def if rew_mm is None else rew_mm
+        assumptions.append(
+            f"TEW/REW من جدول FAO-56 للقوام «{texture}» (TEW={tew_mm:.0f}, REW={rew_mm:.0f} mm)"
+        )
+
+    # 5. RHmin — افتراض من الرطوبة المتوسّطة إن غاب
+    if rh_min_pct is None:
+        rh_min_pct = weather.humidity_pct
+        assumptions.append("RHmin غير متوفّر ⇒ استُخدمت الرطوبة المتوسّطة (افتراض)")
+
+    # 6. Kc_max — الحدّ الأعلى (Eq. 72)
+    kcmax = kc_max(kcb, weather.wind_speed_m_s, rh_min_pct, crop_height_m)
+
+    # 7. fc — كسر الغطاء (Eq. 76 المبسّطة) إن غاب
+    if fc is None:
+        kc_min = 0.15  # تربة عارية جافّة (FAO-56)
+        denom = max(0.01, kcmax - kc_min)
+        fc = max(0.0, min(0.99, (kcb - kc_min) / denom))
+        assumptions.append("fc مُقدَّر من (Kcb−Kc_min)/(Kc_max−Kc_min) (Eq. 76) — تقدير")
+
+    # 8. Kr و few و Ke
+    kr = evaporation_reduction_kr(de_mm, tew_mm, rew_mm)
+    few = few_exposed_wetted(fc, fw)
+    # Eq. 71: Ke محدود بكلٍّ من الطاقة المتبقّية والكسر المبلّل المكشوف
+    ke = min(kr * (kcmax - kcb), few * kcmax)
+    ke = max(0.0, ke)
+
+    # 9. ETc المزدوج (Eq. 80) + المفرد للمقارنة الشفّافة
+    kc_dual = kcb * ks + ke
+    etc_dual = kc_dual * et0
+    kc_single, _ = kc_for_age(crop, days_after_planting)
+    etc_single = kc_single * ks * et0
+
+    return DualKcResult(
+        et0_mm=round(et0, 2),
+        kcb=round(kcb, 3),
+        ks=round(ks, 3),
+        kc_max=round(kcmax, 3),
+        kr=round(kr, 3),
+        few=round(few, 3),
+        ke=round(ke, 3),
+        kc_dual=round(kc_dual, 3),
+        etc_dual_mm=round(etc_dual, 2),
+        etc_single_mm=round(etc_single, 2),
+        stage=stage.value,
+        assumptions=assumptions,
+    )
+
+
 # ── Leaching requirement (FAO-56 Ch.8 Eq.82) ─────────────────────────
 def leaching_requirement(water_ec: float, crop_threshold_ece: float) -> float:
     """Fraction of extra water needed to flush salts.

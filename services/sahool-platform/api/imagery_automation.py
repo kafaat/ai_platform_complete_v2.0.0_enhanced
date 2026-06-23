@@ -187,6 +187,9 @@ class ImageryAutomation:
             "tracked_fields": len(self._fields),
             "raster_service_url": RASTER_SERVICE_URL,
             "auto_indicators": DEFAULT_INDICATORS,
+            # المزوّد الافتراضيّ CDSE (إن هُيّئ في raster-service) مع fallback إلى Element84.
+            "default_provider": "cdse",
+            "fallback_provider": "element84",
             "fields": [f.to_dict() for f in self._fields.values()],
         }
 
@@ -236,6 +239,66 @@ class ImageryAutomation:
         }
         return {k: v for k, v in out.items() if v}
 
+    async def _try_cdse(
+        self,
+        client,
+        *,
+        field_id: str,
+        tenant_id: str,
+        bbox: list[float],
+        geometry: dict | None,
+        inds: list[str],
+        lookback_days: int,
+        max_cloud_pct: float,
+        reason: str,
+        tf,
+    ) -> dict | None:
+        """Try CDSE (the default, stronger provider) first; return None to fall back to Element84.
+
+        Honest semantics: CDSE not configured (``available:false``) or any transport/processing
+        error ⇒ return None ⇒ caller silently uses the existing Element84 STAC path. We only
+        return a result dict when CDSE actually queued processing — never fabricate data.
+        """
+        try:
+            resp = await client.post(
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/process-cdse",
+                json={
+                    "tenant_id": tenant_id,
+                    "indicators": inds,
+                    "bbox": bbox,
+                    "geometry": geometry,
+                    "lookback_days": lookback_days,
+                    "max_cloud_pct": max_cloud_pct,
+                },
+                headers=_RASTER_HEADERS,
+            )
+            resp.raise_for_status()
+            body = resp.json() or {}
+        except Exception:  # noqa: BLE001 — CDSE متعذّر ⇒ fallback صامت إلى Element84
+            return None
+        # CDSE غير مُهيّأ (لا اعتمادات) ⇒ المسار القائم (Element84) دون ضجيج.
+        if not body.get("available"):
+            return None
+        if not body.get("queued"):
+            return None
+        tf.new_images_found += 1
+        tf.last_indicator_job = body.get("job_id")
+        await self._persist_field(tf)
+        return {
+            "status": "queued",
+            "queued": True,
+            "provider": "cdse",
+            "field_id": field_id,
+            "reason": reason,
+            "job_id": body.get("job_id"),
+            "indicators": body.get("indicators", inds),
+            "real_data": False,
+            "note_ar": (
+                "أُطلقت معالجة CDSE (Sentinel-2 الافتراضيّ الأقوى). real_data=true فقط بعد "
+                "اكتمال COG وقراءته. fallback إلى Element84 يحدث تلقائيّاً عند تعذّر CDSE."
+            ),
+        }
+
     async def trigger_field_imagery_processing(
         self,
         *,
@@ -269,6 +332,23 @@ class ImageryAutomation:
         tf = self._fields[field_id]
 
         async with httpx.AsyncClient(timeout=30.0) as client:
+            # ── المزوّد الافتراضيّ: CDSE (أقوى) ───────────────────────────────
+            # نجرّب CDSE أوّلاً (يحسب المؤشّر خادميّاً على نطاقات Sentinel-2 الكاملة).
+            # غير مُهيّأ / متعذّر ⇒ None ⇒ نسقط بصمت إلى Element84 أدناه (لا كسر، لا تلفيق).
+            cdse = await self._try_cdse(
+                client,
+                field_id=field_id,
+                tenant_id=tenant_id,
+                bbox=stac_bbox,
+                geometry=geometry,
+                inds=inds,
+                lookback_days=lookback_days,
+                max_cloud_pct=max_cloud_pct,
+                reason=reason,
+                tf=tf,
+            )
+            if cdse is not None:
+                return cdse
             try:
                 best_resp = await client.get(
                     f"{RASTER_SERVICE_URL}/imagery/best",

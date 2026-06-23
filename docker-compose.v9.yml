@@ -692,6 +692,14 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      # CDSE (Copernicus Data Space) — المزوّد الافتراضيّ الأقوى (Sentinel Hub Process API،
+      # حساب المؤشّر خادميّاً). غيابه ⇒ fallback تلقائيّ إلى Element84 (لا كسر). ⚠️ السرّ
+      # يُمرَّر بالمرجع ${CDSE_CLIENT_SECRET} من .env المحلّيّ (غير المتتبَّع) — لا قيمة حرفيّة هنا.
+      CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
+      CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
+      CDSE_ENABLED: ${CDSE_ENABLED:-true}
+      SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
+      SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
       # خادم بلاطات ديناميكي (TiTiler) للـCOG — سدّ فجوة P0. عند ضبطه
       # تُخدَم البلاطات ديناميكيّاً من COG؛ وإلّا تبقى البلاطات الثابتة fallback.
       TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
