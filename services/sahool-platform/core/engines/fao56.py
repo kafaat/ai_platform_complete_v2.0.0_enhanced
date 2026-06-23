@@ -320,6 +320,133 @@ def kcb_from_ndvi(
     return kcb_full * kd, fc
 
 
+# ─────────────────────────────────────────────────────────────────────
+# عمق الجذور الديناميكيّ Zr ونطاق الماء المتاح TAW — FAO-56 §8 (نموّ الجذور)
+# ─────────────────────────────────────────────────────────────────────
+# عمق منطقة الجذور Zr ليس ثابتاً: ينمو من قيمة ابتدائيّة (Zr_min، عمق البذرة/
+# الشتلة) إلى أقصى عمق فعّال (Zr_max) مع تطوّر المحصول. FAO-56 (الفصل ٨، حول
+# Eq. 82–84) يَنمذِج هذا تقريبيّاً بنموّ **خطّيّ** بدلالة الأيّام بعد الزراعة (DAP)
+# حتى بلوغ العمق الأقصى عند نهاية مرحلة التطوّر (development). عمق الجذور يحدّد
+# سَعَة الخزّان: TAW = 1000·(θFC − θWP)·Zr (FAO-56 Eq. 82). جذور أعمق ⇒ خزّان
+# أكبر ⇒ فترات ريّ أطول.
+#
+# الدوالّ هنا **نقيّة وإضافيّة**: لا تمسّ المسار المفرد (compute_irrigation) ولا
+# المزدوج (compute_etc_dual). تُستخدَم لاحقاً في توأم/دفتر المياه عند الحاجة لـTAW
+# ديناميكيّ بدل ثابت SoilZone.taw_mm_per_m.
+#
+# ⚠️ صدق صارم — تحتاج معايرة محلّيّة:
+#   • Zr_min/Zr_max تقديريّة لكلّ محصول (FAO-56 Table 22 يعطي مدًى نوعيّاً،
+#     والقيم الموقعيّة تتأثّر بالتربة/الصنف/طبقة صلبة محتملة). تُمرَّر صراحةً.
+#   • θFC/θWP أدناه قيم نوعيّة حسب القوام (FAO-56 Table 19، عمود «Available
+#     water» ووسطيّات شائعة) — تقديرات لا قياسات موقعيّة. القوام المجهول ⇒ "loam".
+
+
+# θFC/θWP (محتوى الماء الحجميّ، m³/m³) حسب القوام — FAO-56 Table 19 (وسطيّات نوعيّة).
+# θFC = السعة الحقليّة (Field Capacity)، θWP = نقطة الذبول (Wilting Point).
+# الفرق (θFC − θWP) = الماء المتاح الكلّيّ لكلّ متر عمق. قيم تقديريّة تحتاج معايرة.
+_THETA_FC_WP_BY_TEXTURE: dict[str, tuple[float, float]] = {
+    # texture: (θFC, θWP)  m³/m³
+    "sand": (0.10, 0.04),
+    "sandy": (0.10, 0.04),
+    "loamy sand": (0.12, 0.05),
+    "sandy loam": (0.18, 0.07),
+    "loam": (0.25, 0.10),
+    "silt loam": (0.28, 0.11),
+    "silt": (0.30, 0.12),
+    "clay loam": (0.32, 0.16),
+    "silty clay": (0.36, 0.21),
+    "clay": (0.38, 0.24),
+    "mixed": (0.25, 0.10),
+}
+
+
+def theta_fc_wp_for_texture(texture: str) -> tuple[float, float]:
+    """يُرجِع (θFC, θWP) بـm³/m³ لقوام تربة، من جدول FAO-56 الافتراضيّ (Table 19).
+
+    ⚠️ افتراض صريح: قيم نوعيّة وسطيّة حسب القوام — تقديرات لا قياسات موقعيّة،
+    تحتاج معايرة محلّيّة (θFC/θWP الفعليّان يُقاسان مخبريّاً/حقليّاً). القوام
+    المجهول ⇒ "loam".
+    """
+    return _THETA_FC_WP_BY_TEXTURE.get(texture.strip().lower(), _THETA_FC_WP_BY_TEXTURE["loam"])
+
+
+def root_depth_m(
+    days_after_planting: float,
+    zr_min: float,
+    zr_max: float,
+    days_to_max: float,
+) -> float:
+    """عمق منطقة الجذور Zr (m) بنموّ خطّيّ بدلالة الأيّام بعد الزراعة — FAO-56 §8.
+
+        Zr = Zr_min + (Zr_max − Zr_min)·min(1, DAP/days_to_max)
+
+    مقصوص إلى ``[zr_min, zr_max]``. ``days_to_max`` = الأيّام حتى بلوغ العمق
+    الأقصى (عادةً نهاية مرحلة التطوّر development — انظر ``root_depth_for_crop``).
+
+    سلوك حدوديّ معرَّف:
+      • DAP ≤ 0 ⇒ Zr = zr_min (لم تنمُ الجذور بعد).
+      • DAP ≥ days_to_max ⇒ Zr = zr_max (بلغت العمق الأقصى).
+      • الوسط ⇒ خطّيّ.
+      • days_to_max ≤ 0 (غير صالح) ⇒ Zr = zr_max فوراً (نموّ لحظيّ — سلوك آمن).
+
+    ⚠️ صدق: ``zr_min``/``zr_max`` تقديريّة لكلّ محصول (FAO-56 Table 22 مدًى نوعيّ)
+    وتحتاج معايرة محلّيّة (تربة/صنف/طبقة صلبة).
+    """
+    if days_after_planting <= 0.0:
+        return zr_min
+    if days_to_max <= 0.0:
+        return zr_max
+    frac = min(1.0, days_after_planting / days_to_max)
+    zr = zr_min + (zr_max - zr_min) * frac
+    # قصّ دفاعيّ للنطاق (يحمي من zr_min > zr_max أو frac خارج [0,1]).
+    lo, hi = (zr_min, zr_max) if zr_min <= zr_max else (zr_max, zr_min)
+    return max(lo, min(hi, zr))
+
+
+def root_depth_for_crop(
+    profile: CropKcProfile,
+    days_after_planting: float,
+    zr_min: float,
+    zr_max: float,
+) -> float:
+    """عمق الجذور Zr (m) لمحصول، مع اشتقاق ``days_to_max`` من ``profile.stage_days``.
+
+    العمق الأقصى يُبلَغ عند نهاية مرحلة التطوّر (development) = ``stage_days[0] +
+    stage_days[1]`` (نهاية initial + development) — اتّفاقاً مع منحنى Kc حيث تكتمل
+    تغطية الأرض عند نهاية development. غلاف رفيق لـ``root_depth_m``.
+
+    ⚠️ صدق: ``zr_min``/``zr_max`` تقديريّة لكلّ محصول، تحتاج معايرة محلّيّة.
+    """
+    s_ini, s_dev = profile.stage_days[0], profile.stage_days[1]
+    days_to_max = float(s_ini + s_dev)
+    return root_depth_m(days_after_planting, zr_min, zr_max, days_to_max)
+
+
+def taw_from_root_depth(
+    zr_m: float,
+    texture: str = "loam",
+    *,
+    theta_fc: float | None = None,
+    theta_wp: float | None = None,
+) -> float:
+    """الماء المتاح الكلّيّ TAW (mm) من عمق الجذور — FAO-56 Eq. 82.
+
+        TAW = 1000·(θFC − θWP)·Zr
+
+    ``θFC``/``θWP`` (m³/m³): إن غابا ⇒ من جدول القوام (``theta_fc_wp_for_texture``).
+    ``Zr`` بالمتر. النتيجة (mm) ماء مُتاح بين السعة الحقليّة ونقطة الذبول في عمق
+    الجذور. تزيد طرديّاً مع Zr (خزّان أعمق ⇒ ماء أكثر) ومع (θFC − θWP). مقصوصة ≥ 0.
+
+    ⚠️ صدق: θFC/θWP الجدوليّة تقديريّة حسب القوام (FAO-56 Table 19) — تحتاج معايرة
+    محلّيّة؛ Zr نفسه تقديريّ (انظر ``root_depth_m``).
+    """
+    if theta_fc is None or theta_wp is None:
+        fc_def, wp_def = theta_fc_wp_for_texture(texture)
+        theta_fc = fc_def if theta_fc is None else theta_fc
+        theta_wp = wp_def if theta_wp is None else theta_wp
+    return max(0.0, 1000.0 * (theta_fc - theta_wp) * max(0.0, zr_m))
+
+
 @dataclass
 class DualKcResult:
     """نتيجة الحساب المزدوج لمعامل المحصول (FAO-56 Ch.7)."""
