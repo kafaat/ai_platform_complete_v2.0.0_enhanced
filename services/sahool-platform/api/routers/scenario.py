@@ -16,7 +16,10 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
 from api.gdd_tracker import DailyTemp as _DTemp
 from api.main import (
@@ -32,8 +35,73 @@ from api.scenario_whatif import (
     whatif_temperature_shift,
 )
 from api.water_balance import WeatherInput as _WInput
+from api.water_twin import (
+    DayPlan,
+    compare_scenarios,
+    delay_irrigation,
+    scale_irrigation,
+)
 
 router = APIRouter()
+
+
+# ─── Water Twin: مسار رطوبة التربة الأماميّ (ماذا لو أخّرتُ/خفّضتُ الريّ؟) ───────
+# نماذج الطلب مُعرَّفة محليّاً (لا تحتاج _rebuild_pydantic_models) — إضافة لراوتر
+# مُفكَّك قائم (يبقى حارس التفكيك أخضر؛ لا توسيع main.py).
+class _WaterTwinDay(BaseModel):
+    """خطّة يوم: ETc المحتمَل + مطر فعّال + ريّ مُطبَّق (مم، غير سالبة)."""
+
+    etc_mm: float = Field(..., ge=0)
+    rain_mm: float = Field(default=0.0, ge=0)
+    irrigation_mm: float = Field(default=0.0, ge=0)
+
+
+class WaterTwinRequest(BaseModel):
+    """طلب محاكاة Water Twin: حالة التربة + جدول الأساس + تحويل البديل.
+
+    البديل إمّا تحويل على جدول الأساس (تأجيل/تحجيم الريّ) أو جدول صريح (``explicit``).
+    حالة التربة (TAW/RAW/النضوب الابتدائيّ) تأتي من دفتر المياه اليوميّ (v98) أو تُمرَّر صراحةً.
+    """
+
+    taw_mm: float = Field(..., gt=0, description="إجماليّ الماء المتاح في منطقة الجذور")
+    raw_mm: float = Field(..., gt=0, description="الماء المتاح بسهولة (= p·TAW)")
+    initial_depletion_mm: float = Field(default=0.0, ge=0)
+    days: list[_WaterTwinDay] = Field(..., min_length=1, description="جدول الأساس اليوميّ")
+    scenario_kind: Literal["delay", "scale", "explicit"] = "delay"
+    delay_days: int = Field(default=0, ge=0, description="أيّام تأجيل الريّ (kind=delay)")
+    scale_factor: float = Field(default=1.0, ge=0, description="معامل عمق الريّ (kind=scale)")
+    scenario_days: list[_WaterTwinDay] | None = Field(
+        default=None, description="جدول البديل الصريح (kind=explicit)"
+    )
+
+
+@router.post("/api/v1/scenario/water-twin")
+def scenario_water_twin(
+    req: WaterTwinRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """توأم المياه: يحاكي مسار نضوب الجذور لجدولَي ريّ ويقارن أيّام الإجهاد/استهلاك الماء.
+
+    حساب FAO-56 فيزيائيّ offline (لا غلّة مُلفّقة). مدخل غير صالح (TAW/RAW/قيم سالبة) ⇒ 422.
+    """
+    baseline = [DayPlan(d.etc_mm, d.rain_mm, d.irrigation_mm) for d in req.days]
+    if req.scenario_kind == "delay":
+        scenario = delay_irrigation(baseline, req.delay_days)
+    elif req.scenario_kind == "scale":
+        scenario = scale_irrigation(baseline, req.scale_factor)
+    else:  # explicit
+        if not req.scenario_days:
+            raise HTTPException(
+                status_code=422,
+                detail="scenario_days مطلوب عندما scenario_kind=explicit.",
+            )
+        scenario = [DayPlan(d.etc_mm, d.rain_mm, d.irrigation_mm) for d in req.scenario_days]
+    try:
+        return compare_scenarios(
+            req.taw_mm, req.raw_mm, req.initial_depletion_mm, baseline, scenario
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e)) from e
 
 
 @router.post("/api/v1/scenario/temperature")
