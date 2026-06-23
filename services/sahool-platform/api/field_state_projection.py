@@ -155,15 +155,71 @@ def _extract_ec(soil_result) -> float | None:
     return None
 
 
-def _compose_agronomic(field_id: str, tenant_id, ndvi_mean, soil_ec) -> dict | None:
+def _et0_from_weather_payload(data_json, lat, elevation_m, doy: int) -> float | None:
+    """يحسب ET0 (مم/يوم) من حمولة طقس Open-Meteo المخزَّنة عبر **المحرّك الموحّد** (H4).
+
+    يستخرج temp_min/max لليوم من ``data_json["daily"]`` ويبني ``WeatherInput`` ثمّ
+    ``compute_et0`` (Penman-Monteith إن توفّر إشعاع/رطوبة/رياح، وإلّا Hargreaves — حرارة
+    فقط). **صدق + fail-safe صارم:** أيّ نقص/شكل غير متوقَّع/تعذّر ⇒ ``None`` (لا اختلاق،
+    لا كسر الإسقاط) — فالحقل ``etc_mm`` ببساطة يغيب. لا صيغة ET0 جديدة (إعادة استخدام H4).
+    """
+    try:
+        from api.water_balance import WeatherInput, compute_et0
+
+        if isinstance(data_json, str):
+            data_json = json.loads(data_json)
+        daily = (data_json or {}).get("daily") or {}
+
+        def _first(seq):
+            return seq[0] if isinstance(seq, list) and seq else None
+
+        tmax = _first(daily.get("temperature_2m_max"))
+        tmin = _first(daily.get("temperature_2m_min"))
+        if tmax is None or tmin is None:
+            return None
+        # اختياريّ لـPenman-Monteith (وإلّا يتدرّج compute_et0 إلى Hargreaves):
+        rh = _first(daily.get("relative_humidity_2m_mean"))
+        wind = _first(daily.get("wind_speed_10m_max"))
+        srad = _first(daily.get("shortwave_radiation_sum"))
+        w = WeatherInput(
+            t_min_c=float(tmin),
+            t_max_c=float(tmax),
+            solar_rad_mj_m2=float(srad) if srad is not None else None,
+            rh_mean_pct=float(rh) if rh is not None else None,
+            wind_2m_ms=float(wind) if wind is not None else None,
+            latitude_deg=float(lat) if lat is not None else 15.5,
+            elevation_m=float(elevation_m) if elevation_m is not None else 2000.0,
+            day_of_year=doy,
+        )
+        et0, _method = compute_et0(w)
+        return round(float(et0), 2)
+    except Exception:  # noqa: BLE001 — صدق/fail-safe: تعذّر ⇒ None (لا ET0 مُلفَّق)
+        return None
+
+
+def _compose_agronomic(
+    field_id: str,
+    tenant_id,
+    ndvi_mean,
+    soil_ec,
+    crop_id: str | None = None,
+    days_after_planting: int | None = None,
+    et0_mm: float | None = None,
+) -> dict | None:
     """يستدعي النواة الزراعيّة الغنيّة compose_field_state (دالّة نقيّة بلا شبكة)
     لدمج الحقائق الزراعيّة + التحكيم (Salinity>Vigor) في الحالة القانونيّة.
 
-    صدق + fail-safe: لا إشارات ⇒ None؛ وأيّ تعذّر استيراد/حساب ⇒ None دون كسر
+    Bundle D (D1): يمرّر سياق المحصول (``crop_id``/``days_after_planting``) فتُحسَب Kc،
+    وإشارة ``et0`` فيُحقَن ETc الكنسيّ (Kc·ET0) في operational_truths — إضافة صرفة لا تمسّ
+    التحكيم. صدق + fail-safe: لا إشارات ⇒ None؛ وأيّ تعذّر استيراد/حساب ⇒ None دون كسر
     recompute (الحالة التشغيليّة تبقى من resolve_field_state).
     """
     try:
-        from core.agronomic_state_engine import SignalInput, compose_field_state
+        from core.agronomic_state_engine import (
+            CropContext,
+            SignalInput,
+            compose_field_state,
+        )
 
         signals = []
         if ndvi_mean is not None:
@@ -172,7 +228,20 @@ def _compose_agronomic(field_id: str, tenant_id, ndvi_mean, soil_ec) -> dict | N
             signals.append(SignalInput(source="soil_ec", value=float(soil_ec)))
         if not signals:
             return None
-        cs = compose_field_state(field_id, signals, tenant_id=str(tenant_id) if tenant_id else None)
+        # ET0 يُمرَّر عبر CropContext (مع المحصول/العمر) فتُحسَب Kc ويُحقَن ETc = Kc·ET0.
+        crop_context = None
+        if crop_id is not None and days_after_planting is not None:
+            crop_context = CropContext(
+                crop_id=crop_id,
+                days_after_planting=days_after_planting,
+                et0_mm=float(et0_mm) if et0_mm is not None else None,
+            )
+        cs = compose_field_state(
+            field_id,
+            signals,
+            crop_context=crop_context,
+            tenant_id=str(tenant_id) if tenant_id else None,
+        )
         return {
             "operational_truths": dict(cs.operational_truths),
             "confidence": cs.confidence,
@@ -219,13 +288,50 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         # الحقل غير موجود ضمن المستأجِر — لا نحفظ إسقاطاً يتيماً (الحالة تُعاد فقط).
         return {"state": state, "changed": False}
 
+    # Bundle D (D1): مصدر ET0 الكنسيّ + سياق المحصول (Kc/العمر) لحقن ETc في الحالة القانونيّة.
+    # **إضافيّ best-effort:** أيّ نقص (محصول/تاريخ زراعة/طقس) ⇒ القيمة None (الحقل يغيب، لا اختلاق)
+    # ولا يكسر التحكيم القائم (الملوحة/الصلاحيّة تبقى تُحسَب كما كانت).
+    crop_id = None
+    days_after_planting = None
+    et0_mm = None
+    try:
+        from core.season_phenology import resolve_crop_id
+
+        fmeta = await conn.fetchrow(
+            "SELECT crop, planting_date, lat FROM fields WHERE field_id = $1", field_id
+        )
+        if fmeta is not None:
+            crop_id = resolve_crop_id(fmeta["crop"])
+            planting = fmeta["planting_date"]
+            if planting is not None:
+                dap = (date.today() - planting).days
+                days_after_planting = dap if dap >= 0 else None
+            wrow = await conn.fetchrow(
+                "SELECT c.data_json FROM weather_automation_cache c "
+                "JOIN weather_automation_locations l ON l.location_key = c.location_key "
+                "WHERE l.field_id = $1 ORDER BY c.fetched_at DESC LIMIT 1",
+                field_id,
+            )
+            if wrow is not None:
+                et0_mm = _et0_from_weather_payload(
+                    wrow["data_json"], fmeta["lat"], None, date.today().timetuple().tm_yday
+                )
+    except Exception:  # noqa: BLE001 — توحيد المياه best-effort، لا يكسر الحالة التشغيليّة
+        logger.warning("تعذّر اشتقاق ET0/سياق المحصول للحقل %s — يُتخطّى ETc", field_id, exc_info=True)
+
     # Stage E (توحيد النواة): ادمج الحقائق الزراعيّة الغنيّة (compose_field_state)
     # في الحالة القانونيّة — فيصبح الإسقاط مصدر الحقيقة الموحّد (حقائق + جاهزيّة).
     # التحكيم يَحكُم فعليّاً: ملوحة تربة حرجة تُصعّد نمط التنفيذ للمراجعة البشريّة
     # رغم خُضرة NDVI (Salinity>Vigor) — تصعيد سلامة لا تخفيض، ولا يغيّر أرقاماً
     # زراعيّة (يطبّق منطق النواة الموجود فقط).
     agronomic = _compose_agronomic(
-        field_id, tenant_id, fresh.get("ndvi_mean"), fresh.get("soil_ec")
+        field_id,
+        tenant_id,
+        fresh.get("ndvi_mean"),
+        fresh.get("soil_ec"),
+        crop_id=crop_id,
+        days_after_planting=days_after_planting,
+        et0_mm=et0_mm,
     )
     if agronomic is not None:
         state["agronomic"] = agronomic

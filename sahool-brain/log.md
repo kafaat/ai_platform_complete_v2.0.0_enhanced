@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-06-23 (ف) — Bundle D المرحلة D1: ET0/ETc الكنسيّان في الحالة القانونيّة (#466)
+
+**رأس `main`:** `f015fef` (#465 مُدمج). فرع `claude/bundle-d-water-canon`. أوّل خطوة من Bundle D
+(FieldState Water Canonicalization) — **خطّة متأنّية مرحليّة (يمسّ SSOT)**؛ استكشافان مُسبقان (بنية
+الحالة + خريطة حسابات المياه) أكّدا أنّ `operational_truths` يحمل `kc` لكن لا `et0`/`etc`.
+- **D1 (إضافيّ محفوظ السلوك):** إسقاط الحالة (`api/field_state_projection.py`) يشتقّ ET0 من الطقس
+  المخزَّن (`weather_automation_cache`) عبر **`core/engines/et0` الموحّد** (H4 — Hargreaves/PM، لا صيغة
+  جديدة)، ويمرّر المحصول/العمر + ET0 عبر `CropContext` إلى `compose_field_state`. كتلة Kc القائمة
+  (`agronomic_state_engine._wire_phenology_and_calendar`) تضيف `et0_mm`/`etc_mm`=Kc·ET0/`etc_demand_class`
+  + provenance — **دون مسّ** التحكيم (validity/execution_mode/الملوحة) ولا مخطّط القاعدة ولا المستهلكين.
+- **صدق + fail-safe صارم:** طقس/محصول/عمر ناقص ⇒ ET0=None ⇒ `etc` يغيب (لا اختلاق)؛ المسار best-effort
+  لا يكسر الحالة التشغيليّة. حفظ السلوك مؤكَّد (٥٦ اختبار field_state/agronomic أخضر، والإضافة لا تمسّ
+  Kc/effective_status). **D2 (تحكيم الإجهاد) + D3 (نقل المستهلكين/إزالة تكرار) مؤجَّلتان بإقرار.**
+
+تحقّق: ٦ اختبارات جديدة (`tests_v9/test_fieldstate_water_canon.py`) · `pytest -m unit` 1799 (فشل MFA الـ5
+سابقٌ) · حارس التفكيك · **مسح ruff كامل** · انحدار field_state/agronomic أخضر.
+
+---
+
 ## 2026-06-23 (ع) — Bundle B صغيرة: TAW ديناميكيّ من Zr + NDVI من COG الطازج (وكيلان، #465)
 
 **رأس `main`:** `08211af` (#464 مُدمج). فرع `claude/bundle-b-zr-ndvi`. تثبيت خارطة الحِزَم أوّلاً
