@@ -1,8 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`1e112a7`](../) (#462 مُدمج) · فرع العمل `claude/water-intel-self-sufficient`
-> (#463 قيد المراجعة: Open-Meteo + Zr + لوحة etc-dual — [`log.md`](log.md) مدخل (ن)؛ سبقه (م) etc-dual ·
-> (ل) Kc-NDVI · (ك) Water Twin م٢ · (ي) v1 · (ط) دفتر v98+Parquet+H2 · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`8e35fde`](../) (#463 مُدمج) · فرع العمل `claude/h5-irrigation-unify`
+> (#464 قيد المراجعة: توحيد H5 — ملوحة اختياريّة off-افتراضيّاً + تفعيل تلقائيّ — [`log.md`](log.md) مدخل (س)؛
+> سبقه (ن) Open-Meteo+Zr+لوحة · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
 
 ## عمل هذه الجلسة (#437 → #447)
 

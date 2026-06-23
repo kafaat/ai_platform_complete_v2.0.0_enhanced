@@ -32,6 +32,16 @@ from core.engines.et0 import (
     penman_monteith_et0 as et0_penman_monteith_core,
 )
 
+# مصدر الحقيقة الوحيد لصيغ الملوحة (H5): Ks (Eq.81) + احتياج الغسيل (Eq.82).
+# لا نُعيد كتابة الصيغة هنا — نفوّض إلى المحرّك مباشرةً (لا تكرار).
+from core.engines.fao56 import (
+    leaching_requirement as _fao56_leaching_requirement,
+)
+from core.engines.fao56 import (
+    salinity_stress_ks as _fao56_salinity_stress_ks,
+)
+from core.season_phenology import crop_kc_profile, resolve_crop_id
+
 
 class ET0Method(StrEnum):
     PENMAN_MONTEITH = "penman_monteith"
@@ -87,9 +97,10 @@ class WaterBalanceResult:
     net_irrigation_mm: float  # الاحتياج الصافي بعد المطر
     advice_ar: str
     kc_source_ar: str = "محصول مُعرّف"  # هل Kc خاصّ بالمحصول أم عامّ؟
+    salinity_applied: bool = False  # هل طُبّق خطّاف الملوحة (Ks/غسيل)؟ افتراضيّاً off
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "et0_mm": round(self.et0_mm, 2),
             "method": self.method.value,
             "kc": self.kc,
@@ -99,6 +110,11 @@ class WaterBalanceResult:
             "net_irrigation_mm": round(self.net_irrigation_mm, 2),
             "advice_ar": self.advice_ar,
         }
+        # H5: الحقل يظهر فقط حين تُطبَّق الملوحة — off (الافتراضيّ) يحفظ شكل القاموس
+        # القائم تماماً (لا انحدار على المستهلكين/الاختبارات). on ⇒ شفّافيّة opt-in.
+        if self.salinity_applied:
+            d["salinity_applied"] = self.salinity_applied
+        return d
 
 
 def _extraterrestrial_radiation(lat_deg: float, doy: int) -> float:
@@ -213,6 +229,48 @@ def _forecast_defer(
     return ""
 
 
+def _salinity_hook(
+    crop: str,
+    etc: float,
+    net: float,
+    soil_ece: float | None,
+    water_ec: float | None,
+) -> tuple[float, float, bool, str]:
+    """خطّاف ملوحة اختياريّ (H5) — يفوّض لصيغ المحرّك (لا تكرار).
+
+    يُستدعى فقط عند ``apply_salinity=True``. يبني :class:`CropKcProfile` للمحصول
+    لقراءة عتبة تحمّل الملوحة، ثمّ:
+      • يطبّق ``Ks = fao56.salinity_stress_ks(profile, soil_ece)`` على ETc (Eq.81).
+      • (اختياريّاً) يضيف احتياج الغسيل ``LR = fao56.leaching_requirement(water_ec,
+        threshold)`` فوق الاحتياج الصافي (Eq.82) حين توفّر ``water_ec``.
+
+    صدق: تعذّر بناء البروفايل (بطاقة مفقودة/بلا kc) ⇒ off بصدق (لا ملوحة، لا غسيل،
+    لا انحدار). يُرجِع ``(etc_adj, net_adj, applied, note_ar)``.
+    """
+    profile = crop_kc_profile(resolve_crop_id(crop))
+    if profile is None:
+        return etc, net, False, ""
+
+    note_parts: list[str] = []
+    etc_adj = etc
+    if soil_ece is not None:
+        ks = _fao56_salinity_stress_ks(profile, soil_ece)
+        etc_adj = etc * ks
+        if ks < 1.0:
+            note_parts.append(
+                f"إجهاد ملحيّ: ECe={soil_ece} يتجاوز العتبة "
+                f"{profile.salt_tolerance_ece} (Ks={ks:.2f})."
+            )
+    # إعادة حساب الصافي على ETc المُعدَّل (المطر الفعّال يُخصَم من ETc المُجهَد).
+    net_adj = max(0.0, etc_adj - (etc - net))
+    if water_ec is not None:
+        lr = _fao56_leaching_requirement(water_ec, profile.salt_tolerance_ece)
+        if lr > 0.0 and net_adj > 0.0:
+            net_adj = net_adj * (1.0 + lr)
+            note_parts.append(f"غسيل الأملاح: +{lr * 100:.0f}% فوق الصافي (ECw={water_ec}).")
+    return etc_adj, net_adj, True, " ".join(note_parts)
+
+
 def water_balance(
     w: WeatherInput,
     crop: str,
@@ -223,12 +281,20 @@ def water_balance(
     forecast_window_days: int = 3,
     forecast_confidence: float = 1.0,
     forecast_infiltration: float = FORECAST_INFILTRATION_DEFAULT,
+    soil_ece: float | None = None,
+    water_ec: float | None = None,
+    apply_salinity: bool = False,
 ) -> WaterBalanceResult:
     """يحسب توصية الريّ ليوم/فترة.
 
     Args:
         w: الطقس. crop: المحصول. stage: initial|development|mid|late.
         rain_mm: المطر في الفترة. ndvi: إن توفّر ⇒ Kc ديناميكيّ (وإلّا ثابت بالمرحلة).
+        soil_ece: ملوحة التربة ECe (dS/m) — تُستخدم فقط مع ``apply_salinity=True``.
+        water_ec: ملوحة ماء الريّ ECw (dS/m) — تُفعّل احتياج الغسيل مع الملوحة.
+        apply_salinity: خطّاف الملوحة (H5). **افتراضيّاً off**: السلوك القائم تماماً
+            (net = ETc − مطر فعّال، بلا Ks ولا غسيل). on ⇒ يطبّق Ks على ETc و(اختياريّاً)
+            غسيلاً، بنفس صيغ المحرّك (``fao56``). الملوحة opt-in بقرار المستخدم.
     """
     et0, method = compute_et0(w)
     crop_known = crop in KC_BY_CROP_STAGE
@@ -247,6 +313,14 @@ def water_balance(
     eff_rain = _effective_rain(rain_mm)
     net = max(0.0, etc - eff_rain)
 
+    # خطّاف الملوحة (H5) — مُطفأ افتراضيّاً. off ⇒ السلوك أعلاه بلا أيّ تغيير (لا انحدار).
+    salinity_note = ""
+    salinity_applied = False
+    if apply_salinity:
+        etc, net, salinity_applied, salinity_note = _salinity_hook(
+            crop, etc, net, soil_ece, water_ec
+        )
+
     if net <= 0:
         advice = f"لا حاجة للريّ — المطر ({eff_rain:.1f} مم فعّال) يغطّي الاحتياج ({etc:.1f} مم)."
     elif net < 5:
@@ -264,6 +338,10 @@ def water_balance(
     if defer_note:
         advice = f"{defer_note} {advice}"
 
+    # ملاحظة الملوحة (إن طُبّقت وكان لها أثر) تُلحَق بالتوصية — شفّافيّة المصدر.
+    if salinity_note:
+        advice = f"{advice} {salinity_note}"
+
     return WaterBalanceResult(
         et0_mm=et0,
         method=method,
@@ -273,4 +351,57 @@ def water_balance(
         net_irrigation_mm=net,
         advice_ar=advice,
         kc_source_ar=kc_source,
+        salinity_applied=salinity_applied,
     )
+
+
+def water_balance_auto(
+    w: WeatherInput,
+    crop: str,
+    stage: str,
+    *,
+    rain_mm: float = 0.0,
+    ndvi: float | None = None,
+    forecast_rain_mm: float | None = None,
+    forecast_window_days: int = 3,
+    forecast_confidence: float = 1.0,
+    forecast_infiltration: float = FORECAST_INFILTRATION_DEFAULT,
+    soil_ece: float | None = None,
+    water_ecw: float | None = None,
+    analysis_age_days: int | None = None,
+    confidence: float | None = None,
+    crop_sensitive: bool = False,
+    saline_region: bool = False,
+) -> tuple[WaterBalanceResult, object]:
+    """ميزان الماء مع **تفعيل الملوحة تلقائيّاً** من جودة التحليل المخبريّ (قرار المستخدم).
+
+    يستدعي ``core.salinity_policy.salinity_decision`` ليقرّر ``apply_salinity`` من البيانات
+    (ECe/ECw + العمر + الثقة + حساسيّة المحصول + منطقة مالحة)، ثمّ ``water_balance`` بالقرار.
+    صدق: لا بيانات/قديمة/منخفضة الثقة ⇒ off (لا تفعيل على افتراض)؛ كلّ قرار بسبب مُعلَن.
+    يُرجِع ``(result, decision)`` — والقرار (``SalinityDecision``) يُعرَض شفّافاً في الردّ.
+    """
+    from core.salinity_policy import salinity_decision
+
+    decision = salinity_decision(
+        soil_ece=soil_ece,
+        water_ecw=water_ecw,
+        analysis_age_days=analysis_age_days,
+        confidence=confidence,
+        crop_sensitive=crop_sensitive,
+        saline_region=saline_region,
+    )
+    result = water_balance(
+        w,
+        crop,
+        stage,
+        rain_mm=rain_mm,
+        ndvi=ndvi,
+        forecast_rain_mm=forecast_rain_mm,
+        forecast_window_days=forecast_window_days,
+        forecast_confidence=forecast_confidence,
+        forecast_infiltration=forecast_infiltration,
+        soil_ece=soil_ece,
+        water_ec=water_ecw,
+        apply_salinity=decision.enabled,
+    )
+    return result, decision
