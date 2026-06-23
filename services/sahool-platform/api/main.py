@@ -437,6 +437,17 @@ async def _start_outbox_worker():
     """يبدأ relay الأحداث (outbox → NATS). تدهور رشيق: لو غاب NATS/القاعدة، نتخطّى
     بتحذير دون إسقاط الإقلاع — الأحداث تبقى في outbox لتُنشَر عند توفّر NATS لاحقاً."""
     global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+    # H2 (feature flag، default OFF): يُحرَس تشغيل الناشر. OFF ⇒ الأحداث تبقى في outbox
+    # (record_decision_only) ويُعلَن السبب صراحةً؛ ON ⇒ يُشغَّل الناشر (publish_event).
+    from api.event_bus import NATS_PUBLISHERS_FLAG, nats_publishers_enabled
+
+    if not nats_publishers_enabled():
+        logging.info(
+            "ناشرو NATS معطّلون (%s off) — الأحداث تُسجَّل في outbox فقط "
+            "(record_decision_only)، بلا تسليم NATS.",
+            NATS_PUBLISHERS_FLAG,
+        )
+        return
     if _DB_POOL is None:
         logging.warning("OutboxWorker: لا pool قاعدة — relay الأحداث معطّل")
         return

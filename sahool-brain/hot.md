@@ -1,9 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`b722b4c`](../) (#471 مُدمج) · فرع العمل `claude/c5-ndvi-threshold-flag`
-> (إغلاق C5: بوّابة عتبات NDVI خلف feature flag (default off) + إعلان insufficient_field_calibration — [`log.md`](log.md) مدخل (ج)؛
-> سبقه (ث) ETc-dual كنسيّ · (ت) D2b تصعيد طيفيّ · (ش) D2a كتلة الإجهاد · (ر) Bundle B ثقة الحدّ · (ق) D3 · (ف) D1 · (ع) Zr-TAW · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
-> **التالي (باختيار المستخدم):** H2 NATS publishers (publish_event مقابل record_decision_only) ثمّ C4/M1 push ثمّ Bundle C. SAM2/MAP-QA تبقى env-unverified.
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`768c396`](../) (#472 مُدمج) · فرع العمل `claude/h2-nats-publishers-flag`
+> (إغلاق H2: علم نشر NATS `FEATURE_NATS_PUBLISHERS` (default off) — يحرس تشغيل OutboxWorker؛ OFF ⇒ record_decision_only — [`log.md`](log.md) مدخل (خ)؛
+> سبقه (ج) C5 عتبات NDVI · (ث) ETc-dual كنسيّ · (ت) D2b تصعيد طيفيّ · (ش) D2a · (ر) Bundle B · (ق) D3 · (ف) D1 · (ع) Zr-TAW · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **التالي (باختيار المستخدم):** C4/M1 mobile push (send_push مقابل create_notification_record) ثمّ Bundle C. SAM2/MAP-QA تبقى env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)
 
