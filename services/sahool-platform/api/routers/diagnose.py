@@ -58,6 +58,9 @@ async def diagnose_symptoms(
                 "validity": field_state.get("validity"),
                 "execution_mode": field_state.get("execution_mode"),
                 "agronomic": {"operational_truths": _truths},
+                # Bundle D (D3): قيم المياه الكنسيّة من **مصدر واحد** (كتلة water الموحّدة)
+                # بدل قراءة ET0/ETc من مصادر متفرّقة — None إن غابت (صدق).
+                "water": field_state.get("water"),
             }
             # ملاحظة مرجعيّة فقط عند ملوحة حرجة — إجهاد الملوحة قد يحاكي/يفاقم
             # أعراض الأمراض. لا تغيير لقواعد/نتيجة التشخيص.

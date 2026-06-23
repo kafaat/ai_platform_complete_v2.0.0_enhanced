@@ -23,6 +23,7 @@ import json
 import logging
 from datetime import date
 
+from .canonical_water import canonical_water
 from .field_operational_state import resolve_field_state
 from .field_state_gateway import build_state_inputs
 
@@ -335,6 +336,11 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     )
     if agronomic is not None:
         state["agronomic"] = agronomic
+        # Bundle D (D3): كتلة المياه الكنسيّة المقروءة من مكان واحد (لا حساب، لا تغيير قرار) —
+        # يقرؤها المستهلكون بدل تعدّد مصادر ET0/ETc. غياب القيم ⇒ None (لا تُسقَط، لا اختلاق).
+        water = canonical_water(agronomic["operational_truths"])
+        if water is not None:
+            state["water"] = water
         if (
             agronomic["operational_truths"].get("salinity_class") == "critical"
             and state["execution_mode"] == "auto"

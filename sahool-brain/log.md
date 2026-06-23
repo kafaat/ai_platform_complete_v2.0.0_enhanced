@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-06-23 (ق) — Bundle D المرحلة D3: قراءة ET0/ETc من مصدر واحد (#467)
+
+**رأس `main`:** `204b68e` (#466 مُدمج). فرع `claude/bundle-d3-canon-read`. اختار المستخدم D3 أوّلاً
+(آمن، لا يغيّر القرار/الحسابات/SSOT) ثمّ boundary_confidence ثمّ D2 لاحقاً (خطّة رسميّة).
+- **قارئ كنسيّ نقيّ** `api/canonical_water.py`: `canonical_water(operational_truths)` يستخرج كتلة
+  `{et0_mm, etc_mm, etc_demand_class, kc, fao56_stage, source}` — **قراءة صرفة لا حساب**؛ غياب ET0/ETc
+  ⇒ None (لا اختلاق). يُغلق فئة التناقضات: مصدر قراءة واحد بدل تعدّد.
+- **كتلة `water` موحّدة** تُسقَط على نموذج الحالة في `recompute_field_state` (إضافيّ، read-only).
+- **مستهلِك `diagnose`** يقرأ `field_state["water"]` بدل التنقيب في operational_truths متفرّقاً.
+
+**صدق + أمان:** لا يمسّ المحرّكات/القرار (validity/execution_mode) ولا الحسابات ولا SSOT نفسه — قراءة
+موحّدة فقط. تحقّق: ٣ اختبارات جديدة (`tests_v9/test_canonical_water.py`) · `pytest -m unit` 1802 (فشل
+MFA الـ5 سابقٌ) · انحدار field_state/agronomic/diagnose (٧٩) أخضر · حارس التفكيك · **مسح ruff كامل**.
+
+---
+
 ## 2026-06-23 (ف) — Bundle D المرحلة D1: ET0/ETc الكنسيّان في الحالة القانونيّة (#466)
 
 **رأس `main`:** `f015fef` (#465 مُدمج). فرع `claude/bundle-d-water-canon`. أوّل خطوة من Bundle D
