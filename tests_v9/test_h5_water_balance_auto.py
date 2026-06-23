@@ -25,7 +25,7 @@ except Exception:  # noqa: BLE001 — تبعيّات المنصّة غير مت�
     pytest.skip("platform/api deps unavailable (minimal Unit Tests env)", allow_module_level=True)
 
 
-def _weather() -> "WeatherInput":
+def _weather() -> WeatherInput:
     return WeatherInput(
         t_min_c=18.0,
         t_max_c=34.0,
