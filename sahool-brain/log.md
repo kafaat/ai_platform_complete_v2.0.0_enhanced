@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-06-23 (ت) — Bundle D / D2b: تفعيل تصعيد الإجهاد المائيّ بتأكيد طيفيّ خلف feature flag
+
+**رأس `main`:** `7c897ea` (#469 مُدمج). فرع `claude/bundle-d2b-spectral-escalation`. أقرّ المستخدم قاعدة
+التصعيد المائيّ (نموذج 4 مستويات) ثمّ قرارَين: **(١)** العلم `FEATURE_WATER_STRESS_ESCALATION` معطَّل
+افتراضيّاً (إطار «implemented-but-off-by-default» — مراقبة ميدانيّة قبل تغيير القرار الإنتاجيّ)؛ **(٢)**
+**NDMI + MSI معاً** (متانة ضدّ غبار/سحب اليمن لتصعيد قانونيّ).
+- **الإشارة الطيفيّة:** هجرة `v99_imagery_spectral_indices.sql` (أعمدة `last_ndmi/msi_mean/date` على
+  `imagery_automation_fields`). NDMI/MSI **مدعومان أصلاً في الراستر** (`IndicatorKind.ndmi/msi`) ⇒ لا تغيير
+  راستر؛ `imagery_automation.py` يطلبهما (`DEFAULT_INDICATORS`) ويجمعهما/يخزّنهما (نمط NDVI).
+  `gather_field_freshness` يقرؤهما (SAVEPOINT منفصل عن NDVI، توافق ما-قبل-الهجرة).
+- **الأهليّة (`canonical_water_stress` النقيّ):** `fuse_water_stress(ndmi, msi)` ⇒
+  `spectral_confirmation_available` (كلا المؤشّرين) · `spectral_stress_detected` (moderate/severe) ·
+  `escalation_eligible = critical ∧ depletion_confidence≥0.8 ∧ تأكيد طيفيّ`. غياب أيّ مؤشّر ⇒ available=False
+  و detected=None (صدق: «فيزياء+رصد»، لا تصعيد بلا رصد).
+- **العلم + التصعيد (`field_state_projection`):** يُعاد استخدام `feature_registry.is_enabled` (العلم **ليس**
+  علم راوتر ⇒ خارج `FEATURE_FLAGS` dict، يبقى `test_feature_flags_smoke` أخضر). الكتلة تُعلن دائماً
+  `escalation_eligible`/`escalation_triggered`/`disabled_reason` (`feature_flag_off`). عند العلم ON ⊕ الأهليّة ⊕
+  `execution_mode==auto` ⇒ `human_review` + degraded + سبب (نمط الملوحة/الحدّ).
+
+**صدق + أمان:** العلم off افتراضيّاً ⇒ **لا تغيير قرار إنتاجيّ** (الإشارة + الأهليّة معلوماتيّتان، السبب
+مُعلَن). إعادة استخدام صرفة (`fuse_water_stress`/`is_enabled`/نمط NDVI/التصعيد). تحقّق: ٥ اختبارات قارئ + ٤
+إسقاط (علم OFF لا يُصعّد + `disabled_reason` · علم ON يُصعّد · غياب طيف لا · ثقة<0.8 لا) · tests_v9 1825
+(فشل MFA الـ5 سابقٌ) · platform 1104 · `test_feature_flags_smoke` أخضر · حارس التفكيك · **مسح ruff كامل**.
+
+---
+
 ## 2026-06-23 (ش) — Bundle D / D2a: كتلة الإجهاد المائيّ الكنسيّة (معلوماتيّة، بلا تصعيد)
 
 **رأس `main`:** `208454d` (#468 مُدمج). فرع `claude/bundle-d2a-water-stress`. بعد Bundle B، D2 هو الأخير

@@ -1,9 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`208454d`](../) (#468 مُدمج) · فرع العمل `claude/bundle-d2a-water-stress`
-> (Bundle D / D2a: كتلة `water_stress` كنسيّة معلوماتيّة AWF + NORMAL/WATCH/CRITICAL — [`log.md`](log.md) مدخل (ش)؛
-> سبقه (ر) Bundle B ثقة الحدّ · (ق) D3 قراءة ET0/ETc موحّدة · (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
-> **التالي:** D2b — تصعيد الإجهاد للمراجعة (`AWF≤0.2 ∧ conf≥0.8 ∧ طيفيّ`) ينتظر توصيل NDMI/MSI للحالة الكنسيّة (بقرار المستخدم).
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`7c897ea`](../) (#469 مُدمج) · فرع العمل `claude/bundle-d2b-spectral-escalation`
+> (Bundle D / D2b: تفعيل تصعيد الإجهاد المائيّ بتأكيد طيفيّ NDMI+MSI خلف feature flag (default off) — [`log.md`](log.md) مدخل (ت)؛
+> سبقه (ش) D2a كتلة الإجهاد · (ر) Bundle B ثقة الحدّ · (ق) D3 قراءة ET0/ETc موحّدة · (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **التالي:** مراقبة ميدانيّة ثمّ تفعيل العلم؛ وإغلاق فجوات أخرى بإطار «implemented-but-off-by-default» (H2/C5/C4-M1/ETc-dual canonical/Bundle C).
 
 ## عمل هذه الجلسة (#437 → #447)
 

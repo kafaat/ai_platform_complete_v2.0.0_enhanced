@@ -1,4 +1,4 @@
-"""api/canonical_water_stress.py — قارئ الإجهاد المائيّ الكنسيّ (Bundle D / D2a) — اشتقاق صرف.
+"""api/canonical_water_stress.py — قارئ الإجهاد المائيّ الكنسيّ (Bundle D / D2a+D2b) — اشتقاق صرف.
 
 الغرض:
    يطبّع استنزاف منطقة الجذور المخزَّن (`water_ledger.depletion_mm` + الثقة) مع TAW
@@ -14,9 +14,11 @@
    حيث AWF = 1 − Dr/TAW (جزء الماء المتاح المتبقّي؛ 1=سعة حقليّة، 0=ذبول).
 
 صدق صريح — ما هذا وما ليس هو:
-   - **اشتقاق لا تصعيد:** هذه الكتلة **معلوماتيّة** ولا تغيّر `execution_mode` (المرحلة
-     D2a). تصعيد ESCALATE (human_review) مؤجَّل لـD2b ويتطلّب تأكيداً طيفيّاً
-     (NDMI/MSI) بقرار المستخدم — غير مُحقَن في المسار الكنسيّ بعد.
+   - **اشتقاق + أهليّة، لا تصعيد هنا:** القارئ يحسب الكتلة المعلوماتيّة + الأهليّة
+     (`escalation_eligible` بالمسند المُقَرّ) لكنّه **لا يطبّق العلم ولا يغيّر
+     `execution_mode`** — ذلك للإسقاط (`field_state_projection`) خلف
+     `FEATURE_WATER_STRESS_ESCALATION` (default off). D2b: الأهليّة = إجهاد ضارّ
+     (critical) + ثقة استنزاف ≥ 0.8 + تأكيد طيفيّ (NDMI+MSI) — «فيزياء + رصد».
    - **غير معايَر يمنيّاً:** TAW من FAO-56 Table 19 وp افتراضيّ 0.5 — الكتلة موسومة
      `calibrated=False` صدقاً (تحتاج معايرة ميدانيّة قبل الاعتماد الكمّيّ).
    - **fail-safe:** غياب Dr أو TAW غير صالح / مدخل غير قاموس ⇒ `None` (لا كتلة
@@ -25,10 +27,18 @@
 
 from __future__ import annotations
 
+from core.engines.spectral_stress_bridge import fuse_water_stress
+
 from api.soil_water import available_water_fraction
 
 # عتبة الإجهاد الضارّ (المُقَرّة): استنزاف ≥ 80% من TAW ⇒ AWF ≤ 0.2.
 WATER_STRESS_CRITICAL_AWF = 0.2
+
+# أدنى ثقة استنزاف لأهليّة التصعيد (قرار المستخدم 2026-06-23): فيزياء موثوقة.
+ESCALATION_CONFIDENCE_MIN = 0.8
+
+# إشارات الجسر الطيفيّ التي تُعدّ «إجهاداً مؤكَّداً» (moderate/severe).
+_SPECTRAL_STRESS_SIGNALS = frozenset({"moderate", "severe"})
 
 
 def _coerce_float(value) -> float | None:
@@ -49,10 +59,14 @@ def canonical_water_stress(row: dict | None) -> dict | None:
         (p، افتراضيّ 0.5) · ``depletion_confidence`` (اختياريّ) · ``soil_moisture_pct``
         (اختياريّ، معلوماتيّ).
 
+    المُدخل (D2b، اختياريّ): ``ndmi`` · ``msi`` (للتأكيد الطيفيّ).
+
     المُخرَج — dict أو None:
         ``water_stress_awf`` · ``water_stress_class`` (normal|watch|critical) ·
         ``depletion_mm`` · ``taw_mm`` · ``raw_fraction`` · ``depletion_confidence`` ·
-        ``soil_moisture_pct`` · ``calibrated`` (=False) · ``source``.
+        ``soil_moisture_pct`` · ``calibrated`` (=False) · ``source`` · **(D2b)** ``ndmi`` ·
+        ``msi`` · ``spectral_confirmation_available`` · ``spectral_stress_detected``
+        (bool|None) · ``spectral_confidence`` (high|moderate|None) · ``escalation_eligible``.
 
     صدق: غياب Dr أو TAW≤0 أو مدخل غير صالح ⇒ ``None``.
     """
@@ -76,14 +90,45 @@ def canonical_water_stress(row: dict | None) -> dict | None:
     else:
         cls = "normal"
 
+    dep_conf = _coerce_float(row.get("depletion_confidence"))
+
+    # D2b: تأكيد طيفيّ (NDMI + MSI) — قرار المستخدم: كلا المؤشّرين مطلوبان للتأكيد؛
+    # غياب أيّهما ⇒ confirmation_available=False و detected=None ⇒ لا تصعيد (صدق:
+    # «فيزياء + رصد»، لا تصعيد بلا رصد). الجسر fuse_water_stress جاهز (None ⇒ unknown).
+    ndmi = _coerce_float(row.get("ndmi"))
+    msi = _coerce_float(row.get("msi"))
+    spectral_available = ndmi is not None and msi is not None
+    spectral_detected: bool | None = None
+    spectral_confidence: str | None = None
+    if spectral_available:
+        fused = fuse_water_stress(ndmi, msi)
+        spectral_detected = fused["fused_signal"] in _SPECTRAL_STRESS_SIGNALS
+        spectral_confidence = fused["confidence"]
+
+    # الأهليّة (المسند المُقَرّ، بلا العلم — العلم يطبّقه الإسقاط): إجهاد ضارّ مؤكَّد
+    # بفيزياء موثوقة + رصد طيفيّ.
+    escalation_eligible = bool(
+        cls == "critical"
+        and dep_conf is not None
+        and dep_conf >= ESCALATION_CONFIDENCE_MIN
+        and spectral_available
+        and spectral_detected
+    )
+
     return {
         "water_stress_awf": round(awf, 3),
         "water_stress_class": cls,
         "depletion_mm": round(dr, 2),
         "taw_mm": round(taw, 2),
         "raw_fraction": round(p, 3),
-        "depletion_confidence": _coerce_float(row.get("depletion_confidence")),
+        "depletion_confidence": dep_conf,
         "soil_moisture_pct": _coerce_float(row.get("soil_moisture_pct")),
+        "ndmi": ndmi,
+        "msi": msi,
+        "spectral_confirmation_available": spectral_available,
+        "spectral_stress_detected": spectral_detected,
+        "spectral_confidence": spectral_confidence,
+        "escalation_eligible": escalation_eligible,
         "calibrated": False,  # TAW/p غير معايَرين يمنيّاً (صدق)
         "source": "field_state.canonical",
     }

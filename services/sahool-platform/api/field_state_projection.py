@@ -21,14 +21,20 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import date
 
 from .boundary_confidence import CONFIDENCE_REVIEW_THRESHOLD
 from .canonical_boundary import canonical_boundary
 from .canonical_water import canonical_water
 from .canonical_water_stress import canonical_water_stress
+from .feature_registry import is_enabled
 from .field_operational_state import resolve_field_state
 from .field_state_gateway import build_state_inputs
+
+# علم تصعيد الإجهاد المائيّ (D2b) — default OFF (قرار المستخدم 2026-06-23): مراقبة
+# ميدانيّة قبل تغيير القرار الإنتاجيّ. ليس علم راوتر ⇒ لا يُسجَّل في feature_registry.
+_WATER_STRESS_ESCALATION_FLAG = "FEATURE_WATER_STRESS_ESCALATION"
 
 logger = logging.getLogger("sahool.field_state")
 
@@ -113,6 +119,23 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
     except Exception:  # noqa: BLE001 — v54 غير مطبّقة بعد ⇒ تخطٍّ آمن
         ndvi_mean = None
         ndvi_date = None
+    # D2b: NDMI/MSI (أعمدة v99) — SAVEPOINT منفصل عن NDVI كي لا يُسقِط فشلُ v99 (نشر
+    # متدرّج) قيمةَ NDVI أيضاً. تراجع رشيق إلى None (صدق: NULL لا رقم مُلفَّق).
+    ndmi_mean = None
+    msi_mean = None
+    try:
+        async with conn.transaction():  # SAVEPOINT
+            srow = await conn.fetchrow(
+                "SELECT last_ndmi_mean, last_msi_mean "
+                "FROM imagery_automation_fields WHERE field_id = $1",
+                field_id,
+            )
+            if srow:
+                ndmi_mean = srow["last_ndmi_mean"]
+                msi_mean = srow["last_msi_mean"]
+    except Exception:  # noqa: BLE001 — v99 غير مطبّقة بعد ⇒ تخطٍّ آمن
+        ndmi_mean = None
+        msi_mean = None
     # آخر فحص تربة معتمَد/منشور — صفّ واحد يعطي النضارة (sampled_on) + EC (من result)،
     # فنتفادى استعلامين ونربط EC بأحدث عيّنة فعلاً (مراجعة Copilot).
     soil_row = await conn.fetchrow(
@@ -136,6 +159,8 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "weather_age_hours": float(weather_age_hours) if weather_age_hours is not None else None,
         "ndvi_mean": float(ndvi_mean) if ndvi_mean is not None else None,
         "ndvi_date": ndvi_date,
+        "ndmi_mean": float(ndmi_mean) if ndmi_mean is not None else None,
+        "msi_mean": float(msi_mean) if msi_mean is not None else None,
         "soil_ec": soil_ec,
     }
 
@@ -384,11 +409,11 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     except Exception:  # noqa: BLE001 — قراءة الحدّ best-effort، لا تكسر الحالة التشغيليّة
         logger.warning("تعذّر قراءة ثقة حدّ الحقل %s — تُتخطّى كتلة boundary", field_id, exc_info=True)
 
-    # Bundle D (D2a): الإجهاد المائيّ الكنسيّ — **إضافيّ معلوماتيّ، بلا تصعيد**. اقرأ أحدث
-    # استنزاف (Dr) + الثقة من دفتر المياه (water_ledger) واشتقّ TAW من النسيج×Zr، فأسقِط
-    # كتلة water_stress بمستويات NORMAL/WATCH/CRITICAL (قرار المستخدم 2026-06-23). تصعيد
-    # ESCALATE→human_review مؤجَّل لـD2b (يتطلّب تأكيداً طيفيّاً NDMI/MSI غير محقون بعد).
-    # best-effort: غياب Dr موثوق ⇒ لا كتلة (صدق، لا قرار على غياب).
+    # Bundle D (D2): الإجهاد المائيّ الكنسيّ. اقرأ أحدث استنزاف (Dr) + الثقة من دفتر
+    # المياه (water_ledger) واشتقّ TAW، فأسقِط كتلة water_stress بمستويات
+    # NORMAL/WATCH/CRITICAL + تأكيد طيفيّ (NDMI+MSI) + أهليّة التصعيد (D2b). التصعيد
+    # ESCALATE→human_review خلف feature flag (default off، قرار المستخدم). best-effort:
+    # غياب Dr موثوق ⇒ لا كتلة (صدق، لا قرار على غياب).
     try:
         lrow = await conn.fetchrow(
             "SELECT depletion_mm, soil_moisture_pct, confidence "
@@ -408,10 +433,32 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                     "raw_fraction": sw["raw_fraction"],
                     "depletion_confidence": lrow["confidence"],
                     "soil_moisture_pct": lrow["soil_moisture_pct"],
+                    # D2b: تأكيد طيفيّ (NDMI+MSI) من imagery_automation_fields (v99).
+                    "ndmi": fresh.get("ndmi_mean"),
+                    "msi": fresh.get("msi_mean"),
                 }
             )
             if stress is not None:
                 state["water_stress"] = stress
+                # D2b: التصعيد خلف العلم (default off). المسند الكامل (الأهليّة) مُعلَن
+                # دائماً؛ human_review لا يقع إلّا عند تفعيل العلم — صدق: نُعلن سبب
+                # التعطيل. تصعيد سلامة لا تخفيض: لا يلمس إلّا auto/valid.
+                flag_on = is_enabled(
+                    _WATER_STRESS_ESCALATION_FLAG, os.getenv(_WATER_STRESS_ESCALATION_FLAG)
+                )
+                eligible = stress.get("escalation_eligible") is True
+                stress["escalation_triggered"] = bool(eligible and flag_on)
+                stress["disabled_reason"] = (
+                    "feature_flag_off" if (eligible and not flag_on) else None
+                )
+                if stress["escalation_triggered"] and state["execution_mode"] == "auto":
+                    state["execution_mode"] = "human_review"
+                    if state["validity"] == "valid":
+                        state["validity"] = "degraded"
+                    state.setdefault("reasons_ar", []).append(
+                        f"إجهاد مائيّ حرج مؤكَّد طيفيّاً (AWF={stress['water_stress_awf']:.2f}≤0.2، "
+                        "NDMI+MSI) — يتطلّب مراجعة بشريّة."
+                    )
     except Exception:  # noqa: BLE001 — قراءة الإجهاد best-effort، لا تكسر الحالة التشغيليّة
         logger.warning(
             "تعذّر قراءة الإجهاد المائيّ للحقل %s — تُتخطّى كتلة water_stress", field_id, exc_info=True

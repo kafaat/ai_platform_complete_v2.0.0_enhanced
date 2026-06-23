@@ -38,11 +38,24 @@ class _Tx:
 class _Conn:
     """conn وهميّ بحقل طازج (ثقة عالية) + NDVI جيّد + EC قابل للضبط."""
 
-    def __init__(self, *, ndvi_mean, ec, boundary_confidence=None, depletion_mm=None):
+    def __init__(
+        self,
+        *,
+        ndvi_mean,
+        ec,
+        boundary_confidence=None,
+        depletion_mm=None,
+        depletion_confidence=0.9,
+        ndmi=None,
+        msi=None,
+    ):
         self._ndvi = ndvi_mean
         self._ec = ec
         self._boundary_confidence = boundary_confidence
         self._depletion_mm = depletion_mm
+        self._depletion_confidence = depletion_confidence
+        self._ndmi = ndmi
+        self._msi = msi
         self.executed = []
         self._today = date.today()
 
@@ -50,6 +63,8 @@ class _Conn:
         return _Tx()
 
     async def fetchrow(self, sql, *a):
+        if "last_ndmi_mean" in sql:  # D2b: المؤشّرات الطيفيّة (v99)
+            return {"last_ndmi_mean": self._ndmi, "last_msi_mean": self._msi}
         if "imagery_automation_fields" in sql:
             return {"last_ndvi_mean": self._ndvi, "last_ndvi_date": self._today}
         if "FROM soil_lab_tests" in sql:  # صفّ واحد: sampled_on + result (EC)
@@ -63,13 +78,13 @@ class _Conn:
                 "model_version": "sam2_hiera_large",
                 "review_status": "unreviewed",
             }
-        if "FROM water_ledger" in sql:  # Bundle D/D2a: استنزاف (None ⇒ لا كتلة)
+        if "FROM water_ledger" in sql:  # Bundle D/D2: استنزاف (None ⇒ لا كتلة)
             if self._depletion_mm is None:
                 return None
             return {
                 "depletion_mm": self._depletion_mm,
                 "soil_moisture_pct": None,
-                "confidence": 0.9,
+                "confidence": self._depletion_confidence,
             }
         if "FROM field_state" in sql:
             return None
@@ -173,7 +188,8 @@ async def test_water_stress_block_present_no_escalation(core_on_path):
     assert st["water_stress"]["water_stress_class"] == "critical"
     assert st["water_stress"]["calibrated"] is False
     assert st["water_stress"]["source"] == "field_state.canonical"
-    # D2a معلوماتيّ صرف: لا يلمس القرار القانونيّ (التصعيد D2b مؤجَّل بتأكيد طيفيّ).
+    # بلا تأكيد طيفيّ (ndmi/msi غائبان) ⇒ غير مؤهَّل ⇒ لا تصعيد (نمط D2b: فيزياء+رصد).
+    assert st["water_stress"]["escalation_eligible"] is False
     assert st["execution_mode"] == "auto"
 
 
@@ -185,6 +201,79 @@ async def test_no_water_ledger_no_water_stress_block(core_on_path):
     conn = _Conn(ndvi_mean=0.7, ec=1.0, depletion_mm=None)
     res = await recompute_field_state(conn, "fld_1")
     assert "water_stress" not in res["state"]
+
+
+# ── D2b: تصعيد الإجهاد المائيّ خلف feature flag (NDMI+MSI) ──
+# إجهاد طيفيّ شديد: NDMI=-0.1 (<0.0 severe) + MSI=2.5 (≥2.0 severe) ⇒ fused severe ⇒ detected.
+_SPECTRAL_STRESS = {"ndmi": -0.1, "msi": 2.5}
+
+
+@pytest.mark.asyncio
+async def test_d2b_flag_off_eligible_but_not_triggered(core_on_path, monkeypatch):
+    """D2b: العلم OFF (افتراضيّ) ⇒ أهليّة معلنة لكن لا تصعيد + سبب التعطيل (محفوظ السلوك)."""
+    from api.field_state_projection import recompute_field_state
+
+    monkeypatch.delenv("FEATURE_WATER_STRESS_ESCALATION", raising=False)
+    # Dr=81/TAW=90 ⇒ AWF=0.1 critical · conf=0.9≥0.8 · طيف شديد ⇒ eligible.
+    conn = _Conn(
+        ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.9, **_SPECTRAL_STRESS
+    )
+    st = (await recompute_field_state(conn, "fld_1"))["state"]
+    ws = st["water_stress"]
+    assert ws["escalation_eligible"] is True
+    assert ws["spectral_stress_detected"] is True
+    assert ws["escalation_triggered"] is False
+    assert ws["disabled_reason"] == "feature_flag_off"
+    assert st["execution_mode"] == "auto"  # العلم مطفأ ⇒ لا تصعيد إنتاجيّ
+
+
+@pytest.mark.asyncio
+async def test_d2b_flag_on_escalates(core_on_path, monkeypatch):
+    """D2b: العلم ON + الشروط مكتملة ⇒ human_review (المسند المُقَرّ يقع)."""
+    from api.field_state_projection import recompute_field_state
+
+    monkeypatch.setenv("FEATURE_WATER_STRESS_ESCALATION", "1")
+    conn = _Conn(
+        ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.9, **_SPECTRAL_STRESS
+    )
+    st = (await recompute_field_state(conn, "fld_1"))["state"]
+    ws = st["water_stress"]
+    assert ws["escalation_triggered"] is True
+    assert ws["disabled_reason"] is None
+    assert st["execution_mode"] == "human_review"
+    assert st["validity"] != "valid"
+    assert any("إجهاد مائيّ" in r for r in st["reasons_ar"])
+
+
+@pytest.mark.asyncio
+async def test_d2b_flag_on_no_spectral_no_escalation(core_on_path, monkeypatch):
+    """D2b: العلم ON لكن غياب مؤشّر طيفيّ (msi) ⇒ لا تأكيد ⇒ لا تصعيد (صدق: فيزياء+رصد)."""
+    from api.field_state_projection import recompute_field_state
+
+    monkeypatch.setenv("FEATURE_WATER_STRESS_ESCALATION", "1")
+    conn = _Conn(
+        ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.9, ndmi=-0.1, msi=None
+    )
+    st = (await recompute_field_state(conn, "fld_1"))["state"]
+    ws = st["water_stress"]
+    assert ws["spectral_confirmation_available"] is False
+    assert ws["spectral_stress_detected"] is None
+    assert ws["escalation_eligible"] is False
+    assert st["execution_mode"] == "auto"
+
+
+@pytest.mark.asyncio
+async def test_d2b_flag_on_low_confidence_no_escalation(core_on_path, monkeypatch):
+    """D2b: العلم ON + طيف شديد لكن ثقة استنزاف < 0.8 ⇒ لا تصعيد (فيزياء غير موثوقة)."""
+    from api.field_state_projection import recompute_field_state
+
+    monkeypatch.setenv("FEATURE_WATER_STRESS_ESCALATION", "1")
+    conn = _Conn(
+        ndvi_mean=0.7, ec=1.0, depletion_mm=81.0, depletion_confidence=0.7, **_SPECTRAL_STRESS
+    )
+    st = (await recompute_field_state(conn, "fld_1"))["state"]
+    assert st["water_stress"]["escalation_eligible"] is False
+    assert st["execution_mode"] == "auto"
 
 
 def test_v55_migration_in_manifest_before_append_only():

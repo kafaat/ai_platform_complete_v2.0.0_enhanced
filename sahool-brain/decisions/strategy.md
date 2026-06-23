@@ -40,10 +40,12 @@ explainability · prescriptions · boundary/SAM2 · decision/outcome ledger · �
   على نموذج الحالة، ومستهلِك `diagnose` يقرؤها من **مصدر واحد** بدل تعدّد مصادر ET0/ETc (يُغلق فئة
   تناقضات). **D2a ✅ منفَّذ (فرع `claude/bundle-d2a-water-stress`، معلوماتيّ محفوظ السلوك):** كتلة
   `water_stress` كنسيّة (AWF + مستويات NORMAL/WATCH/CRITICAL، قرار المستخدم 2026-06-23) من
-  `water_ledger`+TAW — بلا تصعيد. **D2b (التصعيد ESCALATE→`human_review`) مؤجَّل بإشارة:** المسند المُقَرّ
-  `AWF≤0.2 ∧ depletion_confidence≥0.8 ∧ تأكيد طيفيّ` يتطلّب توصيل NDMI/MSI للحالة الكنسيّة (بقرار
-  المستخدم: لا تصعيد بلا تأكيد طيفيّ) — [`decisions/water-stress-d2.md`](water-stress-d2.md). ثمرة
-  Bundle A لكنّها أكبر من «إصلاح تكرار»: تجعل الحالة المصدرَ الوحيد لقيم المياه.
+  `water_ledger`+TAW — بلا تصعيد (#469). **D2b ✅ منفَّذ خلف feature flag (فرع
+  `claude/bundle-d2b-spectral-escalation`، default off):** هجرة v99 (NDMI/MSI على `imagery_automation_fields`)
+  + خطّ الصور يحسبهما/يخزّنهما + `canonical_water_stress` يحسب `escalation_eligible`
+  (`AWF≤0.2 ∧ depletion_confidence≥0.8 ∧ تأكيد NDMI+MSI`) + الإسقاط يطبّق `FEATURE_WATER_STRESS_ESCALATION`
+  ⇒ `human_review` عند ON (الكتلة تُعلن `disabled_reason` عند off) — [`decisions/water-stress-d2.md`](water-stress-d2.md).
+  ثمرة Bundle A لكنّها أكبر من «إصلاح تكرار»: تجعل الحالة المصدرَ الوحيد لقيم المياه.
 - **C — رهانات R&D (مسار منفصل، feature-flags، خارج المسار الحرج):** Field Embeddings · نماذج أساس
   (Prithvi/DINOv3) · SAM2 production (GPU) · Multi-engine Ensemble · Machine Integration (ISOXML).
   تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن.
