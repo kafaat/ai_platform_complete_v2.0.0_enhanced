@@ -31,7 +31,7 @@
    يحمّل الحقول إلى جدول `fields` ويستعلمها محليّاً
    ([`../../frontend/src/services/duckdb.ts`](../../frontend/src/services/duckdb.ts) +
    [`../../frontend/src/components/sql/SQLEditor.tsx`](../../frontend/src/components/sql/SQLEditor.tsx)).
-   عميل-فقط، مستضاف ذاتيّاً، كسول (لا يمسّ الحزمة الرئيسة). **مؤجَّل لـv2:** spatial extension
+   عميل-فقط، مستضاف ذاتيّاً، كسول (لا يمسّ الحزمة الرئيسة) + **تصدير النتائج CSV** (#452). **مؤجَّل لـv2:** spatial extension
    (`ST_Area`/`ST_Intersects` — يُحمَّل من extensions.duckdb.org، يحتاج تجميعاً أوفلاين) + المؤشّرات
    (NDVI async لكلّ حقل) + ربط النتائج بإبراز الخريطة.
 3. **نظام إضافات (Plugin) + AI GIS Assistant** (لغة طبيعيّة → Spatial SQL → تحديث الخريطة) —
