@@ -18,11 +18,12 @@
 // القيود: عربيّ-RTL، framer-motion للانتقالات، DS atoms/StateViews/ToastContainer،
 // صدق البيانات (لا قيم ملفّقة؛ الغائب «—»). البوّابات (RBAC/العلم) تبقى في App.
 // ═══════════════════════════════════════════════════════════════
-import { Suspense, lazy, useCallback, useMemo, useState } from 'react';
+import { Suspense, lazy, useCallback, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
   Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
-  Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine,
+  Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
 } from 'lucide-react';
+import { buildProject, downloadProject, parseProjectFile } from '../lib/projectFile';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast } from '../hooks/useApi';
@@ -102,6 +103,48 @@ export default function MapHub() {
   const [showAddField, setShowAddField] = useState(false);
   const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
   const [search, setSearch] = useState('');
+
+  // ── حفظ/استيراد مساحة العمل (.sahool-project.json) — مستوحى من GeoLibre ──────
+  // عميل-فقط: التصدير يقرأ الحالة الحاليّة، والاستيراد يستدعي الـsetters القائمة.
+  const projectInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExportProject = useCallback(() => {
+    const project = buildProject({
+      mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
+      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory,
+      selectedFieldId: fieldId,
+    });
+    downloadProject(project, `sahool-project-${new Date().toISOString().slice(0, 10)}.json`);
+    toastStore.add('success', '✅ حُفِظ المشروع', 'نُزِّلت مساحة العمل كملفّ');
+  }, [mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
+      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory, fieldId]);
+
+  const handleImportProject = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.currentTarget.files?.[0];
+    e.currentTarget.value = ''; // اسمح بإعادة استيراد نفس الملفّ
+    if (!file) return;
+    try {
+      const w = await parseProjectFile(file);
+      setMode(w.mode);
+      setBasemapId(w.basemapId);
+      setActiveIndicator(w.activeIndicator);
+      setOpacity(w.opacity);
+      setCompare(w.compare);
+      setLeftLayer(w.leftLayer);
+      setRightLayer(w.rightLayer);
+      setDrawTools(w.drawTools);
+      setPinMode(w.pinMode);
+      setShowWeather(w.showWeather);
+      setShowAlerts(w.showAlerts);
+      setShowDevices(w.showDevices);
+      if (w.pinCategory) setPinCategory(w.pinCategory);
+      if (w.selectedFieldId) setFieldId(w.selectedFieldId);
+      toastStore.add('success', '✅ استُورِد المشروع', 'استُعيدت مساحة العمل');
+    } catch (err) {
+      toastStore.add('error', '⚠️ فشل استيراد المشروع',
+        err instanceof Error ? err.message : 'ملفّ غير صالح');
+    }
+  }, [setFieldId]);
 
   const selected = fields.find((f) => f.id === fieldId);
 
@@ -288,6 +331,25 @@ export default function MapHub() {
               <Plus className="w-3.5 h-3.5" /> حقل جديد
             </button>
           )}
+          {/* حفظ/استيراد مساحة العمل (.sahool-project.json) — عميل-فقط، متاح للجميع */}
+          <button
+            type="button" onClick={handleExportProject} title="حفظ مساحة العمل كملفّ"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+            style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+          >
+            <Download className="w-3.5 h-3.5" /> حفظ المشروع
+          </button>
+          <button
+            type="button" onClick={() => projectInputRef.current?.click()} title="استيراد مساحة عمل"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
+            style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+          >
+            <Upload className="w-3.5 h-3.5" /> استيراد
+          </button>
+          <input
+            ref={projectInputRef} type="file" accept=".json,application/json"
+            onChange={handleImportProject} style={{ display: 'none' }}
+          />
         </div>
       </header>
 
