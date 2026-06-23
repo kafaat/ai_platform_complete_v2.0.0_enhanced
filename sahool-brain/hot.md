@@ -1,8 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`5ed73c0`](../) (#460 مُدمج) · فرع العمل `claude/dynamic-kc-ndvi`
-> (#461 قيد المراجعة: Kc ديناميكيّ من NDVI — [`log.md`](log.md) مدخل (ل)؛ سبقه (ك) Water Twin م٢ ·
-> (ي) Water Twin v1 · (ط) دفتر v98+Parquet+H2 · (ح) CDSE افتراضيّاً · (ز) ET0/Dual-Kc).
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`56f2f79`](../) (#461 مُدمج) · فرع العمل `claude/etc-dual-ndvi`
+> (#462 قيد المراجعة: نقطة etc-dual تحقن NDVI الحيّ — [`log.md`](log.md) مدخل (م)؛ سبقه (ل) Kc-NDVI ·
+> (ك) Water Twin م٢ · (ي) Water Twin v1 · (ط) دفتر v98+Parquet+H2 · (ح) CDSE افتراضيّاً · (ز) ET0/Dual-Kc).
 
 ## عمل هذه الجلسة (#437 → #447)
 
