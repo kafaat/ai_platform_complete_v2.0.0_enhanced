@@ -83,6 +83,11 @@ export interface HubMapGLProps {
   alertMarkers?: AlertMarker[];
   deviceMarkers?: DeviceMarker[];
   weatherMarker?: WeatherMarker | null;
+  // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
+  // لقطة عرض مُستعادة تبدأ منها الخريطة وتُلغي الملاءمة التلقائيّة عند أوّل تحميل.
+  initialView?: { centerLat: number; centerLng: number; zoom: number } | null;
+  // يُستدعى عند استقرار حركة المستخدم (moveend) بالمركز [lat,lng] والتكبير.
+  onViewChange?: (center: [number, number], zoom: number) => void;
 }
 
 // رابط بلاطات مؤشّر الحقل — نفس باني HubMap.indicatorTileUrl (مصدر واحد للصدق).
@@ -243,6 +248,7 @@ export default function HubMapGL({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity, height = 520,
   drawTools = false, pinMode = false, pins = [], onAddPin,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null,
+  initialView = null, onViewChange,
 }: HubMapGLProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -258,6 +264,14 @@ export default function HubMapGL({
   onAddPinRef.current = onAddPin;
   const pinModeRef = useRef(pinMode);
   pinModeRef.current = pinMode;
+  const onViewChangeRef = useRef(onViewChange);
+  onViewChangeRef.current = onViewChange;
+
+  // ── v2: لقطة العرض المُستعادة (تُؤخذ مرّة عند أوّل تركيب) ──
+  // إن وُجدت، تُستعمل كمركز/تكبير ابتدائيّ وتُلغي الملاءمة التلقائيّة في fitView.
+  // hasRestoredViewRef حارس يُستهلَك بعد أوّل ملاءمة كي تعمل الملاءمات اللاحقة.
+  const initialViewRef = useRef(initialView);
+  const hasRestoredViewRef = useRef(initialView != null);
 
   // مراجع علامات التراكب/الدبابيس (إزالة كلّ شيء عند كلّ مزامنة/تفكيك — لا تسريب).
   const overlayMarkersRef = useRef<maplibregl.Marker[]>([]);
@@ -307,8 +321,11 @@ export default function HubMapGL({
             { id: LYR_BASEMAP, type: 'raster', source: SRC_BASEMAP },
           ],
         },
-        center: YEMEN_CENTER,
-        zoom: 5,
+        // v2: ابدأ من العرض المُستعاد إن وُجد ([lng,lat] لـMapLibre)، وإلّا اليمن.
+        center: initialViewRef.current
+          ? [initialViewRef.current.centerLng, initialViewRef.current.centerLat]
+          : YEMEN_CENTER,
+        zoom: initialViewRef.current?.zoom ?? 5,
         attributionControl: { compact: true },
       });
     } catch {
@@ -352,6 +369,14 @@ export default function HubMapGL({
       map.on('mouseleave', LYR_FILL, () => {
         if (!pinModeRef.current) map.getCanvas().style.cursor = '';
         popup.remove();
+      });
+
+      // v2: التقاط استقرار الحركة (moveend) ⇒ إبلاغ المركز [lat,lng] والتكبير.
+      // يشمل moveend البرمجيّ (fitBounds/jumpTo) والمستخدم؛ الكتابة في MapHub
+      // مُتسامِحة (idempotent) فلا تُحدث حلقة استعادة↔حركة.
+      map.on('moveend', () => {
+        const c = map.getCenter();
+        onViewChangeRef.current?.([c.lat, c.lng], map.getZoom());
       });
     });
 
@@ -609,7 +634,13 @@ export default function HubMapGL({
   }
 
   // يضبط الإطار على الحقل المختار إن وُجد، وإلّا على كلّ الحقول، وإلّا مركز اليمن.
+  // v2: حين عرض مُستعاد، نتخطّى أوّل ملاءمة فقط (احترام مركز/تكبير المستخدم)؛
+  // يُستهلَك الحارس فتعمل الملاءمات اللاحقة (تغيّر الاختيار/الحقول) كالمعتاد.
   function fitView(map: maplibregl.Map) {
+    if (hasRestoredViewRef.current) {
+      hasRestoredViewRef.current = false;
+      return;
+    }
     const selected = fields.find((f) => f.id === selectedId);
     if (selected) {
       const poly = geomToPolygon(selected.geometry);

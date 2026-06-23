@@ -12,7 +12,7 @@
 // على الحقل من الخلفيّة (errorTileUrl شفّاف يتفادى 404 صاخب). الدبابيس حالة
 // محلّيّة (لا نقطة قراءة scouting في الخلفيّة — موثّق في MapHub بـTODO).
 // ═══════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   MapContainer, TileLayer, Polygon, CircleMarker, Marker, Tooltip,
   FeatureGroup, useMap, useMapEvents,
@@ -63,6 +63,12 @@ export interface HubMapProps {
   alertMarkers?: AlertMarker[];
   deviceMarkers?: DeviceMarker[];
   weatherMarker?: WeatherMarker | null;
+  // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
+  // لقطة عرض مُستعادة (مركز lat/lng + تكبير) تبدأ منها الخريطة وتُلغي الملاءمة
+  // التلقائيّة عند أوّل تركيب. null/غياب ⇒ سلوك v1 (ملاءمة للحقول).
+  initialView?: { centerLat: number; centerLng: number; zoom: number } | null;
+  // يُستدعى عند استقرار حركة المستخدم (moveend) بالمركز [lat,lng] والتكبير.
+  onViewChange?: (center: [number, number], zoom: number) => void;
 }
 
 export type { AlertMarker, DeviceMarker, WeatherMarker };
@@ -173,14 +179,24 @@ function MeasureTools() {
 }
 
 // يضبط إطار الخريطة على الحقل المختار إن وُجد، وإلّا على كلّ الحقول.
+// v2: حين hasRestoredView، نتخطّى الملاءمة عند أوّل تركيب فقط كي لا نطمس عرضاً
+// مُستعاداً (مركز+تكبير المستخدم)؛ تغيّرات الاختيار/الحقول لاحقاً تُلائم كالمعتاد.
 function FitToFields({
-  fields, selectedId,
+  fields, selectedId, hasRestoredView = false,
 }: {
   fields: FieldOption[];
   selectedId: string;
+  hasRestoredView?: boolean;
 }) {
   const map = useMap();
+  const firstFitSkippedRef = useRef(false);
   useEffect(() => {
+    if (hasRestoredView && !firstFitSkippedRef.current) {
+      // أوّل تركيب مع عرض مُستعاد ⇒ لا تُلائم (احترم العرض المُستعاد). التغيّرات
+      // اللاحقة (اختيار/حقول) تُلائم عادةً لأنّ الحارس يُستهلَك بعد أوّل تشغيل.
+      firstFitSkippedRef.current = true;
+      return;
+    }
     const selected = fields.find((f) => f.id === selectedId);
     if (selected) {
       const poly = geomToPolygon(selected.geometry);
@@ -196,7 +212,20 @@ function FitToFields({
       const b = L.latLngBounds(points.map(([lat, lng]) => L.latLng(lat, lng)));
       if (b.isValid()) map.fitBounds(b, { padding: [30, 30], maxZoom: 16 });
     }
-  }, [map, fields, selectedId]);
+  }, [map, fields, selectedId, hasRestoredView]);
+  return null;
+}
+
+// يلتقط استقرار حركة المستخدم (moveend) فيُبلّغ المركز [lat,lng] والتكبير لأعلى.
+// خفيف بلا حالة؛ الكتابة في MapHub مُتسامِحة (نفس القيمة لا تُحدث حلقة).
+function ViewCapture({ onViewChange }: { onViewChange?: (center: [number, number], zoom: number) => void }) {
+  const map = useMapEvents({
+    moveend() {
+      if (!onViewChange) return;
+      const c = map.getCenter();
+      onViewChange([c.lat, c.lng], map.getZoom());
+    },
+  });
   return null;
 }
 
@@ -227,17 +256,27 @@ export default function HubMap({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity,
   drawTools, pinMode, pins, onAddPin, height = 520,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null,
+  initialView = null, onViewChange,
 }: HubMapProps) {
   const basemap = getLayer(basemapId);
   const basemapUrl = basemap?.source
     ?? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
+  // v2: لقطة العرض المُستعادة تُؤخذ مرّة واحدة عند أوّل تركيب (المركز/التكبير
+  // الابتدائيّان لـMapContainer غير تفاعليّين بعد التركيب). نُثبّتها بـref كي لا
+  // تتغيّر مرجعيّاً، وكي يتّسق حارس تخطّي الملاءمة الأوّليّة معها.
+  const initialViewRef = useRef(initialView);
+  const hasRestoredView = initialViewRef.current != null;
+
   const center = useMemo<[number, number]>(() => {
+    const iv = initialViewRef.current;
+    if (iv) return [iv.centerLat, iv.centerLng];
     const points = collectFieldBoundsPoints(fields);
     if (!points.length) return YEMEN_CENTER;
     const [sumLat, sumLng] = points.reduce(([a, b], [la, ln]) => [a + la, b + ln], [0, 0]);
     return [sumLat / points.length, sumLng / points.length];
   }, [fields]);
+  const initialZoom = initialViewRef.current?.zoom ?? 11;
 
   const selected = fields.find((f) => f.id === selectedId);
   const selectedPoly = selected ? geomToPolygon(selected.geometry) : undefined;
@@ -247,7 +286,7 @@ export default function HubMap({
       <MapContainer
         className="leaflet-map"
         center={center}
-        zoom={11}
+        zoom={initialZoom}
         style={{ height, width: '100%', cursor: pinMode ? 'crosshair' : undefined }}
         scrollWheelZoom
       >
@@ -332,7 +371,8 @@ export default function HubMap({
 
         <PinClickHandler enabled={pinMode} onAddPin={onAddPin} />
         {drawTools && <MeasureTools />}
-        <FitToFields fields={fields} selectedId={selectedId} />
+        <FitToFields fields={fields} selectedId={selectedId} hasRestoredView={hasRestoredView} />
+        <ViewCapture onViewChange={onViewChange} />
       </MapContainer>
 
       {/* شريط التحكّم بشفّافيّة المؤشّر — يظهر فقط حين توجد طبقة مؤشّر نشطة */}
