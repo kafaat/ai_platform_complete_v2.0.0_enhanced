@@ -850,3 +850,614 @@ class WSoilSection extends StatelessWidget {
     );
   }
 }
+
+// ── شارة حالة ملوّنة موحّدة (لِحالات الموسم/الإلحاح/الخطر/الفئة) ───────
+/// شارة صغيرة بنصّ عربيّ ولون دلاليّ. تُعاد استخدامها عبر أقسام مساحة العمل.
+class WBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+  const WBadge(this.label, this.color, {super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.16),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.5)),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                color: color, fontSize: 11, fontWeight: FontWeight.w700)),
+      );
+}
+
+// ════════════════════════════════════════════════════════════════════
+// قسم الموسم — يجلب GET /api/v1/fields/{id}/seasons (fetchFieldSeasons).
+// بطاقة لكلّ موسم: المحاصيل، الصنف، حالة الموسم (شارة)، البذار، نهاية الموسم،
+// الإنتاجيّة المستهدفة. صدق: لا مواسم ⇒ EmptyView بلا اختلاق.
+// ════════════════════════════════════════════════════════════════════
+class WSeasonSection extends StatefulWidget {
+  final String fieldId;
+  const WSeasonSection({super.key, required this.fieldId});
+  @override
+  State<WSeasonSection> createState() => _WSeasonSectionState();
+}
+
+class _WSeasonSectionState extends State<WSeasonSection> {
+  late Future<List<Map<String, dynamic>>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<List<Map<String, dynamic>>> _load() =>
+      ApiService.instance.fetchFieldSeasons(widget.fieldId);
+
+  void _retry() => setState(() => _future = _load());
+
+  static const _statusAr = {
+    'planned': 'مُخطَّط',
+    'active': 'نشط',
+    'closed': 'مُغلَق',
+  };
+  static const _statusColor = {
+    'planned': kSecondary,
+    'active': kPrimary,
+    'closed': Colors.grey,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const LoadingView();
+        }
+        if (snap.hasError) {
+          return ErrorView(
+              message: apiErrorMessage(snap.error!), onRetry: _retry);
+        }
+        final seasons = snap.data ?? const <Map<String, dynamic>>[];
+        if (seasons.isEmpty) {
+          return const EmptyView(
+              message: 'لا مواسم لهذا الحقل بعد',
+              icon: Icons.calendar_month);
+        }
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: seasons.map((s) {
+            final cropsRaw = s['crops'];
+            final crops = cropsRaw is List
+                ? cropsRaw.map((e) => e.toString()).join('، ')
+                : wText(cropsRaw);
+            final status = wText(s['status'], '');
+            final target = wNum(s['target_yield_kg_ha']);
+            return WSectionCard(
+              title: crops.isEmpty ? 'موسم' : crops,
+              icon: Icons.calendar_month,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (status.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: WBadge(
+                          _statusAr[status] ?? status,
+                          _statusColor[status] ?? Colors.grey,
+                        ),
+                      ),
+                    ),
+                  WInfoRow('الصنف', wText(s['cultivar'])),
+                  WInfoRow('تاريخ البذار', wText(s['sowing_date'])),
+                  WInfoRow('نهاية الموسم', wText(s['season_end'])),
+                  WInfoRow(
+                    'الإنتاجيّة المستهدفة',
+                    target != null
+                        ? '${target.toStringAsFixed(0)} كغ/هـ'
+                        : '—',
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// قسم الأنشطة — يجلب GET /api/v1/fields/{id}/activities (fetchFieldActivities).
+// صفّ لكلّ نشاط: العنوان العربيّ، نوع العمليّة (تسمية عربيّة)، الحالة (شارة)،
+// التاريخ المُنفَّذ/المُجدوَل. صدق: لا أنشطة ⇒ EmptyView بلا اختلاق.
+// ════════════════════════════════════════════════════════════════════
+class WActivitiesSection extends StatefulWidget {
+  final String fieldId;
+  const WActivitiesSection({super.key, required this.fieldId});
+  @override
+  State<WActivitiesSection> createState() => _WActivitiesSectionState();
+}
+
+class _WActivitiesSectionState extends State<WActivitiesSection> {
+  late Future<List<Map<String, dynamic>>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<List<Map<String, dynamic>>> _load() =>
+      ApiService.instance.fetchFieldActivities(widget.fieldId);
+
+  void _retry() => setState(() => _future = _load());
+
+  static const _typeAr = {
+    'planting': 'بذر',
+    'sowing': 'بذر',
+    'irrigation': 'ريّ',
+    'fertilizer': 'تسميد',
+    'fertilization': 'تسميد',
+    'spraying': 'رشّ',
+    'pesticide': 'رشّ مبيد',
+    'harvest': 'حصاد',
+    'scouting': 'كشف ميدانيّ',
+    'tillage': 'حراثة',
+  };
+  static const _statusAr = {
+    'planned': 'مُخطَّط',
+    'done': 'مُنجَز',
+    'completed': 'مُنجَز',
+  };
+  static const _statusColor = {
+    'planned': kSecondary,
+    'done': kPrimary,
+    'completed': kPrimary,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const LoadingView();
+        }
+        if (snap.hasError) {
+          return ErrorView(
+              message: apiErrorMessage(snap.error!), onRetry: _retry);
+        }
+        final activities = snap.data ?? const <Map<String, dynamic>>[];
+        if (activities.isEmpty) {
+          return const EmptyView(
+              message: 'لا أنشطة مسجّلة بعد', icon: Icons.assignment);
+        }
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            WSectionCard(
+              title: 'أنشطة الحقل',
+              icon: Icons.assignment,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: activities.map((a) {
+                  final type = wText(a['activity_type'], '');
+                  final status = wText(a['status'], '');
+                  final when = wText(
+                      a['performed_on'] ?? a['scheduled_for'], '');
+                  final typeAr = _typeAr[type] ?? type;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                wText(a['title_ar'],
+                                    typeAr.isEmpty ? 'نشاط' : typeAr),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600),
+                              ),
+                              if (typeAr.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(typeAr,
+                                      style: const TextStyle(
+                                          color: Colors.grey, fontSize: 11)),
+                                ),
+                              if (when.isNotEmpty && when != '—')
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Text(when,
+                                      style: const TextStyle(
+                                          color: Colors.grey, fontSize: 11)),
+                                ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (status.isNotEmpty)
+                          WBadge(
+                            _statusAr[status] ?? status,
+                            _statusColor[status] ?? Colors.grey,
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// قسم الطقس والإرشاد — يجلب توصية الريّ (irrigation-advice) ومخاطر الأمراض
+// (disease-risk) معاً عبر fetchIrrigationAdvice/fetchDiseaseRisk. كلّ بطاقة
+// مستقلّة: إن فشل أحد النداءين عُرِض خطؤه سطريّاً مع إبقاء الآخر (تدهور رشيق).
+// صدق: لا اختلاق — الأرقام تأتي من الخادم أو لا تُعرَض.
+// ════════════════════════════════════════════════════════════════════
+class WWeatherSection extends StatefulWidget {
+  final String fieldId;
+  const WWeatherSection({super.key, required this.fieldId});
+  @override
+  State<WWeatherSection> createState() => _WWeatherSectionState();
+}
+
+class _WWeatherSectionState extends State<WWeatherSection> {
+  late Future<Map<String, dynamic>> _irrigation;
+  late Future<Map<String, dynamic>> _disease;
+
+  @override
+  void initState() {
+    super.initState();
+    _irrigation = _loadIrrigation();
+    _disease = _loadDisease();
+  }
+
+  Future<Map<String, dynamic>> _loadIrrigation() =>
+      ApiService.instance.fetchIrrigationAdvice(widget.fieldId);
+  Future<Map<String, dynamic>> _loadDisease() =>
+      ApiService.instance.fetchDiseaseRisk(widget.fieldId);
+
+  void _retryIrrigation() =>
+      setState(() => _irrigation = _loadIrrigation());
+  void _retryDisease() => setState(() => _disease = _loadDisease());
+
+  static const _urgencyAr = {
+    'none': 'لا حاجة',
+    'low': 'منخفض',
+    'moderate': 'متوسّط',
+    'high': 'عاجل',
+  };
+  static const _urgencyColor = {
+    'none': Colors.grey,
+    'low': kPrimary,
+    'moderate': kWarn,
+    'high': Color(0xFFD64545),
+  };
+  static const _riskAr = {
+    'low': 'منخفض',
+    'moderate': 'متوسّط',
+    'high': 'مرتفع',
+  };
+  static const _riskColor = {
+    'low': kPrimary,
+    'moderate': kWarn,
+    'high': Color(0xFFD64545),
+  };
+
+  Widget _subError(String message, VoidCallback onRetry) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(message,
+              style: const TextStyle(color: Colors.white70, fontSize: 13)),
+          const SizedBox(height: 8),
+          TextButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
+        ],
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // ── بطاقة توصية الريّ ──
+        FutureBuilder<Map<String, dynamic>>(
+          future: _irrigation,
+          builder: (context, snap) {
+            return WSectionCard(
+              title: 'توصية الريّ',
+              icon: Icons.water_drop,
+              child: Builder(
+                builder: (_) {
+                  if (snap.connectionState != ConnectionState.done) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: LoadingView(),
+                    );
+                  }
+                  if (snap.hasError) {
+                    return _subError(
+                        apiErrorMessage(snap.error!), _retryIrrigation);
+                  }
+                  final d = snap.data ?? const <String, dynamic>{};
+                  final urgency = wText(d['urgency'], '');
+                  final recommended = wNum(d['recommended_mm']);
+                  final timing = wText(d['timing_ar']);
+                  final rationale = wText(d['rationale_ar'], '');
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (urgency.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: WBadge(
+                              _urgencyAr[urgency] ?? urgency,
+                              _urgencyColor[urgency] ?? Colors.grey,
+                            ),
+                          ),
+                        ),
+                      WInfoRow(
+                        'الكمّيّة الموصى بها',
+                        recommended != null
+                            ? '${recommended.toStringAsFixed(1)} مم'
+                            : '—',
+                      ),
+                      WInfoRow('التوقيت', timing),
+                      if (rationale.isNotEmpty && rationale != '—') ...[
+                        const SizedBox(height: 8),
+                        Text(rationale,
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                      ],
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        // ── بطاقة مخاطر الأمراض ──
+        FutureBuilder<Map<String, dynamic>>(
+          future: _disease,
+          builder: (context, snap) {
+            return WSectionCard(
+              title: 'مخاطر الأمراض',
+              icon: Icons.coronavirus,
+              child: Builder(
+                builder: (_) {
+                  if (snap.connectionState != ConnectionState.done) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: LoadingView(),
+                    );
+                  }
+                  if (snap.hasError) {
+                    return _subError(
+                        apiErrorMessage(snap.error!), _retryDisease);
+                  }
+                  final d = snap.data ?? const <String, dynamic>{};
+                  final risk = wText(d['risk_level'], '');
+                  final temp = wNum(d['temperature_c']);
+                  final humidity = wNum(d['humidity_pct']);
+                  final diseasesRaw = d['diseases_ar'];
+                  final diseases = diseasesRaw is List
+                      ? diseasesRaw.map((e) => e.toString()).toList()
+                      : const <String>[];
+                  final advice = wText(d['advice_ar'], '');
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (risk.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Align(
+                            alignment: AlignmentDirectional.centerStart,
+                            child: WBadge(
+                              _riskAr[risk] ?? risk,
+                              _riskColor[risk] ?? Colors.grey,
+                            ),
+                          ),
+                        ),
+                      WInfoRow('الحرارة',
+                          temp != null ? '${temp.toStringAsFixed(1)}°م' : '—'),
+                      WInfoRow(
+                          'الرطوبة',
+                          humidity != null
+                              ? '${humidity.toStringAsFixed(0)}٪'
+                              : '—'),
+                      if (diseases.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        ...diseases.map((r) => Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text('• $r',
+                                  style: const TextStyle(
+                                      color: Colors.white70, fontSize: 12)),
+                            )),
+                      ],
+                      if (advice.isNotEmpty && advice != '—') ...[
+                        const SizedBox(height: 8),
+                        Text(advice,
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                      ],
+                    ],
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+// قسم الخطّ الزمنيّ — يجلب GET /api/v1/fields/{id}/unified-timeline
+// (fetchUnifiedTimeline). صفّ لكلّ حدث: الوقت + الملخّص العربيّ + شارة الفئة.
+// صدق: لا أحداث ⇒ EmptyView؛ note_ar/error (تدهور القاعدة) يُعرَض كما هو.
+// ════════════════════════════════════════════════════════════════════
+class WTimelineSection extends StatefulWidget {
+  final String fieldId;
+  const WTimelineSection({super.key, required this.fieldId});
+  @override
+  State<WTimelineSection> createState() => _WTimelineSectionState();
+}
+
+class _WTimelineSectionState extends State<WTimelineSection> {
+  late Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<Map<String, dynamic>> _load() =>
+      ApiService.instance.fetchUnifiedTimeline(widget.fieldId);
+
+  void _retry() => setState(() => _future = _load());
+
+  static const _categoryAr = {
+    'lifecycle': 'دورة الحياة',
+    'operation': 'عمليّة',
+    'observation': 'مشاهدة',
+    'calibration': 'معايرة',
+    'weather': 'طقس',
+    'system': 'نظام',
+  };
+  static const _categoryColor = {
+    'lifecycle': kSecondary,
+    'operation': kPrimary,
+    'observation': kWarn,
+    'calibration': Color(0xFFA855F7),
+    'weather': kSecondary,
+    'system': Colors.grey,
+  };
+
+  // تنسيق وقت ISO ⇒ YYYY-MM-DD HH:mm (يتسامح مع صيغ أخرى).
+  String _fmt(dynamic raw) {
+    final s = wText(raw, '');
+    if (s.isEmpty || s == '—') return '—';
+    final dt = DateTime.tryParse(s);
+    if (dt == null) return s;
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${dt.year}-${two(dt.month)}-${two(dt.day)} '
+        '${two(dt.hour)}:${two(dt.minute)}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const LoadingView();
+        }
+        if (snap.hasError) {
+          return ErrorView(
+              message: apiErrorMessage(snap.error!), onRetry: _retry);
+        }
+        final data = snap.data ?? const <String, dynamic>{};
+        final eventsRaw = data['events'];
+        final events = eventsRaw is List
+            ? eventsRaw.whereType<Map>().map((e) => e.cast<String, dynamic>())
+                .toList()
+            : const <Map<String, dynamic>>[];
+        // تدهور رشيق صادق: القاعدة معطّلة ⇒ note_ar/error بدل اختلاق تاريخ.
+        final note = wText(data['note_ar'] ?? data['error'], '');
+
+        if (events.isEmpty) {
+          if (note.isNotEmpty && note != '—') {
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                WSectionCard(
+                  title: 'الخطّ الزمنيّ',
+                  icon: Icons.timeline,
+                  child: Text(note,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          color: Colors.white70, fontSize: 13)),
+                ),
+              ],
+            );
+          }
+          return const EmptyView(
+              message: 'لا أحداث بعد', icon: Icons.timeline);
+        }
+
+        return ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (note.isNotEmpty && note != '—')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: InfoBanner(text: note),
+              ),
+            WSectionCard(
+              title: 'الخطّ الزمنيّ',
+              icon: Icons.timeline,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: events.map((e) {
+                  final category = wText(e['category'], '');
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                wText(e['summary_ar'],
+                                    wText(e['event_type'], 'حدث')),
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 13),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(_fmt(e['timestamp']),
+                                    style: const TextStyle(
+                                        color: Colors.grey, fontSize: 11)),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (category.isNotEmpty)
+                          WBadge(
+                            _categoryAr[category] ?? category,
+                            _categoryColor[category] ?? Colors.grey,
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}

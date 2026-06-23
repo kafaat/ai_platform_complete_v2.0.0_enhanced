@@ -816,6 +816,58 @@ class ApiService {
     return _asMap(r.data);
   }
 
+  // ── Field workspace read-only views (موسم/أنشطة/طقس/خطّ زمنيّ) ──
+  // ربط حيّ للتبويبات بمسارات api/routers/fields.py القائمة (مستعملة في الويب).
+  // كلّها قراءة فقط (FIELD_VIEW)؛ تحرس الشكل بـ_asList/_asMap كبقيّة المسارات.
+  // صدق: 503 (طقس/DB غير متاح) / 404 (حقل غير موجود) يُرمى ليعرض الـUI حالة
+  // صادقة عبر apiErrorMessage — لا بيانات مُلفَّقة.
+
+  /// مواسم الحقل، الأحدث أوّلاً (GET /api/v1/fields/{id}/seasons).
+  /// كلّ عنصر SeasonSummary: {season_id, crops:[..], cultivar, sowing_date,
+  /// season_end, status(planned/active/closed), target_yield_kg_ha, ...}.
+  Future<List<Map<String, dynamic>>> fetchFieldSeasons(String fieldId) async {
+    final r = await _dio.get('/api/v1/fields/$fieldId/seasons');
+    return _asList(r.data);
+  }
+
+  /// عمليّات/أنشطة الحقل، الأحدث أوّلاً (GET /api/v1/fields/{id}/activities).
+  /// كلّ عنصر ActivitySummary: {activity_id, activity_type, title_ar,
+  /// scheduled_for, performed_on, status(planned/done), ...}.
+  Future<List<Map<String, dynamic>>> fetchFieldActivities(
+      String fieldId) async {
+    final r = await _dio.get('/api/v1/fields/$fieldId/activities');
+    return _asList(r.data);
+  }
+
+  /// توصية ريّ بنمط FAO-56 من الطقس الحيّ ومحصول الموسم النشط
+  /// (GET /api/v1/fields/{id}/weather/irrigation-advice). يردّ
+  /// {crop, stage, urgency(none/low/moderate/high), recommended_mm, et0, kc,
+  /// timing_ar, rationale_ar, soil_moisture_pct, source}. 503 إن تعذّر الطقس.
+  Future<Map<String, dynamic>> fetchIrrigationAdvice(String fieldId) async {
+    final r =
+        await _dio.get('/api/v1/fields/$fieldId/weather/irrigation-advice');
+    return _asMap(r.data);
+  }
+
+  /// مخاطر أمراض فطريّة (agro-met) من الطقس الحيّ
+  /// (GET /api/v1/fields/{id}/weather/disease-risk). يردّ
+  /// {crop, temperature_c, humidity_pct, rain_mm_3d, risk_level(low/moderate/
+  /// high), diseases_ar:[..], advice_ar, source}. 503 إن تعذّر الطقس.
+  Future<Map<String, dynamic>> fetchDiseaseRisk(String fieldId) async {
+    final r = await _dio.get('/api/v1/fields/$fieldId/weather/disease-risk');
+    return _asMap(r.data);
+  }
+
+  /// الخطّ الزمنيّ الموحّد للحقل (GET /api/v1/fields/{id}/unified-timeline).
+  /// يردّ {events:[{timestamp, event_type, category, summary_ar, actor_id,
+  /// payload}], total_events, category_counts, earliest_at, latest_at}؛ وقد
+  /// يردّ note_ar/error عند تدهور القاعدة (صدق: لا تاريخ مخترَع).
+  Future<Map<String, dynamic>> fetchUnifiedTimeline(String fieldId) async {
+    final r = await _dio.get('/api/v1/fields/$fieldId/unified-timeline',
+        queryParameters: {'limit': 100, 'newest_first': true});
+    return _asMap(r.data);
+  }
+
   // ── Documents (document:view / document:manage) — بيانات وصفيّة فقط ──
   Future<List<Map<String, dynamic>>> listDocuments(
       {String? category, String? fieldId}) async {
