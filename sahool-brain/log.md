@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-06-23 (ش) — Bundle D / D2a: كتلة الإجهاد المائيّ الكنسيّة (معلوماتيّة، بلا تصعيد)
+
+**رأس `main`:** `208454d` (#468 مُدمج). فرع `claude/bundle-d2a-water-stress`. بعد Bundle B، D2 هو الأخير
+في ترتيب المستخدم — **حسّاس (يغيّر القرار)**، فطُلِبت خطّة رسميّة + إقرار عتبة. أُنشئت
+[`decisions/water-stress-d2.md`](decisions/water-stress-d2.md) وأُقِرّت العتبة (نموذج 4 مستويات).
+- **قرار المستخدم (2026-06-23):** NORMAL (AWF>1−p) · WATCH (Dr≥RAW، تنبيه) · CRITICAL (AWF≤0.2، توصية) ·
+  **ESCALATE→human_review** حصراً عند `AWF≤0.2 ∧ depletion_confidence≥0.8 ∧ تأكيد طيفيّ (NDMI/MSI)` —
+  «فيزياء+رصد»، نادر عالي الثقة (بدء الإجهاد Dr≥RAW **لا** يُصعّد كي لا يُغرِق المهندس).
+- **D2a (هذا العمل — إضافيّ محفوظ السلوك):** قارئ نقيّ `api/canonical_water_stress.py`
+  (`canonical_water_stress(row)` → AWF عبر `soil_water.available_water_fraction` + مستوى + موسوم
+  `calibrated=False`؛ غياب Dr/TAW ⇒ None). `recompute_field_state` يقرأ أحدث استنزاف+ثقة من
+  `water_ledger` ويشتقّ TAW من `soil_water_params` ويُسقط كتلة `water_stress`. `diagnose` يقرؤها.
+  **بلا تصعيد** — المسار القانونيّ (validity/execution_mode) كما هو تماماً.
+- **D2b (التصعيد) مؤجَّل بإشارة:** يتطلّب `spectral_stress_detected` (NDMI/MSI) غير المحقون في المسار
+  الكنسيّ بعد — بقرار المستخدم نفسه لا تصعيد بلا طيف، فبناؤه الآن = كود خامد. ينتظر توصيل الطيف.
+
+**صدق + أمان:** إعادة استخدام صرفة للفيزياء القائمة (`soil_water`/`water_ledger`)؛ TAW/p غير معايَرين
+يمنيّاً ⇒ موسوم `calibrated=False` (لا اختلاق دقّة). تحقّق: ٥ اختبارات قارئ
+(`tests_v9/test_canonical_water_stress.py`) + ٢ إسقاط (`test_field_state_unification.py`: كتلة حاضرة بلا
+تصعيد · لا دفتر لا كتلة) · tests_v9 1816 (فشل MFA الـ5 سابقٌ) · platform 1104 · حارس التفكيك أخضر ·
+**مسح ruff كامل**. (يشمل هذا الفرع أيضاً بكرة دفتر Bundle B بعد دمج #468: رأس main + سجلّ القرارات §4.)
+
+---
+
 ## 2026-06-23 (ر) — Bundle B: تصعيد ثقة حدود الحقل في الحالة القانونيّة
 
 **رأس `main`:** `bc16209` (#467 مُدمج). فرع `claude/bundle-b-boundary-confidence`. بعد D3 اختار المستخدم
