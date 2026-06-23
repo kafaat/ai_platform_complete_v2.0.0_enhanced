@@ -570,6 +570,60 @@ export const simulateFieldWaterTwin = (
 ): Promise<WaterTwinResult> =>
   kongApi.post<WaterTwinResult>(`/api/v1/fields/${fieldId}/water-twin`, payload).then(r => r.data);
 
+// ── ETc المزدوج (FAO-56) لحقل، مُغذّى بـNDVI الحيّ (POST /api/v1/fields/{id}/etc-dual) ──
+// يحسب ETc بنهج المعامل المزدوج (Kcb·Ks + Ke)·ET0 (#462). الطقس يمرّره المتّصِل؛
+// NDVI/المحصول/العمر/الملوحة تُحقَن من الحقل ما لم تُمرَّر تجاوزات. مصدر كلّ قيمة مُعلَن.
+export interface EtcDualInput {
+  // الطقس (لـET0 — Penman-Monteith)
+  temp_max_c: number;
+  temp_min_c: number;
+  humidity_pct: number;
+  wind_speed_m_s: number;
+  solar_radiation_mj_m2: number;
+  latitude_deg: number;
+  elevation_m?: number;
+  day_of_year: number;
+  // تجاوزات اختياريّة (الافتراضات FAO-56 موثّقة في المحرّك)
+  de_mm?: number;
+  texture?: string;
+  crop_height_m?: number;
+  fw?: number;
+  ndvi_bare?: number;
+  ndvi_full?: number;
+  // تجاوزات تسبق الحقن من الحقل (غياب ⇒ يُحقَن من الحقل)
+  ndvi?: number | null;
+  soil_ece?: number | null;
+  days_after_planting?: number | null;
+}
+// شكل الردّ: حقول DualKcResult (asdict) + field_id + ndvi + inputs (راجع routers/etc_dual.py).
+export interface EtcDualResult {
+  et0_mm: number;
+  kcb: number;
+  ks: number;
+  kc_max: number;
+  kr: number;
+  few: number;
+  ke: number;
+  kc_dual: number;       // Kcb·Ks + Ke (المعامل الفعّال المركّب)
+  etc_dual_mm: number;   // (Kcb·Ks + Ke)·ET0
+  etc_single_mm: number; // Kc·Ks·ET0 (للمقارنة الشفّافة)
+  stage: string;
+  assumptions: string[];
+  field_id: string;
+  ndvi: { used: number | null; source: string; date: string | null };
+  inputs: {
+    crop_id: string;
+    days_after_planting: number;
+    soil_ece: number;
+    soil_ece_source: string;
+  };
+}
+export const computeFieldEtcDual = (
+  fieldId: string,
+  payload: EtcDualInput,
+): Promise<EtcDualResult> =>
+  kongApi.post<EtcDualResult>(`/api/v1/fields/${fieldId}/etc-dual`, payload).then(r => r.data);
+
 // ── توزيع ماء المزرعة (POST /api/v1/field-portfolio/allocate) ──
 // يوزّع ماء آبار محدودة على حقول متعدّدة وفق الأولويّة والحدّ الأدنى لكلّ حقل،
 // فيُظهر أيّ الحقول مَحميّ وأيّها مُجهَد/غير مُلبّى — قرار محفظة لا حقل واحد.
