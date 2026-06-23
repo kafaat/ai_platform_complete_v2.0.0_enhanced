@@ -172,13 +172,14 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
                   children: [
                     // نظرة عامّة — من بيانات الحقل (متاح).
                     WOverviewSection(field: _field),
-                    // الموسم — لا واجهة seasons في ApiService بعد ⇒ placeholder.
-                    const WUnavailableSection(
-                      title: 'الموسم الحاليّ والتاريخ',
-                      icon: Icons.calendar_month,
-                      note:
-                          'سيُعرَض الموسم النشط وسجلّ المواسم عند ربط واجهة المواسم بالخادم.',
-                    ),
+                    // الموسم — fetchFieldSeasons (متاح).
+                    _fieldId.isEmpty
+                        ? const WUnavailableSection(
+                            title: 'الموسم الحاليّ والتاريخ',
+                            icon: Icons.calendar_month,
+                            note: 'لا يتوفّر معرّف الحقل لجلب المواسم.',
+                          )
+                        : WSeasonSection(fieldId: _fieldId),
                     // الأقمار/NDVI — getFieldIndicators (متاح).
                     _fieldId.isEmpty
                         ? const WUnavailableSection(
@@ -189,29 +190,32 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
                         : WSatelliteSection(fieldId: _fieldId),
                     // الريّ — معلومات الحقل + listSchedules(fieldId) (متاح).
                     WIrrigationSection(fieldId: _fieldId, field: _field),
-                    // الأنشطة — لا واجهة activities في ApiService بعد ⇒ placeholder.
-                    const WUnavailableSection(
-                      title: 'أنشطة الحقل',
-                      icon: Icons.assignment,
-                      note:
-                          'ستُعرَض قائمة العمليّات الزراعيّة عند ربط واجهة الأنشطة بالخادم.',
-                    ),
+                    // الأنشطة — fetchFieldActivities (متاح).
+                    _fieldId.isEmpty
+                        ? const WUnavailableSection(
+                            title: 'أنشطة الحقل',
+                            icon: Icons.assignment,
+                            note: 'لا يتوفّر معرّف الحقل لجلب الأنشطة.',
+                          )
+                        : WActivitiesSection(fieldId: _fieldId),
                     // التربة — نوع التربة + كيمياء إن أرسلها الخادم (متاح جزئيّاً).
                     WSoilSection(field: _field),
-                    // الطقس — لا واجهة weather في ApiService بعد ⇒ placeholder.
-                    const WUnavailableSection(
-                      title: 'الطقس والإرشاد',
-                      icon: Icons.cloud,
-                      note:
-                          'ستُعرَض الحالة الجوّيّة والتوصيات عند ربط واجهة الطقس بالخادم.',
-                    ),
-                    // الخطّ الزمنيّ — يعتمد على الأنشطة/الأحداث (غير متاح بعد).
-                    const WUnavailableSection(
-                      title: 'الخطّ الزمنيّ',
-                      icon: Icons.timeline,
-                      note:
-                          'سيُعرَض تسلسل الأحداث والأنشطة زمنيّاً عند توفّر واجهة الأحداث.',
-                    ),
+                    // الطقس — irrigation-advice + disease-risk (متاح).
+                    _fieldId.isEmpty
+                        ? const WUnavailableSection(
+                            title: 'الطقس والإرشاد',
+                            icon: Icons.cloud,
+                            note: 'لا يتوفّر معرّف الحقل لجلب الطقس والإرشاد.',
+                          )
+                        : WWeatherSection(fieldId: _fieldId),
+                    // الخطّ الزمنيّ — unified-timeline (متاح).
+                    _fieldId.isEmpty
+                        ? const WUnavailableSection(
+                            title: 'الخطّ الزمنيّ',
+                            icon: Icons.timeline,
+                            note: 'لا يتوفّر معرّف الحقل لجلب الخطّ الزمنيّ.',
+                          )
+                        : WTimelineSection(fieldId: _fieldId),
                   ],
                 ),
     );
