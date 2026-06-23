@@ -82,8 +82,11 @@ function downloadCsv(columns: string[], rows: Record<string, unknown>[]): void {
 
 /** ينزّل مخزّن Parquet (Uint8Array من DuckDB) كملفّ .parquet — نفس نمط تنزيل CSV (Blob/URL). */
 function downloadParquet(bytes: Uint8Array): void {
-  // ArrayBuffer مقصوص للحدّ الفعليّ (DuckDB قد يُعيد مخزّناً أوسع) لتفادي أصفار ذيليّة.
-  const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
+  // ننسخ إلى ArrayBuffer صريح (لا ArrayBufferLike/SharedArrayBuffer) — مخزّن DuckDB
+  // (Uint8Array<ArrayBufferLike> تحت TS الصارم) ليس BlobPart صالحاً مباشرةً. النسخ يضمن
+  // الطول الفعليّ بالضبط (لا أصفار ذيليّة) ونوعاً صالحاً للـBlob.
+  const ab = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(ab).set(bytes);
   const blob = new Blob([ab], { type: 'application/vnd.apache.parquet' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
