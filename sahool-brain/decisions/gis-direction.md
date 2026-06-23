@@ -21,9 +21,11 @@
 | deck.gl · DuckDB-WASM Spatial · Plugin system · حفظ مساحة العمل · SQL Workspace · AI GIS Assistant | ⛔ غير موجود | فرص النقل |
 
 ## الاتّجاه المقترَح (اقتباس تدريجيّ — لا «غلي المحيط»)
-1. **حفظ مساحة العمل (`.sahool-project.json`)** — ✅ **منفَّذ (v1، #449):** تصدير/استيراد إعدادات
-   MapHub (الأساس/المؤشّر/الشفافية/المقارنة/الأدوات/التراكبات/الحقل المختار) عميل-فقط
-   ([`../../frontend/src/lib/projectFile.ts`](../../frontend/src/lib/projectFile.ts)). مؤجَّل لـv2:
+1. **حفظ مساحة العمل (`.sahool-project.json`)** — ✅ **منفَّذ:** تصدير/استيراد ملفّ (#449،
+   [`../../frontend/src/lib/projectFile.ts`](../../frontend/src/lib/projectFile.ts)) + **استرجاع
+   تلقائيّ** عبر localStorage (#450،
+   [`../../frontend/src/lib/workspaceStorage.ts`](../../frontend/src/lib/workspaceStorage.ts)):
+   إعدادات MapHub (الأساس/المؤشّر/الشفافية/المقارنة/الأدوات/التراكبات) عميل-فقط. مؤجَّل لـv2:
    مركز/تكبير الخريطة + الرسومات (تحتاج تحكّم خريطة).
 2. **محرّك مكانيّ في المتصفّح (DuckDB-WASM Spatial + SQL Workspace)** — استعلام محليّ
    (`SELECT … WHERE ST_Area(geom)>… AND ndvi<0.3`) ⇒ تقليل حمل API/الكلفة وزمن الاستجابة. مرحلة ثانية.
