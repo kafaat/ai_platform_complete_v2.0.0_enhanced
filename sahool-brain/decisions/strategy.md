@@ -22,15 +22,21 @@ explainability · prescriptions · boundary/SAM2 · decision/outcome ledger · �
    إنترنت ضعيفاً — لا John Deere/Trimble/variable-rate seeder. فالأولويّة: **offline-first + ريّ/محصول
    مُفسَّر + عمليّات بسيطة**، لا الأتمتة الآليّة. (لذا أُوقِف ISOXML بصدق؛ Shapefile كافٍ #456.)
 
-## خارطة الطريق (٣ حِزَم)
-- **A — توحيد (الأولويّة القصوى، ~٤-٨ أسابيع):** إزالة التكرار — H4 (ET0 → `core/engines/et0.py`)، H5
-  (الريّ)، التوصيات/الطقس المُكرّرة. الناتج: `CanonicalFieldState` = SSOT فعليّ.
-- **B — فجوات صغيرة عالية القيمة (Yemen-fit، ~١-٣ أشهر):** offline-first hardening · دفتر مياه يوميّ ·
-  Dual Kc · عمق جذور ديناميكيّ · تصفية LULC · boundary confidence (موجود — تشغيل) · **GeoParquet**
-  (يربط ورشة SQL #451) · **Shapefile للوصفة (✅ #456)**.
-- **C — رهانات R&D (مسار منفصل، feature-flags):** Field Embeddings · Foundation Models (Prithvi/DINOv3) ·
-  SAM2 deployment (GPU) · Multi-engine Ensemble · Machine Integration (ISOXML/John Deere). **ليست في
-  المسار الحرج**؛ تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن.
+## خارطة الطريق (٤ حِزَم + R&D)
+- **A — توحيد (الأولويّة القصوى):** إزالة التكرار — **H4 ✅ (#457)** · **H5 ✅ (#464، الملوحة اختياريّة
+  + سياسة تفعيل تلقائيّ)** · المتبقّي: ET0 عبر-خدمات + مواءمة `crop_twin`. **شبه مكتمل.**
+- **B — فجوات صغيرة عالية القيمة (Yemen-fit):** ✅ **CDSE افتراضيّ (#457)** · **دفتر مياه v98 (#458)** ·
+  **Parquet (#458)** · **Water Twin v1/v2 (#459/#460)** · **Kc-NDVI + etc-dual (#461/#462)** ·
+  **Open-Meteo + عمق جذور Zr + لوحة etc-dual (#463)** · Shapefile (#456). المتبقّي الصغير: **ربط Zr
+  بحساب الاستنزاف (TAW ديناميكيّ)** · **NDVI من COG الطازج** · boundary confidence · LULC (بيانات) ·
+  offline-first hardening (تخطيط).
+- **D — FieldState Water Canonicalization (جديدة — بتوجيه المستخدم، 2026-06-23):** دمج
+  **ETc-dual + Ks/Kc/ET0/الملوحة في `CanonicalFieldState`** (SSOT الفعليّ، `field_state.agronomic`/المسار
+  القانونيّ). ⚠️ **يمسّ SSOT — يُنفَّذ بخطّة منفصلة متأنّية + اختبارات صرامة، لا كموجة وكلاء سريعة.** هذه
+  ثمرة Bundle A (التوحيد) لكنّها أكبر من «إصلاح تكرار»: تجعل الحالة القانونيّة المصدرَ الوحيد لقيم المياه.
+- **C — رهانات R&D (مسار منفصل، feature-flags، خارج المسار الحرج):** Field Embeddings · نماذج أساس
+  (Prithvi/DINOv3) · SAM2 production (GPU) · Multi-engine Ensemble · Machine Integration (ISOXML).
+  تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن.
 
 ## المراحل (تسلسل)
 1. **Unify** (أصلح H4/H5 وكلّ مصادر الحقيقة). 2. **Explain + Offline** (أفضل تجربة ريّ/محصول مُفسَّرة دون
