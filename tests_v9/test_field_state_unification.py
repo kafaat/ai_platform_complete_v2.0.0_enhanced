@@ -38,9 +38,10 @@ class _Tx:
 class _Conn:
     """conn وهميّ بحقل طازج (ثقة عالية) + NDVI جيّد + EC قابل للضبط."""
 
-    def __init__(self, *, ndvi_mean, ec):
+    def __init__(self, *, ndvi_mean, ec, boundary_confidence=None):
         self._ndvi = ndvi_mean
         self._ec = ec
+        self._boundary_confidence = boundary_confidence
         self.executed = []
         self._today = date.today()
 
@@ -52,6 +53,15 @@ class _Conn:
             return {"last_ndvi_mean": self._ndvi, "last_ndvi_date": self._today}
         if "FROM soil_lab_tests" in sql:  # صفّ واحد: sampled_on + result (EC)
             return {"sampled_on": self._today, "result": json.dumps({"ec": self._ec, "ph": 7.5})}
+        if "FROM field_boundaries" in sql:  # Bundle B: جودة الحدّ (None ⇒ لا كتلة)
+            if self._boundary_confidence is None:
+                return None
+            return {
+                "confidence_score": self._boundary_confidence,
+                "source_type": "auto_delineation",
+                "model_version": "sam2_hiera_large",
+                "review_status": "unreviewed",
+            }
         if "FROM field_state" in sql:
             return None
         return None
@@ -96,6 +106,49 @@ async def test_low_salinity_does_not_escalate(core_on_path):
     assert "agronomic" in st  # النواة الغنيّة مدموجة دائماً عند توفّر إشارة
     assert st["agronomic"]["operational_truths"].get("salinity_class") != "critical"
     assert st["execution_mode"] == "auto"  # لا تصعيد
+
+
+@pytest.mark.asyncio
+async def test_low_boundary_confidence_escalates(core_on_path):
+    """Bundle B: حدّ منخفض الثقة (< 0.6) ⇒ تصعيد للمراجعة البشريّة رغم سلامة باقي الإشارات."""
+    from api.field_state_projection import recompute_field_state
+
+    conn = _Conn(ndvi_mean=0.7, ec=1.0, boundary_confidence=0.4)  # لولا الحدّ ⇒ auto
+    res = await recompute_field_state(conn, "fld_1")
+    st = res["state"]
+    # كتلة الحدّ الكنسيّة حاضرة بمصدر مُعلَن + توصية مراجعة
+    assert st["boundary"]["boundary_confidence"] == 0.4
+    assert st["boundary"]["review_recommended"] is True
+    assert st["boundary"]["source"] == "field_state.canonical"
+    # التصعيد: ثقة الحدّ المنخفضة تَحكُم (نظير الملوحة) — مراجعة بشريّة
+    assert st["execution_mode"] == "human_review"
+    assert st["validity"] != "valid"
+    assert any("حدّ" in r for r in st["reasons_ar"])
+
+
+@pytest.mark.asyncio
+async def test_high_boundary_confidence_does_not_escalate(core_on_path):
+    """Bundle B: حدّ عالي الثقة (≥ 0.6) ⇒ كتلة حاضرة بلا تصعيد (سلوك محفوظ)."""
+    from api.field_state_projection import recompute_field_state
+
+    conn = _Conn(ndvi_mean=0.7, ec=1.0, boundary_confidence=0.95)
+    res = await recompute_field_state(conn, "fld_1")
+    st = res["state"]
+    assert st["boundary"]["boundary_confidence"] == 0.95
+    assert st["boundary"]["review_recommended"] is False
+    assert st["execution_mode"] == "auto"  # لا تصعيد
+
+
+@pytest.mark.asyncio
+async def test_no_boundary_row_no_block_no_escalation(core_on_path):
+    """Bundle B: لا صفّ حدّ مُهدَّف ⇒ لا كتلة boundary ولا تصعيد (صدق: لا تصعيد على غياب)."""
+    from api.field_state_projection import recompute_field_state
+
+    conn = _Conn(ndvi_mean=0.7, ec=1.0, boundary_confidence=None)
+    res = await recompute_field_state(conn, "fld_1")
+    st = res["state"]
+    assert "boundary" not in st  # لا ثقة مخزَّنة ⇒ لا كتلة مُلفّقة
+    assert st["execution_mode"] == "auto"
 
 
 def test_v55_migration_in_manifest_before_append_only():

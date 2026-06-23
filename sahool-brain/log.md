@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-06-23 (ر) — Bundle B: تصعيد ثقة حدود الحقل في الحالة القانونيّة
+
+**رأس `main`:** `bc16209` (#467 مُدمج). فرع `claude/bundle-b-boundary-confidence`. بعد D3 اختار المستخدم
+boundary_confidence ثانياً (مستقلّ عن SSOT). الفجوة: محرّك التهديف `api/boundary_confidence.score_boundary`
++ تخزين `field_boundaries.confidence_score` (v58) **موجودان**، لكنّ الثقة **لا تُقرأ في الحالة القانونيّة**
+فلا تُصعّد قراراً — حدّ ضعيف الترسيم يتسرّب بصمت إلى المساحة/الريّ/الإنتاجيّة.
+- **قارئ كنسيّ نقيّ** `api/canonical_boundary.py`: `canonical_boundary(row)` يطبّع صفّ جودة الحدّ إلى كتلة
+  `{boundary_confidence, boundary_source, boundary_version, review_status, review_recommended, source}` —
+  `review_recommended` من **نفس عتبة** `CONFIDENCE_REVIEW_THRESHOLD=0.6` (مصدر واحد)؛ غياب الثقة ⇒ None.
+- **تصعيد في `recompute_field_state`** (نظير تصعيد الملوحة الحرجة): ثقة < 0.6 و`execution_mode=="auto"`
+  ⇒ `human_review` + `validity` يتدهور valid→degraded + سبب عربيّ. تصعيد سلامة لا تخفيض — لا يلمس إلّا
+  auto/valid ولا يغيّر أرقاماً. كتلة `boundary` تُسقَط على نموذج الحالة + يقرؤها `diagnose` من مصدر واحد.
+
+**صدق + أمان:** لا تهديف جديد (يُعاد استخدام score_boundary)؛ غياب صفّ/ثقة ⇒ لا كتلة ولا تصعيد (لا تصعيد
+على غياب). تحقّق: ٤ اختبارات قارئ (`tests_v9/test_canonical_boundary.py`) + ٣ تصعيد
+(`test_field_state_unification.py`: منخفضة تُصعّد · عالية لا · لا صفّ لا تصعيد) · tests_v9 1809 (فشل MFA
+الـ5 سابقٌ) · platform 1104 · حارس التفكيك أخضر · **مسح ruff كامل** على الملفّات المتغيّرة.
+
+---
+
 ## 2026-06-23 (ق) — Bundle D المرحلة D3: قراءة ET0/ETc من مصدر واحد (#467)
 
 **رأس `main`:** `204b68e` (#466 مُدمج). فرع `claude/bundle-d3-canon-read`. اختار المستخدم D3 أوّلاً

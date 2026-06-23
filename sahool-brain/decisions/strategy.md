@@ -27,9 +27,10 @@ explainability · prescriptions · boundary/SAM2 · decision/outcome ledger · �
   + سياسة تفعيل تلقائيّ)** · المتبقّي: ET0 عبر-خدمات + مواءمة `crop_twin`. **شبه مكتمل.**
 - **B — فجوات صغيرة عالية القيمة (Yemen-fit):** ✅ **CDSE افتراضيّ (#457)** · **دفتر مياه v98 (#458)** ·
   **Parquet (#458)** · **Water Twin v1/v2 (#459/#460)** · **Kc-NDVI + etc-dual (#461/#462)** ·
-  **Open-Meteo + عمق جذور Zr + لوحة etc-dual (#463)** · Shapefile (#456). المتبقّي الصغير: **ربط Zr
-  بحساب الاستنزاف (TAW ديناميكيّ)** · **NDVI من COG الطازج** · boundary confidence · LULC (بيانات) ·
-  offline-first hardening (تخطيط).
+  **Open-Meteo + عمق جذور Zr + لوحة etc-dual (#463)** · Shapefile (#456) · **boundary confidence ✅
+  (فرع `claude/bundle-b-boundary-confidence`، تصعيد ثقة الحدّ < 0.6 → human_review في الحالة القانونيّة،
+  log (ر))**. المتبقّي الصغير: **ربط Zr بحساب الاستنزاف (TAW ديناميكيّ)** · **NDVI من COG الطازج** ·
+  LULC (بيانات) · offline-first hardening (تخطيط).
 - **D — FieldState Water Canonicalization (جديدة — بتوجيه المستخدم، 2026-06-23):** دمج
   **ETc-dual + Ks/Kc/ET0/الملوحة في `CanonicalFieldState`** (SSOT الفعليّ، `field_state.agronomic`/المسار
   القانونيّ). ⚠️ **يمسّ SSOT — مرحليّ، متأنٍّ.** **D1 ✅ منفَّذ (#466، إضافيّ محفوظ السلوك):** ET0 (عبر
