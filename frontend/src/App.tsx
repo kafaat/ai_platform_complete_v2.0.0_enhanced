@@ -68,6 +68,7 @@ const RecommendationPage  = lazy(() => import('./sections/RecommendationPage'));
 const SpatialIndicatorsPage = lazy(() => import('./sections/SpatialIndicatorsPage'));
 const IrrigationWaterPage = lazy(() => import('./sections/IrrigationWaterPage'));
 const IrrigationPlanPage = lazy(() => import('./sections/IrrigationPlanPage'));
+const WaterTwinPage = lazy(() => import('./sections/WaterTwinPage'));
 const CropStatePage = lazy(() => import('./sections/CropStatePage'));
 const ScenarioComparePage = lazy(() => import('./sections/ScenarioComparePage'));
 const NlGisPage = lazy(() => import('./sections/NlGisPage'));
@@ -126,7 +127,7 @@ export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
-  | 'irrigation' | 'irrigation-plan' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'decision-confidence' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
+  | 'irrigation' | 'irrigation-plan' | 'water-twin' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'decision-confidence' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
@@ -319,6 +320,7 @@ export default function App() {
       case 'recommendations': return <RecommendationPage />;
       case 'irrigation':   return <IrrigationWaterPage />;
       case 'irrigation-plan': return <IrrigationPlanPage />;
+      case 'water-twin': return <WaterTwinPage />;
       case 'crop-state': return <CropStatePage />;
       case 'scenario-compare': return <ScenarioComparePage />;
       case 'nl-gis': return <NlGisPage />;

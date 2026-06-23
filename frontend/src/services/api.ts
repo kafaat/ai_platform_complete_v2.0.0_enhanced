@@ -522,6 +522,54 @@ export interface IrrigationPlanResult {
 export const computeIrrigationPlan = (payload: IrrigationPlanInput): Promise<IrrigationPlanResult> =>
   kongApi.post<IrrigationPlanResult>('/api/v1/irrigation-plan', payload).then(r => r.data);
 
+// ── توأم المياه (POST /api/v1/fields/{id}/water-twin) — مُغذّى بدفتر المياه v98 ──
+// يحاكي مسار نضوب الجذور الأماميّ (FAO-56) لسيناريوهَي ريّ (أساس مقابل تأجيل/تخفيض)
+// مُغذّى بأحدث صفوف الدفتر. صدق: لا غلّة مُلفّقة — أيّام إجهاد/استهلاك ماء فقط.
+export interface WaterTwinDayState {
+  day: number; depletion_mm: number; soil_moisture_pct: number;
+  ks: number; eta_mm: number; stressed: boolean;
+}
+export interface WaterTwinTrajectory {
+  days: number; total_irrigation_mm: number; total_eta_mm: number; stress_days: number;
+  max_depletion_mm: number; final_depletion_mm: number; final_soil_moisture_pct: number;
+  states: WaterTwinDayState[];
+}
+export interface WaterTwinComparison {
+  metric_ar: string; baseline: number; scenario: number; delta: number; unit: string;
+}
+export interface WaterTwinSeed {
+  initial_depletion_mm: number; initial_depletion_source: string;
+  daily_etc_mm: number; daily_etc_source: string;
+  ledger_rows_used: number; horizon_days: number;
+}
+export interface WaterTwinResult {
+  scenario_type: string;
+  baseline: WaterTwinTrajectory;
+  scenario: WaterTwinTrajectory;
+  comparisons: WaterTwinComparison[];
+  summary_ar: string;
+  field_id: string;
+  seed: WaterTwinSeed;
+}
+export interface FieldWaterTwinInput {
+  taw_mm: number;
+  raw_mm: number;
+  horizon_days?: number;
+  baseline_irrigation_mm?: number;
+  daily_rain_mm?: number;
+  daily_etc_mm?: number | null;
+  initial_depletion_mm?: number | null;
+  recent_days_window?: number;
+  scenario_kind: 'delay' | 'scale';
+  delay_days?: number;
+  scale_factor?: number;
+}
+export const simulateFieldWaterTwin = (
+  fieldId: string,
+  payload: FieldWaterTwinInput,
+): Promise<WaterTwinResult> =>
+  kongApi.post<WaterTwinResult>(`/api/v1/fields/${fieldId}/water-twin`, payload).then(r => r.data);
+
 // ── توزيع ماء المزرعة (POST /api/v1/field-portfolio/allocate) ──
 // يوزّع ماء آبار محدودة على حقول متعدّدة وفق الأولويّة والحدّ الأدنى لكلّ حقل،
 // فيُظهر أيّ الحقول مَحميّ وأيّها مُجهَد/غير مُلبّى — قرار محفظة لا حقل واحد.

@@ -99,6 +99,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'irrigation',        path: '/irrigation',          label: 'تحليل ماء الريّ', icon: Droplets, maturity: 'stable' },
       { id: 'irrigation-plan',   path: '/irrigation/plan',     label: 'خطّة الريّ المتنبّأ', icon: CalendarRange, maturity: 'beta' },
+      { id: 'water-twin',        path: '/irrigation/water-twin', label: 'توأم المياه', icon: Droplets, maturity: 'alpha' },
       { id: 'irrigation-ops',    path: '/irrigation/ops',      label: 'الري التشغيلي', icon: Waypoints, maturity: 'beta' },
       { id: 'irrigation-network', path: '/irrigation/network', label: 'توأم شبكة الريّ', icon: Share2, maturity: 'beta' },
       { id: 'portfolio',         path: '/irrigation/portfolio', label: 'توزيع ماء المزرعة', icon: Layers, maturity: 'beta' },
