@@ -5,8 +5,11 @@
 وتمرّره فعليّاً إلى المحرّك — فيرتبط قرار الماء بالقمر.
 
 صدق منهجيّ:
-  - **NDVI لا يُختلَق:** من `imagery_automation_fields.last_ndvi_mean` (عبر `gather_field_freshness`)
-    أو تجاوز صريح؛ غيابه ⇒ ``ndvi=None`` ⇒ Kcb عمريّ (المسار القائم) + ملاحظة (تدرّج لا خطأ).
+  - **NDVI لا يُختلَق:** سلّم أولويّة صادق — تجاوز الطلب (`req.ndvi`) > **COG طازج** من
+    raster-service (`/v1/fields/{id}/indicator-grid?index=ndvi&date=latest`، فقط إن
+    `real_data=true`) > المخزَّن (`imagery_automation_fields.last_ndvi_mean` عبر
+    `gather_field_freshness`) > لا شيء. أيّ تعذّر/`real_data=false` ⇒ تدرّج صامت للمخزَّن
+    (لا خطأ، لا تعطيل النقطة). غيابه كلّه ⇒ ``ndvi=None`` ⇒ Kcb عمريّ + ملاحظة.
   - **الطقس ذاتيّ-الاكتفاء:** يُمرَّر كاملاً، أو يُجلب **حيّاً من Open-Meteo** بإحداثيّات الحقل؛
     تعذّر الجلب ولا طقس مُمرَّر ⇒ 503 صادق (لا اختلاق طقس). مصدر الطقس مُعلَن في الردّ.
   - **المحصول/العمر/الملوحة** تُشتقّ من الحقل (بطاقة المحصول + تاريخ الزراعة + أحدث فحص تربة).
@@ -20,6 +23,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import asdict
 from datetime import date
 
@@ -42,6 +46,13 @@ from api.main import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# نداء raster-service خدمة-لخدمة (نفس نمط api/imagery_automation.py — لا توكن جديد):
+# raster يحمي المسارات بـ_require_field_tenant/_require_service_token (X-Agent-Token).
+RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
+_RASTER_HEADERS = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
+# مهلة قصيرة: NDVI الطازج تحسين لا حاجز — أيّ بطء/تعذّر ⇒ تدرّج صامت للمخزَّن.
+_FRESH_NDVI_TIMEOUT_S = 8.0
 
 
 class EtcDualRequest(BaseModel):
@@ -67,7 +78,11 @@ class EtcDualRequest(BaseModel):
     ndvi_bare: float = 0.15
     ndvi_full: float = 0.85
     # تجاوزات تسبق الحقن من الحقل (None ⇒ يُحقَن من الحقل)
-    ndvi: float | None = Field(default=None, description="تجاوز NDVI (وإلّا أحدث NDVI مخزَّن للحقل)")
+    ndvi: float | None = Field(default=None, description="تجاوز NDVI (وإلّا طازج COG ثمّ مخزَّن)")
+    prefer_fresh_ndvi: bool = Field(
+        default=True,
+        description="حاوِل جلب NDVI طازجاً من COG (raster-service) قبل المخزَّن؛ False ⇒ مخزَّن فقط.",
+    )
     soil_ece: float | None = Field(
         default=None, ge=0, description="تجاوز ملوحة التربة (وإلّا أحدث فحص)"
     )
@@ -78,6 +93,62 @@ class EtcDualRequest(BaseModel):
 
 def _today_doy() -> int:
     return date.today().timetuple().tm_yday
+
+
+def _pick_ndvi(
+    req_ndvi: float | None,
+    fresh_ndvi: float | None,
+    stored_ndvi: float | None,
+) -> tuple[float | None, str]:
+    """يختار NDVI ومصدره بسلّم أولويّة صادق (دالّة نقيّة قابلة للاختبار مباشرةً).
+
+    الأولويّة: تجاوز الطلب (``req_ndvi``) > COG طازج (``fresh_ndvi``) > مخزَّن
+    (``stored_ndvi``) > لا شيء. كلّ مدخل ``None`` يعني «غير متاح» فيُتدرَّج للتالي.
+    يُرجِع ``(ndvi, source)`` حيث source ∈ {"request", "raster_fresh_cog",
+    "imagery_automation_fields", "none"}. لا يخترع قيمة: الطازج يُمرَّر هنا فقط حين
+    ثبت ``real_data=true`` عند الجلب (انظر ``_fetch_fresh_ndvi``).
+    """
+    if req_ndvi is not None:
+        return req_ndvi, "request"
+    if fresh_ndvi is not None:
+        return float(fresh_ndvi), "raster_fresh_cog"
+    if stored_ndvi is not None:
+        return float(stored_ndvi), "imagery_automation_fields"
+    return None, "none"
+
+
+async def _fetch_fresh_ndvi(field_id: str) -> float | None:
+    """يجلب NDVI الطازج من COG عبر raster-service (خارج اتّصال القاعدة، X-Agent-Token).
+
+    يقرأ ``GET /v1/fields/{id}/indicator-grid?index=ndvi&date=latest`` الذي يقرأ COG
+    حقيقيّاً ويُرجِع ``stats.mean`` + ``real_data``. **صدق:** يُرجِع المتوسّط فقط حين
+    ``real_data is True`` (COG حقيقيّ)؛ أيّ تعذّر/``real_data=false``/شكل غير متوقَّع
+    ⇒ ``None`` (تدرّج صامت للمخزَّن، لا خطأ، لا تعطيل النقطة، لا اختلاق).
+    """
+    import httpx
+
+    try:
+        async with httpx.AsyncClient(timeout=_FRESH_NDVI_TIMEOUT_S) as client:
+            resp = await client.get(
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-grid",
+                params={"index": "ndvi", "date": "latest"},
+                headers=_RASTER_HEADERS,
+            )
+            resp.raise_for_status()
+            data = resp.json()
+    except Exception as e:  # noqa: BLE001 — أيّ تعذّر شبكيّ/تحليل ⇒ تدرّج صامت
+        logger.info("جلب NDVI الطازج تعذّر للحقل %s ⇒ تدرّج للمخزَّن: %s", field_id, e)
+        return None
+
+    if not isinstance(data, dict) or data.get("real_data") is not True:
+        return None  # محاكاة/لا COG ⇒ لا نستخدمه (صدق: الطازج حقيقيّ فقط)
+    mean = (data.get("stats") or {}).get("mean")
+    if mean is None:
+        return None
+    try:
+        return float(mean)
+    except (TypeError, ValueError):
+        return None
 
 
 async def _resolve_weather(
@@ -208,15 +279,17 @@ async def field_etc_dual(
         if das < 0:
             raise HTTPException(status_code=422, detail="تاريخ الزراعة في المستقبل (عمر سالب).")
 
-    # 3. NDVI الحيّ (جوهر الربط): تجاوز الطلب > المخزَّن > لا شيء (تدرّج صادق)
+    # 3. NDVI الحيّ (جوهر الربط): تجاوز الطلب > COG طازج > المخزَّن > لا شيء (تدرّج صادق).
+    #    الطازج يُجلب خدميّاً من raster-service (خارج اتّصال القاعدة) فقط إن لم يُمرَّر تجاوز
+    #    و prefer_fresh_ndvi=True؛ أيّ تعذّر/real_data=false ⇒ تدرّج صامت للمخزَّن.
     stored_ndvi = freshness.get("ndvi_mean")
-    if req.ndvi is not None:
-        ndvi_used, ndvi_source = req.ndvi, "request"
-    elif stored_ndvi is not None:
-        ndvi_used, ndvi_source = float(stored_ndvi), "imagery_automation_fields"
-    else:
-        ndvi_used, ndvi_source = None, "none"
     ndvi_date = freshness.get("ndvi_date")
+    fresh_ndvi = None
+    if req.ndvi is None and req.prefer_fresh_ndvi:
+        fresh_ndvi = await _fetch_fresh_ndvi(field_id)
+    ndvi_used, ndvi_source = _pick_ndvi(req.ndvi, fresh_ndvi, stored_ndvi)
+    if ndvi_source == "raster_fresh_cog":
+        ndvi_date = date.today()  # COG طازج (date=latest) ⇒ تاريخه اليوم (لا تاريخ مخزَّن قديم)
 
     # 4. الملوحة (تجاوز الطلب > أحدث فحص تربة > 0)
     if req.soil_ece is not None:

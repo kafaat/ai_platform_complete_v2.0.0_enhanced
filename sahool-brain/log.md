@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-06-23 (ع) — Bundle B صغيرة: TAW ديناميكيّ من Zr + NDVI من COG الطازج (وكيلان، #465)
+
+**رأس `main`:** `08211af` (#464 مُدمج). فرع `claude/bundle-b-zr-ndvi`. تثبيت خارطة الحِزَم أوّلاً
+(Bundle D — FieldState Water Canonicalization مستقلّة متأنّية + Bundle C R&D، بتوجيه المستخدم) ثمّ
+وكيلان متوازيان (بصمات منفصلة، cherry-pick نظيف):
+- **أ — ربط Zr بالاستنزاف:** نقطة `/api/v1/fields/{id}/water-twin` تشتقّ **TAW ديناميكيّاً** من عمق
+  الجذور: `root_depth_for_crop(profile, das)` → `taw_from_root_depth(Zr, texture)` (FAO-56 §8/Eq.82)
+  عند غياب `taw_mm`؛ `taw_source` مُعلَن. حفظ السلوك: تمرير `taw_mm` صريحاً ⇒ كما كان. (`routers/water_twin.py`)
+- **ب — NDVI من COG الطازج:** نقطة `etc-dual` تجلب NDVI الأطزج من raster `indicator-grid` (`real_data`)
+  بأولويّة **تجاوز > طازج (raster_fresh_cog) > مخزَّن > none** — تدرّج صادق عند تعذّر raster؛ علم
+  `prefer_fresh_ndvi`. دالّة اختيار نقيّة `_pick_ndvi`. (`routers/etc_dual.py`)
+
+**صدق:** مصدر كلّ قيمة مُعلَن (`taw_source`/`ndvi.source`)؛ لا اختلاق (TAW يحتاج بطاقة/عمر وإلّا 422؛ NDVI
+طازج فقط بـ`real_data=true`)؛ Zr/θ تقديريّة مُعلَنة. تحقّق: `pytest -m unit` 1793 (فشل MFA الـ5 سابقٌ) ·
+حارس التفكيك · **مسح ruff كامل على كلّ الملفّات المتغيّرة** (تفادياً لدرس lint #464) أخضر.
+
+---
+
 ## 2026-06-23 (س) — توحيد H5: الملوحة مفتاح اختياريّ + تفعيل تلقائيّ من جودة التحليل (٣ وكلاء، #464)
 
 **رأس `main`:** `8e35fde` (#463 مُدمج). فرع `claude/h5-irrigation-unify`. **القرار البشريّ (المستخدم):**

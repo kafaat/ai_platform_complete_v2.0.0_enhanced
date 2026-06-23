@@ -1,8 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`8e35fde`](../) (#463 مُدمج) · فرع العمل `claude/h5-irrigation-unify`
-> (#464 قيد المراجعة: توحيد H5 — ملوحة اختياريّة off-افتراضيّاً + تفعيل تلقائيّ — [`log.md`](log.md) مدخل (س)؛
-> سبقه (ن) Open-Meteo+Zr+لوحة · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`08211af`](../) (#464 مُدمج) · فرع العمل `claude/bundle-b-zr-ndvi`
+> (#465 قيد المراجعة: TAW ديناميكيّ من Zr + NDVI من COG الطازج — [`log.md`](log.md) مدخل (ع)؛ سبقه (س) H5 ·
+> (ن) Open-Meteo+Zr+لوحة · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
 
 ## عمل هذه الجلسة (#437 → #447)
 
