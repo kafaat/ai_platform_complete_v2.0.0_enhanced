@@ -23,6 +23,8 @@ import json
 import logging
 from datetime import date
 
+from .boundary_confidence import CONFIDENCE_REVIEW_THRESHOLD
+from .canonical_boundary import canonical_boundary
 from .canonical_water import canonical_water
 from .field_operational_state import resolve_field_state
 from .field_state_gateway import build_state_inputs
@@ -352,6 +354,34 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 "ملوحة تربة حرجة (تحكيم النواة الزراعيّة: الملوحة تَحكُم رغم خُضرة "
                 "NDVI) — تتطلّب مراجعة بشريّة."
             )
+
+    # Bundle B: ثقة الحدود الكنسيّة — اقرأ جودة الحدّ المخزَّنة (يهدّفها مسار
+    # boundaries عبر score_boundary) من **مصدر واحد** وأسقِطها ككتلة boundary.
+    # best-effort: غياب صفّ/ثقة ⇒ لا كتلة (صدق، لا اختلاق) ولا تصعيد.
+    try:
+        brow = await conn.fetchrow(
+            "SELECT confidence_score, source_type, model_version, review_status "
+            "FROM field_boundaries WHERE field_id = $1",
+            field_id,
+        )
+        boundary = canonical_boundary(dict(brow) if brow is not None else None)
+        if boundary is not None:
+            state["boundary"] = boundary
+            # تصعيد ثقة الحدّ — حدّ منخفض الثقة (< العتبة) يُصعّد نمط التنفيذ
+            # للمراجعة البشريّة (نظير تصعيد الملوحة الحرجة): تصعيد سلامة لا تخفيض —
+            # لا يلمس إلّا حالة auto/valid ولا يغيّر أرقاماً. الدافع: خطأ الترسيم
+            # يتسرّب بصمت إلى المساحة/الريّ/الإنتاجيّة ما لم يُكشَف للمراجعة.
+            if boundary["review_recommended"] and state["execution_mode"] == "auto":
+                state["execution_mode"] = "human_review"
+                if state["validity"] == "valid":
+                    state["validity"] = "degraded"
+                state.setdefault("reasons_ar", []).append(
+                    f"ثقة حدّ الحقل منخفضة ({boundary['boundary_confidence']:.2f} < "
+                    f"{CONFIDENCE_REVIEW_THRESHOLD:.2f}) — قد تتسرّب أخطاء الترسيم إلى "
+                    "المساحة/الريّ/الإنتاجيّة، تتطلّب مراجعة بشريّة."
+                )
+    except Exception:  # noqa: BLE001 — قراءة الحدّ best-effort، لا تكسر الحالة التشغيليّة
+        logger.warning("تعذّر قراءة ثقة حدّ الحقل %s — تُتخطّى كتلة boundary", field_id, exc_info=True)
 
     prev = await conn.fetchrow(
         "SELECT validity, execution_mode FROM field_state WHERE field_id = $1",

@@ -1,8 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`204b68e`](../) (#466 مُدمج) · فرع العمل `claude/bundle-d3-canon-read`
-> (#467 قيد المراجعة: Bundle D المرحلة D3 — قراءة ET0/ETc من مصدر واحد — [`log.md`](log.md) مدخل (ق)؛
-> سبقه (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`bc16209`](../) (#467 مُدمج) · فرع العمل `claude/bundle-b-boundary-confidence`
+> (Bundle B: تصعيد ثقة حدود الحقل < 0.6 → human_review في الحالة القانونيّة — [`log.md`](log.md) مدخل (ر)؛
+> سبقه (ق) D3 قراءة ET0/ETc موحّدة · (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
 
 ## عمل هذه الجلسة (#437 → #447)
 
