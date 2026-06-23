@@ -3323,6 +3323,7 @@ from api.routers.water_balance import router as water_balance_router  # noqa: E4
 from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
 from api.routers.water_ledger import router as water_ledger_router  # noqa: E402
 from api.routers.water_sensitivity import router as water_sensitivity_router  # noqa: E402
+from api.routers.water_twin import router as water_twin_router  # noqa: E402
 from api.routers.weather import router as weather_router  # noqa: E402
 from api.routers.weather_analytics import (  # noqa: E402
     router as weather_analytics_router,
@@ -3413,6 +3414,7 @@ app.include_router(simulate_router)
 app.include_router(scouting_router)
 app.include_router(prescriptions_router)
 app.include_router(water_ledger_router)
+app.include_router(water_twin_router)
 app.include_router(trials_router)
 app.include_router(water_balance_router)
 app.include_router(nutrients_router)

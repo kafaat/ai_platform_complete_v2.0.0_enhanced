@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-06-23 (ك) — Water Twin المرحلة الثانية: تغذية بالدفتر v98 + واجهة منزلقات (#460)
+
+**رأس `main`:** `7fe1244` (#459 مُدمج). فرع مستقلّ `claude/water-twin-phase2` (فُرِّع من tip v1
+ثمّ `rebase --onto origin/main` لإسقاط commit v1 المُدمَج). يُكمل Water Twin v1:
+- **backend:** نقطة field-scoped `POST /api/v1/fields/{id}/water-twin` تقرأ أحدث صفوف دفتر المياه
+  (RLS) فتشتقّ النضوب الابتدائيّ + متوسّط ETc، ثمّ تحاكي «تأجيل/تخفيض الريّ». وحدة نقيّة
+  [`api/water_twin_seed.py`](../services/sahool-platform/api/water_twin_seed.py) (٦ اختبارات) +
+  [`api/routers/water_twin.py`](../services/sahool-platform/api/routers/water_twin.py) (مُسجَّل،
+  حارس التفكيك أخضر). **صدق:** مصدر كلّ قيمة مُعلَن (`seed.*_source`)؛ غياب المصدر ⇒ 422 صادق؛
+  TAW/RAW صريحان (لا يُخمَّنان).
+- **frontend:** [`WaterTwinPage.tsx`](../frontend/src/sections/WaterTwinPage.tsx) — قسم «توأم المياه»
+  (تحت الريّ): منتقي حقل + منزلقا (تأجيل أيّام / تخفيض ٪) + جدول المقارنة + مسار النضوب اليوميّ
+  + إعلان مصدر التغذية. `simulateFieldWaterTwin` في `api.ts` + تسجيل في routes/permissions/App.
+
+تحقّق: `pytest -m unit` 1707 ناجح (فشل MFA الـ5 سابقٌ) · حارس التفكيك · ruff · typecheck/build/vitest 332.
+
+---
+
 ## 2026-06-23 (ي) — Water Twin Simulator v1 (مسار رطوبة التربة الأماميّ، #459)
 
 **رأس `main`:** `3f87180` (#458 مُدمج). فرع مستقلّ `claude/water-twin-simulator`. أبرز فكرة من
