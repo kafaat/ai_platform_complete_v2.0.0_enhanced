@@ -1,7 +1,7 @@
 # قرار اتّجاه: GIS في المتصفّح (Browser-native) — إلهام GeoLibre
 
 > سجلّ اتّجاه معماريّ. لا فكرة بلا مصدر، ولا اقتباس بلا حالته الفعليّة في SAHOOL (file:line / #PR).
-> الحالة: `proposed` — بانتظار اختيار المستخدم للخطوة الأولى. آخر تحديث: 2026-06-23.
+> الحالة: **الأفكار 1-4 منفَّذة v1** (#449-#454). آخر تحديث: 2026-06-23. التحسينات المؤجَّلة موسومة أدناه.
 
 ## المصادر (الإلهام)
 - **GeoLibre** — `opengeos/GeoLibre` (https://github.com/opengeos/GeoLibre): منصّة GIS خفيفة في
@@ -40,8 +40,14 @@
    يطبّق Turf (`buffer`/`simplify`) على هندسة الحقل **معاينةً** (مساحة/رؤوس قبل/بعد، عميل-فقط، لا حفظ
    خادميّ) — [`../../frontend/src/sections/GisToolsPage.tsx`](../../frontend/src/sections/GisToolsPage.tsx)
    + [`fieldGeometryOps.ts`](../../frontend/src/lib/fieldGeometryOps.ts). مؤجَّل: dissolve/clip + الحفظ.
-4. **نظام إضافات (Plugin) + AI GIS Assistant** (لغة طبيعيّة → Spatial SQL → تحديث الخريطة) —
-   معماريّ، يعتمد على (2)، ويتوافق مع مستشار SAHOOL (`/api/agent/query`؛ و`nl-gis` نقطة بداية قائمة).
+4. **AI GIS Assistant (NL → SQL)** — ✅ **منفَّذ v1 (#454):** صندوق «اسأل بالعربيّة» في ورشة SQL →
+   نقطة خادميّة `POST /api/v1/nl-sql` تستدعي Claude (المفتاح خادميّ) لترجمة السؤال إلى SELECT للقراءة
+   فقط → يملأ المحرّر للمراجعة → يُنفَّذ في DuckDB العميل. الخادم:
+   [`api/routers/nl_sql.py`](../../services/sahool-platform/api/routers/nl_sql.py) +
+   [`api/nl_sql_validate.py`](../../services/sahool-platform/api/nl_sql_validate.py) (تحقّق نقيّ).
+   صدق: خصوصيّة (السؤال فقط يُرسَل) · آمن (SELECT مُتحقَّق + sandbox العميل + إنسان-في-الحلقة) ·
+   مُغلَق بـ`FEATURE_NATURAL_LANGUAGE_GIS`+`ANTHROPIC_API_KEY` (honest-503 بلا مفتاح). النموذج
+   `claude-opus-4-8` (قابل للضبط بـ`NL_SQL_MODEL`). **مؤجَّل:** ربط النتائج بإبراز الخريطة + نظام إضافات.
 
 ## السبب (لِمَ هذا الاتّجاه)
 SAHOOL متوافق أصلاً مع فلسفة browser-native (MapLibre + Turf مُستعملان)، فالاقتباس **تطوّريّ لا
