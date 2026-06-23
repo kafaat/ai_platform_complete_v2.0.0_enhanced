@@ -64,6 +64,9 @@ async def diagnose_symptoms(
                 # Bundle B: ثقة حدّ الحقل الكنسيّة من **مصدر واحد** (كتلة boundary) —
                 # None إن لم يُهدَّف الحدّ بعد (صدق). ثقة منخفضة صعّدت execution_mode أعلاه.
                 "boundary": field_state.get("boundary"),
+                # Bundle D (D2a): الإجهاد المائيّ الكنسيّ (AWF + مستوى) — معلوماتيّ بلا
+                # تصعيد؛ None إن لا استنزاف موثوق في دفتر المياه (صدق).
+                "water_stress": field_state.get("water_stress"),
             }
             # ملاحظة مرجعيّة فقط عند ملوحة حرجة — إجهاد الملوحة قد يحاكي/يفاقم
             # أعراض الأمراض. لا تغيير لقواعد/نتيجة التشخيص.

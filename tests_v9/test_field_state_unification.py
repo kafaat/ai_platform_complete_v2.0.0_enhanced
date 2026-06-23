@@ -38,10 +38,11 @@ class _Tx:
 class _Conn:
     """conn وهميّ بحقل طازج (ثقة عالية) + NDVI جيّد + EC قابل للضبط."""
 
-    def __init__(self, *, ndvi_mean, ec, boundary_confidence=None):
+    def __init__(self, *, ndvi_mean, ec, boundary_confidence=None, depletion_mm=None):
         self._ndvi = ndvi_mean
         self._ec = ec
         self._boundary_confidence = boundary_confidence
+        self._depletion_mm = depletion_mm
         self.executed = []
         self._today = date.today()
 
@@ -61,6 +62,14 @@ class _Conn:
                 "source_type": "auto_delineation",
                 "model_version": "sam2_hiera_large",
                 "review_status": "unreviewed",
+            }
+        if "FROM water_ledger" in sql:  # Bundle D/D2a: استنزاف (None ⇒ لا كتلة)
+            if self._depletion_mm is None:
+                return None
+            return {
+                "depletion_mm": self._depletion_mm,
+                "soil_moisture_pct": None,
+                "confidence": 0.9,
             }
         if "FROM field_state" in sql:
             return None
@@ -149,6 +158,33 @@ async def test_no_boundary_row_no_block_no_escalation(core_on_path):
     st = res["state"]
     assert "boundary" not in st  # لا ثقة مخزَّنة ⇒ لا كتلة مُلفّقة
     assert st["execution_mode"] == "auto"
+
+
+@pytest.mark.asyncio
+async def test_water_stress_block_present_no_escalation(core_on_path):
+    """Bundle D/D2a: استنزاف مخزَّن ⇒ كتلة water_stress معلوماتيّة **بلا تصعيد** (محفوظ السلوك)."""
+    from api.field_state_projection import recompute_field_state
+
+    # TAW الاحتياطيّ = 150×0.6 = 90 مم؛ Dr=81 ⇒ AWF=0.1 ≤ 0.2 ⇒ critical — ومع ذلك لا تصعيد (D2a).
+    conn = _Conn(ndvi_mean=0.7, ec=1.0, depletion_mm=81.0)
+    res = await recompute_field_state(conn, "fld_1")
+    st = res["state"]
+    assert "water_stress" in st
+    assert st["water_stress"]["water_stress_class"] == "critical"
+    assert st["water_stress"]["calibrated"] is False
+    assert st["water_stress"]["source"] == "field_state.canonical"
+    # D2a معلوماتيّ صرف: لا يلمس القرار القانونيّ (التصعيد D2b مؤجَّل بتأكيد طيفيّ).
+    assert st["execution_mode"] == "auto"
+
+
+@pytest.mark.asyncio
+async def test_no_water_ledger_no_water_stress_block(core_on_path):
+    """Bundle D/D2a: لا استنزاف مخزَّن ⇒ لا كتلة water_stress (صدق: لا قرار على غياب)."""
+    from api.field_state_projection import recompute_field_state
+
+    conn = _Conn(ndvi_mean=0.7, ec=1.0, depletion_mm=None)
+    res = await recompute_field_state(conn, "fld_1")
+    assert "water_stress" not in res["state"]
 
 
 def test_v55_migration_in_manifest_before_append_only():

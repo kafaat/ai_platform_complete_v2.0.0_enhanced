@@ -1,8 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`bc16209`](../) (#467 مُدمج) · فرع العمل `claude/bundle-b-boundary-confidence`
-> (Bundle B: تصعيد ثقة حدود الحقل < 0.6 → human_review في الحالة القانونيّة — [`log.md`](log.md) مدخل (ر)؛
-> سبقه (ق) D3 قراءة ET0/ETc موحّدة · (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`208454d`](../) (#468 مُدمج) · فرع العمل `claude/bundle-d2a-water-stress`
+> (Bundle D / D2a: كتلة `water_stress` كنسيّة معلوماتيّة AWF + NORMAL/WATCH/CRITICAL — [`log.md`](log.md) مدخل (ش)؛
+> سبقه (ر) Bundle B ثقة الحدّ · (ق) D3 قراءة ET0/ETc موحّدة · (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **التالي:** D2b — تصعيد الإجهاد للمراجعة (`AWF≤0.2 ∧ conf≥0.8 ∧ طيفيّ`) ينتظر توصيل NDMI/MSI للحالة الكنسيّة (بقرار المستخدم).
 
 ## عمل هذه الجلسة (#437 → #447)
 

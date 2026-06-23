@@ -26,6 +26,7 @@ from datetime import date
 from .boundary_confidence import CONFIDENCE_REVIEW_THRESHOLD
 from .canonical_boundary import canonical_boundary
 from .canonical_water import canonical_water
+from .canonical_water_stress import canonical_water_stress
 from .field_operational_state import resolve_field_state
 from .field_state_gateway import build_state_inputs
 
@@ -382,6 +383,39 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 )
     except Exception:  # noqa: BLE001 — قراءة الحدّ best-effort، لا تكسر الحالة التشغيليّة
         logger.warning("تعذّر قراءة ثقة حدّ الحقل %s — تُتخطّى كتلة boundary", field_id, exc_info=True)
+
+    # Bundle D (D2a): الإجهاد المائيّ الكنسيّ — **إضافيّ معلوماتيّ، بلا تصعيد**. اقرأ أحدث
+    # استنزاف (Dr) + الثقة من دفتر المياه (water_ledger) واشتقّ TAW من النسيج×Zr، فأسقِط
+    # كتلة water_stress بمستويات NORMAL/WATCH/CRITICAL (قرار المستخدم 2026-06-23). تصعيد
+    # ESCALATE→human_review مؤجَّل لـD2b (يتطلّب تأكيداً طيفيّاً NDMI/MSI غير محقون بعد).
+    # best-effort: غياب Dr موثوق ⇒ لا كتلة (صدق، لا قرار على غياب).
+    try:
+        lrow = await conn.fetchrow(
+            "SELECT depletion_mm, soil_moisture_pct, confidence "
+            "FROM water_ledger WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT 1",
+            field_id,
+        )
+        if lrow is not None and lrow["depletion_mm"] is not None:
+            from .soil_water import soil_water_params
+
+            # TAW من النسيج (افتراضيّ احتياطيّ) × عمق جذور افتراضيّ موسوم — موسومة
+            # calibrated=False صدقاً (معايرة يمنيّة فجوة موثّقة، لا اختلاق دقّة).
+            sw = soil_water_params(texture=None)
+            stress = canonical_water_stress(
+                {
+                    "depletion_mm": lrow["depletion_mm"],
+                    "taw_mm": sw["taw_mm"],
+                    "raw_fraction": sw["raw_fraction"],
+                    "depletion_confidence": lrow["confidence"],
+                    "soil_moisture_pct": lrow["soil_moisture_pct"],
+                }
+            )
+            if stress is not None:
+                state["water_stress"] = stress
+    except Exception:  # noqa: BLE001 — قراءة الإجهاد best-effort، لا تكسر الحالة التشغيليّة
+        logger.warning(
+            "تعذّر قراءة الإجهاد المائيّ للحقل %s — تُتخطّى كتلة water_stress", field_id, exc_info=True
+        )
 
     prev = await conn.fetchrow(
         "SELECT validity, execution_mode FROM field_state WHERE field_id = $1",
