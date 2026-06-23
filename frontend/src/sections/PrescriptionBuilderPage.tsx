@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldPrescriptions, useCreatePrescription } from '../hooks/useApi';
-import { asApiError } from '../services/api';
+import { asApiError, exportPrescriptionShapefile } from '../services/api';
 import type { SavedPrescription, SavedPrescriptionZone } from '../services/api';
 import { geomToPolygon, areaSqMeters } from '../lib/geo';
 import { T, Card, Pill, Badge, SectionLabel, Button } from '../components/ds';
@@ -191,6 +191,31 @@ export default function PrescriptionBuilderPage() {
 
   const saved = listQ.data?.prescriptions ?? [];
   const selectedRx = saved.find((r) => r.prescription_id === selectedRxId) ?? saved[0];
+
+  // ── تصدير Shapefile (خادميّ، للمُتحكِّمات الزراعيّة — CultiWise) ──
+  const [shpBusy, setShpBusy] = useState(false);
+  const [shpError, setShpError] = useState<string | null>(null);
+  async function exportShapefile(): Promise<void> {
+    if (!selectedRx) return;
+    setShpBusy(true);
+    setShpError(null);
+    try {
+      const blob = await exportPrescriptionShapefile(selectedRx.field_id, selectedRx.prescription_id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${selectedRx.name || 'prescription'}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      const detail = asApiError(e)?.response?.data?.detail;
+      setShpError(typeof detail === 'string' ? detail : 'تعذّر تصدير Shapefile');
+    } finally {
+      setShpBusy(false);
+    }
+  }
 
   // ── حالات اختيار الحقل ──
   if (fieldsLoading) return <LoadingState message="جارٍ تحميل الحقول…" />;
@@ -438,9 +463,14 @@ export default function PrescriptionBuilderPage() {
                       >
                         <Download style={{ width: 14, height: 14, verticalAlign: 'middle' }} /> تصدير CSV
                       </Button>
+                      <Button full={false} tone="gold" disabled={shpBusy} onClick={exportShapefile}>
+                        <Download style={{ width: 14, height: 14, verticalAlign: 'middle' }} />{' '}
+                        {shpBusy ? 'جارٍ التصدير…' : 'تصدير Shapefile'}
+                      </Button>
                     </div>
+                    {shpError && <Pill tone="warn">{shpError}</Pill>}
                     <Pill tone="neutral">
-                      TODO موثَّق: تصدير صيغ المُتحكِّمات (ISOXML / Shapefile) مؤجّل — لا يُنتَج بعد.
+                      Shapefile جاهز للمُتحكِّمات (.shp/.shx/.dbf/.prj). تصدير ISOXML مؤجّل — TODO موثَّق (لا يُنتَج بعد).
                     </Pill>
                   </>
                 )}

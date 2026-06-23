@@ -25,9 +25,11 @@
 حلقة CultiWise المغلقة، وصادق في فجواته (TODO تصدير الآلة مُعلَن لا مُدّعى).
 
 ## الاتّجاه المقترَح (اقتباس تدريجيّ — أعلى قيمة/جدوى أوّلاً)
-1. **تصدير الوصفة لصيغة آلة (Shapefile ثمّ ISOXML)** — يملأ الـTODO الموثَّق، يحوّل «المراقبة» إلى
-   «تنفيذ» (القفزة الفارقة)، يبني على v95 + تصدير GeoJSON القائم. **الأكثر قيمةً وجدوى — يُوصى به أوّلاً.**
-   (Shapefile أبسط؛ ISOXML/TASKDATA.XML مرحلة تالية.)
+1. **تصدير الوصفة لصيغة آلة** — ✅ **Shapefile منفَّذ v1 (#456):** `GET …/prescriptions/{id}/export?format=shapefile`
+   → ZIP (.shp/.shx/.dbf/.prj WGS84) عبر `pyshp` (نقيّ-Python). خادم:
+   [`../../services/sahool-platform/api/prescription_shapefile.py`](../../services/sahool-platform/api/prescription_shapefile.py)
+   + راوتر prescriptions؛ واجهة: زرّ «تصدير Shapefile». يحوّل «المراقبة» إلى «تنفيذ». **مؤجَّل (صدق):**
+   ISOXML/TASKDATA.XML (يحتاج نمذجة معدّات + مطابقة المُتحكِّمات) — يبقى TODO مُعلَناً لا مُدّعى.
 2. **تقويم معالجات بـBBCH** — يبني على phenology/GDD القائم: المرحلة الحاليّة → عمليّات موصى بها
    (تسميد/مبيد/فطريّ…) بنوافذ طقس. تطوّريّ.
 3. **إغلاق حلقة الأثر** — ربط الوصفة → سجلّ التنفيذ → `outcome_record` (v79 موجود) → تحسين. متوسّط.

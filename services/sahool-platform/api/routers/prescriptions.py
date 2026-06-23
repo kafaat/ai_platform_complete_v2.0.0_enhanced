@@ -28,7 +28,7 @@ from __future__ import annotations
 import json
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
 from pydantic import BaseModel, Field
 
 from api.main import (
@@ -40,6 +40,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.prescription_shapefile import build_shapefile_zip
 
 logger = logging.getLogger(__name__)
 
@@ -186,3 +187,51 @@ async def list_prescriptions(
         raise _db_unavailable("جلب الوصفات", e) from e
     items = [_row_to_prescription(r) for r in rows]
     return {"field_id": field_id, "prescriptions": items, "total": len(items)}
+
+
+@router.get("/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export")
+async def export_prescription(
+    field_id: str = Path(..., description="معرّف الحقل"),
+    prescription_id: str = Path(..., description="معرّف الوصفة"),
+    fmt: str = Query("shapefile", alias="format", description="الصيغة (المتاح: shapefile)"),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """يصدّر الوصفة كـ**Shapefile** (ZIP: .shp/.shx/.dbf/.prj) للمُتحكِّمات الزراعيّة (اقتباس CultiWise).
+
+    صدق: Shapefile فقط هنا (GeoJSON/CSV يُنتَجان في الواجهة؛ **ISOXML مؤجَّل كـTODO موثَّق** — لا
+    يُنتَج بعد ⇒ 422). معزول بالمستأجِر (RLS)؛ حقل/وصفة خارج المستأجِر ⇒ 404؛ القاعدة معطّلة ⇒ 503.
+    """
+    if fmt != "shapefile":
+        raise HTTPException(
+            status_code=422,
+            detail="صيغة غير مدعومة (المتاح: shapefile؛ ISOXML قيد التطوير — TODO موثَّق)",
+        )
+    if _DB_POOL is None:
+        raise HTTPException(status_code=503, detail="القاعدة غير مفعّلة (DATABASE_URL)")
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            row = await conn.fetchrow(
+                f"SELECT {_RX_SELECT_COLS} FROM prescriptions "
+                "WHERE prescription_id = $1 AND field_id = $2",
+                prescription_id,
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تصدير الوصفة", e) from e
+    if row is None:
+        raise HTTPException(status_code=404, detail="الوصفة غير موجودة")
+    rx = _row_to_prescription(row)
+    try:
+        data = build_shapefile_zip(rx["name"], rx["product_type"], rx["zones"])
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"تعذّر بناء Shapefile: {e}") from e
+    except ImportError:  # pragma: no cover — مكتبة pyshp غير مُثبَّتة في هذه البيئة
+        raise HTTPException(status_code=503, detail="مكتبة تصدير Shapefile غير متاحة") from None
+    return Response(
+        content=data,
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="prescription.zip"'},
+    )
