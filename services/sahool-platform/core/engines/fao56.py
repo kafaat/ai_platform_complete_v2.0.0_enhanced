@@ -639,6 +639,7 @@ class IrrigationResult:
     irrigation_interval_days: float
     night_irrigation_recommended: bool
     dtr_c: float
+    salinity_applied: bool = False
     notes: list[str] = field(default_factory=list)
 
 
@@ -651,10 +652,17 @@ def compute_irrigation(
     water_ec: float,
     effective_rainfall_mm: float = 0.0,
     irrigation_efficiency: float = 0.85,
+    apply_salinity: bool = False,
 ) -> IrrigationResult:
     """Full FAO-56 chain for ONE zone on ONE day.
 
     Run this per-zone to produce a Variable-Rate Irrigation (VRA) map.
+
+    قرار المستخدم (H5): الملوحة مفتاح صريح مُطفأ افتراضيّاً — «بلا ملوحة افتراضيّاً،
+    قابلة للإدخال في أيّ مرحلة». لا يعتمد المفتاح على وجود ECe.
+      - apply_salinity=False (افتراضيّ): Ks=1.0 وLR=0.0 ⇒ لا خفض ملوحة ولا غسيل.
+      - apply_salinity=True: المسار القائم تماماً — salinity_stress_ks (Eq.81) +
+        leaching_requirement (Eq.82). الصيغ الرياضيّة لم تتغيّر؛ صارت opt-in فقط.
     """
     notes: list[str] = []
 
@@ -670,8 +678,11 @@ def compute_irrigation(
     # 4. soil-texture surface evap adjustment (sandy loses more)
     etc_zone = etc * zone.ke_factor
 
-    # 5. salinity stress
-    ks = salinity_stress_ks(crop, soil_ece)
+    # 5. salinity stress — opt-in (off by default per H5; Ks=1.0 when off)
+    if apply_salinity:
+        ks = salinity_stress_ks(crop, soil_ece)
+    else:
+        ks = 1.0
     etc_adj = etc_zone * ks
     if ks < 1.0:
         notes.append(
@@ -681,8 +692,11 @@ def compute_irrigation(
     # 6. net irrigation (minus effective rainfall)
     net = max(0.0, etc_adj - effective_rainfall_mm)
 
-    # 7. leaching + efficiency -> gross
-    lr = leaching_requirement(water_ec, crop.salt_tolerance_ece)
+    # 7. leaching + efficiency -> gross — leaching only when salinity opt-in (else LR=0.0)
+    if apply_salinity:
+        lr = leaching_requirement(water_ec, crop.salt_tolerance_ece)
+    else:
+        lr = 0.0
     gross = (net * (1.0 + lr)) / irrigation_efficiency
 
     # irrigation interval from RAW (FAO-56 Ch.8)
@@ -716,6 +730,7 @@ def compute_irrigation(
         irrigation_interval_days=round(interval, 1),
         night_irrigation_recommended=night,
         dtr_c=round(dtr, 1),
+        salinity_applied=apply_salinity,
         notes=notes,
     )
 
