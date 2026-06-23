@@ -398,3 +398,10 @@ v96_spatial_geometry_integrity.sql
 # التأسيسيّ (مستأجِر جديد بلا سياق app.current_*) دون كسر عزل المستأجِر. يُصلح فشل
 # /auth/register بـasyncpg InsufficientPrivilegeError (RLS). idempotent.
 v97_user_self_with_check.sql
+# v98: water_ledger — دفتر المياه اليوميّ المُخزَّن القابل للتدقيق (إلهام IrriPro /
+# FAO-56، الفجوة #1 في water-intelligence-direction). صفّ لكلّ (حقل، يوم) يحمل
+# ET0/Kc/ETc/مطر/ريّ/رطوبة/عجز/مرحلة/قرار/ثقة — تخزين/تدقيق لقيم تُمرَّر أو محسوبة
+# بمحرّكات FAO-56 القائمة (لا اختراع أرقام، الناقص NULL). PK مركّب (field_id,
+# ledger_date) للـupsert idempotent. field_id نصّ (نمط v95)، RLS+FORCE بسياسة
+# tenant_isolation (current_setting، fail-closed). idempotent.
+v98_water_ledger.sql

@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useFieldOptions } from '../../hooks/useFieldOptions';
 import { useDuckDBFields } from '../../hooks/useDuckDB';
 import type { FieldRow, QueryResult } from '../../services/duckdb';
+import { exportQueryToParquet } from '../../services/duckdb';
 import { DataTable, type Column } from '../ds/table';
 import { LoadingState, ErrorState, EmptyState } from '../StateViews';
 import { T } from '../ds/tokens';
@@ -79,6 +80,24 @@ function downloadCsv(columns: string[], rows: Record<string, unknown>[]): void {
   URL.revokeObjectURL(url);
 }
 
+/** ينزّل مخزّن Parquet (Uint8Array من DuckDB) كملفّ .parquet — نفس نمط تنزيل CSV (Blob/URL). */
+function downloadParquet(bytes: Uint8Array): void {
+  // ننسخ إلى ArrayBuffer صريح (لا ArrayBufferLike/SharedArrayBuffer) — مخزّن DuckDB
+  // (Uint8Array<ArrayBufferLike> تحت TS الصارم) ليس BlobPart صالحاً مباشرةً. النسخ يضمن
+  // الطول الفعليّ بالضبط (لا أصفار ذيليّة) ونوعاً صالحاً للـBlob.
+  const ab = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(ab).set(bytes);
+  const blob = new Blob([ab], { type: 'application/vnd.apache.parquet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sahool-query-${new Date().toISOString().slice(0, 10)}.parquet`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function SQLEditor() {
   const { options, isLoading, isError, refetch } = useFieldOptions();
 
@@ -104,6 +123,7 @@ export default function SQLEditor() {
   const [queryError, setQueryError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [history, setHistory] = useState<string[]>(() => loadHistory());
+  const [exportingParquet, setExportingParquet] = useState(false);
 
   // مساعد الذكاء (NL→SQL): سؤال عربيّ → الخادم يستدعي Claude → يملأ المحرّر للمراجعة.
   const [nlQuestion, setNlQuestion] = useState('');
@@ -165,6 +185,25 @@ export default function SQLEditor() {
       toastStore.add('success', 'تمّ النسخ', `نُسخت ${result.rows.length} صفّ كـJSON`);
     } catch {
       toastStore.add('error', 'تعذّر النسخ', 'لم يُسمح بالوصول إلى الحافظة');
+    }
+  }
+
+  /**
+   * يصدّر نتيجة الاستعلام الحاليّ كـ**Parquet** (تنسيق أعمدة) عبر DuckDB ثمّ ينزّله.
+   * يُعيد تشغيل نفس الاستعلام داخل COPY (DuckDB يكتب من الاستعلام مباشرةً، لا من صفوف JS).
+   * أخطاء صادقة عبر توست (لا ابتلاع). الاسم «Parquet» لا «GeoParquet» (لا هندسة في v1).
+   */
+  async function exportParquet() {
+    if (!result) return;
+    setExportingParquet(true);
+    try {
+      const bytes = await exportQueryToParquet(sql);
+      downloadParquet(bytes);
+      toastStore.add('success', 'تمّ التصدير', 'نُزّلت النتيجة كملفّ Parquet');
+    } catch (e) {
+      toastStore.add('error', 'تعذّر التصدير', e instanceof Error ? e.message : String(e));
+    } finally {
+      setExportingParquet(false);
     }
   }
 
@@ -274,6 +313,18 @@ export default function SQLEditor() {
             style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
           >
             ⬇ تصدير CSV
+          </button>
+        )}
+        {result && result.rows.length > 0 && (
+          <button
+            type="button"
+            onClick={exportParquet}
+            disabled={exportingParquet}
+            title="تصدير النتيجة كملفّ Parquet (تنسيق أعمدة) عبر DuckDB"
+            className="px-3 py-2 rounded-lg text-xs font-semibold disabled:opacity-50"
+            style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+          >
+            {exportingParquet ? 'جارٍ التصدير…' : '⬇ تصدير Parquet'}
           </button>
         )}
         {result && result.rows.length > 0 && (

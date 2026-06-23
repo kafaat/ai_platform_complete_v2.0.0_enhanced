@@ -67,6 +67,31 @@ export interface QueryResult {
   rows: Record<string, unknown>[];
 }
 
+/**
+ * يصدّر نتيجة استعلام كـ**Parquet** (تنسيق أعمدة) عبر قدرة DuckDB-WASM على الكتابة:
+ * `COPY (<sql>) TO 'result.parquet' (FORMAT PARQUET)` يكتب الملفّ في نظام ملفّات DuckDB
+ * الافتراضيّ (في الذاكرة)، ثمّ نقرأه إلى `Uint8Array` عبر `db.copyFileToBuffer` ونحذفه.
+ * يرمي عند خطأ SQL (يُعرَض بصدق). عميل-فقط — لا خادم.
+ *
+ * صدق التسمية: هذا **Parquet عاديّ** (سمات id/name/crop/area_ha/lat/lon فقط، لا هندسة).
+ * TODO(GeoParquet): لإصدار GeoParquet حقيقيّ يلزم ترميز الهندسة WKB + بيانات وصفيّة
+ *   geo؛ جدول `fields` لا يحمل هندسة في v1، فلا نُسمّيه GeoParquet زوراً.
+ */
+export async function exportQueryToParquet(sql: string): Promise<Uint8Array> {
+  const db = await getDuckDB();
+  const conn = await db.connect();
+  const FILE = 'result.parquet';
+  try {
+    await db.dropFile(FILE).catch(() => undefined); // تنظيف بقايا تصدير سابق إن وُجدت
+    // COPY يلفّ الاستعلام كاستعلام فرعيّ؛ أيّ خطأ SQL يُرمى هنا بصدق (لا ابتلاع).
+    await conn.query(`COPY (${sql}) TO '${FILE}' (FORMAT PARQUET)`);
+    return await db.copyFileToBuffer(FILE);
+  } finally {
+    await conn.close();
+    await db.dropFile(FILE).catch(() => undefined); // لا نُبقي الملفّ في FS بعد القراءة
+  }
+}
+
 /** ينفّذ استعلاماً ويعيد {columns, rows}. يرمي عند خطأ SQL (يُعرَض بصدق، لا ابتلاع). */
 export async function runQuery(sql: string): Promise<QueryResult> {
   const db = await getDuckDB();
