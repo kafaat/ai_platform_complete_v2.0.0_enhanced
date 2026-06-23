@@ -16,3 +16,15 @@
   - `pip-audit` يحجب الدمج على المسار الحرج: `services/sahool-platform/api/requirements.txt` و`services/auth/requirements.txt` و`services/guardrails-engine/requirements.txt` و`requirements_real.txt`.
   - `bandit -r services/ bots/ agents/ --severity-level high` يحجب على HIGH (الباقي إرشاديّ، لا يحجب).
 - **مثال واقعيّ حديث:** `python-multipart` 0.0.27 حمل ثغرة CVE حجبت CI حتى رُفِع إلى `0.0.31` في المسار الحرج. افحص أوّلاً تتجنّب التكرار.
+
+## الدماغ المعرفيّ (Knowledge Brain)
+
+قاعدة معرفة Markdown يصونها الوكيل ذاتيّاً في `sahool-brain/` — هُب **رابط لا مكرّر** يربط المصادر
+القائمة (docs/adr · MANIFEST · compose · تقرير الفجوات · decision_record) ويضيف الناقص (كتالوج خدمات،
+سجلّ فجوات حيّ، لقطة تركيز، سجلّ جلسات، بروتوكول صيانة).
+
+- **بداية الجلسة:** اقرأ `sahool-brain/hot.md` + `sahool-brain/index.md` + الفجوات الحرجة المفتوحة في `sahool-brain/gaps/registry.md`.
+- **نهاية الجلسة:** حدّث `hot.md`؛ ألحِق `log.md`؛ حدّث حالات `gaps/registry.md`؛ أضف قرارات الجلسة (SHA + سبب) إلى `decisions/ledger.md`.
+- **القواعد الصارمة:** لا معلومة بلا مصدر (`path:line`/`#PR`) · لا فجوة بلا مصدر + حالة · لا قرار بلا سبب + PR/SHA · لا تحديث بلا سطر في `log.md`.
+
+نقطة الدخول: [`sahool-brain/index.md`](sahool-brain/index.md) · المقدّمة والقواعد: [`sahool-brain/README.md`](sahool-brain/README.md).
