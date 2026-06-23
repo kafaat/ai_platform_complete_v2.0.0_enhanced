@@ -19,6 +19,8 @@ import { polygon as turfPolygon, multiPolygon as turfMultiPolygon } from '@turf/
 import turfUnion from '@turf/union';
 import turfIntersect from '@turf/intersect';
 import turfDifference from '@turf/difference';
+import turfBuffer from '@turf/buffer';
+import turfSimplify from '@turf/simplify';
 import type { Feature, Polygon, MultiPolygon, Position } from 'geojson';
 
 // هندسة GeoJSON المساحيّة كما يقبلها هذا المنطق (مُدخَلاً ومُخرَجاً).
@@ -118,6 +120,60 @@ export function splitFieldGeometry(
   // كلا الجزأين يجب أن يكونا هندسة صالحة لتقسيم حقيقيّ (لا جزء فارغ).
   if (!partA || !partB) return null;
   return { partA, partB };
+}
+
+/**
+ * يُنشئ حِزاماً (BUFFER) حول هندسة الحقل بمسافة بالأمتار (موجبة ⇒ توسيع، سالبة ⇒
+ * تقليص). يستعمل @turf/buffer بوحدة 'meters' على القطع الإهليلجيّ WGS84 — لا أرقام
+ * مُفبركة. يُرجِع هندسة مساحيّة صافية أو null عند:
+ *   • مُدخَل غير مساحيّ صالح (toTurfFeature ⇒ null)،
+ *   • مسافة غير محدودة (NaN/∞)،
+ *   • أو حِزام سالب يبتلع الهندسة كاملاً (turf يردّ undefined) ⇒ لا نتيجة حقيقيّة.
+ * أمانة: معاينة هندسيّة محض في المتصفّح — لا حفظ في الخادم (المستدعي/الـUI يوضّح ذلك).
+ */
+export function bufferFieldGeometry(geometry: unknown, meters: number): ArealGeometry | null {
+  if (!Number.isFinite(meters)) return null;
+  const feature = toTurfFeature(geometry);
+  if (!feature) return null;
+  try {
+    // turf v6: buffer(feature, radius, { units }) — قد يردّ undefined إذا أفنى
+    // الحِزام السالب الهندسة. نعامله كـnull (لا اختراع هندسة فارغة).
+    const buffered = turfBuffer(feature, meters, { units: 'meters' });
+    return featureToGeometry((buffered ?? null) as Feature<Polygon | MultiPolygon> | null);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * يبسّط (SIMPLIFY) هندسة الحقل بإزالة رؤوس زائدة عبر Douglas–Peucker (@turf/simplify)
+ * بعتبة tolerance (بدرجات الإحداثيّات — كلّما زادت زاد التبسيط). يحافظ على البنية العامّة
+ * ولا يزيد عدد الرؤوس. mutate=false كي لا نعدّل مُدخَل المستدعي. يُرجِع هندسة مساحيّة
+ * صافية أو null عند مُدخَل غير صالح أو عتبة غير محدودة. معاينة محض — لا حفظ.
+ */
+export function simplifyFieldGeometry(geometry: unknown, tolerance: number): ArealGeometry | null {
+  if (!Number.isFinite(tolerance) || tolerance < 0) return null;
+  const feature = toTurfFeature(geometry);
+  if (!feature) return null;
+  try {
+    const simplified = turfSimplify(feature, { tolerance, highQuality: true, mutate: false });
+    return featureToGeometry(simplified as Feature<Polygon | MultiPolygon>);
+  } catch {
+    return null;
+  }
+}
+
+/** يَعُدّ رؤوس هندسة مساحيّة (مجموع نقاط كلّ الحلقات) — لمقارنة قبل/بعد التبسيط. */
+export function countVertices(geometry: ArealGeometry | null | undefined): number {
+  if (!geometry) return 0;
+  if (geometry.type === 'Polygon') {
+    return geometry.coordinates.reduce((n, ring) => n + ring.length, 0);
+  }
+  // MultiPolygon: مجموع رؤوس كلّ حلقات كلّ المضلّعات.
+  return geometry.coordinates.reduce(
+    (n, poly) => n + poly.reduce((m, ring) => m + ring.length, 0),
+    0,
+  );
 }
 
 /** هل الهندسة الناتجة متعدّدة الأجزاء (MultiPolygon)؟ — للتحذير في الـUI/الحجب. */

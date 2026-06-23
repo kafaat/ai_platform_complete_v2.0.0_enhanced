@@ -31,7 +31,7 @@ import {
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
   CalendarRange, GitCompare, GitBranch, Crosshair, Search, History,
   FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay, Share2, Repeat, Gauge,
-  Home, HeartPulse, FolderKanban, Wrench,
+  Home, HeartPulse, FolderKanban, Wrench, Shapes,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { PageId } from '../App';
@@ -117,6 +117,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'problem-fields', path: '/analysis/problem-fields', label: 'حقول المشكلات', icon: AlertTriangle, maturity: 'stable' },
       { id: 'nl-gis',        path: '/analysis/nl-gis',     label: 'استعلام GIS باللغة الطبيعيّة', icon: Search, maturity: 'alpha' },
       { id: 'sql-workspace', path: '/analysis/sql-workspace', label: 'ورشة SQL (DuckDB)', icon: Database, maturity: 'alpha', badge: 'SQL' },
+      { id: 'gis-tools',     path: '/analysis/gis-tools',   label: 'أدوات الهندسة المكانيّة', icon: Shapes, maturity: 'alpha', badge: 'معاينة' },
       { id: 'scenario-compare', path: '/analysis/scenario-compare', label: 'مقارنة السياسات', icon: GitCompare, maturity: 'beta' },
     ],
   },

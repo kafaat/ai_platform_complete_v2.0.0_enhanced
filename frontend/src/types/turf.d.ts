@@ -60,3 +60,22 @@ declare module '@turf/difference' {
     poly2: Feature<Polygon | MultiPolygon> | Polygon | MultiPolygon,
   ): Feature<Polygon | MultiPolygon> | null;
 }
+
+declare module '@turf/buffer' {
+  import type { Feature, Geometry, Polygon, MultiPolygon } from 'geojson';
+  // حِزام حول هندسة بمسافة radius (وحدة options.units)؛ قد يُرجِع undefined إن
+  // أفنى حِزامٌ سالب الهندسةَ كاملاً. التوقيع مطابق لتعريف turf v6 الرسميّ.
+  export default function buffer(
+    feature: Feature<Geometry> | Geometry,
+    radius?: number,
+    options?: { units?: string; steps?: number },
+  ): Feature<Polygon | MultiPolygon> | undefined;
+}
+
+declare module '@turf/simplify' {
+  // تبسيط هندسة GeoJSON (Douglas–Peucker)؛ يُرجِع نفس نوع المُدخَل T (لا يزيد الرؤوس).
+  export default function simplify<T>(
+    geojson: T,
+    options?: { tolerance?: number; highQuality?: boolean; mutate?: boolean },
+  ): T;
+}
