@@ -17,9 +17,15 @@ _PLATFORM = Path(__file__).resolve().parent.parent / "services" / "sahool-platfo
 if str(_PLATFORM) not in sys.path:
     sys.path.insert(0, str(_PLATFORM))
 
-import api.main  # noqa: E402, F401 — تهيئة كاملة تسجّل الراوترات وتحلّ الاستيراد الدائريّ
-from api.routers.etc_dual import EtcDualRequest, _resolve_weather  # noqa: E402
-from fastapi import HTTPException  # noqa: E402
+# استيراد الراوتر يتطلّب تبعيّات المنصّة (fastapi/asyncpg…) ويُهيّئ api.main كاملاً (يحلّ الاستيراد
+# الدائريّ للراوتر). في وظيفة CI «Unit Tests» الأدنى (بلا api/requirements) تغيب هذه التبعيّات ⇒
+# نتخطّى الوحدة كاملةً بصدق (تُغطّى في «Platform Unit Tests» الذي يُثبّت api/requirements).
+try:
+    import api.main  # noqa: E402, F401 — تهيئة كاملة تسجّل الراوترات
+    from api.routers.etc_dual import EtcDualRequest, _resolve_weather  # noqa: E402
+    from fastapi import HTTPException  # noqa: E402
+except Exception:  # noqa: BLE001 — تبعيّات المنصّة غير متوفّرة (بيئة Unit Tests الأدنى)
+    pytest.skip("platform/api deps unavailable (minimal Unit Tests env)", allow_module_level=True)
 
 
 async def test_resolve_weather_request_path_full():
