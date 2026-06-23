@@ -40,6 +40,10 @@ _WATER_STRESS_ESCALATION_FLAG = "FEATURE_WATER_STRESS_ESCALATION"
 # عند التفعيل تُحسب ETc بالنهج المزدوج (Kcb·Ks+Ke)·ET0 بدل single (Kc·ET0). ليس علم راوتر.
 _CANONICAL_ETC_DUAL_FLAG = "FEATURE_CANONICAL_ETC_DUAL"
 
+# علم عتبات NDVI (C5) — default OFF: NDVI معلوماتيّ لا يحكم الصلاحيّة ما لم تُفعَّل عتبات
+# **معايَرة ميدانيّاً** (غير موجودة بعد). OFF ⇒ تُعلَن insufficient_field_calibration صراحةً.
+_APPLY_NDVI_THRESHOLDS_FLAG = "APPLY_NDVI_THRESHOLDS"
+
 logger = logging.getLogger("sahool.field_state")
 
 
@@ -329,6 +333,47 @@ def _apply_canonical_etc_dual(
         water.setdefault("etc_disabled_reason", "dual_inputs_unavailable")
 
 
+def _ndvi_thresholds_for(crop_id, days_after_planting):
+    """عتبات NDVI لمرحلة المحصول من **مظروف بطاقة المحصول** (إن وُجد) — ``None`` إن غير معايَر.
+
+    صدق صريح: **لا عتبات NDVI معايَرة ميدانيّاً في النظام بعد** (لا بطاقة محصول تحمل قسم
+    ``ndvi_thresholds``)، فهذا يُرجِع ``None`` دائماً حاليّاً — لا نختلق عتبات. مهيّأ للمستقبل:
+    حين تُضاف عتبات معايَرة إلى البطاقة تُقرأ من هنا (threshold_source="crop_card").
+    """
+    if not crop_id:
+        return None
+    try:
+        from core.crop_cards.loader import load_crop_card
+
+        card = load_crop_card(crop_id)
+        env = card.get("ndvi_thresholds") if isinstance(card, dict) else None
+        return env or None
+    except Exception:  # noqa: BLE001 — fail-safe: تعذّر تحميل البطاقة ⇒ None (لا اختلاق)
+        return None
+
+
+def _apply_ndvi_threshold_gating(state: dict, crop_id, days_after_planting) -> None:
+    """C5: بوّابة عتبات NDVI خلف feature flag (default off) — يُعدّل ``remote_sensing`` مكانيّاً.
+
+    يُعلن **صراحةً** سياسة عتبات NDVI بدل الإبهام (الفجوة C5: «NDVI معلوماتيّ لا يحكم
+    الصلاحيّة»). OFF (افتراضيّ) أو غياب معايرة ⇒ ``calibration_status="insufficient_field_
+    calibration"`` و``thresholds_applied=False`` (NDVI يبقى معلوماتيّاً). ON + بطاقة تحمل عتبات
+    معايَرة ⇒ ``threshold_source="crop_card"`` و``thresholds_applied=True``. **لا يغيّر
+    validity/execution_mode** ولا يختلق عتبات (صدق).
+    """
+    rs = state.get("remote_sensing")
+    if not isinstance(rs, dict) or not rs.get("available"):
+        return  # لا NDVI متاح ⇒ العتبات بلا معنى (نُبقي كتلة «غير متاح» الصادقة كما هي)
+    enabled = is_enabled(_APPLY_NDVI_THRESHOLDS_FLAG, os.getenv(_APPLY_NDVI_THRESHOLDS_FLAG))
+    thresholds = _ndvi_thresholds_for(crop_id, days_after_planting) if enabled else None
+    applied = thresholds is not None
+    rs["ndvi_thresholds_enabled"] = enabled
+    rs["threshold_source"] = "crop_card" if applied else None
+    rs["thresholds_applied"] = applied
+    # صدق: العتبات غير المعايَرة (off أو لا بطاقة) ⇒ إعلان السبب صراحةً.
+    rs["calibration_status"] = "calibrated" if applied else "insufficient_field_calibration"
+
+
 def _compose_agronomic(
     field_id: str,
     tenant_id,
@@ -454,6 +499,11 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 )
     except Exception:  # noqa: BLE001 — توحيد المياه best-effort، لا يكسر الحالة التشغيليّة
         logger.warning("تعذّر اشتقاق ET0/سياق المحصول للحقل %s — يُتخطّى ETc", field_id, exc_info=True)
+
+    # C5: بوّابة عتبات NDVI (إغلاق خلف feature flag، default off): NDVI يبقى **معلوماتيّاً
+    # لا يحكم الصلاحيّة** ما لم تُفعَّل العتبات، والكتلة تُعلن **صراحةً** سبب التعطيل
+    # (insufficient_field_calibration) بدل الإبهام — لا عتبات مُلفَّقة (صدق).
+    _apply_ndvi_threshold_gating(state, crop_id, days_after_planting)
 
     # Stage E (توحيد النواة): ادمج الحقائق الزراعيّة الغنيّة (compose_field_state)
     # في الحالة القانونيّة — فيصبح الإسقاط مصدر الحقيقة الموحّد (حقائق + جاهزيّة).

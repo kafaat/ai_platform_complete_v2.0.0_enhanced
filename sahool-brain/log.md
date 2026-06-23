@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-06-23 (ج) — إغلاق C5: بوّابة عتبات NDVI خلف feature flag + إعلان عدم المعايرة
+
+**رأس `main`:** `b722b4c` (#471 مُدمج). فرع `claude/c5-ndvi-threshold-flag`. الفجوة C5: «NDVI الحقيقيّ
+معلوماتيّ لا يُغيّر صلاحيّة القرار» — أُغلِقت ضمن إطار «implemented-but-off-by-default». **حقيقة صدق
+حاسمة:** لا توجد عتبات NDVI **معايَرة ميدانيّاً** لأيّ محصول/مرحلة في النظام (لا بطاقة تحمل
+`ndvi_thresholds`)، ولفلسفة «لا تلفيق» **لا نختلقها** — لذا الإغلاق **إعلانيّ + opt-in خامل**:
+- **العلم `APPLY_NDVI_THRESHOLDS` (default OFF، ليس علم راوتر).**
+- **`_apply_ndvi_threshold_gating`** (`field_state_projection`) يُعلن في `remote_sensing` (عند توفّر NDVI):
+  `ndvi_thresholds_enabled` · `threshold_source` · `thresholds_applied` ·
+  `calibration_status` = `insufficient_field_calibration` (OFF أو لا معايرة) / `calibrated` (ON + بطاقة
+  تحمل عتبات). **لا يغيّر validity/execution_mode** — NDVI يبقى معلوماتيّاً.
+- **`_ndvi_thresholds_for`** يقرأ مظروف `ndvi_thresholds` من بطاقة المحصول (غائب الآن ⇒ None دائماً —
+  مهيّأ للمستقبل حين تُضاف عتبات معايَرة).
+- **NDVI غير متاح ⇒ كتلة «غير متاح» الصادقة تبقى كما هي** (لا حقول عتبات بلا معنى).
+
+**القيمة:** يحوّل حالة C5 من «Open ambiguity» إلى «Closed (implemented, gated, calibration absent)» —
+إعلان صريح مُدقَّق بدل صمت، بلا أيّ تغيير قرار إنتاجيّ، ودون اختلاق عتبات. تحقّق: ٥ اختبارات
+(`test_ndvi_threshold_gating.py`: OFF يُعلن insufficient · ON بلا معايرة يبقى insufficient · العتبات None
+لمحصول حقيقيّ · fail-safe بلا remote_sensing · ON بلا محصول) · انحدار `test_field_state_ndvi_enrichment`
+أخضر · tests_v9 1840 (فشل MFA الـ5 سابقٌ) · platform 1104 · smoke/حارس التفكيك أخضر · **مسح ruff كامل**.
+
+---
+
 ## 2026-06-23 (ث) — إغلاق ETc-dual في CanonicalFieldState خلف feature flag (default off)
 
 **رأس `main`:** `72586ee` (#470 مُدمج). فرع `claude/canonical-etc-dual-flag`. أوّل إغلاق ضمن إطار المستخدم
