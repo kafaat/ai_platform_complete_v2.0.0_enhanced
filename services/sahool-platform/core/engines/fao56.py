@@ -266,6 +266,60 @@ def kcb_for_age(
     return kcb, stage
 
 
+# ─── Kcb ديناميكيّ من الأقمار (NDVI) — FAO-56 §9.4 «Kc من كسر الغطاء» ──────────
+# بدل اشتقاق Kcb من عمر المحصول (منحنى جدوليّ)، نشتقّه من **غطاء نباتيّ مرصود**
+# (NDVI من raster-service): كسر الغطاء fc → معامل الكثافة Kd (Eq. 76) → Kcb = Kcb_full·Kd.
+# هذا يربط محرّك المياه بالقمر: حقل متأخّر/مُجهَد يُظهِر NDVI أدنى ⇒ Kcb أدنى ⇒ احتياج أصدق.
+# صدق: الحدود (NDVI_bare/NDVI_full) و ML تقديريّة **تحتاج معايرة محلّيّة** — تُعلَن صراحةً.
+
+
+def fractional_cover_from_ndvi(
+    ndvi: float, ndvi_bare: float = 0.15, ndvi_full: float = 0.85
+) -> float:
+    """كسر الغطاء النباتيّ fc من NDVI (تقدير خطّيّ مقصوص إلى [0, 1]).
+
+    ``fc = (NDVI − NDVI_bare) / (NDVI_full − NDVI_bare)`` (علاقة fc–NDVI الشائعة).
+    ⚠️ ``NDVI_bare``/``NDVI_full`` افتراضيّان (تربة عارية/غطاء كامل) **يحتاجان معايرة
+    محلّيّة** لكلّ محصول/تربة. يرفع ``ValueError`` إن لم يكن ``NDVI_full > NDVI_bare``.
+    """
+    denom = ndvi_full - ndvi_bare
+    if denom <= 0:
+        raise ValueError("NDVI_full يجب أن يفوق NDVI_bare")
+    return max(0.0, min(1.0, (ndvi - ndvi_bare) / denom))
+
+
+def density_coefficient_kd(fc: float, crop_height_m: float, ml: float = 2.0) -> float:
+    """معامل الكثافة Kd (FAO-56 Eq. 76): ``min(1, ML·fc, fc^(1/(1+h)))``.
+
+    ``fc`` كسر الغطاء، ``h`` ارتفاع النبات (m)، ``ML`` مضاعِف الغطاء الفعّال (1.5–2.0).
+    يصف انتقال Kcb من تربة عارية (fc=0 ⇒ Kd=0) إلى غطاء كامل (fc=1 ⇒ Kd=1). مقصوص [0,1].
+    """
+    fc = max(0.0, min(1.0, fc))
+    if fc <= 0.0:
+        return 0.0
+    h = max(0.05, crop_height_m)
+    return max(0.0, min(1.0, min(ml * fc, fc ** (1.0 / (1.0 + h)))))
+
+
+def kcb_from_ndvi(
+    ndvi: float,
+    kcb_full: float,
+    crop_height_m: float,
+    *,
+    ndvi_bare: float = 0.15,
+    ndvi_full: float = 0.85,
+    ml: float = 2.0,
+) -> tuple[float, float]:
+    """Kcb من NDVI عبر كسر الغطاء + معامل الكثافة (FAO-56 §9.4، Eq. 76-77).
+
+    يُرجِع ``(kcb, fc)``: ``Kcb = Kcb_full · Kd(fc(NDVI), h)``. ``Kcb_full`` = Kcb عند الغطاء
+    الكامل (ذروة الموسم). صدق: تقدير مرصود لا قياس موقعيّ — الحدود/ML تحتاج معايرة (تُعلَن).
+    """
+    fc = fractional_cover_from_ndvi(ndvi, ndvi_bare, ndvi_full)
+    kd = density_coefficient_kd(fc, crop_height_m, ml)
+    return kcb_full * kd, fc
+
+
 @dataclass
 class DualKcResult:
     """نتيجة الحساب المزدوج لمعامل المحصول (FAO-56 Ch.7)."""
@@ -299,6 +353,9 @@ def compute_etc_dual(
     rh_min_pct: float | None = None,
     crop_height_m: float = 0.5,
     kcb_offset: float = 0.05,
+    ndvi: float | None = None,
+    ndvi_bare: float = 0.15,
+    ndvi_full: float = 0.85,
 ) -> DualKcResult:
     """يحسب ETc بنهج المعامل المزدوج FAO-56 (Eq. 80) — إضافيّ واختياريّ.
 
@@ -317,6 +374,9 @@ def compute_etc_dual(
       fw        كسر السطح المبلّل (1=رّيّ سطحيّ/مطر، ~0.3=تنقيط).
       rh_min    إن غاب ⇒ يُقرَّب من الرطوبة المتوسّطة في WeatherDay (افتراض).
       crop_height_m, kcb_offset  بارامترات FAO-56 افتراضيّة موثّقة.
+      ndvi      إن مُرِّر (من raster-service) ⇒ يُشتقّ Kcb وfc **رصداً** منه (FAO-56 Eq. 76:
+                fc(NDVI) → Kd → Kcb=Kcb_full·Kd) بدل اشتقاق Kcb من العمر — أصدق للحقل الفعليّ.
+                ``ndvi_bare``/``ndvi_full`` حدود المعايرة (افتراضيّة، تحتاج ضبطاً محلّيّاً).
 
     ⚠️ القيود (صدق منهجيّ): Kcb مُشتقّ بإزاحة من Kc المدمج لا من بطاقة Kcb
     مُعايَرة؛ موازنة ماء الطبقة السطحيّة (De) تُمرَّر من الخارج ولا تُحتسب هنا
@@ -328,9 +388,22 @@ def compute_etc_dual(
     # 1. ET0 — المتغيّر (طقس)
     et0 = penman_monteith_et0(weather)
 
-    # 2. Kcb — الأساس (نتح) المُشتقّ من المنحنى القائم
-    kcb, stage = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
-    assumptions.append(f"Kcb مُشتقّ بإزاحة {kcb_offset:.2f} أسفل Kc المدمج (لا بطاقة Kcb مُعايَرة)")
+    # 2. Kcb — الأساس (نتح). مرصود من NDVI (FAO-56 Eq. 76) إن توفّر، وإلّا من عمر المحصول.
+    _, stage = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
+    ndvi_fc: float | None = None
+    if ndvi is not None:
+        # Kcb_full = Kcb عند الغطاء الكامل (ذروة الموسم kc_mid مطروحاً منها الإزاحة).
+        kcb_full = max(0.15, crop.kc_mid - kcb_offset)
+        kcb, ndvi_fc = kcb_from_ndvi(
+            ndvi, kcb_full, crop_height_m, ndvi_bare=ndvi_bare, ndvi_full=ndvi_full
+        )
+        assumptions.append(
+            f"Kcb مرصود من NDVI={ndvi:.2f} عبر Kd (FAO-56 Eq. 76؛ Kcb_full={kcb_full:.2f}، "
+            f"NDVI_bare/full={ndvi_bare:.2f}/{ndvi_full:.2f}) — تقدير يحتاج معايرة محلّيّة"
+        )
+    else:
+        kcb, _ = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
+        assumptions.append(f"Kcb مُشتقّ بإزاحة {kcb_offset:.2f} أسفل Kc المدمج (لا بطاقة Kcb مُعايَرة)")
 
     # 3. Ks — إجهاد ملحيّ (يُعاد استخدام منطق Maas-Hoffman القائم)
     ks = salinity_stress_ks(crop, soil_ece)
@@ -352,8 +425,11 @@ def compute_etc_dual(
     # 6. Kc_max — الحدّ الأعلى (Eq. 72)
     kcmax = kc_max(kcb, weather.wind_speed_m_s, rh_min_pct, crop_height_m)
 
-    # 7. fc — كسر الغطاء (Eq. 76 المبسّطة) إن غاب
-    if fc is None:
+    # 7. fc — كسر الغطاء: مرصود من NDVI إن توفّر، وإلّا مُقدَّر من Kcb (Eq. 76 المبسّطة)
+    if fc is None and ndvi_fc is not None:
+        fc = ndvi_fc
+        assumptions.append(f"fc مرصود من NDVI={ndvi:.2f} (fc={fc:.2f}) — أصدق من تقدير Kcb")
+    elif fc is None:
         kc_min = 0.15  # تربة عارية جافّة (FAO-56)
         denom = max(0.01, kcmax - kc_min)
         fc = max(0.0, min(0.99, (kcb - kc_min) / denom))

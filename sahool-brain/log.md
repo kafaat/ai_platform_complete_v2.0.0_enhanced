@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-06-23 (ل) — Kc ديناميكيّ من NDVI (FAO-56 §9.4، #461)
+
+**رأس `main`:** `5ed73c0` (#460 مُدمج). فرع مستقلّ `claude/dynamic-kc-ndvi`. يربط محرّك المياه
+بالأقمار: بدل اشتقاق Kcb من عمر المحصول (منحنى جدوليّ)، يُشتقّ من **غطاء نباتيّ مرصود** (NDVI):
+- `core/engines/fao56.py`: `fractional_cover_from_ndvi` (fc من NDVI، مقصوص + معايرة) +
+  `density_coefficient_kd` (FAO-56 Eq. 76: `min(1, ML·fc, fc^(1/(1+h)))`) + `kcb_from_ndvi`
+  (`Kcb=Kcb_full·Kd`). و`compute_etc_dual` يقبل `ndvi` اختياريّاً ⇒ Kcb وfc مرصودان.
+- **حفظ السلوك:** غياب NDVI ⇒ المسار القائم تماماً (١٧ اختبار dual-Kc أخضر؛ المسار المفرد سليم).
+- **صدق:** الحدود (NDVI_bare/full=0.15/0.85) و ML تقديريّة **تحتاج معايرة محلّيّة** — تُعلَن في
+  `assumptions` وقت التشغيل (لا تلفيق دقّة). إضافة engine-level (كنمط dual-Kc): الربط الاستهلاكيّ
+  (تمرير NDVI الحيّ من raster-service) مرحلة تالية موثَّقة.
+
+تحقّق: ٦ اختبارات جديدة (`tests_v9/test_kc_ndvi.py`) + ١٧ انحدار dual-Kc · `pytest -m unit` 1713
+ناجح (فشل MFA الـ5 سابقٌ) · ruff/format.
+
+---
+
 ## 2026-06-23 (ك) — Water Twin المرحلة الثانية: تغذية بالدفتر v98 + واجهة منزلقات (#460)
 
 **رأس `main`:** `7fe1244` (#459 مُدمج). فرع مستقلّ `claude/water-twin-phase2` (فُرِّع من tip v1
