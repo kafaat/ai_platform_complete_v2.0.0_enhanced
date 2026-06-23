@@ -15,6 +15,10 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
+# يتطلّب pyshp (تبعيّة تصدير اختياريّة) — يُتخطّى الاختبار إن غابت (مثل وظيفة Unit Tests التي
+# لا تُثبّت api/requirements.txt)؛ يعمل محليّاً وفي Platform Unit Tests (حيث pyshp مُثبَّتة).
+pytest.importorskip("shapefile")
+
 CORE = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform")
 if CORE not in sys.path:
     sys.path.insert(0, CORE)

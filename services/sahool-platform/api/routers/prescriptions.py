@@ -228,6 +228,8 @@ async def export_prescription(
         data = build_shapefile_zip(rx["name"], rx["product_type"], rx["zones"])
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"تعذّر بناء Shapefile: {e}") from e
+    except ImportError:  # pragma: no cover — مكتبة pyshp غير مُثبَّتة في هذه البيئة
+        raise HTTPException(status_code=503, detail="مكتبة تصدير Shapefile غير متاحة") from None
     return Response(
         content=data,
         media_type="application/zip",

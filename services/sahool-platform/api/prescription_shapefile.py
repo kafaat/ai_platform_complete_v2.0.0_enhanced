@@ -13,7 +13,8 @@ import os
 import tempfile
 import zipfile
 
-import shapefile  # pyshp
+# ملاحظة: ``shapefile`` (pyshp) يُستورَد **كسولاً داخل build_shapefile_zip** (لا على مستوى الوحدة) —
+# فلا يكسر استيراد الراوتر/التطبيق في بيئات لا تُثبّت تبعيّة التصدير (نظير anthropic في nl_sql).
 
 # تعريف نظام الإحداثيّات WGS84 (.prj) — تتطلّبه المُتحكِّمات لتحديد المواقع بدقّة.
 _WGS84_PRJ = (
@@ -50,6 +51,8 @@ def build_shapefile_zip(name: str, product_type: str, zones: list[dict]) -> byte
     zones: ``[{geometry: GeoJSON Polygon/MultiPolygon, rate: float, unit: str}, …]``.
     حقول DBF (أسماء ≤10 حروف): zone · rate · unit · product · rx_name.
     """
+    import shapefile  # pyshp — كسول (لا يكسر استيراد التطبيق إن غابت التبعيّة)
+
     with tempfile.TemporaryDirectory() as td:
         base = os.path.join(td, "prescription")
         writer = shapefile.Writer(base, shapeType=shapefile.POLYGON)
