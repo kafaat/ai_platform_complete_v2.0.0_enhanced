@@ -24,7 +24,9 @@ explainability · prescriptions · boundary/SAM2 · decision/outcome ledger · �
 
 ## خارطة الطريق (٤ حِزَم + R&D)
 - **A — توحيد (الأولويّة القصوى):** إزالة التكرار — **H4 ✅ (#457)** · **H5 ✅ (#464، الملوحة اختياريّة
-  + سياسة تفعيل تلقائيّ)** · المتبقّي: ET0 عبر-خدمات + مواءمة `crop_twin`. **شبه مكتمل.**
+  + سياسة تفعيل تلقائيّ)** · **ETc-dual canonical ✅ خلف feature flag `FEATURE_CANONICAL_ETC_DUAL`
+  (default off؛ فرع `claude/canonical-etc-dual-flag`؛ `et0_override` يبقي ET0 مصدراً واحداً، الملوحة off
+  بـH5)** · المتبقّي: ET0 عبر-خدمات + مواءمة `crop_twin`. **شبه مكتمل.**
 - **B — فجوات صغيرة عالية القيمة (Yemen-fit):** ✅ **CDSE افتراضيّ (#457)** · **دفتر مياه v98 (#458)** ·
   **Parquet (#458)** · **Water Twin v1/v2 (#459/#460)** · **Kc-NDVI + etc-dual (#461/#462)** ·
   **Open-Meteo + عمق جذور Zr + لوحة etc-dual (#463)** · Shapefile (#456) · **boundary confidence ✅

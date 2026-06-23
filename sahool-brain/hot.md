@@ -1,9 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`7c897ea`](../) (#469 مُدمج) · فرع العمل `claude/bundle-d2b-spectral-escalation`
-> (Bundle D / D2b: تفعيل تصعيد الإجهاد المائيّ بتأكيد طيفيّ NDMI+MSI خلف feature flag (default off) — [`log.md`](log.md) مدخل (ت)؛
-> سبقه (ش) D2a كتلة الإجهاد · (ر) Bundle B ثقة الحدّ · (ق) D3 قراءة ET0/ETc موحّدة · (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
-> **التالي:** مراقبة ميدانيّة ثمّ تفعيل العلم؛ وإغلاق فجوات أخرى بإطار «implemented-but-off-by-default» (H2/C5/C4-M1/ETc-dual canonical/Bundle C).
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`72586ee`](../) (#470 مُدمج) · فرع العمل `claude/canonical-etc-dual-flag`
+> (إغلاق ETc-dual في الحالة الكنسيّة خلف feature flag (default off) — [`log.md`](log.md) مدخل (ث)؛
+> سبقه (ت) D2b تصعيد طيفيّ · (ش) D2a كتلة الإجهاد · (ر) Bundle B ثقة الحدّ · (ق) D3 قراءة ET0/ETc موحّدة · (ف) D1 ET0/ETc كنسيّ · (ع) Zr-TAW+NDVI طازج · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
+> **التالي:** بقيّة إغلاقات الإطار «implemented-but-off-by-default» (H2 NATS · C5 عتبات NDVI · C4/M1 push · Bundle C). SAM2/MAP-QA تبقى env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)
 

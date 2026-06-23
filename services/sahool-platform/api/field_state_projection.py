@@ -36,6 +36,10 @@ from .field_state_gateway import build_state_inputs
 # ميدانيّة قبل تغيير القرار الإنتاجيّ. ليس علم راوتر ⇒ لا يُسجَّل في feature_registry.
 _WATER_STRESS_ESCALATION_FLAG = "FEATURE_WATER_STRESS_ESCALATION"
 
+# علم ETc-dual في الحالة الكنسيّة — default OFF (إطار implemented-but-off-by-default):
+# عند التفعيل تُحسب ETc بالنهج المزدوج (Kcb·Ks+Ke)·ET0 بدل single (Kc·ET0). ليس علم راوتر.
+_CANONICAL_ETC_DUAL_FLAG = "FEATURE_CANONICAL_ETC_DUAL"
+
 logger = logging.getLogger("sahool.field_state")
 
 
@@ -226,6 +230,105 @@ def _et0_from_weather_payload(data_json, lat, elevation_m, doy: int) -> float | 
         return None
 
 
+def _demand_class(etc_mm: float) -> str:
+    """تصنيف طلب ETc — يطابق عتبات النواة (agronomic_state_engine: >8 high / >4 medium)."""
+    return "high" if etc_mm > 8.0 else "medium" if etc_mm > 4.0 else "low"
+
+
+def _weatherday_from_payload(data_json, lat, doy: int):
+    """يبني ``WeatherDay`` (core.engines.fao56) من حمولة الطقس المخزَّنة — **نفس مصدر**
+    ``_et0_from_weather_payload`` (لا صيغة جديدة). يتطلّب tmin/tmax + rh + wind (لازمة لـKe
+    عبر Kc_max)؛ srad غير لازم هنا (ET0 يُمرَّر عبر et0_override فلا يُحسب penman داخليّاً).
+
+    صدق/fail-safe: نقص أيّ من tmin/tmax/rh/wind ⇒ ``None`` (لا تلفيق) ⇒ تراجع إلى single.
+    """
+    try:
+        from core.engines.fao56 import WeatherDay
+
+        if isinstance(data_json, str):
+            data_json = json.loads(data_json)
+        daily = (data_json or {}).get("daily") or {}
+
+        def _first(seq):
+            return seq[0] if isinstance(seq, list) and seq else None
+
+        tmax = _first(daily.get("temperature_2m_max"))
+        tmin = _first(daily.get("temperature_2m_min"))
+        rh = _first(daily.get("relative_humidity_2m_mean"))
+        wind = _first(daily.get("wind_speed_10m_max"))
+        if tmax is None or tmin is None or rh is None or wind is None:
+            return None  # طقس ناقص لـKe ⇒ تراجع إلى single (صدق)
+        srad = _first(daily.get("shortwave_radiation_sum"))
+        return WeatherDay(
+            temp_max_c=float(tmax),
+            temp_min_c=float(tmin),
+            humidity_pct=float(rh),
+            wind_speed_m_s=float(wind),
+            solar_radiation_mj_m2=float(srad) if srad is not None else 0.0,
+            latitude_deg=float(lat) if lat is not None else 15.5,
+            elevation_m=2000.0,
+            day_of_year=doy,
+        )
+    except Exception:  # noqa: BLE001 — fail-safe: تعذّر ⇒ None
+        return None
+
+
+def _apply_canonical_etc_dual(
+    water: dict, crop_id, days_after_planting, et0_mm, weather_payload, lat, ndvi_mean
+) -> None:
+    """إغلاق ETc-dual في كتلة `water` خلف feature flag (default off) — يُعدّل `water` مكانيّاً.
+
+    العلم OFF (افتراضيّ) ⇒ `etc_source="single_kc"` بلا تغيير (سلوك محفوظ). العلم ON +
+    مدخلات كافية ⇒ ETc بالنهج المزدوج `(Kcb·Ks+Ke)·ET0` بنفس ET0 الكنسيّ (et0_override)،
+    والملوحة **غير مطبّقة** (soil_ece=None، قرار H5)، وde_mm=0 معلَن كافتراض. مدخلات ناقصة
+    ⇒ تراجع إلى single + `etc_disabled_reason="dual_inputs_unavailable"` (declare reason).
+    best-effort: أيّ تعذّر ⇒ يبقى single (لا يكسر الحالة).
+    """
+    if not is_enabled(_CANONICAL_ETC_DUAL_FLAG, os.getenv(_CANONICAL_ETC_DUAL_FLAG)):
+        water["etc_source"] = "single_kc"
+        return
+    # العلم ON: حاول النهج المزدوج إن توفّر الأساس (محصول/عمر/ET0/طقس).
+    if crop_id is None or days_after_planting is None or et0_mm is None:
+        water.update(etc_source="single_kc", etc_disabled_reason="dual_inputs_unavailable")
+        return
+    try:
+        from core.engines.fao56 import compute_etc_dual
+        from core.season_phenology import crop_kc_profile
+
+        wd = _weatherday_from_payload(weather_payload, lat, date.today().timetuple().tm_yday)
+        profile = crop_kc_profile(crop_id)
+        if wd is None or profile is None:
+            water.update(etc_source="single_kc", etc_disabled_reason="dual_inputs_unavailable")
+            return
+        r = compute_etc_dual(
+            wd,
+            profile,
+            days_after_planting,
+            soil_ece=None,  # الملوحة غير مطبّقة افتراضيّاً (قرار H5) — لا تُدخَل ضمنيّاً
+            ndvi=ndvi_mean,
+            de_mm=0.0,
+            et0_override=et0_mm,
+        )
+        dual_assumptions = [
+            *r.assumptions,
+            "salinity_disabled_by_default",
+            "surface_depletion_untracked_assumed_zero",
+        ]
+        water["etc_mm"] = r.etc_dual_mm
+        water["etc_demand_class"] = _demand_class(r.etc_dual_mm)
+        water.update(
+            etc_source="dual_kc",
+            etc_single_mm=r.etc_single_mm,
+            etc_dual_mm=r.etc_dual_mm,
+            kcb=r.kcb,
+            ke=r.ke,
+            dual_assumptions=dual_assumptions,
+        )
+    except Exception:  # noqa: BLE001 — best-effort: يبقى single عند أيّ تعذّر
+        water.setdefault("etc_source", "single_kc")
+        water.setdefault("etc_disabled_reason", "dual_inputs_unavailable")
+
+
 def _compose_agronomic(
     field_id: str,
     tenant_id,
@@ -323,6 +426,8 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     crop_id = None
     days_after_planting = None
     et0_mm = None
+    weather_payload = None  # حمولة الطقس الخام (تُعاد للنهج المزدوج لبناء WeatherDay)
+    field_lat = None
     try:
         from core.season_phenology import resolve_crop_id
 
@@ -331,6 +436,7 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         )
         if fmeta is not None:
             crop_id = resolve_crop_id(fmeta["crop"])
+            field_lat = fmeta["lat"]
             planting = fmeta["planting_date"]
             if planting is not None:
                 dap = (date.today() - planting).days
@@ -342,8 +448,9 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 field_id,
             )
             if wrow is not None:
+                weather_payload = wrow["data_json"]
                 et0_mm = _et0_from_weather_payload(
-                    wrow["data_json"], fmeta["lat"], None, date.today().timetuple().tm_yday
+                    weather_payload, field_lat, None, date.today().timetuple().tm_yday
                 )
     except Exception:  # noqa: BLE001 — توحيد المياه best-effort، لا يكسر الحالة التشغيليّة
         logger.warning("تعذّر اشتقاق ET0/سياق المحصول للحقل %s — يُتخطّى ETc", field_id, exc_info=True)
@@ -369,6 +476,17 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         water = canonical_water(agronomic["operational_truths"])
         if water is not None:
             state["water"] = water
+            # ETc-dual canonical (إغلاق خلف feature flag، default off): العلم off ⇒ single كما
+            # هو؛ on + مدخلات ⇒ etc من النهج المزدوج بنفس ET0 الكنسيّ؛ on + نقص ⇒ single + سبب.
+            _apply_canonical_etc_dual(
+                water,
+                crop_id,
+                days_after_planting,
+                et0_mm,
+                weather_payload,
+                field_lat,
+                fresh.get("ndvi_mean"),
+            )
         if (
             agronomic["operational_truths"].get("salinity_class") == "critical"
             and state["execution_mode"] == "auto"
