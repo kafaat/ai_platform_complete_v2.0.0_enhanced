@@ -90,8 +90,9 @@ class SAHOOLApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       locale: const Locale('ar', 'YE'),
       supportedLocales: const [Locale('ar', 'YE'), Locale('en', 'US')],
-      // سمة «تطبيق الحقل» على طراز FieldView (كريميّ/أخضر/ذهبيّ) — lib/theme.
-      theme: AppTheme.light,
+      // السمة الداكنة (هويّة التطبيق) — متّسقة مع ألوان الشاشات المُثبَّتة، فتتّسق
+      // عناصرُ Material (الحوارات/المفاتيح/القوائم/الإدخال) مع الواجهة. lib/theme.
+      theme: AppTheme.dark,
       builder: (context, child) => Directionality(
         textDirection: TextDirection.rtl,
         child: child!,
