@@ -606,6 +606,16 @@ export interface NlGisResult {
 export const queryNlGis = (payload: NlGisQueryInput): Promise<NlGisResult> =>
   kongApi.post<NlGisResult>('/api/v1/nl-gis/query', payload).then(r => r.data);
 
+/** يصدّر الوصفة كـShapefile (ZIP: .shp/.shx/.dbf/.prj) عبر الخادم (مصادقة JWT) — تنزيل ثنائيّ.
+ *  Shapefile للمُتحكِّمات الزراعيّة (CultiWise)؛ GeoJSON/CSV يُنتَجان في الواجهة؛ ISOXML TODO. */
+export async function exportPrescriptionShapefile(fieldId: string, prescriptionId: string): Promise<Blob> {
+  const res = await kongApi.get(
+    `/api/v1/fields/${encodeURIComponent(fieldId)}/prescriptions/${encodeURIComponent(prescriptionId)}/export`,
+    { params: { format: 'shapefile' }, responseType: 'blob' },
+  );
+  return res.data as Blob;
+}
+
 export interface NlSqlResult {
   sql: string;
 }
