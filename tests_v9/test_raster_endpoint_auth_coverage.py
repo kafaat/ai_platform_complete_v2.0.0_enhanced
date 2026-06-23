@@ -67,6 +67,9 @@ FIELD_SCOPED_SERVICE_ONLY: set[str] = {
     # جسر استيراد STAC→معالجة: خلفيّة، يأخذ band hrefs ويبني VRT ثمّ /process.
     # يستدعيه العامل بعد /imagery/best — لا يُنادى من المتصفّح.
     "/v1/fields/{field_id}/process-from-stac",
+    # معالجة CDSE (المزوّد الافتراضيّ): يحسب المؤشّر خادميّاً (evalscript) → COG. خلفيّة،
+    # يستدعيه المنسّق (imagery_automation) خدمة-لخدمة بترويسة التوكن — لا يُنادى من المتصفّح.
+    "/v1/fields/{field_id}/process-cdse",
     # وصفة مناطق الإدارة (VRT) من شبكة المؤشّر — خدمة-لخدمة (مطابقة الشقيقات).
     "/v1/fields/{field_id}/prescription",
     # كشف التغيّر المكاني للحقل بين تاريخين — خدمة-لخدمة (مطابقة الشقيقات).

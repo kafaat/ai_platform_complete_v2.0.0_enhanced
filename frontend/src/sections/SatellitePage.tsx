@@ -336,7 +336,7 @@ export default function SatellitePage() {
             disabled={refreshingImagery || !fieldId}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border disabled:opacity-50"
             style={{ background: '#1e293b', color: '#fbbf24', borderColor: '#92400e' }}
-            title="يبحث عن أفضل مشهد Sentinel-2 حقيقي ويطلق معالجة COG؛ لا ينشئ قيماً وهمية."
+            title="يحسب مؤشّرات Sentinel-2 الحقيقيّة عبر CDSE (الافتراضيّ الأقوى) مع تحوّل تلقائيّ إلى Element84 عند تعذّره؛ معالجة COG حقيقيّة — لا قيم وهمية."
           >
             {refreshingImagery
               ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحديث الصور...</>
