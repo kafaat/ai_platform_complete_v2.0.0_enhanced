@@ -70,7 +70,8 @@ SHAs من `git log --oneline origin/main`.
 
 | الإغلاق | العلم (default off) | القرار + السبب |
 |---|---|---|
-| **ETc-dual canonical** | `FEATURE_CANONICAL_ETC_DUAL` (فرع `claude/canonical-etc-dual-flag`) | الحالة الكنسيّة تحسب ETc بالنهج المزدوج `(Kcb·Ks+Ke)·ET0` عند التفعيل بدل single `Kc·ET0`. النواة: `et0_override` (يبقى ET0 مصدراً واحداً — SSOT/H4) + `soil_ece=None` (الملوحة off — H5). الإسقاط يبدّل `water.etc`+`etc_source`، ويتراجع single + `dual_inputs_unavailable` عند نقص المدخلات. OFF ⇒ لا تغيير إنتاجيّ. |
+| **ETc-dual canonical** | `FEATURE_CANONICAL_ETC_DUAL` (#471، `b722b4c`) | الحالة الكنسيّة تحسب ETc بالنهج المزدوج `(Kcb·Ks+Ke)·ET0` عند التفعيل بدل single `Kc·ET0`. النواة: `et0_override` (يبقى ET0 مصدراً واحداً — SSOT/H4) + `soil_ece=None` (الملوحة off — H5). الإسقاط يبدّل `water.etc`+`etc_source`، ويتراجع single + `dual_inputs_unavailable` عند نقص المدخلات. OFF ⇒ لا تغيير إنتاجيّ. |
+| **C5 عتبات NDVI** | `APPLY_NDVI_THRESHOLDS` (فرع `claude/c5-ndvi-threshold-flag`) | NDVI معلوماتيّ لا يحكم الصلاحيّة؛ الإغلاق **إعلانيّ**: `remote_sensing` يُعلن `calibration_status="insufficient_field_calibration"` (OFF/لا معايرة) صراحةً بدل الإبهام. **لا عتبات معايَرة في النظام ⇒ لا نختلقها** (صدق)؛ opt-in يقرأ مظروف بطاقة المحصول (غائب الآن). لا تغيير validity. يحوّل C5 من Open إلى Closed (gated, calibration absent). |
 
-> **المتبقّي من الإطار:** H2 NATS publishers · C5 عتبات NDVI · C4/M1 mobile push · Bundle C R&D — PRs منفصلة
-> بنفس الشروط الخمسة.
+> **المتبقّي من الإطار:** H2 NATS publishers · C4/M1 mobile push · Bundle C R&D — PRs منفصلة بنفس
+> الشروط الخمسة. (C5 ✅ #؟ · ETc-dual ✅ #471.)
