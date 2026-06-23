@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-06-23 (ث) — إغلاق ETc-dual في CanonicalFieldState خلف feature flag (default off)
+
+**رأس `main`:** `72586ee` (#470 مُدمج). فرع `claude/canonical-etc-dual-flag`. أوّل إغلاق ضمن إطار المستخدم
+«implemented-but-off-by-default»: تحمل الحالة الكنسيّة `etc_mm = Kc·ET0` (single)؛ محرّك dual-Kc
+(`compute_etc_dual`, `(Kcb·Ks+Ke)·ET0`) موجود لكن غير موصول. الإغلاق خلف `FEATURE_CANONICAL_ETC_DUAL`
+(default OFF = single الحاليّ).
+- **النواة (`core/engines/fao56.compute_etc_dual`، إضافيّان محفوظا السلوك):** `et0_override` (يُمرَّر ET0
+  الكنسيّ الموحّد ⇒ النهج المزدوج يستعمل **نفس** ET0، حفاظاً على SSOT/H4 — تفادي تناقض et0↔etc من penman
+  الداخليّ)؛ و`soil_ece=None` ⇒ `Ks=1` (الملوحة **غير مطبّقة**، قرار H5) + assumption.
+- **الإسقاط (`field_state_projection`):** `_apply_canonical_etc_dual` يُعدّل كتلة `water`: العلم OFF ⇒
+  `etc_source="single_kc"` بلا تغيير؛ ON + مدخلات (محصول/عمر/ET0/طقس كافٍ لـKe) ⇒ `etc_mm=etc_dual_mm` +
+  `etc_source="dual_kc"` + `etc_single_mm`/`kcb`/`ke`/`dual_assumptions` (تشمل `salinity_disabled_by_default`
+  + `surface_depletion_untracked_assumed_zero`) + إعادة حساب demand_class؛ ON + نقص ⇒ تراجع single +
+  `etc_disabled_reason="dual_inputs_unavailable"` (declare reason). `_weatherday_from_payload` يبني WeatherDay
+  من نفس حمولة الطقس (لا صيغة جديدة)؛ نقص tmin/tmax/rh/wind ⇒ None ⇒ تراجع single.
+- **العلم ليس علم راوتر** ⇒ خارج `feature_registry.FEATURE_FLAGS` ⇒ `test_feature_flags_smoke` أخضر.
+
+**صدق + أمان:** OFF افتراضيّاً ⇒ لا تغيير إنتاجيّ (single كما هو)؛ dual لا يُدخِل الملوحة ضمنيّاً (H5) ولا
+يُلفّق de (معلَن)؛ ET0 مصدر واحد (override). تحقّق: ٤ اختبارات نواة (override/soil_ece) + ٦ إسقاط
+(`test_etc_dual_canonical.py`: OFF single · ON dual · نقص طقس/محصول → تراجع · بلا NDVI → dual عمريّ) ·
+tests_v9 1835 (فشل MFA الـ5 سابقٌ) · platform 1104 · canonical_water/smoke أخضر · حارس التفكيك · **مسح ruff كامل**.
+
+---
+
 ## 2026-06-23 (ت) — Bundle D / D2b: تفعيل تصعيد الإجهاد المائيّ بتأكيد طيفيّ خلف feature flag
 
 **رأس `main`:** `7c897ea` (#469 مُدمج). فرع `claude/bundle-d2b-spectral-escalation`. أقرّ المستخدم قاعدة

@@ -470,7 +470,7 @@ def compute_etc_dual(
     crop: CropKcProfile,
     days_after_planting: int,
     *,
-    soil_ece: float = 0.0,
+    soil_ece: float | None = 0.0,
     de_mm: float = 0.0,
     tew_mm: float | None = None,
     rew_mm: float | None = None,
@@ -483,6 +483,7 @@ def compute_etc_dual(
     ndvi: float | None = None,
     ndvi_bare: float = 0.15,
     ndvi_full: float = 0.85,
+    et0_override: float | None = None,
 ) -> DualKcResult:
     """يحسب ETc بنهج المعامل المزدوج FAO-56 (Eq. 80) — إضافيّ واختياريّ.
 
@@ -504,6 +505,8 @@ def compute_etc_dual(
       ndvi      إن مُرِّر (من raster-service) ⇒ يُشتقّ Kcb وfc **رصداً** منه (FAO-56 Eq. 76:
                 fc(NDVI) → Kd → Kcb=Kcb_full·Kd) بدل اشتقاق Kcb من العمر — أصدق للحقل الفعليّ.
                 ``ndvi_bare``/``ndvi_full`` حدود المعايرة (افتراضيّة، تحتاج ضبطاً محلّيّاً).
+      soil_ece  ``None`` ⇒ الملوحة غير مطبّقة (Ks=1، off افتراضيّاً — قرار H5)؛ رقم ⇒ Ks من Maas-Hoffman.
+      et0_override  إن مُرِّر ⇒ يُستعمَل بدل ET0 الداخليّ (penman) — لإبقاء ET0 مصدراً واحداً موحّداً (SSOT).
 
     ⚠️ القيود (صدق منهجيّ): Kcb مُشتقّ بإزاحة من Kc المدمج لا من بطاقة Kcb
     مُعايَرة؛ موازنة ماء الطبقة السطحيّة (De) تُمرَّر من الخارج ولا تُحتسب هنا
@@ -512,8 +515,13 @@ def compute_etc_dual(
     """
     assumptions: list[str] = []
 
-    # 1. ET0 — المتغيّر (طقس)
-    et0 = penman_monteith_et0(weather)
+    # 1. ET0 — المتغيّر (طقس). et0_override يُمرَّر ET0 الكنسيّ الموحّد (H4/SSOT) فيستعمله
+    # النهج المزدوج بدل إعادة حسابه داخليّاً — كي يبقى ET0 مصدراً واحداً متّسقاً مع الحالة.
+    if et0_override is not None:
+        et0 = float(et0_override)
+        assumptions.append("ET0 من المصدر الكنسيّ الموحّد (et0_override) لا إعادة حساب داخليّ")
+    else:
+        et0 = penman_monteith_et0(weather)
 
     # 2. Kcb — الأساس (نتح). مرصود من NDVI (FAO-56 Eq. 76) إن توفّر، وإلّا من عمر المحصول.
     _, stage = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
@@ -532,8 +540,13 @@ def compute_etc_dual(
         kcb, _ = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
         assumptions.append(f"Kcb مُشتقّ بإزاحة {kcb_offset:.2f} أسفل Kc المدمج (لا بطاقة Kcb مُعايَرة)")
 
-    # 3. Ks — إجهاد ملحيّ (يُعاد استخدام منطق Maas-Hoffman القائم)
-    ks = salinity_stress_ks(crop, soil_ece)
+    # 3. Ks — إجهاد ملحيّ (يُعاد استخدام منطق Maas-Hoffman القائم). soil_ece=None ⇒ الملوحة
+    # **غير مطبّقة** (Ks=1.0) — قرار H5: off افتراضيّاً، لا تُدخَل ضمنيّاً في النهج المزدوج.
+    if soil_ece is None:
+        ks = 1.0
+        assumptions.append("الملوحة غير مطبّقة (Ks=1، off افتراضيّاً — قرار H5)")
+    else:
+        ks = salinity_stress_ks(crop, soil_ece)
 
     # 4. TEW/REW — قياسيّة أو من الجدول حسب القوام
     if tew_mm is None or rew_mm is None:

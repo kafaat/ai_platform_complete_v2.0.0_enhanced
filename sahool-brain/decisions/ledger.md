@@ -62,3 +62,15 @@ SHAs من `git log --oneline origin/main`.
 > **قرار العلم (D2b):** `FEATURE_WATER_STRESS_ESCALATION` **default OFF** (إطار «implemented-but-off-by-default»):
 > الإشارة + الأهليّة معلوماتيّتان دائماً؛ `human_review` عند تفعيل العلم فقط، والكتلة تُعلن `disabled_reason`.
 > اختباران يثبتان: OFF لا يُصعّد · ON يُصعّد. تفعيل العلم لمستأجرين/بيئات بعد مراقبة ميدانيّة.
+
+## 5) إغلاقات إطار «implemented-but-off-by-default»
+
+أوّل دفعة من إغلاق الفجوات المؤجَّلة كـ«موجودة لكن معطَّلة افتراضيّاً» (شرط: علم واضح · default off · إعلان
+سبب التعطيل · اختبار off لا يكسر · اختبار opt-in يعمل). SAM2/MAP-QA تبقى `implemented-gated-but-env-unverified`.
+
+| الإغلاق | العلم (default off) | القرار + السبب |
+|---|---|---|
+| **ETc-dual canonical** | `FEATURE_CANONICAL_ETC_DUAL` (فرع `claude/canonical-etc-dual-flag`) | الحالة الكنسيّة تحسب ETc بالنهج المزدوج `(Kcb·Ks+Ke)·ET0` عند التفعيل بدل single `Kc·ET0`. النواة: `et0_override` (يبقى ET0 مصدراً واحداً — SSOT/H4) + `soil_ece=None` (الملوحة off — H5). الإسقاط يبدّل `water.etc`+`etc_source`، ويتراجع single + `dual_inputs_unavailable` عند نقص المدخلات. OFF ⇒ لا تغيير إنتاجيّ. |
+
+> **المتبقّي من الإطار:** H2 NATS publishers · C5 عتبات NDVI · C4/M1 mobile push · Bundle C R&D — PRs منفصلة
+> بنفس الشروط الخمسة.
