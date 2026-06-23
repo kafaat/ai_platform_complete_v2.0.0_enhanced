@@ -405,3 +405,7 @@ v97_user_self_with_check.sql
 # ledger_date) للـupsert idempotent. field_id نصّ (نمط v95)، RLS+FORCE بسياسة
 # tenant_isolation (current_setting، fail-closed). idempotent.
 v98_water_ledger.sql
+# v99: مؤشّرات الإجهاد المائيّ الطيفيّة (NDMI + MSI) على imagery_automation_fields
+# (نظير NDVI في v54) — يغذّيان تأكيد الإجهاد الطيفيّ (fuse_water_stress) لتصعيد D2b
+# للإجهاد المائيّ (خلف feature flag، default off). idempotent (ADD COLUMN IF NOT EXISTS).
+v99_imagery_spectral_indices.sql

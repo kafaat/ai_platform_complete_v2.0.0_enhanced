@@ -75,3 +75,57 @@ def test_none_when_basis_missing_or_invalid():
     assert canonical_water_stress({"depletion_mm": "x", "taw_mm": 100.0}) is None  # Dr فاسد
     assert canonical_water_stress(None) is None
     assert canonical_water_stress("nope") is None
+
+
+# ── D2b: التأكيد الطيفيّ + أهليّة التصعيد ──
+# إجهاد طيفيّ شديد: NDMI=-0.1 (severe) + MSI=2.5 (severe) ⇒ fused severe ⇒ detected.
+_CRIT = {"depletion_mm": 85.0, "taw_mm": 100.0, "depletion_confidence": 0.9}  # AWF=0.15 critical
+
+
+def test_escalation_eligible_when_all_conditions_met():
+    """critical ∧ conf≥0.8 ∧ مؤشّران ∧ إجهاد طيفيّ ⇒ escalation_eligible=True."""
+    w = canonical_water_stress({**_CRIT, "ndmi": -0.1, "msi": 2.5})
+    assert w["water_stress_class"] == "critical"
+    assert w["spectral_confirmation_available"] is True
+    assert w["spectral_stress_detected"] is True
+    assert w["spectral_confidence"] == "high"  # كلاهما severe ⇒ اتّفاق
+    assert w["escalation_eligible"] is True
+
+
+def test_not_eligible_when_a_spectral_index_missing():
+    """غياب أيّ مؤشّر ⇒ confirmation_available=False, detected=None, eligible=False (صدق)."""
+    w = canonical_water_stress({**_CRIT, "ndmi": -0.1})  # لا msi
+    assert w["spectral_confirmation_available"] is False
+    assert w["spectral_stress_detected"] is None
+    assert w["spectral_confidence"] is None
+    assert w["escalation_eligible"] is False
+
+
+def test_not_eligible_when_spectral_healthy():
+    """مؤشّران لكن لا إجهاد طيفيّ (صحّيّ) ⇒ detected=False ⇒ eligible=False."""
+    w = canonical_water_stress({**_CRIT, "ndmi": 0.5, "msi": 0.5})  # كلاهما healthy
+    assert w["spectral_confirmation_available"] is True
+    assert w["spectral_stress_detected"] is False
+    assert w["escalation_eligible"] is False
+
+
+def test_not_eligible_when_low_depletion_confidence():
+    """ثقة استنزاف < 0.8 ⇒ eligible=False (فيزياء غير موثوقة)."""
+    w = canonical_water_stress({**_CRIT, "depletion_confidence": 0.7, "ndmi": -0.1, "msi": 2.5})
+    assert w["escalation_eligible"] is False
+
+
+def test_not_eligible_when_watch_not_critical():
+    """watch (Dr≥RAW لكن AWF>0.2) + طيف شديد ⇒ eligible=False (ليس إجهاداً ضارّاً)."""
+    # Dr=60, TAW=100 ⇒ AWF=0.4 watch
+    w = canonical_water_stress(
+        {
+            "depletion_mm": 60.0,
+            "taw_mm": 100.0,
+            "depletion_confidence": 0.9,
+            "ndmi": -0.1,
+            "msi": 2.5,
+        }
+    )
+    assert w["water_stress_class"] == "watch"
+    assert w["escalation_eligible"] is False

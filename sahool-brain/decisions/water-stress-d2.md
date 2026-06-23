@@ -62,16 +62,28 @@
   تخفيض — لا يلمس إلّا auto/valid ولا يغيّر أرقاماً.
 - اختبارات تصعيد (منخفض يُصعّد · سليم لا · لا Dr لا تصعيد) في `test_field_state_unification.py`.
 
-## التنفيذ بعد الإقرار
-- **D2a (يُنفَّذ الآن — آمن إضافيّ):** كتلة `water_stress` كنسيّة بمستويات NORMAL/WATCH/CRITICAL
-  معلوماتيّة + `water_stress_awf` + `depletion_confidence`، مقروءة من `water_ledger` (أحدث صفّ) وTAW من
-  `soil_water_params` (افتراضات موسومة `calibrated=False`). **بلا تصعيد** — محفوظ السلوك تماماً.
-- **D2b (المستوى ESCALATE — مؤجَّل بإشارة):** التصعيد يتطلّب `spectral_stress_detected` (NDMI/MSI)، وهذه
-  **غير محقونة بعد في المسار الكنسيّ** (`spectral_stress_bridge` يُستعمَل في نقطة `/field_water_stress_spectral`
-  فقط — استكشاف D2). **بقرار المستخدم نفسه** (تأكيد طيفيّ شرطٌ للتصعيد) لا يُصعَّد بلا طيف — فبناء التصعيد
-  دون إشارة طيفيّة = كود خامد أو مخالف للقرار. لذا D2b ينتظر **توصيل NDMI/MSI إلى الحالة الكنسيّة** (عمل
-  منفصل صغير)، ثمّ يُطبَّق المسند المُقَرّ: `AWF≤0.2 ∧ depletion_confidence≥0.8 ∧ spectral_stress_detected
-  ⇒ human_review` (نمط الملوحة/الحدّ في `field_state_projection`).
+## التنفيذ
+- **D2a ✅ مُدمَج (#469):** كتلة `water_stress` كنسيّة بمستويات NORMAL/WATCH/CRITICAL معلوماتيّة +
+  `water_stress_awf` + `depletion_confidence`، مقروءة من `water_ledger` وTAW من `soil_water_params`
+  (موسومة `calibrated=False`). بلا تصعيد.
+- **D2b ✅ منفَّذ (فرع `claude/bundle-d2b-spectral-escalation`) — خلف feature flag default OFF:**
+  بقرار المستخدم (2026-06-23) NDMI+MSI معاً + علم معطَّل افتراضيّاً. المكوّنات:
+  - **الإشارة:** هجرة `v99_imagery_spectral_indices.sql` (أعمدة `last_ndmi/msi_mean/date` على
+    `imagery_automation_fields`) · خطّ الصور `imagery_automation.py` يحسب NDMI/MSI (مدعومان أصلاً في
+    الراستر `IndicatorKind.ndmi/msi`) ويخزّنهما · `gather_field_freshness` يقرؤهما (SAVEPOINT منفصل،
+    توافق ما-قبل-الهجرة).
+  - **الأهليّة (القارئ النقيّ `canonical_water_stress`):** `fuse_water_stress(ndmi, msi)` ⇒
+    `spectral_confirmation_available` (كلا المؤشّرين) · `spectral_stress_detected` (moderate/severe) ·
+    `escalation_eligible = critical ∧ depletion_confidence≥0.8 ∧ تأكيد طيفيّ`. غياب أيّ مؤشّر ⇒ available=False
+    و detected=None (صدق: لا تصعيد بلا رصد).
+  - **العلم + التصعيد (الإسقاط):** `FEATURE_WATER_STRESS_ESCALATION` (default off؛ ليس علم راوتر ⇒ خارج
+    `feature_registry.FEATURE_FLAGS`، يبقى `test_feature_flags_smoke` أخضر). الكتلة تُعلن دائماً
+    `escalation_eligible`/`escalation_triggered`/`disabled_reason` (`feature_flag_off` عند الأهليّة بلا علم).
+    عند العلم ON ⊕ الأهليّة ⊕ `execution_mode==auto` ⇒ `human_review` + `validity` valid→degraded + سبب.
+  - **اختبارات:** ٥ قارئ (أهليّة/غياب مؤشّر/طيف صحّيّ/ثقة<0.8/watch) + ٤ إسقاط (علم OFF لا يُصعّد +
+    `disabled_reason` · علم ON يُصعّد · غياب طيف لا · ثقة منخفضة لا).
+- **بعد الدمج (تشغيليّ):** مراقبة ميدانيّة عدّة أسابيع (معدّل CRITICAL/الإيجابيّات الكاذبة/سلوك NDMI-MSI في
+  غبار اليمن) ثمّ تفعيل العلم لمستأجرين/بيئات محدّدة. **معايرة p/TAW اليمنيّة** تبقى فجوة موثّقة.
 
 > **فجوة معايرة موثّقة:** p/TAW اليمنيّة غير معايَرة (افتراضيّ FAO-56 عامّ، `raw_fraction=0.5`، TAW Table 19)
 > — الكتلة موسومة `calibrated=False` صدقاً. العتبات قابلة للتشديد بعد المعايرة الميدانيّة.
