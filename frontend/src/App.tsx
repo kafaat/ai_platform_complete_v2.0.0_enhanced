@@ -58,6 +58,7 @@ const FieldManagementPage = lazy(() => import('./sections/FieldManagementPage'))
 const AnalyticsPage       = lazy(() => import('./sections/AnalyticsPage'));
 const AlertSystemPage     = lazy(() => import('./sections/AlertSystemPage'));
 const ReportsPage         = lazy(() => import('./sections/ReportsPage'));
+const SQLWorkspacePage    = lazy(() => import('./sections/SQLWorkspacePage'));
 const ChatbotPage         = lazy(() => import('./sections/ChatbotPage').then(m => ({ default: m.ChatbotPage })));
 const HybridIndexPage     = lazy(() => import('./sections/HybridIndexPage').then(m => ({ default: m.HybridIndexPage })));
 const SettingsPage        = lazy(() => import('./sections/SettingsPage'));
@@ -128,7 +129,7 @@ export type PageId =
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
-  | 'operations-wall';
+  | 'operations-wall' | 'sql-workspace';
 
 // ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
 // وبنية القائمة (المجموعات) انتقلت إلى سجلّ المسارات `lib/routes.ts` (بنية معلومات
@@ -320,6 +321,7 @@ export default function App() {
       case 'crop-state': return <CropStatePage />;
       case 'scenario-compare': return <ScenarioComparePage />;
       case 'nl-gis': return <NlGisPage />;
+      case 'sql-workspace': return <SQLWorkspacePage />;
       case 'portfolio': return <PortfolioPage />;
       case 'portfolio-command': return <PortfolioCommandPage />;
       case 'calibration': return <CalibrationPage />;
