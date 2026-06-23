@@ -116,6 +116,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'field-ranking', path: '/analysis/field-ranking', label: 'ترتيب الحقول', icon: TrendingUp, maturity: 'stable' },
       { id: 'problem-fields', path: '/analysis/problem-fields', label: 'حقول المشكلات', icon: AlertTriangle, maturity: 'stable' },
       { id: 'nl-gis',        path: '/analysis/nl-gis',     label: 'استعلام GIS باللغة الطبيعيّة', icon: Search, maturity: 'alpha' },
+      { id: 'sql-workspace', path: '/analysis/sql-workspace', label: 'ورشة SQL (DuckDB)', icon: Database, maturity: 'alpha', badge: 'SQL' },
       { id: 'scenario-compare', path: '/analysis/scenario-compare', label: 'مقارنة السياسات', icon: GitCompare, maturity: 'beta' },
     ],
   },

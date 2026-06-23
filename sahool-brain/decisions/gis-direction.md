@@ -27,8 +27,13 @@
    [`../../frontend/src/lib/workspaceStorage.ts`](../../frontend/src/lib/workspaceStorage.ts)):
    إعدادات MapHub (الأساس/المؤشّر/الشفافية/المقارنة/الأدوات/التراكبات) عميل-فقط. مؤجَّل لـv2:
    مركز/تكبير الخريطة + الرسومات (تحتاج تحكّم خريطة).
-2. **محرّك مكانيّ في المتصفّح (DuckDB-WASM Spatial + SQL Workspace)** — استعلام محليّ
-   (`SELECT … WHERE ST_Area(geom)>… AND ndvi<0.3`) ⇒ تقليل حمل API/الكلفة وزمن الاستجابة. مرحلة ثانية.
+2. **محرّك SQL في المتصفّح (DuckDB-WASM)** — ✅ **منفَّذ v1 (#451):** قسم «ورشة SQL» (lazy)
+   يحمّل الحقول إلى جدول `fields` ويستعلمها محليّاً
+   ([`../../frontend/src/services/duckdb.ts`](../../frontend/src/services/duckdb.ts) +
+   [`../../frontend/src/components/sql/SQLEditor.tsx`](../../frontend/src/components/sql/SQLEditor.tsx)).
+   عميل-فقط، مستضاف ذاتيّاً، كسول (لا يمسّ الحزمة الرئيسة). **مؤجَّل لـv2:** spatial extension
+   (`ST_Area`/`ST_Intersects` — يُحمَّل من extensions.duckdb.org، يحتاج تجميعاً أوفلاين) + المؤشّرات
+   (NDVI async لكلّ حقل) + ربط النتائج بإبراز الخريطة.
 3. **نظام إضافات (Plugin) + AI GIS Assistant** (لغة طبيعيّة → Spatial SQL → تحديث الخريطة) —
    معماريّ، يعتمد على (2)، ويتوافق مع مستشار SAHOOL (`/api/agent/query`).
 

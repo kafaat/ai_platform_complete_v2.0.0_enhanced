@@ -39,4 +39,16 @@ export default defineConfig({
       '/ws':   { target: DEV_PROXY_TARGET, changeOrigin: true, ws: true },
     },
   },
+  // DuckDB-WASM (ورشة SQL): يُستضاف ذاتيّاً عبر استيراد ?url ويُحمَّل كسولاً في chunk منفصل.
+  // exclude يمنع التحزيم المسبق (يستعمل محمّل worker خاصّاً)؛ worker.format='es' لدعم
+  // الـworker في المتصفّح؛ ورفع حدّ تحذير الحجم لأنّ حزمة WASM ~2.5MB (كسولة، خارج الرئيسة).
+  optimizeDeps: {
+    exclude: ['@duckdb/duckdb-wasm'],
+  },
+  worker: {
+    format: 'es',
+  },
+  build: {
+    chunkSizeWarningLimit: 3000,
+  },
 });
