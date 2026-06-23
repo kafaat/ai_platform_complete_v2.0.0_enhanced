@@ -48,9 +48,11 @@ explainability · prescriptions · boundary/SAM2 · decision/outcome ledger · �
   (`AWF≤0.2 ∧ depletion_confidence≥0.8 ∧ تأكيد NDMI+MSI`) + الإسقاط يطبّق `FEATURE_WATER_STRESS_ESCALATION`
   ⇒ `human_review` عند ON (الكتلة تُعلن `disabled_reason` عند off) — [`decisions/water-stress-d2.md`](water-stress-d2.md).
   ثمرة Bundle A لكنّها أكبر من «إصلاح تكرار»: تجعل الحالة المصدرَ الوحيد لقيم المياه.
-- **C — رهانات R&D (مسار منفصل، feature-flags، خارج المسار الحرج):** Field Embeddings · نماذج أساس
-  (Prithvi/DINOv3) · SAM2 production (GPU) · Multi-engine Ensemble · Machine Integration (ISOXML).
-  تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن.
+- **C — رهانات R&D (مسار منفصل، feature-flags، خارج المسار الحرج):** **مراجعة حالة 2026-06-23** (إغلاق
+  توثيقيّ لا برمجيّ — [`bundle-c-status.md`](bundle-c-status.md)): **SAM2** closed (gated, env-unverified) ·
+  **Field Embeddings/RAG** closed (خدمات اختياريّة بالنشر، لا مسار قرار بلا حراسة) · **Multi-engine Ensemble**
+  open (concept-only؛ `fusion.py` للمؤشّرات شيء مختلف) · **نماذج أساس (Prithvi/DINOv3)** not started ·
+  **ISOXML** deferred by design (#456، Shapefile كافٍ). تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن **عند وجود كود**.
 
 ## المراحل (تسلسل)
 1. **Unify** (أصلح H4/H5 وكلّ مصادر الحقيقة). 2. **Explain + Offline** (أفضل تجربة ريّ/محصول مُفسَّرة دون

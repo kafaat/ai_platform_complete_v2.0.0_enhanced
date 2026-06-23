@@ -1,9 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`c9c70a7`](../) (#473 مُدمج) · فرع العمل `claude/c4-m1-mobile-push-flag`
-> (إغلاق C4/M1: علم `FEATURE_MOBILE_PUSH` (default off) + سجلّ احتياطيّ دائم (create_notification_record) ضدّ الإسقاط الصامت — [`log.md`](log.md) مدخل (د)؛
-> سبقه (خ) H2 ناشرو NATS · (ج) C5 عتبات NDVI · (ث) ETc-dual · (ت) D2b · (ش) D2a · (ر) Bundle B · (ق) D3 · (ف) D1 · (ع) Zr-TAW · (س) H5 · (ن) Open-Meteo+Zr · (م) etc-dual · (ل) Kc-NDVI · (ك/ي) Water Twin · (ط) دفتر/Parquet · (ح) CDSE · (ز) ET0/Dual-Kc).
-> **التالي (باختيار المستخدم):** Bundle C R&D (Field Embeddings · نماذج أساس · Ensemble) خلف feature-flags. SAM2/MAP-QA تبقى env-unverified.
+> **آخر تحديث:** 2026-06-23 · رأس `main`: [`2e08f65`](../) (#474 مُدمج) · فرع العمل `claude/bundle-c-rd-status`
+> (مراجعة حالة Bundle C R&D — إغلاق توثيقيّ لا برمجيّ ([`decisions/bundle-c-status.md`](decisions/bundle-c-status.md)) — [`log.md`](log.md) مدخل (ذ)؛
+> سبقه (د) C4/M1 push · (خ) H2 ناشرو NATS · (ج) C5 عتبات NDVI · (ث) ETc-dual · (ت) D2b · (ش) D2a · (ر) Bundle B · (ق) D3 · (ف) D1 · ...).
+> **اكتمل سحب الإطار «implemented-but-off-by-default»:** 4 إغلاقات كود (#471/#472/#473/#474) + إغلاق حالة Bundle C. SAM2/MAP-QA env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)
 
