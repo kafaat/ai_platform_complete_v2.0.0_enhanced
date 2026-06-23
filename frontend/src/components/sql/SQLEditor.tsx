@@ -8,11 +8,45 @@ import type { FieldRow, QueryResult } from '../../services/duckdb';
 import { DataTable, type Column } from '../ds/table';
 import { LoadingState, ErrorState, EmptyState } from '../StateViews';
 import { T } from '../ds/tokens';
+import { loadHistory, pushHistory } from '../../lib/sqlHistory';
+import { toastStore } from '../../services/websocket';
 
 const DEFAULT_SQL = `SELECT crop, count(*) AS n, round(sum(area_ha), 1) AS ha
 FROM fields
 GROUP BY crop
 ORDER BY ha DESC`;
+
+// استعلامات أمثلة جاهزة (عميل-فقط، تُحمَّل في المحرّر عند النقر).
+const EXAMPLE_QUERIES: { label: string; sql: string }[] = [
+  {
+    label: 'عدد الحقول حسب المحصول',
+    sql: 'SELECT crop, count(*) AS n FROM fields GROUP BY crop ORDER BY n DESC',
+  },
+  {
+    label: 'أكبر ٥ حقول مساحةً',
+    sql: 'SELECT id, name, area_ha FROM fields ORDER BY area_ha DESC LIMIT 5',
+  },
+  {
+    label: 'متوسّط المساحة',
+    sql: 'SELECT round(avg(area_ha), 2) AS avg_ha FROM fields',
+  },
+];
+
+/** وسم قابل للنقر (شريحة) — أمثلة/سجلّ. يحمّل نصّاً في المحرّر. */
+function Chip({ label, title, onClick }: { label: string; title?: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      dir="auto"
+      className="px-2.5 py-1 rounded-lg text-xs font-mono max-w-[18rem] truncate"
+      style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+    >
+      {label}
+    </button>
+  );
+}
 
 function formatCell(v: unknown): string {
   if (v === null || v === undefined) return '—';
@@ -68,17 +102,36 @@ export default function SQLEditor() {
   const [result, setResult] = useState<QueryResult | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+  const [history, setHistory] = useState<string[]>(() => loadHistory());
 
   async function run() {
     setRunning(true);
     setQueryError(null);
     try {
-      setResult(await runQuery(sql));
+      const r = await runQuery(sql);
+      setResult(r);
+      setHistory(pushHistory(sql)); // سجلّ الاستعلامات الناجحة فقط (عميل-فقط)
     } catch (e) {
       setQueryError(e instanceof Error ? e.message : String(e));
       setResult(null);
     } finally {
       setRunning(false);
+    }
+  }
+
+  /** ينسخ صفوف النتيجة كـJSON إلى الحافظة (best-effort؛ توست عند النجاح/التعذّر). */
+  async function copyJson() {
+    if (!result) return;
+    const text = JSON.stringify(result.rows);
+    try {
+      if (!navigator.clipboard?.writeText) {
+        toastStore.add('warning', 'النسخ غير متاح', 'الحافظة غير مدعومة في هذا المتصفّح');
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      toastStore.add('success', 'تمّ النسخ', `نُسخت ${result.rows.length} صفّ كـJSON`);
+    } catch {
+      toastStore.add('error', 'تعذّر النسخ', 'لم يُسمح بالوصول إلى الحافظة');
     }
   }
 
@@ -104,6 +157,15 @@ export default function SQLEditor() {
         بيانات الحقول الحاليّة فقط؛ المؤشّرات (NDVI) والاستعلام المكانيّ (<code>ST_*</code>) قادمة لاحقاً.
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <span className="text-xs" style={{ color: T.muted }}>أمثلة جاهزة:</span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {EXAMPLE_QUERIES.map((ex) => (
+            <Chip key={ex.label} label={ex.label} title={ex.sql} onClick={() => setSql(ex.sql)} />
+          ))}
+        </div>
+      </div>
+
       <textarea
         value={sql}
         onChange={(e) => setSql(e.target.value)}
@@ -114,6 +176,17 @@ export default function SQLEditor() {
         className="w-full rounded-lg p-3 font-mono text-sm"
         style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}`, resize: 'vertical' }}
       />
+
+      {history.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs" style={{ color: T.muted }}>سجلّ الاستعلامات (محليّ):</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {history.map((q, i) => (
+              <Chip key={`${i}-${q}`} label={q} title={q} onClick={() => setSql(q)} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <button
@@ -132,10 +205,20 @@ export default function SQLEditor() {
           <button
             type="button"
             onClick={() => downloadCsv(result.columns, result.rows)}
-            className="px-3 py-2 rounded-lg text-sm font-semibold"
+            className="px-3 py-2 rounded-lg text-xs font-semibold"
             style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
           >
             ⬇ تصدير CSV
+          </button>
+        )}
+        {result && result.rows.length > 0 && (
+          <button
+            type="button"
+            onClick={copyJson}
+            className="px-3 py-2 rounded-lg text-xs font-semibold"
+            style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+          >
+            نسخ JSON
           </button>
         )}
       </div>
