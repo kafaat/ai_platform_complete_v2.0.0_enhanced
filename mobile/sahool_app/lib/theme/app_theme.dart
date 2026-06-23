@@ -71,4 +71,62 @@ abstract final class AppTheme {
       ),
     );
   }
+
+  /// السمة الداكنة — هويّة التطبيق الأساسيّة (الافتراضيّة). تطابق الألوان التي
+  /// تثبّتها الشاشات (kBg/kSurface/kPrimary في state_views)، فتتّسق عناصرُ Material
+  /// غير المُثبَّتة اللون (الحوارات/المفاتيح/القوائم/حقول الإدخال/منتقي التاريخ)
+  /// مع بقيّة الواجهة، بدل تنافر AppTheme.light. لا APIs خاصّة بإصدار (آمن للتحليل).
+  static ThemeData get dark {
+    const bg = Color(0xFF0F1117); // = kBg
+    const surface = Color(0xFF1A1D29); // = kSurface
+    const primary = Color(0xFF10B981); // = kPrimary
+    const scheme = ColorScheme.dark(
+      primary: primary,
+      onPrimary: Colors.white,
+      secondary: SahoolPalette.gold,
+      onSecondary: SahoolPalette.brown,
+      surface: surface,
+      onSurface: Colors.white,
+      error: Color(0xFFD64545),
+      onError: Colors.white,
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: bg,
+      canvasColor: bg,
+      fontFamily: 'Cairo',
+      textTheme: const TextTheme(
+        bodyMedium: TextStyle(fontFamily: 'Cairo', color: Colors.white),
+        titleLarge: TextStyle(
+            fontFamily: 'Cairo',
+            fontWeight: FontWeight.bold,
+            color: Colors.white),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: surface,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardColor: surface,
+      dividerColor: const Color(0xFF2A2E3D),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: surface,
+        selectedItemColor: primary,
+        unselectedItemColor: Color(0xFF8A93A6),
+        type: BottomNavigationBarType.fixed,
+      ),
+    );
+  }
 }
