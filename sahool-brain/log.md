@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-06-23 (د) — إغلاق C4/M1: علم push الموبايل (default off) + سجلّ احتياطيّ دائم
+
+**رأس `main`:** `c9c70a7` (#473 مُدمج). فرع `claude/c4-m1-mobile-push-flag`. الفجوة C4/M1 (push موبايل +
+WebSocket). **حقيقة صدق:** الـpush مُنفَّذ أصلاً ومحروس بقدرة FCM (`fcm_push_active()` على `FCM_SERVER_KEY`،
+no-op صادق خامل)؛ و`create_notification_record` (جدول `notification_delivery` v83) منفَّذ. الفجوة الفعليّة
+الوحيدة: عند رغبة المستخدم بالـpush وتعطّل FCM ⇒ الإشعار **يُسقَط بلا سجلّ**. الإغلاق (إطار
+implemented-but-off-by-default، في وكيل الإشعارات `agents/notification/agent.py`):
+- **علم `FEATURE_MOBILE_PUSH` (default off)** + `mobile_push_enabled()` (opt-in صريح فوق قدرة FCM —
+  التفعيل يتطلّب العلم **و** `FCM_SERVER_KEY`).
+- **`push_decision()` نقيّة:** `send` (العلم on ∧ FCM نشط) · `record_only` (رغبة لكن العلم off أو FCM خامل)
+  · `skip` (لا رغبة).
+- **`_record_push_fallback()`:** عند `record_only` يُدِيم إيصال `notification_delivery`
+  (`channel='push'`, `status='queued'`, سبب) — **لا إسقاط صامت** (create_notification_record). fail-soft:
+  غياب `tenant_id` (NOT NULL/RLS) أو تعذّر القاعدة ⇒ تخطٍّ مع debug (لا تلفيق). dispatch يستبدل البوّابة
+  البسيطة بالقرار + السجلّ.
+
+**التصنيف الصادق:** OFF آمن مُختبَر؛ مسار الإرسال الفعليّ (ON + FCM) **env-unverified** (يحتاج FCM حيّاً +
+device tokens). WebSocket (M1) منفَّذ أصلاً في الوكيل (خارج نطاق هذا العلم). تحقّق: ٧ اختبارات
+(`test_c4m1_mobile_push.py`: قرار skip/send/record_only · العلم off افتراضيّاً/on · السجلّ يُكتَب مع
+tenant/يتخطّى بدونه) · انحدار `test_notification_tenant_isolation` أخضر · tests_v9 1851 (فشل MFA الـ5
+سابقٌ) · platform 1104 · **مسح ruff كامل**.
+
+---
+
 ## 2026-06-23 (خ) — إغلاق H2: علم نشر NATS (default off) — يحرس تشغيل الناشر
 
 **رأس `main`:** `768c396` (#472 مُدمج). فرع `claude/h2-nats-publishers-flag`. الفجوة H2: «اشتراكات NATS
