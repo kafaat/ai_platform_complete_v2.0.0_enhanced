@@ -71,6 +71,7 @@ const IrrigationPlanPage = lazy(() => import('./sections/IrrigationPlanPage'));
 const CropStatePage = lazy(() => import('./sections/CropStatePage'));
 const ScenarioComparePage = lazy(() => import('./sections/ScenarioComparePage'));
 const NlGisPage = lazy(() => import('./sections/NlGisPage'));
+const GisToolsPage = lazy(() => import('./sections/GisToolsPage'));
 const PortfolioPage = lazy(() => import('./sections/PortfolioPage'));
 const PortfolioCommandPage = lazy(() => import('./sections/PortfolioCommandPage'));
 const CalibrationPage = lazy(() => import('./sections/CalibrationPage'));
@@ -129,7 +130,7 @@ export type PageId =
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
-  | 'operations-wall' | 'sql-workspace';
+  | 'operations-wall' | 'sql-workspace' | 'gis-tools';
 
 // ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
 // وبنية القائمة (المجموعات) انتقلت إلى سجلّ المسارات `lib/routes.ts` (بنية معلومات
@@ -322,6 +323,7 @@ export default function App() {
       case 'scenario-compare': return <ScenarioComparePage />;
       case 'nl-gis': return <NlGisPage />;
       case 'sql-workspace': return <SQLWorkspacePage />;
+      case 'gis-tools': return <GisToolsPage />;
       case 'portfolio': return <PortfolioPage />;
       case 'portfolio-command': return <PortfolioCommandPage />;
       case 'calibration': return <CalibrationPage />;

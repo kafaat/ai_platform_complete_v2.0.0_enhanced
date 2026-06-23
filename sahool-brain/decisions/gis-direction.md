@@ -25,17 +25,23 @@
    [`../../frontend/src/lib/projectFile.ts`](../../frontend/src/lib/projectFile.ts)) + **استرجاع
    تلقائيّ** عبر localStorage (#450،
    [`../../frontend/src/lib/workspaceStorage.ts`](../../frontend/src/lib/workspaceStorage.ts)):
-   إعدادات MapHub (الأساس/المؤشّر/الشفافية/المقارنة/الأدوات/التراكبات) عميل-فقط. مؤجَّل لـv2:
-   مركز/تكبير الخريطة + الرسومات (تحتاج تحكّم خريطة).
+   إعدادات MapHub (الأساس/المؤشّر/الشفافية/المقارنة/الأدوات/التراكبات) عميل-فقط + **v2 (#453):**
+   التقاط/استعادة **مركز+تكبير الخريطة** عبر المحرّكين (Leaflet `HubMap` + MapLibre `HubMapGL`، بمنع
+   حلقة moveend↔restore وحفظ auto-fit). مؤجَّل: الرسومات (سريعة الزوال).
 2. **محرّك SQL في المتصفّح (DuckDB-WASM)** — ✅ **منفَّذ v1 (#451):** قسم «ورشة SQL» (lazy)
    يحمّل الحقول إلى جدول `fields` ويستعلمها محليّاً
    ([`../../frontend/src/services/duckdb.ts`](../../frontend/src/services/duckdb.ts) +
    [`../../frontend/src/components/sql/SQLEditor.tsx`](../../frontend/src/components/sql/SQLEditor.tsx)).
-   عميل-فقط، مستضاف ذاتيّاً، كسول (لا يمسّ الحزمة الرئيسة) + **تصدير النتائج CSV** (#452). **مؤجَّل لـv2:** spatial extension
+   عميل-فقط، مستضاف ذاتيّاً، كسول (لا يمسّ الحزمة الرئيسة) + تصدير CSV (#452) + **v2 UX (#453):** سجلّ
+   استعلامات (localStorage) + أمثلة جاهزة + نسخ JSON. **مؤجَّل:** spatial extension
    (`ST_Area`/`ST_Intersects` — يُحمَّل من extensions.duckdb.org، يحتاج تجميعاً أوفلاين) + المؤشّرات
    (NDVI async لكلّ حقل) + ربط النتائج بإبراز الخريطة.
-3. **نظام إضافات (Plugin) + AI GIS Assistant** (لغة طبيعيّة → Spatial SQL → تحديث الخريطة) —
-   معماريّ، يعتمد على (2)، ويتوافق مع مستشار SAHOOL (`/api/agent/query`).
+3. **استوديو الهندسة المكانيّة (Field GIS Studio)** — ✅ **منفَّذ v1 (#453):** قسم «أدوات الهندسة»
+   يطبّق Turf (`buffer`/`simplify`) على هندسة الحقل **معاينةً** (مساحة/رؤوس قبل/بعد، عميل-فقط، لا حفظ
+   خادميّ) — [`../../frontend/src/sections/GisToolsPage.tsx`](../../frontend/src/sections/GisToolsPage.tsx)
+   + [`fieldGeometryOps.ts`](../../frontend/src/lib/fieldGeometryOps.ts). مؤجَّل: dissolve/clip + الحفظ.
+4. **نظام إضافات (Plugin) + AI GIS Assistant** (لغة طبيعيّة → Spatial SQL → تحديث الخريطة) —
+   معماريّ، يعتمد على (2)، ويتوافق مع مستشار SAHOOL (`/api/agent/query`؛ و`nl-gis` نقطة بداية قائمة).
 
 ## السبب (لِمَ هذا الاتّجاه)
 SAHOOL متوافق أصلاً مع فلسفة browser-native (MapLibre + Turf مُستعملان)، فالاقتباس **تطوّريّ لا

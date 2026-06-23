@@ -9,6 +9,9 @@ import {
   splitFieldGeometry,
   toTurfFeature,
   isMultiPolygon,
+  bufferFieldGeometry,
+  simplifyFieldGeometry,
+  countVertices,
   type PolygonGeometry,
 } from './fieldGeometryOps';
 
@@ -114,6 +117,83 @@ describe('splitFieldGeometry — تقسيم (تقاطع/فرق)', () => {
     expect(splitFieldGeometry(field, null)).toBeNull();
     expect(splitFieldGeometry(null, field)).toBeNull();
     expect(splitFieldGeometry({ type: 'Point' }, field)).toBeNull();
+  });
+});
+
+describe('bufferFieldGeometry — حِزام (BUFFER)', () => {
+  it('حِزام موجب → مساحة أكبر من الأصل (توسيع حقيقيّ)', () => {
+    const field = square(44.0, 15.0, 44.1, 15.1);
+    const buffered = bufferFieldGeometry(field, 50); // 50 م توسيعاً
+    expect(buffered).not.toBeNull();
+    expect(areaSqMeters(buffered)).toBeGreaterThan(areaSqMeters(field));
+  });
+
+  it('حِزام سالب → مساحة أصغر من الأصل (تقليص حقيقيّ)', () => {
+    const field = square(44.0, 15.0, 44.1, 15.1);
+    const shrunk = bufferFieldGeometry(field, -50);
+    expect(shrunk).not.toBeNull();
+    expect(areaSqMeters(shrunk)).toBeLessThan(areaSqMeters(field));
+    expect(areaSqMeters(shrunk)).toBeGreaterThan(0);
+  });
+
+  it('مُدخَل غير مساحيّ صالح أو مسافة غير محدودة → null', () => {
+    expect(bufferFieldGeometry(null, 10)).toBeNull();
+    expect(bufferFieldGeometry({ type: 'Point' }, 10)).toBeNull();
+    expect(bufferFieldGeometry(square(44, 15, 44.1, 15.1), Number.NaN)).toBeNull();
+    expect(bufferFieldGeometry(square(44, 15, 44.1, 15.1), Number.POSITIVE_INFINITY)).toBeNull();
+  });
+});
+
+describe('simplifyFieldGeometry — تبسيط (SIMPLIFY)', () => {
+  // مضلّع ذو رؤوس زائدة على ضلع مستقيم (نقاط وسطيّة قابلة للإزالة دون تشويه).
+  function denseSquare(): PolygonGeometry {
+    return {
+      type: 'Polygon',
+      coordinates: [[
+        [44.0, 15.0], [44.025, 15.0], [44.05, 15.0], [44.075, 15.0], [44.1, 15.0],
+        [44.1, 15.1], [44.05, 15.1], [44.0, 15.1], [44.0, 15.0],
+      ]],
+    };
+  }
+
+  it('تبسيط بعتبة كافية → عدد رؤوس أقلّ أو مساوٍ (لا يزيد أبداً)', () => {
+    const dense = denseSquare();
+    const before = countVertices(dense);
+    const simplified = simplifyFieldGeometry(dense, 0.01);
+    expect(simplified).not.toBeNull();
+    const after = countVertices(simplified);
+    expect(after).toBeLessThanOrEqual(before);
+    expect(after).toBeLessThan(before); // نقاط منتصف الضلع المستقيم تُزال فعليّاً
+  });
+
+  it('تبسيط مربّع بسيط (لا رؤوس زائدة) → يحافظ على البنية (لا يزيد الرؤوس)', () => {
+    const field = square(44.0, 15.0, 44.1, 15.1);
+    const before = countVertices(field);
+    const simplified = simplifyFieldGeometry(field, 0.0001);
+    expect(simplified).not.toBeNull();
+    expect(countVertices(simplified)).toBeLessThanOrEqual(before);
+  });
+
+  it('لا يُعدّل مُدخَل المستدعي (mutate=false)', () => {
+    const dense = denseSquare();
+    const before = countVertices(dense);
+    simplifyFieldGeometry(dense, 0.01);
+    expect(countVertices(dense)).toBe(before); // الأصل سليم
+  });
+
+  it('مُدخَل غير مساحيّ صالح أو عتبة غير محدودة/سالبة → null', () => {
+    expect(simplifyFieldGeometry(null, 0.01)).toBeNull();
+    expect(simplifyFieldGeometry({ type: 'Point' }, 0.01)).toBeNull();
+    expect(simplifyFieldGeometry(square(44, 15, 44.1, 15.1), Number.NaN)).toBeNull();
+    expect(simplifyFieldGeometry(square(44, 15, 44.1, 15.1), -1)).toBeNull();
+  });
+});
+
+describe('countVertices — عدّ الرؤوس', () => {
+  it('مربّع مغلق (5 نقاط) → 5، وnull/غائب → 0', () => {
+    expect(countVertices(square(44, 15, 44.1, 15.1))).toBe(5);
+    expect(countVertices(null)).toBe(0);
+    expect(countVertices(undefined)).toBe(0);
   });
 });
 

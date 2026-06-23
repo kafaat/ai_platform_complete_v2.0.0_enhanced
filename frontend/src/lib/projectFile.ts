@@ -5,6 +5,13 @@
 // بلا خادم/سحابة (فلسفة browser-native). صدق: الاستيراد يتحقّق من البنية ويرمي عند الفساد
 // (لا قيم ملفّقة). v1 لا يحفظ مركز/تكبير الخريطة ولا الرسومات (مؤجّلة لـv2 — تحتاج تحكّم خريطة).
 
+/** لقطة عرض الخريطة المحفوظة (مركز + تكبير). null = لا لقطة (ملاءمة تلقائيّة). */
+export interface SahoolMapView {
+  centerLat: number;
+  centerLng: number;
+  zoom: number;
+}
+
 export interface SahoolProjectWorkspace {
   mode: '2d' | '3d';
   basemapId: string;
@@ -20,6 +27,8 @@ export interface SahoolProjectWorkspace {
   showDevices: boolean;
   pinCategory: string;
   selectedFieldId: string | null;
+  // v2: لقطة عرض الخريطة (اختياريّة — null/غياب ⇒ ملاءمة تلقائيّة كما في v1).
+  mapView: SahoolMapView | null;
 }
 
 export interface SahoolProject {
@@ -50,6 +59,23 @@ export function downloadProject(project: SahoolProject, filename = 'sahool-proje
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+/**
+ * يتحقّق بصدق من لقطة عرض الخريطة (v2): أرقام منتهية ضمن نطاقات صالحة
+ * (lat∈[-90,90] · lng∈[-180,180] · zoom∈[0,22]). أيّ فساد/غياب ⇒ null
+ * (يعود السلوك لملاءمة v1 التلقائيّة — توافق رجعيّ). لا قيم مُلفّقة.
+ */
+export function parseMapView(v: unknown): SahoolMapView | null {
+  if (!v || typeof v !== 'object') return null;
+  const m = v as Record<string, unknown>;
+  const lat = m.centerLat;
+  const lng = m.centerLng;
+  const zoom = m.zoom;
+  if (typeof lat !== 'number' || !isFinite(lat) || lat < -90 || lat > 90) return null;
+  if (typeof lng !== 'number' || !isFinite(lng) || lng < -180 || lng > 180) return null;
+  if (typeof zoom !== 'number' || !isFinite(zoom) || zoom < 0 || zoom > 22) return null;
+  return { centerLat: lat, centerLng: lng, zoom };
 }
 
 /**
@@ -96,5 +122,6 @@ export async function parseProjectFile(file: File): Promise<SahoolProjectWorkspa
     showDevices: bool(o.showDevices),
     pinCategory: str(o.pinCategory, ''),
     selectedFieldId: optStr(o.selectedFieldId),
+    mapView: parseMapView(o.mapView),
   };
 }

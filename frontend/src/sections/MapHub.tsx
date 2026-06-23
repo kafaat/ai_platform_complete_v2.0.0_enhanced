@@ -23,7 +23,7 @@ import {
   Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
 } from 'lucide-react';
-import { buildProject, downloadProject, parseProjectFile } from '../lib/projectFile';
+import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
@@ -101,6 +101,16 @@ export default function MapHub() {
   const [showDevices, setShowDevices] = useState(savedWorkspace?.showDevices ?? false);
   const [pins, setPins] = useState<ScoutPin[]>([]);
   const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
+  // ── v2: لقطة عرض الخريطة (مركز lat/lng + تكبير) — تُستعاد وتُلتقط من الخريطة ──
+  const [mapView, setMapView] = useState<SahoolMapView | null>(savedWorkspace?.mapView ?? null);
+  // مفتاح إعادة التركيب — يتغيّر عند استيراد مشروع ذي عرض، فتُعاد الخريطة وتبدأ من
+  // العرض الجديد (initialView). أوّل تحميل = 0 (لقطة localStorage تُمرَّر كـinitialView).
+  const [restoreKey, setRestoreKey] = useState(0);
+  // اللقطة الابتدائيّة للتمرير للخريطة عند (إعادة) التركيب. تُلتقط من الحالة الحاليّة
+  // عند تغيّر restoreKey فقط — لا تتغيّر مع التقاط الحركة (mapView state) كي لا تُعاد
+  // الخريطة عند كلّ moveend. (mapView يُقرأ عمداً مرّةً عند كلّ remount.)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initialMapView = useMemo<SahoolMapView | null>(() => mapView, [restoreKey]);
   const [detailOpen, setDetailOpen] = useState(false);
   const [showAddField, setShowAddField] = useState(false);
   const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
@@ -110,16 +120,29 @@ export default function MapHub() {
   // عميل-فقط: التصدير يقرأ الحالة الحاليّة، والاستيراد يستدعي الـsetters القائمة.
   const projectInputRef = useRef<HTMLInputElement>(null);
 
+  // التقاط عرض الخريطة (moveend من أيّ محرّك) — كتابة مُتسامِحة (idempotent): إن
+  // لم يتغيّر المركز/التكبير لا نُحدّث الحالة، فلا حلقة استعادة↔حركة ولا حفظ زائد.
+  const handleViewChange = useCallback((center: [number, number], zoom: number) => {
+    const next: SahoolMapView = { centerLat: center[0], centerLng: center[1], zoom };
+    setMapView((prev) => {
+      if (prev
+        && prev.centerLat === next.centerLat
+        && prev.centerLng === next.centerLng
+        && prev.zoom === next.zoom) return prev; // لا تغيير ⇒ لا re-render/حفظ
+      return next;
+    });
+  }, []);
+
   const handleExportProject = useCallback(() => {
     const project = buildProject({
       mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
       drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory,
-      selectedFieldId: fieldId,
+      selectedFieldId: fieldId, mapView,
     });
     downloadProject(project, `sahool-project-${new Date().toISOString().slice(0, 10)}.json`);
     toastStore.add('success', '✅ حُفِظ المشروع', 'نُزِّلت مساحة العمل كملفّ');
   }, [mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
-      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory, fieldId]);
+      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory, fieldId, mapView]);
 
   const handleImportProject = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.currentTarget.files?.[0];
@@ -141,6 +164,10 @@ export default function MapHub() {
       setShowDevices(w.showDevices);
       if (w.pinCategory) setPinCategory(w.pinCategory);
       if (w.selectedFieldId) setFieldId(w.selectedFieldId);
+      // v2: استعادة عرض الخريطة المستورد. تحديث mapView + بصمة الاستعادة يُعيد
+      // تركيب الخريطة (مفتاح remount) فتبدأ من العرض الجديد — كأوّل تحميل تماماً.
+      setMapView(w.mapView);
+      if (w.mapView) setRestoreKey((k) => k + 1);
       toastStore.add('success', '✅ استُورِد المشروع', 'استُعيدت مساحة العمل');
     } catch (err) {
       toastStore.add('error', '⚠️ فشل استيراد المشروع',
@@ -152,10 +179,10 @@ export default function MapHub() {
   useEffect(() => {
     saveWorkspace({
       mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
-      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory,
+      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory, mapView,
     });
   }, [mode, basemapId, activeIndicator, opacity, compare, leftLayer, rightLayer,
-      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory]);
+      drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory, mapView]);
 
   const selected = fields.find((f) => f.id === fieldId);
 
@@ -580,6 +607,7 @@ export default function MapHub() {
                   // (رسم/قياس Terra Draw + دبابيس + تراكبات). مقسوم بالكود (lazy).
                   <Suspense fallback={<LoadingState message="جارٍ تحميل محرّك MapLibre GL…" />}>
                     <HubMapGL
+                      key={`gl-${restoreKey}`}
                       fields={fields}
                       selectedId={fieldId}
                       onSelect={setFieldId}
@@ -593,10 +621,13 @@ export default function MapHub() {
                       alertMarkers={showAlerts ? alertMarkers : []}
                       deviceMarkers={showDevices ? deviceMarkers : []}
                       weatherMarker={showWeather ? weatherMarker : null}
+                      initialView={initialMapView}
+                      onViewChange={handleViewChange}
                     />
                   </Suspense>
                 ) : (
                   <HubMap
+                    key={`leaflet-${restoreKey}`}
                     fields={fields}
                     selectedId={fieldId}
                     onSelect={setFieldId}
@@ -610,6 +641,8 @@ export default function MapHub() {
                     alertMarkers={showAlerts ? alertMarkers : []}
                     deviceMarkers={showDevices ? deviceMarkers : []}
                     weatherMarker={showWeather ? weatherMarker : null}
+                    initialView={initialMapView}
+                    onViewChange={handleViewChange}
                   />
                 )}
                 {/* مفتاح ألوان الطبقة النشطة */}
