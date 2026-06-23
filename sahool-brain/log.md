@@ -4,6 +4,29 @@
 
 ---
 
+## 2026-06-23 (خ) — إغلاق H2: علم نشر NATS (default off) — يحرس تشغيل الناشر
+
+**رأس `main`:** `768c396` (#472 مُدمج). فرع `claude/h2-nats-publishers-flag`. الفجوة H2: «اشتراكات NATS
+يتيمة بلا ناشر». البنية موجودة بالكامل: `_emit_domain_event` يُسجّل كلّ حدث ذرّيّاً في `events`+`event_outbox`،
+و`OutboxWorker` يستنزف الـoutbox ويُسلّم إلى NATS (`sahool.events.>` → مستهلِك `notif_domain_events`).
+الإغلاق ضمن إطار «implemented-but-off-by-default»:
+- **علم `FEATURE_NATS_PUBLISHERS` + `nats_publishers_enabled()`** (`event_bus.py`، يُعيد استخدام
+  `feature_registry.is_enabled`؛ ليس علم راوتر).
+- **`main._start_outbox_worker` يُحرَس بالعلم:** OFF (افتراضيّ) ⇒ **لا يُشغَّل الناشر**، والأحداث تبقى مسجَّلة
+  في outbox (`record_decision_only`) — يُعلَن السبب صراحةً في السجلّ؛ ON ⇒ يُشغَّل OutboxWorker فيُسلّم
+  (`publish_event`).
+- **مفتاح الصدق:** التسجيل الذرّيّ (`events`+`outbox`) **مستقلّ عن العلم** ⇒ لا يُفقَد حدث عند OFF (record
+  دائم، التسليم opt-in).
+
+**التصنيف الصادق:** OFF آمن ومُختبَر بالكامل؛ **ON env-unverified** (يحتاج خادم NATS حيّاً — لا يُتحقَّق في CI).
+الاشتراكات الـ8 الخدميّة الأخرى (`sahool.alerts.weather`/`pest`/…) تبقى يتيمة لأنّ خدماتها غير مُسلَّمة —
+خارج نطاق هذا العلم (يغلق ناشر الأحداث `sahool.events.>` فقط). تحقّق: ٤ اختبارات بوّابة
+(`test_h2_nats_publishers_flag.py`: off افتراضيّاً · truthy ⇒ on · falsy ⇒ off · اسم العلم) · انحدار
+event_bus/outbox (١٠٣) أخضر · tests_v9 1844 (فشل MFA الـ5 سابقٌ) · platform 1104 · smoke/حارس التفكيك ·
+**مسح ruff كامل**.
+
+---
+
 ## 2026-06-23 (ج) — إغلاق C5: بوّابة عتبات NDVI خلف feature flag + إعلان عدم المعايرة
 
 **رأس `main`:** `b722b4c` (#471 مُدمج). فرع `claude/c5-ndvi-threshold-flag`. الفجوة C5: «NDVI الحقيقيّ
