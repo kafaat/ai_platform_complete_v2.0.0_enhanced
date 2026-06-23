@@ -18,6 +18,7 @@
 | [`decisions/gis-direction.md`](decisions/gis-direction.md) | اتّجاه GIS في المتصفّح (إلهام GeoLibre) — الأفكار 1-4 منفَّذة |
 | [`decisions/precision-ag-direction.md`](decisions/precision-ag-direction.md) | اتّجاه الزراعة الدقيقة التنفيذيّة (إلهام CultiWise) — مقترَح |
 | [`decisions/water-intelligence-direction.md`](decisions/water-intelligence-direction.md) | اتّجاه ذكاء المياه (إلهام IrriPro/FAO-56) — مقترَح |
+| [`decisions/field-intelligence-direction.md`](decisions/field-intelligence-direction.md) | اتّجاه ذكاء الحقل المتمحور (إلهام Agribound) — مقترَح |
 | [`agronomy/data-providers.md`](agronomy/data-providers.md) | مزوّدو البيانات (STAC/Open-Meteo/SAM2/التربة) |
 
 ## المصادر القائمة الرئيسة (تُربَط لا تُكرَّر)
