@@ -353,3 +353,55 @@ def water_balance(
         kc_source_ar=kc_source,
         salinity_applied=salinity_applied,
     )
+
+
+def water_balance_auto(
+    w: WeatherInput,
+    crop: str,
+    stage: str,
+    *,
+    rain_mm: float = 0.0,
+    ndvi: float | None = None,
+    forecast_rain_mm: float | None = None,
+    forecast_window_days: int = 3,
+    forecast_confidence: float = 1.0,
+    forecast_infiltration: float = FORECAST_INFILTRATION_DEFAULT,
+    soil_ece: float | None = None,
+    water_ecw: float | None = None,
+    analysis_age_days: int | None = None,
+    confidence: float | None = None,
+    crop_sensitive: bool = False,
+    saline_region: bool = False,
+) -> tuple[WaterBalanceResult, object]:
+    """ميزان الماء مع **تفعيل الملوحة تلقائيّاً** من جودة التحليل المخبريّ (قرار المستخدم).
+
+    يستدعي ``core.salinity_policy.salinity_decision`` ليقرّر ``apply_salinity`` من البيانات
+    (ECe/ECw + العمر + الثقة + حساسيّة المحصول + منطقة مالحة)، ثمّ ``water_balance`` بالقرار.
+    صدق: لا بيانات/قديمة/منخفضة الثقة ⇒ off (لا تفعيل على افتراض)؛ كلّ قرار بسبب مُعلَن.
+    يُرجِع ``(result, decision)`` — والقرار (``SalinityDecision``) يُعرَض شفّافاً في الردّ.
+    """
+    from core.salinity_policy import salinity_decision
+
+    decision = salinity_decision(
+        soil_ece=soil_ece,
+        water_ecw=water_ecw,
+        analysis_age_days=analysis_age_days,
+        confidence=confidence,
+        crop_sensitive=crop_sensitive,
+        saline_region=saline_region,
+    )
+    result = water_balance(
+        w,
+        crop,
+        stage,
+        rain_mm=rain_mm,
+        ndvi=ndvi,
+        forecast_rain_mm=forecast_rain_mm,
+        forecast_window_days=forecast_window_days,
+        forecast_confidence=forecast_confidence,
+        forecast_infiltration=forecast_infiltration,
+        soil_ece=soil_ece,
+        water_ec=water_ecw,
+        apply_salinity=decision.enabled,
+    )
+    return result, decision

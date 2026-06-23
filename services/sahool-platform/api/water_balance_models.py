@@ -29,3 +29,12 @@ class WaterBalanceRequest(BaseModel):
     latitude_deg: float = 15.5
     elevation_m: float = 2000.0
     day_of_year: int = 100
+    # ── تحليل الملوحة (اختياريّ) — يُفعّل مسار الملوحة تلقائيّاً عند توفّر تحليل موثوق ──
+    # صدق: غيابها ⇒ حساب بلا ملوحة (السلوك القائم تماماً). توفّرها ⇒ يقرّر salinity_policy
+    # تلقائيّاً (ECe/ECw حديثة <365 يوم + ثقة ≥0.8، أو ECe>2/ECw>1.5/محصول حسّاس).
+    soil_ece: float | None = None  # ملوحة مستخلَص عجينة الإشباع (dS/m) — من تحليل تربة مخبريّ
+    water_ecw: float | None = None  # توصيل كهربائيّ لمياه الريّ (dS/m) — من تحليل ماء مخبريّ
+    analysis_age_days: int | None = None  # عمر أحدث تحليل (يوم) — الحداثة شرط للتفعيل
+    analysis_confidence: float | None = None  # ثقة التحليل [0,1] — ≥0.8 شرط للتفعيل
+    crop_sensitive: bool = False  # محصول حسّاس جدّاً للملوحة (حمضيّات/عنب/فستق)
+    saline_region: bool = False  # حقل في منطقة معروفة بالملوحة (للتنبيه عند البيانات القديمة)
