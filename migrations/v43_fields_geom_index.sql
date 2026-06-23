@@ -20,7 +20,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_fields_sync_geom ON fields;
-CREATE TRIGGER trg_fields_sync_geom
+CREATE OR REPLACE TRIGGER trg_fields_sync_geom
     BEFORE INSERT OR UPDATE OF geometry ON fields
     FOR EACH ROW EXECUTE FUNCTION _sahool_fields_sync_geom();
 

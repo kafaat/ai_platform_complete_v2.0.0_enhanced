@@ -33,7 +33,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_field_geometry_history_revision ON field_geometry_history;
-CREATE TRIGGER trg_field_geometry_history_revision
+CREATE OR REPLACE TRIGGER trg_field_geometry_history_revision
     BEFORE INSERT ON field_geometry_history
     FOR EACH ROW EXECUTE FUNCTION sahool_next_field_geometry_revision();
 

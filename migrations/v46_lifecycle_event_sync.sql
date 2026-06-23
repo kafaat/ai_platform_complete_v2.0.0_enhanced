@@ -74,7 +74,7 @@ $$ LANGUAGE plpgsql;
 
 -- idempotent: نُسقِط ثمّ نُنشئ (لا overload / لا تكرار عند إعادة التطبيق)
 DROP TRIGGER IF EXISTS lifecycle_transition_emit_event ON field_lifecycle_transitions;
-CREATE TRIGGER lifecycle_transition_emit_event
+CREATE OR REPLACE TRIGGER lifecycle_transition_emit_event
     AFTER INSERT ON field_lifecycle_transitions
     FOR EACH ROW EXECUTE FUNCTION trg_lifecycle_transition_emit_event();
 

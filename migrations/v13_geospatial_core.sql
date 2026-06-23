@@ -34,7 +34,7 @@ $$ LANGUAGE plpgsql;
 
 -- ─── Trigger: قبل الإدراج أو تحديث الهندسة ──────────────────────
 DROP TRIGGER IF EXISTS trg_compute_field_geometry ON field_boundaries;
-CREATE TRIGGER trg_compute_field_geometry
+CREATE OR REPLACE TRIGGER trg_compute_field_geometry
     BEFORE INSERT OR UPDATE OF geom ON field_boundaries
     FOR EACH ROW
     EXECUTE FUNCTION compute_field_geometry();

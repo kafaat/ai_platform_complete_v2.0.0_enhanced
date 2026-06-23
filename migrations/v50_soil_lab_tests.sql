@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_soil_lab_tests_field  ON soil_lab_tests (field_id
 CREATE INDEX IF NOT EXISTS idx_soil_lab_tests_tenant ON soil_lab_tests (tenant_id, status);
 
 DROP TRIGGER IF EXISTS trg_soil_lab_tests_updated_at ON soil_lab_tests;
-CREATE TRIGGER trg_soil_lab_tests_updated_at
+CREATE OR REPLACE TRIGGER trg_soil_lab_tests_updated_at
     BEFORE UPDATE ON soil_lab_tests
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

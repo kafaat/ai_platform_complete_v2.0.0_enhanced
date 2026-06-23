@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_valves_tenant ON irrigation_valves(tenant_id);
 CREATE INDEX IF NOT EXISTS idx_valves_field  ON irrigation_valves(field_id);
 
 DROP TRIGGER IF EXISTS trg_valves_updated_at ON irrigation_valves;
-CREATE TRIGGER trg_valves_updated_at
+CREATE OR REPLACE TRIGGER trg_valves_updated_at
     BEFORE UPDATE ON irrigation_valves
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -53,7 +53,7 @@ CREATE INDEX IF NOT EXISTS idx_sched_field  ON irrigation_schedules(field_id);
 CREATE INDEX IF NOT EXISTS idx_sched_tenant ON irrigation_schedules(tenant_id) WHERE enabled = TRUE;
 
 DROP TRIGGER IF EXISTS trg_sched_updated_at ON irrigation_schedules;
-CREATE TRIGGER trg_sched_updated_at
+CREATE OR REPLACE TRIGGER trg_sched_updated_at
     BEFORE UPDATE ON irrigation_schedules
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

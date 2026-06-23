@@ -27,9 +27,13 @@ BEGIN
     -- كلّ جدول يحمل سياسة tenant_isolation (أنشأتها الدالّة المساعدة) ⇒ أعِد تطبيقها
     -- لترتقي إلى WITH CHECK. الجداول ذات السياسات المخصّصة (أسماء أخرى) لا تُمَسّ.
     FOR r IN
-        SELECT DISTINCT tablename
-        FROM pg_policies
-        WHERE schemaname = 'public' AND policyname = 'tenant_isolation'
+        SELECT DISTINCT p.tablename
+        FROM pg_policies p
+        JOIN information_schema.columns c
+          ON c.table_schema = 'public'
+         AND c.table_name = p.tablename
+         AND c.column_name = 'tenant_id'
+        WHERE p.schemaname = 'public' AND p.policyname = 'tenant_isolation'
     LOOP
         PERFORM _sahool_apply_tenant_rls(r.tablename);
         n := n + 1;

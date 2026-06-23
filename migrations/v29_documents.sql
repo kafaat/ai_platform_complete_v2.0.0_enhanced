@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_documents_cat   ON documents(tenant_id, category)
 CREATE INDEX IF NOT EXISTS idx_documents_field ON documents(field_id);
 
 DROP TRIGGER IF EXISTS trg_documents_updated_at ON documents;
-CREATE TRIGGER trg_documents_updated_at
+CREATE OR REPLACE TRIGGER trg_documents_updated_at
     BEFORE UPDATE ON documents
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

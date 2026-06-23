@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE INDEX IF NOT EXISTS idx_settings_scope ON settings(tenant_id, scope);
 
 DROP TRIGGER IF EXISTS trg_settings_updated_at ON settings;
-CREATE TRIGGER trg_settings_updated_at
+CREATE OR REPLACE TRIGGER trg_settings_updated_at
     BEFORE UPDATE ON settings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

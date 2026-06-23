@@ -40,6 +40,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_workflow_updated ON workflow_state;
-CREATE TRIGGER trg_workflow_updated
+CREATE OR REPLACE TRIGGER trg_workflow_updated
     BEFORE UPDATE ON workflow_state
     FOR EACH ROW EXECUTE FUNCTION touch_workflow_updated_at();

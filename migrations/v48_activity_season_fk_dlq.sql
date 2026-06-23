@@ -36,7 +36,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS trg_activity_season_guard ON activities;
-CREATE TRIGGER trg_activity_season_guard
+CREATE OR REPLACE TRIGGER trg_activity_season_guard
     BEFORE INSERT OR UPDATE OF season_id ON activities
     FOR EACH ROW EXECUTE FUNCTION _sahool_activity_season_guard();
 

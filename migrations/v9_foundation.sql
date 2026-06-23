@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- H10 FIX: removed redundant idx_users_email (UNIQUE constraint creates index)
 CREATE INDEX IF NOT EXISTS idx_users_tenant ON users(tenant_id);
 
-CREATE TRIGGER trg_users_updated_at
+CREATE OR REPLACE TRIGGER trg_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -111,7 +111,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_notif_pref_user
 CREATE INDEX IF NOT EXISTS idx_notif_pref_tenant
     ON notification_preferences(tenant_id);
 
-CREATE TRIGGER trg_notif_pref_updated_at
+CREATE OR REPLACE TRIGGER trg_notif_pref_updated_at
     BEFORE UPDATE ON notification_preferences
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

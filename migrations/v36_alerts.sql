@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS idx_alerts_field  ON alerts(field_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_tenant ON alerts(tenant_id, status, severity);
 
 DROP TRIGGER IF EXISTS trg_alerts_updated_at ON alerts;
-CREATE TRIGGER trg_alerts_updated_at
+CREATE OR REPLACE TRIGGER trg_alerts_updated_at
     BEFORE UPDATE ON alerts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

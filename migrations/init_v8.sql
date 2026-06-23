@@ -475,7 +475,7 @@ VALUES
     ('field_06','حقل عتمة الشرقي',   37.5,'شعير',        'clay_loam',  'البيضاء',15.10,45.62),
     ('field_07','حقل الرياشية',       22.1,'خضروات',      'loam',       'البيضاء',15.00,45.45),
     ('field_08','حقل ذي ناعم',        45.0,'بطاطس',       'sandy_loam', 'البيضاء',14.85,45.65)
-ON CONFLICT (field_id, tenant_id) DO NOTHING;
+ON CONFLICT (field_id) DO NOTHING;
 
 -- بيانات NDVI تجريبية (30 يوم)
 INSERT INTO ndvi_timeseries (field_id, acquisition_date, ndvi_mean, ndvi_min, ndvi_max, evi, savi, gndvi, cloud_pct, satellite)

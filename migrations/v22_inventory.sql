@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS inventory_items (
 CREATE INDEX IF NOT EXISTS idx_inv_items_tenant ON inventory_items(tenant_id, category);
 
 DROP TRIGGER IF EXISTS trg_inv_items_updated_at ON inventory_items;
-CREATE TRIGGER trg_inv_items_updated_at
+CREATE OR REPLACE TRIGGER trg_inv_items_updated_at
     BEFORE UPDATE ON inventory_items
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -49,7 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_inv_batches_expiry
     ON inventory_batches(tenant_id, expiry_date) WHERE expiry_date IS NOT NULL;
 
 DROP TRIGGER IF EXISTS trg_inv_batches_updated_at ON inventory_batches;
-CREATE TRIGGER trg_inv_batches_updated_at
+CREATE OR REPLACE TRIGGER trg_inv_batches_updated_at
     BEFORE UPDATE ON inventory_batches
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

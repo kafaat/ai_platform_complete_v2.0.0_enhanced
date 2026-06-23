@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS master_data (
 CREATE INDEX IF NOT EXISTS idx_master_data_cat ON master_data(tenant_id, category) WHERE active;
 
 DROP TRIGGER IF EXISTS trg_master_data_updated_at ON master_data;
-CREATE TRIGGER trg_master_data_updated_at
+CREATE OR REPLACE TRIGGER trg_master_data_updated_at
     BEFORE UPDATE ON master_data
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -51,7 +51,7 @@ CREATE INDEX IF NOT EXISTS idx_crop_rot_field
 CREATE INDEX IF NOT EXISTS idx_crop_rot_tenant ON crop_rotations(tenant_id);
 
 DROP TRIGGER IF EXISTS trg_crop_rot_updated_at ON crop_rotations;
-CREATE TRIGGER trg_crop_rot_updated_at
+CREATE OR REPLACE TRIGGER trg_crop_rot_updated_at
     BEFORE UPDATE ON crop_rotations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

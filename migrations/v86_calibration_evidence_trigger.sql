@@ -98,7 +98,7 @@ END;
 $$;
 
 DROP TRIGGER IF EXISTS trg_calibration_evidence ON outcome_record;
-CREATE TRIGGER trg_calibration_evidence
+CREATE OR REPLACE TRIGGER trg_calibration_evidence
     AFTER INSERT ON outcome_record
     FOR EACH ROW EXECUTE FUNCTION fn_update_calibration_evidence();
 

@@ -20,7 +20,7 @@ $$ LANGUAGE plpgsql;
 
 -- فرض على حدود الحقول (الجدول الأساس)
 DROP TRIGGER IF EXISTS trg_enforce_valid_geom ON field_boundaries;
-CREATE TRIGGER trg_enforce_valid_geom
+CREATE OR REPLACE TRIGGER trg_enforce_valid_geom
     BEFORE INSERT OR UPDATE OF geom ON field_boundaries
     FOR EACH ROW EXECUTE FUNCTION enforce_valid_field_geom();
 

@@ -31,7 +31,7 @@ $$ LANGUAGE plpgsql;
 
 -- ③ trigger الرفع على seasons — BEFORE UPDATE فيُطبَّق قبل كتابة الصفّ.
 DROP TRIGGER IF EXISTS trg_seasons_row_version ON seasons;
-CREATE TRIGGER trg_seasons_row_version
+CREATE OR REPLACE TRIGGER trg_seasons_row_version
     BEFORE UPDATE ON seasons
     FOR EACH ROW EXECUTE FUNCTION bump_row_version();
 

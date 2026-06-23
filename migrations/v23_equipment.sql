@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS equipment (
 CREATE INDEX IF NOT EXISTS idx_equipment_tenant ON equipment(tenant_id, type);
 
 DROP TRIGGER IF EXISTS trg_equipment_updated_at ON equipment;
-CREATE TRIGGER trg_equipment_updated_at
+CREATE OR REPLACE TRIGGER trg_equipment_updated_at
     BEFORE UPDATE ON equipment
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -49,7 +49,7 @@ CREATE INDEX IF NOT EXISTS idx_equip_maint_equip
     ON equipment_maintenance(equipment_id, scheduled_date);
 
 DROP TRIGGER IF EXISTS trg_equip_maint_updated_at ON equipment_maintenance;
-CREATE TRIGGER trg_equip_maint_updated_at
+CREATE OR REPLACE TRIGGER trg_equip_maint_updated_at
     BEFORE UPDATE ON equipment_maintenance
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

@@ -29,7 +29,7 @@ CREATE INDEX IF NOT EXISTS idx_iot_devices_tenant ON iot_devices(tenant_id, type
 CREATE INDEX IF NOT EXISTS idx_iot_devices_field  ON iot_devices(field_id);
 
 DROP TRIGGER IF EXISTS trg_iot_devices_updated_at ON iot_devices;
-CREATE TRIGGER trg_iot_devices_updated_at
+CREATE OR REPLACE TRIGGER trg_iot_devices_updated_at
     BEFORE UPDATE ON iot_devices
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

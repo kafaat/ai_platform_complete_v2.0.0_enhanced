@@ -40,7 +40,12 @@
       "Bash(docker wait:*)",
       "Bash(grep -v \"^time\\\\|^warn\\\\|^C:\\\\\\\\\")",
       "Bash(docker volume:*)",
-      "Bash(grep -E \"\\\\.\\(md|txt\\)$\")"
+      "Bash(grep -E \"\\\\.\\(md|txt\\)$\")",
+      "Bash(xxd C:/Users/ROG/Downloads/adel-3/v11/v11/migrations/apply_in_compose.sh)",
+      "Bash(ls:*)",
+      "Bash(grep -c \"^CREATE OR REPLACE TRIGGER\" C:/Users/ROG/Downloads/adel-3/v11/v11/migrations/*.sql)",
+      "Bash(grep -v ':0$')",
+      "Bash(find C:/Users/ROG/Downloads/adel-3/v11/v11 -name \"*.sh\" -exec file {} \\\\;)"
     ]
   }
 }

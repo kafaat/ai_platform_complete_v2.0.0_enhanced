@@ -28,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_seasons_field  ON seasons(field_id);
 CREATE INDEX IF NOT EXISTS idx_seasons_tenant ON seasons(tenant_id, status);
 
 DROP TRIGGER IF EXISTS trg_seasons_updated_at ON seasons;
-CREATE TRIGGER trg_seasons_updated_at
+CREATE OR REPLACE TRIGGER trg_seasons_updated_at
     BEFORE UPDATE ON seasons
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

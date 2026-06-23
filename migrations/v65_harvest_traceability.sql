@@ -38,7 +38,7 @@ CREATE INDEX IF NOT EXISTS idx_harvest_lots_season ON harvest_lots (season_id);
 CREATE INDEX IF NOT EXISTS idx_harvest_lots_tenant ON harvest_lots (tenant_id, harvest_date DESC);
 
 DROP TRIGGER IF EXISTS trg_harvest_lots_updated_at ON harvest_lots;
-CREATE TRIGGER trg_harvest_lots_updated_at
+CREATE OR REPLACE TRIGGER trg_harvest_lots_updated_at
     BEFORE UPDATE ON harvest_lots
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

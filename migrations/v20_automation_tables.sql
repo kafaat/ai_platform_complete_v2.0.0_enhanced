@@ -41,7 +41,7 @@ CREATE INDEX IF NOT EXISTS idx_autorules_tenant_sensor
 CREATE INDEX IF NOT EXISTS idx_autorules_field ON automation_rules(field_id);
 
 DROP TRIGGER IF EXISTS trg_autorules_updated_at ON automation_rules;
-CREATE TRIGGER trg_autorules_updated_at
+CREATE OR REPLACE TRIGGER trg_autorules_updated_at
     BEFORE UPDATE ON automation_rules
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

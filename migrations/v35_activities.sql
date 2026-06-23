@@ -26,7 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_activities_field  ON activities(field_id);
 CREATE INDEX IF NOT EXISTS idx_activities_tenant ON activities(tenant_id, status);
 
 DROP TRIGGER IF EXISTS trg_activities_updated_at ON activities;
-CREATE TRIGGER trg_activities_updated_at
+CREATE OR REPLACE TRIGGER trg_activities_updated_at
     BEFORE UPDATE ON activities
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 

@@ -61,7 +61,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS commands_updated_at ON commands;
-CREATE TRIGGER commands_updated_at BEFORE UPDATE ON commands
+CREATE OR REPLACE TRIGGER commands_updated_at BEFORE UPDATE ON commands
     FOR EACH ROW EXECUTE FUNCTION trg_commands_updated_at();
 
 
@@ -172,7 +172,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS validate_lifecycle_transition ON field_lifecycle_transitions;
-CREATE TRIGGER validate_lifecycle_transition BEFORE INSERT ON field_lifecycle_transitions
+CREATE OR REPLACE TRIGGER validate_lifecycle_transition BEFORE INSERT ON field_lifecycle_transitions
     FOR EACH ROW EXECUTE FUNCTION trg_validate_lifecycle_transition();
 
 -- Trigger: عند INSERT في transitions → update الـcurrent_stage
@@ -187,7 +187,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS apply_lifecycle_transition ON field_lifecycle_transitions;
-CREATE TRIGGER apply_lifecycle_transition AFTER INSERT ON field_lifecycle_transitions
+CREATE OR REPLACE TRIGGER apply_lifecycle_transition AFTER INSERT ON field_lifecycle_transitions
     FOR EACH ROW EXECUTE FUNCTION trg_apply_lifecycle_transition();
 
 COMMIT;

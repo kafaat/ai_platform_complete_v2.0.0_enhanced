@@ -116,6 +116,7 @@ CREATE POLICY sharing_keys_owner ON sharing_keys
 -- ════════════════════════════════════════════════════════════════
 -- ٣. Helper: is_sharing_key_valid()
 -- ════════════════════════════════════════════════════════════════
+DROP FUNCTION IF EXISTS is_sharing_key_valid(TEXT);
 CREATE OR REPLACE FUNCTION is_sharing_key_valid(p_key_hash TEXT)
 RETURNS TABLE(
     valid           BOOLEAN,

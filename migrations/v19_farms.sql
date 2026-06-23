@@ -32,7 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_fields_farm ON fields(farm_id);
 
 -- تحديث updated_at تلقائيّاً (نفس دالّة بقيّة الجداول)
 DROP TRIGGER IF EXISTS trg_farms_updated_at ON farms;
-CREATE TRIGGER trg_farms_updated_at
+CREATE OR REPLACE TRIGGER trg_farms_updated_at
     BEFORE UPDATE ON farms
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
