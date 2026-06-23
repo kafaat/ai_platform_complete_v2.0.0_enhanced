@@ -20,6 +20,30 @@ function formatCell(v: unknown): string {
   return String(v);
 }
 
+/** يحوّل النتيجة إلى CSV مع تهريب صحيح (اقتباس عند فاصلة/سطر/علامة). */
+function toCsv(columns: string[], rows: Record<string, unknown>[]): string {
+  const esc = (v: unknown): string => {
+    const s = v === null || v === undefined ? '' : String(v);
+    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const head = columns.map(esc).join(',');
+  const body = rows.map((r) => columns.map((c) => esc(r[c])).join(',')).join('\r\n');
+  return `${head}\r\n${body}`;
+}
+
+/** ينزّل النتيجة كملفّ CSV (BOM لدعم العربيّة في Excel). تنزيل المتصفّح — لا خادم. */
+function downloadCsv(columns: string[], rows: Record<string, unknown>[]): void {
+  const blob = new Blob(['﻿' + toCsv(columns, rows)], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sahool-query-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function SQLEditor() {
   const { options, isLoading, isError, refetch } = useFieldOptions();
 
@@ -103,6 +127,16 @@ export default function SQLEditor() {
         </button>
         {result && (
           <span className="text-xs" style={{ color: T.muted }}>{result.rows.length} صفّ</span>
+        )}
+        {result && result.rows.length > 0 && (
+          <button
+            type="button"
+            onClick={() => downloadCsv(result.columns, result.rows)}
+            className="px-3 py-2 rounded-lg text-sm font-semibold"
+            style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}
+          >
+            ⬇ تصدير CSV
+          </button>
         )}
       </div>
 
