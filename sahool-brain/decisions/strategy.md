@@ -32,8 +32,11 @@ explainability · prescriptions · boundary/SAM2 · decision/outcome ledger · �
   offline-first hardening (تخطيط).
 - **D — FieldState Water Canonicalization (جديدة — بتوجيه المستخدم، 2026-06-23):** دمج
   **ETc-dual + Ks/Kc/ET0/الملوحة في `CanonicalFieldState`** (SSOT الفعليّ، `field_state.agronomic`/المسار
-  القانونيّ). ⚠️ **يمسّ SSOT — يُنفَّذ بخطّة منفصلة متأنّية + اختبارات صرامة، لا كموجة وكلاء سريعة.** هذه
-  ثمرة Bundle A (التوحيد) لكنّها أكبر من «إصلاح تكرار»: تجعل الحالة القانونيّة المصدرَ الوحيد لقيم المياه.
+  القانونيّ). ⚠️ **يمسّ SSOT — مرحليّ، متأنٍّ.** **D1 ✅ منفَّذ (#466، إضافيّ محفوظ السلوك):** ET0 (عبر
+  `core/engines/et0` الموحّد من الطقس المخزَّن) + `etc_mm`=Kc·ET0 + `etc_demand_class` في
+  `operational_truths` — دون مسّ التحكيم (validity/execution_mode) ولا مخطّط القاعدة ولا المستهلكين.
+  **D2 (تحكيم الإجهاد المائيّ — يغيّر القرار القانونيّ) + D3 (نقل المستهلكين + إزالة التكرار) مؤجَّلتان
+  بإقرار.** ثمرة Bundle A لكنّها أكبر من «إصلاح تكرار»: تجعل الحالة المصدرَ الوحيد لقيم المياه.
 - **C — رهانات R&D (مسار منفصل، feature-flags، خارج المسار الحرج):** Field Embeddings · نماذج أساس
   (Prithvi/DINOv3) · SAM2 production (GPU) · Multi-engine Ensemble · Machine Integration (ISOXML).
   تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن.
