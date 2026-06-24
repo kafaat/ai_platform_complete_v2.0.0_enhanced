@@ -1,9 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-24 · رأس `main`: [`4d58c1c`](../) (#478 مُدمج) · فرع العمل `claude/actionable-gaps-sweep`
-> (كنس الفجوات القابلة للتنفيذ — ٤ متوازية بمتعدّد الوكلاء: H5-residual (ربط الملوحة الكنسيّ off-default) · بوّابة CI ساكنة (المفتّش) · NATS ناشر-بلا-مشترِك (إعلان) · H4-residual (مرجع كنسيّ) — [`log.md`](log.md) مدخل (ف)؛
-> سبقه (غ) Sustainability · (ظ) WUE · (ض) Readiness · (ذ) Bundle C · (د) C4/M1 · (خ) H2 · (ج) C5 · (ث) ETc-dual · (ت) D2b · ...).
-> **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) — قياس صادق (يُعلِن النقص، لا غلّة/كربون/NPK بلا قياس). SAM2/MAP-QA env-unverified.
+> **آخر تحديث:** 2026-06-24 · رأس `main`: [`a196927`](../) (#479 مُدمج) · فرع العمل `claude/dispatch-actuator-bridge`
+> (جسر القرار→التنفيذ Shard 3 — مُستهلِك `dispatch_decisions[queued]`→MQTT، **محاكاة-أوّلاً محروس مزدوجاً** (FEATURE_DISPATCH_ACTUATOR + ACTUATOR_MODE=real)، HIGH/CRITICAL لا تُؤتمت، حارس عزل جهاز، «نُشِر≠نُفِّذ» — [`log.md`](log.md) مدخل (ق)؛
+> سبقه (ف) كنس الفجوات الأربع · (غ) Sustainability · (ظ) WUE · (ض) Readiness · (ذ) Bundle C · (د) C4/M1 · (خ) H2 · (ج) C5 · (ث) ETc-dual · ...).
+> **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) + الحلقة المغلقة المحروسة (Dispatch bridge) — قياس صادق + تنفيذ محكوم بالإنسان. SAM2/MAP-QA env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)
 
