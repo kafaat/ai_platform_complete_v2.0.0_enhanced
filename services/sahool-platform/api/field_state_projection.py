@@ -41,6 +41,11 @@ _WATER_STRESS_ESCALATION_FLAG = "FEATURE_WATER_STRESS_ESCALATION"
 # عند التفعيل تُحسب ETc بالنهج المزدوج (Kcb·Ks+Ke)·ET0 بدل single (Kc·ET0). ليس علم راوتر.
 _CANONICAL_ETC_DUAL_FLAG = "FEATURE_CANONICAL_ETC_DUAL"
 
+# علم الملوحة الكنسيّة (H5-residual) — default OFF (إطار implemented-but-off-by-default):
+# الملوحة **قرار إدخال** (لا تُفعَّل ضمنيّاً). OFF ⇒ كتلة salinity مُعلِنة التعطيل صراحةً؛
+# ON + تحليل EC موثوق ⇒ قرار تفعيل من جودة البيانات (core/salinity_policy) + Ks فعليّة. ليس علم راوتر.
+_CANONICAL_SALINITY_FLAG = "FEATURE_CANONICAL_SALINITY"
+
 # علم عتبات NDVI (C5) — default OFF: NDVI معلوماتيّ لا يحكم الصلاحيّة ما لم تُفعَّل عتبات
 # **معايَرة ميدانيّاً** (غير موجودة بعد). OFF ⇒ تُعلَن insufficient_field_calibration صراحةً.
 _APPLY_NDVI_THRESHOLDS_FLAG = "APPLY_NDVI_THRESHOLDS"
@@ -334,6 +339,98 @@ def _apply_canonical_etc_dual(
         water.setdefault("etc_disabled_reason", "dual_inputs_unavailable")
 
 
+def _apply_canonical_salinity(
+    water: dict,
+    soil_ec,
+    salinity_class,
+    crop_id,
+    analysis_age_days,
+    confidence=None,
+) -> None:
+    """إغلاق الملوحة الكنسيّة في كتلة `water` خلف feature flag (default off) — يُعدّل `water` مكانيّاً.
+
+    الملوحة **قرار إدخال** لا تُفعَّل ضمنيّاً (فجوة H5). العلم OFF (افتراضيّ) ⇒ كتلة salinity
+    تُعلن التعطيل صراحةً (لا حساب Ks، لا غسيل). العلم ON + تحليل EC موثوق ⇒ القرار يُشتقّ من
+    **جودة البيانات** عبر :func:`salinity_decision` (core/salinity_policy): موثوق ⇒ applied
+    مع Ks فعليّة (إن أمكن حلّ ملفّ المحصول، وإلّا None معلَناً)؛ غير موثوق ⇒ غير applied + سبب.
+    fail-safe: غياب EC أو أيّ نقص ⇒ غير applied + سبب «لا تحليل موثوق» (لا رمي استثناء).
+    ماء الريّ (ECw) غير مُدخَل هنا ⇒ متطلّب الغسيل غير محسوب (مُعلَن صراحةً، لا اختلاق).
+    """
+    src = "field_state.canonical"
+    # العلم OFF (افتراضيّ): نُعلن التعطيل صراحةً — الملوحة قرار إدخال (H5).
+    if not is_enabled(_CANONICAL_SALINITY_FLAG, os.getenv(_CANONICAL_SALINITY_FLAG)):
+        water["salinity"] = {
+            "applied": False,
+            "salinity_class": salinity_class,
+            "reason_ar": "معطّل افتراضيّاً (H5): الملوحة قرار إدخال",
+            "source": src,
+        }
+        return
+
+    # fail-safe: لا قياس EC ⇒ لا تحليل موثوق (لا رمي، لا تفعيل).
+    if soil_ec is None:
+        water["salinity"] = {
+            "applied": False,
+            "salinity_class": salinity_class,
+            "reason_ar": "لا تحليل ملوحة موثوق (لا EC)",
+            "source": src,
+        }
+        return
+
+    try:
+        from core.salinity_policy import salinity_decision
+
+        decision = salinity_decision(
+            soil_ece=soil_ec,
+            water_ecw=None,  # ماء الريّ (ECw) غير مُدخَل ⇒ الغسيل غير محسوب (مُعلَن)
+            analysis_age_days=analysis_age_days,
+            confidence=confidence,
+        )
+        if not decision.enabled:
+            water["salinity"] = {
+                "applied": False,
+                "salinity_class": salinity_class,
+                "reason_ar": decision.reason_ar,
+                "signals": decision.signals,
+                "source": src,
+            }
+            return
+
+        # تحليل موثوق + تفعيل ⇒ Ks فعليّة من نفس آليّة حلّ ملفّ المحصول (ETc-dual):
+        # crop_kc_profile(crop_id) — إن تعذّر حلّ الملفّ ⇒ ks=None معلَناً (لا اختلاق).
+        ks = None
+        try:
+            from core.engines.fao56 import salinity_stress_ks
+            from core.season_phenology import crop_kc_profile
+
+            profile = crop_kc_profile(crop_id)
+            if profile is not None:
+                ks = salinity_stress_ks(profile, float(soil_ec))
+        except Exception:  # noqa: BLE001 — تعذّر حلّ الملفّ/Ks ⇒ ks=None (معلَن، لا اختلاق)
+            ks = None
+
+        water["salinity"] = {
+            "applied": True,
+            "salinity_class": salinity_class,
+            "ks": ks,
+            "reason_ar": decision.reason_ar,
+            "signals": decision.signals,
+            "leaching_requirement": None,
+            "leaching_note_ar": "ماء الريّ (ECw) غير مُدخَل — الغسيل غير محسوب",
+            "source": src,
+        }
+    except Exception:  # noqa: BLE001 — best-effort: أيّ تعذّر ⇒ غير applied (لا يكسر الحالة)
+        water.setdefault(
+            "salinity",
+            {
+                "applied": False,
+                "salinity_class": salinity_class,
+                "reason_ar": "لا تحليل ملوحة موثوق (لا EC)",
+                "source": src,
+            },
+        )
+
+
 def _ndvi_thresholds_for(crop_id, days_after_planting):
     """عتبات NDVI لمرحلة المحصول من **مظروف بطاقة المحصول** (إن وُجد) — ``None`` إن غير معايَر.
 
@@ -538,6 +635,24 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                 field_lat,
                 fresh.get("ndvi_mean"),
             )
+            # الملوحة الكنسيّة (H5-residual، خلف feature flag، default off): الملوحة قرار
+            # إدخال لا تُفعَّل ضمنيّاً. off ⇒ كتلة تُعلن التعطيل؛ on + تحليل موثوق ⇒ قرار من
+            # جودة البيانات + Ks فعليّة. best-effort: أيّ تعذّر ⇒ لا تكسر الحالة التشغيليّة.
+            try:
+                _apply_canonical_salinity(
+                    water,
+                    fresh.get("soil_ec"),
+                    agronomic["operational_truths"].get("salinity_class"),
+                    crop_id,
+                    inputs.get("soil_age_days"),
+                    confidence=agronomic.get("confidence"),
+                )
+            except Exception:  # noqa: BLE001 — ملوحة best-effort، لا تكسر الحالة التشغيليّة
+                logger.warning(
+                    "تعذّر تطبيق الملوحة الكنسيّة للحقل %s — تُتخطّى كتلة salinity",
+                    field_id,
+                    exc_info=True,
+                )
         if (
             agronomic["operational_truths"].get("salinity_class") == "critical"
             and state["execution_mode"] == "auto"

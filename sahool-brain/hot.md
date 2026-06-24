@@ -1,8 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-24 · رأس `main`: [`f01c468`](../) (#477 مُدمج) · فرع العمل `claude/field-sustainability-index`
-> (Field Sustainability Index — درجة استدامة مُفسَّرة (تربة+مياه+مغذّيات، بلا كربون؛ يُعيد استخدام salinity/water_stress الكنسيّين، المغذّيات needs_data بصدق) — [`log.md`](log.md) مدخل (غ)؛
-> سبقه (ظ) WUE · (ض) Readiness Index · (ذ) مراجعة Bundle C · (د) C4/M1 · (خ) H2 · (ج) C5 · (ث) ETc-dual · (ت) D2b · ...).
+> **آخر تحديث:** 2026-06-24 · رأس `main`: [`4d58c1c`](../) (#478 مُدمج) · فرع العمل `claude/actionable-gaps-sweep`
+> (كنس الفجوات القابلة للتنفيذ — ٤ متوازية بمتعدّد الوكلاء: H5-residual (ربط الملوحة الكنسيّ off-default) · بوّابة CI ساكنة (المفتّش) · NATS ناشر-بلا-مشترِك (إعلان) · H4-residual (مرجع كنسيّ) — [`log.md`](log.md) مدخل (ف)؛
+> سبقه (غ) Sustainability · (ظ) WUE · (ض) Readiness · (ذ) Bundle C · (د) C4/M1 · (خ) H2 · (ج) C5 · (ث) ETc-dual · (ت) D2b · ...).
 > **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) — قياس صادق (يُعلِن النقص، لا غلّة/كربون/NPK بلا قياس). SAM2/MAP-QA env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)

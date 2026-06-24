@@ -157,6 +157,15 @@ async def run() -> None:
                     if await process_field(conn, f["field_id"], str(f["tenant_id"])):
                         done += 1
             # نشر بعد إتمام القاعدة (outbox): فشل النشر لا يُفقِد التراكب المحفوظ.
+            #
+            # «طريق مسدود» مُعلَن بصدق — لا عطل:
+            # الموضوع sahool.weather.field.overlay.completed موجَّه لمشترِك *مستقبليّ*
+            # (تحديث واجهات/إشعارات عند جاهزيّة تراكب الطقس). لا مستهلك مُسلَّم اليوم بقصد:
+            # هذا المسار بأكمله سقالة غير نشطة محروسة بالعلم WEATHER_GRID_PIPELINE_ENABLED
+            # (OFF افتراضيّاً — انظر _grid_pipeline_enabled حوالي سطر 45)، ويبقى كذلك حتّى
+            # يُسلَّم المنتِج/المستهلك. لذا يَسِم tools/sahool_inspector.py هذا الناشر
+            # بـ«ناشر بلا مشترِك» (WARN إرشاديّ لا حاجب) — وهو سلوك مُتوقَّع ومُعلَن.
+            # قرار H2 المعماريّ: لا نُلفّق مستهلكاً/مشترِكاً وهميّاً لإسكات المفتّش.
             await js.publish(
                 "sahool.weather.field.overlay.completed",
                 json.dumps({"fields_processed": done}).encode(),
