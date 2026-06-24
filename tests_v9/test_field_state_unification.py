@@ -203,6 +203,23 @@ async def test_no_water_ledger_no_water_stress_block(core_on_path):
     assert "water_stress" not in res["state"]
 
 
+@pytest.mark.asyncio
+async def test_readiness_block_present_and_informational(core_on_path):
+    """مؤشّر الجاهزيّة يُسقَط على الحالة (درجة+مستوى+مصدر) ولا يغيّر القرار (معلوماتيّ)."""
+    from api.field_state_projection import recompute_field_state
+
+    conn = _Conn(ndvi_mean=0.7, ec=1.0)
+    st = (await recompute_field_state(conn, "fld_1"))["state"]
+    assert "readiness" in st
+    rd = st["readiness"]
+    assert isinstance(rd["overall_score"], (int, float))
+    assert rd["level"] in ("excellent", "good", "fair", "poor", "insufficient")
+    assert rd["source"] == "field_state.canonical"
+    assert "dimensions" in rd and "actionable_ar" in rd
+    # معلوماتيّ صرف: لا يلمس القرار القانونيّ
+    assert st["execution_mode"] == "auto"
+
+
 # ── D2b: تصعيد الإجهاد المائيّ خلف feature flag (NDMI+MSI) ──
 # إجهاد طيفيّ شديد: NDMI=-0.1 (<0.0 severe) + MSI=2.5 (≥2.0 severe) ⇒ fused severe ⇒ detected.
 _SPECTRAL_STRESS = {"ndmi": -0.1, "msi": 2.5}
