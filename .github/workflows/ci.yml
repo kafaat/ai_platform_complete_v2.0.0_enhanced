@@ -34,6 +34,15 @@ jobs:
             echo "✓ No empty directories"
           fi
 
+  platform-structure-inspector:
+    name: Platform Structure Inspector
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: python3 tools/sahool_inspector.py
+
   compose-validate:
     name: Validate Docker Compose
     runs-on: ubuntu-24.04

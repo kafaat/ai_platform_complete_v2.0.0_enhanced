@@ -4,6 +4,35 @@
 
 ---
 
+## 2026-06-24 (ف) — كنس الفجوات القابلة للتنفيذ: أربع فجوات متوازية (متعدّد الوكلاء)
+
+**رأس `main`:** `4d58c1c` (#478 مُدمج). فرع `claude/actionable-gaps-sweep`. **كنس** للفجوات القابلة
+للتنفيذ برمجيّاً (طلب «الكافي» — بعدد كافٍ من الوكلاء بالتوازي). فحص السجلّ + المفتّش الساكن + ٣ وكلاء
+استكشاف حدّدوا **٤** فجوات بلا حاجب بيئيّ، نُفِّذت عبر **٤ وكلاء متوازين** (ملفّات منفصلة) ثمّ توحيد مركزيّ.
+**حقيقة صدق:** اثنتان (NATS، H4) أصغر ممّا بدت ⇒ إصلاحهما **إعلان توثيقيّ** لا بناء سلوك (مستهلك وهميّ/
+نقل core→shared يخالف لا-الاختلاق).
+
+- **H5-residual (جوهريّ):** ربط الملوحة بالكتلة الكنسيّة. `_apply_canonical_salinity(water, …)` في
+  `field_state_projection.py` خلف علم `FEATURE_CANONICAL_SALINITY` (default OFF — الملوحة قرار إدخال).
+  OFF ⇒ كتلة `salinity.applied=false` تُعلِن التعطيل؛ ON + تحليل EC موثوق ⇒ قرار من جودة البيانات عبر
+  `salinity_decision` (إعادة استخدام) + Ks فعليّة من `salinity_stress_ks` (نفس آليّة حلّ ملفّ المحصول في
+  ETc-dual). ماء الريّ (ECw) غير مُدخَل ⇒ الغسيل `None` معلَن (لا اختلاق، نظير `de_mm=0`). يحاكي
+  `_apply_canonical_etc_dual` بدقّة. **لا تكرار منطق ملوحة في canonical_water.py.**
+- **بوّابة CI ساكنة (جوهريّ):** وظيفة `Platform Structure Inspector` في `.github/workflows/ci.yml` تشغّل
+  `tools/sahool_inspector.py` (جاهز كما هو، exit 1 على FAIL فقط، stdlib). تثبّت RLS (22/0)·routers
+  (142/0)·migrations (105/105) ساكناً ⇒ C1/C2/H6 تأكيد ساكن مستمرّ.
+- **NATS ناشر-بلا-مشترِك (إعلان):** تعليق في `weather-polygon-worker/src/main.py:160` — النشر
+  `sahool.weather.field.overlay.completed` لمشترِك مستقبليّ؛ المسار سقالة محروسة بـ
+  `WEATHER_GRID_PIPELINE_ENABLED` (OFF)؛ WARN إرشاديّ متوقَّع. **لا مستهلك مُلفَّق.**
+- **H4-residual (إعلان):** مرجع توثيقيّ في `mcp_servers/weather_server.py` + `wofost_real/wofost_engine.py`
+  لمصدر الحقيقة الكنسيّ `core/engines/et0.py` (٣/٥ موحّدة؛ المتبقّيان محجوبان بعزل خدمات مقصود).
+
+**تحقّق:** `test_canonical_salinity` ٥ نقيّة (OFF/ON-موثوق/ON-لا-EC/قديم/fail-safe) · انحدار
+field_state/reports/canonical ١١٧ أخضر · حارس تفكيك الراوترات ٤ أخضر · `sahool_inspector.py` exit 0
+(PASS/WARN، لا FAIL) · ci.yml YAML صالح · مسح ruff كامل.
+
+---
+
 ## 2026-06-24 (غ) — Field Sustainability Index: مؤشّر استدامة الحقل المُفسَّر
 
 **رأس `main`:** `f01c468` (#477 مُدمج). فرع `claude/field-sustainability-index`. **ثالث تحسين «قياس صادق»**
