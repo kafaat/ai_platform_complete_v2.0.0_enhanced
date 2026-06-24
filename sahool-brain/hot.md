@@ -1,9 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-24 · رأس `main`: [`a196927`](../) (#479 مُدمج) · فرع العمل `claude/dispatch-actuator-bridge`
-> (جسر القرار→التنفيذ Shard 3 — مُستهلِك `dispatch_decisions[queued]`→MQTT، **محاكاة-أوّلاً محروس مزدوجاً** (FEATURE_DISPATCH_ACTUATOR + ACTUATOR_MODE=real)، HIGH/CRITICAL لا تُؤتمت، حارس عزل جهاز، «نُشِر≠نُفِّذ» — [`log.md`](log.md) مدخل (ق)؛
-> سبقه (ف) كنس الفجوات الأربع · (غ) Sustainability · (ظ) WUE · (ض) Readiness · (ذ) Bundle C · (د) C4/M1 · (خ) H2 · (ج) C5 · (ث) ETc-dual · ...).
-> **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) + الحلقة المغلقة المحروسة (Dispatch bridge) — قياس صادق + تنفيذ محكوم بالإنسان. SAM2/MAP-QA env-unverified.
+> **آخر تحديث:** 2026-06-24 · رأس `main`: [`e391eca`](../) (#480 مُدمج) · فرع العمل `claude/actuator-safety-hardening`
+> (Actuator Safety Hardening — **آمن افتراضيّاً**: ACTUATOR_MODE الافتراضيّ صار simulation (لا real مُستنتَج)، أعلام per-path (automation/manual/dispatch) كلّها default-OFF، `/command`→403، `/safety-status`، تحذير إقلاع — [`log.md`](log.md) مدخل (ك)؛
+> سبقه (ق) جسر Shard 3 · (ف) كنس الفجوات · (غ) Sustainability · (ظ) WUE · (ض) Readiness · (ذ) Bundle C · ...).
+> **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) + حلقة مغلقة محروسة آمنة-افتراضيّاً (Dispatch bridge + Safety hardening) — قياس صادق + تنفيذ فيزيائيّ fail-safe محكوم بالإنسان. SAM2/MAP-QA env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)
 

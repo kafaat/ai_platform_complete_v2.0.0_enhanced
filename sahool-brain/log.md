@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-06-24 (ك) — Actuator Safety Hardening: آمن افتراضيّاً (fail-safe) + حراسة كلّ مسار
+
+**رأس `main`:** `e391eca` (#480 مُدمج). فرع `claude/actuator-safety-hardening`. **تصحيح سلامة فيزيائيّة**
+(لا تحسين عاديّ): فحصُ المستخدم كشف أنّ `ACTUATOR_MODE` يُرجّح **`real` افتراضيّاً** عند عدم ضبطه (يُستنتَج من
+`MQTT_BROKER_URL` الإنتاجيّ). التحقّق أكّد: `send_mqtt_command` **نقطة اختناق فيزيائيّة واحدة** (كلّ نشر يمرّ
+عبرها)، لكنّ افتراضيّها غير آمن. **قرار المستخدم: fail-safe** — وجود وسيط ≠ موافقة تشغيل (مضخّات/صمّامات).
+- **`shared/actuator_mode.py`:** `resolve_actuator_mode` الافتراضيّ صار **`simulation`** (لا استنتاج real)؛
+  real يتطلّب opt-in صريحاً. يعكس قرار PR #394 **بوعي** (fail-safe > حفظ السلوك التاريخيّ في طبقة فيزيائيّة).
+- **`actuator-service/main.py`:** دفاع بالعمق per-path (كلّها default-OFF): `FEATURE_AUTOMATION_RULES_ACTUATION`
+  (يحرس رأس `evaluate_rules`) · `FEATURE_MANUAL_ACTUATOR_COMMANDS` (يحرس `POST /command` ⇒ **403
+  `manual_actuator_commands_disabled_by_safety_policy`**) · `FEATURE_DISPATCH_ACTUATOR` (الجسر، قائم).
+- **تحذير إقلاع صاخب** عند `ACTUATOR_MODE=real` + نقطة **`GET /safety-status`** تُعلِن الوضع وحراسة كلّ مسار
+  (**لا أسرار:** لا broker/tokens/tenant/secrets — حالة فقط).
+- **الكسر الواعي:** بلا متغيّرات بيئة ⇒ لا dispatch · لا automation · لا manual · لا نشر MQTT حقيقيّ. أُحدِّث
+  `tests_v9/test_actuator_mode.py` ليعكس العقد الجديد (unset ⇒ simulation).
+
+**الحالة:** طبقة التنفيذ الفيزيائيّ صارت **implemented-gated-fail-safe** بدل **implemented-gated-but-default-risky**.
+**تحقّق:** ٦ اختبارات سلامة جديدة + ٨ جسر + ٨ dedup + ٧ عقد الوضع (محدَّث) أخضر · المفتّش exit 0 · tenant audit
+أخضر (`/safety-status` تكوينيّ بحت) · ruff كامل · مراجعة عدائيّة (شاملة مسار `_compensate`).
+
+---
+
 ## 2026-06-24 (ق) — جسر القرار→التنفيذ (Shard 3): مُستهلِك محاكاة-أوّلاً، محروس مزدوجاً
 
 **رأس `main`:** `a196927` (#479 مُدمج). فرع `claude/dispatch-actuator-bridge`. **إغلاق الحلقة المغلقة**
