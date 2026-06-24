@@ -57,6 +57,12 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
         "background automation worker (fail-closed under sahool_app)"
     ),
     "services/actuator-service/main.py::automation_rules": "background scene-linkage worker",
+    # جسر القرار→التنفيذ (Shard 3، default-OFF): مُستهلِك خلفيّ يطالب الطابور ذرّيّاً
+    # (FOR UPDATE SKIP LOCKED) ويُنهيه بـdecision_id. لا تسرّب فيزيائيّ عابر للمستأجرين:
+    # _device_belongs_to_tenant يحرس النشر (fail-closed) فلا أمر إلّا لجهاز مستأجِر القرار.
+    "services/actuator-service/main.py::dispatch_decisions": (
+        "background dispatch consumer (default-OFF); device-ownership guard fail-closes cross-tenant actuation"
+    ),
     "services/soil-service/main.py::soil_readings": "soil ingestion service (sensor-scoped)",
 }
 ALLOWLIST: set[str] = set(_ALLOWLIST_JUSTIFIED)

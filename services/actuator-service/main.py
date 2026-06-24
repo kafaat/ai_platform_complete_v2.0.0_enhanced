@@ -64,6 +64,17 @@ ACTUATOR_IDEMPOTENCY_MODE = resolve_idempotency_mode(os.getenv("ACTUATOR_IDEMPOT
 # مقاييس المراقبة (Observe قبل Enforce): عدّ القرارات حسب المفتاح (local/cluster_skip/divergence…).
 _IDEM_METRICS: dict[str, int] = {}
 
+# ── جسر القرار→التنفيذ (Shard 3، PR dispatch-bridge) ──────────────────────────
+# علم تفعيل default-OFF: مُستهلِك dispatch_decisions[queued] يُطلق الأمر الفيزيائيّ عبر MQTT.
+# OFF (افتراضيّ) ⇒ الجسر لا يُقلَع، ومسار الإخطار البشريّ في المنصّة يبقى المستهلك الوحيد
+# («البشر أوّلاً، المضخّات آخراً»). حراسة مزدوجة: حتّى مع العلم ON، النشر الفيزيائيّ الحقيقيّ
+# يتطلّب ACTUATOR_MODE=real أيضاً — وإلّا simulation/disabled ⇒ لا حركة فيزيائيّة.
+FEATURE_DISPATCH_ACTUATOR = os.getenv("FEATURE_DISPATCH_ACTUATOR")
+# قائمة المخاطر المسموح بأتمتتها (CSV، افتراضيّ low,medium): HIGH/CRITICAL لا تُؤتمت أبداً —
+# تبقى لقرار الإنسان حتّى لو وصلت queued (سلامة فيزيائيّة).
+DISPATCH_ACTUATOR_RISK_ALLOWLIST = os.getenv("DISPATCH_ACTUATOR_RISK_ALLOWLIST", "low,medium")
+DISPATCH_POLL_INTERVAL_SEC = float(os.getenv("DISPATCH_POLL_INTERVAL_SEC", "5"))
+
 # ذاكرة إزالة التكرار داخل العمليّة: مفتاح الأمر → آخر زمن إطلاق (time.monotonic).
 # ملاحظة صدق: هذا حارس داخل العمليّة (per-replica) لا على مستوى العنقود؛ مع عدّة نُسَخ قد
 # يُطلَق الأمر مرّةً لكلّ نسخة. لذا يُكمَّل بمخزن عنقوديّ دائم (actuator_command_dedup، v81)
@@ -542,7 +553,13 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
 
 
 async def log_command(
-    rule_id: str | None, device_id: str, command: str, payload: dict, status: str, tenant_id: str
+    rule_id: str | None,
+    device_id: str,
+    command: str,
+    payload: dict,
+    status: str,
+    tenant_id: str,
+    triggered_by: str = "rule",
 ):
     if not _pool:
         return
@@ -559,10 +576,215 @@ async def log_command(
                 json.dumps(payload),
                 status,
                 f"sahool/actuator/{device_id}/command",
-                "rule",
+                triggered_by,
             )
     except Exception as e:
         logger.warning(f"log_command failed: {e}")
+
+
+# ══════════════════════════════════════════════════════════════
+# جسر القرار→التنفيذ (Shard 3): مُستهلِك dispatch_decisions[queued]
+# ──────────────────────────────────────────────────────────────
+# يُغلِق الحلقة من قرار المنصّة إلى الأمر الفيزيائيّ — لكن محروساً مزدوجاً ومحاكاةً-أوّلاً.
+# صدق صريح: send_mqtt_command ينشر بلا ack ⇒ exec_status='executed' يعني «الأمر نُشِر
+# للوسيط» لا «الصمّام/المضخّة تحرّكت فعليّاً». التنفيذ الفيزيائيّ الحقيقيّ يتطلّب
+# ACTUATOR_MODE=real (وإلّا simulation: أثرٌ محاكى، لا حركة). القرار يصل queued فقط بعد
+# اجتياز حواجز المنصّة وجمع الموافقات (state=READY) — الجسر يستهلك المُخلَّص لا يتجاوز الحواجز.
+_DISPATCH_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def _dispatch_consumer_enabled(env_value: str | None) -> bool:
+    """دالّة نقيّة: العلم default-OFF (غياب/قيمة مجهولة ⇒ معطّل، fail-closed)."""
+    return (env_value or "").strip().lower() in _DISPATCH_TRUTHY
+
+
+def _parse_risk_allowlist(env_value: str | None) -> set[str]:
+    """دالّة نقيّة: قائمة المخاطر المسموح بأتمتتها (CSV) ⇒ مجموعة محارف صغيرة. فارغ ⇒ low,medium."""
+    if not env_value or not env_value.strip():
+        return {"low", "medium"}
+    return {p.strip().lower() for p in env_value.split(",") if p.strip()}
+
+
+def _is_risk_allowed(risk_level, allowlist: set[str]) -> bool:
+    """دالّة نقيّة: هل يُسمح بأتمتة هذا المستوى؟ HIGH/CRITICAL خارج الافتراضيّ ⇒ لا (تبقى للإنسان)."""
+    return str(risk_level or "").strip().lower() in allowlist
+
+
+def _parse_dispatch_command(command):
+    """دالّة نقيّة fail-safe: يفكّ حمولة أمر القرار ⇒ ``(device_id, cmd, payload)`` أو ``None``.
+
+    أمر فاسد/ناقص ⇒ ``None`` (لا رمي) ⇒ يُعامَل القرار كـfailed (لا تخمين، لا إطلاق أعمى).
+    يتسامح مع المفاتيح: ``device_id``/``device`` و``command``/``cmd``.
+    """
+    if isinstance(command, str):
+        try:
+            command = json.loads(command)
+        except (ValueError, TypeError):
+            return None
+    if not isinstance(command, dict):
+        return None
+    device_id = command.get("device_id") or command.get("device")
+    cmd = command.get("command") or command.get("cmd")
+    if not isinstance(device_id, str) or not device_id:
+        return None
+    if not isinstance(cmd, str) or not cmd:
+        return None
+    payload = command.get("payload")
+    if not isinstance(payload, dict):
+        payload = {}
+    return device_id, cmd, payload
+
+
+def _dispatch_outcome_status(send_success: bool) -> str:
+    """دالّة نقيّة: نتيجة النشر ⇒ حالة التنفيذ. نجاح النشر ⇒ executed (نُشِر≠نُفِّذ)، وإلّا failed."""
+    return "executed" if send_success else "failed"
+
+
+async def _claim_queued_decisions(conn, allowlist: set[str], batch_size: int):
+    """يطالب ذرّيّاً queued→dispatched (FOR UPDATE SKIP LOCKED) ⇒ لا إطلاق مزدوج.
+
+    المطالبة الذرّيّة (``UPDATE … WHERE exec_status='queued'``) تضمن أنّ صفّاً لا يُلتقَط
+    مرّتين (ولا من نُسَخ actuator متعدّدة): بعد المطالبة لم يعد 'queued'. HIGH/CRITICAL
+    مستبعَدة عبر allowlist، وrisk_level=NULL مستبعَد (lower(NULL) لا يطابق) — يبقيان للإنسان.
+    """
+    return await conn.fetch(
+        """
+        UPDATE dispatch_decisions SET exec_status = 'dispatched'
+        WHERE decision_id IN (
+            SELECT decision_id FROM dispatch_decisions
+            WHERE exec_status = 'queued' AND lower(risk_level) = ANY($1::text[])
+            ORDER BY created_at ASC
+            LIMIT $2
+            FOR UPDATE SKIP LOCKED
+        )
+        RETURNING decision_id, tenant_id::text AS tenant_id, field_id,
+                  recommendation_id, action_type, risk_level, command
+        """,
+        list(allowlist),
+        batch_size,
+    )
+
+
+async def _device_belongs_to_tenant(conn, device_id: str, tenant_id: str) -> bool:
+    """حارس عزل فيزيائيّ: هل الجهاز يخصّ مستأجِر القرار؟ (fail-closed: غير موجود/خطأ ⇒ False).
+
+    نظير ``_authorize_device_control`` لكن مقابل مستأجِر القرار لا توكن. يضمن **عدم نشر أمر
+    فيزيائيّ عابر للمستأجرين** مهما كان مصدر صفّ الطابور: تحت RLS صارم (سياق غير مضبوط) يعود
+    NULL ⇒ False ⇒ لا نشر (آمن)؛ ومع وصول الخدمة يتحقّق الربط بالمستأجِر صراحةً.
+    """
+    try:
+        owner = await conn.fetchval(
+            "SELECT tenant_id::text FROM iot_devices WHERE device_id = $1", device_id
+        )
+    except Exception as e:  # noqa: BLE001 — تعذّر التحقّق ⇒ fail-closed (لا نشر أعمى)
+        logger.warning("جسر القرار: تعذّر التحقّق من ملكيّة الجهاز %s: %s", device_id, e)
+        return False
+    return owner is not None and owner == tenant_id
+
+
+async def _dispatch_one(conn, row) -> str:
+    """ينشر أمر قرار مُطالَب به (dispatched) ⇒ يُنهيه executed/failed + يُسجّل. يُرجِع الحالة."""
+    decision_id = row["decision_id"]
+    parsed = _parse_dispatch_command(row["command"])
+    if parsed is None:
+        # أمر فاسد/غائب ⇒ failed (لا إطلاق أعمى، صدق).
+        await conn.execute(
+            "UPDATE dispatch_decisions SET exec_status = 'failed' "
+            "WHERE decision_id = $1 AND exec_status = 'dispatched'",
+            decision_id,
+        )
+        logger.warning("جسر القرار: أمر فاسد/غائب للقرار %s ⇒ failed", decision_id)
+        return "failed"
+    device_id, cmd, payload = parsed
+
+    # حارس السلامة الفيزيائيّة + العزل: لا يُنشَر أمر إلّا لجهاز يخصّ مستأجِر القرار
+    # (نظير _authorize_device_control في /command). يمنع تحكّماً فيزيائيّاً عابراً للمستأجرين
+    # مهما كان مصدر الصفّ، ويُفشِل بأمان تحت RLS صارم. الفشل ⇒ failed بلا نشر.
+    if not await _device_belongs_to_tenant(conn, device_id, row["tenant_id"]):
+        await conn.execute(
+            "UPDATE dispatch_decisions SET exec_status = 'failed' "
+            "WHERE decision_id = $1 AND exec_status = 'dispatched'",
+            decision_id,
+        )
+        logger.warning(
+            "جسر القرار: الجهاز %s لا يخصّ مستأجِر القرار %s ⇒ failed (لا نشر فيزيائيّ)",
+            device_id,
+            decision_id,
+        )
+        await log_command(
+            rule_id=None,
+            device_id=device_id,
+            command=cmd,
+            payload={"decision_id": decision_id},
+            status=f"dispatch_denied_{ACTUATOR_MODE}",
+            tenant_id=row["tenant_id"],
+            triggered_by="dispatch",
+        )
+        return "failed"
+    # أثرِ الحمولة بمرجع القرار (تتبّع) دون تغيير الأمر الأصليّ.
+    enriched = {
+        **payload,
+        "decision_id": decision_id,
+        "field_id": row["field_id"],
+        "recommendation_id": row["recommendation_id"],
+    }
+    try:
+        success = await send_mqtt_command(device_id, cmd, enriched)
+    except Exception as e:  # noqa: BLE001 — أيّ تعذّر نشر ⇒ failed (لا رمي يكسر الحلقة)
+        logger.error("جسر القرار: تعذّر نشر أمر القرار %s: %s", decision_id, e)
+        success = False
+    status = _dispatch_outcome_status(bool(success))
+    await conn.execute(
+        "UPDATE dispatch_decisions SET exec_status = $2 "
+        "WHERE decision_id = $1 AND exec_status = 'dispatched'",
+        decision_id,
+        status,
+    )
+    # تدقيق: سجّل في device_commands_log مع mode (sim/real) + النتيجة — صدق «نُشِر≠نُفِّذ».
+    await log_command(
+        rule_id=None,
+        device_id=device_id,
+        command=cmd,
+        payload=enriched,
+        status=f"dispatch_{status}_{ACTUATOR_MODE}",
+        tenant_id=row["tenant_id"],
+        triggered_by="dispatch",
+    )
+    return status
+
+
+async def dispatch_consumer_loop():
+    """عامل خلفيّ (نظير mqtt_sensor_listener): يستهلك dispatch_decisions[queued] محاكاةً-أوّلاً.
+
+    محروس مزدوجاً: لا يُقلَع إلّا بـ``FEATURE_DISPATCH_ACTUATOR=on``؛ والنشر الفيزيائيّ الحقيقيّ
+    يتطلّب ``ACTUATOR_MODE=real`` (وإلّا simulation ⇒ أثرٌ محاكى). best-effort: أيّ خطأ دفعة
+    يُسجَّل ولا يكسر الحلقة (تدهور رشيق). يقرأ الطابور كخدمة (نظير evaluate_rules: بلا سياق
+    مستأجِر مفرد) — الوصول يخضع لدور الـactuator (إن حجبه RLS في بيئة غير مُهيّأة ⇒ لا شيء
+    يُستهلَك، وهو آمن مع التعطيل الافتراضيّ).
+    """
+    if not _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR):
+        return
+    if not _pool:
+        logger.warning("جسر القرار: FEATURE_DISPATCH_ACTUATOR=on لكن لا DATABASE_URL — معطّل")
+        return
+    allowlist = _parse_risk_allowlist(DISPATCH_ACTUATOR_RISK_ALLOWLIST)
+    logger.info(
+        "🔗 جسر القرار→التنفيذ مُفعَّل (mode=%s، allowlist=%s) — صدق: نُشِر≠نُفِّذ؛ "
+        "النشر الفيزيائيّ الحقيقيّ يتطلّب ACTUATOR_MODE=real",
+        ACTUATOR_MODE,
+        sorted(allowlist),
+    )
+    while True:
+        try:
+            async with _pool.acquire() as conn:
+                rows = await _claim_queued_decisions(conn, allowlist, batch_size=20)
+                for row in rows:
+                    await _dispatch_one(conn, row)
+        except asyncio.CancelledError:
+            break
+        except Exception as e:  # noqa: BLE001 — خطأ دفعة ⇒ سجّل واستمرّ (لا كسر)
+            logger.error("جسر القرار: خطأ دفعة: %s", e)
+        await asyncio.sleep(DISPATCH_POLL_INTERVAL_SEC)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -619,8 +841,26 @@ async def lifespan(app: FastAPI):
 
     # Start background MQTT listener (احتفظ بالمرجع لمنع GC المبكّر)
     app.state.mqtt_task = asyncio.create_task(mqtt_sensor_listener())
+    # جسر القرار→التنفيذ (Shard 3، محروس بعلم default-OFF): يُقلَع فقط عند التفعيل الصريح.
+    # OFF ⇒ مسار الإخطار البشريّ في المنصّة هو المستهلك (البشر أوّلاً، المضخّات آخراً).
+    app.state.dispatch_task = None
+    if _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR):
+        app.state.dispatch_task = asyncio.create_task(dispatch_consumer_loop())
+    else:
+        logger.info(
+            "جسر القرار→التنفيذ معطّل (FEATURE_DISPATCH_ACTUATOR غير مضبوط) — "
+            "مسار الإخطار البشريّ في المنصّة هو المستهلك"
+        )
     logger.info("🔧 Actuator Service ready — Scene Linkage active")
     yield
+    # إيقاف نظيف للجسر (نظير OutboxWorker): cancel ثمّ await ابتلاع CancelledError.
+    dispatch_task = getattr(app.state, "dispatch_task", None)
+    if dispatch_task is not None:
+        dispatch_task.cancel()
+        try:
+            await dispatch_task
+        except asyncio.CancelledError:
+            pass
     if _pool:
         await _pool.close()
 
