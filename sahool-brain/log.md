@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-06-24 (ظ) — Water Use Efficiency: Outcome KPI لكفاءة استخدام المياه
+
+**رأس `main`:** `486de6a` (#476 مُدمج). فرع `claude/water-efficiency-kpi`. **تحسين** يخدم مؤشّر «خفض المياه»
+المقترح. **فجوة حقيقيّة مُتحقَّقة:** `water_ledger` (v98) يحمل الحقول اليوميّة لكن لا تجميع/كفاءة؛ الـWUE
+الوحيد الموجود يتطلّب غلّة (لا حلقة غلّة-أرضيّة ⇒ لا يُقاس بصدق).
+- **`api/water_efficiency.py`** (`compute_water_efficiency(entries)` نقيّة): كفاءة من **التوازن المائيّ** —
+  `etc_total` (الطلب) مقابل `supplied = ريّ + مطر فعّال (min(rain,etc))`. يُخرِج `water_use_efficiency`
+  (نسبة المُورَّد المُستغَلّ، ≤1؛ أدنى = إفراط/هدر) · `demand_met_pct` (تغطية الطلب) · `over_application_mm`
+  (الماء الزائد — ذراع الخفض). أوزان/تبسيط **مُعلَنة** (`calibrated=False`).
+- **بوّابات الصدق:** لا طلب ⇒ `needs_data`؛ لا ريّ مُسجَّل ⇒ `needs_irrigation_data` («سجّل الريّ») — لا
+  رقم مُضلِّل من المطر وحده. **الغلّة خارج النطاق صراحةً** (لا حلقة). مدخل فاسد ⇒ كتلة needs_data (fail-safe).
+- **نقطة `GET /api/v1/fields/{id}/water-efficiency?from=&to=`** في `routers/water_ledger.py` — تُعيد استخدام
+  نمط `list_water_ledger` (auth/tenant/RLS/503/422 + قراءة الدفتر)؛ قراءة فقط، **لا هجرة، لا تغيير قرار**.
+
+**صدق:** توازن مائيّ لا غلّة؛ يُعلِن النقص؛ يُعيد استخدام الدفتر. تحقّق: ٧ اختبارات
+(`test_water_efficiency.py`: إفراط/تطابق/نقص · المطر مقصوص · needs_irrigation_data · needs_data · fail-safe)
+· tests_v9 1865 (فشل MFA الـ5 سابقٌ) · platform 1104 · حارس تفكيك الراوترات أخضر · **مسح ruff كامل**.
+
+---
+
 ## 2026-06-24 (ض) — Field Data Readiness Index: درجة جاهزيّة بيانات الحقل المُفسَّرة
 
 **رأس `main`:** `d156146` (#475 مُدمج). فرع `claude/field-readiness-index`. **تحسين** (لا إغلاق فجوة)

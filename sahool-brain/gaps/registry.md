@@ -27,6 +27,7 @@
 | IND-SRC | مصدر مؤشّرات الموبايل الصحيح (`getFieldIndicators`) | mobile | #445 (`a7909e6`)؛ [`mobile/sahool_app/lib/services/api_service.dart`](../../mobile/sahool_app/lib/services/api_service.dart) | fixed |
 | MERGE | دمج/انقسام الحقول ذرّيّاً (سدّ خطر البيانات الثلاثيّة) | platform/الحقول | #443 (`2456d2b`)؛ [`api/routers/fields.py`](../../services/sahool-platform/api/routers/fields.py)؛ اختبار [`tests_v9/test_fields_merge_split_atomic.py`](../../tests_v9/test_fields_merge_split_atomic.py) | fixed |
 | NDVI-MOB | مسار سلسلة NDVI في الموبايل (404) | mobile | #444 (`9e00d0a`)؛ [`mobile/sahool_app/lib/screens/satellite_screen.dart`](../../mobile/sahool_app/lib/screens/satellite_screen.dart) | fixed |
+| WUE | لا كفاءة استخدام مياه مُجمَّعة على فترة (الدفتر يوميّ فقط) | platform/المياه | فرع `claude/water-efficiency-kpi`؛ `api/water_efficiency.py` + `routers/water_ledger.py` (`GET …/water-efficiency`) | **fixed (water-balance)** — WUE من التوازن المائيّ (ETc مقابل المُورَّد) + over_application؛ الغلّة خارج النطاق (لا حلقة)؛ needs_data/needs_irrigation_data عند النقص. |
 
 ## ملاحظات
 
