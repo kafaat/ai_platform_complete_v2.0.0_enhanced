@@ -49,7 +49,7 @@ import object_store
 import salinity_calibration as _sal
 from fastapi import BackgroundTasks, FastAPI, File, Form, Header, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 from job_store import JobStore
 from pydantic import BaseModel, Field
 from stac_client import ResilientStacClient
@@ -1037,12 +1037,15 @@ async def readyz():
         async with httpx.AsyncClient(timeout=5) as client:
             r = await client.get(f"{EARTH_SEARCH_URL}/")
             ok = r.status_code < 500
-        return {
+        body = {
             "status": "ready" if ok else "degraded",
             "earth_search": "reachable" if ok else "unreachable",
         }
+        return JSONResponse(status_code=200 if ok else 503, content=body)
     except httpx.HTTPError:
-        return {"status": "degraded", "earth_search": "unreachable"}
+        return JSONResponse(
+            status_code=503, content={"status": "degraded", "earth_search": "unreachable"}
+        )
 
 
 # ─── معالجة الراستر: الرفع ────────────────────────────────────────
@@ -1099,7 +1102,8 @@ async def upload_raster(file: UploadFile = File(...), x_agent_token: str = Heade
         with open(path, "wb") as fh:
             fh.write(content)
     except OSError as e:
-        raise HTTPException(500, f"فشل الحفظ: {e}") from e
+        logger.warning("raster upload save failed: %s", type(e).__name__)
+        raise HTTPException(500, "raster_upload_save_failed") from e
     logger.info(f"raster uploaded: {raster_id} ({len(content)} bytes)")
     return {"raster_url": f"file://{path}"}
 
@@ -1120,7 +1124,8 @@ async def upload_drone(
         with open(path, "wb") as fh:
             fh.write(content)
     except OSError as e:
-        raise HTTPException(500, f"فشل الحفظ: {e}") from e
+        logger.warning("drone upload save failed: %s", type(e).__name__)
+        raise HTTPException(500, "drone_upload_save_failed") from e
     logger.info(f"drone uploaded: {raster_id} tenant={tenant_id}")
     return {"raster_url": f"file://{path}"}
 
@@ -1326,9 +1331,11 @@ def _run_processing(job_id: str, req: ProcessRequest):
         logger.info(f"job {job_id} completed → layer {layer_id}")
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
-        job["error_message"] = str(e)
+        # لا نُخزّن تفاصيل الاستثناء الخام في job status لأنّها تُقرأ عبر API وقد
+        # تحتوي مسارات ملفات/روابط/تفاصيل مكتبات. السجلّ الداخلي يحتفظ بنوع الخطأ.
+        job["error_message"] = "raster_processing_failed"
         _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
-        logger.error(f"job {job_id} failed: {e}")
+        logger.error("job %s failed: %s", job_id, type(e).__name__)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):

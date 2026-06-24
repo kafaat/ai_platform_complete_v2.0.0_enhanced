@@ -157,7 +157,7 @@ class ERPNextProvider(ERPProvider):
             r.raise_for_status()
             return r.json().get("data", [])
         except Exception as e:  # noqa: BLE001 — صدق: فشل → فارغ لا اختراع
-            logger.warning(f"ERPNext {doctype} تعذّر: {e}")
+            logger.warning("ERPNext %s تعذّر: %s", doctype, type(e).__name__)
             return []
 
     async def authenticate(self) -> bool:
@@ -173,11 +173,11 @@ class ERPNextProvider(ERPProvider):
             try:
                 user = r.json().get("message")
             except Exception as je:  # noqa: BLE001 — صدق: JSON غير صالح → فشل لا اختراع
-                logger.warning(f"ERPNext auth: استجابة غير JSON ({je})")
+                logger.warning("ERPNext auth: استجابة غير JSON (%s)", type(je).__name__)
                 return False
             return user not in (None, "", "Guest")
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"ERPNext auth تعذّر: {e}")
+            logger.warning("ERPNext auth تعذّر: %s", type(e).__name__)
             return False
 
     async def list_products(self, since=None) -> list[dict]:
@@ -277,14 +277,14 @@ class ERPNextProvider(ERPProvider):
             )
             return False
         except Exception as e:  # noqa: BLE001 — لا نخفي الفشل، نُرجِع False
-            logger.warning("ERPNext push_field_cost تعذّر: %s", e)
+            logger.warning("ERPNext push_field_cost تعذّر: %s", type(e).__name__)
             return False
 
     async def health(self) -> dict:
         ok = await self.authenticate()
         return {
             "provider": "erpnext",
-            "url": self.url,
+            "url_configured": bool(self.url),
             "status": "connected" if ok else "unreachable",
         }
 
@@ -308,7 +308,7 @@ class OdooProvider(ERPProvider):
             await self.odoo.authenticate()
             return self.odoo.uid is not None
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Odoo auth تعذّر: {e}")
+            logger.warning("Odoo auth تعذّر: %s", type(e).__name__)
             return False
 
     async def list_products(self, since=None) -> list[dict]:
@@ -365,7 +365,7 @@ class OdooProvider(ERPProvider):
             )
             return True
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Odoo push_field_cost تعذّر: {e}")
+            logger.warning("Odoo push_field_cost تعذّر: %s", type(e).__name__)
             return False
 
     async def health(self) -> dict:

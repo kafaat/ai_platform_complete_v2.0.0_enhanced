@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-06-24 (م) — كنس تشديد تسريب المعلومات + عزل المستأجرين عبر الخدمات (مراجعة المستخدم)
+
+**رأس `main`:** `4942b69` (#481 مُدمج). فرع `claude/infoleak-tenant-hardening`. من patch مراجعة ثالث رفعه
+المستخدم — **كنس أمنيّ عبر ≈١٢ خدمة** (Information Disclosure + IDOR). يُستثنى actuator (في #482).
+- **لا نصّ استثناء في استجابات HTTP:** `f"Invalid token: {e}"`/`str(e)` ⇐ رموز عامّة — `api/main.py` ·
+  `auth/main.py` · `mcp_servers/{oauth_middleware,market_server}` · `local-ai-rag` · `recommendations.py` ·
+  `supervisor-agent` · `video-processor`.
+- **لا تسريب بنية تحتيّة في health/readyz:** broker URL/ERP url/odoo_uid/DB-error/load_error ⇐ booleans —
+  `odoo-bridge/{main,erp_provider}` · `sam2-inference` · `raster-service`. تسجيل كسول `type(e).__name__`.
+- **تحقّق إدخال + رمز حالة:** `_validate_tenant_id` (regex) في `local-ai-rag`؛ `raster` readyz ⇒ 503 عند degraded.
+- **إصلاحا عزل حقيقيّان (IDOR):**
+  - **`reports.py::operation_report_csv`** — يرفض tenant_id (الجسم/أيّ حقل) ≠ المستأجِر ⇒ 403. **بـ`str()` على
+    الطرفين** (قرار المستخدم: UserSchema.tenant_id قد يكون UUID والجسم str — وإلّا 403 للجميع).
+  - **`video-processor::stop_stream`** — كان `pop()` قبل فحص المستأجِر ⇒ حذف بثّ عابر بمعرفة stream_id؛ صار
+    get→assert→pop (404 للغريب) + حجب rtsp_url/http_url (اعتماد كاميرا) من status/list.
+
+**صدق:** المراجعة (المستخدم) أمسكت تسريبات/IDOR؛ تعديلي الوحيد فوق الـpatch = `str()` في reports.py
+(يمنع كسر الشرعيّ) + اختبار مطابق/مختلف. تحقّق: ٣ اختبارات reports تينانت جديدة + اختبارا video stop_stream
++ ٢٤١ انحدار المنطقة (٥ فشل MFA سابقٌ مؤكَّد على main) · حارس الراوترات ٤ · المفتّش exit 0 · ruff كامل.
+
+---
+
 ## 2026-06-24 (ك) — Actuator Safety Hardening: آمن افتراضيّاً (fail-safe) + حراسة كلّ مسار
 
 **رأس `main`:** `e391eca` (#480 مُدمج). فرع `claude/actuator-safety-hardening`. **تصحيح سلامة فيزيائيّة**

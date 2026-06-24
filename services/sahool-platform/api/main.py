@@ -984,7 +984,8 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
+        logging.warning("JWT validation failed: %s", type(e).__name__)
+        raise HTTPException(status_code=401, detail="Invalid token") from e
 
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — توكن من مُصدِر مجهول يُرفَض كتوكن غير صالح.
     if payload.get("iss") not in _ALLOWED_ISS:

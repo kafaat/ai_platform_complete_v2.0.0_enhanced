@@ -1,8 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-24 · رأس `main`: [`e391eca`](../) (#480 مُدمج) · فرع العمل `claude/actuator-safety-hardening`
-> (Actuator Safety Hardening — **آمن افتراضيّاً**: ACTUATOR_MODE الافتراضيّ صار simulation (لا real مُستنتَج)، أعلام per-path (automation/manual/dispatch) كلّها default-OFF، `/command`→403، `/safety-status`، تحذير إقلاع — [`log.md`](log.md) مدخل (ك)؛
-> سبقه (ق) جسر Shard 3 · (ف) كنس الفجوات · (غ) Sustainability · (ظ) WUE · (ض) Readiness · (ذ) Bundle C · ...).
+> **آخر تحديث:** 2026-06-24 · رأس `main`: [`4942b69`](../) (#481 مُدمج) · فرع العمل `claude/infoleak-tenant-hardening`
+> (كنس تشديد تسريب المعلومات + عزل المستأجرين عبر ≈١٢ خدمة — لا نصّ استثناء في الاستجابات، لا تسريب بنية تحتيّة في health، إصلاحا IDOR (reports CSV tenant + video stop_stream) — [`log.md`](log.md) مدخل (م)؛
+> سبقه (ل) تشديد /health · (ك) Actuator Safety Hardening · (ق) جسر Shard 3 · (ف) كنس الفجوات · (غ) Sustainability · (ظ) WUE · (ض) Readiness · ...).
 > **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) + حلقة مغلقة محروسة آمنة-افتراضيّاً (Dispatch bridge + Safety hardening) — قياس صادق + تنفيذ فيزيائيّ fail-safe محكوم بالإنسان. SAM2/MAP-QA env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)

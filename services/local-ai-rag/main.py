@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 import tempfile
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -57,6 +58,14 @@ NUM_CTX = int(os.getenv("NUM_CTX", "8192"))  # context window
 AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 # حدّ أقصى لحجم الملفّ المرفوع (منع DoS عبر تحميل ملفّ ضخم في الذاكرة).
 MAX_UPLOAD_MB = int(os.getenv("MAX_UPLOAD_MB", "25"))
+
+_TENANT_RE = re.compile(r"^[a-zA-Z0-9_\-]{1,64}$")
+
+
+def _validate_tenant_id(tenant_id: str) -> str:
+    if not tenant_id or not _TENANT_RE.match(str(tenant_id)):
+        raise HTTPException(400, "Invalid tenant_id")
+    return str(tenant_id)
 
 
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
@@ -335,7 +344,8 @@ async def _get_rag_user(creds: _C = Depends(_rag_security)) -> dict:
             creds.credentials, _RAG_SECRET, algorithms=[_RAG_ALG], audience="sahool"
         )
     except _JE as e:
-        raise HTTPException(401, str(e)) from e
+        logger.warning("RAG JWT validation failed: %s", type(e).__name__)
+        raise HTTPException(401, "Invalid token") from e
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
     if payload.get("iss") not in _ALLOWED_ISS:
         raise HTTPException(401, "مُصدِر التوكن غير مسموح")
@@ -386,7 +396,7 @@ async def query_endpoint(req: QueryRequest, user: dict = Depends(_get_rag_user))
     tenant_id = user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(401, "التوكن لا يحمل tenant_id")
-    return await query_rag(req.question, str(tenant_id), req.k)
+    return await query_rag(req.question, _validate_tenant_id(str(tenant_id)), req.k)
 
 
 @app.post("/ingest")
@@ -401,6 +411,7 @@ async def ingest_endpoint(
     """
     _require_service_token(x_agent_token)
     _require_ready()
+    tenant_id = _validate_tenant_id(tenant_id)
     paths: list[Path] = []
     for upload in files:
         suffix = Path(upload.filename).suffix.lower()

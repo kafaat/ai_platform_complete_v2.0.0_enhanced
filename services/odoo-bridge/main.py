@@ -907,20 +907,19 @@ async def health():
     # (غير مفعَّل) بدل false مضلّل — الأساسي erpnext لا يمرّ عبر Odoo.
     provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
     odoo_ok = None
-    uid = None
     if provider == "odoo":
         odoo_ok = False
         try:
             odoo = get_odoo()
-            uid = odoo.uid if odoo.uid is not None else await odoo.authenticate()
+            await odoo.authenticate()
             odoo_ok = True
         except Exception as e:  # noqa: BLE001
             logger.debug("فحص صحّة Odoo فشل: %s", type(e).__name__)
     return {
         "status": "alive",
         "erp_provider": provider,
+        "odoo_configured": provider == "odoo",
         "odoo_connected": odoo_ok,  # null حين المزوّد ليس odoo (غير مفعَّل)
-        "odoo_uid": uid,
         "sync_interval_sec": SYNC_INTERVAL_SEC,
     }
 
@@ -940,8 +939,9 @@ async def erp_provider_status(_auth: dict = Depends(require_auth)):
     try:
         provider = get_erp_provider(odoo_client=get_odoo() if selected == "odoo" else None)
         hp = await provider.health()
-    except Exception as e:  # noqa: BLE001 — صدق: نُعلن الخطأ لا نخفيه
-        return {"selected": selected, "status": "error", "error": str(e)}
+    except Exception as e:  # noqa: BLE001 — لا نُسرّب تفاصيل اتصال ERP/URL/اعتمادات
+        logger.debug("ERP provider health failed: %s", type(e).__name__)
+        return {"selected": selected, "status": "error", "error": "provider_unavailable"}
     return {"selected": selected, "active_provider": provider.name, "health": hp}
 
 
