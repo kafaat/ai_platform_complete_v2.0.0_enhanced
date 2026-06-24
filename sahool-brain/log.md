@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-06-24 (ل) — تشديد /health: لا تسريب broker URL + اختبارات تكامليّة (مساهمة المستخدم)
+
+**رأس `main`:** `4942b69` (#481 مُدمج). فرع `claude/actuator-health-no-leak`. **متابعة صغيرة لـ#481** من
+patch رفعه المستخدم — التقط تناقضاً صادقاً: `/safety-status` أُحكِم بلا أسرار، لكن `/health` القديم بقي
+يكشف `MQTT_BROKER_URL` (تفصيل بنية تحتيّة).
+- **`actuator-service/main.py`** `/health`: `"mqtt": MQTT_BROKER_URL` ⇐ `"mqtt_configured": bool(...)` —
+  وجود الوسيط لا يعني موافقة تشغيل، ورابطه لا يحتاجه health العامّ.
+- **`test_actuator_safety.py`**: اختباران أقوى — `test_health_does_not_expose_mqtt_broker_url` +
+  `test_command_endpoint_flag_off_returns_explicit_safety_403` (**تكامليّ** عبر FastAPI TestClient +
+  dependency_overrides، يتجاوز الدوالّ النقيّة) + تمويه asyncpg/jwt للاستيراد.
+
+**تحقّق:** ٢٤ اختبار actuator (٨ سلامة شامل الجديدين + ٨ جسر + ٨ dedup) + ٧ عقد الوضع + ٤ tenant audit ·
+المفتّش exit 0 · ruff كامل.
+
+---
+
 ## 2026-06-24 (ك) — Actuator Safety Hardening: آمن افتراضيّاً (fail-safe) + حراسة كلّ مسار
 
 **رأس `main`:** `e391eca` (#480 مُدمج). فرع `claude/actuator-safety-hardening`. **تصحيح سلامة فيزيائيّة**

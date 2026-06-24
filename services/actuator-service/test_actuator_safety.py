@@ -14,6 +14,25 @@ import sys
 import types
 from pathlib import Path
 
+if "asyncpg" not in sys.modules:
+    _asyncpg_stub = types.ModuleType("asyncpg")
+    _asyncpg_stub.Pool = object
+
+    async def _create_pool(*_args, **_kwargs):  # pragma: no cover - import stub only
+        raise RuntimeError("asyncpg is stubbed in actuator safety unit tests")
+
+    _asyncpg_stub.create_pool = _create_pool
+    sys.modules["asyncpg"] = _asyncpg_stub
+
+if "jwt" not in sys.modules:
+    _jwt_stub = types.ModuleType("jwt")
+
+    def _decode(*_args, **_kwargs):  # pragma: no cover - dependency override avoids this
+        return {}
+
+    _jwt_stub.decode = _decode
+    sys.modules["jwt"] = _jwt_stub
+
 if "aiomqtt" not in sys.modules:
     try:
         import aiomqtt  # noqa: F401
@@ -89,6 +108,42 @@ def test_safety_status_exposes_no_secrets():
     blob = repr(s).lower()
     for leak in ("mqtt://", "broker", "token", "secret", "tenant", "password"):
         assert leak not in blob
+
+
+def test_health_does_not_expose_mqtt_broker_url():
+    """/health يعلن أن MQTT مُهيّأ فقط، ولا يكشف broker URL."""
+    import asyncio
+
+    payload = asyncio.run(main.health())
+    assert payload["mqtt_configured"] is True
+    assert "mqtt" not in payload
+    assert "mqtt://" not in repr(payload).lower()
+
+
+def test_command_endpoint_flag_off_returns_explicit_safety_403():
+    """POST /command بلا FEATURE_MANUAL_ACTUATOR_COMMANDS ⇒ 403 صريح قبل أي تشغيل."""
+    from fastapi.testclient import TestClient
+
+    async def _claims_override():
+        return {
+            "tenant_id": "11111111-1111-1111-1111-111111111111",
+            "sub": "u1",
+            "role": "owner",
+            "iss": "sahool-auth",
+        }
+
+    main.app.dependency_overrides[main._verify_token] = _claims_override
+    try:
+        with TestClient(main.app) as client:
+            response = client.post(
+                "/command",
+                json={"device_id": "pump-1", "command": "start", "payload": {}},
+            )
+        assert response.status_code == 403
+        body = response.json()
+        assert body["detail"]["error"] == "manual_actuator_commands_disabled_by_safety_policy"
+    finally:
+        main.app.dependency_overrides.clear()
 
 
 if __name__ == "__main__":
