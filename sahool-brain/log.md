@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-06-24 (غ) — Field Sustainability Index: مؤشّر استدامة الحقل المُفسَّر
+
+**رأس `main`:** `f01c468` (#477 مُدمج). فرع `claude/field-sustainability-index`. **ثالث تحسين «قياس صادق»**
+بعد Readiness (شفافيّة الثقة) وWUE (شفافيّة النتائج): **شفافيّة الاستدامة** — درجة واحدة مُفسَّرة لكلّ حقل
+عبر **تربة + مياه + مغذّيات** (بلا كربون). الإشارات موجودة لكن مبعثرة؛ **حقيقتان حاسمتان للصدق:**
+(1) `salinity_class`/`water_stress_class` موجودان أصلاً في الحالة القانونيّة ⇒ **يُعاد استخدامهما لا
+حسابهما**؛ (2) توازن NPK الكامل **غير مقيس** (P محجوب، K معطّل، N غير معايَر) ⇒ بُعد المغذّيات يُعلَن
+`needs_data` بصدق، لا «NPK Index» مُلفَّق.
+- **`api/field_sustainability.py`** (`compute_field_sustainability(signals)` نقيّة): بُعد **تربة** =
+  متوسّط (salinity مُعاد استخدامه · pH 6.0–7.5 مثاليّ · مادة عضويّة ≥2% · نضارة 90/365) · بُعد **مياه** =
+  متوسّط (water_stress مُعاد استخدامه · WUE اختياريّ) · بُعد **مغذّيات** = `score=None`/`needs_data`
+  **دائماً** (مُستبعَد من المتوسّط — لا عقاب على ما لا يُقاس، نظير Readiness). كلّيّ = متوسّط موزون
+  مُعاد تسويته (soil 0.45 · water 0.35 · nutrients 0.20) + `level` + `needs_ar` + `carbon:"excluded"` +
+  `calibrated=False`. مدخل فاسد ⇒ insufficient (fail-safe).
+- **نقطة `GET /api/v1/fields/{id}/sustainability`** في `routers/reports.py` — تستخرج الإشارات الكنسيّة
+  (`recompute_field_state`: salinity_class من `agronomic.operational_truths` · water_stress_class من
+  `state["water_stress"]` · soil_age من `inputs`) + تحليل التربة (`_soil_lab_signals`: pH/OM/N/P/K بمفاتيح
+  متسامحة، None إن غاب). قراءة فقط، **لا هجرة، لا تغيير قرار**؛ 404 لحقل خارج المستأجِر، 503 للقاعدة.
+
+**صدق:** يُعيد استخدام لا يكرّر؛ المغذّيات needs_data بصدق؛ بلا كربون صراحةً. تحقّق: ٦ اختبارات
+(`test_field_sustainability.py`: سليم 100/excellent + مغذّيات needs_data · متدهور ≤30 · إعادة تسوية بلا
+تربة · WUE مدموج · لا إشارة insufficient · fail-safe) · tests_v9 (field_state/reports انحدار أخضر) ·
+platform (router decomposition guard أخضر) · **مسح ruff كامل**.
+
+---
+
 ## 2026-06-24 (ظ) — Water Use Efficiency: Outcome KPI لكفاءة استخدام المياه
 
 **رأس `main`:** `486de6a` (#476 مُدمج). فرع `claude/water-efficiency-kpi`. **تحسين** يخدم مؤشّر «خفض المياه»

@@ -171,6 +171,84 @@ async def report_field_summary(
     }
 
 
+def _soil_lab_signals(soil_result) -> dict:
+    """يستخرج ph/مادة عضويّة/N/P/K من نتيجة فحص التربة (JSONB) بمفاتيح متسامحة.
+
+    نمط ``_extract_ec`` (field_state_projection): أيّ قيمة غائبة ⇒ None — لا اختلاق.
+    N/P/K معلوماتيّة فقط (بُعد المغذّيات يُعلَن needs_data بصدق مهما توفّرت).
+    """
+    import json as _json
+
+    if isinstance(soil_result, str):
+        try:
+            soil_result = _json.loads(soil_result)
+        except (ValueError, TypeError):
+            soil_result = None
+    if not isinstance(soil_result, dict):
+        return {"ph": None, "organic_matter": None, "n_kg_ha": None, "p_ppm": None, "k_mg_kg": None}
+
+    def _pick(*keys):
+        for k in keys:
+            v = soil_result.get(k)
+            if isinstance(v, int | float) and not isinstance(v, bool):
+                return float(v)
+        return None
+
+    return {
+        "ph": _pick("ph", "pH", "soil_ph"),
+        "organic_matter": _pick("organic_matter", "om", "om_pct", "organic_matter_pct"),
+        "n_kg_ha": _pick("n_kg_ha", "nitrogen_kg_ha", "n"),
+        "p_ppm": _pick("p_ppm", "phosphorus_ppm", "p"),
+        "k_mg_kg": _pick("k_mg_kg", "potassium_mg_kg", "k"),
+    }
+
+
+@router.get("/api/v1/fields/{field_id}/sustainability")
+async def field_sustainability(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مؤشّر استدامة الحقل (تربة + مياه + مغذّيات، بلا كربون) — تقرير قراءة فقط (RLS).
+
+    يُعيد استخدام الإشارات الكنسيّة (``salinity_class``/``water_stress_class``/نضارة
+    التربة) من الحالة القانونيّة + تحليل التربة (pH/مادة عضويّة) — **لا حساب جديد، لا
+    تغيير حالة/قرار**. صدق: بُعد المغذّيات يُعلَن ``needs_data`` (توازن NPK غير مقيس —
+    P محجوب، K معطّل)، بُعد غائب يُستبعَد (لا عقاب على ما لا يُقاس). 404 لحقل خارج
+    المستأجِر؛ القاعدة غير مفعّلة/متعذّرة ⇒ 503 (لا استدامة مُلفَّقة).
+    """
+    from api.field_state_projection import recompute_field_state
+    from api.field_sustainability import compute_field_sustainability
+
+    try:
+        async with tenant_connection(user) as conn:
+            field = await conn.fetchrow("SELECT field_id FROM fields WHERE field_id = $1", field_id)
+            if field is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            result = await recompute_field_state(conn, field_id)
+            soil_row = await conn.fetchrow(
+                "SELECT result FROM soil_lab_tests "
+                "WHERE field_id = $1 AND status IN ('approved', 'published') "
+                "AND sampled_on IS NOT NULL ORDER BY sampled_on DESC LIMIT 1",
+                field_id,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("حساب استدامة الحقل", e) from e
+
+    state = result["state"]
+    truths = (state.get("agronomic") or {}).get("operational_truths") or {}
+    water_stress = state.get("water_stress") or {}
+    inputs = state.get("inputs") or {}
+    signals = {
+        "salinity_class": truths.get("salinity_class"),
+        "water_stress_class": water_stress.get("water_stress_class"),
+        "soil_age_days": inputs.get("soil_age_days"),
+        **_soil_lab_signals(soil_row["result"] if soil_row else None),
+    }
+    return {"field_id": field_id, "sustainability": compute_field_sustainability(signals)}
+
+
 @router.get("/api/v1/reports/season/{season_id}/summary")
 async def report_season_summary(
     season_id: str,
