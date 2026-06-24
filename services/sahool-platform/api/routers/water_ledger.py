@@ -38,6 +38,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.water_efficiency import compute_water_efficiency
 from api.water_ledger_compute import (
     LEDGER_SELECT_COLS,
     normalize_ledger_input,
@@ -190,3 +191,59 @@ async def list_water_ledger(
         raise _db_unavailable("جلب الدفتر", e) from e
     entries = [row_to_ledger_entry(r) for r in rows]
     return {"field_id": field_id, "entries": entries, "total": len(entries)}
+
+
+@router.get("/api/v1/fields/{field_id}/water-efficiency")
+async def field_water_efficiency(
+    field_id: str = Path(..., description="معرّف الحقل لحساب كفاءة مياهه على فترة"),
+    date_from: str | None = Query(None, alias="from", description="من تاريخ (YYYY-MM-DD)"),
+    date_to: str | None = Query(None, alias="to", description="إلى تاريخ (YYYY-MM-DD)"),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """كفاءة استخدام المياه للحقل على فترة (Outcome KPI) — تجميع من دفتر المياه (RLS).
+
+    يُجمّع ETc (الطلب) مقابل الماء المُورَّد (ريّ + مطر فعّال) من قيود الدفتر فيُخرِج
+    `water_use_efficiency`/`demand_met_pct`/`over_application_mm` — يخدم «خفض المياه».
+    صدق: الـWUE القائم على الغلّة خارج النطاق (لا حلقة غلّة)؛ لا طلب/لا ريّ مُسجَّل ⇒
+    `status=needs_data`/`needs_irrigation_data` (لا رقم مُضلِّل). القاعدة غير مفعّلة ⇒
+    كتلة `needs_data` (نظير قائمة الدفتر الفارغة)؛ تعذّر القاعدة ⇒ 503؛ تاريخ فاسد ⇒ 422.
+    """
+    try:
+        d_from = parse_ledger_date(date_from) if date_from else None
+        d_to = parse_ledger_date(date_to) if date_to else None
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"مدى تاريخ غير صالح: {e}") from e
+    if _DB_POOL is None:
+        return {
+            "field_id": field_id,
+            "period": {"from": date_from, "to": date_to},
+            "efficiency": compute_water_efficiency([]),  # كتلة needs_data صادقة
+            "note_ar": "القاعدة غير مفعّلة (DATABASE_URL) — لا دفتر لحساب الكفاءة",
+        }
+    clauses = ["field_id = $1"]
+    args: list = [field_id]
+    if d_from is not None:
+        args.append(d_from)
+        clauses.append(f"ledger_date >= ${len(args)}")
+    if d_to is not None:
+        args.append(d_to)
+        clauses.append(f"ledger_date <= ${len(args)}")
+    where_sql = " AND ".join(clauses)
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            rows = await conn.fetch(
+                f"SELECT {LEDGER_SELECT_COLS} FROM water_ledger "
+                f"WHERE {where_sql} ORDER BY ledger_date ASC",
+                *args,
+            )
+    except HTTPException:
+        raise  # 404 (حقل خارج المستأجِر) يصعد كما هو
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق (لا اختراع كفاءة)
+        raise _db_unavailable("حساب كفاءة المياه", e) from e
+    entries = [row_to_ledger_entry(r) for r in rows]
+    return {
+        "field_id": field_id,
+        "period": {"from": date_from, "to": date_to},
+        "efficiency": compute_water_efficiency(entries),
+    }
