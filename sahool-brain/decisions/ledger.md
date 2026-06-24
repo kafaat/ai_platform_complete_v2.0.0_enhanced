@@ -79,3 +79,9 @@ SHAs من `git log --oneline origin/main`.
 > **اكتمل سحب الإطار «implemented-but-off-by-default»:** 4 إغلاقات كود (#471 ETc-dual · #472 C5 · #473 H2 ·
 > #474 C4/M1، كلّها default off + إعلان سبب + اختبار off/opt-in) + إغلاق حالة واحد (Bundle C، توثيقيّ).
 > SAM2/MAP-QA تبقيان `implemented-gated-but-env-unverified` (لا production-ready).
+
+## 6) تعميق الميزة: شفافيّة الثقة
+
+| التحسين | الموضع | القرار + السبب |
+|---|---|---|
+| **Field Data Readiness Index** | `api/field_readiness.py` (فرع `claude/field-readiness-index`) | درجة جاهزيّة بيانات الحقل المُفسَّرة — **تجميع نقيّ** للإشارات القائمة (نضارة/ثقة/معايرة-C5/تغطية) في درجة واحدة + إرشاد عمليّ، **معلوماتيّ لا يمسّ القرار**، أوزان مُعلَنة لا معايَرة. السبب: يجعل صدق المنصّة (النقص المُعلَن) مرئيّاً وقابلاً للفعل — offline/explainable-first، مُلاءمة اليمن. مكمِّل لـ`data_readiness.py` (onboarding) لا مكرِّر. |

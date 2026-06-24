@@ -30,6 +30,7 @@ from .canonical_water import canonical_water
 from .canonical_water_stress import canonical_water_stress
 from .feature_registry import is_enabled
 from .field_operational_state import resolve_field_state
+from .field_readiness import compute_field_readiness
 from .field_state_gateway import build_state_inputs
 
 # علم تصعيد الإجهاد المائيّ (D2b) — default OFF (قرار المستخدم 2026-06-23): مراقبة
@@ -630,6 +631,18 @@ async def recompute_field_state(conn, field_id: str) -> dict:
     except Exception:  # noqa: BLE001 — قراءة الإجهاد best-effort، لا تكسر الحالة التشغيليّة
         logger.warning(
             "تعذّر قراءة الإجهاد المائيّ للحقل %s — تُتخطّى كتلة water_stress", field_id, exc_info=True
+        )
+
+    # مؤشّر جاهزيّة بيانات الحقل (Field Data Readiness) — تجميع معلوماتيّ صرف للإشارات
+    # القائمة (نضارة/ثقة/معايرة/تغطية) في درجة واحدة مُفسَّرة + إرشاد عمليّ. لا حساب جديد،
+    # لا تغيير قرار (validity/execution_mode). يُحسب أخيراً بعد اكتمال كلّ الكتل.
+    try:
+        readiness = compute_field_readiness(state)
+        if readiness is not None:
+            state["readiness"] = readiness
+    except Exception:  # noqa: BLE001 — تجميع best-effort، لا يكسر الحالة التشغيليّة
+        logger.warning(
+            "تعذّر حساب جاهزيّة بيانات الحقل %s — تُتخطّى كتلة readiness", field_id, exc_info=True
         )
 
     prev = await conn.fetchrow(

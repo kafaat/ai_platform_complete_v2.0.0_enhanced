@@ -1,9 +1,9 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-23 · رأس `main`: [`2e08f65`](../) (#474 مُدمج) · فرع العمل `claude/bundle-c-rd-status`
-> (مراجعة حالة Bundle C R&D — إغلاق توثيقيّ لا برمجيّ ([`decisions/bundle-c-status.md`](decisions/bundle-c-status.md)) — [`log.md`](log.md) مدخل (ذ)؛
-> سبقه (د) C4/M1 push · (خ) H2 ناشرو NATS · (ج) C5 عتبات NDVI · (ث) ETc-dual · (ت) D2b · (ش) D2a · (ر) Bundle B · (ق) D3 · (ف) D1 · ...).
-> **اكتمل سحب الإطار «implemented-but-off-by-default»:** 4 إغلاقات كود (#471/#472/#473/#474) + إغلاق حالة Bundle C. SAM2/MAP-QA env-unverified.
+> **آخر تحديث:** 2026-06-24 · رأس `main`: [`d156146`](../) (#475 مُدمج) · فرع العمل `claude/field-readiness-index`
+> (Field Data Readiness Index — درجة جاهزيّة بيانات الحقل المُفسَّرة (تحسين، تجميع نقيّ للإشارات القائمة) — [`log.md`](log.md) مدخل (ض)؛
+> سبقه (ذ) مراجعة Bundle C · (د) C4/M1 push · (خ) H2 NATS · (ج) C5 NDVI · (ث) ETc-dual · (ت) D2b · (ش) D2a · (ر) Bundle B · (ق) D3 · (ف) D1 · ...).
+> **اكتمل سحب الإطار «implemented-but-off-by-default»** (#471–#475)؛ والآن تعميق الميزة: **جاهزيّة + شفافيّة الثقة**. SAM2/MAP-QA env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)
 
