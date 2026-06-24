@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-06-23 (ذ) — مراجعة حالة Bundle C R&D (إغلاق توثيقيّ لا برمجيّ)
+
+**رأس `main`:** `2e08f65` (#474 مُدمج). فرع `claude/bundle-c-rd-status`. آخر عنصر في سحب الإطار
+«implemented-but-off-by-default». **القرار الصادق (توافق المستخدم↔الوكيل 2026-06-23):** Bundle C **مسار
+R&D**، وأجزاء كبيرة منه **ليست فجوات تنفيذيّة** — فلا تُختلَق أعلام/إغلاقات مصطنعة لما لا وجود له، ولا يُعاد
+حراسة المحروس. إغلاقه **توثيقيّ** بإعلان حالة كلّ عنصر:
+- **SAM2** → closed (gated, env-unverified) — محروس بـprofile=gpu، 503 صادق بلا GPU.
+- **Field Embeddings / RAG** → closed (implemented-as-optional-services) — qdrant-seed/local-ai-rag خدمات
+  اختياريّة بالنشر؛ **مُتحقَّق:** RAG لا يدخل مسار قرار إنتاجيّ بلا حراسة (`conservative_rag` خارج مسار
+  القرار؛ `local-ai-rag` إثراء شرح opt-in في `decision_explainer`) ⇒ **لا حاجة `FEATURE_CONSERVATIVE_RAG`**.
+- **Multi-engine Ensemble** → open (concept-only) — `fusion.py` للمؤشّرات الطيفيّة شيء مختلف، ليس تنفيذاً.
+- **نماذج أساس (Prithvi/DINOv3)** → not started (لا كود).
+- **ISOXML** → deferred by design (#456، Shapefile كافٍ — مُلاءمة اليمن).
+
+**المخرَج (لا كود):** صفحة جديدة [`decisions/bundle-c-status.md`](decisions/bundle-c-status.md) + تحديث
+`gaps/registry.md` (صفوف C-Embeddings/RAG · C-Ensemble · C-Foundation · C-ISOXML + SAM2) + `strategy.md`.
+**يكتمل بذلك سحب الإطار:** 4 إغلاقات كود (#471 ETc-dual · #472 C5 · #473 H2 · #474 C4/M1) + 1 إغلاق حالة
+(Bundle C). تحقّق: doc-only (لا اختبارات/كود) — لا تغيير سلوك.
+
+---
+
 ## 2026-06-23 (د) — إغلاق C4/M1: علم push الموبايل (default off) + سجلّ احتياطيّ دائم
 
 **رأس `main`:** `c9c70a7` (#473 مُدمج). فرع `claude/c4-m1-mobile-push-flag`. الفجوة C4/M1 (push موبايل +
