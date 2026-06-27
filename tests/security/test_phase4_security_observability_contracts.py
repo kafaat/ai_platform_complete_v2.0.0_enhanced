@@ -12,7 +12,9 @@ def read(rel: str) -> str:
 
 
 def test_committed_env_contains_only_placeholders() -> None:
-    env = read(".env")
+    # نفحص الملفّ المُتعقَّب في git (.env.example) لا .env (غير متعقَّب — يُنشأ محليّاً).
+    # هكذا يحرس الاختبار ما يُسلَّم فعلاً في المستودع/الـrelease bundle.
+    env = read(".env.example")
     forbidden_literals = [
         "UjUFyriLJw4bqDijpRWx5JmC3iqZzerA",
         "8143664452:",
@@ -23,7 +25,8 @@ def test_committed_env_contains_only_placeholders() -> None:
     ]
     for value in forbidden_literals:
         assert value not in env
-    assert "CHANGE_ME" in env
+    # اصطلاح النائب في .env.example: change_me / CHANGE_THIS (لا CHANGE_ME الحرفيّ).
+    assert re.search(r"change_me|CHANGE_THIS", env, re.I)
     assert re.search(r"^DATABASE_URL=postgresql://sahool_app:", env, re.M)
     assert re.search(r"^JOBS_DATABASE_URL=postgresql://sahool_jobs:", env, re.M)
 

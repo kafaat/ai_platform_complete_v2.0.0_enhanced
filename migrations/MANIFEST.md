@@ -1,6 +1,6 @@
 # Migration Manifest
 
-Source of truth: `migrations/MANIFEST.txt`.
+Canonical source: `migrations/MANIFEST.txt`.
 
 - `init_v8.sql`
 - `v9_foundation.sql`
