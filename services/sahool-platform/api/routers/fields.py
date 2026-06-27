@@ -107,6 +107,14 @@ from api.pivot_geometry import (
     resolve_pivot_update_geometry,
 )
 from api.prescriptions import ZoneCharacteristics, ZoneClass, prescription_to_dict
+
+# منطق نقيّ مُستخرَج من هذا الملف (تقليص الوحدة) — يُعاد استيراده كي يبقى متاحاً
+# كسمة للوحدة (اختبارات tests_v9/test_field_conflict_payload تصل إليه عبر fields).
+from api.routers.field_logic import (
+    _conflict_changed_fields,  # noqa: F401 — يُصدَّر مجدّداً للاختبارات
+    _field_merge_plan,
+    _guard_merge_split_geometry,
+)
 from api.routers.field_request_models import (
     ChildField,
     FieldImageryBackfillRequest,
@@ -937,39 +945,6 @@ async def get_field_workspace(
     return assemble_workspace(field_d, terrain, events)
 
 
-def _conflict_changed_fields(client_changes: dict, server_record: dict) -> list[str]:
-    """الحقول التي حاول العميل تغييرها وتختلف عن قيمة الخادم الحاليّة (لحلّ التعارض).
-
-    دالّة نقيّة: تُقارن ما أرسله العميل بما في سجلّ الخادم — المفاتيح المشتركة فقط
-    (تُقارَن في نفس وضع التسلسُل). تُغذّي Conflict Resolution Workflow في الواجهة.
-    """
-    return [k for k, v in client_changes.items() if k in server_record and server_record[k] != v]
-
-
-def _field_merge_plan(
-    client_changes: dict, server_record: dict, base_values: dict | None
-) -> tuple[bool, list[str]]:
-    """خطّة دمج 3-way لتعارض تحديث الحقل (دالّة نقيّة، Level 3).
-
-    لكلّ عمود غيّره العميل: إن طابق الخادمُ نيّةَ العميل (server == new) ⇒ لا-عمل؛
-    وإلّا إن طابق الخادمُ أساسَ العميل (server == base) ⇒ آمن للدمج (الطرف الآخر لم
-    يمسّ العمود)؛ وإلّا ⇒ تعارض حقيقيّ (غيّر الطرفان العمود نفسه، أو لا أساس لتحديد
-    الأمان ⇒ fail-closed). يُرجِع (can_auto_merge, conflict_fields). الدمج الآليّ
-    ممكن فقط حين تُتاح base_values ولا تعارض حقيقيّ.
-    """
-    conflicts: list[str] = []
-    for col, new_val in client_changes.items():
-        if col not in server_record:
-            continue
-        srv = server_record[col]
-        if srv == new_val:
-            continue  # الخادم == نيّة العميل (لا-عمل)
-        if base_values is not None and col in base_values and srv == base_values[col]:
-            continue  # الخادم لم يتغيّر عن أساس العميل ⇒ آمن للدمج
-        conflicts.append(col)
-    return (bool(base_values) and not conflicts), conflicts
-
-
 @router.put("/api/v1/fields/{field_id}", response_model=FieldDetail)
 @router.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def update_field(
@@ -1444,27 +1419,6 @@ async def delete_field(
 # المدموج/الأطفال أوّلاً (الهندسة لا تضيع) ثمّ FIELD_DELETED + DELETE للمصادر؛ أيّ
 # خطأ يتصاعد فتتراجع المعاملة كاملةً (لا حقل مدموج يتيَّم، لا مصدر محذوف بلا بديل).
 # الهندسة client-computed (@turf) ويتحقّق منها الخادم عبر guard_field_geometry (لا ثقة).
-
-
-def _guard_merge_split_geometry(
-    raw_geometry: object,
-) -> tuple[dict, float, tuple[float | None, float | None]]:
-    """حارس هندسة موحَّد للدمج/الانقسام — نفس شكل خطأ _persist_field (422) عند الفشل.
-
-    يُرجِع (geometry, area_ha, (lat, lon)). لا I/O — منطق تحقّق صرف عبر guard_field_geometry.
-    """
-    try:
-        guarded = guard_field_geometry(raw_geometry)
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=422,
-            detail={
-                "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
-                "code": "invalid_field_geometry",
-                "issues": str(exc).split(","),
-            },
-        ) from exc
-    return guarded.geometry, round(guarded.area_ha, 2), guarded.centroid
 
 
 @router.post("/api/v1/fields/merge", status_code=201, response_model=FieldSummary)
