@@ -53,6 +53,13 @@ ALTER TABLE agent_reputation_scores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_conflict_resolutions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agent_authority_envelopes ENABLE ROW LEVEL SECURITY;
 
+-- FORCE صريح: هذه الجداول مُنشأة بعد v9_rls_force_all/propagate (v70)، فلا
+-- يطالها التعميم. بلا FORCE يتجاوز مالك الجدول (sahool_user) RLS تماماً.
+-- (نظير _sahool_apply_tenant_rls الذي يطبّق ENABLE+FORCE+POLICY.)
+ALTER TABLE agent_reputation_scores FORCE ROW LEVEL SECURITY;
+ALTER TABLE agent_conflict_resolutions FORCE ROW LEVEL SECURITY;
+ALTER TABLE agent_authority_envelopes FORCE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS tenant_agent_reputation_policy ON agent_reputation_scores;
 CREATE POLICY tenant_agent_reputation_policy ON agent_reputation_scores
     USING (tenant_id::text = current_setting('app.tenant_id', true))
