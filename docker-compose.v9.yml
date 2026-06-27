@@ -309,6 +309,11 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
+      # المنصّة تستدعي نقاط معالجة الراستر (imagery/best · process-from-stac · backfill)
+      # عبر imagery_automation، وكلّها محروسة بـ_require_service_token. بلا هذا المتغيّر
+      # يرسل os.getenv("SAHOOL_AGENT_TOKEN","") توكناً فارغاً ⇒ raster يردّ 401 ⇒ لا COG
+      # يُولَّد أبداً ⇒ tilejson.available=false ⇒ لا تظهر طبقة المؤشّر داخل الحقل.
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
       SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
