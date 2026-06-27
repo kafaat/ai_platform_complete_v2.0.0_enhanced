@@ -1065,10 +1065,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bcda1dac740ff26183e33e5f6c9fdfdc1fe6e059f2066d0284d06d603285255a"
+          "content": "db7c48b9f019271e60668e536e5344ea99ee2ba8192fc0d360e9c831ad9d28aa"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b4b0da1d507b1bddebce593bc90f554b51457f045767fc2a113adeb363b2c7d8"
+        }
+      ],
+      "name": "frontend/src/hooks/useApiKeys.ts",
       "type": "file"
     },
     {
@@ -1155,6 +1165,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d9dd5488cc9dc7e55f894bdc7c4b04bf801f3c1604057831e70f092388776371"
+        }
+      ],
+      "name": "frontend/src/hooks/useSoilApi.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "864988187dff8d93560ef4c5e927cec300e4880d54fd9ddba1cbe76ecc4c40d4"
         }
       ],
@@ -1169,6 +1189,16 @@
         }
       ],
       "name": "frontend/src/hooks/useTheme.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a321133c0f7cf9bd83623fc92dee4eb2e67696920596d12f61f825388e174c6"
+        }
+      ],
+      "name": "frontend/src/hooks/useWeatherApi.ts",
       "type": "file"
     },
     {
