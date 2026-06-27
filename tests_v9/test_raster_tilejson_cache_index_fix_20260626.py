@@ -20,7 +20,11 @@ ROOT = Path(__file__).resolve().parents[1]
 RASTER = ROOT / "services/raster-service"
 MAIN = (RASTER / "main.py").read_text(encoding="utf-8")
 API_MAIN = (ROOT / "services/sahool-platform/api/main.py").read_text(encoding="utf-8")
-FRONT_API = (ROOT / "frontend/src/services/api.ts").read_text(encoding="utf-8")
+# دوالّ مجال الصور (normalizeIndicatorIndex/fieldIndicatorTileUrl …) استُخرِجت إلى
+# imageryApi.ts ويُعاد تصديرها من api.ts (export *)؛ نقرأ كليهما كي يحرس العقد لا الموضع.
+FRONT_API = (ROOT / "frontend/src/services/api.ts").read_text(encoding="utf-8") + (
+    ROOT / "frontend/src/services/imageryApi.ts"
+).read_text(encoding="utf-8")
 FIELD_MAP = (ROOT / "frontend/src/components/FieldIndicatorMap.tsx").read_text(encoding="utf-8")
 
 _fastapi = importlib.util.find_spec("fastapi") is not None
