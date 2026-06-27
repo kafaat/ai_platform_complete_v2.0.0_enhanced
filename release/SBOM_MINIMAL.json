@@ -2555,10 +2555,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9698033dabec12b69d5a97bdbcb05fcf9f90e8aa42c1079e125d7e21460d67be"
+          "content": "8a3dea637065561e8db82729875f6727ccd0cec23bb1dc01edf98e41a9b88ae2"
         }
       ],
       "name": "frontend/src/services/api.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "21d62b218ab484cee2cd8c68fc4757bef2a210c3ba683b78751572c44a8a4bad"
+        }
+      ],
+      "name": "frontend/src/services/apiClients.ts",
       "type": "file"
     },
     {
