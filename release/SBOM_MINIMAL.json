@@ -2555,7 +2555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a3dea637065561e8db82729875f6727ccd0cec23bb1dc01edf98e41a9b88ae2"
+          "content": "122687a3cdbffb457febb8218aea778d4aea8b0b20f7e1766be7759d84af0ce8"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -2579,6 +2579,16 @@
         }
       ],
       "name": "frontend/src/services/duckdb.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a269568d38fb9f1538b33ab2d5233c45c803022d22e4346601559395ed8af488"
+        }
+      ],
+      "name": "frontend/src/services/imageryApi.ts",
       "type": "file"
     },
     {
@@ -5875,7 +5885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d028e4cc4e010d49da7c707a82158015904781613021628e62e1636f79b89d94"
+          "content": "8d388aaeb7fd2a2bbc22523a21596296eef0332be2ef404e3b16885c97d504e3"
         }
       ],
       "name": "services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py",

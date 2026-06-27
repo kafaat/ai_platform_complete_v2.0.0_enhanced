@@ -11,7 +11,9 @@ def read(rel: str) -> str:
 
 def test_field_indicator_map_uses_tilejson_cache_version_for_tile_url():
     src = read("frontend/src/components/FieldIndicatorMap.tsx")
-    api = read("frontend/src/services/api.ts")
+    # باني رابط بلاطة المؤشّر استُخرِج إلى imageryApi.ts (يُعاد تصديره من api.ts عبر
+    # export *)؛ نفحص كليهما كي يحرس العقد لا موضع التعريف.
+    api = read("frontend/src/services/api.ts") + read("frontend/src/services/imageryApi.ts")
     assert "cache_version" in src
     assert "setTileCacheVersion(r.data?.cache_version" in src
     assert (
