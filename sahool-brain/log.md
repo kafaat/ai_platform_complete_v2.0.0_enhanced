@@ -1,6 +1,46 @@
 
 ---
 
+## 2026-06-27 — تكامل لقطة الأرشيف الكامل (CLAUDE.md + Phase22 RLS + تفكيك main.py + الدفعة ٤ على ٥ طلبات)
+
+**رأس `main` بعد الجلسة:** `e09ce27` (#497) — بدمجها يكتمل تكامل لقطة الأرشيف.
+
+- **CLAUDE.md (#486، `b4f4214`):** دليل مساهمة شامل للوكلاء (بنية + سير عمل + اتّفاقات + بوّابات CI الـ١١).
+- **Phase 22 — تصلّب مسار الكتابة في RLS (#487، `24e7923`):**
+  [`migrations/v122_rls_with_check_session_unification.sql`](../migrations/v122_rls_with_check_session_unification.sql)
+  — backfill مدفوع بالكتالوج لسياسات WITH CHECK + `public.sahool_effective_tenant_id()` (توحيد
+  `app.current_tenant` + `app.tenant_id`). v122 يبقى الأخير في `MANIFEST.txt`. بوّابة
+  `scripts/security/validate_rls_write_policies.py` + `test_phase22_rls_with_check_backfill.py` في Security Scan.
+- **تفكيك main.py (#491، `2198525`):** تسجيل تلقائيّ للراوترات عبر `pkgutil.iter_modules` (استبدل
+  ~١٤٢ تضميناً يدويّاً)؛ `_ROUTER_AUTOREG_EXCLUDE={service_proxy}` (يُستورَد متأخّراً تفادياً للدورة).
+  حارس [`test_router_decomposition_guard.py`](../services/sahool-platform/tests/test_router_decomposition_guard.py)
+  + `tools/sahool_inspector.py::check_router_wiring` عُلِّما الاعتراف بالحلقة.
+- **تكامل الأرشيف — ٤ مراحل / ٥ طلبات حسب المجال (كلّها مدموجة، CI أخضر عند كلّ دمج):**
+  - بيانات المزرعة/الحقل v100-v105 (#488 `6ce8849`) · runtime المراحل 9-12 v106-v113 (#489 `35f189e`)
+    · GIS السحابيّ v114-v121 + منطق shared (#490 `e3b887a`).
+  - الدفعة ٤ المقسَّمة: scripts/security (#493 `824e357`) · raster-service (#494 `1f122ba`)
+    · frontend (#495 `3818667`) · mobile/Flutter (#496 `e77b85f`) · الربط النهائيّ (#497 `e09ce27`).
+- **إصلاحات CI جوهريّة في الدفعة الأخيرة 4e (دون إضعاف الحرّاس):**
+  - **تأمين phase9-12:** ٦٤ نقطة POST كانت بلا مصادقة ⇒ حارس توكن خدمة على مستوى الراوتر
+    (`dependencies=[Depends(_require_service_token)]`) عبر وحدة مستقلّة
+    [`api/service_token_auth.py`](../services/sahool-platform/api/service_token_auth.py) (تفادي دورة استيراد
+    `api.main` لأنّ اختبارات المنصّة تستورد وحدات phase مباشرةً) + تعليم `test_endpoint_auth_coverage`
+    اكتشاف تبعيّات مستوى-الراوتر (تحسين الكاشف لا إضعافه).
+  - **توافقيّة compat_gateway:** نُقلت ٧ نقاط `@app` (aliases صحّة + تمرير vegetation/raster) من
+    main.py إلى [`api/routers/compat_gateway.py`](../services/sahool-platform/api/routers/compat_gateway.py)
+    (يبقى main حصراً نقاط بنية) + أُدرِجت في `PUBLIC_ALLOWLIST` بتبرير (مسابر عامّة/تمرير يُفوّض المصادقة).
+  - **الجذر الحقيقيّ لاتّهام gis_cloud_native «غير مُضمَّن»:** الراوتر الوحيد ذو `prefix=`؛ في إصدار
+    FastAPI الحاليّ يتضمّن `rt.path` البادئة مسبقاً، فكان الحارس يُضاعفها — كان مُضمَّناً فعلاً طوال الوقت.
+  - **استعادة `ci.yml` من main:** نسخة الأرشيف أرجعته فأسقطت تخطّي تراكُب `rag-kg-mcp` وبوّابة RLS للمرحلة ٢٢.
+  - أخرى: `usedforsecurity=False` على sha1 في `isoxml_vrt.py` (bandit B324) · `EventType.FIELD_GEOMETRY_REVERTED`
+    الناقص (كان يُسقِط كتابة الحدث بـ500) · حصر منفذ راستر-تايلر `8088` على `127.0.0.1` (٣ ملفّات compose) ·
+    إخضرار سير عمل `sahool-production-gates.yml` الجديد (pyyaml + استبعاد `.claude/settings.local.json` من بصمة
+    الإصدار + إصلاح كامن: البصمة تقتصر على ملفّات git المُتعقَّبة لا rglob).
+- **درس متكرّر مؤكَّد:** نسخ مجلّدات الأرشيف يَدهس إصلاحات الجلسة المدموجة (ci.yml/migrations) — تُستعاد دائماً من main.
+  راستر #484 الأحدث (4178 سطر) ساد على راستر الأرشيف الأقدم؛ أُسقط اختبارا raster-internal متعارضان.
+
+---
+
 ## 2026-06-25 (ب) — إصلاح sahool-migrate (init_v8.sql seed data)
 
 **المشكلة:** `sahool-migrate` يفشل بـ exit 3 عند إعادة تشغيل Docker Compose على قاعدة بيانات موجودة:

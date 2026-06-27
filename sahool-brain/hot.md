@@ -1,55 +1,47 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-24 · حزمة العمل المحليّة: `4942b69_sahool_brain_forensic_verified`.
-> الحالة الحالية: **Farm Operations Ledger + Budget/Costing + Closed Loop Economic Projections** مضافة خلف أعلام OFF افتراضياً، وتمت إضافة/تشغيل تتبّع جنائي لعقل سهول: نواة الحقل، تحكيم الملوحة، D2 water-stress، محرك التوصية، provenance، وRBAC delivery. طبقة التنفيذ الفيزيائي ما زالت `implemented-gated-fail-safe`، وERP إسقاط اختياري لا كتابة فعلية.
+> **آخر تحديث:** 2026-06-27 · رأس `main`: `e09ce27` (#497).
+> **الحالة:** اكتمل **تكامل لقطة الأرشيف بالكامل** (٤ مراحل / ٥ طلبات دمج حسب المجال) فوق إصلاحات
+> تأسيسيّة (CLAUDE.md · Phase 22 RLS · تفكيك main.py). كلّ بوّابات CI خضراء. لم يُضعَّف أيّ حارس —
+> أُصلحت أخطاء الأرشيف الحقيقيّة (تأمين phase9-12، استعادة ci.yml، توافقيّة compat_gateway…).
 
-## إنجازات الجلسات الأخيرة المؤكّدة
+## إنجازات هذه الجلسة (2026-06-27)
 
-- **Actuator Safety Hardening** — `ACTUATOR_MODE` الافتراضي = `simulation`؛ لا real إلا بتعيين صريح، وكل مسارات dispatch/automation/manual محروسة بأعلام OFF افتراضياً.
-- **Field/Raster Flow** — إصلاحات رسم الحقل والمحوري geodesic، حفظ pivot parameters، timeline بعد restart، tile date/indicator selection، legend في tilejson، واختبار raster bleed.
-- **ADR-0001 ERP Provider** — `ERP_PROVIDER=odoo|erpnext|none` عبر `ERPProvider`، وOdoo لم يعد إلزامياً.
-- **Farm Operations Ledger** — سجلات رقابية للأعمال اليومية والمياه والطاقة والمعدات والعمالة والمواد خلف `FEATURE_FARM_OPERATIONS_LEDGER`.
-- **Budget/Costing/Variance/Profitability** — موازنة الموسم، بنود الموازنة، الإيرادات، التكاليف غير المباشرة، الانحرافات، الربحية، وتوصيات تكلفة تحفظية.
-- **Closed Loop Economic Projections** — autowrite preview، inventory projection-only، ERP projection-only، economic snapshot اختياري، بلا كتابة Inventory/ERP/CanonicalFieldState افتراضياً.
-- **Inspector Cleanup** — تحذير NATS المعروف `sahool.weather.field.overlay.completed` صار **declared future subject** داخل المفتّش، ونقاط public reference لم تعد WARN لأنها لا تمس قاعدة/مستأجر.
-- **Sahool Brain Forensic Tests** — اختبار جديد `tests_v9/test_sahool_brain_forensic.py` يغطي: Salinity>Vigor arbitration، بوابة D2b (AWF+confidence+NDMI/MSI)، حجب تناقضات الري، عقود blocked/limited للتوصيات، وdelivery pipeline مع provenance/RBAC. أُصلح تمرير `issue_type` داخل `full_delivery_pipeline` إلى `enrich_with_context`.
+- **CLAUDE.md (#486):** دليل مساهمة شامل للوكلاء (بنية + سير عمل + اتّفاقات + بوّابات CI الـ١١).
+- **Phase 22 — RLS WITH CHECK + توحيد الجلسة (#487، v122):** backfill مدفوع بالكتالوج +
+  `sahool_effective_tenant_id()`؛ بوّابة `validate_rls_write_policies` في Security Scan.
+- **تفكيك main.py (#491):** تسجيل تلقائيّ للراوترات (`pkgutil.iter_modules`) بدل ~١٤٢ تضميناً يدويّاً.
+- **تكامل الأرشيف (#488-#497):** بيانات المزرعة v100-105 · runtime 9-12 v106-113 · GIS سحابيّ v114-121،
+  ثمّ الدفعة ٤ مقسَّمة: scripts/security · raster · frontend · mobile · الربط النهائيّ.
+- **تأمين phase9-12 (#497):** ٦٤ نقطة POST بلا مصادقة ⇒ حارس توكن خدمة على مستوى الراوتر عبر
+  `api/service_token_auth.py` (تفادي دورة الاستيراد) + تعليم حارس auth-coverage اكتشاف تبعيّات الراوتر.
 
-## حالة التحقق الأخيرة
+## ملخّص الجلسات السابقة (محفوظ)
 
-```text
-PYTHONPATH=services/sahool-platform pytest -q \
-  tests_v9/test_sahool_brain_forensic.py \
-  services/sahool-platform/tests/test_agronomic_state_engine.py \
-  services/sahool-platform/tests/test_recommendation_engine.py \
-  services/sahool-platform/tests/test_decision_engine.py \
-  services/sahool-platform/tests/test_recommendation_bridge.py \
-  tests_v9/test_canonical_water_stress.py
-→ 95 passed
-
-PYTHONPATH=services/sahool-platform python import sweep core+api
-→ 480 OK / 0 FAIL
-
-python -m compileall -q services/sahool-platform/core/recommendation_bridge.py tests_v9/test_sahool_brain_forensic.py
-→ passed
-
-python tools/sahool_inspector.py
-→ PASS كامل: RLS/router/NATS/authz/migrations بلا WARN/FAIL
-```
+- **Actuator Safety Hardening** — `ACTUATOR_MODE` الافتراضيّ = `simulation`؛ كلّ مسارات dispatch/automation/manual محروسة بأعلام OFF.
+- **Field/Raster Flow** — رسم الحقل/المحوري geodesic، pivot params، timeline بعد restart، tile date/indicator، legend، raster bleed.
+- **ADR-0001 ERP Provider** — `ERP_PROVIDER=odoo|erpnext|none`؛ Odoo لم يعد إلزاميّاً.
+- **Farm Operations Ledger + Budget/Costing + Closed Loop** — سجلات رقابيّة خلف أعلام OFF؛ ERP/Inventory إسقاط لا كتابة.
+- **Sahool Brain Forensic Tests** — `tests_v9/test_sahool_brain_forensic.py`.
 
 ## أعلى الأعمال المتبقية
 
 | الأولوية | البند | الحالة |
 |---|---|---|
-| ✅ | تشغيل فحوص حيّة Docker: DB/حقول/مزارع | **مؤكَّد 2026-06-25** — POST/GET /api/v1/fields 201/200 OK |
+| P1 | تفعيل phase9-12 حيّاً (يحتاج `SAHOOL_AGENT_TOKEN` + خدمات runtime) | منفَّذ-محروس، env-unverified |
 | P1 | Daily Farm Log UI + Mobile Offline Forms | غير منفّذ |
-| P1 | Inventory/ERP writes الحقيقية | مؤجلة؛ حالياً projection-only |
-| P2 | معايرة Cost Intelligence على بيانات مواسم فعلية | يحتاج بيانات |
-| P2 | SAM2/MAP-QA | implemented-gated-but-env-unverified |
+| P1 | Inventory/ERP writes الحقيقيّة | مؤجّلة؛ projection-only |
+| P2 | معايرة Cost Intelligence على بيانات مواسم فعليّة | يحتاج بيانات |
+| P2 | SAM2/MAP-QA · سير production-gates: runtime-stack-e2e-chaos (workflow_dispatch) | implemented-gated-but-env-unverified |
+| P2 | بنود راستر مؤجّلة: `map_runtime_chain`/`security_visual` أُسقطتا (تعارض راستر #484) | deferred by design |
 
-## إصلاحات جلسة 2026-06-25
+## حالة التحقّق الأخيرة (2026-06-27)
 
-- **`planting_date` column**: `migrations/v103_fields_planting_date.sql` — غياب العمود كان يُسبّب 503 عند إنشاء أيّ حقل.
-- **tenant_query_audit Windows fix**: `scripts/tenant_query_audit.py:130` — path separator normalization؛ اختبار CI `test_no_unclassified_raw_tenant_queries` أصبح ✅.
-- **Unit tests**: **1866 passed, 0 failed** (coverage 48.41%).
-- **ReplayMapPage.test.tsx** — 6/6 ✅: إصلاح timezone bug (span date-only strings = UTC-safe).
-- **sahool-migrate seed idempotency**: `migrations/init_v8.sql:478` — `ON CONFLICT (field_id, tenant_id)` → `ON CONFLICT (field_id)` يُصلح فشل إعادة الإقلاع على DB موجودة (NULL≠NULL في UNIQUE المركّب).
+```text
+CI على PR #497 (رأس 7f803a1 → دُمج e09ce27):
+  ci.yml — ١١ وظيفة: خضراء (Unit/Platform/Security/Integration/E2E/Flutter/Lint/Compose/Inspector/Structural).
+  sahool-production-gates.yml — ٨ وظائف: خضراء؛ runtime-stack-e2e-chaos: متخطّاة (workflow_dispatch).
+محليّاً: Platform Unit Tests 2873 passed (أخطاء التجميع المحلّيّة من تبعيّات تُثبَّت في CI)؛
+  guards: router-decomp · endpoint-auth-coverage · mutating-authn · compose-security · raster-auth — كلّها خضراء؛
+  ruff check/format نظيف؛ بصمة الإصدار ٢٤٨٤ بلا تسرّب ملفّات غير مُتعقَّبة.
+```

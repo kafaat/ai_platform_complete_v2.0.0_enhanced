@@ -8975,6 +8975,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c97ccbf16a1f123cf904eac2a7bde5568b049734d6e5edefbef7e2472eca697c"
+        }
+      ],
+      "name": "services/sahool-platform/api/service_token_auth.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "40d510060ee1ea631cd8515836128dee0e042589dab7d359d9716519220b22ba"
         }
       ],
