@@ -24,6 +24,7 @@
 
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -182,7 +183,7 @@ class _WeatherWindOverlayPainter extends CustomPainter {
     canvas.translate(-size.width / 2, -size.height / 2);
     for (double y = -spacingY; y < size.height + spacingY; y += spacingY) {
       for (double x = -spacingX; x < size.width + spacingX; x += spacingX) {
-        final path = Path()
+        final path = ui.Path()
           ..moveTo(x, y)
           ..cubicTo(x + 28, y - 5, x + 54, y + 10, x + 92, y - 2);
         canvas.drawPath(path, paint);
