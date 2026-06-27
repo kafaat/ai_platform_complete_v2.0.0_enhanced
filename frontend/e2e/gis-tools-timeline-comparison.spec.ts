@@ -24,15 +24,15 @@ test('Timeline + Comparison Mode يعرض مراجعات الخادم ويحسب
 
   await expect(page.getByText('خط الأساس')).toBeVisible();
   await expect(page.getByText('المقارنة', { exact: true })).toBeVisible();
-  await expect(page.getByText('مراجعة 1')).toBeVisible();
-  await expect(page.getByText('مراجعة 2')).toBeVisible();
+  await expect(page.getByText('مراجعة 1').first()).toBeVisible();
+  await expect(page.getByText('مراجعة 2').first()).toBeVisible();
 
   await page.getByLabel('خط الأساس').selectOption('1');
   await page.getByLabel('المقارنة').selectOption('2');
 
-  await expect(page.getByText('فرق المساحة')).toBeVisible();
-  await expect(page.getByText('فرق الرؤوس')).toBeVisible();
-  await expect(page.getByText(/م²/)).toBeVisible();
+  await expect(page.getByText('فرق المساحة').first()).toBeVisible();
+  await expect(page.getByText('فرق الرؤوس').first()).toBeVisible();
+  await expect(page.getByText(/م²/).first()).toBeVisible();
   await expect(page.getByText(/تعديل حدود بعد رفع مسار GPS/)).toBeVisible();
 
   await expect.poll(() => historyRequests.length, { timeout: 10_000 }).toBeGreaterThan(0);
