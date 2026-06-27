@@ -72,7 +72,7 @@ async def _publish_nats(subject: str, payload: Json) -> None:
 async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
     max_attempts = int(os.getenv("OUTBOX_MAX_ATTEMPTS", "5"))
     nats_url = os.getenv("NATS_URL") or os.getenv("SAHOOL_NATS_URL")
-    async with pool.acquire() as conn:
+    async with pool.acquire() as conn, conn.transaction():
         rows = await conn.fetch(
             """
             SELECT id, tenant_id, event_id, event_type, payload, attempts
@@ -126,7 +126,7 @@ async def run_outbox_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
 async def run_plugin_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
     plugin_enabled = env_bool("PLUGIN_EXECUTION_ENABLED", False)
     executor_url = os.getenv("PLUGIN_EXECUTOR_URL")
-    async with pool.acquire() as conn:
+    async with pool.acquire() as conn, conn.transaction():
         rows = await conn.fetch(
             """
             SELECT id, tenant_id, execution_id, decision, status, sandbox_policy
@@ -206,7 +206,7 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
     serving_enabled = env_bool("MODEL_SERVING_ENABLED", False)
     rollback_enabled = env_bool("MODEL_SERVING_ROLLBACK_ENABLED", False)
     serving_backend_url = os.getenv("MODEL_SERVING_BACKEND_URL")
-    async with pool.acquire() as conn:
+    async with pool.acquire() as conn, conn.transaction():
         processed = 0
         promotions = await conn.fetch(
             """
@@ -298,7 +298,7 @@ async def run_model_registry_once(pool: asyncpg.Pool, *, batch_size: int = 25) -
 async def run_actuator_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
     physical_enabled = env_bool("PHYSICAL_ACTUATION_ENABLED", False)
     adapter_config = parse_json_env("ACTUATOR_ADAPTER_CONFIG_JSON")
-    async with pool.acquire() as conn:
+    async with pool.acquire() as conn, conn.transaction():
         rows = await conn.fetch(
             """
             SELECT id, tenant_id, field_id, command_id, protocol, target_id, status

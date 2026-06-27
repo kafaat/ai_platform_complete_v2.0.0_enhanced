@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+from contextlib import asynccontextmanager
 from typing import Any
 from uuid import UUID
 
@@ -96,6 +97,23 @@ async def _set_rls_tenant(conn: Any, tenant: UUID | None) -> None:
         await conn.execute("SELECT set_config('app.tenant_id', $1, true)", str(tenant))
 
 
+@asynccontextmanager
+async def _tenant_conn(pool: Any, tenant: UUID | None):
+    """Acquire a pooled connection inside a transaction with RLS tenant context set.
+
+    CRITICAL: ``set_config(..., is_local=true)`` is transaction-local. asyncpg runs
+    statements in autocommit unless an explicit transaction is open, so without this
+    enclosing ``conn.transaction()`` the tenant GUC would reset before the INSERT/UPDATE
+    runs — and under the restricted ``sahool_app`` role (NOBYPASSRLS) every FORCE-RLS
+    write would be rejected. Mirrors the canonical ``api.main.tenant_connection``.
+    Also makes each multi-statement persist atomic.
+    """
+    async with pool.acquire() as conn:
+        async with conn.transaction():
+            await _set_rls_tenant(conn, tenant)
+            yield conn
+
+
 def _event_id(event: dict[str, Any]) -> str:
     return str(event.get("event_id") or f"evt_{hash(_json(event)) & 0xFFFFFFFF:x}")
 
@@ -123,8 +141,7 @@ async def persist_runtime_event(
         "event_type": event_type,
         "payload": payload,
     }
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         await conn.execute(
             """
             INSERT INTO runtime_event_outbox
@@ -153,8 +170,7 @@ async def persist_phase9_plan(request: Request, plan: dict[str, Any]) -> dict[st
         return tenant_error
     if pool is None or field is None:
         return _missing_runtime_dependency(request, "db_pool_or_valid_field_id_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         row = await conn.fetchrow(
             """
             INSERT INTO autonomous_execution_plan
@@ -212,8 +228,7 @@ async def persist_phase9_verification(
         return tenant_error
     if pool is None or field is None:
         return _missing_runtime_dependency(request, "db_pool_or_valid_field_id_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         await conn.execute(
             """
             INSERT INTO execution_verification_event
@@ -267,8 +282,7 @@ async def persist_feature_dataset(
         return tenant_error
     if pool is None or tenant is None:
         return _missing_runtime_dependency(request, "db_pool_or_x_tenant_id_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         await conn.execute(
             """
             INSERT INTO feature_set_specs
@@ -335,8 +349,7 @@ async def persist_phase9_feature_batch(
         return tenant_error
     if pool is None or tenant is None:
         return _missing_runtime_dependency(request, "db_pool_or_tenant_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         for rec in records:
             await conn.execute(
                 """
@@ -378,8 +391,7 @@ async def persist_iot_dispatch_batch(
     if pool is None or tenant is None or field is None:
         return _missing_runtime_dependency(request, "db_pool_or_valid_tenant_field_missing")
     rows = 0
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         for result in batch.get("results") or []:
             await conn.execute(
                 """
@@ -425,8 +437,7 @@ async def persist_phase10_learning_outputs(
         return tenant_error
     if pool is None or tenant is None:
         return _missing_runtime_dependency(request, "db_pool_or_x_tenant_id_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         promotion = outputs.get("model_promotion") or {}
         if promotion:
             await conn.execute(
@@ -686,8 +697,7 @@ async def persist_marketplace_installation(
         return tenant_error
     if pool is None or tenant is None or not result.get("installed"):
         return _missing_runtime_dependency(request, "db_pool_or_tenant_or_installed_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         app_row = await conn.fetchrow(
             "SELECT id FROM marketplace_apps WHERE app_key = $1",
             str(app_key or installation.get("app_id")),
@@ -723,8 +733,7 @@ async def persist_webhook_subscription(request: Request, result: dict[str, Any])
     tenant = _uuid(wh.get("tenant_id") or tenant_id_from_request(request))
     if pool is None or tenant is None or not result.get("created"):
         return _missing_runtime_dependency(request, "db_pool_or_tenant_or_created_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         await conn.execute(
             """
             INSERT INTO webhook_subscriptions (tenant_id, url, events, secret_ref, active)
@@ -746,8 +755,7 @@ async def persist_usage_record(request: Request, result: dict[str, Any]) -> dict
     tenant = _uuid(usage.get("tenant_id") or tenant_id_from_request(request))
     if pool is None or tenant is None or not result.get("recorded"):
         return _missing_runtime_dependency(request, "db_pool_or_tenant_or_recorded_missing")
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         app_row = await conn.fetchrow(
             "SELECT id FROM marketplace_apps WHERE app_key = $1", str(usage.get("app_id"))
         )
@@ -783,8 +791,7 @@ async def persist_phase11_cycle(request: Request, cycle: dict[str, Any]) -> dict
         or consensus.get("consensus_id")
         or f"cycle_{hash(_json(cycle)) & 0xFFFFFFFF:x}"
     )
-    async with pool.acquire() as conn:
-        await _set_rls_tenant(conn, tenant)
+    async with _tenant_conn(pool, tenant) as conn:
         await conn.execute(
             """
             INSERT INTO agent_federation_cycles
