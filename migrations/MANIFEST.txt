@@ -466,3 +466,7 @@ v121_marketplace_ecosystem.sql
 # بالكتالوج يضيف WITH CHECK لكلّ سياسة كتابة tenant تفتقده (USING-only)، ويوحّد
 # app.current_tenant (canonical) مع app.tenant_id (توافق). idempotent + fail-closed.
 v122_rls_with_check_session_unification.sql
+# v123: تصلّب مسار الكتابة (خَلَف v122 المُصحَّح) — يحفظ USING الأصليّ ويشتقّ WITH CHECK
+# منه (دون استبدال USING)، فلا يُسقِط شروط ملكيّة/دور/خدمة. idempotent + لا-عمليّ على
+# مخطّط طبّق v122. يبقى الأخير (مدفوع بالكتالوج، يلي كلّ ترحيلات السياسات).
+v123_rls_with_check_preserve_using.sql
