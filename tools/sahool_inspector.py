@@ -126,7 +126,20 @@ def check_router_wiring() -> Result:
     main_src = _read(MAIN)
     findings: list[str] = []
     names = sorted(p.stem for p in ROUTERS.glob("*.py") if p.name != "__init__.py")
+
+    # التسجيل التلقائيّ (auto-registration): main.py يضمّن كلّ راوتر في api/routers/
+    # عبر حلقة pkgutil.iter_modules + app.include_router. عند وجوده، تُعدّ كلّ وحدة
+    # مُضمَّنة آليّاً عدا ما في مجموعة الاستثناء (تُسجَّل صراحةً، نمط service_proxy).
+    auto_reg = bool(
+        re.search(r"iter_modules\(\s*_routers_pkg\.__path__", main_src)
+        and re.search(r"app\.include_router\(\s*_router_obj", main_src)
+    )
+    excl_match = re.search(r"_ROUTER_AUTOREG_EXCLUDE\s*=\s*\{([^}]*)\}", main_src)
+    excluded = set(re.findall(r'"(\w+)"', excl_match.group(1))) if excl_match else set()
+
     for name in names:
+        if auto_reg and name not in excluded:
+            continue  # مُضمَّن آليّاً عبر حلقة التسجيل
         # نمط واعٍ بالتعليقات والالتفاف متعدّد الأسطر (مطابق لحارس التفكيك):
         #   from api.routers.<name> import (  «تعليق E402»\n    router as <alias>,\n)
         imp = re.search(

@@ -60,29 +60,35 @@ def test_residual_app_endpoints_are_infrastructure_only():
 
 
 def test_every_router_module_is_included_in_main():
-    """كلّ ملفّ router مُستورَد ومُضمَّن في main — لا router يتيم."""
-    src = _main_src()
-    missing_import: list[str] = []
-    missing_include: list[str] = []
+    """كلّ ملفّ router مُضمَّن في التطبيق فعليّاً — لا router يتيم.
+
+    بعد التحوّل إلى التسجيل التلقائيّ (api/main.py يضمّن كلّ راوتر في api/routers/
+    عبر حلقة pkgutil)، صار التحقّق عبر `app.routes` (وقت التشغيل) أمتنَ من مطابقة
+    نصّ main.py: نؤكّد أنّ مسارات كلّ وحدة راوتر حاضرة في مخطّط التطبيق المُجمَّع."""
+    import sys
+
+    core = os.path.join(HERE, "..")
+    if core not in sys.path:
+        sys.path.insert(0, core)
+    pytest.importorskip("fastapi")
+    import importlib
+
+    from api.main import app
+
+    app_paths = {getattr(r, "path", None) for r in app.routes}
+
+    missing: list[str] = []
     for name in _router_module_names():
-        # استيراد قد يكون سطراً واحداً أو ملفوفاً متعدّد الأسطر (ruff يلفّ الطويل):
-        #   from api.routers.<name> import router as <alias>
-        #   from api.routers.<name> import (\n    router as <alias>,\n)
-        m = re.search(
-            rf"from api\.routers\.{re.escape(name)} import "
-            rf"\(?[ \t]*(?:#[^\n]*)?\s*router as (\w+)",
-            src,
-        )
-        if not m:
-            missing_import.append(name)
+        mod = importlib.import_module(f"api.routers.{name}")
+        router = getattr(mod, "router", None)
+        if router is None:
+            # وحدة لا تُصدّر router (نادر) — لا تُسجَّل ولا تُعدّ يتيمة.
             continue
-        alias = m.group(1)
-        if not re.search(rf"app\.include_router\(\s*{re.escape(alias)}\b", src):
-            missing_include.append(name)
-    assert missing_import == [], f"ملفّات router غير مُستورَدة في main: {missing_import}"
-    assert missing_include == [], (
-        f"router مُستورَد لكن غير مُضمَّن (app.include_router): {missing_include}"
-    )
+        prefix = getattr(router, "prefix", "") or ""
+        expected = {prefix + getattr(rt, "path", "") for rt in router.routes if hasattr(rt, "path")}
+        if expected and not (expected & app_paths):
+            missing.append(name)
+    assert missing == [], f"router غير مُضمَّن في التطبيق (app.routes): {missing}"
 
 
 def test_no_duplicate_route_registrations():
