@@ -1,6 +1,28 @@
 
 ---
 
+## 2026-06-27 (ج) — إصلاح RLS-معاملة في phase_runtime (#504)
+
+**رأس `main` بعد الدورة:** `c3e40a8`. إصلاح خلل كموني عالي الخطورة اكتُشِف بالفحص العدائيّ.
+
+- **السبب الجذريّ:** كتابات phase9-12 في `phase_runtime_store.py` تضبط GUC المستأجِر عبر
+  `set_config('app.current_tenant'/'app.tenant_id', …, is_local=true)` ثمّ تنفّذ `INSERT/UPDATE`
+  **خارج أيّ معاملة**. وبما أنّ asyncpg في وضع autocommit ما لم تُفتَح معاملة، يُعاد ضبط الـGUC
+  المحلّيّ-للمعاملة قبل تنفيذ الكتابة ⇒ تحت الدور الإنتاجيّ `sahool_app` (NOBYPASSRLS) ترفض سياسات
+  FORCE-RLS كلّ كتابة. **القناع:** Integration Tests تتّصل بدور superuser (`POSTGRES_USER=sahool_test`،
+  `ci.yml:219`) يتجاوز RLS ⇒ الخلل في الإنتاج فقط («أخضر CI ≠ مُعتمَد إنتاجيّاً»).
+- **الإصلاح (store):** مُجمِّع `_tenant_conn` (acquire داخل `conn.transaction()` ثمّ ضبط السياق)
+  يحاكي `api.main.tenant_connection`؛ استُبدِلت ١١ كتلة كتابة مُستأجَرة. تُركت كتابتا الجدولين
+  العامّين (`model_registry_version`/`marketplace_apps`) بلا تغيير (غير مُستأجَرة). الكتابات صارت ذرّيّة.
+- **الإصلاح (workers):** لُفّت كتل `run_outbox/plugin/model_registry/actuator` في `conn.transaction()`
+  حتّى يصبح `FOR UPDATE SKIP LOCKED` فعّالاً (كان قفلاً بلا معنى ⇒ خطر معالجة مزدوجة).
+- **الحارس:** `tests/test_phase_runtime_tenant_tx.py` (ساكن، `unit`) يمنع عودة النمط الخطر — ساكن
+  عمداً لأنّ المسار الحيّ مُقنَّع بدور superuser في CI.
+- **التحقّق:** py_compile · ruff · حارس جديد (2) · 25 اختبار phase موجود · `tenant_query_audit` (458) ·
+  حزمة الإصدار أُعيد توليدها (٢٤٩١ بصمة، تحقّق ناجح). CI أخضر (31 فحصاً) ⇒ squash-merge.
+
+---
+
 ## 2026-06-27 (ب) — تصلّب ما بعد الأرشيف + تدقيق + اعتماد إنتاجيّ (A/B/C + Certification)
 
 **رأس `main` بعد الدورة:** `95dc750`. تنفيذ متوازٍ بدمج مرتَّب (لا دمج فرعين متداخلين في

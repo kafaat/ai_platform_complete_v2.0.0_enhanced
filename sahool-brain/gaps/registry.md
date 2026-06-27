@@ -53,6 +53,7 @@
 | ROUTER-REGISTRY | main.py مركز تسجيل الراوترات (دَيْن تقنيّ) | platform/البنية | #501 (`e230ecb`)؛ `api/router_registry.py` · `tests/test_router_registry_contract.py` | **fixed (extraction-only)** — `register_routers(app)` مُستخرَجة؛ main بلا include مباشر؛ router wiring 146/0؛ بلا نقل router_groups فيزيائيّ (مؤجَّل C2-C5). |
 | CLAUDE-LOCAL | `.claude/settings.local.json` متعقَّب في git (ملفّ محلّيّ) | repo/نظافة | #500 (`488a7c7`)؛ `.gitignore` | **fixed** — أُزيل من التعقّب + .gitignore (الباني يستثني .claude أصلاً). |
 | PROD-CERT | لا اعتماد إنتاجيّ موثَّق بالأدلّة (static مقابل runtime/soak) | platform/الاعتماد | #502 (`95dc750`)؛ `FINAL_PRODUCTION_READINESS_REPORT.md` · `PRODUCTION_CERTIFICATION_MATRIX.md` | **partial (GO ساكن/CI · NO-GO إنتاجيّ معلّق)** — smoke/env_doctor/soak على بيئة حيّة لم تُنفَّذ (مالك Ops/SRE)؛ مُعلَّمة PENDING بصدق لا تلفيق. |
+| PHASE-RT-TX | كتابات phase9-12 تضبط GUC المستأجِر بلا معاملة محيطة ⇒ asyncpg autocommit يعيد ضبطه قبل الكتابة ⇒ FORCE-RLS يرفض تحت `sahool_app` (NOBYPASSRLS) | platform/الأمن (RLS) | #504 (`c3e40a8`)؛ `api/phase_runtime_store.py` (`_tenant_conn`) · `api/phase_runtime_workers.py` · `tests/test_phase_runtime_tenant_tx.py` | **fixed (CI-masked, env-unverified)** — مُجمِّع `_tenant_conn` (acquire داخل `conn.transaction()`)؛ workers ملفوفة بمعاملة. مُقنَّع في CI لأنّ Integration Tests تتّصل بدور superuser ⇒ حارس **ساكن** يمنع العودة؛ التأكيد الحيّ تحت `sahool_app` بيد Ops. |
 
 ## ملاحظات
 
