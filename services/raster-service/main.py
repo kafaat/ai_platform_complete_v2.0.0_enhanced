@@ -445,10 +445,9 @@ def _tile_cache_key(
     v: str | None = None,
 ) -> str:
     def safe(s):
-        cleaned = "".join(
-            ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in str(s or "na")
-        )
+        cleaned = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in str(s or "na"))
         return cleaned.replace("..", "_")
+
     return os.path.join(
         UPLOAD_DIR,
         "tile_cache",
