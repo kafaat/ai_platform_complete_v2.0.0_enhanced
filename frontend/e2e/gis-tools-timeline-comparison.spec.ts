@@ -24,8 +24,10 @@ test('Timeline + Comparison Mode يعرض مراجعات الخادم ويحسب
 
   await expect(page.getByText('خط الأساس')).toBeVisible();
   await expect(page.getByText('المقارنة', { exact: true })).toBeVisible();
-  await expect(page.getByText('مراجعة 1').first()).toBeVisible();
-  await expect(page.getByText('مراجعة 2').first()).toBeVisible();
+  // «مراجعة 1/2» تظهر كـ<option> داخل <select> (مخفيّة في Playwright حتى يُفتح
+  // المنسدِل) ⇒ نتحقّق من وجودها (attached) لا ظهورها.
+  await expect(page.getByText('مراجعة 1').first()).toBeAttached();
+  await expect(page.getByText('مراجعة 2').first()).toBeAttached();
 
   await page.getByLabel('خط الأساس').selectOption('1');
   await page.getByLabel('المقارنة').selectOption('2');
