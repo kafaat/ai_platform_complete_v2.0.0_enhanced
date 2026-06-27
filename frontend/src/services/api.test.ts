@@ -194,7 +194,8 @@ describe('historical imagery backfill API', () => {
       clip_polygon_geojson: { type: 'Polygon', coordinates: [] },
     };
     const out = await runHistoricalImageryBackfill('F-1', payload);
-    expect(mockPost).toHaveBeenCalledWith('/v1/fields/F-1/imagery/backfill', payload);
+    // يمرّ الآن عبر المنصّة (kongApi) لا raster مباشرةً — انظر runHistoricalImageryBackfill.
+    expect(mockPost).toHaveBeenCalledWith('/api/v1/fields/F-1/imagery/backfill', payload);
     expect(out).toEqual(response);
   });
 });
