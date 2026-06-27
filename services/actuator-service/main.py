@@ -995,11 +995,13 @@ async def list_commands(
 @app.get("/healthz")
 @app.get("/health")
 async def health():
-    # نكشف الوضع الفعّال للمراقبة (الصدق): simulation يُعلَن صراحةً فلا يُظنّ تنفيذاً حقيقيّاً.
+    # نكشف الوضع الفعّال للمراقبة دون كشف تفاصيل تشغيلية حسّاسة.
+    # لا نُرجِع MQTT_BROKER_URL؛ وجود الوسيط لا يعني موافقة تشغيل فيزيائيّ،
+    # ورابط الوسيط معلومة بنية تحتية لا يحتاجها health العام.
     return {
         "status": "alive",
         "service": "actuator",
-        "mqtt": MQTT_BROKER_URL,
+        "mqtt_configured": bool(MQTT_BROKER_URL),
         "mode": ACTUATOR_MODE,
     }
 
