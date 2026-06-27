@@ -14325,10 +14325,10 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0b644bdd5b6340c096b943d37b51f4c46f6266663e02396dba0964df34a9f7ea"
+          "content": "ee525c7223949b098439b33cac229b67619c1d9631cce1612eb4f1c61e74de5c"
         }
       ],
-      "name": "services/sahool-platform/tests/test_router_registry.py",
+      "name": "services/sahool-platform/tests/test_router_registry_contract.py",
       "type": "file"
     },
     {
