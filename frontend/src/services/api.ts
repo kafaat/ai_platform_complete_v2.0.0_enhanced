@@ -3195,140 +3195,14 @@ export const fetchIndicatorsHealth = () =>
   indicatorsApi.get('/health').then(r => r.data).catch(() => ({ status:'unavailable' }));
 
 // ══════════════════════════════════════════════════════════════════
-// VEGETATION SERVICE — مسارات حيّة مطابقة لـvegetation-analysis-service
-// ربط حقيقيّ بلا تلفيق (إلّا MOCK_MODE الصريح). صدق المصدر: المؤشّرات تقديرات
-// متوسّط-حقل من نطاقات تركيبيّة (real_data=false) — البكسلات الحقيقيّة في
-// raster-service. أُصلحت المسارات/الأفعال لتطابق الخادم الفعليّ (GET /v1/*).
+// VEGETATION / WEATHER / SOIL — مُستخرَجة إلى وحدات المجال (نمط البرميل barrel).
+// الدوالّ نُقلت حرفياً إلى vegetationApi.ts / weatherApi.ts / soilApi.ts، وتُعاد
+// تصديرها هنا عبر `export *` فيبقى كلّ import { ... } from '.../services/api'
+// يعمل دون تغيير. كلّ وحدة تستورد عميلها + mocks من apiClients/apiMocks (لا من api).
 // ══════════════════════════════════════════════════════════════════
-
-/** تحليل صورة + مؤشّرات + نشر NATS — GET /v1/analyze (الخادم يقبل GET بمعاملات) */
-export const analyzeVegetation = (fieldId: string, _satellite = 'sentinel-2', tenantId = 'default') =>
-  tryReal(
-    () => vegetationApi.get('/v1/analyze', { params:{ field_id:fieldId, tenant_id:tenantId } }).then(r => r.data),
-    () => mockVegetationAnalysis(fieldId)
-  );
-
-
-
-
-/** سلسلة زمنية NDVI — GET /v1/timeseries/{fieldId} */
-export const fetchVegetationTimeseries = (fieldId: string, days = 30) =>
-  tryReal(
-    () => vegetationApi.get(`/v1/timeseries/${fieldId}`, { params:{ days } }).then(r => r.data),
-    () => mockTimeseries(fieldId, days)
-  );
-
-/** NDVI الحالي — GET /v1/ndvi/current/{fieldId} */
-export const fetchCurrentNDVI = (fieldId: string) =>
-  tryReal(
-    () => vegetationApi.get(`/v1/ndvi/current/${fieldId}`).then(r => r.data),
-    () => ({ field_id:fieldId, ndvi:{ current:0.62 }, classification:{ level:'good', label_ar:'جيد', color:'#65a30d' } })
-  );
-
-// ══════════════════════════════════════════════════════════════════
-// WEATHER — موحّد على المنصّة (sahool-platform/api/routers/weather.py)
-// ══════════════════════════════════════════════════════════════════
-// المنطق الحقيقيّ للطقس (Open-Meteo + ET₀ FAO-56) يعيش في المنصّة عبر
-// /api/v1/weather/{current,forecast,historical}. خدمة weather-service جذعيّة تردّ
-// 501 لأيّ مسار طقس، لذا نُمرّر هذه الدوالّ عبر kongApi (مسارات /api/v1/weather عبر
-// البوّابة) لا weatherApi المعطوبة. الردّ بشكل المنصّة الخام (days[].temp_max_c …).
-
-export const fetchCurrentWeather = (lat = 15.05, lon = 45.55) =>
-  tryReal(
-    () => kongApi.get('/api/v1/weather/current', { params:{ lat, lon } }).then(r => r.data),
-    () => ({ current: MOCK_WEATHER_TODAY, location:{ lat, lon, region:'البيضاء، اليمن' } })
-  );
-
-export const fetchWeatherForecast = (days = 7, lat = 15.05, lon = 45.55) =>
-  tryReal(
-    () => kongApi.get('/api/v1/weather/forecast', { params:{ days, lat, lon } }).then(r => r.data),
-    () => ({ forecast:mockWeatherDays(days), days, summary:{ total_gdd:85, total_et0_mm:31, avg_tmax_c:31 } })
-  );
-
-export const fetchWeatherHistorical = (days = 30, lat = 15.05, lon = 45.55) =>
-  tryReal(
-    () => {
-      // المنصّة تتطلّب نطاق تاريخ صريح (start_date/end_date) لا عدد أيّام.
-      const end = new Date();
-      const start = new Date(end.getTime() - days * 86_400_000);
-      const iso = (d: Date) => d.toISOString().slice(0, 10);
-      return kongApi
-        .get('/api/v1/weather/historical', { params:{ lat, lon, start_date: iso(start), end_date: iso(end) } })
-        .then(r => r.data);
-    },
-    () => ({ period_days:days, data:mockWeatherDays(days), summary:{ total_gdd:300, water_deficit_mm:45, total_et0_mm:130, total_rainfall_mm:85 } })
-  );
-
-export const fetchWofostFormat = (days = 30, lat = 15.05, lon = 45.55) =>
-  // لا نقطة wofost_format على المنصّة؛ نشتقّ مدخلات WOFOST من توقّعات المنصّة الحقيقيّة.
-  tryReal(
-    () => kongApi.get('/api/v1/weather/forecast', { params:{ days, lat, lon } }).then(r => {
-      const rawDays = Array.isArray(r.data?.days) ? r.data.days : [];
-      return {
-        wofost_input: rawDays.map((d: { date?: string; temp_max_c?: number; temp_min_c?: number; solar_radiation_mj_m2?: number; et0_mm?: number; precipitation_mm?: number }) => ({
-          date: d.date ?? null, tmax: d.temp_max_c ?? null, tmin: d.temp_min_c ?? null,
-          radiation_mj: d.solar_radiation_mj_m2 ?? null, et0: d.et0_mm ?? null,
-          precipitation: d.precipitation_mm ?? null,
-        })),
-        total_days: rawDays.length,
-        source: 'sahool-platform',
-      };
-    }),
-    () => ({ wofost_input:mockWeatherDays(days).map(d => ({ date:d.date, tmax:d.tmax, tmin:d.tmin, radiation_mj:18, et0:d.et0, precipitation:d.rain, soil_moisture_pct:35 })), total_days:days, source:'mock' })
-  );
-
-// ملاحظة صدق: لا نقطة agro-indicators مكافئة على المنصّة (كانت تستهدف weather-service
-// الجذعيّة ⇒ 501). غير مُستهلَكة في أيّ واجهة. مُبقاة للـMOCK_MODE فقط؛ خارجه ترمي
-// بصدق (لا تلفيق) حتى تُبنى نقطة مكافئة على المنصّة.
-export const fetchAgroIndicators = (_days = 30) =>
-  tryReal(
-    () => Promise.reject(new Error('agro-indicators: لا نقطة مكافئة على المنصّة بعد')),
-    () => ({ gdd_accumulated:305, et0_accumulated_mm:132, rainfall_accumulated_mm:87, water_deficit_mm:45, drought_stress_days:5 })
-  );
-
-// ══════════════════════════════════════════════════════════════════
-// SOIL — صدق: خدمة soil-service غير منشورة (مُعلّقة في compose؛ nginx يردّ 503 على
-// /api/soil/) ولا مكافئ لتركيب التربة على المنصّة. الدوالّ أدناه غير مُستهلَكة في
-// أيّ واجهة (المكوّن الوحيد FarmAdvisoryReport يستعمل hooks مُعطّلة خلف FEATURE_FLAGS.soil
-// مع حالة «بيانات التربة غير متاحة» الصادقة). مُبقاة للـMOCK_MODE ولِما بعد نشر
-// soil-service بتنفيذ حقيقيّ؛ خارج MOCK_MODE تضرب /api/soil ⇒ 503 صادق (لا تلفيق).
-// ══════════════════════════════════════════════════════════════════
-
-export const fetchSoilData = (fieldId: string) =>
-  tryReal(
-    () => soilApi.get(`/soil/${fieldId}`).then(r => r.data),
-    () => mockSoilData(fieldId)
-  );
-
-export const fetchAllSoilData = () =>
-  tryReal(
-    () => soilApi.get('/soil/all').then(r => r.data),
-    () => ({ readings:MOCK_FIELDS.map(f => mockSoilData(f.field_id)), total:8 })
-  );
-
-export const fetchSoilWofostParams = (fieldId: string) =>
-  tryReal(
-    () => soilApi.get(`/soil/wofost_params/${fieldId}`).then(r => r.data),
-    () => ({ rdmsol:1.2, soil_water_capacity_mm:150, wilting_point_pct:15, field_capacity_pct:35, suitable_for_wofost:true })
-  );
-
-export const fetchNitrogenRecommendation = (fieldId: string, targetYield = 5.0) =>
-  tryReal(
-    () => soilApi.get('/soil/nitrogen/recommendation', { params:{ field_id:fieldId, target_yield_t_ha:targetYield } }).then(r => r.data),
-    () => ({ recommended_n_kg_ha:87.5, n_demand_kg_ha:125, n_available_kg_ha:37.5, method:'FAO adjusted', timing:'40% زراعة + 30% تفريع + 30% تطاول' })
-  );
-
-export const fetchSoilRecommendations = (fieldId: string) =>
-  tryReal(
-    () => soilApi.get(`/soil/${fieldId}/recommendations`).then(r => r.data),
-    () => ({ recommendations:['✅ التربة في حالة جيدة — استمر بنفس الإدارة'], priority:'روتيني' })
-  );
-
-export const postSoilReading = (data: { field_id:string; ph?:number; moisture_pct?:number; nitrogen_mg_kg?:number }) =>
-  tryReal(
-    () => soilApi.post('/soil/reading', data).then(r => r.data),
-    () => ({ status:'received', nats_published:false })
-  );
+export * from './vegetationApi';
+export * from './weatherApi';
+export * from './soilApi';
 
 // ══════════════════════════════════════════════════════════════════
 // PROBES — فحص صحة كل الخدمات
@@ -3445,36 +3319,18 @@ export const fetchOperationsSummary = (): Promise<OperationsSummary | null> =>
 // ══════════════════════════════════════════════════════════════════
 // MOCK DATA
 // ══════════════════════════════════════════════════════════════════
-export const MOCK_FIELDS = [
-  { field_id:'field_01', name:'حقل وادي سبأ',        area:23.5, crop:'قمح صلب',   ndvi:0.72, stage:'ملء الحبوب', gdd:960,  yield:2.8 },
-  { field_id:'field_02', name:'حقل البيضاء الشمالي', area:32.0, crop:'شعير',       ndvi:0.58, stage:'نمو خضري',  gdd:825,  yield:2.5 },
-  { field_id:'field_03', name:'حقل البيضاء الجنوبي', area:18.7, crop:'ذرة صفراء',  ndvi:0.44, stage:'تزهير',     gdd:980,  yield:3.9 },
-  { field_id:'field_04', name:'حقل رداع الغربي',     area:41.3, crop:'طماطم',      ndvi:0.66, stage:'ثمرة',      gdd:780,  yield:4.2 },
-  { field_id:'field_05', name:'حقل ذي السفال',       area:28.9, crop:'قمح صلب',   ndvi:0.74, stage:'ملء الحبوب', gdd:1020, yield:3.1 },
-  { field_id:'field_06', name:'حقل عتمة الشرقي',    area:37.5, crop:'شعير',       ndvi:0.51, stage:'نمو خضري',  gdd:792,  yield:2.4 },
-  { field_id:'field_07', name:'حقل الرياشية',        area:22.1, crop:'خضروات',     ndvi:0.55, stage:'حصاد',      gdd:660,  yield:5.5 },
-  { field_id:'field_08', name:'حقل ذي ناعم',         area:45.0, crop:'بطاطس',      ndvi:0.61, stage:'درنات',     gdd:680,  yield:6.8 },
-];
+// بيانات mock الكساء النباتيّ/الطقس/التربة + MOCK_FIELDS مُستخرَجة إلى apiMocks.ts
+// (تستهلكها وحدات المجال vegetationApi/weatherApi/soilApi عبر tryReal في MOCK_MODE).
+// نُبقي MOCK_FIELDS مُعاد التصدير حفاظاً على السطح العامّ، ونستورده هنا لبناء
+// MOCK_DASHBOARD (لوحة المعلومات لم تُستخرَج بعد). السلوك محفوظ.
+import { MOCK_FIELDS } from './apiMocks';
+export { MOCK_FIELDS } from './apiMocks';
 
 const MOCK_ALERTS = [
   { id:'a1', field_id:'field_06', field_name:'حقل عتمة الشرقي', level:'critical', severity:'critical', message:'NDVI حرج — إجهاد مائي', color:'#dc2626', recommendation:'ري فوري', timestamp:new Date().toISOString() },
   { id:'a2', field_id:'field_03', field_name:'حقل البيضاء الجنوبي', level:'warning', severity:'warning', message:'رطوبة تربة منخفضة', color:'#f59e0b', recommendation:'تقليل ET0', timestamp:new Date().toISOString() },
   { id:'a3', field_id:'field_01', field_name:'حقل وادي سبأ', level:'info', severity:'info', message:'موعد التسميد البوتاسي', color:'#38bdf8', recommendation:'إضافة K2O', timestamp:new Date().toISOString() },
 ];
-
-const MOCK_WEATHER_TODAY = { tmax:31, tmin:17, tmean:24, humidity_pct:52, rainfall_mm:0, et0_mm:4.2, et0:4.2, gdd:14, wind_speed_kmh:12, irrigation_needed:true, heat_stress:false };
-
-function mockWeatherDays(n: number) {
-  return Array.from({length:n},(_,i) => {
-    const d = new Date(); d.setDate(d.getDate()-n+i+1);
-    return { date:d.toISOString().split('T')[0], tmax:28+Math.random()*6, tmin:14+Math.random()*5, tmean:21+Math.random()*4, rain:+(Math.random()*3).toFixed(2), et0:+(3.5+Math.random()*2).toFixed(2), gdd:+(8+Math.random()*8).toFixed(1), rainfall_mm:+(Math.random()*3).toFixed(2) };
-  });
-}
-
-function mockSoilData(fieldId: string) {
-  const s = Math.abs(fieldId.split('').reduce((a,c) => a+c.charCodeAt(0),0)) % 100;
-  return { field_id:fieldId, ph:+(6+s%28/20).toFixed(1), ec_ds_m:+(0.3+s%40/20).toFixed(2), moisture_pct:+(20+s%55).toFixed(1), nitrogen_mg_kg:+(12+s%60).toFixed(1), phosphorus_mg_kg:+(6+s%35).toFixed(1), potassium_mg_kg:+(40+s%120).toFixed(1), organic_matter_pct:+(0.8+s%28/10).toFixed(2), texture:'مزيجية', health:{ status:'good', status_ar:'جيد', color:'#65a30d' } };
-}
 
 function mockFieldIndicators(fieldId: string) {
   const s = Math.abs(fieldId.split('').reduce((a,c) => a+c.charCodeAt(0),0)) % 100;
@@ -3492,23 +3348,8 @@ function mockFieldIndicators(fieldId: string) {
   };
 }
 
-function mockVegetationAnalysis(fieldId: string) {
-  return {
-    field_id:fieldId, satellite:'sentinel-2', cloud_coverage:5,
-    indices:{ ndvi:0.72, evi:0.61, savi:0.45, ndwi:0.18, ndmi:0.22, gndvi:0.68, lai:3.82 },
-    classification:{ level:'good', label_ar:'جيد', color:'#65a30d' },
-    nats_event:{ published:false, subject:`sahool.tenant.default.satellite.ndvi.computed` },
-    analyzed_at:new Date().toISOString(),
-  };
-}
-
-function mockTimeseries(fieldId: string, days: number) {
-  const series = Array.from({length:days},(_,i) => {
-    const d = new Date(); d.setDate(d.getDate()-days+i+1);
-    return { date:d.toISOString().split('T')[0], ndvi:+(0.45+Math.sin(i/8)*0.15+Math.random()*0.04).toFixed(4), evi:+(0.38+Math.sin(i/8)*0.12+Math.random()*0.03).toFixed(4), lai:+(2+Math.sin(i/8)*1.2+Math.random()*0.3).toFixed(2) };
-  });
-  return { field_id:fieldId, period_days:days, timeseries:series, data:series, statistics:{ ndvi_mean:0.58, slope:0.001, r_squared:0.72, trend_direction:'stable' } };
-}
+// mockVegetationAnalysis / mockTimeseries / mockWeatherDays / MOCK_WEATHER_TODAY /
+// mockSoilData نُقلت إلى apiMocks.ts مع دوالّ مجالها (vegetation/weather/soil).
 
 const MOCK_DASHBOARD = {
   generated_at:new Date().toISOString(),
