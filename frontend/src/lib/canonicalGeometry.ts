@@ -16,6 +16,14 @@ export interface GeoJsonPolygon {
   coordinates: number[][][];
 }
 
+/** GeoJSON MultiPolygon في EPSG:4326 — حقل مكوّن من أجزاء منفصلة. */
+export interface GeoJsonMultiPolygon {
+  type: 'MultiPolygon';
+  coordinates: number[][][][];
+}
+
+export type GeoJsonFieldGeometry = GeoJsonPolygon | GeoJsonMultiPolygon;
+
 /** الحدود الصندوقيّة بالدرجات — مفاتيح مطابقة لحارس الـGIS. */
 export interface BBox {
   min_lng: number;
@@ -26,7 +34,7 @@ export interface BBox {
 
 /** الشكل الكنسيّ الموحَّد لهندسة الحقل عبر المنصّات. */
 export interface CanonicalFieldGeometry {
-  geometry: GeoJsonPolygon;
+  geometry: GeoJsonFieldGeometry;
   area_ha: number;
   bbox: BBox;
   /** رقم مراجعة الحقل، أو null إن لم يُعرَف. */
@@ -50,10 +58,10 @@ function isBBox(value: unknown): value is BBox {
   );
 }
 
-function isGeoJsonPolygon(value: unknown): value is GeoJsonPolygon {
+function isGeoJsonFieldGeometry(value: unknown): value is GeoJsonFieldGeometry {
   if (typeof value !== 'object' || value === null) return false;
   const g = value as Record<string, unknown>;
-  return g.type === 'Polygon' && Array.isArray(g.coordinates);
+  return (g.type === 'Polygon' || g.type === 'MultiPolygon') && Array.isArray(g.coordinates);
 }
 
 /** حارس نوع — يُرجِع true إن طابق الكائن العقد الكنسيّ بدقّة. */
@@ -61,7 +69,7 @@ export function isCanonicalFieldGeometry(value: unknown): value is CanonicalFiel
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
   return (
-    isGeoJsonPolygon(v.geometry) &&
+    isGeoJsonFieldGeometry(v.geometry) &&
     isFiniteNumber(v.area_ha) &&
     isBBox(v.bbox) &&
     (v.revision === null || (typeof v.revision === 'number' && Number.isInteger(v.revision))) &&

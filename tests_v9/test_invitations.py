@@ -12,7 +12,7 @@
 
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import pathlib
 import re
 import sys
@@ -25,11 +25,31 @@ _MIGRATION = ROOT / "migrations" / "v89_invitations.sql"
 
 
 def _load_auth_main():
-    """يُحمّل main.py الخاصّ بخدمة auth، ويتخطّى الاختبار إن غابت تبعيّاتها."""
+    """يُحمّل main.py الخاصّ بخدمة auth، ويتخطّى الاختبار إن غابت تبعيّاتها.
+
+    In the full suite another auth test may already import services/auth/main.py as
+    ``main``. Reusing that module avoids duplicate prometheus metric registration;
+    using a unique spec name only when needed avoids accidentally returning a
+    different service module named ``main``.
+    """
+    auth_main_path = str(pathlib.Path(_AUTH_DIR) / "main.py")
+    for module in list(sys.modules.values()):
+        if getattr(module, "__file__", None) == auth_main_path:
+            return module
     if _AUTH_DIR not in sys.path:
         sys.path.insert(0, _AUTH_DIR)
     try:
-        return importlib.import_module("main")
+        spec = importlib.util.spec_from_file_location(
+            "sahool_auth_main_for_invitation_tests", auth_main_path
+        )
+        if spec is None or spec.loader is None:
+            raise ImportError("cannot build import spec for auth main.py")
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = (
+            module  # allow Pydantic forward-ref resolution under from __future__ annotations
+        )
+        spec.loader.exec_module(module)
+        return module
     except ImportError as e:
         pytest.skip(f"auth main.py غير قابل للاستيراد (تبعيّة ناقصة): {e}", allow_module_level=True)
 

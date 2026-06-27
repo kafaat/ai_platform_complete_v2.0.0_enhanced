@@ -10,11 +10,11 @@ ci_report.py — مدخل CI واحد ينتج evidence.json (مصدر الحق�
 static + domain تُنفَّذ هنا (offline). system (RLS الحيّ) يحتاج postgres —
 يُعلَّم "requires_live" بصدق بدل ادّعاء فحصه offline.
 """
+import hashlib
 import json
 import os
 import sys
-import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tests_v9"))
@@ -37,16 +37,18 @@ def _static() -> dict:
 
 def _domain() -> dict:
     """DOMAIN TRUTH: roadmap + chaos (المنطق). يكتم stdout المطوّل للاختبارات."""
-    import io
     import contextlib
+    import io
     out = {}
     _sink = io.StringIO()
     with contextlib.redirect_stdout(_sink):
         try:
             import test_roadmap_phase1 as p1
             import test_roadmap_phase23 as p23
-            a, b = p1.run_all(); c, d = p1.run_all2()
-            e, f = p1.run_all3(); g, h = p23.run_all()
+            a, b = p1.run_all()
+            c, d = p1.run_all2()
+            e, f = p1.run_all3()
+            g, h = p23.run_all()
             passed, total = a + c + e + g, a + c + e + g + b + d + f + h
             out["roadmap"] = {"status": "pass" if passed == total else "fail",
                               "passed": passed, "total": total}
@@ -103,7 +105,7 @@ def main():
             overall = "fail"
 
     evidence = {
-        "build_time": datetime.now(timezone.utc).isoformat(),
+        "build_time": datetime.now(UTC).isoformat(),
         "overall": overall,
         "static": static,
         "domain": domain,
@@ -120,7 +122,7 @@ def main():
     open(path + ".sha256", "w").write(digest)
 
     print(payload)
-    print(f"\n# evidence: build/evidence.json", file=sys.stderr)
+    print("\n# evidence: build/evidence.json", file=sys.stderr)
     print(f"# sha256: {digest}", file=sys.stderr)
     return 0 if overall == "pass" else 1
 

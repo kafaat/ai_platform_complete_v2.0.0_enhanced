@@ -5,6 +5,7 @@
 // تُعرَض كـ«غير متاح بعد» بدل اختلاق بيانات. لا تستدعي إلّا دوال ApiService القائمة.
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
+import '../../permissions.dart';
 import '../state_views.dart';
 
 // ── أدوات تنسيق دفاعيّة مشتركة ──────────────────────────────────────
@@ -976,6 +977,136 @@ class _WSeasonSectionState extends State<WSeasonSection> {
 // صفّ لكلّ نشاط: العنوان العربيّ، نوع العمليّة (تسمية عربيّة)، الحالة (شارة)،
 // التاريخ المُنفَّذ/المُجدوَل. صدق: لا أنشطة ⇒ EmptyView بلا اختلاق.
 // ════════════════════════════════════════════════════════════════════
+
+
+// نموذج إدخال سجلّ يومي من الموبايل — POST /api/v1/fields/{id}/activities.
+class WAddActivityForm extends StatefulWidget {
+  final String fieldId;
+  final VoidCallback onSaved;
+  const WAddActivityForm({super.key, required this.fieldId, required this.onSaved});
+  @override
+  State<WAddActivityForm> createState() => _WAddActivityFormState();
+}
+
+class _WAddActivityFormState extends State<WAddActivityForm> {
+  final _title = TextEditingController();
+  final _notes = TextEditingController();
+  String _type = 'irrigation';
+  DateTime? _performedOn;
+  bool _saving = false;
+  String? _error;
+
+  static const _types = {
+    'irrigation': 'ريّ',
+    'fertilization': 'تسميد',
+    'spraying': 'رشّ',
+    'scouting': 'كشف ميدانيّ',
+    'planting': 'زراعة/بذر',
+    'pruning': 'تقليم',
+    'harvest': 'حصاد',
+  };
+
+  @override
+  void dispose() {
+    _title.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
+
+  String _date(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final d = await showDatePicker(
+      context: context,
+      initialDate: _performedOn ?? now,
+      firstDate: DateTime(now.year - 2),
+      lastDate: DateTime(now.year + 1),
+    );
+    if (d != null && mounted) setState(() => _performedOn = d);
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+    setState(() { _saving = true; _error = null; });
+    try {
+      await ApiService.instance.createFieldActivity(
+        widget.fieldId,
+        activityType: _type,
+        titleAr: _title.text,
+        performedOn: _performedOn == null ? _date(DateTime.now()) : _date(_performedOn!),
+        notes: _notes.text,
+      );
+      if (!mounted) return;
+      _title.clear();
+      _notes.clear();
+      setState(() => _performedOn = null);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تسجيل العملية في السجل اليومي')),
+      );
+      widget.onSaved();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = apiErrorMessage(e));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WSectionCard(
+      title: 'إدخال سجلّ يومي',
+      icon: Icons.add_task,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DropdownButtonFormField<String>(
+            value: _type,
+            dropdownColor: kSurface,
+            decoration: const InputDecoration(labelText: 'نوع العملية'),
+            items: _types.entries
+                .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value)))
+                .toList(),
+            onChanged: (v) => setState(() => _type = v ?? _type),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _title,
+            decoration: const InputDecoration(labelText: 'العنوان / الوصف المختصر'),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _notes,
+            maxLines: 2,
+            decoration: const InputDecoration(labelText: 'ملاحظات'),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _pickDate,
+            icon: const Icon(Icons.calendar_today),
+            label: Text(_performedOn == null ? 'تاريخ التنفيذ: اليوم' : 'تاريخ التنفيذ: ${_date(_performedOn!)}'),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+          ],
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: _saving ? null : _save,
+            style: ElevatedButton.styleFrom(backgroundColor: kPrimary),
+            icon: _saving
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.check),
+            label: Text(_saving ? 'جارٍ الحفظ…' : 'حفظ في السجل'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class WActivitiesSection extends StatefulWidget {
   final String fieldId;
   const WActivitiesSection({super.key, required this.fieldId});
@@ -1034,12 +1165,22 @@ class _WActivitiesSectionState extends State<WActivitiesSection> {
         }
         final activities = snap.data ?? const <Map<String, dynamic>>[];
         if (activities.isEmpty) {
-          return const EmptyView(
-              message: 'لا أنشطة مسجّلة بعد', icon: Icons.assignment);
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (canMutate(currentRole()))
+                WAddActivityForm(fieldId: widget.fieldId, onSaved: _retry),
+              const SizedBox(height: 16),
+              const EmptyView(
+                  message: 'لا أنشطة مسجّلة بعد', icon: Icons.assignment),
+            ],
+          );
         }
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (canMutate(currentRole()))
+              WAddActivityForm(fieldId: widget.fieldId, onSaved: _retry),
             WSectionCard(
               title: 'أنشطة الحقل',
               icon: Icons.assignment,

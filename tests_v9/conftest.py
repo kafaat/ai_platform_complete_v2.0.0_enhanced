@@ -23,6 +23,7 @@ if _REPO_ROOT not in sys.path:
 
 # ── Test Config ───────────────────────────────────────────────
 TEST_JWT_SECRET = "test_secret_min_32_chars_for_sahool_v9"
+os.environ.setdefault("JWT_SECRET", TEST_JWT_SECRET)
 TEST_DB_URL = os.getenv(
     "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
 )

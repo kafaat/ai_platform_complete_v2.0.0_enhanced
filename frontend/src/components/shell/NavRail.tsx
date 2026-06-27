@@ -49,12 +49,13 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
     const mat = maturityBadge(item.maturity);
     return (
       <button key={item.id} onClick={() => go(item)}
+        aria-current={active ? 'page' : undefined}
         title={collapsed ? item.label : undefined}
         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all"
         style={{
-          background: active ? '#1e3a1e' : 'transparent',
-          borderRight: active ? '2px solid #16a34a' : '2px solid transparent',
-          color: active ? '#4ade80' : '#94a3b8',
+          background: active ? 'rgba(var(--sahool-green), 0.16)' : 'transparent',
+          borderRight: active ? '3px solid rgb(var(--sahool-green))' : '3px solid transparent',
+          color: active ? 'rgb(var(--sahool-green-light))' : 'rgb(var(--sahool-muted))',
         }}>
         <Icon className="w-4 h-4 flex-shrink-0" />
         {!collapsed && (
@@ -85,14 +86,14 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
   return (
     <aside className="flex flex-col h-full" style={{
       width: collapsed ? 64 : 240,
-      background: '#0d1117',
-      borderLeft: '1px solid #1e293b',
+      background: 'rgb(var(--sahool-surface))',
+      borderLeft: '1px solid rgb(var(--sahool-border))',
       flexShrink: 0,
       transition: 'width .3s',
     }}>
       {/* الشعار + حالة NATS */}
       <div className="flex items-center gap-3 px-4 py-5 border-b border-slate-800">
-        <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
+        <div className="w-9 h-9 rounded-2xl bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-950/30">
           <Leaf className="w-4 h-4 text-white" />
         </div>
         {!collapsed && (

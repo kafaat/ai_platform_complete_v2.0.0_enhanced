@@ -19,8 +19,9 @@ Create Date: 2026-06-08
 الهجرات اليدويّة (migrations/*.sql بالترتيب) ثمّ stamp، أو حوّلها لمراجعات
 Alembic لاحقاً. هذا baseline للقواعد القائمة.
 """
-from alembic import op  # noqa: F401
 import sqlalchemy as sa  # noqa: F401
+
+from alembic import op  # noqa: F401
 
 revision = "0001_baseline"
 down_revision = None

@@ -11,9 +11,9 @@ const renderMarkdown = (s: string) =>
     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-emerald-700">$1</strong>')
     .replace(/^•\s/gm, '<span class="text-emerald-500">•</span> ');
 // ═══════════════════════════════════════════════════════════════════
-// SAHOOL — ChatbotPage موصول بوكيل المنصّة الحقيقيّ (POST /api/agent/query)
+// SAHOOL — ChatbotPage موصول بـ AI Agronomist Runtime الحقيقيّ (POST /api/ai-agronomist/chat)
 // التحسينات:
-//   ✅ وكيل المنصّة المؤصَّل والمحوكَم (/api/agent/query، مصادَق JWT) بدل KB ثابت
+//   ✅ AI Agronomist Runtime المؤصَّل والمحوكَم (/api/ai-agronomist/chat، مصادَق JWT) بدل KB ثابت
 //   ✅ حقن سياق المزرعة في كل رسالة (NDVI الحالي + الطقس + المحصول)
 //   ✅ Streaming simulation (typewriter effect)
 //   ✅ اقتراحات ذكية بناءً على بيانات الحقل
@@ -31,6 +31,7 @@ import {
   ChevronDown, Wheat, BarChart3,
 } from 'lucide-react';
 import { useFields, useWeatherForecast } from '../hooks/useApi';
+import { useFieldContextStore } from '../hooks/useFieldContext';
 import { kongApi } from '../services/api';
 
 // ── سياق المزرعة الحيّ ────────────────────────────────────────────
@@ -132,7 +133,7 @@ interface Msg {
   timestamp: Date;
   liked?:    boolean;
   disliked?: boolean;
-  source?:   'claude' | 'fallback';
+  source?:   'ai-runtime' | 'fallback';
   tokens?:   number;
 }
 
@@ -163,8 +164,8 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
           {/* Source badge */}
           {msg.source && (
             <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-2">
-              {msg.source === 'claude'
-                ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400">Claude AI</span></>
+              {msg.source === 'ai-runtime'
+                ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400">SAHOOL AI Runtime · RAG/KG</span></>
                 : <><AlertCircle className="w-3 h-3 text-amber-400" /><span className="text-[10px] text-amber-500">وضع بلا إنترنت</span></>
               }
               {msg.tokens && <span className="text-[10px] text-slate-300 mr-auto">{msg.tokens} token</span>}
@@ -200,8 +201,8 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
 // ── Main component ───────────────────────────────────────────────
 export function ChatbotPage() {
   const WELCOME: Msg = {
-    id:'welcome', role:'assistant', source:'claude',
-    content:`مرحباً! أنا **مستشارك الزراعي الذكي** المدعوم بـ Claude AI.\n\nأستطيع مساعدتك في:\n• تحليل مؤشرات NDVI لحقولك\n• إدارة الري بناءً على الطقس الحالي\n• توصيات التسميد والمكافحة\n• تفسير بيانات WOFOST\n• أي سؤال زراعي آخر\n\nكيف يمكنني خدمتك اليوم؟`,
+    id:'welcome', role:'assistant', source:'ai-runtime',
+    content:`مرحباً! أنا **مستشارك الزراعي الذكي** المدعوم بـ SAHOOL AI Runtime.\n\nأستطيع مساعدتك في:\n• تحليل مؤشرات NDVI لحقولك\n• إدارة الري بناءً على الطقس الحالي\n• توصيات التسميد والمكافحة\n• تفسير بيانات WOFOST\n• أي سؤال زراعي آخر\n\nكيف يمكنني خدمتك اليوم؟`,
     timestamp: new Date(),
   };
 
@@ -215,6 +216,7 @@ export function ChatbotPage() {
   // سياق المزرعة الحيّ (حقول + طقس) — يُحقَن في كلّ طلب بدل القيم الثابتة.
   const fieldsQ  = useFields();
   const weatherQ = useWeatherForecast();
+  const activeFieldId = useFieldContextStore((s) => s.selectedFieldId);
   const ctx: LiveContext = useMemo(() => {
     const list: ChatbotField[] = (fieldsQ.data as { fields?: ChatbotField[] } | undefined)?.fields ?? [];
     const ndvis = list.map((f) => +(f.ndvi || 0)).filter((n) => n > 0);
@@ -239,22 +241,22 @@ export function ChatbotPage() {
     setMessages(m => [...m, userMsg]);
     setInput(''); setLoading(true);
 
-    // Build conversation history for Claude
+    // Build recent conversation history for the AI runtime
     const history = messages
       .filter(m => m.id !== 'welcome')
       .slice(-8) // last 4 exchanges
       .map(m => ({ role: m.role, content: m.content }));
 
     try {
-      // الدردشة عبر وكيل المنصّة الحقيقيّ: POST /api/agent/query (supervisor) عبر بوّابة
-      // nginx /api/agent/، مصادَقاً بـJWT (kongApi يحقن Bearer) ومُؤصَّلاً بحالة المزرعة
-      // خادميّاً. لا مفتاح Anthropic في الواجهة، ولا اعتماد خارجيّ. الهويّة (user/tenant)
-      // تُشتَقّ من التوكن خادميّاً — الحقلان هنا مطلوبان بمخطّط AgentQuery شكليّاً فقط.
-      const res = await kongApi.post('/api/agent/query', {
-        query:      text,
-        user_id:    '',
-        tenant_id:  '',
-        context: {
+      // المرحلة الثانية: الدردشة تمر عبر SAHOOL AI Agronomist Runtime، لا mock ولا مسار دردشة مفقود.
+      // الخدمة تجمع RAG + Knowledge Graph + CanonicalFieldState عند توفر field_id، وتعيد
+      // output evidence-only؛ القرار التنفيذي يبقى حصراً لدى Field Intelligence Coordinator.
+      const res = await kongApi.post('/api/ai-agronomist/chat', {
+        question: text,
+        field_id: activeFieldId || undefined,
+        language: 'ar',
+        final_k: 5,
+        current_field_state: {
           farm_summary:    buildSystemPrompt(ctx),
           avg_ndvi:        ctx.avgNdvi,
           field_count:     ctx.count,
@@ -263,11 +265,14 @@ export function ChatbotPage() {
         },
       });
 
-      const data = res.data as { response_ar?: string };
-      const reply = data.response_ar || 'عذراً، لم أتمكن من الإجابة.';
+      const data = res.data as { answer_ar?: string; message?: string; confidence?: number; evidence_ids?: string[] };
+      const evidence = Array.isArray(data.evidence_ids) && data.evidence_ids.length
+        ? `\n\nالأدلة: ${data.evidence_ids.slice(0, 3).join('، ')}${data.confidence != null ? ` · الثقة ${Math.round(data.confidence * 100)}٪` : ''}`
+        : '';
+      const reply = (data.answer_ar || data.message || 'عذراً، لم أتمكن من الإجابة.') + evidence;
 
       const botMsg: Msg = {
-        id:`b_${Date.now()}`, role:'assistant', source:'claude',
+        id:`b_${Date.now()}`, role:'assistant', source:'ai-runtime',
         content:reply, timestamp:new Date(),
       };
       setMessages(m => [...m, botMsg]);
@@ -286,7 +291,7 @@ export function ChatbotPage() {
 
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [messages, loading, ctx]);
+  }, [messages, loading, ctx, activeFieldId]);
 
   const clear = () => {
     setMessages([WELCOME]);
@@ -309,7 +314,7 @@ export function ChatbotPage() {
             </h2>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[11px] text-slate-400">Claude AI · سياق المزرعة مُحقَن</span>
+              <span className="text-[11px] text-slate-400">SAHOOL AI · RAG/KG/FieldState</span>
             </div>
           </div>
         </div>
@@ -409,7 +414,7 @@ export function ChatbotPage() {
           </button>
         </form>
         <p className="text-[10px] text-slate-300 text-center mt-1.5">
-          مدعوم بـ Claude Sonnet · البيانات الزراعية مُحقنة تلقائياً
+          مدعوم بـ SAHOOL AI Runtime · RAG/KG/FieldState
         </p>
       </div>
     </div>

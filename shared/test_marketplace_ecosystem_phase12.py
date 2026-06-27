@@ -40,9 +40,7 @@ def test_manifest_validation_accepts_safe_plugin():
 
 
 def test_manifest_validation_flags_unknown_permission_and_sensitive_review():
-    review = validate_plugin_manifest(
-        safe_manifest(permissions=["field.read", "actuator.write", "unknown.scope"])
-    )
+    review = validate_plugin_manifest(safe_manifest(permissions=["field.read", "actuator.write", "unknown.scope"]))
     assert review["valid"] is False
     assert "actuator.write" in review["sensitive_permissions"]
     assert review["requires_security_review"] is True
@@ -52,30 +50,22 @@ def test_manifest_validation_flags_unknown_permission_and_sensitive_review():
 def test_marketplace_registration_and_installation_flow():
     registration = register_marketplace_app(safe_manifest())
     assert registration["app"]["status"] == "approved"
-    install = install_marketplace_app(
-        registration["app"], tenant_id="tenant-1", installed_by="user-1"
-    )
+    install = install_marketplace_app(registration["app"], tenant_id="tenant-1", installed_by="user-1")
     assert install["installed"] is True
     assert "field.read" in install["installation"]["granted_permissions"]
 
 
 def test_install_rejects_unapproved_sensitive_app():
-    registration = register_marketplace_app(
-        safe_manifest(permissions=["field.read", "actuator.write"])
-    )
+    registration = register_marketplace_app(safe_manifest(permissions=["field.read", "actuator.write"]))
     assert registration["app"]["status"] == "review"
-    install = install_marketplace_app(
-        registration["app"], tenant_id="tenant-1", installed_by="user-1"
-    )
+    install = install_marketplace_app(registration["app"], tenant_id="tenant-1", installed_by="user-1")
     assert install["installed"] is False
     assert install["reason"] == "app_not_approved"
 
 
 def test_permission_enforcement_is_fail_closed():
     registration = register_marketplace_app(safe_manifest())
-    install = install_marketplace_app(
-        registration["app"], tenant_id="tenant-1", installed_by="user-1"
-    )
+    install = install_marketplace_app(registration["app"], tenant_id="tenant-1", installed_by="user-1")
     installation = install["installation"]
     assert enforce_plugin_permission(installation, "field.read")["allowed"] is True
     denied = enforce_plugin_permission(installation, "billing.write")
@@ -91,42 +81,26 @@ def test_sandbox_policy_requires_human_approval_for_actuation():
 
 
 def test_webhook_subscription_requires_https_and_known_events():
-    bad = create_webhook_subscription(
-        "tenant-1", "http://evil.example/hook", ["field.updated"], "secret/ref"
-    )
+    bad = create_webhook_subscription("tenant-1", "http://evil.example/hook", ["field.updated"], "secret/ref")
     assert bad["created"] is False
-    good = create_webhook_subscription(
-        "tenant-1", "https://example.com/hook", ["field.updated"], "secret/ref"
-    )
+    good = create_webhook_subscription("tenant-1", "https://example.com/hook", ["field.updated"], "secret/ref")
     assert good["created"] is True
-    unknown = create_webhook_subscription(
-        "tenant-1", "https://example.com/hook", ["not.real"], "secret/ref"
-    )
+    unknown = create_webhook_subscription("tenant-1", "https://example.com/hook", ["not.real"], "secret/ref")
     assert unknown["created"] is False
 
 
 def test_webhook_delivery_signs_payload_and_ignores_unsubscribed_event():
-    sub = create_webhook_subscription(
-        "tenant-1", "https://example.com/hook", ["field.updated"], "secret/ref"
-    )["webhook"]
+    sub = create_webhook_subscription("tenant-1", "https://example.com/hook", ["field.updated"], "secret/ref")["webhook"]
     ignored = plan_webhook_delivery(sub, "alert.created", {"x": 1}, "secret")
     assert ignored["status"] == "ignored"
     delivery = plan_webhook_delivery(sub, "field.updated", {"field_id": "f1"}, "secret")
     assert delivery["status"] == "pending"
     assert delivery["headers"]["X-Sahool-Signature"].startswith("sha256=")
-    assert (
-        sign_webhook_payload(delivery["envelope"], "secret")
-        == delivery["headers"]["X-Sahool-Signature"]
-    )
+    assert sign_webhook_payload(delivery["envelope"], "secret") == delivery["headers"]["X-Sahool-Signature"]
 
 
 def test_connector_descriptor_supports_erp_equipment_and_iot_contracts():
-    descriptor = define_connector_descriptor(
-        "John Deere",
-        "equipment",
-        ["machine.sync", "field.boundary.sync"],
-        required_permissions=["field.read", "operations.write"],
-    )
+    descriptor = define_connector_descriptor("John Deere", "equipment", ["machine.sync", "field.boundary.sync"], required_permissions=["field.read", "operations.write"])
     assert descriptor["valid"] is True
     assert descriptor["connector"]["connector_type"] == "equipment"
     invalid = define_connector_descriptor("Mystery", "unknown", [])

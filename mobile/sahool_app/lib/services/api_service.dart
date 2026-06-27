@@ -12,6 +12,7 @@ import 'package:logger/logger.dart';
 import '../services/auth_service.dart';
 import '../utils/ids.dart';
 import '../utils/jwt.dart';
+import '../config/app_config.dart';
 
 /// يُرمى من [ApiService.login] حين تكون كلمة المرور صحيحة لكن الحساب يتطلّب رمز
 /// المصادقة الثنائيّة (TOTP). يكتشفها الـUI ليكشف حقل الرمز ثمّ يعيد النداء مع
@@ -33,10 +34,7 @@ class ApiService {
   static const int _maxRetries = 3;
   final _rand = Random();
 
-  static const _baseUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: 'https://api.sahool.ye',
-  );
+  static final _baseUrl = AppConfig.apiUri.toString();
 
   void _init() {
     _dio = Dio(BaseOptions(
@@ -403,13 +401,41 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> askAgent(String query, {String? fieldId}) async {
-    // البوّابة توجّه /api/agent/ → supervisor /agent/ (تطابق الويب kongApi).
-    // المسار القديم /agent/query بلا بادئة /api كان يسقط إلى الـSPA.
-    final r = await _dio.post('/api/agent/query', data: {
+    // Runtime AI Advisor الحقيقي: يمر عبر ai_agronomist المرتبط بـ CanonicalFieldState
+    // و RAG/KG/Guardrails. المسار القديم /api/agent/query يبقى في الويب القديم فقط،
+    // ولا نستخدمه هنا حتى لا يظهر رد mock/fallback في الموبايل.
+    final r = await _dio.post('/api/ai-agronomist/chat', data: {
+      'message': query,
       'query': query,
       if (fieldId != null) 'field_id': fieldId,
     });
-    return r.data as Map<String, dynamic>;
+    return _asMap(r.data);
+  }
+
+  Future<Map<String, dynamic>> getSyncManifest() async {
+    final r = await _dio.get('/api/v1/sync/manifest');
+    return _asMap(r.data);
+  }
+
+  Future<Map<String, dynamic>> getSyncStatus() async {
+    final r = await _dio.get('/api/v1/sync/status');
+    return _asMap(r.data);
+  }
+
+  Future<Map<String, dynamic>> syncOfflineOperations(
+    String tenantId,
+    List<Map<String, dynamic>> operations, {
+    String? since,
+  }) async {
+    final r = await _dio.post(
+      '/api/v1/sync',
+      queryParameters: since != null ? {'since': since} : null,
+      data: {
+        'tenant_id': tenantId,
+        'operations': operations,
+      },
+    );
+    return _asMap(r.data);
   }
 
   /// H06: كشف الآفات بالصورة — رفع multipart إلى خدمة الاستدلال الحافيّة عبر
@@ -828,6 +854,55 @@ class ApiService {
   Future<List<Map<String, dynamic>>> fetchFieldSeasons(String fieldId) async {
     final r = await _dio.get('/api/v1/fields/$fieldId/seasons');
     return _asList(r.data);
+  }
+
+
+  /// المهام اليومية/الموزّعة (GET /api/v1/tasks).
+  /// يردّ إمّا {tasks:[...]} أو قائمة مباشرة؛ نحافظ على الصدق ونرمي الخطأ.
+  Future<List<Map<String, dynamic>>> fetchTasks({String? fieldId}) async {
+    final q = <String, dynamic>{};
+    if (fieldId != null && fieldId.isNotEmpty) q['field_id'] = fieldId;
+    final r = await _dio.get('/api/v1/tasks',
+        queryParameters: q.isEmpty ? null : q);
+    final data = r.data;
+    if (data is Map && data['tasks'] is List) {
+      return (data['tasks'] as List)
+          .whereType<Map>()
+          .map((e) => e.cast<String, dynamic>())
+          .toList();
+    }
+    return _asList(data);
+  }
+
+  /// تغيير حالة مهمة موزّعة: بدء/إنجاز (PATCH /api/v1/tasks/{id}).
+  Future<Map<String, dynamic>> updateTaskStatus(String taskId, String status) async {
+    final r = await _dio.patch('/api/v1/tasks/$taskId', data: {'status': status});
+    return _asMap(r.data);
+  }
+
+  /// تسجيل عمليّة يوميّة من التطبيق (POST /api/v1/fields/{id}/activities).
+  /// هذا يزيل فجوة القراءة فقط في الموبايل: السجلّ اليومي يُدخل من التطبيق نفسه.
+  Future<Map<String, dynamic>> createFieldActivity(
+    String fieldId, {
+    required String activityType,
+    String? titleAr,
+    String? scheduledFor,
+    String? performedOn,
+    String? notes,
+  }) async {
+    final payload = <String, dynamic>{
+      'activity_type': activityType,
+      if (titleAr != null && titleAr.trim().isNotEmpty)
+        'title_ar': titleAr.trim(),
+      if (scheduledFor != null && scheduledFor.isNotEmpty)
+        'scheduled_for': scheduledFor,
+      if (performedOn != null && performedOn.isNotEmpty)
+        'performed_on': performedOn,
+      if (notes != null && notes.trim().isNotEmpty)
+        'details': {'notes': notes.trim()},
+    };
+    final r = await _dio.post('/api/v1/fields/$fieldId/activities', data: payload);
+    return _asMap(r.data);
   }
 
   /// عمليّات/أنشطة الحقل، الأحدث أوّلاً (GET /api/v1/fields/{id}/activities).

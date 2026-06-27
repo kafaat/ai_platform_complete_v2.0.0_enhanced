@@ -69,6 +69,41 @@ abstract final class AppTheme {
         unselectedItemColor: SahoolPalette.muted,
         type: BottomNavigationBarType.fixed,
       ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: SahoolPalette.card2,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: SahoolPalette.line),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: SahoolPalette.line),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: SahoolPalette.green, width: 1.6),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: SahoolPalette.card,
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: SahoolPalette.line),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: SahoolPalette.card2,
+        selectedColor: SahoolPalette.green.withOpacity(0.16),
+        labelStyle: const TextStyle(color: SahoolPalette.brown),
+        secondaryLabelStyle: const TextStyle(color: SahoolPalette.brown),
+        side: const BorderSide(color: SahoolPalette.line),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      ),
+      visualDensity: VisualDensity.standard,
     );
   }
 
@@ -127,6 +162,41 @@ abstract final class AppTheme {
         unselectedItemColor: Color(0xFF8A93A6),
         type: BottomNavigationBarType.fixed,
       ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF202434),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF2A2E3D)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFF2A2E3D)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: primary, width: 1.6),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: surface,
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0xFF2A2E3D)),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: const Color(0xFF202434),
+        selectedColor: primary.withOpacity(0.18),
+        labelStyle: const TextStyle(color: Colors.white),
+        secondaryLabelStyle: const TextStyle(color: Colors.white),
+        side: const BorderSide(color: Color(0xFF2A2E3D)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      ),
+      visualDensity: VisualDensity.standard,
     );
   }
 }

@@ -1,0 +1,119 @@
+global:
+  environment: staging
+  imageRegistry: ""
+  imagePullPolicy: IfNotPresent
+  tenantIsolation: true
+  requireRuntimeAppRole: true
+  runtimeDatabaseRole: sahool_app
+  jobsDatabaseRole: sahool_jobs
+  secretRefs:
+    databaseUrl: sahool-database-url
+    jobsDatabaseUrl: sahool-jobs-database-url
+    jwtPublicKey: sahool-jwt-public-key
+    jwtPrivateKey: sahool-jwt-private-key
+    agentToken: sahool-agent-token
+    cdseClientId: sahool-cdse-client-id
+    cdseClientSecret: sahool-cdse-client-secret
+
+namespace:
+  create: true
+  name: sahool
+
+networkPolicy:
+  enabled: true
+
+ingress:
+  enabled: true
+  className: nginx
+  host: sahool.example.invalid
+  tlsSecretName: sahool-tls
+
+resourcesDefault:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+workloads:
+  sahool-platform:
+    enabled: true
+    image: sahool/platform:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    pathPrefix: /api/v1
+    env:
+      SERVICE_NAME: sahool-platform
+      RUNTIME_ROLE_REQUIRED: "sahool_app"
+    secretEnv:
+      DATABASE_URL: databaseUrl
+      JWT_PUBLIC_KEY: jwtPublicKey
+      X_AGENT_TOKEN: agentToken
+  sahool-raster-service:
+    enabled: true
+    image: sahool/raster-service:2026.06.26-rc.15
+    replicas: 2
+    port: 8000
+    pathPrefix: /api/raster
+    env:
+      SERVICE_NAME: sahool-raster-service
+      RUNTIME_ROLE_REQUIRED: "sahool_app"
+    secretEnv:
+      DATABASE_URL: databaseUrl
+      CDSE_CLIENT_ID: cdseClientId
+      CDSE_CLIENT_SECRET: cdseClientSecret
+  sahool-ai-agronomist:
+    enabled: true
+    image: sahool/ai-agronomist:2026.06.26-rc.15
+    replicas: 2
+    port: 8093
+    pathPrefix: /api/ai-agronomist
+    env:
+      SERVICE_NAME: sahool-ai-agronomist
+      FIELD_STATE_REQUIRED: "true"
+    secretEnv:
+      X_AGENT_TOKEN: agentToken
+  sahool-rag-retrieval:
+    enabled: true
+    image: sahool/rag-retrieval:2026.06.26-rc.15
+    replicas: 2
+    port: 8130
+    pathPrefix: /api/rag
+    env:
+      SERVICE_NAME: sahool-rag-retrieval
+    secretEnv:
+      X_AGENT_TOKEN: agentToken
+  sahool-knowledge-graph:
+    enabled: true
+    image: sahool/knowledge-graph:2026.06.26-rc.15
+    replicas: 2
+    port: 8140
+    pathPrefix: /api/knowledge-graph
+    env:
+      SERVICE_NAME: sahool-knowledge-graph
+    secretEnv:
+      X_AGENT_TOKEN: agentToken
+  sahool-guardrails-engine:
+    enabled: true
+    image: sahool/guardrails-engine:2026.06.26-rc.15
+    replicas: 2
+    port: 8097
+    pathPrefix: /api/guardrails
+    env:
+      SERVICE_NAME: sahool-guardrails-engine
+    secretEnv:
+      X_AGENT_TOKEN: agentToken
+
+jobs:
+  migration:
+    enabled: true
+    image: sahool/platform:2026.06.26-rc.15
+    command: ["python", "-m", "api.migrations.run"]
+    secretEnv:
+      JOBS_DATABASE_URL: jobsDatabaseUrl
+
+observability:
+  prometheusScrape: true
+  serviceMonitor: false
+  grafanaDashboardConfigMap: sahool-grafana-dashboards

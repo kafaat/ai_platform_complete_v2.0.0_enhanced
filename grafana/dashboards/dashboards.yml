@@ -1,0 +1,11 @@
+apiVersion: 1
+providers:
+  - name: Sahool Production Dashboards
+    orgId: 1
+    folder: SAHOOL Production
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

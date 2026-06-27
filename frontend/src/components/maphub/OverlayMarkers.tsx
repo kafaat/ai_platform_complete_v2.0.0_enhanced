@@ -8,8 +8,9 @@
 // (lat/lng محسوبة من النقطة الممثِّلة لحقل العنصر فقط)؛ ما لا نقطة له يُسقَط
 // في MapHub قبل الوصول هنا ويُحتسَب في ملاحظة «غير قابل للعرض».
 // ═══════════════════════════════════════════════════════════════
-import { Marker, Tooltip } from 'react-leaflet';
+import { Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { useEffect } from 'react';
 
 // ── الأشكال المبسّطة (لا أنواع خام من api.ts داخل طبقة العرض) ──────
 export interface AlertMarker {
@@ -36,12 +37,25 @@ export interface WeatherMarker {
   tempC: number | null;
   humidityPct: number | null;
   conditionAr: string | null;
+  windSpeedKmh?: number | null;
+  windDirectionDeg?: number | null;
+}
+
+export interface OperationalMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  kind: 'equipment' | 'task' | 'pivot';
+  title: string;
+  subtitle?: string;
+  status?: string;
 }
 
 // طبقات التراكب تجلس فوق المضلّعات/البلاطات (zIndexOffset موجب كبير).
 const ALERT_Z = 800;
 const DEVICE_Z = 750;
 const WEATHER_Z = 900;
+const OPERATIONAL_Z = 780;
 
 // لون التنبيه بحسب الخطورة (أحمر/كهرمانيّ/أزرق) — افتراضيّ أزرق للمجهول.
 function alertColor(severity: string): string {
@@ -93,6 +107,123 @@ function weatherIcon(tempC: number | null, conditionAr: string | null): L.DivIco
     iconSize: [0, 0], // الحجم تلقائيّ من المحتوى
     iconAnchor: [0, 28],
   });
+}
+
+
+
+// ── طبقة طقس مرئيّة فوق الخريطة: حرارة/رطوبة + مسارات رياح ─────────────
+// هذه ليست شارة فقط؛ تُضاف كـSVG overlay داخل Leaflet فوق basemap وتحت العلامات.
+// تعتمد على بيانات الطقس الحالية للحقل المختار. إن غاب اتجاه الرياح من الـAPI
+// نعرض خطوطاً قطرية محايدة مع وسم «اتجاه غير متاح» بدل اختراع قيمة دقيقة.
+function heatFill(tempC: number | null, humidityPct: number | null): string {
+  const t = tempC ?? 30;
+  const h = humidityPct ?? 45;
+  if (t >= 38) return 'rgba(239,68,68,0.34)';
+  if (t >= 32) return 'rgba(249,115,22,0.30)';
+  if (h >= 75) return 'rgba(14,165,233,0.24)';
+  return 'rgba(245,158,11,0.22)';
+}
+
+function windStroke(width: number): string {
+  const safe = Math.max(1, Math.min(5, width));
+  return String(safe);
+}
+
+function weatherOverlaySvg(marker: WeatherMarker): SVGSVGElement {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 1000 1000');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.setAttribute('role', 'img');
+  const temp = marker.tempC != null ? `${Math.round(marker.tempC)}°م` : 'حرارة غير متاحة';
+  const wind = marker.windSpeedKmh != null ? `${Math.round(marker.windSpeedKmh)} كم/س` : 'سرعة الرياح غير متاحة';
+  svg.setAttribute('aria-label', `طبقة الطقس فوق الخريطة: ${temp}، ${wind}`);
+
+  const bg = document.createElementNS(ns, 'rect');
+  bg.setAttribute('x', '0'); bg.setAttribute('y', '0');
+  bg.setAttribute('width', '1000'); bg.setAttribute('height', '1000');
+  bg.setAttribute('fill', heatFill(marker.tempC, marker.humidityPct));
+  svg.appendChild(bg);
+
+  const dir = marker.windDirectionDeg ?? 315;
+  const speed = marker.windSpeedKmh ?? 12;
+  const strokeW = windStroke(1.4 + speed / 18);
+  const g = document.createElementNS(ns, 'g');
+  g.setAttribute('transform', `rotate(${dir} 500 500)`);
+  g.setAttribute('opacity', marker.windDirectionDeg == null ? '0.42' : '0.68');
+  for (let row = -80; row <= 1080; row += 115) {
+    for (let col = -120; col <= 1120; col += 170) {
+      const path = document.createElementNS(ns, 'path');
+      const wobble = ((row + col) % 90) - 45;
+      path.setAttribute('d', `M ${col} ${row} C ${col + 52} ${row + wobble * 0.16}, ${col + 94} ${row + 20}, ${col + 142} ${row - 4}`);
+      path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', 'rgba(255,255,255,0.72)');
+      path.setAttribute('stroke-width', strokeW);
+      path.setAttribute('stroke-linecap', 'round');
+      path.setAttribute('stroke-dasharray', '58 34');
+      path.innerHTML = '<animate attributeName="stroke-dashoffset" from="92" to="0" dur="2.8s" repeatCount="indefinite" />';
+      g.appendChild(path);
+    }
+  }
+  svg.appendChild(g);
+  return svg;
+}
+
+export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!marker) return undefined;
+    const bounds = map.getBounds().pad(1.25);
+    const overlay = L.svgOverlay(weatherOverlaySvg(marker), bounds, {
+      opacity: 1,
+      interactive: false,
+      pane: 'overlayPane',
+    }).addTo(map);
+    overlay.getElement()?.classList.add('sahool-weather-raster-overlay');
+    return () => { overlay.remove(); };
+  }, [map, marker]);
+  return null;
+}
+
+
+function operationalIcon(kind: OperationalMarker['kind'], status?: string): L.DivIcon {
+  const s = (status ?? '').toLowerCase();
+  const bg = kind === 'pivot'
+    ? '#38bdf8'
+    : kind === 'task'
+      ? (s === 'completed' ? '#22c55e' : s === 'in_progress' ? '#f59e0b' : '#a3e635')
+      : (['broken', 'maintenance', 'down'].includes(s) ? '#ef4444' : '#84cc16');
+  const glyph = kind === 'pivot' ? '◔' : kind === 'task' ? '✓' : '⚙';
+  return L.divIcon({
+    className: `sahool-operational-marker sahool-operational-${kind}`,
+    html:
+      `<div style="width:20px;height:20px;border-radius:7px;background:${bg};` +
+      `border:2px solid #0d1611;box-shadow:0 1px 3px rgba(0,0,0,.6);` +
+      `display:flex;align-items:center;justify-content:center;` +
+      `color:#0d1611;font-size:13px;font-weight:900;line-height:1">${glyph}</div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+}
+
+export function OperationalOverlay({ markers }: { markers: OperationalMarker[] }) {
+  if (!markers.length) return null;
+  return (
+    <>
+      {markers.map((m) => (
+        <Marker
+          key={`ops-${m.kind}-${m.id}`}
+          position={[m.lat, m.lng]}
+          icon={operationalIcon(m.kind, m.status)}
+          zIndexOffset={OPERATIONAL_Z}
+        >
+          <Tooltip direction="top" offset={[0, -8]}>
+            <span dir="rtl">{m.title}{m.subtitle ? ` · ${m.subtitle}` : ''}</span>
+          </Tooltip>
+        </Marker>
+      ))}
+    </>
+  );
 }
 
 const onlineAr = (online: boolean) => (online ? 'متصل' : 'غير متصل');

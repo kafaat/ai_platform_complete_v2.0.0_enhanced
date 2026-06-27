@@ -1,0 +1,11 @@
+{
+  "sdk_mode": "static-only",
+  "tests_found": [
+    "test/auth_service_test.dart",
+    "test/ids_test.dart",
+    "test/jwt_test.dart",
+    "test/resilience_test.dart"
+  ],
+  "issues": [],
+  "ok": true
+}

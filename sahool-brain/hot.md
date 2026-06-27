@@ -1,41 +1,55 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-27 · رأس `main`: [`09eeaeb`](../) (#483 مُدمج) · فرع العمل `claude/imagery-indicator-flow`
-> (تصحيح تدفّق مؤشّر الصور — هندسة محور جيوديسيّة (frontend/backend متطابقان)، تحديث geometry يحدّث area/lat/lon، سلسلة زمنيّة صارمة + ترطيب من raster_assets، واجهة خريطة المؤشّر — [`log.md`](log.md) مدخل (ن)؛
-> سبقه (م) كنس تسريب المعلومات + IDOR · (ل) تشديد /health · (ك) Actuator Safety Hardening · (ق) جسر Shard 3 · (ف) كنس الفجوات · (غ) Sustainability · ...).
-> **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) + حلقة مغلقة محروسة آمنة-افتراضيّاً (Dispatch bridge + Safety hardening) — قياس صادق + تنفيذ فيزيائيّ fail-safe محكوم بالإنسان. SAM2/MAP-QA env-unverified.
+> **آخر تحديث:** 2026-06-24 · حزمة العمل المحليّة: `4942b69_sahool_brain_forensic_verified`.
+> الحالة الحالية: **Farm Operations Ledger + Budget/Costing + Closed Loop Economic Projections** مضافة خلف أعلام OFF افتراضياً، وتمت إضافة/تشغيل تتبّع جنائي لعقل سهول: نواة الحقل، تحكيم الملوحة، D2 water-stress، محرك التوصية، provenance، وRBAC delivery. طبقة التنفيذ الفيزيائي ما زالت `implemented-gated-fail-safe`، وERP إسقاط اختياري لا كتابة فعلية.
 
-## عمل هذه الجلسة (#437 → #447)
+## إنجازات الجلسات الأخيرة المؤكّدة
 
-سلسلة إصلاحات وتفعيلات متتابعة على رأس `main` (راجع [`log.md`](log.md) و
-[`decisions/ledger.md`](decisions/ledger.md) للتفاصيل + الأسباب):
+- **Actuator Safety Hardening** — `ACTUATOR_MODE` الافتراضي = `simulation`؛ لا real إلا بتعيين صريح، وكل مسارات dispatch/automation/manual محروسة بأعلام OFF افتراضياً.
+- **Field/Raster Flow** — إصلاحات رسم الحقل والمحوري geodesic، حفظ pivot parameters، timeline بعد restart، tile date/indicator selection، legend في tilejson، واختبار raster bleed.
+- **ADR-0001 ERP Provider** — `ERP_PROVIDER=odoo|erpnext|none` عبر `ERPProvider`، وOdoo لم يعد إلزامياً.
+- **Farm Operations Ledger** — سجلات رقابية للأعمال اليومية والمياه والطاقة والمعدات والعمالة والمواد خلف `FEATURE_FARM_OPERATIONS_LEDGER`.
+- **Budget/Costing/Variance/Profitability** — موازنة الموسم، بنود الموازنة، الإيرادات، التكاليف غير المباشرة، الانحرافات، الربحية، وتوصيات تكلفة تحفظية.
+- **Closed Loop Economic Projections** — autowrite preview، inventory projection-only، ERP projection-only، economic snapshot اختياري، بلا كتابة Inventory/ERP/CanonicalFieldState افتراضياً.
+- **Inspector Cleanup** — تحذير NATS المعروف `sahool.weather.field.overlay.completed` صار **declared future subject** داخل المفتّش، ونقاط public reference لم تعد WARN لأنها لا تمس قاعدة/مستأجر.
+- **Sahool Brain Forensic Tests** — اختبار جديد `tests_v9/test_sahool_brain_forensic.py` يغطي: Salinity>Vigor arbitration، بوابة D2b (AWF+confidence+NDMI/MSI)، حجب تناقضات الري، عقود blocked/limited للتوصيات، وdelivery pipeline مع provenance/RBAC. أُصلح تمرير `issue_type` داخل `full_delivery_pipeline` إلى `enrich_with_context`.
 
-- **#437** — إصلاح جذريّ لـauth: حقن سياق admin على كلّ اكتساب اتّصال (`_acquire`) لإصلاح RLS
-  التسجيل/الدخول.
-- **#438/#439** — تفعيل صور Sentinel الحقيقيّة تلقائيّاً عند إنشاء الحقل (بلا محاكاة) + خادم
-  SAM2 على GPU (opt-in خلف profile=gpu).
-- **#440/#442** — توحيد وكيل تطوير Vite مع بوّابة nginx (v9) لإصلاح `npm run dev` + رؤية تشخيصيّة.
-- **#441** — سويت Playwright لبوّابة QA لـMapLibre/WebGL (9 خطوات) + وظيفة CI.
-- **#443** — دمج/انقسام الحقول ذرّيّاً عبر نقطتَي backend (سدّ خطر البيانات الثلاثيّة).
-- **#444/#445/#446/#447** — تكافؤ الموبايل: مسار سلسلة NDVI، مصدر المؤشّرات الصحيح + إدارة
-  المزارع، ربط أقسام مساحة العمل، السمة الداكنة الرسميّة.
-- **هذه الجلسة** — إنشاء **Sahool Knowledge Brain** نفسه (هذا الـvault).
+## حالة التحقق الأخيرة
 
-## أعلى الفجوات المفتوحة الآن
+```text
+PYTHONPATH=services/sahool-platform pytest -q \
+  tests_v9/test_sahool_brain_forensic.py \
+  services/sahool-platform/tests/test_agronomic_state_engine.py \
+  services/sahool-platform/tests/test_recommendation_engine.py \
+  services/sahool-platform/tests/test_decision_engine.py \
+  services/sahool-platform/tests/test_recommendation_bridge.py \
+  tests_v9/test_canonical_water_stress.py
+→ 95 passed
 
-(السجلّ الكامل + المصادر في [`gaps/registry.md`](gaps/registry.md))
+PYTHONPATH=services/sahool-platform python import sweep core+api
+→ 480 OK / 0 FAIL
 
-| ID | العنوان | الحالة |
+python -m compileall -q services/sahool-platform/core/recommendation_bridge.py tests_v9/test_sahool_brain_forensic.py
+→ passed
+
+python tools/sahool_inspector.py
+→ PASS كامل: RLS/router/NATS/authz/migrations بلا WARN/FAIL
+```
+
+## أعلى الأعمال المتبقية
+
+| الأولوية | البند | الحالة |
 |---|---|---|
-| C1/C2 | التوصية تُولَّد بلا تخزين/تدقيق كامل لربط الشرح بـ`rec_id` | open (جزئيّ — v77 موجود) |
-| C5 | NDVI الحقيقيّ معلوماتيّ لا يُغيّر صلاحيّة القرار | open (معماريّ — يحتاج تحقّقاً ميدانيّاً) |
-| H2 | اشتراكات NATS يتيمة (بلا ناشر) | open |
-| C4/M1 | الموبايل: بنية push/FCM + عميل WebSocket | open (يحتاج بيئة Flutter) |
-| SAM2 | خادم الاستدلال يحتاج GPU (opt-in)، 503 صادق بدونه | open (تشغيليّ) |
-| — | TerrainView3D `/terrain` (مسار خادميّ) | open (P2) |
+| ✅ | تشغيل فحوص حيّة Docker: DB/حقول/مزارع | **مؤكَّد 2026-06-25** — POST/GET /api/v1/fields 201/200 OK |
+| P1 | Daily Farm Log UI + Mobile Offline Forms | غير منفّذ |
+| P1 | Inventory/ERP writes الحقيقية | مؤجلة؛ حالياً projection-only |
+| P2 | معايرة Cost Intelligence على بيانات مواسم فعلية | يحتاج بيانات |
+| P2 | SAM2/MAP-QA | implemented-gated-but-env-unverified |
 
-## ماذا بعد؟
+## إصلاحات جلسة 2026-06-25
 
-- ربط/تقليم اشتراكات NATS اليتيمة (H2/M5).
-- توحيد ET0/الريّ (H4/H5) — قرار أغرونوميّ.
-- بنية push للموبايل (C4/M1).
+- **`planting_date` column**: `migrations/v103_fields_planting_date.sql` — غياب العمود كان يُسبّب 503 عند إنشاء أيّ حقل.
+- **tenant_query_audit Windows fix**: `scripts/tenant_query_audit.py:130` — path separator normalization؛ اختبار CI `test_no_unclassified_raw_tenant_queries` أصبح ✅.
+- **Unit tests**: **1866 passed, 0 failed** (coverage 48.41%).
+- **ReplayMapPage.test.tsx** — 6/6 ✅: إصلاح timezone bug (span date-only strings = UTC-safe).
+- **sahool-migrate seed idempotency**: `migrations/init_v8.sql:478` — `ON CONFLICT (field_id, tenant_id)` → `ON CONFLICT (field_id)` يُصلح فشل إعادة الإقلاع على DB موجودة (NULL≠NULL في UNIQUE المركّب).

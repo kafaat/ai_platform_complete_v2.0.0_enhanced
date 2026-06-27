@@ -89,3 +89,244 @@ BASE_URL=http://localhost python scripts/smoke_e2e.py
   الحارس مُفعَّلاً.
 - **إقلاع أسرع للتطوير:** في `fixed.yml` بوّابة nginx لم تعد تنتظر صحّة الخدمات الثقيلة
   الاختياريّة (market/odoo/rag) — `service_started` بدل `service_healthy`.
+
+## Production Validation Gate — final preflight
+
+قبل أي نشر فعلي، شغّل البوابة الموحدة التالية من جذر المشروع:
+
+```bash
+./scripts/production_validation_gate.sh
+```
+
+هذه البوابة تمنع أهم انحدارات الإنتاج المعروفة في SAHOOL:
+
+1. عدم وجود أسرار فعلية أو token مولّد داخل الملفات الملتزمة.
+2. منع `DATABASE_URL` من استخدام `postgres` أو `sahool_user` في runtime.
+3. تثبيت runtime app role على `sahool_app` فقط.
+4. حصر `JOBS_DATABASE_URL` في مسارات الخلفية المعتمدة فقط.
+5. منع `SAHOOL_ALLOW_RLS_BYPASS_ROLE` في compose.
+6. فحص صياغة `docker-compose.v9.yml` قبل التشغيل.
+7. فحص ترتيب `migrations/MANIFEST.txt` وعدم تكرار إصدارات الهجرات.
+8. فحص compile لكل ملفات Python القابلة للفحص.
+
+قاعدة التشغيل: إذا فشلت هذه البوابة، لا تبدأ `docker compose up` للإنتاج.
+
+### التسلسل المقترح بعد نجاح البوابة
+
+```bash
+./scripts/production_validation_gate.sh
+docker compose -f docker-compose.v9.yml config
+docker compose -f docker-compose.v9.yml up -d
+BASE_URL=http://localhost ./scripts/runtime_smoke.sh
+SAHOOL_JWT=<jwt> TENANT_ID=<tenant> FIELD_ID=<field> BASE_URL=http://localhost ./scripts/e2e/e2e_field_imagery_ai.sh
+./scripts/recovery/recovery_smoke.sh
+```
+
+## Phase 13 — Production Observability Dashboards
+
+Before production, validate the monitoring assets:
+
+```bash
+python scripts/observability/validate_observability_assets.py
+pytest -q tests/observability/test_phase13_observability_assets.py
+```
+
+Start monitoring services:
+
+```bash
+docker compose -f docker-compose.v9.yml up -d sahool-prometheus sahool-alertmanager sahool-grafana
+```
+
+Check readiness:
+
+```bash
+curl -fsS http://localhost:9090/-/ready
+curl -fsS http://localhost:3001/api/health
+```
+
+Grafana should provision:
+
+- `SAHOOL Production Overview`
+- `SAHOOL Field Imagery AI Runtime`
+
+Prometheus should load the `sahool-production-slos` group from `prometheus/alerts.yml`.
+
+## Phase 14 release packaging gate
+
+Before handing this bundle to deployment or operations, run:
+
+```bash
+python scripts/release/build_release_bundle.py
+python scripts/release/validate_release_package.py
+```
+
+Expected generated assets:
+
+```text
+release/SAHOOL_RELEASE_MANIFEST_20260626.json
+release/FILE_CHECKSUMS.sha256
+release/SBOM_MINIMAL.json
+release/DEPLOYMENT_READINESS_CHECKLIST.md
+```
+
+A release is blocked if checksum validation fails, if required runtime gates are missing, or if the release manifest reports missing required assets.
+
+
+
+## Phase 15 — Kubernetes / Helm Deployment Gate
+
+Before deploying to Kubernetes:
+
+```bash
+./scripts/production_validation_gate.sh
+python scripts/observability/validate_observability_assets.py
+python scripts/deploy/validate_helm_readiness.py --env production
+python scripts/release/validate_release_package.py
+```
+
+Staging deployment:
+
+```bash
+./scripts/deploy/deploy_staging.sh
+```
+
+Production deployment:
+
+```bash
+./scripts/deploy/deploy_production.sh
+```
+
+Required production secrets must be created by External Secrets, Sealed Secrets, or the platform secret manager. Do not deploy placeholder secret manifests.
+
+Post-deploy checks:
+
+```bash
+kubectl -n sahool get pods
+kubectl -n sahool get ingress
+kubectl -n sahool rollout status deploy/sahool-platform
+kubectl -n sahool rollout status deploy/sahool-raster-service
+kubectl -n sahool rollout status deploy/sahool-ai-agronomist
+```
+
+## CI/CD Quality Gates
+
+Before opening a release PR or deploying to staging/production, run:
+
+```bash
+./scripts/ci/local_quality_gate.sh
+```
+
+The GitHub workflow `.github/workflows/sahool-production-gates.yml` mirrors the local gate and must pass before merge. The workflow intentionally uses read-only repository permissions and does not allow soft-failing quality gates.
+
+## Phase 17 Runtime Bootstrap Doctor
+
+Before starting services, run the environment doctor. It checks required assets, environment variables, runtime DB roles, migration registration, compose static safety, Docker availability, and local port conflicts.
+
+```bash
+python scripts/runtime/env_doctor.py --mode preflight --format text
+```
+
+After Docker Compose or Kubernetes ingress is available, run runtime checks:
+
+```bash
+BASE_URL=http://localhost python scripts/runtime/env_doctor.py --mode runtime --format text
+```
+
+For a JSON report suitable for CI artifacts or handoff packages:
+
+```bash
+MODE=full BASE_URL=http://localhost ./scripts/runtime/runtime_doctor.sh
+```
+
+Readiness meanings:
+
+- `ready`: no blocking failures or warnings.
+- `attention`: no blocking failures, but operator review is required.
+- `blocked`: do not deploy until failed checks are resolved.
+
+
+## Phase 18 urgent runtime fixes
+
+- Fixed GitHub Actions shell syntax and added workflow shell `bash -n` validation.
+- Made chaos E2E/outbox checks blocking instead of `|| true`.
+- Added production fail-closed persistence for Phase 9-12 when `db_pool` or `X-Tenant-Id` is missing.
+- Added Phase runtime workers for outbox, plugins, model rollback, and actuator dispatch.
+- Added `v113_phase_runtime_workers_jobs.sql` for RLS-safe `sahool_jobs` worker policies.
+- Rebuilt `migrations/MANIFEST.md` to mirror `migrations/MANIFEST.txt`.
+
+## Phase 19 operational notes
+
+Before applying database changes, use the manifest validator:
+
+```bash
+python scripts/migrations/validate_migration_manifest.py --root .
+```
+
+Use the compatibility migration entry points only after this check passes; both are now generated or driven from `migrations/MANIFEST.txt`:
+
+```bash
+python scripts_v9/migrate.py status
+python scripts_v9/migrate.py up --dry-run
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts_v9/run_migrations.sql
+```
+
+Operational shell scripts may be executed directly when executable bits are preserved, but CI and runbooks should prefer `bash path/to/script.sh` for ZIP/platform compatibility.
+
+
+## Phase 20 Runtime Worker Side-Effect Configuration
+
+Before enabling real side effects, configure the following explicitly:
+
+```bash
+# Plugin execution
+PLUGIN_EXECUTION_ENABLED=true
+PLUGIN_EXECUTOR_URL=http://plugin-runner:8080
+
+# Model serving
+MODEL_SERVING_ENABLED=true
+MODEL_SERVING_ROLLBACK_ENABLED=true
+MODEL_SERVING_BACKEND_URL=http://model-serving:8080
+
+# Physical adapters: example only; keep disabled until hardware verification is complete.
+PHYSICAL_ACTUATION_ENABLED=true
+ACTUATOR_ADAPTER_CONFIG_JSON='{"modbus_tcp":{"enabled":true,"mode":"real","endpoint":"tcp://10.0.0.10:502"}}'
+```
+
+Expected worker states:
+
+- Plugin execution without `PLUGIN_EXECUTOR_URL`: `blocked`.
+- Model promotion without artifact metadata or serving backend: `blocked` / alias remains non-final.
+- Actuator dispatch without real adapter config: `adapter_required`.
+- Actuator dispatch with real adapter config: `waiting_ack`, not `physical_effect=true` until telemetry/ACK verification is implemented.
+
+## Phase 21 certification readiness
+
+Run static certification readiness gates:
+
+```bash
+python3 scripts/architecture/legacy_path_audit.py --root . --strict
+python3 scripts/architecture/source_of_truth_audit.py --root . --strict
+python3 scripts/certification/validate_certification_matrix.py --root .
+```
+
+Prepare a 7-day or 14-day soak:
+
+```bash
+TENANTS=1000 FIELDS=100000 DAYS=7 bash scripts/soak/run_soak_test.sh
+# After live workload aggregation:
+python3 scripts/soak/soak_assertions.py --metrics-json soak-results/metrics.json
+python3 scripts/soak/soak_report.py --scenario-json soak-results/scenario.json --metrics-json soak-results/metrics.json
+```
+
+Do not mark Sahool as `Production Certified` until the certification matrix has been updated with runtime, staging, and soak evidence.
+
+## Phase 22 RLS Write-Path Gate
+
+Before production deployment, run:
+
+```bash
+python scripts/security/validate_rls_write_policies.py --root .
+bash scripts/production_validation_gate.sh
+```
+
+The migration `v122_rls_with_check_session_unification.sql` must be applied after all legacy migrations. It backfills `WITH CHECK` on tenant write policies and normalizes `app.current_tenant` / `app.tenant_id`.

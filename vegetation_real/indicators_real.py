@@ -13,16 +13,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import math
 import os
-from datetime import date, datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, date, datetime, timedelta
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from wofost_real.wofost_engine import simulate_wofost, fetch_weather_real
+from wofost_real.wofost_engine import fetch_weather_real, simulate_wofost
 
 logger = logging.getLogger("indicators-real")
 logging.basicConfig(level=logging.INFO)
@@ -134,9 +132,12 @@ async def compute_all_indicators(field_id: str) -> dict:
         veg_task, wx_task, wofost_task, return_exceptions=True
     )
 
-    if isinstance(veg_data, Exception): veg_data = {}
-    if isinstance(weather,   Exception): weather   = []
-    if isinstance(wofost,    Exception): wofost    = {}
+    if isinstance(veg_data, Exception):
+        veg_data = {}
+    if isinstance(weather, Exception):
+        weather = []
+    if isinstance(wofost, Exception):
+        wofost = {}
 
     # ② استخراج القيم
     indices  = veg_data.get("indices", {})
@@ -150,8 +151,6 @@ async def compute_all_indicators(field_id: str) -> dict:
     # طقس حقيقي
     rain_14d = sum(d["rain_mm"] for d in weather) if weather else 15.0
     et0_14d  = sum(d["et0_mm"]  for d in weather) if weather else 56.0
-    avg_tmax = sum(d["tmax"]    for d in weather) / max(1, len(weather)) if weather else 30.0
-    avg_tmin = sum(d["tmin"]    for d in weather) / max(1, len(weather)) if weather else 15.0
 
     # WOFOST
     sim      = wofost.get("simulation", {})
@@ -312,18 +311,20 @@ async def compute_all_indicators(field_id: str) -> dict:
             "soil":        "ISRIC SoilGrids + FAO Yemen",
             "crop_model":  "WOFOST-RUE + FAO-56",
         },
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
 def _classify(value: float, thresholds: list) -> str:
     for threshold, status in thresholds:
-        if value >= threshold: return status
+        if value >= threshold:
+            return status
     return "critical"
 
 def _classify_inverse(value: float, thresholds: list) -> str:
     for threshold, status in thresholds:
-        if value <= threshold: return status
+        if value <= threshold:
+            return status
     return "critical"
 
 

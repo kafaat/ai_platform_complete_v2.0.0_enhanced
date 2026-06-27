@@ -27,7 +27,7 @@ interface ContextBarProps {
 
 // نمط موحّد لمحدّد سياقيّ بسيط (<select>) — نفس رموز اللوحة الداكنة.
 const selectClass =
-  'hidden lg:inline-flex text-xs rounded-lg px-2 py-1.5 bg-slate-800 text-slate-300 border border-slate-700 focus:outline-none focus:border-emerald-700';
+  'hidden lg:inline-flex text-xs rounded-xl px-3 py-2 bg-[rgb(var(--sahool-surface-2))] text-[rgb(var(--sahool-text))] border border-[rgb(var(--sahool-border))] focus:outline-none focus:border-[rgb(var(--sahool-border-focus))]';
 
 export default function ContextBar({ onMenu, theme, setTheme, tenantName, tenantLogo }: ContextBarProps) {
   const location = useLocation();
@@ -43,34 +43,33 @@ export default function ContextBar({ onMenu, theme, setTheme, tenantName, tenant
   const Icon = route?.icon ?? LayoutDashboard;
 
   return (
-    <header className="flex items-center gap-3 px-4 py-3 border-b"
-      style={{ background: '#0d1117', borderColor: '#1e293b' }}>
+    <header className="flex items-center gap-3 px-4 py-3 border-b sahool-glass sahool-safe-top sticky top-0 z-30">
       <button onClick={onMenu} aria-label="فتح القائمة"
-        className="md:hidden p-2 rounded-lg hover:bg-slate-800 text-slate-400">
+        className="md:hidden p-2 rounded-xl hover:bg-[rgb(var(--sahool-surface-2))] text-[rgb(var(--sahool-muted))]">
         <Menu className="w-5 h-5" />
       </button>
 
       {/* شعار المستأجِر — يُعرَض فقط عند وجود رابط فعليّ (لا صورة مكسورة). */}
       {tenantLogo && (
-        <img src={tenantLogo} alt={tenantName || 'شعار المستأجِر'}
+        <img src={tenantLogo} alt={tenantName || 'شعار المستأجِر'} loading="lazy" decoding="async"
           className="h-6 w-auto max-w-[120px] object-contain flex-shrink-0" />
       )}
 
       {/* الفُتات: القسم ‹ الصفحة */}
-      <Icon className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+      <Icon className="w-5 h-5 text-emerald-500 flex-shrink-0" aria-hidden="true" />
       <div className="flex items-center gap-1.5 min-w-0">
         {section && (
           <>
-            <span className="hidden sm:inline text-xs text-slate-500 truncate">{section.label}</span>
+            <span className="hidden sm:inline text-xs text-[rgb(var(--sahool-muted))] truncate">{section.label}</span>
             <ChevronLeft className="hidden sm:inline w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
           </>
         )}
-        <h1 className="text-base font-bold text-slate-100 truncate">{route?.label ?? 'لوحة المعلومات'}</h1>
+        <h1 className="text-base font-bold text-[rgb(var(--sahool-text))] truncate">{route?.label ?? 'لوحة المعلومات'}</h1>
       </div>
 
       {/* اسم المستأجِر — يظهر بجوار العنوان فقط حين يوفّره التكوين. */}
       {tenantName && (
-        <span className="hidden sm:inline text-sm text-slate-400 truncate max-w-[180px]">
+        <span className="hidden sm:inline text-sm text-[rgb(var(--sahool-muted))] truncate max-w-[180px]">
           · {tenantName}
         </span>
       )}

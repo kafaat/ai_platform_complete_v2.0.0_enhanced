@@ -5,21 +5,20 @@ execution.  It is deliberately dependency-light: production adapters can bind
 MQTT/Modbus/ISOBUS, PostGIS, NATS, model registries and feature stores behind
 these deterministic contracts without changing the public shapes.
 """
-
 from __future__ import annotations
 
-import hashlib
-import json
-import math
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from statistics import mean
 from typing import Any
+import hashlib
+import json
+import math
 
 
 def _now() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -131,21 +130,14 @@ def evaluate_autonomy_safety_gate(
         reasons.append("actuator_telemetry_offline")
     if telemetry.get("manual_override") is True:
         reasons.append("manual_override_active")
-    if float(policy.get("max_risk_score", 0.35)) < float(
-        recommendation.get("decision", {}).get("risk_score", 0.0) or 0.0
-    ):
+    if float(policy.get("max_risk_score", 0.35)) < float(recommendation.get("decision", {}).get("risk_score", 0.0) or 0.0):
         reasons.append("risk_score_exceeds_policy")
     if mode_value == AutonomyMode.SHADOW.value:
         reasons.append("shadow_mode_no_dispatch")
-    if mode_value == AutonomyMode.FULL_AUTONOMY.value and not policy.get(
-        "full_autonomy_enabled", False
-    ):
+    if mode_value == AutonomyMode.FULL_AUTONOMY.value and not policy.get("full_autonomy_enabled", False):
         reasons.append("full_autonomy_not_enabled_for_tenant")
 
-    required_approval = mode_value in {
-        AutonomyMode.HUMAN_APPROVAL.value,
-        AutonomyMode.SUPERVISED_AUTONOMY.value,
-    }
+    required_approval = mode_value in {AutonomyMode.HUMAN_APPROVAL.value, AutonomyMode.SUPERVISED_AUTONOMY.value}
     if required_approval and not recommendation.get("decision", {}).get("operator_approved", False):
         reasons.append("operator_approval_required")
 
@@ -183,35 +175,17 @@ def build_actuator_commands(
     actuator_type = "work_order"
     if action_type in {"irrigation", "irrigate", "water"}:
         actuator_type = "pivot_or_valve"
-        payload = {
-            "operation": "apply_irrigation",
-            "water_mm": float(decision.get("water_mm", decision.get("amount_mm", 8.0) or 8.0)),
-        }
+        payload = {"operation": "apply_irrigation", "water_mm": float(decision.get("water_mm", decision.get("amount_mm", 8.0) or 8.0))}
     elif action_type in {"fertigation", "fertilization", "nitrogen"}:
         actuator_type = "fertigation_controller"
-        payload = {
-            "operation": "apply_fertilizer",
-            "rate_kg_ha": float(decision.get("rate_kg_ha", 25.0) or 25.0),
-        }
+        payload = {"operation": "apply_fertilizer", "rate_kg_ha": float(decision.get("rate_kg_ha", 25.0) or 25.0)}
     elif action_type in {"spraying", "spray"}:
         actuator_type = "sprayer_task"
-        payload = {
-            "operation": "create_spray_task",
-            "product": decision.get("product", "unspecified"),
-            "area_ha": decision.get("area_ha"),
-        }
+        payload = {"operation": "create_spray_task", "product": decision.get("product", "unspecified"), "area_ha": decision.get("area_ha")}
     else:
-        payload = {
-            "operation": "create_manual_task",
-            "action_type": action_type,
-            "summary": decision.get("summary"),
-        }
+        payload = {"operation": "create_manual_task", "action_type": action_type, "summary": decision.get("summary")}
 
-    material = {
-        "rec": recommendation.get("recommendation_id"),
-        "target": target_id,
-        "payload": payload,
-    }
+    material = {"rec": recommendation.get("recommendation_id"), "target": target_id, "payload": payload}
     command = ActuatorCommand(
         command_id=_stable_id(material, "cmd"),
         recommendation_id=str(recommendation.get("recommendation_id")),
@@ -237,24 +211,11 @@ def plan_closed_loop_execution(
     actuator_registry: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Create a safe observe→decide→dispatch→verify→learn execution plan."""
-    gate = evaluate_autonomy_safety_gate(
-        recommendation, mode=mode, policy=policy, telemetry=telemetry
-    )
-    commands = (
-        []
-        if not gate["permitted"]
-        else build_actuator_commands(recommendation, actuator_registry=actuator_registry)
-    )
-    status = (
-        ExecutionStatus.DISPATCH_READY.value
-        if gate["permitted"]
-        else ExecutionStatus.SAFETY_BLOCKED.value
-    )
+    gate = evaluate_autonomy_safety_gate(recommendation, mode=mode, policy=policy, telemetry=telemetry)
+    commands = [] if not gate["permitted"] else build_actuator_commands(recommendation, actuator_registry=actuator_registry)
+    status = ExecutionStatus.DISPATCH_READY.value if gate["permitted"] else ExecutionStatus.SAFETY_BLOCKED.value
     plan = ExecutionPlan(
-        execution_id=_stable_id(
-            {"rec": recommendation.get("recommendation_id"), "gate": gate, "commands": commands},
-            "exec",
-        ),
+        execution_id=_stable_id({"rec": recommendation.get("recommendation_id"), "gate": gate, "commands": commands}, "exec"),
         recommendation_id=str(recommendation.get("recommendation_id")),
         source_state_id=str(recommendation.get("source_state_id")),
         field_id=str(recommendation.get("field_id")),
@@ -289,16 +250,8 @@ def verify_execution_effect(
     completed = bool(command_ids) and command_ids.issubset(acknowledgements)
     applied = telemetry.get("applied", {})
 
-    before_truths = (
-        (before_state or {}).get("state", before_state or {}).get("operational_truths", {})
-        if before_state
-        else {}
-    )
-    after_truths = (
-        (after_state or {}).get("state", after_state or {}).get("operational_truths", {})
-        if after_state
-        else {}
-    )
+    before_truths = (before_state or {}).get("state", before_state or {}).get("operational_truths", {}) if before_state else {}
+    after_truths = (after_state or {}).get("state", after_state or {}).get("operational_truths", {}) if after_state else {}
     ndvi_delta = None
     try:
         ndvi_delta = float(after_truths.get("ndvi", 0)) - float(before_truths.get("ndvi", 0))
@@ -307,20 +260,13 @@ def verify_execution_effect(
 
     success = completed and telemetry.get("fault") is None
     return {
-        "verification_id": _stable_id(
-            {"exec": execution_plan.get("execution_id"), "telemetry": telemetry}, "ver"
-        ),
+        "verification_id": _stable_id({"exec": execution_plan.get("execution_id"), "telemetry": telemetry}, "ver"),
         "execution_id": execution_plan.get("execution_id"),
         "recommendation_id": execution_plan.get("recommendation_id"),
-        "status": ExecutionStatus.EFFECT_VERIFIED.value
-        if success
-        else ExecutionStatus.FAILED.value,
+        "status": ExecutionStatus.EFFECT_VERIFIED.value if success else ExecutionStatus.FAILED.value,
         "operation_completed": completed,
         "target_applied": applied,
-        "field_response": {
-            "ndvi_delta": ndvi_delta,
-            "after_status": after_truths.get("effective_status"),
-        },
+        "field_response": {"ndvi_delta": ndvi_delta, "after_status": after_truths.get("effective_status")},
         "fault": telemetry.get("fault"),
         "verified_at": _now(),
     }
@@ -335,11 +281,7 @@ def flatten_feature_record(
     features: dict[str, Any],
     labels: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    numeric_values = [
-        float(v)
-        for v in features.values()
-        if isinstance(v, (int, float)) and math.isfinite(float(v))
-    ]
+    numeric_values = [float(v) for v in features.values() if isinstance(v, (int, float)) and math.isfinite(float(v))]
     quality = {
         "feature_count": len(features),
         "numeric_feature_count": len(numeric_values),
@@ -347,10 +289,7 @@ def flatten_feature_record(
         "mean_numeric_value": mean(numeric_values) if numeric_values else None,
     }
     rec = FeatureRecord(
-        feature_id=_stable_id(
-            {"entity": entity_id, "set": feature_set, "features": features, "labels": labels or {}},
-            "feat",
-        ),
+        feature_id=_stable_id({"entity": entity_id, "set": feature_set, "features": features, "labels": labels or {}}, "feat"),
         entity_type=entity_type,
         entity_id=entity_id,
         feature_set=feature_set,
@@ -374,28 +313,24 @@ def build_feature_store_batch(
     phase6 = canonical_runtime.get("phase6_runtime_inputs", {})
     state = canonical_runtime.get("canonical_state", {})
     features = dict(phase6.get("features", {}))
-    features.update(
-        {
-            "confidence": state.get("state", {}).get("confidence"),
-            "limitation_count": len(twin.get("limitations", []) or []),
-        }
-    )
+    features.update({
+        "confidence": state.get("state", {}).get("confidence"),
+        "limitation_count": len(twin.get("limitations", []) or []),
+    })
     labels: dict[str, Any] = {}
     if execution_verification:
         labels["operation_completed"] = execution_verification.get("operation_completed")
         labels["effect_status"] = execution_verification.get("status")
     if outcome_feedback:
         labels.update(outcome_feedback.get("outcome_metrics", {}))
-    return [
-        flatten_feature_record(
-            entity_type="field",
-            entity_id=str(twin.get("field_id") or state.get("field_id")),
-            feature_set="canonical_field_runtime_v1",
-            source_state_id=state.get("state_id"),
-            features=features,
-            labels=labels,
-        )
-    ]
+    return [flatten_feature_record(
+        entity_type="field",
+        entity_id=str(twin.get("field_id") or state.get("field_id")),
+        feature_set="canonical_field_runtime_v1",
+        source_state_id=state.get("state_id"),
+        features=features,
+        labels=labels,
+    )]
 
 
 def register_model_version(
@@ -409,12 +344,10 @@ def register_model_version(
 ) -> dict[str, Any]:
     promote_thresholds = promote_thresholds or {}
     status = "candidate"
-    if all(float(metrics.get(k, -(10**9))) >= float(v) for k, v in promote_thresholds.items()):
+    if all(float(metrics.get(k, -10**9)) >= float(v) for k, v in promote_thresholds.items()):
         status = "champion"
     model = ModelVersion(
-        model_id=_stable_id(
-            {"name": name, "task": task, "version": version, "metrics": metrics}, "mdl"
-        ),
+        model_id=_stable_id({"name": name, "task": task, "version": version, "metrics": metrics}, "mdl"),
         name=name,
         task=task,
         version=version,
@@ -426,23 +359,20 @@ def register_model_version(
     return asdict(model)
 
 
-def assign_experiment_variant(
-    *, entity_id: str, experiment_key: str, variants: list[str]
-) -> dict[str, Any]:
+def assign_experiment_variant(*, entity_id: str, experiment_key: str, variants: list[str]) -> dict[str, Any]:
     if not variants:
         raise ValueError("variants must not be empty")
     bucket = int(hashlib.sha256(f"{experiment_key}:{entity_id}".encode()).hexdigest()[:8], 16)
     variant = variants[bucket % len(variants)]
     return {
-        "assignment_id": _stable_id(
-            {"entity": entity_id, "experiment": experiment_key, "variant": variant}, "exp"
-        ),
+        "assignment_id": _stable_id({"entity": entity_id, "experiment": experiment_key, "variant": variant}, "exp"),
         "entity_id": entity_id,
         "experiment_key": experiment_key,
         "variant": variant,
         "bucket": bucket % 10000,
         "assigned_at": _now(),
     }
+
 
 
 # --- Phase 9 production hardening: event sourcing, replay and closed-loop verification ---
@@ -471,9 +401,7 @@ def build_autonomy_event(
     """Create a deterministic append-only event for autonomy replay/audit."""
     body = payload or {}
     event = {
-        "event_id": _stable_id(
-            {"type": event_type, "aggregate": aggregate_id, "seq": sequence, "payload": body}, "evt"
-        ),
+        "event_id": _stable_id({"type": event_type, "aggregate": aggregate_id, "seq": sequence, "payload": body}, "evt"),
         "event_type": event_type,
         "aggregate_type": "autonomous_execution",
         "aggregate_id": aggregate_id,
@@ -509,50 +437,24 @@ def event_source_execution_plan(plan: dict[str, Any]) -> list[dict[str, Any]]:
         )
     ]
     status = plan.get("status")
-    events.append(
-        build_autonomy_event(
-            event_type="DispatchReady"
-            if status == ExecutionStatus.DISPATCH_READY.value
-            else "DecisionBlocked",
-            aggregate_id=aggregate_id,
-            tenant_id=tenant_id,
-            field_id=field_id,
-            payload={
-                "status": status,
-                "reasons": (plan.get("safety_gate") or {}).get("reasons", []),
-            },
-            sequence=2,
-        )
-    )
+    events.append(build_autonomy_event(
+        event_type="DispatchReady" if status == ExecutionStatus.DISPATCH_READY.value else "DecisionBlocked",
+        aggregate_id=aggregate_id, tenant_id=tenant_id, field_id=field_id,
+        payload={"status": status, "reasons": (plan.get("safety_gate") or {}).get("reasons", [])}, sequence=2,
+    ))
     for offset, cmd in enumerate(plan.get("commands") or [], start=3):
-        events.append(
-            build_autonomy_event(
-                event_type="CommandDispatched",
-                aggregate_id=aggregate_id,
-                tenant_id=tenant_id,
-                field_id=field_id,
-                payload={
-                    "command_id": cmd.get("command_id"),
-                    "protocol": cmd.get("protocol"),
-                    "target_id": cmd.get("target_id"),
-                    "dry_run": cmd.get("dry_run"),
-                },
-                sequence=offset,
-            )
-        )
+        events.append(build_autonomy_event(
+            event_type="CommandDispatched",
+            aggregate_id=aggregate_id, tenant_id=tenant_id, field_id=field_id,
+            payload={"command_id": cmd.get("command_id"), "protocol": cmd.get("protocol"), "target_id": cmd.get("target_id"), "dry_run": cmd.get("dry_run")},
+            sequence=offset,
+        ))
     return events
 
 
 def replay_autonomy_events(events: list[dict[str, Any]]) -> dict[str, Any]:
     """Rebuild current execution state from ordered Phase 9 events."""
-    ordered = sorted(
-        events,
-        key=lambda e: (
-            e.get("sequence") is None,
-            e.get("sequence") or 0,
-            e.get("occurred_at") or "",
-        ),
-    )
+    ordered = sorted(events, key=lambda e: (e.get("sequence") is None, e.get("sequence") or 0, e.get("occurred_at") or ""))
     state: dict[str, Any] = {"status": ExecutionStatus.PLANNED.value, "commands": [], "history": []}
     for event in ordered:
         etype = event.get("event_type")
@@ -570,16 +472,8 @@ def replay_autonomy_events(events: list[dict[str, Any]]) -> dict[str, Any]:
             state["verification"] = payload
         if etype == "ManualOverride":
             state["manual_override"] = payload
-        state.setdefault("history", []).append(
-            {
-                "event_type": etype,
-                "sequence": event.get("sequence"),
-                "occurred_at": event.get("occurred_at"),
-            }
-        )
-    state["replay_id"] = _stable_id(
-        {"events": [e.get("event_id") for e in ordered], "status": state.get("status")}, "replay"
-    )
+        state.setdefault("history", []).append({"event_type": etype, "sequence": event.get("sequence"), "occurred_at": event.get("occurred_at")})
+    state["replay_id"] = _stable_id({"events": [e.get("event_id") for e in ordered], "status": state.get("status")}, "replay")
     return state
 
 
@@ -595,12 +489,7 @@ def run_command_verification_loop(
     command_ids = [c.get("command_id") for c in execution_plan.get("commands", [])]
     acked: set[str] = set()
     faults: list[str] = []
-    sensor_evidence: dict[str, Any] = {
-        "flow_rate": [],
-        "pressure": [],
-        "power_current": [],
-        "soil_moisture_delta": [],
-    }
+    sensor_evidence: dict[str, Any] = {"flow_rate": [], "pressure": [], "power_current": [], "soil_moisture_delta": []}
     for frame in telemetry_frames:
         acked.update(frame.get("acknowledged_command_ids", []) or [])
         if frame.get("fault"):
@@ -610,64 +499,25 @@ def run_command_verification_loop(
             if isinstance(value, (int, float)) and math.isfinite(float(value)):
                 sensor_evidence[key].append(float(value))
     ack_complete = bool(command_ids) and set(command_ids).issubset(acked)
-    sensor_ok = (
-        any(sensor_evidence[k] for k in ("flow_rate", "pressure", "power_current"))
-        or not command_ids
-    )
+    sensor_ok = any(sensor_evidence[k] for k in ("flow_rate", "pressure", "power_current")) or not command_ids
     verification = verify_execution_effect(
         execution_plan,
-        telemetry={
-            "acknowledged_command_ids": list(acked),
-            "applied": {"sensor_ok": sensor_ok},
-            "fault": faults[0] if faults else None,
-        },
+        telemetry={"acknowledged_command_ids": list(acked), "applied": {"sensor_ok": sensor_ok}, "fault": faults[0] if faults else None},
         before_state=before_state,
         after_state=after_state,
     )
-    status = (
-        ExecutionStatus.EFFECT_VERIFIED.value
-        if ack_complete and sensor_ok and not faults
-        else ExecutionStatus.FAILED.value
-    )
-    verification.update(
-        {
-            "status": status,
-            "ack_complete": ack_complete,
-            "sensor_ok": sensor_ok,
-            "faults": faults,
-            "sensor_summary": {k: (mean(v) if v else None) for k, v in sensor_evidence.items()},
-            "closed_loop": True,
-        }
-    )
-    events = [
-        build_autonomy_event(
-            event_type="TelemetryAcknowledged",
-            aggregate_id=aggregate_id,
-            tenant_id=execution_plan.get("tenant_id"),
-            field_id=execution_plan.get("field_id"),
-            payload={"acked": sorted(acked)},
-            sequence=90,
-        )
-    ]
-    events.append(
-        build_autonomy_event(
-            event_type="ExecutionVerified"
-            if status == ExecutionStatus.EFFECT_VERIFIED.value
-            else "ExecutionFailed",
-            aggregate_id=aggregate_id,
-            tenant_id=execution_plan.get("tenant_id"),
-            field_id=execution_plan.get("field_id"),
-            payload=verification,
-            sequence=100,
-        )
-    )
-    return {
-        "verification": verification,
-        "events": events,
-        "replayed_state": replay_autonomy_events(
-            event_source_execution_plan(execution_plan) + events
-        ),
-    }
+    status = ExecutionStatus.EFFECT_VERIFIED.value if ack_complete and sensor_ok and not faults else ExecutionStatus.FAILED.value
+    verification.update({
+        "status": status,
+        "ack_complete": ack_complete,
+        "sensor_ok": sensor_ok,
+        "faults": faults,
+        "sensor_summary": {k: (mean(v) if v else None) for k, v in sensor_evidence.items()},
+        "closed_loop": True,
+    })
+    events = [build_autonomy_event(event_type="TelemetryAcknowledged", aggregate_id=aggregate_id, tenant_id=execution_plan.get("tenant_id"), field_id=execution_plan.get("field_id"), payload={"acked": sorted(acked)}, sequence=90)]
+    events.append(build_autonomy_event(event_type="ExecutionVerified" if status == ExecutionStatus.EFFECT_VERIFIED.value else "ExecutionFailed", aggregate_id=aggregate_id, tenant_id=execution_plan.get("tenant_id"), field_id=execution_plan.get("field_id"), payload=verification, sequence=100))
+    return {"verification": verification, "events": events, "replayed_state": replay_autonomy_events(event_source_execution_plan(execution_plan) + events)}
 
 
 def run_phase9_autonomy_cycle(
@@ -679,47 +529,25 @@ def run_phase9_autonomy_cycle(
     actuator_registry: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     recommendation = canonical_runtime.get("recommendation_lifecycle", {})
-    plan = plan_closed_loop_execution(
-        recommendation,
-        mode=mode,
-        policy=policy,
-        telemetry=telemetry,
-        actuator_registry=actuator_registry,
-    )
+    plan = plan_closed_loop_execution(recommendation, mode=mode, policy=policy, telemetry=telemetry, actuator_registry=actuator_registry)
     verification = None
     if plan.get("status") == ExecutionStatus.DISPATCH_READY.value:
         ack_ids = [c["command_id"] for c in plan.get("commands", [])]
-        verification = verify_execution_effect(
-            plan,
-            telemetry={
-                "acknowledged_command_ids": ack_ids,
-                "applied": {"simulated": True},
-                **(telemetry or {}),
-            },
-        )
-    features = build_feature_store_batch(
-        canonical_runtime=canonical_runtime, execution_verification=verification
-    )
+        verification = verify_execution_effect(plan, telemetry={"acknowledged_command_ids": ack_ids, "applied": {"simulated": True}, **(telemetry or {})})
+    features = build_feature_store_batch(canonical_runtime=canonical_runtime, execution_verification=verification)
     event_stream = event_source_execution_plan(plan)
     if verification:
-        event_stream.append(
-            build_autonomy_event(
-                event_type="ExecutionVerified"
-                if verification.get("status") == ExecutionStatus.EFFECT_VERIFIED.value
-                else "ExecutionFailed",
-                aggregate_id=str(plan.get("execution_id")),
-                tenant_id=plan.get("tenant_id"),
-                field_id=plan.get("field_id"),
-                payload=verification,
-                sequence=100,
-            )
-        )
+        event_stream.append(build_autonomy_event(
+            event_type="ExecutionVerified" if verification.get("status") == ExecutionStatus.EFFECT_VERIFIED.value else "ExecutionFailed",
+            aggregate_id=str(plan.get("execution_id")),
+            tenant_id=plan.get("tenant_id"),
+            field_id=plan.get("field_id"),
+            payload=verification,
+            sequence=100,
+        ))
     return {
         "phase": "phase9_autonomous_farm_os",
-        "cycle_id": _stable_id(
-            {"runtime": canonical_runtime.get("runtime_id"), "plan": plan.get("execution_id")},
-            "auto",
-        ),
+        "cycle_id": _stable_id({"runtime": canonical_runtime.get("runtime_id"), "plan": plan.get("execution_id")}, "auto"),
         "execution_plan": plan,
         "verification": verification,
         "event_stream": event_stream,

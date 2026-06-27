@@ -33,7 +33,7 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
   useEffect(() => { setMobileOpen(false); }, [location.pathname]);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden" style={{ background: '#0f1117' }}>
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: 'rgb(var(--sahool-bg))' }}>
       <div className="flex flex-1 overflow-hidden">
         {/* شريط التنقّل الثابت — سطح المكتب */}
         <div className="hidden md:flex">
@@ -43,7 +43,7 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
         {/* درج التنقّل — الموبايل */}
         {mobileOpen && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setMobileOpen(false)} />
+            <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} />
             <div className="fixed right-0 top-0 h-full z-50 md:hidden">
               <NavRail collapsed={false} setCollapsed={() => {}} onNavigate={() => setMobileOpen(false)} />
             </div>
@@ -56,7 +56,7 @@ export default function AppShell({ theme, setTheme, tenantName, tenantLogo, chil
             theme={theme} setTheme={setTheme}
             tenantName={tenantName} tenantLogo={tenantLogo}
           />
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <main className="flex-1 overflow-y-auto sahool-safe-bottom" style={{ padding: 'var(--sahool-page-pad)' }}>
             {/* انتقال صفحة لطيف (تلاشٍ/انزلاق) مفتاحه مسار URL — مع mode="wait"
                 كي يخرج القديم قبل دخول الجديد. يحترم prefers-reduced-motion
                 (يُلغى التحريك تماماً، فيبقى التبديل فوريّاً بلا حركة). */}

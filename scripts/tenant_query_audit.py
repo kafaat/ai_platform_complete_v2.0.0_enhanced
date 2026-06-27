@@ -127,7 +127,7 @@ def audit() -> list[dict]:
             if path.name.startswith("test_") or "tests" in path.parts:
                 continue
             lines = path.read_text(encoding="utf-8").splitlines()
-            rel = str(path.relative_to(ROOT))
+            rel = str(path.relative_to(ROOT)).replace("\\", "/")
             for i, line in enumerate(lines):
                 if not _CALL.search(line):
                     continue
