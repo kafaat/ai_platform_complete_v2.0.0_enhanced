@@ -2555,7 +2555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "122687a3cdbffb457febb8218aea778d4aea8b0b20f7e1766be7759d84af0ce8"
+          "content": "433af54099dfe08673db66556869b212dddd9ffe11acbd4febfaf38b9f40b17b"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -2569,6 +2569,16 @@
         }
       ],
       "name": "frontend/src/services/apiClients.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5801c3f1ce5535f1a61866eacb12b597e769b6ef882f3cdaf67312a753c3e02d"
+        }
+      ],
+      "name": "frontend/src/services/apiMocks.ts",
       "type": "file"
     },
     {
