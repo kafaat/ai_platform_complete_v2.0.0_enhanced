@@ -5645,6 +5645,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "92999257284c43edc6d2d22409a95fea4c42f4506632c6d280ad8661488d4bd4"
+        }
+      ],
+      "name": "services/raster-service/imagery_utils.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7657e89ecc9a13d9fae23fbd3ca6c7c9b9964aff16db18cbf8fdab73d3185526"
         }
       ],
@@ -5665,7 +5675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9be9fc335f4d19fe3184456229da5a35643c8c30d529096fe2103fc1bfa6f4fd"
+          "content": "9356c4db2043bfe2542b30ab4f7f4689b870feaa9b5350be9766fa417000ea3e"
         }
       ],
       "name": "services/raster-service/main.py",
