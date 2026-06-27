@@ -409,3 +409,8 @@ v98_water_ledger.sql
 # (نظير NDVI في v54) — يغذّيان تأكيد الإجهاد الطيفيّ (fuse_water_stress) لتصعيد D2b
 # للإجهاد المائيّ (خلف feature flag، default off). idempotent (ADD COLUMN IF NOT EXISTS).
 v99_imagery_spectral_indices.sql
+
+# v122: تصلّب مسار الكتابة في RLS + توحيد متغيّر جلسة المستأجر. backfill مُدار
+# بالكتالوج يضيف WITH CHECK لكلّ سياسة كتابة tenant تفتقده (USING-only)، ويوحّد
+# app.current_tenant (canonical) مع app.tenant_id (توافق). idempotent + fail-closed.
+v122_rls_with_check_session_unification.sql
