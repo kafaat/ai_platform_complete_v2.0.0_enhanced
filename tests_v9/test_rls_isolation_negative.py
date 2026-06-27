@@ -93,8 +93,12 @@ async def test_every_tenant_table_has_rls(conn):
 
 
 async def test_tenant_policy_uses_current_setting(conn):
-    """تأكيد إضافيّ: سياسات العزل تستند إلى current_setting('app.current_tenant')،
-    لا سياسة دائمة الصدق (USING true) تُبطِل العزل."""
+    """تأكيد إضافيّ: سياسات العزل تستند إلى سياق المستأجر في الجلسة،
+    لا سياسة دائمة الصدق (USING true) تُبطِل العزل.
+
+    سياق المستأجر مقبول بنمطين: `current_setting('app.current_tenant')` مباشرةً،
+    أو الدالّة الموحِّدة `public.sahool_effective_tenant_id()` (v122) التي تغلّف
+    current_setting لكِلا المفتاحين app.current_tenant/app.tenant_id. كلاهما عزل حقيقيّ."""
     rows = await conn.fetch(
         """
         SELECT c.relname, p.polname, pg_get_expr(p.polqual, p.polrelid) AS qual
@@ -105,5 +109,10 @@ async def test_tenant_policy_uses_current_setting(conn):
           AND p.polname LIKE '%tenant%'
         """
     )
-    bad = [(r["relname"], r["polname"]) for r in rows if "current_setting" not in (r["qual"] or "")]
-    assert bad == [], f"سياسات «tenant» لا تستند إلى current_setting (عزل وهميّ): {bad}"
+    bad = [
+        (r["relname"], r["polname"])
+        for r in rows
+        if "current_setting" not in (r["qual"] or "")
+        and "sahool_effective_tenant_id" not in (r["qual"] or "")
+    ]
+    assert bad == [], f"سياسات «tenant» لا تستند إلى سياق المستأجر (عزل وهميّ): {bad}"
