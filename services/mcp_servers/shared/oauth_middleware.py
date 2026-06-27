@@ -53,7 +53,7 @@ def require_scope(required_scope: str):
                 credentials.credentials, secret, algorithms=["HS256"], audience="sahool"
             )
         except jwt.InvalidTokenError as e:
-            raise HTTPException(status.HTTP_401_UNAUTHORIZED, f"Invalid token: {e}") from e
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token") from e
         # تدقيق B: افرض المُصدِر بعد فكّ ناجح — مُصدِر مجهول ⇒ 401 كتوكن غير صالح.
         if payload.get("iss") not in _ALLOWED_ISS:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid token issuer")
@@ -67,7 +67,7 @@ def require_scope(required_scope: str):
         try:
             _validate_tenant_id(tid)
         except ValueError as e:
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, str(e)) from e
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Invalid tenant_id") from e
         return payload
 
     return _check

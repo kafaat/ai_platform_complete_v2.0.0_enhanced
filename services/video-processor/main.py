@@ -196,8 +196,8 @@ async def run_inference(frame: np.ndarray, model: str = "pest_yolov8") -> dict:
             resp.raise_for_status()
             return resp.json()
     except Exception as e:
-        logger.warning(f"Inference call failed: {e}")
-        return {"error": str(e)}
+        logger.warning("Inference call failed: %s", type(e).__name__)
+        return {"error": "edge_inference_unavailable"}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -418,9 +418,14 @@ async def create_stream(req: CreateStreamRequest, user: dict = Depends(_get_curr
 
 @app.delete("/streams/{stream_id}")
 async def stop_stream(stream_id: str, user: dict = Depends(_get_current_user)):
-    state = STREAMS.pop(stream_id, None)
+    # عزل المستأجرين: لا تُزِل البثّ من الذاكرة قبل إثبات ملكيّة مستأجِر الرمز.
+    # كان pop() قبل _assert_stream_tenant يسمح لمستأجِر آخر بإيقاف/حذف بثّ لا يملكه
+    # عبر معرفة stream_id فقط. الفشل الآن 404 ويبقى بثّ المالك سليماً.
+    state = STREAMS.get(stream_id)
     if not state:
         raise HTTPException(404, "Stream not found")
+    _assert_stream_tenant(state, user)
+    STREAMS.pop(stream_id, None)
     state.status = "inactive"
     if state.task:
         state.task.cancel()
@@ -434,12 +439,18 @@ async def get_stream(stream_id: str, user: dict = Depends(_get_current_user)):
         raise HTTPException(404, "Stream not found")
     # تقييد بالمستأجِر: المنفذ كان بلا مصادقة ويُرجِع rtsp_url (قد يحوي اعتماد كاميرا)
     _assert_stream_tenant(state, user)
+    cfg = state.config.model_dump()
+    cfg.pop("rtsp_url", None)
+    cfg.pop("http_url", None)
     return {
         "stream_id": stream_id,
         "status": state.status,
         "frame_count": state.frame_count,
         "last_detection": state.last_detection,
-        "config": state.config.model_dump(),
+        "config": cfg,
+        "source_configured": bool(
+            state.config.rtsp_url or state.config.http_url or state.config.usb_index is not None
+        ),
     }
 
 
@@ -455,7 +466,12 @@ async def list_streams(user: dict = Depends(_get_current_user)):
                 "stream_id": sid,
                 "status": s.status,
                 "frame_count": s.frame_count,
-                "source": s.config.rtsp_url or s.config.http_url or f"usb:{s.config.usb_index}",
+                "source_configured": bool(
+                    s.config.rtsp_url or s.config.http_url or s.config.usb_index is not None
+                ),
+                "source_type": "rtsp"
+                if s.config.rtsp_url
+                else ("http" if s.config.http_url else "usb"),
             }
             for sid, s in STREAMS.items()
             if tid and str(s.config.tenant_id) == tid

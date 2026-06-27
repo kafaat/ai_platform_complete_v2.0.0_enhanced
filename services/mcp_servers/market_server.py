@@ -613,10 +613,13 @@ async def mcp_tools_call(req: MCPCallRequest, user: dict = Depends(require_scope
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Tool {req.name} error: {e}")
+        logger.error("Tool %s error: %s", req.name, type(e).__name__)
         return {
             "content": [
-                {"type": "text", "text": json.dumps({"error": str(e)}, ensure_ascii=False)}
+                {
+                    "type": "text",
+                    "text": json.dumps({"error": "tool_execution_failed"}, ensure_ascii=False),
+                }
             ],
             "isError": True,
         }
