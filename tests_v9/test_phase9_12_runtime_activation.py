@@ -2,11 +2,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = ROOT / "services" / "sahool-platform" / "api" / "main.py"
+REGISTRY = ROOT / "services" / "sahool-platform" / "api" / "router_registry.py"
 MANIFEST = ROOT / "migrations" / "MANIFEST.txt"
 
 
 def test_phase9_12_routers_are_mounted_in_main_app() -> None:
-    src = MAIN.read_text(encoding="utf-8")
+    # التسجيل مُستخرَج إلى router_registry.register_routers(app) ويُستدعى من main.py.
+    main_src = MAIN.read_text(encoding="utf-8")
+    assert "register_routers(app)" in main_src, "main.py must call register_routers(app)"
+    src = main_src + "\n" + REGISTRY.read_text(encoding="utf-8")
     required_imports = [
         "from api.phase9_autonomous_farm_os import router as phase9_autonomous_router",
         "from api.phase10_continuous_learning import router as phase10_learning_router",
