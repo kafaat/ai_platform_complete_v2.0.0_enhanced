@@ -444,6 +444,24 @@ v112_mobile_offline_sync_runtime.sql
 # v113: سياسات jobs الآمنة لعمّال runtime (outbox/plugin/model/actuator).
 v113_phase_runtime_workers_jobs.sql
 
+# ── الدفعة ٣: GIS السحابيّ والتوسّع (cloud-native/precision/enterprise/global/autonomy/marketplace) ──
+# v114: أفضل ممارسات GIS السحابيّ الأصليّ (COG/STAC).
+v114_cloud_native_gis_best_practices.sql
+# v115: الزراعة الدقيقة (المرحلة 6).
+v115_precision_agriculture_phase6.sql
+# v116: GIS المؤسّسيّ (المرحلة 7).
+v116_enterprise_gis_phase7.sql
+# v117: التوسّع العالميّ (المرحلة 8).
+v117_global_scale_phase8.sql
+# v118: نظام تشغيل المزرعة المستقلّ (المرحلة 9).
+v118_phase9_autonomous_farm_os.sql
+# v119: التعلّم المستمرّ (المرحلة 10).
+v119_phase10_continuous_learning.sql
+# v120: الوكلاء الفِدراليّون (المرحلة 11) — +FORCE صريح.
+v120_phase11_federated_agents.sql
+# v121: السوق والنظام البيئيّ (المرحلة 12) — +FORCE/سياسات عبر _sahool_apply_tenant_rls.
+v121_marketplace_ecosystem.sql
+
 # v122: تصلّب مسار الكتابة في RLS + توحيد متغيّر جلسة المستأجر. backfill مُدار
 # بالكتالوج يضيف WITH CHECK لكلّ سياسة كتابة tenant تفتقده (USING-only)، ويوحّد
 # app.current_tenant (canonical) مع app.tenant_id (توافق). idempotent + fail-closed.
