@@ -298,6 +298,13 @@ jobs:
       - run: pip install -r requirements_real.txt
         continue-on-error: true
       - run: pytest -v -m security tests_v9/test_security.py tests_v9/test_auth_service.py -k "security"
+      # بوّابة مسار الكتابة في RLS (المرحلة 22): تحرس أنّ كلّ سياسة كتابة tenant
+      # تحمل WITH CHECK، وتمنع أيّ ترحيل لاحق (>v122) من إعادة إدخال سياسة كتابة
+      # tenant بـUSING-only أو باستخدام app.tenant_id دون app.current_tenant القانونيّ.
+      - name: RLS write-policy gate (Phase 22)
+        run: |
+          python3 scripts/security/validate_rls_write_policies.py --root .
+          pytest -q tests/security/test_phase22_rls_with_check_backfill.py
 
   flutter-analyze:
     name: Flutter Analyze & Test
