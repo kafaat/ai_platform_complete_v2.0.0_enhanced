@@ -1,0 +1,31 @@
+{
+  "description": "Accepted legacy/MVP markers that are compatibility/test/dev boundaries rather than production runtime defaults. New findings outside this list fail the Phase 21 audit.",
+  "allowed": [
+    "services/agriai-engine/main.py:mock_runtime",
+    "services/ai_agronomist/human_review_repository.py:mvp_in_memory",
+    "services/ai_agronomist/recommendation_events.py:mvp_in_memory",
+    "services/guardrails-engine/human_in_loop.py:mvp_in_memory",
+    "services/raster-service/db_persist.py:mvp_in_memory",
+    "services/raster-service/main.py:mvp_in_memory",
+    "services/supervisor-agent/advisory_skill.py:mvp_in_memory",
+    "services/supervisor-agent/tool_contracts.py:mvp_in_memory",
+    "services/sahool-platform/api/main.py:mvp_in_memory",
+    "services/sahool-platform/api/main.py:dev_hs256",
+    "services/sahool-platform/api/main.py:unsafe_fallback",
+    "services/sahool-platform/api/offline_pending_db.py:mvp_in_memory",
+    "services/sahool-platform/api/requirements.txt:dev_hs256",
+    "services/sahool-platform/api/sync_delta.py:mvp_in_memory",
+    "services/sahool-platform/core/api_adapter.py:mvp_in_memory",
+    "services/sahool-platform/core/identity.py:mvp_in_memory",
+    "services/sahool-platform/core/offline_first.py:mvp_in_memory",
+    "services/sahool-platform/core/resumable_sse.py:mvp_in_memory",
+    "services/sahool-platform/core/resumable_stream.py:mvp_in_memory",
+    "services/sahool-platform/core/time_series.py:mvp_in_memory",
+    "services/sahool-platform/core/rag/production_qdrant.py:unsafe_fallback",
+    "services/sahool-platform/api/routers/soil_sampling.py:mvp_in_memory",
+    "services/edge-inference/models/pest_detector.py:mvp_in_memory",
+    "services/edge-inference/models/yield_estimator.py:mvp_in_memory",
+    "shared/memory/farm_memory.py:mvp_in_memory",
+    "shared/memory/import_engine.py:mvp_in_memory"
+  ]
+}

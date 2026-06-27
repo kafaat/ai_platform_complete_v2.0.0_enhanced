@@ -1,0 +1,73 @@
+{{- range $name, $svc := .Values.workloads }}
+{{- if $svc.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.namespace.name }}
+  labels:
+    {{- include "sahool.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  replicas: {{ $svc.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: {{ $name }}
+  template:
+    metadata:
+      labels:
+        {{- include "sahool.labels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $name }}
+      annotations:
+        prometheus.io/scrape: {{ $.Values.observability.prometheusScrape | quote }}
+        prometheus.io/path: /metrics
+        prometheus.io/port: {{ $svc.port | quote }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ $name }}
+          image: {{ $svc.image | quote }}
+          imagePullPolicy: {{ $.Values.global.imagePullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $svc.port }}
+          env:
+            {{- range $k, $v := $svc.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+            {{- range $envName, $secretKey := $svc.secretEnv }}
+            - name: {{ $envName }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ index $.Values.global.secretRefs $secretKey }}
+                  key: value
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            {{- toYaml $.Values.resourcesDefault | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+{{- end }}
+{{- end }}
