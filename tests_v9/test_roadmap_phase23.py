@@ -1705,7 +1705,12 @@ def test_security_hardening():
     #    (التسجيل الذاتيّ يُنشئ مستأجِراً معزولاً ⇒ المُسجِّل مالكه؛ لا تصعيد عابر).
     auth = rd("services/auth/main.py")
     reg = auth[auth.index("async def register") : auth.index("async def register") + 900]
-    rr = auth[auth.index("class RegisterRequest") : auth.index("class RegisterRequest") + 250]
+    # RegisterRequest استُخرِج إلى models.py (إعادة تصدير في main) — نقرأه من مصدره.
+    auth_models = rd("services/auth/models.py")
+    rr = auth_models[
+        auth_models.index("class RegisterRequest") : auth_models.index("class RegisterRequest")
+        + 250
+    ]
     if "'owner'" in reg and "role:" not in rr:
         r.append(("\u2713", "register يُسنِد 'owner' لمؤسِّس المستأجِر + لا حقل role (لا تصعيد)"))
     # ٢. actuator مصادقة + هويّة من التوكن

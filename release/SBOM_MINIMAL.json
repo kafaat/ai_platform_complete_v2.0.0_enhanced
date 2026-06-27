@@ -4935,10 +4935,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1b463b92cc265dec47c984d31465c1e6a8ade18eb89bb7e4815ba259bce18a4"
+          "content": "7bec2446e4f3141f33930d4b0d29ac3971e5b36da77b3552d216cb56dadb77f4"
         }
       ],
       "name": "services/auth/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b16f55485cbab204ca8a28c97527eabfda0328c3bfc93e8a5f173e80a1a47f7"
+        }
+      ],
+      "name": "services/auth/models.py",
       "type": "file"
     },
     {

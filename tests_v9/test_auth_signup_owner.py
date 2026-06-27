@@ -18,10 +18,17 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 AUTH = os.path.join(ROOT, "services/auth/main.py")
+# نماذج الطلب/الاستجابة استُخرِجت من main.py إلى models.py (إعادة تصدير في main).
+MODELS = os.path.join(ROOT, "services/auth/models.py")
 
 
 def _src() -> str:
     with open(AUTH, encoding="utf-8") as f:
+        return f.read()
+
+
+def _models_src() -> str:
+    with open(MODELS, encoding="utf-8") as f:
         return f.read()
 
 
@@ -34,7 +41,7 @@ def test_register_assigns_owner_to_tenant_founder():
 
 def test_register_request_has_no_client_role_field():
     """منع تصعيد الصلاحيات: العميل لا يُرسل دوره (لا حقل role في RegisterRequest)."""
-    src = _src()
+    src = _models_src()
     rr = src[src.index("class RegisterRequest") : src.index("class RegisterRequest") + 250]
     assert "role:" not in rr, "RegisterRequest لا يجب أن يقبل role من العميل"
 
