@@ -35,6 +35,8 @@ export interface TileJSON {
   minzoom?: number;
   maxzoom?: number;
   center?: [number, number, number] | [number, number];
+  available?: boolean;
+  note?: string | null;
 }
 
 // حدود الحقل كـ [lat, lng] لكل رأس (مناسبة مباشرة لـ Leaflet Polygon)
@@ -253,6 +255,7 @@ export default function FieldIndicatorMap({
 }: FieldIndicatorMapProps) {
   const [opacity, setOpacity] = useState(initialOpacity);
   const [tileBounds, setTileBounds] = useState<[number, number, number, number] | undefined>();
+  const [tileAvailable, setTileAvailable] = useState<boolean | null>(null);
 
   const baseUrl = basemap === 'satellite' ? BASEMAP_SAT : BASEMAP_LIGHT;
   const tilesUrl = indicatorTileUrl(fieldId, index, date);
@@ -261,16 +264,29 @@ export default function FieldIndicatorMap({
   useEffect(() => {
     let cancelled = false;
     setTileBounds(undefined);
+    setTileAvailable(null);
     rasterApi
       .get<TileJSON>(`/v1/fields/${fieldId}/tilejson`, { params: { index, date } })
       .then((r) => {
         if (cancelled) return;
+        // raster-service يُرجع available=false وحدوداً عالمية محايدة عند غياب COG.
+        // لا نستخدم هذه الحدود لضبط الخريطة، ولا نركّب TileLayer حتى لا يطلب
+        // المتصفح بلاطات شفافة لتاريخ/مؤشر غير متاح وكأنها بيانات حقيقية.
+        if (r.data?.available === false) {
+          setTileAvailable(false);
+          return;
+        }
+        setTileAvailable(true);
         const b = r.data?.bounds;
         if (Array.isArray(b) && b.length === 4) {
           setTileBounds([b[0], b[1], b[2], b[3]]);
         }
       })
-      .catch(() => { /* TileJSON غير متاح — نعتمد على المضلع/الإطار الاحتياطي */ });
+      .catch(() => {
+        // TileJSON غير متاح — نعتمد على المضلع/الإطار الاحتياطي، ولا نعرض طبقة مؤشّر
+        // حتى لا يحدث خلط بين "لا بيانات" و"طبقة شفافة".
+        if (!cancelled) setTileAvailable(false);
+      });
     return () => { cancelled = true; };
   }, [fieldId, index, date]);
 
@@ -297,14 +313,17 @@ export default function FieldIndicatorMap({
             : '&copy; <a href="https://carto.com/">CARTO</a>'}
         />
 
-        {/* طبقة بلاطات المؤشر (شفّافة خارج الحقل) — {z}/{x}/{y} حرفيّ */}
-        <TileLayer
-          key={`${fieldId}-${index}-${date}`}
-          url={tilesUrl}
-          opacity={opacity}
-          // المؤشر مقصوص بالفعل على الحقل من الـ backend؛ نتجنّب أخطاء 404 صاخبة
-          errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
-        />
+        {/* طبقة بلاطات المؤشر (شفّافة خارج الحقل) — {z}/{x}/{y} حرفيّ.
+            لا تُركّب عند available=false كي لا يبدو غياب COG كتراكب صحيح. */}
+        {tileAvailable !== false && (
+          <TileLayer
+            key={`${fieldId}-${index}-${date}`}
+            url={tilesUrl}
+            opacity={opacity}
+            // المؤشر مقصوص بالفعل على الحقل من الـ backend؛ نتجنّب أخطاء 404 صاخبة
+            errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
+          />
+        )}
 
         {/* حدود الحقل إن توفّرت */}
         {fieldPolygon && fieldPolygon.length >= 3 && (
@@ -319,6 +338,20 @@ export default function FieldIndicatorMap({
 
         <FitBounds polygon={fieldPolygon} tileBounds={tileBounds} fallbackBounds={fallbackBounds} />
       </MapContainer>
+
+      {tileAvailable === false && (
+        <div
+          dir="rtl"
+          style={{
+            position: 'absolute', top: 12, right: 12, zIndex: 1000,
+            background: 'rgba(13,22,17,.88)', borderRadius: 10, padding: '8px 12px',
+            fontSize: 12, color: '#fcd34d', border: '1px solid #5c4a1f',
+            backdropFilter: 'blur(6px)', maxWidth: 280,
+          }}
+        >
+          لا توجد طبقة {index.toUpperCase()} متاحة لهذا التاريخ. اختر تاريخاً آخر أو شغّل معالجة الصور.
+        </div>
+      )}
 
       {/* شريط التحكّم بالشفافية */}
       <div

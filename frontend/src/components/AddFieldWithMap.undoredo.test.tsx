@@ -50,6 +50,9 @@ vi.mock('react-leaflet', () => {
     TileLayer: () => <div data-testid="tile" />,
     FeatureGroup,
     useMap: () => ({ invalidateSize: vi.fn() }),
+  useMapEvents: () => null,
+  CircleMarker: () => <div data-testid="pivot-center-marker" />,
+  Polyline: () => <div data-testid="pivot-radius-line" />,
   };
 });
 

@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-06-27 (ن) — تصحيح تدفّق مؤشّر الصور (imagery indicator flow) — هندسة + سلسلة زمنيّة + واجهة
+
+**رأس `main`:** `09eeaeb` (#483 مُدمج). فرع `claude/imagery-indicator-flow`. من patch رابع رفعه المستخدم
+(`imagery_indicator_flow_fix`) — **superset** أُخِذ منه **الجزء الجديد فقط** (≈١٣ ملفّ frontend+backend)؛
+ملفّات الكنس الأمنيّ/actuator مُستثناة (في #482/#483، نسخها يَعكس إصلاحاتي).
+- **`api/pivot_geometry.py`:** إحداثيّات **جيوديسيّة WGS84** (`_destination_point`) بدل تقريب متر→درجة ⇒
+  مضلّع المحور الخلفيّ يطابق معاينة الواجهة (لا انزياح عند الحفظ/إعادة التحميل، 0°=شمال).
+- **`routers/fields.py`:** تحديث geometry يشتقّ ويحدّث `area_ha`/`lat`/`lon` من Geometry Guard داخل
+  المعاملة + يُضمّنها في حدث `FIELD_UPDATED` ⇒ القائمة/التوصيات/bbox لا تبقى قديمة.
+- **`raster-service/main.py` + `db_persist.py`:** سلسلة زمنيّة صحيحة — طلب تاريخ محدّد **صارم** (لا يرجع COG
+  تاريخ آخر)، `latest`=أحدث `acquisition_date` (لا `created_at`)، و`list_asset_dates()` يُعيد ترطيب تواريخ
+  الـtimeline من `raster_assets` بعد إعادة التشغيل (مُرشَّح بالمستأجِر، best-effort).
+- **frontend (٧ ملفّات):** `AddFieldWithMap` (٢٤٦ سطر) · `FieldIndicatorMap` · sections — تدفّق خريطة مؤشّر الحقل.
+
+**تحقّق:** geometry integrity ٤ + 231 انحدار pivot/geometry/field + المفتّش exit 0 + حارس الراوترات ٤ +
+ruff كامل · **frontend:** `tsc` نظيف + ٧ اختبارات vitest (AddFieldWithMap). **حدّ مُعلَن:** `test_tiles.py`
+يتطلّب `rasterio` (غير متوفّر محليّاً، خارج بوّابة tests_v9 — لم يُشغَّل هنا).
+
+---
+
 ## 2026-06-24 (م) — كنس تشديد تسريب المعلومات + عزل المستأجرين عبر الخدمات (مراجعة المستخدم)
 
 **رأس `main`:** `4942b69` (#481 مُدمج). فرع `claude/infoleak-tenant-hardening`. من patch مراجعة ثالث رفعه

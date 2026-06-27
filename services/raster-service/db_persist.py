@@ -181,6 +181,45 @@ async def fetch_latest_asset(
         await conn.close()
 
 
+async def list_asset_dates(
+    field_id: str,
+    index_name: str,
+    tenant_id: str | None = None,
+    limit: int = 100,
+) -> list[str]:
+    """List available acquisition dates for a field/index from raster_assets.
+
+    Used by /v1/fields/{id}/timeseries when in-memory _field_layers is empty after
+    restart. Returns ISO YYYY-MM-DD strings, tenant-filtered explicitly.
+    """
+    conn = await _connect()
+    if conn is None:
+        return []
+    sql = """
+        SELECT DISTINCT acquisition_date::text AS acq
+        FROM raster_assets
+        WHERE field_id = $1 AND index_name = $2
+          AND acquisition_date IS NOT NULL
+          AND tenant_id = $3::uuid
+        ORDER BY acquisition_date ASC
+        LIMIT $4
+    """
+    try:
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, true)",
+            str(tenant_id) if tenant_id else "",
+        )
+        rows = await conn.fetch(
+            sql, field_id, index_name, str(tenant_id) if tenant_id else None, int(limit)
+        )
+        return [str(r["acq"])[:10] for r in rows if r["acq"]]
+    except Exception as e:  # noqa: BLE001 — absence of DB/table should not break maps
+        logger.warning("raster_assets date list skipped: %s", e)
+        return []
+    finally:
+        await conn.close()
+
+
 class OwnerLookupUnavailable(Exception):
     """تعذّر إثبات ملكيّة الحقل رغم أنّ القاعدة **مُهيّأة** (DATABASE_URL مضبوط) —
     اتّصال/استعلام فاشل أو الدالّة غائبة. يُميَّز عن «وضع بلا قاعدة» (DATABASE_URL

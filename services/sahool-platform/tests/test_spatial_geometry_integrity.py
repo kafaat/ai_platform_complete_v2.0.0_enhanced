@@ -42,3 +42,25 @@ def test_pivot_polygon_is_canonical_and_valid():
     assert len(ring) >= 48
     guarded = guard_field_geometry(polygon, repair=False)
     assert guarded.area_ha > 70
+
+
+def _haversine_m(a, b):
+    import math
+
+    radius_earth_m = 6_378_137.0
+    lon1, lat1 = map(math.radians, a)
+    lon2, lat2 = map(math.radians, b)
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 2 * radius_earth_m * math.atan2(math.sqrt(h), math.sqrt(1 - h))
+
+
+def test_pivot_polygon_cardinal_points_preserve_meter_radius():
+    spec = PivotSpec(center_lon=44.0, center_lat=15.0, radius_m=500, vertices=96)
+    polygon = generate_pivot_polygon(spec)
+    ring = polygon["coordinates"][0]
+    center = (spec.center_lon, spec.center_lat)
+    # First four cardinal samples with vertices=96 are north/east/south/west at indices 0/24/48/72.
+    for idx in (0, 24, 48, 72):
+        assert abs(_haversine_m(center, tuple(ring[idx])) - spec.radius_m) < 1.0
