@@ -5885,7 +5885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "518cc2401d245646bf0faef3b25dcde53e193b20fecf3a522bb23130415a63b9"
+          "content": "19943923402dcb61cade44bb37021fea2acdab6a7d9a8613f247e1e28268dc6b"
         }
       ],
       "name": "services/raster-service/test_p2_tile_observability_static.py",
@@ -5895,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bef423f51629096da341e6fa47dc55a726f08d317b2f5f2c1093367879298be8"
+          "content": "ce639e2a46f855697e3eb67af383ca2b821c947a24572bc9aa024b869900e107"
         }
       ],
       "name": "services/raster-service/test_raster_map_deep_hardening_static.py",
