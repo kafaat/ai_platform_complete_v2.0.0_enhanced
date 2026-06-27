@@ -796,7 +796,7 @@ async def field_imagery_backfill(
 
         import httpx as _httpx
 
-        body: dict[str, Any] = (req.model_dump(exclude_none=True) if req else {})
+        body: dict[str, Any] = req.model_dump(exclude_none=True) if req else {}
         # الخادم مصدر الحقيقة للهندسة: نحقن حدود الحقل المُتحقَّقة (لا نثق بالعميل).
         body["clip_polygon_geojson"] = guarded.geometry
         if not body.get("indices"):
