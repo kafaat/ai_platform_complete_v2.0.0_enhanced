@@ -52,7 +52,7 @@ vi.mock('maplibre-gl', () => {
     addControl() { return this; }
     addSource() { return this; }
     addLayer() { return this; }
-    getSource() { return { setData() {}, setTiles() {} }; }
+    getSource() { return { setData() {} }; }
     getLayer() { return undefined; }
     removeLayer() { return this; }
     removeSource() { return this; }

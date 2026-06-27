@@ -14,7 +14,11 @@
     "e2e:ui": "playwright test --ui",
     "lint": "eslint src --ext ts,tsx",
     "format": "prettier --write src/**/*.{ts,tsx}",
-    "build:docker": "vite build"
+    "build:docker": "vite build",
+    "test:ci": "vitest run --no-file-parallelism --maxWorkers=1",
+    "test:smart": "node scripts/run-web-tests-smart.mjs",
+    "e2e:smoke": "node scripts/playwright-smoke-smart.mjs",
+    "e2e:gis-timeline": "playwright test e2e/gis-tools-timeline-comparison.spec.ts"
   },
   "dependencies": {
     "@duckdb/duckdb-wasm": "^1.33.1-dev57.0",

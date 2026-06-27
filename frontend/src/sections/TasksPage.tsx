@@ -143,7 +143,7 @@ export default function TasksPage() {
               {task.estimated_duration_min != null && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{task.estimated_duration_min} دقيقة</span>}
               {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.gold }}>${task.estimated_cost_usd}</span>}
             </div>
-            {task.photo_url && <img src={task.photo_url} alt="توثيق" className="mt-2 h-20 rounded-lg object-cover" />}
+            {task.photo_url && <img src={task.photo_url} alt="توثيق" loading="lazy" decoding="async" className="mt-2 h-20 rounded-lg object-cover" />}
           </div>
           {mutateAllowed && task.status !== 'completed' && task.status !== 'cancelled' && (
             <div className="flex flex-col gap-1.5 flex-shrink-0">
