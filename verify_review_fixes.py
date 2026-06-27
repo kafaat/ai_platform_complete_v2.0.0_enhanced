@@ -3,12 +3,17 @@ verify_review_fixes.py — تحقّق موجّه من إصلاحات المرا�
 يُحمّل الوحدات الفعليّة ويختبر السلوك بعد الإصلاح. لا يحتاج خدمات حيّة.
 """
 import asyncio
+import datetime as _dt
+import hashlib
 import importlib.util
 import math
 import os
 import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
+for _p in (ROOT, os.path.join(ROOT, "services/sahool-platform"), os.path.join(ROOT, "services/sahool-platform/api")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 PASS, FAIL = [], []
 
 
@@ -41,7 +46,8 @@ print("\n── H4: EVI بحارس قسمة على صفر ──")
 degenerate = {"B02":1.0,"B03":0.1,"B04":0.0,"B05":0.2,"B08":0.0,"B11":0.15,"B12":0.1}
 # B08 + 6*B04 - 7.5*B02 + 1 = 0 + 0 - 7.5 + 1 = -6.5 (آمن) — نصنع مقام≈0:
 # نريد B08 + 6*B04 - 7.5*B02 + 1 = 0 → B02=(B08+6*B04+1)/7.5
-b = {"B04":0.0,"B08":0.0}; b["B02"]=(0.0+0.0+1)/7.5
+b = {"B04": 0.0, "B08": 0.0}
+b["B02"] = (0.0 + 0.0 + 1) / 7.5
 bb = {"B02":b["B02"],"B03":0.1,"B04":0.0,"B05":0.2,"B08":0.0,"B11":0.15,"B12":0.1}
 try:
     out = veg._compute_indices(bb)
@@ -89,7 +95,7 @@ events = sorted(e.event for e in ents)
 check("get_entries(tool_id) يطابق start+complete (كلاهما)", events == ["complete","start"], f"events={events}")
 
 print("\n── M5: مفتاح الكاش حتميّ عبر العمليّات (sha256) ──")
-import hashlib
+
 def cache_key(prefix, fn, args, kwargs):
     raw = (str(args)+str(sorted(kwargs.items()))).encode("utf-8")
     return f"{prefix}:{fn}:{hashlib.sha256(raw).hexdigest()[:16]}"
@@ -104,7 +110,7 @@ src = open(os.path.join(ROOT,"wofost_real/wofost_engine.py"),encoding="utf-8").r
 check("أُزيل الكود الميّت 'w_demand = etc * (1000 / 1)'", "1000 / 1" not in src)
 check("ETc يُطرح في حلقة التوازن (w_soil - etc)", "w_soil - etc" in src)
 # سلوكي: حقن طقس صناعي (et0 عالٍ، بلا مطر) ومقارنة الريّ بالبعلي
-import datetime as _dt
+
 async def _fake_weather(lat, lon, start, end):
     return [{"date":f"2025-01-{i+1:02d}","tmax":34.0,"tmin":18.0,
              "rain_mm":0.0,"rad_mj":22.0,"et0_mm":8.0} for i in range(60)]

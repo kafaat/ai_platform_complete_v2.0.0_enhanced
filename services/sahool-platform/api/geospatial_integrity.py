@@ -219,6 +219,107 @@ def validate_crs(crs_string: str | None) -> ValidationIssue | None:
 # ─── Main validation ────────────────────────────────────────────
 
 
+def _extract_polygon_outer_rings(geojson: dict[str, Any]) -> list[list[tuple[float, float]]] | None:
+    """Extract one or more outer rings from Polygon/MultiPolygon/Feature shapes."""
+    if not isinstance(geojson, dict):
+        return None
+    gtype = geojson.get("type")
+    if gtype == "Feature":
+        return _extract_polygon_outer_rings(geojson.get("geometry", {}))
+    if gtype == "FeatureCollection":
+        rings: list[list[tuple[float, float]]] = []
+        for feature in geojson.get("features", []):
+            part = _extract_polygon_outer_rings(feature) if isinstance(feature, dict) else None
+            if part:
+                rings.extend(part)
+        return rings or None
+    if gtype == "Polygon":
+        coords = geojson.get("coordinates")
+        if not coords or not isinstance(coords, list) or not coords[0]:
+            return None
+        try:
+            return [[(float(p[0]), float(p[1])) for p in coords[0] if len(p) >= 2]]
+        except (TypeError, ValueError, IndexError):
+            return None
+    if gtype == "MultiPolygon":
+        coords = geojson.get("coordinates")
+        if not coords or not isinstance(coords, list):
+            return None
+        rings: list[list[tuple[float, float]]] = []
+        try:
+            for poly in coords:
+                if poly and poly[0]:
+                    rings.append([(float(p[0]), float(p[1])) for p in poly[0] if len(p) >= 2])
+        except (TypeError, ValueError, IndexError):
+            return None
+        return rings or None
+    return None
+
+
+def _validate_multipolygon_geometry(
+    rings: list[list[tuple[float, float]]], declared_crs: str | None
+) -> GeometryValidation:
+    issues: list[ValidationIssue] = []
+    crs_issue = validate_crs(declared_crs)
+    if crs_issue:
+        issues.append(crs_issue)
+    if not rings:
+        issues.append(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                "invalid_geojson",
+                "MultiPolygon بلا أجزاء صالحة.",
+                "MultiPolygon has no valid polygon parts.",
+            )
+        )
+        return GeometryValidation(valid=False, issues=issues)
+    areas: list[float] = []
+    bboxes: list[dict[str, float]] = []
+    for idx, ring in enumerate(rings):
+        validation = validate_field_geometry(
+            {"type": "Polygon", "coordinates": [ring]}, declared_crs=None
+        )
+        for issue in validation.issues:
+            issues.append(
+                ValidationIssue(
+                    issue.severity,
+                    f"part_{idx}:{issue.code}",
+                    issue.message_ar,
+                    issue.message_en,
+                    issue.hint,
+                )
+            )
+        if validation.computed_area_ha is not None:
+            areas.append(validation.computed_area_ha)
+        if validation.computed_bbox is not None:
+            bboxes.append(validation.computed_bbox)
+    area_ha = sum(areas)
+    if area_ha > MAX_FIELD_AREA_HA:
+        issues.append(
+            ValidationIssue(
+                ValidationSeverity.ERROR,
+                "area_too_large",
+                f"المساحة الكلية كبيرة جداً ({area_ha:.0f} هكتار).",
+                f"Total MultiPolygon area too large ({area_ha:.0f} ha).",
+            )
+        )
+    has_errors = any(i.severity == ValidationSeverity.ERROR for i in issues)
+    bbox = None
+    if bboxes and not has_errors:
+        bbox = {
+            "min_lng": min(b["min_lng"] for b in bboxes),
+            "max_lng": max(b["max_lng"] for b in bboxes),
+            "min_lat": min(b["min_lat"] for b in bboxes),
+            "max_lat": max(b["max_lat"] for b in bboxes),
+        }
+    return GeometryValidation(
+        valid=not has_errors,
+        issues=issues,
+        computed_area_ha=round(area_ha, 4) if not has_errors else None,
+        computed_bbox=bbox if not has_errors else None,
+    )
+
+
 def validate_field_geometry(
     geojson: dict[str, Any],
     declared_crs: str | None = None,
@@ -239,6 +340,16 @@ def validate_field_geometry(
     crs_issue = validate_crs(declared_crs)
     if crs_issue:
         issues.append(crs_issue)
+
+    # MultiPolygon: validate every polygon part and keep the full disconnected field,
+    # never collapse it to a single largest polygon.
+    rings = _extract_polygon_outer_rings(geojson)
+    if isinstance(geojson, dict):
+        gtype = geojson.get("type")
+        if gtype == "Feature":
+            gtype = (geojson.get("geometry") or {}).get("type")
+        if gtype in {"MultiPolygon", "FeatureCollection"} and rings and len(rings) > 1:
+            return _validate_multipolygon_geometry(rings, declared_crs)
 
     # ٢. استخرج coordinates من GeoJSON shapes مختلفة
     coords = _extract_polygon_coords(geojson)

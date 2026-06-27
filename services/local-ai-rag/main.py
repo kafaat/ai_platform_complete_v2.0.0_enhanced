@@ -21,8 +21,21 @@ import httpx
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials as _C
 from fastapi.security import HTTPBearer as _B
-from jose import JWTError as _JE
-from jose import jwt as _jjwt
+
+try:
+    from jose import JWTError as _JE
+    from jose import jwt as _jjwt
+except ModuleNotFoundError:  # pragma: no cover - offline tests / minimal env
+
+    class _JE(Exception):
+        pass
+
+    class _MissingJoseJWT:
+        @staticmethod
+        def decode(*args, **kwargs):
+            raise _JE("python-jose is required for JWT validation")
+
+    _jjwt = _MissingJoseJWT()
 
 # LangChain imports
 from langchain_community.document_loaders import PyPDFLoader, TextLoader

@@ -101,7 +101,7 @@ async def test_wofost_wheat_real():
     assert wb["total_etc_mm"] > 0
     assert wb["water_productivity_kg_m3"] > 0
 
-    print(f"\n✅ WOFOST القمح (حقيقي):")
+    print("\n✅ WOFOST القمح (حقيقي):")
     print(f"   GDD={sim['gdd_accumulated']:.0f} | LAI={sim['lai_max']:.2f} | "
           f"Yield={sim['yield_t_ha']:.2f} t/ha | Progress={sim['progress_pct']:.0f}%")
     print(f"   ETc={wb['total_etc_mm']:.0f}mm | WP={wb['water_productivity_kg_m3']:.2f} kg/m³")
@@ -132,7 +132,7 @@ async def test_all_crops():
 # ٥. اختبار نموذج AGB
 # ══════════════════════════════════════════════════════════════
 def test_agb_model():
-    from random_forest.agb_model import get_agb_model, AGBFeatures
+    from random_forest.agb_model import AGBFeatures, get_agb_model
 
     model = get_agb_model()
 
@@ -159,7 +159,7 @@ def test_agb_model():
 # ٦. اختبار Kc Curve (FAO-56)
 # ══════════════════════════════════════════════════════════════
 def test_kc_curve():
-    from wofost_real.wofost_engine import get_kc, CROP_PARAMS
+    from wofost_real.wofost_engine import CROP_PARAMS, get_kc
 
     p = CROP_PARAMS["قمح صلب"]
     total = p["l_ini"] + p["l_dev"] + p["l_mid"] + p["l_late"]

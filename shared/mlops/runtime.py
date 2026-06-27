@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-import json
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from hashlib import sha256
 from typing import Any
+import json
 
 
 def _now() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -33,9 +33,7 @@ class ModelVersion:
 
 
 def _artifact_hash(artifacts: dict[str, Any]) -> str:
-    return sha256(
-        json.dumps(artifacts, sort_keys=True, default=str, ensure_ascii=False).encode("utf-8")
-    ).hexdigest()
+    return sha256(json.dumps(artifacts, sort_keys=True, default=str, ensure_ascii=False).encode("utf-8")).hexdigest()
 
 
 def register_model_version(
@@ -56,15 +54,9 @@ def register_model_version(
     """
     artifacts = artifacts or {}
     ahash = _artifact_hash(artifacts)
-    artifact_uri = str(
-        artifacts.get("uri")
-        or artifacts.get("artifact_uri")
-        or f"minio://sahool-models/{model_name}/{version}/{ahash[:12]}"
-    )
+    artifact_uri = str(artifacts.get("uri") or artifacts.get("artifact_uri") or f"minio://sahool-models/{model_name}/{version}/{ahash[:12]}")
     version_payload = ModelVersion(
-        model_id=_stable_id(
-            {"name": model_name, "version": version, "task": task, "artifact_hash": ahash}, "model"
-        ),
+        model_id=_stable_id({"name": model_name, "version": version, "task": task, "artifact_hash": ahash}, "model"),
         model_name=model_name,
         version=version,
         task=task,
@@ -87,11 +79,7 @@ def apply_model_promotion(
     policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Fail-closed promotion workflow with rollback metadata."""
-    policy = policy or {
-        "primary_metric": "score",
-        "min_improvement": 0.02,
-        "require_artifact_hash": True,
-    }
+    policy = policy or {"primary_metric": "score", "min_improvement": 0.02, "require_artifact_hash": True}
     reasons: list[str] = []
     allowed = True
     primary = str(policy.get("primary_metric", "score"))
@@ -109,15 +97,7 @@ def apply_model_promotion(
         reasons.append("challenger_status_not_promotable")
     target = challenger if allowed else champion
     return {
-        "promotion_id": _stable_id(
-            {
-                "alias": alias,
-                "champion": (champion or {}).get("model_id"),
-                "challenger": challenger.get("model_id"),
-                "policy": policy,
-            },
-            "prom",
-        ),
+        "promotion_id": _stable_id({"alias": alias, "champion": (champion or {}).get("model_id"), "challenger": challenger.get("model_id"), "policy": policy}, "prom"),
         "alias": alias,
         "decision": "promote" if allowed else "blocked",
         "target_model_id": (target or {}).get("model_id"),
@@ -130,19 +110,9 @@ def apply_model_promotion(
     }
 
 
-def rollback_serving_alias(
-    *, alias: str, current_model_id: str, target_model_id: str, reason: str
-) -> dict[str, Any]:
+def rollback_serving_alias(*, alias: str, current_model_id: str, target_model_id: str, reason: str) -> dict[str, Any]:
     return {
-        "rollback_id": _stable_id(
-            {
-                "alias": alias,
-                "current": current_model_id,
-                "target": target_model_id,
-                "reason": reason,
-            },
-            "rb",
-        ),
+        "rollback_id": _stable_id({"alias": alias, "current": current_model_id, "target": target_model_id, "reason": reason}, "rb"),
         "alias": alias,
         "from_model_id": current_model_id,
         "to_model_id": target_model_id,
@@ -152,29 +122,14 @@ def rollback_serving_alias(
     }
 
 
-def resolve_serving_alias(
-    *, alias: str, aliases: dict[str, str], default_model_id: str | None = None
-) -> dict[str, Any]:
+def resolve_serving_alias(*, alias: str, aliases: dict[str, str], default_model_id: str | None = None) -> dict[str, Any]:
     model_id = aliases.get(alias) or default_model_id
-    return {
-        "alias": alias,
-        "model_id": model_id,
-        "resolved": model_id is not None,
-        "created_at": _now(),
-    }
+    return {"alias": alias, "model_id": model_id, "resolved": model_id is not None, "created_at": _now()}
 
 
-def build_model_card(
-    *,
-    model: dict[str, Any],
-    feature_lineage: dict[str, Any] | None = None,
-    risk_summary: dict[str, Any] | None = None,
-) -> dict[str, Any]:
+def build_model_card(*, model: dict[str, Any], feature_lineage: dict[str, Any] | None = None, risk_summary: dict[str, Any] | None = None) -> dict[str, Any]:
     return {
-        "model_card_id": _stable_id(
-            {"model": model.get("model_id"), "lineage": (feature_lineage or {}).get("lineage_id")},
-            "card",
-        ),
+        "model_card_id": _stable_id({"model": model.get("model_id"), "lineage": (feature_lineage or {}).get("lineage_id")}, "card"),
         "model_id": model.get("model_id"),
         "model_name": model.get("model_name") or model.get("name"),
         "version": model.get("version"),
@@ -184,7 +139,6 @@ def build_model_card(
         "metrics": model.get("metrics", {}),
         "artifact_hash": model.get("artifact_hash"),
         "lineage_id": (feature_lineage or {}).get("lineage_id"),
-        "risk_summary": risk_summary
-        or {"fail_closed": True, "requires_human_approval_for_execution": True},
+        "risk_summary": risk_summary or {"fail_closed": True, "requires_human_approval_for_execution": True},
         "created_at": _now(),
     }

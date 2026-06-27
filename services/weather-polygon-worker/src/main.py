@@ -28,6 +28,8 @@ import asyncio
 import json
 import logging
 import os
+import time
+from pathlib import Path
 
 import asyncpg
 from core.weather_overlay_pipeline import build_overlay_record, build_signal_records
@@ -40,6 +42,13 @@ log = logging.getLogger("weather-polygon-worker")
 JOBS_DSN = os.getenv("JOBS_DATABASE_URL") or os.getenv("DATABASE_URL", "")
 NATS_URL = os.getenv("NATS_URL", "nats://sahool-nats:4222")
 HORIZON_HOURS = int(os.getenv("WEATHER_HORIZON_HOURS", "168"))
+
+READY_FILE = Path(os.getenv("WORKER_READY_FILE", "/tmp/sahool-worker-ready"))
+HEARTBEAT_FILE = Path(os.getenv("WORKER_HEARTBEAT_FILE", "/tmp/sahool-worker-heartbeat"))
+
+
+def _touch_worker_file(path: Path) -> None:
+    path.write_text(str(int(time.time())))
 
 
 def _grid_pipeline_enabled() -> bool:
@@ -134,21 +143,29 @@ async def run() -> None:
     # H2: السقالة الساكنة. الاشتراك يتيم (لا منتِج لـsahool.weather.forecast.updated بعدُ).
     # نخرج صراحةً بسطر واضح بدل التعطّل الصامت على اشتراك لن يصله حدث أبداً.
     if not _grid_pipeline_enabled():
+        _touch_worker_file(READY_FILE)
+        _touch_worker_file(HEARTBEAT_FILE)
+        # inactive readiness: container remains healthy but explicitly idle behind feature flag.
         log.info(
             "weather-polygon-worker معطّل (سقالة غير نشطة): مسار الطقس الشبكيّ بانتظار "
             "منتِج لـsahool.weather.forecast.updated. فعّله بـWEATHER_GRID_PIPELINE_ENABLED=1 "
             "بعد بناء المنتِج. مسار الطقس الحيّ في المنصّة لا يتأثّر."
         )
-        return
+        while True:
+            _touch_worker_file(HEARTBEAT_FILE)
+            await asyncio.sleep(60)
     if not JOBS_DSN:
         log.error("JOBS_DATABASE_URL/DATABASE_URL غير مضبوط — العامل معطّل")
         return
     pool = await asyncpg.create_pool(JOBS_DSN, statement_cache_size=0, min_size=1, max_size=4)
     nc = await nats.connect(NATS_URL, max_reconnect_attempts=-1)
+    _touch_worker_file(READY_FILE)
+    _touch_worker_file(HEARTBEAT_FILE)
     js = nc.jetstream()
     sub = await js.subscribe("sahool.weather.forecast.updated", durable="polygon-worker")
     log.info("✓ weather-polygon-worker بدأ — يستمع sahool.weather.forecast.updated")
     async for msg in sub:
+        _touch_worker_file(HEARTBEAT_FILE)
         try:
             async with pool.acquire() as conn:
                 fields = await conn.fetch(_FIELDS_SQL)

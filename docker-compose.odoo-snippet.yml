@@ -10,10 +10,14 @@
       # أمان RLS: دور مقيّد (NOBYPASSRLS) لا superuser postgres (يتجاوز عزل المستأجِرين).
       DATABASE_URL: "postgresql+asyncpg://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgis:5432/sahool"
       SAHOOL_ENFORCE_RLS_ROLE: "1"  # fail-closed: ارفض الإقلاع إن تجاوز دور القاعدة RLS
+      ERP_PROVIDER: "${ERP_PROVIDER:-erpnext}"
+      ERPNEXT_URL: "${ERPNEXT_URL:-http://sahool-erpnext:8000}"
+      ERPNEXT_API_KEY: "${ERPNEXT_API_KEY:-}"
+      ERPNEXT_API_SECRET: "${ERPNEXT_API_SECRET:-}"
       ODOO_URL: "${ODOO_URL:-http://odoo:8069}"
       ODOO_DB: "${ODOO_DB:-sahool_erp}"
       ODOO_USER: "${ODOO_USER:-admin}"
-      ODOO_PASSWORD: "${ODOO_PASSWORD:?must be set in .env}"
+      ODOO_PASSWORD: "${ODOO_PASSWORD:-}"
       ODOO_API_KEY: "${ODOO_API_KEY}"
       SAHOOL_API_URL: "http://sahool-auth:8000"
       SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN}"

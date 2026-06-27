@@ -297,21 +297,33 @@ async def _insert_field_within_tx(
     )
     # Canonical Field State: إنشاء حقل يُنشئ سياق القرار ⇒ أعِد حساب الإسقاط،
     # وأصدِر field.state_changed إن تبدّلت صلاحيّة القرار/التنفيذ (نمط outbox).
-    from api.field_state_projection import recompute_field_state
+    # Derived projection is best-effort during field creation: a field row is the
+    # source of truth, while field_state is a read-model/projection.  Missing optional
+    # projection columns or a partially-applied migration must not turn a valid field
+    # INSERT into 503.  The projection is recomputed by later jobs/events once the
+    # schema is complete.
+    try:
+        from api.field_state_projection import recompute_field_state
 
-    _fs = await recompute_field_state(conn, field_id)
-    if _fs["changed"]:
-        await _emit_domain_event(
-            conn,
-            user,
-            "FIELD_STATE_CHANGED",
-            "field",
+        _fs = await recompute_field_state(conn, field_id)
+        if _fs["changed"]:
+            await _emit_domain_event(
+                conn,
+                user,
+                "FIELD_STATE_CHANGED",
+                "field",
+                field_id,
+                {
+                    "validity": _fs["state"]["validity"],
+                    "execution_mode": _fs["state"]["execution_mode"],
+                    "trigger": reason,
+                },
+            )
+    except Exception as fs_err:  # noqa: BLE001 — projection must not break field create
+        logging.warning(
+            "تخطّي إسقاط حالة الحقل بعد إنشاء %s — سيُعاد حسابه لاحقاً: %s",
             field_id,
-            {
-                "validity": _fs["state"]["validity"],
-                "execution_mode": _fs["state"]["execution_mode"],
-                "trigger": reason,
-            },
+            type(fs_err).__name__,
         )
     # نُعيد JSON (model_dump mode=json) ليُخزَّن كنتيجة أمر idempotent ويُعاد حرفيّاً
     # عند الإعادة — response_model=FieldSummary يتحقّق منه.
@@ -442,7 +454,11 @@ async def _persist_field(
                         geom_json,
                         str(user.tenant_id),
                     )
-                except (asyncpg.UndefinedFunctionError, asyncpg.UndefinedObjectError) as ovl_err:
+                except (
+                    asyncpg.UndefinedFunctionError,
+                    asyncpg.UndefinedObjectError,
+                    asyncpg.UndefinedColumnError,
+                ) as ovl_err:
                     # PostGIS غير مُثبَّت (دوال/نوع geometry غير معرّفة) — تخطٍّ رشيق فقط هنا.
                     logging.warning("تخطّي فحص تداخل الحقول — PostGIS غير متاح: %s", ovl_err)
                     overlaps = []
@@ -627,9 +643,14 @@ async def import_field(
     return result
 
 
+class FieldImageryRefreshRequest(BaseModel):
+    date: str | None = None
+
+
 @router.post("/api/v1/fields/{field_id}/imagery/refresh")
 async def refresh_field_imagery(
     field_id: str,
+    req: FieldImageryRefreshRequest | None = None,
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """Launch real Sentinel-2 imagery processing for a field on demand.
@@ -662,6 +683,7 @@ async def refresh_field_imagery(
                 bbox=guarded.bbox,
                 geometry=guarded.geometry,
                 reason="manual.refresh",
+                date=(req.date[:10] if req and req.date else None),
             )
             await _emit_domain_event(
                 conn,
@@ -678,6 +700,52 @@ async def refresh_field_imagery(
         raise _db_unavailable("تحديث صور الأقمار للحقل", e) from e
 
 
+@router.get("/api/v1/fields/{field_id}/available-dates")
+async def field_imagery_available_dates(
+    field_id: str,
+    index: str | None = Query(None),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
+):
+    """Proxy tenant-verified imagery dates from raster-service for MapHub.
+
+    The frontend already calls the platform API. Without this route, the scene
+    selector silently stays empty and all map tiles keep using latest.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT field_id FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+        import os as _os
+
+        import httpx as _httpx
+
+        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+            "/"
+        )
+        headers = {
+            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
+            "X-Tenant-Id": str(user.tenant_id),
+        }
+        params = {"index": index} if index else {}
+        async with _httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(
+                f"{raster_url}/v1/fields/{field_id}/available-dates",
+                params=params,
+                headers=headers,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("تواريخ صور الأقمار للحقل", e) from e
+
+
 @router.get("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def get_field(
     field_id: str,
@@ -690,8 +758,9 @@ async def get_field(
     try:
         async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
-                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                 field_id,
+                str(user.tenant_id),
             )
     except HTTPException:
         raise
@@ -836,6 +905,7 @@ def _field_merge_plan(
     return (bool(base_values) and not conflicts), conflicts
 
 
+@router.put("/api/v1/fields/{field_id}", response_model=FieldDetail)
 @router.patch("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def update_field(
     field_id: str,
@@ -844,7 +914,7 @@ async def update_field(
     user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
     idem: str | None = Depends(_idem_key),
 ):
-    """تحديث جزئيّ لتفاصيل حقل (ملء تدريجيّ) — يُحدِّث الأعمدة المُرسَلة فقط.
+    """تحديث تفاصيل حقل عبر PATCH/PUT. PATCH جزئي، وPUT متاح كتعاقد API متوافق لعملاء الاستبدال/المزامنة؛ كلاهما يُحدِّث الأعمدة المُرسَلة فقط حفاظاً على التوافق وعدم مسح الحقول غير المرسلة.
 
     يتأكّد أنّ الحقل يخصّ المستأجِر (404) ضمن سياق المستأجِر (RLS)، يبني UPDATE
     من الحقول المُرسَلة فقط (دالّة نقيّة _build_field_update)، ويردّ الحقل المُحدَّث.
@@ -937,7 +1007,7 @@ async def update_field(
                 if req.base_version is not None and upd.rsplit(" ", 1)[-1] == "0":
                     # تعارض إصدار: نقرأ سجلّ الخادم الحاليّ لتصنيف تغييرات العميل.
                     srow = await conn.fetchrow(
-                        f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                        f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                         field_id,
                     )
                     if srow is None:
@@ -960,7 +1030,7 @@ async def update_field(
                         )
                         await conn.execute(merge_sql, *merge_vals)
                         mrow = await conn.fetchrow(
-                            f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                            f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                             field_id,
                         )
                         _auto_payload = {**client_changes, "_auto_merged": True}
@@ -1018,7 +1088,7 @@ async def update_field(
                         },
                     )
                 row = await conn.fetchrow(
-                    f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
+                    f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                     field_id,
                 )
                 if row is None:
@@ -1157,6 +1227,104 @@ async def field_geometry_history(
     }
 
 
+@router.post("/api/v1/fields/{field_id}/geometry/revert/{revision}", response_model=FieldDetail)
+async def revert_field_geometry(
+    field_id: str,
+    revision: int,
+    background_tasks: BackgroundTasks,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_EDIT)),
+):
+    """Restore a previous field boundary revision and invalidate imagery products.
+
+    This makes geometry versioning actionable from the UI: historical raster
+    analysis can keep the correct boundary revision, and operators can safely
+    roll back an accidental edit. The restored geometry passes the same
+    Polygon/MultiPolygon guard as normal PATCH writes.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+            hrow = await conn.fetchrow(
+                """
+                SELECT geometry, revision
+                FROM field_geometry_history
+                WHERE field_id = $1 AND tenant_id = $2::uuid AND revision = $3
+                """,
+                field_id,
+                str(user.tenant_id),
+                revision,
+            )
+            if hrow is None:
+                raise HTTPException(status_code=404, detail="مراجعة الحدود غير موجودة لهذا الحقل")
+            raw_geometry = hrow["geometry"]
+            guarded = guard_field_geometry(raw_geometry)
+            import json as _json
+
+            await conn.execute(
+                """
+                UPDATE fields
+                SET geometry = $1::jsonb,
+                    area_ha = $2,
+                    lat = $3,
+                    lon = $4,
+                    row_version = row_version + 1
+                WHERE field_id = $5 AND tenant_id = $6::uuid
+                """,
+                _json.dumps(guarded.geometry),
+                round(guarded.area_ha, 2),
+                guarded.centroid[0],
+                guarded.centroid[1],
+                field_id,
+                str(user.tenant_id),
+            )
+            row = await conn.fetchrow(
+                f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            detail = _row_to_field_detail(row)
+            new_rev = await save_field_geometry_revision(
+                conn,
+                tenant_id=str(user.tenant_id),
+                field_id=field_id,
+                geometry=guarded.geometry,
+                changed_by=str(user.user_id),
+                reason="field.geometry.reverted",
+                source="api.geometry.revert",
+                metadata=geometry_metadata(field_revision=detail.row_version)
+                | {"reverted_from_revision": revision},
+            )
+            await mark_raster_cache_stale(
+                conn,
+                tenant_id=str(user.tenant_id),
+                field_id=field_id,
+                reason="field.geometry.reverted",
+                metadata={"geometry_revision": new_rev, "reverted_from_revision": revision},
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "FIELD_GEOMETRY_REVERTED",
+                "field",
+                field_id,
+                {"geometry_revision": new_rev, "reverted_from_revision": revision},
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("استرجاع حدود الحقل", e) from e
+    background_tasks.add_task(
+        _kick_imagery_processing,
+        field_id=field_id,
+        tenant_id=str(user.tenant_id),
+        geometry=guarded.geometry,
+        reason="field.geometry.reverted",
+    )
+    return detail
+
+
 @router.delete("/api/v1/fields/{field_id}")
 async def delete_field(
     field_id: str,
@@ -1172,8 +1340,9 @@ async def delete_field(
     try:
         async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
-                "SELECT field_id, name, crop, farm_id FROM fields WHERE field_id = $1",
+                "SELECT field_id, name, crop, farm_id FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                 field_id,
+                str(user.tenant_id),
             )
             if row is None:
                 raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")

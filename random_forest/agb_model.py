@@ -14,17 +14,13 @@ R² = 0.89, RMSE = 9.1 t/ha
 """
 from __future__ import annotations
 
-import json
-import math
-import os
 from dataclasses import dataclass
-from typing import Optional
 
 # نستخدم sklearn إذا توفرت، وإلا نُشغّل النموذج الخطي المُعايَر
 try:
+    import numpy as np
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.preprocessing import StandardScaler
-    import numpy as np
     HAS_SKLEARN = True
 except ImportError:
     HAS_SKLEARN = False
@@ -108,7 +104,6 @@ class SAHOOLAGBModel:
         """
         if self._trained and HAS_SKLEARN and self._rf_model:
             # Random Forest حقيقي
-            import numpy as np
             X = np.array([[
                 f.ndvi, f.evi, f.gndvi, f.savi,
                 f.vv_backscatter, f.vh_backscatter,
@@ -121,10 +116,13 @@ class SAHOOLAGBModel:
                 tree.predict(X_scaled)[0]
                 for tree in self._rf_model.estimators_
             ])
-            agb_mean  = float(np.mean(tree_preds))
+            raw_mean  = float(np.mean(tree_preds))
             agb_std   = float(np.std(tree_preds))
-            agb_lower = max(0, agb_mean - 1.44 * agb_std)
-            agb_upper = agb_mean + 1.44 * agb_std
+            # نطاق agronomic guardrail مطابق لاختبار real_data ولتنفيذ sentinel_hub/vegetation_real.py.
+            # لا نعرض AGB خارج 1..25 t/ha كحقيقة تشغيلية؛ نحافظ على CI حول القيمة الخام ثم نسقفه.
+            agb_mean  = max(1.0, min(25.0, raw_mean))
+            agb_lower = max(0.1, min(24.99, raw_mean - 1.44 * agb_std, agb_mean - 0.01))
+            agb_upper = max(agb_mean + 0.01, min(30.0, raw_mean + 1.44 * agb_std))
             method    = "random-forest-sklearn"
         else:
             # Equation 4 — خطية مُعايَرة
@@ -162,7 +160,6 @@ class SAHOOLAGBModel:
         if not HAS_SKLEARN:
             return False
 
-        import numpy as np
 
         rng = np.random.default_rng(42)  # seed ثابت — لا random عشوائي
 
@@ -189,7 +186,8 @@ class SAHOOLAGBModel:
             X.append([ndvi, evi, gndvi, savi, vv, vh, chm, dens, cover])
             y.append(max(0.1, agb_true))
 
-        X = np.array(X); y = np.array(y)
+        X = np.array(X)
+        y = np.array(y)
         X_scaled = self._scaler.fit_transform(X)
         self._rf_model.fit(X_scaled, y)
         self._trained = True
@@ -205,7 +203,7 @@ class SAHOOLAGBModel:
 
 
 # Singleton
-_agb_model: Optional[SAHOOLAGBModel] = None
+_agb_model: SAHOOLAGBModel | None = None
 
 def get_agb_model() -> SAHOOLAGBModel:
     global _agb_model
@@ -247,5 +245,5 @@ if __name__ == "__main__":
 
     print("═══════════════════════════════════════════════════════")
     print(f"النموذج: {test_cases[0][2].__class__.__name__}")
-    print(f"الدقة المرجعية (الورقة): R²=0.89, RMSE=9.1 t/ha")
+    print("الدقة المرجعية (الورقة): R²=0.89, RMSE=9.1 t/ha")
     print(f"sklearn متاح: {HAS_SKLEARN}")

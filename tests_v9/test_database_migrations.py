@@ -9,6 +9,25 @@ IMP = os.path.join(os.path.dirname(__file__), "../../sahool_improvements")
 BASE = os.path.dirname(os.path.dirname(__file__))
 
 
+async def _create_test_pool_or_skip():
+    """Create the integration-test DB pool, or skip when no local test DB is running.
+
+    The static migration checks remain unit tests. Live catalog checks require the
+    optional PostgreSQL test fixture at TEST_DB_URL; developer import/forensic
+    sweeps should not fail just because that external service is absent.
+    """
+    import asyncpg
+
+    from conftest import TEST_DB_URL
+
+    try:
+        return await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=2)
+    except OSError as exc:
+        pytest.skip(f"test database is not reachable at TEST_DB_URL: {exc}")
+    except asyncpg.PostgresError as exc:
+        pytest.skip(f"test database is not ready at TEST_DB_URL: {exc}")
+
+
 def read_sql(path):
     try:
         return open(path, encoding="utf-8").read()
@@ -95,10 +114,7 @@ class TestSQLSyntax:
     @pytest.mark.integration
     async def test_migrations_apply_cleanly(self, http_client):
         """Test that the DB is alive after migrations."""
-        import asyncpg
-        from conftest import TEST_DB_URL
-
-        pool = await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=2)
+        pool = await _create_test_pool_or_skip()
         try:
             result = await pool.fetchval("SELECT 1")
             assert result == 1
@@ -144,10 +160,7 @@ class TestConcurrencyDeterminismMigrations:
     async def test_concurrency_schema_objects_exist_after_migration(self, http_client):
         """تحقّق حيّ (للقراءة فقط) أنّ بُنى v62/v63/v64 موجودة فعلاً في المخطّط بعد
         تطبيق الهجرات — استعلامات كتالوج بلا كتابة (لا RLS/FK)، حتميّة."""
-        import asyncpg
-        from conftest import TEST_DB_URL
-
-        pool = await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=2)
+        pool = await _create_test_pool_or_skip()
         try:
             # v62: الفهرس الجزئيّ موجود.
             idx = await pool.fetchval(
@@ -250,10 +263,7 @@ class TestHarvestTraceabilityMigration:
     @pytest.mark.integration
     async def test_v65_tables_exist_after_migration(self, http_client):
         """تحقّق حيّ (للقراءة فقط): الجدولان موجودان ولهما سياسة RLS بعد الهجرة."""
-        import asyncpg
-        from conftest import TEST_DB_URL
-
-        pool = await asyncpg.create_pool(TEST_DB_URL, min_size=1, max_size=2)
+        pool = await _create_test_pool_or_skip()
         try:
             for tbl in ("harvest_lots", "custody_chain_events"):
                 exists = await pool.fetchval(

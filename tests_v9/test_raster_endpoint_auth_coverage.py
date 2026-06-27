@@ -104,9 +104,7 @@ SERVICE_ONLY: set[str] = {
     "/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة.
     "/offline/packs",  # سرد حزم offline محمي بتوكن خدمة.
     "/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة.
-    "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).    # ── نقاط خدمة-لخدمة جديدة (تستدعي _require_service_token فعليّاً) ──
-    "/v1/tile-cache/stats",
-    "/v1/fields/analytics/geoparquet/export",
+    "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -129,17 +127,6 @@ PUBLIC_CATALOG: set[str] = {
     "/healthz",  # فحص حياة العمليّة — بنية تحتيّة، لا بيانات.
     "/readyz",  # فحص جاهزيّة (وصول Earth Search) — بنية تحتيّة، لا بيانات.
     "/metrics",  # مقاييس Prometheus (عدّ مهامّ/طبقات مُجمَّع، لا بيانات مستأجِر).
-    # ── كتالوج STAC + جودة/معاينة + سياسات وتخطيط صور عامّة (لا بيانات مستأجِر) ──
-    "/stac",
-    "/stac/collections",
-    "/stac/mosaicjson",
-    "/v1/scenes/quality-score",
-    "/v1/cog/registry/preview",
-    "/v1/tiles/observability",
-    "/v1/imagery/backfill/policy",
-    "/v1/imagery/quality/policy",
-    "/v1/imagery/scenes/rank",
-    "/v1/imagery/mosaic/plan",
     # ── مراقبة تخزين + حزم خرائط offline (خلفيّة ثابتة، لا بيانات مستأجِر) ──
 }
 

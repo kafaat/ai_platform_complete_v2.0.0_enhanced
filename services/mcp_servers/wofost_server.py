@@ -299,9 +299,8 @@ def _handle_sigterm(signum, frame):
     sys.exit(0)
 
 
-_signal.signal(_signal.SIGTERM, _handle_sigterm)
-
 if __name__ == "__main__":
+    _signal.signal(_signal.SIGTERM, _handle_sigterm)
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)

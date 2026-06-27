@@ -27,7 +27,7 @@ _ACTIVE_DECISION_STATES = {"queued", "dispatched"}
 
 
 @dataclass
-class FieldTwin:
+class FieldTwin:  # DERIVED_VIEW: projection-only; CanonicalFieldState remains authoritative in production runtime
     """لقطة حالة الحقل الموحّدة + الحالة المشتقّة وأسبابها (شفّافة)."""
 
     field_id: str
@@ -118,7 +118,7 @@ def assemble_twin(
     else:
         state = "healthy"
 
-    return FieldTwin(
+    return FieldTwin(  # DERIVED_VIEW
         field_id=field_id,
         crop=crop,
         state=state,

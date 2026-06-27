@@ -37,6 +37,10 @@ def _load_main(monkeypatch, *, sync_tenant: str | None = None):
     pytest.importorskip("httpx")
     pytest.importorskip("jose")
     pytest.importorskip("asyncpg")
+    # This suite verifies the Odoo-backed provider path specifically. ADR-0001
+    # allows ERP_PROVIDER to default to another provider/none in deployments, so
+    # pin the provider here to keep the tenant-honesty contract scoped to Odoo.
+    monkeypatch.setenv("ERP_PROVIDER", "odoo")
     if sync_tenant is None:
         monkeypatch.delenv("ODOO_SYNC_TENANT_ID", raising=False)
     else:
