@@ -2665,7 +2665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fac779cd2537ed8a5fc975b052da44a305240a35aad91b52d68049a58d71e638"
+          "content": "80ac5d9d01817372511bbc8a29601a8ab1d573ea64852e58f473bb08530a770e"
         }
       ],
       "name": "migrations/MANIFEST.md",
