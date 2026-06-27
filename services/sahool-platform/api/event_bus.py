@@ -133,6 +133,9 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     FIELD_CREATED = "field.created"
     FIELD_UPDATED = "field.updated"
     FIELD_GEOMETRY_CHANGED = "field.geometry_changed"
+    # استرجاع حدود الحقل لمراجعة سابقة (revert) — يُصدَر عند POST استرجاع الحدود في
+    # fields.py؛ حدث مستقلّ عن التغيير العاديّ ليُتتبَّع/يُدقَّق في مجرى الأحداث.
+    FIELD_GEOMETRY_REVERTED = "field.geometry_reverted"
     # طلب تحديث صور الأقمار للحقل (زرّ «تحديث صور الأقمار» / مسار manual.refresh) — يُصدَر
     # عند نقطة POST /imagery/refresh بعد استدعاء raster (imagery/best + process-from-stac)،
     # مرساةً لفعل حقيقيّ (طلب معالجة مُستهدَفة) يجعله متتبَّعاً/مدقَّقاً في مجرى الأحداث.

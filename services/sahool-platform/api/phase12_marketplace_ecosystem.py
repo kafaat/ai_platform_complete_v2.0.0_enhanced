@@ -7,8 +7,10 @@ They are intentionally side-effect-light until wired to persistent stores.
 from __future__ import annotations
 
 try:
-    from fastapi import APIRouter, HTTPException, Request
+    from fastapi import APIRouter, Depends, HTTPException, Request
     from pydantic import BaseModel, Field
+
+    from api.service_token_auth import _require_service_token
 except Exception:  # pragma: no cover - lets py_compile pass in minimal envs
     APIRouter = None  # type: ignore
     HTTPException = Exception  # type: ignore
@@ -47,7 +49,11 @@ from shared.marketplace_plugin_runtime import (
 )
 
 if APIRouter is not None:
-    router = APIRouter(prefix="/v1/ecosystem", tags=["phase12-ecosystem"])
+    router = APIRouter(
+        prefix="/v1/ecosystem",
+        tags=["phase12-ecosystem"],
+        dependencies=[Depends(_require_service_token)],
+    )
 else:  # pragma: no cover
     router = None
 

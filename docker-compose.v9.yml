@@ -9,7 +9,7 @@ services:
     environment:
     - PORT=8088
     ports:
-    - 8088:8088
+    - 127.0.0.1:8088:8088
     healthcheck:
       test:
       - CMD

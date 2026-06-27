@@ -1,12 +1,17 @@
+import os
+
 from api.phase11_federated_agents import router
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
+# phase9-12 routers مؤمَّنة بتوكن خدمة على مستوى الراوتر؛ نضبط السرّ ونمرّر الترويسة.
+os.environ.setdefault("SAHOOL_AGENT_TOKEN", "test-agent-token")
 
 
 def client():
     app = FastAPI()
     app.include_router(router)
-    return TestClient(app)
+    return TestClient(app, headers={"X-Agent-Token": os.environ["SAHOOL_AGENT_TOKEN"]})
 
 
 def test_phase11_cycle_endpoint():

@@ -31,7 +31,7 @@ services:
     environment:
       - PORT=8088
     ports:
-      - "8088:8088"
+      - "127.0.0.1:8088:8088"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz', timeout=3)"]
       interval: 30s

@@ -115,6 +115,11 @@ def test_frontend_normalizes_indicator_index_and_passes_tid():
 
 
 def test_platform_has_api_raster_compatibility_proxy_for_misrouted_nginx():
-    assert '@app.get("/api/raster/{path:path}")' in API_MAIN
-    assert "RASTER_SERVICE_URL" in API_MAIN
-    assert "httpx.AsyncClient" in API_MAIN
+    # نُقِل التمرير التوافقيّ من main.py إلى راوتر مستقلّ (api/routers/compat_gateway.py)
+    # كي يبقى main حصراً نقاط بنية (حارس تفكيك الراوترات) — السلوك محفوظ.
+    compat = (ROOT / "services/sahool-platform/api/routers/compat_gateway.py").read_text(
+        encoding="utf-8"
+    )
+    assert '@router.get("/api/raster/{path:path}")' in compat
+    assert "RASTER_SERVICE_URL" in compat
+    assert "httpx.AsyncClient" in compat

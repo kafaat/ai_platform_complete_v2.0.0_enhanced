@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from api.phase_runtime_store import persist_phase11_cycle
+from api.service_token_auth import _require_service_token
 from shared.federated_agent_runtime import (
     build_federation_event_envelope,
     create_authority_envelope,
@@ -24,7 +25,11 @@ from shared.federated_agents_phase11 import (
     run_specialist_agents,
 )
 
-router = APIRouter(prefix="/v1/phase11/federation", tags=["phase11-federated-agents"])
+router = APIRouter(
+    prefix="/v1/phase11/federation",
+    tags=["phase11-federated-agents"],
+    dependencies=[Depends(_require_service_token)],
+)
 
 
 class AgentContextRequest(BaseModel):

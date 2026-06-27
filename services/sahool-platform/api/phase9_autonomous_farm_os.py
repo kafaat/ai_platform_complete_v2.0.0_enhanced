@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from api.phase_runtime_store import (
@@ -22,6 +22,7 @@ from api.phase_runtime_store import (
     persist_phase9_verification,
     persist_runtime_event,
 )
+from api.service_token_auth import _require_service_token
 from shared.autonomous_farm_os_phase9 import (
     assign_experiment_variant,
     event_source_execution_plan,
@@ -38,7 +39,11 @@ from shared.iot_execution_runtime import (
     summarize_telemetry_frames,
 )
 
-router = APIRouter(prefix="/v1/phase9/autonomy", tags=["phase9-autonomous-farm-os"])
+router = APIRouter(
+    prefix="/v1/phase9/autonomy",
+    tags=["phase9-autonomous-farm-os"],
+    dependencies=[Depends(_require_service_token)],
+)
 
 
 class ExecutionPlanRequest(BaseModel):

@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from api.phase_runtime_store import persist_feature_dataset, persist_phase10_learning_outputs
+from api.service_token_auth import _require_service_token
 from shared.continuous_learning_phase10 import (
     create_online_learning_update,
     decide_model_promotion,
@@ -33,7 +34,11 @@ from shared.mlops import (
     rollback_serving_alias,
 )
 
-router = APIRouter(prefix="/v1/phase10/learning", tags=["phase10-continuous-learning-ai"])
+router = APIRouter(
+    prefix="/v1/phase10/learning",
+    tags=["phase10-continuous-learning-ai"],
+    dependencies=[Depends(_require_service_token)],
+)
 
 
 class FeatureRecordsRequest(BaseModel):
