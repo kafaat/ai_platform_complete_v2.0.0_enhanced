@@ -45,6 +45,15 @@
 | COMPAT-GW | نقاط توافقيّة `@app` في main.py تكسر حارس تفكيك الراوترات | platform/البنية | #497؛ `api/routers/compat_gateway.py` · `tests_v9/test_endpoint_auth_coverage.py` (PUBLIC_ALLOWLIST) | **fixed** — نُقلت ٧ نقاط (مسابر صحّة عامّة + تمرير vegetation/raster يُفوّض المصادقة) إلى راوتر مستقلّ + أُدرِجت في القائمة العامّة بتبرير. |
 | ARCHIVE-INTEGR | تكامل لقطة الأرشيف الكامل (٤ مراحل / ٥ طلبات حسب المجال) | كامل المنصّة | #488-#497 (`6ce8849`…`e09ce27`) | **fixed + CI-verified** — كلّ بوّابات CI الـ١١ + سير production-gates الـ٨ خضراء عند الدمج النهائيّ. حدود مُعلَنة: أُسقط اختبارا raster-internal متعارضان مع راستر #484؛ سير production-gates جديد على الريبو. |
 
+## فجوات جلسة 2026-06-27 (ب) — تصلّب + اعتماد
+
+| ID | العنوان | المجال/الخدمة | المصدر | الحالة |
+|---|---|---|---|---|
+| RLS-V123 | نمط v122 يستبدل USING (footgun) — قد يُسقِط شروط سياسة مركّبة بلا WITH CHECK | platform/الأمن | #499 (`be1bd56`)؛ `migrations/v123_rls_with_check_preserve_using.sql` · `tests/security/test_phase23_rls_preserve_using.py` | **fixed (preventive)** — v123 خَلَف حافظ لـUSING (idempotent/fail-closed)؛ بلا انحدار فعليّ (user_self محميّة، الباقي tenant صرف). |
+| ROUTER-REGISTRY | main.py مركز تسجيل الراوترات (دَيْن تقنيّ) | platform/البنية | #501 (`e230ecb`)؛ `api/router_registry.py` · `tests/test_router_registry_contract.py` | **fixed (extraction-only)** — `register_routers(app)` مُستخرَجة؛ main بلا include مباشر؛ router wiring 146/0؛ بلا نقل router_groups فيزيائيّ (مؤجَّل C2-C5). |
+| CLAUDE-LOCAL | `.claude/settings.local.json` متعقَّب في git (ملفّ محلّيّ) | repo/نظافة | #500 (`488a7c7`)؛ `.gitignore` | **fixed** — أُزيل من التعقّب + .gitignore (الباني يستثني .claude أصلاً). |
+| PROD-CERT | لا اعتماد إنتاجيّ موثَّق بالأدلّة (static مقابل runtime/soak) | platform/الاعتماد | #502 (`95dc750`)؛ `FINAL_PRODUCTION_READINESS_REPORT.md` · `PRODUCTION_CERTIFICATION_MATRIX.md` | **partial (GO ساكن/CI · NO-GO إنتاجيّ معلّق)** — smoke/env_doctor/soak على بيئة حيّة لم تُنفَّذ (مالك Ops/SRE)؛ مُعلَّمة PENDING بصدق لا تلفيق. |
+
 ## ملاحظات
 
 - **مصادر [حيّ] تنتظر التشغيل:** R6 (البوّابيّ)، H1 (التفويض فاشل-مفتوح، قرار)، OFFLINE
