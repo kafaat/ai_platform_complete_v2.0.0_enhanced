@@ -16,6 +16,7 @@ import 'mfa_setup_screen.dart';
 import 'operations_hub_screen.dart';
 import 'profile_screen.dart';
 import 'satellite_screen.dart';
+import 'tasks_screen.dart';
 
 class _MoreItem {
   final String label;
@@ -34,6 +35,7 @@ class MoreScreen extends StatelessWidget {
     // يبقى مُتاحاً هنا بالكامل (لم يُحذَف).
     _MoreItem('مركز العمليّات', Icons.grid_view,
         () => const OperationsHubScreen()),
+    _MoreItem('المهام اليومية', Icons.task_alt_outlined, () => const TasksScreen()),
     // المزارع (أب الحقول) — قائمة/إنشاء عبر /api/v1/farms (تكافؤ مع الويب).
     _MoreItem('المزارع', Icons.agriculture_outlined, () => const FarmsScreen()),
     _MoreItem('الأقمار', Icons.satellite_alt, () => const SatelliteScreen()),

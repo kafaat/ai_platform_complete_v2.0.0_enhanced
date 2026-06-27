@@ -12,6 +12,7 @@ import 'equipment_screen.dart';
 import 'inventory_screen.dart';
 import 'irrigation_ops_screen.dart';
 import 'master_data_screen.dart';
+import 'tasks_screen.dart';
 
 class _Module {
   final String label;
@@ -26,6 +27,7 @@ class OperationsHubScreen extends StatelessWidget {
 
   static final List<_Module> _modules = [
     _Module('المخزون', Icons.inventory_2_outlined, () => const InventoryScreen()),
+    _Module('المهام اليومية', Icons.task_alt_outlined, () => const TasksScreen()),
     _Module('المعدّات', Icons.agriculture_outlined, () => const EquipmentScreen()),
     _Module('أجهزة IoT', Icons.sensors, () => const DevicesScreen()),
     _Module('الري التشغيلي', Icons.water_drop_outlined,
