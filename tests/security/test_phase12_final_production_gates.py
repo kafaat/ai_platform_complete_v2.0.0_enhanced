@@ -44,7 +44,9 @@ def test_jobs_database_url_is_limited_to_background_channels() -> None:
 
 
 def test_checked_in_env_uses_restricted_runtime_roles() -> None:
-    env = (ROOT / ".env").read_text(encoding="utf-8")
+    # ‎.env‎ سرّيّ مُستثنى من git (.gitignore)؛ القالب المُودَع هو ‎.env.example‎ وعليه
+    # تُفرَض الأدوار المقيّدة (sahool_app/sahool_jobs لا postgres/sahool_user).
+    env = (ROOT / ".env.example").read_text(encoding="utf-8")
     assert re.search(r"^DATABASE_URL=postgresql://sahool_app:", env, re.M)
     assert re.search(r"^JOBS_DATABASE_URL=postgresql://sahool_jobs:", env, re.M)
     assert not re.search(r"^DATABASE_URL=postgresql://(?:postgres|sahool_user):", env, re.M)
