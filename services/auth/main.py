@@ -97,9 +97,9 @@ def _parse_required_mfa_roles(raw: str | None) -> frozenset[str]:
 
 
 REQUIRE_MFA_ROLES = _parse_required_mfa_roles(os.getenv("REQUIRE_MFA_ROLES"))
-# مفتاح رئيسيّ: الفرض مُعطَّل افتراضيّاً كي لا يكسر CI/التطوير (الإدمن بلا MFA).
-# يُفعَّل في الإنتاج عبر ENFORCE_SENSITIVE_MFA=true أو SAHOOL_ENV=production.
-_ENFORCE_SENSITIVE_MFA = os.getenv("ENFORCE_SENSITIVE_MFA", "false").lower() == "true"
+# مفتاح رئيسيّ: الفرض مُفعَّل افتراضيّاً للأدوار الحسّاسة؛ عطّله صراحةً في CI/التطوير عبر ENFORCE_SENSITIVE_MFA=false عند الحاجة.
+# يبقى مفروضاً في الإنتاج عبر SAHOOL_ENV=production حتى لو نُسي الضبط.
+_ENFORCE_SENSITIVE_MFA = os.getenv("ENFORCE_SENSITIVE_MFA", "true").lower() == "true"
 _IS_PRODUCTION = os.getenv("SAHOOL_ENV", "").lower() == "production"
 MFA_ENFORCEMENT_ENABLED = _ENFORCE_SENSITIVE_MFA or _IS_PRODUCTION
 
@@ -153,10 +153,28 @@ from otp import (  # noqa: E402
     otp_redis_key,
 )
 
+
 # ── Prometheus ─────────────────────────────────────────────────
-LOGIN_COUNTER = Counter("sahool_auth_logins_total", "Login attempts", ["status"])
-REGISTER_COUNTER = Counter("sahool_auth_register_total", "Registration attempts", ["status"])
-RESET_COUNTER = Counter("sahool_auth_resets_total", "Password reset requests")
+def _safe_counter(name: str, documentation: str, labelnames=()):
+    """Create a Prometheus counter without breaking repeated test imports.
+
+    Several unit tests load this module under different names to inspect pure
+    functions. prometheus_client's default registry is process-global, so a
+    second import would otherwise raise duplicated-timeseries. In production the
+    first registered metric is used; on repeated imports we create an unregistered
+    local counter that keeps handlers importable without mutating global metrics.
+    """
+    try:
+        return Counter(name, documentation, labelnames)
+    except ValueError as exc:
+        if "Duplicated timeseries" not in str(exc):
+            raise
+        return Counter(name, documentation, labelnames, registry=None)
+
+
+LOGIN_COUNTER = _safe_counter("sahool_auth_logins_total", "Login attempts", ["status"])
+REGISTER_COUNTER = _safe_counter("sahool_auth_register_total", "Registration attempts", ["status"])
+RESET_COUNTER = _safe_counter("sahool_auth_resets_total", "Password reset requests")
 
 # ── DB + Redis ─────────────────────────────────────────────────
 _pool: asyncpg.Pool | None = None
@@ -173,12 +191,30 @@ async def _acquire():
     CHECK للكتابة) ترفض users ⇒ login=401 وregister=RLS violation. إعادة الضبط هنا
     تصمد أمام RESET ALL. auth خدمة هويّة عابرة للمستأجرين بحكم دورها (init يبقى حزام
     أمان للاستخدام الأوّل). يستعمل _pool.acquire/release مباشرةً (لا تكرار ذاتيّ)."""
-    conn = await _pool.acquire()
+    acquired = _pool.acquire()
+
+    async def _set_admin_context(conn):
+        execute = getattr(conn, "execute", None)
+        if execute is not None:
+            await execute("SELECT set_config('app.current_role', 'admin', false)")
+
+    # asyncpg.Pool.acquire() is usable as an async context manager. Some tests use
+    # a small fake with the same shape; support both that and awaitable acquire()
+    # return values without weakening the production session-context reset.
+    if hasattr(acquired, "__aenter__"):
+        async with acquired as conn:
+            await _set_admin_context(conn)
+            yield conn
+        return
+
+    conn = await acquired
     try:
-        await conn.execute("SELECT set_config('app.current_role', 'admin', false)")
+        await _set_admin_context(conn)
         yield conn
     finally:
-        await _pool.release(conn)
+        release = getattr(_pool, "release", None)
+        if release is not None:
+            await release(conn)
 
 
 @asynccontextmanager

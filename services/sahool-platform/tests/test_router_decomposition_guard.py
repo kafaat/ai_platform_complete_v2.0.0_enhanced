@@ -85,7 +85,16 @@ def test_every_router_module_is_included_in_main():
             # وحدة لا تُصدّر router (نادر) — لا تُسجَّل ولا تُعدّ يتيمة.
             continue
         prefix = getattr(router, "prefix", "") or ""
-        expected = {prefix + getattr(rt, "path", "") for rt in router.routes if hasattr(rt, "path")}
+        # في إصدار FastAPI/Starlette الحاليّ يتضمّن ``rt.path`` بادئة الراوتر مسبقاً
+        # (لراوتر بـ``prefix=...``)، فإضافة البادئة ثانيةً تُضاعفها وتُسقط المطابقة
+        # خطأً (مثل gis_cloud_native، الراوتر الوحيد ذو البادئة). نتفادى الازدواج:
+        # نُبقي المسار كما هو إن كان يبدأ بالبادئة، وإلّا نُضيفها.
+        expected = set()
+        for rt in router.routes:
+            if not hasattr(rt, "path"):
+                continue
+            rp = getattr(rt, "path", "")
+            expected.add(rp if (not prefix or rp.startswith(prefix)) else prefix + rp)
         if expected and not (expected & app_paths):
             missing.append(name)
     assert missing == [], f"router غير مُضمَّن في التطبيق (app.routes): {missing}"

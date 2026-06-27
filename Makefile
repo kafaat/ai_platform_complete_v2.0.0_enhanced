@@ -95,3 +95,14 @@ clean:
 	@find . -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null; true
 	@find . -name "*.pyc" -delete 2>/dev/null; true
 	@echo "✓ Cleaned"
+
+.PHONY: e2e-live-full chaos-load gis-timeline-e2e
+
+e2e-live-full:
+	python scripts/e2e/live_full_e2e.py
+
+chaos-load:
+	python scripts/e2e/chaos_load.py
+
+gis-timeline-e2e:
+	cd frontend && npm run e2e:gis-timeline

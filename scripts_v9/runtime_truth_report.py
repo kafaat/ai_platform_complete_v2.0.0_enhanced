@@ -15,8 +15,7 @@ runtime_truth_report.py — جامع الحقيقة التشغيليّة (يُش
 import json
 import os
 import subprocess
-import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -38,7 +37,7 @@ def _try(cmd, timeout=30):
 def collect():
     lines = []
     lines.append("# Runtime Truth Report — SAHOOL v9")
-    lines.append(f"\nالوقت: {datetime.now(timezone.utc).isoformat()}")
+    lines.append(f"\nالوقت: {datetime.now(UTC).isoformat()}")
     lines.append("\n> القاعدة: نقيس الثقة لا نضيفها. هذا ما حدث فعليّاً، لا ما نأمله.")
 
     # ─── ١. حقيقة الخدمات (هل تعمل؟) ───

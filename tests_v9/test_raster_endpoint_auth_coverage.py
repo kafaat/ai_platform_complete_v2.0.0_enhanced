@@ -104,9 +104,10 @@ SERVICE_ONLY: set[str] = {
     "/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة.
     "/offline/packs",  # سرد حزم offline محمي بتوكن خدمة.
     "/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة.
-    "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).    # ── نقاط خدمة-لخدمة جديدة (تستدعي _require_service_token فعليّاً) ──
-    "/v1/tile-cache/stats",
-    "/v1/fields/analytics/geoparquet/export",
+    "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).
+    # ── كتالوج GIS سحابيّ + تحليلات حقول: تكشف بنية/تصدير ⇒ توكن خدمة + ترويسة ──
+    "/v1/fields/analytics/geoparquet/export",  # تصدير GeoParquet لحقول — توكن خدمة.
+    "/v1/tile-cache/stats",  # إحصاء ذاكرة بلاطات يكشف بنية داخلية — توكن خدمة.
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -129,18 +130,18 @@ PUBLIC_CATALOG: set[str] = {
     "/healthz",  # فحص حياة العمليّة — بنية تحتيّة، لا بيانات.
     "/readyz",  # فحص جاهزيّة (وصول Earth Search) — بنية تحتيّة، لا بيانات.
     "/metrics",  # مقاييس Prometheus (عدّ مهامّ/طبقات مُجمَّع، لا بيانات مستأجِر).
-    # ── كتالوج STAC + جودة/معاينة + سياسات وتخطيط صور عامّة (لا بيانات مستأجِر) ──
-    "/stac",
-    "/stac/collections",
-    "/stac/mosaicjson",
-    "/v1/scenes/quality-score",
-    "/v1/cog/registry/preview",
-    "/v1/tiles/observability",
-    "/v1/imagery/backfill/policy",
-    "/v1/imagery/quality/policy",
-    "/v1/imagery/scenes/rank",
-    "/v1/imagery/mosaic/plan",
     # ── مراقبة تخزين + حزم خرائط offline (خلفيّة ثابتة، لا بيانات مستأجِر) ──
+    # ── كتالوج GIS سحابيّ عامّ (STAC/COG/imagery policy) — بحث/سياسة عامّة بـbbox ──
+    "/stac",  # صفحة STAC الجذر — كتالوج صور عامّ، لا بيانات مستأجِر.
+    "/stac/collections",  # مجموعات STAC — كتالوج عامّ.
+    "/stac/mosaicjson",  # MosaicJSON — تركيب فسيفساء عامّ من مشاهد.
+    "/v1/scenes/quality-score",  # تقييم جودة مشهد — حساب من بيانات وصفيّة عامّة.
+    "/v1/cog/registry/preview",  # معاينة سجلّ COG — كتالوج عامّ، لا بيانات مستأجِر.
+    "/v1/tiles/observability",  # مراقبة البلاطات (عدّ مُجمَّع) — لا بيانات مستأجِر.
+    "/v1/imagery/backfill/policy",  # سياسة ردم الصور — قواعد ثابتة، لا بيانات.
+    "/v1/imagery/quality/policy",  # سياسة جودة الصور — قواعد ثابتة، لا بيانات.
+    "/v1/imagery/scenes/rank",  # ترتيب المشاهد — حساب من بيانات وصفيّة عامّة بـbbox.
+    "/v1/imagery/mosaic/plan",  # خطّة فسيفساء — تخطيط عامّ من بحث بـbbox.
 }
 
 

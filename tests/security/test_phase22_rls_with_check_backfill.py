@@ -1,6 +1,6 @@
+from pathlib import Path
 import subprocess
 import sys
-from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -25,16 +25,10 @@ def test_v122_backfill_is_defensive_and_idempotent():
 
 
 def test_phase_runtime_sets_both_tenant_session_variables():
-    # The Phase 9-12 runtime writers are not part of this focused change. When
-    # present they must set both tenant session variables; absent files are
-    # skipped so the guard activates automatically once that runtime lands.
     for rel in [
         "services/sahool-platform/api/phase_runtime_store.py",
         "services/sahool-platform/api/phase_runtime_workers.py",
     ]:
-        path = ROOT / rel
-        if not path.exists():
-            continue
-        text = path.read_text()
+        text = (ROOT / rel).read_text()
         assert "set_config('app.current_tenant'" in text
         assert "set_config('app.tenant_id'" in text

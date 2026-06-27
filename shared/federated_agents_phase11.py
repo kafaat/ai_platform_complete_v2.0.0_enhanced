@@ -9,21 +9,20 @@ The implementation is dependency-light so CI can validate the decision logic;
 production adapters can later route proposals through LangGraph/Temporal/MCP,
 LLMs, or domain-specific ML services without changing the contracts.
 """
-
 from __future__ import annotations
 
-import hashlib
-import json
-import math
-from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
 from statistics import mean
 from typing import Any
+import hashlib
+import json
+import math
 
 
 def _now() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -153,9 +152,7 @@ def build_agent_context(
     market_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Normalize state into a single read model for specialist agents."""
-    truths = (
-        canonical_field_state.get("operational_truths") or canonical_field_state.get("truths") or {}
-    )
+    truths = canonical_field_state.get("operational_truths") or canonical_field_state.get("truths") or {}
     signals = canonical_field_state.get("signals") or canonical_field_state.get("indices") or {}
     field_id = canonical_field_state.get("field_id") or canonical_field_state.get("id")
     context = {
@@ -166,12 +163,8 @@ def build_agent_context(
         "truths": truths,
         "signals": signals,
         "risks": canonical_field_state.get("risks") or truths.get("risks") or [],
-        "confidence": _num(
-            canonical_field_state.get("confidence", truths.get("confidence", 0.5)), 0.5
-        ),
-        "execution": (phase9_cycle or {}).get("execution")
-        or (phase9_cycle or {}).get("operation_plan")
-        or {},
+        "confidence": _num(canonical_field_state.get("confidence", truths.get("confidence", 0.5)), 0.5),
+        "execution": (phase9_cycle or {}).get("execution") or (phase9_cycle or {}).get("operation_plan") or {},
         "learning": phase10_learning or {},
         "market": market_context or {},
         "created_at": _now(),
@@ -179,18 +172,7 @@ def build_agent_context(
     return context
 
 
-def _proposal(
-    role: AgentRole,
-    action: ProposalAction,
-    confidence: float,
-    priority: int,
-    rationale: list[str],
-    *,
-    evidence: dict[str, Any] | None = None,
-    expected: dict[str, float] | None = None,
-    required: list[str] | None = None,
-    flags: list[str] | None = None,
-) -> dict[str, Any]:
+def _proposal(role: AgentRole, action: ProposalAction, confidence: float, priority: int, rationale: list[str], *, evidence: dict[str, Any] | None = None, expected: dict[str, float] | None = None, required: list[str] | None = None, flags: list[str] | None = None) -> dict[str, Any]:
     data = {
         "role": role.value,
         "action": action.value,
@@ -202,29 +184,22 @@ def _proposal(
         "required": required or [],
         "flags": flags or [],
     }
-    return asdict(
-        AgentProposal(
-            proposal_id=_stable_id(data, "prop"),
-            agent_role=role.value,
-            action=action.value,
-            confidence=data["confidence"],
-            priority=data["priority"],
-            rationale=rationale,
-            expected_effect=expected or {},
-            required_inputs=required or [],
-            safety_flags=flags or [],
-            evidence=evidence or {},
-            created_at=_now(),
-        )
-    )
+    return asdict(AgentProposal(
+        proposal_id=_stable_id(data, "prop"),
+        agent_role=role.value,
+        action=action.value,
+        confidence=data["confidence"],
+        priority=data["priority"],
+        rationale=rationale,
+        expected_effect=expected or {},
+        required_inputs=required or [],
+        safety_flags=flags or [],
+        evidence=evidence or {},
+        created_at=_now(),
+    ))
 
 
-def run_specialist_agents(
-    context: dict[str, Any],
-    *,
-    objective: str = "optimize_field_outcome",
-    enabled_roles: list[str] | None = None,
-) -> list[dict[str, Any]]:
+def run_specialist_agents(context: dict[str, Any], *, objective: str = "optimize_field_outcome", enabled_roles: list[str] | None = None) -> list[dict[str, Any]]:
     """Run deterministic specialist policies and return auditable proposals."""
     enabled = {r for r in (enabled_roles or [r.value for r in AgentRole])}
     truths = context.get("truths") or {}
@@ -238,227 +213,61 @@ def run_specialist_agents(
     vigor = _num(truths.get("vigor", signals.get("ndvi", 0.55)), 0.55)
     disease_risk = _num(truths.get("disease_risk", signals.get("disease_risk", 0.0)))
     salinity = _num(truths.get("salinity_risk", truths.get("soil_ec_risk", 0.0)))
-    profit_margin = _num(
-        (context.get("market") or {}).get("expected_margin", truths.get("expected_margin", 0.0))
-    )
+    profit_margin = _num((context.get("market") or {}).get("expected_margin", truths.get("expected_margin", 0.0)))
     confidence = _num(context.get("confidence"), 0.5)
 
     if AgentRole.WATER.value in enabled:
         if water_stress >= 0.65 or soil_moisture <= 0.28 or heat_risk >= 0.75:
-            proposals.append(
-                _proposal(
-                    AgentRole.WATER,
-                    ProposalAction.IRRIGATE,
-                    max(0.62, confidence),
-                    90,
-                    ["water_or_heat_stress_detected"],
-                    expected={"water_stress_delta": -0.25, "yield_risk_delta": -0.08},
-                    evidence={
-                        "water_stress": water_stress,
-                        "soil_moisture": soil_moisture,
-                        "heat_risk": heat_risk,
-                    },
-                    required=["pump_status", "water_allocation"],
-                )
-            )
+            proposals.append(_proposal(AgentRole.WATER, ProposalAction.IRRIGATE, max(0.62, confidence), 90, ["water_or_heat_stress_detected"], expected={"water_stress_delta": -0.25, "yield_risk_delta": -0.08}, evidence={"water_stress": water_stress, "soil_moisture": soil_moisture, "heat_risk": heat_risk}, required=["pump_status", "water_allocation"]))
         else:
-            proposals.append(
-                _proposal(
-                    AgentRole.WATER,
-                    ProposalAction.WAIT,
-                    0.58,
-                    30,
-                    ["water_status_within_operational_band"],
-                    evidence={"soil_moisture": soil_moisture},
-                )
-            )
+            proposals.append(_proposal(AgentRole.WATER, ProposalAction.WAIT, 0.58, 30, ["water_status_within_operational_band"], evidence={"soil_moisture": soil_moisture}))
 
     if AgentRole.AGRONOMY.value in enabled:
         if vigor < 0.42 and salinity < 0.6:
-            proposals.append(
-                _proposal(
-                    AgentRole.AGRONOMY,
-                    ProposalAction.FERTILIZE,
-                    0.66,
-                    70,
-                    ["low_vigor_without_salinity_blocker"],
-                    expected={"vigor_delta": 0.07},
-                    evidence={"vigor": vigor, "salinity": salinity},
-                    required=["recent_fertilizer_log", "crop_stage"],
-                )
-            )
+            proposals.append(_proposal(AgentRole.AGRONOMY, ProposalAction.FERTILIZE, 0.66, 70, ["low_vigor_without_salinity_blocker"], expected={"vigor_delta": 0.07}, evidence={"vigor": vigor, "salinity": salinity}, required=["recent_fertilizer_log", "crop_stage"]))
         elif vigor < 0.42:
-            proposals.append(
-                _proposal(
-                    AgentRole.AGRONOMY,
-                    ProposalAction.SCOUT,
-                    0.7,
-                    65,
-                    ["low_vigor_with_possible_non_nutrient_constraint"],
-                    evidence={"vigor": vigor, "salinity": salinity},
-                )
-            )
+            proposals.append(_proposal(AgentRole.AGRONOMY, ProposalAction.SCOUT, 0.7, 65, ["low_vigor_with_possible_non_nutrient_constraint"], evidence={"vigor": vigor, "salinity": salinity}))
 
     if AgentRole.DISEASE.value in enabled:
         if disease_risk >= 0.7 or "disease_high" in risks:
-            proposals.append(
-                _proposal(
-                    AgentRole.DISEASE,
-                    ProposalAction.SPRAY,
-                    0.68,
-                    80,
-                    ["disease_risk_exceeds_action_threshold"],
-                    expected={"disease_risk_delta": -0.2},
-                    evidence={"disease_risk": disease_risk},
-                    required=["spray_window", "chemical_label", "operator_available"],
-                )
-            )
+            proposals.append(_proposal(AgentRole.DISEASE, ProposalAction.SPRAY, 0.68, 80, ["disease_risk_exceeds_action_threshold"], expected={"disease_risk_delta": -0.2}, evidence={"disease_risk": disease_risk}, required=["spray_window", "chemical_label", "operator_available"]))
         elif disease_risk >= 0.45:
-            proposals.append(
-                _proposal(
-                    AgentRole.DISEASE,
-                    ProposalAction.SCOUT,
-                    0.64,
-                    55,
-                    ["disease_risk_requires_field_confirmation"],
-                    evidence={"disease_risk": disease_risk},
-                )
-            )
+            proposals.append(_proposal(AgentRole.DISEASE, ProposalAction.SCOUT, 0.64, 55, ["disease_risk_requires_field_confirmation"], evidence={"disease_risk": disease_risk}))
 
     if AgentRole.SOIL.value in enabled:
         if salinity >= 0.75:
-            proposals.append(
-                _proposal(
-                    AgentRole.SOIL,
-                    ProposalAction.BLOCK,
-                    0.82,
-                    100,
-                    ["salinity_critical_blocks_fertilizer_or_heavy_irrigation"],
-                    evidence={"salinity": salinity},
-                    flags=["soil_safety_veto"],
-                )
-            )
+            proposals.append(_proposal(AgentRole.SOIL, ProposalAction.BLOCK, 0.82, 100, ["salinity_critical_blocks_fertilizer_or_heavy_irrigation"], evidence={"salinity": salinity}, flags=["soil_safety_veto"]))
         elif salinity >= 0.5:
-            proposals.append(
-                _proposal(
-                    AgentRole.SOIL,
-                    ProposalAction.SCOUT,
-                    0.62,
-                    60,
-                    ["soil_constraint_requires_sampling"],
-                    evidence={"salinity": salinity},
-                )
-            )
+            proposals.append(_proposal(AgentRole.SOIL, ProposalAction.SCOUT, 0.62, 60, ["soil_constraint_requires_sampling"], evidence={"salinity": salinity}))
 
     if AgentRole.ECONOMICS.value in enabled:
         if profit_margin < -0.05:
-            proposals.append(
-                _proposal(
-                    AgentRole.ECONOMICS,
-                    ProposalAction.WAIT,
-                    0.72,
-                    75,
-                    ["negative_expected_margin_blocks_non_urgent_operation"],
-                    evidence={"expected_margin": profit_margin},
-                    flags=["economic_guardrail"],
-                )
-            )
+            proposals.append(_proposal(AgentRole.ECONOMICS, ProposalAction.WAIT, 0.72, 75, ["negative_expected_margin_blocks_non_urgent_operation"], evidence={"expected_margin": profit_margin}, flags=["economic_guardrail"]))
         elif profit_margin > 0.12:
-            proposals.append(
-                _proposal(
-                    AgentRole.ECONOMICS,
-                    ProposalAction.RECOMPUTE,
-                    0.57,
-                    40,
-                    ["positive_margin_allows_optimization"],
-                    evidence={"expected_margin": profit_margin},
-                )
-            )
+            proposals.append(_proposal(AgentRole.ECONOMICS, ProposalAction.RECOMPUTE, 0.57, 40, ["positive_margin_allows_optimization"], evidence={"expected_margin": profit_margin}))
 
     if AgentRole.SAFETY.value in enabled:
         if confidence < 0.45:
-            proposals.append(
-                _proposal(
-                    AgentRole.SAFETY,
-                    ProposalAction.BLOCK,
-                    0.9,
-                    100,
-                    ["field_state_confidence_below_safe_threshold"],
-                    evidence={"confidence": confidence},
-                    flags=["low_confidence_veto"],
-                )
-            )
+            proposals.append(_proposal(AgentRole.SAFETY, ProposalAction.BLOCK, 0.9, 100, ["field_state_confidence_below_safe_threshold"], evidence={"confidence": confidence}, flags=["low_confidence_veto"]))
         if truths.get("human_approval_required") is True:
-            proposals.append(
-                _proposal(
-                    AgentRole.SAFETY,
-                    ProposalAction.SCOUT,
-                    0.75,
-                    95,
-                    ["human_approval_required_by_policy"],
-                    flags=["approval_gate"],
-                )
-            )
+            proposals.append(_proposal(AgentRole.SAFETY, ProposalAction.SCOUT, 0.75, 95, ["human_approval_required_by_policy"], flags=["approval_gate"]))
 
     if AgentRole.OPERATIONS.value in enabled:
         if (context.get("execution") or {}).get("dispatch_ready") is False:
-            proposals.append(
-                _proposal(
-                    AgentRole.OPERATIONS,
-                    ProposalAction.RECOMPUTE,
-                    0.63,
-                    50,
-                    ["previous_dispatch_not_ready"],
-                    evidence=context.get("execution") or {},
-                )
-            )
+            proposals.append(_proposal(AgentRole.OPERATIONS, ProposalAction.RECOMPUTE, 0.63, 50, ["previous_dispatch_not_ready"], evidence=context.get("execution") or {}))
 
     if AgentRole.PLANNER.value in enabled and not proposals:
-        proposals.append(
-            _proposal(
-                AgentRole.PLANNER,
-                ProposalAction.WAIT,
-                0.55,
-                10,
-                ["no_specialist_threshold_crossed"],
-                evidence={"objective": objective},
-            )
-        )
+        proposals.append(_proposal(AgentRole.PLANNER, ProposalAction.WAIT, 0.55, 10, ["no_specialist_threshold_crossed"], evidence={"objective": objective}))
 
     return proposals
 
 
-def reach_consensus(
-    proposals: list[dict[str, Any]],
-    *,
-    objective: str = "optimize_field_outcome",
-    execution_mode: str = ExecutionMode.HUMAN_IN_LOOP.value,
-    min_confidence: float = 0.6,
-) -> dict[str, Any]:
+def reach_consensus(proposals: list[dict[str, Any]], *, objective: str = "optimize_field_outcome", execution_mode: str = ExecutionMode.HUMAN_IN_LOOP.value, min_confidence: float = 0.6) -> dict[str, Any]:
     """Resolve specialist proposals into one consensus decision with veto support."""
     if not proposals:
-        return asdict(
-            ConsensusDecision(
-                _stable_id({"objective": objective, "empty": True}, "cons"),
-                objective,
-                ConsensusStatus.BLOCKED.value,
-                None,
-                0.0,
-                True,
-                ["no_proposals"],
-                [],
-                0,
-                [],
-                _now(),
-            )
-        )
+        return asdict(ConsensusDecision(_stable_id({"objective": objective, "empty": True}, "cons"), objective, ConsensusStatus.BLOCKED.value, None, 0.0, True, ["no_proposals"], [], 0, [], _now()))
 
-    vetoes = [
-        p["agent_role"] + ":" + flag
-        for p in proposals
-        for flag in p.get("safety_flags", [])
-        if "veto" in flag or p.get("action") == ProposalAction.BLOCK.value
-    ]
+    vetoes = [p["agent_role"] + ":" + flag for p in proposals for flag in p.get("safety_flags", []) if "veto" in flag or p.get("action") == ProposalAction.BLOCK.value]
     action_scores: dict[str, list[float]] = {}
     action_reasons: dict[str, list[str]] = {}
     for p in proposals:
@@ -469,14 +278,7 @@ def reach_consensus(
 
     ranked = []
     for action, scores in action_scores.items():
-        ranked.append(
-            {
-                "action": action,
-                "score": round(sum(scores), 4),
-                "support": len(scores),
-                "reasons": sorted(set(action_reasons.get(action, []))),
-            }
-        )
+        ranked.append({"action": action, "score": round(sum(scores), 4), "support": len(scores), "reasons": sorted(set(action_reasons.get(action, [])))})
     ranked.sort(key=lambda item: (item["score"], item["support"]), reverse=True)
 
     conflict_reasons: list[str] = []
@@ -500,30 +302,15 @@ def reach_consensus(
     elif selected_conf < min_confidence:
         status = ConsensusStatus.NEEDS_HUMAN_APPROVAL.value
         approval_required = True
-    elif execution_mode in {
-        ExecutionMode.SHADOW.value,
-        ExecutionMode.ADVISORY.value,
-        ExecutionMode.HUMAN_IN_LOOP.value,
-    }:
-        status = (
-            ConsensusStatus.NEEDS_HUMAN_APPROVAL.value
-            if selected
-            not in {
-                ProposalAction.WAIT.value,
-                ProposalAction.SCOUT.value,
-                ProposalAction.RECOMPUTE.value,
-            }
-            else ConsensusStatus.APPROVED.value
-        )
+    elif execution_mode in {ExecutionMode.SHADOW.value, ExecutionMode.ADVISORY.value, ExecutionMode.HUMAN_IN_LOOP.value}:
+        status = ConsensusStatus.NEEDS_HUMAN_APPROVAL.value if selected not in {ProposalAction.WAIT.value, ProposalAction.SCOUT.value, ProposalAction.RECOMPUTE.value} else ConsensusStatus.APPROVED.value
         approval_required = status != ConsensusStatus.APPROVED.value
     else:
         status = ConsensusStatus.APPROVED.value
         approval_required = False
 
     decision = ConsensusDecision(
-        decision_id=_stable_id(
-            {"objective": objective, "ranked": ranked, "vetoes": vetoes}, "cons"
-        ),
+        decision_id=_stable_id({"objective": objective, "ranked": ranked, "vetoes": vetoes}, "cons"),
         objective=objective,
         status=status,
         selected_action=selected,
@@ -538,13 +325,7 @@ def reach_consensus(
     return asdict(decision)
 
 
-def create_autonomous_operation_plan(
-    consensus: dict[str, Any],
-    context: dict[str, Any],
-    *,
-    execution_mode: str = ExecutionMode.HUMAN_IN_LOOP.value,
-    max_autonomous_risk: float = 0.35,
-) -> dict[str, Any]:
+def create_autonomous_operation_plan(consensus: dict[str, Any], context: dict[str, Any], *, execution_mode: str = ExecutionMode.HUMAN_IN_LOOP.value, max_autonomous_risk: float = 0.35) -> dict[str, Any]:
     """Convert consensus into an auditable operation plan."""
     action = consensus.get("selected_action")
     field_id = context.get("field_id")
@@ -580,11 +361,7 @@ def create_autonomous_operation_plan(
             {"step": "check_soil_guardrails", "required": True},
             {"step": "create_variable_rate_work_order", "required": True},
         ]
-    elif action in {
-        ProposalAction.SCOUT.value,
-        ProposalAction.RECOMPUTE.value,
-        ProposalAction.WAIT.value,
-    }:
+    elif action in {ProposalAction.SCOUT.value, ProposalAction.RECOMPUTE.value, ProposalAction.WAIT.value}:
         steps = [{"step": action, "required": True}]
     elif action is None:
         steps = []
@@ -592,14 +369,8 @@ def create_autonomous_operation_plan(
     safety_gates = [
         {"gate": "canonical_field_state_fresh", "pass_required": True},
         {"gate": "tenant_scope_verified", "pass_required": True},
-        {
-            "gate": "weather_window_safe",
-            "pass_required": action in {ProposalAction.SPRAY.value, ProposalAction.IRRIGATE.value},
-        },
-        {
-            "gate": "rollback_available",
-            "pass_required": execution_mode == ExecutionMode.AUTONOMOUS.value,
-        },
+        {"gate": "weather_window_safe", "pass_required": action in {ProposalAction.SPRAY.value, ProposalAction.IRRIGATE.value}},
+        {"gate": "rollback_available", "pass_required": execution_mode == ExecutionMode.AUTONOMOUS.value},
     ]
     rollback = [
         {"step": "cancel_pending_command", "when": "before_dispatch"},
@@ -607,10 +378,7 @@ def create_autonomous_operation_plan(
         {"step": "escalate_to_human", "when": "verification_failed"},
     ]
     plan = AutonomousOperationPlan(
-        plan_id=_stable_id(
-            {"decision": consensus.get("decision_id"), "mode": execution_mode, "field": field_id},
-            "opplan",
-        ),
+        plan_id=_stable_id({"decision": consensus.get("decision_id"), "mode": execution_mode, "field": field_id}, "opplan"),
         decision_id=str(consensus.get("decision_id")),
         execution_mode=execution_mode,
         field_id=field_id,
@@ -618,59 +386,28 @@ def create_autonomous_operation_plan(
         steps=steps,
         safety_gates=safety_gates,
         rollback_plan=rollback,
-        dispatch_ready=(
-            not blocked
-            and action not in {None, ProposalAction.WAIT.value}
-            and execution_mode != ExecutionMode.SHADOW.value
-        ),
+        dispatch_ready=(not blocked and action not in {None, ProposalAction.WAIT.value} and execution_mode != ExecutionMode.SHADOW.value),
         blocked_reasons=blocked,
         created_at=_now(),
     )
     return asdict(plan)
 
 
-def design_shadow_experiment(
-    *,
-    name: str,
-    objective: str,
-    champion_policy: str,
-    challenger_policy: str,
-    mode: str = "shadow",
-    traffic_pct: float = 0.1,
-    guardrails: dict[str, Any] | None = None,
-    promotion_metrics: list[str] | None = None,
-) -> dict[str, Any]:
+def design_shadow_experiment(*, name: str, objective: str, champion_policy: str, challenger_policy: str, mode: str = "shadow", traffic_pct: float = 0.1, guardrails: dict[str, Any] | None = None, promotion_metrics: list[str] | None = None) -> dict[str, Any]:
     """Create a safe experiment plan for agent policies or operation policies."""
     traffic_pct = max(0.0, min(0.5, traffic_pct))
     if mode not in {"shadow", "canary", "champion_challenger"}:
         mode = "shadow"
     plan = ShadowExperimentPlan(
-        experiment_id=_stable_id(
-            {
-                "name": name,
-                "champion": champion_policy,
-                "challenger": challenger_policy,
-                "mode": mode,
-            },
-            "exp11",
-        ),
+        experiment_id=_stable_id({"name": name, "champion": champion_policy, "challenger": challenger_policy, "mode": mode}, "exp11"),
         name=name,
         mode=mode,
         objective=objective,
         champion_policy=champion_policy,
         challenger_policy=challenger_policy,
-        traffic_split={
-            "champion": round(1.0 - traffic_pct, 4),
-            "challenger": round(traffic_pct, 4),
-        },
-        guardrails=guardrails
-        or {
-            "max_negative_outcome_rate": 0.02,
-            "min_confidence": 0.6,
-            "human_approval_for_actuation": True,
-        },
-        promotion_metrics=promotion_metrics
-        or ["net_benefit", "safety_incidents", "operator_acceptance"],
+        traffic_split={"champion": round(1.0 - traffic_pct, 4), "challenger": round(traffic_pct, 4)},
+        guardrails=guardrails or {"max_negative_outcome_rate": 0.02, "min_confidence": 0.6, "human_approval_for_actuation": True},
+        promotion_metrics=promotion_metrics or ["net_benefit", "safety_incidents", "operator_acceptance"],
         created_at=_now(),
     )
     return asdict(plan)
@@ -679,21 +416,10 @@ def design_shadow_experiment(
 def evaluate_agent_consensus_quality(cycles: list[dict[str, Any]]) -> dict[str, Any]:
     """Summarize the health of a federated-agent rollout."""
     if not cycles:
-        return {
-            "status": "insufficient_data",
-            "cycle_count": 0,
-            "approval_rate": 0.0,
-            "blocked_rate": 0.0,
-            "mean_confidence": 0.0,
-            "recommendation": "collect_more_cycles",
-        }
+        return {"status": "insufficient_data", "cycle_count": 0, "approval_rate": 0.0, "blocked_rate": 0.0, "mean_confidence": 0.0, "recommendation": "collect_more_cycles"}
     statuses = [(c.get("consensus") or {}).get("status") for c in cycles]
     confidences = [_num((c.get("consensus") or {}).get("confidence"), 0.0) for c in cycles]
-    blocked = sum(
-        1
-        for s in statuses
-        if s in {ConsensusStatus.BLOCKED.value, ConsensusStatus.CONFLICTED.value}
-    )
+    blocked = sum(1 for s in statuses if s in {ConsensusStatus.BLOCKED.value, ConsensusStatus.CONFLICTED.value})
     approved = sum(1 for s in statuses if s == ConsensusStatus.APPROVED.value)
     blocked_rate = blocked / len(cycles)
     approval_rate = approved / len(cycles)
@@ -707,14 +433,7 @@ def evaluate_agent_consensus_quality(cycles: list[dict[str, Any]]) -> dict[str, 
     else:
         rec = "eligible_for_human_in_loop_canary"
         status = "healthy"
-    return {
-        "status": status,
-        "cycle_count": len(cycles),
-        "approval_rate": round(approval_rate, 4),
-        "blocked_rate": round(blocked_rate, 4),
-        "mean_confidence": round(mean_conf, 4),
-        "recommendation": rec,
-    }
+    return {"status": status, "cycle_count": len(cycles), "approval_rate": round(approval_rate, 4), "blocked_rate": round(blocked_rate, 4), "mean_confidence": round(mean_conf, 4), "recommendation": rec}
 
 
 def run_phase11_federation_cycle(
@@ -728,12 +447,7 @@ def run_phase11_federation_cycle(
     experiment: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run the complete Phase 11 federation workflow."""
-    context = build_agent_context(
-        canonical_field_state=canonical_field_state,
-        phase9_cycle=phase9_cycle,
-        phase10_learning=phase10_learning,
-        market_context=market_context,
-    )
+    context = build_agent_context(canonical_field_state=canonical_field_state, phase9_cycle=phase9_cycle, phase10_learning=phase10_learning, market_context=market_context)
     proposals = run_specialist_agents(context, objective=objective)
     consensus = reach_consensus(proposals, objective=objective, execution_mode=execution_mode)
     op_plan = create_autonomous_operation_plan(consensus, context, execution_mode=execution_mode)
@@ -750,14 +464,7 @@ def run_phase11_federation_cycle(
             promotion_metrics=experiment.get("promotion_metrics"),
         )
     cycle = FederationCycle(
-        cycle_id=_stable_id(
-            {
-                "ctx": context.get("context_id"),
-                "objective": objective,
-                "consensus": consensus.get("decision_id"),
-            },
-            "fedcycle",
-        ),
+        cycle_id=_stable_id({"ctx": context.get("context_id"), "objective": objective, "consensus": consensus.get("decision_id")}, "fedcycle"),
         objective=objective,
         context_id=str(context.get("context_id")),
         proposals=proposals,

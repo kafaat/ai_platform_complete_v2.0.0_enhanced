@@ -16,6 +16,7 @@ from pathlib import Path
 
 EXCLUDE_DIRS = {
     ".git",
+    ".claude",  # إعدادات أدوات محلّيّة (settings.local.json) تتغيّر لكلّ بيئة — خارج بصمة الإصدار
     ".pytest_cache",
     "__pycache__",
     "node_modules",
@@ -94,9 +95,29 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+def _tracked_files(root: Path) -> list[Path]:
+    """ملفّات git المُتعقَّبة فقط — حتّى تكون البصمة حتميّة بصرف النظر عن ملفّات
+    محلّيّة مُتجاهَلة (.env/.ruff_cache…) قد يلتقطها rglob فتُفسد التحقّق في CI.
+    تراجُع آمن إلى rglob إن تعذّر git (أرشيف بلا مستودع)."""
+    import subprocess
+
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            capture_output=True,
+            check=True,
+        ).stdout.decode("utf-8")
+        rels = [p for p in out.split("\0") if p]
+        if rels:
+            return [root / r for r in rels]
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    return [p for p in root.rglob("*") if p.is_file()]
+
+
 def collect_files(root: Path) -> list[dict[str, object]]:
     rows: list[dict[str, object]] = []
-    for file_path in sorted(root.rglob("*")):
+    for file_path in sorted(_tracked_files(root)):
         if not file_path.is_file():
             continue
         rel = file_path.relative_to(root)

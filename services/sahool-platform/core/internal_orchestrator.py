@@ -53,6 +53,109 @@ from core.recommendation_bridge import (
 )
 from core.recommendation_engine import Recommendation, generate_recommendation
 
+try:  # Safe defaults keep legacy behavior unless explicitly enabled.
+    from config.guardrail_feature_flags import (
+        ENABLE_LEGACY_RECOMMENDATION_FALLBACK,
+        ENABLE_PONYTAIL_GUARDRAILS,
+        REQUIRE_CANONICAL_FIELD_STATE,
+    )
+except Exception:  # pragma: no cover - config package may be absent in embedded tests
+    ENABLE_PONYTAIL_GUARDRAILS = False
+    ENABLE_LEGACY_RECOMMENDATION_FALLBACK = True
+    REQUIRE_CANONICAL_FIELD_STATE = True
+
+from core.guardrails import (
+    EvidenceSummary,
+    FieldStateSnapshot,
+    PonytailAction,
+    PonytailIntent,
+    RecommendationPonytail,
+)
+
+
+def _infer_ponytail_intent(
+    *, issue_type: str | None, is_pesticide: bool, irrigation, validation: dict | None
+) -> PonytailIntent:
+    issue = (issue_type or "").lower()
+    if is_pesticide or issue in {"pesticide", "spraying", "spray"}:
+        return PonytailIntent(
+            type="pesticide",
+            complexity="prescription",
+            field_id=str((validation or {}).get("field_id", "")),
+        )
+    if issue in {"fertilization", "fertiliser", "fertilizer", "nutrient"}:
+        return PonytailIntent(
+            type="fertilization",
+            complexity="prescription",
+            field_id=str((validation or {}).get("field_id", "")),
+        )
+    if irrigation is not None or issue in {"irrigation", "water"}:
+        return PonytailIntent(
+            type="irrigation",
+            complexity="prescription",
+            field_id=str((validation or {}).get("field_id", "")),
+        )
+    return PonytailIntent(
+        type="general",
+        complexity="diagnostic",
+        field_id=str((validation or {}).get("field_id", "")),
+    )
+
+
+def _field_state_snapshot_from_inputs(
+    *, validation: dict | None, irrigation, current_indicators: dict | None
+) -> FieldStateSnapshot:
+    confidence = 0.85 if (validation or {}).get("quality_grade") == "READY" else 0.5
+    if isinstance((validation or {}).get("confidence"), (int, float)):
+        confidence = float((validation or {}).get("confidence"))
+    weather_state = None
+    irrigation_state = None
+    if irrigation is not None:
+        if hasattr(irrigation, "__dict__"):
+            irrigation_state = dict(irrigation.__dict__)
+        elif isinstance(irrigation, dict):
+            irrigation_state = irrigation
+        else:
+            irrigation_state = {"value": str(irrigation)}
+        weather_state = {"et0": irrigation_state.get("et0_mm"), "source": "irrigation_input"}
+    return FieldStateSnapshot(
+        irrigation_state=irrigation_state,
+        weather_state=weather_state,
+        satellite_state=current_indicators or None,
+        lab_state=(validation or {}).get("lab_state"),
+        confidence=confidence,
+    )
+
+
+def _evidence_from_inputs(
+    *, validation: dict | None, irrigation, current_indicators: dict | None
+) -> EvidenceSummary:
+    validation = validation or {}
+    lab_state = validation.get("lab_state") or {}
+    return EvidenceSummary(
+        has_lab=bool(validation.get("has_lab") or lab_state),
+        has_weather=bool(irrigation is not None or validation.get("has_weather")),
+        has_satellite=bool(current_indicators),
+        has_rag=False,
+        has_kg=False,
+    )
+
+
+def _blocked_by_ponytail_response(
+    *, rec_id: str, reason: str, cross_ref: dict | None, provenance: dict | None, auth_decision
+) -> EnrichedRecommendation:
+    return EnrichedRecommendation(
+        rec_id=rec_id,
+        base_recommendation={"guardrail_blocked": True},
+        cross_reference=cross_ref
+        or {"count": 0, "note_ar": "لم يُجرَ بحث — حارس Ponytail منع المسار"},
+        provenance=provenance or {},
+        auth_decision=asdict(auth_decision),
+        delivered=False,
+        reason_ar=reason,
+        timestamp=datetime.now().isoformat(),
+    )
+
 
 def orchestrate_recommendation(
     *,
@@ -135,7 +238,37 @@ def orchestrate_recommendation(
         input_snapshot=current_indicators or {},
     )
 
-    # 4. CORE ENGINE (V1) — يبقى كما هو، لا تعديل
+    # 4. PONYTAIL GUARDRAIL GATE — optional runtime gate with legacy fallback.
+    # The flag defaults OFF, so existing production paths remain stable until CI enables it.
+    if ENABLE_PONYTAIL_GUARDRAILS:
+        ponytail = RecommendationPonytail()
+        ponytail_decision = ponytail.filter(
+            _infer_ponytail_intent(
+                issue_type=issue_type,
+                is_pesticide=is_pesticide,
+                irrigation=irrigation,
+                validation=validation,
+            ),
+            _field_state_snapshot_from_inputs(
+                validation=validation, irrigation=irrigation, current_indicators=current_indicators
+            ),
+            _evidence_from_inputs(
+                validation=validation, irrigation=irrigation, current_indicators=current_indicators
+            ),
+        )
+        if ponytail_decision.action in {
+            PonytailAction.INSUFFICIENT_EVIDENCE,
+            PonytailAction.SIMPLIFY,
+        }:
+            return _blocked_by_ponytail_response(
+                rec_id=rec_id,
+                reason=f"Ponytail guardrail: {ponytail_decision.reason}",
+                cross_ref=cross_ref,
+                provenance=provenance,
+                auth_decision=auth_decision,
+            )
+
+    # 5. CORE ENGINE (V1) — يبقى كما هو، لا تعديل
     try:
         v1_result: Recommendation = generate_recommendation(
             validation=validation,
@@ -159,7 +292,7 @@ def orchestrate_recommendation(
             timestamp=datetime.now().isoformat(),
         )
 
-    # 5. ASSEMBLE — التوصية المُغنّاة
+    # 6. ASSEMBLE — التوصية المُغنّاة
     enriched = EnrichedRecommendation(
         rec_id=rec_id,
         base_recommendation=v1_result.to_log_dict(),
@@ -171,7 +304,7 @@ def orchestrate_recommendation(
         timestamp=datetime.now().isoformat(),
     )
 
-    # 6. CONTRACT GATE — لا تسليم إن نقص شيء (Fail closed)
+    # 7. CONTRACT GATE — لا تسليم إن نقص شيء (Fail closed)
     try:
         enforce_pipeline(enriched)
     except ContextPipelineError:

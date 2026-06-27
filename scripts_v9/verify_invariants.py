@@ -10,7 +10,6 @@ static تُنفَّذ هنا (offline)؛ المستويات live يُبلّغ ع
 """
 import os
 import sys
-import subprocess
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 # مسار الاختبارات: scripts_v9/ بجانب tests_v9/ تحت جذر المشروع
@@ -62,8 +61,10 @@ def run_static() -> bool:
     try:
         import test_roadmap_phase1 as p1
         import test_roadmap_phase23 as p23
-        a, b = p1.run_all(); c, d = p1.run_all2()
-        ee, f = p1.run_all3(); g, h = p23.run_all()
+        a, b = p1.run_all()
+        c, d = p1.run_all2()
+        ee, f = p1.run_all3()
+        g, h = p23.run_all()
         passed, total = a + c + ee + g, a + c + ee + g + b + d + f + h
         print(f"  {'✓' if passed == total else '✗'} {passed}/{total}")
         ok = ok and passed == total

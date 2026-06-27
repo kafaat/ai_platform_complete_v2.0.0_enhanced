@@ -91,11 +91,9 @@ if _WEAK_SECRET and _IS_PRODUCTION:
     )
     sys.exit(1)
 if _WEAK_SECRET:
-    JWT_SECRET = secrets.token_urlsafe(48)  # عشوائيّ لكلّ عمليّة (تطوير فقط)
-    logger.warning(
-        "⚠️ SAHOOL_JWT_SECRET غير مضبوط/ضعيف — وُلِّد سرّ تطوير عشوائيّ لهذه العمليّة "
-        "فقط. عيّن سرّاً قويّاً (≥32) واستخدم RS256 قبل أيّ نشر."
-    )
+    # عشوائيّ لكلّ عمليّة (تطوير فقط). لا نُصدر تحذيراً عند import كي تبقى
+    # اختبارات/فحوصات الاستيراد صامتة؛ التحذير التشغيلي يُسجَّل عند startup فقط.
+    JWT_SECRET = secrets.token_urlsafe(48)
 else:
     JWT_SECRET = _ENV_SECRET
 
@@ -121,6 +119,22 @@ app = FastAPI(
     description="API للنواة سهول — decision-system زراعي offline-first",
     version="1.0.0",
 )
+
+
+@app.on_event("startup")
+async def _warn_weak_dev_jwt_secret():
+    """يسجّل تحذير سرّ JWT الضعيف وقت الإقلاع فقط، لا وقت الاستيراد.
+
+    الهدف: import sweeps وأدوات التحليل لا تُصدر ضجيجاً، بينما التشغيل الحقيقي
+    في التطوير يبقى صريحاً. الإنتاج ما زال fail-closed أعلاه عند الاستيراد/الإقلاع
+    إذا كان السرّ ضعيفاً.
+    """
+    if _WEAK_SECRET and not _IS_PRODUCTION:
+        logger.warning(
+            "⚠️ SAHOOL_JWT_SECRET غير مضبوط/ضعيف — وُلِّد سرّ تطوير عشوائيّ لهذه العمليّة "
+            "فقط. عيّن سرّاً قويّاً (≥32) واستخدم RS256 قبل أيّ نشر."
+        )
+
 
 # ─── PostgreSQL pool (lifespan) ─────────────────────────────────
 # يُنشأ pool واحد عند الإقلاع لو DATABASE_URL مضبوط؛ وإلّا يبقى None
@@ -152,6 +166,7 @@ async def _init_db_pool():
         _DB_POOL = await asyncpg.create_pool(
             dsn, statement_cache_size=0, min_size=_pool_min, max_size=_pool_max
         )
+        app.state.db_pool = _DB_POOL
         logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
@@ -503,6 +518,7 @@ async def _close_db_pool():
     if _DB_POOL is not None:
         await _DB_POOL.close()
         _DB_POOL = None
+    app.state.db_pool = None
 
 
 def get_pool():
@@ -3017,6 +3033,16 @@ async def tenant_connection_for(tenant_id: str):
             yield conn
 
 
+class InternalAIAdviceEventRequest(BaseModel):
+    tenant_id: str = Field(min_length=1)
+    field_id: str | None = None
+    question: str = Field(min_length=1, max_length=4000)
+    evidence_ids: list[str] = Field(default_factory=list)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    selected_imagery_date: str | None = None
+    endpoint_mode: str = "chat"
+
+
 @app.get("/internal/fields/{field_id}/state")
 async def internal_field_state(
     field_id: str,
@@ -3040,6 +3066,57 @@ async def internal_field_state(
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("قراءة الحالة القانونيّة (خدمة)", e) from e
     return result["state"]
+
+
+@app.post("/internal/events/ai-advice")
+async def internal_ai_advice_event(
+    req: InternalAIAdviceEventRequest,
+    _: None = Depends(_require_service_token),
+):
+    """Record evidence-only AI advice as a domain event through the platform outbox.
+
+    This endpoint is service-to-service only. It records EventType.AI_SUGGESTION
+    for auditability of AI Advisor interactions, without granting decision authority
+    to ai_agronomist and without creating tasks, prescriptions, actuator commands,
+    or final recommendations.
+    """
+
+    class _ServiceUser:
+        tenant_id = req.tenant_id
+        user_id = "service:ai_agronomist"
+
+    payload = {
+        "field_id": req.field_id,
+        "question": req.question,
+        "evidence_ids": req.evidence_ids[:20],
+        "confidence": req.confidence,
+        "selected_imagery_date": req.selected_imagery_date,
+        "endpoint_mode": req.endpoint_mode,
+        "decision_authority": "field_intelligence_coordinator",
+        "runtime": "ai_agronomist",
+    }
+    try:
+        async with tenant_connection_for(req.tenant_id) as conn:
+            if req.field_id:
+                await _assert_field_in_tenant(conn, req.field_id)
+            await _emit_domain_event(
+                conn,
+                _ServiceUser(),
+                "AI_SUGGESTION",
+                "field" if req.field_id else "tenant",
+                req.field_id or req.tenant_id,
+                payload,
+                critical=False,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("تسجيل حدث مستشار الذكاء", e) from e
+    return {
+        "ok": True,
+        "event_type": "ai.suggestion.generated",
+        "entity_id": req.field_id or req.tenant_id,
+    }
 
 
 # ─── ٦٠. أتمتة الصور الجوّية + المؤشّرات (Sentinel عبر raster-service) ──
@@ -3186,11 +3263,33 @@ _rebuild_pydantic_models()
 # تعلّم/سوق/اتّساق/إدخال/اقتصاد/تهيئة/طقس-تحليلي/قرار/أمثال/توقيت-فلكي).
 # دفعة الأمن/الهوية (routers-sec) — نطاقات auth/me/tenant/rbac/admin مُفكَّكة من main
 # (نمط P0، سلوك محفوظ بالكامل: مسارات/أذونات/توكن/OpenAPI مطابقة).
+
+# الدفعة ٩ (Batch 9) — نطاقات CQRS/استبطان + كتابات (commands/events/lineage/replay/
+# lifecycle/seasons/alerts/tasks/farms) مُفكَّكة من main (نمط P0).
+
+# الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
+
+# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
+from api.phase9_autonomous_farm_os import router as phase9_autonomous_router  # noqa: E402
+from api.phase10_continuous_learning import router as phase10_learning_router  # noqa: E402
+from api.phase11_federated_agents import router as phase11_federation_router  # noqa: E402
+from api.phase12_marketplace_ecosystem import router as phase12_ecosystem_router  # noqa: E402
+
+# الدفعة ٨ (Batch 8)
+# الدفعة ٩ (Batch 9)
+# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
+# Runtime Activation Patch: Phase 9–12 public APIs are mounted in the live app.
+app.include_router(phase9_autonomous_router)
+app.include_router(phase10_learning_router)
+app.include_router(phase11_federation_router)
+app.include_router(phase12_ecosystem_router)
+# نقاط ذكاء النظام الزراعيّ-البيئيّ (agro-ecosystem): مخاطر المحصول، التغذية الراجعة
+# نبات-تربة واتّجاهها، الدورة الزراعيّة، مقارنة المواسم، Playbook القرار، أمر عمل من توصية.
+# تخزين Kc الدائم (crop_kc_timeseries v76): حفظ/قراءة/مقارنة Kc المُشتقّ عبر المواسم.
 # ── تسجيل الراوترات تلقائيّاً (auto-registration) ──────────────────────────
 # كلّ وحدة في api/routers/ تُصدّر `router` تُضمَّن آليّاً (ترتيب أبجديّ مستقرّ).
-# يُغني عن ٢٨٤ سطر استيراد/تضمين يدويّ ويمنع تورّم main.py مع كلّ راوتر جديد.
-# الحارس test_router_decomposition_guard يتحقّق من التضمين عبر app.routes (وقت التشغيل).
-# يُستثنى service_proxy: يُستورَد متأخّراً صراحةً (يستورد من api.main ⇒ تفادي دورة استيراد).
+# الحارس test_router_decomposition_guard يتحقّق عبر app.routes (وقت التشغيل).
+# يُستثنى service_proxy: يُستورَد متأخّراً صراحةً (يستورد من api.main ⇒ تفادي دورة).
 import importlib as _importlib  # noqa: E402
 import pkgutil as _pkgutil  # noqa: E402
 
@@ -3204,7 +3303,6 @@ for _mod_info in sorted(_pkgutil.iter_modules(_routers_pkg.__path__), key=lambda
     _router_obj = getattr(_router_mod, "router", None)
     if _router_obj is not None:
         app.include_router(_router_obj)
-
 
 # بوّابات الخدمات الداخلية (edge/soil): المستخدم بـJWT → المنصّة تتحقّق ثمّ تحقن
 # X-Agent-Token + X-Tenant-Id خادميّاً (السرّ لا يصل العميل). يُستورَد متأخّراً

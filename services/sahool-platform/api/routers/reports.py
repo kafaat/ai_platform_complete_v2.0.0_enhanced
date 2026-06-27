@@ -312,14 +312,12 @@ def operation_report_csv(
     """تقرير المزرعة كاملة كـCSV (ثنائي اللغة + BOM للإكسل).
 
     عزل المستأجِر: التقرير نقيّ ولا يقرأ من DB، لكن جسم الطلب لا يجوز أن
-    يفرض tenant_id أو يخلط حقول مستأجر آخر داخل CSV مُصدَّر. المقارنة بـ``str()``
-    على الطرفين (user.tenant_id قد يكون UUID والجسم str) — وإلّا 403 للجميع.
+    يفرض tenant_id أو يخلط حقول مستأجر آخر داخل CSV مُصدَّر.
     """
-    _tid = str(user.tenant_id)
-    if str(req.tenant_id) != _tid:
+    if req.tenant_id != user.tenant_id:
         raise HTTPException(status_code=403, detail="tenant_mismatch")
-    if any(str(f.tenant_id) != _tid for f in req.fields):
-        raise HTTPException(status_code=403, detail="field_not_owned_by_tenant")
+    if any(f.tenant_id != user.tenant_id for f in req.fields):
+        raise HTTPException(status_code=403, detail="field_tenant_mismatch")
 
     fields = [
         FieldReport(

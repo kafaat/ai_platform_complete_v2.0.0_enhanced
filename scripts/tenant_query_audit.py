@@ -64,6 +64,24 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
         "background dispatch consumer (default-OFF); device-ownership guard fail-closes cross-tenant actuation"
     ),
     "services/soil-service/main.py::soil_readings": "soil ingestion service (sensor-scoped)",
+    # عمّال/مخزن runtime للمراحل 9-12: يضبطون app.current_tenant + app.tenant_id
+    # transaction-locally (set_config) قبل كلّ كتابة خام ⇒ تخضع لـRLS فعليّاً (لا تجاوز).
+    # outbox/dispatch مسارات خلفيّة موسومة بالمستأجِر؛ لا تسرّب فيزيائيّ عابر.
+    "services/sahool-platform/api/phase_runtime_store.py::marketplace_installations": (
+        "phase runtime store: sets app.current_tenant/app.tenant_id tx-locally before write (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::runtime_event_outbox": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped outbox)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::marketplace_plugin_runtime_events": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::model_rollback_history_runtime": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::iot_command_dispatch": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped dispatch)"
+    ),
 }
 ALLOWLIST: set[str] = set(_ALLOWLIST_JUSTIFIED)
 

@@ -1,65 +1,91 @@
+
+---
+
+## 2026-06-25 (ب) — إصلاح sahool-migrate (init_v8.sql seed data)
+
+**المشكلة:** `sahool-migrate` يفشل بـ exit 3 عند إعادة تشغيل Docker Compose على قاعدة بيانات موجودة:
+```
+psql:/migrations/init_v8.sql:478: ERROR: duplicate key value violates unique constraint "field_boundaries_field_id_key"
+DETAIL: Key (field_id)=(field_01) already exists.
+```
+
+**الجذر:** `field_boundaries` لها قيدان: `field_id UNIQUE` (أحادي) و`UNIQUE (field_id, tenant_id)` (مركّب). بيانات البذر تُدرج بـ`tenant_id = NULL`. في PostgreSQL، `NULL ≠ NULL` في فهارس UNIQUE، فـ`ON CONFLICT (field_id, tenant_id)` **لا تلتقط** التعارض على `(field_01, NULL)` مع صف موجود `(field_01, NULL)` عبر القيد المركّب. يستمر الإدراج ثم يصطدم بـ`field_boundaries_field_id_key` (الأحادي) الذي لا تعالجه جملة ON CONFLICT.
+
+**الإصلاح:** `migrations/init_v8.sql:478`:
+```sql
+-- قبل:
+ON CONFLICT (field_id, tenant_id) DO NOTHING;
+-- بعد:
+ON CONFLICT (field_id) DO NOTHING;
+```
+
+**النتيجة المتوقعة:** `sahool-migrate` يكمل بنجاح — ✓ طُبّقت 109 هجرة.
+
+---
+
+## 2026-06-25 (أ) — إصلاح ReplayMapPage.test.tsx (timezone-sensitive date parsing) + init_v8.sql seed idempotency
+
+**ReplayMapPage tests:** 6/6 ✅ — الجذر: `span.end = '2026-04-10T00:00:00'` يُحلَّل كتوقيت محلّي (UTC+3 → Apr 9 21:00 UTC) بينما `date: '2026-04-10'` يُحلَّل UTC midnight → الحدث يسقط من النافذة → `shownEvents.length=2` لا 3. الإصلاح: `span: { start: '2026-02-15', end: '2026-04-10' }` (date-only = UTC midnight دائماً).
+
+---
+
+## 2026-06-25 — فحص الفجوات المتبقية + تأكيد بيئة حيّة
+
+**الطلب:** فحص الفجوات المتبقية والتأكد من استكمالها وتجربتها في بيئة حية.
+
+**الإنجازات:**
+
+1. **إصلاح `test_tenant_query_audit` (Windows path separator):**
+   - جذر المشكلة: `str(path.relative_to(ROOT))` على Windows يُرجع backslashes (`\`) بينما مفاتيح `_ALLOWLIST_JUSTIFIED` تستخدم forward slashes (`/`) → عدم تطابق → 19 انتهاكاً كاذبة.
+   - الإصلاح: `scripts/tenant_query_audit.py:130` أُضيف `.replace("\\", "/")` على `rel`.
+   - النتيجة: `test_no_unclassified_raw_tenant_queries` ✅ + 3 اختبارات أخرى ✅.
+
+2. **النتيجة الكاملة لاختبارات الوحدة:**
+   ```
+   1866 passed, 0 failed, 17 skipped, 374 deselected
+   Coverage: 48.41% > 20% (CI gate)
+   ```
+
+3. **تأكيد حيّ — حقل الإنشاء (503→201):**
+   - تسجيل مستخدم جديد (owner role) → إنشاء مزرعة `frm_50e332b917af` → إنشاء حقل `fld_3dfb77fc6af6`.
+   - `POST /api/v1/fields` → **201 Created** ✅ (كان 503 بسبب غياب `planting_date`).
+   - `GET /api/v1/fields` → **200 OK** ✅، يُرجع الحقل المُنشَأ.
+
+4. **هجرة رسمية لـ`planting_date`:**
+   - أُنشئت `migrations/v103_fields_planting_date.sql`:
+     `ALTER TABLE fields ADD COLUMN IF NOT EXISTS planting_date date;`
+   - العمود أُضيف مسبقاً مباشرةً للـDB في جلسة سابقة؛ الهجرة توثّقه رسمياً.
+
+**حالة الفجوات:**
+- كل الفجوات الحرجة (C1/C2/H2/H4/H5/H6/DISPATCH/ACTUATOR/SUSTAIN/WUE) = fixed/closed ✅
+- المتبقية مفتوحة = R&D/مستقبل: MAP-QA (Playwright)، TERRAIN (P2)، C-Ensemble (concept-only)، C-Foundation (not started)
+- `test_tenant_query_audit`: **0 انتهاكات** (إصلاح Windows path separator)
+
+---
+
+## 2026-06-24 (ن) — تتبّع جنائي لعقل سهول ونواة القرار
+
+- **اختبار جديد:** [`tests_v9/test_sahool_brain_forensic.py`](../tests_v9/test_sahool_brain_forensic.py) يغطي الحلقة المنطقية لعقل سهول بلا DB/شبكة:
+  observation signals → `compose_field_state` → arbitration → `canonical_water_stress` → `resolve_field_state` → `recommendation_engine` → `recommendation_bridge` delivery.
+- **إصلاح فعلي:** `full_delivery_pipeline` كان لا يمرّر `issue_type` إلى `enrich_with_context` رغم أن طبقة التشابه التاريخي تدعمه؛ أُضيف البارامتر وتمريره للحفاظ على سياق نوع المشكلة داخل cross-reference/provenance.
+- **تحقّق:** 95 اختباراً لعقل/قرار/توصيات/مياه مرّت؛ import sweep للـcore+api = 480 OK / 0 FAIL؛ `sahool_inspector.py` PASS كامل بلا WARN/FAIL.
 # 📜 سجلّ الجلسات (append-only)
 
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
 
-## 2026-06-27 (ن) — تصحيح تدفّق مؤشّر الصور (imagery indicator flow) — هندسة + سلسلة زمنيّة + واجهة
+## 2026-06-24 (ل) — Farm Ledger Closed Loop verified + Inspector warnings resolved
 
-**رأس `main`:** `09eeaeb` (#483 مُدمج). فرع `claude/imagery-indicator-flow`. من patch رابع رفعه المستخدم
-(`imagery_indicator_flow_fix`) — **superset** أُخِذ منه **الجزء الجديد فقط** (≈١٣ ملفّ frontend+backend)؛
-ملفّات الكنس الأمنيّ/actuator مُستثناة (في #482/#483، نسخها يَعكس إصلاحاتي).
-- **`api/pivot_geometry.py`:** إحداثيّات **جيوديسيّة WGS84** (`_destination_point`) بدل تقريب متر→درجة ⇒
-  مضلّع المحور الخلفيّ يطابق معاينة الواجهة (لا انزياح عند الحفظ/إعادة التحميل، 0°=شمال).
-- **`routers/fields.py`:** تحديث geometry يشتقّ ويحدّث `area_ha`/`lat`/`lon` من Geometry Guard داخل
-  المعاملة + يُضمّنها في حدث `FIELD_UPDATED` ⇒ القائمة/التوصيات/bbox لا تبقى قديمة.
-- **`raster-service/main.py` + `db_persist.py`:** سلسلة زمنيّة صحيحة — طلب تاريخ محدّد **صارم** (لا يرجع COG
-  تاريخ آخر)، `latest`=أحدث `acquisition_date` (لا `created_at`)، و`list_asset_dates()` يُعيد ترطيب تواريخ
-  الـtimeline من `raster_assets` بعد إعادة التشغيل (مُرشَّح بالمستأجِر، best-effort).
-- **frontend (٧ ملفّات):** `AddFieldWithMap` (٢٤٦ سطر) · `FieldIndicatorMap` · sections — تدفّق خريطة مؤشّر الحقل.
+**الحزمة المحليّة:** `4942b69_farm_ledger_closed_loop_verified` مع تثبيت إضافي للمفتّش والدماغ. طلب المستخدم: حلّ أي تحذيرات، والتحقق من أن إصلاحات الجلسات السابقة مضافة إلى `sahool-brain/hot.md` و`log.md`.
 
-**تحقّق:** geometry integrity ٤ + 231 انحدار pivot/geometry/field + المفتّش exit 0 + حارس الراوترات ٤ +
-ruff كامل · **frontend:** `tsc` نظيف + ٧ اختبارات vitest (AddFieldWithMap). **حدّ مُعلَن:** `test_tiles.py`
-يتطلّب `rasterio` (غير متوفّر محليّاً، خارج بوّابة tests_v9 — لم يُشغَّل هنا).
+- **حلّ تحذير NATS:** الموضوع `sahool.weather.field.overlay.completed` أصبح `declared_future_subject` داخل `tools/sahool_inspector.py`، لأنه سقالة موثّقة ومحروسة بـ`WEATHER_GRID_PIPELINE_ENABLED` default-OFF في `weather-polygon-worker` ومسجلة في `gaps/registry.md`. لا مستهلك وهمي؛ فقط منع ضجيج CI المتوقع.
+- **تنظيف endpoint authz:** نقاط البيانات المرجعية العامة التي لا تمس قاعدة/مستأجر لم تعد تُصعّد إلى WARN؛ يبقى التصعيد فقط لنقاط تمس DB/tenant بلا مصادقة.
+- **تحديث الدماغ:** استُبدل `hot.md` القديم الذي كان يقف عند Actuator Safety بحالة Farm Ledger/Closed Loop الحالية، وأضيف هذا المدخل في `log.md`. `decisions/ledger.md` يحتوي ADR-0002/0003/0004 الخاصة بـFarm Ledger.
+- **تحقق Farm Ledger:** `test_farm_operations_ledger.py` + `test_farm_costing.py` + `test_farm_closed_loop.py` = **13 passed** مع `PYTHONPATH=services/sahool-platform`.
+- **تحقق ساكن:** `compileall` للملفات الملموسة + `tools/sahool_inspector.py` = **PASS كامل بلا WARN/FAIL**: RLS/router/NATS/authz/migrations.
 
----
-
-## 2026-06-24 (م) — كنس تشديد تسريب المعلومات + عزل المستأجرين عبر الخدمات (مراجعة المستخدم)
-
-**رأس `main`:** `4942b69` (#481 مُدمج). فرع `claude/infoleak-tenant-hardening`. من patch مراجعة ثالث رفعه
-المستخدم — **كنس أمنيّ عبر ≈١٢ خدمة** (Information Disclosure + IDOR). يُستثنى actuator (في #482).
-- **لا نصّ استثناء في استجابات HTTP:** `f"Invalid token: {e}"`/`str(e)` ⇐ رموز عامّة — `api/main.py` ·
-  `auth/main.py` · `mcp_servers/{oauth_middleware,market_server}` · `local-ai-rag` · `recommendations.py` ·
-  `supervisor-agent` · `video-processor`.
-- **لا تسريب بنية تحتيّة في health/readyz:** broker URL/ERP url/odoo_uid/DB-error/load_error ⇐ booleans —
-  `odoo-bridge/{main,erp_provider}` · `sam2-inference` · `raster-service`. تسجيل كسول `type(e).__name__`.
-- **تحقّق إدخال + رمز حالة:** `_validate_tenant_id` (regex) في `local-ai-rag`؛ `raster` readyz ⇒ 503 عند degraded.
-- **إصلاحا عزل حقيقيّان (IDOR):**
-  - **`reports.py::operation_report_csv`** — يرفض tenant_id (الجسم/أيّ حقل) ≠ المستأجِر ⇒ 403. **بـ`str()` على
-    الطرفين** (قرار المستخدم: UserSchema.tenant_id قد يكون UUID والجسم str — وإلّا 403 للجميع).
-  - **`video-processor::stop_stream`** — كان `pop()` قبل فحص المستأجِر ⇒ حذف بثّ عابر بمعرفة stream_id؛ صار
-    get→assert→pop (404 للغريب) + حجب rtsp_url/http_url (اعتماد كاميرا) من status/list.
-
-**صدق:** المراجعة (المستخدم) أمسكت تسريبات/IDOR؛ تعديلي الوحيد فوق الـpatch = `str()` في reports.py
-(يمنع كسر الشرعيّ) + اختبار مطابق/مختلف. تحقّق: ٣ اختبارات reports تينانت جديدة + اختبارا video stop_stream
-+ ٢٤١ انحدار المنطقة (٥ فشل MFA سابقٌ مؤكَّد على main) · حارس الراوترات ٤ · المفتّش exit 0 · ruff كامل.
----
-
-## 2026-06-24 (ل) — تشديد /health: لا تسريب broker URL + اختبارات تكامليّة (مساهمة المستخدم)
-
-**رأس `main`:** `4942b69` (#481 مُدمج). فرع `claude/actuator-health-no-leak`. **متابعة صغيرة لـ#481** من
-patch رفعه المستخدم — التقط تناقضاً صادقاً: `/safety-status` أُحكِم بلا أسرار، لكن `/health` القديم بقي
-يكشف `MQTT_BROKER_URL` (تفصيل بنية تحتيّة).
-- **`actuator-service/main.py`** `/health`: `"mqtt": MQTT_BROKER_URL` ⇐ `"mqtt_configured": bool(...)` —
-  وجود الوسيط لا يعني موافقة تشغيل، ورابطه لا يحتاجه health العامّ.
-- **`test_actuator_safety.py`**: اختباران أقوى — `test_health_does_not_expose_mqtt_broker_url` +
-  `test_command_endpoint_flag_off_returns_explicit_safety_403` (**تكامليّ** عبر FastAPI TestClient +
-  dependency_overrides، يتجاوز الدوالّ النقيّة) + تمويه asyncpg/jwt للاستيراد.
-
-**تحقّق:** ٢٤ اختبار actuator (٨ سلامة شامل الجديدين + ٨ جسر + ٨ dedup) + ٧ عقد الوضع + ٤ tenant audit ·
-المفتّش exit 0 · ruff كامل.
-
----
+**ملاحظات صدق:** الفحوص الحيّة ما تزال SKIP لأنها تتطلب خدمات Docker/Postgres/NATS/Flutter. لا توجد كتابة فعلية إلى ERP أو Inventory أو CanonicalFieldState في Farm Ledger الافتراضي؛ كل شيء projection-only أو خلف flags.
 
 ## 2026-06-24 (ك) — Actuator Safety Hardening: آمن افتراضيّاً (fail-safe) + حراسة كلّ مسار
 
