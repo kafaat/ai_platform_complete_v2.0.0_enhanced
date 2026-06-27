@@ -410,6 +410,22 @@ v98_water_ledger.sql
 # للإجهاد المائيّ (خلف feature flag، default off). idempotent (ADD COLUMN IF NOT EXISTS).
 v99_imagery_spectral_indices.sql
 
+# ── الدفعة ١: بيانات المزرعة والحقل (سجلّ عمليّات/موازنة/حلقة مغلقة/تاريخ زراعة/عقد إنشاء) ──
+# v100: سجلّ العمليّات الزراعيّة الرقابيّ (أعمال يوميّة/مياه/مدخلات).
+v100_farm_operations_ledger.sql
+# v101: موازنة المزرعة وحساب التكاليف.
+v101_farm_budget_costing.sql
+# v102: الحلقة المغلقة للمزرعة (خطّة ← تنفيذ ← انحراف).
+v102_farm_closed_loop.sql
+# v103: تاريخ الزراعة في الحقول.
+v103_fields_planting_date.sql
+# v104: عقد إنشاء الحقل.
+v104_fields_create_contract.sql
+# v105: أفضل ممارسات الصور المؤسّسيّة.
+v105_enterprise_imagery_best_practices.sql
+# v_ai_recommendation_runtime: تخزين مراجعات/تغذية توصيات الذكاء الاصطناعيّ.
+v_ai_recommendation_runtime.sql
+
 # v122: تصلّب مسار الكتابة في RLS + توحيد متغيّر جلسة المستأجر. backfill مُدار
 # بالكتالوج يضيف WITH CHECK لكلّ سياسة كتابة tenant تفتقده (USING-only)، ويوحّد
 # app.current_tenant (canonical) مع app.tenant_id (توافق). idempotent + fail-closed.
