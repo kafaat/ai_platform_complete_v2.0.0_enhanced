@@ -1,6 +1,35 @@
 
 ---
 
+## 2026-06-27 (ب) — تصلّب ما بعد الأرشيف + تدقيق + اعتماد إنتاجيّ (A/B/C + Certification)
+
+**رأس `main` بعد الدورة:** `95dc750`. تنفيذ متوازٍ بدمج مرتَّب (لا دمج فرعين متداخلين في
+`main.py`/MANIFEST معاً)، بناءً على مراجعة خارجيّة للأرشيف.
+
+- **Track A — RLS v123 (Phase 23، #499 `be1bd56`):** خَلَف v122 الحافظ لـ`USING`. المراجعة
+  رصدت أنّ v122 يستبدل `USING` بمسند tenant مُنشأ؛ التحقّق أكّد الآليّة لكن **بلا انحدار فعليّ**
+  (السياسة المركّبة الوحيدة `user_self` لديها WITH CHECK فيتخطّاها v122؛ الباقي tenant صرف).
+  v123 يضيف WITH CHECK من `pol.qual` دون تعديل USING — idempotent + fail-closed + لا-عمليّ على
+  مخطّط طبّق v122. حارس `tests/security/test_phase23_rls_preserve_using.py`. Integration Tests على PostGIS.
+- **Track B — تنظيف (#500 `488a7c7`):** تصحيح docstring `main.py` المغلوط (DB صارت PostgreSQL+RLS
+  لا in-memory)؛ إبقاء HS256/in-process-rate-limit مؤجَّلين بصدق. إزالة `.claude/settings.local.json`
+  من تعقّب git + `.gitignore`.
+- **Track C — استخراج router_registry (#501 `e230ecb`):** نقل منطق التسجيل من `main.py` إلى
+  [`api/router_registry.py`](../services/sahool-platform/api/router_registry.py)`::register_routers(app)`
+  (السلوك/الترتيب محفوظ، 493 مساراً). **بلا نقل router_groups الفيزيائيّ** (churn ضخم بلا مكسب).
+  حُدِّث المفتّش + اختبار التفعيل + عقد `test_router_registry_contract.py` (لا include في main · لا
+  انحدار عدد · phase9-12 محميّة بتوكن خدمة). router wiring بقي **146/0**.
+- **تدقيق حضور الدفعات 2/3/4 (للقراءة):** كلّ ملفّات runtime 9-12 + GIS/raster + production/ops
+  موجودة وموصولة؛ Platform Unit Tests **2928/0**؛ app يُقلِع 493 مساراً. **لا نواقص** ⇒ لا PR.
+  تأكيد: الدفعات 1-4 مدموجة سلفاً (#488-#497)؛ «بدء Batch 1» سيرفضه manifest (duplicate prefix).
+- **الاعتماد الإنتاجيّ بالأدلّة (#502 `95dc750`):**
+  [`FINAL_PRODUCTION_READINESS_REPORT.md`](../FINAL_PRODUCTION_READINESS_REPORT.md) +
+  [`PRODUCTION_CERTIFICATION_MATRIX.md`](../PRODUCTION_CERTIFICATION_MATRIX.md). **الحكم الصادق:**
+  GO للجاهزيّة الكوديّة/الساكنة/CI · **NO-GO معلّق** للاعتماد الإنتاجيّ حتى تُنفّذ Ops أدلّة البيئة
+  الحيّة (smoke/env_doctor/soak) — لم تُلفَّق (لا بيئة تشغيل/أزمنة soak محليّاً).
+
+---
+
 ## 2026-06-27 — تكامل لقطة الأرشيف الكامل (CLAUDE.md + Phase22 RLS + تفكيك main.py + الدفعة ٤ على ٥ طلبات)
 
 **رأس `main` بعد الجلسة:** `e09ce27` (#497) — بدمجها يكتمل تكامل لقطة الأرشيف.
