@@ -3273,43 +3273,10 @@ _rebuild_pydantic_models()
 # الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
 
 # routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
-from api.phase9_autonomous_farm_os import router as phase9_autonomous_router  # noqa: E402
-from api.phase10_continuous_learning import router as phase10_learning_router  # noqa: E402
-from api.phase11_federated_agents import router as phase11_federation_router  # noqa: E402
-from api.phase12_marketplace_ecosystem import router as phase12_ecosystem_router  # noqa: E402
+# ── تسجيل الراوترات (مُستخرَج إلى api/router_registry.py — تقليص الوحدة الأحاديّة) ──
+# يُستدعى هنا في نهاية الوحدة بعد تعريف app وكلّ الرموز المشتركة كي يُحلّ الاستيراد
+# الدائريّ (وحدات الراوتر تستورد من api.main). السلوك/الترتيب محفوظ تماماً: مراحل
+# 9-12 صراحةً + تسجيل تلقائيّ لـapi/routers/ + service_proxy متأخّراً.
+from api.router_registry import register_routers  # noqa: E402
 
-# الدفعة ٨ (Batch 8)
-# الدفعة ٩ (Batch 9)
-# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
-# Runtime Activation Patch: Phase 9–12 public APIs are mounted in the live app.
-app.include_router(phase9_autonomous_router)
-app.include_router(phase10_learning_router)
-app.include_router(phase11_federation_router)
-app.include_router(phase12_ecosystem_router)
-# نقاط ذكاء النظام الزراعيّ-البيئيّ (agro-ecosystem): مخاطر المحصول، التغذية الراجعة
-# نبات-تربة واتّجاهها، الدورة الزراعيّة، مقارنة المواسم، Playbook القرار، أمر عمل من توصية.
-# تخزين Kc الدائم (crop_kc_timeseries v76): حفظ/قراءة/مقارنة Kc المُشتقّ عبر المواسم.
-# ── تسجيل الراوترات تلقائيّاً (auto-registration) ──────────────────────────
-# كلّ وحدة في api/routers/ تُصدّر `router` تُضمَّن آليّاً (ترتيب أبجديّ مستقرّ).
-# الحارس test_router_decomposition_guard يتحقّق عبر app.routes (وقت التشغيل).
-# يُستثنى service_proxy: يُستورَد متأخّراً صراحةً (يستورد من api.main ⇒ تفادي دورة).
-import importlib as _importlib  # noqa: E402
-import pkgutil as _pkgutil  # noqa: E402
-
-from api import routers as _routers_pkg  # noqa: E402
-
-_ROUTER_AUTOREG_EXCLUDE = {"service_proxy"}
-for _mod_info in sorted(_pkgutil.iter_modules(_routers_pkg.__path__), key=lambda m: m.name):
-    if _mod_info.name in _ROUTER_AUTOREG_EXCLUDE:
-        continue
-    _router_mod = _importlib.import_module(f"api.routers.{_mod_info.name}")
-    _router_obj = getattr(_router_mod, "router", None)
-    if _router_obj is not None:
-        app.include_router(_router_obj)
-
-# بوّابات الخدمات الداخلية (edge/soil): المستخدم بـJWT → المنصّة تتحقّق ثمّ تحقن
-# X-Agent-Token + X-Tenant-Id خادميّاً (السرّ لا يصل العميل). يُستورَد متأخّراً
-# (api.main مكتمل) لتفادي دورة الاستيراد.
-from api.routers.service_proxy import router as service_proxy_router  # noqa: E402
-
-app.include_router(service_proxy_router)
+register_routers(app)

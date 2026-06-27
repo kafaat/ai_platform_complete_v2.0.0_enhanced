@@ -7085,7 +7085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1866a1bde6b701b49e7a8c1b861bd844d31ef1574a3a2d15bc87ed43aeefe2e8"
+          "content": "7e62921bc3d217805e32812c41c7ac3f96428b2aa2b4b70753f4e914027491f2"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -7409,6 +7409,16 @@
         }
       ],
       "name": "services/sahool-platform/api/root_zone_balance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab7ec69749debd82dac98628ae315c76652310a9dc0b8248596eb19aff930396"
+        }
+      ],
+      "name": "services/sahool-platform/api/router_registry.py",
       "type": "file"
     },
     {
@@ -14309,6 +14319,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0b644bdd5b6340c096b943d37b51f4c46f6266663e02396dba0964df34a9f7ea"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_router_registry.py",
       "type": "file"
     },
     {
