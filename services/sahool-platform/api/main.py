@@ -16,11 +16,14 @@ api/main.py — FastAPI application للنواة سهول
   POST /api/v1/auth/login          → JWT issue (dev mode: HS256، لا RS256)
   GET  /api/v1/me                  → معلومات المستخدم
 
-ما لم يُبنَ هنا (مُؤجَّل بمبرّر):
-  • DB integration (in-memory للـMVP، PostgreSQL لاحقاً)
-  • RS256 JWT keys (HS256 dev secret حالياً)
-  • Rate limiting بـRedis (في-memory الآن، يتغذّى من api_adapter)
-  • OAuth2/SSO
+الحالة الحاليّة (مُحدَّثة — لم تعد ملاحظات MVP صحيحة):
+  • قاعدة بيانات: PostgreSQL حقيقيّة عبر asyncpg + عزل مستأجرين RLS (FORCE + WITH CHECK)
+    على مسبح sahool_app (NOBYPASSRLS، معزول). لا in-memory. انظر _DB_POOL/DATABASE_URL.
+
+ما زال مُؤجَّلاً بمبرّر (لم يُبنَ بعد — صدقاً، ليس production-grade):
+  • RS256 JWT: الحاليّ HS256 بسرّ قويّ (≥32)؛ يُوصى بـRS256 قبل النشر (انظر JWT_ALGORITHM).
+  • حدّ معدّل موزَّع بـRedis: الحاليّ عدّاد in-process لكلّ عامل (rate_limit_middleware).
+  • OAuth2/SSO.
 """
 
 from __future__ import annotations
