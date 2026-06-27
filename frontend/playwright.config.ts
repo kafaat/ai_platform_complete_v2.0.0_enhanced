@@ -14,7 +14,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const PORT = 4173;
-const BASE_URL = `http://localhost:${PORT}`;
+const BASE_URL = `http://127.0.0.1:${PORT}`;
 
 // تجاوز اختياريّ لمسار تنفيذيّ للمتصفّح (بيئات محجوبة عن تنزيل متصفّحات Playwright):
 // إن ضُبِط PW_CHROMIUM_PATH نُشغّل ذلك المتصفّح بدل متصفّح Playwright المُدار. في CI
@@ -47,6 +47,9 @@ export default defineConfig({
           ...(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {}),
           // تفعيل WebGL البرمجيّ (SwiftShader) في headless داخل الحاوية.
           args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
             '--use-gl=angle',
             '--use-angle=swiftshader',
             '--enable-unsafe-swiftshader',
@@ -58,7 +61,7 @@ export default defineConfig({
   ],
   // يبني الواجهة بمحرّك maplibre ثمّ يخدمها (preview بلا وكيل ⇒ same-origin /api).
   webServer: {
-    command: 'npm run build && npm run preview',
+    command: 'npm run build && npm run preview -- --host 127.0.0.1',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

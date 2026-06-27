@@ -95,8 +95,15 @@ import {
   fetchDecisionExplain, type DecisionExplainResult,
   // ── Agronomic Timeline: الخطّ الزمنيّ الموحّد للحقل (قراءة فقط) ──
   fetchUnifiedTimeline, type UnifiedTimeline,
+  fetchFieldGeometryHistory, type FieldGeometryHistory,
   // ── Decision Confidence: ثقة القرار الموحَّدة لحقل (قراءة فقط) ──
   fetchDecisionConfidence, type DecisionConfidenceResult,
+  listLabSamples, createLabSample, submitSoilLabResult, fetchLabDecisionContext,
+  type LabSampleRecord, type LabSampleCreateInput, type SoilLabResultInput,
+  type SoilLabAnalysisResult, type LabDecisionContext,
+  buildProductivityZones, buildZoneSamplingPlan, fetchDailyAiBrief,
+  type ProductivityObservationInput, type ProductivityZoneResult,
+  type ZoneSamplingPlanResult, type DailyAiBriefResult,
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
@@ -154,6 +161,11 @@ export const QK = {
   sharingKeys:      (tid: string, includeRevoked: boolean) =>
                        ['sharing', 'keys', tid, includeRevoked],
   health:                                   ['health', 'all'],
+  labSamples:       (tid: string, fid?: string) => ['lab', 'samples', tid, fid ?? 'all'],
+  labContext:       (tid: string, fid: string) => ['lab', 'context', tid, fid],
+  productivityZones:(tid: string, fid: string, n: number) => ['productivity-zones', tid, fid, n],
+  zoneSamplingPlan: (tid: string, fid: string, n: number) => ['zone-sampling-plan', tid, fid, n],
+  dailyAiBrief:     (tid: string, fid: string) => ['daily-ai-brief', tid, fid],
 } as const;
 
 // ── Types ──────────────────────────────────────────────────────
@@ -534,6 +546,8 @@ interface PlatformCurrent {
   temperature_c?: number | null;
   humidity_pct?: number | null;
   wind_speed_ms?: number | null;
+  wind_direction_deg?: number | null;
+  wind_dir_deg?: number | null;
   precipitation_mm?: number | null;
   weather_code?: number | null;
   weather_ar?: string | null;
@@ -572,6 +586,7 @@ async function fetchPlatformWeather(lat: number, lon: number, days: number) {
       tmean: cur?.temperature_c ?? undefined,
       humidity_pct: cur?.humidity_pct ?? undefined,
       wind_speed_kmh: windKmh,
+      wind_direction_deg: cur?.wind_direction_deg ?? cur?.wind_dir_deg ?? undefined,
       et0_mm: forecast[0]?.et0_mm ?? null,
       weather_ar: cur?.weather_ar ?? undefined,
     },
@@ -1302,6 +1317,20 @@ export function useDecisionExplain(decisionId?: string): UseQueryResult<Decision
 // GET /api/v1/fields/{id}/unified-timeline. مُفعَّل فقط مع fieldId. الفئة (category)
 // جزءٌ من المفتاح: تغييرها يُعيد الجلب المُرشَّح خادميّاً. لا fallback وهميّ — عند
 // تعطّل القاعدة يُرجِع الخادم خطّاً فارغاً + note_ar (حالة فارغة صادقة لا خطأ).
+export function useFieldGeometryHistory(
+  fieldId?: string,
+  limit = 50,
+): UseQueryResult<FieldGeometryHistory, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldGeometryHistory, Error>({
+    queryKey: ['field-geometry-history', tid, fieldId ?? 'none', limit],
+    queryFn:  () => fetchFieldGeometryHistory(fieldId as string, limit),
+    staleTime:2 * 60_000,
+    retry:    false,
+    enabled:  !!fieldId,
+  });
+}
+
 export function useUnifiedTimeline(
   fieldId?: string,
   opts: { limit?: number; newestFirst?: boolean; category?: string } = {},
@@ -1900,4 +1929,88 @@ export function useDashboardData(primaryFieldId = 'field_01') {
     generated_at: allFields?.generated_at,
   };
   return { data, refetch, dash, allNdvi, indicators, weather, tasks, alerts, health, isLoading, isError };
+}
+
+
+// ── Lab Sampling hooks: soil/water sampling points and decision context ─────
+export function useLabSamples(fieldId?: string): UseQueryResult<LabSampleRecord[]> {
+  const { user } = useAuthStore();
+  const tid = user?.tenant_id ?? 'default';
+  return useQuery({
+    queryKey: QK.labSamples(tid, fieldId),
+    queryFn: () => listLabSamples(fieldId),
+    staleTime: 60_000,
+  });
+}
+
+export function useCreateLabSample(): UseMutationResult<LabSampleRecord, Error, LabSampleCreateInput> {
+  const qc = useQueryClient();
+  const { user } = useAuthStore();
+  const tid = user?.tenant_id ?? 'default';
+  return useMutation({
+    mutationFn: createLabSample,
+    onSuccess: (row) => {
+      qc.invalidateQueries({ queryKey: QK.labSamples(tid, row.field_id) });
+      qc.invalidateQueries({ queryKey: QK.labSamples(tid) });
+    },
+  });
+}
+
+export function useSubmitSoilLabResult(): UseMutationResult<SoilLabAnalysisResult, Error, SoilLabResultInput> {
+  const qc = useQueryClient();
+  const { user } = useAuthStore();
+  const tid = user?.tenant_id ?? 'default';
+  return useMutation({
+    mutationFn: submitSoilLabResult,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['lab'] });
+      qc.invalidateQueries({ queryKey: ['field-detail', tid] });
+    },
+  });
+}
+
+export function useLabDecisionContext(fieldId?: string): UseQueryResult<LabDecisionContext> {
+  const { user } = useAuthStore();
+  const tid = user?.tenant_id ?? 'default';
+  return useQuery({
+    queryKey: QK.labContext(tid, fieldId ?? 'none'),
+    queryFn: () => fetchLabDecisionContext(fieldId as string),
+    enabled: Boolean(fieldId),
+    staleTime: 60_000,
+  });
+}
+
+
+// ── OneSoil-inspired precision workflow hooks ─────────────────────────────
+export function useProductivityZones(fieldId?: string, observations: ProductivityObservationInput[] = []): UseQueryResult<ProductivityZoneResult> {
+  const { user } = useAuthStore();
+  const tid = user?.tenant_id ?? 'default';
+  return useQuery({
+    queryKey: QK.productivityZones(tid, fieldId ?? 'none', observations.length),
+    queryFn: () => buildProductivityZones(fieldId as string, observations),
+    enabled: Boolean(fieldId),
+    staleTime: 120_000,
+  });
+}
+
+export function useZoneSamplingPlan(fieldId?: string, observations: ProductivityObservationInput[] = []): UseQueryResult<ZoneSamplingPlanResult> {
+  const { user } = useAuthStore();
+  const tid = user?.tenant_id ?? 'default';
+  return useQuery({
+    queryKey: QK.zoneSamplingPlan(tid, fieldId ?? 'none', observations.length),
+    queryFn: () => buildZoneSamplingPlan(fieldId as string, observations),
+    enabled: Boolean(fieldId),
+    staleTime: 120_000,
+  });
+}
+
+export function useDailyAiBrief(fieldId?: string, signals: Record<string, unknown> = {}, tasks: Record<string, unknown>[] = []): UseQueryResult<DailyAiBriefResult> {
+  const { user } = useAuthStore();
+  const tid = user?.tenant_id ?? 'default';
+  return useQuery({
+    queryKey: QK.dailyAiBrief(tid, fieldId ?? 'none'),
+    queryFn: () => fetchDailyAiBrief(fieldId as string, signals, tasks),
+    enabled: Boolean(fieldId),
+    staleTime: 60_000,
+  });
 }

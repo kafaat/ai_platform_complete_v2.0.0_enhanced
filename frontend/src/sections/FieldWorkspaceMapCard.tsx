@@ -18,7 +18,7 @@ import L from 'leaflet';
 import { Map as MapIcon, Layers, Clock, FileText, Leaf } from 'lucide-react';
 import '../lib/leafletSetup'; // CSS + أيقونات Leaflet (side-effect حاسم للتصيير)
 import { geomToPolygon } from '../lib/geo';
-import { fieldIndicatorTileUrl, type FieldWorkspace, type WorkspaceLayer } from '../services/api';
+import { fieldIndicatorTileUrl, fetchFieldImageryAvailableDates, type FieldImageryDateOption, type FieldWorkspace, type WorkspaceLayer } from '../services/api';
 import { useFieldWorkspace, useFieldDetail } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -176,9 +176,41 @@ export default function FieldWorkspaceMapCard({
   const fieldId = fieldIdProp ?? selected.fieldId;
 
   const [ndviOn, setNdviOn] = useState(false);
+  const [imageryDates, setImageryDates] = useState<FieldImageryDateOption[]>([]);
+  const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
 
   const workspace = useFieldWorkspace(fieldId);
   const detail = useFieldDetail(fieldId);
+
+  // اجلب تواريخ COG/CDSE المتاحة لمساحة العمل أيضاً، حتى لا تبقى طبقة NDVI
+  // عالقة على latest حين تتوفر تواريخ صريحة. الفشل لا يخترع تاريخاً؛ يبقي latest.
+  useEffect(() => {
+    let cancelled = false;
+    if (!fieldId) {
+      setImageryDates([]);
+      setSelectedImageryDate('latest');
+      return;
+    }
+    fetchFieldImageryAvailableDates(fieldId)
+      .then((items) => {
+        if (cancelled) return;
+        const sorted = [...items]
+          .filter((d) => d.date)
+          .sort((a, b) => b.date.localeCompare(a.date));
+        setImageryDates(sorted);
+        setSelectedImageryDate((prev) => {
+          if (prev !== 'latest' && sorted.some((d) => d.date === prev)) return prev;
+          return sorted.find((d) => d.has_cog)?.date ?? sorted[0]?.date ?? 'latest';
+        });
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setImageryDates([]);
+          setSelectedImageryDate('latest');
+        }
+      });
+    return () => { cancelled = true; };
+  }, [fieldId]);
 
   // مضلّع الحدود من هندسة الحقل (GeoJSON) — منطق نقيّ مُذكَّر.
   const polygon = useMemo(() => geomToPolygon(detail.data?.geometry), [detail.data?.geometry]);
@@ -186,7 +218,7 @@ export default function FieldWorkspaceMapCard({
 
   // طبقة NDVI تُعرَض فقط إن أعلنتها مساحة العمل (قاعدة عدم الاختلاق).
   const ndviLayer = workspace.data?.layers.find((l) => l.key === 'ndvi');
-  const ndviTileUrl = fieldId ? fieldIndicatorTileUrl(fieldId, 'ndvi', 'latest') : '';
+  const ndviTileUrl = fieldId ? fieldIndicatorTileUrl(fieldId, 'ndvi', selectedImageryDate) : '';
 
   // لا حقل نشط أصلاً (لا حقول مُسجّلة / لم يُمرَّر field_id).
   if (!fieldId) {
@@ -297,6 +329,20 @@ export default function FieldWorkspaceMapCard({
               <Leaf className="w-4 h-4" aria-hidden="true" />
               طبقة NDVI
             </button>
+            {imageryDates.length > 0 && (
+              <select
+                aria-label="اختيار تاريخ صورة Sentinel لمساحة العمل"
+                className="rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200 px-2 py-1"
+                value={selectedImageryDate}
+                onChange={(e) => setSelectedImageryDate(e.target.value)}
+              >
+                {imageryDates.map((d) => (
+                  <option key={d.date} value={d.date}>
+                    {d.date}{d.cloud_pct != null ? ` · غيوم ${Math.round(d.cloud_pct)}%` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
             <span className="text-[11px] text-slate-500">
               {ndviAvailable
                 ? ndviLayer?.note_ar

@@ -17,10 +17,10 @@ import { useMemo } from 'react';
 import { MapContainer, TileLayer, Polygon, CircleMarker, Popup, useMapEvents } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 import '../../lib/leafletSetup'; // CSS + أيقونات Leaflet (side-effect حاسم)
-import { rasterApi } from '../../services/api';
+import { fieldIndicatorTileUrl, normalizeIndicatorIndex } from '../../services/api';
+import { getTenantId } from '../../lib/authStorage';
 import type { FieldPolygonLatLng } from '../FieldIndicatorMap';
 
-const RASTER = (rasterApi.defaults.baseURL || '').replace(/\/+$/, '');
 const BASEMAP_SAT =
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
@@ -83,11 +83,11 @@ export function pinColor(c: PinCategory): string {
   return PIN_COLOR[c] ?? PIN_COLOR.other;
 }
 
-// رابط قالب بلاطات المؤشّر — {z}/{x}/{y} حرفيّ ليفسّرها Leaflet.
-function indicatorTileUrl(fieldId: string, index: string, date: string): string {
-  const qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
-  // eslint-disable-next-line no-template-curly-in-string
-  return `${RASTER}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
+// رابط قالب بلاطات المؤشّر — {z}/{x}/{y} حرفيّ ليفسّره Leaflet.
+// نستخدم helper موحّد كي يحمل tid مثل باقي خرائط المؤشرات؛ وإلا ستفشل
+// إعادة الترطيب tenant-scoped بعد إعادة تشغيل raster-service.
+function indicatorTileUrl(fieldId: string, index: string, date: string, tenantId?: string | null): string {
+  return fieldIndicatorTileUrl(fieldId, normalizeIndicatorIndex(index), date, tenantId);
 }
 
 // مُستمِع نقر الخريطة لإسقاط دبّوس عند الإحداثيّات المنقورة.
@@ -125,7 +125,8 @@ export default function ScoutingMap({
   opacity = 0.7,
   height = 400,
 }: ScoutingMapProps) {
-  const tilesUrl = indicatorTileUrl(fieldId, index, date);
+  const tenantId = getTenantId();
+  const tilesUrl = indicatorTileUrl(fieldId, index, date, tenantId);
 
   // مركز افتراضيّ من المضلّع/الإطار الاحتياطيّ (نفس منطق FieldIndicatorMap).
   const center: LatLngExpression = useMemo(() => {
@@ -146,7 +147,7 @@ export default function ScoutingMap({
           key={`${fieldId}-${index}-${date}`}
           url={tilesUrl}
           opacity={opacity}
-          errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
+          errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="
         />
 
         {/* حدود الحقل */}

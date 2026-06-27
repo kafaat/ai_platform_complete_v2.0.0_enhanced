@@ -130,3 +130,82 @@ body {
 
 /* ── Recharts Arabic RTL fix ── */
 .recharts-text { font-family: var(--font-ar) !important; }
+
+
+/* ── UI/UX polish v2026-06-25 ─────────────────────────────
+   هدفها تحسين قابلية القراءة، اللمس، وإمكانية الوصول دون تغيير منطق الربط. */
+:root {
+  color-scheme: dark;
+  --sahool-radius-sm: 10px;
+  --sahool-radius-md: 14px;
+  --sahool-radius-lg: 18px;
+  --sahool-shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.22);
+  --sahool-page-pad: clamp(14px, 1.8vw, 24px);
+}
+
+[data-theme="light"], [data-theme="cream"] { color-scheme: light; }
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 85% -10%, rgba(var(--sahool-green), 0.14), transparent 34rem),
+    linear-gradient(180deg, rgba(var(--sahool-surface-2), 0.72), rgb(var(--sahool-bg)) 42%);
+}
+
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, [role="button"], a, select { touch-action: manipulation; }
+
+:focus-visible {
+  outline: 3px solid rgba(var(--sahool-border-focus), 0.72);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+::selection { background: rgba(var(--sahool-green), 0.35); color: rgb(var(--sahool-text)); }
+
+.sahool-card {
+  border-radius: var(--sahool-radius-md);
+  box-shadow: var(--sahool-shadow-soft);
+}
+
+.sahool-card-hover {
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.sahool-card-hover:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--sahool-green), 0.45);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.28);
+}
+
+.sahool-glass {
+  background: rgba(var(--sahool-surface), 0.88);
+  border: 1px solid rgba(var(--sahool-border), 0.78);
+  backdrop-filter: blur(18px);
+}
+
+.sahool-hero-gradient {
+  background:
+    radial-gradient(circle at 15% 10%, rgba(var(--sahool-accent), 0.18), transparent 22rem),
+    radial-gradient(circle at 90% 0%, rgba(var(--sahool-green), 0.22), transparent 24rem),
+    rgb(var(--sahool-surface));
+}
+
+.sahool-safe-bottom { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+.sahool-safe-top { padding-top: max(12px, env(safe-area-inset-top)); }
+
+/* Improve dense agricultural dashboards on tablets/phones. */
+@media (max-width: 768px) {
+  body { font-size: 15px; }
+  .sahool-card { padding: 14px; border-radius: var(--sahool-radius-sm); }
+  .leaflet-container { border-radius: 10px; min-height: 320px; }
+  input, select, textarea, button { min-height: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}

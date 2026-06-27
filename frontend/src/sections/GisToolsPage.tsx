@@ -16,6 +16,7 @@
 import { useMemo, useState } from 'react';
 import { Wrench, Circle, Spline, AlertTriangle, Info, ArrowLeft } from 'lucide-react';
 import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useFieldGeometryHistory } from '../hooks/useApi';
 import { resolveActiveFieldId } from '../lib/fields';
 import { areaSqMeters } from '../lib/geo';
 import {
@@ -27,6 +28,12 @@ import {
   featureToGeometry,
   type ArealGeometry,
 } from '../lib/fieldGeometryOps';
+import {
+  buildGeometryRevisionOptions,
+  compareGeometryRevisions,
+  revisionLabel,
+  type GeometryRevision,
+} from '../lib/fieldGeometryTimeline';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateViews';
 
 // ثيم داكن مطابق لأشقّاء القسم (NlGisPage) — أنماط مضمّنة موحّدة.
@@ -58,9 +65,13 @@ export default function GisToolsPage() {
   const [op, setOp] = useState<OpId>('buffer');
   const [meters, setMeters] = useState<number>(25);
   const [tolerance, setTolerance] = useState<number>(0.001);
+  const [timelineEnabled, setTimelineEnabled] = useState<boolean>(false);
+  const [baseRevision, setBaseRevision] = useState<number>(0);
+  const [compareRevision, setCompareRevision] = useState<number>(0);
 
   const activeId = resolveActiveFieldId(options, selectedId);
   const field = options.find((o) => o.id === activeId);
+  const history = useFieldGeometryHistory(activeId || undefined, 50);
 
   // الهندسة الأصليّة مُطبَّعة عبر toTurfFeature/featureToGeometry (نفس مسار قراءة
   // الملفّ الهندسيّ) — null إذا لم يحمل الحقل هندسة مساحيّة صالحة (فجوة بيانات صادقة).
@@ -77,6 +88,19 @@ export default function GisToolsPage() {
       ? bufferFieldGeometry(originalGeom, meters)
       : simplifyFieldGeometry(originalGeom, tolerance);
   }, [originalGeom, op, meters, tolerance]);
+
+  const revisionOptions = useMemo<GeometryRevision[]>(() => (
+    buildGeometryRevisionOptions(originalGeom, history.data?.revisions ?? [])
+  ), [originalGeom, history.data?.revisions]);
+
+  const selectedBase = revisionOptions.find((r) => r.revision === baseRevision) ?? revisionOptions[0];
+  const selectedCompare = revisionOptions.find((r) => r.revision === compareRevision) ?? revisionOptions[0];
+  const timelineComparison = selectedBase && selectedCompare
+    ? compareGeometryRevisions(
+      { revision: selectedBase.revision === 0 ? 'current' : selectedBase.revision, geometry: selectedBase.geometry },
+      { revision: selectedCompare.revision === 0 ? 'current' : selectedCompare.revision, geometry: selectedCompare.geometry },
+    )
+    : null;
 
   if (isLoading) return <LoadingState message="جارٍ تحميل الحقول…" />;
   if (isError) return <ErrorState title="تعذّر تحميل الحقول" onRetry={() => refetch()} />;
@@ -263,6 +287,114 @@ export default function GisToolsPage() {
           <div className="px-4 py-2 text-[11px] text-slate-500" style={{ borderTop: '1px solid #334155' }}>
             معاينة محسوبة في المتصفّح عبر Turf — لا تُحفَظ ولا تُغيّر حدود الحقل على الخادم.
           </div>
+        </div>
+      )}
+
+      {/* Timeline + Comparison Mode — قراءة من سجل مراجعات الخادم، ومقارنة محلية فقط */}
+      {originalGeom && (
+        <div className="rounded-xl border overflow-hidden" style={surfaceStyle}>
+          <div className="flex items-center justify-between gap-3 px-4 py-2" style={{ borderBottom: '1px solid #334155' }}>
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-100">
+              <Info className="w-4 h-4 text-emerald-400" /> Timeline + Comparison Mode
+            </div>
+            <button
+              type="button"
+              onClick={() => setTimelineEnabled((v) => !v)}
+              className="px-3 py-1 rounded-lg text-xs font-semibold"
+              style={timelineEnabled ? { background: '#052e1b', color: '#86efac', border: '1px solid #22c55e55' } : inputStyle}
+            >
+              {timelineEnabled ? 'إخفاء' : 'تفعيل'}
+            </button>
+          </div>
+
+          {timelineEnabled && (
+            <div className="p-4 space-y-4">
+              <p className="text-xs text-slate-400">
+                يقارن هذا الوضع حدود الحقل الحالية مع مراجعات <code>geometry/history</code> دون حفظ أو تعديل. مناسب لاكتشاف تغيّر المساحة والرؤوس قبل الرجوع أو الاعتماد.
+              </p>
+
+              {history.isError && (
+                <div className="rounded-lg border p-3 text-sm text-amber-200" style={{ background: '#1a1400', borderColor: '#f59e0b44' }}>
+                  تعذّر تحميل سجل المراجعات؛ يمكن متابعة المقارنة مع الهندسة الحالية فقط بعد إصلاح اتصال الخادم.
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-400">خط الأساس</span>
+                  <select
+                    value={selectedBase?.revision ?? 0}
+                    onChange={(e) => setBaseRevision(Number(e.target.value))}
+                    className="px-3 py-2 rounded-lg text-sm"
+                    style={inputStyle}
+                  >
+                    {revisionOptions.map((r) => (
+                      <option key={`base-${r.revision}`} value={r.revision}>{revisionLabel(r.revision)}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-slate-400">المقارنة</span>
+                  <select
+                    value={selectedCompare?.revision ?? 0}
+                    onChange={(e) => setCompareRevision(Number(e.target.value))}
+                    className="px-3 py-2 rounded-lg text-sm"
+                    style={inputStyle}
+                  >
+                    {revisionOptions.map((r) => (
+                      <option key={`compare-${r.revision}`} value={r.revision}>{revisionLabel(r.revision)}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {timelineComparison ? (
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-px rounded-lg overflow-hidden" style={{ background: '#334155' }}>
+                  <div className="p-3" style={{ background: '#1e293b' }}>
+                    <div className="text-[11px] text-slate-400">مساحة الأساس</div>
+                    <div className="text-sm text-slate-100 font-semibold">{fmtArea(timelineComparison.baseAreaM2)}</div>
+                    <div className="text-[11px] text-slate-500">{timelineComparison.baseType ?? '—'}</div>
+                  </div>
+                  <div className="p-3" style={{ background: '#1e293b' }}>
+                    <div className="text-[11px] text-slate-400">مساحة المقارنة</div>
+                    <div className="text-sm text-slate-100 font-semibold">{fmtArea(timelineComparison.compareAreaM2)}</div>
+                    <div className="text-[11px] text-slate-500">{timelineComparison.compareType ?? '—'}</div>
+                  </div>
+                  <div className="p-3" style={{ background: '#1e293b' }}>
+                    <div className="text-[11px] text-slate-400">فرق المساحة</div>
+                    <div className={timelineComparison.areaDeltaM2 >= 0 ? 'text-sm font-semibold text-emerald-300' : 'text-sm font-semibold text-amber-300'}>
+                      {fmtSqm(Math.abs(timelineComparison.areaDeltaM2))}
+                      {timelineComparison.areaDeltaPct != null && ` (${timelineComparison.areaDeltaPct >= 0 ? '+' : '-'}${Math.abs(timelineComparison.areaDeltaPct).toLocaleString('ar', { maximumFractionDigits: 1 })}٪)`}
+                    </div>
+                  </div>
+                  <div className="p-3" style={{ background: '#1e293b' }}>
+                    <div className="text-[11px] text-slate-400">فرق الرؤوس</div>
+                    <div className="text-sm text-slate-100 font-semibold">{timelineComparison.verticesDelta.toLocaleString('ar')}</div>
+                    <div className="text-[11px] text-slate-500">{timelineComparison.baseVertices.toLocaleString('ar')} ← {timelineComparison.compareVertices.toLocaleString('ar')}</div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border p-3 text-sm text-slate-300" style={{ borderColor: '#334155' }}>
+                  لا توجد مراجعتان صالحتان للمقارنة بعد.
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-slate-300">سجل المراجعات</div>
+                <div className="max-h-44 overflow-auto space-y-2">
+                  {revisionOptions.map((r) => (
+                    <div key={`row-${r.revision}`} className="rounded-lg border p-2 text-xs" style={{ borderColor: '#334155', background: '#0f172a' }}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-slate-100">{revisionLabel(r.revision)}</span>
+                        <span className="text-slate-500">{r.changed_at ? new Date(r.changed_at).toLocaleString('ar') : '—'}</span>
+                      </div>
+                      <div className="text-slate-400 mt-1">{r.reason ?? r.source ?? 'بدون سبب مسجّل'}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
