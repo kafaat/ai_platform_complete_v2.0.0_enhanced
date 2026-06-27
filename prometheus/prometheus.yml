@@ -60,6 +60,33 @@ scrape_configs:
       - targets: ['sahool-notification-agent:8123']
     metrics_path: '/metrics'
 
+
+
+  - job_name: 'sahool-platform'
+    static_configs:
+      - targets: ['sahool-platform:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'raster-service'
+    static_configs:
+      - targets: ['sahool-raster-service:8001']
+    metrics_path: '/metrics'
+
+  - job_name: 'ai-agronomist'
+    static_configs:
+      - targets: ['sahool-ai-agronomist:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'rag-retrieval'
+    static_configs:
+      - targets: ['sahool-rag-retrieval:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'knowledge-graph'
+    static_configs:
+      - targets: ['sahool-knowledge-graph:8000']
+    metrics_path: '/metrics'
+
   # ── Infrastructure ────────────────────────────────────────────
   # ملاحظة: لا حاوية sahool-pg-exporter في أيّ compose ⇒ هدف معطّل دائماً. مُعطَّل
   # حتى يُضاف postgres-exporter كـsidecar (إعادة تفعيله = إزالة التعليق).

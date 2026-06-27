@@ -1,0 +1,14 @@
+apiVersion: v2
+name: sahool
+version: 0.15.0
+appVersion: "2026.06.26-rc.15"
+description: SAHOOL Smart Agriculture Platform production deployment chart
+type: application
+keywords:
+  - agriculture
+  - geospatial
+  - raster
+  - ai
+  - postgis
+maintainers:
+  - name: SAHOOL Platform Team
