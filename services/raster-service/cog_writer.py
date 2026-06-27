@@ -33,12 +33,15 @@ COG_PROFILE = {
 OVERVIEW_LEVELS = [2, 4, 8, 16]
 
 
+DEFAULT_NODATA = -9999.0
+
+
 def write_cog(
     array,
     output_path: str,
     transform,
     crs: str = "EPSG:4326",
-    nodata: float = float("nan"),
+    nodata: float = DEFAULT_NODATA,
 ) -> dict:
     """يكتب مصفوفة مؤشّر كـCOG محسّن (ضغط + بلاطات + أهرامات داخليّة).
 
@@ -51,7 +54,19 @@ def write_cog(
     except ImportError:
         return {"written": False, "reason": "rasterio غير متوفّر — يُكتب في التشغيل"}
 
+    try:
+        import numpy as np
+    except ImportError:
+        return {"written": False, "reason": "numpy غير متوفّر — يُكتب في التشغيل"}
+
     h, w = array.shape
+    # نكتب قيم NaN كما هي للحفاظ على توافق مسار الإحصاء/الاختبارات، لكن لا نعتمد
+    # على NaN كـnodata tag. نضيف mask داخلياً كي يتعامل GDAL/overviews/tiles مع
+    # خارج الحقل كمنطقة شفافة لا كقيم صالحة قد تُنتج حوافاً أو شرائط.
+    write_array = np.asarray(array, dtype="float32")
+    valid_mask = np.isfinite(write_array)
+    if isinstance(nodata, float) and np.isnan(nodata):
+        nodata = DEFAULT_NODATA
     profile = {
         **COG_PROFILE,
         "height": h,
@@ -64,7 +79,8 @@ def write_cog(
 
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     with rasterio.open(output_path, "w", **profile) as dst:
-        dst.write(array.astype("float32"), 1)
+        dst.write(write_array, 1)
+        dst.write_mask(valid_mask.astype("uint8") * 255)
         # أهرامات داخليّة (overviews) — قراءة سريعة عند التكبير/التصغير
         dst.build_overviews(OVERVIEW_LEVELS, Resampling.average)
         dst.update_tags(ns="rio_overview", resampling="average")
