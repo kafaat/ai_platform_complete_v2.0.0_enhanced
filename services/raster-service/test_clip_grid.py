@@ -31,6 +31,37 @@ RES = 10.0  # 10 م/بكسل (Sentinel-2)
 W = H = 100
 
 
+def _decode_png_rgba(png_bytes: bytes) -> np.ndarray:
+    """Decode renderer PNG output (RGBA, filter 0) without PIL."""
+    import struct
+    import zlib
+
+    assert png_bytes[:8] == b"\x89PNG\r\n\x1a\n"
+    pos = 8
+    width = height = None
+    idat = bytearray()
+    while pos < len(png_bytes):
+        (length,) = struct.unpack(">I", png_bytes[pos : pos + 4])
+        tag = png_bytes[pos + 4 : pos + 8]
+        data = png_bytes[pos + 8 : pos + 8 + length]
+        if tag == b"IHDR":
+            width, height, bit_depth, color_type = struct.unpack(">IIBB", data[:10])
+            assert bit_depth == 8 and color_type == 6
+        elif tag == b"IDAT":
+            idat.extend(data)
+        pos += 12 + length
+    raw = zlib.decompress(bytes(idat))
+    rows = []
+    stride = width * 4
+    off = 0
+    for _ in range(height):
+        assert raw[off] == 0
+        off += 1
+        rows.append(np.frombuffer(raw[off : off + stride], dtype=np.uint8).reshape(width, 4))
+        off += stride
+    return np.stack(rows, axis=0)
+
+
 def _make_synthetic_geotiff(path: str):
     """يكتب راستر صناعي ٢-نطاق (red, nir) في UTM. NDVI معروف = 0.5 بكلّ مكان.
 
@@ -140,6 +171,19 @@ def test_clip_index_bounds_and_grid():
         f"(أ) القصّ مطبَّق: داخل={n_finite} NaN={n_nan} (خارج={frac_outside:.0%} من شبكة COG المقصوصة)"
     )
     assert frac_outside > 0.2, "متوقّع جزء كبير NaN خارج النصف الأيسر"
+
+    # ── (أ2) لا raster bleed في مسار البلاطات: نفس الـCOG المقصوص يجب أن ينتج
+    # بكسلات شفافة خارج المضلّع داخل البلاطة، لا تلوين bbox كامل.
+    import tile_render
+
+    z = 18
+    tx, ty = tile_render._lonlat_to_tile((minlon + maxlon) / 2.0, (minlat + maxlat) / 2.0, z)
+    png = tile_render.render_tile_png(cog_path, z, tx, ty, "ndvi")
+    assert png is not None, "متوقّع بلاطة تتقاطع COG المقصوص"
+    rgba = _decode_png_rgba(png)
+    alpha = rgba[..., 3]
+    assert int((alpha > 0).sum()) > 0, "متوقّع بكسلات داخل الحقل"
+    assert int((alpha == 0).sum()) > 0, "متوقّع شفافية خارج الحقل — لا raster bleed"
 
     # سجّل الطبقة في الحالة كما يفعل _run_processing (لاختبار العقد)
     main._layers["layer_test"] = {

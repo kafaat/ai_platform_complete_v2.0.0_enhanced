@@ -98,6 +98,23 @@ _INDEX_DOMAIN = {
 }
 
 
+def index_legend(index: str) -> dict:
+    """Return honest rendering metadata for a raster index.
+
+    The frontend uses this to keep the legend/range synchronized with the
+    actual tile renderer. Unknown indices fall back to the renderer default.
+    """
+    vmin, vmax, invert = _INDEX_DOMAIN.get(index, (-0.2, 0.9, False))
+    return {
+        "index": index,
+        "vmin": float(vmin),
+        "vmax": float(vmax),
+        "invert": bool(invert),
+        "palette": "RdYlGn_reversed" if invert else "RdYlGn",
+        "nodata_alpha": 0,
+    }
+
+
 def colorize(arr, index: str):
     """يحوّل مصفوفة مؤشّر (float، NaN=خارج الحقل) إلى مصفوفة RGBA uint8.
 
@@ -197,14 +214,14 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
 
     try:
         with rasterio.open(cog_path) as src:
-            src_arr = src.read(1).astype("float32")
             src_nodata = src.nodata
-            if src_nodata is not None and not (
-                isinstance(src_nodata, float) and math.isnan(src_nodata)
-            ):
-                src_arr = np.where(src_arr == src_nodata, np.nan, src_arr)
             src_crs = src.crs
-            src_transform = src.transform
+            if src_nodata is not None:
+                try:
+                    if math.isnan(float(src_nodata)):
+                        src_nodata = None
+                except Exception:  # noqa: BLE001 — nodata غير رقميّ/غير صالح يُتجاهَل بأمان
+                    pass
 
             # سرعة: تخطَّ التصيير إذا لم تتقاطع البلاطة مع حدود الـCOG (بـ3857)
             try:
@@ -216,18 +233,20 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
             except Exception:  # noqa: BLE001 — تعذّر التحقّق → تابع التصيير
                 pass
 
-        dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
-        reproject(
-            source=src_arr,
-            destination=dst,
-            src_transform=src_transform,
-            src_crs=src_crs,
-            dst_transform=dst_transform,
-            dst_crs=dst_crs,
-            resampling=Resampling.nearest,
-            src_nodata=np.nan,
-            dst_nodata=np.nan,
-        )
+            # قراءة جزئية: لا نقرأ COG كاملاً لكل بلاطة. نعيد الإسقاط مباشرةً من
+            # DatasetReader إلى مصفوفة 256×256 كي يستفيد GDAL من tiling/overviews.
+            dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
+            reproject(
+                source=rasterio.band(src, 1),
+                destination=dst,
+                src_transform=src.transform,
+                src_crs=src_crs,
+                dst_transform=dst_transform,
+                dst_crs=dst_crs,
+                resampling=Resampling.nearest,
+                src_nodata=src_nodata,
+                dst_nodata=np.nan,
+            )
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
         return None
 
