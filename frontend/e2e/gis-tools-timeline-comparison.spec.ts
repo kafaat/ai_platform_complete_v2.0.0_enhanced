@@ -23,7 +23,7 @@ test('Timeline + Comparison Mode يعرض مراجعات الخادم ويحسب
   await page.getByRole('button', { name: 'تفعيل' }).click();
 
   await expect(page.getByText('خط الأساس')).toBeVisible();
-  await expect(page.getByText('المقارنة')).toBeVisible();
+  await expect(page.getByText('المقارنة', { exact: true })).toBeVisible();
   await expect(page.getByText('مراجعة 1')).toBeVisible();
   await expect(page.getByText('مراجعة 2')).toBeVisible();
 
