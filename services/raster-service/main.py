@@ -328,7 +328,7 @@ def _scene_datetime(scene: dict | SceneCandidate) -> datetime | None:
         return None
     try:
         return datetime.fromisoformat(str(val).replace("Z", "+00:00")).astimezone(UTC)
-    except Exception:
+    except Exception:  # noqa: BLE001 — تحليل تاريخ اختياريّ؛ أيّ قيمة غير صالحة تُعاد None بأمان
         return None
 
 

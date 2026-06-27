@@ -220,7 +220,7 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
                 try:
                     if math.isnan(float(src_nodata)):
                         src_nodata = None
-                except Exception:
+                except Exception:  # noqa: BLE001 — nodata غير رقميّ/غير صالح يُتجاهَل بأمان
                     pass
 
             # سرعة: تخطَّ التصيير إذا لم تتقاطع البلاطة مع حدود الـCOG (بـ3857)
