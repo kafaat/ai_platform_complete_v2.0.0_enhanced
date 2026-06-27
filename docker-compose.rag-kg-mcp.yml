@@ -89,3 +89,9 @@ services:
 
 volumes:
   kg-storage:
+
+# overlay يُدمج فوق docker-compose.v9.yml الذي يُنشئ الشبكة فعليّاً؛ نعلنها external
+# هنا حتى يصحّ التحقّق المستقلّ (docker compose config) دون تعريفها مرّتين.
+networks:
+  sahool-internal:
+    external: true

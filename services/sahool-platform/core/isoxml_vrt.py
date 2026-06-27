@@ -36,7 +36,8 @@ _VENDOR_UNITS = {
 
 def _safe_id(value: str, prefix: str) -> str:
     cleaned = re.sub(r"[^A-Za-z0-9_]", "_", value).strip("_") or prefix
-    digest = sha1(value.encode("utf-8")).hexdigest()[:8]
+    # مُعرّف داخليّ مستقرّ (slug) لا قيمة أمنيّة — usedforsecurity=False يُسكِت bandit B324.
+    digest = sha1(value.encode("utf-8"), usedforsecurity=False).hexdigest()[:8]
     return f"{prefix}_{cleaned[:32]}_{digest}"
 
 
