@@ -5665,7 +5665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "612a14fc9d1367175c3eefc77444df627f29803dc625ff9f9311536c29dd0c88"
+          "content": "9be9fc335f4d19fe3184456229da5a35643c8c30d529096fe2103fc1bfa6f4fd"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -5679,6 +5679,16 @@
         }
       ],
       "name": "services/raster-service/management_zones.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc8ffa7b7d910a98f65df11ca41684902308e2c6ea3ac31a25d638cacc89768f"
+        }
+      ],
+      "name": "services/raster-service/models.py",
       "type": "file"
     },
     {
