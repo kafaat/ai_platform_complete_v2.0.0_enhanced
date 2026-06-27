@@ -1,8 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-24 · رأس `main`: [`4bb7f45`](../) (#482 مُدمج) · فرع العمل `claude/infoleak-tenant-hardening`
-> (كنس تشديد تسريب المعلومات + عزل المستأجرين عبر ≈١٢ خدمة — لا نصّ استثناء في الاستجابات، لا تسريب بنية تحتيّة في health، إصلاحا IDOR (reports CSV tenant + video stop_stream) — [`log.md`](log.md) مدخل (م)؛
-> سبقه (ل) تشديد /health · (ك) Actuator Safety Hardening · (ق) جسر Shard 3 · (ف) كنس الفجوات · (غ) Sustainability · (ظ) WUE · (ض) Readiness · ...).
+> **آخر تحديث:** 2026-06-27 · رأس `main`: [`09eeaeb`](../) (#483 مُدمج) · فرع العمل `claude/imagery-indicator-flow`
+> (تصحيح تدفّق مؤشّر الصور — هندسة محور جيوديسيّة (frontend/backend متطابقان)، تحديث geometry يحدّث area/lat/lon، سلسلة زمنيّة صارمة + ترطيب من raster_assets، واجهة خريطة المؤشّر — [`log.md`](log.md) مدخل (ن)؛
+> سبقه (م) كنس تسريب المعلومات + IDOR · (ل) تشديد /health · (ك) Actuator Safety Hardening · (ق) جسر Shard 3 · (ف) كنس الفجوات · (غ) Sustainability · ...).
 > **تعميق الميزة التنافسيّة:** شفافيّة الثقة (Readiness) + النتائج (WUE) + الاستدامة (Sustainability) + حلقة مغلقة محروسة آمنة-افتراضيّاً (Dispatch bridge + Safety hardening) — قياس صادق + تنفيذ فيزيائيّ fail-safe محكوم بالإنسان. SAM2/MAP-QA env-unverified.
 
 ## عمل هذه الجلسة (#437 → #447)

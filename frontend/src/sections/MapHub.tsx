@@ -290,13 +290,14 @@ export default function MapHub() {
   // ── إنشاء/استيراد حقل (نفس مسار FieldManagementPage الحقيقيّ) ──
   const handleSaveField = useCallback(async (data: {
     name: string; manager: string; crop: string; soil_type: string;
-    field_code?: string; water_source?: string; country?: string; region?: string;
+    field_code?: string; water_source?: string; irrigation_type?: string; pivot?: unknown; country?: string; region?: string;
     area_ha: number; geometry: { type: string; coordinates: number[][][] };
   }) => {
     try {
       await kongApi.post('/api/v1/fields', {
         name: data.name, crop: data.crop, soil_type: data.soil_type, manager: data.manager,
         field_code: data.field_code ?? null, water_source: data.water_source ?? null,
+        irrigation_type: data.irrigation_type ?? null, pivot: data.pivot ?? null,
         country: data.country ?? null, region: data.region ?? null, geometry: data.geometry,
       });
       setShowAddField(false);

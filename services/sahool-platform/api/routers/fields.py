@@ -866,6 +866,9 @@ async def update_field(
 
             async def _work():
                 nonlocal req
+                new_geometry_area_ha: float | None = None
+                new_geometry_lat: float | None = None
+                new_geometry_lon: float | None = None
                 await _assert_field_in_tenant(conn, field_id)
                 if geometry_changed and req.geometry is not None:
                     # نوع الريّ المخزَّن (قد لا يُرسله الـPATCH) لتحديد محوريّة الحقل.
@@ -908,10 +911,21 @@ async def update_field(
                             },
                         ) from exc
                     req = req.model_copy(update={"geometry": guarded.geometry})
+                    # حدود الحقل هي مصدر مساحة/مركز الحقل. تحديث geometry دون تحديث
+                    # area_ha/lat/lon يترك القائمة والتوصيات والـbbox الاحتياطي على
+                    # قيم قديمة؛ لذا نشتقّها من نفس Geometry Guard داخل المعاملة.
+                    new_geometry_area_ha = round(guarded.area_ha, 2)
+                    new_geometry_lat, new_geometry_lon = guarded.centroid
                 try:
                     set_clause, values = _build_field_update(req)
                 except ValueError as e:
                     raise HTTPException(status_code=422, detail="لا حقول للتحديث") from e
+                if geometry_changed and req.geometry is not None:
+                    idx = len(values) + 1
+                    set_clause = (
+                        f"{set_clause}, area_ha = ${idx}, lat = ${idx + 1}, lon = ${idx + 2}"
+                    )
+                    values.extend([new_geometry_area_ha, new_geometry_lat, new_geometry_lon])
                 # رفع row_version دائماً + حارس تزامن تفاؤليّ إن مرّر base_version (v61).
                 sql, exec_values = _build_versioned_update(
                     set_clause, values, field_id, req.base_version
@@ -949,13 +963,22 @@ async def update_field(
                             f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1",
                             field_id,
                         )
+                        _auto_payload = {**client_changes, "_auto_merged": True}
+                        if geometry_changed and req.geometry is not None:
+                            _auto_payload.update(
+                                {
+                                    "area_ha": new_geometry_area_ha,
+                                    "lat": new_geometry_lat,
+                                    "lon": new_geometry_lon,
+                                }
+                            )
                         await _emit_domain_event(
                             conn,
                             user,
                             "FIELD_UPDATED",
                             "field",
                             field_id,
-                            {**client_changes, "_auto_merged": True},
+                            _auto_payload,
                         )
                         # تدقيق صريح للدمج الآليّ (إضافةً لحدث تغيّر الحقل).
                         await _emit_domain_event(
@@ -1003,6 +1026,17 @@ async def update_field(
                     # قبل إصدار الحدث، فتتراجع المعاملة ولا يُكتب حدث لتحديث لم يقع فعلاً.
                     raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
                 # حدث domain ضمن نفس المعاملة — الحقول المُرسَلة فقط في الـpayload.
+                _updated_payload = req.model_dump(
+                    exclude_unset=True, exclude={"base_version", "base_values"}
+                )
+                if geometry_changed and req.geometry is not None:
+                    _updated_payload.update(
+                        {
+                            "area_ha": new_geometry_area_ha,
+                            "lat": new_geometry_lat,
+                            "lon": new_geometry_lon,
+                        }
+                    )
                 await _emit_domain_event(
                     conn,
                     user,
@@ -1010,7 +1044,7 @@ async def update_field(
                     "field",
                     field_id,
                     # base_version عمّاد تزامن لا تغييرَ حقل ⇒ يُستثنى من حدث الـdomain.
-                    req.model_dump(exclude_unset=True, exclude={"base_version", "base_values"}),
+                    _updated_payload,
                 )
                 if geometry_changed and req.geometry is not None:
                     updated_detail = _row_to_field_detail(row)

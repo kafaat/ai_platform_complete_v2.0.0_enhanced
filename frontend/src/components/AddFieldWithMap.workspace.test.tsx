@@ -16,6 +16,9 @@ vi.mock('react-leaflet', () => ({
   TileLayer: () => <div data-testid="tile" />,
   FeatureGroup: ({ children }: { children?: ReactNode }) => <div data-testid="fg">{children}</div>,
   useMap: () => ({ invalidateSize: vi.fn() }),
+  useMapEvents: () => null,
+  CircleMarker: () => <div data-testid="pivot-center-marker" />,
+  Polyline: () => <div data-testid="pivot-radius-line" />,
 }));
 vi.mock('./maphub/DrawControl', () => ({ default: () => <div data-testid="draw" /> }));
 vi.mock('../lib/leafletSetup', () => ({}));
@@ -48,10 +51,12 @@ describe('AddFieldWithMap — مساحة عمل GIS (de-modal)', () => {
     expect(screen.getByTestId('draw')).toBeInTheDocument();
   });
 
-  it('درج التحكّم يحوي أدوات الرسم: التقاط الحدود + إنشاء دائرة بنصف قطر', () => {
+  it('درج التحكّم يحوي أدوات الرسم: التقاط الحدود + إنشاء دائرة بنصف قطر + مركز/محيط للمحور', () => {
     render(<AddFieldWithMap onSave={noop} onImport={noop} onCancel={() => {}} />);
     expect(screen.getByText(/التقاط للحدود/)).toBeInTheDocument();
     expect(screen.getByText(/إنشاء دائرة/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /حدّد المركز/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /نقطة على المحيط/ })).toBeDisabled();
   });
 
   it('تبويبا رسم/استيراد يظهران حين تُوفَّر onImport (وإلّا فلا)', () => {

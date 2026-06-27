@@ -2203,11 +2203,18 @@ def _find_field_layer(field_id: str, index: str, date: str) -> dict | None:
     if not cands:
         return None
     if date and date != "latest":
+        # طلب تاريخ محدّد يجب أن يكون صارماً: لا نرجع آخر COG عند غياب التاريخ،
+        # وإلا تعرض الخريطة/البلاطات صورة تاريخ آخر عند تحريك الـTimeline.
         dated = [c for c in cands if (c.get("acquisition_date") or "").startswith(date)]
-        if dated:
-            cands = dated
-    # أحدث حسب created_at
-    cands.sort(key=lambda c: c.get("created_at") or "", reverse=True)
+        if not dated:
+            return None
+        cands = dated
+    # latest = أحدث acquisition_date فعليّاً، ثم created_at ككاسر تعادل.
+    # created_at وحده قد يختار إعادة معالجة قديمة أُنشئت لاحقاً بدل أحدث صورة جوية.
+    cands.sort(
+        key=lambda c: (str(c.get("acquisition_date") or ""), str(c.get("created_at") or "")),
+        reverse=True,
+    )
     return cands[0]
 
 
@@ -2580,7 +2587,9 @@ async def field_timeseries(
     await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
     requested_dates = [d.strip() for d in dates.split(",") if d.strip()]
     if not requested_dates:
-        # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر (من الذاكرة)
+        # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر. نبدأ بالذاكرة، ثم
+        # نقرأ raster_assets عند إعادة التشغيل/worker آخر؛ وإلّا يصبح الـtimeline
+        # فارغاً رغم وجود COGs مخزّنة. لا نُنشئ نقاطاً، فقط نكتشف التواريخ.
         internal = _GRID_INDEX_ALIASES.get(index, index)
         seen: set[str] = set()
         for lid in _field_layers.get(field_id, []):
@@ -2590,6 +2599,17 @@ async def field_timeseries(
             d = lyr.get("acquisition_date")
             if d:
                 seen.add(str(d)[:10])
+        if not seen:
+            try:
+                import db_persist
+
+                seen.update(
+                    await db_persist.list_asset_dates(
+                        field_id, internal, tenant_id=_REQ_TENANT.get(), limit=100
+                    )
+                )
+            except Exception as e:  # noqa: BLE001 — لا نكسر السلسلة الزمنية عند غياب DB
+                logger.warning("raster_assets dates rehydrate skipped (%s): %s", field_id, e)
         requested_dates = sorted(seen)
 
     points: list[dict] = []
