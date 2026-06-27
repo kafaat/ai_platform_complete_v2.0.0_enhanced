@@ -2675,7 +2675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "357368c40a0e0190935a46353baac67ca80a142d384c8829948d3daa0f38a4fa"
+          "content": "b1bf823c7053a25e906d7c3d9f9b97d3f72436691c34d862260886811f9caea9"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -2969,6 +2969,16 @@
         }
       ],
       "name": "migrations/v122_rls_with_check_session_unification.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9f427f32f8c75f2316b5cf6ead7c928ea3e89883fc1437ae9a641d089676613c"
+        }
+      ],
+      "name": "migrations/v123_rls_with_check_preserve_using.sql",
       "type": "file"
     },
     {

@@ -390,3 +390,6 @@
 
 \echo '═══ 129. v122_rls_with_check_session_unification.sql ═══'
 \i migrations/v122_rls_with_check_session_unification.sql
+
+\echo '═══ 130. v123_rls_with_check_preserve_using.sql ═══'
+\i migrations/v123_rls_with_check_preserve_using.sql
