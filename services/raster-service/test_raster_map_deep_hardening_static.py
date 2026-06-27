@@ -23,7 +23,7 @@ def test_cdse_bbox_and_geometry_are_validated_before_provider_calls():
 def test_generated_cogs_use_finite_nodata_not_nan_nodata():
     assert "DEFAULT_NODATA = -9999.0" in COG
     assert "valid_mask = np.isfinite(write_array)" in COG
-    assert 'dst.write_mask((valid_mask.astype("uint8") * 255))' in COG
+    assert 'dst.write_mask(valid_mask.astype("uint8") * 255)' in COG
     assert "nodata=RASTER_NODATA" in MAIN
     assert '"nodata": RASTER_NODATA' in MAIN
 

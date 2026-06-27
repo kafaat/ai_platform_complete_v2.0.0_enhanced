@@ -110,6 +110,22 @@ jobs:
         run: mypy services/auth/main.py --ignore-missing-imports --explicit-package-bases
         continue-on-error: true
 
+  raster-tests:
+    # شبكة أمان لخدمة الراستر: كانت اختباراتها (٥٩+ سلوكيّ/ساكن، بينها مسارات
+    # rasterio للبلاطات والقصّ) لا تُشغَّل في أيّ وظيفة CI — فأيّ انحدار يمرّ صامتاً.
+    # هذه الوظيفة تُشغّل المجموعة كاملةً (بما فيها test_tiles/test_clip_grid التي
+    # تتطلّب rasterio) فتصبح أساس التفكيك التدريجيّ الآمن لـmain.py.
+    name: Raster Service Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r services/raster-service/requirements.txt pytest pytest-asyncio
+      # مسار صريح يتجاوز testpaths=tests_v9 في pytest.ini الجذر؛ asyncio_mode=auto منه.
+      - name: raster-service test suite
+        run: python -m pytest services/raster-service -q
+
   frontend-typecheck:
     name: Frontend Typecheck
     runs-on: ubuntu-24.04

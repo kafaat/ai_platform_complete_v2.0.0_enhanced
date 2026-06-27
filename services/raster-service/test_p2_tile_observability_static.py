@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -15,9 +16,12 @@ def test_tile_observability_metrics_and_endpoint_are_present():
 
 def test_tilejson_returns_clear_no_scene_reason_and_action():
     src = RASTER_MAIN.read_text()
-    assert '"reason": None if has_data else "no_field_cog_or_scene_available"' in src
-    assert '"user_message": None if has_data else' in src
-    assert '"recommended_action": None if has_data else' in src
+    # متين ضدّ لفّ ruff للتعبير الشرطيّ على أسطر متعدّدة: نُسطّح المسافات قبل الفحص
+    # كي يحرس البنية (reason/user_message/recommended_action الشرطيّة) لا التنسيق.
+    flat = re.sub(r"\s+", " ", src)
+    assert '"reason": None if has_data else "no_field_cog_or_scene_available"' in flat
+    assert '"user_message": None if has_data else' in flat
+    assert '"recommended_action": None if has_data else' in flat
     assert "imagery/backfill" in src
 
 
