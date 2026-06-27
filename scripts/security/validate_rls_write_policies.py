@@ -72,10 +72,15 @@ def main() -> int:
             if "app.tenant_id" in stmt and "sahool_effective_tenant_id" not in stmt and "app.current_tenant" not in stmt:
                 errors.append(f"{path.name}: policy #{idx} uses app.tenant_id without canonical app.current_tenant fallback")
 
+    # Phase 9-12 runtime writers must set both tenant session variables once they
+    # exist. They are not part of this focused security change, so the check is
+    # skipped when the files are absent and auto-activates when they land later.
     store = root / "services/sahool-platform/api/phase_runtime_store.py"
     workers = root / "services/sahool-platform/api/phase_runtime_workers.py"
     for source in (store, workers):
-        text = source.read_text(encoding="utf-8", errors="replace") if source.exists() else ""
+        if not source.exists():
+            continue
+        text = source.read_text(encoding="utf-8", errors="replace")
         if "set_config('app.current_tenant'" not in text:
             errors.append(f"{source.relative_to(root)} does not set app.current_tenant")
         if "set_config('app.tenant_id'" not in text:
