@@ -121,8 +121,7 @@ def validate_cog(path: str) -> dict:
         # الصورة المشرّطة (striped) كتلتها (1, width) → bw≠bh → تُرفَض بحقّ.
         bh, bw = src.block_shapes[0]
         is_tiled = bool(
-            src.profile.get("tiled", False)
-            or (bw == bh and bw <= src.width and bh <= src.height)
+            src.profile.get("tiled", False) or (bw == bh and bw <= src.width and bh <= src.height)
         )
         has_overviews = len(src.overviews(1)) > 0
         return {
