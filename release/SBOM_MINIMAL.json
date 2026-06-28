@@ -8445,6 +8445,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cd715be2b2eb142f4473c2f8befe4f2df503833110e18d1b6fcad0db8c9b5448"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_soil_lab.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "11fd3e5e9e04df6d0c895bbe387dd035a89df871e60c8e87577759a798d48aaf"
         }
       ],
@@ -8455,7 +8465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69262a35eff1d253611ddad520cf071fe0115c8ac317c00c8e15ccff7c4832ef"
+          "content": "121b802a2e4f908b88f57e7118651dc6880a45aa1b026146f4120cfa0a70ee0e"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
