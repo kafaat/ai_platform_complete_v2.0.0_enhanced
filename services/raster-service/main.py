@@ -3639,3 +3639,10 @@ stac_landing = _stac_catalog_routes.stac_landing
 stac_mosaicjson = _stac_catalog_routes.stac_mosaicjson
 
 app.include_router(_stac_catalog_routes.router)
+
+# سقالة التفكيك: تسجيل تلقائيّ لراوترات routers/ (فارغة الآن، تُملأ بالاستخراج
+# التدريجيّ لمسارات main.py — نمط تفكيك المنصّة المحفوظ-السلوك). يُستدعى بعد تعريف
+# app وكلّ التبعيّات المشتركة كي تستورد وحدات routers رموزها من main بلا دائريّة.
+from router_registry import register_routers  # noqa: E402  تأخير: بعد تعريف app
+
+register_routers(app)
