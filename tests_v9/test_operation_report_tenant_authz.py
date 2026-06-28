@@ -2,7 +2,7 @@
 
 يقفل إصلاح IDOR: جسم الطلب لا يفرض tenant_id ولا يخلط حقول مستأجِر آخر. مقارنة بـ
 ``str()`` على الطرفين (user.tenant_id قد يكون UUID) — تطابق ⇒ CSV؛ اختلاف الطلب ⇒ 403
-tenant_mismatch؛ حقل بمستأجِر مختلف ⇒ 403 field_not_owned_by_tenant.
+tenant_mismatch؛ حقل بمستأجِر مختلف ⇒ 403 field_tenant_mismatch.
 """
 
 from __future__ import annotations
@@ -57,11 +57,11 @@ def test_request_tenant_mismatch_403():
 
 
 def test_field_tenant_mismatch_403():
-    """حقل بمستأجِر مختلف ⇒ 403 field_not_owned_by_tenant (منع خلط CSV عابر)."""
+    """حقل بمستأجِر مختلف ⇒ 403 field_tenant_mismatch (منع خلط CSV عابر)."""
     with pytest.raises(HTTPException) as ei:
         operation_report_csv(_req("t1", "t2"), _user("t1"))
     assert ei.value.status_code == 403
-    assert ei.value.detail == "field_not_owned_by_tenant"
+    assert ei.value.detail == "field_tenant_mismatch"
 
 
 def test_str_uuid_compatibility():

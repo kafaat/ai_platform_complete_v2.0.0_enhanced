@@ -4224,6 +4224,12 @@ def _bbox_from_geom(geom: dict | None) -> list[float] | None:
 
 
 # تضمين راوتر بلاطات CDSE (poly clip + قناع rasterio + ملوحة SWIR) — مسار main.
-from routers.cdse_tiles import router as _cdse_tiles_router  # noqa: E402
+# آمن (نمط router_registry): محروس بـtry/except كي لا يكسر تحميل main تحت عزل
+# الاختبارات (تحميل main.py باسم مخصّص ⇒ `import main` في الراوتر يُعيد التحميل ⇒
+# استيراد دائريّ مؤقّت). في التشغيل العاديّ main في sys.modules فيُحلّ الاستيراد ويُسجَّل.
+try:  # noqa: E402
+    from routers.cdse_tiles import router as _cdse_tiles_router
 
-app.include_router(_cdse_tiles_router)
+    app.include_router(_cdse_tiles_router)
+except ImportError as _e:  # pragma: no cover — عزل اختبار فقط
+    logger.warning("راوتر cdse_tiles غير مُضمَّن (استيراد دائريّ تحت العزل؟): %s", _e)

@@ -107,6 +107,7 @@ class TestMfaRequiredButMissing:
         )
 
     @pytest.mark.unit
-    def test_module_default_enforcement_is_off(self):
-        # ضمان عدم كسر CI: المفتاح الرئيسيّ مُعطَّل ما لم تُضبط البيئة.
-        assert main.MFA_ENFORCEMENT_ENABLED is False
+    def test_module_default_enforcement_is_on(self):
+        # توحيد main↔cert: تصليب cert جعل فرض MFA للأدوار الحسّاسة **مُفعَّلاً افتراضيّاً**
+        # (ENFORCE_SENSITIVE_MFA default=true)؛ عطّله صراحةً بـ=false عند الحاجة. أكثر أماناً.
+        assert main.MFA_ENFORCEMENT_ENABLED is True

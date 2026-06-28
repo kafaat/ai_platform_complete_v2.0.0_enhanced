@@ -314,9 +314,12 @@ def operation_report_csv(
     عزل المستأجِر: التقرير نقيّ ولا يقرأ من DB، لكن جسم الطلب لا يجوز أن
     يفرض tenant_id أو يخلط حقول مستأجر آخر داخل CSV مُصدَّر.
     """
-    if req.tenant_id != user.tenant_id:
+    # توحيد main↔cert: طبِّع str(...) على الطرفين — user.tenant_id قد يكون UUID والجسم str
+    # (أو العكس)؛ المقارنة الخام تُنتج 403 كاذباً للجميع. str() يجعلهما متوافقَين.
+    _uid = str(user.tenant_id)
+    if str(req.tenant_id) != _uid:
         raise HTTPException(status_code=403, detail="tenant_mismatch")
-    if any(f.tenant_id != user.tenant_id for f in req.fields):
+    if any(str(f.tenant_id) != _uid for f in req.fields):
         raise HTTPException(status_code=403, detail="field_tenant_mismatch")
 
     fields = [
