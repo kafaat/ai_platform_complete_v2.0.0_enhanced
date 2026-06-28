@@ -33,7 +33,25 @@ def register_routers(app) -> list[str]:
             continue
         router = getattr(mod, "router", None)
         if router is not None:
-            app.include_router(router)
+            _include_flat(app, router)
             registered.append(mod_info.name)
             logger.info("راوتر مُسجَّل تلقائيّاً: routers.%s", mod_info.name)
     return registered
+
+
+def _include_flat(app, router) -> None:
+    """يضمّ ``router`` بحيث تظهر مساراته **مسطّحةً** في ``app.routes`` (بلا prefix).
+
+    خلفيّة: ``app.include_router`` في Starlette الحديثة (≥1.3) يلفّ الراوتر في كائن
+    ``_IncludedRouter`` كسول (lazy) فلا تُسطَّح مساراته في ``app.routes`` — فيختلّ
+    عدّ المسارات وحارس التفكيك الذي يعدّ ``r.path`` على ``app.routes``. لتجنّب ذلك
+    نُمدّد قائمة مسارات التطبيق بمسارات الراوتر مباشرةً (راوتراتنا بلا prefix وكلّها
+    ``APIRoute`` مبنيّة عبر ``@router.<m>`` — فالتمديد مكافئ سلوكيّاً لـ
+    ``include_router`` الكلاسيكيّ: نفس كائنات المسار، نفس المطابقة والمخطّط). نتفادى
+    التكرار إن سُجِّل المسار مسبقاً (إعادة استيراد). يبقى ``include_router`` متاحاً
+    للإصدارات التي تُسطّح أصلاً، لكنّ التمديد المباشر أمتن عبر الإصدارات.
+    """
+    existing_ids = {id(r) for r in app.router.routes}
+    for route in router.routes:
+        if id(route) not in existing_ids:
+            app.router.routes.append(route)

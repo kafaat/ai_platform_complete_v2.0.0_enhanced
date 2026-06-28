@@ -102,7 +102,11 @@ def test_placeholder_removed_and_endpoint_wired():
         txt = open(os.path.join(ROOT, rel), encoding="utf-8").read()
         assert placeholder not in txt, f"placeholder ما زال في {rel}"
         assert "/change/detect" in txt, f"الربط بالنقطة مفقود في {rel}"
-    main = open(os.path.join(ROOT, "services/raster-service/main.py"), encoding="utf-8").read()
-    assert '@app.post("/change/detect")' in main, "نقطة /change/detect مفقودة"
+    from raster_route_source import raster_combined_source
+
+    main = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
+    assert '@router.post("/change/detect")' in main or '@app.post("/change/detect")' in main, (
+        "نقطة /change/detect مفقودة"
+    )
     # حدّ الحجم (413) ضدّ DoS قبل تحويل numpy
     assert "MAX_CHANGE_GRID_CELLS" in main and "status_code=413" in main, "حدّ حجم الشبكة مفقود"

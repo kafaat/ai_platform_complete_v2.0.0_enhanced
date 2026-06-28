@@ -73,6 +73,11 @@ def test_deterministic_and_input_validation():
 
 @pytest.mark.unit
 def test_endpoint_wired_with_size_cap():
-    main = open(os.path.join(ROOT, "services/raster-service/main.py"), encoding="utf-8").read()
-    assert '@app.post("/fvc/compute")' in main, "نقطة /fvc/compute مفقودة"
+    # بعد تفكيك main.py: النقطة قد تكون @router في routers/ — نمسح main + routers معاً.
+    from raster_route_source import raster_combined_source
+
+    main = raster_combined_source(ROOT)
+    assert '@router.post("/fvc/compute")' in main or '@app.post("/fvc/compute")' in main, (
+        "نقطة /fvc/compute مفقودة"
+    )
     assert "MAX_CHANGE_GRID_CELLS" in main and "status_code=413" in main, "حدّ الحجم مفقود"
