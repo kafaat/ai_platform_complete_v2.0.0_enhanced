@@ -126,6 +126,22 @@ jobs:
       - name: raster-service test suite
         run: python -m pytest services/raster-service -q
 
+  deps-lock-check:
+    # بوّابة انجراف الأقفال: تضمن بقاء *.lock (الحلّ الكامل العابر بتجزئات) متطابقاً
+    # مع requirements.txt مصدره. أيّ ترقية/إضافة دون إعادة `scripts/deps/lock.sh`
+    # تكسر هذه الوظيفة — فيبقى القفل مصدر حقيقة قابلاً للتدقيق (أساس استهلاك
+    # Dockerfile/pip-audit للأقفال لاحقاً). الحلّ مثبَّت على py3.12 (--python-version)
+    # وعابر للمنصّات (--universal) فيطابق الناتج المحلّيّ ناتج CI بايتاً ببايت.
+    name: Dependency Lock Drift
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install uv
+      - name: verify locks match requirements
+        run: scripts/deps/lock.sh --check
+
   frontend-typecheck:
     name: Frontend Typecheck
     runs-on: ubuntu-24.04
