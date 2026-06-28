@@ -2752,3 +2752,11 @@ async def salinity_calibrate(req: SalinityFitRequest, x_agent_token: str = Heade
     يفرض: 5 عيّنات+ وطريقة استخلاص موحّدة (لا يقبل بيانات تُنتج معايرة زائفة)."""
     _require_service_token(x_agent_token)
     return _sal.fit_regression(req.samples)
+
+
+# سقالة التفكيك: تسجيل تلقائيّ لراوترات routers/ (فارغة الآن، تُملأ بالاستخراج
+# التدريجيّ لمسارات main.py — نمط تفكيك المنصّة المحفوظ-السلوك). يُستدعى بعد تعريف
+# app وكلّ التبعيّات المشتركة كي تستورد وحدات routers رموزها من main بلا دائريّة.
+from router_registry import register_routers  # noqa: E402  تأخير: بعد تعريف app
+
+register_routers(app)
