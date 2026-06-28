@@ -610,7 +610,7 @@ export default function FieldManagementPage() {
               <FieldIndicatorMap
                 fieldId={showSatellite.field_id}
                 index={satelliteIdx}
-                date={new Date().toISOString().split('T')[0]}
+                date=""
                 tileSegment="cdse-tiles"
                 fieldPolygon={geomToLatLng(showSatellite.geometry)}
                 fieldBbox={geomToBbox(showSatellite.geometry)}
@@ -625,7 +625,7 @@ export default function FieldManagementPage() {
                 height={420}
               />
               <p className="text-[11px] text-slate-500 mt-2 text-center">
-                الصور تُجلَب مباشرةً من Sentinel Hub (CDSE) · تاريخ اليوم · الفترة: يناير–اليوم · أقلّ غيوماً
+                الصور تُجلَب مباشرةً من Sentinel Hub (CDSE) · أحدث مشهد أقلّ غيوماً
               </p>
             </div>
           </div>

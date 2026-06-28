@@ -23,6 +23,10 @@
 | IND-SRC | مصدر مؤشّرات الموبايل الصحيح (`getFieldIndicators`) | mobile | #445 (`a7909e6`)؛ [`mobile/sahool_app/lib/services/api_service.dart`](../../mobile/sahool_app/lib/services/api_service.dart) | fixed |
 | MERGE | دمج/انقسام الحقول ذرّيّاً (سدّ خطر البيانات الثلاثيّة) | platform/الحقول | #443 (`2456d2b`)؛ [`api/routers/fields.py`](../../services/sahool-platform/api/routers/fields.py)؛ اختبار [`tests_v9/test_fields_merge_split_atomic.py`](../../tests_v9/test_fields_merge_split_atomic.py) | fixed |
 | NDVI-MOB | مسار سلسلة NDVI في الموبايل (404) | mobile | #444 (`9e00d0a`)؛ [`mobile/sahool_app/lib/screens/satellite_screen.dart`](../../mobile/sahool_app/lib/screens/satellite_screen.dart) | fixed |
+| RASTER-STRIPE | شرائط داكنة فوق NDVI/NDMI/الملوحة — بكسلات `finite=0.0` خارج dataMask تُلوَّن معتمة | raster-service | إصلاح المصدر #550 (`2359cea`، قناع `cog_writer`)؛ [`cog_writer.py`](../../services/raster-service/cog_writer.py)؛ اختبار [`test_cog_writer_internal_mask.py`](../../services/raster-service/test_cog_writer_internal_mask.py) | fixed + مُختبَر |
+| CDSE-SCL | قناع غيوم SCL **بكسليّ** في evalscript CDSE (لا `dataMask` فقط) | raster-service | #550 (`2359cea`)؛ [`cdse_client.py`](../../services/raster-service/cdse_client.py) | fixed (يحتاج تأكيداً حيّاً بتشغيل CDSE) |
+| CI-MIRROR | `ci.yml` فقد خطوة مرآة السجلّ `mirror.gcr.io` (ضاعت في إعادة كتابة `main` بدفع مباشر) ⇒ رفرفة Docker Hub تُعطّل *Integration Tests* | ci | `origin/main:.github/workflows/ci.yml` (غياب `mirror.gcr.io`)؛ أصل الإصلاح #538 | open (يُعاد) |
+| RASTER-DECOMP | تفكيك `raster-service/main.py` (٤٥ مساراً → ١٠ `routers/`، محفوظ السلوك، CDSE محفوظة) | raster-service | #551 (`51d650c`)؛ [`router_registry.py`](../../services/raster-service/router_registry.py)؛ حارس [`test_raster_router_decomposition_guard.py`](../../services/raster-service/test_raster_router_decomposition_guard.py) | fixed (٤٩ مساراً ثابتة) |
 
 ## ملاحظات
 
