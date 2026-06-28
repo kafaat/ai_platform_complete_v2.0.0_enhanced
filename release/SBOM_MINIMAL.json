@@ -1065,7 +1065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "db7c48b9f019271e60668e536e5344ea99ee2ba8192fc0d360e9c831ad9d28aa"
+          "content": "ab322cad70ecd8ff497e4a843a7ed7bbb412d5300e10b593e66552c7f1557009"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -1099,6 +1099,16 @@
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d2d1cf10a2890af8ed3480c0c35bcf9ed7ff9582fb9fbd4b6f3689b4eef0350a"
+        }
+      ],
+      "name": "frontend/src/hooks/useCalibrationApi.ts",
       "type": "file"
     },
     {
