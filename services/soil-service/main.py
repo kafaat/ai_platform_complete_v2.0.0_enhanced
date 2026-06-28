@@ -161,3 +161,8 @@ if __name__ == "__main__":
 from router_registry import register_routers  # noqa: E402
 
 register_routers(app)
+
+# إعادة تصدير مُعالِجات المسارات من routers/ إلى main (توافق: اختبارات السلوك تستدعي
+# ``main.ingest_reading``/``main.get_readings`` مباشرةً وحارس تصادم الأسماء يفحص وجودها).
+# ربط اسم فقط — لا يُسجّل مساراً ثانياً (register_routers سجّلها عبر الراوتر).
+from routers.readings import get_readings, ingest_reading  # noqa: E402, F401
