@@ -182,6 +182,93 @@ def check_nats_subjects() -> Result:
 
 
 # ════════════════════════════════════════════════════════════
+# 3b. تغطية ناشري NATS (H2) — حارس عكسيّ: كلّ مُستهلَك له منتِج أو waiver
+# ════════════════════════════════════════════════════════════
+def _consumed_subjects() -> dict[str, str]:
+    """الموضوعات المُستهلَكة: قائمة ``SUBSCRIPTIONS`` في وكيل الإشعارات (عبر AST،
+    إذ هي tuples في حلقة لا ``.subscribe("literal")``) + أيّ ``.subscribe("literal")``
+    عبر ``services/`` و``agents/``. يُرجِع {subject: location}.
+    """
+    import ast
+
+    consumed: dict[str, str] = {}
+    agent_py = REPO / "agents" / "notification" / "agent.py"
+    if agent_py.exists():
+        try:
+            tree = ast.parse(_read(agent_py))
+            for node in ast.walk(tree):
+                if (
+                    isinstance(node, ast.Assign)
+                    and any(
+                        isinstance(t, ast.Name) and t.id == "SUBSCRIPTIONS" for t in node.targets
+                    )
+                    and isinstance(node.value, ast.List | ast.Tuple)
+                ):
+                    for elt in node.value.elts:
+                        if isinstance(elt, ast.Tuple | ast.List) and elt.elts:
+                            first = elt.elts[0]
+                            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                                consumed.setdefault(
+                                    first.value,
+                                    f"{agent_py.relative_to(REPO)}:SUBSCRIPTIONS",
+                                )
+        except SyntaxError:
+            pass
+    sub_re = re.compile(r'\.subscribe\(\s*["\']([^"\']+)["\']')
+    for base in (SERVICES, REPO / "agents"):
+        if not base.exists():
+            continue
+        for py in base.rglob("*.py"):
+            if "__pycache__" in py.parts:
+                continue
+            src = _read(py)
+            for m in sub_re.finditer(src):
+                consumed.setdefault(m.group(1), f"{py.relative_to(REPO)}:{_lineno(src, m.start())}")
+    return consumed
+
+
+def check_nats_publisher_coverage() -> Result:
+    """حارس عكسيّ (H2): كلّ موضوع NATS **مُستهلَك** يجب أن يظهر في
+    ``event_publish_contracts.yaml`` بمنتِجٍ موثَّق أو ``reserved_future_subject``
+    (waiver). وإلّا «مُستهلَك بلا منتِج» ⇒ FAIL. يمنع مناطق أحداث ميّتة دون توثيق.
+    """
+    contracts = REPO / "event_publish_contracts.yaml"
+    if not contracts.exists():
+        return Result(
+            "NATS publisher coverage",
+            FAIL,
+            "event_publish_contracts.yaml مفقود",
+            ["FAIL لا عقد نشر — أنشئ event_publish_contracts.yaml لكلّ موضوع مُستهلَك"],
+        )
+    try:
+        import yaml
+
+        doc = yaml.safe_load(_read(contracts)) or {}
+    except Exception as e:  # noqa: BLE001
+        return Result(
+            "NATS publisher coverage", FAIL, "تعذّر قراءة العقد", [f"FAIL {type(e).__name__}: {e}"]
+        )
+
+    documented: dict[str, dict] = {}
+    for entry in doc.get("subjects") or []:
+        subj = entry.get("subject") if isinstance(entry, dict) else None
+        if subj:
+            documented[subj] = entry
+
+    consumed = _consumed_subjects()
+    findings: list[str] = []
+    for subj, loc in sorted(consumed.items()):
+        entry = documented.get(subj)
+        if entry is None:
+            findings.append(f"FAIL مُستهلَك بلا توثيق في العقد: `{subj}` ({loc})")
+        elif not entry.get("producer") and not entry.get("reserved_future_subject"):
+            findings.append(f"FAIL مُستهلَك بلا منتِج ولا waiver: `{subj}` ({loc})")
+    status = FAIL if findings else PASS
+    summary = f"{len(consumed)} مُستهلَك / {len(documented)} موثَّق؛ {len(findings)} بلا منتِج"
+    return Result("NATS publisher coverage", status, summary, findings)
+
+
+# ════════════════════════════════════════════════════════════
 # 4. endpoint authz — كلّ نقطة لها تبعيّة مصادقة/تفويض
 # ════════════════════════════════════════════════════════════
 def check_endpoint_authz() -> Result:
@@ -265,6 +352,7 @@ CHECKS = (
     check_rls_coverage,
     check_router_wiring,
     check_nats_subjects,
+    check_nats_publisher_coverage,
     check_endpoint_authz,
     check_migration_manifest,
 )
