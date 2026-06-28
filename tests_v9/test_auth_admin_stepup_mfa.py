@@ -163,13 +163,38 @@ class TestVerifyCallerMfa:
             assert _run(main._verify_caller_mfa(1, code)) is True
 
 
+def _change_role_handler():
+    """يُرجِع مُعالِج change_role أينما كان (main.py أو routers/users.py بعد التفكيك)."""
+    if hasattr(main, "change_role"):
+        return main.change_role
+    from routers.users import change_role  # noqa: PLC0415 — يُحلّ بعد import main
+
+    return change_role
+
+
+def _deactivate_handler():
+    """يُرجِع مُعالِج deactivate_user أينما كان (main.py أو routers/users.py)."""
+    if hasattr(main, "deactivate_user"):
+        return main.deactivate_user
+    from routers.users import deactivate_user  # noqa: PLC0415 — يُحلّ بعد import main
+
+    return deactivate_user
+
+
 class TestSourceGuard:
-    """حارس مصدريّ: نقاط admin المُحوِّرة تشير لفحص step-up (لا انحدار صامت)."""
+    """حارس مصدريّ: نقاط admin المُحوِّرة تشير لفحص step-up (لا انحدار صامت).
+
+    بعد تفكيك مسارات auth انتقل change_role/deactivate_user إلى routers/users.py
+    (سلوك محفوظ)؛ نمسح المصدر المُسلسَل (main.py + routers/*.py) ونحلّ المُعالِجات أينما
+    وُجدت — دون إضعاف أيّ تأكيد أمنيّ (step-up + التوقيع + admin_op_mfa_denied).
+    """
 
     @pytest.mark.unit
     @pytest.mark.security
     def test_endpoints_reference_stepup_check(self):
-        src = open(_AUTH_MAIN, encoding="utf-8").read()
+        from auth_route_source import auth_combined_source
+
+        src = auth_combined_source(ROOT)
         # تعريف الدالّتين الحسّاستين موجود.
         assert "async def change_role(" in src
         assert "async def deactivate_user(" in src
@@ -181,13 +206,13 @@ class TestSourceGuard:
     @pytest.mark.unit
     @pytest.mark.security
     def test_change_role_signature_accepts_mfa_header(self):
-        sig = inspect.signature(main.change_role)
+        sig = inspect.signature(_change_role_handler())
         assert "x_mfa_code" in sig.parameters
         assert "admin" in sig.parameters
 
     @pytest.mark.unit
     @pytest.mark.security
     def test_deactivate_signature_accepts_mfa_header(self):
-        sig = inspect.signature(main.deactivate_user)
+        sig = inspect.signature(_deactivate_handler())
         assert "x_mfa_code" in sig.parameters
         assert "admin" in sig.parameters

@@ -1703,7 +1703,11 @@ def test_security_hardening():
 
     # ١. register يُسنِد owner لمؤسِّس المستأجِر الجديد + لا حقل role من العميل
     #    (التسجيل الذاتيّ يُنشئ مستأجِراً معزولاً ⇒ المُسجِّل مالكه؛ لا تصعيد عابر).
-    auth = rd("services/auth/main.py")
+    # بعد تفكيك مسارات auth انتقل مُعالِج register إلى routers/registration.py بينما يبقى
+    # نموذج RegisterRequest في main.py — نمسح المصدر المُسلسَل (main.py + routers/*.py).
+    from auth_route_source import auth_combined_source
+
+    auth = auth_combined_source(base)
     reg = auth[auth.index("async def register") : auth.index("async def register") + 900]
     rr = auth[auth.index("class RegisterRequest") : auth.index("class RegisterRequest") + 250]
     if "'owner'" in reg and "role:" not in rr:

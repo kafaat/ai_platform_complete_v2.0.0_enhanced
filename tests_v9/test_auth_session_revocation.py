@@ -21,10 +21,15 @@ pytestmark = pytest.mark.unit
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 AUTH = os.path.join(ROOT, "services/auth/main.py")
 
+# بعد تفكيك مسارات auth إلى routers/: مُعالِجات confirm_password_reset / change_password /
+# change_role / deactivate_user انتقلت إلى routers/*.py (المساعِدات وget_current_user تبقى في
+# main.py). نمسح المصدر المُسلسَل (main.py + routers/*.py) كي يبقى الحارس صحيحاً بلا إضعاف أيّ
+# تأكيد أمنيّ (يكفي أن يكون السطر موجوداً في أيّ من الملفّين).
+from auth_route_source import auth_combined_source  # noqa: E402
+
 
 def _src() -> str:
-    with open(AUTH, encoding="utf-8") as f:
-        return f.read()
+    return auth_combined_source(ROOT)
 
 
 def _func(src: str, name: str) -> str:
