@@ -9,8 +9,6 @@
 
 from __future__ import annotations
 
-import os
-
 import main
 from fastapi import APIRouter, HTTPException
 
@@ -20,24 +18,12 @@ router = APIRouter()
 @router.get("/healthz")
 @router.get("/health")
 async def health():
-    # Odoo يُفحَص فقط حين يكون المزوّد المختار odoo؛ غير ذلك odoo_connected=null
-    # (غير مفعَّل) بدل false مضلّل — الأساسي erpnext لا يمرّ عبر Odoo.
-    provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
-    odoo_ok = None
-    uid = None
-    if provider == "odoo":
-        odoo_ok = False
-        try:
-            odoo = main.get_odoo()
-            uid = odoo.uid if odoo.uid is not None else await odoo.authenticate()
-            odoo_ok = True
-        except Exception as e:  # noqa: BLE001
-            main.logger.debug("فحص صحّة Odoo فشل: %s", type(e).__name__)
+    provider = main.get_active_erp_provider()
     return {
         "status": "alive",
-        "erp_provider": provider,
-        "odoo_connected": odoo_ok,  # null حين المزوّد ليس odoo (غير مفعَّل)
-        "odoo_uid": uid,
+        "erp_provider": main._selected_erp_provider(),
+        "active_provider": provider.name,
+        "erp_enabled": provider.name != "none",
         "sync_interval_sec": main.SYNC_INTERVAL_SEC,
     }
 

@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 import main
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 router = APIRouter()
 
@@ -33,7 +33,10 @@ async def trigger_sync(
     if req.entity == "all" or req.entity == "warehouses":
         background_tasks.add_task(main.sync_warehouses)
     if req.entity == "all" or req.entity == "procurement":
-        background_tasks.add_task(main.sync_procurement_orders_to_odoo)
+        if main.get_active_erp_provider().name == "odoo":
+            background_tasks.add_task(main.sync_procurement_orders_to_odoo)
+        elif req.entity == "procurement":
+            raise HTTPException(409, "procurement_sync_requires_odoo_provider")
     if req.entity == "all" or req.entity == "costs":
         background_tasks.add_task(main.sync_field_costs_to_odoo)
     return {"status": "queued", "entity": req.entity, "direction": req.direction}

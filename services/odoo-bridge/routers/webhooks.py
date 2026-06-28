@@ -28,6 +28,8 @@ async def odoo_webhook(payload: main.WebhookPayload, x_webhook_secret: str = Hea
 
     if not x_webhook_secret or not hmac.compare_digest(x_webhook_secret, main.WEBHOOK_SECRET):
         raise HTTPException(401, "سرّ webhook غير صالح")
+    if main.get_active_erp_provider().name != "odoo":
+        raise HTTPException(409, "odoo_webhook_requires_odoo_provider")
     main.logger.info(f"Odoo webhook: {payload.model}:{payload.record_id} event={payload.event}")
 
     # Route to appropriate handler

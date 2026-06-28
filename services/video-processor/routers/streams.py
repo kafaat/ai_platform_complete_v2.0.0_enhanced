@@ -53,9 +53,14 @@ async def create_stream(
 
 @router.delete("/streams/{stream_id}")
 async def stop_stream(stream_id: str, user: dict = Depends(main._get_current_user)):
-    state = main.STREAMS.pop(stream_id, None)
+    # عزل المستأجرين: لا تُزِل البثّ من الذاكرة قبل إثبات ملكيّة مستأجِر الرمز.
+    # كان pop() قبل _assert_stream_tenant يسمح لمستأجِر آخر بإيقاف/حذف بثّ لا يملكه
+    # عبر معرفة stream_id فقط. الفشل الآن 404 ويبقى بثّ المالك سليماً.
+    state = main.STREAMS.get(stream_id)
     if not state:
         raise HTTPException(404, "Stream not found")
+    main._assert_stream_tenant(state, user)
+    main.STREAMS.pop(stream_id, None)
     state.status = "inactive"
     if state.task:
         state.task.cancel()
@@ -69,12 +74,19 @@ async def get_stream(stream_id: str, user: dict = Depends(main._get_current_user
         raise HTTPException(404, "Stream not found")
     # تقييد بالمستأجِر: المنفذ كان بلا مصادقة ويُرجِع rtsp_url (قد يحوي اعتماد كاميرا)
     main._assert_stream_tenant(state, user)
+    # لا نُسرّب اعتماد الكاميرا (rtsp/http URL قد يحوي user:pass) في ردّ الحالة.
+    cfg = state.config.model_dump()
+    cfg.pop("rtsp_url", None)
+    cfg.pop("http_url", None)
     return {
         "stream_id": stream_id,
         "status": state.status,
         "frame_count": state.frame_count,
         "last_detection": state.last_detection,
-        "config": state.config.model_dump(),
+        "config": cfg,
+        "source_configured": bool(
+            state.config.rtsp_url or state.config.http_url or state.config.usb_index is not None
+        ),
     }
 
 
@@ -90,7 +102,12 @@ async def list_streams(user: dict = Depends(main._get_current_user)):
                 "stream_id": sid,
                 "status": s.status,
                 "frame_count": s.frame_count,
-                "source": s.config.rtsp_url or s.config.http_url or f"usb:{s.config.usb_index}",
+                "source_configured": bool(
+                    s.config.rtsp_url or s.config.http_url or s.config.usb_index is not None
+                ),
+                "source_type": "rtsp"
+                if s.config.rtsp_url
+                else ("http" if s.config.http_url else "usb"),
             }
             for sid, s in main.STREAMS.items()
             if tid and str(s.config.tenant_id) == tid

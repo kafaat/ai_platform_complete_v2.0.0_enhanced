@@ -1,10 +1,8 @@
-"""routers/catalog.py — كتالوج Odoo والإعداد والسجلّات (Catalog / Config / Logs)
+"""routers/catalog.py — كتالوج ERP والإعداد والسجلّات (Catalog / Config / Logs)
 ======================================================================
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
-
-نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المخرجات
-مطابقة. التبعيّات المشتركة (الحالة/المساعِدات) تبقى في ``main`` وتُشار إليها
-عبر ``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix.
+شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ). نُقلت مُعالِجات
+cert المصلّبة (تجريد مزوّد ERP) حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المساعِدات
+المشتركة (مزوّد ERP/المسبح) تبقى في ``main`` وتُشار إليها عبر ``main.X``.
 """
 
 from __future__ import annotations
@@ -21,42 +19,31 @@ async def erp_provider_status(_auth: dict = Depends(main.require_auth)):
 
     ERP_PROVIDER = odoo | erpnext | none — يحدّد المزوّد دون تغيير الكود.
     """
-    import os
-
-    from erp_provider import get_erp_provider
-
-    selected = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
-    # نمرّر OdooClient للمزوّد odoo (يعيد استخدام الموجود)
+    selected = main._selected_erp_provider()
     try:
-        provider = get_erp_provider(odoo_client=main.get_odoo() if selected == "odoo" else None)
+        provider = main.get_active_erp_provider()
         hp = await provider.health()
-    except Exception as e:  # noqa: BLE001 — صدق: نُعلن الخطأ لا نخفيه
-        return {"selected": selected, "status": "error", "error": str(e)}
+    except Exception as e:  # noqa: BLE001 — لا نُسرّب تفاصيل اتصال ERP/URL/اعتمادات
+        main.logger.debug("ERP provider health failed: %s", type(e).__name__)
+        return {"selected": selected, "status": "error", "error": "provider_unavailable"}
     return {"selected": selected, "active_provider": provider.name, "health": hp}
 
 
-@router.get("/config", response_model=main.OdooConfigResponse)
+@router.get("/config")
 async def get_config(_auth: dict = Depends(main.require_auth)):
-    odoo = main.get_odoo()
+    provider = main.get_active_erp_provider()
     connected = False
-    uid = odoo.uid
-    version = None
     try:
-        if uid is None:
-            uid = await odoo.authenticate()
-        version_info = await odoo.call("common", "version")
-        version = version_info.get("server_version")
-        connected = True
-    except Exception as e:
-        main.logger.warning(f"Config check failed: {e}")
-    return main.OdooConfigResponse(
-        url=main.ODOO_URL,
-        db=main.ODOO_DB,
-        user=main.ODOO_USER,
-        connected=connected,
-        uid=uid,
-        version=version,
-    )
+        connected = await provider.authenticate()
+    except Exception as e:  # noqa: BLE001
+        main.logger.debug("ERP config check failed: %s", type(e).__name__)
+    # Generic and non-secret. Historic Odoo URL/UID are deliberately not exposed.
+    return {
+        "provider": main._selected_erp_provider(),
+        "active_provider": provider.name,
+        "enabled": provider.name != "none",
+        "connected": connected,
+    }
 
 
 @router.get("/logs")
@@ -81,24 +68,14 @@ async def get_logs(
 
 
 @router.get("/products")
-async def list_odoo_products(limit: int = 20, _auth: dict = Depends(main.require_auth)):
-    odoo = main.get_odoo()
-    products = await odoo.search_read(
-        "product.product",
-        [],
-        ["id", "name", "default_code", "list_price", "standard_price", "qty_available"],
-        limit=limit,
-    )
-    return {"products": products}
+async def list_erp_products(limit: int = 20, _auth: dict = Depends(main.require_auth)):
+    provider = main.get_active_erp_provider()
+    products = await provider.list_products()
+    return {"provider": provider.name, "products": products[:limit]}
 
 
 @router.get("/suppliers")
-async def list_odoo_suppliers(limit: int = 20, _auth: dict = Depends(main.require_auth)):
-    odoo = main.get_odoo()
-    suppliers = await odoo.search_read(
-        "res.partner",
-        [["supplier_rank", ">", 0]],
-        ["id", "name", "phone", "email", "supplier_rank"],
-        limit=limit,
-    )
-    return {"suppliers": suppliers}
+async def list_erp_suppliers(limit: int = 20, _auth: dict = Depends(main.require_auth)):
+    provider = main.get_active_erp_provider()
+    suppliers = await provider.list_suppliers()
+    return {"provider": provider.name, "suppliers": suppliers[:limit]}

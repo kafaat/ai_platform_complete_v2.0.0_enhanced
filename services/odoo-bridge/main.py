@@ -24,7 +24,7 @@ from typing import Any
 
 import asyncpg
 import httpx
-from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from jose import JWTError as _JE
 from jose import jwt as _jwt
 from pydantic import BaseModel, Field
@@ -1001,155 +1001,13 @@ class OdooConfigResponse(BaseModel):
 
 
 # ══════════════════════════════════════════════════════════════
-# Endpoints
+# تسجيل الراوترات المفكَّكة (نمط تفكيك raster/auth — محفوظ السلوك)
+# يُستدعى في نهاية الملفّ بعد تعريف app وكلّ المساعِدات/النماذج/مزوّد ERP كي
+# تُحلّ وحدات routers/ رموزها عبر main.X بلا استيراد دائريّ.
 # ══════════════════════════════════════════════════════════════
-@app.get("/healthz")
-@app.get("/health")
-async def health():
-    provider = get_active_erp_provider()
-    return {
-        "status": "alive",
-        "erp_provider": _selected_erp_provider(),
-        "active_provider": provider.name,
-        "erp_enabled": provider.name != "none",
-        "sync_interval_sec": SYNC_INTERVAL_SEC,
-    }
+from router_registry import register_routers  # noqa: E402
 
-
-@app.get("/erp/provider")
-async def erp_provider_status(_auth: dict = Depends(require_auth)):
-    """يكشف مزوّد ERP النشط (مفتاح التبديل) وحالته.
-
-    ERP_PROVIDER = odoo | erpnext | none — يحدّد المزوّد دون تغيير الكود.
-    """
-    selected = _selected_erp_provider()
-    try:
-        provider = get_active_erp_provider()
-        hp = await provider.health()
-    except Exception as e:  # noqa: BLE001 — لا نُسرّب تفاصيل اتصال ERP/URL/اعتمادات
-        logger.debug("ERP provider health failed: %s", type(e).__name__)
-        return {"selected": selected, "status": "error", "error": "provider_unavailable"}
-    return {"selected": selected, "active_provider": provider.name, "health": hp}
-
-
-@app.get("/config")
-async def get_config(_auth: dict = Depends(require_auth)):
-    provider = get_active_erp_provider()
-    connected = False
-    try:
-        connected = await provider.authenticate()
-    except Exception as e:  # noqa: BLE001
-        logger.debug("ERP config check failed: %s", type(e).__name__)
-    # Generic and non-secret. Historic Odoo URL/UID are deliberately not exposed.
-    return {
-        "provider": _selected_erp_provider(),
-        "active_provider": provider.name,
-        "enabled": provider.name != "none",
-        "connected": connected,
-    }
-
-
-@app.post("/sync")
-async def trigger_sync(
-    req: SyncRequest,
-    background_tasks: BackgroundTasks,
-    _auth: dict = Depends(require_auth),
-):
-    """Trigger manual sync — يتطلّب توكناً صالحاً (كان مكشوفاً).
-
-    الأمان: المزامنة تكتب لـERP — تتطلّب مصادقة (نفس require_auth المطبَّقة
-    على نقاط القراءة).
-    """
-    if req.entity == "all" or req.entity == "products":
-        background_tasks.add_task(sync_products)
-    if req.entity == "all" or req.entity == "suppliers":
-        background_tasks.add_task(sync_suppliers)
-    if req.entity == "all" or req.entity == "warehouses":
-        background_tasks.add_task(sync_warehouses)
-    if req.entity == "all" or req.entity == "procurement":
-        if get_active_erp_provider().name == "odoo":
-            background_tasks.add_task(sync_procurement_orders_to_odoo)
-        elif req.entity == "procurement":
-            raise HTTPException(409, "procurement_sync_requires_odoo_provider")
-    if req.entity == "all" or req.entity == "costs":
-        background_tasks.add_task(sync_field_costs_to_odoo)
-    return {"status": "queued", "entity": req.entity, "direction": req.direction}
-
-
-@app.post("/webhook/odoo")
-async def odoo_webhook(payload: WebhookPayload, x_webhook_secret: str = Header(None)):
-    """Receive real-time push from Odoo — يتطلّب سرّ webhook (كان مكشوفاً)."""
-    # الأمان: webhook مالي/ERP — تحقّق من السرّ المشترك (منع حقن خارجي)
-    if not WEBHOOK_SECRET:
-        raise HTTPException(503, "WEBHOOK_SECRET غير مضبوط — webhook معطّل بأمان")
-    # مقارنة ثابتة الزمن (منع هجوم التوقيت على السرّ)
-    import hmac
-
-    if not x_webhook_secret or not hmac.compare_digest(x_webhook_secret, WEBHOOK_SECRET):
-        raise HTTPException(401, "سرّ webhook غير صالح")
-    if get_active_erp_provider().name != "odoo":
-        raise HTTPException(409, "odoo_webhook_requires_odoo_provider")
-    logger.info(f"Odoo webhook: {payload.model}:{payload.record_id} event={payload.event}")
-
-    # Route to appropriate handler
-    if payload.model == "product.product":
-        asyncio.create_task(sync_products())
-    elif payload.model == "res.partner":
-        asyncio.create_task(sync_suppliers())
-    elif payload.model == "purchase.order":
-        # Odoo PO updated → اسحب الحالة وحدّث procurement_orders + سجلّ مزامنة وارد.
-        # record_id = معرّف purchase.order في Odoo (راجع docs/ODOO_INTEGRATION.md).
-        asyncio.create_task(sync_purchase_order_inbound(payload.record_id))
-
-    return {"received": True, "model": payload.model}
-
-
-@app.get("/logs")
-async def get_logs(limit: int = 50, entity: str | None = None, _auth: dict = Depends(require_auth)):
-    pool = await get_pool()
-    if not pool:
-        return {"logs": []}
-    async with pool.acquire() as conn:
-        if entity:
-            rows = await conn.fetch(
-                "SELECT * FROM odoo_sync_log WHERE entity=$1 ORDER BY created_at DESC LIMIT $2",
-                entity,
-                limit,
-            )
-        else:
-            rows = await conn.fetch(
-                "SELECT * FROM odoo_sync_log ORDER BY created_at DESC LIMIT $1", limit
-            )
-    return {"logs": [dict(r) for r in rows]}
-
-
-@app.get("/products")
-async def list_erp_products(limit: int = 20, _auth: dict = Depends(require_auth)):
-    provider = get_active_erp_provider()
-    products = await provider.list_products()
-    return {"provider": provider.name, "products": products[:limit]}
-
-
-@app.get("/suppliers")
-async def list_erp_suppliers(limit: int = 20, _auth: dict = Depends(require_auth)):
-    provider = get_active_erp_provider()
-    suppliers = await provider.list_suppliers()
-    return {"provider": provider.name, "suppliers": suppliers[:limit]}
-
-
-@app.get("/readyz")
-async def readyz():
-    # جاهزيّة حقيقيّة: حين تُضبط DATABASE_URL يجب أن يكون pool القاعدة حيّاً
-    # (مزامنة ERP/الجسر تعتمد عليه). نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503 لا «جاهز» كاذب.
-    # حين لا DATABASE_URL مضبوطة (وضع متدرّج معلَن: لا قاعدة محلّيّة) ⇒ جاهز بصدق.
-    if _pool is not None:
-        try:
-            async with _pool.acquire() as conn:
-                await conn.fetchval("SELECT 1")
-        except Exception as e:
-            logger.warning(f"readyz: قاعدة البيانات غير جاهزة — {e}")
-            raise HTTPException(503, {"status": "not_ready", "reason": "db"}) from e
-    return {"status": "ready", "version": "9.1.0"}
+register_routers(app)
 
 
 if __name__ == "__main__":
