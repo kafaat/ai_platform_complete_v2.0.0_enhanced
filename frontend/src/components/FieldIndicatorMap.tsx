@@ -54,6 +54,8 @@ export interface FieldIndicatorMapProps {
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). افتراضيّاً off
   // فلا يتأثّر أيّ مستهلك حاليّ (توافق خلفيّ — الزرّ يظهر فقط حين tools=true).
   tools?: boolean;
+  // مقطع مسار البلاطة: 'tiles' (COG محلّي) أو 'cdse-tiles' (Sentinel Hub حيّ)
+  tileSegment?: string;
 }
 
 // ── أدوات القياس (overlay) ──────────────────────────────────────────
@@ -205,10 +207,10 @@ function MeasureTools() {
 }
 
 // رابط قالب بلاطات المؤشر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet.
-function indicatorTileUrl(fieldId: string, index: string, date: string): string {
+function indicatorTileUrl(fieldId: string, index: string, date: string, segment = 'tiles'): string {
   const qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
   // eslint-disable-next-line no-template-curly-in-string
-  return `${RASTER}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
+  return `${RASTER}/v1/fields/${fieldId}/${segment}/{z}/{x}/{y}.png?${qs}`;
 }
 
 // مكوّن داخلي: يضبط إطار الخريطة على الحدود المتاحة (مضلع → TileJSON → fallback)
@@ -250,19 +252,22 @@ export default function FieldIndicatorMap({
   initialOpacity = 0.75,
   height = 420,
   tools = false,
+  tileSegment = 'tiles',
 }: FieldIndicatorMapProps) {
   const [opacity, setOpacity] = useState(initialOpacity);
   const [tileBounds, setTileBounds] = useState<[number, number, number, number] | undefined>();
 
   const baseUrl = basemap === 'satellite' ? BASEMAP_SAT : BASEMAP_LIGHT;
-  const tilesUrl = indicatorTileUrl(fieldId, index, date);
+  const tilesUrl = indicatorTileUrl(fieldId, index, date, tileSegment);
+  // TileJSON endpoint: cdse-tiles → cdse-tilejson ، tiles → tilejson
+  const tilejsonPath = tileSegment === 'cdse-tiles' ? 'cdse-tilejson' : 'tilejson';
 
   // جلب TileJSON لضبط الإطار حين لا يتوفّر مضلع (اختياري — الفشل غير حرج)
   useEffect(() => {
     let cancelled = false;
     setTileBounds(undefined);
     rasterApi
-      .get<TileJSON>(`/v1/fields/${fieldId}/tilejson`, { params: { index, date } })
+      .get<TileJSON>(`/v1/fields/${fieldId}/${tilejsonPath}`, { params: { index, date } })
       .then((r) => {
         if (cancelled) return;
         const b = r.data?.bounds;
@@ -272,7 +277,7 @@ export default function FieldIndicatorMap({
       })
       .catch(() => { /* TileJSON غير متاح — نعتمد على المضلع/الإطار الاحتياطي */ });
     return () => { cancelled = true; };
-  }, [fieldId, index, date]);
+  }, [fieldId, index, date, tilejsonPath]);
 
   // مركز افتراضي قبل ضبط fitBounds
   const center: [number, number] = fieldPolygon && fieldPolygon.length

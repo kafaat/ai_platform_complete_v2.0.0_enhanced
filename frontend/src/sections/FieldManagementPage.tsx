@@ -10,12 +10,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
   Plus, Search, Pencil, Trash2, X, Check, Leaf,
-  Wheat, Ruler, ChevronDown, Sprout, Calendar, Map, ClipboardList,
+  Wheat, Ruler, ChevronDown, Sprout, Calendar, Map, ClipboardList, Satellite,
 } from 'lucide-react';
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import AddSeasonWithStages from '../components/AddSeasonWithStages';
 import FieldDetailPanel from '../components/FieldDetailPanel';
 import FieldSetupWizard from '../components/fieldsetup/FieldSetupWizard';
+import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import { kongApi, asApiError } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useFields, useSimulateSeason } from '../hooks/useApi';
@@ -100,6 +101,9 @@ export default function FieldManagementPage() {
   const [editField,     setEditField]     = useState<Field|null>(null);
   // الموسم المُنشأ حديثاً (لعرض إجراء «تشغيل المحاكاة») — v39
   const [simSeason,     setSimSeason]     = useState<{ seasonId: string; crops: string[] }|null>(null);
+  // صور الأقمار الصناعية CDSE
+  const [showSatellite, setShowSatellite] = useState<Field|null>(null);
+  const [satelliteIdx,  setSatelliteIdx]  = useState('ndvi');
 
   // بذر الحالة المحلّيّة من البيانات الحيّة مرّة واحدة (CRUD تفاؤليّ بعدها لا يُداس
   // عند إعادة الجلب). كان يُبذَر من INITIAL مُلفّقة — أُزيلت.
@@ -261,6 +265,30 @@ export default function FieldManagementPage() {
     toastStore.add('success', '✅ تم تعديل الحقل', data.name);
   };
 
+  // ── المؤشّرات المدعومة في CDSE (Sentinel Hub) ──────────────────
+  const CDSE_INDICES: { key: string; label: string }[] = [
+    { key: 'ndvi',     label: 'NDVI — النباتات'     },
+    { key: 'evi',      label: 'EVI — نبات معزّز'    },
+    { key: 'ndwi',     label: 'NDWI — الماء'        },
+    { key: 'ndmi',     label: 'NDMI — الرطوبة'      },
+    { key: 'ndre',     label: 'NDRE — حافّة حمراء'  },
+    { key: 'msavi',    label: 'MSAVI — تربة'        },
+    { key: 'gndvi',    label: 'GNDVI — كلوروفيل'   },
+    { key: 'ndsi',     label: 'NDSI — الملوحة'      },
+  ];
+
+  // يحوّل geometry GeoJSON (coordinates [lon,lat]) إلى [lat,lon][] لـLeaflet
+  function geomToLatLng(geom: any): [number, number][] | undefined {
+    try {
+      let coords: [number, number][] | undefined;
+      if (geom?.type === 'Feature') geom = geom.geometry;
+      if (geom?.type === 'Polygon') coords = geom.coordinates[0];
+      else if (geom?.type === 'MultiPolygon') coords = geom.coordinates[0][0];
+      if (!coords || coords.length < 3) return undefined;
+      return coords.map(([lng, lat]: [number, number]) => [lat, lng]);
+    } catch { return undefined; }
+  }
+
   // ── Field card ─────────────────────────────────────────────────
   const FieldCard = ({ f }: { f: Field; key?: React.Key }) => {
     const sc = healthConfig(f.health);
@@ -299,11 +327,16 @@ export default function FieldManagementPage() {
           ))}
         </div>
         {/* تفاصيل الحقل — متاح للجميع (قراءة؛ التحرير داخل اللوحة محكوم بالدور) */}
-        <div className="px-4 pb-2">
+        <div className="px-4 pb-2 space-y-1.5">
           <button onClick={() => setShowDetail(f)}
             className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-sky-400 hover:text-sky-300 border"
             style={{ borderColor:'#0ea5e944', background:'#0c2a3a22' }}>
             <ClipboardList className="w-3 h-3" /> تفاصيل
+          </button>
+          <button onClick={() => { setSatelliteIdx('ndvi'); setShowSatellite(f); }}
+            className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs text-violet-400 hover:text-violet-300 border"
+            style={{ borderColor:'#7c3aed44', background:'#1e1b4b22' }}>
+            <Satellite className="w-3 h-3" /> صور الأقمار (CDSE)
           </button>
         </div>
         {/* Actions — محكومة بالدور (المُشاهِد قراءة فقط) */}
@@ -513,6 +546,75 @@ export default function FieldManagementPage() {
           crops={simSeason.crops}
           onClose={() => setSimSeason(null)}
         />
+      )}
+
+      {/* ── مودال صور الأقمار CDSE ─────────────────────────────── */}
+      {showSatellite && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
+          style={{ background: 'rgba(0,0,0,0.72)' }}>
+          <div className="w-full max-w-3xl rounded-2xl border mt-8 mb-8"
+            style={{ background: '#0f172a', borderColor: '#334155' }}>
+            {/* رأس المودال */}
+            <div className="flex items-center justify-between px-5 py-4 border-b"
+              style={{ borderColor: '#334155' }}>
+              <div className="flex items-center gap-2">
+                <Satellite className="w-4 h-4 text-violet-400" />
+                <span className="font-semibold text-slate-100 text-sm">
+                  صور الأقمار — {showSatellite.name}
+                </span>
+                <span className="text-[10px] text-slate-500 mr-2">
+                  {showSatellite.area_ha} هـ · Sentinel-2 L2A · CDSE
+                </span>
+              </div>
+              <button onClick={() => setShowSatellite(null)}
+                className="text-slate-400 hover:text-slate-200 p-1">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* شريط اختيار المؤشّر */}
+            <div className="flex items-center gap-3 px-5 py-3 border-b"
+              style={{ borderColor: '#1e293b' }}>
+              <span className="text-xs text-slate-400 whitespace-nowrap">المؤشّر:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {CDSE_INDICES.map(({ key, label }) => (
+                  <button key={key} onClick={() => setSatelliteIdx(key)}
+                    className="px-2.5 py-1 rounded-lg text-xs transition-colors"
+                    style={{
+                      background: satelliteIdx === key ? '#4c1d95' : '#1e293b',
+                      color: satelliteIdx === key ? '#c4b5fd' : '#94a3b8',
+                      border: `1px solid ${satelliteIdx === key ? '#7c3aed' : '#334155'}`,
+                    }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* الخريطة */}
+            <div className="p-4">
+              <FieldIndicatorMap
+                fieldId={showSatellite.field_id}
+                index={satelliteIdx}
+                date={new Date().toISOString().split('T')[0]}
+                tileSegment="cdse-tiles"
+                fieldPolygon={geomToLatLng(showSatellite.geometry)}
+                fallbackBounds={
+                  showSatellite.lon && showSatellite.lat
+                    ? [showSatellite.lon - 0.01, showSatellite.lat - 0.01,
+                       showSatellite.lon + 0.01, showSatellite.lat + 0.01]
+                    : undefined
+                }
+                basemap="satellite"
+                initialOpacity={0.85}
+                height={420}
+              />
+              <p className="text-[11px] text-slate-500 mt-2 text-center">
+                الصور تُجلَب مباشرةً من Sentinel Hub (CDSE) · تاريخ اليوم · الفترة: يناير–اليوم · أقلّ غيوماً
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
