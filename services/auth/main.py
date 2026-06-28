@@ -14,7 +14,6 @@ SAHOOL v9.1 — services/auth/main.py (المُحسَّن)
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
 import secrets
@@ -63,15 +62,8 @@ REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))  # 30 days
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/0")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-SMTP_HOST = os.getenv("SMTP_HOST", "")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASS = os.getenv("SMTP_PASSWORD", "")
-SMTP_FROM = os.getenv("SMTP_FROM", "noreply@sahool.ye")
-# مزوّد SMS عامّ عبر HTTP (Twilio/مزوّد محلّيّ) — يُفعَّل عند ضبط العنوان والمفتاح.
-SMS_PROVIDER_URL = os.getenv("SMS_PROVIDER_URL", "")
-SMS_API_KEY = os.getenv("SMS_API_KEY", "")
-SMS_FROM = os.getenv("SMS_FROM", "SAHOOL")
+# ملاحظة: ضبط SMTP_*/SMS_* انتقل إلى mailer.py مع مُرسِلات الإشعارات (مصدر واحد،
+# بلا تكرار/انحراف). main.py لم يعد يستعملها مباشرةً بعد استخراج الدوالّ.
 BCRYPT_ROUNDS = 12
 MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
@@ -138,6 +130,18 @@ def _admin_stepup_required() -> bool:
     enforce = os.getenv("ENFORCE_ADMIN_STEPUP_MFA", "false").strip().lower() == "true"
     return enforce or _is_production()
 
+
+# ── مُرسِلات الإشعارات (بريد SMTP / SMS عبر HTTP) — استُخرِجت إلى mailer.py كي
+# تُفصَل منطق التسليم (I/O) عن المسارات وحالة الخدمة. نعيد تصديرها هنا كما هي كي
+# تبقى متاحة كـmain.<name> (سلوك محفوظ؛ نفس مفاتيح البيئة والتوقيعات). ──
+from mailer import (  # noqa: E402,F401  (إعادة تصدير: تُستعمل في المسارات/الاختبارات)
+    _is_valid_phone,
+    _post_sms_blocking,
+    _send_otp_email,
+    _send_otp_sms,
+    send_otp,
+    send_reset_email,
+)
 
 # ── OTP (تأكيد البريد/الهاتف) — الدوالّ/الثوابت النقيّة في otp.py (معزولة عن
 # fastapi كي تُختبَر وحدةً في CI دون تثبيت fastapi). نعيد تصديرها هنا. ──
@@ -585,149 +589,10 @@ async def audit_log(
         logger.error("فشل كتابة سجلّ التدقيق (غير قاتل) action=%s: %s", action, type(e).__name__)
 
 
-# ── Password Reset Helpers ─────────────────────────────────────
-async def send_reset_email(email: str, token: str) -> bool:
-    """Send password reset email via SMTP."""
-    if not SMTP_HOST or not SMTP_USER:
-        logger.warning("SMTP not configured — cannot send reset email")
-        return False
-    try:
-        from email.mime.text import MIMEText
-
-        import aiosmtplib
-
-        reset_url = (
-            f"{os.getenv('FRONTEND_URL', 'https://app.sahool.ye')}/reset-password?token={token}"
-        )
-        body = f"""
-مرحباً،
-
-طلبت إعادة تعيين كلمة المرور لحساب SAHOOL المرتبط بـ {email}.
-
-رابط إعادة التعيين (صالح 30 دقيقة):
-{reset_url}
-
-إذا لم تطلب ذلك، تجاهل هذا البريد.
-
-فريق SAHOOL — منصة الزراعة الذكية اليمنية
-"""
-        msg = MIMEText(body, "plain", "utf-8")
-        msg["Subject"] = "SAHOOL — إعادة تعيين كلمة المرور"
-        msg["From"] = SMTP_FROM
-        msg["To"] = email
-
-        await aiosmtplib.send(
-            msg,
-            hostname=SMTP_HOST,
-            port=SMTP_PORT,
-            username=SMTP_USER,
-            password=SMTP_PASS,
-            start_tls=True,
-        )
-        logger.info(f"Reset email sent to {email}")
-        return True
-    except Exception as e:
-        logger.error(f"Email send failed: {e}")
-        return False
-
-
-# ── OTP Verification Helpers (تأكيد البريد/الهاتف) ─────────────
-# دوالّ نقيّة (قابلة للاختبار دون Redis/شبكة) لتوليد الرمز وتشكيله والمقارنة.
-
-
-async def _send_otp_email(destination: str, code: str) -> bool:
-    """يُرسِل OTP بريداً عبر SMTP (نفس نمط send_reset_email)."""
-    if not SMTP_HOST or not SMTP_USER:
-        logger.warning("OTP بريد: SMTP غير مضبوط — لم يُرسَل (destination=%s)", destination)
-        return False
-    try:
-        from email.mime.text import MIMEText
-
-        import aiosmtplib
-
-        body = (
-            f"رمز تحقّق SAHOOL هو: {code}\n\n"
-            f"صالح لمدّة {OTP_TTL_SECONDS // 60} دقيقة. لا تشاركه مع أحد.\n\n"
-            "فريق SAHOOL — منصّة الزراعة الذكيّة اليمنيّة"
-        )
-        msg = MIMEText(body, "plain", "utf-8")
-        msg["Subject"] = "SAHOOL — رمز التحقّق"
-        msg["From"] = SMTP_FROM
-        msg["To"] = destination
-        await aiosmtplib.send(
-            msg,
-            hostname=SMTP_HOST,
-            port=SMTP_PORT,
-            username=SMTP_USER,
-            password=SMTP_PASS,
-            start_tls=True,
-        )
-        logger.info("OTP بريد أُرسِل إلى %s", destination)
-        return True
-    except Exception as e:
-        logger.error("فشل إرسال OTP بريداً: %s", e)
-        return False
-
-
-def _post_sms_blocking(phone: str, message: str) -> bool:
-    """POST متزامن لمزوّد SMS عامّ (urllib — بلا تبعيّة جديدة)."""
-    import json
-    import urllib.error
-    import urllib.request
-
-    # المفتاح في ترويسة Authorization فقط — لا نُكرّره في الجسم (يقلّل سطح التعرّض).
-    payload = json.dumps({"to": phone, "from": SMS_FROM, "message": message}).encode()
-    req = urllib.request.Request(
-        SMS_PROVIDER_URL,
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {SMS_API_KEY}",
-        },
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return 200 <= resp.status < 300
-    except urllib.error.URLError as e:
-        logger.error("فشل إرسال OTP عبر SMS: %s", e)
-        return False
-
-
-def _is_valid_phone(destination: str) -> bool:
-    """رقم هاتف صالح للإرسال؟ (أرقام دوليّة E.164 مبسّطة) — يستبعد النوائب مثل
-    'user:{id}' المستعمَلة قبل حفظ أرقام الهواتف فعليّاً."""
-    d = destination.strip().lstrip("+")
-    return d.isdigit() and 7 <= len(d) <= 15
-
-
-async def _send_otp_sms(destination: str, code: str) -> bool:
-    """يُرسِل OTP عبر مزوّد SMS HTTP — تشغيل الطلب الحاجب في خيط."""
-    if not SMS_PROVIDER_URL or not SMS_API_KEY:
-        logger.warning("OTP هاتف: مزوّد SMS غير مضبوط — لم يُرسَل (destination=%s)", destination)
-        return False
-    if not _is_valid_phone(destination):
-        # وجهة نائبة (لم يُحفَظ رقم هاتف بعد) — لا نُرسِل لرقم غير حقيقيّ (إهدار/أخطاء).
-        logger.warning("OTP هاتف: وجهة غير صالحة (نائبة؟) — لم يُرسَل")
-        return False
-    message = f"رمز تحقّق SAHOOL: {code} (صالح {OTP_TTL_SECONDS // 60} دقيقة)"
-    return await asyncio.to_thread(_post_sms_blocking, destination, message)
-
-
-async def send_otp(channel: str, destination: str, code: str) -> bool:
-    """يُرسِل رمز التحقّق عبر القناة المطلوبة (بريد SMTP أو SMS عبر HTTP).
-
-    حقيقيّ عند ضبط الاعتماد: البريد عبر SMTP_*، والهاتف عبر SMS_PROVIDER_URL/SMS_API_KEY.
-    تدهور رشيق: إن لم يُضبط مزوّد القناة نُسجّل تحذيراً (دون الرمز) ونُعيد False —
-    يبقى الرمز في Redis (فيعمل التطوير) لكن دون إعلان نجاح زائف في الإنتاج.
-    التوقيع ثابت فلا يتغيّر المنادون. أمان: لا نُسجّل الرمز نفسه أبداً.
-    """
-    if channel == "email":
-        return await _send_otp_email(destination, code)
-    if channel == "phone":
-        return await _send_otp_sms(destination, code)
-    logger.warning("OTP: قناة غير مدعومة channel=%s", channel)
-    return False
+# ── Password Reset / OTP delivery helpers ──────────────────────
+# مُرسِلات البريد/الـSMS (send_reset_email, _send_otp_email, _post_sms_blocking,
+# _is_valid_phone, _send_otp_sms, send_otp) استُخرِجت إلى mailer.py وأُعيد تصديرها
+# أعلى الملفّ. منطق حدّ المعدّل التالي يبقى هنا لاعتماده على حالة Redis (_redis).
 
 
 async def check_otp_request_rate(user_id: int, channel: str) -> None:
