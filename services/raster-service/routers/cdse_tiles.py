@@ -104,7 +104,13 @@ async def field_cdse_tile(
     if internal not in _cdse.INDEX_EXPR:
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
 
-    today = datetime.now(UTC).strftime("%Y-%m-%d") if date in ("latest", "today") else date
+    # تطبيع التاريخ: فارغ/"latest"/"today" ⇒ أحدث مشهد (اليوم). الواجهة قد تُرسل
+    # ``date=""`` فارغاً؛ بدون التطبيع يصير ``date_from="-01-01T..."`` تاريخاً فاسداً.
+    today = (
+        datetime.now(UTC).strftime("%Y-%m-%d")
+        if (not date or date in ("latest", "today"))
+        else date
+    )
     date_from = f"{today[:4]}-01-01T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
     # نُميّز المخبّأ بحسب وجود القصّ (geom): COG المقصوص على المضلّع يختلف عن
@@ -225,8 +231,10 @@ async def field_cdse_tilejson(
     else:
         field_geom = await _db.fetch_field_geometry(field_id)
         bounds = main._bbox_from_geom(field_geom) or [-180.0, -85.0, 180.0, 85.0]
-    today = datetime.now(UTC).strftime("%Y-%m-%d") if date in ("latest", "today") else date
-    qs = f"index={index}&date={today}"
+    # حين لا يُطلَب تاريخ محدَّد (فارغ/"latest"/"today") نُسقط ``date`` من رابط
+    # البلاطة كي يبقى الرابط بلا تاريخ ويُحلّ «الأحدث» في كلّ طلب؛ وإلّا نُثبّته.
+    specific_date = date if (date and date not in ("latest", "today")) else None
+    qs = f"index={index}" + (f"&date={specific_date}" if specific_date else "")
     return {
         "tilejson": "2.2.0",
         "name": f"cdse-{field_id}-{index}",
