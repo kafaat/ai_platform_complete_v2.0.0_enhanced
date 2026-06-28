@@ -217,3 +217,26 @@ async def field_owner_tenant(field_id: str) -> str | None:
         raise OwnerLookupUnavailable(str(e)) from e
     finally:
         await conn.close()
+
+
+async def fetch_field_geometry(field_id: str) -> dict | None:
+    """يجلب geometry (JSONB) للحقل من جدول fields. يُرجع None إن تعذّر أو الحقل غير موجود."""
+    conn = await _connect()
+    if conn is None:
+        return None
+    try:
+        row = await conn.fetchrow(
+            "SELECT geometry FROM fields WHERE field_id = $1", field_id
+        )
+        if not row or row["geometry"] is None:
+            return None
+        geom = row["geometry"]
+        if isinstance(geom, str):
+            import json
+            geom = json.loads(geom)
+        return geom
+    except Exception as e:  # noqa: BLE001
+        logger.warning("fetch_field_geometry failed (%s): %s", field_id, e)
+        return None
+    finally:
+        await conn.close()
