@@ -27,7 +27,8 @@ _VALID = {inspector.PASS, inspector.WARN, inspector.FAIL, inspector.SKIP}
 
 def test_run_returns_structured_results():
     results, overall = inspector.run()
-    assert len(results) == 5
+    # عدد النتائج = عدد الفحوصات المُسجَّلة (لا رقم مُصلَّب — يصمد عند إضافة فحص).
+    assert len(results) == len(inspector.CHECKS)
     assert overall in _VALID
     for r in results:
         assert r.status in _VALID
