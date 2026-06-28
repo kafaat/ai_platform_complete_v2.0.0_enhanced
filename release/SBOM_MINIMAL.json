@@ -8435,6 +8435,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "87c4e8f6fbc5f967e5aa82883051dac32f11eea71810bc3891adeed972720c83"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_scouting.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "12f58299ffeeb513e06a297bb466226f31e97c893aa1677e3e494e9a3a0d7d8a"
         }
       ],
@@ -8485,7 +8495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47daaa26dd395a517e3343f7edc56d1a33c40c0aee122896d3c6204bb44fb574"
+          "content": "b7f98c1ffe6eaeb634d39491b9b0c044aa412c3ff4448d12c254553fdcb8d421"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
