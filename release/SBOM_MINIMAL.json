@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a055af52388f67fb7fc2c713395717c4a07b69e95f398b6add71066a7f62456e"
+          "content": "3bcf40e28768735458cd545ed97c3d430081665076cb8241142e47fd885229ed"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -539,6 +539,16 @@
         }
       ],
       "name": "frontend/src/components/ToastContainer.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "682377e4ff5090a4b36b6c6e52ecae57db38e4906b012d5f3b9194de0f854cb6"
+        }
+      ],
+      "name": "frontend/src/components/addField/geometry.ts",
       "type": "file"
     },
     {
