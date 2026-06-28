@@ -4995,6 +4995,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e0d32cb071f1617c698956a3e7dac0d30bbdf2ab9516df28895b6e2ec800ca49"
+        }
+      ],
+      "name": "services/auth/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f247cc0ef4c505e6dfe121c3a763a0c1fc870e120bf7e8dd6a2e761a1f7d6b8b"
         }
       ],
@@ -5219,6 +5229,16 @@
         }
       ],
       "name": "services/guardrails-engine/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3911f0dab5d6435435e030d2973a18e1b8d686ae4ff199145912c80264847ef4"
+        }
+      ],
+      "name": "services/guardrails-engine/requirements.lock",
       "type": "file"
     },
     {
@@ -7509,6 +7529,16 @@
         }
       ],
       "name": "services/sahool-platform/api/reports.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c160fa75917dec5fad780deaf77e8b02f7bc890f485065c7c03d649bc40f112"
+        }
+      ],
+      "name": "services/sahool-platform/api/requirements.lock",
       "type": "file"
     },
     {
