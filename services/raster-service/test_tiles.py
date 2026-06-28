@@ -186,5 +186,84 @@ def test_dynamic_tiles():
     print("\nALL TILE ASSERTIONS PASSED")
 
 
+def test_render_tile_honors_internal_mask_when_pixels_are_finite_zero():
+    """القناع الداخلي يجب أن يُخفي بكسلات finite (مثل 0.0) خارج حدود القصّ/dataMask.
+
+    قبل الإصلاح: renderer كان يعتمد على nodata فقط → بكسلات خارج الحقل بقيمة 0.0
+    تُعتبر صالحة → colorize يعطيها alpha=255 → شرائط داكنة فوق الخريطة.
+    بعد الإصلاح: dataset_mask() يُسقَط إلى شبكة البلاطة → mask=0 → NaN → alpha=0.
+    """
+    import tempfile
+
+    import rasterio
+
+    # بنِ COG بنطاقين من البكسلات:
+    #   نصف علوي: قيم NDVI صالحة (0.7) مع mask=255
+    #   نصف سفلي: قيم finite (0.0) لكن mask=0 (خارج dataMask/القصّ)
+    tmpdir = tempfile.mkdtemp(prefix="mask_test_")
+    cog_path = os.path.join(tmpdir, "masked_cog.tif")
+
+    size = 100
+    data = np.zeros((size, size), dtype="float32")
+    data[: size // 2, :] = 0.7  # نصف علوي: NDVI صالح
+    # النصف السفلي يبقى 0.0 (finite لكن خارج القناع)
+
+    # قناع: النصف العلوي صالح (255)، السفلي غير صالح (0)
+    mask = np.zeros((size, size), dtype="uint8")
+    mask[: size // 2, :] = 255
+
+    transform = from_origin(ORIGIN_X, ORIGIN_Y, RES, RES)
+    profile = {
+        "driver": "GTiff",
+        "dtype": "float32",
+        "count": 1,
+        "height": size,
+        "width": size,
+        "crs": UTM,
+        "transform": transform,
+        # nodata مضبوط على قيمة مختلفة عن 0.0 عمداً — لإثبات أنّ الإصلاح لا يعتمد على nodata
+        "nodata": -9999.0,
+    }
+    with rasterio.open(cog_path, "w", **profile) as dst:
+        dst.write(data, 1)
+        dst.write_mask(mask)
+
+    # احسب بلاطة تغطّي مجال الـCOG كاملاً
+    from rasterio.warp import transform_bounds
+
+    bounds_utm = (
+        ORIGIN_X,
+        ORIGIN_Y - size * RES,
+        ORIGIN_X + size * RES,
+        ORIGIN_Y,
+    )
+    bounds_4326 = transform_bounds(UTM, "EPSG:4326", *bounds_utm)
+    clon = (bounds_4326[0] + bounds_4326[2]) / 2.0
+    clat = (bounds_4326[1] + bounds_4326[3]) / 2.0
+
+    z = 14
+    tx, ty = tile_render._lonlat_to_tile(clon, clat, z)
+    png = tile_render.render_tile_png(cog_path, z, tx, ty, "ndvi")
+    assert png is not None, "render_tile_png أرجع None — خطأ في التصيير"
+
+    rgba = _decode_png_rgba(png)
+    alpha = rgba[..., 3]
+
+    # يجب أن يكون هناك بكسلات شفّافة (من النصف السفلي المقنّع)
+    n_transparent = int((alpha == 0).sum())
+    assert n_transparent > 0, (
+        "متوقّع بكسلات شفّافة (mask=0) لكنّ كلّ alpha>0 — القناع الداخلي غير مطبَّق"
+    )
+
+    # يجب أن يكون هناك بكسلات معتمة (من النصف العلوي الصالح)
+    n_opaque = int((alpha > 0).sum())
+    assert n_opaque > 0, "متوقّع بكسلات معتمة (NDVI=0.7) لكن لا شيء — خطأ في التصيير"
+
+    print(
+        f"test_internal_mask: opaque={n_opaque} transparent={n_transparent} "
+        f"(total={alpha.size}) — القناع الداخلي مطبَّق صحيحاً"
+    )
+
+
 if __name__ == "__main__":
     test_dynamic_tiles()

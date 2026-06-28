@@ -203,6 +203,9 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
                 isinstance(src_nodata, float) and math.isnan(src_nodata)
             ):
                 src_arr = np.where(src_arr == src_nodata, np.nan, src_arr)
+            # القناع الداخلي (GDAL dataset_mask): 0=غير صالح، 255=صالح.
+            # يشمل dataMask من CDSE والمناطق المقصوصة — لا يُعبَّر عنها بـnodata دائماً.
+            src_mask = src.dataset_mask().astype("uint8")
             src_crs = src.crs
             src_transform = src.transform
 
@@ -228,6 +231,23 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
             src_nodata=np.nan,
             dst_nodata=np.nan,
         )
+
+        # أعِد إسقاط القناع الداخلي إلى شبكة البلاطة ثمّ طبّقه:
+        # بكسلات mask=0 (خارج dataMask أو خارج حدود القصّ) → NaN → alpha=0.
+        # يحلّ حالة "قيمة finite مثل 0.0 خارج الحقل" التي كانت تُلوَّن كبيانات صالحة.
+        mask_dst = np.zeros((TILE_SIZE, TILE_SIZE), dtype="uint8")
+        reproject(
+            source=src_mask,
+            destination=mask_dst,
+            src_transform=src_transform,
+            src_crs=src_crs,
+            dst_transform=dst_transform,
+            dst_crs=dst_crs,
+            resampling=Resampling.nearest,
+            src_nodata=0,
+            dst_nodata=0,
+        )
+        dst = np.where(mask_dst > 0, dst, np.nan).astype("float32")
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
         return None
 
