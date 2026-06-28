@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 
 import pytest
+from guardrails_route_source import guardrails_combined_source
 from supervisor_route_source import supervisor_combined_source
 
 pytestmark = [pytest.mark.unit, pytest.mark.security]
@@ -39,6 +40,16 @@ def _supervisor_src() -> str:
     تمسح الوحدتين معاً كي يبقى التأكيد الأمنيّ صحيحاً (لا إضعاف، فقط توسيع النطاق).
     """
     return supervisor_combined_source(ROOT)
+
+
+def _guardrails_src() -> str:
+    """مصدر guardrails-engine المُسلسَل (main.py + routers/*.py) بعد التفكيك المحفوظ-السلوك.
+
+    مُعالِج ``/validate`` (وعليه ``Depends(_require_service_token)``) انتقل إلى
+    ``routers/validation.py`` بينما تبقى دالّة ``_require_service_token`` في ``main.py``؛
+    نمسح الوحدتين معاً كي يبقى تأكيد توكن الخدمة صحيحاً (لا إضعاف، فقط توسيع النطاق).
+    """
+    return guardrails_combined_source(ROOT)
 
 
 # ── (A) لا تجاوز للبوّابة (no recommendation→command bypass) ──
@@ -76,8 +87,12 @@ def test_guardrails_unavailable_is_fail_safe():
 
 # ── (A) الحَوكمة في guardrails-engine محروسة بتوكن خدمة ──
 def test_guardrails_engine_validate_requires_service_token():
-    src = _read("services/guardrails-engine/main.py")
+    src = _guardrails_src()
     assert "_require_service_token" in src, "نقطة /validate في guardrails-engine بلا توكن خدمة"
+    # توكن الخدمة مفروض فعليّاً على مُعالِج /validate (انتقل إلى routers/validation.py).
+    assert (
+        "Depends(main._require_service_token)" in src or "Depends(_require_service_token)" in src
+    ), "مُعالِج /validate لا يفرض توكن الخدمة عبر Depends"
 
 
 # ── (B) ChemicalSafetyTier fail-closed (سلوكيّ) ──

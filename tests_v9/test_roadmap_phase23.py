@@ -3039,8 +3039,17 @@ def test_governance_hardening():
     if "_validate_actions_via_guardrails" in sup and "governance" in sup:
         r.append(("\u2713", "#1 الحَوكمة تغطّي process_query أيضاً (سُدّ الباب الخلفي)"))
     # #2: /validate يفرض توكن خدمة + timeout + header
-    gr = open(os.path.join(base, "services/guardrails-engine/main.py"), encoding="utf-8").read()
-    if "_require_service_token" in gr and "Depends(_require_service_token)" in gr:
+    # بعد تفكيك مسارات guardrails انتقل مُعالِج /validate (وعليه Depends(_require_service_token))
+    # إلى routers/validation.py بينما تبقى دالّة _require_service_token في main.py — نمسح المصدر
+    # المُسلسَل (main.py + routers/*.py) كي يبقى التأكيد الأمنيّ صحيحاً (لا إضعاف، فقط توسيع النطاق).
+    from guardrails_route_source import guardrails_combined_source
+
+    gr = guardrails_combined_source(base)
+    # المُعالِج في routers/ يفرض التوكن عبر Depends(main._require_service_token) (إشارة بـmain.X
+    # بعد التفكيك)؛ نقبل الصيغتين كي يبقى التأكيد صحيحاً بلا إضعاف.
+    if "_require_service_token" in gr and (
+        "Depends(_require_service_token)" in gr or "Depends(main._require_service_token)" in gr
+    ):
         r.append(("\u2713", "#2 /validate يفرض توكن خدمة (فشل-مغلق)"))
     if "X-Agent-Token" in sup and "timeout=10.0" in sup:
         r.append(("\u2713", "#2 supervisor يمرّر X-Agent-Token + timeout صريح"))
