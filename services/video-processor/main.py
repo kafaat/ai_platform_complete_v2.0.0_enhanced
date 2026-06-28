@@ -384,117 +384,14 @@ class CreateStreamRequest(BaseModel):
         return v
 
 
-@app.post("/streams")
-async def create_stream(req: CreateStreamRequest, user: dict = Depends(_get_current_user)):
-    if req.stream_id in STREAMS:
-        raise HTTPException(409, "Stream already exists")
-    if len(STREAMS) >= MAX_CONCURRENT_STREAMS:
-        raise HTTPException(503, "Max concurrent streams reached")
+# ══════════════════════════════════════════════════════════════
+# تسجيل الراوترات (تفكيك main.py إلى routers/ — سلوك محفوظ)
+# يُستدعى في النهاية بعد app وكلّ التبعيّات المشتركة كي تُحلّ الاستيرادات الدائريّة
+# (وحدات routers تستورد رموزاً من main عبر main.X).
+# ══════════════════════════════════════════════════════════════
+from router_registry import register_routers  # noqa: E402
 
-    # عزل المستأجرين: tenant_id يُشتقّ من مطالبة الرمز المُتحقَّق منه — لا يُوثَق به
-    # من جسم الطلب أبداً (مثل raster/soil: الملكيّة تُربَط بالرمز عند الإنشاء).
-    token_tenant = _token_tenant(user)
-    if not token_tenant:
-        # fail-closed: رمز بلا مستأجِر لا يستطيع امتلاك بثّ.
-        raise HTTPException(403, "Token has no tenant_id")
-    body = req.model_dump()
-    body_tenant = str(body.get("tenant_id", "") or "")
-    # رفض tenant_id متعارض في الجسم (لا تجاوز صامت) — وإلّا اربط بمستأجِر الرمز.
-    if body_tenant and body_tenant != "default" and body_tenant != token_tenant:
-        raise HTTPException(403, "tenant_id mismatch: body must not override token tenant")
-    body["tenant_id"] = token_tenant  # الربط الموثوق
-
-    cfg = StreamConfig(**body)
-    state = StreamState(cfg)
-    STREAMS[req.stream_id] = state
-    state.task = asyncio.create_task(process_stream_loop(req.stream_id))
-
-    return {
-        "stream_id": req.stream_id,
-        "status": "starting",
-        "source": cfg.rtsp_url or cfg.http_url or f"usb:{cfg.usb_index}",
-    }
-
-
-@app.delete("/streams/{stream_id}")
-async def stop_stream(stream_id: str, user: dict = Depends(_get_current_user)):
-    state = STREAMS.pop(stream_id, None)
-    if not state:
-        raise HTTPException(404, "Stream not found")
-    state.status = "inactive"
-    if state.task:
-        state.task.cancel()
-    return {"stream_id": stream_id, "status": "stopped"}
-
-
-@app.get("/streams/{stream_id}")
-async def get_stream(stream_id: str, user: dict = Depends(_get_current_user)):
-    state = STREAMS.get(stream_id)
-    if not state:
-        raise HTTPException(404, "Stream not found")
-    # تقييد بالمستأجِر: المنفذ كان بلا مصادقة ويُرجِع rtsp_url (قد يحوي اعتماد كاميرا)
-    _assert_stream_tenant(state, user)
-    return {
-        "stream_id": stream_id,
-        "status": state.status,
-        "frame_count": state.frame_count,
-        "last_detection": state.last_detection,
-        "config": state.config.model_dump(),
-    }
-
-
-@app.get("/streams")
-async def list_streams(user: dict = Depends(_get_current_user)):
-    # تقييد بالمستأجِر: كلّ مستأجِر يرى بثوثه فقط. لا تجاوز admin شامل (أُزيل):
-    # admin المستأجِر محصور في مستأجِره؛ العبور المشروع عبر break-glass فقط.
-    # fail-closed: رمز بلا مستأجِر ⇒ لا شيء (tid فارغ لا يطابق أيّ بثّ مملوك).
-    tid = _token_tenant(user)
-    return {
-        "streams": [
-            {
-                "stream_id": sid,
-                "status": s.status,
-                "frame_count": s.frame_count,
-                "source": s.config.rtsp_url or s.config.http_url or f"usb:{s.config.usb_index}",
-            }
-            for sid, s in STREAMS.items()
-            if tid and str(s.config.tenant_id) == tid
-        ],
-        "max_streams": MAX_CONCURRENT_STREAMS,
-    }
-
-
-@app.post("/streams/{stream_id}/snapshot")
-async def snapshot(stream_id: str, user: dict = Depends(_get_current_user)):
-    state = STREAMS.get(stream_id)
-    if not state or state.last_frame is None:
-        raise HTTPException(404, "No frame available")
-    # تقييد بالمستأجِر: كان بلا مصادقة ويُرجِع لقطة كاميرا حيّة لأيّ طالب
-    _assert_stream_tenant(state, user)
-    import cv2
-
-    success2, buf = cv2.imencode(".jpg", state.last_frame)  # MED-VIDEO-01
-    from fastapi.responses import Response
-
-    return Response(content=buf.tobytes(), media_type="image/jpeg")
-
-
-@app.get("/healthz")
-@app.get("/health")
-async def health():
-    return {
-        "status": "alive",
-        "active_streams": sum(1 for s in STREAMS.values() if s.status == "active"),
-        "max_streams": MAX_CONCURRENT_STREAMS,
-    }
-
-
-@app.get("/readyz")
-async def readyz():
-    # بلا تبعيّة صلبة قصداً: لا pool قاعدة ولا عميل Redis متّصل (REDIS_URL غير
-    # مُستهلَك هنا). النشر عبر MQTT والنداءات الخلفيّة (edge/zlmedia) محاولة-أفضل
-    # لا تُعطِّل الإقلاع. لا شيء صلب ننتظره ⇒ جاهز بصدق.
-    return {"status": "ready", "version": "9.1.0"}
+register_routers(app)
 
 
 if __name__ == "__main__":
