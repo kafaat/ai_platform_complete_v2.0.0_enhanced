@@ -76,6 +76,31 @@ HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))
 # خادم بلاطات COG ديناميكي (TiTiler) — سدّ فجوة P0. فارغ = البلاطات الثابتة.
 TITILER_URL = os.getenv("TITILER_URL", "")
 
+# ─── جودة الغيوم (SCL) ─────────────────────────────────────────────
+# أصناف SCL (Scene Classification) للغيوم/الظلال/السيرس/الثلج في Sentinel-2 L2A:
+# 3 ظلّ غيمة · 8 غيمة متوسّطة الاحتمال · 9 عالية · 10 سيرس · 11 ثلج.
+SCL_CLOUD_CLASSES = (3, 8, 9, 10, 11)
+# عتبة التحذير: مشهد تتجاوز نسبة غيومه هذه القيمة (٪) يُلحَق به تحذير صريح بأنّ
+# المؤشّر قد يكون ملوَّثاً بالغيوم — قابلة للضبط بيئيّاً.
+CLOUD_PCT_WARN_THRESHOLD = float(os.getenv("CLOUD_PCT_WARN_THRESHOLD", "20"))
+
+
+def compute_cloud_pct(scl, np) -> float | None:
+    """نسبة غيوم المشهد من نطاق SCL — دالّة نقيّة قابلة للاختبار بلا rasterio.
+
+    = (عدد بكسلات أصناف الغيوم في ``SCL_CLOUD_CLASSES``) ÷ (عدد بكسلات SCL
+    الصالحة، أي ≠ 0 صنف لا-بيانات) × 100. تُرجِع ``None`` إن لم توجد بكسلات
+    صالحة (لتفادي القسمة على صفر) أو إن كان ``scl`` فارغاً.
+    """
+    if scl is None:
+        return None
+    valid = scl != 0  # SCL=0 ⇒ NO_DATA (مستبعَد من المقام).
+    valid_count = int(valid.sum())
+    if valid_count == 0:
+        return None
+    cloud_count = int(np.isin(scl, SCL_CLOUD_CLASSES).sum())
+    return cloud_count / valid_count * 100.0
+
 # عميل STAC مرن (تحسين قلب النظام): إعادة محاولة + cache (Redis مشترك +
 # ذاكرة fallback) + مصدر احتياطي + stale-if-error. TTL قابل للضبط.
 # المصدر الاحتياطي الأوّل: Microsoft Planetary Computer (STAC عامّ، بحث مجهول).
@@ -1395,7 +1420,11 @@ def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
     يقرأ النطاق الأوّل مباشرةً (لا band math، لا تحويل انعكاس)، يعيد إسقاط الحدود إلى
     EPSG:4326، يحسب الإحصاءات، ويكتب COG محسّناً (نفس مسار التخزين/الأصل). يُرجِع
     ``(stats, bounds_4326, resolution_m, meta)`` بنفس تعاقُد :func:`_process_pixels`.
-    صدق: لا قناع SCL (CDSE يقنّع الغيوم بـdataMask/maxCloudCoverage خادميّاً)؛ ``NaN`` = لا بيانات.
+    صدق: CDSE الآن يقنّع الغيوم per-pixel خادميّاً عبر evalscript (نطاق SCL +
+    استبعاد أصناف الغيوم/الظلال/السيرس/الثلج — راجع cdse_client.build_evalscript)
+    إلى جانب dataMask/maxCloudCoverage؛ فالراستر الوارد مقنَّع مسبقاً و``NaN`` = لا
+    بيانات أو غيمة. تحذير صدق: تصحيح evalscript النهائيّ يحتاج تشغيلاً حقيقيّاً ضدّ
+    CDSE Process API (تحقّق ميدانيّ) — لم يُتحقَّق منه محليّاً.
     """
     import numpy as np
     import rasterio
@@ -1635,11 +1664,14 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
         # Sentinel-2 L2A: نطاق Scene Classification (SCL). أصناف الغيوم/
         # الظلال = {3 ظلّ غيمة, 8 غيمة متوسّطة الاحتمال, 9 عالية, 10 سيرس,
         # 11 ثلج}. نضع المؤشّر NaN عندها كي لا تفسد الإحصاء.
+        scene_cloud_pct: float | None = None
         if req.apply_cloud_mask and b.scl is not None:
             scl = band_raw(b.scl)
             if scl is not None and scl.shape == arr.shape:
-                cloud_classes = np.isin(scl, [3, 8, 9, 10, 11])
+                cloud_classes = np.isin(scl, SCL_CLOUD_CLASSES)
                 arr = np.where(cloud_classes, np.nan, arr)
+                # نسبة غيوم المشهد = أصناف الغيوم ÷ بكسلات SCL الصالحة (≠0 لا-بيانات).
+                scene_cloud_pct = compute_cloud_pct(scl, np)
 
         valid = np.isfinite(arr)
         vals = arr[valid]
@@ -1651,6 +1683,16 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             "valid_pixels": int(valid.sum()),
             "nodata_pixels": int((~valid).sum()),
         }
+        # نسبة غيوم المشهد (إضافيّة — لا تغيّر سلوك القناع). تُسجَّل في raster_assets
+        # (main.py:1193) وتُحمَل في نتيجة المهمّة. عند تجاوز العتبة نُلحِق تحذيراً صريحاً
+        # بأنّ المؤشّر قد يكون ملوَّثاً بالغيوم رغم القناع per-pixel.
+        if scene_cloud_pct is not None:
+            stats["cloud_pct"] = scene_cloud_pct
+            if scene_cloud_pct > CLOUD_PCT_WARN_THRESHOLD:
+                stats["warning"] = (
+                    f"نسبة غيوم المشهد {scene_cloud_pct:.1f}% تتجاوز "
+                    f"{CLOUD_PCT_WARN_THRESHOLD:.0f}% — قد يكون المؤشّر ملوَّثاً بالغيوم."
+                )
         # احفظ المؤشّر المحسوب كـCOG محسّن (ضغط + بلاطات + أهرامات) — تحسين
         # التخزين: حجم أصغر + قراءة جزئيّة أسرع (TiTiler/MapLibre). نحفظ المؤشّر
         # المقصوص بـtransform المقصوص (out) وبـCRS المصدر الأصلي (UTM غالباً).
