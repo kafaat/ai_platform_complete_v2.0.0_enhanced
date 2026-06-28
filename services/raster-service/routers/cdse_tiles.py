@@ -134,7 +134,14 @@ async def field_cdse_tile(
             try:
                 field_geom = json.loads(geom)
             except (ValueError, TypeError):
-                field_geom = None  # geom فاسد ⇒ bbox فقط (تدهور آمن)
+                field_geom = None  # geom فاسد ⇒ يُجلَب من DB أدناه (لا bbox فقط)
+        # احتياط: إن لم تصل الهندسة (أو فسَدت) نجلبها من DB كي **يبقى القصّ على
+        # المضلّع دائماً** — لا يكفي bbox وحده (واجهات لا تُمرّر geom مثل MapHub).
+        # يحدث فقط عند فقدان geom وعلى عدم إصابة المخبّأ (تأثير زمنيّ مهمَل).
+        if field_geom is None:
+            import db_persist as _db
+
+            field_geom = await _db.fetch_field_geometry(field_id)
     else:
         import db_persist as _db
 

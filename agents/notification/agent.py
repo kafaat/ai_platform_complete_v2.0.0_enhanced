@@ -30,7 +30,7 @@ from email.mime.text import MIMEText
 
 import asyncpg
 import httpx
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket
 from fastapi.responses import Response
 from nats.aio.client import Client as NATS
 from nats.js import JetStreamContext
@@ -511,7 +511,7 @@ async def _ws_receive_loop(websocket, verified_user_id: str):
 
 
 @app.websocket("/ws/notifications")
-async def ws_notifications(websocket):
+async def ws_notifications(websocket: WebSocket):
     """Secure WebSocket with JWT auth, connection limit, timeout.
 
     مصادقة بإطار-أوّل حصراً (auth-frame): لم نعُد نقرأ التوكن من الـquery
