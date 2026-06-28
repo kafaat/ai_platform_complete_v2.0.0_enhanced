@@ -11,15 +11,15 @@
 | ID | العنوان | المجال/الخدمة | المصدر | الحالة |
 |---|---|---|---|---|
 | C1/C2 | التوصية تُولَّد + تُخزَّن وتُدقَّق وتُربَط بالشرح (جدول v77 + `RECOMMENDATION_CREATED` + `GET /{rec_id}`) | platform/التوصيات | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:19` (#350)؛ أصل: `:116-117` | fixed (يحتاج تأكيداً حيّاً) |
-| C5 | NDVI الحقيقيّ معلوماتيّ لا يُغيّر صلاحيّة القرار | platform/الحالة القانونيّة | `api/field_state_projection.py:206-215`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:120` | open (معماريّ — تغيير العتبات يحتاج تحقّقاً ميدانيّاً) |
-| H2 | **٧** اشتراكات NATS بلا ناشر (لا ٨) — تصنيفها «ناشر مفقود متوقَّع» لا «اشتراك ميّت»: تطابق `EVENT_EMOJI` وأنواع الأحداث (`api/main.py:1670`)، فالإصلاح = بناء ناشرين عبر outbox لا تقليم الاشتراكات (قرار معماريّ). الموضوعان `satellite.*.computed`/`sahool.events.>` لهما ناشرون (ليسا يتيمين). `weather.forecast.updated` مُعالَج خلف راية `WEATHER_GRID_PIPELINE_ENABLED` (OFF). | notification/الأحداث | تحقيق #458؛ `agents/notification/agent.py:340-346`؛ ناشرون: `api/event_bus.py:596` · `sentinel_hub/vegetation_real.py:680`؛ أصل: `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:128` | open (معماريّ — ناشر مفقود، خارج الإصلاح الآمن الآليّ) |
+| C5 | NDVI الحقيقيّ معلوماتيّ لا يُغيّر صلاحيّة القرار | platform/الحالة القانونيّة | `api/field_state_projection.py:206-215`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:120` | deferred — تحقّق ميدانيّ مطلوب (عتبات NDVI)؛ خارج الإصلاح الآليّ |
+| H2 | **٧** اشتراكات NATS بلا ناشر (لا ٨) — تصنيفها «ناشر مفقود متوقَّع» لا «اشتراك ميّت»: تطابق `EVENT_EMOJI` وأنواع الأحداث (`api/main.py:1670`)، فالإصلاح = بناء ناشرين عبر outbox لا تقليم الاشتراكات (قرار معماريّ). الموضوعان `satellite.*.computed`/`sahool.events.>` لهما ناشرون (ليسا يتيمين). `weather.forecast.updated` مُعالَج خلف راية `WEATHER_GRID_PIPELINE_ENABLED` (OFF). | notification/الأحداث | تحقيق #458؛ `agents/notification/agent.py:340-346`؛ ناشرون: `api/event_bus.py:596` · `sentinel_hub/vegetation_real.py:680`؛ أصل: `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:128` | deferred — بناء ناشري NATS عبر outbox (قرار معماريّ، لا تقليم اشتراكات)؛ خارج الإصلاح الآمن الآليّ |
 | H4 | ET0 Hargreaves مُكرَّر بقيم Ra متعارضة — وُحِّد في `core/engines/et0.py` | platform/الأغرونوميا الكمّيّة | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:23` (#351/#356)؛ تأكيد #457 | ✅ fixed + مؤكَّد باختبارات انحدار (#457؛ متبقٍّ موثَّق: إعادتان عبر-خدمات weather_server/wofost) |
-| H5 | احتياج الريّ بصيغتين (مع/بلا ملوحة) | platform/الريّ | `core/engines/fao56.py:249` مقابل `api/water_balance.py:183`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:38,131` | open (يحتاج إقراراً زراعيّاً) |
+| H5 | احتياج الريّ بصيغتين (مع/بلا ملوحة) | platform/الريّ | `core/engines/fao56.py:249` مقابل `api/water_balance.py:183`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:38,131` | deferred — قرار زراعيّ مطلوب (صيغتا الريّ مع/بلا ملوحة) |
 | H6 | عتبات الملوحة/pH/الحرارة مُكرَّرة — وُحِّدت في `core/thresholds.py` | platform/العتبات | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:21` (#352)؛ أصل: `:132` | fixed (يحتاج تأكيداً حيّاً) |
-| C4/M1 | الموبايل: بنية push (FCM/APNs) + عميل WebSocket في Flutter | mobile | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:40,119,150` | open (يتطلّب بيئة Flutter) |
-| SAM2 | خادم استدلال SAM2 يحتاج GPU (opt-in)؛ بدونه 503 صادق | field-segmentation/sam2 | `docker-compose.v9.yml:1351` (profile=gpu)؛ `services/sam2-inference/main.py:74`؛ [`docs/SAM2_DEPLOYMENT.md`](../../docs/SAM2_DEPLOYMENT.md) | open (تشغيليّ — يحتاج GPU) |
+| C4/M1 | الموبايل: بنية push (FCM/APNs) + عميل WebSocket في Flutter | mobile | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:40,119,150` | deferred — يتطلّب بيئة Flutter (push/FCM/WebSocket) |
+| SAM2 | خادم استدلال SAM2 يحتاج GPU (opt-in)؛ بدونه 503 صادق | field-segmentation/sam2 | `docker-compose.v9.yml:1351` (profile=gpu)؛ `services/sam2-inference/main.py:74`؛ [`docs/SAM2_DEPLOYMENT.md`](../../docs/SAM2_DEPLOYMENT.md) | by-design — opt-in خلف profile=gpu (503 صادق بدونه؛ ليس عيباً) |
 | MAP-QA | افتراض MapLibre/WebGL ينتظر بوّابة QA حيّة (Playwright) | frontend/الخرائط | بوّابة Playwright #441 (`d23eb6b`)؛ سويت [`tests/`](../../frontend/) | open (البوّابة مُنشأة؛ ينتظر تشغيلاً حيّاً) |
-| TERRAIN | `TerrainView3D` يحتاج مسار `/terrain` خادميّ | frontend/الخرائط | [`frontend/src/components/maphub/TerrainView3D.tsx`](../../frontend/src/components/maphub/TerrainView3D.tsx) | open (P2) |
+| TERRAIN | `TerrainView3D` يحتاج مسار `/terrain` خادميّ | frontend/الخرائط | [`frontend/src/components/maphub/TerrainView3D.tsx`](../../frontend/src/components/maphub/TerrainView3D.tsx) | deferred (P2) — يحتاج مسار `/terrain` خادميّ + تكامل واجهة |
 | IND-SRC | مصدر مؤشّرات الموبايل الصحيح (`getFieldIndicators`) | mobile | #445 (`a7909e6`)؛ [`mobile/sahool_app/lib/services/api_service.dart`](../../mobile/sahool_app/lib/services/api_service.dart) | fixed |
 | MERGE | دمج/انقسام الحقول ذرّيّاً (سدّ خطر البيانات الثلاثيّة) | platform/الحقول | #443 (`2456d2b`)؛ [`api/routers/fields.py`](../../services/sahool-platform/api/routers/fields.py)؛ اختبار [`tests_v9/test_fields_merge_split_atomic.py`](../../tests_v9/test_fields_merge_split_atomic.py) | fixed |
 | NDVI-MOB | مسار سلسلة NDVI في الموبايل (404) | mobile | #444 (`9e00d0a`)؛ [`mobile/sahool_app/lib/screens/satellite_screen.dart`](../../mobile/sahool_app/lib/screens/satellite_screen.dart) | fixed |
@@ -30,6 +30,10 @@
 
 ## ملاحظات
 
+- **إغلاق 2026-06-28:** الفجوات `C5`/`H2`/`H5`/`C4/M1`/`SAM2`/`TERRAIN` نُقِلت من `open` إلى
+  **`deferred`/`by-design`** — لا واحدةَ منها قابلةٌ للإصلاح الآليّ الآمن: كلٌّ يحتاج بيئةً (GPU/Flutter)
+  أو تحقّقاً ميدانيّاً أو قراراً زراعيّاً. (صدق: إغلاقُ تتبُّعٍ موثَّقٌ بالسبب، لا ادّعاءُ حلٍّ.)
+  `SAM2` فعليّاً **بالتصميم** (opt-in خلف `profile=gpu` + 503 صادق) لا عيباً. تُعاد إلى `open` متى توفّر مُمكِّنها.
 - **مصادر [حيّ] تنتظر التشغيل:** R6 (البوّابيّ)، H1 (التفويض فاشل-مفتوح، قرار)، OFFLINE
   (مزامنة Flutter كاملة) — انظر ملحق التحقّق المعماريّ في
   [`../../SAHOOL_PRODUCTION_GAP_REPORT_v1.md`](../../SAHOOL_PRODUCTION_GAP_REPORT_v1.md):44-74.
