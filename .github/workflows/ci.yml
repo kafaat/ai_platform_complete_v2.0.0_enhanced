@@ -230,14 +230,21 @@ jobs:
     # ملاحظة: لا نستخدم `services:` لـPostgres/Redis لأنّ GitHub يسحب صورها عند
     # بدء المهمّة بثلاث محاولات سريعة فقط ⇒ فشل متكرّر حين يتباطأ/يُقيّد Docker Hub
     # (registry-1.docker.io: context deadline exceeded). بدلاً منها نُدير الحاويات
-    # يدويّاً بإعادة سحب مرنة (٦ محاولات backoff) — نفس الصور والمنافذ تماماً.
+    # يدويّاً عبر مرآة سحب موثوقة + إعادة سحب مرنة (٦ محاولات backoff).
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
-      - name: Start Postgres+PostGIS and Redis (resilient pull)
+      - name: Start Postgres+PostGIS and Redis (mirror + resilient pull)
         run: |
           set -e
+          # العلّة الجذريّة: registry-1.docker.io يتباطأ/ينقطع من عدّاءات CI (تكرّر
+          # في #516/#534). الحلّ: مرآة سحب تمريريّة موثوقة لـDocker Hub —
+          # mirror.gcr.io (كاش Google) — تُضبَط على daemon فتمرّ كلّ `docker pull`
+          # عبرها (تشمل صور docker.io الرسميّة والمنظّمات). إعادة المحاولة تبقى احتياطاً.
+          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+          for i in $(seq 1 10); do docker info >/dev/null 2>&1 && break; echo "بانتظار docker ($i)"; sleep 1; done
           pull() {
             for i in 1 2 3 4 5 6; do
               docker pull "$1" && return 0
