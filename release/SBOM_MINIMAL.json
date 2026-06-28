@@ -4965,7 +4965,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7bec2446e4f3141f33930d4b0d29ac3971e5b36da77b3552d216cb56dadb77f4"
+          "content": "606d0858c3eaf43132e97528ff11f2b22cb910c154b2d22e6b30a73c64c57c5d"
+        }
+      ],
+      "name": "services/auth/mailer.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0dd9a9b850b315ca450e6c98ca531c3eba37b1104c13cb58076b03617a475311"
         }
       ],
       "name": "services/auth/main.py",
