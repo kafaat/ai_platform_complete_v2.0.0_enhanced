@@ -23,6 +23,7 @@ import json
 import logging
 from datetime import date
 
+from .evidence_policy import classify_ndvi_evidence
 from .field_operational_state import resolve_field_state
 from .field_state_gateway import build_state_inputs
 
@@ -213,6 +214,13 @@ async def recompute_field_state(conn, field_id: str) -> dict:
         "ndvi_date": fresh["ndvi_date"].isoformat() if fresh.get("ndvi_date") else None,
         "source": "sentinel-2 (raster-service)" if _ndvi is not None else None,
     }
+    # C5 — سياسة دليل القرار: نوسم دور NDVI صراحةً. بلا معايرة محليّة + سياق محصول
+    # كامل ⇒ ``supporting`` (داعم لا حاجب) فلا يقلب القرار وحده. يُجعَل المبدأ مرئيّاً
+    # في الإسقاط (لا يغيّر منطق resolve_field_state — NDVI ليس مُدخَلاً له أصلاً).
+    state["remote_sensing"]["decision_evidence"] = classify_ndvi_evidence(
+        ndvi_mean=_ndvi,
+        ndvi_age_days=inputs.get("ndvi_age_days"),
+    )
 
     tenant_id = await conn.fetchval("SELECT tenant_id FROM fields WHERE field_id = $1", field_id)
     if tenant_id is None:
