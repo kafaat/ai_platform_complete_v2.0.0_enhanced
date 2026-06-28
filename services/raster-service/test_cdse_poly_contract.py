@@ -54,16 +54,35 @@ def test_backend_parses_poly_lnglat():
 
 
 # ── الواجهة ──────────────────────────────────────────────────────────
-def test_hubmap_emits_poly_not_geom():
-    src = _read("frontend/src/components/maphub/HubMap.tsx")
-    assert "&poly=" in src, "HubMap لا يُصدِر poly= لبلاطات cdse-tiles"
-    assert "&geom=" not in src, "HubMap ما زال يُصدِر geom= (تضارب عقد)"
+# توحيد main↔cert: بعد الدمج صار عقد cdse-tiles مركزيّاً في باني api.ts
+# ``fieldCdseTileUrl`` (مصدر الحقيقة الوحيد لرابط بلاطة CDSE: يضبط poly من هندسة الحقل
+# ولا يُصدِر geom). أيّ مكوّن يصيّر بلاطات CDSE يستدعيه. HubMap (نسخة cert) يصيّر بلاطات
+# COG المحلّيّة عبر ``/tiles/`` بتصميمه؛ بلاطات CDSE الحيّة (poly) عبر هذا الباني.
+def _cdse_builder_block() -> str:
+    api = _read("frontend/src/services/api.ts")
+    start = api.index("export const fieldCdseTileUrl")
+    rest = api[start + len("export const fieldCdseTileUrl") :]
+    end = rest.index("\nexport const ")
+    return api[start : start + len("export const fieldCdseTileUrl") + end]
 
 
-def test_field_indicator_map_emits_poly_not_geom():
-    src = _read("frontend/src/components/FieldIndicatorMap.tsx")
-    assert "&poly=" in src, "FieldIndicatorMap لا يُصدِر poly="
-    assert "&geom=" not in src, "FieldIndicatorMap ما زال يُصدِر geom= (تضارب عقد)"
+def test_cdse_tile_builder_emits_poly_not_geom():
+    """مصدر الحقيقة لرابط بلاطة CDSE (fieldCdseTileUrl) يضبط poly ولا يُمرّر geom كاستعلام."""
+    block = _cdse_builder_block()
+    assert "params.set('poly'" in block, "fieldCdseTileUrl لا يضبط poly"
+    assert "/cdse-tiles/" in block, "fieldCdseTileUrl لا يبني مسار cdse-tiles"
+    assert "set('geom'" not in block and "&geom=" not in block, (
+        "fieldCdseTileUrl ما زال يُصدِر geom (تضارب عقد)"
+    )
+
+
+def test_field_indicator_map_uses_cdse_builder():
+    """FieldIndicatorMap يصيّر بلاطات CDSE عبر باني poly المركزيّ (لا geom)."""
+    comp = _read("frontend/src/components/FieldIndicatorMap.tsx")
+    assert "fieldCdseTileUrl(" in comp, (
+        "FieldIndicatorMap لا يستخدم باني cdse-tiles (fieldCdseTileUrl)"
+    )
+    assert "&geom=" not in comp, "FieldIndicatorMap يُصدِر geom= (تضارب عقد)"
 
 
 if __name__ == "__main__":

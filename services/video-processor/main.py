@@ -393,6 +393,16 @@ from router_registry import register_routers  # noqa: E402
 
 register_routers(app)
 
+# إعادة تصدير معالِجات البثّ المنقولة إلى routers/streams.py لتُتاح للاختبارات السلوكيّة
+# عبر فضاء main (ربط اسم فقط — لا تسجيل مسار ثانٍ؛ التسجيل يتمّ عبر register_routers).
+# نمط soil #570 — يصمد لاختبارات عزل المستأجِر التي تستدعي main.create_stream/stop_stream.
+from routers.streams import (  # noqa: E402, F401
+    create_stream,
+    get_stream,
+    list_streams,
+    snapshot,
+    stop_stream,
+)
 
 if __name__ == "__main__":
     import uvicorn

@@ -94,6 +94,9 @@ def write_cog(
         "compression": "DEFLATE+predictor3",
         "overviews": OVERVIEW_LEVELS,
         "block_size": "512x512",
+        # توحيد main↔cert: ندمج تدقيق COG في ردّ الكتابة (سلوك main) — تدقيق فوريّ بعد
+        # الكتابة (مبلّط + أهرامات) دون استدعاء منفصل. يطابقه حارس test_cog_writer_internal_mask.
+        "validation": validate_cog(output_path),
     }
 
 

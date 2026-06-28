@@ -44,6 +44,11 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 HERE = os.path.dirname(__file__)
 RASTER_MAIN = os.path.normpath(os.path.join(HERE, "..", "services", "raster-service", "main.py"))
+# توحيد main↔cert: المسارات فُكِّكت من main.py إلى routers/؛ يمسح الكاشف الاثنين معاً
+# (main.py للحُرّاس المتبقّية + كلّ routers/*.py حيث صارت المعالِجات @router) — لا إضعاف.
+RASTER_ROUTERS_DIR = os.path.normpath(
+    os.path.join(HERE, "..", "services", "raster-service", "routers")
+)
 
 HTTP_METHODS: frozenset[str] = frozenset({"get", "post", "put", "patch", "delete"})
 
@@ -159,7 +164,8 @@ def _iter_app_routes(tree: ast.AST):
             if dec.func.attr not in HTTP_METHODS:
                 continue
             base = dec.func.value
-            if not (isinstance(base, ast.Name) and base.id == "app"):
+            # @app.<m> (main.py) أو @router.<m> (بعد التفكيك في routers/) — كلاهما نقطة.
+            if not (isinstance(base, ast.Name) and base.id in ("app", "router")):
                 continue
             if not (dec.args and isinstance(dec.args[0], ast.Constant)):
                 continue
@@ -206,11 +212,17 @@ def _has_agent_token_header(node: ast.FunctionDef | ast.AsyncFunctionDef) -> boo
 
 def _collect_routes() -> list[tuple[str, set[str], bool]]:
     """يُرجِع (المسار، حُرّاس_مُستدعاة، هل_فيه_ترويسة_توكن) لكلّ نقطة ``@app`` في main.py."""
-    with open(RASTER_MAIN, encoding="utf-8") as f:
-        tree = ast.parse(f.read(), filename=RASTER_MAIN)
+    import glob
+
+    sources = [RASTER_MAIN] + sorted(glob.glob(os.path.join(RASTER_ROUTERS_DIR, "*.py")))
     routes: list[tuple[str, set[str], bool]] = []
-    for path, node in _iter_app_routes(tree):
-        routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
+    for src_path in sources:
+        if not os.path.isfile(src_path):
+            continue
+        with open(src_path, encoding="utf-8") as f:
+            tree = ast.parse(f.read(), filename=src_path)
+        for path, node in _iter_app_routes(tree):
+            routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
     return routes
 
 

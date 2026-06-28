@@ -44,7 +44,11 @@ def vp():
         pytest.skip("تبعيّات video-processor غائبة — يُنفَّذ في وظيفة الوحدات الكاملة")
     if VIDEO not in sys.path:
         sys.path.insert(0, VIDEO)
-    sys.modules.pop("main", None)
+    # توحيد main↔cert: بعد تفكيك المسارات إلى routers/، نُسقط main + وحدات routers معاً
+    # كي تُعيد routers الاستيراد ضدّ main الطازج (وإلّا يحتفظ routers.streams بمرجع main
+    # متعفّن عبر الاختبارات ⇒ STREAMS مختلف عمّا يراه الاختبار). نمط soil #570.
+    for _m in ("main", "router_registry", "routers", "routers.streams", "routers.health"):
+        sys.modules.pop(_m, None)
     vmain = importlib.import_module("main")
     assert hasattr(vmain, "STREAMS") and hasattr(vmain, "_assert_stream_tenant"), (
         "استُورد main خاطئ (تصادم أسماء عبر الخدمات) — ليس video-processor"

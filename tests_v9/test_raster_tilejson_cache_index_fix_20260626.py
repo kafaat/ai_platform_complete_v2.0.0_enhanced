@@ -90,19 +90,21 @@ def test_index_aliases_cover_ndvu_and_salinity():
 
 
 def test_field_tilejson_and_tiles_normalize_index_before_lookup():
-    tilejson_body = MAIN[
-        MAIN.index('@app.get("/v1/fields/{field_id}/tilejson")') : MAIN.index(
-            "# اختياري: رابط TiTiler"
-        )
-    ]
-    tile_body = MAIN[
-        MAIN.index('@app.get("/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png")') : MAIN.index(
-            '@app.get("/v1/fields/{field_id}/tilejson")'
-        )
-    ]
-    assert "index = _normalize_index(index)" in tilejson_body
-    assert "out_index = _display_index(index)" in tilejson_body
-    assert "index = _normalize_index(index)" in tile_body
+    # توحيد main↔cert: مسارا tilejson/tiles فُكِّكا من main.py إلى routers/fields.py
+    # (المعالِجات @router، والرموز المشتركة مُسبَّقة بـmain.). نمسح الراوتر ونطابق نداء
+    # التطبيع بصرف النظر عن البادئة main.
+    src = (RASTER / "routers" / "fields.py").read_text(encoding="utf-8")
+
+    def _handler_body(marker: str) -> str:
+        start = src.index(marker)
+        nxt = src.find("@router.", start + len(marker))
+        return src[start : nxt if nxt != -1 else len(src)]
+
+    tilejson_body = _handler_body('@router.get("/v1/fields/{field_id}/tilejson")')
+    tile_body = _handler_body('@router.get("/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png")')
+    assert "_normalize_index(index)" in tilejson_body
+    assert "_display_index(index)" in tilejson_body
+    assert "_normalize_index(index)" in tile_body
 
 
 def test_frontend_normalizes_indicator_index_and_passes_tid():
