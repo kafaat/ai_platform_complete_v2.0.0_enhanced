@@ -3267,7 +3267,10 @@ export const fieldIndicatorTileUrl = (
   tenantId?: string | null,
   cacheVersion?: string | number | null,
 ): string => {
-  const params = new URLSearchParams({ index: normalizeIndicatorIndex(index), date });
+  // عقد التاريخ (متابعة D، توحيد main↔cert): لا نمرّر date حين latest/فارغ — backend
+  // يعامل الغياب كأحدث مشهد، فلا نُسرّب date=latest في رابط البلاطة.
+  const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
+  if (date && date !== 'latest') params.set('date', date);
   if (tenantId) params.set('tid', tenantId);
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
   const qs = params.toString();

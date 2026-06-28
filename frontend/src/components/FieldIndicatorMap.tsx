@@ -272,7 +272,8 @@ export default function FieldIndicatorMap({
     setTileUnavailableMessage(null);
     setTileCacheVersion(null);
     rasterApi
-      .get<TileJSON>(`/v1/fields/${fieldId}/tilejson`, { params: { index: normalizedIndex, date, ...(tenantId ? { tid: tenantId } : {}) } })
+      // عقد التاريخ (متابعة D): لا نمرّر date في طلب TileJSON حين latest/فارغ (backend يعامله كأحدث).
+      .get<TileJSON>(`/v1/fields/${fieldId}/tilejson`, { params: { index: normalizedIndex, ...(date && date !== 'latest' ? { date } : {}), ...(tenantId ? { tid: tenantId } : {}) } })
       .then((r) => {
         if (cancelled) return;
         // raster-service يُرجع available=false وحدوداً عالمية محايدة عند غياب COG.
