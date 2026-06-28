@@ -26,12 +26,13 @@ from uuid import uuid4
 import asyncpg
 import bcrypt
 import pyotp  # TOTP (RFC 6238) — المصادقة الثنائيّة MFA
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
-from prometheus_client import Counter
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from starlette.responses import Response
 
 # تسجيل منظّم موحّد (JSON) — يهرّب الاقتباسات/العربي صحيحاً (لا JSON مكسور).
 # fallback آمن لو لم تتوفّر الحزمة المشتركة (لا يكسر الخدمة).
@@ -96,9 +97,9 @@ def _parse_required_mfa_roles(raw: str | None) -> frozenset[str]:
 
 
 REQUIRE_MFA_ROLES = _parse_required_mfa_roles(os.getenv("REQUIRE_MFA_ROLES"))
-# مفتاح رئيسيّ: الفرض مُعطَّل افتراضيّاً كي لا يكسر CI/التطوير (الإدمن بلا MFA).
-# يُفعَّل في الإنتاج عبر ENFORCE_SENSITIVE_MFA=true أو SAHOOL_ENV=production.
-_ENFORCE_SENSITIVE_MFA = os.getenv("ENFORCE_SENSITIVE_MFA", "false").lower() == "true"
+# مفتاح رئيسيّ: الفرض مُفعَّل افتراضيّاً للأدوار الحسّاسة؛ عطّله صراحةً في CI/التطوير عبر ENFORCE_SENSITIVE_MFA=false عند الحاجة.
+# يبقى مفروضاً في الإنتاج عبر SAHOOL_ENV=production حتى لو نُسي الضبط.
+_ENFORCE_SENSITIVE_MFA = os.getenv("ENFORCE_SENSITIVE_MFA", "true").lower() == "true"
 _IS_PRODUCTION = os.getenv("SAHOOL_ENV", "").lower() == "production"
 MFA_ENFORCEMENT_ENABLED = _ENFORCE_SENSITIVE_MFA or _IS_PRODUCTION
 
@@ -141,25 +142,39 @@ def _admin_stepup_required() -> bool:
 
 # ── OTP (تأكيد البريد/الهاتف) — الدوالّ/الثوابت النقيّة في otp.py (معزولة عن
 # fastapi كي تُختبَر وحدةً في CI دون تثبيت fastapi). نعيد تصديرها هنا. ──
-# ملاحظة (بعد تفكيك المسارات): generate_otp / normalize_otp / is_valid_otp_shape /
-# otp_codes_match / otp_redis_key لم تَعُد تُستعمَل داخل main.py مباشرةً — بل تُشير
-# إليها وحدة routers/email_verify.py عبر main.X وقت التشغيل. لذا نُبقيها مستورَدةً
-# في فضاء أسماء main (مع تعليق تجاهُل F401) كي تُحلَّ تلك المراجع — حذفُها يكسر التحقّق.
 from otp import (  # noqa: E402
     OTP_LENGTH,
     OTP_MAX_REQUESTS,
     OTP_TTL_SECONDS,
-    generate_otp,  # noqa: F401
-    is_valid_otp_shape,  # noqa: F401
-    normalize_otp,  # noqa: F401
-    otp_codes_match,  # noqa: F401
-    otp_redis_key,  # noqa: F401
+    generate_otp,
+    is_valid_otp_shape,
+    normalize_otp,
+    otp_codes_match,
+    otp_redis_key,
 )
 
+
 # ── Prometheus ─────────────────────────────────────────────────
-LOGIN_COUNTER = Counter("sahool_auth_logins_total", "Login attempts", ["status"])
-REGISTER_COUNTER = Counter("sahool_auth_register_total", "Registration attempts", ["status"])
-RESET_COUNTER = Counter("sahool_auth_resets_total", "Password reset requests")
+def _safe_counter(name: str, documentation: str, labelnames=()):
+    """Create a Prometheus counter without breaking repeated test imports.
+
+    Several unit tests load this module under different names to inspect pure
+    functions. prometheus_client's default registry is process-global, so a
+    second import would otherwise raise duplicated-timeseries. In production the
+    first registered metric is used; on repeated imports we create an unregistered
+    local counter that keeps handlers importable without mutating global metrics.
+    """
+    try:
+        return Counter(name, documentation, labelnames)
+    except ValueError as exc:
+        if "Duplicated timeseries" not in str(exc):
+            raise
+        return Counter(name, documentation, labelnames, registry=None)
+
+
+LOGIN_COUNTER = _safe_counter("sahool_auth_logins_total", "Login attempts", ["status"])
+REGISTER_COUNTER = _safe_counter("sahool_auth_register_total", "Registration attempts", ["status"])
+RESET_COUNTER = _safe_counter("sahool_auth_resets_total", "Password reset requests")
 
 # ── DB + Redis ─────────────────────────────────────────────────
 _pool: asyncpg.Pool | None = None
@@ -176,12 +191,30 @@ async def _acquire():
     CHECK للكتابة) ترفض users ⇒ login=401 وregister=RLS violation. إعادة الضبط هنا
     تصمد أمام RESET ALL. auth خدمة هويّة عابرة للمستأجرين بحكم دورها (init يبقى حزام
     أمان للاستخدام الأوّل). يستعمل _pool.acquire/release مباشرةً (لا تكرار ذاتيّ)."""
-    conn = await _pool.acquire()
+    acquired = _pool.acquire()
+
+    async def _set_admin_context(conn):
+        execute = getattr(conn, "execute", None)
+        if execute is not None:
+            await execute("SELECT set_config('app.current_role', 'admin', false)")
+
+    # asyncpg.Pool.acquire() is usable as an async context manager. Some tests use
+    # a small fake with the same shape; support both that and awaitable acquire()
+    # return values without weakening the production session-context reset.
+    if hasattr(acquired, "__aenter__"):
+        async with acquired as conn:
+            await _set_admin_context(conn)
+            yield conn
+        return
+
+    conn = await acquired
     try:
-        await conn.execute("SELECT set_config('app.current_role', 'admin', false)")
+        await _set_admin_context(conn)
         yield conn
     finally:
-        await _pool.release(conn)
+        release = getattr(_pool, "release", None)
+        if release is not None:
+            await release(conn)
 
 
 @asynccontextmanager
@@ -844,10 +877,460 @@ async def _ensure_admin_user():
 # ══════════════════════════════════════════════════════════════
 
 
+@app.post("/auth/register", response_model=TokenResponse, status_code=201)
+async def register(req: RegisterRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+
+    hashed = bcrypt.hashpw(req.password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+    async with _acquire() as conn:
+        try:
+            row = await conn.fetchrow(
+                """
+                INSERT INTO users (email, password_hash, full_name, role)
+                VALUES ($1, $2, $3, 'owner')
+                RETURNING id, email, role, full_name, tenant_id
+            """,
+                req.email,
+                hashed,
+                req.full_name,
+            )
+            # الأمان + الإقلاع: التسجيل الذاتيّ يُنشئ **مستأجِراً جديداً معزولاً**
+            # (users.tenant_id افتراضه gen_random_uuid)، فالمُسجِّل هو مؤسِّس مؤسّسته ⇒
+            # دوره 'owner' (TENANT_OWNER) كي يستطيع إنشاء/إدارة حقوله وفريقه — وإلّا
+            # «Bootstrap Deadlock»: يملك مستأجِراً لا يقدر على تأسيسه. آمن: RLS يعزل
+            # المستأجرين فلا تصعيد عابر؛ وهو مالك مستأجِره وحده. الدور المُرسَل من
+            # العميل يُتجاهَل (لا حقل role في RegisterRequest). الأعضاء اللاحقون
+            # يُضافون لمستأجِر قائم بأدوار أدنى عبر دعوة (manager/agronomist/worker/
+            # viewer) — لا عبر التسجيل الذاتيّ.
+        except asyncpg.UniqueViolationError as e:
+            REGISTER_COUNTER.labels(status="conflict").inc()
+            raise HTTPException(status.HTTP_409_CONFLICT, "البريد الإلكتروني مسجّل مسبقاً") from e
+
+    tid = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
+    token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)
+    refresh = await create_refresh_token(row["id"], tid)
+
+    await audit_log("register", row["id"], ip, tenant_id=row["tenant_id"])
+    REGISTER_COUNTER.labels(status="success").inc()
+
+    return TokenResponse(
+        access_token=token,
+        refresh_token=refresh,
+        expires_in=JWT_EXPIRE_MINUTES * 60,
+        user_id=row["id"],
+        role=row["role"],
+        full_name=row["full_name"],
+        tenant_id=tid,
+    )
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+async def login(req: LoginRequest, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+    await check_lockout(req.email)  # ✅ account lockout check
+
+    async with _acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, password_hash, role, full_name, tenant_id, active, "
+            "mfa_enabled, mfa_secret FROM users WHERE email=$1",
+            req.email,
+        )
+
+    if (
+        not row
+        or not row["active"]
+        or not bcrypt.checkpw(
+            req.password.encode(),
+            row["password_hash"]
+            if isinstance(row["password_hash"], bytes)
+            else row["password_hash"].encode(),
+        )
+    ):
+        await record_failed_login(req.email)  # ✅ track failed attempts (locks account internally)
+        LOGIN_COUNTER.labels(status="failed").inc()
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "بيانات غير صحيحة")
+
+    # المصادقة الثنائيّة (MFA): إن كانت مفعّلة، كلمة المرور وحدها لا تكفي.
+    # fail-closed: مفعّل بلا سرّ ⇒ رفض (لا تجاوز صامت). التحقّق بنافذة ±30s.
+    if row["mfa_enabled"]:
+        if not req.mfa_code:
+            await record_failed_login(req.email)
+            LOGIN_COUNTER.labels(status="mfa_required").inc()
+            # 401 برمز خاصّ ليعرف العميل أنّ كلمة المرور صحّت لكن يلزم رمز MFA
+            raise HTTPException(
+                status.HTTP_401_UNAUTHORIZED,
+                "يتطلّب الحساب رمز المصادقة الثنائيّة (MFA)",
+                headers={"X-MFA-Required": "true"},
+            )
+        secret = row["mfa_secret"]
+        if not secret or not pyotp.TOTP(secret).verify(req.mfa_code.strip(), valid_window=1):
+            await record_failed_login(req.email)
+            LOGIN_COUNTER.labels(status="mfa_failed").inc()
+            raise HTTPException(status.HTTP_401_UNAUTHORIZED, "رمز MFA غير صحيح")
+
+    # فرض MFA للأدوار الحسّاسة (governance #411): دور حسّاس بلا MFA مفعّل
+    # يُرفض دخوله ويُوجَّه للإعداد. مُعطَّل افتراضيّاً (ENV) كي لا يكسر CI/التطوير.
+    if _mfa_required_but_missing(row["role"], row["mfa_enabled"]):
+        LOGIN_COUNTER.labels(status="mfa_enrollment_required").inc()
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "حسابك بدور حسّاس يتطلّب تفعيل MFA — أكمِل الإعداد عبر /auth/mfa/setup",
+            headers={"X-MFA-Enrollment-Required": "true"},
+        )
+
+    await clear_failed_logins(req.email)  # ✅ reset on success
+    tid = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
+    token, jti = create_access_token(row["id"], row["email"], row["role"], row["full_name"], tid)
+    refresh = await create_refresh_token(row["id"], tid)
+
+    logger.info(f"Login OK: user={row['id']} role={row['role']} ip={ip}")
+    await audit_log("login", row["id"], ip, tenant_id=row["tenant_id"])
+    LOGIN_COUNTER.labels(status="success").inc()
+
+    return TokenResponse(
+        access_token=token,
+        refresh_token=refresh,
+        expires_in=JWT_EXPIRE_MINUTES * 60,
+        user_id=row["id"],
+        role=row["role"],
+        full_name=row["full_name"],
+        tenant_id=tid,
+    )
+
+
+@app.post("/auth/refresh", response_model=TokenResponse)
+async def refresh_token(req: RefreshRequest):
+    """✅ NEW: Refresh access token using refresh token."""
+    if not _redis:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Refresh tokens require Redis")
+    key = f"sahool:refresh:{req.refresh_token}"
+    value = await _redis.get(key)
+    if not value:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Refresh token غير صالح أو منتهي")
+
+    user_id_str, tenant_id = value.split(":", 1)
+    user_id = int(user_id_str)
+
+    async with _acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, role, full_name, tenant_id, active FROM users WHERE id=$1", user_id
+        )
+    if not row or not row["active"]:
+        await revoke_refresh_token(req.refresh_token)
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "المستخدم غير نشط")
+
+    # Rotate refresh token
+    await revoke_refresh_token(req.refresh_token)
+    new_refresh = await create_refresh_token(user_id, tenant_id)
+    token, jti = create_access_token(
+        row["id"], row["email"], row["role"], row["full_name"], tenant_id
+    )
+
+    return TokenResponse(
+        access_token=token,
+        refresh_token=new_refresh,
+        expires_in=JWT_EXPIRE_MINUTES * 60,
+        user_id=row["id"],
+        role=row["role"],
+        full_name=row["full_name"],
+        tenant_id=tenant_id,
+    )
+
+
+@app.post("/auth/logout")
+async def logout(
+    request: Request,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+):
+    """✅ NEW: Invalidate access token (JTI blacklist) + refresh token."""
+    ip = request.client.host if request.client else "unknown"
+    if credentials:
+        try:
+            payload = jwt.decode(
+                credentials.credentials,
+                JWT_VERIFY_KEY,
+                algorithms=[JWT_ALGORITHM],
+                audience="sahool",
+            )
+            # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
+            if payload.get("iss") not in _ALLOWED_ISS:
+                raise JWTError("Invalid token issuer")
+            jti = payload.get("jti")
+            exp = payload.get("exp", 0)
+            if jti:
+                await revoke_jti(jti, exp)
+        except JWTError:
+            # توكن غير صالح عند الخروج — لا شيء لإبطاله (نسجّل للتدقيق)
+            logger.debug("logout: توكن غير صالح، لا jti لإبطاله")
+
+    # Also revoke refresh token if provided in body
+    body = {}
+    try:
+        body = await request.json()
+    except Exception as e:  # noqa: BLE001
+        # لا جسم JSON (خروج بلا refresh token) — سلوك مقبول، نسجّل
+        logger.debug("logout: لا جسم JSON في الطلب: %s", type(e).__name__)
+    if rt := body.get("refresh_token"):
+        await revoke_refresh_token(rt)
+
+    await audit_log("logout", None, ip)
+    return {"message": "تم تسجيل الخروج بنجاح"}
+
+
+@app.post("/auth/password-reset/request")
+async def request_password_reset(req: PasswordResetRequest, request: Request):
+    """✅ NEW: Request password reset via email."""
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+    RESET_COUNTER.inc()
+
+    # Always return success (prevent email enumeration)
+    async with _acquire() as conn:
+        row = await conn.fetchrow("SELECT id FROM users WHERE email=$1", req.email)
+
+    if row and _redis:
+        token = secrets.token_urlsafe(32)
+        await _redis.setex(f"sahool:reset:{token}", 1800, str(row["id"]))  # 30 min
+        await send_reset_email(req.email, token)
+        await audit_log("password_reset_request", row["id"], ip)
+
+    return {"message": "إذا كان البريد مسجلاً، ستصلك رسالة إعادة التعيين"}
+
+
+@app.post("/auth/password-reset/confirm")
+async def confirm_password_reset(req: PasswordResetConfirm):
+    """✅ NEW: Confirm password reset with token."""
+    if not _redis:
+        raise HTTPException(503, "Password reset requires Redis")
+
+    user_id_str = await _redis.get(f"sahool:reset:{req.token}")
+    if not user_id_str:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صالح أو منتهي")
+
+    user_id = int(user_id_str)
+    hashed = bcrypt.hashpw(req.new_password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+
+    async with _acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
+        )
+
+    await _redis.delete(f"sahool:reset:{req.token}")
+    await revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات القائمة بعد إعادة التعيين
+    await audit_log("password_reset_confirm", user_id, "system")
+    return {"message": "تم تغيير كلمة المرور بنجاح"}
+
+
+@app.post("/auth/change-password")
+async def change_password(
+    req: ChangePasswordRequest,
+    user: dict = Depends(get_current_user),
+):
+    """✅ NEW: Change password for authenticated user."""
+    user_id = int(user["sub"])
+    async with _acquire() as conn:
+        row = await conn.fetchrow("SELECT password_hash FROM users WHERE id=$1", user_id)
+    if not row or not bcrypt.checkpw(req.current_password.encode(), row["password_hash"].encode()):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "كلمة المرور الحالية غير صحيحة")
+
+    hashed = bcrypt.hashpw(req.new_password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+    async with _acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET password_hash=$1, updated_at=NOW() WHERE id=$2", hashed, user_id
+        )
+    await revoke_all_user_sessions(user_id)  # إبطال كلّ الجلسات (يشمل الحاليّة) ⇒ إعادة دخول
+    await audit_log("change_password", user_id, "authenticated")
+    return {"message": "تم تغيير كلمة المرور بنجاح"}
+
+
+# ── MFA (TOTP / RFC 6238) ─────────────────────────────────────
+@app.post("/auth/mfa/setup")
+async def mfa_setup(user: dict = Depends(get_current_user)):
+    """يبدأ اقتران MFA: يولّد سرّاً ويُعيد provisioning_uri (لتطبيق المصادقة).
+
+    لا يُفعّل MFA بعد — التفعيل يتطلّب تأكيد أوّل رمز عبر /auth/mfa/activate
+    (إثبات أنّ المستخدم اقترن فعلاً، لئلّا يُقفل نفسه خارجاً). السرّ يُعرَض هنا
+    مرّة واحدة فقط (لا يُعاد بعدها أبداً).
+    """
+    user_id = int(user["sub"])
+    async with _acquire() as conn:
+        row = await conn.fetchrow("SELECT email, mfa_enabled FROM users WHERE id=$1", user_id)
+    if not row:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "المستخدم غير موجود")
+    if row["mfa_enabled"]:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "MFA مفعّل بالفعل — عطّله أولاً لإعادة الاقتران"
+        )
+
+    secret = pyotp.random_base32()
+    async with _acquire() as conn:
+        # نخزّن السرّ لكن mfa_enabled يبقى FALSE حتى التأكيد
+        await conn.execute(
+            "UPDATE users SET mfa_secret=$1, mfa_enabled=FALSE, updated_at=NOW() WHERE id=$2",
+            secret,
+            user_id,
+        )
+    uri = pyotp.TOTP(secret).provisioning_uri(name=row["email"], issuer_name="SAHOOL")
+    await audit_log("mfa_setup_started", user_id, "authenticated")
+    return {
+        "secret": secret,
+        "provisioning_uri": uri,
+        "message": "أكّد الرمز عبر /auth/mfa/activate",
+    }
+
+
+@app.post("/auth/mfa/activate")
+async def mfa_activate(req: MfaCodeRequest, user: dict = Depends(get_current_user)):
+    """يفعّل MFA بعد تأكيد أوّل رمز صحيح (إثبات الاقتران)."""
+    user_id = int(user["sub"])
+    async with _acquire() as conn:
+        row = await conn.fetchrow("SELECT mfa_secret, mfa_enabled FROM users WHERE id=$1", user_id)
+    if not row or not row["mfa_secret"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "ابدأ الاقتران أولاً عبر /auth/mfa/setup")
+    if not pyotp.TOTP(row["mfa_secret"]).verify(req.code.strip(), valid_window=1):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح — تأكّد من تطبيق المصادقة")
+    async with _acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET mfa_enabled=TRUE, updated_at=NOW() WHERE id=$1", user_id
+        )
+    await audit_log("mfa_activated", user_id, "authenticated")
+    return {"message": "تم تفعيل المصادقة الثنائيّة", "mfa_enabled": True}
+
+
+@app.post("/auth/mfa/disable")
+async def mfa_disable(req: MfaCodeRequest, user: dict = Depends(get_current_user)):
+    """يعطّل MFA — يتطلّب رمزاً صحيحاً حاليّاً (لا يُعطّله مهاجم بتوكن مسروق بلا الجهاز)."""
+    user_id = int(user["sub"])
+    async with _acquire() as conn:
+        row = await conn.fetchrow("SELECT mfa_secret, mfa_enabled FROM users WHERE id=$1", user_id)
+    if not row or not row["mfa_enabled"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA غير مفعّل")
+    # حالة غير متّسقة (مفعّل بلا سرّ): لا تُمرّر None لـpyotp (تجنّب 500) — أبلغ صراحةً.
+    if not row["mfa_secret"]:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "حالة MFA غير متّسقة — تواصل مع المسؤول")
+    if not pyotp.TOTP(row["mfa_secret"]).verify(req.code.strip(), valid_window=1):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح")
+    async with _acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET mfa_enabled=FALSE, mfa_secret=NULL, updated_at=NOW() WHERE id=$1",
+            user_id,
+        )
+    await audit_log("mfa_disabled", user_id, "authenticated")
+    return {"message": "تم تعطيل المصادقة الثنائيّة", "mfa_enabled": False}
+
+
 # ── Email/Phone Verification (تأكيد البريد/الهاتف — soft) ──────
 # تحقّق ناعم (soft): لا يحجب الدخول، بل يُعلّم الحساب verified_email/_phone.
 # الرمز يُخزَّن في Redis قصير الأجل (TTL) كإعادة استخدام لبنية refresh/reset
 # القائمة — لا حاجة لجدول جديد. التسليم STUB (سجلّ) — راجع send_otp.
+
+
+@app.post("/auth/verify/request")
+async def verify_request(
+    req: VerificationRequest,
+    request: Request,
+    user: Annotated[dict, Depends(get_current_user)],
+):
+    """يُصدر رمز OTP من ٦ أرقام لقناة المستخدم (بريد/هاتف) ويُخزّنه في Redis.
+
+    محميّ (يتطلّب توكناً)، ومحدود المعدّل (IP + لكلّ مستخدم+قناة). التسليم STUB.
+    """
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+    if not _redis:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "خدمة التحقّق تتطلّب Redis")
+    user_id = int(user["sub"])
+    await check_otp_request_rate(user_id, req.channel)
+
+    # وجهة التسليم: البريد من التوكن؛ الهاتف غير مخزّن بعد (stub) فنستخدم نائباً.
+    destination = user.get("email", "") if req.channel == "email" else f"user:{user_id}"
+
+    code = generate_otp()
+    await _redis.setex(otp_redis_key(user_id, req.channel), OTP_TTL_SECONDS, code)
+    # صدق: الرسالة تعكس واقع التسليم — لا ندّعي إرسالاً إن لم يُهيّأ مزوّد القناة.
+    delivered = await send_otp(req.channel, destination, code)
+    await audit_log(f"verify_request_{req.channel}", user_id, ip)
+    return {
+        "message": "تم إرسال رمز التحقّق" if delivered else "تعذّر تسليم الرمز عبر القناة",
+        "delivered": delivered,
+        "channel": req.channel,
+        "expires_in": OTP_TTL_SECONDS,
+    }
+
+
+@app.post("/auth/verify/confirm")
+async def verify_confirm(
+    req: VerificationConfirm,
+    request: Request,
+    user: Annotated[dict, Depends(get_current_user)],
+):
+    """يتحقّق من رمز OTP مقابل Redis (مقارنة ثابتة الزمن) ويُعلّم الحساب مُتحقَّقاً."""
+    ip = request.client.host if request.client else "unknown"
+    # حدّ معدّل بالـIP أيضاً على التأكيد — الرمز ٦ أرقام فقط، فبلا حدٍّ يمكن تخمينه قسريّاً.
+    await check_ip_rate(ip)
+    if not _redis:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "خدمة التحقّق تتطلّب Redis")
+    user_id = int(user["sub"])
+
+    submitted = normalize_otp(req.code)
+    if not is_valid_otp_shape(submitted):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "صيغة الرمز غير صحيحة")
+
+    key = otp_redis_key(user_id, req.channel)
+    stored = await _redis.get(key)
+    if not stored or not otp_codes_match(submitted, stored):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صالح أو منتهٍ")
+
+    # نجاح: نُثبّت العلَم في القاعدة أوّلاً ثم نستهلك الرمز — لو فشل التحديث يبقى
+    # الرمز صالحاً لإعادة المحاولة (لا نخسره). جملتان ثابتتان بلا SQL ديناميكيّ
+    # (اسم العمود لا يأتي من المستخدم، لكن نتجنّب البناء النصّيّ مبدئيّاً).
+    async with _acquire() as conn:
+        if req.channel == "email":
+            await conn.execute(
+                "UPDATE users SET verified_email=TRUE, updated_at=NOW() WHERE id=$1",
+                user_id,
+            )
+        else:
+            await conn.execute(
+                "UPDATE users SET verified_phone=TRUE, updated_at=NOW() WHERE id=$1",
+                user_id,
+            )
+    await _redis.delete(key)
+    await audit_log(f"verify_confirm_{req.channel}", user_id, ip)
+    return {"message": "تم التحقّق بنجاح", "channel": req.channel, "verified": True}
+
+
+@app.get("/auth/verify")
+async def verify(user: Annotated[dict, Depends(get_current_user)]):
+    return {
+        "valid": True,
+        "user_id": user["sub"],
+        "role": user["role"],
+        "tenant_id": user["tenant_id"],
+    }
+
+
+@app.get("/auth/me")
+async def me(user: Annotated[dict, Depends(get_current_user)]):
+    return {k: user[k] for k in ("sub", "email", "role", "full_name", "tenant_id")}
+
+
+@app.get("/auth/verify/status")
+async def verify_status(user: Annotated[dict, Depends(get_current_user)]):
+    """حالة تحقّق الحساب (بريد/هاتف) من القاعدة — لعرضها في الواجهة."""
+    user_id = int(user["sub"])
+    async with _acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT verified_email, verified_phone FROM users WHERE id=$1", user_id
+        )
+    if not row:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "المستخدم غير موجود")
+    return {
+        "verified_email": bool(row["verified_email"]),
+        "verified_phone": bool(row["verified_phone"]),
+    }
 
 
 # ── Admin endpoints ───────────────────────────────────────────
@@ -873,6 +1356,188 @@ async def _verify_caller_mfa(admin_user_id: int, mfa_code: str | None) -> bool:
     return bool(pyotp.TOTP(secret).verify(mfa_code.strip(), valid_window=1))
 
 
+@app.get("/auth/users", dependencies=[Depends(require_role("admin"))])
+async def list_users():
+    async with _acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT id, email, full_name, role, active, created_at, tenant_id FROM users ORDER BY id"
+        )
+    return [dict(r) for r in rows]
+
+
+@app.patch("/auth/users/{user_id}/role")
+async def change_role(
+    user_id: int,
+    role: ValidRole,
+    request: Request,
+    admin: Annotated[dict, Depends(require_role("admin"))],
+    x_mfa_code: Annotated[str | None, Header()] = None,
+):
+    # Step-up MFA (مُفعَّل بالبيئة): جلسة admin وحدها لا تكفي لتغيير دور — يلزم
+    # رمز TOTP حديث من المُنفِّذ نفسه. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر.
+    if _admin_stepup_required():
+        caller_id = int(admin["sub"])
+        if not await _verify_caller_mfa(caller_id, x_mfa_code):
+            ip = request.client.host if request.client else "unknown"
+            await audit_log(
+                "admin_op_mfa_denied",
+                caller_id,
+                ip,
+                details=f"change_role target={user_id}",
+                tenant_id=admin.get("tenant_id"),
+            )
+            raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
+    async with _acquire() as conn:
+        row = await conn.fetchrow(
+            "UPDATE users SET role=$1 WHERE id=$2 RETURNING id, email, role", role, user_id
+        )
+    if not row:
+        raise HTTPException(404, "المستخدم غير موجود")
+    # إبطال جلسات المستخدم ⇒ يُعاد تحميل الدور الجديد فوريّاً (لا يبقى التوكن القديم بدوره القديم)
+    await revoke_all_user_sessions(user_id)
+    ip = request.client.host if request.client else "unknown"
+    await audit_log(
+        "change_role",
+        int(admin["sub"]),
+        ip,
+        details=f"target={user_id} new_role={role} stepup={_admin_stepup_required()}",
+        tenant_id=admin.get("tenant_id"),
+    )
+    return dict(row)
+
+
+@app.patch("/auth/users/{user_id}/deactivate")
+async def deactivate_user(
+    user_id: int,
+    request: Request,
+    admin: Annotated[dict, Depends(require_role("admin"))],
+    x_mfa_code: Annotated[str | None, Header()] = None,
+):
+    # Step-up MFA (مُفعَّل بالبيئة): تعطيل حساب إجراء حسّاس — يلزم رمز TOTP حديث
+    # من المُنفِّذ. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر (لا mfa_code).
+    if _admin_stepup_required():
+        caller_id = int(admin["sub"])
+        if not await _verify_caller_mfa(caller_id, x_mfa_code):
+            ip = request.client.host if request.client else "unknown"
+            await audit_log(
+                "admin_op_mfa_denied",
+                caller_id,
+                ip,
+                details=f"deactivate target={user_id}",
+                tenant_id=admin.get("tenant_id"),
+            )
+            raise HTTPException(403, "يتطلّب هذا الإجراء رمز MFA حديثاً (step-up)")
+    async with _acquire() as conn:
+        await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
+    await revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
+    ip = request.client.host if request.client else "unknown"
+    await audit_log(
+        "deactivate_user",
+        int(admin["sub"]),
+        ip,
+        details=f"target={user_id} stepup={_admin_stepup_required()}",
+        tenant_id=admin.get("tenant_id"),
+    )
+    return {"message": "تم إلغاء تفعيل الحساب"}
+
+
+# ── Tenant provisioning (تهيئة مستأجِر B2B بيد مدير المنصّة) ────────────
+# القرار التصميميّ: التسجيل الذاتيّ (register) يُنشئ مستأجِراً + مالكاً معاً بكلمة
+# مرور يختارها المُسجِّل. التهيئة الإداريّة (هنا) تختلف: مدير المنصّة (دور auth
+# 'admin' ⇒ PLATFORM_ADMIN) يُنشئ مستأجِراً جديداً معزولاً + أوّل مالك له دون
+# أن يعرف المالكُ كلمةَ مرور مسبقة — يضبطها بنفسه عبر **رمز إعادة تعيين** (نعيد
+# استخدام آليّة password-reset القائمة: مفتاح Redis sahool:reset:{token} مدّته
+# ٣٠ دقيقة + send_reset_email). كلمة المرور الأوّليّة عشوائيّة غير قابلة للاستعمال.
+#
+# الأمان (لا تصعيد عابر للمستأجرين): المالك المُهيَّأ هو مالك مستأجِر **جديد
+# منفصل** (tenant_id فريد جديد، gen_random_uuid) — لا علاقة له بمستأجِر المُهيِّئ.
+# المُهيِّئ (admin) لا ينضمّ للمستأجِر الجديد ولا يحصل على توكن له ⇒ لا يصل لبياناته
+# (RLS يعزل المستأجرين). إذن منح 'owner' لمستأجِر مولود حديثاً ليس رفعاً للصلاحيّة
+# داخل مستأجِر قائم، بل تأسيس مستأجِر فارغ معزول (نفس منطق register).
+#
+# جدول tenants: لا يوجد في الهجرات — المستأجرون **ضمنيّون** عبر users.tenant_id
+# (افتراضه gen_random_uuid)، اتّساقاً مع التسجيل الذاتيّ. لذا لا صفّ tenants يُدرَج؛
+# tenant_name (إن أُرسِل) يُدوَّن في سجلّ التدقيق فقط.
+@app.post("/auth/tenants", status_code=201)
+async def provision_tenant(
+    req: TenantProvisionRequest,
+    request: Request,
+    admin: Annotated[dict, Depends(require_role("admin"))],
+):
+    """يُهيّئ مستأجِراً جديداً معزولاً + أوّل مالك له (مدير المنصّة فقط).
+
+    يُنشئ مستخدِم المالك بدور 'owner' وكلمة مرور أوّليّة عشوائيّة غير قابلة
+    للاستعمال، ثمّ يُصدر رمز إعادة تعيين (Redis) ليضبط المالك كلمة مروره. يرفض
+    إن كان البريد مسجّلاً مسبقاً (409). يُدوّن tenant_provisioned في التدقيق.
+    """
+    ip = request.client.host if request.client else "unknown"
+    admin_id = int(admin["sub"])
+
+    # كلمة مرور أوّليّة عشوائيّة غير قابلة للاستعمال: يُهشَّر سرّ عشوائيّ لا يُكشَف
+    # لأحد ⇒ لا يمكن تسجيل الدخول بها؛ المالك يضبط كلمته عبر رمز إعادة التعيين.
+    unusable = bcrypt.hashpw(secrets.token_urlsafe(48).encode(), bcrypt.gensalt(BCRYPT_ROUNDS))
+    hashed = unusable.decode()
+
+    async with _acquire() as conn:
+        try:
+            # tenant_id يُترَك للافتراضيّ gen_random_uuid ⇒ مستأجِر جديد معزول
+            # (نفس نمط register). الدور 'owner' مكتوب نصّاً هنا (لا من العميل).
+            row = await conn.fetchrow(
+                """
+                INSERT INTO users (email, password_hash, full_name, role)
+                VALUES ($1, $2, $3, 'owner')
+                RETURNING id, email, role, full_name, tenant_id
+                """,
+                req.owner_email,
+                hashed,
+                req.owner_full_name,
+            )
+        except asyncpg.UniqueViolationError as e:
+            raise HTTPException(status.HTTP_409_CONFLICT, "البريد الإلكتروني مسجّل مسبقاً") from e
+
+    new_tenant_id = str(row["tenant_id"]) if row["tenant_id"] else f"tenant_{row['id']}"
+
+    # رمز إعداد كلمة المرور: إعادة استخدام آليّة password-reset القائمة (Redis، ٣٠ دقيقة).
+    # نتدهور برشاقة بلا Redis (التطوير): نُعيد الحقول دون رمز (المالك يطلب إعادة تعيين لاحقاً).
+    setup_token: str | None = None
+    if _redis:
+        setup_token = secrets.token_urlsafe(32)
+        await _redis.setex(f"sahool:reset:{setup_token}", 1800, str(row["id"]))  # 30 دقيقة
+        # إرسال بريد الإعداد (نفس قالب إعادة التعيين) — best-effort (SMTP قد لا يكون مهيّأً).
+        await send_reset_email(req.owner_email, setup_token)
+
+    # التدقيق: tenant_provisioned بمستأجِر جديد + معرّف المُهيِّئ (admin). نُدوّن tenant_name
+    # في details للتتبّع (لا جدول tenants لتخزينه). tenant_id = المستأجِر الجديد المُهيَّأ.
+    details = req.tenant_name or req.owner_email
+    await audit_log("tenant_provisioned", admin_id, ip, details=details, tenant_id=row["tenant_id"])
+    logger.info(
+        "tenant provisioned: tenant=%s owner_user=%s by_admin=%s",
+        new_tenant_id,
+        row["id"],
+        admin_id,
+    )
+
+    # رابط الإعداد للواجهة (نفس مسار إعادة التعيين) — يُعرَض إن لم يُهيّأ SMTP.
+    setup_link = (
+        f"{os.getenv('FRONTEND_URL', 'https://app.sahool.ye')}/reset-password?token={setup_token}"
+        if setup_token
+        else None
+    )
+    return {
+        "tenant_id": new_tenant_id,
+        "owner_user_id": row["id"],
+        "owner_email": row["email"],
+        "owner_role": row["role"],  # دائماً 'owner'
+        "setup_token": setup_token,
+        "setup_link": setup_link,
+        "message": (
+            "تمّت تهيئة المستأجِر؛ أُرسِل/أُتيح رابط ضبط كلمة المرور للمالك"
+            if setup_token
+            else "تمّت تهيئة المستأجِر؛ يطلب المالك إعادة تعيين كلمة المرور (Redis غير متاح)"
+        ),
+    }
+
+
 # ── Tenant member invitations ─────────────────────────────────
 # القرار: الأعضاء الإضافيّون ينضمّون لمستأجِر **قائم** عبر دعوة بأدوار **أدنى**
 # (expert/farmer/viewer) — لا عبر التسجيل الذاتيّ. owner/admin لا يُدعى إليهما
@@ -880,12 +1545,214 @@ async def _verify_caller_mfa(admin_user_id: int, mfa_code: str | None) -> bool:
 INVITATION_EXPIRY_DAYS = 7
 
 
-# ══════════════════════════════════════════════════════════════
-# تسجيل الراوترات المفكَّكة (نمط تفكيك المنصّة — محفوظ السلوك)
-# يُستدعى في **نهاية** الملفّ بعد تعريف app وكلّ التبعيّات المشتركة (مساعِدات JWT،
-# مسبح DB، النماذج، الاعتماديّات) كي تُحلّ وحدات routers/ رموزها عبر main.X بلا
-# استيراد دائريّ. التسطيح (_include_flat) يُبقي عدّ المسارات والمسح الساكن صحيحَيْن.
-# ══════════════════════════════════════════════════════════════
-from router_registry import register_routers  # noqa: E402
+@app.post("/auth/invitations", status_code=201)
+async def create_invitation(
+    req: InvitationCreateRequest,
+    request: Request,
+    user: Annotated[dict, Depends(get_current_user)],
+):
+    """يُنشئ دعوة عضو لمستأجِر الداعي. owner/admin فقط، وبأدوار أدنى حصراً.
 
-register_routers(app)
+    أمان: tenant_id يُؤخَذ من توكن الداعي (لا من العميل)؛ الدور مُقيَّد بـ
+    {expert,farmer,viewer} (Literal + فحص صريح) — owner/admin مرفوضان (تصعيد).
+    """
+    ip = request.client.host if request.client else "unknown"
+    if not can_invite(user.get("role")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "الدعوة تتطلّب دور مالك المستأجِر")
+    # دفاع عمق: حتى لو تجاوز Literal، نرفض أيّ دور غير قابل للدعوة صراحةً.
+    if not is_inviteable_role(req.role):
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "الدور غير قابل للدعوة — المسموح: expert/farmer/viewer (لا owner/admin)",
+        )
+
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "لا مستأجِر مرتبط بالحساب الداعي")
+    inviter_id = int(user["sub"])
+    token = secrets.token_urlsafe(32)
+    expires_at = datetime.now(UTC) + timedelta(days=INVITATION_EXPIRY_DAYS)
+
+    async with _acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            INSERT INTO invitations
+                (token, email, tenant_id, role, invited_by, status, expires_at)
+            VALUES ($1, $2, $3, $4, $5, 'pending', $6)
+            RETURNING id, email, role, tenant_id, expires_at, created_at
+            """,
+            token,
+            req.email,
+            tenant_id,
+            req.role,
+            inviter_id,
+            expires_at,
+        )
+
+    await audit_log("invite_created", inviter_id, ip, details=req.email, tenant_id=tenant_id)
+    # لا إرسال بريد هنا (SMTP غير مضمون) — نُعيد الرابط لتعرضه الواجهة للنسخ.
+    accept_url = f"/accept-invitation?token={token}"
+    return {
+        "id": row["id"],
+        "email": row["email"],
+        "role": row["role"],
+        "tenant_id": str(row["tenant_id"]),
+        "token": token,
+        "accept_url": accept_url,
+        "expires_at": row["expires_at"].isoformat(),
+        "status": "pending",
+    }
+
+
+@app.get("/auth/invitations")
+async def list_invitations(user: Annotated[dict, Depends(get_current_user)]):
+    """يسرد الدعوات المعلّقة لمستأجِر الداعي (owner/admin فقط)، tenant-scoped."""
+    if not can_invite(user.get("role")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "يتطلّب دور مالك المستأجِر")
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        return []
+    async with _acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, email, role, status, expires_at, created_at
+            FROM invitations
+            WHERE tenant_id = $1 AND status = 'pending'
+            ORDER BY created_at DESC
+            """,
+            tenant_id,
+        )
+    return [
+        {
+            "id": r["id"],
+            "email": r["email"],
+            "role": r["role"],
+            "status": r["status"],
+            "expires_at": r["expires_at"].isoformat() if r["expires_at"] else None,
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+        }
+        for r in rows
+    ]
+
+
+@app.post("/auth/invitations/accept", response_model=TokenResponse, status_code=201)
+async def accept_invitation(req: InvitationAcceptRequest, request: Request):
+    """قبول دعوة (عموميّ، محميّ بالـtoken): يُنشئ مستخدِماً ينضمّ لمستأجِر الداعي.
+
+    أمان: الدور والمستأجِر يُؤخذان من **صفّ الدعوة فقط** — العميل لا يختارهما.
+    يرفض إن كان الـtoken غير صالح/منتهٍ/مستهلَكاً أو البريد مسجّلاً مسبقاً.
+    """
+    ip = request.client.host if request.client else "unknown"
+    await check_ip_rate(ip)
+    now = datetime.now(UTC)
+
+    async with _acquire() as conn:
+        inv = await conn.fetchrow(
+            """
+            SELECT id, email, tenant_id, role, status, expires_at
+            FROM invitations
+            WHERE token = $1
+            """,
+            req.token,
+        )
+        if not inv or inv["status"] != "pending":
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "دعوة غير صالحة أو مستهلَكة")
+        if inv["expires_at"] and inv["expires_at"] <= now:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "انتهت صلاحيّة الدعوة")
+        # حزام أمان نهائيّ: ارفض الدور المميَّز ولو سرّب إلى صفّ الدعوة بأيّ شكل.
+        if not is_inviteable_role(inv["role"]):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "دور الدعوة غير مسموح")
+
+        hashed = bcrypt.hashpw(req.password.encode(), bcrypt.gensalt(BCRYPT_ROUNDS)).decode()
+        # المستخدِم الجديد ينضمّ لمستأجِر الداعي بدوره المدعوّ — كلاهما من صفّ الدعوة.
+        try:
+            new_user = await conn.fetchrow(
+                """
+                INSERT INTO users (email, password_hash, full_name, role, tenant_id)
+                VALUES ($1, $2, $3, $4, $5)
+                RETURNING id, email, role, full_name, tenant_id
+                """,
+                inv["email"],
+                hashed,
+                req.full_name,
+                inv["role"],
+                inv["tenant_id"],
+            )
+        except asyncpg.UniqueViolationError as e:
+            raise HTTPException(status.HTTP_409_CONFLICT, "البريد مسجّل مسبقاً") from e
+
+        # وسم الدعوة مقبولة (idempotent: شرط status='pending' يمنع قبولاً مزدوجاً متسابِقاً).
+        await conn.execute(
+            "UPDATE invitations SET status='accepted', accepted_at=$1 WHERE id=$2",
+            now,
+            inv["id"],
+        )
+
+    tid = str(new_user["tenant_id"])
+    token, _jti = create_access_token(
+        new_user["id"], new_user["email"], new_user["role"], new_user["full_name"], tid
+    )
+    refresh = await create_refresh_token(new_user["id"], tid)
+    await audit_log("invite_accepted", new_user["id"], ip, details=new_user["email"], tenant_id=tid)
+
+    return TokenResponse(
+        access_token=token,
+        refresh_token=refresh,
+        expires_in=JWT_EXPIRE_MINUTES * 60,
+        user_id=new_user["id"],
+        role=new_user["role"],
+        full_name=new_user["full_name"],
+        tenant_id=tid,
+    )
+
+
+@app.delete("/auth/invitations/{invitation_id}")
+async def revoke_invitation(
+    invitation_id: int,
+    request: Request,
+    user: Annotated[dict, Depends(get_current_user)],
+):
+    """يلغي دعوة معلّقة (owner/admin فقط)، tenant-scoped — لا يطال دعوات مستأجِر آخر."""
+    ip = request.client.host if request.client else "unknown"
+    if not can_invite(user.get("role")):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "يتطلّب دور مالك المستأجِر")
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "الدعوة غير موجودة")
+    async with _acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            UPDATE invitations SET status='revoked'
+            WHERE id=$1 AND tenant_id=$2 AND status='pending'
+            RETURNING id
+            """,
+            invitation_id,
+            tenant_id,
+        )
+    if not row:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "الدعوة غير موجودة أو غير معلّقة")
+    await audit_log("invite_revoked", int(user["sub"]), ip, tenant_id=tenant_id)
+    return {"message": "تم إلغاء الدعوة", "id": invitation_id}
+
+
+# ── Observability ─────────────────────────────────────────────
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/healthz")
+@app.get("/health")
+async def health():
+    return {"status": "alive", "service": "auth", "version": "9.1.0"}
+
+
+@app.get("/readyz")
+async def readyz():
+    try:
+        async with _acquire() as conn:
+            await conn.fetchval("SELECT 1")
+        return {"status": "ready", "redis": _redis is not None}
+    except Exception as e:
+        # لا نُسرّب تفاصيل الاتصال/المضيف/المستخدم من استثناء asyncpg في readyz العام.
+        raise HTTPException(503, "DB not ready") from e

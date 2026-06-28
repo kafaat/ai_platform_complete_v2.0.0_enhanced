@@ -182,6 +182,7 @@ def full_delivery_pipeline(
     recommendation_history: list,
     current_indicators: dict | None = None,
     growth_stage: str | None = None,
+    issue_type: str | None = None,
     engines_used: list[str] | None = None,
     is_pesticide: bool = False,
     district_id: str | None = None,
@@ -200,6 +201,7 @@ def full_delivery_pipeline(
         recommendation_history=recommendation_history,
         current_indicators=current_indicators,
         growth_stage=growth_stage,
+        issue_type=issue_type,
         engines_used=engines_used,
         district_id=district_id,
     )

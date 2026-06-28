@@ -10,7 +10,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
-  MapContainer, TileLayer, FeatureGroup, useMap,
+  MapContainer, TileLayer, FeatureGroup, useMap, useMapEvents, CircleMarker as LeafletCircleMarker, Polyline,
 } from 'react-leaflet';
 import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
@@ -18,7 +18,7 @@ import '../lib/leafletSetup'; // CSS الأساسيّ لـLeaflet + الأداة
 import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle, Upload, FileUp,
-  Pentagon, Square, Circle, Magnet,
+  Pentagon, Square, Circle, Magnet, Crosshair, MousePointer2,
   Undo2, Redo2,
 } from 'lucide-react';
 import shp from 'shpjs';
@@ -48,6 +48,14 @@ function InvalidateMapSize() {
   return null;
 }
 
+interface PivotPayload {
+  center: { lon: number; lat: number };
+  radius_m: number;
+  start_angle_deg?: number;
+  end_angle_deg?: number;
+  vertices?: number;
+}
+
 interface FieldData {
   name:          string;
   manager:       string;
@@ -56,6 +64,8 @@ interface FieldData {
   area_ha:       number;
   field_code?:   string;
   water_source?: string;
+  irrigation_type?: string;
+  pivot?:        PivotPayload;
   country?:      string;
   region?:       string;
   geometry:      { type: string; coordinates: number[][][] };
@@ -145,22 +155,45 @@ function formatLengthM(m: number): string {
 
 // ── دائرة (ريّ محوريّ) → مضلّع مُقرَّب ──────────────────────────
 // الخلفيّة تتوقّع GeoJSON Polygon؛ نحوّل (مركز + نصف قطر م) إلى حلقة رؤوس.
-function circleToPolygon(center: L.LatLng, radiusM: number, n = 48): L.LatLng[] {
-  const latPerM = 1 / 111320; // متر → درجة عرض
-  // تثبيت cosLat بحدّ أدنى: قرب القطبين cos≈0 ⇒ Infinity/NaN يكسر التوليد.
-  const cosLat = Math.max(Math.cos((center.lat * Math.PI) / 180), 1e-6);
-  const lonPerM = 1 / (111320 * cosLat);
+function circleToPolygon(center: L.LatLng, radiusM: number, n = 72): L.LatLng[] {
+  // توليد دائرة جيوديسية حقيقية حول المركز بدل تقريب degree-per-meter.
+  // هذا يقلل الإزاحة/التشوّه في الحقول المحورية الكبيرة ويحافظ على نصف القطر بالمتر.
+  const R = 6378137; // WGS84 radius, meters
+  const lat1 = center.lat * Math.PI / 180;
+  const lon1 = center.lng * Math.PI / 180;
+  const d = radiusM / R;
   const pts: L.LatLng[] = [];
   for (let i = 0; i < n; i++) {
-    const a = (i / n) * 2 * Math.PI;
-    pts.push(
-      L.latLng(
-        center.lat + radiusM * latPerM * Math.sin(a),
-        center.lng + radiusM * lonPerM * Math.cos(a),
-      ),
+    const brng = (i / n) * 2 * Math.PI;
+    const lat2 = Math.asin(
+      Math.sin(lat1) * Math.cos(d) +
+      Math.cos(lat1) * Math.sin(d) * Math.cos(brng),
     );
+    const lon2 = lon1 + Math.atan2(
+      Math.sin(brng) * Math.sin(d) * Math.cos(lat1),
+      Math.cos(d) - Math.sin(lat1) * Math.sin(lat2),
+    );
+    pts.push(L.latLng(lat2 * 180 / Math.PI, lon2 * 180 / Math.PI));
   }
   return pts;
+}
+
+function PivotClickCapture({
+  mode,
+  onCenter,
+  onEdge,
+}: {
+  mode: 'idle' | 'center' | 'edge';
+  onCenter: (p: L.LatLng) => void;
+  onEdge: (p: L.LatLng) => void;
+}) {
+  useMapEvents({
+    click(e) {
+      if (mode === 'center') onCenter(e.latlng);
+      if (mode === 'edge') onEdge(e.latlng);
+    },
+  });
+  return null;
 }
 
 // ── Main component ─────────────────────────────────────────────
@@ -183,6 +216,13 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const [polygon, setPolygon] = useState<L.Polygon | null>(null);
   // مدخل "دائرة بنصف قطر" (إلهام FieldView): نصف القطر بالمتر (م) فقط — لا أقدام.
   const [radiusInput, setRadiusInput] = useState('');
+  // أداة الحقل المحوري الاحترافية: مركز أولاً، ثم نقطة على المحيط أو نصف قطر يدوي.
+  const [pivotMode, setPivotMode] = useState<'idle' | 'center' | 'edge'>('idle');
+  const [pivotCenter, setPivotCenter] = useState<L.LatLng | null>(null);
+  const [pivotEdge, setPivotEdge] = useState<L.LatLng | null>(null);
+  // Canonical pivot params sent to the backend.  Without these, a pivot circle is just
+  // a raw polygon and the backend cannot re-derive it later without drift.
+  const [pivotPayload, setPivotPayload] = useState<PivotPayload | null>(null);
   const [name, setName]   = useState('');
   const [mgr,  setMgr]    = useState('');
   const [crop, setCrop]   = useState(CROPS[0]);
@@ -287,6 +327,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     if (!fgRef.current) return;
     buildEditablePolygon(pts, true);
     setStage('form');
+    setPivotMode('idle');
     // كشف عكسي للموقع (دولة + إقليم) من مركز bbox المضلّع — عرض تلقائي قبل الحفظ.
     const lats = pts.map(p => p.lat);
     const lngs = pts.map(p => p.lng);
@@ -331,19 +372,36 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     applySnapshot(pointer + 1);
   }, [pointer, history.length, applySnapshot]);
 
+
+  const makePivotPayload = useCallback((center: L.LatLng, radiusM: number): PivotPayload => ({
+    center: { lon: Number(center.lng.toFixed(7)), lat: Number(center.lat.toFixed(7)) },
+    radius_m: Math.round(radiusM * 100) / 100,
+    start_angle_deg: 0,
+    end_angle_deg: 360,
+    vertices: 96,
+  }), []);
+
   // أداة الرسم (leaflet-draw): مضلّع / مستطيل / دائرة (ريّ محوريّ).
   const handleCreated = useCallback((e: L.DrawEvents.Created) => {
     const layer = e.layer as DrawnLayer;
     let pts: L.LatLng[];
     if (e.layerType === 'circle') {
-      pts = circleToPolygon(layer.getLatLng!(), layer.getRadius!());
+      const center = layer.getLatLng!();
+      const radius = layer.getRadius!();
+      setPivotPayload(makePivotPayload(center, radius));
+      setPivotCenter(center);
+      setPivotEdge(null);
+      setRadiusInput(String(Math.round(radius)));
+      pts = circleToPolygon(center, radius);
     } else {
       // polygon / rectangle: الحلقة الخارجيّة
+      setPivotPayload(null);
       const ring = (layer.getLatLngs?.() as L.LatLng[][] | undefined)?.[0];
       pts = Array.isArray(ring) ? (ring as L.LatLng[]) : [];
     }
     if (pts.length >= 3) handlePolygonDone(pts);
-  }, [handlePolygonDone]);
+  }, [handlePolygonDone, makePivotPayload]);
+
 
   // إنشاء دائرة بنصف قطر مُدخَل بالمتر (م) — إلهام FieldView (حوار نصف القطر).
   // يُكمّل السحب-للرسم القائم: نأخذ مركز الخريطة الحاليّ ونحوّله لمضلّع عبر
@@ -357,10 +415,45 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     }
     const map = mapRef.current;
     if (!map) { setError('الخريطة غير جاهزة بعد.'); return; }
-    const center = map.getCenter();
+    // إن اختار المستخدم مركزاً للمحور نستخدمه؛ وإلّا نحافظ على السلوك السابق: مركز الخريطة.
+    const center = pivotCenter ?? map.getCenter();
+    setPivotPayload(makePivotPayload(center, r));
     const pts = circleToPolygon(center, r);
     if (pts.length >= 3) handlePolygonDone(pts);
-  }, [radiusInput, handlePolygonDone]);
+  }, [radiusInput, pivotCenter, handlePolygonDone, makePivotPayload]);
+
+  const handlePivotCenterPicked = useCallback((p: L.LatLng) => {
+    setError('');
+    setPivotCenter(p);
+    setPivotEdge(null);
+    setPivotMode('edge');
+  }, []);
+
+  const handlePivotEdgePicked = useCallback((p: L.LatLng) => {
+    setError('');
+    if (!pivotCenter) {
+      setPivotCenter(p);
+      setPivotMode('edge');
+      return;
+    }
+    const r = pivotCenter.distanceTo(p);
+    if (!isFinite(r) || r <= 0) {
+      setError('اختر نقطة محيط مختلفة عن مركز الدائرة.');
+      return;
+    }
+    setPivotEdge(p);
+    setRadiusInput(String(Math.round(r)));
+    setPivotPayload(makePivotPayload(pivotCenter, r));
+    const pts = circleToPolygon(pivotCenter, r);
+    if (pts.length >= 3) handlePolygonDone(pts);
+  }, [pivotCenter, handlePolygonDone, makePivotPayload]);
+
+  const resetPivotTool = useCallback(() => {
+    setPivotMode('idle');
+    setPivotCenter(null);
+    setPivotEdge(null);
+    setPivotPayload(null);
+  }, []);
 
   // ── H-UI — تقطيع مُساعَد (تلقائيّ/هجين) عبر خدمة التقطيع المُوكَّلة ─────────────
   // يأخذ النطاق الظاهر للخريطة (bbox) والوضع فيطلب اقتراح حدّ، ثمّ يُحمّل المضلّع
@@ -394,6 +487,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         return;
       }
       // نُحمّل الاقتراح في طبقة التحرير (الالتقاط يبقى مُحترَماً عبر handlePolygonDone).
+      setPivotPayload(null);
       const pts = ring.map(([lat, lng]) => L.latLng(lat, lng));
       handlePolygonDone(pts);
       const conf = typeof res?.confidence === 'number' ? ` (ثقة ${(res.confidence * 100).toFixed(0)}٪)` : '';
@@ -438,6 +532,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setHistory([]);
     setPointer(-1);
     pointerRef.current = -1;
+    resetPivotTool();
   };
 
   const handleSave = async () => {
@@ -457,6 +552,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         name, manager: mgr, crop, soil_type: soil,
         field_code: fieldCode.trim() || undefined,
         water_source: waterSource,
+        irrigation_type: pivotPayload ? 'pivot' : undefined,
+        pivot: pivotPayload ?? undefined,
         country: autoCountry ?? undefined,
         region: autoRegion ?? undefined,
         area_ha: +(geodesicAreaHa(finalPts).toFixed(2)),
@@ -667,35 +764,77 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       </span>
                     )}
                   </div>
-                  {/* مدخل: دائرة بنصف قطر بالمتر (م) — يُنشئ حقلاً دائريّاً عند مركز الخريطة */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <label className="text-xs" style={{ color:'#94a3b8' }}>
-                      دائرة بنصف قطر:
-                    </label>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        min={1}
-                        inputMode="numeric"
-                        value={radiusInput}
-                        onChange={e => setRadiusInput(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCircleByRadius(); } }}
-                        placeholder="مثال: 250"
-                        className="w-28 px-2 py-1 rounded-lg text-sm"
-                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0' }}
-                      />
-                      <span className="text-xs font-semibold text-emerald-400">م</span>
+                  {/* أداة الحقل المحوري الاحترافية: مركز ← محيط أو نصف قطر يدوي */}
+                  <div className="rounded-xl p-3 space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold text-emerald-300 inline-flex items-center gap-1">
+                        <Circle className="w-3.5 h-3.5" /> دائرة / حقل محوري
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => { setError(''); setPivotMode('center'); setPivotCenter(null); setPivotEdge(null); }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold"
+                        style={pivotMode === 'center'
+                          ? { background:'#16a34a', color:'#fff' }
+                          : { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }}>
+                        <Crosshair className="w-3.5 h-3.5" /> حدّد المركز
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!pivotCenter}
+                        onClick={() => { setError(''); setPivotMode('edge'); }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={pivotMode === 'edge'
+                          ? { background:'#16a34a', color:'#fff' }
+                          : { background:'#0b1220', color:'#cbd5e1', border:'1px solid #334155' }}>
+                        <MousePointer2 className="w-3.5 h-3.5" /> نقطة على المحيط
+                      </button>
+                      {pivotCenter && (
+                        <button
+                          type="button"
+                          onClick={resetPivotTool}
+                          className="px-2 py-1 rounded-lg text-xs"
+                          style={{ background:'#1e293b', color:'#94a3b8', border:'1px solid #334155' }}>
+                          مسح المركز
+                        </button>
+                      )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleCreateCircleByRadius}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white"
-                      style={{ background:'#16a34a' }}>
-                      <Circle className="w-3.5 h-3.5" /> إنشاء دائرة
-                    </button>
-                    <span className="text-[11px]" style={{ color:'#64748b' }}>
-                      (تُنشأ عند مركز الخريطة — نصف القطر بالمتر)
-                    </span>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="text-xs" style={{ color:'#94a3b8' }}>
+                        نصف القطر اليدوي:
+                      </label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={1}
+                          inputMode="numeric"
+                          value={radiusInput}
+                          onChange={e => setRadiusInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCircleByRadius(); } }}
+                          placeholder="مثال: 250"
+                          className="w-28 px-2 py-1 rounded-lg text-sm"
+                          style={{ background:'#111827', border:'1px solid #334155', color:'#e2e8f0' }}
+                        />
+                        <span className="text-xs font-semibold text-emerald-400">م</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCreateCircleByRadius}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white"
+                        style={{ background:'#16a34a' }}>
+                        <Circle className="w-3.5 h-3.5" /> إنشاء دائرة
+                      </button>
+                    </div>
+                    <div className="text-[11px] leading-5" style={{ color:'#64748b' }}>
+                      {pivotMode === 'center'
+                        ? 'انقر على الخريطة لتحديد مركز المحور.'
+                        : pivotMode === 'edge'
+                          ? 'انقر على نقطة على محيط الدائرة لحساب نصف القطر وإنشاء الحقل.'
+                          : pivotCenter
+                            ? `المركز محدّد: ${pivotCenter.lat.toFixed(6)}, ${pivotCenter.lng.toFixed(6)} — أدخل نصف القطر أو اختر نقطة على المحيط.`
+                            : 'بدون مركز محدد، ينشئ الإدخال اليدوي الدائرة عند مركز الخريطة الحالي.'}
+                    </div>
                   </div>
 
                   {/* G — تبديل الالتقاط للحدود (افتراضيّ مُفعَّل) */}
@@ -845,6 +984,23 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 <InvalidateMapSize />
                 <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
                   attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
+                {stage === 'draw' && (
+                  <PivotClickCapture
+                    mode={pivotMode}
+                    onCenter={handlePivotCenterPicked}
+                    onEdge={handlePivotEdgePicked}
+                  />
+                )}
+                {stage === 'draw' && pivotCenter && (
+                  <LeafletCircleMarker
+                    center={pivotCenter}
+                    radius={8}
+                    pathOptions={{ color:'#f59e0b', fillColor:'#f59e0b', fillOpacity:0.9 }}
+                  />
+                )}
+                {stage === 'draw' && pivotCenter && pivotEdge && (
+                  <Polyline positions={[pivotCenter, pivotEdge]} pathOptions={{ color:'#f59e0b', weight:2, dashArray:'6 6' }} />
+                )}
                 <FeatureGroup ref={fgRef}>
                   {stage === 'draw' && (
                     <DrawControl

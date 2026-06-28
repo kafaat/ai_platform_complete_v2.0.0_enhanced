@@ -22,14 +22,15 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type
 import {
   Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
+  Tractor, CheckSquare, CircleDotDashed, History, RotateCcw,
 } from 'lucide-react';
 import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
-import { kongApi, asApiError } from '../services/api';
+import { kongApi, asApiError, refreshFieldImagery, fetchFieldImageryAvailableDates, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -41,7 +42,7 @@ import {
   LayerSwitcher, ColormapLegend, SideBySide, type CmapId,
 } from '../components/ds';
 import HubMap, {
-  type ScoutPin, type AlertMarker, type DeviceMarker, type WeatherMarker,
+  type ScoutPin, type AlertMarker, type DeviceMarker, type WeatherMarker, type OperationalMarker,
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
@@ -79,7 +80,7 @@ const PIN_CATEGORIES = ['آفة', 'مرض', 'نقص تغذية', 'إجهاد م�
 
 export default function MapHub() {
   const { options: fields, isLoading, isError, refetch, fieldId, setFieldId } = useSelectedField();
-  const { user } = useAuthStore();
+  const { user, tenantId } = useAuthStore();
   const mutateAllowed = canMutate(user?.role);
 
   const detailQ = useFieldDetail(fieldId || undefined);
@@ -89,6 +90,9 @@ export default function MapHub() {
   const [mode, setMode] = useState<'2d' | '3d'>(savedWorkspace?.mode === '3d' ? '3d' : '2d');
   const [basemapId, setBasemapId] = useState<string>(savedWorkspace?.basemapId ?? (BASEMAPS[0]?.id ?? 'satellite'));
   const [activeIndicator, setActiveIndicator] = useState<string | null>(savedWorkspace?.activeIndicator ?? null); // null = لا مؤشّر
+  const [imageryTs, setImageryTs] = useState(0); // cache-bust للبلاطات بعد معالجة Sentinel/COG
+  const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
+  const [availableImageryDates, setAvailableImageryDates] = useState<FieldImageryDateOption[]>([]);
   const [opacity, setOpacity] = useState(savedWorkspace?.opacity ?? 0.75);
   const [compare, setCompare] = useState(savedWorkspace?.compare ?? false);
   const [leftLayer, setLeftLayer] = useState<string>(savedWorkspace?.leftLayer ?? (INDICATOR_LAYERS[0]?.id ?? 'ndvi'));
@@ -99,6 +103,9 @@ export default function MapHub() {
   const [showWeather, setShowWeather] = useState(savedWorkspace?.showWeather ?? false);
   const [showAlerts, setShowAlerts] = useState(savedWorkspace?.showAlerts ?? false);
   const [showDevices, setShowDevices] = useState(savedWorkspace?.showDevices ?? false);
+  const [showEquipment, setShowEquipment] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
+  const [showPivots, setShowPivots] = useState(false);
   const [pins, setPins] = useState<ScoutPin[]>([]);
   const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
   // ── v2: لقطة عرض الخريطة (مركز lat/lng + تكبير) — تُستعاد وتُلتقط من الخريطة ──
@@ -115,10 +122,16 @@ export default function MapHub() {
   const [showAddField, setShowAddField] = useState(false);
   const [showSplitMerge, setShowSplitMerge] = useState(false); // أداة الدمج/التقسيم — مغلقة افتراضيّاً
   const [search, setSearch] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [geometryHistory, setGeometryHistory] = useState<Array<{ revision: number; changed_at?: string | null; reason?: string | null; source?: string | null }>>([]);
+  const [geometryHistoryBusy, setGeometryHistoryBusy] = useState(false);
+  const [geometryRevertBusy, setGeometryRevertBusy] = useState<number | null>(null);
 
   // ── حفظ/استيراد مساحة العمل (.sahool-project.json) — مستوحى من GeoLibre ──────
   // عميل-فقط: التصدير يقرأ الحالة الحاليّة، والاستيراد يستدعي الـsetters القائمة.
   const projectInputRef = useRef<HTMLInputElement>(null);
+  const imageryRefreshKeyRef = useRef<string>('');
 
   // التقاط عرض الخريطة (moveend من أيّ محرّك) — كتابة مُتسامِحة (idempotent): إن
   // لم يتغيّر المركز/التكبير لا نُحدّث الحالة، فلا حلقة استعادة↔حركة ولا حفظ زائد.
@@ -132,6 +145,94 @@ export default function MapHub() {
       return next;
     });
   }, []);
+
+  // تواريخ CDSE المتاحة للحقل. الربط مهم: لا نترك رابط البلاطات يطلب latest
+  // عندما يختار المستخدم مشهداً محدداً، حتى لا تختلط طبقات/كاش بتواريخ مختلفة.
+  useEffect(() => {
+    if (!fieldId || mode !== '2d') {
+      setAvailableImageryDates([]);
+      setSelectedImageryDate('latest');
+      return;
+    }
+    let cancelled = false;
+    fetchFieldImageryAvailableDates(fieldId)
+      .then((dates) => {
+        if (cancelled) return;
+        const sorted = [...dates].sort((a, b) => b.date.localeCompare(a.date));
+        setAvailableImageryDates(sorted);
+        setSelectedImageryDate((prev) => {
+          if (prev === 'latest') return prev;
+          return sorted.some((d) => d.date === prev) ? prev : 'latest';
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setAvailableImageryDates([]);
+      });
+    return () => { cancelled = true; };
+  }, [fieldId, mode]);
+
+  // عند اختيار مؤشّر وحقل، نطلب معالجة/تحديث صور Sentinel ثم نكسر كاش البلاطات.
+  // هذا لا يصنع قيماً وهمية: إذا لم تنتج الخلفية COG حقيقي، ستظل البلاطات شفافة.
+  useEffect(() => {
+    if (!fieldId || !activeIndicator || mode !== '2d') return;
+    const key = `${tenantId ?? 'default'}:${fieldId}:${activeIndicator}:${selectedImageryDate}`;
+    if (imageryRefreshKeyRef.current === key) return;
+    imageryRefreshKeyRef.current = key;
+    let cancelled = false;
+    refreshFieldImagery(fieldId, selectedImageryDate)
+      .then(() => {
+        window.setTimeout(() => {
+          if (!cancelled) setImageryTs(Date.now());
+        }, 20000);
+      })
+      .catch(() => {
+        // فشل المزود أو غياب الاعتمادات لا يكسر الخريطة؛ نعيد الجلب لكشف أي طبقة مخزنة سابقاً.
+        if (!cancelled) setImageryTs(Date.now());
+      });
+    return () => { cancelled = true; };
+  }, [fieldId, activeIndicator, mode, tenantId, selectedImageryDate]);
+
+  useEffect(() => {
+    if (!fieldId) {
+      setGeometryHistory([]);
+      return;
+    }
+    let cancelled = false;
+    setGeometryHistoryBusy(true);
+    kongApi.get(`/api/v1/fields/${fieldId}/geometry/history?limit=8`)
+      .then((res) => {
+        if (cancelled) return;
+        const revisions = Array.isArray(res.data?.revisions) ? res.data.revisions : [];
+        setGeometryHistory(revisions.map((r: Record<string, unknown>) => ({
+          revision: Number(r.revision),
+          changed_at: typeof r.changed_at === 'string' ? r.changed_at : null,
+          reason: typeof r.reason === 'string' ? r.reason : null,
+          source: typeof r.source === 'string' ? r.source : null,
+        })).filter((r: { revision: number }) => Number.isFinite(r.revision)));
+      })
+      .catch(() => { if (!cancelled) setGeometryHistory([]); })
+      .finally(() => { if (!cancelled) setGeometryHistoryBusy(false); });
+    return () => { cancelled = true; };
+  }, [fieldId]);
+
+  const handleRevertGeometry = useCallback(async (revision: number) => {
+    if (!fieldId || geometryRevertBusy !== null) return;
+    const ok = window.confirm(`استرجاع حدود الحقل إلى المراجعة #${revision}؟ سيتم إبطال بلاطات المؤشرات القديمة وإعادة المعالجة.`);
+    if (!ok) return;
+    setGeometryRevertBusy(revision);
+    try {
+      await kongApi.post(`/api/v1/fields/${fieldId}/geometry/revert/${revision}`);
+      toastStore.add('success', '✅ تم استرجاع الحدود', `المراجعة #${revision}`);
+      await refetch();
+      setImageryTs(Date.now());
+      const res = await kongApi.get(`/api/v1/fields/${fieldId}/geometry/history?limit=8`);
+      setGeometryHistory(Array.isArray(res.data?.revisions) ? res.data.revisions : []);
+    } catch (e) {
+      toastStore.add('error', 'تعذّر استرجاع الحدود', asApiError(e).message || 'تحقّق من الصلاحيّة أو سجلّ المراجعات.');
+    } finally {
+      setGeometryRevertBusy(null);
+    }
+  }, [fieldId, geometryRevertBusy, refetch]);
 
   const handleExportProject = useCallback(() => {
     const project = buildProject({
@@ -185,6 +286,7 @@ export default function MapHub() {
       drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory, mapView]);
 
   const selected = fields.find((f) => f.id === fieldId);
+  const indicatorActive = mode === '2d' && !compare ? activeIndicator : null;
 
   // قائمة الحقول المُرشَّحة بالبحث (اسم/محصول) — لوحة الحقول الباحثة.
   const visibleFields = useMemo(() => {
@@ -194,11 +296,41 @@ export default function MapHub() {
       f.name.toLowerCase().includes(q) || (f.crop ?? '').toLowerCase().includes(q));
   }, [fields, search]);
 
+
+  const fieldSummary = useMemo(() => {
+    const totalArea = fields.reduce((sum, f) => sum + (Number(f.area) || 0), 0);
+    const crops = new Set(fields.map((f) => (f.crop || '').trim()).filter((c) => c && c !== '—'));
+    const withGeometry = fields.filter((f) => Boolean(fieldRepresentativePoint(f))).length;
+    return { totalArea, cropCount: crops.size, withGeometry };
+  }, [fields]);
+
+  const selectedHasActiveSeason = useMemo(() => {
+    const d = detailQ.data as unknown as Record<string, unknown> | undefined;
+    if (!d) return false;
+    if (d.active_season || d.current_season) return true;
+    const seasons = d.seasons;
+    if (Array.isArray(seasons)) {
+      return seasons.some((season) => {
+        const s = season as Record<string, unknown>;
+        return s.status === 'active' || s.active === true || !s.season_end;
+      });
+    }
+    return false;
+  }, [detailQ.data]);
+
+  const mapDataStatus = useMemo(() => {
+    if (!fieldId) return { tone: 'warn' as const, label: 'اختر حقلاً', hint: 'لن تُحمّل المؤشرات قبل تحديد حقل.' };
+    if (!indicatorActive) return { tone: 'info' as const, label: 'لا مؤشر نشط', hint: 'اختر NDVI أو NDMI أو الملوحة لعرض الصور الجوية.' };
+    return { tone: 'ok' as const, label: 'مؤشر نشط', hint: `سيتم تحميل ${LAYER_LEGEND[indicatorActive]?.short ?? indicatorActive} داخل حدود الحقل.` };
+  }, [fieldId, indicatorActive]);
+
   // ── بيانات طبقات التراكب (حيّة، أمانة صارمة) ──────────────────
   // تنبيهات/أجهزة استعلامات React Query رخيصة مُخزَّنة — نُشغّلها دوماً (لا نُهدر
   // طلبات؛ مفعّل دائماً ويُعاد الاستخدام من الكاش). نُظهرها فقط حين التبديل مفعّل.
   const alertsQ = useAlerts({ status: 'active' });
   const devicesQ = useDevices();
+  const equipmentQ = useEquipment();
+  const tasksQ = useTasks();
 
   // فهرس النقطة الممثِّلة لكلّ حقل (lat/lng) — حقول بلا هندسة/نقطة غير قابلة للعرض.
   const fieldPointById = useMemo(() => {
@@ -255,6 +387,71 @@ export default function MapHub() {
     return { deviceMarkers: markers, devicesUnplaceable: unplaceable };
   }, [devicesQ.data, fieldPointById]);
 
+
+  // طبقات تشغيلية على نفس الخريطة: المعدّات/المهام/المحوري. لا تُختلق إحداثيات؛
+  // العنصر لا يظهر إلا إذا ارتبط بحقل له هندسة/نقطة. هذا يطابق نمط John Deere/FieldView:
+  // الخريطة هي مركز التشغيل، لكن السجلات التفصيلية تبقى في اللوحات الجانبية.
+  const { equipmentMarkers, equipmentUnplaceable } = useMemo(() => {
+    const list = equipmentQ.data ?? [];
+    const markers: OperationalMarker[] = [];
+    let unplaceable = 0;
+    for (const e of list) {
+      const row = e as typeof e & { field_id?: string | null; field_name?: string | null };
+      const pt = row.field_id ? fieldPointById.get(row.field_id) : undefined;
+      if (!pt) { unplaceable += 1; continue; }
+      markers.push({
+        id: row.equipment_id,
+        lat: pt[0], lng: pt[1],
+        kind: 'equipment',
+        title: row.name,
+        subtitle: `${row.type}${row.field_name ? ` · ${row.field_name}` : ''}`,
+        status: row.status,
+      });
+    }
+    return { equipmentMarkers: markers, equipmentUnplaceable: unplaceable };
+  }, [equipmentQ.data, fieldPointById]);
+
+  const { taskMarkers, tasksUnplaceable } = useMemo(() => {
+    const list = tasksQ.data?.tasks ?? [];
+    const markers: OperationalMarker[] = [];
+    let unplaceable = 0;
+    for (const t of list) {
+      const pt = t.field_id ? fieldPointById.get(t.field_id) : undefined;
+      if (!pt) { unplaceable += 1; continue; }
+      markers.push({
+        id: t.task_id,
+        lat: pt[0], lng: pt[1],
+        kind: 'task',
+        title: t.task_type,
+        subtitle: `${fieldNameById.get(t.field_id) ?? t.field_name ?? 'حقل'} · ${t.status}`,
+        status: t.status,
+      });
+    }
+    return { taskMarkers: markers, tasksUnplaceable: unplaceable };
+  }, [tasksQ.data, fieldPointById, fieldNameById]);
+
+  const pivotMarkers = useMemo<OperationalMarker[]>(() => {
+    if (!selected || !showPivots) return [];
+    const detail = detailQ.data as { irrigation_type?: string | null; pivot?: unknown } | undefined;
+    const hasPivot = String(detail?.irrigation_type ?? '').toLowerCase().includes('pivot') || detail?.pivot != null;
+    const pt = fieldPointById.get(selected.id);
+    if (!hasPivot || !pt) return [];
+    return [{
+      id: `pivot-${selected.id}`,
+      lat: pt[0], lng: pt[1],
+      kind: 'pivot',
+      title: `محوري ${selected.name}`,
+      subtitle: 'طبقة محوري مرتبطة بالحقل المختار',
+      status: 'active',
+    }];
+  }, [selected, showPivots, detailQ.data, fieldPointById]);
+
+  const operationalMarkers = useMemo<OperationalMarker[]>(() => [
+    ...(showEquipment ? equipmentMarkers : []),
+    ...(showTasks ? taskMarkers : []),
+    ...pivotMarkers,
+  ], [showEquipment, showTasks, equipmentMarkers, taskMarkers, pivotMarkers]);
+
   // الطقس: نقطة واحدة فقط للحقل المختار (تجنّب N طلبات لكلّ الحقول). نحسب lat/lon
   // من النقطة الممثِّلة للمختار؛ الافتراضات الآمنة تُمرَّر حين لا حقل/نقطة، لكنّنا
   // لا نَعرض الشارة إلّا حين يوجد حقل مختار له نقطة (selectedPoint).
@@ -271,6 +468,8 @@ export default function MapHub() {
       tempC: cur?.tmean ?? null,
       humidityPct: cur?.humidity_pct ?? null,
       conditionAr: cur?.weather_ar ?? null,
+      windSpeedKmh: cur?.wind_speed_kmh ?? null,
+      windDirectionDeg: cur?.wind_direction_deg ?? null,
     };
   }, [selectedPoint, weatherQ.data]);
 
@@ -290,13 +489,14 @@ export default function MapHub() {
   // ── إنشاء/استيراد حقل (نفس مسار FieldManagementPage الحقيقيّ) ──
   const handleSaveField = useCallback(async (data: {
     name: string; manager: string; crop: string; soil_type: string;
-    field_code?: string; water_source?: string; country?: string; region?: string;
+    field_code?: string; water_source?: string; irrigation_type?: string; pivot?: unknown; country?: string; region?: string;
     area_ha: number; geometry: { type: string; coordinates: number[][][] };
   }) => {
     try {
       await kongApi.post('/api/v1/fields', {
         name: data.name, crop: data.crop, soil_type: data.soil_type, manager: data.manager,
         field_code: data.field_code ?? null, water_source: data.water_source ?? null,
+        irrigation_type: data.irrigation_type ?? null, pivot: data.pivot ?? null,
         country: data.country ?? null, region: data.region ?? null, geometry: data.geometry,
       });
       setShowAddField(false);
@@ -321,10 +521,30 @@ export default function MapHub() {
     }
   }, [refetch]);
 
+
+  const handleDeleteSelectedField = useCallback(async () => {
+    if (!selected || deleteBusy) return;
+    if (selectedHasActiveSeason) {
+      toastStore.add('warning', 'لا يمكن حذف الحقل', 'يوجد موسم نشط مرتبط بهذا الحقل. أغلق الموسم أو انقله أولاً.');
+      return;
+    }
+    setDeleteBusy(true);
+    try {
+      await kongApi.delete(`/api/v1/fields/${selected.id}`);
+      toastStore.add('success', '🗑️ تم حذف الحقل', selected.name);
+      setDeleteConfirmOpen(false);
+      setFieldId('');
+      await refetch();
+    } catch (e) {
+      toastStore.add('error', 'تعذّر حذف الحقل', asApiError(e).message || 'تحقّق من الصلاحيّة أو وجود موسم نشط.');
+    } finally {
+      setDeleteBusy(false);
+    }
+  }, [deleteBusy, refetch, selected, selectedHasActiveSeason, setFieldId]);
+
   if (isLoading) return <LoadingState message="جارٍ تحميل مركز الخرائط…" />;
   if (isError) return <ErrorState title="تعذّر تحميل الحقول" onRetry={() => refetch()} />;
 
-  const indicatorActive = mode === '2d' && !compare ? activeIndicator : null;
 
   return (
     <div className="max-w-7xl mx-auto" dir="rtl">
@@ -390,6 +610,13 @@ export default function MapHub() {
           />
         </div>
       </header>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" data-testid="maphub-summary">
+        <SummaryStat label="إجمالي الحقول" value={String(fields.length)} />
+        <SummaryStat label="المساحة الكلية" value={`${fieldSummary.totalArea.toFixed(1)} هـ`} />
+        <SummaryStat label="محاصيل مختلفة" value={String(fieldSummary.cropCount)} />
+        <SummaryStat label="حقول بهندسة" value={`${fieldSummary.withGeometry}/${fields.length}`} />
+      </div>
 
       {fields.length === 0 ? (
         <EmptyState
@@ -461,19 +688,95 @@ export default function MapHub() {
                     : detailQ.data ? `${detailQ.data.crop || '—'} · ${detailQ.data.area_ha ?? selected.area} هـ`
                     : `${selected.crop} · ${selected.area} هـ`}
                 </div>
-                <button
-                  type="button" onClick={() => setDetailOpen(true)}
-                  className="mt-2 w-full text-center rounded-lg px-3 py-2 text-xs font-semibold"
-                  style={{ background: T.green, color: '#fff' }}
+                <div className="mt-2 grid grid-cols-[1fr_auto] gap-2">
+                  <button
+                    type="button" onClick={() => setDetailOpen(true)}
+                    className="text-center rounded-lg px-3 py-2 text-xs font-semibold"
+                    style={{ background: T.green, color: '#fff' }}
+                  >
+                    تفاصيل الحقل ومواسمه
+                  </button>
+                  {mutateAllowed && (
+                    <button
+                      type="button"
+                      data-testid="delete-selected-field"
+                      onClick={() => selectedHasActiveSeason ? toastStore.add('warning', 'لا يمكن حذف الحقل', 'يوجد موسم نشط مرتبط بهذا الحقل.') : setDeleteConfirmOpen(true)}
+                      title={selectedHasActiveSeason ? 'لا يمكن حذف حقل مرتبط بموسم نشط' : 'حذف الحقل'}
+                      className="inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold"
+                      style={{ background: selectedHasActiveSeason ? '#475569' : '#7f1d1d', color: '#fff', border: `1px solid ${selectedHasActiveSeason ? '#64748b' : '#ef4444'}` }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {selectedHasActiveSeason && (
+                  <div className="mt-2 text-[11px]" style={{ color: '#fbbf24' }}>
+                    حذف الحقل معطّل لأن هناك موسماً نشطاً مرتبطاً به.
+                  </div>
+                )}
+              </Card>
+            )}
+
+            {selected && (
+              <Card pad={12}>
+                <SectionLabel
+                  action={<Badge tone={geometryHistory.length > 1 ? 'ok' : 'neutral'}>{geometryHistory.length}</Badge>}
                 >
-                  تفاصيل الحقل ومواسمه
-                </button>
+                  <span className="inline-flex items-center gap-1">
+                    <History className="w-3.5 h-3.5" /> سجلّ الحدود
+                  </span>
+                </SectionLabel>
+                {geometryHistoryBusy ? (
+                  <div className="text-xs" style={{ color: T.muted }}>جارٍ تحميل إصدارات الحدود…</div>
+                ) : geometryHistory.length === 0 ? (
+                  <div className="text-xs" style={{ color: T.faint }}>لا يوجد سجلّ حدود متاح بعد.</div>
+                ) : (
+                  <div className="space-y-1.5" data-testid="geometry-history-panel">
+                    {geometryHistory.slice(0, 5).map((r, idx) => (
+                      <div key={`${r.revision}-${idx}`} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5" style={{ background: T.card2, border: `1px solid ${T.line}` }}>
+                        <div className="min-w-0">
+                          <div className="text-xs font-semibold" style={{ color: T.ink }}>مراجعة #{r.revision}</div>
+                          <div className="text-[10px] truncate" style={{ color: T.faint }}>
+                            {(r.changed_at ? new Date(r.changed_at).toLocaleString('ar') : '—')} · {r.reason ?? r.source ?? 'تحديث حدود'}
+                          </div>
+                        </div>
+                        {mutateAllowed && idx > 0 && (
+                          <button
+                            type="button"
+                            data-testid={`revert-geometry-${r.revision}`}
+                            onClick={() => handleRevertGeometry(r.revision)}
+                            disabled={geometryRevertBusy !== null}
+                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold"
+                            style={{ background: '#1f2937', color: '#e5e7eb', opacity: geometryRevertBusy !== null ? 0.6 : 1 }}
+                          >
+                            <RotateCcw className="w-3 h-3" /> استرجاع
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Card>
             )}
           </aside>
 
           {/* ── العمود المركزيّ: أدوات + خريطة ── */}
           <div className="space-y-3">
+            <Card pad={12}>
+              <div className="flex flex-wrap items-center justify-between gap-2" data-testid="map-data-status">
+                <div>
+                  <div className="text-xs font-semibold" style={{ color: T.muted }}>حالة بيانات الخريطة</div>
+                  <div className="text-sm font-bold" style={{ color: mapDataStatus.tone === 'ok' ? '#34d399' : mapDataStatus.tone === 'warn' ? '#fbbf24' : T.ink }}>{mapDataStatus.label}</div>
+                  <div className="text-[11px] mt-0.5" style={{ color: T.faint }}>{mapDataStatus.hint}</div>
+                </div>
+                <div className="flex items-center gap-2 text-[11px]" style={{ color: T.muted }}>
+                  <span>المحرك: {GL_ENGINE ? 'MapLibre GL' : 'Leaflet'}</span>
+                  {selected && <span>· الحقل: {selected.name}</span>}
+                  {indicatorActive && <span>· الطبقة: {LAYER_LEGEND[indicatorActive]?.short ?? indicatorActive}</span>}
+                </div>
+              </div>
+            </Card>
+
             {/* شريط الأدوات: الأساس + الطبقات + الشفّافيّة + الرسم/الدبابيس/المقارنة */}
             {mode === '2d' && (
               <Card pad={12}>
@@ -493,6 +796,26 @@ export default function MapHub() {
                         active={activeIndicator ?? '__none__'}
                         onChange={(id) => setActiveIndicator(id === '__none__' ? null : id)}
                       />
+                    </div>
+                  )}
+
+                  {!compare && activeIndicator && availableImageryDates.length > 0 && (
+                    <div className="flex items-center gap-2" data-testid="imagery-date-switcher">
+                      <span className="text-xs font-semibold" style={{ color: T.muted }}>المشهد</span>
+                      <select
+                        value={selectedImageryDate}
+                        onChange={(e) => { setSelectedImageryDate(e.target.value); setImageryTs(Date.now()); }}
+                        className="px-2 py-1 rounded-lg text-xs"
+                        style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                        aria-label="تاريخ صورة القمر الصناعي"
+                      >
+                        <option value="latest">الأحدث</option>
+                        {availableImageryDates.map((d) => (
+                          <option key={d.date} value={d.date}>
+                            {d.date}{typeof d.cloud_pct === 'number' ? ` · غيوم ${Math.round(d.cloud_pct)}%` : ''}{d.has_cog ? ' · جاهز' : ''}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   )}
 
@@ -527,6 +850,9 @@ export default function MapHub() {
                     <ToolToggle testid="btn-weather" active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس" />
                     <ToolToggle testid="btn-alerts" active={showAlerts} onClick={() => setShowAlerts((v) => !v)} icon={<Bell className="w-3.5 h-3.5" />} label="تنبيهات" />
                     <ToolToggle testid="btn-devices" active={showDevices} onClick={() => setShowDevices((v) => !v)} icon={<Radio className="w-3.5 h-3.5" />} label="أجهزة" />
+                    <ToolToggle testid="btn-equipment" active={showEquipment} onClick={() => setShowEquipment((v) => !v)} icon={<Tractor className="w-3.5 h-3.5" />} label="معدّات" />
+                    <ToolToggle testid="btn-tasks" active={showTasks} onClick={() => setShowTasks((v) => !v)} icon={<CheckSquare className="w-3.5 h-3.5" />} label="مهام" />
+                    <ToolToggle testid="btn-pivots" active={showPivots} onClick={() => setShowPivots((v) => !v)} icon={<CircleDotDashed className="w-3.5 h-3.5" />} label="محوري" />
                     {/* ملاحظات الأمانة: عناصر بلا حقل/هندسة غير قابلة للعرض — تُحتسَب لا تُختلَق */}
                     {showAlerts && alertsUnplaceable > 0 && (
                       <span className="text-[11px]" style={{ color: T.faint }}>
@@ -536,6 +862,21 @@ export default function MapHub() {
                     {showDevices && devicesUnplaceable > 0 && (
                       <span className="text-[11px]" style={{ color: T.faint }}>
                         {devicesUnplaceable} جهاز غير قابل للعرض على الخريطة (بلا حقل/هندسة)
+                      </span>
+                    )}
+                    {showEquipment && equipmentUnplaceable > 0 && (
+                      <span className="text-[11px]" style={{ color: T.faint }}>
+                        {equipmentUnplaceable} معدّة غير قابلة للعرض (بلا حقل/هندسة)
+                      </span>
+                    )}
+                    {showTasks && tasksUnplaceable > 0 && (
+                      <span className="text-[11px]" style={{ color: T.faint }}>
+                        {tasksUnplaceable} مهمة غير قابلة للعرض (بلا حقل/هندسة)
+                      </span>
+                    )}
+                    {showPivots && pivotMarkers.length === 0 && (
+                      <span className="text-[11px]" style={{ color: T.faint }}>
+                        المحوري يظهر للحقل المختار فقط عند وجود بيانات pivot/irrigation_type
                       </span>
                     )}
                     {showWeather && !selectedPoint && (
@@ -593,11 +934,11 @@ export default function MapHub() {
                 <SideBySide
                   leftLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={leftLayer} onChange={setLeftLayer} />}
                   rightLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={rightLayer} onChange={setRightLayer} />}
-                  left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} />}
-                  right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={rightLayer} opacity={opacity} />}
+                  left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
+                  right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={rightLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
                 />
                 <div className="text-[11px] mt-2" style={{ color: T.muted }}>
-                  طبقتان حقيقيّتان لنفس الحقل والتاريخ (latest) — للموازنة البصريّة.
+                  طبقتان حقيقيّتان لنفس الحقل والتاريخ المختار — للموازنة البصريّة.
                 </div>
               </Card>
             ) : (
@@ -621,8 +962,12 @@ export default function MapHub() {
                       alertMarkers={showAlerts ? alertMarkers : []}
                       deviceMarkers={showDevices ? deviceMarkers : []}
                       weatherMarker={showWeather ? weatherMarker : null}
+                      operationalMarkers={operationalMarkers}
                       initialView={initialMapView}
                       onViewChange={handleViewChange}
+                      imageryTs={imageryTs}
+                      imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
+                      tenantId={tenantId}
                     />
                   </Suspense>
                 ) : (
@@ -641,8 +986,12 @@ export default function MapHub() {
                     alertMarkers={showAlerts ? alertMarkers : []}
                     deviceMarkers={showDevices ? deviceMarkers : []}
                     weatherMarker={showWeather ? weatherMarker : null}
+                    operationalMarkers={operationalMarkers}
                     initialView={initialMapView}
                     onViewChange={handleViewChange}
+                    imageryTs={imageryTs}
+                    imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
+                    tenantId={tenantId}
                   />
                 )}
                 {/* مفتاح ألوان الطبقة النشطة */}
@@ -694,6 +1043,39 @@ export default function MapHub() {
           refetch={refetch}
         />
       )}
+
+      {deleteConfirmOpen && selected && (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center p-4" style={{ background: 'rgba(2,6,23,0.72)' }} role="dialog" aria-modal="true">
+          <div className="w-full max-w-md rounded-2xl border p-4 shadow-2xl" style={{ background: T.card, borderColor: T.line }}>
+            <div className="flex items-center gap-2 text-base font-bold" style={{ color: '#fecaca' }}>
+              <Trash2 className="w-5 h-5" /> تأكيد حذف الحقل
+            </div>
+            <p className="mt-3 text-sm leading-6" style={{ color: T.ink }}>
+              سيتم حذف الحقل <strong>{selected.name}</strong>. هذا الإجراء لا يمكن التراجع عنه من الواجهة.
+            </p>
+            <p className="mt-2 text-xs" style={{ color: T.faint }}>
+              يرفض الخادم الحذف إذا كان الحقل مرتبطاً بموسم نشط أو لا تملك الصلاحية المناسبة.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" onClick={() => setDeleteConfirmOpen(false)} className="rounded-lg px-3 py-2 text-xs font-semibold" style={{ background: T.card2, color: T.ink, border: `1px solid ${T.line}` }}>
+                إلغاء
+              </button>
+              <button type="button" data-testid="confirm-delete-field" disabled={deleteBusy} onClick={handleDeleteSelectedField} className="inline-flex items-center gap-1 rounded-lg px-3 py-2 text-xs font-semibold" style={{ background: deleteBusy ? '#475569' : '#dc2626', color: '#fff' }}>
+                <Trash2 className="w-3.5 h-3.5" /> {deleteBusy ? 'جارٍ الحذف…' : 'حذف نهائي'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SummaryStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border px-3 py-2" style={{ background: T.card, borderColor: T.line }}>
+      <div className="text-[11px]" style={{ color: T.faint }}>{label}</div>
+      <div className="mt-1 text-sm font-bold" style={{ color: T.ink }}>{value}</div>
     </div>
   );
 }
@@ -716,10 +1098,10 @@ function ToolToggle({ active, onClick, icon, label, testid }: { active: boolean;
 
 // لوحة خريطة مفردة لوضع المقارنة (بلا أدوات/دبابيس) — تعيد استخدام HubMap.
 function CompareMap({
-  fields, selectedId, basemapId, indicatorId, opacity,
+  fields, selectedId, basemapId, indicatorId, opacity, imageryTs, imageryDate, tenantId,
 }: {
   fields: ReturnType<typeof useSelectedField>['options'];
-  selectedId: string; basemapId: string; indicatorId: string; opacity: number;
+  selectedId: string; basemapId: string; indicatorId: string; opacity: number; imageryTs?: number; imageryDate?: string | null; tenantId?: string | null;
 }) {
   const legend = LAYER_LEGEND[indicatorId];
   const cmap = INDICATOR_LAYERS.find((l) => l.id === indicatorId)?.cmap ?? 'ndvi';
@@ -737,6 +1119,9 @@ function CompareMap({
         pins={[]}
         onAddPin={() => { /* لا دبابيس في المقارنة */ }}
         height={260}
+        imageryTs={imageryTs ?? 0}
+        imageryDate={imageryDate ?? null}
+        tenantId={tenantId ?? null}
       />
       {legend && (
         <div style={{ position: 'absolute', insetInlineStart: 8, bottom: 8, zIndex: 600, pointerEvents: 'none' }}>

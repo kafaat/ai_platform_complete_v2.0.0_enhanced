@@ -20,6 +20,7 @@ import { Layers, Satellite, Droplets, FlaskConical, Cpu, Columns2, Square } from
 import { useDevices } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
 import { useFieldContextStore } from '../hooks/useFieldContext';
+import { fetchFieldImageryAvailableDates, type FieldImageryDateOption } from '../services/api';
 import { geomToPolygon } from '../lib/geo';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import {
@@ -75,13 +76,14 @@ function deviceMarkerStatus(online?: boolean): 'working' | 'offline' {
 // لوحة خريطة واحدة (خريطة حقيقيّة + مفتاح ألوان فوقها). تُعاد استخدامها مفردةً
 // وداخل SideBySide. height قابل للضبط (مفرد أطول، مقارنة أقصر).
 function MapPanel({
-  field, polygon, fallbackBounds, layerId, height,
+  field, polygon, fallbackBounds, layerId, height, date,
 }: {
   field: MapField;
   polygon?: [number, number][];
   fallbackBounds?: [number, number, number, number];
   layerId: LayerId;
   height: number;
+  date: string;
 }) {
   const ly = layerOf(layerId);
   return (
@@ -93,7 +95,7 @@ function MapPanel({
         key={field.id}
         fieldId={field.id}
         index={layerId}
-        date="latest"
+        date={date}
         fieldPolygon={polygon}
         fallbackBounds={fallbackBounds}
         basemap="satellite"
@@ -121,6 +123,8 @@ export default function FieldMapCenter() {
   const [compare, setCompare] = useState(false);
   const [leftLayer, setLeftLayer] = useState<LayerId>('ndvi');
   const [rightLayer, setRightLayer] = useState<LayerId>('ndmi');
+  const [imageryDates, setImageryDates] = useState<FieldImageryDateOption[]>([]);
+  const [selectedDate, setSelectedDate] = useState('latest');
 
   // لا اختيار صالح بعد (أوّل تحميل/حُذف المُختار) ⇒ ثبّت أوّل حقل ذي هندسة (يفضَّل)
   // في المتجر المشترك، فيراه باقي الشاشات.
@@ -141,6 +145,24 @@ export default function FieldMapCenter() {
   const allDevices = Array.isArray(devicesQ.data) ? devicesQ.data : [];
   const fieldDevices = field ? allDevices.filter((d) => d.field_id === field.id) : [];
   const onlineDevices = fieldDevices.filter((d) => d.online).length;
+
+  // تاريخ الصورة المختار: لا نثبت مركز الخرائط على latest إذا كانت raster-service
+  // تعرف تواريخ COG جاهزة للحقل. هذا يغلق drift بين شاشات MapHub/Satellite ومركز الخرائط.
+  useEffect(() => {
+    if (!field?.id) { setImageryDates([]); setSelectedDate('latest'); return; }
+    let cancelled = false;
+    fetchFieldImageryAvailableDates(field.id)
+      .then((dates) => {
+        if (cancelled) return;
+        const ready = dates.filter((d) => d.date && d.has_cog !== false);
+        setImageryDates(ready);
+        setSelectedDate((prev) => (prev !== 'latest' && ready.some((d) => d.date === prev)) ? prev : (ready[0]?.date ?? 'latest'));
+      })
+      .catch(() => {
+        if (!cancelled) { setImageryDates([]); setSelectedDate('latest'); }
+      });
+    return () => { cancelled = true; };
+  }, [field?.id]);
 
   return (
     <FieldCabin
@@ -191,6 +213,23 @@ export default function FieldMapCenter() {
                     <option key={f.id} value={f.id}>{f.name}{geomToPolygon(f.geometry) ? '' : ' (بلا حدود)'}</option>
                   ))}
                 </select>
+                <div style={{ marginBottom: 10 }}>
+                  <span style={{ display: 'block', fontSize: 12, color: T.muted, marginBottom: 4 }}>تاريخ الصورة</span>
+                  <select
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    style={{
+                      width: '100%', padding: '8px 10px', borderRadius: 10,
+                      border: `1px solid ${T.line}`, background: T.card2, color: T.ink,
+                      fontSize: 13, fontWeight: 600,
+                    }}
+                  >
+                    <option value="latest">الأحدث</option>
+                    {imageryDates.map((d) => (
+                      <option key={d.date} value={d.date}>{d.date}{d.cloud_pct != null ? ` · غيوم ${Math.round(d.cloud_pct)}%` : ''}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex items-center justify-between">
                   <span style={{ fontSize: 12, color: T.muted }}>وضع العرض</span>
                   <button
@@ -223,11 +262,11 @@ export default function FieldMapCenter() {
                   rightLabel={
                     <LayerSwitcher layers={LAYER_OPTS} active={rightLayer} onChange={setRightLayer} />
                   }
-                  left={<MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={leftLayer} height={220} />}
-                  right={<MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={rightLayer} height={220} />}
+                  left={<MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={leftLayer} height={220} date={selectedDate} />}
+                  right={<MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={rightLayer} height={220} date={selectedDate} />}
                 />
                 <div style={{ fontSize: 11, color: T.muted, marginTop: 8 }}>
-                  طبقتان حقيقيّتان لنفس الحقل والتاريخ (latest) — للموازنة البصريّة.
+                  طبقتان حقيقيّتان لنفس الحقل والتاريخ المختار — للموازنة البصريّة.
                 </div>
               </Card>
             ) : (
@@ -235,7 +274,7 @@ export default function FieldMapCenter() {
                 <div style={{ marginBottom: 10 }}>
                   <LayerSwitcher layers={LAYER_OPTS} active={leftLayer} onChange={setLeftLayer} />
                 </div>
-                <MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={leftLayer} height={320} />
+                <MapPanel field={field} polygon={polygon} fallbackBounds={fallbackBounds} layerId={leftLayer} height={320} date={selectedDate} />
                 <div style={{ fontSize: 11, color: T.muted, marginTop: 8 }}>
                   {layerOf(leftLayer).hint} — طبقة <b>{layerOf(leftLayer).label}</b> فوق {field.name}.
                 </div>

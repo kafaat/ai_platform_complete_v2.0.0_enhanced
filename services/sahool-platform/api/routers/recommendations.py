@@ -153,7 +153,8 @@ async def recommendations_for_field(
     try:
         validation = _vo.validate(tenant_dir)
     except Exception as e:  # noqa: BLE001 — صدق: لا توصية بلا شهادة جودة
-        raise HTTPException(status_code=503, detail=f"تعذّر بناء شهادة الجودة: {e}") from e
+        # لا نُسرّب مسارات ملفات/تفاصيل داخلية من أداة التحقّق في استجابة عامة.
+        raise HTTPException(status_code=503, detail="تعذّر بناء شهادة الجودة") from e
 
     api_req = ApiRequest(
         user=user,

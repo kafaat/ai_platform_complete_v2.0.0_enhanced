@@ -98,6 +98,43 @@ export async function seedAuthAndRoutes(page: Page): Promise<void> {
     // قائمة الحقول (GET /api/v1/fields) — المضلّعات تُرسَم على الخريطة.
     if (/\/api\/v1\/fields\/?$/.test(path)) return json(route, FIELDS);
 
+
+    // سجل مراجعات هندسة الحقل — يفعّل Timeline + Comparison Mode في GIS Tools.
+    const history = path.match(/\/api\/v1\/fields\/([^/]+)\/geometry\/history\/?$/);
+    if (history) {
+      const f = FIELDS.find((x) => x.field_id === history[1]) ?? FIELDS[0];
+      return json(route, {
+        field_id: f.field_id,
+        revisions: [
+          {
+            revision: 2,
+            geometry: f.geometry,
+            changed_at: '2026-06-26T12:00:00Z',
+            reason: 'تعديل حدود بعد رفع مسار GPS',
+            source: 'field.geometry.patch',
+            metadata: { e2e: true },
+          },
+          {
+            revision: 1,
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [f.centroid_lon - 0.035, f.centroid_lat - 0.035],
+                [f.centroid_lon + 0.035, f.centroid_lat - 0.035],
+                [f.centroid_lon + 0.035, f.centroid_lat + 0.035],
+                [f.centroid_lon - 0.035, f.centroid_lat + 0.035],
+                [f.centroid_lon - 0.035, f.centroid_lat - 0.035],
+              ]],
+            },
+            changed_at: '2026-06-25T12:00:00Z',
+            reason: 'الرسم الأولي',
+            source: 'field.create',
+            metadata: { e2e: true },
+          },
+        ],
+      });
+    }
+
     // تفاصيل حقل (GET /api/v1/fields/{id}) — الدرج/البطاقة الجانبيّة.
     const detail = path.match(/\/api\/v1\/fields\/([^/]+)\/?$/);
     if (detail) {

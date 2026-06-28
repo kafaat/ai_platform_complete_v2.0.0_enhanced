@@ -26,6 +26,70 @@ import time
 
 logger = logging.getLogger("sahool.cdse")
 
+
+def _clamp_cloud_pct(value: float | int | str | None) -> float:
+    """Return a provider-safe cloud percentage in [0, 100]."""
+    try:
+        cloud = float(value) if value is not None else 40.0
+    except (TypeError, ValueError):
+        cloud = 40.0
+    return max(0.0, min(cloud, 100.0))
+
+
+def _to_rfc3339(value: str) -> str:
+    """Normalize date/date-time text for Sentinel Hub STAC Catalog.
+
+    The service accepts RFC3339 datetimes. UI/API calls often pass bare dates;
+    make them explicit UTC datetimes to avoid provider-side 400s caused by
+    ambiguous date intervals.
+    """
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError("datetime value is required")
+    if len(text) == 10 and text[4] == "-" and text[7] == "-":
+        return f"{text}T00:00:00Z"
+    if text.endswith("+00:00"):
+        return text[:-6] + "Z"
+    return text if text.endswith("Z") else text
+
+
+def _validate_bbox_4326(values: list[float]) -> list[float]:
+    if not isinstance(values, (list, tuple)) or len(values) != 4:
+        raise ValueError("bbox must be [west,south,east,north]")
+    west, south, east, north = [float(v) for v in values]
+    if not all(math.isfinite(v) for v in (west, south, east, north)):
+        raise ValueError(f"bbox contains non-finite values: {values!r}")
+    if not (-180 <= west < east <= 180 and -90 <= south < north <= 90):
+        raise ValueError(f"bbox must be EPSG:4326 [west,south,east,north], got {values!r}")
+    return [west, south, east, north]
+
+
+def _geometry_object(geometry: dict | None) -> dict | None:
+    if not geometry:
+        return None
+    geom = geometry
+    if geom.get("type") == "Feature":
+        geom = geom.get("geometry") or {}
+    elif geom.get("type") == "FeatureCollection":
+        features = geom.get("features") or []
+        geom = (features[0].get("geometry") if features else None) or {}
+    if geom.get("type") not in {"Polygon", "MultiPolygon"}:
+        raise ValueError(
+            f"CDSE geometry must be Polygon/MultiPolygon EPSG:4326, got {geom.get('type')!r}"
+        )
+    return geom
+
+
+def _safe_log_payload(payload: dict) -> dict:
+    """Small, non-sensitive payload summary for provider error logs."""
+    keys = ("collections", "bbox", "datetime", "filter", "filter-lang", "limit", "intersects")
+    out = {k: payload.get(k) for k in keys if k in payload}
+    if "intersects" in out:
+        geom = out["intersects"] or {}
+        out["intersects"] = {"type": geom.get("type"), "coordinates": "<omitted>"}
+    return out
+
+
 # نقاط CDSE الافتراضيّة (قابلة للتجاوز بالبيئة). الأسرار **ليست** هنا — البيئة فقط.
 _TOKEN_URL = os.getenv(
     "SH_TOKEN_URL",
@@ -122,7 +186,7 @@ def bbox_dims(bbox: list[float], target_res_m: float = 10.0, max_px: int = 2500)
     نقيّ. يقيّد إلى [16, ``max_px``] (حدّ Sentinel Hub Process ~2500). تقدير الأمتار/درجة
     عند خطّ العرض الأوسط (طول الموجة الطوليّة يتقلّص بـcos(lat)).
     """
-    west, south, east, north = (float(x) for x in bbox)
+    west, south, east, north = _validate_bbox_4326(bbox)
     lat_mid = math.radians((south + north) / 2.0)
     m_per_deg_lat = 111_320.0
     m_per_deg_lon = 111_320.0 * max(math.cos(lat_mid), 0.01)
@@ -203,17 +267,14 @@ class CdseClient:
         import httpx
 
         evalscript = build_evalscript(index)
+        bbox = _validate_bbox_4326(bbox)
         width, height = bbox_dims(bbox)
         bounds: dict = {
-            "bbox": [float(x) for x in bbox],
+            "bbox": bbox,
             "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
         }
-        if geometry:
-            geom = geometry
-            if geom.get("type") == "Feature":
-                geom = geom["geometry"]
-            elif geom.get("type") == "FeatureCollection":
-                geom = geom["features"][0]["geometry"]
+        geom = _geometry_object(geometry)
+        if geom:
             bounds["geometry"] = geom
         payload = {
             "input": {
@@ -223,7 +284,7 @@ class CdseClient:
                         "type": _COLLECTION,
                         "dataFilter": {
                             "timeRange": {"from": time_from, "to": time_to},
-                            "maxCloudCoverage": float(max_cloud_pct),
+                            "maxCloudCoverage": _clamp_cloud_pct(max_cloud_pct),
                             "mosaickingOrder": "leastCC",
                         },
                     }
@@ -245,8 +306,122 @@ class CdseClient:
             },
             timeout=120.0,
         )
-        resp.raise_for_status()
+        try:
+            resp.raise_for_status()
+        except httpx.HTTPStatusError:
+            logger.warning(
+                "CDSE Process API failed status=%s body=%s payload=%s",
+                resp.status_code,
+                resp.text[:1200],
+                _safe_log_payload(payload),
+            )
+            raise
         return resp.content
+
+    def search_scenes(
+        self,
+        *,
+        bbox: list[float],
+        time_from: str,
+        time_to: str,
+        max_cloud_pct: float = 40.0,
+        limit: int = 20,
+        geometry: dict | None = None,
+    ) -> list[dict]:
+        """Search CDSE Sentinel Hub Catalog for Sentinel-2 scenes.
+
+        Hardened behavior:
+        - normalizes date inputs to explicit RFC3339 intervals;
+        - validates bbox before sending it to the provider;
+        - uses provider-safe cloud limits;
+        - tries CQL2 text first and falls back to a minimal STAC request if the
+          provider rejects optional filtering syntax;
+        - logs provider response body and safe payload summary on errors.
+        """
+        import httpx
+
+        def _bbox(values: list[float]) -> list[float]:
+            return _validate_bbox_4326(values)
+
+        cloud = _clamp_cloud_pct(max_cloud_pct)
+        dt = f"{_to_rfc3339(time_from)}/{_to_rfc3339(time_to)}"
+        payload: dict = {
+            "collections": [_COLLECTION],
+            "datetime": dt,
+            "limit": max(1, min(int(limit), 100)),
+            "filter": f"eo:cloud_cover <= {cloud}",
+            "filter-lang": "cql2-text",
+            "fields": {
+                "include": [
+                    "id",
+                    "bbox",
+                    "properties.datetime",
+                    "properties.eo:cloud_cover",
+                    "properties.platform",
+                    "properties.s2:mgrs_tile",
+                ],
+                "exclude": ["assets"],
+            },
+            "sortby": [{"field": "properties.datetime", "direction": "desc"}],
+        }
+        geom = _geometry_object(geometry)
+        if geom:
+            payload["intersects"] = geom
+        else:
+            payload["bbox"] = _bbox(bbox)
+
+        headers = {
+            "Authorization": f"Bearer {self.token()}",
+            "Accept": "application/geo+json, application/json",
+            "Content-Type": "application/json",
+        }
+        url = f"{self._base_url}/api/v1/catalog/1.0.0/search"
+
+        def _minimal_fallback(base: dict) -> dict:
+            # Keep only stable STAC fields. Client-side cloud/date sorting still
+            # happens below, so removing optional filter syntax does not return
+            # unsafe data to callers.
+            keys = ("collections", "datetime", "limit", "bbox", "intersects")
+            return {k: base[k] for k in keys if k in base}
+
+        try:
+            resp = httpx.post(url, json=payload, headers=headers, timeout=30.0)
+            if resp.status_code >= 400:
+                logger.warning(
+                    "CDSE catalog search failed: status=%s body=%s payload=%s",
+                    resp.status_code,
+                    resp.text[:1200],
+                    _safe_log_payload(payload),
+                )
+                fallback = _minimal_fallback(payload)
+                resp = httpx.post(url, json=fallback, headers=headers, timeout=30.0)
+                if resp.status_code >= 400:
+                    logger.warning(
+                        "CDSE catalog fallback failed: status=%s body=%s payload=%s",
+                        resp.status_code,
+                        resp.text[:1200],
+                        _safe_log_payload(fallback),
+                    )
+                    return []
+            data = resp.json()
+            features = list(data.get("features") or [])
+            # Defensive client-side cloud filter in case fallback removed the provider filter.
+            filtered: list[dict] = []
+            for feature in features:
+                props = feature.get("properties") or {}
+                cc = props.get("eo:cloud_cover")
+                try:
+                    if cc is not None and float(cc) > cloud:
+                        continue
+                except (TypeError, ValueError):
+                    pass
+                filtered.append(feature)
+            return filtered
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                "CDSE catalog search failed — returning empty list: %s", e, exc_info=True
+            )
+            return []
 
 
 # مثيل وحيد (يُعيد استخدام ذاكرة التوكن عبر الطلبات).

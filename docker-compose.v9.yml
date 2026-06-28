@@ -1,64 +1,43 @@
-# ═══════════════════════════════════════════════════════════════════
-# SAHOOL v9.1.0 — docker-compose.v9.yml  ★ ملفّ الإنتاج القانونيّ (canonical)
-# يعتمده Makefile (COMPOSE) وسكربتات النشر؛ عند تعارض ملفّات compose فهذا المرجع.
-# (كانت الترويسة تُسمّي الملفّ خطأً «fixed.yml» — صُحّحت. راجع docs/ARCHITECTURE_AUDIT_2026-06-14.md)
-# التاريخ: 2026-05-20
-# ═══════════════════════════════════════════════════════════════════
-
-# ── دوران السجلّات الموحّد (يمنع امتلاء القرص بالسجلّات) — *default_logging ──
-x-logging: &default_logging
+x-logging: &id001
   driver: json-file
   options:
-    max-size: "10m"
-    max-file: "5"
-
-# ── المتطلبات البيئية (ضعها في .env) ─────────────────────────────
-# JWT_SECRET=your-min-32-char-secret-here
-# SAHOOL_AGENT_TOKEN=your-agent-token-here
-# ── DATABASE_URL: التطبيق يجب أن يتّصل بالدور المقيّد sahool_app ──
-# (NOSUPERUSER NOBYPASSRLS) ليبقى عزل RLS فعّالاً وقت التشغيل. الهجرات وحدها
-# تُشغَّل بالمالك المُمتاز sahool_user؛ لو اتّصل التطبيق به (superuser) لتجاوز
-# RLS حتى مع FORCE وانهار العزل بين المستأجرين. أنشئ sahool_app عبر
-# migrations/bootstrap_postgres.sh (الخطوة ٥) واضبط APP_DB_PASSWORD.
-# DATABASE_URL=postgresql://sahool_app:${APP_DB_PASSWORD}@sahool-postgres:5432/sahool
-# REDIS_PASSWORD=your-redis-password-here
-# MINIO_ROOT_PASSWORD=your-minio-password-here
-# ODOO_PASSWORD=your-odoo-password-here
-# TELEGRAM_BOT_TOKEN=your-telegram-token-here
-# QDRANT_API_KEY=your-qdrant-api-key-here
-# SMTP_PASSWORD=your-smtp-password-here
-# SH_CLIENT_ID=your-sentinel-hub-id
-# SH_CLIENT_SECRET=your-sentinel-hub-secret
-# COPERNICUS_USER=your-copernicus-user
-# COPERNICUS_PASSWORD=your-copernicus-password
-# ═══════════════════════════════════════════════════════════════════
-
+    max-size: 10m
+    max-file: '5'
 services:
-  # ═══════════════════════════════════════════════════════════════
-  # 1. REVERSE PROXY (Nginx)
-  # ═══════════════════════════════════════════════════════════════
+  raster-tiler-service:
+    build: ./services/raster-tiler-service
+    environment:
+    - PORT=8088
+    ports:
+    - 127.0.0.1:8088:8088
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz',
+        timeout=3)
+      interval: 30s
+      timeout: 5s
+      retries: 3
   sahool-nginx:
     image: nginx:1.27-alpine
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "80:80"
-      - "443:443"
+    - 80:80
+    - 443:443
     volumes:
-      # FIX: الملفّ كان nginx.conf (مفقود) → استُبدل بـnginx.v9.conf الموجود.
-      # يُركّب كـtemplate ليعالج envsubst متغيّر ${DOMAIN} تلقائيّاً (nginx:alpine).
-      - ./nginx/nginx.v9.conf:/etc/nginx/templates/nginx.conf.template:ro
-      - ./nginx/proxy_params.conf:/etc/nginx/proxy_params.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-      - nginx-cache:/var/cache/nginx
+    - ./nginx/nginx.v9.conf:/etc/nginx/templates/nginx.conf.template:ro
+    - ./nginx/proxy_params.conf:/etc/nginx/proxy_params.conf:ro
+    - ./nginx/ssl:/etc/nginx/ssl:ro
+    - nginx-cache:/var/cache/nginx
     environment:
-      # envsubst يعالج DOMAIN + SAHOOL_AGENT_TOKEN فقط (الفلتر يحمي متغيّرات nginx: $host…).
-      # SAHOOL_AGENT_TOKEN يُحقَن في رأس X-Agent-Token لمسار /api/edge/ (سرّ خادميّ، لا يصل العميل).
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
-      NGINX_ENVSUBST_FILTER: "DOMAIN|SAHOOL_AGENT_TOKEN"
+      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN
       DOMAIN: ${DOMAIN:-localhost}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
     depends_on:
@@ -80,230 +59,173 @@ services:
         condition: service_healthy
       sahool-local-ai-rag:
         condition: service_healthy
+      sahool-rag-retrieval:
+        condition: service_healthy
+      sahool-knowledge-graph:
+        condition: service_healthy
+      sahool-ai-agronomist:
+        condition: service_healthy
     networks:
-      - sahool-public
-      - sahool-internal
+    - sahool-public
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/healthz"]
+      test:
+      - CMD
+      - wget
+      - --quiet
+      - --tries=1
+      - --spider
+      - http://localhost/healthz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 2. PostgreSQL + PostGIS (FIX: was postgres:15, now postgis)
-  # FIX-01: استبدل postgres:15 بـ postgis/postgis:15-3.4
-  # FIX-02: منفذ مكشوف 0.0.0.0 → 127.0.0.1 فقط (أو أزل ports)
-  # ═══════════════════════════════════════════════════════════════
   sahool-postgres:
     image: postgis/postgis:15-3.4
     mem_limit: 1g
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
-    # منفذ مكشوف للمضيف فقط — إذا لم تحتاجه من الخارج، أزل السطر التالي
+    logging: *id001
     ports:
-      - "127.0.0.1:5432:5432"
+    - 127.0.0.1:5432:5432
     environment:
       POSTGRES_DB: sahool
       POSTGRES_USER: sahool_user
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD required}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-      # FIX (مراجعة F5): أُزيل تركيب /docker-entrypoint-initdb.d. كان يطبّق
-      # migrations/*.sql **أبجديّاً** عند أوّل إقلاع Postgres (v13/v14 قبل v9_foundation
-      # الذي تعتمد عليه ⇒ فشل/سباق + تطبيق مزدوج). خدمة sahool-migrate وحدها تطبّق
-      # الهجرات بترتيب MANIFEST الصحيح (نمط مطابق لـdocker-compose.fixed.yml).
+    - postgres-data:/var/lib/postgresql/data
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sahool_user -d sahool"]
+      test:
+      - CMD-SHELL
+      - pg_isready -U sahool_user -d sahool
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 40s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 3. Redis (FIX: بدون كلمة سر → requirepass)
-  # FIX-03: Redis محمي بكلمة سر
-  # ═══════════════════════════════════════════════════════════════
   sahool-redis:
     image: redis:7-alpine
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
-    # FIX: لا تكشف Redis للمضيف إلا إذا احتجت debugging
-    # ports:
-    #   - "127.0.0.1:6379:6379"
+    logging: *id001
     environment:
-      # FIX: expose the password inside the container so the healthcheck can
-      # authenticate (redis-cli -a) and avoid NOAUTH failures.
       REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
-    # السرّ يُقرأ من بيئة الحاوية وقت التشغيل ($$ ⇒ $ للـshell) لا بتفكيك compose
-    # ($VAR) الذي يُضمِّن كلمة السرّ في الأمر المُصيَّر فتظهر في docker inspect/config.
-    # الإلزاميّة (fail-closed) محفوظة عبر environment: REDIS_PASSWORD أعلاه (:?).
-    # FIX: redis:7-alpine لا يُنشئ /usr/local/etc/redis/ ⇒ الكتابة إليه تفشل فلا يبدأ
-    # redis ⇒ unhealthy. الحلّ (مطابق لـunified/light): إعدادات كوسائط سطر أمر مباشرةً.
-    command: >
-      redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD required}"
+    command: 'redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD required}"
       --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+      '
     volumes:
-      - redis-data:/data
+    - redis-data:/data
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # FIX: redis runs with --requirepass, so an unauthenticated PING returns
-      # NOAUTH and the check fails. Authenticate with -a before PING.
-      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      test:
+      - CMD-SHELL
+      - redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 4. NATS JetStream (FIX: بدون persistence → JetStream store)
-  # FIX-04: JetStream store دائم
-  # ═══════════════════════════════════════════════════════════════
   sahool-nats:
     image: nats:2-alpine
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
-    # PR #394: حدّ تخزين JetStream (max_memory_store/max_file_store) عبر ملفّ إعداد
-    # nats (nats/nats.conf) لا أعلام CLI غير المؤكَّدة عبر الإصدارات. الملفّ يضبط أيضاً
-    # jetstream + store_dir + http:8222 (يطابق الـhealthcheck)، فيستبدل الأعلام العارية.
-    # غير كاسر: صياغة الملفّ مستقرّة، والـcompose يبقى صالحاً (بوّابة Validate Docker Compose).
-    command: ["-c", "/etc/nats/nats.conf"]
+    logging: *id001
+    command:
+    - -c
+    - /etc/nats/nats.conf
     volumes:
-      - nats-js:/data/jetstream
-      - ./nats/nats.conf:/etc/nats/nats.conf:ro
+    - nats-js:/data/jetstream
+    - ./nats/nats.conf:/etc/nats/nats.conf:ro
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # FIX: nats:2-alpine ships BusyBox wget (no curl). Hit the monitoring
-      # port 8222 (enabled via --http_port 8222), not the 4222 client port.
-      # Use -qO- instead of --spider (BusyBox --spider is unreliable).
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz || exit 1"]
+      test:
+      - CMD-SHELL
+      - wget -qO- http://localhost:8222/healthz || exit 1
       interval: 10s
       timeout: 5s
       retries: 8
       start_period: 60s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 5. MinIO (FIX: كلمة سر جذرية مكشوفة → env var)
-  # FIX-05: MINIO_ROOT_PASSWORD من .env
-  # ═══════════════════════════════════════════════════════════════
   sahool-minio:
-    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-10-13T13-34-11Z}  # تحقّق/حدّث الوسم؛ digest أقوى
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-10-13T13-34-11Z}
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      # SECURITY FIX: bind to 127.0.0.1 only — access via Nginx reverse proxy
-      # في الإنتاج: Nginx يُضيف TLS + auth قبل الـMinIO
-      - "127.0.0.1:9000:9000"     # S3 API (داخلي عبر Nginx فقط)
-      - "127.0.0.1:9001:9001"     # MinIO Console (admin UI, internal only)
+    - 127.0.0.1:9000:9000
+    - 127.0.0.1:9001:9001
     environment:
       MINIO_ROOT_USER: sahool-admin
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
     command: server /data --console-address ":9001"
     volumes:
-      - minio-data:/data
+    - minio-data:/data
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:9000/minio/health/live
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 60s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 6. Qdrant (FIX: بدون API key → مُحمي)
-  # FIX-06: Qdrant API Key
-  # ═══════════════════════════════════════════════════════════════
   sahool-qdrant:
-    image: qdrant/qdrant:v1.17.1  # مثبّت على مستقرّ حديث (آخر GitHub، مارس 2026)؛ نشر جديد فلا هجرة RocksDB
+    image: qdrant/qdrant:v1.17.1
     mem_limit: 2g
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
-    # لا تكشف Qdrant للمضيف إلا إذا احتجت debugging
-    # ports:
-    #   - "127.0.0.1:6333:6333"
+    logging: *id001
     environment:
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?QDRANT_API_KEY required}
     volumes:
-      - qdrant-storage:/qdrant/storage
+    - qdrant-storage:/qdrant/storage
     networks:
-      - sahool-internal
-    # FIX: the official qdrant/qdrant image is DISTROLESS — it has NO curl,
-    # wget or shell, so the previous `curl ... /healthz` test could NEVER run
-    # and the container was always marked "unhealthy", which then cascaded to
-    # every service that waits on it via `condition: service_healthy`.
-    # There is no usable HTTP client inside the image, so we cannot run an
-    # in-container HTTP healthcheck without rebuilding the image. We therefore
-    # drop the in-container healthcheck and gate dependents on service_started.
-    # (If a true readiness gate is required, build a wrapper image that adds a
-    #  static healthcheck binary — see report.)
-
-  # ═══════════════════════════════════════════════════════════════
-  # 7. Ollama (FIX: مفقود للـ RAG)
-  # FIX-07: أضف Ollama لخدمة local-ai-rag
-  # ═══════════════════════════════════════════════════════════════
+    - sahool-internal
   sahool-ollama:
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}  # تحقّق/حدّث الوسم؛ digest أقوى
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}
     mem_limit: 4g
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
-    # GPU اختياري — أزل deploy.resources إذا لم تكن بحاجة لها
+    logging: *id001
     deploy:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+          - driver: nvidia
+            count: 1
+            capabilities:
+            - gpu
     volumes:
-      - ollama-models:/root/.ollama
+    - ollama-models:/root/.ollama
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # FIX: the ollama/ollama image does NOT ship curl — the old
-      # `curl -f http://localhost:11434` test could never run, so ollama was
-      # always "unhealthy" and every dependent (local-ai-rag, qdrant-seed) that
-      # waits on `condition: service_healthy` failed to start.
-      # The image DOES bundle the `ollama` CLI; `ollama list` hits the local API
-      # and exits 0 once the server is ready.
-      test: ["CMD", "ollama", "list"]
+      test:
+      - CMD
+      - ollama
+      - list
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 8. Auth Service (FIX: JWT_SECRET فارغ → required)
-  # FIX-08: JWT_SECRET مطلوب
-  # ═══════════════════════════════════════════════════════════════
-  # ═══════════════════════════════════════════════════════════════
-  # 7b. DB Migrate (one-shot) — يُهيّئ المخطّط + دور sahool_app المقيّد قبل
-  #     auth/platform. يجعل `docker compose up` ذاتيّ التهيئة: قبله كان الإقلاع
-  #     يفشل (auth يُدرج في users غير الموجود ⇒ ينهار) ما لم تُطبَّق الهجرات يدويّاً.
-  # ═══════════════════════════════════════════════════════════════
   sahool-migrate:
     image: postgis/postgis:15-3.4
-    restart: "no"
-    logging: *default_logging
+    restart: 'no'
+    logging: *id001
     environment:
       PGHOST: sahool-postgres
       PGPORT: 5432
@@ -312,27 +234,27 @@ services:
       PGDATABASE: sahool
       APP_DB_ROLE: ${APP_DB_ROLE:-sahool_app}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
-      # دور المهامّ الخلفيّة (BYPASSRLS) — يجب أن تطابق كلمته كلمة JOBS_DATABASE_URL.
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
     volumes:
-      - ./migrations:/migrations:ro
-    command: ["bash", "/migrations/apply_in_compose.sh"]
+    - ./migrations:/migrations:ro
+    command:
+    - bash
+    - /migrations/apply_in_compose.sh
     depends_on:
       sahool-postgres:
         condition: service_healthy
     networks:
-      - sahool-internal
-
+    - sahool-internal
   sahool-auth:
     build:
       context: .
       dockerfile: services/auth/Dockerfile
     mem_limit: 512m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -355,52 +277,48 @@ services:
       sahool-migrate:
         condition: service_completed_successfully
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/readyz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 8b. SAHOOL Platform — المنطق الأساسي (143 endpoint)
-  #     كان غير منشور؛ أُضيف ليخدم الواجهة الموحّدة عبر Nginx.
-  # ═══════════════════════════════════════════════════════════════
   sahool-platform:
-    build:
+    build: &id002
       context: .
       dockerfile: services/sahool-platform/Dockerfile
     mem_limit: 1g
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
-      # المنصّة تقرأ SAHOOL_* — يجب تمرير نفس السرّ الذي يوقّع به auth
       SAHOOL_JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       SAHOOL_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
-      DATABASE_URL: ${DATABASE_URL:-}
-      # HIGH-002: مسار المهامّ الخلفيّة (مرسِل event_outbox) يقرأ عابراً للمستأجرين ⇒
-      # دور sahool_jobs (BYPASSRLS). غيابه ⇒ يعود للتطبيق فيفشل المرسِل تحت RLS v72.
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
       SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
-      # أعلام الميزات المتقدّمة (تحرس راوترات؛ مُطفأة افتراضاً ⇒ 404 والواجهة تعرض حالة
-      # «معطّلة» صادقة). فعّل ما تريد عبر .env (1/true). انظر RUNBOOK.md +
-      # services/sahool-platform/api/feature_registry.py + frontend featureFlags.ts.
+      RAG_RETRIEVAL_URL: ${RAG_RETRIEVAL_URL:-http://sahool-rag-retrieval:8000}
+      KNOWLEDGE_GRAPH_URL: ${KNOWLEDGE_GRAPH_URL:-http://sahool-knowledge-graph:8000}
+      AI_AGRONOMIST_URL: ${AI_AGRONOMIST_URL:-http://sahool-ai-agronomist:8000}
       FEATURE_PORTFOLIO_COMMAND: ${FEATURE_PORTFOLIO_COMMAND:-0}
       FEATURE_DEVICE_TWIN: ${FEATURE_DEVICE_TWIN:-0}
       FEATURE_DELTA_SYNC: ${FEATURE_DELTA_SYNC:-0}
       FEATURE_NATURAL_LANGUAGE_GIS: ${FEATURE_NATURAL_LANGUAGE_GIS:-0}
-      # مساعد NL→SQL (api/routers/nl_sql.py): المفتاح خادميّ حصراً (لا يصل المتصفّح). غيابه ⇒
-      # honest-503 رغم تفعيل العلم. النموذج افتراضيّ claude-opus-4-8 (قابل للضبط، مثلاً claude-haiku-4-5 للكلفة).
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       NL_SQL_MODEL: ${NL_SQL_MODEL:-claude-opus-4-8}
       FEATURE_DECISION_STUDIO: ${FEATURE_DECISION_STUDIO:-0}
@@ -423,28 +341,28 @@ services:
       sahool-field-segmentation:
         condition: service_started
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/readyz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 8c. Weather Polygon Worker (P0) — يربط تنبّؤ الطقس بالحقول مكانيّاً
-  #     مهمّة خلفيّة عابرة للمستأجرين ⇒ تتّصل بدور sahool_jobs (BYPASSRLS).
-  # ═══════════════════════════════════════════════════════════════
   sahool-weather-polygon-worker:
     build:
       context: .
       dockerfile: services/weather-polygon-worker/Dockerfile
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
-      # دور المهامّ (BYPASSRLS) — يقرأ كلّ الحقول ويكتب تراكب كلّ مستأجِر. لا superuser.
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-}
-      DATABASE_URL: ${DATABASE_URL:-}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
       NATS_URL: nats://sahool-nats:4222
       WEATHER_HORIZON_HOURS: ${WEATHER_HORIZON_HOURS:-168}
     depends_on:
@@ -455,21 +373,27 @@ services:
       sahool-migrate:
         condition: service_completed_successfully
     networks:
-      - sahool-internal
-
-  # ═══════════════════════════════════════════════════════════════
-  # 8d. Weather Signal Engine (P1) — يولّد الإشارات تلقائيّاً مجدوَلاً من التراكب
-  #     مهمّة خلفيّة عابرة للمستأجرين ⇒ دور sahool_jobs (BYPASSRLS).
-  # ═══════════════════════════════════════════════════════════════
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - /app/worker_health_probe.py
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
   sahool-weather-signal-engine:
     build:
       context: .
       dockerfile: services/weather-signal-engine/Dockerfile
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-}
-      DATABASE_URL: ${DATABASE_URL:-}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
       WEATHER_SIGNAL_INTERVAL_SEC: ${WEATHER_SIGNAL_INTERVAL_SEC:-300}
     depends_on:
       sahool-postgres:
@@ -477,23 +401,27 @@ services:
       sahool-migrate:
         condition: service_completed_successfully
     networks:
-      - sahool-internal
-
-  # ═══════════════════════════════════════════════════════════════
-  # 9. Supervisor Agent (FIX: SAHOOL_AGENT_TOKEN فارغ → required)
-  # FIX-09: SAHOOL_AGENT_TOKEN مطلوب
-  # ═══════════════════════════════════════════════════════════════
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - /app/worker_health_probe.py
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
   sahool-supervisor-agent:
     build:
       context: .
       dockerfile: services/supervisor-agent/Dockerfile
     mem_limit: 768m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:8096:8000"
+    - 127.0.0.1:8096:8000
     environment:
       DATABASE_URL: ${DATABASE_URL}
       MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000/mcp/v1
@@ -506,34 +434,32 @@ services:
       sahool-auth:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/readyz
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 10. Guardrails Engine
-  # ═══════════════════════════════════════════════════════════════
   sahool-guardrails-engine:
     build:
       context: .
       dockerfile: services/guardrails-engine/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:8097:8000"
+    - 127.0.0.1:8097:8000
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
-      # FINDING-003: /validate يتطلّب X-Agent-Token مطابقاً لـSAHOOL_AGENT_TOKEN؛ بلا حقنه
-      # هنا تُرجِع الحَوكمة 503 (مغلقة بأمان لكنّها معطّلة). نفس قيمة supervisor-agent.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
     depends_on:
       sahool-postgres:
@@ -541,88 +467,97 @@ services:
       sahool-redis:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/readyz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/readyz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 11. MCP Servers (4 خدمات — منافذ داخلية مختلفة ليست ضرورية)
-  # ═══════════════════════════════════════════════════════════════
   sahool-sentinel-hub-mcp:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       SH_CLIENT_ID: ${SH_CLIENT_ID:?SH_CLIENT_ID required}
       SH_CLIENT_SECRET: ${SH_CLIENT_SECRET:?SH_CLIENT_SECRET required}
       JWT_SECRET: ${JWT_SECRET}
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
   sahool-weather-mcp:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       JWT_SECRET: ${JWT_SECRET}
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
   sahool-wofost-mcp:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       JWT_SECRET: ${JWT_SECRET}
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
   sahool-market-mcp:
     build:
       context: .
       dockerfile: services/mcp_servers/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
@@ -632,26 +567,26 @@ services:
       sahool-postgres:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 12. Vegetation Analysis
-  # ═══════════════════════════════════════════════════════════════
   sahool-vegetation-analysis:
     build:
       context: .
       dockerfile: services/vegetation-analysis-service/Dockerfile
     mem_limit: 768m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -667,43 +602,40 @@ services:
       sahool-nats:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 12b. Raster Service — صور Sentinel-2/1 (Element84 Earth Search)
-  # ═══════════════════════════════════════════════════════════════
   sahool-raster-service:
     build:
       context: .
       dockerfile: services/raster-service/Dockerfile
     mem_limit: 1536m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
-      # CDSE (Copernicus Data Space) — المزوّد الافتراضيّ الأقوى (Sentinel Hub Process API،
-      # حساب المؤشّر خادميّاً). غيابه ⇒ fallback تلقائيّ إلى Element84 (لا كسر). ⚠️ السرّ
-      # يُمرَّر بالمرجع ${CDSE_CLIENT_SECRET} من .env المحلّيّ (غير المتتبَّع) — لا قيمة حرفيّة هنا.
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
       CDSE_ENABLED: ${CDSE_ENABLED:-true}
       SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
       SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
-      # خادم بلاطات ديناميكي (TiTiler) للـCOG — سدّ فجوة P0. عند ضبطه
-      # تُخدَم البلاطات ديناميكيّاً من COG؛ وإلّا تبقى البلاطات الثابتة fallback.
       TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
-      # ضبط مرونة STAC (قلب النظام): إعادة محاولة + cache TTL
       STAC_MAX_RETRIES: ${STAC_MAX_RETRIES:-3}
       STAC_CACHE_TTL: ${STAC_CACHE_TTL:-900}
       STAC_FALLBACK_ENABLED: ${STAC_FALLBACK_ENABLED:-true}
@@ -714,53 +646,51 @@ services:
       # نفس دور التطبيق المقيَّد (sahool_app) كالمنصّة — RLS سارٍ.
       DATABASE_URL: ${DATABASE_URL:-}
     volumes:
-      - raster-data:/data/rasters
+    - raster-data:/data/rasters
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8001/healthz')"]
+      test:
+      - CMD
+      - python
+      - -c
+      - import httpx; httpx.get('http://localhost:8001/healthz')
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 12b. TiTiler — خادم بلاطات COG ديناميكي (Development Seed)
-  # ═══════════════════════════════════════════════════════════════
-  # سدّ فجوة P0: MapLibre لا يدعم COG أصلاً؛ TiTiler ينتج بلاطات عند الطلب
-  # من COG مع تمدّد ألوان ديناميكي. بديل عن البلاطات الثابتة المُولَّدة مسبقاً.
   sahool-titiler:
-    image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}  # تحقّق/حدّث الوسم؛ digest أقوى
-    command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers 1
+    image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}
+    command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers
+      1
     mem_limit: 1024m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
-      # CORS للسماح للواجهة بطلب البلاطات
       TITILER_API_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 13. Indicators Service
-  # ═══════════════════════════════════════════════════════════════
   sahool-indicators-service:
     build:
       context: .
       dockerfile: services/indicators-service/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -774,26 +704,26 @@ services:
       sahool-nats:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 14. Weather Service
-  # ═══════════════════════════════════════════════════════════════
   sahool-weather-service:
     build:
       context: .
       dockerfile: services/weather-service/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -801,26 +731,26 @@ services:
       sahool-nats:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 15. Actuator Service
-  # ═══════════════════════════════════════════════════════════════
   sahool-actuator-service:
     build:
       context: .
       dockerfile: services/actuator-service/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -834,54 +764,47 @@ services:
       sahool-fastbee:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # وسيط MQTT (Eclipse Mosquitto) — أوامر المُشغّلات من actuator-service
-  # (مراجعة F1): كان MQTT_BROKER_URL=mqtt://sahool-fastbee:1883 يشير إلى خدمة غير
-  # معرَّفة ⇒ أوامر الصمّامات/المضخّات تُفقَد. هذا وسيط MQTT حقيقيّ خفيف بلا اقتران
-  # قاعدة بيانات. (لمنصّة FastBee الكاملة بإدارة الأجهزة: متابعة منفصلة.)
-  # ═══════════════════════════════════════════════════════════════
   sahool-fastbee:
     image: eclipse-mosquitto:2
     mem_limit: 128m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - fastbee-data:/mosquitto/data
+    - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    - fastbee-data:/mosquitto/data
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # liveness: قراءة $SYS/broker/version (موضوع محتفَظ يصل فور الاشتراك) — يثبت
-      # أنّ الوسيط حيّ ويقبل الاتّصالات المجهولة على 1883 دون كتابة موضوع كلّ فحص.
-      test: ["CMD-SHELL", "mosquitto_sub -h 127.0.0.1 -p 1883 -t '$$SYS/broker/version' -C 1 -W 3 >/dev/null 2>&1 || exit 1"]
+      test:
+      - CMD-SHELL
+      - mosquitto_sub -h 127.0.0.1 -p 1883 -t '$$SYS/broker/version' -C 1 -W 3 >/dev/null
+        2>&1 || exit 1
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 16. Edge Inference (FIX: صورة عامة → build)
-  # FIX-10: build context بدل image عامة
-  # ═══════════════════════════════════════════════════════════════
   sahool-edge:
     build:
       context: .
       dockerfile: services/edge-inference/Dockerfile.arm64
     mem_limit: 1536m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       SAHOOL_CLOUD_URL: https://api.sahool.local
       EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:-}
@@ -891,48 +814,28 @@ services:
       MODEL_CACHE: /models
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
     volumes:
-      - edge-models:/models
-      - edge-sync:/data/sync_queue
+    - edge-models:/models
+    - edge-sync:/data/sync_queue
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # صورة edge (arm64) لا تثبّت curl — نستخدم python (متوفّر) لطلب /healthz على 8100.
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/healthz', timeout=3).read()\" || exit 1"]
+      test:
+      - CMD-SHELL
+      - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8100/healthz',
+        timeout=3).read()" || exit 1
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 17. Video Processor (FIX: ملف مقطوع → مُعلق حتى الإصلاح)
-  # FIX-11: مُعلق — أكمل services/video-processor/main.py أولاً
-  # ═══════════════════════════════════════════════════════════════
-  # sahool-video-processor:
-  #   build:
-  #     context: .
-  #     dockerfile: services/video-processor/Dockerfile
-  #   container_name: sahool-v9-video-processor
-  #   restart: unless-stopped
-  #   environment:
-  #     MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
-  #     EDGE_INFERENCE_URL: http://sahool-edge:8100
-  #     ZLMEDIA_API_URL: http://sahool-zlmediakit:8080
-  #   networks:
-  #     - sahool-internal
-
-  # ═══════════════════════════════════════════════════════════════
-  # 18. Local AI RAG (FIX: Ollama URL داخل Docker)
-  # FIX-12: EMBEDDING_URL و LLM_URL يشيران إلى sahool-ollama
-  # ═══════════════════════════════════════════════════════════════
   sahool-local-ai-rag:
     build:
       context: .
       dockerfile: services/local-ai-rag/Dockerfile
     mem_limit: 2g
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
@@ -945,31 +848,121 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-qdrant:
-        condition: service_started  # FIX: qdrant image is distroless, no healthcheck
+        condition: service_started
       sahool-ollama:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/healthz
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 19. Qdrant Seed (FIX: restart دائم → "no")
-  # FIX-13: لا يُعاد تشغيله تلقائيًا
-  # ═══════════════════════════════════════════════════════════════
+  sahool-rag-retrieval:
+    build:
+      context: .
+      dockerfile: services/rag-retrieval/Dockerfile
+    mem_limit: 768m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      QDRANT_URL: http://sahool-qdrant:6333
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-sahool_agri_kb}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-384}
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+    depends_on:
+      sahool-qdrant:
+        condition: service_started
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+        timeout=3).read()
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+  sahool-knowledge-graph:
+    build:
+      context: .
+      dockerfile: services/knowledge-graph/Dockerfile
+    mem_limit: 512m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      KG_SQLITE_PATH: /data/kg.sqlite
+    volumes:
+    - kg-storage:/data
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+        timeout=3).read()
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+  sahool-ai-agronomist:
+    build:
+      context: .
+      dockerfile: services/ai_agronomist/Dockerfile
+    mem_limit: 768m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      RAG_BASE_URL: http://sahool-rag-retrieval:8000
+      KNOWLEDGE_GRAPH_URL: http://sahool-knowledge-graph:8000
+      PLATFORM_URL: http://sahool-platform:8000
+      GUARDRAILS_URL: http://sahool-guardrails-engine:8000
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+    depends_on:
+      sahool-rag-retrieval:
+        condition: service_healthy
+      sahool-knowledge-graph:
+        condition: service_healthy
+      sahool-guardrails-engine:
+        condition: service_healthy
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+        timeout=3).read()
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 45s
   sahool-qdrant-seed:
     build:
       context: .
       dockerfile: services/qdrant-seed/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
-    restart: "no"
-    logging: *default_logging
+    - no-new-privileges:true
+    restart: 'no'
+    logging: *id001
     environment:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
@@ -978,140 +971,101 @@ services:
       EMBEDDING_MODEL: nomic-embed-text
     depends_on:
       sahool-qdrant:
-        condition: service_started  # FIX: qdrant image is distroless, no healthcheck
+        condition: service_started
       sahool-ollama:
         condition: service_healthy
     networks:
-      - sahool-internal
-
-  # ═══════════════════════════════════════════════════════════════
-  # 20. Odoo Bridge (FIX: ODOO_PASSWORD فارغ → required)
-  # FIX-14: ODOO_PASSWORD مطلوب
-  # ═══════════════════════════════════════════════════════════════
+    - sahool-internal
   sahool-odoo-bridge:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
     mem_limit: 512m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      # مفتاح تبديل مزوّد ERP: erpnext (الأساسي) | odoo (اختياري) | none (إيقاف).
-      # الافتراض erpnext؛ Odoo اختياريّ يُشغَّل بـ--profile odoo + ERP_PROVIDER=odoo.
       ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
       ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
       ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
       ERPNEXT_API_SECRET: ${ERPNEXT_API_SECRET:-}
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
-      ODOO_DB: ${ODOO_DB:-sahool_erp}  # قاعدة Odoo المنفصلة (لا قاعدة المنصّة sahool)
+      ODOO_DB: ${ODOO_DB:-sahool_erp}
       ODOO_USER: ${ODOO_USER:-admin}
-      # اختياريّ: يُستعمَل فقط عند ERP_PROVIDER=odoo. كان «:?required» يمنع تشغيل
-      # الإعداد الافتراضي (erpnext) بلا ضبط Odoo — فجُعِل اختياريّاً.
       ODOO_PASSWORD: ${ODOO_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-postgres:
         condition: service_healthy
-      # Odoo اختياري: الجسر يعمل مع أيّ مزوّد (odoo/erpnext/none).
-      # required:false يمنع فشل الجسر حين يكون Odoo معطّلاً (profile غير نشط).
       sahool-odoo:
         condition: service_healthy
         required: false
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8126/healthz"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8126/healthz
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 21. Odoo ERP (FIX: مفقود في unified.yml → أضفه)
-  # FIX-15: Odoo service مُضاف
-  # ═══════════════════════════════════════════════════════════════
   sahool-odoo:
     image: odoo:17.0
-    # مفتاح التبديل: يعمل فقط مع --profile odoo (أو ERP_PROVIDER=odoo)
-    profiles: ["odoo"]
-    mem_limit: 1536m   # FIX: Odoo 17 يحتاج ~1GB+ — 384m كان يسبّب OOM kill عند البدء
+    profiles:
+    - odoo
+    mem_limit: 1536m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:8069:8069"
-    # FIX (تشغيليّ): كان Odoo بلا command فلا يُهيّئ قاعدته (entrypoint الافتراضي لا
-    # يُثبّت base)، وكان ODOO_DB يُطمَس إلى «sahool» = قاعدة المنصّة (RLS) نفسها.
-    # العَرَض: relation "ir_module_module" does not exist / KeyError 'ir.http'.
-    # الحلّ: قاعدة Odoo منفصلة (sahool_erp) + تهيئة base أوّل تشغيل + db-filter يحصر
-    # Odoo على قاعدته فلا يمسّ قاعدة المنصّة. (يتطلّب أن يملك sahool_user صلاحيّة
-    # CREATEDB، أو أنشئ قاعدة sahool_erp مسبقاً.)
-    # FIX (ذاتيّ‑التعافي): entrypoint مخصّص (scripts/odoo-init.sh) يُنشئ القاعدة إن
-    # غابت ويُثبّت base مرّة واحدة فقط (كشف عبر to_regclass) ثمّ يُقلع العمليّة الطويلة
-    # بلا -i — فلا إعادة تثبيت كلّ إقلاع ولا حلقة فشل من تهيئة جزئيّة. entrypoint الصورة
-    # الافتراضي يبقى (يولّد odoo.conf من البيئة HOST/USER/PASSWORD).
-    command: ["bash", "/opt/odoo-init.sh"]
+    - 127.0.0.1:8069:8069
+    command:
+    - bash
+    - /opt/odoo-init.sh
     environment:
       HOST: sahool-postgres
       USER: sahool_user
       PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${ODOO_DB:-sahool_erp}  # منفصلة عن قاعدة المنصّة sahool
+      DB_NAME: ${ODOO_DB:-sahool_erp}
     volumes:
-      - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro
-      - odoo-web-data:/var/lib/odoo
-      - odoo-config:/etc/odoo
-      - odoo-addons:/mnt/extra-addons
-      # FIX: لا تُركّب filestore كـvolume متداخل منفصل. كان volume مستقلّ مُركَّب على
-      # /var/lib/odoo/filestore يُنشأ بملكية root (volume فارغ والصورة لا تورّث ملكية
-      # المسار المتداخل)، فيمنع مستخدم odoo (uid 101) من إنشاء
-      # /var/lib/odoo/filestore/<db> ⇒ PermissionError [Errno 13] أثناء تثبيت base
-      # (تظهر كأخطاء res_lang_data.xml / lang_ar / ir_module_module — أعراض لاحقة).
-      # filestore الآن داخل odoo-web-data الذي يرث ملكية odoo من /var/lib/odoo في الصورة.
+    - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro
+    - odoo-web-data:/var/lib/odoo
+    - odoo-config:/etc/odoo
+    - odoo-addons:/mnt/extra-addons
     depends_on:
       sahool-postgres:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8069/web/login"]
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8069/web/login
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 21-ب. ERPNext (بديل Odoo) — معماريّة Frappe متعدّدة الخدمات
-  # ⚠ ERPNext ليس حاوية واحدة: يحتاج configurator+backend+frontend+
-  #   websocket+workers+scheduler+MariaDB. لذا فُصِل في ملفّ مستقلّ:
-  #   docker-compose.erpnext.yml (الطريقة الصحيحة حسب توثيق Frappe).
-  # التشغيل: docker compose -f docker-compose.erpnext.yml --env-file .env up -d
-  # التبديل في الجسر: ERP_PROVIDER=erpnext + المفاتيح في .env
-  # (لا نُعرّف ERPNext هنا كحاوية مبسّطة — كان سيفشل: Frappe يحتاج bench كامل)
-
-
-
-  # ═══════════════════════════════════════════════════════════════
-  # 22. Telegram Bot (FIX: TELEGRAM_BOT_TOKEN فارغ → required)
-  # FIX-16: TELEGRAM_BOT_TOKEN مطلوب
-  # ═══════════════════════════════════════════════════════════════
   sahool-telegram-bot:
     build:
       context: .
       dockerfile: bots/telegram/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
-      # كان :?required ويوقف compose كلّه إن غاب. جُعل اختياريّاً —
-      # البوت لن يعمل بلا token لكنّه لا يمنع بقيّة الخدمات.
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET required}
+      TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET
+        required}
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
@@ -1126,28 +1080,25 @@ services:
       sahool-nats:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # البوت polling بلا خادم HTTP، ولا curl/pgrep في الصورة (python فقط).
-      # نفحص أمر PID 1 عبر /proc للتأكّد أنّ main.py يعمل. أُزيل JWT_SECRET (B5).
-      test: ["CMD-SHELL", "python -c \"import sys; sys.exit(0 if b'main.py' in open('/proc/1/cmdline','rb').read() else 1)\""]
+      test:
+      - CMD-SHELL
+      - python -c "import sys; sys.exit(0 if b'main.py' in open('/proc/1/cmdline','rb').read()
+        else 1)"
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 23. Notification Agent
-  # ═══════════════════════════════════════════════════════════════
   sahool-notification-agent:
     build:
       context: .
       dockerfile: agents/notification/Dockerfile
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -1165,19 +1116,16 @@ services:
       sahool-nats:
         condition: service_healthy
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # وكيل الإشعارات يستمع على 8123، ولا curl في الصورة (python فقط) — نطلب /readyz.
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz', timeout=3).read()\" || exit 1"]
+      test:
+      - CMD-SHELL
+      - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz',
+        timeout=3).read()" || exit 1
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 24. Frontend React (FIX: npm install كـ root)
-  # FIX-17: build multi-stage مع user node
-  # ═══════════════════════════════════════════════════════════════
   sahool-frontend:
     build:
       context: ./frontend
@@ -1187,143 +1135,160 @@ services:
         VITE_WS_URL: ${VITE_WS_URL:-/ws}
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:3003:8080"
+    - 127.0.0.1:3003:8080
     environment:
       VITE_API_URL: ${VITE_API_URL:-/api}
       VITE_WS_URL: ${VITE_WS_URL:-/ws}
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      test:
+      - CMD
+      - wget
+      - --quiet
+      - --tries=1
+      - --spider
+      - http://localhost:8080/healthz
       interval: 30s
       timeout: 10s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 25. Prometheus + Grafana (Observability)
-  # ═══════════════════════════════════════════════════════════════
   sahool-prometheus:
     image: prom/prometheus:v2.53.0
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:9090:9090"
+    - 127.0.0.1:9090:9090
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
-      - prometheus-data:/prometheus
+    - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    - prometheus-data:/prometheus
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://localhost:9090/-/healthy
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # AlertManager — يستقبل إنذارات Prometheus ويوجّهها (ملاحظة المراجعة: كان
-  # prometheus يشير لـalertmanager غير موجود). المستقبِلات الحقيقيّة تُضاف عبر
-  # تراكب النشر (Slack/email/Telegram) — الافتراضيّ no-op (لا ضجيج).
   sahool-alertmanager:
     image: prom/alertmanager:v0.27.0
     mem_limit: 128m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:9093:9093"
+    - 127.0.0.1:9093:9093
     volumes:
-      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      - alertmanager-data:/alertmanager
+    - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    - alertmanager-data:/alertmanager
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://localhost:9093/-/healthy
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
   sahool-grafana:
     image: grafana/grafana:10.4.5
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:3001:3000"
+    - 127.0.0.1:3001:3000
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_PASSWORD:?must be set in .env}"
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?must be set in .env}
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    - grafana-data:/var/lib/grafana
+    - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit
+        1
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 26. Jaeger (Tracing)
-  # ═══════════════════════════════════════════════════════════════
   sahool-jaeger:
     image: ${JAEGER_IMAGE:-jaegertracing/all-in-one:1.57}
     mem_limit: 384m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     ports:
-      - "127.0.0.1:16686:16686"
+    - 127.0.0.1:16686:16686
     environment:
-      COLLECTOR_OTLP_ENABLED: "true"
+      COLLECTOR_OTLP_ENABLED: 'true'
     volumes:
-      - jaeger-data:/badger
+    - jaeger-data:/badger
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:14269/ || exit 1"]
+      test:
+      - CMD-SHELL
+      - wget --no-verbose --tries=1 --spider http://localhost:14269/ || exit 1
       interval: 30s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 27. Soil Service (FIX: ملف فارغ → مُعلق)
-  # FIX-18: مُعلق حتى تُكمل services/soil-service/main.py
-  # ═══════════════════════════════════════════════════════════════
-  # sahool-soil-service:
-  #   build:
-  #     context: .
-  #     dockerfile: services/soil-service/Dockerfile
-  #   container_name: sahool-v9-soil-service
-  #   restart: unless-stopped
-  #   environment:
-  #     DATABASE_URL: ${DATABASE_URL}
-  #     NATS_URL: nats://sahool-nats:4222
-  #   networks:
-  #     - sahool-internal
-
-  # ═══════════════════════════════════════════════════════════════
-  # 27b. Field Segmentation (تقطيع الحقل) — عديم الحالة، بلا ML/torch.
-  #   المسار اليدويّ حقيقيّ (تحقّق/تطبيع مضلّع المستخدم). auto/hybrid عقدُ خدمة
-  #   فقط: يرُدّ 503 صادقاً إن لم يُهيّأ نموذج (SAM2/GeoSAM) — لا تلفيق نتائج.
-  #   اضبط SEGMENTATION_MODEL_PATH (+ SEGMENTATION_BACKEND) لتفعيل الخطّاف لاحقاً.
-  # ═══════════════════════════════════════════════════════════════
+  sahool-soil-service:
+    build:
+      context: .
+      dockerfile: services/soil-service/Dockerfile
+    container_name: sahool-v9-soil-service
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      NATS_URL: nats://sahool-nats:4222
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - python
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+        timeout=3).read()
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
   sahool-field-segmentation:
     build:
       context: .
@@ -1331,130 +1296,217 @@ services:
     container_name: sahool-v9-field-segmentation
     mem_limit: 512m
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
+    logging: *id001
     environment:
-      # توكن خدمة-لخدمة (تحقنه المنصّة عبر service_proxy بعد التحقّق من JWT).
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
-      # خطّاف النموذج — فارغ افتراضاً ⇒ auto/hybrid ترُدّ 503 صادقاً.
       SEGMENTATION_MODEL_PATH: ${SEGMENTATION_MODEL_PATH:-}
-      # تفعيل auto/hybrid عبر خادم SAM2 — يُفعَّل فقط مع profile=gpu (انظر أدناه
-      # خدمة sahool-sam2-inference). افتراضاً (بلا profile) القيمتان فارغتان ⇒
-      # 503 صادق. لرفع المسار الكامل اضبط في .env (أو مرّرهما عند رفع gpu):
-      #   SEGMENTATION_BACKEND=sam2
-      #   SEGMENTATION_INFERENCE_URL=http://sahool-sam2-inference:8080/predict
-      # راجع docs/SAM2_DEPLOYMENT.md.
       SEGMENTATION_BACKEND: ${SEGMENTATION_BACKEND:-}
       SEGMENTATION_INFERENCE_URL: ${SEGMENTATION_INFERENCE_URL:-}
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8000/readyz"]
+      test:
+      - CMD
+      - curl
+      - -sf
+      - http://localhost:8000/readyz
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 27c. SAM2 Inference (استدلال SAM2 على GPU/CUDA) — OPT-IN خلف profile=gpu.
-  #   يفعّل auto/hybrid في field-segmentation. الحزمة الافتراضيّة (CPU فقط) لا
-  #   تشغّله ولا تعتمد عليه — field-segmentation تردّ 503 صادقاً بدونه.
-  #   يتطلّب NVIDIA Container Toolkit + GPU على المضيف. الأوزان تُركَّب على /models
-  #   (volume sam2-models:ro). راجع docs/SAM2_DEPLOYMENT.md.
-  #   التشغيل: docker compose -f docker-compose.v9.yml --profile gpu up -d \
-  #            sahool-sam2-inference sahool-field-segmentation
-  # ═══════════════════════════════════════════════════════════════
   sahool-sam2-inference:
     build:
       context: .
       dockerfile: services/sam2-inference/Dockerfile
     container_name: sahool-v9-sam2-inference
-    profiles: ["gpu"]
+    profiles:
+    - gpu
     mem_limit: 12g
     security_opt:
-      - no-new-privileges:true
+    - no-new-privileges:true
     restart: unless-stopped
-    logging: *default_logging
-    # تمرير GPU عبر Compose v2 (deploy.resources). للإعداد الأقدم استبدلها
-    # بـ`runtime: nvidia` على مستوى الخدمة.
+    logging: *id001
     deploy:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+          - driver: nvidia
+            count: 1
+            capabilities:
+            - gpu
     environment:
-      # توكن خدمة-لخدمة (نفس عقد field-segmentation/X-Agent-Token).
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
-      # مسار الأوزان داخل volume sam2-models (للقراءة فقط).
       SAM2_CHECKPOINT: ${SAM2_CHECKPOINT:-/models/sam2_hiera_large.pt}
       SAM2_MODEL_CFG: ${SAM2_MODEL_CFG:-sam2_hiera_l.yaml}
     volumes:
-      # أوزان SAM2 (للقراءة فقط) — املأها قبل التشغيل (انظر الـrunbook).
-      - sam2-models:/models:ro
+    - sam2-models:/models:ro
     networks:
-      - sahool-internal
+    - sahool-internal
     healthcheck:
-      # python-urllib (لا curl في صورة CUDA). /readyz يعكس model_loaded بالمنطق.
       test:
-        - CMD
-        - python
-        - -c
-        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/readyz', timeout=4).status==200 else 1)"
+      - CMD
+      - python
+      - -c
+      - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/readyz',
+        timeout=4).status==200 else 1)
       interval: 20s
       timeout: 5s
       retries: 6
       start_period: 60s
-
-  # ═══════════════════════════════════════════════════════════════
-  # 28. AgriAI Engine (FIX: لا يوجد كود → مُعلق)
-  # FIX-19: مُعلق حتى تُكمل services/agriai-engine/main.py
-  # ═══════════════════════════════════════════════════════════════
-  # sahool-agriai-engine:
-  #   build:
-  #     context: .
-  #     dockerfile: services/agriai-engine/Dockerfile
-  #   container_name: sahool-v9-agriai-engine
-  #   restart: unless-stopped
-  #   environment:
-  #     DATABASE_URL: ${DATABASE_URL}
-  #     SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}  # /recommend يتطلّبه
-  #   networks:
-  #     - sahool-internal
-
-# ═══════════════════════════════════════════════════════════════════
-# NETWORKS
-# ═══════════════════════════════════════════════════════════════════
+  sahool-phase-runtime-outbox-worker:
+    build: *id002
+    mem_limit: 512m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
+      OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
+      PHYSICAL_ACTUATION_ENABLED: ${PHYSICAL_ACTUATION_ENABLED:-false}
+      PLUGIN_EXECUTION_ENABLED: ${PLUGIN_EXECUTION_ENABLED:-false}
+      MODEL_SERVING_ROLLBACK_ENABLED: ${MODEL_SERVING_ROLLBACK_ENABLED:-false}
+    command:
+    - python
+    - -m
+    - api.phase_runtime_workers
+    - outbox
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+  sahool-plugin-runtime-worker:
+    build: *id002
+    mem_limit: 512m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
+      OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
+      PHYSICAL_ACTUATION_ENABLED: ${PHYSICAL_ACTUATION_ENABLED:-false}
+      PLUGIN_EXECUTION_ENABLED: ${PLUGIN_EXECUTION_ENABLED:-false}
+      MODEL_SERVING_ROLLBACK_ENABLED: ${MODEL_SERVING_ROLLBACK_ENABLED:-false}
+    command:
+    - python
+    - -m
+    - api.phase_runtime_workers
+    - plugin
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+  sahool-model-registry-worker:
+    build: *id002
+    mem_limit: 512m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
+      OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
+      PHYSICAL_ACTUATION_ENABLED: ${PHYSICAL_ACTUATION_ENABLED:-false}
+      PLUGIN_EXECUTION_ENABLED: ${PLUGIN_EXECUTION_ENABLED:-false}
+      MODEL_SERVING_ROLLBACK_ENABLED: ${MODEL_SERVING_ROLLBACK_ENABLED:-false}
+    command:
+    - python
+    - -m
+    - api.phase_runtime_workers
+    - model
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+  sahool-actuator-dispatch-worker:
+    build: *id002
+    mem_limit: 512m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      PHASE_RUNTIME_PERSISTENCE_REQUIRED: ${PHASE_RUNTIME_PERSISTENCE_REQUIRED:-true}
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
+      OUTBOX_MAX_ATTEMPTS: ${OUTBOX_MAX_ATTEMPTS:-5}
+      PHYSICAL_ACTUATION_ENABLED: ${PHYSICAL_ACTUATION_ENABLED:-false}
+      PLUGIN_EXECUTION_ENABLED: ${PLUGIN_EXECUTION_ENABLED:-false}
+      MODEL_SERVING_ROLLBACK_ENABLED: ${MODEL_SERVING_ROLLBACK_ENABLED:-false}
+    command:
+    - python
+    - -m
+    - api.phase_runtime_workers
+    - actuator
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
 networks:
   sahool-public:
     driver: bridge
   sahool-internal:
     driver: bridge
-    internal: false   # true إذا أردت عزل تام (لكن Jaeger/Prometheus تحتاج access)
-
-# ═══════════════════════════════════════════════════════════════════
-# VOLUMES (Persistent)
-# ═══════════════════════════════════════════════════════════════════
+    internal: false
 volumes:
-  postgres-data:
-  raster-data:
-  redis-data:
-  fastbee-data:
-  nats-js:
-  minio-data:
-  qdrant-storage:
-  ollama-models:
-  edge-models:
-  edge-sync:
-  odoo-web-data:
-  odoo-config:
-  odoo-addons:
-  prometheus-data:
-  alertmanager-data:
-  grafana-data:
-  jaeger-data:
-  nginx-cache:
-  # أوزان SAM2 (يملؤها المستخدم قبل رفع profile gpu) — راجع docs/SAM2_DEPLOYMENT.md.
-  sam2-models:
+  postgres-data: null
+  raster-data: null
+  redis-data: null
+  fastbee-data: null
+  nats-js: null
+  minio-data: null
+  qdrant-storage: null
+  kg-storage: null
+  ollama-models: null
+  edge-models: null
+  edge-sync: null
+  odoo-web-data: null
+  odoo-config: null
+  odoo-addons: null
+  prometheus-data: null
+  alertmanager-data: null
+  grafana-data: null
+  jaeger-data: null
+  nginx-cache: null
+  sam2-models: null

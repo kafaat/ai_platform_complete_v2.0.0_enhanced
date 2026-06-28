@@ -24,6 +24,7 @@
 
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -72,6 +73,15 @@ class OfflineFieldMap extends StatefulWidget {
   // نصّ تعليمات يُعرَض كشريط أعلى الخريطة (إن وُجد) في وضع الرسم.
   final String? instruction;
 
+  // طبقة طقس/رياح اختيارية فوق الخريطة، شبيهة بأسلوب Windy:
+  // تظليل حراري/رطوبي + خطوط اتجاه الرياح. تُرسم فوق البلاطات والحقول ولا تلتقط اللمس.
+  final bool showWeatherOverlay;
+  final double? weatherTempC;
+  final double? weatherHumidityPct;
+  final double? windSpeedKmh;
+  final double? windDirectionDeg;
+  final double weatherOverlayOpacity;
+
   const OfflineFieldMap({
     super.key,
     required this.center,
@@ -90,6 +100,12 @@ class OfflineFieldMap extends StatefulWidget {
     this.circlePreviewCenter,
     this.circlePreviewRadiusMeters,
     this.instruction,
+    this.showWeatherOverlay = false,
+    this.weatherTempC,
+    this.weatherHumidityPct,
+    this.windSpeedKmh,
+    this.windDirectionDeg,
+    this.weatherOverlayOpacity = 0.72,
   });
 
   // تقريب جيوديسيّ بسيط: 1 درجة خطّ عرض ≈ 111320 م، وخطّ الطول يُقاس بـcos(lat).
@@ -120,6 +136,70 @@ class OfflineFieldMap extends StatefulWidget {
 
   @override
   State<OfflineFieldMap> createState() => _OfflineFieldMapState();
+}
+
+
+
+class _WeatherWindOverlayPainter extends CustomPainter {
+  final double? tempC;
+  final double? humidityPct;
+  final double? windSpeedKmh;
+  final double? windDirectionDeg;
+  final double opacity;
+
+  const _WeatherWindOverlayPainter({
+    this.tempC,
+    this.humidityPct,
+    this.windSpeedKmh,
+    this.windDirectionDeg,
+    required this.opacity,
+  });
+
+  Color _heatColor() {
+    final t = tempC ?? 30.0;
+    final h = humidityPct ?? 45.0;
+    if (t >= 38) return const Color(0xFFEF4444).withOpacity(0.34 * opacity);
+    if (t >= 32) return const Color(0xFFF97316).withOpacity(0.30 * opacity);
+    if (h >= 75) return const Color(0xFF0EA5E9).withOpacity(0.24 * opacity);
+    return const Color(0xFFF59E0B).withOpacity(0.22 * opacity);
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(Offset.zero & size, Paint()..color = _heatColor());
+    final dir = (windDirectionDeg ?? 315.0) * math.pi / 180.0;
+    final speed = windSpeedKmh ?? 12.0;
+    final stroke = (1.4 + speed / 18.0).clamp(1.4, 5.0).toDouble();
+    final paint = Paint()
+      ..color = Colors.white.withOpacity((windDirectionDeg == null ? 0.38 : 0.62) * opacity)
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    final spacingY = size.height / 9;
+    final spacingX = size.width / 5;
+    canvas.save();
+    canvas.translate(size.width / 2, size.height / 2);
+    canvas.rotate(dir);
+    canvas.translate(-size.width / 2, -size.height / 2);
+    for (double y = -spacingY; y < size.height + spacingY; y += spacingY) {
+      for (double x = -spacingX; x < size.width + spacingX; x += spacingX) {
+        final path = ui.Path()
+          ..moveTo(x, y)
+          ..cubicTo(x + 28, y - 5, x + 54, y + 10, x + 92, y - 2);
+        canvas.drawPath(path, paint);
+      }
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _WeatherWindOverlayPainter oldDelegate) {
+    return oldDelegate.tempC != tempC ||
+        oldDelegate.humidityPct != humidityPct ||
+        oldDelegate.windSpeedKmh != windSpeedKmh ||
+        oldDelegate.windDirectionDeg != windDirectionDeg ||
+        oldDelegate.opacity != opacity;
+  }
 }
 
 class _OfflineFieldMapState extends State<OfflineFieldMap> {
@@ -311,6 +391,20 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
             ..._circlePreviewLayers(),
           ],
         ),
+        if (widget.showWeatherOverlay)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _WeatherWindOverlayPainter(
+                  tempC: widget.weatherTempC,
+                  humidityPct: widget.weatherHumidityPct,
+                  windSpeedKmh: widget.windSpeedKmh,
+                  windDirectionDeg: widget.windDirectionDeg,
+                  opacity: widget.weatherOverlayOpacity,
+                ),
+              ),
+            ),
+          ),
         // مؤشّر المصدر (شفّافيّة: المستخدم يعرف offline أم online).
         Positioned(
           top: 8,

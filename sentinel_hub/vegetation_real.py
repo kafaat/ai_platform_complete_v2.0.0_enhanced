@@ -17,13 +17,11 @@ import logging
 import math
 import os
 from contextlib import asynccontextmanager
-from datetime import date, datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, date, datetime, timedelta
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 logger = logging.getLogger("vegetation-real")
 logging.basicConfig(level=logging.INFO,
@@ -61,7 +59,7 @@ _sh_token_lock = asyncio.Lock()
 async def _get_sh_token() -> str:
     """احصل على OAuth2 token من Sentinel Hub — يُجدَّد كل 55 دقيقة."""
     global _sh_token
-    now = datetime.now(timezone.utc).timestamp()
+    now = datetime.now(UTC).timestamp()
     if _sh_token.get("expires_at", 0) > now + 60:
         return _sh_token["access_token"]
 
@@ -69,7 +67,7 @@ async def _get_sh_token() -> str:
     # عدّة coroutines تُطلق POST التوكن وتكتب المتغيّر العام متداخلةً. القفل
     # يمنع الجلب المكرّر ويضمن قراءة متّسقة.
     async with _sh_token_lock:
-        now = datetime.now(timezone.utc).timestamp()
+        now = datetime.now(UTC).timestamp()
         if _sh_token.get("expires_at", 0) > now + 60:  # تحقّق مزدوج بعد القفل
             return _sh_token["access_token"]
         async with httpx.AsyncClient(timeout=30) as c:
@@ -440,11 +438,15 @@ def _compute_etc(et0_mm: float, ndvi: float, crop: str) -> dict:
 
 
 def _health_status(ndvi: float) -> dict:
-    if ndvi >= 0.70: return {"level": "excellent", "ar": "ممتاز",  "color": "#16a34a"}
-    if ndvi >= 0.55: return {"level": "good",      "ar": "جيد",   "color": "#65a30d"}
-    if ndvi >= 0.40: return {"level": "fair",      "ar": "مقبول", "color": "#ca8a04"}
-    if ndvi >= 0.25: return {"level": "poor",      "ar": "ضعيف",  "color": "#f97316"}
-    return          {"level": "critical", "ar": "حرج", "color": "#dc2626"}
+    if ndvi >= 0.70:
+        return {"level": "excellent", "ar": "ممتاز", "color": "#16a34a"}
+    if ndvi >= 0.55:
+        return {"level": "good", "ar": "جيد", "color": "#65a30d"}
+    if ndvi >= 0.40:
+        return {"level": "fair", "ar": "مقبول", "color": "#ca8a04"}
+    if ndvi >= 0.25:
+        return {"level": "poor", "ar": "ضعيف", "color": "#f97316"}
+    return {"level": "critical", "ar": "حرج", "color": "#dc2626"}
 
 
 # ══════════════════════════════════════════════════════════════
@@ -508,7 +510,8 @@ async def _publish_nats(subject: str, data: dict):
 # REDIS CACHE
 # ══════════════════════════════════════════════════════════════
 async def _cache_get(key: str):
-    if not _redis: return None
+    if not _redis:
+        return None
     try:
         v = await _redis.get(key)
         return json.loads(v) if v else None
@@ -516,7 +519,8 @@ async def _cache_get(key: str):
         return None
 
 async def _cache_set(key: str, value: dict, ttl: int = 21600):  # 6 ساعات
-    if not _redis: return
+    if not _redis:
+        return
     try:
         await _redis.setex(key, ttl, json.dumps(value, ensure_ascii=False))
     except Exception as e:  # noqa: BLE001 — كاش best-effort: فشل الكتابة لا يكسر المسار
@@ -562,8 +566,8 @@ app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS,
 @app.get("/v1/analyze/{field_id}")
 async def analyze(
     field_id: str = "field_01",
-    date_from: Optional[str] = Query(default=None),
-    date_to:   Optional[str] = Query(default=None),
+    date_from: str | None = Query(default=None),
+    date_to:   str | None = Query(default=None),
     tenant_id: str = Query(default="default"),
 ):
     if field_id not in FIELDS:
@@ -578,7 +582,7 @@ async def analyze(
         cached["from_cache"] = True
         return cached
 
-    ts_now = datetime.now(timezone.utc).isoformat()
+    ts_now = datetime.now(UTC).isoformat()
 
     # ① جلب بيانات الطقس الحقيقية (Open-Meteo — دائماً)
     weather = await _fetch_openmeteo(field["lat"], field["lon"], days=30)
@@ -746,10 +750,13 @@ async def pixel_value(lat: float, lon: float,
                     "evi": sh["evi"]["mean"], "source": "sentinel-hub-real"}
 
     # Fallback: قيمة تقديرية من موقع الحقل الأقرب
-    min_d = float("inf"); nearest = None
+    min_d = float("inf")
+    nearest = None
     for fid, f in FIELDS.items():
         d = abs(f["lat"] - lat) + abs(f["lon"] - lon)
-        if d < min_d: min_d = d; nearest = (fid, f)
+        if d < min_d:
+            min_d = d
+            nearest = (fid, f)
     if nearest and min_d < 0.2:
         w = await _fetch_openmeteo(lat, lon, days=7)
         ci = _compute_from_climate(w, nearest[1]["crop"])

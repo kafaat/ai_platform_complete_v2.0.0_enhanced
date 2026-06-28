@@ -89,17 +89,30 @@ _INDEX_DOMAIN = {
     "evi": (-0.2, 0.9, False),
     "ndmi": (-0.3, 0.6, False),
     "ndwi": (-0.5, 0.5, False),
-    # NDSI(SWIR) = (B11-B12)/(B11+B12): قيم التربة الحقيقيّة ≈ 0.0..0.35 (الملح أعلى).
-    # النطاق السابق (-0.1, 0.6) كان للمؤشّر القديم (NDVI معكوس) فيقصّ كلّ اليابسة إلى
-    # لون واحد (أخضر مسطّح). invert=True ⇒ ملوحة عالية = أحمر. ⚠ النطاق افتراضيّ يحتاج
-    # معايرة ميدانيّة (عيّنات EC) لربط الألوان بمستويات ملوحة فعليّة.
-    "ndsi": (0.0, 0.35, True),
-    "salinity": (0.0, 0.35, True),
+    "ndsi": (-0.1, 0.6, True),
+    "salinity": (-0.1, 0.6, True),
     # المؤشّرات الموسّعة (Sprint 5b)
     "ndre": (-0.1, 0.6, False),  # red-edge — نطاق أضيق من NDVI
     "msavi": (-0.2, 0.9, False),  # مثل NDVI (تصحيح تربة)
     "moisture": (-0.3, 0.6, False),  # NDMI-style: عالٍ = رطب (أخضر)
 }
+
+
+def index_legend(index: str) -> dict:
+    """Return honest rendering metadata for a raster index.
+
+    The frontend uses this to keep the legend/range synchronized with the
+    actual tile renderer. Unknown indices fall back to the renderer default.
+    """
+    vmin, vmax, invert = _INDEX_DOMAIN.get(index, (-0.2, 0.9, False))
+    return {
+        "index": index,
+        "vmin": float(vmin),
+        "vmax": float(vmax),
+        "invert": bool(invert),
+        "palette": "RdYlGn_reversed" if invert else "RdYlGn",
+        "nodata_alpha": 0,
+    }
 
 
 def colorize(arr, index: str):
@@ -201,17 +214,14 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
 
     try:
         with rasterio.open(cog_path) as src:
-            src_arr = src.read(1).astype("float32")
             src_nodata = src.nodata
-            if src_nodata is not None and not (
-                isinstance(src_nodata, float) and math.isnan(src_nodata)
-            ):
-                src_arr = np.where(src_arr == src_nodata, np.nan, src_arr)
-            # القناع الداخلي (GDAL dataset_mask): 0=غير صالح، 255=صالح.
-            # يشمل dataMask من CDSE والمناطق المقصوصة — لا يُعبَّر عنها بـnodata دائماً.
-            src_mask = src.dataset_mask().astype("uint8")
             src_crs = src.crs
-            src_transform = src.transform
+            if src_nodata is not None:
+                try:
+                    if math.isnan(float(src_nodata)):
+                        src_nodata = None
+                except Exception:  # noqa: BLE001 — nodata غير رقميّ/غير صالح يُتجاهَل بأمان
+                    pass
 
             # سرعة: تخطَّ التصيير إذا لم تتقاطع البلاطة مع حدود الـCOG (بـ3857)
             try:
@@ -223,35 +233,20 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
             except Exception:  # noqa: BLE001 — تعذّر التحقّق → تابع التصيير
                 pass
 
-        dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
-        reproject(
-            source=src_arr,
-            destination=dst,
-            src_transform=src_transform,
-            src_crs=src_crs,
-            dst_transform=dst_transform,
-            dst_crs=dst_crs,
-            resampling=Resampling.nearest,
-            src_nodata=np.nan,
-            dst_nodata=np.nan,
-        )
-
-        # أعِد إسقاط القناع الداخلي إلى شبكة البلاطة ثمّ طبّقه:
-        # بكسلات mask=0 (خارج dataMask أو خارج حدود القصّ) → NaN → alpha=0.
-        # يحلّ حالة "قيمة finite مثل 0.0 خارج الحقل" التي كانت تُلوَّن كبيانات صالحة.
-        mask_dst = np.zeros((TILE_SIZE, TILE_SIZE), dtype="uint8")
-        reproject(
-            source=src_mask,
-            destination=mask_dst,
-            src_transform=src_transform,
-            src_crs=src_crs,
-            dst_transform=dst_transform,
-            dst_crs=dst_crs,
-            resampling=Resampling.nearest,
-            src_nodata=0,
-            dst_nodata=0,
-        )
-        dst = np.where(mask_dst > 0, dst, np.nan).astype("float32")
+            # قراءة جزئية: لا نقرأ COG كاملاً لكل بلاطة. نعيد الإسقاط مباشرةً من
+            # DatasetReader إلى مصفوفة 256×256 كي يستفيد GDAL من tiling/overviews.
+            dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
+            reproject(
+                source=rasterio.band(src, 1),
+                destination=dst,
+                src_transform=src.transform,
+                src_crs=src_crs,
+                dst_transform=dst_transform,
+                dst_crs=dst_crs,
+                resampling=Resampling.nearest,
+                src_nodata=src_nodata,
+                dst_nodata=np.nan,
+            )
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
         return None
 
@@ -263,23 +258,3 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
         return encode_png_rgba(rgba)
     except Exception:  # noqa: BLE001
         return None
-
-
-def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
-    """يطبّق قناع مضلّع **بكسليّ دقيق** على COG في مكانه: خارج المضلّع → NaN.
-
-    ``geom_4326``: GeoJSON (Polygon/MultiPolygon) بـEPSG:4326. يُعاد إسقاطه إلى CRS
-    الراستر ثمّ ``rasterio.mask`` يملأ الخارج بـNaN (nodata) — قصّ مستقلّ عن قصّ
-    المزوّد (Sentinel Hub) ومطابق لحافّة الحقل (مصدر الحقيقة للقصّ). يُعيد الكتابة في
-    نفس الملفّ. يرفع عند الفشل (لا rasterio/هندسة لا تتقاطع) فيعالجه المُستدعي."""
-    import rasterio
-    from rasterio.mask import mask as _rio_mask
-    from rasterio.warp import transform_geom
-
-    with rasterio.open(cog_path) as src:
-        geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
-        out_img, _ = _rio_mask(src, [geom_src], crop=False, nodata=float("nan"), filled=True)
-        profile = src.profile.copy()
-    profile.update(nodata=float("nan"))
-    with rasterio.open(cog_path, "w", **profile) as dst:
-        dst.write(out_img)

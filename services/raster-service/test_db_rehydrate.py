@@ -55,7 +55,7 @@ def main_test():
             srid=32638,
             cog_uri="file://" + cog_path,
             bands={"red": 1, "nir": 2},
-            nodata=None,
+            nodata=0.0,
             footprint=footprint,
             provenance={},
         )

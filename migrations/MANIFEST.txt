@@ -405,3 +405,68 @@ v97_user_self_with_check.sql
 # ledger_date) للـupsert idempotent. field_id نصّ (نمط v95)، RLS+FORCE بسياسة
 # tenant_isolation (current_setting، fail-closed). idempotent.
 v98_water_ledger.sql
+# v99: مؤشّرات الإجهاد المائيّ الطيفيّة (NDMI + MSI) على imagery_automation_fields
+# (نظير NDVI في v54) — يغذّيان تأكيد الإجهاد الطيفيّ (fuse_water_stress) لتصعيد D2b
+# للإجهاد المائيّ (خلف feature flag، default off). idempotent (ADD COLUMN IF NOT EXISTS).
+v99_imagery_spectral_indices.sql
+
+# ── الدفعة ١: بيانات المزرعة والحقل (سجلّ عمليّات/موازنة/حلقة مغلقة/تاريخ زراعة/عقد إنشاء) ──
+# v100: سجلّ العمليّات الزراعيّة الرقابيّ (أعمال يوميّة/مياه/مدخلات).
+v100_farm_operations_ledger.sql
+# v101: موازنة المزرعة وحساب التكاليف.
+v101_farm_budget_costing.sql
+# v102: الحلقة المغلقة للمزرعة (خطّة ← تنفيذ ← انحراف).
+v102_farm_closed_loop.sql
+# v103: تاريخ الزراعة في الحقول.
+v103_fields_planting_date.sql
+# v104: عقد إنشاء الحقل.
+v104_fields_create_contract.sql
+# v105: أفضل ممارسات الصور المؤسّسيّة.
+v105_enterprise_imagery_best_practices.sql
+# v_ai_recommendation_runtime: تخزين مراجعات/تغذية توصيات الذكاء الاصطناعيّ.
+v_ai_recommendation_runtime.sql
+
+# ── الدفعة ٢: runtime المراحل 9-12 (تقوية/انجراف أحداث/مخزن ميزات/IoT/sandbox/federated/offline) ──
+# v106: تقوية runtime المراحل 9-10 (outbox أحداث + قيم ميزات آنيّة).
+v106_phase9_10_runtime_strengthening.sql
+# v107: تصلّب انجراف الأحداث للمراحل 9-10.
+v107_phase9_10_event_drift_hardening.sql
+# v108: مخزن الميزات + سجلّ النماذج runtime (المرحلة 10).
+v108_phase10_feature_store_model_registry_runtime.sql
+# v109: مُحوّلات تنفيذ IoT المُدقَّقة (المرحلة 9).
+v109_phase9_iot_execution_adapters.sql
+# v110: sandbox/runtime الإضافات + حصص + تحقّق المخرجات (المرحلة 12).
+v110_phase12_plugin_sandbox_runtime.sql
+# v111: runtime الوكيل الفِدراليّ (المرحلة 11).
+v111_phase11_federated_agent_runtime.sql
+# v112: عقود المزامنة دون اتّصال + معرّفات عمليّات مستقرّة (المرحلة 11).
+v112_mobile_offline_sync_runtime.sql
+# v113: سياسات jobs الآمنة لعمّال runtime (outbox/plugin/model/actuator).
+v113_phase_runtime_workers_jobs.sql
+
+# ── الدفعة ٣: GIS السحابيّ والتوسّع (cloud-native/precision/enterprise/global/autonomy/marketplace) ──
+# v114: أفضل ممارسات GIS السحابيّ الأصليّ (COG/STAC).
+v114_cloud_native_gis_best_practices.sql
+# v115: الزراعة الدقيقة (المرحلة 6).
+v115_precision_agriculture_phase6.sql
+# v116: GIS المؤسّسيّ (المرحلة 7).
+v116_enterprise_gis_phase7.sql
+# v117: التوسّع العالميّ (المرحلة 8).
+v117_global_scale_phase8.sql
+# v118: نظام تشغيل المزرعة المستقلّ (المرحلة 9).
+v118_phase9_autonomous_farm_os.sql
+# v119: التعلّم المستمرّ (المرحلة 10).
+v119_phase10_continuous_learning.sql
+# v120: الوكلاء الفِدراليّون (المرحلة 11) — +FORCE صريح.
+v120_phase11_federated_agents.sql
+# v121: السوق والنظام البيئيّ (المرحلة 12) — +FORCE/سياسات عبر _sahool_apply_tenant_rls.
+v121_marketplace_ecosystem.sql
+
+# v122: تصلّب مسار الكتابة في RLS + توحيد متغيّر جلسة المستأجر. backfill مُدار
+# بالكتالوج يضيف WITH CHECK لكلّ سياسة كتابة tenant تفتقده (USING-only)، ويوحّد
+# app.current_tenant (canonical) مع app.tenant_id (توافق). idempotent + fail-closed.
+v122_rls_with_check_session_unification.sql
+# v123: تصلّب مسار الكتابة (خَلَف v122 المُصحَّح) — يحفظ USING الأصليّ ويشتقّ WITH CHECK
+# منه (دون استبدال USING)، فلا يُسقِط شروط ملكيّة/دور/خدمة. idempotent + لا-عمليّ على
+# مخطّط طبّق v122. يبقى الأخير (مدفوع بالكتالوج، يلي كلّ ترحيلات السياسات).
+v123_rls_with_check_preserve_using.sql

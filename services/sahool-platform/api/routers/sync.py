@@ -34,6 +34,11 @@ from api.main import (
     get_current_user,
     tenant_connection,
 )
+from api.offline_sync_contracts import (
+    build_sync_manifest,
+    normalize_offline_operation,
+    summarize_sync_status,
+)
 from api.offline_sync_db import FIELD_UPDATE_KIND
 from api.sync_delta import filter_since, newest_cursor
 
@@ -49,6 +54,38 @@ def _delta_sync_enabled() -> bool:
     بايتاً ببايت — صفر كسر على العقد القائم.
     """
     return os.getenv("FEATURE_DELTA_SYNC", "").strip().lower() in _TRUTHY
+
+
+@router.get("/api/v1/sync/manifest")
+async def sync_manifest(user: UserSchema = Depends(get_current_user)):
+    """عقد مزامنة machine-readable للويب والموبايل.
+
+    يثبّت أسماء العمليات، سياسة التعارض، وحقول operation-id المقبولة حتى لا تبقى
+    المزامنة منطقاً مخفياً داخل العميل.
+    """
+    return build_sync_manifest()
+
+
+@router.get("/api/v1/sync/status")
+async def sync_status(user: UserSchema = Depends(get_current_user)):
+    """حالة طابور المزامنة للمستأجر الحالي دون كشف بيانات العمليات.
+
+    تستخدم الذاكرة دائماً، وتضيف pending durable من Postgres عند توفره.
+    """
+    durable_pending = None
+    if _DB_POOL is not None:
+        try:
+            from api.offline_pending_db import fetch_pending
+
+            async with tenant_connection(user) as conn:
+                durable_pending = len(await fetch_pending(conn, limit=5000))
+        except Exception as exc:  # noqa: BLE001 — حالة status لا تكسر التطبيق
+            logging.warning("sync status: durable pending check failed: %s", exc)
+    return summarize_sync_status(
+        queued=_OFFLINE_QUEUE.total_pending(user.tenant_id),
+        queue_size=_OFFLINE_QUEUE.queue_size(user.tenant_id),
+        durable_pending=durable_pending,
+    )
 
 
 @router.post("/api/v1/sync")
@@ -94,25 +131,29 @@ async def sync(
     #    op.kind نصّاً بأمان (hasattr(.,"value")) فلا كسر بنمرير سلسلة.
     op_ids = []
     for raw_op in incoming_ops:
-        raw_kind = raw_op.get("kind", "observation_create")
+        try:
+            normalized = normalize_offline_operation(raw_op)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from None
+
+        raw_kind = normalized["kind"]
         if raw_kind == FIELD_UPDATE_KIND:
             kind = FIELD_UPDATE_KIND  # سلسلة منقّطة — تُوزَّع لمسار التطبيق الفعليّ
         else:
-            try:
-                kind = OperationKind(raw_kind)
-            except ValueError:
-                valid = ", ".join(k.value for k in OperationKind)
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"نوع عمليّة غير معروف: {raw_kind!r}. المسموح: {valid}",
-                ) from None
+            kind = OperationKind(raw_kind)
+
         op = record_operation_offline(
             _OFFLINE_QUEUE,
             tenant_id=req.tenant_id,
             user_id=user.user_id,
             kind=kind,
-            payload=raw_op.get("payload", {}),
+            payload=normalized["payload"],
         )
+        # Preserve stable mobile operation ID when supplied. This closes the cross-request
+        # idempotency gap for offline retries after weak connectivity; legacy clients that
+        # omit it keep the old server-generated behavior.
+        if normalized.get("op_id"):
+            op.op_id = normalized["op_id"]
         op_ids.append(op.op_id)
 
     # ٢) supersession أوّلاً (لا نُثبّت عمليّات قديمة حلّت محلّها أحدث منها)

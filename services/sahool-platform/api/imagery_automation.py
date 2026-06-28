@@ -38,7 +38,8 @@ AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 _RASTER_HEADERS = {"X-Agent-Token": AGENT_TOKEN}
 # مؤشّرات تُحسب تلقائيّاً عند صورة جديدة (دفعةً من نفس المشهد):
 #   NDVI صحّة نباتيّة · NDRE نيتروجين (red-edge) · NDSI ملوحة (حرج لليمن الجافّ)
-DEFAULT_INDICATORS = ["ndvi", "ndre", "ndsi"]
+#   NDMI رطوبة المحتوى · MSI إجهاد مائيّ — (D2b) يغذّيان تأكيد الإجهاد الطيفيّ.
+DEFAULT_INDICATORS = ["ndvi", "ndre", "ndsi", "ndmi", "msi"]
 
 
 @dataclass
@@ -52,6 +53,10 @@ class TrackedField:
     last_indicator_job: str | None = None
     last_ndvi_mean: float | None = None  # Stage D: آخر متوسّط NDVI محسوب (Sentinel)
     last_ndvi_date: str | None = None  # تاريخ صورة آخر NDVI ("YYYY-MM-DD")
+    last_ndmi_mean: float | None = None  # D2b: آخر متوسّط NDMI (رطوبة المحتوى)
+    last_ndmi_date: str | None = None  # تاريخ صورة آخر NDMI
+    last_msi_mean: float | None = None  # D2b: آخر متوسّط MSI (إجهاد مائيّ)
+    last_msi_date: str | None = None  # تاريخ صورة آخر MSI
     new_images_found: int = 0
     check_errors: int = 0
 
@@ -252,6 +257,8 @@ class ImageryAutomation:
         max_cloud_pct: float,
         reason: str,
         tf,
+        date_from: str | None = None,
+        date_to: str | None = None,
     ) -> dict | None:
         """Try CDSE (the default, stronger provider) first; return None to fall back to Element84.
 
@@ -269,6 +276,11 @@ class ImageryAutomation:
                     "geometry": geometry,
                     "lookback_days": lookback_days,
                     "max_cloud_pct": max_cloud_pct,
+                    **(
+                        {"date_from": date_from, "date_to": date_to or date_from}
+                        if date_from or date_to
+                        else {}
+                    ),
                 },
                 headers=_RASTER_HEADERS,
             )
@@ -310,6 +322,7 @@ class ImageryAutomation:
         lookback_days: int = 30,
         max_cloud_pct: float = 40.0,
         indicators: list[str] | None = None,
+        date: str | None = None,
     ) -> dict:
         """Find the best real Sentinel-2 STAC scene and launch raster processing.
 
@@ -346,6 +359,8 @@ class ImageryAutomation:
                 max_cloud_pct=max_cloud_pct,
                 reason=reason,
                 tf=tf,
+                date_from=f"{date[:10]}T00:00:00Z" if date else None,
+                date_to=f"{date[:10]}T23:59:59Z" if date else None,
             )
             if cdse is not None:
                 return cdse
@@ -560,41 +575,80 @@ class ImageryAutomation:
             tf.last_indicator_job = body.get("job_id")
             # Stage D: best-effort — استخرج متوسّط NDVI الحقيقيّ واحفظه (fail-safe).
             await self._collect_ndvi_value(client, tf, image, body)
+            # D2b: best-effort — استخرج NDMI/MSI (تأكيد الإجهاد الطيفيّ) واحفظهما.
+            await self._collect_spectral_values(client, tf, image, body)
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل طلب مؤشّرات الحقل %s: %s", tf.field_id, e)
+
+    async def _fetch_index_mean(self, client, job_id: str, indicator: str) -> float | None:
+        """best-effort: متوسّط مؤشّر من المهمّة الفرعيّة «{job_id}_{indicator}».
+
+        raster-service: /process/batch ينشئ مهمّة فرعيّة لكلّ مؤشّر بمعرّف
+        «{batch_job_id}_{indicator}»، ونتيجتها GET /jobs/{id}/result بشكل
+        {stats:{mean, valid_pixels, ...}}. صدق: نُرجِع المتوسّط فقط حين valid_pixels>0
+        (وإلّا 0.0 افتراضيّ بلا معنى). fail-safe تامّ: أيّ تعذّر ⇒ None (لا تلفيق).
+        """
+        rr = await client.get(
+            f"{RASTER_SERVICE_URL}/jobs/{job_id}_{indicator}/result", headers=_RASTER_HEADERS
+        )
+        if rr.status_code != 200:
+            return None
+        stats = (rr.json() or {}).get("stats") or {}
+        mean = stats.get("mean")
+        valid = stats.get("valid_pixels")
+        if mean is None or not valid:  # لا قيمة أو لا بكسلات صالحة ⇒ None
+            return None
+        return float(mean)
+
+    @staticmethod
+    def _image_date(image: dict) -> str | None:
+        return (image.get("datetime") or image.get("date") or "")[:10] or None
 
     async def _collect_ndvi_value(
         self, client, tf: TrackedField, image: dict, batch_body: dict
     ) -> None:
         """best-effort: يستخرج متوسّط NDVI الحقيقيّ من نتيجة المعالجة ويحفظه.
 
-        المسار الصحيح في raster-service: /process/batch ينشئ مهمّة فرعيّة لكلّ مؤشّر
-        بمعرّف «{batch_job_id}_{indicator}»، ونتيجتها في GET /jobs/{id}/result بشكل
-        {layer_id, indicator, stats:{mean, valid_pixels, ...}}. فنقرأ نتيجة المهمّة
-        الفرعيّة «{job_id}_ndvi» ونأخذ stats.mean.
-
-        صدق: نحفظ المتوسّط فقط حين valid_pixels>0 (وإلّا المتوسّط 0.0 افتراضيّ بلا
-        معنى). fail-safe تامّ: أيّ تعذّر ⇒ تخطٍّ صامت، العمود يبقى NULL (لا تلفيق).
+        fail-safe تامّ: أيّ تعذّر ⇒ تخطٍّ صامت، العمود يبقى NULL (لا تلفيق).
         """
         try:
             job_id = batch_body.get("job_id") or tf.last_indicator_job
             if not job_id:
                 return
-            rr = await client.get(
-                f"{RASTER_SERVICE_URL}/jobs/{job_id}_ndvi/result", headers=_RASTER_HEADERS
-            )
-            if rr.status_code != 200:
+            mean = await self._fetch_index_mean(client, job_id, "ndvi")
+            if mean is None:
                 return
-            stats = (rr.json() or {}).get("stats") or {}
-            mean = stats.get("mean")
-            valid = stats.get("valid_pixels")
-            if mean is None or not valid:  # لا قيمة أو لا بكسلات صالحة ⇒ لا حفظ
-                return
-            tf.last_ndvi_mean = float(mean)
-            tf.last_ndvi_date = (image.get("datetime") or image.get("date") or "")[:10] or None
+            tf.last_ndvi_mean = mean
+            tf.last_ndvi_date = self._image_date(image)
             await self._persist_ndvi(tf)
         except Exception as e:  # noqa: BLE001 — best-effort، لا يكسر الأتمتة أبداً
             logger.debug("جمع قيمة NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
+
+    async def _collect_spectral_values(
+        self, client, tf: TrackedField, image: dict, batch_body: dict
+    ) -> None:
+        """best-effort (D2b): يستخرج NDMI/MSI ويحفظهما — تأكيد الإجهاد الطيفيّ.
+
+        كلّ مؤشّر مستقلّ: المتوفّر يُحفَظ والغائب يبقى NULL (صدق — لا تلفيق). fail-safe
+        تامّ: أيّ تعذّر ⇒ تخطٍّ صامت لا يكسر الأتمتة.
+        """
+        try:
+            job_id = batch_body.get("job_id") or tf.last_indicator_job
+            if not job_id:
+                return
+            img_date = self._image_date(image)
+            ndmi = await self._fetch_index_mean(client, job_id, "ndmi")
+            if ndmi is not None:
+                tf.last_ndmi_mean = ndmi
+                tf.last_ndmi_date = img_date
+            msi = await self._fetch_index_mean(client, job_id, "msi")
+            if msi is not None:
+                tf.last_msi_mean = msi
+                tf.last_msi_date = img_date
+            if ndmi is not None or msi is not None:
+                await self._persist_spectral(tf)
+        except Exception as e:  # noqa: BLE001 — best-effort، لا يكسر الأتمتة أبداً
+            logger.debug("جمع NDMI/MSI تخطٍّ للحقل %s: %s", tf.field_id, e)
 
     async def _persist_ndvi(self, tf: TrackedField) -> None:
         """يحفظ متوسّط NDVI + تاريخه في imagery_automation_fields (fail-safe)."""
@@ -611,6 +665,32 @@ class ImageryAutomation:
                 )
         except Exception as e:  # noqa: BLE001 — حفظ best-effort
             logger.debug("حفظ NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
+
+    async def _persist_spectral(self, tf: TrackedField) -> None:
+        """يحفظ NDMI/MSI + تاريخيهما في imagery_automation_fields (fail-safe، D2b).
+
+        COALESCE يُبقي القيمة المخزَّنة حين يكون المؤشّر الحاليّ None (لا يمحو قراءة
+        سابقة بمؤشّر مفقود في صورة لاحقة).
+        """
+        if self._pool is None:
+            return
+        try:
+            async with self._pool.acquire() as conn:
+                await conn.execute(
+                    "UPDATE imagery_automation_fields SET "
+                    "last_ndmi_mean = COALESCE($2, last_ndmi_mean), "
+                    "last_ndmi_date = COALESCE($3::date, last_ndmi_date), "
+                    "last_msi_mean = COALESCE($4, last_msi_mean), "
+                    "last_msi_date = COALESCE($5::date, last_msi_date) "
+                    "WHERE field_id = $1",
+                    tf.field_id,
+                    tf.last_ndmi_mean,
+                    tf.last_ndmi_date,
+                    tf.last_msi_mean,
+                    tf.last_msi_date,
+                )
+        except Exception as e:  # noqa: BLE001 — حفظ best-effort
+            logger.debug("حفظ NDMI/MSI تخطٍّ للحقل %s: %s", tf.field_id, e)
 
 
 # مثيل وحيد للتطبيق

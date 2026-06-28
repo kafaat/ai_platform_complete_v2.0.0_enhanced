@@ -16,11 +16,14 @@ api/main.py — FastAPI application للنواة سهول
   POST /api/v1/auth/login          → JWT issue (dev mode: HS256، لا RS256)
   GET  /api/v1/me                  → معلومات المستخدم
 
-ما لم يُبنَ هنا (مُؤجَّل بمبرّر):
-  • DB integration (in-memory للـMVP، PostgreSQL لاحقاً)
-  • RS256 JWT keys (HS256 dev secret حالياً)
-  • Rate limiting بـRedis (في-memory الآن، يتغذّى من api_adapter)
-  • OAuth2/SSO
+الحالة الحاليّة (مُحدَّثة — لم تعد ملاحظات MVP صحيحة):
+  • قاعدة بيانات: PostgreSQL حقيقيّة عبر asyncpg + عزل مستأجرين RLS (FORCE + WITH CHECK)
+    على مسبح sahool_app (NOBYPASSRLS، معزول). لا in-memory. انظر _DB_POOL/DATABASE_URL.
+
+ما زال مُؤجَّلاً بمبرّر (لم يُبنَ بعد — صدقاً، ليس production-grade):
+  • RS256 JWT: الحاليّ HS256 بسرّ قويّ (≥32)؛ يُوصى بـRS256 قبل النشر (انظر JWT_ALGORITHM).
+  • حدّ معدّل موزَّع بـRedis: الحاليّ عدّاد in-process لكلّ عامل (rate_limit_middleware).
+  • OAuth2/SSO.
 """
 
 from __future__ import annotations
@@ -91,11 +94,9 @@ if _WEAK_SECRET and _IS_PRODUCTION:
     )
     sys.exit(1)
 if _WEAK_SECRET:
-    JWT_SECRET = secrets.token_urlsafe(48)  # عشوائيّ لكلّ عمليّة (تطوير فقط)
-    logger.warning(
-        "⚠️ SAHOOL_JWT_SECRET غير مضبوط/ضعيف — وُلِّد سرّ تطوير عشوائيّ لهذه العمليّة "
-        "فقط. عيّن سرّاً قويّاً (≥32) واستخدم RS256 قبل أيّ نشر."
-    )
+    # عشوائيّ لكلّ عمليّة (تطوير فقط). لا نُصدر تحذيراً عند import كي تبقى
+    # اختبارات/فحوصات الاستيراد صامتة؛ التحذير التشغيلي يُسجَّل عند startup فقط.
+    JWT_SECRET = secrets.token_urlsafe(48)
 else:
     JWT_SECRET = _ENV_SECRET
 
@@ -121,6 +122,22 @@ app = FastAPI(
     description="API للنواة سهول — decision-system زراعي offline-first",
     version="1.0.0",
 )
+
+
+@app.on_event("startup")
+async def _warn_weak_dev_jwt_secret():
+    """يسجّل تحذير سرّ JWT الضعيف وقت الإقلاع فقط، لا وقت الاستيراد.
+
+    الهدف: import sweeps وأدوات التحليل لا تُصدر ضجيجاً، بينما التشغيل الحقيقي
+    في التطوير يبقى صريحاً. الإنتاج ما زال fail-closed أعلاه عند الاستيراد/الإقلاع
+    إذا كان السرّ ضعيفاً.
+    """
+    if _WEAK_SECRET and not _IS_PRODUCTION:
+        logger.warning(
+            "⚠️ SAHOOL_JWT_SECRET غير مضبوط/ضعيف — وُلِّد سرّ تطوير عشوائيّ لهذه العمليّة "
+            "فقط. عيّن سرّاً قويّاً (≥32) واستخدم RS256 قبل أيّ نشر."
+        )
+
 
 # ─── PostgreSQL pool (lifespan) ─────────────────────────────────
 # يُنشأ pool واحد عند الإقلاع لو DATABASE_URL مضبوط؛ وإلّا يبقى None
@@ -152,6 +169,7 @@ async def _init_db_pool():
         _DB_POOL = await asyncpg.create_pool(
             dsn, statement_cache_size=0, min_size=_pool_min, max_size=_pool_max
         )
+        app.state.db_pool = _DB_POOL
         logging.info("✓ pool القاعدة جاهز (min=%d max=%d)", _pool_min, _pool_max)
         await _assert_db_role_rls_safe(_DB_POOL)
     except RuntimeError:
@@ -437,6 +455,17 @@ async def _start_outbox_worker():
     """يبدأ relay الأحداث (outbox → NATS). تدهور رشيق: لو غاب NATS/القاعدة، نتخطّى
     بتحذير دون إسقاط الإقلاع — الأحداث تبقى في outbox لتُنشَر عند توفّر NATS لاحقاً."""
     global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
+    # H2 (feature flag، default OFF): يُحرَس تشغيل الناشر. OFF ⇒ الأحداث تبقى في outbox
+    # (record_decision_only) ويُعلَن السبب صراحةً؛ ON ⇒ يُشغَّل الناشر (publish_event).
+    from api.event_bus import NATS_PUBLISHERS_FLAG, nats_publishers_enabled
+
+    if not nats_publishers_enabled():
+        logging.info(
+            "ناشرو NATS معطّلون (%s off) — الأحداث تُسجَّل في outbox فقط "
+            "(record_decision_only)، بلا تسليم NATS.",
+            NATS_PUBLISHERS_FLAG,
+        )
+        return
     if _DB_POOL is None:
         logging.warning("OutboxWorker: لا pool قاعدة — relay الأحداث معطّل")
         return
@@ -492,6 +521,7 @@ async def _close_db_pool():
     if _DB_POOL is not None:
         await _DB_POOL.close()
         _DB_POOL = None
+    app.state.db_pool = None
 
 
 def get_pool():
@@ -973,7 +1003,8 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
     except InvalidTokenError as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}") from e
+        logging.warning("JWT validation failed: %s", type(e).__name__)
+        raise HTTPException(status_code=401, detail="Invalid token") from e
 
     # تدقيق B: افرض المُصدِر بعد فكّ ناجح — توكن من مُصدِر مجهول يُرفَض كتوكن غير صالح.
     if payload.get("iss") not in _ALLOWED_ISS:
@@ -3005,6 +3036,16 @@ async def tenant_connection_for(tenant_id: str):
             yield conn
 
 
+class InternalAIAdviceEventRequest(BaseModel):
+    tenant_id: str = Field(min_length=1)
+    field_id: str | None = None
+    question: str = Field(min_length=1, max_length=4000)
+    evidence_ids: list[str] = Field(default_factory=list)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    selected_imagery_date: str | None = None
+    endpoint_mode: str = "chat"
+
+
 @app.get("/internal/fields/{field_id}/state")
 async def internal_field_state(
     field_id: str,
@@ -3028,6 +3069,57 @@ async def internal_field_state(
     except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
         raise _db_unavailable("قراءة الحالة القانونيّة (خدمة)", e) from e
     return result["state"]
+
+
+@app.post("/internal/events/ai-advice")
+async def internal_ai_advice_event(
+    req: InternalAIAdviceEventRequest,
+    _: None = Depends(_require_service_token),
+):
+    """Record evidence-only AI advice as a domain event through the platform outbox.
+
+    This endpoint is service-to-service only. It records EventType.AI_SUGGESTION
+    for auditability of AI Advisor interactions, without granting decision authority
+    to ai_agronomist and without creating tasks, prescriptions, actuator commands,
+    or final recommendations.
+    """
+
+    class _ServiceUser:
+        tenant_id = req.tenant_id
+        user_id = "service:ai_agronomist"
+
+    payload = {
+        "field_id": req.field_id,
+        "question": req.question,
+        "evidence_ids": req.evidence_ids[:20],
+        "confidence": req.confidence,
+        "selected_imagery_date": req.selected_imagery_date,
+        "endpoint_mode": req.endpoint_mode,
+        "decision_authority": "field_intelligence_coordinator",
+        "runtime": "ai_agronomist",
+    }
+    try:
+        async with tenant_connection_for(req.tenant_id) as conn:
+            if req.field_id:
+                await _assert_field_in_tenant(conn, req.field_id)
+            await _emit_domain_event(
+                conn,
+                _ServiceUser(),
+                "AI_SUGGESTION",
+                "field" if req.field_id else "tenant",
+                req.field_id or req.tenant_id,
+                payload,
+                critical=False,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("تسجيل حدث مستشار الذكاء", e) from e
+    return {
+        "ok": True,
+        "event_type": "ai.suggestion.generated",
+        "entity_id": req.field_id or req.tenant_id,
+    }
 
 
 # ─── ٦٠. أتمتة الصور الجوّية + المؤشّرات (Sentinel عبر raster-service) ──
@@ -3174,315 +3266,17 @@ _rebuild_pydantic_models()
 # تعلّم/سوق/اتّساق/إدخال/اقتصاد/تهيئة/طقس-تحليلي/قرار/أمثال/توقيت-فلكي).
 # دفعة الأمن/الهوية (routers-sec) — نطاقات auth/me/tenant/rbac/admin مُفكَّكة من main
 # (نمط P0، سلوك محفوظ بالكامل: مسارات/أذونات/توكن/OpenAPI مطابقة).
-from api.routers.admin import router as admin_router  # noqa: E402
-from api.routers.agricultural_proverbs import (  # noqa: E402
-    router as agricultural_proverbs_router,
-)
-from api.routers.agro_intelligence import router as agro_intelligence_router  # noqa: E402
-from api.routers.agro_zones import router as agro_zones_router  # noqa: E402
-from api.routers.agronomic_replay import router as agronomic_replay_router  # noqa: E402
 
 # الدفعة ٩ (Batch 9) — نطاقات CQRS/استبطان + كتابات (commands/events/lineage/replay/
 # lifecycle/seasons/alerts/tasks/farms) مُفكَّكة من main (نمط P0).
-from api.routers.alerts import router as alerts_router  # noqa: E402
-from api.routers.analytics import router as analytics_router  # noqa: E402
-from api.routers.aromatic_crops import router as aromatic_crops_router  # noqa: E402
-from api.routers.astronomical_timing import (  # noqa: E402
-    router as astronomical_timing_router,
-)
-from api.routers.auth import router as auth_router  # noqa: E402
-from api.routers.automation import router as automation_router  # noqa: E402
-from api.routers.boundaries import router as boundaries_router  # noqa: E402
-from api.routers.break_glass import router as break_glass_router  # noqa: E402
-from api.routers.calendars import router as calendars_router  # noqa: E402
-from api.routers.calibration import router as calibration_router  # noqa: E402
 
 # الدفعة ٨ (Batch 8) — نطاقات إضافيّة مُفكَّكة من main (نمط P0)
-from api.routers.cameras import router as cameras_router  # noqa: E402
 
 # routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
-from api.routers.capabilities import router as capabilities_router  # noqa: E402
-from api.routers.chemical_safety import router as chemical_safety_router  # noqa: E402
-from api.routers.climate_analogs import router as climate_analogs_router  # noqa: E402
-from api.routers.coffee import router as coffee_router  # noqa: E402
-from api.routers.commands import router as commands_router  # noqa: E402
-from api.routers.confidence import router as confidence_router  # noqa: E402
-from api.routers.confidence_gate import router as confidence_gate_router  # noqa: E402
-from api.routers.consistency import router as consistency_router  # noqa: E402
-from api.routers.crop_cards import router as crop_cards_router  # noqa: E402
-from api.routers.crop_operations import router as crop_operations_router  # noqa: E402
-from api.routers.crop_suitability import router as crop_suitability_router  # noqa: E402
-from api.routers.crop_twin import router as crop_twin_router  # noqa: E402
-from api.routers.crops import router as crops_router  # noqa: E402
-from api.routers.cultural_calendar import router as cultural_calendar_router  # noqa: E402
-from api.routers.data_readiness import router as data_readiness_router  # noqa: E402
-from api.routers.decision import router as decision_router  # noqa: E402
-from api.routers.decision_confidence import router as decision_confidence_router  # noqa: E402
-from api.routers.decision_dispatch import router as decision_dispatch_router  # noqa: E402
-from api.routers.decision_explain import router as decision_explain_router  # noqa: E402
-from api.routers.decision_impact import router as decision_impact_router  # noqa: E402
-from api.routers.decision_policies import router as decision_policies_router  # noqa: E402
-from api.routers.decision_record import router as decision_record_router  # noqa: E402
-from api.routers.device_twin import router as device_twin_router  # noqa: E402
-from api.routers.devices import router as devices_router  # noqa: E402
-from api.routers.diagnose import router as diagnose_router  # noqa: E402
-from api.routers.districts import router as districts_router  # noqa: E402
-from api.routers.documents import router as documents_router  # noqa: E402
-from api.routers.economics import router as economics_router  # noqa: E402
-from api.routers.edge import router as edge_router  # noqa: E402
-from api.routers.equipment import router as equipment_router  # noqa: E402
-from api.routers.escalation import router as escalation_router  # noqa: E402
-from api.routers.events import router as events_router  # noqa: E402
-from api.routers.evidence import router as evidence_router  # noqa: E402
-from api.routers.evidence_map import router as evidence_map_router  # noqa: E402
-from api.routers.execution_feedback import router as execution_feedback_router  # noqa: E402
-from api.routers.execution_lineage import router as execution_lineage_router  # noqa: E402
-from api.routers.failures import router as failures_router  # noqa: E402
-from api.routers.farms import router as farms_router  # noqa: E402
-from api.routers.field_completeness import router as field_completeness_router  # noqa: E402
-from api.routers.field_intelligence import (  # noqa: E402
-    router as field_intelligence_router,
-)
-from api.routers.field_portfolio import router as field_portfolio_router  # noqa: E402
-from api.routers.field_single import router as field_single_router  # noqa: E402
-from api.routers.field_twin import router as field_twin_router  # noqa: E402
-from api.routers.fields import router as fields_router  # noqa: E402
-from api.routers.fodder_alternatives import router as fodder_alternatives_router  # noqa: E402
-from api.routers.gdd import router as gdd_router  # noqa: E402
-from api.routers.geo import router as geo_router  # noqa: E402
-from api.routers.geo_locate import router as geo_locate_router  # noqa: E402
-from api.routers.gis_kernel import router as gis_kernel_router  # noqa: E402
-from api.routers.harvest_traceability import (  # noqa: E402
-    router as harvest_traceability_router,
-)
-from api.routers.high_value_crops import router as high_value_crops_router  # noqa: E402
-from api.routers.indicators import router as indicators_router  # noqa: E402
-from api.routers.indices import router as indices_router  # noqa: E402
-from api.routers.introduction import router as introduction_router  # noqa: E402
-from api.routers.inventory import router as inventory_router  # noqa: E402
-from api.routers.ipm import router as ipm_router  # noqa: E402
-from api.routers.irrigation import router as irrigation_router  # noqa: E402
-from api.routers.irrigation_method import router as irrigation_method_router  # noqa: E402
-from api.routers.irrigation_network import router as irrigation_network_router  # noqa: E402
-from api.routers.irrigation_plan import router as irrigation_plan_router  # noqa: E402
-from api.routers.irrigation_recommendation import (  # noqa: E402
-    router as irrigation_recommendation_router,
-)
-from api.routers.kc_timeseries import router as kc_timeseries_router  # noqa: E402
-from api.routers.learning import router as learning_router  # noqa: E402
-from api.routers.learning_summary import router as learning_summary_router  # noqa: E402
-from api.routers.lifecycle import router as lifecycle_router  # noqa: E402
-from api.routers.lineage import router as lineage_router  # noqa: E402
-from api.routers.market import router as market_router  # noqa: E402
-from api.routers.master_data import router as master_data_router  # noqa: E402
-from api.routers.me import router as me_router  # noqa: E402
-from api.routers.ndvi_analysis import router as ndvi_analysis_router  # noqa: E402
-from api.routers.niche_crops import router as niche_crops_router  # noqa: E402
-from api.routers.nl_gis import router as nl_gis_router  # noqa: E402
-from api.routers.nl_sql import router as nl_sql_router  # noqa: E402
-from api.routers.notifications import router as notifications_router  # noqa: E402
-from api.routers.nutrients import router as nutrients_router  # noqa: E402
-from api.routers.observations import router as observations_router  # noqa: E402
-from api.routers.onboarding import router as onboarding_router  # noqa: E402
-from api.routers.operations import router as operations_router  # noqa: E402
-from api.routers.orchard import router as orchard_router  # noqa: E402
-from api.routers.outcome import router as outcome_router  # noqa: E402
-from api.routers.pest_escalation import router as pest_escalation_router  # noqa: E402
-from api.routers.phenology import router as phenology_router  # noqa: E402
-from api.routers.planting import router as planting_router  # noqa: E402
-from api.routers.policy_learning import router as policy_learning_router  # noqa: E402
-from api.routers.portfolio_command import router as portfolio_command_router  # noqa: E402
-from api.routers.postharvest import router as postharvest_router  # noqa: E402
-from api.routers.practices import router as practices_router  # noqa: E402
-from api.routers.prescriptions import router as prescriptions_router  # noqa: E402
-from api.routers.propagation import router as propagation_router  # noqa: E402
-from api.routers.queue import router as queue_router  # noqa: E402
-from api.routers.rbac import router as rbac_router  # noqa: E402
-from api.routers.readiness import router as readiness_router  # noqa: E402
-from api.routers.recommendations import router as recommendations_router  # noqa: E402
-from api.routers.regional_calendar import router as regional_calendar_router  # noqa: E402
-from api.routers.registry import router as registry_router  # noqa: E402
-from api.routers.replay import router as replay_router  # noqa: E402
-from api.routers.reports import router as reports_router  # noqa: E402
-from api.routers.rotation import router as rotation_router  # noqa: E402
-from api.routers.salinity import router as salinity_router  # noqa: E402
-from api.routers.sampling import router as sampling_router  # noqa: E402
-from api.routers.scenario import router as scenario_router  # noqa: E402
-from api.routers.scouting import router as scouting_router  # noqa: E402
-from api.routers.seasonal_risk import router as seasonal_risk_router  # noqa: E402
-from api.routers.seasons import router as seasons_router  # noqa: E402
-from api.routers.security_audit import router as security_audit_router  # noqa: E402
-from api.routers.seed import router as seed_router  # noqa: E402
-from api.routers.settings import router as settings_router  # noqa: E402
-from api.routers.sharing import router as sharing_router  # noqa: E402
-from api.routers.simulate import router as simulate_router  # noqa: E402
-from api.routers.soil_sampling import router as soil_sampling_router  # noqa: E402
-from api.routers.sync import router as sync_router  # noqa: E402
-from api.routers.tasks import router as tasks_router  # noqa: E402
-from api.routers.temporal import router as temporal_router  # noqa: E402
-from api.routers.tenant import router as tenant_router  # noqa: E402
-from api.routers.trials import router as trials_router  # noqa: E402
-from api.routers.water_balance import router as water_balance_router  # noqa: E402
-from api.routers.water_harvesting import router as water_harvesting_router  # noqa: E402
-from api.routers.water_ledger import router as water_ledger_router  # noqa: E402
-from api.routers.water_sensitivity import router as water_sensitivity_router  # noqa: E402
-from api.routers.weather import router as weather_router  # noqa: E402
-from api.routers.weather_analytics import (  # noqa: E402
-    router as weather_analytics_router,
-)
-from api.routers.wofost import router as wofost_router  # noqa: E402
-from api.routers.yield_analysis import router as yield_analysis_router  # noqa: E402
-from api.routers.yield_interval import router as yield_interval_router  # noqa: E402
+# ── تسجيل الراوترات (مُستخرَج إلى api/router_registry.py — تقليص الوحدة الأحاديّة) ──
+# يُستدعى هنا في نهاية الوحدة بعد تعريف app وكلّ الرموز المشتركة كي يُحلّ الاستيراد
+# الدائريّ (وحدات الراوتر تستورد من api.main). السلوك/الترتيب محفوظ تماماً: مراحل
+# 9-12 صراحةً + تسجيل تلقائيّ لـapi/routers/ + service_proxy متأخّراً.
+from api.router_registry import register_routers  # noqa: E402
 
-app.include_router(boundaries_router)
-app.include_router(break_glass_router)
-app.include_router(harvest_traceability_router)
-app.include_router(notifications_router)
-app.include_router(registry_router)
-app.include_router(automation_router)
-app.include_router(devices_router)
-app.include_router(irrigation_router)
-app.include_router(irrigation_network_router)
-app.include_router(irrigation_method_router)
-app.include_router(irrigation_plan_router)
-app.include_router(recommendations_router)
-app.include_router(reports_router)
-app.include_router(agro_zones_router)
-app.include_router(water_sensitivity_router)
-app.include_router(seed_router)
-app.include_router(climate_analogs_router)
-app.include_router(calendars_router)
-app.include_router(calibration_router)
-app.include_router(water_harvesting_router)
-app.include_router(propagation_router)
-app.include_router(inventory_router)
-app.include_router(equipment_router)
-app.include_router(coffee_router)
-app.include_router(weather_router)
-app.include_router(soil_sampling_router)
-app.include_router(sharing_router)
-app.include_router(crop_suitability_router)
-app.include_router(crop_twin_router)
-app.include_router(scenario_router)
-app.include_router(crops_router)
-app.include_router(chemical_safety_router)
-app.include_router(rotation_router)
-app.include_router(planting_router)
-app.include_router(ipm_router)
-app.include_router(practices_router)
-app.include_router(seasonal_risk_router)
-app.include_router(orchard_router)
-app.include_router(outcome_router)
-app.include_router(high_value_crops_router)
-app.include_router(niche_crops_router)
-app.include_router(aromatic_crops_router)
-app.include_router(fodder_alternatives_router)
-app.include_router(wofost_router)
-app.include_router(analytics_router)
-app.include_router(yield_analysis_router)
-app.include_router(indicators_router)
-app.include_router(confidence_router)
-app.include_router(temporal_router)
-app.include_router(diagnose_router)
-app.include_router(learning_router)
-app.include_router(learning_summary_router)
-app.include_router(market_router)
-app.include_router(consistency_router)
-app.include_router(introduction_router)
-app.include_router(economics_router)
-app.include_router(onboarding_router)
-app.include_router(operations_router)
-app.include_router(nl_gis_router)
-app.include_router(nl_sql_router)
-app.include_router(weather_analytics_router)
-app.include_router(decision_router)
-app.include_router(decision_dispatch_router)
-app.include_router(decision_explain_router)
-app.include_router(decision_confidence_router)
-app.include_router(decision_policies_router)
-app.include_router(decision_impact_router)
-app.include_router(decision_record_router)
-app.include_router(execution_lineage_router)
-app.include_router(execution_feedback_router)
-app.include_router(field_twin_router)
-app.include_router(agricultural_proverbs_router)
-app.include_router(astronomical_timing_router)
-# الدفعة ٨ (Batch 8)
-app.include_router(observations_router)
-app.include_router(master_data_router)
-app.include_router(settings_router)
-app.include_router(documents_router)
-app.include_router(simulate_router)
-app.include_router(scouting_router)
-app.include_router(prescriptions_router)
-app.include_router(water_ledger_router)
-app.include_router(trials_router)
-app.include_router(water_balance_router)
-app.include_router(irrigation_recommendation_router)
-app.include_router(nutrients_router)
-app.include_router(gdd_router)
-app.include_router(data_readiness_router)
-app.include_router(cultural_calendar_router)
-app.include_router(regional_calendar_router)
-app.include_router(cameras_router)
-app.include_router(salinity_router)
-app.include_router(postharvest_router)
-app.include_router(sampling_router)
-app.include_router(fields_router)
-app.include_router(field_portfolio_router)
-app.include_router(portfolio_command_router)
-app.include_router(auth_router)
-app.include_router(me_router)
-app.include_router(tenant_router)
-app.include_router(rbac_router)
-app.include_router(admin_router)
-# الدفعة ٩ (Batch 9)
-app.include_router(commands_router)
-app.include_router(events_router)
-app.include_router(lineage_router)
-app.include_router(replay_router)
-app.include_router(lifecycle_router)
-app.include_router(seasons_router)
-app.include_router(alerts_router)
-app.include_router(tasks_router)
-app.include_router(farms_router)
-# routers-plat: نطاقات منصّيّة مُستخرَجة (سلوك محفوظ، نمط P0)
-app.include_router(sync_router)
-app.include_router(queue_router)
-app.include_router(capabilities_router)
-app.include_router(geo_router)
-app.include_router(failures_router)
-app.include_router(confidence_gate_router)
-app.include_router(escalation_router)
-app.include_router(evidence_router)
-app.include_router(evidence_map_router)
-app.include_router(agronomic_replay_router)
-app.include_router(device_twin_router)
-app.include_router(indices_router)
-app.include_router(geo_locate_router)
-app.include_router(gis_kernel_router)
-app.include_router(field_single_router)
-app.include_router(edge_router)
-app.include_router(field_intelligence_router)
-app.include_router(pest_escalation_router)
-app.include_router(crop_cards_router)
-app.include_router(phenology_router)
-app.include_router(districts_router)
-app.include_router(crop_operations_router)
-app.include_router(ndvi_analysis_router)
-app.include_router(readiness_router)
-app.include_router(security_audit_router)
-app.include_router(field_completeness_router)
-app.include_router(policy_learning_router)
-app.include_router(yield_interval_router)
-# نقاط ذكاء النظام الزراعيّ-البيئيّ (agro-ecosystem): مخاطر المحصول، التغذية الراجعة
-# نبات-تربة واتّجاهها، الدورة الزراعيّة، مقارنة المواسم، Playbook القرار، أمر عمل من توصية.
-app.include_router(agro_intelligence_router)
-# تخزين Kc الدائم (crop_kc_timeseries v76): حفظ/قراءة/مقارنة Kc المُشتقّ عبر المواسم.
-app.include_router(kc_timeseries_router)
-# بوّابات الخدمات الداخلية (edge/soil): المستخدم بـJWT → المنصّة تتحقّق ثمّ تحقن
-# X-Agent-Token + X-Tenant-Id خادميّاً (السرّ لا يصل العميل). يُستورَد متأخّراً
-# (api.main مكتمل) لتفادي دورة الاستيراد.
-from api.routers.service_proxy import router as service_proxy_router  # noqa: E402
-
-app.include_router(service_proxy_router)
+register_routers(app)

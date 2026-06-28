@@ -262,13 +262,13 @@ async def _validate_actions_via_guardrails(
             "status": "validated",
             "source": "guardrails-engine",
         }
-    except Exception as e:  # noqa: BLE001 — صدق: استشاريّة موسومة لا فراغ
+    except Exception:  # noqa: BLE001 — صدق: استشاريّة موسومة لا فراغ
         return {
             "allowed": None,
             "overall_risk": "UNKNOWN",
             "status": "advisory_pending_validation",
             "source": "guardrails-unavailable",
-            "error": str(e),
+            "error": "guardrails_unavailable",
             "note": "التوصية استشاريّة — بانتظار التحقّق، لا تُنفَّذ تلقائيّاً",
         }
 
@@ -326,12 +326,12 @@ async def _validate_via_guardrails(
             "approval_workflow_id": r.get("approval_workflow_id"),
             "source": "guardrails-engine",
         }
-    except Exception as e:  # noqa: BLE001 — صدق: لا نتظاهر بموافقة عند الفشل
+    except Exception:  # noqa: BLE001 — صدق: لا نتظاهر بموافقة عند الفشل
         return {
             "allowed": None,
             "overall_risk": "UNKNOWN",
             "source": "guardrails-unavailable",
-            "error": str(e),
+            "error": "guardrails_unavailable",
             "note": "تعذّر الوصول لبوّابة القرار — لا تُنفَّذ التوصية تلقائيّاً",
         }
 

@@ -30,6 +30,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import uuid
 from contextlib import asynccontextmanager as _asynccontextmanager
 from dataclasses import dataclass
@@ -37,10 +38,26 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from .feature_registry import is_enabled
+
 if TYPE_CHECKING:
     import asyncpg
 
 logger = logging.getLogger(__name__)
+
+
+# ─── H2: علم نشر NATS (feature flag، default OFF) ──────────────────
+# إطار «implemented-but-off-by-default»: الأحداث تُسجَّل دائماً في events+event_outbox
+# (record_decision_only، ذرّيّ لا يُفقَد)؛ هذا العلم يحرس **تشغيل ناشر NATS فقط**
+# (OutboxWorker → NATS). OFF (افتراضيّ) ⇒ لا يُشغَّل الناشر، الأحداث تبقى في outbox
+# بصدق (publishers يتيمون آمنون). ON ⇒ يُشغَّل الناشر فيُسلّم (publish_event). ليس علم
+# راوتر ⇒ خارج feature_registry.FEATURE_FLAGS. **ON env-unverified** (يحتاج NATS حيّاً).
+NATS_PUBLISHERS_FLAG = "FEATURE_NATS_PUBLISHERS"
+
+
+def nats_publishers_enabled() -> bool:
+    """هل ناشرو NATS مُفعَّلون؟ default OFF — الأحداث تبقى في outbox (record_decision_only)."""
+    return is_enabled(NATS_PUBLISHERS_FLAG, os.getenv(NATS_PUBLISHERS_FLAG))
 
 
 # ─── Outbox retry backoff (pure) ────────────────────────────────
@@ -116,6 +133,9 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     FIELD_CREATED = "field.created"
     FIELD_UPDATED = "field.updated"
     FIELD_GEOMETRY_CHANGED = "field.geometry_changed"
+    # استرجاع حدود الحقل لمراجعة سابقة (revert) — يُصدَر عند POST استرجاع الحدود في
+    # fields.py؛ حدث مستقلّ عن التغيير العاديّ ليُتتبَّع/يُدقَّق في مجرى الأحداث.
+    FIELD_GEOMETRY_REVERTED = "field.geometry_reverted"
     # طلب تحديث صور الأقمار للحقل (زرّ «تحديث صور الأقمار» / مسار manual.refresh) — يُصدَر
     # عند نقطة POST /imagery/refresh بعد استدعاء raster (imagery/best + process-from-stac)،
     # مرساةً لفعل حقيقيّ (طلب معالجة مُستهدَفة) يجعله متتبَّعاً/مدقَّقاً في مجرى الأحداث.

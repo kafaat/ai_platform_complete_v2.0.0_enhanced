@@ -1,5 +1,5 @@
-// حارس انحدار: الدردشة يجب أن تستدعي وكيل المنصّة الحقيقيّ (/api/agent/query)
-// لا الـproxy المفقود /api/chat (الذي كان يردّ 404 دائماً — لا route في nginx ولا router).
+// حارس انحدار: الدردشة يجب أن تستدعي AI Agronomist Runtime الحقيقيّ
+// (/api/ai-agronomist/chat)، لا الـproxy المفقود /api/chat ولا مسار الوكيل القديم.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -12,11 +12,12 @@ const src = readFileSync(
 );
 
 describe('ChatbotPage — نقطة الدردشة', () => {
-  it('يستدعي وكيل المنصّة /api/agent/query', () => {
-    expect(src).toContain("kongApi.post('/api/agent/query'");
+  it('يستدعي AI Agronomist Runtime /api/ai-agronomist/chat', () => {
+    expect(src).toContain("kongApi.post('/api/ai-agronomist/chat'");
   });
 
-  it('لا يستدعي الـproxy المفقود /api/chat', () => {
+  it('لا يستدعي الـproxy المفقود /api/chat ولا مسار /api/agent/query القديم', () => {
     expect(src).not.toContain('/api/chat');
+    expect(src).not.toContain("kongApi.post('/api/agent/query'");
   });
 });

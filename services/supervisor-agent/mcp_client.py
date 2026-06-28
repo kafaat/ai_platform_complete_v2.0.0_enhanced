@@ -12,6 +12,24 @@ import httpx
 from shared.helpers import retry_request
 
 
+def classify_mcp_error(exc: BaseException) -> str:
+    """Return a stable, non-sensitive error category for MCP failures.
+
+    This prevents leaking internal URLs, stack traces, or vendor errors through
+    agent responses while preserving enough signal for tests/telemetry.
+    """
+    name = exc.__class__.__name__.lower()
+    if "circuit" in name:
+        return "circuit_open"
+    if "timeout" in name:
+        return "timeout"
+    if isinstance(exc, httpx.HTTPStatusError):
+        return "http_error"
+    if isinstance(exc, httpx.RequestError):
+        return "network_error"
+    return "unexpected_error"
+
+
 class MCPClient:
     """
     Client for Model Context Protocol (MCP) 2026 servers.
@@ -105,7 +123,8 @@ class MCPClient:
                     {
                         "server": calls[i]["server"],
                         "tool": calls[i]["tool"],
-                        "error": str(result),
+                        "error": "tool_call_failed",
+                        "error_type": classify_mcp_error(result),
                         "status": "failed",
                     }
                 )

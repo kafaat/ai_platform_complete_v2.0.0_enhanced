@@ -16,13 +16,7 @@ cog_writer.py — كتابة Cloud-Optimized GeoTIFF محسّنة (تحسين ت
 
 from __future__ import annotations
 
-import logging
 import os
-
-logger = logging.getLogger("raster-service")
-
-# قيمة nodata رقميّة (لا NaN) — صلاحيّة البكسل تُحمَل بالقناع الداخلي.
-DEFAULT_NODATA = -9999.0
 
 # إعدادات COG محسّنة (وفق أفضل الممارسات)
 COG_PROFILE = {
@@ -39,6 +33,9 @@ COG_PROFILE = {
 OVERVIEW_LEVELS = [2, 4, 8, 16]
 
 
+DEFAULT_NODATA = -9999.0
+
+
 def write_cog(
     array,
     output_path: str,
@@ -46,10 +43,10 @@ def write_cog(
     crs: str = "EPSG:4326",
     nodata: float = DEFAULT_NODATA,
 ) -> dict:
-    """يكتب مصفوفة مؤشّر كـCOG محسّن (ضغط + بلاطات + أهرامات + قناع داخلي).
+    """يكتب مصفوفة مؤشّر كـCOG محسّن (ضغط + بلاطات + أهرامات داخليّة).
 
-    يُرجِع {written, path, size_bytes, compression, overviews, validation}.
-    صدق: يكتب فعليّاً عند توفّر rasterio؛ وإلّا يُبلّغ بأنّه غير متاح (لا يدّعي).
+    يُرجِع {written, path, size_bytes, compression, overviews}. صدق: يكتب
+    فعليّاً عند توفّر rasterio؛ وإلّا يُبلّغ بأنّه غير متاح (لا يدّعي كتابة).
     """
     try:
         import rasterio
@@ -64,8 +61,8 @@ def write_cog(
 
     h, w = array.shape
     # نكتب قيم NaN كما هي للحفاظ على توافق مسار الإحصاء/الاختبارات، لكن لا نعتمد
-    # على NaN كـnodata tag. نضيف mask داخليّاً كي يتعامل GDAL/overviews/tiles مع
-    # خارج الحقل كمنطقة شفّافة لا كقيم صالحة قد تُنتج حوافاً أو شرائط داكنة.
+    # على NaN كـnodata tag. نضيف mask داخلياً كي يتعامل GDAL/overviews/tiles مع
+    # خارج الحقل كمنطقة شفافة لا كقيم صالحة قد تُنتج حوافاً أو شرائط.
     write_array = np.asarray(array, dtype="float32")
     valid_mask = np.isfinite(write_array)
     if isinstance(nodata, float) and np.isnan(nodata):
@@ -83,17 +80,12 @@ def write_cog(
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     with rasterio.open(output_path, "w", **profile) as dst:
         dst.write(write_array, 1)
-        # القناع الداخلي: 255=صالح (finite)، 0=غير صالح (NaN/خارج الحقل).
-        # هذا ما يجعل المُصيِّر/الأهرامات يتعاملان مع خارج الحقل كمنطقة شفّافة.
         dst.write_mask(valid_mask.astype("uint8") * 255)
         # أهرامات داخليّة (overviews) — قراءة سريعة عند التكبير/التصغير
         dst.build_overviews(OVERVIEW_LEVELS, Resampling.average)
         dst.update_tags(ns="rio_overview", resampling="average")
 
     size = os.path.getsize(output_path)
-    validation = validate_cog(output_path)
-    if validation.get("valid") is False:
-        logger.warning("COG غير صالح بعد الكتابة: %s — %s", output_path, validation)
     return {
         "written": True,
         "path": output_path,
@@ -102,7 +94,6 @@ def write_cog(
         "compression": "DEFLATE+predictor3",
         "overviews": OVERVIEW_LEVELS,
         "block_size": "512x512",
-        "validation": validation,
     }
 
 
@@ -115,14 +106,7 @@ def validate_cog(path: str) -> dict:
     if not os.path.exists(path):
         return {"valid": False, "reason": "الملفّ غير موجود"}
     with rasterio.open(path) as src:
-        # GDAL يُبلّغ بـtiled=False عندما يساوي حجم البلاطة أبعاد الصورة (بلاطة
-        # واحدة، كصورنا الاختباريّة 512×512). نَعدّها مبلّطة إن كان profile.tiled
-        # أو إذا كان شكل الكتلة مربّعاً وأصغر من/يساوي أبعاد الصورة (نيّة التبليط).
-        # الصورة المشرّطة (striped) كتلتها (1, width) → bw≠bh → تُرفَض بحقّ.
-        bh, bw = src.block_shapes[0]
-        is_tiled = bool(
-            src.profile.get("tiled", False) or (bw == bh and bw <= src.width and bh <= src.height)
-        )
+        is_tiled = src.profile.get("tiled", False)
         has_overviews = len(src.overviews(1)) > 0
         return {
             "valid": bool(is_tiled and has_overviews),

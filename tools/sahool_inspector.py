@@ -123,21 +123,39 @@ def check_rls_coverage() -> Result:
 # 2. router wiring — لا راوتر يتيم
 # ════════════════════════════════════════════════════════════
 def check_router_wiring() -> Result:
+    # التسجيل مُستخرَج إلى api/router_registry.py (register_routers) ويُستدعى من main.py.
+    # نقرأ كليهما معاً: الحلقة/الاستثناء/التضمين الصريح صارت في router_registry.
     main_src = _read(MAIN)
+    registry = MAIN.parent / "router_registry.py"
+    wiring_src = main_src + "\n" + (_read(registry) if registry.exists() else "")
     findings: list[str] = []
     names = sorted(p.stem for p in ROUTERS.glob("*.py") if p.name != "__init__.py")
+
+    # التسجيل التلقائيّ (auto-registration): تُضمَّن كلّ وحدة في api/routers/ عبر حلقة
+    # pkgutil.iter_modules + app.include_router (في router_registry، يستدعيها main.py عبر
+    # register_routers). عند وجوده، تُعدّ كلّ وحدة مُضمَّنة آليّاً عدا ما في الاستثناء.
+    auto_reg = bool(
+        re.search(r"iter_modules\(\s*_routers_pkg\.__path__", wiring_src)
+        and re.search(r"app\.include_router\(\s*_?router_obj", wiring_src)
+        and re.search(r"register_routers\s*\(\s*app\s*\)", main_src)
+    )
+    excl_match = re.search(r"_?ROUTER_AUTOREG_EXCLUDE\s*=\s*\{([^}]*)\}", wiring_src)
+    excluded = set(re.findall(r'"(\w+)"', excl_match.group(1))) if excl_match else set()
+
     for name in names:
+        if auto_reg and name not in excluded:
+            continue  # مُضمَّن آليّاً عبر حلقة التسجيل
         # نمط واعٍ بالتعليقات والالتفاف متعدّد الأسطر (مطابق لحارس التفكيك):
         #   from api.routers.<name> import (  «تعليق E402»\n    router as <alias>,\n)
         imp = re.search(
             rf"from api\.routers\.{re.escape(name)} import\s*\(?[ \t]*(?:#[^\n]*)?\s*router as (\w+)",
-            main_src,
+            wiring_src,
         )
         if not imp:
-            findings.append(f"HIGH راوتر يتيم: `{name}` غير مُستورَد في main.py")
+            findings.append(f"HIGH راوتر يتيم: `{name}` غير مُستورَد (main/router_registry)")
             continue
         alias = imp.group(1)
-        if not re.search(rf"app\.include_router\(\s*{re.escape(alias)}\b", main_src):
+        if not re.search(rf"app\.include_router\(\s*{re.escape(alias)}\b", wiring_src):
             findings.append(f"HIGH راوتر مُستورَد بلا include: `{name}` ({alias})")
     status = FAIL if findings else PASS
     return Result("router wiring", status, f"{len(names)} راوتر؛ {len(findings)} مشكلة", findings)

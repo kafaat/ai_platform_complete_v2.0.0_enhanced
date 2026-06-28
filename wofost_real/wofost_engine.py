@@ -189,6 +189,17 @@ def hargreaves_et0(tmax: float, tmin: float, lat_deg: float, doy: int) -> float:
     """
     ET0 = 0.0023 × (Tmean + 17.8) × √Trange × Ra × 0.408
     من: Allen et al. 1998 (FAO-56), Equation 52
+
+    مصدر الحقيقة الكنسيّ لـET0/Hargreaves (FAO-56):
+        services/sahool-platform/core/engines/et0.py
+        (hargreaves_et0, hargreaves_et0_geo, extraterrestrial_radiation_*,
+         DEFAULT_RA_MM=15.0).
+    هذه نسخة حرفيّة مُتطابقة عمداً، وليست تباعداً. سبب عدم الاستيراد من
+    المصدر الكنسيّ: عزل مقصود — wofost_engine كود R&D خارج services/ بالكامل
+    (خارج المنصّة)، ولا يصل إلى core/. التوحيد الكامل يتطلّب نقل core→shared
+    (مؤجَّل بقرار، خارج النطاق).
+    ⚠ أيّ تعديل على صيغة Ra أو Hargreaves أدناه يجب أن يُزامَن مع المصدر
+      الكنسيّ (H4) للحفاظ على تطابق الناتج.
     """
     tmean = (tmax + tmin) / 2
     trange = max(0, tmax - tmin)

@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import '../utils/ids.dart';
+import '../config/app_config.dart';
 import 'auth_service.dart';
 
 /// نتيجة [WebSocketService.send] — تُخبر المستدعي بالمآل الفعليّ للرسالة بدل
@@ -48,7 +49,7 @@ class WebSocketService {
     // أمان: لا نُمرّر التوكن في الـquery (كان يتسرّب إلى access logs للوكلاء/الخوادم).
     // نُرسله بدلاً عنه في إطار المصادقة الأوّل بعد فتح الاتصال — مطابقةً لعميل الويب
     // وللمسار الجديد في الخادم (agents/notification/agent.py: {"type":"auth","token":…}).
-    const base = String.fromEnvironment('WS_URL', defaultValue: 'wss://api.sahool.ye');
+    final base = AppConfig.wsUri.toString().replaceFirst(RegExp(r'/+$'), '');
     return '$base/ws/notifications';
   }
 

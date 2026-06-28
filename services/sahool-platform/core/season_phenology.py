@@ -85,19 +85,20 @@ def current_stage(crop_id: str | None, days_since_sowing: int | None) -> dict | 
     return None
 
 
-def stage_kc(crop_id: str | None, days_since_sowing: int | None) -> float | None:
-    """معامل المحصول Kc الطوريّ (FAO-56 kc_for_age) لعمر المحصول — أو None إن جُهِل.
+def crop_kc_profile(crop_id: str | None) -> CropKcProfile | None:
+    """يبني :class:`CropKcProfile` (منحنى FAO-56 الرباعيّ + تحمّل الملوحة) من بطاقة المحصول.
 
-    يستخدم كتلة kc من بطاقة المحصول (منحنى FAO-56 الرباعيّ) — أدقّ من Kc ثابت.
+    مصدر واحد للحقيقة لبناء البروفايل من البطاقة (يُستدعى من ``stage_kc`` ومن نقطة ETc المزدوج).
+    صدق: بطاقة مفقودة أو بلا كتلة ``kc`` ⇒ ``None`` (المستدعي يتدهور بصدق، لا بروفايل مُلفَّق).
     """
-    if crop_id is None or days_since_sowing is None:
+    if crop_id is None:
         return None
     card = load_crop_card(crop_id)
     kc = (card or {}).get("kc")
     if not kc:
         return None
     sal = (card or {}).get("salinity", {})
-    profile = CropKcProfile(
+    return CropKcProfile(
         crop_id=crop_id,
         kc_initial=kc.get("initial", 0.3),
         kc_mid=kc.get("mid", 1.0),
@@ -106,6 +107,18 @@ def stage_kc(crop_id: str | None, days_since_sowing: int | None) -> float | None
         salt_tolerance_ece=sal.get("threshold_ece_ds_m", 4.0),
         salt_slope_pct=sal.get("slope_pct_per_ds_m", 0.0),
     )
+
+
+def stage_kc(crop_id: str | None, days_since_sowing: int | None) -> float | None:
+    """معامل المحصول Kc الطوريّ (FAO-56 kc_for_age) لعمر المحصول — أو None إن جُهِل.
+
+    يستخدم كتلة kc من بطاقة المحصول (منحنى FAO-56 الرباعيّ) — أدقّ من Kc ثابت.
+    """
+    if days_since_sowing is None:
+        return None
+    profile = crop_kc_profile(crop_id)
+    if profile is None:
+        return None
     val, _ = kc_for_age(profile, days_since_sowing)
     return round(val, 2)
 

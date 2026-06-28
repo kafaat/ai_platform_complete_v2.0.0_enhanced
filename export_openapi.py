@@ -19,7 +19,6 @@ import importlib.util
 import json
 import os
 import sys
-import traceback
 
 # الخدمات وملفّات main الخاصّة بها (المسار النسبي من جذر المشروع)
 SERVICES = [
@@ -36,7 +35,7 @@ def load_app(service: str):
     """يحمّل كائن app من services/<service>/main.py بلا تشغيل الخادم."""
     main_path = os.path.join("services", service, "main.py")
     if not os.path.exists(main_path):
-        return None, f"main.py غير موجود"
+        return None, "main.py غير موجود"
     svc_dir = os.path.join("services", service)
     # أضِف مجلّد الخدمة + الجذر للمسار (للاستيرادات المحليّة + shared)
     sys.path.insert(0, os.path.abspath(svc_dir))

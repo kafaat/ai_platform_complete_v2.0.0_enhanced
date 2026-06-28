@@ -32,6 +32,7 @@ FEATURE_FLAGS: dict[str, str] = {
     "FEATURE_GIS_KERNEL": "نواة GIS (عمليّات مكانيّة منخفضة المستوى).",
     "FEATURE_IRRIGATION_NETWORK": "توأم شبكة الريّ (irrigation network twin).",
     "FEATURE_EXECUTION_FEEDBACK": "رصد حلقة التنفيذ (execution feedback).",
+    "FEATURE_FARM_OPERATIONS_LEDGER": "دفتر العمليات الزراعية الرقابي (أعمال/مياه/طاقة/مدخلات).",
 }
 
 

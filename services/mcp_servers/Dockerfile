@@ -29,6 +29,7 @@ COPY services/mcp_servers/sentinel_hub_server.py /app/
 COPY services/mcp_servers/weather_server.py /app/
 COPY services/mcp_servers/wofost_server.py /app/
 COPY services/mcp_servers/market_server.py /app/
+COPY services/mcp_servers/generic_context_server.py /app/
 
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
@@ -38,4 +39,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1
 RUN useradd -m sahool && chown -R sahool:sahool /app 2>/dev/null || true
 USER sahool
-CMD ["python", "-m", "uvicorn", "sentinel_hub_server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "python -m uvicorn ${MCP_SERVER_MODULE:-sentinel_hub_server}:app --host 0.0.0.0 --port 8000"]

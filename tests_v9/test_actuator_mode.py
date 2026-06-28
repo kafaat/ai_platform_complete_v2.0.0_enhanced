@@ -1,7 +1,7 @@
-"""اختبار أوضاع المُشغِّل النقيّة (PR #394) — resolve_actuator_mode.
+"""اختبار أوضاع المُشغِّل النقيّة (PR #394 ⇒ fail-safe) — resolve_actuator_mode.
 
-نمط الإغلاق المرن: real/simulation/disabled مع **حفظ السلوك الحاليّ** عند غياب العلم
-(الاستنتاج من broker_url). يُختبَر حتميّاً بلا قاعدة ولا شبكة ولا بيئة.
+real/simulation/disabled مع علم صريح؛ وعند **غياب العلم ⇒ fail-safe `simulation`**
+(سلامة فيزيائيّة: وجود وسيط ≠ موافقة تشغيل، real يتطلّب opt-in صريحاً). يُختبَر حتميّاً.
 """
 
 from __future__ import annotations
@@ -39,26 +39,26 @@ def test_explicit_case_and_whitespace_insensitive():
     assert resolve_actuator_mode("  Disabled", "mqtt://b:1883") == "disabled"
 
 
-# ── الاستنتاج من broker_url عند غياب العلم (يحفظ السلوك الحاليّ تماماً) ──
-def test_inferred_real_when_broker_present():
-    # لا علم + وسيط حقيقيّ ⇒ real (السلوك الحاليّ: ينشر فعليّاً).
-    assert resolve_actuator_mode(None, "mqtt://sahool-fastbee:1883") == "real"
-    assert resolve_actuator_mode("", "mqtt://sahool-fastbee:1883") == "real"
+# ── غياب العلم ⇒ fail-safe simulation (سلامة فيزيائيّة، يعكس PR #394 بوعي) ──
+def test_unset_flag_is_failsafe_simulation():
+    # لا علم ⇒ simulation مهما كان الوسيط (وجود وسيط ≠ موافقة تشغيل فيزيائيّ).
+    assert resolve_actuator_mode(None, "mqtt://sahool-fastbee:1883") == "simulation"
+    assert resolve_actuator_mode("", "mqtt://sahool-fastbee:1883") == "simulation"
+    assert resolve_actuator_mode(None, "") == "simulation"
+    assert resolve_actuator_mode(None, None) == "simulation"
+    assert resolve_actuator_mode("", "   ") == "simulation"
+    # broker_url لم يَعُد يُرجّح real (وُسِّع الافتراضيّ liberally للتوافق).
+    assert resolve_actuator_mode(None) == "simulation"
 
 
-def test_inferred_disabled_when_broker_empty_or_disabled():
-    # لا علم + وسيط فارغ/معطّل ⇒ disabled (السلوك الحاليّ: لا عمليّة، يُعيد False).
-    assert resolve_actuator_mode(None, "") == "disabled"
-    assert resolve_actuator_mode(None, None) == "disabled"
-    assert resolve_actuator_mode("", "   ") == "disabled"
-    assert resolve_actuator_mode(None, "disabled") == "disabled"
-    assert resolve_actuator_mode(None, "disabled://whatever") == "disabled"
+def test_unknown_flag_is_failsafe_simulation():
+    # علم مجهول ⇒ simulation (لا يُرفَع خطأ، لا يُرجّح real — الأكثر أماناً).
+    assert resolve_actuator_mode("bogus", "mqtt://broker:1883") == "simulation"
+    assert resolve_actuator_mode("xyz", "") == "simulation"
+    assert resolve_actuator_mode("on", None) == "simulation"
 
 
-# ── قيمة مجهولة ⇒ تُتجاهَل ويُستنتَج من الوسيط (لا تُكسر، تتحفّظ) ──
-def test_unknown_flag_falls_back_to_inference():
-    # علم مجهول + وسيط حقيقيّ ⇒ يُستنتَج real (لا يُرفَع خطأ، لا يُعطَّل صامتاً).
-    assert resolve_actuator_mode("bogus", "mqtt://broker:1883") == "real"
-    # علم مجهول + لا وسيط ⇒ disabled (الأكثر تحفّظاً).
-    assert resolve_actuator_mode("xyz", "") == "disabled"
-    assert resolve_actuator_mode("on", None) == "disabled"
+def test_real_requires_explicit_opt_in():
+    # real لا يقع إلّا بتعيين صريح — لا استنتاج من وجود الوسيط.
+    assert resolve_actuator_mode("real", "mqtt://sahool-fastbee:1883") == "real"
+    assert resolve_actuator_mode(None, "mqtt://sahool-fastbee:1883") != "real"

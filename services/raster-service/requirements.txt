@@ -13,3 +13,10 @@ asyncpg>=0.29.0
 # تخزين كائنات اختياري (S3/MinIO) لـCOGs — مطلوب فقط عند ضبط S3_*؛
 # مسار file:// يعمل دونه (الاستيراد محروس داخل object_store.py):
 boto3>=1.34.0
+# Enterprise geospatial analytics/export (optional but enabled in production images):
+pyarrow>=16.0.0
+shapely>=2.0.0
+geopandas>=0.14.0
+
+# DB fallback for tenant ownership and layer hydration
+asyncpg>=0.29.0

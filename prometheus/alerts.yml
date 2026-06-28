@@ -157,3 +157,87 @@ groups:
         annotations:
           summary: "High process memory on {{ $labels.job }} ({{ $labels.instance }})"
           description: "Resident memory for {{ $labels.job }} on {{ $labels.instance }} has exceeded 1.5GB for over 10 minutes."
+
+  # ── SAHOOL production runtime SLOs ───────────────────────────────
+  - name: sahool-production-slos
+    rules:
+      - alert: SahoolRasterTileJSONUnavailable
+        expr: up{job=~"raster-service|raster-tiler|titiler|vegetation-service"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          domain: raster
+        annotations:
+          summary: "Raster/imagery target unavailable: {{ $labels.job }}"
+          description: "Field imagery, TileJSON, or tile rendering may be unavailable. Check raster-service, TiTiler, cache, and CDSE connectivity."
+
+      - alert: SahoolAIAdviceStackDegraded
+        expr: up{job=~"ai-agronomist|rag-retrieval|knowledge-graph|guardrails-engine"} == 0
+        for: 3m
+        labels:
+          severity: critical
+          domain: ai
+        annotations:
+          summary: "AI advice dependency unavailable: {{ $labels.job }}"
+          description: "AI advice must fail closed/degraded when RAG, KG, guardrails, or ai-agronomist is unavailable."
+
+      - alert: SahoolOutboxBacklogGrowing
+        expr: increase(sahool_outbox_pending_total[10m]) > 100
+        for: 10m
+        labels:
+          severity: warning
+          domain: events
+        annotations:
+          summary: "Outbox backlog growing"
+          description: "The event outbox backlog has increased by more than 100 entries over 10 minutes. Check NATS and publisher workers."
+
+      - alert: SahoolOutboxPublishFailures
+        expr: rate(sahool_outbox_failed_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: critical
+          domain: events
+        annotations:
+          summary: "Outbox publish failures detected"
+          description: "Outbox publish failures are non-zero. Verify NATS, idempotency keys, and dead-letter handling."
+
+      - alert: SahoolPluginSandboxViolation
+        expr: rate(sahool_plugin_sandbox_violations_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          domain: marketplace
+        annotations:
+          summary: "Marketplace plugin sandbox violation"
+          description: "A plugin attempted a forbidden operation such as direct DB write, raw NATS publish, secret read, host file write, or direct actuator command."
+
+      - alert: SahoolPhysicalActuationBlocked
+        expr: rate(sahool_iot_actuation_blocked_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          domain: iot
+        annotations:
+          summary: "Physical actuation blocked by guardrails"
+          description: "IoT execution runtime blocked a physical command. Review adapter mode, dry_run flag, guardrails, and authority envelope."
+
+      - alert: SahoolMobileSyncConflictSpike
+        expr: rate(sahool_mobile_sync_conflicts_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          domain: mobile
+        annotations:
+          summary: "Mobile offline sync conflict spike"
+          description: "Mobile sync conflicts are elevated. Review operation_id idempotency and optimistic row-version conflict handling."
+
+      - alert: SahoolModelPromotionFailure
+        expr: rate(sahool_model_promotion_failures_total[10m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          domain: mlops
+        annotations:
+          summary: "Model promotion failure"
+          description: "Phase 10 model promotion failed. Verify model registry, serving alias, rollback history, and approval gates."
+

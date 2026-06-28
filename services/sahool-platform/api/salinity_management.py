@@ -26,6 +26,9 @@ api/salinity_management.py — إدارة ملوحة التربة والمياه
 
 from __future__ import annotations
 
+# مصدر صيغة الغسيل الوحيد (H5): محرّك FAO-56 (Eq.82). لا نُكرّر الصيغة هنا.
+from core.engines.fao56 import leaching_requirement as _fao56_leaching_requirement
+
 
 # تصنيف ملوحة التربة (ECe بالـdS/m) — معايير FAO
 def classify_soil_salinity(ece_dsm: float) -> dict:
@@ -78,8 +81,12 @@ def classify_water_salinity(ecw_dsm: float) -> dict:
 def leaching_requirement(ecw_dsm: float, crop_threshold_ece: float) -> dict:
     """يحسب احتياج الغسيل (LR): نسبة الماء الإضافي لطرد الأملاح.
 
-    LR = ECw / (5 × ECe_threshold − ECw)   [معادلة FAO المبسّطة]
+    LR = ECw / (5 × ECe_threshold − ECw)   (FAO-56 Eq. 82)
     حيث ECe_threshold = عتبة تحمّل المحصول لملوحة التربة.
+
+    ⚠ مصدر الصيغة الوحيد (H5): يفوّض إلى :func:`core.engines.fao56.leaching_requirement`
+    (لا تكرار). تُحفَظ الواجهة القاموسيّة الخارجيّة: حين تتجاوز ملوحة الماء قدرة الغسيل
+    (المقام ≤ 0) نُرجِع ``feasible=False`` برسالة إرشاديّة بدل الكسر المقصوص للمحرّك.
     """
     denom = 5 * crop_threshold_ece - ecw_dsm
     if denom <= 0:
@@ -91,7 +98,7 @@ def leaching_requirement(ecw_dsm: float, crop_threshold_ece: float) -> dict:
                 "لا يكفي. غيّر المحصول لأكثر تحمّلاً أو حسّن مصدر الماء."
             ),
         }
-    lr = ecw_dsm / denom
+    lr = _fao56_leaching_requirement(ecw_dsm, crop_threshold_ece)
     lr_pct = round(lr * 100, 1)
     return {
         "supported": True,

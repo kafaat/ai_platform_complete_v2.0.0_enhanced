@@ -192,3 +192,37 @@ class TestSinglePathUnchanged:
         assert salinity_stress_ks(crop, 5.0) == 1.0
         # ET0 القائم لم يتغيّر
         assert 5.0 < penman_monteith_et0(_weather()) < 15.0
+
+
+# ── ETc-dual canonical: et0_override + soil_ece=None (إغلاق SSOT/H5) ──
+class TestEtcDualCanonicalParams:
+    def test_et0_override_replaces_internal_et0(self):
+        """et0_override ⇒ ETc تُحسب بـET0 المُمرَّر لا penman الداخليّ (SSOT موحّد)."""
+        w, crop = _weather(), _crop()
+        forced = 3.0  # ≠ penman الداخليّ (≈9-10 لهذا الطقس)
+        r = compute_etc_dual(w, crop, days_after_planting=40, et0_override=forced)
+        assert r.et0_mm == forced
+        # ETc = kc_dual · ET0_override (بدقّة التقريب)
+        assert abs(r.etc_dual_mm - round(r.kc_dual * forced, 2)) < 0.02
+        assert any("et0_override" in a.lower() or "الكنسيّ" in a for a in r.assumptions)
+
+    def test_no_override_matches_internal_et0(self):
+        """بلا override ⇒ السلوك مطابق للسابق (انحدار): ET0 = penman الداخليّ."""
+        w, crop = _weather(), _crop()
+        r = compute_etc_dual(w, crop, days_after_planting=40)
+        assert abs(r.et0_mm - round(penman_monteith_et0(w), 2)) < 0.01
+
+    def test_soil_ece_none_disables_salinity(self):
+        """soil_ece=None ⇒ Ks=1 (الملوحة غير مطبّقة) + assumption — لا تُدخَل ضمنيّاً."""
+        w, crop = _weather(), _crop()
+        r = compute_etc_dual(w, crop, days_after_planting=40, soil_ece=None)
+        assert r.ks == 1.0
+        assert any("الملوحة غير مطبّقة" in a for a in r.assumptions)
+
+    def test_soil_ece_value_still_applies_ks(self):
+        """soil_ece=رقم فوق العتبة ⇒ Ks<1 (السلوك القائم محفوظ)."""
+        w = _weather()
+        # محصول حسّاس: عتبة 2.0، ميل 10%/dS·m⁻¹ ⇒ EC=7 ⇒ خسارة كبيرة
+        crop = CropKcProfile("sensitive", 0.30, 1.05, 0.55, [20, 35, 40, 30], 2.0, 10.0)
+        r = compute_etc_dual(w, crop, days_after_planting=40, soil_ece=7.0)
+        assert r.ks < 1.0

@@ -2561,9 +2561,16 @@ def test_replay_determinism():
     sp = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform")
     sys.path.insert(0, sp)
     if "api.event_bus" not in sys.modules:
-        m = types.ModuleType("api.event_bus")
-        m.EventBus = object
-        sys.modules["api.event_bus"] = m
+        # Prefer the real platform event_bus. A previous lightweight stub leaked
+        # into sys.modules and broke later behavioral/import tests in the same
+        # pytest process. Only fall back to a stub if the real module is truly
+        # unavailable in a minimal environment.
+        try:
+            importlib.import_module("api.event_bus")
+        except Exception:
+            m = types.ModuleType("api.event_bus")
+            m.EventBus = object
+            sys.modules["api.event_bus"] = m
     r = []
     try:
         er = importlib.import_module("api.event_replay")

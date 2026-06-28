@@ -1,0 +1,1 @@
+"""Enterprise GIS shared contracts."""

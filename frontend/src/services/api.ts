@@ -15,6 +15,7 @@
 import axios, { type AxiosInstance } from 'axios';
 import { clearAccessToken, getAccessToken, getTenantId } from '../lib/authStorage';
 import { isAccessTokenExpired } from '../lib/jwt';
+import { ENDPOINTS } from '../config/endpoints';
 
 // ── توجيه العملاء: البوّابة (nginx/Kong :80) هي المرجع القانونيّ ──────────────
 // القرار التصميميّ: الإنتاج المرجعيّ هو nginx/Kong على :80، فتنادي الواجهةُ
@@ -35,22 +36,13 @@ import { isAccessTokenExpired } from '../lib/jwt';
 // VITE_API_MODE=gateway (الافتراضيّ): مسارات نسبيّة (nginx :80 أو وكيل vite).
 // VITE_API_MODE=dev: منافذ localhost المباشرة (تشغيل الخدمات بلا بوّابة).
 // أيّ VITE_*_BASE_URL صريح يَسبق الافتراضَين (يُحترَم حتى لو كان سلسلةً فارغة).
-const API_MODE = import.meta.env.VITE_API_MODE || 'gateway';
-const _dev = API_MODE === 'dev';
-
-// يَحُلّ قاعدة عميل: المتغيّر الصريح إن عُرّف (?? يحترم '' الفارغة)، وإلّا
-// الافتراضيّ حسب الوضع. قيم import.meta.env إمّا سلسلة أو undefined.
-function resolveBase(envVal: string | undefined, gateway: string, dev: string): string {
-  return envVal ?? (_dev ? dev : gateway);
-}
-
-const KONG_URL       = resolveBase(import.meta.env.VITE_API_BASE_URL,        '',                'http://localhost:8000');
-const AUTH_URL       = resolveBase(import.meta.env.VITE_AUTH_BASE_URL,       '',                'http://localhost:8120');
-const RASTER_URL     = resolveBase(import.meta.env.VITE_RASTER_BASE_URL,     '/api/raster',     'http://localhost:8001');
-const VEGETATION_URL = resolveBase(import.meta.env.VITE_VEGETATION_BASE_URL, '/api/vegetation', 'http://localhost:8090');
-const INDICATORS_URL = resolveBase(import.meta.env.VITE_INDICATORS_BASE_URL, '/api/indicators', 'http://localhost:8091');
-const WEATHER_URL    = resolveBase(import.meta.env.VITE_WEATHER_BASE_URL,    '/api/weather',    'http://localhost:8092');
-const SOIL_URL       = resolveBase(import.meta.env.VITE_SOIL_BASE_URL,       '/api/soil',       'http://localhost:8094');
+const KONG_URL       = ENDPOINTS.kong;
+const AUTH_URL       = ENDPOINTS.auth;
+const RASTER_URL     = ENDPOINTS.raster;
+const VEGETATION_URL = ENDPOINTS.vegetation;
+const INDICATORS_URL = ENDPOINTS.indicators;
+const WEATHER_URL    = ENDPOINTS.weather;
+const SOIL_URL       = ENDPOINTS.soil;
 const MOCK_MODE      = import.meta.env.VITE_MOCK_MODE === 'true' || false;
 
 // ── Axios instances ────────────────────────────────────────────
@@ -521,6 +513,108 @@ export interface IrrigationPlanResult {
 }
 export const computeIrrigationPlan = (payload: IrrigationPlanInput): Promise<IrrigationPlanResult> =>
   kongApi.post<IrrigationPlanResult>('/api/v1/irrigation-plan', payload).then(r => r.data);
+
+// ── توأم المياه (POST /api/v1/fields/{id}/water-twin) — مُغذّى بدفتر المياه v98 ──
+// يحاكي مسار نضوب الجذور الأماميّ (FAO-56) لسيناريوهَي ريّ (أساس مقابل تأجيل/تخفيض)
+// مُغذّى بأحدث صفوف الدفتر. صدق: لا غلّة مُلفّقة — أيّام إجهاد/استهلاك ماء فقط.
+export interface WaterTwinDayState {
+  day: number; depletion_mm: number; soil_moisture_pct: number;
+  ks: number; eta_mm: number; stressed: boolean;
+}
+export interface WaterTwinTrajectory {
+  days: number; total_irrigation_mm: number; total_eta_mm: number; stress_days: number;
+  max_depletion_mm: number; final_depletion_mm: number; final_soil_moisture_pct: number;
+  states: WaterTwinDayState[];
+}
+export interface WaterTwinComparison {
+  metric_ar: string; baseline: number; scenario: number; delta: number; unit: string;
+}
+export interface WaterTwinSeed {
+  initial_depletion_mm: number; initial_depletion_source: string;
+  daily_etc_mm: number; daily_etc_source: string;
+  ledger_rows_used: number; horizon_days: number;
+}
+export interface WaterTwinResult {
+  scenario_type: string;
+  baseline: WaterTwinTrajectory;
+  scenario: WaterTwinTrajectory;
+  comparisons: WaterTwinComparison[];
+  summary_ar: string;
+  field_id: string;
+  seed: WaterTwinSeed;
+}
+export interface FieldWaterTwinInput {
+  taw_mm: number;
+  raw_mm: number;
+  horizon_days?: number;
+  baseline_irrigation_mm?: number;
+  daily_rain_mm?: number;
+  daily_etc_mm?: number | null;
+  initial_depletion_mm?: number | null;
+  recent_days_window?: number;
+  scenario_kind: 'delay' | 'scale';
+  delay_days?: number;
+  scale_factor?: number;
+}
+export const simulateFieldWaterTwin = (
+  fieldId: string,
+  payload: FieldWaterTwinInput,
+): Promise<WaterTwinResult> =>
+  kongApi.post<WaterTwinResult>(`/api/v1/fields/${fieldId}/water-twin`, payload).then(r => r.data);
+
+// ── ETc المزدوج (FAO-56) لحقل، مُغذّى بـNDVI الحيّ (POST /api/v1/fields/{id}/etc-dual) ──
+// يحسب ETc بنهج المعامل المزدوج (Kcb·Ks + Ke)·ET0 (#462). الطقس يمرّره المتّصِل؛
+// NDVI/المحصول/العمر/الملوحة تُحقَن من الحقل ما لم تُمرَّر تجاوزات. مصدر كلّ قيمة مُعلَن.
+export interface EtcDualInput {
+  // الطقس (لـET0 — Penman-Monteith)
+  temp_max_c: number;
+  temp_min_c: number;
+  humidity_pct: number;
+  wind_speed_m_s: number;
+  solar_radiation_mj_m2: number;
+  latitude_deg: number;
+  elevation_m?: number;
+  day_of_year: number;
+  // تجاوزات اختياريّة (الافتراضات FAO-56 موثّقة في المحرّك)
+  de_mm?: number;
+  texture?: string;
+  crop_height_m?: number;
+  fw?: number;
+  ndvi_bare?: number;
+  ndvi_full?: number;
+  // تجاوزات تسبق الحقن من الحقل (غياب ⇒ يُحقَن من الحقل)
+  ndvi?: number | null;
+  soil_ece?: number | null;
+  days_after_planting?: number | null;
+}
+// شكل الردّ: حقول DualKcResult (asdict) + field_id + ndvi + inputs (راجع routers/etc_dual.py).
+export interface EtcDualResult {
+  et0_mm: number;
+  kcb: number;
+  ks: number;
+  kc_max: number;
+  kr: number;
+  few: number;
+  ke: number;
+  kc_dual: number;       // Kcb·Ks + Ke (المعامل الفعّال المركّب)
+  etc_dual_mm: number;   // (Kcb·Ks + Ke)·ET0
+  etc_single_mm: number; // Kc·Ks·ET0 (للمقارنة الشفّافة)
+  stage: string;
+  assumptions: string[];
+  field_id: string;
+  ndvi: { used: number | null; source: string; date: string | null };
+  inputs: {
+    crop_id: string;
+    days_after_planting: number;
+    soil_ece: number;
+    soil_ece_source: string;
+  };
+}
+export const computeFieldEtcDual = (
+  fieldId: string,
+  payload: EtcDualInput,
+): Promise<EtcDualResult> =>
+  kongApi.post<EtcDualResult>(`/api/v1/fields/${fieldId}/etc-dual`, payload).then(r => r.data);
 
 // ── توزيع ماء المزرعة (POST /api/v1/field-portfolio/allocate) ──
 // يوزّع ماء آبار محدودة على حقول متعدّدة وفق الأولويّة والحدّ الأدنى لكلّ حقل،
@@ -1681,6 +1775,48 @@ export const fetchDecisionExplain = (decisionId: string): Promise<DecisionExplai
       throw e;
     });
 };
+
+
+// ══════════════════════════════════════════════════════════════════
+// FIELD GEOMETRY HISTORY — Timeline + Comparison Mode source.
+// تستهلك GET /api/v1/fields/{field_id}/geometry/history. لا fallback وهميّ:
+// إن تعذّر الجلب يظهر الخطأ في الواجهة، وإن لم توجد مراجعات تعرض الواجهة الحالي فقط.
+// ══════════════════════════════════════════════════════════════════
+export interface FieldGeometryHistoryRevision {
+  revision:   number;
+  geometry:   unknown;
+  changed_by: string | null;
+  changed_at: string | null;
+  reason:     string | null;
+  source:     string | null;
+  metadata:   Record<string, unknown>;
+}
+export interface FieldGeometryHistory {
+  field_id: string;
+  revisions: FieldGeometryHistoryRevision[];
+}
+export const fetchFieldGeometryHistory = (
+  fieldId: string,
+  limit = 50,
+): Promise<FieldGeometryHistory> => kongApi
+  .get<FieldGeometryHistory>(`/api/v1/fields/${encodeURIComponent(fieldId)}/geometry/history`, {
+    params: { limit },
+  })
+  .then((r) => {
+    const d = r.data ?? ({} as FieldGeometryHistory);
+    return {
+      field_id: d.field_id ?? fieldId,
+      revisions: Array.isArray(d.revisions) ? d.revisions.map((rev) => ({
+        revision: Number(rev.revision),
+        geometry: rev.geometry,
+        changed_by: rev.changed_by ?? null,
+        changed_at: rev.changed_at ?? null,
+        reason: rev.reason ?? null,
+        source: rev.source ?? null,
+        metadata: rev.metadata && typeof rev.metadata === 'object' ? rev.metadata : {},
+      })).filter((rev) => Number.isFinite(rev.revision)) : [],
+    };
+  });
 
 // ══════════════════════════════════════════════════════════════════
 // AGRONOMIC TIMELINE — الخطّ الزمنيّ الموحّد للحقل (مثل Git history، قراءة فقط).
@@ -3107,20 +3243,34 @@ export const fetchFieldWorkspace = (
 export const rasterBaseUrl = (): string =>
   (rasterApi.defaults.baseURL || '').replace(/\/+$/, '');
 
+
+export const normalizeIndicatorIndex = (index?: string | null): string => {
+  const key = (index || 'ndvi').trim().toLowerCase().replace(/[\s-]+/g, '_');
+  const aliases: Record<string, string> = {
+    ndvu: 'ndvi',
+    vegetation: 'ndvi',
+    moisture: 'ndmi',
+    salinity: 'salinity',
+    salt: 'salinity',
+    soil_salinity: 'salinity',
+  };
+  return aliases[key] || key;
+};
+
 /** رابط قالب بلاطات مؤشّر حقل من خدمة الراستر (NDVI افتراضيّاً). نُبقي
  *  {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet. لا تلوين مفبرك: إن لم تتوفّر صورة COG
  *  صافية للحقل/التاريخ تُرجِع الخدمة بلاطات فارغة (لا طبقة مُختلَقة). */
 export const fieldIndicatorTileUrl = (
   fieldId: string,
   index = 'ndvi',
-  date = '',
+  date = 'latest',
+  tenantId?: string | null,
+  cacheVersion?: string | number | null,
 ): string => {
-  // لا نُملي تاريخاً من الواجهة: حين يكون فارغاً أو 'latest' نحذف المُعامل،
-  // فيختار الخادم أحدث مشهد داخليّاً (المسار يُعرّف date=Query("latest")).
-  let qs = `index=${encodeURIComponent(index)}`;
-  if (date && date !== 'latest') {
-    qs += `&date=${encodeURIComponent(date)}`;
-  }
+  const params = new URLSearchParams({ index: normalizeIndicatorIndex(index), date });
+  if (tenantId) params.set('tid', tenantId);
+  if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
+  const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 };
@@ -3171,8 +3321,64 @@ export const analyzeVegetation = (fieldId: string, _satellite = 'sentinel-2', te
   );
 
 /** تشغيل معالجة صور Sentinel-2 الحقيقيّة للحقل عبر المنصّة/raster-service. */
-export const refreshFieldImagery = (fieldId: string) =>
-  kongApi.post(`/api/v1/fields/${fieldId}/imagery/refresh`).then(r => r.data);
+export const refreshFieldImagery = (fieldId: string, date?: string | null) =>
+  kongApi.post(`/api/v1/fields/${fieldId}/imagery/refresh`, date && date !== 'latest' ? { date } : undefined).then(r => r.data);
+
+
+export interface FieldImageryDateOption {
+  date: string;
+  cloud_pct?: number | null;
+  cloud_cover?: number | null;
+  has_cog?: boolean;
+  scene_id?: string | null;
+}
+
+/** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات. */
+export const fetchFieldImageryAvailableDates = (fieldId: string): Promise<FieldImageryDateOption[]> =>
+  kongApi.get(`/api/v1/fields/${fieldId}/available-dates`).then((r) => {
+    const raw = r.data?.dates ?? r.data?.items ?? r.data ?? [];
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((x: unknown) => {
+        if (typeof x === 'string') return { date: x } as FieldImageryDateOption;
+        if (!x || typeof x !== 'object') return null;
+        const obj = x as Record<string, unknown>;
+        const date = String(obj.date ?? obj.acquisition_date ?? obj.datetime ?? '').slice(0, 10);
+        if (!date) return null;
+        return {
+          date,
+          cloud_pct: typeof obj.cloud_pct === 'number' ? obj.cloud_pct : (typeof obj.cloud_cover === 'number' ? obj.cloud_cover : null),
+          cloud_cover: typeof obj.cloud_cover === 'number' ? obj.cloud_cover : null,
+          has_cog: Boolean(obj.has_cog ?? obj.ready ?? false),
+          scene_id: typeof obj.scene_id === 'string' ? obj.scene_id : null,
+        } as FieldImageryDateOption;
+      })
+      .filter(Boolean) as FieldImageryDateOption[];
+  }).catch(() => []);
+
+
+export type ImageryBackfillPreset = 'auto_12_months' | 'extended_3_years' | 'research_5_years' | 'custom';
+
+export interface HistoricalImageryBackfillPayload {
+  preset?: ImageryBackfillPreset;
+  from_date?: string;
+  to_date?: string;
+  months?: number;
+  indices?: string[];
+  max_cloud_pct?: number;
+  limit_per_month?: number;
+  apply_cloud_mask?: boolean;
+  clip_polygon_geojson?: unknown;
+  dry_run?: boolean;
+}
+
+/** خيارات قابلة للتبديل لسحب الصور التاريخية: 12 شهر/3 سنوات/5 سنوات/مخصص. */
+export const fetchImageryBackfillPolicy = () =>
+  rasterApi.get('/v1/imagery/backfill/policy').then(r => r.data);
+
+/** إنشاء خطة/مهمة backfill تاريخية للحقل. dry_run=true يعطي تقدير تكلفة/عدد مشاهد قبل التشغيل. */
+export const runHistoricalImageryBackfill = (fieldId: string, payload: HistoricalImageryBackfillPayload) =>
+  rasterApi.post(`/v1/fields/${fieldId}/imagery/backfill`, payload).then(r => r.data);
 
 /** سلسلة زمنية NDVI — GET /v1/timeseries/{fieldId} */
 export const fetchVegetationTimeseries = (fieldId: string, days = 30) =>
@@ -3492,3 +3698,236 @@ const MOCK_DASHBOARD = {
   data_freshness:{ source:'sentinel2+wofost+iot', last_update:new Date().toISOString() },
   status:'success',
 };
+
+
+// ── Lab Sampling: soil/water sample points + laboratory results ─────────────
+// Inspired by OneSoil soil-sampling map best practice: point coordinates are first-class
+// data and the map layer reads the same API as forms/reports. No fabricated fallback.
+export type LabSampleKind = 'soil' | 'water';
+export type LabSampleStatus = 'planned' | 'collected' | 'submitted' | 'analyzed' | 'approved';
+export interface LabSampleRecord {
+  sample_id: string;
+  field_id: string;
+  kind: LabSampleKind;
+  latitude: number;
+  longitude: number;
+  sampled_on?: string | null;
+  depth_cm_from?: number | null;
+  depth_cm_to?: number | null;
+  source?: string | null;
+  status: LabSampleStatus;
+  gps_accuracy_m?: number | null;
+  ph?: number | null;
+  ec_dsm?: number | null;
+  organic_matter_pct?: number | null;
+  nitrogen_mg_kg?: number | null;
+  phosphorus_mg_kg?: number | null;
+  potassium_mg_kg?: number | null;
+  sar?: number | null;
+  rsc_meq_l?: number | null;
+  approved?: boolean;
+}
+export interface LabSampleCreateInput {
+  field_id: string;
+  kind: LabSampleKind;
+  latitude: number;
+  longitude: number;
+  sampled_on?: string | null;
+  depth_cm_from?: number | null;
+  depth_cm_to?: number | null;
+  source?: string | null;
+  status?: LabSampleStatus;
+  gps_accuracy_m?: number | null;
+}
+export interface SoilLabResultInput {
+  sample_id: string;
+  ph?: number | null;
+  ec_dsm?: number | null;
+  organic_matter_pct?: number | null;
+  nitrogen_mg_kg?: number | null;
+  phosphorus_mg_kg?: number | null;
+  potassium_mg_kg?: number | null;
+  cec_cmol_kg?: number | null;
+  calcium_carbonate_pct?: number | null;
+  texture?: string | null;
+  approved?: boolean;
+}
+export interface SoilLabAnalysisResult {
+  sample_id: string;
+  approved: boolean;
+  classification: Record<string, { class: string | null; note_ar?: string }>;
+  nutrients: Record<string, string | number | null>;
+  hazard_flags_ar: string[];
+  missing_inputs: string[];
+  data_complete: boolean;
+  decision_usable: boolean;
+}
+export interface LabDecisionContext {
+  soil_lab_ready_for_fertilizer: boolean;
+  water_lab_available: boolean;
+  blockers_ar: string[];
+  warnings_ar: string[];
+  recommendation_gate: 'allow' | 'needs_review' | string;
+}
+export const listLabSamples = (fieldId?: string): Promise<LabSampleRecord[]> =>
+  kongApi
+    .get<LabSampleRecord[]>('/api/v1/lab/samples', { params: fieldId ? { field_id: fieldId } : undefined })
+    .then(r => Array.isArray(r.data) ? r.data : []);
+export const createLabSample = (payload: LabSampleCreateInput): Promise<LabSampleRecord> =>
+  kongApi.post<LabSampleRecord>('/api/v1/lab/samples', payload).then(r => r.data);
+export const submitSoilLabResult = (payload: SoilLabResultInput): Promise<SoilLabAnalysisResult> =>
+  kongApi.post<SoilLabAnalysisResult>('/api/v1/lab/soil-results', payload).then(r => r.data);
+export const fetchLabDecisionContext = (fieldId: string): Promise<LabDecisionContext> =>
+  kongApi.get<LabDecisionContext>(`/api/v1/fields/${encodeURIComponent(fieldId)}/lab-context`).then(r => r.data);
+
+
+// ── OneSoil-inspired productivity zones / sampling / daily brief ───────────
+export type ProductivityZoneClass = 'low' | 'medium' | 'high' | 'problem';
+export type ActionPriority = 'critical' | 'high' | 'medium' | 'low';
+export interface ProductivityObservationInput {
+  id: string;
+  area_ha: number;
+  ndvi_mean?: number | null;
+  ndvi_cv?: number | null;
+  yield_rel?: number | null;
+  soil_ec_dsm?: number | null;
+  soil_ph?: number | null;
+  lat?: number | null;
+  lng?: number | null;
+}
+export interface ProductivityZoneResult {
+  field_id: string;
+  tenant_id?: string;
+  zones: Array<{
+    zone_id: string;
+    zone_class: ProductivityZoneClass;
+    area_ha: number;
+    observation_ids: string[];
+    score: number;
+    confidence: number;
+    limiting_factors_ar: string[];
+    sampling_priority: ActionPriority;
+  }>;
+  summary: Record<string, { area_ha: number; count: number; area_pct: number; mean_score: number; limiting_factors_ar: string[] }>;
+  total_area_ha: number;
+  mean_confidence: number;
+  data_sufficiency: 'sufficient' | 'limited' | string;
+  source_policy?: string;
+}
+export interface ZoneSamplingPlanResult {
+  field_id: string;
+  tenant_id?: string;
+  sample_points: Array<{
+    sample_id: string;
+    zone_id: string;
+    zone_class: ProductivityZoneClass;
+    latitude: number;
+    longitude: number;
+    depth_cm_from: number;
+    depth_cm_to: number;
+    priority: ActionPriority;
+    reason_ar: string;
+  }>;
+  unplaceable_observation_ids: string[];
+  count: number;
+  source_policy?: string;
+}
+export interface DailyAiBriefResult {
+  field_id?: string | null;
+  tenant_id?: string;
+  headline_ar: string;
+  actions: Array<{
+    action_id: string;
+    priority: ActionPriority;
+    title_ar: string;
+    reason_ar: string;
+    field_id?: string | null;
+    zone_id?: string | null;
+    source: string;
+  }>;
+  source_count: number;
+  is_grounded: boolean;
+  source_policy?: string;
+}
+export const buildProductivityZones = (fieldId: string, observations: ProductivityObservationInput[]): Promise<ProductivityZoneResult> =>
+  kongApi
+    .post<ProductivityZoneResult>(`/api/v1/fields/${encodeURIComponent(fieldId)}/productivity-zones`, { field_id: fieldId, observations })
+    .then(r => r.data);
+export const buildZoneSamplingPlan = (fieldId: string, observations: ProductivityObservationInput[]): Promise<ZoneSamplingPlanResult> =>
+  kongApi
+    .post<ZoneSamplingPlanResult>(`/api/v1/fields/${encodeURIComponent(fieldId)}/zone-sampling-plan`, { field_id: fieldId, observations })
+    .then(r => r.data);
+export const fetchDailyAiBrief = (fieldId: string, signals: Record<string, unknown> = {}, tasks: Record<string, unknown>[] = []): Promise<DailyAiBriefResult> =>
+  kongApi
+    .post<DailyAiBriefResult>(`/api/v1/fields/${encodeURIComponent(fieldId)}/daily-ai-brief`, { field_id: fieldId, signals, tasks })
+    .then(r => r.data);
+
+// ── Phase 5 GIS Workbench / STAC / OGC / AI boundary adapters ─────────────
+export interface StacSearchParams {
+  field_id?: string;
+  index_type?: string;
+  min_quality?: number;
+  max_cloud?: number;
+  bbox?: number[];
+  limit?: number;
+}
+export interface SceneProcessingPlan {
+  pipeline: string[];
+  selected_scene_ids: string[];
+  ranked: Array<{ scene_id: string; rank: number; score: number; accepted: boolean; reason: string }>;
+  mosaic_ready: boolean;
+}
+export interface TileCachePlan {
+  strategy: string;
+  entries: Array<{ raster_id: string; index_type: string; cache_key: string; minzoom: number; maxzoom: number; ttl_seconds: number }>;
+  purge_on: string[];
+}
+export interface BoundaryExtractionPlan {
+  field_id: string;
+  model: string;
+  input_type: string;
+  bbox?: number[] | null;
+  steps: string[];
+  status: string;
+  requires_human_review: boolean;
+}
+export interface ManagementZoneSummary {
+  n_zones?: number;
+  zones: Array<{ zone: string; count: number; pct: number }>;
+  error?: string;
+  count?: number;
+}
+export interface EditingUndoRedoResult {
+  field_id: string;
+  undo_stack: unknown[];
+  redo_stack: unknown[];
+  can_undo: boolean;
+  can_redo: boolean;
+}
+
+export const fetchStacRoot = (): Promise<Record<string, unknown>> =>
+  kongApi.get<Record<string, unknown>>('/api/v1/gis/cloud-native/stac').then(r => r.data);
+export const searchStacItems = (params: StacSearchParams = {}): Promise<Record<string, unknown>> =>
+  kongApi.post<Record<string, unknown>>('/api/v1/gis/cloud-native/stac/search', params).then(r => r.data);
+export const fetchSceneProcessingPlan = (fieldId?: string, indexType?: string): Promise<SceneProcessingPlan> =>
+  kongApi
+    .get<SceneProcessingPlan>('/api/v1/gis/cloud-native/scene-processing-plan', { params: { field_id: fieldId, index_type: indexType } })
+    .then(r => r.data);
+export const fetchTileCachePlan = (fieldId?: string, indexType?: string): Promise<TileCachePlan> =>
+  kongApi
+    .get<TileCachePlan>('/api/v1/gis/cloud-native/tile-cache-plan', { params: { field_id: fieldId, index_type: indexType } })
+    .then(r => r.data);
+export const fetchOgcCollections = (): Promise<Record<string, unknown>> =>
+  kongApi.get<Record<string, unknown>>('/api/v1/gis/cloud-native/ogc/collections').then(r => r.data);
+export const planAiBoundaryExtraction = (fieldId: string, inputType = 'sentinel2', bbox?: number[], model = 'sam2-geosam'): Promise<BoundaryExtractionPlan> =>
+  kongApi
+    .post<BoundaryExtractionPlan>('/api/v1/gis/cloud-native/ai-boundary/plan', { field_id: fieldId, input_type: inputType, bbox, model })
+    .then(r => r.data);
+export const summarizeManagementZones = (values: number[], nZones = 3): Promise<ManagementZoneSummary> =>
+  kongApi
+    .post<ManagementZoneSummary>('/api/v1/gis/cloud-native/management-zones/summary', { values, n_zones: nZones })
+    .then(r => r.data);
+export const updateEditingUndoRedo = (fieldId: string, action: 'push' | 'undo' | 'redo', event?: Record<string, unknown>): Promise<EditingUndoRedoResult> =>
+  kongApi
+    .post<EditingUndoRedoResult>('/api/v1/gis/cloud-native/editing-sessions/undo-redo', { field_id: fieldId, action, event })
+    .then(r => r.data);

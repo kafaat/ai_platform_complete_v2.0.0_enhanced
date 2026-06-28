@@ -22,15 +22,37 @@ explainability · prescriptions · boundary/SAM2 · decision/outcome ledger · �
    إنترنت ضعيفاً — لا John Deere/Trimble/variable-rate seeder. فالأولويّة: **offline-first + ريّ/محصول
    مُفسَّر + عمليّات بسيطة**، لا الأتمتة الآليّة. (لذا أُوقِف ISOXML بصدق؛ Shapefile كافٍ #456.)
 
-## خارطة الطريق (٣ حِزَم)
-- **A — توحيد (الأولويّة القصوى، ~٤-٨ أسابيع):** إزالة التكرار — H4 (ET0 → `core/engines/et0.py`)، H5
-  (الريّ)، التوصيات/الطقس المُكرّرة. الناتج: `CanonicalFieldState` = SSOT فعليّ.
-- **B — فجوات صغيرة عالية القيمة (Yemen-fit، ~١-٣ أشهر):** offline-first hardening · دفتر مياه يوميّ ·
-  Dual Kc · عمق جذور ديناميكيّ · تصفية LULC · boundary confidence (موجود — تشغيل) · **GeoParquet**
-  (يربط ورشة SQL #451) · **Shapefile للوصفة (✅ #456)**.
-- **C — رهانات R&D (مسار منفصل، feature-flags):** Field Embeddings · Foundation Models (Prithvi/DINOv3) ·
-  SAM2 deployment (GPU) · Multi-engine Ensemble · Machine Integration (ISOXML/John Deere). **ليست في
-  المسار الحرج**؛ تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن.
+## خارطة الطريق (٤ حِزَم + R&D)
+- **A — توحيد (الأولويّة القصوى):** إزالة التكرار — **H4 ✅ (#457)** · **H5 ✅ (#464، الملوحة اختياريّة
+  + سياسة تفعيل تلقائيّ)** · **ETc-dual canonical ✅ خلف feature flag `FEATURE_CANONICAL_ETC_DUAL`
+  (default off؛ فرع `claude/canonical-etc-dual-flag`؛ `et0_override` يبقي ET0 مصدراً واحداً، الملوحة off
+  بـH5)** · المتبقّي: ET0 عبر-خدمات + مواءمة `crop_twin`. **شبه مكتمل.**
+- **B — فجوات صغيرة عالية القيمة (Yemen-fit):** ✅ **CDSE افتراضيّ (#457)** · **دفتر مياه v98 (#458)** ·
+  **Parquet (#458)** · **Water Twin v1/v2 (#459/#460)** · **Kc-NDVI + etc-dual (#461/#462)** ·
+  **Open-Meteo + عمق جذور Zr + لوحة etc-dual (#463)** · Shapefile (#456) · **boundary confidence ✅
+  (فرع `claude/bundle-b-boundary-confidence`، تصعيد ثقة الحدّ < 0.6 → human_review في الحالة القانونيّة،
+  log (ر))**. المتبقّي الصغير: **ربط Zr بحساب الاستنزاف (TAW ديناميكيّ)** · **NDVI من COG الطازج** ·
+  LULC (بيانات) · offline-first hardening (تخطيط).
+- **D — FieldState Water Canonicalization (جديدة — بتوجيه المستخدم، 2026-06-23):** دمج
+  **ETc-dual + Ks/Kc/ET0/الملوحة في `CanonicalFieldState`** (SSOT الفعليّ، `field_state.agronomic`/المسار
+  القانونيّ). ⚠️ **يمسّ SSOT — مرحليّ، متأنٍّ.** **D1 ✅ منفَّذ (#466، إضافيّ محفوظ السلوك):** ET0 (عبر
+  `core/engines/et0` الموحّد من الطقس المخزَّن) + `etc_mm`=Kc·ET0 + `etc_demand_class` في
+  `operational_truths` — دون مسّ التحكيم (validity/execution_mode) ولا مخطّط القاعدة ولا المستهلكين.
+  **D3 ✅ منفَّذ (#467، آمن لا يغيّر القرار):** قارئ كنسيّ `api/canonical_water.py` + كتلة `water` موحّدة
+  على نموذج الحالة، ومستهلِك `diagnose` يقرؤها من **مصدر واحد** بدل تعدّد مصادر ET0/ETc (يُغلق فئة
+  تناقضات). **D2a ✅ منفَّذ (فرع `claude/bundle-d2a-water-stress`، معلوماتيّ محفوظ السلوك):** كتلة
+  `water_stress` كنسيّة (AWF + مستويات NORMAL/WATCH/CRITICAL، قرار المستخدم 2026-06-23) من
+  `water_ledger`+TAW — بلا تصعيد (#469). **D2b ✅ منفَّذ خلف feature flag (فرع
+  `claude/bundle-d2b-spectral-escalation`، default off):** هجرة v99 (NDMI/MSI على `imagery_automation_fields`)
+  + خطّ الصور يحسبهما/يخزّنهما + `canonical_water_stress` يحسب `escalation_eligible`
+  (`AWF≤0.2 ∧ depletion_confidence≥0.8 ∧ تأكيد NDMI+MSI`) + الإسقاط يطبّق `FEATURE_WATER_STRESS_ESCALATION`
+  ⇒ `human_review` عند ON (الكتلة تُعلن `disabled_reason` عند off) — [`decisions/water-stress-d2.md`](water-stress-d2.md).
+  ثمرة Bundle A لكنّها أكبر من «إصلاح تكرار»: تجعل الحالة المصدرَ الوحيد لقيم المياه.
+- **C — رهانات R&D (مسار منفصل، feature-flags، خارج المسار الحرج):** **مراجعة حالة 2026-06-23** (إغلاق
+  توثيقيّ لا برمجيّ — [`bundle-c-status.md`](bundle-c-status.md)): **SAM2** closed (gated, env-unverified) ·
+  **Field Embeddings/RAG** closed (خدمات اختياريّة بالنشر، لا مسار قرار بلا حراسة) · **Multi-engine Ensemble**
+  open (concept-only؛ `fusion.py` للمؤشّرات شيء مختلف) · **نماذج أساس (Prithvi/DINOv3)** not started ·
+  **ISOXML** deferred by design (#456، Shapefile كافٍ). تُموَّل صراحةً وتُحقَّق ملاءمتها لليمن **عند وجود كود**.
 
 ## المراحل (تسلسل)
 1. **Unify** (أصلح H4/H5 وكلّ مصادر الحقيقة). 2. **Explain + Offline** (أفضل تجربة ريّ/محصول مُفسَّرة دون
