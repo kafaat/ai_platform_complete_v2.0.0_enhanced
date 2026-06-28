@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 import asyncpg
 import jwt as _jwt
 from aiomqtt import Client as MQTTClient
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 from shared.actuator_idempotency import (
@@ -647,93 +647,24 @@ class CommandRequest(BaseModel):
     source: str = "api"  # api|manual|schedule
 
 
-@app.post("/command")
-async def send_command(req: CommandRequest, claims: dict = Depends(_verify_token)):
-    # الأمان: tenant_id يُشتقّ من التوكن المُتحقَّق، لا من جسم الطلب (منع انتحال).
-    tenant_id = str(claims["tenant_id"])
-    user_id = claims.get("sub")
-    # حارس السلامة الفيزيائيّة + العزل: فحص الدور + ملكيّة الجهاز للمستأجِر (fail-closed).
-    await _authorize_device_control(claims, req.device_id)
-    success = await send_mqtt_command(req.device_id, req.command, req.payload)
-    await log_command(
-        rule_id=None,
-        device_id=req.device_id,
-        command=req.command,
-        payload=req.payload,
-        status="sent" if success else "failed",
-        tenant_id=tenant_id,
-    )
-    return {
-        "device_id": req.device_id,
-        "command": req.command,
-        "sent": success,
-        "tenant_id": tenant_id,
-        "issued_by": user_id,
-        "timestamp": datetime.now(UTC).isoformat(),
-    }
+# ══════════════════════════════════════════════════════════════
+# تسجيل الراوترات (تفكيك محفوظ السلوك)
+# مُعالِجات المسارات نُقلت إلى حزمة ``routers/`` (commands/health/metrics) وتُضمَّن
+# تلقائيّاً بلا prefix — المسارات/الأوامر/التبعيّات الأمنيّة مطابقة بايت-ببايت. يُستدعى
+# هنا في نهاية الملفّ بعد تعريف ``app`` وكلّ الرموز المشتركة (يُحلّ الاستيراد الدائريّ).
+# نضمن أنّ مجلّد الخدمة على ``sys.path`` كي يُستورَد ``router_registry``/``routers``
+# سواء حُمِّل main كحزمة (PYTHONPATH=service) أو نُفِّذ بمساره (spec_from_file_location).
+# ══════════════════════════════════════════════════════════════
+import sys as _sys  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
 
+_svc_dir = str(_Path(__file__).resolve().parent)
+if _svc_dir not in _sys.path:
+    _sys.path.insert(0, _svc_dir)
 
-@app.get("/commands")
-async def list_commands(
-    limit: int = Query(50, ge=1, le=500), claims: dict = Depends(_verify_token)
-):
-    # الأمان: tenant_id من التوكن المُتحقَّق لا من المعامل (منع قراءة سجلّ مستأجر آخر)
-    tenant_id = str(claims["tenant_id"])
-    if not _pool:
-        return {"commands": []}
-    async with _pool.acquire() as conn:
-        rows = await conn.fetch(
-            """SELECT log_id, device_id, command, status, sent_at, triggered_by
-               FROM device_commands_log
-               WHERE tenant_id = $1::uuid
-               ORDER BY sent_at DESC LIMIT $2""",
-            tenant_id,
-            limit,
-        )
-    return {"commands": [dict(r) for r in rows]}
+from router_registry import register_routers  # noqa: E402
 
-
-@app.get("/healthz")
-@app.get("/health")
-async def health():
-    # نكشف الوضع الفعّال للمراقبة (الصدق): simulation يُعلَن صراحةً فلا يُظنّ تنفيذاً حقيقيّاً.
-    return {
-        "status": "alive",
-        "service": "actuator",
-        "mqtt": MQTT_BROKER_URL,
-        "mode": ACTUATOR_MODE,
-    }
-
-
-@app.get("/readyz")
-async def readyz():
-    # جاهزيّة حقيقيّة: حين تُضبط DATABASE_URL يجب أن يكون pool القاعدة حيّاً
-    # (تسجيل أوامر الأجهزة يعتمد عليه). نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503 لا «جاهز» كاذب.
-    # حين لا DATABASE_URL مضبوطة (وضع متدرّج معلَن: تسجيل الأوامر معطّل) ⇒ جاهز بصدق.
-    if _pool is not None:
-        try:
-            async with _pool.acquire() as conn:
-                await conn.fetchval("SELECT 1")
-        except Exception as e:
-            logger.warning(f"readyz: قاعدة البيانات غير جاهزة — {e}")
-            raise HTTPException(503, {"status": "not_ready", "reason": "db"}) from e
-    return {"status": "ready", "version": "9.1.0"}
-
-
-@app.get("/idempotency/metrics")
-async def idempotency_metrics():
-    """مقاييس إزالة التكرار (المراقبة قبل الفرض): الوضع + عدّ القرارات حسب المفتاح.
-
-    قراءة فقط — يُمكّن مرحلة Observe من نمط الإغلاق المرن: قبل ترقية الوضع إلى cluster،
-    راقِب shadow_divergence (كم مرّة كان العنقوديّ سيمنع تكراراً فاتَ المحلّيّ) و
-    cluster_unavailable_fallback (صحّة المخزن). لا أسرار — عدّادات مجرّدة فقط.
-    """
-    return {
-        "mode": ACTUATOR_IDEMPOTENCY_MODE,
-        "dedup_window_sec": ACTUATOR_DEDUP_WINDOW_SEC,
-        "metrics": dict(_IDEM_METRICS),
-        "local_store_size": len(_dedup_last_fired),
-    }
+register_routers(app)
 
 
 if __name__ == "__main__":

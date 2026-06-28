@@ -33,7 +33,10 @@ def _func_body(src: str, name: str) -> str:
 
 # ── #1 actuator: تحكّم بالأجهزة محروس بالدور + الملكيّة ──
 def test_actuator_command_authorizes_device_control():
-    src = _read("services/actuator-service/main.py")
+    from actuator_route_source import actuator_combined_source
+
+    # مُعالِج /command نُقل إلى routers/ بالتفكيك المحفوظ-السلوك — امسح main.py + routers/.
+    src = actuator_combined_source(ROOT)
     body = _func_body(src, "send_command")
     assert "_authorize_device_control(claims, req.device_id)" in body, (
         "/command لا يستدعي حارس التحكّم بالأجهزة"
