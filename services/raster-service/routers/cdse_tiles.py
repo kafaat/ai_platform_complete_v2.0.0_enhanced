@@ -11,13 +11,16 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import main
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import Response
 
 router = APIRouter()
+
+# «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام (بدل كامل السنة) — حالة راهنة فعلاً.
+LATEST_WINDOW_DAYS = 60
 
 
 @router.post("/v1/fields/{field_id}/process-cdse")
@@ -98,20 +101,35 @@ async def field_cdse_tile(
     await main._require_field_tenant(field_id)
 
     if not _cdse.is_configured():
+        # تشخيص: بلاطة شفّافة لأنّ CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET) — كلّ
+        # المؤشّرات ستكون فارغة. (تُسجَّل مرّة لكلّ z/x/y فاحرص على مستوى DEBUG.)
+        main.logger.debug("cdse-tile شفّاف: CDSE غير مُهيّأ (%s/%s)", field_id, index)
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
 
     internal = main._GRID_INDEX_ALIASES.get(index, index)
     if internal not in _cdse.INDEX_EXPR:
+        # تشخيص: المؤشّر غير مدعوم في CDSE (مثل ndbi/bsi/mndwi/osavi/evi2/nbr) ⇒ شفّاف.
+        main.logger.info(
+            "cdse-tile شفّاف: مؤشّر غير مدعوم في CDSE: %s→%s (المتاح: %s)",
+            index,
+            internal,
+            sorted(_cdse.INDEX_EXPR),
+        )
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
 
-    # تطبيع التاريخ: فارغ/"latest"/"today" ⇒ أحدث مشهد (اليوم). الواجهة قد تُرسل
-    # ``date=""`` فارغاً؛ بدون التطبيع يصير ``date_from="-01-01T..."`` تاريخاً فاسداً.
-    today = (
-        datetime.now(UTC).strftime("%Y-%m-%d")
-        if (not date or date in ("latest", "today"))
-        else date
-    )
-    date_from = f"{today[:4]}-01-01T00:00:00Z"
+    # تطبيع التاريخ + نافذة الاستعلام:
+    #  • فارغ/"latest"/"today" ⇒ «أحدث»: نافذة آخر LATEST_WINDOW_DAYS يوماً ينتهي اليوم،
+    #    و leastCC يختار أصفاها — حالةٌ راهنة فعلاً. (سابقاً: كامل السنة من 1 يناير،
+    #    فقد يعرض مشهداً قديماً/ما بعد الحصاد لحقل القمح بلا تحذير.)
+    #  • تاريخ محدَّد (YYYY-MM-DD) ⇒ نافذة اليوم نفسه فقط (دقّة، لا مشهد قديم من السنة).
+    # الواجهة قد تُرسل ``date=""`` فارغاً؛ بلا التطبيع يصير ``date_from`` فاسداً.
+    _is_latest = not date or date in ("latest", "today")
+    _now = datetime.now(UTC)
+    today = _now.strftime("%Y-%m-%d") if _is_latest else date
+    if _is_latest:
+        date_from = (_now - timedelta(days=LATEST_WINDOW_DAYS)).strftime("%Y-%m-%dT00:00:00Z")
+    else:
+        date_from = f"{today}T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
     # نُميّز المخبّأ بحسب وجود القصّ (geom): COG المقصوص على المضلّع يختلف عن
     # غير المقصوص، فلا يُخدَم أحدهما مكان الآخر.
@@ -211,6 +229,20 @@ async def field_cdse_tile(
                 media_type="image/png",
                 headers={"Cache-Control": "public, max-age=3600"},
             )
+        # تشخيص: التصيير أعاد None = لا بكسلات صالحة (finite) داخل البلاطة — المشهد
+        # مُقنَّع بالكامل (غيوم SCL/خارج المضلّع) أو لا مشهد ضمن النافذة الزمنيّة. هذا
+        # سبب «المؤشّر لا يُعرَض داخل الحقل» رغم نجاح الجلب والقصّ. (القصّ سليم؛ المشكلة بيانات.)
+        main.logger.info(
+            "cdse-tile شفّاف: لا بيانات صالحة في البلاطة (%s/%s z%s/%s/%s) — "
+            "مشهد مُقنَّع كلّيّاً (غيوم) أو لا مشهد ضمن النافذة [%s..%s]",
+            field_id,
+            internal,
+            z,
+            x,
+            y,
+            date_from,
+            date_to,
+        )
     except Exception as e:  # noqa: BLE001
         main.logger.warning("CDSE tile render failed (%s): %s", field_id, e)
 
