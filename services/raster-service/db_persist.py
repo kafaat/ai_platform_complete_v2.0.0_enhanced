@@ -445,3 +445,41 @@ async def fetch_field_analytics_for_export(
         return []
     finally:
         await conn.close()
+
+
+# ── إعادة دمج توحيد main↔cert: قراءة هندسة الحقل لقصّ CDSE poly ──
+# (cert تفرّع قبل عمل CDSE في main؛ يحتاجها routers/cdse_tiles.py عبر _db.fetch_field_geometry)
+async def fetch_field_geometry(field_id: str, tenant_id: str | None = None) -> dict | None:
+    """يجلب geometry (JSONB) للحقل من جدول fields. يُرجع None إن تعذّر أو الحقل غير موجود.
+
+    ⚠ **حرج (سبب جذريّ لفشل قصّ المضلّع):** جدول ``fields`` محميّ بـRLS/FORCE. بلا ضبط
+    ``app.current_tenant`` لا يُرجِع الاستعلامُ أيَّ صفّ ⇒ ``geometry=None`` ⇒ تُمرَّر
+    ``geometry=None`` إلى Sentinel Hub ⇒ بلاطات bbox مستطيلة بلا قصّ على المضلّع.
+    لذا نحلّ المستأجِر المالك عبر الدالّة ``sahool_field_owner_tenant`` (SECURITY DEFINER —
+    تتجاوز RLS) إن لم يُمرَّر ``tenant_id``، ثمّ نضبط السياق قبل القراءة (كبقيّة دوالّ هذا الملفّ).
+    """
+    conn = await _connect()
+    if conn is None:
+        return None
+    try:
+        if tenant_id is None:
+            # المالك الموثوق دون كشف بيانات (يتجاوز RLS/FORCE على fields).
+            tenant_id = await conn.fetchval("SELECT sahool_field_owner_tenant($1)", field_id)
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, true)",
+            str(tenant_id) if tenant_id else "",
+        )
+        row = await conn.fetchrow("SELECT geometry FROM fields WHERE field_id = $1", field_id)
+        if not row or row["geometry"] is None:
+            return None
+        geom = row["geometry"]
+        if isinstance(geom, str):
+            import json
+
+            geom = json.loads(geom)
+        return geom
+    except Exception as e:  # noqa: BLE001
+        logger.warning("fetch_field_geometry failed (%s): %s", field_id, e)
+        return None
+    finally:
+        await conn.close()
