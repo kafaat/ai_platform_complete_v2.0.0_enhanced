@@ -146,6 +146,27 @@ def check_router_wiring() -> Result:
 # ════════════════════════════════════════════════════════════
 # 3. NATS subjects — بادئة sahool. + المواضيع اليتيمة
 # ════════════════════════════════════════════════════════════
+def _published_no_consumer_waivers() -> set[str]:
+    """الموضوعات المنشورة بلا مشترِك الموثَّقة في ``event_publish_contracts.yaml``
+    (مفتاح ``published_no_consumer``) — يحترمها إنذار «حدث طريق مسدود» فلا يُصدِر WARN.
+    يفشل بهدوء (يُرجِع مجموعة فارغة) إن غاب العقد أو yaml — لا يُسقِط الفحص."""
+    contracts = REPO / "event_publish_contracts.yaml"
+    if not contracts.exists():
+        return set()
+    try:
+        import yaml
+
+        doc = yaml.safe_load(_read(contracts)) or {}
+    except Exception:  # noqa: BLE001
+        return set()
+    waived: set[str] = set()
+    for entry in doc.get("published_no_consumer") or []:
+        subj = entry.get("subject") if isinstance(entry, dict) else None
+        if subj:
+            waived.add(subj)
+    return waived
+
+
 def check_nats_subjects() -> Result:
     pub_re = re.compile(r'\.publish\(\s*["\']([^"\']+)["\']')
     sub_re = re.compile(r'\.subscribe\(\s*["\']([^"\']+)["\']')
@@ -171,13 +192,22 @@ def check_nats_subjects() -> Result:
     def _concrete(s: str) -> bool:
         return s.startswith("sahool.") and "*" not in s and ">" not in s
 
+    # موضوعات موثَّقة كـ«منشورة بلا مشترِك» (waiver) لا تُنتِج WARN — قرار معماريّ موثَّق.
+    waived = _published_no_consumer_waivers()
+    waived_hits = 0
     for subj, loc in sorted(published.items()):
         if _concrete(subj) and subj not in subscribed:
+            if subj in waived:
+                waived_hits += 1
+                continue
             findings.append(f"WARN موضوع منشور بلا مشترِك (حدث طريق مسدود): `{subj}` ({loc})")
     status = (
         FAIL if any(f.startswith("CRITICAL") for f in findings) else (WARN if findings else PASS)
     )
-    summary = f"{len(published)} منشور / {len(subscribed)} مُشترَك؛ {len(findings)} ملاحظة"
+    waived_note = f"؛ {waived_hits} موثَّق (waiver)" if waived_hits else ""
+    summary = (
+        f"{len(published)} منشور / {len(subscribed)} مُشترَك؛ {len(findings)} ملاحظة{waived_note}"
+    )
     return Result("NATS subjects", status, summary, findings)
 
 

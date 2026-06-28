@@ -64,3 +64,18 @@ subjects:
     reason: >-
       منتِجه سقالة خلف راية WEATHER_GRID_PIPELINE_ENABLED (OFF افتراضاً) —
       services/weather-polygon-worker/src/main.py. يصير منتِجاً فعليّاً عند تفعيل الراية.
+
+# ════════════════════════════════════════════════════════════════════
+# موضوعات منشورة بلا مشترِك بعد (اتّجاه معاكس — waiver لإنذار «حدث طريق مسدود»)
+# ════════════════════════════════════════════════════════════════════
+# يربط كلّ **موضوع NATS مُنشَر** بلا مشترِك حاليّ بمنتِجه الفعليّ + سبب صريح. يحترمه
+# ``tools/sahool_inspector.py: check_nats_subjects`` فلا يُصدِر WARN «موضوع منشور بلا
+# مشترِك» لهذه الموضوعات الموثَّقة. صدق: المنتِج حقيقيّ في الكود؛ المستهلِك مستقبليّ
+# موثَّق — لا نختلق مشترِكاً ولا نحذف نشراً قائماً. أيّ موضوع منشور غير موثَّق هنا ⇒ WARN.
+published_no_consumer:
+  - subject: "sahool.weather.field.overlay.completed"
+    producer: "weather-polygon-worker (polygon-worker)"
+    source: "services/weather-polygon-worker/src/main.py:161 — يَنشُر عند اكتمال overlay المضلّع"
+    reason: >-
+      مخرَج خطّ أنابيب الطقس خلف راية WEATHER_GRID_PIPELINE_ENABLED (OFF افتراضاً)؛
+      مستهلِكه (دمج التراكب/الإشارة في المنصّة) محجوز للمستقبل — لا نختلق مشترِكاً.
