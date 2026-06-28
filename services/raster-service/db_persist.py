@@ -225,14 +225,13 @@ async def fetch_field_geometry(field_id: str) -> dict | None:
     if conn is None:
         return None
     try:
-        row = await conn.fetchrow(
-            "SELECT geometry FROM fields WHERE field_id = $1", field_id
-        )
+        row = await conn.fetchrow("SELECT geometry FROM fields WHERE field_id = $1", field_id)
         if not row or row["geometry"] is None:
             return None
         geom = row["geometry"]
         if isinstance(geom, str):
             import json
+
             geom = json.loads(geom)
         return geom
     except Exception as e:  # noqa: BLE001

@@ -2828,6 +2828,7 @@ async def field_cdse_tile(
     import os
     import tempfile
     import time as _t
+
     import cdse_client as _cdse
 
     await _require_field_tenant(field_id)
@@ -2853,8 +2854,8 @@ async def field_cdse_tile(
     # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O)
     if field_bbox:
         try:
-            from tile_render import tile_bounds_3857
             from rasterio.warp import transform_bounds as _tb
+            from tile_render import tile_bounds_3857
 
             b3857 = tile_bounds_3857(z, x, y)
             tw, ts, te, tn = _tb("EPSG:3857", "EPSG:4326", *b3857)
