@@ -885,7 +885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b19932bf42f79b7cafe3436a287042861235f50c63f02438e57380e3c68510c4"
+          "content": "6d534c1ea5b4d62895539b5a7cca12f5f6c9b5ba879b351c7a91006334f0c56f"
         }
       ],
       "name": "frontend/src/components/maphub/FieldSplitMergeTool.tsx",
@@ -979,6 +979,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/TerrainView3D.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "27dd50b2b13edfef32a3447f2e1b3d82524a7411f8c9e2e0eaa7bc4cea652c05"
+        }
+      ],
+      "name": "frontend/src/components/maphub/fieldSplitMerge/SplitDrawMap.tsx",
       "type": "file"
     },
     {
