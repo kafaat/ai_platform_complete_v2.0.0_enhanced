@@ -19,10 +19,14 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 AUTH = os.path.join(ROOT, "services/auth/main.py")
 
+# بعد تفكيك مسارات auth: مُعالِج register انتقل إلى routers/registration.py، بينما
+# RegisterRequest وValidRole يبقيان في main.py (نماذج/ثوابت مشتركة). نمسح المصدر
+# المُسلسَل (main.py + routers/*.py) كي يغطّي الحارس الحالتين بلا إضعاف أيّ تأكيد أمنيّ.
+from auth_route_source import auth_combined_source  # noqa: E402
+
 
 def _src() -> str:
-    with open(AUTH, encoding="utf-8") as f:
-        return f.read()
+    return auth_combined_source(ROOT)
 
 
 def test_register_assigns_owner_to_tenant_founder():

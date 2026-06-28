@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import importlib
 import pathlib
+import re
 import sys
 
 import pytest
@@ -40,11 +41,18 @@ main = _load_auth_main()
 
 
 def _provision_src() -> str:
-    """جسم دالّة provision_tenant تقريبيّاً (من تعريفها حتى نقطة الدعوات)."""
-    src = (pathlib.Path(_AUTH_DIR) / "main.py").read_text(encoding="utf-8")
+    """جسم دالّة provision_tenant (من تعريفها حتى نهاية الوحدة).
+
+    بعد تفكيك مسارات auth انتقل المُعالِج إلى routers/tenants.py (سلوك محفوظ). نمسح
+    المصدر المُسلسَل (main.py + routers/*.py) ثمّ نلتقط من تعريف الدالّة حتى نهايته
+    التقريبيّة (تعريف لاحق أو نهاية النصّ) — يبقى الحارس صحيحاً بلا إضعاف أيّ تأكيد.
+    """
+    from auth_route_source import auth_combined_source
+
+    src = auth_combined_source(str(ROOT))
     start = src.index("async def provision_tenant")
-    end = src.index("# ── Tenant member invitations", start)
-    return src[start:end]
+    nxt = re.search(r"\n(?:@\w|async def |def |class )", src[start + 1 :])
+    return src[start : (start + 1 + nxt.start()) if nxt else len(src)]
 
 
 # ── (د) نموذج الطلب: العميل لا يختار role/password/tenant_id ──────────

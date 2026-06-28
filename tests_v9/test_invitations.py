@@ -76,7 +76,11 @@ class TestCanInvite:
 class TestAcceptSourceGuard:
     @property
     def _src(self) -> str:
-        return (pathlib.Path(_AUTH_DIR) / "main.py").read_text(encoding="utf-8")
+        # بعد تفكيك مسارات auth انتقل accept_invitation إلى routers/invitations.py (سلوك
+        # محفوظ). نمسح المصدر المُسلسَل (main.py + routers/*.py) كي يبقى الحارس صحيحاً.
+        from auth_route_source import auth_combined_source
+
+        return auth_combined_source(str(ROOT))
 
     def test_accept_inserts_user_with_invitation_role_and_tenant(self):
         """INSERT users في accept يستخدم inv["role"] و inv["tenant_id"] — لا قيمةً
