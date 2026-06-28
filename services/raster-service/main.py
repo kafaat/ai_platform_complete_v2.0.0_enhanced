@@ -2739,6 +2739,7 @@ def _cdse_lock():
     """يُرجع asyncio.Lock الوحيد لحماية _cdse_tile_cache (lazy — آمن للخيوط)."""
     global _cdse_cache_lock
     import asyncio
+
     if _cdse_cache_lock is None:
         _cdse_cache_lock = asyncio.Lock()
     return _cdse_cache_lock
@@ -2784,6 +2785,7 @@ async def field_cdse_tile(
     import os
     import tempfile
     import time as _t
+
     import cdse_client as _cdse
 
     await _require_field_tenant(field_id)
@@ -2795,11 +2797,7 @@ async def field_cdse_tile(
     if internal not in _cdse.INDEX_EXPR:
         return Response(content=_TRANSPARENT_PNG, media_type="image/png")
 
-    today = (
-        datetime.now(UTC).strftime("%Y-%m-%d")
-        if date in ("latest", "today")
-        else date
-    )
+    today = datetime.now(UTC).strftime("%Y-%m-%d") if date in ("latest", "today") else date
     date_from = f"{today[:4]}-01-01T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
     cache_key = f"{field_id}:{internal}:{today}"
@@ -2813,8 +2811,8 @@ async def field_cdse_tile(
     # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O)
     if field_bbox:
         try:
-            from tile_render import tile_bounds_3857
             from rasterio.warp import transform_bounds as _tb
+            from tile_render import tile_bounds_3857
 
             b3857 = tile_bounds_3857(z, x, y)
             tw, ts, te, tn = _tb("EPSG:3857", "EPSG:4326", *b3857)
@@ -2893,11 +2891,7 @@ async def field_cdse_tilejson(
 
     field_geom = await _db.fetch_field_geometry(field_id)
     bounds = _bbox_from_geom(field_geom) or [-180.0, -85.0, 180.0, 85.0]
-    today = (
-        datetime.now(UTC).strftime("%Y-%m-%d")
-        if date in ("latest", "today")
-        else date
-    )
+    today = datetime.now(UTC).strftime("%Y-%m-%d") if date in ("latest", "today") else date
     qs = f"index={index}&date={today}"
     return {
         "tilejson": "2.2.0",
