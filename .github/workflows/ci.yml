@@ -297,13 +297,17 @@ jobs:
       # فعليّاً بـpip-audit، كلّها نظيفة). يُستثنى services/local-ai-rag/requirements.txt
       # عمداً: يحمل ثغرة out-of-range (PYSEC-2026-77 في langchain-text-splitters،
       # وقيود langchain 0.3.x/pypdf) — يبقى تحت المسح الإرشاديّ أدناه لا البوّابة.
+      # المسار الحرج الأربعة يُدقَّق على ملفّات الأقفال *.lock (الحلّ العابر الكامل +
+      # تجزئات) بدل requirements.txt (نطاقات فضفاضة) ⇒ تغطية ثغرات عابرة كاملة وحتميّة
+      # لا تعتمد على ما يحلّه pip-audit وقت التشغيل. مُتحقَّق محليّاً: الأقفال الأربعة نظيفة.
+      # بقيّة الخدمات تبقى على requirements.txt (لا أقفال لها بعد).
       - name: pip-audit (gating — critical path)
         run: >-
           pip-audit
-          -r services/sahool-platform/api/requirements.txt
-          -r services/auth/requirements.txt
-          -r services/guardrails-engine/requirements.txt
-          -r requirements_real.txt
+          -r services/sahool-platform/api/requirements.lock
+          -r services/auth/requirements.lock
+          -r services/guardrails-engine/requirements.lock
+          -r requirements_real.lock
           -r services/actuator-service/requirements.txt
           -r services/agriai-engine/requirements.txt
           -r services/edge-inference/requirements.txt
