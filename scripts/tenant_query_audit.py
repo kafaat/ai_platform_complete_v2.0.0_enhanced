@@ -57,7 +57,7 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
         "background automation worker (fail-closed under sahool_app)"
     ),
     "services/actuator-service/main.py::automation_rules": "background scene-linkage worker",
-    "services/soil-service/main.py::soil_readings": "soil ingestion service (sensor-scoped)",
+    "services/soil-service/routers/readings.py::soil_readings": "soil ingestion service (sensor-scoped); handler moved to routers/ in router decomposition",
 }
 ALLOWLIST: set[str] = set(_ALLOWLIST_JUSTIFIED)
 

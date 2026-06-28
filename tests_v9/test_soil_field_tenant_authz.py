@@ -51,8 +51,18 @@ def sm():
         sys.path.insert(0, SOIL)
     # عزل: اسم الوحدة 'main' عامّ عبر الخدمات. نُسقط المُخبّأ ونُعيد الاستيراد من مسار
     # soil، ونتحقّق أنّه فعلاً soil-service (لا تصادم أسماء عبر الخدمات).
-    sys.modules.pop("main", None)
-    sys.modules.pop("db_persist", None)
+    # بعد التفكيك: نُسقط أيضاً وحدات routers/ + router_registry كي يُعاد بناء رسم
+    # الوحدات كاملاً متّسقاً — وإلّا تُبقي routers/ المُخبّأة مرجعاً لـmain قديم (حالة
+    # متعفّنة عبر الاختبارات: المُعالِج المُعاد-تصديره يقرأ main قديماً لا المُعاد استيراده).
+    for _m in (
+        "main",
+        "db_persist",
+        "router_registry",
+        "routers",
+        "routers.readings",
+        "routers.health",
+    ):
+        sys.modules.pop(_m, None)
     soil_main = importlib.import_module("main")
     assert hasattr(soil_main, "ingest_reading") and hasattr(soil_main, "get_readings"), (
         "استُورد main خاطئ (تصادم أسماء عبر الخدمات) — ليس soil-service"
@@ -185,7 +195,11 @@ def test_db_backed_owner_lookup_wired():
     assert "sahool_field_owner_tenant" in dbp
     assert "class OwnerLookupUnavailable" in dbp
     assert "raise OwnerLookupUnavailable" in dbp
-    main_src = open(os.path.join(SOIL, "main.py"), encoding="utf-8").read()
+    # بعد التفكيك: مُعالِج الاستيعاب انتقل إلى routers/؛ نمسح المصدر المُجمَّع
+    # (main.py + routers/*.py) فيبقى التأكيد الأمنيّ صحيحاً (لا إضعاف، توسيع نطاق فقط).
+    from soil_route_source import soil_combined_source
+
+    main_src = soil_combined_source(ROOT)
     assert "OwnerLookupUnavailable" in main_src and "HTTPException(503" in main_src, (
         "_require_field_tenant لا يُغلق fail-closed عند تعذّر إثبات الملكيّة"
     )
