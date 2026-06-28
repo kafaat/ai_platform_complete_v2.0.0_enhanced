@@ -41,6 +41,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
+      # PyYAML مطلوب لفحص عقد ناشري الأحداث (event_publish_contracts.yaml): H2 publisher
+      # coverage + waiver «منشور بلا مشترِك». بدونه يفشل الفحص بـModuleNotFoundError.
+      - run: pip install PyYAML
       - run: python3 tools/sahool_inspector.py
 
   compose-validate:

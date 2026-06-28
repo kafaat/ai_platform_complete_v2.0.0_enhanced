@@ -44,8 +44,7 @@ def test_tilejson_request_does_not_pass_date_unconditionally():
     # الصيغة الحرفيّة غير المشروطة المرفوضة: { index: <x>, date, ... }
     bad = re.search(r"params:\s*\{\s*index:\s*\w+\s*,\s*date\s*[,}]", code)
     assert bad is None, (
-        "طلب TileJSON يمرّر date غير مشروط — استخدم "
-        "`...(date && date !== 'latest' ? { date } : {})`"
+        "طلب TileJSON يمرّر date غير مشروط — استخدم `...(date && date !== 'latest' ? { date } : {})`"
     )
 
 

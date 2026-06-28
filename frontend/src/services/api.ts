@@ -3278,6 +3278,41 @@ export const fieldIndicatorTileUrl = (
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 };
 
+// باني رابط بلاطات CDSE الحيّة (Sentinel Hub) — توحيد main↔cert: يدعم قصّ المضلّع
+// (poly) + bbox. العقد الموحَّد: poly="lng,lat;lng,lat;..." (ترتيب lng,lat). date مشروط (D).
+export const fieldCdseTileUrl = (
+  fieldId: string,
+  index = 'ndvi',
+  date = 'latest',
+  tenantId?: string | null,
+  cacheVersion?: string | number | null,
+  geometry?: { type?: string; coordinates?: unknown } | null,
+  bbox?: [number, number, number, number] | null,
+): string => {
+  const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
+  if (date && date !== 'latest') params.set('date', date);
+  if (tenantId) params.set('tid', tenantId);
+  if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
+  if (bbox && bbox.length === 4) {
+    params.set('bbox_w', String(bbox[0])); params.set('bbox_s', String(bbox[1]));
+    params.set('bbox_e', String(bbox[2])); params.set('bbox_n', String(bbox[3]));
+  }
+  // عقد القصّ: حلقة المضلّع → "lng,lat;..." (مصدر الحقيقة للقصّ على حافّة الحقل).
+  const ring = (() => {
+    const g = geometry as { type?: string; coordinates?: number[][][] } | undefined;
+    if (!g || !g.coordinates) return null;
+    if (g.type === 'Polygon') return g.coordinates[0] ?? null;
+    if (g.type === 'MultiPolygon') return (g.coordinates as unknown as number[][][][])[0]?.[0] ?? null;
+    return null;
+  })();
+  if (ring && ring.length >= 3) {
+    params.set('poly', ring.map((c) => `${c[0]},${c[1]}`).join(';'));
+  }
+  const qs = params.toString();
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/fields/${fieldId}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
+};
+
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
 // صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج

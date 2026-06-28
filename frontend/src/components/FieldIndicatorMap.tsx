@@ -17,7 +17,7 @@ import { MapContainer, TileLayer, Polygon, FeatureGroup, useMap } from 'react-le
 import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet + أداة الرسم (side-effect) — حاسم للتصيير
-import { fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi } from '../services/api';
+import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi } from '../services/api';
 import { getTenantId } from '../lib/authStorage';
 import { areaSqMeters, lengthMeters } from '../lib/geo';
 
@@ -59,6 +59,11 @@ export interface FieldIndicatorMapProps {
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). افتراضيّاً off
   // فلا يتأثّر أيّ مستهلك حاليّ (توافق خلفيّ — الزرّ يظهر فقط حين tools=true).
   tools?: boolean;
+  // مقطع مسار البلاطة (توحيد main↔cert): 'tiles' (COG محلّي، افتراضيّ) أو 'cdse-tiles'
+  // (Sentinel Hub حيّ مع قصّ المضلّع). bbox/geometry تُمرَّر لبلاطات cdse-tiles للقصّ.
+  tileSegment?: string;
+  fieldBbox?: [number, number, number, number];
+  fieldGeometry?: { type?: string; coordinates?: unknown } | null;
 }
 
 // ── أدوات القياس (overlay) ──────────────────────────────────────────
@@ -248,6 +253,9 @@ export default function FieldIndicatorMap({
   initialOpacity = 0.75,
   height = 420,
   tools = false,
+  tileSegment = 'tiles',
+  fieldBbox,
+  fieldGeometry,
 }: FieldIndicatorMapProps) {
   const [opacity, setOpacity] = useState(initialOpacity);
   const [tileBounds, setTileBounds] = useState<[number, number, number, number] | undefined>();
@@ -261,7 +269,10 @@ export default function FieldIndicatorMap({
   // نمرّر tid في الاستعلام كما يفعل HubMap/HubMapGL حتى يعمل العزل بعد تشديده.
   const tenantId = getTenantId();
   const normalizedIndex = normalizeIndicatorIndex(index);
-  const tilesUrl = fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion);
+  // توحيد main↔cert: بلاطات CDSE الحيّة (قصّ poly) عند tileSegment='cdse-tiles'، وإلّا COG محلّي.
+  const tilesUrl = tileSegment === 'cdse-tiles'
+    ? fieldCdseTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion, fieldGeometry, fieldBbox)
+    : fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion);
 
   // جلب TileJSON لضبط الإطار حين لا يتوفّر مضلع (اختياري — الفشل غير حرج)
   useEffect(() => {

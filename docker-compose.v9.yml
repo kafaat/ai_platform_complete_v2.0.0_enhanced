@@ -642,9 +642,8 @@ services:
       PLANETARY_COMPUTER_URL: ${PLANETARY_COMPUTER_URL:-https://planetarycomputer.microsoft.com/api/stac/v1}
       DEAFRICA_ENABLED: ${DEAFRICA_ENABLED:-false}
       DEAFRICA_STAC_URL: ${DEAFRICA_STAC_URL:-https://explorer.digitalearth.africa/stac}
-      # قاعدة البيانات — لجلب هندسة الحقول (geometry) من fields وحفظ raster_assets.
-      # نفس دور التطبيق المقيَّد (sahool_app) كالمنصّة — RLS سارٍ.
-      DATABASE_URL: ${DATABASE_URL:-}
+      # ملاحظة توحيد main↔cert: أُزيل تعريف DATABASE_URL المكرَّر هنا (كان يُكرّر المفتاح
+      # المعرَّف أعلاه بدور sahool_app المقيَّد — RLS سارٍ لجلب geometry وحفظ raster_assets).
     volumes:
     - raster-data:/data/rasters
     networks:
