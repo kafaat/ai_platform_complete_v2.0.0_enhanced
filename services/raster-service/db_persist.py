@@ -97,6 +97,12 @@ async def insert_raster_asset(
 
             acq_date = _date.fromisoformat(acq_date[:10]) if acq_date else None
         except ValueError:
+            # تاريخ فاسد ⇒ NULL (لا اختلاق تاريخ). نُسجّل تحذيراً: الأصل يُخزَّن لكن
+            # لن يظهر في السلسلة الزمنيّة (list_asset_dates يُرشّح IS NOT NULL) — لا فشل صامت.
+            logger.warning(
+                "raster_assets: acquisition_date غير صالح %r ⇒ NULL (لن يظهر في السلسلة الزمنيّة)",
+                acquisition_date,
+            )
             acq_date = None
 
     sql = """

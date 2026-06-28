@@ -1367,6 +1367,13 @@ def _persist_raster_asset(
             t = threading.Thread(target=_runner, daemon=True)
             t.start()
             t.join(timeout=10)
+            if t.is_alive():
+                # المهلة انقضت والخيط ما زال يعمل ⇒ قد يغيب صفّ raster_assets (best-effort)
+                # — نُعلنه بدل صمتٍ يُظهِر الوظيفة مكتملة بلا أصل مُدام.
+                logger.warning(
+                    "raster_assets persist لم يكتمل خلال المهلة (field=%s) — قد يغيب الأصل",
+                    req.field_id,
+                )
     except Exception as _dbe:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
         logger.warning("raster_assets persist skipped: %s", _dbe)
 
@@ -1539,8 +1546,9 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
                 results[ind.value] = sj.get("layer_id") or sub_job_id
             else:
                 failed[ind.value] = sj.get("error_message", "unknown")
-        except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر
-            failed[ind.value] = str(e)
+        except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر؛ لا نُسرّب نصّ الاستثناء للعميل
+            logger.warning("batch sub-job %s فشل: %s", ind.value, type(e).__name__)
+            failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
 
     job["status"] = JobStatus.completed if results else JobStatus.failed
@@ -2129,12 +2137,13 @@ async def field_historical_backfill(
                         provider="element84",
                     )
                     _run_processing(jid, preq)
-                except Exception as e:  # noqa: BLE001
+                except Exception as e:  # noqa: BLE001 — لا نُسرّب نصّ الاستثناء للعميل
+                    logger.warning("scene job %s فشل: %s", jid, type(e).__name__)
                     j = _jobs.get(jid) or {"job_id": jid}
                     j.update(
                         {
                             "status": JobStatus.failed,
-                            "error_message": str(e),
+                            "error_message": "scene_processing_failed",
                             "finished_at": datetime.now(UTC).isoformat(),
                         }
                     )
