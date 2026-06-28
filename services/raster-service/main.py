@@ -2743,6 +2743,193 @@ async def field_tilejson(
     return tj
 
 
+# ─── بلاطات CDSE حيّة (Sentinel Hub Process API مباشرةً) ─────────────────────
+# ذاكرة COG مؤقّت: field+index+date → (expires_monotonic, tmp_file_path)
+_cdse_tile_cache: dict[str, tuple[float, str]] = {}
+_cdse_cache_lock: object | None = None  # asyncio.Lock — تُنشأ عند أوّل استخدام
+
+
+def _cdse_lock():
+    """يُرجع asyncio.Lock الوحيد لحماية _cdse_tile_cache (lazy — آمن للخيوط)."""
+    global _cdse_cache_lock
+    import asyncio
+    if _cdse_cache_lock is None:
+        _cdse_cache_lock = asyncio.Lock()
+    return _cdse_cache_lock
+
+
+def _bbox_from_geom(geom: dict | None) -> list[float] | None:
+    """يحسب [west, south, east, north] من هندسة GeoJSON (Polygon/MultiPolygon/Feature)."""
+    if not geom:
+        return None
+    try:
+        gtype = geom.get("type", "")
+        if gtype == "Feature":
+            geom = geom.get("geometry") or {}
+            gtype = geom.get("type", "")
+        coords: list = []
+        if gtype == "Polygon":
+            coords = geom.get("coordinates", [[]])[0]
+        elif gtype == "MultiPolygon":
+            for ring in geom.get("coordinates", []):
+                coords.extend(ring[0] if ring else [])
+        if not coords:
+            return None
+        lons = [c[0] for c in coords]
+        lats = [c[1] for c in coords]
+        return [min(lons), min(lats), max(lons), max(lats)]
+    except Exception:  # noqa: BLE001
+        return None
+
+
+@app.get("/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png")
+async def field_cdse_tile(
+    field_id: str,
+    z: int,
+    x: int,
+    y: int,
+    index: str = Query("ndvi"),
+    date: str = Query("latest"),
+):
+    """بلاطة Sentinel Hub حيّة: تجلب الصورة الكاملة للحقل مرّة واحدة (مُخبّأة ساعة)
+    وتُصيِّر منها كلّ بلاطة XYZ بنفس منطق COG (tile_render). البكسلات خارج حدود
+    الحقل/NaN → شفّافة. تعذّر CDSE → بلاطة شفّافة (لا 500)."""
+    import asyncio
+    import os
+    import tempfile
+    import time as _t
+    import cdse_client as _cdse
+
+    await _require_field_tenant(field_id)
+
+    if not _cdse.is_configured():
+        return Response(content=_TRANSPARENT_PNG, media_type="image/png")
+
+    internal = _GRID_INDEX_ALIASES.get(index, index)
+    if internal not in _cdse.INDEX_EXPR:
+        return Response(content=_TRANSPARENT_PNG, media_type="image/png")
+
+    today = (
+        datetime.now(UTC).strftime("%Y-%m-%d")
+        if date in ("latest", "today")
+        else date
+    )
+    date_from = f"{today[:4]}-01-01T00:00:00Z"
+    date_to = f"{today}T23:59:59Z"
+    cache_key = f"{field_id}:{internal}:{today}"
+
+    # جلب هندسة + bbox الحقل
+    import db_persist as _db
+
+    field_geom = await _db.fetch_field_geometry(field_id)
+    field_bbox = _bbox_from_geom(field_geom)
+
+    # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O)
+    if field_bbox:
+        try:
+            from tile_render import tile_bounds_3857
+            from rasterio.warp import transform_bounds as _tb
+
+            b3857 = tile_bounds_3857(z, x, y)
+            tw, ts, te, tn = _tb("EPSG:3857", "EPSG:4326", *b3857)
+            fw, fs, fe, fn = field_bbox
+            if te < fw or tw > fe or tn < fs or ts > fn:
+                return Response(content=_TRANSPARENT_PNG, media_type="image/png")
+        except Exception:  # noqa: BLE001 — تخطَّ فحص التقاطع إن لم يتوفّر rasterio
+            pass
+
+    async with _cdse_lock():
+        now = _t.monotonic()
+        entry = _cdse_tile_cache.get(cache_key)
+        if entry and entry[0] > now and os.path.exists(entry[1]):
+            cog_path = entry[1]
+        else:
+            # تنظيف الإدخال المنتهي الصلاحيّة (ملفّ مؤقّت)
+            if entry and os.path.exists(entry[1]):
+                try:
+                    os.unlink(entry[1])
+                except OSError:
+                    pass
+            try:
+                client = _cdse.get_client()
+                bbox_for_req = field_bbox or [44.9, 16.0, 45.1, 16.1]
+                geotiff_bytes = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: client.process_index(
+                        index=internal,
+                        bbox=list(bbox_for_req),
+                        time_from=date_from,
+                        time_to=date_to,
+                        geometry=field_geom,
+                        max_cloud_pct=40.0,
+                    ),
+                )
+                tf = tempfile.NamedTemporaryFile(
+                    suffix=".tif",
+                    delete=False,
+                    prefix=f"cdse_{field_id[:8]}_{internal}_",
+                )
+                tf.write(geotiff_bytes)
+                tf.close()
+                cog_path = tf.name
+                _cdse_tile_cache[cache_key] = (now + 3600.0, cog_path)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)
+                return Response(content=_TRANSPARENT_PNG, media_type="image/png")
+
+    try:
+        import tile_render
+
+        png = tile_render.render_tile_png(cog_path, z, x, y, internal)
+        if png:
+            return Response(
+                content=png,
+                media_type="image/png",
+                headers={"Cache-Control": "public, max-age=3600"},
+            )
+    except Exception as e:  # noqa: BLE001
+        logger.warning("CDSE tile render failed (%s): %s", field_id, e)
+
+    return Response(content=_TRANSPARENT_PNG, media_type="image/png")
+
+
+@app.get("/v1/fields/{field_id}/cdse-tilejson")
+async def field_cdse_tilejson(
+    field_id: str,
+    index: str = Query("ndvi"),
+    date: str = Query("latest"),
+):
+    """TileJSON 2.2.0 لبلاطات CDSE الحيّة — يُستخدَم لضبط إطار الخريطة."""
+    import cdse_client as _cdse
+    import db_persist as _db
+
+    await _require_field_tenant(field_id)
+
+    field_geom = await _db.fetch_field_geometry(field_id)
+    bounds = _bbox_from_geom(field_geom) or [-180.0, -85.0, 180.0, 85.0]
+    today = (
+        datetime.now(UTC).strftime("%Y-%m-%d")
+        if date in ("latest", "today")
+        else date
+    )
+    qs = f"index={index}&date={today}"
+    return {
+        "tilejson": "2.2.0",
+        "name": f"cdse-{field_id}-{index}",
+        "scheme": "xyz",
+        "tiles": [f"/v1/fields/{field_id}/cdse-tiles/{{z}}/{{x}}/{{y}}.png?{qs}"],
+        "minzoom": 10,
+        "maxzoom": 18,
+        "bounds": bounds,
+        "center": [
+            round((bounds[0] + bounds[2]) / 2.0, 6),
+            round((bounds[1] + bounds[3]) / 2.0, 6),
+            14,
+        ],
+        "available": _cdse.is_configured(),
+    }
+
+
 # ─── معايرة الملوحة (البند ٢) ────────────────────────────────────
 class SalinityClassifyRequest(BaseModel):
     ndsi: float
