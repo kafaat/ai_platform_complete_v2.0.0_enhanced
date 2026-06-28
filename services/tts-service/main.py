@@ -22,13 +22,12 @@ from contextlib import asynccontextmanager
 import edge_tts
 import redis.asyncio as aioredis
 from fastapi import Depends, FastAPI, Header, HTTPException
-from fastapi.responses import Response, StreamingResponse
 from fastapi.security import (
     HTTPAuthorizationCredentials,
     HTTPBearer,
 )
 from jose import JWTError, jwt
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from prometheus_client import Counter, Histogram
 from pydantic import BaseModel, Field, field_validator
 
 try:
@@ -223,125 +222,24 @@ async def _generate_speech(
 
 
 # ── Endpoints ────────────────────────────────────────────────
-@app.get("/healthz")
-@app.get("/health")
-async def health() -> dict:
-    return {"status": "alive", "service": "tts-service", "version": VERSION}
+# نُقلت كلّ المُعالِجات إلى وحدات ``routers/`` (تفكيك محفوظ السلوك). تُضمّ تلقائيّاً
+# عبر ``register_routers(app)`` أدناه — المسارات/المعاملات/المخرجات/المصادقة مطابقة.
 
 
-@app.get("/readyz")
-async def readyz() -> dict:
-    redis_ok = False
-    if _redis:
-        try:
-            await _redis.ping()
-            redis_ok = True
-        except Exception as e:  # noqa: BLE001
-            logger.debug("فحص صحّة Redis فشل: %s", type(e).__name__)
-    return {
-        "status": "ready",
-        "redis": redis_ok,
-        "voices_available": len(VOICES),
-    }
+# ── تسجيل الراوترات تلقائيّاً (في النهاية، بعد app وكلّ التبعيّات المشتركة) ──────
+# نضمن أنّ مجلّد الخدمة على ``sys.path`` كي يُحلّ ``router_registry``/``routers``
+# مهما كانت آليّة تحميل ``main`` (تشغيل عاديّ، أو استيراد كحزمة، أو exec عبر spec في
+# الاختبارات) — لا يغيّر أيّ سلوك مسار.
+import sys as _sys  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
 
+_SVC_DIR = str(_Path(__file__).resolve().parent)
+if _SVC_DIR not in _sys.path:
+    _sys.path.insert(0, _SVC_DIR)
 
-@app.get("/metrics")
-async def metrics() -> Response:
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+from router_registry import register_routers  # noqa: E402
 
-
-@app.get("/tts/voices", response_model=VoicesResponse)
-async def list_voices(_user: dict = Depends(get_current_user)) -> dict:
-    """List all available voices."""
-    return {"voices": VOICES, "default": DEFAULT_VOICE}
-
-
-@app.post("/tts/synthesize")
-async def synthesize(
-    req: TTSRequest,
-    user: dict = Depends(get_current_user),
-) -> Response:
-    """
-    Synthesize speech and return MP3 audio bytes.
-
-    Cached by content hash for 24h to reduce API calls.
-    """
-    tenant_id = user.get("tenant_id", "")
-    cache_key = _cache_key(tenant_id, req.text, req.voice, req.rate, req.pitch, req.volume)
-
-    # Try cache first
-    if _redis:
-        try:
-            cached = await _redis.get(cache_key)
-            if cached:
-                TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="hit").inc()
-                logger.info(f"Cache hit: tenant={tenant_id} voice={req.voice}")
-                return Response(
-                    content=cached,
-                    media_type="audio/mpeg",
-                    headers={
-                        "X-Cache": "HIT",
-                        # private: أصل TTS لكلّ مستأجِر يجب ألّا يُخزَّن في وسطاء/CDN
-                        # مشتركة (تسريب عابر للمستأجرين). يبقى قابلاً للتخزين بالمتصفّح.
-                        "Cache-Control": "private, max-age=86400",
-                    },
-                )
-        except Exception as e:
-            logger.warning(f"Redis read failed: {e}")
-
-    # Generate
-    try:
-        audio = await _generate_speech(req.text, req.voice, req.rate, req.pitch, req.volume)
-    except Exception as e:
-        TTS_REQUESTS.labels(voice=req.voice, status="error", cache="miss").inc()
-        logger.error(f"TTS generation failed: {e}")
-        raise HTTPException(500, "Speech synthesis failed") from e
-
-    # Cache result
-    if _redis:
-        try:
-            await _redis.setex(cache_key, CACHE_TTL, audio)
-        except Exception as e:
-            logger.warning(f"Redis write failed: {e}")
-
-    TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="miss").inc()
-    logger.info(
-        f"Generated: tenant={tenant_id} voice={req.voice} chars={len(req.text)} bytes={len(audio)}"
-    )
-
-    return Response(
-        content=audio,
-        media_type="audio/mpeg",
-        headers={
-            "X-Cache": "MISS",
-            # private: انظر مسار الـHIT أعلاه — عزل المستأجِر يمنع التخزين العامّ.
-            "Cache-Control": "private, max-age=86400",
-        },
-    )
-
-
-@app.post("/tts/stream")
-async def stream(
-    req: TTSRequest,
-    user: dict = Depends(get_current_user),
-) -> StreamingResponse:
-    """Stream audio for long text (low latency, no cache)."""
-
-    async def audio_stream():
-        voice = VOICES[req.voice]
-        communicate = edge_tts.Communicate(
-            text=req.text,
-            voice=voice,
-            rate=req.rate,
-            pitch=req.pitch,
-            volume=req.volume,
-        )
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                yield chunk["data"]
-
-    TTS_REQUESTS.labels(voice=req.voice, status="ok", cache="stream").inc()
-    return StreamingResponse(audio_stream(), media_type="audio/mpeg")
+register_routers(app)
 
 
 if __name__ == "__main__":
