@@ -2585,7 +2585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "433af54099dfe08673db66556869b212dddd9ffe11acbd4febfaf38b9f40b17b"
+          "content": "7c781c30dc464d9fc9c212d383aadbfe500b21aae9ef4831d2cdb5ae7624484e"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -2629,6 +2629,36 @@
         }
       ],
       "name": "frontend/src/services/imageryApi.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad02773018f99c829096c8ca309ff3d2385006855579c806a8987460a8f8bd0a"
+        }
+      ],
+      "name": "frontend/src/services/soilApi.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e27b4449ebf13cb996a7873d1fc7bafdb4457ab3617a5ecb861969a14ac86864"
+        }
+      ],
+      "name": "frontend/src/services/vegetationApi.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ae466c056c1c768d478f5189ffa7e576d8648b93d774911a79759a2b48a94af"
+        }
+      ],
+      "name": "frontend/src/services/weatherApi.ts",
       "type": "file"
     },
     {
