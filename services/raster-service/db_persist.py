@@ -78,6 +78,12 @@ async def insert_raster_asset(
 
             acq_date = _date.fromisoformat(acq_date[:10]) if acq_date else None
         except ValueError:
+            # صدق: لا نبتلع الفساد صمتاً — الأصل يُخزَّن لكن بـacquisition_date=NULL
+            # فلن يظهر في السلسلة الزمنيّة (list_asset_dates يُرشّح IS NOT NULL).
+            logger.warning(
+                "raster_assets: acquisition_date غير صالح %r ⇒ NULL (لن يظهر في السلسلة الزمنيّة)",
+                acquisition_date,
+            )
             acq_date = None
 
     sql = """
@@ -225,14 +231,13 @@ async def fetch_field_geometry(field_id: str) -> dict | None:
     if conn is None:
         return None
     try:
-        row = await conn.fetchrow(
-            "SELECT geometry FROM fields WHERE field_id = $1", field_id
-        )
+        row = await conn.fetchrow("SELECT geometry FROM fields WHERE field_id = $1", field_id)
         if not row or row["geometry"] is None:
             return None
         geom = row["geometry"]
         if isinstance(geom, str):
             import json
+
             geom = json.loads(geom)
         return geom
     except Exception as e:  # noqa: BLE001

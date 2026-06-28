@@ -78,25 +78,37 @@ def is_configured() -> bool:
     return bool(os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET"))
 
 
+# أصناف SCL (Scene Classification) للغيوم/الظلال/السيرس/الثلج التي تُقنَّع per-pixel،
+# مطابقةً لمسار Element84 (main.py ~1641): 3 ظلّ غيمة · 8 غيمة متوسّطة · 9 عالية ·
+# 10 سيرس · 11 ثلج. أيّ بكسل في هذه الأصناف ⇒ NaN (مستبعَد من الإحصاء).
+SCL_CLOUD_CLASSES: tuple[int, ...] = (3, 8, 9, 10, 11)
+
+
 def build_evalscript(index: str) -> str:
     """يبني evalscript (V3) يحسب ``index`` ويُخرِجه FLOAT32 نطاقاً واحداً.
 
-    نقيّ وقابل للاختبار. ``dataMask`` يحوّل البكسلات بلا بيانات إلى ``NaN`` كي لا
-    تلوّث الإحصاء (نظير قناع SCL في مسار Element84). يرفع ``ValueError`` لمؤشّر غير مدعوم.
+    نقيّ وقابل للاختبار. يقنّع per-pixel: يُرجِع ``NaN`` عندما يكون البكسل بلا
+    بيانات (``dataMask !== 1``) **أو** يقع في صنف غيمة/ظلّ/سيرس/ثلج من نطاق
+    ``SCL`` (الأصناف في ``SCL_CLOUD_CLASSES``) — نظير قناع SCL في مسار Element84.
+    يرفع ``ValueError`` لمؤشّر غير مدعوم.
     """
     if index not in INDEX_EXPR:
         raise ValueError(f"مؤشّر غير مدعوم في CDSE: {index} (المتاح: {sorted(INDEX_EXPR)})")
     bands, expr = INDEX_EXPR[index]
-    band_list = ", ".join(f'"{b}"' for b in bands)
+    # نطلب نطاق "SCL" إلى جانب نطاقات المؤشّر + dataMask كي نقنّع الغيوم per-pixel.
+    band_list = ", ".join(f'"{b}"' for b in (*bands, "SCL"))
+    cloud_set = ", ".join(str(c) for c in SCL_CLOUD_CLASSES)
     return (
         "//VERSION=3\n"
         "function setup() {\n"
         f'  return {{ input: [{{ bands: [{band_list}, "dataMask"] }}],\n'
         '           output: { bands: 1, sampleType: "FLOAT32" } };\n'
         "}\n"
+        f"const SCL_CLOUD = [{cloud_set}];\n"
         "function evaluatePixel(s) {\n"
         f"  let v = {expr};\n"
-        "  return [s.dataMask === 1 ? v : NaN];\n"
+        "  let isCloud = SCL_CLOUD.indexOf(s.SCL) !== -1;\n"
+        "  return [(s.dataMask === 1 && !isCloud) ? v : NaN];\n"
         "}\n"
     )
 
