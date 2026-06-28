@@ -34,9 +34,7 @@ def test_empty_or_alias_date_yields_valid_year(raw):
     from datetime import UTC, datetime
 
     today = (
-        datetime.now(UTC).strftime("%Y-%m-%d")
-        if (not raw or raw in ("latest", "today"))
-        else raw
+        datetime.now(UTC).strftime("%Y-%m-%d") if (not raw or raw in ("latest", "today")) else raw
     )
     date_from = f"{today[:4]}-01-01T00:00:00Z"
     assert date_from[:4].isdigit(), f"سنة فاسدة من date={raw!r}: {date_from!r}"
@@ -46,9 +44,7 @@ def test_empty_or_alias_date_yields_valid_year(raw):
 def test_specific_date_passes_through():
     """تاريخ محدَّد يمرّ كما هو (لا يُستبدَل بالأحدث)."""
     raw = "2025-07-15"
-    today = (
-        raw if (raw and raw not in ("latest", "today")) else "REPLACED"
-    )
+    today = raw if (raw and raw not in ("latest", "today")) else "REPLACED"
     assert today == "2025-07-15"
 
 
