@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-06-28 (ن) — بوّابة الواجهة + إغلاق متابعتَي D/C من مراجعة النسخة + تشخيص auth
+
+**رأس `main` بعد الجلسة:** `63c2f03` (#577 آخر المدموجة). PRs مدموجة: **#574–#577** (٤).
+
+- **#574 (`b180553`)** — تحديث العقل (تفكيك SVC-DECOMP-2: #570–#573).
+- **#575 (`35a4565`) بوّابة الواجهة التطويريّة (frontend/nginx.conf، 3003):** إضافة ٥ كتل
+  `location ^~` **قبل** catch-all `/api/` للخدمات التي تناديها `api.ts` بقواعد خاصّة
+  (`vegetation`→`sahool-vegetation-analysis:8000/` · `indicators`/`weather`→`sahool-platform:8000/api/v1/…`
+  · `agent`→`sahool-supervisor-agent:8000/agent/` + `= /api/agent/health`→`/health` · `guardrails`→
+  `sahool-guardrails-engine:8000/`). بلا `auth_request` (نموذج تطوير؛ تمرير `Authorization`+`X-Tenant-Id`)؛
+  الأهداف مطابقة لـ`nginx.v9.conf`. **الفجوة مُثبَتة:** بلاها تسقط لـ catch-all ⇒ 404 (دردشة/غطاء/مؤشّرات/طقس).
+  حارس `test_frontend_nginx_service_proxy_guard.py`.
+- **مراجعة المستخدم للنسخة `008c330`:** أكّدتُ كلّ ادّعاءاتها **صحيحة** بالكود (D/C/B + ملاحظات بيئيّة).
+  أُغلِقت المتابعتان الصغيرتان القابلتان للتنفيذ هنا (B — journal دائم للوكيل — مؤجَّل كـPR مستقلّ):
+  - **#576 (`2244145`) D — عقد TileJSON (واجهة):** `FieldIndicatorMap.tsx` كان يبني طلب TileJSON بـ
+    `params:{index,date}` بلا شرط ⇒ تسريب `date=latest`/`date=`. صار مشروطاً
+    (`date && date!=='latest' ? {index,date} : {index}`) — نفس حارس باني رابط البلاطة. backend يتحمّل ⇒
+    تنظيف عقد لا كسر. حارس ساكن `test_frontend_tilejson_date_contract_guard.py` (٤).
+  - **#577 (`63c2f03`) C — الموضوع اليتيم (NATS):** `sahool.weather.field.overlay.completed` يَنشُره
+    `weather-polygon-worker:161` بلا مشترِك ⇒ WARN «حدث طريق مسدود» (غير حاجب). **توثيق** القرار:
+    قسم `published_no_consumer` في عقد الأحداث (منتِج فعليّ + سبب) + `check_nats_subjects` يحترمه
+    (WARN⇒PASS) دون إضعاف `CRITICAL`/H2. +٣ اختبارات (سلبيّ: إزالة الـwaiver تُعيد WARN).
+- **تشخيص (لم يُغلَق — ينتظر سجلّ المشغّل):** `v21-sahool-auth-1` **unhealthy** يمنع إقلاع الحزمة.
+  `/readyz` موصول صحيحاً (`routers/ops.py:31`+`register_routers`) ⇒ **ليست انحدار تفكيك #557**. السبب
+  runtime/config: lifespan يرفع `RuntimeError` (fail-closed). الأرجح **دور قاعدة يتجاوز RLS** (DATABASE_URL
+  كـsuperuser/مالك جداول ⇒ `assert_db_role_rls_safe` يرفض الإقلاع — `main.py:229`)؛ الإصلاح دور مقيّد
+  `sahool_app` أو `SAHOOL_ALLOW_RLS_BYPASS_ROLE=1` للتطوير. بدائل: `JWT_SECRET`<32، أو فشل `_ensure_admin_user`.
+- **صدق:** D/C تنظيف+توثيق لا تغيير سلوكيّ؛ تشخيص auth **لم يُحسَم** بلا السجلّ (تفادي إصلاح أعمى).
+
+---
+
 ## 2026-06-28 (م) — تفكيك ٤ خدمات أصغر (soil/tts/actuator/guardrails، #570–#573)
 
 **رأس `main` بعد الجلسة:** `d340e60` (#570 آخر المدموجة من الدفعة). PRs مدموجة: **#570–#573** (٤).
