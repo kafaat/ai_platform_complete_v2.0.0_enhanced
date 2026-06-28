@@ -25,6 +25,32 @@ TARGETS=(
   "services/auth/requirements.txt"
   "services/guardrails-engine/requirements.txt"
   "requirements_real.txt"
+  # توسعة الأقفال لبقيّة خدمات بوّابة pip-audit الموحّدة (مُتحقَّق نظافتها).
+  "services/actuator-service/requirements.txt"
+  "services/agriai-engine/requirements.txt"
+  "services/edge-inference/requirements.txt"
+  "services/indicators-service/requirements.txt"
+  "services/mcp_servers/requirements.txt"
+  "services/odoo-bridge/requirements.txt"
+  "services/qdrant-seed/requirements.txt"
+  "services/raster-service/requirements.txt"
+  "services/soil-service/requirements.txt"
+  "services/supervisor-agent/requirements.txt"
+  "services/tts-service/requirements.txt"
+  "services/vegetation-analysis-service/requirements.txt"
+  "services/video-processor/requirements.txt"
+  "services/weather-service/requirements.txt"
+  # خدمات خارج بوّابة pip-audit — أقفال لانجراف التبعيّات فقط (لا تدقيق ثغرات حاجب).
+  # حُلَّت نظيفة على py3.11/universal ودُقِّقت محليّاً (لا ثغرات معروفة).
+  # تُستثنى services/local-ai-rag عمداً: تحمل PYSEC-2026-77 + GHSA-gr75-jv2w-4656
+  # (langchain-text-splitters/langchain، إصلاحها خارج سقوف توافق langchain 0.3.x).
+  "services/ai_agronomist/requirements.txt"
+  "services/field-segmentation/requirements.txt"
+  "services/knowledge-graph/requirements.txt"
+  "services/rag-retrieval/requirements.txt"
+  "services/sam2-inference/requirements.txt"
+  "services/weather-polygon-worker/requirements.txt"
+  "services/weather-signal-engine/requirements.txt"
 )
 
 # دقّة الحلّ المستهدَفة = الأدنى المدعوم (python 3.11، مطابِق لصور python:3.11-slim).

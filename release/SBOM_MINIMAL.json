@@ -4665,6 +4665,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a2b1f978e5f60229d109b6b34d0eba7647c3c34c063e8289e6c53834c66477e3"
+        }
+      ],
+      "name": "services/actuator-service/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "47c166efcfe1e092a2c33eccc8a39dabc7d640da0befc3cc07efae2e1759766c"
         }
       ],
@@ -4719,6 +4729,16 @@
         }
       ],
       "name": "services/agriai-engine/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d0d7fd6e76d380ee4215f1f7173c1e97dfe4596cbb4dc525d7fbbc89cca7eae"
+        }
+      ],
+      "name": "services/agriai-engine/requirements.lock",
       "type": "file"
     },
     {
@@ -4909,6 +4929,16 @@
         }
       ],
       "name": "services/ai_agronomist/recommendation_runtime_pipeline.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6f3a61b7693b8212913d7b5667de9a296f3e5195d224a40f97a9d978efb80a50"
+        }
+      ],
+      "name": "services/ai_agronomist/requirements.lock",
       "type": "file"
     },
     {
@@ -5165,6 +5195,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ea6cadb737f4e10aa5995177832b0f4a1053e12648f20f0156072b2a3b25fa57"
+        }
+      ],
+      "name": "services/edge-inference/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0ea59bf4ccbfb6cee1a0f76c5d636e5bede4fb6ab30d79879486bcd25f6976f1"
         }
       ],
@@ -5209,6 +5249,16 @@
         }
       ],
       "name": "services/field-segmentation/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "56e43b9f0946ef9129680fb1d1c45f5f62f2b16b17f1fe9e629f2ea52c6946bd"
+        }
+      ],
+      "name": "services/field-segmentation/requirements.lock",
       "type": "file"
     },
     {
@@ -5395,6 +5445,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d039b3d023a1ef950a724dd507c872ee28a681c9ec6d00dfabe3317c9b82c75f"
+        }
+      ],
+      "name": "services/indicators-service/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "019c6f8328acc58732a09f9b3befaf70db7e9c862f4275b1457c6d478f1255d6"
         }
       ],
@@ -5419,6 +5479,16 @@
         }
       ],
       "name": "services/knowledge-graph/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b7476a60166ee62737b209e41b333868f34c09a4486338308b0e02f8b962630"
+        }
+      ],
+      "name": "services/knowledge-graph/requirements.lock",
       "type": "file"
     },
     {
@@ -5535,6 +5605,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "143aa05a5a0bb12b0098ec5d44b77f77bf70401201b541c6f81b7df4ea888108"
+        }
+      ],
+      "name": "services/mcp_servers/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "787258757969d523bac1360c8889dd7e11b3a21e51d4904babac948d0253ee57"
         }
       ],
@@ -5635,6 +5715,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2c634fdcd43a715fa16feacc2cd57416c2bbd2ca96282e5a9c200d81f84320eb"
+        }
+      ],
+      "name": "services/odoo-bridge/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3d992773e48aa1458c03dff4df72551dcb67bf6f2029ee2007548672b1c8006c"
         }
       ],
@@ -5685,6 +5775,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2a0b52607305ab677affb42b9cad1988bed1aa683de40ec3450a751eed756c48"
+        }
+      ],
+      "name": "services/qdrant-seed/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1b5ba3fcc9bbcc4ab036193966c84118b8f8009f536551af075062e1620053a7"
         }
       ],
@@ -5729,6 +5829,16 @@
         }
       ],
       "name": "services/rag-retrieval/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e072f8a10345310f9948ea0bbd5ec40658e52dc3d1e2c4a5213b4deb0ec6a1b3"
+        }
+      ],
+      "name": "services/rag-retrieval/requirements.lock",
       "type": "file"
     },
     {
@@ -5909,6 +6019,16 @@
         }
       ],
       "name": "services/raster-service/raster_provenance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d8091c93018d10930cf74b99a34db61c6ee0d5c62ddb616d918050b1d7dc52a9"
+        }
+      ],
+      "name": "services/raster-service/requirements.lock",
       "type": "file"
     },
     {
@@ -15085,6 +15205,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "857cfd1946fd3431018cc2e497045e830a50d8bf08797aeaa66ac86ac0e9bc4f"
+        }
+      ],
+      "name": "services/sam2-inference/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0fcef3d588394dc37ea086c089c7813cdedd47257520219baa75535c324bbd67"
         }
       ],
@@ -15129,6 +15259,16 @@
         }
       ],
       "name": "services/soil-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45622a18a701c06f3ce69b461087adef0f7fcdfc1d1d7892ce83638e003c4872"
+        }
+      ],
+      "name": "services/soil-service/requirements.lock",
       "type": "file"
     },
     {
@@ -15249,6 +15389,16 @@
         }
       ],
       "name": "services/supervisor-agent/remote_sensing_skill.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e7596365723ef9600fcdb6c5be80d2e9b7ff380261e7bbebf697750b180815c2"
+        }
+      ],
+      "name": "services/supervisor-agent/requirements.lock",
       "type": "file"
     },
     {
@@ -15425,6 +15575,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "89b1bd329ce000ffc61812934900da9f945c73e78fb8a17bf7972c0b1a07a8a9"
+        }
+      ],
+      "name": "services/tts-service/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "995ea5d0909de86acc727221f788d1800d095c189b57a769fceda5343d66dba0"
         }
       ],
@@ -15475,6 +15635,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9c3f38845c912f2ad31ae7d0e0912405a0ced29ddd0605adc6aedbcb8a366ae0"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c39d3a2e98346ca32ce06637f5f74c252873e6d2d7b985a624b7d8af919c7662"
         }
       ],
@@ -15515,6 +15685,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ada6f6e89af77022ddf7dfc5b3a1710052466be8b7d08db36b1fe63ebb7380d2"
+        }
+      ],
+      "name": "services/video-processor/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a67510670f133e25f2c2fe8746ce4658c9bdcfe869c286546c281da1449db7b5"
         }
       ],
@@ -15539,6 +15719,16 @@
         }
       ],
       "name": "services/weather-polygon-worker/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0af93946cfecfb369ce8982b8579bc52eecff02a9014cecf92ead80e52cdd28"
+        }
+      ],
+      "name": "services/weather-polygon-worker/requirements.lock",
       "type": "file"
     },
     {
@@ -15605,6 +15795,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "38e909761cc45f0576dfe3913d7bff7be680b4eef40fdc945d464c43a6f8185f"
+        }
+      ],
+      "name": "services/weather-service/requirements.lock",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4d12cb0ef3a1e1500f98a2f026c6ff298b87f689c72f45b10df8e544b9d662c6"
         }
       ],
@@ -15619,6 +15819,16 @@
         }
       ],
       "name": "services/weather-signal-engine/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "45bd786b68f004a18d8ccb630e67a9d7dffcb02649453630d86013f08798da95"
+        }
+      ],
+      "name": "services/weather-signal-engine/requirements.lock",
       "type": "file"
     },
     {
