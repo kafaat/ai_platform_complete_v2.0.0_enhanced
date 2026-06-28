@@ -5005,6 +5005,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "243e2541712a018d4884abc878474a2862f813c901be57270a0913ef7f5c4f7d"
+        }
+      ],
+      "name": "services/auth/authz.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "606d0858c3eaf43132e97528ff11f2b22cb910c154b2d22e6b30a73c64c57c5d"
         }
       ],
@@ -5015,7 +5025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0dd9a9b850b315ca450e6c98ca531c3eba37b1104c13cb58076b03617a475311"
+          "content": "51e069bdf2361ff20389227467dd53ca88c5b356b34ab18d2c40798bca488e3f"
         }
       ],
       "name": "services/auth/main.py",
