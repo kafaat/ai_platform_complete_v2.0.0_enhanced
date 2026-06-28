@@ -91,8 +91,11 @@ def scouting_mod():
 
 @pytest.fixture
 def fields_mod():
+    # _persist_scouting_pin نُقل إلى api.routers.field_scouting (تفكيك محفوظ-السلوك
+    # لـfields.py — مجموعة الاستطلاع/الدبابيس/خطّة المشي). نستورد api.main أوّلاً لحلّ
+    # دورة الاستيراد ثمّ الموجِّه الجديد.
     import api.main  # noqa: F401, WPS433
-    import api.routers.fields as m  # noqa: WPS433
+    import api.routers.field_scouting as m  # noqa: WPS433
 
     return m
 
