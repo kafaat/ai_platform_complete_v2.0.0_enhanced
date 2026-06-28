@@ -306,7 +306,12 @@ export default function FieldIndicatorMap({
     let cancelled = false;
     setTileBounds(undefined);
     rasterApi
-      .get<TileJSON>(`/v1/fields/${fieldId}/${tilejsonPath}`, { params: { index, date } })
+      // عقد التاريخ: لا نُمرّر date حين يكون فارغاً أو 'latest' (backend يعامل الغياب
+      // كأحدث مشهد) — نفس منطق باني رابط البلاطة في indicatorTileUrl. هذا يمنع تسرّب
+      // date=latest/date= في طلب TileJSON ويغلق آخر تسريب للعقد من الواجهة.
+      .get<TileJSON>(`/v1/fields/${fieldId}/${tilejsonPath}`, {
+        params: date && date !== 'latest' ? { index, date } : { index },
+      })
       .then((r) => {
         if (cancelled) return;
         const b = r.data?.bounds;
