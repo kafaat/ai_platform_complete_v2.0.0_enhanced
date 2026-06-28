@@ -4176,3 +4176,54 @@ async def cog_registry_preview(payload: dict) -> dict:
         cloud_pct=payload.get("cloud_pct"),
         resolution_m=payload.get("resolution_m", 10),
     )
+
+
+# ════════════════════════════════════════════════════════════════════
+# توحيد main↔cert (Stage B): تفعيل بلاطات CDSE الحيّة (poly clip) من main
+# ════════════════════════════════════════════════════════════════════
+# cert تفرّع قبل مسار cdse-tiles؛ بنيته التحتيّة لـCDSE موجودة هنا
+# (_run_cdse_processing/ProcessCdseRequest/_jobs/…) عدا ٣ مساعِدات للكاش/القفل.
+# نضيفها ثمّ نُضمّن راوتر cdse_tiles (يستورد main لاحقاً — بلا دور دائريّ لأنّ
+# التضمين في نهاية الملفّ بعد تعريف كلّ الرموز، كنمط register_routers).
+_cdse_tile_cache: dict[str, tuple[float, str]] = {}
+_cdse_cache_lock: object | None = None  # asyncio.Lock — تُنشأ عند أوّل استخدام
+
+
+def _cdse_lock():
+    """يُرجع asyncio.Lock الوحيد لحماية _cdse_tile_cache (lazy — آمن للخيوط)."""
+    global _cdse_cache_lock
+    import asyncio
+
+    if _cdse_cache_lock is None:
+        _cdse_cache_lock = asyncio.Lock()
+    return _cdse_cache_lock
+
+
+def _bbox_from_geom(geom: dict | None) -> list[float] | None:
+    """يحسب [west, south, east, north] من هندسة GeoJSON (Polygon/MultiPolygon/Feature)."""
+    if not geom:
+        return None
+    try:
+        gtype = geom.get("type", "")
+        if gtype == "Feature":
+            geom = geom.get("geometry") or {}
+            gtype = geom.get("type", "")
+        coords: list = []
+        if gtype == "Polygon":
+            coords = geom.get("coordinates", [[]])[0]
+        elif gtype == "MultiPolygon":
+            for ring in geom.get("coordinates", []):
+                coords.extend(ring[0] if ring else [])
+        if not coords:
+            return None
+        lons = [c[0] for c in coords]
+        lats = [c[1] for c in coords]
+        return [min(lons), min(lats), max(lons), max(lats)]
+    except Exception:  # noqa: BLE001
+        return None
+
+
+# تضمين راوتر بلاطات CDSE (poly clip + قناع rasterio + ملوحة SWIR) — مسار main.
+from routers.cdse_tiles import router as _cdse_tiles_router  # noqa: E402
+
+app.include_router(_cdse_tiles_router)

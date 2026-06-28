@@ -10,11 +10,10 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import UTC, datetime, timedelta
 
 import main
-from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
+from fastapi import APIRouter, Query
 from fastapi.responses import Response
 
 router = APIRouter()
@@ -46,56 +45,9 @@ def _parse_poly(poly: str) -> dict | None:
         return None
 
 
-@router.post("/v1/fields/{field_id}/process-cdse")
-async def process_cdse(
-    field_id: str,
-    req: main.ProcessCdseRequest,
-    background_tasks: BackgroundTasks,
-    x_agent_token: str = Header(None),
-):
-    """يحسب مؤشّرات الحقل عبر CDSE (المزوّد الافتراضيّ الأقوى). خلفيّة، يُرجِع job_id.
-
-    صدق: بلا اعتمادات CDSE (``CDSE_CLIENT_ID``/``SECRET`` أو ``CDSE_ENABLED=false``) ⇒
-    ``available=false`` (200، لا خطأ) كي يسقط المنسّق إلى Element84 بصمت — لا توقّف ولا تلفيق.
-    """
-    main._require_service_token(x_agent_token)
-    import cdse_client
-
-    if not cdse_client.is_configured():
-        return {
-            "provider": "cdse",
-            "available": False,
-            "queued": False,
-            "note_ar": "CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET) — يسقط المنسّق إلى Element84.",
-        }
-    if not req.bbox or len(req.bbox) != 4:
-        raise HTTPException(400, "bbox مطلوب [west,south,east,north] (EPSG:4326).")
-    if not req.indicators:
-        raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
-    job_id = f"cdse_{uuid.uuid4().hex[:12]}"
-    main._jobs.set(
-        job_id,
-        {
-            "job_id": job_id,
-            "status": main.JobStatus.pending,
-            "progress_pct": 0,
-            "created_at": datetime.now(UTC).isoformat(),
-            "indicators": list(req.indicators),
-            "provider": "cdse",
-        },
-    )
-    background_tasks.add_task(main._run_cdse_processing, job_id, field_id, req)
-    return {
-        "provider": "cdse",
-        "available": True,
-        "queued": True,
-        "job_id": job_id,
-        "status": main.JobStatus.pending,
-        "indicators": list(req.indicators),
-        "note": "معالجة CDSE خلفيّة — استعلم /jobs/{job_id} (cdse_results + cdse_failed).",
-    }
-
-
+# ملاحظة توحيد main↔cert: مسار process-cdse تملكه cert في main.py (نسخة مصلّبة بنفس
+# _run_cdse_processing)، فأُزيل من هذا الراوتر تفادياً للتسجيل المزدوج. هذا الراوتر يضيف
+# فقط ما تفتقده cert: خدمة بلاطات cdse-tiles وcdse-tilejson (قصّ poly + قناع rasterio).
 @router.get("/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png")
 async def field_cdse_tile(
     field_id: str,
