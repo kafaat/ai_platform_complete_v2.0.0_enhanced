@@ -176,8 +176,10 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
     الخطوات:
       1) احسب حدود البلاطة في EPSG:3857.
       2) أعد إسقاط COG (مصدره غالباً UTM) إلى مصفوفة 256×256 لتلك البقعة
-         بـrasterio.warp.reproject (nearest — يحافظ على حدّة حواف الحقل).
-      3) البكسلات بلا بيانات (NaN) → شفّافة. لوّن الباقي بتدرّج المؤشّر.
+         بـrasterio.warp.reproject عبر rasterio.band(src, 1) — قراءة نافذيّة
+         (GDAL يقرأ النافذة فقط عبر الأهرامات) تَحترم القناع الداخلي ضمنيّاً
+         (nearest — يحافظ على حدّة حواف الحقل).
+      3) البكسلات بلا بيانات (NaN / mask=0 / nodata) → شفّافة. لوّن الباقي.
       4) رمّز PNG.
 
     None عند: غياب rasterio / ملفّ مفقود / لا تقاطع / فشل القراءة. المُستدعي
@@ -197,17 +199,8 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
 
     try:
         with rasterio.open(cog_path) as src:
-            src_arr = src.read(1).astype("float32")
-            src_nodata = src.nodata
-            if src_nodata is not None and not (
-                isinstance(src_nodata, float) and math.isnan(src_nodata)
-            ):
-                src_arr = np.where(src_arr == src_nodata, np.nan, src_arr)
-            # القناع الداخلي (GDAL dataset_mask): 0=غير صالح، 255=صالح.
-            # يشمل dataMask من CDSE والمناطق المقصوصة — لا يُعبَّر عنها بـnodata دائماً.
-            src_mask = src.dataset_mask().astype("uint8")
             src_crs = src.crs
-            src_transform = src.transform
+            src_nodata = src.nodata
 
             # سرعة: تخطَّ التصيير إذا لم تتقاطع البلاطة مع حدود الـCOG (بـ3857)
             try:
@@ -219,35 +212,30 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
             except Exception:  # noqa: BLE001 — تعذّر التحقّق → تابع التصيير
                 pass
 
-        dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
-        reproject(
-            source=src_arr,
-            destination=dst,
-            src_transform=src_transform,
-            src_crs=src_crs,
-            dst_transform=dst_transform,
-            dst_crs=dst_crs,
-            resampling=Resampling.nearest,
-            src_nodata=np.nan,
-            dst_nodata=np.nan,
-        )
+            # قراءة نافذيّة (windowed): نمرّر rasterio.band(src, 1) إلى reproject،
+            # فيقرأ GDAL النافذة المطلوبة فقط عبر الأهرامات (overviews) بدل
+            # تحميل الـCOG كاملاً (كان src.read(1) + dataset_mask() قراءتين كاملتين).
+            # كما يَحترم القناع الداخلي للـCOG ضمنيّاً: بكسلات mask=0 (خارج dataMask
+            # أو خارج حدود القصّ) لا تُسقَط حتى لو كانت قيمتها finite (مثل 0.0)،
+            # فتبقى dst_nodata=NaN → شفّافة. هذا يحلّ "الشرائط الداكنة" من جذرها
+            # دون قراءة/إسقاط القناع صراحةً.
+            dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
+            reproject(
+                source=rasterio.band(src, 1),
+                destination=dst,
+                dst_transform=dst_transform,
+                dst_crs=dst_crs,
+                resampling=Resampling.nearest,
+                src_nodata=src_nodata,
+                dst_nodata=np.nan,
+            )
 
-        # أعِد إسقاط القناع الداخلي إلى شبكة البلاطة ثمّ طبّقه:
-        # بكسلات mask=0 (خارج dataMask أو خارج حدود القصّ) → NaN → alpha=0.
-        # يحلّ حالة "قيمة finite مثل 0.0 خارج الحقل" التي كانت تُلوَّن كبيانات صالحة.
-        mask_dst = np.zeros((TILE_SIZE, TILE_SIZE), dtype="uint8")
-        reproject(
-            source=src_mask,
-            destination=mask_dst,
-            src_transform=src_transform,
-            src_crs=src_crs,
-            dst_transform=dst_transform,
-            dst_crs=dst_crs,
-            resampling=Resampling.nearest,
-            src_nodata=0,
-            dst_nodata=0,
-        )
-        dst = np.where(mask_dst > 0, dst, np.nan).astype("float32")
+            # عالِج nodata الرقميّ (مثل -9999) الذي قد يمرّ كقيمة finite في الوجهة:
+            # حوّله إلى NaN حتى يبقى شفّافاً (NaN nodata يُعالَج تلقائيّاً).
+            if src_nodata is not None and not (
+                isinstance(src_nodata, float) and math.isnan(src_nodata)
+            ):
+                dst = np.where(dst == src_nodata, np.nan, dst).astype("float32")
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
         return None
 
