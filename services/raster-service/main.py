@@ -3625,71 +3625,17 @@ async def salinity_calibrate(req: SalinityFitRequest, x_agent_token: str = Heade
 
 
 # ─── Cloud-native GIS/STAC facade (Phase 4 inspired by TiTiler/Terracotta/OGC) ───
-@app.get("/stac")
-async def stac_landing() -> dict:
-    """STAC landing page for SAHOOL internal imagery catalog facade."""
-    import cloud_native_catalog as _cnc
+# المرحلة 3: نقاط واجهة STAC/الكتالوج السحابيّ مُستخرَجة إلى ``stac_catalog_routes``
+# (APIRouter) وتُضَمّ هنا بنفس المسارات/الأساليب/السلوك حرفيّاً (بلا prefix). شريحة
+# معزولة: لا تلمس حالة الوحدة (_jobs/_layers) وتفوّض لـcloud_native_catalog. الدوال
+# تُعاد تصديرها أدناه كي يبقى العقد ثابتاً للمستورِدين. الحارس يقرأ هذه الوحدة أيضاً.
+import stac_catalog_routes as _stac_catalog_routes  # noqa: E402  تأخير: بعد تعريف app
 
-    return _cnc.stac_landing_page()
+# إعادة تصدير الدوال كي يبقى العقد ثابتاً للمستورِدين (نفس الأسماء كما كانت في main).
+cog_registry_preview = _stac_catalog_routes.cog_registry_preview
+scene_quality_score = _stac_catalog_routes.scene_quality_score
+stac_collections = _stac_catalog_routes.stac_collections
+stac_landing = _stac_catalog_routes.stac_landing
+stac_mosaicjson = _stac_catalog_routes.stac_mosaicjson
 
-
-@app.get("/stac/collections")
-async def stac_collections() -> dict:
-    """List internal STAC collections: source scenes and derived COG products."""
-    import cloud_native_catalog as _cnc
-
-    return _cnc.stac_collections()
-
-
-@app.post("/stac/mosaicjson")
-async def stac_mosaicjson(payload: dict) -> dict:
-    """Build a lightweight MosaicJSON document from supplied STAC items/COG assets.
-
-    This endpoint is intentionally stateless: persistence belongs to raster_registry/object
-    storage. It lets the frontend/tiler preview a multi-scene mosaic contract safely.
-    """
-    import cloud_native_catalog as _cnc
-
-    return _cnc.build_mosaicjson(
-        name=str(payload.get("name") or "sahool-field-mosaic"),
-        items=payload.get("items") or [],
-        minzoom=int(payload.get("minzoom") or 8),
-        maxzoom=int(payload.get("maxzoom") or 18),
-    )
-
-
-@app.post("/v1/scenes/quality-score")
-async def scene_quality_score(payload: dict) -> dict:
-    """Score scene quality from cloud/shadow/nodata metadata before processing."""
-    import cloud_native_catalog as _cnc
-
-    q = _cnc.score_scene_quality(
-        cloud_pct=payload.get("cloud_pct"),
-        shadow_pct=payload.get("shadow_pct", 0),
-        nodata_pct=payload.get("nodata_pct", 0),
-        haze_pct=payload.get("haze_pct", 0),
-        resolution_m=payload.get("resolution_m", 10),
-        max_cloud_pct=float(payload.get("max_cloud_pct", 35)),
-    )
-    return q.__dict__
-
-
-@app.post("/v1/cog/registry/preview")
-async def cog_registry_preview(payload: dict) -> dict:
-    """Preview the canonical COG registry record without writing to DB."""
-    import cloud_native_catalog as _cnc
-
-    required = ["tenant_id", "field_id", "date", "index_type", "cog_url"]
-    missing = [k for k in required if not payload.get(k)]
-    if missing:
-        raise HTTPException(status_code=422, detail={"missing": missing})
-    return _cnc.cog_registry_record(
-        tenant_id=str(payload["tenant_id"]),
-        field_id=str(payload["field_id"]),
-        date=str(payload["date"]),
-        index_type=str(payload["index_type"]),
-        cog_url=str(payload["cog_url"]),
-        scene_id=payload.get("scene_id"),
-        cloud_pct=payload.get("cloud_pct"),
-        resolution_m=payload.get("resolution_m", 10),
-    )
+app.include_router(_stac_catalog_routes.router)
