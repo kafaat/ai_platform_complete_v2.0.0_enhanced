@@ -6,14 +6,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # المتطلّبات
-COPY services/sahool-platform/api/requirements.txt /tmp/requirements.txt
+COPY services/sahool-platform/api/requirements.lock /tmp/requirements.lock
 # ── PyPI الرسمي (افتراضي، يعمل عالميّاً) — للمرآة الصينيّة مرّر --build-arg ──
 # البديل: https://mirrors.aliyun.com/pypi/simple/ (علي بابا)
 ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
-RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
+RUN pip install --no-cache-dir --require-hashes --timeout 300 --retries 10 -r /tmp/requirements.lock
 
 # الكود: api/ + core/ + knowledge/ + data/ (main.py يستورد من core/)
 COPY shared/ /app/shared/

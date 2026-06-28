@@ -2,20 +2,18 @@ FROM python:3.11-slim-bookworm
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev curl \
     && rm -rf /var/lib/apt/lists/*
-COPY services/auth/requirements.txt /tmp/requirements.txt
+COPY services/auth/requirements.lock /tmp/requirements.lock
 # ── PyPI الرسمي (افتراضي، يعمل عالميّاً) — للمرآة الصينيّة مرّر --build-arg ──
 # البديل: https://mirrors.aliyun.com/pypi/simple/ (علي بابا)
 ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
-RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
+RUN pip install --no-cache-dir --require-hashes --timeout 300 --retries 10 -r /tmp/requirements.lock
 COPY shared/ /app/shared/
-COPY services/auth/main.py /app/main.py
-# otp.py وحدة شقيقة نقيّة (مفصولة عن fastapi للاختبار في CI) يستوردها main.py:
-# `from otp import …`. كانت غير منسوخة ⇒ ModuleNotFoundError: No module named 'otp'
-# عند الإقلاع. نسخها إلزاميّ.
-COPY services/auth/otp.py /app/otp.py
+# نسخ شامل لكلّ وحدات auth (main.py + الوحدات الشقيقة مثل otp.py وأيّ تفكيك
+# لاحق لـmain.py إلى وحدات شقيقة) — يضمن تضمينها دون تعديل لاحق للـDockerfile.
+COPY services/auth/*.py /app/
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 EXPOSE 8000
