@@ -289,6 +289,20 @@ export default function FieldManagementPage() {
     } catch { return undefined; }
   }
 
+  // يحسب bbox [west, south, east, north] من geometry GeoJSON
+  function geomToBbox(geom: any): [number, number, number, number] | undefined {
+    try {
+      let coords: [number, number][] | undefined;
+      if (geom?.type === 'Feature') geom = geom.geometry;
+      if (geom?.type === 'Polygon') coords = geom.coordinates[0];
+      else if (geom?.type === 'MultiPolygon') coords = geom.coordinates[0][0];
+      if (!coords || coords.length < 2) return undefined;
+      const lons = coords.map(([lng]: [number, number]) => lng);
+      const lats = coords.map(([, lat]: [number, number]) => lat);
+      return [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)];
+    } catch { return undefined; }
+  }
+
   // ── Field card ─────────────────────────────────────────────────
   const FieldCard = ({ f }: { f: Field; key?: React.Key }) => {
     const sc = healthConfig(f.health);
@@ -599,6 +613,7 @@ export default function FieldManagementPage() {
                 date={new Date().toISOString().split('T')[0]}
                 tileSegment="cdse-tiles"
                 fieldPolygon={geomToLatLng(showSatellite.geometry)}
+                fieldBbox={geomToBbox(showSatellite.geometry)}
                 fallbackBounds={
                   showSatellite.lon && showSatellite.lat
                     ? [showSatellite.lon - 0.01, showSatellite.lat - 0.01,

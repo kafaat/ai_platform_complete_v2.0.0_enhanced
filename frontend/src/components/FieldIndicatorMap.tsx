@@ -56,6 +56,8 @@ export interface FieldIndicatorMapProps {
   tools?: boolean;
   // مقطع مسار البلاطة: 'tiles' (COG محلّي) أو 'cdse-tiles' (Sentinel Hub حيّ)
   tileSegment?: string;
+  // bbox الحقل [west, south, east, north] — يُضاف كـparam للبلاطات (يُغني عن استعلام DB)
+  fieldBbox?: [number, number, number, number];
 }
 
 // ── أدوات القياس (overlay) ──────────────────────────────────────────
@@ -207,8 +209,15 @@ function MeasureTools() {
 }
 
 // رابط قالب بلاطات المؤشر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet.
-function indicatorTileUrl(fieldId: string, index: string, date: string, segment = 'tiles'): string {
-  const qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
+function indicatorTileUrl(
+  fieldId: string, index: string, date: string,
+  segment = 'tiles',
+  fieldBbox?: [number, number, number, number],
+): string {
+  let qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
+  if (fieldBbox) {
+    qs += `&bbox_w=${fieldBbox[0]}&bbox_s=${fieldBbox[1]}&bbox_e=${fieldBbox[2]}&bbox_n=${fieldBbox[3]}`;
+  }
   // eslint-disable-next-line no-template-curly-in-string
   return `${RASTER}/v1/fields/${fieldId}/${segment}/{z}/{x}/{y}.png?${qs}`;
 }
@@ -253,12 +262,13 @@ export default function FieldIndicatorMap({
   height = 420,
   tools = false,
   tileSegment = 'tiles',
+  fieldBbox,
 }: FieldIndicatorMapProps) {
   const [opacity, setOpacity] = useState(initialOpacity);
   const [tileBounds, setTileBounds] = useState<[number, number, number, number] | undefined>();
 
   const baseUrl = basemap === 'satellite' ? BASEMAP_SAT : BASEMAP_LIGHT;
-  const tilesUrl = indicatorTileUrl(fieldId, index, date, tileSegment);
+  const tilesUrl = indicatorTileUrl(fieldId, index, date, tileSegment, fieldBbox);
   // TileJSON endpoint: cdse-tiles → cdse-tilejson ، tiles → tilejson
   const tilejsonPath = tileSegment === 'cdse-tiles' ? 'cdse-tilejson' : 'tilejson';
 

@@ -2776,6 +2776,10 @@ async def field_cdse_tile(
     y: int,
     index: str = Query("ndvi"),
     date: str = Query("latest"),
+    bbox_w: float | None = Query(None),
+    bbox_s: float | None = Query(None),
+    bbox_e: float | None = Query(None),
+    bbox_n: float | None = Query(None),
 ):
     """بلاطة Sentinel Hub حيّة: تجلب الصورة الكاملة للحقل مرّة واحدة (مُخبّأة ساعة)
     وتُصيِّر منها كلّ بلاطة XYZ بنفس منطق COG (tile_render). البكسلات خارج حدود
@@ -2804,11 +2808,15 @@ async def field_cdse_tile(
     date_to = f"{today}T23:59:59Z"
     cache_key = f"{field_id}:{internal}:{today}"
 
-    # جلب هندسة + bbox الحقل
-    import db_persist as _db
-
-    field_geom = await _db.fetch_field_geometry(field_id)
-    field_bbox = _bbox_from_geom(field_geom)
+    # bbox الحقل: من params الطلب أوّلاً (الواجهة تُمرّره مباشرةً من geometry)،
+    # وإلّا يُستعلَم من DB (best-effort — يعود None إن تعذّر).
+    if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
+        field_bbox: list[float] | None = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
+        field_geom: dict | None = None  # لا نحتاج الهندسة للقصّ (bbox كافٍ لـCDSE)
+    else:
+        import db_persist as _db
+        field_geom = await _db.fetch_field_geometry(field_id)
+        field_bbox = _bbox_from_geom(field_geom)
 
     # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O)
     if field_bbox:
@@ -2884,6 +2892,10 @@ async def field_cdse_tilejson(
     field_id: str,
     index: str = Query("ndvi"),
     date: str = Query("latest"),
+    bbox_w: float | None = Query(None),
+    bbox_s: float | None = Query(None),
+    bbox_e: float | None = Query(None),
+    bbox_n: float | None = Query(None),
 ):
     """TileJSON 2.2.0 لبلاطات CDSE الحيّة — يُستخدَم لضبط إطار الخريطة."""
     import cdse_client as _cdse
@@ -2891,8 +2903,11 @@ async def field_cdse_tilejson(
 
     await _require_field_tenant(field_id)
 
-    field_geom = await _db.fetch_field_geometry(field_id)
-    bounds = _bbox_from_geom(field_geom) or [-180.0, -85.0, 180.0, 85.0]
+    if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
+        bounds = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
+    else:
+        field_geom = await _db.fetch_field_geometry(field_id)
+        bounds = _bbox_from_geom(field_geom) or [-180.0, -85.0, 180.0, 85.0]
     today = (
         datetime.now(UTC).strftime("%Y-%m-%d")
         if date in ("latest", "today")
