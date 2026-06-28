@@ -58,6 +58,9 @@ export interface FieldIndicatorMapProps {
   tileSegment?: string;
   // bbox الحقل [west, south, east, north] — يُضاف كـparam للبلاطات (يُغني عن استعلام DB)
   fieldBbox?: [number, number, number, number];
+  // هندسة الحقل (GeoJSON) — تُمرَّر لبلاطات cdse-tiles لقصّ Sentinel Hub على المضلّع
+  // (وإلّا تُصيَّر الصحراء خارج الحقل ملوّنةً بدل شفّافة).
+  fieldGeometry?: object;
 }
 
 // ── أدوات القياس (overlay) ──────────────────────────────────────────
@@ -213,6 +216,7 @@ function indicatorTileUrl(
   fieldId: string, index: string, date: string,
   segment = 'tiles',
   fieldBbox?: [number, number, number, number],
+  fieldGeometry?: object,
 ): string {
   // لا نُملي تاريخاً من الواجهة: فارغ/'latest' ⇒ نحذف المُعامل فيختار الخادم أحدث مشهد.
   let qs = `index=${encodeURIComponent(index)}`;
@@ -221,6 +225,11 @@ function indicatorTileUrl(
   }
   if (fieldBbox) {
     qs += `&bbox_w=${fieldBbox[0]}&bbox_s=${fieldBbox[1]}&bbox_e=${fieldBbox[2]}&bbox_n=${fieldBbox[3]}`;
+  }
+  // بلاطات CDSE: مرّر هندسة الحقل ليقصّ Sentinel Hub على المضلّع (شفّاف خارجه)
+  // بدل تصيير مستطيل الـbbox كلّه (الصحراء حمراء). bbox يبقى لحساب الإطار/التقاطع.
+  if (segment === 'cdse-tiles' && fieldGeometry) {
+    qs += `&geom=${encodeURIComponent(JSON.stringify(fieldGeometry))}`;
   }
   // eslint-disable-next-line no-template-curly-in-string
   return `${RASTER}/v1/fields/${fieldId}/${segment}/{z}/{x}/{y}.png?${qs}`;
@@ -267,12 +276,13 @@ export default function FieldIndicatorMap({
   tools = false,
   tileSegment = 'tiles',
   fieldBbox,
+  fieldGeometry,
 }: FieldIndicatorMapProps) {
   const [opacity, setOpacity] = useState(initialOpacity);
   const [tileBounds, setTileBounds] = useState<[number, number, number, number] | undefined>();
 
   const baseUrl = basemap === 'satellite' ? BASEMAP_SAT : BASEMAP_LIGHT;
-  const tilesUrl = indicatorTileUrl(fieldId, index, date, tileSegment, fieldBbox);
+  const tilesUrl = indicatorTileUrl(fieldId, index, date, tileSegment, fieldBbox, fieldGeometry);
   // TileJSON endpoint: cdse-tiles → cdse-tilejson ، tiles → tilejson
   const tilejsonPath = tileSegment === 'cdse-tiles' ? 'cdse-tilejson' : 'tilejson';
 

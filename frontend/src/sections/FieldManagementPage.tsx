@@ -614,6 +614,7 @@ export default function FieldManagementPage() {
                 tileSegment="cdse-tiles"
                 fieldPolygon={geomToLatLng(showSatellite.geometry)}
                 fieldBbox={geomToBbox(showSatellite.geometry)}
+                fieldGeometry={showSatellite.geometry}
                 fallbackBounds={
                   showSatellite.lon && showSatellite.lat
                     ? [showSatellite.lon - 0.01, showSatellite.lat - 0.01,
