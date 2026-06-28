@@ -23,6 +23,7 @@ import '../../lib/leafletSetup';
 import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters } from '../../lib/geo';
 import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
+import { getTenantId } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
 import {
   AlertOverlay, DeviceOverlay, WeatherOverlay,
@@ -238,11 +239,32 @@ function PinClickHandler({ enabled, onAddPin }: { enabled: boolean; onAddPin: (l
 }
 
 // رابط بلاطات المؤشّر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet (مطابق api.ts).
-function indicatorTileUrl(fieldId: string, index: string): string {
-  // بلا تاريخ: الخادم يختار أحدث مشهد داخليّاً (date=Query("latest")).
-  const qs = `index=${encodeURIComponent(index)}`;
+function indicatorTileUrl(field: FieldOption, index: string): string {
+  // بلاطات CDSE الحيّة (Sentinel Hub): مسار `tiles` يحتاج COG محليّاً غير موجود ⇒
+  // 404؛ `cdse-tiles` يجلب المشهد حيّاً. بلا تاريخ: الخادم يختار الأحدث داخليّاً.
+  let qs = `index=${encodeURIComponent(index)}`;
+  // bbox + رؤوس المضلّع: عقد القصّ الموحَّد poly=lng,lat;... (الخادم يطبّق قناع rasterio
+  // بكسليّ على نفس المضلّع ⇒ شفّافيّة دقيقة خارج حدّ الحقل)، وbbox يُسرّع طلب CDSE/التقاطع.
+  const poly = geomToPolygon(field.geometry);
+  if (poly && poly.length >= 3) {
+    let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+    for (const [lat, lng] of poly) {
+      if (lng < w) w = lng;
+      if (lng > e) e = lng;
+      if (lat < s) s = lat;
+      if (lat > n) n = lat;
+    }
+    qs += `&bbox_w=${w}&bbox_s=${s}&bbox_e=${e}&bbox_n=${n}`;
+    // ترتيب lng,lat (لا lat,lng). geomToPolygon يُعيد [lat,lng] فنقلبها.
+    const polyStr = poly.map(([lat, lng]) => `${lng},${lat}`).join(';');
+    qs += `&poly=${encodeURIComponent(polyStr)}`;
+  }
+  // المستأجِر كـquery param: بلاطات <img> لا تحمل ترويسات، فيقرأه nginx ($arg_tenant_id)
+  // ويحقنه X-Tenant-Id كي تتحقّق خدمة الراستر من ملكيّة المستأجِر.
+  const tenant = getTenantId();
+  if (tenant) qs += `&tenant_id=${encodeURIComponent(tenant)}`;
   // eslint-disable-next-line no-template-curly-in-string
-  return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
+  return `${rasterBaseUrl()}/v1/fields/${field.id}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
 }
 
 // أيقونة دبّوس استكشاف (divIcon — لا أصل صورة خارجيّ).
@@ -303,7 +325,7 @@ export default function HubMap({
         {indicatorId && selected && (
           <TileLayer
             key={`${selected.id}-${indicatorId}`}
-            url={indicatorTileUrl(selected.id, indicatorId)}
+            url={indicatorTileUrl(selected, indicatorId)}
             opacity={indicatorOpacity}
             errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
           />
@@ -322,7 +344,7 @@ export default function HubMap({
                 pathOptions={{
                   color: isSel ? SELECTED_COLOR : FIELD_COLOR,
                   weight: isSel ? 3 : 1.5,
-                  fillOpacity: isSel ? 0.25 : 0.12,
+                  fill: false,
                 }}
                 eventHandlers={{ click: () => onSelect(f.id) }}
               >

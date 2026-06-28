@@ -89,8 +89,12 @@ _INDEX_DOMAIN = {
     "evi": (-0.2, 0.9, False),
     "ndmi": (-0.3, 0.6, False),
     "ndwi": (-0.5, 0.5, False),
-    "ndsi": (-0.1, 0.6, True),
-    "salinity": (-0.1, 0.6, True),
+    # NDSI(SWIR) = (B11-B12)/(B11+B12): قيم التربة الحقيقيّة ≈ 0.0..0.35 (الملح أعلى).
+    # النطاق السابق (-0.1, 0.6) كان للمؤشّر القديم (NDVI معكوس) فيقصّ كلّ اليابسة إلى
+    # لون واحد (أخضر مسطّح). invert=True ⇒ ملوحة عالية = أحمر. ⚠ النطاق افتراضيّ يحتاج
+    # معايرة ميدانيّة (عيّنات EC) لربط الألوان بمستويات ملوحة فعليّة.
+    "ndsi": (0.0, 0.35, True),
+    "salinity": (0.0, 0.35, True),
     # المؤشّرات الموسّعة (Sprint 5b)
     "ndre": (-0.1, 0.6, False),  # red-edge — نطاق أضيق من NDVI
     "msavi": (-0.2, 0.9, False),  # مثل NDVI (تصحيح تربة)
@@ -259,3 +263,23 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
         return encode_png_rgba(rgba)
     except Exception:  # noqa: BLE001
         return None
+
+
+def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
+    """يطبّق قناع مضلّع **بكسليّ دقيق** على COG في مكانه: خارج المضلّع → NaN.
+
+    ``geom_4326``: GeoJSON (Polygon/MultiPolygon) بـEPSG:4326. يُعاد إسقاطه إلى CRS
+    الراستر ثمّ ``rasterio.mask`` يملأ الخارج بـNaN (nodata) — قصّ مستقلّ عن قصّ
+    المزوّد (Sentinel Hub) ومطابق لحافّة الحقل (مصدر الحقيقة للقصّ). يُعيد الكتابة في
+    نفس الملفّ. يرفع عند الفشل (لا rasterio/هندسة لا تتقاطع) فيعالجه المُستدعي."""
+    import rasterio
+    from rasterio.mask import mask as _rio_mask
+    from rasterio.warp import transform_geom
+
+    with rasterio.open(cog_path) as src:
+        geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
+        out_img, _ = _rio_mask(src, [geom_src], crop=False, nodata=float("nan"), filled=True)
+        profile = src.profile.copy()
+    profile.update(nodata=float("nan"))
+    with rasterio.open(cog_path, "w", **profile) as dst:
+        dst.write(out_img)

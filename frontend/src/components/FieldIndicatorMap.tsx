@@ -211,6 +211,20 @@ function MeasureTools() {
   );
 }
 
+// يستخرج حلقة المضلّع الخارجيّة من GeoJSON كسلسلة عقد القصّ الموحَّد "lng,lat;lng,lat;..."
+// (إحداثيّات GeoJSON أصلاً بترتيب lng,lat). يدعم Polygon/MultiPolygon. None إن تعذّر.
+function geometryToPolyParam(geom: unknown): string | null {
+  // قد تُمرَّر Feature ({geometry}) أو Geometry مباشرةً.
+  const g = (geom as { geometry?: unknown })?.geometry ?? geom;
+  const t = (g as { type?: string })?.type;
+  const coords = (g as { coordinates?: number[][][] | number[][][][] })?.coordinates;
+  let ring: number[][] | undefined;
+  if (t === 'Polygon') ring = (coords as number[][][])?.[0];
+  else if (t === 'MultiPolygon') ring = (coords as number[][][][])?.[0]?.[0];
+  if (!Array.isArray(ring) || ring.length < 3) return null;
+  return ring.map((c) => `${c[0]},${c[1]}`).join(';');
+}
+
 // رابط قالب بلاطات المؤشر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet.
 function indicatorTileUrl(
   fieldId: string, index: string, date: string,
@@ -226,10 +240,11 @@ function indicatorTileUrl(
   if (fieldBbox) {
     qs += `&bbox_w=${fieldBbox[0]}&bbox_s=${fieldBbox[1]}&bbox_e=${fieldBbox[2]}&bbox_n=${fieldBbox[3]}`;
   }
-  // بلاطات CDSE: مرّر هندسة الحقل ليقصّ Sentinel Hub على المضلّع (شفّاف خارجه)
-  // بدل تصيير مستطيل الـbbox كلّه (الصحراء حمراء). bbox يبقى لحساب الإطار/التقاطع.
+  // بلاطات CDSE: عقد القصّ الموحَّد poly=lng,lat;... (الخادم يطبّق قناع rasterio بكسليّ
+  // على نفس المضلّع ⇒ شفّافيّة دقيقة خارج حدّ الحقل). bbox يبقى للإطار/التقاطع/تسريع CDSE.
   if (segment === 'cdse-tiles' && fieldGeometry) {
-    qs += `&geom=${encodeURIComponent(JSON.stringify(fieldGeometry))}`;
+    const polyStr = geometryToPolyParam(fieldGeometry);
+    if (polyStr) qs += `&poly=${encodeURIComponent(polyStr)}`;
   }
   // eslint-disable-next-line no-template-curly-in-string
   return `${RASTER}/v1/fields/${fieldId}/${segment}/{z}/{x}/{y}.png?${qs}`;
