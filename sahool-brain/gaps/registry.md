@@ -11,10 +11,10 @@
 | ID | العنوان | المجال/الخدمة | المصدر | الحالة |
 |---|---|---|---|---|
 | C1/C2 | التوصية تُولَّد + تُخزَّن وتُدقَّق وتُربَط بالشرح (جدول v77 + `RECOMMENDATION_CREATED` + `GET /{rec_id}`) | platform/التوصيات | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:19` (#350)؛ أصل: `:116-117` | fixed (يحتاج تأكيداً حيّاً) |
-| C5 | NDVI الحقيقيّ معلوماتيّ لا يُغيّر صلاحيّة القرار | platform/الحالة القانونيّة | `api/field_state_projection.py:206-215`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:120` | deferred — تحقّق ميدانيّ مطلوب (عتبات NDVI)؛ خارج الإصلاح الآليّ |
-| H2 | **٧** اشتراكات NATS بلا ناشر (لا ٨) — تصنيفها «ناشر مفقود متوقَّع» لا «اشتراك ميّت»: تطابق `EVENT_EMOJI` وأنواع الأحداث (`api/main.py:1670`)، فالإصلاح = بناء ناشرين عبر outbox لا تقليم الاشتراكات (قرار معماريّ). الموضوعان `satellite.*.computed`/`sahool.events.>` لهما ناشرون (ليسا يتيمين). `weather.forecast.updated` مُعالَج خلف راية `WEATHER_GRID_PIPELINE_ENABLED` (OFF). | notification/الأحداث | تحقيق #458؛ `agents/notification/agent.py:340-346`؛ ناشرون: `api/event_bus.py:596` · `sentinel_hub/vegetation_real.py:680`؛ أصل: `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:128` | deferred — بناء ناشري NATS عبر outbox (قرار معماريّ، لا تقليم اشتراكات) |
+| C5 | NDVI الحقيقيّ معلوماتيّ لا يُغيّر صلاحيّة القرار — **سياسة دليل قرار** صريحة (`informational`/`supporting`/`decision_blocking`، الافتراضيّ `supporting`؛ الحجب فقط بمعايرة محليّة + سياق محصول + جودة مشهد) | platform/الحالة القانونيّة | #567 (`273ee34`)؛ [`api/evidence_policy.py`](../../services/sahool-platform/api/evidence_policy.py)؛ اختبار [`test_ndvi_evidence_policy.py`](../../tests_v9/test_ndvi_evidence_policy.py) | fixed (يحتاج معايرة ميدانيّة لعتبات NDVI) |
+| H2 | **٧** اشتراكات NATS بلا ناشر (لا ٨) — تصنيفها «ناشر مفقود متوقَّع» لا «اشتراك ميّت»: تطابق `EVENT_EMOJI` وأنواع الأحداث (`api/main.py:1670`)، فالإصلاح = بناء ناشرين عبر outbox لا تقليم الاشتراكات (قرار معماريّ). الموضوعان `satellite.*.computed`/`sahool.events.>` لهما ناشرون (ليسا يتيمين). `weather.forecast.updated` مُعالَج خلف راية `WEATHER_GRID_PIPELINE_ENABLED` (OFF). | notification/الأحداث | عقد #568 (`008c330`)؛ [`event_publish_contracts.yaml`](../../event_publish_contracts.yaml)؛ حارس عكسيّ [`sahool_inspector.py`](../../tools/sahool_inspector.py) `check_nats_publisher_coverage` + اختبار [`test_nats_publisher_coverage.py`](../../tests_v9/test_nats_publisher_coverage.py) | fixed — كلّ مُستهلَك له منتِج موثَّق أو waiver؛ CI يحرس «مُستهلَك بلا منتِج» (لا تقليم اشتراكات، لا اختلاق ناشر) |
 | H4 | ET0 Hargreaves مُكرَّر بقيم Ra متعارضة — وُحِّد في `core/engines/et0.py` | platform/الأغرونوميا الكمّيّة | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:23` (#351/#356)؛ تأكيد #457 | ✅ fixed + مؤكَّد باختبارات انحدار (#457؛ متبقٍّ موثَّق: إعادتان عبر-خدمات weather_server/wofost) |
-| H5 | احتياج الريّ بصيغتين (مع/بلا ملوحة) | platform/الريّ | `core/engines/fao56.py:249` مقابل `api/water_balance.py:183`؛ `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:38,131` | deferred — قرار زراعيّ مطلوب (صيغتا الريّ مع/بلا ملوحة) |
+| H5 | احتياج الريّ بصيغتين (مع/بلا ملوحة) — **سياسة موحَّدة مشروطة بالملوحة**: Ks دائماً عند توفّر فحص EC موثوق + غسل **مشروط** (ECw+صرف+كفاءة)؛ ٤ سياسات (net_only/salinity_adjusted/salinity_with_leaching/blocked_for_review) | platform/الريّ | #566 (`e6f98f5`)؛ [`api/irrigation_recommendation_policy.py`](../../services/sahool-platform/api/irrigation_recommendation_policy.py) + راوتر `POST /api/v1/irrigation-recommendation`؛ اختبار [`test_irrigation_recommendation_policy.py`](../../tests_v9/test_irrigation_recommendation_policy.py) | fixed (يحتاج معايرة ميدانيّة EC) |
 | H6 | عتبات الملوحة/pH/الحرارة مُكرَّرة — وُحِّدت في `core/thresholds.py` | platform/العتبات | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:21` (#352)؛ أصل: `:132` | fixed (يحتاج تأكيداً حيّاً) |
 | C4/M1 | الموبايل: بنية push (FCM/APNs) + عميل WebSocket في Flutter | mobile | `SAHOOL_PRODUCTION_GAP_REPORT_v1.md:40,119,150` | deferred — يتطلّب بيئة Flutter (push/FCM/WebSocket) |
 | SAM2 | خادم استدلال SAM2 يحتاج GPU (opt-in)؛ بدونه 503 صادق | field-segmentation/sam2 | `docker-compose.v9.yml:1351` (profile=gpu)؛ `services/sam2-inference/main.py:74`؛ [`docs/SAM2_DEPLOYMENT.md`](../../docs/SAM2_DEPLOYMENT.md) | by-design — opt-in خلف profile=gpu (503 صادق بدونه؛ ليس عيباً) |
@@ -36,7 +36,12 @@
 
 ## ملاحظات
 
-- **إغلاق 2026-06-28:** الفجوات `C5`/`H2`/`H5`/`C4-M1`/`SAM2`/`TERRAIN` نُقِلت من `open` إلى
+- **إغلاق فعليّ 2026-06-28 (سياسات قابلة للضبط):** الفجوات `H5`/`C5`/`H2` نُقِلت من
+  `deferred` إلى **`fixed`** بسياسات قرار قابلة للضبط والاختبار (لا «كود فقط»): H5 (#566) سياسة
+  ريّ مشروطة بالملوحة · C5 (#567) سياسة دليل NDVI (داعم لا حاجب دون معايرة) · H2 (#568) عقد
+  ناشري الأحداث + حارس CI عكسيّ. صدق: H5/C5 يبقيان بحاجة **معايرة ميدانيّة** (EC/عتبات NDVI) ⇒
+  `fixed` لا `verified`؛ H2 بلا اختلاق ناشر ولا تقليم اشتراك.
+- **إغلاق تتبُّعيّ 2026-06-28:** الفجوات `C4-M1`/`SAM2`/`TERRAIN` نُقِلت من `open` إلى
   **`deferred`/`by-design`** — لا واحدةَ منها قابلةٌ للإصلاح الآليّ الآمن: كلٌّ يحتاج بيئةً
   (GPU/Flutter) أو تحقّقاً ميدانيّاً أو قراراً زراعيّاً. (صدق: إغلاقُ تتبُّعٍ موثَّقٌ بالسبب، لا
   ادّعاءُ حلٍّ.) `SAM2` فعليّاً **بالتصميم** (opt-in خلف `profile=gpu` + 503 صادق) لا عيباً.
