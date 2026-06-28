@@ -1211,6 +1211,16 @@ def _persist_raster_asset(
             t = threading.Thread(target=_runner, daemon=True)
             t.start()
             t.join(timeout=10)
+            if t.is_alive():
+                # الخيط لم ينتهِ ضمن المهلة — قد لا يكون صفّ الأصل قد كُتب فعلاً
+                # (نجاح ظاهري). نُسجّل بدل ابتلاع الفشل خلسةً.
+                logger.warning(
+                    "raster_assets persist worker still alive after %ss join timeout — "
+                    "asset row may not have been written (field_id=%r index=%r)",
+                    10,
+                    req.field_id,
+                    req.indicator.value if req.indicator else None,
+                )
     except Exception as _dbe:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
         logger.warning("raster_assets persist skipped: %s", _dbe)
 
@@ -1326,9 +1336,12 @@ def _run_processing(job_id: str, req: ProcessRequest):
         logger.info(f"job {job_id} completed → layer {layer_id}")
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
-        job["error_message"] = str(e)
+        # لا نُسرّب نصّ الاستثناء الخام للعميل عبر /jobs/{id}/result — قد يحوي
+        # مسارات ملفّات/روابط S3/تفاصيل مكتبات. نُخزّن رمزاً عامّاً ثابتاً ونُبقي
+        # نوع الخطأ في السجلّ الداخلي فقط.
+        job["error_message"] = "scene_processing_failed"
         _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
-        logger.error(f"job {job_id} failed: {e}")
+        logger.warning("job %s failed during scene processing: %s", job_id, type(e).__name__)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):
@@ -1377,8 +1390,9 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
                 results[ind.value] = sj.get("layer_id") or sub_job_id
             else:
                 failed[ind.value] = sj.get("error_message", "unknown")
-        except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر
-            failed[ind.value] = str(e)
+        except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر؛ لا نُسرّب نصّ الاستثناء للعميل
+            logger.warning("batch sub-job %s فشل: %s", ind.value, type(e).__name__)
+            failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
 
     job["status"] = JobStatus.completed if results else JobStatus.failed
