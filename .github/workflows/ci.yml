@@ -196,11 +196,18 @@ jobs:
     # ملاحظة: لا نستخدم `services:` لـPostgres/Redis لأنّ GitHub يسحب صورها عند
     # بدء المهمّة بثلاث محاولات سريعة فقط ⇒ فشل متكرّر حين يتباطأ/يُقيّد Docker Hub
     # (registry-1.docker.io: context deadline exceeded). بدلاً منها نُدير الحاويات
-    # يدويّاً بإعادة سحب مرنة (٦ محاولات backoff) — نفس الصور والمنافذ تماماً.
+    # يدويّاً بإعادة سحب مرنة (٦ محاولات backoff) عبر **مرآة سجلّ** (mirror.gcr.io،
+    # تعكس Docker Hub بما فيه postgis/postgis) — أوثق من Hub المباشر، والإعادة خطّ ثانٍ.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.12"}
+      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
+        # يُوجّه سحب صور Docker Hub عبر مرآة Google (mirror.gcr.io) — يحلّ التقييد/
+        # الانقطاع جذريّاً؛ Docker يرتدّ تلقائيّاً إلى Hub إن غابت المرآة (لا كسر).
+        run: |
+          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
       - name: Start Postgres+PostGIS and Redis (resilient pull)
         run: |
           set -e
