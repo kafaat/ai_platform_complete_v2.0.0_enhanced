@@ -23,6 +23,29 @@ router = APIRouter()
 LATEST_WINDOW_DAYS = 60
 
 
+def _parse_poly(poly: str) -> dict | None:
+    """يحوّل عقد الواجهة الموحَّد ``poly="lng,lat;lng,lat;..."`` (ترتيب lng,lat لا
+    lat,lng) إلى GeoJSON Polygon مغلق الحلقة. يُرجِع None إن فسَد (≥3 رؤوس مطلوبة).
+
+    هذا **مصدر الحقيقة للقصّ**: تُستخدَم الهندسة لطلب CDSE **و** لقناع rasterio البكسليّ.
+    """
+    try:
+        pts: list[list[float]] = []
+        for pair in poly.split(";"):
+            pair = pair.strip()
+            if not pair:
+                continue
+            lng_s, lat_s = pair.split(",")
+            pts.append([float(lng_s), float(lat_s)])
+        if len(pts) < 3:
+            return None
+        if pts[0] != pts[-1]:
+            pts.append(pts[0])  # أغلق الحلقة (GeoJSON يتطلّب حلقة مغلقة)
+        return {"type": "Polygon", "coordinates": [pts]}
+    except (ValueError, TypeError):
+        return None
+
+
 @router.post("/v1/fields/{field_id}/process-cdse")
 async def process_cdse(
     field_id: str,
@@ -85,13 +108,16 @@ async def field_cdse_tile(
     bbox_s: float | None = Query(None),
     bbox_e: float | None = Query(None),
     bbox_n: float | None = Query(None),
-    geom: str | None = Query(None),
+    poly: str | None = Query(None),
 ):
     """بلاطة Sentinel Hub حيّة: تجلب الصورة الكاملة للحقل مرّة واحدة (مُخبّأة ساعة)
     وتُصيِّر منها كلّ بلاطة XYZ بنفس منطق COG (tile_render). البكسلات خارج حدود
-    الحقل/NaN → شفّافة. تعذّر CDSE → بلاطة شفّافة (لا 500)."""
+    الحقل/NaN → شفّافة. تعذّر CDSE → بلاطة شفّافة (لا 500).
+
+    عقد القصّ الموحَّد: ``poly="lng,lat;lng,lat;..."`` (رؤوس مضلّع الحقل من الواجهة).
+    تُستخدَم الهندسة لطلب CDSE **و** لقناع rasterio البكسليّ محليّاً (قصّ دقيق على
+    حافّة الحقل مستقلّ عن قصّ المزوّد). إن غابت ``poly`` تُجلَب الهندسة من DB."""
     import asyncio
-    import json
     import os
     import tempfile
     import time as _t
@@ -131,12 +157,19 @@ async def field_cdse_tile(
     else:
         date_from = f"{today}T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
-    # نُميّز المخبّأ بحسب وجود القصّ (geom): COG المقصوص على المضلّع يختلف عن
-    # غير المقصوص، فلا يُخدَم أحدهما مكان الآخر.
-    cache_key = f"{field_id}:{internal}:{today}:{'c' if geom else 'b'}"
+    # نُميّز المخبّأ بحسب وجود القصّ: COG المقصوص على المضلّع يختلف عن غير المقصوص.
+    cache_key = f"{field_id}:{internal}:{today}:{'p' if poly else 'b'}"
 
-    # bbox الحقل: من params الطلب أوّلاً (الواجهة تُمرّره مباشرةً من geometry)،
-    # وإلّا يُستعلَم من DB (best-effort — يعود None إن تعذّر).
+    # هندسة الحقل (مصدر الحقيقة للقصّ): من ``poly`` (عقد الواجهة الموحَّد) أوّلاً، وإلّا
+    # من DB (الآن بعد إصلاح RLS تُرجِع الهندسة فعلاً بدل None). تُستخدَم لطلب CDSE
+    # **و** لقناع rasterio البكسليّ الدقيق لاحقاً.
+    field_geom: dict | None = _parse_poly(poly) if poly else None
+    if field_geom is None:
+        import db_persist as _db
+
+        field_geom = await _db.fetch_field_geometry(field_id)
+
+    # bbox الحقل: من params الطلب أوّلاً (أسرع)، وإلّا يُشتقّ من المضلّع.
     if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
         field_bbox: list[float] | None = [
             float(bbox_w),
@@ -144,26 +177,7 @@ async def field_cdse_tile(
             float(bbox_e),
             float(bbox_n),
         ]
-        # قصّ على مضلّع الحقل: الواجهة تُمرّر الهندسة (geom=GeoJSON) كي يقصّ Sentinel Hub
-        # على المضلّع لا الـbbox فقط — وإلّا تظهر الصحراء خارج الحقل ملوّنةً (NDVI منخفض)
-        # بدل أن تكون شفّافة (dataMask=0 خارج المضلّع ⇒ NaN ⇒ alpha=0).
-        field_geom: dict | None = None
-        if geom:
-            try:
-                field_geom = json.loads(geom)
-            except (ValueError, TypeError):
-                field_geom = None  # geom فاسد ⇒ يُجلَب من DB أدناه (لا bbox فقط)
-        # احتياط: إن لم تصل الهندسة (أو فسَدت) نجلبها من DB كي **يبقى القصّ على
-        # المضلّع دائماً** — لا يكفي bbox وحده (واجهات لا تُمرّر geom مثل MapHub).
-        # يحدث فقط عند فقدان geom وعلى عدم إصابة المخبّأ (تأثير زمنيّ مهمَل).
-        if field_geom is None:
-            import db_persist as _db
-
-            field_geom = await _db.fetch_field_geometry(field_id)
     else:
-        import db_persist as _db
-
-        field_geom = await _db.fetch_field_geometry(field_id)
         field_bbox = main._bbox_from_geom(field_geom)
 
     # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O)
@@ -214,6 +228,18 @@ async def field_cdse_tile(
                 tf.write(geotiff_bytes)
                 tf.close()
                 cog_path = tf.name
+                # حزام-وأمان: قناع rasterio بكسليّ دقيق على نفس المضلّع — يضمن شفّافيّة
+                # خارج حدّ الحقل مهما كانت دقّة قصّ Sentinel Hub (شبكة بكسله). يُطبَّق مرّة
+                # لكلّ COG (مُخبّأ) لا لكلّ بلاطة. فشله لا يكسر البلاطة (قصّ المزوّد يبقى).
+                if field_geom:
+                    try:
+                        import tile_render as _tr
+
+                        _tr.apply_polygon_mask(cog_path, field_geom)
+                    except Exception as e:  # noqa: BLE001
+                        main.logger.warning(
+                            "polygon mask failed (%s/%s): %s", field_id, internal, type(e).__name__
+                        )
                 main._cdse_tile_cache[cache_key] = (now + 3600.0, cog_path)
             except Exception as e:  # noqa: BLE001
                 main.logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)

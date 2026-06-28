@@ -243,7 +243,8 @@ function indicatorTileUrl(field: FieldOption, index: string): string {
   // بلاطات CDSE الحيّة (Sentinel Hub): مسار `tiles` يحتاج COG محليّاً غير موجود ⇒
   // 404؛ `cdse-tiles` يجلب المشهد حيّاً. بلا تاريخ: الخادم يختار الأحدث داخليّاً.
   let qs = `index=${encodeURIComponent(index)}`;
-  // bbox + هندسة الحقل: يقصّ Sentinel Hub على المضلّع (شفّاف خارجه) ويسرّع الاستعلام.
+  // bbox + رؤوس المضلّع: عقد القصّ الموحَّد poly=lng,lat;... (الخادم يطبّق قناع rasterio
+  // بكسليّ على نفس المضلّع ⇒ شفّافيّة دقيقة خارج حدّ الحقل)، وbbox يُسرّع طلب CDSE/التقاطع.
   const poly = geomToPolygon(field.geometry);
   if (poly && poly.length >= 3) {
     let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
@@ -254,7 +255,9 @@ function indicatorTileUrl(field: FieldOption, index: string): string {
       if (lat > n) n = lat;
     }
     qs += `&bbox_w=${w}&bbox_s=${s}&bbox_e=${e}&bbox_n=${n}`;
-    qs += `&geom=${encodeURIComponent(JSON.stringify(field.geometry))}`;
+    // ترتيب lng,lat (لا lat,lng). geomToPolygon يُعيد [lat,lng] فنقلبها.
+    const polyStr = poly.map(([lat, lng]) => `${lng},${lat}`).join(';');
+    qs += `&poly=${encodeURIComponent(polyStr)}`;
   }
   // المستأجِر كـquery param: بلاطات <img> لا تحمل ترويسات، فيقرأه nginx ($arg_tenant_id)
   // ويحقنه X-Tenant-Id كي تتحقّق خدمة الراستر من ملكيّة المستأجِر.

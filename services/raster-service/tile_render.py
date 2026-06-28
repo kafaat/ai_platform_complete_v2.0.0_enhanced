@@ -263,3 +263,23 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
         return encode_png_rgba(rgba)
     except Exception:  # noqa: BLE001
         return None
+
+
+def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
+    """يطبّق قناع مضلّع **بكسليّ دقيق** على COG في مكانه: خارج المضلّع → NaN.
+
+    ``geom_4326``: GeoJSON (Polygon/MultiPolygon) بـEPSG:4326. يُعاد إسقاطه إلى CRS
+    الراستر ثمّ ``rasterio.mask`` يملأ الخارج بـNaN (nodata) — قصّ مستقلّ عن قصّ
+    المزوّد (Sentinel Hub) ومطابق لحافّة الحقل (مصدر الحقيقة للقصّ). يُعيد الكتابة في
+    نفس الملفّ. يرفع عند الفشل (لا rasterio/هندسة لا تتقاطع) فيعالجه المُستدعي."""
+    import rasterio
+    from rasterio.mask import mask as _rio_mask
+    from rasterio.warp import transform_geom
+
+    with rasterio.open(cog_path) as src:
+        geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
+        out_img, _ = _rio_mask(src, [geom_src], crop=False, nodata=float("nan"), filled=True)
+        profile = src.profile.copy()
+    profile.update(nodata=float("nan"))
+    with rasterio.open(cog_path, "w", **profile) as dst:
+        dst.write(out_img)
