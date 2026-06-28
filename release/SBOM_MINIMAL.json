@@ -8375,6 +8375,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b39709c680de2892a7df242d241c4b84103edb644b4eb44d56841cdac40c4250"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_agronomy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "10f9be6766028d50af7328da70975c4ecec1cb611db248e933f991d7d4dd28bf"
         }
       ],
@@ -8475,7 +8485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69ec8d99721498688d5e137d138140e2c14b5d5b31c6fb0332675cfe153d33cc"
+          "content": "47daaa26dd395a517e3343f7edc56d1a33c40c0aee122896d3c6204bb44fb574"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
