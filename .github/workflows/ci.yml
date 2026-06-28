@@ -297,13 +297,27 @@ jobs:
       # فعليّاً بـpip-audit، كلّها نظيفة). يُستثنى services/local-ai-rag/requirements.txt
       # عمداً: يحمل ثغرة out-of-range (PYSEC-2026-77 في langchain-text-splitters،
       # وقيود langchain 0.3.x/pypdf) — يبقى تحت المسح الإرشاديّ أدناه لا البوّابة.
-      - name: pip-audit (gating — critical path)
+      # المسار الحرج الأربعة يُدقَّق على ملفّات الأقفال *.lock (الحلّ العابر الكامل +
+      # تجزئات) بدل requirements.txt (نطاقات فضفاضة) ⇒ تغطية ثغرات عابرة كاملة وحتميّة.
+      # **كلّ قفل يُدقَّق مستقلّاً** لا في استدعاء موحَّد: pip-audit يثبّت كلّ ملفّات -r
+      # في حلّ pip واحد، والأقفال تثبّت نسخاً دقيقة متعارضة عبر الخدمات (مثلاً pyotp 2.10
+      # في auth مقابل 2.9 في خدمة أخرى) ⇒ ResolutionImpossible. كلّ قفل بيئة خدمة كاملة
+      # مستقلّة فالتدقيق المنفصل هو الصحيح دلاليّاً. مُتحقَّق محليّاً: الأربعة نظيفة.
+      - name: pip-audit (gating — critical-path locks, audited independently)
+        run: |
+          set -e
+          for lock in \
+            services/sahool-platform/api/requirements.lock \
+            services/auth/requirements.lock \
+            services/guardrails-engine/requirements.lock \
+            requirements_real.lock; do
+            echo "── $lock ──"
+            pip-audit -r "$lock" --progress-spinner off
+          done
+      # بقيّة الخدمات تبقى على requirements.txt (نطاقات متوافقة في حلّ موحّد، لا أقفال لها بعد).
+      - name: pip-audit (gating — other services)
         run: >-
           pip-audit
-          -r services/sahool-platform/api/requirements.txt
-          -r services/auth/requirements.txt
-          -r services/guardrails-engine/requirements.txt
-          -r requirements_real.txt
           -r services/actuator-service/requirements.txt
           -r services/agriai-engine/requirements.txt
           -r services/edge-inference/requirements.txt
