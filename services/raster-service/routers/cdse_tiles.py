@@ -82,11 +82,13 @@ async def field_cdse_tile(
     bbox_s: float | None = Query(None),
     bbox_e: float | None = Query(None),
     bbox_n: float | None = Query(None),
+    geom: str | None = Query(None),
 ):
     """بلاطة Sentinel Hub حيّة: تجلب الصورة الكاملة للحقل مرّة واحدة (مُخبّأة ساعة)
     وتُصيِّر منها كلّ بلاطة XYZ بنفس منطق COG (tile_render). البكسلات خارج حدود
     الحقل/NaN → شفّافة. تعذّر CDSE → بلاطة شفّافة (لا 500)."""
     import asyncio
+    import json
     import os
     import tempfile
     import time as _t
@@ -105,7 +107,9 @@ async def field_cdse_tile(
     today = datetime.now(UTC).strftime("%Y-%m-%d") if date in ("latest", "today") else date
     date_from = f"{today[:4]}-01-01T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
-    cache_key = f"{field_id}:{internal}:{today}"
+    # نُميّز المخبّأ بحسب وجود القصّ (geom): COG المقصوص على المضلّع يختلف عن
+    # غير المقصوص، فلا يُخدَم أحدهما مكان الآخر.
+    cache_key = f"{field_id}:{internal}:{today}:{'c' if geom else 'b'}"
 
     # bbox الحقل: من params الطلب أوّلاً (الواجهة تُمرّره مباشرةً من geometry)،
     # وإلّا يُستعلَم من DB (best-effort — يعود None إن تعذّر).
@@ -116,7 +120,15 @@ async def field_cdse_tile(
             float(bbox_e),
             float(bbox_n),
         ]
-        field_geom: dict | None = None  # لا نحتاج الهندسة للقصّ (bbox كافٍ لـCDSE)
+        # قصّ على مضلّع الحقل: الواجهة تُمرّر الهندسة (geom=GeoJSON) كي يقصّ Sentinel Hub
+        # على المضلّع لا الـbbox فقط — وإلّا تظهر الصحراء خارج الحقل ملوّنةً (NDVI منخفض)
+        # بدل أن تكون شفّافة (dataMask=0 خارج المضلّع ⇒ NaN ⇒ alpha=0).
+        field_geom: dict | None = None
+        if geom:
+            try:
+                field_geom = json.loads(geom)
+            except (ValueError, TypeError):
+                field_geom = None  # geom فاسد ⇒ bbox فقط (تدهور آمن)
     else:
         import db_persist as _db
 
