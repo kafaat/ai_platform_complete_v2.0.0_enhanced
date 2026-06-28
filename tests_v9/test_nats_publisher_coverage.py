@@ -64,5 +64,32 @@ def test_guard_catches_undocumented_consumed_subject(monkeypatch):
     assert any("sahool.bogus.undocumented" in f for f in result.findings)
 
 
+# ── الموضوع اليتيم (متابعة C): منشور بلا مشترِك، موثَّق كـwaiver ──
+_ORPHAN = "sahool.weather.field.overlay.completed"
+
+
+def test_orphan_published_subject_is_waived_in_contract():
+    """`overlay.completed` المنشور (weather-polygon-worker) موثَّق في published_no_consumer."""
+    waived = si._published_no_consumer_waivers()
+    assert _ORPHAN in waived, f"`{_ORPHAN}` يجب أن يكون موثَّقاً في published_no_consumer بعقد الأحداث"
+
+
+def test_nats_subjects_passes_with_orphan_waived():
+    """فحص NATS subjects يمرّ (PASS): الموضوع اليتيم الموثَّق لا يُنتِج WARN."""
+    result = si.check_nats_subjects()
+    assert result.status == si.PASS, "فحص NATS subjects ليس PASS:\n" + "\n".join(result.findings)
+    assert not any(_ORPHAN in f for f in result.findings), (
+        f"`{_ORPHAN}` ما زال يُنتِج إنذاراً رغم التوثيق"
+    )
+
+
+def test_subjects_check_warns_when_waiver_removed(monkeypatch):
+    """سلبيّ: لولا الـwaiver لأصدر الموضوع اليتيم WARN (يثبت أنّ الـwaiver هو ما يُسكِته)."""
+    monkeypatch.setattr(si, "_published_no_consumer_waivers", set)
+    result = si.check_nats_subjects()
+    assert result.status == si.WARN
+    assert any(_ORPHAN in f and "منشور بلا مشترِك" in f for f in result.findings)
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
