@@ -1713,8 +1713,16 @@ def test_security_hardening():
     if "'owner'" in reg and "role:" not in rr:
         r.append(("\u2713", "register يُسنِد 'owner' لمؤسِّس المستأجِر + لا حقل role (لا تصعيد)"))
     # ٢. actuator مصادقة + هويّة من التوكن
-    act = rd("services/actuator-service/main.py")
-    if "Depends(_verify_token)" in act and 'claims["tenant_id"]' in act:
+    # بعد تفكيك مسارات actuator انتقل مُعالِجا /command و/commands إلى routers/commands.py
+    # (يستخدمان ``Depends(main._verify_token)``) بينما تبقى الدالّة ``_verify_token`` في
+    # main.py — نمسح المصدر المُسلسَل (main.py + routers/*.py). التبعيّة تُقبَل بأيّ صيغة
+    # مكافئة (مع/بلا بادئة ``main.``) دون إضعاف التأكيد (نفس الدالّة، نفس الفرض).
+    from actuator_route_source import actuator_combined_source
+
+    act = actuator_combined_source(base)
+    if (
+        "Depends(_verify_token)" in act or "Depends(main._verify_token)" in act
+    ) and 'claims["tenant_id"]' in act:
         r.append(("\u2713", "actuator: مصادقة + tenant من التوكن لا الجسم"))
     # ٣. guardrails بوابة بشريّة محميّة
     gr = rd("services/guardrails-engine/main.py")
