@@ -5855,7 +5855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9356c4db2043bfe2542b30ab4f7f4689b870feaa9b5350be9766fa417000ea3e"
+          "content": "c8ef5142c331aedb46eafb04f0bb599556b01e4b2f88f214d58f5c3bd61a83b9"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -5949,6 +5949,16 @@
         }
       ],
       "name": "services/raster-service/soil_indices.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a36a002f097c77c9aaea18084c06e4a76ac2324f8ea1761330359dd998a507f"
+        }
+      ],
+      "name": "services/raster-service/stac_catalog_routes.py",
       "type": "file"
     },
     {

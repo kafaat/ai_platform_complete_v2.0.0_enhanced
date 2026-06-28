@@ -44,6 +44,16 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 HERE = os.path.dirname(__file__)
 RASTER_MAIN = os.path.normpath(os.path.join(HERE, "..", "services", "raster-service", "main.py"))
+# المرحلة 3: شريحة STAC/الكتالوج السحابيّ استُخرِجت إلى APIRouter في وحدة منفصلة
+# تُضَمّ في main عبر include_router. الحارس يحرس العقد لا الموضع، فيقرأ كلا المصدرين:
+# نقاط ``@app.<method>`` في main.py + نقاط ``@router.<method>`` في وحدات الراوتر.
+RASTER_ROUTER_MODULES = [
+    os.path.normpath(
+        os.path.join(HERE, "..", "services", "raster-service", "stac_catalog_routes.py")
+    ),
+]
+# أسماء كائنات التزيين المقبولة كمصدر مسار راستر: ``app`` (main) و``router`` (وحدات APIRouter).
+ROUTE_DECORATOR_BASES: frozenset[str] = frozenset({"app", "router"})
 
 HTTP_METHODS: frozenset[str] = frozenset({"get", "post", "put", "patch", "delete"})
 
@@ -149,7 +159,8 @@ PUBLIC_CATALOG: set[str] = {
 # كاشف ast
 # ─────────────────────────────────────────────────────────────────────────────
 def _iter_app_routes(tree: ast.AST):
-    """يولّد (المسار، عُقدة_الدالّة) لكلّ دالّة مُزخرفة بـ``@app.<method>(path)``."""
+    """يولّد (المسار، عُقدة_الدالّة) لكلّ دالّة مُزخرفة بـ``@app.<method>(path)`` أو
+    ``@router.<method>(path)`` (وحدات APIRouter المُضمَّنة في main عبر include_router)."""
     for node in ast.walk(tree):
         if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             continue
@@ -159,7 +170,7 @@ def _iter_app_routes(tree: ast.AST):
             if dec.func.attr not in HTTP_METHODS:
                 continue
             base = dec.func.value
-            if not (isinstance(base, ast.Name) and base.id == "app"):
+            if not (isinstance(base, ast.Name) and base.id in ROUTE_DECORATOR_BASES):
                 continue
             if not (dec.args and isinstance(dec.args[0], ast.Constant)):
                 continue
@@ -205,12 +216,17 @@ def _has_agent_token_header(node: ast.FunctionDef | ast.AsyncFunctionDef) -> boo
 
 
 def _collect_routes() -> list[tuple[str, set[str], bool]]:
-    """يُرجِع (المسار، حُرّاس_مُستدعاة، هل_فيه_ترويسة_توكن) لكلّ نقطة ``@app`` في main.py."""
-    with open(RASTER_MAIN, encoding="utf-8") as f:
-        tree = ast.parse(f.read(), filename=RASTER_MAIN)
+    """يُرجِع (المسار، حُرّاس_مُستدعاة، هل_فيه_ترويسة_توكن) لكلّ نقطة راستر.
+
+    يشمل نقاط ``@app`` في ``main.py`` بالإضافة إلى نقاط ``@router`` في وحدات
+    الراوتر المُضمَّنة (``RASTER_ROUTER_MODULES``) — يحرس العقد لا الموضع.
+    """
     routes: list[tuple[str, set[str], bool]] = []
-    for path, node in _iter_app_routes(tree):
-        routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
+    for source in [RASTER_MAIN, *RASTER_ROUTER_MODULES]:
+        with open(source, encoding="utf-8") as f:
+            tree = ast.parse(f.read(), filename=source)
+        for path, node in _iter_app_routes(tree):
+            routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
     return routes
 
 
