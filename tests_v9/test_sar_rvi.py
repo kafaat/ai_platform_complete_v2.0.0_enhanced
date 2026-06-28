@@ -52,7 +52,11 @@ def test_shape_guard_and_endpoint_wired():
     sr = _load()
     with pytest.raises(ValueError):
         sr.rvi_from_vv_vh([[0.1, 0.2]], [[0.1]])
-    main = open(os.path.join(ROOT, "services/raster-service/main.py"), encoding="utf-8").read()
-    assert '@app.post("/sar/rvi")' in main, "نقطة /sar/rvi مفقودة"
+    from raster_route_source import raster_combined_source
+
+    main = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
+    assert '@router.post("/sar/rvi")' in main or '@app.post("/sar/rvi")' in main, (
+        "نقطة /sar/rvi مفقودة"
+    )
     assert "_rvi_from_sar_cog" in main, "مسار RVI من COG الرادار مفقود في /indices"
     assert "status_code=413" in main

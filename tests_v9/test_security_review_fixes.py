@@ -69,17 +69,24 @@ def _signature(body: str) -> str:
 
 
 def test_raster_prescription_requires_service_token():
-    src = _read("services/raster-service/main.py")
+    from raster_route_source import raster_combined_source
+
+    src = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
     body = _func_body(src, "field_prescription")
     assert "x_agent_token" in _signature(body), "التوقيع لا يقبل x_agent_token"
-    assert "_require_service_token(x_agent_token)" in body, "prescription بلا فرض توكن خدمة"
+    # متسامح مع التفاف ruff للنداء على أسطر: ``main._require_service_token(\n x_agent_token )``.
+    assert re.search(r"_require_service_token\(\s*x_agent_token", body), (
+        "prescription بلا فرض توكن خدمة"
+    )
 
 
 def test_raster_change_requires_service_token():
-    src = _read("services/raster-service/main.py")
+    from raster_route_source import raster_combined_source
+
+    src = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
     body = _func_body(src, "field_change")
     assert "x_agent_token" in _signature(body), "التوقيع لا يقبل x_agent_token"
-    assert "_require_service_token(x_agent_token)" in body, "change بلا فرض توكن خدمة"
+    assert re.search(r"_require_service_token\(\s*x_agent_token", body), "change بلا فرض توكن خدمة"
 
 
 # ── #3 RLS: WITH CHECK لعزل الكتابة ──

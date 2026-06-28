@@ -95,9 +95,14 @@ def test_sensing_adapter_passes_cloud_cover(monkeypatch):
 
 @pytest.mark.unit
 def test_indices_endpoint_wired_and_guarded():
-    main = open(os.path.join(ROOT, "services/raster-service/main.py"), encoding="utf-8").read()
-    assert '@app.get("/indices")' in main, "نقطة /indices مفقودة (Gap 1)"
+    from raster_route_source import raster_combined_source
+
+    main = raster_combined_source(ROOT)  # main.py + routers/ (بعد التفكيك)
+    _dec = (
+        '@router.get("/indices")' if '@router.get("/indices")' in main else '@app.get("/indices")'
+    )
+    assert _dec in main, "نقطة /indices مفقودة (Gap 1)"
     # محميّة بتوكن الخدمة + صدق (real_data / note)
-    seg = main[main.index('@app.get("/indices")') :]
+    seg = main[main.index(_dec) :]
     assert "_require_service_token" in seg[:1200], "/indices غير محميّة بتوكن الخدمة"
     assert "real_data" in seg[:1200], "/indices لا يُعلن صدق البيانات"

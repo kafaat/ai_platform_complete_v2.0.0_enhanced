@@ -145,7 +145,9 @@ def _iter_app_routes(tree: ast.AST):
             if dec.func.attr not in HTTP_METHODS:
                 continue
             base = dec.func.value
-            if not (isinstance(base, ast.Name) and base.id == "app"):
+            # بعد تفكيك main.py إلى routers/: المسارات تُزخرَف بـ@app (في main) أو
+            # @router (في وحدات routers/). كلاهما نقطة فعليّة في التطبيق ذاته.
+            if not (isinstance(base, ast.Name) and base.id in ("app", "router")):
                 continue
             if not (dec.args and isinstance(dec.args[0], ast.Constant)):
                 continue
@@ -190,13 +192,27 @@ def _has_agent_token_header(node: ast.FunctionDef | ast.AsyncFunctionDef) -> boo
     return False
 
 
+def _raster_source_files() -> list[str]:
+    """``main.py`` + كلّ وحدات ``routers/*.py`` (بعد التفكيك تعيش النقاط فيها)."""
+    files = [RASTER_MAIN]
+    routers_dir = os.path.join(os.path.dirname(RASTER_MAIN), "routers")
+    if os.path.isdir(routers_dir):
+        for fn in sorted(os.listdir(routers_dir)):
+            if fn.endswith(".py") and fn != "__init__.py":
+                files.append(os.path.join(routers_dir, fn))
+    return files
+
+
 def _collect_routes() -> list[tuple[str, set[str], bool]]:
-    """يُرجِع (المسار، حُرّاس_مُستدعاة، هل_فيه_ترويسة_توكن) لكلّ نقطة ``@app`` في main.py."""
-    with open(RASTER_MAIN, encoding="utf-8") as f:
-        tree = ast.parse(f.read(), filename=RASTER_MAIN)
+    """يُرجِع (المسار، حُرّاس_مُستدعاة، هل_فيه_ترويسة_توكن) لكلّ نقطة @app/@router.
+
+    يمسح ``main.py`` ووحدات ``routers/`` معاً (تفكيك محفوظ-السلوك)."""
     routes: list[tuple[str, set[str], bool]] = []
-    for path, node in _iter_app_routes(tree):
-        routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
+    for src in _raster_source_files():
+        with open(src, encoding="utf-8") as f:
+            tree = ast.parse(f.read(), filename=src)
+        for path, node in _iter_app_routes(tree):
+            routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
     return routes
 
 
