@@ -92,7 +92,8 @@ export interface HubMapGLProps {
 
 // رابط بلاطات مؤشّر الحقل — نفس باني HubMap.indicatorTileUrl (مصدر واحد للصدق).
 function indicatorTileUrl(fieldId: string, index: string): string {
-  const qs = `index=${encodeURIComponent(index)}&date=latest`;
+  // بلا تاريخ: الخادم يختار أحدث مشهد داخليّاً (date=Query("latest")).
+  const qs = `index=${encodeURIComponent(index)}`;
   // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 }
