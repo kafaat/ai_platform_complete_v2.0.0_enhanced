@@ -81,5 +81,47 @@ def test_register_routers_wired_in_main():
     assert "register_routers(app)" in src, "register_routers(app) غير موصول في main.py"
 
 
+# ─── حُرّاس انحدار دائمون بعد التفكيك (قفل الثوابت) ────────────────────────
+# تثبّت مكاسب التفكيك ضدّ أيّ انحدار لاحق: مسارات CDSE الثلاثة لا تختفي، عدد
+# المسارات لا يهبط تحت 49، وكلّ وحدة في routers/ مُضمَّنة (لا راوتر يتيم).
+
+# مسارات CDSE الثلاثة التي أضافها المالك حديثاً — فقدانها انحدار حرج.
+_CDSE_ROUTES = (
+    "/v1/fields/{field_id}/cdse-tilejson",
+    "/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png",
+    "/v1/fields/{field_id}/process-cdse",
+)
+
+
+def test_cdse_routes_present():
+    """مسارات CDSE الثلاثة كلّها حاضرة في app.routes (لا تختفي بعد التفكيك)."""
+    paths = _app_paths()
+    missing = [p for p in _CDSE_ROUTES if p not in paths]
+    assert not missing, f"مسارات CDSE مفقودة (انحدار حرج): {missing}"
+
+
+def test_route_count_floor():
+    """عدد المسارات أرضيّة ≥ 49 (التفكيك لا يُسقط مساراً)."""
+    n = len(app.routes)
+    assert n >= 49, f"عدد المسارات هبط تحت الأرضيّة: {n} < 49 (مسارات ضائعة)"
+
+
+def test_no_orphan_router_module():
+    """كلّ routers/*.py يُصدّر router مُضمَّناً فعلاً في app (لا راوتر يتيم)."""
+    paths = _app_paths()
+    orphans: list[str] = []
+    assert _ROUTERS_DIR.is_dir(), "حزمة routers/ غير موجودة"
+    for f in sorted(_ROUTERS_DIR.glob("*.py")):
+        if f.name == "__init__.py":
+            continue
+        mod = importlib.import_module(f"routers.{f.stem}")
+        router = getattr(mod, "router", None)
+        assert router is not None, f"routers/{f.stem}.py لا يُصدّر router"
+        expected = {getattr(r, "path", None) for r in router.routes}
+        if expected and not (expected & paths):
+            orphans.append(f.stem)
+    assert not orphans, f"راوترات غير مُضمَّنة في app (يتيمة): {orphans}"
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
