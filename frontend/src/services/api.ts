@@ -3113,9 +3113,14 @@ export const rasterBaseUrl = (): string =>
 export const fieldIndicatorTileUrl = (
   fieldId: string,
   index = 'ndvi',
-  date = 'latest',
+  date = '',
 ): string => {
-  const qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
+  // لا نُملي تاريخاً من الواجهة: حين يكون فارغاً أو 'latest' نحذف المُعامل،
+  // فيختار الخادم أحدث مشهد داخليّاً (المسار يُعرّف date=Query("latest")).
+  let qs = `index=${encodeURIComponent(index)}`;
+  if (date && date !== 'latest') {
+    qs += `&date=${encodeURIComponent(date)}`;
+  }
   // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 };

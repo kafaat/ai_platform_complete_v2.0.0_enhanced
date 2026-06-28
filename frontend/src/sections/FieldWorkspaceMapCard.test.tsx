@@ -138,7 +138,13 @@ describe('عقد fieldIndicatorTileUrl', () => {
     const url = fieldIndicatorTileUrl('f-1', 'ndvi', 'latest');
     expect(url).toContain('/v1/fields/f-1/tiles/{z}/{x}/{y}.png');
     expect(url).toContain('index=ndvi');
-    expect(url).toContain('date=latest');
+    // الواجهة لا تُملي تاريخاً: 'latest'/فارغ ⇒ يُحذف المُعامل ويختار الخادم الأحدث.
+    expect(url).not.toContain('date=');
+  });
+
+  it('يُمرّر تاريخاً صريحاً عند طلبه فقط', () => {
+    const url = fieldIndicatorTileUrl('f-1', 'ndvi', '2026-05-01');
+    expect(url).toContain('date=2026-05-01');
   });
 });
 

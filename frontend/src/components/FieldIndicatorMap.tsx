@@ -214,7 +214,11 @@ function indicatorTileUrl(
   segment = 'tiles',
   fieldBbox?: [number, number, number, number],
 ): string {
-  let qs = `index=${encodeURIComponent(index)}&date=${encodeURIComponent(date)}`;
+  // لا نُملي تاريخاً من الواجهة: فارغ/'latest' ⇒ نحذف المُعامل فيختار الخادم أحدث مشهد.
+  let qs = `index=${encodeURIComponent(index)}`;
+  if (date && date !== 'latest') {
+    qs += `&date=${encodeURIComponent(date)}`;
+  }
   if (fieldBbox) {
     qs += `&bbox_w=${fieldBbox[0]}&bbox_s=${fieldBbox[1]}&bbox_e=${fieldBbox[2]}&bbox_n=${fieldBbox[3]}`;
   }
