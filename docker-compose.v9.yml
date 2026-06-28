@@ -826,6 +826,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
       sahool-fastbee:
         condition: service_healthy
     networks:
