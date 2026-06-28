@@ -302,7 +302,12 @@ jobs:
       # **كلّ قفل يُدقَّق مستقلّاً** لا في استدعاء موحَّد: pip-audit يثبّت كلّ ملفّات -r
       # في حلّ pip واحد، والأقفال تثبّت نسخاً دقيقة متعارضة عبر الخدمات (مثلاً pyotp 2.10
       # في auth مقابل 2.9 في خدمة أخرى) ⇒ ResolutionImpossible. كلّ قفل بيئة خدمة كاملة
-      # مستقلّة فالتدقيق المنفصل هو الصحيح دلاليّاً. مُتحقَّق محليّاً: الأربعة نظيفة.
+      # مستقلّة فالتدقيق المنفصل هو الصحيح دلاليّاً. مُتحقَّق محليّاً: الكلّ نظيف.
+      # توسعة الأقفال: وُسِّعت TARGETS في scripts/deps/lock.sh لتشمل الـ١٤ خدمة التي
+      # كانت في «other services» (requirements.txt) — وُلِّدت أقفالها (--universal
+      # --python-version 3.11)، دُقِّقت كلّ على حدة بـpip-audit محليّاً (نظيفة)،
+      # ونُقِلت إلى هذه الحلقة فأصبحت تُدقَّق على الحلّ العابر الكامل بتجزئات بدل
+      # النطاقات الفضفاضة. فرَغت خطوة «other services» الموحّدة فحُذِفت.
       - name: pip-audit (gating — critical-path locks, audited independently)
         run: |
           set -e
@@ -310,29 +315,24 @@ jobs:
             services/sahool-platform/api/requirements.lock \
             services/auth/requirements.lock \
             services/guardrails-engine/requirements.lock \
-            requirements_real.lock; do
+            requirements_real.lock \
+            services/actuator-service/requirements.lock \
+            services/agriai-engine/requirements.lock \
+            services/edge-inference/requirements.lock \
+            services/indicators-service/requirements.lock \
+            services/mcp_servers/requirements.lock \
+            services/odoo-bridge/requirements.lock \
+            services/qdrant-seed/requirements.lock \
+            services/raster-service/requirements.lock \
+            services/soil-service/requirements.lock \
+            services/supervisor-agent/requirements.lock \
+            services/tts-service/requirements.lock \
+            services/vegetation-analysis-service/requirements.lock \
+            services/video-processor/requirements.lock \
+            services/weather-service/requirements.lock; do
             echo "── $lock ──"
             pip-audit -r "$lock" --progress-spinner off
           done
-      # بقيّة الخدمات تبقى على requirements.txt (نطاقات متوافقة في حلّ موحّد، لا أقفال لها بعد).
-      - name: pip-audit (gating — other services)
-        run: >-
-          pip-audit
-          -r services/actuator-service/requirements.txt
-          -r services/agriai-engine/requirements.txt
-          -r services/edge-inference/requirements.txt
-          -r services/indicators-service/requirements.txt
-          -r services/mcp_servers/requirements.txt
-          -r services/odoo-bridge/requirements.txt
-          -r services/qdrant-seed/requirements.txt
-          -r services/raster-service/requirements.txt
-          -r services/soil-service/requirements.txt
-          -r services/supervisor-agent/requirements.txt
-          -r services/tts-service/requirements.txt
-          -r services/vegetation-analysis-service/requirements.txt
-          -r services/video-processor/requirements.txt
-          -r services/weather-service/requirements.txt
-          --progress-spinner off
       # مسح إرشادي شامل: يكشف ثغرات بقيّة الخدمات (مثلاً RAG: pypdf/langchain —
       # إصلاحها خارج سقوف توافق langchain، يحتاج ترقية متعمّدة) دون حجب الدمج.
       - name: pip-audit (advisory — all services)
