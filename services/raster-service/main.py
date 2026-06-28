@@ -76,6 +76,31 @@ HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))
 # خادم بلاطات COG ديناميكي (TiTiler) — سدّ فجوة P0. فارغ = البلاطات الثابتة.
 TITILER_URL = os.getenv("TITILER_URL", "")
 
+# أصناف الغيوم/الظلال في نطاق Sentinel-2 SCL (3 ظلّ غيمة · 8/9 غيمة متوسّطة/عالية
+# الاحتمال · 10 سيرس · 11 ثلج) — تُقنَّع بكسليّاً وتُحسب منها نسبة غيوم المشهد.
+SCL_CLOUD_CLASSES = (3, 8, 9, 10, 11)
+# عتبة التحذير: مشهد تتجاوز نسبة غيومه هذه القيمة (٪) يُلحَق به تحذير صريح بأنّ
+# المؤشّر قد يكون ملوَّثاً بالغيوم — قابلة للضبط بيئيّاً.
+CLOUD_PCT_WARN_THRESHOLD = float(os.getenv("CLOUD_PCT_WARN_THRESHOLD", "20"))
+
+
+def compute_cloud_pct(scl, np) -> float | None:
+    """نسبة غيوم المشهد من نطاق SCL — دالّة نقيّة قابلة للاختبار بلا rasterio.
+
+    = (عدد بكسلات أصناف الغيوم في ``SCL_CLOUD_CLASSES``) ÷ (عدد بكسلات SCL
+    الصالحة، أي ≠ 0 صنف لا-بيانات) × 100. تُرجِع ``None`` إن لم توجد بكسلات
+    صالحة (لتفادي القسمة على صفر) أو إن كان ``scl`` فارغاً.
+    """
+    if scl is None:
+        return None
+    valid = scl != 0  # SCL=0 ⇒ NO_DATA (مستبعَد من المقام).
+    valid_count = int(valid.sum())
+    if valid_count == 0:
+        return None
+    cloud_count = int(np.isin(scl, SCL_CLOUD_CLASSES).sum())
+    return cloud_count / valid_count * 100.0
+
+
 # عميل STAC مرن (تحسين قلب النظام): إعادة محاولة + cache (Redis مشترك +
 # ذاكرة fallback) + مصدر احتياطي + stale-if-error. TTL قابل للضبط.
 # المصدر الاحتياطي الأوّل: Microsoft Planetary Computer (STAC عامّ، بحث مجهول).
@@ -1326,9 +1351,11 @@ def _run_processing(job_id: str, req: ProcessRequest):
         logger.info(f"job {job_id} completed → layer {layer_id}")
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
-        job["error_message"] = str(e)
+        # صدق/أمان: لا نُسرّب نصّ الاستثناء للعميل عبر /jobs/{id}/result — رمز عامّ
+        # ثابت، ونوع الاستثناء في السجلّ فقط (نظير كنس #483/#546).
+        job["error_message"] = "scene_processing_failed"
         _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
-        logger.error(f"job {job_id} failed: {e}")
+        logger.warning("job %s فشل أثناء معالجة المشهد: %s", job_id, type(e).__name__)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):
@@ -1378,7 +1405,9 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
             else:
                 failed[ind.value] = sj.get("error_message", "unknown")
         except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر
-            failed[ind.value] = str(e)
+            # صدق/أمان: رمز عامّ للعميل + نوع الاستثناء في السجلّ فقط.
+            logger.warning("مهمّة فرعيّة %s فشلت: %s", ind.value, type(e).__name__)
+            failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
 
     job["status"] = JobStatus.completed if results else JobStatus.failed
@@ -1635,11 +1664,15 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
         # Sentinel-2 L2A: نطاق Scene Classification (SCL). أصناف الغيوم/
         # الظلال = {3 ظلّ غيمة, 8 غيمة متوسّطة الاحتمال, 9 عالية, 10 سيرس,
         # 11 ثلج}. نضع المؤشّر NaN عندها كي لا تفسد الإحصاء.
+        cloud_pct: float | None = None
         if req.apply_cloud_mask and b.scl is not None:
             scl = band_raw(b.scl)
             if scl is not None and scl.shape == arr.shape:
-                cloud_classes = np.isin(scl, [3, 8, 9, 10, 11])
+                cloud_classes = np.isin(scl, SCL_CLOUD_CLASSES)
                 arr = np.where(cloud_classes, np.nan, arr)
+                # نسبة الغيوم الفعليّة على مستوى المشهد (غيوم/بكسلات صالحة) —
+                # توثَّق في النتيجة وفي raster_assets، وتُحذّر عند تجاوز العتبة.
+                cloud_pct = compute_cloud_pct(scl, np)
 
         valid = np.isfinite(arr)
         vals = arr[valid]
@@ -1651,6 +1684,12 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             "valid_pixels": int(valid.sum()),
             "nodata_pixels": int((~valid).sum()),
         }
+        if cloud_pct is not None:
+            stats["cloud_pct"] = cloud_pct
+            if cloud_pct > CLOUD_PCT_WARN_THRESHOLD:
+                stats["warning"] = (
+                    f"المؤشّر محسوب فوق مشهد غائم ({cloud_pct:.0f}%) — قد يكون ملوّثاً؛ يُفضَّل مشهد أوضح"
+                )
         # احفظ المؤشّر المحسوب كـCOG محسّن (ضغط + بلاطات + أهرامات) — تحسين
         # التخزين: حجم أصغر + قراءة جزئيّة أسرع (TiTiler/MapLibre). نحفظ المؤشّر
         # المقصوص بـtransform المقصوص (out) وبـCRS المصدر الأصلي (UTM غالباً).
@@ -2739,6 +2778,7 @@ def _cdse_lock():
     """يُرجع asyncio.Lock الوحيد لحماية _cdse_tile_cache (lazy — آمن للخيوط)."""
     global _cdse_cache_lock
     import asyncio
+
     if _cdse_cache_lock is None:
         _cdse_cache_lock = asyncio.Lock()
     return _cdse_cache_lock
@@ -2788,6 +2828,7 @@ async def field_cdse_tile(
     import os
     import tempfile
     import time as _t
+
     import cdse_client as _cdse
 
     await _require_field_tenant(field_id)
@@ -2799,11 +2840,7 @@ async def field_cdse_tile(
     if internal not in _cdse.INDEX_EXPR:
         return Response(content=_TRANSPARENT_PNG, media_type="image/png")
 
-    today = (
-        datetime.now(UTC).strftime("%Y-%m-%d")
-        if date in ("latest", "today")
-        else date
-    )
+    today = datetime.now(UTC).strftime("%Y-%m-%d") if date in ("latest", "today") else date
     date_from = f"{today[:4]}-01-01T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
     cache_key = f"{field_id}:{internal}:{today}"
@@ -2811,18 +2848,24 @@ async def field_cdse_tile(
     # bbox الحقل: من params الطلب أوّلاً (الواجهة تُمرّره مباشرةً من geometry)،
     # وإلّا يُستعلَم من DB (best-effort — يعود None إن تعذّر).
     if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
-        field_bbox: list[float] | None = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
+        field_bbox: list[float] | None = [
+            float(bbox_w),
+            float(bbox_s),
+            float(bbox_e),
+            float(bbox_n),
+        ]
         field_geom: dict | None = None  # لا نحتاج الهندسة للقصّ (bbox كافٍ لـCDSE)
     else:
         import db_persist as _db
+
         field_geom = await _db.fetch_field_geometry(field_id)
         field_bbox = _bbox_from_geom(field_geom)
 
     # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O)
     if field_bbox:
         try:
-            from tile_render import tile_bounds_3857
             from rasterio.warp import transform_bounds as _tb
+            from tile_render import tile_bounds_3857
 
             b3857 = tile_bounds_3857(z, x, y)
             tw, ts, te, tn = _tb("EPSG:3857", "EPSG:4326", *b3857)
@@ -2908,11 +2951,7 @@ async def field_cdse_tilejson(
     else:
         field_geom = await _db.fetch_field_geometry(field_id)
         bounds = _bbox_from_geom(field_geom) or [-180.0, -85.0, 180.0, 85.0]
-    today = (
-        datetime.now(UTC).strftime("%Y-%m-%d")
-        if date in ("latest", "today")
-        else date
-    )
+    today = datetime.now(UTC).strftime("%Y-%m-%d") if date in ("latest", "today") else date
     qs = f"index={index}&date={today}"
     return {
         "tilejson": "2.2.0",
@@ -2954,3 +2993,13 @@ async def salinity_calibrate(req: SalinityFitRequest, x_agent_token: str = Heade
     يفرض: 5 عيّنات+ وطريقة استخلاص موحّدة (لا يقبل بيانات تُنتج معايرة زائفة)."""
     _require_service_token(x_agent_token)
     return _sal.fit_regression(req.samples)
+
+
+# ─── تسجيل تلقائيّ للراوترات المُستخرَجة (سقالة التفكيك) ─────────────────
+# يُستدعى في **النهاية** بعد تعريف ``app`` وكلّ التبعيّات المشتركة، فيُحلّ الاستيراد
+# الدائريّ (وحدات ``routers/`` تستورد رموزاً من ``main``). كلّ وحدة في ``routers/``
+# تُصدّر ``router`` تُضمَّن **بلا prefix** (المسارات تبقى كما هي تماماً). فارغة الآن
+# (سقالة) — تُملأ بالاستخراج التدريجيّ لمسارات ``main.py``.
+from router_registry import register_routers  # noqa: E402
+
+register_routers(app)
