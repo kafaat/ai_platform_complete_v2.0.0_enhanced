@@ -31,7 +31,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, generate_latest
-from pydantic import BaseModel, EmailStr, Field, field_validator
 from starlette.responses import Response
 
 # تسجيل منظّم موحّد (JSON) — يهرّب الاقتباسات/العربي صحيحاً (لا JSON مكسور).
@@ -143,7 +142,6 @@ def _admin_stepup_required() -> bool:
 # ── OTP (تأكيد البريد/الهاتف) — الدوالّ/الثوابت النقيّة في otp.py (معزولة عن
 # fastapi كي تُختبَر وحدةً في CI دون تثبيت fastapi). نعيد تصديرها هنا. ──
 from otp import (  # noqa: E402
-    OTP_LENGTH,
     OTP_MAX_REQUESTS,
     OTP_TTL_SECONDS,
     generate_otp,
@@ -329,8 +327,6 @@ ValidRole = Literal["owner", "admin", "expert", "farmer", "viewer"]
 INVITEABLE_ROLES: frozenset[str] = frozenset({"expert", "farmer", "viewer"})
 # الأدوار التي يحقّ لها **توجيه** دعوة (مالك المستأجِر أو مشرف المنصّة فقط).
 INVITER_ROLES: frozenset[str] = frozenset({"owner", "admin"})
-# الدور المدعوّ إليه — Literal يرفض owner/admin عند التحقّق (422) قبل أيّ منطق.
-InviteableRole = Literal["expert", "farmer", "viewer"]
 
 
 def is_inviteable_role(role: str | None) -> bool:
@@ -347,127 +343,27 @@ def can_invite(role: str | None) -> bool:
     return (role or "").strip().lower() in INVITER_ROLES
 
 
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
-    full_name: str = Field(min_length=2, max_length=100)
-    # ملاحظة أمنيّة: لا حقل role هنا عمداً — العميل لا يختار دوره. التسجيل الذاتيّ
-    # يُنشئ مستأجِراً معزولاً جديداً ويُسنِد 'owner' (مؤسِّس مستأجِره؛ انظر register).
-    # تغيير الأدوار عبر /auth/users/{id}/role المحمي بـadmin فقط (منع تصعيد الصلاحيات).
-
-    @field_validator("password")
-    @classmethod
-    def strong_password(cls, v: str) -> str:
-        if not any(c.isupper() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رمز خاص")
-        return v
-
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
-    mfa_code: str | None = None  # رمز TOTP المؤقّت — مطلوب إن كان MFA مفعّلاً للحساب
-
-
-class MfaCodeRequest(BaseModel):
-    code: str = Field(min_length=6, max_length=10)  # رمز TOTP (٦ أرقام عادةً)
-
-
-class RefreshRequest(BaseModel):
-    refresh_token: str
-
-
-class PasswordResetRequest(BaseModel):
-    email: EmailStr
-
-
-class PasswordResetConfirm(BaseModel):
-    token: str
-    new_password: str = Field(min_length=8, max_length=128)
-
-    @field_validator("new_password")
-    @classmethod
-    def strong_password(cls, v: str) -> str:
-        if not any(c.isupper() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
-        return v
-
-
-class ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str = Field(min_length=8, max_length=128)
-
-
-# ── Invitation models ──────────────────────────────────────────
-class InvitationCreateRequest(BaseModel):
-    email: EmailStr
-    # InviteableRole (Literal) يرفض owner/admin بـ422 قبل المنطق — حزام أوّل ضدّ
-    # تصعيد الصلاحيّات؛ يليه فحص is_inviteable_role صريح في المعالِج (دفاع عمق).
-    role: InviteableRole
-
-
-class InvitationAcceptRequest(BaseModel):
-    token: str = Field(min_length=16, max_length=128)
-    password: str = Field(min_length=8, max_length=128)
-    full_name: str = Field(min_length=2, max_length=100)
-
-    @field_validator("password")
-    @classmethod
-    def strong_password(cls, v: str) -> str:
-        if not any(c.isupper() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على حرف كبير")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رقم")
-        if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in v):
-            raise ValueError("كلمة المرور يجب أن تحتوي على رمز خاص")
-        return v
-
-
-# ── Tenant provisioning model (تهيئة مستأجِر B2B بيد مدير المنصّة) ────
-class TenantProvisionRequest(BaseModel):
-    """طلب تهيئة مستأجِر جديد + أوّل مالك له (إعداد B2B، لا تسجيل ذاتيّ).
-
-    لا حقل role/password/tenant_id هنا عمداً: الدور دائماً 'owner' (يُفرَض في
-    المعالِج)، والمالك يضبط كلمة مروره لاحقاً عبر رمز إعادة تعيين (لا كلمة مرور
-    من المُهيِّئ)، والمستأجِر جديد معزول (gen_random_uuid) لا يختاره المُهيِّئ
-    (منع تصادم/تصعيد). tenant_name اختياريّ ويُسجَّل في التدقيق فقط — لا يوجد
-    جدول tenants؛ المستأجرون ضمنيّون عبر users.tenant_id (اتّساقاً مع التسجيل الذاتيّ).
-    """
-
-    owner_email: EmailStr
-    owner_full_name: str = Field(min_length=2, max_length=100)
-    tenant_name: str | None = Field(default=None, max_length=200)
-
-
-# قناة التحقّق: بريد أو هاتف. Literal يرفض أيّ قيمة أخرى عند التحقّق (422).
-VerifyChannel = Literal["email", "phone"]
-
-
-class VerificationRequest(BaseModel):
-    channel: VerifyChannel
-
-
-class VerificationConfirm(BaseModel):
-    channel: VerifyChannel
-    # رمز رقميّ ٦ خانات. نسمح بحدود واسعة قليلاً للتشذيب ثمّ نتحقّق نقيّاً.
-    code: str = Field(min_length=OTP_LENGTH, max_length=OTP_LENGTH)
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str | None = None
-    token_type: str = "bearer"
-    expires_in: int  # seconds
-    user_id: int
-    role: str
-    full_name: str
-    tenant_id: str
+# ── نماذج الطلب/الاستجابة (Pydantic) — استُخرِجت حرفيّاً إلى models.py ──
+# لتقليص main.py وفصل عقود البيانات عن المنطق؛ نعيد تصديرها هنا كما هي كي تبقى
+# قابلة للاستيراد من main (سلوك محفوظ؛ الاختبارات تصل إليها عبر main.<Model>).
+# InviteableRole/VerifyChannel من نوع Literal تُعرَّف هناك أيضاً (تُستعمل في النماذج).
+from models import (  # noqa: E402,F401  (F401: InviteableRole/VerifyChannel معاد تصديرهما)
+    ChangePasswordRequest,
+    InvitationAcceptRequest,
+    InvitationCreateRequest,
+    InviteableRole,
+    LoginRequest,
+    MfaCodeRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    RefreshRequest,
+    RegisterRequest,
+    TenantProvisionRequest,
+    TokenResponse,
+    VerificationConfirm,
+    VerificationRequest,
+    VerifyChannel,
+)
 
 
 # ── JWT Helpers ────────────────────────────────────────────────
