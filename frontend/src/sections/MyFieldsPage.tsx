@@ -8,9 +8,15 @@ import { canMutate } from '../lib/permissions';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { toFieldOption } from '../lib/fields';
 
-function num(v: unknown): number | null {
+export function num(v: unknown): number | null {
+  // القيم الغائبة (null/undefined) أو السلسلة الفارغة ⇒ null (تُعرَض «—»)، لا صفر.
+  // حرج: Number('') يساوي 0 لا NaN، فبدون هذا الحارس يظهر مؤشّر غير متوفّر كـ«0.00»
+  // مضلِّلاً (NDVI غير محسوب ≠ NDVI=0). الصفر الحقيقيّ يبقى يُعرَض كما هو.
+  if (v == null) return null;
   if (typeof v === 'number') return Number.isFinite(v) ? v : null;
-  const n = Number(String(v ?? '').trim());
+  const s = String(v).trim();
+  if (s === '') return null;
+  const n = Number(s);
   return Number.isFinite(n) ? n : null;
 }
 

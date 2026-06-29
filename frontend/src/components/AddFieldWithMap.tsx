@@ -683,7 +683,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
+    <div className="fixed inset-0 z-[1200] flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
       {/* Top bar (ملء العرض): العنوان + التبويبات على جهة البداية، تبديل الطبقة + الإغلاق على جهة النهاية */}
       <header className="flex items-center justify-between px-5 py-3 border-b shrink-0" style={{ borderColor:'#334155', background:'#1e293b' }}>
         <div className="flex items-center gap-3">
