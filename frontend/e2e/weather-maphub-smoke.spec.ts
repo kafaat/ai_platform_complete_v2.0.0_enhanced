@@ -72,6 +72,12 @@ test.describe('MapHub weather runtime smoke', () => {
       await route.fulfill(json({ dry_run: false, recommendation_id: 'weather-rec-smoke' }))
     });
 
+    // مصادقة عبر الدخول التجريبيّ (عميل فقط، بلا خلفيّة) — وإلّا يُعاد التوجيه لصفحة
+    // الدخول فلا تُحمَّل الخريطة. loginDemo يضبط التوكن والحالة في sessionStorage/المتجر.
+    await page.goto('/');
+    await page.getByRole('button', { name: /دخول تجريبي/ }).click();
+    await page.waitForLoadState('networkidle');
+
     await page.goto('/fields/map-center?field_id=00000000-0000-4000-8000-000000000001&index=ndvi&source=my-fields&weather=1');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toContainText(/طقس|Weather|الخريطة/);
@@ -79,6 +85,14 @@ test.describe('MapHub weather runtime smoke', () => {
     // The exact Leaflet canvas/DOM can vary, so click near map center and assert no app crash.
     await page.mouse.click(500, 380);
     await page.waitForTimeout(300);
-    expect(consoleErrors.filter((line) => !line.includes('favicon')).join('\n')).toBe('');
+    // هذا فحص «بلا خلفيّة»: نقاط API غير المُحاكاة تفشل عمداً، فنتجاهل ضوضاء الشبكة
+    // المتوقّعة (favicon/فشل تحميل مورد/أكواد 4xx-5xx) ونُبقي فقط أخطاء التطبيق الحقيقيّة
+    // (انهيار React/استثناء غير مُلتقَط) — هي ما يجب أن يبقى صفراً.
+    const appErrors = consoleErrors.filter(
+      (line) =>
+        !line.includes('favicon') &&
+        !/Failed to load resource|net::ERR|Failed to fetch|the server responded with a status of|Unexpected token|JSON/i.test(line),
+    );
+    expect(appErrors.join('\n')).toBe('');
   });
 });

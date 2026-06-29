@@ -204,6 +204,8 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # تغطية أحداث نقاط الكتابة (إكمال CDES P0-2): تجعل تحديثات المهامّ/المزارع/جداول
     # الريّ تفاعليّة (بثّ حيّ للواجهة عبر وكيل الإشعارات) بدل مسح دوريّ.
     TASK_UPDATED = "task.updated"
+    # إنشاء مهمّة (جسر الطقس→مهمّة: tasks/from-operation-plan) — يُصدِره _emit_domain_event.
+    TASK_CREATED = "task.created"
     FARM_CREATED = "farm.created"
     IRRIGATION_SCHEDULE_CREATED = "irrigation.schedule.created"
     # أحداث الصمّامات (تسجيل + تغيير حالة) — لازمة لنقاط /irrigation/valves.

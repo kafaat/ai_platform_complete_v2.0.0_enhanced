@@ -235,6 +235,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c88614b53bdda21e742f4c8043980ac70046ec285f7c646dba2df99c1b11ad36"
+        }
+      ],
+      "name": "frontend/e2e/weather-maphub-smoke.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c4345470f63816ef318331e4e89e805a401a5cdd15d2b21423d74b13fdb4def"
         }
       ],
@@ -7195,7 +7205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4fc2d15677029c5834b5c46eac47236e9ee235aa42b4adecdebfc2fac0818825"
+          "content": "f91af80e9e92fa39f1beabedb6b8f52089851a325d0f9989a114815ebf1f14f1"
         }
       ],
       "name": "services/sahool-platform/api/event_bus.py",
@@ -15409,6 +15419,56 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9f65bf6c9495dc8ff74c260f6d5ff4a914bf01483610ea501d34fe6238ea444e"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v21_rate_limit_actions.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a59934d54643256bfa7ac4ac9f4d6434d3e24161a19cecf9f0565eca6a7fedb3"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v22_runtime_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76b85cd164d960de70e20dfa6d858666a12fc009442c26ca68117835fdd295c2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v24_redis_ready_cache.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "60dab50e0eb01b8f8e5c5731603c5ce6bf29946c960cf6f8f3c45c61cef1f663"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v25_interpolation_rate_redis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c2a9b738f89c0ce4daba8a2995a523d30f27475fff78696efde092df250016e"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v26_runtime_smoke_assets.py",
       "type": "file"
     },
     {
