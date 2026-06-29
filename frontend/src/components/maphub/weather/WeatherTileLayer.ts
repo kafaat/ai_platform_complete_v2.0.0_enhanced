@@ -22,6 +22,17 @@ import {
   weatherFetchHeaders,
 } from './weatherLayerDefinitions';
 
+
+function interpolationColor(payload: WeatherTilePayload | undefined, cfg: ReturnType<typeof layerConfig>, id: string, fallback: number | null): string {
+  const point = payload?.interpolation?.points?.find((p) => p.id === id);
+  return colorAt(typeof point?.value === 'number' ? point.value : fallback, cfg, 0);
+}
+
+function interpolationValue(payload: WeatherTilePayload | undefined, fallback: number | null): number | null {
+  const avg = payload?.interpolation?.average_value;
+  return typeof avg === 'number' && Number.isFinite(avg) ? avg : fallback;
+}
+
 export function weatherTileSvg(
   marker: WeatherMarker,
   coords: L.Coords,
@@ -32,7 +43,8 @@ export function weatherTileSvg(
 ): string {
   const cfg = layerConfig(layer);
   const sample = payload?.sample;
-  const value = payload?.operation?.score ?? payload?.value ?? getLayerValue(layer, sample, marker);
+  const rawValue = payload?.operation?.score ?? payload?.value ?? getLayerValue(layer, sample, marker);
+  const value = interpolationValue(payload, rawValue);
   const speed = windSpeed(sample, marker);
   const dir = windDirection(sample, marker);
   const seedA = safeMod(coords.x * 19 + coords.y * 37 + coords.z * 11, 100) / 100;
@@ -41,6 +53,11 @@ export function weatherTileSvg(
   const c1 = colorAt(value, cfg, -0.09 + seedB * 0.10);
   const c2 = colorAt(value, cfg, 0.12 + seedA * 0.10);
   const c3 = colorAt(value, cfg, 0.30);
+  const cNW = interpolationColor(payload, cfg, 'nw', value);
+  const cNE = interpolationColor(payload, cfg, 'ne', value);
+  const cSW = interpolationColor(payload, cfg, 'sw', value);
+  const cSE = interpolationColor(payload, cfg, 'se', value);
+  const hasInterpolation = !!payload?.interpolation?.points?.length;
   const gradId = `sahool-weather-${layer}-${coords.x}-${coords.y}-${coords.z}`;
   const heatId = `sahool-heat-${layer}-${coords.x}-${coords.y}-${coords.z}`;
   const noiseId = `sahool-noise-${layer}-${coords.x}-${coords.y}-${coords.z}`;
@@ -77,7 +94,7 @@ export function weatherTileSvg(
   const shown = value == null ? '—' : (isOperationLayer(layer) ? `${Math.round(Number(value) * 100)}` : Number(value).toFixed(layer === 'soil_moisture' ? 2 : 1));
   const cacheState = payload?.cache_state || 'client_fallback';
   const isStale = cacheState === 'stale_fallback' || cacheState === 'stale';
-  const statusLabel = isStale ? 'بيانات مخزنة' : cacheState === 'client_fallback' ? 'تقديري' : '';
+  const statusLabel = isStale ? 'بيانات مخزنة' : cacheState === 'client_fallback' ? 'تقديري' : (hasInterpolation ? 'ناعم' : '');
   const unit = isOperationLayer(layer) ? '%' : cfg.unit;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WEATHER_TILE_SIZE}" height="${WEATHER_TILE_SIZE}" viewBox="0 0 256 256" preserveAspectRatio="none" role="img" aria-label="${cfg.labelAr}: ${shown} ${unit}">
     <defs>
@@ -93,11 +110,16 @@ export function weatherTileSvg(
         <stop offset="70%" stop-color="${c2}" stop-opacity="0.54"/>
         <stop offset="100%" stop-color="${c3}" stop-opacity="0.48"/>
       </linearGradient>
+      <radialGradient id="${gradId}-nw" cx="8%" cy="8%" r="74%"><stop offset="0%" stop-color="${cNW}" stop-opacity="0.72"/><stop offset="100%" stop-color="${cNW}" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${gradId}-ne" cx="92%" cy="8%" r="74%"><stop offset="0%" stop-color="${cNE}" stop-opacity="0.72"/><stop offset="100%" stop-color="${cNE}" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${gradId}-sw" cx="8%" cy="92%" r="74%"><stop offset="0%" stop-color="${cSW}" stop-opacity="0.72"/><stop offset="100%" stop-color="${cSW}" stop-opacity="0"/></radialGradient>
+      <radialGradient id="${gradId}-se" cx="92%" cy="92%" r="74%"><stop offset="0%" stop-color="${cSE}" stop-opacity="0.72"/><stop offset="100%" stop-color="${cSE}" stop-opacity="0"/></radialGradient>
       <filter id="${noiseId}"><feTurbulence type="fractalNoise" baseFrequency="0.020 0.046" numOctaves="3" seed="${Math.round(seedA * 80 + 1)}"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.12"/></feComponentTransfer></filter>
       <filter id="sahool-wind-glow"><feGaussianBlur stdDeviation="0.65" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
     </defs>
     <rect width="256" height="256" fill="url(#${gradId})"/>
     <rect width="256" height="256" fill="url(#${heatId})" style="mix-blend-mode:${layer === 'wind' ? 'screen' : 'normal'}"/>
+    ${hasInterpolation ? `<g opacity="0.64" style="mix-blend-mode:soft-light"><rect width="256" height="256" fill="url(#${gradId}-nw)"/><rect width="256" height="256" fill="url(#${gradId}-ne)"/><rect width="256" height="256" fill="url(#${gradId}-sw)"/><rect width="256" height="256" fill="url(#${gradId}-se)"/></g>` : ''}
     <rect width="256" height="256" filter="url(#${noiseId})" opacity="0.56"/>
     <g opacity="0.18"><path d="M-24 204 C 42 166, 98 226, 164 186 S 266 154, 294 184" fill="none" stroke="rgba(10,18,16,0.52)" stroke-width="10"/><path d="M-18 84 C 46 114, 92 50, 144 76 S 234 124, 294 78" fill="none" stroke="rgba(255,255,255,0.27)" stroke-width="5"/></g>
     ${showWind ? `<g transform="rotate(${dir} 128 128)" opacity="${particleOpacity}" filter="url(#sahool-wind-glow)">${windLines.join('')}</g>` : ''}
@@ -113,9 +135,9 @@ export function loadingTileSvg(layer: WeatherLayerKey): string {
 
 export function tileDataUrl(coords: L.Coords, layer: WeatherLayerKey, time: WeatherTimeKey, model: string): string {
   if (isOperationLayer(layer)) {
-    return `/api/v1/weather/operation-tile-data/${coords.z}/${coords.x}/${coords.y}?operation=${encodeURIComponent(operationFromLayer(layer))}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}`;
+    return `/api/v1/weather/operation-tile-data/${coords.z}/${coords.x}/${coords.y}?operation=${encodeURIComponent(operationFromLayer(layer))}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}&interpolation=grid`;
   }
-  return `/api/v1/weather/tile-data/${coords.z}/${coords.x}/${coords.y}?layer=${encodeURIComponent(layer)}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}`;
+  return `/api/v1/weather/tile-data/${coords.z}/${coords.x}/${coords.y}?layer=${encodeURIComponent(layer)}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}&interpolation=grid`;
 }
 
 export function createWeatherWindGridLayer(

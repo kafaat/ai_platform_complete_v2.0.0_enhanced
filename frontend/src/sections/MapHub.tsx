@@ -524,6 +524,7 @@ export default function MapHub() {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
     return {
+      fieldId: selected?.id ?? null,
       lat: selectedPoint[0], lng: selectedPoint[1],
       tempC: cur?.tmean ?? null,
       humidityPct: cur?.humidity_pct ?? null,
@@ -531,7 +532,7 @@ export default function MapHub() {
       windSpeedKmh: cur?.wind_speed_kmh ?? null,
       windDirectionDeg: cur?.wind_direction_deg ?? null,
     };
-  }, [selectedPoint, weatherQ.data]);
+  }, [selected, selectedPoint, weatherQ.data]);
 
   // ── دبابيس الاستكشاف (حالة محلّيّة) ──────────────────────────
   // TODO(maphub-scouting): الخلفيّة تعرض إنشاء استكشاف (POST) فقط بلا نقطة قراءة

@@ -21,6 +21,8 @@ describe('SAHOOL weather engine static architecture', () => {
   it('uses SAHOOL weather APIs instead of external weather tiles', () => {
     expect(tile).toContain('/api/v1/weather/tile-data/');
     expect(tile).toContain('/api/v1/weather/operation-tile-data/');
+    expect(tile).toContain('interpolation=grid');
+    expect(defs).toContain('WeatherInterpolationPayload');
     expect(tile).not.toContain('tile.openweathermap');
     expect(tile).not.toContain('meteoblue');
   });
@@ -42,12 +44,25 @@ describe('SAHOOL weather engine static architecture', () => {
     expect(probe).toContain('/api/v1/weather/operation-plan');
   });
 
-  it('attaches auth headers to weather fetches (production auth_request gate)', () => {
-    // حارس انحدار: نقاط /api/v1/weather/* خلف auth_request في الإنتاج، فطلبات
-    // البلاطات والمسبار يجب أن تُرفِق Bearer عبر weatherFetchHeaders — وإلّا 401.
+  it('supports action bridge buttons from weather decisions', () => {
+    expect(probe).toContain('/api/v1/weather/action-recommendation');
+    expect(probe).toContain('/api/v1/weather/tasks/from-operation-plan');
+    expect(probe).toContain('/api/v1/weather/recommendations/from-operation-plan');
+    expect(probe).toContain('إنشاء مهمة من أفضل نافذة');
+    expect(probe).toContain('حفظ كتوصية طقس');
+  });
+
+  it('attaches auth headers to every weather fetch (production auth_request + POST require_permission)', () => {
+    // حارس انحدار: نقاط /api/v1/weather/* خلف auth_request؛ وبالأخصّ POST إنشاء
+    // المهمّة/التوصية محميّان بـrequire_permission. فكلّ طلب يجب أن يُرفِق Bearer عبر
+    // weatherFetchHeaders (GET) أو weatherJsonHeaders (POST) — وإلّا 401/403.
     expect(defs).toContain('weatherFetchHeaders');
+    expect(defs).toContain('weatherJsonHeaders');
     expect(defs).toContain('getAccessToken');
     expect(tile).toContain('weatherFetchHeaders()');
     expect(probe).toContain('weatherFetchHeaders()');
+    expect(probe).toContain('weatherJsonHeaders()');
+    // لا يبقى أيّ طلب طقس بترويسة Accept فقط بلا مصادقة.
+    expect(probe).not.toContain("{ 'Content-Type': 'application/json', Accept: 'application/json' }");
   });
 });

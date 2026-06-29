@@ -285,7 +285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "767e49446616ecc7a95db9d4639f32754bdf19e19d7ed72ba9936e9218f46a7e"
+          "content": "fab02d164bc2b217c29b6c5315ef29a1f303f1260e1aa29e88a62a0f49e22417"
         }
       ],
       "name": "frontend/package.json",
@@ -975,7 +975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9190679dbf368f720de681a244585438d09888b96b0296c02eb27202211ff03a"
+          "content": "c6aead62dc846ab49e945dfcc658a12493dc1e1ca88bb239d8b1ca6565be581f"
         }
       ],
       "name": "frontend/src/components/maphub/OverlayMarkers.tsx",
@@ -1015,7 +1015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17eca8b9f35385498f5f03bb807fa3dc7964cf8cfab545ac97385ad42314bc52"
+          "content": "f820a5438c9b3f540251c842db463d6dbe9f241b4f0403ef6c966c358ae9a047"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
@@ -1035,7 +1035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01efea5c030033d1c3e522309e8fee2e3a394e0d226c3b76431cb8aaba8b9336"
+          "content": "778ca561cd74042a3f8b5bcd9cbcc4f42a0764ed5beb39f84026b78079316339"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
@@ -1045,7 +1045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b417172d6ec084690006cf4dccc7828c39c855690b9454b513914647d2d8793"
+          "content": "9a33197b872944bf296b36a4358b548b6c82ebce3314cf42c9ed9128b025f6e8"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
@@ -1055,7 +1055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "912c488378228a8a38a61ce3f55a254e3327cfe7db03b91eda546358fdb28ff6"
+          "content": "f162a083e172cecce0858aebfa13c03f5dcbfc1916cb444f034b5cba97922b09"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
@@ -1065,7 +1065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69470aa53d13aedff89b7b4a569b066d58b9a0caadf227ab92f6ae4a508da6b8"
+          "content": "b28d40e5059c8671b3f5e94349aff1d6083bfeba30870ee498949baac68cdf4c"
         }
       ],
       "name": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
@@ -2285,7 +2285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27cdb7ea7a3ce40ec6b5abf16a7dbc04582c95f8bbfa2f854c6e54872dc656d2"
+          "content": "a901628af18c54e45c23d7bdac02106be8aa3e6e1b3f9191cfcec35592341cc3"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -9535,7 +9535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5ab408540251581c2c0cedb1db5bcd3689003af1b692dc37d854fd7db1d0e9c"
+          "content": "cc52189fe9f431f32ca4d119035ad2eef24e8f86bd345f4c06628c5db9f90974"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",

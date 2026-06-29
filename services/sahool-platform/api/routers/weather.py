@@ -11,12 +11,17 @@
 
 from __future__ import annotations
 
+import json
+import os
 from collections import Counter
+from datetime import UTC, datetime, timedelta
 from math import atan, degrees, pi, sinh
 from time import monotonic
 from typing import Literal
+from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from pydantic import BaseModel, Field
 
 from api.service_token_auth import _require_service_token
 
@@ -34,8 +39,53 @@ _WEATHER_TILE_METRICS: dict[str, Counter[str]] = {
 }
 _WEATHER_TILE_CACHE_TTL_S = 600.0
 _WEATHER_TILE_STALE_TTL_S = 3600.0
+_WEATHER_REDIS_CLIENT = None
+_WEATHER_REDIS_LAST_ERROR: str | None = None
+_WEATHER_REDIS_KEY_PREFIX = "sahool:weather:tile"
 _ALLOWED_WEATHER_TIMES = {"now", "+1h", "+3h", "+6h", "+12h", "+24h", "+48h"}
 _ALLOWED_WEATHER_MODELS = {"best_match", "auto", "gfs_seamless", "ecmwf_ifs04"}
+_WEATHER_RATE_WINDOWS: dict[str, tuple[float, int]] = {}
+_WEATHER_RATE_REDIS_LAST_ERROR: str | None = None
+_WEATHER_RATE_REDIS_KEY_PREFIX = "sahool:weather:rate"
+_WEATHER_RATE_LIMITS: dict[str, tuple[int, int]] = {
+    # endpoint_group: (max_requests, window_seconds)
+    "tile-data": (720, 60),
+    "operation-tile-data": (720, 60),
+    "tile-series": (180, 60),
+    "probe": (180, 60),
+    "operation-window": (120, 60),
+    "operation-plan": (90, 60),
+    "field-weather-summary": (120, 60),
+    "weather-action-recommendation": (90, 60),
+    "task-from-operation-plan": (45, 60),
+    "recommendation-from-operation-plan": (45, 60),
+    "default": (300, 60),
+}
+
+
+class WeatherTaskFromPlanRequest(BaseModel):
+    field_id: str = Field(..., min_length=1, max_length=80)
+    lat: float = Field(..., ge=-90, le=90)
+    lon: float = Field(..., ge=-180, le=180)
+    operation: Literal["spraying", "irrigation", "harvesting", "sowing"] = "spraying"
+    hours: str = "0,1,3,6,12,24,48"
+    model: str = "best_match"
+    assigned_to: str | None = None
+    estimated_cost_usd: float | None = Field(default=None, ge=0)
+    dry_run: bool = False
+    notes: str | None = None
+
+
+class WeatherRecommendationFromPlanRequest(BaseModel):
+    field_id: str = Field(..., min_length=1, max_length=80)
+    farm_id: str | None = None
+    crop: str | None = None
+    lat: float = Field(..., ge=-90, le=90)
+    lon: float = Field(..., ge=-180, le=180)
+    operations: str = "spraying,irrigation,harvesting,sowing"
+    hours: str = "0,1,3,6,12,24,48"
+    model: str = "best_match"
+    dry_run: bool = False
 
 
 def _metric_inc(bucket: str, key: str, amount: int = 1) -> None:
@@ -72,6 +122,531 @@ def _record_weather_observation(
 
 def _metrics_bucket(bucket: str) -> dict[str, int]:
     return dict(_WEATHER_TILE_METRICS.get(bucket, Counter()))
+
+
+def _weather_cache_backend_config() -> dict:
+    """Runtime cache backend config.
+
+    Defaults to in-memory cache for local/dev. Production can opt into Redis via:
+    SAHOOL_WEATHER_CACHE_BACKEND=redis and SAHOOL_WEATHER_REDIS_URL=redis://...
+    The default fallback keeps the weather layer usable when Redis is unavailable.
+    """
+    backend = (
+        (
+            os.getenv("SAHOOL_WEATHER_CACHE_BACKEND")
+            or os.getenv("WEATHER_CACHE_BACKEND")
+            or "memory"
+        )
+        .strip()
+        .lower()
+    )
+    if backend not in {"memory", "redis"}:
+        backend = "memory"
+    redis_url = (
+        os.getenv("SAHOOL_WEATHER_REDIS_URL")
+        or os.getenv("WEATHER_REDIS_URL")
+        or os.getenv("REDIS_URL")
+    )
+    fallback_raw = os.getenv("SAHOOL_WEATHER_REDIS_FALLBACK_MEMORY", "1").strip().lower()
+    return {
+        "backend": backend,
+        "redis_configured": bool(redis_url),
+        "redis_url_present": bool(redis_url),
+        "fallback_to_memory": fallback_raw not in {"0", "false", "no", "off"},
+        "key_prefix": _WEATHER_REDIS_KEY_PREFIX,
+        "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+        "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
+    }
+
+
+async def _weather_redis_client():
+    """Return an optional redis.asyncio client without making Redis a hard dependency."""
+    global _WEATHER_REDIS_CLIENT, _WEATHER_REDIS_LAST_ERROR
+    cfg = _weather_cache_backend_config()
+    if cfg["backend"] != "redis":
+        return None
+    if _WEATHER_REDIS_CLIENT is not None:
+        return _WEATHER_REDIS_CLIENT
+    redis_url = (
+        os.getenv("SAHOOL_WEATHER_REDIS_URL")
+        or os.getenv("WEATHER_REDIS_URL")
+        or os.getenv("REDIS_URL")
+    )
+    if not redis_url:
+        _WEATHER_REDIS_LAST_ERROR = "Redis backend selected but no Redis URL is configured."
+        _metric_inc("cache_backends", "redis_missing_url")
+        return None
+    try:
+        import redis.asyncio as redis  # type: ignore
+
+        _WEATHER_REDIS_CLIENT = redis.from_url(redis_url, decode_responses=True)
+        _WEATHER_REDIS_LAST_ERROR = None
+        _metric_inc("cache_backends", "redis_client_created")
+        return _WEATHER_REDIS_CLIENT
+    except Exception as exc:  # pragma: no cover - depends on optional dependency
+        _WEATHER_REDIS_LAST_ERROR = str(exc)
+        _metric_inc("cache_backends", "redis_import_error")
+        return None
+
+
+def _redis_cache_key(key: str) -> str:
+    return f"{_WEATHER_REDIS_KEY_PREFIX}:{key}"
+
+
+def _cache_state_from_ts(ts: float) -> tuple[str, int | None]:
+    age = monotonic() - ts
+    if age < _WEATHER_TILE_CACHE_TTL_S:
+        return "fresh", int(age)
+    if age < _WEATHER_TILE_STALE_TTL_S:
+        return "stale", int(age)
+    return "expired", int(age)
+
+
+async def _cache_get_async(key: str) -> tuple[dict | None, str, int | None]:
+    """Get a weather cache entry from Redis when enabled, otherwise memory.
+
+    The return contract intentionally matches the legacy in-memory helper:
+    (sample, state, age_s). States: fresh, stale, expired, miss, backend_error.
+    """
+    cfg = _weather_cache_backend_config()
+    if cfg["backend"] == "redis":
+        client = await _weather_redis_client()
+        if client is not None:
+            try:
+                raw = await client.get(_redis_cache_key(key))
+                if raw:
+                    payload = json.loads(raw)
+                    state, age = _cache_state_from_ts(float(payload.get("ts", 0)))
+                    if state in {"fresh", "stale"}:
+                        _metric_inc("cache_backends", "redis_hit")
+                        return payload.get("sample") or {}, state, age
+                    _metric_inc("cache_backends", "redis_expired")
+                    return None, "expired", age
+                _metric_inc("cache_backends", "redis_miss")
+                if not cfg["fallback_to_memory"]:
+                    return None, "miss", None
+            except Exception as exc:
+                global _WEATHER_REDIS_LAST_ERROR
+                _WEATHER_REDIS_LAST_ERROR = str(exc)
+                _metric_inc("cache_backends", "redis_error")
+                if not cfg["fallback_to_memory"]:
+                    return None, "backend_error", None
+        elif not cfg["fallback_to_memory"]:
+            return None, "backend_error", None
+    return _cache_get(key)
+
+
+async def _cache_set_async(key: str, sample: dict) -> None:
+    """Set a weather cache entry in Redis when enabled and keep memory fallback hot."""
+    cfg = _weather_cache_backend_config()
+    wrote_redis = False
+    if cfg["backend"] == "redis":
+        client = await _weather_redis_client()
+        if client is not None:
+            try:
+                payload = json.dumps({"ts": monotonic(), "sample": sample}, ensure_ascii=False)
+                await client.setex(_redis_cache_key(key), int(_WEATHER_TILE_STALE_TTL_S), payload)
+                wrote_redis = True
+                _metric_inc("cache_backends", "redis_set")
+            except Exception as exc:
+                global _WEATHER_REDIS_LAST_ERROR
+                _WEATHER_REDIS_LAST_ERROR = str(exc)
+                _metric_inc("cache_backends", "redis_error")
+                if not cfg["fallback_to_memory"]:
+                    return
+    if cfg["backend"] == "memory" or cfg["fallback_to_memory"] or not wrote_redis:
+        _cache_set(key, sample)
+
+
+def _weather_cache_backend_status() -> dict:
+    cfg = _weather_cache_backend_config()
+    return {
+        **cfg,
+        "redis_last_error": _WEATHER_REDIS_LAST_ERROR,
+        "memory_items": len(_WEATHER_TILE_CACHE),
+        "mode": cfg["backend"],
+        "effective_backend": "redis+memory-fallback"
+        if cfg["backend"] == "redis" and cfg["fallback_to_memory"]
+        else cfg["backend"],
+    }
+
+
+def _weather_rate_backend_config() -> dict:
+    """Runtime rate-limit backend config.
+
+    Production can opt into Redis with SAHOOL_WEATHER_RATE_LIMIT_BACKEND=redis.
+    When unset, the limiter remains in-process for local/dev compatibility.
+    """
+    backend = (
+        (
+            os.getenv("SAHOOL_WEATHER_RATE_LIMIT_BACKEND")
+            or os.getenv("WEATHER_RATE_LIMIT_BACKEND")
+            or "memory"
+        )
+        .strip()
+        .lower()
+    )
+    if backend not in {"memory", "redis"}:
+        backend = "memory"
+    fallback_raw = os.getenv("SAHOOL_WEATHER_RATE_LIMIT_REDIS_FALLBACK_MEMORY", "1").strip().lower()
+    redis_url = (
+        os.getenv("SAHOOL_WEATHER_RATE_LIMIT_REDIS_URL")
+        or os.getenv("SAHOOL_WEATHER_REDIS_URL")
+        or os.getenv("WEATHER_REDIS_URL")
+        or os.getenv("REDIS_URL")
+    )
+    return {
+        "backend": backend,
+        "redis_configured": bool(redis_url),
+        "fallback_to_memory": fallback_raw not in {"0", "false", "no", "off"},
+        "key_prefix": _WEATHER_RATE_REDIS_KEY_PREFIX,
+    }
+
+
+def _weather_rate_backend_status() -> dict:
+    cfg = _weather_rate_backend_config()
+    return {
+        **cfg,
+        "redis_last_error": _WEATHER_RATE_REDIS_LAST_ERROR,
+        "memory_buckets": len(_WEATHER_RATE_WINDOWS),
+        "effective_backend": "redis+memory-fallback"
+        if cfg["backend"] == "redis" and cfg["fallback_to_memory"]
+        else cfg["backend"],
+    }
+
+
+def _redis_rate_key(key: str) -> str:
+    return f"{_WEATHER_RATE_REDIS_KEY_PREFIX}:{key}"
+
+
+def _tenant_id_from_request(request: Request | None) -> str:
+    if request is None:
+        return "direct"
+    return (
+        request.headers.get("x-tenant-id")
+        or request.headers.get("x-sahool-tenant")
+        or request.query_params.get("tenant_id")
+        or "anon"
+    )
+
+
+def _actor_id_from_request(request: Request | None) -> str:
+    if request is None:
+        return "direct"
+    auth = request.headers.get("authorization")
+    user_hint = request.headers.get("x-user-id") or request.headers.get("x-sahool-user")
+    if user_hint:
+        return f"user:{user_hint[:96]}"
+    if auth:
+        return f"auth:{abs(hash(auth)) % 1_000_000}"
+    host = getattr(getattr(request, "client", None), "host", None) or "unknown"
+    return f"ip:{host}"
+
+
+def _tile_lon_bounds(x: int, z: int) -> tuple[float, float]:
+    return _tile_lon(x, z), _tile_lon(x + 1, z)
+
+
+def _tile_lat_bounds(y: int, z: int) -> tuple[float, float]:
+    north = _tile_lat(y, z)
+    south = _tile_lat(y + 1, z)
+    return north, south
+
+
+def _tile_interpolation_points(z: int, x: int, y: int) -> list[dict]:
+    """Return stable sample points inside a WebMercator tile for smooth SAHOOL rendering."""
+    west, east = _tile_lon_bounds(x, z)
+    north, south = _tile_lat_bounds(y, z)
+    lat_span = north - south
+    lon_span = east - west
+    # Inset points avoid neighboring-tile discontinuity and reduce redundant edge calls.
+    return [
+        {
+            "id": "nw",
+            "u": 0.18,
+            "v": 0.18,
+            "lat": north - lat_span * 0.18,
+            "lon": west + lon_span * 0.18,
+        },
+        {
+            "id": "ne",
+            "u": 0.82,
+            "v": 0.18,
+            "lat": north - lat_span * 0.18,
+            "lon": west + lon_span * 0.82,
+        },
+        {
+            "id": "sw",
+            "u": 0.18,
+            "v": 0.82,
+            "lat": north - lat_span * 0.82,
+            "lon": west + lon_span * 0.18,
+        },
+        {
+            "id": "se",
+            "u": 0.82,
+            "v": 0.82,
+            "lat": north - lat_span * 0.82,
+            "lon": west + lon_span * 0.82,
+        },
+        {
+            "id": "center",
+            "u": 0.50,
+            "v": 0.50,
+            "lat": (north + south) / 2.0,
+            "lon": (west + east) / 2.0,
+        },
+    ]
+
+
+async def _weather_tile_interpolation_payload(
+    *,
+    z: int,
+    x: int,
+    y: int,
+    layer: str,
+    time: str,
+    model: str,
+    operation: str | None = None,
+) -> tuple[dict | None, str, int | None, str | None, dict | None]:
+    """Fetch a lightweight 2x2+center sample set for smoother client SVG tiles.
+
+    Returns center sample, aggregate cache state/age/error, and an interpolation payload.
+    If all points fail, callers should fall back to the legacy center-only path.
+    """
+    points: list[dict] = []
+    cache_states: list[str] = []
+    ages: list[int] = []
+    errors: list[str] = []
+    center_sample: dict | None = None
+    prefix = f"interp:{operation or layer}:z{z}:x{x}:y{y}"
+    for pt in _tile_interpolation_points(z, x, y):
+        try:
+            sample, state, age, upstream_error = await _get_weather_sample_cached(
+                float(pt["lat"]), float(pt["lon"]), time, model, f"{prefix}:{pt['id']}"
+            )
+            if upstream_error:
+                errors.append(f"{pt['id']}: {upstream_error}")
+            value = (
+                _safe_layer_value(layer, sample)
+                if operation is None
+                else _operation_suitability(sample, operation)["score"]
+            )
+            if pt["id"] == "center":
+                center_sample = sample
+            cache_states.append(state)
+            if age is not None:
+                ages.append(int(age))
+            points.append(
+                {
+                    "id": pt["id"],
+                    "u": pt["u"],
+                    "v": pt["v"],
+                    "lat": round(float(pt["lat"]), 6),
+                    "lon": round(float(pt["lon"]), 6),
+                    "value": value,
+                    "cache_state": state,
+                }
+            )
+        except Exception as exc:  # keep the tile usable when a sub-point fails
+            errors.append(f"{pt['id']}: {exc}")
+    if not points:
+        return None, "miss", None, "; ".join(errors) if errors else None, None
+    numeric_values = [p["value"] for p in points if isinstance(p.get("value"), (int, float))]
+    interp = {
+        "mode": "bilinear_2x2_center",
+        "quality": "smooth" if len(points) >= 5 else "partial",
+        "point_count": len(points),
+        "average_value": round(sum(numeric_values) / len(numeric_values), 4)
+        if numeric_values
+        else None,
+        "points": points,
+    }
+    if center_sample is None:
+        center_sample = {}
+    if "stale_fallback" in cache_states or "stale" in cache_states:
+        cache_state = "stale_fallback" if errors else "stale"
+    elif "refreshed" in cache_states:
+        cache_state = "refreshed"
+    elif all(state == "fresh" for state in cache_states):
+        cache_state = "fresh"
+    else:
+        cache_state = "partial"
+    return (
+        center_sample,
+        cache_state,
+        max(ages) if ages else None,
+        "; ".join(errors) if errors else None,
+        interp,
+    )
+
+
+def _memory_rate_limit_result(request: Request | None, endpoint: str) -> dict:
+    limit, window_s = _WEATHER_RATE_LIMITS.get(endpoint, _WEATHER_RATE_LIMITS["default"])
+    key = _rate_key(request, endpoint)
+    now = monotonic()
+    start, count = _WEATHER_RATE_WINDOWS.get(key, (now, 0))
+    if now - start >= window_s:
+        start, count = now, 0
+    count += 1
+    _WEATHER_RATE_WINDOWS[key] = (start, count)
+    retry_after = max(1, int(window_s - (now - start)))
+    remaining = max(0, limit - count)
+    return {
+        "allowed": count <= limit,
+        "limit": limit,
+        "window_s": window_s,
+        "remaining": remaining,
+        "retry_after": retry_after,
+        "reset_s": retry_after,
+        "backend": "memory",
+    }
+
+
+async def _redis_rate_limit_result(request: Request | None, endpoint: str) -> dict | None:
+    global _WEATHER_RATE_REDIS_LAST_ERROR
+    cfg = _weather_rate_backend_config()
+    if cfg["backend"] != "redis":
+        return None
+    client = _WEATHER_REDIS_CLIENT
+    if client is None:
+        redis_url = (
+            os.getenv("SAHOOL_WEATHER_RATE_LIMIT_REDIS_URL")
+            or os.getenv("SAHOOL_WEATHER_REDIS_URL")
+            or os.getenv("WEATHER_REDIS_URL")
+            or os.getenv("REDIS_URL")
+        )
+        if not redis_url:
+            _WEATHER_RATE_REDIS_LAST_ERROR = (
+                "Redis rate backend selected but no Redis URL is configured."
+            )
+            _metric_inc("rate_limit_backends", "redis_missing_url")
+            return None
+        try:
+            import redis.asyncio as redis  # type: ignore
+
+            client = redis.from_url(redis_url, decode_responses=True)
+        except Exception as exc:  # pragma: no cover - optional dependency
+            _WEATHER_RATE_REDIS_LAST_ERROR = str(exc)
+            _metric_inc("rate_limit_backends", "redis_import_error")
+            return None
+    limit, window_s = _WEATHER_RATE_LIMITS.get(endpoint, _WEATHER_RATE_LIMITS["default"])
+    tenant = _tenant_id_from_request(request)
+    actor = _actor_id_from_request(request)
+    key = _redis_rate_key(f"{endpoint}:{tenant}:{actor}")
+    try:
+        count = int(await client.incr(key))
+        if count == 1:
+            await client.expire(key, int(window_s))
+        ttl = int(await client.ttl(key)) if hasattr(client, "ttl") else int(window_s)
+        if ttl < 0:
+            ttl = int(window_s)
+        _WEATHER_RATE_REDIS_LAST_ERROR = None
+        _metric_inc("rate_limit_backends", "redis_allowed" if count <= limit else "redis_limited")
+        return {
+            "allowed": count <= limit,
+            "limit": limit,
+            "window_s": window_s,
+            "remaining": max(0, limit - count),
+            "retry_after": max(1, ttl),
+            "reset_s": max(1, ttl),
+            "backend": "redis",
+        }
+    except Exception as exc:
+        _WEATHER_RATE_REDIS_LAST_ERROR = str(exc)
+        _metric_inc("rate_limit_backends", "redis_error")
+        return None
+
+
+def _apply_rate_limit_headers(response: Response | None, result: dict) -> None:
+    if response is None:
+        return
+    response.headers["X-RateLimit-Limit"] = str(result.get("limit", ""))
+    response.headers["X-RateLimit-Remaining"] = str(result.get("remaining", ""))
+    response.headers["X-RateLimit-Reset"] = str(result.get("reset_s", ""))
+    response.headers["X-RateLimit-Backend"] = str(result.get("backend", "memory"))
+
+
+async def _enforce_weather_rate_limit_async(
+    request: Request | None, endpoint: str, response: Response | None = None
+) -> dict:
+    cfg = _weather_rate_backend_config()
+    result = await _redis_rate_limit_result(request, endpoint)
+    if result is None:
+        if cfg["backend"] == "redis" and not cfg["fallback_to_memory"]:
+            result = {
+                "allowed": False,
+                "limit": 0,
+                "window_s": 0,
+                "remaining": 0,
+                "retry_after": 30,
+                "reset_s": 30,
+                "backend": "redis_unavailable",
+            }
+        else:
+            result = _memory_rate_limit_result(request, endpoint)
+    _apply_rate_limit_headers(response, result)
+    if not result["allowed"]:
+        retry_after = int(result.get("retry_after") or 1)
+        _metric_inc("rate_limited", endpoint)
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message_ar": "تم تجاوز حد طلبات طبقة الطقس مؤقتاً.",
+                "endpoint": endpoint,
+                "limit": result.get("limit"),
+                "window_s": result.get("window_s"),
+                "retry_after_s": retry_after,
+                "backend": result.get("backend"),
+            },
+            headers={
+                "Retry-After": str(retry_after),
+                "X-RateLimit-Limit": str(result.get("limit", "")),
+                "X-RateLimit-Remaining": str(result.get("remaining", "")),
+                "X-RateLimit-Reset": str(result.get("reset_s", "")),
+                "X-RateLimit-Backend": str(result.get("backend", "memory")),
+            },
+        )
+    return result
+
+
+def _rate_key(request: Request | None, endpoint: str) -> str:
+    tenant = _tenant_id_from_request(request)
+    actor = _actor_id_from_request(request)
+    return f"{endpoint}:{tenant}:{actor}"
+
+
+def _enforce_weather_rate_limit(request: Request | None, endpoint: str) -> None:
+    """Synchronous memory limiter retained for unit tests and direct local calls."""
+    result = _memory_rate_limit_result(request, endpoint)
+    if not result["allowed"]:
+        retry_after = int(result.get("retry_after") or 1)
+        _metric_inc("rate_limited", endpoint)
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message_ar": "تم تجاوز حد طلبات طبقة الطقس مؤقتاً.",
+                "endpoint": endpoint,
+                "limit": result.get("limit"),
+                "window_s": result.get("window_s"),
+                "retry_after_s": retry_after,
+                "backend": result.get("backend"),
+            },
+            headers={
+                "Retry-After": str(retry_after),
+                "X-RateLimit-Limit": str(result.get("limit", "")),
+                "X-RateLimit-Remaining": str(result.get("remaining", "")),
+                "X-RateLimit-Reset": str(result.get("reset_s", "")),
+                "X-RateLimit-Backend": str(result.get("backend", "memory")),
+            },
+        )
+
+
+def _rate_dependency(endpoint: str):
+    async def _dep(request: Request, response: Response):
+        await _enforce_weather_rate_limit_async(request, endpoint, response)
+
+    return _dep
 
 
 def _prom_label(value: str) -> str:
@@ -141,6 +716,30 @@ def _weather_metrics_prometheus() -> str:
             _metrics_bucket("operations"),
         )
     )
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_rate_limited_total",
+            "Total weather requests rejected by in-process rate limiter",
+            "endpoint",
+            _metrics_bucket("rate_limited"),
+        )
+    )
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_cache_backend_total",
+            "Total weather cache backend events",
+            "event",
+            _metrics_bucket("cache_backends"),
+        )
+    )
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_rate_limit_backend_total",
+            "Total weather rate-limit backend events",
+            "event",
+            _metrics_bucket("rate_limit_backends"),
+        )
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -182,6 +781,9 @@ def _weather_cache_snapshot() -> dict:
         "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
         "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
         "max_items_soft": 2048,
+        "rate_limit_buckets": len(_WEATHER_RATE_WINDOWS),
+        "backend": _weather_cache_backend_status(),
+        "rate_limit_backend": _weather_rate_backend_status(),
     }
 
 
@@ -240,6 +842,10 @@ def _weather_engine_self_checks() -> dict:
     checks["cache_accounting"] = {"items", "fresh_items", "stale_items", "expired_items"}.issubset(
         _weather_cache_snapshot().keys()
     )
+    checks["rate_limits_configured"] = all(
+        v[0] > 0 and v[1] > 0 for v in _WEATHER_RATE_LIMITS.values()
+    )
+    details["rate_limits"] = _WEATHER_RATE_LIMITS
     passed = sum(1 for ok in checks.values() if ok)
     failed = [name for name, ok in checks.items() if not ok]
     return {
@@ -274,6 +880,236 @@ def _weather_runtime_readiness() -> dict:
         "cache": cache,
         "self_checks": self_checks,
         "degraded_reasons": degraded_reasons,
+    }
+
+
+def _registered_weather_routes() -> dict[str, list[str]]:
+    """Returns registered weather routes from this router without depending on app startup."""
+    routes: dict[str, list[str]] = {}
+    for route in getattr(router, "routes", []):
+        path = getattr(route, "path", "")
+        methods = sorted(getattr(route, "methods", set()) or [])
+        if path.startswith("/api/v1/weather"):
+            routes[path] = methods
+    return routes
+
+
+def _weather_runtime_contract() -> dict:
+    """Static runtime contract for UI/API integration checks.
+
+    This is intentionally local-only: it verifies the API route table, logical
+    guards, and frontend-facing contracts without calling Open-Meteo or the DB.
+    """
+    registered = _registered_weather_routes()
+    required = {
+        "/api/v1/weather/layers": ["GET"],
+        "/api/v1/weather/tile-data/{z}/{x}/{y}": ["GET"],
+        "/api/v1/weather/operation-tile-data/{z}/{x}/{y}": ["GET"],
+        "/api/v1/weather/probe": ["GET"],
+        "/api/v1/weather/operation-window": ["GET"],
+        "/api/v1/weather/operation-plan": ["GET"],
+        "/api/v1/weather/action-recommendation": ["GET"],
+        "/api/v1/weather/tasks/from-operation-plan": ["POST"],
+        "/api/v1/weather/recommendations/from-operation-plan": ["POST"],
+        "/api/v1/weather/field-weather-summary": ["GET"],
+        "/api/v1/weather/readyz": ["GET"],
+        "/api/v1/weather/self-test": ["GET"],
+        "/api/v1/weather/observability": ["GET"],
+        "/api/v1/weather/metrics.prom": ["GET"],
+        "/api/v1/weather/runtime-smoke-plan": ["GET"],
+    }
+    endpoints = []
+    missing: list[str] = []
+    for path, methods in required.items():
+        actual = registered.get(path, [])
+        ok = all(method in actual for method in methods)
+        if not ok:
+            missing.append(path)
+        endpoints.append({"path": path, "methods": methods, "registered_methods": actual, "ok": ok})
+
+    guards = {
+        "rate_limit_enabled": all(
+            k in _WEATHER_RATE_LIMITS
+            for k in [
+                "tile-data",
+                "operation-plan",
+                "weather-action-recommendation",
+                "task-from-operation-plan",
+                "recommendation-from-operation-plan",
+            ]
+        ),
+        "cache_enabled": _WEATHER_TILE_CACHE_TTL_S > 0
+        and _WEATHER_TILE_STALE_TTL_S > _WEATHER_TILE_CACHE_TTL_S,
+        "metrics_enabled": "sahool_weather_requests_total" in _weather_metrics_prometheus(),
+        "action_bridge_enabled": "/api/v1/weather/action-recommendation" in registered,
+    }
+    frontend_contract = {
+        "tile_layer_module": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
+        "layer_panel_module": "frontend/src/components/maphub/weather/WeatherLayerPanel.ts",
+        "probe_popup_module": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
+        "expected_probe_actions": [
+            "/api/v1/weather/action-recommendation",
+            "/api/v1/weather/tasks/from-operation-plan",
+            "/api/v1/weather/recommendations/from-operation-plan",
+        ],
+    }
+    failed_guards = [name for name, ok in guards.items() if not ok]
+    return {
+        "status": "ok" if not missing and not failed_guards else "degraded",
+        "service": "weather-engine",
+        "endpoints": endpoints,
+        "missing_endpoints": missing,
+        "guards": guards,
+        "failed_guards": failed_guards,
+        "frontend_contract": frontend_contract,
+    }
+
+
+def _weather_env_doctor() -> dict:
+    """Local configuration doctor for production/runtime operators.
+
+    Does not reveal secrets and does not perform external I/O. It reports whether
+    the weather engine has safe defaults for cache, rate limits, observability,
+    and action-bridge execution.
+    """
+    contract = _weather_runtime_contract()
+    checks = {
+        "cache_ttl_valid": _WEATHER_TILE_CACHE_TTL_S >= 60
+        and _WEATHER_TILE_STALE_TTL_S >= _WEATHER_TILE_CACHE_TTL_S,
+        "cache_backend_valid": (
+            _weather_cache_backend_config()["backend"] == "memory"
+            or _weather_cache_backend_config()["redis_configured"]
+            or _weather_cache_backend_config()["fallback_to_memory"]
+        ),
+        "rate_limits_valid": all(
+            limit > 0 and window > 0 for limit, window in _WEATHER_RATE_LIMITS.values()
+        ),
+        "rate_limit_backend_valid": (
+            _weather_rate_backend_config()["backend"] == "memory"
+            or _weather_rate_backend_config()["redis_configured"]
+            or _weather_rate_backend_config()["fallback_to_memory"]
+        ),
+        "high_volume_tiles_limited": _WEATHER_RATE_LIMITS.get("tile-data", (0, 0))[0] <= 2000,
+        "action_endpoints_limited": _WEATHER_RATE_LIMITS.get("task-from-operation-plan", (9999, 0))[
+            0
+        ]
+        <= 120,
+        "observability_registered": "/api/v1/weather/metrics.prom" in _registered_weather_routes(),
+        "readiness_registered": "/api/v1/weather/readyz" in _registered_weather_routes(),
+        "runtime_contract_ok": contract["status"] == "ok",
+    }
+    failed = [name for name, ok in checks.items() if not ok]
+    return {
+        "status": "ok" if not failed else "degraded",
+        "service": "weather-engine",
+        "checks": checks,
+        "failed": failed,
+        "settings": {
+            "cache_ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+            "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
+            "rate_limits": {
+                key: {"limit": value[0], "window_s": value[1]}
+                for key, value in _WEATHER_RATE_LIMITS.items()
+            },
+            "rate_limit_backend": _weather_rate_backend_status(),
+        },
+        "recommended_runtime_checks": [
+            "GET /api/v1/weather/readyz",
+            "GET /api/v1/weather/self-test",
+            "GET /api/v1/weather/runtime-contract",
+            "GET /api/v1/weather/runtime-smoke-plan",
+            "GET /api/v1/weather/metrics.prom",
+            "GET /api/v1/weather/tile-cache/backend",
+        ],
+    }
+
+
+def _weather_runtime_smoke_plan() -> dict:
+    """Operator-oriented smoke plan for Docker/Compose/Kubernetes verification.
+
+    This is a contract artifact, not an external probe: it gives deterministic
+    commands/endpoints that can be executed after `docker compose up` or after a
+    deployment. It intentionally avoids touching Open-Meteo or the database.
+    """
+    base = "/api/v1/weather"
+    return {
+        "status": "ok",
+        "service": "weather-engine",
+        "purpose": "post-deploy smoke verification for MapHub weather runtime",
+        "no_external_io": True,
+        "critical_endpoints": [
+            {
+                "method": "GET",
+                "path": f"{base}/readyz",
+                "expected": [200, 503],
+                "why": "readiness gate; 503 is acceptable only when breaker is intentionally open",
+            },
+            {
+                "method": "GET",
+                "path": f"{base}/self-test",
+                "expected": [200],
+                "why": "local engine self-checks",
+            },
+            {
+                "method": "GET",
+                "path": f"{base}/runtime-contract",
+                "expected": [200],
+                "why": "UI/API route contract",
+            },
+            {
+                "method": "GET",
+                "path": f"{base}/env-doctor",
+                "expected": [200],
+                "why": "configuration guardrails",
+            },
+            {
+                "method": "GET",
+                "path": f"{base}/layers",
+                "expected": [200],
+                "why": "frontend weather manifest",
+            },
+            {
+                "method": "GET",
+                "path": f"{base}/tile-cache/stats",
+                "expected": [200],
+                "why": "cache accounting",
+            },
+            {
+                "method": "GET",
+                "path": f"{base}/metrics.prom",
+                "expected": [200],
+                "why": "Prometheus scrape",
+            },
+        ],
+        "sample_runtime_endpoints": [
+            {
+                "method": "GET",
+                "path": f"{base}/tile-data/8/155/108?layer=temperature&time=now&model=best_match&interpolation=grid",
+                "expected": [200, 429, 502],
+                "why": "real tile path; may need network unless cached",
+            },
+            {
+                "method": "GET",
+                "path": f"{base}/operation-plan?lat=15.37&lon=44.19&operations=spraying,irrigation&hours=0,3,6&model=best_match",
+                "expected": [200, 429, 502],
+                "why": "decision path used by probe popup",
+            },
+        ],
+        "frontend_smoke": {
+            "route": "/fields/map-center?field_id=00000000-0000-4000-8000-000000000001&index=ndvi&source=my-fields&weather=1",
+            "expected_ui_contract": [
+                "weather overlay module loads",
+                "weather tiles request interpolation=grid",
+                "probe popup fetches action recommendation",
+                "task and recommendation buttons are present in popup markup",
+            ],
+        },
+        "commands": [
+            "python3 scripts/weather_runtime_smoke.py --base-url http://localhost:8000",
+            "cd frontend && npm run typecheck && npm run build",
+            "cd frontend && npm test -- src/components/maphub/weather/WeatherEngine.static.test.ts",
+            "cd frontend && npm run e2e:weather-smoke -- --project=chromium",
+        ],
     }
 
 
@@ -320,7 +1156,7 @@ async def _get_weather_sample_cached(
     حتى لا تختلف دلالة live/stale/failure بين أجزاء الخريطة.
     """
     key = f"{key_prefix}:{round(lat, 5)}:{round(lon, 5)}:{time}:{model}"
-    sample, cache_state, cache_age_s = _cache_get(key)
+    sample, cache_state, cache_age_s = await _cache_get_async(key)
     upstream_error = None
     if cache_state == "fresh" and sample is not None:
         return sample, cache_state, cache_age_s, upstream_error
@@ -328,11 +1164,11 @@ async def _get_weather_sample_cached(
         from api.connectors.openmeteo import fetch_weather_tile_data
 
         sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-        _cache_set(key, sample)
+        await _cache_set_async(key, sample)
         return sample, "refreshed", 0, None
     except Exception as e:
         upstream_error = str(e)
-        stale_sample, stale_state, stale_age = _cache_get(key)
+        stale_sample, stale_state, stale_age = await _cache_get_async(key)
         if stale_sample is None or stale_state not in {"stale", "fresh"}:
             raise
         return stale_sample, "stale_fallback", stale_age, upstream_error
@@ -395,6 +1231,101 @@ def _operation_priority(decision: dict) -> int:
     if decision.get("suitability") in {"optimal", "acceptable"}:
         return round(score * 100)
     return 0
+
+
+def _task_type_for_operation(operation: str) -> str:
+    return {
+        "spraying": "spraying",
+        "irrigation": "irrigation",
+        "harvesting": "harvest",
+        "sowing": "sowing",
+    }.get(operation, operation)
+
+
+def _task_priority_from_score(score_0_100: int) -> int:
+    # field_tasks priority is ascending: 1 is highest, 5 is routine.
+    if score_0_100 >= 85:
+        return 1
+    if score_0_100 >= 70:
+        return 2
+    if score_0_100 >= 50:
+        return 3
+    if score_0_100 >= 30:
+        return 4
+    return 5
+
+
+def _recommended_date_from_frame(frame: dict | None) -> str:
+    hour_offset = int((frame or {}).get("hour_offset") or 0)
+    return (datetime.now(UTC) + timedelta(hours=hour_offset)).date().isoformat()
+
+
+def _duration_for_operation(operation: str) -> int:
+    return {"spraying": 120, "irrigation": 180, "harvesting": 240, "sowing": 180}.get(operation, 90)
+
+
+def _build_weather_task_draft(
+    field_id: str, plan_item: dict, extra_notes: str | None = None
+) -> dict:
+    operation = str(plan_item.get("operation") or "spraying")
+    best = plan_item.get("best") or {}
+    decision = best.get("operation") or {
+        "operation": operation,
+        "score": 0,
+        "suitability": "unsafe",
+    }
+    priority_score = int(plan_item.get("priority") or _operation_priority(decision))
+    factors = ", ".join(decision.get("limiting_factors") or []) or "لا توجد عوامل مانعة حادة"
+    notes = (
+        f"خطة مولّدة من Weather Operation Plan. العملية: {_operation_label_ar(operation)}. "
+        f"أفضل نافذة: {best.get('time', 'now')}. الدرجة: {priority_score}%. "
+        f"الحالة: {_plan_status_ar(decision)}. العوامل: {factors}. "
+        f"النصيحة: {plan_item.get('advice_ar') or _operation_advice_ar(decision)}"
+    )
+    if extra_notes:
+        notes = f"{notes}\nملاحظة المستخدم: {extra_notes}"
+    return {
+        "field_id": field_id,
+        "task_type": _task_type_for_operation(operation),
+        "operation": operation,
+        "priority": _task_priority_from_score(priority_score),
+        "priority_score": priority_score,
+        "status": "pending",
+        "recommended_date": _recommended_date_from_frame(best),
+        "estimated_duration_min": _duration_for_operation(operation),
+        "estimated_cost_usd": None,
+        "assigned_to": None,
+        "notes": notes,
+        "source_event_type": "WEATHER_OPERATION_PLAN",
+        "source_agent": "weather-engine",
+        "decision": decision,
+    }
+
+
+def _recommendation_payload_from_plan(field_id: str, plan: dict, crop: str | None = None) -> dict:
+    top = plan.get("top_recommendation") or {}
+    op = top.get("operation") or "weather"
+    best = top.get("best") or {}
+    decision = best.get("operation") or {}
+    return {
+        "field_id": field_id,
+        "crop": crop,
+        "recommendation_type": "weather_operation_plan",
+        "title_ar": f"توصية طقس تشغيلية: {_operation_label_ar(op)}",
+        "reason_ar": top.get("advice_ar") or _operation_advice_ar({"operation": op, **decision}),
+        "priority": top.get("priority", 0),
+        "recommended_operation": op,
+        "recommended_time": best.get("time"),
+        "suitability": decision.get("suitability"),
+        "score": decision.get("score"),
+        "alerts_ar": plan.get("alerts_ar") or [],
+        "provenance": {
+            "source": "open-meteo+sahool-operation-plan",
+            "model": plan.get("model"),
+            "hours": plan.get("hours"),
+            "partial": plan.get("partial"),
+        },
+    }
 
 
 def _operation_label_ar(operation: str) -> str:
@@ -631,6 +1562,34 @@ def weather_self_test(response: Response):
     return result
 
 
+@router.get("/api/v1/weather/runtime-contract")
+def weather_runtime_contract(response: Response):
+    """UI/API runtime contract check for MapHub weather integration."""
+    result = _weather_runtime_contract()
+    if result["status"] != "ok":
+        response.status_code = 500
+    _record_weather_observation("runtime-contract", cache_state=result["status"])
+    return result
+
+
+@router.get("/api/v1/weather/env-doctor")
+def weather_env_doctor(response: Response):
+    """Local operational guardrail report for weather engine settings."""
+    result = _weather_env_doctor()
+    if result["status"] != "ok":
+        response.status_code = 500
+    _record_weather_observation("env-doctor", cache_state=result["status"])
+    return result
+
+
+@router.get("/api/v1/weather/runtime-smoke-plan")
+def weather_runtime_smoke_plan():
+    """Post-deploy smoke plan for operators and CI smoke jobs."""
+    result = _weather_runtime_smoke_plan()
+    _record_weather_observation("runtime-smoke-plan", cache_state=result["status"])
+    return result
+
+
 @router.get("/api/v1/weather/current")
 async def weather_current(lat: float, lon: float):
     """الطقس الحالي من Open-Meteo. مفتوح بدون auth."""
@@ -775,23 +1734,64 @@ def weather_layers_manifest():
             "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
             "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
             "max_items_soft": 2048,
+            "backend": _weather_cache_backend_status(),
         },
         "decision_endpoints": [
             "/api/v1/weather/probe",
             "/api/v1/weather/operation-window",
             "/api/v1/weather/operation-plan",
+            "/api/v1/weather/action-recommendation",
+            "/api/v1/weather/tasks/from-operation-plan",
+            "/api/v1/weather/recommendations/from-operation-plan",
             "/api/v1/weather/field-weather-summary",
         ],
+        "rate_limits": {
+            **{
+                key: {"limit": value[0], "window_s": value[1]}
+                for key, value in _WEATHER_RATE_LIMITS.items()
+            },
+            "backend": _weather_rate_backend_status(),
+            "policies": {
+                key: {"limit": value[0], "window_s": value[1]}
+                for key, value in _WEATHER_RATE_LIMITS.items()
+            },
+        },
+        "tile_interpolation": {
+            "supported": True,
+            "modes": ["center", "grid"],
+            "default_api_mode": "center",
+            "frontend_mode": "grid",
+            "strategy": "bilinear_2x2_center",
+        },
         "observability_endpoints": [
             "/api/v1/weather/health",
             "/api/v1/weather/readyz",
             "/api/v1/weather/self-test",
+            "/api/v1/weather/runtime-contract",
+            "/api/v1/weather/env-doctor",
+            "/api/v1/weather/runtime-smoke-plan",
             "/api/v1/weather/tile-cache/stats",
             "/api/v1/weather/tile-cache/prune",
+            "/api/v1/weather/tile-cache/backend",
+            "/api/v1/weather/rate-limit/backend",
             "/api/v1/weather/observability",
             "/api/v1/weather/metrics.prom",
         ],
     }
+
+
+@router.get("/api/v1/weather/tile-cache/backend")
+def weather_tile_cache_backend():
+    """Return effective weather cache backend configuration without exposing Redis URL."""
+    _record_weather_observation("tile-cache-backend", cache_state="served")
+    return _weather_cache_backend_status()
+
+
+@router.get("/api/v1/weather/rate-limit/backend")
+def weather_rate_limit_backend():
+    """Return effective weather rate-limit backend without exposing Redis URL."""
+    _record_weather_observation("rate-limit-backend", cache_state="served")
+    return _weather_rate_backend_status()
 
 
 @router.get("/api/v1/weather/tile-cache/stats")
@@ -818,6 +1818,15 @@ def weather_observability():
             "upstream": _metrics_bucket("upstream"),
             "layers": _metrics_bucket("layers"),
             "operations": _metrics_bucket("operations"),
+            "rate_limited": _metrics_bucket("rate_limited"),
+            "cache_backends": _metrics_bucket("cache_backends"),
+        },
+        "rate_limits": {
+            "backend": _weather_rate_backend_status(),
+            "policies": {
+                key: {"limit": value[0], "window_s": value[1]}
+                for key, value in _WEATHER_RATE_LIMITS.items()
+            },
         },
     }
 
@@ -846,15 +1855,16 @@ def weather_tile_cache_prune(
     TTL الطازج، وهو مفيد قبل اختبارات load/soak أو عند تبديل سياسة الكاش.
 
     نقطة *مُتلِفة* (تُفرِغ كاش البنية التحتيّة) ⇒ محميّة بـService Token (X-Agent-Token)
-    كي لا يستطيع مجهول إجبار إفراغ الكاش (تضخيم طلبات Open-Meteo). بقيّة نقاط الطقس
-    عامّة (قراءة بإحداثيّات بلا بيانات مستأجِر)؛ هذه وحدها تُغيّر حالة الخادم.
+    كي لا يُجبر مجهول إفراغ الكاش (تضخيم طلبات Open-Meteo).
     """
     result = _prune_weather_cache(expired_only=expired_only)
     _record_weather_observation("tile-cache-prune", cache_state="served")
     return result
 
 
-@router.get("/api/v1/weather/tile-data/{z}/{x}/{y}")
+@router.get(
+    "/api/v1/weather/tile-data/{z}/{x}/{y}", dependencies=[Depends(_rate_dependency("tile-data"))]
+)
 async def weather_tile_data(
     z: int,
     x: int,
@@ -865,6 +1875,9 @@ async def weather_tile_data(
     ),
     time: str = Query("now", description="now|+1h|+3h|+6h|+12h|+24h|+48h"),
     model: str = Query("best_match", description="best_match أو نموذج Open-Meteo صريح عند الحاجة"),
+    interpolation: Literal["center", "grid"] = Query(
+        "center", description="center|grid — grid returns 2x2+center interpolation points"
+    ),
 ):
     """بيانات بلاطة طقس واحدة من Open-Meteo، ترسمها SAHOOL في الواجهة.
 
@@ -882,26 +1895,45 @@ async def weather_tile_data(
     time, model = _validate_time_model(time, model)
 
     lat, lon = _tile_center(z, x, y)
-    key = f"{z}:{x}:{y}:{time}:{model}"
-    sample, cache_state, cache_age_s = _cache_get(key)
-    upstream_error = None
-    if cache_state != "fresh":
-        try:
-            from api.connectors.openmeteo import fetch_weather_tile_data
+    interpolation_payload = None
+    if interpolation == "grid":
+        (
+            sample,
+            cache_state,
+            cache_age_s,
+            upstream_error,
+            interpolation_payload,
+        ) = await _weather_tile_interpolation_payload(
+            z=z, x=x, y=y, layer=layer, time=time, model=model
+        )
+        if sample is None:
+            upstream_error = upstream_error or "interpolation failed"
+            cache_state = "miss"
+    else:
+        key = f"{z}:{x}:{y}:{time}:{model}"
+        sample, cache_state, cache_age_s = await _cache_get_async(key)
+        upstream_error = None
+    if interpolation != "grid" or sample is None:
+        key = f"{z}:{x}:{y}:{time}:{model}"
+        sample, cache_state, cache_age_s = await _cache_get_async(key)
+        upstream_error = None
+        if cache_state != "fresh":
+            try:
+                from api.connectors.openmeteo import fetch_weather_tile_data
 
-            sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-            _cache_set(key, sample)
-            cache_state = "refreshed"
-            cache_age_s = 0
-        except Exception as e:
-            upstream_error = str(e)
-            # إن وجدت عينة stale، نعيدها بدل كسر الخريطة أثناء انقطاع Open‑Meteo.
-            stale_sample, stale_state, stale_age = _cache_get(key)
-            if stale_sample is None or stale_state not in {"stale", "fresh"}:
-                raise HTTPException(status_code=502, detail=f"Open-Meteo tile-data: {e}") from e
-            sample = stale_sample
-            cache_state = "stale_fallback"
-            cache_age_s = stale_age
+                sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
+                await _cache_set_async(key, sample)
+                cache_state = "refreshed"
+                cache_age_s = 0
+            except Exception as e:
+                upstream_error = str(e)
+                # إن وجدت عينة stale، نعيدها بدل كسر الخريطة أثناء انقطاع Open‑Meteo.
+                stale_sample, stale_state, stale_age = await _cache_get_async(key)
+                if stale_sample is None or stale_state not in {"stale", "fresh"}:
+                    raise HTTPException(status_code=502, detail=f"Open-Meteo tile-data: {e}") from e
+                sample = stale_sample
+                cache_state = "stale_fallback"
+                cache_age_s = stale_age
 
     _record_weather_observation(
         "tile-data", cache_state=cache_state, upstream_error=upstream_error, layer=layer
@@ -931,10 +1963,14 @@ async def weather_tile_data(
         "cache_state": cache_state,
         "cache_age_s": cache_age_s,
         "upstream_error": upstream_error,
+        "interpolation": interpolation_payload,
     }
 
 
-@router.get("/api/v1/weather/operation-tile-data/{z}/{x}/{y}")
+@router.get(
+    "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
+    dependencies=[Depends(_rate_dependency("operation-tile-data"))],
+)
 async def weather_operation_tile_data(
     z: int,
     x: int,
@@ -942,6 +1978,7 @@ async def weather_operation_tile_data(
     operation: Literal["spraying", "harvesting", "sowing", "irrigation"] = Query("spraying"),
     time: str = Query("now"),
     model: str = Query("best_match"),
+    interpolation: Literal["center", "grid"] = Query("center"),
 ):
     """بلاطة صلاحية عملية زراعية؛ Open-Meteo بيانات، SAHOOL قرار ورسم."""
     if z < 0 or z > 18:
@@ -951,27 +1988,46 @@ async def weather_operation_tile_data(
         raise HTTPException(status_code=400, detail="x/y خارج نطاق البلاطات لهذا التكبير")
     time, model = _validate_time_model(time, model)
     lat, lon = _tile_center(z, x, y)
-    key = f"op:{operation}:{z}:{x}:{y}:{time}:{model}"
-    sample, cache_state, cache_age_s = _cache_get(key)
-    upstream_error = None
-    if cache_state != "fresh":
-        try:
-            from api.connectors.openmeteo import fetch_weather_tile_data
+    interpolation_payload = None
+    if interpolation == "grid":
+        (
+            sample,
+            cache_state,
+            cache_age_s,
+            upstream_error,
+            interpolation_payload,
+        ) = await _weather_tile_interpolation_payload(
+            z=z, x=x, y=y, layer="temperature", time=time, model=model, operation=operation
+        )
+        if sample is None:
+            upstream_error = upstream_error or "operation interpolation failed"
+            cache_state = "miss"
+    else:
+        key = f"op:{operation}:{z}:{x}:{y}:{time}:{model}"
+        sample, cache_state, cache_age_s = await _cache_get_async(key)
+        upstream_error = None
+    if interpolation != "grid" or sample is None:
+        key = f"op:{operation}:{z}:{x}:{y}:{time}:{model}"
+        sample, cache_state, cache_age_s = await _cache_get_async(key)
+        upstream_error = None
+        if cache_state != "fresh":
+            try:
+                from api.connectors.openmeteo import fetch_weather_tile_data
 
-            sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-            _cache_set(key, sample)
-            cache_state = "refreshed"
-            cache_age_s = 0
-        except Exception as e:
-            upstream_error = str(e)
-            stale_sample, stale_state, stale_age = _cache_get(key)
-            if stale_sample is None or stale_state not in {"stale", "fresh"}:
-                raise HTTPException(
-                    status_code=502, detail=f"Open-Meteo operation tile-data: {e}"
-                ) from e
-            sample = stale_sample
-            cache_state = "stale_fallback"
-            cache_age_s = stale_age
+                sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
+                await _cache_set_async(key, sample)
+                cache_state = "refreshed"
+                cache_age_s = 0
+            except Exception as e:
+                upstream_error = str(e)
+                stale_sample, stale_state, stale_age = await _cache_get_async(key)
+                if stale_sample is None or stale_state not in {"stale", "fresh"}:
+                    raise HTTPException(
+                        status_code=502, detail=f"Open-Meteo operation tile-data: {e}"
+                    ) from e
+                sample = stale_sample
+                cache_state = "stale_fallback"
+                cache_age_s = stale_age
     decision = _operation_suitability(sample, operation)
     _record_weather_observation(
         "operation-tile-data",
@@ -996,10 +2052,11 @@ async def weather_operation_tile_data(
         "cache_state": cache_state,
         "cache_age_s": cache_age_s,
         "upstream_error": upstream_error,
+        "interpolation": interpolation_payload,
     }
 
 
-@router.get("/api/v1/weather/probe")
+@router.get("/api/v1/weather/probe", dependencies=[Depends(_rate_dependency("probe"))])
 async def weather_probe(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
@@ -1009,19 +2066,19 @@ async def weather_probe(
     """قراءة نقطة تحت المؤشر/النقرة + قرارات زراعية مختصرة."""
     time, model = _validate_time_model(time, model)
     key = f"probe:{round(lat, 4)}:{round(lon, 4)}:{time}:{model}"
-    sample, cache_state, cache_age_s = _cache_get(key)
+    sample, cache_state, cache_age_s = await _cache_get_async(key)
     upstream_error = None
     if cache_state != "fresh":
         try:
             from api.connectors.openmeteo import fetch_weather_tile_data
 
             sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-            _cache_set(key, sample)
+            await _cache_set_async(key, sample)
             cache_state = "refreshed"
             cache_age_s = 0
         except Exception as e:
             upstream_error = str(e)
-            stale_sample, stale_state, stale_age = _cache_get(key)
+            stale_sample, stale_state, stale_age = await _cache_get_async(key)
             if stale_sample is None or stale_state not in {"stale", "fresh"}:
                 raise HTTPException(status_code=502, detail=f"Open-Meteo probe: {e}") from e
             sample = stale_sample
@@ -1045,7 +2102,9 @@ async def weather_probe(
     }
 
 
-@router.get("/api/v1/weather/operation-window")
+@router.get(
+    "/api/v1/weather/operation-window", dependencies=[Depends(_rate_dependency("operation-window"))]
+)
 async def weather_operation_window(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
@@ -1104,7 +2163,10 @@ async def weather_operation_window(
     }
 
 
-@router.get("/api/v1/weather/field-weather-summary")
+@router.get(
+    "/api/v1/weather/field-weather-summary",
+    dependencies=[Depends(_rate_dependency("field-weather-summary"))],
+)
 async def weather_field_summary(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
@@ -1145,7 +2207,9 @@ async def weather_field_summary(
     }
 
 
-@router.get("/api/v1/weather/operation-plan")
+@router.get(
+    "/api/v1/weather/operation-plan", dependencies=[Depends(_rate_dependency("operation-plan"))]
+)
 async def weather_operation_plan(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
@@ -1242,7 +2306,212 @@ async def weather_operation_plan(
     }
 
 
-@router.get("/api/v1/weather/tile-series/{z}/{x}/{y}")
+@router.get(
+    "/api/v1/weather/action-recommendation",
+    dependencies=[Depends(_rate_dependency("weather-action-recommendation"))],
+)
+async def weather_action_recommendation(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    field_id: str | None = Query(None),
+    operations: str = Query("spraying,irrigation,harvesting,sowing"),
+    hours: str = Query("0,1,3,6,12,24,48"),
+    model: str = Query("best_match"),
+):
+    """توصية تشغيلية قابلة للتحويل إلى مهمة من خطة الطقس.
+
+    هذا endpoint هو جسر المنتج بين الخريطة والمهام: يعطي أفضل توصية، ومسودة مهمة
+    جاهزة، وروابط الإجراءات التالية. لا يكتب في قاعدة البيانات.
+    """
+    plan = await weather_operation_plan(
+        lat=lat, lon=lon, operations=operations, hours=hours, model=model
+    )
+    top = plan.get("top_recommendation") or {}
+    draft = _build_weather_task_draft(field_id or "", top) if field_id and top else None
+    recommendation = _recommendation_payload_from_plan(field_id or "", plan) if field_id else None
+    _record_weather_observation("weather-action-recommendation", cache_state="served")
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "field_id": field_id,
+        "operation_plan": plan,
+        "recommendation": recommendation,
+        "task_draft": draft,
+        "actions": {
+            "create_task_endpoint": "/api/v1/weather/tasks/from-operation-plan",
+            "save_recommendation_endpoint": "/api/v1/weather/recommendations/from-operation-plan",
+        },
+        "source": "open-meteo+sahool-action-bridge",
+    }
+
+
+@router.post(
+    "/api/v1/weather/tasks/from-operation-plan",
+    dependencies=[Depends(_rate_dependency("task-from-operation-plan"))],
+)
+async def weather_create_task_from_operation_plan(
+    req: WeatherTaskFromPlanRequest,
+    user=Depends(
+        __import__("api.main", fromlist=["require_permission", "Permission"]).require_permission(
+            __import__("api.main", fromlist=["Permission"]).Permission.FIELD_EDIT
+        )
+    ),
+):
+    """ينشئ مهمة حقل من أفضل نافذة في Weather Operation Plan.
+
+    dry_run=true يعيد المسودة فقط ولا يكتب في قاعدة البيانات؛ مفيد للواجهة قبل أن
+    يضغط المستخدم «إنشاء مهمة».
+    """
+    plan = await weather_operation_plan(
+        lat=req.lat,
+        lon=req.lon,
+        operations=req.operation,
+        hours=req.hours,
+        model=req.model,
+    )
+    top = plan.get("top_recommendation") or {}
+    draft = _build_weather_task_draft(req.field_id, top, extra_notes=req.notes)
+    draft["assigned_to"] = req.assigned_to
+    draft["estimated_cost_usd"] = req.estimated_cost_usd
+    if req.dry_run:
+        _record_weather_observation(
+            "task-from-operation-plan", cache_state="dry_run", operation=req.operation
+        )
+        return {"created": False, "dry_run": True, "task": draft, "operation_plan": plan}
+
+    try:
+        from api.main import (
+            _TASK_COLS,
+            _db_unavailable,
+            _emit_domain_event,
+            _row_to_task,
+            tenant_connection,
+        )
+
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                f"""INSERT INTO field_tasks
+                       (tenant_id, field_id, task_type, priority, status, recommended_date,
+                        estimated_duration_min, estimated_cost_usd, assigned_to, notes,
+                        source_event_type, source_agent)
+                   VALUES ($1::uuid, $2, $3, $4, 'pending', $5::date, $6, $7, $8, $9, $10, $11)
+                   RETURNING {_TASK_COLS}""",
+                str(user.tenant_id),
+                draft["field_id"],
+                draft["task_type"],
+                draft["priority"],
+                draft["recommended_date"],
+                draft["estimated_duration_min"],
+                draft["estimated_cost_usd"],
+                draft["assigned_to"],
+                draft["notes"],
+                draft["source_event_type"],
+                draft["source_agent"],
+            )
+            task = _row_to_task(row).model_dump()
+            await _emit_domain_event(
+                conn,
+                user,
+                "TASK_CREATED",
+                "task",
+                task["task_id"],
+                {
+                    "field_id": req.field_id,
+                    "source": "weather_operation_plan",
+                    "operation": req.operation,
+                },
+            )
+    except Exception as e:  # noqa: BLE001
+        from api.main import _db_unavailable
+
+        raise _db_unavailable("إنشاء مهمة من خطة الطقس", e) from e
+    _record_weather_observation(
+        "task-from-operation-plan", cache_state="created", operation=req.operation
+    )
+    return {"created": True, "dry_run": False, "task": task, "operation_plan": plan}
+
+
+@router.post(
+    "/api/v1/weather/recommendations/from-operation-plan",
+    dependencies=[Depends(_rate_dependency("recommendation-from-operation-plan"))],
+)
+async def weather_recommendation_from_operation_plan(
+    req: WeatherRecommendationFromPlanRequest,
+    user=Depends(
+        __import__("api.main", fromlist=["require_permission", "Permission"]).require_permission(
+            __import__("api.main", fromlist=["Permission"]).Permission.RECOMMENDATION_REQUEST
+        )
+    ),
+):
+    """يحفظ توصية طقس تشغيلية في جدول recommendations أو يعيدها كـdry-run."""
+    plan = await weather_operation_plan(
+        lat=req.lat,
+        lon=req.lon,
+        operations=req.operations,
+        hours=req.hours,
+        model=req.model,
+    )
+    payload = _recommendation_payload_from_plan(req.field_id, plan, crop=req.crop)
+    rec_id = f"weather-{uuid4().hex[:16]}"
+    if req.dry_run:
+        _record_weather_observation("recommendation-from-operation-plan", cache_state="dry_run")
+        return {
+            "saved": False,
+            "dry_run": True,
+            "rec_id": rec_id,
+            "recommendation": payload,
+            "operation_plan": plan,
+        }
+    try:
+        import json as _json
+
+        from api.main import _db_unavailable, _emit_domain_event, tenant_connection
+
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO recommendations
+                    (rec_id, tenant_id, farm_id, field_id, crop, delivered, reason_ar,
+                     recommendation, cross_reference, provenance, issued_at)
+                   VALUES ($1, $2::uuid, $3, $4, $5, true, $6, $7::jsonb, $8::jsonb, $9::jsonb, now())""",
+                rec_id,
+                str(user.tenant_id),
+                req.farm_id,
+                req.field_id,
+                req.crop,
+                payload.get("reason_ar"),
+                _json.dumps(payload, ensure_ascii=False, default=str),
+                _json.dumps(
+                    {"operation_plan_top": plan.get("top_recommendation")},
+                    ensure_ascii=False,
+                    default=str,
+                ),
+                _json.dumps(payload.get("provenance") or {}, ensure_ascii=False, default=str),
+            )
+            await _emit_domain_event(
+                conn,
+                user,
+                "RECOMMENDATION_CREATED",
+                "recommendation",
+                rec_id,
+                {"field_id": req.field_id, "source": "weather_operation_plan"},
+            )
+    except Exception as e:  # noqa: BLE001
+        from api.main import _db_unavailable
+
+        raise _db_unavailable("حفظ توصية من خطة الطقس", e) from e
+    _record_weather_observation("recommendation-from-operation-plan", cache_state="saved")
+    return {
+        "saved": True,
+        "dry_run": False,
+        "rec_id": rec_id,
+        "recommendation": payload,
+        "operation_plan": plan,
+    }
+
+
+@router.get(
+    "/api/v1/weather/tile-series/{z}/{x}/{y}",
+    dependencies=[Depends(_rate_dependency("tile-series"))],
+)
 async def weather_tile_series(
     z: int,
     x: int,

@@ -27,6 +27,7 @@ export interface DeviceMarker {
 }
 
 export interface WeatherMarker {
+  fieldId?: string | null;
   lat: number;
   lng: number;
   tempC: number | null;

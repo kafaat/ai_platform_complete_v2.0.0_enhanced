@@ -66,7 +66,7 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
 
   useEffect(() => {
     if (!stableMarker) return undefined;
-    return registerWeatherProbePopup(map, layer, time, model);
+    return registerWeatherProbePopup(map, layer, time, model, stableMarker.fieldId ?? null);
   }, [map, stableMarker, time, model, layer]);
 
   return null;

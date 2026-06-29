@@ -3,14 +3,19 @@ import { getAccessToken } from '../../../lib/authStorage';
 
 export const WEATHER_TILE_SIZE = 256;
 
-// ترويسات طلبات الطقس: تُرفِق رمز الوصول (Bearer) حين توفّره الجلسة. حاسم خلف
-// بوّابة الإنتاج (auth_request على /api/v1/) — بدونه تُرجِع نقاط الطقس 401 ولا
-// تظهر الطبقة. الطلبات هنا عبر fetch (لا <img>) فتقبل الترويسة مباشرةً.
+// ترويسات طلبات الطقس: تُرفِق رمز الوصول (Bearer) حين توفّره الجلسة. حاسم خلف بوّابة
+// الإنتاج (auth_request على /api/v1/) — وبالأخصّ نقاط POST (إنشاء مهمّة/توصية) المحميّة
+// بـrequire_permission: بدون الترويسة تُرجِع 401/403. الطلبات هنا عبر fetch فتقبلها مباشرةً.
 export function weatherFetchHeaders(): Record<string, string> {
   const h: Record<string, string> = { Accept: 'application/json' };
   const tok = getAccessToken();
   if (tok) h.Authorization = `Bearer ${tok}`;
   return h;
+}
+
+// ترويسات JSON لطلبات POST (تُضيف Content-Type فوق ترويسات المصادقة).
+export function weatherJsonHeaders(): Record<string, string> {
+  return { ...weatherFetchHeaders(), 'Content-Type': 'application/json' };
 }
 
 export type WeatherLayerKey =
@@ -28,6 +33,24 @@ export type WeatherLayerKey =
   | 'operation_sowing'
   | 'operation_irrigation';
 
+export interface WeatherInterpolationPoint {
+  id: string;
+  u: number;
+  v: number;
+  lat?: number;
+  lon?: number;
+  value: number | null;
+  cache_state?: string;
+}
+
+export interface WeatherInterpolationPayload {
+  mode: string;
+  quality: 'smooth' | 'partial' | string;
+  point_count: number;
+  average_value?: number | null;
+  points: WeatherInterpolationPoint[];
+}
+
 export interface WeatherTilePayload {
   layer: WeatherLayerKey;
   value: number | null;
@@ -35,6 +58,7 @@ export interface WeatherTilePayload {
   source?: string;
   sample?: Record<string, unknown>;
   operation?: { score: number; suitability: string; limiting_factors: string[] };
+  interpolation?: WeatherInterpolationPayload | null;
   cache_state?: string;
   cache_age_s?: number | null;
   upstream_error?: string | null;

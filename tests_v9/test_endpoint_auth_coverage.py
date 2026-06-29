@@ -202,7 +202,14 @@ PUBLIC_ALLOWLIST: set[str] = {
     "/api/v1/weather/self-test",  # فحص ذاتيّ جافّ بلا I/O خارجيّ — تشخيص بنية تحتيّة.
     "/api/v1/weather/observability",  # مشاهدة تشغيليّة خفيفة (عدّادات الكاش/القاطع) — لا بيانات مستأجِر.
     "/api/v1/weather/metrics.prom",  # تصدير Prometheus/OpenMetrics — يُكشَط آليّاً، لا بيانات مستأجِر.
-    # ملاحظة: /api/v1/weather/tile-cache/prune (POST مُتلِف) محميّة بـ_require_service_token — ليست عامّة.
+    "/api/v1/weather/action-recommendation",  # توصية إجراء بإحداثيّات — حساب من خطّة الطقس، لا كتابة DB ولا قراءة مستأجِر.
+    "/api/v1/weather/env-doctor",  # تشخيص بيئة المحرّك — بنية تحتيّة، لا بيانات مستأجِر.
+    "/api/v1/weather/rate-limit/backend",  # حالة backend حدّ المعدّل — بنية تحتيّة، لا بيانات.
+    "/api/v1/weather/runtime-contract",  # عقد التشغيل (نقاط/حدود) — مرجع ثابت، لا بيانات.
+    "/api/v1/weather/runtime-smoke-plan",  # خطّة فحص الدخان — مرجع تشخيصيّ، لا بيانات.
+    "/api/v1/weather/tile-cache/backend",  # حالة backend كاش البلاطات — بنية تحتيّة، لا بيانات.
+    # ملاحظات: POST tile-cache/prune محميّ بـ_require_service_token؛ POST tasks/recommendations
+    # from-operation-plan محميّان بـrequire_permission (FIELD_EDIT/RECOMMENDATION_REQUEST) — ليست عامّة.
 }
 
 
