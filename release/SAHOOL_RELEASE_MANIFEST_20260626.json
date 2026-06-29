@@ -2,7 +2,7 @@
   "checksums_file": "release/FILE_CHECKSUMS.sha256",
   "components": {
     "component_file_counts": {
-      "frontend": 263,
+      "frontend": 267,
       "grafana": 5,
       "migrations": 138,
       "mobile": 47,
@@ -28,8 +28,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 2590,
-  "generated_at": "2026-06-29T19:23:49.268973+00:00",
+  "file_count": 2596,
+  "generated_at": "2026-06-29T20:03:53.916002+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -90,5 +90,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 17687328
+  "total_size_bytes": 17725601
 }

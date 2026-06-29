@@ -10,15 +10,16 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import {
-  MapContainer, TileLayer, FeatureGroup, useMap, useMapEvents, CircleMarker as LeafletCircleMarker, Polyline,
+  MapContainer, TileLayer, FeatureGroup, useMap,
 } from 'react-leaflet';
-import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
+import DrawControl from './maphub/DrawControl'; // شريط المضلّع (leaflet-draw خام — بديل EditControl، توافق React 19)
+import InteractiveDrawLayer, { type DrawTool } from './maphub/InteractiveDrawLayer'; // الدائرة/المستطيل بالنقر + معاينة حيّة
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ لـLeaflet + الأداة + الأيقونات (حاسم للتصيير)
 import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle, Upload, FileUp,
-  Pentagon, Square, Circle, Magnet, Crosshair, MousePointer2,
+  Pentagon, Square, Circle, Magnet,
   Undo2, Redo2,
 } from 'lucide-react';
 import shp from 'shpjs';
@@ -45,6 +46,18 @@ function InvalidateMapSize() {
     const t2 = setTimeout(() => map.invalidateSize(true), 250);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [map]);
+  return null;
+}
+
+// حصر متبادل: حين يبدأ المستخدم رسم المضلّع من شريط leaflet-draw، نُلغي الأداة
+// التفاعليّة (دائرة/مستطيل) كي لا تلتقط الأداتان نقرات الخريطة معاً.
+function CancelToolOnDrawStart({ onDrawStart }: { onDrawStart: () => void }) {
+  const map = useMap();
+  useEffect(() => {
+    const h = () => onDrawStart();
+    map.on('draw:drawstart', h);
+    return () => { map.off('draw:drawstart', h); };
+  }, [map, onDrawStart]);
   return null;
 }
 
@@ -178,24 +191,6 @@ function circleToPolygon(center: L.LatLng, radiusM: number, n = 72): L.LatLng[] 
   return pts;
 }
 
-function PivotClickCapture({
-  mode,
-  onCenter,
-  onEdge,
-}: {
-  mode: 'idle' | 'center' | 'edge';
-  onCenter: (p: L.LatLng) => void;
-  onEdge: (p: L.LatLng) => void;
-}) {
-  useMapEvents({
-    click(e) {
-      if (mode === 'center') onCenter(e.latlng);
-      if (mode === 'edge') onEdge(e.latlng);
-    },
-  });
-  return null;
-}
-
 // ── Main component ─────────────────────────────────────────────
 export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFields }: Props) {
   const fgRef = useRef<L.FeatureGroup>(null);
@@ -216,10 +211,10 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const [polygon, setPolygon] = useState<L.Polygon | null>(null);
   // مدخل "دائرة بنصف قطر" (إلهام FieldView): نصف القطر بالمتر (م) فقط — لا أقدام.
   const [radiusInput, setRadiusInput] = useState('');
-  // أداة الحقل المحوري الاحترافية: مركز أولاً، ثم نقطة على المحيط أو نصف قطر يدوي.
-  const [pivotMode, setPivotMode] = useState<'idle' | 'center' | 'edge'>('idle');
-  const [pivotCenter, setPivotCenter] = useState<L.LatLng | null>(null);
-  const [pivotEdge, setPivotEdge] = useState<L.LatLng | null>(null);
+  // أداة الرسم التفاعليّة المختارة (دائرة/مستطيل) + سطر إرشاد حيّ. المضلّع يبقى على
+  // شريط leaflet-draw؛ هاتان عبر InteractiveDrawLayer (نقر + معاينة بحركة الفأرة).
+  const [drawTool, setDrawTool] = useState<DrawTool>(null);
+  const [drawStatus, setDrawStatus] = useState<string | null>(null);
   // Canonical pivot params sent to the backend.  Without these, a pivot circle is just
   // a raw polygon and the backend cannot re-derive it later without drift.
   const [pivotPayload, setPivotPayload] = useState<PivotPayload | null>(null);
@@ -327,7 +322,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     if (!fgRef.current) return;
     buildEditablePolygon(pts, true);
     setStage('form');
-    setPivotMode('idle');
+    setDrawTool(null);
     // كشف عكسي للموقع (دولة + إقليم) من مركز bbox المضلّع — عرض تلقائي قبل الحفظ.
     const lats = pts.map(p => p.lat);
     const lngs = pts.map(p => p.lng);
@@ -381,31 +376,41 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     vertices: 96,
   }), []);
 
-  // أداة الرسم (leaflet-draw): مضلّع / مستطيل / دائرة (ريّ محوريّ).
+  // أداة المضلّع (leaflet-draw): الحلقة الخارجيّة للمضلّع المرسوم. الدائرة والمستطيل
+  // انتقلتا إلى InteractiveDrawLayer (نقر + معاينة)، فهذه النقطة للمضلّع فقط.
   const handleCreated = useCallback((e: L.DrawEvents.Created) => {
     const layer = e.layer as DrawnLayer;
-    let pts: L.LatLng[];
-    if (e.layerType === 'circle') {
-      const center = layer.getLatLng!();
-      const radius = layer.getRadius!();
-      setPivotPayload(makePivotPayload(center, radius));
-      setPivotCenter(center);
-      setPivotEdge(null);
-      setRadiusInput(String(Math.round(radius)));
-      pts = circleToPolygon(center, radius);
-    } else {
-      // polygon / rectangle: الحلقة الخارجيّة
-      setPivotPayload(null);
-      const ring = (layer.getLatLngs?.() as L.LatLng[][] | undefined)?.[0];
-      pts = Array.isArray(ring) ? (ring as L.LatLng[]) : [];
-    }
+    setPivotPayload(null);
+    const ring = (layer.getLatLngs?.() as L.LatLng[][] | undefined)?.[0];
+    const pts = Array.isArray(ring) ? (ring as L.LatLng[]) : [];
+    if (pts.length >= 3) handlePolygonDone(pts);
+  }, [handlePolygonDone]);
+
+  // الدائرة التفاعليّة اكتملت (مركز + نصف قطر بالمتر): تُسجَّل كحقل محوريّ (pivot) ثمّ
+  // تُحوَّل إلى مضلّع نقاط كثيرة قابل للتحرير (نفس مسار الريّ المحوريّ).
+  const handleInteractiveCircle = useCallback((center: L.LatLng, radiusM: number) => {
+    setError('');
+    setDrawTool(null);
+    setRadiusInput(String(Math.round(radiusM)));
+    setPivotPayload(makePivotPayload(center, radiusM));
+    const pts = circleToPolygon(center, radiusM);
     if (pts.length >= 3) handlePolygonDone(pts);
   }, [handlePolygonDone, makePivotPayload]);
 
+  // المستطيل المُدار التفاعليّ اكتمل (أربعة رؤوس): حلقة عاديّة قابلة للتحرير (لا pivot).
+  const handleInteractiveRectangle = useCallback((corners: L.LatLng[]) => {
+    setError('');
+    setDrawTool(null);
+    setPivotPayload(null);
+    if (corners.length >= 3) handlePolygonDone(corners);
+  }, [handlePolygonDone]);
 
-  // إنشاء دائرة بنصف قطر مُدخَل بالمتر (م) — إلهام FieldView (حوار نصف القطر).
-  // يُكمّل السحب-للرسم القائم: نأخذ مركز الخريطة الحاليّ ونحوّله لمضلّع عبر
-  // circleToPolygon (يستقبل نصف القطر بالمتر مباشرةً). تحقّق دفاعيّ من القيمة.
+  // إلغاء الأداة التفاعليّة عند بدء رسم المضلّع (حصر متبادل — مرجع مستقرّ).
+  const clearDrawTool = useCallback(() => setDrawTool(null), []);
+
+
+  // إنشاء دائرة بنصف قطر مُدخَل بالمتر (م) — بديل دقيق للأداة التفاعليّة: نأخذ مركز
+  // الخريطة الحاليّ ونحوّله لمضلّع عبر circleToPolygon (نصف القطر بالمتر). تحقّق دفاعيّ.
   const handleCreateCircleByRadius = useCallback(() => {
     setError('');
     const r = Number(radiusInput);
@@ -415,45 +420,12 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     }
     const map = mapRef.current;
     if (!map) { setError('الخريطة غير جاهزة بعد.'); return; }
-    // إن اختار المستخدم مركزاً للمحور نستخدمه؛ وإلّا نحافظ على السلوك السابق: مركز الخريطة.
-    const center = pivotCenter ?? map.getCenter();
+    setDrawTool(null);
+    const center = map.getCenter();
     setPivotPayload(makePivotPayload(center, r));
     const pts = circleToPolygon(center, r);
     if (pts.length >= 3) handlePolygonDone(pts);
-  }, [radiusInput, pivotCenter, handlePolygonDone, makePivotPayload]);
-
-  const handlePivotCenterPicked = useCallback((p: L.LatLng) => {
-    setError('');
-    setPivotCenter(p);
-    setPivotEdge(null);
-    setPivotMode('edge');
-  }, []);
-
-  const handlePivotEdgePicked = useCallback((p: L.LatLng) => {
-    setError('');
-    if (!pivotCenter) {
-      setPivotCenter(p);
-      setPivotMode('edge');
-      return;
-    }
-    const r = pivotCenter.distanceTo(p);
-    if (!isFinite(r) || r <= 0) {
-      setError('اختر نقطة محيط مختلفة عن مركز الدائرة.');
-      return;
-    }
-    setPivotEdge(p);
-    setRadiusInput(String(Math.round(r)));
-    setPivotPayload(makePivotPayload(pivotCenter, r));
-    const pts = circleToPolygon(pivotCenter, r);
-    if (pts.length >= 3) handlePolygonDone(pts);
-  }, [pivotCenter, handlePolygonDone, makePivotPayload]);
-
-  const resetPivotTool = useCallback(() => {
-    setPivotMode('idle');
-    setPivotCenter(null);
-    setPivotEdge(null);
-    setPivotPayload(null);
-  }, []);
+  }, [radiusInput, handlePolygonDone, makePivotPayload]);
 
   // ── H-UI — تقطيع مُساعَد (تلقائيّ/هجين) عبر خدمة التقطيع المُوكَّلة ─────────────
   // يأخذ النطاق الظاهر للخريطة (bbox) والوضع فيطلب اقتراح حدّ، ثمّ يُحمّل المضلّع
@@ -532,7 +504,9 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setHistory([]);
     setPointer(-1);
     pointerRef.current = -1;
-    resetPivotTool();
+    setDrawTool(null);
+    setDrawStatus(null);
+    setPivotPayload(null);
   };
 
   const handleSave = async () => {
@@ -741,69 +715,63 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 <div className="px-5 py-3 space-y-2" dir="rtl">
                   {/* سطر الإرشاد العربيّ الأصليّ — يبقى كما هو */}
                   <p className="text-sm" style={{ color:'#94a3b8' }}>
-                    💡 <strong className="text-emerald-400">ارسم حدود الحقل على الخريطة</strong> — اختر أداة الرسم من أعلى يسار الخريطة.
+                    💡 <strong className="text-emerald-400">ارسم حدود الحقل على الخريطة</strong> — المضلّع من شريط أعلى الخريطة، أو اختر دائرة/مستطيل أدناه.
                   </p>
-                  {/* لوحة أدوات مرتّبة: المضلّع/المستطيل/الدائرة من شريط Leaflet (أعلى الخريطة) */}
-                  <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color:'#cbd5e1' }}>
+                  {/* اختيار أداة الرسم: المضلّع على شريط leaflet-draw (أعلى الخريطة)؛
+                      الدائرة والمستطيل تفاعليّتان بالنقر + معاينة حيّة بحركة الفأرة. */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
                     <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                      style={{ background:'#0f1117', border:'1px solid #334155' }}>
-                      <Pentagon className="w-3.5 h-3.5 text-emerald-400" /> مضلّع
+                      style={{ background:'#0f1117', border:'1px solid #334155', color:'#cbd5e1' }}>
+                      <Pentagon className="w-3.5 h-3.5 text-emerald-400" /> مضلّع — من شريط الخريطة
                     </span>
-                    <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                      style={{ background:'#0f1117', border:'1px solid #334155' }}>
-                      <Square className="w-3.5 h-3.5 text-emerald-400" /> مستطيل
-                    </span>
-                    <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                      style={{ background:'#0f1117', border:'1px solid #334155' }}>
-                      <Circle className="w-3.5 h-3.5 text-emerald-400" /> دائرة (ريّ محوريّ)
-                    </span>
+                    <button
+                      type="button"
+                      aria-pressed={drawTool === 'circle'}
+                      onClick={() => { setError(''); setDrawTool(t => (t === 'circle' ? null : 'circle')); }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold"
+                      style={drawTool === 'circle'
+                        ? { background:'#16a34a', color:'#fff' }
+                        : { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }}>
+                      <Circle className="w-3.5 h-3.5" /> دائرة (ريّ محوريّ)
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={drawTool === 'rectangle'}
+                      onClick={() => { setError(''); setDrawTool(t => (t === 'rectangle' ? null : 'rectangle')); }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold"
+                      style={drawTool === 'rectangle'
+                        ? { background:'#16a34a', color:'#fff' }
+                        : { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }}>
+                      <Square className="w-3.5 h-3.5" /> مستطيل مُدار
+                    </button>
                     {onImport && (
                       <span className="px-2 py-1 rounded-lg inline-flex items-center gap-1"
-                        style={{ background:'#0f1117', border:'1px solid #334155' }}>
+                        style={{ background:'#0f1117', border:'1px solid #334155', color:'#cbd5e1' }}>
                         <FileUp className="w-3.5 h-3.5 text-emerald-400" /> أو استيراد ملفّ
                       </span>
                     )}
                   </div>
-                  {/* أداة الحقل المحوري الاحترافية: مركز ← محيط أو نصف قطر يدوي */}
+
+                  {/* إرشاد حيّ للأداة التفاعليّة المختارة (دائرة/مستطيل) */}
+                  {drawTool && (
+                    <div className="text-[11px] leading-5 px-2 py-1.5 rounded-lg"
+                      style={{ background:'#16a34a14', border:'1px solid #16a34a44', color:'#86efac' }}>
+                      {drawStatus ?? (drawTool === 'circle'
+                        ? 'انقر لتحديد مركز الدائرة، ثمّ حرّك الفأرة لضبط نصف القطر وانقر لوضعها.'
+                        : 'انقر نقطتين لتثبيت الضلع الأوّل، ثمّ حرّك الفأرة لضبط العرض وانقر لإتمام المستطيل.')}
+                      <span className="block mt-0.5" style={{ color:'#64748b' }}>
+                        نقرة يمين تُلغي الشكل قيد الرسم · بعد الرسم اسحب أيّ رأس لتعديله.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* دائرة بنصف قطر دقيق — بديل للأداة التفاعليّة (عند مركز الخريطة) */}
                   <div className="rounded-xl p-3 space-y-2" style={{ background:'#0f1117', border:'1px solid #334155' }}>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold text-emerald-300 inline-flex items-center gap-1">
-                        <Circle className="w-3.5 h-3.5" /> دائرة / حقل محوري
+                        <Circle className="w-3.5 h-3.5" /> دائرة بنصف قطر دقيق
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => { setError(''); setPivotMode('center'); setPivotCenter(null); setPivotEdge(null); }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold"
-                        style={pivotMode === 'center'
-                          ? { background:'#16a34a', color:'#fff' }
-                          : { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }}>
-                        <Crosshair className="w-3.5 h-3.5" /> حدّد المركز
-                      </button>
-                      <button
-                        type="button"
-                        disabled={!pivotCenter}
-                        onClick={() => { setError(''); setPivotMode('edge'); }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
-                        style={pivotMode === 'edge'
-                          ? { background:'#16a34a', color:'#fff' }
-                          : { background:'#0b1220', color:'#cbd5e1', border:'1px solid #334155' }}>
-                        <MousePointer2 className="w-3.5 h-3.5" /> نقطة على المحيط
-                      </button>
-                      {pivotCenter && (
-                        <button
-                          type="button"
-                          onClick={resetPivotTool}
-                          className="px-2 py-1 rounded-lg text-xs"
-                          style={{ background:'#1e293b', color:'#94a3b8', border:'1px solid #334155' }}>
-                          مسح المركز
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="text-xs" style={{ color:'#94a3b8' }}>
-                        نصف القطر اليدوي:
-                      </label>
+                      <label className="text-xs" style={{ color:'#94a3b8' }}>نصف القطر:</label>
                       <div className="flex items-center gap-1">
                         <input
                           type="number"
@@ -827,13 +795,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       </button>
                     </div>
                     <div className="text-[11px] leading-5" style={{ color:'#64748b' }}>
-                      {pivotMode === 'center'
-                        ? 'انقر على الخريطة لتحديد مركز المحور.'
-                        : pivotMode === 'edge'
-                          ? 'انقر على نقطة على محيط الدائرة لحساب نصف القطر وإنشاء الحقل.'
-                          : pivotCenter
-                            ? `المركز محدّد: ${pivotCenter.lat.toFixed(6)}, ${pivotCenter.lng.toFixed(6)} — أدخل نصف القطر أو اختر نقطة على المحيط.`
-                            : 'بدون مركز محدد، ينشئ الإدخال اليدوي الدائرة عند مركز الخريطة الحالي.'}
+                      تنشئ دائرة بنصف القطر المُدخَل عند مركز الخريطة الحاليّ — حرّك الخريطة لتموضِع المركز.
                     </div>
                   </div>
 
@@ -984,34 +946,29 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 <InvalidateMapSize />
                 <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
                   attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
+                {/* الدائرة/المستطيل التفاعليّان (نقر + معاينة حيّة) — يلتقطان نقرات
+                    الخريطة فقط حين تُختار أداتهما؛ المضلّع يبقى على شريط leaflet-draw. */}
                 {stage === 'draw' && (
-                  <PivotClickCapture
-                    mode={pivotMode}
-                    onCenter={handlePivotCenterPicked}
-                    onEdge={handlePivotEdgePicked}
+                  <InteractiveDrawLayer
+                    tool={drawTool}
+                    onCircle={handleInteractiveCircle}
+                    onRectangle={handleInteractiveRectangle}
+                    onStatus={setDrawStatus}
                   />
                 )}
-                {stage === 'draw' && pivotCenter && (
-                  <LeafletCircleMarker
-                    center={pivotCenter}
-                    radius={8}
-                    pathOptions={{ color:'#f59e0b', fillColor:'#f59e0b', fillOpacity:0.9 }}
-                  />
-                )}
-                {stage === 'draw' && pivotCenter && pivotEdge && (
-                  <Polyline positions={[pivotCenter, pivotEdge]} pathOptions={{ color:'#f59e0b', weight:2, dashArray:'6 6' }} />
-                )}
+                {stage === 'draw' && <CancelToolOnDrawStart onDrawStart={clearDrawTool} />}
                 <FeatureGroup ref={fgRef}>
                   {stage === 'draw' && (
                     <DrawControl
                       position="topright"
                       onCreated={handleCreated}
                       draw={{
+                        // المضلّع فقط على الشريط؛ الدائرة/المستطيل عبر InteractiveDrawLayer.
                         // showArea:false — يتفادى عطل leaflet-draw المعروف (readableArea)
                         // مع Leaflet 1.9؛ المساحة تُحسَب وتُعرَض من geodesicAreaHa لدينا.
                         polygon: { allowIntersection: false, showArea: false, shapeOptions: { color: '#16a34a' } },
-                        rectangle: { shapeOptions: { color: '#16a34a' } },
-                        circle: { shapeOptions: { color: '#16a34a' } },
+                        rectangle: false,
+                        circle: false,
                         polyline: false,
                         marker: false,
                         circlemarker: false,
@@ -1038,11 +995,13 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 </div>
               )}
 
-              {/* Draw status */}
+              {/* Draw status — إرشاد حيّ للأداة التفاعليّة أو تلميح عامّ */}
               {stage === 'draw' && (
-                <div className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl text-xs"
-                  style={{ background:'#0f1117cc', color:'#94a3b8', backdropFilter:'blur(8px)' }}>
-                  اختر أداة من أعلى يمين الخريطة: مضلّع · مستطيل · دائرة
+                <div className="absolute bottom-3 right-3 z-20 px-3 py-1.5 rounded-xl text-xs max-w-[78%]"
+                  style={{ background:'#0f1117cc', color: drawTool ? '#86efac' : '#94a3b8', backdropFilter:'blur(8px)' }}>
+                  {drawTool
+                    ? (drawStatus ?? (drawTool === 'circle' ? 'انقر مركز الدائرة ثمّ حرّك وانقر للوضع.' : 'انقر نقطتين للضلع ثمّ حرّك وانقر للإتمام.'))
+                    : 'المضلّع من شريط أعلى يمين الخريطة · الدائرة/المستطيل من لوحة الأدوات'}
                 </div>
               )}
             </div>

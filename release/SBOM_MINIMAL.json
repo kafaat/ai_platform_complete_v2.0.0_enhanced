@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9e2215d050c8c8d75bffb9512915382842f243eb7c4d77ca66aaa95c7f8209e"
+          "content": "ea36ab889464471e8af792853218aa10733be16d4a3ee4383e62d49c9c4fb0db"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -995,10 +995,50 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "780f285c4ed9aabc84c80887bf5331570f8f5837bea988c069e2679897567f7d"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/WeatherLayerPanel.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01efea5c030033d1c3e522309e8fee2e3a394e0d226c3b76431cb8aaba8b9336"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5b417172d6ec084690006cf4dccc7828c39c855690b9454b513914647d2d8793"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "912c488378228a8a38a61ce3f55a254e3327cfe7db03b91eda546358fdb28ff6"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69470aa53d13aedff89b7b4a569b066d58b9a0caadf227ab92f6ae4a508da6b8"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
       "type": "file"
     },
     {
