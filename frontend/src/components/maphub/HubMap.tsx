@@ -252,7 +252,9 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
   const params = new URLSearchParams({ index });
   // عقد التاريخ (D): لا نمرّر date حين latest/فارغ — الخادم يختار أحدث مشهد.
   if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
-  if (tenantId) params.set('tid', tenantId);
+  // المستأجِر كـ`tenant_id` (لا `tid`): بلاطات <img> بلا ترويسات، وبوّابة nginx تقرأ
+  // `$arg_tenant_id` فتحقن X-Tenant-Id الموثوق (المسار الآمن، مطابق api.ts↔بوّابة 3003).
+  if (tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
   // عقد القصّ الموحَّد: bbox + رؤوس المضلّع poly=lng,lat;... (geomToPolygon يُعيد [lat,lng]).
   const poly = geomToPolygon(field.geometry);

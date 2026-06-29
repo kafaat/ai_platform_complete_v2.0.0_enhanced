@@ -100,7 +100,9 @@ export interface HubMapGLProps {
 function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
   const params = new URLSearchParams({ index });
   if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
-  if (tenantId) params.set('tid', tenantId);
+  // المستأجِر كـ`tenant_id` (لا `tid`): بوّابة nginx تقرأ `$arg_tenant_id` فتحقن X-Tenant-Id
+  // الموثوق لبلاطات <img> بلا ترويسات (المسار الآمن، مطابق بوّابة 3003/الإنتاج).
+  if (tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
   const poly = geomToPolygon(field.geometry);
   if (poly && poly.length >= 3) {
