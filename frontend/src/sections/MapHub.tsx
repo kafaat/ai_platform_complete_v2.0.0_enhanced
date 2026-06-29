@@ -24,6 +24,7 @@ import {
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
   Tractor, CheckSquare, CircleDotDashed, History, RotateCcw,
 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
@@ -88,7 +89,17 @@ const LAYER_LEGEND: Record<string, { short: string; low: string; high: string }>
 
 const PIN_CATEGORIES = ['آفة', 'مرض', 'نقص تغذية', 'إجهاد مائيّ', 'عشب ضارّ', 'أخرى'];
 
+type MapHubLocationState = {
+  fieldId?: string;
+  openCdse?: boolean;
+  indicator?: string;
+  from?: string;
+  showWeather?: boolean;
+};
+
 export default function MapHub() {
+  const location = useLocation();
+  const routeState = (location.state ?? {}) as MapHubLocationState;
   const { options: fields, isLoading, isError, refetch, fieldId, setFieldId } = useSelectedField();
   const { user, tenantId } = useAuthStore();
   const mutateAllowed = canMutate(user?.role);
@@ -99,7 +110,17 @@ export default function MapHub() {
   const savedWorkspace = useMemo(() => loadWorkspace(), []);
   const [mode, setMode] = useState<'2d' | '3d'>(savedWorkspace?.mode === '3d' ? '3d' : '2d');
   const [basemapId, setBasemapId] = useState<string>(savedWorkspace?.basemapId ?? (BASEMAPS[0]?.id ?? 'satellite'));
-  const [activeIndicator, setActiveIndicator] = useState<string | null>(savedWorkspace?.activeIndicator ?? null); // null = لا مؤشّر
+  const initialSearch = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const routeFieldId = routeState.fieldId ?? initialSearch.get('field_id') ?? initialSearch.get('fieldId') ?? undefined;
+  const routeIndicator = routeState.indicator ?? initialSearch.get('index') ?? initialSearch.get('indicator') ?? undefined;
+  const requestedCdseOpen = routeState.openCdse === true || initialSearch.get('source') === 'my-fields' || !!routeIndicator;
+  const requestedWeatherOpen = routeState.showWeather === true
+    || initialSearch.get('weather') === '1'
+    || initialSearch.get('weather') === 'true'
+    || initialSearch.get('source') === 'my-fields';
+  const [activeIndicator, setActiveIndicator] = useState<string | null>(
+    requestedCdseOpen ? (routeIndicator || 'ndvi') : (savedWorkspace?.activeIndicator ?? null),
+  ); // null = لا مؤشّر
   const [imageryTs, setImageryTs] = useState(0); // cache-bust للبلاطات بعد معالجة Sentinel/COG
   const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
   const [availableImageryDates, setAvailableImageryDates] = useState<FieldImageryDateOption[]>([]);
@@ -142,6 +163,28 @@ export default function MapHub() {
   // عميل-فقط: التصدير يقرأ الحالة الحاليّة، والاستيراد يستدعي الـsetters القائمة.
   const projectInputRef = useRef<HTMLInputElement>(null);
   const imageryRefreshKeyRef = useRef<string>('');
+
+  // فتح مباشر من صفحة «حقولي»: الرابط يحدد الحقل والمؤشّر، والمتجر المشترك يُثبَّت
+  // قبل أن يعرض MapHub الخريطة. هذا يجعل /fields → اختيار صف → /fields/map-center
+  // مساراً قابلاً للمشاركة ويعرض CDSE/NDVI للحقل المختار دون الاعتماد على حالة ذاكرة فقط.
+  useEffect(() => {
+    if (!routeFieldId) return;
+    if (fields.length && !fields.some((f) => f.id === routeFieldId)) return;
+    if (fieldId !== routeFieldId) setFieldId(routeFieldId);
+  }, [routeFieldId, fields, fieldId, setFieldId]);
+
+  useEffect(() => {
+    if (!requestedCdseOpen) return;
+    const next = routeIndicator || 'ndvi';
+    if (INDICATOR_LAYERS.some((l) => l.id === next)) setActiveIndicator(next);
+    setCompare(false);
+    setMode('2d');
+  }, [requestedCdseOpen, routeIndicator]);
+
+  useEffect(() => {
+    if (!requestedWeatherOpen) return;
+    setShowWeather(true);
+  }, [requestedWeatherOpen]);
 
   // التقاط عرض الخريطة (moveend من أيّ محرّك) — كتابة مُتسامِحة (idempotent): إن
   // لم يتغيّر المركز/التكبير لا نُحدّث الحالة، فلا حلقة استعادة↔حركة ولا حفظ زائد.
@@ -864,7 +907,7 @@ export default function MapHub() {
                 {!compare && (
                   <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
                     <span className="text-xs font-semibold" style={{ color: T.muted }}>طبقات التراكب</span>
-                    <ToolToggle testid="btn-weather" active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس" />
+                    <ToolToggle testid="btn-weather" active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس/رياح" />
                     <ToolToggle testid="btn-alerts" active={showAlerts} onClick={() => setShowAlerts((v) => !v)} icon={<Bell className="w-3.5 h-3.5" />} label="تنبيهات" />
                     <ToolToggle testid="btn-devices" active={showDevices} onClick={() => setShowDevices((v) => !v)} icon={<Radio className="w-3.5 h-3.5" />} label="أجهزة" />
                     <ToolToggle testid="btn-equipment" active={showEquipment} onClick={() => setShowEquipment((v) => !v)} icon={<Tractor className="w-3.5 h-3.5" />} label="معدّات" />
@@ -898,7 +941,7 @@ export default function MapHub() {
                     )}
                     {showWeather && !selectedPoint && (
                       <span className="text-[11px]" style={{ color: T.faint }}>
-                        اختر حقلاً ذا هندسة/نقطة لعرض طقسه الحاليّ
+                        اختر حقلاً ذا هندسة/نقطة لعرض طبقة الطقس واتجاه الرياح كبلاطة فوق الخريطة
                       </span>
                     )}
                   </div>

@@ -1,5 +1,5 @@
 // SAHOOL — lib/screens/fields_screen.dart
-// إدارة الحقول (كان placeholder). يدمج OfflineFieldMap الجاهز (كان مبنيّاً وغير
+// شاشة «حقولي» (كان placeholder). يدمج OfflineFieldMap الجاهز (كان مبنيّاً وغير
 // مستعمَل) + قائمة الحقول الحيّة من نظرة عامّة /indicators/v1/overview. تحليل
 // دفاعيّ للشكل (قد تنقص الإحداثيّات ⇒ خريطة بلا مضلّعات، لا تعطّل). صدق: عند
 // التعذّر يُعرَض خطأ بإعادة محاولة — لا بيانات مخترَعة.
@@ -37,9 +37,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
       _error = null;
     });
     try {
-      final data = await ApiService.instance.getDashboard();
+      final fields = await ApiService.instance.listFields();
       setState(() {
-        _fields = _extractFields(data);
+        _fields = fields;
         _loading = false;
       });
     } catch (e) {
@@ -80,16 +80,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
   String _fieldId(Map<String, dynamic> f, int i) =>
       (f['field_id'] ?? f['id'] ?? f['fieldId'] ?? '$i').toString();
 
-  // استخراج دفاعيّ: نقبل عدّة مفاتيح محتملة لقائمة الحقول.
-  List<Map<String, dynamic>> _extractFields(Map<String, dynamic> data) {
-    final raw = data['fields'] ?? data['fields_summary'] ?? data['field_list'];
-    if (raw is List) {
-      return raw.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList();
-    }
-    return const [];
-  }
-
-  double? _num(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
+    double? _num(dynamic v) => v is num ? v.toDouble() : double.tryParse('$v');
 
   LatLng? _centroidOf(Map<String, dynamic> f) {
     final lat = _num(f['lat'] ?? f['latitude'] ?? f['centroid_lat']);
@@ -204,9 +195,10 @@ class _FieldsScreenState extends State<FieldsScreen> {
 
     return Column(
       children: [
+        _header(),
         // خريطة الحقول (offline-أوّلاً) — مُؤطَّرة على حقول المستخدم وتَرسمها.
         SizedBox(
-          height: 240,
+          height: 220,
           child: Builder(builder: (_) {
             final v = _mapView();
             return OfflineFieldMap(
@@ -232,6 +224,70 @@ class _FieldsScreenState extends State<FieldsScreen> {
       ],
     );
   }
+
+
+  Widget _header() {
+    final totalArea = _fields.fold<double>(0, (sum, f) => sum + (_num(f['area_ha'] ?? f['area']) ?? 0));
+    final crops = _fields
+        .map((f) => (f['crop'] ?? f['crop_ar'] ?? '').toString().trim())
+        .where((c) => c.isNotEmpty)
+        .toSet()
+        .length;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      decoration: const BoxDecoration(color: Color(0xFF101623)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.layers_outlined, color: Color(0xFF10B981)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text('حقولي',
+                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              ),
+              IconButton(
+                tooltip: 'تحديث',
+                onPressed: _load,
+                icon: const Icon(Icons.refresh, color: Colors.white70),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _statChip('عدد الحقول', _fields.length.toString()),
+              const SizedBox(width: 8),
+              _statChip('المساحة', '${totalArea.toStringAsFixed(1)} هـ'),
+              const SizedBox(width: 8),
+              _statChip('محاصيل', crops.toString()),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statChip(String label, String value) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1D29),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0x2234D399)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(color: Colors.grey, fontSize: 11)),
+              const SizedBox(height: 2),
+              Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      );
 
   // حالة فارغة قابلة للفعل: أيقونة + نصّ + زرّ يفتح المعالج (بدل نصّ خامل).
   Widget _emptyState() {

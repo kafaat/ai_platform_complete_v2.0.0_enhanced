@@ -1602,3 +1602,177 @@ class _WTimelineSectionState extends State<WTimelineSection> {
     );
   }
 }
+
+// ════════════════════════════════════════════════════════════════════
+// مساحة عمل الموسم الكاملة — واجهة واحدة لكل رحلة الموسم: جاهزية البيانات،
+// الإجراءات التالية، التوصيات، المهام، الأنشطة، وفحوص التربة. تعتمد على
+// GET /api/v1/fields/{id}/season-workspace ولا تختلق أي بيانات عند الغياب.
+// ════════════════════════════════════════════════════════════════════
+class WSeasonWorkspaceSection extends StatefulWidget {
+  final String fieldId;
+  const WSeasonWorkspaceSection({super.key, required this.fieldId});
+
+  @override
+  State<WSeasonWorkspaceSection> createState() => _WSeasonWorkspaceSectionState();
+}
+
+class _WSeasonWorkspaceSectionState extends State<WSeasonWorkspaceSection> {
+  late Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<Map<String, dynamic>> _load() =>
+      ApiService.instance.fetchSeasonWorkspace(widget.fieldId);
+
+  void _retry() => setState(() => _future = _load());
+
+  List<Map<String, dynamic>> _list(dynamic raw) => raw is List
+      ? raw.whereType<Map>().map((e) => e.cast<String, dynamic>()).toList()
+      : const [];
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _future,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const LoadingView();
+        }
+        if (snap.hasError) {
+          return ErrorView(message: apiErrorMessage(snap.error!), onRetry: _retry);
+        }
+        final data = snap.data ?? const <String, dynamic>{};
+        final readiness = (data['readiness'] is Map)
+            ? (data['readiness'] as Map).cast<String, dynamic>()
+            : const <String, dynamic>{};
+        final season = (data['active_season'] is Map)
+            ? (data['active_season'] as Map).cast<String, dynamic>()
+            : const <String, dynamic>{};
+        final actions = _list(data['next_actions']);
+        final recs = _list((data['recommendations'] is Map)
+            ? (data['recommendations'] as Map)['recommendations']
+            : const []);
+        final gaps = _list(data['gaps']);
+
+        return RefreshIndicator(
+          onRefresh: () async => _retry(),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              WSectionCard(
+                title: 'جاهزية الموسم',
+                icon: Icons.fact_check,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: (((wNum(readiness['score']) ?? 0) / 100).clamp(0, 1)).toDouble(),
+                            color: kPrimary,
+                            backgroundColor: Colors.white12,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text('${(wNum(readiness['score']) ?? 0).round()}%',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(wText(readiness['label_ar'], 'جاهزية غير معروفة'),
+                        style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                    const SizedBox(height: 8),
+                    WInfoRow('الموسم', season.isEmpty ? 'لا يوجد موسم' : wText(season['status'], '—')),
+                    WInfoRow('المحاصيل', (season['crops'] is List) ? (season['crops'] as List).join('، ') : '—'),
+                    WInfoRow('تاريخ الزراعة', wText(season['sowing_date'])),
+                    WInfoRow('هدف الإنتاج', wNum(season['target_yield_kg_ha']) != null
+                        ? '${wNum(season['target_yield_kg_ha'])!.toStringAsFixed(0)} كجم/هـ'
+                        : '—'),
+                  ],
+                ),
+              ),
+              WSectionCard(
+                title: 'ما يجب فعله الآن',
+                icon: Icons.playlist_add_check,
+                child: actions.isEmpty
+                    ? const Text('لا توجد إجراءات فورية. استكمل البيانات أو حدّث التوصيات.',
+                        style: TextStyle(color: Colors.white70, fontSize: 13))
+                    : Column(children: actions.map(_actionTile).toList()),
+              ),
+              WSectionCard(
+                title: 'التوصيات',
+                icon: Icons.recommend,
+                child: recs.isEmpty
+                    ? const Text('لا توجد توصيات قابلة للعرض حالياً.',
+                        style: TextStyle(color: Colors.white70, fontSize: 13))
+                    : Column(children: recs.take(5).map(_recommendationTile).toList()),
+              ),
+              if (gaps.isNotEmpty)
+                WSectionCard(
+                  title: 'مصادر غير مكتملة',
+                  icon: Icons.info_outline,
+                  child: Column(
+                    children: gaps.map((g) => WInfoRow(
+                      wText(g['source'], 'مصدر'),
+                      wText(g['message_ar'] ?? g['message'], 'غير متاح'),
+                    )).toList(),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _actionTile(Map<String, dynamic> a) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.04),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              a['type'] == 'data_gap' ? Icons.warning_amber : Icons.check_circle_outline,
+              color: a['type'] == 'data_gap' ? Colors.amber : kPrimary,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(wText(a['title_ar'], 'إجراء'),
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 3),
+                  Text(wText(a['action_ar'], ''),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _recommendationTile(Map<String, dynamic> r) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(wText(r['title_ar'] ?? r['title'] ?? r['kind'], 'توصية'),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 3),
+            Text(wText(r['rationale_ar'] ?? r['action_ar'] ?? r['message_ar'], '—'),
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ],
+        ),
+      );
+}

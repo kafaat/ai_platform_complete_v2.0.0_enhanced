@@ -33,7 +33,7 @@ class FieldWorkspaceScreen extends StatefulWidget {
 
 class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 8, vsync: this);
+  late final TabController _tabs = TabController(length: 9, vsync: this);
 
   bool _loading = true;
   String? _error;
@@ -152,6 +152,7 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
           labelColor: Colors.white,
           unselectedLabelColor: Colors.grey,
           tabs: const [
+            Tab(text: 'الموسم الكامل'),
             Tab(text: 'نظرة عامّة'),
             Tab(text: 'الموسم'),
             Tab(text: 'الأقمار'),
@@ -170,6 +171,14 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
               : TabBarView(
                   controller: _tabs,
                   children: [
+                    // الموسم الكامل — يجمع المدخلات/التوصيات/الجاهزية/الإجراءات.
+                    _fieldId.isEmpty
+                        ? const WUnavailableSection(
+                            title: 'الموسم الكامل',
+                            icon: Icons.agriculture,
+                            note: 'لا يتوفّر معرّف الحقل لجلب مساحة عمل الموسم.',
+                          )
+                        : WSeasonWorkspaceSection(fieldId: _fieldId),
                     // نظرة عامّة — من بيانات الحقل (متاح).
                     WOverviewSection(field: _field),
                     // الموسم — fetchFieldSeasons (متاح).

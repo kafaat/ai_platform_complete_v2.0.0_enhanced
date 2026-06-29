@@ -75,7 +75,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     id: 'fields-map', label: 'الحقول والخريطة', icon: MapIcon, defaultOpen: false,
     items: [
-      { id: 'fields',          path: '/fields',           label: 'إدارة الحقول', icon: MapIcon, maturity: 'stable' },
+      { id: 'fields',          path: '/fields',           label: 'حقولي', icon: MapIcon, maturity: 'stable' },
       { id: 'farm-map',        path: '/fields/farm-map',  label: 'خريطة المزرعة', icon: MapIcon, maturity: 'stable' },
       { id: 'field-workspace', path: '/fields/workspace', label: 'مساحة عمل الحقل', icon: Layers, maturity: 'beta' },
       { id: 'map-center',      path: '/fields/map-center', label: 'مركز الخرائط (معاينة)', icon: Layers, maturity: 'beta', badge: 'دمج' },

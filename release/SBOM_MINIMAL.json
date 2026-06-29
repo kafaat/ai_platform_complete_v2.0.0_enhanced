@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5232a532349d5587f386de93d2aa0537852ee595da78ee61e88e8bb02d2b66c0"
+          "content": "b93cc516e63b9fb5cb0e93cee0809b58ff1972d9916908cd3016a75a5bcb0435"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -955,7 +955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2a08fb5d51d6e09d24da52d83512d904f1fd75690956f800764be71c61e1eba"
+          "content": "e3825f2a03077903f8ace52d2719423a70c9eae5e60fe70f92156aea7a2d0863"
         }
       ],
       "name": "frontend/src/components/maphub/OverlayMarkers.tsx",
@@ -1545,7 +1545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3293f7fa61bc667b6e986bb8304d3c6b560902c50dcb806da2f04826de12bcc6"
+          "content": "b119d808b7fe959faf4e8eb38bd67cf90e3a1ac866c260e122cb698eaebf1be6"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -2185,7 +2185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "33037d295ad2376a77b2ba88a4a47a23e12195e731324695721576bd90f7f007"
+          "content": "0cbe3eecd041d296a406076e2afca641c1dad4b84bc49b57b6c1dc139af0bed8"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -2199,6 +2199,16 @@
         }
       ],
       "name": "frontend/src/sections/MasterDataPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c811635c2fd89bf01d6db132c4fa14e7b3181d437cf82a42db4f6a92046a3ae"
+        }
+      ],
+      "name": "frontend/src/sections/MyFieldsPage.tsx",
       "type": "file"
     },
     {
@@ -4205,7 +4215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c12999ebc99c0b437982f970c564a7721a53f18dc9583966924af4071ce8256"
+          "content": "1b54419f290cfe9373610f465d5f28b4ba3332efc68212f8b57d02561a6f831c"
         }
       ],
       "name": "mobile/sahool_app/lib/screens/field_workspace_screen.dart",
@@ -4215,7 +4225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0bc81231eda4f59b8ef5ac5e6da808bff14b49f74958177becfe241cdd1e8c63"
+          "content": "46052faebbdf07a7e9d18630370fb8d3251190f96b707b8e05e64177240bd68d"
         }
       ],
       "name": "mobile/sahool_app/lib/screens/fields_screen.dart",
@@ -4335,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "de5a25f2958685b14dc1976b5c110f6d8d22ac0464e060bc22af01920d8b75b9"
+          "content": "1a6042a5bd2d61e6a61d2752ce6dcac35f5569532a747d2acc3f07c6b3f1a9df"
         }
       ],
       "name": "mobile/sahool_app/lib/services/api_service.dart",
@@ -4435,7 +4445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bab7e07958688be39354dd6887e41351eb03d8a12b7d4767138c46625192fd5f"
+          "content": "8f7f30f01632d620083791f9edc55dbd3ecb80e7f6ace6f6ff896a52bc3c57fc"
         }
       ],
       "name": "mobile/sahool_app/lib/widgets/workspace/workspace_sections.dart",
@@ -9209,6 +9219,16 @@
         }
       ],
       "name": "services/sahool-platform/api/routers/scouting.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "17448644e348beecafd3b4fbf58d0b853701bd5ba30f133089e84886d1808c9f"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/season_workspace.py",
       "type": "file"
     },
     {

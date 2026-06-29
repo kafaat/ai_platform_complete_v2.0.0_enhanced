@@ -173,14 +173,24 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
   const map = useMap();
   useEffect(() => {
     if (!marker) return undefined;
-    const bounds = map.getBounds().pad(1.25);
-    const overlay = L.svgOverlay(weatherOverlaySvg(marker), bounds, {
+
+    // تُعامل كطبقة بلاط/راستر مرئية: تغطي كامل نافذة الخريطة وتتحدّث مع pan/zoom
+    // بدلاً من شارة ثابتة فقط. البيانات نفسها صادقة: حرارة/رطوبة/رياح الحقل المختار.
+    const overlay = L.svgOverlay(weatherOverlaySvg(marker), map.getBounds().pad(1.25), {
       opacity: 1,
       interactive: false,
       pane: 'overlayPane',
     }).addTo(map);
     overlay.getElement()?.classList.add('sahool-weather-raster-overlay');
-    return () => { overlay.remove(); };
+
+    const syncBounds = () => overlay.setBounds(map.getBounds().pad(1.25));
+    map.on('moveend zoomend resize', syncBounds);
+    syncBounds();
+
+    return () => {
+      map.off('moveend zoomend resize', syncBounds);
+      overlay.remove();
+    };
   }, [map, marker]);
   return null;
 }

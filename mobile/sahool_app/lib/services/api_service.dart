@@ -320,6 +320,24 @@ class ApiService {
     return _asMap(r.data);
   }
 
+
+  /// قائمة حقول المستخدم مباشرةً من مصدر الحقيقة للحقول
+  /// (GET /api/v1/fields). تُستخدم لشاشة «حقولي» بدل الاعتماد على dashboard،
+  /// كي تظهر كل الحقول حتى لو لم تدخل بعد في مؤشرات اللوحة.
+  Future<List<Map<String, dynamic>>> listFields({String? tag}) async {
+    final r = await _dio.get('/api/v1/fields',
+        cancelToken: tag != null ? _getToken(tag) : null);
+    return _asList(r.data);
+  }
+
+  /// مساحة عمل موسم كاملة لحقل واحد: ملف الحقل + الموسم النشط + الجاهزية
+  /// + الحالة الموحدة + التوصيات + المهام + الأنشطة + التربة + خط زمني مختصر.
+  Future<Map<String, dynamic>> fetchSeasonWorkspace(String fieldId, {String? tag}) async {
+    final r = await _dio.get('/api/v1/fields/$fieldId/season-workspace',
+        cancelToken: tag != null ? _getToken(tag) : null);
+    return _asMap(r.data);
+  }
+
   Future<Map<String, dynamic>> getDashboard({String? tag}) async {
     // البوّابة (nginx) لا تملك موقع /indicators/ ⇒ المسار القديم كان يسقط إلى
     // الـSPA ويعيد HTML فينهار _asMap. المسار الصحيح للوحة المُجمَّعة على المنصّة
@@ -809,11 +827,29 @@ class ApiService {
     num? ph,
     num? organicMatter,
     num? cec,
+    num? ecDsM,
+    num? waterEcDsM,
+    num? nPpm,
+    num? pPpm,
+    num? kPpm,
+    String? soilTexture,
+    num? sampleDepthCm,
+    String? attachmentId,
   }) async {
     final result = <String, dynamic>{
       if (ph != null) 'ph': ph,
       if (organicMatter != null) 'organic_matter': organicMatter,
       if (cec != null) 'cec': cec,
+      if (ecDsM != null) 'ec_ds_m': ecDsM,
+      if (waterEcDsM != null) 'water_ec_ds_m': waterEcDsM,
+      if (nPpm != null) 'n_ppm': nPpm,
+      if (pPpm != null) 'p_ppm': pPpm,
+      if (kPpm != null) 'k_ppm': kPpm,
+      if (soilTexture != null && soilTexture.trim().isNotEmpty)
+        'soil_texture': soilTexture.trim(),
+      if (sampleDepthCm != null) 'sample_depth_cm': sampleDepthCm,
+      if (attachmentId != null && attachmentId.trim().isNotEmpty)
+        'attachment_id': attachmentId.trim(),
     };
     final r = await _dio.post('/api/v1/fields/$fieldId/soil-lab-tests', data: {
       if (labName != null) 'lab_name': labName,

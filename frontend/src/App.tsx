@@ -55,6 +55,7 @@ const AcceptInvitationPage = lazy(() => import('./pages/AcceptInvitationPage'));
 const DashboardPage       = lazy(() => import('./sections/DashboardPage'));
 const SatellitePage       = lazy(() => import('./sections/SatellitePage'));
 const FieldManagementPage = lazy(() => import('./sections/FieldManagementPage'));
+const MyFieldsPage        = lazy(() => import('./sections/MyFieldsPage'));
 const AnalyticsPage       = lazy(() => import('./sections/AnalyticsPage'));
 const AlertSystemPage     = lazy(() => import('./sections/AlertSystemPage'));
 const ReportsPage         = lazy(() => import('./sections/ReportsPage'));
@@ -318,7 +319,7 @@ export default function App() {
       // «الحقول والخريطة»: المرحلة 1 تجعل Map Hub الموحّد السطح الأساسيّ.
       // FieldManagementPage السابق يبقى مُستورَداً ومتاحاً (لم يُحذَف) لكنّه لم يَعُد
       // الافتراضيّ لهذا المسار — الـMap Hub يَخلُفه (يشمل إنشاء/استيراد الحقل داخله).
-      case 'fields':       return <MapHub />;
+      case 'fields':       return <MyFieldsPage />;
       case 'recommendations': return <RecommendationPage />;
       case 'lab-sampling': return <LabSamplingPage />;
       case 'irrigation':   return <IrrigationWaterPage />;
