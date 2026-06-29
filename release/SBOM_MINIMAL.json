@@ -955,7 +955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e3825f2a03077903f8ace52d2719423a70c9eae5e60fe70f92156aea7a2d0863"
+          "content": "e9a6e50ac1964bf1366eccc30c973da32af1679b493d2fa177a409512d6dbc7d"
         }
       ],
       "name": "frontend/src/components/maphub/OverlayMarkers.tsx",
@@ -969,6 +969,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/TerrainView3D.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f1f2342d6685ce333fc69f8eecebed4e8113709e7ff71bb47f33b664a4b00b7"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/README.md",
       "type": "file"
     },
     {
@@ -6835,7 +6845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31175c169449e5461eb31cc97f3e5e8da4eab8762232226680357ef9f2eecb4f"
+          "content": "78f22f4570d7c8a3d0d08fc3fa00671a17cbae823703432dfb1c40c4f4767417"
         }
       ],
       "name": "services/sahool-platform/api/connectors/openmeteo.py",
@@ -9425,7 +9435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06b6c0b49a542d6a037c3423f4eced23996917432a6c7edb918a2c6cafbba57a"
+          "content": "65174ba934dee6a37edef670fb57d4ab8ba45714d971f3f51a135e76d1f816aa"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",

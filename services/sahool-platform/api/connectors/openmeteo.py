@@ -134,6 +134,8 @@ class CurrentWeather:
     temperature_c: float
     humidity_pct: float
     wind_speed_ms: float
+    wind_direction_deg: float | None
+    wind_gusts_ms: float | None
     precipitation_mm: float
     cloud_cover_pct: float
     weather_code: int  # WMO code (0=clear, 61=rain, etc.)
@@ -225,6 +227,8 @@ async def fetch_current(
                 "temperature_2m",
                 "relative_humidity_2m",
                 "wind_speed_10m",
+                "wind_direction_10m",
+                "wind_gusts_10m",
                 "precipitation",
                 "cloud_cover",
                 "weather_code",
@@ -242,6 +246,8 @@ async def fetch_current(
         temperature_c=c.get("temperature_2m", 0),
         humidity_pct=c.get("relative_humidity_2m", 0),
         wind_speed_ms=c.get("wind_speed_10m", 0),
+        wind_direction_deg=c.get("wind_direction_10m"),
+        wind_gusts_ms=c.get("wind_gusts_10m"),
         precipitation_mm=c.get("precipitation", 0),
         cloud_cover_pct=c.get("cloud_cover", 0),
         weather_code=c.get("weather_code", 0),
@@ -272,6 +278,8 @@ async def fetch_current_batch(
                 "temperature_2m",
                 "relative_humidity_2m",
                 "wind_speed_10m",
+                "wind_direction_10m",
+                "wind_gusts_10m",
                 "precipitation",
                 "cloud_cover",
                 "weather_code",
@@ -383,6 +391,164 @@ async def fetch_bundle(
         daily_forecast=forecast,
         historical_30d=historical,
     )
+
+
+# ─── Weather map tile data (Open-Meteo as data source; SAHOOL renders tiles) ───
+
+_TILE_CURRENT_KEYS = [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "precipitation",
+    "cloud_cover",
+    "pressure_msl",
+    "surface_pressure",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "wind_gusts_10m",
+    "weather_code",
+    "is_day",
+]
+
+_TILE_HOURLY_KEYS = [
+    # سنطلب نسخة hourly من المتغيرات الحالية حتى يدعم محرك البلاطات +1h/+3h/+24h
+    # دون تغيير واجهة الرسم في Leaflet.
+    "temperature_2m",
+    "relative_humidity_2m",
+    "precipitation",
+    "cloud_cover",
+    "pressure_msl",
+    "surface_pressure",
+    "wind_speed_10m",
+    "wind_direction_10m",
+    "wind_gusts_10m",
+    "weather_code",
+    "vapour_pressure_deficit",
+    "et0_fao_evapotranspiration",
+    "soil_temperature_0cm",
+    "soil_temperature_6cm",
+    "soil_temperature_18cm",
+    "soil_moisture_0_to_1cm",
+    "soil_moisture_1_to_3cm",
+    "soil_moisture_3_to_9cm",
+    "precipitation_probability",
+]
+
+
+def _parse_time_offset_hours(time_key: str | None) -> int:
+    """يفهم مفاتيح الواجهة: now, +1h, +3h, +24h.
+
+    Open-Meteo يعيد مصفوفات hourly مرتبة من الوقت الحالي. نستخدم أقرب فهرس
+    مطلوب بدل الاكتفاء بالساعة الأولى، وبذلك تصبح بلاطات SAHOOL قابلة للتحريك
+    زمنياً دون مزوّد tiles خارجي.
+    """
+    if not time_key or time_key == "now":
+        return 0
+    raw = str(time_key).strip().lower()
+    if raw.startswith("+") and raw.endswith("h"):
+        try:
+            return max(0, min(72, int(raw[1:-1])))
+        except ValueError:
+            return 0
+    return 0
+
+
+def _hourly_value_at(hourly: dict, key: str, offset_hours: int):
+    values = hourly.get(key)
+    if not isinstance(values, list) or not values:
+        return None
+    idx = min(max(0, offset_hours), len(values) - 1)
+    value = values[idx]
+    if value is not None:
+        return value
+    # fallback قريب: ابحث للأمام ثم للخلف عن أول قيمة صالحة.
+    for j in range(idx + 1, len(values)):
+        if values[j] is not None:
+            return values[j]
+    for j in range(idx - 1, -1, -1):
+        if values[j] is not None:
+            return values[j]
+    return None
+
+
+def _time_at(hourly: dict, offset_hours: int):
+    values = hourly.get("time")
+    if not isinstance(values, list) or not values:
+        return None
+    return values[min(max(0, offset_hours), len(values) - 1)]
+
+
+async def fetch_weather_tile_data(
+    lat: float,
+    lon: float,
+    timeout_s: float = 12.0,
+    time_key: str = "now",
+    model: str = "best_match",
+) -> dict:
+    """Open-Meteo نقطة عيّنة واحدة لتغذية بلاطة طقس مرسومة داخل SAHOOL.
+
+    هذه الدالة لا تُرجع صورة ولا تعتمد على tiles خارجية. Open-Meteo هو مصدر
+    البيانات فقط، والواجهة/SAHOOL ترسم: heat raster + wind animation + legend.
+    نطلب current للمتغيرات السريعة و hourly لأول ساعة متاحة للمتغيرات الزراعية
+    التي لا تتوفر دائماً في current مثل ET0/VPD/soil moisture.
+    """
+    offset_hours = _parse_time_offset_hours(time_key)
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": ",".join(_TILE_CURRENT_KEYS),
+        "hourly": ",".join(_TILE_HOURLY_KEYS),
+        "forecast_days": 4,
+        "timezone": "auto",
+        "wind_speed_unit": "kmh",
+    }
+    # best_match هو السلوك الافتراضي في Open-Meteo. لا نرسل models إلا عندما يحدد
+    # المستخدم نموذجاً صريحاً مدعوماً في البيئة، حتى لا نكسر free/default mode.
+    if model and model not in {"best_match", "auto"}:
+        params["models"] = model
+
+    data = await _fetch_json(FORECAST_URL, params, timeout_s)
+    c = data.get("current", {}) if isinstance(data, dict) else {}
+    h = data.get("hourly", {}) if isinstance(data, dict) else {}
+    use_current = offset_hours == 0
+
+    def hv(key: str):
+        return _hourly_value_at(h, key, offset_hours)
+
+    return {
+        "lat": lat,
+        "lon": lon,
+        "requested_time": time_key or "now",
+        "model": model or "best_match",
+        "time": (c.get("time") if use_current else None) or _time_at(h, offset_hours),
+        "temperature_2m_c": (c.get("temperature_2m") if use_current else None)
+        or hv("temperature_2m"),
+        "relative_humidity_2m_pct": (c.get("relative_humidity_2m") if use_current else None)
+        or hv("relative_humidity_2m"),
+        "precipitation_mm": (c.get("precipitation") if use_current else None)
+        or hv("precipitation"),
+        "precipitation_probability_pct": hv("precipitation_probability"),
+        "cloud_cover_pct": (c.get("cloud_cover") if use_current else None) or hv("cloud_cover"),
+        "pressure_msl_hpa": (c.get("pressure_msl") if use_current else None) or hv("pressure_msl"),
+        "surface_pressure_hpa": (c.get("surface_pressure") if use_current else None)
+        or hv("surface_pressure"),
+        "wind_speed_10m_kmh": (c.get("wind_speed_10m") if use_current else None)
+        or hv("wind_speed_10m"),
+        "wind_direction_10m_deg": (c.get("wind_direction_10m") if use_current else None)
+        or hv("wind_direction_10m"),
+        "wind_gusts_10m_kmh": (c.get("wind_gusts_10m") if use_current else None)
+        or hv("wind_gusts_10m"),
+        "weather_code": (c.get("weather_code") if use_current else None) or hv("weather_code"),
+        "is_day": c.get("is_day") if use_current else None,
+        "vapour_pressure_deficit_kpa": hv("vapour_pressure_deficit"),
+        "et0_fao_evapotranspiration_mm": hv("et0_fao_evapotranspiration"),
+        "soil_temperature_0cm_c": hv("soil_temperature_0cm"),
+        "soil_temperature_6cm_c": hv("soil_temperature_6cm"),
+        "soil_temperature_18cm_c": hv("soil_temperature_18cm"),
+        "soil_moisture_0_to_1cm_m3m3": hv("soil_moisture_0_to_1cm"),
+        "soil_moisture_1_to_3cm_m3m3": hv("soil_moisture_1_to_3cm"),
+        "soil_moisture_3_to_9cm_m3m3": hv("soil_moisture_3_to_9cm"),
+        "source": "open-meteo",
+    }
 
 
 # ─── Helpers ──────────────────────────────────────────────────────
