@@ -433,8 +433,13 @@ export default function SatellitePage() {
                   initialOpacity={0}
                   height={400}
                   tools={measureTools}
+                  tileSegment="cdse-tiles"
+                  fieldGeometry={field?.geometry ?? null}
+                  fieldBbox={fallbackBounds}
                 />
               ) : (
+                // وضع النباتيّ: بلاطات CDSE الحيّة (Sentinel Hub) مع قصّ poly.
+                // CDSE_CLIENT_ID/SECRET موجودان ⇒ available=true ⇒ تُركَّب طبقة المؤشّر.
                 <FieldIndicatorMap
                   key={fieldId}
                   fieldId={fieldId}
@@ -446,6 +451,9 @@ export default function SatellitePage() {
                   initialOpacity={0.75}
                   height={400}
                   tools={measureTools}
+                  tileSegment="cdse-tiles"
+                  fieldGeometry={field?.geometry ?? null}
+                  fieldBbox={fallbackBounds}
                 />
               )}
             </motion.div>

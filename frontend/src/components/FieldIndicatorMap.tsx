@@ -274,7 +274,9 @@ export default function FieldIndicatorMap({
     ? fieldCdseTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion, fieldGeometry, fieldBbox)
     : fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion);
 
-  // جلب TileJSON لضبط الإطار حين لا يتوفّر مضلع (اختياري — الفشل غير حرج)
+  // جلب TileJSON لضبط الإطار وفحص التوفّر.
+  // CDSE: يستخدم cdse-tilejson (يعكس توفّر CDSE_CLIENT_ID لا COG محلّيّ).
+  // COG:  يستخدم tilejson العاديّ (يعكس وجود ملف COG فعليّ).
   useEffect(() => {
     let cancelled = false;
     setTileBounds(undefined);
@@ -282,37 +284,50 @@ export default function FieldIndicatorMap({
     setLegend(undefined);
     setTileUnavailableMessage(null);
     setTileCacheVersion(null);
+    const isCdse = tileSegment === 'cdse-tiles';
+    const tilejsonEndpoint = isCdse
+      ? `/v1/fields/${fieldId}/cdse-tilejson`
+      : `/v1/fields/${fieldId}/tilejson`;
+    const params = {
+      index: normalizedIndex,
+      ...(date && date !== 'latest' ? { date } : {}),
+      ...(tenantId ? { tid: tenantId } : {}),
+    };
     rasterApi
-      // عقد التاريخ (متابعة D): لا نمرّر date في طلب TileJSON حين latest/فارغ (backend يعامله كأحدث).
-      .get<TileJSON>(`/v1/fields/${fieldId}/tilejson`, { params: { index: normalizedIndex, ...(date && date !== 'latest' ? { date } : {}), ...(tenantId ? { tid: tenantId } : {}) } })
+      .get<TileJSON>(tilejsonEndpoint, { params })
       .then((r) => {
         if (cancelled) return;
-        // raster-service يُرجع available=false وحدوداً عالمية محايدة عند غياب COG.
-        // لا نستخدم هذه الحدود لضبط الخريطة، ولا نركّب TileLayer حتى لا يطلب
-        // المتصفح بلاطات شفافة لتاريخ/مؤشر غير متاح وكأنها بيانات حقيقية.
         if (r.data?.available === false) {
           setTileAvailable(false);
-          setTileUnavailableMessage(r.data?.user_message || r.data?.note || r.data?.reason || null);
+          setTileUnavailableMessage(
+            isCdse
+              ? 'CDSE غير مُهيّأ — تحقّق من CDSE_CLIENT_ID/CDSE_CLIENT_SECRET في الخادم.'
+              : (r.data?.user_message || r.data?.note || r.data?.reason || null),
+          );
           return;
         }
         setTileAvailable(true);
-        setLegend(r.data?.legend);
-        setTileCacheVersion(r.data?.cache_version ?? r.data?.resolved_date ?? null);
+        if (!isCdse) {
+          setLegend(r.data?.legend);
+          setTileCacheVersion(r.data?.cache_version ?? r.data?.resolved_date ?? null);
+        }
         const b = r.data?.bounds;
         if (Array.isArray(b) && b.length === 4) {
           setTileBounds([b[0], b[1], b[2], b[3]]);
         }
       })
       .catch(() => {
-        // TileJSON غير متاح — نعتمد على المضلع/الإطار الاحتياطي، ولا نعرض طبقة مؤشّر
-        // حتى لا يحدث خلط بين "لا بيانات" و"طبقة شفافة".
         if (!cancelled) {
           setTileAvailable(false);
-          setTileUnavailableMessage('تعذر التحقق من توفر طبقة المؤشر. راجع اتصال خدمة الراستر أو اختر تاريخاً آخر.');
+          setTileUnavailableMessage(
+            isCdse
+              ? 'تعذّر التحقّق من إعداد CDSE. راجع اتصال خدمة الراستر.'
+              : 'تعذر التحقق من توفر طبقة المؤشر. راجع اتصال خدمة الراستر أو اختر تاريخاً آخر.',
+          );
         }
       });
     return () => { cancelled = true; };
-  }, [fieldId, normalizedIndex, date, tenantId]);
+  }, [fieldId, normalizedIndex, date, tenantId, tileSegment]);
 
   // مركز افتراضي قبل ضبط fitBounds
   const center: [number, number] = fieldPolygon && fieldPolygon.length

@@ -3,7 +3,25 @@
     "allow": [
       "Bash(git reset:*)",
       "Bash(git remote:*)",
-      "Bash(git symbolic-ref:*)"
+      "Bash(git symbolic-ref:*)",
+      "Bash(docker image inspect:*)",
+      "Bash(docker run:*)",
+      "Bash(python -c \"import json,sys; [print\\(e\\) for e in json.load\\(sys.stdin\\) if 'JWT' in e or 'SAHOOL' in e]\")",
+      "Bash(docker compose:*)",
+      "Bash(tee /tmp/build_out.txt)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k\\) for k in d.keys\\(\\)]\")",
+      "Bash(docker exec:*)",
+      "Bash(openssl req:*)",
+      "Bash(sed -n '25,45p' frontend/src/services/api.ts)",
+      "Bash(sed -n '3280,3330p' frontend/src/services/api.ts)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(curl -sf http://localhost/api/raster/v1/fields/test-123/tilejson?index=ndvi)",
+      "Bash(curl -sf http://localhost:8001/v1/fields/test-123/tilejson?index=ndvi)",
+      "Bash(wait)",
+      "Bash(curl -s -X POST http://localhost/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@sahool.ye\",\"password\":\"Sahool@m6SDeVxyuqyE!\"}')",
+      "Bash(curl -sk -X POST https://localhost/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@sahool.ye\",\"password\":\"Sahool@m6SDeVxyuqyE!\"}')",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('token:', d.get\\('access_token',''\\)[:50]+'...'\\) if 'access_token' in d else print\\(d\\)\")"
     ]
   }
 }

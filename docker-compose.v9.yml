@@ -331,6 +331,10 @@ services:
       FEATURE_GIS_KERNEL: ${FEATURE_GIS_KERNEL:-0}
       FEATURE_IRRIGATION_NETWORK: ${FEATURE_IRRIGATION_NETWORK:-0}
       FEATURE_EXECUTION_FEEDBACK: ${FEATURE_EXECUTION_FEEDBACK:-0}
+      # RS256: عيّن JWT_PUBLIC_KEY (مفتاح auth العامّ PEM) للإنتاج الحقيقيّ.
+      # للترحيل المؤقّت (HS256): أضِف SAHOOL_ALLOW_HS256_IN_PROD=1 في ملفّ .env
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
     depends_on:
       sahool-postgres:
         condition: service_healthy

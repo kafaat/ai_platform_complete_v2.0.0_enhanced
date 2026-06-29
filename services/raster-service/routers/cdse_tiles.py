@@ -252,11 +252,13 @@ async def field_cdse_tilejson(
     # البلاطة كي يبقى الرابط بلا تاريخ ويُحلّ «الأحدث» في كلّ طلب؛ وإلّا نُثبّته.
     specific_date = date if (date and date not in ("latest", "today")) else None
     qs = f"index={index}" + (f"&date={specific_date}" if specific_date else "")
+    # المسار عبر البوّابة (nginx /api/raster/ → raster:8001/): الواجهة تحتاج
+    # /api/raster/v1/… لا /v1/… المباشر كي تمرّ عبر proxy_pass في الإنتاج.
     return {
         "tilejson": "2.2.0",
         "name": f"cdse-{field_id}-{index}",
         "scheme": "xyz",
-        "tiles": [f"/v1/fields/{field_id}/cdse-tiles/{{z}}/{{x}}/{{y}}.png?{qs}"],
+        "tiles": [f"/api/raster/v1/fields/{field_id}/cdse-tiles/{{z}}/{{x}}/{{y}}.png?{qs}"],
         "minzoom": 10,
         "maxzoom": 18,
         "bounds": bounds,
