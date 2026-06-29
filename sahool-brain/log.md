@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-06-29 (ص) — rate limit موزَّع بـRedis (#6) + تحقّق فروع CDSE العالقة (ج)
+
+**رأس الفرع المخصّص:** `c2af2e6` (= `main` بعد الدمج المؤتمت).
+
+- **#6 (rate limit → Redis، باختيار المستخدم «أ»):** `rate_limit_middleware` كان عدّاداً in-process لكلّ
+  عامل ⇒ مع N عمّال الحدّ الفعليّ N×المضبوط. أُضيف عدّاد Redis مشترَك (`INCR`+`EXPIRE 60s` لكلّ مفتاح عميل)
+  يُختار عند الإقلاع متى توفّر `REDIS_URL` حيّ؛ النداء المتزامن عبر `asyncio.to_thread` (لا يحجب الحلقة).
+  **ليس fail-closed** (حاجز DoS لا بوّابة أمن): أيّ خطأ Redis/غياب `REDIS_URL` ⇒ تدهور رشيق إلى العدّاد
+  in-process (محفوظ حرفيّاً). اختبارات: الموجودة مُثبَّتة على in-process (`_RATE_REDIS=None`) للحتميّة +
+  اختبارا مسار Redis (حجب فوق الحدّ + `EXPIRE` مرّة + عزل المفاتيح) + fail-open. `pytest -m unit` 1973 ✓.
+- **ج (حذف فروع CDSE العالقة):** فحصتُ ٥ فروع (`frontend-cdse-hide-date`/`fix-cdse-clip-to-field`/
+  `claude/frontend-cdse-omit-latest-date`/`claude/cdse-maphub-ws-fixes`/`claude/brain-update-decompose-cdse`).
+  **ليست ancestors لـmain** (لكلٍّ ١–٤ commits فريدة) لكنّ **محتواها مُستبدَل بالكامل في main** (تحقّقتُ من ٦
+  معالم: `fetch_field_geometry`+RLS · `apply_polygon_mask` · عقد `poly=` · توجيه nginx للراستر · WebSocket
+  الإشعارات · روابط CDSE في الواجهة — كلّها حاضرة، وبعضها أكمل عبر التوحيد). **الحذف حجبه المصنّف** (يتطلّب
+  تسمية المستخدم الصريحة للفروع) — أُحيل القرار للمستخدم بأسماء الفروع + دليل الاستبدال. لا أحذف عملاً غير
+  مدموج بقرار ذاتيّ.
+- **درس:** «stale/superseded» ≠ «merged». الفرع قد يحمل commits فريدة ومحتواها مع ذلك مُعاد تطبيقه في main
+  (التوحيد التوفيقيّ يُعيد الكتابة لا الـcherry-pick) — تحقّق من المحتوى لا النسب قبل وصفه «آمن للحذف».
+
+---
+
 ## 2026-06-29 (ف) — تحصين JWT RS256: المنصّة + ٨ خدمات ترفض HS256 في الإنتاج
 
 **رأس الفرع المخصّص `claude/code-review-34hO3`:** `ddd2434`. مراجعة جنائيّة للمستخدم لنسخة zip كشفت
