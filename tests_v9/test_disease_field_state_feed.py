@@ -21,6 +21,7 @@ pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 CORE = os.path.join(ROOT, "services/sahool-platform")
 MAIN = os.path.join(CORE, "api", "main.py")
+MODELS = os.path.join(CORE, "api", "api_models.py")
 ROUTERS = os.path.join(CORE, "api", "routers")
 
 # أحرف bidi المحظورة (تخريب اتّجاه النصّ) — تُبنى من نقاط الترميز كي لا تظهر
@@ -92,12 +93,24 @@ def test_critical_salinity_adds_reference_note_only():
 
 
 def test_diagnose_request_has_optional_field_id():
-    """field_id اختياريّ بافتراضيّ None — لا يكسر النداء الحاليّ."""
-    with open(MAIN, encoding="utf-8") as f:
-        src = f.read()
-    start = src.index("class DiagnoseRequest(")
-    block = src[start : start + 400]
-    assert "field_id: str | None = None" in block, "field_id ليس اختياريّاً بافتراضيّ None"
+    """field_id اختياريّ بافتراضيّ None — لا يكسر النداء الحاليّ.
+
+    نموذج DiagnoseRequest قد يقع في main.py أو في api_models.py بعد استخراج
+    نماذج Pydantic من monolith (P0) — فحص التعاقُد يبقى صحيحاً أينما استقرّ.
+    """
+    needle = "class DiagnoseRequest("
+    for path in (MAIN, MODELS):
+        if not os.path.exists(path):
+            continue
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+        start = src.find(needle)
+        if start == -1:
+            continue
+        block = src[start : start + 400]
+        assert "field_id: str | None = None" in block, "field_id ليس اختياريّاً بافتراضيّ None"
+        return
+    raise AssertionError("لم يُعثر على نموذج DiagnoseRequest في main.py ولا في api_models.py")
 
 
 def test_main_source_has_no_bidi_chars():
