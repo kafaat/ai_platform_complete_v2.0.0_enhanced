@@ -60,8 +60,11 @@ const HubMapGL = lazy(() => import('../components/maphub/HubMapGL'));
 const GL_ENGINE = MAP_ENGINE === 'maplibre';
 
 // ── الطبقات القابلة للعرض كبلاطات مؤشّر (raster) — من السجلّ ──
-// نُبقي فقط ما تنتجه خدمة الراستر فعلاً (ndvi/ndmi/salinity) مع لوحة DS موجودة.
-const RASTER_INDEX_IDS = new Set(['ndvi', 'ndmi', 'salinity']);
+// كلّ المؤشّرات التي يحسبها raster-service (CDSE INDEX_EXPR) مع لوحة DS موجودة.
+// ('moisture' المكافئ لـNDMI مُستثنى تفادياً للتكرار.)
+const RASTER_INDEX_IDS = new Set([
+  'ndvi', 'ndmi', 'salinity', 'evi', 'savi', 'msavi', 'ndwi', 'gndvi', 'ndre', 'msi',
+]);
 const INDICATOR_LAYERS = layersOfKind('index')
   .filter((l) => RASTER_INDEX_IDS.has(l.id) && l.colormap != null)
   .map((l) => ({ id: l.id, label: l.labelAr, cmap: l.colormap as CmapId }));
@@ -74,6 +77,13 @@ const LAYER_LEGEND: Record<string, { short: string; low: string; high: string }>
   ndvi: { short: 'NDVI', low: 'إجهاد', high: 'كثيف' },
   ndmi: { short: 'NDMI', low: 'جافّ', high: 'رطب' },
   salinity: { short: 'الملوحة', low: 'منخفضة', high: 'مرتفعة' },
+  evi: { short: 'EVI', low: 'إجهاد', high: 'كثيف' },
+  savi: { short: 'SAVI', low: 'إجهاد', high: 'كثيف' },
+  msavi: { short: 'MSAVI', low: 'إجهاد', high: 'كثيف' },
+  ndwi: { short: 'NDWI', low: 'جافّ', high: 'مياه' },
+  gndvi: { short: 'GNDVI', low: 'منخفض', high: 'مرتفع' },
+  ndre: { short: 'NDRE', low: 'منخفض', high: 'مرتفع' },
+  msi: { short: 'MSI', low: 'رطب', high: 'إجهاد' },
 };
 
 const PIN_CATEGORIES = ['آفة', 'مرض', 'نقص تغذية', 'إجهاد مائيّ', 'عشب ضارّ', 'أخرى'];

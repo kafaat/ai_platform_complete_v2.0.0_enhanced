@@ -273,11 +273,13 @@ export default function FieldManagementPage() {
   const CDSE_INDICES: { key: string; label: string }[] = [
     { key: 'ndvi',     label: 'NDVI — النباتات'     },
     { key: 'evi',      label: 'EVI — نبات معزّز'    },
+    { key: 'savi',     label: 'SAVI — تربة مُعدَّل'  },
+    { key: 'msavi',    label: 'MSAVI — تربة مُحسَّن' },
+    { key: 'gndvi',    label: 'GNDVI — كلوروفيل'   },
+    { key: 'ndre',     label: 'NDRE — حافّة حمراء'  },
     { key: 'ndwi',     label: 'NDWI — الماء'        },
     { key: 'ndmi',     label: 'NDMI — الرطوبة'      },
-    { key: 'ndre',     label: 'NDRE — حافّة حمراء'  },
-    { key: 'msavi',    label: 'MSAVI — تربة'        },
-    { key: 'gndvi',    label: 'GNDVI — كلوروفيل'   },
+    { key: 'msi',      label: 'MSI — إجهاد مائيّ'   },
     { key: 'ndsi',     label: 'NDSI — الملوحة'      },
   ];
 

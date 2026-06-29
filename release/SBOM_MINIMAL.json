@@ -75,7 +75,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "24e14546fafe8bbdc38b6a8ff83f7ad449e4d6cc08489483385bba5c22288a66"
+          "content": "da76fa57d8711bc8fbb8e340d9c6f28c949e6fbaeae3142478c0b71301946444"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -455,7 +455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8a8b5d4166c1f9d8e490df114c99277e4d843233f18c835a32ae9bf40c89bab"
+          "content": "148b2a4f2748534baa11dce127bd5963582cacc04524120273ecf2574adffcbb"
         }
       ],
       "name": "frontend/src/components/FieldIndicatorMap.tsx",
@@ -1435,7 +1435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d96afc9b709f7d7a2a70f0fa2fab63491ee3905b6dc0bf61c245d1529c78403"
+          "content": "0d9a04540e38e7bef934aeb8b2a0b23babd5dfdf810ab41686467604002920ff"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",
@@ -1985,7 +1985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff599ad27f1dd03ac250b5627a482fd0d34200f7280708d5361d74288d476572"
+          "content": "aa9cecfb56c9e3fd7bff94b2d4dc2dcc6c4ab4f12810d31406b52a73a94cfaaa"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -2185,7 +2185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03077c1eef558405f1b7f9b4e9349edca963610f389d6d1675aaf39be048dc5d"
+          "content": "d1ebe7121eb0a099ff9a65596954a330a3c7e9ec9e9635456a39927aca5a16cb"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -2425,7 +2425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5ebb77a524b8e51e47ae81b85e2ebfc1715d1109fd8489f7995bd251cb98d71"
+          "content": "d0b3d38eaa9a87227a147a18529453ab065ce2960aa5d8af1f7a6319349838fc"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -6065,7 +6065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48eaad04ba032df94585b00c49dea5b425150808448dcfae9d1e6b00532e8f70"
+          "content": "01754b66ac5b91238216182792f19f92e1edbae42addc0aecf459a84e3efbc57"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -6445,7 +6445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68dde035b08b14ea4dc89c7a3d9583a8c5909973d5accb81e11befa093329840"
+          "content": "cbe93a2852da380863a34da2ba49706f89be6e19deb891ad505b1120a6d8d115"
         }
       ],
       "name": "services/raster-service/tile_render.py",
@@ -6465,7 +6465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "62336f4c512f609b81b6b1e890024268a6606808aed3884aa7daa7e359ecebfd"
+          "content": "9d411514708c1147c90b3eb8f5c1edb8171cc11b8e01f3599b66b83491794c68"
         }
       ],
       "name": "services/raster-tiler-service/Dockerfile",
@@ -16085,7 +16085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "981c1ff3499beac5f730781577f1cf48f4056ae114f9d656ca454861da23346d"
+          "content": "d359c68a91cce7ae1eed2bb1aba5266bc12d58f69757733bb03f0ee9e417ade4"
         }
       ],
       "name": "services/weather-polygon-worker/Dockerfile",
@@ -16175,7 +16175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4986d1c74349a2be3cb92992c43263a24d27c415ccba42821bcc1ea041c7f0e5"
+          "content": "7f8a793e40064c0502032a92767cbc8e7d75dbc3fa7ade70f6ba52d949ea8823"
         }
       ],
       "name": "services/weather-signal-engine/Dockerfile",
