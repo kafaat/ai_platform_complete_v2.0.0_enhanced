@@ -7,6 +7,7 @@ const defs = readFileSync(join(weatherDir, 'weatherLayerDefinitions.ts'), 'utf8'
 const tile = readFileSync(join(weatherDir, 'WeatherTileLayer.ts'), 'utf8');
 const panel = readFileSync(join(weatherDir, 'WeatherLayerPanel.ts'), 'utf8');
 const probe = readFileSync(join(weatherDir, 'WeatherProbePopup.ts'), 'utf8');
+const preferences = readFileSync(join(weatherDir, 'weatherPreferences.ts'), 'utf8');
 
 describe('SAHOOL weather engine static architecture', () => {
   it('keeps weather rendering delegated to dedicated modules', () => {
@@ -64,5 +65,16 @@ describe('SAHOOL weather engine static architecture', () => {
     expect(probe).toContain('weatherJsonHeaders()');
     // لا يبقى أيّ طلب طقس بترويسة Accept فقط بلا مصادقة.
     expect(probe).not.toContain("{ 'Content-Type': 'application/json', Accept: 'application/json' }");
+  });
+
+  it('persists safe user weather overlay preferences (v27)', () => {
+    expect(existsSync(join(weatherDir, 'weatherPreferences.ts'))).toBe(true);
+    expect(overlay).toContain('readWeatherPreferences');
+    expect(overlay).toContain('writeWeatherPreferences');
+    expect(preferences).toContain('sahool.weather.overlay.preferences.v1');
+    expect(preferences).toContain('localStorage');
+    expect(preferences).toContain('typeof window'); // حارس SSR/الخصوصيّة
+    expect(preferences).toContain('clampOpacity'); // تحقّق مدخلات آمن
+    expect(preferences).toContain('resetWeatherPreferences');
   });
 });

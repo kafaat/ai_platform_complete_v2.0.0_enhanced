@@ -1025,7 +1025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f820a5438c9b3f540251c842db463d6dbe9f241b4f0403ef6c966c358ae9a047"
+          "content": "b4ab548800df6272db5ab2fb0b5559dc44eeff24e8f1c501d674dbf5f45c31d1"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
@@ -1055,7 +1055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a33197b872944bf296b36a4358b548b6c82ebce3314cf42c9ed9128b025f6e8"
+          "content": "2854a3754cd46a32ecad84edc276cc95c8d869d31a13b7fd659c281f221e1e14"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",

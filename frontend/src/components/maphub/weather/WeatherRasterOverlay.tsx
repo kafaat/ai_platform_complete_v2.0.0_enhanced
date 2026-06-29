@@ -11,22 +11,29 @@ import {
   type WeatherLayerKey,
   type WeatherTimeKey,
   type WindDensity,
-  DEFAULT_LAYER,
 } from './weatherLayerDefinitions';
+import { readWeatherPreferences, writeWeatherPreferences } from './weatherPreferences';
 import { createWeatherWindGridLayer } from './WeatherTileLayer';
 import { createWeatherControl } from './WeatherLayerPanel';
 import { registerWeatherProbePopup } from './WeatherProbePopup';
 
 export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null }) {
   const map = useMap();
-  const [layer, setLayer] = useState<WeatherLayerKey>(DEFAULT_LAYER);
-  const [time, setTime] = useState<WeatherTimeKey>('now');
-  const [model, setModel] = useState('best_match');
-  const [opacity, setOpacity] = useState(0.86);
-  const [showWind, setShowWind] = useState(() => !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-  const [windDensity, setWindDensity] = useState<WindDensity>(() => (window.innerWidth < 760 ? 'medium' : 'high'));
-  const [panelOpen, setPanelOpen] = useState(() => window.innerWidth >= 880);
+  // تفضيلات المستخدم (v27): تُقرأ من localStorage عند التركيب وتُحفَظ عند أيّ تغيير،
+  // فتبقى الطبقة/الزمن/النموذج/الشفافيّة/الرياح بين الجلسات (سقوط آمن للقيم الافتراضيّة).
+  const [initialPreferences] = useState(() => readWeatherPreferences());
+  const [layer, setLayer] = useState<WeatherLayerKey>(initialPreferences.layer);
+  const [time, setTime] = useState<WeatherTimeKey>(initialPreferences.time);
+  const [model, setModel] = useState(initialPreferences.model);
+  const [opacity, setOpacity] = useState(initialPreferences.opacity);
+  const [showWind, setShowWind] = useState(initialPreferences.showWind);
+  const [windDensity, setWindDensity] = useState<WindDensity>(initialPreferences.windDensity);
+  const [panelOpen, setPanelOpen] = useState(initialPreferences.panelOpen);
   const stableMarker = useMemo(() => marker, [marker]);
+
+  useEffect(() => {
+    writeWeatherPreferences({ layer, time, model, opacity, showWind, windDensity, panelOpen });
+  }, [layer, time, model, opacity, showWind, windDensity, panelOpen]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;
