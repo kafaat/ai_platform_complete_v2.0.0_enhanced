@@ -37,6 +37,9 @@ describe('SAHOOL weather engine static architecture', () => {
     expect(panel).toContain('data-wind-toggle');
     expect(panel).toContain('data-density');
     expect(panel).toContain('data-model');
+    // شريط الزمن (time scrubber) + زر تشغيل/إيقاف العرض الزمني على نمط meteoblue.
+    expect(panel).toContain('data-time-slider');
+    expect(panel).toContain('data-play');
   });
 
   it('supports probe, operation window, and operation plan popups', () => {

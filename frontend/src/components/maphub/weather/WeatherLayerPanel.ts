@@ -66,8 +66,11 @@ export function weatherControlHtml(
   windDensity: WindDensity,
   panelOpen: boolean,
   palette: WeatherPalette = 'coldwarm',
+  playing: boolean = false,
 ): string {
   const cfg = layerConfig(layer);
+  const timeIndex = Math.max(0, WEATHER_TIMES.findIndex((t) => t.key === time));
+  const currentTimeLabel = (WEATHER_TIMES[timeIndex] ?? WEATHER_TIMES[0]).label;
   const temp = marker.tempC != null ? `${Math.round(marker.tempC)}°م` : '—';
   const wind = marker.windSpeedKmh != null ? `${Math.round(marker.windSpeedKmh)} كم/س` : '—';
   const dir = marker.windDirectionDeg != null ? `${Math.round(marker.windDirectionDeg)}°` : '—';
@@ -98,8 +101,13 @@ export function weatherControlHtml(
     <div style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,.12)">
       ${layerRows}
     </div>
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.13)">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:10px 12px 6px">
       ${WEATHER_TIMES.map((t) => `<button type="button" data-time="${t.key}" style="border:1px solid ${t.key === time ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.16)'};border-radius:9px;background:${t.key === time ? 'rgba(37,99,235,.86)' : 'rgba(15,23,42,.50)'};color:#f8fafc;padding:6px 2px;font-weight:900;cursor:pointer;font-size:11px">${t.label}</button>`).join('')}
+    </div>
+    <div style="display:flex;align-items:center;gap:9px;padding:4px 12px 11px;border-bottom:1px solid rgba(255,255,255,.13)">
+      <button type="button" data-play="1" title="${playing ? 'إيقاف العرض الزمني' : 'تشغيل العرض الزمني'}" aria-pressed="${playing ? 'true' : 'false'}" style="flex:0 0 auto;width:36px;height:36px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:${playing ? 'rgba(37,99,235,.86)' : 'rgba(15,23,42,.50)'};color:#f8fafc;font-size:15px;cursor:pointer">${playing ? '⏸' : '▶'}</button>
+      <input type="range" min="0" max="${WEATHER_TIMES.length - 1}" step="1" value="${timeIndex}" data-time-slider="1" title="شريط الزمن" style="flex:1;direction:ltr;width:100%;accent-color:#38bdf8"/>
+      <b style="flex:0 0 auto;min-width:42px;text-align:center;color:#dbeafe;font-size:12px">${currentTimeLabel}</b>
     </div>
     <style>
       .sahool-ios-toggle{position:relative;display:inline-block;width:44px;height:25px;flex:0 0 auto}
@@ -155,11 +163,13 @@ export function createWeatherControl(
   onPanelToggle: () => void,
   palette: WeatherPalette = 'coldwarm',
   onPaletteChange: (palette: WeatherPalette) => void = () => {},
+  playing: boolean = false,
+  onPlayToggle: () => void = () => {},
 ): L.Control {
   const WeatherControl = L.Control.extend({
     onAdd() {
       const div = L.DomUtil.create('div', 'sahool-weather-layer-control-wrap');
-      div.innerHTML = weatherControlHtml(layer, marker, time, model, opacity, showWind, windDensity, panelOpen, palette);
+      div.innerHTML = weatherControlHtml(layer, marker, time, model, opacity, showWind, windDensity, panelOpen, palette, playing);
       L.DomEvent.disableClickPropagation(div);
       L.DomEvent.disableScrollPropagation(div);
       div.querySelectorAll<HTMLButtonElement>('button[data-layer]').forEach((btn) => {
@@ -181,6 +191,13 @@ export function createWeatherControl(
       div.querySelectorAll<HTMLButtonElement>('button[data-palette]').forEach((btn) => {
         btn.onclick = () => onPaletteChange(btn.dataset.palette as WeatherPalette);
       });
+      const timeSlider = div.querySelector<HTMLInputElement>('input[data-time-slider]');
+      if (timeSlider) timeSlider.oninput = () => {
+        const idx = Math.max(0, Math.min(WEATHER_TIMES.length - 1, Math.round(Number(timeSlider.value))));
+        onTimeChange(WEATHER_TIMES[idx].key);
+      };
+      const playButton = div.querySelector<HTMLButtonElement>('button[data-play]');
+      if (playButton) playButton.onclick = () => onPlayToggle();
       return div;
     },
   });

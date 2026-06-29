@@ -12,6 +12,7 @@ import {
   type WeatherTimeKey,
   type WindDensity,
   type WeatherPalette,
+  WEATHER_TIMES,
 } from './weatherLayerDefinitions';
 import { readWeatherPreferences, writeWeatherPreferences } from './weatherPreferences';
 import { createWeatherWindGridLayer } from './WeatherTileLayer';
@@ -31,11 +32,30 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
   const [windDensity, setWindDensity] = useState<WindDensity>(initialPreferences.windDensity);
   const [panelOpen, setPanelOpen] = useState(initialPreferences.panelOpen);
   const [palette, setPalette] = useState<WeatherPalette>(initialPreferences.palette);
+  // تشغيل/إيقاف العرض الزمني (شريط التمرير السفليّ على نمط meteoblue): يتقدّم عبر WEATHER_TIMES بشكل دوريّ.
+  const [playing, setPlaying] = useState(false);
   const stableMarker = useMemo(() => marker, [marker]);
 
   useEffect(() => {
     writeWeatherPreferences({ layer, time, model, opacity, showWind, windDensity, panelOpen, palette });
   }, [layer, time, model, opacity, showWind, windDensity, panelOpen, palette]);
+
+  // محرّك العرض الزمني: عند التشغيل يتقدّم الزمن كل 1200ms إلى المفتاح التالي ويعود للبداية بعد الأخير؛
+  // يُلغى المؤقّت عند الإيقاف/التفكيك. يحترم تفضيل تقليل الحركة فلا يبدأ تلقائيّاً عند تفعيله.
+  useEffect(() => {
+    if (!playing) return undefined;
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setPlaying(false);
+      return undefined;
+    }
+    const id = window.setInterval(() => {
+      setTime((current) => {
+        const idx = Math.max(0, WEATHER_TIMES.findIndex((t) => t.key === current));
+        return WEATHER_TIMES[(idx + 1) % WEATHER_TIMES.length].key;
+      });
+    }, 1200);
+    return () => window.clearInterval(id);
+  }, [playing]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;
@@ -71,9 +91,11 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
       () => setPanelOpen((v) => !v),
       palette,
       setPalette,
+      playing,
+      () => setPlaying((v) => !v),
     ).addTo(map);
     return () => { control.remove(); };
-  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, panelOpen, palette]);
+  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, panelOpen, palette, playing]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;
