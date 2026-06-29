@@ -7275,6 +7275,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e3a8eb2f1df8c70e3e504fc22277be72b0f2bd11ca81d2e2e986f4f0de029df0"
+        }
+      ],
+      "name": "services/sahool-platform/api/field_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "06fb4e72d2825548499bbc86e5a46d2b22f8dae41cf6499bd85ef31b1c3ca320"
         }
       ],
@@ -7625,7 +7635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4fc2056a7d85601e201aebbcba44ac4de20214bb853e3c0bc0df3202bf5bd79"
+          "content": "2441c96b7f8b6be17e5745e6b476e47633f074217b8a1afabce1dcf181f7f58f"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -8065,7 +8075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90c05d90ab077d507144d6363c5f8584aab0f55c85e9db92b7bc9b41894b9f02"
+          "content": "4455f6b09854577bfc63c948e4496b51d553ad1ce88766269ce618a894eb269a"
         }
       ],
       "name": "services/sahool-platform/api/routers/auth.py",

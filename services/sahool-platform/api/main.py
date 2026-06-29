@@ -13,15 +13,20 @@ api/main.py — FastAPI application للنواة سهول
   POST /api/v1/recommendations     → توصية جديدة (uses recommendation_engine)
   POST /api/v1/observations        → تسجيل مشاهدة (يدخل في offline queue إن offline)
   POST /api/v1/sync                → دفعة sync من العميل offline-first
-  POST /api/v1/auth/login          → JWT issue (dev mode: HS256، لا RS256)
+  POST /api/v1/auth/login          → JWT issue (دخول dev بـHS256؛ مُعطَّل في الإنتاج)
   GET  /api/v1/me                  → معلومات المستخدم
 
 الحالة الحاليّة (مُحدَّثة — لم تعد ملاحظات MVP صحيحة):
   • قاعدة بيانات: PostgreSQL حقيقيّة عبر asyncpg + عزل مستأجرين RLS (FORCE + WITH CHECK)
     على مسبح sahool_app (NOBYPASSRLS، معزول). لا in-memory. انظر _DB_POOL/DATABASE_URL.
 
+التحقّق من التوكن (JWT):
+  • RS256 مدعوم: عند ضبط JWT_PUBLIC_KEY تتحقّق المنصّة بـRS256 من توكنات auth (مفتاح عامّ
+    آمن للتوزيع) — يُنهي shared trust domain. الإنتاج fail-closed: يرفض الإقلاع بلا RS256 ما لم
+    يُعطَّل صراحةً (SAHOOL_ALLOW_HS256_IN_PROD=1). انظر _refuse_hs256_in_production/JWT_VERIFY_KEY.
+  • HS256 يبقى للتطوير (سرّ مشترَك) ولإصدار توكنات دخول dev (مُعطَّلة في الإنتاج).
+
 ما زال مُؤجَّلاً بمبرّر (لم يُبنَ بعد — صدقاً، ليس production-grade):
-  • RS256 JWT: الحاليّ HS256 بسرّ قويّ (≥32)؛ يُوصى بـRS256 قبل النشر (انظر JWT_ALGORITHM).
   • حدّ معدّل موزَّع بـRedis: الحاليّ عدّاد in-process لكلّ عامل (rate_limit_middleware).
   • OAuth2/SSO.
 """
@@ -58,11 +63,29 @@ from pydantic import BaseModel
 logger = logging.getLogger("sahool.api")
 
 # ─── إعدادات ──────────────────────────────────────────────────────
-JWT_ALGORITHM = "HS256"
+JWT_ALGORITHM = "HS256"  # خوارزميّة توقيع المنصّة (تُصدِر توكنات dev بـHS256؛ لا مفتاح خاصّ لديها).
 JWT_EXPIRY_HOURS = 24
+# RS256 (غير متماثل) لإنهاء shared trust domain: auth يوقّع بمفتاحه الخاصّ والمنصّة
+# تتحقّق بالمفتاح العامّ (آمن للتوزيع). عند ضبط JWT_PUBLIC_KEY تتحقّق المنصّة بـRS256 من
+# توكنات auth؛ وإلّا HS256 (سرّ مشترَك — تطوير). تطابق أسماء متغيّرات خدمة auth.
+JWT_PUBLIC_KEY = os.getenv("JWT_PUBLIC_KEY", "").strip()  # PEM للتحقّق (RS256)
+JWT_VERIFY_ALGORITHM = "RS256" if JWT_PUBLIC_KEY else "HS256"
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن لرفض توكن
 # من مُصدِر مجهول رغم صحّة التوقيع/الجمهور (تدقيق B: لم يكن iss يُفحَص).
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+
+
+# تحصين: RS256 إلزاميّ في الإنتاج (fail-closed) — يطابق سياسة خدمة auth
+# (services/auth/main.py::_refuse_hs256_in_production). HS256 سرّ متماثل مشترَك لا يُنهي
+# shared trust domain (أيّ خدمة تحمله تُزوّر توكناً)؛ RS256 (مفتاح خاصّ لـauth) يُنهيه. في
+# الإنتاج نرفض الإقلاع بلا RS256 ما لم يُعطَّل صراحةً (مهرب ترحيل SAHOOL_ALLOW_HS256_IN_PROD=1).
+def _refuse_hs256_in_production(
+    has_rs256: bool, is_production: bool, allow_hs256_env: str | None
+) -> bool:
+    """يقرّر رفض الإقلاع: إنتاج + بلا RS256 + بلا مهرب صريح ⇒ رفض (نقيّ، قابل للاختبار)."""
+    if has_rs256 or not is_production:
+        return False
+    return (allow_hs256_env or "").strip().lower() not in {"1", "true", "yes", "on"}
 
 
 # سياسة أمنيّة: لا سرّ افتراضيّ معروف. السرّ الحرفيّ المنشور سابقاً
@@ -86,10 +109,23 @@ _ENV_SECRET = os.getenv("SAHOOL_JWT_SECRET", "").strip()
 _WEAK_SECRET = (
     not _ENV_SECRET or _ENV_SECRET == "dev-secret-CHANGE-IN-PRODUCTION" or len(_ENV_SECRET) < 32
 )
-if _WEAK_SECRET and _IS_PRODUCTION:
+# تحصين الإنتاج (fail-closed): RS256 إلزاميّ ما لم يُعطَّل صراحةً للترحيل.
+if _IS_PRODUCTION and _refuse_hs256_in_production(
+    has_rs256=bool(JWT_PUBLIC_KEY),
+    is_production=True,
+    allow_hs256_env=os.getenv("SAHOOL_ALLOW_HS256_IN_PROD"),
+):
     logger.error(
-        "🛑 SAHOOL_JWT_SECRET غير مضبوط/ضعيف في الإنتاج — توقّف. "
-        "عيّن سرّاً قويّاً (≥32 محرفاً) واستخدم RS256."
+        "🛑 RS256 مطلوب في الإنتاج: اضبط JWT_PUBLIC_KEY (مفتاح auth العامّ) للتحقّق من توكنات "
+        "auth — HS256 لا يُنهي shared trust domain. للترحيل المؤقّت فقط: "
+        "SAHOOL_ALLOW_HS256_IN_PROD=1 (مع سرّ HS256 قويّ ≥32)."
+    )
+    sys.exit(1)
+# وضع HS256 (تطوير أو مهرب ترحيل في الإنتاج): يتطلّب سرّاً قويّاً (لا يُزوَّر بسرّ منشور).
+if not JWT_PUBLIC_KEY and _WEAK_SECRET and _IS_PRODUCTION:
+    logger.error(
+        "🛑 SAHOOL_JWT_SECRET غير مضبوط/ضعيف في الإنتاج (وضع HS256) — توقّف. "
+        "عيّن سرّاً قويّاً (≥32 محرفاً) أو انتقل إلى RS256 (JWT_PUBLIC_KEY)."
     )
     sys.exit(1)
 if _WEAK_SECRET:
@@ -98,6 +134,8 @@ if _WEAK_SECRET:
     JWT_SECRET = secrets.token_urlsafe(48)
 else:
     JWT_SECRET = _ENV_SECRET
+# مفتاح التحقّق: العامّ (RS256) إن ضُبط، وإلّا السرّ المتماثل (HS256).
+JWT_VERIFY_KEY = JWT_PUBLIC_KEY if JWT_PUBLIC_KEY else JWT_SECRET
 
 # دخول dev بلا كلمة مرور (/api/v1/auth/{login,signup}) يُصدِر توكناً كامل الصلاحيّة
 # من جسم الطلب — تجاوز مصادقة لو وصلته الطلبات. لا يُفعَّل إلّا بإقرار صريح
@@ -1033,7 +1071,9 @@ def get_current_user(authorization: str = Header(None)) -> UserSchema:
 
     token = authorization.replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
+        payload = jwt.decode(
+            token, JWT_VERIFY_KEY, algorithms=[JWT_VERIFY_ALGORITHM], audience="sahool"
+        )
     except InvalidTokenError as e:
         logging.warning("JWT validation failed: %s", type(e).__name__)
         raise HTTPException(status_code=401, detail="Invalid token") from e

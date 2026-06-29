@@ -24,9 +24,9 @@ import api.main as _main
 from api.main import (
     _ALLOWED_ISS,
     _DEV_AUTH_ENABLED,
-    JWT_ALGORITHM,
     JWT_EXPIRY_HOURS,
-    JWT_SECRET,
+    JWT_VERIFY_ALGORITHM,
+    JWT_VERIFY_KEY,
     LoginRequest,
     TokenResponse,
     UserRole,
@@ -112,7 +112,9 @@ def auth_logout(
     """
     token = (authorization or "").replace("Bearer ", "", 1)
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM], audience="sahool")
+        payload = jwt.decode(
+            token, JWT_VERIFY_KEY, algorithms=[JWT_VERIFY_ALGORITHM], audience="sahool"
+        )
         # تدقيق B: افرض المُصدِر — توكن من مُصدِر مجهول يُعامَل كغير صالح (لا إبطال له).
         if payload.get("iss") not in _ALLOWED_ISS:
             raise InvalidTokenError("Invalid token issuer")
