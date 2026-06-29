@@ -4,6 +4,35 @@
 
 ---
 
+## 2026-06-29 (س) — توحيد main + فرع الاعتماد Phase 1–22 + السبب الجذريّ لـauth
+
+**رأس `main` بعد الجلسة:** `96003bf`. الفرع المخصّص `claude/code-review-34hO3` = `c0174e6` (مطابق لـmain).
+
+اكتشف المستخدم أنّ `main` (عمل الجلسات) وفرع `certification/final-readiness-evidence` **افترقا**
+من القاعدة `89d848e` — كلّ خطّ يحمل عملاً فريداً. القرار: **توحيدهما** في superset واحد.
+
+- **التوحيد (54 commit فوق main السابق):** دمج `certification` (Phase 1–22 · ترحيلات v99–v123 ·
+  `sahool-production-gates.yml` · وحدات runtime — 470 ملفّاً) مع عمل main (تفكيك · CDSE poly ·
+  H5/C5/H2 · بوّابة الواجهة). 22 تعارضاً: الإضافيّ آليّاً؛ المتداخل بقاعدة cert المتقدّمة + اتّحاد.
+- **Stage B (CDSE فوق cert):** أُعيد `apply_polygon_mask`+`fetch_field_geometry`(RLS) + تفعيل راوتر
+  `cdse-tiles` + باني `fieldCdseTileUrl` (واجهة) + إعادة D في الموضعَين.
+- **Stage C (تفكيك):** أُعيد تفكيك video/odoo/raster (cert المصلّبة) إلى `routers/` مع **حفظ تصليب
+  cert** + استعادة الحُرّاس الثلاثة. كلّ الـ11 خدمة مُفكَّكة الآن.
+- **🔑 السبب الجذريّ لـauth «unhealthy» (سجلّ المستخدم حسمه):** `main.py` يستورد
+  `from router_registry import register_routers`، لكنّ Dockerfile auth (وvegetation) ينسخ ملفّات
+  مفردة لا المجلّد ⇒ `ModuleNotFoundError: 'router_registry'` ⇒ uvicorn يفشل ⇒ الحاوية unhealthy.
+  **ليست RLS/JWT** (فرضيّاتي السابقة كانت خاطئة — لم يكن لديّ السجلّ). أُصلِح: Dockerfile ينسخ
+  `router_registry.py`+`routers/` + **حارس CI** `test_decomposed_service_dockerfile_guard` يمنع التكرار.
+- **إصلاحات CI (بعد الدمج):** مفتاح `DATABASE_URL` مكرّر في `docker-compose.v9.yml` (أثر دمج) ·
+  frontend TS (`tileSegment` props) · PyYAML في وظيفة المفتّش · ruff format · **تجديد بصمات الإصدار**
+  (`build_release_bundle.py` — 85 ملفّاً تغيّر بصمتها بعد الدمج، فحص Phase 14 رصدها).
+- **توحيد الفروع:** دُمج main في الفرع المخصّص `claude/code-review-34hO3` (شجرة مطابقة) + أُغلِق
+  PR #579 (كان يتعارض في `cdse_tiles.py`؛ مُتجاوَز). 0 PR مفتوح · 0 تعارض.
+- **درس:** الدمج التوحيديّ يغيّر بصمات كثيرة ⇒ جدّد حزمة الإصدار. والاختبارات تستورد main من مجلّد
+  الخدمة فلا تكشف نقص Dockerfile — حارس Dockerfile الجديد يسدّ الفجوة.
+
+---
+
 ## 2026-06-28 (ن) — بوّابة الواجهة + إغلاق متابعتَي D/C من مراجعة النسخة + تشخيص auth
 
 **رأس `main` بعد الجلسة:** `63c2f03` (#577 آخر المدموجة). PRs مدموجة: **#574–#577** (٤).
