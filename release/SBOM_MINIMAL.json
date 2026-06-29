@@ -75,7 +75,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cabd773301dad923cd75eb2c8d13321c5dcdc1d6219ae440b5206cb0156a7151"
+          "content": "24e14546fafe8bbdc38b6a8ff83f7ad449e4d6cc08489483385bba5c22288a66"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -265,7 +265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6a0a25b09f1bede081cca4b759c84ff5ef24616f0057462970976bf01a125fd"
+          "content": "17ad71bfd76e43a32e25a00ad0724dbaf8d64617325f9b956b93735f62ab397a"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -455,7 +455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79459fc056196ac62c937905f66638bafe0f06f1623903eeffa53ab94821d46d"
+          "content": "ce764733ad054ba4f833db5d62ac963b85e7bc046ecb114b2478063e45a2bd09"
         }
       ],
       "name": "frontend/src/components/FieldIndicatorMap.tsx",
@@ -1985,7 +1985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6cd46daeb339d4bc511f1e5b2498d20453acb79a200c16f409fe6ede0999ad4a"
+          "content": "ff599ad27f1dd03ac250b5627a482fd0d34200f7280708d5361d74288d476572"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -2035,7 +2035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e9f63b0ff59d709cff2c9bd3b22a48df43d94f93f6dbccacc67ef1231bd3623"
+          "content": "9593385aa9b992c2a53ad91a5584d03ba3a9c36d966d7a320bafc0d696dfb592"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.test.tsx",
@@ -2555,7 +2555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30a426e583672fa699ded928ac780cc35bb9de1f6dbb7a78eb23c3addbaf2b80"
+          "content": "e85fe3dd151cad0802cda943f66ceec6450bbb9e3240a7fc4e569d9bb7ea2d36"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -2715,7 +2715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4cdd8ee82f9fdc1b1498a36627c5f75b061eb9f1b7b766bfe5f398f99233b73"
+          "content": "b188ee9f27a0fbaa9d23db8922f85a605672005a7aa37b6e666d97c212f17ea9"
         }
       ],
       "name": "migrations/init_v8.sql",
@@ -2825,7 +2825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7dec8c357e4b8bbd2092b69b8e23f0689a02bd90743399753cd1183e9a82086"
+          "content": "f1832837ac1ba2e0ca83e8e610fd06b06a7fb94c18e1e8e8a5823f74d4187ace"
         }
       ],
       "name": "migrations/v10_command_store_lifecycle.sql",
@@ -2985,7 +2985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f07421d3cf4a9d94d62dce13aed379bb60e1042ab3ef12cd78b27b61a8fddc4b"
+          "content": "7672f4cafc423c3a270da5bd0192c4e1f3167c7c027e72a174f0711accd23708"
         }
       ],
       "name": "migrations/v12_trueup_sharing.sql",
@@ -2995,7 +2995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01946ba371b81d61c74468e0348ac7d3eb47fa8cb2c1ff173bad8b468a602e89"
+          "content": "47eac12a3646ff4217ae9b9c4da2dc154f651bede01a50c366e4b189e81ce456"
         }
       ],
       "name": "migrations/v13_geospatial_core.sql",
@@ -3025,7 +3025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52a06bc1f8b2760a77570b0867eccad130f2f578812851569c9f7d39da0dd482"
+          "content": "4780cbdc4797c942307ae4d13ad546cb17aa4b56279f93af6acce1cecfe12947"
         }
       ],
       "name": "migrations/v16_workflow_state.sql",
@@ -3055,7 +3055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d68f5cf8b5d5fdd4cd22b09f0aeea16491d043a39c1407e2ad5a5271bc43124f"
+          "content": "26ff3f730c9e7cd21703aea05f6f7cbde138580a2b1199c44dc27f1d457f0144"
         }
       ],
       "name": "migrations/v19_farms.sql",
@@ -3065,7 +3065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8252bea6be7614ed824069e859a4f60acc7db7cbe9833e70f3b751041ba1d423"
+          "content": "b2cf3059b484bf566460533e29aaf2584215f04990056872814a38c3b5053698"
         }
       ],
       "name": "migrations/v20_automation_tables.sql",
@@ -3085,7 +3085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fb520fe6223de6b73b7b4b268770ef28cfb7b4a5ebf1815c23e20bc40928f6f"
+          "content": "0831303a7d9e906f73d113f19567e2cae0339265e09246afeaaceddfe0cffc48"
         }
       ],
       "name": "migrations/v22_inventory.sql",
@@ -3095,7 +3095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "788a3df388a21246614a04517522d2fc22499594696faea09db8183f88ea3016"
+          "content": "a67699a6458451678954492a90abaf528959bc02d898fed46303ddaf7b883c8e"
         }
       ],
       "name": "migrations/v23_equipment.sql",
@@ -3105,7 +3105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2b5265b69dc686213fdf9ecdf1d492b822c09905b4862ed8f73dbd039cc51c9"
+          "content": "b0b60f865feae3fcfd9cf2623a9eca2630e2d55a491a3dabf0311002b3a65d08"
         }
       ],
       "name": "migrations/v24_iot_devices.sql",
@@ -3115,7 +3115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7490770f8a4ae97e94885bd5e55a843757b0d761a8104b6c66dc50d23a3298cd"
+          "content": "94ba6a77b846cf6936ec826ac1e829602f1f080d87f9c44c07566834248bc215"
         }
       ],
       "name": "migrations/v25_irrigation.sql",
@@ -3125,7 +3125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02d14707e48c359de4ef0917cc0170e7d79ebddbd61302be64000359c9d6aed5"
+          "content": "ddc568d74e6f3808f0ffd9b228bea101af1c6f355e9a8349387e39908044338e"
         }
       ],
       "name": "migrations/v26_master_data.sql",
@@ -3135,7 +3135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d148cb06d4f5d063ba9fad459a374c854aa9f8d8d98842ada970f74ed4f0b0da"
+          "content": "6b98effc852bb214fd3617128117c352540f500b350711c6d715531ecb8d2502"
         }
       ],
       "name": "migrations/v27_gis_enforce.sql",
@@ -3145,7 +3145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa0f959ff1dc7431b29d004749304a91034ebd35381ae9b8ba58a64a0871642d"
+          "content": "07e98c523e40164eaacb8669f204a5a7a99f9daad00539d15ddbf1ba7fb753d6"
         }
       ],
       "name": "migrations/v28_settings.sql",
@@ -3155,7 +3155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7dd5349d0ab25b193a2abe0e6ffb24629edb51cdcf235497d05494affba8eb65"
+          "content": "540162ae36550e992ef58f88b321fba212a37fafa11f9e933f6ba8d825acd87f"
         }
       ],
       "name": "migrations/v29_documents.sql",
@@ -3185,7 +3185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74d9a88ee7f06365cbb6997243f70de4016c5c3e77cfe856b4126169e62ea447"
+          "content": "cc95007091d7b413c137ad2e17b9d6ca7154c538b726d769a1a05488aaa1d662"
         }
       ],
       "name": "migrations/v32_seasons.sql",
@@ -3215,7 +3215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1823de9c407c28ee585b1b1446aedbf3d6b28a6146245ac83ed3947b1e7ccffd"
+          "content": "12733fcf94ac94494d87714e631ea75a2d589629919376efcb8f05f3120fec2c"
         }
       ],
       "name": "migrations/v35_activities.sql",
@@ -3225,7 +3225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0165836caeeeb1a9e929369eef585917242092052ced1907a3deb2ded7d09283"
+          "content": "9e0258bea629a57b43f69d7381229976aaec4e7a50d107a80a83017774b23c58"
         }
       ],
       "name": "migrations/v36_alerts.sql",
@@ -3295,7 +3295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7cd7934533ba27b1f22dd5eb61f25d8a5850d61e23fd8af5747de9ed63fedfd3"
+          "content": "ca3c94c875cb9e3a09de203bbad9a700b4bb6371a1aec274de34d2da9c3c99fc"
         }
       ],
       "name": "migrations/v43_fields_geom_index.sql",
@@ -3325,7 +3325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63d3b2bddcfbdc4c2393216efc92ce1ccd88de0a3592fe93a6f632536f6bc307"
+          "content": "f563eed0220a6ced26f5bb9367e0f6696f5095756071aee004ad12dc0278e44e"
         }
       ],
       "name": "migrations/v46_lifecycle_event_sync.sql",
@@ -3345,7 +3345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04d75bc1be0e71f545b57ccc76628025e740d737611ee4f3c4a2f7fc220db563"
+          "content": "ca85d527696befbcec255b3b2774e0755b8905144f311cf9268718349e4b66d6"
         }
       ],
       "name": "migrations/v48_activity_season_fk_dlq.sql",
@@ -3365,7 +3365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ebffd245b7707e2e1b48c2ea709602006a19ebf7f2b7db9422ff4cf23cd1db8"
+          "content": "12119662b3371671a26b606fa57bd79a7ed86819c570720ca381aed6fd1160ae"
         }
       ],
       "name": "migrations/v50_soil_lab_tests.sql",
@@ -3505,7 +3505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b32998479a98789d6ab8bf2f63f96aa0346a1e90b8f5cdd827e0c095bf16d87f"
+          "content": "9d49c7d55a1187bddfa2138b59b506e09ee0b3e725a52e093d8556d174e790c5"
         }
       ],
       "name": "migrations/v64_seasons_row_version.sql",
@@ -3515,7 +3515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d5b8952037dcd08bbdc94260bdb830cf791592fd2df415074c5b3054f6f8ff2"
+          "content": "6e6366d05affc4d90e77e6e640bd784b2fbc84ba0dbb4390f1c9c2c866aa5d54"
         }
       ],
       "name": "migrations/v65_harvest_traceability.sql",
@@ -3565,7 +3565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73ad9918e56040d88df63e4ca23efd2d9c80d4ee748714e7dc7c1a349aea7f55"
+          "content": "b7d73b3cf1df495faa9c7ab8efe9a973413873c284eff6dcdaadcc74f86b20a2"
         }
       ],
       "name": "migrations/v70_rls_with_check_propagate.sql",
@@ -3725,7 +3725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5037e0cd0c218ee1aef94977ce843509b46fea36bc45a4ac7606fad1b0795ba"
+          "content": "600e6ab8e7b33ecc76884c05717465299eb1d9adb9e99ea6e8b23f033c0b21ff"
         }
       ],
       "name": "migrations/v86_calibration_evidence_trigger.sql",
@@ -3825,7 +3825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d63a20e2c20cdc514216c72f0f0b5faa5851bed8d98d00dbbb086360d4e62b3f"
+          "content": "18dea59e76ffa970e10a483ef944d3b1131aabbdeafbee0f3dca5bf5f1d91f9d"
         }
       ],
       "name": "migrations/v96_spatial_geometry_integrity.sql",
@@ -3935,7 +3935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec533bb772473436c092bd77ec4fab9ecef115d02b87e967fd91d2ac62bd3e47"
+          "content": "0df7b1f2b469c36b144c99aae8890f56e8ba38552594ba6f657665580af6e459"
         }
       ],
       "name": "migrations/v9_foundation.sql",
@@ -4525,7 +4525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c5a4821e7993e82836ac7f0244e7a4cc31efa7fe04055f82160aa446e947045f"
+          "content": "31b5751f1a698ac7b9234e8baaa21a9b8356b8773ebddb329c0c465a5cb6e559"
         }
       ],
       "name": "services/actuator-service/main.py",
@@ -4539,6 +4539,66 @@
         }
       ],
       "name": "services/actuator-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0ac984d9f7078af4249d0b3069608c7fe5cc67038332841d2300b13a8d009e84"
+        }
+      ],
+      "name": "services/actuator-service/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c73675048f9bf96e1cc8b0ab39788aeb2d933bdd47e4a77f382df6effc13014"
+        }
+      ],
+      "name": "services/actuator-service/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0df56b6d68abb2931dfde83c8a6f50e4775111563cad0894fdfeb66a02ede5e4"
+        }
+      ],
+      "name": "services/actuator-service/routers/commands.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "faf97c842ac4e8d6ba91791fbd8371c975390a4ae51f9fa7cbd5f588eb56cc83"
+        }
+      ],
+      "name": "services/actuator-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d77efba4dcd94b0e163fa6e196ea3a8ae7b858310b7b975ed5a0eb76e69b2b1"
+        }
+      ],
+      "name": "services/actuator-service/routers/metrics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "30f96237eaac565111f3c2e6c16f34ac8f4b9cbc951bf95dee62bc0d4ea23d58"
+        }
+      ],
+      "name": "services/actuator-service/test_actuator_router_decomposition_guard.py",
       "type": "file"
     },
     {
@@ -4855,7 +4915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5107e53835e8a3b9192f2972eab1d99d4bd01a27f4af6d4a2bd665f77de345a9"
+          "content": "870ff38f189b270527bb4ab6e829b192bf0de1ccef3d2794108cf1f42d7fcfee"
         }
       ],
       "name": "services/auth/Dockerfile",
@@ -4875,7 +4935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1b463b92cc265dec47c984d31465c1e6a8ade18eb89bb7e4815ba259bce18a4"
+          "content": "570195ae7f93b863e3971106b47001dbfeaa956abba39c2d7321005e125f6f46"
         }
       ],
       "name": "services/auth/main.py",
@@ -4899,6 +4959,136 @@
         }
       ],
       "name": "services/auth/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "930af32d42f2eb8d708cb7dba686e063b299f3c1d743782908ae6401daf1ffd5"
+        }
+      ],
+      "name": "services/auth/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8486d9826bb0d0cae5f179e554b5a772e2f54d0b43cf2b19c36b969935d0bca9"
+        }
+      ],
+      "name": "services/auth/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d2f95feab572b559d12816e090e4ad1377ef03900a578cb4e75360f536fe5ff"
+        }
+      ],
+      "name": "services/auth/routers/email_verify.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "02afc63f7fc646f7656fa2a8b16150f024c4d85f1ae98c2958ab7ffa5c616c5e"
+        }
+      ],
+      "name": "services/auth/routers/invitations.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a95e76b802d560d89eb3234948b119816e41981e69da2e2e1999edc6c70ec81f"
+        }
+      ],
+      "name": "services/auth/routers/mfa.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c64d3a0fa9c91c95398f99c2b5a45708ed637a7a1da45d3bf62ac5b45d4e088"
+        }
+      ],
+      "name": "services/auth/routers/ops.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "02588de0ae531a1124fd1f7cd85b05dabd819e44eb32e7ff909aba6e677dd1dd"
+        }
+      ],
+      "name": "services/auth/routers/password_reset.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "36f09208348ecf3ef69a2916af98b9d2e1cf436a22f464dd4ced5d98b6a0b0be"
+        }
+      ],
+      "name": "services/auth/routers/registration.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fbdf5d4603ea67d0f4ccff3e595a61d5d8f3f3753a68d6e327b6a383dc63e39b"
+        }
+      ],
+      "name": "services/auth/routers/session.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "20e3d4c57491657183dc09ec69e636fad46e361a9c70b3828e019d5943a663df"
+        }
+      ],
+      "name": "services/auth/routers/tenants.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "480478d7541a0ab244addc25f83a1c4ea32db27f742c90e57a89e5636612c2c2"
+        }
+      ],
+      "name": "services/auth/routers/users.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "name": "services/auth/tests/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e80f1f9a70b3c0b14ad3e7c0507add7390487bcd13e1fe3b0f4429c1c4028cb2"
+        }
+      ],
+      "name": "services/auth/tests/test_router_decomposition_guard.py",
       "type": "file"
     },
     {
@@ -5115,7 +5305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1f20038e339f20d0c8868ed6e2de030d9b152cd93c12f546edfaa6d65774ce7"
+          "content": "0dcb1634e4507453dd3f85afb27d0d1e889b68897687084f3b5adb3071398000"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -5129,6 +5319,56 @@
         }
       ],
       "name": "services/guardrails-engine/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2404edbe18bee899606766292165b547e923611b8ffb39e416555560d56838bd"
+        }
+      ],
+      "name": "services/guardrails-engine/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "415b9d97132daaa41d8932f15bdcf0cd2434acb6ef66a962881871d40ce2e9af"
+        }
+      ],
+      "name": "services/guardrails-engine/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "16bcca465ec0bfa0e9729265909c8632870aa97774c3c854b82cf1e8d98dcf0d"
+        }
+      ],
+      "name": "services/guardrails-engine/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2be8c0cf712b6b1f6c9d94e4fd2321a6d3072e8f3aafff260f1c2a4be8e8fc58"
+        }
+      ],
+      "name": "services/guardrails-engine/routers/validation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6222ad35e75b252851912a8a8a209fbf94a6c4d3511df38d8801a93d3e07e8fd"
+        }
+      ],
+      "name": "services/guardrails-engine/test_guardrails_router_decomposition_guard.py",
       "type": "file"
     },
     {
@@ -5445,7 +5685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8117c785d67e85696d09432737ecd4e3b3438c8324bb6d5c66e92b90b7d232f3"
+          "content": "dec904ec76d1cb6dbb85a08fb20aec39d243975ba8d5400a36863fbf00e1b804"
         }
       ],
       "name": "services/odoo-bridge/main.py",
@@ -5459,6 +5699,76 @@
         }
       ],
       "name": "services/odoo-bridge/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9434c6d0eb114e10a77444c21bedbbf4a11809406afc20ab32ad4e3c0934fae7"
+        }
+      ],
+      "name": "services/odoo-bridge/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f670fc56975d0b13ccfe82971de42191e2b66eb26bf3d189983c7c36633e675"
+        }
+      ],
+      "name": "services/odoo-bridge/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9cabb3c0b40d5c6232efdf9fb098a4164a7c0ad50435d0ad7b605918541fec1c"
+        }
+      ],
+      "name": "services/odoo-bridge/routers/catalog.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "383de74b20093d41d02d4d5adb55feaaabbf97e178249015e488b42825bb2772"
+        }
+      ],
+      "name": "services/odoo-bridge/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb13f939b88f172fb4f03d5b1bb7f900b3d409a7ec18d183c503723c2f80bfcf"
+        }
+      ],
+      "name": "services/odoo-bridge/routers/sync.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8528726103f526a95dcd83e222915655afea813342cc7f0c2d1cdcb5e9f2a524"
+        }
+      ],
+      "name": "services/odoo-bridge/routers/webhooks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "50b2eaf3c063f875a34c4b0740189a296ead2c489faab76b6e1c971d0da2b749"
+        }
+      ],
+      "name": "services/odoo-bridge/test_odoo_bridge_router_decomposition_guard.py",
       "type": "file"
     },
     {
@@ -5585,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f9aade639e53f353ca50f54356b1bd660e0f7d01f7867a5da098ae311d41679"
+          "content": "30deeb9b9696faa046b73d317f118d832ee129a14bc5caebac76785cf3f0426f"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -5615,7 +5925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9da022e5cb9e966082b4709f02170af1339ada1c368b97d8a5b272b9db72a5de"
+          "content": "7638aafdba1f825fe48b84aa68024f60154c24d7846911d3c72b14fb74e85119"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -5625,7 +5935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9a21284d232e314af67a762aeea8b87aee7d59e33e017a64658ebd4aafa7190"
+          "content": "242646e161bc6084f9473613c1fc946574e8109d56546def6f240a9eed638375"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -5665,7 +5975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "612a14fc9d1367175c3eefc77444df627f29803dc625ff9f9311536c29dd0c88"
+          "content": "4787222584412ee44aeb43237fc7075ef30da0dbfb3d2e28ad6e626979723a48"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -5715,10 +6025,150 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f8c8edbdde6760c4c29d0c13497c3342956be18fadaa2c480637de2a45c37656"
+          "content": "1724149108002704177596ad48753cfbcd4be3f2b28c48d0532d63f8b2088d0b"
         }
       ],
       "name": "services/raster-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "06d8b3bebeb1a5c296fe6ade455718e8ae07a82bbc9f983cd7e26e03c4d50c92"
+        }
+      ],
+      "name": "services/raster-service/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "96f4191ef0d1354b1e2a1c6fa26979d44c9e7bd476b92a0c71cfa81d91bd5f5f"
+        }
+      ],
+      "name": "services/raster-service/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7eb47e0a13130d9a5d4a9e455be66b0e69184a78824add29ffd2aed4c69599d0"
+        }
+      ],
+      "name": "services/raster-service/routers/analysis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b10db8ac4cebbfbd97a1a23ad019c6b0d5328c5b50c5981e10ac6166d60c8a4f"
+        }
+      ],
+      "name": "services/raster-service/routers/cdse_tiles.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bfab222bd9baf6b0e15e572b2688978e8259291d6070d91ad2bff9c34b82c030"
+        }
+      ],
+      "name": "services/raster-service/routers/fields.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e347051023afe54e5093467d147c228c89fab6da80ee137fdf714db52b31dbad"
+        }
+      ],
+      "name": "services/raster-service/routers/imagery.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d639917248fb16bc66a8440e028581f7d8ab537a74e7d6f6ae127b0c9857daa2"
+        }
+      ],
+      "name": "services/raster-service/routers/imagery_search.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "71ad5769751e5c11430c8f4abf46dfb32fa8c8f696b6b43e19181bc7017b33e3"
+        }
+      ],
+      "name": "services/raster-service/routers/jobs.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8850f30245c667067b5aa3a89068a56e3cc6ddb70e95d6d192e7a5a17dec271f"
+        }
+      ],
+      "name": "services/raster-service/routers/observability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "44d0017a4a2b2b7c75bdeced40e25e39f43e7b3523fe048ae35b60537145a52d"
+        }
+      ],
+      "name": "services/raster-service/routers/processing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "41a0b9198b33bc5d6d9d2148f124cbffc2c59c3f0db896e68d3e8571088b6e08"
+        }
+      ],
+      "name": "services/raster-service/routers/stac.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4910170c84914a809cb7f32214e2eb97bb4f5398b0ec4a7c24940c817eecd4b6"
+        }
+      ],
+      "name": "services/raster-service/routers/storage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4ae4dd756f15fd09c22de98478a5e885aacb9394ddbd5bbe0108e7d813b83ecf"
+        }
+      ],
+      "name": "services/raster-service/routers/tiles.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a914cde0afeaa752e075e372053ec306068a635d26a9a792e1e8219844801d78"
+        }
+      ],
+      "name": "services/raster-service/routers/timeseries_routes.py",
       "type": "file"
     },
     {
@@ -5795,6 +6245,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "49dec23d317981a94f0df5a318911494c9cef80c0969f10ebf9d68d4a760af5d"
+        }
+      ],
+      "name": "services/raster-service/test_cdse_date_normalization.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c156e87f6b83f5a1bd0af7dd7f59570c6bdc508f720262061347edb3de680a33"
+        }
+      ],
+      "name": "services/raster-service/test_cdse_poly_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7f429410cb0e6559dd90f7fb282d14f0279eb461c7a008c9efe584dd40a48308"
         }
       ],
@@ -5815,10 +6285,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "52bfa5b1329336725b128a8117e27122768ded98fb0fc65cf8d3825bc68bf02f"
+        }
+      ],
+      "name": "services/raster-service/test_cloud_masking.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "985ef935d84404b1d5949c2fe69463d868a1a0cb78d5a10e11a49096197710a4"
         }
       ],
       "name": "services/raster-service/test_cloud_native_catalog.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "210cf68bd3351c1bd9cdaa949b21e7c776597f73dc898c9e915ec0862513d9e1"
+        }
+      ],
+      "name": "services/raster-service/test_cog_writer_internal_mask.py",
       "type": "file"
     },
     {
@@ -5875,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "518cc2401d245646bf0faef3b25dcde53e193b20fecf3a522bb23130415a63b9"
+          "content": "bb7cb0fe9277233144394ce81f3ac19a8e46de0d1bf8f2d20763c0ab8a4b103b"
         }
       ],
       "name": "services/raster-service/test_p2_tile_observability_static.py",
@@ -5885,10 +6375,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bef423f51629096da341e6fa47dc55a726f08d317b2f5f2c1093367879298be8"
+          "content": "29fd9b8be29bfc99441e4210024370ad1252b2c8ba6718723e1c8e61de5fd960"
+        }
+      ],
+      "name": "services/raster-service/test_raster_error_sanitization_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9beea6ba1d508f95266f88bc4370cddf73692385174cd65fb689ce670dd2e88f"
         }
       ],
       "name": "services/raster-service/test_raster_map_deep_hardening_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "868b0ab2356ee82c38939ba47c2c8ec205d09fa87ce790bd6fa0058e753b1e5d"
+        }
+      ],
+      "name": "services/raster-service/test_raster_router_decomposition_guard.py",
       "type": "file"
     },
     {
@@ -5925,7 +6435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6134b28d2830ab64887c22109131351747be5a94e8afe7048082e476e3b1410"
+          "content": "eaf8ecdd59b51d8aa99cf88af2249bbac22dc3b93661a9a369d3bf46df85e806"
         }
       ],
       "name": "services/raster-service/test_tiles.py",
@@ -5935,7 +6445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d62d2b94f2f89e86380b1b3d1e5cd4e0b042d92e234dd240b5e76eff8911aa1"
+          "content": "68dde035b08b14ea4dc89c7a3d9583a8c5909973d5accb81e11befa093329840"
         }
       ],
       "name": "services/raster-service/tile_render.py",
@@ -6615,6 +7125,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "873379d0919ca32728a62733ac6910394be3d69d1da363292e9be2ad08864fda"
+        }
+      ],
+      "name": "services/sahool-platform/api/evidence_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "64f14e12f960ef8304df7b59fe5332b813fd468e478735f30f278ed5c7852f1a"
         }
       ],
@@ -7059,6 +7579,16 @@
         }
       ],
       "name": "services/sahool-platform/api/irrigation_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "64596b8570b56a757fbc791b7847056a94194f016a6156bc46e279ad1770e086"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_recommendation_policy.py",
       "type": "file"
     },
     {
@@ -8235,6 +8765,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "28632bb54159570552c160a68e44880942ca6cc2e91261c67520459204855b74"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e464770a13730d54635a909cc3aecb5f835913fa491a59a397f8cdc117dfcba9"
         }
       ],
@@ -8595,7 +9135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "caba04be98f6fecb9c44fbb2c075fd8c3e81cbc700dcc88d9d3b62f994dc8747"
+          "content": "bb52211d1e7918c7f3ff21f6b730f1897524b9664a6c2812b2f2d4cdf6a882a9"
         }
       ],
       "name": "services/sahool-platform/api/routers/reports.py",
@@ -14875,7 +15415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5bf9ac5a5841dea57017e5f719a77fd65d52624f8e205de045c6c6a7d56e9cbe"
+          "content": "53462443b00ccfe1b714c1ed0c2ece57fd6791dbea1bf3a231ffaa5d7279b891"
         }
       ],
       "name": "services/soil-service/main.py",
@@ -14889,6 +15429,56 @@
         }
       ],
       "name": "services/soil-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "66835f03a067f87bfd5ccd286e5875a021f7f0f10a44e29643fda55f136d5df0"
+        }
+      ],
+      "name": "services/soil-service/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abd15b87b7de68a8015e6ed4c370983d285ebb2fa22ddf13cf0226039e6948d1"
+        }
+      ],
+      "name": "services/soil-service/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a0e6b3b0d33c6fcba70c33d0822270e239a1dc3bd16ca071828f858e4a42e1d"
+        }
+      ],
+      "name": "services/soil-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a3a384becbd7e7e88add62c6f95840cf015ddb3ea50b889fca95608ebae7e46"
+        }
+      ],
+      "name": "services/soil-service/routers/readings.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9afab85b33d01475d9aa818be7a5f3184189b536c4717f00e070ceddf2033481"
+        }
+      ],
+      "name": "services/soil-service/test_soil_router_decomposition_guard.py",
       "type": "file"
     },
     {
@@ -14965,7 +15555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e36710a2dc55c7f47770d6b524d6a259886267d92582675dc92b05e60884ae98"
+          "content": "5afe1f3c00ceaa7fccfacc2c8131f6587045710b33cf3ffd536fb17fd1f5c136"
         }
       ],
       "name": "services/supervisor-agent/main.py",
@@ -15019,6 +15609,46 @@
         }
       ],
       "name": "services/supervisor-agent/router.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9cadc2b4769f085c84e69e2996bf6dea936482a6a1db15ee8916d309d89e439"
+        }
+      ],
+      "name": "services/supervisor-agent/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a31da1474c76a6b2d7434c1bd9dbab3d87a5a307246d3648eedd3cf490f01ed2"
+        }
+      ],
+      "name": "services/supervisor-agent/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a23bf3016dd341f24c68c0930e53b0d9fca11edba93507e4d7a8339cf910f5ac"
+        }
+      ],
+      "name": "services/supervisor-agent/routers/agent.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "84cdc9bfbbc46b2c3054a105d14af5e3c7c5bf750ff88734fcd1f078f3083c2d"
+        }
+      ],
+      "name": "services/supervisor-agent/routers/health.py",
       "type": "file"
     },
     {
@@ -15135,6 +15765,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4fff0e93420ce5bd063728e2f58410926d611d77360f73261c7b1cde3eabe31b"
+        }
+      ],
+      "name": "services/supervisor-agent/test_supervisor_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb71c491e109db8fee02755dd8374fdfa3cae8c9311c9e1b75d54c8c6a8c66b9"
         }
       ],
@@ -15165,7 +15805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa15411c77a06b1d090856b0a14389d30a88d2db2234d42d616476c3cae8085c"
+          "content": "78946677c59d2a39dff5d188d7736ac0508729ad18ab5fe8316a18c461da74b3"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -15185,6 +15825,56 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4d5ce492ee913d1d8ad2392bb17f79508676d30394de4109820a9c55bd11682d"
+        }
+      ],
+      "name": "services/tts-service/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b58bba57c1dbefb9e81e11287c4817c765de12f77d187d43f61b02e836e9ab0a"
+        }
+      ],
+      "name": "services/tts-service/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a546a65be1786dccf21fb2e65bd4fce078cbf2210e11b0200dd4b0154b85f850"
+        }
+      ],
+      "name": "services/tts-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "17aabce1780a664c9e20e190cd885e078b733da3aea4290aceb1dad936b8c388"
+        }
+      ],
+      "name": "services/tts-service/routers/tts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4555eb61ee1682b66c051e6de27102211435ec575fea26b7a70985e1e5be2511"
+        }
+      ],
+      "name": "services/tts-service/test_tts_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c84f88c4dad353f473edd75b6a07007ae84670918fa836d94aa52c508c62810"
         }
       ],
@@ -15195,7 +15885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e39d9a27793e01baa9d8d45d9c022877934b61190499bee679b117fb6a00bf99"
+          "content": "9d6dbc5336896d6716a80640d3054ee6a31f54e43b8035016a95f57d6ac6003c"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -15215,7 +15905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43918685f7d6ca8b5c0963c19756b87c0e3ae2b64c53836314dee2b092942bcb"
+          "content": "b13056b0981a724b58f523124cf0ec78cdfefa095c90fa370bb7a0b37286d74a"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -15235,10 +15925,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ee2d88c4078479638c5d5a2b9876a12b71cd14448ef5f71fa583b9f291064648"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3562eb09275d4419a3b265774e02a6f3c9696b594590c82bdcb4dc880c074e0f"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "458f6cab2e2bec60664b1b9924f718a59ab1facf737d0b6a75635db4e3c24d29"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/analysis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "353f2ee403193d302c5e88700546e9ca962b4aa4448f44c70fe8c64480721480"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f4b7adabf4f46e3b152ccdc65e1c5c9fbaa4d60224f8acec9af882d7b28d5e4b"
         }
       ],
       "name": "services/vegetation-analysis-service/test_vegetation_logic.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "47feb7c78e83b5935f30337ad3690a726623ba9ad9f96e8ae0de545bedda76a7"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_vegetation_router_decomposition_guard.py",
       "type": "file"
     },
     {
@@ -15255,7 +15995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2166145795de711d3a4a895f5d7bb37b7375df0dad3a0d0c87b1b8a9d458bae"
+          "content": "df50a96add44aa5509e51bc5ba7419567b3a1b93f69cbfbb850f15486aaa9c18"
         }
       ],
       "name": "services/video-processor/main.py",
@@ -15269,6 +16009,56 @@
         }
       ],
       "name": "services/video-processor/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b157e59f63e3d98beb71c845686d3f0caf1a678bc7f01eee0981d701c85f258a"
+        }
+      ],
+      "name": "services/video-processor/router_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4d9ab08db5fa3818c6a490e5e9191e9577cc41a702aa6e8fc03dd9051bfa3cdf"
+        }
+      ],
+      "name": "services/video-processor/routers/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d7b4a0bdce5e35770cb814da989dbf1224c7ad2e206d8343aeaec61a6ea5b9ec"
+        }
+      ],
+      "name": "services/video-processor/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "96b2b25f2940c8f70127fbefdc02f7e369986142c06c805558c84be091f5b151"
+        }
+      ],
+      "name": "services/video-processor/routers/streams.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ae2c69d67f689f1a83766125101b2da40935d939976e0a3b6891424a7b73a3b3"
+        }
+      ],
+      "name": "services/video-processor/test_video_processor_router_decomposition_guard.py",
       "type": "file"
     },
     {
