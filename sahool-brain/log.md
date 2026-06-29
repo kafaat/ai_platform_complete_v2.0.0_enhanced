@@ -27,6 +27,20 @@
   `%G?`=N محلّيّ فقط (غياب `allowedSignersFile`؛ ملفّ المفتاح العامّ 0 بايت) — GitHub يتحقّق خادميّاً.
 - **درس:** أيّ نقل لرمز يمسحه حارس مصدر نصّيّ (`.index`/`.find`) يجب أن يوسّع نطاق المسح للوحدة الجديدة
   — شغّل **كامل** `tests_v9 -m unit` لا عيّنة المنصّة وحدها (التحقّق السابق فوّت هذا الحارس).
+- **تفكيك دلاليّ إضافيّ (`d6d4b0d`، باختيار المستخدم «تفكيك دلاليّ إضافيّ»):** استُخرِج عنقود **السياق
+  الزراعيّ للحقل** (٧ دوالّ + `_STAGE_DAY_BOUNDS`: `_field_weather_context`/`_field_season_context`/
+  `_latest_soil_moisture`/`_historical_rain_3d_mm`/`_growth_stage`/`_resolve|_load_recommendation_policy`)
+  من `main.py` إلى وحدة جديدة [`api/field_context.py`](../services/sahool-platform/api/field_context.py)
+  (main.py 2735→**2523**). عنقود مشترَك بين موجِّهات (fields/recommendations/field_completeness) ⇒ وحدة
+  مشترَكة لا router واحد. **بلا دورة استيراد:** كلّ دالّة DB تستقبل `conn` كمعامل (لا اقتران بمجمّع main)
+  وكلّ استيراد ثقيل كسول داخل الدالّة. يُعاد التصدير من `api.main` (`# noqa: E402, F401`) فتبقى نقاط
+  `from api.main import …` صحيحة. حارس جديد
+  [`test_field_context_decomposition_guard.py`](../tests_v9/test_field_context_decomposition_guard.py)
+  يثبّت: التعريف في field_context لا main + إعادة التصدير بنفس هويّة الكائن. تحقّق: 526 مساراً ثابتاً ·
+  ruff نظيف · `pytest -m unit` 1950 ✓ · inspector router-wiring PASS.
+- **سبب اختيار هذا العنقود (لا غيره):** محرّك التنبيهات (`_evaluate_field_alerts_persist`) **يبقى** في main
+  عمداً (موثَّق في `alert_models.py`) لاقترانه بـ`tenant_connection`/مساعِدات main ⇒ نقله يخلق دورة. نماذج
+  Pydantic النقيّة سبق نقلها. عنقود السياق هو الوحيد المتبقّي القابل للنقل النظيف (conn معامل + كسول).
 
 ---
 
