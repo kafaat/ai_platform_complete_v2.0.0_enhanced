@@ -797,15 +797,22 @@ export default function MapHub() {
                     <LayerSwitcher layers={BASEMAPS} active={basemapId} onChange={setBasemapId} />
                   </div>
 
-                  {/* طبقات المؤشّر (تشمل «بلا» لإيقاف الطبقة) */}
+                  {/* طبقات المؤشّر (قائمة منسدلة تشمل «بلا» — كلّ مؤشّرات CDSE) */}
                   {!compare && (
                     <div className="flex items-center gap-2" data-testid="indicator-switcher">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>الطبقة</span>
-                      <LayerSwitcher
-                        layers={[{ id: '__none__', label: 'بلا' }, ...INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))]}
-                        active={activeIndicator ?? '__none__'}
-                        onChange={(id) => setActiveIndicator(id === '__none__' ? null : id)}
-                      />
+                      <select
+                        value={activeIndicator ?? '__none__'}
+                        onChange={(e) => setActiveIndicator(e.target.value === '__none__' ? null : e.target.value)}
+                        className="px-2 py-1 rounded-lg text-xs"
+                        style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                        aria-label="مؤشّر الطبقة (CDSE)"
+                      >
+                        <option value="__none__">بلا</option>
+                        {INDICATOR_LAYERS.map((l) => (
+                          <option key={l.id} value={l.id}>{l.label}</option>
+                        ))}
+                      </select>
                     </div>
                   )}
 
