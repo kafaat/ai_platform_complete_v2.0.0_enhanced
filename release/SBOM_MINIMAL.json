@@ -885,7 +885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cb3d9a064feecb668dfb546079b7849f209c476f73799ec844a2b476767ea36"
+          "content": "30c12ee53f31727b80537afbd30a26c3d728de448d2a236b00a822b19ee147fe"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -905,7 +905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43f8906d670b141af9150843e653daf6a73773e3ba59938ee47741913be31f07"
+          "content": "d1e65807381cde4840549c01671743aa01fd452e133ed3ab6925e1b9fcb35754"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -925,7 +925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1292f5d80c2295ccb75c7b363934f1bb5446fc72915d7e11caf3ed0d85a065f3"
+          "content": "7fcefa5b6d9cf76ff8b7ab97b9946ae49192355b51de0f00224c5bd453fde0bd"
         }
       ],
       "name": "frontend/src/components/maphub/MapForensicHardening.static.test.ts",
@@ -2555,7 +2555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e85fe3dd151cad0802cda943f66ceec6450bbb9e3240a7fc4e569d9bb7ea2d36"
+          "content": "7c989ce255f04e4a6acd89349ad3ffa3ed7e12e2d45512517ff57989f5596e4a"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -6065,7 +6065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01754b66ac5b91238216182792f19f92e1edbae42addc0aecf459a84e3efbc57"
+          "content": "3fb8867c498d943fcc6999479476292bce703923a53edbd3bf474669f86df8fd"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",

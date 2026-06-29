@@ -31,4 +31,11 @@ describe('map forensic hardening', () => {
     expect(gl).toContain("params.set('poly'");
     expect(leaf).toContain("params.set('poly'");
   });
+
+  it('<img> tiles carry access_token so the production auth_request gateway accepts them', () => {
+    // بلاطات Leaflet/MapLibre لا تحمل ترويسة Authorization؛ بوّابة الإنتاج تتطلّب JWT.
+    // نمرّره كـaccess_token query ليُتحقَّق منه (لا إعفاء أمنيّ). غيابه ⇒ 401 في الإنتاج.
+    expect(gl).toContain("params.set('access_token'");
+    expect(leaf).toContain("params.set('access_token'");
+  });
 });

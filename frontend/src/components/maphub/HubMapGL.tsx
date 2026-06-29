@@ -37,6 +37,7 @@ import {
 import type { SnapTarget } from '../../lib/geo';
 import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
+import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
 // أنواع فقط (تُمحى وقت الترجمة) — لا يدخل Leaflet هذه الحزمة المقسومة.
 import type { ScoutPin } from './HubMap';
@@ -104,6 +105,9 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
   // الموثوق لبلاطات <img> بلا ترويسات (المسار الآمن، مطابق بوّابة 3003/الإنتاج).
   if (tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
+  // مصادقة بلاطة <img> خلف بوّابة auth_request: JWT كـ`access_token` تقرأه البوّابة.
+  const _tok = getAccessToken();
+  if (_tok) params.set('access_token', _tok);
   const poly = geomToPolygon(field.geometry);
   if (poly && poly.length >= 3) {
     let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;

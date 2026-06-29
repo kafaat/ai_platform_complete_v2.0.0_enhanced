@@ -3260,6 +3260,15 @@ export const normalizeIndicatorIndex = (index?: string | null): string => {
 /** رابط قالب بلاطات مؤشّر حقل من خدمة الراستر (NDVI افتراضيّاً). نُبقي
  *  {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet. لا تلوين مفبرك: إن لم تتوفّر صورة COG
  *  صافية للحقل/التاريخ تُرجِع الخدمة بلاطات فارغة (لا طبقة مُختلَقة). */
+// مصادقة بلاطات <img> خلف بوّابة الإنتاج (auth_request): بلاطة Leaflet/MapLibre تُحمَّل
+// كـ<img> ولا تحمل ترويسة Authorization، فنُلحق JWT كـ`access_token` لتقرأه البوّابة
+// ($arg_access_token) وتُمرّره لـ/auth/verify. نمط صناعيّ معتمَد (Mapbox/ArcGIS)؛ مُخفَّف
+// بتوكن قصير العمر + تنظيف access_token من سجلّ nginx + Referrer-Policy صارم.
+const appendTileAccessToken = (params: URLSearchParams): void => {
+  const tok = getAccessToken();
+  if (tok) params.set('access_token', tok);
+};
+
 export const fieldIndicatorTileUrl = (
   fieldId: string,
   index = 'ndvi',
@@ -3273,6 +3282,7 @@ export const fieldIndicatorTileUrl = (
   if (date && date !== 'latest') params.set('date', date);
   if (tenantId) params.set('tid', tenantId);
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
+  appendTileAccessToken(params);
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
@@ -3308,6 +3318,7 @@ export const fieldCdseTileUrl = (
   if (ring && ring.length >= 3) {
     params.set('poly', ring.map((c) => `${c[0]},${c[1]}`).join(';'));
   }
+  appendTileAccessToken(params);  // مصادقة بلاطة <img> خلف بوّابة auth_request
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;

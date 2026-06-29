@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import UTC, datetime, timedelta
 
 import main
@@ -17,6 +18,11 @@ from fastapi import APIRouter, Query
 from fastapi.responses import Response
 
 router = APIRouter()
+
+# بادئة البوّابة العامّة في روابط TileJSON: الواجهة تصل عبر nginx ``/api/raster/`` لا
+# ``/v1/`` المباشر، فمصفوفة ``tiles`` يجب أن تحمل البادئة لتُحلّ من أصل الصفحة. قابلة
+# للضبط بالبيئة (``RASTER_PUBLIC_PREFIX``) بدل ترميزها صلباً — يفكّ الاقتران ببوّابة بعينها.
+_PUBLIC_PREFIX = os.getenv("RASTER_PUBLIC_PREFIX", "/api/raster").rstrip("/")
 
 # «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام (بدل كامل السنة) — حالة راهنة فعلاً.
 LATEST_WINDOW_DAYS = 60
@@ -259,7 +265,7 @@ async def field_cdse_tilejson(
         "tilejson": "2.2.0",
         "name": f"cdse-{field_id}-{index}",
         "scheme": "xyz",
-        "tiles": [f"/api/raster/v1/fields/{field_id}/cdse-tiles/{{z}}/{{x}}/{{y}}.png?{qs}"],
+        "tiles": [f"{_PUBLIC_PREFIX}/v1/fields/{field_id}/cdse-tiles/{{z}}/{{x}}/{{y}}.png?{qs}"],
         "minzoom": 10,
         "maxzoom": 18,
         "bounds": bounds,

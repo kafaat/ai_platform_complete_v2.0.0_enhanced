@@ -23,6 +23,7 @@ import '../../lib/leafletSetup';
 import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters } from '../../lib/geo';
 import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
+import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
 import {
   AlertOverlay, DeviceOverlay, WeatherOverlay, WeatherRasterOverlay, OperationalOverlay,
@@ -256,6 +257,9 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
   // `$arg_tenant_id` فتحقن X-Tenant-Id الموثوق (المسار الآمن، مطابق api.ts↔بوّابة 3003).
   if (tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
+  // مصادقة بلاطة <img> خلف بوّابة الإنتاج (auth_request): JWT كـ`access_token` تقرأه البوّابة.
+  const _tok = getAccessToken();
+  if (_tok) params.set('access_token', _tok);
   // عقد القصّ الموحَّد: bbox + رؤوس المضلّع poly=lng,lat;... (geomToPolygon يُعيد [lat,lng]).
   const poly = geomToPolygon(field.geometry);
   if (poly && poly.length >= 3) {
