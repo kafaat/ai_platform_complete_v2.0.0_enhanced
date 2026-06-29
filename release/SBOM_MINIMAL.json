@@ -925,6 +925,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "15544eec0a3de9523092e3b52ac2306085f3e0133065f60d5721d9ab1c297e8c"
+        }
+      ],
+      "name": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a07bdbdb2ddcf2b22fb68216cb0991781cd340511a25d1ede22428dfc712b970"
+        }
+      ],
+      "name": "frontend/src/components/maphub/InteractiveDrawLayer.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7fcefa5b6d9cf76ff8b7ab97b9946ae49192355b51de0f00224c5bd453fde0bd"
         }
       ],
@@ -969,6 +989,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/TerrainView3D.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6647c01ac0ddfbc64e0f4ddf5ccad761fa6937102e054d3fd57e9c0bb69423f8"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawGeometry.ts",
       "type": "file"
     },
     {
@@ -9505,7 +9535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4dce43cbf5001a2600b7223bdc88b04b3f89362b482e12c0e75b794f760ec42a"
+          "content": "a5ab408540251581c2c0cedb1db5bcd3689003af1b692dc37d854fd7db1d0e9c"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",

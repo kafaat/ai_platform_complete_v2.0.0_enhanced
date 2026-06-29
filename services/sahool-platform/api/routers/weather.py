@@ -11,21 +11,270 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from math import atan, degrees, pi, sinh
 from time import monotonic
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+
+from api.service_token_auth import _require_service_token
 
 router = APIRouter()
 
 
 # Cache صغير للبلاطات؛ يقلل طلبات Open-Meteo أثناء التحريك/التكبير.
 _WEATHER_TILE_CACHE: dict[str, tuple[float, dict]] = {}
+_WEATHER_TILE_METRICS: dict[str, Counter[str]] = {
+    "requests": Counter(),
+    "cache_states": Counter(),
+    "upstream": Counter(),
+    "layers": Counter(),
+    "operations": Counter(),
+}
 _WEATHER_TILE_CACHE_TTL_S = 600.0
 _WEATHER_TILE_STALE_TTL_S = 3600.0
 _ALLOWED_WEATHER_TIMES = {"now", "+1h", "+3h", "+6h", "+12h", "+24h", "+48h"}
 _ALLOWED_WEATHER_MODELS = {"best_match", "auto", "gfs_seamless", "ecmwf_ifs04"}
+
+
+def _metric_inc(bucket: str, key: str, amount: int = 1) -> None:
+    counter = _WEATHER_TILE_METRICS.setdefault(bucket, Counter())
+    counter[str(key)] += amount
+
+
+def _record_weather_observation(
+    endpoint: str,
+    *,
+    cache_state: str | None = None,
+    upstream_error: str | None = None,
+    layer: str | None = None,
+    operation: str | None = None,
+) -> None:
+    """يسجل عدادات خفيفة بلا تبعية Prometheus/Redis.
+
+    الهدف هو كشف سلوك طبقة الطقس أثناء التطوير وبيئات Docker البسيطة:
+    cache hit/miss، fallback، وأكثر الطبقات/العمليات استخداماً. في الإنتاج يمكن
+    ربط هذه القيم لاحقاً بـPrometheus أو Redis بدون تغيير عقود الواجهة.
+    """
+    _metric_inc("requests", endpoint)
+    if cache_state:
+        _metric_inc("cache_states", cache_state)
+    if upstream_error:
+        _metric_inc("upstream", "error")
+    elif cache_state in {"refreshed", "fresh", "stale_fallback"}:
+        _metric_inc("upstream", "served")
+    if layer:
+        _metric_inc("layers", layer)
+    if operation:
+        _metric_inc("operations", operation)
+
+
+def _metrics_bucket(bucket: str) -> dict[str, int]:
+    return dict(_WEATHER_TILE_METRICS.get(bucket, Counter()))
+
+
+def _prom_label(value: str) -> str:
+    return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ")
+
+
+def _prom_counter_lines(
+    metric: str, help_text: str, label_name: str, values: dict[str, int]
+) -> list[str]:
+    lines = [f"# HELP {metric} {help_text}", f"# TYPE {metric} counter"]
+    for key, value in sorted(values.items()):
+        lines.append(f'{metric}{{{label_name}="{_prom_label(key)}"}} {int(value)}')
+    return lines
+
+
+def _weather_metrics_prometheus() -> str:
+    cache = _weather_cache_snapshot()
+    lines: list[str] = [
+        "# HELP sahool_weather_cache_items Current weather cache item count by state",
+        "# TYPE sahool_weather_cache_items gauge",
+        f'sahool_weather_cache_items{{state="total"}} {cache["items"]}',
+        f'sahool_weather_cache_items{{state="fresh"}} {cache["fresh_items"]}',
+        f'sahool_weather_cache_items{{state="stale"}} {cache["stale_items"]}',
+        f'sahool_weather_cache_items{{state="expired"}} {cache["expired_items"]}',
+        "# HELP sahool_weather_cache_ttl_seconds Weather cache TTL settings",
+        "# TYPE sahool_weather_cache_ttl_seconds gauge",
+        f'sahool_weather_cache_ttl_seconds{{kind="fresh"}} {cache["ttl_s"]}',
+        f'sahool_weather_cache_ttl_seconds{{kind="stale"}} {cache["stale_ttl_s"]}',
+    ]
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_requests_total",
+            "Total weather engine requests by logical endpoint",
+            "endpoint",
+            _metrics_bucket("requests"),
+        )
+    )
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_cache_states_total",
+            "Total weather engine responses by cache state",
+            "state",
+            _metrics_bucket("cache_states"),
+        )
+    )
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_upstream_total",
+            "Total weather upstream outcomes",
+            "outcome",
+            _metrics_bucket("upstream"),
+        )
+    )
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_layers_total",
+            "Total weather layer usage",
+            "layer",
+            _metrics_bucket("layers"),
+        )
+    )
+    lines.extend(
+        _prom_counter_lines(
+            "sahool_weather_operations_total",
+            "Total weather operation usage",
+            "operation",
+            _metrics_bucket("operations"),
+        )
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _prune_weather_cache(expired_only: bool = True) -> dict:
+    now = monotonic()
+    before = len(_WEATHER_TILE_CACHE)
+    removed = 0
+    for key, (ts, _sample) in list(_WEATHER_TILE_CACHE.items()):
+        age = now - ts
+        should_remove = (
+            age >= _WEATHER_TILE_STALE_TTL_S if expired_only else age >= _WEATHER_TILE_CACHE_TTL_S
+        )
+        if should_remove:
+            _WEATHER_TILE_CACHE.pop(key, None)
+            removed += 1
+    return {
+        "before": before,
+        "removed": removed,
+        "after": len(_WEATHER_TILE_CACHE),
+        "expired_only": expired_only,
+        "cache": _weather_cache_snapshot(),
+    }
+
+
+def _weather_cache_snapshot() -> dict:
+    now = monotonic()
+    fresh = sum(1 for ts, _ in _WEATHER_TILE_CACHE.values() if now - ts < _WEATHER_TILE_CACHE_TTL_S)
+    stale = sum(
+        1
+        for ts, _ in _WEATHER_TILE_CACHE.values()
+        if _WEATHER_TILE_CACHE_TTL_S <= now - ts < _WEATHER_TILE_STALE_TTL_S
+    )
+    expired = max(0, len(_WEATHER_TILE_CACHE) - fresh - stale)
+    return {
+        "items": len(_WEATHER_TILE_CACHE),
+        "fresh_items": fresh,
+        "stale_items": stale,
+        "expired_items": expired,
+        "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+        "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
+        "max_items_soft": 2048,
+    }
+
+
+def _weather_engine_self_checks() -> dict:
+    """Production self-checks that do not call external providers.
+
+    هذه الفحوصات تتحقق من سلامة المنطق المحلي: WebMercator tile math، تعريفات
+    الطبقات، محرك صلاحية العمليات، الكاش، ومخرجات Prometheus. عدم استدعاء
+    Open-Meteo مقصود حتى تكون readyz مستقرة ولا تستنزف quota.
+    """
+    checks: dict[str, bool] = {}
+    details: dict[str, object] = {}
+
+    try:
+        lat, lon = _tile_center(6, 38, 27)
+        checks["tile_center"] = -90 <= lat <= 90 and -180 <= lon <= 180
+        details["tile_center"] = {"lat": round(lat, 6), "lon": round(lon, 6)}
+    except Exception as exc:
+        checks["tile_center"] = False
+        details["tile_center_error"] = str(exc)
+
+    checks["layers_configured"] = len(_ALLOWED_WEATHER_TILE_LAYERS) >= 9
+    details["layers_count"] = len(_ALLOWED_WEATHER_TILE_LAYERS)
+
+    checks["times_configured"] = {"now", "+24h", "+48h"}.issubset(_ALLOWED_WEATHER_TIMES)
+    details["times_count"] = len(_ALLOWED_WEATHER_TIMES)
+
+    try:
+        decision = _operation_suitability(
+            {
+                "temperature_2m_c": 24,
+                "relative_humidity_2m_pct": 52,
+                "wind_speed_10m_kmh": 9,
+                "wind_gusts_10m_kmh": 14,
+                "precipitation_mm": 0,
+                "soil_moisture_0_10cm_m3_m3": 0.18,
+                "vapour_pressure_deficit_kpa": 1.4,
+            },
+            "spraying",
+        )
+        checks["operation_engine"] = (
+            0 <= float(decision.get("score", -1)) <= 1 and "suitability" in decision
+        )
+        details["operation_engine"] = decision
+    except Exception as exc:
+        checks["operation_engine"] = False
+        details["operation_engine_error"] = str(exc)
+
+    try:
+        prom = _weather_metrics_prometheus()
+        checks["prometheus_export"] = "sahool_weather_cache_items" in prom and "# TYPE" in prom
+    except Exception as exc:
+        checks["prometheus_export"] = False
+        details["prometheus_export_error"] = str(exc)
+
+    checks["cache_accounting"] = {"items", "fresh_items", "stale_items", "expired_items"}.issubset(
+        _weather_cache_snapshot().keys()
+    )
+    passed = sum(1 for ok in checks.values() if ok)
+    failed = [name for name, ok in checks.items() if not ok]
+    return {
+        "status": "ok" if not failed else "degraded",
+        "passed": passed,
+        "failed": failed,
+        "checks": checks,
+        "details": details,
+    }
+
+
+def _weather_runtime_readiness() -> dict:
+    from api.connectors.openmeteo import openmeteo_breaker_state
+
+    self_checks = _weather_engine_self_checks()
+    breaker = openmeteo_breaker_state()
+    cache = _weather_cache_snapshot()
+    degraded_reasons: list[str] = []
+    if self_checks["status"] != "ok":
+        degraded_reasons.append("self_checks_failed")
+    if str(breaker.get("state", "")).lower() in {"open", "tripped"}:
+        degraded_reasons.append("openmeteo_breaker_open")
+    # Cache pressure is not a hard failure because pruning can recover it.
+    if cache["items"] > cache["max_items_soft"]:
+        degraded_reasons.append("weather_cache_over_soft_limit")
+    return {
+        "status": "ready" if not degraded_reasons else "degraded",
+        "service": "weather-engine",
+        "provider": "open-meteo",
+        "rendered_by": "sahool",
+        "breaker": breaker,
+        "cache": cache,
+        "self_checks": self_checks,
+        "degraded_reasons": degraded_reasons,
+    }
 
 
 def _validate_time_model(time: str, model: str) -> tuple[str, str]:
@@ -358,6 +607,30 @@ def weather_health():
     }
 
 
+@router.get("/api/v1/weather/readyz")
+def weather_readyz(response: Response):
+    """Readiness probe for production routing and Kubernetes/Docker checks.
+
+    لا يستدعي Open‑Meteo حتى لا يتحول readiness إلى فحص شبكة خارجي. يرجع 200
+    عند الجاهزية و503 عند فشل الفحوصات المحلية أو فتح القاطع.
+    """
+    readiness = _weather_runtime_readiness()
+    if readiness["status"] != "ready":
+        response.status_code = 503
+    _record_weather_observation("readyz", cache_state=readiness["status"])
+    return readiness
+
+
+@router.get("/api/v1/weather/self-test")
+def weather_self_test(response: Response):
+    """Dry-run self-test for the weather engine without external I/O."""
+    result = _weather_engine_self_checks()
+    if result["status"] != "ok":
+        response.status_code = 500
+    _record_weather_observation("self-test", cache_state=result["status"])
+    return result
+
+
 @router.get("/api/v1/weather/current")
 async def weather_current(lat: float, lon: float):
     """الطقس الحالي من Open-Meteo. مفتوح بدون auth."""
@@ -509,28 +782,76 @@ def weather_layers_manifest():
             "/api/v1/weather/operation-plan",
             "/api/v1/weather/field-weather-summary",
         ],
+        "observability_endpoints": [
+            "/api/v1/weather/health",
+            "/api/v1/weather/readyz",
+            "/api/v1/weather/self-test",
+            "/api/v1/weather/tile-cache/stats",
+            "/api/v1/weather/tile-cache/prune",
+            "/api/v1/weather/observability",
+            "/api/v1/weather/metrics.prom",
+        ],
     }
 
 
 @router.get("/api/v1/weather/tile-cache/stats")
 def weather_tile_cache_stats():
     """إحصاء خفيف لكاش بلاطات الطقس داخل sahool-platform."""
-    now = monotonic()
-    fresh = sum(1 for ts, _ in _WEATHER_TILE_CACHE.values() if now - ts < _WEATHER_TILE_CACHE_TTL_S)
-    stale = sum(
-        1
-        for ts, _ in _WEATHER_TILE_CACHE.values()
-        if _WEATHER_TILE_CACHE_TTL_S <= now - ts < _WEATHER_TILE_STALE_TTL_S
-    )
-    expired = max(0, len(_WEATHER_TILE_CACHE) - fresh - stale)
+    return _weather_cache_snapshot()
+
+
+@router.get("/api/v1/weather/observability")
+def weather_observability():
+    """مشاهدة تشغيلية خفيفة لمحرك الطقس بدون Prometheus إلزامي.
+
+    تعرض عدادات الطلبات، حالات الكاش، أخطاء المصدر، وأكثر الطبقات/العمليات
+    استخداماً. لا تحتوي على أسرار ولا تستدعي Open‑Meteo.
+    """
     return {
-        "items": len(_WEATHER_TILE_CACHE),
-        "fresh_items": fresh,
-        "stale_items": stale,
-        "expired_items": expired,
-        "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
-        "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
+        "service": "weather-engine",
+        "source": "open-meteo",
+        "rendered_by": "sahool",
+        "cache": _weather_cache_snapshot(),
+        "metrics": {
+            "requests": _metrics_bucket("requests"),
+            "cache_states": _metrics_bucket("cache_states"),
+            "upstream": _metrics_bucket("upstream"),
+            "layers": _metrics_bucket("layers"),
+            "operations": _metrics_bucket("operations"),
+        },
     }
+
+
+@router.get("/api/v1/weather/metrics.prom")
+def weather_metrics_prometheus():
+    """Prometheus/OpenMetrics compatible text export for the weather engine.
+
+    لا يستدعي Open‑Meteo ولا يكشف أسراراً؛ الهدف ربط Grafana/Prometheus أو
+    فحص سريع من Docker/Kubernetes بدون إضافة تبعية prometheus_client.
+    """
+    return Response(
+        content=_weather_metrics_prometheus(),
+        media_type="text/plain; version=0.0.4; charset=utf-8",
+    )
+
+
+@router.post("/api/v1/weather/tile-cache/prune")
+def weather_tile_cache_prune(
+    expired_only: bool = Query(True),
+    _: None = Depends(_require_service_token),
+):
+    """تنظيف كاش الطقس من العناصر المنتهية أو stale.
+
+    expired_only=true يحذف ما تجاوز stale TTL فقط. عند false يحذف كل ما تجاوز
+    TTL الطازج، وهو مفيد قبل اختبارات load/soak أو عند تبديل سياسة الكاش.
+
+    نقطة *مُتلِفة* (تُفرِغ كاش البنية التحتيّة) ⇒ محميّة بـService Token (X-Agent-Token)
+    كي لا يستطيع مجهول إجبار إفراغ الكاش (تضخيم طلبات Open-Meteo). بقيّة نقاط الطقس
+    عامّة (قراءة بإحداثيّات بلا بيانات مستأجِر)؛ هذه وحدها تُغيّر حالة الخادم.
+    """
+    result = _prune_weather_cache(expired_only=expired_only)
+    _record_weather_observation("tile-cache-prune", cache_state="served")
+    return result
 
 
 @router.get("/api/v1/weather/tile-data/{z}/{x}/{y}")
@@ -582,6 +903,9 @@ async def weather_tile_data(
             cache_state = "stale_fallback"
             cache_age_s = stale_age
 
+    _record_weather_observation(
+        "tile-data", cache_state=cache_state, upstream_error=upstream_error, layer=layer
+    )
     return {
         "tile": {"z": z, "x": x, "y": y},
         "center": {"lat": lat, "lon": lon},
@@ -649,6 +973,13 @@ async def weather_operation_tile_data(
             cache_state = "stale_fallback"
             cache_age_s = stale_age
     decision = _operation_suitability(sample, operation)
+    _record_weather_observation(
+        "operation-tile-data",
+        cache_state=cache_state,
+        upstream_error=upstream_error,
+        operation=operation,
+        layer=f"operation_{operation}",
+    )
     return {
         "tile": {"z": z, "x": x, "y": y},
         "center": {"lat": lat, "lon": lon},
@@ -700,6 +1031,7 @@ async def weather_probe(
         op: _operation_suitability(sample, op)
         for op in ["spraying", "harvesting", "sowing", "irrigation"]
     }
+    _record_weather_observation("probe", cache_state=cache_state, upstream_error=upstream_error)
     return {
         "location": {"lat": lat, "lon": lon},
         "time": time,
@@ -753,6 +1085,12 @@ async def weather_operation_window(
     if not frames:
         raise HTTPException(status_code=502, detail="Open-Meteo operation-window unavailable")
     best = _best_operation_frame(frames)
+    _record_weather_observation(
+        "operation-window",
+        cache_state="partial" if upstream_errors else "served",
+        upstream_error="; ".join(upstream_errors) if upstream_errors else None,
+        operation=operation,
+    )
     return {
         "location": {"lat": lat, "lon": lon},
         "operation": operation,
@@ -790,6 +1128,9 @@ async def weather_field_summary(
         for op in ["spraying", "harvesting", "sowing", "irrigation"]
     }
     critical = _sample_alerts_ar(sample)
+    _record_weather_observation(
+        "field-weather-summary", cache_state=cache_state, upstream_error=upstream_error
+    )
     return {
         "location": {"lat": lat, "lon": lon},
         "time": time,
@@ -880,6 +1221,13 @@ async def weather_operation_plan(
         raise HTTPException(status_code=502, detail="Open-Meteo operation-plan unavailable")
     dedup_alerts = list(dict.fromkeys(all_alerts))
     top = plan_items[0] if plan_items else None
+    for item in plan_items:
+        _record_weather_observation(
+            "operation-plan",
+            cache_state="partial" if upstream_errors else "served",
+            upstream_error="; ".join(upstream_errors) if upstream_errors else None,
+            operation=item.get("operation"),
+        )
     return {
         "location": {"lat": lat, "lon": lon},
         "model": model,
@@ -944,6 +1292,12 @@ async def weather_tile_series(
             status_code=502,
             detail=f"Open-Meteo tile-series unavailable: {'; '.join(upstream_errors[:3])}",
         )
+    _record_weather_observation(
+        "tile-series",
+        cache_state="partial" if upstream_errors else "served",
+        upstream_error="; ".join(upstream_errors) if upstream_errors else None,
+        layer=layer,
+    )
     return {
         "tile": {"z": z, "x": x, "y": y},
         "center": {"lat": lat, "lon": lon},

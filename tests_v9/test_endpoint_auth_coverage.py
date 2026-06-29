@@ -198,6 +198,11 @@ PUBLIC_ALLOWLIST: set[str] = {
     "/api/v1/weather/operation-window",  # نافذة صلاحيّة عمليّة بإحداثيّات — حساب عامّ.
     "/api/v1/weather/layers",  # قائمة طبقات الطقس المتاحة — مرجع ثابت.
     "/api/v1/weather/tile-cache/stats",  # إحصاء كاش البلاطات — بنية تحتيّة، لا بيانات مستأجِر.
+    "/api/v1/weather/readyz",  # مسبار جاهزيّة محرّك الطقس — بنية تحتيّة (k8s/Docker)، لا بيانات.
+    "/api/v1/weather/self-test",  # فحص ذاتيّ جافّ بلا I/O خارجيّ — تشخيص بنية تحتيّة.
+    "/api/v1/weather/observability",  # مشاهدة تشغيليّة خفيفة (عدّادات الكاش/القاطع) — لا بيانات مستأجِر.
+    "/api/v1/weather/metrics.prom",  # تصدير Prometheus/OpenMetrics — يُكشَط آليّاً، لا بيانات مستأجِر.
+    # ملاحظة: /api/v1/weather/tile-cache/prune (POST مُتلِف) محميّة بـ_require_service_token — ليست عامّة.
 }
 
 
