@@ -19,6 +19,8 @@ from __future__ import annotations
 import os
 
 import pytest
+from guardrails_route_source import guardrails_combined_source
+from supervisor_route_source import supervisor_combined_source
 
 pytestmark = [pytest.mark.unit, pytest.mark.security]
 
@@ -31,9 +33,28 @@ def _read(rel: str) -> str:
         return f.read()
 
 
+def _supervisor_src() -> str:
+    """مصدر supervisor المُسلسَل (main.py + routers/*.py) بعد التفكيك المحفوظ-السلوك.
+
+    مُعالِجات ``/agent/*`` انتقلت إلى ``routers/agent.py``؛ الحُرّاس الساكنة يجب أن
+    تمسح الوحدتين معاً كي يبقى التأكيد الأمنيّ صحيحاً (لا إضعاف، فقط توسيع النطاق).
+    """
+    return supervisor_combined_source(ROOT)
+
+
+def _guardrails_src() -> str:
+    """مصدر guardrails-engine المُسلسَل (main.py + routers/*.py) بعد التفكيك المحفوظ-السلوك.
+
+    مُعالِج ``/validate`` (وعليه ``Depends(_require_service_token)``) انتقل إلى
+    ``routers/validation.py`` بينما تبقى دالّة ``_require_service_token`` في ``main.py``؛
+    نمسح الوحدتين معاً كي يبقى تأكيد توكن الخدمة صحيحاً (لا إضعاف، فقط توسيع النطاق).
+    """
+    return guardrails_combined_source(ROOT)
+
+
 # ── (A) لا تجاوز للبوّابة (no recommendation→command bypass) ──
 def test_query_path_validates_actionable_via_guardrails():
-    src = _read("services/supervisor-agent/main.py")
+    src = _supervisor_src()
     assert "_validate_actions_via_guardrails(" in src, "مسار /agent/query لا يمرّر الإجراءات للبوّابة"
     # الحَوكمة مشروطة بوجود إجراءات قابلة للتنفيذ
     assert 'result.get("actionable")' in src or 'result.get("actions"' in src, (
@@ -42,19 +63,19 @@ def test_query_path_validates_actionable_via_guardrails():
 
 
 def test_optimize_path_validates_recommendation():
-    src = _read("services/supervisor-agent/main.py")
+    src = _supervisor_src()
     assert "_validate_via_guardrails(" in src, "مسار /agent/optimize لا يمرّر التوصية للبوّابة"
 
 
 def test_guardrails_validate_called_with_service_token():
-    src = _read("services/supervisor-agent/main.py")
+    src = _supervisor_src()
     assert "/validate" in src, "لا يستدعي نقطة الحَوكمة /validate"
     assert "X-Agent-Token" in src, "استدعاء البوّابة بلا توكن خدمة"
 
 
 # ── (A) fail-safe عند تعذّر البوّابة (لا fail-open) ──
 def test_guardrails_unavailable_is_fail_safe():
-    src = _read("services/supervisor-agent/main.py")
+    src = _supervisor_src()
     # عند التعذّر: allowed ليس True، وحالة «استشاريّة بانتظار التحقّق» + لا تنفيذ تلقائيّ
     assert "guardrails-unavailable" in src, "لا معالجة صريحة لتعذّر البوّابة"
     assert "advisory_pending_validation" in src, "لا وسم استشاريّ عند التعذّر"
@@ -66,8 +87,12 @@ def test_guardrails_unavailable_is_fail_safe():
 
 # ── (A) الحَوكمة في guardrails-engine محروسة بتوكن خدمة ──
 def test_guardrails_engine_validate_requires_service_token():
-    src = _read("services/guardrails-engine/main.py")
+    src = _guardrails_src()
     assert "_require_service_token" in src, "نقطة /validate في guardrails-engine بلا توكن خدمة"
+    # توكن الخدمة مفروض فعليّاً على مُعالِج /validate (انتقل إلى routers/validation.py).
+    assert (
+        "Depends(main._require_service_token)" in src or "Depends(_require_service_token)" in src
+    ), "مُعالِج /validate لا يفرض توكن الخدمة عبر Depends"
 
 
 # ── (B) ChemicalSafetyTier fail-closed (سلوكيّ) ──

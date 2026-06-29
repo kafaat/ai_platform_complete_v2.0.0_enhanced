@@ -1,8 +1,9 @@
 """Auth Service Tests — SAHOOL v9.1.0"""
 
 import pytest
-from conftest import TEST_JWT_SECRET, make_token
 from jose import jwt
+
+from conftest import TEST_JWT_SECRET, make_token
 
 
 class TestJWTStructure:

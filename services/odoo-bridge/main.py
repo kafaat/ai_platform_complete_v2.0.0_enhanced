@@ -16,13 +16,15 @@ import asyncio
 import hashlib
 import logging
 import os
+import sys
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 
 import asyncpg
 import httpx
-from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from jose import JWTError as _JE
 from jose import jwt as _jwt
 from pydantic import BaseModel, Field
@@ -68,6 +70,31 @@ ODOO_SYNC_TENANT_ID = os.getenv("ODOO_SYNC_TENANT_ID", "").strip() or None
 _pool: asyncpg.Pool | None = None
 _odoo_uid: int | None = None
 _odoo_auth_cache: dict = {}
+
+
+def _selected_erp_provider() -> str:
+    """Return normalized ERP_PROVIDER. Unknown values fail-safe to none at provider factory."""
+    return os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
+
+
+def get_active_erp_provider():
+    """Build the selected ERP provider without constructing Odoo unless explicitly selected.
+
+    ADR-0001: odoo-bridge must work with ERPNext or no ERP at all; Odoo is optional.
+    """
+    try:
+        from erp_provider import get_erp_provider
+    except ModuleNotFoundError:
+        # Unit tests and importlib-based loaders may execute this file without
+        # services/odoo-bridge on sys.path. Load the sibling provider explicitly
+        # instead of requiring process-global path mutation.
+        bridge_dir = str(Path(__file__).resolve().parent)
+        if bridge_dir not in sys.path:
+            sys.path.insert(0, bridge_dir)
+        from erp_provider import get_erp_provider
+
+    selected = _selected_erp_provider()
+    return get_erp_provider(odoo_client=get_odoo() if selected == "odoo" else None)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -253,27 +280,23 @@ async def log_sync_record(
 # Odoo → SAHOOL Sync (Master Data)
 # ══════════════════════════════════════════════════════════════
 async def sync_products():
-    """Sync Odoo products → SAHOOL inventory items."""
-    odoo = get_odoo()
-    last_sync = await get_last_sync("product.product", "odoo_to_sahool")
-    domain = [["write_date", ">", last_sync.isoformat()]] if last_sync else []
+    """Sync selected ERP products → SAHOOL inventory items.
 
-    products = await odoo.search_read(
-        "product.product",
-        domain,
-        [
-            "id",
-            "name",
-            "default_code",
-            "categ_id",
-            "uom_id",
-            "list_price",
-            "standard_price",
-            "type",
-            "write_date",
-        ],
-        limit=500,
-    )
+    ADR-0001: provider-neutral. Uses ERPProvider.list_products(); Odoo is just one optional
+    implementation. Existing DB column names keep the historic `odoo_*` names, but values are
+    namespaced by provider for non-Odoo providers to avoid collisions.
+    """
+    provider = get_active_erp_provider()
+    if provider.name == "none":
+        await log_sync_record(
+            "erp_to_sahool", "products", None, None, "skipped", "ERP provider disabled"
+        )
+        logger.info("ERP disabled → products sync skipped")
+        return
+
+    last_sync = await get_last_sync(f"{provider.name}.products", "erp_to_sahool")
+    since = last_sync.isoformat() if last_sync else None
+    products = await provider.list_products(since=since)
 
     pool = await get_pool()
     if not pool:
@@ -281,14 +304,20 @@ async def sync_products():
 
     synced = 0
     async with pool.acquire() as conn:
-        for p in products:
-            category = p.get("categ_id")[1] if isinstance(p.get("categ_id"), list) else "General"
-            uom = p.get("uom_id")[1] if isinstance(p.get("uom_id"), list) else "Unit"
+        for item in products:
+            external_id = item.get("external_id") or item.get("code") or item.get("name")
+            if external_id is None:
+                logger.warning("ERP product skipped: missing external id")
+                continue
+            product_key = (
+                str(external_id) if provider.name == "odoo" else f"{provider.name}:{external_id}"
+            )
+            name = item.get("name") or item.get("code") or product_key
+            category = item.get("category") or "General"
+            uom = item.get("uom") or "Unit"
+            cost = float(item.get("cost") or 0)
+            supplier = item.get("supplier") or f"{provider.name} Sync"
 
-            # عزل المستأجر: الكتالوج عالميّ افتراضيّاً (tenant_id=NULL)؛ لا نُسنده
-            # لمستأجر إلّا حين يُضبط ODOO_SYNC_TENANT_ID صراحةً (لا تلفيق). نُدرج
-            # العمود ديناميكيّاً ليبقى INSERT صالحاً سواء كان الكتالوج عالميّاً أو
-            # مُسنداً، دون فرض tenant_id على مفتاح odoo_product_id الفريد العالميّ.
             if ODOO_SYNC_TENANT_ID:
                 await conn.execute(
                     """INSERT INTO inventory_stock (item_name, category, unit, unit_cost_usd,
@@ -297,15 +326,15 @@ async def sync_products():
                         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
                         ON CONFLICT (odoo_product_id) DO UPDATE SET
                             item_name=$1, category=$2, unit=$3, unit_cost_usd=$4,
-                            tenant_id=$9, last_synced_at=NOW()""",
-                    p["name"],
+                            supplier=$7, tenant_id=$9, last_synced_at=NOW()""",
+                    name,
                     category,
                     uom,
-                    float(p.get("standard_price", 0) or 0),
-                    0,  # qty managed by inventory moves
+                    cost,
+                    0,
                     10,
-                    "Odoo Sync",
-                    str(p["id"]),
+                    supplier,
+                    product_key,
                     ODOO_SYNC_TENANT_ID,
                 )
             else:
@@ -315,50 +344,47 @@ async def sync_products():
                         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
                         ON CONFLICT (odoo_product_id) DO UPDATE SET
                             item_name=$1, category=$2, unit=$3, unit_cost_usd=$4,
-                            last_synced_at=NOW()""",
-                    p["name"],
+                            supplier=$7, last_synced_at=NOW()""",
+                    name,
                     category,
                     uom,
-                    float(p.get("standard_price", 0) or 0),
-                    0,  # qty managed by inventory moves
+                    cost,
+                    0,
                     10,
-                    "Odoo Sync",
-                    str(p["id"]),
+                    supplier,
+                    product_key,
                 )
             synced += 1
 
-    await set_last_sync("product.product", "odoo_to_sahool", datetime.now(UTC))
+    now = datetime.now(UTC)
+    await set_last_sync(f"{provider.name}.products", "erp_to_sahool", now)
+    # Backward-compatible marker for existing dashboards when provider is Odoo.
+    if provider.name == "odoo":
+        await set_last_sync("product.product", "odoo_to_sahool", now)
     await log_sync_record(
-        "odoo_to_sahool", "product.product", None, None, "success", f"Synced {synced} products"
+        "erp_to_sahool",
+        "products",
+        None,
+        None,
+        "success",
+        f"Synced {synced} products from {provider.name}",
     )
-    logger.info(f"Products synced: {synced}")
+    logger.info("Products synced from %s: %s", provider.name, synced)
 
 
 async def sync_suppliers():
-    """Sync Odoo res.partner (suppliers) → SAHOOL suppliers."""
-    odoo = get_odoo()
-    last_sync = await get_last_sync("res.partner", "odoo_to_sahool")
-    domain = [["supplier_rank", ">", 0]]
-    if last_sync:
-        domain[0].append("|")
-        domain[0].append(["write_date", ">", last_sync.isoformat()])
+    """Sync selected ERP suppliers → SAHOOL suppliers."""
+    provider = get_active_erp_provider()
+    if provider.name == "none":
+        await log_sync_record(
+            "erp_to_sahool", "suppliers", None, None, "skipped", "ERP provider disabled"
+        )
+        logger.info("ERP disabled → suppliers sync skipped")
+        return
 
-    partners = await odoo.search_read(
-        "res.partner",
-        domain,
-        [
-            "id",
-            "name",
-            "phone",
-            "email",
-            "street",
-            "city",
-            "country_id",
-            "supplier_rank",
-            "write_date",
-        ],
-        limit=200,
-    )
+    last_sync = await get_last_sync(f"{provider.name}.suppliers", "erp_to_sahool")
+    since = last_sync.isoformat() if last_sync else None
+    suppliers = await provider.list_suppliers(since=since)
 
     pool = await get_pool()
     if not pool:
@@ -366,12 +392,19 @@ async def sync_suppliers():
 
     synced = 0
     async with pool.acquire() as conn:
-        for p in partners:
-            country = p.get("country_id")[1] if isinstance(p.get("country_id"), list) else ""
-            address = f"{p.get('street', '')} {p.get('city', '')} {country}".strip()
-            # عزل المستأجر: كتالوج المورّدين عالميّ افتراضيّاً (المفتاح الفريد
-            # odoo_partner_id عالميّ بلا tenant_id). نُسنده لمستأجر فقط حين يُضبط
-            # ODOO_SYNC_TENANT_ID صراحةً — لا نُلفّق ملكيّة.
+        for item in suppliers:
+            external_id = item.get("external_id") or item.get("code") or item.get("name")
+            if external_id is None:
+                logger.warning("ERP supplier skipped: missing external id")
+                continue
+            supplier_key = (
+                str(external_id) if provider.name == "odoo" else f"{provider.name}:{external_id}"
+            )
+            name = item.get("name") or supplier_key
+            phone = item.get("phone") or ""
+            email = item.get("email") or ""
+            address = item.get("address") or ""
+
             if ODOO_SYNC_TENANT_ID:
                 await conn.execute(
                     """INSERT INTO suppliers (name, contact_person, phone, email, address,
@@ -380,15 +413,15 @@ async def sync_suppliers():
                         ON CONFLICT (odoo_partner_id) DO UPDATE SET
                             name=$1, phone=$3, email=$4, address=$5,
                             tenant_id=$10, last_synced_at=NOW()""",
-                    p["name"],
-                    p["name"],
-                    p.get("phone", ""),
-                    p.get("email", ""),
+                    name,
+                    name,
+                    phone,
+                    email,
                     address,
                     4.0,
                     ["general"],
                     True,
-                    str(p["id"]),
+                    supplier_key,
                     ODOO_SYNC_TENANT_ID,
                 )
             else:
@@ -398,45 +431,75 @@ async def sync_suppliers():
                         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
                         ON CONFLICT (odoo_partner_id) DO UPDATE SET
                             name=$1, phone=$3, email=$4, address=$5, last_synced_at=NOW()""",
-                    p["name"],
-                    p["name"],
-                    p.get("phone", ""),
-                    p.get("email", ""),
+                    name,
+                    name,
+                    phone,
+                    email,
                     address,
                     4.0,
                     ["general"],
                     True,
-                    str(p["id"]),
+                    supplier_key,
                 )
             synced += 1
 
-    await set_last_sync("res.partner", "odoo_to_sahool", datetime.now(UTC))
+    now = datetime.now(UTC)
+    await set_last_sync(f"{provider.name}.suppliers", "erp_to_sahool", now)
+    if provider.name == "odoo":
+        await set_last_sync("res.partner", "odoo_to_sahool", now)
     await log_sync_record(
-        "odoo_to_sahool", "res.partner", None, None, "success", f"Synced {synced} suppliers"
+        "erp_to_sahool",
+        "suppliers",
+        None,
+        None,
+        "success",
+        f"Synced {synced} suppliers from {provider.name}",
     )
-    logger.info(f"Suppliers synced: {synced}")
+    logger.info("Suppliers synced from %s: %s", provider.name, synced)
 
 
 async def sync_warehouses():
-    """Sync Odoo stock.warehouse → SAHOOL (for multi-location inventory)."""
-    odoo = get_odoo()
-    whs = await odoo.search_read(
-        "stock.warehouse", [], ["id", "name", "code", "partner_id"], limit=50
-    )
+    """Sync selected ERP warehouses/locations → SAHOOL inventory locations."""
+    provider = get_active_erp_provider()
+    if provider.name == "none":
+        await log_sync_record(
+            "erp_to_sahool", "warehouses", None, None, "skipped", "ERP provider disabled"
+        )
+        logger.info("ERP disabled → warehouses sync skipped")
+        return
+
+    whs = await provider.list_warehouses()
     pool = await get_pool()
     if not pool:
         return
+    synced = 0
     async with pool.acquire() as conn:
         for w in whs:
+            external_id = w.get("external_id") or w.get("code") or w.get("name")
+            if external_id is None:
+                logger.warning("ERP warehouse skipped: missing external id")
+                continue
+            warehouse_key = (
+                str(external_id) if provider.name == "odoo" else f"{provider.name}:{external_id}"
+            )
             await conn.execute(
                 """INSERT INTO inventory_locations (location_name, location_code, odoo_warehouse_id)
                     VALUES ($1,$2,$3)
                     ON CONFLICT (odoo_warehouse_id) DO UPDATE SET location_name=$1, location_code=$2""",
-                w["name"],
-                w.get("code", ""),
-                str(w["id"]),
+                w.get("name") or warehouse_key,
+                w.get("code") or warehouse_key,
+                warehouse_key,
             )
-    logger.info(f"Warehouses synced: {len(whs)}")
+            synced += 1
+    await log_sync_record(
+        "erp_to_sahool",
+        "warehouses",
+        None,
+        None,
+        "success",
+        f"Synced {synced} warehouses from {provider.name}",
+    )
+    logger.info("Warehouses synced from %s: %s", provider.name, synced)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -714,11 +777,16 @@ async def sync_purchase_order_inbound(odoo_po_id: int):
 
 
 async def sync_field_costs_to_odoo():
-    """Push SAHOOL field_cost_ledger → Odoo analytic entries (if Analytic Accounting enabled)."""
+    """Push SAHOOL field_cost_ledger → selected ERP provider.
+
+    ADR-0001: provider-neutral. NullProvider marks costs synced locally; ERPNext/Odoo use
+    provider-specific push_field_cost implementations. No Odoo client is constructed unless
+    ERP_PROVIDER=odoo.
+    """
     pool = await get_pool()
     if not pool:
         return
-    odoo = get_odoo()
+    provider = get_active_erp_provider()
 
     async with pool.acquire() as conn:
         rows = await conn.fetch(
@@ -727,43 +795,76 @@ async def sync_field_costs_to_odoo():
         )
 
         for row in rows:
+            ledger_id = row["ledger_id"]
+            cost = {
+                "amount": float(row.get("total_cost_usd", 0) or 0),
+                "description": f"{row.get('category', 'cost')} — {row.get('item_name', 'field cost')}",
+                "posting_date": row["recorded_at"].strftime("%Y-%m-%d")
+                if row.get("recorded_at")
+                else None,
+                "ledger_id": str(ledger_id),
+                "field_id": str(row.get("field_id")) if row.get("field_id") is not None else None,
+                "tenant_id": str(row.get("tenant_id"))
+                if row.get("tenant_id") is not None
+                else None,
+            }
             try:
-                # Map to Odoo analytic line or journal entry
-                # Requires analytic account per field in Odoo
-                vals = {
-                    "name": f"{row['category']} — {row['item_name']}",
-                    "amount": -float(row["total_cost_usd"]),  # negative = cost
-                    "date": row["recorded_at"].strftime("%Y-%m-%d"),
-                    "ref": f"SAHOOL-{row['ledger_id']}",
-                }
-                # Use analytic line if module installed
-                entry_id = await odoo.create("account.analytic.line", vals)
-
-                await conn.execute(
-                    "UPDATE field_cost_ledger SET odoo_sync_status='synced', odoo_entry_id=$1 WHERE ledger_id=$2",
-                    str(entry_id),
-                    row["ledger_id"],
-                )
-                await log_sync_record(
-                    "sahool_to_odoo",
-                    "account.analytic.line",
-                    entry_id,
-                    str(row["ledger_id"]),
-                    "success",
-                )
-            except Exception as e:
+                pushed = await provider.push_field_cost(cost)
+                if pushed:
+                    await conn.execute(
+                        "UPDATE field_cost_ledger SET odoo_sync_status='synced', odoo_entry_id=$1 WHERE ledger_id=$2",
+                        f"{provider.name}:{ledger_id}",
+                        ledger_id,
+                    )
+                    await log_sync_record(
+                        "sahool_to_erp",
+                        "field_cost",
+                        None,
+                        str(ledger_id),
+                        "success",
+                        f"provider={provider.name}",
+                    )
+                else:
+                    await conn.execute(
+                        "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
+                        ledger_id,
+                    )
+                    await log_sync_record(
+                        "sahool_to_erp",
+                        "field_cost",
+                        None,
+                        str(ledger_id),
+                        "failed",
+                        f"provider={provider.name}: rejected",
+                    )
+            except NotImplementedError as e:
+                # Provider selected but this deployment lacks required account mapping.
                 await conn.execute(
                     "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
-                    row["ledger_id"],
+                    ledger_id,
                 )
                 await log_sync_record(
-                    "sahool_to_odoo",
-                    "account.analytic.line",
+                    "sahool_to_erp",
+                    "field_cost",
                     None,
-                    str(row["ledger_id"]),
+                    str(ledger_id),
                     "failed",
                     str(e)[:500],
                 )
+            except Exception as e:  # noqa: BLE001
+                await conn.execute(
+                    "UPDATE field_cost_ledger SET odoo_sync_status='failed' WHERE ledger_id=$1",
+                    ledger_id,
+                )
+                await log_sync_record(
+                    "sahool_to_erp",
+                    "field_cost",
+                    None,
+                    str(ledger_id),
+                    "failed",
+                    type(e).__name__,
+                )
+                logger.warning("field_cost sync failed via %s: %s", provider.name, type(e).__name__)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -771,23 +872,25 @@ async def sync_field_costs_to_odoo():
 # ══════════════════════════════════════════════════════════════
 async def periodic_sync():
     while True:
-        # احترام مفتاح التبديل: لا تزامن Odoo إلّا حين ERP_PROVIDER=odoo.
-        # حين none/erpnext (أو Odoo مُستثنى من البناء) → تخطٍّ نظيف بلا أخطاء.
-        provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
-        if provider != "odoo":
-            logger.info(f"ERP_PROVIDER={provider} → تخطّي مزامنة Odoo (لا حاوية Odoo)")
+        provider = get_active_erp_provider()
+        if provider.name == "none":
+            logger.info("ERP provider disabled → periodic ERP sync skipped")
             await asyncio.sleep(SYNC_INTERVAL_SEC)
             continue
         try:
-            logger.info("Starting periodic Odoo sync...")
+            logger.info("Starting periodic ERP sync via %s...", provider.name)
             await sync_products()
             await sync_suppliers()
             await sync_warehouses()
-            await sync_procurement_orders_to_odoo()
+            # Procurement order push/pull is still Odoo-specific until the shared
+            # ERPProvider interface grows a procurement contract. Do not construct
+            # or require Odoo unless explicitly selected.
+            if provider.name == "odoo":
+                await sync_procurement_orders_to_odoo()
             await sync_field_costs_to_odoo()
-            logger.info("Periodic sync complete.")
-        except Exception as e:
-            logger.error(f"Periodic sync error: {e}")
+            logger.info("Periodic ERP sync complete via %s.", provider.name)
+        except Exception as e:  # noqa: BLE001
+            logger.error("Periodic ERP sync error: %s", type(e).__name__)
         await asyncio.sleep(SYNC_INTERVAL_SEC)
 
 
@@ -898,178 +1001,13 @@ class OdooConfigResponse(BaseModel):
 
 
 # ══════════════════════════════════════════════════════════════
-# Endpoints
+# تسجيل الراوترات المفكَّكة (نمط تفكيك raster/auth — محفوظ السلوك)
+# يُستدعى في نهاية الملفّ بعد تعريف app وكلّ المساعِدات/النماذج/مزوّد ERP كي
+# تُحلّ وحدات routers/ رموزها عبر main.X بلا استيراد دائريّ.
 # ══════════════════════════════════════════════════════════════
-@app.get("/healthz")
-@app.get("/health")
-async def health():
-    # Odoo يُفحَص فقط حين يكون المزوّد المختار odoo؛ غير ذلك odoo_connected=null
-    # (غير مفعَّل) بدل false مضلّل — الأساسي erpnext لا يمرّ عبر Odoo.
-    provider = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
-    odoo_ok = None
-    uid = None
-    if provider == "odoo":
-        odoo_ok = False
-        try:
-            odoo = get_odoo()
-            uid = odoo.uid if odoo.uid is not None else await odoo.authenticate()
-            odoo_ok = True
-        except Exception as e:  # noqa: BLE001
-            logger.debug("فحص صحّة Odoo فشل: %s", type(e).__name__)
-    return {
-        "status": "alive",
-        "erp_provider": provider,
-        "odoo_connected": odoo_ok,  # null حين المزوّد ليس odoo (غير مفعَّل)
-        "odoo_uid": uid,
-        "sync_interval_sec": SYNC_INTERVAL_SEC,
-    }
+from router_registry import register_routers  # noqa: E402
 
-
-@app.get("/erp/provider")
-async def erp_provider_status(_auth: dict = Depends(require_auth)):
-    """يكشف مزوّد ERP النشط (مفتاح التبديل) وحالته.
-
-    ERP_PROVIDER = odoo | erpnext | none — يحدّد المزوّد دون تغيير الكود.
-    """
-    import os
-
-    from erp_provider import get_erp_provider
-
-    selected = os.getenv("ERP_PROVIDER", "erpnext").strip().lower()
-    # نمرّر OdooClient للمزوّد odoo (يعيد استخدام الموجود)
-    try:
-        provider = get_erp_provider(odoo_client=get_odoo() if selected == "odoo" else None)
-        hp = await provider.health()
-    except Exception as e:  # noqa: BLE001 — صدق: نُعلن الخطأ لا نخفيه
-        return {"selected": selected, "status": "error", "error": str(e)}
-    return {"selected": selected, "active_provider": provider.name, "health": hp}
-
-
-@app.get("/config", response_model=OdooConfigResponse)
-async def get_config(_auth: dict = Depends(require_auth)):
-    odoo = get_odoo()
-    connected = False
-    uid = odoo.uid
-    version = None
-    try:
-        if uid is None:
-            uid = await odoo.authenticate()
-        version_info = await odoo.call("common", "version")
-        version = version_info.get("server_version")
-        connected = True
-    except Exception as e:
-        logger.warning(f"Config check failed: {e}")
-    return OdooConfigResponse(
-        url=ODOO_URL, db=ODOO_DB, user=ODOO_USER, connected=connected, uid=uid, version=version
-    )
-
-
-@app.post("/sync")
-async def trigger_sync(
-    req: SyncRequest,
-    background_tasks: BackgroundTasks,
-    _auth: dict = Depends(require_auth),
-):
-    """Trigger manual sync — يتطلّب توكناً صالحاً (كان مكشوفاً).
-
-    الأمان: المزامنة تكتب لـERP — تتطلّب مصادقة (نفس require_auth المطبَّقة
-    على نقاط القراءة).
-    """
-    if req.entity == "all" or req.entity == "products":
-        background_tasks.add_task(sync_products)
-    if req.entity == "all" or req.entity == "suppliers":
-        background_tasks.add_task(sync_suppliers)
-    if req.entity == "all" or req.entity == "warehouses":
-        background_tasks.add_task(sync_warehouses)
-    if req.entity == "all" or req.entity == "procurement":
-        background_tasks.add_task(sync_procurement_orders_to_odoo)
-    if req.entity == "all" or req.entity == "costs":
-        background_tasks.add_task(sync_field_costs_to_odoo)
-    return {"status": "queued", "entity": req.entity, "direction": req.direction}
-
-
-@app.post("/webhook/odoo")
-async def odoo_webhook(payload: WebhookPayload, x_webhook_secret: str = Header(None)):
-    """Receive real-time push from Odoo — يتطلّب سرّ webhook (كان مكشوفاً)."""
-    # الأمان: webhook مالي/ERP — تحقّق من السرّ المشترك (منع حقن خارجي)
-    if not WEBHOOK_SECRET:
-        raise HTTPException(503, "WEBHOOK_SECRET غير مضبوط — webhook معطّل بأمان")
-    # مقارنة ثابتة الزمن (منع هجوم التوقيت على السرّ)
-    import hmac
-
-    if not x_webhook_secret or not hmac.compare_digest(x_webhook_secret, WEBHOOK_SECRET):
-        raise HTTPException(401, "سرّ webhook غير صالح")
-    logger.info(f"Odoo webhook: {payload.model}:{payload.record_id} event={payload.event}")
-
-    # Route to appropriate handler
-    if payload.model == "product.product":
-        asyncio.create_task(sync_products())
-    elif payload.model == "res.partner":
-        asyncio.create_task(sync_suppliers())
-    elif payload.model == "purchase.order":
-        # Odoo PO updated → اسحب الحالة وحدّث procurement_orders + سجلّ مزامنة وارد.
-        # record_id = معرّف purchase.order في Odoo (راجع docs/ODOO_INTEGRATION.md).
-        asyncio.create_task(sync_purchase_order_inbound(payload.record_id))
-
-    return {"received": True, "model": payload.model}
-
-
-@app.get("/logs")
-async def get_logs(limit: int = 50, entity: str | None = None, _auth: dict = Depends(require_auth)):
-    pool = await get_pool()
-    if not pool:
-        return {"logs": []}
-    async with pool.acquire() as conn:
-        if entity:
-            rows = await conn.fetch(
-                "SELECT * FROM odoo_sync_log WHERE entity=$1 ORDER BY created_at DESC LIMIT $2",
-                entity,
-                limit,
-            )
-        else:
-            rows = await conn.fetch(
-                "SELECT * FROM odoo_sync_log ORDER BY created_at DESC LIMIT $1", limit
-            )
-    return {"logs": [dict(r) for r in rows]}
-
-
-@app.get("/products")
-async def list_odoo_products(limit: int = 20, _auth: dict = Depends(require_auth)):
-    odoo = get_odoo()
-    products = await odoo.search_read(
-        "product.product",
-        [],
-        ["id", "name", "default_code", "list_price", "standard_price", "qty_available"],
-        limit=limit,
-    )
-    return {"products": products}
-
-
-@app.get("/suppliers")
-async def list_odoo_suppliers(limit: int = 20, _auth: dict = Depends(require_auth)):
-    odoo = get_odoo()
-    suppliers = await odoo.search_read(
-        "res.partner",
-        [["supplier_rank", ">", 0]],
-        ["id", "name", "phone", "email", "supplier_rank"],
-        limit=limit,
-    )
-    return {"suppliers": suppliers}
-
-
-@app.get("/readyz")
-async def readyz():
-    # جاهزيّة حقيقيّة: حين تُضبط DATABASE_URL يجب أن يكون pool القاعدة حيّاً
-    # (مزامنة ERP/الجسر تعتمد عليه). نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503 لا «جاهز» كاذب.
-    # حين لا DATABASE_URL مضبوطة (وضع متدرّج معلَن: لا قاعدة محلّيّة) ⇒ جاهز بصدق.
-    if _pool is not None:
-        try:
-            async with _pool.acquire() as conn:
-                await conn.fetchval("SELECT 1")
-        except Exception as e:
-            logger.warning(f"readyz: قاعدة البيانات غير جاهزة — {e}")
-            raise HTTPException(503, {"status": "not_ready", "reason": "db"}) from e
-    return {"status": "ready", "version": "9.1.0"}
+register_routers(app)
 
 
 if __name__ == "__main__":

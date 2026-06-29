@@ -12,6 +12,11 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
 COPY shared/ /app/shared/
 COPY services/auth/main.py /app/main.py
+# تفكيك المسارات (#557): main.py يستورد `from router_registry import register_routers`
+# الذي يضمّ وحدات routers/. غير منسوخة ⇒ ModuleNotFoundError: 'router_registry' عند
+# الإقلاع ⇒ تعطّل auth (unhealthy). نسخها إلزاميّ (نفس درس otp.py أدناه).
+COPY services/auth/router_registry.py /app/router_registry.py
+COPY services/auth/routers/ /app/routers/
 # otp.py وحدة شقيقة نقيّة (مفصولة عن fastapi للاختبار في CI) يستوردها main.py:
 # `from otp import …`. كانت غير منسوخة ⇒ ModuleNotFoundError: No module named 'otp'
 # عند الإقلاع. نسخها إلزاميّ.

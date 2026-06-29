@@ -2,8 +2,9 @@
 ======================================================================
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
-نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``. التبعيّات المشتركة
-(الثوابت/المساعِدات) تبقى في ``main`` وتُشار إليها عبر ``main.X``.
+نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المنطق مطابقة.
+التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main`` وتُشار إليها عبر
+``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ import uuid
 
 import main
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 
 router = APIRouter()
 
@@ -28,7 +30,8 @@ async def upload_raster(file: UploadFile = File(...), x_agent_token: str = Heade
         with open(path, "wb") as fh:
             fh.write(content)
     except OSError as e:
-        raise HTTPException(500, f"فشل الحفظ: {e}") from e
+        main.logger.warning("raster upload save failed: %s", type(e).__name__)
+        raise HTTPException(500, "raster_upload_save_failed") from e
     main.logger.info(f"raster uploaded: {raster_id} ({len(content)} bytes)")
     return {"raster_url": f"file://{path}"}
 
@@ -49,13 +52,15 @@ async def upload_drone(
         with open(path, "wb") as fh:
             fh.write(content)
     except OSError as e:
-        raise HTTPException(500, f"فشل الحفظ: {e}") from e
+        main.logger.warning("drone upload save failed: %s", type(e).__name__)
+        raise HTTPException(500, "drone_upload_save_failed") from e
     main.logger.info(f"drone uploaded: {raster_id} tenant={tenant_id}")
     return {"raster_url": f"file://{path}"}
 
 
 @router.get("/storage/stats")
-async def storage_stats():
+async def storage_stats(x_agent_token: str = Header(None)):
+    main._require_service_token(x_agent_token)
     """إحصاء التخزين (مراقبة قبل الانفجار) — حجم + توزيع بالنوع."""
     import raster_lifecycle as rl
 
@@ -76,7 +81,8 @@ async def storage_cleanup(dry_run: bool = True, x_agent_token: str = Header(None
 
 
 @router.get("/offline/packs")
-async def list_offline_packs():
+async def list_offline_packs(x_agent_token: str = Header(None)):
+    main._require_service_token(x_agent_token)
     """يسرد حزم MBTiles الجاهزة للتنزيل (الموبايل يحمّلها للعمل offline).
 
     صدق: يسرد ما هو موجود فعلاً على القرص فقط — لا يدّعي حزماً غير مُولَّدة.
@@ -103,7 +109,8 @@ async def list_offline_packs():
 
 
 @router.get("/offline/packs/{pack_name}")
-async def download_offline_pack(pack_name: str):
+async def download_offline_pack(pack_name: str, x_agent_token: str = Header(None)):
+    main._require_service_token(x_agent_token)
     """ينزّل حزمة MBTiles/PMTiles محدّدة (للتخزين على الجهاز)."""
     # حماية من path traversal
     if "/" in pack_name or ".." in pack_name:
@@ -111,6 +118,5 @@ async def download_offline_pack(pack_name: str):
     path = os.path.join(main.OFFLINE_PACKS_DIR, pack_name)
     if not os.path.exists(path):
         raise HTTPException(404, "حزمة غير موجودة")
-    from fastapi.responses import FileResponse
 
     return FileResponse(path, media_type="application/octet-stream", filename=pack_name)

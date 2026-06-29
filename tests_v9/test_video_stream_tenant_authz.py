@@ -44,7 +44,11 @@ def vp():
         pytest.skip("تبعيّات video-processor غائبة — يُنفَّذ في وظيفة الوحدات الكاملة")
     if VIDEO not in sys.path:
         sys.path.insert(0, VIDEO)
-    sys.modules.pop("main", None)
+    # توحيد main↔cert: بعد تفكيك المسارات إلى routers/، نُسقط main + وحدات routers معاً
+    # كي تُعيد routers الاستيراد ضدّ main الطازج (وإلّا يحتفظ routers.streams بمرجع main
+    # متعفّن عبر الاختبارات ⇒ STREAMS مختلف عمّا يراه الاختبار). نمط soil #570.
+    for _m in ("main", "router_registry", "routers", "routers.streams", "routers.health"):
+        sys.modules.pop(_m, None)
     vmain = importlib.import_module("main")
     assert hasattr(vmain, "STREAMS") and hasattr(vmain, "_assert_stream_tenant"), (
         "استُورد main خاطئ (تصادم أسماء عبر الخدمات) — ليس video-processor"
@@ -176,3 +180,27 @@ async def test_list_streams_scoped_to_tenant(vp):
     res = await vp.list_streams(user={"tenant_id": "tenant_b", "role": "admin"})
     ids = {s["stream_id"] for s in res["streams"]}
     assert ids == {"s_b"}  # لا s_a رغم دور admin
+
+
+# ─── stop_stream: لا حذف عابر للمستأجرين ───────────────────────────
+async def test_stop_stream_cross_tenant_denied_and_preserves_stream(vp):
+    """مستأجِر آخر لا يستطيع حذف/إيقاف بثّ لا يملكه بمعرفة stream_id فقط."""
+    from fastapi import HTTPException
+
+    state = _seed_stream(vp, "s_a", "tenant_a")
+    state.status = "active"
+    with pytest.raises(HTTPException) as ei:
+        await vp.stop_stream("s_a", user={"tenant_id": "tenant_b", "role": "admin"})
+    assert ei.value.status_code == 404
+    assert "s_a" in vp.STREAMS
+    assert vp.STREAMS["s_a"].status == "active"
+
+
+async def test_stop_stream_same_tenant_stops_and_removes(vp):
+    """مالك البثّ يستطيع إيقافه؛ وبعد التفويض فقط يُزال من السجلّ."""
+    state = _seed_stream(vp, "s_a", "tenant_a")
+    state.status = "active"
+    res = await vp.stop_stream("s_a", user={"tenant_id": "tenant_a", "role": "user"})
+    assert res == {"stream_id": "s_a", "status": "stopped"}
+    assert state.status == "inactive"
+    assert "s_a" not in vp.STREAMS

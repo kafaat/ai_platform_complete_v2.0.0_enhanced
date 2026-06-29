@@ -286,3 +286,88 @@ def test_render_tile_honors_internal_mask_when_pixels_are_finite_zero():
 
 if __name__ == "__main__":
     test_dynamic_tiles()
+
+
+def test_field_layer_date_and_index_selection_is_strict():
+    """Timeline/index switching guard:
+
+    - requesting a missing date must not fall back to latest
+    - latest must be latest acquisition_date, not merely latest created_at
+    - index switch must select the requested indicator only
+    """
+    tmpdir = tempfile.mkdtemp(prefix="field_layer_strict_")
+    cog_old = os.path.join(tmpdir, "ndvi_old.tif")
+    cog_new = os.path.join(tmpdir, "ndvi_new.tif")
+    cog_msi = os.path.join(tmpdir, "msi_new.tif")
+    bounds = _make_synthetic_cog(cog_old)
+    _make_synthetic_cog(cog_new)
+    _make_synthetic_cog(cog_msi)
+
+    field = "field_strict_dates"
+    for lid in list(main._field_layers.get(field, [])):
+        main._layers.pop(lid, None)
+    main._field_layers[field] = []
+
+    # أقدم acquisition لكنه أحدث created_at: يجب ألا يفوز في latest.
+    main._layers["strict_ndvi_old"] = {
+        "layer_id": "strict_ndvi_old",
+        "field_id": field,
+        "index": "ndvi",
+        "cog_url": f"file://{cog_old}",
+        "acquisition_date": "2026-05-01T08:30:00Z",
+        "created_at": "2026-06-01T09:00:00Z",
+        "source_format": "sentinel2_l2a",
+        "bounds_4326": bounds,
+    }
+    main._layers["strict_ndvi_new"] = {
+        "layer_id": "strict_ndvi_new",
+        "field_id": field,
+        "index": "ndvi",
+        "cog_url": f"file://{cog_new}",
+        "acquisition_date": "2026-05-20T08:30:00Z",
+        "created_at": "2026-05-20T09:00:00Z",
+        "source_format": "sentinel2_l2a",
+        "bounds_4326": bounds,
+    }
+    main._layers["strict_msi_new"] = {
+        "layer_id": "strict_msi_new",
+        "field_id": field,
+        "index": "msi",
+        "cog_url": f"file://{cog_msi}",
+        "acquisition_date": "2026-05-20T08:30:00Z",
+        "created_at": "2026-05-20T09:10:00Z",
+        "source_format": "sentinel2_l2a",
+        "bounds_4326": bounds,
+    }
+    main._field_layers[field].extend(["strict_ndvi_old", "strict_ndvi_new", "strict_msi_new"])
+
+    latest = main._find_field_layer(field, "ndvi", "latest")
+    assert latest and latest["layer_id"] == "strict_ndvi_new"
+
+    exact_old = main._find_field_layer(field, "ndvi", "2026-05-01")
+    assert exact_old and exact_old["layer_id"] == "strict_ndvi_old"
+
+    missing = main._find_field_layer(field, "ndvi", "2026-05-09")
+    assert missing is None, "missing date must not silently render latest imagery"
+
+    msi = main._find_field_layer(field, "msi", "latest")
+    assert msi and msi["layer_id"] == "strict_msi_new"
+
+    client = TestClient(main.app)
+    tj_missing = client.get(
+        f"/v1/fields/{field}/tilejson", params={"index": "ndvi", "date": "2026-05-09"}
+    )
+    assert tj_missing.status_code == 200, tj_missing.text
+    body = tj_missing.json()
+    assert body["available"] is False
+
+    z = 14
+    minlon, minlat, maxlon, maxlat = bounds
+    tx, ty = tile_render._lonlat_to_tile((minlon + maxlon) / 2.0, (minlat + maxlat) / 2.0, z)
+    tile_missing = client.get(
+        f"/v1/fields/{field}/tiles/{z}/{tx}/{ty}.png",
+        params={"index": "ndvi", "date": "2026-05-09"},
+    )
+    assert tile_missing.status_code == 200
+    rgba = _decode_png_rgba(tile_missing.content)
+    assert int((rgba[..., 3] > 0).sum()) == 0, "missing date must render transparent tile"

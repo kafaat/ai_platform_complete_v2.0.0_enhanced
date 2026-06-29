@@ -45,17 +45,16 @@ from datetime import UTC, date, datetime, timedelta
 
 import httpx
 import jwt as _jwt
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer
 from prometheus_client import (
-    CONTENT_TYPE_LATEST,
+    CONTENT_TYPE_LATEST,  # noqa: F401 — يُستخدَم عبر main.X في routers/health.py
     CollectorRegistry,
     Counter,
     Histogram,
-    generate_latest,
+    generate_latest,  # noqa: F401 — يُستخدَم عبر main.X في routers/health.py
 )
-from starlette.responses import Response
 
 try:
     from shared.logging_config import setup_logging
@@ -937,117 +936,9 @@ app.add_middleware(
 )
 
 
-@app.get("/healthz")
-@app.get("/health")
-async def healthz():
-    return {"status": "alive", "service": "vegetation-analysis"}
+from router_registry import register_routers  # noqa: E402
 
-
-@app.get("/readyz")
-async def readyz():
-    # بلا تبعيّة صلبة قصداً: لا pool قاعدة خاصّ بها (راجع رأس الملفّ)، ونشر NATS
-    # محاولة-أفضل (فشله يُسجَّل تحذيراً ولا يُعطّل الخدمة). لا شيء صلب ننتظره ⇒ جاهز.
-    return {"status": "ready"}
-
-
-@app.get("/metrics")
-async def metrics():
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
-
-
-@app.get("/v1/analyze")
-async def analyze(
-    field_id: str,
-    tenant_id: str = Query(default="default"),
-    # M8 FIX: لا تُقيّم date.today() في توقيع الدالّة (يُحسب مرّة عند الاستيراد ⇒
-    # "اليوم" مُجمّد حتّى إعادة التشغيل). نستخدم None ونحسب النافذة لكلّ طلب.
-    date_from: str | None = Query(default=None),
-    date_to: str | None = Query(default=None),
-    token: str = Depends(security),
-):
-    claims = _verify_claims(token)
-    # المستأجِر من التوكن لا من الـquery (منع حقن موضوع NATS عابر المستأجرين)
-    tenant_id = _tenant_from_claims(claims)
-    date_to = _valid_date(date_to) if date_to else date.today().isoformat()
-    date_from = (
-        _valid_date(date_from) if date_from else (date.today() - timedelta(days=30)).isoformat()
-    )
-    return await run_analysis(field_id, tenant_id, date_from, date_to)
-
-
-@app.get("/v1/timeseries/{field_id}")
-async def timeseries(
-    field_id: str, days: int = Query(default=90, ge=5, le=365), token: str = Depends(security)
-):
-    claims = _verify_claims(token)
-    tenant_id = str(claims.get("tenant_id") or "") or None
-    if await load_field(field_id, tenant_id) is None:
-        raise HTTPException(404, f"field_id {field_id!r} غير موجود")
-    return {
-        "field_id": field_id,
-        "days": days,
-        "timeseries": _generate_timeseries(field_id, days),
-        "generated_at": datetime.now(UTC).isoformat(),
-    }
-
-
-@app.get("/v1/ndvi/current/{field_id}")
-async def current_ndvi(field_id: str, token: str = Depends(security)):
-    """NDVI الحالي + تصنيف الصحّة لحقل واحد (يستهلكه useCurrentNDVI في الواجهة).
-
-    يُعيد استخدام run_analysis (نافذة آخر ٣٠ يوماً) ثمّ يستخرج NDVI الحالي عبر
-    _current_ndvi_payload. صدق المصدر: تقدير من نطاقات تركيبيّة (real_data=False)
-    — لا بكسلات حقيقيّة (تلك في raster-service).
-    """
-    claims = _verify_claims(token)
-    tenant_id = _tenant_from_claims(claims)
-    field = await load_field(field_id, tenant_id)
-    if field is None:
-        raise HTTPException(404, f"field_id {field_id!r} غير موجود")
-    date_to = date.today().isoformat()
-    date_from = (date.today() - timedelta(days=30)).isoformat()
-    analysis = await run_analysis(field_id, tenant_id, date_from, date_to)
-    return _current_ndvi_payload(field_id, field, analysis)
-
-
-@app.get("/v1/all_fields")
-async def all_fields(token: str = Depends(security)):
-    """NDVI الحالي لكلّ الحقول المعروفة (يستهلكه useAllFieldsNdvi/لوحة المؤشّرات).
-
-    يكرّر على فهرس الحقول (FIELD_REGISTRY هو كتالوج التعداد التركيبيّ — لا توجد
-    نقطة «list fields» مستأجَرة هنا) ويُحمّل ميتاداتا كلّ حقل عبر load_field (قد
-    تأتي من القاعدة/المنصّة عند تفعيل العلم). الردّ {fields:[...]} لكلّ منه
-    field_id/name/crop/ndvi/health — تقدير صادق (real_data=False افتراضيّاً).
-    """
-    claims = _verify_claims(token)
-    tenant_id = _tenant_from_claims(claims)
-    date_to = date.today().isoformat()
-    date_from = (date.today() - timedelta(days=30)).isoformat()
-    fields_out = []
-    for fid in FIELD_REGISTRY:
-        field = await load_field(fid, tenant_id) or {}
-        analysis = await run_analysis(fid, tenant_id, date_from, date_to)
-        payload = _current_ndvi_payload(fid, field, analysis)
-        fields_out.append(
-            {
-                "field_id": fid,
-                "field_name": field.get("name") or fid,
-                "name": field.get("name") or fid,
-                "crop": field.get("crop"),
-                "area_ha": field.get("area_ha"),
-                "ndvi": payload["ndvi"]["current"],
-                "status": payload["classification"].get("status"),
-                "health": payload["classification"],
-                "real_data": payload["real_data"],
-            }
-        )
-    return {
-        "fields": fields_out,
-        "count": len(fields_out),
-        "tenant_id": tenant_id,
-        "real_data": False,
-        "generated_at": datetime.now(UTC).isoformat(),
-    }
+register_routers(app)
 
 
 if __name__ == "__main__":

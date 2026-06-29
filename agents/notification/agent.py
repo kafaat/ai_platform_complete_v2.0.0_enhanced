@@ -30,7 +30,7 @@ from email.mime.text import MIMEText
 
 import asyncpg
 import httpx
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, WebSocket
 from fastapi.responses import Response
 from nats.aio.client import Client as NATS
 from nats.js import JetStreamContext
@@ -173,6 +173,33 @@ def fcm_push_active() -> bool:
     return _fcm_truthy(os.getenv("FCM_SERVER_KEY", ""))
 
 
+# ── C4/M1: علم الـpush للموبايل (default OFF) + قرار الإرسال vs السجلّ الاحتياطيّ ──
+# إطار «implemented-but-off-by-default»: الـpush مُنفَّذ (send_push/FCM) لكنّه opt-in
+# صريح بهذا العلم. OFF (افتراضيّ) أو FCM خامل ⇒ **سجلّ احتياطيّ دائم** بدل إسقاط صامت.
+_MOBILE_PUSH_FLAG = "FEATURE_MOBILE_PUSH"
+
+
+def mobile_push_enabled() -> bool:
+    """هل push الموبايل مُفعَّل؟ default OFF (يُقرأ وقت الاستدعاء). علم opt-in صريح
+    فوق قدرة FCM — التفعيل يتطلّب العلم **و** FCM_SERVER_KEY معاً."""
+    return _fcm_truthy(os.getenv(_MOBILE_PUSH_FLAG, ""))
+
+
+def push_decision(*, flag_on: bool, push_enabled: bool, has_token: bool, fcm_active: bool) -> str:
+    """يقرّر إجراء الـpush — دالّة نقيّة مُختبَرة. يُرجِع:
+
+    - ``"skip"``        لا رغبة (push مُعطَّل لدى المستخدم أو لا token) ⇒ لا شيء.
+    - ``"send"``        رغبة + العلم on + FCM نشط ⇒ إرسال push فعليّ.
+    - ``"record_only"`` رغبة لكن (العلم off أو FCM خامل) ⇒ سجلّ احتياطيّ دائم
+                        (create_notification_record) — **لا إسقاط صامت** (صدق).
+    """
+    if not (push_enabled and has_token):
+        return "skip"
+    if flag_on and fcm_active:
+        return "send"
+    return "record_only"
+
+
 async def send_push(push_token: str, title: str, body: str) -> bool:
     """Deliver a real FCM push. Honest + gated.
 
@@ -256,6 +283,42 @@ async def get_prefs(user_id: int) -> dict | None:
         return None
 
 
+async def _record_push_fallback(data: dict, reason: str) -> None:
+    """C4/M1: يُدِيم إيصال push (status='queued') في notification_delivery حين **لا**
+    يُرسَل الـpush فعليّاً (العلم off أو FCM خامل) — فلا يُفقَد إشعارٌ يريده المستخدم
+    صامتاً (create_notification_record). يُحدَّث لاحقاً عند تفعيل الـpush/التسليم.
+
+    best-effort fail-soft: غياب tenant_id (لا يمكن احترام NOT NULL/RLS) أو تعذّر القاعدة
+    ⇒ تخطٍّ مع تسجيل debug — لا كسر للوكيل، ولا سجلّ مُلفَّق. مفتاح التنبيه من data إن
+    توفّر وإلّا مُشتقّ ثابت من (نوع الحدث، المستخدم).
+    """
+    tenant_id = data.get("tenant_id")
+    if not tenant_id:
+        logger.debug("push fallback: لا tenant_id ⇒ تخطّي السجلّ (fail-soft)")
+        return
+    alert_key = (
+        data.get("alert_key") or f"push:{data.get('event_type', '')}:{data.get('user_id', '')}"
+    )
+    try:
+        pool = await get_pool()
+        if not pool:
+            return
+        async with pool.acquire() as conn:
+            await conn.execute(
+                """
+                INSERT INTO notification_delivery (tenant_id, alert_key, channel, status, error)
+                VALUES ($1::uuid, $2, 'push', 'queued', $3)
+                ON CONFLICT (tenant_id, alert_key, channel)
+                DO UPDATE SET status = 'queued', error = EXCLUDED.error, updated_at = now()
+                """,
+                str(tenant_id),
+                alert_key,
+                reason,
+            )
+    except Exception as e:  # noqa: BLE001 — سجلّ best-effort، لا يكسر التوزيع
+        logger.debug("push fallback record تخطٍّ: %s", e)
+
+
 # ── Event dispatcher ──────────────────────────────────────────
 EVENT_EMOJI = {
     "satellite": "🛰️",
@@ -326,9 +389,19 @@ async def dispatch(data: dict):
             text += "\n" + "\n".join(f"• {k}: {v}" for k, v in extra.items())
         await send_telegram(str(prefs["telegram_chat_id"]), text)
 
-    # Mobile push — condition-gated (fcm_push). No-op while dormant.
-    if prefs.get("push_enabled") and prefs.get("push_token") and fcm_push_active():
+    # Mobile push (C4/M1) — خلف علم FEATURE_MOBILE_PUSH (default off) + سجلّ احتياطيّ:
+    # send عند (العلم on ∧ FCM نشط)؛ record_only عند رغبة المستخدم بلا تفعيل ⇒ سجلّ
+    # دائم بدل إسقاط صامت؛ skip عند عدم الرغبة. لا تغيير لباقي القنوات.
+    decision = push_decision(
+        flag_on=mobile_push_enabled(),
+        push_enabled=bool(prefs.get("push_enabled")),
+        has_token=bool(prefs.get("push_token")),
+        fcm_active=fcm_push_active(),
+    )
+    if decision == "send":
         await send_push(str(prefs["push_token"]), title, message)
+    elif decision == "record_only":
+        await _record_push_fallback(data, reason="mobile_push_disabled_or_fcm_dormant")
 
 
 # ── NATS subscriptions ────────────────────────────────────────
@@ -511,7 +584,7 @@ async def _ws_receive_loop(websocket, verified_user_id: str):
 
 
 @app.websocket("/ws/notifications")
-async def ws_notifications(websocket):
+async def ws_notifications(websocket: WebSocket):
     """Secure WebSocket with JWT auth, connection limit, timeout.
 
     مصادقة بإطار-أوّل حصراً (auth-frame): لم نعُد نقرأ التوكن من الـquery

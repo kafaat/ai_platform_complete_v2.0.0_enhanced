@@ -63,7 +63,7 @@ function isBenign(msg: string): boolean {
 
 test.beforeEach(async ({ page }) => {
   await seedAuthAndRoutes(page);
-  await page.goto(MAPHUB_PATH);
+  await page.goto(MAPHUB_PATH, { waitUntil: 'domcontentloaded' });
   await waitForMapReady(page);
 });
 
@@ -97,6 +97,8 @@ test('الخطوة 2-3: لوحة الرسم وأزرار الوضع تظهر ع�
 // (الخطوتان 2 «رسم مضلّع» و3 «قياس مساحة» مغطّاتان هنا حاجزاً.)
 test('الخطوة 2-3: رسم مضلّع بنقرات canvas ⇒ measure-area بـ«م²» @gating', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
+  // انتظار اكتمال الاستيراد الديناميكيّ لـTerra Draw قبل النقر على الـcanvas
+  await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
   await page.getByTestId('btn-mode-polygon').click();
   const canvas = page.locator(`${CONTAINER} canvas`).first();
   const box = await canvas.boundingBox();
@@ -120,6 +122,8 @@ test('الخطوة 2-3: رسم مضلّع بنقرات canvas ⇒ measure-area �
 // نبدّل لوضع «خطّ»، نرسم بثلاث نقرات + إغلاق، فتظهر measure-length بـ«كم».
 test('الخطوة 2-3: رسم خطّ بنقرات canvas ⇒ measure-length بـ«كم» @gating', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
+  // انتظار اكتمال الاستيراد الديناميكيّ لـTerra Draw قبل النقر على الـcanvas
+  await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
   await page.getByTestId('btn-mode-line').click();
   const canvas = page.locator(`${CONTAINER} canvas`).first();
   const box = await canvas.boundingBox();

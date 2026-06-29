@@ -5,7 +5,7 @@
 // event_count=0 ⇒ حالة فارغة صادقة (لا خطّ زمنيّ مخترَع)؛ (هـ) 404 ⇒ «الميزة غير
 // مُفعَّلة»؛ (و) 503/خطأ آخر ⇒ ErrorState صادقة. حتميّ (بلا توقيت/عشوائيّة).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 
 import * as useApiModule from '../hooks/useApi';
 import * as selectedFieldModule from '../hooks/useSelectedField';
@@ -30,7 +30,7 @@ const SAMPLE: AgronomicReplayResult = {
   ],
   counts_by_track: { ndvi: 1, weather: 0, irrigation: 0, decision: 1, outcome: 1 },
   event_count: 3,
-  span: { start: '2026-02-15T00:00:00', end: '2026-04-10T00:00:00' },
+  span: { start: '2026-02-15', end: '2026-04-10' },
   provenance: {
     calibrated: 'not_applicable',
     note_ar: 'خطّ زمنيّ من سجلّات مُدامة فقط — لا تاريخ مخترَع.',
@@ -80,22 +80,23 @@ describe('ReplayMapPage', () => {
     expect(screen.getAllByText('0 — لا أحداث').length).toBeGreaterThanOrEqual(2);
   });
 
-  it('(ب) يعرض الأحداث على الخطّ الزمنيّ وفي قائمة الأحداث', () => {
+  it('(ب) يعرض الأحداث على الخطّ الزمنيّ وفي قائمة الأحداث', async () => {
     stubReplay(qData(SAMPLE));
     render(<ReplayMapPage />);
     // عند فتح الصفحة المنزلق عند النهاية (1) ⇒ كلّ الأحداث الثلاثة معروضة.
-    expect(screen.getByText('الأحداث المعروضة (3)')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('الأحداث المعروضة (3)')).toBeInTheDocument());
     expect(screen.getByText('خطّة ريّ')).toBeInTheDocument();
     expect(screen.getByText('NDVI 0.62')).toBeInTheDocument();
     expect(screen.getByText('حصاد ناجح')).toBeInTheDocument();
   });
 
-  it('(ج) المنزلق يُرشّح الأحداث (تحريكه للبداية ⇒ أحداث أقلّ)', () => {
+  it('(ج) المنزلق يُرشّح الأحداث (تحريكه للبداية ⇒ أحداث أقلّ)', async () => {
     stubReplay(qData(SAMPLE));
     render(<ReplayMapPage />);
+    // انتظار ظهور لوحة الأحداث الكاملة (يُشير لاكتمال عرض hasTimeline + shownEvents).
+    await waitFor(() => expect(screen.getByText('الأحداث المعروضة (3)')).toBeInTheDocument());
     const slider = screen.getByLabelText('منزلق إعادة التشغيل الزمنيّ');
     // ابدأ بكلّ الأحداث (3)، ثمّ حرّك المنزلق للبداية (0) ⇒ أوّل حدث فقط (decision).
-    expect(screen.getByText('الأحداث المعروضة (3)')).toBeInTheDocument();
     fireEvent.change(slider, { target: { value: '0' } });
     expect(screen.getByText('الأحداث المعروضة (1)')).toBeInTheDocument();
     // الحدث المتأخّر (الحصاد) لم يَعُد في القائمة — نتحقّق ضمن قائمة الأحداث تحديداً.

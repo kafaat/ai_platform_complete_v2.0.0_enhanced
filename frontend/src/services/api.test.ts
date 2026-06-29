@@ -37,6 +37,8 @@ import {
   fetchTenantConfig,
   classifySegmentationError,
   segmentField,
+  fetchImageryBackfillPolicy,
+  runHistoricalImageryBackfill,
 } from './api';
 
 beforeEach(() => {
@@ -167,5 +169,32 @@ describe('segmentField (POST /api/segmentation/segment)', () => {
     expect(caught).toBe(err);
     // الواجهة تصنّف الخطأ المرفوع إلى رسالة صريحة (لا مضلّع مُفبرَك):
     expect(classifySegmentationError(caught)).toBe('model_not_configured');
+  });
+});
+
+
+describe('historical imagery backfill API', () => {
+  it('fetches the switchable 12m/3y/5y/custom policy from raster service', async () => {
+    const policy = { presets: { auto_12_months: { months: 12 }, extended_3_years: { months: 36 }, research_5_years: { months: 60 }, custom: {} } };
+    mockGet.mockResolvedValueOnce({ data: policy });
+    const out = await fetchImageryBackfillPolicy();
+    expect(mockGet).toHaveBeenCalledWith('/v1/imagery/backfill/policy');
+    expect(out).toEqual(policy);
+  });
+
+  it('runs a configurable field historical backfill request', async () => {
+    const response = { field_id: 'F-1', preset: 'extended_3_years', jobs_scheduled: 4 };
+    mockPost.mockResolvedValueOnce({ data: response });
+    const payload = {
+      preset: 'extended_3_years' as const,
+      indices: ['ndvi', 'ndmi'],
+      max_cloud_pct: 25,
+      limit_per_month: 1,
+      dry_run: true,
+      clip_polygon_geojson: { type: 'Polygon', coordinates: [] },
+    };
+    const out = await runHistoricalImageryBackfill('F-1', payload);
+    expect(mockPost).toHaveBeenCalledWith('/v1/fields/F-1/imagery/backfill', payload);
+    expect(out).toEqual(response);
   });
 });

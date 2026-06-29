@@ -1,5 +1,4 @@
-"""
-raster-service (port 8001) — خدمة الصور الجوّية والراستر لـSAHOOL
+"""raster-service (port 8001) — خدمة الصور الجوّية والراستر لـSAHOOL
 
 تسدّ الفجوة المعماريّة: تطبيق الجوال (imagery.ts + raster.ts) يستدعي هذه
 الخدمة على المنفذ 8001، لكنّها لم تكن موجودة. هذه الخدمة تنفّذ العقد كاملاً.
@@ -34,6 +33,7 @@ rasterio في بيئة التشغيل (تُحقن في process_raster_job). ال
 
 from __future__ import annotations
 
+import hmac
 import logging
 import os
 import uuid
@@ -47,14 +47,37 @@ import band_math
 import httpx
 import object_store
 
-# تبقى مُتاحةً كـ main._sal: مسارات الملوحة (routers/analysis.py) تشير إليها عبر
-# main بعد التفكيك (الاستخدام في وقت التشغيل لا يراه التحليل الساكن).
-import salinity_calibration as _sal  # noqa: F401
+# توحيد main↔cert: إعادة تصدير أصناف غيوم SCL من المصدر الوحيد (cdse_client) كي تبقى
+# متاحة عبر ``main.SCL_CLOUD_CLASSES`` (يطابقها حارس test_cloud_masking — تماسُك معالجة
+# CDSE↔Element84). المصدر الوحيد في cdse_client يمنع انحراف القيم.
+from cdse_client import SCL_CLOUD_CLASSES  # noqa: E402
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from job_store import JobStore
 from pydantic import BaseModel, Field
 from stac_client import ResilientStacClient
+
+# توحيد main↔cert: استعادة دالّة نسبة الغيوم النقيّة + عتبتها (كانتا في main وفُقِدتا حين
+# أُخِذت نسخة raster الخاصّة بـcert في الدمج التأسيسيّ). يطابقهما حارس test_cloud_masking.
+CLOUD_PCT_WARN_THRESHOLD = float(os.getenv("CLOUD_PCT_WARN_THRESHOLD", "20"))
+
+
+def compute_cloud_pct(scl, np) -> float | None:
+    """نسبة غيوم المشهد من نطاق SCL — دالّة نقيّة قابلة للاختبار بلا rasterio.
+
+    = (عدد بكسلات أصناف الغيوم في ``SCL_CLOUD_CLASSES``) ÷ (عدد بكسلات SCL
+    الصالحة، أي ≠ 0 صنف لا-بيانات) × 100. تُرجِع ``None`` إن لم توجد بكسلات
+    صالحة (لتفادي القسمة على صفر) أو إن كان ``scl`` فارغاً.
+    """
+    if scl is None:
+        return None
+    valid = scl != 0  # SCL=0 ⇒ NO_DATA (مستبعَد من المقام).
+    valid_count = int(valid.sum())
+    if valid_count == 0:
+        return None
+    cloud_count = int(np.isin(scl, SCL_CLOUD_CLASSES).sum())
+    return cloud_count / valid_count * 100.0
+
 
 try:
     from shared.logging_config import setup_logging
@@ -77,31 +100,6 @@ CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))
 # خادم بلاطات COG ديناميكي (TiTiler) — سدّ فجوة P0. فارغ = البلاطات الثابتة.
 TITILER_URL = os.getenv("TITILER_URL", "")
-
-# أصناف الغيوم/الظلال في نطاق Sentinel-2 SCL (3 ظلّ غيمة · 8/9 غيمة متوسّطة/عالية
-# الاحتمال · 10 سيرس · 11 ثلج) — تُقنَّع بكسليّاً وتُحسب منها نسبة غيوم المشهد.
-SCL_CLOUD_CLASSES = (3, 8, 9, 10, 11)
-# عتبة التحذير: مشهد تتجاوز نسبة غيومه هذه القيمة (٪) يُلحَق به تحذير صريح بأنّ
-# المؤشّر قد يكون ملوَّثاً بالغيوم — قابلة للضبط بيئيّاً.
-CLOUD_PCT_WARN_THRESHOLD = float(os.getenv("CLOUD_PCT_WARN_THRESHOLD", "20"))
-
-
-def compute_cloud_pct(scl, np) -> float | None:
-    """نسبة غيوم المشهد من نطاق SCL — دالّة نقيّة قابلة للاختبار بلا rasterio.
-
-    = (عدد بكسلات أصناف الغيوم في ``SCL_CLOUD_CLASSES``) ÷ (عدد بكسلات SCL
-    الصالحة، أي ≠ 0 صنف لا-بيانات) × 100. تُرجِع ``None`` إن لم توجد بكسلات
-    صالحة (لتفادي القسمة على صفر) أو إن كان ``scl`` فارغاً.
-    """
-    if scl is None:
-        return None
-    valid = scl != 0  # SCL=0 ⇒ NO_DATA (مستبعَد من المقام).
-    valid_count = int(valid.sum())
-    if valid_count == 0:
-        return None
-    cloud_count = int(np.isin(scl, SCL_CLOUD_CLASSES).sum())
-    return cloud_count / valid_count * 100.0
-
 
 # عميل STAC مرن (تحسين قلب النظام): إعادة محاولة + cache (Redis مشترك +
 # ذاكرة fallback) + مصدر احتياطي + stale-if-error. TTL قابل للضبط.
@@ -181,6 +179,8 @@ class BandMapping(BaseModel):
     swir1: int | None = None
     swir2: int | None = None  # لمؤشّرات التربة (BSI/NDTI/SATVI)
     scl: int | None = None
+    clp: int | None = None  # s2cloudless cloud probability (0..100 or 0..1), optional
+    clm: int | None = None  # s2cloudless cloud mask: 1=cloud, 0=clear, optional
 
 
 class ProcessRequest(BaseModel):
@@ -233,6 +233,378 @@ class SearchRequest(BaseModel):
     datetime_end: str
     max_cloud_pct: float = 30
     limit: int = 20
+
+
+class HistoricalBackfillPreset(StrEnum):
+    """Preset windows for historical imagery backfill.
+
+    auto_12_months: default immediate history for newly-created fields.
+    extended_3_years: agronomic season comparison and recurring weak-zone analysis.
+    research_5_years: enterprise/research tier; heavier cost and storage.
+    custom: explicit from_date/to_date or months.
+    """
+
+    auto_12_months = "auto_12_months"
+    extended_3_years = "extended_3_years"
+    research_5_years = "research_5_years"
+    custom = "custom"
+
+
+_BACKFILL_PRESET_MONTHS = {
+    HistoricalBackfillPreset.auto_12_months: 12,
+    HistoricalBackfillPreset.extended_3_years: 36,
+    HistoricalBackfillPreset.research_5_years: 60,
+}
+
+
+class HistoricalBackfillRequest(BaseModel):
+    """Backfill historical satellite imagery for a field using current geometry.
+
+    The request is intentionally configurable instead of hard-coded. This allows the
+    platform to run a cheap automatic 12-month bootstrap on field creation, and let
+    users opt into 3-year/5-year or custom history only when they need it.
+    """
+
+    tenant_id: str | None = None
+    preset: HistoricalBackfillPreset = HistoricalBackfillPreset.auto_12_months
+    from_date: str | None = None
+    to_date: str | None = None
+    months: int | None = Field(default=None, ge=1, le=120)
+    indices: list[IndicatorKind] = Field(
+        default_factory=lambda: [
+            IndicatorKind.ndvi,
+            IndicatorKind.ndmi,
+            IndicatorKind.savi,
+            IndicatorKind.evi,
+        ]
+    )
+    max_cloud_pct: float = Field(default=30, ge=0, le=100)
+    limit_per_month: int = Field(default=2, ge=1, le=8)
+    apply_cloud_mask: bool = True
+    source: str = Field(default="sentinel-2")
+    clip_polygon_geojson: dict | None = None
+    dry_run: bool = False
+
+
+class AutoBackfillPolicy(BaseModel):
+    enabled: bool = True
+    default_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.auto_12_months
+    extended_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.extended_3_years
+    research_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.research_5_years
+    default_indices: list[str] = ["ndvi", "ndmi", "savi", "evi"]
+    max_cloud_pct: float = 30
+    note: str = (
+        "Use auto_12_months on field creation; expose extended_3_years and "
+        "research_5_years as explicit user/plan toggles."
+    )
+
+
+class SceneCandidate(BaseModel):
+    """A STAC/scene candidate normalized for quality ranking.
+
+    Inspired by Sentinel Hub least-cloud mosaicking and common STAC quality filters:
+    AOI cloud percentage is strongest, then recency, then field coverage and provider
+    quality/confidence. All fields are optional so provider-specific payloads can be
+    ranked without brittle adapters.
+    """
+
+    item_id: str | None = None
+    datetime: str | None = None
+    cloud_cover_pct: float | None = None
+    aoi_cloud_pct: float | None = None
+    coverage_pct: float | None = None
+    view_angle: float | None = None
+    provider_quality: float | None = None
+    source: str | None = None
+    properties: dict | None = None
+
+
+class SceneRankRequest(BaseModel):
+    scenes: list[SceneCandidate]
+    mode: str = Field(default="best_available")
+    max_cloud_pct: float = Field(default=40, ge=0, le=100)
+    prefer_recent_days: int = Field(default=45, ge=1, le=3650)
+
+
+class MosaicPlanRequest(BaseModel):
+    bbox: list[float] = Field(..., min_length=4, max_length=4)
+    datetime_start: str
+    datetime_end: str
+    max_cloud_pct: float = Field(default=40, ge=0, le=100)
+    limit: int = Field(default=20, ge=1, le=100)
+    mosaic_rule: str = Field(default="least_cloud_then_recent")
+
+
+class GeoParquetExportRequest(BaseModel):
+    tenant_id: str | None = None
+    field_ids: list[str] | None = None
+    include_raster_assets: bool = True
+    output_name: str = Field(default="field_analytics")
+
+
+def _scene_datetime(scene: dict | SceneCandidate) -> datetime | None:
+    val = scene.datetime if isinstance(scene, SceneCandidate) else scene.get("datetime")
+    if not val:
+        props = (
+            scene.properties if isinstance(scene, SceneCandidate) else scene.get("properties") or {}
+        )
+        val = props.get("datetime") or props.get("acquisition_datetime")
+    if not val:
+        return None
+    try:
+        return datetime.fromisoformat(str(val).replace("Z", "+00:00")).astimezone(UTC)
+    except Exception:  # noqa: BLE001 — تحليل تاريخ اختياريّ؛ أيّ قيمة غير صالحة تُعاد None بأمان
+        return None
+
+
+def _scene_to_dict(scene: dict | SceneCandidate) -> dict:
+    return scene.model_dump() if isinstance(scene, SceneCandidate) else dict(scene)
+
+
+def _scene_quality_score(
+    scene: dict | SceneCandidate,
+    *,
+    now: datetime | None = None,
+    max_cloud_pct: float = 40.0,
+    prefer_recent_days: int = 45,
+) -> dict:
+    """Rank satellite scenes using production-safe, explainable weights.
+
+    Ranking policy:
+      • AOI cloud percentage beats scene-level cloud percentage when available.
+      • Recent scenes are preferred, but not at the expense of cloudy scenes.
+      • Coverage and provider quality are positive signals.
+      • View angle is a small penalty when providers expose it.
+    """
+    d = _scene_to_dict(scene)
+    props = d.get("properties") or {}
+    cloud = d.get("aoi_cloud_pct")
+    cloud_source = "aoi_cloud_pct"
+    if cloud is None:
+        cloud = d.get("cloud_cover_pct", props.get("eo:cloud_cover", props.get("cloud_cover")))
+        cloud_source = "scene_cloud_pct"
+    try:
+        cloud = float(cloud) if cloud is not None else 100.0
+    except Exception:
+        cloud = 100.0
+    cloud = max(0.0, min(100.0, cloud))
+    cloud_score = max(0.0, 1.0 - (cloud / max(float(max_cloud_pct), 1.0)))
+
+    now = now or datetime.now(UTC)
+    dt = _scene_datetime(scene)
+    if dt:
+        age_days = max(0.0, (now - dt).total_seconds() / 86400.0)
+        recency_score = max(0.0, 1.0 - age_days / max(float(prefer_recent_days), 1.0))
+    else:
+        age_days = None
+        recency_score = 0.25
+
+    coverage = d.get("coverage_pct", props.get("sahool:coverage_pct", 100.0))
+    try:
+        coverage_score = max(0.0, min(1.0, float(coverage) / 100.0))
+    except Exception:
+        coverage_score = 0.75
+
+    provider_quality = d.get("provider_quality", props.get("sahool:quality", None))
+    try:
+        provider_quality = (
+            max(0.0, min(1.0, float(provider_quality))) if provider_quality is not None else 0.75
+        )
+    except Exception:
+        provider_quality = 0.75
+
+    view_angle = d.get("view_angle", props.get("view:off_nadir", 0.0))
+    try:
+        angle_penalty = min(0.15, max(0.0, float(view_angle)) / 400.0)
+    except Exception:
+        angle_penalty = 0.0
+
+    score = (
+        (0.50 * cloud_score)
+        + (0.20 * recency_score)
+        + (0.20 * coverage_score)
+        + (0.10 * provider_quality)
+        - angle_penalty
+    )
+    score = max(0.0, min(1.0, score))
+    return {
+        "score": round(score, 4),
+        "cloud_pct": round(cloud, 3),
+        "cloud_source": cloud_source,
+        "age_days": round(age_days, 2) if age_days is not None else None,
+        "coverage_score": round(coverage_score, 4),
+        "recency_score": round(recency_score, 4),
+        "provider_quality": round(provider_quality, 4),
+        "view_angle_penalty": round(angle_penalty, 4),
+    }
+
+
+def _rank_scenes(
+    scenes: list[dict | SceneCandidate],
+    *,
+    max_cloud_pct: float = 40.0,
+    prefer_recent_days: int = 45,
+) -> list[dict]:
+    ranked = []
+    for scene in scenes:
+        d = _scene_to_dict(scene)
+        q = _scene_quality_score(
+            scene, max_cloud_pct=max_cloud_pct, prefer_recent_days=prefer_recent_days
+        )
+        d["sahool_quality"] = q
+        d["quality_score"] = q["score"]
+        ranked.append(d)
+    return sorted(
+        ranked, key=lambda it: (-float(it.get("quality_score", 0)), it.get("datetime") or "")
+    )
+
+
+def _tile_cache_key(
+    field_id: str,
+    index: str,
+    date: str,
+    z: int,
+    x: int,
+    y: int,
+    tenant_id: str | None,
+    v: str | None = None,
+) -> str:
+    def safe(s):
+        cleaned = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in str(s or "na"))
+        return cleaned.replace("..", "_")
+
+    return os.path.join(
+        UPLOAD_DIR,
+        "tile_cache",
+        safe(tenant_id),
+        safe(field_id),
+        safe(index),
+        safe(date),
+        safe(v or "default"),
+        str(z),
+        f"{x}_{y}.png",
+    )
+
+
+def _read_tile_cache(path: str) -> bytes | None:
+    if os.getenv("TILE_CACHE_ENABLED", "true").lower() != "true":
+        return None
+    try:
+        if os.path.exists(path):
+            with open(path, "rb") as fh:
+                return fh.read()
+    except OSError:
+        return None
+    return None
+
+
+def _write_tile_cache(path: str, data: bytes) -> None:
+    if os.getenv("TILE_CACHE_ENABLED", "true").lower() != "true" or not data:
+        return
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        tmp = f"{path}.tmp"
+        with open(tmp, "wb") as fh:
+            fh.write(data)
+        os.replace(tmp, path)
+    except OSError as e:
+        logger.warning("tile cache write skipped: %s", type(e).__name__)
+
+
+# P2 observability: tile/tilejson counters kept in-process so Prometheus can
+# explain map failures without reading nginx logs. Labels are intentionally
+# low-cardinality where possible; field_id is exposed only in the diagnostic
+# JSON endpoint, not Prometheus.
+_TILE_OBS = {
+    "tilejson_requests_total": 0,
+    "tilejson_available_total": 0,
+    "tilejson_unavailable_total": 0,
+    "tile_requests_total": 0,
+    "tile_cache_hits_total": 0,
+    "tile_cache_misses_total": 0,
+    "tile_transparent_total": 0,
+    "tile_render_errors_total": 0,
+}
+_TILE_OBS_BY_INDEX: dict[str, dict[str, int]] = {}
+
+
+def _obs_inc(name: str, index: str | None = None, amount: int = 1) -> None:
+    _TILE_OBS[name] = int(_TILE_OBS.get(name, 0)) + amount
+    if index:
+        bucket = _TILE_OBS_BY_INDEX.setdefault(index, {})
+        bucket[name] = int(bucket.get(name, 0)) + amount
+
+
+def _parse_ymd(value: str, field_name: str) -> datetime:
+    try:
+        return datetime.strptime(value[:10], "%Y-%m-%d").replace(tzinfo=UTC)
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(400, f"{field_name} يجب أن يكون YYYY-MM-DD") from e
+
+
+def _backfill_date_range(req: HistoricalBackfillRequest) -> tuple[datetime, datetime, int]:
+    end = _parse_ymd(req.to_date, "to_date") if req.to_date else datetime.now(UTC)
+    if req.from_date:
+        start = _parse_ymd(req.from_date, "from_date")
+        months = max(1, (end.year - start.year) * 12 + (end.month - start.month) + 1)
+    else:
+        months = req.months or _BACKFILL_PRESET_MONTHS.get(req.preset, 12)
+        # approximate month arithmetic without external dependency: 31 days is safe for search coverage.
+        start = end - timedelta(days=31 * months)
+    if start >= end:
+        raise HTTPException(400, "from_date يجب أن يسبق to_date")
+    if months > 60 and req.preset != HistoricalBackfillPreset.custom:
+        raise HTTPException(400, "استخدم preset=custom للفترات الأكبر من 5 سنوات")
+    return start, end, months
+
+
+def _bbox_from_geojson(geojson: dict | None) -> list[float] | None:
+    if not geojson:
+        return None
+    coords: list[tuple[float, float]] = []
+
+    def walk(node):
+        if (
+            isinstance(node, (list, tuple))
+            and len(node) >= 2
+            and all(isinstance(v, (int, float)) for v in node[:2])
+        ):
+            lon, lat = float(node[0]), float(node[1])
+            coords.append((lon, lat))
+            return
+        if isinstance(node, (list, tuple)):
+            for child in node:
+                walk(child)
+
+    walk(geojson.get("coordinates"))
+    if not coords:
+        return None
+    xs = [c[0] for c in coords]
+    ys = [c[1] for c in coords]
+    return [min(xs), min(ys), max(xs), max(ys)]
+
+
+def _month_windows(start: datetime, end: datetime) -> list[tuple[datetime, datetime]]:
+    windows = []
+    cur = datetime(start.year, start.month, 1, tzinfo=UTC)
+    while cur < end:
+        nxt = datetime(
+            cur.year + (1 if cur.month == 12 else 0),
+            1 if cur.month == 12 else cur.month + 1,
+            1,
+            tzinfo=UTC,
+        )
+        w_start = max(start, cur)
+        w_end = min(end, nxt - timedelta(seconds=1))
+        if w_start < w_end:
+            windows.append((w_start, w_end))
+        cur = nxt
+    return windows
+
+
+def _scene_band_mapping(bands: dict[str, str]) -> BandMapping:
+    keys = ["blue", "green", "red", "nir", "rededge", "swir1", "swir2", "scl"]
+    return BandMapping(**{k: i + 1 for i, k in enumerate(keys) if bands.get(k)})
 
 
 # ─── حالة المهامّ: Redis (مشترك + يبقى بعد إعادة التشغيل) مع ارتداد للذاكرة ──
@@ -464,7 +836,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Tenant-Id"],
     allow_credentials=True,
 )
 
@@ -477,18 +849,52 @@ app.add_middleware(
 # fail-closed الحالي (لا انحدار: RLS يحجب بلا مستأجِر).
 _REQ_TENANT: ContextVar[str | None] = ContextVar("req_tenant", default=None)
 
+try:
+    from shared.security.tenant_context import resolve_tenant_context as _resolve_tenant_context
+except ImportError:  # pragma: no cover - service can still run from its folder in minimal CI
+
+    def _resolve_tenant_context(
+        request, tid: str | None = None, tenant_id: str | None = None
+    ) -> str | None:
+        def _clean(value: str | None) -> str | None:
+            if not value:
+                return None
+            return value.strip() or None
+
+        return _clean(request.headers.get("X-Tenant-Id")) or _clean(tid) or _clean(tenant_id)
+
 
 def _tenant_from_header(value: str | None) -> str | None:
-    """يطبّع ترويسة X-Tenant-Id: فراغ/None ⇒ None (لا مستأجِر)."""
+    """Backwards-compatible normalizer used by tests and older call sites."""
     if not value:
         return None
-    return value.strip() or None
+    value = value.strip()
+    return value or None
+
+
+def _tenant_from_request(request) -> str | None:
+    """يستخرج سياق المستأجر من الطلب.
+
+    المسار الطبيعي الآمن هو `X-Tenant-Id` الذي تحقنه البوابة بعد JWT. لكن
+    بلاطات الخريطة تُحمَّل كصور `<img>`/TileLayer ولا تستطيع دائماً إرسال
+    ترويسات Authorization/axios. لذلك تقبل مسارات البلاطات أيضاً `tid` كـ
+    tenant hint حتى يعمل التطوير المحلي وإعادة ترطيب `raster_assets` عبر RLS.
+
+    لا يُستخدم `tid` وحده كإذن نهائي: `_require_field_tenant` يقارن tenant
+    الطلب مع مالك الحقل من جدول `fields` عند توفر قاعدة البيانات، و
+    `fetch_latest_asset` يضيف فلتر tenant_id صريحاً فوق RLS.
+    """
+    return _resolve_tenant_context(
+        request,
+        tid=request.query_params.get("tid"),
+        tenant_id=request.query_params.get("tenant_id"),
+    )
 
 
 @app.middleware("http")
 async def _tenant_context_mw(request, call_next):
-    """يضبط سياق المستأجِر لكلّ طلب من الترويسة الموثوقة، ويُعيده بعد الطلب."""
-    token = _REQ_TENANT.set(_tenant_from_header(request.headers.get("X-Tenant-Id")))
+    """يضبط سياق المستأجِر لكلّ طلب ويُعيده بعد الطلب."""
+    token = _REQ_TENANT.set(_tenant_from_request(request))
     try:
         return await call_next(request)
     finally:
@@ -525,54 +931,107 @@ async def _field_owner(field_id: str) -> str | None:
     return owner
 
 
-async def _require_field_tenant(field_id: str) -> None:
-    """تفويض ملكيّة الحقل (عزل متعدّد المستأجرين على المسارات المكشوفة للمتصفّح).
+async def _require_field_tenant(field_id: str, *, hide_existence: bool = False) -> None:
+    """تفويض ملكيّة الحقل.
 
-    المصادقة مفروضة عند البوّابة (تتحقّق JWT وتحقن X-Tenant-Id موثوقاً)، لكنّ هذه
-    المسارات (tiles/tilejson/timeseries/indicator-grid) تُنادى مباشرةً من المتصفّح
-    بالـfield_id فقط — فبلا فحص ملكيّة يقرأ مستأجِرٌ حقلَ آخر بتخمين/معرفة المعرّف
-    (IDOR). فحصان طبقيّان:
-
-    ١) **ذاكرة سريعة بلا I/O**: الطبقات المخبّأة تحمل tenant_id (سُجِّل عند /process
-       وإعادة الترطيب) — يكشف تصادم الـcache فوراً.
-    ٢) **المصدر الموثوق (جدول fields)**: عبر دالّة SECURITY DEFINER، فيحسم بعد إعادة
-       التشغيل، وبلا طبقة مخبّأة، **وحتى عند غياب X-Tenant-Id** (مالكٌ معروف ≠ بلا
-       مستأجِر ⇒ 403). field_id مفتاح أساسيّ ⇒ مالك واحد عالميّاً.
-
-    fail-closed: قاعدة مُهيّأة + تعذّر إثبات الملكيّة ⇒ 503. أمّا «بلا قاعدة» أو «الحقل
-    غير موجود» ⇒ المالك None ⇒ لا حجب من القاعدة
-    (تجنّب رفض زائف عند انقطاع القاعدة؛ مسار القراءة مُنطّق بالمستأجِر أصلاً)."""
+    جدول fields هو مصدر الحقيقة. كان الفحص يبدأ بكاش `_field_layers`؛ فإذا بقيت
+    طبقات قديمة مرتبطة بمستأجر خاطئ كانت تسبق DB وتعيد 403 رغم أن الحقل نفسه
+    يخصّ مستأجر الطلب. الآن نقرأ DB أولاً عندما تكون متاحة، ونستخدم الكاش فقط
+    كدفاع عمق عند غياب مالك موثوق من DB/وضع DB-less.
+    """
     req_tenant = _REQ_TENANT.get()
-    # ١) دفاع عمق فوريّ من الذاكرة
-    for lid in _field_layers.get(field_id, []):
-        lyr = _layers.get(lid)
-        owner = lyr.get("tenant_id") if lyr else None
-        if owner and owner != req_tenant:
-            raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
-    # ٢) المصدر الموثوق: جدول fields (يحسم بلا طبقة/بعد إعادة التشغيل/بلا مستأجِر).
-    # fail-closed: إن كانت القاعدة مُهيّأة لكن تعذّر إثبات الملكيّة ⇒ 503 (لا نخدم بلا
-    # إثبات). يُميَّز عن وضع DB-less المقصود (DATABASE_URL غير مضبوط ⇒ owner=None ⇒
-    # لا حجب، يكفي فحص الذاكرة) — فالحجب يقع فقط حين يُفترَض وجود المصدر ويتعذّر.
     import db_persist
 
     try:
         owner = await _field_owner(field_id)
     except db_persist.OwnerLookupUnavailable as e:
         raise HTTPException(503, "تعذّر إثبات ملكيّة الحقل — أعد المحاولة لاحقاً") from e
-    if owner and owner != req_tenant:
-        raise HTTPException(403, "الحقل لا يخصّ مستأجِرك")
+
+    if owner:
+        if not req_tenant or owner != req_tenant:
+            raise HTTPException(
+                404 if hide_existence else 403,
+                "الحقل غير موجود" if hide_existence else "الحقل لا يخصّ مستأجِرك",
+            )
+        # DB أثبت ملكية الحقل للطلب؛ لا تجعل طبقات ذاكرة قديمة/ملوثة تسمّم الطلب.
+        # ننظف الفهرس من أي layer تحمل tenant_id مختلفاً حتى لا تعود 403 لاحقاً.
+        kept: list[str] = []
+        for lid in _field_layers.get(field_id, []):
+            lyr = _layers.get(lid)
+            cached_owner = lyr.get("tenant_id") if lyr else None
+            if cached_owner and cached_owner != req_tenant:
+                logger.warning(
+                    "pruning stale field layer tenant cache field=%s layer=%s cached=%s request=%s",
+                    field_id,
+                    lid,
+                    cached_owner,
+                    req_tenant,
+                )
+                continue
+            kept.append(lid)
+        if kept != _field_layers.get(field_id, []):
+            _field_layers[field_id] = kept
+        return
+
+    # DB-less/field not known: fall back to in-memory defense only.
+    for lid in _field_layers.get(field_id, []):
+        lyr = _layers.get(lid)
+        cached_owner = lyr.get("tenant_id") if lyr else None
+        if cached_owner and cached_owner != req_tenant:
+            raise HTTPException(
+                404 if hide_existence else 403,
+                "الحقل غير موجود" if hide_existence else "الحقل لا يخصّ مستأجِرك",
+            )
 
 
 def _require_layer_tenant(layer_id: str) -> None:
-    """تفويض ملكيّة الطبقة (دفاع عمق للمسارات layer-scoped المكشوفة: /tiles/{layer_id}،
-    /layers/{layer_id}/tilejson). الطبقة تحمل tenant_id (سُجِّل عند /process وإعادة
-    الترطيب)؛ مالكٌ معروف ≠ مستأجِر الطلب ⇒ 403 (إغلاق IDOR عبر layer_id). الطبقة
-    المجهولة (غير مخبّأة) ⇒ يتولّاها 404 في المُعالِج (لا بيانات تُسرَّب)."""
+    """تفويض سريع من الذاكرة لملكية الطبقة."""
     req_tenant = _REQ_TENANT.get()
     lyr = _layers.get(layer_id)
     owner = lyr.get("tenant_id") if lyr else None
     if owner and owner != req_tenant:
         raise HTTPException(403, "الطبقة لا تخصّ مستأجِرك")
+
+
+async def _require_layer_tenant_authorized(layer_id: str) -> None:
+    """تفويض ملكيّة الطبقة مع جعل DB مصدر الحقيقة عند توفره.
+
+    الكاش قد يحتوي طبقة قديمة بمستأجر خاطئ بعد تبديل/إعادة ترطيب البيانات؛ لذلك
+    نحاول حسم الملكية من `raster_assets` أولاً. إن أثبت DB المالك نثق به وننظف
+    الكاش، وإن لم يعرف الطبقة نرجع لدفاع الذاكرة.
+    """
+    req_tenant = _REQ_TENANT.get()
+    try:
+        import db_persist
+
+        db_owner = await db_persist.layer_owner_tenant(layer_id)
+    except db_persist.OwnerLookupUnavailable as e:
+        raise HTTPException(503, "تعذّر إثبات ملكيّة الطبقة — أعد المحاولة لاحقاً") from e
+
+    if db_owner:
+        if not req_tenant:
+            raise HTTPException(403, "مستأجر الطلب مطلوب لقراءة الطبقة")
+        if db_owner != req_tenant:
+            raise HTTPException(403, "الطبقة لا تخصّ مستأجِرك")
+        lyr = _layers.get(layer_id)
+        if lyr and lyr.get("tenant_id") and lyr.get("tenant_id") != req_tenant:
+            logger.warning(
+                "correcting stale layer tenant cache layer=%s cached=%s db=%s",
+                layer_id,
+                lyr.get("tenant_id"),
+                db_owner,
+            )
+            lyr["tenant_id"] = db_owner
+        return
+
+    # DB لا يعرف الطبقة: fallback لذاكرة العملية فقط.
+    _require_layer_tenant(layer_id)
+    lyr = _layers.get(layer_id)
+    owner = lyr.get("tenant_id") if lyr else None
+    if owner and not req_tenant:
+        raise HTTPException(403, "مستأجر الطلب مطلوب لقراءة الطبقة")
+    if not owner and not req_tenant:
+        raise HTTPException(403, "مستأجر الطلب مطلوب لقراءة الطبقة")
 
 
 def _public_cog_url(cog_url: str | None) -> str | None:
@@ -589,6 +1048,9 @@ def _public_cog_url(cog_url: str | None) -> str | None:
     if any(h in low for h in ("sahool-", "minio", "localhost", "127.0.0.1", ":9000", ".internal")):
         return None
     return cog_url
+
+
+# ─── مسارات بحث الصور (public_catalog: بحث صور أقمار عامّة بـbbox — لا بيانات مستأجِر) ──
 
 
 class TimeSeriesAnalyzeRequest(BaseModel):
@@ -640,6 +1102,9 @@ class TerrainRequest(BaseModel):
     pixel_size_m: float = 30.0
 
 
+# ─── الفحوص ───────────────────────────────────────────────────────
+
+
 # ─── معالجة الراستر: الرفع ────────────────────────────────────────
 UPLOAD_DIR = os.getenv("RASTER_UPLOAD_DIR", "/tmp/sahool_rasters")
 
@@ -676,7 +1141,7 @@ AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
     if not AGENT_TOKEN:
         raise HTTPException(503, "SAHOOL_AGENT_TOKEN غير مضبوط — الرفع معطّل بأمان")
-    if x_agent_token != AGENT_TOKEN:
+    if not hmac.compare_digest(x_agent_token or "", AGENT_TOKEN):
         raise HTTPException(401, "توكن خدمة غير صالح")
 
 
@@ -711,6 +1176,64 @@ _INDICATOR_FORMULAS = {
 }
 
 
+def _quality_from_cloud_pct(cloud_pct: float | None, *, masked: bool = True) -> dict:
+    """Return a conservative 0..1 quality/confidence score for a raster layer/pixel.
+
+    cloud_pct is computed over the clipped field AOI when SCL is available. Scene-level
+    cloud cover is intentionally treated as weaker evidence elsewhere.
+    """
+    if cloud_pct is None:
+        return {
+            "confidence": 0.55,
+            "quality": "unknown",
+            "reason": "cloud_quality_unavailable",
+        }
+    cp = max(0.0, min(100.0, float(cloud_pct)))
+    score = max(0.0, min(1.0, 1.0 - (cp / 100.0)))
+    if not masked:
+        score = min(score, 0.65)
+    if cp <= 5:
+        label = "high"
+    elif cp <= 20:
+        label = "medium"
+    elif cp <= 50:
+        label = "low"
+    else:
+        label = "very_low"
+    return {
+        "confidence": round(score, 3),
+        "quality": label,
+        "cloud_pct": round(cp, 3),
+        "reason": "field_aoi_scl_cloud_pct",
+    }
+
+
+def _pixel_quality(layer: dict, value: float | None) -> dict:
+    """Quality metadata for a single sampled indicator pixel.
+
+    The COG contains the already masked indicator. If the sampled value is valid, the
+    best available quality signal is the layer-level AOI cloud percentage from SCL.
+    """
+    if value is None:
+        return {"confidence": 0.0, "quality": "nodata", "reason": "nodata_or_cloud_masked"}
+    q = _quality_from_cloud_pct(
+        layer.get("cloud_pct"), masked=bool(layer.get("cloud_mask_applied", True))
+    )
+    if q["quality"] == "unknown" and layer.get("provider") in ("cdse", "sentinelhub", "element84"):
+        q["reason"] = "provider_known_but_pixel_qa_unavailable"
+    return q
+
+
+def _is_valid_uuid_text(value: str | None) -> bool:
+    if not value or not str(value).strip():
+        return False
+    try:
+        uuid.UUID(str(value))
+        return True
+    except Exception:
+        return False
+
+
 def _persist_raster_asset(
     req: ProcessRequest, cog_url: str, meta: dict, bounds: list, stats: dict
 ) -> None:
@@ -720,6 +1243,16 @@ def _persist_raster_asset(
     أحداث في خيطه؛ لذا asyncio.run آمن هنا. غياب القاعدة (لا DATABASE_URL/
     لا جدول/لا شبكة) يُبتلع بصدق ولا يُفشل المعالجة.
     """
+    if not _is_valid_uuid_text(req.field_id):
+        logger.warning("raster_assets persist skipped: missing/invalid field_id=%r", req.field_id)
+        return
+    if (
+        req.tenant_id is not None
+        and str(req.tenant_id).strip()
+        and not _is_valid_uuid_text(req.tenant_id)
+    ):
+        logger.warning("raster_assets persist skipped: invalid tenant_id=%r", req.tenant_id)
+        return
     try:
         import asyncio
 
@@ -754,7 +1287,21 @@ def _persist_raster_asset(
                 bands=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
                 nodata=meta.get("nodata"),
                 footprint=footprint,
-                provenance={"stats": {k: stats.get(k) for k in ("min", "max", "mean", "std")}},
+                provenance={
+                    "stats": {
+                        k: stats.get(k)
+                        for k in (
+                            "min",
+                            "max",
+                            "mean",
+                            "std",
+                            "cloud_pct",
+                            "cloud_mask_applied",
+                            "quality",
+                            "confidence",
+                        )
+                    }
+                },
             )
 
         try:
@@ -856,6 +1403,10 @@ def _run_processing(job_id: str, req: ProcessRequest):
             "cog_url": cog_url,  # (٤) كي يجده tilejson + شبكة المؤشّر
             "acquisition_date": req.capture_datetime,
             "provider": req.provider,  # مصدر الصورة (cdse/element84) — شفافيّة الأصل
+            "cloud_pct": stats.get("cloud_pct"),
+            "cloud_mask_applied": stats.get("cloud_mask_applied"),
+            "confidence": stats.get("confidence"),
+            "quality": stats.get("quality"),
             "created_at": now,
             "provenance": provenance,
         }
@@ -884,11 +1435,11 @@ def _run_processing(job_id: str, req: ProcessRequest):
         logger.info(f"job {job_id} completed → layer {layer_id}")
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
-        # صدق/أمان: لا نُسرّب نصّ الاستثناء للعميل عبر /jobs/{id}/result — رمز عامّ
-        # ثابت، ونوع الاستثناء في السجلّ فقط (نظير كنس #483/#546).
-        job["error_message"] = "scene_processing_failed"
+        # لا نُخزّن تفاصيل الاستثناء الخام في job status لأنّها تُقرأ عبر API وقد
+        # تحتوي مسارات ملفات/روابط/تفاصيل مكتبات. السجلّ الداخلي يحتفظ بنوع الخطأ.
+        job["error_message"] = "raster_processing_failed"
         _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
-        logger.warning("job %s فشل أثناء معالجة المشهد: %s", job_id, type(e).__name__)
+        logger.error("job %s failed: %s", job_id, type(e).__name__)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):
@@ -938,7 +1489,7 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
             else:
                 failed[ind.value] = sj.get("error_message", "unknown")
         except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر
-            # صدق/أمان: رمز عامّ للعميل + نوع الاستثناء في السجلّ فقط.
+            # توحيد main↔cert (#542): رمز عامّ للعميل + تسجيل النوع فقط (لا تسريب نصّ).
             logger.warning("مهمّة فرعيّة %s فشلت: %s", ind.value, type(e).__name__)
             failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
@@ -992,7 +1543,7 @@ def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
 
         cog_uid = uuid.uuid4().hex[:8]
         cog_path = os.path.join(UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
-        cog_info = cog_writer.write_cog(arr, cog_path, transform, crs=cog_crs, nodata=float("nan"))
+        cog_info = cog_writer.write_cog(arr, cog_path, transform, crs=cog_crs, nodata=RASTER_NODATA)
         stats["cog"] = cog_info
         if cog_info.get("written"):
             cog_url = object_store.upload_cog(
@@ -1004,7 +1555,7 @@ def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
         "cog_url": cog_url,
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
-        "nodata": float("nan"),
+        "nodata": RASTER_NODATA,
     }
     return stats, bounds, res_m, meta
 
@@ -1193,22 +1744,61 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             ndvi = (nir - red) / np.where(_d == 0, 1e-10, _d)
             arr = np.clip(1.24 * ndvi - 0.168, 0, 1)
 
-        # ── (٢) قناع الغيوم (SCL) ─────────────────────────────────────
-        # Sentinel-2 L2A: نطاق Scene Classification (SCL). أصناف الغيوم/
-        # الظلال = {3 ظلّ غيمة, 8 غيمة متوسّطة الاحتمال, 9 عالية, 10 سيرس,
-        # 11 ثلج}. نضع المؤشّر NaN عندها كي لا تفسد الإحصاء.
-        cloud_pct: float | None = None
-        if req.apply_cloud_mask and b.scl is not None:
-            scl = band_raw(b.scl)
-            if scl is not None and scl.shape == arr.shape:
-                cloud_classes = np.isin(scl, SCL_CLOUD_CLASSES)
+        # ── (٢) قناع الغيوم (SCL + CLM/CLP s2cloudless) ────────────────
+        # أفضل الممارسات: لا نعتمد SCL وحده عندما تتوفر CLM/CLP؛ ندمج SCL
+        # مع قناع/احتمالية s2cloudless. SCL أصناف الغيوم/الظلال = {3,8,9,10,11}.
+        cloud_pct = None
+        cloud_mask_sources: list[str] = []
+        if req.apply_cloud_mask:
+            masks = []
+            if b.scl is not None:
+                scl = band_raw(b.scl)
+                if scl is not None and scl.shape == arr.shape:
+                    masks.append(np.isin(scl, [3, 8, 9, 10, 11]))
+                    cloud_mask_sources.append("SCL")
+                else:
+                    logger.warning(
+                        "cloud mask requested but SCL band could not be read or shape mismatched for layer %s",
+                        layer_id,
+                    )
+            if b.clm is not None:
+                clm = band_raw(b.clm)
+                if clm is not None and clm.shape == arr.shape:
+                    masks.append(clm.astype("float32") > 0)
+                    cloud_mask_sources.append("CLM")
+                else:
+                    logger.warning(
+                        "cloud mask requested but CLM band could not be read or shape mismatched for layer %s",
+                        layer_id,
+                    )
+            if b.clp is not None:
+                clp = band_raw(b.clp)
+                if clp is not None and clp.shape == arr.shape:
+                    clp_f = clp.astype("float32")
+                    # Accept both 0..1 and 0..100 probability encodings.
+                    threshold = 0.40 if float(np.nanmax(clp_f)) <= 1.0 else 40.0
+                    masks.append(clp_f >= threshold)
+                    cloud_mask_sources.append("CLP")
+                else:
+                    logger.warning(
+                        "cloud mask requested but CLP band could not be read or shape mismatched for layer %s",
+                        layer_id,
+                    )
+            if masks:
+                cloud_classes = masks[0]
+                for m in masks[1:]:
+                    cloud_classes = np.logical_or(cloud_classes, m)
+                cloud_pct = float(np.mean(cloud_classes) * 100.0) if cloud_classes.size else None
                 arr = np.where(cloud_classes, np.nan, arr)
-                # نسبة الغيوم الفعليّة على مستوى المشهد (غيوم/بكسلات صالحة) —
-                # توثَّق في النتيجة وفي raster_assets، وتُحذّر عند تجاوز العتبة.
-                cloud_pct = compute_cloud_pct(scl, np)
+            else:
+                logger.warning(
+                    "cloud mask requested but no SCL/CLM/CLP quality band is available for layer %s; proceeding unmasked",
+                    layer_id,
+                )
 
         valid = np.isfinite(arr)
         vals = arr[valid]
+        quality = _quality_from_cloud_pct(cloud_pct, masked=bool(cloud_pct is not None))
         stats = {
             "min": float(np.min(vals)) if vals.size else 0.0,
             "max": float(np.max(vals)) if vals.size else 0.0,
@@ -1216,13 +1806,13 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             "std": float(np.std(vals)) if vals.size else 0.0,
             "valid_pixels": int(valid.sum()),
             "nodata_pixels": int((~valid).sum()),
+            "cloud_pct": cloud_pct,
+            "cloud_mask_applied": bool(cloud_pct is not None),
+            "cloud_mask_sources": cloud_mask_sources,
+            "confidence": quality["confidence"],
+            "quality": quality["quality"],
+            "quality_reason": quality["reason"],
         }
-        if cloud_pct is not None:
-            stats["cloud_pct"] = cloud_pct
-            if cloud_pct > CLOUD_PCT_WARN_THRESHOLD:
-                stats["warning"] = (
-                    f"المؤشّر محسوب فوق مشهد غائم ({cloud_pct:.0f}%) — قد يكون ملوّثاً؛ يُفضَّل مشهد أوضح"
-                )
         # احفظ المؤشّر المحسوب كـCOG محسّن (ضغط + بلاطات + أهرامات) — تحسين
         # التخزين: حجم أصغر + قراءة جزئيّة أسرع (TiTiler/MapLibre). نحفظ المؤشّر
         # المقصوص بـtransform المقصوص (out) وبـCRS المصدر الأصلي (UTM غالباً).
@@ -1234,7 +1824,7 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             cog_uid = uuid.uuid4().hex[:8]
             cog_path = os.path.join(UPLOAD_DIR, f"{req.indicator.value}_{cog_uid}.tif")
             cog_info = cog_writer.write_cog(
-                arr, cog_path, _out["transform"], crs=cog_crs, nodata=float("nan")
+                arr, cog_path, _out["transform"], crs=cog_crs, nodata=RASTER_NODATA
             )
             stats["cog"] = cog_info
             if cog_info.get("written"):
@@ -1251,7 +1841,7 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
             "cog_url": cog_url,
             "cog_crs": cog_crs,
             "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
-            "nodata": float("nan"),
+            "nodata": RASTER_NODATA,
         }
         return stats, bounds, res_m, meta
 
@@ -1283,6 +1873,11 @@ class ProcessCdseRequest(BaseModel):
     geometry: dict | None = None  # Polygon GeoJSON (قصّ على الحقل)
     lookback_days: int = 30
     max_cloud_pct: float = 40.0
+    # Optional explicit scene/date window. When set, CDSE processing must not
+    # silently use a different "latest" mosaic, because the UI date selector and
+    # tile cache depend on acquisition_date matching the requested scene.
+    date_from: str | None = None
+    date_to: str | None = None
 
 
 def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
@@ -1300,10 +1895,68 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
 
     dt_to = datetime.now(UTC)
     dt_from = dt_to - timedelta(days=max(int(req.lookback_days), 1))
-    time_from = dt_from.strftime("%Y-%m-%dT00:00:00Z")
-    time_to = dt_to.strftime("%Y-%m-%dT23:59:59Z")
+
+    def _day_window(value: str | None) -> tuple[str, str] | None:
+        if not value:
+            return None
+        day = str(value)[:10]
+        if len(day) != 10:
+            return None
+        return f"{day}T00:00:00Z", f"{day}T23:59:59Z"
+
+    explicit_from = req.date_from or req.date_to
+    explicit_to = req.date_to or req.date_from
+    if explicit_from or explicit_to:
+        # Bare YYYY-MM-DD must mean the full acquisition day, not a zero-length
+        # 00:00→00:00 interval. Zero-length timeRange can cause CDSE 400/empty
+        # processing and can make the UI fall back to stale/latest tiles.
+        from_day = str(explicit_from or explicit_to)[:10]
+        to_day = str(explicit_to or explicit_from)[:10]
+        if len(from_day) == 10 and len(to_day) == 10:
+            time_from = f"{from_day}T00:00:00Z"
+            time_to = f"{to_day}T23:59:59Z"
+            capture_datetime = f"{to_day}T12:00:00Z"
+        else:
+            time_from = cdse_client._to_rfc3339(explicit_from or explicit_to)
+            time_to = cdse_client._to_rfc3339(explicit_to or explicit_from)
+            capture_datetime = time_to
+        scene_id = f"cdse:{str(capture_datetime)[:10]}"
+    else:
+        # Search Catalog first to bind processing to a real acquisition date.
+        # Without this, Process API may return a least-cloud mosaic from the
+        # lookback window while we persist acquisition_date=time_to (today),
+        # making available-dates and selected tile dates point at the wrong COG.
+        time_from = dt_from.strftime("%Y-%m-%dT00:00:00Z")
+        time_to = dt_to.strftime("%Y-%m-%dT23:59:59Z")
+        capture_datetime = time_to
+        scene_id = "cdse:latest"
 
     client = cdse_client.get_client()
+    if not (explicit_from or explicit_to):
+        try:
+            scenes = client.search_scenes(
+                bbox=req.bbox,
+                time_from=time_from,
+                time_to=time_to,
+                max_cloud_pct=req.max_cloud_pct,
+                limit=10,
+                geometry=req.geometry,
+            )
+            ranked = _rank_scenes(scenes, max_cloud_pct=req.max_cloud_pct) if scenes else []
+            best = ranked[0] if ranked else None
+            if best:
+                capture_datetime = (
+                    best.get("datetime") or best.get("properties", {}).get("datetime") or time_to
+                )
+                scene_id = (
+                    best.get("item_id") or best.get("id") or f"cdse:{str(capture_datetime)[:10]}"
+                )
+                daywin = _day_window(capture_datetime)
+                if daywin:
+                    time_from, time_to = daywin
+        except Exception as e:  # noqa: BLE001
+            logger.warning("CDSE scene date binding skipped; using lookback window: %s", e)
+
     supported = cdse_client.supported_indices()
     results: dict[str, str] = {}
     failed: dict[str, str] = {}
@@ -1336,8 +1989,8 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
                 bands=BandMapping(),
                 precomputed_index=True,
                 provider="cdse",
-                scene_id=f"cdse:{ind}",
-                capture_datetime=time_to,
+                scene_id=f"{scene_id}:{ind}",
+                capture_datetime=capture_datetime,
                 clip_polygon_geojson=req.geometry,
                 apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (dataMask + maxCloudCoverage)
             )
@@ -1367,10 +2020,18 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
 # bytes.fromhex عند الاستيراد ويتعطّل إقلاع الخدمة بالكامل. هذه بلاطة
 # PNG شفّافة 1×1 صحيحة (68 بايت، CRC سليمة، مُولّدة عبر zlib).
 _TRANSPARENT_PNG = bytes.fromhex(
+    # 1×1 RGBA fully transparent PNG.  Keep this exact: Leaflet/MapLibre use it
+    # for missing raster/index tiles so absent data never paints black stripes.
     "89504e470d0a1a0a0000000d49484452000000010000000108060000001f"
-    "15c4890000000b49444154789c6360000200000500017a5eab3f00000000"
-    "49454e44ae426082"
+    "15c4890000000d49444154789c6360606060000000050001a5f64540000000"
+    "0049454e44ae426082"
 )
+
+# Finite nodata used in generated COGs. NaN nodata can produce unstable GDAL masks/overviews.
+RASTER_NODATA = -9999.0
+
+
+# ─── دورة حياة الراستر (سدّ فجوة: لا سياسة تنظيف) ──────────────────────
 
 
 # ─── حزم offline (MBTiles) للمناطق ضعيفة الاتّصال — سدّ فجوة اليمن ──────
@@ -1379,8 +2040,31 @@ os.makedirs(OFFLINE_PACKS_DIR, exist_ok=True)
 
 
 # ─── (٥) شبكة المؤشّر لكلّ بكسل (per-pixel grid) للموبايل ──────────────
-# اسم مؤشّر الملوحة في الواجهة "salinity"؛ داخليّاً يُحسب كـNDSI.
-_GRID_INDEX_ALIASES = {"salinity": "ndsi"}
+# تطبيع أسماء المؤشرات القادمة من الواجهة.
+# - salinity يعرض في UI لكنه يحسب داخلياً كـNDSI.
+# - ndvu خطأ شائع في الاختيار/الترجمة؛ نعامله كـNDVI بدل 404.
+_GRID_INDEX_ALIASES = {
+    "salinity": "ndsi",
+    "salt": "ndsi",
+    "soil_salinity": "ndsi",
+    "ndvu": "ndvi",
+    "vegetation": "ndvi",
+    "moisture": "ndmi",
+}
+
+
+def _normalize_index(index: str | None) -> str:
+    key = (index or "ndvi").strip().lower().replace(" ", "_").replace("-", "_")
+    return _GRID_INDEX_ALIASES.get(key, key)
+
+
+def _display_index(index: str | None) -> str:
+    key = (index or "ndvi").strip().lower().replace(" ", "_").replace("-", "_")
+    if key in ("salinity", "salt", "soil_salinity"):
+        return "salinity"
+    if key == "ndvu":
+        return "ndvi"
+    return key
 
 
 def _find_field_layer(field_id: str, index: str, date: str) -> dict | None:
@@ -1390,7 +2074,7 @@ def _find_field_layer(field_id: str, index: str, date: str) -> dict | None:
     يُرجِع سجلّ الطبقة أو None (لا COG حقيقي متاح).
     """
     layer_ids = _field_layers.get(field_id, [])
-    internal = _GRID_INDEX_ALIASES.get(index, index)
+    internal = _normalize_index(index)
     cands = []
     for lid in layer_ids:
         lyr = _layers.get(lid)
@@ -1402,11 +2086,18 @@ def _find_field_layer(field_id: str, index: str, date: str) -> dict | None:
     if not cands:
         return None
     if date and date != "latest":
+        # طلب تاريخ محدّد يجب أن يكون صارماً: لا نرجع آخر COG عند غياب التاريخ،
+        # وإلا تعرض الخريطة/البلاطات صورة تاريخ آخر عند تحريك الـTimeline.
         dated = [c for c in cands if (c.get("acquisition_date") or "").startswith(date)]
-        if dated:
-            cands = dated
-    # أحدث حسب created_at
-    cands.sort(key=lambda c: c.get("created_at") or "", reverse=True)
+        if not dated:
+            return None
+        cands = dated
+    # latest = أحدث acquisition_date فعليّاً، ثم created_at ككاسر تعادل.
+    # created_at وحده قد يختار إعادة معالجة قديمة أُنشئت لاحقاً بدل أحدث صورة جوية.
+    cands.sort(
+        key=lambda c: (str(c.get("acquisition_date") or ""), str(c.get("created_at") or "")),
+        reverse=True,
+    )
     return cands[0]
 
 
@@ -1450,6 +2141,9 @@ def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None
         "zones": part["zones"],
         "source": layer.get("source_format") or "raster",
         "real_data": True,
+        "cloud_pct": layer.get("cloud_pct"),
+        "confidence": layer.get("confidence"),
+        "quality": layer.get("quality"),
     }
 
 
@@ -1468,7 +2162,7 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
 
         import db_persist
 
-        internal = _GRID_INDEX_ALIASES.get(index, index)
+        internal = _normalize_index(index)
         asset = await db_persist.fetch_latest_asset(
             field_id, internal, date, tenant_id=_REQ_TENANT.get()
         )
@@ -1482,12 +2176,14 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
         _layers[lid] = {
             "cog_url": asset["cog_url"],
             "index": internal,
+            "tenant_id": _REQ_TENANT.get(),
             "acquisition_date": asset.get("acquisition_date"),
             "bounds_4326": asset.get("bounds_4326"),
-            # تفويض: نُثبّت مالك الطبقة (مستأجِر الطلب الذي جُلبت تحت سياقه — الجلب
-            # مُنطّق بـtenant_id). بدونه يصبح للطبقة المُعاد ترطيبها owner=None فيمرّ
-            # طلب مستأجِر آخر على نفس الـcache (تسريب). field_id فريد عالميّاً ⇒ مالك واحد.
-            "tenant_id": _REQ_TENANT.get(),
+            "cloud_pct": asset.get("cloud_pct"),
+            "confidence": asset.get("confidence"),
+            "quality": asset.get("quality"),
+            "cloud_mask_applied": asset.get("cloud_mask_applied"),
+            # تفويض: tenant_id مثبت أعلى؛ DB fetch نفسه منطق بالمستأجر.
             "created_at": asset.get("acquisition_date") or _t.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         _field_layers.setdefault(field_id, [])
@@ -1562,12 +2258,31 @@ async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> d
     return _grid_from_cog(layer, index, date, grid)
 
 
-# المُعالِجات (change/timeseries/tiles/tilejson) نُقلت إلى ``routers/fields.py``؛
-# المساعِد ``_real_field_grid`` (أعلاه) يبقى هنا — مشترك ويُشار إليه عبر ``main.X``.
+# ─── السلسلة الزمنيّة للمؤشّر (field-scoped) ──────────────────────────
 
 
-# ─── بلاطات CDSE حيّة (Sentinel Hub Process API مباشرةً) ─────────────────────
-# ذاكرة COG مؤقّت: field+index+date → (expires_monotonic, tmp_file_path)
+# ─── بلاطات XYZ ديناميكيّة (TiTiler-style) من COG الحقل المقصوص ────────
+
+
+# ─── معايرة الملوحة (البند ٢) ────────────────────────────────────
+class SalinityClassifyRequest(BaseModel):
+    ndsi: float
+
+
+class SalinityFitRequest(BaseModel):
+    samples: list[dict]  # [{"ndsi","ece_ds_m","extraction_method"}]
+
+
+# ─── Cloud-native GIS/STAC facade (Phase 4 inspired by TiTiler/Terracotta/OGC) ───
+
+
+# ════════════════════════════════════════════════════════════════════
+# توحيد main↔cert (Stage B): تفعيل بلاطات CDSE الحيّة (poly clip) من main
+# ════════════════════════════════════════════════════════════════════
+# cert تفرّع قبل مسار cdse-tiles؛ بنيته التحتيّة لـCDSE موجودة هنا
+# (_run_cdse_processing/ProcessCdseRequest/_jobs/…) عدا ٣ مساعِدات للكاش/القفل.
+# نضيفها ثمّ نُضمّن راوتر cdse_tiles (يستورد main لاحقاً — بلا دور دائريّ لأنّ
+# التضمين في نهاية الملفّ بعد تعريف كلّ الرموز، كنمط register_routers).
 _cdse_tile_cache: dict[str, tuple[float, str]] = {}
 _cdse_cache_lock: object | None = None  # asyncio.Lock — تُنشأ عند أوّل استخدام
 
@@ -1606,20 +2321,11 @@ def _bbox_from_geom(geom: dict | None) -> list[float] | None:
         return None
 
 
-# ─── معايرة الملوحة (البند ٢) ────────────────────────────────────
-class SalinityClassifyRequest(BaseModel):
-    ndsi: float
-
-
-class SalinityFitRequest(BaseModel):
-    samples: list[dict]  # [{"ndsi","ece_ds_m","extraction_method"}]
-
-
-# ─── تسجيل تلقائيّ للراوترات المُستخرَجة (سقالة التفكيك) ─────────────────
-# يُستدعى في **النهاية** بعد تعريف ``app`` وكلّ التبعيّات المشتركة، فيُحلّ الاستيراد
-# الدائريّ (وحدات ``routers/`` تستورد رموزاً من ``main``). كلّ وحدة في ``routers/``
-# تُصدّر ``router`` تُضمَّن **بلا prefix** (المسارات تبقى كما هي تماماً). فارغة الآن
-# (سقالة) — تُملأ بالاستخراج التدريجيّ لمسارات ``main.py``.
+# ════════════════════════════════════════════════════════════════════
+# تسجيل تلقائيّ لكلّ راوترات routers/ (تفكيك main.py محفوظ السلوك). يُستدعى في
+# نهاية الملفّ بعد تعريف app وكلّ التبعيّات المشتركة (مساعِدات/نماذج/حالة/مساعِدات
+# CDSE) فيُحلّ الاستيراد الدائريّ — وحدات routers تستورد رموزاً من main عبر main.X.
+# يضمّ register_routers أيضاً routers/cdse_tiles.py تلقائيّاً (لا تضمين يدويّ).
 from router_registry import register_routers  # noqa: E402
 
 register_routers(app)

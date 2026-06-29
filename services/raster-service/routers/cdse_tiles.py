@@ -10,66 +10,44 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import main
-from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
+from fastapi import APIRouter, Query
 from fastapi.responses import Response
 
 router = APIRouter()
 
+# «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام (بدل كامل السنة) — حالة راهنة فعلاً.
+LATEST_WINDOW_DAYS = 60
 
-@router.post("/v1/fields/{field_id}/process-cdse")
-async def process_cdse(
-    field_id: str,
-    req: main.ProcessCdseRequest,
-    background_tasks: BackgroundTasks,
-    x_agent_token: str = Header(None),
-):
-    """يحسب مؤشّرات الحقل عبر CDSE (المزوّد الافتراضيّ الأقوى). خلفيّة، يُرجِع job_id.
 
-    صدق: بلا اعتمادات CDSE (``CDSE_CLIENT_ID``/``SECRET`` أو ``CDSE_ENABLED=false``) ⇒
-    ``available=false`` (200، لا خطأ) كي يسقط المنسّق إلى Element84 بصمت — لا توقّف ولا تلفيق.
+def _parse_poly(poly: str) -> dict | None:
+    """يحوّل عقد الواجهة الموحَّد ``poly="lng,lat;lng,lat;..."`` (ترتيب lng,lat لا
+    lat,lng) إلى GeoJSON Polygon مغلق الحلقة. يُرجِع None إن فسَد (≥3 رؤوس مطلوبة).
+
+    هذا **مصدر الحقيقة للقصّ**: تُستخدَم الهندسة لطلب CDSE **و** لقناع rasterio البكسليّ.
     """
-    main._require_service_token(x_agent_token)
-    import cdse_client
-
-    if not cdse_client.is_configured():
-        return {
-            "provider": "cdse",
-            "available": False,
-            "queued": False,
-            "note_ar": "CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET) — يسقط المنسّق إلى Element84.",
-        }
-    if not req.bbox or len(req.bbox) != 4:
-        raise HTTPException(400, "bbox مطلوب [west,south,east,north] (EPSG:4326).")
-    if not req.indicators:
-        raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
-    job_id = f"cdse_{uuid.uuid4().hex[:12]}"
-    main._jobs.set(
-        job_id,
-        {
-            "job_id": job_id,
-            "status": main.JobStatus.pending,
-            "progress_pct": 0,
-            "created_at": datetime.now(UTC).isoformat(),
-            "indicators": list(req.indicators),
-            "provider": "cdse",
-        },
-    )
-    background_tasks.add_task(main._run_cdse_processing, job_id, field_id, req)
-    return {
-        "provider": "cdse",
-        "available": True,
-        "queued": True,
-        "job_id": job_id,
-        "status": main.JobStatus.pending,
-        "indicators": list(req.indicators),
-        "note": "معالجة CDSE خلفيّة — استعلم /jobs/{job_id} (cdse_results + cdse_failed).",
-    }
+    try:
+        pts: list[list[float]] = []
+        for pair in poly.split(";"):
+            pair = pair.strip()
+            if not pair:
+                continue
+            lng_s, lat_s = pair.split(",")
+            pts.append([float(lng_s), float(lat_s)])
+        if len(pts) < 3:
+            return None
+        if pts[0] != pts[-1]:
+            pts.append(pts[0])  # أغلق الحلقة (GeoJSON يتطلّب حلقة مغلقة)
+        return {"type": "Polygon", "coordinates": [pts]}
+    except (ValueError, TypeError):
+        return None
 
 
+# ملاحظة توحيد main↔cert: مسار process-cdse تملكه cert في main.py (نسخة مصلّبة بنفس
+# _run_cdse_processing)، فأُزيل من هذا الراوتر تفادياً للتسجيل المزدوج. هذا الراوتر يضيف
+# فقط ما تفتقده cert: خدمة بلاطات cdse-tiles وcdse-tilejson (قصّ poly + قناع rasterio).
 @router.get("/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png")
 async def field_cdse_tile(
     field_id: str,
@@ -82,13 +60,16 @@ async def field_cdse_tile(
     bbox_s: float | None = Query(None),
     bbox_e: float | None = Query(None),
     bbox_n: float | None = Query(None),
-    geom: str | None = Query(None),
+    poly: str | None = Query(None),
 ):
     """بلاطة Sentinel Hub حيّة: تجلب الصورة الكاملة للحقل مرّة واحدة (مُخبّأة ساعة)
     وتُصيِّر منها كلّ بلاطة XYZ بنفس منطق COG (tile_render). البكسلات خارج حدود
-    الحقل/NaN → شفّافة. تعذّر CDSE → بلاطة شفّافة (لا 500)."""
+    الحقل/NaN → شفّافة. تعذّر CDSE → بلاطة شفّافة (لا 500).
+
+    عقد القصّ الموحَّد: ``poly="lng,lat;lng,lat;..."`` (رؤوس مضلّع الحقل من الواجهة).
+    تُستخدَم الهندسة لطلب CDSE **و** لقناع rasterio البكسليّ محليّاً (قصّ دقيق على
+    حافّة الحقل مستقلّ عن قصّ المزوّد). إن غابت ``poly`` تُجلَب الهندسة من DB."""
     import asyncio
-    import json
     import os
     import tempfile
     import time as _t
@@ -98,27 +79,49 @@ async def field_cdse_tile(
     await main._require_field_tenant(field_id)
 
     if not _cdse.is_configured():
+        # تشخيص: بلاطة شفّافة لأنّ CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET) — كلّ
+        # المؤشّرات ستكون فارغة. (تُسجَّل مرّة لكلّ z/x/y فاحرص على مستوى DEBUG.)
+        main.logger.debug("cdse-tile شفّاف: CDSE غير مُهيّأ (%s/%s)", field_id, index)
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
 
     internal = main._GRID_INDEX_ALIASES.get(index, index)
     if internal not in _cdse.INDEX_EXPR:
+        # تشخيص: المؤشّر غير مدعوم في CDSE (مثل ndbi/bsi/mndwi/osavi/evi2/nbr) ⇒ شفّاف.
+        main.logger.info(
+            "cdse-tile شفّاف: مؤشّر غير مدعوم في CDSE: %s→%s (المتاح: %s)",
+            index,
+            internal,
+            sorted(_cdse.INDEX_EXPR),
+        )
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
 
-    # تطبيع التاريخ: فارغ/"latest"/"today" ⇒ أحدث مشهد (اليوم). الواجهة قد تُرسل
-    # ``date=""`` فارغاً؛ بدون التطبيع يصير ``date_from="-01-01T..."`` تاريخاً فاسداً.
-    today = (
-        datetime.now(UTC).strftime("%Y-%m-%d")
-        if (not date or date in ("latest", "today"))
-        else date
-    )
-    date_from = f"{today[:4]}-01-01T00:00:00Z"
+    # تطبيع التاريخ + نافذة الاستعلام:
+    #  • فارغ/"latest"/"today" ⇒ «أحدث»: نافذة آخر LATEST_WINDOW_DAYS يوماً ينتهي اليوم،
+    #    و leastCC يختار أصفاها — حالةٌ راهنة فعلاً. (سابقاً: كامل السنة من 1 يناير،
+    #    فقد يعرض مشهداً قديماً/ما بعد الحصاد لحقل القمح بلا تحذير.)
+    #  • تاريخ محدَّد (YYYY-MM-DD) ⇒ نافذة اليوم نفسه فقط (دقّة، لا مشهد قديم من السنة).
+    # الواجهة قد تُرسل ``date=""`` فارغاً؛ بلا التطبيع يصير ``date_from`` فاسداً.
+    _is_latest = not date or date in ("latest", "today")
+    _now = datetime.now(UTC)
+    today = _now.strftime("%Y-%m-%d") if _is_latest else date
+    if _is_latest:
+        date_from = (_now - timedelta(days=LATEST_WINDOW_DAYS)).strftime("%Y-%m-%dT00:00:00Z")
+    else:
+        date_from = f"{today}T00:00:00Z"
     date_to = f"{today}T23:59:59Z"
-    # نُميّز المخبّأ بحسب وجود القصّ (geom): COG المقصوص على المضلّع يختلف عن
-    # غير المقصوص، فلا يُخدَم أحدهما مكان الآخر.
-    cache_key = f"{field_id}:{internal}:{today}:{'c' if geom else 'b'}"
+    # نُميّز المخبّأ بحسب وجود القصّ: COG المقصوص على المضلّع يختلف عن غير المقصوص.
+    cache_key = f"{field_id}:{internal}:{today}:{'p' if poly else 'b'}"
 
-    # bbox الحقل: من params الطلب أوّلاً (الواجهة تُمرّره مباشرةً من geometry)،
-    # وإلّا يُستعلَم من DB (best-effort — يعود None إن تعذّر).
+    # هندسة الحقل (مصدر الحقيقة للقصّ): من ``poly`` (عقد الواجهة الموحَّد) أوّلاً، وإلّا
+    # من DB (الآن بعد إصلاح RLS تُرجِع الهندسة فعلاً بدل None). تُستخدَم لطلب CDSE
+    # **و** لقناع rasterio البكسليّ الدقيق لاحقاً.
+    field_geom: dict | None = _parse_poly(poly) if poly else None
+    if field_geom is None:
+        import db_persist as _db
+
+        field_geom = await _db.fetch_field_geometry(field_id)
+
+    # bbox الحقل: من params الطلب أوّلاً (أسرع)، وإلّا يُشتقّ من المضلّع.
     if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
         field_bbox: list[float] | None = [
             float(bbox_w),
@@ -126,19 +129,7 @@ async def field_cdse_tile(
             float(bbox_e),
             float(bbox_n),
         ]
-        # قصّ على مضلّع الحقل: الواجهة تُمرّر الهندسة (geom=GeoJSON) كي يقصّ Sentinel Hub
-        # على المضلّع لا الـbbox فقط — وإلّا تظهر الصحراء خارج الحقل ملوّنةً (NDVI منخفض)
-        # بدل أن تكون شفّافة (dataMask=0 خارج المضلّع ⇒ NaN ⇒ alpha=0).
-        field_geom: dict | None = None
-        if geom:
-            try:
-                field_geom = json.loads(geom)
-            except (ValueError, TypeError):
-                field_geom = None  # geom فاسد ⇒ bbox فقط (تدهور آمن)
     else:
-        import db_persist as _db
-
-        field_geom = await _db.fetch_field_geometry(field_id)
         field_bbox = main._bbox_from_geom(field_geom)
 
     # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O)
@@ -189,6 +180,18 @@ async def field_cdse_tile(
                 tf.write(geotiff_bytes)
                 tf.close()
                 cog_path = tf.name
+                # حزام-وأمان: قناع rasterio بكسليّ دقيق على نفس المضلّع — يضمن شفّافيّة
+                # خارج حدّ الحقل مهما كانت دقّة قصّ Sentinel Hub (شبكة بكسله). يُطبَّق مرّة
+                # لكلّ COG (مُخبّأ) لا لكلّ بلاطة. فشله لا يكسر البلاطة (قصّ المزوّد يبقى).
+                if field_geom:
+                    try:
+                        import tile_render as _tr
+
+                        _tr.apply_polygon_mask(cog_path, field_geom)
+                    except Exception as e:  # noqa: BLE001
+                        main.logger.warning(
+                            "polygon mask failed (%s/%s): %s", field_id, internal, type(e).__name__
+                        )
                 main._cdse_tile_cache[cache_key] = (now + 3600.0, cog_path)
             except Exception as e:  # noqa: BLE001
                 main.logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)
@@ -204,6 +207,20 @@ async def field_cdse_tile(
                 media_type="image/png",
                 headers={"Cache-Control": "public, max-age=3600"},
             )
+        # تشخيص: التصيير أعاد None = لا بكسلات صالحة (finite) داخل البلاطة — المشهد
+        # مُقنَّع بالكامل (غيوم SCL/خارج المضلّع) أو لا مشهد ضمن النافذة الزمنيّة. هذا
+        # سبب «المؤشّر لا يُعرَض داخل الحقل» رغم نجاح الجلب والقصّ. (القصّ سليم؛ المشكلة بيانات.)
+        main.logger.info(
+            "cdse-tile شفّاف: لا بيانات صالحة في البلاطة (%s/%s z%s/%s/%s) — "
+            "مشهد مُقنَّع كلّيّاً (غيوم) أو لا مشهد ضمن النافذة [%s..%s]",
+            field_id,
+            internal,
+            z,
+            x,
+            y,
+            date_from,
+            date_to,
+        )
     except Exception as e:  # noqa: BLE001
         main.logger.warning("CDSE tile render failed (%s): %s", field_id, e)
 

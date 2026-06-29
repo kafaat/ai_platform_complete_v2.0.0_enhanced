@@ -18,6 +18,8 @@ import asyncio
 import json
 import logging
 import os
+import time
+from pathlib import Path
 
 import asyncpg
 from core.weather_overlay_pipeline import build_signal_records
@@ -29,6 +31,14 @@ JOBS_DSN = os.getenv("JOBS_DATABASE_URL") or os.getenv("DATABASE_URL", "")
 INTERVAL_SEC = int(os.getenv("WEATHER_SIGNAL_INTERVAL_SEC", "300"))
 # صلاحيّة الإشارة المُولَّدة (ساعات): افتراضيّاً أفق التنبّؤ القصير.
 SIGNAL_TTL_HOURS = int(os.getenv("WEATHER_SIGNAL_TTL_HOURS", "24"))
+
+READY_FILE = Path(os.getenv("WORKER_READY_FILE", "/tmp/sahool-worker-ready"))
+HEARTBEAT_FILE = Path(os.getenv("WORKER_HEARTBEAT_FILE", "/tmp/sahool-worker-heartbeat"))
+
+
+def _touch_worker_file(path: Path) -> None:
+    path.write_text(str(int(time.time())))
+
 
 # أحدث تراكب لكلّ (tenant_id, field_id) خلال الساعة الأخيرة فقط (DISTINCT ON).
 _RECENT_OVERLAYS_SQL = (
@@ -95,11 +105,14 @@ async def run() -> None:
         log.error("JOBS_DATABASE_URL/DATABASE_URL غير مضبوط — المحرّك معطّل")
         return
     pool = await asyncpg.create_pool(JOBS_DSN, statement_cache_size=0, min_size=1, max_size=4)
+    _touch_worker_file(READY_FILE)
+    _touch_worker_file(HEARTBEAT_FILE)
     log.info("✓ weather-signal-engine بدأ — دورة كلّ %ss", INTERVAL_SEC)
     try:
         while True:
             try:
                 count = await run_cycle(pool)
+                _touch_worker_file(HEARTBEAT_FILE)
                 log.info("دورة الإشارات: أُدرِجَت %s إشارة", count)
             except Exception as e:  # noqa: BLE001 — فشل دورة واحدة لا يُسقِط الحلقة
                 log.warning("تعذّرت دورة توليد الإشارات: %s", e)

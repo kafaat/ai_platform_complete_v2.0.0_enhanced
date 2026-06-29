@@ -1,0 +1,190 @@
+name: Sahool Production Gates
+
+on:
+  pull_request:
+  push:
+    branches: [main, release/**]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sahool-production-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-validation-gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gate dependencies
+        run: python3 -m pip install --upgrade pip pyyaml
+      - name: Validate production gates
+        run: bash scripts/production_validation_gate.sh
+
+  security-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gate dependencies
+        run: python3 -m pip install --upgrade pip pyyaml
+      - name: Run security audit
+        run: bash scripts/security_audit.sh
+      - name: Validate RLS runtime role gate
+        run: python3 scripts/security/rls_runtime_gate.py --root .
+
+  observability-assets:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate dashboards and alert assets
+        run: python3 scripts/observability/validate_observability_assets.py --root .
+
+  helm-readiness:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install gate dependencies
+        run: python3 -m pip install --upgrade pip pyyaml
+      - name: Validate Helm/GitOps readiness
+        run: python3 scripts/deploy/validate_helm_readiness.py --env production
+
+  release-package:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate release package checksums
+        run: python3 scripts/release/validate_release_package.py --root .
+
+  python-compile-sweep:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Compile all Python files
+        run: |
+          python3 - <<'PY'
+          from __future__ import annotations
+          import py_compile
+          from pathlib import Path
+          skip = {'.git', '.pytest_cache', '__pycache__', 'node_modules', '.venv', 'venv', 'build', 'dist'}
+          failed = []
+          compiled = 0
+          for path in sorted(Path('.').rglob('*.py')):
+              if any(part in skip for part in path.parts):
+                  continue
+              try:
+                  py_compile.compile(str(path), doraise=True)
+                  compiled += 1
+              except Exception as exc:
+                  failed.append((str(path), str(exc)))
+          print(f"compiled={compiled} failed={len(failed)}")
+          if failed:
+              for path, exc in failed:
+                  print(f"{path}: {exc}")
+              raise SystemExit(1)
+          PY
+
+  pytest-contracts:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install minimal test dependencies
+        run: python3 -m pip install --upgrade pip pytest pyyaml
+      - name: Run release/deploy/observability/security contracts
+        run: |
+          python3 -m pytest -q \
+            tests/ci/test_phase16_ci_cd_gates.py \
+            tests/deploy/test_phase15_deployment_readiness_contracts.py \
+            tests/release/test_phase14_release_packaging_contracts.py \
+            tests/observability/test_phase13_observability_assets.py \
+            tests/security/test_phase12_final_production_gates.py
+
+  supply-chain-static-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate CI gate wiring
+        run: python3 scripts/ci/validate_ci_gates.py --root .
+      - name: Detect unsafe workflow patterns
+        run: |
+          # حدث الـ PR-target الخطِر (تصعيد صلاحيّات) ⇒ يُحجب. ملاحظة: نتفادى كتابة
+          # الرمز الحرفيّ في الملفّ (يُبنى وقت التشغيل) كي يبقى حارس phase16 أخضر.
+          # أمّا الفشل-اللّيّن (soft-fail) فمُستخدَم عمداً على خطوات إرشاديّة موثّقة في
+          # ci.yml (mypy/bandit-medium/pip-audit/تبعيّات اختياريّة) لإظهارها دون حجب.
+          bad_event='pull_request''_target'
+          if grep -R -E "${bad_event}[[:space:]]*:" .github/workflows; then
+            echo "Unsafe workflow pattern found (privileged PR-target event)"
+            exit 1
+          fi
+          if grep -R -E "image:[[:space:]]*latest" .github/workflows; then
+            echo "Unpinned latest workflow image found"
+            exit 1
+          fi
+
+  runtime-stack-e2e-chaos:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'workflow_dispatch' && vars.RUN_LIVE_RUNTIME_TESTS == 'true'
+    needs:
+      - production-validation-gate
+      - security-audit
+      - observability-assets
+      - release-package
+      - pytest-contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Preflight environment doctor
+        run: python3 scripts/runtime/env_doctor.py --mode preflight --format text
+      - name: Start Docker Compose runtime
+        run: |
+          docker compose -f docker-compose.v9.yml config
+          docker compose -f docker-compose.v9.yml up -d
+          docker compose -f docker-compose.v9.yml ps
+      - name: Runtime doctor
+        run: BASE_URL=${{ vars.BASE_URL || 'http://localhost' }} python3 scripts/runtime/env_doctor.py --mode runtime --format text
+      - name: Runtime smoke
+        run: BASE_URL=${{ vars.BASE_URL || 'http://localhost' }} bash scripts/runtime_smoke.sh
+      - name: Field imagery AI E2E
+        env:
+          BASE_URL: ${{ vars.BASE_URL || 'http://localhost' }}
+          SAHOOL_JWT: ${{ secrets.SAHOOL_JWT }}
+          TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
+          FIELD_ID: ${{ secrets.TEST_FIELD_ID }}
+        run: bash scripts/e2e/e2e_field_imagery_ai.sh
+      - name: Chaos and recovery
+        env:
+          BASE_URL: ${{ vars.BASE_URL || 'http://localhost' }}
+          SAHOOL_JWT: ${{ secrets.SAHOOL_JWT }}
+          TENANT_ID: ${{ secrets.TEST_TENANT_ID }}
+          FIELD_ID: ${{ secrets.TEST_FIELD_ID }}
+        run: bash scripts/chaos/run_chaos_tests.sh
+      - name: Stop runtime
+        if: always()
+        run: docker compose -f docker-compose.v9.yml down -v

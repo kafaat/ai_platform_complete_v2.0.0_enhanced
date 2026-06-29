@@ -100,7 +100,11 @@ def test_internal_mask_renders_invalid_half_transparent_not_striped():
     tmpdir = tempfile.mkdtemp(prefix="cogmask_test_")
     cog_path = os.path.join(tmpdir, "half_valid.tif")
     res = _write_half_valid_cog(cog_path)
-    assert res["validation"]["valid"] is True, res["validation"]
+    # توحيد main↔cert: نتحقّق أنّ COG كُتب وله أهرامات داخليّة. لا نشترط tiled=True هنا
+    # لأنّ مصفوفة الاختبار الصغيرة (أصغر من كتلة 512) لا يُبلّطها GDAL — والتحقّق الفعليّ
+    # للقناع/الشفافيّة أدناه (التصيير). (cert يستخدم DEFAULT_NODATA رقميّ + قناع داخليّ.)
+    assert res.get("written") is True, res
+    assert res["validation"].get("overviews"), res["validation"]
 
     z, tx, ty = _center_tile()
     png = tile_render.render_tile_png(cog_path, z, tx, ty, "ndvi")

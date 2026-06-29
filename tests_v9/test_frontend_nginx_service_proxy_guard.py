@@ -1,0 +1,101 @@
+"""حارس وكلاء خدمات بوّابة الواجهة التطويريّة (frontend/nginx.conf، منفذ 3003).
+
+السبب (فجوة مُثبَتة): الواجهة (`api.ts`) تنادي قواعد خاصّة لبعض الخدمات
+(`vegetationApi`/`indicatorsApi`/`weatherApi` + `kongApi` لـ`/api/agent/`،
+`/api/guardrails/`). بلا كتل `location` صريحة لها في بوّابة 3003 تسقط إلى catch-all
+`/api/` ⇒ `sahool-platform` لا يملك هذه المسارات (vegetation/agent/guardrails غير
+موجودة، indicators/weather تحت `/api/v1/`) ⇒ 404 (يكسر الدردشة/الغطاء/المؤشّرات/الطقس).
+
+هذا الحارس يُثبّت الإصلاح في CI:
+  • المسارات الخمسة موجودة و**تسبق** catch-all `location /api/`.
+  • أهداف proxy_pass تطابق تحويلات `nginx.v9.conf` (مصدر الحقيقة للإنتاج).
+  • لا `auth_request` في بوّابة التطوير (لا تكرار لبوّابة الإنتاج).
+  • `/api/raster/` ما زال موجوداً وقبل catch-all.
+
+مسح ساكن لملفّ الإعداد — لا تشغيل nginx.
+"""
+
+from __future__ import annotations
+
+import os
+
+import pytest
+
+pytestmark = pytest.mark.unit
+
+_ROOT = os.path.join(os.path.dirname(__file__), "..")
+_FRONTEND_NGINX = os.path.join(_ROOT, "frontend", "nginx.conf")
+_V9_NGINX = os.path.join(_ROOT, "nginx", "nginx.v9.conf")
+
+# الخدمات التي يجب أن تُوكَّل صراحةً قبل catch-all + هدفها (جزء مميِّز من proxy_pass).
+_REQUIRED = {
+    "/api/vegetation/": "sahool-vegetation-analysis:8000/",
+    "/api/indicators/": "sahool-platform:8000/api/v1/indicators/",
+    "/api/weather/": "sahool-platform:8000/api/v1/weather/",
+    "/api/agent/": "sahool-supervisor-agent:8000/agent/",
+    "/api/guardrails/": "sahool-guardrails-engine:8000/",
+}
+
+
+def _read(path: str) -> str:
+    with open(path, encoding="utf-8") as f:
+        return f.read()
+
+
+def test_frontend_nginx_exists():
+    assert os.path.exists(_FRONTEND_NGINX), "frontend/nginx.conf مفقود"
+
+
+def test_service_locations_present_and_before_catchall():
+    """كلّ مسار خدمة موجود كـ`location ^~` ويسبق catch-all `location /api/`."""
+    src = _read(_FRONTEND_NGINX)
+    catchall = src.find("location /api/ {")
+    assert catchall != -1, "catch-all `location /api/` غير موجود"
+    for path in _REQUIRED:
+        loc = src.find(f"location ^~ {path}")
+        assert loc != -1, f"كتلة `location ^~ {path}` مفقودة في بوّابة 3003"
+        assert loc < catchall, f"`{path}` يقع بعد catch-all ⇒ يُعترَض ولا يصل الخدمة"
+
+
+def test_proxy_targets_match_v9_transforms():
+    """أهداف proxy_pass تطابق تحويلات الإنتاج (v1 للمؤشّرات/الطقس، /agent/ للوكيل)."""
+    src = _read(_FRONTEND_NGINX)
+    for path, target in _REQUIRED.items():
+        assert (
+            f"proxy_pass         http://{target}" in src or f"proxy_pass http://{target}" in src
+        ), f"هدف proxy_pass لـ`{path}` لا يطابق المتوقَّع (`{target}`)"
+    # health خاصّ للوكيل (تطابق نمط v9: /api/agent/health → /health)
+    assert "location = /api/agent/health {" in src, "مسار صحّة الوكيل المنفصل مفقود"
+    assert "sahool-supervisor-agent:8000/health" in src, "هدف صحّة الوكيل خاطئ"
+
+
+def test_no_auth_request_in_dev_gateway():
+    """بوّابة التطوير 3003 بلا توجيه auth_request فعليّ (التعليقات تذكره للتوضيح فقط)."""
+    # نتجاهل أسطر التعليقات (تبدأ بـ#) — الكلمة تَرِد فيها شرحاً لتباين بوّابة الإنتاج.
+    directive_lines = [
+        ln for ln in _read(_FRONTEND_NGINX).splitlines() if not ln.strip().startswith("#")
+    ]
+    offenders = [ln.strip() for ln in directive_lines if "auth_request" in ln]
+    assert not offenders, f"توجيه auth_request فعليّ في بوّابة التطوير: {offenders}"
+
+
+def test_raster_still_present_before_catchall():
+    """انحدار: `/api/raster/` ما زال موجوداً (بـ`^~`) وقبل catch-all."""
+    src = _read(_FRONTEND_NGINX)
+    raster = src.find("location ^~ /api/raster/")
+    catchall = src.find("location /api/ {")
+    assert raster != -1 and raster < catchall, "`/api/raster/` مفقود أو بعد catch-all"
+
+
+def test_v9_uses_same_path_transforms():
+    """تأكيد مرجعيّ: nginx.v9.conf يحوّل indicators/weather إلى /api/v1/ والوكيل إلى /agent/."""
+    if not os.path.exists(_V9_NGINX):
+        pytest.skip("nginx.v9.conf غير موجود")
+    v9 = _read(_V9_NGINX)
+    assert "/api/v1/indicators/" in v9, "v9 لا يحوّل المؤشّرات إلى /api/v1/"
+    assert "/api/v1/weather/" in v9, "v9 لا يحوّل الطقس إلى /api/v1/"
+    assert "supervisor_backend/agent/" in v9, "v9 لا يوكّل الوكيل إلى /agent/"
+
+
+if __name__ == "__main__":
+    raise SystemExit(pytest.main([__file__, "-v"]))

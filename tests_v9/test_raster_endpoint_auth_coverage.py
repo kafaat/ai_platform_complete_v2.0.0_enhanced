@@ -16,8 +16,8 @@
   • **service_only** — معالجة/مهامّ/رفع/أدوات (``/process``، ``/jobs/{id}``،
     ``/info/{layer_id}``، ``/cog/validate``، ...) يجب أن تستدعي
     ``_require_service_token`` (توكن خدمة-لخدمة، لا يُكشف للمتصفّح).
-  • **public_catalog** — بحث صور أقمار عامّة بـbbox + فحوص صحّة + مراقبة تخزين +
-    حزم offline: لا بيانات مستأجِر، مسموح بلا مصادقة، لكن **ضمن قائمة صريحة**
+  • **public_catalog** — بحث صور أقمار عامّة بـbbox + فحوص صحّة: لا بيانات مستأجِر،
+    مسموح بلا مصادقة، لكن **ضمن قائمة صريحة**
     مُبرَّرة (``PUBLIC_CATALOG``).
 
 الآليّة (عبر ``ast`` لا regex — أمتن أمام الالتفاف/التنسيق):
@@ -44,6 +44,11 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 HERE = os.path.dirname(__file__)
 RASTER_MAIN = os.path.normpath(os.path.join(HERE, "..", "services", "raster-service", "main.py"))
+# توحيد main↔cert: المسارات فُكِّكت من main.py إلى routers/؛ يمسح الكاشف الاثنين معاً
+# (main.py للحُرّاس المتبقّية + كلّ routers/*.py حيث صارت المعالِجات @router) — لا إضعاف.
+RASTER_ROUTERS_DIR = os.path.normpath(
+    os.path.join(HERE, "..", "services", "raster-service", "routers")
+)
 
 HTTP_METHODS: frozenset[str] = frozenset({"get", "post", "put", "patch", "delete"})
 
@@ -101,15 +106,21 @@ SERVICE_ONLY: set[str] = {
     "/info/{layer_id}",  # معلومات طبقة راستر.
     "/cog/validate",  # تحقّق COG.
     "/storage/cleanup",  # تنظيف التخزين — يحذف ملفّات.
+    "/storage/stats",  # إحصاء التخزين يكشف بنية داخلية؛ محمي بتوكن خدمة.
+    "/offline/packs",  # سرد حزم offline محمي بتوكن خدمة.
+    "/offline/packs/{pack_name}",  # تنزيل الحزم محمي بتوكن خدمة.
     "/indices",  # قائمة صيغ المؤشّرات (محميّة بتوكن خدمة في الكود الحاليّ).
+    # ── كتالوج GIS سحابيّ + تحليلات حقول: تكشف بنية/تصدير ⇒ توكن خدمة + ترويسة ──
+    "/v1/fields/analytics/geoparquet/export",  # تصدير GeoParquet لحقول — توكن خدمة.
+    "/v1/tile-cache/stats",  # إحصاء ذاكرة بلاطات يكشف بنية داخلية — توكن خدمة.
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # القائمة العامّة (PUBLIC_CATALOG): نقاط مسموح بقاؤها بلا أيّ حارس، مع تبرير.
 #
 # المبدأ: بحث صور أقمار عامّة بـbbox (Sentinel/Landsat/DEM/STAC) — لا تقرأ بيانات
-# مستأجِر ولا ملكيّة حقل/طبقة؛ معاملاتها إحداثيّات جغرافيّة عامّة. كذلك فحوص الصحّة
-# والمراقبة وحزم الخرائط offline (خلفيّة ثابتة، لا بيانات مستأجِر).
+# مستأجِر ولا ملكيّة حقل/طبقة؛ معاملاتها إحداثيّات جغرافيّة عامّة. كذلك فحوص الصحّة.
+# مراقبة التخزين وحزم offline ليست عامّة بعد إصلاح 20260626 وتُصنّف SERVICE_ONLY.
 # ─────────────────────────────────────────────────────────────────────────────
 PUBLIC_CATALOG: set[str] = {
     # ── بحث الصور الفضائيّة العامّ (بـbbox، لا بيانات مستأجِر) ──
@@ -125,9 +136,17 @@ PUBLIC_CATALOG: set[str] = {
     "/readyz",  # فحص جاهزيّة (وصول Earth Search) — بنية تحتيّة، لا بيانات.
     "/metrics",  # مقاييس Prometheus (عدّ مهامّ/طبقات مُجمَّع، لا بيانات مستأجِر).
     # ── مراقبة تخزين + حزم خرائط offline (خلفيّة ثابتة، لا بيانات مستأجِر) ──
-    "/storage/stats",  # إحصاء التخزين (حجم/توزيع نوع) — مراقبة تشغيليّة، لا بيانات.
-    "/offline/packs",  # سرد حزم MBTiles (خلفيّة خريطة ثابتة لمنطقة) — لا بيانات.
-    "/offline/packs/{pack_name}",  # تنزيل حزمة خلفيّة خريطة — لا بيانات مستأجِر.
+    # ── كتالوج GIS سحابيّ عامّ (STAC/COG/imagery policy) — بحث/سياسة عامّة بـbbox ──
+    "/stac",  # صفحة STAC الجذر — كتالوج صور عامّ، لا بيانات مستأجِر.
+    "/stac/collections",  # مجموعات STAC — كتالوج عامّ.
+    "/stac/mosaicjson",  # MosaicJSON — تركيب فسيفساء عامّ من مشاهد.
+    "/v1/scenes/quality-score",  # تقييم جودة مشهد — حساب من بيانات وصفيّة عامّة.
+    "/v1/cog/registry/preview",  # معاينة سجلّ COG — كتالوج عامّ، لا بيانات مستأجِر.
+    "/v1/tiles/observability",  # مراقبة البلاطات (عدّ مُجمَّع) — لا بيانات مستأجِر.
+    "/v1/imagery/backfill/policy",  # سياسة ردم الصور — قواعد ثابتة، لا بيانات.
+    "/v1/imagery/quality/policy",  # سياسة جودة الصور — قواعد ثابتة، لا بيانات.
+    "/v1/imagery/scenes/rank",  # ترتيب المشاهد — حساب من بيانات وصفيّة عامّة بـbbox.
+    "/v1/imagery/mosaic/plan",  # خطّة فسيفساء — تخطيط عامّ من بحث بـbbox.
 }
 
 
@@ -145,8 +164,7 @@ def _iter_app_routes(tree: ast.AST):
             if dec.func.attr not in HTTP_METHODS:
                 continue
             base = dec.func.value
-            # بعد تفكيك main.py إلى routers/: المسارات تُزخرَف بـ@app (في main) أو
-            # @router (في وحدات routers/). كلاهما نقطة فعليّة في التطبيق ذاته.
+            # @app.<m> (main.py) أو @router.<m> (بعد التفكيك في routers/) — كلاهما نقطة.
             if not (isinstance(base, ast.Name) and base.id in ("app", "router")):
                 continue
             if not (dec.args and isinstance(dec.args[0], ast.Constant)):
@@ -192,25 +210,17 @@ def _has_agent_token_header(node: ast.FunctionDef | ast.AsyncFunctionDef) -> boo
     return False
 
 
-def _raster_source_files() -> list[str]:
-    """``main.py`` + كلّ وحدات ``routers/*.py`` (بعد التفكيك تعيش النقاط فيها)."""
-    files = [RASTER_MAIN]
-    routers_dir = os.path.join(os.path.dirname(RASTER_MAIN), "routers")
-    if os.path.isdir(routers_dir):
-        for fn in sorted(os.listdir(routers_dir)):
-            if fn.endswith(".py") and fn != "__init__.py":
-                files.append(os.path.join(routers_dir, fn))
-    return files
-
-
 def _collect_routes() -> list[tuple[str, set[str], bool]]:
-    """يُرجِع (المسار، حُرّاس_مُستدعاة، هل_فيه_ترويسة_توكن) لكلّ نقطة @app/@router.
+    """يُرجِع (المسار، حُرّاس_مُستدعاة، هل_فيه_ترويسة_توكن) لكلّ نقطة ``@app`` في main.py."""
+    import glob
 
-    يمسح ``main.py`` ووحدات ``routers/`` معاً (تفكيك محفوظ-السلوك)."""
+    sources = [RASTER_MAIN] + sorted(glob.glob(os.path.join(RASTER_ROUTERS_DIR, "*.py")))
     routes: list[tuple[str, set[str], bool]] = []
-    for src in _raster_source_files():
-        with open(src, encoding="utf-8") as f:
-            tree = ast.parse(f.read(), filename=src)
+    for src_path in sources:
+        if not os.path.isfile(src_path):
+            continue
+        with open(src_path, encoding="utf-8") as f:
+            tree = ast.parse(f.read(), filename=src_path)
         for path, node in _iter_app_routes(tree):
             routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
     return routes

@@ -1713,8 +1713,16 @@ def test_security_hardening():
     if "'owner'" in reg and "role:" not in rr:
         r.append(("\u2713", "register يُسنِد 'owner' لمؤسِّس المستأجِر + لا حقل role (لا تصعيد)"))
     # ٢. actuator مصادقة + هويّة من التوكن
-    act = rd("services/actuator-service/main.py")
-    if "Depends(_verify_token)" in act and 'claims["tenant_id"]' in act:
+    # بعد تفكيك مسارات actuator انتقل مُعالِجا /command و/commands إلى routers/commands.py
+    # (يستخدمان ``Depends(main._verify_token)``) بينما تبقى الدالّة ``_verify_token`` في
+    # main.py — نمسح المصدر المُسلسَل (main.py + routers/*.py). التبعيّة تُقبَل بأيّ صيغة
+    # مكافئة (مع/بلا بادئة ``main.``) دون إضعاف التأكيد (نفس الدالّة، نفس الفرض).
+    from actuator_route_source import actuator_combined_source
+
+    act = actuator_combined_source(base)
+    if (
+        "Depends(_verify_token)" in act or "Depends(main._verify_token)" in act
+    ) and 'claims["tenant_id"]' in act:
         r.append(("\u2713", "actuator: مصادقة + tenant من التوكن لا الجسم"))
     # ٣. guardrails بوابة بشريّة محميّة
     gr = rd("services/guardrails-engine/main.py")
@@ -2553,9 +2561,16 @@ def test_replay_determinism():
     sp = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform")
     sys.path.insert(0, sp)
     if "api.event_bus" not in sys.modules:
-        m = types.ModuleType("api.event_bus")
-        m.EventBus = object
-        sys.modules["api.event_bus"] = m
+        # Prefer the real platform event_bus. A previous lightweight stub leaked
+        # into sys.modules and broke later behavioral/import tests in the same
+        # pytest process. Only fall back to a stub if the real module is truly
+        # unavailable in a minimal environment.
+        try:
+            importlib.import_module("api.event_bus")
+        except Exception:
+            m = types.ModuleType("api.event_bus")
+            m.EventBus = object
+            sys.modules["api.event_bus"] = m
     r = []
     try:
         er = importlib.import_module("api.event_replay")
@@ -3039,8 +3054,17 @@ def test_governance_hardening():
     if "_validate_actions_via_guardrails" in sup and "governance" in sup:
         r.append(("\u2713", "#1 الحَوكمة تغطّي process_query أيضاً (سُدّ الباب الخلفي)"))
     # #2: /validate يفرض توكن خدمة + timeout + header
-    gr = open(os.path.join(base, "services/guardrails-engine/main.py"), encoding="utf-8").read()
-    if "_require_service_token" in gr and "Depends(_require_service_token)" in gr:
+    # بعد تفكيك مسارات guardrails انتقل مُعالِج /validate (وعليه Depends(_require_service_token))
+    # إلى routers/validation.py بينما تبقى دالّة _require_service_token في main.py — نمسح المصدر
+    # المُسلسَل (main.py + routers/*.py) كي يبقى التأكيد الأمنيّ صحيحاً (لا إضعاف، فقط توسيع النطاق).
+    from guardrails_route_source import guardrails_combined_source
+
+    gr = guardrails_combined_source(base)
+    # المُعالِج في routers/ يفرض التوكن عبر Depends(main._require_service_token) (إشارة بـmain.X
+    # بعد التفكيك)؛ نقبل الصيغتين كي يبقى التأكيد صحيحاً بلا إضعاف.
+    if "_require_service_token" in gr and (
+        "Depends(_require_service_token)" in gr or "Depends(main._require_service_token)" in gr
+    ):
         r.append(("\u2713", "#2 /validate يفرض توكن خدمة (فشل-مغلق)"))
     if "X-Agent-Token" in sup and "timeout=10.0" in sup:
         r.append(("\u2713", "#2 supervisor يمرّر X-Agent-Token + timeout صريح"))

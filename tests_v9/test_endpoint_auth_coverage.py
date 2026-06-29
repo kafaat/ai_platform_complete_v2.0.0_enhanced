@@ -83,6 +83,17 @@ PUBLIC_ALLOWLIST: set[str] = {
     "/healthz",  # فحص حياة العمليّة — بنية تحتيّة، لا بيانات.
     "/readyz",  # فحص جاهزيّة (DB/تبعيّات) — بنية تحتيّة، لا بيانات.
     "/api/v1/weather/health",  # مسبار صحّة طبقة الطقس — منطق محلّيّ (حالة القاطع)، لا بيانات مستأجِر.
+    # ── توافقيّة بوّابة قديمة (compat_gateway): مسابر صحّة عامّة + تمرير يُفوّض المصادقة ──
+    "/api/indicators/readyz",  # مسبار جاهزيّة بديل — بنية تحتيّة، لا بيانات.
+    "/api/weather/readyz",  # مسبار جاهزيّة بديل — بنية تحتيّة، لا بيانات.
+    "/api/vegetation/readyz",  # مسبار جاهزيّة بديل — بنية تحتيّة، لا بيانات.
+    "/api/agent/health",  # مسبار صحّة بديل — بنية تحتيّة، لا بيانات.
+    # تمرير (passthrough) يُعيد توجيه ترويسة Authorization إلى الخدمة الخلفيّة التي
+    # تُصادِق فعليّاً (vegetation/raster)؛ عامّ على مستوى المنصّة لأنّ خرائط البلاطات
+    # تُحمَّل عبر <img> بلا ترويسات مخصّصة — التحقّق يقع في الخدمة المُستهدَفة.
+    "/api/vegetation/v1/all_fields",  # تمرير إلى خدمة الغطاء النباتيّ (تُصادِق خادميّاً).
+    "/api/vegetation/v1/analyze",  # تمرير إلى خدمة الغطاء النباتيّ (تُصادِق خادميّاً).
+    "/api/raster/{path:path}",  # تمرير إلى خدمة الراستر (تُصادِق خادميّاً؛ tid→X-Tenant-Id).
     # ── المصادقة نفسها: إصدار التوكن لا يمكن أن يتطلّب توكناً (دجاجة/بيضة) ──
     "/api/v1/auth/login",  # تسجيل الدخول يُصدِر JWT — عامّ بالضرورة.
     "/api/v1/auth/signup",  # إنشاء حساب يُصدِر JWT — عامّ بالضرورة.
@@ -222,6 +233,26 @@ def _function_is_authenticated(
     return any(_default_grants_auth(d) for d in defaults)
 
 
+def _module_has_router_level_auth(tree: ast.AST) -> bool:
+    """هل عُرِّف راوتر الوحدة بمصادقة على مستوى الراوتر؟
+
+    نمط ``APIRouter(dependencies=[Depends(_require_service_token)])`` يفرض المصادقة
+    على *كلّ* نقاط الراوتر دفعةً واحدة (لا في توقيع كلّ دالّة). نبحث عن أيّ نداء
+    ``APIRouter(...)`` يحمل ``dependencies=`` يمرّ شجرتُه بأحد ``AUTH_DEPENDENCIES``.
+    """
+    for sub in ast.walk(tree):
+        if not (isinstance(sub, ast.Call)):
+            continue
+        fn = sub.func
+        fn_name = fn.id if isinstance(fn, ast.Name) else getattr(fn, "attr", None)
+        if fn_name != "APIRouter":
+            continue
+        for kw in sub.keywords:
+            if kw.arg == "dependencies" and _default_grants_auth(kw.value):
+                return True
+    return False
+
+
 def _api_python_files() -> list[str]:
     """كلّ ``*.py`` تحت api/ (main.py + routers/)، عدا ``__init__.py``."""
     files: list[str] = []
@@ -241,6 +272,9 @@ def _collect_unauthenticated_routes() -> list[tuple[str, str]]:
         with open(fp, encoding="utf-8") as f:
             tree = ast.parse(f.read(), filename=fp)
         rel = os.path.relpath(fp, API_DIR)
+        # مصادقة على مستوى الراوتر (dependencies=[Depends(...)]) تشمل كلّ نقاطه.
+        if _module_has_router_level_auth(tree):
+            continue
         for _name, path, node in _iter_route_functions(tree):
             if path in ISSUE_410_PENDING:
                 continue  # نطاق #410 — مُستثنىً لتفادي التسابق.

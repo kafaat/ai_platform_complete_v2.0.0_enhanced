@@ -4,6 +4,124 @@
 
 ---
 
+## 2026-06-28 (ن) — بوّابة الواجهة + إغلاق متابعتَي D/C من مراجعة النسخة + تشخيص auth
+
+**رأس `main` بعد الجلسة:** `63c2f03` (#577 آخر المدموجة). PRs مدموجة: **#574–#577** (٤).
+
+- **#574 (`b180553`)** — تحديث العقل (تفكيك SVC-DECOMP-2: #570–#573).
+- **#575 (`35a4565`) بوّابة الواجهة التطويريّة (frontend/nginx.conf، 3003):** إضافة ٥ كتل
+  `location ^~` **قبل** catch-all `/api/` للخدمات التي تناديها `api.ts` بقواعد خاصّة
+  (`vegetation`→`sahool-vegetation-analysis:8000/` · `indicators`/`weather`→`sahool-platform:8000/api/v1/…`
+  · `agent`→`sahool-supervisor-agent:8000/agent/` + `= /api/agent/health`→`/health` · `guardrails`→
+  `sahool-guardrails-engine:8000/`). بلا `auth_request` (نموذج تطوير؛ تمرير `Authorization`+`X-Tenant-Id`)؛
+  الأهداف مطابقة لـ`nginx.v9.conf`. **الفجوة مُثبَتة:** بلاها تسقط لـ catch-all ⇒ 404 (دردشة/غطاء/مؤشّرات/طقس).
+  حارس `test_frontend_nginx_service_proxy_guard.py`.
+- **مراجعة المستخدم للنسخة `008c330`:** أكّدتُ كلّ ادّعاءاتها **صحيحة** بالكود (D/C/B + ملاحظات بيئيّة).
+  أُغلِقت المتابعتان الصغيرتان القابلتان للتنفيذ هنا (B — journal دائم للوكيل — مؤجَّل كـPR مستقلّ):
+  - **#576 (`2244145`) D — عقد TileJSON (واجهة):** `FieldIndicatorMap.tsx` كان يبني طلب TileJSON بـ
+    `params:{index,date}` بلا شرط ⇒ تسريب `date=latest`/`date=`. صار مشروطاً
+    (`date && date!=='latest' ? {index,date} : {index}`) — نفس حارس باني رابط البلاطة. backend يتحمّل ⇒
+    تنظيف عقد لا كسر. حارس ساكن `test_frontend_tilejson_date_contract_guard.py` (٤).
+  - **#577 (`63c2f03`) C — الموضوع اليتيم (NATS):** `sahool.weather.field.overlay.completed` يَنشُره
+    `weather-polygon-worker:161` بلا مشترِك ⇒ WARN «حدث طريق مسدود» (غير حاجب). **توثيق** القرار:
+    قسم `published_no_consumer` في عقد الأحداث (منتِج فعليّ + سبب) + `check_nats_subjects` يحترمه
+    (WARN⇒PASS) دون إضعاف `CRITICAL`/H2. +٣ اختبارات (سلبيّ: إزالة الـwaiver تُعيد WARN).
+- **تشخيص (لم يُغلَق — ينتظر سجلّ المشغّل):** `v21-sahool-auth-1` **unhealthy** يمنع إقلاع الحزمة.
+  `/readyz` موصول صحيحاً (`routers/ops.py:31`+`register_routers`) ⇒ **ليست انحدار تفكيك #557**. السبب
+  runtime/config: lifespan يرفع `RuntimeError` (fail-closed). الأرجح **دور قاعدة يتجاوز RLS** (DATABASE_URL
+  كـsuperuser/مالك جداول ⇒ `assert_db_role_rls_safe` يرفض الإقلاع — `main.py:229`)؛ الإصلاح دور مقيّد
+  `sahool_app` أو `SAHOOL_ALLOW_RLS_BYPASS_ROLE=1` للتطوير. بدائل: `JWT_SECRET`<32، أو فشل `_ensure_admin_user`.
+- **صدق:** D/C تنظيف+توثيق لا تغيير سلوكيّ؛ تشخيص auth **لم يُحسَم** بلا السجلّ (تفادي إصلاح أعمى).
+
+---
+
+## 2026-06-28 (م) — تفكيك ٤ خدمات أصغر (soil/tts/actuator/guardrails، #570–#573)
+
+**رأس `main` بعد الجلسة:** `d340e60` (#570 آخر المدموجة من الدفعة). PRs مدموجة: **#570–#573** (٤).
+
+إكمال تفكيك بقيّة `main.py` المتجانسة (٦–٧ مسارات لكلٍّ — دون عتبة ≥٨ السابقة لكنّ المستخدم طلب
+إكمالها). **٤ وكلاء متوازون (worktree)**، نفس نمط raster/auth (`router_registry` + `_include_flat`
++ حارس تفكيك)، **نقل بنيويّ صرف محفوظ السلوك، عدد المسارات ثابت**:
+- **#571 (`7f642a2`) tts-service:** ٧ معالجات → وحدتان (11 ثابتة). حارس `test_tts_notification_service_auth` (مسح `Cache-Control` المنقول) ⇒ مساعِد مُجمِّع.
+- **#572 (`bcb6c15`) actuator-service:** ٦ → ٣ وحدات (10، **حسّاس**: `/command` + تفويض جهاز مطابق بايتاً). حارسان أمنيّان (`test_security_review_fixes`/`test_roadmap_phase23`) أُعيد توجيههما بمساعِد مُجمِّع — يقبل `Depends(_verify_token)` أو `Depends(main._verify_token)` (نفس الفرض).
+- **#573 (`b4c0be6`) guardrails-engine:** ٧ → وحدتان (11، **حوكمة `/validate` حسّاسة**). `_require_service_token` مطابق بايتاً؛ حُرّاس `test_ai_orchestration_safety` أُعيد توجيهها (بل قُوِّي تأكيد) بمساعِد مُجمِّع.
+- **#570 (`d340e60`) soil-service:** ٦ → وحدتان (10). **CI كشف كسرين حقيقيّين فات الوكيل اكتشافهما** (لا يشيران لـmain.py بالحرف):
+  1. `test_soil_field_tenant_authz` يمسح `main.py` عن `resolved_tenant` ويستدعي `main.ingest_reading` (انتقلا لـ`routers/readings.py`) ⇒ **إعادة تصدير** المعالجات من `main` (ربط اسم، لا تسجيل مسار ثانٍ) + مساعِد مُجمِّع `soil_route_source.py` + **إسقاط وحدات `routers/` في إعادة استيراد الـfixture** (وإلّا تُبقي مرجعاً لـmain متعفّن عبر الاختبارات).
+  2. `test_tenant_query_audit` — استعلام `soil_readings` RAW انتقل لمسار جديد ⇒ تحديث مفتاح allowlist في `scripts/tenant_query_audit.py`.
+  **بلا إضعاف أيّ تأكيد** (اختبارات IDOR/عبر-المستأجرين تمرّ — تحقّقتُ بـpytest-asyncio: 14/14).
+
+- **درس CI متكرّر:** حُرّاس `tests_v9` التي تمسح/تحمّل مصدر خدمة تتأثّر بالتفكيك بطرق متعدّدة (مسح نصّ · `hasattr` على main · تحميل وحدة بالمسار · allowlist مُفتَّح بالمسار). الحلّ المُثبَت: مساعِد مصدر مُجمِّع + إعادة تصدير عند اللزوم + تنظيف sys.modules — لا إضعاف للحراسة. **الوكلاء يفوّتون أحياناً الحُرّاس غير المُشيرة لـmain.py بالحرف؛ CI يلتقطها فتُصلَح.**
+
+- **صدق:** كلّ تفكيك مُتحقَّق (`import main` + ثبات العدد + الحارس + ruff)؛ الإصلاحات الأمنيّة موسّعة-النطاق لا مُضعَّفة.
+
+---
+
+## 2026-06-28 (ل) — إغلاق H5/C5/H2 كسياسات قرار + إصلاح القصّ الجذريّ (#564–#568)
+
+**رأس `main` بعد الجلسة:** `008c330` (#568 مُدمج). PRs مدموجة: **#564–#568** (٥ PRs).
+
+- **#564 (`d9d9694`) — MapHub/CDSE/WebSocket + السبب الجذريّ للقصّ:** اكتشاف المستخدم أنّ
+  `fetch_field_geometry` كان يستعلم `fields` **بلا `set_config('app.current_tenant')`** ⇒ RLS يحجب
+  الصفوف ⇒ `geometry=None` ⇒ لا قصّ (بلاطات bbox). أُصلِح (يحلّ المالك عبر `sahool_field_owner_tenant`
+  SECURITY DEFINER ثمّ يضبط السياق). + عقد **`poly`** الموحَّد (واجهة+خادم) + **قناع rasterio بكسليّ
+  دقيق** (`tile_render.apply_polygon_mask`) + مؤشّر ملوحة **SWIR** `(B11-B12)/(B11+B12)` (كان NDVI
+  معكوساً) + نطاق ألوان مُصحَّح + نافذة «أحدث» ٦٠ يوماً + تشخيص سبب البلاطة الشفّافة. حارس عقد
+  [`test_cdse_poly_contract.py`].
+- **#565 (`ba29bba`)** — تحديث العقل لسلسلة #552–#564.
+- **إغلاق الفجوات الثلاث كسياسات قابلة للضبط والاختبار (لا «كود فقط»، بحسب توجيه المستخدم):**
+  - **#566 (`e6f98f5`) H5 — سياسة الريّ المشروطة بالملوحة:** `net` دائماً + Ks عند توفّر EC موثوق +
+    غسل **مشروط** (ECw+صرف+كفاءة)؛ ٤ سياسات + `requires_expert_review`. غلاف فوق
+    `irrigation_advice`/`fao56.leaching_requirement` (مصدر واحد). راوتر `POST /api/v1/irrigation-recommendation`
+    (لا يكسر `/water-balance`). ٦ اختبارات قبول. **مصدر EC:** `soil_lab_tests` عبر `gather_field_freshness`.
+  - **#567 (`273ee34`) C5 — سياسة دليل NDVI:** يوسم دور NDVI (`informational`/`supporting`/
+    `decision_blocking`)؛ **الافتراضيّ `supporting`** (لا يحجب قراراً وحده)؛ الحجب فقط بمعايرة محليّة +
+    سياق محصول كامل + جودة مشهد. حارس بنيويّ: `resolve_field_state` يأخذ عُمر NDVI لا قيمته. ١٤ اختباراً.
+  - **#568 (`008c330`) H2 — عقد ناشري الأحداث + حارس عكسيّ:** `event_publish_contracts.yaml` يربط كلّ
+    موضوع مُستهلَك بمنتِج (outbox) أو waiver؛ `check_nats_publisher_coverage` (مُسجَّل في CHECKS) يفشل على
+    «مُستهلَك بلا منتِج/waiver» — يمسح `services/`+`agents/` وقائمة `SUBSCRIPTIONS` (AST). **أثبت قيمته:**
+    كشف `sahool.weather.forecast.updated` الذي فات الفحص القديم (services فقط). لا تقليم اشتراك، لا اختلاق.
+- **درس CI:** إضافة فحص إلى `CHECKS` كسر اختبار `test_sahool_inspector` المُصلَّب على `== 5` ⇒ غُيّر إلى
+  `== len(CHECKS)` (يصمد). + درس سابق: نسيت إنشاء فرع H2 فالتزم على فرع C5 ⇒ نُقِل بـcherry-pick + reset.
+- **صدق:** H5/C5 يبقيان `fixed` لا `verified` (يحتاجان معايرة ميدانيّة: عيّنات EC + عتبات NDVI لمحاصيل اليمن).
+  السبب الجذريّ للقصّ (RLS) كان **اكتشاف المستخدم** — وُثِّق وأُصلِح في المصدر لا في عَرَض.
+
+---
+
+## 2026-06-28 (ك) — إكمال raster/CDSE (#552–#559) + إغلاق فجوات + تفكيك ٤ خدمات (#560–#563) + MapHub/WS (#564)
+
+**رأس `main` بعد الجلسة:** `7a36511` (#563 مُدمج). PRs مدموجة هذه الجلسة: **#552–#563** (١٢ PR). **مفتوح:** #564 (قيد CI).
+
+- **إكمال سلسلة raster (#552–#559):**
+  - #552 (`a3b29ff`) واجهة: حذف `date=latest` المثبَّت من روابط بلاطات CDSE.
+  - #553 (`df02c06`) nginx: وكيل `/api/raster/` لبوّابة الواجهة 3003 **بلا** `auth_request` (بوّابة تطوير خفيفة؛ تمرير `Authorization`/`X-Tenant-Id` صراحةً — لا تكرار منطق بوّابة الإنتاج).
+  - #554 (`efea4c6`) وثيقة: جدول مقارنة `v9 ↔ fixed` مُتحقَّق بالملفّ.
+  - #555 (`f2d5f0b`) تحديث العقل (لسلسلة #550/#551 + الاسترجاع).
+  - #556 (`852fb5b`) **استرجاع مرآة `mirror.gcr.io`** في *Integration Tests* (يُصلح رفرفة Docker Hub — فجوة CI-MIRROR صارت `fixed`).
+  - #557 (`f92c994`) **تفكيك `auth/main.py`** (٢٧ `@app` → ٩ `routers/`، محفوظ السلوك، حسّاس أمنيّاً، N=31 ثابت).
+  - #558 (`522a47e`) **قصّ CDSE على المضلّع** لا الـbbox (إزالة الصحراء الحمراء): الواجهة تمرّر `geom=GeoJSON` ⇒ Sentinel Hub يقصّ على المضلّع (شفّاف خارجه). **علم تحقّق ميدانيّ.**
+  - #559 (`1bef0cf`) **تطبيع تاريخ CDSE:** `date=""` الفارغ (ترسله الواجهة) كان يصير `date_from="-01-01T..."` فاسداً ⇒ يُعامَل كـ`latest`؛ وإسقاط `date` من رابط `cdse-tilejson` حين لا يُطلَب محدَّداً. اختبار وحدة (٨). (مراجعة النسخة المرفقة: الملاحظة #2 صحيحة ونُفِّذت؛ #1 بصيغة آمنة؛ #3 — `X-Tenant-Id` من العميل لبوّابة التطوير — مقبول بلا تغيير.)
+
+- **تفكيك ٤ خدمات متجانسة (#560–#563، ٤ وكلاء متوازين worktree):** نفس نمط raster/auth (`router_registry` + `_include_flat` + حارس تفكيك)، **نقل بنيويّ صرف محفوظ السلوك، عدد المسارات ثابت**:
+  - #560 (`77123b3`) odoo-bridge: ١٠ معالجات → ٥ وحدات (14 مساراً ثابتة).
+  - #561 (`d40f1a9`) video-processor: ٨ → وحدتان (12).
+  - #562 (`0abe6de`) vegetation-analysis: ٨ → وحدتان (12؛ اختبارات الخدمة الحاليّة 19/19).
+  - #563 (`7a36511`) supervisor-agent: ١٠ → وحدتان (14). **فشل CI حقيقيّ واحد:** حارس مصدر `tests_v9/test_ai_orchestration_safety.py` يمسح `main.py` لكود `/agent/query` الذي انتقل إلى `routers/agent.py` ⇒ أُصلِح بمساعِد [`supervisor_route_source.py`](../tests_v9/supervisor_route_source.py) المُجمِّع (main + routers، لا إضعاف أمنيّ).
+  - **درس CI:** حُرّاس `tests_v9` ذات النوعين تتأثّر بالتفكيك — مسح المصدر (يُصلَح بمساعِد مُجمِّع) وتحميل الوحدة بالمسار (يحتاج مجلّد الخدمة على `sys.path` — `smoke_services.py` يفعله أصلاً؛ بعض الحُرّاس المعزولة لا، فتمرّ في CI لترتيب `sys.path` في السويت الكاملة).
+
+- **MapHub/CDSE/WebSocket (#564، مفتوح):** مراجعة طلب المستخدم كشفت أنّ إصلاحات CDSE السابقة استهدفت `FieldIndicatorMap` لا `HubMap`. أُكمِلت:
+  - `HubMap.tsx` → `cdse-tiles` (بدل `tiles` COG المفقود ⇒ 404) + bbox/geom/`tenant_id` + إزالة تعبئة المضلّع (`fill:false`).
+  - `nginx.conf` → **`location ^~ /api/raster/`** (الجذر الحقيقيّ لـ404: regex `.png` كان يعترض البلاطات) + `X-Tenant-Id` من `$arg_tenant_id` (بلاطات `<img>` لا تحمل ترويسات) مع ارتداد للترويسة.
+  - `agents/notification/agent.py` → توصيف `ws_notifications(websocket: WebSocket)` (وإلّا فشل المصافحة) + **`python-jose` المفقود** (الكود `from jose import` بلا تبعيّة ⇒ ModuleNotFoundError) + تثبيت `websockets<14`. pip-audit: لا ثغرات.
+  - `routers/cdse_tiles.py` → **احتياط: جلب الهندسة من DB دائماً** حين لا تصل `geom` كي يبقى القصّ على المضلّع (MapHub لا يمرّر geom).
+
+- **إغلاق فجوات قديمة:** `C5`/`H2`/`H5`/`C4-M1`/`SAM2`/`TERRAIN` → `deferred`/`by-design` (انظر [`gaps/registry.md`](gaps/registry.md)) — كلٌّ يحتاج بيئة/تحقّقاً ميدانيّاً/قراراً زراعيّاً خارج الإصلاح الآليّ الآمن.
+
+- **قيد بيئيّ موثَّق:** حذف الفروع البعيدة يفشل (الوكيل بلا أداة حذف؛ الوسيط يرفض حذف المرجع) ⇒ الفروع العالقة (`frontend-cdse-hide-date`, `fix-cdse-clip-to-field`) تُحذَف من واجهة GitHub يدويّاً.
+
+- **صدق:** كلّ تفكيك مُتحقَّق محليّاً (`import main` + ثبات العدد + الحارس + ruff)؛ مسار CDSE الحيّ (قصّ + قناع SCL) ما زال يحتاج تشغيل CDSE حقيقيّاً (يتعذّر محليّاً) — مُعلَن `fixed` لا `verified`.
+
+---
+
 ## 2026-06-28 (ي) — تحصين/تفكيك raster + استرجاع بعد دفع مباشر على `main`
 
 **رأس `main` بعد الجلسة:** `51d650c` (#551).

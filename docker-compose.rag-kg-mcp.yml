@@ -1,0 +1,97 @@
+# SAHOOL production RAG/KG/MCP overlay
+# Usage: docker compose -f docker-compose.v9.yml -f docker-compose.rag-kg-mcp.yml up -d
+services:
+  sahool-rag-retrieval:
+    build:
+      context: .
+      dockerfile: services/rag-retrieval/Dockerfile
+    restart: unless-stopped
+    environment:
+      QDRANT_URL: http://sahool-qdrant:6333
+      QDRANT_COLLECTION: sahool_agri_kb
+      EMBEDDING_DIM: 384
+      QDRANT_API_KEY: ${QDRANT_API_KEY:-}
+    depends_on:
+      sahool-qdrant:
+        condition: service_started
+    networks:
+      - sahool-internal
+
+  sahool-knowledge-graph:
+    build:
+      context: .
+      dockerfile: services/knowledge-graph/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - kg-storage:/data
+    networks:
+      - sahool-internal
+
+  sahool-field-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    restart: unless-stopped
+    environment:
+      MCP_SERVER_MODULE: generic_context_server
+      MCP_SERVICE: field
+    networks: [sahool-internal]
+
+  sahool-lab-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    restart: unless-stopped
+    environment:
+      MCP_SERVER_MODULE: generic_context_server
+      MCP_SERVICE: lab
+    networks: [sahool-internal]
+
+  sahool-satellite-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    restart: unless-stopped
+    environment:
+      MCP_SERVER_MODULE: generic_context_server
+      MCP_SERVICE: satellite
+    networks: [sahool-internal]
+
+  sahool-iot-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    restart: unless-stopped
+    environment:
+      MCP_SERVER_MODULE: generic_context_server
+      MCP_SERVICE: iot
+    networks: [sahool-internal]
+
+  sahool-rag-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    restart: unless-stopped
+    environment:
+      MCP_SERVER_MODULE: generic_context_server
+      MCP_SERVICE: rag
+    networks: [sahool-internal]
+
+  sahool-kg-mcp:
+    build:
+      context: .
+      dockerfile: services/mcp_servers/Dockerfile
+    restart: unless-stopped
+    environment:
+      MCP_SERVER_MODULE: generic_context_server
+      MCP_SERVICE: knowledge-graph
+    networks: [sahool-internal]
+
+volumes:
+  kg-storage:
+
+# overlay يُدمج فوق docker-compose.v9.yml الذي يُنشئ الشبكة فعليّاً؛ نعلنها external
+# هنا حتى يصحّ التحقّق المستقلّ (docker compose config) دون تعريفها مرّتين.
+networks:
+  sahool-internal:
+    external: true

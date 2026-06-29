@@ -24,8 +24,8 @@ class HierarchicalRouter:
                 r"لون|green|red|nir|swir|radar|رادار|sar",
             ],
             "crop_model": [
-                r"wofost|محاكاة|نموذج|yield|إنتاج|biomass|كتلة.*حيوية|gdd|phenology",
-                r"irrigation|ري|أسقي|اسقي|سقي|مياه|et0|evapotranspiration|تبخير|fertilizer|تسميد|npk",
+                r"wofost|محاكاة|نموذج|yield|إنتاج|محصول|توقع|تنبؤ|biomass|كتلة.*حيوية|gdd|phenology",
+                r"irrigation|ري|أسقي|اسقي|سقي|مياه|احتياج.*مائي|احتياجات.*مائية|احتياج.*ري|حاجة.*مياه|et0|evapotranspiration|تبخير|fertilizer|تسميد|npk",
             ],
             "market": [
                 r"price|سعر|market|سوق|buy|buyer|buyers|buying|sell|seller|selling|بيع|شراء|contract|عقد",
@@ -45,7 +45,7 @@ class HierarchicalRouter:
             },
             "crop_model": {
                 "simulate_current": r"simulate|محاكاة|model|نموذج|predict|تنبؤ|forecast|توقع",
-                "irrigation_advice": r"irrigation|ري|أسقي|اسقي|سقي|مياه|water.*need|حاجة.*مياه|when.*water|متى.*أسقي|schedule|جدول",
+                "irrigation_advice": r"irrigation|ري|أسقي|اسقي|سقي|مياه|water.*need|حاجة.*مياه|احتياج.*مائي|احتياجات.*مائية|احتياج.*ري|when.*water|متى.*أسقي|schedule|جدول",
                 "fertilizer_advice": r"fertilizer|تسميد|npk|nutrient|غذائ|feed|أطعم|when.*fertilize|متى.*أسمد",
             },
             "market": {

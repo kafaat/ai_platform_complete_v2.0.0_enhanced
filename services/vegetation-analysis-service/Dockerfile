@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.t
 # FIXED: shared/ copy works because context is project root
 COPY shared/ /app/shared/
 COPY services/vegetation-analysis-service/main.py /app/main.py
+# تفكيك المسارات: main.py يستورد router_registry الذي يضمّ routers/. غير منسوخة ⇒
+# ModuleNotFoundError: 'router_registry' عند الإقلاع ⇒ تعطّل الخدمة. نسخها إلزاميّ.
+COPY services/vegetation-analysis-service/router_registry.py /app/router_registry.py
+COPY services/vegetation-analysis-service/routers/ /app/routers/
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1

@@ -58,6 +58,18 @@ async def diagnose_symptoms(
                 "validity": field_state.get("validity"),
                 "execution_mode": field_state.get("execution_mode"),
                 "agronomic": {"operational_truths": _truths},
+                # Bundle D (D3): قيم المياه الكنسيّة من **مصدر واحد** (كتلة water الموحّدة)
+                # بدل قراءة ET0/ETc من مصادر متفرّقة — None إن غابت (صدق).
+                "water": field_state.get("water"),
+                # Bundle B: ثقة حدّ الحقل الكنسيّة من **مصدر واحد** (كتلة boundary) —
+                # None إن لم يُهدَّف الحدّ بعد (صدق). ثقة منخفضة صعّدت execution_mode أعلاه.
+                "boundary": field_state.get("boundary"),
+                # Bundle D (D2a): الإجهاد المائيّ الكنسيّ (AWF + مستوى) — معلوماتيّ بلا
+                # تصعيد؛ None إن لا استنزاف موثوق في دفتر المياه (صدق).
+                "water_stress": field_state.get("water_stress"),
+                # مؤشّر جاهزيّة بيانات الحقل: درجة واحدة مُفسَّرة «كم نثق بذكاء الحقل
+                # الآن؟» + إرشاد عمليّ — معلوماتيّ، لا يغيّر القرار.
+                "readiness": field_state.get("readiness"),
             }
             # ملاحظة مرجعيّة فقط عند ملوحة حرجة — إجهاد الملوحة قد يحاكي/يفاقم
             # أعراض الأمراض. لا تغيير لقواعد/نتيجة التشخيص.

@@ -83,8 +83,14 @@ async def test_trigger_field_imagery_processing_queues_process_from_stac(monkeyp
 
     assert result["queued"] is True
     assert result["real_data"] is False  # becomes true only when raster-service reads generated COG
-    post_calls = [c for c in _FakeClient.calls if c[0] == "POST"]
+    post_calls = [
+        c
+        for c in _FakeClient.calls
+        if c[0] == "POST" and c[1].endswith("/v1/fields/fld_real/process-from-stac")
+    ]
     assert len(post_calls) == 2
+    # CDSE activation may issue a best-effort process-cdse POST first; this assertion
+    # scopes the contract to the Element84 STAC fallback jobs requested by this test.
     for _, url, kwargs in post_calls:
         assert url.endswith("/v1/fields/fld_real/process-from-stac")
         body = kwargs["json"]

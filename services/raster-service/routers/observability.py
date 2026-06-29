@@ -2,17 +2,19 @@
 ======================================================================
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
-نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المخرجات
-مطابقة تماماً. التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main``
-وتُشار إليها عبر ``main.X`` (لا ربط بائت). ``register_routers(app)`` يضمّ هذا
-الراوتر بلا prefix في نهاية ``main.py``.
+نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المنطق مطابقة.
+التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main`` وتُشار إليها عبر
+``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
 """
 
 from __future__ import annotations
 
+import os
+
 import httpx
 import main
 from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi.responses import JSONResponse, PlainTextResponse
 
 router = APIRouter()
 
@@ -71,9 +73,49 @@ async def metrics():
         "# TYPE sahool_stac_fallback_served_total counter",
         f"sahool_stac_fallback_served_total {h.get('fallback_served', 0)}",
     ]
-    from fastapi.responses import PlainTextResponse
+    lines += [
+        "# HELP sahool_raster_tilejson_requests_total TileJSON requests reaching raster-service",
+        "# TYPE sahool_raster_tilejson_requests_total counter",
+        f"sahool_raster_tilejson_requests_total {main._TILE_OBS['tilejson_requests_total']}",
+        "# HELP sahool_raster_tilejson_unavailable_total TileJSON responses with available=false",
+        "# TYPE sahool_raster_tilejson_unavailable_total counter",
+        f"sahool_raster_tilejson_unavailable_total {main._TILE_OBS['tilejson_unavailable_total']}",
+        "# HELP sahool_raster_tile_requests_total Field tile image requests",
+        "# TYPE sahool_raster_tile_requests_total counter",
+        f"sahool_raster_tile_requests_total {main._TILE_OBS['tile_requests_total']}",
+        "# HELP sahool_raster_tile_cache_hits_total Persistent tile cache hits",
+        "# TYPE sahool_raster_tile_cache_hits_total counter",
+        f"sahool_raster_tile_cache_hits_total {main._TILE_OBS['tile_cache_hits_total']}",
+        "# HELP sahool_raster_tile_cache_misses_total Persistent tile cache misses",
+        "# TYPE sahool_raster_tile_cache_misses_total counter",
+        f"sahool_raster_tile_cache_misses_total {main._TILE_OBS['tile_cache_misses_total']}",
+        "# HELP sahool_raster_tile_transparent_total Transparent tiles returned because no raster data was available",
+        "# TYPE sahool_raster_tile_transparent_total counter",
+        f"sahool_raster_tile_transparent_total {main._TILE_OBS['tile_transparent_total']}",
+        "# HELP sahool_raster_tile_render_errors_total Tile rendering errors hidden behind transparent fallback",
+        "# TYPE sahool_raster_tile_render_errors_total counter",
+        f"sahool_raster_tile_render_errors_total {main._TILE_OBS['tile_render_errors_total']}",
+    ]
+    for idx, counters in sorted(main._TILE_OBS_BY_INDEX.items()):
+        safe_idx = idx.replace('"', "_")
+        for key, value in sorted(counters.items()):
+            metric = "sahool_raster_" + key
+            lines.append(f'{metric}{{index="{safe_idx}"}} {int(value)}')
 
     return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")
+
+
+@router.get("/v1/tiles/observability")
+async def tile_observability():
+    """تشخيص سريع للبلاطات للواجهة/الدعم: يوضح إن كانت المشكلة عدم بيانات،
+    cache، أو أخطاء تصيير، دون كشف مسارات COG الداخلية."""
+    return {
+        "status": "ok",
+        "counters": dict(main._TILE_OBS),
+        "by_index": {k: dict(v) for k, v in main._TILE_OBS_BY_INDEX.items()},
+        "cache_enabled": os.getenv("TILE_CACHE_ENABLED", "true").lower() == "true",
+        "message": "راقب tilejson_unavailable_total و tile_transparent_total عند عدم ظهور طبقة المؤشر",
+    }
 
 
 @router.get("/readyz")
@@ -83,12 +125,36 @@ async def readyz():
         async with httpx.AsyncClient(timeout=5) as client:
             r = await client.get(f"{main.EARTH_SEARCH_URL}/")
             ok = r.status_code < 500
-        return {
+        body = {
             "status": "ready" if ok else "degraded",
             "earth_search": "reachable" if ok else "unreachable",
         }
+        return JSONResponse(status_code=200 if ok else 503, content=body)
     except httpx.HTTPError:
-        return {"status": "degraded", "earth_search": "unreachable"}
+        return JSONResponse(
+            status_code=503, content={"status": "degraded", "earth_search": "unreachable"}
+        )
+
+
+@router.get("/v1/tile-cache/stats")
+async def tile_cache_stats(x_agent_token: str = Header(None)):
+    main._require_service_token(x_agent_token)
+    root = os.path.join(main.UPLOAD_DIR, "tile_cache")
+    count = 0
+    size = 0
+    for base, _dirs, files in os.walk(root) if os.path.exists(root) else []:
+        for fn in files:
+            if fn.endswith(".png"):
+                count += 1
+                try:
+                    size += os.path.getsize(os.path.join(base, fn))
+                except OSError:
+                    pass
+    return {
+        "enabled": os.getenv("TILE_CACHE_ENABLED", "true").lower() == "true",
+        "tiles": count,
+        "bytes": size,
+    }
 
 
 @router.get("/info/{layer_id}")

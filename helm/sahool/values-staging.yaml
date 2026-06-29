@@ -1,0 +1,17 @@
+global:
+  environment: staging
+ingress:
+  host: staging.sahool.example.invalid
+workloads:
+  sahool-platform:
+    replicas: 1
+  sahool-raster-service:
+    replicas: 1
+  sahool-ai-agronomist:
+    replicas: 1
+  sahool-rag-retrieval:
+    replicas: 1
+  sahool-knowledge-graph:
+    replicas: 1
+  sahool-guardrails-engine:
+    replicas: 1

@@ -123,21 +123,39 @@ def check_rls_coverage() -> Result:
 # 2. router wiring — لا راوتر يتيم
 # ════════════════════════════════════════════════════════════
 def check_router_wiring() -> Result:
+    # التسجيل مُستخرَج إلى api/router_registry.py (register_routers) ويُستدعى من main.py.
+    # نقرأ كليهما معاً: الحلقة/الاستثناء/التضمين الصريح صارت في router_registry.
     main_src = _read(MAIN)
+    registry = MAIN.parent / "router_registry.py"
+    wiring_src = main_src + "\n" + (_read(registry) if registry.exists() else "")
     findings: list[str] = []
     names = sorted(p.stem for p in ROUTERS.glob("*.py") if p.name != "__init__.py")
+
+    # التسجيل التلقائيّ (auto-registration): تُضمَّن كلّ وحدة في api/routers/ عبر حلقة
+    # pkgutil.iter_modules + app.include_router (في router_registry، يستدعيها main.py عبر
+    # register_routers). عند وجوده، تُعدّ كلّ وحدة مُضمَّنة آليّاً عدا ما في الاستثناء.
+    auto_reg = bool(
+        re.search(r"iter_modules\(\s*_routers_pkg\.__path__", wiring_src)
+        and re.search(r"app\.include_router\(\s*_?router_obj", wiring_src)
+        and re.search(r"register_routers\s*\(\s*app\s*\)", main_src)
+    )
+    excl_match = re.search(r"_?ROUTER_AUTOREG_EXCLUDE\s*=\s*\{([^}]*)\}", wiring_src)
+    excluded = set(re.findall(r'"(\w+)"', excl_match.group(1))) if excl_match else set()
+
     for name in names:
+        if auto_reg and name not in excluded:
+            continue  # مُضمَّن آليّاً عبر حلقة التسجيل
         # نمط واعٍ بالتعليقات والالتفاف متعدّد الأسطر (مطابق لحارس التفكيك):
         #   from api.routers.<name> import (  «تعليق E402»\n    router as <alias>,\n)
         imp = re.search(
             rf"from api\.routers\.{re.escape(name)} import\s*\(?[ \t]*(?:#[^\n]*)?\s*router as (\w+)",
-            main_src,
+            wiring_src,
         )
         if not imp:
-            findings.append(f"HIGH راوتر يتيم: `{name}` غير مُستورَد في main.py")
+            findings.append(f"HIGH راوتر يتيم: `{name}` غير مُستورَد (main/router_registry)")
             continue
         alias = imp.group(1)
-        if not re.search(rf"app\.include_router\(\s*{re.escape(alias)}\b", main_src):
+        if not re.search(rf"app\.include_router\(\s*{re.escape(alias)}\b", wiring_src):
             findings.append(f"HIGH راوتر مُستورَد بلا include: `{name}` ({alias})")
     status = FAIL if findings else PASS
     return Result("router wiring", status, f"{len(names)} راوتر؛ {len(findings)} مشكلة", findings)
@@ -146,6 +164,27 @@ def check_router_wiring() -> Result:
 # ════════════════════════════════════════════════════════════
 # 3. NATS subjects — بادئة sahool. + المواضيع اليتيمة
 # ════════════════════════════════════════════════════════════
+def _published_no_consumer_waivers() -> set[str]:
+    """الموضوعات المنشورة بلا مشترِك الموثَّقة في ``event_publish_contracts.yaml``
+    (مفتاح ``published_no_consumer``) — يحترمها إنذار «حدث طريق مسدود» فلا يُصدِر WARN.
+    يفشل بهدوء (يُرجِع مجموعة فارغة) إن غاب العقد أو yaml — لا يُسقِط الفحص."""
+    contracts = REPO / "event_publish_contracts.yaml"
+    if not contracts.exists():
+        return set()
+    try:
+        import yaml
+
+        doc = yaml.safe_load(_read(contracts)) or {}
+    except Exception:  # noqa: BLE001
+        return set()
+    waived: set[str] = set()
+    for entry in doc.get("published_no_consumer") or []:
+        subj = entry.get("subject") if isinstance(entry, dict) else None
+        if subj:
+            waived.add(subj)
+    return waived
+
+
 def check_nats_subjects() -> Result:
     pub_re = re.compile(r'\.publish\(\s*["\']([^"\']+)["\']')
     sub_re = re.compile(r'\.subscribe\(\s*["\']([^"\']+)["\']')
@@ -171,14 +210,110 @@ def check_nats_subjects() -> Result:
     def _concrete(s: str) -> bool:
         return s.startswith("sahool.") and "*" not in s and ">" not in s
 
+    # موضوعات موثَّقة كـ«منشورة بلا مشترِك» (waiver) لا تُنتِج WARN — قرار معماريّ موثَّق.
+    waived = _published_no_consumer_waivers()
+    waived_hits = 0
     for subj, loc in sorted(published.items()):
         if _concrete(subj) and subj not in subscribed:
+            if subj in waived:
+                waived_hits += 1
+                continue
             findings.append(f"WARN موضوع منشور بلا مشترِك (حدث طريق مسدود): `{subj}` ({loc})")
     status = (
         FAIL if any(f.startswith("CRITICAL") for f in findings) else (WARN if findings else PASS)
     )
-    summary = f"{len(published)} منشور / {len(subscribed)} مُشترَك؛ {len(findings)} ملاحظة"
+    waived_note = f"؛ {waived_hits} موثَّق (waiver)" if waived_hits else ""
+    summary = (
+        f"{len(published)} منشور / {len(subscribed)} مُشترَك؛ {len(findings)} ملاحظة{waived_note}"
+    )
     return Result("NATS subjects", status, summary, findings)
+
+
+# ════════════════════════════════════════════════════════════
+# 3b. تغطية ناشري NATS (H2) — حارس عكسيّ: كلّ مُستهلَك له منتِج أو waiver
+# ════════════════════════════════════════════════════════════
+def _consumed_subjects() -> dict[str, str]:
+    """الموضوعات المُستهلَكة: قائمة ``SUBSCRIPTIONS`` في وكيل الإشعارات (عبر AST،
+    إذ هي tuples في حلقة لا ``.subscribe("literal")``) + أيّ ``.subscribe("literal")``
+    عبر ``services/`` و``agents/``. يُرجِع {subject: location}.
+    """
+    import ast
+
+    consumed: dict[str, str] = {}
+    agent_py = REPO / "agents" / "notification" / "agent.py"
+    if agent_py.exists():
+        try:
+            tree = ast.parse(_read(agent_py))
+            for node in ast.walk(tree):
+                if (
+                    isinstance(node, ast.Assign)
+                    and any(
+                        isinstance(t, ast.Name) and t.id == "SUBSCRIPTIONS" for t in node.targets
+                    )
+                    and isinstance(node.value, ast.List | ast.Tuple)
+                ):
+                    for elt in node.value.elts:
+                        if isinstance(elt, ast.Tuple | ast.List) and elt.elts:
+                            first = elt.elts[0]
+                            if isinstance(first, ast.Constant) and isinstance(first.value, str):
+                                consumed.setdefault(
+                                    first.value,
+                                    f"{agent_py.relative_to(REPO)}:SUBSCRIPTIONS",
+                                )
+        except SyntaxError:
+            pass
+    sub_re = re.compile(r'\.subscribe\(\s*["\']([^"\']+)["\']')
+    for base in (SERVICES, REPO / "agents"):
+        if not base.exists():
+            continue
+        for py in base.rglob("*.py"):
+            if "__pycache__" in py.parts:
+                continue
+            src = _read(py)
+            for m in sub_re.finditer(src):
+                consumed.setdefault(m.group(1), f"{py.relative_to(REPO)}:{_lineno(src, m.start())}")
+    return consumed
+
+
+def check_nats_publisher_coverage() -> Result:
+    """حارس عكسيّ (H2): كلّ موضوع NATS **مُستهلَك** يجب أن يظهر في
+    ``event_publish_contracts.yaml`` بمنتِجٍ موثَّق أو ``reserved_future_subject``
+    (waiver). وإلّا «مُستهلَك بلا منتِج» ⇒ FAIL. يمنع مناطق أحداث ميّتة دون توثيق.
+    """
+    contracts = REPO / "event_publish_contracts.yaml"
+    if not contracts.exists():
+        return Result(
+            "NATS publisher coverage",
+            FAIL,
+            "event_publish_contracts.yaml مفقود",
+            ["FAIL لا عقد نشر — أنشئ event_publish_contracts.yaml لكلّ موضوع مُستهلَك"],
+        )
+    try:
+        import yaml
+
+        doc = yaml.safe_load(_read(contracts)) or {}
+    except Exception as e:  # noqa: BLE001
+        return Result(
+            "NATS publisher coverage", FAIL, "تعذّر قراءة العقد", [f"FAIL {type(e).__name__}: {e}"]
+        )
+
+    documented: dict[str, dict] = {}
+    for entry in doc.get("subjects") or []:
+        subj = entry.get("subject") if isinstance(entry, dict) else None
+        if subj:
+            documented[subj] = entry
+
+    consumed = _consumed_subjects()
+    findings: list[str] = []
+    for subj, loc in sorted(consumed.items()):
+        entry = documented.get(subj)
+        if entry is None:
+            findings.append(f"FAIL مُستهلَك بلا توثيق في العقد: `{subj}` ({loc})")
+        elif not entry.get("producer") and not entry.get("reserved_future_subject"):
+            findings.append(f"FAIL مُستهلَك بلا منتِج ولا waiver: `{subj}` ({loc})")
+    status = FAIL if findings else PASS
+    summary = f"{len(consumed)} مُستهلَك / {len(documented)} موثَّق؛ {len(findings)} بلا منتِج"
+    return Result("NATS publisher coverage", status, summary, findings)
 
 
 # ════════════════════════════════════════════════════════════
@@ -265,6 +400,7 @@ CHECKS = (
     check_rls_coverage,
     check_router_wiring,
     check_nats_subjects,
+    check_nats_publisher_coverage,
     check_endpoint_authz,
     check_migration_manifest,
 )

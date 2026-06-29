@@ -157,7 +157,7 @@ class ERPNextProvider(ERPProvider):
             r.raise_for_status()
             return r.json().get("data", [])
         except Exception as e:  # noqa: BLE001 — صدق: فشل → فارغ لا اختراع
-            logger.warning(f"ERPNext {doctype} تعذّر: {e}")
+            logger.warning("ERPNext %s تعذّر: %s", doctype, type(e).__name__)
             return []
 
     async def authenticate(self) -> bool:
@@ -173,20 +173,24 @@ class ERPNextProvider(ERPProvider):
             try:
                 user = r.json().get("message")
             except Exception as je:  # noqa: BLE001 — صدق: JSON غير صالح → فشل لا اختراع
-                logger.warning(f"ERPNext auth: استجابة غير JSON ({je})")
+                logger.warning("ERPNext auth: استجابة غير JSON (%s)", type(je).__name__)
                 return False
             return user not in (None, "", "Guest")
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"ERPNext auth تعذّر: {e}")
+            logger.warning("ERPNext auth تعذّر: %s", type(e).__name__)
             return False
 
     async def list_products(self, since=None) -> list[dict]:
         # Item هو منتج Frappe؛ نوحّده لمخطّط الجسر
+        filters = [["modified", ">", since]] if since else None
         items = await self._get_list(
-            "Item", ["item_code", "item_name", "item_group", "stock_uom", "standard_rate"]
+            "Item",
+            ["item_code", "item_name", "item_group", "stock_uom", "standard_rate"],
+            filters,
         )
         return [
             {
+                "external_id": i.get("item_code"),
                 "name": i.get("item_name"),
                 "code": i.get("item_code"),
                 "category": i.get("item_group", "General"),
@@ -198,9 +202,13 @@ class ERPNextProvider(ERPProvider):
         ]
 
     async def list_suppliers(self, since=None) -> list[dict]:
-        sups = await self._get_list("Supplier", ["supplier_name", "name", "mobile_no", "email_id"])
+        filters = [["modified", ">", since]] if since else None
+        sups = await self._get_list(
+            "Supplier", ["supplier_name", "name", "mobile_no", "email_id"], filters
+        )
         return [
             {
+                "external_id": s.get("name"),
                 "name": s.get("supplier_name"),
                 "code": s.get("name"),
                 "phone": s.get("mobile_no"),
@@ -211,7 +219,10 @@ class ERPNextProvider(ERPProvider):
 
     async def list_warehouses(self) -> list[dict]:
         whs = await self._get_list("Warehouse", ["warehouse_name", "name"])
-        return [{"name": w.get("warehouse_name"), "code": w.get("name")} for w in whs]
+        return [
+            {"external_id": w.get("name"), "name": w.get("warehouse_name"), "code": w.get("name")}
+            for w in whs
+        ]
 
     async def push_field_cost(self, cost: dict) -> bool:
         """دفع تكلفة حقل إلى ERPNext كقيد محاسبيّ (Journal Entry).
@@ -277,14 +288,14 @@ class ERPNextProvider(ERPProvider):
             )
             return False
         except Exception as e:  # noqa: BLE001 — لا نخفي الفشل، نُرجِع False
-            logger.warning("ERPNext push_field_cost تعذّر: %s", e)
+            logger.warning("ERPNext push_field_cost تعذّر: %s", type(e).__name__)
             return False
 
     async def health(self) -> dict:
         ok = await self.authenticate()
         return {
             "provider": "erpnext",
-            "url": self.url,
+            "url_configured": bool(self.url),
             "status": "connected" if ok else "unreachable",
         }
 
@@ -308,13 +319,15 @@ class OdooProvider(ERPProvider):
             await self.odoo.authenticate()
             return self.odoo.uid is not None
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Odoo auth تعذّر: {e}")
+            logger.warning("Odoo auth تعذّر: %s", type(e).__name__)
             return False
 
     async def list_products(self, since=None) -> list[dict]:
-        domain = []
+        domain = [["write_date", ">", since]] if since else []
         rows = await self.odoo.search_read(
-            "product.product", domain, ["name", "default_code", "categ_id", "uom_id", "list_price"]
+            "product.product",
+            domain,
+            ["id", "name", "default_code", "categ_id", "uom_id", "list_price", "standard_price"],
         )
         out = []
         for p in rows:
@@ -322,22 +335,25 @@ class OdooProvider(ERPProvider):
             uom = p.get("uom_id")[1] if isinstance(p.get("uom_id"), list) else "Unit"
             out.append(
                 {
+                    "external_id": p.get("id"),
                     "name": p.get("name"),
                     "code": p.get("default_code"),
                     "category": cat,
                     "uom": uom,
-                    "cost": p.get("list_price", 0.0),
+                    "cost": p.get("standard_price", p.get("list_price", 0.0)) or 0.0,
                     "supplier": None,
                 }
             )
         return out
 
     async def list_suppliers(self, since=None) -> list[dict]:
-        rows = await self.odoo.search_read(
-            "res.partner", [["supplier_rank", ">", 0]], ["name", "phone", "email"]
-        )
+        domain = [["supplier_rank", ">", 0]]
+        if since:
+            domain.append(["write_date", ">", since])
+        rows = await self.odoo.search_read("res.partner", domain, ["id", "name", "phone", "email"])
         return [
             {
+                "external_id": s.get("id"),
                 "name": s.get("name"),
                 "code": str(s.get("id", "")),
                 "phone": s.get("phone"),
@@ -347,8 +363,10 @@ class OdooProvider(ERPProvider):
         ]
 
     async def list_warehouses(self) -> list[dict]:
-        rows = await self.odoo.search_read("stock.warehouse", [], ["name", "code"])
-        return [{"name": w.get("name"), "code": w.get("code")} for w in rows]
+        rows = await self.odoo.search_read("stock.warehouse", [], ["id", "name", "code"])
+        return [
+            {"external_id": w.get("id"), "name": w.get("name"), "code": w.get("code")} for w in rows
+        ]
 
     async def push_field_cost(self, cost: dict) -> bool:
         # يعتمد المحاسبة التحليليّة في Odoo (analytic account)
@@ -365,7 +383,7 @@ class OdooProvider(ERPProvider):
             )
             return True
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Odoo push_field_cost تعذّر: {e}")
+            logger.warning("Odoo push_field_cost تعذّر: %s", type(e).__name__)
             return False
 
     async def health(self) -> dict:

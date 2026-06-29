@@ -1,0 +1,72 @@
+{
+  "uid": "sahool-field-imagery-ai-runtime",
+  "title": "SAHOOL Field Imagery AI Runtime",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "tags": ["sahool", "field", "imagery", "ai"],
+  "timezone": "browser",
+  "time": {"from": "now-6h", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Raster Service Up",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "max(up{job=~\"raster-service|raster-tiler|titiler|vegetation-service\"})", "legendFormat": "raster"}]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "AI/RAG/KG Up",
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "min(up{job=~\"ai-agronomist|rag-retrieval|knowledge-graph|guardrails-engine\"})", "legendFormat": "ai stack"}]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "TileJSON / Tile Request Rate",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum by (job) (rate(http_requests_total{path=~\".*tilejson.*|.*tiles.*|.*available-dates.*\"}[5m]))", "legendFormat": "{{job}}"},
+        {"expr": "sum by (job) (rate(http_requests_total{endpoint=~\".*tilejson.*|.*tiles.*|.*available-dates.*\"}[5m]))", "legendFormat": "{{job}} endpoint"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "AI Advice Request Rate",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum by (job) (rate(http_requests_total{path=~\".*ai-agronomist.*|.*phase9.*|.*phase10.*\"}[5m]))", "legendFormat": "{{job}}"},
+        {"expr": "sum(rate(sahool_ai_advice_requests_total[5m]))", "legendFormat": "ai advice"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Outbox Backlog / Failures",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(sahool_outbox_pending_total)", "legendFormat": "pending"},
+        {"expr": "sum(rate(sahool_outbox_failed_total[5m]))", "legendFormat": "failed/sec"}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Cache / Dependency Degradation",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"expr": "sum(rate(sahool_dependency_degraded_total[5m])) by (dependency)", "legendFormat": "{{dependency}}"},
+        {"expr": "sum(rate(sahool_cache_miss_total[5m])) by (job)", "legendFormat": "cache miss {{job}}"}
+      ]
+    }
+  ]
+}

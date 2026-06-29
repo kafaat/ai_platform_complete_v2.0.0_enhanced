@@ -25,7 +25,10 @@
         "./src/*"
       ]
     },
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "types": [
+      "vitest/globals"
+    ]
   },
   "include": [
     "src"

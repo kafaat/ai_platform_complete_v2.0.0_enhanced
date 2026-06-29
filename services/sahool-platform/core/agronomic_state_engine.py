@@ -77,6 +77,7 @@ class CropContext:
     crop_id: str | None = None
     days_after_planting: int | None = None
     ndvi_series: list | None = None  # [(day_of_year, ndvi), ...] لمرحلة النمو
+    et0_mm: float | None = None  # Bundle D: ET0 المرجعيّ (mm) لحقن ETc الكنسيّ = Kc·ET0
     star_id: str | None = None  # نوء حالي (التقويم النجمي)
     location_zone: str | None = None  # الإقليم المناخي (المكان)
     variety_id: str | None = None  # صنف (يُعدّل عتبات الملوحة/الجفاف)
@@ -474,6 +475,21 @@ def _wire_phenology_and_calendar(state, truths, ctx, prov):
                 truths["fao56_stage"] = stage.value if hasattr(stage, "value") else str(stage)
                 truths["water_fingerprint_source"] = "FAO-56"
                 prov.append({"source": "fao56_kc", "contributes_to": "water_demand"})
+                # Bundle D (D1): ETc الكنسيّ = Kc·ET0 عند توفّر إشارة ET0 — **إضافة صرفة**
+                # (لا تمسّ effective_status/التحكيم/الصلاحيّة). يجعل الحالة القانونيّة تحمل
+                # ET0/ETc الموحّدين بدل إعادة حسابهما في كلّ نقطة. صدق: غياب ET0 ⇒ لا etc
+                # (الحقل غائب، لا اختلاق). ET0 يُمرَّر عبر CropContext.et0_mm من إسقاط الحالة.
+                if ctx.et0_mm is not None:
+                    et0v = float(ctx.et0_mm)
+                    etc = max(0.0, kc * et0v)
+                    truths["et0_mm"] = round(et0v, 2)
+                    truths["etc_mm"] = round(etc, 2)
+                    truths["etc_demand_class"] = (
+                        "high" if etc > 8.0 else "medium" if etc > 4.0 else "low"
+                    )
+                    prov.append(
+                        {"source": "fao56_etc", "contributes_to": "etc_mm", "formula": "Kc·ET0"}
+                    )
             else:
                 state.missing_signals.append(f"kc_profile ({ctx.crop_id}): لا بطاقة/Kc")
         except Exception as e:  # noqa: BLE001 — صدق: نُعلن لا نخترع Kc

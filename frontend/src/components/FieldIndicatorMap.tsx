@@ -17,11 +17,9 @@ import { MapContainer, TileLayer, Polygon, FeatureGroup, useMap } from 'react-le
 import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet + أداة الرسم (side-effect) — حاسم للتصيير
-import { rasterApi } from '../services/api';
+import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi } from '../services/api';
+import { getTenantId } from '../lib/authStorage';
 import { areaSqMeters, lengthMeters } from '../lib/geo';
-
-// قاعدة خدمة الراستر (نفس الأساس المستخدم في useIndicatorGrid / VITE_RASTER_BASE_URL)
-const RASTER = (rasterApi.defaults.baseURL || '').replace(/\/+$/, '');
 
 // روابط خرائط الأساس (نفس AddFieldWithMap.tsx)
 const BASEMAP_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -35,6 +33,13 @@ export interface TileJSON {
   minzoom?: number;
   maxzoom?: number;
   center?: [number, number, number] | [number, number];
+  available?: boolean;
+  note?: string | null;
+  reason?: string | null;
+  user_message?: string | null;
+  legend?: { index: string; vmin: number; vmax: number; invert?: boolean; palette?: string; nodata_alpha?: number };
+  resolved_date?: string | null;
+  cache_version?: string | number | null;
 }
 
 // حدود الحقل كـ [lat, lng] لكل رأس (مناسبة مباشرة لـ Leaflet Polygon)
@@ -54,13 +59,11 @@ export interface FieldIndicatorMapProps {
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). افتراضيّاً off
   // فلا يتأثّر أيّ مستهلك حاليّ (توافق خلفيّ — الزرّ يظهر فقط حين tools=true).
   tools?: boolean;
-  // مقطع مسار البلاطة: 'tiles' (COG محلّي) أو 'cdse-tiles' (Sentinel Hub حيّ)
+  // مقطع مسار البلاطة (توحيد main↔cert): 'tiles' (COG محلّي، افتراضيّ) أو 'cdse-tiles'
+  // (Sentinel Hub حيّ مع قصّ المضلّع). bbox/geometry تُمرَّر لبلاطات cdse-tiles للقصّ.
   tileSegment?: string;
-  // bbox الحقل [west, south, east, north] — يُضاف كـparam للبلاطات (يُغني عن استعلام DB)
   fieldBbox?: [number, number, number, number];
-  // هندسة الحقل (GeoJSON) — تُمرَّر لبلاطات cdse-tiles لقصّ Sentinel Hub على المضلّع
-  // (وإلّا تُصيَّر الصحراء خارج الحقل ملوّنةً بدل شفّافة).
-  fieldGeometry?: object;
+  fieldGeometry?: { type?: string; coordinates?: unknown } | null;
 }
 
 // ── أدوات القياس (overlay) ──────────────────────────────────────────
@@ -211,30 +214,6 @@ function MeasureTools() {
   );
 }
 
-// رابط قالب بلاطات المؤشر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet.
-function indicatorTileUrl(
-  fieldId: string, index: string, date: string,
-  segment = 'tiles',
-  fieldBbox?: [number, number, number, number],
-  fieldGeometry?: object,
-): string {
-  // لا نُملي تاريخاً من الواجهة: فارغ/'latest' ⇒ نحذف المُعامل فيختار الخادم أحدث مشهد.
-  let qs = `index=${encodeURIComponent(index)}`;
-  if (date && date !== 'latest') {
-    qs += `&date=${encodeURIComponent(date)}`;
-  }
-  if (fieldBbox) {
-    qs += `&bbox_w=${fieldBbox[0]}&bbox_s=${fieldBbox[1]}&bbox_e=${fieldBbox[2]}&bbox_n=${fieldBbox[3]}`;
-  }
-  // بلاطات CDSE: مرّر هندسة الحقل ليقصّ Sentinel Hub على المضلّع (شفّاف خارجه)
-  // بدل تصيير مستطيل الـbbox كلّه (الصحراء حمراء). bbox يبقى لحساب الإطار/التقاطع.
-  if (segment === 'cdse-tiles' && fieldGeometry) {
-    qs += `&geom=${encodeURIComponent(JSON.stringify(fieldGeometry))}`;
-  }
-  // eslint-disable-next-line no-template-curly-in-string
-  return `${RASTER}/v1/fields/${fieldId}/${segment}/{z}/{x}/{y}.png?${qs}`;
-}
-
 // مكوّن داخلي: يضبط إطار الخريطة على الحدود المتاحة (مضلع → TileJSON → fallback)
 function FitBounds({
   polygon,
@@ -280,28 +259,60 @@ export default function FieldIndicatorMap({
 }: FieldIndicatorMapProps) {
   const [opacity, setOpacity] = useState(initialOpacity);
   const [tileBounds, setTileBounds] = useState<[number, number, number, number] | undefined>();
+  const [tileAvailable, setTileAvailable] = useState<boolean | null>(null);
+  const [legend, setLegend] = useState<TileJSON['legend'] | undefined>();
+  const [tileUnavailableMessage, setTileUnavailableMessage] = useState<string | null>(null);
+  const [tileCacheVersion, setTileCacheVersion] = useState<string | number | null>(null);
 
   const baseUrl = basemap === 'satellite' ? BASEMAP_SAT : BASEMAP_LIGHT;
-  const tilesUrl = indicatorTileUrl(fieldId, index, date, tileSegment, fieldBbox, fieldGeometry);
-  // TileJSON endpoint: cdse-tiles → cdse-tilejson ، tiles → tilejson
-  const tilejsonPath = tileSegment === 'cdse-tiles' ? 'cdse-tilejson' : 'tilejson';
+  // البلاطات تُحمَّل كصور Leaflet، لذلك لا تمر عبر Axios ولا تحمل X-Tenant-ID.
+  // نمرّر tid في الاستعلام كما يفعل HubMap/HubMapGL حتى يعمل العزل بعد تشديده.
+  const tenantId = getTenantId();
+  const normalizedIndex = normalizeIndicatorIndex(index);
+  // توحيد main↔cert: بلاطات CDSE الحيّة (قصّ poly) عند tileSegment='cdse-tiles'، وإلّا COG محلّي.
+  const tilesUrl = tileSegment === 'cdse-tiles'
+    ? fieldCdseTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion, fieldGeometry, fieldBbox)
+    : fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion);
 
   // جلب TileJSON لضبط الإطار حين لا يتوفّر مضلع (اختياري — الفشل غير حرج)
   useEffect(() => {
     let cancelled = false;
     setTileBounds(undefined);
+    setTileAvailable(null);
+    setLegend(undefined);
+    setTileUnavailableMessage(null);
+    setTileCacheVersion(null);
     rasterApi
-      .get<TileJSON>(`/v1/fields/${fieldId}/${tilejsonPath}`, { params: { index, date } })
+      // عقد التاريخ (متابعة D): لا نمرّر date في طلب TileJSON حين latest/فارغ (backend يعامله كأحدث).
+      .get<TileJSON>(`/v1/fields/${fieldId}/tilejson`, { params: { index: normalizedIndex, ...(date && date !== 'latest' ? { date } : {}), ...(tenantId ? { tid: tenantId } : {}) } })
       .then((r) => {
         if (cancelled) return;
+        // raster-service يُرجع available=false وحدوداً عالمية محايدة عند غياب COG.
+        // لا نستخدم هذه الحدود لضبط الخريطة، ولا نركّب TileLayer حتى لا يطلب
+        // المتصفح بلاطات شفافة لتاريخ/مؤشر غير متاح وكأنها بيانات حقيقية.
+        if (r.data?.available === false) {
+          setTileAvailable(false);
+          setTileUnavailableMessage(r.data?.user_message || r.data?.note || r.data?.reason || null);
+          return;
+        }
+        setTileAvailable(true);
+        setLegend(r.data?.legend);
+        setTileCacheVersion(r.data?.cache_version ?? r.data?.resolved_date ?? null);
         const b = r.data?.bounds;
         if (Array.isArray(b) && b.length === 4) {
           setTileBounds([b[0], b[1], b[2], b[3]]);
         }
       })
-      .catch(() => { /* TileJSON غير متاح — نعتمد على المضلع/الإطار الاحتياطي */ });
+      .catch(() => {
+        // TileJSON غير متاح — نعتمد على المضلع/الإطار الاحتياطي، ولا نعرض طبقة مؤشّر
+        // حتى لا يحدث خلط بين "لا بيانات" و"طبقة شفافة".
+        if (!cancelled) {
+          setTileAvailable(false);
+          setTileUnavailableMessage('تعذر التحقق من توفر طبقة المؤشر. راجع اتصال خدمة الراستر أو اختر تاريخاً آخر.');
+        }
+      });
     return () => { cancelled = true; };
-  }, [fieldId, index, date, tilejsonPath]);
+  }, [fieldId, normalizedIndex, date, tenantId]);
 
   // مركز افتراضي قبل ضبط fitBounds
   const center: [number, number] = fieldPolygon && fieldPolygon.length
@@ -326,14 +337,17 @@ export default function FieldIndicatorMap({
             : '&copy; <a href="https://carto.com/">CARTO</a>'}
         />
 
-        {/* طبقة بلاطات المؤشر (شفّافة خارج الحقل) — {z}/{x}/{y} حرفيّ */}
-        <TileLayer
-          key={`${fieldId}-${index}-${date}`}
-          url={tilesUrl}
-          opacity={opacity}
-          // المؤشر مقصوص بالفعل على الحقل من الـ backend؛ نتجنّب أخطاء 404 صاخبة
-          errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
-        />
+        {/* طبقة بلاطات المؤشر (شفّافة خارج الحقل) — {z}/{x}/{y} حرفيّ.
+            لا تُركّب عند available=false كي لا يبدو غياب COG كتراكب صحيح. */}
+        {tileAvailable === true && (
+          <TileLayer
+            key={`${fieldId}-${normalizedIndex}-${date}-${tileCacheVersion ?? 'default'}`}
+            url={tilesUrl}
+            opacity={opacity}
+            // المؤشر مقصوص بالفعل على الحقل من الـ backend؛ نتجنّب أخطاء 404 صاخبة
+            errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="
+          />
+        )}
 
         {/* حدود الحقل إن توفّرت */}
         {fieldPolygon && fieldPolygon.length >= 3 && (
@@ -348,6 +362,64 @@ export default function FieldIndicatorMap({
 
         <FitBounds polygon={fieldPolygon} tileBounds={tileBounds} fallbackBounds={fallbackBounds} />
       </MapContainer>
+
+      {tileAvailable === false && (
+        <div
+          dir="rtl"
+          style={{
+            position: 'absolute', top: 12, right: 12, zIndex: 1000,
+            background: 'rgba(13,22,17,.88)', borderRadius: 10, padding: '8px 12px',
+            fontSize: 12, color: '#fcd34d', border: '1px solid #5c4a1f',
+            backdropFilter: 'blur(6px)', maxWidth: 280,
+          }}
+        >
+          <strong>{normalizedIndex.toUpperCase()}</strong>: {tileUnavailableMessage || 'لا توجد طبقة متاحة لهذا التاريخ. اختر تاريخاً آخر أو شغّل معالجة الصور.'}
+        </div>
+      )}
+
+      {tileAvailable === true && legend && (
+        <div
+          dir="rtl"
+          style={{
+            position: 'absolute', top: 12, left: 12, zIndex: 1000,
+            background: 'rgba(13,22,17,.88)', borderRadius: 10, padding: '8px 12px',
+            fontSize: 12, color: '#cdddd2', border: '1px solid #2d4a37',
+            backdropFilter: 'blur(6px)', minWidth: 190,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+            <strong style={{ color: '#e2e8f0' }}>{legend.index.toUpperCase()}</strong>
+            <span style={{ color: '#9fb3a6' }}>{legend.palette || 'RdYlGn'}</span>
+          </div>
+          <div
+            aria-label={`legend ${legend.index}`}
+            style={{
+              height: 10, borderRadius: 999, border: '1px solid rgba(255,255,255,.2)',
+              background: legend.invert
+                ? 'linear-gradient(90deg, #1a9850, #d9ef8b, #fee08b, #f46d43, #a50026)'
+                : 'linear-gradient(90deg, #a50026, #f46d43, #fee08b, #d9ef8b, #1a9850)',
+            }}
+          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, color: '#9fb3a6' }}>
+            <span>{legend.vmin}</span>
+            <span>{legend.vmax}</span>
+          </div>
+        </div>
+      )}
+
+
+      <div
+        dir="rtl"
+        aria-label="indicator availability status"
+        style={{
+          position: 'absolute', bottom: 12, left: 12, zIndex: 1000,
+          background: tileAvailable === true ? 'rgba(20,83,45,.88)' : tileAvailable === false ? 'rgba(92,64,18,.88)' : 'rgba(15,23,42,.82)',
+          borderRadius: 10, padding: '7px 10px', fontSize: 12, color: '#e2e8f0',
+          border: '1px solid rgba(255,255,255,.18)', backdropFilter: 'blur(6px)',
+        }}
+      >
+        {tileAvailable === true ? `متاح: ${normalizedIndex.toUpperCase()}` : tileAvailable === false ? `غير متاح: ${normalizedIndex.toUpperCase()}` : `جاري التحقق: ${normalizedIndex.toUpperCase()}`}
+      </div>
 
       {/* شريط التحكّم بالشفافية */}
       <div

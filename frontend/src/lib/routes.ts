@@ -91,6 +91,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'scouting',           path: '/health/scouting',  label: 'دليل الاستكشاف', icon: Bug, maturity: 'stable' },
       { id: 'pest-escalation',    path: '/health/pest',      label: 'تصعيد الآفة', icon: Bug, maturity: 'beta' },
       { id: 'prescriptions',      path: '/health/prescriptions', label: 'منشئ الوصفات (يدويّ)', icon: SlidersHorizontal, maturity: 'alpha' },
+      { id: 'lab-sampling',      path: '/health/lab-sampling', label: 'عينات وتحاليل التربة والمياه', icon: FlaskConical, maturity: 'stable' },
       { id: 'field-intelligence', path: '/health/maestro',   label: 'المايسترو', icon: Activity, maturity: 'beta' },
     ],
   },
@@ -99,6 +100,8 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'irrigation',        path: '/irrigation',          label: 'تحليل ماء الريّ', icon: Droplets, maturity: 'stable' },
       { id: 'irrigation-plan',   path: '/irrigation/plan',     label: 'خطّة الريّ المتنبّأ', icon: CalendarRange, maturity: 'beta' },
+      { id: 'water-twin',        path: '/irrigation/water-twin', label: 'توأم المياه', icon: Droplets, maturity: 'alpha' },
+      { id: 'etc-dual',          path: '/irrigation/etc-dual', label: 'ETc المزدوج (FAO-56)', icon: Droplets, maturity: 'alpha' },
       { id: 'irrigation-ops',    path: '/irrigation/ops',      label: 'الري التشغيلي', icon: Waypoints, maturity: 'beta' },
       { id: 'irrigation-network', path: '/irrigation/network', label: 'توأم شبكة الريّ', icon: Share2, maturity: 'beta' },
       { id: 'portfolio',         path: '/irrigation/portfolio', label: 'توزيع ماء المزرعة', icon: Layers, maturity: 'beta' },

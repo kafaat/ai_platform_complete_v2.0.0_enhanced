@@ -57,7 +57,34 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
         "background automation worker (fail-closed under sahool_app)"
     ),
     "services/actuator-service/main.py::automation_rules": "background scene-linkage worker",
+    # توحيد main↔cert: soil مُفكَّكة (main #570) فالمفتاح بمسار routers؛ نُبقي مفتاح cert
+    # القديم (services/soil-service/main.py::soil_readings) لأنّه غير ضارّ (مسار غير موجود).
+    "services/soil-service/routers/readings.py::soil_readings": "soil ingestion service (sensor-scoped); handler moved to routers/ in router decomposition",
+    # جسر القرار→التنفيذ (Shard 3، default-OFF): مُستهلِك خلفيّ يطالب الطابور ذرّيّاً
+    # (FOR UPDATE SKIP LOCKED) ويُنهيه بـdecision_id. لا تسرّب فيزيائيّ عابر للمستأجرين:
+    # _device_belongs_to_tenant يحرس النشر (fail-closed) فلا أمر إلّا لجهاز مستأجِر القرار.
+    "services/actuator-service/main.py::dispatch_decisions": (
+        "background dispatch consumer (default-OFF); device-ownership guard fail-closes cross-tenant actuation"
+    ),
     "services/soil-service/main.py::soil_readings": "soil ingestion service (sensor-scoped)",
+    # عمّال/مخزن runtime للمراحل 9-12: يضبطون app.current_tenant + app.tenant_id
+    # transaction-locally (set_config) قبل كلّ كتابة خام ⇒ تخضع لـRLS فعليّاً (لا تجاوز).
+    # outbox/dispatch مسارات خلفيّة موسومة بالمستأجِر؛ لا تسرّب فيزيائيّ عابر.
+    "services/sahool-platform/api/phase_runtime_store.py::marketplace_installations": (
+        "phase runtime store: sets app.current_tenant/app.tenant_id tx-locally before write (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::runtime_event_outbox": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped outbox)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::marketplace_plugin_runtime_events": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::model_rollback_history_runtime": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::iot_command_dispatch": (
+        "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped dispatch)"
+    ),
 }
 ALLOWLIST: set[str] = set(_ALLOWLIST_JUSTIFIED)
 
@@ -121,7 +148,7 @@ def audit() -> list[dict]:
             if path.name.startswith("test_") or "tests" in path.parts:
                 continue
             lines = path.read_text(encoding="utf-8").splitlines()
-            rel = str(path.relative_to(ROOT))
+            rel = str(path.relative_to(ROOT)).replace("\\", "/")
             for i, line in enumerate(lines):
                 if not _CALL.search(line):
                     continue

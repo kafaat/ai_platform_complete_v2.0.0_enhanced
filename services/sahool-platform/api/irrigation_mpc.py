@@ -125,6 +125,9 @@ def plan_irrigation(
     budget_exhausted = False
 
     for i, day in enumerate(forecast):
+        # H5: الملوحة مُطفأة افتراضيّاً هنا — ETc = ET0·Kc بلا Ks ملحيّ ولا غسيل
+        # (قرار المستخدم: بلا ملوحة افتراضيّاً). تُعاد عند الحاجة عبر water_balance
+        # بـ apply_salinity=True، أو عبر fao56.compute_irrigation للمسار الكامل.
         etc = day.et0_mm * day.kc
         eff_rain = _effective_rain(day.rain_mm)
         dr_raw = dr - (eff_rain - day.runoff_mm) + etc

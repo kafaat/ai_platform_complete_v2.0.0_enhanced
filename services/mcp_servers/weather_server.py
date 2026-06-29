@@ -186,6 +186,17 @@ async def _execute(name: str, args: dict) -> dict:
         req = ET0Request(**args)
         import math
 
+        # ── مصدر الحقيقة الكنسيّ لـET0/Hargreaves (FAO-56) ──────────────────
+        # المصدر الموحّد: services/sahool-platform/core/engines/et0.py
+        #   (hargreaves_et0, hargreaves_et0_geo, extraterrestrial_radiation_*,
+        #    DEFAULT_RA_MM=15.0).
+        # ما يلي نسخة حرفيّة مُتطابقة عمداً، وليست تباعداً. سبب عدم الاستيراد
+        # من المصدر الكنسيّ: عزل الخدمة المقصود — هذا الـMCP server بوّابة
+        # FastAPI مستقلّة تستورد من shared/ فقط ولا تصل إلى core/. التوحيد
+        # الكامل يتطلّب نقل core→shared (مؤجَّل بقرار، خارج النطاق).
+        # ⚠ أيّ تعديل على صيغة Ra أو Hargreaves أدناه يجب أن يُزامَن مع
+        #   المصدر الكنسيّ (H4) للحفاظ على تطابق الناتج.
+        # ────────────────────────────────────────────────────────────────────
         # حارس: t_min>t_max ⇒ t_range سالب ⇒ sqrt يرمي ValueError/500. نرفض بـ400.
         if req.t_min > req.t_max:
             raise HTTPException(status_code=400, detail="t_min يجب ألّا يتجاوز t_max")

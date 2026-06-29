@@ -1,0 +1,81 @@
+# عقد نشر أحداث NATS (Event Publish Contracts) — إغلاق فجوة H2
+# ============================================================
+# يربط كلّ **موضوع NATS مُستهلَك** بمنتِجه (producer) عبر outbox، أو يوسمه
+# **موضوعاً محجوزاً للمستقبل** (waiver) بسبب صريح. يفرضه الحارس
+# ``tools/sahool_inspector.py: check_nats_publisher_coverage`` (واختبار
+# ``tests_v9/test_nats_publisher_coverage.py``): أيّ موضوع يُستهلَك في الكود ولا
+# يظهر هنا بمنتِجٍ موثَّق أو ``reserved_future_subject`` ⇒ **يفشل CI**
+# («مُستهلَك بلا منتِج»). صدق: لا اختلاق ناشر، ولا تقليم اشتراك — توثيق القرار.
+#
+# الموضوعات المُستهلَكة المرجعيّة: ``agents/notification/agent.py: SUBSCRIPTIONS``.
+
+subjects:
+  # ── موضوعات لها منتِج حقيقيّ عبر outbox ──
+  - subject: "sahool.tenant.*.satellite.*.computed"
+    consumer: "notification-agent (notif_satellite)"
+    producer: "vegetation-analysis-service"
+    source: "services/vegetation-analysis-service/main.py — يَنشُر عند حساب مؤشّرات Sentinel"
+    schema_version: 1
+
+  - subject: "sahool.events.>"
+    consumer: "notification-agent (notif_domain_events)"
+    producer: "sahool-platform OutboxWorker"
+    source: "services/sahool-platform/api/event_bus.py — emit_event() ⇒ event_outbox ⇒ ترحيل JetStream"
+    source_table: "event_outbox"
+    schema_version: 1
+
+  # ── موضوعات توجيه دقيق محجوزة للمستقبل (waiver، قرار معماريّ) ──
+  # الأحداث الفعليّة تتدفّق الآن عبر التيّار العامّ ``sahool.events.<type>`` أعلاه
+  # (المُستهلَك بـ notif_domain_events). هذه الموضوعات الدقيقة محجوزة لتوجيه أدقّ
+  # مستقبلاً عبر outbox عند الحاجة — لا ناشر مباشر لها بعد (لا نختلق منتِجاً).
+  - subject: "sahool.alerts.weather"
+    consumer: "notification-agent (notif_weather)"
+    reserved_future_subject: true
+    reason: "توجيه دقيق محجوز؛ تنبيهات الطقس تصل حاليّاً عبر sahool.events.alert.created."
+  - subject: "sahool.pest.alert"
+    consumer: "notification-agent (notif_pest)"
+    reserved_future_subject: true
+    reason: "توجيه دقيق محجوز؛ تنبيهات الآفات عبر sahool.events.alert.created حاليّاً."
+  - subject: "sahool.irrigation.recommendation"
+    consumer: "notification-agent (notif_irrigation)"
+    reserved_future_subject: true
+    reason: "توجيه دقيق محجوز؛ توصيات الريّ عبر sahool.events.recommendation.created (انظر H5)."
+  - subject: "sahool.fertilizer.recommendation"
+    consumer: "notification-agent (notif_fertilizer)"
+    reserved_future_subject: true
+    reason: "توجيه دقيق محجوز؛ توصيات التسميد عبر sahool.events.recommendation.created حاليّاً."
+  - subject: "sahool.inventory.low_stock"
+    consumer: "notification-agent (notif_stock)"
+    reserved_future_subject: true
+    reason: "توجيه دقيق محجوز؛ تنبيهات المخزون عبر sahool.events.* عند بناء مصدر المخزون."
+  - subject: "sahool.task.assigned"
+    consumer: "notification-agent (notif_task)"
+    reserved_future_subject: true
+    reason: "توجيه دقيق محجوز؛ إسناد المهامّ عبر sahool.events.work_order.created حاليّاً."
+  - subject: "sahool.economic.analysis"
+    consumer: "notification-agent (notif_economic)"
+    reserved_future_subject: true
+    reason: "توجيه دقيق محجوز؛ التحليل الاقتصاديّ عبر sahool.events.* عند بناء مصدره."
+
+  # ── موضوع شبكة الطقس: مُنتِجه سقالة خلف راية (OFF افتراضاً) ──
+  - subject: "sahool.weather.forecast.updated"
+    consumer: "weather-polygon-worker (polygon-worker)"
+    reserved_future_subject: true
+    reason: >-
+      منتِجه سقالة خلف راية WEATHER_GRID_PIPELINE_ENABLED (OFF افتراضاً) —
+      services/weather-polygon-worker/src/main.py. يصير منتِجاً فعليّاً عند تفعيل الراية.
+
+# ════════════════════════════════════════════════════════════════════
+# موضوعات منشورة بلا مشترِك بعد (اتّجاه معاكس — waiver لإنذار «حدث طريق مسدود»)
+# ════════════════════════════════════════════════════════════════════
+# يربط كلّ **موضوع NATS مُنشَر** بلا مشترِك حاليّ بمنتِجه الفعليّ + سبب صريح. يحترمه
+# ``tools/sahool_inspector.py: check_nats_subjects`` فلا يُصدِر WARN «موضوع منشور بلا
+# مشترِك» لهذه الموضوعات الموثَّقة. صدق: المنتِج حقيقيّ في الكود؛ المستهلِك مستقبليّ
+# موثَّق — لا نختلق مشترِكاً ولا نحذف نشراً قائماً. أيّ موضوع منشور غير موثَّق هنا ⇒ WARN.
+published_no_consumer:
+  - subject: "sahool.weather.field.overlay.completed"
+    producer: "weather-polygon-worker (polygon-worker)"
+    source: "services/weather-polygon-worker/src/main.py:161 — يَنشُر عند اكتمال overlay المضلّع"
+    reason: >-
+      مخرَج خطّ أنابيب الطقس خلف راية WEATHER_GRID_PIPELINE_ENABLED (OFF افتراضاً)؛
+      مستهلِكه (دمج التراكب/الإشارة في المنصّة) محجوز للمستقبل — لا نختلق مشترِكاً.

@@ -1,0 +1,13 @@
+import { chromium } from '@playwright/test';
+const browser = await chromium.launch({ executablePath: '/usr/bin/chromium', headless: true, args:['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--disable-gpu'] });
+const page = await browser.newPage();
+const failed=[];
+page.on('requestfailed', r => failed.push(`${r.url()} ${r.failure()?.errorText}`));
+const response = await page.goto('http://127.0.0.1:4173/', { waitUntil: 'commit', timeout: 10000 });
+await page.waitForTimeout(5000);
+console.log('status', response?.status());
+console.log('title', await page.title());
+const text = await page.locator('body').innerText({ timeout: 5000 }).catch(e=>'');
+console.log('body', text.slice(0,500));
+console.log('failed', failed.slice(0,10));
+await browser.close();

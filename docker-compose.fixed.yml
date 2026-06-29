@@ -25,6 +25,19 @@
 # ═══════════════════════════════════════════════════════════════════
 
 services:
+
+  raster-tiler-service:
+    build: ./services/raster-tiler-service
+    environment:
+      - PORT=8088
+    ports:
+      - "127.0.0.1:8088:8088"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
   # ═══════════════════════════════════════════════════════════════
   # 1. REVERSE PROXY (Nginx)
   # ═══════════════════════════════════════════════════════════════
@@ -331,7 +344,8 @@ services:
       dockerfile: services/supervisor-agent/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
@@ -374,7 +388,8 @@ services:
       SAHOOL_JWT_SECRET: ${JWT_SECRET}
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
       JWT_SECRET: ${JWT_SECRET}
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط (انظر بقيّة الخدمات): fixed.yml لا يُنشئ sahool_app ⇒ نُعطّل
       # حارس FINDING-001 صراحةً. الإنتاج v9.yml يستعمل sahool_app ⇒ يبقى مُفعَّلاً.
       SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
@@ -425,7 +440,8 @@ services:
       dockerfile: services/guardrails-engine/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
@@ -510,7 +526,8 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
@@ -593,7 +610,8 @@ services:
       dockerfile: services/indicators-service/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
@@ -651,7 +669,8 @@ services:
       dockerfile: services/actuator-service/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
@@ -785,20 +804,23 @@ services:
       dockerfile: services/odoo-bridge/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
       SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
+      ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
+      ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
+      ERPNEXT_API_SECRET: ${ERPNEXT_API_SECRET:-}
       ODOO_URL: ${ODOO_URL:-http://sahool-odoo:8069}
       ODOO_DB: ${ODOO_DB:-sahool_erp}  # قاعدة Odoo المنفصلة (لا قاعدة المنصّة sahool)
       ODOO_USER: ${ODOO_USER:-admin}
-      ODOO_PASSWORD: ${ODOO_PASSWORD:?ODOO_PASSWORD required}
+      ODOO_PASSWORD: ${ODOO_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-postgres:
-        condition: service_healthy
-      sahool-odoo:
         condition: service_healthy
     networks:
       - sahool-internal
@@ -869,7 +891,8 @@ services:
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN required}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET required}
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
@@ -909,7 +932,8 @@ services:
       dockerfile: agents/notification/Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL}
+      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
       # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.

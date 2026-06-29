@@ -35,4 +35,5 @@ async def readyz():
             await conn.fetchval("SELECT 1")
         return {"status": "ready", "redis": main._redis is not None}
     except Exception as e:
-        raise HTTPException(503, f"DB not ready: {e}") from e
+        # لا نُسرّب تفاصيل الاتصال/المضيف/المستخدم من استثناء asyncpg في readyz العام.
+        raise HTTPException(503, "DB not ready") from e

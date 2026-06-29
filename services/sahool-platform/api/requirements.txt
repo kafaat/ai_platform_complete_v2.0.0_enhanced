@@ -22,4 +22,4 @@ redis==5.3.1  # denylist (إبطال JWT) — مشترك مع خدمة auth (sah
 pyotp==2.9.0  # TOTP (RFC 6238) — تحقّق MFA لمنح break-glass (نفس آليّة خدمة auth، قاعدة users مشتركة)
 anthropic>=0.69,<1.0  # مساعد NL→SQL (api/routers/nl_sql.py) — استدعاء Claude خادميّاً، المفتاح لا يصل المتصفّح
 pyshp==2.3.1  # تصدير الوصفة لـShapefile (api/prescription_shapefile.py) — نقيّ-Python، بلا GDAL
-asyncpg==0.30.0  # async PostgreSQL driver — DB pool للمنصّة (event_bus/command_store/sharing/…)
+asyncpg>=0.30.0,<0.32.0  # بركة اتصالات PostgreSQL غير متزامنة (api/main.py → create_pool)

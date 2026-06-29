@@ -11,10 +11,27 @@ raster-service يُرجِع حالة الوظائف عبر `/jobs/{id}/result` �
 
 from __future__ import annotations
 
+import glob
 import re
 from pathlib import Path
 
-_MAIN = Path(__file__).resolve().parent / "main.py"
+_MAIN_PATH = Path(__file__).resolve().parent / "main.py"
+
+
+class _CombinedSource:
+    """توحيد main↔cert: المسارات فُكِّكت من main.py إلى routers/. ``read_text()`` يُرجِع
+    المصدرَ المُجمَّع (main.py + routers/*.py) كي يبقى فحص تعقيم الأخطاء شاملاً المعالِجات."""
+
+    def read_text(self, *a, **k) -> str:
+        rdir = _MAIN_PATH.parent / "routers"
+        parts = [_MAIN_PATH.read_text(encoding="utf-8")]
+        parts += [
+            Path(p).read_text(encoding="utf-8") for p in sorted(glob.glob(str(rdir / "*.py")))
+        ]
+        return "\n".join(parts)
+
+
+_MAIN = _CombinedSource()
 
 
 def test_no_str_exception_in_client_error_fields():

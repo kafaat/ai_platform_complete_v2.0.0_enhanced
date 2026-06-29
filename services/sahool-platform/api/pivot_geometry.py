@@ -23,13 +23,29 @@ class PivotSpec:
     vertices: int = 96
 
 
-def _meters_to_degrees(
-    lon: float, lat: float, east_m: float, north_m: float
+def _destination_point(
+    lon: float, lat: float, distance_m: float, bearing_rad: float
 ) -> tuple[float, float]:
-    lat_deg = north_m / 111_320.0
-    lon_scale = max(0.15, math.cos(math.radians(lat)))
-    lon_deg = east_m / (111_320.0 * lon_scale)
-    return lon + lon_deg, lat + lat_deg
+    """Geodesic destination point on WGS84 sphere.
+
+    Pivot fields are physically defined by center + radius in meters.  A degree-per-meter
+    approximation creates visible drift for large pivots and near non-equatorial latitudes,
+    and can disagree with the frontend geodesic preview.  Keep the backend canonical polygon
+    geodesic too so save/reload does not shift the drawn circle.
+    """
+    radius_earth_m = 6_378_137.0
+    lat1 = math.radians(lat)
+    lon1 = math.radians(lon)
+    angular = distance_m / radius_earth_m
+    lat2 = math.asin(
+        math.sin(lat1) * math.cos(angular)
+        + math.cos(lat1) * math.sin(angular) * math.cos(bearing_rad)
+    )
+    lon2 = lon1 + math.atan2(
+        math.sin(bearing_rad) * math.sin(angular) * math.cos(lat1),
+        math.cos(angular) - math.sin(lat1) * math.sin(lat2),
+    )
+    return math.degrees(lon2), math.degrees(lat2)
 
 
 def generate_pivot_polygon(spec: PivotSpec) -> dict[str, Any]:
@@ -49,9 +65,8 @@ def generate_pivot_polygon(spec: PivotSpec) -> dict[str, Any]:
         pts.append([round(spec.center_lon, 7), round(spec.center_lat, 7)])
     for i in range(steps + 1):
         angle = math.radians(start + sweep * i / steps)
-        east = spec.radius_m * math.sin(angle)
-        north = spec.radius_m * math.cos(angle)
-        lon, lat = _meters_to_degrees(spec.center_lon, spec.center_lat, east, north)
+        # 0° = north, 90° = east, matching the frontend pivot drawing tool.
+        lon, lat = _destination_point(spec.center_lon, spec.center_lat, spec.radius_m, angle)
         pts.append([round(lon, 7), round(lat, 7)])
     if pts[0] != pts[-1]:
         pts.append(list(pts[0]))

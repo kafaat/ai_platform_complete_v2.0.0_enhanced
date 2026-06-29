@@ -5,7 +5,7 @@
 // التنبيهات الاستباقيّة + أثر المحاكاة. صدق: المصادر المتعذّرة تُعلَن (لا اختراع).
 // ════════════════════════════════════════════════════════════
 import { useState } from 'react';
-import { Activity, Search, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
+import { Activity, Search, ChevronDown, ChevronUp, AlertTriangle, Map, FlaskConical, ListChecks, Bot } from 'lucide-react';
 import { useFieldIntelligence } from '../hooks/useApi';
 import { ErrorState } from '../components/StateViews';
 
@@ -19,6 +19,16 @@ function asText(v: unknown): string {
 const CONF_AR: Record<string, string> = {
   high: 'عالية', medium: 'متوسطة', low: 'منخفضة', none: 'غير متوفّرة',
 };
+
+
+function WorkflowCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+  return (
+    <div className="rounded-xl border p-3" style={{ background: '#172033', borderColor: '#334155' }}>
+      <div className="flex items-center gap-2 text-slate-100 text-sm font-semibold mb-1">{icon}{title}</div>
+      <p className="text-xs text-slate-400 leading-6">{desc}</p>
+    </div>
+  );
+}
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -76,6 +86,8 @@ export default function FieldIntelligencePage() {
   const contradictions = (res?.contradictions ?? []) as unknown[];
   const missing = (res?.missing_signals ?? []) as unknown[];
   const alerts = (res?.alerts ?? []) as Record<string, unknown>[];
+  const dailyBrief = (res?.daily_ai_brief ?? null) as Record<string, unknown> | null;
+  const dailyActions = Array.isArray(dailyBrief?.actions) ? dailyBrief.actions as Record<string, unknown>[] : [];
 
   return (
     <div className="space-y-5 max-w-3xl mx-auto" dir="rtl">
@@ -87,6 +99,13 @@ export default function FieldIntelligencePage() {
         يدمج المصادر الحيّة (طقس/تربة/استشعار/ذاكرة الحقل) في حالة موحّدة: حقائق
         تشغيليّة + ثقة + قرار سياسة + تنبيهات. المصادر المتعذّرة تُعلَن بصدق.
       </p>
+
+      <div className="grid sm:grid-cols-4 gap-3">
+        <WorkflowCard icon={<Map className="w-4 h-4 text-emerald-400" />} title="مناطق الإنتاجية" desc="تحويل NDVI/الإنتاجية/المختبر إلى High/Medium/Low/Problem بدلاً من عرض المؤشر فقط." />
+        <WorkflowCard icon={<FlaskConical className="w-4 h-4 text-sky-400" />} title="العينات والمختبر" desc="نقاط GPS ونتائج تربة/مياه تدخل بوابة القرار ولا تُستخدم إن كانت ناقصة أو غير معتمدة." />
+        <WorkflowCard icon={<ListChecks className="w-4 h-4 text-amber-400" />} title="خرائط الوصفات" desc="القرار يتحول إلى وصفة ومهام يومية، ثم يُغلق بسجل تنفيذ وتغذية راجعة." />
+        <WorkflowCard icon={<Bot className="w-4 h-4 text-violet-400" />} title="الموجز اليومي" desc="ضغط إشارات كثيرة إلى قائمة إجراءات قابلة للتنفيذ: ري، رش، فحص، مختبر، أو تأجيل." />
+      </div>
 
       {/* Form */}
       <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
@@ -155,6 +174,38 @@ export default function FieldIntelligencePage() {
                   <p className="text-xs text-slate-400">{missing.map(asText).join('، ')}</p>
                 </div>
               )}
+            </Section>
+          )}
+
+          {/* Daily AI Brief */}
+          {dailyBrief && (
+            <Section title="موجز اليوم — AI Agronomist">
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 rounded-lg border p-3" style={{ background: '#0f172a', borderColor: '#334155' }}>
+                  <Bot className="w-4 h-4 text-violet-400 mt-0.5" />
+                  <div>
+                    <div className="text-sm font-semibold text-slate-100">{asText(dailyBrief.headline_ar) || 'لا يوجد إجراء عاجل'}</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      سياسة العرض: {asText(dailyBrief.decision_policy ?? dailyBrief.source_policy ?? 'إجراءات مبنية على إشارات متاحة فقط')}
+                    </div>
+                  </div>
+                </div>
+                {dailyActions.length > 0 && (
+                  <div className="space-y-2">
+                    {dailyActions.map((a, i) => (
+                      <div key={asText(a.action_id) || i} className="rounded-lg border p-3" style={{ background: '#172033', borderColor: '#334155' }}>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-semibold text-slate-100">{asText(a.title_ar)}</span>
+                          <span className="text-[11px] rounded-full px-2 py-1" style={{ background: '#312e81', color: '#ddd6fe' }}>
+                            {asText(a.priority)} · {asText(a.source)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 mt-2 leading-6">{asText(a.reason_ar)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </Section>
           )}
 

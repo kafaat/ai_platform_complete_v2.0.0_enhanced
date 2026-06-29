@@ -50,12 +50,16 @@ def rm():
 
     if RASTER not in sys.path:
         sys.path.insert(0, RASTER)
-    # عزل: اسم الوحدة 'main' عامّ عبر الخدمات. نُسقط المُخبّأ ونُعيد الاستيراد من مسار
-    # raster، ونتحقّق أنّه فعلاً raster (لا تصادم أسماء عبر الخدمات).
-    import importlib
-
-    sys.modules.pop("main", None)
-    raster_main = importlib.import_module("main")
+    # عزل: اسم الوحدة 'main' عامّ عبر الخدمات. نحمّل raster-service/main.py
+    # باسم فريد حتى لا يتأثر بأي main مستورد من supervisor/auth/soil في نفس عملية pytest.
+    spec = importlib.util.spec_from_file_location(
+        "sahool_raster_main_for_tenant_authz_tests",
+        os.path.join(RASTER, "main.py"),
+    )
+    assert spec is not None and spec.loader is not None
+    raster_main = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = raster_main
+    spec.loader.exec_module(raster_main)
     assert hasattr(raster_main, "_field_layers"), (
         "استُورد main خاطئ (تصادم أسماء عبر الخدمات) — ليس raster-service"
     )
@@ -74,7 +78,7 @@ def rm():
         raster_main._layers.clear()
         raster_main._field_layers.clear()
         raster_main._field_owner_cache.clear()
-        sys.modules.pop("main", None)
+        sys.modules.pop("sahool_raster_main_for_tenant_authz_tests", None)
 
 
 def _seed_field(rm, field_id: str, owner_tenant: str) -> None:

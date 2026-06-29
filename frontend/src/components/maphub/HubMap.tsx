@@ -25,8 +25,8 @@ import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import type { FieldOption } from '../../lib/fields';
 import {
-  AlertOverlay, DeviceOverlay, WeatherOverlay,
-  type AlertMarker, type DeviceMarker, type WeatherMarker,
+  AlertOverlay, DeviceOverlay, WeatherOverlay, WeatherRasterOverlay, OperationalOverlay,
+  type AlertMarker, type DeviceMarker, type WeatherMarker, type OperationalMarker,
 } from './OverlayMarkers';
 
 const YEMEN_CENTER: [number, number] = [15.0, 44.0];
@@ -63,6 +63,13 @@ export interface HubMapProps {
   alertMarkers?: AlertMarker[];
   deviceMarkers?: DeviceMarker[];
   weatherMarker?: WeatherMarker | null;
+  operationalMarkers?: OperationalMarker[];
+  // يغيّر مفتاح/رابط طبقة المؤشّر بعد معالجة Sentinel لإجبار المتصفّح/Leaflet على جلب البلاطات الجديدة.
+  imageryTs?: number;
+  // تاريخ مشهد Sentinel/CDSE المختار من الواجهة. 'latest' يبقى صريحاً فقط عند عدم اختيار تاريخ.
+  imageryDate?: string | null;
+  // يُمرَّر في رابط البلاطات لعزل الكاش/التتبّع حسب المستأجِر. لا يستخدم للقرار.
+  tenantId?: string | null;
   // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
   // لقطة عرض مُستعادة (مركز lat/lng + تكبير) تبدأ منها الخريطة وتُلغي الملاءمة
   // التلقائيّة عند أوّل تركيب. null/غياب ⇒ سلوك v1 (ملاءمة للحقول).
@@ -71,7 +78,7 @@ export interface HubMapProps {
   onViewChange?: (center: [number, number], zoom: number) => void;
 }
 
-export type { AlertMarker, DeviceMarker, WeatherMarker };
+export type { AlertMarker, DeviceMarker, WeatherMarker, OperationalMarker };
 
 // ── تنسيق عرض القياسات (نفس FieldIndicatorMap) ──────────────────
 function fmtArea(m2: number): string {
@@ -238,9 +245,11 @@ function PinClickHandler({ enabled, onAddPin }: { enabled: boolean; onAddPin: (l
 }
 
 // رابط بلاطات المؤشّر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet (مطابق api.ts).
-function indicatorTileUrl(fieldId: string, index: string): string {
-  // بلا تاريخ: الخادم يختار أحدث مشهد داخليّاً (date=Query("latest")).
-  const qs = `index=${encodeURIComponent(index)}`;
+function indicatorTileUrl(fieldId: string, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
+  const params = new URLSearchParams({ index, date: imageryDate || 'latest' });
+  if (tenantId) params.set('tid', tenantId);
+  if (imageryTs) params.set('v', String(imageryTs));
+  const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 }
@@ -256,7 +265,8 @@ const PIN_ICON = L.divIcon({
 export default function HubMap({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity,
   drawTools, pinMode, pins, onAddPin, height = 520,
-  alertMarkers = [], deviceMarkers = [], weatherMarker = null,
+  alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
+  imageryTs = 0, imageryDate = null, tenantId = null,
   initialView = null, onViewChange,
 }: HubMapProps) {
   const basemap = getLayer(basemapId);
@@ -302,10 +312,10 @@ export default function HubMap({
         {/* طبقة بلاطات المؤشّر للحقل المختار (شفّافة خارج الحقل) */}
         {indicatorId && selected && (
           <TileLayer
-            key={`${selected.id}-${indicatorId}`}
-            url={indicatorTileUrl(selected.id, indicatorId)}
+            key={`${selected.id}-${indicatorId}-${imageryDate || 'latest'}-${tenantId ?? 'tenant'}-${imageryTs}`}
+            url={indicatorTileUrl(selected.id, indicatorId, tenantId, imageryTs, imageryDate)}
             opacity={indicatorOpacity}
-            errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC"
+            errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="
           />
         )}
 
@@ -366,8 +376,10 @@ export default function HubMap({
 
         {/* طبقات التراكب (طقس/تنبيهات/أجهزة) — تُرسَم فقط عند توفّر عناصر قابلة
             للعرض. الحرّاس داخل المكوّنات تتكفّل بالفراغ/الـnull. */}
+        <WeatherRasterOverlay marker={weatherMarker} />
         <AlertOverlay markers={alertMarkers} />
         <DeviceOverlay markers={deviceMarkers} />
+        <OperationalOverlay markers={operationalMarkers} />
         <WeatherOverlay marker={weatherMarker} />
 
         <PinClickHandler enabled={pinMode} onAddPin={onAddPin} />

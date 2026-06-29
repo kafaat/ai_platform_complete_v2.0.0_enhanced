@@ -2,8 +2,9 @@
 ======================================================================
 شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
-نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``. التبعيّات المشتركة
-(الحالة/المساعِدات/البلاطة الشفّافة) تبقى في ``main`` وتُشار إليها عبر ``main.X``.
+نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المنطق مطابقة.
+التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main`` وتُشار إليها عبر
+``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ async def get_tile(layer_id: str, z: int, x: int, y: int):
     """بلاطة خريطة لطبقة (MapLibre). عند توفّر البلاطات المُنتجة تُخدَم من
     القرص؛ وإلّا تُرجع بلاطة شفّافة (بنية صحيحة للعرض)."""
     main._require_layer_tenant(layer_id)  # تفويض: الطبقة تخصّ مستأجِر الطلب (إغلاق IDOR)
+    await main._require_layer_tenant_authorized(layer_id)
     if layer_id not in main._layers:
         raise HTTPException(404, "طبقة غير موجودة")
     tile_path = os.path.join(main.UPLOAD_DIR, layer_id, f"{z}_{x}_{y}.png")
@@ -42,6 +44,7 @@ async def layer_tilejson(
     صدق: لا يدّعي ديناميكيّة غير متوفّرة — يُبلّغ بالمصدر الفعلي.
     """
     main._require_layer_tenant(layer_id)  # تفويض: الطبقة تخصّ مستأجِر الطلب (إغلاق IDOR)
+    await main._require_layer_tenant_authorized(layer_id)
     if layer_id not in main._layers:
         raise HTTPException(404, "طبقة غير موجودة")
     layer = main._layers[layer_id]

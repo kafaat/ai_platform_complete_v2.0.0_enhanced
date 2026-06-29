@@ -40,7 +40,7 @@ import { rasterBaseUrl } from '../../services/api';
 import type { FieldOption } from '../../lib/fields';
 // أنواع فقط (تُمحى وقت الترجمة) — لا يدخل Leaflet هذه الحزمة المقسومة.
 import type { ScoutPin } from './HubMap';
-import type { AlertMarker, DeviceMarker, WeatherMarker } from './OverlayMarkers';
+import type { AlertMarker, DeviceMarker, WeatherMarker, OperationalMarker } from './OverlayMarkers';
 
 const YEMEN_CENTER: [number, number] = [44.0, 15.0]; // [lng, lat] — MapLibre
 const SELECTED_COLOR = '#22d3ee';
@@ -83,6 +83,10 @@ export interface HubMapGLProps {
   alertMarkers?: AlertMarker[];
   deviceMarkers?: DeviceMarker[];
   weatherMarker?: WeatherMarker | null;
+  operationalMarkers?: OperationalMarker[];
+  imageryTs?: number;
+  imageryDate?: string | null;
+  tenantId?: string | null;
   // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
   // لقطة عرض مُستعادة تبدأ منها الخريطة وتُلغي الملاءمة التلقائيّة عند أوّل تحميل.
   initialView?: { centerLat: number; centerLng: number; zoom: number } | null;
@@ -91,9 +95,11 @@ export interface HubMapGLProps {
 }
 
 // رابط بلاطات مؤشّر الحقل — نفس باني HubMap.indicatorTileUrl (مصدر واحد للصدق).
-function indicatorTileUrl(fieldId: string, index: string): string {
-  // بلا تاريخ: الخادم يختار أحدث مشهد داخليّاً (date=Query("latest")).
-  const qs = `index=${encodeURIComponent(index)}`;
+function indicatorTileUrl(fieldId: string, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
+  const params = new URLSearchParams({ index, date: imageryDate || 'latest' });
+  if (tenantId) params.set('tid', tenantId);
+  if (imageryTs) params.set('v', String(imageryTs));
+  const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 }
@@ -224,6 +230,39 @@ function weatherEl(m: WeatherMarker): HTMLElement {
   return el;
 }
 
+
+function operationalEl(m: OperationalMarker): HTMLElement {
+  const el = document.createElement('div');
+  el.title = `${m.title}${m.subtitle ? ` · ${m.subtitle}` : ''}`;
+  const s = (m.status ?? '').toLowerCase();
+  const bg = m.kind === 'pivot'
+    ? '#38bdf8'
+    : m.kind === 'task'
+      ? (s === 'completed' ? '#22c55e' : s === 'in_progress' ? '#f59e0b' : '#a3e635')
+      : (['broken', 'maintenance', 'down'].includes(s) ? '#ef4444' : '#84cc16');
+  const glyph = m.kind === 'pivot' ? '◔' : m.kind === 'task' ? '✓' : '⚙';
+  el.style.cssText =
+    `width:20px;height:20px;border-radius:7px;background:${bg};` +
+    'border:2px solid #0d1611;box-shadow:0 1px 3px rgba(0,0,0,.6);' +
+    'display:flex;align-items:center;justify-content:center;' +
+    'color:#0d1611;font-size:13px;font-weight:900;line-height:1;cursor:default';
+  el.textContent = glyph;
+  return el;
+}
+
+function weatherHeatCss(marker: WeatherMarker | null): string {
+  const t = marker?.tempC ?? 30;
+  const h = marker?.humidityPct ?? 45;
+  if (t >= 38) return 'rgba(239,68,68,.32)';
+  if (t >= 32) return 'rgba(249,115,22,.28)';
+  if (h >= 75) return 'rgba(14,165,233,.23)';
+  return 'rgba(245,158,11,.20)';
+}
+
+function weatherWindRotation(marker: WeatherMarker | null): number {
+  return marker?.windDirectionDeg ?? 315;
+}
+
 function pinEl(p: ScoutPin): HTMLElement {
   const el = document.createElement('div');
   el.title = p.note || p.category;
@@ -248,8 +287,8 @@ const EMPTY_MEASURE: MeasureState = { polys: 0, lines: 0, areaM2: 0, lengthM: 0 
 export default function HubMapGL({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity, height = 520,
   drawTools = false, pinMode = false, pins = [], onAddPin,
-  alertMarkers = [], deviceMarkers = [], weatherMarker = null,
-  initialView = null, onViewChange,
+  alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
+  initialView = null, onViewChange, imageryTs = 0, imageryDate = null, tenantId = null,
 }: HubMapGLProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -286,6 +325,8 @@ export default function HubMapGL({
   const drawModeRef = useRef<DrawMode>('polygon');
   drawModeRef.current = drawMode;
   const [measure, setMeasure] = useState<MeasureState>(EMPTY_MEASURE);
+  // يُشير لاكتمال تهيئة Terra Draw (الاستيراد الديناميكيّ + draw.start()) — للاختبارات.
+  const [drawReady, setDrawReady] = useState(false);
 
   // ── الالتقاط الحيّ (المرحلة 3) ──────────────────────────────────────
   // أهداف الالتقاط (حدود الحقول) في مرجع حيّ كي تقرأ إغلاقة toCustom — المُنشأة
@@ -412,9 +453,28 @@ export default function HubMapGL({
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !loadedRef.current) return;
-    const src = map.getSource(SRC_BASEMAP) as maplibregl.RasterTileSource | undefined;
-    const { url } = basemapTileSpec(basemapId);
-    if (src && typeof src.setTiles === 'function') src.setTiles([url]);
+    const { url, attribution } = basemapTileSpec(basemapId);
+
+    // لا نستخدم إعادة ضبط tiles على المصدر القائم: في MapLibre قد تبقى بلاطات قديمة في الذاكرة
+    // أو تختلط مع المصدر الجديد عند تبديل الأساس/التاريخ. إعادة إنشاء المصدر
+    // تغلق سبباً جنائياً محتملاً لـ stale raster tiles.
+    const dependentLayers = [LYR_INDICATOR, LYR_FILL, LYR_LINE, LYR_SELECTED];
+    const hadIndicator = Boolean(map.getLayer(LYR_INDICATOR));
+    for (const layerId of dependentLayers) {
+      if (map.getLayer(layerId)) map.removeLayer(layerId);
+    }
+    for (const sourceId of [SRC_INDICATOR, SRC_FIELDS, SRC_BASEMAP]) {
+      if (map.getSource(sourceId)) map.removeSource(sourceId);
+    }
+    map.addSource(SRC_BASEMAP, {
+      type: 'raster',
+      tiles: [url],
+      tileSize: 256,
+      attribution,
+    });
+    map.addLayer({ id: LYR_BASEMAP, type: 'raster', source: SRC_BASEMAP });
+    syncFieldsLayers(map);
+    if (hadIndicator) syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [basemapId]);
 
@@ -424,7 +484,7 @@ export default function HubMapGL({
     if (!map || !loadedRef.current) return;
     syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indicatorId, selectedId, indicatorOpacity, fields]);
+  }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate]);
 
   // ── علامات التراكب (تنبيهات/أجهزة/طقس) — إزالة الكلّ ثمّ إعادة بناء ──
   useEffect(() => {
@@ -438,9 +498,10 @@ export default function HubMapGL({
     };
     for (const a of alertMarkers) add(alertEl(a), a.lat, a.lng);
     for (const d of deviceMarkers) add(deviceEl(d), d.lat, d.lng);
+    for (const o of operationalMarkers) add(operationalEl(o), o.lat, o.lng);
     if (weatherMarker) add(weatherEl(weatherMarker), weatherMarker.lat, weatherMarker.lng);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alertMarkers, deviceMarkers, weatherMarker, ready]);
+  }, [alertMarkers, deviceMarkers, operationalMarkers, weatherMarker, ready]);
 
   // ── دبابيس الاستكشاف — إزالة الكلّ ثمّ إعادة بناء ──────────────────
   useEffect(() => {
@@ -530,6 +591,7 @@ export default function HubMapGL({
         });
         draw.start();
         draw.setMode(drawModeRef.current);
+        setDrawReady(true);
         // عند كلّ تغيير/إنهاء: أعِد حساب الإجماليّات من اللقطة (GeoJSON حقيقيّ).
         const recompute = () => {
           const feats = draw.getSnapshot() as GeoJSON.Feature[];
@@ -551,6 +613,7 @@ export default function HubMapGL({
       try { drawRef.current.stop(); } catch { /* أفضل-جهد */ }
       drawRef.current = null;
       setMeasure(EMPTY_MEASURE);
+      setDrawReady(false);
     }
 
     return () => { cancelled = true; };
@@ -616,7 +679,7 @@ export default function HubMapGL({
     if (!active) return;
     map.addSource(SRC_INDICATOR, {
       type: 'raster',
-      tiles: [indicatorTileUrl(selected.id, indicatorId)],
+      tiles: [indicatorTileUrl(selected.id, indicatorId, tenantId, imageryTs, imageryDate)],
       tileSize: 256,
     });
     // أدرِج فوق الأساس وتحت أوّل طبقة خطّ حقول (إن وُجدت).
@@ -676,6 +739,30 @@ export default function HubMapGL({
   return (
     <div data-testid="hubmapgl-wrapper" style={{ position: 'relative', borderRadius: 14, overflow: 'hidden', border: '1px solid #2d4a37' }}>
       <div data-testid="hubmapgl-container" ref={containerRef} style={{ height, width: '100%' }} />
+      {weatherMarker && (
+        <div
+          aria-label="طبقة الطقس والرياح فوق الخريطة"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none',
+            background: weatherHeatCss(weatherMarker), overflow: 'hidden',
+          }}
+        >
+          <style>{`@keyframes sahoolWindDrift{from{transform:translateX(-80px)}to{transform:translateX(80px)}}`}</style>
+          <div style={{ position: 'absolute', inset: '-12%', transform: `rotate(${weatherWindRotation(weatherMarker)}deg)`, opacity: weatherMarker.windDirectionDeg == null ? .42 : .68 }}>
+            {Array.from({ length: 56 }).map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  position: 'absolute', width: 74 + (i % 4) * 16, height: 3, borderRadius: 999,
+                  background: 'rgba(255,255,255,.70)', top: `${(i * 17) % 104}%`, left: `${(i * 23) % 108 - 8}%`,
+                  animation: `sahoolWindDrift ${2.2 + (i % 5) * .25}s linear infinite`,
+                  animationDelay: `${-(i % 7) * .25}s`,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* شارة المحرّك — المرحلة 3: التقاط حيّ للحدود مُفعَّل في محرّك GL.
           أمانة: التقطيع التلقائيّ (SAM2) للمرحلة 4، ومحرّر Leaflet يلتقط بعد-الإتمام. */}
@@ -697,6 +784,7 @@ export default function HubMapGL({
         <div
           dir="rtl"
           data-testid="draw-panel"
+          data-draw-ready={drawReady ? 'true' : 'false'}
           style={{
             position: 'absolute', top: 12, left: 12, zIndex: 6,
             background: 'rgba(13,22,17,.92)', borderRadius: 10, padding: '10px 12px',

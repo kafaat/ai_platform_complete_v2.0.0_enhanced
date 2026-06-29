@@ -500,7 +500,7 @@ async def predict(req: PredictRequest, x_agent_token: str = Header(None)):
             detail={
                 "error": "model_not_loaded",
                 "note_ar": "نموذج SAM2 غير محمّل (أوزان ناقصة أو لا CUDA)",
-                "load_error": _MODEL_LOAD_ERROR,
+                "load_error_present": bool(_MODEL_LOAD_ERROR),
             },
         )
 
@@ -566,10 +566,11 @@ async def healthz():
 @app.get("/readyz")
 async def readyz():
     """readiness — هل النموذج محمّل فعلاً؟ (model_loaded)."""
+    loaded = _PREDICTOR is not None
     return {
-        "status": "ready" if _PREDICTOR is not None else "degraded",
-        "model_loaded": _PREDICTOR is not None,
-        "load_error": _MODEL_LOAD_ERROR,
+        "status": "ready" if loaded else "degraded",
+        "model_loaded": loaded,
+        "load_error_present": bool(_MODEL_LOAD_ERROR),
     }
 
 

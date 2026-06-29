@@ -266,6 +266,187 @@ def kcb_for_age(
     return kcb, stage
 
 
+# ─── Kcb ديناميكيّ من الأقمار (NDVI) — FAO-56 §9.4 «Kc من كسر الغطاء» ──────────
+# بدل اشتقاق Kcb من عمر المحصول (منحنى جدوليّ)، نشتقّه من **غطاء نباتيّ مرصود**
+# (NDVI من raster-service): كسر الغطاء fc → معامل الكثافة Kd (Eq. 76) → Kcb = Kcb_full·Kd.
+# هذا يربط محرّك المياه بالقمر: حقل متأخّر/مُجهَد يُظهِر NDVI أدنى ⇒ Kcb أدنى ⇒ احتياج أصدق.
+# صدق: الحدود (NDVI_bare/NDVI_full) و ML تقديريّة **تحتاج معايرة محلّيّة** — تُعلَن صراحةً.
+
+
+def fractional_cover_from_ndvi(
+    ndvi: float, ndvi_bare: float = 0.15, ndvi_full: float = 0.85
+) -> float:
+    """كسر الغطاء النباتيّ fc من NDVI (تقدير خطّيّ مقصوص إلى [0, 1]).
+
+    ``fc = (NDVI − NDVI_bare) / (NDVI_full − NDVI_bare)`` (علاقة fc–NDVI الشائعة).
+    ⚠️ ``NDVI_bare``/``NDVI_full`` افتراضيّان (تربة عارية/غطاء كامل) **يحتاجان معايرة
+    محلّيّة** لكلّ محصول/تربة. يرفع ``ValueError`` إن لم يكن ``NDVI_full > NDVI_bare``.
+    """
+    denom = ndvi_full - ndvi_bare
+    if denom <= 0:
+        raise ValueError("NDVI_full يجب أن يفوق NDVI_bare")
+    return max(0.0, min(1.0, (ndvi - ndvi_bare) / denom))
+
+
+def density_coefficient_kd(fc: float, crop_height_m: float, ml: float = 2.0) -> float:
+    """معامل الكثافة Kd (FAO-56 Eq. 76): ``min(1, ML·fc, fc^(1/(1+h)))``.
+
+    ``fc`` كسر الغطاء، ``h`` ارتفاع النبات (m)، ``ML`` مضاعِف الغطاء الفعّال (1.5–2.0).
+    يصف انتقال Kcb من تربة عارية (fc=0 ⇒ Kd=0) إلى غطاء كامل (fc=1 ⇒ Kd=1). مقصوص [0,1].
+    """
+    fc = max(0.0, min(1.0, fc))
+    if fc <= 0.0:
+        return 0.0
+    h = max(0.05, crop_height_m)
+    return max(0.0, min(1.0, min(ml * fc, fc ** (1.0 / (1.0 + h)))))
+
+
+def kcb_from_ndvi(
+    ndvi: float,
+    kcb_full: float,
+    crop_height_m: float,
+    *,
+    ndvi_bare: float = 0.15,
+    ndvi_full: float = 0.85,
+    ml: float = 2.0,
+) -> tuple[float, float]:
+    """Kcb من NDVI عبر كسر الغطاء + معامل الكثافة (FAO-56 §9.4، Eq. 76-77).
+
+    يُرجِع ``(kcb, fc)``: ``Kcb = Kcb_full · Kd(fc(NDVI), h)``. ``Kcb_full`` = Kcb عند الغطاء
+    الكامل (ذروة الموسم). صدق: تقدير مرصود لا قياس موقعيّ — الحدود/ML تحتاج معايرة (تُعلَن).
+    """
+    fc = fractional_cover_from_ndvi(ndvi, ndvi_bare, ndvi_full)
+    kd = density_coefficient_kd(fc, crop_height_m, ml)
+    return kcb_full * kd, fc
+
+
+# ─────────────────────────────────────────────────────────────────────
+# عمق الجذور الديناميكيّ Zr ونطاق الماء المتاح TAW — FAO-56 §8 (نموّ الجذور)
+# ─────────────────────────────────────────────────────────────────────
+# عمق منطقة الجذور Zr ليس ثابتاً: ينمو من قيمة ابتدائيّة (Zr_min، عمق البذرة/
+# الشتلة) إلى أقصى عمق فعّال (Zr_max) مع تطوّر المحصول. FAO-56 (الفصل ٨، حول
+# Eq. 82–84) يَنمذِج هذا تقريبيّاً بنموّ **خطّيّ** بدلالة الأيّام بعد الزراعة (DAP)
+# حتى بلوغ العمق الأقصى عند نهاية مرحلة التطوّر (development). عمق الجذور يحدّد
+# سَعَة الخزّان: TAW = 1000·(θFC − θWP)·Zr (FAO-56 Eq. 82). جذور أعمق ⇒ خزّان
+# أكبر ⇒ فترات ريّ أطول.
+#
+# الدوالّ هنا **نقيّة وإضافيّة**: لا تمسّ المسار المفرد (compute_irrigation) ولا
+# المزدوج (compute_etc_dual). تُستخدَم لاحقاً في توأم/دفتر المياه عند الحاجة لـTAW
+# ديناميكيّ بدل ثابت SoilZone.taw_mm_per_m.
+#
+# ⚠️ صدق صارم — تحتاج معايرة محلّيّة:
+#   • Zr_min/Zr_max تقديريّة لكلّ محصول (FAO-56 Table 22 يعطي مدًى نوعيّاً،
+#     والقيم الموقعيّة تتأثّر بالتربة/الصنف/طبقة صلبة محتملة). تُمرَّر صراحةً.
+#   • θFC/θWP أدناه قيم نوعيّة حسب القوام (FAO-56 Table 19، عمود «Available
+#     water» ووسطيّات شائعة) — تقديرات لا قياسات موقعيّة. القوام المجهول ⇒ "loam".
+
+
+# θFC/θWP (محتوى الماء الحجميّ، m³/m³) حسب القوام — FAO-56 Table 19 (وسطيّات نوعيّة).
+# θFC = السعة الحقليّة (Field Capacity)، θWP = نقطة الذبول (Wilting Point).
+# الفرق (θFC − θWP) = الماء المتاح الكلّيّ لكلّ متر عمق. قيم تقديريّة تحتاج معايرة.
+_THETA_FC_WP_BY_TEXTURE: dict[str, tuple[float, float]] = {
+    # texture: (θFC, θWP)  m³/m³
+    "sand": (0.10, 0.04),
+    "sandy": (0.10, 0.04),
+    "loamy sand": (0.12, 0.05),
+    "sandy loam": (0.18, 0.07),
+    "loam": (0.25, 0.10),
+    "silt loam": (0.28, 0.11),
+    "silt": (0.30, 0.12),
+    "clay loam": (0.32, 0.16),
+    "silty clay": (0.36, 0.21),
+    "clay": (0.38, 0.24),
+    "mixed": (0.25, 0.10),
+}
+
+
+def theta_fc_wp_for_texture(texture: str) -> tuple[float, float]:
+    """يُرجِع (θFC, θWP) بـm³/m³ لقوام تربة، من جدول FAO-56 الافتراضيّ (Table 19).
+
+    ⚠️ افتراض صريح: قيم نوعيّة وسطيّة حسب القوام — تقديرات لا قياسات موقعيّة،
+    تحتاج معايرة محلّيّة (θFC/θWP الفعليّان يُقاسان مخبريّاً/حقليّاً). القوام
+    المجهول ⇒ "loam".
+    """
+    return _THETA_FC_WP_BY_TEXTURE.get(texture.strip().lower(), _THETA_FC_WP_BY_TEXTURE["loam"])
+
+
+def root_depth_m(
+    days_after_planting: float,
+    zr_min: float,
+    zr_max: float,
+    days_to_max: float,
+) -> float:
+    """عمق منطقة الجذور Zr (m) بنموّ خطّيّ بدلالة الأيّام بعد الزراعة — FAO-56 §8.
+
+        Zr = Zr_min + (Zr_max − Zr_min)·min(1, DAP/days_to_max)
+
+    مقصوص إلى ``[zr_min, zr_max]``. ``days_to_max`` = الأيّام حتى بلوغ العمق
+    الأقصى (عادةً نهاية مرحلة التطوّر development — انظر ``root_depth_for_crop``).
+
+    سلوك حدوديّ معرَّف:
+      • DAP ≤ 0 ⇒ Zr = zr_min (لم تنمُ الجذور بعد).
+      • DAP ≥ days_to_max ⇒ Zr = zr_max (بلغت العمق الأقصى).
+      • الوسط ⇒ خطّيّ.
+      • days_to_max ≤ 0 (غير صالح) ⇒ Zr = zr_max فوراً (نموّ لحظيّ — سلوك آمن).
+
+    ⚠️ صدق: ``zr_min``/``zr_max`` تقديريّة لكلّ محصول (FAO-56 Table 22 مدًى نوعيّ)
+    وتحتاج معايرة محلّيّة (تربة/صنف/طبقة صلبة).
+    """
+    if days_after_planting <= 0.0:
+        return zr_min
+    if days_to_max <= 0.0:
+        return zr_max
+    frac = min(1.0, days_after_planting / days_to_max)
+    zr = zr_min + (zr_max - zr_min) * frac
+    # قصّ دفاعيّ للنطاق (يحمي من zr_min > zr_max أو frac خارج [0,1]).
+    lo, hi = (zr_min, zr_max) if zr_min <= zr_max else (zr_max, zr_min)
+    return max(lo, min(hi, zr))
+
+
+def root_depth_for_crop(
+    profile: CropKcProfile,
+    days_after_planting: float,
+    zr_min: float,
+    zr_max: float,
+) -> float:
+    """عمق الجذور Zr (m) لمحصول، مع اشتقاق ``days_to_max`` من ``profile.stage_days``.
+
+    العمق الأقصى يُبلَغ عند نهاية مرحلة التطوّر (development) = ``stage_days[0] +
+    stage_days[1]`` (نهاية initial + development) — اتّفاقاً مع منحنى Kc حيث تكتمل
+    تغطية الأرض عند نهاية development. غلاف رفيق لـ``root_depth_m``.
+
+    ⚠️ صدق: ``zr_min``/``zr_max`` تقديريّة لكلّ محصول، تحتاج معايرة محلّيّة.
+    """
+    s_ini, s_dev = profile.stage_days[0], profile.stage_days[1]
+    days_to_max = float(s_ini + s_dev)
+    return root_depth_m(days_after_planting, zr_min, zr_max, days_to_max)
+
+
+def taw_from_root_depth(
+    zr_m: float,
+    texture: str = "loam",
+    *,
+    theta_fc: float | None = None,
+    theta_wp: float | None = None,
+) -> float:
+    """الماء المتاح الكلّيّ TAW (mm) من عمق الجذور — FAO-56 Eq. 82.
+
+        TAW = 1000·(θFC − θWP)·Zr
+
+    ``θFC``/``θWP`` (m³/m³): إن غابا ⇒ من جدول القوام (``theta_fc_wp_for_texture``).
+    ``Zr`` بالمتر. النتيجة (mm) ماء مُتاح بين السعة الحقليّة ونقطة الذبول في عمق
+    الجذور. تزيد طرديّاً مع Zr (خزّان أعمق ⇒ ماء أكثر) ومع (θFC − θWP). مقصوصة ≥ 0.
+
+    ⚠️ صدق: θFC/θWP الجدوليّة تقديريّة حسب القوام (FAO-56 Table 19) — تحتاج معايرة
+    محلّيّة؛ Zr نفسه تقديريّ (انظر ``root_depth_m``).
+    """
+    if theta_fc is None or theta_wp is None:
+        fc_def, wp_def = theta_fc_wp_for_texture(texture)
+        theta_fc = fc_def if theta_fc is None else theta_fc
+        theta_wp = wp_def if theta_wp is None else theta_wp
+    return max(0.0, 1000.0 * (theta_fc - theta_wp) * max(0.0, zr_m))
+
+
 @dataclass
 class DualKcResult:
     """نتيجة الحساب المزدوج لمعامل المحصول (FAO-56 Ch.7)."""
@@ -289,7 +470,7 @@ def compute_etc_dual(
     crop: CropKcProfile,
     days_after_planting: int,
     *,
-    soil_ece: float = 0.0,
+    soil_ece: float | None = 0.0,
     de_mm: float = 0.0,
     tew_mm: float | None = None,
     rew_mm: float | None = None,
@@ -299,6 +480,10 @@ def compute_etc_dual(
     rh_min_pct: float | None = None,
     crop_height_m: float = 0.5,
     kcb_offset: float = 0.05,
+    ndvi: float | None = None,
+    ndvi_bare: float = 0.15,
+    ndvi_full: float = 0.85,
+    et0_override: float | None = None,
 ) -> DualKcResult:
     """يحسب ETc بنهج المعامل المزدوج FAO-56 (Eq. 80) — إضافيّ واختياريّ.
 
@@ -317,6 +502,11 @@ def compute_etc_dual(
       fw        كسر السطح المبلّل (1=رّيّ سطحيّ/مطر، ~0.3=تنقيط).
       rh_min    إن غاب ⇒ يُقرَّب من الرطوبة المتوسّطة في WeatherDay (افتراض).
       crop_height_m, kcb_offset  بارامترات FAO-56 افتراضيّة موثّقة.
+      ndvi      إن مُرِّر (من raster-service) ⇒ يُشتقّ Kcb وfc **رصداً** منه (FAO-56 Eq. 76:
+                fc(NDVI) → Kd → Kcb=Kcb_full·Kd) بدل اشتقاق Kcb من العمر — أصدق للحقل الفعليّ.
+                ``ndvi_bare``/``ndvi_full`` حدود المعايرة (افتراضيّة، تحتاج ضبطاً محلّيّاً).
+      soil_ece  ``None`` ⇒ الملوحة غير مطبّقة (Ks=1، off افتراضيّاً — قرار H5)؛ رقم ⇒ Ks من Maas-Hoffman.
+      et0_override  إن مُرِّر ⇒ يُستعمَل بدل ET0 الداخليّ (penman) — لإبقاء ET0 مصدراً واحداً موحّداً (SSOT).
 
     ⚠️ القيود (صدق منهجيّ): Kcb مُشتقّ بإزاحة من Kc المدمج لا من بطاقة Kcb
     مُعايَرة؛ موازنة ماء الطبقة السطحيّة (De) تُمرَّر من الخارج ولا تُحتسب هنا
@@ -325,15 +515,38 @@ def compute_etc_dual(
     """
     assumptions: list[str] = []
 
-    # 1. ET0 — المتغيّر (طقس)
-    et0 = penman_monteith_et0(weather)
+    # 1. ET0 — المتغيّر (طقس). et0_override يُمرَّر ET0 الكنسيّ الموحّد (H4/SSOT) فيستعمله
+    # النهج المزدوج بدل إعادة حسابه داخليّاً — كي يبقى ET0 مصدراً واحداً متّسقاً مع الحالة.
+    if et0_override is not None:
+        et0 = float(et0_override)
+        assumptions.append("ET0 من المصدر الكنسيّ الموحّد (et0_override) لا إعادة حساب داخليّ")
+    else:
+        et0 = penman_monteith_et0(weather)
 
-    # 2. Kcb — الأساس (نتح) المُشتقّ من المنحنى القائم
-    kcb, stage = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
-    assumptions.append(f"Kcb مُشتقّ بإزاحة {kcb_offset:.2f} أسفل Kc المدمج (لا بطاقة Kcb مُعايَرة)")
+    # 2. Kcb — الأساس (نتح). مرصود من NDVI (FAO-56 Eq. 76) إن توفّر، وإلّا من عمر المحصول.
+    _, stage = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
+    ndvi_fc: float | None = None
+    if ndvi is not None:
+        # Kcb_full = Kcb عند الغطاء الكامل (ذروة الموسم kc_mid مطروحاً منها الإزاحة).
+        kcb_full = max(0.15, crop.kc_mid - kcb_offset)
+        kcb, ndvi_fc = kcb_from_ndvi(
+            ndvi, kcb_full, crop_height_m, ndvi_bare=ndvi_bare, ndvi_full=ndvi_full
+        )
+        assumptions.append(
+            f"Kcb مرصود من NDVI={ndvi:.2f} عبر Kd (FAO-56 Eq. 76؛ Kcb_full={kcb_full:.2f}، "
+            f"NDVI_bare/full={ndvi_bare:.2f}/{ndvi_full:.2f}) — تقدير يحتاج معايرة محلّيّة"
+        )
+    else:
+        kcb, _ = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
+        assumptions.append(f"Kcb مُشتقّ بإزاحة {kcb_offset:.2f} أسفل Kc المدمج (لا بطاقة Kcb مُعايَرة)")
 
-    # 3. Ks — إجهاد ملحيّ (يُعاد استخدام منطق Maas-Hoffman القائم)
-    ks = salinity_stress_ks(crop, soil_ece)
+    # 3. Ks — إجهاد ملحيّ (يُعاد استخدام منطق Maas-Hoffman القائم). soil_ece=None ⇒ الملوحة
+    # **غير مطبّقة** (Ks=1.0) — قرار H5: off افتراضيّاً، لا تُدخَل ضمنيّاً في النهج المزدوج.
+    if soil_ece is None:
+        ks = 1.0
+        assumptions.append("الملوحة غير مطبّقة (Ks=1، off افتراضيّاً — قرار H5)")
+    else:
+        ks = salinity_stress_ks(crop, soil_ece)
 
     # 4. TEW/REW — قياسيّة أو من الجدول حسب القوام
     if tew_mm is None or rew_mm is None:
@@ -352,8 +565,11 @@ def compute_etc_dual(
     # 6. Kc_max — الحدّ الأعلى (Eq. 72)
     kcmax = kc_max(kcb, weather.wind_speed_m_s, rh_min_pct, crop_height_m)
 
-    # 7. fc — كسر الغطاء (Eq. 76 المبسّطة) إن غاب
-    if fc is None:
+    # 7. fc — كسر الغطاء: مرصود من NDVI إن توفّر، وإلّا مُقدَّر من Kcb (Eq. 76 المبسّطة)
+    if fc is None and ndvi_fc is not None:
+        fc = ndvi_fc
+        assumptions.append(f"fc مرصود من NDVI={ndvi:.2f} (fc={fc:.2f}) — أصدق من تقدير Kcb")
+    elif fc is None:
         kc_min = 0.15  # تربة عارية جافّة (FAO-56)
         denom = max(0.01, kcmax - kc_min)
         fc = max(0.0, min(0.99, (kcb - kc_min) / denom))
@@ -436,6 +652,7 @@ class IrrigationResult:
     irrigation_interval_days: float
     night_irrigation_recommended: bool
     dtr_c: float
+    salinity_applied: bool = False
     notes: list[str] = field(default_factory=list)
 
 
@@ -448,10 +665,17 @@ def compute_irrigation(
     water_ec: float,
     effective_rainfall_mm: float = 0.0,
     irrigation_efficiency: float = 0.85,
+    apply_salinity: bool = False,
 ) -> IrrigationResult:
     """Full FAO-56 chain for ONE zone on ONE day.
 
     Run this per-zone to produce a Variable-Rate Irrigation (VRA) map.
+
+    قرار المستخدم (H5): الملوحة مفتاح صريح مُطفأ افتراضيّاً — «بلا ملوحة افتراضيّاً،
+    قابلة للإدخال في أيّ مرحلة». لا يعتمد المفتاح على وجود ECe.
+      - apply_salinity=False (افتراضيّ): Ks=1.0 وLR=0.0 ⇒ لا خفض ملوحة ولا غسيل.
+      - apply_salinity=True: المسار القائم تماماً — salinity_stress_ks (Eq.81) +
+        leaching_requirement (Eq.82). الصيغ الرياضيّة لم تتغيّر؛ صارت opt-in فقط.
     """
     notes: list[str] = []
 
@@ -467,8 +691,11 @@ def compute_irrigation(
     # 4. soil-texture surface evap adjustment (sandy loses more)
     etc_zone = etc * zone.ke_factor
 
-    # 5. salinity stress
-    ks = salinity_stress_ks(crop, soil_ece)
+    # 5. salinity stress — opt-in (off by default per H5; Ks=1.0 when off)
+    if apply_salinity:
+        ks = salinity_stress_ks(crop, soil_ece)
+    else:
+        ks = 1.0
     etc_adj = etc_zone * ks
     if ks < 1.0:
         notes.append(
@@ -478,8 +705,11 @@ def compute_irrigation(
     # 6. net irrigation (minus effective rainfall)
     net = max(0.0, etc_adj - effective_rainfall_mm)
 
-    # 7. leaching + efficiency -> gross
-    lr = leaching_requirement(water_ec, crop.salt_tolerance_ece)
+    # 7. leaching + efficiency -> gross — leaching only when salinity opt-in (else LR=0.0)
+    if apply_salinity:
+        lr = leaching_requirement(water_ec, crop.salt_tolerance_ece)
+    else:
+        lr = 0.0
     gross = (net * (1.0 + lr)) / irrigation_efficiency
 
     # irrigation interval from RAW (FAO-56 Ch.8)
@@ -513,6 +743,7 @@ def compute_irrigation(
         irrigation_interval_days=round(interval, 1),
         night_irrigation_recommended=night,
         dtr_c=round(dtr, 1),
+        salinity_applied=apply_salinity,
         notes=notes,
     )
 

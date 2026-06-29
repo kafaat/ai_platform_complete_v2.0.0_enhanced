@@ -30,3 +30,6 @@ PyYAML>=6.0
 # raster-service/change_detection يستخدم numpy (test_change_detection يختبره).
 numpy>=1.24.0
 hypothesis>=6.100.0
+
+# notification agent imports nats.aio during mobile push tests
+nats-py>=2.3.0

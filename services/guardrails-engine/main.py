@@ -21,7 +21,7 @@ from typing import Any, Literal
 
 import jwt as _jwt
 from diff_generator import ActionDiffGenerator
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi import Header as _Header
 from fastapi.middleware.cors import CORSMiddleware
 from human_in_loop import HumanApprovalWorkflow
@@ -428,81 +428,12 @@ def _gr_authn(authorization: str = _Header(None)) -> dict:
     return payload
 
 
-@app.post("/validate", response_model=GuardrailsResult)
-async def validate_action(request: GuardrailsRequest, _svc: bool = Depends(_require_service_token)):
-    """Main validation endpoint — checks action against 3 tiers.
+# ─── تسجيل تلقائيّ للراوترات المُستخرَجة (تفكيك محفوظ السلوك) ─────────────
+# يُستدعى في **النهاية** بعد تعريف ``app`` وكلّ التبعيّات المشتركة (المحرّك/النماذج/
+# المساعِدات/توكن الخدمة/الـauth)، فيُحلّ الاستيراد الدائريّ (وحدات ``routers/``
+# تستورد رموزاً من ``main`` عبر ``main.X``). كلّ وحدة في ``routers/`` تُصدّر ``router``
+# يُضمَّن **بلا prefix** (المسارات/الطرائق/الأجسام/المخرجات/المصادقة تبقى كما هي تماماً —
+# توكن خدمة /validate ومنطق fail-safe محفوظان بايتاً ببايت).
+from router_registry import register_routers  # noqa: E402
 
-    أمان: يتطلّب توكن خدمة (X-Agent-Token) — لا يُقبل من جهة غير موثوقة.
-    tenant_id يأتي في الطلب من خدمة موثوقة (supervisor تشتقّه من توكن
-    المستخدم المُتحقَّق، لا من جسم طلب المستخدم مباشرةً).
-    """
-    engine = get_guardrails_engine()
-    return await engine.validate(request)
-
-
-@app.post("/approve/{workflow_id}")
-async def approve_workflow(
-    workflow_id: str, approved: bool, reason: str = "", claims: dict = Depends(_gr_verify)
-):
-    """Human-in-the-Loop approval — الهويّة من التوكن المُتحقَّق لا من الطلب."""
-    # الأمان: expert_id/expert_role/tenant_id كلّها من التوكن المُتحقَّق (لا من العميل):
-    #  • منع انتحال الخبير،
-    #  • منع IDOR عبر المستأجرين (تقييد الـworkflow بمستأجِر الطالب)،
-    #  • تمرير الدور الصحيح لبوّابة الدور (كان reason يُربَط خطأً بـexpert_role
-    #    فتفشل الموافقة دائماً، وreject كان يسقط لنقص وسيط إلزاميّ).
-    expert_id = str(claims["sub"])
-    expert_role = str(claims.get("role", ""))
-    tenant_id = str(claims.get("tenant_id", ""))
-    hil = HumanApprovalWorkflow()
-    if approved:
-        return await hil.approve(workflow_id, expert_id, expert_role, tenant_id, notes=reason)
-    else:
-        return await hil.reject(workflow_id, expert_id, expert_role, reason, tenant_id)
-
-
-@app.get("/workflow/{workflow_id}")
-async def get_workflow(workflow_id: str, claims: dict = Depends(_gr_authn)):
-    """حالة workflow — تتطلّب توكناً ومقيّدة بمستأجر الطالب (منع IDOR/تسريب).
-
-    أمان: get_status أصبح يُرجع بيانات فعليّة (كان None)، فلولا التحقّق لأمكن لأيّ
-    مجهول قراءة workflow أيّ مستأجر بمعرفة المعرّف. نُرجع 404 (لا 403) عند عدم
-    تطابق المستأجر كي لا نكشف وجود الـworkflow عبر المستأجرين.
-    """
-    hil = HumanApprovalWorkflow()
-    status = await hil.get_status(workflow_id)
-    if status is None or str(status.get("tenant_id")) != str(claims.get("tenant_id")):
-        raise HTTPException(status_code=404, detail="Workflow not found")
-    return status
-
-
-@app.get("/healthz")
-@app.get("/health")
-async def healthz():
-    return {"status": "alive", "service": "guardrails-engine", "tiers": 3}
-
-
-@app.get("/readyz")
-async def readyz():
-    # جاهزيّة حقيقيّة: guardrails يُديم قرارات الموافقة البشريّة (HIL) في القاعدة
-    # — إنشاء/اعتماد/رفض workflow و/validate حين يولّد workflow كلّها تكتب فيها
-    # عبر تجمّع human_in_loop. حين تُضبط DATABASE_URL نتحقّق بـSELECT 1؛ تعذُّره ⇒ 503
-    # لا «جاهز» كاذب. حين لا DATABASE_URL (وضع متدرّج معلَن) ⇒ جاهز بصدق.
-    if os.getenv("DATABASE_URL", ""):
-        from human_in_loop import _get_pool
-
-        try:
-            pool = await _get_pool()
-            if pool is not None:
-                async with pool.acquire() as conn:
-                    await conn.fetchval("SELECT 1")
-        except Exception as e:
-            raise HTTPException(503, {"status": "not_ready", "reason": "db"}) from e
-    return {"status": "ready"}
-
-
-@app.get("/metrics")
-async def metrics_endpoint():
-    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-    from starlette.responses import Response
-
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+register_routers(app)
