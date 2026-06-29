@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea36ab889464471e8af792853218aa10733be16d4a3ee4383e62d49c9c4fb0db"
+          "content": "bdb07d2199c1f91055026e0772ebb9d0d872814af566b4fcf092e78b177f0531"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -925,7 +925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15544eec0a3de9523092e3b52ac2306085f3e0133065f60d5721d9ab1c297e8c"
+          "content": "bde12a0c27eba75677756efdb66f804a7dedb86feb384c386ba3df9f8f72b891"
         }
       ],
       "name": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
@@ -15379,6 +15379,36 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_engine_v12_operation_plan.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c74a08f6345ae4fe5ab13a7a46af26f12b34309ed8caa53bb4154cb80e085288"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v18_observability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a7fd84b4416c23bd97aa4281782908360c5ae012cdeb1240f07e9e52107125cb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v19_prometheus_cache_admin.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad079851fd4ab5e795849352610aad3f62f388fd4b7b73ea24b80b6a6766d615"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v20_readiness_selftest.py",
       "type": "file"
     },
     {

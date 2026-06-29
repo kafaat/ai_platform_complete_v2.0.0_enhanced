@@ -979,6 +979,35 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 </FeatureGroup>
               </MapContainer>
 
+              {/* شريط أدوات الرسم على الخريطة (أعلى اليمين، تحت زرّ المضلّع في شريط
+                  leaflet-draw): الدائرة والمستطيل المُدار ظاهران حيث يتوقّعهما المستخدم. */}
+              {stage === 'draw' && (
+                <div className="absolute top-12 right-2 z-[1000] flex flex-col gap-1.5" dir="rtl">
+                  <button
+                    type="button"
+                    aria-pressed={drawTool === 'circle'}
+                    onClick={() => { setError(''); setDrawTool(t => (t === 'circle' ? null : 'circle')); }}
+                    title="دائرة (ريّ محوريّ): انقر المركز ثمّ حرّك الفأرة وانقر لوضعها"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg"
+                    style={drawTool === 'circle'
+                      ? { background: '#16a34a', color: '#fff' }
+                      : { background: '#ffffff', color: '#166534', border: '1px solid #16a34a55' }}>
+                    <Circle className="w-4 h-4" /> دائرة
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={drawTool === 'rectangle'}
+                    onClick={() => { setError(''); setDrawTool(t => (t === 'rectangle' ? null : 'rectangle')); }}
+                    title="مستطيل مُدار: انقر نقطتين للضلع الأوّل ثمّ حرّك الفأرة وانقر للإتمام"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg"
+                    style={drawTool === 'rectangle'
+                      ? { background: '#16a34a', color: '#fff' }
+                      : { background: '#ffffff', color: '#166534', border: '1px solid #16a34a55' }}>
+                    <Square className="w-4 h-4" /> مستطيل
+                  </button>
+                </div>
+              )}
+
               {/* شارة القياسات: المساحة (هكتار + متر مربّع) + المحيط (متر) — الطول دائماً بالمتر */}
               {areaHa > 0 && (
                 <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl text-sm font-bold"
