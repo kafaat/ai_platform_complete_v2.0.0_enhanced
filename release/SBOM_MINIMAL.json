@@ -4525,7 +4525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31b5751f1a698ac7b9234e8baaa21a9b8356b8773ebddb329c0c465a5cb6e559"
+          "content": "de6dccd084c57f359e7ec0d6b9a0d66f0663a01033c10e949daf146159593d86"
         }
       ],
       "name": "services/actuator-service/main.py",
@@ -5305,7 +5305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0dcb1634e4507453dd3f85afb27d0d1e889b68897687084f3b5adb3071398000"
+          "content": "9f84be8586959fc0827e7806d3cea8a56f52ae3d14d933b886167058b8cfb439"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -5505,7 +5505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e5fe097631df7ad06bf00cd3611b419648e8c6d99c649dd99b091a0848377dd"
+          "content": "32171d7e511afc33a3d7cf757718b64b198e5274fbf206679d26dd62af05e20f"
         }
       ],
       "name": "services/local-ai-rag/main.py",
@@ -5685,7 +5685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dec904ec76d1cb6dbb85a08fb20aec39d243975ba8d5400a36863fbf00e1b804"
+          "content": "2f652a9e5763ef1bab7cf53deeec1041ff70daec8cd14e79d56580c3cb2f0d7d"
         }
       ],
       "name": "services/odoo-bridge/main.py",
@@ -15575,7 +15575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5afe1f3c00ceaa7fccfacc2c8131f6587045710b33cf3ffd536fb17fd1f5c136"
+          "content": "9f21d049c9d6719c706f6ce8eee5b00a3ba282119e945e63f2d50b7e87f9b52d"
         }
       ],
       "name": "services/supervisor-agent/main.py",
@@ -15825,7 +15825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78946677c59d2a39dff5d188d7736ac0508729ad18ab5fe8316a18c461da74b3"
+          "content": "71f8bee51274691b8c17a10df2c4128bb2f36bad6a521a4f12f6000611f60444"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -15925,7 +15925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b13056b0981a724b58f523124cf0ec78cdfefa095c90fa370bb7a0b37286d74a"
+          "content": "142f237693e54d4acf3b6a5a72f7fd488f737e9ad67db87750c84c8ed2f9b3f9"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -16015,7 +16015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df50a96add44aa5509e51bc5ba7419567b3a1b93f69cbfbb850f15486aaa9c18"
+          "content": "68c92d9b6487c41f4733200996c0d87f60252d97cf03b370bc81d741e8a17113"
         }
       ],
       "name": "services/video-processor/main.py",

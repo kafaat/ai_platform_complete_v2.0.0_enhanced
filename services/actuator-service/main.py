@@ -53,6 +53,20 @@ JWT_ALGORITHM = "RS256" if _JWT_PUBLIC else "HS256"
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 
+# تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
+# مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
+# JWT_PUBLIC_KEY نرفض الإقلاع ما لم يُعطَّل صراحةً (مهرب ترحيل SAHOOL_ALLOW_HS256_IN_PROD=1).
+if (
+    not os.getenv("JWT_PUBLIC_KEY", "").strip()
+    and os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+    and os.getenv("SAHOOL_ALLOW_HS256_IN_PROD", "").strip().lower()
+    not in {"1", "true", "yes", "on"}
+):
+    raise RuntimeError(
+        "RS256 مطلوب في الإنتاج: اضبط JWT_PUBLIC_KEY (HS256 لا يُنهي shared trust domain). "
+        "للترحيل المؤقّت فقط: SAHOOL_ALLOW_HS256_IN_PROD=1."
+    )
+
 # نافذة إزالة التكرار (Saga / idempotency): لا يُعاد إطلاق نفس الأمر الفعّال
 # خلال هذه المدّة بالثواني. قابلة للضبط عبر البيئة، الافتراضيّ 60ث.
 ACTUATOR_DEDUP_WINDOW_SEC = float(os.getenv("ACTUATOR_DEDUP_WINDOW_SEC", "60"))

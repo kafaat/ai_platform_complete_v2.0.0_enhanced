@@ -129,10 +129,27 @@ PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", "").rstrip("/")
 security = HTTPBearer(auto_error=False)
 
 # ── تحقّق JWT حقيقيّ (كان يُقبل أيّ Bearer غير فارغ بلا تحقّق توقيع) ──
-_VEG_JWT_SECRET = os.getenv("JWT_SECRET", "")
-_VEG_JWT_ALG = "HS256"
+# RS256 (غير متماثل) لإنهاء shared trust domain: auth يوقّع بمفتاحه الخاصّ والخدمة تتحقّق
+# بالمفتاح العامّ (آمن للتوزيع). عند ضبط JWT_PUBLIC_KEY نتحقّق بـRS256؛ وإلّا HS256 (تطوير).
+_VEG_JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "").strip()
+_VEG_JWT_SECRET = _VEG_JWT_PUBLIC if _VEG_JWT_PUBLIC else os.getenv("JWT_SECRET", "")
+_VEG_JWT_ALG = "RS256" if _VEG_JWT_PUBLIC else "HS256"
 # المُصدِرون الداخليّون المسموح بهم — يُفرَض بعد فكّ التوكن (تدقيق B: iss لم يُفحَص).
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
+
+# تحصين الإنتاج (fail-closed، تماثُل مع auth/المنصّة): RS256 إلزاميّ — HS256 سرّ متماثل
+# مشترَك لا يُنهي shared trust domain (أيّ خدمة تحمله تُزوّر توكناً). في الإنتاج بلا
+# JWT_PUBLIC_KEY نرفض الإقلاع ما لم يُعطَّل صراحةً (مهرب ترحيل SAHOOL_ALLOW_HS256_IN_PROD=1).
+if (
+    not _VEG_JWT_PUBLIC
+    and os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+    and os.getenv("SAHOOL_ALLOW_HS256_IN_PROD", "").strip().lower()
+    not in {"1", "true", "yes", "on"}
+):
+    raise RuntimeError(
+        "RS256 مطلوب في الإنتاج: اضبط JWT_PUBLIC_KEY (HS256 لا يُنهي shared trust domain). "
+        "للترحيل المؤقّت فقط: SAHOOL_ALLOW_HS256_IN_PROD=1."
+    )
 _ISO_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
