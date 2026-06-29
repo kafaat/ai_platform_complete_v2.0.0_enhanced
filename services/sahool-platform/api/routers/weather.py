@@ -24,6 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from api.service_token_auth import _require_service_token
+from api.weather_alerts import derive_weather_alerts
 
 router = APIRouter()
 
@@ -2525,6 +2526,42 @@ async def weather_action_recommendation(
             "save_recommendation_endpoint": "/api/v1/weather/recommendations/from-operation-plan",
         },
         "source": "open-meteo+sahool-action-bridge",
+    }
+
+
+@router.get(
+    "/api/v1/weather/alerts",
+    dependencies=[Depends(_rate_dependency("weather-action-recommendation"))],
+)
+async def weather_alerts(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    model: str = Query("best_match"),
+    hours: str = Query("0,1,3,6,12,24,48"),
+):
+    """تنبيهات طقس زراعيّة مشتقّة بإحداثيّات (عامّة، بلا بيانات مستأجِر).
+
+    تحسب خطّة العمليّات عبر ``weather_operation_plan`` (مرآةً لنقطة action-recommendation)
+    وتجلب عيّنة الآن، ثمّ تشتقّ التنبيهات عبر ``derive_weather_alerts`` (منطق نقيّ).
+    لا تكتب في قاعدة البيانات ولا تقرأ حالة مستأجِر.
+    """
+    _, model = _validate_time_model("now", model)
+    plan = await weather_operation_plan(
+        lat=lat, lon=lon, operations="spraying", hours=hours, model=model
+    )
+    sample, _state, _age, _err = await _get_weather_sample_cached(lat, lon, "now", model, "alerts")
+    alerts = derive_weather_alerts(sample, plan)
+    _record_weather_observation("weather-action-recommendation", cache_state="served")
+
+    # تكامل الإشعار (اختياريّ، خلف علم): لا يحجب هذه النقطة العامّة.
+    # TODO(weather-alerts): عند توفّر AlertManager/NATS، انشر حدث الإشعار باسم
+    # "WEATHER_ALERT_DERIVED" لكلّ تنبيه severity=critical خلف علم بيئة
+    # (مثلاً SAHOOL_WEATHER_ALERTS_EMIT=1). يبقى الاشتقاق مستقلّاً ولا يعتمد عليه.
+
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "alerts": alerts,
+        "source": "open-meteo+sahool-weather-alerts",
     }
 
 
