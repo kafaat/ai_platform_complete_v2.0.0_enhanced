@@ -455,7 +455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce764733ad054ba4f833db5d62ac963b85e7bc046ecb114b2478063e45a2bd09"
+          "content": "b8a8b5d4166c1f9d8e490df114c99277e4d843233f18c835a32ae9bf40c89bab"
         }
       ],
       "name": "frontend/src/components/FieldIndicatorMap.tsx",
@@ -885,7 +885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fbfc1e43a6eec91a0dd26284a537efc7acfe61a449a535bfbbdcdd7415b89e2"
+          "content": "1d8511d4ae69757522570b571bb3d7b2cbb573dfc1cffefbb9c0e8b240cfa8bd"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -905,7 +905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d1c0c384473407db9b8fb4f1be030af7d639998206d8d146186541d90539062"
+          "content": "cc8f602f1f1d9ce4a0f25866ac50a627eb5f981c9c9c9d26912db67c42888eb3"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -915,7 +915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c6c25a7e6349314f3d097669d046dfaf47268a202826a79fefd8ff85c0ad81a"
+          "content": "9957d481175d025560902e0be27f4a8088e8da5030b8f05675328cff2d98fd01"
         }
       ],
       "name": "frontend/src/components/maphub/ImageryDateWiring.static.test.ts",
@@ -925,7 +925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51f96ffea51f05e48994555ed14c0fac98552672cb38caf9cdb2c70037cf8838"
+          "content": "1292f5d80c2295ccb75c7b363934f1bb5446fc72915d7e11caf3ed0d85a065f3"
         }
       ],
       "name": "frontend/src/components/maphub/MapForensicHardening.static.test.ts",
@@ -5895,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "30deeb9b9696faa046b73d317f118d832ee129a14bc5caebac76785cf3f0426f"
+          "content": "b7dce0556c96b10c13ea0a085c1101a9e039796547f38b9cd332915ba340eb82"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -6065,7 +6065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b10db8ac4cebbfbd97a1a23ad019c6b0d5328c5b50c5981e10ac6166d60c8a4f"
+          "content": "48eaad04ba032df94585b00c49dea5b425150808448dcfae9d1e6b00532e8f70"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",

@@ -282,9 +282,12 @@ export default function FieldIndicatorMap({
     setLegend(undefined);
     setTileUnavailableMessage(null);
     setTileCacheVersion(null);
+    // توحيد main↔cert: في وضع CDSE الحيّ نفحص توفّر cdse-tilejson (available=is_configured)
+    // لا tilejson المحلّيّ (COG) — وإلّا حُجبت طبقة المؤشّر دائماً لحقل بلا COG رغم توفّر CDSE.
+    const tilejsonPath = tileSegment === 'cdse-tiles' ? 'cdse-tilejson' : 'tilejson';
     rasterApi
       // عقد التاريخ (متابعة D): لا نمرّر date في طلب TileJSON حين latest/فارغ (backend يعامله كأحدث).
-      .get<TileJSON>(`/v1/fields/${fieldId}/tilejson`, { params: { index: normalizedIndex, ...(date && date !== 'latest' ? { date } : {}), ...(tenantId ? { tid: tenantId } : {}) } })
+      .get<TileJSON>(`/v1/fields/${fieldId}/${tilejsonPath}`, { params: { index: normalizedIndex, ...(date && date !== 'latest' ? { date } : {}), ...(tenantId ? { tid: tenantId } : {}) } })
       .then((r) => {
         if (cancelled) return;
         // raster-service يُرجع available=false وحدوداً عالمية محايدة عند غياب COG.
@@ -312,7 +315,7 @@ export default function FieldIndicatorMap({
         }
       });
     return () => { cancelled = true; };
-  }, [fieldId, normalizedIndex, date, tenantId]);
+  }, [fieldId, normalizedIndex, date, tenantId, tileSegment]);
 
   // مركز افتراضي قبل ضبط fitBounds
   const center: [number, number] = fieldPolygon && fieldPolygon.length

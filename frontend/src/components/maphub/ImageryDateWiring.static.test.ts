@@ -10,8 +10,9 @@ const api = readFileSync(join(root, 'src/services/api.ts'), 'utf8');
 
 describe('MapHub imagery date wiring regression', () => {
   it('does not hard-code date=latest inside Leaflet/MapLibre tile URL builders', () => {
-    expect(hubMap).toContain("date: imageryDate || 'latest'");
-    expect(hubMapGL).toContain("date: imageryDate || 'latest'");
+    // عقد التاريخ (D): يمرّر imageryDate المختار شرطيّاً ولا يُثبّت 'latest' (يُسقطه حين latest/فارغ).
+    expect(hubMap).toContain("imageryDate && imageryDate !== 'latest'");
+    expect(hubMapGL).toContain("imageryDate && imageryDate !== 'latest'");
     expect(hubMap).not.toContain("date: 'latest' });");
     expect(hubMapGL).not.toContain("date: 'latest' });");
   });

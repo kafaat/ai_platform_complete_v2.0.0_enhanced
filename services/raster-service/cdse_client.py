@@ -135,6 +135,19 @@ def supported_indices() -> set[str]:
     return set(INDEX_EXPR)
 
 
+def _cdse_credentials() -> tuple[str | None, str | None]:
+    """اعتماد Copernicus: ``CDSE_CLIENT_ID/SECRET`` مع ارتداد إلى ``SH_CLIENT_ID/SECRET``.
+
+    ``SH_*`` و``CDSE_*`` كلاهما عميل OAuth على نفس realm الـCDSE (``SH_TOKEN_URL`` يؤكّده:
+    ``identity.dataspace.copernicus.eu/.../CDSE``). خدمات أخرى تُلزِم ``SH_*`` (``:?``)، فإن
+    ضبط المشغّل ``SH_*`` فقط دون ``CDSE_*`` كانت الصور تُعطَّل صامتاً (بلاطات شفّافة). نقرأ
+    ``SH_*`` كبديل لسدّ فخّ تهيئة شائع (مزوّدان لنفس الاعتماد). فارغ ⇒ None.
+    """
+    cid = os.getenv("CDSE_CLIENT_ID") or os.getenv("SH_CLIENT_ID")
+    secret = os.getenv("CDSE_CLIENT_SECRET") or os.getenv("SH_CLIENT_SECRET")
+    return (cid or None), (secret or None)
+
+
 def is_configured() -> bool:
     """هل CDSE مُهيّأ فعليّاً؟ (اعتمادات موجودة و``CDSE_ENABLED`` ليس ``false``).
 
@@ -142,7 +155,8 @@ def is_configured() -> bool:
     """
     if os.getenv("CDSE_ENABLED", "true").strip().lower() == "false":
         return False
-    return bool(os.getenv("CDSE_CLIENT_ID") and os.getenv("CDSE_CLIENT_SECRET"))
+    cid, secret = _cdse_credentials()
+    return bool(cid and secret)
 
 
 # أصناف SCL (Scene Classification) للغيوم/الظلال/السيرس/الثلج التي تُقنَّع per-pixel،
@@ -216,10 +230,11 @@ class CdseClient:
     def _fetch_token(self) -> str:
         import httpx
 
-        client_id = os.getenv("CDSE_CLIENT_ID")
-        client_secret = os.getenv("CDSE_CLIENT_SECRET")
+        client_id, client_secret = _cdse_credentials()
         if not (client_id and client_secret):
-            raise RuntimeError("CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET).")
+            raise RuntimeError(
+                "CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET ولا SH_CLIENT_ID/SECRET)."
+            )
         resp = httpx.post(
             self._token_url,
             data={
