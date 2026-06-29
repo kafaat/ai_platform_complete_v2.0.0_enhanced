@@ -18,6 +18,7 @@ import { readWeatherPreferences, writeWeatherPreferences } from './weatherPrefer
 import { createWeatherWindGridLayer } from './WeatherTileLayer';
 import { createWeatherControl } from './WeatherLayerPanel';
 import { registerWeatherProbePopup } from './WeatherProbePopup';
+import { registerWeatherHoverReadout } from './WeatherHoverReadout';
 
 export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null }) {
   const map = useMap();
@@ -100,6 +101,12 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
   useEffect(() => {
     if (!stableMarker) return undefined;
     return registerWeatherProbePopup(map, layer, time, model, stableMarker.fieldId ?? null);
+  }, [map, stableMarker, time, model, layer]);
+
+  // قراءة بالتحويم (مستوحاة من meteoblue): تمرير المؤشّر يُظهر قيمة الطبقة عند النقطة.
+  useEffect(() => {
+    if (!stableMarker) return undefined;
+    return registerWeatherHoverReadout(map, layer, time, model);
   }, [map, stableMarker, time, model, layer]);
 
   return null;

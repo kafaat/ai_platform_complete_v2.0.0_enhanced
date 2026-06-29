@@ -70,6 +70,15 @@ describe('SAHOOL weather engine static architecture', () => {
     expect(probe).not.toContain("{ 'Content-Type': 'application/json', Accept: 'application/json' }");
   });
 
+  it('supports hover-to-read-value readout (inspired by meteoblue)', () => {
+    expect(existsSync(join(weatherDir, 'WeatherHoverReadout.ts'))).toBe(true);
+    const hover = readFileSync(join(weatherDir, 'WeatherHoverReadout.ts'), 'utf8');
+    expect(hover).toContain('mousemove');
+    expect(hover).toContain('weatherFetchHeaders');
+    expect(hover).toContain('/api/v1/weather/probe');
+    expect(overlay).toContain('registerWeatherHoverReadout');
+  });
+
   it('persists safe user weather overlay preferences (v27)', () => {
     expect(existsSync(join(weatherDir, 'weatherPreferences.ts'))).toBe(true);
     expect(overlay).toContain('readWeatherPreferences');
