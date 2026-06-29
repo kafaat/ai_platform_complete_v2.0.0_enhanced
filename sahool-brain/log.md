@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-06-29 (ع) — تفكيك main.py للمنصّة (استخراج النماذج) + إصلاح حارس المصدر
+
+**رأس الفرع المخصّص `claude/code-review-34hO3`:** `044e1ff` (CI `ci.yml` أخضر). `main` المحلّيّ `c8fc78b`
+(مدموج فيه؛ الدفع المباشر لـmain محجوب بالمصنّف — التطوير يبقى على الفرع المخصّص).
+
+- **استخراج نماذج Pydantic من `main.py` (P0):** نُقِل ٧٣ صنف `BaseModel` من
+  [`services/sahool-platform/api/main.py`](../services/sahool-platform/api/main.py) (3282→2735 سطراً) إلى
+  وحدة جديدة [`services/sahool-platform/api/api_models.py`](../services/sahool-platform/api/api_models.py)
+  (664 سطراً، بترتيب المصدر/AST فالنماذج المتداخلة تسبق مستهلكيها)، ويُعاد استيرادها عبر
+  `from api.api_models import (...)  # noqa: E402,F401`. أُبقيت ٤ معالِجات `@app` ووصل `register_routers`.
+- **🔑 الإصلاح (هذه الجلسة):** حارس المصدر
+  [`tests_v9/test_disease_field_state_feed.py`](../tests_v9/test_disease_field_state_feed.py)`::test_diagnose_request_has_optional_field_id`
+  كان يمسح `main.py` فقط بـ`src.index("class DiagnoseRequest(")` ⇒ `ValueError: substring not found` بعد
+  نقل النموذج إلى `api_models.py` (كسر CI run #2532 على `a806251`: 1 failed/1600 passed). الحلّ: مسح
+  `main.py` **و** `api_models.py` (نفس نمط `_func_src` للمعالِجات المنقولة) دون إضعاف تأكيد
+  `field_id: str | None = None`. تحقّق: ٦/٦ في الملفّ خضراء · `pytest -m unit` كامل = **1950 passed**
+  (الـ٧ أخطاء الوحيدة = `nats.aio` غائب محلّيّاً، تنجح في CI).
+- **تجديد بصمات الإصدار:** غيّر ملفّ الاختبار بصمته ⇒ أُعيد توليد `release/FILE_CHECKSUMS.sha256`
+  (+manifest/SBOM) بـ`build_release_bundle.py` لإبقاء بوّابة Phase 14 خضراء.
+- **التوقيع:** الالتزامان المدفوعان (`c8fc78b`+merge `044e1ff`) موقَّعان SSH (ترويسة `gpgsig`)؛ تحذير
+  `%G?`=N محلّيّ فقط (غياب `allowedSignersFile`؛ ملفّ المفتاح العامّ 0 بايت) — GitHub يتحقّق خادميّاً.
+- **درس:** أيّ نقل لرمز يمسحه حارس مصدر نصّيّ (`.index`/`.find`) يجب أن يوسّع نطاق المسح للوحدة الجديدة
+  — شغّل **كامل** `tests_v9 -m unit` لا عيّنة المنصّة وحدها (التحقّق السابق فوّت هذا الحارس).
+
+---
+
 ## 2026-06-29 (س) — توحيد main + فرع الاعتماد Phase 1–22 + السبب الجذريّ لـauth
 
 **رأس `main` بعد الجلسة:** `96003bf`. الفرع المخصّص `claude/code-review-34hO3` = `c0174e6` (مطابق لـmain).
