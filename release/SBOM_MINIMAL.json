@@ -1035,7 +1035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "780f285c4ed9aabc84c80887bf5331570f8f5837bea988c069e2679897567f7d"
+          "content": "457680dadcc63f7789118c2a7a1a2a9b6c91bf14a9c7dab9bf8735db2fe13e09"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherLayerPanel.ts",
@@ -1065,7 +1065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f162a083e172cecce0858aebfa13c03f5dcbfc1916cb444f034b5cba97922b09"
+          "content": "8baee2645c69fb71309acdba6a3db67b8621f455a85e79ad34741bc5846bc5ff"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
@@ -1075,7 +1075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cea2b048b13f61907abcf19225cf339ce259328ed0d3d4336c04407f407ed039"
+          "content": "b13e18b2caf40f3afd1b1887dfdc7900d44e4e82924a84acdd89f68a91ea2c01"
         }
       ],
       "name": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
@@ -9555,7 +9555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2d68fd02845bbc96758b5ec36cca62d32cbb1c03a01ea2845524ecbe466996d"
+          "content": "28adc458dd572e7f8e3e4f12716ac51237d18a5b8331de3fe1a247a9d8003d03"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",
@@ -9969,6 +9969,16 @@
         }
       ],
       "name": "services/sahool-platform/api/weather_advice.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a82bf66bedd5bf1de95f71e9cfed3cc2972a473bc6769c06466a100ef4943b9d"
+        }
+      ],
+      "name": "services/sahool-platform/api/weather_alerts.py",
       "type": "file"
     },
     {
@@ -15385,6 +15395,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cd2f61116c600258ec7d9aeda655207f3ac1148f1237674ba6c226b400921811"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_alerts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "688d1dfacf52b853c5297c2e2783c6a0b03b5f2c8a325c3ae59580d2d1b3306a"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_agronomic_risk_layers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6b6fda1ba5ea89f0246e14f59cfd773ec7f415a56cf5dbaff4efcb6ff202208b"
         }
       ],
@@ -15489,6 +15519,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_engine_v28_soil_temperature_depth.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d18644f8fe554ba705b28d4d6da58dcf48b005ffd1657ea9e308a563c5c889ee"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_field_timeline_link.py",
       "type": "file"
     },
     {
