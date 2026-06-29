@@ -1592,8 +1592,11 @@ def weather_self_test(response: Response):
 
 
 @router.get("/api/v1/weather/runtime-contract")
-def weather_runtime_contract(response: Response):
-    """UI/API runtime contract check for MapHub weather integration."""
+def weather_runtime_contract(response: Response, _: None = Depends(_require_service_token)):
+    """UI/API runtime contract check for MapHub weather integration.
+
+    تشخيص داخليّ (يكشف بنية النشر) ⇒ محميّ بـService Token (internal/admin فقط).
+    """
     result = _weather_runtime_contract()
     if result["status"] != "ok":
         response.status_code = 500
@@ -1602,8 +1605,11 @@ def weather_runtime_contract(response: Response):
 
 
 @router.get("/api/v1/weather/env-doctor")
-def weather_env_doctor(response: Response):
-    """Local operational guardrail report for weather engine settings."""
+def weather_env_doctor(response: Response, _: None = Depends(_require_service_token)):
+    """Local operational guardrail report for weather engine settings.
+
+    يكشف متغيّرات/تهيئة البيئة ⇒ محميّ بـService Token (internal/admin فقط).
+    """
     result = _weather_env_doctor()
     if result["status"] != "ok":
         response.status_code = 500
@@ -1870,11 +1876,14 @@ def weather_observability():
 
 
 @router.get("/api/v1/weather/metrics.prom")
-def weather_metrics_prometheus():
+def weather_metrics_prometheus(_: None = Depends(_require_service_token)):
     """Prometheus/OpenMetrics compatible text export for the weather engine.
 
     لا يستدعي Open‑Meteo ولا يكشف أسراراً؛ الهدف ربط Grafana/Prometheus أو
     فحص سريع من Docker/Kubernetes بدون إضافة تبعية prometheus_client.
+
+    كشط داخليّ (Prometheus) ⇒ محميّ بـService Token (X-Agent-Token)؛ يُمرَّر رأس
+    التوكن من جامع المقاييس الداخليّ، لا يُكشَف للعموم.
     """
     return Response(
         content=_weather_metrics_prometheus(),

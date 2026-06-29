@@ -9555,7 +9555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "856d04e64e62dab2513821d1471a490ff5869e2efe5f4b0adf49f333b77af709"
+          "content": "b2d68fd02845bbc96758b5ec36cca62d32cbb1c03a01ea2845524ecbe466996d"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",
@@ -15479,6 +15479,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_engine_v26_runtime_smoke_assets.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b2124792519c6debcd4ec24364e17947fe719bfd9a66ccf758542eeb66ce583"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_v28_soil_temperature_depth.py",
       "type": "file"
     },
     {
