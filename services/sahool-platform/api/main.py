@@ -36,7 +36,6 @@ import secrets
 import sys
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
-from typing import Literal
 
 # جعل النواة قابلة للاستيراد
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -54,7 +53,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from jwt.exceptions import InvalidTokenError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 logger = logging.getLogger("sahool.api")
 
@@ -797,50 +796,83 @@ async def rate_limit_middleware(request, call_next):
 
 # ─── Pydantic models للـrequest/response ─────────────────────────
 
-
-class LoginRequest(BaseModel):
-    user_id: str
-    tenant_id: str
-    role: str = "agronomist"
-    name_ar: str
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    expires_in: int
-    user: dict
-
-
-class RecommendationRequest(BaseModel):
-    tenant_id: str
-    farm_id: str
-    field_id: str
-    crop: str
-    validation: dict
-    current_indicators: dict = Field(default_factory=dict)
-    district_id: str | None = None
-
-
-class ObservationRequest(BaseModel):
-    tenant_id: str
-    farm_id: str | None = None
-    field_id: str | None = None
-    observable_id: str
-    value: float
-    unit: str = ""
-    source: str = "manual"  # manual/sensor/lab/satellite
-    confidence: str = "medium"
-    measured_at: str  # ISO datetime
-    method: str | None = None
-
-
-class SyncBatchRequest(BaseModel):
-    """دفعة عمليات من العميل offline-first."""
-
-    tenant_id: str
-    operations: list[dict]
-
+# نماذج Pydantic نُقِلت إلى api/api_models.py (تفكيك — سلوك محفوظ) وتُعاد
+# استيرادها هنا كي يبقى main.<Model> يَحُلّ لكلّ مرجع خارجيّ وداخليّ كما كان.
+from api.api_models import (  # noqa: E402,F401
+    ActivityCreateRequest,
+    ActivitySummary,
+    AstronomicalCrossCheckRequest,
+    ChemicalCheckRequest,
+    ConfidenceGateRequest,
+    CorroborationRequest,
+    CropSuitabilityRequest,
+    DailyTempInput,
+    DiagnoseRequest,
+    EngineSignalInput,
+    EquipmentInput,
+    EscalationAssessRequest,
+    EvidenceInput,
+    ExternalPriorBlendRequest,
+    FailureCheckRequest,
+    FarmCreateRequest,
+    FieldFitRequest,
+    GDDRequest,
+    GeometryValidateRequest,
+    GrowthNarrativeRequest,
+    ImageryFieldRegister,
+    IntegratedAdviceRequest,
+    InternalAIAdviceEventRequest,
+    IrrigationConfRequest,
+    LoginRequest,
+    MeasurementInput,
+    NdviConfidenceRequest,
+    NDVIObservationIn,
+    NitrogenRxRequest,
+    NotificationPreferences,
+    ObservationRequest,
+    OnboardingSubmitRequest,
+    OperationReportRequest,
+    OutcomeRecordRequest,
+    PestEscalationRequest,
+    PinCreateRequest,
+    ReadinessRequest,
+    RecommendationRequest,
+    RegisterCameraRequest,
+    ReplayRequest,
+    ReportFieldInput,
+    RotationRequest,
+    SalinityRequest,
+    SeedSourceRequest,
+    ShareKeyRequest,
+    SharingKeyCreateRequest,
+    SnapshotEvidenceRequest,
+    Soil4RRequest,
+    SoilLabTestCreateRequest,
+    SoilLabTestSummary,
+    SoilLabTestUpdateRequest,
+    StressRiskRequest,
+    SyncBatchRequest,
+    TaskListResponse,
+    TaskSummary,
+    TaskUpdateRequest,
+    TemporalCheckRequest,
+    TemporalCoherenceRequest,
+    TimelineRequest,
+    TokenResponse,
+    TransitionCheckRequest,
+    TrueUpRequest,
+    WalkPlanRequest,
+    WaterAnalysisRequest,
+    WhatIfPlantingRequest,
+    WhatIfRainRequest,
+    WhatIfRequest,
+    WhatIfTempRequest,
+    YieldEstimateRequest,
+    ZoneCellInput,
+    ZoneInput,
+    ZoneRateInputModel,
+    ZoningRequest,
+)
 
 # ─── نطاق الحقول (Fields) — تفكيك B1 (نقل عنقوديّ) ────────────────
 # نماذج الحقل (FieldSummary/FieldDetail/FieldCreate/Import/Update/Recommendation)
@@ -1473,30 +1505,6 @@ def _activity_event_type(activity_type: str, status: str) -> str:
     return activity_event_for(activity_type, status).name
 
 
-class ActivityCreateRequest(BaseModel):
-    """طلب تسجيل عمليّة زراعيّة لحقل (نوع/عنوان/تفاصيل/تواريخ/موسم اختياريّ)."""
-
-    activity_type: str
-    title_ar: str | None = Field(default=None, max_length=200)
-    details: dict = Field(default_factory=dict)
-    scheduled_for: str | None = None
-    performed_on: str | None = None
-    season_id: str | None = None
-
-
-class ActivitySummary(BaseModel):
-    activity_id: str
-    field_id: str
-    season_id: str | None = None
-    activity_type: str
-    title_ar: str | None = None
-    details: dict
-    scheduled_for: str | None = None
-    performed_on: str | None = None
-    status: str
-    created_at: str | None = None
-
-
 def _row_to_activity(r) -> ActivitySummary:
     import json as _json
 
@@ -1527,34 +1535,6 @@ def _row_to_activity(r) -> ActivitySummary:
 
 # ─── المهامّ الميدانيّة (field_tasks) — كانت الواجهة تنادي /tasks بلا خلفيّة ─
 # تُسلسِل قائمة مهامّ المستأجِر + تحديث الحالة، مدعومة بجدول field_tasks (RLS).
-class TaskSummary(BaseModel):
-    task_id: str
-    field_id: str
-    task_type: str
-    priority: int = 3
-    status: str
-    recommended_date: str | None = None
-    estimated_duration_min: int | None = None
-    estimated_cost_usd: float | None = None
-    assigned_to: str | None = None
-    notes: str | None = None
-    photo_url: str | None = None
-    completed_at: str | None = None
-    created_at: str | None = None
-
-
-class TaskListResponse(BaseModel):
-    """غلاف {tasks:[...]} — يطابق عقد الواجهة (useTasks يقرأ data.tasks)."""
-
-    tasks: list[TaskSummary]
-
-
-class TaskUpdateRequest(BaseModel):
-    """تحديث مهمّة (جزئيّ): الحالة و/أو صورة و/أو ملاحظة."""
-
-    status: str | None = None
-    photo_url: str | None = None
-    notes: str | None = None
 
 
 _TASK_STATUSES = {"pending", "in_progress", "completed", "cancelled"}
@@ -1593,60 +1573,11 @@ def _row_to_task(r) -> TaskSummary:
 # لـ_rebuild_pydantic_models/الاختبارات).
 
 
-class NDVIObservationIn(BaseModel):
-    """مشاهدة NDVI زمنيّة واحدة (من سلسلة Sentinel-2)."""
-
-    date: str = Field(min_length=4, max_length=32)
-    ndvi: float
-    days_after_planting: int | None = Field(default=None, ge=0)
-
-
-class GrowthNarrativeRequest(BaseModel):
-    """سرد نموّ فينولوجي من سلسلة NDVI + مظروف متوقَّع اختياريّ."""
-
-    observations: list[NDVIObservationIn]
-    crop: str = Field(min_length=1, max_length=50)
-    peak_ndvi_floor: float | None = Field(default=None, ge=-1, le=1)
-    expected_peak_dap_min: int | None = Field(default=None, ge=0)
-
-
 # ─── Workflow مخبري للتربة (Soil lab tests) — دورة حياة v50 ──────────
 _SOIL_TEST_SELECT = (
     "test_id, field_id, status, lab_name, sampled_on, result, notes_ar, "
     "approved_by, published_at, created_at"
 )
-
-
-class SoilLabTestCreateRequest(BaseModel):
-    """طلب فحص تربة جديد (يبدأ بحالة requested)."""
-
-    lab_name: str | None = Field(default=None, max_length=120)
-    sampled_on: str | None = None
-    notes_ar: str | None = None
-    result: dict | None = None
-
-
-class SoilLabTestUpdateRequest(BaseModel):
-    """تحديث فحص تربة (انتقال حالة محقَّق + بيانات اختياريّة)."""
-
-    status: str | None = None
-    lab_name: str | None = Field(default=None, max_length=120)
-    sampled_on: str | None = None
-    notes_ar: str | None = None
-    result: dict | None = None
-
-
-class SoilLabTestSummary(BaseModel):
-    test_id: str
-    field_id: str
-    status: str
-    lab_name: str | None = None
-    sampled_on: str | None = None
-    result: dict = Field(default_factory=dict)
-    notes_ar: str | None = None
-    approved_by: str | None = None
-    published_at: str | None = None
-    created_at: str | None = None
 
 
 def _row_to_soil_test(r) -> SoilLabTestSummary:
@@ -1712,25 +1643,6 @@ _NOTIF_EVENT_TYPES = {
     "frost_risk",
     "other",
 }
-
-
-class NotificationPreferences(BaseModel):
-    """تفضيلات إشعار المستخدم — القنوات المُفعَّلة + عناوينها + أنواع الأحداث.
-
-    تُستخدم للقراءة والتحديث (PUT يستبدل الصفّ كاملاً — upsert). العناوين/الأرقام
-    اختياريّة؛ القناة المُفعَّلة بلا عنوان تُسجَّل كغير قابلة للتسليم (صدق، لا ابتلاع).
-    """
-
-    email_enabled: bool = False
-    email_address: str | None = Field(default=None, max_length=255)
-    sms_enabled: bool = False
-    sms_number: str | None = Field(default=None, max_length=32)
-    push_enabled: bool = False
-    push_token: str | None = None
-    whatsapp_enabled: bool = False
-    whatsapp_number: str | None = Field(default=None, max_length=32)
-    event_types: list[str] = Field(default_factory=list)
-    min_severity: str | None = None
 
 
 def _row_to_prefs(r) -> NotificationPreferences:
@@ -2021,22 +1933,6 @@ async def _evaluate_field_alerts_persist(
 
 
 # ─── المزارع (Farms) — هرميّة المزرعة→الحقل (v19) ─────────────────
-class FarmCreateRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
-    location: str | None = None
-    area_ha: float | None = None
-    centroid_lat: float | None = None
-    centroid_lon: float | None = None
-    # تنظيم المزرعة (v34) — حقول اختياريّة لشاشة «إنشاء مزرعة».
-    country: str | None = Field(default=None, max_length=60)
-    region: str | None = Field(default=None, max_length=80)
-    timezone: str | None = Field(default=None, max_length=40)
-    # غير اختياريّ بقيمة افتراضيّة 'metric' — يطابق DEFAULT في الـmigration ويمنع
-    # إدراج NULL صريح، ومُقيَّد بالقيم المسموحة (تحقّق ساكن للواجهة أيضاً).
-    units: Literal["metric", "imperial"] = "metric"
-    currency: str | None = Field(default=None, max_length=10)
-    description: str | None = None
-    activity_type: str | None = Field(default=None, max_length=40)
 
 
 # نقاط /api/v1/farms (إنشاء/قائمة/حقول-المزرعة) نُقلت إلى api/routers/farms.py (نمط P0).
@@ -2079,13 +1975,6 @@ def _parse_date(value: str | None, field: str) -> date | None:
 # ─── البيانات المرجعيّة (Master Data) + الدورات الزراعيّة — (v26) ─
 # MasterDataRequest نُقِل إلى api/master_data_models.py (تفكيك B1) ويستورده
 # routers/master_data. RotationRequest يبقى هنا (يستهلكه routers/fields).
-class RotationRequest(BaseModel):
-    crop: str = Field(min_length=1, max_length=80)
-    season_label: str | None = None
-    sequence_order: int | None = None
-    planted_at: str | None = None
-    harvested_at: str | None = None
-    notes: str | None = None
 
 
 # نقاط /api/v1/master-data نُقلت إلى api/routers/master_data.py (نمط P0).
@@ -2154,27 +2043,10 @@ from api.trueup import TrueUpEngine  # noqa: E402
 _trueup_engine = TrueUpEngine()  # pure-compute mode (pool=None)
 
 
-class TrueUpRequest(BaseModel):
-    field_id: str
-    operation_id: str
-    crop: str
-    actual_weight_kg: float
-    actual_moisture_pct: float
-    measured_weight_kg: float
-    measured_yield_kg_ha: float
-    sample_area_ha: float | None = None
-    notes_ar: str | None = None
-
-
 # ─── Geometry validation — موصَّل end-to-end ─────────────────────
 # جلسة التصحيح الذاتي: توصيل وحدة ثانية. geospatial_integrity.py مُختبَر
 # (test_geospatial.py: 29/29). هذا الـendpoint يستخدمه للتحقّق من حدود الحقل
 # قبل الحفظ — يمنع CRS mismatch + self-intersection + إحداثيّات خارج اليمن.
-
-
-class GeometryValidateRequest(BaseModel):
-    geojson: dict
-    declared_crs: str | None = None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -2190,53 +2062,10 @@ from api.prescriptions import PrescriptionGenerator  # noqa: E402
 _rx_generator = PrescriptionGenerator()
 
 
-class ZoneInput(BaseModel):
-    zone_id: str
-    zone_class: str  # "low" | "medium" | "high" | "problem"
-    area_ha: float
-    ndvi_mean: float | None = None
-    soil_ph: float | None = None
-    soil_ec: float | None = None
-    soil_om: float | None = None
-    soil_n_ppm: float | None = None
-    soil_texture: str | None = None
-    soil_depth_cm: int | None = None
-
-
-class NitrogenRxRequest(BaseModel):
-    field_id: str
-    season_id: str
-    crop: str
-    zones: list[ZoneInput]
-
-
 # ─── ٢. Yield estimate ───────────────────────────────────────────
 
 
-class YieldEstimateRequest(BaseModel):
-    field_id: str
-    crop: str
-    days_in_growing: int = 0
-    irrigation_count: int = 0
-    moisture_stress_events: int = 0
-    pest_alerts: int = 0
-    fertilizer_applications: int = 0
-    avg_ndvi_growing: float | None = None
-    drought_streak_days: int = 0
-    rain_events: int = 0
-
-
 # ─── ٣. Confidence (NDVI) ────────────────────────────────────────
-
-
-class NdviConfidenceRequest(BaseModel):
-    ndvi_value: float
-    observation_date: str  # ISO
-    field_area_ha: float
-    cloud_pct: float = 0
-    cloud_shadow_pct: float = 0
-    cirrus_pct: float = 0
-    has_ground_truth: bool = False
 
 
 def _parse_iso_utc(value: str) -> datetime:
@@ -2260,13 +2089,6 @@ def _parse_iso_utc(value: str) -> datetime:
 #  المعالِج — لم يبقَ له مستخدِم في main.py.)
 
 
-class IrrigationConfRequest(BaseModel):
-    ndvi_confidence: float | None = None
-    et0_confidence: float | None = None
-    soil_moisture_confidence: float | None = None
-    weather_forecast_confidence: float | None = None
-
-
 # ─── ٥. Failure detection ────────────────────────────────────────
 # نقطة /api/v1/failures/check نُقلت إلى api/routers/failures.py (نمط P0) —
 # والاستيرادات المرافقة (detect_sentinel_issues/detect_soil_issues/
@@ -2274,62 +2096,15 @@ class IrrigationConfRequest(BaseModel):
 # يبقى هنا (يُستورَد من الموجِّه + _rebuild_pydantic_models).
 
 
-class FailureCheckRequest(BaseModel):
-    cloud_pct: float | None = None
-    days_since_observation: int | None = None
-    weather_hours_since_update: int | None = None
-    soil: dict | None = None
-
-
 # ─── ٦. Temporal arbitration ─────────────────────────────────────
 # (نُقل استيراد DataSource/Measurement/TemporalArbiter إلى
 #  api/routers/temporal.py بعد نقل المعالِجَين — لم يبقَ لها مستخدِم في main.py.)
-
-
-class MeasurementInput(BaseModel):
-    source: str  # DataSource value
-    timestamp: str  # ISO
-    value: float | None = None
-
-
-class TemporalCheckRequest(BaseModel):
-    measurements: list[MeasurementInput]
-    crop: str | None = None
-    stage: str | None = None
 
 
 # ─── ٧. Reports (operation CSV) ──────────────────────────────────
 # نقطة /api/v1/reports/operation نُقلت إلى api/routers/reports.py (نمط P0)؛
 # واستيرادا fastapi PlainTextResponse و api.reports نُقلا معها لإزالة F401.
 # النموذجان ReportFieldInput/OperationReportRequest يبقيان هنا (لا تُنقَل النماذج).
-
-
-class ReportFieldInput(BaseModel):
-    field_id: str
-    field_name_ar: str
-    farm_id: str = ""
-    tenant_id: str = ""
-    area_ha: float = 0
-    crop: str = ""
-    season_label: str = ""
-    planting_date: str | None = None
-    harvest_date: str | None = None
-    lifecycle_stage: str = "CREATED"
-    irrigation_events: int = 0
-    total_water_m3: float = 0
-    fertilizer_events: int = 0
-    total_nitrogen_kg: float = 0
-    avg_ndvi: float | None = None
-    estimated_yield_kg_ha: float | None = None
-
-
-class OperationReportRequest(BaseModel):
-    tenant_id: str
-    operation_name_ar: str
-    period_start: str
-    period_end: str
-    fields: list[ReportFieldInput]
-    lang: str = "ar"
 
 
 # ─── ٨. Field lifecycle transition validation (pure) ─────────────
@@ -2339,11 +2114,6 @@ class OperationReportRequest(BaseModel):
 # يتيمتين هنا فاستُورِدتا في الموجِّه من api.field_lifecycle مباشرةً.
 
 
-class TransitionCheckRequest(BaseModel):
-    from_stage: str
-    to_stage: str
-
-
 # ─── ٩. Event replay — state reconstruction (pure) ───────────────
 # نقطة /api/v1/replay/reconstruct نُقلت إلى api/routers/replay.py (نمط P0).
 # النموذج ReplayRequest يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/
@@ -2351,22 +2121,9 @@ class TransitionCheckRequest(BaseModel):
 # api.event_replay مباشرةً.
 
 
-class ReplayRequest(BaseModel):
-    entity_type: str
-    entity_id: str
-    events: list[dict]  # [{event_type, occurred_at, payload}, ...]
-
-
 # ─── ١٠. Field Timeline (المرحلة ١، البند ٧) ─────────────────────
 # خطّ زمني موحّد لكلّ ما حدث على الحقل. pure assembler (يأخذ الأحداث).
 # النسخة المُوصَّلة بالـDB (تجلب من events table) تحتاج PostgreSQL.
-
-
-class TimelineRequest(BaseModel):
-    field_id: str
-    events: list[dict]
-    newest_first: bool = True
-    category_filter: list[str] | None = None
 
 
 # ─── السياق التاريخي للحقل (farm memory) — يغذّي Runtime Cohesion ──
@@ -2399,14 +2156,6 @@ def _issue_tags_from_event(event_type: str, payload: dict) -> list[str]:
 # يشغّل WOFOST مرّتين (baseline مقابل سيناريو) ويقارن المحصول/الماء.
 # يستهلكه simulate_adapter في حلقة القرار. محاكاة علميّة حقيقيّة (لا أرقام
 # مخترَعة): تعتمد طقساً حيّاً من Open-Meteo داخل simulate_wofost.
-class WhatIfRequest(BaseModel):
-    field_id: str
-    crop: str = "قمح صلب"
-    lat: float | None = None
-    lon: float | None = None
-    soil_type: str = "loam"
-    planting_date: str | None = None  # ISO؛ افتراض بداية الموسم
-    scenario: str = "reduce_irrigation"  # reduce_irrigation | no_irrigation
 
 
 # نقطة /api/v1/simulate/what-if نُقلت إلى api/routers/simulate.py (نمط P0).
@@ -2421,23 +2170,6 @@ class WhatIfRequest(BaseModel):
 # انتقل استعمالها مع نقطة /api/v1/scouting/taxonomy إلى api/routers/scouting.py.
 
 
-class PinCreateRequest(BaseModel):
-    pin_id: str
-    field_id: str
-    lat: float
-    lng: float
-    issue_category: str
-    severity: str = "medium"
-    status: str = "new"
-    persistence: str = "seasonal"
-    crop: str | None = None
-    issue_code: str | None = None
-    note_ar: str | None = None
-    photo_uri: str | None = None
-    color: str | None = None
-    created_by: str | None = None
-
-
 # نقطة /api/v1/scouting/taxonomy نُقلت إلى api/routers/scouting.py (نمط P0).
 
 
@@ -2446,32 +2178,6 @@ class PinCreateRequest(BaseModel):
 # سقايات/شجرة) + PDF عربي للطباعة. يبني على prescriptions.py.
 from api.manual_converter import ApplicationMethod, EquipmentSpec  # noqa: E402
 from api.walk_plan import ZoneRateInput, generate_walk_plan  # noqa: E402
-
-
-class EquipmentInput(BaseModel):
-    terrace_area_m2: float | None = None
-    cap_weight_kg: float | None = None
-    tank_capacity_l: float | None = None
-    tree_spacing_m2: float | None = None
-    can_capacity_l: float | None = None
-    concentration_kg_l: float | None = None
-
-
-class ZoneRateInputModel(BaseModel):
-    zone_id: str
-    rate_kg_ha: float
-    area_ha: float
-    zone_class: str = "medium"
-
-
-class WalkPlanRequest(BaseModel):
-    field_id: str
-    crop: str
-    method: str  # broadcast_terrace | backpack_spray | per_tree
-    zones: list[ZoneRateInputModel]
-    equipment: EquipmentInput
-    product_name_ar: str = "السماد"
-    minutes_per_ha: float = 60.0
 
 
 def _build_walk_plan(req: WalkPlanRequest):
@@ -2509,14 +2215,6 @@ def _build_walk_plan(req: WalkPlanRequest):
 # الـendpoint POST /api/v1/sharing/generate-key مُستخرَج إلى routers/sharing.py.
 
 
-class ShareKeyRequest(BaseModel):
-    scope: str = "read"  # read | read_write
-    third_party_name: str | None = None
-    third_party_type: str | None = None  # advisor | dealer | ministry | researcher | other
-    allowed_field_ids: list[str] = []
-    expires_in_days: int = 30
-
-
 # ─── ١٤. الوحدات المعتمدة على PostgreSQL (سدّ الفجوة ١) ──────────
 # توصيل command_store / event_bus / data_lineage / sharing (الحفظ).
 # نقاط الاستبطان نُقلت إلى موجِّهات P0:
@@ -2527,15 +2225,6 @@ class ShareKeyRequest(BaseModel):
 # الحقيقيّتين مباشرةً (data_lineage/event_bus). CommandStore يبقى مُستورَداً هنا لأنّ
 # موجِّهات أخرى (fields/irrigation) تستورده من api.main (إعادة تصدير).
 from api.command_store import CommandStore  # noqa: E402, F401  (إعادة تصدير لموجِّهات أخرى)
-
-
-class SharingKeyCreateRequest(BaseModel):
-    scope: str = "read"
-    valid_days: int = 30
-    third_party_name: str | None = None
-    third_party_type: str | None = None
-    allowed_field_ids: list[str] = []
-
 
 # المساران POST/GET /api/v1/sharing/keys مُستخرَجان إلى routers/sharing.py.
 
@@ -2558,55 +2247,20 @@ class SharingKeyCreateRequest(BaseModel):
 # توصية تسميد محجوبة حتى توفّر تحليل مختبر (الاستشعار يوجّه/المختبر يحكم).
 # نقطة /api/v1/nutrients/4r-plan نُقلت إلى api/routers/nutrients.py (نمط P0).
 # النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
-class Soil4RRequest(BaseModel):
-    caco3_pct: float | None = None
-    ph: float | None = None
-    p_ppm: float | None = None
-    fe_ppm: float | None = None
-    zn_ppm: float | None = None
-    om_pct: float | None = None
-    nutrients: list[str] | None = None
 
 
 # ─── ١٨. مناطق NDVI k-means (المرحلة ٣، البند ١٤) ───────────────
 # اقتراح مناطق إدارة من NDVI (بديل منخفض التكلفة) — للفحص لا للقرار الآلي.
 
 
-class ZoneCellInput(BaseModel):
-    cell_id: str
-    value: float
-    confidence: float = 1.0
-
-
-class ZoningRequest(BaseModel):
-    cells: list[ZoneCellInput]
-    n_zones: int = 3
-
-
 # ─── ١٩. تتبّع GDD (المرحلة ٣، البند ١٥) ────────────────────────
 # النموّ بالحرارة المتراكمة لا بالأيّام — توقيت أدقّ للريّ/التسميد/الحصاد.
 # نقطة /api/v1/gdd/track نُقلت إلى api/routers/gdd.py (نمط P0).
 # النماذج تبقى هنا وتُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
-class DailyTempInput(BaseModel):
-    t_min_c: float
-    t_max_c: float
-
-
-class GDDRequest(BaseModel):
-    crop: str
-    temps: list[DailyTempInput]
 
 
 # ─── ٢٠. تشخيص بقواعد الأعراض (المرحلة ٣، البند ١٦) ─────────────
 # شجرة قواعد شفّافة (لا ML) — تربط الأعراض بمرشّحين + توصية تأكيد بشري.
-
-
-class DiagnoseRequest(BaseModel):
-    crop: str
-    symptoms: list[str]
-    # تغذية آمنة اختياريّة: عند تمرير field_id نُرفِق سياق الحالة القانونيّة
-    # الموحّدة بالاستجابة. غيابه (None) ⇒ السلوك الحاليّ تماماً (لا إرفاق).
-    field_id: str | None = None
 
 
 # ─── ٢١. بوابة الثقة الموحّدة (مُستلهَمة من DSS، مُكيّفة بصدق) ────
@@ -2614,37 +2268,6 @@ class DiagnoseRequest(BaseModel):
 # نقطة /api/v1/confidence-gate نُقلت إلى api/routers/confidence_gate.py (نمط P0) —
 # والاستيرادان المرافقان (EngineSignal/evaluate) نُقلا معها لإزالة F401. النماذج
 # (EngineSignalInput/ConfidenceGateRequest) تبقى هنا (تُستورَد من الموجِّه).
-
-
-class EngineSignalInput(BaseModel):
-    engine: str
-    has_recommendation: bool
-    confidence: float
-    blocking_reason_ar: str | None = None
-    data_gaps_ar: list[str] = []
-
-
-class ConfidenceGateRequest(BaseModel):
-    signals: list[EngineSignalInput]
-
-
-class EscalationAssessRequest(BaseModel):
-    """تقييم تصعيد الشكّ لإنسان من ثقة مصدر (محرّك/RAG)."""
-
-    confidence: float | None = Field(default=None, ge=0, le=1)
-    source: str = Field(min_length=1, max_length=60)
-    has_answer: bool = True
-    uncertain_points: list[str] = Field(default_factory=list)
-
-
-class ExternalPriorBlendRequest(BaseModel):
-    """مزج سابقة خارجيّة منشورة (مشروع/ورقة) ببيانات اليمن المتراكمة — وزن تدرّجي."""
-
-    external_prior: float | None = None
-    local_estimate: float | None = None
-    n_local: int = Field(default=0, ge=0)
-    crop_grown_in_yemen: bool
-    external_credibility: float = Field(default=0.5, ge=0, le=1)
 
 
 # ─── ٢٢. اكتمال البيانات + ملاءمة المحاصيل (مُستلهَم من المستندَين) ─
@@ -2655,17 +2278,6 @@ class ExternalPriorBlendRequest(BaseModel):
 
 # نقطة /api/v1/data-readiness نُقلت إلى api/routers/data_readiness.py (نمط P0).
 # النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
-class ReadinessRequest(BaseModel):
-    provided_fields: list[str]
-
-
-class CropSuitabilityRequest(BaseModel):
-    ph: float
-    ec_dsm: float
-    season_rain_mm: float | None = None
-    temp_mean_c: float | None = None
-    irrigated: bool = True
-    crops: list[str] | None = None
 
 
 # نقطة /api/v1/crop-suitability نُقلت إلى api/routers/crop_suitability.py (نمط P0).
@@ -2678,40 +2290,10 @@ class CropSuitabilityRequest(BaseModel):
 # (تُستورَد من الموجِّه + _rebuild_pydantic_models).
 
 
-class WhatIfTempRequest(BaseModel):
-    crop: str
-    stage: str = "mid"
-    t_min_c: float
-    t_max_c: float
-    temp_shift_c: float
-    rain_mm: float = 0.0
-    latitude_deg: float = 15.5
-    elevation_m: float = 2000.0
-    day_of_year: int = 100
-
-
 # نقطة /api/v1/scenario/temperature نُقلت إلى api/routers/scenario.py (نمط P0).
 
 
-class WhatIfPlantingRequest(BaseModel):
-    crop: str
-    temps_baseline: list[dict]  # [{t_min_c, t_max_c}, ...]
-    temps_scenario: list[dict]
-
-
 # نقطة /api/v1/scenario/planting-date نُقلت إلى api/routers/scenario.py (نمط P0).
-
-
-class WhatIfRainRequest(BaseModel):
-    crop: str
-    stage: str = "mid"
-    t_min_c: float
-    t_max_c: float
-    rain_baseline_mm: float
-    rain_scenario_mm: float
-    latitude_deg: float = 15.5
-    elevation_m: float = 2000.0
-    day_of_year: int = 100
 
 
 # نقطة /api/v1/scenario/rainfall نُقلت إلى api/routers/scenario.py (نمط P0).
@@ -2721,18 +2303,6 @@ class WhatIfRainRequest(BaseModel):
 # نقطة /api/v1/evidence/corroborate نُقلت إلى api/routers/evidence.py (نمط P0) —
 # والاستيراد المرافق (Evidence/EvidenceType/corroborate) نُقل معها لإزالة F401.
 # النماذج (EvidenceInput/CorroborationRequest) تبقى هنا (تُستورَد من الموجِّه).
-
-
-class EvidenceInput(BaseModel):
-    etype: str  # lab_field|regional_prior|remote_sensing|field_obs|historical
-    agrees: bool
-    note_ar: str = ""
-
-
-class CorroborationRequest(BaseModel):
-    evidences: list[EvidenceInput]
-    recommendation_key: str = "general"
-    test_type_ar: str = "تربة"
 
 
 # ─── ٢٥. التقويم الثقافي (عرض فقط — خارج محرّك القرار صراحةً) ────
@@ -2755,23 +2325,6 @@ class CorroborationRequest(BaseModel):
 # إلى api/routers/admin.py (نمط P0). التبعيات/المساعِدات تبقى هنا وتُستورَد من الموجِّهات.
 
 
-class OutcomeRecordRequest(BaseModel):
-    """تسجيل نتيجة توصية — يغذّي معايرة التنبّؤ وبوّابة تفعيل التعلّم (مسار الكتابة).
-
-    crop + field_id إلزاميّان (سياق التوصية) — يمنعان صفوفاً فارغة تشوّه العدّادات.
-    """
-
-    crop: str = Field(min_length=1, max_length=50)
-    field_id: str = Field(min_length=1, max_length=50)
-    farm_id: str | None = Field(default=None, max_length=50)
-    season_id: str | None = Field(default=None, max_length=50)
-    recommendation_id: str | None = Field(default=None, max_length=64)
-    predicted_yield_t_ha: float | None = Field(default=None, ge=0)
-    actual_yield_t_ha: float | None = Field(default=None, ge=0)
-    accepted: bool = False
-    matured_within_lag: bool = False
-
-
 # نقطة /api/v1/recommendations/outcomes نُقلت إلى api/routers/recommendations.py
 # (نمط P0) — النموذج OutcomeRecordRequest يبقى هنا (نماذج/تبعيات لا تُنقَل).
 
@@ -2784,65 +2337,22 @@ class OutcomeRecordRequest(BaseModel):
 
 # ─── ٢٧. التماسك الزمني الموحّد (Convergence) ──────────────────────
 # يضمن أنّ المحرّكات الزمنيّة (GDD/water_balance/astronomical) على مرجع واحد.
-class TemporalCoherenceRequest(BaseModel):
-    current_date: str  # YYYY-MM-DD
-    planting_date: str | None = None
-    gdd_days_counted: int | None = None
-
-
-class AstronomicalCrossCheckRequest(BaseModel):
-    current_date: str  # YYYY-MM-DD
-    gdd_stage: str | None = None
-    anchor: str = "suhail_rising"
 
 
 # ─── ٢٨. حاجز سلامة المدخلات الكيميائيّة (مُكيَّف من v9، سدّ فجوة سلامة) ─
 # نقاط /api/v1/chemical-safety/* نُقلت إلى api/routers/chemical_safety.py (نمط P0) —
 # والاستيراد المرافق (check_chemical/list_banned) نُقل معها لإزالة F401. النموذج يبقى
 # هنا (يُستورَد من الموجِّه + _rebuild_pydantic_models).
-class ChemicalCheckRequest(BaseModel):
-    chemical: str
-    dose_kg_ha: float | None = None
 
 
 # ─── ٢٩. مراقبة الحقول بالكاميرا (عين ميدانيّة، لا كشف آلي بالـML) ──
 # مسارات /api/v1/cameras/* نُقلت إلى api/routers/cameras.py (نمط P0).
 # النماذج تبقى هنا وتُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
-class RegisterCameraRequest(BaseModel):
-    camera_id: str
-    field_id: str
-    name_ar: str
-    camera_type: str = "fixed"  # fixed|mobile|timelapse
-    lat: float | None = None
-    lon: float | None = None
-    capture_interval_min: int | None = None
-    note_ar: str = ""
-
-
-class SnapshotEvidenceRequest(BaseModel):
-    snapshot_id: str
-    camera_id: str
-    field_id: str
-    media_uri: str
-    captured_at: str
-    linked_pin_id: str | None = None
-    note_ar: str = ""
 
 
 # ─── ٣٠. نماذج طلب حساسيّة المراحل للإجهاد المائي ─────────────────
 # الدوالّ نُقلت إلى api.routers.water_sensitivity؛ النماذج تبقى هنا وتُستورَد منه
 # (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
-class StressRiskRequest(BaseModel):
-    crop: str = "wheat"
-    stage_key: str
-    depletion_pct: float
-
-
-class IntegratedAdviceRequest(BaseModel):
-    crop: str = "wheat"
-    stage_key: str
-    depletion_pct: float
-    net_irrigation_mm: float | None = None
 
 
 # ─── ٣١. الدورة الزراعيّة (تعاقب المحاصيل — خصوبة وقائيّة) ──────────
@@ -2863,11 +2373,6 @@ class IntegratedAdviceRequest(BaseModel):
 # ─── ٣٤. إدارة الملوحة (تصنيف + غسيل + صوديوم — معايير FAO) ────────
 # نقطة /api/v1/salinity/assess نُقلت إلى api/routers/salinity.py (نمط P0).
 # النموذج يبقى هنا ويُستورَد من الموجِّه (حفظاً لـ_rebuild_pydantic_models/الاختبارات).
-class SalinityRequest(BaseModel):
-    ece_dsm: float | None = None  # ملوحة التربة
-    ecw_dsm: float | None = None  # ملوحة ماء الريّ
-    sar: float | None = None  # نسبة امتصاص الصوديوم
-    crop_threshold_ece: float | None = None  # عتبة تحمّل المحصول
 
 
 # ─── ٣٥. دليل البنّ اليمني (محصول نقدي للمرتفعات — شجري دائم) ──────
@@ -2886,22 +2391,9 @@ class SalinityRequest(BaseModel):
 
 # نموذج طلب تقييم مصدر البذار — يبقى مُعرَّفاً هنا ويُستورَد من api.routers.seed
 # (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
-class SeedSourceRequest(BaseModel):
-    certified: bool
-    purity_pct: float | None = None
-    germination_pct: float | None = None
 
 
 # ─── ٣٨. إدخال محاصيل/أشجار جديدة (استلهام من جازان/نجران) ─────────
-
-
-class FieldFitRequest(BaseModel):
-    crop: str
-    ph: float
-    ec_dsm: float
-    season_rain_mm: float | None = None
-    temp_mean_c: float | None = None
-    irrigated: bool = True
 
 
 # ─── ٣٩. بروتوكول أخذ عيّنة التربة (دقّة التحليل تبدأ من العيّنة) ──
@@ -3036,16 +2528,6 @@ async def tenant_connection_for(tenant_id: str):
             yield conn
 
 
-class InternalAIAdviceEventRequest(BaseModel):
-    tenant_id: str = Field(min_length=1)
-    field_id: str | None = None
-    question: str = Field(min_length=1, max_length=4000)
-    evidence_ids: list[str] = Field(default_factory=list)
-    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
-    selected_imagery_date: str | None = None
-    endpoint_mode: str = "chat"
-
-
 @app.get("/internal/fields/{field_id}/state")
 async def internal_field_state(
     field_id: str,
@@ -3125,9 +2607,6 @@ async def internal_ai_advice_event(
 # ─── ٦٠. أتمتة الصور الجوّية + المؤشّرات (Sentinel عبر raster-service) ──
 # نموذج طلب تسجيل حقل للصور — يبقى مُعرَّفاً هنا ويُستورَد من api.routers.automation
 # (إبقاء النماذج في main يحفظ _rebuild_pydantic_models واستيرادات الاختبارات).
-class ImageryFieldRegister(BaseModel):
-    field_id: str
-    bbox: list[float]  # [west, south, east, north]
 
 
 # ─── ٦١. أتمتة تقييم التنبيهات (تشغيل دوريّ/عند الطلب لكلّ حقول المستأجِر) ──
@@ -3138,11 +2617,6 @@ ALERTS_EVAL_INTERVAL_SECONDS = int(os.getenv("SAHOOL_ALERTS_EVAL_INTERVAL_SECOND
 
 
 # ─── استبيان دخول المزارع (ONBOARDING) ──────────────────────────
-
-
-class OnboardingSubmitRequest(BaseModel):
-    field_id: str | None = None
-    answers: dict = {}
 
 
 # نموذج EdgeSyncRequest نُقِل إلى api/edge_models.py (تفكيك B1) ويستوردها routers/edge.
@@ -3176,18 +2650,6 @@ if __name__ == "__main__":
 # تحليل ماء الريّ — endpoint حيّ يستدعي irrigation_water_analysis (كان معزولاً)
 # نقيّ-حسابيّ (SAR/RSC + تصنيف FAO-29/USDA-197/USSL)، بلا قاعدة. tenant من التوكن.
 # ═══════════════════════════════════════════════════════════════════
-class WaterAnalysisRequest(BaseModel):
-    sample_id: str
-    source: str = "well"  # well | canal | mixed
-    na: float | None = None
-    ca: float | None = None
-    mg: float | None = None
-    hco3: float | None = None
-    co3: float | None = None
-    cl: float | None = None
-    ec_dsm: float | None = None
-    ph: float | None = None
-    sampled_at: str | None = None
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -3225,15 +2687,6 @@ def _get_workflow_store(tenant_id: str | None = None):
         store = InMemoryWorkflowStore()
         _INMEM_WORKFLOW_STORES[key] = store
     return store
-
-
-class PestEscalationRequest(BaseModel):
-    workflow_id: str
-    field_id: str | None = None
-    pest_type: str | None = None
-    severity: float = 0.0
-    # للاستئناف بعد التعليق: موافقة الخبير (approved) أو رفضه (rejected)
-    approval_status: str | None = None
 
 
 # ── OpenAPI FIX: إعادة بناء نماذج pydantic ذات التعليقات المؤجّلة ──────────
