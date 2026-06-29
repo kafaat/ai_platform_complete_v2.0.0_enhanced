@@ -85,6 +85,19 @@ def _is_production() -> bool:
     return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
 
 
+# ── تحصين: RS256 إلزاميّ في الإنتاج (fail-closed) ───────────────────
+# HS256 (سرّ متماثل مشترَك) لا يُنهي shared trust domain: أيّ خدمة تحمل السرّ تستطيع
+# تزوير توكنات. RS256 (مفتاح خاصّ لـauth فقط) يُنهيه. في الإنتاج نرفض الإقلاع على HS256
+# ما لم يُعطَّل صراحةً (مهرب ترحيل: SAHOOL_ALLOW_HS256_IN_PROD=1). قرار نقيّ قابل للاختبار.
+def _refuse_hs256_in_production(
+    has_rs256: bool, is_production: bool, allow_hs256_env: str | None
+) -> bool:
+    """يقرّر رفض الإقلاع: إنتاج + بلا RS256 + بلا مهرب صريح ⇒ رفض (نقيّ)."""
+    if has_rs256 or not is_production:
+        return False
+    return (allow_hs256_env or "").strip().lower() not in {"1", "true", "yes", "on"}
+
+
 # ── فرض MFA للأدوار الحسّاسة (governance #411) ─────────────────────
 # الأدوار التي يجب أن تملك MFA مفعّلاً قبل أن تُمنح جلسة. تُحلَّل مرّة واحدة
 # عند التحميل (fail-safe). الافتراضيّ 'admin' (المشرف الأعلى للمنصّة).
@@ -237,6 +250,17 @@ async def lifespan(app: FastAPI):
         if len(JWT_SECRET) < 32:
             # P3-2: فرض الطول — سرّ قصير = أمان ضعيف، نفشل بأمان
             raise RuntimeError("JWT_SECRET too short — يجب ألّا يقلّ عن 32 حرفاً")
+        # تحصين الإنتاج: RS256 إلزاميّ (لا HS256) ما لم يُعطَّل صراحةً للترحيل.
+        if _refuse_hs256_in_production(
+            has_rs256=bool(JWT_PRIVATE_KEY),
+            is_production=_is_production(),
+            allow_hs256_env=os.getenv("SAHOOL_ALLOW_HS256_IN_PROD"),
+        ):
+            raise RuntimeError(
+                "RS256 مطلوب في الإنتاج: اضبط JWT_PRIVATE_KEY/JWT_PUBLIC_KEY (مفاتيح غير "
+                "متماثلة) — HS256 لا يُنهي shared trust domain. للترحيل المؤقّت فقط: "
+                "SAHOOL_ALLOW_HS256_IN_PROD=1."
+            )
 
     # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم — في
     # server_settings يفشل الاتصال بـ"unrecognized configuration parameter".
