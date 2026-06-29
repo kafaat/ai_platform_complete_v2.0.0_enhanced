@@ -232,9 +232,7 @@ class CdseClient:
 
         client_id, client_secret = _cdse_credentials()
         if not (client_id and client_secret):
-            raise RuntimeError(
-                "CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET ولا SH_CLIENT_ID/SECRET)."
-            )
+            raise RuntimeError("CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET ولا SH_CLIENT_ID/SECRET).")
         resp = httpx.post(
             self._token_url,
             data={
