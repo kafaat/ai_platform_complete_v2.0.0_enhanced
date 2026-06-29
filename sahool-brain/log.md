@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-06-29 (ر) — إصلاح Docker Compose الكامل + تحقّق CDSE end-to-end
+
+**رأس الفرع:** `db08e63`. جلسة متواصلة من (ق) — سقط السياق فأُعيدت.
+
+### إصلاحات Docker Compose (startup failures)
+- **weather-polygon-worker/weather-signal-engine:** Dockerfile ينقصه `COPY core/thresholds.py` ⇒ `ModuleNotFoundError: core.thresholds` ← أُضيف.
+- **raster-tiler-service:** `python:3.12-slim` ينقصها `libexpat1` (تتطلّبها rasterio/GDAL) ⇒ `ImportError: libexpat.so.1` ← أُضيف `apt-get install libexpat1`.
+- **sahool-platform:** `SAHOOL_ENV=production` + غياب `JWT_PUBLIC_KEY` ⇒ `sys.exit(1)` من حارس RS256 ← ثُبّت `SAHOOL_ALLOW_HS256_IN_PROD=1` في `.env` + ثُرّر المتغيّر عبر compose.
+- **nginx:** ثلاثة أخطاء: (1) `proxy_http_version` مكرّر في `/ws/` ← حُذف المكرّر. (2) `proxy_pass` له URI في `@spa_fallback` ← استُبدل بـ`rewrite+proxy_pass`. (3) healthcheck يحلّ `localhost→::1` (IPv6) لكن nginx `listen 80;` فقط ← أُضيف `listen [::]:80` + `listen [::]:443 ssl http2`. (4) `nginx/ssl/` فارغ ← أُنشئت شهادة self-signed (10 سنوات).
+
+### CDSE Satellite Imagery (end-to-end)
+- **root cause 1 — FieldIndicatorMap:** كانت دائماً تستدعي `/tilejson` (COG محلّيّ) حتّى في وضع CDSE ⇒ `available=false` لحقل بلا COG ← صارت تستدعي `/cdse-tilejson` حين `tileSegment='cdse-tiles'`.
+- **root cause 2 — SatellitePage:** لم تُمرّر `tileSegment="cdse-tiles"` إلى `FieldIndicatorMap` ← أُضيفت لكلا الوضعَين (NDVI + truecolor).
+- **root cause 3 — cdse-tilejson:** كانت روابط البلاطات بلا بادئة nginx (`/v1/` لا `/api/raster/v1/`) ← صُحِّحت. + أُضيف `reason/user_message` عند غياب الاعتماد.
+- **root cause 4 — cdse_client:** يقرأ `CDSE_CLIENT_ID` فقط؛ compose يُعيّن `SH_CLIENT_ID` ← أُضيف ارتداد `SH_CLIENT_ID/SECRET` في `_cdse_credentials()`.
+- **تعارض git pull:** حُلّ في `FieldIndicatorMap.tsx` + `cdse_tiles.py` ← commit `db08e63`.
+- **nginx re-resolve:** بعد إعادة تشغيل auth، nginx احتفظ بـIP قديم ← `nginx -s reload` أعاد الحلّ.
+- **تحقّق نهائيّ ✓:** `cdse-tilejson?index=ndvi` + `?index=truecolor` عبر nginx + JWT ⇒ `{"available":true, "tiles":["/api/raster/v1/fields/…/cdse-tiles/…"]}`.
+
+### الحاويات غير الصحيّة المتبقّية (pre-existing, لا علاقة بـCDSE)
+`actuator-dispatch-worker`, `model-registry-worker`, `phase-runtime-outbox-worker`, `plugin-runtime-worker` — تعمل وظيفيّاً (تسجّل `{"processed":0}`) لكن healthcheck يتوقّع `http://localhost:8000/readyz` وهم لا يُشغّلون خادم HTTP. مشكلة تعريف healthcheck، لا تعطّل وظيفيّ.
+
+---
+
 ## 2026-06-29 (ق) — تتبّع جنائيّ: «المؤشّرات لا تُعرَض» في MapHub + فخّ اعتماد CDSE
 
 **رأس الفرع المخصّص:** `a37ce64`. لقطة المستخدم: حقل مرسوم، الطبقة NDMI «نشطة»، لكن لا تراكب راستر.

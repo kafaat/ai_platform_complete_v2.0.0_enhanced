@@ -21,7 +21,11 @@
       "Bash(wait)",
       "Bash(curl -s -X POST http://localhost/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@sahool.ye\",\"password\":\"Sahool@m6SDeVxyuqyE!\"}')",
       "Bash(curl -sk -X POST https://localhost/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"admin@sahool.ye\",\"password\":\"Sahool@m6SDeVxyuqyE!\"}')",
-      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('token:', d.get\\('access_token',''\\)[:50]+'...'\\) if 'access_token' in d else print\\(d\\)\")"
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('token:', d.get\\('access_token',''\\)[:50]+'...'\\) if 'access_token' in d else print\\(d\\)\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(curl:*)",
+      "Bash(python3 -m json.tool)"
     ]
   }
 }

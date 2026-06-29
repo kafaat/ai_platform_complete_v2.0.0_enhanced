@@ -1,12 +1,10 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-29 · رأس `main` = `claude/code-review-34hO3`: [`a37ce64`](../) · [`log.md`](log.md) مدخل (ق).
-> 🧩 **توحيد + تفكيك + تحصين RS256 + rate-limit Redis:** `main` superset؛ نماذج→`api_models.py` وسياق→
-> `api/field_context.py` (main.py 3282→2523). **JWT RS256:** المنصّة + ٨ خدمات ترفض HS256 في الإنتاج.
-> **#6:** rate limit صار عدّاد Redis مشترَك (INCR+EXPIRE) مع تدهور رشيق in-process. 0 PR · `pytest -m unit` 1973 ✓.
-> ⏳ **ج معلّق:** حذف ٥ فروع CDSE عالقة (محتواها مُستبدَل في main) يحتاج تسمية المستخدم الصريحة (حجبه المصنّف).
-> ⚠ **درس تشغيليّ سابق:** `main` أُعيد ضبطه بدفع مباشر من المالك (محا #544–#549)؛ أُعيد جوهرها عبر
-> #550/#551. **لا تبنِ على `main` أثناء دفع مباشر متزامن؛ وحّد الاسترجاع في فرع واحد سريع الدمج.**
+> **آخر تحديث:** 2026-06-29 · رأس `claude/code-review-34hO3`: `db08e63` · [`log.md`](log.md) مدخل (ر).
+> 🛰 **CDSE satellite imagery — مُصلَح end-to-end:** FieldIndicatorMap + SatellitePage + cdse-tilejson + SH_CLIENT_ID fallback.
+> 🐳 **Docker Compose — كلّ الخدمات الأساسيّة صحيّة:** weather workers (thresholds.py) + raster-tiler (libexpat1) + platform (HS256 bypass) + nginx (IPv6 + SSL + syntax) مُصلَحة.
+> ⚠ **4 workers unhealthy (pre-existing):** actuator/model-registry/phase-outbox/plugin-runtime — تعمل وظيفيّاً لكن healthcheck يتوقّع HTTP/8000 وهم لا يُشغّلونه.
+> ⏳ **admin login:** يتطلّب MFA (`admin@sahool.ye`) — استخدم JWT مُولَّداً يدويّاً للاختبار حتّى تُكمَل إعداد MFA.
 
 ## ✅ السبب الجذريّ لـauth «unhealthy» — حُسِم (لم يكن RLS)
 
