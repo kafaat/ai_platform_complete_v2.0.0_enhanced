@@ -1303,6 +1303,125 @@ def _build_weather_task_draft(
     }
 
 
+def _weather_decision_why_ar(
+    operation: str, best: dict, decision: dict, priority_score: int
+) -> str:
+    """يبني جملة «لماذا» عربيّة تشرح سبب اشتقاق القرار من الطقس — للخطّ الزمني للحقل.
+
+    تلخّص: العملية + أفضل نافذة زمنية + الدرجة/الصلاحية + العوامل المانعة، حتى يرى
+    المستخدم لاحقاً *لماذا* أُنشئت هذه المهمّة/التوصية (نافذة الطقس + درجة العملية).
+    """
+    factors = ", ".join(decision.get("limiting_factors") or []) or "لا توجد عوامل مانعة حادة"
+    return (
+        f"قرار مشتقّ من محرّك الطقس (Weather Operation Plan). "
+        f"العملية: {_operation_label_ar(operation)}. "
+        f"أفضل نافذة: {best.get('time', 'now')}. "
+        f"الدرجة: {priority_score}% ({_plan_status_ar(decision)}). "
+        f"العوامل: {factors}."
+    )
+
+
+def _build_weather_decision_record(
+    field_id: str,
+    plan_item: dict,
+    *,
+    model: str | None = None,
+    target: str = "task",
+) -> dict:
+    """يبني صفّ decision_record من عنصر خطّة طقس — نقيّ (بلا قاعدة)، قابل للاختبار.
+
+    يُدام في جدول decision_record (v78) القائم — رأس سلسلة النَّسَب للحقل — فيظهر تلقائيّاً
+    في الخطّ الزمني للحقل عبر GET /api/v1/field/{field_id}/lineage. لا جدول/هجرة جديدة:
+    decision_type نصّ حرّ (VARCHAR 60) وdecision_value هو JSONB حرّ يلتقط كامل المبرّر.
+
+    target ∈ {"task", "recommendation"} — يميّز إن نتج القرار عن إنشاء مهمّة أو حفظ توصية.
+    confidence = درجة الصلاحية (0..1) كما حسبها محرّك العمليّات (وإلا None — لا تلفيق).
+    """
+    operation = str(plan_item.get("operation") or "spraying")
+    best = plan_item.get("best") or {}
+    decision = best.get("operation") or {
+        "operation": operation,
+        "score": 0,
+        "suitability": "unsafe",
+    }
+    priority_score = int(plan_item.get("priority") or _operation_priority(decision))
+    score = decision.get("score")
+    why_ar = _weather_decision_why_ar(operation, best, decision, priority_score)
+    decision_value = {
+        "decision_kind": "weather_operation_plan",
+        "target": target,
+        "operation": operation,
+        "operation_label_ar": _operation_label_ar(operation),
+        "best_window": best.get("time"),
+        "best_weather_time": best.get("weather_time"),
+        "score": score,
+        "suitability": decision.get("suitability"),
+        "priority_score": priority_score,
+        "status_ar": _plan_status_ar(decision),
+        "limiting_factors": decision.get("limiting_factors") or [],
+        "advice_ar": plan_item.get("advice_ar") or _operation_advice_ar(decision),
+        "why_ar": why_ar,
+        "model": model,
+        "source": "weather_operation_plan",
+        "rendered_by": "weather-engine",
+    }
+    return {
+        "field_id": field_id,
+        "decision_type": "weather_operation_plan",
+        "decision_value": decision_value,
+        "confidence": float(score) if isinstance(score, (int, float)) else None,
+        "why_ar": why_ar,
+    }
+
+
+async def _persist_weather_decision_record(conn, user, record: dict) -> str | None:
+    """يُدِيم صفّ القرار المشتقّ من الطقس في decision_record ضمن **نفس** معاملة المستأجِر.
+
+    يعكس حرفيّاً نمط routers/decision_record.py: INSERT في decision_record (RLS عبر
+    tenant_connection) + حدث DECISION_RECORDED عبر outbox داخل نفس المعاملة. يُربَط
+    بالحقل عبر field_id فيظهر في الخطّ الزمني للحقل (GET …/field/{id}/lineage).
+
+    يُستدعى فقط حين يوجد field_id (لا قرار حقل بلا حقل). يُرجِع decision_id المُدام.
+    لا يكتب جدولاً جديداً ولا يتطلّب هجرة — يعيد استخدام decision_record (v78).
+    """
+    if not record.get("field_id"):
+        return None
+    import json as _json
+    from uuid import uuid4 as _uuid4
+
+    from api.main import _emit_domain_event
+
+    decision_id = f"weather-{_uuid4().hex[:16]}"
+    await conn.execute(
+        """INSERT INTO decision_record
+            (decision_id, tenant_id, field_id, decision_type, region,
+             stage, decision_value, confidence, created_by)
+           VALUES ($1, $2::uuid, $3, $4, NULL, 'decision', $5::jsonb, $6, $7)
+           ON CONFLICT (decision_id) DO NOTHING""",
+        decision_id,
+        str(user.tenant_id),
+        record["field_id"],
+        record["decision_type"],
+        _json.dumps(record["decision_value"], ensure_ascii=False, default=str),
+        record["confidence"],
+        str(user.user_id),
+    )
+    await _emit_domain_event(
+        conn,
+        user,
+        "DECISION_RECORDED",
+        "decision_record",
+        decision_id,
+        {
+            "decision_type": record["decision_type"],
+            "field_id": record["field_id"],
+            "source": "weather_operation_plan",
+            "confidence": record["confidence"],
+        },
+    )
+    return decision_id
+
+
 def _recommendation_payload_from_plan(field_id: str, plan: dict, crop: str | None = None) -> dict:
     top = plan.get("top_recommendation") or {}
     op = top.get("operation") or "weather"
@@ -2641,6 +2760,14 @@ async def weather_create_task_from_operation_plan(
                     "operation": req.operation,
                 },
             )
+            # رابط الخطّ الزمني: نُدِيم سبب الطقس (نافذة + درجة + مصدر) في decision_record
+            # ضمن **نفس** المعاملة (RLS) ليظهر «لماذا أُنشئت المهمّة» في خطّ الحقل الزمني.
+            decision_record = _build_weather_decision_record(
+                req.field_id, top, model=req.model, target="task"
+            )
+            weather_decision_id = await _persist_weather_decision_record(
+                conn, user, decision_record
+            )
     except Exception as e:  # noqa: BLE001
         from api.main import _db_unavailable
 
@@ -2648,7 +2775,14 @@ async def weather_create_task_from_operation_plan(
     _record_weather_observation(
         "task-from-operation-plan", cache_state="created", operation=req.operation
     )
-    return {"created": True, "dry_run": False, "task": task, "operation_plan": plan}
+    return {
+        "created": True,
+        "dry_run": False,
+        "task": task,
+        "weather_decision_id": weather_decision_id,
+        "weather_decision_why_ar": decision_record["why_ar"],
+        "operation_plan": plan,
+    }
 
 
 @router.post(
@@ -2715,6 +2849,17 @@ async def weather_recommendation_from_operation_plan(
                 rec_id,
                 {"field_id": req.field_id, "source": "weather_operation_plan"},
             )
+            # رابط الخطّ الزمني: نُدِيم سبب الطقس في decision_record ضمن **نفس** المعاملة
+            # (RLS) ليظهر «لماذا حُفِظت التوصية» في خطّ الحقل الزمني (…/field/{id}/lineage).
+            decision_record = _build_weather_decision_record(
+                req.field_id,
+                plan.get("top_recommendation") or {},
+                model=req.model,
+                target="recommendation",
+            )
+            weather_decision_id = await _persist_weather_decision_record(
+                conn, user, decision_record
+            )
     except Exception as e:  # noqa: BLE001
         from api.main import _db_unavailable
 
@@ -2724,6 +2869,8 @@ async def weather_recommendation_from_operation_plan(
         "saved": True,
         "dry_run": False,
         "rec_id": rec_id,
+        "weather_decision_id": weather_decision_id,
+        "weather_decision_why_ar": decision_record["why_ar"],
         "recommendation": payload,
         "operation_plan": plan,
     }
