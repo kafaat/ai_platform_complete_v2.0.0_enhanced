@@ -27,7 +27,8 @@ api/main.py — FastAPI application للنواة سهول
   • HS256 يبقى للتطوير (سرّ مشترَك) ولإصدار توكنات دخول dev (مُعطَّلة في الإنتاج).
 
 ما زال مُؤجَّلاً بمبرّر (لم يُبنَ بعد — صدقاً، ليس production-grade):
-  • حدّ معدّل موزَّع بـRedis: الحاليّ عدّاد in-process لكلّ عامل (rate_limit_middleware).
+  • حدّ المعدّل: عدّاد Redis مشترَك عبر العمّال/النُّسَخ (INCR+EXPIRE) عند توفّر REDIS_URL،
+    وإلّا تدهور رشيق إلى عدّاد in-process لكلّ عامل (rate_limit_middleware/_rate_check_redis).
   • OAuth2/SSO.
 """
 
@@ -805,18 +806,81 @@ def _prune_rate_buckets(now: float) -> None:
         _rate_buckets.pop(k, None)
 
 
+def _build_rate_redis():
+    """عميل Redis لعدّاد الحدّ المشترَك عبر العمّال/النُّسَخ (INCR+EXPIRE)، أو None.
+
+    حدّ المعدّل **ليس** fail-closed أمنيّاً (حاجز DoS لا تحكّم وصول مثل denylist):
+    تعذّر Redis ⇒ تدهور رشيق إلى عدّاد in-process لكلّ عامل (السلوك السابق). لذا لا
+    نرفض الإقلاع هنا. الإنتاج متعدّد العمّال/النُّسَخ يحصل على عدّ مشترَك دقيق حين يتوفّر
+    Redis (وهو إلزاميّ للـdenylist في الإنتاج أصلاً ⇒ متاح عمليّاً). يُنشأ مرّة عند الإقلاع.
+    """
+    url = os.getenv("REDIS_URL", "")
+    if not url:
+        return None
+    try:
+        import redis as _redis
+
+        client = _redis.from_url(url, socket_connect_timeout=2, socket_timeout=2)
+        client.ping()
+        logger.info("rate-limit: Redis مفعّل (عدّاد مشترَك عبر العمّال/النُّسَخ)")
+        return client
+    except Exception as e:  # noqa: BLE001 — تعذّر Redis ⇒ fallback in-process (غير حاجب)
+        logger.warning("rate-limit: تعذّر Redis (%s) — fallback عدّاد in-process لكلّ عامل", e)
+        return None
+
+
+_RATE_REDIS = _build_rate_redis()
+
+
+def _rate_check_redis(key: str) -> tuple[bool, int]:
+    """عدّ نافذة ثابتة مشترَك عبر Redis (INCR ثمّ EXPIRE 60ث على أوّل ضربة).
+
+    يُرجِع (مسموح, retry_after). fail-open صريح: أيّ خطأ Redis ⇒ (True, 0) — عطل
+    عابر في Redis لا يكسر مسار الطلب (الحدّ حاجز DoS لا بوّابة أمن). نفس نمط auth.
+    """
+    rkey = f"sahool:ratelimit:{key}"
+    try:
+        n = _RATE_REDIS.incr(rkey)
+        if n == 1:  # أوّل ضربة في النافذة ⇒ اضبط انتهاءها (نافذة منزلقة لكلّ مفتاح)
+            _RATE_REDIS.expire(rkey, 60)
+        if n > _RATE_LIMIT_PER_MIN:
+            ttl = _RATE_REDIS.ttl(rkey)
+            return False, max(1, ttl if isinstance(ttl, int) and ttl > 0 else 60)
+        return True, 0
+    except Exception:  # noqa: BLE001 — fail-open: لا نكسر الطلب على عطل Redis عابر
+        logging.warning("rate-limit: خطأ Redis — fail-open للطلب")
+        return True, 0
+
+
 @app.middleware("http")
 async def rate_limit_middleware(request, call_next):
-    """حاجز DoS أساسيّ: يحدّ طلبات كلّ عميل في نافذة دقيقة (fail-open عند الشكّ)."""
+    """حاجز DoS أساسيّ: يحدّ طلبات كلّ عميل في نافذة دقيقة (fail-open عند الشكّ).
+
+    المسار المُفضَّل: عدّاد Redis مشترَك (دقيق عبر العمّال/النُّسَخ). عند غياب Redis
+    (تطوير/تعذّر): عدّاد in-process لكلّ عامل (السلوك السابق المحفوظ).
+    """
     if _RATE_LIMIT_PER_MIN <= 0 or request.url.path in _RATE_EXEMPT_PATHS:
         return await call_next(request)
+    key = _rate_client_key(request)
+
+    if _RATE_REDIS is not None:
+        # Redis متزامن ⇒ نشغّله في خيط كي لا يحجب حلقة الأحداث على كلّ طلب.
+        allowed, retry = await asyncio.to_thread(_rate_check_redis, key)
+        if not allowed:
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "طلبات كثيرة — تجاوزت الحدّ المسموح، حاول لاحقاً"},
+                headers={"Retry-After": str(retry)},
+            )
+        return await call_next(request)
+
+    # fallback: عدّاد in-process لكلّ عامل (تطوير أو تعذّر Redis) — السلوك السابق حرفيّاً.
     import time as _t
 
     now = _t.time()
     # تنظيف كسول عند التضخّم (burst من IPs فريدة لا يُنمّي الذاكرة بلا حدّ)
     if len(_rate_buckets) > _RATE_MAX_BUCKETS:
         _prune_rate_buckets(now)
-    key = _rate_client_key(request)
     count, start = _rate_buckets.get(key, (0, now))
     if now - start >= 60.0:  # نافذة جديدة
         count, start = 0, now
