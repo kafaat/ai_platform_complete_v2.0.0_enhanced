@@ -192,6 +192,12 @@ PUBLIC_ALLOWLIST: set[str] = {
     "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",  # صلاحيّة عمليّة للبلاطة — حساب بيئيّ عامّ.
     "/api/v1/weather/tile-series/{z}/{x}/{y}",  # سلسلة زمنيّة للبلاطة — معطى بيئيّ عامّ.
     "/api/v1/weather/probe",  # قيمة طقس عند نقطة — معطى بيئيّ عامّ (إحداثيّات).
+    # محرّك العمليّات (v12): حساب بيئيّ بإحداثيّات (lat/lon)، بلا قاعدة/مستأجِر.
+    "/api/v1/weather/field-weather-summary",  # ملخّص طقس بإحداثيّات — حساب بيئيّ عامّ.
+    "/api/v1/weather/operation-plan",  # خطّة عمليّات (رش/ريّ/حصاد/بذار) بإحداثيّات — حساب عامّ.
+    "/api/v1/weather/operation-window",  # نافذة صلاحيّة عمليّة بإحداثيّات — حساب عامّ.
+    "/api/v1/weather/layers",  # قائمة طبقات الطقس المتاحة — مرجع ثابت.
+    "/api/v1/weather/tile-cache/stats",  # إحصاء كاش البلاطات — بنية تحتيّة، لا بيانات مستأجِر.
 }
 
 

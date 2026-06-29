@@ -955,7 +955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9a6e50ac1964bf1366eccc30c973da32af1679b493d2fa177a409512d6dbc7d"
+          "content": "9190679dbf368f720de681a244585438d09888b96b0296c02eb27202211ff03a"
         }
       ],
       "name": "frontend/src/components/maphub/OverlayMarkers.tsx",
@@ -2195,7 +2195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0cbe3eecd041d296a406076e2afca641c1dad4b84bc49b57b6c1dc139af0bed8"
+          "content": "27cdb7ea7a3ce40ec6b5abf16a7dbc04582c95f8bbfa2f854c6e54872dc656d2"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -2215,7 +2215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c811635c2fd89bf01d6db132c4fa14e7b3181d437cf82a42db4f6a92046a3ae"
+          "content": "4320f5aba41b8fefc2118ae372bec599b097384d5cd451e78b61d9bc6f31f775"
         }
       ],
       "name": "frontend/src/sections/MyFieldsPage.tsx",
@@ -9435,7 +9435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65174ba934dee6a37edef670fb57d4ab8ba45714d971f3f51a135e76d1f816aa"
+          "content": "4dce43cbf5001a2600b7223bdc88b04b3f89362b482e12c0e75b794f760ec42a"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",

@@ -1,8 +1,10 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Search, Sprout, Layers, ChevronLeft } from 'lucide-react';
+import { RefreshCw, Search, Sprout, Layers, ChevronLeft, Plus } from 'lucide-react';
 import { useFields } from '../hooks/useApi';
 import { useFieldContextStore } from '../hooks/useFieldContext';
+import { useAuthStore } from '../hooks/useAuth';
+import { canMutate } from '../lib/permissions';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { toFieldOption } from '../lib/fields';
 
@@ -21,6 +23,8 @@ export default function MyFieldsPage() {
   const { data, isLoading, isError, refetch, isFetching } = useFields();
   const navigate = useNavigate();
   const setSelectedField = useFieldContextStore((s) => s.setSelectedField);
+  const { user } = useAuthStore();
+  const mutateAllowed = canMutate(user?.role);
   const [q, setQ] = useState('');
   const rawFields = (data?.fields ?? []) as Record<string, unknown>[];
   const fields = useMemo(() => rawFields.map((f) => ({ raw: f, opt: toFieldOption(f as any) })), [rawFields]);
@@ -52,13 +56,25 @@ export default function MyFieldsPage() {
             </div>
             <p className="text-sm text-slate-400 mt-1">كل الحقول الخاصة بالمستخدم في شاشة واحدة من مصدر الحقول المباشر.</p>
           </div>
-          <button
-            onClick={() => refetch()}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-900 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-950/40"
-          >
-            <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            تحديث
-          </button>
+          <div className="flex items-center gap-2">
+            {mutateAllowed && (
+              <button
+                onClick={() => navigate('/fields/map-center?add=1')}
+                className="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
+                style={{ background: '#16a34a' }}
+              >
+                <Plus className="w-4 h-4" />
+                حقل جديد
+              </button>
+            )}
+            <button
+              onClick={() => refetch()}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-900 px-3 py-2 text-sm text-emerald-300 hover:bg-emerald-950/40"
+            >
+              <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
+              تحديث
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
           <Kpi label="عدد الحقول" value={String(fields.length)} />

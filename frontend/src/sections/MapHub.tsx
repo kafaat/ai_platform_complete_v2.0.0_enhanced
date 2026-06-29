@@ -20,7 +20,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
-  Layers, MapPin, Plus, Columns2, Square, Ruler, Crosshair, Box, Mountain,
+  Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
   Tractor, CheckSquare, CircleDotDashed, History, RotateCcw,
 } from 'lucide-react';
@@ -118,6 +118,8 @@ export default function MapHub() {
     || initialSearch.get('weather') === '1'
     || initialSearch.get('weather') === 'true'
     || initialSearch.get('source') === 'my-fields';
+  // فتح «حقل جديد» عبر رابط عميق (من شاشة «حقولي») — زرّ الإنشاء انتقل إلى حقولي.
+  const requestedAddOpen = initialSearch.get('add') === '1';
   const [activeIndicator, setActiveIndicator] = useState<string | null>(
     requestedCdseOpen ? (routeIndicator || 'ndvi') : (savedWorkspace?.activeIndicator ?? null),
   ); // null = لا مؤشّر
@@ -185,6 +187,11 @@ export default function MapHub() {
     if (!requestedWeatherOpen) return;
     setShowWeather(true);
   }, [requestedWeatherOpen]);
+
+  // رابط عميق ?add=1 (من «حقولي») يفتح نموذج إنشاء الحقل — مقيَّد بصلاحيّة التعديل.
+  useEffect(() => {
+    if (requestedAddOpen && mutateAllowed) setShowAddField(true);
+  }, [requestedAddOpen, mutateAllowed]);
 
   // التقاط عرض الخريطة (moveend من أيّ محرّك) — كتابة مُتسامِحة (idempotent): إن
   // لم يتغيّر المركز/التكبير لا نُحدّث الحالة، فلا حلقة استعادة↔حركة ولا حفظ زائد.
@@ -633,15 +640,8 @@ export default function MapHub() {
               <Combine className="w-3.5 h-3.5" /> دمج/تقسيم
             </button>
           )}
-          {mutateAllowed && (
-            <button
-              type="button" onClick={() => setShowAddField(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
-              style={{ background: '#16a34a' }}
-            >
-              <Plus className="w-3.5 h-3.5" /> حقل جديد
-            </button>
-          )}
+          {/* زرّ «حقل جديد» انتقل إلى شاشة «حقولي» (MyFieldsPage)؛ يُفتَح هنا عبر ?add=1.
+              نموذج AddFieldWithMap يبقى أدناه (يُفعَّل بالرابط العميق). */}
           {/* حفظ/استيراد مساحة العمل (.sahool-project.json) — عميل-فقط، متاح للجميع */}
           <button
             type="button" onClick={handleExportProject} title="حفظ مساحة العمل كملفّ"

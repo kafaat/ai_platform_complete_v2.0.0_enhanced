@@ -23,6 +23,189 @@ router = APIRouter()
 # Cache صغير للبلاطات؛ يقلل طلبات Open-Meteo أثناء التحريك/التكبير.
 _WEATHER_TILE_CACHE: dict[str, tuple[float, dict]] = {}
 _WEATHER_TILE_CACHE_TTL_S = 600.0
+_WEATHER_TILE_STALE_TTL_S = 3600.0
+_ALLOWED_WEATHER_TIMES = {"now", "+1h", "+3h", "+6h", "+12h", "+24h", "+48h"}
+_ALLOWED_WEATHER_MODELS = {"best_match", "auto", "gfs_seamless", "ecmwf_ifs04"}
+
+
+def _validate_time_model(time: str, model: str) -> tuple[str, str]:
+    time = (time or "now").strip()
+    model = (model or "best_match").strip()
+    if time not in _ALLOWED_WEATHER_TIMES:
+        raise HTTPException(status_code=400, detail=f"زمن غير مدعوم: {time}")
+    if model not in _ALLOWED_WEATHER_MODELS:
+        raise HTTPException(status_code=400, detail=f"نموذج طقس غير مدعوم: {model}")
+    return time, model
+
+
+def _cache_get(key: str) -> tuple[dict | None, str, int | None]:
+    cached = _WEATHER_TILE_CACHE.get(key)
+    if not cached:
+        return None, "miss", None
+    age = monotonic() - cached[0]
+    if age < _WEATHER_TILE_CACHE_TTL_S:
+        return cached[1], "fresh", int(age)
+    if age < _WEATHER_TILE_STALE_TTL_S:
+        return cached[1], "stale", int(age)
+    return None, "expired", int(age)
+
+
+def _cache_set(key: str, sample: dict) -> None:
+    _WEATHER_TILE_CACHE[key] = (monotonic(), sample)
+    if len(_WEATHER_TILE_CACHE) > 2048:
+        oldest = sorted(_WEATHER_TILE_CACHE.items(), key=lambda kv: kv[1][0])[:512]
+        for old_key, _ in oldest:
+            _WEATHER_TILE_CACHE.pop(old_key, None)
+
+
+async def _get_weather_sample_cached(
+    lat: float,
+    lon: float,
+    time: str,
+    model: str,
+    key_prefix: str,
+) -> tuple[dict, str, int | None, str | None]:
+    """يجلب عيّنة Open‑Meteo مع cache/stale fallback موحّد.
+
+    يوحّد منطق المرونة بين: tile-data، operation-tile، probe، ونافذة العمليات،
+    حتى لا تختلف دلالة live/stale/failure بين أجزاء الخريطة.
+    """
+    key = f"{key_prefix}:{round(lat, 5)}:{round(lon, 5)}:{time}:{model}"
+    sample, cache_state, cache_age_s = _cache_get(key)
+    upstream_error = None
+    if cache_state == "fresh" and sample is not None:
+        return sample, cache_state, cache_age_s, upstream_error
+    try:
+        from api.connectors.openmeteo import fetch_weather_tile_data
+
+        sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
+        _cache_set(key, sample)
+        return sample, "refreshed", 0, None
+    except Exception as e:
+        upstream_error = str(e)
+        stale_sample, stale_state, stale_age = _cache_get(key)
+        if stale_sample is None or stale_state not in {"stale", "fresh"}:
+            raise
+        return stale_sample, "stale_fallback", stale_age, upstream_error
+
+
+def _parse_series_hours(hours: str, max_hours: int = 72, max_frames: int = 16) -> list[int]:
+    offsets: list[int] = []
+    for raw in (hours or "").split(","):
+        try:
+            offsets.append(max(0, min(max_hours, int(raw.strip()))))
+        except ValueError:
+            continue
+    if not offsets:
+        offsets = [0, 1, 3, 6, 12, 24]
+    # de-duplicate while preserving order, then limit frames.
+    deduped = list(dict.fromkeys(offsets))
+    return deduped[:max_frames]
+
+
+def _time_key_from_hour(hour: int) -> str:
+    return "now" if hour == 0 else f"+{hour}h"
+
+
+def _operation_advice_ar(decision: dict) -> str:
+    op = decision.get("operation")
+    suitability = decision.get("suitability")
+    if op == "spraying":
+        if suitability in {"optimal", "acceptable"}:
+            return "نافذة رش قابلة للتنفيذ مع الالتزام بالملصق وإجراءات السلامة."
+        return "تأجيل الرش أفضل حتى تتحسن الرياح/الرطوبة/المطر."
+    if op == "irrigation":
+        if (decision.get("score") or 0) >= 0.6:
+            return "أولوية ري مرتفعة؛ راجع رطوبة التربة ومرحلة النمو قبل التنفيذ."
+        return "لا تظهر أولوية ري عالية في هذه النافذة."
+    if op == "harvesting":
+        if suitability in {"optimal", "acceptable"}:
+            return "نافذة حصاد مناسبة نسبياً؛ راقب الرطوبة والمطر."
+        return "الظروف غير مثالية للحصاد؛ الرطوبة/المطر/الرياح قد تؤثر على الجودة."
+    if op == "sowing":
+        if suitability in {"optimal", "acceptable"}:
+            return "نافذة بذار مقبولة من ناحية حرارة ورطوبة التربة."
+        return "تأجيل البذار قد يكون أفضل حتى تتحسن حرارة/رطوبة التربة."
+    return "قرار تشغيلي تقديري من بيانات الطقس."
+
+
+def _operation_priority(decision: dict) -> int:
+    """أولوية تشغيلية 0..100 للعرض في لوحة القرار.
+
+    ليست كل العمليات بنفس الدلالة: ارتفاع score في الري يعني حاجة أعلى،
+    بينما في الرش/الحصاد/البذار يعني صلاحية أعلى. نحافظ على مقياس موحد
+    يساعد الواجهة على ترتيب ما يجب فعله الآن.
+    """
+    score = float(decision.get("score") or 0.0)
+    op = decision.get("operation")
+    if op == "irrigation":
+        # الري في خطة العمليات هو "حاجة" وليس مجرد صلاحية؛ نرفعه قليلاً عندما
+        # تصل الحاجة إلى نطاق فعلي حتى لا يطغى رشٌ مثالي على إجهاد مائي واضح.
+        base = round(score * 100)
+        return min(100, base + 12 if score >= 0.60 else base)
+    if decision.get("suitability") in {"optimal", "acceptable"}:
+        return round(score * 100)
+    return 0
+
+
+def _operation_label_ar(operation: str) -> str:
+    return {
+        "spraying": "الرش",
+        "irrigation": "الري",
+        "harvesting": "الحصاد",
+        "sowing": "البذار",
+    }.get(operation, operation)
+
+
+def _plan_status_ar(decision: dict) -> str:
+    op = decision.get("operation")
+    suitability = decision.get("suitability")
+    score = float(decision.get("score") or 0.0)
+    if op == "irrigation":
+        if score >= 0.75:
+            return "أولوية ري عالية"
+        if score >= 0.60:
+            return "أولوية ري متوسطة"
+        return "لا توجد أولوية ري واضحة"
+    if suitability == "optimal":
+        return "مناسب جداً"
+    if suitability == "acceptable":
+        return "مقبول مع احتياط"
+    if suitability == "poor":
+        return "ضعيف"
+    return "غير آمن"
+
+
+def _sample_alerts_ar(sample: dict) -> list[str]:
+    alerts: list[str] = []
+    if (_num(sample, "wind_speed_10m_kmh", 0) or 0) > 18:
+        alerts.append("رياح مرتفعة قد تمنع الرش وتؤثر على الانجراف.")
+    if (_num(sample, "wind_gusts_10m_kmh", 0) or 0) > 29:
+        alerts.append("هبات الرياح مرتفعة؛ تجنب الرش والعمليات الحساسة.")
+    if (_num(sample, "vapour_pressure_deficit_kpa", 0) or 0) > 2.2:
+        alerts.append("VPD مرتفع؛ راقب الإجهاد المائي وجدولة الري.")
+    if (_num(sample, "precipitation_mm", 0) or 0) > 0.1:
+        alerts.append("هطول موجود/متوقع؛ راجع الرش والحصاد والري.")
+    if (_num(sample, "temperature_2m_c", 25) or 25) > 36:
+        alerts.append("حرارة مرتفعة؛ تجنب العمليات المجهدة وقت الذروة.")
+    return alerts
+
+
+def _parse_operations_csv(raw: str) -> list[str]:
+    allowed = {"spraying", "irrigation", "harvesting", "sowing"}
+    ops = [o.strip() for o in (raw or "").split(",") if o.strip()]
+    if not ops:
+        return ["spraying", "irrigation", "harvesting", "sowing"]
+    bad = [o for o in ops if o not in allowed]
+    if bad:
+        raise HTTPException(status_code=400, detail=f"عمليات غير مدعومة: {', '.join(bad)}")
+    return list(dict.fromkeys(ops))
+
+
+def _best_operation_frame(frames: list[dict]) -> dict | None:
+    if not frames:
+        return None
+    return max(frames, key=lambda f: f.get("operation", {}).get("score") or 0)
 
 
 def _tile_lon(x: int, z: int) -> float:
@@ -276,6 +459,80 @@ async def weather_historical(
         raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
 
 
+@router.get("/api/v1/weather/layers")
+def weather_layers_manifest():
+    """تعريفات طبقات الطقس/العمليات التي يرسمها SAHOOL من بيانات Open-Meteo.
+
+    هذا manifest يجعل الواجهة لاحقاً قابلة لتوليد layer controls وlegend ديناميكياً
+    بدل hardcoding كامل، مع إبقاء الرسم داخل SAHOOL.
+    """
+    return {
+        "source": "open-meteo",
+        "rendered_by": "sahool",
+        "times": sorted(_ALLOWED_WEATHER_TIMES, key=lambda t: 0 if t == "now" else int(t[1:-1])),
+        "models": [
+            {"key": "best_match", "label_ar": "الأفضل تلقائياً"},
+            {"key": "gfs_seamless", "label_ar": "GFS"},
+            {"key": "ecmwf_ifs04", "label_ar": "ECMWF IFS"},
+        ],
+        "layers": [
+            {"key": "temperature", "label_ar": "حرارة السطح", "unit": "°C", "kind": "weather"},
+            {"key": "wind", "label_ar": "سرعة واتجاه الرياح", "unit": "km/h", "kind": "weather"},
+            {"key": "precipitation", "label_ar": "الهطول", "unit": "mm", "kind": "weather"},
+            {"key": "et0", "label_ar": "البخر-نتح المرجعي", "unit": "mm", "kind": "agro_weather"},
+            {"key": "vpd", "label_ar": "عجز ضغط البخار", "unit": "kPa", "kind": "agro_weather"},
+            {"key": "soil_temperature", "label_ar": "حرارة التربة", "unit": "°C", "kind": "soil"},
+            {"key": "soil_moisture", "label_ar": "رطوبة التربة", "unit": "m³/m³", "kind": "soil"},
+            {"key": "pressure", "label_ar": "الضغط", "unit": "hPa", "kind": "weather"},
+            {"key": "clouds", "label_ar": "الغيوم", "unit": "%", "kind": "weather"},
+        ],
+        "operation_layers": [
+            {"key": "operation_spraying", "operation": "spraying", "label_ar": "صلاحية الرش"},
+            {"key": "operation_irrigation", "operation": "irrigation", "label_ar": "أولوية الري"},
+            {"key": "operation_harvesting", "operation": "harvesting", "label_ar": "صلاحية الحصاد"},
+            {"key": "operation_sowing", "operation": "sowing", "label_ar": "صلاحية البذار"},
+        ],
+        "presets": [
+            {"key": "spray_mode", "label_ar": "وضع الرش", "layer": "operation_spraying"},
+            {"key": "irrigation_mode", "label_ar": "وضع الري", "layer": "operation_irrigation"},
+            {"key": "harvest_mode", "label_ar": "وضع الحصاد", "layer": "operation_harvesting"},
+            {"key": "sowing_mode", "label_ar": "وضع البذار", "layer": "operation_sowing"},
+        ],
+        "cache": {
+            "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+            "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
+            "max_items_soft": 2048,
+        },
+        "decision_endpoints": [
+            "/api/v1/weather/probe",
+            "/api/v1/weather/operation-window",
+            "/api/v1/weather/operation-plan",
+            "/api/v1/weather/field-weather-summary",
+        ],
+    }
+
+
+@router.get("/api/v1/weather/tile-cache/stats")
+def weather_tile_cache_stats():
+    """إحصاء خفيف لكاش بلاطات الطقس داخل sahool-platform."""
+    now = monotonic()
+    fresh = sum(1 for ts, _ in _WEATHER_TILE_CACHE.values() if now - ts < _WEATHER_TILE_CACHE_TTL_S)
+    stale = sum(
+        1
+        for ts, _ in _WEATHER_TILE_CACHE.values()
+        if _WEATHER_TILE_CACHE_TTL_S <= now - ts < _WEATHER_TILE_STALE_TTL_S
+    )
+    expired = max(0, len(_WEATHER_TILE_CACHE) - fresh - stale)
+    return {
+        "items": len(_WEATHER_TILE_CACHE),
+        "fresh_items": fresh,
+        "stale_items": stale,
+        "expired_items": expired,
+        "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+        "stale_ttl_s": int(_WEATHER_TILE_STALE_TTL_S),
+    }
+
+
 @router.get("/api/v1/weather/tile-data/{z}/{x}/{y}")
 async def weather_tile_data(
     z: int,
@@ -301,26 +558,29 @@ async def weather_tile_data(
         raise HTTPException(status_code=400, detail="x/y خارج نطاق البلاطات لهذا التكبير")
     if layer not in _ALLOWED_WEATHER_TILE_LAYERS:
         raise HTTPException(status_code=400, detail=f"طبقة غير مدعومة: {layer}")
+    time, model = _validate_time_model(time, model)
 
     lat, lon = _tile_center(z, x, y)
     key = f"{z}:{x}:{y}:{time}:{model}"
-    now = monotonic()
-    cached = _WEATHER_TILE_CACHE.get(key)
-    if cached and now - cached[0] < _WEATHER_TILE_CACHE_TTL_S:
-        sample = cached[1]
-    else:
+    sample, cache_state, cache_age_s = _cache_get(key)
+    upstream_error = None
+    if cache_state != "fresh":
         try:
             from api.connectors.openmeteo import fetch_weather_tile_data
 
             sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-            _WEATHER_TILE_CACHE[key] = (now, sample)
-            # منع نمو الذاكرة بلا حد أثناء التحريك الطويل.
-            if len(_WEATHER_TILE_CACHE) > 2048:
-                oldest = sorted(_WEATHER_TILE_CACHE.items(), key=lambda kv: kv[1][0])[:512]
-                for old_key, _ in oldest:
-                    _WEATHER_TILE_CACHE.pop(old_key, None)
+            _cache_set(key, sample)
+            cache_state = "refreshed"
+            cache_age_s = 0
         except Exception as e:
-            raise HTTPException(status_code=502, detail=f"Open-Meteo tile-data: {e}") from e
+            upstream_error = str(e)
+            # إن وجدت عينة stale، نعيدها بدل كسر الخريطة أثناء انقطاع Open‑Meteo.
+            stale_sample, stale_state, stale_age = _cache_get(key)
+            if stale_sample is None or stale_state not in {"stale", "fresh"}:
+                raise HTTPException(status_code=502, detail=f"Open-Meteo tile-data: {e}") from e
+            sample = stale_sample
+            cache_state = "stale_fallback"
+            cache_age_s = stale_age
 
     return {
         "tile": {"z": z, "x": x, "y": y},
@@ -344,6 +604,9 @@ async def weather_tile_data(
         "source": "open-meteo",
         "rendered_by": "sahool-client-gridlayer",
         "cache_ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+        "cache_state": cache_state,
+        "cache_age_s": cache_age_s,
+        "upstream_error": upstream_error,
     }
 
 
@@ -362,22 +625,29 @@ async def weather_operation_tile_data(
     max_tile = 2**z
     if x < 0 or y < 0 or x >= max_tile or y >= max_tile:
         raise HTTPException(status_code=400, detail="x/y خارج نطاق البلاطات لهذا التكبير")
+    time, model = _validate_time_model(time, model)
     lat, lon = _tile_center(z, x, y)
     key = f"op:{operation}:{z}:{x}:{y}:{time}:{model}"
-    now = monotonic()
-    cached = _WEATHER_TILE_CACHE.get(key)
-    if cached and now - cached[0] < _WEATHER_TILE_CACHE_TTL_S:
-        sample = cached[1]
-    else:
+    sample, cache_state, cache_age_s = _cache_get(key)
+    upstream_error = None
+    if cache_state != "fresh":
         try:
             from api.connectors.openmeteo import fetch_weather_tile_data
 
             sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-            _WEATHER_TILE_CACHE[key] = (now, sample)
+            _cache_set(key, sample)
+            cache_state = "refreshed"
+            cache_age_s = 0
         except Exception as e:
-            raise HTTPException(
-                status_code=502, detail=f"Open-Meteo operation tile-data: {e}"
-            ) from e
+            upstream_error = str(e)
+            stale_sample, stale_state, stale_age = _cache_get(key)
+            if stale_sample is None or stale_state not in {"stale", "fresh"}:
+                raise HTTPException(
+                    status_code=502, detail=f"Open-Meteo operation tile-data: {e}"
+                ) from e
+            sample = stale_sample
+            cache_state = "stale_fallback"
+            cache_age_s = stale_age
     decision = _operation_suitability(sample, operation)
     return {
         "tile": {"z": z, "x": x, "y": y},
@@ -392,6 +662,9 @@ async def weather_operation_tile_data(
         "source": "open-meteo+sahool-rules",
         "rendered_by": "sahool-client-gridlayer",
         "cache_ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+        "cache_state": cache_state,
+        "cache_age_s": cache_age_s,
+        "upstream_error": upstream_error,
     }
 
 
@@ -403,12 +676,26 @@ async def weather_probe(
     model: str = Query("best_match"),
 ):
     """قراءة نقطة تحت المؤشر/النقرة + قرارات زراعية مختصرة."""
-    try:
-        from api.connectors.openmeteo import fetch_weather_tile_data
+    time, model = _validate_time_model(time, model)
+    key = f"probe:{round(lat, 4)}:{round(lon, 4)}:{time}:{model}"
+    sample, cache_state, cache_age_s = _cache_get(key)
+    upstream_error = None
+    if cache_state != "fresh":
+        try:
+            from api.connectors.openmeteo import fetch_weather_tile_data
 
-        sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo probe: {e}") from e
+            sample = await fetch_weather_tile_data(lat, lon, time_key=time, model=model)
+            _cache_set(key, sample)
+            cache_state = "refreshed"
+            cache_age_s = 0
+        except Exception as e:
+            upstream_error = str(e)
+            stale_sample, stale_state, stale_age = _cache_get(key)
+            if stale_sample is None or stale_state not in {"stale", "fresh"}:
+                raise HTTPException(status_code=502, detail=f"Open-Meteo probe: {e}") from e
+            sample = stale_sample
+            cache_state = "stale_fallback"
+            cache_age_s = stale_age
     operations = {
         op: _operation_suitability(sample, op)
         for op in ["spraying", "harvesting", "sowing", "irrigation"]
@@ -420,6 +707,190 @@ async def weather_probe(
         "sample": sample,
         "operations": operations,
         "source": "open-meteo+sahool-rules",
+        "cache_state": cache_state,
+        "cache_age_s": cache_age_s,
+        "upstream_error": upstream_error,
+    }
+
+
+@router.get("/api/v1/weather/operation-window")
+async def weather_operation_window(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    operation: Literal["spraying", "harvesting", "sowing", "irrigation"] = Query("spraying"),
+    hours: str = Query("0,1,3,6,12,24,48"),
+    model: str = Query("best_match"),
+):
+    """أفضل نافذة زمنية لعملية زراعية عند نقطة محددة من بيانات Open‑Meteo.
+
+    تستخدمها الواجهة في probe popup ليعرف المستخدم ليس فقط حالة النقطة الآن،
+    بل متى تصبح النافذة أفضل خلال الساعات القادمة.
+    """
+    _, model = _validate_time_model("now", model)
+    frames: list[dict] = []
+    upstream_errors: list[str] = []
+    for h in _parse_series_hours(hours):
+        time_key = _time_key_from_hour(h)
+        try:
+            sample, cache_state, cache_age_s, upstream_error = await _get_weather_sample_cached(
+                lat, lon, time_key, model, f"window:{operation}"
+            )
+            decision = _operation_suitability(sample, operation)
+            frames.append(
+                {
+                    "hour_offset": h,
+                    "time": time_key,
+                    "weather_time": sample.get("time"),
+                    "operation": decision,
+                    "sample": sample,
+                    "cache_state": cache_state,
+                    "cache_age_s": cache_age_s,
+                    "upstream_error": upstream_error,
+                }
+            )
+        except Exception as e:
+            upstream_errors.append(f"{time_key}: {e}")
+    if not frames:
+        raise HTTPException(status_code=502, detail="Open-Meteo operation-window unavailable")
+    best = _best_operation_frame(frames)
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "operation": operation,
+        "model": model,
+        "frames": frames,
+        "best": best,
+        "advice_ar": _operation_advice_ar(best["operation"]) if best else "لا توجد نافذة موثوقة.",
+        "source": "open-meteo+sahool-rules",
+        "partial": bool(upstream_errors),
+        "upstream_errors": upstream_errors[:6],
+    }
+
+
+@router.get("/api/v1/weather/field-weather-summary")
+async def weather_field_summary(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    time: str = Query("now"),
+    model: str = Query("best_match"),
+):
+    """ملخص طقس زراعي للحقل: قراءة حالية + قرارات + أفضل نافذة عملية.
+
+    Endpoint خفيف للوحة الحقل أو بطاقة الخريطة: يعطي نظرة تشغيلية واحدة بدلاً
+    من أن تجمع الواجهة probe + operation-window لكل عملية يدوياً.
+    """
+    time, model = _validate_time_model(time, model)
+    try:
+        sample, cache_state, cache_age_s, upstream_error = await _get_weather_sample_cached(
+            lat, lon, time, model, "field-summary"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Open-Meteo field-weather-summary: {e}") from e
+    operations = {
+        op: _operation_suitability(sample, op)
+        for op in ["spraying", "harvesting", "sowing", "irrigation"]
+    }
+    critical = _sample_alerts_ar(sample)
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "time": time,
+        "model": model,
+        "sample": sample,
+        "operations": operations,
+        "alerts_ar": critical,
+        "cache_state": cache_state,
+        "cache_age_s": cache_age_s,
+        "upstream_error": upstream_error,
+        "source": "open-meteo+sahool-rules",
+    }
+
+
+@router.get("/api/v1/weather/operation-plan")
+async def weather_operation_plan(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    operations: str = Query("spraying,irrigation,harvesting,sowing"),
+    hours: str = Query("0,1,3,6,12,24,48"),
+    model: str = Query("best_match"),
+):
+    """خطة عمليات طقس زراعية متعددة العمليات لنقطة/حقل واحد.
+
+    هذه هي الطبقة التنفيذية فوق operation-window: تجمع الرش/الري/الحصاد/البذار،
+    تختار أفضل نافذة لكل عملية، ثم ترتب التوصيات حتى تعرض الواجهة: ماذا أفعل الآن
+    وماذا أؤجل، مع أسباب وبيانات كاش واضحة.
+    """
+    _, model = _validate_time_model("now", model)
+    op_list = _parse_operations_csv(operations)
+    hour_offsets = _parse_series_hours(hours)
+    plan_items: list[dict] = []
+    upstream_errors: list[str] = []
+    all_alerts: list[str] = []
+
+    for op in op_list:
+        frames: list[dict] = []
+        for h in hour_offsets:
+            time_key = _time_key_from_hour(h)
+            try:
+                sample, cache_state, cache_age_s, upstream_error = await _get_weather_sample_cached(
+                    lat, lon, time_key, model, f"plan:{op}"
+                )
+                decision = _operation_suitability(sample, op)
+                if h == 0:
+                    all_alerts.extend(_sample_alerts_ar(sample))
+                frames.append(
+                    {
+                        "hour_offset": h,
+                        "time": time_key,
+                        "weather_time": sample.get("time"),
+                        "operation": decision,
+                        "status_ar": _plan_status_ar(decision),
+                        "priority": _operation_priority(decision),
+                        "cache_state": cache_state,
+                        "cache_age_s": cache_age_s,
+                        "upstream_error": upstream_error,
+                    }
+                )
+            except Exception as e:
+                upstream_errors.append(f"{op}:{time_key}: {e}")
+        best = _best_operation_frame(frames)
+        now_frame = next((f for f in frames if f.get("hour_offset") == 0), None)
+        best_decision = best.get("operation") if best else None
+        plan_items.append(
+            {
+                "operation": op,
+                "label_ar": _operation_label_ar(op),
+                "now": now_frame,
+                "best": best,
+                "frames": frames,
+                "advice_ar": _operation_advice_ar(
+                    best_decision or {"operation": op, "score": 0, "suitability": "unsafe"}
+                ),
+                "recommended": bool(best and _operation_priority(best.get("operation", {})) >= 60),
+                "priority": _operation_priority(best.get("operation", {})) if best else 0,
+            }
+        )
+
+    plan_items.sort(
+        key=lambda item: (
+            item.get("priority", 0),
+            1 if item.get("operation") == "irrigation" and item.get("priority", 0) >= 60 else 0,
+        ),
+        reverse=True,
+    )
+    if not any(item["frames"] for item in plan_items):
+        raise HTTPException(status_code=502, detail="Open-Meteo operation-plan unavailable")
+    dedup_alerts = list(dict.fromkeys(all_alerts))
+    top = plan_items[0] if plan_items else None
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "model": model,
+        "hours": hour_offsets,
+        "operations": plan_items,
+        "recommended_now": [item for item in plan_items if item.get("recommended")],
+        "top_recommendation": top,
+        "alerts_ar": dedup_alerts,
+        "partial": bool(upstream_errors),
+        "upstream_errors": upstream_errors[:10],
+        "source": "open-meteo+sahool-operation-plan",
     }
 
 
@@ -432,10 +903,10 @@ async def weather_tile_series(
     hours: str = Query("0,1,3,6,12,24,48"),
     model: str = Query("best_match"),
 ):
-    """سلسلة زمنية مختصرة للبلاطة نفسها لاستخدام animation/time slider.
+    """سلسلة زمنية مرنة للبلاطة نفسها لاستخدام animation/time slider.
 
-    ترجع عينات متعددة لنفس البلاطة عبر مفاتيح +Nh. الواجهة تستطيع تشغيلها
-    كتحريك للهطول/الرياح دون طلب مزود صور خارجي.
+    V11: أصبحت تستفيد من cache/stale fallback لكل frame ولا تفشل السلسلة كاملة
+    إذا فشل إطار واحد، ما دام هناك إطار واحد صالح على الأقل.
     """
     if z < 0 or z > 18:
         raise HTTPException(status_code=400, detail="z خارج النطاق 0..18")
@@ -444,31 +915,35 @@ async def weather_tile_series(
         raise HTTPException(status_code=400, detail="x/y خارج نطاق البلاطات لهذا التكبير")
     if layer not in _ALLOWED_WEATHER_TILE_LAYERS:
         raise HTTPException(status_code=400, detail=f"طبقة غير مدعومة: {layer}")
+    _, model = _validate_time_model("now", model)
     lat, lon = _tile_center(z, x, y)
-    offsets: list[int] = []
-    for raw in hours.split(","):
-        try:
-            offsets.append(max(0, min(72, int(raw.strip()))))
-        except ValueError:
-            continue
-    if not offsets:
-        offsets = [0, 1, 3, 6, 12, 24]
     frames = []
-    try:
-        from api.connectors.openmeteo import fetch_weather_tile_data
-
-        for h in offsets[:12]:
-            time_key = "now" if h == 0 else f"+{h}h"
-            sample = await fetch_weather_tile_data(lat, lon, time_key=time_key, model=model)
+    upstream_errors: list[str] = []
+    for h in _parse_series_hours(hours):
+        time_key = _time_key_from_hour(h)
+        try:
+            sample, cache_state, cache_age_s, upstream_error = await _get_weather_sample_cached(
+                lat, lon, time_key, model, f"series:{layer}:z{z}:x{x}:y{y}"
+            )
             frames.append(
                 {
+                    "hour_offset": h,
                     "time": time_key,
+                    "weather_time": sample.get("time"),
                     "value": _safe_layer_value(layer, sample),
                     "sample": sample,
+                    "cache_state": cache_state,
+                    "cache_age_s": cache_age_s,
+                    "upstream_error": upstream_error,
                 }
             )
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Open-Meteo tile-series: {e}") from e
+        except Exception as e:
+            upstream_errors.append(f"{time_key}: {e}")
+    if not frames:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Open-Meteo tile-series unavailable: {'; '.join(upstream_errors[:3])}",
+        )
     return {
         "tile": {"z": z, "x": x, "y": y},
         "center": {"lat": lat, "lon": lon},
@@ -477,4 +952,6 @@ async def weather_tile_series(
         "model": model,
         "source": "open-meteo",
         "rendered_by": "sahool-client-gridlayer",
+        "partial": bool(upstream_errors),
+        "upstream_errors": upstream_errors[:6],
     }
