@@ -112,9 +112,10 @@ def test_frontend_normalizes_indicator_index_and_passes_tid():
     assert "ndvu: 'ndvi'" in FRONT_API
     assert "index: normalizeIndicatorIndex(index)" in FRONT_API
     assert "normalizeIndicatorIndex(index)" in FIELD_MAP
-    assert (
-        "params: { index: normalizedIndex" in FIELD_MAP
-    )  # D: date مشروط (...(date && date !== 'latest' ? { date } : {}))
+    # طلب TileJSON يطبّع المؤشّر ويمرّر التاريخ مشروطاً (D). يقبل صياغة params inline أو
+    # كائن params مُجمَّع (const params = { index: normalizedIndex, ... }) — كلاهما يحقّق العقد.
+    assert "index: normalizedIndex" in FIELD_MAP
+    assert "date && date !== 'latest'" in FIELD_MAP  # D: date مشروط (لا latest في الرابط)
     assert "tid: tenantId" in FIELD_MAP
 
 
