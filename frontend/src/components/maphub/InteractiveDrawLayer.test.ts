@@ -58,4 +58,23 @@ describe('AddFieldWithMap — تكامل أدوات الرسم التفاعلي�
     expect(src).toMatch(/setDrawTool\(t => \(t === 'circle' \? null : 'circle'\)\)/);
     expect(src).toMatch(/setDrawTool\(t => \(t === 'rectangle' \? null : 'rectangle'\)\)/);
   });
+
+  it('makes the drawn shape movable by a draggable center handle', () => {
+    // مقبض مركز قابل للسحب ينقل الشكل كاملاً (إمساك من الوسط).
+    expect(src).toContain('centerHandleRef');
+    expect(src).toContain('CENTER_HANDLE_ICON');
+    expect(src).toContain('ringCentroid');
+    expect(src).toContain('draggable: true');
+  });
+
+  it('uses fewer circle vertices so individual points are grabbable', () => {
+    // 24 رأساً (خطوة 15°) بدل 72 المتلاصقة — ليُمسِك المستخدم رأساً بعينه.
+    expect(src).toMatch(/radiusM: number, n = 24/);
+  });
+
+  it('exposes on-map undo and cancel controls during editing', () => {
+    expect(src).toContain('onClick={handleUndo}');
+    expect(src).toMatch(/تراجع/);
+    expect(src).toMatch(/إلغاء/);
+  });
 });

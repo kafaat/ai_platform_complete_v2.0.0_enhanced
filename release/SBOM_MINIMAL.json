@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bdb07d2199c1f91055026e0772ebb9d0d872814af566b4fcf092e78b177f0531"
+          "content": "c7189db58760a3d3c475fe91cebafb25c05d1b6769f3b74a45f2ce0a7d71a755"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -925,7 +925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bde12a0c27eba75677756efdb66f804a7dedb86feb384c386ba3df9f8f72b891"
+          "content": "89d561bf10a26ca290efd2b0d4e09518d0006eec5f6e67a222de210be4aa2b38"
         }
       ],
       "name": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",

@@ -158,6 +158,28 @@ function geodesicPerimeterM(latlngs: L.LatLng[]): number {
   return perim;
 }
 
+// مركز حلقة الرؤوس (متوسّط الإحداثيّات) — لموضع مقبض السحب الذي ينقل الشكل كاملاً.
+function ringCentroid(pts: L.LatLng[]): L.LatLng {
+  let lat = 0;
+  let lng = 0;
+  for (const p of pts) {
+    lat += p.lat;
+    lng += p.lng;
+  }
+  return L.latLng(lat / pts.length, lng / pts.length);
+}
+
+// أيقونة مقبض المركز: قرص أبيض بحدّ أخضر ورمز تحريك — كبير كفايةً للإمساك على اللمس.
+const CENTER_HANDLE_ICON = L.divIcon({
+  className: '',
+  html:
+    '<div style="width:26px;height:26px;border-radius:9999px;background:#fff;border:2px solid #16a34a;' +
+    'box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;' +
+    'color:#16a34a;font-size:15px;font-weight:700;cursor:move">✛</div>',
+  iconSize: [26, 26],
+  iconAnchor: [13, 13],
+});
+
 // تنسيق طول بالمتر: < 10000 م يُعرَض بالمتر (رقمان)، وإلّا بالكيلومتر للقراءة.
 // الوحدة تبقى المتر كأساس؛ هذا تنسيق عرض فقط (لا تحويل لأقدام/فدّان أبداً).
 function formatLengthM(m: number): string {
@@ -168,7 +190,9 @@ function formatLengthM(m: number): string {
 
 // ── دائرة (ريّ محوريّ) → مضلّع مُقرَّب ──────────────────────────
 // الخلفيّة تتوقّع GeoJSON Polygon؛ نحوّل (مركز + نصف قطر م) إلى حلقة رؤوس.
-function circleToPolygon(center: L.LatLng, radiusM: number, n = 72): L.LatLng[] {
+// n=24 (خطوة 15°): دائرة ناعمة بصريّاً لكن برؤوس متباعدة كفايةً ليُمسِك المستخدم رأساً
+// بعينه ويحرّكه (72 رأساً كانت متلاصقة يتعذّر انتقاء واحد منها).
+function circleToPolygon(center: L.LatLng, radiusM: number, n = 24): L.LatLng[] {
   // توليد دائرة جيوديسية حقيقية حول المركز بدل تقريب degree-per-meter.
   // هذا يقلل الإزاحة/التشوّه في الحقول المحورية الكبيرة ويحافظ على نصف القطر بالمتر.
   const R = 6378137; // WGS84 radius, meters
@@ -231,6 +255,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const [error, setError]   = useState('');
   const [tileType, setTileType] = useState<'street'|'satellite'>('satellite');
   const mapRef = useRef<L.Map | null>(null);
+  // مقبض المركز القابل للسحب (ينقل الشكل المرسوم كاملاً) — طبقة على الخريطة لا ضمن fgRef.
+  const centerHandleRef = useRef<L.Marker | null>(null);
   // حارس تسلسل لطلب الكشف العكسي: يمنع ردّ طلب قديم من الكتابة فوق الأحدث
   // (إعادة رسم سريعة قد تُظهر موقعاً لا يطابق المضلّع الحاليّ).
   const geoReqRef = useRef(0);
@@ -293,6 +319,11 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     if (!fgRef.current) return null;
     const fg = fgRef.current;
     fg.clearLayers();
+    // أزِل مقبض المركز السابق (طبقة على الخريطة لا تتأثّر بـfg.clearLayers).
+    if (centerHandleRef.current) {
+      centerHandleRef.current.remove();
+      centerHandleRef.current = null;
+    }
     const poly = L.polygon(pts, {
       color: '#16a34a', fillColor: '#16a34a', fillOpacity: 0.25, weight: 2,
     });
@@ -304,18 +335,63 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setPerimeterM(geodesicPerimeterM(pts));
     setPolygon(poly);
     // التقاط تعديل الرؤوس اليدويّ: leaflet-draw يُطلق 'edit' على الطبقة بعد سحب رأس.
-    // نقرأ الحلقة المحدّثة، نُحدّث القياسات، ونُسجّل لقطة (محروسة بـapplyingRef).
+    // نقرأ الحلقة المحدّثة، نُحدّث القياسات، نُعيد توسيط المقبض، ونُسجّل لقطة.
     poly.on('edit', () => {
       const edited = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
       if (edited.length < 3) return;
       setLatlngs(edited);
       setAreaHa(geodesicAreaHa(edited));
       setPerimeterM(geodesicPerimeterM(edited));
+      centerHandleRef.current?.setLatLng(ringCentroid(edited));
       pushSnapshot(edited);
     });
+
+    // مقبض مركز قابل للسحب: ينقل الشكل كاملاً (إمساك من الوسط). أثناء السحب نُعطّل
+    // تحرير الرؤوس (تفادي مقابض leaflet-draw عالقة) ونُزيح كلّ الرؤوس بنفس الدلتا،
+    // ونُعيد تفعيله عند الإفلات مع تسجيل لقطة واحدة (لا لقطة لكلّ إطار سحب).
+    const map = mapRef.current;
+    if (map) {
+      let centerPrev = ringCentroid(pts);
+      const handle = L.marker(centerPrev, {
+        draggable: true,
+        icon: CENTER_HANDLE_ICON,
+        zIndexOffset: 1000,
+        keyboard: false,
+      });
+      handle.on('dragstart', () => { (poly as any).editing?.disable(); });
+      handle.on('drag', () => {
+        const now = handle.getLatLng();
+        const dLat = now.lat - centerPrev.lat;
+        const dLng = now.lng - centerPrev.lng;
+        centerPrev = now;
+        const moved = ((poly.getLatLngs()[0] as L.LatLng[]) ?? []).map(
+          (p) => L.latLng(p.lat + dLat, p.lng + dLng),
+        );
+        poly.setLatLngs(moved);
+        setLatlngs(moved);
+        setAreaHa(geodesicAreaHa(moved));
+        setPerimeterM(geodesicPerimeterM(moved));
+      });
+      handle.on('dragend', () => {
+        (poly as any).editing?.enable();
+        const ring = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
+        if (ring.length >= 3) pushSnapshot(ring);
+      });
+      handle.addTo(map);
+      centerHandleRef.current = handle;
+    }
+
     if (pushOnDone) pushSnapshot(pts);
     return poly;
   }, [pushSnapshot]);
+
+  // تنظيف مقبض المركز عند تفكيك المكوّن (طبقة على الخريطة خارج fgRef).
+  useEffect(() => () => {
+    if (centerHandleRef.current) {
+      centerHandleRef.current.remove();
+      centerHandleRef.current = null;
+    }
+  }, []);
 
   const handlePolygonDone = useCallback((rawPts: L.LatLng[]) => {
     const pts = maybeSnap(rawPts);
@@ -491,6 +567,10 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
 
   const handleReset = () => {
     if (fgRef.current) fgRef.current.clearLayers();
+    if (centerHandleRef.current) {
+      centerHandleRef.current.remove();
+      centerHandleRef.current = null;
+    }
     setStage('draw');
     setLatlngs([]);
     setAreaHa(0);
@@ -1031,6 +1111,43 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                   {drawTool
                     ? (drawStatus ?? (drawTool === 'circle' ? 'انقر مركز الدائرة ثمّ حرّك وانقر للوضع.' : 'انقر نقطتين للضلع ثمّ حرّك وانقر للإتمام.'))
                     : 'المضلّع من شريط أعلى يمين الخريطة · الدائرة/المستطيل من لوحة الأدوات'}
+                </div>
+              )}
+
+              {/* شريط إجراءات على الخريطة: تراجع/إعادة عن تعديلات الشكل + إلغاء —
+                  متاح حيث يحرّر المستخدم الحدّ (إضافةً لأزرار لوحة النموذج). */}
+              {(polygon || drawTool) && (
+                <div className="absolute bottom-3 left-3 z-[1000] flex items-center gap-1.5" dir="rtl">
+                  {polygon && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleUndo}
+                        disabled={pointer <= 0}
+                        title="تراجع عن آخر تعديل للحدّ"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={{ background: '#ffffff', color: '#166534', border: '1px solid #16a34a55' }}>
+                        <Undo2 className="w-4 h-4" /> تراجع
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRedo}
+                        disabled={pointer >= history.length - 1}
+                        title="إعادة التعديل المُتراجَع عنه"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                        style={{ background: '#ffffff', color: '#166534', border: '1px solid #16a34a55' }}>
+                        <Redo2 className="w-4 h-4" /> إعادة
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={drawTool ? () => { setDrawTool(null); setDrawStatus(null); } : onCancel}
+                    title={drawTool ? 'إلغاء أداة الرسم الحاليّة' : 'إلغاء وإغلاق'}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg"
+                    style={{ background: '#ffffff', color: '#b91c1c', border: '1px solid #b91c1c55' }}>
+                    <X className="w-4 h-4" /> إلغاء
+                  </button>
                 </div>
               )}
             </div>
