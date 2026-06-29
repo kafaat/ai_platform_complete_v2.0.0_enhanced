@@ -25,6 +25,7 @@ export type WeatherLayerKey =
   | 'et0'
   | 'vpd'
   | 'soil_temperature'
+  | 'soil_temperature_10_40cm'
   | 'soil_moisture'
   | 'pressure'
   | 'clouds'
@@ -106,6 +107,7 @@ export const WEATHER_LAYERS: WeatherLayerConfig[] = [
   { key: 'et0', labelAr: 'البخر-نتح المرجعي ET₀', shortAr: 'ET₀', unit: 'مم', min: 0, max: 10, stops: ['#dcfce7', '#bef264', '#facc15', '#fb923c', '#ef4444'] },
   { key: 'vpd', labelAr: 'عجز ضغط البخار VPD', shortAr: 'VPD', unit: 'kPa', min: 0, max: 5, stops: ['#38bdf8', '#22c55e', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
   { key: 'soil_temperature', labelAr: 'حرارة التربة', shortAr: 'تربة °', unit: '°C', min: 0, max: 45, stops: ['#2563eb', '#38bdf8', '#22c55e', '#eab308', '#f97316', '#dc2626'] },
+  { key: 'soil_temperature_10_40cm', labelAr: 'حرارة التربة 10-40 سم', shortAr: '10-40سم', unit: '°C', min: 0, max: 45, stops: ['#1e3a8a', '#2563eb', '#38bdf8', '#22c55e', '#eab308', '#f97316', '#dc2626'] },
   { key: 'soil_moisture', labelAr: 'رطوبة التربة', shortAr: 'رطوبة تربة', unit: 'm³/m³', min: 0, max: 0.55, stops: ['#92400e', '#f59e0b', '#a3e635', '#22c55e', '#0ea5e9', '#1d4ed8'] },
   { key: 'pressure', labelAr: 'ضغط مستوى البحر', shortAr: 'ضغط', unit: 'hPa', min: 980, max: 1040, stops: ['#7c3aed', '#2563eb', '#22c55e', '#eab308', '#ef4444'] },
   { key: 'clouds', labelAr: 'الغيوم', shortAr: 'غيوم', unit: '%', min: 0, max: 100, stops: ['#0f172a', '#475569', '#94a3b8', '#e2e8f0', '#ffffff'] },
@@ -120,6 +122,7 @@ export const WEATHER_PRESETS: Array<{ label: string; layer: WeatherLayerKey; not
   { label: 'وضع الري', layer: 'operation_irrigation', note: 'VPD + رطوبة التربة + المطر' },
   { label: 'وضع الحصاد', layer: 'operation_harvesting', note: 'رطوبة + مطر + رياح' },
   { label: 'وضع البذار', layer: 'operation_sowing', note: 'حرارة ورطوبة التربة' },
+  { label: 'تربة 10-40 سم', layer: 'soil_temperature_10_40cm', note: 'مطابق بصرياً لوضع 10-40 cm down' },
 ];
 
 export const DEFAULT_LAYER: WeatherLayerKey = 'temperature';
@@ -178,6 +181,7 @@ export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unk
     case 'et0': return sampleNum(sample, 'et0_fao_evapotranspiration_mm');
     case 'vpd': return sampleNum(sample, 'vapour_pressure_deficit_kpa');
     case 'soil_temperature': return sampleNum(sample, 'soil_temperature_6cm_c') ?? sampleNum(sample, 'soil_temperature_0cm_c');
+    case 'soil_temperature_10_40cm': return sampleNum(sample, 'soil_temperature_10_40cm_c') ?? sampleNum(sample, 'soil_temperature_18cm_c') ?? sampleNum(sample, 'soil_temperature_6cm_c');
     case 'soil_moisture': return sampleNum(sample, 'soil_moisture_1_to_3cm_m3m3') ?? sampleNum(sample, 'soil_moisture_0_to_1cm_m3m3');
     case 'pressure': return sampleNum(sample, 'pressure_msl_hpa');
     case 'clouds': return sampleNum(sample, 'cloud_cover_pct');

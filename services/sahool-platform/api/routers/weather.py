@@ -1418,6 +1418,8 @@ def _safe_layer_value(layer: str, sample: dict):
         return sample.get("vapour_pressure_deficit_kpa")
     if layer == "soil_temperature":
         return sample.get("soil_temperature_6cm_c") or sample.get("soil_temperature_0cm_c")
+    if layer == "soil_temperature_10_40cm":
+        return _soil_temperature_10_40cm_value(sample)
     if layer == "soil_moisture":
         return sample.get("soil_moisture_1_to_3cm_m3m3") or sample.get(
             "soil_moisture_0_to_1cm_m3m3"
@@ -1427,6 +1429,32 @@ def _safe_layer_value(layer: str, sample: dict):
     if layer == "clouds":
         return sample.get("cloud_cover_pct")
     return sample.get("temperature_2m_c")
+
+
+def _soil_temperature_10_40cm_value(sample: dict) -> float | None:
+    """Return the 10-40 cm down soil temperature approximation.
+
+    Prefer a connector-computed value, then derive it from Open-Meteo 18/54 cm
+    depths. Falls back to 6 cm only when deeper data is absent.
+    """
+    direct = _num(sample, "soil_temperature_10_40cm_c", None)
+    if direct is not None:
+        return direct
+    t18 = _num(sample, "soil_temperature_18cm_c", None)
+    t54 = _num(sample, "soil_temperature_54cm_c", None)
+    t6 = _num(sample, "soil_temperature_6cm_c", None)
+    vals: list[tuple[float, float]] = []
+    if t18 is not None:
+        vals.append((t18, 0.65))
+    if t54 is not None:
+        t40 = (t18 + (t54 - t18) * ((40 - 18) / (54 - 18))) if t18 is not None else t54
+        vals.append((t40, 0.35))
+    elif t6 is not None:
+        vals.append((t6, 0.20))
+    if not vals:
+        return None
+    total = sum(w for _, w in vals)
+    return round(sum(v * w for v, w in vals) / total, 2)
 
 
 def _num(sample: dict, key: str, default: float | None = None) -> float | None:
@@ -1514,6 +1542,7 @@ _ALLOWED_WEATHER_TILE_LAYERS = {
     "et0",
     "vpd",
     "soil_temperature",
+    "soil_temperature_10_40cm",
     "soil_moisture",
     "pressure",
     "clouds",
@@ -1714,6 +1743,15 @@ def weather_layers_manifest():
             {"key": "et0", "label_ar": "البخر-نتح المرجعي", "unit": "mm", "kind": "agro_weather"},
             {"key": "vpd", "label_ar": "عجز ضغط البخار", "unit": "kPa", "kind": "agro_weather"},
             {"key": "soil_temperature", "label_ar": "حرارة التربة", "unit": "°C", "kind": "soil"},
+            {
+                "key": "soil_temperature_10_40cm",
+                "label_ar": "حرارة التربة 10-40 سم",
+                "unit": "°C",
+                "kind": "soil",
+                "depth": "10-40 cm down",
+                "derived": True,
+                "provider_native": False,
+            },
             {"key": "soil_moisture", "label_ar": "رطوبة التربة", "unit": "m³/m³", "kind": "soil"},
             {"key": "pressure", "label_ar": "الضغط", "unit": "hPa", "kind": "weather"},
             {"key": "clouds", "label_ar": "الغيوم", "unit": "%", "kind": "weather"},
@@ -1871,7 +1909,7 @@ async def weather_tile_data(
     y: int,
     layer: str = Query(
         "temperature",
-        description="temperature|wind|precipitation|et0|vpd|soil_temperature|soil_moisture|pressure|clouds",
+        description="temperature|wind|precipitation|et0|vpd|soil_temperature|soil_temperature_10_40cm|soil_moisture|pressure|clouds",
     ),
     time: str = Query("now", description="now|+1h|+3h|+6h|+12h|+24h|+48h"),
     model: str = Query("best_match", description="best_match أو نموذج Open-Meteo صريح عند الحاجة"),
@@ -1950,6 +1988,7 @@ async def weather_tile_data(
             "et0": "mm",
             "vpd": "kPa",
             "soil_temperature": "°C",
+            "soil_temperature_10_40cm": "°C",
             "soil_moisture": "m³/m³",
             "pressure": "hPa",
             "clouds": "%",

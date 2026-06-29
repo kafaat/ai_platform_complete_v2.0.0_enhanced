@@ -427,11 +427,41 @@ _TILE_HOURLY_KEYS = [
     "soil_temperature_0cm",
     "soil_temperature_6cm",
     "soil_temperature_18cm",
+    "soil_temperature_54cm",
     "soil_moisture_0_to_1cm",
     "soil_moisture_1_to_3cm",
     "soil_moisture_3_to_9cm",
     "precipitation_probability",
 ]
+
+
+def _soil_temperature_10_40cm(t6, t18, t54):
+    """Approximate Meteoblue-like 10-40 cm down soil temperature from Open-Meteo depths.
+
+    Open-Meteo exposes 6/18/54 cm soil temperature. For the 10-40 cm agronomic layer,
+    use the 18 cm value as the center anchor and blend toward an interpolated ~40 cm
+    value when 54 cm is available. This is intentionally labelled as an approximation
+    in the API metadata and UI rather than a provider-native Meteoblue tile.
+    """
+    vals = []
+    try:
+        if t18 is not None:
+            vals.append((float(t18), 0.65))
+        if t54 is not None:
+            # Linear interpolation between 18 and 54 cm at ~40 cm.
+            if t18 is not None:
+                t40 = float(t18) + (float(t54) - float(t18)) * ((40 - 18) / (54 - 18))
+            else:
+                t40 = float(t54)
+            vals.append((t40, 0.35))
+        elif t6 is not None:
+            vals.append((float(t6), 0.20))
+    except (TypeError, ValueError):
+        return None
+    if not vals:
+        return None
+    total_w = sum(w for _, w in vals)
+    return round(sum(v * w for v, w in vals) / total_w, 2)
 
 
 def _parse_time_offset_hours(time_key: str | None) -> int:
@@ -544,6 +574,10 @@ async def fetch_weather_tile_data(
         "soil_temperature_0cm_c": hv("soil_temperature_0cm"),
         "soil_temperature_6cm_c": hv("soil_temperature_6cm"),
         "soil_temperature_18cm_c": hv("soil_temperature_18cm"),
+        "soil_temperature_54cm_c": hv("soil_temperature_54cm"),
+        "soil_temperature_10_40cm_c": _soil_temperature_10_40cm(
+            hv("soil_temperature_6cm"), hv("soil_temperature_18cm"), hv("soil_temperature_54cm")
+        ),
         "soil_moisture_0_to_1cm_m3m3": hv("soil_moisture_0_to_1cm"),
         "soil_moisture_1_to_3cm_m3m3": hv("soil_moisture_1_to_3cm"),
         "soil_moisture_3_to_9cm_m3m3": hv("soil_moisture_3_to_9cm"),
