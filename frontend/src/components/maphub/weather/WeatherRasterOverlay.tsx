@@ -11,6 +11,7 @@ import {
   type WeatherLayerKey,
   type WeatherTimeKey,
   type WindDensity,
+  type WeatherPalette,
 } from './weatherLayerDefinitions';
 import { readWeatherPreferences, writeWeatherPreferences } from './weatherPreferences';
 import { createWeatherWindGridLayer } from './WeatherTileLayer';
@@ -29,15 +30,16 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
   const [showWind, setShowWind] = useState(initialPreferences.showWind);
   const [windDensity, setWindDensity] = useState<WindDensity>(initialPreferences.windDensity);
   const [panelOpen, setPanelOpen] = useState(initialPreferences.panelOpen);
+  const [palette, setPalette] = useState<WeatherPalette>(initialPreferences.palette);
   const stableMarker = useMemo(() => marker, [marker]);
 
   useEffect(() => {
-    writeWeatherPreferences({ layer, time, model, opacity, showWind, windDensity, panelOpen });
-  }, [layer, time, model, opacity, showWind, windDensity, panelOpen]);
+    writeWeatherPreferences({ layer, time, model, opacity, showWind, windDensity, panelOpen, palette });
+  }, [layer, time, model, opacity, showWind, windDensity, panelOpen, palette]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;
-    const grid = createWeatherWindGridLayer(stableMarker, layer, time, model, opacity, showWind, windDensity).addTo(map);
+    const grid = createWeatherWindGridLayer(stableMarker, layer, time, model, opacity, showWind, windDensity, palette).addTo(map);
     const container = grid.getContainer();
     container?.classList.add('sahool-weather-wind-grid-layer');
     if (container) {
@@ -47,7 +49,7 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
       container.style.opacity = String(opacity);
     }
     return () => { grid.remove(); };
-  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity]);
+  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, palette]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;
@@ -67,9 +69,11 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
       setShowWind,
       setWindDensity,
       () => setPanelOpen((v) => !v),
+      palette,
+      setPalette,
     ).addTo(map);
     return () => { control.remove(); };
-  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, panelOpen]);
+  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, panelOpen, palette]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;

@@ -86,6 +86,18 @@ export const WEATHER_MODELS: Array<{ key: string; label: string }> = [
   { key: 'ecmwf_ifs04', label: 'ECMWF IFS' },
 ];
 
+// مخطط الألوان (palette) للطبقة النشطة: 'coldwarm' هو السلّم الافتراضيّ لكلّ طبقة (cfg.stops)،
+// و'rainbow' سلّم طيفيّ موحّد (أزرق→سماوي→أخضر→أصفر→برتقالي→أحمر) يُطبَّق على نطاق القيمة كاملاً.
+export type WeatherPalette = 'coldwarm' | 'rainbow';
+
+// سلّم قوس قزح المشترك: يُستعمل لكلّ الطبقات عند اختيار 'rainbow'.
+const RAINBOW_STOPS: string[] = ['#2563eb', '#22d3ee', '#22c55e', '#eab308', '#f97316', '#ef4444'];
+
+export const WEATHER_PALETTES: Array<{ key: WeatherPalette; label: string }> = [
+  { key: 'coldwarm', label: 'بارد/دافئ' },
+  { key: 'rainbow', label: 'قوس قزح' },
+];
+
 export const WIND_DENSITIES: Array<{ key: WindDensity; label: string; detail: string }> = [
   { key: 'auto', label: 'تلقائي', detail: 'يضبط الكثافة حسب الجهاز' },
   { key: 'low', label: 'منخفض', detail: 'أخف للجوال' },
@@ -168,8 +180,13 @@ function lerpHex(a: string, b: string, t: number): string {
   return `#${((1 << 24) + (rr << 16) + (rg << 8) + rb).toString(16).slice(1)}`;
 }
 
-export function colorAt(value: number | null | undefined, cfg: WeatherLayerConfig, offset = 0): string {
-  const stops = cfg.stops;
+// يختار سلسلة الألوان حسب المخطط المحدّد: coldwarm = سلّم الطبقة الأصليّ، rainbow = السلّم الطيفيّ الموحّد.
+export function paletteStops(cfg: WeatherLayerConfig, palette: WeatherPalette = 'coldwarm'): string[] {
+  return palette === 'rainbow' ? RAINBOW_STOPS : cfg.stops;
+}
+
+export function colorAt(value: number | null | undefined, cfg: WeatherLayerConfig, offset = 0, palette: WeatherPalette = 'coldwarm'): string {
+  const stops = paletteStops(cfg, palette);
   const f = clamp01(layerFactor(value, cfg) + offset);
   const scaled = f * (stops.length - 1);
   const i = Math.max(0, Math.min(stops.length - 2, Math.floor(scaled)));

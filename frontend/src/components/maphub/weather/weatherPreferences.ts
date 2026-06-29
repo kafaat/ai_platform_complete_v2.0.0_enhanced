@@ -4,9 +4,11 @@ import {
   WEATHER_MODELS,
   WEATHER_TIMES,
   WIND_DENSITIES,
+  WEATHER_PALETTES,
   type WeatherLayerKey,
   type WeatherTimeKey,
   type WindDensity,
+  type WeatherPalette,
 } from './weatherLayerDefinitions';
 
 export type WeatherOverlayPreferences = {
@@ -17,6 +19,7 @@ export type WeatherOverlayPreferences = {
   showWind: boolean;
   windDensity: WindDensity;
   panelOpen: boolean;
+  palette: WeatherPalette;
 };
 
 const STORAGE_KEY = 'sahool.weather.overlay.preferences.v1';
@@ -52,6 +55,10 @@ function isWindDensity(value: unknown): value is WindDensity {
   return typeof value === 'string' && WIND_DENSITIES.some((entry) => entry.key === value);
 }
 
+function isWeatherPalette(value: unknown): value is WeatherPalette {
+  return typeof value === 'string' && WEATHER_PALETTES.some((entry) => entry.key === value);
+}
+
 function clampOpacity(value: unknown, fallback: number): number {
   const numeric = typeof value === 'number' ? value : Number(value);
   if (!Number.isFinite(numeric)) return fallback;
@@ -74,6 +81,7 @@ export function defaultWeatherPreferences(): WeatherOverlayPreferences {
     showWind: !reducedMotion,
     windDensity: isSmallScreen ? 'medium' : 'high',
     panelOpen: isWidePanel,
+    palette: 'coldwarm',
   };
 }
 
@@ -92,6 +100,7 @@ export function readWeatherPreferences(): WeatherOverlayPreferences {
       showWind: coerceBoolean(parsed.showWind, defaults.showWind),
       windDensity: isWindDensity(parsed.windDensity) ? parsed.windDensity : defaults.windDensity,
       panelOpen: coerceBoolean(parsed.panelOpen, defaults.panelOpen),
+      palette: isWeatherPalette(parsed.palette) ? parsed.palette : defaults.palette,
     };
   } catch {
     return defaults;

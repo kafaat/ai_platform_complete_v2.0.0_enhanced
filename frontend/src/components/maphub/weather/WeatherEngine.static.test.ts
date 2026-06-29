@@ -77,4 +77,11 @@ describe('SAHOOL weather engine static architecture', () => {
     expect(preferences).toContain('clampOpacity'); // تحقّق مدخلات آمن
     expect(preferences).toContain('resetWeatherPreferences');
   });
+
+  it('supports a color-scheme (palette) toggle: rainbow ↔ cold/warm', () => {
+    expect(defs).toContain('WEATHER_PALETTES');
+    expect(defs).toContain('WeatherPalette');
+    expect(panel).toContain('data-palette');
+    expect(tile).toContain('palette');
+  });
 });

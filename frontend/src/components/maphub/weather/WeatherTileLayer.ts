@@ -10,6 +10,7 @@ import {
   type WeatherTilePayload,
   type WeatherTimeKey,
   type WindDensity,
+  type WeatherPalette,
   layerConfig,
   isOperationLayer,
   operationFromLayer,
@@ -23,9 +24,9 @@ import {
 } from './weatherLayerDefinitions';
 
 
-function interpolationColor(payload: WeatherTilePayload | undefined, cfg: ReturnType<typeof layerConfig>, id: string, fallback: number | null): string {
+function interpolationColor(payload: WeatherTilePayload | undefined, cfg: ReturnType<typeof layerConfig>, id: string, fallback: number | null, palette: WeatherPalette = 'coldwarm'): string {
   const point = payload?.interpolation?.points?.find((p) => p.id === id);
-  return colorAt(typeof point?.value === 'number' ? point.value : fallback, cfg, 0);
+  return colorAt(typeof point?.value === 'number' ? point.value : fallback, cfg, 0, palette);
 }
 
 function interpolationValue(payload: WeatherTilePayload | undefined, fallback: number | null): number | null {
@@ -40,6 +41,7 @@ export function weatherTileSvg(
   payload?: WeatherTilePayload,
   showWind = true,
   windDensity: WindDensity = 'auto',
+  palette: WeatherPalette = 'coldwarm',
 ): string {
   const cfg = layerConfig(layer);
   const sample = payload?.sample;
@@ -53,18 +55,18 @@ export function weatherTileSvg(
   const o1 = -0.09 + seedB * 0.10;
   const o2 = 0.12 + seedA * 0.10;
   const o3 = 0.30;
-  const c0 = colorAt(value, cfg, o0);
-  const c1 = colorAt(value, cfg, o1);
-  const c2 = colorAt(value, cfg, o2);
-  const c3 = colorAt(value, cfg, o3);
+  const c0 = colorAt(value, cfg, o0, palette);
+  const c1 = colorAt(value, cfg, o1, palette);
+  const c2 = colorAt(value, cfg, o2, palette);
+  const c3 = colorAt(value, cfg, o3, palette);
   // ألوان وسطيّة على نفس منحنى الطبقة لتنعيم القفزات بين المراحل (تقليل الخطوات الصلبة).
-  const cMid01 = colorAt(value, cfg, (o0 + o1) / 2);
-  const cMid12 = colorAt(value, cfg, (o1 + o2) / 2);
-  const cMid23 = colorAt(value, cfg, (o2 + o3) / 2);
-  const cNW = interpolationColor(payload, cfg, 'nw', value);
-  const cNE = interpolationColor(payload, cfg, 'ne', value);
-  const cSW = interpolationColor(payload, cfg, 'sw', value);
-  const cSE = interpolationColor(payload, cfg, 'se', value);
+  const cMid01 = colorAt(value, cfg, (o0 + o1) / 2, palette);
+  const cMid12 = colorAt(value, cfg, (o1 + o2) / 2, palette);
+  const cMid23 = colorAt(value, cfg, (o2 + o3) / 2, palette);
+  const cNW = interpolationColor(payload, cfg, 'nw', value, palette);
+  const cNE = interpolationColor(payload, cfg, 'ne', value, palette);
+  const cSW = interpolationColor(payload, cfg, 'sw', value, palette);
+  const cSE = interpolationColor(payload, cfg, 'se', value, palette);
   const hasInterpolation = !!payload?.interpolation?.points?.length;
   const gradId = `sahool-weather-${layer}-${coords.x}-${coords.y}-${coords.z}`;
   const heatId = `sahool-heat-${layer}-${coords.x}-${coords.y}-${coords.z}`;
@@ -163,6 +165,7 @@ export function createWeatherWindGridLayer(
   opacity: number,
   showWind: boolean,
   windDensity: WindDensity,
+  palette: WeatherPalette = 'coldwarm',
 ): L.GridLayer {
   const WeatherWindGrid = L.GridLayer.extend({
     createTile(coords: L.Coords) {
@@ -176,8 +179,8 @@ export function createWeatherWindGridLayer(
       tile.innerHTML = loadingTileSvg(layer);
       fetch(tileDataUrl(coords, layer, time, model), { headers: weatherFetchHeaders() })
         .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-        .then((payload: WeatherTilePayload) => { tile.innerHTML = weatherTileSvg(marker, coords, layer, payload, showWind, windDensity); })
-        .catch(() => { tile.innerHTML = weatherTileSvg(marker, coords, layer, undefined, showWind, windDensity); });
+        .then((payload: WeatherTilePayload) => { tile.innerHTML = weatherTileSvg(marker, coords, layer, payload, showWind, windDensity, palette); })
+        .catch(() => { tile.innerHTML = weatherTileSvg(marker, coords, layer, undefined, showWind, windDensity, palette); });
       return tile;
     },
   });

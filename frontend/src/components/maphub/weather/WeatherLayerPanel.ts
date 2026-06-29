@@ -10,11 +10,13 @@ import {
   type WeatherTimeKey,
   type WindDensity,
   type WeatherLayerConfig,
+  type WeatherPalette,
   WEATHER_TIMES,
   WEATHER_MODELS,
   WIND_DENSITIES,
   WEATHER_LAYERS,
   WEATHER_PRESETS,
+  WEATHER_PALETTES,
   layerConfig,
   layerFactor,
   getLayerValue,
@@ -63,6 +65,7 @@ export function weatherControlHtml(
   showWind: boolean,
   windDensity: WindDensity,
   panelOpen: boolean,
+  palette: WeatherPalette = 'coldwarm',
 ): string {
   const cfg = layerConfig(layer);
   const temp = marker.tempC != null ? `${Math.round(marker.tempC)}°م` : '—';
@@ -116,6 +119,10 @@ export function weatherControlHtml(
       <select data-model="1" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.20);background:rgba(15,23,42,.55);color:#f8fafc;padding:9px">
         ${WEATHER_MODELS.map((m) => `<option value="${m.key}" ${m.key === model ? 'selected' : ''}>${m.label}</option>`).join('')}
       </select>
+      <label style="display:flex;align-items:center;gap:7px;justify-content:space-between"><span>مخطط الألوان</span></label>
+      <div style="display:grid;grid-template-columns:repeat(${WEATHER_PALETTES.length},1fr);gap:4px;background:rgba(15,23,42,.45);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:4px">
+        ${WEATHER_PALETTES.map((p) => `<button type="button" data-palette="${p.key}" style="border:1px solid ${p.key === palette ? 'rgba(255,255,255,.72)' : 'transparent'};border-radius:9px;background:${p.key === palette ? 'rgba(37,99,235,.86)' : 'transparent'};color:#f8fafc;padding:7px 4px;font-weight:900;cursor:pointer;font-size:12px">${p.label}</button>`).join('')}
+      </div>
     </div>
     ${legendHtml(cfg, marker)}
     <div style="padding:10px 12px;color:#cbd5e1;display:grid;gap:3px">
@@ -146,11 +153,13 @@ export function createWeatherControl(
   onWindToggle: (show: boolean) => void,
   onWindDensityChange: (density: WindDensity) => void,
   onPanelToggle: () => void,
+  palette: WeatherPalette = 'coldwarm',
+  onPaletteChange: (palette: WeatherPalette) => void = () => {},
 ): L.Control {
   const WeatherControl = L.Control.extend({
     onAdd() {
       const div = L.DomUtil.create('div', 'sahool-weather-layer-control-wrap');
-      div.innerHTML = weatherControlHtml(layer, marker, time, model, opacity, showWind, windDensity, panelOpen);
+      div.innerHTML = weatherControlHtml(layer, marker, time, model, opacity, showWind, windDensity, panelOpen, palette);
       L.DomEvent.disableClickPropagation(div);
       L.DomEvent.disableScrollPropagation(div);
       div.querySelectorAll<HTMLButtonElement>('button[data-layer]').forEach((btn) => {
@@ -169,6 +178,9 @@ export function createWeatherControl(
       if (opacityInput) opacityInput.oninput = () => onOpacityChange(Math.max(0.35, Math.min(1, Number(opacityInput.value) / 100)));
       const windToggle = div.querySelector<HTMLInputElement>('input[data-wind-toggle]');
       if (windToggle) windToggle.onchange = () => onWindToggle(windToggle.checked);
+      div.querySelectorAll<HTMLButtonElement>('button[data-palette]').forEach((btn) => {
+        btn.onclick = () => onPaletteChange(btn.dataset.palette as WeatherPalette);
+      });
       return div;
     },
   });
