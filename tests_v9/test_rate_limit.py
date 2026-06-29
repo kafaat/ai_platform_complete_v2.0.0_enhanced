@@ -32,6 +32,9 @@ def test_rate_limit_blocks_over_limit(app_mod, monkeypatch):
 
     m = app_mod
     monkeypatch.setattr(m, "_RATE_LIMIT_PER_MIN", 3)
+    monkeypatch.setattr(
+        m, "_RATE_REDIS", None
+    )  # يفرض المسار in-process (حتميّ بصرف النظر عن البيئة)
     m._rate_buckets.clear()
     try:
         client = TestClient(m.app)
@@ -54,6 +57,7 @@ def test_rate_limit_exempts_health(app_mod, monkeypatch):
 
     m = app_mod
     monkeypatch.setattr(m, "_RATE_LIMIT_PER_MIN", 2)
+    monkeypatch.setattr(m, "_RATE_REDIS", None)  # يفرض المسار in-process (حتميّ)
     m._rate_buckets.clear()
     try:
         client = TestClient(m.app)
@@ -72,6 +76,7 @@ def test_rate_limit_disabled_when_zero(app_mod, monkeypatch):
 
     m = app_mod
     monkeypatch.setattr(m, "_RATE_LIMIT_PER_MIN", 0)
+    monkeypatch.setattr(m, "_RATE_REDIS", None)
     m._rate_buckets.clear()
     try:
         client = TestClient(m.app)
@@ -80,3 +85,49 @@ def test_rate_limit_disabled_when_zero(app_mod, monkeypatch):
             assert r.status_code != 429
     finally:
         m._rate_buckets.clear()
+
+
+class _FakeRedis:
+    """عميل Redis أدنى لاختبار منطق العدّ المشترَك (INCR/EXPIRE/TTL) بلا خادم حقيقيّ."""
+
+    def __init__(self, *, fail: bool = False):
+        self._n: dict[str, int] = {}
+        self._ttl: dict[str, int] = {}
+        self._fail = fail
+
+    def incr(self, k):
+        if self._fail:
+            raise RuntimeError("redis down")
+        self._n[k] = self._n.get(k, 0) + 1
+        return self._n[k]
+
+    def expire(self, k, ttl):
+        self._ttl[k] = ttl
+
+    def ttl(self, k):
+        return self._ttl.get(k, -1)
+
+
+@pytest.mark.unit
+def test_rate_check_redis_blocks_over_limit(app_mod, monkeypatch):
+    """المسار المشترَك (Redis): يسمح حتّى الحدّ ثمّ يحجب مع retry_after موجب + EXPIRE مرّة."""
+    m = app_mod
+    fake = _FakeRedis()
+    monkeypatch.setattr(m, "_RATE_REDIS", fake)
+    monkeypatch.setattr(m, "_RATE_LIMIT_PER_MIN", 2)
+    assert m._rate_check_redis("1.2.3.4") == (True, 0)  # 1
+    assert m._rate_check_redis("1.2.3.4") == (True, 0)  # 2 (عند الحدّ)
+    allowed, retry = m._rate_check_redis("1.2.3.4")  # 3 (تجاوز)
+    assert allowed is False and retry >= 1
+    assert fake._ttl.get("sahool:ratelimit:1.2.3.4") == 60  # EXPIRE ضُبط على أوّل ضربة
+    # مفتاح مختلف لا يتأثّر (نافذة لكلّ عميل).
+    assert m._rate_check_redis("9.9.9.9") == (True, 0)
+
+
+@pytest.mark.unit
+def test_rate_check_redis_fail_open(app_mod, monkeypatch):
+    """عطل Redis ⇒ fail-open (True, 0) — لا يكسر مسار الطلب (حاجز DoS لا بوّابة أمن)."""
+    m = app_mod
+    monkeypatch.setattr(m, "_RATE_REDIS", _FakeRedis(fail=True))
+    monkeypatch.setattr(m, "_RATE_LIMIT_PER_MIN", 1)
+    assert m._rate_check_redis("1.2.3.4") == (True, 0)

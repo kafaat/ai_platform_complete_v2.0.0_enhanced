@@ -95,13 +95,31 @@ export interface HubMapGLProps {
 }
 
 // رابط بلاطات مؤشّر الحقل — نفس باني HubMap.indicatorTileUrl (مصدر واحد للصدق).
-function indicatorTileUrl(fieldId: string, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
-  const params = new URLSearchParams({ index, date: imageryDate || 'latest' });
-  if (tenantId) params.set('tid', tenantId);
+// CDSE الحيّ: المسار المحلّيّ `tiles` يحتاج COG مُسبق-التوليد ⇒ 404 لحقل بلا معالجة
+// (MAPHUB-CDSE)؛ `cdse-tiles` يجلب المشهد حيّاً ويقصّه على المضلّع (قناع rasterio).
+function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
+  const params = new URLSearchParams({ index });
+  if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
+  // المستأجِر كـ`tenant_id` (لا `tid`): بوّابة nginx تقرأ `$arg_tenant_id` فتحقن X-Tenant-Id
+  // الموثوق لبلاطات <img> بلا ترويسات (المسار الآمن، مطابق بوّابة 3003/الإنتاج).
+  if (tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
+  const poly = geomToPolygon(field.geometry);
+  if (poly && poly.length >= 3) {
+    let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+    for (const [lat, lng] of poly) {
+      if (lng < w) w = lng;
+      if (lng > e) e = lng;
+      if (lat < s) s = lat;
+      if (lat > n) n = lat;
+    }
+    params.set('bbox_w', String(w)); params.set('bbox_s', String(s));
+    params.set('bbox_e', String(e)); params.set('bbox_n', String(n));
+    params.set('poly', poly.map(([lat, lng]) => `${lng},${lat}`).join(';'));
+  }
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
-  return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
+  return `${rasterBaseUrl()}/v1/fields/${field.id}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
 }
 
 // مصدر بلاطات الأساس مُكيَّف لـMapLibre (tiles: [url]):
@@ -679,7 +697,7 @@ export default function HubMapGL({
     if (!active) return;
     map.addSource(SRC_INDICATOR, {
       type: 'raster',
-      tiles: [indicatorTileUrl(selected.id, indicatorId, tenantId, imageryTs, imageryDate)],
+      tiles: [indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate)],
       tileSize: 256,
     });
     // أدرِج فوق الأساس وتحت أوّل طبقة خطّ حقول (إن وُجدت).

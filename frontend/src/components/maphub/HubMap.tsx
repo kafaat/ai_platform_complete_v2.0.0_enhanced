@@ -245,13 +245,34 @@ function PinClickHandler({ enabled, onAddPin }: { enabled: boolean; onAddPin: (l
 }
 
 // رابط بلاطات المؤشّر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet (مطابق api.ts).
-function indicatorTileUrl(fieldId: string, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
-  const params = new URLSearchParams({ index, date: imageryDate || 'latest' });
-  if (tenantId) params.set('tid', tenantId);
+// بلاطات CDSE الحيّة (Sentinel Hub): المسار المحلّيّ `tiles` يحتاج COG مُسبق-التوليد غير
+// موجود لحقل بلا معالجة ⇒ 404 ⇒ لا يظهر المؤشّر (MAPHUB-CDSE). `cdse-tiles` يجلب المشهد
+// حيّاً ويقصّه على مضلّع الحقل (قناع rasterio بكسليّ) ⇒ شفّافيّة دقيقة خارج الحدّ.
+function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
+  const params = new URLSearchParams({ index });
+  // عقد التاريخ (D): لا نمرّر date حين latest/فارغ — الخادم يختار أحدث مشهد.
+  if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
+  // المستأجِر كـ`tenant_id` (لا `tid`): بلاطات <img> بلا ترويسات، وبوّابة nginx تقرأ
+  // `$arg_tenant_id` فتحقن X-Tenant-Id الموثوق (المسار الآمن، مطابق api.ts↔بوّابة 3003).
+  if (tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
+  // عقد القصّ الموحَّد: bbox + رؤوس المضلّع poly=lng,lat;... (geomToPolygon يُعيد [lat,lng]).
+  const poly = geomToPolygon(field.geometry);
+  if (poly && poly.length >= 3) {
+    let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+    for (const [lat, lng] of poly) {
+      if (lng < w) w = lng;
+      if (lng > e) e = lng;
+      if (lat < s) s = lat;
+      if (lat > n) n = lat;
+    }
+    params.set('bbox_w', String(w)); params.set('bbox_s', String(s));
+    params.set('bbox_e', String(e)); params.set('bbox_n', String(n));
+    params.set('poly', poly.map(([lat, lng]) => `${lng},${lat}`).join(';'));
+  }
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
-  return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
+  return `${rasterBaseUrl()}/v1/fields/${field.id}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
 }
 
 // أيقونة دبّوس استكشاف (divIcon — لا أصل صورة خارجيّ).
@@ -313,7 +334,7 @@ export default function HubMap({
         {indicatorId && selected && (
           <TileLayer
             key={`${selected.id}-${indicatorId}-${imageryDate || 'latest'}-${tenantId ?? 'tenant'}-${imageryTs}`}
-            url={indicatorTileUrl(selected.id, indicatorId, tenantId, imageryTs, imageryDate)}
+            url={indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate)}
             opacity={indicatorOpacity}
             errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="
           />

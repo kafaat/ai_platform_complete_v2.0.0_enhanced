@@ -254,7 +254,8 @@ async def field_cdse_tilejson(
     qs = f"index={index}" + (f"&date={specific_date}" if specific_date else "")
     # المسار عبر البوّابة (nginx /api/raster/ → raster:8001/): الواجهة تحتاج
     # /api/raster/v1/… لا /v1/… المباشر كي تمرّ عبر proxy_pass في الإنتاج.
-    return {
+    configured = _cdse.is_configured()
+    out = {
         "tilejson": "2.2.0",
         "name": f"cdse-{field_id}-{index}",
         "scheme": "xyz",
@@ -267,5 +268,14 @@ async def field_cdse_tilejson(
             round((bounds[1] + bounds[3]) / 2.0, 6),
             14,
         ],
-        "available": _cdse.is_configured(),
+        "available": configured,
     }
+    if not configured:
+        # تشخيص صريح للواجهة (تقرأ note/reason/user_message): الصور معطّلة لأنّ اعتماد
+        # Copernicus غير مضبوط — لا بيانات مُلفَّقة، بل سبب واضح للمشغّل.
+        out["reason"] = "cdse_not_configured"
+        out["user_message"] = (
+            "صور Copernicus غير مُهيّأة: اضبط CDSE_CLIENT_ID وCDSE_CLIENT_SECRET "
+            "(أو SH_CLIENT_ID/SH_CLIENT_SECRET) في بيئة خدمة الراستر ثمّ أعِد التشغيل."
+        )
+    return out

@@ -284,6 +284,8 @@ export default function FieldIndicatorMap({
     setLegend(undefined);
     setTileUnavailableMessage(null);
     setTileCacheVersion(null);
+    // توحيد main↔cert: في وضع CDSE الحيّ نفحص cdse-tilejson (available=is_configured)
+    // لا tilejson المحلّيّ (COG) — وإلّا حُجبت طبقة المؤشّر دائماً لحقل بلا COG رغم توفّر CDSE.
     const isCdse = tileSegment === 'cdse-tiles';
     const tilejsonEndpoint = isCdse
       ? `/v1/fields/${fieldId}/cdse-tilejson`
