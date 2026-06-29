@@ -1420,6 +1420,12 @@ def _safe_layer_value(layer: str, sample: dict):
         return sample.get("soil_temperature_6cm_c") or sample.get("soil_temperature_0cm_c")
     if layer == "soil_temperature_10_40cm":
         return _soil_temperature_10_40cm_value(sample)
+    if layer == "spraying_drift_risk":
+        return _spraying_drift_risk_value(sample)
+    if layer == "soil_trafficability":
+        return _soil_trafficability_value(sample)
+    if layer == "heat_stress":
+        return _heat_stress_value(sample)
     if layer == "soil_moisture":
         return sample.get("soil_moisture_1_to_3cm_m3m3") or sample.get(
             "soil_moisture_0_to_1cm_m3m3"
@@ -1455,6 +1461,95 @@ def _soil_temperature_10_40cm_value(sample: dict) -> float | None:
         return None
     total = sum(w for _, w in vals)
     return round(sum(v * w for v, w in vals) / total, 2)
+
+
+def _spraying_drift_risk_value(sample: dict) -> float | None:
+    """Derived spray-drift risk index 0..1 (higher = riskier to spray).
+
+    Combines the three dominant drift/efficacy drivers for foliar spraying:
+      - wind speed (km/h): negligible below 6, full risk by 22 (ASABE/UK LERAP
+        style window — light wind is ideal, calm <2 risks inversion, strong
+        >18 risks off-target drift).
+      - wind gusts (km/h): gust spikes break the boom pattern; negligible below
+        15, full risk by 35.
+      - vapour pressure deficit (kPa): very dry air (>3.5 kPa) accelerates fine
+        droplet evaporation and volatilisation; negligible below 1.2.
+    Active rain (>0.1 mm) wash-off forces the index to 1.0 (do-not-spray).
+    Returns None only when none of the contributing fields are present.
+    """
+    wind = _num(sample, "wind_speed_10m_kmh", None)
+    gust = _num(sample, "wind_gusts_10m_kmh", None)
+    vpd = _num(sample, "vapour_pressure_deficit_kpa", None)
+    rain = _num(sample, "precipitation_mm", None)
+    if wind is None and gust is None and vpd is None:
+        return None
+    if rain is not None and rain > 0.1:
+        return 1.0
+    parts: list[tuple[float, float]] = []
+    if wind is not None:
+        parts.append((_ramp(wind, 6.0, 22.0), 0.50))
+    if gust is not None:
+        parts.append((_ramp(gust, 15.0, 35.0), 0.30))
+    if vpd is not None:
+        parts.append((_ramp(vpd, 1.2, 3.5), 0.20))
+    total = sum(w for _, w in parts)
+    if total <= 0:
+        return None
+    return round(min(1.0, sum(v * w for v, w in parts) / total), 3)
+
+
+def _soil_trafficability_value(sample: dict) -> float | None:
+    """Derived soil trafficability index 0..1 (higher = safer to drive on).
+
+    Field machinery causes compaction/rutting when the topsoil is near or above
+    field capacity. The index maps near-surface volumetric soil moisture to a
+    go/no-go score (1 = firm and trafficable, 0 = saturated):
+      - >=0.40 m³/m³ (≈ saturation for most soils): score 0.
+      - <=0.22 m³/m³ (drier than field capacity): score 1.
+      - linear in between.
+    A wet topsoil from very recent rain (>5 mm) caps the score at 0.5 because
+    the surface stays slick even if the profile reading lags. Returns None when
+    no soil-moisture reading is available.
+    """
+    soil_m = _num(sample, "soil_moisture_1_to_3cm_m3m3", None)
+    if soil_m is None:
+        soil_m = _num(sample, "soil_moisture_0_to_1cm_m3m3", None)
+    if soil_m is None:
+        return None
+    score = 1.0 - _ramp(soil_m, 0.22, 0.40)
+    rain = _num(sample, "precipitation_mm", None)
+    if rain is not None and rain > 5.0:
+        score = min(score, 0.5)
+    return round(max(0.0, min(1.0, score)), 3)
+
+
+def _heat_stress_value(sample: dict) -> float | None:
+    """Derived crop/livestock heat-stress index 0..1 (higher = more stress).
+
+    Uses a humidity-aware heat index rather than dry-bulb temperature alone, so
+    humid heat reads hotter than the same temperature in dry air:
+      - air temperature (°C): negligible below 28, severe by 42.
+      - relative humidity (%) above 60 adds up to +0.25 to the temperature
+        ramp (humid heat impairs transpirational cooling).
+    The combined value is clamped to 0..1. Returns None when temperature is
+    absent.
+    """
+    temp = _num(sample, "temperature_2m_c", None)
+    if temp is None:
+        return None
+    rh = _num(sample, "relative_humidity_2m_pct", None)
+    base = _ramp(temp, 28.0, 42.0)
+    humidity_boost = 0.0
+    if rh is not None and rh > 60.0:
+        humidity_boost = _ramp(rh, 60.0, 100.0) * 0.25
+    return round(max(0.0, min(1.0, base + humidity_boost)), 3)
+
+
+def _ramp(value: float, low: float, high: float) -> float:
+    """Linear 0..1 ramp: 0 at/below ``low``, 1 at/above ``high``."""
+    if high <= low:
+        return 1.0 if value >= high else 0.0
+    return max(0.0, min(1.0, (value - low) / (high - low)))
 
 
 def _num(sample: dict, key: str, default: float | None = None) -> float | None:
@@ -1543,6 +1638,9 @@ _ALLOWED_WEATHER_TILE_LAYERS = {
     "vpd",
     "soil_temperature",
     "soil_temperature_10_40cm",
+    "spraying_drift_risk",
+    "soil_trafficability",
+    "heat_stress",
     "soil_moisture",
     "pressure",
     "clouds",
@@ -1758,6 +1856,30 @@ def weather_layers_manifest():
                 "derived": True,
                 "provider_native": False,
             },
+            {
+                "key": "spraying_drift_risk",
+                "label_ar": "خطر انجراف الرش",
+                "unit": "0..1",
+                "kind": "risk",
+                "derived": True,
+                "provider_native": False,
+            },
+            {
+                "key": "soil_trafficability",
+                "label_ar": "صلاحية مرور الآليات",
+                "unit": "0..1",
+                "kind": "operation",
+                "derived": True,
+                "provider_native": False,
+            },
+            {
+                "key": "heat_stress",
+                "label_ar": "الإجهاد الحراري",
+                "unit": "0..1",
+                "kind": "risk",
+                "derived": True,
+                "provider_native": False,
+            },
             {"key": "soil_moisture", "label_ar": "رطوبة التربة", "unit": "m³/m³", "kind": "soil"},
             {"key": "pressure", "label_ar": "الضغط", "unit": "hPa", "kind": "weather"},
             {"key": "clouds", "label_ar": "الغيوم", "unit": "%", "kind": "weather"},
@@ -1773,6 +1895,17 @@ def weather_layers_manifest():
             {"key": "irrigation_mode", "label_ar": "وضع الري", "layer": "operation_irrigation"},
             {"key": "harvest_mode", "label_ar": "وضع الحصاد", "layer": "operation_harvesting"},
             {"key": "sowing_mode", "label_ar": "وضع البذار", "layer": "operation_sowing"},
+            {
+                "key": "drift_risk_mode",
+                "label_ar": "خطر انجراف الرش",
+                "layer": "spraying_drift_risk",
+            },
+            {
+                "key": "trafficability_mode",
+                "label_ar": "مرور الآليات",
+                "layer": "soil_trafficability",
+            },
+            {"key": "heat_stress_mode", "label_ar": "الإجهاد الحراري", "layer": "heat_stress"},
         ],
         "cache": {
             "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
@@ -1918,7 +2051,7 @@ async def weather_tile_data(
     y: int,
     layer: str = Query(
         "temperature",
-        description="temperature|wind|precipitation|et0|vpd|soil_temperature|soil_temperature_10_40cm|soil_moisture|pressure|clouds",
+        description="temperature|wind|precipitation|et0|vpd|soil_temperature|soil_temperature_10_40cm|spraying_drift_risk|soil_trafficability|heat_stress|soil_moisture|pressure|clouds",
     ),
     time: str = Query("now", description="now|+1h|+3h|+6h|+12h|+24h|+48h"),
     model: str = Query("best_match", description="best_match أو نموذج Open-Meteo صريح عند الحاجة"),
@@ -1998,6 +2131,9 @@ async def weather_tile_data(
             "vpd": "kPa",
             "soil_temperature": "°C",
             "soil_temperature_10_40cm": "°C",
+            "spraying_drift_risk": "0..1",
+            "soil_trafficability": "0..1",
+            "heat_stress": "0..1",
             "soil_moisture": "m³/m³",
             "pressure": "hPa",
             "clouds": "%",

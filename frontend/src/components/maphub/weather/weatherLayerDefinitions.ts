@@ -26,6 +26,9 @@ export type WeatherLayerKey =
   | 'vpd'
   | 'soil_temperature'
   | 'soil_temperature_10_40cm'
+  | 'spraying_drift_risk'
+  | 'soil_trafficability'
+  | 'heat_stress'
   | 'soil_moisture'
   | 'pressure'
   | 'clouds'
@@ -108,6 +111,9 @@ export const WEATHER_LAYERS: WeatherLayerConfig[] = [
   { key: 'vpd', labelAr: 'عجز ضغط البخار VPD', shortAr: 'VPD', unit: 'kPa', min: 0, max: 5, stops: ['#38bdf8', '#22c55e', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
   { key: 'soil_temperature', labelAr: 'حرارة التربة', shortAr: 'تربة °', unit: '°C', min: 0, max: 45, stops: ['#2563eb', '#38bdf8', '#22c55e', '#eab308', '#f97316', '#dc2626'] },
   { key: 'soil_temperature_10_40cm', labelAr: 'حرارة التربة 10-40 سم', shortAr: '10-40سم', unit: '°C', min: 0, max: 45, stops: ['#1e3a8a', '#2563eb', '#38bdf8', '#22c55e', '#eab308', '#f97316', '#dc2626'] },
+  { key: 'spraying_drift_risk', labelAr: 'خطر انجراف الرش', shortAr: 'انجراف', unit: '0..1', min: 0, max: 1, stops: ['#22c55e', '#a3e635', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
+  { key: 'soil_trafficability', labelAr: 'صلاحية مرور الآليات', shortAr: 'مرور', unit: '0..1', min: 0, max: 1, stops: ['#7f1d1d', '#ef4444', '#f97316', '#eab308', '#a3e635', '#22c55e'] },
+  { key: 'heat_stress', labelAr: 'الإجهاد الحراري', shortAr: 'إجهاد', unit: '0..1', min: 0, max: 1, stops: ['#22c55e', '#a3e635', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
   { key: 'soil_moisture', labelAr: 'رطوبة التربة', shortAr: 'رطوبة تربة', unit: 'm³/m³', min: 0, max: 0.55, stops: ['#92400e', '#f59e0b', '#a3e635', '#22c55e', '#0ea5e9', '#1d4ed8'] },
   { key: 'pressure', labelAr: 'ضغط مستوى البحر', shortAr: 'ضغط', unit: 'hPa', min: 980, max: 1040, stops: ['#7c3aed', '#2563eb', '#22c55e', '#eab308', '#ef4444'] },
   { key: 'clouds', labelAr: 'الغيوم', shortAr: 'غيوم', unit: '%', min: 0, max: 100, stops: ['#0f172a', '#475569', '#94a3b8', '#e2e8f0', '#ffffff'] },
@@ -123,6 +129,9 @@ export const WEATHER_PRESETS: Array<{ label: string; layer: WeatherLayerKey; not
   { label: 'وضع الحصاد', layer: 'operation_harvesting', note: 'رطوبة + مطر + رياح' },
   { label: 'وضع البذار', layer: 'operation_sowing', note: 'حرارة ورطوبة التربة' },
   { label: 'تربة 10-40 سم', layer: 'soil_temperature_10_40cm', note: 'مطابق بصرياً لوضع 10-40 cm down' },
+  { label: 'خطر انجراف الرش', layer: 'spraying_drift_risk', note: 'رياح + هبّات + VPD + مطر' },
+  { label: 'مرور الآليات', layer: 'soil_trafficability', note: 'رطوبة التربة + مطر حديث' },
+  { label: 'الإجهاد الحراري', layer: 'heat_stress', note: 'حرارة + رطوبة نسبية' },
 ];
 
 export const DEFAULT_LAYER: WeatherLayerKey = 'temperature';
@@ -172,6 +181,51 @@ export function sampleNum(sample: Record<string, unknown> | undefined, key: stri
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+// رمب خطّي 0..1 يطابق _ramp في الواجهة الخلفية.
+function ramp(value: number, low: number, high: number): number {
+  if (high <= low) return value >= high ? 1 : 0;
+  return clamp01((value - low) / (high - low));
+}
+
+// خطر انجراف الرش 0..1 (يطابق _spraying_drift_risk_value الخلفي): رياح + هبّات + VPD،
+// مع مطر فعّال (>0.1مم) يرفعه إلى 1.0.
+function sprayingDriftRisk(sample: Record<string, unknown> | undefined): number | null {
+  const wind = sampleNum(sample, 'wind_speed_10m_kmh');
+  const gust = sampleNum(sample, 'wind_gusts_10m_kmh');
+  const vpd = sampleNum(sample, 'vapour_pressure_deficit_kpa');
+  const rain = sampleNum(sample, 'precipitation_mm');
+  if (wind == null && gust == null && vpd == null) return null;
+  if (rain != null && rain > 0.1) return 1;
+  const parts: Array<[number, number]> = [];
+  if (wind != null) parts.push([ramp(wind, 6, 22), 0.5]);
+  if (gust != null) parts.push([ramp(gust, 15, 35), 0.3]);
+  if (vpd != null) parts.push([ramp(vpd, 1.2, 3.5), 0.2]);
+  const total = parts.reduce((s, [, w]) => s + w, 0);
+  if (total <= 0) return null;
+  return Math.min(1, parts.reduce((s, [v, w]) => s + v * w, 0) / total);
+}
+
+// صلاحية مرور الآليات 0..1 (يطابق _soil_trafficability_value): الأعلى = أكثر أماناً.
+function soilTrafficability(sample: Record<string, unknown> | undefined): number | null {
+  const soilM =
+    sampleNum(sample, 'soil_moisture_1_to_3cm_m3m3') ?? sampleNum(sample, 'soil_moisture_0_to_1cm_m3m3');
+  if (soilM == null) return null;
+  let score = 1 - ramp(soilM, 0.22, 0.4);
+  const rain = sampleNum(sample, 'precipitation_mm');
+  if (rain != null && rain > 5) score = Math.min(score, 0.5);
+  return clamp01(score);
+}
+
+// الإجهاد الحراري 0..1 (يطابق _heat_stress_value): حرارة + تعزيز رطوبة نسبية.
+function heatStress(sample: Record<string, unknown> | undefined): number | null {
+  const temp = sampleNum(sample, 'temperature_2m_c');
+  if (temp == null) return null;
+  const rh = sampleNum(sample, 'relative_humidity_2m_pct');
+  const base = ramp(temp, 28, 42);
+  const humidityBoost = rh != null && rh > 60 ? ramp(rh, 60, 100) * 0.25 : 0;
+  return clamp01(base + humidityBoost);
+}
+
 export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unknown> | undefined, fallback: WeatherMarker): number | null {
   if (isOperationLayer(layer)) return null;
   switch (layer) {
@@ -182,6 +236,9 @@ export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unk
     case 'vpd': return sampleNum(sample, 'vapour_pressure_deficit_kpa');
     case 'soil_temperature': return sampleNum(sample, 'soil_temperature_6cm_c') ?? sampleNum(sample, 'soil_temperature_0cm_c');
     case 'soil_temperature_10_40cm': return sampleNum(sample, 'soil_temperature_10_40cm_c') ?? sampleNum(sample, 'soil_temperature_18cm_c') ?? sampleNum(sample, 'soil_temperature_6cm_c');
+    case 'spraying_drift_risk': return sprayingDriftRisk(sample);
+    case 'soil_trafficability': return soilTrafficability(sample);
+    case 'heat_stress': return heatStress(sample);
     case 'soil_moisture': return sampleNum(sample, 'soil_moisture_1_to_3cm_m3m3') ?? sampleNum(sample, 'soil_moisture_0_to_1cm_m3m3');
     case 'pressure': return sampleNum(sample, 'pressure_msl_hpa');
     case 'clouds': return sampleNum(sample, 'cloud_cover_pct');
