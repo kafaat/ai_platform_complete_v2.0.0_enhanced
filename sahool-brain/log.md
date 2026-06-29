@@ -4,6 +4,33 @@
 
 ---
 
+## 2026-06-29 (ق) — تتبّع جنائيّ: «المؤشّرات لا تُعرَض» في MapHub + فخّ اعتماد CDSE
+
+**رأس الفرع المخصّص:** `a37ce64`. لقطة المستخدم: حقل مرسوم، الطبقة NDMI «نشطة»، لكن لا تراكب راستر.
+تتبّع كامل (خدمة الراستر → الواجهة → البوّابة → المزوّد) كشف عيبَين حقيقيَّين + فخّ تهيئة:
+
+- **🔑 الواجهة (السبب الجذريّ لـMapHub):** `HubMap.tsx`/`HubMapGL.tsx` كانا يبنيان رابط بلاطة المؤشّر على
+  المسار المحلّيّ `/v1/fields/{id}/tiles/` (COG مُسبق-التوليد) ⇒ **404 لحقل بلا معالجة ⇒ شفّاف ⇒ لا مؤشّر**
+  (فجوة MAPHUB-CDSE). حُوِّلا إلى `/cdse-tiles/` الحيّ + bbox + قصّ `poly` (قناع rasterio)، مع حفظ عقد
+  التاريخ D. + `FieldIndicatorMap.tsx` كان يبوّب الطبقة على `/tilejson` المحلّيّ حتّى في وضع CDSE ⇒ يحجبها
+  دائماً لحقل CDSE-فقط؛ صار يسأل `/cdse-tilejson` حين `tileSegment='cdse-tiles'`.
+- **🔑 الخادم (سبب جذريّ حين يبدو CDSE مُهيّأً وهو ليس كذلك):** `cdse_client` يقرأ `CDSE_CLIENT_ID/SECRET`
+  **فقط**، بينما compose يُعرّف أيضاً `SH_CLIENT_ID/SECRET` (تُلزِمها خدمة أخرى بـ`:?`) لنفس realm الـCDSE.
+  مشغّل ضبط `SH_*` دون `CDSE_*` ⇒ بلاطات شفّافة صامتة. أُضيف ارتداد `SH_*` في `_cdse_credentials()`
+  يستخدمه `is_configured()`+`_fetch_token()`. + `cdse-tilejson` يُرجِع `reason=cdse_not_configured`+رسالة
+  للمشغّل (لا فشل صامت).
+- **تحقّق المزوّد ✓:** `SH_BASE_URL`/`SH_TOKEN_URL` يشيران إلى Copernicus فعلاً
+  (`sh.dataspace.copernicus.eu` · `identity.dataspace.copernicus.eu/.../CDSE`)؛ NDMI مؤشّر مدعوم؛ توجيه
+  nginx `/api/raster/` سليم (يقرأ tenant من `tid`/`tenant_id`/ترويسة). **لا حجب من السكربت** — يُرجِع
+  شفّافاً برشاقة عند: غياب الاعتماد · مؤشّر غير مدعوم · تعذّر CDSE.
+- **⚠ تصحيح صدق:** ادّعائي السابق أنّ فروع CDSE الخمسة «مُستبدَلة 100%» **كان خاطئاً** لـHubMap تحديداً —
+  فرع `cdse-maphub-ws-fixes` حمل إصلاح `indicatorTileUrl→cdse-tiles` الذي **لم يدخل main** في التوحيد
+  (دخل backend الراستر + FieldIndicatorMap، لا HubMap/HubMapGL). لحسن الحظّ تعذّر حذف الفروع (403) فلم
+  يُفقَد الإصلاح. **الدرس:** تحقّق ملفّ-بملفّ لا معلَم-عيّنة قبل وصف فرع «مُستبدَل»؛ معلم واحد حاضر لا يعني
+  الكلّ. تحقّق: tsc نظيف · maphub vitest 29 · raster cdse 14 · `pytest -m unit` 1973 · SH-only⇒configured.
+
+---
+
 ## 2026-06-29 (ص) — rate limit موزَّع بـRedis (#6) + تحقّق فروع CDSE العالقة (ج)
 
 **رأس الفرع المخصّص:** `c2af2e6` (= `main` بعد الدمج المؤتمت).

@@ -1,6 +1,6 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-29 · رأس `main` = `claude/code-review-34hO3`: [`c2af2e6`](../) · [`log.md`](log.md) مدخل (ص).
+> **آخر تحديث:** 2026-06-29 · رأس `main` = `claude/code-review-34hO3`: [`a37ce64`](../) · [`log.md`](log.md) مدخل (ق).
 > 🧩 **توحيد + تفكيك + تحصين RS256 + rate-limit Redis:** `main` superset؛ نماذج→`api_models.py` وسياق→
 > `api/field_context.py` (main.py 3282→2523). **JWT RS256:** المنصّة + ٨ خدمات ترفض HS256 في الإنتاج.
 > **#6:** rate limit صار عدّاد Redis مشترَك (INCR+EXPIRE) مع تدهور رشيق in-process. 0 PR · `pytest -m unit` 1973 ✓.
