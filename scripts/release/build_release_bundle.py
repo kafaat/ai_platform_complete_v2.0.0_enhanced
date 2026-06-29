@@ -5,18 +5,19 @@ This script is intentionally dependency-free. It does not build Docker images;
 it validates and records the source release assets that must exist before a
 runtime deployment can start.
 """
+
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 EXCLUDE_DIRS = {
     ".git",
     ".claude",  # إعدادات أدوات محلّيّة (settings.local.json) تتغيّر لكلّ بيئة — خارج بصمة الإصدار
+    "sahool-brain",  # قاعدة معرفة الوكيل (وثائق تتغيّر كلّ جلسة) — ليست أصلاً قابلاً للنشر؛ خارج بصمة الإصدار
     ".pytest_cache",
     "__pycache__",
     "node_modules",
@@ -173,14 +174,20 @@ def main() -> int:
 
     missing = [p for p in REQUIRED_FILES + REQUIRED_REPORTS if not (root / p).exists()]
     files = collect_files(root)
-    version = (root / "VERSION").read_text(encoding="utf-8").strip() if (root / "VERSION").exists() else "UNKNOWN"
+    version = (
+        (root / "VERSION").read_text(encoding="utf-8").strip()
+        if (root / "VERSION").exists()
+        else "UNKNOWN"
+    )
 
-    checksum_lines = [f'{row["sha256"]}  {row["path"]}' for row in files]
-    (release_dir / "FILE_CHECKSUMS.sha256").write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
+    checksum_lines = [f"{row['sha256']}  {row['path']}" for row in files]
+    (release_dir / "FILE_CHECKSUMS.sha256").write_text(
+        "\n".join(checksum_lines) + "\n", encoding="utf-8"
+    )
 
     manifest = {
         "release_name": version,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "source_root": root.name,
         "file_count": len(files),
         "total_size_bytes": sum(int(row["size_bytes"]) for row in files),
@@ -198,11 +205,11 @@ def main() -> int:
             "scripts/ci/local_quality_gate.sh",
             "scripts/runtime/env_doctor.py",
             "scripts/runtime/runtime_doctor.sh",
-    "scripts/migrations/validate_migration_manifest.py",
-    "migrations/v113_phase_runtime_workers_jobs.sql",
-    "services/sahool-platform/api/phase_runtime_workers.py",
-    "shared/runtime_worker_contracts.py",
-    "scripts/workers/run_phase_runtime_worker.sh",
+            "scripts/migrations/validate_migration_manifest.py",
+            "migrations/v113_phase_runtime_workers_jobs.sql",
+            "services/sahool-platform/api/phase_runtime_workers.py",
+            "shared/runtime_worker_contracts.py",
+            "scripts/workers/run_phase_runtime_worker.sh",
         ],
         "runtime_validation_sequence": [
             "docker compose -f docker-compose.v9.yml config",
@@ -224,12 +231,20 @@ def main() -> int:
         "specVersion": "informal-source-inventory",
         "metadata": {"component": {"name": "sahool", "version": version}},
         "components": [
-            {"name": row["path"], "type": "file", "hashes": [{"alg": "SHA-256", "content": row["sha256"]}]}
+            {
+                "name": row["path"],
+                "type": "file",
+                "hashes": [{"alg": "SHA-256", "content": row["sha256"]}],
+            }
             for row in files
-            if str(row["path"]).startswith(("services/", "shared/", "frontend/", "mobile/", "docker-compose", "migrations/"))
+            if str(row["path"]).startswith(
+                ("services/", "shared/", "frontend/", "mobile/", "docker-compose", "migrations/")
+            )
         ],
     }
-    (release_dir / "SBOM_MINIMAL.json").write_text(json.dumps(sbom, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (release_dir / "SBOM_MINIMAL.json").write_text(
+        json.dumps(sbom, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
 
     return 1 if missing else 0
 
