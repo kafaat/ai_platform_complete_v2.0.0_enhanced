@@ -12,6 +12,24 @@ import {
   weatherJsonHeaders,
 } from './weatherLayerDefinitions';
 
+// يستخرج سبب فشل إجراء الطقس من ردّ FastAPI ويصوغ رسالة عربيّة صادقة بدل النصّ
+// المُضلِّل «تحقق من الصلاحية» لكلّ الأخطاء. 403 شائع هنا: دور المستخدم (مثلاً
+// platform_admin) لا يملك field:edit/recommendation:request — وهو سلوك مقصود،
+// فالرسالة توضّح الحاجة لدور مالك/مدير الحقل بدل الإيحاء بخطأ عابر.
+async function weatherActionErrorText(res: Response, fallback: string): Promise<string> {
+  let detail = '';
+  try {
+    const data = await res.json();
+    const d = (data as { detail?: unknown; message_ar?: string })?.detail ?? (data as { message_ar?: string })?.message_ar;
+    if (typeof d === 'string') detail = d;
+    else if (d && typeof d === 'object') detail = (d as { message_ar?: string; msg?: string }).message_ar || (d as { msg?: string }).msg || '';
+  } catch { /* ردّ بلا JSON — نكتفي بالحالة */ }
+  if (res.status === 401) return 'انتهت الجلسة — سجّل الدخول من جديد.';
+  if (res.status === 403) return detail || 'هذا الحساب لا يملك صلاحية الإجراء — استخدم دور مالك/مدير الحقل.';
+  if (res.status >= 500) return 'تعذّر الاتصال بالخادم — حاول لاحقاً.';
+  return detail || fallback;
+}
+
 export function registerWeatherProbePopup(
   map: L.Map,
   layer: WeatherLayerKey,
@@ -79,12 +97,17 @@ export function registerWeatherProbePopup(
                 headers: weatherJsonHeaders(),
                 body: JSON.stringify({ field_id: fieldId, lat, lon: lng, operation: op, model, dry_run: false }),
               });
-              if (!res.ok) throw new Error(String(res.status));
+              if (!res.ok) {
+                createBtn.disabled = false;
+                createBtn.textContent = await weatherActionErrorText(res, 'تعذّر إنشاء المهمة');
+                createBtn.style.background = '#b91c1c';
+                return;
+              }
               createBtn.textContent = 'تم إنشاء المهمة ✓';
               createBtn.style.background = '#16a34a';
             } catch {
               createBtn.disabled = false;
-              createBtn.textContent = 'تعذّر إنشاء المهمة — تحقق من الصلاحية';
+              createBtn.textContent = 'تعذّر الاتصال — حاول مجدّداً';
               createBtn.style.background = '#b91c1c';
             }
           };
@@ -100,11 +123,15 @@ export function registerWeatherProbePopup(
                 headers: weatherJsonHeaders(),
                 body: JSON.stringify({ field_id: fieldId, lat, lon: lng, operations: 'spraying,irrigation,harvesting,sowing', model, dry_run: false }),
               });
-              if (!res.ok) throw new Error(String(res.status));
+              if (!res.ok) {
+                recBtn.disabled = false;
+                recBtn.textContent = await weatherActionErrorText(res, 'تعذّر حفظ التوصية');
+                return;
+              }
               recBtn.textContent = 'تم حفظ التوصية ✓';
             } catch {
               recBtn.disabled = false;
-              recBtn.textContent = 'تعذّر حفظ التوصية — تحقق من الصلاحية';
+              recBtn.textContent = 'تعذّر الاتصال — حاول مجدّداً';
             }
           };
         }
