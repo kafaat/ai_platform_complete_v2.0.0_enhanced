@@ -42,6 +42,15 @@ describe('SAHOOL weather engine static architecture', () => {
     expect(panel).toContain('data-play');
   });
 
+  it('supports a coordinate graticule (lat/lon grid) toggle overlay', () => {
+    expect(existsSync(join(weatherDir, 'WeatherGraticule.ts'))).toBe(true);
+    const graticule = readFileSync(join(weatherDir, 'WeatherGraticule.ts'), 'utf8');
+    expect(graticule).toContain('createGraticuleLayer');
+    expect(graticule).toContain('addGraticule');
+    expect(panel).toContain('data-graticule');
+    expect(overlay).toContain('addGraticule');
+  });
+
   it('supports probe, operation window, and operation plan popups', () => {
     expect(probe).toContain('/api/v1/weather/probe');
     expect(probe).toContain('/api/v1/weather/operation-window');

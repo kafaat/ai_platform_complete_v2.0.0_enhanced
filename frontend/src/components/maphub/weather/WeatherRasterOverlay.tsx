@@ -19,6 +19,7 @@ import { createWeatherWindGridLayer } from './WeatherTileLayer';
 import { createWeatherControl } from './WeatherLayerPanel';
 import { registerWeatherProbePopup } from './WeatherProbePopup';
 import { registerWeatherHoverReadout } from './WeatherHoverReadout';
+import { addGraticule } from './WeatherGraticule';
 
 export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null }) {
   const map = useMap();
@@ -33,13 +34,15 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
   const [windDensity, setWindDensity] = useState<WindDensity>(initialPreferences.windDensity);
   const [panelOpen, setPanelOpen] = useState(initialPreferences.panelOpen);
   const [palette, setPalette] = useState<WeatherPalette>(initialPreferences.palette);
+  // شبكة الإحداثيّات (graticule) على نمط meteoblue: خطوط طول/عرض شفّافة قابلة للتبديل.
+  const [graticule, setGraticule] = useState(initialPreferences.graticule);
   // تشغيل/إيقاف العرض الزمني (شريط التمرير السفليّ على نمط meteoblue): يتقدّم عبر WEATHER_TIMES بشكل دوريّ.
   const [playing, setPlaying] = useState(false);
   const stableMarker = useMemo(() => marker, [marker]);
 
   useEffect(() => {
-    writeWeatherPreferences({ layer, time, model, opacity, showWind, windDensity, panelOpen, palette });
-  }, [layer, time, model, opacity, showWind, windDensity, panelOpen, palette]);
+    writeWeatherPreferences({ layer, time, model, opacity, showWind, windDensity, panelOpen, palette, graticule });
+  }, [layer, time, model, opacity, showWind, windDensity, panelOpen, palette, graticule]);
 
   // محرّك العرض الزمني: عند التشغيل يتقدّم الزمن كل 1200ms إلى المفتاح التالي ويعود للبداية بعد الأخير؛
   // يُلغى المؤقّت عند الإيقاف/التفكيك. يحترم تفضيل تقليل الحركة فلا يبدأ تلقائيّاً عند تفعيله.
@@ -94,9 +97,18 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
       setPalette,
       playing,
       () => setPlaying((v) => !v),
+      graticule,
+      setGraticule,
     ).addTo(map);
     return () => { control.remove(); };
-  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, panelOpen, palette, playing]);
+  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, panelOpen, palette, playing, graticule]);
+
+  // طبقة شبكة الإحداثيّات: تُضاف عند التفعيل وتُزال بالكامل عند الإيقاف/التفكيك.
+  useEffect(() => {
+    if (!graticule) return undefined;
+    const layerGroup = addGraticule(map);
+    return () => { map.removeLayer(layerGroup); };
+  }, [map, graticule]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;

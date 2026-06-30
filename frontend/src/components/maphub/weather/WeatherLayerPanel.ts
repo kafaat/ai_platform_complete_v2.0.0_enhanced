@@ -67,6 +67,7 @@ export function weatherControlHtml(
   panelOpen: boolean,
   palette: WeatherPalette = 'coldwarm',
   playing: boolean = false,
+  graticule: boolean = false,
 ): string {
   const cfg = layerConfig(layer);
   const timeIndex = Math.max(0, WEATHER_TIMES.findIndex((t) => t.key === time));
@@ -121,6 +122,7 @@ export function weatherControlHtml(
       <label style="display:flex;align-items:center;gap:7px;justify-content:space-between"><span>شفافية الطبقة</span><b>${Math.round(opacity * 100)}%</b></label>
       <input type="range" min="35" max="100" value="${Math.round(opacity * 100)}" data-opacity="1" style="width:100%;accent-color:#38bdf8"/>
       <label style="display:flex;align-items:center;gap:7px;justify-content:space-between"><span>Wind Animation / تحريك الرياح</span><span class="sahool-ios-toggle"><input type="checkbox" data-wind-toggle="1" ${showWind ? 'checked' : ''}/><span class="sahool-ios-track"></span></span></label>
+      <label style="display:flex;align-items:center;gap:7px;justify-content:space-between"><span>Graticule / شبكة الإحداثيّات</span><span class="sahool-ios-toggle"><input type="checkbox" data-graticule="1" ${graticule ? 'checked' : ''}/><span class="sahool-ios-track"></span></span></label>
       <select data-density="1" title="كثافة مسارات الرياح" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.20);background:rgba(15,23,42,.55);color:#f8fafc;padding:9px">
         ${WIND_DENSITIES.map((d) => `<option value="${d.key}" ${d.key === windDensity ? 'selected' : ''}>كثافة الرياح: ${d.label}</option>`).join('')}
       </select>
@@ -165,11 +167,13 @@ export function createWeatherControl(
   onPaletteChange: (palette: WeatherPalette) => void = () => {},
   playing: boolean = false,
   onPlayToggle: () => void = () => {},
+  graticule: boolean = false,
+  onGraticuleToggle: (show: boolean) => void = () => {},
 ): L.Control {
   const WeatherControl = L.Control.extend({
     onAdd() {
       const div = L.DomUtil.create('div', 'sahool-weather-layer-control-wrap');
-      div.innerHTML = weatherControlHtml(layer, marker, time, model, opacity, showWind, windDensity, panelOpen, palette, playing);
+      div.innerHTML = weatherControlHtml(layer, marker, time, model, opacity, showWind, windDensity, panelOpen, palette, playing, graticule);
       L.DomEvent.disableClickPropagation(div);
       L.DomEvent.disableScrollPropagation(div);
       div.querySelectorAll<HTMLButtonElement>('button[data-layer]').forEach((btn) => {
@@ -188,6 +192,8 @@ export function createWeatherControl(
       if (opacityInput) opacityInput.oninput = () => onOpacityChange(Math.max(0.35, Math.min(1, Number(opacityInput.value) / 100)));
       const windToggle = div.querySelector<HTMLInputElement>('input[data-wind-toggle]');
       if (windToggle) windToggle.onchange = () => onWindToggle(windToggle.checked);
+      const graticuleToggle = div.querySelector<HTMLInputElement>('input[data-graticule]');
+      if (graticuleToggle) graticuleToggle.onchange = () => onGraticuleToggle(graticuleToggle.checked);
       div.querySelectorAll<HTMLButtonElement>('button[data-palette]').forEach((btn) => {
         btn.onclick = () => onPaletteChange(btn.dataset.palette as WeatherPalette);
       });

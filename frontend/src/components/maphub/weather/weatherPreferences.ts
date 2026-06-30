@@ -20,6 +20,7 @@ export type WeatherOverlayPreferences = {
   windDensity: WindDensity;
   panelOpen: boolean;
   palette: WeatherPalette;
+  graticule: boolean;
 };
 
 const STORAGE_KEY = 'sahool.weather.overlay.preferences.v1';
@@ -82,6 +83,7 @@ export function defaultWeatherPreferences(): WeatherOverlayPreferences {
     windDensity: isSmallScreen ? 'medium' : 'high',
     panelOpen: isWidePanel,
     palette: 'coldwarm',
+    graticule: false,
   };
 }
 
@@ -101,6 +103,7 @@ export function readWeatherPreferences(): WeatherOverlayPreferences {
       windDensity: isWindDensity(parsed.windDensity) ? parsed.windDensity : defaults.windDensity,
       panelOpen: coerceBoolean(parsed.panelOpen, defaults.panelOpen),
       palette: isWeatherPalette(parsed.palette) ? parsed.palette : defaults.palette,
+      graticule: coerceBoolean(parsed.graticule, defaults.graticule),
     };
   } catch {
     return defaults;
