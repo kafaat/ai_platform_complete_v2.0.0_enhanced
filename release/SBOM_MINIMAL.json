@@ -1025,10 +1025,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d66d8f866a99188243c80761103707ed0b444898c05d482f851c54c283242f4f"
+          "content": "9c97d05ddeb18b07983678e1ebd4b427c5866b85917395312b3def438fa93afd"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80fdd6d3cb3272b2f6d16084f495efd708fecc6873eb4e28c65fcf66b3ee9924"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/WeatherGraticule.ts",
       "type": "file"
     },
     {
@@ -1045,7 +1055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f2c7e7464f1b3fdbda857bee0217ea81ce3401f55ca113d296f2c28dfe8239a8"
+          "content": "ee8a1d4da8bdf63fad0bf21404e5aea3f27d4c7832f0b16477b7bfbabca2266e"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherLayerPanel.ts",
@@ -1065,7 +1075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a36b9f67645efda7c3fda934f0e0cca679269a381a9b63f24c346853de290c6"
+          "content": "cfbb0386b23dfdfa70e461a2ead3732174b65d59dc9a07ee8c0a15ec21066f41"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
@@ -1075,7 +1085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "add1e0d99344d63cc3daf1dc8c62015a7704946da9b9c373ec5f9c9c4c0a55a1"
+          "content": "dc6f9fb5354aec0cba209277ae37d66e619ccb4ceb3d26b2dfa3ed9c6df76c69"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
@@ -1095,7 +1105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65cc1806ade8870c167502d233e9991984a1c172b720dc9057758014a5d2023a"
+          "content": "8a20f6c4ed86436de2a7cc5d5973b643ce57e3b63605d3c5390c8593477390b1"
         }
       ],
       "name": "frontend/src/components/maphub/weather/weatherPreferences.ts",
