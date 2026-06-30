@@ -22,7 +22,10 @@ COMMENT ON TABLE tenant_ai_policies IS
     'حوكمة الذكاء للمستأجِر (V52): سماح التوليد، قوائم المزوّدات/النماذج المسموحة، مستوى مشاركة البيانات الخارجيّ، ملفّ التنقيح.';
 
 -- عزل المستأجرين (RLS) — نفس عقد v9_rls_tenant_isolation: قراءة فشل-مغلق + كتابة معزولة.
+-- FORCE إلزاميّ: الجدول يُنشأ بعد v9_rls_force_all، فبلا FORCE يتسرّب لمالك الجدول
+-- (حُرّاس test_rls_isolation_negative / test_rls_tenant_coverage / sahool_inspector).
 ALTER TABLE tenant_ai_policies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tenant_ai_policies FORCE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN

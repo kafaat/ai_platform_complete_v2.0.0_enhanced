@@ -3555,7 +3555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9fc045433ca265e67c7411a611d6997147daa39bebed930af2f1cbe979ae2ae2"
+          "content": "01470b7708f8c24713dd9bd58bf91e2023645b38a3b872cc16b49803486f58aa"
         }
       ],
       "name": "migrations/v124_tenant_ai_policies.sql",
