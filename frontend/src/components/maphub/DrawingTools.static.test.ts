@@ -7,6 +7,7 @@ const root = process.cwd();
 const drawControl = readFileSync(join(root, 'src/components/maphub/DrawControl.tsx'), 'utf8');
 const hubMap = readFileSync(join(root, 'src/components/maphub/HubMap.tsx'), 'utf8');
 const mapHub = readFileSync(join(root, 'src/sections/MapHub.tsx'), 'utf8');
+const addField = readFileSync(join(root, 'src/components/AddFieldWithMap.tsx'), 'utf8');
 
 describe('Drawing tools — leaflet-draw adapter (React 19 safe)', () => {
   it('does not import the unmaintained react-leaflet-draw (uses raw leaflet-draw)', () => {
@@ -38,5 +39,13 @@ describe('MapHub draw/measure vs scout pins — mutual exclusion (click-conflict
 
   it('enabling pins disables draw/measure (and compare)', () => {
     expect(mapHub).toMatch(/testid="btn-pins"[\s\S]{0,160}setDrawTools\(false\)/);
+  });
+});
+
+describe('DrawingCore (ADR-0031) wired into field creation', () => {
+  it('AddFieldWithMap consumes the shared drawing engine for client-side validation', () => {
+    expect(addField).toContain("from './maphub/drawing'");
+    expect(addField).toContain('validateDrawFeature');
+    expect(addField).toContain('latlngsToDrawFeature');
   });
 });

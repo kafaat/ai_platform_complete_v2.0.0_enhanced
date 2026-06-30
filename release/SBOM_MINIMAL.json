@@ -395,7 +395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7189db58760a3d3c475fe91cebafb25c05d1b6769f3b74a45f2ce0a7d71a755"
+          "content": "6c2794964736394139e4a3ad2ff0b1306b627e960cee495ffa31b5a3b610120c"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -865,7 +865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae0194ddf3aaf93db0df36618bdcd92c2c1274ec78e5e927580c5ebbf6807aed"
+          "content": "83c2e29fc562ab4fe2bf9cbd161b046233244fe890521b78a6aa9e27637f6517"
         }
       ],
       "name": "frontend/src/components/maphub/DrawingTools.static.test.ts",
@@ -1019,6 +1019,76 @@
         }
       ],
       "name": "frontend/src/components/maphub/drawGeometry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e31786c801c707a1b14c15965df580be222d61bdee4968261009c6e2ada36d3f"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a9ebe0b08d996599b7504837299312cc6b8d5751f18a680d9a5030261f44bce0"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/DrawingProvider.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0b12f37ffa9f5d540d6e1b0caf1c7adfc78995587eedcd2e6130e97904e4ac6f"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/drawingEvents.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b4f9732ae6e3ced8bd136eebe521e76f3371501c2363d932696f240cf8693780"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/drawingMeasurements.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "427b1a8ea18a152e88b34508512f20930d3d58ef99c4ec15374382526f576e7d"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/drawingTypes.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7f4a6e042d0cf42e83eabe9b664727cfe17b862cb745ff28b7cfaee325253753"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/drawingValidation.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8940008265620256f609e2bf407c4cdb2fe0ecc6068ebd7e0a9cbb659fd5abfe"
+        }
+      ],
+      "name": "frontend/src/components/maphub/drawing/index.ts",
       "type": "file"
     },
     {

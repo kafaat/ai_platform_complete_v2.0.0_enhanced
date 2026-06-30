@@ -27,6 +27,9 @@ import { kongApi, asApiError, segmentField, classifySegmentationError, apiErrorM
 import type { FieldImportInput, SegmentationMode } from '../services/api';
 import { geomToPolygon, snapRing, type SnapTarget } from '../lib/geo';
 import AutoSegmentControl, { type SegmentNotice } from './maphub/AutoSegmentControl';
+// محرّك الرسم المُوحَّد (DrawingCore، ADR-0031): تحقّق عميل فوريّ للحدّ المرسوم —
+// تغذية راجعة قبل الحفظ بينما يبقى PostGIS الخلفيّ هو المرجع. (تفعيل أوّل للوحدة المشتركة.)
+import { validateDrawFeature, type DrawFeature, type DrawValidationIssue } from './maphub/drawing';
 
 // الطبقة المرسومة من leaflet-draw: circle يحمل getLatLng/getRadius؛
 // polygon/rectangle يحملان getLatLngs. نستخدمه لتضييق layer داخل المعالِج.
@@ -180,6 +183,21 @@ const CENTER_HANDLE_ICON = L.divIcon({
   iconAnchor: [13, 13],
 });
 
+// محوّل: حلقة رؤوس Leaflet → DrawFeature (GeoJSON Polygon مغلق) لمحرّك الرسم المُوحَّد.
+// يُغلق الحلقة (يُضيف الرأس الأوّل آخراً) كي لا يُبلِّغ validateDrawFeature عن «حلقة غير مغلقة».
+function latlngsToDrawFeature(latlngs: L.LatLng[]): DrawFeature {
+  const ring = latlngs.map((p) => [p.lng, p.lat] as [number, number]);
+  if (ring.length >= 1) ring.push([ring[0][0], ring[0][1]]);
+  return {
+    id: 'draft-field',
+    kind: 'field',
+    geometry: { type: 'Polygon', coordinates: [ring] },
+    properties: { workflow: 'create-field' },
+    version: 1,
+    draft: true,
+  };
+}
+
 // تنسيق طول بالمتر: < 10000 م يُعرَض بالمتر (رقمان)، وإلّا بالكيلومتر للقراءة.
 // الوحدة تبقى المتر كأساس؛ هذا تنسيق عرض فقط (لا تحويل لأقدام/فدّان أبداً).
 function formatLengthM(m: number): string {
@@ -284,6 +302,13 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     }
     return rings;
   }, [existingFields]);
+
+  // تحقّق العميل الفوريّ (DrawingCore) للحدّ المرسوم: تحذيرات غير حاجبة (تقاطع ذاتيّ/إغلاق/
+  // مساحة) — تغذية راجعة قبل الحفظ، بينما يبقى PostGIS الخلفيّ مرجع التحقّق النهائيّ.
+  const drawIssues = useMemo<DrawValidationIssue[]>(() => {
+    if (latlngs.length < 3) return [];
+    return validateDrawFeature(latlngsToDrawFeature(latlngs)).issues;
+  }, [latlngs]);
 
   // يطبّق الالتقاط على حلقة رؤوس Leaflet إن كان مُفعَّلاً (وإلّا يُعيدها كما هي).
   // تسامح ~8م مناسب لحدود الحقول؛ snapRing نقيّة ومُختبَرة offline (lib/geo).
@@ -969,6 +994,22 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       <span className="px-1.5 py-0.5 rounded text-[10px]"
                         style={{ background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a44' }}>
                         تلقائيّ
+                      </span>
+                    </div>
+                  )}
+
+                  {/* تحقّق العميل الفوريّ (DrawingCore) — تحذيرات غير حاجبة؛ PostGIS مرجعٌ نهائيّ. */}
+                  {drawIssues.length > 0 && (
+                    <div className="flex flex-col gap-1 px-3 py-2 rounded-lg text-xs"
+                      style={{ background:'#1a1400', border:'1px solid #ca8a0444', color:'#fbbf24' }}>
+                      {drawIssues.map((iss, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>{iss.message}</span>
+                        </div>
+                      ))}
+                      <span className="text-[10px]" style={{ color:'#a16207' }}>
+                        تحقّق مبدئيّ على الجهاز — يبقى التحقّق النهائيّ على الخادم.
                       </span>
                     </div>
                   )}
