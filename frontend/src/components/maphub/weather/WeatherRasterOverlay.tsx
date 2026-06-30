@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { useMap } from 'react-leaflet';
 import { useEffect, useMemo, useState } from 'react';
+import L from 'leaflet';
 import type { WeatherMarker } from '../OverlayMarkers';
 
 import {
@@ -21,7 +22,26 @@ import { registerWeatherProbePopup } from './WeatherProbePopup';
 import { registerWeatherHoverReadout } from './WeatherHoverReadout';
 import { addGraticule } from './WeatherGraticule';
 
-export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null }) {
+// قصّ حاوية طبقة الطقس على حدّ الحقل (مثل مؤشّرات الأقمار المقصوصة خادميّاً): نُسقِط
+// رؤوس المضلّع إلى بكسلات طبقة الخريطة (نسبةً لإزاحة الحاوية) ونضبط clip-path. يُعاد
+// الحساب مع كل تحريك/تكبير. فراغ المضلّع ⇒ إزالة القصّ (سلوك العرض الكامل القديم).
+function applyPolygonClip(map: L.Map, container: HTMLElement, polygon?: [number, number][]) {
+  if (!polygon || polygon.length < 3) {
+    container.style.clipPath = '';
+    (container.style as unknown as { webkitClipPath: string }).webkitClipPath = '';
+    return;
+  }
+  const offset = L.DomUtil.getPosition(container) ?? L.point(0, 0);
+  const pts = polygon.map(([lat, lng]) => {
+    const p = map.latLngToLayerPoint(L.latLng(lat, lng));
+    return `${(p.x - offset.x).toFixed(1)}px ${(p.y - offset.y).toFixed(1)}px`;
+  });
+  const clip = `polygon(${pts.join(', ')})`;
+  container.style.clipPath = clip;
+  (container.style as unknown as { webkitClipPath: string }).webkitClipPath = clip;
+}
+
+export function WeatherRasterOverlay({ marker, fieldPolygon }: { marker: WeatherMarker | null; fieldPolygon?: [number, number][] }) {
   const map = useMap();
   // تفضيلات المستخدم (v27): تُقرأ من localStorage عند التركيب وتُحفَظ عند أيّ تغيير،
   // فتبقى الطبقة/الزمن/النموذج/الشفافيّة/الرياح بين الجلسات (سقوط آمن للقيم الافتراضيّة).
@@ -63,7 +83,15 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
 
   useEffect(() => {
     if (!stableMarker) return undefined;
-    const grid = createWeatherWindGridLayer(stableMarker, layer, time, model, opacity, showWind, windDensity, palette).addTo(map);
+    const grid = createWeatherWindGridLayer(stableMarker, layer, time, model, opacity, showWind, windDensity, palette);
+    // حصر البلاطات ضمن مربّع الحقل المحيط: لا تُحمَّل/تُرسَم بلاطات الطقس خارج الحقل
+    // (يمنع تغطية الخريطة كاملةً)؛ والقصّ بـclip-path يضبطها على شكل المضلّع بالضبط.
+    if (fieldPolygon && fieldPolygon.length >= 3) {
+      (grid.options as unknown as { bounds: L.LatLngBounds }).bounds = L.latLngBounds(
+        fieldPolygon.map(([lat, lng]) => L.latLng(lat, lng)),
+      );
+    }
+    grid.addTo(map);
     const container = grid.getContainer();
     container?.classList.add('sahool-weather-wind-grid-layer');
     if (container) {
@@ -72,8 +100,16 @@ export function WeatherRasterOverlay({ marker }: { marker: WeatherMarker | null 
       container.style.zIndex = '450';
       container.style.opacity = String(opacity);
     }
-    return () => { grid.remove(); };
-  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, palette]);
+    // قصّ على حدّ الحقل + إعادة الحساب مع حركة/تكبير الخريطة (يتبع المضلّع كالأقمار).
+    const reclip = () => { if (container) applyPolygonClip(map, container, fieldPolygon); };
+    reclip();
+    map.on('move zoom moveend zoomend viewreset', reclip);
+    grid.on('load', reclip);
+    return () => {
+      map.off('move zoom moveend zoomend viewreset', reclip);
+      grid.remove();
+    };
+  }, [map, stableMarker, layer, time, model, opacity, showWind, windDensity, palette, fieldPolygon]);
 
   useEffect(() => {
     if (!stableMarker) return undefined;

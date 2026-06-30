@@ -108,4 +108,26 @@ describe('SAHOOL weather engine static architecture', () => {
     expect(panel).toContain('data-palette');
     expect(tile).toContain('palette');
   });
+
+  it('clips the weather overlay to the field boundary (like satellite indicators)', () => {
+    // يستقبل حدّ الحقل، يحصر البلاطات بمربّعه المحيط، ويقصّ الحاوية على شكل المضلّع.
+    expect(overlay).toContain('fieldPolygon');
+    expect(overlay).toContain('clipPath');
+    expect(overlay).toContain('latLngToLayerPoint');
+    expect(overlay).toContain('L.latLngBounds');
+    // يُعاد حساب القصّ مع حركة/تكبير الخريطة.
+    expect(overlay).toMatch(/map\.on\(['"]move zoom/);
+  });
+
+  it('hides the CDSE indicator tiles and passes the field polygon when weather is active', () => {
+    const hubMap = readFileSync(join(process.cwd(), 'src/components/maphub/HubMap.tsx'), 'utf8');
+    expect(hubMap).toContain('indicatorId && selected && !weatherMarker');
+    expect(hubMap).toContain('fieldPolygon={selectedPoly}');
+  });
+
+  it('renders the weather panel as a narrower frosted-glass surface', () => {
+    // زجاج شفّاف (خلفيّة منخفضة الإعتام + blur أعلى) وعرض أصغر — حسب طلب المستخدم.
+    expect(panel).toContain('width:min(272px');
+    expect(panel).toContain('backdrop-filter:blur(22px)');
+  });
 });

@@ -382,8 +382,9 @@ export default function HubMap({
             : '&copy; <a href="https://www.esri.com/">Esri</a> — World Imagery'}
         />
 
-        {/* طبقة بلاطات المؤشّر للحقل المختار (شفّافة خارج الحقل) */}
-        {indicatorId && selected && (
+        {/* طبقة بلاطات المؤشّر للحقل المختار (شفّافة خارج الحقل). تُخفى عند تفعيل الطقس
+            ليحلّ محلّها العرض الحراريّ للطقس (المقصوص على حدّ الحقل) بدل صورة CDSE. */}
+        {indicatorId && selected && !weatherMarker && (
           <TileLayer
             key={`${selected.id}-${indicatorId}-${imageryDate || 'latest'}-${tenantId ?? 'tenant'}-${imageryTs}`}
             url={indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate)}
@@ -464,7 +465,7 @@ export default function HubMap({
 
         {/* طبقات التراكب (طقس/تنبيهات/أجهزة) — تُرسَم فقط عند توفّر عناصر قابلة
             للعرض. الحرّاس داخل المكوّنات تتكفّل بالفراغ/الـnull. */}
-        <WeatherRasterOverlay marker={weatherMarker} />
+        <WeatherRasterOverlay marker={weatherMarker} fieldPolygon={selectedPoly} />
         <AlertOverlay markers={alertMarkers} />
         <DeviceOverlay markers={deviceMarkers} />
         <OperationalOverlay markers={operationalMarkers} />

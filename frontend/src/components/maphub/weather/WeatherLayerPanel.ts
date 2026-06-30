@@ -77,7 +77,7 @@ export function weatherControlHtml(
   const dir = marker.windDirectionDeg != null ? `${Math.round(marker.windDirectionDeg)}°` : '—';
   if (!panelOpen) {
     // شريحة مصغّرة شبه شفافة (زجاج داكن) تُظهر الخريطة خلفها بنعومة.
-    return `<div dir="rtl" class="sahool-weather-layer-control" style="display:flex;align-items:center;gap:9px;background:rgba(15,23,42,.58);border:1px solid rgba(255,255,255,.18);border-radius:999px;color:#f8fafc;font:12px system-ui;box-shadow:0 12px 32px rgba(0,0,0,.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:8px 10px;">
+    return `<div dir="rtl" class="sahool-weather-layer-control" style="display:flex;align-items:center;gap:9px;background:rgba(15,23,42,.34);border:1px solid rgba(255,255,255,.22);border-radius:999px;color:#f8fafc;font:12px system-ui;box-shadow:0 12px 32px rgba(0,0,0,.35);backdrop-filter:blur(20px) saturate(135%);-webkit-backdrop-filter:blur(20px) saturate(135%);padding:8px 10px;">
       <button type="button" data-panel-toggle="1" title="فتح طبقات الطقس" style="width:34px;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(15,23,42,.45);color:white;font-size:19px;cursor:pointer">☰</button>
       <span style="font-weight:900">${cfg.shortAr}</span><span>${temp}</span><span>💨 ${wind}</span>
     </div>`;
@@ -90,7 +90,7 @@ export function weatherControlHtml(
     </button>`;
   }).join('');
   // اللوحة المفتوحة: زجاج داكن شبه شفّاف تظهر الخريطة خلفه بدل خلفيّة معتمة.
-  return `<div dir="rtl" class="sahool-weather-layer-control" style="width:min(330px,calc(100vw - 24px));max-height:calc(100vh - 116px);overflow:auto;background:rgba(15,23,42,.62);border:1px solid rgba(255,255,255,.16);border-radius:18px;color:#e2e8f0;font:13px/1.35 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 18px 46px rgba(0,0,0,.42);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
+  return `<div dir="rtl" class="sahool-weather-layer-control" style="width:min(272px,calc(100vw - 24px));max-height:calc(100vh - 116px);overflow:auto;background:rgba(15,23,42,.34);border:1px solid rgba(255,255,255,.20);border-radius:18px;color:#e2e8f0;font:12.5px/1.32 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 18px 46px rgba(0,0,0,.42);backdrop-filter:blur(22px) saturate(135%);-webkit-backdrop-filter:blur(22px) saturate(135%);">
     <div style="display:flex;align-items:center;gap:8px;padding:12px 12px 9px;border-bottom:1px solid rgba(255,255,255,.13)">
       <button type="button" data-panel-toggle="1" title="تصغير" style="width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(15,23,42,.40);color:#fff;font-weight:900;cursor:pointer">×</button>
       <div style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:22px">⌕</div>
