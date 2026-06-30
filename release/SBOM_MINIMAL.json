@@ -865,6 +865,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ae0194ddf3aaf93db0df36618bdcd92c2c1274ec78e5e927580c5ebbf6807aed"
+        }
+      ],
+      "name": "frontend/src/components/maphub/DrawingTools.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f10e37b1cd8996c1d54d0da25984670aecf11f29e6913fbbd763b32e2fa46d2c"
         }
       ],
