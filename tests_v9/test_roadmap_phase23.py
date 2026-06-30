@@ -5805,11 +5805,16 @@ def test_rbac_platform_enforcement():
         r.append(("✓", "RBAC طبقة HTTP: نقاط حسّاسة مُبوّبة بالصلاحية"))
     else:
         r.append(("✗", "RBAC طبقة HTTP: لا نقطة مُبوّبة (require_permission غير مستخدَم)"))
-    # حوكمة: admin ⇒ PLATFORM_ADMIN (لا OWNER) — فصل مدير المنصّة عن مالك المستأجِر
-    if '"admin": UserRole.PLATFORM_ADMIN' in main_src and '"farmer": UserRole.WORKER' in main_src:
-        r.append(("✓", "تطبيع الأدوار: admin→platform_admin، expert/farmer مُجسَّران"))
+    # تطبيع الأدوار: admin ⇒ OWNER (مطابقةً للواجهة)، وحوكمة platform_admin محفوظة
+    # عبر سلسلة 'platform_admin' الصريحة المنفصلة، وexpert/farmer مُجسَّران.
+    if (
+        '"admin": UserRole.OWNER' in main_src
+        and '"platform_admin": UserRole.PLATFORM_ADMIN' in main_src
+        and '"farmer": UserRole.WORKER' in main_src
+    ):
+        r.append(("✓", "تطبيع الأدوار: admin→owner، platform_admin صريح، expert/farmer مُجسَّران"))
     else:
-        r.append(("✗", "تطبيع الأدوار: غير مُجسَّر (admin قد يهبط صامتاً أو يصير OWNER)"))
+        r.append(("✗", "تطبيع الأدوار: غير مُجسَّر (admin قد يهبط صامتاً أو platform_admin غير صريح)"))
     return r
 
 

@@ -79,15 +79,17 @@ def test_role_normalization_bridges_auth_to_core(app_mod):
 
     cases = {
         "owner": UserRole.OWNER,
-        # حوكمة: admin ⇒ PLATFORM_ADMIN لا OWNER (platform_admin ≠ tenant_owner)
-        "admin": UserRole.PLATFORM_ADMIN,
+        # 'admin' ⇒ OWNER (مالك المستأجِر العمليّ، مطابقةً للواجهة)؛ مدير المنصّة عبر
+        # سلسلة صريحة منفصلة 'platform_admin' للحفاظ على platform_admin ≠ tenant_owner.
+        "admin": UserRole.OWNER,
+        "platform_admin": UserRole.PLATFORM_ADMIN,
         "manager": UserRole.MANAGER,
         "agronomist": UserRole.AGRONOMIST,
         "expert": UserRole.AGRONOMIST,  # auth → agronomist
         "worker": UserRole.WORKER,
         "farmer": UserRole.WORKER,  # auth → worker
         "viewer": UserRole.VIEWER,
-        "ADMIN": UserRole.PLATFORM_ADMIN,  # غير حسّاس لحالة الأحرف
+        "ADMIN": UserRole.OWNER,  # غير حسّاس لحالة الأحرف
         "  expert ": UserRole.AGRONOMIST,  # يُشذَّب
     }
     for raw, expected in cases.items():
@@ -215,9 +217,10 @@ def test_worker_allowed_on_observations(app_mod):
 
 
 @pytest.mark.integration
-def test_admin_denied_on_tenant_data(app_mod):
-    """حوكمة: 'admin' ⇒ PLATFORM_ADMIN ≠ tenant_owner. مدير المنصّة **يُرفَض** على
-    بيانات المستأجِر (توصيات) — لا يملكها افتراضيّاً. (سابقاً كان admin→owner يمرّ.)"""
+def test_platform_admin_denied_on_tenant_data(app_mod):
+    """حوكمة: 'platform_admin' ⇒ PLATFORM_ADMIN ≠ tenant_owner. مدير المنصّة **يُرفَض**
+    على بيانات المستأجِر (توصيات) — لا يملكها افتراضيّاً. ('admin' العامّ صار OWNER
+    مطابقةً للواجهة؛ الفصل الأمنيّ يبقى عبر سلسلة 'platform_admin' الصريحة.)"""
     from fastapi.testclient import TestClient
 
     m = app_mod
@@ -226,7 +229,7 @@ def test_admin_denied_on_tenant_data(app_mod):
     r = client.post(
         "/api/v1/recommendations",
         json=_rec_body(tenant),
-        headers={"Authorization": f"Bearer {_raw_token(m, 'admin', tenant)}"},
+        headers={"Authorization": f"Bearer {_raw_token(m, 'platform_admin', tenant)}"},
     )
     assert r.status_code == 403, r.text
     assert "recommendation:request" in r.text
