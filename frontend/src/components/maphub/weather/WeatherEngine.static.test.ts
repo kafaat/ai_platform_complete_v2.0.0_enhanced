@@ -40,6 +40,9 @@ describe('SAHOOL weather engine static architecture', () => {
     // شريط الزمن (time scrubber) + زر تشغيل/إيقاف العرض الزمني على نمط meteoblue.
     expect(panel).toContain('data-time-slider');
     expect(panel).toContain('data-play');
+    // بحث/تصفية الطبقات الفعّال (نمط meteoblue "Search for a map").
+    expect(panel).toContain('data-layer-search');
+    expect(panel).toContain('.sahool-weather-layer-row');
   });
 
   it('supports a coordinate graticule (lat/lon grid) toggle overlay', () => {

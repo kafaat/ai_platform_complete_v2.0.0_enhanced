@@ -85,7 +85,7 @@ export function weatherControlHtml(
   // قائمة الطبقات: الطبقة النشطة كبطاقة صلبة بارزة، والبقيّة كقائمة بسيطة.
   const layerRows = WEATHER_LAYERS.map((l) => {
     const active = l.key === layer;
-    return `<button type="button" data-layer="${l.key}" class="sahool-weather-layer-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;width:calc(100% - 16px);margin:${active ? '3px 8px' : '0 8px'};border:${active ? '1px solid rgba(56,189,248,.55)' : '0'};border-radius:${active ? '12px' : '0'};background:${active ? 'rgba(14,85,142,.92)' : 'transparent'};box-shadow:${active ? '0 6px 16px rgba(2,6,23,.40)' : 'none'};color:#f8fafc;padding:${active ? '11px 12px' : '8px 12px'};font-weight:${active ? '900' : '700'};cursor:pointer;text-align:right">
+    return `<button type="button" data-layer="${l.key}" class="sahool-weather-layer-row" data-search="${`${l.labelAr} ${l.shortAr} ${l.key}`.toLowerCase()}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;width:calc(100% - 16px);margin:${active ? '3px 8px' : '0 8px'};border:${active ? '1px solid rgba(56,189,248,.55)' : '0'};border-radius:${active ? '12px' : '0'};background:${active ? 'rgba(14,85,142,.92)' : 'transparent'};box-shadow:${active ? '0 6px 16px rgba(2,6,23,.40)' : 'none'};color:#f8fafc;padding:${active ? '11px 12px' : '8px 12px'};font-weight:${active ? '900' : '700'};cursor:pointer;text-align:right">
       <span>${l.labelAr}</span><span style="font-size:11px;color:${active ? '#dbeafe' : '#cbd5e1'}">${l.unit}</span>
     </button>`;
   }).join('');
@@ -94,7 +94,7 @@ export function weatherControlHtml(
     <div style="display:flex;align-items:center;gap:8px;padding:12px 12px 9px;border-bottom:1px solid rgba(255,255,255,.13)">
       <button type="button" data-panel-toggle="1" title="تصغير" style="width:34px;height:34px;border-radius:10px;border:1px solid rgba(255,255,255,.22);background:rgba(15,23,42,.40);color:#fff;font-weight:900;cursor:pointer">×</button>
       <div style="width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);display:grid;place-items:center;font-size:22px">⌕</div>
-      <div style="flex:1;background:rgba(15,23,42,.40);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;color:#dbeafe;text-align:right">ابحث عن طبقة طقس</div>
+      <input type="search" data-layer-search="1" placeholder="ابحث عن طبقة طقس" autocomplete="off" style="flex:1;min-width:0;background:rgba(15,23,42,.40);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;color:#f8fafc;text-align:right;outline:none" />
     </div>
     <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.13)">
       ${WEATHER_PRESETS.map((preset) => `<button type="button" data-layer="${preset.layer}" title="${preset.note}" style="border:1px solid ${preset.layer === layer ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.16)'};border-radius:12px;background:${preset.layer === layer ? 'rgba(37,99,235,.82)' : 'rgba(15,23,42,.40)'};color:#f8fafc;padding:8px 6px;font-weight:900;cursor:pointer">${preset.label}</button>`).join('')}
@@ -179,6 +179,17 @@ export function createWeatherControl(
       div.querySelectorAll<HTMLButtonElement>('button[data-layer]').forEach((btn) => {
         btn.onclick = () => onLayerChange(btn.dataset.layer as WeatherLayerKey);
       });
+      // بحث/تصفية الطبقات (نمط meteoblue): يُخفي صفوف الطبقات غير المطابقة فوراً (عميل فقط).
+      const layerSearch = div.querySelector<HTMLInputElement>('input[data-layer-search]');
+      if (layerSearch) {
+        layerSearch.oninput = () => {
+          const q = layerSearch.value.trim().toLowerCase();
+          div.querySelectorAll<HTMLButtonElement>('.sahool-weather-layer-row').forEach((row) => {
+            const hay = row.dataset.search || row.textContent?.toLowerCase() || '';
+            row.style.display = !q || hay.includes(q) ? '' : 'none';
+          });
+        };
+      }
       div.querySelectorAll<HTMLButtonElement>('button[data-time]').forEach((btn) => {
         btn.onclick = () => onTimeChange(btn.dataset.time as WeatherTimeKey);
       });
