@@ -41,10 +41,13 @@ describe('DrawingCore — engine strategy contract', () => {
     expect(getPreferredEngineForWorkflow('create-field')).toBe('leaflet-draw');
   });
 
-  it('does not add a hard Geoman dependency before the adapter PR', () => {
+  it('keeps engine deps available while Geoman stays an opt-in adapter (ADR-0031 Phase 2)', () => {
     expect(packageJson.dependencies['terra-draw']).toBeTruthy();
     expect(packageJson.dependencies['maplibre-gl']).toBeTruthy();
-    expect(packageJson.dependencies['@geoman-io/leaflet-geoman-free']).toBeUndefined();
+    // Geoman is now installed (Phase 2 adapter) but remains opt-in: it is imported
+    // ONLY by LeafletGeomanAdapter and is never wired into a live screen, so it is
+    // tree-shaken out of the default bundle (see GeomanAdapter.static.test.ts).
+    expect(packageJson.dependencies['@geoman-io/leaflet-geoman-free']).toBeTruthy();
   });
 
   it('documents Valley/FieldView-inspired workflows without tying them to one library', () => {
