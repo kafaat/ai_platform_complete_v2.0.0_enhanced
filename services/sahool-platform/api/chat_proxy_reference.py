@@ -44,15 +44,28 @@ def check_rate_limit(tenant_id: str) -> bool:
     return True
 
 
-def build_proxy_request(body: dict, farm_context: str, default_model: str) -> dict:
-    """يبني طلب Messages من جانب الخادم (شكل موحَّد لكلا المزوّدَين). النموذج
-    الافتراضيّ يأتي من تهيئة المزوّد (البيئة) لا من الكود؛ سياق المزرعة يُحقن هنا
-    (لا يثق بما ترسله الواجهة كاملاً)."""
+def build_proxy_request(
+    body: dict, farm_context: str, model: str, wire_format: str = "messages"
+) -> dict:
+    """يبني طلب المحادثة من جانب الخادم حسب صيغة سلك المزوّد. النموذج يُمرَّر مُحلولاً
+    من تهيئة المزوّد (تَحقَّق سلفاً مقابل كتالوج البيئة)، وسياق المزرعة يُحقن هنا
+    خادميّاً (لا يثق بما ترسله الواجهة كاملاً).
+
+    - ``messages`` (Anthropic/Ollama): system حقل مستقلّ.
+    - ``openai_chat`` (OpenRouter): system رسالة بدور ``system`` في مقدّمة القائمة.
+    """
+    max_tokens = min(body.get("max_tokens", 600), 1024)  # سقف وقائي
+    user_messages = body.get("messages", [])
+    if wire_format == "openai_chat":
+        messages = ([{"role": "system", "content": farm_context}] if farm_context else []) + list(
+            user_messages
+        )
+        return {"model": model, "max_tokens": max_tokens, "messages": messages}
     return {
-        "model": body.get("model") or default_model,
-        "max_tokens": min(body.get("max_tokens", 600), 1024),  # سقف وقائي
+        "model": model,
+        "max_tokens": max_tokens,
         "system": farm_context,  # من الخادم، لا من الواجهة
-        "messages": body.get("messages", []),
+        "messages": user_messages,
     }
 
 
@@ -95,8 +108,10 @@ try:
 
     @app.post("/api/chat")
     async def chat(request: Request):
-        # المزوّد الحاليّ (محلّيّ/خارجيّ) يُحلّ من البيئة؛ fail-closed إن نقص مفتاح/نموذج.
-        cfg = resolve_ai_provider()
+        body = await request.json()
+        # النموذج المطلوب من الواجهة يُتحقَّق مقابل كتالوج المزوّد (قائمة سماح)؛
+        # المزوّد الحاليّ يُحلّ من البيئة؛ fail-closed إن نقص مفتاح/نموذج.
+        cfg = resolve_ai_provider(requested_model=body.get("model"))
         if not cfg.available:
             raise HTTPException(503, cfg.reason_ar or "خدمة المحادثة غير مُهيّأة")
 
@@ -106,14 +121,13 @@ try:
         if not check_rate_limit(tenant_id):
             raise HTTPException(429, "تجاوزت الحدّ — حاول بعد دقيقة")
 
-        body = await request.json()
         # سياق المزرعة يُجلب من قاعدة البيانات حسب tenant_id (مبسّط هنا)
         farm_context = body.get("system", "")
-        payload = build_proxy_request(body, farm_context, cfg.model)
+        payload = build_proxy_request(body, farm_context, cfg.model, cfg.wire_format)
 
-        # نفس بنية Messages لكلا المزوّدَين؛ الوجهة والترويسة من cfg (الأسرار خادميّاً فقط).
+        # الوجهة/الترويسة/الصيغة من cfg (الأسرار خادميّاً فقط) — محايد عن المزوّد.
         async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.post(cfg.messages_endpoint, headers=cfg.headers, json=payload)
+            resp = await client.post(cfg.endpoint, headers=cfg.headers, json=payload)
         return resp.json()
 
 except ImportError:

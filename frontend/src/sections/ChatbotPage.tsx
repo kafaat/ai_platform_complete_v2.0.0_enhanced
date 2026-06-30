@@ -28,7 +28,7 @@ import {
   Bot, Send, User, Loader2, Sprout, Droplets, Sun, Bug,
   FlaskConical, ThumbsUp, ThumbsDown, Copy, Clock,
   Trash2, RefreshCw, Sparkles, Leaf, Wind, AlertCircle,
-  ChevronDown, Wheat, BarChart3,
+  ChevronDown, Wheat, BarChart3, Cpu,
 } from 'lucide-react';
 import { useFields, useWeatherForecast } from '../hooks/useApi';
 import { useFieldContextStore } from '../hooks/useFieldContext';
@@ -53,6 +53,11 @@ interface ChatbotField {
   area_ha?: string | number;
 }
 interface LiveContext { count: number; totalArea: number; avgNdvi: number | null; crops: string[]; w: WeatherCurrent | null }
+
+// نموذج ذكاء قابل للاختيار (يأتي من كتالوج AI_MODELS عبر /api/v1/ai/models).
+interface AiModel { id: string; label: string }
+interface AiModelsCatalog { provider?: string; default_model?: string | null; available?: boolean; models?: AiModel[] }
+const MODEL_STORE_KEY = 'sahool.ai.model';
 
 function buildSystemPrompt(c: LiveContext): string {
   const farm = c.count === 0
@@ -232,6 +237,34 @@ export function ChatbotPage() {
     };
   }, [fieldsQ.data, weatherQ.data]);
 
+  // ── منتقي نموذج الذكاء (كتالوج .env عبر مزوّد موحَّد: محلّيّ/Anthropic/OpenRouter) ──
+  // يُجلب من /api/v1/ai/models؛ المختار يُحفظ محلّيّاً ويُرسَل مع كلّ طلب (يُتحقَّق
+  // خادميّاً مقابل قائمة السماح). عند تعذّر الجلب نخفي المنتقي ونكمل بالافتراضيّ.
+  const [aiModels, setAiModels] = useState<AiModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    try { return localStorage.getItem(MODEL_STORE_KEY) || ''; } catch { return ''; }
+  });
+  useEffect(() => {
+    let alive = true;
+    kongApi.get('/api/v1/ai/models')
+      .then(r => {
+        if (!alive) return;
+        const data = r.data as AiModelsCatalog;
+        const list = Array.isArray(data.models) ? data.models : [];
+        setAiModels(list);
+        setSelectedModel(prev => {
+          if (prev && list.some(m => m.id === prev)) return prev;
+          return data.default_model || (list[0]?.id ?? '');
+        });
+      })
+      .catch(() => { /* الكتالوج غير متاح ⇒ نكمل بالنموذج الافتراضيّ خادميّاً */ });
+    return () => { alive = false; };
+  }, []);
+  const onPickModel = useCallback((id: string) => {
+    setSelectedModel(id);
+    try { localStorage.setItem(MODEL_STORE_KEY, id); } catch { /* تجاهل تعذّر التخزين */ }
+  }, []);
+
   useEffect(() => { endRef.current?.scrollIntoView({ behavior:'smooth' }); }, [messages]);
 
   const send = useCallback(async (text: string) => {
@@ -256,6 +289,7 @@ export function ChatbotPage() {
         field_id: activeFieldId || undefined,
         language: 'ar',
         final_k: 5,
+        model: selectedModel || undefined,
         current_field_state: {
           farm_summary:    buildSystemPrompt(ctx),
           avg_ndvi:        ctx.avgNdvi,
@@ -291,7 +325,7 @@ export function ChatbotPage() {
 
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [messages, loading, ctx, activeFieldId]);
+  }, [messages, loading, ctx, activeFieldId, selectedModel]);
 
   const clear = () => {
     setMessages([WELCOME]);
@@ -319,6 +353,23 @@ export function ChatbotPage() {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          {/* منتقي نموذج الذكاء — يظهر فقط حين يوفّر الكتالوج خيارين فأكثر */}
+          {aiModels.length > 1 && (
+            <div className="relative flex items-center" title="نموذج الذكاء لتحليل الحقول">
+              <Cpu className="w-3.5 h-3.5 text-violet-400 absolute right-2 pointer-events-none" />
+              <select
+                value={selectedModel}
+                onChange={e => onPickModel(e.target.value)}
+                className="appearance-none text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg pr-7 pl-6 py-1.5 max-w-[150px] focus:ring-2 focus:ring-violet-300 focus:border-transparent cursor-pointer"
+                dir="rtl"
+              >
+                {aiModels.map(m => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </select>
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute left-2 pointer-events-none" />
+            </div>
+          )}
           <button onClick={() => send('ما حالة مزرعتي الآن؟')}
             className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors" title="تحديث">
             <RefreshCw className="w-4 h-4" />

@@ -1,18 +1,24 @@
 """تهيئة مزوّد الذكاء الاصطناعيّ الموحَّدة — مفتاح بيئة واحد يبدّل بين المحلّيّ
-(Ollama) والخارجيّ (Anthropic) دون تكرار منطق.
+(Ollama) والخارجيّ (Anthropic) ومُوجِّه نماذج متعدّد (OpenRouter) دون تكرار منطق.
 
 السبب: كان البديل الخارجيّ موثَّقاً كملفّ مرجعيّ فقط (chat_proxy_reference). هذا
 الملفّ يجعل التبديل فعليّاً عبر متغيّر `AI_PROVIDER`:
 
-    AI_PROVIDER=local      (الافتراضيّ) ⇒ Ollama، واجهة Messages متوافقة مع Anthropic،
-                            لا تسريب سحابيّ ولا مفاتيح. base_url من OLLAMA_BASE_URL.
-    AI_PROVIDER=anthropic  ⇒ Anthropic Messages API (المفتاح من البيئة، خادميّاً فقط).
+    AI_PROVIDER=local       (الافتراضيّ) ⇒ Ollama، واجهة Messages متوافقة مع Anthropic،
+                             لا تسريب سحابيّ ولا مفاتيح. base_url من OLLAMA_BASE_URL.
+    AI_PROVIDER=anthropic   ⇒ Anthropic Messages API (المفتاح من البيئة، خادميّاً فقط).
+    AI_PROVIDER=openrouter  ⇒ OpenRouter (واجهة OpenAI chat/completions) — مُوجِّه يتيح
+                             عدّة نماذج (DeepSeek، Claude Sonnet، Gemini 3 Pro…)
+                             يُختار النموذج من كتالوج `AI_MODELS` وتختاره الواجهة.
 
-الطرفان يتكلّمان `POST /v1/messages` بنفس بنية الطلب/الترويسة، فمسار الدردشة يبقى
-محايداً عن المزوّد: نحلّ هنا (base_url + headers + model) ونرسل نفس الحمولة.
+الطرفان local/anthropic يتكلّمان `POST /v1/messages` بنفس البنية؛ openrouter يتكلّم
+`POST /v1/chat/completions` (صيغة OpenAI). نُجرّد الفرق عبر `wire_format` و`endpoint`،
+فمسار الدردشة يبقى محايداً: نحلّ هنا (base_url + headers + model + صيغة) ونرسل الحمولة
+المناسبة.
 
-صدق: نموذج Anthropic يُقرأ من البيئة (AI_MODEL/ANTHROPIC_MODEL) — لا نضمّن أيّ
-معرّف نموذج في الكود. غياب المفتاح/النموذج ⇒ available=False بسبب صريح (fail-closed).
+صدق: لا نضمّن أيّ معرّف نموذج في الكود كقيمة سحابيّة مفروضة — النموذج يُقرأ من البيئة
+(AI_MODEL أو كتالوج AI_MODELS). غياب المفتاح/النموذج للمزوّد السحابيّ ⇒ available=False
+بسبب صريح (fail-closed). اختيار الواجهة يُتحقَّق دائماً مقابل قائمة سماح الكتالوج.
 """
 
 from __future__ import annotations
@@ -26,31 +32,106 @@ ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_LOCAL_MODEL = "qwen3"
 DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
+DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# كتالوج النماذج الافتراضيّ لكلّ مزوّد حين لا يُضبَط `AI_MODELS` في البيئة.
+# قيم أمثلة قابلة للتجاوز بالكامل من `.env` (المعرّفات الفعليّة يضبطها المشغّل).
+_DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
+    "openrouter": [
+        ("deepseek/deepseek-chat", "DeepSeek"),
+        ("anthropic/claude-sonnet-4.6", "Claude Sonnet"),
+        ("google/gemini-3-pro", "Gemini 3 Pro"),
+    ],
+    "local": [
+        ("qwen3", "Qwen3 (محلّيّ)"),
+        ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
+    ],
+}
 
 
 def _normalize_provider(raw: str | None) -> str:
-    """يطبّع اسم المزوّد: ollama/local ⇒ local · claude/anthropic ⇒ anthropic.
+    """يطبّع اسم المزوّد: ollama/local ⇒ local · claude/anthropic ⇒ anthropic ·
+    openrouter/router ⇒ openrouter.
 
     fail-safe: المجهول/الفارغ ⇒ local (المحلّيّ الآمن بلا مفاتيح سحابيّة).
     """
     p = (raw or "").strip().lower()
     if p in {"anthropic", "claude", "cloud"}:
         return "anthropic"
+    if p in {"openrouter", "router", "or"}:
+        return "openrouter"
     return "local"
+
+
+def _parse_catalog(provider: str) -> list[dict[str, str]]:
+    """يحلّ كتالوج النماذج القابلة للاختيار من البيئة `AI_MODELS`.
+
+    الصيغة: مدخلات مفصولة بفاصلة، كلّ مدخل `id|label` (الـlabel اختياريّ).
+    مثال: ``deepseek/deepseek-chat|DeepSeek,google/gemini-3-pro|Gemini 3 Pro``
+    حين لا يُضبَط ⇒ كتالوج افتراضيّ مناسب للمزوّد (قابل للتجاوز).
+    """
+    raw = (os.getenv("AI_MODELS") or "").strip()
+    items: list[dict[str, str]] = []
+    if raw:
+        for entry in raw.split(","):
+            entry = entry.strip()
+            if not entry:
+                continue
+            mid, _, label = entry.partition("|")
+            mid = mid.strip()
+            if not mid:
+                continue
+            items.append({"id": mid, "label": (label.strip() or mid)})
+    if not items:
+        for mid, label in _DEFAULT_CATALOG.get(provider, []):
+            items.append({"id": mid, "label": label})
+    return items
+
+
+def available_models(provider: str | None = None) -> list[dict[str, str]]:
+    """قائمة النماذج المتاحة للاختيار (للواجهة/لوحة الإدارة) — بلا أسرار."""
+    prov = _normalize_provider(provider if provider is not None else os.getenv("AI_PROVIDER"))
+    return _parse_catalog(prov)
+
+
+def _resolve_model(provider: str, shared_model: str, requested: str | None) -> str:
+    """يختار النموذج الفعليّ مع احترام قائمة سماح الكتالوج.
+
+    أولويّة: طلب الواجهة (إن كان ضمن الكتالوج) ⇒ AI_MODEL ⇒ أوّل مدخل بالكتالوج.
+    طلب خارج الكتالوج يُتجاهَل (أمان: لا يُمرّر المستخدم معرّفاً عشوائيّاً للمزوّد).
+    """
+    catalog = _parse_catalog(provider)
+    allowed = {m["id"] for m in catalog}
+    req = (requested or "").strip()
+    if req and req in allowed:
+        return req
+    if shared_model:
+        return shared_model
+    return catalog[0]["id"] if catalog else ""
 
 
 @dataclass(frozen=True)
 class AIProviderConfig:
-    provider: str  # 'local' | 'anthropic'
-    base_url: str  # بلا /v1/messages
+    provider: str  # 'local' | 'anthropic' | 'openrouter'
+    base_url: str  # بلا مسار النهاية
     model: str
     headers: dict[str, str] = field(default_factory=dict)
     available: bool = True
     reason_ar: str = ""
+    wire_format: str = "messages"  # 'messages' (Anthropic) | 'openai_chat' (OpenRouter)
+    models: list[dict[str, str]] = field(default_factory=list)
 
     @property
     def messages_endpoint(self) -> str:
+        """عقد Anthropic Messages (local/anthropic)."""
         return f"{self.base_url.rstrip('/')}/v1/messages"
+
+    @property
+    def endpoint(self) -> str:
+        """نقطة النهاية الفعليّة حسب صيغة السلك (messages ↔ openai_chat)."""
+        if self.wire_format == "openai_chat":
+            return f"{self.base_url.rstrip('/')}/chat/completions"
+        return self.messages_endpoint
 
     def public_snapshot(self) -> dict:
         """إسقاط رصديّ آمن (بلا أسرار) — للـ/healthz/deps ولوحة الإدارة."""
@@ -58,22 +139,31 @@ class AIProviderConfig:
             "provider": self.provider,
             "base_url": self.base_url,
             "model": self.model or None,
+            "wire_format": self.wire_format,
+            "endpoint": self.endpoint,
             "messages_endpoint": self.messages_endpoint,
             "available": self.available,
             "reason_ar": self.reason_ar or None,
+            "models": self.models,
         }
 
 
-def resolve_ai_provider() -> AIProviderConfig:
-    """يحلّ تهيئة المزوّد الحاليّة من البيئة (مصدر واحد للحقيقة)."""
+def resolve_ai_provider(requested_model: str | None = None) -> AIProviderConfig:
+    """يحلّ تهيئة المزوّد الحاليّة من البيئة (مصدر واحد للحقيقة).
+
+    `requested_model` (اختياريّ، من الواجهة) يُتحقَّق مقابل كتالوج المزوّد؛ خارج
+    الكتالوج يُتجاهَل ويُستعمل الافتراضيّ (قائمة سماح).
+    """
     provider = _normalize_provider(os.getenv("AI_PROVIDER"))
     # نموذج مشترك: AI_MODEL يغلب، ثمّ المتغيّر الخاصّ بالمزوّد.
     shared_model = (os.getenv("AI_MODEL") or "").strip()
+    catalog = _parse_catalog(provider)
 
     if provider == "anthropic":
         base_url = (os.getenv("ANTHROPIC_BASE_URL") or DEFAULT_ANTHROPIC_BASE_URL).strip()
         api_key = (os.getenv("ANTHROPIC_API_KEY") or "").strip()
-        model = shared_model or (os.getenv("ANTHROPIC_MODEL") or "").strip()
+        anthropic_default = shared_model or (os.getenv("ANTHROPIC_MODEL") or "").strip()
+        model = _resolve_model("anthropic", anthropic_default, requested_model)
         headers = {
             "content-type": "application/json",
             "anthropic-version": ANTHROPIC_VERSION,
@@ -94,11 +184,48 @@ def resolve_ai_provider() -> AIProviderConfig:
             headers=headers,
             available=available,
             reason_ar=reason,
+            wire_format="messages",
+            models=catalog,
+        )
+
+    if provider == "openrouter":
+        base_url = (os.getenv("OPENROUTER_BASE_URL") or DEFAULT_OPENROUTER_BASE_URL).strip()
+        api_key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
+        model = _resolve_model("openrouter", shared_model, requested_model)
+        headers = {
+            "content-type": "application/json",
+        }
+        if api_key:
+            headers["authorization"] = f"Bearer {api_key}"
+        # ترويسات OpenRouter الإرشاديّة (اختياريّة، للوسم/التصنيف) — لا أسرار.
+        referer = (os.getenv("OPENROUTER_SITE_URL") or "").strip()
+        title = (os.getenv("OPENROUTER_APP_TITLE") or "SAHOOL").strip()
+        if referer:
+            headers["http-referer"] = referer
+        if title:
+            headers["x-title"] = title
+        missing = []
+        if not api_key:
+            missing.append("OPENROUTER_API_KEY")
+        if not model:
+            missing.append("AI_MODEL (أو كتالوج AI_MODELS)")
+        available = not missing
+        reason = "" if available else f"المزوّد openrouter يحتاج: {', '.join(missing)}."
+        return AIProviderConfig(
+            provider="openrouter",
+            base_url=base_url,
+            model=model,
+            headers=headers,
+            available=available,
+            reason_ar=reason,
+            wire_format="openai_chat",
+            models=catalog,
         )
 
     # المحلّيّ (Ollama، متوافق مع Anthropic Messages API).
     base_url = (os.getenv("OLLAMA_BASE_URL") or DEFAULT_OLLAMA_BASE_URL).strip()
-    model = shared_model or (os.getenv("LOCAL_LLM_MODEL") or DEFAULT_LOCAL_MODEL).strip()
+    local_default = shared_model or (os.getenv("LOCAL_LLM_MODEL") or DEFAULT_LOCAL_MODEL).strip()
+    model = _resolve_model("local", local_default, requested_model)
     # Ollama يقبل أيّ Bearer؛ نسمح بتجاوزه عبر OLLAMA_API_KEY عند الحاجة.
     token = (os.getenv("OLLAMA_API_KEY") or "ollama").strip()
     headers = {
@@ -113,4 +240,6 @@ def resolve_ai_provider() -> AIProviderConfig:
         headers=headers,
         available=True,
         reason_ar="",
+        wire_format="messages",
+        models=catalog,
     )

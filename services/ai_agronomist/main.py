@@ -34,6 +34,10 @@ class AdvisorQuery(BaseModel):
     selected_imagery_date: str | None = None
     current_field_state: dict[str, Any] | None = None
     final_k: int = Field(default=5, ge=1, le=10)
+    # نموذج الذكاء المختار من الواجهة (كتالوج AI_MODELS عبر مزوّد موحَّد، مثل
+    # OpenRouter: DeepSeek/Claude Sonnet/Gemini). يُسجَّل ويُعاد صدى به للشفافيّة؛
+    # التحقّق من قائمة السماح يقع في مُحلِّل المزوّد قبل أيّ استدعاء توليديّ.
+    model: str | None = Field(default=None, max_length=128)
 
 
 async def _get_json(client: httpx.AsyncClient, url: str) -> tuple[bool, Any]:
@@ -291,6 +295,7 @@ async def _build_evidence_response(
         "tenant_id": tenant_id,
         "field_id": req.field_id,
         "selected_imagery_date": req.selected_imagery_date,
+        "selected_model": req.model,
         "language": req.language,
         "annotations": annotations,
         "evidence_ids": evidence_ids,
