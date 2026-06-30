@@ -183,6 +183,18 @@ const CENTER_HANDLE_ICON = L.divIcon({
   iconAnchor: [13, 13],
 });
 
+// أيقونة مقبض نصف القطر (الدائرة المحوريّة): قرص أصغر برمز تحجيم — يُسحَب على المحيط
+// فيُكبّر/يُصغّر الدائرة بانتظام حول مركزها.
+const RADIUS_HANDLE_ICON = L.divIcon({
+  className: '',
+  html:
+    '<div style="width:22px;height:22px;border-radius:9999px;background:#fff;border:2px solid #2563eb;' +
+    'box-shadow:0 1px 4px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;' +
+    'color:#2563eb;font-size:13px;font-weight:800;cursor:nwse-resize">⇲</div>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+});
+
 // محوّل: حلقة رؤوس Leaflet → DrawFeature (GeoJSON Polygon مغلق) لمحرّك الرسم المُوحَّد.
 // يُغلق الحلقة (يُضيف الرأس الأوّل آخراً) كي لا يُبلِّغ validateDrawFeature عن «حلقة غير مغلقة».
 function latlngsToDrawFeature(latlngs: L.LatLng[]): DrawFeature {
@@ -253,6 +265,11 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const [polygon, setPolygon] = useState<L.Polygon | null>(null);
   // مدخل "دائرة بنصف قطر" (إلهام FieldView): نصف القطر بالمتر (م) فقط — لا أقدام.
   const [radiusInput, setRadiusInput] = useState('');
+  // مركز دائرة مُلتقَط بالنقر على الخريطة (وضع «المركز ثمّ نصف قطر»): عند ضبطه تظهر
+  // خانة إدخال نصف القطر بالمتر لرسم الدائرة تلقائيّاً عند هذا المركز بالضبط.
+  const [pickedCenter, setPickedCenter] = useState<L.LatLng | null>(null);
+  const [pickedRadiusInput, setPickedRadiusInput] = useState('');
+  const pickedRadiusRef = useRef<HTMLInputElement | null>(null);
   // أداة الرسم التفاعليّة المختارة (دائرة/مستطيل) + سطر إرشاد حيّ. المضلّع يبقى على
   // شريط leaflet-draw؛ هاتان عبر InteractiveDrawLayer (نقر + معاينة بحركة الفأرة).
   const [drawTool, setDrawTool] = useState<DrawTool>(null);
@@ -275,6 +292,10 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const mapRef = useRef<L.Map | null>(null);
   // مقبض المركز القابل للسحب (ينقل الشكل المرسوم كاملاً) — طبقة على الخريطة لا ضمن fgRef.
   const centerHandleRef = useRef<L.Marker | null>(null);
+  // مقبض نصف القطر + حالة الدائرة المحوريّة الحاليّة (مركز + نصف قطر) — لتحجيم منتظم.
+  // يُضبَط فقط للدوائر؛ null للمضلّع/المستطيل (فلا يظهر مقبض نصف القطر إلّا للدائرة).
+  const radiusHandleRef = useRef<L.Marker | null>(null);
+  const pivotEditRef = useRef<{ center: L.LatLng; radiusM: number } | null>(null);
   // حارس تسلسل لطلب الكشف العكسي: يمنع ردّ طلب قديم من الكتابة فوق الأحدث
   // (إعادة رسم سريعة قد تُظهر موقعاً لا يطابق المضلّع الحاليّ).
   const geoReqRef = useRef(0);
@@ -319,6 +340,16 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     return snapped.map(([lat, lng]) => L.latLng(lat, lng));
   }, [snapEnabled, snapTargets]);
 
+  // معاملات pivot القانونيّة المُرسَلة للخلفيّة (مركز + نصف قطر) — مُعرَّفة هنا قبل
+  // buildEditablePolygon كي يستعملها مقبضا المركز/نصف القطر عند التحجيم/النقل.
+  const makePivotPayload = useCallback((center: L.LatLng, radiusM: number): PivotPayload => ({
+    center: { lon: Number(center.lng.toFixed(7)), lat: Number(center.lat.toFixed(7)) },
+    radius_m: Math.round(radiusM * 100) / 100,
+    start_angle_deg: 0,
+    end_angle_deg: 360,
+    vertices: 96,
+  }), []);
+
   // يدفع لقطة حلقة (أزواج [lat,lng]) إلى التاريخ: يقتطع أيّ «مستقبل» بعد المؤشّر
   // الحاليّ ثمّ يُلحِق ويُقدّم المؤشّر. يُتجاهَل أثناء إعادة تطبيق لقطة (حارس applyingRef)
   // أو إن كانت الحلقة أقصر من مثلّث. يقرأ المؤشّر من pointerRef (مرآة محدّثة فوراً)
@@ -344,10 +375,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     if (!fgRef.current) return null;
     const fg = fgRef.current;
     fg.clearLayers();
-    // أزِل مقبض المركز السابق (طبقة على الخريطة لا تتأثّر بـfg.clearLayers).
+    // أزِل مقبضَي المركز/نصف القطر السابقَين (طبقات على الخريطة لا تتأثّر بـfg.clearLayers).
     if (centerHandleRef.current) {
       centerHandleRef.current.remove();
       centerHandleRef.current = null;
+    }
+    if (radiusHandleRef.current) {
+      radiusHandleRef.current.remove();
+      radiusHandleRef.current = null;
     }
     const poly = L.polygon(pts, {
       color: '#16a34a', fillColor: '#16a34a', fillOpacity: 0.25, weight: 2,
@@ -376,8 +411,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     // ونُعيد تفعيله عند الإفلات مع تسجيل لقطة واحدة (لا لقطة لكلّ إطار سحب).
     const map = mapRef.current;
     if (map) {
-      let centerPrev = ringCentroid(pts);
-      const handle = L.marker(centerPrev, {
+      // الحالة الحيّة المشتركة بين المقبضَين (تُحدَّث بالسحب). للدائرة المحوريّة فقط
+      // (pivotEditRef مضبوط) نُظهِر مقبض نصف القطر؛ نصف القطر ≈ المسافة من المركز
+      // لأوّل رأس (الرأس الشماليّ من circleToPolygon — دائرة منتظمة فكلّها متساوية).
+      const isPivot = pivotEditRef.current !== null;
+      let center = ringCentroid(pts);
+      let radiusM = isPivot && pts.length > 0 ? center.distanceTo(pts[0]) : 0;
+
+      const handle = L.marker(center, {
         draggable: true,
         icon: CENTER_HANDLE_ICON,
         zIndexOffset: 1000,
@@ -386,9 +427,9 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       handle.on('dragstart', () => { (poly as any).editing?.disable(); });
       handle.on('drag', () => {
         const now = handle.getLatLng();
-        const dLat = now.lat - centerPrev.lat;
-        const dLng = now.lng - centerPrev.lng;
-        centerPrev = now;
+        const dLat = now.lat - center.lat;
+        const dLng = now.lng - center.lng;
+        center = now;
         const moved = ((poly.getLatLngs()[0] as L.LatLng[]) ?? []).map(
           (p) => L.latLng(p.lat + dLat, p.lng + dLng),
         );
@@ -396,25 +437,73 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         setLatlngs(moved);
         setAreaHa(geodesicAreaHa(moved));
         setPerimeterM(geodesicPerimeterM(moved));
+        // مقبض نصف القطر يتبع المركز (ينتقل مع الشكل) + تحديث مركز pivot المحفوظ.
+        if (radiusHandleRef.current) {
+          const rh = radiusHandleRef.current.getLatLng();
+          radiusHandleRef.current.setLatLng(L.latLng(rh.lat + dLat, rh.lng + dLng));
+        }
+        if (pivotEditRef.current) pivotEditRef.current.center = center;
       });
       handle.on('dragend', () => {
         (poly as any).editing?.enable();
         const ring = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
         if (ring.length >= 3) pushSnapshot(ring);
+        if (pivotEditRef.current) setPivotPayload(makePivotPayload(center, radiusM));
       });
       handle.addTo(map);
       centerHandleRef.current = handle;
+
+      // مقبض نصف القطر (دائرة محوريّة فقط): يُوضَع على المحيط، وسحبه يُكبّر/يُصغّر
+      // الدائرة بانتظام حول المركز. نصف القطر = المسافة من المركز لموضع المقبض، فيبقى
+      // المقبض دوماً على الحافّة بالبناء (لا حاجة لإعادة تثبيته). يُعيد توليد الحلقة كاملةً
+      // عبر circleToPolygon (تحجيم منتظم) بدل تشويه رأس مفرد.
+      if (isPivot && radiusM > 0 && pts.length > 0) {
+        const rHandle = L.marker(pts[0], {
+          draggable: true,
+          icon: RADIUS_HANDLE_ICON,
+          zIndexOffset: 1100,
+          keyboard: false,
+        });
+        rHandle.on('dragstart', () => { (poly as any).editing?.disable(); });
+        rHandle.on('drag', () => {
+          const next = center.distanceTo(rHandle.getLatLng());
+          if (!isFinite(next) || next < 1) return; // تجاهل نصف قطر شبه معدوم
+          radiusM = next;
+          const ring = circleToPolygon(center, radiusM);
+          poly.setLatLngs(ring);
+          setLatlngs(ring);
+          setAreaHa(geodesicAreaHa(ring));
+          setPerimeterM(geodesicPerimeterM(ring));
+          setRadiusInput(String(Math.round(radiusM)));
+        });
+        rHandle.on('dragend', () => {
+          (poly as any).editing?.enable();
+          const ring = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
+          if (ring.length >= 3) pushSnapshot(ring);
+          if (pivotEditRef.current) {
+            pivotEditRef.current.radiusM = radiusM;
+            pivotEditRef.current.center = center;
+            setPivotPayload(makePivotPayload(center, radiusM));
+          }
+        });
+        rHandle.addTo(map);
+        radiusHandleRef.current = rHandle;
+      }
     }
 
     if (pushOnDone) pushSnapshot(pts);
     return poly;
-  }, [pushSnapshot]);
+  }, [pushSnapshot, makePivotPayload]);
 
-  // تنظيف مقبض المركز عند تفكيك المكوّن (طبقة على الخريطة خارج fgRef).
+  // تنظيف مقبضَي المركز/نصف القطر عند تفكيك المكوّن (طبقات على الخريطة خارج fgRef).
   useEffect(() => () => {
     if (centerHandleRef.current) {
       centerHandleRef.current.remove();
       centerHandleRef.current = null;
+    }
+    if (radiusHandleRef.current) {
+      radiusHandleRef.current.remove();
+      radiusHandleRef.current = null;
     }
   }, []);
 
@@ -469,19 +558,12 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   }, [pointer, history.length, applySnapshot]);
 
 
-  const makePivotPayload = useCallback((center: L.LatLng, radiusM: number): PivotPayload => ({
-    center: { lon: Number(center.lng.toFixed(7)), lat: Number(center.lat.toFixed(7)) },
-    radius_m: Math.round(radiusM * 100) / 100,
-    start_angle_deg: 0,
-    end_angle_deg: 360,
-    vertices: 96,
-  }), []);
-
   // أداة المضلّع (leaflet-draw): الحلقة الخارجيّة للمضلّع المرسوم. الدائرة والمستطيل
   // انتقلتا إلى InteractiveDrawLayer (نقر + معاينة)، فهذه النقطة للمضلّع فقط.
   const handleCreated = useCallback((e: L.DrawEvents.Created) => {
     const layer = e.layer as DrawnLayer;
     setPivotPayload(null);
+    pivotEditRef.current = null; // مضلّع ⇒ لا مقبض نصف قطر.
     const ring = (layer.getLatLngs?.() as L.LatLng[][] | undefined)?.[0];
     const pts = Array.isArray(ring) ? (ring as L.LatLng[]) : [];
     if (pts.length >= 3) handlePolygonDone(pts);
@@ -494,6 +576,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setDrawTool(null);
     setRadiusInput(String(Math.round(radiusM)));
     setPivotPayload(makePivotPayload(center, radiusM));
+    pivotEditRef.current = { center, radiusM }; // دائرة ⇒ فعِّل مقبض نصف القطر.
     const pts = circleToPolygon(center, radiusM);
     if (pts.length >= 3) handlePolygonDone(pts);
   }, [handlePolygonDone, makePivotPayload]);
@@ -503,6 +586,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setError('');
     setDrawTool(null);
     setPivotPayload(null);
+    pivotEditRef.current = null; // مستطيل ⇒ لا مقبض نصف قطر.
     if (corners.length >= 3) handlePolygonDone(corners);
   }, [handlePolygonDone]);
 
@@ -524,9 +608,41 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setDrawTool(null);
     const center = map.getCenter();
     setPivotPayload(makePivotPayload(center, r));
+    pivotEditRef.current = { center, radiusM: r }; // دائرة ⇒ فعِّل مقبض نصف القطر.
     const pts = circleToPolygon(center, r);
     if (pts.length >= 3) handlePolygonDone(pts);
   }, [radiusInput, handlePolygonDone, makePivotPayload]);
+
+  // وضع «المركز ثمّ نصف قطر»: التُقِط مركز بالنقر على الخريطة — نُخزّنه ونُفرّغ خانة
+  // نصف القطر ونُركّز عليها كي يكتب المستخدم القيمة فوراً (رسم تلقائيّ عند التأكيد).
+  const handlePickCircleCenter = useCallback((center: L.LatLng) => {
+    setError('');
+    setPickedCenter(center);
+    setPickedRadiusInput('');
+    // تركيز الخانة بعد ظهورها (بعد إعادة العرض) كي يبدأ الإدخال مباشرةً.
+    setTimeout(() => pickedRadiusRef.current?.focus(), 0);
+  }, []);
+
+  // إنشاء الدائرة تلقائيّاً عند المركز المُلتقَط بنصف القطر المُدخَل بالمتر. نفس مسار
+  // الريّ المحوريّ (pivot) فيظهر مقبضا المركز/نصف القطر بعد الرسم.
+  const handleCreateCircleAtPickedCenter = useCallback(() => {
+    setError('');
+    const center = pickedCenter;
+    if (!center) { setError('حدّد مركز الدائرة على الخريطة أوّلاً.'); return; }
+    const r = Number(pickedRadiusInput);
+    if (!isFinite(r) || r <= 0) {
+      setError('أدخل نصف قطر صالحاً بالمتر (م).');
+      return;
+    }
+    setDrawTool(null);
+    setPickedCenter(null);
+    setPickedRadiusInput('');
+    setRadiusInput(String(Math.round(r)));
+    setPivotPayload(makePivotPayload(center, r));
+    pivotEditRef.current = { center, radiusM: r }; // دائرة ⇒ فعِّل مقبض نصف القطر.
+    const pts = circleToPolygon(center, r);
+    if (pts.length >= 3) handlePolygonDone(pts);
+  }, [pickedCenter, pickedRadiusInput, handlePolygonDone, makePivotPayload]);
 
   // ── H-UI — تقطيع مُساعَد (تلقائيّ/هجين) عبر خدمة التقطيع المُوكَّلة ─────────────
   // يأخذ النطاق الظاهر للخريطة (bbox) والوضع فيطلب اقتراح حدّ، ثمّ يُحمّل المضلّع
@@ -596,6 +712,13 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       centerHandleRef.current.remove();
       centerHandleRef.current = null;
     }
+    if (radiusHandleRef.current) {
+      radiusHandleRef.current.remove();
+      radiusHandleRef.current = null;
+    }
+    pivotEditRef.current = null;
+    setPickedCenter(null);
+    setPickedRadiusInput('');
     setStage('draw');
     setLatlngs([]);
     setAreaHa(0);
@@ -841,6 +964,22 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                     </button>
                     <button
                       type="button"
+                      aria-pressed={drawTool === 'circle-center'}
+                      onClick={() => {
+                        setError('');
+                        setPickedCenter(null);
+                        setPickedRadiusInput('');
+                        setDrawTool(t => (t === 'circle-center' ? null : 'circle-center'));
+                      }}
+                      title="انقر على الخريطة لتحديد المركز، ثمّ أدخل نصف القطر بالمتر"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold"
+                      style={drawTool === 'circle-center'
+                        ? { background:'#16a34a', color:'#fff' }
+                        : { background:'#16a34a22', color:'#34d399', border:'1px solid #16a34a66' }}>
+                      <Circle className="w-3.5 h-3.5" /> دائرة (مركز + نصف قطر)
+                    </button>
+                    <button
+                      type="button"
                       aria-pressed={drawTool === 'rectangle'}
                       onClick={() => { setError(''); setDrawTool(t => (t === 'rectangle' ? null : 'rectangle')); }}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold"
@@ -867,6 +1006,44 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       <span className="block mt-0.5" style={{ color:'#64748b' }}>
                         نقرة يمين تُلغي الشكل قيد الرسم · بعد الرسم اسحب أيّ رأس لتعديله.
                       </span>
+                    </div>
+                  )}
+
+                  {/* وضع «المركز ثمّ نصف قطر»: بعد نقر المركز على الخريطة تظهر خانة
+                      فارغة لإدخال نصف القطر بالمتر، فتُرسَم الدائرة تلقائيّاً عند هذا المركز. */}
+                  {drawTool === 'circle-center' && pickedCenter && (
+                    <div className="rounded-xl p-3 space-y-2" style={{ background:'#16a34a14', border:'1px solid #16a34a66' }}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-semibold text-emerald-300 inline-flex items-center gap-1">
+                          <Circle className="w-3.5 h-3.5" /> المركز محدّد — أدخل نصف القطر
+                        </span>
+                        <label className="text-xs" style={{ color:'#94a3b8' }}>نصف القطر:</label>
+                        <div className="flex items-center gap-1">
+                          <input
+                            ref={pickedRadiusRef}
+                            type="number"
+                            min={1}
+                            inputMode="numeric"
+                            value={pickedRadiusInput}
+                            onChange={e => setPickedRadiusInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleCreateCircleAtPickedCenter(); } }}
+                            placeholder="مثال: 250"
+                            className="w-28 px-2 py-1 rounded-lg text-sm"
+                            style={{ background:'#111827', border:'1px solid #334155', color:'#e2e8f0' }}
+                          />
+                          <span className="text-xs font-semibold text-emerald-400">م</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCreateCircleAtPickedCenter}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold text-white"
+                          style={{ background:'#16a34a' }}>
+                          <Circle className="w-3.5 h-3.5" /> إنشاء دائرة
+                        </button>
+                      </div>
+                      <div className="text-[11px] leading-5" style={{ color:'#64748b' }}>
+                        ترسم الدائرة عند المركز المُحدَّد بالضبط. انقر «دائرة (مركز + نصف قطر)» ثانيةً لاختيار مركز آخر.
+                      </div>
                     </div>
                   )}
 
@@ -1074,6 +1251,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                     tool={drawTool}
                     onCircle={handleInteractiveCircle}
                     onRectangle={handleInteractiveRectangle}
+                    onCircleCenter={handlePickCircleCenter}
                     onStatus={setDrawStatus}
                   />
                 )}

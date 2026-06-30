@@ -17,7 +17,8 @@ import { useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { rectangleCorners } from './drawGeometry';
 
-export type DrawTool = 'circle' | 'rectangle' | null;
+// 'circle-center': نقرة واحدة تحدّد المركز ثمّ يُدخَل نصف القطر نصّيّاً (لا سحب فأرة).
+export type DrawTool = 'circle' | 'circle-center' | 'rectangle' | null;
 
 const PREVIEW_STYLE: L.PathOptions = {
   color: '#16a34a',
@@ -31,10 +32,12 @@ interface Props {
   tool: DrawTool;
   onCircle: (center: L.LatLng, radiusM: number) => void;
   onRectangle: (corners: L.LatLng[]) => void;
+  // وضع «المركز ثمّ نصف قطر»: نقرة واحدة تُسلّم المركز للمستهلِك ليطلب نصف القطر بإدخال.
+  onCircleCenter?: (center: L.LatLng) => void;
   onStatus?: (text: string | null) => void;
 }
 
-export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onStatus }: Props) {
+export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onCircleCenter, onStatus }: Props) {
   const map = useMap();
   const stepRef = useRef(0); // 0=بانتظار أوّل نقرة
   const aRef = useRef<L.LatLng | null>(null); // مركز الدائرة / رأس المستطيل A
@@ -58,6 +61,7 @@ export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onSt
   useEffect(() => {
     reset();
     if (tool === 'circle') onStatus?.('انقر لتحديد مركز الدائرة.');
+    else if (tool === 'circle-center') onStatus?.('انقر على الخريطة لتحديد مركز الدائرة.');
     else if (tool === 'rectangle') onStatus?.('انقر النقطة الأولى للضلع.');
     else onStatus?.(null);
     return () => reset();
@@ -68,6 +72,15 @@ export default function InteractiveDrawLayer({ tool, onCircle, onRectangle, onSt
     click(e: L.LeafletMouseEvent) {
       if (!tool) return;
       const p = e.latlng;
+      if (tool === 'circle-center') {
+        // نقرة واحدة = المركز. نُثبّت علامة معاينة (نقطة) ونُسلّم المركز للمستهلِك
+        // الذي يُظهِر خانة إدخال نصف القطر؛ لا نقرة ثانية ولا معاينة بحركة الفأرة.
+        clearPreview();
+        previewRef.current = L.circleMarker(p, { ...PREVIEW_STYLE, radius: 6, fillOpacity: 0.9 }).addTo(map);
+        onCircleCenter?.(p);
+        onStatus?.('المركز محدّد — أدخل نصف القطر بالمتر ثمّ اضغط إنشاء.');
+        return;
+      }
       if (tool === 'circle') {
         if (stepRef.current === 0) {
           aRef.current = p;
