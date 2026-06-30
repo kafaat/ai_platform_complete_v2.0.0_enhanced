@@ -43,6 +43,16 @@ import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
   LayerSwitcher, ColormapLegend, SideBySide, type CmapId,
 } from '../components/ds';
+import { MapIndicatorLegend } from '../components/insights/MapIndicatorLegend';
+
+// نطاقات المؤشّرات (vmin/vmax/invert) — مرآة لـ_INDEX_DOMAIN في raster-service
+// (tile_render.py) كي تتطابق أسطورة المقياس مع التصيير الفعليّ. مجهول ⇒ افتراضيّ NDVI.
+const INDEX_DOMAIN: Record<string, [number, number, boolean]> = {
+  ndvi: [-0.2, 0.9, false], evi: [-0.2, 0.9, false], ndmi: [-0.3, 0.6, false],
+  ndwi: [-0.5, 0.5, false], ndsi: [-0.1, 0.6, true], salinity: [-0.1, 0.6, true],
+  ndre: [-0.1, 0.6, false], msavi: [-0.2, 0.9, false], moisture: [-0.3, 0.6, false],
+  savi: [-0.2, 0.9, false], gndvi: [-0.2, 0.9, false], msi: [0.4, 1.6, true],
+};
 import HubMap, {
   type ScoutPin, type AlertMarker, type DeviceMarker, type WeatherMarker, type OperationalMarker,
 } from '../components/maphub/HubMap';
@@ -1514,17 +1524,17 @@ export default function MapHub() {
                     pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...pivotDrafts] : []}
                   />
                 )}
-                {/* مفتاح ألوان الطبقة النشطة */}
-                {indicatorActive && LAYER_LEGEND[indicatorActive] && (
-                  <div style={{ position: 'absolute', insetInlineStart: 10, bottom: 10, zIndex: 600, pointerEvents: 'none' }}>
-                    <ColormapLegend
-                      cmap={(INDICATOR_LAYERS.find((l) => l.id === indicatorActive)?.cmap) ?? 'ndvi'}
-                      title={LAYER_LEGEND[indicatorActive].short}
-                      lowLabel={LAYER_LEGEND[indicatorActive].low}
-                      highLabel={LAYER_LEGEND[indicatorActive].high}
-                    />
-                  </div>
-                )}
+                {/* أسطورة المقياس العموديّة الموحَّدة (يمين الخريطة) — تظهر فقط عند
+                    تفعيل مؤشّر مُلوَّن (لا فوق صورة الحقل المجرّدة). نفس مكوّن ونمط
+                    FieldIndicatorMap، بنطاقات مطابقة لتصيير raster. */}
+                {indicatorActive && (() => {
+                  const [vmin, vmax, invert] = INDEX_DOMAIN[indicatorActive] ?? [-0.2, 0.9, false];
+                  return (
+                    <div style={{ position: 'absolute', top: '50%', insetInlineEnd: 12, transform: 'translateY(-50%)', zIndex: 600, pointerEvents: 'none' }}>
+                      <MapIndicatorLegend index={indicatorActive} vmin={vmin} vmax={vmax} invert={invert} />
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
