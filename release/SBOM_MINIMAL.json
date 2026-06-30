@@ -1095,7 +1095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3183d393a39a728ead6a6eba7096e776c6e0b8d4092e8570f3666a4f5eadcb51"
+          "content": "0d5cb9cad24c9c2c481cb60fbaae3a4411ffef531dd2ac6cc3fb52e1590c37b4"
         }
       ],
       "name": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
@@ -9575,7 +9575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28adc458dd572e7f8e3e4f12716ac51237d18a5b8331de3fe1a247a9d8003d03"
+          "content": "c8855540ea3f5f45dd06d470d757d8e5db327333a335b89d034ae28b5f6bbc83"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",
@@ -15429,6 +15429,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_engine_agronomic_risk_layers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "717293d15d87aaec7b664121ec19c45de529f6620b7c0c4289bc422fa858c20d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_engine_disease_window_layers.py",
       "type": "file"
     },
     {
