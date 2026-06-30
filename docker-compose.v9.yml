@@ -369,6 +369,9 @@ services:
         required}@sahool-postgres:5432/sahool}
       NATS_URL: nats://sahool-nats:4222
       WEATHER_HORIZON_HOURS: ${WEATHER_HORIZON_HOURS:-168}
+      # احتياط اتّجاه الرياح من MET Norway حين يغيب من Open-Meteo (بدل قيمة وهميّة).
+      METNO_WIND_FALLBACK_ENABLED: ${METNO_WIND_FALLBACK_ENABLED:-1}
+      METNO_USER_AGENT: ${METNO_USER_AGENT:-SAHOOL-AgriPlatform/1.0 (https://sahool.ye; ops@sahool.ye)}
     depends_on:
       sahool-postgres:
         condition: service_healthy

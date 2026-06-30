@@ -46,6 +46,9 @@ workloads:
     env:
       SERVICE_NAME: sahool-platform
       RUNTIME_ROLE_REQUIRED: "sahool_app"
+      # احتياط اتّجاه الرياح من MET Norway حين يغيب من Open-Meteo (لا قيمة وهميّة).
+      METNO_WIND_FALLBACK_ENABLED: "1"
+      METNO_USER_AGENT: "SAHOOL-AgriPlatform/1.0 (https://sahool.ye; ops@sahool.ye)"
     secretEnv:
       DATABASE_URL: databaseUrl
       JWT_PUBLIC_KEY: jwtPublicKey

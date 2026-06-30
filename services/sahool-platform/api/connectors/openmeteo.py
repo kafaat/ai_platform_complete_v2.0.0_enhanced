@@ -260,7 +260,7 @@ async def fetch_current(
     data = await _fetch_json(FORECAST_URL, params, timeout_s)
 
     c = data.get("current", {})
-    return CurrentWeather(
+    result = CurrentWeather(
         temperature_c=c.get("temperature_2m", 0),
         humidity_pct=c.get("relative_humidity_2m", 0),
         wind_speed_ms=c.get("wind_speed_10m", 0),
@@ -272,6 +272,17 @@ async def fetch_current(
         is_day=bool(c.get("is_day", 1)),
         timestamp=c.get("time", ""),
     )
+    # احتياط اتّجاه الرياح من MET Norway حين يغيب من Open-Meteo (لا قيمة وهميّة).
+    if result.wind_direction_deg is None:
+        try:
+            from api.connectors import metno_wind
+
+            deg = await metno_wind.fetch_wind_direction_deg(lat, lon)
+            if deg is not None:
+                result.wind_direction_deg = deg
+        except Exception:  # noqa: BLE001 — الاحتياط لا يكسر الطقس الحاليّ
+            pass
+    return result
 
 
 async def fetch_current_batch(

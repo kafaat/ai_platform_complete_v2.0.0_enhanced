@@ -1929,6 +1929,61 @@ def weather_self_test(response: Response):
     return result
 
 
+@router.get("/api/v1/weather/wind-source-selftest")
+async def weather_wind_source_selftest(
+    response: Response,
+    lat: float = Query(15.35, ge=-90, le=90),
+    lon: float = Query(44.21, ge=-180, le=180),
+    _: None = Depends(_require_service_token),
+):
+    """فحص **حيّ** (external I/O) لمصدرَي اتّجاه الرياح — يُشغَّل في بيئة النشر لا في CI.
+
+    يُمرّر عبر خطّ الأنابيب الفعليّ (Open-Meteo أساسيّ ⇐ MET Norway احتياطيّ) ويُجري
+    مسباراً مستقلّاً لـMET.no، فيؤكّد الاتّصال الحيّ ومصدر الاتّجاه فعليّاً (لا mock).
+    صادق: أيّ تعذّر يُبلَّغ صراحةً؛ لا يُخزَّن سرّ. الإحداثيّات الافتراضيّة: صنعاء/اليمن.
+    """
+    from api.connectors import metno_wind
+    from api.connectors.openmeteo import fetch_weather_tile_data
+
+    resolved: dict = {"wind_direction_10m_deg": None, "source": None, "error": None}
+    try:
+        sample = await fetch_weather_tile_data(lat, lon)
+        resolved["wind_direction_10m_deg"] = sample.get("wind_direction_10m_deg")
+        resolved["source"] = sample.get("wind_direction_source")
+    except Exception as exc:  # noqa: BLE001
+        resolved["error"] = type(exc).__name__
+
+    metno: dict = {
+        "enabled": metno_wind.is_enabled(),
+        "reachable": False,
+        "wind_direction_deg": None,
+        "error": None,
+    }
+    if metno["enabled"]:
+        try:
+            deg = await metno_wind.fetch_wind_direction_deg(lat, lon)
+            metno["reachable"] = True
+            metno["wind_direction_deg"] = deg
+        except Exception as exc:  # noqa: BLE001
+            metno["error"] = type(exc).__name__
+
+    has_direction = resolved["wind_direction_10m_deg"] is not None
+    status = "ok" if has_direction else "degraded"
+    if not has_direction:
+        response.status_code = 503
+    return {
+        "status": status,
+        "coordinates": {"lat": lat, "lon": lon},
+        "resolved": resolved,  # ما يستعمله النظام فعلاً + مصدره (open-meteo/met.no)
+        "open_meteo": {
+            "is_primary": True,
+            "provided_direction": resolved["source"] == "open-meteo",
+        },
+        "met_norway": metno,  # مسبار مستقلّ للاحتياطيّ
+        "note": "فحص حيّ يتطلّب وصولاً خارجيّاً (لا يُشغَّل في CI المعزول).",
+    }
+
+
 @router.get("/api/v1/weather/runtime-contract")
 def weather_runtime_contract(response: Response, _: None = Depends(_require_service_token)):
     """UI/API runtime contract check for MapHub weather integration.
