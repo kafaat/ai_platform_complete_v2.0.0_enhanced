@@ -897,9 +897,11 @@ export default function MapHub() {
                   {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
                       (Leaflet · MapLibre GL · المرحلة 2ب). */}
                   <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
-                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
-                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => setDrawTools((v) => !v)} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
+                    {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
+                        أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
+                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
+                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
                   </div>
                 </div>
 

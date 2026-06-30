@@ -2325,7 +2325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a901628af18c54e45c23d7bdac02106be8aa3e6e1b3f9191cfcec35592341cc3"
+          "content": "6afad009e24665f244b8c33537e5db7ce2a5a8a8c68c203eb51a70a48ae0fa06"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -15419,6 +15419,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_alerts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "21a4a875c97ec88175d1e576bea6c12f72994a50a89563ba9d76d07a3f654f22"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_alerts_notify.py",
       "type": "file"
     },
     {
