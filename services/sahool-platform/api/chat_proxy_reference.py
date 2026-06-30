@@ -24,9 +24,9 @@ import os
 import time
 from collections import defaultdict
 
-# المفتاح من البيئة فقط — لا يُكتب في الكود ولا يصل الواجهة
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
+# مفتاح المزوّد الموحَّد: محلّيّ (Ollama) ↔ خارجيّ (Anthropic) عبر AI_PROVIDER —
+# الوجهة/الترويسة/النموذج تُحلّ من البيئة (لا أسرار في الكود، لا تصل الواجهة).
+from api.ai_provider_config import resolve_ai_provider
 
 # rate-limiting بسيط في الذاكرة (للإنتاج: Redis)
 _RATE_LIMIT_PER_MIN = 10
@@ -44,11 +44,12 @@ def check_rate_limit(tenant_id: str) -> bool:
     return True
 
 
-def build_proxy_request(body: dict, farm_context: str) -> dict:
-    """يبني طلب Anthropic من جانب الخادم. سياق المزرعة يُحقن هنا
+def build_proxy_request(body: dict, farm_context: str, default_model: str) -> dict:
+    """يبني طلب Messages من جانب الخادم (شكل موحَّد لكلا المزوّدَين). النموذج
+    الافتراضيّ يأتي من تهيئة المزوّد (البيئة) لا من الكود؛ سياق المزرعة يُحقن هنا
     (لا يثق بما ترسله الواجهة كاملاً)."""
     return {
-        "model": body.get("model", "claude-sonnet-4-20250514"),
+        "model": body.get("model") or default_model,
         "max_tokens": min(body.get("max_tokens", 600), 1024),  # سقف وقائي
         "system": farm_context,  # من الخادم، لا من الواجهة
         "messages": body.get("messages", []),
@@ -94,8 +95,10 @@ try:
 
     @app.post("/api/chat")
     async def chat(request: Request):
-        if not ANTHROPIC_API_KEY:
-            raise HTTPException(503, "خدمة المحادثة غير مُهيّأة")
+        # المزوّد الحاليّ (محلّيّ/خارجيّ) يُحلّ من البيئة؛ fail-closed إن نقص مفتاح/نموذج.
+        cfg = resolve_ai_provider()
+        if not cfg.available:
+            raise HTTPException(503, cfg.reason_ar or "خدمة المحادثة غير مُهيّأة")
 
         # الهويّة من التوكن المُوقَّع حصراً (لا ترويسة/جسم قابلين للتزوير).
         tenant_id = _tenant_from_jwt(request)
@@ -106,18 +109,11 @@ try:
         body = await request.json()
         # سياق المزرعة يُجلب من قاعدة البيانات حسب tenant_id (مبسّط هنا)
         farm_context = body.get("system", "")
-        payload = build_proxy_request(body, farm_context)
+        payload = build_proxy_request(body, farm_context, cfg.model)
 
+        # نفس بنية Messages لكلا المزوّدَين؛ الوجهة والترويسة من cfg (الأسرار خادميّاً فقط).
         async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.post(
-                ANTHROPIC_URL,
-                headers={
-                    "x-api-key": ANTHROPIC_API_KEY,  # المفتاح هنا فقط، خادمياً
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json",
-                },
-                json=payload,
-            )
+            resp = await client.post(cfg.messages_endpoint, headers=cfg.headers, json=payload)
         return resp.json()
 
 except ImportError:

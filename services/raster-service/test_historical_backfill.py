@@ -29,7 +29,9 @@ def test_backfill_policy_exposes_switchable_presets():
     resp = client.get("/v1/imagery/backfill/policy")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["default_preset"] == "auto_12_months"
+    # الافتراضيّ الآن سنتان (نافذة المقارنة الموسميّة) بدل ١٢ شهراً.
+    assert data["default_preset"] == "last_2_years"
+    assert data["presets"]["last_2_years"]["months"] == 24
     assert data["presets"]["auto_12_months"]["months"] == 12
     assert data["presets"]["extended_3_years"]["months"] == 36
     assert data["presets"]["research_5_years"]["months"] == 60

@@ -11,7 +11,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Satellite, Layers, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows, Ruler,
-  Sprout, Leaf, Image as ImageIcon,
+  Sprout, Leaf, Image as ImageIcon, Play, Pause,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
@@ -281,6 +281,28 @@ export default function SatellitePage() {
     );
   }, [visibleDates]);
 
+  // ── مُشغّل زمنيّ للصور الجوّيّة السابقة (نمط أفضل المنصّات الزراعيّة) ───────────
+  // يتقدّم عبر التواريخ المتاحة (المُصفّاة من الغيوم) كأنيميشن، فيرى المزارع تطوّر
+  // الغطاء عبر الزمن. يحترم تفضيل تقليل الحركة، ويتوقّف تلقائيّاً عند نقص التواريخ.
+  const [playing, setPlaying] = useState(false);
+  useEffect(() => {
+    if (!playing || visibleDates.length < 2) return undefined;
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setPlaying(false);
+      return undefined;
+    }
+    const id = window.setInterval(() => {
+      setSelectedDate((prev) => {
+        const i = visibleDates.indexOf(prev);
+        // يتقدّم نحو الأحدث ويعود للأقدم عند النهاية (تكرار دوريّ).
+        return visibleDates[(i + 1) % visibleDates.length];
+      });
+    }, 1100);
+    return () => window.clearInterval(id);
+  }, [playing, visibleDates]);
+  // توقّف التشغيل إن لم يعد هناك ما يكفي من تواريخ.
+  useEffect(() => { if (visibleDates.length < 2 && playing) setPlaying(false); }, [visibleDates.length, playing]);
+
   // طبقة الخريطة: التاريخ المختار إن وُجِد، وإلّا "latest" (سلوك سابق).
   const mapDate = selectedDate || 'latest';
 
@@ -471,6 +493,18 @@ export default function SatellitePage() {
                     إخفاء الأيّام الغائمة
                   </label>
                 )}
+                {/* مُشغّل زمنيّ: تشغيل/إيقاف أنيميشن الصور الجوّيّة السابقة عبر التواريخ */}
+                <button
+                  type="button"
+                  onClick={() => setPlaying((v) => !v)}
+                  disabled={visibleDates.length < 2}
+                  title={visibleDates.length < 2 ? 'يحتاج تاريخين على الأقلّ' : (playing ? 'إيقاف العرض الزمنيّ' : 'تشغيل العرض الزمنيّ للصور السابقة')}
+                  aria-pressed={playing}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{ background: playing ? '#16a34a' : '#16a34a22', color: playing ? '#fff' : '#4ade80', border: '1px solid #16a34a44' }}>
+                  {playing ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                  {playing ? 'إيقاف' : 'تشغيل'}
+                </button>
                 <div className="flex gap-1 mr-auto">
                   {[14,30,60].map(d=>(
                     <button key={d} onClick={()=>setDays(d)}

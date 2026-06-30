@@ -238,12 +238,15 @@ class SearchRequest(BaseModel):
 class HistoricalBackfillPreset(StrEnum):
     """Preset windows for historical imagery backfill.
 
-    auto_12_months: default immediate history for newly-created fields.
-    extended_3_years: agronomic season comparison and recurring weak-zone analysis.
+    last_2_years: default on field creation — two seasons of history for trend +
+        season-over-season comparison (best-practice agronomic baseline window).
+    auto_12_months: lighter one-season bootstrap (legacy default; kept for opt-in).
+    extended_3_years: deeper season comparison and recurring weak-zone analysis.
     research_5_years: enterprise/research tier; heavier cost and storage.
     custom: explicit from_date/to_date or months.
     """
 
+    last_2_years = "last_2_years"
     auto_12_months = "auto_12_months"
     extended_3_years = "extended_3_years"
     research_5_years = "research_5_years"
@@ -251,6 +254,7 @@ class HistoricalBackfillPreset(StrEnum):
 
 
 _BACKFILL_PRESET_MONTHS = {
+    HistoricalBackfillPreset.last_2_years: 24,
     HistoricalBackfillPreset.auto_12_months: 12,
     HistoricalBackfillPreset.extended_3_years: 36,
     HistoricalBackfillPreset.research_5_years: 60,
@@ -266,7 +270,7 @@ class HistoricalBackfillRequest(BaseModel):
     """
 
     tenant_id: str | None = None
-    preset: HistoricalBackfillPreset = HistoricalBackfillPreset.auto_12_months
+    preset: HistoricalBackfillPreset = HistoricalBackfillPreset.last_2_years
     from_date: str | None = None
     to_date: str | None = None
     months: int | None = Field(default=None, ge=1, le=120)
@@ -288,14 +292,15 @@ class HistoricalBackfillRequest(BaseModel):
 
 class AutoBackfillPolicy(BaseModel):
     enabled: bool = True
-    default_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.auto_12_months
+    default_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.last_2_years
     extended_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.extended_3_years
     research_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.research_5_years
     default_indices: list[str] = ["ndvi", "ndmi", "savi", "evi"]
     max_cloud_pct: float = 30
     note: str = (
-        "Use auto_12_months on field creation; expose extended_3_years and "
-        "research_5_years as explicit user/plan toggles."
+        "Use last_2_years on field creation (two-season agronomic baseline); expose "
+        "auto_12_months (lighter), extended_3_years and research_5_years as explicit "
+        "user/plan toggles."
     )
 
 
