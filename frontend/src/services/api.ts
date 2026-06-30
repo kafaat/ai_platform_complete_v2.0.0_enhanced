@@ -3324,6 +3324,39 @@ export const fieldCdseTileUrl = (
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
 };
 
+// مُصغَّرة كاملة لصورة الحقل (مؤشّر/تاريخ) — لبطاقات شريط السجلّ الزمنيّ. نفس عقد
+// القصّ (poly/bbox) والمصادقة كبلاطة cdse-tiles، لكن صورة واحدة مباشرة (لا {z}/{x}/{y}).
+export const fieldCdseThumbnailUrl = (
+  fieldId: string,
+  index = 'ndvi',
+  date = 'latest',
+  tenantId?: string | null,
+  geometry?: { type?: string; coordinates?: unknown } | null,
+  bbox?: [number, number, number, number] | null,
+  size = 160,
+): string => {
+  const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
+  if (date && date !== 'latest') params.set('date', date);
+  if (tenantId) params.set('tid', tenantId);
+  params.set('size', String(size));
+  if (bbox && bbox.length === 4) {
+    params.set('bbox_w', String(bbox[0])); params.set('bbox_s', String(bbox[1]));
+    params.set('bbox_e', String(bbox[2])); params.set('bbox_n', String(bbox[3]));
+  }
+  const ring = (() => {
+    const g = geometry as { type?: string; coordinates?: number[][][] } | undefined;
+    if (!g || !g.coordinates) return null;
+    if (g.type === 'Polygon') return g.coordinates[0] ?? null;
+    if (g.type === 'MultiPolygon') return (g.coordinates as unknown as number[][][][])[0]?.[0] ?? null;
+    return null;
+  })();
+  if (ring && ring.length >= 3) {
+    params.set('poly', ring.map((c) => `${c[0]},${c[1]}`).join(';'));
+  }
+  appendTileAccessToken(params);
+  return `${rasterBaseUrl()}/v1/fields/${fieldId}/cdse-thumbnail.png?${params.toString()}`;
+};
+
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
 // صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج

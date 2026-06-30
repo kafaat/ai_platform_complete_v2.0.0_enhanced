@@ -16,6 +16,8 @@ const { mockGet, mockPost, mockClient } = vi.hoisted(() => {
       post,
       put: vi.fn(),
       patch: vi.fn(),
+      // defaults.baseURL يلزم لبُناة الروابط (rasterBaseUrl) — قيمة ثابتة للاختبار.
+      defaults: { baseURL: '/api/raster' },
       interceptors: {
         request: { use: vi.fn() },
         response: { use: vi.fn() },
@@ -39,10 +41,33 @@ import {
   segmentField,
   fetchImageryBackfillPolicy,
   runHistoricalImageryBackfill,
+  fieldCdseThumbnailUrl,
 } from './api';
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe('fieldCdseThumbnailUrl (مُصغَّرة السجلّ الزمنيّ)', () => {
+  it('يبني مسار cdse-thumbnail بتاريخ وحجم وعقد قصّ poly', () => {
+    const url = fieldCdseThumbnailUrl(
+      'fld_1', 'ndvi', '2026-02-23', 'tenantX',
+      { type: 'Polygon', coordinates: [[[44, 15], [44.1, 15], [44.1, 15.1], [44, 15]]] },
+      null, 160,
+    );
+    expect(url).toContain('/v1/fields/fld_1/cdse-thumbnail.png');
+    expect(url).toContain('index=ndvi');
+    expect(url).toContain('date=2026-02-23');
+    expect(url).toContain('size=160');
+    expect(url).toContain('poly=44%2C15');   // lng,lat (مُرمَّز)
+    expect(url).not.toContain('{z}');          // صورة واحدة لا بلاطة XYZ
+  });
+
+  it('latest ⇒ بلا معامل date (أحدث مشهد)', () => {
+    const url = fieldCdseThumbnailUrl('fld_1', 'ndvi', 'latest');
+    expect(url).not.toContain('date=');
+    expect(url).toContain('size=160');
+  });
 });
 
 describe('apiErrorMessage', () => {

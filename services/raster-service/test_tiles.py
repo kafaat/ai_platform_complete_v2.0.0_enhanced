@@ -284,6 +284,51 @@ def test_render_tile_honors_internal_mask_when_pixels_are_finite_zero():
     )
 
 
+def test_render_cog_thumbnail_png_produces_clipped_preview():
+    """مُصغَّرة السجلّ الزمنيّ: COG صالح ⇒ PNG بأبعاد ضمن max_px وبكسلات معتمة؛
+    خارج القناع (mask=0) ⇒ شفّاف. COG بلا بيانات صالحة ⇒ None (لا مُصغَّرة وهميّة)."""
+    import tempfile
+
+    import rasterio
+
+    tmpdir = tempfile.mkdtemp(prefix="thumb_test_")
+    cog_path = os.path.join(tmpdir, "thumb_cog.tif")
+    size = 200
+    data = np.full((size, size), 0.7, dtype="float32")  # NDVI صالح
+    mask = np.zeros((size, size), dtype="uint8")
+    mask[: size // 2, :] = 255  # نصف علوي صالح، سفلي مُقنَّع
+    transform = from_origin(ORIGIN_X, ORIGIN_Y, RES, RES)
+    profile = {
+        "driver": "GTiff",
+        "dtype": "float32",
+        "count": 1,
+        "height": size,
+        "width": size,
+        "crs": UTM,
+        "transform": transform,
+        "nodata": -9999.0,
+    }
+    with rasterio.open(cog_path, "w", **profile) as dst:
+        dst.write(data, 1)
+        dst.write_mask(mask)
+
+    png = tile_render.render_cog_thumbnail_png(cog_path, "ndvi", max_px=64)
+    assert png is not None, "render_cog_thumbnail_png أرجع None لـCOG صالح"
+    rgba = _decode_png_rgba(png)
+    h, w = rgba.shape[0], rgba.shape[1]
+    assert max(h, w) <= 64, f"أطول ضلع للمُصغَّرة يتجاوز max_px ({h}x{w})"
+    alpha = rgba[..., 3]
+    assert int((alpha > 0).sum()) > 0, "لا بكسلات معتمة في المُصغَّرة (النصف الصالح مفقود)"
+    assert int((alpha == 0).sum()) > 0, "القناع غير مطبَّق على المُصغَّرة (النصف المُقنَّع ظهر)"
+
+    # COG كلّه مُقنَّع (لا بيانات صالحة) ⇒ None (لا مُصغَّرة وهميّة).
+    empty_path = os.path.join(tmpdir, "empty_cog.tif")
+    empty = np.full((size, size), np.nan, dtype="float32")
+    with rasterio.open(empty_path, "w", **profile) as dst:
+        dst.write(empty, 1)
+    assert tile_render.render_cog_thumbnail_png(empty_path, "ndvi", max_px=64) is None
+
+
 if __name__ == "__main__":
     test_dynamic_tiles()
 

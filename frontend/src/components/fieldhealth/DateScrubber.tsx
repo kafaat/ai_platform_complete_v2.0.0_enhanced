@@ -20,6 +20,21 @@ export interface ScrubberPoint {
   date: string;
   value: number;
   cloud: number | null;
+  // رابط مُصغَّرة صورة الحقل لهذا التاريخ (cdse-thumbnail) — اختياريّ (يسقط لتدرّج لونيّ).
+  thumbUrl?: string | null;
+  // فرق المؤشّر عن التاريخ الأسبق (لشارة التغيّر) — اختياريّ.
+  delta?: number | null;
+}
+
+// تنسيق التاريخ بالعربيّة: "2026-02-23" → "23 فبراير". منتصف اليوم لتفادي إزاحة TZ.
+function formatArabicDate(iso: string): string {
+  try {
+    const d = new Date(`${iso.slice(0, 10)}T12:00:00`);
+    if (Number.isNaN(d.getTime())) return iso.slice(5);
+    return d.toLocaleDateString('ar', { day: 'numeric', month: 'long' });
+  } catch {
+    return iso.slice(5);
+  }
 }
 
 export interface DateScrubberProps {
@@ -106,12 +121,14 @@ export default function DateScrubber({
             </div>
           )}
 
-          {/* بلاطات التواريخ القابلة للنقر (تمرير أفقيّ) */}
-          <div className="flex gap-2" style={{ overflowX: 'auto', paddingBottom: 4 }}>
+          {/* بطاقات السجلّ الزمنيّ (تمرير أفقيّ): التاريخ أعلى · صورة الحقل · المتوسّط + التغيّر */}
+          <div className="flex gap-2.5" style={{ overflowX: 'auto', paddingBottom: 6 }}>
             {points.map((p, i) => {
               const c = valueColor(p.value);
               const isSel = !!p.date && p.date === selected;
               const cloudy = typeof p.cloud === 'number' && p.cloud > cloudThreshold;
+              const hasDelta = typeof p.delta === 'number' && Math.abs(p.delta as number) >= 0.005;
+              const up = (p.delta ?? 0) >= 0;
               return (
                 <button
                   key={p.date || i}
@@ -120,47 +137,75 @@ export default function DateScrubber({
                   title={p.date ? (cloudy ? `${p.date} · غائم (${p.cloud}%)` : p.date) : ''}
                   style={{
                     flexShrink: 0,
-                    width: 70,
+                    width: 96,
                     cursor: 'pointer',
                     textAlign: 'center',
-                    borderRadius: RADIUS.sm,
-                    padding: 3,
-                    background: isSel ? `${c}1a` : 'transparent',
-                    outline: isSel ? `2px solid ${c}` : '2px solid transparent',
-                    outlineOffset: 1,
-                    border: 'none',
+                    borderRadius: RADIUS.md,
+                    padding: '8px 6px',
+                    background: isSel ? T.card : T.card2,
+                    border: `2px solid ${isSel ? T.ink : 'transparent'}`,
+                    boxShadow: isSel ? '0 2px 8px rgba(0,0,0,.25)' : 'none',
                     position: 'relative',
                     transition: 'all .2s',
                   }}
                 >
+                  {/* التاريخ (أعلى البطاقة) */}
+                  <div style={{ fontSize: 11, fontWeight: 700, color: isSel ? T.ink : T.muted, marginBottom: 6 }}>
+                    {p.date ? formatArabicDate(p.date) : ''}
+                  </div>
+
+                  {/* صورة الحقل لهذا التاريخ (تسقط لتدرّج لونيّ عند تعذّرها) */}
                   <div
                     style={{
-                      height: 38,
+                      height: 56,
                       borderRadius: RADIUS.sm,
-                      marginBottom: 4,
+                      marginBottom: 6,
                       border: `1px solid ${isSel ? c : T.line}`,
-                      background: `linear-gradient(135deg,${c}44,${c}88,${c}44)`,
+                      background: `linear-gradient(135deg,${c}33,${c}77,${c}33)`,
                       position: 'relative',
+                      overflow: 'hidden',
                     }}
                   >
+                    {p.thumbUrl && (
+                      <img
+                        src={p.thumbUrl}
+                        alt=""
+                        loading="lazy"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                        style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                      />
+                    )}
                     {cloudy && (
                       <CloudSun
                         style={{ position: 'absolute', top: 3, insetInlineStart: 3, width: 12, height: 12, color: '#fde68a' }}
                       />
                     )}
-                    {isSel && (
-                      <motion.div
-                        layoutId="scrubber-marker"
+                  </div>
+
+                  {/* المتوسّط + شارة التغيّر */}
+                  <div className="flex items-center justify-center gap-1">
+                    <span style={{ fontSize: 15, fontWeight: 800, color: c }}>{p.value.toFixed(2)}</span>
+                    {hasDelta && (
+                      <span
                         style={{
-                          position: 'absolute', insetInlineEnd: 3, bottom: 3,
-                          width: 8, height: 8, borderRadius: '50%', background: '#fff',
-                          boxShadow: `0 0 0 2px ${c}`,
+                          fontSize: 9, fontWeight: 700, padding: '1px 4px', borderRadius: 4,
+                          color: up ? '#16a34a' : '#dc2626',
+                          background: up ? '#16a34a22' : '#dc262622',
                         }}
-                      />
+                      >
+                        {up ? '+' : ''}{(p.delta as number).toFixed(2)}
+                      </span>
                     )}
                   </div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: c }}>{p.value.toFixed(2)}</div>
-                  <div style={{ fontSize: 9, color: isSel ? T.ink : T.faint }}>{p.date?.slice(5) || ''}</div>
+                  {isSel && (
+                    <motion.div
+                      layoutId="scrubber-marker"
+                      style={{
+                        position: 'absolute', insetInlineEnd: 6, top: 6,
+                        width: 7, height: 7, borderRadius: '50%', background: c,
+                      }}
+                    />
+                  )}
                 </button>
               );
             })}

@@ -23,7 +23,7 @@ import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { geomToPolygon } from '../lib/geo';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { apiErrorMessage } from '../services/api';
+import { apiErrorMessage, fieldCdseThumbnailUrl } from '../services/api';
 import { useIndicatorsCatalog } from '../hooks/useApi';
 import type { CatalogIndicator } from '../hooks/useApi';
 import { LayerSwitcher } from '../components/ds';
@@ -272,9 +272,25 @@ export default function SatellitePage() {
   // الشريط الزمني يعرض المتوسّطات الحقيقيّة من raster-service عند توفّرها،
   // وإلّا يسقط إلى سلسلة vegetation-service. لا بيانات تركيبيّة.
   // cloud: نسبة الغيوم لكلّ تاريخ (raster فقط) — null في مصدر vegetation البديل.
-  const stripPoints: ScrubberPoint[] = Array.isArray(rasterPoints) && rasterPoints.length
-    ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean, cloud: p.cloudy_pct ?? null }))
-    : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null }));
+  // نقاط الشريط مُثراة بصورة مُصغَّرة لكلّ تاريخ (cdse-thumbnail) وبفرق المؤشّر عن
+  // التاريخ الأسبق — لبطاقات السجلّ الزمنيّ (تاريخ · صورة · متوسّط + تغيّر).
+  const stripPoints: ScrubberPoint[] = useMemo(() => {
+    const base: ScrubberPoint[] = (Array.isArray(rasterPoints) && rasterPoints.length)
+      ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean, cloud: p.cloudy_pct ?? null }))
+      : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null }));
+    // فرق المؤشّر عن التاريخ الأسبق (ترتيب زمنيّ تصاعديّ).
+    const chron = base.filter((p) => p.date).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
+    const deltaByDate = new Map<string, number>();
+    for (let i = 1; i < chron.length; i++) deltaByDate.set(chron[i].date, chron[i].value - chron[i - 1].value);
+    const geom = (field?.geometry ?? null) as { type?: string; coordinates?: unknown } | null;
+    return base.map((p) => ({
+      ...p,
+      delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
+      thumbUrl: fieldId && p.date
+        ? fieldCdseThumbnailUrl(fieldId, gridIndex, p.date.slice(0, 10), null, geom, null, 160)
+        : null,
+    }));
+  }, [rasterPoints, ts, fieldId, gridIndex, field?.geometry]);
 
   // هل يوفّر المصدر نسبة غيوم؟ (raster نعم، vegetation لا) — يضبط إتاحة المُبدِّل.
   const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');

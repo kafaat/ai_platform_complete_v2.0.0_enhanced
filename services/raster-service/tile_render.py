@@ -264,6 +264,71 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
         return None
 
 
+def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> bytes | None:
+    """يصيّر **مُصغَّرة** كاملة للحقل من COG مقصوص (لا بلاطة XYZ) — لشريط السجلّ الزمنيّ.
+
+    يعيد إسقاط امتداد الـCOG كلّه (وهو أصلاً مقصوص على bbox الحقل + مُقنَّع بالمضلّع)
+    إلى صورة صغيرة (أطول ضلع = ``max_px``) محافظاً على نسبة الأبعاد، ثمّ يلوّن بتدرّج
+    المؤشّر ويرمّز PNG. خارج المضلّع (NaN) → شفّاف، فتظهر صورة شكل الحقل وحده.
+
+    None عند: غياب rasterio / ملفّ مفقود / لا بيانات صالحة (مشهد مُقنَّع كلّيّاً).
+    """
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.transform import from_bounds
+        from rasterio.warp import Resampling, reproject, transform_bounds
+    except Exception:  # noqa: BLE001 — rasterio غير متوفّر → لا مُصغَّرة
+        return None
+
+    try:
+        with rasterio.open(cog_path) as src:
+            src_nodata = src.nodata
+            if src_nodata is not None:
+                try:
+                    if math.isnan(float(src_nodata)):
+                        src_nodata = None
+                except Exception:  # noqa: BLE001
+                    pass
+            # امتداد الـCOG في 3857 (مصدره غالباً UTM) — هو امتداد الحقل المقصوص.
+            minx, miny, maxx, maxy = transform_bounds(
+                "EPSG:4326" if not src.crs else src.crs, "EPSG:3857", *src.bounds
+            )
+            span_x = max(1e-6, maxx - minx)
+            span_y = max(1e-6, maxy - miny)
+            # حجم الخرج بنسبة أبعاد الحقل، أطول ضلع = max_px (الأصغر ≥ 16px).
+            if span_x >= span_y:
+                out_w = max_px
+                out_h = max(16, int(round(max_px * span_y / span_x)))
+            else:
+                out_h = max_px
+                out_w = max(16, int(round(max_px * span_x / span_y)))
+            dst_transform = from_bounds(minx, miny, maxx, maxy, out_w, out_h)
+            dst = np.full((out_h, out_w), np.nan, dtype="float32")
+            reproject(
+                source=rasterio.band(src, 1),
+                destination=dst,
+                src_transform=src.transform,
+                src_crs=src.crs,
+                dst_transform=dst_transform,
+                dst_crs="EPSG:3857",
+                resampling=Resampling.nearest,
+                src_nodata=src_nodata,
+                dst_nodata=np.nan,
+            )
+    except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → لا مُصغَّرة
+        return None
+
+    if not np.isfinite(dst).any():
+        return None  # لا بيانات صالحة (غيوم/خارج المضلّع) → لا مُصغَّرة
+
+    rgba = colorize(dst, index)
+    try:
+        return encode_png_rgba(rgba)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
     """يطبّق قناع مضلّع **بكسليّ دقيق** على COG في مكانه: خارج المضلّع → NaN.
 
