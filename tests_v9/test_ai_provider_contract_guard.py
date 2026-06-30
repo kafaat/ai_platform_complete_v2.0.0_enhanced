@@ -98,3 +98,19 @@ def test_secret_env_names_are_key_suffixed():
     assert CONTRACT.ENV_OPENROUTER_API_KEY == "OPENROUTER_API_KEY"
     assert CONTRACT.ENV_ANTHROPIC_API_KEY == "ANTHROPIC_API_KEY"
     assert all(name.endswith("_API_KEY") for name in CONTRACT.SECRET_ENV_NAMES)
+
+
+def test_default_model_catalog_no_drift():
+    """كتالوج النماذج الافتراضيّ متطابق بين العقد ونسختَي الخدمة (يُغلِق خطر انحراف
+    كتالوج النماذج بين الواجهة والـruntime)."""
+    assert GEN._DEFAULT_CATALOG == CONTRACT.DEFAULT_CATALOG
+    assert CFG._DEFAULT_CATALOG == CONTRACT.DEFAULT_CATALOG
+
+
+def test_external_providers_no_drift():
+    """مجموعة المزوّدات الخارجيّة (الخاضعة لسياسة مشاركة البيانات) متطابقة."""
+    assert tuple(GEN._EXTERNAL_PROVIDERS) == CONTRACT.EXTERNAL_PROVIDERS
+    assert set(CONTRACT.EXTERNAL_PROVIDERS) == {"anthropic", "openrouter"}
+    # المحلّيّ ليس خارجيّاً (لا تُطبَّق عليه قيود المشاركة).
+    assert "local" not in CONTRACT.EXTERNAL_PROVIDERS
+    assert GEN.provider_is_external("anthropic") and not GEN.provider_is_external("local")

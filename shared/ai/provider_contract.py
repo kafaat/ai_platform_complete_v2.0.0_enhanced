@@ -35,6 +35,10 @@ PROVIDER_ALIASES: dict[str, str] = {
 CANONICAL_PROVIDERS: tuple[str, ...] = ("local", "anthropic", "openrouter")
 DEFAULT_PROVIDER = "local"
 
+# المزوّدات «الخارجيّة» (سحابيّة) — تُطبَّق عليها سياسة مشاركة البيانات/التنقيح قبل
+# إرسال أيّ سياق حقل. ``local`` (Ollama داخليّ) ليس خارجيّاً.
+EXTERNAL_PROVIDERS: tuple[str, ...] = ("anthropic", "openrouter")
+
 
 def normalize_provider(raw: str | None) -> str:
     """يطبّع اسم المزوّد إلى معرّف قانونيّ. fail-safe ⇒ ``local``.
@@ -87,3 +91,20 @@ DATA_SHARING_LEVELS: tuple[str, ...] = (
 )
 # الأكثر تحفّظاً افتراضيّاً: لا تُشارَك بيانات الحقل خارجيّاً حتى يختار المستأجِر صراحةً.
 DEFAULT_DATA_SHARING_LEVEL = DATA_SHARING_LOCAL_ONLY
+
+# ──────────────────────────────────────────────────────────────────────────
+# كتالوج النماذج الافتراضيّ لكلّ مزوّد حين لا يُضبَط ``AI_MODELS`` في البيئة.
+# هذا هو **المصدر القانونيّ الواحد** للكتالوج الافتراضيّ — يفرض الحارس تطابُقه مع
+# نسختَي الخدمة (يُغلِق خطر انحراف كتالوج النماذج بين الواجهة والـruntime).
+# ──────────────────────────────────────────────────────────────────────────
+DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
+    "openrouter": [
+        ("deepseek/deepseek-chat", "DeepSeek"),
+        ("anthropic/claude-sonnet-4.6", "Claude Sonnet"),
+        ("google/gemini-3-pro", "Gemini 3 Pro"),
+    ],
+    "local": [
+        ("qwen3", "Qwen3 (محلّيّ)"),
+        ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
+    ],
+}

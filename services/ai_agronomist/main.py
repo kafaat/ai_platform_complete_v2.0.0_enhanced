@@ -14,11 +14,12 @@ from .decision_contracts import (
     assert_no_decision_keys,
     compose_confidence,
 )
-from .tenant_policies import TenantPolicyStore
+from .tenant_policies import build_store_from_env
 
-# مخزن سياسات المستأجِر (يُغذّى تشغيليّاً) — يحكم السماح بالتوليد لكلّ مستأجِر.
-# الافتراضيّ فارغ ⇒ السماح يتبع الراية العامّة فقط (المنع الصريح للمستأجِر يُحترَم).
-TENANT_POLICY = TenantPolicyStore()
+# مخزن سياسات المستأجِر — يحكم السماح بالتوليد ومستوى مشاركة البيانات لكلّ مستأجِر.
+# يُدِيم عبر ملفّ JSON إن ضُبِط ``TENANT_AI_POLICY_FILE`` (compose/k8s mount)، وإلّا
+# محلّيّ-العمليّة (السماح يتبع الراية العامّة فقط؛ المنع الصريح للمستأجِر يُحترَم).
+TENANT_POLICY = build_store_from_env()
 
 VERSION = "2026.2-e2e-runtime"
 RAG_BASE_URL = os.getenv("RAG_BASE_URL", "http://sahool-rag-retrieval:8000")
@@ -57,6 +58,14 @@ async def _get_json(client: httpx.AsyncClient, url: str) -> tuple[bool, Any]:
 @app.get("/healthz")
 async def healthz() -> dict[str, Any]:
     return {"status": "ok", "service": "ai-agronomist", "version": VERSION}
+
+
+@app.get("/healthz/ai-provider")
+async def ai_provider_snapshot() -> dict[str, Any]:
+    """لقطة مزوّد الذكاء الرصديّة (بلا أسرار) — يستهلكها الرصد/الواجهة كمصدر حالة
+    واحد (راية التوليد، المزوّد وصنفه، توافره، الكتالوج، أوضاع مشاركة البيانات).
+    يُغلِق توصية تدقيق V51 (Provider Snapshot)."""
+    return ai_generation.public_provider_snapshot()
 
 
 @app.get("/metrics")
@@ -536,7 +545,12 @@ async def _build_evidence_response(
     generation_provider: str | None = None
     if endpoint_mode == "chat" and _generation_allowed(tenant_id):
         context_text = _grounding_context_text(annotations)
-        gen = await ai_generation.generate(req.question, context_text, req.model)
+        gen = await ai_generation.generate(
+            req.question,
+            context_text,
+            req.model,
+            policy=TENANT_POLICY.get_policy(tenant_id),
+        )
         if gen is not None:
             answer_ar = gen.text
             mode = "generated_grounded"

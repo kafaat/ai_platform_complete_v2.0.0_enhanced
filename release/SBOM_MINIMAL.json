@@ -5275,7 +5275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "897ac3f5aaf4be79aaee387e8624fafca8b1be6a44047c9741140f31b937532e"
+          "content": "0f6b513de0ebad9e745bd89ca86ce6226c8f085735b431ee1e9a5739595f0cad"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -5385,7 +5385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "48effa1e630d651185144a47ff7168929c33e795259c02099dd2ee1b81ad349b"
+          "content": "5244dac11505eae7c45fc9dfa6d16f4002c3f52ff95a473e35be110146900de9"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -5485,7 +5485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75c85ae767770afe2e4d260d6dbc2cb1721caa725e5eadfa0e8856d1b872013b"
+          "content": "010ffbe319d540bc6e08f3d5dc859f31277e4e305c4606f087eb60fd4196a062"
         }
       ],
       "name": "services/ai_agronomist/tenant_policies.py",
@@ -17165,7 +17165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a0da59bab85dedc76d4c1113687dfc8c489b723ee88e89a41ac0d5fd086f56f"
+          "content": "c663646c91a3390bf25e4351a23a06c3c28ee91ade4bff7a40de3d414b2dd8e6"
         }
       ],
       "name": "shared/ai/provider_contract.py",

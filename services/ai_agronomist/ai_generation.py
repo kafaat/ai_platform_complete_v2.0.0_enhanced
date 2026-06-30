@@ -19,7 +19,9 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -29,6 +31,24 @@ ANTHROPIC_VERSION = "2023-06-01"
 DEFAULT_OLLAMA_BASE_URL = "http://ollama:11434"
 DEFAULT_ANTHROPIC_BASE_URL = "https://api.anthropic.com"
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+
+# المزوّدات الخارجيّة (سحابيّة) — تخضع لسياسة مشاركة البيانات/التنقيح.
+# (مرآة ``shared/ai/provider_contract.EXTERNAL_PROVIDERS`` — يفرض التطابقَ الحارس.)
+_EXTERNAL_PROVIDERS = ("anthropic", "openrouter")
+
+# كتالوج النماذج الافتراضيّ — مرآة ``shared/ai/provider_contract.DEFAULT_CATALOG``
+# و``ai_provider_config._DEFAULT_CATALOG`` (يفرض التطابقَ حارس عقد المزوّد).
+_DEFAULT_CATALOG: dict[str, list[tuple[str, str]]] = {
+    "openrouter": [
+        ("deepseek/deepseek-chat", "DeepSeek"),
+        ("anthropic/claude-sonnet-4.6", "Claude Sonnet"),
+        ("google/gemini-3-pro", "Gemini 3 Pro"),
+    ],
+    "local": [
+        ("qwen3", "Qwen3 (محلّيّ)"),
+        ("qwen3:32b", "Qwen3 32B (محلّيّ)"),
+    ],
+}
 
 # نظام تأريض صارم: يُجيب من الأدلّة المُمرَّرة فقط، لا قرارات تنفيذيّة، لا تلفيق.
 _GROUNDED_SYSTEM_AR = (
@@ -66,6 +86,97 @@ def _normalize_provider(raw: str | None) -> str:
     if p in {"openrouter", "router", "or"}:
         return "openrouter"
     return "local"
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# إنفاذ سياسة مشاركة البيانات (V52) — قبل إرسال أيّ سياق حقل لمزوّد خارجيّ.
+# ──────────────────────────────────────────────────────────────────────────
+def _policy_mode(policy: dict[str, Any] | None) -> str:
+    """مستوى مشاركة البيانات من سياسة المستأجِر (المفتاح القانونيّ ``data_sharing_level``
+    مع توافق رجعيّ لـ``data_sharing``). الافتراضيّ المتحفّظ ``local_only``."""
+    p = policy or {}
+    raw = p.get("data_sharing_level") or p.get("data_sharing") or "local_only"
+    mode = str(raw).strip().lower()
+    return mode if mode in {"local_only", "redacted_external", "full_external"} else "local_only"
+
+
+def provider_is_external(provider: str | None) -> bool:
+    return (provider or "").strip().lower() in _EXTERNAL_PROVIDERS
+
+
+def redact_context_for_external(context_text: str) -> str:
+    """يُقلّل معرّفات المستأجِر/الحقل قبل إرسال الأدلّة لنموذج سحابيّ.
+
+    طبقة أمان إضافيّة (لا بديل عن السياسة) للمستأجرين الذين يسمحون صراحةً بالتوليد
+    الخارجيّ المُنقَّح: يُخفي البريد/المعرّفات الكونيّة/الأرقام الطويلة/الإحداثيّات،
+    ويحدّ طول الإرسال."""
+    text = context_text or ""
+    text = re.sub(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", "[redacted-email]", text)
+    text = re.sub(
+        r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
+        "[redacted-id]",
+        text,
+    )
+    text = re.sub(r"(?<!\d)(?:\+?\d[\d .()/-]{7,}\d)(?!\d)", "[redacted-number]", text)
+    text = re.sub(
+        r"(?<!\d)([-+]?\d{1,2}\.\d{4,})\s*,\s*([-+]?\d{1,3}\.\d{4,})(?!\d)",
+        "[redacted-coordinates]",
+        text,
+    )
+    return text[:6000]
+
+
+def prepare_context_for_provider(
+    cfg: GenConfig, context_text: str, policy: dict[str, Any] | None
+) -> str | None:
+    """يُنفِّذ سياسة مشاركة البيانات على السياق قبل إرساله للمزوّد.
+
+    - مزوّد محلّيّ ⇒ يمرّ السياق كما هو (لا يغادر الحدّ).
+    - مزوّد خارجيّ + ``local_only`` ⇒ ``None`` (يُحجَب التوليد الخارجيّ ⇒ سقوط آمن).
+    - ``redacted_external`` ⇒ سياق مُنقَّح. ``full_external`` ⇒ سياق كامل."""
+    if not provider_is_external(cfg.provider):
+        return context_text
+    mode = _policy_mode(policy)
+    if mode == "redacted_external":
+        return redact_context_for_external(context_text)
+    if mode == "full_external":
+        return context_text
+    return None  # local_only (أو مجهول) ⇒ لا تُرسَل بيانات الحقل خارجيّاً
+
+
+def public_model_catalog(provider: str | None = None) -> list[dict[str, str]]:
+    """قائمة النماذج المتاحة (للقطة المزوّد/الواجهة) — بلا أسرار."""
+    prov = _normalize_provider(provider or os.getenv("AI_PROVIDER"))
+    raw = (os.getenv("AI_MODELS") or "").strip()
+    items: list[dict[str, str]] = []
+    if raw:
+        for entry in raw.split(","):
+            mid, _, label = entry.partition("|")
+            mid = mid.strip()
+            if mid:
+                items.append({"id": mid, "label": label.strip() or mid})
+    if not items:
+        items = [{"id": mid, "label": label} for mid, label in _DEFAULT_CATALOG.get(prov, [])]
+    return items
+
+
+def public_provider_snapshot(requested_model: str | None = None) -> dict[str, Any]:
+    """إسقاط رصديّ آمن (بلا أسرار) لحالة المزوّد — لنقطة اللقطة/الإدارة. يُغلِق توصية
+    تدقيق V51 (لقطة مزوّد واحدة يستهلكها الـruntime/الواجهة)."""
+    provider = _normalize_provider(os.getenv("AI_PROVIDER"))
+    cfg = resolve_generation(requested_model)
+    return {
+        "generation_enabled": generation_enabled(),
+        "provider": provider,
+        "provider_class": "external" if provider_is_external(provider) else "local",
+        "available": cfg is not None,
+        "model": cfg.model if cfg else None,
+        "wire_format": cfg.wire_format
+        if cfg
+        else ("openai_chat" if provider == "openrouter" else "messages"),
+        "models": public_model_catalog(provider),
+        "data_sharing_modes": ["local_only", "redacted_external", "full_external"],
+    }
 
 
 def _catalog_ids() -> set[str]:
@@ -190,16 +301,28 @@ async def generate(
     context_text: str,
     requested_model: str | None = None,
     *,
+    policy: dict[str, Any] | None = None,
     max_tokens: int = 600,
     timeout: float = 20.0,
 ) -> GenResult | None:
     """يولّد جواباً مؤرَّضاً أو يعيد ``None`` (للسقوط الآمن إلى الأدلّة). لا يرفع
-    استثناءً للمستدعي مهما فشل المزوّد."""
+    استثناءً للمستدعي مهما فشل المزوّد.
+
+    يُنفِّذ سياسة مشاركة بيانات المستأجِر (``policy``) قبل الإرسال: مزوّد خارجيّ مع
+    ``local_only`` يُحجَب (⇒ ``None``)، ``redacted_external`` يُرسَل سياقاً مُنقَّحاً."""
     if not generation_enabled():
         return None
     cfg = resolve_generation(requested_model)
     if cfg is None:
         return None
+    prepared = prepare_context_for_provider(cfg, context_text, policy)
+    if prepared is None:
+        logger.info(
+            "حُجِب التوليد الخارجيّ (%s) بسياسة مشاركة بيانات المستأجِر — سقوط إلى الأدلّة.",
+            cfg.provider,
+        )
+        return None
+    context_text = prepared
     payload = _build_payload(cfg, question, context_text, max_tokens)
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:

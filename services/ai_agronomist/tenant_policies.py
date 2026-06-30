@@ -11,8 +11,11 @@ V51 كخطر P0. الآن المخزن **قابل للإدامة**: يُحقَن
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger("ai_agronomist.tenant_policies")
@@ -111,3 +114,48 @@ class TenantPolicyStore:
     def data_sharing_level(self, tenant_id) -> str:
         """مستوى مشاركة البيانات الفعّال للمستأجِر (قانونيّ دائماً)."""
         return normalize_policy(self.get_policy(tenant_id))["data_sharing_level"]
+
+
+def _json_file_loader_saver(path: Path):
+    """يبني (loader, saver) مدعومَين بملفّ JSON ذرّيّ الكتابة.
+
+    صيغة الملفّ: ``{"tenant-id": {policy...}, ...}``. يُستخدَم لإدامة سياسة الذكاء في
+    ``ai_agronomist`` (خدمة بلا اتّصال قاعدة) عبر تركيب وحدة تخزين في compose/k8s —
+    بديل خفيف عن جدول ``tenant_ai_policies`` (v124) المخصّص للحوكمة على مستوى المنصّة."""
+
+    def _read_all() -> dict[str, Any]:
+        if not path.exists():
+            return {}
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError) as exc:  # ملفّ تالف/غير مقروء ⇒ لا يُسقِط الإقلاع.
+            logger.warning("tenant policy file unreadable (%s): %s", path, exc)
+            return {}
+        return data if isinstance(data, dict) else {}
+
+    def loader(tenant_id: str) -> dict[str, Any] | None:
+        record = _read_all().get(str(tenant_id))
+        return record if isinstance(record, dict) else None
+
+    def saver(tenant_id: str, policy: dict[str, Any]) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = _read_all()
+        data[str(tenant_id)] = policy
+        tmp = path.with_suffix(path.suffix + ".tmp")
+        tmp.write_text(
+            json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        os.replace(tmp, path)  # استبدال ذرّيّ — لا يترك ملفّاً نصفيّاً.
+
+    return loader, saver
+
+
+def build_store_from_env() -> TenantPolicyStore:
+    """مصنع المخزن التشغيليّ: يُدِيم عبر ملفّ JSON إن ضُبِط ``TENANT_AI_POLICY_FILE``،
+    وإلّا يبقى محلّيّ-العمليّة (سلوك ما قبل V52). يُغلِق فجوة «الإدامة في الـruntime»."""
+    raw_path = os.getenv("TENANT_AI_POLICY_FILE", "").strip()
+    if not raw_path:
+        return TenantPolicyStore()
+    loader, saver = _json_file_loader_saver(Path(raw_path))
+    return TenantPolicyStore(loader=loader, saver=saver)
