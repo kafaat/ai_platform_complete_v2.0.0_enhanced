@@ -79,6 +79,17 @@ export function weatherTileSvg(
   const gap = Math.max(13, Math.min(32, 23 - speed * 0.10));
   const duration = Math.max(1.0, 3.8 - speed / 18).toFixed(2);
   const phase = safeMod(coords.x * 17 + coords.y * 31 + coords.z * 7, 97);
+  // لون الجسيمات مشتقّ من لون قيمة الطبقة (بارد→أزرق، دافئ→أحمر لطبقة الرياح حسب السرعة)
+  // ممزوجاً مع الأبيض لرفع الإضاءة/التباين فوق صور الأقمار. fallback محايد فاتح إذا value=null.
+  const particleHex = value == null ? '#dbeafe' : colorAt(value, cfg, 0, palette);
+  const pm = /^#([0-9a-f]{6})$/i.exec(particleHex);
+  const pInt = pm ? parseInt(pm[1], 16) : 0xdbeafe;
+  // ~62% لون الطبقة + 38% أبيض: يبقى ملوّناً مع إضاءة كافية للوضوح فوق صور الأقمار.
+  const whiteMix = 0.38;
+  const pr = Math.round(((pInt >> 16) & 255) * (1 - whiteMix) + 255 * whiteMix);
+  const pg = Math.round(((pInt >> 8) & 255) * (1 - whiteMix) + 255 * whiteMix);
+  const pb = Math.round((pInt & 255) * (1 - whiteMix) + 255 * whiteMix);
+  const particleRgb = `${pr},${pg},${pb}`;
   const windLines: string[] = [];
   // densityProfile: low/medium (الجوال) أقل صفوف/أعمدة بوضوح لتخفيف الرسم؛ high أكثف.
   const densityProfile = windDensity === 'low'
@@ -100,7 +111,14 @@ export function weatherTileSvg(
       const x = baseX + jitterX;
       const yy = y + jitterY;
       const d = `M ${x.toFixed(1)} ${yy.toFixed(1)} C ${(x + length * 0.30).toFixed(1)} ${(yy + curve * 0.16).toFixed(1)}, ${(x + length * 0.68).toFixed(1)} ${(yy + 9 + curve * 0.12).toFixed(1)}, ${(x + length).toFixed(1)} ${(yy - 2).toFixed(1)}`;
-      windLines.push(`<path d="${d}" fill="none" stroke="rgba(255,255,255,${alpha.toFixed(2)})" stroke-width="${strokeW.toFixed(2)}" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-dashoffset="${safeMod(r * 37 + c * 19 + phase, 80)}"><animate attributeName="stroke-dashoffset" from="${(80 + speed).toFixed(1)}" to="0" dur="${duration}s" repeatCount="indefinite" /></path>`);
+      const dashOff = safeMod(r * 37 + c * 19 + phase, 80);
+      const anim = `<animate attributeName="stroke-dashoffset" from="${(80 + speed).toFixed(1)}" to="0" dur="${duration}s" repeatCount="indefinite" />`;
+      // الجسم: لون الطبقة الممزوج بالأبيض مع تباين شفافيّة لكلّ خطّ كما كان.
+      windLines.push(`<path d="${d}" fill="none" stroke="rgba(${particleRgb},${alpha.toFixed(2)})" stroke-width="${strokeW.toFixed(2)}" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-dashoffset="${dashOff}">${anim}</path>`);
+      // نواة بيضاء رفيعة على ثلث الخطوط فقط (تكلفة منخفضة) لإبراز التدفّق فوق الصور الداكنة.
+      if ((r + c) % 3 === 0) {
+        windLines.push(`<path d="${d}" fill="none" stroke="rgba(255,255,255,${(alpha * 0.55).toFixed(2)})" stroke-width="${(strokeW * 0.42).toFixed(2)}" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" stroke-dashoffset="${dashOff}">${anim}</path>`);
+      }
     }
   }
   const shown = value == null ? '—' : (isOperationLayer(layer) ? `${Math.round(Number(value) * 100)}` : Number(value).toFixed(layer === 'soil_moisture' ? 2 : 1));
