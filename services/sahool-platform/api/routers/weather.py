@@ -2327,6 +2327,63 @@ def weather_tile_cache_prune(
     return result
 
 
+# وحدات طبقات الطقس (مصدر واحد) — يُستعمَل في ردّ البلاطة الناجح والمحايد.
+_WEATHER_TILE_UNITS = {
+    "temperature": "°C",
+    "wind": "km/h",
+    "precipitation": "mm",
+    "et0": "mm",
+    "vpd": "kPa",
+    "soil_temperature": "°C",
+    "soil_temperature_10_40cm": "°C",
+    "spraying_drift_risk": "0..1",
+    "soil_trafficability": "0..1",
+    "heat_stress": "0..1",
+    "disease_late_blight": "0..1",
+    "disease_downy_mildew": "0..1",
+    "disease_stripe_rust": "0..1",
+    "soil_moisture": "m³/m³",
+    "pressure": "hPa",
+    "clouds": "%",
+}
+
+
+def _unavailable_tile_response(
+    *,
+    z: int,
+    x: int,
+    y: int,
+    lat: float,
+    lon: float,
+    layer: str,
+    time: str,
+    model: str,
+    upstream_error: str,
+) -> dict:
+    """بلاطة طقس محايدة (200) عند تعذّر Open-Meteo بلا كاش — بدل 502 الذي يُغرِق
+    السجلّ ويُظهِر بلاطات مكسورة. الواجهة تُصيّر value=null كبلاطة محايدة («—» + لون
+    فاتح). نُبقي cache_state=unavailable وupstream_error للرصد، وavailable=false صريحة.
+    """
+    return {
+        "tile": {"z": z, "x": x, "y": y},
+        "center": {"lat": lat, "lon": lon},
+        "layer": layer,
+        "value": None,
+        "unit": _WEATHER_TILE_UNITS.get(layer, ""),
+        "sample": None,
+        "time": time,
+        "model": model,
+        "source": "open-meteo",
+        "rendered_by": "sahool-client-gridlayer",
+        "cache_ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
+        "cache_state": "unavailable",
+        "cache_age_s": None,
+        "upstream_error": upstream_error,
+        "interpolation": None,
+        "available": False,
+    }
+
+
 @router.get(
     "/api/v1/weather/tile-data/{z}/{x}/{y}", dependencies=[Depends(_rate_dependency("tile-data"))]
 )
@@ -2395,7 +2452,25 @@ async def weather_tile_data(
                 # إن وجدت عينة stale، نعيدها بدل كسر الخريطة أثناء انقطاع Open‑Meteo.
                 stale_sample, stale_state, stale_age = await _cache_get_async(key)
                 if stale_sample is None or stale_state not in {"stale", "fresh"}:
-                    raise HTTPException(status_code=502, detail=f"Open-Meteo tile-data: {e}") from e
+                    # لا كاش ولا منبع ⇒ بلاطة محايدة (200) بدل 502: لا تكسر الخريطة
+                    # ولا تُغرِق السجلّ بـBad Gateway لكلّ بلاطة عند انقطاع Open‑Meteo.
+                    _record_weather_observation(
+                        "tile-data",
+                        cache_state="unavailable",
+                        upstream_error=upstream_error,
+                        layer=layer,
+                    )
+                    return _unavailable_tile_response(
+                        z=z,
+                        x=x,
+                        y=y,
+                        lat=lat,
+                        lon=lon,
+                        layer=layer,
+                        time=time,
+                        model=model,
+                        upstream_error=upstream_error,
+                    )
                 sample = stale_sample
                 cache_state = "stale_fallback"
                 cache_age_s = stale_age
@@ -2408,24 +2483,7 @@ async def weather_tile_data(
         "center": {"lat": lat, "lon": lon},
         "layer": layer,
         "value": _safe_layer_value(layer, sample),
-        "unit": {
-            "temperature": "°C",
-            "wind": "km/h",
-            "precipitation": "mm",
-            "et0": "mm",
-            "vpd": "kPa",
-            "soil_temperature": "°C",
-            "soil_temperature_10_40cm": "°C",
-            "spraying_drift_risk": "0..1",
-            "soil_trafficability": "0..1",
-            "heat_stress": "0..1",
-            "disease_late_blight": "0..1",
-            "disease_downy_mildew": "0..1",
-            "disease_stripe_rust": "0..1",
-            "soil_moisture": "m³/m³",
-            "pressure": "hPa",
-            "clouds": "%",
-        }.get(layer, ""),
+        "unit": _WEATHER_TILE_UNITS.get(layer, ""),
         "sample": sample,
         "time": time,
         "model": model,

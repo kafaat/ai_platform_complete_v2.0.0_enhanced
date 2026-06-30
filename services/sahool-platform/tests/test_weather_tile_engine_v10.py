@@ -117,3 +117,28 @@ async def test_weather_tile_data_returns_stale_cache_on_upstream_failure(monkeyp
     assert res["value"] == 29.0
     assert res["cache_state"] == "stale_fallback"
     assert "upstream down" in res["upstream_error"]
+
+
+@pytest.mark.asyncio
+async def test_weather_tile_data_returns_neutral_tile_when_no_cache_and_upstream_down(monkeypatch):
+    """انقطاع Open-Meteo بلا أيّ كاش ⇒ بلاطة محايدة (value=null, available=false) لا 502:
+    لا تكسر الخريطة ولا تُغرِق السجلّ بـBad Gateway لكلّ بلاطة (طلب المستخدم)."""
+    from api.connectors import openmeteo
+    from api.routers import weather
+
+    weather._WEATHER_TILE_CACHE.clear()  # لا كاش إطلاقاً
+
+    async def failing_fetch(*_args, **_kwargs):
+        raise RuntimeError("upstream down")
+
+    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", failing_fetch)
+    # لا يُرفَع HTTPException (كان 502 سابقاً) — يُرجَع ردّ محايد بحالة 200.
+    res = await weather.weather_tile_data(
+        5, 16, 14, layer="temperature", time="now", model="best_match"
+    )
+    assert res["value"] is None
+    assert res["sample"] is None
+    assert res["available"] is False
+    assert res["cache_state"] == "unavailable"
+    assert "upstream down" in res["upstream_error"]
+    assert res["unit"] == "°C"  # الوحدة تبقى صحيحة للأسطورة
