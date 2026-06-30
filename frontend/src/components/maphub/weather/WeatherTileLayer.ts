@@ -157,7 +157,7 @@ export function weatherTileSvg(
     ${hasInterpolation ? `<g opacity="0.70" style="mix-blend-mode:soft-light"><rect x="-12" y="-12" width="280" height="280" fill="url(#${gradId}-nw)"/><rect x="-12" y="-12" width="280" height="280" fill="url(#${gradId}-ne)"/><rect x="-12" y="-12" width="280" height="280" fill="url(#${gradId}-sw)"/><rect x="-12" y="-12" width="280" height="280" fill="url(#${gradId}-se)"/></g>` : ''}
     <rect width="256" height="256" filter="url(#${noiseId})" opacity="0.42"/>
     <g opacity="0.18"><path d="M-24 204 C 42 166, 98 226, 164 186 S 266 154, 294 184" fill="none" stroke="rgba(10,18,16,0.52)" stroke-width="10"/><path d="M-18 84 C 46 114, 92 50, 144 76 S 234 124, 294 78" fill="none" stroke="rgba(255,255,255,0.27)" stroke-width="5"/></g>
-    ${showWind ? `<g transform="rotate(${dir} 128 128)" opacity="${particleOpacity}" filter="url(#sahool-wind-glow)">${windLines.join('')}</g>` : ''}
+    ${showWind && dir != null ? `<g transform="rotate(${dir} 128 128)" opacity="${particleOpacity}" filter="url(#sahool-wind-glow)">${windLines.join('')}</g>` : ''}
     <text x="246" y="236" text-anchor="end" fill="rgba(255,255,255,.82)" font-family="system-ui" font-size="13" font-weight="900" paint-order="stroke" stroke="rgba(15,23,42,.55)" stroke-width="3">${cfg.shortAr} ${shown}${unit}</text>
     ${statusLabel ? `<rect x="8" y="10" rx="8" ry="8" width="82" height="23" fill="rgba(15,23,42,.70)"/><text x="49" y="26" text-anchor="middle" fill="rgba(255,255,255,.88)" font-family="system-ui" font-size="11" font-weight="900">${statusLabel}</text>` : ''}
   </svg>`;

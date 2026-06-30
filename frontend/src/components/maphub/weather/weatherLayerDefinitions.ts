@@ -319,8 +319,10 @@ export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unk
   }
 }
 
-export function windDirection(sample: Record<string, unknown> | undefined, fallback: WeatherMarker): number {
-  return sampleNum(sample, 'wind_direction_10m_deg') ?? fallback.windDirectionDeg ?? 315;
+export function windDirection(sample: Record<string, unknown> | undefined, fallback: WeatherMarker): number | null {
+  // صادق: لا قيمة وهميّة. اتّجاه حقيقيّ (Open-Meteo، أو MET.no احتياطاً خادميّاً) ⇒
+  // اتّجاه الحقل الحاليّ ⇒ null (فلا تُرسَم أسهم بدل اتّجاه مُلفَّق 315°).
+  return sampleNum(sample, 'wind_direction_10m_deg') ?? fallback.windDirectionDeg ?? null;
 }
 
 export function windSpeed(sample: Record<string, unknown> | undefined, fallback: WeatherMarker): number {

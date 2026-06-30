@@ -285,9 +285,6 @@ function weatherHeatCss(marker: WeatherMarker | null): string {
   return 'rgba(245,158,11,.20)';
 }
 
-function weatherWindRotation(marker: WeatherMarker | null): number {
-  return marker?.windDirectionDeg ?? 315;
-}
 
 function pinEl(p: ScoutPin): HTMLElement {
   const el = document.createElement('div');
@@ -774,7 +771,10 @@ export default function HubMapGL({
           }}
         >
           <style>{`@keyframes sahoolWindDrift{from{transform:translateX(-80px)}to{transform:translateX(80px)}}`}</style>
-          <div style={{ position: 'absolute', inset: '-12%', transform: `rotate(${weatherWindRotation(weatherMarker)}deg)`, opacity: weatherMarker.windDirectionDeg == null ? .42 : .68 }}>
+          {/* صادق: نرسم تدفّق الرياح الاتّجاهيّ فقط عند توفّر اتّجاه حقيقيّ — لا اتّجاه
+              مُلفَّق (315° سابقاً). غياب الاتّجاه ⇒ تبقى خلفيّة السرعة فقط بلا أسهم. */}
+          {weatherMarker.windDirectionDeg != null && (
+          <div style={{ position: 'absolute', inset: '-12%', transform: `rotate(${weatherMarker.windDirectionDeg}deg)`, opacity: .68 }}>
             {Array.from({ length: 56 }).map((_, i) => (
               <span
                 key={i}
@@ -787,6 +787,7 @@ export default function HubMapGL({
               />
             ))}
           </div>
+          )}
         </div>
       )}
 

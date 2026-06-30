@@ -562,7 +562,7 @@ async def fetch_weather_tile_data(
     def hv(key: str):
         return _hourly_value_at(h, key, offset_hours)
 
-    return {
+    sample = {
         "lat": lat,
         "lon": lon,
         "requested_time": time_key or "now",
@@ -600,7 +600,23 @@ async def fetch_weather_tile_data(
         "soil_moisture_1_to_3cm_m3m3": hv("soil_moisture_1_to_3cm"),
         "soil_moisture_3_to_9cm_m3m3": hv("soil_moisture_3_to_9cm"),
         "source": "open-meteo",
+        "wind_direction_source": "open-meteo",
     }
+
+    # احتياط اتّجاه الرياح: حين يغيب من Open-Meteo، نجلبه من MET Norway (مفتوح المصدر،
+    # عالميّ) بدل أيّ قيمة وهميّة. صادق: إن تعذّر يبقى None والواجهة لا ترسم أسهماً.
+    if sample.get("wind_direction_10m_deg") is None:
+        try:
+            from api.connectors import metno_wind
+
+            deg = await metno_wind.fetch_wind_direction_deg(lat, lon)
+            if deg is not None:
+                sample["wind_direction_10m_deg"] = deg
+                sample["wind_direction_source"] = "met.no"
+        except Exception:  # noqa: BLE001 — الاحتياط لا يكسر العيّنة أبداً
+            pass
+
+    return sample
 
 
 # ─── Helpers ──────────────────────────────────────────────────────
