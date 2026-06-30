@@ -31,7 +31,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
-import { kongApi, asApiError, refreshFieldImagery, fetchFieldImageryAvailableDates, type FieldImageryDateOption } from '../services/api';
+import { kongApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -48,7 +48,7 @@ import HubMap, {
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import type { DrawFeature } from '../components/maphub/drawing';
-import { buildPivotDrawFeature, summarizePivotDesign } from '../components/maphub/drawing';
+import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeature, listDrawingFeatures, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
 
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
@@ -148,6 +148,14 @@ export default function MapHub() {
   const [pivotRingCount, setPivotRingCount] = useState(4);
   const [pivotSpanCount, setPivotSpanCount] = useState(8);
   const [pivotDrafts, setPivotDrafts] = useState<DrawFeature[]>([]);
+  const [pivotPersisted, setPivotPersisted] = useState<PersistedDrawFeature[]>([]);
+  const [zonePersisted, setZonePersisted] = useState<PersistedDrawFeature[]>([]);
+  const [zoneDesigner, setZoneDesigner] = useState(false);
+  const [zoneKind, setZoneKind] = useState<AgriculturalZoneKind>('management-zone');
+  const [zoneRate, setZoneRate] = useState(120);
+  const [zoneRateUnit, setZoneRateUnit] = useState('kg/ha');
+  const [zoneSyncBusy, setZoneSyncBusy] = useState(false);
+  const [pivotSyncBusy, setPivotSyncBusy] = useState(false);
   const [pins, setPins] = useState<ScoutPin[]>([]);
   const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
   // ── v2: لقطة عرض الخريطة (مركز lat/lng + تكبير) — تُستعاد وتُلتقط من الخريطة ──
@@ -387,6 +395,28 @@ export default function MapHub() {
     return false;
   }, [detailQ.data]);
 
+
+  const selectedActiveSeasonId = useMemo(() => {
+    const d = detailQ.data as unknown as Record<string, unknown> | undefined;
+    const pickId = (value: unknown): string | null => {
+      if (!value || typeof value !== 'object') return null;
+      const obj = value as Record<string, unknown>;
+      const raw = obj.season_id ?? obj.id;
+      return typeof raw === 'string' && raw.trim() ? raw : null;
+    };
+    const direct = pickId(d?.active_season) ?? pickId(d?.current_season);
+    if (direct) return direct;
+    const seasons = d?.seasons;
+    if (Array.isArray(seasons)) {
+      const active = seasons.find((season) => {
+        const s = season as Record<string, unknown>;
+        return s.status === 'active' || s.active === true || !s.season_end;
+      });
+      return pickId(active);
+    }
+    return null;
+  }, [detailQ.data]);
+
   const mapDataStatus = useMemo(() => {
     if (!fieldId) return { tone: 'warn' as const, label: 'اختر حقلاً', hint: 'لن تُحمّل المؤشرات قبل تحديد حقل.' };
     if (!indicatorActive) return { tone: 'info' as const, label: 'لا مؤشر نشط', hint: 'اختر NDVI أو NDMI أو الملوحة لعرض الصور الجوية.' };
@@ -556,6 +586,28 @@ export default function MapHub() {
 
   const handleClearPins = useCallback(() => setPins([]), []);
 
+  // ── v37-v40: تحميل تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة للحقل المختار ───────
+  useEffect(() => {
+    let alive = true;
+    if (!selected?.id) {
+      setPivotPersisted([]);
+      setZonePersisted([]);
+      return () => { alive = false; };
+    }
+    listDrawingFeatures(selected.id)
+      .then((features) => {
+        if (!alive) return;
+        setPivotPersisted(features.filter((f) => f.kind === 'pivot'));
+        setZonePersisted(features.filter((f) => ['management-zone', 'prescription-zone', 'exclusion-zone'].includes(f.kind)));
+      })
+      .catch(() => {
+        if (!alive) return;
+        setPivotPersisted([]);
+        setZonePersisted([]);
+      });
+    return () => { alive = false; };
+  }, [selected?.id]);
+
   // ── v36: Pivot Designer مرئي داخل MapHub ─────────────────────
   // النقر على الخريطة في وضع التصميم ينشئ قطاع pivot كـ DrawFeature محليّ.
   // الحفظ الدائم سيأتي في مرحلة Backend CRUD/PostGIS، لذلك نعلّمه draft=true.
@@ -572,14 +624,87 @@ export default function MapHub() {
       ringCount: pivotRingCount,
       spanCount: pivotSpanCount,
       fieldId: selected.id,
+      seasonId: selectedActiveSeasonId ?? undefined,
       name: `Pivot ${selected.name}`,
     });
     setPivotDrafts((prev) => [...prev, feature]);
     setShowPivots(true);
     toastStore.add('success', 'تم إنشاء تصميم Pivot', `المساحة التقريبية ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
-  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected]);
+  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected, selectedActiveSeasonId]);
 
   const handleClearPivotDrafts = useCallback(() => setPivotDrafts([]), []);
+
+  const handleSavePivotDrafts = useCallback(async () => {
+    if (pivotDrafts.length === 0) return;
+    if (!selected?.id) {
+      toastStore.add('warning', 'اختر حقلاً أولاً', 'لا يمكن حفظ تصميم Pivot بدون حقل مرتبط.');
+      return;
+    }
+    setPivotSyncBusy(true);
+    try {
+      const saved = await Promise.all(
+        pivotDrafts.map((draft) => createDrawingFeature({
+          ...draft,
+          draft: false,
+          properties: {
+            ...draft.properties,
+            fieldId: selected.id,
+            seasonId: draft.properties.seasonId ?? selectedActiveSeasonId ?? undefined,
+            workflow: 'design-pivot',
+          },
+          updatedAt: new Date().toISOString(),
+        })),
+      );
+      setPivotPersisted((prev) => {
+        const byId = new Map(prev.map((f) => [f.id, f]));
+        for (const f of saved) byId.set(f.id, f);
+        return Array.from(byId.values());
+      });
+      setPivotDrafts([]);
+      setShowPivots(true);
+      toastStore.add('success', 'تم حفظ تصاميم Pivot', `${saved.length} تصميم محفوظ ومربوط بالحقل${selectedActiveSeasonId ? ' والموسم' : ''}.`);
+    } catch (e) {
+      toastStore.add('error', 'فشل حفظ Pivot', apiErrorMessage(e, 'تعذّر حفظ تصاميم Pivot في الخادم.'));
+    } finally {
+      setPivotSyncBusy(false);
+    }
+  }, [pivotDrafts, selected?.id, selectedActiveSeasonId]);
+
+  const handleCreateZoneFromField = useCallback(async () => {
+    if (!selected?.id) {
+      toastStore.add('warning', 'اختر حقلاً أولاً', 'إنشاء مناطق الإدارة/الوصفات يحتاج حقلاً مختاراً.');
+      return;
+    }
+    const geometry = normalizeFieldGeometryForZone(selected.geometry);
+    if (!geometry) {
+      toastStore.add('warning', 'لا توجد حدود حقل', 'لا يمكن إنشاء Zone بدون هندسة حقل Polygon/MultiPolygon.');
+      return;
+    }
+    const isPrescription = zoneKind === 'prescription-zone';
+    const feature = buildAgriculturalZoneFeature({
+      kind: zoneKind,
+      geometry,
+      fieldId: selected.id,
+      seasonId: selectedActiveSeasonId ?? undefined,
+      crop: selected.crop,
+      sourceLayer: activeIndicator ?? undefined,
+      rate: isPrescription ? zoneRate : undefined,
+      rateUnit: isPrescription ? zoneRateUnit : undefined,
+      name: isPrescription ? `وصفة ${selected.name}` : zoneKind === 'exclusion-zone' ? `استبعاد ${selected.name}` : `منطقة إدارة ${selected.name}`,
+      draft: false,
+    });
+    setZoneSyncBusy(true);
+    try {
+      const saved = await createDrawingFeature(feature);
+      setZonePersisted((prev) => [saved, ...prev.filter((f) => f.id !== saved.id)]);
+      setShowPivots(true);
+      toastStore.add('success', 'تم حفظ Zone', `${feature.properties.name} · ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
+    } catch (e) {
+      toastStore.add('error', 'فشل حفظ Zone', apiErrorMessage(e, 'تعذّر حفظ منطقة الإدارة/الوصفة في الخادم.'));
+    } finally {
+      setZoneSyncBusy(false);
+    }
+  }, [activeIndicator, selected, selectedActiveSeasonId, zoneKind, zoneRate, zoneRateUnit]);
 
   const pivotSummary = useMemo(() => summarizePivotDesign({
     center: selectedPoint ? [selectedPoint[1], selectedPoint[0]] : [44, 15],
@@ -940,12 +1065,13 @@ export default function MapHub() {
                   {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
                       (Leaflet · MapLibre GL · المرحلة 2ب). */}
                   <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
-                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
+                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
                     {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
                         أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
-                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
-                    <ToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
+                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
+                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                    <ToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
+                    <ToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="Zones" />
                   </div>
                 </div>
 
@@ -1022,20 +1148,78 @@ export default function MapHub() {
                   </div>
                 )}
 
+                {zoneDesigner && (
+                  <div data-testid="zone-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold" style={{ color: T.muted }}>Management / Prescription Zones</span>
+                      <Pill tone="info">{zonePersisted.length} محفوظة</Pill>
+                      <Pill tone={activeIndicator ? 'ok' : 'warn'}>{activeIndicator ? `مصدر: ${activeIndicator.toUpperCase()}` : 'بدون source layer'}</Pill>
+                      <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوطة بالموسم' : 'لا موسم نشط'}</Pill>
+                      <button
+                        type="button" onClick={handleCreateZoneFromField} disabled={zoneSyncBusy}
+                        data-testid="btn-create-zone-from-field"
+                        className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg disabled:opacity-60"
+                        style={{ color: T.ok, border: `1px solid ${T.line}` }}
+                      >
+                        حفظ Zone من حدود الحقل
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      <label className="text-[11px] grid gap-1" style={{ color: T.muted }}>
+                        النوع
+                        <select
+                          value={zoneKind}
+                          onChange={(e) => setZoneKind(e.target.value as AgriculturalZoneKind)}
+                          className="px-2 py-1 rounded-lg text-xs"
+                          style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                        >
+                          <option value="management-zone">منطقة إدارة</option>
+                          <option value="prescription-zone">منطقة وصفة</option>
+                          <option value="exclusion-zone">منطقة استبعاد</option>
+                        </select>
+                      </label>
+                      <NumberField label="معدل الوصفة" value={zoneRate} min={0} max={5000} step={5} onChange={setZoneRate} />
+                      <label className="text-[11px] grid gap-1" style={{ color: T.muted }}>
+                        وحدة المعدل
+                        <input
+                          value={zoneRateUnit}
+                          onChange={(e) => setZoneRateUnit(e.target.value)}
+                          className="px-2 py-1 rounded-lg text-xs"
+                          style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                        />
+                      </label>
+                      <div className="text-[11px] flex items-end" style={{ color: T.faint }}>
+                        v40 يستخدم حدود الحقل كـ Zone أولية؛ التحرير/التقسيم التفصيلي لاحقاً عبر Geoman.
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {(pivotDesigner || pivotDrafts.length > 0) && (
                   <div data-testid="pivot-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>مصمم Pivot</span>
-                      <Pill tone="info">{pivotDrafts.length} تصميم</Pill>
+                      <Pill tone="info">{pivotDrafts.length + pivotPersisted.length} تصميم</Pill>
                       {pivotDesigner && <span className="text-[11px]" style={{ color: T.faint }}>انقر على الخريطة لاختيار مركز المحوري</span>}
+                      <Pill tone={selectedActiveSeasonId ? 'ok' : 'warn'}>{selectedActiveSeasonId ? 'مربوط بالموسم' : 'لا موسم نشط'}</Pill>
                       {pivotDrafts.length > 0 && (
-                        <button
-                          type="button" onClick={handleClearPivotDrafts}
-                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
-                          style={{ color: T.danger, border: `1px solid ${T.line}` }}
-                        >
-                          <Trash2 className="w-3 h-3" /> مسح تصاميم Pivot
-                        </button>
+                        <>
+                          <button
+                            type="button" onClick={handleSavePivotDrafts} disabled={pivotSyncBusy}
+                            data-testid="btn-save-pivot-drafts"
+                            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg disabled:opacity-60"
+                            style={{ color: T.ok, border: `1px solid ${T.line}` }}
+                          >
+                            حفظ Pivot
+                          </button>
+                          <button
+                            type="button" onClick={handleClearPivotDrafts}
+                            className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
+                            style={{ color: T.danger, border: `1px solid ${T.line}` }}
+                          >
+                            <Trash2 className="w-3 h-3" /> مسح تصاميم Pivot
+                          </button>
+                        </>
                       )}
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
@@ -1107,7 +1291,7 @@ export default function MapHub() {
                       tenantId={tenantId}
                       pivotDesignerEnabled={pivotDesigner}
                       onAddPivotDraft={handleAddPivotDraft}
-                      pivotDrafts={showPivots ? pivotDrafts : []}
+                      pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...pivotDrafts] : []}
                     />
                   </Suspense>
                 ) : (
@@ -1134,7 +1318,7 @@ export default function MapHub() {
                     tenantId={tenantId}
                     pivotDesignerEnabled={pivotDesigner}
                     onAddPivotDraft={handleAddPivotDraft}
-                    pivotDrafts={showPivots ? pivotDrafts : []}
+                    pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...pivotDrafts] : []}
                   />
                 )}
                 {/* مفتاح ألوان الطبقة النشطة */}

@@ -66,10 +66,10 @@ export interface HubMapProps {
   deviceMarkers?: DeviceMarker[];
   weatherMarker?: WeatherMarker | null;
   operationalMarkers?: OperationalMarker[];
-  // v36: Pivot Designer مرئي — تصاميم draft محلية حتى Backend CRUD/PostGIS.
+  // v36-v40: Pivot Designer + zones — طبقات رسم محفوظة/محلية فوق الخريطة.
   pivotDesignerEnabled?: boolean;
   onAddPivotDraft?: (lat: number, lng: number) => void;
-  pivotDrafts?: DrawFeature[];
+  pivotDrafts?: DrawFeature[]; // اسم تاريخي: يمرّر الآن كل DrawFeature polygonal overlays.
   // يغيّر مفتاح/رابط طبقة المؤشّر بعد معالجة Sentinel لإجبار المتصفّح/Leaflet على جلب البلاطات الجديدة.
   imageryTs?: number;
   // تاريخ مشهد Sentinel/CDSE المختار من الواجهة. 'latest' يبقى صريحاً فقط عند عدم اختيار تاريخ.
@@ -270,6 +270,28 @@ function drawFeaturePolygonPositions(feature: DrawFeature): [number, number][] |
   return positions.length >= 3 ? positions : null;
 }
 
+function drawFeatureStyle(feature: DrawFeature) {
+  if (feature.kind === 'prescription-zone') {
+    return { color: '#f59e0b', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.20, dashArray: '3 5' };
+  }
+  if (feature.kind === 'management-zone') {
+    return { color: '#22c55e', weight: 2, fillColor: '#22c55e', fillOpacity: 0.16, dashArray: '8 4' };
+  }
+  if (feature.kind === 'exclusion-zone') {
+    return { color: '#ef4444', weight: 2, fillColor: '#ef4444', fillOpacity: 0.18, dashArray: '2 4' };
+  }
+  return { color: '#38bdf8', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.18, dashArray: '6 4' };
+}
+
+function drawFeatureLabel(feature: DrawFeature): string {
+  const name = feature.properties.name || (feature.kind === 'pivot' ? 'Pivot' : feature.kind);
+  const area = feature.measurements?.areaHa;
+  const rate = feature.properties.rate as number | undefined;
+  const rateUnit = feature.properties.rateUnit as string | undefined;
+  const rateText = typeof rate === 'number' ? ` · ${rate}${rateUnit ? ` ${rateUnit}` : ''}` : '';
+  return `${name}${typeof area === 'number' ? ` · ${area.toFixed(2)} هـ` : ''}${rateText}`;
+}
+
 // رابط بلاطات المؤشّر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet (مطابق api.ts).
 // بلاطات CDSE الحيّة (Sentinel Hub): المسار المحلّيّ `tiles` يحتاج COG مُسبق-التوليد غير
 // موجود لحقل بلا معالجة ⇒ 404 ⇒ لا يظهر المؤشّر (MAPHUB-CDSE). `cdse-tiles` يجلب المشهد
@@ -418,7 +440,7 @@ export default function HubMap({
           />
         )}
 
-        {/* v36: تصاميم Pivot المحلية — تُعرض كقطاعات زرقاء فوق الحقل، draft فقط. */}
+        {/* v36-v40: تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة أو المحلية. */}
         {pivotDrafts.map((feature) => {
           const positions = drawFeaturePolygonPositions(feature);
           if (!positions) return null;
@@ -426,11 +448,9 @@ export default function HubMap({
             <Polygon
               key={`pivot-draft-${feature.id}`}
               positions={positions}
-              pathOptions={{ color: '#38bdf8', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.18, dashArray: '6 4' }}
+              pathOptions={drawFeatureStyle(feature)}
             >
-              <Tooltip>
-                {feature.properties.name || 'Pivot draft'} · {(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ
-              </Tooltip>
+              <Tooltip>{drawFeatureLabel(feature)}</Tooltip>
             </Polygon>
           );
         })}

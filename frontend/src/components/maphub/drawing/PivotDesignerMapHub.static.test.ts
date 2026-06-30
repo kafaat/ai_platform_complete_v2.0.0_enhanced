@@ -34,7 +34,7 @@ describe('MapHub v36 pivot designer activation', () => {
   it('passes pivot designer props into HubMap for map-click center selection', () => {
     expect(mapHub).toContain('pivotDesignerEnabled={pivotDesigner}');
     expect(mapHub).toContain('onAddPivotDraft={handleAddPivotDraft}');
-    expect(mapHub).toContain('pivotDrafts={showPivots ? pivotDrafts : []}');
+    expect(mapHub).toContain('pivotDrafts={showPivots ? [...pivotPersisted');
   });
 
   it('renders pivot draft polygons and a map-click hint inside HubMap', () => {

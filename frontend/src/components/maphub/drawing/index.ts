@@ -16,3 +16,7 @@ export * from './pivotDesigner';
 export * from './topologyValidation';
 
 export * from './workflows';
+
+export * from './drawingFeatureApi';
+
+export * from './zoneDesigner';
