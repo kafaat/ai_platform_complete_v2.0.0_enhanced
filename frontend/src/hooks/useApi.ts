@@ -296,12 +296,24 @@ export function useAllFieldsNdvi() {
 
 // FIX (ربط حيّ): الخادم (vegetation-analysis-service) يكشف GET /v1/analyze بمعاملات
 // استعلام لا POST بجسم — كان POST يرتدّ 405. صُحّح الفعل/الشكل ليطابق الخادم الفعليّ.
+// FIX (أثر مرئيّ): «تحليل الآن» كان يبدو بلا أثر لأنّه لم يُبطِل المخبّأ — فلا يُعاد
+// جلب السلسلة الزمنيّة/المؤشّر بعد التحليل. نُبطِل الآن كلّ استعلامات الحقل المتأثّرة
+// (raster timeseries لكلّ المؤشّرات + vegetation timeseries + NDVI الحاليّ + شبكة
+// المؤشّر + المؤشّرات) بمطابقة البادئة، فيُحدَّث الشريط الزمنيّ والقيم فور اكتمال التحليل.
 export function useAnalyzeVegetation() {
+  const qc = useQueryClient();
   return useMutation<unknown, Error, { fieldId: string; dateFrom?: string }>({
     mutationFn: ({ fieldId, dateFrom }) =>
       vegetationApi.get('/v1/analyze', {
         params: { field_id: fieldId, ...(dateFrom ? { date_from: dateFrom } : {}) }
       }).then(r => r.data),
+    onSuccess: (_data, { fieldId }) => {
+      qc.invalidateQueries({ queryKey: ['field-timeseries', fieldId] });   // شريط raster الزمنيّ (كلّ المؤشّرات)
+      qc.invalidateQueries({ queryKey: ['vegetation', 'ts', fieldId] });   // سلسلة vegetation البديلة
+      qc.invalidateQueries({ queryKey: QK.ndviCurrent(fieldId) });          // NDVI الحاليّ
+      qc.invalidateQueries({ queryKey: ['indicator-grid', fieldId] });      // شبكة المؤشّر (كلّ المؤشّرات/التواريخ)
+      qc.invalidateQueries({ queryKey: QK.indicators(fieldId) });           // مؤشّرات الحقل المشتقّة
+    },
   });
 }
 

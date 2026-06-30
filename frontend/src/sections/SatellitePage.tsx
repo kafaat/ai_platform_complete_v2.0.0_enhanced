@@ -11,7 +11,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Satellite, Layers, RefreshCw, Loader2, Wifi, Map as MapIcon, GitCompareArrows, Ruler,
-  Sprout, Leaf, Image as ImageIcon, Play, Pause,
+  Sprout, Leaf, Image as ImageIcon, Play, Pause, AlertTriangle,
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
@@ -23,6 +23,7 @@ import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { geomToPolygon } from '../lib/geo';
 import { useSelectedField } from '../hooks/useSelectedField';
+import { apiErrorMessage } from '../services/api';
 import { useIndicatorsCatalog } from '../hooks/useApi';
 import type { CatalogIndicator } from '../hooks/useApi';
 import { LayerSwitcher } from '../components/ds';
@@ -94,6 +95,8 @@ export default function SatellitePage() {
   const [showLayers,  setShowLayers]  = useState(true);
   // أدوات الرسم/القياس على الخريطة (مضلّع→مساحة · خطّ→طول). off افتراضيّاً.
   const [measureTools, setMeasureTools] = useState(false);
+  // أثر زرّ «تحليل الآن» المرئيّ (نجاح/خطأ) — كان الزرّ يبدو بلا استجابة.
+  const [analyzeMsg, setAnalyzeMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
   // ── دبابيس الاستطلاع الدائمة (v94 — تُجلَب من الخادم وتُحفَظ، تبقى عبر الجلسات) ──
   // GET /api/v1/scouting/pins?field_id=… يُرجِع المُخزَّنة (RLS)؛ الإنشاء عبر POST
@@ -204,6 +207,24 @@ export default function SatellitePage() {
   const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
   const { data: ndviNow }                        = useCurrentNDVI(fieldId);
   const { mutateAsync: analyze, isPending: analyzing } = useAnalyzeVegetation();
+  // «تحليل الآن» مع أثر مرئيّ صريح: نجاح ⇒ يُبطِل المخبّأ (في الخطّاف) فيُحدَّث الشريط
+  // الزمنيّ والقيم؛ خطأ ⇒ رسالة عربيّة صادقة بدل صمت. يختفي التنويه بعد ثوانٍ.
+  const handleAnalyze = useCallback(async () => {
+    if (!fieldId || analyzing) return;
+    setAnalyzeMsg(null);
+    try {
+      await analyze({ fieldId });
+      setAnalyzeMsg({ ok: true, text: 'اكتمل التحليل — حُدِّث الشريط الزمنيّ والقيم.' });
+    } catch (e) {
+      setAnalyzeMsg({ ok: false, text: apiErrorMessage(e, 'تعذّر التحليل — حاول مجدّداً') });
+    }
+  }, [fieldId, analyzing, analyze]);
+  // إخفاء تنويه التحليل تلقائيّاً بعد مدّة وجيزة (لا يبقى عالقاً).
+  useEffect(() => {
+    if (!analyzeMsg) return;
+    const t = setTimeout(() => setAnalyzeMsg(null), 6000);
+    return () => clearTimeout(t);
+  }, [analyzeMsg]);
   const { mutateAsync: refreshImagery, isPending: refreshingImagery } = useRefreshFieldImagery();
 
   // شبكة المؤشّر الحقيقيّة — لوسم مصدر البيانات بصدق (حقيقيّة / لا توجد بعد).
@@ -348,7 +369,8 @@ export default function SatellitePage() {
               : { background: '#1e293b', color: '#94a3b8', borderColor: '#334155' }}>
             <Ruler className="w-3.5 h-3.5" /> أدوات القياس
           </button>
-          <button onClick={() => fieldId && analyze({ fieldId })} disabled={analyzing || !fieldId}
+          <button onClick={handleAnalyze} disabled={analyzing || !fieldId}
+            title={!fieldId ? 'اختر حقلاً أوّلاً' : 'يحلّل صور Sentinel-2 ويحدّث الشريط الزمنيّ والقيم'}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white disabled:opacity-50"
             style={{ background: analyzing ? '#15803d' : '#16a34a' }}>
             {analyzing ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> تحليل...</> : <><RefreshCw className="w-3.5 h-3.5" /> تحليل الآن</>}
@@ -366,6 +388,18 @@ export default function SatellitePage() {
           </button>
         </div>
       </div>
+
+      {/* تنويه أثر «تحليل الآن» (نجاح/خطأ) — يضمن استجابة مرئيّة صريحة للزرّ */}
+      {analyzeMsg && (
+        <div className="rounded-lg px-3 py-2 text-sm border flex items-center gap-2"
+          role="status"
+          style={analyzeMsg.ok
+            ? { background: '#052e1b', color: '#86efac', borderColor: '#22c55e55' }
+            : { background: '#1a1400', color: '#fcd34d', borderColor: '#f59e0b55' }}>
+          {analyzeMsg.ok ? <RefreshCw className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+          {analyzeMsg.text}
+        </div>
+      )}
 
       {/* مبدّل أوضاع صحّة الحقل (استطلاع · نباتيّ · لون حقيقيّ) */}
       <div className="rounded-xl p-2.5 border flex items-center gap-3 flex-wrap" style={{ background:'#1e293b', borderColor:'#334155' }}>
@@ -523,6 +557,20 @@ export default function SatellitePage() {
               ) : rasterTsError && !visiblePoints.length ? (
                 <div className="rounded-xl border p-3" style={{ background:'#1e293b', borderColor:'#334155' }}>
                   <p className="text-amber-400/80 text-xs text-center">تعذّر جلب السلسلة الزمنيّة للمؤشّر.</p>
+                </div>
+              ) : !visiblePoints.length ? (
+                // حالة فارغة صادقة بدل شريط بلا قيم: لا تواريخ مُعالَجة بعد لهذا الحقل.
+                <div className="rounded-xl border p-3 flex items-center justify-center gap-2"
+                  style={{ background:'#1e293b', borderColor:'#334155' }}>
+                  <p className="text-xs text-center text-slate-400">
+                    لا توجد قيم زمنيّة بعد لهذا الحقل — اضغط «تحليل الآن» لمعالجة صور Sentinel-2 وعرض الشريط الزمنيّ.
+                  </p>
+                  <button onClick={handleAnalyze} disabled={analyzing || !fieldId}
+                    className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-semibold text-white disabled:opacity-50"
+                    style={{ background:'#16a34a' }}>
+                    {analyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                    تحليل الآن
+                  </button>
                 </div>
               ) : (
                 <DateScrubber

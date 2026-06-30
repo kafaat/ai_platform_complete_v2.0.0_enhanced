@@ -24,7 +24,7 @@ export default function MobileTabBar() {
   const activePage = pageForPath(location.pathname);
 
   const allowedItems = (s: NavSection) =>
-    s.items.filter((i) => isPageEnabled(i.id) && canAccess(user?.role, i.id));
+    s.items.filter((i) => isPageEnabled(i.id) && canAccess(user?.role, i.id) && !i.hidden);
 
   // أقسام لها عنصر مسموح به واحد على الأقلّ، ضمن المجموعة الأساسيّة.
   const sections = NAV_SECTIONS

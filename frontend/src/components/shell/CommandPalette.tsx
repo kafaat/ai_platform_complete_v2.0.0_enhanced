@@ -40,7 +40,7 @@ export default function CommandPalette() {
   }, []);
 
   // مُرشِّح موحّد مطابق لـNavRail: مُفعّلة (علم الميزة) + يحقّ للدور فتحها (RBAC).
-  const allowed = (r: RouteDef) => isPageEnabled(r.id) && canAccess(user?.role, r.id);
+  const allowed = (r: RouteDef) => isPageEnabled(r.id) && canAccess(user?.role, r.id) && !r.hidden;
 
   // أقسام بعناصرها المسموح بها فقط؛ قسم بلا عناصر يُسقَط (لا رأس فارغ).
   const sections = NAV_SECTIONS

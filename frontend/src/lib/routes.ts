@@ -50,6 +50,7 @@ export interface RouteDef {
   icon: LucideIcon;    // أيقونة العنصر
   maturity?: Maturity; // درجة النضج (تُعرَض كشارة في NavRail؛ غيابها ⇒ أساسيّ ناضج)
   badge?: string;      // شارة دلاليّة اختياريّة («AI»/«WOFOST»/«دمج»…) لا «جديد»
+  hidden?: boolean;    // مخفيّ من قوائم التنقّل (يبقى المسار قابلاً للحلّ للروابط العميقة).
 }
 
 // ── قسم في بنية المعلومات الجديدة ──────────────────────────────
@@ -78,7 +79,9 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'fields',          path: '/fields',           label: 'حقولي', icon: MapIcon, maturity: 'stable' },
       { id: 'farm-map',        path: '/fields/farm-map',  label: 'خريطة المزرعة', icon: MapIcon, maturity: 'stable' },
       { id: 'field-workspace', path: '/fields/workspace', label: 'مساحة عمل الحقل', icon: Layers, maturity: 'beta' },
-      { id: 'map-center',      path: '/fields/map-center', label: 'مركز الخرائط (معاينة)', icon: Layers, maturity: 'beta', badge: 'دمج' },
+      // مخفيّ من القائمة (مكرِّر لشاشة عرض الحقول): يُفتَح كعارض خريطة الحقل عبر
+      // الروابط العميقة من «حقولي» (MyFieldsPage) لا كعنصر قائمة مستقلّ.
+      { id: 'map-center',      path: '/fields/map-center', label: 'مركز الخرائط (معاينة)', icon: Layers, maturity: 'beta', badge: 'دمج', hidden: true },
     ],
   },
   {

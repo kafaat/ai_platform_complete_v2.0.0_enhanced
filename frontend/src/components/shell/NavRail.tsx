@@ -81,7 +81,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
   };
 
   // مُرشِّح موحّد: الصفحة مُفعّلة (علم الميزة) + يحقّ للدور فتحها (RBAC).
-  const allowed = (r: RouteDef) => isPageEnabled(r.id) && canAccess(user?.role, r.id);
+  const allowed = (r: RouteDef) => isPageEnabled(r.id) && canAccess(user?.role, r.id) && !r.hidden;
 
   return (
     <aside className="flex flex-col h-full" style={{
