@@ -21,6 +21,7 @@ import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, raste
 import { getTenantId } from '../lib/authStorage';
 import { areaSqMeters, lengthMeters } from '../lib/geo';
 import { readFieldMapView, consumeDefaultViewOnce } from '../lib/fieldMapView';
+import { MapIndicatorLegend } from './insights/MapIndicatorLegend';
 
 // روابط خرائط الأساس (نفس AddFieldWithMap.tsx)
 const BASEMAP_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -404,33 +405,20 @@ export default function FieldIndicatorMap({
         </div>
       )}
 
+      {/* أسطورة المؤشّر العموديّة — يمين الخريطة، ارتفاع متوسّط، تدرّج قيم لكلّ المؤشّرات */}
       {tileAvailable === true && legend && (
         <div
-          dir="rtl"
           style={{
-            position: 'absolute', top: 12, left: 12, zIndex: 1000,
-            background: 'rgba(13,22,17,.88)', borderRadius: 10, padding: '8px 12px',
-            fontSize: 12, color: '#cdddd2', border: '1px solid #2d4a37',
-            backdropFilter: 'blur(6px)', minWidth: 190,
+            position: 'absolute', top: '50%', insetInlineEnd: 12, transform: 'translateY(-50%)',
+            zIndex: 1000, pointerEvents: 'none',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
-            <strong style={{ color: '#e2e8f0' }}>{legend.index.toUpperCase()}</strong>
-            <span style={{ color: '#9fb3a6' }}>{legend.palette || 'RdYlGn'}</span>
-          </div>
-          <div
-            aria-label={`legend ${legend.index}`}
-            style={{
-              height: 10, borderRadius: 999, border: '1px solid rgba(255,255,255,.2)',
-              background: legend.invert
-                ? 'linear-gradient(90deg, #1a9850, #d9ef8b, #fee08b, #f46d43, #a50026)'
-                : 'linear-gradient(90deg, #a50026, #f46d43, #fee08b, #d9ef8b, #1a9850)',
-            }}
+          <MapIndicatorLegend
+            index={legend.index}
+            vmin={legend.vmin}
+            vmax={legend.vmax}
+            invert={legend.invert}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, color: '#9fb3a6' }}>
-            <span>{legend.vmin}</span>
-            <span>{legend.vmax}</span>
-          </div>
         </div>
       )}
 
