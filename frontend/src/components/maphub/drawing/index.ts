@@ -20,3 +20,5 @@ export * from './workflows';
 export * from './drawingFeatureApi';
 
 export * from './zoneDesigner';
+
+export * from './drawingOfflineSync';

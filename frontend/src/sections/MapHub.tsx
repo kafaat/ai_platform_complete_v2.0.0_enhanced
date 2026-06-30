@@ -48,7 +48,7 @@ import HubMap, {
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
 import type { DrawFeature } from '../components/maphub/drawing';
-import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeature, listDrawingFeatures, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
+import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeatureOfflineFirst as createDrawingFeature, listDrawingFeaturesWithOfflineQueue as listDrawingFeatures, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
 
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
@@ -586,7 +586,7 @@ export default function MapHub() {
 
   const handleClearPins = useCallback(() => setPins([]), []);
 
-  // ── v37-v40: تحميل تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة للحقل المختار ───────
+  // ── v37-v41: تحميل تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة + الطابور المحلي للحقل المختار ───────
   useEffect(() => {
     let alive = true;
     if (!selected?.id) {
