@@ -388,8 +388,12 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       color: '#16a34a', fillColor: '#16a34a', fillOpacity: 0.25, weight: 2,
     });
     fg.addLayer(poly);
-    // تفعيل التحرير
-    (poly as any).editing?.enable();
+    // الدائرة المحوريّة (pivot): مقبضا «مركز» (نقل) و«نصف قطر» (تحجيم منتظم) فقط —
+    // لا نُفعّل تحرير الرؤوس الـ24 من leaflet-draw كي لا تُزدحم الحافّة وتُعطّل المقبضَين
+    // (كانت تعترض النقر فلا يتحرّك المركز ولا يتغيّر نصف القطر). المضلّع/المستطيل
+    // يبقيان بتحرير الرؤوس (المطلوب لهما). isPivot يحكم كلّ ما يلي.
+    const isPivot = pivotEditRef.current !== null;
+    if (!isPivot) (poly as any).editing?.enable();
     setLatlngs(pts);
     setAreaHa(geodesicAreaHa(pts));
     setPerimeterM(geodesicPerimeterM(pts));
@@ -412,9 +416,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     const map = mapRef.current;
     if (map) {
       // الحالة الحيّة المشتركة بين المقبضَين (تُحدَّث بالسحب). للدائرة المحوريّة فقط
-      // (pivotEditRef مضبوط) نُظهِر مقبض نصف القطر؛ نصف القطر ≈ المسافة من المركز
-      // لأوّل رأس (الرأس الشماليّ من circleToPolygon — دائرة منتظمة فكلّها متساوية).
-      const isPivot = pivotEditRef.current !== null;
+      // نُظهِر مقبض نصف القطر؛ نصف القطر ≈ المسافة من المركز لأوّل رأس (الرأس الشماليّ
+      // من circleToPolygon — دائرة منتظمة فكلّها متساوية).
       let center = ringCentroid(pts);
       let radiusM = isPivot && pts.length > 0 ? center.distanceTo(pts[0]) : 0;
 
@@ -424,7 +427,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         zIndexOffset: 1000,
         keyboard: false,
       });
-      handle.on('dragstart', () => { (poly as any).editing?.disable(); });
+      // للمضلّع فقط نُعطّل/نُعيد تحرير الرؤوس حول السحب؛ للـpivot لا تحرير رؤوس أصلاً.
+      handle.on('dragstart', () => { if (!isPivot) (poly as any).editing?.disable(); });
       handle.on('drag', () => {
         const now = handle.getLatLng();
         const dLat = now.lat - center.lat;
@@ -445,7 +449,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         if (pivotEditRef.current) pivotEditRef.current.center = center;
       });
       handle.on('dragend', () => {
-        (poly as any).editing?.enable();
+        if (!isPivot) (poly as any).editing?.enable();
         const ring = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
         if (ring.length >= 3) pushSnapshot(ring);
         if (pivotEditRef.current) setPivotPayload(makePivotPayload(center, radiusM));
@@ -464,7 +468,6 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
           zIndexOffset: 1100,
           keyboard: false,
         });
-        rHandle.on('dragstart', () => { (poly as any).editing?.disable(); });
         rHandle.on('drag', () => {
           const next = center.distanceTo(rHandle.getLatLng());
           if (!isFinite(next) || next < 1) return; // تجاهل نصف قطر شبه معدوم
@@ -477,7 +480,6 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
           setRadiusInput(String(Math.round(radiusM)));
         });
         rHandle.on('dragend', () => {
-          (poly as any).editing?.enable();
           const ring = (poly.getLatLngs()[0] as L.LatLng[]) ?? [];
           if (ring.length >= 3) pushSnapshot(ring);
           if (pivotEditRef.current) {
@@ -735,6 +737,16 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setDrawTool(null);
     setDrawStatus(null);
     setPivotPayload(null);
+  };
+
+  // «إلغاء» سياقيّ: إن وُجِد رسم/تحرير جارٍ نمسحه ونبقى في شاشة إضافة الحقل (لا نخرج
+  // إلى الحقل السابق فجأةً)؛ وإن لم يوجد ما يُمسَح نُغلق الشاشة فعلاً (onCancel).
+  const handleCancel = () => {
+    if (drawTool || polygon || latlngs.length > 0) {
+      handleReset();
+    } else {
+      onCancel();
+    }
   };
 
   const handleSave = async () => {
@@ -1219,7 +1231,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       style={{ borderColor:'#334155' }}>
                       <Trash2 className="w-4 h-4" /> إعادة الرسم
                     </button>
-                    <button onClick={onCancel}
+                    <button onClick={handleCancel}
                       className="px-4 py-2 rounded-lg text-sm text-slate-400 hover:text-slate-200 border"
                       style={{ borderColor:'#334155' }}>
                       إلغاء
@@ -1363,8 +1375,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                   )}
                   <button
                     type="button"
-                    onClick={drawTool ? () => { setDrawTool(null); setDrawStatus(null); } : onCancel}
-                    title={drawTool ? 'إلغاء أداة الرسم الحاليّة' : 'إلغاء وإغلاق'}
+                    onClick={drawTool ? () => { setDrawTool(null); setDrawStatus(null); } : handleCancel}
+                    title={drawTool ? 'إلغاء أداة الرسم الحاليّة' : (polygon || latlngs.length > 0 ? 'مسح الرسم الحاليّ' : 'إلغاء وإغلاق')}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg"
                     style={{ background: '#ffffff', color: '#b91c1c', border: '1px solid #b91c1c55' }}>
                     <X className="w-4 h-4" /> إلغاء

@@ -49,3 +49,22 @@ describe('DrawingCore (ADR-0031) wired into field creation', () => {
     expect(addField).toContain('latlngsToDrawFeature');
   });
 });
+
+describe('Pivot circle — move/resize handles, not 24 vertex markers', () => {
+  it('disables leaflet-draw vertex editing for pivot (only center + radius handles)', () => {
+    // الدائرة المحوريّة يجب ألّا تُفعِّل تحرير الرؤوس (يزدحم ويعطّل المقبضَين).
+    expect(addField).toContain('const isPivot = pivotEditRef.current !== null;');
+    expect(addField).toMatch(/if \(!isPivot\) \(poly as any\)\.editing\?\.enable\(\)/);
+  });
+
+  it('provides a draggable radius handle for uniform circle resize', () => {
+    expect(addField).toContain('RADIUS_HANDLE_ICON');
+    expect(addField).toContain('radiusHandleRef');
+    expect(addField).toContain('circleToPolygon(center, radiusM)');
+  });
+
+  it('Cancel clears the in-progress drawing instead of exiting when a shape exists', () => {
+    expect(addField).toContain('const handleCancel = ()');
+    expect(addField).toMatch(/if \(drawTool \|\| polygon \|\| latlngs\.length > 0\)/);
+  });
+});
