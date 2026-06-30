@@ -762,7 +762,9 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         geometry: { type: 'Polygon', coordinates: [coords] },
       });
     } catch (e: unknown) {
-      setError(asApiError(e).message || 'فشل الحفظ');
+      // أظهِر رسالة الخادم العربيّة (message_ar) — مهمّة لتعارض 409 (اسم مكرّر/تداخل
+      // هندسيّ) كي يفهم المستخدم سبب الرفض بدل «فشل الحفظ» المبهَم.
+      setError(apiErrorMessage(e, 'فشل الحفظ'));
     } finally {
       setSaving(false);
     }
