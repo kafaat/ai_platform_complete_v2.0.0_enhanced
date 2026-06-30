@@ -1,0 +1,378 @@
+[
+  {
+    "service": "actuator-service",
+    "path": "services/actuator-service",
+    "domain": "IoT Actuation",
+    "python_files": 10,
+    "python_loc": 1359,
+    "route_count": 6,
+    "main": "services/actuator-service/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "IoT Actuation"
+  },
+  {
+    "service": "agriai-engine",
+    "path": "services/agriai-engine",
+    "domain": "AI Advisor",
+    "python_files": 1,
+    "python_loc": 92,
+    "route_count": 5,
+    "main": "services/agriai-engine/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "AI Advisor"
+  },
+  {
+    "service": "ai_agronomist",
+    "path": "services/ai_agronomist",
+    "domain": "AI Advisor",
+    "python_files": 24,
+    "python_loc": 1581,
+    "route_count": 7,
+    "main": "services/ai_agronomist/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "AI Advisor"
+  },
+  {
+    "service": "auth",
+    "path": "services/auth",
+    "domain": "Identity & Access",
+    "python_files": 16,
+    "python_loc": 2202,
+    "route_count": 27,
+    "main": "services/auth/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Identity/Access"
+  },
+  {
+    "service": "edge-inference",
+    "path": "services/edge-inference",
+    "domain": "Edge Inference",
+    "python_files": 8,
+    "python_loc": 1138,
+    "route_count": 5,
+    "main": "services/edge-inference/main.py",
+    "dockerfile": false,
+    "ports": [],
+    "risk": "medium-runtime-contract-gap",
+    "suggested_owner": "Edge Inference"
+  },
+  {
+    "service": "field-segmentation",
+    "path": "services/field-segmentation",
+    "domain": "Field Boundary AI",
+    "python_files": 3,
+    "python_loc": 613,
+    "route_count": 4,
+    "main": "services/field-segmentation/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Field Boundary AI"
+  },
+  {
+    "service": "guardrails-engine",
+    "path": "services/guardrails-engine",
+    "domain": "AI Safety & Governance",
+    "python_files": 13,
+    "python_loc": 1900,
+    "route_count": 7,
+    "main": "services/guardrails-engine/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "AI Safety/Governance"
+  },
+  {
+    "service": "indicators-service",
+    "path": "services/indicators-service",
+    "domain": "Vegetation Analytics",
+    "python_files": 2,
+    "python_loc": 51,
+    "route_count": 4,
+    "main": "services/indicators-service/main.py",
+    "dockerfile": true,
+    "ports": [],
+    "risk": "normal",
+    "suggested_owner": "Vegetation Analytics"
+  },
+  {
+    "service": "knowledge-graph",
+    "path": "services/knowledge-graph",
+    "domain": "Edge Inference",
+    "python_files": 1,
+    "python_loc": 102,
+    "route_count": 7,
+    "main": "services/knowledge-graph/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Edge Inference"
+  },
+  {
+    "service": "local-ai-rag",
+    "path": "services/local-ai-rag",
+    "domain": "Knowledge Retrieval",
+    "python_files": 2,
+    "python_loc": 594,
+    "route_count": 5,
+    "main": "services/local-ai-rag/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Knowledge Retrieval"
+  },
+  {
+    "service": "mcp_servers",
+    "path": "services/mcp_servers",
+    "domain": "Agent Tools",
+    "python_files": 10,
+    "python_loc": 2249,
+    "route_count": 32,
+    "main": null,
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "medium-runtime-contract-gap",
+    "suggested_owner": "Agent Tools"
+  },
+  {
+    "service": "odoo-bridge",
+    "path": "services/odoo-bridge",
+    "domain": "ERP Integration",
+    "python_files": 9,
+    "python_loc": 1876,
+    "route_count": 10,
+    "main": "services/odoo-bridge/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8126"
+    ],
+    "risk": "normal",
+    "suggested_owner": "ERP Integration"
+  },
+  {
+    "service": "qdrant-seed",
+    "path": "services/qdrant-seed",
+    "domain": "Unclassified / Support",
+    "python_files": 4,
+    "python_loc": 997,
+    "route_count": 0,
+    "main": null,
+    "dockerfile": true,
+    "ports": [],
+    "risk": "medium-runtime-contract-gap",
+    "suggested_owner": "Unclassified / Support"
+  },
+  {
+    "service": "rag-retrieval",
+    "path": "services/rag-retrieval",
+    "domain": "Knowledge Retrieval",
+    "python_files": 1,
+    "python_loc": 106,
+    "route_count": 5,
+    "main": "services/rag-retrieval/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Knowledge Retrieval"
+  },
+  {
+    "service": "raster-service",
+    "path": "services/raster-service",
+    "domain": "Imagery & Raster",
+    "python_files": 57,
+    "python_loc": 11158,
+    "route_count": 62,
+    "main": "services/raster-service/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8001"
+    ],
+    "risk": "high-boundary-pressure",
+    "suggested_owner": "Imagery/Raster"
+  },
+  {
+    "service": "raster-tiler-service",
+    "path": "services/raster-tiler-service",
+    "domain": "Imagery & Raster",
+    "python_files": 0,
+    "python_loc": 0,
+    "route_count": 0,
+    "main": null,
+    "dockerfile": true,
+    "ports": [
+      "8088"
+    ],
+    "risk": "medium-runtime-contract-gap",
+    "suggested_owner": "Imagery/Raster"
+  },
+  {
+    "service": "sahool-platform",
+    "path": "services/sahool-platform",
+    "domain": "Core Field Platform",
+    "python_files": 837,
+    "python_loc": 145043,
+    "route_count": 537,
+    "main": "services/sahool-platform/api/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "critical-core-concentration",
+    "suggested_owner": "Core Field Platform"
+  },
+  {
+    "service": "sam2-inference",
+    "path": "services/sam2-inference",
+    "domain": "Field Boundary AI",
+    "python_files": 2,
+    "python_loc": 580,
+    "route_count": 4,
+    "main": "services/sam2-inference/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8080"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Field Boundary AI"
+  },
+  {
+    "service": "soil-service",
+    "path": "services/soil-service",
+    "domain": "Soil Intelligence",
+    "python_files": 9,
+    "python_loc": 698,
+    "route_count": 6,
+    "main": "services/soil-service/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Soil Intelligence"
+  },
+  {
+    "service": "supervisor-agent",
+    "path": "services/supervisor-agent",
+    "domain": "Agent Orchestration",
+    "python_files": 26,
+    "python_loc": 3847,
+    "route_count": 10,
+    "main": "services/supervisor-agent/main.py",
+    "dockerfile": true,
+    "ports": [],
+    "risk": "normal",
+    "suggested_owner": "Agent Orchestration"
+  },
+  {
+    "service": "tts-service",
+    "path": "services/tts-service",
+    "domain": "Voice & Notifications",
+    "python_files": 6,
+    "python_loc": 595,
+    "route_count": 7,
+    "main": "services/tts-service/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Voice/Notifications"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "path": "services/vegetation-analysis-service",
+    "domain": "Vegetation Analytics",
+    "python_files": 8,
+    "python_loc": 1539,
+    "route_count": 8,
+    "main": "services/vegetation-analysis-service/main.py",
+    "dockerfile": true,
+    "ports": [],
+    "risk": "normal",
+    "suggested_owner": "Vegetation Analytics"
+  },
+  {
+    "service": "video-processor",
+    "path": "services/video-processor",
+    "domain": "Video Processing",
+    "python_files": 6,
+    "python_loc": 777,
+    "route_count": 8,
+    "main": "services/video-processor/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Video Processing"
+  },
+  {
+    "service": "weather-polygon-worker",
+    "path": "services/weather-polygon-worker",
+    "domain": "Weather Intelligence",
+    "python_files": 2,
+    "python_loc": 215,
+    "route_count": 0,
+    "main": "services/weather-polygon-worker/src/main.py",
+    "dockerfile": true,
+    "ports": [],
+    "risk": "normal",
+    "suggested_owner": "Weather Intelligence"
+  },
+  {
+    "service": "weather-service",
+    "path": "services/weather-service",
+    "domain": "Weather Intelligence",
+    "python_files": 2,
+    "python_loc": 60,
+    "route_count": 4,
+    "main": "services/weather-service/main.py",
+    "dockerfile": true,
+    "ports": [
+      "8000"
+    ],
+    "risk": "normal",
+    "suggested_owner": "Weather Intelligence"
+  },
+  {
+    "service": "weather-signal-engine",
+    "path": "services/weather-signal-engine",
+    "domain": "Weather Intelligence",
+    "python_files": 2,
+    "python_loc": 143,
+    "route_count": 0,
+    "main": "services/weather-signal-engine/src/main.py",
+    "dockerfile": true,
+    "ports": [],
+    "risk": "normal",
+    "suggested_owner": "Weather Intelligence"
+  }
+]
