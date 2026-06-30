@@ -352,7 +352,13 @@ def check_endpoint_authz() -> Result:
                 continue
             sig, fnbody = body.group(3), body.group(4)
             fn = body.group(2)
-            has_auth = "get_current_user" in sig or "require_permission" in sig
+            # المصادقة الصالحة: مستخدم (get_current_user/require_permission) أو توكن
+            # خدميّ داخليّ (_require_service_token) — كلاهما يمنع الوصول غير المصادَق.
+            has_auth = (
+                "get_current_user" in sig
+                or "require_permission" in sig
+                or "_require_service_token" in sig
+            )
             if has_auth:
                 continue
             # الخطر الحقيقيّ = وصول قاعدة فعليّ في الجسم؛ وجود وسيط field_id وحده لا يكفي
