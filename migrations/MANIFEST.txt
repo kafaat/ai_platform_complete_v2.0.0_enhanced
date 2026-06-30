@@ -470,3 +470,8 @@ v122_rls_with_check_session_unification.sql
 # منه (دون استبدال USING)، فلا يُسقِط شروط ملكيّة/دور/خدمة. idempotent + لا-عمليّ على
 # مخطّط طبّق v122. يبقى الأخير (مدفوع بالكتالوج، يلي كلّ ترحيلات السياسات).
 v123_rls_with_check_preserve_using.sql
+# v124: سياسة حوكمة الذكاء الدائمة للمستأجِر (V52) — جدول tenant_ai_policies (سماح
+# التوليد/المزوّدات/النماذج المسموحة/مستوى مشاركة البيانات الخارجيّ/ملفّ التنقيح). يُغلِق
+# خطر V51 (TenantPolicyStore في الذاكرة). RLS معزول بسياسة tenant_isolation تحمل
+# WITH CHECK مباشرةً (نمط v9_rls_tenant_isolation)، فلا يحتاج backfill v122/v123. idempotent.
+v124_tenant_ai_policies.sql

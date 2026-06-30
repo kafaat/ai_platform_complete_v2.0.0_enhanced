@@ -3245,7 +3245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b1bf823c7053a25e906d7c3d9f9b97d3f72436691c34d862260886811f9caea9"
+          "content": "d3f2ab41221e65ebaca25652cd5135971412ad277941e986b4c0dc5a05e6c3ae"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -3549,6 +3549,16 @@
         }
       ],
       "name": "migrations/v123_rls_with_check_preserve_using.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9fc045433ca265e67c7411a611d6997147daa39bebed930af2f1cbe979ae2ae2"
+        }
+      ],
+      "name": "migrations/v124_tenant_ai_policies.sql",
       "type": "file"
     },
     {
@@ -5475,7 +5485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1db770d988bfde78865f2dac18d76f74ac1405410230c82ebd8d573714202130"
+          "content": "75c85ae767770afe2e4d260d6dbc2cb1721caa725e5eadfa0e8856d1b872013b"
         }
       ],
       "name": "services/ai_agronomist/tenant_policies.py",
@@ -17139,6 +17149,26 @@
         }
       ],
       "name": "shared/actuator_mode.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "name": "shared/ai/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6a0da59bab85dedc76d4c1113687dfc8c489b723ee88e89a41ac0d5fd086f56f"
+        }
+      ],
+      "name": "shared/ai/provider_contract.py",
       "type": "file"
     },
     {
