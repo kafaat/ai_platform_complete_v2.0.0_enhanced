@@ -7,12 +7,18 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from . import ai_generation
 from .decision_contracts import (
     EvidenceItem,
     EvidenceStrength,
     assert_no_decision_keys,
     compose_confidence,
 )
+from .tenant_policies import TenantPolicyStore
+
+# مخزن سياسات المستأجِر (يُغذّى تشغيليّاً) — يحكم السماح بالتوليد لكلّ مستأجِر.
+# الافتراضيّ فارغ ⇒ السماح يتبع الراية العامّة فقط (المنع الصريح للمستأجِر يُحترَم).
+TENANT_POLICY = TenantPolicyStore()
 
 VERSION = "2026.2-e2e-runtime"
 RAG_BASE_URL = os.getenv("RAG_BASE_URL", "http://sahool-rag-retrieval:8000")
@@ -202,6 +208,50 @@ async def _record_ai_advice_event(
         return {"status": "failed", "reason": str(exc)}
 
 
+def _generation_allowed(tenant_id: str) -> bool:
+    """بوّابة مزدوجة: الراية العامّة + سياسة المستأجِر (المنع الصريح يُحترَم)."""
+    if not ai_generation.generation_enabled():
+        return False
+    return ai_generation.tenant_allows_generation(TENANT_POLICY.get_policy(tenant_id))
+
+
+def _grounding_context_text(annotations: dict[str, Any]) -> str:
+    """يحوّل أدلّة RAG+KG+حالة الحقل إلى نصّ سياق مقتضب يُمرَّر للنموذج كتأريض.
+
+    لا تلفيق: يُلخّص الموجود فقط؛ غياب مصدر يُذكَر صراحةً كي يلتزم النموذج بالأدلّة.
+    """
+    lines: list[str] = []
+    rag = annotations.get("rag") or []
+    if rag:
+        lines.append("• مقتطفات معرفيّة (RAG):")
+        for item in rag[:6]:
+            txt = (
+                item.get("text") or item.get("content") or item.get("snippet")
+                if isinstance(item, dict)
+                else str(item)
+            )
+            if txt:
+                lines.append(f"  - {str(txt)[:400]}")
+    kg = annotations.get("knowledge_graph") or []
+    if kg:
+        lines.append("• روابط Knowledge Graph:")
+        for edge in kg[:8]:
+            if isinstance(edge, dict):
+                s, p, o = edge.get("subject_id"), edge.get("predicate"), edge.get("object_id")
+                lines.append(f"  - {s} —{p}→ {o}")
+    fs = annotations.get("canonical_field_state")
+    if isinstance(fs, dict) and fs:
+        rs = fs.get("remote_sensing") or {}
+        bits = []
+        if rs.get("ndvi_mean") is not None:
+            bits.append(f"NDVI={rs.get('ndvi_mean')} ({rs.get('ndvi_date', 'بلا تاريخ')})")
+        if fs.get("validity"):
+            bits.append(f"صلاحية={fs.get('validity')}")
+        if bits:
+            lines.append("• حالة الحقل القانونيّة: " + "، ".join(bits))
+    return "\n".join(lines) if lines else "لا تتوفّر أدلّة كافية من RAG/KG/حالة الحقل."
+
+
 async def _build_evidence_response(
     req: AdvisorQuery,
     *,
@@ -276,6 +326,22 @@ async def _build_evidence_response(
         + (" وحالة الحقل القانونية" if field_state is not None else "")
         + ". هذه طبقة تفسير وتأصيل فقط؛ أي توصية تنفيذية نهائية يجب أن تمر عبر منسّق ذكاء الحقل والحواجز."
     )
+
+    # توليد اختياريّ مؤرَّض فوق الأدلّة (مسار OpenRouter/سحابيّ) — خلف راية عامّة +
+    # سياسة المستأجِر، بمفتاح من البيئة، مع سقوط آمن إلى جواب الأدلّة أعلاه عند أيّ
+    # غياب/فشل. RAG+KG تبقى طبقة التأصيل الأساسيّة (تُمرَّر كأدلّة للنموذج).
+    mode = "evidence_only"
+    generation_model: str | None = None
+    generation_provider: str | None = None
+    if endpoint_mode == "chat" and _generation_allowed(tenant_id):
+        context_text = _grounding_context_text(annotations)
+        gen = await ai_generation.generate(req.question, context_text, req.model)
+        if gen is not None:
+            answer_ar = gen.text
+            mode = "generated_grounded"
+            generation_model = gen.model
+            generation_provider = gen.provider
+
     audit_event = await _record_ai_advice_event(
         tenant_id=tenant_id,
         field_id=req.field_id,
@@ -288,7 +354,7 @@ async def _build_evidence_response(
 
     return {
         "status": "ok",
-        "mode": "evidence_only",
+        "mode": mode,
         "endpoint_mode": endpoint_mode,
         "answer_ar": answer_ar,
         "message": answer_ar,
@@ -296,6 +362,8 @@ async def _build_evidence_response(
         "field_id": req.field_id,
         "selected_imagery_date": req.selected_imagery_date,
         "selected_model": req.model,
+        "generation_model": generation_model,
+        "generation_provider": generation_provider,
         "language": req.language,
         "annotations": annotations,
         "evidence_ids": evidence_ids,

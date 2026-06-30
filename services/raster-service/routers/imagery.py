@@ -27,7 +27,10 @@ async def historical_backfill_policy():
     return {
         **policy.model_dump(),
         "presets": {
-            "last_2_years": {"months": 24, "recommended_for": "new_field_auto_bootstrap_season_comparison"},
+            "last_2_years": {
+                "months": 24,
+                "recommended_for": "new_field_auto_bootstrap_season_comparison",
+            },
             "auto_12_months": {"months": 12, "recommended_for": "lighter_single_season_bootstrap"},
             "extended_3_years": {"months": 36, "recommended_for": "season_comparison"},
             "research_5_years": {"months": 60, "recommended_for": "enterprise_research_prediction"},
