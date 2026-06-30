@@ -156,10 +156,11 @@ export default function MapHub() {
   const routeFieldId = routeState.fieldId ?? initialSearch.get('field_id') ?? initialSearch.get('fieldId') ?? undefined;
   const routeIndicator = routeState.indicator ?? initialSearch.get('index') ?? initialSearch.get('indicator') ?? undefined;
   const requestedCdseOpen = routeState.openCdse === true || initialSearch.get('source') === 'my-fields' || !!routeIndicator;
+  // الطقس لا يُفتَح افتراضيّاً عند فتح حقل من «حقولي» — الافتراضيّ صورة القمر
+  // الصناعيّ (CDSE/NDVI) مع أسطورتها. يُفتَح الطقس فقط بطلب صريح (weather=1/state).
   const requestedWeatherOpen = routeState.showWeather === true
     || initialSearch.get('weather') === '1'
-    || initialSearch.get('weather') === 'true'
-    || initialSearch.get('source') === 'my-fields';
+    || initialSearch.get('weather') === 'true';
   // فتح «حقل جديد» عبر رابط عميق (من شاشة «حقولي») — زرّ الإنشاء انتقل إلى حقولي.
   const requestedAddOpen = initialSearch.get('add') === '1';
   const [activeIndicator, setActiveIndicator] = useState<string | null>(

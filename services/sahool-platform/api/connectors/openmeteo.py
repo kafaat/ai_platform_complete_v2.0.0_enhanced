@@ -153,6 +153,7 @@ class CurrentWeather:
     humidity_pct: float
     wind_speed_ms: float
     wind_direction_deg: float | None
+    wind_direction_source: str | None
     wind_gusts_ms: float | None
     precipitation_mm: float
     cloud_cover_pct: float
@@ -260,11 +261,26 @@ async def fetch_current(
     data = await _fetch_json(FORECAST_URL, params, timeout_s)
 
     c = data.get("current", {})
-    result = CurrentWeather(
+    wind_direction = c.get("wind_direction_10m")
+    wind_direction_source = "open-meteo" if wind_direction is not None else None
+    # احتياط اتّجاه الرياح للحالة الحالية أيضاً: لا نكتفي بالبلاطات. إن غاب
+    # الاتجاه من Open-Meteo نحاول MET.no، وإن فشل نبقي القيمة None بصدق.
+    if wind_direction is None:
+        try:
+            from api.connectors import metno_wind
+
+            deg = await metno_wind.fetch_wind_direction_deg(lat, lon)
+            if deg is not None:
+                wind_direction = deg
+                wind_direction_source = "met.no"
+        except Exception:  # noqa: BLE001 — الاحتياط لا يكسر الطقس الحالي
+            pass
+    return CurrentWeather(
         temperature_c=c.get("temperature_2m", 0),
         humidity_pct=c.get("relative_humidity_2m", 0),
         wind_speed_ms=c.get("wind_speed_10m", 0),
-        wind_direction_deg=c.get("wind_direction_10m"),
+        wind_direction_deg=wind_direction,
+        wind_direction_source=wind_direction_source,
         wind_gusts_ms=c.get("wind_gusts_10m"),
         precipitation_mm=c.get("precipitation", 0),
         cloud_cover_pct=c.get("cloud_cover", 0),
@@ -272,17 +288,6 @@ async def fetch_current(
         is_day=bool(c.get("is_day", 1)),
         timestamp=c.get("time", ""),
     )
-    # احتياط اتّجاه الرياح من MET Norway حين يغيب من Open-Meteo (لا قيمة وهميّة).
-    if result.wind_direction_deg is None:
-        try:
-            from api.connectors import metno_wind
-
-            deg = await metno_wind.fetch_wind_direction_deg(lat, lon)
-            if deg is not None:
-                result.wind_direction_deg = deg
-        except Exception:  # noqa: BLE001 — الاحتياط لا يكسر الطقس الحاليّ
-            pass
-    return result
 
 
 async def fetch_current_batch(
@@ -326,11 +331,17 @@ async def fetch_current_batch(
     out = []
     for entry in data:
         c = entry.get("current", {})
+        # الدفعة (عدّة مواقع) لا تستدعي احتياط MET.no (تفادي N طلبات): اتّجاه Open-Meteo
+        # وحده، والمصدر open-meteo إن وُجد وإلّا None (لا قيمة وهميّة).
+        wd = c.get("wind_direction_10m")
         out.append(
             CurrentWeather(
                 temperature_c=c.get("temperature_2m", 0),
                 humidity_pct=c.get("relative_humidity_2m", 0),
                 wind_speed_ms=c.get("wind_speed_10m", 0),
+                wind_direction_deg=wd,
+                wind_direction_source="open-meteo" if wd is not None else None,
+                wind_gusts_ms=c.get("wind_gusts_10m"),
                 precipitation_mm=c.get("precipitation", 0),
                 cloud_cover_pct=c.get("cloud_cover", 0),
                 weather_code=c.get("weather_code", 0),
@@ -573,6 +584,16 @@ async def fetch_weather_tile_data(
     def hv(key: str):
         return _hourly_value_at(h, key, offset_hours)
 
+    def nvl(*values):
+        for value in values:
+            if value is not None:
+                return value
+        return None
+
+    openmeteo_wind_direction = nvl(
+        c.get("wind_direction_10m") if use_current else None, hv("wind_direction_10m")
+    )
+
     sample = {
         "lat": lat,
         "lon": lon,
@@ -592,8 +613,7 @@ async def fetch_weather_tile_data(
         or hv("surface_pressure"),
         "wind_speed_10m_kmh": (c.get("wind_speed_10m") if use_current else None)
         or hv("wind_speed_10m"),
-        "wind_direction_10m_deg": (c.get("wind_direction_10m") if use_current else None)
-        or hv("wind_direction_10m"),
+        "wind_direction_10m_deg": openmeteo_wind_direction,
         "wind_gusts_10m_kmh": (c.get("wind_gusts_10m") if use_current else None)
         or hv("wind_gusts_10m"),
         "weather_code": (c.get("weather_code") if use_current else None) or hv("weather_code"),
@@ -611,7 +631,7 @@ async def fetch_weather_tile_data(
         "soil_moisture_1_to_3cm_m3m3": hv("soil_moisture_1_to_3cm"),
         "soil_moisture_3_to_9cm_m3m3": hv("soil_moisture_3_to_9cm"),
         "source": "open-meteo",
-        "wind_direction_source": "open-meteo",
+        "wind_direction_source": "open-meteo" if openmeteo_wind_direction is not None else None,
     }
 
     # احتياط اتّجاه الرياح: حين يغيب من Open-Meteo، نجلبه من MET Norway (مفتوح المصدر،

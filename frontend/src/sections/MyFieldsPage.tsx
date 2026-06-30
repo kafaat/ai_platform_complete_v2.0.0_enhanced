@@ -111,8 +111,9 @@ export default function MyFieldsPage() {
             // MapHub يقرأ selectedFieldId عبر useSelectedField ويعرض بلاطات cdse-tiles
             // ومؤشرات الحقل المختار دون إدخال مسار جديد أو كسر النمط الحالي.
             setSelectedField(fieldId);
-            navigate(`/fields/map-center?field_id=${encodeURIComponent(fieldId)}&index=ndvi&source=my-fields&weather=1`, {
-              state: { fieldId, openCdse: true, indicator: 'ndvi', from: 'my-fields', showWeather: true },
+            // الافتراضيّ: صورة القمر الصناعيّ (CDSE/NDVI) مع أسطورتها — لا الطقس.
+            navigate(`/fields/map-center?field_id=${encodeURIComponent(fieldId)}&index=ndvi&source=my-fields`, {
+              state: { fieldId, openCdse: true, indicator: 'ndvi', from: 'my-fields' },
             });
           }}
         />

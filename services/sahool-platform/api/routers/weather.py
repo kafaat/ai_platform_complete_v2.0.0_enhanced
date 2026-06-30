@@ -2030,6 +2030,7 @@ async def weather_current(lat: float, lon: float):
             "humidity_pct": data.humidity_pct,
             "wind_speed_ms": data.wind_speed_ms,
             "wind_direction_deg": data.wind_direction_deg,
+            "wind_direction_source": data.wind_direction_source,
             "wind_gusts_ms": data.wind_gusts_ms,
             "precipitation_mm": data.precipitation_mm,
             "cloud_cover_pct": data.cloud_cover_pct,
