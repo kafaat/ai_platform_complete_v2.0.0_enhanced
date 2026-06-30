@@ -39,6 +39,7 @@ import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
+import type { DrawFeature } from './drawing';
 // أنواع فقط (تُمحى وقت الترجمة) — لا يدخل Leaflet هذه الحزمة المقسومة.
 import type { ScoutPin } from './HubMap';
 import type { AlertMarker, DeviceMarker, WeatherMarker, OperationalMarker } from './OverlayMarkers';
@@ -85,6 +86,9 @@ export interface HubMapGLProps {
   deviceMarkers?: DeviceMarker[];
   weatherMarker?: WeatherMarker | null;
   operationalMarkers?: OperationalMarker[];
+  pivotDesignerEnabled?: boolean;
+  onAddPivotDraft?: (lat: number, lng: number) => void;
+  pivotDrafts?: DrawFeature[];
   imageryTs?: number;
   imageryDate?: string | null;
   tenantId?: string | null;

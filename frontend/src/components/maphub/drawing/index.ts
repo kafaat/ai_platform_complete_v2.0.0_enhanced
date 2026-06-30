@@ -10,3 +10,9 @@ export * from './adapters/createDrawingAdapter';
 // مُحوِّل Geoman يُصدَّر بالنوع فقط هنا كي لا يدخل @geoman-io الحزمة الافتراضيّة
 // (side-effect import). القيمة (الصنف) تُبنى حصراً عبر createDrawingAdapter الكسول.
 export type { LeafletGeomanAdapter } from './adapters/LeafletGeomanAdapter';
+
+export * from './pivotDesigner';
+
+export * from './topologyValidation';
+
+export * from './workflows';

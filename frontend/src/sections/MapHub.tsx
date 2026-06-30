@@ -22,7 +22,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type
 import {
   Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
-  Tractor, CheckSquare, CircleDotDashed, History, RotateCcw,
+  Tractor, CheckSquare, CircleDotDashed, History, RotateCcw, Target,
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
@@ -47,6 +47,8 @@ import HubMap, {
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
+import type { DrawFeature } from '../components/maphub/drawing';
+import { buildPivotDrawFeature, summarizePivotDesign } from '../components/maphub/drawing';
 
 // العرض ثلاثيّ الأبعاد مقسوم بالكود — لا يُحمَّل إلا عند تفعيل وضع التضاريس،
 // فلا يُثقِل الحزمة الأساسيّة (يحوي مستقبلاً maplibre-gl الثقيل).
@@ -139,6 +141,13 @@ export default function MapHub() {
   const [showEquipment, setShowEquipment] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
   const [showPivots, setShowPivots] = useState(false);
+  const [pivotDesigner, setPivotDesigner] = useState(false);
+  const [pivotRadiusM, setPivotRadiusM] = useState(400);
+  const [pivotStartAngleDeg, setPivotStartAngleDeg] = useState(0);
+  const [pivotEndAngleDeg, setPivotEndAngleDeg] = useState(360);
+  const [pivotRingCount, setPivotRingCount] = useState(4);
+  const [pivotSpanCount, setPivotSpanCount] = useState(8);
+  const [pivotDrafts, setPivotDrafts] = useState<DrawFeature[]>([]);
   const [pins, setPins] = useState<ScoutPin[]>([]);
   const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
   // ── v2: لقطة عرض الخريطة (مركز lat/lng + تكبير) — تُستعاد وتُلتقط من الخريطة ──
@@ -547,6 +556,40 @@ export default function MapHub() {
 
   const handleClearPins = useCallback(() => setPins([]), []);
 
+  // ── v36: Pivot Designer مرئي داخل MapHub ─────────────────────
+  // النقر على الخريطة في وضع التصميم ينشئ قطاع pivot كـ DrawFeature محليّ.
+  // الحفظ الدائم سيأتي في مرحلة Backend CRUD/PostGIS، لذلك نعلّمه draft=true.
+  const handleAddPivotDraft = useCallback((lat: number, lng: number) => {
+    if (!selected) {
+      toastStore.add('warning', 'اختر حقلاً أولاً', 'تصميم المحوري يحتاج حقلاً مختاراً لربط التصميم به.');
+      return;
+    }
+    const feature = buildPivotDrawFeature({
+      center: [lng, lat],
+      radiusM: pivotRadiusM,
+      startAngleDeg: pivotStartAngleDeg,
+      endAngleDeg: pivotEndAngleDeg,
+      ringCount: pivotRingCount,
+      spanCount: pivotSpanCount,
+      fieldId: selected.id,
+      name: `Pivot ${selected.name}`,
+    });
+    setPivotDrafts((prev) => [...prev, feature]);
+    setShowPivots(true);
+    toastStore.add('success', 'تم إنشاء تصميم Pivot', `المساحة التقريبية ${(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ`);
+  }, [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selected]);
+
+  const handleClearPivotDrafts = useCallback(() => setPivotDrafts([]), []);
+
+  const pivotSummary = useMemo(() => summarizePivotDesign({
+    center: selectedPoint ? [selectedPoint[1], selectedPoint[0]] : [44, 15],
+    radiusM: pivotRadiusM,
+    startAngleDeg: pivotStartAngleDeg,
+    endAngleDeg: pivotEndAngleDeg,
+    ringCount: pivotRingCount,
+    spanCount: pivotSpanCount,
+  }), [pivotEndAngleDeg, pivotRadiusM, pivotRingCount, pivotSpanCount, pivotStartAngleDeg, selectedPoint]);
+
   // ── إنشاء/استيراد حقل (نفس مسار FieldManagementPage الحقيقيّ) ──
   const handleSaveField = useCallback(async (data: {
     name: string; manager: string; crop: string; soil_type: string;
@@ -897,11 +940,12 @@ export default function MapHub() {
                   {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
                       (Leaflet · MapLibre GL · المرحلة 2ب). */}
                   <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
-                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
+                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
                     {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
                         أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
-                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
+                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                    <ToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
                   </div>
                 </div>
 
@@ -977,6 +1021,36 @@ export default function MapHub() {
                     </span>
                   </div>
                 )}
+
+                {(pivotDesigner || pivotDrafts.length > 0) && (
+                  <div data-testid="pivot-designer-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold" style={{ color: T.muted }}>مصمم Pivot</span>
+                      <Pill tone="info">{pivotDrafts.length} تصميم</Pill>
+                      {pivotDesigner && <span className="text-[11px]" style={{ color: T.faint }}>انقر على الخريطة لاختيار مركز المحوري</span>}
+                      {pivotDrafts.length > 0 && (
+                        <button
+                          type="button" onClick={handleClearPivotDrafts}
+                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg"
+                          style={{ color: T.danger, border: `1px solid ${T.line}` }}
+                        >
+                          <Trash2 className="w-3 h-3" /> مسح تصاميم Pivot
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                      <NumberField label="نصف القطر م" value={pivotRadiusM} min={30} max={2500} step={10} onChange={setPivotRadiusM} />
+                      <NumberField label="زاوية البداية" value={pivotStartAngleDeg} min={0} max={359} step={5} onChange={setPivotStartAngleDeg} />
+                      <NumberField label="زاوية النهاية" value={pivotEndAngleDeg} min={0} max={360} step={5} onChange={setPivotEndAngleDeg} />
+                      <NumberField label="الحلقات" value={pivotRingCount} min={1} max={24} step={1} onChange={setPivotRingCount} />
+                      <NumberField label="الأذرع" value={pivotSpanCount} min={1} max={64} step={1} onChange={setPivotSpanCount} />
+                    </div>
+                    <div className="text-[11px]" style={{ color: pivotSummary.valid ? T.muted : T.danger }}>
+                      المساحة التقريبية {pivotSummary.areaHa.toFixed(2)} هـ · القطاع {Math.round(pivotSummary.sweepDeg)}° · المحيط القوسي {Math.round(pivotSummary.circumferenceM)} م
+                      {!pivotSummary.valid ? ` · مشاكل: ${pivotSummary.issues.join(', ')}` : ''}
+                    </div>
+                  </div>
+                )}
               </Card>
             )}
 
@@ -1031,6 +1105,9 @@ export default function MapHub() {
                       imageryTs={imageryTs}
                       imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
                       tenantId={tenantId}
+                      pivotDesignerEnabled={pivotDesigner}
+                      onAddPivotDraft={handleAddPivotDraft}
+                      pivotDrafts={showPivots ? pivotDrafts : []}
                     />
                   </Suspense>
                 ) : (
@@ -1055,6 +1132,9 @@ export default function MapHub() {
                     imageryTs={imageryTs}
                     imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
                     tenantId={tenantId}
+                    pivotDesignerEnabled={pivotDesigner}
+                    onAddPivotDraft={handleAddPivotDraft}
+                    pivotDrafts={showPivots ? pivotDrafts : []}
                   />
                 )}
                 {/* مفتاح ألوان الطبقة النشطة */}
@@ -1131,6 +1211,35 @@ export default function MapHub() {
         </div>
       )}
     </div>
+  );
+}
+
+
+function NumberField({ label, value, min, max, step, onChange }: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="text-[11px] font-semibold" style={{ color: T.muted }}>
+      <span className="block mb-1">{label}</span>
+      <input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => {
+          const next = Number(e.target.value);
+          if (Number.isFinite(next)) onChange(Math.max(min, Math.min(max, next)));
+        }}
+        className="w-full rounded-lg px-2 py-1 text-xs"
+        style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+      />
+    </label>
   );
 }
 

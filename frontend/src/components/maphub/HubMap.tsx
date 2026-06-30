@@ -21,6 +21,7 @@ import DrawControl from './DrawControl'; // أداة رسم على leaflet-draw 
 import L from 'leaflet';
 import '../../lib/leafletSetup';
 import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters } from '../../lib/geo';
+import type { DrawFeature } from './drawing';
 import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import { getAccessToken } from '../../lib/authStorage';
@@ -65,6 +66,10 @@ export interface HubMapProps {
   deviceMarkers?: DeviceMarker[];
   weatherMarker?: WeatherMarker | null;
   operationalMarkers?: OperationalMarker[];
+  // v36: Pivot Designer مرئي — تصاميم draft محلية حتى Backend CRUD/PostGIS.
+  pivotDesignerEnabled?: boolean;
+  onAddPivotDraft?: (lat: number, lng: number) => void;
+  pivotDrafts?: DrawFeature[];
   // يغيّر مفتاح/رابط طبقة المؤشّر بعد معالجة Sentinel لإجبار المتصفّح/Leaflet على جلب البلاطات الجديدة.
   imageryTs?: number;
   // تاريخ مشهد Sentinel/CDSE المختار من الواجهة. 'latest' يبقى صريحاً فقط عند عدم اختيار تاريخ.
@@ -245,6 +250,26 @@ function PinClickHandler({ enabled, onAddPin }: { enabled: boolean; onAddPin: (l
   return null;
 }
 
+function PivotDesignerClickHandler({ enabled, onAddPivotDraft }: { enabled: boolean; onAddPivotDraft?: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(e) { if (enabled && onAddPivotDraft) onAddPivotDraft(e.latlng.lat, e.latlng.lng); },
+  });
+  return null;
+}
+
+function drawFeaturePolygonPositions(feature: DrawFeature): [number, number][] | null {
+  if (feature.geometry.type !== 'Polygon') return null;
+  const rings = feature.geometry.coordinates as unknown;
+  if (!Array.isArray(rings) || !Array.isArray(rings[0])) return null;
+  const outer = rings[0] as unknown[];
+  const positions: [number, number][] = [];
+  for (const pt of outer) {
+    if (!Array.isArray(pt) || typeof pt[0] !== 'number' || typeof pt[1] !== 'number') return null;
+    positions.push([pt[1], pt[0]]);
+  }
+  return positions.length >= 3 ? positions : null;
+}
+
 // رابط بلاطات المؤشّر — نُبقي {z}/{x}/{y} حرفيّاً ليفسّرها Leaflet (مطابق api.ts).
 // بلاطات CDSE الحيّة (Sentinel Hub): المسار المحلّيّ `tiles` يحتاج COG مُسبق-التوليد غير
 // موجود لحقل بلا معالجة ⇒ 404 ⇒ لا يظهر المؤشّر (MAPHUB-CDSE). `cdse-tiles` يجلب المشهد
@@ -291,6 +316,7 @@ export default function HubMap({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity,
   drawTools, pinMode, pins, onAddPin, height = 520,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
+  pivotDesignerEnabled = false, onAddPivotDraft, pivotDrafts = [],
   imageryTs = 0, imageryDate = null, tenantId = null,
   initialView = null, onViewChange,
 }: HubMapProps) {
@@ -323,7 +349,7 @@ export default function HubMap({
         className="leaflet-map"
         center={center}
         zoom={initialZoom}
-        style={{ height, width: '100%', cursor: pinMode ? 'crosshair' : undefined }}
+        style={{ height, width: '100%', cursor: pinMode || pivotDesignerEnabled ? 'crosshair' : undefined }}
         scrollWheelZoom
       >
         <TileLayer
@@ -392,6 +418,23 @@ export default function HubMap({
           />
         )}
 
+        {/* v36: تصاميم Pivot المحلية — تُعرض كقطاعات زرقاء فوق الحقل، draft فقط. */}
+        {pivotDrafts.map((feature) => {
+          const positions = drawFeaturePolygonPositions(feature);
+          if (!positions) return null;
+          return (
+            <Polygon
+              key={`pivot-draft-${feature.id}`}
+              positions={positions}
+              pathOptions={{ color: '#38bdf8', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.18, dashArray: '6 4' }}
+            >
+              <Tooltip>
+                {feature.properties.name || 'Pivot draft'} · {(feature.measurements?.areaHa ?? 0).toFixed(2)} هـ
+              </Tooltip>
+            </Polygon>
+          );
+        })}
+
         {/* دبابيس الاستكشاف */}
         {pins.map((p) => (
           <Marker key={p.id} position={[p.lat, p.lng]} icon={PIN_ICON}>
@@ -408,6 +451,7 @@ export default function HubMap({
         <WeatherOverlay marker={weatherMarker} />
 
         <PinClickHandler enabled={pinMode} onAddPin={onAddPin} />
+        <PivotDesignerClickHandler enabled={pivotDesignerEnabled} onAddPivotDraft={onAddPivotDraft} />
         {drawTools && <MeasureTools />}
         <FitToFields fields={fields} selectedId={selectedId} hasRestoredView={hasRestoredView} />
         <ViewCapture onViewChange={onViewChange} />
@@ -428,6 +472,20 @@ export default function HubMap({
           <span style={{ width: 34, textAlign: 'left', fontVariantNumeric: 'tabular-nums' }}>
             {Math.round(indicatorOpacity * 100)}%
           </span>
+        </div>
+      )}
+
+      {pivotDesignerEnabled && (
+        <div
+          dir="rtl"
+          data-testid="pivot-designer-map-hint"
+          style={{
+            position: 'absolute', top: 12, right: 12, zIndex: 1000,
+            background: 'rgba(13,22,17,.9)', borderRadius: 10, padding: '6px 12px',
+            fontSize: 12, color: '#7dd3fc', border: '1px solid #164e63',
+          }}
+        >
+          انقر على الخريطة لتحديد مركز Pivot
         </div>
       )}
 
