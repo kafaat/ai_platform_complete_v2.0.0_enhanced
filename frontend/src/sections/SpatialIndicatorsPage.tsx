@@ -4,6 +4,7 @@ import {
   type GridIndex, type IndicatorGridResponse, type CatalogIndicator,
 } from "../hooks/useApi";
 import FieldIndicatorMap from "../components/FieldIndicatorMap";
+import { GradientScale, SegmentedScale, type ScaleBand } from "../components/insights/ScaleLegend";
 
 // ════════════════════════════════════════════════════════════
 // SAHOOL — صفحة المؤشرات المكانية (Spatial Indicators View)
@@ -153,6 +154,39 @@ function pixelColor(v: number, indexKey: IndexKey) {
   if (t > 0.4) return "#b8920f";
   if (t > 0.25) return "#c75416";
   return "#a32014";
+}
+
+// ألوان السلّم من مشكلة→صحّيّ (نفس عتبات pixelColor على محور t).
+const _RAMP_PROBLEM_TO_HEALTHY = ["#a32014", "#c75416", "#b8920f", "#5c9a2e", "#1a7a3c"];
+
+// يبني سلّم المؤشّر المختار ديناميّاً: تدرّج لوني على محور القيمة + نطاقات بعناوين
+// + شرح «كيف نقرأ». يحترم اتّجاه المؤشّر (lowIsProblem) فيقلب الألوان للملوحة.
+function buildIndicatorScale(indexKey: IndexKey): {
+  gradient: string[];
+  bands: ScaleBand[];
+  howToRead: string;
+} {
+  const idx = IND_META[indexKey];
+  const cuts = [0.25, 0.4, 0.55, 0.75];
+  // ترتيب الألوان على محور القيمة المتصاعد: lowIsProblem ⇒ منخفض=مشكلة (أحمر) فالألوان
+  // كما هي؛ غير ذلك (ملوحة) ⇒ منخفض=صحّيّ فنعكس الألوان.
+  const colorsAsc = idx.lowIsProblem ? _RAMP_PROBLEM_TO_HEALTHY : [..._RAMP_PROBLEM_TO_HEALTHY].reverse();
+  const labelsAsc = idx.lowIsProblem
+    ? ["حرج", "ضعيف", "متوسّط", "جيّد", "ممتاز"]
+    : ["منخفض", "خفيف", "متوسّط", "مرتفع", "شديد"];
+  const edges = [0, ...cuts, 1.01];
+  const bands: ScaleBand[] = colorsAsc.map((color, i) => ({
+    color,
+    label: labelsAsc[i],
+    from: edges[i],
+    to: edges[i + 1],
+  }));
+  const howToRead = idx.lowIsProblem
+    ? `«${idx.name}» — ${idx.label}. القيم الأعلى أفضل؛ المرجع الصحّيّ ≈ ${idx.healthy.toFixed(2)}. ` +
+      `القيم المنخفضة (يسار السلّم) تشير إلى إجهاد محتمل (نقص ريّ/تغذية أو ملوحة أو إصابة) ويُنصح بتحقّق ميدانيّ.`
+    : `«${idx.name}» — ${idx.label}. القيم الأقلّ أفضل؛ الحدّ المقبول ≈ ${idx.healthy.toFixed(2)}. ` +
+      `القيم المرتفعة (يمين السلّم) تشير إلى مشكلة (ملوحة أعلى) وتحتاج معالجة/غسيل أملاح.`;
+  return { gradient: colorsAsc, bands, howToRead };
 }
 
 const SEV_AR = { high: "🔴 شديد", medium: "🟡 متوسط", low: "🟢 طفيف" };
@@ -398,12 +432,29 @@ export default function SpatialView() {
           </div>
           )}
 
-          {/* مفتاح الألوان */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, fontSize: 12, color: "#9cb8a3" }}>
-            <span>مشكلة</span>
-            <div style={{ flex: 1, height: 10, borderRadius: 5, background: "linear-gradient(90deg,#a32014,#c75416,#b8920f,#5c9a2e,#1a7a3c)" }} />
-            <span>صحي</span>
-          </div>
+          {/* سلّم المؤشّر الديناميكيّ + كيف نقرأه (يتبع المؤشّر المختار) */}
+          {(() => {
+            const sc = buildIndicatorScale(activeKey);
+            const mean = Number.isFinite(fieldStats.mean) ? fieldStats.mean : null;
+            return (
+              <div style={{ marginTop: 14, background: "#1a2b21", border: "1px solid #2d4a37", borderRadius: 12, padding: 14, display: "grid", gap: 12 }}>
+                <GradientScale
+                  title={`سلّم ${idx.name}`}
+                  colors={sc.gradient}
+                  min={0}
+                  max={1}
+                  value={mean}
+                  unit=""
+                  formatValue={(v) => v.toFixed(2)}
+                />
+                <SegmentedScale bands={sc.bands} value={mean} title="التصنيف" />
+                <div style={{ borderTop: "1px solid #2d4a37", paddingTop: 10 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#7fae8c", marginBottom: 4 }}>كيف نقرأ المؤشّر الحاليّ؟</div>
+                  <div style={{ fontSize: 11.5, lineHeight: 1.7, color: "#cbd5e1" }}>{sc.howToRead}</div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* الشريط الزمني */}
           <div style={{ marginTop: 18 }}>

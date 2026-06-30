@@ -12,6 +12,8 @@ import { useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
 import type { IrrigationAdvice, DiseaseRisk } from '../services/api';
 import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { SegmentedScale, type ScaleBand } from '../components/insights/ScaleLegend';
+import { OPERATION_SUITABILITY_BANDS } from '../components/insights/scalePresets';
 
 // ── ألوان/تسميات الإلحاح والخطر ──────────────────────────────────
 const URGENCY_STYLE: Record<string, { label: string; bg: string; fg: string }> = {
@@ -25,6 +27,21 @@ const RISK_STYLE: Record<string, { label: string; bg: string; fg: string }> = {
   moderate: { label: 'متوسّط', bg: '#f59e0b22', fg: '#fbbf24' },
   high:     { label: 'مرتفع',  bg: '#dc262622', fg: '#f87171' },
 };
+
+// سلالم بصريّة (نطاقات) تطابق مستويات الخدمة النصّيّة — تُبرِز النطاق النشط بصريّاً.
+const IRRIGATION_URGENCY_ORDER = ['none', 'low', 'moderate', 'high'];
+const IRRIGATION_URGENCY_SCALE: ScaleBand[] = [
+  { label: 'لا حاجة', color: '#16a34a', hint: 'رطوبة كافية — لا ريّ قريب.' },
+  { label: 'منخفض', color: '#84cc16', hint: 'تابِع — قد يلزم ريّ خلال أيّام.' },
+  { label: 'متوسّط', color: '#f59e0b', hint: 'خطّط لريّ قريب لتفادي الإجهاد المائيّ.' },
+  { label: 'عاجل', color: '#dc2626', hint: 'إجهاد مائيّ مرتفع — ريّ فوريّ مُوصى به.' },
+];
+const DISEASE_RISK_ORDER = ['low', 'moderate', 'high'];
+const DISEASE_RISK_SCALE: ScaleBand[] = [
+  { label: 'منخفض', color: '#16a34a', hint: 'ظروف غير مواتية للمرض — مخاطرة دنيا.' },
+  { label: 'متوسّط', color: '#f59e0b', hint: 'ظروف جزئيّة — راقِب الرطوبة والحقل.' },
+  { label: 'مرتفع', color: '#dc2626', hint: 'ظروف عدوى مواتية — تدخّل وقائيّ مُوصى به.' },
+];
 
 const input = 'px-3 py-2 rounded-lg text-sm w-full';
 const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
@@ -82,6 +99,11 @@ function IrrigationBody({ a }: { a: IrrigationAdvice }) {
         </div>
         <Badge s={u} />
       </div>
+      <SegmentedScale
+        title="إلحاح الريّ"
+        bands={IRRIGATION_URGENCY_SCALE}
+        activeIndex={Math.max(0, IRRIGATION_URGENCY_ORDER.indexOf(a.urgency))}
+      />
       <div className="flex items-center gap-1.5 text-xs text-slate-300">
         <Clock className="w-3.5 h-3.5 text-slate-500" /> التوقيت: {a.timing_ar}
       </div>
@@ -125,6 +147,11 @@ function DiseaseBody({ r }: { r: DiseaseRisk }) {
         <span className="text-sm text-slate-300">مستوى الخطر</span>
         <Badge s={s} />
       </div>
+      <SegmentedScale
+        title="مخاطر الأمراض"
+        bands={DISEASE_RISK_SCALE}
+        activeIndex={Math.max(0, DISEASE_RISK_ORDER.indexOf(r.risk_level))}
+      />
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
         <span className="inline-flex items-center gap-1"><Thermometer className="w-3 h-3 text-slate-500" /> {r.temperature_c}°م</span>
         <span className="inline-flex items-center gap-1"><Wind className="w-3 h-3 text-slate-500" /> رطوبة {r.humidity_pct}٪</span>
@@ -183,10 +210,24 @@ export default function WeatherAdvicePage() {
 
       {/* البطاقات عند اختيار حقل */}
       {fieldId ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <IrrigationCard fieldId={fieldId} />
-          <DiseaseCard fieldId={fieldId} />
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <IrrigationCard fieldId={fieldId} />
+            <DiseaseCard fieldId={fieldId} />
+          </div>
+          {/* مرجع: سلّم ملاءمة الطقس للعمليّات الحقليّة (0..1) — يطابق طبقات الطقس على الخريطة */}
+          <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <CloudRain className="w-4 h-4 text-emerald-400" />
+              <span className="text-sm font-semibold text-slate-200">ملاءمة الطقس للعمليّات الحقليّة</span>
+            </div>
+            <SegmentedScale bands={OPERATION_SUITABILITY_BANDS} title="مقياس الملاءمة (٠ → ١)" />
+            <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
+              يُستعمَل هذا المقياس في طبقات الطقس على الخريطة (الرشّ، السير على التربة…): كلّما اقتربت
+              القيمة من ١ كانت النافذة أنسب للتنفيذ الآمن والفعّال.
+            </p>
+          </div>
+        </>
       ) : (
         fields.length > 0 && (
           <EmptyState

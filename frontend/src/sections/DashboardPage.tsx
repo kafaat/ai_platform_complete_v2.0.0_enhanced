@@ -11,6 +11,8 @@ import {
 import { useDashboardData, useWeatherForecast, useAlerts, useAllServicesHealth } from '../hooks/useApi';
 import { KPICard, STATUS_COLOR } from '../components/KPICard';
 import { LoadingState, SkeletonGrid, EmptyState } from '../components/StateViews';
+import { GradientScale, SegmentedScale } from '../components/insights/ScaleLegend';
+import { NDVI_GRADIENT, NDVI_BANDS, WEATHER_QUICK_REFERENCE } from '../components/insights/scalePresets';
 import type { PageId } from '../App';
 
 function ndviStatus(v: number) {
@@ -106,20 +108,56 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
       {/* Live weather — موحّد على المنصّة (/api/v1/weather). GDD غير متاح للحاضر من
           المنصّة (لا قيمة current) فأُسقِط بصدق بدل عرض undefined. */}
       {weather && (
-        <div className="grid grid-cols-4 gap-2 rounded-xl p-3 border" style={{ background:'#172032', borderColor:'#1e3a4a' }}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
-            { label:'الحرارة', val:weather.tmean != null ? `${weather.tmean}°C` : '—', color:'#f97316' },
-            { label:'الرطوبة', val:weather.humidity_pct != null ? `${weather.humidity_pct}%` : '—', color:'#38bdf8' },
-            { label:'الرياح', val:weather.wind_speed_kmh != null ? `${weather.wind_speed_kmh}كم/س` : '—', color:'#94a3b8' },
-            { label:'ET0', val:weather.et0_mm != null ? `${weather.et0_mm}mm` : '—', color:'#0ea5e9' },
+            { label:'الحرارة', val:weather.tmean != null ? `${weather.tmean}°C` : '—', color:'#f97316', emoji:'🌡' },
+            { label:'الرطوبة', val:weather.humidity_pct != null ? `${weather.humidity_pct}%` : '—', color:'#38bdf8', emoji:'💧' },
+            { label:'الرياح', val:weather.wind_speed_kmh != null ? `${weather.wind_speed_kmh} كم/س` : '—', color:'#94a3b8', emoji:'💨' },
+            { label:'ET₀', val:weather.et0_mm != null ? `${weather.et0_mm} مم` : '—', color:'#0ea5e9', emoji:'🌿' },
           ].map((w,i) => (
-            <div key={i} className="text-center">
-              <div className="font-bold text-sm" style={{ color:w.color }}>{w.val}</div>
-              <div className="text-[10px] text-slate-500">{w.label}</div>
+            <div key={i} className="rounded-xl p-3 border flex items-center gap-3"
+              style={{ background:'#172032', borderColor:'#1e3a4a', borderInlineStartWidth: 3, borderInlineStartColor: w.color }}>
+              <span style={{ fontSize:18, opacity:.9 }}>{w.emoji}</span>
+              <div>
+                <div className="font-bold text-base leading-none" style={{ color:w.color }}>{w.val}</div>
+                <div className="text-[10px] text-slate-500 mt-1">{w.label}</div>
+              </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* مرجع سريع: سلّم NDVI + مرجع تشغيليّ للطقس */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="rounded-xl p-4 border" style={{ background:'#0f1117', borderColor:'#334155' }}>
+          <div className="text-xs font-bold text-emerald-300 mb-3">سلّم NDVI السريع · متوسّط الحقول</div>
+          <GradientScale
+            colors={NDVI_GRADIENT}
+            min={0}
+            max={1}
+            value={avgNdvi}
+            unit=""
+            formatValue={(v) => v.toFixed(2)}
+          />
+          <div className="mt-3">
+            <SegmentedScale bands={NDVI_BANDS} value={avgNdvi} />
+          </div>
+        </div>
+        <div className="rounded-xl p-4 border" style={{ background:'#0f1117', borderColor:'#334155' }}>
+          <div className="text-xs font-bold text-emerald-300 mb-3">مرجع تشغيليّ سريع · الطقس</div>
+          <div className="grid gap-2">
+            {WEATHER_QUICK_REFERENCE.map((it) => (
+              <div key={it.key} className="flex items-start gap-2">
+                <span style={{ width:10, height:10, borderRadius:999, background:it.color, marginTop:4, flex:'0 0 auto' }} />
+                <div>
+                  <div className="text-[12px] font-semibold text-slate-200">{it.label}</div>
+                  <div className="text-[11px] text-slate-400 leading-snug">{it.hint}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* KPIs */}
       {enrichedKpis.length > 0 ? (
