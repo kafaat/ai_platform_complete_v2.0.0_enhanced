@@ -9575,7 +9575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c8855540ea3f5f45dd06d470d757d8e5db327333a335b89d034ae28b5f6bbc83"
+          "content": "9c33c92119fbed6d747d43e5b2d7d0df660b33adf1361c54f9c3cba8ec2ed0ce"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",

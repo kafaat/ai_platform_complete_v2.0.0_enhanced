@@ -2840,15 +2840,142 @@ async def weather_alerts(
     alerts = derive_weather_alerts(sample, plan)
     _record_weather_observation("weather-action-recommendation", cache_state="served")
 
-    # تكامل الإشعار (اختياريّ، خلف علم): لا يحجب هذه النقطة العامّة.
-    # TODO(weather-alerts): عند توفّر AlertManager/NATS، انشر حدث الإشعار باسم
-    # "WEATHER_ALERT_DERIVED" لكلّ تنبيه severity=critical خلف علم بيئة
-    # (مثلاً SAHOOL_WEATHER_ALERTS_EMIT=1). يبقى الاشتقاق مستقلّاً ولا يعتمد عليه.
+    # هذه النقطة عامّة (اشتقاق بإحداثيّات، بلا كتابة). لتحويل التنبيهات إلى إشعارات
+    # حقيقيّة لحقلٍ مُعيَّن (إدراج في alerts + ALERT_CREATED ⇒ وكيل الإشعارات): استخدم
+    # النقطة المُصادَقة POST /api/v1/weather/alerts/notify أدناه.
 
     return {
         "location": {"lat": lat, "lon": lon},
         "alerts": alerts,
         "source": "open-meteo+sahool-weather-alerts",
+    }
+
+
+_ALERT_SEVERITY_RANK = {"info": 0, "warning": 1, "critical": 2}
+
+
+def weather_alert_rows_to_persist(derived: list[dict], min_severity: str = "warning") -> list[dict]:
+    """منطق نقيّ (لا DB): يُرشّح التنبيهات المشتقّة حسب أدنى شدّة ويُحوّلها إلى صفوف
+    جدول ``alerts`` (alert_type/severity/title_ar/message_ar). يُسبَق النوع بـ``weather_``
+    لتجنّب تضارب أنواع التنبيهات الأخرى وتمكين منع التكرار لكلّ نوع. قابل للاختبار offline.
+    """
+    min_rank = _ALERT_SEVERITY_RANK.get(min_severity, 1)
+    rows: list[dict] = []
+    for a in derived:
+        if _ALERT_SEVERITY_RANK.get(a.get("severity"), 0) < min_rank:
+            continue
+        rows.append(
+            {
+                "alert_type": f"weather_{a.get('type', 'generic')}",
+                "severity": a.get("severity", "warning"),
+                "title_ar": a.get("title_ar", "تنبيه طقس"),
+                "message_ar": a.get("detail_ar") or a.get("title_ar", "تنبيه طقس"),
+            }
+        )
+    return rows
+
+
+class WeatherAlertsNotifyRequest(BaseModel):
+    field_id: str
+    lat: float = Field(..., ge=-90, le=90)
+    lon: float = Field(..., ge=-180, le=180)
+    model: str = "best_match"
+    hours: str = "0,1,3,6,12,24,48"
+    min_severity: str = "warning"  # info | warning | critical
+    dry_run: bool = False
+
+
+@router.post(
+    "/api/v1/weather/alerts/notify",
+    dependencies=[Depends(_rate_dependency("weather-action-recommendation"))],
+)
+async def weather_alerts_notify(
+    req: WeatherAlertsNotifyRequest,
+    user=Depends(
+        __import__("api.main", fromlist=["require_permission", "Permission"]).require_permission(
+            __import__("api.main", fromlist=["Permission"]).Permission.OBSERVATION_RECORD
+        )
+    ),
+):
+    """يحوّل تنبيهات الطقس المشتقّة إلى إشعارات حقيقيّة لحقلٍ مُعيَّن.
+
+    يشتقّ التنبيهات (derive_weather_alerts)، يُرشّحها حسب ``min_severity``، ثمّ — ضمن
+    اتّصال المستأجِر (RLS، outbox) — يُدرِج كلّ تنبيه جديد في جدول ``alerts`` ويُصدِر
+    ``ALERT_CREATED`` فيلتقطه وكيل الإشعارات للبثّ الحيّ — نفس مسار routers/alerts.py
+    والتوليد التلقائيّ في main.py. منع تكرار لكلّ نوع (لا تنبيه نشط مكرّر). ``dry_run``
+    يُعيد ما سيُنشأ بلا كتابة. مُصادَق (يكتب بيانات مستأجِر).
+    """
+    _, model = _validate_time_model("now", req.model)
+    plan = await weather_operation_plan(
+        lat=req.lat, lon=req.lon, operations="spraying", hours=req.hours, model=model
+    )
+    sample, _state, _age, _err = await _get_weather_sample_cached(
+        req.lat, req.lon, "now", model, "alerts-notify"
+    )
+    derived = derive_weather_alerts(sample, plan)
+    rows = weather_alert_rows_to_persist(derived, req.min_severity)
+
+    if req.dry_run:
+        _record_weather_observation("weather-alerts-notify", cache_state="dry_run")
+        return {"created": False, "dry_run": True, "would_notify": rows, "alerts": derived}
+
+    import uuid as _uuid
+
+    from api.main import _db_unavailable, _emit_domain_event, tenant_connection
+
+    created: list[dict] = []
+    try:
+        async with tenant_connection(user) as conn:
+            existing = await conn.fetch(
+                "SELECT alert_type FROM alerts "
+                "WHERE tenant_id = $1::uuid AND field_id = $2 AND status = 'active'",
+                str(user.tenant_id),
+                req.field_id,
+            )
+            existing_types = {r["alert_type"] for r in existing}
+            for row in rows:
+                if row["alert_type"] in existing_types:
+                    continue
+                alert_id = "alr_" + _uuid.uuid4().hex[:12]
+                await conn.execute(
+                    """INSERT INTO alerts
+                        (alert_id, tenant_id, field_id, alert_type, severity,
+                         title_ar, message_ar, status)
+                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, 'active')""",
+                    alert_id,
+                    str(user.tenant_id),
+                    req.field_id,
+                    row["alert_type"],
+                    row["severity"],
+                    row["title_ar"],
+                    row["message_ar"],
+                )
+                await _emit_domain_event(
+                    conn,
+                    user,
+                    "ALERT_CREATED",
+                    "alert",
+                    alert_id,
+                    {
+                        "severity": row["severity"],
+                        "alert_type": row["alert_type"],
+                        "field_id": req.field_id,
+                        "source": "weather_alerts",
+                    },
+                )
+                existing_types.add(row["alert_type"])
+                created.append({"alert_id": alert_id, **row})
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise _db_unavailable("إنشاء تنبيهات الطقس", e) from e
+
+    _record_weather_observation("weather-alerts-notify", cache_state="served")
+    return {
+        "created": True,
+        "notified": len(created),
+        "alerts": created,
+        "derived_count": len(derived),
     }
 
 
