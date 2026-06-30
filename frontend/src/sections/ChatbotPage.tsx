@@ -358,6 +358,7 @@ export function ChatbotPage() {
             <div className="relative flex items-center" title="نموذج الذكاء لتحليل الحقول">
               <Cpu className="w-3.5 h-3.5 text-violet-400 absolute right-2 pointer-events-none" />
               <select
+                aria-label="نموذج الذكاء"
                 value={selectedModel}
                 onChange={e => onPickModel(e.target.value)}
                 className="appearance-none text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg pr-7 pl-6 py-1.5 max-w-[150px] focus:ring-2 focus:ring-violet-300 focus:border-transparent cursor-pointer"
