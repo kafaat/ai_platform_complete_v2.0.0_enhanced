@@ -21,6 +21,7 @@ import DrawControl from './DrawControl'; // أداة رسم على leaflet-draw 
 import L from 'leaflet';
 import '../../lib/leafletSetup';
 import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters } from '../../lib/geo';
+import { readFieldMapView } from '../../lib/fieldMapView';
 import type { DrawFeature } from './drawing';
 import { getLayer } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
@@ -212,6 +213,9 @@ function FitToFields({
     }
     const selected = fields.find((f) => f.id === selectedId);
     if (selected) {
+      // مشهد محفوظ للحقل (zoom + مركز عند الإنشاء) ⇒ طِر إليه كما طلب المستخدم.
+      const saved = readFieldMapView(selectedId);
+      if (saved) { map.flyTo([saved.lat, saved.lng], saved.zoom, { duration: 0.8 }); return; }
       const poly = geomToPolygon(selected.geometry);
       if (poly && poly.length >= 3) {
         const b = L.latLngBounds(poly.map(([lat, lng]) => L.latLng(lat, lng)));

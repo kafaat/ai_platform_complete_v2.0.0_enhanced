@@ -38,6 +38,7 @@ import { canMutate } from '../lib/permissions';
 import { layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import AddFieldWithMap from '../components/AddFieldWithMap';
+import { saveFieldMapView } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
   LayerSwitcher, ColormapLegend, SideBySide, type CmapId,
@@ -720,14 +721,18 @@ export default function MapHub() {
     name: string; manager: string; crop: string; soil_type: string;
     field_code?: string; water_source?: string; irrigation_type?: string; pivot?: unknown; country?: string; region?: string;
     area_ha: number; geometry: { type: string; coordinates: number[][][] };
+    map_view?: { zoom: number; lat: number; lng: number };
   }) => {
     try {
-      await kongApi.post('/api/v1/fields', {
+      const r = await kongApi.post('/api/v1/fields', {
         name: data.name, crop: data.crop, soil_type: data.soil_type, manager: data.manager,
         field_code: data.field_code ?? null, water_source: data.water_source ?? null,
         irrigation_type: data.irrigation_type ?? null, pivot: data.pivot ?? null,
         country: data.country ?? null, region: data.region ?? null, geometry: data.geometry,
       });
+      // حفظ مشهد الخريطة (zoom + مركز) بمعرّف الحقل المُنشأ — يُطار إليه عند فتحه.
+      const rec = r.data as Record<string, unknown>;
+      if (data.map_view) saveFieldMapView(String(rec.field_id ?? ''), data.map_view);
       setShowAddField(false);
       toastStore.add('success', '✅ تم إضافة الحقل', data.name);
       refetch();

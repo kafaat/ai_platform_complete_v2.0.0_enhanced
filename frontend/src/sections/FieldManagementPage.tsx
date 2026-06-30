@@ -23,6 +23,7 @@ import { useFields, useSimulateSeason } from '../hooks/useApi';
 import type { SeasonSimResult } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
+import { saveFieldMapView } from '../lib/fieldMapView';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
 interface Field {
@@ -144,7 +145,10 @@ export default function FieldManagementPage() {
         region: data.region ?? null,
         geometry: data.geometry,
       });
-      setFields(p => [...p, mapField(r.data as Record<string, unknown>)]);
+      const rec = r.data as Record<string, unknown>;
+      setFields(p => [...p, mapField(rec)]);
+      // حفظ مشهد الخريطة (zoom + مركز) بمعرّف الحقل المُنشأ — يُطار إليه عند فتحه لاحقاً.
+      if (data.map_view) saveFieldMapView(String(rec.field_id ?? ''), data.map_view);
       setShowAddField(false);
       toastStore.add('success', '✅ تم إضافة الحقل', `${data.name}`);
     } catch (e: any) {
@@ -174,6 +178,7 @@ export default function FieldManagementPage() {
     });
     const rec = r.data as Record<string, unknown>;
     setFields(p => [...p, mapField(rec)]);
+    if (data.map_view) saveFieldMapView(String(rec.field_id ?? ''), data.map_view);
     toastStore.add('success', '✅ تم إضافة الحقل', `${data.name}`);
     return rec;
   };

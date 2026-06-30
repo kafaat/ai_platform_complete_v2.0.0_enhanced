@@ -20,6 +20,7 @@ import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet +
 import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi } from '../services/api';
 import { getTenantId } from '../lib/authStorage';
 import { areaSqMeters, lengthMeters } from '../lib/geo';
+import { readFieldMapView } from '../lib/fieldMapView';
 
 // روابط خرائط الأساس (نفس AddFieldWithMap.tsx)
 const BASEMAP_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -219,13 +220,22 @@ function FitBounds({
   polygon,
   tileBounds,
   fallbackBounds,
+  fieldId,
 }: {
   polygon?: FieldPolygonLatLng;
   tileBounds?: [number, number, number, number];
   fallbackBounds?: [number, number, number, number];
+  fieldId?: string;
 }) {
   const map = useMap();
   useEffect(() => {
+    // أولويّة: مشهد الخريطة المحفوظ للحقل (zoom + مركز عند الإنشاء) ⇒ نطير إليه
+    // كما طلب المستخدم. غيابه ⇒ السلوك القديم (ضبط الإطار على الحدّ).
+    const saved = readFieldMapView(fieldId);
+    if (saved) {
+      map.flyTo([saved.lat, saved.lng], saved.zoom, { duration: 0.8 });
+      return;
+    }
     let bounds: L.LatLngBounds | null = null;
     if (polygon && polygon.length >= 3) {
       bounds = L.latLngBounds(polygon.map(([lat, lng]) => L.latLng(lat, lng)));
@@ -239,7 +249,7 @@ function FitBounds({
     if (bounds && bounds.isValid()) {
       map.fitBounds(bounds, { padding: [24, 24], maxZoom: 17 });
     }
-  }, [map, polygon, tileBounds, fallbackBounds]);
+  }, [map, polygon, tileBounds, fallbackBounds, fieldId]);
   return null;
 }
 
@@ -377,7 +387,7 @@ export default function FieldIndicatorMap({
         {/* أدوات الرسم/القياس (اختياريّة) — مضلّع→مساحة · خطّ→طول (turf) */}
         {tools && <MeasureTools />}
 
-        <FitBounds polygon={fieldPolygon} tileBounds={tileBounds} fallbackBounds={fallbackBounds} />
+        <FitBounds polygon={fieldPolygon} tileBounds={tileBounds} fallbackBounds={fallbackBounds} fieldId={fieldId} />
       </MapContainer>
 
       {tileAvailable === false && (

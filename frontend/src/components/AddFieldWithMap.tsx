@@ -85,6 +85,8 @@ interface FieldData {
   country?:      string;
   region?:       string;
   geometry:      { type: string; coordinates: number[][][] };
+  // مشهد الخريطة عند الإنشاء (zoom + مركز) — يُحفَظ لِيُطار إليه عند فتح الحقل لاحقاً.
+  map_view?:     { zoom: number; lat: number; lng: number };
 }
 
 interface Props {
@@ -762,6 +764,11 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         if (edited?.length >= 3) finalPts = edited;
       }
       const coords = [...finalPts.map(p => [p.lng, p.lat]), [finalPts[0].lng, finalPts[0].lat]];
+      // التقاط مشهد الخريطة الحاليّ (مستوى التكبير + المركز) لِيُحفَظ مع الحقل ويُطار إليه لاحقاً.
+      const mv = mapRef.current;
+      const mapView = mv
+        ? { zoom: mv.getZoom(), lat: mv.getCenter().lat, lng: mv.getCenter().lng }
+        : undefined;
       await onSave({
         name, manager: mgr, crop, soil_type: soil,
         field_code: fieldCode.trim() || undefined,
@@ -772,6 +779,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         region: autoRegion ?? undefined,
         area_ha: +(geodesicAreaHa(finalPts).toFixed(2)),
         geometry: { type: 'Polygon', coordinates: [coords] },
+        map_view: mapView,
       });
     } catch (e: unknown) {
       // أظهِر رسالة الخادم العربيّة (message_ar) — مهمّة لتعارض 409 (اسم مكرّر/تداخل
