@@ -162,6 +162,14 @@ def _confidence_from_payloads(
     if field_state and field_state.get("status") not in {"unavailable", "not_found"}:
         # Field state is a verified platform context source, but this runtime still cannot emit decisions.
         items.append(EvidenceItem(EvidenceStrength.SATELLITE, 0.70, verified=True))
+        ai_pack = _extract_ai_context_pack(field_state)
+        if ai_pack:
+            imagery = ai_pack.get("imagery_timeline") or {}
+            weather = ai_pack.get("weather_history") or {}
+            if isinstance(imagery, dict) and _source_count(imagery.get("total_dates")) > 0:
+                items.append(EvidenceItem(EvidenceStrength.SATELLITE, 0.75, verified=True))
+            if isinstance(weather, dict) and weather.get("available"):
+                items.append(EvidenceItem(EvidenceStrength.WEATHER, 0.80, verified=True))
     return compose_confidence(items)
 
 
@@ -215,8 +223,190 @@ def _generation_allowed(tenant_id: str) -> bool:
     return ai_generation.tenant_allows_generation(TENANT_POLICY.get_policy(tenant_id))
 
 
+def _extract_ai_context_pack(field_state: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Return the two-year AI context pack whether it is embedded by the web UI or
+    passed directly as the field state.
+
+    The chat UI sends the pack under ``current_field_state.ai_context_pack``.
+    Some server-to-server callers may send the pack itself. Both forms are
+    accepted, but non-dict values are ignored rather than trusted.
+    """
+    if not isinstance(field_state, dict):
+        return None
+    embedded = field_state.get("ai_context_pack")
+    if isinstance(embedded, dict):
+        return embedded
+    if any(
+        k in field_state for k in ("imagery_timeline", "weather_history", "ai_context_summary_ar")
+    ):
+        return field_state
+    return None
+
+
+def _source_count(value: Any) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _ai_context_memory_lines(pack: dict[str, Any] | None) -> list[str]:
+    """Compact, evidence-only summary of the 2-year field memory for prompt grounding."""
+    if not pack:
+        return ["• ذاكرة الحقل لسنتين: غير مرفقة في الطلب الحالي."]
+
+    lines = ["• ذاكرة الحقل لسنتين (Field AI Context Pack):"]
+    summary = pack.get("ai_context_summary_ar")
+    if summary:
+        lines.append(f"  - الملخص: {str(summary)[:700]}")
+
+    imagery = pack.get("imagery_timeline") or {}
+    if isinstance(imagery, dict):
+        lines.append(
+            "  - المشاهد/المؤشرات التاريخية: "
+            f"{_source_count(imagery.get('total_dates'))} مشهد/تاريخ ضمن النافذة."
+        )
+        per_indicator = imagery.get("per_indicator") or {}
+        if isinstance(per_indicator, dict):
+            indicator_bits = []
+            for key, val in sorted(per_indicator.items()):
+                if isinstance(val, dict):
+                    indicator_bits.append(f"{key}={_source_count(val.get('total'))}")
+            if indicator_bits:
+                lines.append("  - توزيع المؤشرات: " + "، ".join(indicator_bits[:8]))
+
+    weather = pack.get("weather_history") or {}
+    if isinstance(weather, dict) and weather.get("available"):
+        ws = weather.get("summary") or {}
+        if isinstance(ws, dict):
+            lines.append(
+                "  - الطقس التاريخي: "
+                f"{ws.get('days', '—')} يوم، مطر {ws.get('total_precipitation_mm', '—')} مم، "
+                f"ET0 {ws.get('total_et0_mm', '—')} مم، متوسط حرارة {ws.get('avg_temp_c', '—')}°م."
+            )
+    else:
+        lines.append("  - الطقس التاريخي: غير متاح أو غير مكتمل.")
+
+    for label, key in (
+        ("أحداث الحقل", "operations_timeline"),
+        ("هندسات/محاور/مناطق", "drawing_context"),
+        ("تنبيهات", "alerts_context"),
+        ("توصيات محفوظة", "recommendations_context"),
+    ):
+        source = pack.get(key) or {}
+        if isinstance(source, dict):
+            lines.append(f"  - {label}: {_source_count(source.get('total'))}.")
+
+    readiness = pack.get("readiness") or {}
+    if isinstance(readiness, dict):
+        warnings = readiness.get("warnings") or []
+        if readiness.get("requires_imagery_backfill_24_months"):
+            lines.append("  - جاهزية الصور: تحتاج تشغيل backfill سنتين قبل تحليل بصري كامل.")
+        if warnings:
+            lines.append("  - تحذيرات الجاهزية: " + "؛ ".join(str(w)[:180] for w in warnings[:4]))
+    return lines
+
+
+def _field_memory_evidence_ids(pack: dict[str, Any] | None) -> list[str]:
+    if not pack:
+        return []
+    field_id = str(pack.get("field_id") or "field")
+    ids: list[str] = []
+    imagery = pack.get("imagery_timeline") or {}
+    if isinstance(imagery, dict) and _source_count(imagery.get("total_dates")) > 0:
+        ids.append(f"field-memory:{field_id}:imagery:{_source_count(imagery.get('total_dates'))}")
+    weather = pack.get("weather_history") or {}
+    if isinstance(weather, dict) and weather.get("available"):
+        summary = weather.get("summary") or {}
+        days = summary.get("days") if isinstance(summary, dict) else None
+        ids.append(f"field-memory:{field_id}:weather:{days or pack.get('days', 'range')}")
+    for key, label in (
+        ("operations_timeline", "events"),
+        ("drawing_context", "drawings"),
+        ("alerts_context", "alerts"),
+        ("recommendations_context", "saved-advice"),
+    ):
+        source = pack.get(key) or {}
+        if isinstance(source, dict) and _source_count(source.get("total")) > 0:
+            ids.append(f"field-memory:{field_id}:{label}:{_source_count(source.get('total'))}")
+    return ids[:20]
+
+
+def _evidence_sources(
+    rag_payload: dict[str, Any], kg_payload: dict[str, Any], field_state: dict[str, Any] | None
+) -> list[dict[str, Any]]:
+    """User-facing evidence cards, without leaking raw private payloads or secrets."""
+    pack = _extract_ai_context_pack(field_state)
+    rag_count = len(rag_payload.get("annotations", []) or [])
+    kg_count = len(kg_payload.get("edges", []) or [])
+    sources: list[dict[str, Any]] = [
+        {"key": "rag", "label_ar": "RAG", "available": rag_count > 0, "count": rag_count},
+        {
+            "key": "knowledge_graph",
+            "label_ar": "Knowledge Graph",
+            "available": kg_count > 0,
+            "count": kg_count,
+        },
+    ]
+    if isinstance(field_state, dict):
+        sources.append(
+            {"key": "field_state", "label_ar": "حالة الحقل", "available": True, "count": 1}
+        )
+    if pack:
+        imagery = pack.get("imagery_timeline") or {}
+        weather = pack.get("weather_history") or {}
+        operations = pack.get("operations_timeline") or {}
+        drawings = pack.get("drawing_context") or {}
+        sources.extend(
+            [
+                {
+                    "key": "imagery_timeline",
+                    "label_ar": "صور/مؤشرات سنتين",
+                    "available": _source_count(getattr(imagery, "get", lambda *_: 0)("total_dates"))
+                    > 0
+                    if isinstance(imagery, dict)
+                    else False,
+                    "count": _source_count(imagery.get("total_dates"))
+                    if isinstance(imagery, dict)
+                    else 0,
+                },
+                {
+                    "key": "weather_history",
+                    "label_ar": "طقس تاريخي",
+                    "available": bool(weather.get("available"))
+                    if isinstance(weather, dict)
+                    else False,
+                    "count": _source_count((weather.get("summary") or {}).get("days"))
+                    if isinstance(weather, dict) and isinstance(weather.get("summary"), dict)
+                    else 0,
+                },
+                {
+                    "key": "operations_timeline",
+                    "label_ar": "Timeline العمليات",
+                    "available": _source_count(operations.get("total")) > 0
+                    if isinstance(operations, dict)
+                    else False,
+                    "count": _source_count(operations.get("total"))
+                    if isinstance(operations, dict)
+                    else 0,
+                },
+                {
+                    "key": "drawing_context",
+                    "label_ar": "المناطق والرسوم",
+                    "available": _source_count(drawings.get("total")) > 0
+                    if isinstance(drawings, dict)
+                    else False,
+                    "count": _source_count(drawings.get("total"))
+                    if isinstance(drawings, dict)
+                    else 0,
+                },
+            ]
+        )
+    return sources
+
+
 def _grounding_context_text(annotations: dict[str, Any]) -> str:
-    """يحوّل أدلّة RAG+KG+حالة الحقل إلى نصّ سياق مقتضب يُمرَّر للنموذج كتأريض.
+    """يحوّل أدلّة RAG+KG+حالة الحقل+ذاكرة سنتين إلى نصّ سياق مقتضب للتأريض.
 
     لا تلفيق: يُلخّص الموجود فقط؛ غياب مصدر يُذكَر صراحةً كي يلتزم النموذج بالأدلّة.
     """
@@ -237,7 +427,9 @@ def _grounding_context_text(annotations: dict[str, Any]) -> str:
         lines.append("• روابط Knowledge Graph:")
         for edge in kg[:8]:
             if isinstance(edge, dict):
-                s, p, o = edge.get("subject_id"), edge.get("predicate"), edge.get("object_id")
+                s = edge.get("subject_id") or edge.get("subject")
+                p = edge.get("predicate") or edge.get("relation")
+                o = edge.get("object_id") or edge.get("object")
                 lines.append(f"  - {s} —{p}→ {o}")
     fs = annotations.get("canonical_field_state")
     if isinstance(fs, dict) and fs:
@@ -247,8 +439,11 @@ def _grounding_context_text(annotations: dict[str, Any]) -> str:
             bits.append(f"NDVI={rs.get('ndvi_mean')} ({rs.get('ndvi_date', 'بلا تاريخ')})")
         if fs.get("validity"):
             bits.append(f"صلاحية={fs.get('validity')}")
+        if fs.get("farm_summary"):
+            bits.append(str(fs.get("farm_summary"))[:300])
         if bits:
-            lines.append("• حالة الحقل القانونيّة: " + "، ".join(bits))
+            lines.append("• حالة الحقل/المزرعة: " + "، ".join(bits))
+        lines.extend(_ai_context_memory_lines(_extract_ai_context_pack(fs)))
     return "\n".join(lines) if lines else "لا تتوفّر أدلّة كافية من RAG/KG/حالة الحقل."
 
 
@@ -319,7 +514,13 @@ async def _build_evidence_response(
         layer="ai_agronomist_annotations",
     )
 
-    evidence_ids = _extract_evidence_ids(rag_payload, kg_payload)
+    ai_pack = _extract_ai_context_pack(field_state)
+    evidence_ids = _extract_evidence_ids(rag_payload, kg_payload) + _field_memory_evidence_ids(
+        ai_pack
+    )
+    # Keep order, remove duplicates, and cap the user-facing evidence list.
+    evidence_ids = list(dict.fromkeys(evidence_ids))[:30]
+    evidence_sources = _evidence_sources(rag_payload, kg_payload, field_state)
     confidence = _confidence_from_payloads(rag_payload, kg_payload, field_state)
     answer_ar = (
         "جمعتُ سياقاً معرفياً من RAG وKnowledge Graph"
@@ -367,6 +568,10 @@ async def _build_evidence_response(
         "language": req.language,
         "annotations": annotations,
         "evidence_ids": evidence_ids,
+        "evidence_sources": evidence_sources,
+        "ai_context_pack_readiness": ai_pack.get("readiness")
+        if isinstance(ai_pack, dict)
+        else None,
         "confidence": confidence,
         "guardrail_result": {
             "status": "not_executed",

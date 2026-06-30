@@ -68,6 +68,18 @@ interface FieldAiContextPack {
 // نموذج ذكاء قابل للاختيار (يأتي من كتالوج AI_MODELS عبر /api/v1/ai/models).
 interface AiModel { id: string; label: string }
 interface AiModelsCatalog { provider?: string; default_model?: string | null; available?: boolean; models?: AiModel[] }
+interface AiEvidenceSource { key: string; label_ar?: string; available?: boolean; count?: number }
+interface AiChatResponse {
+  answer_ar?: string;
+  message?: string;
+  confidence?: number;
+  evidence_ids?: string[];
+  evidence_sources?: AiEvidenceSource[];
+  mode?: string;
+  generation_provider?: string | null;
+  generation_model?: string | null;
+  ai_context_pack_readiness?: { warnings?: string[]; requires_imagery_backfill_24_months?: boolean } | null;
+}
 const MODEL_STORE_KEY = 'sahool.ai.model';
 
 function buildSystemPrompt(c: LiveContext): string {
@@ -113,6 +125,12 @@ function localFallback(q: string): string {
   return 'تعذّر الاتّصال بالمستشار الآن. أعد المحاولة عند توفّر الإنترنت، أو راجع لوحات الحقل (المؤشّرات/التوصيات) للبيانات الحيّة.';
 }
 
+function evidenceSourceText(src: AiEvidenceSource): string {
+  const label = src.label_ar || src.key;
+  const count = typeof src.count === 'number' ? ` · ${src.count}` : '';
+  return `${label}${count}`;
+}
+
 // ── Quick suggestion chips ───────────────────────────────────────
 const SUGGESTIONS = [
   { icon:Leaf,         text:'ما تفسير NDVI 0.62 لحقلي؟' },
@@ -151,6 +169,13 @@ interface Msg {
   disliked?: boolean;
   source?:   'ai-runtime' | 'fallback';
   tokens?:   number;
+  confidence?: number;
+  mode?: string;
+  generationProvider?: string | null;
+  generationModel?: string | null;
+  evidenceIds?: string[];
+  evidenceSources?: AiEvidenceSource[];
+  readinessWarnings?: string[];
 }
 
 // ── BotMessage component ─────────────────────────────────────────
@@ -177,14 +202,42 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
               renderMarkdown(isLatest ? displayed : msg.content)
             }}
           />
-          {/* Source badge */}
+          {/* Source badge + evidence transparency */}
           {msg.source && (
-            <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-2">
-              {msg.source === 'ai-runtime'
-                ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400">SAHOOL AI Runtime · RAG/KG</span></>
-                : <><AlertCircle className="w-3 h-3 text-amber-400" /><span className="text-[10px] text-amber-500">وضع بلا إنترنت</span></>
-              }
-              {msg.tokens && <span className="text-[10px] text-slate-300 mr-auto">{msg.tokens} token</span>}
+            <div className="mt-2 pt-2 border-t border-slate-100 space-y-2">
+              <div className="flex items-center gap-2">
+                {msg.source === 'ai-runtime'
+                  ? <><Sparkles className="w-3 h-3 text-violet-400" /><span className="text-[10px] text-slate-400">SAHOOL AI Runtime · RAG/KG/Field Memory</span></>
+                  : <><AlertCircle className="w-3 h-3 text-amber-400" /><span className="text-[10px] text-amber-500">وضع بلا إنترنت</span></>
+                }
+                {msg.confidence != null && (
+                  <span className="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-1.5 py-0.5">
+                    ثقة {Math.round(msg.confidence * 100)}٪
+                  </span>
+                )}
+                {msg.mode && <span className="text-[10px] text-slate-400">{msg.mode}</span>}
+                {msg.generationProvider && <span className="text-[10px] text-violet-500">{msg.generationProvider}{msg.generationModel ? ` · ${msg.generationModel}` : ''}</span>}
+                {msg.tokens && <span className="text-[10px] text-slate-300 mr-auto">{msg.tokens} token</span>}
+              </div>
+              {msg.evidenceSources && msg.evidenceSources.length > 0 && (
+                <div className="flex flex-wrap gap-1" data-testid="ai-evidence-sources">
+                  {msg.evidenceSources.slice(0, 6).map(src => (
+                    <span key={src.key} className={`text-[10px] rounded-full px-1.5 py-0.5 border ${src.available ? 'bg-sky-50 text-sky-700 border-sky-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                      {evidenceSourceText(src)}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {msg.evidenceIds && msg.evidenceIds.length > 0 && (
+                <div className="text-[10px] text-slate-400" data-testid="ai-evidence-ids">
+                  أدلة: {msg.evidenceIds.slice(0, 4).join('، ')}
+                </div>
+              )}
+              {msg.readinessWarnings && msg.readinessWarnings.length > 0 && (
+                <div className="text-[10px] text-amber-600" data-testid="ai-readiness-warnings">
+                  تنبيه جاهزية: {msg.readinessWarnings.slice(0, 2).join('؛ ')}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -342,15 +395,21 @@ export function ChatbotPage() {
         },
       });
 
-      const data = res.data as { answer_ar?: string; message?: string; confidence?: number; evidence_ids?: string[] };
-      const evidence = Array.isArray(data.evidence_ids) && data.evidence_ids.length
-        ? `\n\nالأدلة: ${data.evidence_ids.slice(0, 3).join('، ')}${data.confidence != null ? ` · الثقة ${Math.round(data.confidence * 100)}٪` : ''}`
-        : '';
-      const reply = (data.answer_ar || data.message || 'عذراً، لم أتمكن من الإجابة.') + evidence;
+      const data = res.data as AiChatResponse;
+      const reply = data.answer_ar || data.message || 'عذراً، لم أتمكن من الإجابة.';
 
       const botMsg: Msg = {
         id:`b_${Date.now()}`, role:'assistant', source:'ai-runtime',
         content:reply, timestamp:new Date(),
+        confidence: data.confidence,
+        mode: data.mode,
+        generationProvider: data.generation_provider,
+        generationModel: data.generation_model,
+        evidenceIds: Array.isArray(data.evidence_ids) ? data.evidence_ids : [],
+        evidenceSources: Array.isArray(data.evidence_sources) ? data.evidence_sources : [],
+        readinessWarnings: Array.isArray(data.ai_context_pack_readiness?.warnings)
+          ? data.ai_context_pack_readiness?.warnings
+          : [],
       };
       setMessages(m => [...m, botMsg]);
       setLatestId(botMsg.id);
