@@ -163,8 +163,10 @@ export default function MapHub() {
     || initialSearch.get('weather') === 'true';
   // فتح «حقل جديد» عبر رابط عميق (من شاشة «حقولي») — زرّ الإنشاء انتقل إلى حقولي.
   const requestedAddOpen = initialSearch.get('add') === '1';
+  // الافتراضيّ عند فتح حقل: صورة الحقل (القمر الصناعيّ) بلا طبقة مؤشّر مُلوَّنة —
+  // المؤشّر (NDVI…) يُختار عند الطلب فتظهر معه أسطورة المقياس. مؤشّر صريح بالرابط يُحترَم.
   const [activeIndicator, setActiveIndicator] = useState<string | null>(
-    requestedCdseOpen ? (routeIndicator || 'ndvi') : (savedWorkspace?.activeIndicator ?? null),
+    requestedCdseOpen ? (routeIndicator ?? null) : (savedWorkspace?.activeIndicator ?? null),
   ); // null = لا مؤشّر
   const [imageryTs, setImageryTs] = useState(0); // cache-bust للبلاطات بعد معالجة Sentinel/COG
   const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
