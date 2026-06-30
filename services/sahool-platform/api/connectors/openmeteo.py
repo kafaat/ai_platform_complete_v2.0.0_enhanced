@@ -64,6 +64,13 @@ def openmeteo_breaker_state() -> dict:
     return _OPENMETEO_BREAKER.snapshot()
 
 
+# علم «حُذِّر لهذه النافذة»: نُسجّل تحذيراً واحداً عند فتح القاطع لا على كلّ fail-fast.
+# تصيير الطقس يُطلِق عشرات بلاطات متزامنة، فكان كلّ fail-fast يُنتِج تحذيراً متطابقاً
+# ويُغرِق السجلّ. الآن: WARNING مرّةً لكلّ نافذة فتح، والبقيّة DEBUG، ويُصفَّر العلم
+# فور سماح القاطع ثانيةً (تعافٍ) فيُحذَّر مجدّداً إن انفتح من جديد.
+_circuit_open_warned = False
+
+
 def _guard_breaker() -> None:
     """يفشل سريعاً إن كان القاطع مفتوحاً (قبل لمس الشبكة).
 
@@ -71,17 +78,28 @@ def _guard_breaker() -> None:
     (httpx.ConnectError ⊂ httpx.RequestError) فيُحفَظ تعاملهم 503. لا يغيّر
     تواقيع الدوالّ العامّة ولا أنواع الاستثناءات التي يلتقطها المتّصلون.
     """
+    global _circuit_open_warned
     if not _OPENMETEO_BREAKER.allow():
         snap = _OPENMETEO_BREAKER.snapshot()
-        logger.warning(
-            "openmeteo.circuit_open fail_fast failures=%s retry_in=%ss",
-            snap["consecutive_failures"],
-            snap["seconds_until_retry"],
-        )
+        if not _circuit_open_warned:
+            _circuit_open_warned = True
+            logger.warning(
+                "openmeteo.circuit_open fail_fast failures=%s retry_in=%ss "
+                "(تحذير واحد لكلّ نافذة فتح؛ تُكتَم بقيّة fail-fast حتى التعافي)",
+                snap["consecutive_failures"],
+                snap["seconds_until_retry"],
+            )
+        else:
+            logger.debug(
+                "openmeteo.circuit_open fail_fast (مكتوم) retry_in=%ss",
+                snap["seconds_until_retry"],
+            )
         raise httpx.ConnectError(
             "circuit open — Open-Meteo unavailable (fail-fast, "
             f"retry in {snap['seconds_until_retry']}s)"
         )
+    # سمح القاطع (مغلق/نصف-مفتوح بعد التبريد) ⇒ صفّر العلم لنافذة الفتح القادمة.
+    _circuit_open_warned = False
 
 
 async def _fetch_json(url: str, params: dict, timeout_s: float):

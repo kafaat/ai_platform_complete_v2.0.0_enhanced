@@ -21,8 +21,10 @@ pytestmark = pytest.mark.unit
 def _reset_breaker():
     """يضمن قاطعاً نظيفاً قبل/بعد كلّ اختبار (حالة مشتركة على مستوى الوحدة)."""
     om._OPENMETEO_BREAKER.reset()
+    om._circuit_open_warned = False
     yield
     om._OPENMETEO_BREAKER.reset()
+    om._circuit_open_warned = False
 
 
 def test_import_and_accessor():
@@ -92,3 +94,44 @@ async def test_success_keeps_breaker_closed():
     snap = om.openmeteo_breaker_state()
     assert snap["state"] == "closed"
     assert snap["consecutive_failures"] == 0
+
+
+@pytest.mark.asyncio
+async def test_circuit_open_warning_is_throttled(caplog):
+    """تصيير الطقس يُطلِق عشرات بلاطات متزامنة عند فتح القاطع — يجب ألّا يُغرَق
+    السجلّ: WARNING واحد لكلّ نافذة فتح، والبقيّة DEBUG (تُكتَم في المستوى الافتراضيّ)."""
+    om._OPENMETEO_BREAKER._open()
+    om._circuit_open_warned = False
+
+    with caplog.at_level("WARNING", logger="sahool.api.openmeteo"):
+        for _ in range(12):  # محاكاة بلاطات متزامنة كثيرة
+            with pytest.raises(httpx.RequestError):
+                await om.fetch_current(16.15, 45.30)
+
+    warnings = [r for r in caplog.records if "circuit_open" in r.getMessage()]
+    assert len(warnings) == 1, f"المتوقّع تحذير واحد، وُجِد {len(warnings)}"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_circuit_open_warning_rearms_after_recovery(caplog):
+    """بعد تعافي القاطع (نجاح) يُصفَّر العلم، فيُحذَّر مجدّداً إن انفتح من جديد."""
+    payload = {"current": {"temperature_2m": 40.0, "time": "2026-06-16T12:00"}}
+    respx.get(om.FORECAST_URL).mock(return_value=httpx.Response(200, json=payload))
+
+    with caplog.at_level("WARNING", logger="sahool.api.openmeteo"):
+        # نافذة فتح أولى ⇒ تحذير واحد.
+        om._OPENMETEO_BREAKER._open()
+        om._circuit_open_warned = False
+        with pytest.raises(httpx.RequestError):
+            await om.fetch_current(16.15, 45.30)
+        # تعافٍ: نجاح يُغلق القاطع ويُصفّر العلم.
+        om._OPENMETEO_BREAKER.reset()
+        await om.fetch_current(16.15, 45.30)
+        # نافذة فتح ثانية ⇒ تحذير آخر.
+        om._OPENMETEO_BREAKER._open()
+        with pytest.raises(httpx.RequestError):
+            await om.fetch_current(16.15, 45.30)
+
+    warnings = [r for r in caplog.records if "circuit_open" in r.getMessage()]
+    assert len(warnings) == 2, f"المتوقّع تحذيرين (نافذتا فتح)، وُجِد {len(warnings)}"
