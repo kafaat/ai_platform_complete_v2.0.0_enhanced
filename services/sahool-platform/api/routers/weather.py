@@ -1546,6 +1546,12 @@ def _safe_layer_value(layer: str, sample: dict):
         return _soil_trafficability_value(sample)
     if layer == "heat_stress":
         return _heat_stress_value(sample)
+    if layer == "disease_late_blight":
+        return _disease_late_blight_value(sample)
+    if layer == "disease_downy_mildew":
+        return _disease_downy_mildew_value(sample)
+    if layer == "disease_stripe_rust":
+        return _disease_stripe_rust_value(sample)
     if layer == "soil_moisture":
         return sample.get("soil_moisture_1_to_3cm_m3m3") or sample.get(
             "soil_moisture_0_to_1cm_m3m3"
@@ -1665,6 +1671,117 @@ def _heat_stress_value(sample: dict) -> float | None:
     return round(max(0.0, min(1.0, base + humidity_boost)), 3)
 
 
+def _temp_band(temp: float, lo_off: float, lo_on: float, hi_on: float, hi_off: float) -> float:
+    """0..1 plateau band: 0 below ``lo_off``, ramps up to 1 across [lo_off,lo_on],
+    holds 1 across [lo_on,hi_on], ramps down to 0 across [hi_on,hi_off]."""
+    return min(_ramp(temp, lo_off, lo_on), 1.0 - _ramp(temp, hi_on, hi_off))
+
+
+def _disease_late_blight_value(sample: dict) -> float | None:
+    """Potato late blight (Phytophthora infestans) infection-window proxy 0..1.
+
+    Epidemiological basis: Smith period / Hutton criteria — late blight is
+    favoured by moderate-cool temperature (≈10-24°C, optimum ~18°C) combined
+    with prolonged high humidity (RH ≥ ~90% / low VPD) and surface wetness.
+    Drivers combined here (per timestep):
+      - temperature band: 0 outside ≈10-24°C, full inside 14-20°C (optimum ~18°C).
+      - humidity: negligible below 88% RH, full by 96% (proxy for the ≥6h RH≥90%
+        wetness requirement); when RH absent, low VPD (≤0.4 kPa) substitutes.
+      - wetness boost: any precipitation (>0.1 mm) adds free leaf moisture.
+    Risk = temp_band * (0.7*humidity + 0.3*wetness), so a wrong temperature band
+    suppresses the index even when wet (multiplicative gate).
+
+    HONEST LIMITATION: this is a single-timestep proxy, NOT a full multi-day
+    infection model. The real Smith/Hutton rules require TWO consecutive days
+    each meeting min-temp ≥10°C plus ≥6h of RH≥90%; this layer approximates the
+    instantaneous favourability only and cannot track infection-period duration.
+    Returns None when temperature is absent (the essential gating input).
+    """
+    temp = _num(sample, "temperature_2m_c", None)
+    if temp is None:
+        return None
+    rh = _num(sample, "relative_humidity_2m_pct", None)
+    vpd = _num(sample, "vapour_pressure_deficit_kpa", None)
+    rain = _num(sample, "precipitation_mm", None)
+    if rh is None and vpd is None:
+        return None
+    band = _temp_band(temp, 10.0, 14.0, 20.0, 24.0)
+    if rh is not None:
+        humidity = _ramp(rh, 88.0, 96.0)
+    else:
+        humidity = 1.0 - _ramp(vpd, 0.1, 0.6)
+    wetness = 1.0 if (rain is not None and rain > 0.1) else 0.0
+    moisture = 0.7 * humidity + 0.3 * wetness
+    return round(max(0.0, min(1.0, band * moisture)), 3)
+
+
+def _disease_downy_mildew_value(sample: dict) -> float | None:
+    """Grape downy mildew (Plasmopara viticola) infection-window proxy 0..1.
+
+    Epidemiological basis: the "3-10 rule" + warm wet nights — primary infection
+    needs warm humid conditions (≈18-25°C) plus free moisture from recent rain
+    (≈≥10 mm) and persistent high RH. Drivers combined here (per timestep):
+      - temperature band: 0 outside ≈13-30°C, full inside 18-25°C.
+      - free moisture from rain: negligible below 2 mm, full by 10 mm (the
+        ≈10 mm rain trigger of the 3-10 rule).
+      - high RH: negligible below 80%, full by 95% (warm wet night proxy).
+    Risk = temp_band * max(rain_moisture, 0.6*humidity): rain is the dominant
+    trigger, but a saturated humid night alone still gives partial risk.
+
+    HONEST LIMITATION: this is a single-timestep proxy, NOT a full multi-day
+    infection model. The 3-10 rule needs ≥10°C, shoots ≥10 cm and ≥10 mm rain
+    over a period plus an incubation window driven by accumulated wetness hours;
+    this layer captures only the instantaneous favourability of one sample.
+    Returns None when temperature is absent (the essential gating input).
+    """
+    temp = _num(sample, "temperature_2m_c", None)
+    if temp is None:
+        return None
+    rh = _num(sample, "relative_humidity_2m_pct", None)
+    rain = _num(sample, "precipitation_mm", None)
+    if rh is None and rain is None:
+        return None
+    band = _temp_band(temp, 13.0, 18.0, 25.0, 30.0)
+    rain_moisture = _ramp(rain, 2.0, 10.0) if rain is not None else 0.0
+    humidity = _ramp(rh, 80.0, 95.0) if rh is not None else 0.0
+    moisture = max(rain_moisture, 0.6 * humidity)
+    return round(max(0.0, min(1.0, band * moisture)), 3)
+
+
+def _disease_stripe_rust_value(sample: dict) -> float | None:
+    """Wheat stripe (yellow) rust (Puccinia striiformis) infection proxy 0..1.
+
+    Epidemiological basis: stripe rust is favoured by cool temperatures
+    (≈7-15°C optimum, sporulation suppressed above ~22°C) together with extended
+    leaf wetness / dew from high RH and low VPD. Drivers combined here:
+      - temperature band: 0 outside ≈2-22°C, full inside 7-13°C; suppressed hard
+        above 22°C (heat is lethal to the urediniospore cycle).
+      - leaf wetness / dew: negligible below 85% RH, full by 95%; when RH absent,
+        low VPD (≤0.3 kPa, dew-point proximity) substitutes.
+    Risk = temp_band * wetness (multiplicative — cool air without dew, or dew
+    without cool air, both suppress the index).
+
+    HONEST LIMITATION: this is a single-timestep proxy, NOT a full multi-day
+    infection model. Real stripe-rust epidemics depend on continuous dew-period
+    duration (≥3h of leaf wetness) and day/night cycles across the latent period;
+    this layer approximates instantaneous favourability of one sample only.
+    Returns None when temperature is absent (the essential gating input).
+    """
+    temp = _num(sample, "temperature_2m_c", None)
+    if temp is None:
+        return None
+    rh = _num(sample, "relative_humidity_2m_pct", None)
+    vpd = _num(sample, "vapour_pressure_deficit_kpa", None)
+    if rh is None and vpd is None:
+        return None
+    band = _temp_band(temp, 2.0, 7.0, 13.0, 22.0)
+    if rh is not None:
+        wetness = _ramp(rh, 85.0, 95.0)
+    else:
+        wetness = 1.0 - _ramp(vpd, 0.1, 0.5)
+    return round(max(0.0, min(1.0, band * wetness)), 3)
+
+
 def _ramp(value: float, low: float, high: float) -> float:
     """Linear 0..1 ramp: 0 at/below ``low``, 1 at/above ``high``."""
     if high <= low:
@@ -1761,6 +1878,9 @@ _ALLOWED_WEATHER_TILE_LAYERS = {
     "spraying_drift_risk",
     "soil_trafficability",
     "heat_stress",
+    "disease_late_blight",
+    "disease_downy_mildew",
+    "disease_stripe_rust",
     "soil_moisture",
     "pressure",
     "clouds",
@@ -2000,6 +2120,36 @@ def weather_layers_manifest():
                 "derived": True,
                 "provider_native": False,
             },
+            {
+                "key": "disease_late_blight",
+                "label_ar": "نافذة اللفحة المتأخّرة (البطاطس)",
+                "unit": "0..1",
+                "kind": "risk",
+                "crop": "potato",
+                "pathogen": "Phytophthora infestans",
+                "derived": True,
+                "provider_native": False,
+            },
+            {
+                "key": "disease_downy_mildew",
+                "label_ar": "نافذة البياض الزغبيّ (العنب)",
+                "unit": "0..1",
+                "kind": "risk",
+                "crop": "grape",
+                "pathogen": "Plasmopara viticola",
+                "derived": True,
+                "provider_native": False,
+            },
+            {
+                "key": "disease_stripe_rust",
+                "label_ar": "نافذة الصدأ المخطّط (القمح)",
+                "unit": "0..1",
+                "kind": "risk",
+                "crop": "wheat",
+                "pathogen": "Puccinia striiformis",
+                "derived": True,
+                "provider_native": False,
+            },
             {"key": "soil_moisture", "label_ar": "رطوبة التربة", "unit": "m³/m³", "kind": "soil"},
             {"key": "pressure", "label_ar": "الضغط", "unit": "hPa", "kind": "weather"},
             {"key": "clouds", "label_ar": "الغيوم", "unit": "%", "kind": "weather"},
@@ -2026,6 +2176,21 @@ def weather_layers_manifest():
                 "layer": "soil_trafficability",
             },
             {"key": "heat_stress_mode", "label_ar": "الإجهاد الحراري", "layer": "heat_stress"},
+            {
+                "key": "late_blight_mode",
+                "label_ar": "نافذة اللفحة المتأخّرة",
+                "layer": "disease_late_blight",
+            },
+            {
+                "key": "downy_mildew_mode",
+                "label_ar": "نافذة البياض الزغبيّ",
+                "layer": "disease_downy_mildew",
+            },
+            {
+                "key": "stripe_rust_mode",
+                "label_ar": "نافذة الصدأ المخطّط",
+                "layer": "disease_stripe_rust",
+            },
         ],
         "cache": {
             "ttl_s": int(_WEATHER_TILE_CACHE_TTL_S),
@@ -2171,7 +2336,7 @@ async def weather_tile_data(
     y: int,
     layer: str = Query(
         "temperature",
-        description="temperature|wind|precipitation|et0|vpd|soil_temperature|soil_temperature_10_40cm|spraying_drift_risk|soil_trafficability|heat_stress|soil_moisture|pressure|clouds",
+        description="temperature|wind|precipitation|et0|vpd|soil_temperature|soil_temperature_10_40cm|spraying_drift_risk|soil_trafficability|heat_stress|disease_late_blight|disease_downy_mildew|disease_stripe_rust|soil_moisture|pressure|clouds",
     ),
     time: str = Query("now", description="now|+1h|+3h|+6h|+12h|+24h|+48h"),
     model: str = Query("best_match", description="best_match أو نموذج Open-Meteo صريح عند الحاجة"),
@@ -2254,6 +2419,9 @@ async def weather_tile_data(
             "spraying_drift_risk": "0..1",
             "soil_trafficability": "0..1",
             "heat_stress": "0..1",
+            "disease_late_blight": "0..1",
+            "disease_downy_mildew": "0..1",
+            "disease_stripe_rust": "0..1",
             "soil_moisture": "m³/m³",
             "pressure": "hPa",
             "clouds": "%",

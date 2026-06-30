@@ -29,6 +29,9 @@ export type WeatherLayerKey =
   | 'spraying_drift_risk'
   | 'soil_trafficability'
   | 'heat_stress'
+  | 'disease_late_blight'
+  | 'disease_downy_mildew'
+  | 'disease_stripe_rust'
   | 'soil_moisture'
   | 'pressure'
   | 'clouds'
@@ -126,6 +129,9 @@ export const WEATHER_LAYERS: WeatherLayerConfig[] = [
   { key: 'spraying_drift_risk', labelAr: 'خطر انجراف الرش', shortAr: 'انجراف', unit: '0..1', min: 0, max: 1, stops: ['#22c55e', '#a3e635', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
   { key: 'soil_trafficability', labelAr: 'صلاحية مرور الآليات', shortAr: 'مرور', unit: '0..1', min: 0, max: 1, stops: ['#7f1d1d', '#ef4444', '#f97316', '#eab308', '#a3e635', '#22c55e'] },
   { key: 'heat_stress', labelAr: 'الإجهاد الحراري', shortAr: 'إجهاد', unit: '0..1', min: 0, max: 1, stops: ['#22c55e', '#a3e635', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
+  { key: 'disease_late_blight', labelAr: 'نافذة اللفحة المتأخّرة (البطاطس)', shortAr: 'لفحة', unit: '%', min: 0, max: 1, stops: ['#22c55e', '#a3e635', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
+  { key: 'disease_downy_mildew', labelAr: 'نافذة البياض الزغبيّ (العنب)', shortAr: 'بياض', unit: '%', min: 0, max: 1, stops: ['#22c55e', '#a3e635', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
+  { key: 'disease_stripe_rust', labelAr: 'نافذة الصدأ المخطّط (القمح)', shortAr: 'صدأ', unit: '%', min: 0, max: 1, stops: ['#22c55e', '#a3e635', '#eab308', '#f97316', '#ef4444', '#7f1d1d'] },
   { key: 'soil_moisture', labelAr: 'رطوبة التربة', shortAr: 'رطوبة تربة', unit: 'm³/m³', min: 0, max: 0.55, stops: ['#92400e', '#f59e0b', '#a3e635', '#22c55e', '#0ea5e9', '#1d4ed8'] },
   { key: 'pressure', labelAr: 'ضغط مستوى البحر', shortAr: 'ضغط', unit: 'hPa', min: 980, max: 1040, stops: ['#7c3aed', '#2563eb', '#22c55e', '#eab308', '#ef4444'] },
   { key: 'clouds', labelAr: 'الغيوم', shortAr: 'غيوم', unit: '%', min: 0, max: 100, stops: ['#0f172a', '#475569', '#94a3b8', '#e2e8f0', '#ffffff'] },
@@ -144,6 +150,9 @@ export const WEATHER_PRESETS: Array<{ label: string; layer: WeatherLayerKey; not
   { label: 'خطر انجراف الرش', layer: 'spraying_drift_risk', note: 'رياح + هبّات + VPD + مطر' },
   { label: 'مرور الآليات', layer: 'soil_trafficability', note: 'رطوبة التربة + مطر حديث' },
   { label: 'الإجهاد الحراري', layer: 'heat_stress', note: 'حرارة + رطوبة نسبية' },
+  { label: 'نافذة اللفحة المتأخّرة', layer: 'disease_late_blight', note: 'حرارة 10-24° + رطوبة عالية + بلل' },
+  { label: 'نافذة البياض الزغبيّ', layer: 'disease_downy_mildew', note: 'حرارة 18-25° + مطر ≈10مم + رطوبة' },
+  { label: 'نافذة الصدأ المخطّط', layer: 'disease_stripe_rust', note: 'حرارة 7-15° + ندى/رطوبة عالية' },
 ];
 
 export const DEFAULT_LAYER: WeatherLayerKey = 'temperature';
@@ -243,6 +252,50 @@ function heatStress(sample: Record<string, unknown> | undefined): number | null 
   return clamp01(base + humidityBoost);
 }
 
+// نطاق حرارة هضبيّ 0..1 يطابق _temp_band الخلفي: 0 خارج [loOff,hiOff]، 1 داخل [loOn,hiOn].
+function tempBand(temp: number, loOff: number, loOn: number, hiOn: number, hiOff: number): number {
+  return Math.min(ramp(temp, loOff, loOn), 1 - ramp(temp, hiOn, hiOff));
+}
+
+// نافذة اللفحة المتأخّرة (Phytophthora infestans) 0..1، يطابق _disease_late_blight_value الخلفي.
+function diseaseLateBlight(sample: Record<string, unknown> | undefined): number | null {
+  const temp = sampleNum(sample, 'temperature_2m_c');
+  if (temp == null) return null;
+  const rh = sampleNum(sample, 'relative_humidity_2m_pct');
+  const vpd = sampleNum(sample, 'vapour_pressure_deficit_kpa');
+  if (rh == null && vpd == null) return null;
+  const band = tempBand(temp, 10, 14, 20, 24);
+  const humidity = rh != null ? ramp(rh, 88, 96) : 1 - ramp(vpd as number, 0.1, 0.6);
+  const rain = sampleNum(sample, 'precipitation_mm');
+  const wetness = rain != null && rain > 0.1 ? 1 : 0;
+  return clamp01(band * (0.7 * humidity + 0.3 * wetness));
+}
+
+// نافذة البياض الزغبيّ (Plasmopara viticola) 0..1، يطابق _disease_downy_mildew_value الخلفي.
+function diseaseDownyMildew(sample: Record<string, unknown> | undefined): number | null {
+  const temp = sampleNum(sample, 'temperature_2m_c');
+  if (temp == null) return null;
+  const rh = sampleNum(sample, 'relative_humidity_2m_pct');
+  const rain = sampleNum(sample, 'precipitation_mm');
+  if (rh == null && rain == null) return null;
+  const band = tempBand(temp, 13, 18, 25, 30);
+  const rainMoisture = rain != null ? ramp(rain, 2, 10) : 0;
+  const humidity = rh != null ? ramp(rh, 80, 95) : 0;
+  return clamp01(band * Math.max(rainMoisture, 0.6 * humidity));
+}
+
+// نافذة الصدأ المخطّط (Puccinia striiformis) 0..1، يطابق _disease_stripe_rust_value الخلفي.
+function diseaseStripeRust(sample: Record<string, unknown> | undefined): number | null {
+  const temp = sampleNum(sample, 'temperature_2m_c');
+  if (temp == null) return null;
+  const rh = sampleNum(sample, 'relative_humidity_2m_pct');
+  const vpd = sampleNum(sample, 'vapour_pressure_deficit_kpa');
+  if (rh == null && vpd == null) return null;
+  const band = tempBand(temp, 2, 7, 13, 22);
+  const wetness = rh != null ? ramp(rh, 85, 95) : 1 - ramp(vpd as number, 0.1, 0.5);
+  return clamp01(band * wetness);
+}
+
 export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unknown> | undefined, fallback: WeatherMarker): number | null {
   if (isOperationLayer(layer)) return null;
   switch (layer) {
@@ -256,6 +309,9 @@ export function getLayerValue(layer: WeatherLayerKey, sample: Record<string, unk
     case 'spraying_drift_risk': return sprayingDriftRisk(sample);
     case 'soil_trafficability': return soilTrafficability(sample);
     case 'heat_stress': return heatStress(sample);
+    case 'disease_late_blight': return diseaseLateBlight(sample);
+    case 'disease_downy_mildew': return diseaseDownyMildew(sample);
+    case 'disease_stripe_rust': return diseaseStripeRust(sample);
     case 'soil_moisture': return sampleNum(sample, 'soil_moisture_1_to_3cm_m3m3') ?? sampleNum(sample, 'soil_moisture_0_to_1cm_m3m3');
     case 'pressure': return sampleNum(sample, 'pressure_msl_hpa');
     case 'clouds': return sampleNum(sample, 'cloud_cover_pct');
