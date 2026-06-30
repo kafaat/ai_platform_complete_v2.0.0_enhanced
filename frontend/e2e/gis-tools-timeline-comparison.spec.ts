@@ -11,17 +11,21 @@ test.beforeEach(async ({ page }) => {
   await page.goto(GIS_TOOLS_PATH, { waitUntil: 'domcontentloaded' });
 });
 
-// مُؤجَّل (test.fixme، كنمط اختبارات @visual): يتوقّع طلب شبكة /geometry/history
-// لا يُحفَّز في بيئة e2e الهرمسيّة (بذرة الشبكة لا تطلقه)، فيفشل expect.poll عند
-// السطر الأخير رغم مرور باقي الخطوات. يُعاد تفعيله بعد مواءمة البذرة/التدفّق الحيّ.
-test.fixme('Timeline + Comparison Mode يعرض مراجعات الخادم ويحسب فرق المساحة والرؤوس @gating', async ({ page }) => {
-  await expect(page.getByRole('heading', { name: /أدوات الهندسة المكانيّة/ })).toBeVisible();
-  await expect(page.getByText(/معاينة فقط/).first()).toBeVisible();
-
+// السبب الجذريّ للتأجيل السابق (مُصحَّح الآن): resolveActiveFieldId يختار أوّل حقل
+// فور تحميل القائمة، فيُطلِق useFieldGeometryHistory طلب /geometry/history **أثناء
+// تحميل الصفحة** — قبل أن يُركّب الاختبار مُستمِع الطلبات في جسمه (بعد ملاحة
+// beforeEach)، فيفوته العدّ ويفشل expect.poll. الإصلاح: نُركّب المستمع أوّلاً ثمّ
+// نُعيد التحميل كي يُلتقَط الطلب وقت إقلاعه (لا تزييف — التدفّق الحيّ نفسه).
+test('Timeline + Comparison Mode يعرض مراجعات الخادم ويحسب فرق المساحة والرؤوس @gating', async ({ page }) => {
   const historyRequests: string[] = [];
   page.on('request', (request) => {
     if (request.url().includes('/geometry/history')) historyRequests.push(request.url());
   });
+  // إعادة تحميل بعد تركيب المستمع ⇒ يُلتقَط طلب السجلّ الذي يُطلَق عند اختيار أوّل حقل.
+  await page.reload({ waitUntil: 'domcontentloaded' });
+
+  await expect(page.getByRole('heading', { name: /أدوات الهندسة المكانيّة/ })).toBeVisible();
+  await expect(page.getByText(/معاينة فقط/).first()).toBeVisible();
 
   await page.getByRole('button', { name: 'تفعيل' }).click();
 
