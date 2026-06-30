@@ -54,3 +54,22 @@ export function readFieldMapView(fieldId: string | null | undefined): FieldMapVi
   if (!v || !isFiniteNum(v.zoom) || !isFiniteNum(v.lat) || !isFiniteNum(v.lng)) return null;
   return v;
 }
+
+// علم لمرّة واحدة (داخل الجلسة، بلا تخزين): بعد إنشاء حقل جديد نريد عرضه بالإطار
+// الافتراضيّ (fitBounds) لا الطيران للمشهد المحفوظ — فيُعلَّم معرّفه هنا ويُستهلَك في
+// أوّل تموضُع للخريطة. الفتح اللاحق من القائمة يطير للمشهد المحفوظ كالمعتاد.
+let _defaultViewOnceId: string | null = null;
+
+/** يطلب عرض هذا الحقل بالإطار الافتراضيّ في أوّل تموضُع (يتجاوز المشهد المحفوظ مرّةً). */
+export function markDefaultViewOnce(fieldId: string | null | undefined): void {
+  _defaultViewOnceId = fieldId ?? null;
+}
+
+/** يستهلك العلم: يُرجِع true (ويمسحه) إن كان هذا الحقل مُعلَّماً للعرض الافتراضيّ. */
+export function consumeDefaultViewOnce(fieldId: string | null | undefined): boolean {
+  if (fieldId && _defaultViewOnceId === fieldId) {
+    _defaultViewOnceId = null;
+    return true;
+  }
+  return false;
+}

@@ -38,7 +38,7 @@ import { canMutate } from '../lib/permissions';
 import { layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import AddFieldWithMap from '../components/AddFieldWithMap';
-import { saveFieldMapView } from '../lib/fieldMapView';
+import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
   LayerSwitcher, ColormapLegend, SideBySide, type CmapId,
@@ -730,30 +730,39 @@ export default function MapHub() {
         irrigation_type: data.irrigation_type ?? null, pivot: data.pivot ?? null,
         country: data.country ?? null, region: data.region ?? null, geometry: data.geometry,
       });
-      // حفظ مشهد الخريطة (zoom + مركز) بمعرّف الحقل المُنشأ — يُطار إليه عند فتحه.
       const rec = r.data as Record<string, unknown>;
-      if (data.map_view) saveFieldMapView(String(rec.field_id ?? ''), data.map_view);
+      const newId = String(rec.field_id ?? '');
+      // حفظ مشهد الخريطة (zoom + مركز) بمعرّف الحقل المُنشأ — يُطار إليه عند فتحه لاحقاً.
+      if (data.map_view) saveFieldMapView(newId, data.map_view);
       setShowAddField(false);
       toastStore.add('success', '✅ تم إضافة الحقل', data.name);
-      refetch();
+      await refetch();
+      // انتقل إلى الحقل المُنشأ حديثاً واعرضه بالإطار الافتراضيّ (لا حقل سابق).
+      if (newId) {
+        markDefaultViewOnce(newId);
+        setFieldId(newId);
+      }
     } catch (e) {
       const msg = asApiError(e).message || 'تعذّر حفظ الحقل — تحقّق من القاعدة/الصلاحيّة أو صحّة الحدود.';
       toastStore.add('error', '⚠️ فشل حفظ الحقل', msg);
       throw new Error(msg);
     }
-  }, [refetch]);
+  }, [refetch, setFieldId]);
 
   const handleImportField = useCallback(async (payload: unknown) => {
     try {
-      await kongApi.post('/api/v1/fields/import', payload);
+      const r = await kongApi.post('/api/v1/fields/import', payload);
+      const newId = String((r.data as Record<string, unknown>)?.field_id ?? '');
       setShowAddField(false);
       toastStore.add('success', '✅ تم استيراد الحقل', '');
-      refetch();
+      await refetch();
+      // انتقل إلى الحقل المستورَد حديثاً واعرضه بالإطار الافتراضيّ.
+      if (newId) { markDefaultViewOnce(newId); setFieldId(newId); }
     } catch (e) {
       const msg = asApiError(e).message || 'تعذّر استيراد الحقل — تحقّق من صحّة الملفّ والحدود والصلاحيّة.';
       throw new Error(msg);
     }
-  }, [refetch]);
+  }, [refetch, setFieldId]);
 
 
   const handleDeleteSelectedField = useCallback(async () => {

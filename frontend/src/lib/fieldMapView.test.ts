@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { saveFieldMapView, readFieldMapView } from './fieldMapView';
+import { saveFieldMapView, readFieldMapView, markDefaultViewOnce, consumeDefaultViewOnce } from './fieldMapView';
 
 describe('fieldMapView — per-field saved zoom + center (localStorage)', () => {
   beforeEach(() => { window.localStorage.clear(); });
@@ -33,5 +33,19 @@ describe('fieldMapView — per-field saved zoom + center (localStorage)', () => 
     saveFieldMapView('b', { zoom: 18, lat: 3, lng: 4 });
     expect(readFieldMapView('a')?.zoom).toBe(12);
     expect(readFieldMapView('b')?.zoom).toBe(18);
+  });
+
+  it('default-view-once flag fires exactly once for the marked field', () => {
+    markDefaultViewOnce('new_field');
+    // أوّل استهلاك للحقل المُعلَّم ⇒ true ثمّ يُمسَح؛ الثاني ⇒ false (الفتح اللاحق يطير للمحفوظ).
+    expect(consumeDefaultViewOnce('new_field')).toBe(true);
+    expect(consumeDefaultViewOnce('new_field')).toBe(false);
+  });
+
+  it('default-view-once does not affect other fields', () => {
+    markDefaultViewOnce('new_field');
+    expect(consumeDefaultViewOnce('other')).toBe(false);
+    // يبقى العلم قائماً للحقل الصحيح فقط.
+    expect(consumeDefaultViewOnce('new_field')).toBe(true);
   });
 });

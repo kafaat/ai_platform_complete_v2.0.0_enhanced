@@ -20,7 +20,7 @@ import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet +
 import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi } from '../services/api';
 import { getTenantId } from '../lib/authStorage';
 import { areaSqMeters, lengthMeters } from '../lib/geo';
-import { readFieldMapView } from '../lib/fieldMapView';
+import { readFieldMapView, consumeDefaultViewOnce } from '../lib/fieldMapView';
 
 // روابط خرائط الأساس (نفس AddFieldWithMap.tsx)
 const BASEMAP_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
@@ -229,9 +229,9 @@ function FitBounds({
 }) {
   const map = useMap();
   useEffect(() => {
-    // أولويّة: مشهد الخريطة المحفوظ للحقل (zoom + مركز عند الإنشاء) ⇒ نطير إليه
-    // كما طلب المستخدم. غيابه ⇒ السلوك القديم (ضبط الإطار على الحدّ).
-    const saved = readFieldMapView(fieldId);
+    // حقل أُنشئ للتوّ ⇒ الإطار الافتراضيّ (تخطَّ المشهد المحفوظ مرّةً). غير ذلك:
+    // أولويّة المشهد المحفوظ (zoom + مركز عند الإنشاء) ⇒ نطير إليه عند الفتح اللاحق.
+    const saved = consumeDefaultViewOnce(fieldId) ? null : readFieldMapView(fieldId);
     if (saved) {
       map.flyTo([saved.lat, saved.lng], saved.zoom, { duration: 0.8 });
       return;
