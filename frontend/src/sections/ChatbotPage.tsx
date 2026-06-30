@@ -54,6 +54,17 @@ interface ChatbotField {
 }
 interface LiveContext { count: number; totalArea: number; avgNdvi: number | null; crops: string[]; w: WeatherCurrent | null }
 
+interface FieldAiContextPack {
+  field_id: string;
+  days: number;
+  ai_context_summary_ar?: string;
+  imagery_timeline?: { total_dates?: number; per_indicator?: Record<string, { total?: number }> };
+  weather_history?: { available?: boolean; summary?: Record<string, unknown> };
+  operations_timeline?: { total?: number };
+  drawing_context?: { total?: number; counts_by_kind?: Record<string, number> };
+  readiness?: { complete?: boolean; warnings?: string[]; requires_imagery_backfill_24_months?: boolean };
+}
+
 // نموذج ذكاء قابل للاختيار (يأتي من كتالوج AI_MODELS عبر /api/v1/ai/models).
 interface AiModel { id: string; label: string }
 interface AiModelsCatalog { provider?: string; default_model?: string | null; available?: boolean; models?: AiModel[] }
@@ -215,6 +226,9 @@ export function ChatbotPage() {
   const [input, setInput]       = useState('');
   const [loading, setLoading]   = useState(false);
   const [latestId, setLatestId] = useState<string | null>(null);
+  const [aiContext, setAiContext] = useState<FieldAiContextPack | null>(null);
+  const [aiContextLoading, setAiContextLoading] = useState(false);
+  const [aiContextError, setAiContextError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -236,6 +250,33 @@ export function ChatbotPage() {
       w: (weatherQ.data as { current?: WeatherCurrent } | undefined)?.current ?? null,
     };
   }, [fieldsQ.data, weatherQ.data]);
+
+  // حزمة سياق الحقل للذكاء: سنتان من المشاهد/الطقس/الأحداث/المناطق عندما يتوفر حقل نشط.
+  useEffect(() => {
+    let alive = true;
+    if (!activeFieldId) {
+      setAiContext(null);
+      setAiContextError(null);
+      setAiContextLoading(false);
+      return () => { alive = false; };
+    }
+    setAiContextLoading(true);
+    setAiContextError(null);
+    kongApi.get(`/api/v1/fields/${activeFieldId}/ai-context-pack`, { params: { days: 730 } })
+      .then((res) => {
+        if (!alive) return;
+        setAiContext(res.data as FieldAiContextPack);
+      })
+      .catch((err) => {
+        if (!alive) return;
+        setAiContext(null);
+        setAiContextError(err?.response?.data?.detail || err?.message || 'تعذّر تحميل سياق الحقل للذكاء.');
+      })
+      .finally(() => {
+        if (alive) setAiContextLoading(false);
+      });
+    return () => { alive = false; };
+  }, [activeFieldId]);
 
   // ── منتقي نموذج الذكاء (كتالوج .env عبر مزوّد موحَّد: محلّيّ/Anthropic/OpenRouter) ──
   // يُجلب من /api/v1/ai/models؛ المختار يُحفظ محلّيّاً ويُرسَل مع كلّ طلب (يُتحقَّق
@@ -295,6 +336,8 @@ export function ChatbotPage() {
           avg_ndvi:        ctx.avgNdvi,
           field_count:     ctx.count,
           weather_current: ctx.w,
+          ai_context_pack: aiContext || undefined,
+          ai_context_summary_ar: aiContext?.ai_context_summary_ar,
           recent_turns:    history,
         },
       });
@@ -325,7 +368,7 @@ export function ChatbotPage() {
 
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [messages, loading, ctx, activeFieldId, selectedModel]);
+  }, [messages, loading, ctx, activeFieldId, selectedModel, aiContext]);
 
   const clear = () => {
     setMessages([WELCOME]);
@@ -391,6 +434,38 @@ export function ChatbotPage() {
           {' · '}رطوبة={ctx.w?.humidity_pct != null ? `${ctx.w.humidity_pct}٪` : '—'}
           {' · '}{ctx.count} حقول
         </span>
+      </div>
+
+      {/* Field AI context pack status */}
+      <div className="px-5 py-2 border-b border-slate-100 bg-slate-50/80">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+          <span className="font-semibold text-slate-700">سياق الحقل للذكاء:</span>
+          {!activeFieldId ? (
+            <span>لا يوجد حقل نشط — سيتم استخدام ملخص المزرعة فقط.</span>
+          ) : aiContextLoading ? (
+            <span className="text-amber-600">جارٍ تجهيز ذاكرة سنتين…</span>
+          ) : aiContext ? (
+            <>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                صور/مشاهد: {aiContext.imagery_timeline?.total_dates ?? 0}
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-100">
+                طقس سنتين: {aiContext.weather_history?.available ? 'متاح' : 'غير متاح'}
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-100">
+                Timeline: {aiContext.operations_timeline?.total ?? 0}
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                مناطق/محاور: {aiContext.drawing_context?.total ?? 0}
+              </span>
+              {aiContext.readiness?.requires_imagery_backfill_24_months && (
+                <span className="text-amber-600">يحتاج backfill سنتين للصور.</span>
+              )}
+            </>
+          ) : (
+            <span className="text-rose-600">{aiContextError || 'سياق الحقل غير متاح حالياً.'}</span>
+          )}
+        </div>
       </div>
 
       {/* Messages */}
