@@ -405,3 +405,6 @@
 
 \echo '═══ 134. v127_evidence_context_hardening.sql ═══'
 \i migrations/v127_evidence_context_hardening.sql
+
+\echo '═══ 135. v128_mfa_hardening.sql ═══'
+\i migrations/v128_mfa_hardening.sql

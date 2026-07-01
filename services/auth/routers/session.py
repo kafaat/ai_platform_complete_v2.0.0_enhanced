@@ -29,7 +29,8 @@ async def login(req: main.LoginRequest, request: Request):
     async with main._acquire() as conn:
         row = await conn.fetchrow(
             "SELECT id, email, password_hash, role, full_name, tenant_id, active, "
-            "mfa_enabled, mfa_secret FROM users WHERE email=$1",
+            "mfa_enabled, mfa_secret, encrypted_mfa_secret, mfa_failed_attempts, "
+            "mfa_locked_until FROM users WHERE email=$1",
             req.email,
         )
 
@@ -61,9 +62,18 @@ async def login(req: main.LoginRequest, request: Request):
                 "يتطلّب الحساب رمز المصادقة الثنائيّة (MFA)",
                 headers={"X-MFA-Required": "true"},
             )
-        secret = row["mfa_secret"]
-        if not secret or not main.pyotp.TOTP(secret).verify(req.mfa_code.strip(), valid_window=1):
+        # V29.5 — حوكمة MFA: قفل دائم في DB + سرّ مشفّر (توافق رجعيّ للنصّ) + رموز استرداد
+        # لمرّة واحدة + تدقيق. fail-closed: locked ⇒ 429، سرّ مشفّر بلا مفتاح ⇒ رفض.
+        ok, reason = await main.mfa_login_verify(row, req.mfa_code, ip=ip)
+        if not ok:
             await main.record_failed_login(req.email)
+            if reason == "locked":
+                main.LOGIN_COUNTER.labels(status="mfa_locked").inc()
+                raise HTTPException(
+                    status.HTTP_429_TOO_MANY_REQUESTS,
+                    "تجاوزت محاولات MFA — الحساب مقفل مؤقّتاً، حاول لاحقاً",
+                    headers={"X-MFA-Locked": "true"},
+                )
             main.LOGIN_COUNTER.labels(status="mfa_failed").inc()
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "رمز MFA غير صحيح")
 

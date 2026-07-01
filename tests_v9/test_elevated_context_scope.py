@@ -25,7 +25,15 @@ BASE = os.path.dirname(os.path.dirname(__file__))
 # invitations: جدول هويّة (إلحاق أعضاء بمستأجِر قائم) تديره خدمة auth. آمن تحت سياق
 # admin لأنّ نقاطه تُنطّق المستأجِر يدويّاً (list يُرشّح بـtenant_id الداعي؛ accept/
 # revoke عبر token فريد) — لا قراءة عابرة للمستأجرين.
-_AUTH_DOMAIN_TABLES = {"users", "audit_log", "invitations"}
+# mfa_recovery_codes / mfa_audit_events (v128): جداول هويّة MFA تديرها خدمة auth تحت سياق
+# admin — لها RLS مُنطّق بالمستأجِر مع هروب خدمة (نمط audit_log/v87)، فلا قراءة عابرة للمستأجرين.
+_AUTH_DOMAIN_TABLES = {
+    "users",
+    "audit_log",
+    "invitations",
+    "mfa_recovery_codes",
+    "mfa_audit_events",
+}
 
 # مرسِل/مجدوِل sahool_jobs: نطاقه فقط.
 # processed_events: مخزن تعاضُد الاستهلاك (v91) — جدول بنية تحتيّة عالميّ بلا tenant_id

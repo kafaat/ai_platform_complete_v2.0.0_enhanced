@@ -487,3 +487,7 @@ v126_agent_tool_audit.sql
 # قيود NOT VALID (tenant NOT NULL + غلّة غير سالبة) + سياسة RLS بـUSING وWITH CHECK +
 # فهرس (tenant_id, field_id, season_id). idempotent؛ يُطبَّق بعد v126.
 v127_evidence_context_hardening.sql
+# v128 (سطر v29.5): تصلّب MFA الإنتاجيّ — تشفير سرّ TOTP عند الراحة (encrypted_mfa_secret)
+# + قفل دائم في DB (mfa_failed_attempts/mfa_locked_until) + رموز استرداد (hash فقط) +
+# سجلّ تدقيق MFA. إضافيّ idempotent؛ جداول auth عابرة للمستأجِر (بلا RLS). بعد v127.
+v128_mfa_hardening.sql
