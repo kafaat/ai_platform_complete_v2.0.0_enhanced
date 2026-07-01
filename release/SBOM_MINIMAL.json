@@ -5525,6 +5525,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d1811b80cda4a728360c1c92bb34880c5b9a16c6ab66e8d04dadd5bf21aa54d2"
+        }
+      ],
+      "name": "services/ai_agronomist/tool_executor.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c84f88c4dad353f473edd75b6a07007ae84670918fa836d94aa52c508c62810"
         }
       ],
