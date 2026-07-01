@@ -23,10 +23,18 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from services.ai_agronomist import main as M  # noqa: E402
+
+def _main_module():
+    # ``main`` يستورد fastapi؛ وظائف CI للوحدة/التكامل (منطق صرف على tests_v9) لا
+    # تُثبّت fastapi، فنتخطّى بأمان بدل كسر الجمع. الحارس الساكن أدناه يعمل بلا استيراد.
+    pytest.importorskip("fastapi")
+    from services.ai_agronomist import main as M
+
+    return M
 
 
 def test_advisor_query_accepts_tool_calls_contract():
+    M = _main_module()
     q = M.AdvisorQuery(
         question="افتح صورة الحقل",
         tenant_id="t",
@@ -46,6 +54,7 @@ def test_main_wires_tool_loop_into_chat_response_static():
 
 
 def test_field_tool_fetcher_returns_contextual_read_data():
+    M = _main_module()
     pack = {
         "field_id": "field-1",
         "imagery_timeline": {"total_dates": 12, "ready_dates": 10},
