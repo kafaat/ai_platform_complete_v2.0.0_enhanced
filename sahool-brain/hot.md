@@ -1,32 +1,26 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-06-29 · رأس `claude/code-review-34hO3`: `db08e63` · [`log.md`](log.md) مدخل (ر).
-> 🛰 **CDSE satellite imagery — مُصلَح end-to-end:** FieldIndicatorMap + SatellitePage + cdse-tilejson + SH_CLIENT_ID fallback.
-> 🐳 **Docker Compose — كلّ الخدمات الأساسيّة صحيّة:** weather workers (thresholds.py) + raster-tiler (libexpat1) + platform (HS256 bypass) + nginx (IPv6 + SSL + syntax) مُصلَحة.
-> ⚠ **4 workers unhealthy (pre-existing):** actuator/model-registry/phase-outbox/plugin-runtime — تعمل وظيفيّاً لكن healthcheck يتوقّع HTTP/8000 وهم لا يُشغّلونه.
-> ⏳ **admin login:** يتطلّب MFA (`admin@sahool.ye`) — استخدم JWT مُولَّداً يدويّاً للاختبار حتّى تُكمَل إعداد MFA.
+> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `4a3f1a4` · [`log.md`](log.md) مدخل (ز).
+> 🔐 **تصلّب MFA إنتاجيّ مكتمل** (v29.5+v29.6): تشفير السرّ عند الراحة + recovery codes + قفل DB + تدقيق append-only + RLS مُضيَّق — مسار توافق لا يكسر المستخدمين القائمين.
+> 🤖 **حوكمة الوكيل مكتملة** (v58.2a/b/c): مخازن دائمة + تحقّق وسائط + تعقيم نتائج + ميزانية/dedupe + كلّ mutating يتطلّب موافقة.
+> 🛰 **أدلّة الحقل** (v49.5): سياق AI tenant-scoped + redaction + freshness/provenance.
+> ✅ **كلّ دفعة CI 11/11 خضراء** (Integration يطبّق الترحيلات على Postgres+PostGIS حقيقيّ) ثمّ ff-merge إلى main.
 
-## ✅ السبب الجذريّ لـauth «unhealthy» — حُسِم (لم يكن RLS)
+## عمل هذه الجلسة (على `main`، سلسلة دفعات خضراء)
 
-سجلّ المشغّل كشف الحقيقة: `from router_registry import register_routers` في `main.py:889` ⇒
-`ModuleNotFoundError: 'router_registry'`. **الجذر:** Dockerfile auth (وvegetation) ينسخ ملفّات مفردة
-(`COPY main.py`/`otp.py`) لا المجلّد ⇒ وحدات التفكيك (`router_registry.py`+`routers/`) غير منسوخة في
-الصورة ⇒ uvicorn يفشل ⇒ unhealthy. **فرضيّاتي السابقة (دور RLS/JWT) كانت خاطئة** — لم يكن لديّ السجلّ.
-**الإصلاح:** Dockerfile ينسخ الوحدتين + حارس CI `test_decomposed_service_dockerfile_guard` (11/11) يمنع
-التكرار. التطبيق عند المشغّل: `docker compose -f docker-compose.v9.yml up -d --build sahool-auth sahool-vegetation-analysis`.
+التفاصيل + الأسباب + الـSHAs في [`log.md`](log.md) مدخل (ز) و[`decisions/ledger.md`](decisions/ledger.md):
 
-## عمل هذه الجلسة (توحيد main + cert + إصلاح auth الجذريّ)
-
-التفاصيل + الأسباب في [`log.md`](log.md) مدخل (س) و[`decisions/ledger.md`](decisions/ledger.md):
-
-- **التوحيد:** دمج `certification/final-readiness-evidence` (Phase 1–22 · v99–v123 · production-gates ·
-  470 ملفّاً) مع عمل main (تفكيك/CDSE/H5/C5/H2/بوّابة) في superset واحد (`main` = `96003bf`). 22 تعارضاً مُحلّاً.
-- **Stage B/C:** CDSE poly فوق raster الخاصّ بـcert (`apply_polygon_mask`/`fetch_field_geometry`/`fieldCdseTileUrl`)
-  + إعادة تفكيك video/odoo/raster مع حفظ تصليب cert + استعادة الحُرّاس الثلاثة.
-- **إصلاح auth الجذريّ** (أعلاه) + **إصلاحات CI:** compose `DATABASE_URL` مكرّر · frontend TS · PyYAML للمفتّش ·
-  ruff format · تجديد بصمات الإصدار (`build_release_bundle` — فحص Phase 14).
-- **توحيد الفروع:** main → `claude/code-review-34hO3` (مطابق) + إغلاق PR #579 (مُتجاوَز، كان يتعارض في cdse_tiles).
-- **صدق:** الدمج fast-forward/توفيقيّ بلا فقد؛ تحقّق محليّ شامل (compileall · inspector PASS · 1931 اختبار · الحُرّاس).
+| الدفعة | SHA | الجوهر |
+|---|---|---|
+| v58.2a | `eb3cf89` | مخازن موافقة/تدقيق قابلة للاستبدال + `/approvals/resume` |
+| v58.2b | `151851a` | تحقّق وسائط صارم + تعقيم نتائج + «mutating ⇒ approval» |
+| v49.5 | `abe0c51` | ذاكرة AI tenant-scoped + redaction + ترحيل v127 (RLS WITH CHECK) |
+| bandit B613 | `5202907` | إعادة بناء regex الـbidi من code points (Security Scan أخضر) |
+| v58.2c | `0b5a13b` | ميزانية أدوات + dedupe + إيقاف عند البوّابة |
+| 422 backfill | `2e353af` | إسقاط `truecolor` من `indices` (عقد raster IndicatorKind) |
+| v29.5 | `8810321` | تشفير MFA + recovery + قفل + تدقيق (ترحيل v128) |
+| JWT_SECRET نبات | `62989c6` | تمرير `JWT_SECRET` لخدمة vegetation في compose |
+| v29.6 | `4a3f1a4` | إصلاحات مراجعة MFA: RLS مُضيَّق + step-up محكوم + ذرّيّة + append-only (ترحيل v129) |
 
 ## أعلى الفجوات الآن
 
@@ -34,25 +28,20 @@
 
 | ID | العنوان | الحالة |
 |---|---|---|
-| C1/C2 | التوصية تُولَّد بلا تخزين/تدقيق كامل لربط الشرح بـ`rec_id` | open (جزئيّ — v77 موجود) |
-| MAP-QA | افتراض MapLibre/WebGL ينتظر بوّابة QA حيّة (Playwright) | open (البوّابة مُنشأة، تنتظر تشغيلاً) |
-| H5 · C5 · H2 | الريّ المشروط بالملوحة · دليل NDVI · عقد ناشري الأحداث | **fixed** (#566/#567/#568؛ H5/C5 يحتاجان معايرة ميدانيّة) |
-| CDSE-CLIP/SCL/MAPHUB | قصّ المضلّع (poly+rasterio) + قناع SCL + MapHub→cdse-tiles | fixed (#564؛ يحتاج تحقّقاً ميدانيّاً بتشغيل CDSE) |
-| AUTH-BOOT | `sahool-auth` unhealthy — الجذر: Dockerfile لا ينسخ `router_registry`/`routers/` | **fixed** (Dockerfile + حارس CI؛ يلزم `--build`) |
-| UNIFY | توحيد main + فرع الاعتماد Phase 1–22 في superset واحد + توحيد الفرع المخصّص | **done** (`96003bf`/`c0174e6`) |
-| SUP-JOURNAL (B) | journal الوكيل in-memory (`tool_contracts.py:325`) — يلزم Postgres/outbox للإنتاج | **deferred** (PR مستقلّ) |
-| C4-M1 · SAM2 · TERRAIN | موبايل push/FCM · GPU · مسار `/terrain` | **deferred / by-design** (بيئة Flutter/GPU أو P2) |
+| MFA-HARDEN | تصلّب MFA الإنتاجيّ (تشفير/recovery/قفل/تدقيق/RLS) | **fixed** (v128+v129؛ Integration أخضر) |
+| AGENT-GOV | حوكمة أدوات الوكيل (مخازن/تحقّق/تعقيم/ميزانية) | **fixed** (v58.2a/b/c) |
+| AIMEM-TENANT | سياق ذاكرة AI عابر-المستأجر بلا فلتر صريح | **fixed** (v49.5) |
+| VEG-JWT | خدمة النبات بلا `JWT_SECRET` في compose ⇒ 503 «تحليل الآن» | **fixed** (`62989c6`؛ يلزم `--build`/إعادة تشغيل) |
+| BACKFILL-422 | «تجهيز سنتين» يرسل `truecolor` كمؤشّر ⇒ 422 | **fixed** (`2e353af`) |
+| SPATIAL-401 | «المؤشرات المكانية» تُخرج للدخول (raster `/indicator-grid` 401) | **open** (يحتاج status+body من Network) |
+| AUTO-SEG | «تحديد الحدود تلقائي» 503 (SAM2 غير منشور) | **by-design** (تشغيليّ: `SEGMENTATION_BACKEND=sam2`) |
+| v57.5-DB | soil_lab analyte (v50) · imagery quality (v54) · field_state recompute (v53) · tenant AI policy DB (v52) | **open** (يحتاج Postgres، عبر CI) |
+| v62.3 | Evidence productionization (raster→ndvi_grid · imagery quality contract) | **open** (اقتُرِح بعد v62.2) |
 
 ## ماذا بعد؟
 
-- **عاجل (المشغّل):** أعِد بناء صورتَي auth/vegetation لتطبيق إصلاح الجذر:
-  `docker compose -f docker-compose.v9.yml up -d --build sahool-auth sahool-vegetation-analysis`.
-- **CI:** راقِب تشغيل `96003bf` — كلّ الإخفاقات السابقة (release-checksum/lint/compose/TS) أُصلِحت؛ ما زال
-  هناك runtime محتمل لم يُتحقَّق في بيئتي (nats-py/asyncpg محليّاً غائبان — تنجح في CI).
-- **تحقّق ميدانيّ (المشغّل):** معايرة EC لسياسة الريّ (H5) + عتبات NDVI (C5) + تشغيل CDSE حقيقيّ
-  (قصّ المضلّع + قناع SCL + مؤشّر الملوحة SWIR).
-- **تنظيف (واجهة GitHub):** حذف الفروع العالقة `frontend-cdse-hide-date` · `fix-cdse-clip-to-field`
-  (الوكيل لا يملك حذف الفروع؛ الوسيط يرفض حذف المرجع).
-- **متاح عند الرغبة (لم يُطلَب):** عقود C4/SAM2/TERRAIN الخادميّة (payload/dedupe · capabilities/readiness ·
-  `/terrain/tilejson`) — أجزاء Flutter/GPU/عرض 3D تبقى مؤجّلة لبيئاتها.
-- إثراء EC من حالة الحقل (`soil_lab_tests` عبر `field_id`) في راوتر توصية الريّ — متابعة موثَّقة.
+- **عاجل (المشغّل):** إعادة بناء/تشغيل خدمة النبات لتطبيق `JWT_SECRET`:
+  `docker compose -f docker-compose.v9.yml up -d --build sahool-vegetation-analysis`. + ضبط `MFA_SECRET_ENCRYPTION_KEY` في `.env` لتفعيل مسار MFA الإنتاجيّ.
+- **SPATIAL-401:** أرسل status+body لطلب `/v1/fields/{id}/indicator-grid` من Network (أو سجلّ raster) لأشخّصه — لا اختلاق إصلاح.
+- **تصلّب الأساس (v57.5-DB):** أعلى أثراً v54 imagery quality ثمّ v50 soil_lab (لـVRA)؛ **أعيد التحقّق** أنّ كلّ بند لم يُغلَق downstream قبل التنفيذ.
+- **انضباط:** هذا المدخل يغلق دَين تحديث الدماغ لهذه الجلسة.

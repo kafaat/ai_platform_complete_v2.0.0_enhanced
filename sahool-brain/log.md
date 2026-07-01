@@ -4,6 +4,38 @@
 
 ---
 
+## 2026-07-01 (ز) — حوكمة الوكيل v58.2 + أدلّة v49.5 + تصلّب MFA v29.5/v29.6 + إصلاحات runtime
+
+**رأس `main` بعد الجلسة:** `4a3f1a4`. الفرع المخصّص `claude/code-review-34hO3` مطابق. كلّ دفعة CI 11/11 خضراء ثمّ ff-merge إلى main.
+
+### حوكمة الوكيل (v58.2 — تقوية أساس v55/v56/v57)
+- **v58.2a** (`eb3cf89`): مخازن موافقة/تدقيق قابلة للاستبدال، جاهزة للاستمرار — `services/ai_agronomist/agent_stores.py` (InMemory افتراضيّ · Redis خلف `SAHOOL_AGENT_STORE_BACKEND=redis`، سقوط آمن للذاكرة) + نقطة `/approvals/resume` (تُعيد مغلّف تنفيذ لا تنفّذ داخل الـruntime).
+- **v58.2b** (`151851a`): تحقّق وسائط صارم + تعقيم نتائج (ضد تسميم tool-result) — `services/ai_agronomist/tool_governance.py`؛ + ثابت وقت-البناء «كلّ mutating ⇒ requires_approval» في [`shared/ai/tool_registry.py`](../shared/ai/tool_registry.py) وقلب الأدوات الثلاث المتوسّطة؛ + إرشاد schema لأدوات v58 الأساسيّة.
+- **v58.2c** (`0b5a13b`): حماية إساءة الحلقة — ميزانية أدوات إجماليّة عبر الجولات + dedupe بـ`tool+input_hash` + إيقاف عند بوّابة الموافقة ([`services/ai_agronomist/tool_loop.py`](../services/ai_agronomist/tool_loop.py) + `ai_generation.py`).
+
+### أدلّة/ذاكرة الحقل (v49.5 — دمج انتقائيّ من حزمة، رفض العودة)
+- **v49.5** (`abe0c51`): `services/sahool-platform/api/routers/field_ai_context.py` — `_optional_events` صار tenant-scoped صراحةً (دفاع مضاعف مع RLS) + redaction قبل السياق + ميزانية حجم/عناصر + freshness/provenance. + ترحيل `migrations/v127_evidence_context_hardening.sql` (recommendation_outcomes: RLS WITH CHECK + غلّة غير سالبة). رُقِّم v49_5→**v127** (حارس التكرار) + سُجِّل في MANIFEST/run_migrations. رُفِضت عودة الحزمة إلى ما قبل v58.2a/b (متطابقة بايتيّاً مع السلف `75ba7f9`).
+
+### تصلّب MFA الإنتاجيّ (v29.5 ثمّ v29.6 بعد مراجعة أمنيّة)
+- **v29.5** (`8810321`): `services/auth/mfa_crypto.py` (Fernet، مفتاح `MFA_SECRET_ENCRYPTION_KEY` بلا default) + ترحيل `migrations/v128_mfa_hardening.sql` (encrypted_mfa_secret + قفل DB + mfa_recovery_codes hash-only + mfa_audit_events). مسار توافق: مشفّر مُفضَّل → نصّ قديم → ترحيل عند نجاح الدخول (لا يكسر مستخدماً قائماً). `cryptography>=44` (pip-audit نظيف).
+- **v29.6** (`4a3f1a4`): إصلاحات مراجعة المستخدم — ترحيل `migrations/v129_mfa_hardening_followup.sql`: تضييق هروب RLS إلى `app.current_role='admin'` (لا `tenant IS NULL` مجرّد) بعد **إثبات** أنّ auth pool يضبطه على كلّ اتّصال ([`services/auth/main.py`](../services/auth/main.py) `_init_auth_conn`:278 + `_acquire`:218) · `mfa_recovery_codes` خدمة-فقط بلا self-read · `mfa_audit_events` append-only (`sahool_block_mutation`). كود: step-up محكوم (`_verify_caller_mfa` بقفل+تدقيق) · التقاط `MfaSecretUndecryptable` (لا 500) · عدّاد فشل ذرّيّ (SQL CASE) · rotation في transaction · HMAC للـIP · key_missing→503 مميّز · جودة مفتاح الإنتاج.
+
+### إصلاحات runtime (من لقطات المستخدم)
+- **422 backfill** (`2e353af`): [`frontend/src/sections/MapHub.tsx`](../frontend/src/sections/MapHub.tsx) — «تجهيز سنتين» كان يرسل `'truecolor'` ضمن `indices`، لكنّ `IndicatorKind` في raster لا يحوي truecolor ⇒ 422 pydantic. الإصلاح: ترشيح للمجموعة المدعومة (ndvi/ndmi/…). + حارس ساكن.
+- **bandit B613** (`5202907`): `tool_governance.py` احتوى محارف bidi حرفيّة في regex ⇒ CI Security Scan HIGH. أُعيد بناء النمط من code points (لا محارف خام).
+- **JWT_SECRET للنبات** (`62989c6`): `docker-compose.v9.yml`/`fixed.yml` لم يمرّرا `JWT_SECRET` لخدمة `sahool-vegetation-analysis` وحدها ⇒ 503 «JWT_SECRET غير مضبوط» على «تحليل الآن» (`services/vegetation-analysis-service/main.py:161`). أُضيف `JWT_SECRET` + `JWT_PUBLIC_KEY` (كبقيّة الخدمات).
+
+### مفتوح (موثَّق)
+- **SPATIAL-401:** «المؤشرات المكانية» تُخرج للدخول (raster `/indicator-grid` 401) — يحتاج status+body من Network للتشخيص (لم يُخترَع إصلاح).
+- **AUTO-SEG:** «تحديد الحدود تلقائي» 503 مقصود (SAM2 غير منشور؛ `docker-compose.fixed.yml:1076-1084`).
+- **v57.5-DB (مفتوح فعلاً):** soil_lab analyte schema (v50) · imagery quality metadata (v54) · field_state recompute contract (v53) · tenant AI policy DB-backed (v52) — تحتاج Postgres، يُتحقَّق عبر CI.
+
+### صدق ومنهج
+- كلّ دفعة: `pytest -m unit` أخضر (2186→2215) + ruff + manifest + CI 11/11 (Integration يطبّق كلّ ترحيل على Postgres+PostGIS حقيقيّ) ثمّ ff-merge.
+- تكرّر درس «الفجوة مُغلَقة أصلاً»: عند مراجعة v9–v57 تبيّن أنّ معظم P0 (RLS WITH CHECK عبر v70 · حارس RLS القائم · ID TEXT v18 · حوكمة الأوامر v100+) مُنجَز downstream — تحقّقتُ قبل التنفيذ تفادياً لعمل مكرّر.
+
+---
+
 ## 2026-06-29 (ر) — إصلاح Docker Compose الكامل + تحقّق CDSE end-to-end
 
 **رأس الفرع:** `db08e63`. جلسة متواصلة من (ق) — سقط السياق فأُعيدت.
