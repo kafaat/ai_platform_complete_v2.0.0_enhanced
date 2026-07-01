@@ -3255,7 +3255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3f2ab41221e65ebaca25652cd5135971412ad277941e986b4c0dc5a05e6c3ae"
+          "content": "b66b969bf264fb0920d00e5e705983c93861f431ac5ecff709de0e5fda7329b3"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -3569,6 +3569,16 @@
         }
       ],
       "name": "migrations/v124_tenant_ai_policies.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e83b23e15877922e3f505d7cb768d65a4af71661fd4e4fe5d80bdfd42a7691a4"
+        }
+      ],
+      "name": "migrations/v125_tenant_ai_capabilities.sql",
       "type": "file"
     },
     {
@@ -5495,7 +5505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "010ffbe319d540bc6e08f3d5dc859f31277e4e305c4606f087eb60fd4196a062"
+          "content": "949c956683bfaee5e4f8b7b799d2716e8ba06dbb10cbcf2b9ceb530711669697"
         }
       ],
       "name": "services/ai_agronomist/tenant_policies.py",
@@ -17185,10 +17195,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "53ee869898b8c41f28d8d1f6d8f84dde7ce874a26ace173483062f964663126a"
+        }
+      ],
+      "name": "shared/ai/capabilities.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c663646c91a3390bf25e4351a23a06c3c28ee91ade4bff7a40de3d414b2dd8e6"
         }
       ],
       "name": "shared/ai/provider_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "866a3e800b86b60f5ea8a8b5aeb5f5d786b3c7193dff2fc80fe0f0bfcf93f932"
+        }
+      ],
+      "name": "shared/ai/tool_audit.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1b0534cf3553fbf52a61e3c30efee4ac21b518849cab2c9523652ee49cc66306"
+        }
+      ],
+      "name": "shared/ai/tool_registry.py",
       "type": "file"
     },
     {

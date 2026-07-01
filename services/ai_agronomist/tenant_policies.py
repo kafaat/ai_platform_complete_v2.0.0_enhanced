@@ -32,6 +32,20 @@ DATA_SHARING_LEVELS = (
     DATA_SHARING_FULL_EXTERNAL,
 )
 
+# قدرات الوكيل (V55) — مرآة ``shared/ai/capabilities`` (يفرض التطابقَ الحارس؛ الكود
+# معزول لكلّ خدمة فلا نستورد shared وقت التشغيل). الافتراضيّ قراءة فقط (fail-closed).
+AGENT_CAPABILITIES = (
+    "can_read_field_data",
+    "can_read_historical_imagery",
+    "can_use_external_llm",
+    "can_create_tasks",
+    "can_generate_prescriptions",
+    "can_send_recommendations",
+    "can_trigger_backfill",
+    "can_export_enterprise_data",
+)
+DEFAULT_AGENT_CAPABILITIES = ("can_read_field_data", "can_read_historical_imagery")
+
 PolicyLoader = Callable[[str], "dict[str, Any] | None"]
 PolicySaver = Callable[[str, "dict[str, Any]"], None]
 
@@ -46,7 +60,18 @@ def default_policy() -> dict[str, Any]:
         "allowed_models": [],  # فارغ ⇒ يُحال إلى كتالوج ``AI_MODELS``.
         "data_sharing_level": DATA_SHARING_LOCAL_ONLY,
         "redaction_profile": "default",
+        # قدرات الوكيل (V55): قراءة فقط افتراضيّاً — لا أفعال مُعدِّلة بلا منح صريح.
+        "allowed_capabilities": list(DEFAULT_AGENT_CAPABILITIES),
     }
+
+
+def normalize_capabilities(caps) -> list[str]:
+    """يُبقي القدرات المعروفة فقط بترتيب ``AGENT_CAPABILITIES`` القانونيّ (fail-closed:
+    القيمة المجهولة لا تمنح شيئاً). ``None`` ⇒ الافتراضيّ المتحفّظ."""
+    if caps is None:
+        return list(DEFAULT_AGENT_CAPABILITIES)
+    granted = {str(c).strip().lower() for c in caps}
+    return [c for c in AGENT_CAPABILITIES if c in granted]
 
 
 def normalize_policy(policy: dict[str, Any] | None) -> dict[str, Any]:
@@ -64,6 +89,7 @@ def normalize_policy(policy: dict[str, Any] | None) -> dict[str, Any]:
     if level not in DATA_SHARING_LEVELS:
         level = DATA_SHARING_LOCAL_ONLY
     merged["data_sharing_level"] = level
+    merged["allowed_capabilities"] = normalize_capabilities(merged.get("allowed_capabilities"))
     return merged
 
 
