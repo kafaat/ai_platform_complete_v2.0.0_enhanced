@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-01 (ط) — v29.6.1: مراقبة وحُرّاس انحدار MFA (غير حاجب)
+
+**رأس `main` بعد الجلسة:** `b5ee3ce`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
+
+بعد بحث المستخدم (OWASP/NIST/PostgreSQL RLS/asyncpg) تأكّد أنّ الإغلاق الاحترافيّ = حُرّاس/عقود لا ترحيلات عشوائيّة. نُفِّذ v29.6.1 (تحسينات اختياريّة، لا إعادة فتح لتصلّب MFA):
+- **`f75e363`:** (١) `routers/users.py` يحسب IP مرّة ويمرّره إلى `_verify_caller_mfa(ip=…)` ⇒ أحداث `mfa_stepup_*` تحمل بصمة IP (HMAC) لا NULL. (٢) `_ip_hash` لا يستعمل الحرفيّ الثابت في الإنتاج (`MFA_AUDIT_HASH_KEY`→`JWT_SECRET`؛ لا مفتاح ⇒ NULL لا تجزئة قابلة للتزوير) + إنذار إقلاع غير حاجب. (٣) حارس AST `test_auth_acquire_admin_context_guard` يؤكّد أنّ `_acquire` و`_init_auth_conn` يضبطان `app.current_role='admin'` (يمنع انحدار RLS الصامت بعد RESET ALL).
+- **`b5ee3ce`:** حارسان ساكنان على SQL v129 (`test_mfa_migration_contract_guard`): recovery خدمة-فقط بلا `current_user_id`/`current_tenant` · trigger `trg_append_only_mfa_audit_events` (BEFORE UPDATE OR DELETE + `sahool_block_mutation`). يعملان في طبقة unit (بلا DB) فيلتقطان الانحدار أبكر من اختبار التكامل الذي يبقى يثبت السلوك على Postgres حيّ.
+- **قرار مفتاح التدقيق:** المنع غير الكاسر (JWT_SECRET fallback قويّ + إنذار) لا بوّابة إقلاع صارمة — لتفادي إسقاط النشرات التي لم تضبط المفتاح المُخصَّص. أيّده المستخدم صراحةً.
+
+**الخارطة المتّفَق عليها بعد v29.6.1 (بترتيب البحث):** SPATIAL-401 (evidence-first، محجوب على Network) · v62.3 عقد أدلّة · v52 policy envelope (platform سلطة، ai_agronomist مستهلِك) · VALIDATE بعد تقارير مخالفات · superset merge يبدأ بجرد (Phase 0) · v29.5-op/v39.5/v19.5 حسب ما يُفعَّل إنتاجيّاً.
+
+---
+
 ## 2026-07-01 (ح) — إثبات P0 لـMFA على Postgres حقيقيّ + إصلاح إقلاع auth (mfa_crypto)
 
 **رأس `main` بعد الجلسة:** `46e86eb`. الفرع المخصّص `claude/code-review-34hO3` مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.

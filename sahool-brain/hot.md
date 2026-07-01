@@ -1,6 +1,7 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `46e86eb` · [`log.md`](log.md) مدخل (ح).
+> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `b5ee3ce` · [`log.md`](log.md) مدخل (ط).
+> 🔎 **v29.6.1 (مراقبة/حُرّاس انحدار MFA — غير حاجب):** IP في تدقيق step-up · منع مفتاح تجزئة ثابت في الإنتاج · ٣ حُرّاس ساكنة (`_acquire` admin · recovery بلا self-read · audit append-only).
 > 🔐 **تصلّب MFA إنتاجيّ مكتمل ومُثبَت على Postgres حقيقيّ** (v29.5+v29.6): تشفير السرّ + recovery + قفل DB + تدقيق append-only + RLS مُضيَّق. **P0 مُغلَق:** `test_mfa_migrations_applied_on_real_postgres` مرّ فعليّاً في CI (لا تخطٍّ صامت) — أثبت v128/v129 + RLS المُضيَّق + trigger append-only على DB حيّ.
 > 🐳 **إصلاح إقلاع auth** (`abf1731`): `Dockerfile` لم ينسخ `mfa_crypto.py` ⇒ `ModuleNotFoundError` ⇒ unhealthy. أُصلِح + **حارس معمَّم** يمسح استيرادات main.py الشقيقة (otp/mfa_crypto…).
 > 🤖 **حوكمة الوكيل مكتملة** (v58.2a/b/c): مخازن دائمة + تحقّق وسائط + تعقيم نتائج + ميزانية/dedupe + كلّ mutating يتطلّب موافقة.
@@ -29,6 +30,7 @@
 | v29.6 | `4a3f1a4` | إصلاحات مراجعة MFA: RLS مُضيَّق + step-up محكوم + ذرّيّة + append-only (ترحيل v129) |
 | v57.5 CI | `cb4ea31` | اختبارات تكامل MFA/v57.5 كانت تتخطّى بصمت ⇒ استخدام `TEST_DATABASE_URL` (إثبات P0) |
 | auth-boot | `abf1731` | نسخ `mfa_crypto.py` في صورة auth + حارس وحدات شقيقة معمَّم |
+| v29.6.1 | `f75e363`/`b5ee3ce` | IP في تدقيق step-up + نظافة مفتاح تجزئة الإنتاج + ٣ حُرّاس انحدار MFA ساكنة |
 
 ## أعلى الفجوات الآن
 
