@@ -5585,6 +5585,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9b17cc4975341ea9262c944c4ccc7c43b7bce83ea8662e87d797c1a7d93559ef"
+        }
+      ],
+      "name": "services/ai_agronomist/tool_loop.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c84f88c4dad353f473edd75b6a07007ae84670918fa836d94aa52c508c62810"
         }
       ],
@@ -17289,6 +17299,16 @@
         }
       ],
       "name": "shared/ai/tool_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a4d4c6b81455ee79a076a7f493576a64dae0d9609a3727ca5125dcdce630b11"
+        }
+      ],
+      "name": "shared/ai/tool_schema.py",
       "type": "file"
     },
     {
