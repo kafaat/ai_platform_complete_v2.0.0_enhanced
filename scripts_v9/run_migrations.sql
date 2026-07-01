@@ -402,3 +402,6 @@
 
 \echo '═══ 133. v126_agent_tool_audit.sql ═══'
 \i migrations/v126_agent_tool_audit.sql
+
+\echo '═══ 134. v127_evidence_context_hardening.sql ═══'
+\i migrations/v127_evidence_context_hardening.sql

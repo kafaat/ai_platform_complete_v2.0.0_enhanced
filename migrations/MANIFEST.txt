@@ -483,3 +483,7 @@ v125_tenant_ai_capabilities.sql
 # agent_tool_audit (append-only عبر sahool_block_mutation، RLS+FORCE معزول). كلّ
 # استدعاء أداة يُدوَّن (منفَّذ/مؤجَّل/مرفوض) بوسائط مُنقَّحة. idempotent.
 v126_agent_tool_audit.sql
+# v127 (سطر تصليب v49.5): تصلّب الأدلّة ونطاق المستأجِر لـrecommendation_outcomes —
+# قيود NOT VALID (tenant NOT NULL + غلّة غير سالبة) + سياسة RLS بـUSING وWITH CHECK +
+# فهرس (tenant_id, field_id, season_id). idempotent؛ يُطبَّق بعد v126.
+v127_evidence_context_hardening.sql

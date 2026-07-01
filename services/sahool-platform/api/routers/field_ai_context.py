@@ -98,6 +98,164 @@ def _centroid_from_geojson(geometry: Any) -> dict[str, float] | None:
     return {"lat": round(lat, 6), "lon": round(lon, 6)}
 
 
+# v49.5 hardening: keep the AI context compact, tenant-scoped, and safe to pass to an LLM.
+_CONTEXT_MAX_ITEMS = {
+    "events": 120,
+    "drawings": 80,
+    "alerts": 40,
+    "recommendations": 40,
+}
+_CONTEXT_MAX_BYTES = 36_000
+_REDACT_KEYS = {
+    "password",
+    "secret",
+    "token",
+    "api_key",
+    "apikey",
+    "authorization",
+    "cookie",
+    "email",
+    "phone",
+    "mobile",
+    "sms_number",
+    "whatsapp_number",
+    "owner_name",
+    "registry_no",
+    "national_id",
+    "file_url",
+    "signed_url",
+    "url",
+}
+
+
+def _is_sensitive_key(key: Any) -> bool:
+    k = str(key).lower()
+    return any(marker in k for marker in _REDACT_KEYS)
+
+
+def _redact_value(key: Any, value: Any) -> Any:
+    if _is_sensitive_key(key):
+        return "[redacted]"
+    if isinstance(value, dict):
+        return {str(k): _redact_value(k, v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_redact_value(key, item) for item in value[:50]]
+    if isinstance(value, str) and len(value) > 500:
+        return value[:500] + "…[truncated]"
+    return value
+
+
+def _redact_context(value: Any) -> Any:
+    return _redact_value("", value)
+
+
+def _json_size(value: Any) -> int:
+    try:
+        return len(json.dumps(value, ensure_ascii=False, default=str).encode("utf-8"))
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+def _budget_list(
+    items: list[dict[str, Any]], *, max_items: int
+) -> tuple[list[dict[str, Any]], int]:
+    trimmed = items[: max(0, max_items)]
+    return trimmed, max(0, len(items) - len(trimmed))
+
+
+def _source_provenance(
+    source: str,
+    status: str,
+    *,
+    table: str | None = None,
+    service: str | None = None,
+    total: int | None = None,
+    confidence: float | None = None,
+    generated_at: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "source": source,
+        "table": table,
+        "service": service,
+        "status": status,
+        "total": total,
+        "confidence": confidence,
+        "generated_at": generated_at or datetime.now(UTC).isoformat(),
+    }
+
+
+def _parse_dt(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    if hasattr(value, "isoformat"):
+        value = value.isoformat()
+    if isinstance(value, str):
+        try:
+            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
+        except ValueError:
+            return None
+    return None
+
+
+def _freshness_score(items: list[dict[str, Any]], date_keys: tuple[str, ...]) -> float | None:
+    latest: datetime | None = None
+    for item in items:
+        for key in date_keys:
+            dt = _parse_dt(item.get(key))
+            if dt and (latest is None or dt > latest):
+                latest = dt
+    if latest is None:
+        return None
+    age_days = max(0.0, (datetime.now(UTC) - latest.astimezone(UTC)).total_seconds() / 86400.0)
+    if age_days <= 7:
+        return 1.0
+    if age_days >= 730:
+        return 0.0
+    return round(max(0.0, 1.0 - (age_days / 730.0)), 3)
+
+
+def _apply_final_context_budget(
+    payload: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any], list[str]]:
+    warnings: list[str] = []
+    budget = {
+        "max_bytes": _CONTEXT_MAX_BYTES,
+        "actual_bytes_before_final_trim": _json_size(payload),
+        "trimmed": False,
+    }
+    # Field profile is useful but can contain long/free-text or PII-like attributes.
+    payload["field_profile"] = _redact_context(payload.get("field_profile") or {})
+    payload["active_season"] = (
+        _redact_context(payload.get("active_season")) if payload.get("active_season") else None
+    )
+    for section in (
+        "operations_timeline",
+        "drawing_context",
+        "alerts_context",
+        "recommendations_context",
+    ):
+        payload[section] = _redact_context(payload.get(section) or {})
+    if _json_size(payload) > _CONTEXT_MAX_BYTES:
+        budget["trimmed"] = True
+        warnings.append("تم تقليص سياق AI لأنه تجاوز ميزانية الحجم الآمنة.")
+        # Last-resort compaction: keep summaries/counts/provenance, drop bulky lists.
+        for section, key in (
+            ("operations_timeline", "events"),
+            ("drawing_context", "features"),
+            ("alerts_context", "items"),
+            ("recommendations_context", "items"),
+        ):
+            block = payload.get(section)
+            if isinstance(block, dict) and key in block:
+                block[f"{key}_omitted_by_budget"] = len(block.get(key) or [])
+                block[key] = []
+    budget["actual_bytes_after_final_trim"] = _json_size(payload)
+    return payload, budget, warnings
+
+
 async def _fetch_field_profile(
     conn, field_id: str, tenant_id: str
 ) -> tuple[dict[str, Any], dict[str, float] | None]:
@@ -134,30 +292,44 @@ async def _optional_active_season(
         return None, f"تعذّر جلب الموسم النشط: {exc}"
 
 
-async def _optional_events(conn, field_id: str, limit: int) -> tuple[dict[str, Any], str | None]:
+async def _optional_events(
+    conn, field_id: str, tenant_id: str, limit: int
+) -> tuple[dict[str, Any], str | None]:
     try:
         rows = await conn.fetch(
             """
             SELECT event_id, event_type, payload, actor_id, occurred_at
             FROM events
-            WHERE entity_id = $1 OR payload->>'field_id' = $1
+            WHERE tenant_id = $2::uuid
+              AND (entity_id = $1 OR payload->>'field_id' = $1)
             ORDER BY occurred_at DESC
-            LIMIT $2
+            LIMIT $3
             """,
             field_id,
-            max(1, min(limit, 500)),
+            tenant_id,
+            max(1, min(limit, _CONTEXT_MAX_ITEMS["events"])),
         )
-        events = [
+        raw_events = [
             {
                 "event_id": str(r["event_id"]),
                 "event_type": r["event_type"],
                 "occurred_at": r["occurred_at"].isoformat() if r["occurred_at"] else None,
                 "actor_id": r["actor_id"],
-                "payload": _as_json(r["payload"], {}) or {},
+                "payload": _redact_context(_as_json(r["payload"], {}) or {}),
             }
             for r in rows
         ]
-        return {"available": True, "events": events, "total": len(events)}, None
+        events, omitted = _budget_list(raw_events, max_items=_CONTEXT_MAX_ITEMS["events"])
+        return {
+            "available": True,
+            "events": events,
+            "total": len(raw_events),
+            "omitted_by_budget": omitted,
+            "freshness_score": _freshness_score(events, ("occurred_at",)),
+            "provenance": [
+                _source_provenance("events", "available", table="events", total=len(raw_events))
+            ],
+        }, None
     except Exception as exc:  # noqa: BLE001
         return {"available": False, "events": [], "total": 0}, f"تعذّر جلب timeline الأحداث: {exc}"
 
@@ -177,19 +349,20 @@ async def _optional_drawings(
             tenant_id,
             field_id,
         )
-        features = [
+        raw_features = [
             {
                 "id": r["feature_id"],
                 "kind": r["kind"],
                 "workflow": r["workflow"],
-                "properties": _as_json(r["properties"], {}) or {},
-                "measurements": _as_json(r["measurements"], {}) or {},
-                "validation": _as_json(r["validation"], {}) or {},
+                "properties": _redact_context(_as_json(r["properties"], {}) or {}),
+                "measurements": _redact_context(_as_json(r["measurements"], {}) or {}),
+                "validation": _redact_context(_as_json(r["validation"], {}) or {}),
                 "version": r["version"],
                 "updated_at": r["updated_at"].isoformat() if r["updated_at"] else None,
             }
             for r in rows
         ]
+        features, omitted = _budget_list(raw_features, max_items=_CONTEXT_MAX_ITEMS["drawings"])
         by_kind: dict[str, int] = {}
         for item in features:
             by_kind[item["kind"]] = by_kind.get(item["kind"], 0) + 1
@@ -197,7 +370,17 @@ async def _optional_drawings(
             "available": True,
             "features": features,
             "counts_by_kind": by_kind,
-            "total": len(features),
+            "total": len(raw_features),
+            "omitted_by_budget": omitted,
+            "freshness_score": _freshness_score(features, ("updated_at",)),
+            "provenance": [
+                _source_provenance(
+                    "drawing_features",
+                    "available",
+                    table="drawing_features",
+                    total=len(raw_features),
+                )
+            ],
         }, None
     except Exception as exc:  # noqa: BLE001
         return {
@@ -223,8 +406,20 @@ async def _optional_alerts(
             tenant_id,
             field_id,
         )
-        alerts = [_normalise_row_dict(r["payload"]) for r in rows]
-        return {"available": True, "items": alerts, "total": len(alerts)}, None
+        raw_alerts = [_redact_context(_normalise_row_dict(r["payload"])) for r in rows]
+        alerts, omitted = _budget_list(raw_alerts, max_items=_CONTEXT_MAX_ITEMS["alerts"])
+        return {
+            "available": True,
+            "items": alerts,
+            "total": len(raw_alerts),
+            "omitted_by_budget": omitted,
+            "freshness_score": _freshness_score(
+                alerts, ("created_at", "updated_at", "occurred_at")
+            ),
+            "provenance": [
+                _source_provenance("alerts", "available", table="alerts", total=len(raw_alerts))
+            ],
+        }, None
     except Exception as exc:  # noqa: BLE001
         return {"available": False, "items": [], "total": 0}, f"تعذّر جلب التنبيهات: {exc}"
 
@@ -244,8 +439,27 @@ async def _optional_recommendations(
             tenant_id,
             field_id,
         )
-        recommendations = [_normalise_row_dict(r["payload"]) for r in rows]
-        return {"available": True, "items": recommendations, "total": len(recommendations)}, None
+        raw_recommendations = [_redact_context(_normalise_row_dict(r["payload"])) for r in rows]
+        recommendations, omitted = _budget_list(
+            raw_recommendations, max_items=_CONTEXT_MAX_ITEMS["recommendations"]
+        )
+        return {
+            "available": True,
+            "items": recommendations,
+            "total": len(raw_recommendations),
+            "omitted_by_budget": omitted,
+            "freshness_score": _freshness_score(
+                recommendations, ("created_at", "updated_at", "issued_at")
+            ),
+            "provenance": [
+                _source_provenance(
+                    "recommendations",
+                    "available",
+                    table="recommendations",
+                    total=len(raw_recommendations),
+                )
+            ],
+        }, None
     except Exception as exc:  # noqa: BLE001
         return {"available": False, "items": [], "total": 0}, f"تعذّر جلب التوصيات: {exc}"
 
@@ -294,6 +508,23 @@ async def _optional_imagery_timeline(
         "per_indicator": per_indicator,
         "total_dates": total_dates,
         "note_ar": "يعرض فقط المشاهد الموجودة/المجهزة؛ استخدم imagery/backfill custom months=24 لتجهيز سنتين.",
+        "freshness_score": _freshness_score(
+            [
+                item
+                for block in per_indicator.values()
+                for item in (block.get("dates") or [])
+                if isinstance(item, dict)
+            ],
+            ("date", "acquisition_date", "acquisition_datetime"),
+        ),
+        "provenance": [
+            _source_provenance(
+                "imagery_timeline",
+                "available" if total_dates else "empty",
+                service="raster-service",
+                total=total_dates,
+            )
+        ],
     }, ("؛ ".join(warnings) if warnings else None)
 
 
@@ -360,6 +591,12 @@ async def _optional_weather_history(
             "summary": summary,
             "monthly": monthly_items,
             "source": "open-meteo-archive",
+            "freshness_score": _freshness_score([{"date": summary.get("last_date")}], ("date",)),
+            "provenance": [
+                _source_provenance(
+                    "weather_history", "available", service="open-meteo-archive", total=len(records)
+                )
+            ],
         }, None
     except Exception as exc:  # noqa: BLE001
         return {
@@ -418,7 +655,7 @@ async def field_ai_context_pack(
 
         operations = {"available": False, "events": [], "total": 0}
         if include_events:
-            operations, warn = await _optional_events(conn, field_id, 300)
+            operations, warn = await _optional_events(conn, field_id, str(user.tenant_id), 300)
             if warn:
                 warnings.append(warn)
 
@@ -446,6 +683,11 @@ async def field_ai_context_pack(
         if warn:
             warnings.append(warn)
 
+    evidence_provenance: list[dict[str, Any]] = []
+    for block in (imagery, weather, operations, drawings, alerts, recommendations):
+        if isinstance(block, dict):
+            evidence_provenance.extend(block.get("provenance") or [])
+
     payload: dict[str, Any] = {
         "field_id": field_id,
         "tenant_id": str(user.tenant_id),
@@ -464,7 +706,44 @@ async def field_ai_context_pack(
             "warnings": warnings,
             "requires_imagery_backfill_24_months": int(imagery.get("total_dates", 0) or 0) == 0,
             "weather_history_available": bool(weather.get("available")),
+            "evidence_freshness_score": round(
+                sum(
+                    v
+                    for v in (
+                        imagery.get("freshness_score"),
+                        weather.get("freshness_score"),
+                        operations.get("freshness_score"),
+                        drawings.get("freshness_score"),
+                        alerts.get("freshness_score"),
+                        recommendations.get("freshness_score"),
+                    )
+                    if isinstance(v, (int, float))
+                )
+                / max(
+                    1,
+                    len(
+                        [
+                            v
+                            for v in (
+                                imagery.get("freshness_score"),
+                                weather.get("freshness_score"),
+                                operations.get("freshness_score"),
+                                drawings.get("freshness_score"),
+                                alerts.get("freshness_score"),
+                                recommendations.get("freshness_score"),
+                            )
+                            if isinstance(v, (int, float))
+                        ]
+                    ),
+                ),
+                3,
+            ),
+            "evidence_provenance": evidence_provenance,
         },
     }
+    payload, context_budget, budget_warnings = _apply_final_context_budget(payload)
+    payload["readiness"]["context_budget"] = context_budget
+    payload["readiness"]["warnings"].extend(budget_warnings)
+    payload["readiness"]["complete"] = not payload["readiness"]["warnings"]
     payload["ai_context_summary_ar"] = _summary_ar(payload)
     return FieldAiContextPack(**payload)
