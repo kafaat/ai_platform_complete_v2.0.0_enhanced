@@ -10,8 +10,10 @@ describe('ChatbotPage — V61.5 agronomy tool proposal panels', () => {
     expect(source).toContain("import { FieldBoundaryProposalPanel }");
     expect(source).toContain("import { ProductivityZonesPanel }");
     expect(source).toContain("import { SoilSamplingPlannerPanel }");
+    expect(source).toContain("import { VraPrescriptionPanel }");
     expect(source).toContain("toolDataFor(msg.harness, 'detect_field_boundaries')");
     expect(source).toContain("toolDataFor(msg.harness, 'generate_productivity_zones')");
     expect(source).toContain("toolDataFor(msg.harness, 'plan_soil_sampling')");
+    expect(source).toContain("toolDataFor(msg.harness, 'generate_vra_prescription')");
   });
 });

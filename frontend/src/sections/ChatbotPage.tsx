@@ -36,6 +36,7 @@ import { kongApi } from '../services/api';
 import { FieldBoundaryProposalPanel } from '../components/maphub/FieldBoundaryProposalPanel';
 import { ProductivityZonesPanel } from '../components/maphub/ProductivityZonesPanel';
 import { SoilSamplingPlannerPanel } from '../components/maphub/SoilSamplingPlannerPanel';
+import { VraPrescriptionPanel } from '../components/maphub/VraPrescriptionPanel';
 
 // ── سياق المزرعة الحيّ ────────────────────────────────────────────
 // كان ثابتاً مُلفَّقاً (NDVI=0.62 و«8 حقول 249هـ» و15.7°م) يُحقَن في كلّ طلب —
@@ -326,6 +327,18 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                     const samplePoints = (samplingData?.sample_points ?? []) as never[];
                     return samplePoints.length ? (
                       <SoilSamplingPlannerPanel plan={plan} samplePoints={samplePoints} />
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const vraData = toolDataFor(msg.harness, 'generate_vra_prescription');
+                    const prescription = (vraData?.vra_prescription ?? null) as never;
+                    const vraZones = (vraData?.prescription_zones ?? []) as never[];
+                    const warnings = (vraData?.warnings ?? []) as never[];
+                    const readiness = typeof vraData?.readiness_gate === 'object' && vraData?.readiness_gate
+                      ? String((vraData.readiness_gate as Record<string, unknown>).status ?? '')
+                      : undefined;
+                    return vraZones.length ? (
+                      <VraPrescriptionPanel prescription={prescription} zones={vraZones} warnings={warnings as string[]} readinessStatus={readiness} />
                     ) : null;
                   })()}
                   {msg.harness.pending_approvals && msg.harness.pending_approvals.length > 0 && (

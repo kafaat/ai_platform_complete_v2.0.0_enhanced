@@ -63,6 +63,7 @@ _TOOL_META: dict[str, tuple[str, str, bool, bool]] = {
     "detect_field_boundaries": ("can_read_historical_imagery", "low", False, False),
     "generate_productivity_zones": ("can_read_historical_imagery", "low", False, False),
     "plan_soil_sampling": ("can_read_historical_imagery", "low", False, False),
+    "generate_vra_prescription": ("can_read_historical_imagery", "low", False, False),
     "create_scouting_task": ("can_create_tasks", "medium", True, False),
     "request_imagery_backfill": ("can_trigger_backfill", "medium", True, False),
     "draft_recommendation": ("can_send_recommendations", "medium", True, False),

@@ -33,6 +33,18 @@ _TOOL_USAGE_GUIDANCE: dict[str, dict[str, Any]] = {
         "when_not_to_use": "Do not create tasks or send a VRA prescription; this only proposes a sampling plan.",
         "examples": [{"field_id": "field-1", "lab_panel": "fertility", "samples_per_zone": 3}],
     },
+    "generate_vra_prescription": {
+        "when_to_use": "Use after productivity zones and preferably soil lab evidence exist, and the user asks for variable-rate fertilizer/lime/seed/irrigation prescription rates.",
+        "when_not_to_use": "Do not export machine files, save official prescription maps, or schedule application. Use create_prescription_map only after explicit approval and agronomist review.",
+        "examples": [
+            {
+                "field_id": "field-1",
+                "product_type": "fertilizer",
+                "crop": "wheat",
+                "allow_estimated": False,
+            }
+        ],
+    },
 }
 
 _PARAM_DESCRIPTIONS: dict[str, str] = {
@@ -47,6 +59,15 @@ _PARAM_DESCRIPTIONS: dict[str, str] = {
     "zones": "Productivity zone proposal objects from generate_productivity_zones.",
     "lab_panel": "Soil test panel: fertility, salinity, micronutrients, irrigation_suitability, or comprehensive.",
     "samples_per_zone": "Target number of samples per productivity zone.",
+    "soil_sampling_plan": "Soil sampling plan object from plan_soil_sampling; lab-backed plans are preferred for VRA.",
+    "lab_results": "Optional soil lab result records. Required for stronger production-ready prescriptions unless allow_estimated is true.",
+    "crop": "Crop name for agronomic rate interpretation.",
+    "target_yield": "Optional target yield used to contextualize rates.",
+    "product_type": "Prescription product type: fertilizer, lime, seed, or irrigation.",
+    "base_rate": "Optional agronomist-provided base rate before zone adjustments.",
+    "unit": "Rate unit such as kg_ha, t_ha, seeds_m2, or mm.",
+    "allow_estimated": "Explicit consent to generate an estimated non-machine-exportable prescription without lab results.",
+    "prescription_id": "Identifier of a previously displayed VRA proposal selected by the human user.",
     "proposal_id": "Identifier of a previously displayed proposal selected by the human user.",
     "plan_id": "Identifier of a previously displayed soil sampling plan selected by the human user.",
 }
@@ -76,7 +97,13 @@ def _param_schema(params: dict[str, str]) -> dict[str, Any]:
             props[name] = {
                 "type": "array",
                 "items": {"type": "object", "additionalProperties": True},
-                "description": "List of proposal objects such as productivity zones or sample points",
+                "description": "List of proposal objects such as productivity zones, sample points, or lab results",
+            }
+        elif base == "object":
+            props[name] = {
+                "type": "object",
+                "description": "Structured object produced by another SAHOOL agent tool",
+                "additionalProperties": True,
             }
         else:
             props[name] = {"type": _TYPE_MAP.get(base, "string")}
@@ -101,6 +128,8 @@ def _param_schema(params: dict[str, str]) -> dict[str, Any]:
                 "irrigation_suitability",
                 "comprehensive",
             ]
+        if name == "product_type":
+            props[name]["enum"] = ["fertilizer", "lime", "seed", "irrigation"]
         if not optional:
             required.append(name)
     return {"type": "object", "properties": props, "required": required}

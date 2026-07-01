@@ -19,6 +19,7 @@ from .field_boundary_ai import propose_boundaries
 from .productivity_zones import propose_productivity_zones
 from .soil_sampling_planner import plan_soil_sampling
 from .tenant_policies import build_store_from_env, normalize_policy
+from .vra_prescription_engine import generate_vra_prescription
 
 # مخزن سياسات المستأجِر — يحكم السماح بالتوليد ومستوى مشاركة البيانات لكلّ مستأجِر.
 # يُدِيم عبر ملفّ JSON إن ضُبِط ``TENANT_AI_POLICY_FILE`` (compose/k8s mount)، وإلّا
@@ -448,6 +449,12 @@ def _build_agent_tool_fetcher(
             )
         if tool_name == "plan_soil_sampling":
             return plan_soil_sampling(
+                params,
+                field_id=str(field_id) if field_id is not None else None,
+                evidence_context=pack,
+            )
+        if tool_name == "generate_vra_prescription":
+            return generate_vra_prescription(
                 params,
                 field_id=str(field_id) if field_id is not None else None,
                 evidence_context=pack,

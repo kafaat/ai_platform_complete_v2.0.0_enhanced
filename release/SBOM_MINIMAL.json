@@ -1135,6 +1135,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4c4369b45c8f3aadb9aaab839e84fb951d6fe018c570d70ed09cf8529e5edc26"
+        }
+      ],
+      "name": "frontend/src/components/maphub/VraPrescriptionPanel.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "522b312f4169354fe328973dff5b70b7d3b462a6d41e1714c954d52f3ed4438a"
+        }
+      ],
+      "name": "frontend/src/components/maphub/VraPrescriptionPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6647c01ac0ddfbc64e0f4ddf5ccad761fa6937102e054d3fd57e9c0bb69423f8"
         }
       ],
@@ -2295,7 +2315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0f96c0b175d29adc651716b60d30e306ac5746ec96b4fd692684bcdb2b77b02"
+          "content": "16822ecfb1e05b8ea30ac9feed333deed09f71b3904a7bd95c8458949fb3bd06"
         }
       ],
       "name": "frontend/src/sections/ChatbotAgronomyPanels.v615.static.test.ts",
@@ -2355,7 +2375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8db11d22820a1747caf2da4e4e680bf77c302eb507df4faa099c35f228804381"
+          "content": "13665b16031c1d63799485314013a916be6a3459ba78569fded97daef8c72ef4"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -5545,7 +5565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f703a30ab0c7fd83b94dda1cf37690c55bebf8109720a617ddc45aa846b74db"
+          "content": "f812e8098bcdff22cec8adb1d4c95066e73aa958e522835dffa0969d330660e9"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -5705,7 +5725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c822432c3aee4abb56bbac55e59c74a4ad0e4550d6d08d0b1481f9b308f92506"
+          "content": "4053f66255450ecdab9083afcaab4edbc15d879eef57b76d8441a585f7a07936"
         }
       ],
       "name": "services/ai_agronomist/tool_executor.py",
@@ -5719,6 +5739,16 @@
         }
       ],
       "name": "services/ai_agronomist/tool_loop.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a61deebc007f061e93cd58fead6af9742856a8964d04b88409018d89c07dba7c"
+        }
+      ],
+      "name": "services/ai_agronomist/vra_prescription_engine.py",
       "type": "file"
     },
     {
@@ -17455,7 +17485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6480d817e9c13ecd7c8b7cde910b55d84eefe753c429fb21ed9067b20efc18d2"
+          "content": "2e3666d6868077f71c5e0b6a1bcebe2f362f0caa57c137fe60d45ef16be4c0f1"
         }
       ],
       "name": "shared/ai/tool_registry.py",
@@ -17465,7 +17495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "924d3fa3eb914e4b9e5d98edff9e2f26d5cae0fade53228cbb8f29b8fe7ccf4c"
+          "content": "9db1dec199fd2976908bd0d93f8419d5d5fdb174f2a502c3efb0c0767a38ba43"
         }
       ],
       "name": "shared/ai/tool_schema.py",
