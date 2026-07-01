@@ -595,6 +595,10 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
+      # عزل الثقة (مثل بقيّة الخدمات): التحقّق من توقيع JWT للمتّصِل. HS256 عبر JWT_SECRET
+      # أو RS256 عبر JWT_PUBLIC_KEY. غيابهما ⇒ الخدمة fail-closed 503 «JWT_SECRET غير مضبوط».
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       SH_CLIENT_ID: ${SH_CLIENT_ID}
