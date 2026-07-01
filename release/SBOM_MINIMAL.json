@@ -5915,7 +5915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "688b2186ffded88e5100c78c0876db91fde56adda735e7c7bf211eed40543073"
+          "content": "0ef7daa66a062f876a2ccf15c05d0e11f5706e8c9e4d6c2233589e05124279f7"
         }
       ],
       "name": "services/auth/main.py",
@@ -6055,7 +6055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "480478d7541a0ab244addc25f83a1c4ea32db27f742c90e57a89e5636612c2c2"
+          "content": "990975209419a41c83280d1621ab1926bc07f6b225fc664ff91ef8be7c315cdd"
         }
       ],
       "name": "services/auth/routers/users.py",

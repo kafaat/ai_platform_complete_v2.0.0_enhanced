@@ -265,6 +265,15 @@ async def lifespan(app: FastAPI):
                 "SAHOOL_ALLOW_HS256_IN_PROD=1."
             )
 
+    # V29.6.1 — نظافة مفاتيح: في الإنتاج نوصي بمفتاح تدقيق مُخصَّص (MFA_AUDIT_HASH_KEY)
+    # بدل إعادة استخدام JWT_SECRET لتجزئة IP في سجلّ التدقيق. غيابه ليس حاجباً (JWT_SECRET
+    # سرّ قويّ مضمون الحضور) لكنّه إنذار تشغيليّ كي لا يمرّ صمتاً.
+    if _is_production() and not os.getenv("MFA_AUDIT_HASH_KEY"):
+        logger.warning(
+            "MFA_AUDIT_HASH_KEY غير مضبوط في الإنتاج — يُعاد استخدام JWT_SECRET لتجزئة IP "
+            "في mfa_audit_events. اضبط مفتاحاً مُخصَّصاً لنظافة المفاتيح (لا يكسر شيئاً)."
+        )
+
     # FIX: statement_cache_size معامل عميل asyncpg لا إعداد خادم — في
     # server_settings يفشل الاتصال بـ"unrecognized configuration parameter".
     #
@@ -921,11 +930,24 @@ async def _ensure_admin_user():
 # ══════════════════════════════════════════════════════════════
 def _ip_hash(ip: str | None) -> str | None:
     """Keyed HMAC of the IP (not a bare SHA-256 — a plain hash of an IPv4 is trivially
-    reversible by dictionary). Key = MFA_AUDIT_HASH_KEY or the service JWT_SECRET."""
+    reversible by dictionary). Key preference: MFA_AUDIT_HASH_KEY (dedicated) → JWT_SECRET.
+
+    V29.6.1: the static literal key is used **only outside production**. In production a
+    forgeable static key would let anyone recompute an IP→hash table and de-anonymise the
+    audit trail, so it is never reachable there. JWT_SECRET is boot-enforced (≥32 chars) and
+    always present in production, so a dedicated key being unset degrades to JWT_SECRET, not
+    to the literal. If somehow no keyed material exists in production ⇒ return None (audit still
+    inserts with NULL ip_hash — best-effort forensics, never a forgeable hash)."""
     if not ip:
         return None
-    key = (os.getenv("MFA_AUDIT_HASH_KEY") or JWT_SECRET or "sahool-mfa-audit").encode("utf-8")
-    return hmac.new(key, ip.encode("utf-8"), hashlib.sha256).hexdigest()[:32]
+    key_material = os.getenv("MFA_AUDIT_HASH_KEY") or JWT_SECRET
+    if not key_material:
+        if _is_production():
+            return None  # never hash under a forgeable static key in production
+        key_material = "sahool-mfa-audit-dev"  # dev/test only (no JWT_SECRET configured)
+    return hmac.new(key_material.encode("utf-8"), ip.encode("utf-8"), hashlib.sha256).hexdigest()[
+        :32
+    ]
 
 
 async def _emit_mfa_audit(

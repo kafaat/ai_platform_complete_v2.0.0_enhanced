@@ -35,12 +35,14 @@ async def change_role(
     admin: Annotated[dict, Depends(main.require_role("admin"))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
+    # V29.6.1: احسب IP المتّصِل مرّة واحدة ومرّره إلى step-up وإلى التدقيق — كي تحمل
+    # أحداث mfa_stepup_* (success/failed/locked) بصمة IP (مُجزّأة HMAC) لا NULL.
+    ip = request.client.host if request.client else "unknown"
     # Step-up MFA (مُفعَّل بالبيئة): جلسة admin وحدها لا تكفي لتغيير دور — يلزم
     # رمز TOTP حديث من المُنفِّذ نفسه. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر.
     if main._admin_stepup_required():
         caller_id = int(admin["sub"])
-        if not await main._verify_caller_mfa(caller_id, x_mfa_code):
-            ip = request.client.host if request.client else "unknown"
+        if not await main._verify_caller_mfa(caller_id, x_mfa_code, ip=ip):
             await main.audit_log(
                 "admin_op_mfa_denied",
                 caller_id,
@@ -57,7 +59,6 @@ async def change_role(
         raise HTTPException(404, "المستخدم غير موجود")
     # إبطال جلسات المستخدم ⇒ يُعاد تحميل الدور الجديد فوريّاً (لا يبقى التوكن القديم بدوره القديم)
     await main.revoke_all_user_sessions(user_id)
-    ip = request.client.host if request.client else "unknown"
     await main.audit_log(
         "change_role",
         int(admin["sub"]),
@@ -75,12 +76,13 @@ async def deactivate_user(
     admin: Annotated[dict, Depends(main.require_role("admin"))],
     x_mfa_code: Annotated[str | None, Header()] = None,
 ):
+    # V29.6.1: احسب IP مرّة ومرّره إلى step-up (بصمة IP في أحداث mfa_stepup_*).
+    ip = request.client.host if request.client else "unknown"
     # Step-up MFA (مُفعَّل بالبيئة): تعطيل حساب إجراء حسّاس — يلزم رمز TOTP حديث
     # من المُنفِّذ. مُعطَّل افتراضيّاً (CI/dev) ⇒ سلوك غير متغيّر (لا mfa_code).
     if main._admin_stepup_required():
         caller_id = int(admin["sub"])
-        if not await main._verify_caller_mfa(caller_id, x_mfa_code):
-            ip = request.client.host if request.client else "unknown"
+        if not await main._verify_caller_mfa(caller_id, x_mfa_code, ip=ip):
             await main.audit_log(
                 "admin_op_mfa_denied",
                 caller_id,
@@ -92,7 +94,6 @@ async def deactivate_user(
     async with main._acquire() as conn:
         await conn.execute("UPDATE users SET active=FALSE WHERE id=$1", user_id)
     await main.revoke_all_user_sessions(user_id)  # التعطيل فوريّ: إبطال كلّ جلسات الحساب
-    ip = request.client.host if request.client else "unknown"
     await main.audit_log(
         "deactivate_user",
         int(admin["sub"]),
