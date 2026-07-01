@@ -55,17 +55,19 @@ def test_there_are_decomposed_services():
     assert len(_decomposed_services()) >= 5, _decomposed_services()
 
 
+def _copies_whole_dir(src: str, svc: str) -> bool:
+    return (
+        re.search(rf"COPY\s+(services/{re.escape(svc)}/?\s|\.\s)", src) is not None
+    )
+
+
 @pytest.mark.parametrize("svc", _decomposed_services())
 def test_dockerfile_ships_router_registry_and_routers(svc: str):
     df = _dockerfile(svc)
     assert df is not None, f"{svc}: لا Dockerfile"
     src = open(df, encoding="utf-8").read()
     # (أ) نسخ المجلّد كلّه؟
-    whole = re.search(
-        rf"COPY\s+(services/{re.escape(svc)}/?\s|\.\s)",
-        src,
-    )
-    if whole:
+    if _copies_whole_dir(src, svc):
         return
     # (ب) نسخ صريح لـrouter_registry + routers
     has_registry = "router_registry.py" in src
@@ -75,6 +77,53 @@ def test_dockerfile_ships_router_registry_and_routers(svc: str):
         f"ModuleNotFoundError عند الإقلاع. أضِف:\n"
         f"  COPY services/{svc}/router_registry.py /app/router_registry.py\n"
         f"  COPY services/{svc}/routers/ /app/routers/"
+    )
+
+
+# ── وحدات شقيقة نقيّة (otp.py/mfa_crypto.py…) — الصنف نفسه من العطل ──
+# main.py قد يستورد وحدات ``.py`` مجاورة (لا حزمة routers). إن نسخ Dockerfile ملفّات
+# مفردة ولم ينسخ الوحدة المستورَدة ⇒ ModuleNotFoundError عند الإقلاع (تأكّد فعليّاً:
+# otp.py ثمّ mfa_crypto.py على auth). هذا الحارس يمسح استيرادات main.py المستوى-الأعلى،
+# يحدّد أيّها ملفّ شقيق فعليّ، ويؤكّد نسخه.
+_IMPORT_RE = re.compile(r"^\s*(?:import\s+(\w+)|from\s+(\w+)\s+import)\b", re.MULTILINE)
+# وحدات هيكليّة يغطّيها الاختبار أعلاه — تُستثنى هنا لتفادي الازدواج.
+_STRUCTURAL = {"router_registry", "routers"}
+
+
+def _local_sibling_imports(svc: str) -> list[str]:
+    sdir = os.path.join(_SERVICES, svc)
+    main_py = os.path.join(sdir, "main.py")
+    if not os.path.isfile(main_py):
+        return []
+    src = open(main_py, encoding="utf-8").read()
+    mods = set()
+    for m in _IMPORT_RE.finditer(src):
+        name = m.group(1) or m.group(2)
+        if not name or name in _STRUCTURAL:
+            continue
+        # وحدة شقيقة فعليّة فقط: يوجد ملفّ <svc>/<name>.py
+        if os.path.isfile(os.path.join(sdir, f"{name}.py")):
+            mods.add(name)
+    return sorted(mods)
+
+
+@pytest.mark.parametrize("svc", _decomposed_services())
+def test_dockerfile_ships_local_sibling_modules(svc: str):
+    sibs = _local_sibling_imports(svc)
+    if not sibs:
+        return
+    df = _dockerfile(svc)
+    assert df is not None, f"{svc}: لا Dockerfile"
+    src = open(df, encoding="utf-8").read()
+    if _copies_whole_dir(src, svc):
+        return
+    missing = [mod for mod in sibs if f"{mod}.py" not in src]
+    assert not missing, (
+        f"{svc}: main.py يستورد وحدات شقيقة لا ينسخها Dockerfile: {missing} — "
+        f"ModuleNotFoundError عند الإقلاع. أضِف لكلٍّ:\n"
+        + "\n".join(
+            f"  COPY services/{svc}/{mod}.py /app/{mod}.py" for mod in missing
+        )
     )
 
 

@@ -5895,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "870ff38f189b270527bb4ab6e829b192bf0de1ccef3d2794108cf1f42d7fcfee"
+          "content": "f602e74e16daa67b6c0bf4be56826f7807db156eb98171f5132bf21ad17ed22c"
         }
       ],
       "name": "services/auth/Dockerfile",

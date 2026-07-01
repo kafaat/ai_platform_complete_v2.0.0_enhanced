@@ -21,6 +21,10 @@ COPY services/auth/routers/ /app/routers/
 # `from otp import …`. كانت غير منسوخة ⇒ ModuleNotFoundError: No module named 'otp'
 # عند الإقلاع. نسخها إلزاميّ.
 COPY services/auth/otp.py /app/otp.py
+# mfa_crypto.py وحدة شقيقة نقيّة (V29.5 — تشفير السرّ/recovery/قفل) يستوردها main.py:
+# `import mfa_crypto` (main.py:163). كانت غير منسوخة ⇒ ModuleNotFoundError:
+# No module named 'mfa_crypto' عند الإقلاع ⇒ auth unhealthy. نسخها إلزاميّ.
+COPY services/auth/mfa_crypto.py /app/mfa_crypto.py
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 EXPOSE 8000
