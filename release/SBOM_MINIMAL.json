@@ -2295,6 +2295,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d0f96c0b175d29adc651716b60d30e306ac5746ec96b4fd692684bcdb2b77b02"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotAgronomyPanels.v615.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9699356a3b8ed747d33b371fb35923c4e3e3f13d30c635252acd44769f063e74"
         }
       ],
@@ -2345,7 +2355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "701e50b868c35581a3897a223e14c93ec42da9ea3e063e59182c950ebdd200b9"
+          "content": "8db11d22820a1747caf2da4e4e680bf77c302eb507df4faa099c35f228804381"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -5395,7 +5405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3c529444fab3bcbf15f63068922ccf123409de3efba2a0050e89587358dc22c9"
+          "content": "e4af67895621071a5d9802a8b35d27a77cc943912ad1b2e15bbed19cd35f698b"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -5535,7 +5545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ecc9190089987bd1c2c7ef672a49fde06e793fa09516e4c275e7b05720ff050"
+          "content": "6f703a30ab0c7fd83b94dda1cf37690c55bebf8109720a617ddc45aa846b74db"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -5705,7 +5715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e87ad381ea45c2259c0e5abeb85e3d5331a18cc8f24ca417b5b0874e1677e903"
+          "content": "b1f1fe3514bb8298787cb8efa0b2efff444ee0141564d39a2948b71ad98b0694"
         }
       ],
       "name": "services/ai_agronomist/tool_loop.py",
@@ -17455,7 +17465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d63b6e11daf6164a6a8faa62de793cee0fb1511e2c4d0491b07e8ef817e89138"
+          "content": "924d3fa3eb914e4b9e5d98edff9e2f26d5cae0fade53228cbb8f29b8fe7ccf4c"
         }
       ],
       "name": "shared/ai/tool_schema.py",

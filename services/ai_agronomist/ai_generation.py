@@ -224,6 +224,8 @@ class GenResult:
     pending_approvals: list[dict[str, Any]] = field(default_factory=list)
     tool_calls_truncated: bool = False
     tool_rounds: int = 0
+    stop_reason: str | None = None
+    incomplete: bool = False
 
 
 def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
@@ -523,6 +525,27 @@ def _extract_text(cfg: GenConfig, data: dict) -> str:
         return ""
 
 
+def _extract_stop_reason(cfg: GenConfig, data: dict[str, Any]) -> str | None:
+    """Normalize provider finish/stop reason for audit-safe control flow."""
+    try:
+        if cfg.wire_format == "openai_chat":
+            choice = (data.get("choices") or [{}])[0]
+            return choice.get("finish_reason") or choice.get("stop_reason")
+        return data.get("stop_reason")
+    except Exception:  # noqa: BLE001 — قراءة سبب التوقّف اختياريّة؛ أيّ شكل رد غير متوقّع ⇒ None بأمان
+        return None
+
+
+def _stop_reason_is_incomplete(reason: str | None) -> bool:
+    return str(reason or "").strip().lower() in {
+        "length",
+        "max_tokens",
+        "model_context_window_exceeded",
+        "content_filter",
+        "refusal",
+    }
+
+
 async def generate(
     question: str,
     context_text: str,
@@ -536,6 +559,8 @@ async def generate(
     timestamp: str | None = None,
     max_tool_rounds: int = 1,
     max_tokens: int = 600,
+    audit_saver: tool_loop.AuditSaver | None = None,
+    approval_saver: tool_loop.ApprovalSaver | None = None,
     timeout: float = 20.0,
 ) -> GenResult | None:
     """يولّد جواباً مؤرَّضاً أو يعيد ``None`` (للسقوط الآمن إلى الأدلّة). لا يرفع
@@ -564,6 +589,7 @@ async def generate(
     tools = _provider_tools(cfg, allowed_capabilities) if max_rounds > 0 else []
     payload = _build_payload(cfg, question, context_text, max_tokens, tools=tools)
     text = ""
+    stop_reason: str | None = None
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             resp = await client.post(cfg.endpoint, headers=cfg.headers, json=payload)
@@ -571,6 +597,7 @@ async def generate(
                 logger.warning("توليد %s فشل: HTTP %s", cfg.provider, resp.status_code)
                 return None
             data = resp.json()
+            stop_reason = _extract_stop_reason(cfg, data)
 
             while True:
                 provider_calls = _extract_provider_tool_calls(cfg, data)
@@ -592,6 +619,8 @@ async def generate(
                     timestamp=timestamp or "provider-native",
                     provider=cfg.provider,
                     model=cfg.model,
+                    audit_saver=audit_saver,
+                    approval_saver=approval_saver,
                 )
                 batch_results = list(loop_out.get("tool_calls") or [])
                 tool_results.extend(batch_results)
@@ -632,6 +661,7 @@ async def generate(
                         text = _extract_text(cfg, data)
                         break
                 data = resp.json()
+                stop_reason = _extract_stop_reason(cfg, data)
 
             if not text:
                 text = _extract_text(cfg, data)
@@ -640,6 +670,12 @@ async def generate(
         return None
     if not text:
         return None
+    incomplete = _stop_reason_is_incomplete(stop_reason)
+    if incomplete:
+        text = (
+            text
+            + "\n\nتنبيه: أوقف المزوّد الاستجابة قبل اكتمالها؛ راجع الأدلة أو أعد الطلب بنطاق أضيق."
+        )
     return GenResult(
         text=text,
         model=cfg.model,
@@ -648,4 +684,6 @@ async def generate(
         pending_approvals=pending_approvals,
         tool_calls_truncated=truncated,
         tool_rounds=rounds,
+        stop_reason=stop_reason,
+        incomplete=incomplete,
     )

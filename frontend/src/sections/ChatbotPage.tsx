@@ -33,6 +33,9 @@ import {
 import { useFields, useWeatherForecast } from '../hooks/useApi';
 import { useFieldContextStore } from '../hooks/useFieldContext';
 import { kongApi } from '../services/api';
+import { FieldBoundaryProposalPanel } from '../components/maphub/FieldBoundaryProposalPanel';
+import { ProductivityZonesPanel } from '../components/maphub/ProductivityZonesPanel';
+import { SoilSamplingPlannerPanel } from '../components/maphub/SoilSamplingPlannerPanel';
 
 // ── سياق المزرعة الحيّ ────────────────────────────────────────────
 // كان ثابتاً مُلفَّقاً (NDVI=0.62 و«8 حقول 249هـ» و15.7°م) يُحقَن في كلّ طلب —
@@ -70,7 +73,7 @@ interface AiModel { id: string; label: string }
 interface AiModelsCatalog { provider?: string; default_model?: string | null; available?: boolean; models?: AiModel[] }
 interface AiEvidenceSource { key: string; label_ar?: string; available?: boolean; count?: number }
 // شفافيّة الـHarness (V55 المرحلة ٥): ماذا يرى الوكيل، قدراته، أدواته، وموافقاته.
-interface HarnessToolCall { tool?: string; outcome?: string; risk?: string; requires_approval?: boolean; reason?: string }
+interface HarnessToolCall { tool?: string; outcome?: string; risk?: string; requires_approval?: boolean; reason?: string; data?: Record<string, unknown> | null }
 interface HarnessApproval { id?: string; tool?: string; risk?: string; status?: string; params?: Record<string, unknown>; capability?: string }
 interface HarnessTransparency {
   sees?: { field_id?: string | null; active_layer?: string | null; selected_date?: string | null; raster_ready?: boolean; weather_source?: string | null; blind?: boolean };
@@ -141,6 +144,11 @@ function evidenceSourceText(src: AiEvidenceSource): string {
   const label = src.label_ar || src.key;
   const count = typeof src.count === 'number' ? ` · ${src.count}` : '';
   return `${label}${count}`;
+}
+
+function toolDataFor(harness: HarnessTransparency | undefined, toolName: string): Record<string, unknown> | null {
+  const found = harness?.tool_calls?.find((tc) => tc.tool === toolName && tc.data && typeof tc.data === 'object');
+  return (found?.data as Record<string, unknown>) ?? null;
 }
 
 // ── Quick suggestion chips ───────────────────────────────────────
@@ -298,6 +306,28 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                       ))}
                     </div>
                   )}
+                  {(() => {
+                    const boundaryData = toolDataFor(msg.harness, 'detect_field_boundaries');
+                    const proposals = (boundaryData?.proposed_boundaries ?? []) as never[];
+                    return proposals.length ? (
+                      <FieldBoundaryProposalPanel proposals={proposals} source={String(boundaryData?.source ?? 'truecolor')} />
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const zoneData = toolDataFor(msg.harness, 'generate_productivity_zones');
+                    const zones = (zoneData?.zones ?? zoneData?.productivity_zones ?? []) as never[];
+                    return zones.length ? (
+                      <ProductivityZonesPanel zones={zones} basis={String(zoneData?.basis ?? 'multi_index')} />
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const samplingData = toolDataFor(msg.harness, 'plan_soil_sampling');
+                    const plan = (samplingData?.soil_sampling_plan ?? samplingData?.plan ?? null) as never;
+                    const samplePoints = (samplingData?.sample_points ?? []) as never[];
+                    return samplePoints.length ? (
+                      <SoilSamplingPlannerPanel plan={plan} samplePoints={samplePoints} />
+                    ) : null;
+                  })()}
                   {msg.harness.pending_approvals && msg.harness.pending_approvals.length > 0 && (
                     <div className="space-y-1" data-testid="ai-harness-approvals">
                       {msg.harness.pending_approvals.slice(0, 3).map((approval, i) => {

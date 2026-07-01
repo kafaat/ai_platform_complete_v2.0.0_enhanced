@@ -26,6 +26,7 @@ logger = logging.getLogger("ai_agronomist.tool_loop")
 
 ToolFetcher = Callable[[str, "dict[str, Any]"], Any]
 AuditSaver = Callable[["dict[str, Any]"], None]
+ApprovalSaver = Callable[["dict[str, Any]"], None]
 
 MAX_TOOL_CALLS = 8  # سقف صارم: يمنع حلقة أدوات لا تنتهي.
 
@@ -39,6 +40,7 @@ def run_tool_calls(
     actor: str,
     timestamp: str,
     audit_saver: AuditSaver | None = None,
+    approval_saver: ApprovalSaver | None = None,
     max_calls: int = MAX_TOOL_CALLS,
     provider: str | None = None,
     model: str | None = None,
@@ -72,6 +74,11 @@ def run_tool_calls(
                 requested_at=timestamp,
             )
             pending.append(req)
+            if approval_saver is not None:
+                try:
+                    approval_saver(req)
+                except Exception as exc:  # best-effort: approval persistence must not break chat.
+                    logger.warning("فشل حفظ طلب الموافقة %s: %s", req.get("id"), exc)
             result = {
                 "tool_call_id": str(call.get("id") or f"req-{idx}"),
                 "tool": name,
@@ -82,6 +89,10 @@ def run_tool_calls(
                 "requires_approval": plan["requires_approval"],
                 "data": None,
                 "approval_id": req["id"],
+                "params": params,
+                "input_hash": req["input_hash"],
+                "field_id": params.get("field_id"),
+                "result_summary": req["result_summary"],
             }
         else:
             # قراءة مسموحة (أو مرفوضة) — المنفّذ يحكم ويُدوّن؛ لا كتابة هنا.
@@ -113,17 +124,19 @@ def run_tool_calls(
 def _audit_from_result(
     result: dict[str, Any], tenant_id: str, actor: str, timestamp: str
 ) -> dict[str, Any]:
-    """سجلّ تدقيق للنتائج التي لا تحمل واحداً (المؤجَّلة للموافقة)."""
+    """سجلّ تدقيق للنتائج التي لا تحمل واحداً (خصوصاً طلبات الموافقة)."""
+    params = result.get("params") if isinstance(result.get("params"), dict) else {}
     return {
         "tool": result.get("tool"),
-        "params": {},
+        "params": params,
         "tenant_id": str(tenant_id),
         "actor": str(actor),
         "outcome": result.get("outcome"),
         "risk": result.get("risk"),
         "capability": result.get("capability"),
         "timestamp": timestamp,
-        "field_id": None,
+        "field_id": result.get("field_id") or params.get("field_id"),
         "input_hash": result.get("input_hash"),
         "result_summary": result.get("result_summary") or result.get("reason"),
+        "result": {"reason": result.get("reason"), "approval_id": result.get("approval_id")},
     }

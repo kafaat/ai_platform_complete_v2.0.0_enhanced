@@ -34,6 +34,46 @@ AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 app = FastAPI(title="SAHOOL AI Agronomist Runtime", version=VERSION)
 
+# V61.5 — lightweight durable-in-process ledgers for chat approvals/audits.
+# Production can replace these callbacks with DB/event-store writers without changing
+# the Harness contract. They deliberately store redacted approval/audit envelopes only.
+AGENT_TOOL_AUDIT_LOG: list[dict[str, Any]] = []
+PENDING_APPROVAL_STORE: dict[str, dict[str, Any]] = {}
+
+
+def _save_agent_tool_audit(record: dict[str, Any]) -> None:
+    AGENT_TOOL_AUDIT_LOG.append(dict(record))
+
+
+def _save_pending_approval(request: dict[str, Any]) -> None:
+    approval_id = str(request.get("id") or "")
+    if approval_id:
+        PENDING_APPROVAL_STORE[approval_id] = dict(request)
+
+
+def _approval_for_decision(incoming: dict[str, Any]) -> dict[str, Any]:
+    approval_id = str(incoming.get("id") or "")
+    if approval_id and approval_id in PENDING_APPROVAL_STORE:
+        saved = dict(PENDING_APPROVAL_STORE[approval_id])
+        saved.update({k: v for k, v in incoming.items() if v is not None})
+        return saved
+    return dict(incoming)
+
+
+def _approved_resume_envelope(decided: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "status": "approved_ready_for_domain_execution",
+        "tool": decided.get("tool"),
+        "approval_id": decided.get("id"),
+        "tenant_id": decided.get("tenant_id"),
+        "field_id": (decided.get("params") or {}).get("field_id")
+        if isinstance(decided.get("params"), dict)
+        else None,
+        "input_hash": decided.get("input_hash"),
+        "requires_domain_service": True,
+        "executes_in_chat_runtime": False,
+    }
+
 
 class AdvisorQuery(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
@@ -90,29 +130,74 @@ async def approve_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
     decision shape so the web UI can show a real approve/deny workflow without granting
     the model direct write access.
     """
+    base = _approval_for_decision(req.approval)
     try:
         decided = approval.approve(
-            req.approval,
+            base,
             approver=req.approver,
             decided_at=_utc_timestamp(),
         )
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
-    return {"status": "approved", "approval": decided, "executes_tool": False}
+    _save_pending_approval(decided)
+    _save_agent_tool_audit(
+        {
+            "tool": decided.get("tool"),
+            "params": decided.get("params") if isinstance(decided.get("params"), dict) else {},
+            "tenant_id": decided.get("tenant_id"),
+            "actor": decided.get("actor"),
+            "outcome": "approved",
+            "risk": decided.get("risk"),
+            "capability": decided.get("capability"),
+            "timestamp": decided.get("decided_at"),
+            "field_id": (decided.get("params") or {}).get("field_id")
+            if isinstance(decided.get("params"), dict)
+            else None,
+            "input_hash": decided.get("input_hash"),
+            "result_summary": "human_approved_pending_domain_execution",
+            "result": _approved_resume_envelope(decided),
+        }
+    )
+    return {
+        "status": "approved",
+        "approval": decided,
+        "executes_tool": False,
+        "resume": _approved_resume_envelope(decided),
+    }
 
 
 @app.post("/approvals/deny")
 async def deny_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
     """Normalize a human denial decision for a pending agent tool request."""
+    base = _approval_for_decision(req.approval)
     try:
         decided = approval.deny(
-            req.approval,
+            base,
             approver=req.approver,
             decided_at=_utc_timestamp(),
             reason=req.reason or "denied_by_user",
         )
     except ValueError as exc:
         raise HTTPException(409, str(exc)) from exc
+    _save_pending_approval(decided)
+    _save_agent_tool_audit(
+        {
+            "tool": decided.get("tool"),
+            "params": decided.get("params") if isinstance(decided.get("params"), dict) else {},
+            "tenant_id": decided.get("tenant_id"),
+            "actor": decided.get("actor"),
+            "outcome": "denied",
+            "risk": decided.get("risk"),
+            "capability": decided.get("capability"),
+            "timestamp": decided.get("decided_at"),
+            "field_id": (decided.get("params") or {}).get("field_id")
+            if isinstance(decided.get("params"), dict)
+            else None,
+            "input_hash": decided.get("input_hash"),
+            "result_summary": req.reason or "denied_by_user",
+            "result": {"reason": req.reason or "denied_by_user"},
+        }
+    )
     return {"status": "denied", "approval": decided, "executes_tool": False}
 
 
@@ -704,6 +789,8 @@ async def _build_evidence_response(
             actor="ai_agronomist",
             timestamp=_utc_timestamp(),
             max_tool_rounds=3,
+            audit_saver=_save_agent_tool_audit,
+            approval_saver=_save_pending_approval,
         )
         if gen is not None:
             answer_ar = gen.text
@@ -760,6 +847,8 @@ async def _build_evidence_response(
         tenant_id=tenant_id,
         actor="ai_agronomist",
         timestamp=_utc_timestamp(),
+        audit_saver=_save_agent_tool_audit,
+        approval_saver=_save_pending_approval,
     )
     all_tool_calls = list(provider_tool_calls) + list(tool_result.get("tool_calls") or [])
     all_pending_approvals = list(provider_pending_approvals) + list(
