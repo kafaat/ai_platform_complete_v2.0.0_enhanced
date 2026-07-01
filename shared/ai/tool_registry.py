@@ -58,6 +58,11 @@ class ToolSpec:
             raise ValueError(f"قدرة غير قانونيّة للأداة {self.name}: {self.capability}")
         if self.risk == RISK_HIGH and not self.requires_approval:
             raise ValueError(f"أداة عالية الخطورة بلا موافقة بشريّة: {self.name}")
+        # V58.2b — كلّ أداة مُعدِّلة (تُغيّر حالة) تتطلّب موافقة بشريّة صريحة، لا المتوسّطة
+        # فقط. البوّابة كانت تحوّل المُعدِّلة إلى pending أصلاً؛ هذا يجعل العَلَم صادقاً
+        # ويمنع تسرّب أداة mutating=True مع requires_approval=False.
+        if self.mutating and not self.requires_approval:
+            raise ValueError(f"أداة مُعدِّلة بلا موافقة بشريّة: {self.name}")
         if self.mutating and self.risk == RISK_LOW:
             raise ValueError(f"أداة مُعدِّلة لا يجوز أن تكون low: {self.name}")
         if not self.mutating and self.requires_approval:
@@ -208,7 +213,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         RISK_MEDIUM,
         CAN_CREATE_TASKS,
         True,
-        False,
+        True,
         {"field_id": "str", "zone": "str"},
     ),
     ToolSpec(
@@ -217,7 +222,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         RISK_MEDIUM,
         CAN_TRIGGER_BACKFILL,
         True,
-        False,
+        True,
         {"field_id": "str", "months": "int"},
     ),
     ToolSpec(
@@ -226,7 +231,7 @@ TOOLS: tuple[ToolSpec, ...] = (
         RISK_MEDIUM,
         CAN_SEND_RECOMMENDATIONS,
         True,
-        False,
+        True,
         {"field_id": "str"},
     ),
     ToolSpec(

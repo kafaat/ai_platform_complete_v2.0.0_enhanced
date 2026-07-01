@@ -67,9 +67,11 @@ def test_read_tool_denied_without_capability():
 
 
 def test_mutating_tool_pending_approval_even_with_capability():
+    # V58.2b — كلّ أداة مُعدِّلة صارت تتطلّب موافقة صريحة، فالسبب الأصدق needs_human_approval.
     plan = EX.plan_tool_call("create_scouting_task", {"field_id": "f", "zone": "z"}, _ALL_CAPS)
     assert plan["outcome"] == EX.OUTCOME_PENDING_APPROVAL
-    assert plan["reason"] == "mutating_deferred"
+    assert plan["reason"] == "needs_human_approval"
+    assert plan["requires_approval"] is True
 
 
 def test_high_risk_tool_needs_human_approval():

@@ -15,6 +15,7 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
+from . import tool_governance
 from .approval import build_approval_request, emit_audit
 from .tool_executor import (
     OUTCOME_PENDING_APPROVAL,
@@ -58,7 +59,20 @@ def run_tool_calls(
 
     for idx, call in enumerate(requests):
         name = str(call.get("tool") or "")
-        params = call.get("params") if isinstance(call.get("params"), dict) else {}
+        raw_params = call.get("params")
+        params = raw_params if isinstance(raw_params, dict) else {}
+        call_id = str(call.get("id") or f"req-{idx}")
+
+        # V58.2b — reject malformed/missing-required/bad-enum args BEFORE any execution
+        # or approval request (explicit outcome, fail-closed — never run with silent {}).
+        ok, reason = tool_governance.validate_tool_args(
+            name, raw_params if raw_params is not None else {}
+        )
+        if not ok:
+            result = tool_governance.malformed_result(name, call_id, reason or "invalid_arguments")
+            emit_audit(_audit_from_result(result, tenant_id, actor, timestamp), audit_saver)
+            results.append(result)
+            continue
 
         plan = plan_tool_call(name, params, allowed_capabilities)
         if plan["outcome"] == OUTCOME_PENDING_APPROVAL:
@@ -116,7 +130,14 @@ def run_tool_calls(
             audit_record["model"] = model
         audit_record.setdefault("field_id", params.get("field_id"))
         emit_audit(audit_record, audit_saver)
-        results.append(result)
+        # V58.2b — sanitize the result before it re-enters the model context (tool-result
+        # prompt-injection / poisoning defence). Pending-approval envelopes are NOT sanitized:
+        # they carry approval metadata (approval_id/input_hash) the UI needs verbatim and are
+        # never fed back to the LLM as tool output.
+        if result.get("outcome") == OUTCOME_PENDING_APPROVAL:
+            results.append(result)
+        else:
+            results.append(tool_governance.sanitize_tool_result(result))
 
     return {"tool_calls": results, "pending_approvals": pending, "truncated": truncated}
 
