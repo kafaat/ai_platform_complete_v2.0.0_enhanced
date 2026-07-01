@@ -14,6 +14,9 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+_TEST_DB = os.getenv(
+    "TEST_DATABASE_URL", "postgresql://sahool_test:test_password@127.0.0.1:5433/sahool_test"
+)  # CI Integration job sets TEST_DATABASE_URL (not DATABASE_URL)
 MIGRATION = ROOT / "migrations" / "v131_imagery_quality_metadata.sql"
 _NEW_COLS = ["valid_pixel_ratio", "coverage_ratio", "index_quality_flags"]
 
@@ -41,7 +44,7 @@ def _db_available() -> bool:
         import asyncpg
 
         async def _ping():
-            c = await asyncpg.connect(os.environ["DATABASE_URL"])
+            c = await asyncpg.connect(_TEST_DB, statement_cache_size=0)
             await c.close()
 
         asyncio.run(_ping())
@@ -52,13 +55,12 @@ def _db_available() -> bool:
 
 @pytest.mark.integration
 def test_v131_applied_on_real_postgres():
-    os.environ.setdefault("DATABASE_URL", "postgresql://sahool_user@/sahool?host=/tmp/pgrun")
     if not _db_available():
         pytest.skip("DATABASE_URL غير متاح — اختبار تكامل")
     import asyncpg
 
     async def _check():
-        conn = await asyncpg.connect(os.environ["DATABASE_URL"])
+        conn = await asyncpg.connect(_TEST_DB, statement_cache_size=0)
         try:
             cols = {
                 r["column_name"]
