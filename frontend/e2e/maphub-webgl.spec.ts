@@ -131,11 +131,18 @@ test('الخطوة 2-3: رسم خطّ بنقرات canvas ⇒ measure-length ب�
   const cx = box.x + box.width / 2;
   const cy = box.y + box.height / 2;
   const pts: [number, number][] = [[cx - 70, cy], [cx, cy - 40], [cx + 70, cy + 30]];
-  for (const [x, y] of pts) {
+  // نضع أوّل نقطتين بنقرات مفردة، ثمّ نُنهي الخطّ بنقر مزدوج على نقطة ثالثة **جديدة**.
+  // النقر المفرد على نقطة ثمّ المزدوج على الإحداثيّة نفسها (كما كان) يُربك تمييز
+  // click/dblclick في Terra Draw حين تكون الخريطة نشِطة (طبقة TrueColor الافتراضيّة
+  // تُصيّر بلاطات) فلا يُنهى الخطّ ⇒ لا measure-length. الإنهاء على نقطة لم تُنقَر
+  // قبله حتميّ (نمط اختبار المضلّع المستقرّ). وحتّى لو لم تُسجَّل النقطة الثالثة يبقى
+  // الخطّ نقطتين بطول > 0 فتظهر الأسطورة.
+  for (const [x, y] of [pts[0], pts[1]]) {
     await page.mouse.click(x, y);
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(120);
   }
-  await page.mouse.dblclick(pts[2][0], pts[2][1]); // إنهاء الخطّ
+  await page.waitForTimeout(200); // ترك مؤشّر الخريطة/الرسم يستقرّ قبل الإنهاء
+  await page.mouse.dblclick(pts[2][0], pts[2][1]); // إنهاء الخطّ على نقطة ثالثة جديدة
   const len = page.getByTestId('measure-length');
   await expect(len).toBeVisible();
   await expect(len).toContainText('كم'); // قيمة طول حقيقيّة محسوبة (turf)

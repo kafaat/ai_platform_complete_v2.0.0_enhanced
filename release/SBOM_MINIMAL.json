@@ -225,7 +225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ed43a314a45d718f80959a6c12f3c3f591360e1b8bcc62677d910646dbb00841"
+          "content": "fae8a5d6110b5608582b5bf00b24d0f9ea0f6367a3a221a4e941b568f86a51a9"
         }
       ],
       "name": "frontend/e2e/maphub-webgl.spec.ts",
