@@ -3255,7 +3255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b66b969bf264fb0920d00e5e705983c93861f431ac5ecff709de0e5fda7329b3"
+          "content": "475ef8997f2df87d4f82764c4f0049322bfa909010c4914ee357cede1516797b"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -3579,6 +3579,16 @@
         }
       ],
       "name": "migrations/v125_tenant_ai_capabilities.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb793d7416e0d3315ebfd1b68be1beb241bee8a53c6e376da1f5a36e7125a7bf"
+        }
+      ],
+      "name": "migrations/v126_agent_tool_audit.sql",
       "type": "file"
     },
     {
@@ -5299,6 +5309,16 @@
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc95d369ade596c180996f953bdf9c24d5fc1a1714c2e0acf451bb0baf78a096"
+        }
+      ],
+      "name": "services/ai_agronomist/approval.py",
       "type": "file"
     },
     {
