@@ -3,6 +3,11 @@ WORKDIR /app
 COPY services/ai_agronomist/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY services/ai_agronomist /app/ai_agronomist
+# حزمة الأدوات المشتركة (shared/ai/*) يستوردها ai_generation/main لحلقة الـHarness
+# (V58+): ``from shared.ai import tool_schema/...`` — يجب تضمينها في الصورة وإلّا
+# يفشل الإقلاع بـ``ModuleNotFoundError: No module named 'shared'`` (نفس نمط
+# guardrails-engine الذي ينسخ shared/). سياق البناء هو جذر المستودع.
+COPY shared /app/shared
 ENV PYTHONPATH=/app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"

@@ -5395,7 +5395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6725d0c2f464864b973362a111fba2e0e6e62c451e23fcbfff892eb968acf08f"
+          "content": "7bcdf05ee24bb0b0c38a6ac3624e8fe0be1736e7f52933bc5487ac28281e0f8d"
         }
       ],
       "name": "services/ai_agronomist/Dockerfile",
