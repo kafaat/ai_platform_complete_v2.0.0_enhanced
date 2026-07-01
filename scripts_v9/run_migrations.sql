@@ -393,3 +393,12 @@
 
 \echo '═══ 130. v123_rls_with_check_preserve_using.sql ═══'
 \i migrations/v123_rls_with_check_preserve_using.sql
+
+\echo '═══ 131. v124_tenant_ai_policies.sql ═══'
+\i migrations/v124_tenant_ai_policies.sql
+
+\echo '═══ 132. v125_tenant_ai_capabilities.sql ═══'
+\i migrations/v125_tenant_ai_capabilities.sql
+
+\echo '═══ 133. v126_agent_tool_audit.sql ═══'
+\i migrations/v126_agent_tool_audit.sql
