@@ -935,6 +935,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "6798bcd1f6bdd93c61c53f6c9f48eb017c6bb609934ee1a5055e4d470b96f07d"
+        }
+      ],
+      "name": "frontend/src/components/maphub/FieldBoundaryProposalPanel.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3e8cdc16cfe7242579543c674087f859e5fc294e318157f4e9a72aaceb16f397"
+        }
+      ],
+      "name": "frontend/src/components/maphub/FieldBoundaryProposalPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f10e37b1cd8996c1d54d0da25984670aecf11f29e6913fbbd763b32e2fa46d2c"
         }
       ],
@@ -1059,6 +1079,46 @@
         }
       ],
       "name": "frontend/src/components/maphub/OverlayMarkers.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f05b81649470d17641760c8ffd15572abf0d42517df2929f5b787abcf76d8206"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ProductivityZonesPanel.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ee6c80b6256b18507d6bb4de0257fc46f3e5c060f5cc3889937462739b3c800"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "db7ae5c2a318c9636f48471e01ceb637e8b26c33b9543720df59f7bea27648bd"
+        }
+      ],
+      "name": "frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e685f1229d0ab4efe033f63aff400bad9195859fd4e0a8e59850a67fb62e97db"
+        }
+      ],
+      "name": "frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
       "type": "file"
     },
     {
@@ -2289,6 +2349,16 @@
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f38b679c38d9b4eafc6ebe4c2128642ef54276fc05b555dea4af1e0812ea586"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotProviderToolApproval.v58.static.test.ts",
       "type": "file"
     },
     {
@@ -3595,7 +3665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e83b23e15877922e3f505d7cb768d65a4af71661fd4e4fe5d80bdfd42a7691a4"
+          "content": "cf9f7706c9fe94fbdd59750c85c4b7b950f5f5c6b5bfbecd3df11ac23ed209be"
         }
       ],
       "name": "migrations/v125_tenant_ai_capabilities.sql",
@@ -5325,7 +5395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4d4fe951480ad4b86fb3505a8be836c0ef8f8202e6d5bb6e75960b151ea4411"
+          "content": "3c529444fab3bcbf15f63068922ccf123409de3efba2a0050e89587358dc22c9"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -5335,7 +5405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc95d369ade596c180996f953bdf9c24d5fc1a1714c2e0acf451bb0baf78a096"
+          "content": "c60768566fb1f2c6d623841fbdf3c1a2a95a4df5d2d6f457d4cb615bc86bb99b"
         }
       ],
       "name": "services/ai_agronomist/approval.py",
@@ -5415,6 +5485,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8319e330f9f50304dc6caa4819e723c4ba62667ef6b8841aff140a70a14cefed"
+        }
+      ],
+      "name": "services/ai_agronomist/field_boundary_ai.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b5879e48330525e7e05b9e3cb47e172ecd9e9ac4d0a149656003532a23f2f4b7"
         }
       ],
@@ -5455,7 +5535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75e834f329f35fbba65dc81cf87d0e289315345751ac47cf1bb2c71fe7837fa6"
+          "content": "3ecc9190089987bd1c2c7ef672a49fde06e793fa09516e4c275e7b05720ff050"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -5489,6 +5569,16 @@
         }
       ],
       "name": "services/ai_agronomist/policy_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "64f45f03408ae38cda27cee8605ca1dc458cab07743599282b1d428552aa2350"
+        }
+      ],
+      "name": "services/ai_agronomist/productivity_zones.py",
       "type": "file"
     },
     {
@@ -5575,7 +5665,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "949c956683bfaee5e4f8b7b799d2716e8ba06dbb10cbcf2b9ceb530711669697"
+          "content": "f4fe09c7eceb27b9f2fed10c5ad26c05d2f001f01383cb5258acb676b2d6e156"
+        }
+      ],
+      "name": "services/ai_agronomist/soil_sampling_planner.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "94f54a44b4c31b03c44dce019c20622f44287a5707699fad878aa0541d928844"
         }
       ],
       "name": "services/ai_agronomist/tenant_policies.py",
@@ -5595,7 +5695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1811b80cda4a728360c1c92bb34880c5b9a16c6ab66e8d04dadd5bf21aa54d2"
+          "content": "c822432c3aee4abb56bbac55e59c74a4ad0e4550d6d08d0b1481f9b308f92506"
         }
       ],
       "name": "services/ai_agronomist/tool_executor.py",
@@ -5605,7 +5705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b17cc4975341ea9262c944c4ccc7c43b7bce83ea8662e87d797c1a7d93559ef"
+          "content": "e87ad381ea45c2259c0e5abeb85e3d5331a18cc8f24ca417b5b0874e1677e903"
         }
       ],
       "name": "services/ai_agronomist/tool_loop.py",
@@ -17315,7 +17415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53ee869898b8c41f28d8d1f6d8f84dde7ce874a26ace173483062f964663126a"
+          "content": "74e2f22183463d2e7a95c03fe34d1ccaea43d7c62c64098be828586b10e76be2"
         }
       ],
       "name": "shared/ai/capabilities.py",
@@ -17345,7 +17445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b0534cf3553fbf52a61e3c30efee4ac21b518849cab2c9523652ee49cc66306"
+          "content": "6480d817e9c13ecd7c8b7cde910b55d84eefe753c429fb21ed9067b20efc18d2"
         }
       ],
       "name": "shared/ai/tool_registry.py",
@@ -17355,7 +17455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a4d4c6b81455ee79a076a7f493576a64dae0d9609a3727ca5125dcdce630b11"
+          "content": "d63b6e11daf6164a6a8faa62de793cee0fb1511e2c4d0491b07e8ef817e89138"
         }
       ],
       "name": "shared/ai/tool_schema.py",

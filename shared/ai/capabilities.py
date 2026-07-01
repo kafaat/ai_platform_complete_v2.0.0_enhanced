@@ -20,6 +20,9 @@ CAN_READ_FIELD_DATA = "can_read_field_data"
 CAN_READ_HISTORICAL_IMAGERY = "can_read_historical_imagery"
 CAN_USE_EXTERNAL_LLM = "can_use_external_llm"
 CAN_CREATE_TASKS = "can_create_tasks"
+CAN_MANAGE_FIELD_BOUNDARIES = "can_manage_field_boundaries"
+CAN_MANAGE_PRODUCTIVITY_ZONES = "can_manage_productivity_zones"
+CAN_MANAGE_SOIL_SAMPLING = "can_manage_soil_sampling"
 CAN_GENERATE_PRESCRIPTIONS = "can_generate_prescriptions"
 CAN_SEND_RECOMMENDATIONS = "can_send_recommendations"
 CAN_TRIGGER_BACKFILL = "can_trigger_backfill"
@@ -30,6 +33,9 @@ CAPABILITIES: tuple[str, ...] = (
     CAN_READ_HISTORICAL_IMAGERY,
     CAN_USE_EXTERNAL_LLM,
     CAN_CREATE_TASKS,
+    CAN_MANAGE_FIELD_BOUNDARIES,
+    CAN_MANAGE_PRODUCTIVITY_ZONES,
+    CAN_MANAGE_SOIL_SAMPLING,
     CAN_GENERATE_PRESCRIPTIONS,
     CAN_SEND_RECOMMENDATIONS,
     CAN_TRIGGER_BACKFILL,
@@ -48,6 +54,9 @@ DEFAULT_CAPABILITIES: tuple[str, ...] = (
 MUTATING_CAPABILITIES: frozenset[str] = frozenset(
     {
         CAN_CREATE_TASKS,
+        CAN_MANAGE_FIELD_BOUNDARIES,
+        CAN_MANAGE_PRODUCTIVITY_ZONES,
+        CAN_MANAGE_SOIL_SAMPLING,
         CAN_GENERATE_PRESCRIPTIONS,
         CAN_SEND_RECOMMENDATIONS,
         CAN_TRIGGER_BACKFILL,

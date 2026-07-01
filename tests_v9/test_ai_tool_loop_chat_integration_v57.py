@@ -48,9 +48,18 @@ def test_main_wires_tool_loop_into_chat_response_static():
     assert "tool_loop.run_tool_calls" in source
     assert 'allowed_capabilities=_policy.get("allowed_capabilities")' in source
     assert "normalize_policy" in source
-    assert 'tool_calls=tool_result.get("tool_calls")' in source
-    assert 'pending_approvals=tool_result.get("pending_approvals")' in source
-    assert '"tool_calls_truncated": tool_result.get("truncated")' in source
+    assert (
+        "tool_calls=all_tool_calls" in source
+        or 'tool_calls=tool_result.get("tool_calls")' in source
+    )
+    assert (
+        "pending_approvals=all_pending_approvals" in source
+        or 'pending_approvals=tool_result.get("pending_approvals")' in source
+    )
+    assert (
+        '"tool_calls_truncated": bool(tool_result.get("truncated"))' in source
+        or '"tool_calls_truncated": tool_result.get("truncated")' in source
+    )
 
 
 def test_field_tool_fetcher_returns_contextual_read_data():

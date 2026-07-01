@@ -85,7 +85,7 @@ def test_requires_human_approval_fail_closed():
 
 # ── مصفوفة القدرات ─────────────────────────────────────────────────────────
 def test_capabilities_closed_set_and_defaults():
-    assert len(CAP.CAPABILITIES) == len(set(CAP.CAPABILITIES)) == 8
+    assert len(CAP.CAPABILITIES) == len(set(CAP.CAPABILITIES)) == 11
     assert set(CAP.DEFAULT_CAPABILITIES) <= set(CAP.CAPABILITIES)
     # الافتراضيّ قراءة فقط (لا قدرة مُعدِّلة).
     assert not (set(CAP.DEFAULT_CAPABILITIES) & CAP.MUTATING_CAPABILITIES)

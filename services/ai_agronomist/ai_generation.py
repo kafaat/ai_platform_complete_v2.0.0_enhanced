@@ -17,13 +17,22 @@ Ollama) فوق طبقة RAG+KG الأساسيّة — لا يحلّ محلّها
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import re
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
+
+from shared.ai import tool_schema as agent_tool_schema
+
+try:  # package import in service runtime / pytest normal path
+    from . import tool_loop
+except ImportError:  # direct spec import used by legacy unit guards
+    from services.ai_agronomist import tool_loop  # type: ignore
 
 logger = logging.getLogger("ai_agronomist.generation")
 
@@ -211,7 +220,10 @@ class GenResult:
     text: str
     model: str
     provider: str
-    tool_calls: tuple[dict[str, Any], ...] = ()
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
+    pending_approvals: list[dict[str, Any]] = field(default_factory=list)
+    tool_calls_truncated: bool = False
+    tool_rounds: int = 0
 
 
 def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
@@ -266,14 +278,70 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
     return GenConfig("local", f"{base.rstrip('/')}/v1/messages", headers, model, "messages")
 
 
+def _provider_tools(cfg: GenConfig, allowed_capabilities: list[str] | None) -> list[dict[str, Any]]:
+    """Provider-native tool schema, filtered by tenant capabilities before the model sees it."""
+    defs = agent_tool_schema.tool_definitions(allowed_capabilities)
+    if cfg.wire_format == "openai_chat":
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": d["name"],
+                    "description": d["description"],
+                    "parameters": d["parameters"],
+                },
+            }
+            for d in defs
+        ]
+    return [
+        {
+            "name": d["name"],
+            "description": d["description"],
+            "input_schema": d["parameters"],
+        }
+        for d in defs
+    ]
+
+
+def _compact_tool_result(item: dict[str, Any]) -> dict[str, Any]:
+    """نتيجة أداة مختصرة تصلح لإرجاعها للمزوّد كتغذية tool_result."""
+    return {
+        "tool": item.get("tool"),
+        "outcome": item.get("outcome"),
+        "risk": item.get("risk"),
+        "reason": item.get("reason"),
+        "requires_approval": item.get("requires_approval"),
+        "approval_id": item.get("approval_id"),
+        "data": item.get("data"),
+    }
+
+
+def _tool_result_text(results: list[dict[str, Any]] | None) -> str:
+    compact = [_compact_tool_result(r) for r in (results or [])[:8] if isinstance(r, dict)]
+    return json.dumps(compact, ensure_ascii=False, sort_keys=True, default=str)
+
+
+def _base_user_text(question: str, context_text: str) -> str:
+    return f"الأدلّة:\n{context_text}\n\nالسؤال: {question}"
+
+
 def _build_payload(
     cfg: GenConfig,
     question: str,
     context_text: str,
     max_tokens: int,
-    provider_tools: list[dict[str, Any]] | None = None,
+    *,
+    tools: list[dict[str, Any]] | None = None,
+    tool_results: list[dict[str, Any]] | None = None,
 ) -> dict:
-    user = f"الأدلّة:\n{context_text}\n\nالسؤال: {question}"
+    """يبني الحمولة الأولى أو حمولة fallback نصيّة لنتائج الأدوات.
+
+    الإرجاع native tool_result يتم عبر ``_build_native_tool_result_payload``؛ هذه الدالة
+    باقية للحراس القديمة وللسقوط الآمن إن لم تقبل صيغة مزوّد ما."""
+    tool_tail = ""
+    if tool_results:
+        tool_tail = f"\n\nنتائج أدوات الـHarness:\n{_tool_result_text(tool_results)}"
+    user = f"الأدلّة:\n{context_text}{tool_tail}\n\nالسؤال: {question}"
     if cfg.wire_format == "openai_chat":
         payload = {
             "model": cfg.model,
@@ -283,8 +351,8 @@ def _build_payload(
                 {"role": "user", "content": user},
             ],
         }
-        if provider_tools:
-            payload["tools"] = provider_tools
+        if tools:
+            payload["tools"] = tools
             payload["tool_choice"] = "auto"
         return payload
     payload = {
@@ -293,9 +361,154 @@ def _build_payload(
         "system": _GROUNDED_SYSTEM_AR,
         "messages": [{"role": "user", "content": user}],
     }
-    if provider_tools:
-        payload["tools"] = provider_tools
+    if tools:
+        payload["tools"] = tools
     return payload
+
+
+def _arguments_for_tool_call(call: dict[str, Any]) -> str:
+    return json.dumps(
+        call.get("params") if isinstance(call.get("params"), dict) else {},
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+
+
+def _build_native_tool_result_payload(
+    cfg: GenConfig,
+    question: str,
+    context_text: str,
+    max_tokens: int,
+    *,
+    provider_calls: list[dict[str, Any]],
+    tool_results: list[dict[str, Any]],
+    tools: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    """يرجع نتائج الأدوات للمزوّد بصيغته الأصلية: OpenAI tool messages أو Anthropic tool_result."""
+    if cfg.wire_format == "openai_chat":
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": _GROUNDED_SYSTEM_AR},
+            {
+                "role": "user",
+                "content": _base_user_text(question, context_text)
+                + "\n\nنتائج أدوات الـHarness: تُرفَق كرسائل tool_result أصلية أدناه.",
+            },
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": str(c.get("id") or c.get("tool_call_id") or f"call-{i}"),
+                        "type": "function",
+                        "function": {
+                            "name": c.get("tool"),
+                            "arguments": _arguments_for_tool_call(c),
+                        },
+                    }
+                    for i, c in enumerate(provider_calls)
+                ],
+            },
+        ]
+        for i, result in enumerate(tool_results):
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": str(
+                        result.get("tool_call_id") or result.get("id") or f"call-{i}"
+                    ),
+                    "name": str(result.get("tool") or "tool"),
+                    "content": json.dumps(
+                        _compact_tool_result(result),
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                }
+            )
+        payload: dict[str, Any] = {
+            "model": cfg.model,
+            "max_tokens": max_tokens,
+            "messages": messages,
+        }
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "auto"
+        return payload
+
+    assistant_content = [
+        {
+            "type": "tool_use",
+            "id": str(c.get("id") or c.get("tool_call_id") or f"toolu-{i}"),
+            "name": str(c.get("tool") or ""),
+            "input": c.get("params") if isinstance(c.get("params"), dict) else {},
+        }
+        for i, c in enumerate(provider_calls)
+    ]
+    result_blocks = [
+        {
+            "type": "tool_result",
+            "tool_use_id": str(r.get("tool_call_id") or r.get("id") or f"toolu-{i}"),
+            "content": json.dumps(
+                _compact_tool_result(r), ensure_ascii=False, sort_keys=True, default=str
+            ),
+            "is_error": r.get("outcome") not in {"executed", "pending_approval"},
+        }
+        for i, r in enumerate(tool_results)
+    ]
+    payload = {
+        "model": cfg.model,
+        "max_tokens": max_tokens,
+        "system": _GROUNDED_SYSTEM_AR,
+        "messages": [
+            {"role": "user", "content": _base_user_text(question, context_text)},
+            {"role": "assistant", "content": assistant_content},
+            {"role": "user", "content": result_blocks},
+        ],
+    }
+    if tools:
+        payload["tools"] = tools
+    return payload
+
+
+def _extract_provider_tool_calls(cfg: GenConfig, data: dict[str, Any]) -> list[dict[str, Any]]:
+    """Parse provider-native tool calls into SAHOOL's internal {tool, params, id} shape."""
+    calls: list[dict[str, Any]] = []
+    try:
+        if cfg.wire_format == "openai_chat":
+            raw_calls = data["choices"][0].get("message", {}).get("tool_calls") or []
+            for raw in raw_calls:
+                fn = (raw or {}).get("function") or {}
+                name = str(fn.get("name") or "")
+                if not name:
+                    continue
+                args = fn.get("arguments") or {}
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args or "{}")
+                    except Exception:
+                        args = {}
+                calls.append(
+                    {
+                        "id": raw.get("id"),
+                        "tool": name,
+                        "params": args if isinstance(args, dict) else {},
+                    }
+                )
+            return calls
+        for block in data.get("content") or []:
+            if isinstance(block, dict) and block.get("type") == "tool_use":
+                calls.append(
+                    {
+                        "id": block.get("id"),
+                        "tool": str(block.get("name") or ""),
+                        "params": block.get("input")
+                        if isinstance(block.get("input"), dict)
+                        else {},
+                    }
+                )
+    except Exception:
+        return []
+    return [c for c in calls if c.get("tool")]
 
 
 def _extract_text(cfg: GenConfig, data: dict) -> str:
@@ -316,9 +529,14 @@ async def generate(
     requested_model: str | None = None,
     *,
     policy: dict[str, Any] | None = None,
+    allowed_capabilities: list[str] | None = None,
+    tool_fetcher: Callable[[str, dict[str, Any]], Any] | None = None,
+    tenant_id: str | None = None,
+    actor: str = "ai_agronomist",
+    timestamp: str | None = None,
+    max_tool_rounds: int = 1,
     max_tokens: int = 600,
     timeout: float = 20.0,
-    provider_tools: list[dict[str, Any]] | None = None,
 ) -> GenResult | None:
     """يولّد جواباً مؤرَّضاً أو يعيد ``None`` (للسقوط الآمن إلى الأدلّة). لا يرفع
     استثناءً للمستدعي مهما فشل المزوّد.
@@ -338,26 +556,96 @@ async def generate(
         )
         return None
     context_text = prepared
-    payload = _build_payload(cfg, question, context_text, max_tokens, provider_tools=provider_tools)
+    tool_results: list[dict[str, Any]] = []
+    pending_approvals: list[dict[str, Any]] = []
+    truncated = False
+    rounds = 0
+    max_rounds = max(0, min(int(max_tool_rounds or 0), 5))
+    tools = _provider_tools(cfg, allowed_capabilities) if max_rounds > 0 else []
+    payload = _build_payload(cfg, question, context_text, max_tokens, tools=tools)
+    text = ""
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             resp = await client.post(cfg.endpoint, headers=cfg.headers, json=payload)
-        if resp.status_code >= 400:
-            logger.warning("توليد %s فشل: HTTP %s", cfg.provider, resp.status_code)
-            return None
-        data = resp.json()
-        text = _extract_text(cfg, data)
-        # استيراد مؤجَّل: حُرّاس العقد (test_ai_provider_contract_guard/_data_sharing_v52)
-        # يحمّلون هذا الملفّ منفرداً عبر المسار (بلا حزمة أب)، فالاستيراد النسبيّ على
-        # المستوى الأعلى يكسر تحميلهم. تأجيله إلى مسار الاستدعاء الفعليّ يبقيه سليماً.
-        from . import provider_tooling
+            if resp.status_code >= 400:
+                logger.warning("توليد %s فشل: HTTP %s", cfg.provider, resp.status_code)
+                return None
+            data = resp.json()
 
-        tool_calls = provider_tooling.extract_tool_calls(cfg.wire_format, data)
+            while True:
+                provider_calls = _extract_provider_tool_calls(cfg, data)
+                if (
+                    not provider_calls
+                    or tool_fetcher is None
+                    or not tenant_id
+                    or rounds >= max_rounds
+                ):
+                    text = _extract_text(cfg, data)
+                    break
+
+                loop_out = tool_loop.run_tool_calls(
+                    provider_calls,
+                    allowed_capabilities=allowed_capabilities,
+                    fetcher=tool_fetcher,
+                    tenant_id=tenant_id,
+                    actor=actor,
+                    timestamp=timestamp or "provider-native",
+                    provider=cfg.provider,
+                    model=cfg.model,
+                )
+                batch_results = list(loop_out.get("tool_calls") or [])
+                tool_results.extend(batch_results)
+                pending_approvals.extend(list(loop_out.get("pending_approvals") or []))
+                truncated = truncated or bool(loop_out.get("truncated"))
+                rounds += 1
+
+                # إن وصلت أدوات تحتاج موافقة، نعيدها للمزوّد كـ tool_result ثم نمنع أدوات إضافية
+                # كي يُكمل جواباً يشرح أن التنفيذ بانتظار الإنسان.
+                next_tools = tools if rounds < max_rounds and not pending_approvals else None
+                payload = _build_native_tool_result_payload(
+                    cfg,
+                    question,
+                    context_text,
+                    max_tokens,
+                    provider_calls=provider_calls,
+                    tool_results=batch_results,
+                    tools=next_tools,
+                )
+                resp = await client.post(cfg.endpoint, headers=cfg.headers, json=payload)
+                if resp.status_code >= 400:
+                    logger.warning(
+                        "توليد %s بعد الأدوات فشل: HTTP %s", cfg.provider, resp.status_code
+                    )
+                    # سقوط نصي متوافق مع الحراس القديمة/المزوّدات غير المكتملة.
+                    fallback_payload = _build_payload(
+                        cfg,
+                        question,
+                        context_text,
+                        max_tokens,
+                        tools=None,
+                        tool_results=tool_results,
+                    )
+                    resp = await client.post(
+                        cfg.endpoint, headers=cfg.headers, json=fallback_payload
+                    )
+                    if resp.status_code >= 400:
+                        text = _extract_text(cfg, data)
+                        break
+                data = resp.json()
+
+            if not text:
+                text = _extract_text(cfg, data)
     except Exception as e:  # noqa: BLE001 — أيّ فشل ⇒ سقوط آمن إلى الأدلّة
         logger.warning("تعذّر التوليد عبر %s: %s", cfg.provider, type(e).__name__)
         return None
-    if not text and not tool_calls:
+    if not text:
         return None
     return GenResult(
-        text=text, model=cfg.model, provider=cfg.provider, tool_calls=tuple(tool_calls)
+        text=text,
+        model=cfg.model,
+        provider=cfg.provider,
+        tool_calls=tool_results,
+        pending_approvals=pending_approvals,
+        tool_calls_truncated=truncated,
+        tool_rounds=rounds,
     )

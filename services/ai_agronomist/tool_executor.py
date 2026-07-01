@@ -21,6 +21,11 @@ import re
 from collections.abc import Callable, Iterable
 from typing import Any
 
+try:
+    from .approval import input_hash, summarize_result
+except ImportError:  # direct spec import used by legacy unit guards
+    from services.ai_agronomist.approval import input_hash, summarize_result  # type: ignore
+
 logger = logging.getLogger("ai_agronomist.tool_executor")
 
 # القدرات القرائيّة الممنوحة افتراضيّاً (fail-closed) — مرآة
@@ -55,9 +60,15 @@ _TOOL_META: dict[str, tuple[str, str, bool, bool]] = {
     "get_alerts": ("can_read_field_data", "low", False, False),
     "get_drawings_and_zones": ("can_read_field_data", "low", False, False),
     "open_map_layer": ("can_read_field_data", "low", False, False),
+    "detect_field_boundaries": ("can_read_historical_imagery", "low", False, False),
+    "generate_productivity_zones": ("can_read_historical_imagery", "low", False, False),
+    "plan_soil_sampling": ("can_read_historical_imagery", "low", False, False),
     "create_scouting_task": ("can_create_tasks", "medium", True, False),
     "request_imagery_backfill": ("can_trigger_backfill", "medium", True, False),
     "draft_recommendation": ("can_send_recommendations", "medium", True, False),
+    "save_detected_boundary": ("can_manage_field_boundaries", "high", True, True),
+    "save_productivity_zones": ("can_manage_productivity_zones", "high", True, True),
+    "save_soil_sampling_plan": ("can_manage_soil_sampling", "high", True, True),
     "send_recommendation": ("can_send_recommendations", "high", True, True),
     "create_prescription_map": ("can_generate_prescriptions", "high", True, True),
     "schedule_irrigation": ("can_send_recommendations", "high", True, True),
@@ -156,5 +167,8 @@ def execute_read_tool(
             "risk": plan["risk"],
             "capability": plan["capability"],
             "timestamp": timestamp,
+            "input_hash": input_hash(params),
+            "result_summary": summarize_result(data if outcome == OUTCOME_EXECUTED else reason),
+            "result": data if outcome == OUTCOME_EXECUTED else {"reason": reason},
         },
     }

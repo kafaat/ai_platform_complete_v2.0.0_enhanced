@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import re
 from collections.abc import Callable
@@ -44,6 +46,37 @@ def _redact(params: dict[str, Any] | None) -> dict[str, Any]:
     return out
 
 
+def _stable_json(value: Any) -> str:
+    try:
+        return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    except TypeError:
+        return json.dumps(str(value), ensure_ascii=False)
+
+
+def input_hash(params: dict[str, Any] | None) -> str:
+    """Hash ثابت لمدخلات الأداة بعد التنقيح؛ يحفظ قابلية الربط بلا تسريب أسرار."""
+    payload = _stable_json(_redact(params))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def summarize_result(result: Any, *, max_len: int = 240) -> str:
+    """ملخّص قصير وآمن لنتيجة الأداة لأجل التدقيق/الشفافية، لا يحفظ كامل الحمولة."""
+    if result is None:
+        return "none"
+    if isinstance(result, dict):
+        keys = sorted(str(k) for k in result.keys())[:8]
+        summary = {"type": "dict", "keys": keys}
+        for preferred in ("field_id", "index", "layer", "ui_action", "ready", "state", "total"):
+            if preferred in result:
+                summary[preferred] = result.get(preferred)
+        text = _stable_json(summary)
+    elif isinstance(result, list):
+        text = _stable_json({"type": "list", "count": len(result)})
+    else:
+        text = str(result)
+    return text[:max_len]
+
+
 def build_approval_request(
     *,
     request_id: str,
@@ -60,6 +93,8 @@ def build_approval_request(
         "id": str(request_id),
         "tool": tool_name,
         "params": _redact(params),
+        "input_hash": input_hash(params),
+        "result_summary": "pending_human_approval",
         "tenant_id": str(tenant_id),
         "actor": str(actor),
         "risk": risk,
@@ -104,7 +139,10 @@ def emit_audit(record: dict[str, Any], saver: AuditSaver | None) -> bool:
     """يُدِيم سجلّ تدقيق (best-effort). يُنقّح الوسائط قبل الحفظ. فشل الحفظ لا يرفع
     استثناءً للمستدعي (التدقيق لا يجب أن يُعطّل المسار). يُرجِع نجاح الإدامة."""
     safe = dict(record)
-    safe["params"] = _redact(record.get("params") if isinstance(record.get("params"), dict) else {})
+    raw_params = record.get("params") if isinstance(record.get("params"), dict) else {}
+    safe["params"] = _redact(raw_params)
+    safe.setdefault("input_hash", input_hash(raw_params))
+    safe.setdefault("result_summary", summarize_result(record.get("result")))
     if saver is None:
         return False
     try:

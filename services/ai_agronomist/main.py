@@ -8,20 +8,16 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from . import (
-    ai_generation,
-    approval,
-    harness_transparency,
-    observation_context,
-    provider_tooling,
-    tool_loop,
-)
+from . import ai_generation, approval, harness_transparency, observation_context, tool_loop
 from .decision_contracts import (
     EvidenceItem,
     EvidenceStrength,
     assert_no_decision_keys,
     compose_confidence,
 )
+from .field_boundary_ai import propose_boundaries
+from .productivity_zones import propose_productivity_zones
+from .soil_sampling_planner import plan_soil_sampling
 from .tenant_policies import build_store_from_env, normalize_policy
 
 # مخزن سياسات المستأجِر — يحكم السماح بالتوليد ومستوى مشاركة البيانات لكلّ مستأجِر.
@@ -353,6 +349,24 @@ def _build_agent_tool_fetcher(
                 "date": params.get("date"),
                 "note": "فعل واجهة منخفض الخطر؛ لا يغيّر بيانات الحقل.",
             }
+        if tool_name == "detect_field_boundaries":
+            return propose_boundaries(
+                params,
+                field_id=str(field_id) if field_id is not None else None,
+                imagery_context=pack.get("imagery_timeline") or {},
+            )
+        if tool_name == "generate_productivity_zones":
+            return propose_productivity_zones(
+                params,
+                field_id=str(field_id) if field_id is not None else None,
+                evidence_context=pack,
+            )
+        if tool_name == "plan_soil_sampling":
+            return plan_soil_sampling(
+                params,
+                field_id=str(field_id) if field_id is not None else None,
+                evidence_context=pack,
+            )
         # يفترض ألا يصل المجهول إلى الجالب بسبب البوابة، لكن نبقيه fail-closed.
         raise ValueError(f"unsupported_read_tool:{tool_name}")
 
@@ -670,35 +684,36 @@ async def _build_evidence_response(
     mode = "evidence_only"
     generation_model: str | None = None
     generation_provider: str | None = None
-    provider_native_tool_calls: list[dict[str, Any]] = []
-    provider_native_tool_rounds = 0
+    provider_tool_calls: list[dict[str, Any]] = []
+    provider_pending_approvals: list[dict[str, Any]] = []
+    provider_tool_truncated = False
+    provider_tool_rounds = 0
     if endpoint_mode == "chat" and _generation_allowed(tenant_id):
         context_text = _grounding_context_text(annotations)
-        cfg = ai_generation.resolve_generation(req.model)
-        provider_tools = (
-            provider_tooling.build_provider_tools(cfg.wire_format) if cfg is not None else None
-        )
+        _policy_for_generation = normalize_policy(TENANT_POLICY.get_policy(tenant_id))
         gen = await ai_generation.generate(
             req.question,
             context_text,
             req.model,
-            policy=TENANT_POLICY.get_policy(tenant_id),
-            provider_tools=provider_tools,
+            policy=_policy_for_generation,
+            allowed_capabilities=_policy_for_generation.get("allowed_capabilities"),
+            tool_fetcher=_build_agent_tool_fetcher(
+                field_state=field_state, ai_pack=ai_pack, annotations=annotations
+            ),
+            tenant_id=tenant_id,
+            actor="ai_agronomist",
+            timestamp=_utc_timestamp(),
+            max_tool_rounds=3,
         )
         if gen is not None:
-            provider_native_tool_calls = list(gen.tool_calls or [])
-            if gen.text:
-                answer_ar = gen.text
-                mode = "generated_grounded"
-            if provider_native_tool_calls:
-                # V58: provider-native tool-use observed. The governed harness executes the read-only
-                # requests later in this same response and exposes the results. A second grounded
-                # completion round is deliberately conservative: only after tool results are available
-                # and never for mutating tools.
-                mode = "generated_tool_grounded" if gen.text else "provider_tool_use"
-                provider_native_tool_rounds = 1
+            answer_ar = gen.text
+            mode = "generated_grounded"
             generation_model = gen.model
             generation_provider = gen.provider
+            provider_tool_calls = list(gen.tool_calls or [])
+            provider_pending_approvals = list(gen.pending_approvals or [])
+            provider_tool_truncated = bool(gen.tool_calls_truncated)
+            provider_tool_rounds = int(gen.tool_rounds or 0)
 
     audit_event = await _record_ai_advice_event(
         tenant_id=tenant_id,
@@ -736,9 +751,8 @@ async def _build_evidence_response(
     # V57 — وصل حلقة الأدوات بالمسار الحيّ: النموذج/الواجهة قد يطلبان أدوات؛ الـHarness
     # يحكمها بالقدرات والمخاطر. القراءة تُنفّذ من سياق الحقل المتاح؛ الأفعال المؤثّرة
     # تُعاد كطلبات موافقة ولا تُنفَّذ داخل chat.
-    requested_tool_calls = list(req.tool_calls or []) + provider_native_tool_calls
     tool_result = tool_loop.run_tool_calls(
-        requested_tool_calls,
+        req.tool_calls,
         allowed_capabilities=_policy.get("allowed_capabilities"),
         fetcher=_build_agent_tool_fetcher(
             field_state=field_state, ai_pack=ai_pack, annotations=annotations
@@ -747,10 +761,14 @@ async def _build_evidence_response(
         actor="ai_agronomist",
         timestamp=_utc_timestamp(),
     )
+    all_tool_calls = list(provider_tool_calls) + list(tool_result.get("tool_calls") or [])
+    all_pending_approvals = list(provider_pending_approvals) + list(
+        tool_result.get("pending_approvals") or []
+    )
     harness = harness_transparency.build_transparency(
         observation=observation,
-        tool_calls=tool_result.get("tool_calls"),
-        pending_approvals=tool_result.get("pending_approvals"),
+        tool_calls=all_tool_calls,
+        pending_approvals=all_pending_approvals,
     )
 
     return {
@@ -773,11 +791,10 @@ async def _build_evidence_response(
         if isinstance(ai_pack, dict)
         else None,
         "harness": harness,
-        "tool_calls": tool_result.get("tool_calls"),
-        "pending_approvals": tool_result.get("pending_approvals"),
-        "tool_calls_truncated": tool_result.get("truncated"),
-        "provider_native_tool_calls": provider_native_tool_calls,
-        "provider_native_tool_rounds": provider_native_tool_rounds,
+        "tool_calls": all_tool_calls,
+        "pending_approvals": all_pending_approvals,
+        "tool_calls_truncated": bool(tool_result.get("truncated")) or provider_tool_truncated,
+        "provider_tool_rounds": provider_tool_rounds,
         "confidence": confidence,
         "guardrail_result": {
             "status": "not_executed",

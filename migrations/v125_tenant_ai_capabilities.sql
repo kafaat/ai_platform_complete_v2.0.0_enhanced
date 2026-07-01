@@ -13,4 +13,4 @@ ALTER TABLE tenant_ai_policies
         DEFAULT '{can_read_field_data,can_read_historical_imagery}';
 
 COMMENT ON COLUMN tenant_ai_policies.allowed_capabilities IS
-    'قدرات الوكيل الممنوحة للمستأجِر (V55): can_read_field_data · can_read_historical_imagery · can_use_external_llm · can_create_tasks · can_generate_prescriptions · can_send_recommendations · can_trigger_backfill · can_export_enterprise_data. الافتراضيّ قراءة فقط (fail-closed).';
+    'قدرات الوكيل الممنوحة للمستأجِر (V55–V61): can_read_field_data · can_read_historical_imagery · can_use_external_llm · can_create_tasks · can_manage_field_boundaries · can_manage_productivity_zones · can_manage_soil_sampling · can_generate_prescriptions · can_send_recommendations · can_trigger_backfill · can_export_enterprise_data. الافتراضيّ قراءة فقط (fail-closed).';

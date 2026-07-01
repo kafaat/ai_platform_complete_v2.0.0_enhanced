@@ -24,7 +24,28 @@ def _param_schema(params: dict[str, str]) -> dict[str, Any]:
     for name, raw in params.items():
         optional = raw.endswith("?")
         base = raw[:-1] if optional else raw
-        props[name] = {"type": _TYPE_MAP.get(base, "string")}
+        if base == "bbox":
+            props[name] = {
+                "type": "array",
+                "items": {"type": "number"},
+                "minItems": 4,
+                "maxItems": 4,
+                "description": "[lon_min, lat_min, lon_max, lat_max]",
+            }
+        elif base == "geojson":
+            props[name] = {
+                "type": "object",
+                "description": "GeoJSON Polygon or MultiPolygon boundary",
+                "additionalProperties": True,
+            }
+        elif base == "array":
+            props[name] = {
+                "type": "array",
+                "items": {"type": "object", "additionalProperties": True},
+                "description": "List of proposal objects such as productivity zones or sample points",
+            }
+        else:
+            props[name] = {"type": _TYPE_MAP.get(base, "string")}
         if not optional:
             required.append(name)
     return {"type": "object", "properties": props, "required": required}
