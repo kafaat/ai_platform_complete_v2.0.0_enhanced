@@ -90,6 +90,63 @@ def plan_soil_sampling(
     the chat agent can still propose a plan, while clearly marking the method.
     """
     params = params if isinstance(params, dict) else {}
+
+    # V61.1 — strategy dispatch (default ``zone`` = unchanged v61 behaviour).
+    from .soil_sampling_strategies import (
+        VALID_STRATEGIES,
+        build_grid_samples,
+        grid_points,
+        recommended_samples_for_area,
+    )
+
+    strategy = str(params.get("sampling_strategy") or "zone").strip().lower()
+    if strategy not in VALID_STRATEGIES:
+        strategy = "zone"
+
+    lab_panel_early = str(params.get("lab_panel") or "standard").strip().lower()
+    analytes_early = list(
+        _FULL_PANEL_ANALYTES
+        if lab_panel_early in {"full", "complete", "advanced"}
+        else _DEFAULT_ANALYTES
+    )
+
+    if strategy == "grid":
+        gbox = bbox_from_polygon(
+            params.get("boundary") if isinstance(params.get("boundary"), dict) else None
+        ) or normalize_bbox(params.get("bbox"))
+        if gbox is None:
+            return {
+                "field_id": field_id,
+                "soil_sampling_plan": None,
+                "sample_points": [],
+                "requires_user_confirmation": True,
+                "error": "missing_productivity_zones_or_boundary",
+                "method": "regular_grid_sampling",
+            }
+        area = area_ha_for_bbox(gbox)
+        req = _as_float(params.get("samples_per_zone"))
+        count = int(req) if req else recommended_samples_for_area(area)
+        count = max(1, min(30, count))
+        samples, stratum = build_grid_samples(gbox, count, lab_panel_early, analytes_early)
+        return {
+            "field_id": field_id,
+            "method": "regular_grid_sampling",
+            "sampling_strategy": "grid",
+            "recommended_total_samples": recommended_samples_for_area(area),
+            "soil_sampling_plan": {
+                "plan_id": "ssp-proposal-1",
+                "lab_panel": lab_panel_early,
+                "analytes": analytes_early,
+                "strata": [stratum],
+                "total_samples": len(samples),
+                "estimated_field_hours": round(max(1.0, len(samples) * 0.18), 2),
+            },
+            "sample_points": samples,
+            "requires_user_confirmation": True,
+            "persistence": "proposal_only_until_user_confirms",
+            "next_step": "v62_vra_prescription_engine",
+        }
+
     zones = _zones_from_params(params)
     method = "productivity_zone_stratified_sampling"
 
@@ -190,9 +247,52 @@ def plan_soil_sampling(
             except (TypeError, ValueError):
                 evidence_dates = 0
 
+    total_area = round(sum(s["area_ha"] for s in strata), 3)
+    # V61.1 — hybrid: top up zone strata with grid infill toward the area target.
+    if strategy == "hybrid":
+        method = "hybrid_zone_grid_sampling"
+        zone_bboxes = [b for b in (_zone_bbox(z) for z in zones[:8]) if b is not None]
+        if zone_bboxes:
+            union = [
+                min(b[0] for b in zone_bboxes),
+                min(b[1] for b in zone_bboxes),
+                max(b[2] for b in zone_bboxes),
+                max(b[3] for b in zone_bboxes),
+            ]
+            target = recommended_samples_for_area(total_area)
+            need = target - len(sample_points)
+            if need > 0:
+                for i, p in enumerate(grid_points(union, need)):
+                    sample_points.append(
+                        {
+                            "sample_id": f"ss-grid-{i + 1}",
+                            "zone_id": "grid-infill",
+                            "productivity_class": "unknown",
+                            "priority": "normal",
+                            "point": {"type": "Point", "coordinates": p},
+                            "depth_cm": [0, 30],
+                            "composite": True,
+                            "lab_panel": lab_panel,
+                            "analytes": analytes,
+                            "instructions_ar": "عينة شبكيّة مكمّلة — مركّبة من نقاط صغيرة حولها، تجنّب الحواف.",
+                        }
+                    )
+                strata.append(
+                    {
+                        "zone_id": "grid-infill",
+                        "productivity_class": "unknown",
+                        "priority": "normal",
+                        "area_ha": total_area,
+                        "sample_count": need,
+                        "design": "grid_infill",
+                    }
+                )
+
     return {
         "field_id": field_id,
         "method": method,
+        "sampling_strategy": strategy,
+        "recommended_total_samples": recommended_samples_for_area(total_area),
         "soil_sampling_plan": {
             "plan_id": "ssp-proposal-1",
             "lab_panel": lab_panel,
