@@ -2705,7 +2705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5193d6aff10b9e0211c5a6f95891896d291aa576a5a95423740ea7778b6bcee5"
+          "content": "34ee203b0e48782397fb439e792717ac299bc76dfb6914de1697db46645aaf3f"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -2719,6 +2719,16 @@
         }
       ],
       "name": "frontend/src/sections/MapHubSatelliteDefault.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "da644923d44c8e4299d46b9cca2b5aad959f51a07b25ae7f0aa131407dfe41a8"
+        }
+      ],
+      "name": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",
       "type": "file"
     },
     {
@@ -6665,7 +6675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b416949f07f3b3e3458463273b502abfe4b68b703242bdc4aebf2411fd5217a"
+          "content": "ac75e185876237a3cf28b97fea80cbf4395ae41d67b103db5b0ae07a2a7ca7dd"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -6859,6 +6869,16 @@
         }
       ],
       "name": "services/raster-service/test_cdse_poly_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "381ec27c48a281e50765fae1a5dc0e080e39081bd5fc6dd812b8d28938761867"
+        }
+      ],
+      "name": "services/raster-service/test_cdse_tilejson_availability.py",
       "type": "file"
     },
     {

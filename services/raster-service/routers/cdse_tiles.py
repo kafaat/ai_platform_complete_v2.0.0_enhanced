@@ -321,6 +321,33 @@ async def field_cdse_thumbnail(
     return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
 
 
+def _tilejson_availability(configured: bool, index: str) -> tuple[bool, str | None, str | None]:
+    """توافر بلاطات TileJSON بصدق: يجب أن تكون CDSE مُهيّأة **و** المؤشّر قابلاً
+    للتصيير (ضمن ``INDEX_EXPR`` بعد المرادفات).
+
+    ``truecolor`` (صورة الحقل الخام) ليس مؤشّراً مُصيَّراً في raster-service بعد —
+    فبلا هذا الفحص يُبلَّغ ``available=true`` (لأنّ CDSE مُهيّأة) بينما بلاطة
+    ``cdse-tiles`` تعود شفّافة، فتبدو الخريطة فارغة بلا سبب. نُبلِّغ الحقيقة بدل ذلك."""
+    import cdse_client as _cdse
+
+    if not configured:
+        return (
+            False,
+            "cdse_not_configured",
+            "صور Copernicus غير مُهيّأة: اضبط CDSE_CLIENT_ID وCDSE_CLIENT_SECRET "
+            "(أو SH_CLIENT_ID/SH_CLIENT_SECRET) في بيئة خدمة الراستر ثمّ أعِد التشغيل.",
+        )
+    internal = main._GRID_INDEX_ALIASES.get(index, index)
+    if internal not in _cdse.INDEX_EXPR:
+        return (
+            False,
+            "index_not_rendered",
+            "الصورة الخام (TrueColor) ليست مؤشّراً مُصيَّراً في raster-service بعد؛ "
+            "اختر مؤشّراً تفسيريّاً (NDVI/NDMI…) أو شغّل تجهيز الصور — ريثما يُضاف تصيير RGB.",
+        )
+    return True, None, None
+
+
 @router.get("/v1/fields/{field_id}/cdse-tilejson")
 async def field_cdse_tilejson(
     field_id: str,
@@ -349,6 +376,7 @@ async def field_cdse_tilejson(
     # المسار عبر البوّابة (nginx /api/raster/ → raster:8001/): الواجهة تحتاج
     # /api/raster/v1/… لا /v1/… المباشر كي تمرّ عبر proxy_pass في الإنتاج.
     configured = _cdse.is_configured()
+    available, reason, user_message = _tilejson_availability(configured, index)
     out = {
         "tilejson": "2.2.0",
         "name": f"cdse-{field_id}-{index}",
@@ -362,14 +390,12 @@ async def field_cdse_tilejson(
             round((bounds[1] + bounds[3]) / 2.0, 6),
             14,
         ],
-        "available": configured,
+        "available": available,
     }
-    if not configured:
-        # تشخيص صريح للواجهة (تقرأ note/reason/user_message): الصور معطّلة لأنّ اعتماد
-        # Copernicus غير مضبوط — لا بيانات مُلفَّقة، بل سبب واضح للمشغّل.
-        out["reason"] = "cdse_not_configured"
-        out["user_message"] = (
-            "صور Copernicus غير مُهيّأة: اضبط CDSE_CLIENT_ID وCDSE_CLIENT_SECRET "
-            "(أو SH_CLIENT_ID/SH_CLIENT_SECRET) في بيئة خدمة الراستر ثمّ أعِد التشغيل."
-        )
+    # تشخيص صريح للواجهة (تقرأ note/reason/user_message): لا بيانات مُلفَّقة، بل سبب
+    # واضح (اعتماد غير مضبوط، أو مؤشّر غير مُصيَّر مثل truecolor).
+    if reason:
+        out["reason"] = reason
+    if user_message:
+        out["user_message"] = user_message
     return out

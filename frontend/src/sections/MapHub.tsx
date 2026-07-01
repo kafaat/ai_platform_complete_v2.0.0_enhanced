@@ -31,7 +31,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
-import { kongApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, type FieldImageryDateOption } from '../services/api';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -89,6 +89,7 @@ const BASEMAPS = layersOfKind('basemap').map((b) => ({ id: b.id, label: b.labelA
 
 // تسمية مختصرة + حدّا المفتاح للطبقة (عرض ColormapLegend).
 const LAYER_LEGEND: Record<string, { short: string; low: string; high: string }> = {
+  truecolor: { short: 'TrueColor', low: 'صورة خام', high: 'ألوان طبيعية' },
   ndvi: { short: 'NDVI', low: 'إجهاد', high: 'كثيف' },
   ndmi: { short: 'NDMI', low: 'جافّ', high: 'رطب' },
   salinity: { short: 'الملوحة', low: 'منخفضة', high: 'مرتفعة' },
@@ -120,6 +121,15 @@ function cloudBandColor(value: number | null | undefined): string {
   if (value <= 45) return '#f59e0b';
   return '#dc2626';
 }
+
+
+type TrueColorRuntimeStatus = {
+  state: 'idle' | 'checking' | 'ready' | 'unavailable' | 'error';
+  message: string;
+  endpoint?: string;
+};
+
+const TRUECOLOR_UNAVAILABLE_MESSAGE = 'الصورة الخام غير جاهزة من raster-service — شغّل تجهيز سنتين تاريخية أو تحقّق من إعدادات CDSE.';
 
 function summarizeTwoYearTimeline(dates: FieldImageryDateOption[]): { items: FieldImageryDateOption[]; ready: number; pending: number; avgCloud: number | null } {
   const valid = dates
@@ -182,6 +192,7 @@ export default function MapHub() {
   const [imageryTs, setImageryTs] = useState(0); // cache-bust للبلاطات بعد معالجة Sentinel/COG
   const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
   const [availableImageryDates, setAvailableImageryDates] = useState<FieldImageryDateOption[]>([]);
+  const [trueColorRuntime, setTrueColorRuntime] = useState<TrueColorRuntimeStatus>({ state: 'idle', message: 'لم يتم اختيار حقل بعد.' });
   const [historicalBackfillBusy, setHistoricalBackfillBusy] = useState(false);
   const [historicalBackfillStatus, setHistoricalBackfillStatus] = useState<string | null>(null);
   const [showImageryTimeline, setShowImageryTimeline] = useState(false);
@@ -481,6 +492,43 @@ export default function MapHub() {
   }, [fields, search]);
 
 
+  // v54: تحقق Runtime من أن العرض الافتراضي TrueColor ليس مجرد حالة UI؛ بل
+  // يطلب cdse-tilejson من raster-service لنفس الحقل/التاريخ/المؤشر. عند عدم
+  // الجاهزية نعرض رسالة صادقة بدلاً من ترك خريطة الأساس تبدو كصورة حقل محلّلة.
+  useEffect(() => {
+    if (!fieldId || indicatorActive !== RAW_IMAGERY_INDEX_ID) {
+      setTrueColorRuntime({ state: 'idle', message: 'التحقق خاص بصورة TrueColor الخام عند اختيار حقل.' });
+      return;
+    }
+    let cancelled = false;
+    setTrueColorRuntime({ state: 'checking', message: 'جارٍ التحقق من جاهزية TrueColor عبر raster-service…', endpoint: 'cdse-tilejson' });
+    const params = {
+      index: RAW_IMAGERY_INDEX_ID,
+      ...(selectedImageryDate && selectedImageryDate !== 'latest' ? { date: selectedImageryDate } : {}),
+      ...(tenantId ? { tenant_id: tenantId, tid: tenantId } : {}),
+    };
+    rasterApi
+      .get(`/v1/fields/${fieldId}/cdse-tilejson`, { params })
+      .then((r) => {
+        if (cancelled) return;
+        const data = r.data as { available?: boolean; user_message?: string; note?: string; reason?: string; resolved_date?: string | null };
+        if (data?.available === false) {
+          setTrueColorRuntime({
+            state: 'unavailable',
+            message: data.user_message || data.note || data.reason || TRUECOLOR_UNAVAILABLE_MESSAGE,
+            endpoint: 'cdse-tilejson',
+          });
+          return;
+        }
+        const resolved = data?.resolved_date ? ` · التاريخ: ${data.resolved_date}` : '';
+        setTrueColorRuntime({ state: 'ready', message: `TrueColor جاهز كبلاطات Sentinel-2 من raster-service داخل حدود الحقل${resolved}.`, endpoint: 'cdse-tilejson' });
+      })
+      .catch(() => {
+        if (!cancelled) setTrueColorRuntime({ state: 'error', message: TRUECOLOR_UNAVAILABLE_MESSAGE, endpoint: 'cdse-tilejson' });
+      });
+    return () => { cancelled = true; };
+  }, [fieldId, indicatorActive, selectedImageryDate, tenantId]);
+
   const fieldSummary = useMemo(() => {
     const totalArea = fields.reduce((sum, f) => sum + (Number(f.area) || 0), 0);
     const crops = new Set(fields.map((f) => (f.crop || '').trim()).filter((c) => c && c !== '—'));
@@ -527,9 +575,9 @@ export default function MapHub() {
   const mapDataStatus = useMemo(() => {
     if (!fieldId) return { tone: 'warn' as const, label: 'اختر حقلاً', hint: 'لن تُحمّل المؤشرات قبل تحديد حقل.' };
     if (!indicatorActive) return { tone: 'info' as const, label: 'لا طبقة نشطة', hint: 'افتح صورة الحقل الخام أو اختر مؤشراً تفسيرياً.' };
-    if (indicatorActive === RAW_IMAGERY_INDEX_ID) return { tone: 'ok' as const, label: 'صورة الحقل الخام', hint: 'TrueColor هو العرض الافتراضي داخل حدود الحقل؛ لا يحتاج scale legend.' };
+    if (indicatorActive === RAW_IMAGERY_INDEX_ID) return { tone: trueColorRuntime.state === 'ready' ? 'ok' as const : trueColorRuntime.state === 'checking' ? 'info' as const : 'warn' as const, label: 'صورة الحقل الخام TrueColor', hint: trueColorRuntime.message };
     return { tone: 'ok' as const, label: 'مؤشر نشط', hint: `سيتم تحميل ${LAYER_LEGEND[indicatorActive]?.short ?? indicatorActive} داخل حدود الحقل.` };
-  }, [fieldId, indicatorActive]);
+  }, [fieldId, indicatorActive, trueColorRuntime]);
 
   // ── بيانات طبقات التراكب (حيّة، أمانة صارمة) ──────────────────
   // تنبيهات/أجهزة استعلامات React Query رخيصة مُخزَّنة — نُشغّلها دوماً (لا نُهدر
@@ -1120,6 +1168,29 @@ export default function MapHub() {
               </div>
             </Card>
 
+            {indicatorActive === RAW_IMAGERY_INDEX_ID && trueColorRuntime.state !== 'ready' && (
+              <Card pad={10}>
+                <div dir="rtl" data-testid="truecolor-runtime-readiness" className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs font-bold" style={{ color: trueColorRuntime.state === 'checking' ? '#93c5fd' : '#fbbf24' }}>
+                      تحقق صورة الحقل الخام
+                    </div>
+                    <div className="text-[11px] mt-1" style={{ color: T.faint }}>{trueColorRuntime.message}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePrepareTwoYearImagery}
+                    disabled={historicalBackfillBusy || !selected?.geometry}
+                    className="px-2 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{ background: historicalBackfillBusy ? '#475569' : '#854d0e', border: '1px solid #f59e0b66', color: '#fff7ed' }}
+                    data-testid="truecolor-backfill-cta"
+                  >
+                    {historicalBackfillBusy ? 'جارٍ التجهيز…' : 'تجهيز صورة TrueColor'}
+                  </button>
+                </div>
+              </Card>
+            )}
+
             {/* شريط الأدوات: الأساس + الطبقات + الشفّافيّة + الرسم/الدبابيس/المقارنة */}
             {mode === '2d' && (
               <Card pad={12}>
@@ -1157,7 +1228,7 @@ export default function MapHub() {
                         disabled={historicalBackfillBusy || !selected?.geometry}
                         className="px-2 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                         style={{ background: historicalBackfillBusy ? '#475569' : '#854d0e', border: '1px solid #f59e0b66', color: '#fff7ed' }}
-                        title="يشغّل backfill تاريخي لمدة 24 شهر للمؤشر الحالي + NDVI/NDMI"
+                        title="يشغّل backfill تاريخي لمدة 24 شهر لصورة TrueColor + المؤشر الحالي + NDVI/NDMI"
                       >
                         {historicalBackfillBusy ? 'جارٍ تجهيز سنتين…' : 'تجهيز سنتين تاريخية'}
                       </button>
