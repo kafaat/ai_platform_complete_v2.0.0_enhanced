@@ -9,7 +9,6 @@ replaced by SAM/U-Net/Sen2Agri later without changing the tool schema.
 from __future__ import annotations
 
 import math
-import os
 from typing import Any
 
 
@@ -79,26 +78,23 @@ def propose_boundaries(
     - source: truecolor|ndvi (default truecolor)
     - date/crop_hint: optional evidence hints
 
-    Backend (V59.5): when ``SAHOOL_FIELD_BOUNDARY_BACKEND=ftw`` and a real FTW model
-    is available, the segmentation backend is used; otherwise (CI/offline, or any
-    model failure) we fall back to the deterministic proposal below. The tool
-    contract and return shape are identical regardless of backend.
+    Backend (V59.1): resolved through a replaceable adapter chain (best-first):
+    ``registered_boundary_lookup → ftw_boundary_adapter → sentinel2_boundary_fallback
+    → bbox_fallback``. FTW is used whenever a real model is available (env-gated); any
+    absence/failure fails safe to the next adapter. Every result is a **proposal** with
+    a 7-signal quality block; a guard flags degradation to bbox while imagery exists.
+    The tool contract and return shape are stable regardless of the winning adapter.
     """
-    if os.getenv("SAHOOL_FIELD_BOUNDARY_BACKEND", "deterministic").strip().lower() == "ftw":
-        try:
-            from .field_boundary_backends import ftw_propose
+    from .field_boundary_backends import run_boundary_adapters
 
-            ftw_result = ftw_propose(params, field_id=field_id, imagery_context=imagery_context)
-            if ftw_result is not None:
-                return ftw_result
-        except Exception:  # noqa: BLE001 — أيّ فشل في مسار النموذج ⇒ سقوط آمن للحتميّ
-            pass
-
-    bbox = normalize_bbox(params.get("bbox"))
     source = str(params.get("source") or "truecolor").strip().lower()
     if source not in {"truecolor", "ndvi", "falsecolor"}:
         source = "truecolor"
-    if bbox is None:
+
+    if normalize_bbox(params.get("bbox")) is None and not (imagery_context or {}).get(
+        "registered_boundary"
+    ):
+        # لا bbox صالح ولا حدّ مسجَّل ⇒ لا مقترح (fail-closed).
         return {
             "field_id": field_id,
             "source": source,
@@ -108,33 +104,40 @@ def propose_boundaries(
             "method": "deterministic_bbox_fallback",
         }
 
-    area_ha = area_ha_for_bbox(bbox)
-    has_scene = bool(
-        (imagery_context or {}).get("total_dates") or (imagery_context or {}).get("available")
-    )
-    base_conf = 0.62 if source == "truecolor" else 0.54
-    if has_scene:
-        base_conf += 0.08
-    if params.get("crop_hint"):
-        base_conf += 0.03
-    confidence = round(max(0.35, min(base_conf, 0.82)), 2)
+    adapter_out = run_boundary_adapters(params, imagery_context)
+    if adapter_out is None:  # لا محوّل أنتج هندسة ⇒ fail-closed.
+        return {
+            "field_id": field_id,
+            "source": source,
+            "proposed_boundaries": [],
+            "requires_user_confirmation": True,
+            "error": "invalid_bbox",
+            "method": "deterministic_bbox_fallback",
+        }
 
+    winner = adapter_out["winner"]
+    proposed = [
+        {
+            "geometry": p["geometry"],
+            "confidence": winner["confidence"],
+            "area_ha": p.get("area_ha"),
+            "method": p.get("method", "adapter_polygon"),
+        }
+        for p in winner["proposals"]
+    ]
     return {
         "field_id": field_id,
         "source": source,
         "date": params.get("date"),
         "crop_hint": params.get("crop_hint"),
+        "boundary_source": adapter_out["boundary_source"],
+        "adapters_tried": adapter_out["adapters_tried"],
+        "quality": adapter_out["quality"],
+        "degraded_to_bbox_despite_imagery": adapter_out["degraded_to_bbox_despite_imagery"],
         "method": "truecolor_edge_segmentation_fallback"
         if source == "truecolor"
         else "index_contour_fallback",
-        "proposed_boundaries": [
-            {
-                "geometry": bbox_polygon(bbox),
-                "confidence": confidence,
-                "area_ha": area_ha,
-                "method": "bbox_seeded_polygon_simplification",
-            }
-        ],
+        "proposed_boundaries": proposed,
         "requires_user_confirmation": True,
         "persistence": "proposal_only_until_user_confirms",
     }

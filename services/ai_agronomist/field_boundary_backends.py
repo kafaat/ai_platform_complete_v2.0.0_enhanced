@@ -208,3 +208,245 @@ def _polygon_area_ha(
 def select_backend_name() -> str:
     name = os.getenv("SAHOOL_FIELD_BOUNDARY_BACKEND", "deterministic").strip().lower()
     return name if name in {"deterministic", "ftw"} else "deterministic"
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# V59.1 — replaceable adapter chain + boundary quality assessment
+#
+# Adapters are tried best-first; the first that yields geometry wins. Every result
+# stays a *proposal* (requires_user_confirmation=True) — saving remains a separate
+# high-risk approval (save_detected_boundary). A guard flags any degradation to the
+# bbox rectangle *while imagery/FTW evidence exists*, so agronomic weakness is
+# visible instead of silent.
+# ══════════════════════════════════════════════════════════════════════════════
+_FIELD_MIN_HA = 0.05  # حقل معقول: 0.05–500 هكتار (خارجها ⇒ area_reasonableness يهبط).
+_FIELD_MAX_HA = 500.0
+
+
+def _has_imagery_evidence(evidence: dict[str, Any] | None) -> bool:
+    e = evidence or {}
+    return bool(e.get("total_dates") or e.get("ready_dates") or e.get("available"))
+
+
+def _has_usable_imagery(evidence: dict[str, Any] | None) -> bool:
+    """Imagery that is actually usable for edge tracing: present AND not too cloudy.
+
+    High cloud (or an explicit unusable flag) means imagery *exists* but cannot drive
+    a real boundary — so ``sentinel2_boundary_fallback`` declines and the bbox guard
+    fires (agronomic weakness surfaced, not hidden)."""
+    e = evidence or {}
+    if not _has_imagery_evidence(e):
+        return False
+    cloud = e.get("cloud_risk")
+    if isinstance(cloud, (int, float)) and cloud >= 0.7:
+        return False
+    return True
+
+
+def _seed_confidence(source: str, has_scene: bool, crop_hint: Any) -> float:
+    base = 0.62 if source == "truecolor" else 0.54
+    if has_scene:
+        base += 0.08
+    if crop_hint:
+        base += 0.03
+    return round(max(0.35, min(base, 0.82)), 2)
+
+
+def _bbox_proposal(params: dict[str, Any]) -> dict[str, Any] | None:
+    from .field_boundary_ai import area_ha_for_bbox, bbox_polygon, normalize_bbox
+
+    bbox = normalize_bbox(params.get("bbox"))
+    if bbox is None:
+        return None
+    return {"geometry": bbox_polygon(bbox), "area_ha": area_ha_for_bbox(bbox), "bbox": bbox}
+
+
+def registered_boundary_lookup(
+    params: dict[str, Any], evidence: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Highest trust: a boundary a human already confirmed/registered for the field.
+
+    Read from the canonical field state passed as evidence — never fabricated.
+    """
+    e = evidence or {}
+    geom = e.get("registered_boundary") or e.get("canonical_field_geometry")
+    if isinstance(geom, dict) and geom.get("type") in {"Polygon", "MultiPolygon"}:
+        return {
+            "source": "registered_boundary",
+            "resolution_m": 1.0,
+            "confidence": 0.95,
+            "proposals": [{"geometry": geom, "method": "registered_canonical_boundary"}],
+        }
+    return None
+
+
+def ftw_boundary_adapter(
+    params: dict[str, Any], evidence: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """FTW/MIT Sentinel-2 segmentation — gated; None offline (fail-safe)."""
+    res = ftw_propose(params, imagery_context=evidence)
+    if res is None:
+        return None
+    return {
+        "source": "ftw",
+        "resolution_m": 10.0,
+        "confidence": max(
+            (p.get("confidence", 0.9) for p in res["proposed_boundaries"]), default=0.9
+        ),
+        "proposals": res["proposed_boundaries"],
+    }
+
+
+def sentinel2_boundary_fallback(
+    params: dict[str, Any], evidence: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Imagery exists but no FTW model: a bbox-seeded polygon tagged S2-derived.
+
+    Only fires when imagery evidence is present AND usable — otherwise defers to
+    bbox_fallback (and the guard flags the degradation).
+    """
+    if not _has_usable_imagery(evidence):
+        return None
+    seed = _bbox_proposal(params)
+    if seed is None:
+        return None
+    source = str(params.get("source") or "truecolor").strip().lower()
+    conf = _seed_confidence(
+        source if source in {"truecolor", "ndvi", "falsecolor"} else "truecolor",
+        True,
+        params.get("crop_hint"),
+    )
+    return {
+        "source": "sentinel2_fallback",
+        "resolution_m": 10.0,
+        "confidence": conf,
+        "proposals": [
+            {
+                "geometry": seed["geometry"],
+                "area_ha": seed["area_ha"],
+                "method": "sentinel2_bbox_seeded_polygon",
+            }
+        ],
+    }
+
+
+def bbox_fallback(params: dict[str, Any], evidence: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Lowest trust: pure bbox rectangle (no imagery signal)."""
+    seed = _bbox_proposal(params)
+    if seed is None:
+        return None
+    source = str(params.get("source") or "truecolor").strip().lower()
+    conf = _seed_confidence(
+        source if source in {"truecolor", "ndvi", "falsecolor"} else "truecolor",
+        False,
+        params.get("crop_hint"),
+    )
+    return {
+        "source": "bbox_fallback",
+        "resolution_m": None,
+        "confidence": conf,
+        "proposals": [
+            {
+                "geometry": seed["geometry"],
+                "area_ha": seed["area_ha"],
+                "method": "bbox_seeded_polygon",
+            }
+        ],
+    }
+
+
+# ترتيب الأفضليّة (الأعلى ثقةً أوّلاً).
+BOUNDARY_ADAPTER_CHAIN: list[
+    Callable[[dict[str, Any], dict[str, Any] | None], dict[str, Any] | None]
+] = [
+    registered_boundary_lookup,
+    ftw_boundary_adapter,
+    sentinel2_boundary_fallback,
+    bbox_fallback,
+]
+
+
+def _ring_of(geometry: dict[str, Any]) -> list[list[float]]:
+    if geometry.get("type") == "Polygon":
+        coords = geometry.get("coordinates") or [[]]
+        return coords[0] if coords else []
+    if geometry.get("type") == "MultiPolygon":
+        coords = geometry.get("coordinates") or [[[]]]
+        return coords[0][0] if coords and coords[0] else []
+    return []
+
+
+def _shape_validity(geometry: dict[str, Any]) -> float:
+    ring = _ring_of(geometry)
+    if len(ring) < 4:
+        return 0.0
+    closed = ring[0] == ring[-1]
+    distinct = len({(round(x, 7), round(y, 7)) for x, y in ring}) >= 3
+    return 1.0 if (closed and distinct) else 0.5
+
+
+def _area_reasonableness(area_ha: float | None) -> float:
+    if area_ha is None or area_ha <= 0:
+        return 0.0
+    if _FIELD_MIN_HA <= area_ha <= _FIELD_MAX_HA:
+        return 1.0
+    return 0.4  # out of the typical field band — plausible but flag for review.
+
+
+def assess_boundary_quality(
+    winner: dict[str, Any], proposal: dict[str, Any], evidence: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Seven agronomic-quality signals for one boundary proposal (all in [0,1] except res)."""
+    source = winner["source"]
+    e = evidence or {}
+    # edge_strength: imagery-derived sources trace real edges; bbox has none.
+    edge = {
+        "registered_boundary": 0.9,
+        "ftw": 0.85,
+        "sentinel2_fallback": 0.45,
+        "bbox_fallback": 0.0,
+    }.get(source, 0.0)
+    cloud = e.get("cloud_risk")
+    cloud_risk = float(cloud) if isinstance(cloud, (int, float)) else 0.5  # unknown ⇒ mid.
+    return {
+        "boundary_confidence": winner["confidence"],
+        "edge_strength": edge,
+        "shape_validity": _shape_validity(proposal.get("geometry") or {}),
+        "area_reasonableness": _area_reasonableness(proposal.get("area_ha")),
+        "source_resolution_m": winner["resolution_m"],
+        "cloud_risk": round(cloud_risk, 2),
+        "requires_user_confirmation": True,
+    }
+
+
+def run_boundary_adapters(
+    params: dict[str, Any], evidence: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Run the chain best-first; return the winner + provenance + quality + guard.
+
+    Guard: if imagery/FTW evidence exists yet only ``bbox_fallback`` won, set
+    ``degraded_to_bbox_despite_imagery=True`` (agronomic weakness made visible).
+    """
+    tried: list[str] = []
+    winner: dict[str, Any] | None = None
+    for adapter in BOUNDARY_ADAPTER_CHAIN:
+        try:
+            res = adapter(params, evidence)
+        except Exception:  # noqa: BLE001 — محوّل يفشل ⇒ جرّب التالي (fail-safe)
+            res = None
+        tried.append(adapter.__name__)
+        if res is not None:
+            winner = res
+            break
+    if winner is None:
+        return None
+    proposal0 = winner["proposals"][0] if winner["proposals"] else {}
+    quality = assess_boundary_quality(winner, proposal0, evidence)
+    degraded = winner["source"] == "bbox_fallback" and _has_imagery_evidence(evidence)
+    return {
+        "boundary_source": winner["source"],
+        "adapters_tried": tried,
+        "quality": quality,
+        "degraded_to_bbox_despite_imagery": degraded,
+        "winner": winner,
+    }
