@@ -46,7 +46,17 @@ _REQUIRED_BY_TOOL: dict[str, list[str]] = {
 
 # result sanitization
 _HTML_TAG = re.compile(r"<[^>]+>")
-_ZERO_WIDTH = re.compile(r"[​-‏‪-‮﻿]")
+# Zero-width + bidirectional control chars (ZWSP/ZWNJ/ZWJ, LRM/RLM, embeddings/overrides,
+# isolates, word-joiner, BOM). Built from code points so the SOURCE carries no raw control
+# characters (avoids bandit B613 trojan-source); the compiled pattern still strips them.
+_ZERO_WIDTH_CODEPOINTS = (
+    list(range(0x200B, 0x2010))  # ZWSP..RLM
+    + list(range(0x202A, 0x202F))  # bidi embeddings/overrides + PDF
+    + list(range(0x2060, 0x2065))  # word-joiner + invisible math ops
+    + list(range(0x2066, 0x206A))  # bidi isolates
+    + [0xFEFF]  # BOM / ZWNBSP
+)
+_ZERO_WIDTH = re.compile("[" + "".join(chr(c) for c in _ZERO_WIDTH_CODEPOINTS) + "]")
 _ALLOWED_RESULT_KEYS = {
     "tool_call_id",
     "tool",
