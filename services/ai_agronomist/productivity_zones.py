@@ -130,6 +130,47 @@ def propose_productivity_zones(
     total_area = area_ha_for_bbox(bbox)
     zone_area = round(total_area / zone_count, 3) if zone_count else total_area
 
+    # V60.1 — real NDVI-driven zoning when a grid is available (opt-in); else strips.
+    from .productivity_zones_clustering import extract_ndvi_grid, zones_from_ndvi_grid
+
+    grid = extract_ndvi_grid(params, evidence_context)
+    clustered = zones_from_ndvi_grid(grid, bbox, zone_count) if grid else None
+    if clustered:
+        total_px = sum(len(r) for r in grid) or 1
+        cl_conf = round(
+            max(0.42, min(confidence + 0.05 * clustered["cluster_separability"], 0.92)), 2
+        )
+        cl_zones = [
+            {
+                "zone_id": z["zone_id"],
+                "productivity_class": z["productivity_class"],
+                "label_ar": _LABELS_AR[z["productivity_class"]],
+                "score": z["score"],
+                "ndvi_centroid": z["ndvi_centroid"],
+                "confidence": cl_conf,
+                "area_ha": round(total_area * z["pixel_area"] / total_px, 3),
+                "geometry": z["geometry"],
+                "drivers": ["ndvi_grid_kmeans", *drivers][:5],
+                "recommended_use": "soil_sampling_stratum"
+                if z["productivity_class"] != "medium"
+                else "baseline_management",
+            }
+            for z in clustered["zones"]
+        ]
+        return {
+            "field_id": field_id,
+            "basis": basis,
+            "method": "ndvi_kmeans_clustering",
+            "source_evidence_dates": total_dates,
+            "cluster_separability": clustered["cluster_separability"],
+            "ndvi_centroids": clustered["ndvi_centroids"],
+            "k_effective": clustered["k_effective"],
+            "productivity_zones": cl_zones,
+            "requires_user_confirmation": True,
+            "persistence": "proposal_only_until_user_confirms",
+            "next_step": "v61_soil_sampling_planner",
+        }
+
     zones: list[dict[str, Any]] = []
     # Stable class ordering: high/medium/low, repeated only if >3 zones.
     class_order = list(_CLASSES) + ["medium", "low"]
