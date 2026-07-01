@@ -88,6 +88,18 @@ def mask_to_polygons(
     cols = len(mask[0]) if rows else 0
     if not rows or not cols:
         return []
+    # V62.2 — real contour tracing is an explicit opt-in (SAHOOL_BOUNDARY_CONTOUR_TRACING)
+    # so default output stays deterministic across envs; the pure per-component rectangle
+    # below is the default + offline/CI fallback.
+    if os.getenv("SAHOOL_BOUNDARY_CONTOUR_TRACING", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        traced = _mask_to_polygons_rasterio(mask, bbox, min_area_px=min_area_px)
+        if traced is not None:
+            return traced
     polys: list[dict[str, Any]] = []
     for cells in connected_components(mask):
         if len(cells) < max(1, min_area_px):
@@ -105,6 +117,42 @@ def mask_to_polygons(
         ring.append(list(ring[0]))  # close the ring
         polys.append({"type": "Polygon", "coordinates": [ring], "pixel_area": len(cells)})
     return polys
+
+
+def _mask_to_polygons_rasterio(
+    mask: Mask, bbox: Sequence[float], *, min_area_px: int
+) -> list[dict[str, Any]] | None:
+    """True contour tracing via ``rasterio.features.shapes`` when available; else None.
+
+    Traces each connected region's real outline (not a rectangle) and reprojects pixel
+    coords to EPSG:4326 with an affine from the tile bbox. Any import/runtime issue ⇒
+    None so the caller uses the pure rectangle fallback (offline/CI)."""
+    try:
+        import numpy as np
+        from rasterio.features import shapes
+        from rasterio.transform import from_bounds
+    except Exception:  # noqa: BLE001 — rasterio/numpy غير متاحين ⇒ سقوط للنقيّ
+        return None
+    try:
+        arr = np.asarray([[1 if c else 0 for c in row] for row in mask], dtype="uint8")
+        rows, cols = arr.shape
+        if rows == 0 or cols == 0:
+            return []
+        lon_min, lat_min, lon_max, lat_max = bbox
+        transform = from_bounds(lon_min, lat_min, lon_max, lat_max, cols, rows)
+        out: list[dict[str, Any]] = []
+        for geom, val in shapes(arr, mask=arr == 1, transform=transform):
+            if int(val) != 1:
+                continue
+            ring = geom.get("coordinates", [[]])[0]
+            if len(ring) < 4:
+                continue
+            out.append(
+                {"type": "Polygon", "coordinates": geom["coordinates"], "pixel_area": len(ring)}
+            )
+        return out or None
+    except Exception:  # noqa: BLE001 — أيّ فشل تتبّع ⇒ سقوط للنقيّ
+        return None
 
 
 # ── FTW backend (scaffold; inference gated + fail-safe) ─────────────────────

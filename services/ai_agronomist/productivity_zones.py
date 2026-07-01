@@ -145,6 +145,7 @@ def propose_productivity_zones(
                 "zone_id": z["zone_id"],
                 "productivity_class": z["productivity_class"],
                 "label_ar": _LABELS_AR[z["productivity_class"]],
+                "zoning_method": "ndvi_kmeans_clustering",
                 "score": z["score"],
                 "ndvi_centroid": z["ndvi_centroid"],
                 "confidence": cl_conf,
@@ -182,6 +183,9 @@ def propose_productivity_zones(
                 "zone_id": f"pz-{i + 1}",
                 "productivity_class": cls,
                 "label_ar": _LABELS_AR[cls],
+                "zoning_method": "multi_index_quantile_zoning_fallback"
+                if total_dates
+                else "geometry_seeded_zoning_fallback",
                 "score": score,
                 "confidence": confidence,
                 "area_ha": zone_area,

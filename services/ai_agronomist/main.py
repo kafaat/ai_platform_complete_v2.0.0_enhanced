@@ -8,7 +8,14 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from . import ai_generation, approval, harness_transparency, observation_context, tool_loop
+from . import (
+    ai_generation,
+    approval,
+    harness_transparency,
+    observation_context,
+    runtime_evidence,
+    tool_loop,
+)
 from .decision_contracts import (
     EvidenceItem,
     EvidenceStrength,
@@ -200,6 +207,27 @@ async def deny_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
         }
     )
     return {"status": "denied", "approval": decided, "executes_tool": False}
+
+
+class ExportPreviewRequest(BaseModel):
+    prescription: dict[str, Any]
+    format: str = Field(default="geojson", max_length=32)
+
+
+@app.post("/prescription/export-preview")
+async def prescription_export_preview(req: ExportPreviewRequest) -> dict[str, Any]:
+    """V62.2 — build a machine-format export PREVIEW for a VRA prescription.
+
+    Preview only: the returned payload is ``machine_executable=False`` /
+    ``requires_approval=True``. Writing to a controller / exporting a real file stays
+    the ``create_prescription_map`` high-risk approval + agronomist review — this
+    endpoint never performs it.
+    """
+    from .prescription_export_adapters import build_prescription_export
+
+    result = build_prescription_export(req.prescription, req.format)
+    result.setdefault("executes_export", False)
+    return result
 
 
 @app.get("/metrics")
@@ -436,16 +464,18 @@ def _build_agent_tool_fetcher(
                 "note": "فعل واجهة منخفض الخطر؛ لا يغيّر بيانات الحقل.",
             }
         if tool_name == "detect_field_boundaries":
+            # V62.2 — enrich with derived cloud_risk/ready so the degradation guard is real.
             return propose_boundaries(
                 params,
                 field_id=str(field_id) if field_id is not None else None,
-                imagery_context=pack.get("imagery_timeline") or {},
+                imagery_context=runtime_evidence.boundary_imagery_context(pack),
             )
         if tool_name == "generate_productivity_zones":
+            # V62.2 — forward a real NDVI grid (if the raster pipeline supplied one).
             return propose_productivity_zones(
                 params,
                 field_id=str(field_id) if field_id is not None else None,
-                evidence_context=pack,
+                evidence_context=runtime_evidence.zoning_evidence_context(pack),
             )
         if tool_name == "plan_soil_sampling":
             return plan_soil_sampling(

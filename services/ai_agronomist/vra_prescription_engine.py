@@ -221,8 +221,19 @@ def generate_vra_prescription(
         )
 
     avg_rate = round(weighted_total / total_area, 2) if total_area > 0 else base_rate
+    # V62.2 — gate: zones derived from geometry only (no NDVI/index evidence) are too weak
+    # to anchor a VRA prescription; flag and require stronger zoning before execution.
+    _GEOM_SEEDED = {"geometry_seeded_zoning_fallback", "geometry_seeded_sampling_fallback"}
+    zoning_evidence_backed = any(
+        str(z.get("zoning_method") or "").strip() not in _GEOM_SEEDED for z in zones
+    )
     readiness_status = "proposal_only" if not has_lab else "review_required_before_export"
     warnings: list[str] = []
+    if not zoning_evidence_backed:
+        warnings.append(
+            "المناطق مشتقّة من الهندسة فقط (بلا NDVI/مؤشّرات)؛ الوصفة ضعيفة زراعياً — "
+            "زوّد شبكة NDVI أو مناطق مؤكّدة قبل أي اعتماد أو تصدير."
+        )
     if not has_lab:
         warnings.append(
             "الوصفة تقديرية لأن نتائج المختبر غير مرفقة؛ لا تُصدّر للآلة قبل مراجعة مهندس زراعي أو نتائج تربة."
@@ -254,6 +265,7 @@ def generate_vra_prescription(
         "readiness_gate": {
             "status": readiness_status,
             "reason": "lab_supported" if has_lab else "estimated_with_user_consent",
+            "zoning_evidence_backed": zoning_evidence_backed,
             "ready_for_machine_export": False,
             "required_before_export": [
                 "human_approval",

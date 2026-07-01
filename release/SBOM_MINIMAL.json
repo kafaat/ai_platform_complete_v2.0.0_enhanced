@@ -5525,7 +5525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18717476dc46b540fb7c25e807a5be94b722ab05117f13f282c4fdbdb7320d93"
+          "content": "ab3576d25d63d6a950413afa57cd859b7028240c3e33a46dd00afdb40281db5b"
         }
       ],
       "name": "services/ai_agronomist/field_boundary_backends.py",
@@ -5575,7 +5575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f812e8098bcdff22cec8adb1d4c95066e73aa958e522835dffa0969d330660e9"
+          "content": "212567c99cf3a61f8a1d8431afa2d3310959b95c8138a19f34e3497b2d862f3c"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -5625,7 +5625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3c6781a36a7b33476844e07258cd9afafe05d04f2f69be74c5f6e2c53e45090"
+          "content": "2c381182c0c6a2740bdbda28515340580736bc9d1cf553a8c7e1ee5c637de31f"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
@@ -5689,6 +5689,16 @@
         }
       ],
       "name": "services/ai_agronomist/retry_policies.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a8f076ee393087c8595d7221954e6ca53315ef5570c1b76d40c0f24abf39036"
+        }
+      ],
+      "name": "services/ai_agronomist/runtime_evidence.py",
       "type": "file"
     },
     {
@@ -5785,7 +5795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0d0ea3f40adf4de7075f2d2cb1937db598a48f45d261c008155283935b9ca53"
+          "content": "413ed9c036fb171b4af305ae1016f045f86e78b09fe1366cdb3f0e1ef1f59195"
         }
       ],
       "name": "services/ai_agronomist/vra_prescription_engine.py",
