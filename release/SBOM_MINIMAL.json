@@ -5425,6 +5425,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b8a685fc9a3b15f7fdc50029489f83714e10a88b44e53a5cdd1db601c8f3cd2a"
+        }
+      ],
+      "name": "services/ai_agronomist/observation_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "21ae22ac5cd8ca83fc98117beb3edef03a728a46cf85be0f96236523781989d4"
         }
       ],
