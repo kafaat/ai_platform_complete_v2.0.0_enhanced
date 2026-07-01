@@ -56,9 +56,7 @@ def test_there_are_decomposed_services():
 
 
 def _copies_whole_dir(src: str, svc: str) -> bool:
-    return (
-        re.search(rf"COPY\s+(services/{re.escape(svc)}/?\s|\.\s)", src) is not None
-    )
+    return re.search(rf"COPY\s+(services/{re.escape(svc)}/?\s|\.\s)", src) is not None
 
 
 @pytest.mark.parametrize("svc", _decomposed_services())
@@ -121,9 +119,7 @@ def test_dockerfile_ships_local_sibling_modules(svc: str):
     assert not missing, (
         f"{svc}: main.py يستورد وحدات شقيقة لا ينسخها Dockerfile: {missing} — "
         f"ModuleNotFoundError عند الإقلاع. أضِف لكلٍّ:\n"
-        + "\n".join(
-            f"  COPY services/{svc}/{mod}.py /app/{mod}.py" for mod in missing
-        )
+        + "\n".join(f"  COPY services/{svc}/{mod}.py /app/{mod}.py" for mod in missing)
     )
 
 
