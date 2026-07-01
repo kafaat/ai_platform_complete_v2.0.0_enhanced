@@ -5515,10 +5515,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8319e330f9f50304dc6caa4819e723c4ba62667ef6b8841aff140a70a14cefed"
+          "content": "1fcbd62282756547ea26580a0ab051d2bf94bb1f5c21f55828d401423b9173cf"
         }
       ],
       "name": "services/ai_agronomist/field_boundary_ai.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eec4d62f85f7b25885efd384b2a9c5a6c16d08cafb4c2b9a1c45e78912e20330"
+        }
+      ],
+      "name": "services/ai_agronomist/field_boundary_backends.py",
       "type": "file"
     },
     {

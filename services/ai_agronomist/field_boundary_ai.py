@@ -9,6 +9,7 @@ replaced by SAM/U-Net/Sen2Agri later without changing the tool schema.
 from __future__ import annotations
 
 import math
+import os
 from typing import Any
 
 
@@ -77,7 +78,22 @@ def propose_boundaries(
     - bbox: required [lon_min, lat_min, lon_max, lat_max]
     - source: truecolor|ndvi (default truecolor)
     - date/crop_hint: optional evidence hints
+
+    Backend (V59.5): when ``SAHOOL_FIELD_BOUNDARY_BACKEND=ftw`` and a real FTW model
+    is available, the segmentation backend is used; otherwise (CI/offline, or any
+    model failure) we fall back to the deterministic proposal below. The tool
+    contract and return shape are identical regardless of backend.
     """
+    if os.getenv("SAHOOL_FIELD_BOUNDARY_BACKEND", "deterministic").strip().lower() == "ftw":
+        try:
+            from .field_boundary_backends import ftw_propose
+
+            ftw_result = ftw_propose(params, field_id=field_id, imagery_context=imagery_context)
+            if ftw_result is not None:
+                return ftw_result
+        except Exception:  # noqa: BLE001 — أيّ فشل في مسار النموذج ⇒ سقوط آمن للحتميّ
+            pass
+
     bbox = normalize_bbox(params.get("bbox"))
     source = str(params.get("source") or "truecolor").strip().lower()
     if source not in {"truecolor", "ndvi", "falsecolor"}:
