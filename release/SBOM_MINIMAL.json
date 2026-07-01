@@ -5515,7 +5515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1fcbd62282756547ea26580a0ab051d2bf94bb1f5c21f55828d401423b9173cf"
+          "content": "af79cf8f2242d5b714d200865074393e00b5529a84005b072b0ca767fce5539e"
         }
       ],
       "name": "services/ai_agronomist/field_boundary_ai.py",
@@ -5525,7 +5525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eec4d62f85f7b25885efd384b2a9c5a6c16d08cafb4c2b9a1c45e78912e20330"
+          "content": "18717476dc46b540fb7c25e807a5be94b722ab05117f13f282c4fdbdb7320d93"
         }
       ],
       "name": "services/ai_agronomist/field_boundary_backends.py",
@@ -5615,10 +5615,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "64f45f03408ae38cda27cee8605ca1dc458cab07743599282b1d428552aa2350"
+          "content": "9419d8c305bbefe0a8ed22e6f897cc62762cd8018b7ada476927242d93096f16"
+        }
+      ],
+      "name": "services/ai_agronomist/prescription_export_adapters.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3c6781a36a7b33476844e07258cd9afafe05d04f2f69be74c5f6e2c53e45090"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "df29d439af0a0e15c94268f23fc1301907688b42ade16d943f1fbaada0016e83"
+        }
+      ],
+      "name": "services/ai_agronomist/productivity_zones_clustering.py",
       "type": "file"
     },
     {
@@ -5705,10 +5725,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4fe09c7eceb27b9f2fed10c5ad26c05d2f001f01383cb5258acb676b2d6e156"
+          "content": "67f83a9ed33fae6e0fe9d413116518e0ffbba766e8144d4ab16fdd04c6dc0ffc"
         }
       ],
       "name": "services/ai_agronomist/soil_sampling_planner.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2a3b1fd14b3bd095e436457ae270768cc221812e0d53503235a9ac54aa3774d9"
+        }
+      ],
+      "name": "services/ai_agronomist/soil_sampling_strategies.py",
       "type": "file"
     },
     {
@@ -5755,7 +5785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a61deebc007f061e93cd58fead6af9742856a8964d04b88409018d89c07dba7c"
+          "content": "d0d0ea3f40adf4de7075f2d2cb1937db598a48f45d261c008155283935b9ca53"
         }
       ],
       "name": "services/ai_agronomist/vra_prescription_engine.py",

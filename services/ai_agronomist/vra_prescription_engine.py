@@ -36,6 +36,16 @@ _CLASS_RATIONALE_AR = {
 }
 
 
+def _available_export_formats() -> list[str]:
+    """Advertised machine-export formats (V62.1 adapters); export stays approval-gated."""
+    try:
+        from .prescription_export_adapters import available_formats
+
+        return available_formats()
+    except Exception:  # noqa: BLE001 — تعذّر استيراد المحوّلات ⇒ الحدّ الأدنى الآمن
+        return ["geojson"]
+
+
 def _as_float(value: Any) -> float | None:
     try:
         out = float(value)
@@ -236,7 +246,7 @@ def generate_vra_prescription(
             "total_area_ha": round(total_area, 3),
             "confidence": confidence,
             "readiness_status": readiness_status,
-            "machine_export_formats": ["geojson"],
+            "machine_export_formats": _available_export_formats(),
             "requires_agronomist_review": True,
         },
         "prescription_zones": prescription_zones,
