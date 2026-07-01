@@ -111,9 +111,9 @@ export default function MyFieldsPage() {
             // MapHub يقرأ selectedFieldId عبر useSelectedField ويعرض بلاطات cdse-tiles
             // ومؤشرات الحقل المختار دون إدخال مسار جديد أو كسر النمط الحالي.
             setSelectedField(fieldId);
-            // الافتراضيّ: صورة الحقل (القمر الصناعيّ) بلا مؤشّر مُلوَّن ولا طقس.
-            navigate(`/fields/map-center?field_id=${encodeURIComponent(fieldId)}&source=my-fields`, {
-              state: { fieldId, openCdse: true, from: 'my-fields' },
+            // الافتراضيّ المحمي: صورة الحقل الخام TrueColor؛ الطقس والمؤشّرات overlays اختيارية.
+            navigate(`/fields/map-center?field_id=${encodeURIComponent(fieldId)}&source=my-fields&indicator=truecolor`, {
+              state: { fieldId, openCdse: true, indicator: 'truecolor', showWeather: false, from: 'my-fields' },
             });
           }}
         />

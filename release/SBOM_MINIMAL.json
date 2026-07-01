@@ -1935,7 +1935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d9a04540e38e7bef934aeb8b2a0b23babd5dfdf810ab41686467604002920ff"
+          "content": "173082322fe3983e43f2c92356ba301365a57272c4a7a734b023bcafdc37d3a1"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",
@@ -2705,7 +2705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "409eb790afd1071ce3111bcb2c1b3476d2267d9ddac2fee59547fdd0e9cb3a50"
+          "content": "5193d6aff10b9e0211c5a6f95891896d291aa576a5a95423740ea7778b6bcee5"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -2715,7 +2715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc2424803284ac4b33c5280ca1604065a7886e7161fd7aa26906da7bdcbfd7ec"
+          "content": "2c8ca137050de3b9fda20126ae5e54090c2fcc3c7c4d42fd6ecee2a58fd4731e"
         }
       ],
       "name": "frontend/src/sections/MapHubSatelliteDefault.static.test.ts",
@@ -2765,7 +2765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "740f647beaab6d7db6ca53d08b2ba3615e982bbb6f1101ccca4fd97e80acd0ac"
+          "content": "b4bf2d3eb934caeb31d4628e0668f8e68739d2d20c5c0d1dded06ce02d027bfb"
         }
       ],
       "name": "frontend/src/sections/MyFieldsPage.tsx",

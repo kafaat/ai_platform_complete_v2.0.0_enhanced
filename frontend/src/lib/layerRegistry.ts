@@ -101,6 +101,17 @@ export const LAYER_REGISTRY = [
     description: 'تراكب مضلّع حدود الحقل المشتقّ من هندسة الحقل (لا بلاطات).',
   },
 
+  // ── صورة الحقل الخام (TrueColor) — البلاطة الافتراضيّة عند فتح الحقل ──
+  {
+    id: 'truecolor',
+    labelAr: 'صورة الحقل الخام (TrueColor)',
+    kind: 'index',
+    source: 'truecolor',
+    opacity: 1,
+    defaultVisible: true,
+    description: 'صورة Sentinel-2 خام بألوان طبيعية داخل حدود الحقل؛ ليست مؤشّراً ملوّناً ولا تحتاج scale legend.',
+  },
+
   // ── المؤشّرات الطيفيّة (Indices) — بلاطات raster-service فوق حدود الحقل ──
   // المصدر = معرّف index لـraster-service · colormap = مفتاح CMAP (DS).
   {
@@ -110,7 +121,7 @@ export const LAYER_REGISTRY = [
     source: 'ndvi',
     colormap: 'ndvi',
     opacity: 0.85,
-    defaultVisible: true,
+    defaultVisible: false,
     description: 'صحّة الغطاء النباتيّ — إجهاد (منخفض) إلى كثيف (مرتفع).',
   },
   {

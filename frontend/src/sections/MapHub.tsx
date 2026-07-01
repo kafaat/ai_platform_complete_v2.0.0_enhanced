@@ -76,12 +76,13 @@ const GL_ENGINE = MAP_ENGINE === 'maplibre';
 // ── الطبقات القابلة للعرض كبلاطات مؤشّر (raster) — من السجلّ ──
 // كلّ المؤشّرات التي يحسبها raster-service (CDSE INDEX_EXPR) مع لوحة DS موجودة.
 // ('moisture' المكافئ لـNDMI مُستثنى تفادياً للتكرار.)
+const RAW_IMAGERY_INDEX_ID = 'truecolor';
 const RASTER_INDEX_IDS = new Set([
-  'ndvi', 'ndmi', 'salinity', 'evi', 'savi', 'msavi', 'ndwi', 'gndvi', 'ndre', 'msi',
+  RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndmi', 'salinity', 'evi', 'savi', 'msavi', 'ndwi', 'gndvi', 'ndre', 'msi',
 ]);
 const INDICATOR_LAYERS = layersOfKind('index')
-  .filter((l) => RASTER_INDEX_IDS.has(l.id) && l.colormap != null)
-  .map((l) => ({ id: l.id, label: l.labelAr, cmap: l.colormap as CmapId }));
+  .filter((l) => RASTER_INDEX_IDS.has(l.id))
+  .map((l) => ({ id: l.id, label: l.labelAr, cmap: (l.colormap ?? 'ndvi') as CmapId }));
 
 // خرائط الأساس من السجلّ (kind:'basemap').
 const BASEMAPS = layersOfKind('basemap').map((b) => ({ id: b.id, label: b.labelAr }));
@@ -173,11 +174,11 @@ export default function MapHub() {
     || initialSearch.get('weather') === 'true';
   // فتح «حقل جديد» عبر رابط عميق (من شاشة «حقولي») — زرّ الإنشاء انتقل إلى حقولي.
   const requestedAddOpen = initialSearch.get('add') === '1';
-  // الافتراضيّ عند فتح حقل: صورة الحقل (القمر الصناعيّ) بلا طبقة مؤشّر مُلوَّنة —
-  // المؤشّر (NDVI…) يُختار عند الطلب فتظهر معه أسطورة المقياس. مؤشّر صريح بالرابط يُحترَم.
+  // الافتراضيّ عند فتح حقل: صورة الحقل الخام TrueColor من raster-service داخل حدود الحقل.
+  // المؤشرات NDVI/NDMI… overlays تفسيرية تُختار فوقها، والطقس لا يُفتح إلا صراحةً.
   const [activeIndicator, setActiveIndicator] = useState<string | null>(
-    requestedCdseOpen ? (routeIndicator ?? null) : (savedWorkspace?.activeIndicator ?? null),
-  ); // null = لا مؤشّر
+    requestedCdseOpen ? (routeIndicator ?? RAW_IMAGERY_INDEX_ID) : (savedWorkspace?.activeIndicator ?? RAW_IMAGERY_INDEX_ID),
+  );
   const [imageryTs, setImageryTs] = useState(0); // cache-bust للبلاطات بعد معالجة Sentinel/COG
   const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
   const [availableImageryDates, setAvailableImageryDates] = useState<FieldImageryDateOption[]>([]);
@@ -191,7 +192,7 @@ export default function MapHub() {
   const [drawTools, setDrawTools] = useState(savedWorkspace?.drawTools ?? false);
   const [pinMode, setPinMode] = useState(savedWorkspace?.pinMode ?? false);
   // ── طبقات التراكب (مستقلّة؛ تُستعاد من المخزن) ──────────
-  const [showWeather, setShowWeather] = useState(savedWorkspace?.showWeather ?? false);
+  const [showWeather, setShowWeather] = useState(requestedWeatherOpen); // لا نستعيد الطقس من workspace كي لا يصبح افتراضياً
   const [showAlerts, setShowAlerts] = useState(savedWorkspace?.showAlerts ?? false);
   const [showDevices, setShowDevices] = useState(savedWorkspace?.showDevices ?? false);
   const [showEquipment, setShowEquipment] = useState(false);
@@ -386,7 +387,7 @@ export default function MapHub() {
     setHistoricalBackfillBusy(true);
     setHistoricalBackfillStatus('جارٍ إنشاء خطة/مهمة backfill لمدة 24 شهر…');
     try {
-      const indices = Array.from(new Set([activeIndicator || 'ndvi', 'ndvi', 'ndmi'])).filter(Boolean);
+      const indices = Array.from(new Set([activeIndicator || RAW_IMAGERY_INDEX_ID, 'truecolor', 'ndvi', 'ndmi'])).filter(Boolean);
       const payload = {
         preset: 'custom' as const,
         months: 24,
@@ -525,7 +526,8 @@ export default function MapHub() {
 
   const mapDataStatus = useMemo(() => {
     if (!fieldId) return { tone: 'warn' as const, label: 'اختر حقلاً', hint: 'لن تُحمّل المؤشرات قبل تحديد حقل.' };
-    if (!indicatorActive) return { tone: 'info' as const, label: 'لا مؤشر نشط', hint: 'اختر NDVI أو NDMI أو الملوحة لعرض الصور الجوية.' };
+    if (!indicatorActive) return { tone: 'info' as const, label: 'لا طبقة نشطة', hint: 'افتح صورة الحقل الخام أو اختر مؤشراً تفسيرياً.' };
+    if (indicatorActive === RAW_IMAGERY_INDEX_ID) return { tone: 'ok' as const, label: 'صورة الحقل الخام', hint: 'TrueColor هو العرض الافتراضي داخل حدود الحقل؛ لا يحتاج scale legend.' };
     return { tone: 'ok' as const, label: 'مؤشر نشط', hint: `سيتم تحميل ${LAYER_LEGEND[indicatorActive]?.short ?? indicatorActive} داخل حدود الحقل.` };
   }, [fieldId, indicatorActive]);
 
@@ -1527,7 +1529,7 @@ export default function MapHub() {
                 {/* أسطورة المقياس العموديّة الموحَّدة (يمين الخريطة) — تظهر فقط عند
                     تفعيل مؤشّر مُلوَّن (لا فوق صورة الحقل المجرّدة). نفس مكوّن ونمط
                     FieldIndicatorMap، بنطاقات مطابقة لتصيير raster. */}
-                {indicatorActive && (() => {
+                {indicatorActive && indicatorActive !== RAW_IMAGERY_INDEX_ID && (() => {
                   const [vmin, vmax, invert] = INDEX_DOMAIN[indicatorActive] ?? [-0.2, 0.9, false];
                   return (
                     <div style={{ position: 'absolute', top: '50%', insetInlineEnd: 12, transform: 'translateY(-50%)', zIndex: 600, pointerEvents: 'none' }}>
@@ -1662,7 +1664,7 @@ function CompareMap({
   fields: ReturnType<typeof useSelectedField>['options'];
   selectedId: string; basemapId: string; indicatorId: string; opacity: number; imageryTs?: number; imageryDate?: string | null; tenantId?: string | null;
 }) {
-  const legend = LAYER_LEGEND[indicatorId];
+  const legend = indicatorId === RAW_IMAGERY_INDEX_ID ? undefined : LAYER_LEGEND[indicatorId];
   const cmap = INDICATOR_LAYERS.find((l) => l.id === indicatorId)?.cmap ?? 'ndvi';
   return (
     <div style={{ position: 'relative' }}>
