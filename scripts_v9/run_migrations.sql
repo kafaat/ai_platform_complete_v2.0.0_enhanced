@@ -411,3 +411,6 @@
 
 \echo '═══ 136. v129_mfa_hardening_followup.sql ═══'
 \i migrations/v129_mfa_hardening_followup.sql
+
+\echo '═══ 137. v130_soil_lab_evidence_hardening.sql ═══'
+\i migrations/v130_soil_lab_evidence_hardening.sql

@@ -495,3 +495,7 @@ v128_mfa_hardening.sql
 # app.current_role='admin' لا مجرّد tenant فارغ) · mfa_recovery_codes خدمة-فقط (لا
 # قراءة ذاتيّة للـhashes) · mfa_audit_events append-only. idempotent؛ بعد v128.
 v129_mfa_hardening_followup.sql
+# v130 (سطر v57.5): تصلّب أدلّة فحص التربة — أعمدة analytes مُصنَّفة/مُتحقَّقة (pH/EC/N/P/K/SAR…)
+# + عمق/طريقة العيّنة + سلسلة عهدة (collector/lab_received/report_file/approved_at) + إصدار
+# النتيجة (result_version/supersedes). إضافيّ idempotent؛ JSONB الخام يبقى المصدر؛ بعد v129.
+v130_soil_lab_evidence_hardening.sql
