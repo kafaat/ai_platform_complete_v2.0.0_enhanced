@@ -16,6 +16,7 @@ from . import (
     runtime_evidence,
     tool_loop,
 )
+from .agent_stores import build_approval_store, build_audit_store
 from .decision_contracts import (
     EvidenceItem,
     EvidenceStrength,
@@ -42,27 +43,25 @@ AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 app = FastAPI(title="SAHOOL AI Agronomist Runtime", version=VERSION)
 
-# V61.5 — lightweight durable-in-process ledgers for chat approvals/audits.
-# Production can replace these callbacks with DB/event-store writers without changing
-# the Harness contract. They deliberately store redacted approval/audit envelopes only.
-AGENT_TOOL_AUDIT_LOG: list[dict[str, Any]] = []
-PENDING_APPROVAL_STORE: dict[str, dict[str, Any]] = {}
+# V58.2 — swappable, persistent-ready approval/audit stores (memory default; Redis via
+# SAHOOL_AGENT_STORE_BACKEND=redis, fail-safe to memory). Replaces the v61.5 in-process
+# ledgers so chat approvals/audits survive restarts + are multi-worker safe in production.
+_AUDIT_STORE = build_audit_store()
+_APPROVAL_STORE = build_approval_store()
 
 
 def _save_agent_tool_audit(record: dict[str, Any]) -> None:
-    AGENT_TOOL_AUDIT_LOG.append(dict(record))
+    _AUDIT_STORE.append(record)
 
 
 def _save_pending_approval(request: dict[str, Any]) -> None:
-    approval_id = str(request.get("id") or "")
-    if approval_id:
-        PENDING_APPROVAL_STORE[approval_id] = dict(request)
+    _APPROVAL_STORE.save(request)
 
 
 def _approval_for_decision(incoming: dict[str, Any]) -> dict[str, Any]:
     approval_id = str(incoming.get("id") or "")
-    if approval_id and approval_id in PENDING_APPROVAL_STORE:
-        saved = dict(PENDING_APPROVAL_STORE[approval_id])
+    saved = _APPROVAL_STORE.get(approval_id) if approval_id else None
+    if saved:
         saved.update({k: v for k, v in incoming.items() if v is not None})
         return saved
     return dict(incoming)
@@ -207,6 +206,45 @@ async def deny_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
         }
     )
     return {"status": "denied", "approval": decided, "executes_tool": False}
+
+
+class ApprovalResumeRequest(BaseModel):
+    approval_id: str = Field(min_length=1, max_length=200)
+
+
+@app.post("/approvals/resume")
+async def resume_approved_tool(req: ApprovalResumeRequest) -> dict[str, Any]:
+    """V58.2 — resume a human-APPROVED agent tool as a governed execution handoff.
+
+    Reads the STORED approval by id (a client cannot fabricate one), verifies it was
+    approved, and returns the execution envelope for the owning domain service to run —
+    this runtime still never executes the mutating tool itself
+    (``executes_in_chat_runtime=False``). Unknown/not-approved ids fail closed.
+    """
+    stored = _APPROVAL_STORE.get(req.approval_id)
+    if stored is None:
+        raise HTTPException(404, "approval_not_found")
+    if str(stored.get("status") or "") != approval.STATUS_APPROVED:
+        raise HTTPException(409, f"approval_not_in_approved_state:{stored.get('status')}")
+    envelope = _approved_resume_envelope(stored)
+    _save_agent_tool_audit(
+        {
+            "tool": stored.get("tool"),
+            "params": stored.get("params") if isinstance(stored.get("params"), dict) else {},
+            "tenant_id": stored.get("tenant_id"),
+            "user_id": stored.get("user_id"),
+            "session_id": stored.get("session_id"),
+            "actor": stored.get("actor"),
+            "outcome": "resumed_for_domain_execution",
+            "risk": stored.get("risk"),
+            "capability": stored.get("capability"),
+            "input_hash": stored.get("input_hash"),
+            "timestamp": _utc_timestamp(),
+            "result_summary": "handoff_to_domain_service",
+            "result": envelope,
+        }
+    )
+    return {"status": "resumed", "approval_id": req.approval_id, "resume": envelope}
 
 
 class ExportPreviewRequest(BaseModel):
