@@ -585,6 +585,10 @@ async def generate(
     pending_approvals: list[dict[str, Any]] = []
     truncated = False
     rounds = 0
+    # V58.2c — run-level abuse protection shared across every tool round of this generation.
+    dedupe_seen: set[str] = set()
+    run_spent = 0
+    run_budget = tool_loop.DEFAULT_RUN_TOOL_BUDGET
     max_rounds = max(0, min(int(max_tool_rounds or 0), 5))
     tools = _provider_tools(cfg, allowed_capabilities) if max_rounds > 0 else []
     payload = _build_payload(cfg, question, context_text, max_tokens, tools=tools)
@@ -621,16 +625,25 @@ async def generate(
                     model=cfg.model,
                     audit_saver=audit_saver,
                     approval_saver=approval_saver,
+                    run_budget=run_budget,
+                    run_spent=run_spent,
+                    dedupe_seen=dedupe_seen,
+                    stop_on_pending=True,
                 )
                 batch_results = list(loop_out.get("tool_calls") or [])
                 tool_results.extend(batch_results)
                 pending_approvals.extend(list(loop_out.get("pending_approvals") or []))
                 truncated = truncated or bool(loop_out.get("truncated"))
+                run_spent += int(loop_out.get("handled_count") or 0)
                 rounds += 1
 
                 # إن وصلت أدوات تحتاج موافقة، نعيدها للمزوّد كـ tool_result ثم نمنع أدوات إضافية
-                # كي يُكمل جواباً يشرح أن التنفيذ بانتظار الإنسان.
-                next_tools = tools if rounds < max_rounds and not pending_approvals else None
+                # كي يُكمل جواباً يشرح أن التنفيذ بانتظار الإنسان. V58.2c — كذلك نمنع أدوات إضافية
+                # عند نفاد ميزانية الأدوات لهذا الـrun (يُكمل النموذج نصّاً على النتائج المتاحة).
+                budget_left = run_spent < run_budget
+                next_tools = (
+                    tools if rounds < max_rounds and not pending_approvals and budget_left else None
+                )
                 payload = _build_native_tool_result_payload(
                     cfg,
                     question,

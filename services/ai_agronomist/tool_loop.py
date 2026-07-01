@@ -16,7 +16,7 @@ from collections.abc import Callable
 from typing import Any
 
 from . import tool_governance
-from .approval import build_approval_request, emit_audit
+from .approval import build_approval_request, emit_audit, input_hash
 from .tool_executor import (
     OUTCOME_PENDING_APPROVAL,
     execute_read_tool,
@@ -29,7 +29,12 @@ ToolFetcher = Callable[[str, "dict[str, Any]"], Any]
 AuditSaver = Callable[["dict[str, Any]"], None]
 ApprovalSaver = Callable[["dict[str, Any]"], None]
 
-MAX_TOOL_CALLS = 8  # سقف صارم: يمنع حلقة أدوات لا تنتهي.
+MAX_TOOL_CALLS = 8  # سقف صارم لكلّ دفعة: يمنع حلقة أدوات لا تنتهي.
+# V58.2c — سقف إجماليّ عبر كلّ جولات run واحد (لا لكلّ دفعة). مع max_tool_rounds=3
+# وMAX_TOOL_CALLS=8 كان الحدّ النظريّ 24 أداة؛ هذا يقصّه إلى ميزانية تشغيل معقولة.
+DEFAULT_RUN_TOOL_BUDGET = 12
+OUTCOME_DUPLICATE_TOOL_CALL = "duplicate_tool_call"
+OUTCOME_SKIPPED_PENDING_GATE = "skipped_pending_gate"
 
 
 def run_tool_calls(
@@ -45,23 +50,59 @@ def run_tool_calls(
     max_calls: int = MAX_TOOL_CALLS,
     provider: str | None = None,
     model: str | None = None,
+    run_budget: int | None = None,
+    run_spent: int = 0,
+    dedupe_seen: set[str] | None = None,
+    stop_on_pending: bool = False,
 ) -> dict[str, Any]:
     """يُنفّذ طلبات أدوات النموذج عبر الحوكمة. كلّ عنصر: ``{tool, params?, id?}``.
 
-    يُرجِع: ``{tool_calls: [...نتائج...], pending_approvals: [...], truncated: bool}``
-    — جاهزةً لإسقاط الشفافيّة. القراءة المسموحة تُنفَّذ؛ المُعدِّلة/العالية ⇒ طلب موافقة."""
+    يُرجِع: ``{tool_calls, pending_approvals, truncated, handled_count, budget_exhausted}``
+    — جاهزةً لإسقاط الشفافيّة. القراءة المسموحة تُنفَّذ؛ المُعدِّلة/العالية ⇒ طلب موافقة.
+
+    V58.2c — حماية إساءة الحلقة (كلّها اختياريّة، الافتراضيّ يحفظ سلوك V56):
+    - ``run_budget``/``run_spent``: سقف إجماليّ عبر جولات run (المتّصِل يجمع ``handled_count``).
+    - ``dedupe_seen``: مجموعة يصونها المتّصِل؛ استدعاء بنفس ``tool+input_hash`` يُرفَض (لا يُنفَّذ).
+    - ``stop_on_pending``: بعد أوّل طلب موافقة في الدفعة، تُتخطّى بقيّة الأدوات (لا تفرّع بعد البوّابة)."""
     requests = [c for c in (tool_calls or []) if isinstance(c, dict)]
     truncated = len(requests) > max_calls
     requests = requests[:max_calls]
 
     results: list[dict[str, Any]] = []
     pending: list[dict[str, Any]] = []
+    handled = 0
+    budget_exhausted = False
+    gate_hit = False
 
     for idx, call in enumerate(requests):
         name = str(call.get("tool") or "")
         raw_params = call.get("params")
         params = raw_params if isinstance(raw_params, dict) else {}
         call_id = str(call.get("id") or f"req-{idx}")
+
+        # V58.2c — run-level tool budget across rounds: stop before over-spending.
+        if run_budget is not None and (run_spent + handled) >= run_budget:
+            budget_exhausted = True
+            truncated = True
+            break
+
+        # V58.2c — human-approval gate: after the first pending approval in this batch,
+        # do not execute further tools — return an explicit skip so the model stops
+        # fanning out and instead explains that execution awaits a human.
+        if stop_on_pending and gate_hit:
+            results.append(
+                {
+                    "tool_call_id": call_id,
+                    "tool": name,
+                    "outcome": OUTCOME_SKIPPED_PENDING_GATE,
+                    "reason": "skipped_after_pending_approval",
+                    "data": None,
+                    "requires_approval": False,
+                    "result_summary": "skipped:pending_approval_gate",
+                }
+            )
+            handled += 1
+            continue
 
         # V58.2b — reject malformed/missing-required/bad-enum args BEFORE any execution
         # or approval request (explicit outcome, fail-closed — never run with silent {}).
@@ -72,7 +113,32 @@ def run_tool_calls(
             result = tool_governance.malformed_result(name, call_id, reason or "invalid_arguments")
             emit_audit(_audit_from_result(result, tenant_id, actor, timestamp), audit_saver)
             results.append(result)
+            handled += 1
             continue
+
+        # V58.2c — dedupe identical (tool, input_hash) calls across the whole run; a repeat
+        # is rejected without execution (defends against a model looping on the same call).
+        input_h = input_hash(params)
+        dedupe_key = f"{name}:{input_h}"
+        if dedupe_seen is not None and dedupe_key in dedupe_seen:
+            result = {
+                "tool_call_id": call_id,
+                "tool": name,
+                "outcome": OUTCOME_DUPLICATE_TOOL_CALL,
+                "reason": "duplicate_input_hash",
+                "data": None,
+                "requires_approval": False,
+                "input_hash": input_h,
+                "params": params,
+                "field_id": params.get("field_id"),
+                "result_summary": "skipped:duplicate_tool_call",
+            }
+            emit_audit(_audit_from_result(result, tenant_id, actor, timestamp), audit_saver)
+            results.append(result)
+            handled += 1
+            continue
+        if dedupe_seen is not None:
+            dedupe_seen.add(dedupe_key)
 
         plan = plan_tool_call(name, params, allowed_capabilities)
         if plan["outcome"] == OUTCOME_PENDING_APPROVAL:
@@ -93,6 +159,7 @@ def run_tool_calls(
                     approval_saver(req)
                 except Exception as exc:  # best-effort: approval persistence must not break chat.
                     logger.warning("فشل حفظ طلب الموافقة %s: %s", req.get("id"), exc)
+            gate_hit = True  # V58.2c — halt further tool execution in this batch.
             result = {
                 "tool_call_id": str(call.get("id") or f"req-{idx}"),
                 "tool": name,
@@ -138,8 +205,15 @@ def run_tool_calls(
             results.append(result)
         else:
             results.append(tool_governance.sanitize_tool_result(result))
+        handled += 1
 
-    return {"tool_calls": results, "pending_approvals": pending, "truncated": truncated}
+    return {
+        "tool_calls": results,
+        "pending_approvals": pending,
+        "truncated": truncated,
+        "handled_count": handled,
+        "budget_exhausted": budget_exhausted,
+    }
 
 
 def _audit_from_result(

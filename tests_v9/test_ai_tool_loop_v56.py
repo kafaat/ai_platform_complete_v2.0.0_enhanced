@@ -123,4 +123,11 @@ def test_loop_empty_is_safe():
     out = LOOP.run_tool_calls(
         None, allowed_capabilities=None, fetcher=_fetcher, tenant_id="t", actor="ai", timestamp=_TS
     )
-    assert out == {"tool_calls": [], "pending_approvals": [], "truncated": False}
+    # V58.2c added additive keys (handled_count/budget_exhausted) to the return contract.
+    assert out == {
+        "tool_calls": [],
+        "pending_approvals": [],
+        "truncated": False,
+        "handled_count": 0,
+        "budget_exhausted": False,
+    }
