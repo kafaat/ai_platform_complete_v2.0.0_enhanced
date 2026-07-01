@@ -414,3 +414,6 @@
 
 \echo '═══ 137. v130_soil_lab_evidence_hardening.sql ═══'
 \i migrations/v130_soil_lab_evidence_hardening.sql
+
+\echo '═══ 138. v131_imagery_quality_metadata.sql ═══'
+\i migrations/v131_imagery_quality_metadata.sql

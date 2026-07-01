@@ -499,3 +499,7 @@ v129_mfa_hardening_followup.sql
 # + عمق/طريقة العيّنة + سلسلة عهدة (collector/lab_received/report_file/approved_at) + إصدار
 # النتيجة (result_version/supersedes). إضافيّ idempotent؛ JSONB الخام يبقى المصدر؛ بعد v129.
 v130_soil_lab_evidence_hardening.sql
+# v131 (سطر v57.5): بيانات جودة الصور على raster_assets — valid_pixel_ratio + coverage_ratio
+# (0..1، CHECK) + index_quality_flags + فهرس التقاط (أحدث/أنظف/أكثر تغطية). يكمل فجوة v54.
+# إضافيّ idempotent؛ بعد v130.
+v131_imagery_quality_metadata.sql
