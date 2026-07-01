@@ -2,6 +2,7 @@
   "description": "Accepted legacy/MVP markers that are compatibility/test/dev boundaries rather than production runtime defaults. New findings outside this list fail the Phase 21 audit.",
   "allowed": [
     "services/agriai-engine/main.py:mock_runtime",
+    "services/ai_agronomist/agent_stores.py:mvp_in_memory",
     "services/ai_agronomist/human_review_repository.py:mvp_in_memory",
     "services/ai_agronomist/recommendation_events.py:mvp_in_memory",
     "services/guardrails-engine/human_in_loop.py:mvp_in_memory",
