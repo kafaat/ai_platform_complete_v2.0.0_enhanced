@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-07-01 (ح) — إثبات P0 لـMFA على Postgres حقيقيّ + إصلاح إقلاع auth (mfa_crypto)
+
+**رأس `main` بعد الجلسة:** `46e86eb`. الفرع المخصّص `claude/code-review-34hO3` مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
+
+### الاختبارات كانت تتخطّى بصمت في CI (تصحيح ادّعاء سابق)
+- **`cb4ea31`**: أثبت المستخدم أنّ اختبار تكامل MFA كان **SKIPPED** في CI. السبب: اختباراتي قرأت `DATABASE_URL` بافتراضيّ وهميّ، بينما وظيفة *Integration* تضبط `TEST_DATABASE_URL` (localhost:5433) **وبلا fastapi**. أصلحتُ الأربعة (`test_mfa_hardening_integration_v29_5` + soil-lab/imagery/field_state v57.5) لاستخدام `TEST_DATABASE_URL` + `statement_cache_size=0`. اختبار MFA أُعيدت كتابته: `test_mfa_migrations_applied_on_real_postgres` (asyncpg نقيّ — **يعمل في CI**) + `test_mfa_end_to_end_via_app` (TestClient، `importorskip('fastapi')` — تخطٍّ شفّاف لا صامت).
+- **إثبات P0 (لقطة سجلّ CI، run 28553630120 job 84656203554):**
+  `test_mfa_migrations_applied_on_real_postgres PASSED [61%]` · `test_v131_applied_on_real_postgres PASSED` ·
+  `test_v130_applied_on_real_postgres PASSED` · `= 43 passed, 99 skipped =`. الاختبار الحاسم يثبت على Postgres حيّ: أعمدة/جداول v128 + RLS المُضيَّق v129 (recovery خدمة-فقط بلا self-read · audit يبقي هروب admin) + trigger append-only (probe سلوكيّ داخل tx مُلغى). **بذلك MFA مغلق إنتاجيّاً** (شرط المستخدم: «إذا مرّ هذا الاختبار…»).
+
+### عطل إقلاع auth الحقيقيّ (نفس صنف router_registry/otp)
+- **`abf1731`**: بعد `up -d --build` فشلت الحاوية: `ModuleNotFoundError: No module named 'mfa_crypto'` عند `main.py:163`. السبب: `services/auth/Dockerfile` ينسخ ملفّات مفردة ولم ينسخ `mfa_crypto.py` (وحدة v29.5). الإصلاح: `COPY services/auth/mfa_crypto.py`. + **حارس معمَّم** `test_dockerfile_ships_local_sibling_modules` في [`tests_v9/test_decomposed_service_dockerfile_guard.py`](../tests_v9/test_decomposed_service_dockerfile_guard.py): يمسح استيرادات `main.py` المستوى-الأعلى، يحدّد الوحدات الشقيقة الفعليّة (`.py` مجاور)، ويؤكّد نسخها — يلتقط otp.py + mfa_crypto.py اليوم والتالي تلقائيّاً.
+- **`46e86eb`**: `ruff format` للحارس (سطر واحد، بلا منطق) + تجديد بصمات الإصدار.
+
+### تشغيليّ (على المشغّل)
+- تطبيق الإصلاح: `docker compose -f docker-compose.v9.yml up -d --build sahool-auth` + ضبط `MFA_SECRET_ENCRYPTION_KEY` في `.env`.
+
+---
+
 ## 2026-07-01 (ز) — حوكمة الوكيل v58.2 + أدلّة v49.5 + تصلّب MFA v29.5/v29.6 + إصلاحات runtime
 
 **رأس `main` بعد الجلسة:** `4a3f1a4`. الفرع المخصّص `claude/code-review-34hO3` مطابق. كلّ دفعة CI 11/11 خضراء ثمّ ff-merge إلى main.

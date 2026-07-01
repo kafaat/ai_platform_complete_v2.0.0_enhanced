@@ -1,7 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `f9dc4c8` · [`log.md`](log.md) مدخل (ز).
-> 🔐 **تصلّب MFA إنتاجيّ مكتمل** (v29.5+v29.6): تشفير السرّ عند الراحة + recovery codes + قفل DB + تدقيق append-only + RLS مُضيَّق — مسار توافق لا يكسر المستخدمين القائمين.
+> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `46e86eb` · [`log.md`](log.md) مدخل (ح).
+> 🔐 **تصلّب MFA إنتاجيّ مكتمل ومُثبَت على Postgres حقيقيّ** (v29.5+v29.6): تشفير السرّ + recovery + قفل DB + تدقيق append-only + RLS مُضيَّق. **P0 مُغلَق:** `test_mfa_migrations_applied_on_real_postgres` مرّ فعليّاً في CI (لا تخطٍّ صامت) — أثبت v128/v129 + RLS المُضيَّق + trigger append-only على DB حيّ.
+> 🐳 **إصلاح إقلاع auth** (`abf1731`): `Dockerfile` لم ينسخ `mfa_crypto.py` ⇒ `ModuleNotFoundError` ⇒ unhealthy. أُصلِح + **حارس معمَّم** يمسح استيرادات main.py الشقيقة (otp/mfa_crypto…).
 > 🤖 **حوكمة الوكيل مكتملة** (v58.2a/b/c): مخازن دائمة + تحقّق وسائط + تعقيم نتائج + ميزانية/dedupe + كلّ mutating يتطلّب موافقة.
 > 🛰 **أدلّة الحقل** (v49.5) + **شقّ v57.5-DB مكتمل**: soil-lab analytes (v130) · imagery quality (v131) · field_state provenance (v132).
 > ✅ **`main@f9dc4c8` أخضر بالكامل:** ci.yml 11/11 (Integration يطبّق v127–v132 على Postgres حقيقيّ) + **Sahool Production Gates #209**.
@@ -26,6 +27,8 @@
 | v29.5 | `8810321` | تشفير MFA + recovery + قفل + تدقيق (ترحيل v128) |
 | JWT_SECRET نبات | `62989c6` | تمرير `JWT_SECRET` لخدمة vegetation في compose |
 | v29.6 | `4a3f1a4` | إصلاحات مراجعة MFA: RLS مُضيَّق + step-up محكوم + ذرّيّة + append-only (ترحيل v129) |
+| v57.5 CI | `cb4ea31` | اختبارات تكامل MFA/v57.5 كانت تتخطّى بصمت ⇒ استخدام `TEST_DATABASE_URL` (إثبات P0) |
+| auth-boot | `abf1731` | نسخ `mfa_crypto.py` في صورة auth + حارس وحدات شقيقة معمَّم |
 
 ## أعلى الفجوات الآن
 
@@ -33,7 +36,8 @@
 
 | ID | العنوان | الحالة |
 |---|---|---|
-| MFA-HARDEN | تصلّب MFA الإنتاجيّ (تشفير/recovery/قفل/تدقيق/RLS) | **fixed** (v128+v129؛ Integration أخضر) |
+| MFA-HARDEN | تصلّب MFA الإنتاجيّ (تشفير/recovery/قفل/تدقيق/RLS) | **fixed + P0 مُثبَت** (v128+v129؛ `test_mfa_migrations_applied_on_real_postgres` مرّ في CI على Postgres حيّ) |
+| AUTH-BOOT | صورة auth لم تنسخ `mfa_crypto.py` ⇒ ModuleNotFoundError ⇒ unhealthy | **fixed** (`abf1731` + حارس معمَّم) |
 | AGENT-GOV | حوكمة أدوات الوكيل (مخازن/تحقّق/تعقيم/ميزانية) | **fixed** (v58.2a/b/c) |
 | AIMEM-TENANT | سياق ذاكرة AI عابر-المستأجر بلا فلتر صريح | **fixed** (v49.5) |
 | VEG-JWT | خدمة النبات بلا `JWT_SECRET` في compose ⇒ 503 «تحليل الآن» | **fixed** (`62989c6`؛ يلزم `--build`/إعادة تشغيل) |
