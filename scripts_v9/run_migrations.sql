@@ -417,3 +417,6 @@
 
 \echo '═══ 138. v131_imagery_quality_metadata.sql ═══'
 \i migrations/v131_imagery_quality_metadata.sql
+
+\echo '═══ 139. v132_field_state_recompute_provenance.sql ═══'
+\i migrations/v132_field_state_recompute_provenance.sql

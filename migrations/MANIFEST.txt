@@ -503,3 +503,7 @@ v130_soil_lab_evidence_hardening.sql
 # (0..1، CHECK) + index_quality_flags + فهرس التقاط (أحدث/أنظف/أكثر تغطية). يكمل فجوة v54.
 # إضافيّ idempotent؛ بعد v130.
 v131_imagery_quality_metadata.sql
+# v132 (سطر v57.5): provenance إعادة حساب field_state — version (أحاديّ التزايد، يمنع دهس
+# إسقاط أحدث) + source_event_id (الحدث المُنتِج، لكشف الانحراف) + recomputed_at + فهرس جزئيّ.
+# يكمل فجوة v53. إضافيّ idempotent؛ بعد v131.
+v132_field_state_recompute_provenance.sql
