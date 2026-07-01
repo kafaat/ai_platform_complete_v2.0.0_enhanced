@@ -69,6 +69,17 @@ interface FieldAiContextPack {
 interface AiModel { id: string; label: string }
 interface AiModelsCatalog { provider?: string; default_model?: string | null; available?: boolean; models?: AiModel[] }
 interface AiEvidenceSource { key: string; label_ar?: string; available?: boolean; count?: number }
+// شفافيّة الـHarness (V55 المرحلة ٥): ماذا يرى الوكيل، قدراته، أدواته، وموافقاته.
+interface HarnessToolCall { tool?: string; outcome?: string; risk?: string; requires_approval?: boolean; reason?: string }
+interface HarnessApproval { id?: string; tool?: string; risk?: string; status?: string }
+interface HarnessTransparency {
+  sees?: { field_id?: string | null; active_layer?: string | null; selected_date?: string | null; raster_ready?: boolean; weather_source?: string | null; blind?: boolean };
+  notes?: string[];
+  capabilities?: string[];
+  data_sharing_level?: string;
+  tool_calls?: HarnessToolCall[];
+  pending_approvals?: HarnessApproval[];
+}
 interface AiChatResponse {
   answer_ar?: string;
   message?: string;
@@ -79,6 +90,7 @@ interface AiChatResponse {
   generation_provider?: string | null;
   generation_model?: string | null;
   ai_context_pack_readiness?: { warnings?: string[]; requires_imagery_backfill_24_months?: boolean } | null;
+  harness?: HarnessTransparency | null;
 }
 const MODEL_STORE_KEY = 'sahool.ai.model';
 
@@ -176,6 +188,7 @@ interface Msg {
   evidenceIds?: string[];
   evidenceSources?: AiEvidenceSource[];
   readinessWarnings?: string[];
+  harness?: HarnessTransparency;
 }
 
 // ── BotMessage component ─────────────────────────────────────────
@@ -236,6 +249,44 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
               {msg.readinessWarnings && msg.readinessWarnings.length > 0 && (
                 <div className="text-[10px] text-amber-600" data-testid="ai-readiness-warnings">
                   تنبيه جاهزية: {msg.readinessWarnings.slice(0, 2).join('؛ ')}
+                </div>
+              )}
+              {/* شفافيّة الوكيل (V55): ماذا يرى، قدراته، الأدوات المستخدمة، والموافقات */}
+              {msg.harness && (
+                <div className="text-[10px] space-y-1" data-testid="ai-harness-transparency">
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className={`rounded-full px-1.5 py-0.5 border ${msg.harness.sees?.blind ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100'}`}>
+                      {msg.harness.sees?.blind ? 'رؤية منقوصة' : 'يرى الحقل'}
+                    </span>
+                    {msg.harness.sees?.raster_ready != null && (
+                      <span className="text-slate-400">الصورة: {msg.harness.sees.raster_ready ? 'جاهزة' : 'غير جاهزة'}</span>
+                    )}
+                    {msg.harness.data_sharing_level && (
+                      <span className="text-slate-400">مشاركة: {msg.harness.data_sharing_level}</span>
+                    )}
+                    {msg.harness.capabilities && (
+                      <span className="text-slate-400">قدرات: {msg.harness.capabilities.length}</span>
+                    )}
+                  </div>
+                  {msg.harness.notes && msg.harness.notes.length > 0 && (
+                    <div className="text-slate-400" data-testid="ai-harness-notes">
+                      {msg.harness.notes.slice(0, 2).join('؛ ')}
+                    </div>
+                  )}
+                  {msg.harness.tool_calls && msg.harness.tool_calls.length > 0 && (
+                    <div className="flex flex-wrap gap-1" data-testid="ai-harness-tools">
+                      {msg.harness.tool_calls.slice(0, 6).map((tc, i) => (
+                        <span key={`${tc.tool}-${i}`} className="rounded-full px-1.5 py-0.5 border bg-slate-50 text-slate-500 border-slate-100">
+                          {tc.tool} · {tc.outcome}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {msg.harness.pending_approvals && msg.harness.pending_approvals.length > 0 && (
+                    <div className="text-orange-600" data-testid="ai-harness-approvals">
+                      بانتظار موافقة: {msg.harness.pending_approvals.map(p => p.tool).join('، ')}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -407,6 +458,7 @@ export function ChatbotPage() {
         generationModel: data.generation_model,
         evidenceIds: Array.isArray(data.evidence_ids) ? data.evidence_ids : [],
         evidenceSources: Array.isArray(data.evidence_sources) ? data.evidence_sources : [],
+        harness: data.harness || undefined,
         readinessWarnings: Array.isArray(data.ai_context_pack_readiness?.warnings)
           ? data.ai_context_pack_readiness?.warnings
           : [],

@@ -7,7 +7,7 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from . import ai_generation
+from . import ai_generation, harness_transparency, observation_context
 from .decision_contracts import (
     EvidenceItem,
     EvidenceStrength,
@@ -567,6 +567,31 @@ async def _build_evidence_response(
         endpoint_mode=endpoint_mode,
     )
 
+    # شفافيّة الـHarness (V55 المرحلة ٥): لقطة رصد صادقة يراها المستخدم — ماذا يرى
+    # الوكيل، قدراته، ومستوى مشاركة البيانات. استدعاءات الأدوات فارغة هنا (حلقة
+    # الأدوات المُوجَّهة بالنموذج تُوصَل لاحقاً)، لكنّ البنية والرصد حقيقيّان.
+    _pack = ai_pack if isinstance(ai_pack, dict) else {}
+    _readiness = _pack.get("readiness") or {}
+    if _readiness.get("requires_imagery_backfill_24_months"):
+        _raster_state = observation_context.RASTER_NOT_RENDERED
+    elif _readiness.get("complete"):
+        _raster_state = observation_context.RASTER_READY
+    else:
+        _raster_state = observation_context.RASTER_UNKNOWN
+    _weather = _pack.get("weather_history") or {}
+    _policy = TENANT_POLICY.get_policy(tenant_id)
+    observation = observation_context.build_observation(
+        field_id=req.field_id,
+        selected_date=req.selected_imagery_date,
+        raster_state=_raster_state,
+        weather_source="open-meteo" if _weather.get("available") else None,
+        last_api_errors=_readiness.get("warnings"),
+        policy=_policy if isinstance(_policy, dict) else {},
+    )
+    harness = harness_transparency.build_transparency(
+        observation=observation, tool_calls=[], pending_approvals=[]
+    )
+
     return {
         "status": "ok",
         "mode": mode,
@@ -586,6 +611,7 @@ async def _build_evidence_response(
         "ai_context_pack_readiness": ai_pack.get("readiness")
         if isinstance(ai_pack, dict)
         else None,
+        "harness": harness,
         "confidence": confidence,
         "guardrail_result": {
             "status": "not_executed",
