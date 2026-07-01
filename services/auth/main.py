@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import hmac
 import logging
 import os
 import secrets
@@ -919,7 +920,12 @@ async def _ensure_admin_user():
 # is migrated on the next successful verify (never breaks an un-migrated user's login).
 # ══════════════════════════════════════════════════════════════
 def _ip_hash(ip: str | None) -> str | None:
-    return hashlib.sha256(ip.encode("utf-8")).hexdigest()[:32] if ip else None
+    """Keyed HMAC of the IP (not a bare SHA-256 — a plain hash of an IPv4 is trivially
+    reversible by dictionary). Key = MFA_AUDIT_HASH_KEY or the service JWT_SECRET."""
+    if not ip:
+        return None
+    key = (os.getenv("MFA_AUDIT_HASH_KEY") or JWT_SECRET or "sahool-mfa-audit").encode("utf-8")
+    return hmac.new(key, ip.encode("utf-8"), hashlib.sha256).hexdigest()[:32]
 
 
 async def _emit_mfa_audit(
@@ -957,7 +963,9 @@ async def _store_recovery_codes(user_id: int, tenant_id: object | None, codes: l
     """Rotate recovery codes: drop old, store fresh SHA-256 hashes (plaintext never stored)."""
     if not _pool:
         return
-    async with _acquire() as conn:
+    async with _acquire() as conn, conn.transaction():
+        # V29.6 — one transaction: a failed insert after the delete must not leave the
+        # user with zero recovery codes (all-or-nothing rotation).
         await conn.execute("DELETE FROM mfa_recovery_codes WHERE user_id=$1", user_id)
         for code in codes:
             await conn.execute(
@@ -985,39 +993,54 @@ async def _consume_recovery_code(user_id: int, code: str) -> bool:
 
 async def _register_mfa_failure(
     user_id: int,
-    current_attempts: int | None,
+    current_attempts: int | None = None,  # kept for signature compat; count is read in SQL
     *,
+    event: str = "mfa_verify_failed",
+    locked_event: str = "mfa_locked",
     tenant_id: object | None = None,
     ip: str | None = None,
     request_id: str | None = None,
-) -> None:
-    """Increment the DB failure counter; lock after the threshold. Emits audit events."""
-    new_attempts, locked_until = mfa_crypto.register_failure(current_attempts or 0)
+) -> bool:
+    """Atomically increment the DB failure counter and lock at the threshold. Returns
+    whether the account is now locked. V29.6 — the increment + lock decision happen in one
+    UPDATE (mfa_failed_attempts = mfa_failed_attempts + 1 … CASE) so concurrent failed
+    attempts cannot lose increments (no read-modify-write race). Emits audit events."""
+    locked_now = False
     if _pool:
+        threshold = mfa_crypto.max_failed_attempts()
+        minutes = mfa_crypto.lockout_minutes()
         async with _acquire() as conn:
-            await conn.execute(
-                "UPDATE users SET mfa_failed_attempts=$1, mfa_locked_until=$2 WHERE id=$3",
-                new_attempts,
-                locked_until,
+            new_locked = await conn.fetchval(
+                "UPDATE users SET "
+                "  mfa_failed_attempts = mfa_failed_attempts + 1, "
+                "  mfa_locked_until = CASE "
+                "    WHEN mfa_failed_attempts + 1 >= $2 "
+                "    THEN NOW() + make_interval(mins => $3) ELSE mfa_locked_until END "
+                "WHERE id = $1 "
+                "RETURNING (mfa_failed_attempts >= $2 AND mfa_locked_until IS NOT NULL)",
                 user_id,
+                threshold,
+                minutes,
             )
+            locked_now = bool(new_locked)
     await _emit_mfa_audit(
         user_id=user_id,
-        event="mfa_verify_failed",
+        event=event,
         outcome="failed",
         tenant_id=tenant_id,
         ip=ip,
         request_id=request_id,
     )
-    if locked_until is not None:
+    if locked_now:
         await _emit_mfa_audit(
             user_id=user_id,
-            event="mfa_locked",
+            event=locked_event,
             outcome="locked",
             tenant_id=tenant_id,
             ip=ip,
             request_id=request_id,
         )
+    return locked_now
 
 
 async def _mfa_reset_and_maybe_migrate(user_id: int, secret: str | None, *, migrate: bool) -> None:
@@ -1075,6 +1098,16 @@ async def mfa_login_verify(row, code: str, *, ip: str = "unknown", request_id: s
             ip=ip,
         )
         return False, "key_missing"
+    except mfa_crypto.MfaSecretUndecryptable:
+        # V29.6 — corrupt ciphertext / rotated-away key ⇒ fail-closed with audit, never a 500.
+        await _emit_mfa_audit(
+            user_id=user_id,
+            event="mfa_verify_failed",
+            outcome="undecryptable",
+            tenant_id=tenant_id,
+            ip=ip,
+        )
+        return False, "undecryptable"
     used_plaintext = bool(
         (row["mfa_secret"] if "mfa_secret" in row else None)
         and not (row["encrypted_mfa_secret"] if "encrypted_mfa_secret" in row else None)
@@ -1084,13 +1117,7 @@ async def mfa_login_verify(row, code: str, *, ip: str = "unknown", request_id: s
     if not ok and await _consume_recovery_code(user_id, code):
         ok, via = True, "recovery"
     if not ok:
-        await _register_mfa_failure(
-            user_id,
-            row["mfa_failed_attempts"] if "mfa_failed_attempts" in row else 0,
-            tenant_id=tenant_id,
-            ip=ip,
-            request_id=request_id,
-        )
+        await _register_mfa_failure(user_id, tenant_id=tenant_id, ip=ip, request_id=request_id)
         return False, "invalid"
     await _mfa_reset_and_maybe_migrate(user_id, secret, migrate=used_plaintext)
     await _emit_mfa_audit(
@@ -1105,33 +1132,78 @@ async def mfa_login_verify(row, code: str, *, ip: str = "unknown", request_id: s
 
 
 # ── Admin endpoints ───────────────────────────────────────────
-async def _verify_caller_mfa(admin_user_id: int, mfa_code: str | None) -> bool:
-    """يتحقّق من رمز TOTP حديث ضدّ سرّ المُنفِّذ نفسه (step-up).
+async def _verify_caller_mfa(
+    admin_user_id: int, mfa_code: str | None, *, ip: str | None = None
+) -> bool:
+    """Step-up MFA for admin actions — now **governed** (V29.6): honours the same DB
+    lockout as login and writes an audit trail (mfa_stepup_*), so a stolen admin session
+    cannot brute-force step-up unaudited/unbounded.
 
-    fail-closed: يُرجِع True فقط حين يكون المستخدم موجوداً وMFA مفعّلاً ولديه سرّ
-    والرمز صحيح (نافذة ±30s، مطابِق تماماً لتحقّق الدخول). أيّ نقص (لا مستخدم،
-    MFA غير مفعّل، لا سرّ، رمز غائب/خاطئ) ⇒ False (يُرفض الإجراء). V29.5: يدعم
-    السرّ المشفّر مع توافق رجعيّ للنصّ (fail-closed عند غياب مفتاح لسرّ مشفّر).
+    fail-closed: True only when the user exists, MFA is enabled, a secret resolves, the
+    account is not locked, and the TOTP code is valid. Encrypted-secret aware with legacy
+    plaintext fallback; missing key / undecryptable ⇒ fail-closed (never 500).
     """
     if not mfa_code or not _pool:
         return False
     async with _acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT mfa_enabled, mfa_secret, encrypted_mfa_secret FROM users WHERE id=$1",
+            "SELECT id, tenant_id, mfa_enabled, mfa_secret, encrypted_mfa_secret, "
+            "mfa_failed_attempts, mfa_locked_until FROM users WHERE id=$1",
             admin_user_id,
         )
     if not row or not row["mfa_enabled"]:
         return False
-    encrypted = row["encrypted_mfa_secret"] if "encrypted_mfa_secret" in row else None
-    plaintext = row["mfa_secret"] if "mfa_secret" in row else None
+    tenant_id = row["tenant_id"] if "tenant_id" in row else None
+    if mfa_crypto.is_locked(row["mfa_locked_until"] if "mfa_locked_until" in row else None):
+        await _emit_mfa_audit(
+            user_id=admin_user_id,
+            event="mfa_stepup_locked",
+            outcome="blocked",
+            actor_user_id=admin_user_id,
+            tenant_id=tenant_id,
+            ip=ip,
+        )
+        return False
     try:
-        secret = mfa_crypto.resolve_mfa_secret(encrypted, plaintext)
-    except mfa_crypto.MfaKeyMissing:
+        secret = mfa_crypto.resolve_mfa_secret(
+            row["encrypted_mfa_secret"] if "encrypted_mfa_secret" in row else None,
+            row["mfa_secret"] if "mfa_secret" in row else None,
+        )
+    except (mfa_crypto.MfaKeyMissing, mfa_crypto.MfaSecretUndecryptable):
+        await _emit_mfa_audit(
+            user_id=admin_user_id,
+            event="mfa_stepup_failed",
+            outcome="crypto_degraded",
+            actor_user_id=admin_user_id,
+            tenant_id=tenant_id,
+            ip=ip,
+        )
         return False
-    if not secret:
+    if not secret or not pyotp.TOTP(secret).verify(mfa_code.strip(), valid_window=1):
+        await _register_mfa_failure(
+            admin_user_id,
+            event="mfa_stepup_failed",
+            locked_event="mfa_stepup_locked",
+            tenant_id=tenant_id,
+            ip=ip,
+        )
         return False
-    # نفس التحقّق المُستخدَم في الدخول حرفيّاً (pyotp.TOTP(...).verify(..., valid_window=1)).
-    return bool(pyotp.TOTP(secret).verify(mfa_code.strip(), valid_window=1))
+    # success: clear the lockout counters + audit.
+    async with _acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET mfa_failed_attempts=0, mfa_locked_until=NULL, "
+            "mfa_last_verified_at=NOW() WHERE id=$1",
+            admin_user_id,
+        )
+    await _emit_mfa_audit(
+        user_id=admin_user_id,
+        event="mfa_stepup_success",
+        outcome="success",
+        actor_user_id=admin_user_id,
+        tenant_id=tenant_id,
+        ip=ip,
+    )
+    return True
 
 
 # ── Tenant member invitations ─────────────────────────────────

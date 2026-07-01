@@ -66,14 +66,23 @@ async def login(req: main.LoginRequest, request: Request):
         # لمرّة واحدة + تدقيق. fail-closed: locked ⇒ 429، سرّ مشفّر بلا مفتاح ⇒ رفض.
         ok, reason = await main.mfa_login_verify(row, req.mfa_code, ip=ip)
         if not ok:
-            await main.record_failed_login(req.email)
             if reason == "locked":
+                await main.record_failed_login(req.email)
                 main.LOGIN_COUNTER.labels(status="mfa_locked").inc()
                 raise HTTPException(
                     status.HTTP_429_TOO_MANY_REQUESTS,
                     "تجاوزت محاولات MFA — الحساب مقفل مؤقّتاً، حاول لاحقاً",
                     headers={"X-MFA-Locked": "true"},
                 )
+            # V29.6 — سرّ مشفّر بلا مفتاح / تالف ليس خطأ مستخدِم: 503 مميّز، لا نحسبه فشلاً
+            # ولا نُدخِله في قفل الحساب (لا نُعاقِب المستخدِم على خلل تشفير الخادم).
+            if reason in ("key_missing", "undecryptable"):
+                main.LOGIN_COUNTER.labels(status="mfa_crypto_degraded").inc()
+                raise HTTPException(
+                    status.HTTP_503_SERVICE_UNAVAILABLE,
+                    "تعذّر التحقّق من MFA (خلل في تهيئة تشفير الخادم) — تواصل مع المسؤول",
+                )
+            await main.record_failed_login(req.email)
             main.LOGIN_COUNTER.labels(status="mfa_failed").inc()
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "رمز MFA غير صحيح")
 

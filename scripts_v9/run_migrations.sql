@@ -408,3 +408,6 @@
 
 \echo '═══ 135. v128_mfa_hardening.sql ═══'
 \i migrations/v128_mfa_hardening.sql
+
+\echo '═══ 136. v129_mfa_hardening_followup.sql ═══'
+\i migrations/v129_mfa_hardening_followup.sql

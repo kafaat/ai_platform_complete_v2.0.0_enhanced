@@ -491,3 +491,7 @@ v127_evidence_context_hardening.sql
 # + قفل دائم في DB (mfa_failed_attempts/mfa_locked_until) + رموز استرداد (hash فقط) +
 # سجلّ تدقيق MFA. إضافيّ idempotent؛ جداول auth عابرة للمستأجِر (بلا RLS). بعد v127.
 v128_mfa_hardening.sql
+# v129 (سطر v29.6): تصلّب MFA — متابعة أمنيّة فوق v128. تضييق هروب RLS (يتطلّب
+# app.current_role='admin' لا مجرّد tenant فارغ) · mfa_recovery_codes خدمة-فقط (لا
+# قراءة ذاتيّة للـhashes) · mfa_audit_events append-only. idempotent؛ بعد v128.
+v129_mfa_hardening_followup.sql

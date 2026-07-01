@@ -58,11 +58,17 @@ class MfaSecretUndecryptable(RuntimeError):
 
 
 # ── encryption ──────────────────────────────────────────────────────────────
+def _is_production() -> bool:
+    return os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+
+
 def _coerce_fernet_key(raw: str) -> bytes:
     """Accept a real Fernet key as-is; otherwise derive a deterministic 32-byte key.
 
-    Operators may set an arbitrary passphrase; we never fail on format — a non-Fernet
-    string is hashed (SHA-256) into a valid urlsafe-base64 32-byte Fernet key.
+    A non-Fernet passphrase is hashed (SHA-256) into a valid urlsafe-base64 Fernet key so
+    development is easy. V29.6 — in production a weak/derived key is refused unless the
+    operator opts in explicitly (``MFA_ALLOW_DERIVED_KEY=1``); this prevents silently
+    encrypting real secrets under a low-entropy passphrase.
     """
     import base64
 
@@ -72,7 +78,18 @@ def _coerce_fernet_key(raw: str) -> bytes:
     try:
         Fernet(candidate.encode())  # validates length/base64
         return candidate.encode()
-    except Exception:  # noqa: BLE001 — أيّ قيمة نصّيّة تُشتَقّ لمفتاح قانونيّ (لا تلفيق)
+    except Exception:  # noqa: BLE001 — ليست مفتاح Fernet قانونيّ ⇒ اشتقاق (أو رفض في الإنتاج)
+        allow_derived = os.getenv("MFA_ALLOW_DERIVED_KEY", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+        if _is_production() and not allow_derived:
+            raise MfaKeyMissing(
+                "MFA_SECRET_ENCRYPTION_KEY ليس مفتاح Fernet قانونيّاً في الإنتاج — "
+                "استخدم مفتاحاً قويّاً (Fernet.generate_key) أو اضبط MFA_ALLOW_DERIVED_KEY=1"
+            ) from None
         digest = hashlib.sha256(candidate.encode("utf-8")).digest()
         return base64.urlsafe_b64encode(digest)
 

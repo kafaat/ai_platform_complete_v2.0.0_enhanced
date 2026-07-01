@@ -50,6 +50,42 @@ def test_wrong_key_cannot_decrypt(monkeypatch):
         M.decrypt_secret(token)
 
 
+# ── V29.6 — production key quality ───────────────────────────────────────────
+def test_production_refuses_derived_key(monkeypatch):
+    # مفتاح ضعيف (ليس Fernet) في الإنتاج بلا سماح صريح ⇒ fail-closed.
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.delenv("MFA_ALLOW_DERIVED_KEY", raising=False)
+    monkeypatch.setenv("MFA_SECRET_ENCRYPTION_KEY", "weak-passphrase")
+    with pytest.raises(M.MfaKeyMissing):
+        M.encrypt_secret("SECRET123")
+
+
+def test_production_allows_derived_key_with_optin(monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.setenv("MFA_ALLOW_DERIVED_KEY", "1")
+    monkeypatch.setenv("MFA_SECRET_ENCRYPTION_KEY", "weak-passphrase")
+    token = M.encrypt_secret("SECRET123")
+    assert M.decrypt_secret(token) == "SECRET123"
+
+
+def test_production_accepts_valid_fernet_key(monkeypatch):
+    from cryptography.fernet import Fernet
+
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.delenv("MFA_ALLOW_DERIVED_KEY", raising=False)
+    monkeypatch.setenv("MFA_SECRET_ENCRYPTION_KEY", Fernet.generate_key().decode())
+    token = M.encrypt_secret("SECRET123")
+    assert M.decrypt_secret(token) == "SECRET123"
+
+
+def test_development_allows_derived_key(monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    monkeypatch.delenv("MFA_ALLOW_DERIVED_KEY", raising=False)
+    monkeypatch.setenv("MFA_SECRET_ENCRYPTION_KEY", "weak-passphrase")
+    token = M.encrypt_secret("SECRET123")
+    assert M.decrypt_secret(token) == "SECRET123"
+
+
 # ── مسار التوافق (resolve) ──────────────────────────────────────────────────
 def test_resolve_prefers_encrypted(monkeypatch):
     monkeypatch.setenv("MFA_SECRET_ENCRYPTION_KEY", _KEY)

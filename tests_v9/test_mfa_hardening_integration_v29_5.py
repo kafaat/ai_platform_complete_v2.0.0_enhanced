@@ -60,11 +60,15 @@ def _load_auth_main():
     return m
 
 
-async def _fetchrow(sql: str, *args):
+async def _fetchrow(sql: str, *args, as_service: bool = False):
     import asyncpg
 
     conn = await asyncpg.connect(os.environ["DATABASE_URL"])
     try:
+        if as_service:
+            # V29.6 — سياق الخدمة: نفس هروب RLS الذي يضبطه auth pool (_acquire/_init_auth_conn).
+            # تحت RLS المُضيَّق، جداول MFA لا تُقرَأ إلّا بـrole='admin' (أو superuser).
+            await conn.execute("SELECT set_config('app.current_role', 'admin', false)")
         return await conn.fetchrow(sql, *args)
     finally:
         await conn.close()
@@ -119,15 +123,40 @@ def test_mfa_hardening_end_to_end():
         assert r.status_code == 200, f"activate {r.status_code}: {r.text[:160]}"
         recovery_codes = r.json()["recovery_codes"]
         assert len(recovery_codes) == 10
-        # تُخزَّن كـhash فقط (لا نصّ في DB).
+        # تُخزَّن كـhash فقط (لا نصّ في DB) — تُقرأ بسياق الخدمة (role=admin) تحت RLS المُضيَّق.
         hashed = asyncio.run(
             _fetchrow(
                 "SELECT COUNT(*) AS n FROM mfa_recovery_codes rc "
                 "JOIN users u ON u.id = rc.user_id WHERE u.email=$1 AND rc.used_at IS NULL",
                 email,
+                as_service=True,
             )
         )
         assert hashed["n"] == 10
+
+        # ── V29.6 — إثبات السياق + تضييق RLS ──
+        # (1) هروب الخدمة role='admin' فعّال (نفس ما يضبطه auth pool على كلّ اتّصال).
+        ctx = asyncio.run(
+            _fetchrow("SELECT current_setting('app.current_role', true) AS role", as_service=True)
+        )
+        assert ctx["role"] == "admin"
+        # (2) السياسات المُضيَّقة مُطبَّقة: recovery خدمة-فقط، والجدولان بلا هروب tenant-null مجرّد.
+        pol = asyncio.run(
+            _fetchrow(
+                "SELECT string_agg(tablename || ':' || COALESCE(qual,''), ' | ') AS quals "
+                "FROM pg_policies WHERE tablename IN ('mfa_recovery_codes','mfa_audit_events')",
+                as_service=True,
+            )
+        )
+        quals = pol["quals"] or ""
+        assert "current_setting('app.current_role'::text, true) = 'admin'::text" in quals
+        # recovery codes: لا self-read (لا user_id في qual الخاص به).
+        rec_q = asyncio.run(
+            _fetchrow(
+                "SELECT qual FROM pg_policies WHERE tablename='mfa_recovery_codes'", as_service=True
+            )
+        )
+        assert "current_user_id" not in (rec_q["qual"] or "")
 
         # ── login بـTOTP صحيح ⇒ نجاح ──
         r = c.post(
@@ -159,6 +188,7 @@ def test_mfa_hardening_end_to_end():
                 "SELECT COUNT(*) AS n FROM mfa_audit_events ev "
                 "JOIN users u ON u.id = ev.user_id WHERE u.email=$1",
                 email,
+                as_service=True,
             )
         )
         assert audit["n"] >= 1

@@ -76,13 +76,19 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
         raise HTTPException(status.HTTP_404_NOT_FOUND, "المستخدم غير موجود")
     try:
         secret = main.mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
-    except main.mfa_crypto.MfaKeyMissing:
+    except (main.mfa_crypto.MfaKeyMissing, main.mfa_crypto.MfaSecretUndecryptable):
         raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "مفتاح تشفير MFA غير مُهيَّأ — تعذّر التفعيل"
+            status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من MFA (خلل تشفير الخادم)"
         ) from None
     if not secret:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "ابدأ الاقتران أولاً عبر /auth/mfa/setup")
     if not main.pyotp.TOTP(secret).verify(req.code.strip(), valid_window=1):
+        await main._emit_mfa_audit(
+            user_id=user_id,
+            event="mfa_activate_failed",
+            outcome="failed",
+            tenant_id=row["tenant_id"],
+        )
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح — تأكّد من تطبيق المصادقة")
 
     # رحّل أيّ سرّ نصّيّ قديم إلى مشفّر عند التفعيل (نقطة ترحيل نظيفة).
@@ -140,14 +146,21 @@ async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_cu
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "MFA غير مفعّل")
     try:
         secret = main.mfa_crypto.resolve_mfa_secret(row["encrypted_mfa_secret"], row["mfa_secret"])
-    except main.mfa_crypto.MfaKeyMissing:
+    except (main.mfa_crypto.MfaKeyMissing, main.mfa_crypto.MfaSecretUndecryptable):
         raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "مفتاح تشفير MFA غير مُهيَّأ — تعذّر التعطيل الآمن"
+            status.HTTP_503_SERVICE_UNAVAILABLE, "تعذّر التحقّق من MFA (خلل تشفير الخادم)"
         ) from None
     # حالة غير متّسقة (مفعّل بلا سرّ): لا تُمرّر None لـpyotp (تجنّب 500) — أبلغ صراحةً.
     if not secret:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "حالة MFA غير متّسقة — تواصل مع المسؤول")
     if not main.pyotp.TOTP(secret).verify(req.code.strip(), valid_window=1):
+        # V29.6 — تعطيل MFA فعل حسّاس: رمز خاطئ يُدخِل نفس القفل (يمنع brute-force بجلسة مسروقة).
+        await main._register_mfa_failure(
+            user_id,
+            event="mfa_disable_failed",
+            locked_event="mfa_locked",
+            tenant_id=row["tenant_id"],
+        )
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "رمز غير صحيح")
     async with main._acquire() as conn:
         await conn.execute(

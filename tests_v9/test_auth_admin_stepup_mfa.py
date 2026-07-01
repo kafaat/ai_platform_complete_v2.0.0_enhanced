@@ -93,6 +93,15 @@ class _FakeConn:
     async def fetchrow(self, *a, **k):
         return self._row
 
+    # V29.6 — step-up is now governed (lockout counter + audit + reset). The fake conn
+    # tolerates the extra DB ops: execute is a no-op; fetchval (atomic failure register)
+    # returns None ⇒ "not locked" (unit outcomes unchanged, path exercised).
+    async def execute(self, *a, **k):
+        return None
+
+    async def fetchval(self, *a, **k):
+        return None
+
 
 class _FakePool:
     def __init__(self, row):
