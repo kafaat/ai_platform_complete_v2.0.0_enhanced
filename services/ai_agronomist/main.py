@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 import os
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from . import ai_generation, harness_transparency, observation_context
+from . import ai_generation, harness_transparency, observation_context, tool_loop
 from .decision_contracts import (
     EvidenceItem,
     EvidenceStrength,
     assert_no_decision_keys,
     compose_confidence,
 )
-from .tenant_policies import build_store_from_env
+from .tenant_policies import build_store_from_env, normalize_policy
 
 # مخزن سياسات المستأجِر — يحكم السماح بالتوليد ومستوى مشاركة البيانات لكلّ مستأجِر.
 # يُدِيم عبر ملفّ JSON إن ضُبِط ``TENANT_AI_POLICY_FILE`` (compose/k8s mount)، وإلّا
@@ -45,6 +46,9 @@ class AdvisorQuery(BaseModel):
     # OpenRouter: DeepSeek/Claude Sonnet/Gemini). يُسجَّل ويُعاد صدى به للشفافيّة؛
     # التحقّق من قائمة السماح يقع في مُحلِّل المزوّد قبل أيّ استدعاء توليديّ.
     model: str | None = Field(default=None, max_length=128)
+    # V57: طلبات أدوات اختياريّة ينتجها النموذج/الواجهة وتُنفّذ عبر حلقة Harness محوكَمة.
+    # لا تُنفَّذ أداة مجهولة أو بلا قدرة؛ الأفعال المُعدِّلة تُحوَّل إلى طلب موافقة.
+    tool_calls: list[dict[str, Any]] | None = None
 
 
 async def _get_json(client: httpx.AsyncClient, url: str) -> tuple[bool, Any]:
@@ -230,6 +234,81 @@ def _generation_allowed(tenant_id: str) -> bool:
     if not ai_generation.generation_enabled():
         return False
     return ai_generation.tenant_allows_generation(TENANT_POLICY.get_policy(tenant_id))
+
+
+def _utc_timestamp() -> str:
+    """وقت UTC موحّد لسجلات الأدوات (حتميّ في الاختبارات عبر حقنه خارجياً عند الحاجة)."""
+    return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _build_agent_tool_fetcher(
+    *,
+    field_state: dict[str, Any] | None,
+    ai_pack: dict[str, Any] | None,
+    annotations: dict[str, Any],
+) -> tool_loop.ToolFetcher:
+    """جالب قراءة محليّ لحلقة الأدوات.
+
+    هذه ليست طبقة قرارات ولا تستدعي خدمات خارجيّة جديدة؛ هي تجعل الأدوات القرائيّة
+    تستند إلى الأدلّة الموجودة أصلاً في الطلب: CanonicalFieldState + AI Context Pack +
+    RAG/KG. الأفعال المُعدِّلة لا تصل هنا أصلاً لأن ``tool_loop`` يؤجّلها للموافقة.
+    """
+    pack = ai_pack if isinstance(ai_pack, dict) else {}
+    fs = field_state if isinstance(field_state, dict) else {}
+
+    def fetcher(tool_name: str, params: dict[str, Any]) -> Any:
+        field_id = params.get("field_id") or fs.get("field_id") or pack.get("field_id")
+        if tool_name == "get_field_state":
+            return {
+                "field_id": field_id,
+                "canonical_field_state": fs,
+                "ai_context_readiness": pack.get("readiness") if pack else None,
+            }
+        if tool_name == "get_truecolor_scene":
+            imagery = pack.get("imagery_timeline") or {}
+            return {
+                "field_id": field_id,
+                "index": "truecolor",
+                "requested_date": params.get("date"),
+                "imagery_timeline": imagery,
+                "readiness": pack.get("readiness") if pack else None,
+            }
+        if tool_name == "get_index_timeline":
+            return {
+                "field_id": field_id,
+                "index": params.get("index"),
+                "days": params.get("days"),
+                "imagery_timeline": pack.get("imagery_timeline") or {},
+            }
+        if tool_name == "get_weather_history":
+            return {
+                "field_id": field_id,
+                "days": params.get("days"),
+                "weather_history": pack.get("weather_history") or {},
+            }
+        if tool_name == "get_operation_windows":
+            return {
+                "field_id": field_id,
+                "operation_windows": pack.get("operation_windows")
+                or pack.get("operation_windows_context")
+                or {},
+            }
+        if tool_name == "get_alerts":
+            return {"field_id": field_id, "alerts_context": pack.get("alerts_context") or {}}
+        if tool_name == "get_drawings_and_zones":
+            return {"field_id": field_id, "drawing_context": pack.get("drawing_context") or {}}
+        if tool_name == "open_map_layer":
+            return {
+                "ui_action": "open_map_layer",
+                "field_id": field_id,
+                "layer": params.get("layer"),
+                "date": params.get("date"),
+                "note": "فعل واجهة منخفض الخطر؛ لا يغيّر بيانات الحقل.",
+            }
+        # يفترض ألا يصل المجهول إلى الجالب بسبب البوابة، لكن نبقيه fail-closed.
+        raise ValueError(f"unsupported_read_tool:{tool_name}")
+
+    return fetcher
 
 
 def _extract_ai_context_pack(field_state: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -579,17 +658,34 @@ async def _build_evidence_response(
     else:
         _raster_state = observation_context.RASTER_UNKNOWN
     _weather = _pack.get("weather_history") or {}
-    _policy = TENANT_POLICY.get_policy(tenant_id)
+    _policy_raw = TENANT_POLICY.get_policy(tenant_id)
+    _policy = normalize_policy(_policy_raw if isinstance(_policy_raw, dict) else {})
     observation = observation_context.build_observation(
         field_id=req.field_id,
         selected_date=req.selected_imagery_date,
         raster_state=_raster_state,
         weather_source="open-meteo" if _weather.get("available") else None,
         last_api_errors=_readiness.get("warnings"),
-        policy=_policy if isinstance(_policy, dict) else {},
+        policy=_policy,
+    )
+
+    # V57 — وصل حلقة الأدوات بالمسار الحيّ: النموذج/الواجهة قد يطلبان أدوات؛ الـHarness
+    # يحكمها بالقدرات والمخاطر. القراءة تُنفّذ من سياق الحقل المتاح؛ الأفعال المؤثّرة
+    # تُعاد كطلبات موافقة ولا تُنفَّذ داخل chat.
+    tool_result = tool_loop.run_tool_calls(
+        req.tool_calls,
+        allowed_capabilities=_policy.get("allowed_capabilities"),
+        fetcher=_build_agent_tool_fetcher(
+            field_state=field_state, ai_pack=ai_pack, annotations=annotations
+        ),
+        tenant_id=tenant_id,
+        actor="ai_agronomist",
+        timestamp=_utc_timestamp(),
     )
     harness = harness_transparency.build_transparency(
-        observation=observation, tool_calls=[], pending_approvals=[]
+        observation=observation,
+        tool_calls=tool_result.get("tool_calls"),
+        pending_approvals=tool_result.get("pending_approvals"),
     )
 
     return {
@@ -612,6 +708,9 @@ async def _build_evidence_response(
         if isinstance(ai_pack, dict)
         else None,
         "harness": harness,
+        "tool_calls": tool_result.get("tool_calls"),
+        "pending_approvals": tool_result.get("pending_approvals"),
+        "tool_calls_truncated": tool_result.get("truncated"),
         "confidence": confidence,
         "guardrail_result": {
             "status": "not_executed",
