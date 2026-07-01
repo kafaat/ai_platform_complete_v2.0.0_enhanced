@@ -398,7 +398,19 @@ export default function MapHub() {
     setHistoricalBackfillBusy(true);
     setHistoricalBackfillStatus('جارٍ إنشاء خطة/مهمة backfill لمدة 24 شهر…');
     try {
-      const indices = Array.from(new Set([activeIndicator || RAW_IMAGERY_INDEX_ID, 'truecolor', 'ndvi', 'ndmi'])).filter(Boolean);
+      // الـbackfill يحسب COGs لمؤشّرات نباتيّة؛ 'truecolor' تصيير للمشهد الأساسيّ لا
+      // IndicatorKind — وعقد raster-service يقبل هذه المجموعة فقط. إرسال 'truecolor'
+      // (أو مؤشّر نشط غير مدعوم) يُرجِع 422. نُرشِّح للمجموعة المدعومة (مشاهد هذه المؤشّرات
+      // تُغذّي خطّ TrueColor الزمنيّ نفسه). يبقى NDVI/NDMI أساساً مضموناً غير فارغ.
+      const BACKFILL_SUPPORTED_INDICES = ['ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre', 'msi', 'msavi'];
+      const indices = Array.from(
+        new Set(
+          [activeIndicator, 'ndvi', 'ndmi'].filter(
+            (i): i is string => !!i && i !== RAW_IMAGERY_INDEX_ID,
+          ),
+        ),
+      ).filter((i) => BACKFILL_SUPPORTED_INDICES.includes(i));
+      if (indices.length === 0) indices.push('ndvi', 'ndmi');
       const payload = {
         preset: 'custom' as const,
         months: 24,
