@@ -71,7 +71,7 @@ interface AiModelsCatalog { provider?: string; default_model?: string | null; av
 interface AiEvidenceSource { key: string; label_ar?: string; available?: boolean; count?: number }
 // شفافيّة الـHarness (V55 المرحلة ٥): ماذا يرى الوكيل، قدراته، أدواته، وموافقاته.
 interface HarnessToolCall { tool?: string; outcome?: string; risk?: string; requires_approval?: boolean; reason?: string }
-interface HarnessApproval { id?: string; tool?: string; risk?: string; status?: string }
+interface HarnessApproval { id?: string; tool?: string; risk?: string; status?: string; params?: Record<string, unknown>; capability?: string }
 interface HarnessTransparency {
   sees?: { field_id?: string | null; active_layer?: string | null; selected_date?: string | null; raster_ready?: boolean; weather_source?: string | null; blind?: boolean };
   notes?: string[];
@@ -197,6 +197,22 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
   const [copied, setCopied] = useState(false);
   const [liked, setLiked]   = useState(msg.liked  || false);
   const [disliked, setDis]  = useState(msg.disliked || false);
+  const [approvalStates, setApprovalStates] = useState<Record<string, string>>({});
+
+  const decideApproval = async (approval: HarnessApproval, decision: 'approve' | 'deny') => {
+    const key = approval.id || approval.tool || 'approval';
+    setApprovalStates(s => ({ ...s, [key]: 'sending' }));
+    try {
+      await kongApi.post(`/api/ai-agronomist/approvals/${decision}`, {
+        approval,
+        approver: 'web-user',
+        reason: decision === 'deny' ? 'denied_by_user' : undefined,
+      });
+      setApprovalStates(s => ({ ...s, [key]: decision === 'approve' ? 'approved' : 'denied' }));
+    } catch {
+      setApprovalStates(s => ({ ...s, [key]: 'failed' }));
+    }
+  };
 
   const copy = () => {
     navigator.clipboard?.writeText(msg.content.replace(/\*\*/g, ''));
@@ -283,8 +299,41 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
                     </div>
                   )}
                   {msg.harness.pending_approvals && msg.harness.pending_approvals.length > 0 && (
-                    <div className="text-orange-600" data-testid="ai-harness-approvals">
-                      بانتظار موافقة: {msg.harness.pending_approvals.map(p => p.tool).join('، ')}
+                    <div className="space-y-1" data-testid="ai-harness-approvals">
+                      {msg.harness.pending_approvals.slice(0, 3).map((approval, i) => {
+                        const approvalKey = approval.id || approval.tool || `approval-${i}`;
+                        const state = approvalStates[approvalKey] || approval.status || 'pending';
+                        const busy = state === 'sending';
+                        const closed = state === 'approved' || state === 'denied';
+                        return (
+                          <div key={`${approvalKey}-${i}`} className="rounded-lg border border-orange-100 bg-orange-50 px-2 py-1" data-testid="ai-approval-card">
+                            <div className="flex flex-wrap items-center justify-between gap-1 text-orange-700">
+                              <span>بانتظار موافقة: {approval.tool}</span>
+                              <span className="rounded-full bg-white px-1.5 py-0.5 text-[9px] text-orange-600">{approval.risk || 'medium'} · {state}</span>
+                            </div>
+                            <div className="mt-1 flex gap-1">
+                              <button
+                                type="button"
+                                onClick={() => decideApproval(approval, 'approve')}
+                                disabled={busy || closed}
+                                className="rounded-md bg-emerald-600 px-2 py-0.5 text-[10px] text-white disabled:opacity-50"
+                                data-testid="ai-approval-approve"
+                              >
+                                موافقة
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => decideApproval(approval, 'deny')}
+                                disabled={busy || closed}
+                                className="rounded-md border border-orange-200 bg-white px-2 py-0.5 text-[10px] text-orange-700 disabled:opacity-50"
+                                data-testid="ai-approval-deny"
+                              >
+                                رفض
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>

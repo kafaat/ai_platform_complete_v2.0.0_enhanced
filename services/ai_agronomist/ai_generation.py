@@ -211,6 +211,7 @@ class GenResult:
     text: str
     model: str
     provider: str
+    tool_calls: tuple[dict[str, Any], ...] = ()
 
 
 def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
@@ -265,10 +266,16 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
     return GenConfig("local", f"{base.rstrip('/')}/v1/messages", headers, model, "messages")
 
 
-def _build_payload(cfg: GenConfig, question: str, context_text: str, max_tokens: int) -> dict:
+def _build_payload(
+    cfg: GenConfig,
+    question: str,
+    context_text: str,
+    max_tokens: int,
+    provider_tools: list[dict[str, Any]] | None = None,
+) -> dict:
     user = f"الأدلّة:\n{context_text}\n\nالسؤال: {question}"
     if cfg.wire_format == "openai_chat":
-        return {
+        payload = {
             "model": cfg.model,
             "max_tokens": max_tokens,
             "messages": [
@@ -276,12 +283,19 @@ def _build_payload(cfg: GenConfig, question: str, context_text: str, max_tokens:
                 {"role": "user", "content": user},
             ],
         }
-    return {
+        if provider_tools:
+            payload["tools"] = provider_tools
+            payload["tool_choice"] = "auto"
+        return payload
+    payload = {
         "model": cfg.model,
         "max_tokens": max_tokens,
         "system": _GROUNDED_SYSTEM_AR,
         "messages": [{"role": "user", "content": user}],
     }
+    if provider_tools:
+        payload["tools"] = provider_tools
+    return payload
 
 
 def _extract_text(cfg: GenConfig, data: dict) -> str:
@@ -304,6 +318,7 @@ async def generate(
     policy: dict[str, Any] | None = None,
     max_tokens: int = 600,
     timeout: float = 20.0,
+    provider_tools: list[dict[str, Any]] | None = None,
 ) -> GenResult | None:
     """يولّد جواباً مؤرَّضاً أو يعيد ``None`` (للسقوط الآمن إلى الأدلّة). لا يرفع
     استثناءً للمستدعي مهما فشل المزوّد.
@@ -323,17 +338,26 @@ async def generate(
         )
         return None
     context_text = prepared
-    payload = _build_payload(cfg, question, context_text, max_tokens)
+    payload = _build_payload(cfg, question, context_text, max_tokens, provider_tools=provider_tools)
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             resp = await client.post(cfg.endpoint, headers=cfg.headers, json=payload)
         if resp.status_code >= 400:
             logger.warning("توليد %s فشل: HTTP %s", cfg.provider, resp.status_code)
             return None
-        text = _extract_text(cfg, resp.json())
+        data = resp.json()
+        text = _extract_text(cfg, data)
+        # استيراد مؤجَّل: حُرّاس العقد (test_ai_provider_contract_guard/_data_sharing_v52)
+        # يحمّلون هذا الملفّ منفرداً عبر المسار (بلا حزمة أب)، فالاستيراد النسبيّ على
+        # المستوى الأعلى يكسر تحميلهم. تأجيله إلى مسار الاستدعاء الفعليّ يبقيه سليماً.
+        from . import provider_tooling
+
+        tool_calls = provider_tooling.extract_tool_calls(cfg.wire_format, data)
     except Exception as e:  # noqa: BLE001 — أيّ فشل ⇒ سقوط آمن إلى الأدلّة
         logger.warning("تعذّر التوليد عبر %s: %s", cfg.provider, type(e).__name__)
         return None
-    if not text:
+    if not text and not tool_calls:
         return None
-    return GenResult(text=text, model=cfg.model, provider=cfg.provider)
+    return GenResult(
+        text=text, model=cfg.model, provider=cfg.provider, tool_calls=tuple(tool_calls)
+    )

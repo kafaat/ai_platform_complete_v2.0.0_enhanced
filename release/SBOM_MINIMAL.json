@@ -2255,6 +2255,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "207a058c3b8ad42c2339e6293d30d7a15d8d7bd9e0fbab94ef1d23b460e9210c"
+        }
+      ],
+      "name": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "824c0a730aa0fc9176fc0ef8d37ad6a634b3bd16f6ea0369bee85c70202a6b9e"
         }
       ],
@@ -2275,7 +2285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18551a375781e2a565d2b4f0a590a05c48a4dc0f506caf797683eacd5dd510c7"
+          "content": "701e50b868c35581a3897a223e14c93ec42da9ea3e063e59182c950ebdd200b9"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -5315,7 +5325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f6b513de0ebad9e745bd89ca86ce6226c8f085735b431ee1e9a5739595f0cad"
+          "content": "c4d4fe951480ad4b86fb3505a8be836c0ef8f8202e6d5bb6e75960b151ea4411"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -5445,7 +5455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "775e76fcf2d5574a1b1cbae8616f531da6e80a7698ef5da3e054706ffd86a4df"
+          "content": "75e834f329f35fbba65dc81cf87d0e289315345751ac47cf1bb2c71fe7837fa6"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -5479,6 +5489,16 @@
         }
       ],
       "name": "services/ai_agronomist/policy_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3d16eda64e1e98392ffd5c85c60bc6d4cde71ebce0de656900909935f8b7db83"
+        }
+      ],
+      "name": "services/ai_agronomist/provider_tooling.py",
       "type": "file"
     },
     {

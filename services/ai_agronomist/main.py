@@ -8,7 +8,14 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from . import ai_generation, harness_transparency, observation_context, tool_loop
+from . import (
+    ai_generation,
+    approval,
+    harness_transparency,
+    observation_context,
+    provider_tooling,
+    tool_loop,
+)
 from .decision_contracts import (
     EvidenceItem,
     EvidenceStrength,
@@ -51,6 +58,12 @@ class AdvisorQuery(BaseModel):
     tool_calls: list[dict[str, Any]] | None = None
 
 
+class ApprovalDecisionRequest(BaseModel):
+    approval: dict[str, Any]
+    approver: str = Field(default="human", max_length=120)
+    reason: str | None = Field(default=None, max_length=500)
+
+
 async def _get_json(client: httpx.AsyncClient, url: str) -> tuple[bool, Any]:
     try:
         resp = await client.get(url, timeout=3.0)
@@ -70,6 +83,41 @@ async def ai_provider_snapshot() -> dict[str, Any]:
     واحد (راية التوليد، المزوّد وصنفه، توافره، الكتالوج، أوضاع مشاركة البيانات).
     يُغلِق توصية تدقيق V51 (Provider Snapshot)."""
     return ai_generation.public_provider_snapshot()
+
+
+@app.post("/approvals/approve")
+async def approve_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
+    """Normalize a human approval decision for a pending agent tool request.
+
+    This endpoint does not execute the underlying mutating tool; execution must be handled
+    by the owning domain service after authorization. It only records/returns the audited
+    decision shape so the web UI can show a real approve/deny workflow without granting
+    the model direct write access.
+    """
+    try:
+        decided = approval.approve(
+            req.approval,
+            approver=req.approver,
+            decided_at=_utc_timestamp(),
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return {"status": "approved", "approval": decided, "executes_tool": False}
+
+
+@app.post("/approvals/deny")
+async def deny_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
+    """Normalize a human denial decision for a pending agent tool request."""
+    try:
+        decided = approval.deny(
+            req.approval,
+            approver=req.approver,
+            decided_at=_utc_timestamp(),
+            reason=req.reason or "denied_by_user",
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return {"status": "denied", "approval": decided, "executes_tool": False}
 
 
 @app.get("/metrics")
@@ -622,17 +670,33 @@ async def _build_evidence_response(
     mode = "evidence_only"
     generation_model: str | None = None
     generation_provider: str | None = None
+    provider_native_tool_calls: list[dict[str, Any]] = []
+    provider_native_tool_rounds = 0
     if endpoint_mode == "chat" and _generation_allowed(tenant_id):
         context_text = _grounding_context_text(annotations)
+        cfg = ai_generation.resolve_generation(req.model)
+        provider_tools = (
+            provider_tooling.build_provider_tools(cfg.wire_format) if cfg is not None else None
+        )
         gen = await ai_generation.generate(
             req.question,
             context_text,
             req.model,
             policy=TENANT_POLICY.get_policy(tenant_id),
+            provider_tools=provider_tools,
         )
         if gen is not None:
-            answer_ar = gen.text
-            mode = "generated_grounded"
+            provider_native_tool_calls = list(gen.tool_calls or [])
+            if gen.text:
+                answer_ar = gen.text
+                mode = "generated_grounded"
+            if provider_native_tool_calls:
+                # V58: provider-native tool-use observed. The governed harness executes the read-only
+                # requests later in this same response and exposes the results. A second grounded
+                # completion round is deliberately conservative: only after tool results are available
+                # and never for mutating tools.
+                mode = "generated_tool_grounded" if gen.text else "provider_tool_use"
+                provider_native_tool_rounds = 1
             generation_model = gen.model
             generation_provider = gen.provider
 
@@ -672,8 +736,9 @@ async def _build_evidence_response(
     # V57 — وصل حلقة الأدوات بالمسار الحيّ: النموذج/الواجهة قد يطلبان أدوات؛ الـHarness
     # يحكمها بالقدرات والمخاطر. القراءة تُنفّذ من سياق الحقل المتاح؛ الأفعال المؤثّرة
     # تُعاد كطلبات موافقة ولا تُنفَّذ داخل chat.
+    requested_tool_calls = list(req.tool_calls or []) + provider_native_tool_calls
     tool_result = tool_loop.run_tool_calls(
-        req.tool_calls,
+        requested_tool_calls,
         allowed_capabilities=_policy.get("allowed_capabilities"),
         fetcher=_build_agent_tool_fetcher(
             field_state=field_state, ai_pack=ai_pack, annotations=annotations
@@ -711,6 +776,8 @@ async def _build_evidence_response(
         "tool_calls": tool_result.get("tool_calls"),
         "pending_approvals": tool_result.get("pending_approvals"),
         "tool_calls_truncated": tool_result.get("truncated"),
+        "provider_native_tool_calls": provider_native_tool_calls,
+        "provider_native_tool_rounds": provider_native_tool_rounds,
         "confidence": confidence,
         "guardrail_result": {
             "status": "not_executed",
