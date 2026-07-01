@@ -1,10 +1,15 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `4a3f1a4` · [`log.md`](log.md) مدخل (ز).
+> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `f9dc4c8` · [`log.md`](log.md) مدخل (ز).
 > 🔐 **تصلّب MFA إنتاجيّ مكتمل** (v29.5+v29.6): تشفير السرّ عند الراحة + recovery codes + قفل DB + تدقيق append-only + RLS مُضيَّق — مسار توافق لا يكسر المستخدمين القائمين.
 > 🤖 **حوكمة الوكيل مكتملة** (v58.2a/b/c): مخازن دائمة + تحقّق وسائط + تعقيم نتائج + ميزانية/dedupe + كلّ mutating يتطلّب موافقة.
-> 🛰 **أدلّة الحقل** (v49.5): سياق AI tenant-scoped + redaction + freshness/provenance.
-> ✅ **كلّ دفعة CI 11/11 خضراء** (Integration يطبّق الترحيلات على Postgres+PostGIS حقيقيّ) ثمّ ff-merge إلى main.
+> 🛰 **أدلّة الحقل** (v49.5) + **شقّ v57.5-DB مكتمل**: soil-lab analytes (v130) · imagery quality (v131) · field_state provenance (v132).
+> ✅ **`main@f9dc4c8` أخضر بالكامل:** ci.yml 11/11 (Integration يطبّق v127–v132 على Postgres حقيقيّ) + **Sahool Production Gates #209**.
+>
+> ⚠️ **درس تشغيليّ (لا يتكرّر):** بعد أيّ دمج يغيّر ملفّات، جدِّد بصمات الإصدار وشغّل بوّابة الإنتاج قبل اعتبار main نظيفاً —
+> **Sahool Production Gates سير عمل منفصل يعمل على main فقط ولا يظهر في فحص الفرع**:
+> `python3 scripts/release/build_release_bundle.py --root .` + `bash scripts/production_validation_gate.sh`.
+> (بقيت البوّابة حمراء من `0b5a13b` حتى أصلحها `f9dc4c8` — كنتُ أراقب ci.yml وحده.)
 
 ## عمل هذه الجلسة (على `main`، سلسلة دفعات خضراء)
 
