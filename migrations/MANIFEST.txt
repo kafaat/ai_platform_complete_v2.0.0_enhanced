@@ -527,3 +527,9 @@ v135_workflow_state_lease.sql
 # منفصل قابل للتدقيق، ركيزة رصديّة لِإقرار جهاز فيزيائيّ (ACK). RLS+FORCE tenant_isolation
 # (نمط v98). إضافيّ idempotent؛ بعد v135.
 v136_irrigation_runs.sql
+# v138 (سطر v19.5-3): حالتان نهائيّة/قيد-المعالجة لـoffline_pending_ops — توسيع
+# status بـprocessing (مُطالَب) + failed (نهائيّ بعد MAX محاولة) عبر CHECK صريح
+# (لم يكن في v92)، + failed_at، + فهرس جزئيّ لإعادة المطالبة بالعالق في processing.
+# يُنهي حلقة العمليّة السامّة (poison) التي كانت تبقى pending أبداً، ويمنع الالتقاط
+# المزدوج عبر مطالبة ذرّيّة (claim_pending). يرث RLS+FORCE من v92؛ إضافيّ idempotent؛ بعد v135.
+v138_offline_pending_ops_terminal.sql

@@ -176,7 +176,12 @@ async def sync(
     # تعارض field.update (409) محلّياً بدل تخمين عامّ من العدّادات الكلّيّة.
     op_status: dict[str, str] = {}
     if _DB_POOL is not None:
-        from api.offline_pending_db import enqueue_pending, mark_failed, mark_processed
+        from api.offline_pending_db import (
+            claim_pending,
+            enqueue_pending,
+            mark_failed,
+            mark_processed,
+        )
         from api.offline_sync_db import (
             apply_field_update,
             dispatch_decision,
@@ -193,6 +198,23 @@ async def sync(
                 except Exception as exc:  # noqa: BLE001 — fail-safe: الذاكريّ يبقى مرجعاً
                     logging.warning("sync: pending enqueue failed for %s: %s", op.op_id, exc)
             for op in batch:
+                # مطالبة ذرّيّة pending→processing: عامل واحد فقط يفوز بالصفّ (حارس
+                # تنفيذ مزدوج عند تزامن مزامنتَين على العمليّة نفسها). فشل المطالبة
+                # (صفّ مُطالَب سلفاً/نهائيّ processed·failed/لم يُدَم بعد) ⇒ نتخطّى الأثر
+                # الجانبيّ الدائم ونُبقيها QUEUED لإعادة المحاولة (fail-safe: لا إسقاط
+                # ولا تطبيق مزدوج). تعذّر المطالبة نفسه (خطأ قاعدة) ⇒ ارتداد للسلوك
+                # السابق (بلا حارس) كي لا نُعطّل المزامنة.
+                try:
+                    async with conn.transaction():  # savepoint
+                        claimed = await claim_pending(conn, op_id=op.op_id)
+                except Exception as exc:  # noqa: BLE001 — تعذّر المطالبة ⇒ نُكمل كالسابق
+                    logging.warning("sync: claim failed for %s: %s", op.op_id, exc)
+                    claimed = True
+                if not claimed:
+                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.QUEUED)
+                    op_status[op.op_id] = "queued"
+                    pending_retry += 1
+                    continue
                 try:
                     # التوزيع (dispatch): field.update يُطبَّق فعليّاً بسلطة الخادم؛ كلّ
                     # نوع آخر يبقى سجلّ فقط (ledger-only، idempotent ON CONFLICT DO NOTHING).

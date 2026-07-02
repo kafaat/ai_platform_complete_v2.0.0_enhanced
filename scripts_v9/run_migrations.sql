@@ -429,3 +429,5 @@
 \i migrations/v135_workflow_state_lease.sql
 \echo '═══ 143. v136_irrigation_runs.sql ═══'
 \i migrations/v136_irrigation_runs.sql
+\echo '═══ 144. v138_offline_pending_ops_terminal.sql ═══'
+\i migrations/v138_offline_pending_ops_terminal.sql

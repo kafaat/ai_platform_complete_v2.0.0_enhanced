@@ -20,12 +20,46 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - نوعيّ فقط
     import asyncpg
     from core.offline_first import PendingOperation
+
+
+def _default_max_attempts() -> int:
+    """أقصى عدد محاولات مزامنة قبل الانتقال النهائيّ إلى ``failed`` (poison guard).
+
+    قابل للضبط عبر ``OFFLINE_PENDING_MAX_ATTEMPTS`` (إغلاق مرن)؛ الافتراضيّ 5 —
+    قيمة معتدلة تعطي هامشاً لأعطال عابرة (شبكة/قاعدة) دون ترك عمليّة سامّة تدور
+    إلى الأبد. قيمة غير صالحة/≤0 ⇒ ارتداد آمن للافتراضيّ.
+    """
+    raw = os.getenv("OFFLINE_PENDING_MAX_ATTEMPTS", "").strip()
+    if raw:
+        try:
+            parsed = int(raw)
+            if parsed > 0:
+                return parsed
+        except ValueError:
+            pass
+    return 5
+
+
+MAX_ATTEMPTS = _default_max_attempts()
+
+
+def should_fail(attempts: int, max_attempts: int = MAX_ATTEMPTS) -> bool:
+    """هل تنتقل عمليّة إلى ``failed`` النهائيّة بعد هذه المحاولة الفاشلة؟
+
+    منطق نقيّ (بلا I/O) قابل لاختبار الوحدة: ``attempts`` هو العدّاد **قبل** زيادة
+    هذه المحاولة؛ بعد الزيادة يصبح ``attempts + 1``، فإن بلغ الحدّ ``max_attempts``
+    استُنفدت المحاولات ⇒ ``failed``. أرقام حدّيّة (≤0) تُعامَل كحدّ 1 (أوّل فشل نهائيّ)
+    تفادياً لحلقة لا نهائيّة على ضبط خاطئ.
+    """
+    limit = max_attempts if max_attempts > 0 else 1
+    return (attempts + 1) >= limit
 
 
 def _parse_ts(value: object) -> datetime:
@@ -121,39 +155,107 @@ async def fetch_pending(conn: asyncpg.Connection, *, limit: int = 100) -> list[d
     return out
 
 
-async def mark_processed(conn: asyncpg.Connection, *, op_id: str) -> bool:
-    """يُعلِّم عمليّة معلّقة ``processed`` بعد نجاح مزامنتها (idempotent).
+async def claim_pending(conn: asyncpg.Connection, *, op_id: str) -> bool:
+    """يُطالِب عمليّة ``pending`` بنقلها ذرّيّاً إلى ``processing`` (single-claimer).
 
-    لا يلمس صفّاً معلَّماً سلفاً ``processed`` (الشرط ``status='pending'``) ⇒
-    إعادة الاستدعاء لا تُغيّر ``processed_at`` ثانيةً.
+    ``UPDATE … WHERE status='pending' RETURNING`` ذرّيّ: عامل واحد فقط يفوز بالصفّ
+    (الثاني يجد الحالة ``processing`` فلا يُطابق شرطه ⇒ لا صفّ راجع) — يمنع
+    التنفيذ المزدوج للأثر الجانبيّ عند تزامن عاملَين على المزامنة نفسها.
+
+    Returns
+    -------
+    bool
+        ``True`` إن فاز هذا المستدعي بالمطالبة (نُقل الصفّ pending→processing)؛
+        ``False`` إن كان الصفّ غير معلَّق (مُطالَب سلفاً/مُنجَز/فاشل/غير موجود).
+    """
+    row = await conn.fetchrow(
+        """
+        UPDATE offline_pending_ops
+        SET status = 'processing'
+        WHERE op_id = $1::uuid AND status = 'pending'
+        RETURNING op_id
+        """,
+        op_id,
+    )
+    return row is not None
+
+
+async def mark_processed(conn: asyncpg.Connection, *, op_id: str) -> bool:
+    """يُعلِّم عمليّة ``processed`` بعد نجاح مزامنتها (idempotent).
+
+    يقبل الصفّ في ``pending`` (لم يُطالَب) أو ``processing`` (مُطالَب) ⇒ يعمل سواء
+    مرّ العامل بمرحلة المطالبة أم لا (توافق خلفيّ). لا يلمس صفّاً نهائيّاً
+    (``processed``/``failed``) ⇒ إعادة الاستدعاء لا تُغيّر ``processed_at`` ثانيةً.
     """
     await conn.execute(
         """
         UPDATE offline_pending_ops
         SET status = 'processed', processed_at = NOW()
-        WHERE op_id = $1::uuid AND status = 'pending'
+        WHERE op_id = $1::uuid AND status IN ('pending', 'processing')
         """,
         op_id,
     )
     return True
 
 
-async def mark_failed(conn: asyncpg.Connection, *, op_id: str, error: str) -> bool:
-    """يزيد عدّاد المحاولات ويُدوّن آخر خطأ، مع إبقاء العمليّة ``pending``.
+async def mark_failed(
+    conn: asyncpg.Connection,
+    *,
+    op_id: str,
+    error: str,
+    max_attempts: int = MAX_ATTEMPTS,
+) -> bool:
+    """يزيد عدّاد المحاولات ويُدوّن آخر خطأ؛ عند استنفاد المحاولات ⇒ ``failed``.
 
-    fail-safe: لا تُنقَل لحالة نهائيّة هنا (تبقى معلّقة لإعادة المحاولة في الدورة
-    التالية)؛ نُدوّن السبب فقط ليُتتبَّع التعثّر دون فقدان العمليّة.
+    poison guard: كانت العمليّة تبقى ``pending`` أبداً فتدور بلا نهاية على فشل
+    دائم؛ الآن حين ``attempts + 1 >= max_attempts`` تنتقل إلى ``failed`` النهائيّة
+    (مع ``failed_at``) فتُنهي الحلقة. الفشل القابل لإعادة المحاولة (لم يبلغ الحدّ)
+    يعود إلى ``pending`` (سواء أُطالِب الصفّ ⇒ ``processing`` أم لا) ليُعاد لاحقاً.
+
+    يعمل على الصفّ في ``pending`` أو ``processing`` (توافق خلفيّ + مسار المطالبة).
+    الحساب داخل SQL ذرّيّ (لا سباق قراءة-ثمّ-كتابة). idempotent على الحالات
+    النهائيّة (لا يُطابق شرط ``IN ('pending','processing')``).
     """
     await conn.execute(
         """
         UPDATE offline_pending_ops
-        SET attempts = attempts + 1, last_error = $2
-        WHERE op_id = $1::uuid AND status = 'pending'
+        SET attempts = attempts + 1,
+            last_error = $2,
+            status = CASE WHEN attempts + 1 >= $3 THEN 'failed' ELSE 'pending' END,
+            failed_at = CASE WHEN attempts + 1 >= $3 THEN NOW() ELSE failed_at END
+        WHERE op_id = $1::uuid AND status IN ('pending', 'processing')
         """,
         op_id,
         (error or "")[:500],
+        max_attempts if max_attempts > 0 else 1,
     )
     return True
+
+
+async def reclaim_stuck_processing(
+    conn: asyncpg.Connection, *, older_than_minutes: int = 30
+) -> int:
+    """يُعيد الصفوف العالقة في ``processing`` إلى ``pending`` (استرداد بعد تعطّل عامل).
+
+    عامل مات وسط المعالجة يترك صفّه ``processing`` بلا مالك حيّ ⇒ لن يُلتقَط ثانيةً
+    (المطالبة تخصّ ``pending`` فقط). هذا الاسترداد (best-effort، يُشغَّل دوريّاً)
+    يُحرّر ما تجاوز عتبةً زمنيّةً. يُرجع عدد الصفوف المُستردَّة. يعتمد على
+    ``idx_offline_pending_ops_processing`` (v138). RLS يُرشّح حسب المستأجِر تلقائيّاً.
+    """
+    row = await conn.fetchrow(
+        """
+        WITH reclaimed AS (
+            UPDATE offline_pending_ops
+            SET status = 'pending'
+            WHERE status = 'processing'
+              AND created_at < NOW() - ($1::int * INTERVAL '1 minute')
+            RETURNING 1
+        )
+        SELECT COUNT(*) AS n FROM reclaimed
+        """,
+        older_than_minutes,
+    )
+    return int(row["n"]) if row else 0
 
 
 async def clear_processed(conn: asyncpg.Connection, *, older_than_hours: int = 24) -> int:
