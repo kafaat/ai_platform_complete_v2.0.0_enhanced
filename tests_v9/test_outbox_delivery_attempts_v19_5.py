@@ -104,7 +104,7 @@ async def _seed_outbox_row(conn, tenant_id: str) -> uuid.UUID:
     event_id = await conn.fetchval(
         """
         SELECT emit_event(
-            'field.created', 'field', $1::uuid, $2::uuid,
+            'field.created', 'field', $1, $2::uuid,
             '{"k": "v"}'::jsonb, 'system'
         )
         """,

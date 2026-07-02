@@ -65,9 +65,22 @@ DO $$ BEGIN
     END IF;
 END $$;
 
--- ── عزل المستأجِر (HIGH-001): FORCE RLS صريح لأنّ الجدول يحمل tenant_id ──
--- ENABLE+FORCE+policy القياسيّة (app.current_tenant). العامل تحت BYPASSRLS يكتب بلا تأثّر؛
--- قارئ المستأجِر يُعزَل. idempotent (الدالّة تسقط السياسة وتُعيد إنشاءها).
-SELECT _sahool_apply_tenant_rls('outbox_delivery_attempts');
+-- ── عزل المستأجِر (HIGH-001): RLS صريح لأنّ الجدول يحمل tenant_id (جدول مُستأجَر بعد v70) ──
+-- نمط v133/v98 حرفيّاً (الفاحص الساكن sahool_inspector يطلب FORCE + current_setting صراحةً
+-- في نصّ الترحيل، لا استدعاء helper). العامل تحت BYPASSRLS (sahool_jobs) يكتب بلا تأثّر؛
+-- قارئ المستأجِر يُعزَل بـtenant_id. idempotent.
+ALTER TABLE outbox_delivery_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE outbox_delivery_attempts FORCE ROW LEVEL SECURITY;  -- يُخضِع المالك أيضاً
+
+DROP POLICY IF EXISTS tenant_isolation ON outbox_delivery_attempts;  -- idempotency
+CREATE POLICY tenant_isolation ON outbox_delivery_attempts
+    USING (
+        tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', true), '')
+    )
+    WITH CHECK (
+        -- عزل الكتابة (دفاع عمق): بلا سياق (هجرات/نظام/BYPASSRLS) تُسمح، وإلّا المطابقة فقط.
+        NULLIF(current_setting('app.current_tenant', true), '') IS NULL
+        OR tenant_id::TEXT = current_setting('app.current_tenant', true)
+    );
 
 COMMIT;
