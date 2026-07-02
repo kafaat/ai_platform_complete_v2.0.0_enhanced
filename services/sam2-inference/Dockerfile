@@ -1,9 +1,10 @@
-# SAHOOL sam2-inference — صورة CUDA لاستدلال SAM2 على GPU (RTX 4090).
+# SAHOOL sam2-inference — صورة CUDA لاستدلال SAM2 على GPU (RTX 4090/5090).
 #
 # صدق: هذه الصورة تتطلّب NVIDIA Container Toolkit + GPU على المضيف. القاعدة تحمل
-# torch بنسخة CUDA 12.1 جاهزة (لا حاجة لتثبيت torch من PyPI). تُبنى وتُختبَر على
+# torch بنسخة CUDA حديثة جاهزة (افتراضي CUDA 12.8 لـRTX 50/Blackwell) (لا حاجة لتثبيت torch من PyPI). تُبنى وتُختبَر على
 # عتاد المستخدم — لا يمكن بناؤها/تشغيلها بلا GPU في بيئة المراجعة.
-FROM pytorch/pytorch:2.4.1-cuda12.1-cudnn9-runtime
+ARG PYTORCH_CUDA_IMAGE=pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime
+FROM ${PYTORCH_CUDA_IMAGE}
 
 WORKDIR /app
 

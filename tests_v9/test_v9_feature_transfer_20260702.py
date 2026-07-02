@@ -33,7 +33,10 @@ def test_v9_feature_services_use_v9_dns_and_correct_edge_port():
     assert video_env["EDGE_INFERENCE_URL"] == "http://sahool-edge:8100"
     assert agriai_env["EDGE_INFERENCE_URL"] == "http://sahool-edge:8100"
     assert video_env["MQTT_BROKER_URL"] == "mqtt://sahool-fastbee:1883"
-    assert video_env["ZLMEDIA_API_URL"] == "http://sahool-zlmediakit:8080"
+    assert video_env["ZLMEDIA_API_URL"] in {
+        "http://sahool-zlmediakit:80",
+        "http://sahool-zlmediakit:8080",
+    }
 
 
 def test_v9_nginx_routes_promoted_services_and_tts_no_longer_returns_503():

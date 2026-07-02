@@ -54,7 +54,7 @@ def _load_onnx_session(model_path: str, device: str):
         )
         return None
     providers = ["CPUExecutionProvider"]
-    if device == "jetson_orin":
+    if str(device).lower() in {"jetson_orin", "cuda", "gpu", "rtx5090", "blackwell"}:
         providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
     # نموذج تالف / provider غير متاح ⇒ خامل بصدق (سقوط للمسار القاعديّ، لا كسر طلب)
     try:
@@ -159,7 +159,13 @@ class EdgePestDetector:
 
                 # Use ARM64 optimized execution providers
                 providers = ["CPUExecutionProvider"]
-                if self.device == "jetson_orin":
+                if str(self.device).lower() in {
+                    "jetson_orin",
+                    "cuda",
+                    "gpu",
+                    "rtx5090",
+                    "blackwell",
+                }:
                     providers = ["CUDAExecutionProvider", "CPUExecutionProvider"]
 
                 self.session = ort.InferenceSession(self.model_path, providers=providers)

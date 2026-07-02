@@ -10,7 +10,7 @@
 from __future__ import annotations
 
 import main
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
 
@@ -27,7 +27,13 @@ async def health():
 
 @router.get("/readyz")
 async def readyz():
-    # بلا تبعيّة صلبة قصداً: لا pool قاعدة ولا عميل Redis متّصل (REDIS_URL غير
-    # مُستهلَك هنا). النشر عبر MQTT والنداءات الخلفيّة (edge/zlmedia) محاولة-أفضل
-    # لا تُعطِّل الإقلاع. لا شيء صلب ننتظره ⇒ جاهز بصدق.
-    return {"status": "ready", "version": "9.1.0"}
+    dependencies = await main.check_video_dependencies()
+    degraded = {k: v for k, v in dependencies.items() if not v.get("ok")}
+    payload = {
+        "status": "ready" if not degraded else "degraded",
+        "version": "9.1.0",
+        "dependencies": dependencies,
+    }
+    if degraded and main.VIDEO_STRICT_READY:
+        raise HTTPException(status_code=503, detail=payload)
+    return payload

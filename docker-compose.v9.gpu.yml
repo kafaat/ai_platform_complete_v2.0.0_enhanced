@@ -1,0 +1,71 @@
+# SAHOOL v9 GPU overlay — RTX 5090 / Blackwell-ready runtime
+# Usage:
+#   docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu up -d
+# Requires NVIDIA Container Toolkit and a CUDA/PyTorch image that supports RTX 50 / sm_120.
+
+services:
+  sahool-edge:
+    environment:
+      EDGE_DEVICE: ${EDGE_DEVICE:-rtx5090}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility,video}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  sahool-sam2-inference:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: services/sam2-inference/Dockerfile
+      args:
+        PYTORCH_CUDA_IMAGE: ${PYTORCH_CUDA_IMAGE:-pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime}
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
+      TORCH_CUDA_ARCH_LIST: ${TORCH_CUDA_ARCH_LIST:-12.0}
+      CUDA_MODULE_LOADING: ${CUDA_MODULE_LOADING:-LAZY}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  sahool-field-segmentation:
+    environment:
+      SEGMENTATION_BACKEND: sam2
+      SEGMENTATION_INFERENCE_URL: http://sahool-sam2-inference:8080/predict
+    depends_on:
+      sahool-sam2-inference:
+        condition: service_healthy
+
+  sahool-video-processor:
+    environment:
+      VIDEO_STRICT_READY: ${VIDEO_STRICT_READY:-true}
+      NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
+      NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility,video}
+    depends_on:
+      sahool-zlmediakit:
+        condition: service_healthy
+      sahool-edge:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  sahool-tts-service:
+    environment:
+      # Keep CPU/online edge-tts as the safe default; GPU providers can be enabled later
+      # after Arabic voice-quality tests.
+      TTS_PROVIDER: ${TTS_PROVIDER:-edge_tts}
+      TTS_GPU_PROVIDER: ${TTS_GPU_PROVIDER:-disabled}

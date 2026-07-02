@@ -101,6 +101,49 @@ ZLMEDIA_API_URL = os.getenv(
 REDIS_URL = os.getenv("REDIS_URL", "")
 FRAME_INTERVAL_SEC = int(os.getenv("FRAME_INTERVAL_SEC", "5"))
 MAX_CONCURRENT_STREAMS = int(os.getenv("MAX_CONCURRENT_STREAMS", "10"))
+ZLMEDIAKIT_API_SECRET = os.getenv("ZLMEDIAKIT_API_SECRET", os.getenv("ZLMEDIA_API_SECRET", ""))
+VIDEO_STRICT_READY = os.getenv("VIDEO_STRICT_READY", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+
+def _zlmedia_params(**params: object) -> dict[str, object]:
+    """Build ZLMediaKit API parameters.
+
+    ZLMediaKit deployments commonly protect /index/api/* with a shared ``secret``.
+    Development images may leave it empty, so the parameter is included only when set.
+    """
+    if ZLMEDIAKIT_API_SECRET:
+        params.setdefault("secret", ZLMEDIAKIT_API_SECRET)
+    return params
+
+
+async def check_video_dependencies(timeout: float = 3.0) -> dict[str, dict[str, object]]:
+    """Probe runtime dependencies used by video orchestration.
+
+    ``healthz`` stays liveness-only. ``readyz`` can expose degraded dependencies and,
+    when VIDEO_STRICT_READY=true, fail closed for production/runtime smoke gates.
+    """
+    out: dict[str, dict[str, object]] = {}
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        # ZLMediaKit: media server core for RTSP/RTMP/HLS/WebRTC lifecycle.
+        try:
+            r = await client.get(
+                f"{ZLMEDIA_API_URL.rstrip('/')}/index/api/getMediaList", params=_zlmedia_params()
+            )
+            out["zlmediakit"] = {"ok": 200 <= r.status_code < 500, "status_code": r.status_code}
+        except Exception as e:  # noqa: BLE001
+            out["zlmediakit"] = {"ok": False, "error": type(e).__name__}
+        # Edge inference: AI frame handoff. 404 is not OK; 401/403 means reachable but auth-gated.
+        try:
+            r = await client.get(f"{EDGE_INFERENCE_URL.rstrip('/')}/healthz")
+            out["edge_inference"] = {"ok": r.status_code == 200, "status_code": r.status_code}
+        except Exception as e:  # noqa: BLE001
+            out["edge_inference"] = {"ok": False, "error": type(e).__name__}
+    return out
 
 
 # ══════════════════════════════════════════════════════════════
@@ -212,19 +255,19 @@ async def process_stream_loop(stream_id: str):
     if cfg.rtsp_url and cfg.rtsp_url.startswith("rtsp://"):
         # If ZLMediaKit proxy available, use HTTP-FLV instead of raw RTSP
         try:
-            proxy_url = f"{ZLMEDIA_API_URL}/index/api/addStreamProxy"
+            proxy_url = f"{ZLMEDIA_API_URL.rstrip('/')}/index/api/addStreamProxy"
             async with httpx.AsyncClient(timeout=10.0) as c:
                 r = await c.post(
                     proxy_url,
-                    json={
-                        "vhost": "__defaultVhost__",
-                        "app": "live",
-                        "stream": stream_id,
-                        "url": cfg.rtsp_url,
-                    },
+                    json=_zlmedia_params(
+                        vhost="__defaultVhost__",
+                        app="live",
+                        stream=stream_id,
+                        url=cfg.rtsp_url,
+                    ),
                 )
                 if r.status_code == 200:
-                    source = f"{ZLMEDIA_API_URL}/live/{stream_id}.live.flv"
+                    source = f"{ZLMEDIA_API_URL.rstrip('/')}/live/{stream_id}.live.flv"
                     logger.info(f"[{stream_id}] ZLMediaKit proxy active: {source}")
         except Exception as e:  # noqa: BLE001
             logger.debug("ZLMediaKit proxy تعذّر [%s]: %s", stream_id, type(e).__name__)

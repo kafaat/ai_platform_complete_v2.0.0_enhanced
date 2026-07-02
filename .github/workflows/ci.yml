@@ -24,6 +24,9 @@ jobs:
       - name: v9-feature-transfer-gate
         run: python scripts/ci/v9_feature_transfer_gate.py
 
+      - name: v9-gpu-contract-gate
+        run: python scripts/ci/v9_gpu_contract_gate.py
+
       - name: Detect bash glob artifacts in paths
         run: |
           # المراجعة الخارجيّة كشفت ١٤ مجلد بأسماء {bots, {services, {migrations,services...}
@@ -83,7 +86,7 @@ jobs:
             # odoo-snippet مقتطف (fragment) يُلصق داخل compose آخر، وليس ملفّاً مستقلاً.
             # rag-kg-mcp تراكُب (overlay) يُشغَّل مع v9 (يعتمد qdrant/ollama/الشبكة من الأساس)
             # فلا يصحّ التحقّق منه مستقلّاً.
-            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
+            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
             # 1. YAML syntax
             python3 -c "import yaml; yaml.safe_load(open('$f'))"
             # 2. Compose schema (docker compose config) مع env وهمي
@@ -93,6 +96,13 @@ jobs:
             }
             echo "✓ $f valid"
           done
+          echo "─── Validating docker-compose.v9.yml + docker-compose.v9.gpu.yml overlay ───"
+          python3 -c "import yaml; yaml.safe_load(open('docker-compose.v9.gpu.yml'))"
+          docker compose --env-file .ci.env -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu config --quiet || {
+            echo "❌ v9 GPU overlay failed compose schema validation"
+            exit 1
+          }
+          echo "✓ v9 GPU overlay valid"
       - name: Check for orphaned depends_on blocks
         run: |
           # Defensive: catch the "nats: { condition... }" outside services pattern

@@ -98,7 +98,8 @@ services:
     environment:
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
       EDGE_INFERENCE_URL: http://sahool-edge:8100
-      ZLMEDIA_API_URL: http://sahool-zlmediakit:8080
+      ZLMEDIA_API_URL: http://sahool-zlmediakit:80
+      ZLMEDIAKIT_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/3
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
@@ -111,6 +112,8 @@ services:
       sahool-edge:
         condition: service_healthy
       sahool-redis:
+        condition: service_healthy
+      sahool-zlmediakit:
         condition: service_healthy
     networks:
       sahool-internal:
@@ -1248,12 +1251,16 @@ services:
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM: ${SMTP_FROM}
+      TTS_URL: http://sahool-tts-service:8000
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
     depends_on:
       sahool-postgres:
         condition: service_healthy
       sahool-redis:
         condition: service_healthy
       sahool-nats:
+        condition: service_healthy
+      sahool-tts-service:
         condition: service_healthy
     networks:
     - sahool-internal
@@ -1626,6 +1633,33 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
+  sahool-zlmediakit:
+    image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
+    container_name: sahool-v9-zlmediakit
+    mem_limit: 768m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      TZ: ${TZ:-UTC}
+      ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
+    ports:
+    - 127.0.0.1:8088:80
+    - 127.0.0.1:8554:554
+    - 127.0.0.1:1935:1935
+    - 127.0.0.1:10000:10000/udp
+    networks:
+      sahool-internal:
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - (wget -q -O- http://localhost/index/api/getMediaList >/dev/null 2>&1 || curl
+        -fsS http://localhost/index/api/getMediaList >/dev/null 2>&1)
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 networks:
   sahool-public:
     driver: bridge

@@ -124,7 +124,7 @@ classification: `ui`
 
 ### `sam2-inference` — pass
 classification: `internal`
-- internal-consumer: 20 match(es)
+- internal-consumer: 24 match(es)
   - `services/field-segmentation/main.py` ← `SEGMENTATION_INFERENCE_URL`
   - `services/field-segmentation/main.py` ← `SEGMENTATION_BACKEND`
   - `services/field-segmentation/main.py` ← `sam2`
