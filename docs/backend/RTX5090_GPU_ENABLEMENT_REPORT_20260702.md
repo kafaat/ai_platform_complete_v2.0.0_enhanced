@@ -10,7 +10,7 @@ This patch enables the v9 runtime to use a local RTX 5090/Blackwell GPU without 
 
 `docker-compose.v9.yml` now includes `sahool-zlmediakit`, with local host ports for media development/testing:
 
-- `127.0.0.1:8088:80` — ZLMediaKit HTTP/API
+- `127.0.0.1:8188:80` — ZLMediaKit HTTP/API (moved from 8088 to avoid raster-tiler collision)
 - `127.0.0.1:8554:554` — RTSP
 - `127.0.0.1:1935:1935` — RTMP
 - `127.0.0.1:10000:10000/udp` — WebRTC/RTP candidate port

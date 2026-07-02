@@ -192,12 +192,12 @@ classification: `ui`
 
 ### `agriai-engine` — pass
 classification: `internal`
-- internal-consumer: 6 match(es)
+- internal-consumer: 7 match(es)
   - `docker-compose.unified.yml` ← `MCP_AGRIAI_URL`
   - `docker-compose.unified.yml` ← `agriai-engine`
   - `docker-compose.unified.yml` ← `sahool-unified-agriai-engine`
   - `tests_v9/test_real_findings_closure_20260702.py` ← `agriai-engine`
-  - `tests_v9/test_v9_feature_transfer_20260702.py` ← `agriai-engine`
+  - `tests_v9/test_agriai_engine_features_20260702.py` ← `agriai-engine`
 
 ### `mcp_servers` — pass
 classification: `internal`

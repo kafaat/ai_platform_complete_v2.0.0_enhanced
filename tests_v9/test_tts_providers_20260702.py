@@ -206,14 +206,43 @@ def _load_main():
     timeseries». لذا نعيد استعمال أيّ نسخة موجودة في ``sys.modules`` (بأيّ من
     الاسمين) قبل الاستيراد الطازج — فلا نُطلِق تسجيلاً ثانياً.
     """
-    for name in ("main", "sahool_tts_main"):
+
+    def _is_tts_main_with_status(mod) -> bool:
+        # ليست أيّ نسخة tts تكفي: يجب أن تحمل مسار ``/tts/status`` الجديد (نسخة قديمة
+        # حمّلها اختبار آخر قد لا تملكه إن سبق تسجيل راوترها). نتحقّق من المسار فعليّاً.
+        if mod is None or not hasattr(mod, "app") or not hasattr(mod, "VOICES"):
+            return False
+        return any(getattr(r, "path", None) == "/tts/status" for r in mod.app.routes)
+
+    # أعِد استعمال نسخة tts محمّلة **تملك المسار** (تُميَّز بـ``VOICES`` — لا تخلطها مع
+    # ``main`` خدمة أخرى مثل video-processor في التشغيل الكامل للسويت).
+    for name in ("sahool_tts_main", "main"):
         mod = sys.modules.get(name)
-        if mod is not None and hasattr(mod, "app") and hasattr(mod, "VOICES"):
+        if _is_tts_main_with_status(mod):
             return mod
-    if str(_SVC_DIR) not in sys.path:
-        sys.path.insert(0, str(_SVC_DIR))
+    # تحميل نظيف: صدّر مجلّد tts على sys.path، وأخلِ الوحدات الشقيقة المُخزَّنة (main +
+    # router_registry + routers.* + الوحدات النقيّة) — سواء لخدمة أخرى بالاسم نفسه أو
+    # لنسخة tts سابقة رُبِطت راوتراتها بتطبيق قديم — كي تُعاد ربطها بالتطبيق الطازج
+    # فيُسجَّل ``/tts/status``. المقاييس idempotent (``_metric`` في main) فلا تكرار prometheus.
+    while str(_SVC_DIR) in sys.path:
+        sys.path.remove(str(_SVC_DIR))
+    sys.path.insert(0, str(_SVC_DIR))
+    for name in (
+        "main",
+        "router_registry",
+        "routers",
+        "routers.tts",
+        "routers.health",
+        "providers",
+        "arabic_normalizer",
+    ):
+        sys.modules.pop(name, None)
     import main
 
+    assert hasattr(main, "VOICES"), "استُورِد ``main`` خدمة أخرى بدل tts (تصادم اسم الوحدة)"
+    assert any(getattr(r, "path", None) == "/tts/status" for r in main.app.routes), (
+        "لم يُسجَّل مسار /tts/status على التطبيق الطازج (راوترات شقيقة مُخزَّنة قديمة)"
+    )
     return main
 
 

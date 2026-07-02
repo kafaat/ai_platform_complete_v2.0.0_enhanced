@@ -1645,7 +1645,10 @@ services:
       TZ: ${TZ:-UTC}
       ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
     ports:
-    - 127.0.0.1:8088:80
+    # HTTP/API host port moved 8088 -> 8188: 8088 is already taken by
+    # raster-tiler-service (127.0.0.1:8088:8088). Internal callers use the
+    # container name (sahool-zlmediakit:80), so only the local dev/test port changes.
+    - 127.0.0.1:8188:80
     - 127.0.0.1:8554:554
     - 127.0.0.1:1935:1935
     - 127.0.0.1:10000:10000/udp

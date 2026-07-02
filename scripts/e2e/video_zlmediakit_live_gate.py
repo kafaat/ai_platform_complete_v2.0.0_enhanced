@@ -12,7 +12,7 @@ import os
 import sys
 import urllib.request
 
-ZLM_BASE = os.getenv("ZLMEDIAKIT_PUBLIC_URL", "http://localhost:8088")
+ZLM_BASE = os.getenv("ZLMEDIAKIT_PUBLIC_URL", "http://localhost:8188")
 VIDEO_BASE = os.getenv("VIDEO_PROCESSOR_BASE_URL", "http://localhost/api/video")
 
 

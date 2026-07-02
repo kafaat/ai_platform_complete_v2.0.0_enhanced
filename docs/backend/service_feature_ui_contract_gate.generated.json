@@ -1665,6 +1665,11 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_agriai_engine_features_20260702.py",
+              "pattern": "agriai-engine"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_v9_feature_transfer_20260702.py",
               "pattern": "agriai-engine"
             },
@@ -1674,7 +1679,7 @@
               "pattern": "agriai-engine"
             }
           ],
-          "match_count": 6
+          "match_count": 7
         }
       ]
     },
