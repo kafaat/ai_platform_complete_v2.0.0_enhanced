@@ -40,9 +40,20 @@ CRITICAL_PATH = (
 # الخطّة المرحليّة) وسّع هذه المجموعات ليَقفل السقّاطة على المكسب الجديد.
 BASELINE_PINNED = {
     "services/sahool-platform/api/requirements.txt": {
-        "defusedxml", "fastapi", "httpx", "nats-py", "numpy", "pydantic",
-        "pyjwt", "pyotp", "pyshp", "python-multipart", "pyyaml", "redis",
-        "scipy", "uvicorn",
+        "defusedxml",
+        "fastapi",
+        "httpx",
+        "nats-py",
+        "numpy",
+        "pydantic",
+        "pyjwt",
+        "pyotp",
+        "pyshp",
+        "python-multipart",
+        "pyyaml",
+        "redis",
+        "scipy",
+        "uvicorn",
     },
     "services/auth/requirements.txt": {"fastapi", "pydantic", "uvicorn"},
     "services/guardrails-engine/requirements.txt": {"fastapi", "pydantic", "uvicorn"},
@@ -138,7 +149,6 @@ def test_core_framework_version_consistent_across_critical_path():
         distinct = set(by_file.values())
         if len(distinct) > 1:
             problems.append(f"{pkg}: إصدارات متضاربة على المسار الحرج {by_file}")
-    assert not problems, (
-        "انزلاق إصدار إطار العمل النواة على المسار الحرج:\n  "
-        + "\n  ".join(problems)
+    assert not problems, "انزلاق إصدار إطار العمل النواة على المسار الحرج:\n  " + "\n  ".join(
+        problems
     )
