@@ -308,6 +308,42 @@ def test_rag_search_matching_tenant_uses_trusted_value(monkeypatch):
     assert captured["tenant_id"] == "tenant-1"
 
 
+# ── rag-retrieval: /ingest is an internal write ⇒ requires the service token (SEC-4) ──
+_INGEST_BODY = {
+    "chunks": [
+        {
+            "chunk_id": "c-sec4",
+            "tenant_id": "tenant-1",
+            "text": "wheat needs water",
+            "source_type": "manual",
+            "document_id": "doc-1",
+            "chunk_index": 0,
+            "total_chunks": 1,
+            "metadata": {"evidence_level": "field"},
+        }
+    ]
+}
+
+
+def test_rag_ingest_without_token_rejected(monkeypatch):
+    _M, client = _rag_client()
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
+    r = client.post("/ingest", json=_INGEST_BODY)  # no X-Agent-Token
+    assert r.status_code == 403
+    assert r.json()["detail"] == "service_token_required"
+
+
+def test_rag_ingest_with_token_not_rejected(monkeypatch):
+    M, client = _rag_client()
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
+    # Stub the data-plane write so the test asserts the auth gate, not Qdrant I/O.
+    monkeypatch.setattr(M._retriever, "ingest", lambda chunks: len(chunks))
+    r = client.post("/ingest", json=_INGEST_BODY, headers={"X-Agent-Token": _AGENT_TOKEN})
+    assert r.status_code != 403
+    assert r.status_code == 200
+    assert r.json()["ingested"] == 1
+
+
 # ── knowledge-graph: writes require the service token, reads stay open ──────────
 def _kg_module():
     pytest.importorskip("fastapi")

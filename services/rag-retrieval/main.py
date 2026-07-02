@@ -10,9 +10,10 @@ from core.rag.production_qdrant import (
     KnowledgeChunk,
     QdrantHttpClient,
 )
-from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from shared.security.gateway_deps import require_service_token
 from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant
 
 app = FastAPI(title="SAHOOL Production RAG Retrieval", version="2026.2")
@@ -86,7 +87,9 @@ async def readyz():
 
 
 @app.post("/ingest")
-async def ingest(req: IngestRequest):
+async def ingest(req: IngestRequest, _token: None = Depends(require_service_token)):
+    # SEC-4: internal data-plane write. Mirrors knowledge-graph writes — requires the
+    # trusted service token (X-Agent-Token == SAHOOL_AGENT_TOKEN), fail-closed 403.
     chunks = [KnowledgeChunk(**c.model_dump()) for c in req.chunks]
     try:
         return {"ingested": _retriever.ingest(chunks)}

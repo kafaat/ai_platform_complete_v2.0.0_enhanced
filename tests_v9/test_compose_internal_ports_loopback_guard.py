@@ -25,11 +25,31 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 _TARGET = "docker-compose.light.yml"
 
 # قائمة سماح: خدمات يُسمَح لها بنشر منافذ على كلّ الواجهات (0.0.0.0) لأنّها عامّة عمداً.
-#   • nginx      — بوّابة الحافة العكسيّة (80/443) هي نقطة الدخول العامّة الوحيدة للتطبيق.
-#   • fastbee    — وسيط IoT/MQTT للحافة (1883) يتّصل به عتاد ميدانيّ خارج المضيف.
-#   • zlmediakit — خادم وسائط للحافة (RTSP 554، WebRTC 10000/udp) لبثّ الكاميرات.
-# أيّ خدمة أخرى تُعدّ داخليّة ⇒ يجب أن تنشر على 127.0.0.1 فقط.
-_PUBLIC_ALLOWLIST = frozenset({"nginx", "fastbee", "zlmediakit"})
+#   • nginx      — بوّابة الحافة العكسيّة (80/443) هي نقطة الدخول العامّة الوحيدة للتطبيق
+#                  (None ⇒ كامل الخدمة عامّ).
+#   • fastbee    — وسيط IoT/MQTT للحافة: منفذ MQTT 1883 فقط عامّ (عتاد ميدانيّ خارج المضيف).
+#   • zlmediakit — خادم وسائط للحافة: RTSP 554 + WebRTC 10000/udp فقط عامّان (بثّ الكاميرات).
+# SEC-4: fastbee/zlmediakit ليستا عامّتَين بالكامل — منفذ الإدارة HTTP (8081/8082) يجب أن يبقى
+# على 127.0.0.1 فقط. أيّ منفذ *غير* مُدرَج هنا (منفذ إدارة جديد مثلاً) يُعامَل معاملة داخليّة.
+# القيمة = مجموعة منافذ المضيف العامّة المسموح بها لهذه الخدمة (None ⇒ كامل الخدمة عامّ).
+_PUBLIC_PORT_ALLOWLIST: dict[str, frozenset[str] | None] = {
+    "nginx": None,
+    "fastbee": frozenset({"1883"}),
+    "zlmediakit": frozenset({"554", "10000"}),
+}
+# أسماء الخدمات العامّة (للتحقّق من عدم قِدَم القائمة في test_target_compose_parsed).
+_PUBLIC_ALLOWLIST = frozenset(_PUBLIC_PORT_ALLOWLIST)
+
+
+def _host_port(port_spec: str) -> str:
+    """أعِد منفذ المضيف المنشور من سلسلة منفذ.
+
+    يدعم ``HOST:CONTAINER`` و``IP:HOST:CONTAINER`` (مثل ``127.0.0.1:8081:8080``)
+    مع لاحقة بروتوكول اختياريّة (``/udp``). منفذ المضيف هو الحقل قبل الأخير."""
+    fields = port_spec.strip().split(":")
+    host = fields[-2] if len(fields) >= 2 else fields[0]
+    return host.split("/", 1)[0].strip()
+
 
 _SERVICE_RE = re.compile(r"^  ([A-Za-z0-9_-]+):\s*(?:#.*)?$")
 _TOPLEVEL_RE = re.compile(r"^[A-Za-z]")
@@ -103,15 +123,23 @@ def _service_ports(text: str) -> dict[str, list[str]]:
 
 
 def _internal_port_cases() -> list[tuple[str, str]]:
-    """كلّ (اسم خدمة داخليّة، سلسلة منفذ) في الملفّ الهدف — خارج قائمة السماح العامّة."""
+    """كلّ (اسم خدمة، سلسلة منفذ) يجب أن يُحصَر على loopback في الملفّ الهدف.
+
+    الخدمات الداخليّة: كلّ منافذها. خدمات قائمة السماح العامّة: فقط المنافذ *غير*
+    المُدرَجة صراحةً كعامّة (منافذ الإدارة الجديدة مثلاً) — أمّا منافذها العامّة المقصودة
+    (MQTT/RTSP/WebRTC، أو كامل nginx) فتُستثنى. أيّ منفذ داخليّ يُنشَر على كلّ الواجهات يُفشِل."""
     path = _REPO_ROOT / _TARGET
     if not path.exists():
         return []
     out: list[tuple[str, str]] = []
     for name, ports in _service_ports(path.read_text(encoding="utf-8")).items():
-        if name in _PUBLIC_ALLOWLIST:
+        allowed = _PUBLIC_PORT_ALLOWLIST.get(name, frozenset())
+        if allowed is None:  # كامل الخدمة عامّ (nginx).
             continue
         for p in ports:
+            # منفذ عامّ مقصود (مُدرَج صراحةً) ⇒ لا يُفحَص؛ خلاف ذلك يجب أن يكون loopback.
+            if _host_port(p) in allowed and not p.startswith("127.0.0.1:"):
+                continue
             out.append((name, p))
     return out
 
@@ -129,6 +157,28 @@ def test_target_compose_parsed():
     for name in _PUBLIC_ALLOWLIST:
         assert name in ports_map, (
             f"خدمة قائمة السماح '{name}' غير موجودة في {_TARGET} — نظّف القائمة."
+        )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    "svc_name,mgmt_host_port",
+    [("fastbee", "8081"), ("zlmediakit", "8082")],
+)
+def test_edge_mgmt_http_port_bound_loopback(svc_name, mgmt_host_port):
+    """SEC-4: the edge services' HTTP MANAGEMENT ports must be loopback-only.
+
+    fastbee/zlmediakit are public for their line protocols (MQTT/RTSP/WebRTC) but their
+    admin HTTP ports (8081/8082) are not — a regression that re-exposes them on all
+    interfaces must fail here even though the service is otherwise allowlisted."""
+    path = _REPO_ROOT / _TARGET
+    ports = _service_ports(path.read_text(encoding="utf-8")).get(svc_name, [])
+    mgmt = [p for p in ports if _host_port(p) == mgmt_host_port]
+    assert mgmt, f"{_TARGET}:{svc_name} لا ينشر منفذ الإدارة {mgmt_host_port} — تغيّر التنسيق؟"
+    for p in mgmt:
+        assert p.startswith("127.0.0.1:"), (
+            f"{_TARGET}:{svc_name} يكشف منفذ الإدارة '{p}' على كلّ الواجهات. "
+            "احصره على 127.0.0.1: (منفذ إدارة HTTP داخليّ)."
         )
 
 

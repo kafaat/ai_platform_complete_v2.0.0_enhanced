@@ -278,7 +278,7 @@ services:
     restart: unless-stopped
     ports:
       - "1883:1883"
-      - "8081:8080"
+      - "127.0.0.1:8081:8080"  # HIGH-DOCKER-01: localhost only (mgmt HTTP; MQTT 1883 stays public)
     environment:
       - DB_HOST=sahool-postgis
       - DB_PORT=5432
@@ -304,7 +304,7 @@ services:
     container_name: sahool-zlmediakit
     restart: unless-stopped
     ports:
-      - "8082:8080"
+      - "127.0.0.1:8082:8080"  # HIGH-DOCKER-01: localhost only (mgmt HTTP; RTSP/WebRTC stay public)
       - "554:554"
       - "10000:10000/udp"
     volumes:
