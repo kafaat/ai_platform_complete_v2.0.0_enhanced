@@ -24,6 +24,10 @@ services:
       dockerfile: services/sam2-inference/Dockerfile
       args:
         PYTORCH_CUDA_IMAGE: ${PYTORCH_CUDA_IMAGE:-pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime}
+    # يُعرَض على loopback المضيف فقط (GPU-profile) كي تصله بوّابة sam2_live_gpu_gate.py
+    # من المضيف. الخدمة داخليّة أصلاً؛ هذا المنفذ للاختبار/التطوير المحلّيّ لا للإنتاج.
+    ports:
+    - 127.0.0.1:8080:8080
     environment:
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES:-all}
       NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES:-compute,utility}
