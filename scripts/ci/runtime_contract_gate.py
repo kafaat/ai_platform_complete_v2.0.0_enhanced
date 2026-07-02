@@ -30,7 +30,7 @@ def main() -> int:
         if not p.exists():
             failures.append(f"{key}: missing {path}")
             continue
-        src = p.read_text()
+        src = p.read_text(encoding="utf-8")
         for n in needles:
             if n not in src:
                 failures.append(f"{key}: missing token {n!r} in {path}")

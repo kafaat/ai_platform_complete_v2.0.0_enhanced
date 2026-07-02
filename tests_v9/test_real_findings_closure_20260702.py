@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def read(path: str) -> str:
-    return (ROOT / path).read_text()
+    return (ROOT / path).read_text(encoding="utf-8")
 
 
 def test_ai_rejects_client_supplied_current_field_state_without_service_token():
@@ -39,14 +39,14 @@ def test_knowledge_graph_reads_and_writes_have_internal_identity_guards():
 
 
 def test_v9_ai_uses_redis_backed_agent_store_by_default():
-    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
+    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
     env = data["services"]["sahool-ai-agronomist"]["environment"]
     assert env["SAHOOL_AGENT_STORE_BACKEND"] == "${SAHOOL_AGENT_STORE_BACKEND:-redis}"
     assert "SAHOOL_AGENT_REDIS_URL" in env
 
 
 def test_sam2_profile_has_default_inference_url_when_backend_enabled():
-    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
+    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
     env = data["services"]["sahool-field-segmentation"]["environment"]
     assert env["SEGMENTATION_BACKEND"] == "${SEGMENTATION_BACKEND:-}"
     assert env["SEGMENTATION_INFERENCE_URL"].endswith("sahool-sam2-inference:8080/predict}")
@@ -54,7 +54,7 @@ def test_sam2_profile_has_default_inference_url_when_backend_enabled():
 
 def test_unified_and_light_edge_ports_match_internal_8100():
     for name in ["docker-compose.unified.yml", "docker-compose.light.yml"]:
-        data = yaml.safe_load((ROOT / name).read_text())
+        data = yaml.safe_load((ROOT / name).read_text(encoding="utf-8"))
         svc = data["services"]["edge-inference"]
         assert svc["ports"] == ["127.0.0.1:8100:8100"]
         assert "localhost:8100/healthz" in str(svc["healthcheck"]["test"])

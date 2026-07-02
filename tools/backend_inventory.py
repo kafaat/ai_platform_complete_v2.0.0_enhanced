@@ -74,7 +74,7 @@ def count_loc(files: Iterable[Path]) -> int:
     total = 0
     for file in files:
         try:
-            total += len(file.read_text(errors="ignore").splitlines())
+            total += len(file.read_text(encoding="utf-8", errors="ignore").splitlines())
         except OSError:
             continue
     return total
@@ -84,7 +84,7 @@ def count_routes(files: Iterable[Path]) -> int:
     routes = 0
     for file in files:
         try:
-            routes += len(ROUTE_RE.findall(file.read_text(errors="ignore")))
+            routes += len(ROUTE_RE.findall(file.read_text(encoding="utf-8", errors="ignore")))
         except OSError:
             continue
     return routes
@@ -103,7 +103,7 @@ def find_ports(path: Path) -> list[str]:
         if not candidate.exists():
             continue
         try:
-            for match in EXPOSE_RE.finditer(candidate.read_text(errors="ignore")):
+            for match in EXPOSE_RE.finditer(candidate.read_text(encoding="utf-8", errors="ignore")):
                 ports.add(match.group(1))
         except OSError:
             continue

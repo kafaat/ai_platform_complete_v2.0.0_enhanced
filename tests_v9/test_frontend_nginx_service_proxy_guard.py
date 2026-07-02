@@ -97,5 +97,29 @@ def test_v9_uses_same_path_transforms():
     assert "supervisor_backend/agent/" in v9, "v9 لا يوكّل الوكيل إلى /agent/"
 
 
+def test_segmentation_routes_via_platform_with_long_timeout():
+    """`/api/segmentation/` يُوكَّل **عبر المنصّة** (لا مباشرةً) بمهلة 120s.
+
+    خدمة field-segmentation تتطلّب X-Agent-Token الذي تحقنه المنصّة فقط، فالتوجيه
+    المباشر إليها يُرفَض. والتقطيع الآليّ/الهجين (SAM2-GPU) قد يتجاوز مهلة catch-all
+    العامّة (60s)، فتلزم كتلة صريحة تسبق catch-all بمهلة قراءة أطول تطابق الإنتاج (120s).
+    """
+    src = _read(_FRONTEND_NGINX)
+    loc = src.find("location ^~ /api/segmentation/")
+    catchall = src.find("location /api/ {")
+    assert loc != -1, "كتلة `location ^~ /api/segmentation/` مفقودة في بوّابة 3003"
+    assert loc < catchall, "`/api/segmentation/` يقع بعد catch-all ⇒ يُعترَض بمهلة 60s"
+    block = src[loc:catchall]
+    assert "http://sahool-platform:8000/api/segmentation/" in block, (
+        "التقطيع يجب أن يمرّ عبر المنصّة (حقن X-Agent-Token) لا مباشرةً إلى الخدمة"
+    )
+    assert "sahool-field-segmentation" not in block, (
+        "توجيه مباشر إلى field-segmentation يتخطّى حقن التوكن ⇒ يُرفَض (401/403)"
+    )
+    assert "proxy_read_timeout    120s" in block or "proxy_read_timeout 120s" in block, (
+        "التقطيع الآليّ قد يطول ⇒ يلزم proxy_read_timeout 120s (كـnginx.v9.conf)"
+    )
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

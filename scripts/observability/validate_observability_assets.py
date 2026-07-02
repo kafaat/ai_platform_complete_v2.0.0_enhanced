@@ -44,23 +44,23 @@ def fail(message: str) -> None:
 
 def load_yaml(path: Path):
     if yaml is None:
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         return text
-    return yaml.safe_load(path.read_text())
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
 
 
 def validate_dashboards() -> None:
     provider = ROOT / "grafana/dashboards/dashboards.yml"
     if not provider.exists():
         fail("missing Grafana dashboards provider")
-    provider_text = provider.read_text()
+    provider_text = provider.read_text(encoding="utf-8")
     if "/etc/grafana/provisioning/dashboards/json" not in provider_text:
         fail("Grafana provider does not point to dashboard JSON directory")
 
     for path in REQUIRED_DASHBOARDS:
         if not path.exists():
             fail(f"missing dashboard {path.relative_to(ROOT)}")
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         if not data.get("uid") or not data.get("title"):
             fail(f"dashboard lacks uid/title: {path.name}")
         panels = data.get("panels", [])
@@ -81,8 +81,8 @@ def validate_prometheus() -> None:
     alerts = ROOT / "prometheus/alerts.yml"
     if not prom.exists() or not alerts.exists():
         fail("missing prometheus.yml or alerts.yml")
-    prom_text = prom.read_text()
-    alerts_text = alerts.read_text()
+    prom_text = prom.read_text(encoding="utf-8")
+    alerts_text = alerts.read_text(encoding="utf-8")
     if "alerts.yml" not in prom_text:
         fail("Prometheus does not load alerts.yml")
     for alert in REQUIRED_ALERTS:
@@ -94,7 +94,7 @@ def validate_prometheus() -> None:
 
 def validate_compose_mounts() -> None:
     compose = ROOT / "docker-compose.v9.yml"
-    text = compose.read_text()
+    text = compose.read_text(encoding="utf-8")
     for required in [
         "./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
         "./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro",
@@ -109,9 +109,9 @@ def validate_compose_mounts() -> None:
 
 
 def validate_scrape_jobs() -> None:
-    prom_text = (ROOT / "prometheus/prometheus.yml").read_text()
+    prom_text = (ROOT / "prometheus/prometheus.yml").read_text(encoding="utf-8")
     # These may be direct jobs or route-level metrics through platform/nginx; enforce key names in assets.
-    assets = prom_text + "\n" + (ROOT / "grafana/dashboards/json/sahool-field-imagery-ai-runtime.json").read_text()
+    assets = prom_text + "\n" + (ROOT / "grafana/dashboards/json/sahool-field-imagery-ai-runtime.json").read_text(encoding="utf-8")
     for job in REQUIRED_JOBS:
         if job not in assets:
             fail(f"observability assets do not mention critical job/domain {job}")

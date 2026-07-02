@@ -15,7 +15,7 @@ def test_erp_legacy_aliases_exist_only_on_erp_bridge_service():
         "docker-compose.fixed.yml",
         "docker-compose.unified.yml",
     ]:
-        data = yaml.safe_load((ROOT / compose_name).read_text())
+        data = yaml.safe_load((ROOT / compose_name).read_text(encoding="utf-8"))
         for svc_name, svc in data["services"].items():
             aliases = []
             networks = svc.get("networks") if isinstance(svc, dict) else None
@@ -30,12 +30,12 @@ def test_erp_legacy_aliases_exist_only_on_erp_bridge_service():
 
 
 def test_unified_erp_bridge_port_matches_dockerfile_and_nginx():
-    compose = yaml.safe_load((ROOT / "docker-compose.unified.yml").read_text())
+    compose = yaml.safe_load((ROOT / "docker-compose.unified.yml").read_text(encoding="utf-8"))
     svc = compose["services"]["erp-bridge"]
     assert svc["ports"] == ["127.0.0.1:8126:8126"]
     assert "localhost:8126/healthz" in str(svc["healthcheck"]["test"])
-    assert "erp-bridge:8126" in (ROOT / "nginx/nginx.unified.conf").read_text()
-    dockerfile = (ROOT / "services/odoo-bridge/Dockerfile").read_text()
+    assert "erp-bridge:8126" in (ROOT / "nginx/nginx.unified.conf").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "services/odoo-bridge/Dockerfile").read_text(encoding="utf-8")
     assert "EXPOSE 8126" in dockerfile
     assert '--port", "8126"' in dockerfile
 
@@ -50,7 +50,7 @@ def test_new_static_gates_pass():
 
 
 def test_live_tenant_auth_gate_script_covers_reject_paths():
-    src = (ROOT / "scripts/e2e/tenant_auth_live_gate.py").read_text()
+    src = (ROOT / "scripts/e2e/tenant_auth_live_gate.py").read_text(encoding="utf-8")
     for token in [
         "current_field_state",
         "tenant mismatch",

@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_phase1_ai_runtime_services_are_in_canonical_compose():
-    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
+    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
     services = data["services"]
     for name in ["sahool-rag-retrieval", "sahool-knowledge-graph", "sahool-ai-agronomist"]:
         assert name in services
@@ -24,7 +24,7 @@ def test_phase1_ai_runtime_services_are_in_canonical_compose():
 
 
 def test_phase1_gateway_routes_are_present():
-    nginx = (ROOT / "nginx/nginx.v9.conf").read_text()
+    nginx = (ROOT / "nginx/nginx.v9.conf").read_text(encoding="utf-8")
     for token in [
         "upstream rag_backend",
         "upstream kg_backend",
@@ -37,7 +37,7 @@ def test_phase1_gateway_routes_are_present():
 
 
 def test_workers_have_readiness_healthchecks():
-    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
+    data = yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
     for name in ["sahool-weather-polygon-worker", "sahool-weather-signal-engine"]:
         service = data["services"][name]
         assert "healthcheck" in service

@@ -13,7 +13,7 @@ def main():
     if ev.exists() and sha.exists():
         import hashlib
         actual = hashlib.sha256(ev.read_bytes()).hexdigest()
-        if actual != sha.read_text().strip():
+        if actual != sha.read_text(encoding="utf-8").strip():
             print("✗ hash لا يطابق — evidence عُدّل!")
             return 1
         print("✓ hash مطابق (لم يُعدَّل)")

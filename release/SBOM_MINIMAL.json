@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e3e186f8fde0d2c2868639fd488ea379860964fd0d1468ff3f44f49968486d52"
+          "content": "92268d4a36b7318664d80bc3f9f55aeebd37dd05914d92e995d5b7f6fd7dcb7a"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -295,7 +295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17ad71bfd76e43a32e25a00ad0724dbaf8d64617325f9b956b93735f62ab397a"
+          "content": "7612cced3ff47224cb2a6d7ce34bef7a69adb4c3815def742147264d6ab5d578"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d60e3e039d1f039812aaeccca09dfed80dae53643924faf44981552f30c2c640"
+          "content": "c99fe1071db10708bcb92b4391d997dff553565b358de7a605fbefa9882311b6"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -7525,7 +7525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb7cb0fe9277233144394ce81f3ac19a8e46de0d1bf8f2d20763c0ab8a4b103b"
+          "content": "b7c44e338b79215d452215dd93ca59b1b0cb259d04be75fed1c0617d9edc09f6"
         }
       ],
       "name": "services/raster-service/test_p2_tile_observability_static.py",
@@ -17555,7 +17555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e4588ee8bc7f5f138402831b470aa1622b71afdc371c7f3cbf070dfef334b54"
+          "content": "a494a2d7f9de105e0682a5a6d7b8128e5900f88273fb32908c1bcf1118099821"
         }
       ],
       "name": "services/video-processor/main.py",

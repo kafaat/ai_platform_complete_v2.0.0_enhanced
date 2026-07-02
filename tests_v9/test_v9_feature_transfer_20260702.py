@@ -11,11 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def _compose() -> dict:
-    return yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text())
+    return yaml.safe_load((ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8"))
 
 
 def _nginx() -> str:
-    return (ROOT / "nginx" / "nginx.v9.conf").read_text()
+    return (ROOT / "nginx" / "nginx.v9.conf").read_text(encoding="utf-8")
 
 
 def test_v9_contains_real_runtime_features_promoted_from_unified_light():

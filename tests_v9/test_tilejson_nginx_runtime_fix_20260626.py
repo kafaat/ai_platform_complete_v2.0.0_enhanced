@@ -1,7 +1,12 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLATFORM = (ROOT / "services/sahool-platform/api/main.py").read_text(encoding="utf-8")
+# توحيد main↔cert: نُقِل التمرير التوافقيّ لـ/api/raster/* من api/main.py إلى راوتر
+# مستقلّ (api/routers/compat_gateway.py) عند تفكيك الخدمة؛ يقرأ الحارس المصدرَ حيث
+# يعيش المنطق الآن كي يبقى عقد التمرير (حفظ الاستعلام + tid→X-Tenant-Id) محروساً.
+PLATFORM = (ROOT / "services/sahool-platform/api/routers/compat_gateway.py").read_text(
+    encoding="utf-8"
+)
 COMPOSE = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
 REQ = (ROOT / "services/raster-service/requirements.txt").read_text(encoding="utf-8")
 

@@ -19,7 +19,7 @@ UPSTREAM_RE = re.compile(r"server\s+([A-Za-z0-9_.-]+):(\d+)\s*;")
 
 
 def load_yaml(path: Path) -> dict[str, Any]:
-    return yaml.safe_load(path.read_text()) or {}
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
 def resolvable_names(compose: dict[str, Any]) -> set[str]:
@@ -53,7 +53,7 @@ def main() -> int:
     nginx_path = ROOT / args.nginx
     compose = load_yaml(compose_path)
     names = resolvable_names(compose)
-    upstreams = upstream_hosts(nginx_path.read_text())
+    upstreams = upstream_hosts(nginx_path.read_text(encoding="utf-8"))
     missing = [f"{host}:{port}" for host, port in upstreams if host not in names]
     result = {
         "gate": "nginx-compose-dns-gate",

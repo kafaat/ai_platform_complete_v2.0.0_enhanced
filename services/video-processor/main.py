@@ -331,6 +331,7 @@ async def publish_alert(cfg: StreamConfig, detections: list):
             ensure_ascii=False,
         )
         from aiomqtt import Client as MQTTClient  # ثقيل — داخل الدالّة كي لا يكسر الوحدة بلا وسيط
+
         host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
         async with MQTTClient(host, port=port) as client:
             await client.publish(topic, payload, qos=1)

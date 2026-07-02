@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def y(path: str) -> dict[str, Any]:
-    return yaml.safe_load((ROOT / path).read_text()) or {}
+    return yaml.safe_load((ROOT / path).read_text(encoding="utf-8")) or {}
 
 
 def text(obj: Any) -> str:
@@ -28,7 +28,7 @@ def main() -> int:
         failures.append("docker-compose.unified.yml erp-bridge must expose 127.0.0.1:8126:8126")
     if "localhost:8126/healthz" not in text(erp.get("healthcheck", {})):
         failures.append("docker-compose.unified.yml erp-bridge healthcheck must use localhost:8126/healthz")
-    if "erp-bridge:8126" not in (ROOT / "nginx/nginx.unified.conf").read_text():
+    if "erp-bridge:8126" not in (ROOT / "nginx/nginx.unified.conf").read_text(encoding="utf-8"):
         failures.append("nginx.unified.conf must proxy erp_bridge_backend to erp-bridge:8126")
 
     # Legacy Odoo DNS aliases must belong only to the ERP bridge, not every service.
