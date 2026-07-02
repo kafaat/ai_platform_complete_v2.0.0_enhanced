@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0ce6b3c2b5e9c65835734637853cdb0364705700e4ba44f71ddeb6b211f1221"
+          "content": "b0229c4760c204b2de0462255fcb97da31d33b16344fc2e004544d1a6249d3f7"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5515,7 +5515,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "98d1ece9d05e76b95e8161c2b1001c4556a3d480933f3831b3f26869517386d8"
+          "content": "ea61282ef14c20dddca2802ea5550218cd2fc7e02d47264acc0dd01ba28f3c9c"
+        }
+      ],
+      "name": "services/agriai-engine/evidence_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cbddbc009ea83ba2293729a5bb2613a8f6093e90c272027c9cdaa0f37463395f"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -5525,10 +5535,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "34406b31134eeee8aeb96c3f16934db7fd7e8ad8983ce2fb1e1ec3238b2db84c"
+          "content": "e8d0643f9a0d3cd32ee0d028e8ecaf7a5a40b078ac393493e73c574af1ac9c49"
+        }
+      ],
+      "name": "services/agriai-engine/profit_planner.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "81d95f7d560276d3ca961292041a31548ceab81616aba55a1ba882e096fee47e"
+        }
+      ],
+      "name": "services/agriai-engine/replay.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a3259e72d1386d94618d99b00aa51a20d50a5f5228f8173e7ed76f47b4f7088"
         }
       ],
       "name": "services/agriai-engine/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b771d7eb88d960d48772afba4c3cd770a258ccf256c0057e721ed5d6d93eb0cd"
+        }
+      ],
+      "name": "services/agriai-engine/wofost_adapter.py",
       "type": "file"
     },
     {
@@ -17295,7 +17335,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71f8bee51274691b8c17a10df2c4128bb2f36bad6a521a4f12f6000611f60444"
+          "content": "21c5033bc5aacf5c3840d3f6f0275b4a5a458642a416041e762ee7c89320075f"
+        }
+      ],
+      "name": "services/tts-service/arabic_normalizer.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c4c0beab58227e020df204744103ac4e866b27935692ce0f2ff31e29c1e3e75"
         }
       ],
       "name": "services/tts-service/main.py",
@@ -17305,7 +17355,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "995ea5d0909de86acc727221f788d1800d095c189b57a769fceda5343d66dba0"
+          "content": "e72676fd0510215b84b276cb7c968dcf7728833a6b3ff97d9273fa70b3d8a2f1"
+        }
+      ],
+      "name": "services/tts-service/providers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "72b84517b5ef7a35e3454a43a6fd35544b1ef6b7221fe21513bee83b0bf80d8d"
         }
       ],
       "name": "services/tts-service/requirements.txt",
@@ -17345,7 +17405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17aabce1780a664c9e20e190cd885e078b733da3aea4290aceb1dad936b8c388"
+          "content": "8edeffbd9aa0f9dbbeb0e8ec5c376e78bf49650c43054a9dd7d568ad8a537d11"
         }
       ],
       "name": "services/tts-service/routers/tts.py",
@@ -17485,7 +17545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3478e4840752957aa7f33cab2a35a77393b80b9dd84c40e6f0a7c4865858df47"
+          "content": "1e4588ee8bc7f5f138402831b470aa1622b71afdc371c7f3cbf070dfef334b54"
         }
       ],
       "name": "services/video-processor/main.py",
@@ -17535,10 +17595,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96b2b25f2940c8f70127fbefdc02f7e369986142c06c805558c84be091f5b151"
+          "content": "0075dd13dfe47011ef56b83f7abd796d43bdf0fb9f88f60a4ffcc8d41ae267c1"
         }
       ],
       "name": "services/video-processor/routers/streams.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7afa316858e595d20da2968154735055781612faaad8ffc2be12d0063dc2080b"
+        }
+      ],
+      "name": "services/video-processor/stream_events.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1512bd5dfd12f75f824dc61dbbcf261f2acd08ebab0b58a0d20dc42a2fe2ec47"
+        }
+      ],
+      "name": "services/video-processor/stream_registry.py",
       "type": "file"
     },
     {
@@ -17549,6 +17629,16 @@
         }
       ],
       "name": "services/video-processor/test_video_processor_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd3ad6d86a3dd03586732234169424c060be1759ce2e0d3defde5dd742b7b2a8"
+        }
+      ],
+      "name": "services/video-processor/zlmedia_client.py",
       "type": "file"
     },
     {
