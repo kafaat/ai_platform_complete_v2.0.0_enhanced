@@ -162,7 +162,10 @@ class TestSelectProvider:
 # ── توفّر المزوّدين الفعليّين ───────────────────────────────────────────────────
 class TestProviderAvailability:
     def test_edge_available(self):
-        # edge_tts مثبّت في بيئة الخدمة ⇒ متاح دوماً.
+        # edge_tts مثبّت في **بيئة الخدمة** لكنّه غائب في طبقة الوحدات الدنيا لـCI
+        # (requirements-test.txt لا يتضمّنه) ⇒ نتخطّى إن غاب: `available()` تُرجِع False
+        # بصدق حينها (السلوك الصحيح)، فالتأكيد على True مشروط بوجود المكتبة.
+        pytest.importorskip("edge_tts")
         assert EdgeTTSProvider().available() is True
 
     def test_piper_unavailable_without_lib_or_model(self, monkeypatch):
