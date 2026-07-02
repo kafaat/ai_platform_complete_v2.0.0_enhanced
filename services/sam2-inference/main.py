@@ -69,6 +69,12 @@ HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30").strip() or "30")
 # سقف أبعاد القراءة من الصورة (بكسل) — يمنع استهلاك ذاكرة GPU/CPU مفرطاً.
 MAX_IMAGE_DIM = int(os.getenv("MAX_IMAGE_DIM", "1024").strip() or "1024")
 
+# تبسيط حدود القناع (بالأمتار): قناع SAM2 حدوده «درج بكسل» كثيف الرؤوس، فبعد التحويل
+# لـ4326 تنهار رؤوس غير متجاورة إلى نفس الموضع (~سم) فتُطلِق تحذير «تقاطع ذاتيّ/رأس
+# مكرّر» في الواجهة. تبسيط معتدل بمقياس أمتار (افتراضي 3م) يُنظّف الحدّ دون فقد شكل
+# الحقل. الأرضيّة = حجم البكسل كي لا نُبسّط دون دقّة الصورة.
+SIMPLIFY_TOLERANCE_M = float(os.getenv("SEGMENTATION_SIMPLIFY_TOLERANCE_M", "3").strip() or "3")
+
 app = FastAPI(title="SAHOOL SAM2 Inference", version=VERSION)
 
 # حالة النموذج العالميّة (تُملأ عند الإقلاع). None ⇒ غير محمّل ⇒ 503 صادق.
@@ -334,6 +340,39 @@ def _read_rgb(image_url: str, bbox: list[float] | None):
 
 
 # ─── تحويل القناع → مضلّع GeoJSON ─────────────────────────────────────────
+def _tol_in_crs_units(tol_m: float, crs) -> float:
+    """حوّل مسافة بالأمتار إلى وحدات الـCRS للتبسيط قبل التحويل لـ4326.
+
+    UTM (مُسقَط، وحدته المتر) ⇒ كما هي؛ CRS جغرافيّ (درجات) ⇒ تقريب ~111320م/درجة.
+    نقيّ (بلا شبكة/GPU) فيُختبَر وحدةً."""
+    try:
+        if crs is not None and crs.is_geographic:
+            return tol_m / 111_320.0
+    except Exception:  # noqa: BLE001 — CRS بلا is_geographic ⇒ عامله كمُسقَط (أمتار)
+        pass
+    return tol_m
+
+
+def _dedupe_ring(ring: list[list[float]], eps: float = 2e-7) -> list[list[float]]:
+    """أزِل الرؤوس المتتالية شبه المكرّرة (ضمن eps) مع إبقاء الحلقة مغلقة.
+
+    eps بالدرجات (~2e-7 ≈ 2سم) أكبر من دقّة toFixed(7) في حارس الواجهة، كي تختفي
+    الرؤوس المنهارة التي تُطلِق تحذير «رأس مكرّر». يحفظ الترتيب والإغلاق. نقيّ ⇒ يُختبَر وحدةً."""
+    if not ring:
+        return ring
+    out: list[list[float]] = [list(ring[0])]
+    for p in ring[1:]:
+        q = out[-1]
+        if abs(p[0] - q[0]) > eps or abs(p[1] - q[1]) > eps:
+            out.append(list(p))
+    # أعِد الإغلاق: آخر رأس = الأوّل بالضبط (قد يكون أُزيل لقربه، أو نُطابقه صراحةً).
+    if len(out) >= 2 and (abs(out[0][0] - out[-1][0]) > eps or abs(out[0][1] - out[-1][1]) > eps):
+        out.append(list(out[0]))
+    else:
+        out[-1] = list(out[0])
+    return out
+
+
 def _mask_to_polygon(mask, transform, crs) -> dict:
     """يحوّل قناعاً ثنائيّاً [H,W] → GeoJSON Polygon (EPSG:4326، حلقة مغلقة).
 
@@ -373,11 +412,32 @@ def _mask_to_polygon(mask, transform, crs) -> dict:
 
     # أكبر مضلّع (الحقل الرئيسيّ) ثمّ حلقته الخارجيّة.
     largest = max(polys, key=lambda g: g.area)
-    # تبسيط خفيف لإزالة درج البكسل (tolerance بوحدة الـCRS؛ صغير قصداً).
-    tol = max(abs(transform.a), abs(transform.e))
+    # تبسيط معتدل بمقياس أمتار (لا بكسل واحد) لإزالة درج البكسل والرؤوس شبه المكرّرة
+    # التي تُطلِق تحذير «تقاطع ذاتيّ/رأس مكرّر» في الواجهة. الأرضيّة = حجم البكسل كي لا
+    # نُبسّط دون دقّة الصورة. preserve_topology يمنع التقاطع الذاتيّ من التبسيط نفسه.
+    px = max(abs(transform.a), abs(transform.e))
+    tol = max(px, _tol_in_crs_units(SIMPLIFY_TOLERANCE_M, crs))
     simplified = largest.simplify(tol, preserve_topology=True)
     if simplified.is_empty:
         simplified = largest
+    # صلابة: إن أنتج التبسيط هندسة غير صالحة (نادر مع preserve_topology) صحّحها
+    # عبر make_valid ثمّ buffer(0) كبديل — لا نُعيد هندسة غير صالحة أبداً.
+    if not simplified.is_valid:
+        try:
+            from shapely.validation import make_valid
+
+            simplified = make_valid(simplified)
+        except Exception:  # noqa: BLE001 — بديل: buffer(0) يُصلح التقاطعات الذاتيّة
+            simplified = simplified.buffer(0)
+        # make_valid قد يُرجِع GeometryCollection — خذ أكبر مضلّع منها.
+        if getattr(simplified, "geom_type", "") == "GeometryCollection":
+            polys2 = [g for g in simplified.geoms if g.geom_type in ("Polygon", "MultiPolygon")]
+            if not polys2:
+                raise HTTPException(
+                    status_code=500,
+                    detail={"error": "no_polygon", "note_ar": "تعذّر تصحيح الهندسة بعد التبسيط"},
+                )
+            simplified = max(polys2, key=lambda g: g.area)
 
     geom_obj = mapping(simplified)
 
@@ -407,6 +467,9 @@ def _mask_to_polygon(mask, transform, crs) -> dict:
         raise HTTPException(500, detail={"error": "no_polygon"})
 
     cleaned = [[float(p[0]), float(p[1])] for p in ring]
+    # إزالة الرؤوس المتتالية شبه المكرّرة (بعد التحويل لـ4326) — يُنظّف انهيار درج
+    # البكسل عند دقّة toFixed(7) في حارس الواجهة، ويُبقي الحلقة مغلقة.
+    cleaned = _dedupe_ring(cleaned)
     # تأكيد الإغلاق.
     if len(cleaned) >= 3 and cleaned[0] != cleaned[-1]:
         cleaned.append(list(cleaned[0]))
