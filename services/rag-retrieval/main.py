@@ -87,10 +87,24 @@ async def readyz():
 
 
 @app.post("/ingest")
-async def ingest(req: IngestRequest, _token: None = Depends(require_service_token)):
+async def ingest(
+    req: IngestRequest,
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    _token: None = Depends(require_service_token),
+):
     # SEC-4: internal data-plane write. Mirrors knowledge-graph writes — requires the
     # trusted service token (X-Agent-Token == SAHOOL_AGENT_TOKEN), fail-closed 403.
-    chunks = [KnowledgeChunk(**c.model_dump()) for c in req.chunks]
+    # C4: RAG ingestion mutates tenant-scoped evidence. The tenant source of truth is
+    # the gateway/service header; per-chunk tenant_id values may only echo that header.
+    chunks = []
+    for c in req.chunks:
+        try:
+            tenant_id = resolve_trusted_tenant(x_tenant_id, c.tenant_id)
+        except TrustedTenantError as exc:
+            raise HTTPException(status_code=403, detail=exc.code) from exc
+        payload = c.model_dump()
+        payload["tenant_id"] = tenant_id
+        chunks.append(KnowledgeChunk(**payload))
     try:
         return {"ingested": _retriever.ingest(chunks)}
     except Exception as exc:  # noqa: BLE001

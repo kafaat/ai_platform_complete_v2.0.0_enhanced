@@ -13,7 +13,7 @@ from core.knowledge_graph.sqlite_graph import (
 from fastapi import Depends, FastAPI, HTTPException, Response
 from pydantic import BaseModel
 
-from shared.security.gateway_deps import require_service_token
+from shared.security.gateway_deps import require_service_token, require_trusted_tenant
 
 app = FastAPI(title="SAHOOL Agricultural Knowledge Graph", version="2026.2")
 store = SQLiteAgGraphStore(os.getenv("KG_SQLITE_PATH", "/data/kg.sqlite"))
@@ -91,15 +91,20 @@ async def upsert_edge(edge: EdgeIn, _token: None = Depends(require_service_token
 
 @app.get("/edges")
 async def edges(
-    subject_id: str | None = None, relation: str | None = None, object_id: str | None = None
+    subject_id: str | None = None,
+    relation: str | None = None,
+    object_id: str | None = None,
+    _tenant: str = Depends(require_trusted_tenant),
 ):
+    # C5: graph reads require a trusted X-Tenant-Id (gateway-injected). A missing
+    # header fails closed (403 missing_tenant), preventing anonymous cross-tenant reads.
     return {
         "edges": store.query_edges(subject_id=subject_id, relation=relation, object_id=object_id)
     }
 
 
 @app.post("/graphql")
-async def graphql(req: GraphQLRequest):
+async def graphql(req: GraphQLRequest, _tenant: str = Depends(require_trusted_tenant)):
     try:
         return graphql_readonly(store, req.query)
     except ValueError as exc:

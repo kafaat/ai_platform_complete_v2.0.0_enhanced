@@ -207,7 +207,7 @@ services:
       dockerfile: services/edge-inference/Dockerfile.arm64
     container_name: sahool-edge
     restart: unless-stopped
-    ports: ["127.0.0.1:8100:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
+    ports: ["127.0.0.1:8100:8100"]  # HIGH-DOCKER-01: localhost only (internal app; Dockerfile يستمع على 8100)
     environment:
       EDGE_DEVICE: "${EDGE_DEVICE:-rpi5}"
       OFFLINE_MODE: "${OFFLINE_MODE:-false}"
@@ -220,7 +220,7 @@ services:
     networks: [sahool-net]
     <<: *logging
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      test: ["CMD", "curl", "-sf", "http://localhost:8100/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -234,7 +234,7 @@ services:
     ports: ["127.0.0.1:8110:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
-      EDGE_INFERENCE_URL: "http://sahool-edge:8000"
+      EDGE_INFERENCE_URL: "http://sahool-edge:8100"
       ZLMEDIA_API_URL: "http://sahool-zlmediakit:8080"
       REDIS_URL: "redis://sahool-redis:6379/3"
     depends_on:

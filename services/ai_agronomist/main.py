@@ -9,7 +9,11 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from shared.security.gateway_deps import require_authenticated_user, require_trusted_tenant
-from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant
+from shared.security.trusted_tenant import (
+    TrustedTenantError,
+    resolve_trusted_tenant,
+    service_token_ok,
+)
 
 from . import (
     ai_generation,
@@ -796,6 +800,7 @@ async def _build_evidence_response(
     *,
     endpoint_mode: str,
     x_tenant_id: str | None,
+    x_agent_token: str | None = None,
 ) -> dict[str, Any]:
     # SEC-3: the gateway-injected X-Tenant-Id is the ONLY tenant source of truth.
     # A body tenant_id may only echo it (never override); missing header or a body
@@ -806,7 +811,17 @@ async def _build_evidence_response(
         raise HTTPException(403, exc.code) from exc
 
     async with httpx.AsyncClient() as client:
-        field_state = req.current_field_state
+        # C3: public clients must not be able to inject ``current_field_state`` and
+        # make the AI answer appear grounded in canonical field evidence. A supplied
+        # context pack is accepted only from an internal caller proving possession of
+        # SAHOOL_AGENT_TOKEN; otherwise we fetch the canonical source-of-truth state
+        # from sahool-platform. Without the token, a request carrying
+        # ``current_field_state`` fails closed (403).
+        field_state = None
+        if req.current_field_state is not None:
+            if not service_token_ok(x_agent_token, os.getenv("SAHOOL_AGENT_TOKEN", "")):
+                raise HTTPException(403, "current_field_state_requires_service_token")
+            field_state = req.current_field_state
         if field_state is None:
             field_state = await _fetch_canonical_field_state(
                 client, tenant_id=tenant_id, field_id=req.field_id
@@ -847,6 +862,9 @@ async def _build_evidence_response(
         kg_resp = await client.get(
             f"{KNOWLEDGE_GRAPH_URL.rstrip('/')}/edges",
             params={"subject_id": req.crop} if req.crop else {},
+            # C2: forward the trusted tenant so knowledge-graph enforces its C5 read
+            # guard (require_trusted_tenant) on this internal service-to-service call.
+            headers={"X-Tenant-Id": tenant_id},
             timeout=5.0,
         )
         if kg_resp.status_code >= 500:
@@ -1044,30 +1062,47 @@ async def _build_evidence_response(
 
 @app.post("/query")
 async def query(
-    req: AdvisorQuery, x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")
+    req: AdvisorQuery,
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
 ) -> dict[str, Any]:
-    return await _build_evidence_response(req, endpoint_mode="query", x_tenant_id=x_tenant_id)
+    return await _build_evidence_response(
+        req, endpoint_mode="query", x_tenant_id=x_tenant_id, x_agent_token=x_agent_token
+    )
 
 
 @app.post("/chat")
 async def chat(
-    req: AdvisorQuery, x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")
+    req: AdvisorQuery,
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
 ) -> dict[str, Any]:
-    return await _build_evidence_response(req, endpoint_mode="chat", x_tenant_id=x_tenant_id)
+    return await _build_evidence_response(
+        req, endpoint_mode="chat", x_tenant_id=x_tenant_id, x_agent_token=x_agent_token
+    )
 
 
 @app.post("/explain")
 async def explain(
-    req: AdvisorQuery, x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")
+    req: AdvisorQuery,
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
 ) -> dict[str, Any]:
-    return await _build_evidence_response(req, endpoint_mode="explain", x_tenant_id=x_tenant_id)
+    return await _build_evidence_response(
+        req, endpoint_mode="explain", x_tenant_id=x_tenant_id, x_agent_token=x_agent_token
+    )
 
 
 @app.post("/recommend")
 async def recommend(
-    req: AdvisorQuery, x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")
+    req: AdvisorQuery,
+    x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id"),
+    x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
 ) -> dict[str, Any]:
     # Kept for UI compatibility only. It intentionally returns evidence-only output and never prescriptions/tasks.
     return await _build_evidence_response(
-        req, endpoint_mode="recommend_evidence_only", x_tenant_id=x_tenant_id
+        req,
+        endpoint_mode="recommend_evidence_only",
+        x_tenant_id=x_tenant_id,
+        x_agent_token=x_agent_token,
     )

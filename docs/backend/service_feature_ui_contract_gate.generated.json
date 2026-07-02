@@ -1101,7 +1101,7 @@
               "pattern": "SEGMENTATION_BACKEND"
             }
           ],
-          "match_count": 16
+          "match_count": 20
         }
       ]
     },
@@ -1242,8 +1242,18 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "pattern": "rag-retrieval"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
               "pattern": "rag-retrieval"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_remaining_closure_20260702.py",
+              "pattern": "/api/rag/"
             },
             {
               "root": "tests_v9",
@@ -1279,19 +1289,9 @@
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "rag-retrieval"
-            },
-            {
-              "root": "nginx",
-              "path": "nginx/nginx.v9.conf",
-              "pattern": "/api/rag/"
-            },
-            {
-              "root": "nginx",
-              "path": "nginx/nginx.unified.conf",
-              "pattern": "/api/rag/"
             }
           ],
-          "match_count": 12
+          "match_count": 14
         }
       ]
     },
@@ -1349,8 +1349,23 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "pattern": "knowledge-graph"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
               "pattern": "knowledge-graph"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_remaining_closure_20260702.py",
+              "pattern": "knowledge-graph"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_remaining_closure_20260702.py",
+              "pattern": "/api/knowledge-graph/"
             },
             {
               "root": "tests_v9",
@@ -1361,24 +1376,9 @@
               "root": "tests_v9",
               "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
               "pattern": "knowledge-graph"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-              "pattern": "/api/knowledge-graph/"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
-              "pattern": "KNOWLEDGE_GRAPH_URL"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
-              "pattern": "knowledge-graph"
             }
           ],
-          "match_count": 15
+          "match_count": 18
         }
       ]
     },
@@ -1660,11 +1660,16 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "pattern": "agriai-engine"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/smoke_services.py",
               "pattern": "agriai-engine"
             }
           ],
-          "match_count": 4
+          "match_count": 5
         }
       ]
     },
@@ -2396,6 +2401,16 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "pattern": "erp-bridge"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_remaining_closure_20260702.py",
+              "pattern": "erp-bridge"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_erp_bridge_alias_contract.py",
               "pattern": "/api/erp/"
             },
@@ -2415,7 +2430,7 @@
               "pattern": "erp-bridge"
             }
           ],
-          "match_count": 10
+          "match_count": 12
         }
       ]
     },
@@ -2554,7 +2569,7 @@
               "pattern": "RAG"
             }
           ],
-          "match_count": 59
+          "match_count": 60
         }
       ]
     },

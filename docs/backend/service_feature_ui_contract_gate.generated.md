@@ -124,7 +124,7 @@ classification: `ui`
 
 ### `sam2-inference` — pass
 classification: `internal`
-- internal-consumer: 16 match(es)
+- internal-consumer: 20 match(es)
   - `services/field-segmentation/main.py` ← `SEGMENTATION_INFERENCE_URL`
   - `services/field-segmentation/main.py` ← `SEGMENTATION_BACKEND`
   - `services/field-segmentation/main.py` ← `sam2`
@@ -145,16 +145,16 @@ classification: `ui`
 
 ### `rag-retrieval` — pass
 classification: `internal-sensitive`
-- internal-consumer: 12 match(es)
+- internal-consumer: 14 match(es)
   - `services/ai_agronomist/main.py` ← `RAG_BASE_URL`
   - `services/ai_agronomist/main.py` ← `rag-retrieval`
+  - `tests_v9/test_real_findings_closure_20260702.py` ← `rag-retrieval`
   - `tests_v9/test_gateway_trusted_identity_sec3.py` ← `rag-retrieval`
-  - `tests_v9/test_service_feature_ui_contract_gate.py` ← `rag-retrieval`
-  - `tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py` ← `rag-retrieval`
+  - `tests_v9/test_remaining_closure_20260702.py` ← `/api/rag/`
 
 ### `knowledge-graph` — pass
 classification: `internal-sensitive`
-- internal-consumer: 15 match(es)
+- internal-consumer: 18 match(es)
   - `services/ai_agronomist/main.py` ← `KNOWLEDGE_GRAPH_URL`
   - `services/ai_agronomist/main.py` ← `knowledge-graph`
   - `services/mcp_servers/generic_context_server.py` ← `knowledge-graph`
@@ -192,10 +192,11 @@ classification: `ui`
 
 ### `agriai-engine` — pass
 classification: `internal`
-- internal-consumer: 4 match(es)
+- internal-consumer: 5 match(es)
   - `docker-compose.unified.yml` ← `MCP_AGRIAI_URL`
   - `docker-compose.unified.yml` ← `agriai-engine`
   - `docker-compose.unified.yml` ← `sahool-unified-agriai-engine`
+  - `tests_v9/test_real_findings_closure_20260702.py` ← `agriai-engine`
   - `tests_v9/smoke_services.py` ← `agriai-engine`
 
 ### `mcp_servers` — pass
@@ -275,7 +276,7 @@ classification: `internal`
 
 ### `erp-bridge` — pass
 classification: `integration`
-- gateway-or-internal: 10 match(es)
+- gateway-or-internal: 12 match(es)
   - `nginx/nginx.unified.conf` ← `/api/erp/`
   - `nginx/nginx.unified.conf` ← `erp-bridge`
   - `services/mcp_servers/market_server.py` ← `ERP_BRIDGE_URL`
@@ -293,7 +294,7 @@ classification: `ui`
 
 ### `local-ai-rag` — pass
 classification: `internal`
-- internal-consumer: 59 match(es)
+- internal-consumer: 60 match(es)
   - `services/supervisor-agent/test_ai_orchestration_forensic.py` ← `LOCAL_AI_RAG_URL`
   - `services/supervisor-agent/test_ai_orchestration_forensic.py` ← `RAG`
   - `services/supervisor-agent/advisory_skill.py` ← `RAG`

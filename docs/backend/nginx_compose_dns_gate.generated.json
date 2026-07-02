@@ -1,0 +1,24 @@
+{
+  "gate": "nginx-compose-dns-gate",
+  "compose": "docker-compose.unified.yml",
+  "nginx": "nginx/nginx.unified.conf",
+  "upstreams": [
+    "auth-service:8000",
+    "supervisor-agent:8000",
+    "sentinel-hub-mcp:8000",
+    "weather-mcp:8000",
+    "wofost-mcp:8000",
+    "market-mcp:8000",
+    "video-processor:8000",
+    "actuator-service:8000",
+    "edge-inference:8100",
+    "fastbee:8080",
+    "zlmediakit:8080",
+    "local-ai-rag:8000",
+    "erp-bridge:8126",
+    "agriai-engine:8000",
+    "frontend:80"
+  ],
+  "missing": [],
+  "passed": true
+}

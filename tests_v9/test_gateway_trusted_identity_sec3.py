@@ -373,10 +373,26 @@ def test_rag_ingest_with_token_not_rejected(monkeypatch):
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
     # Stub the data-plane write so the test asserts the auth gate, not Qdrant I/O.
     monkeypatch.setattr(M._retriever, "ingest", lambda chunks: len(chunks))
-    r = client.post("/ingest", json=_INGEST_BODY, headers={"X-Agent-Token": _AGENT_TOKEN})
+    # C4: /ingest now also enforces the gateway-trusted X-Tenant-Id per chunk (in
+    # addition to the SEC-4 service token). A valid internal caller presents both;
+    # the chunk tenant_id must echo the trusted header ("tenant-1" in _INGEST_BODY).
+    r = client.post(
+        "/ingest",
+        json=_INGEST_BODY,
+        headers={"X-Agent-Token": _AGENT_TOKEN, "X-Tenant-Id": "tenant-1"},
+    )
     assert r.status_code != 403
     assert r.status_code == 200
     assert r.json()["ingested"] == 1
+
+
+def test_rag_ingest_with_token_but_missing_tenant_rejected(monkeypatch):
+    # C4: even with a valid service token, a missing gateway tenant fails closed.
+    _M, client = _rag_client()
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
+    r = client.post("/ingest", json=_INGEST_BODY, headers={"X-Agent-Token": _AGENT_TOKEN})
+    assert r.status_code == 403
+    assert r.json()["detail"] == "missing_tenant"
 
 
 # ── knowledge-graph: writes require the service token, reads stay open ──────────
@@ -428,9 +444,16 @@ def test_kg_write_with_token_allowed(monkeypatch):
     assert r.json()["ok"] is True
 
 
-def test_kg_read_edges_stays_open_without_token():
+def test_kg_read_edges_requires_trusted_tenant():
+    # C5: KG reads (GET /edges, /graphql) no longer stay open. They require the
+    # gateway-injected X-Tenant-Id (fail-closed 403 missing_tenant when absent),
+    # preventing anonymous cross-tenant graph reads. ai_agronomist forwards it (C2).
     _M, client = _kg_client()
-    # GET /edges is a read used by ai_agronomist without a token — must stay open.
-    r = client.get("/edges", params={"subject_id": "anything"})
-    assert r.status_code == 200
-    assert "edges" in r.json()
+    r_missing = client.get("/edges", params={"subject_id": "anything"})
+    assert r_missing.status_code == 403
+    assert r_missing.json()["detail"] == "missing_tenant"
+    r_ok = client.get(
+        "/edges", params={"subject_id": "anything"}, headers={"X-Tenant-Id": "tenant-1"}
+    )
+    assert r_ok.status_code == 200
+    assert "edges" in r_ok.json()

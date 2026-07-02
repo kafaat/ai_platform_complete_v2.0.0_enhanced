@@ -101,13 +101,7 @@ services:
     depends_on:
       postgis: { condition: service_healthy }
       redis:   { condition: service_healthy }
-    networks:
-      sahool-net:
-        aliases:
-          - sahool-unified-odoo-bridge
-          - sahool-odoo-bridge
-          - odoo-bridge
-          - erp-bridge
+    networks: [sahool-net]
     <<: *logging
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
@@ -256,7 +250,7 @@ services:
       dockerfile: services/edge-inference/Dockerfile.arm64
     container_name: sahool-unified-edge
     restart: unless-stopped
-    ports: ["127.0.0.1:8100:8000"]  # loopback فقط — استدلال حافّيّ داخليّ
+    ports: ["127.0.0.1:8100:8100"]  # loopback فقط — استدلال حافّيّ داخليّ (Dockerfile يستمع على 8100)
     environment:
       EDGE_DEVICE: "${EDGE_DEVICE:-rpi5}"
       OFFLINE_MODE: "${OFFLINE_MODE:-false}"
@@ -269,7 +263,7 @@ services:
     networks: [sahool-net]
     <<: *logging
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      test: ["CMD", "curl", "-sf", "http://localhost:8100/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -283,7 +277,7 @@ services:
     ports: ["127.0.0.1:8110:8000"]  # loopback فقط — معالج فيديو داخليّ
     environment:
       MQTT_BROKER_URL: "mqtt://sahool-unified-fastbee:1883"
-      EDGE_INFERENCE_URL: "http://sahool-unified-edge:8000"
+      EDGE_INFERENCE_URL: "http://sahool-unified-edge:8100"
       ZLMEDIA_API_URL: "http://sahool-unified-zlmediakit:8080"
       REDIS_URL: "redis://sahool-unified-redis:6379/3"
     depends_on:
@@ -495,7 +489,7 @@ services:
       dockerfile: services/odoo-bridge/Dockerfile
     container_name: sahool-unified-erp-bridge
     restart: unless-stopped
-    ports: ["127.0.0.1:8126:8000"]  # loopback فقط — جسر odoo داخليّ
+    ports: ["127.0.0.1:8126:8126"]  # loopback فقط — جسر odoo داخليّ (Dockerfile يستمع على 8126)
     environment:
       <<: *db-env
       ERP_PROVIDER: "${ERP_PROVIDER:-erpnext}"
@@ -523,7 +517,7 @@ services:
           - erp-bridge
     <<: *logging
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      test: ["CMD", "curl", "-sf", "http://localhost:8126/healthz"]
       interval: 30s
       timeout: 10s
       retries: 3

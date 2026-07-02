@@ -945,12 +945,19 @@ services:
       PLATFORM_URL: http://sahool-platform:8000
       GUARDRAILS_URL: http://sahool-guardrails-engine:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # H3: durable approval/audit store by default in v9. agent_stores.py fails
+      # closed in production when Redis is requested but unavailable (no silent
+      # memory fallback that would drop pending approvals on restart).
+      SAHOOL_AGENT_STORE_BACKEND: ${SAHOOL_AGENT_STORE_BACKEND:-redis}
+      SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://:${REDIS_PASSWORD}@sahool-redis:6379/0}
     depends_on:
       sahool-rag-retrieval:
         condition: service_healthy
       sahool-knowledge-graph:
         condition: service_healthy
       sahool-guardrails-engine:
+        condition: service_healthy
+      sahool-redis:
         condition: service_healthy
     networks:
     - sahool-internal
@@ -1318,7 +1325,10 @@ services:
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       SEGMENTATION_MODEL_PATH: ${SEGMENTATION_MODEL_PATH:-}
       SEGMENTATION_BACKEND: ${SEGMENTATION_BACKEND:-}
-      SEGMENTATION_INFERENCE_URL: ${SEGMENTATION_INFERENCE_URL:-}
+      # H1: when SEGMENTATION_BACKEND=sam2 (GPU profile) this default wires
+      # field-segmentation to the SAM2 inference service with no code changes.
+      # Leaving SEGMENTATION_BACKEND blank keeps CPU/dev mode honest (503 for auto).
+      SEGMENTATION_INFERENCE_URL: ${SEGMENTATION_INFERENCE_URL:-http://sahool-sam2-inference:8080/predict}
     networks:
     - sahool-internal
     healthcheck:

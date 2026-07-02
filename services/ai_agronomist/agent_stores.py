@@ -114,12 +114,25 @@ class RedisAuditStore:
         return [json.loads(r) for r in raw]
 
 
+def _production_mode() -> bool:
+    return os.getenv("SAHOOL_ENV", os.getenv("ENV", "")).strip().lower() in {
+        "prod",
+        "production",
+    }
+
+
 def _redis_client_or_none() -> Any | None:
     if os.getenv("SAHOOL_AGENT_STORE_BACKEND", "memory").strip().lower() != "redis":
         return None
     url = os.getenv("SAHOOL_AGENT_REDIS_URL") or os.getenv("REDIS_URL")
     if not url:
-        logger.warning("redis backend requested but no redis URL — falling back to memory")
+        # H3: in production a requested Redis backend that cannot be satisfied must
+        # fail closed (raise), so pending approvals/audit are never silently lost on
+        # restart. Only outside production is the in-process store still permitted.
+        msg = "redis backend requested but no redis URL"
+        if _production_mode():
+            raise RuntimeError(msg)
+        logger.warning("%s — falling back to memory", msg)
         return None
     try:
         import redis
@@ -127,10 +140,11 @@ def _redis_client_or_none() -> Any | None:
         client = redis.from_url(url, socket_connect_timeout=1, socket_timeout=1)
         client.ping()
         return client
-    except Exception as exc:  # noqa: BLE001 — أيّ خلل ⇒ سقوط آمن للذاكرة
-        logger.warning(
-            "redis agent store unavailable (%s) — falling back to memory", type(exc).__name__
-        )
+    except Exception as exc:  # noqa: BLE001 — خارج الإنتاج: أيّ خلل ⇒ سقوط آمن للذاكرة
+        msg = f"redis agent store unavailable ({type(exc).__name__})"
+        if _production_mode():
+            raise RuntimeError(msg) from exc
+        logger.warning("%s — falling back to memory", msg)
         return None
 
 

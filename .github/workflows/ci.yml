@@ -12,6 +12,15 @@ jobs:
       - name: service-feature-ui-contract-gate
         run: python scripts/ci/service_feature_ui_contract_gate.py
 
+      - name: nginx-compose-dns-gate
+        run: python scripts/ci/nginx_compose_dns_gate.py
+
+      - name: service-port-gate
+        run: python scripts/ci/service_port_gate.py
+
+      - name: runtime-contract-gate
+        run: python scripts/ci/runtime_contract_gate.py
+
       - name: Detect bash glob artifacts in paths
         run: |
           # المراجعة الخارجيّة كشفت ١٤ مجلد بأسماء {bots, {services, {migrations,services...}
