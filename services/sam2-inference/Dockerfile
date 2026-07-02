@@ -28,8 +28,22 @@ RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.t
 
 # تثبيت SAM2 من المستودع الرسميّ (غير منشور على PyPI باسم مستقرّ).
 # نثبّت وسماً محدّداً للقابليّة للتكرار؛ حدّثه عند الحاجة وتحقّق من التوافق.
+#
+# ⚠️ أداء البناء (درس حقليّ): بلا الرايتين أدناه علِق التثبيت 20+ دقيقة عند
+#   «Installing build dependencies: still running…»:
+#   • --no-build-isolation: يُعيد استخدام torch الموجود في صورة القاعدة بدل إنشاء
+#     بيئة بناء معزولة تُعيد تنزيل torch/CUDA الضخمة من الصفر. (torch/setuptools
+#     حاضران في pytorch/pytorch الأساس.)
+#   • SAM2_BUILD_CUDA=0: يتخطّى تصريف امتداد CUDA الاختياريّ (connected-components
+#     postprocessing) بـnvcc — يُستخدَم بديل PyTorch النقيّ (أبطأ قليلاً لتلك العمليّة
+#     فقط، لا يؤثّر على دقّة القناع). فعّله لاحقاً (=1) إن أردت النواة الأسرع.
 ARG SAM2_REF=main
-RUN pip install --no-cache-dir "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}"
+ENV SAM2_BUILD_CUDA=0
+# ضمان توفّر خلفيّة البناء لـ--no-build-isolation (setuptools/wheel/torch حاضرة عادةً
+# في صورة pytorch الأساس؛ نثبّتها صراحةً كتأمين ضدّ صورة قاعدة نحيلة).
+RUN pip install --no-cache-dir --upgrade "setuptools>=61.0" wheel \
+    && pip install --no-cache-dir --no-build-isolation \
+        "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}"
 
 COPY services/sam2-inference/ /app/
 
