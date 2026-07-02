@@ -3375,7 +3375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88282f3c2c7a9be60a173bac5d88e0e42dc84b4e513087b8aff5a6811d6c60b5"
+          "content": "298392437d6864b9406710d8d2d3ab0b03aaab5fef553150a35546dc09b9dec6"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -3779,6 +3779,36 @@
         }
       ],
       "name": "migrations/v132_field_state_recompute_provenance.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1f141cd42c6db86ed10edb3e32e252d9d796ecc71e091047d7e1b5b3e410f066"
+        }
+      ],
+      "name": "migrations/v133_actuation_killswitch.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d75f9177aa97fe688b61f3d52202365b0133a9d0c9a211750b994d286d93228"
+        }
+      ],
+      "name": "migrations/v134_fields_geometry_integrity.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eb9a15440f5e9c7b65451fc8bfe117b1dfd80a40f01727b4b8a591546f4316a5"
+        }
+      ],
+      "name": "migrations/v135_workflow_state_lease.sql",
       "type": "file"
     },
     {
@@ -5315,7 +5345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "de6dccd084c57f359e7ec0d6b9a0d66f0663a01033c10e949daf146159593d86"
+          "content": "97140bc662318433e977d56f9e86c5a12e3ac314e17cee218115e3afbc79aa4d"
         }
       ],
       "name": "services/actuator-service/main.py",
@@ -5355,7 +5385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0df56b6d68abb2931dfde83c8a6f50e4775111563cad0894fdfeb66a02ede5e4"
+          "content": "6db60bd19bc905a4a35083cc40130d1e1db31ba80f4cdb6398ebbeca054fc24f"
         }
       ],
       "name": "services/actuator-service/routers/commands.py",
@@ -8345,7 +8375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c276c8a9eaac3de482b4f9c27df1c0d03986d46d2f048adf95958f48a3929991"
+          "content": "970983926fb1b45c07f1cdd4ecab8b5a2199365025748ddd8bb3a8d476332f84"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -9385,7 +9415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b0b83d74bced63982f3d8b3bbb1cc2bebaaea9e68d67ec3acafc40d6eccc62f"
+          "content": "79b4727bcf6bf6618f2af7040d7d0d1ea949a7917541dc727c464651dc1ddb6d"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_dispatch.py",
@@ -13325,7 +13355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cddc722e34bd12edd3e163689373fbda6daea293aa1ac458e036b626645efd7a"
+          "content": "a438c8bcafca8397ad02888a45befd51a2e4dca09e9a8fce939c4933fb086490"
         }
       ],
       "name": "services/sahool-platform/core/workflow_engine.py",
@@ -17599,6 +17629,16 @@
         }
       ],
       "name": "shared/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a302d22c972456d5b08311e255b6c43713a069366b34486a081e5b788db42130"
+        }
+      ],
+      "name": "shared/actuation_killswitch.py",
       "type": "file"
     },
     {
