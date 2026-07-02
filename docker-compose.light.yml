@@ -57,7 +57,7 @@ services:
       dockerfile: services/auth/Dockerfile
     container_name: sahool-auth
     restart: unless-stopped
-    ports: ["8120:8000"]
+    ports: ["127.0.0.1:8120:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       <<: *db-env
       JWT_SECRET: "${JWT_SECRET}"
@@ -80,7 +80,7 @@ services:
       dockerfile: services/supervisor-agent/Dockerfile
     container_name: sahool-supervisor
     restart: unless-stopped
-    ports: ["8096:8000"]
+    ports: ["127.0.0.1:8096:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN}"
       MCP_SENTINEL_HUB_URL: "http://sahool-sentinel-hub-mcp:8000/mcp/v1"
@@ -112,7 +112,7 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     container_name: sahool-sentinel-hub-mcp
     restart: unless-stopped
-    ports: ["8091:8000"]
+    ports: ["127.0.0.1:8091:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       SH_CLIENT_ID: "${SH_CLIENT_ID}"
       SH_CLIENT_SECRET: "${SH_CLIENT_SECRET}"
@@ -132,7 +132,7 @@ services:
     container_name: sahool-weather-mcp
     restart: unless-stopped
     command: python weather_server.py
-    ports: ["8092:8000"]
+    ports: ["127.0.0.1:8092:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       JWT_SECRET: "${JWT_SECRET}"
     networks: [sahool-net]
@@ -150,7 +150,7 @@ services:
     container_name: sahool-wofost-mcp
     restart: unless-stopped
     command: python wofost_server.py
-    ports: ["8093:8000"]
+    ports: ["127.0.0.1:8093:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       JWT_SECRET: "${JWT_SECRET}"
     networks: [sahool-net]
@@ -168,7 +168,7 @@ services:
     container_name: sahool-market-mcp
     restart: unless-stopped
     command: python market_server.py
-    ports: ["8094:8000"]
+    ports: ["127.0.0.1:8094:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       JWT_SECRET: "${JWT_SECRET}"
     networks: [sahool-net]
@@ -185,7 +185,7 @@ services:
       dockerfile: services/guardrails-engine/Dockerfile
     container_name: sahool-guardrails
     restart: unless-stopped
-    ports: ["8097:8000"]
+    ports: ["127.0.0.1:8097:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       JWT_SECRET: "${JWT_SECRET}"
       # FINDING-003: بلا SAHOOL_AGENT_TOKEN تُرجِع /validate الحوكمة 503 (معطّلة).
@@ -207,7 +207,7 @@ services:
       dockerfile: services/edge-inference/Dockerfile.arm64
     container_name: sahool-edge
     restart: unless-stopped
-    ports: ["8100:8000"]
+    ports: ["127.0.0.1:8100:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       EDGE_DEVICE: "${EDGE_DEVICE:-rpi5}"
       OFFLINE_MODE: "${OFFLINE_MODE:-false}"
@@ -231,7 +231,7 @@ services:
       dockerfile: services/video-processor/Dockerfile
     container_name: sahool-video-processor
     restart: unless-stopped
-    ports: ["8110:8000"]
+    ports: ["127.0.0.1:8110:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"
       EDGE_INFERENCE_URL: "http://sahool-edge:8000"
@@ -255,7 +255,7 @@ services:
       dockerfile: services/actuator-service/Dockerfile
     container_name: sahool-actuator
     restart: unless-stopped
-    ports: ["8111:8000"]
+    ports: ["127.0.0.1:8111:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       <<: *db-env
       MQTT_BROKER_URL: "mqtt://sahool-fastbee:1883"

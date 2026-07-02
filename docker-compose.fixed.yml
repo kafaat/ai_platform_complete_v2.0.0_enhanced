@@ -386,7 +386,9 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       SAHOOL_JWT_SECRET: ${JWT_SECRET}
-      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      # SEC-1: fixed.yml is dev-only (RLS bypass allowlisted below) ⇒ default a DEV env
+      # so a careless run never gets production-env + RLS-bypass together. Override via env.
+      SAHOOL_ENV: ${SAHOOL_ENV:-development}
       JWT_SECRET: ${JWT_SECRET}
       # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
