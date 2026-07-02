@@ -265,6 +265,7 @@ def _rag_module():
 
 
 def _rag_client():
+    pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
     M = _rag_module()
@@ -323,6 +324,7 @@ def _kg_module():
 
 
 def _kg_client():
+    pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
     M = _kg_module()
