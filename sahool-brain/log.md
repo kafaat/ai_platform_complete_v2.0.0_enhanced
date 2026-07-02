@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-07-02 (ن) — دفعة أمان SEC-1/2/3 (بعد مراجعة أرشيف zip من المستخدم)
+
+**رأس `main` بعد الجلسة:** (SEC batch). الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
+
+راجع المستخدم أرشيف `sahool_main_0b85c84.zip` وأخرج ٨ فجوات. **تحقّقتُ منها جميعاً بالكود** — كلّها صحيحة، مع تخفيف جزئيّ لبعضها بحُرّاس قائمة (لا اختلاق في المراجعة). أُغلقت الثلاث الأخطر (٣ وكلاء متوازين):
+- **SEC-1** (`7adc3c0`): `docker-compose.fixed.yml` كان يجمع `SAHOOL_ENV:-production` مع bypass=1 (footgun) — غُيِّر الافتراض إلى `development` + حارس `test_compose_env_bypass_guard` يمنع اجتماع prod-env مع bypass على أيّ compose. `docker-compose.light.yml` كشف خدمات التطبيق على كلّ الواجهات — رُبطت الـ10 بـ`127.0.0.1` (nginx/fastbee/zlmediakit عامّة بالقصد) + حارس `test_compose_internal_ports_loopback_guard`. **لم يُمَسّ v9.yml.** (حارس bypass القائم ظلّ يسمح لـfixed.yml dev — بلا إضعاف.)
+- **SEC-2** (`c4257d2`): 6 Dockerfiles كانت تعمل root ⇒ `USER sahool` (نمط auth)، مع chown-before-VOLUME لـknowledge-graph `/data`. + حارس `test_service_dockerfile_nonroot_guard` (كلّ 25 خدمة، allowlist فارغ).
+- **SEC-3** (`5623934`+`d1ae020`): **الخلل الجوهريّ** — `ai_agronomist/main.py:779` كان `req.tenant_id or x_tenant_id` (الـbody يسبق الترويسة الموثّقة). العقد الداخليّ موجود أصلاً (`X-Agent-Token==SAHOOL_AGENT_TOKEN` + `_require_service_token`). Option-B (اختيار المستخدم): البوّابة سلطة JWT؛ داخل الخدمات `X-Tenant-Id` **مصدر الحقيقة الوحيد** (body≠header⇒403 tenant_mismatch؛ غياب⇒403). `shared/security/{trusted_tenant,gateway_deps}.py` (نقيّ + wrappers) موصول في ai_agronomist (query/chat/explain/recommend) + rag `/search` + kg writes (service-token). **تصحيحي (مهمّ):** الوكيل بوّب `/approvals/*` بـservice-token، لكنّ nginx يمسحه ⇒ يجعلها داخليّة-فقط ويكسر الموافقة البشريّة عبر البوّابة (docstrings: web-UI). صحّحتُها لـ`require_trusted_tenant` (تُغلق «body فقط» وتبقى قابلة للوصول بمستخدم مُوثَّق). حدّثتُ اختبارات الموافقات الثلاثة (X-Agent-Token→X-Tenant-Id).
+
+**درس:** authz على مستوى user/role للموافقات = متابعة **SEC-3.1** (يحتاج nginx يحقن `X-User-Id`/`X-Roles` الموثّق للمسار — البوّابة تحقن `X-Tenant-Id` فقط الآن).
+
+**بقيّة المراجعة (منخفض/متابعة، موثَّقة):** deps-lock كامل (5) · رفع coverage floor 20→ (6) · runtime-smoke إلزاميّ على main/release (7) · rag `/ingest` service-token · fastbee/zlmediakit aux mgmt ports.
+
+**تحقّق:** كلّ الادّعاءات فُحِصت بالكود (لا قبول/رفض بلا دليل) · 704 اختبار انحدار + 35 gateway/approvals · الحُرّاس القائمة بلا إضعاف · بوّابة الإنتاج · worktrees نُظِّفت.
+
+---
+
 ## 2026-07-02 (م) — دفعة تصلّب ثالثة: v139 audit append-only + v140 outbox attempts
 
 **رأس `main` بعد الجلسة:** `0304076`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
