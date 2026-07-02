@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-07-02 (ن-7) — بناء ميزات ٣ خدمات (video/tts/agriai) + إصلاح تصادم منفذ + إقلاع auth
+
+**رأس الفرع المخصّص:** `1e0b0b5`. بُني بثلاثة وكلاء متوازين (worktrees معزولة) ثمّ cherry-pick + إصلاحات تكامل.
+
+طلب المستخدم ميزات حقيقيّة عبر ٣ خدمات. النمط: **نواة حتميّة/CPU افتراضيّة + خلفيّات ثقيلة اختياريّة خلف import-guard + علم** (يطابق فلسفة المنصّة: استبدال الخلفيّة بلا تغيير العقد). المنطق النقيّ في وحدات بلا fastapi (طبقة الوحدات)، ونقاط HTTP بـimportorskip.
+
+- **video-processor** (`6108092`): `stream_registry.py` (سجلّ tenant-scoped آمن-خيطيّاً fail-closed) · `zlmedia_client.py` (add/del proxy · getMediaList · snapshot · start/stop record — secret + rstrip + fail-soft، httpx قابل للحقن) · نقاط snapshot + record start/stop (معزولة tenant) · `stream_events.py` (حدث canonical + بثّ best-effort لـNATS `sahool.video.<kind>` وMQTT، import-guarded). 40 اختبار. بلا تبعيّات جديدة.
+- **tts-service** (`6b05644`): تجريد `TTSProvider` (Edge افتراضيّ) · `PiperProvider` (CPU، import-guard) · `XTTSProvider` (GPU اختياريّ، علم `TTS_GPU_PROVIDER=xtts`) · `arabic_normalizer.py` نقيّ (تطويل/ألف/أرقام/وحدات) · `select_provider` + `/tts/status`. المقاييس idempotent. 34 اختبار.
+- **agriai-engine** (`e6a1977`): على الجذع الـ92-سطر → `evidence_bundle.py` (JSON قانونيّ + hash ثابت) · `replay.py` (حتميّة إعادة التشغيل، ثابت تحت إعادة ترتيب المدخلات) · `wofost_adapter.py` (pcse import-guarded + سقوط حتميّ Liebig-minimum) · `profit_planner.py` (yield·price − Σcosts، مرتّب) → `/recommend` حقيقيّ + `/simulate`/`/plan`/`/replay/verify`. 18 اختبار.
+
+**إصلاحا تكامل (`a263b14`):** (1) **تصادم منفذ** — `sahool-zlmediakit` HTTP كان `127.0.0.1:8088:80` يصطدم بـraster-tiler-service (`8088:8088`) ⇒ `up` يفشل «port already allocated». نُقِل إلى **8188** (المتّصلون الداخليّون على `sahool-zlmediakit:80` بلا تأثّر). (2) **عزل اختبار tts** — نقاط `/tts/status` تحلّل أحياناً `main` خدمة أخرى (تصادم اسم الوحدة) أو نسخة tts قديمة راوتراتها مربوطة بتطبيق سابق ⇒ 404 في السويت الكامل؛ المُحمِّل الآن يعيد الاستعمال فقط إن ملك المسار، وإلّا يُخلي الوحدات الشقيقة ويُعيد التحميل نظيفاً (المقاييس idempotent).
+
+**تحقّق:** `pytest -m unit` = **2442 نجَح** + تغطية 48.77٪ · ٦ بوّابات exit 0 · ruff نظيف · production gate PASS (compile 8142/0) · لا تسريب معرّف نموذج. **مؤجَّل بيئيّاً (import-guarded):** piper/xtts/pcse الفعليّة (طبقة تكامل، `# pragma: no cover`).
+
+**🐳 إقلاع auth (تشخيص مستخدم — v21):** `docker compose up` أظهر `ModuleNotFoundError: mfa_crypto` (main.py:163) على `sahool-auth`. **الجذر: صورة مُخزَّنة قديمة** — الـDockerfile الحاليّ **ينسخ** `mfa_crypto.py` (سطر 27) + `otp.py` والحارس `test_decomposed_service_dockerfile_guard` أخضر (21). `up` لا يُعيد البناء ⇒ يلزم **`up -d --build sahool-auth`**. درس AUTH-BOOT مُتكرّر: الصورة المُخزَّنة تسبق إصلاح Dockerfile.
+
+---
+
 ## 2026-07-02 (ن) — دفعة أمان SEC-1/2/3 (بعد مراجعة أرشيف zip من المستخدم)
 
 **رأس `main` بعد الجلسة:** (SEC batch). الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
