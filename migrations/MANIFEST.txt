@@ -516,3 +516,8 @@ v133_actuation_killswitch.sql
 # مسار الرسم/PATCH يكتب fields.geometry (v30). + geometry_version عمود inline يتزايد عند تغيّر
 # الحدّ فقط (يميّزه عن row_version وfield_state.version). إضافيّ idempotent؛ بعد v132.
 v134_fields_geometry_integrity.sql
+# v135 (سطر v19.5-1): عقد كاتب-واحد على workflow_state — عمودا lease_owner +
+# lease_expires_at + فهرس جزئيّ لإعادة المطالبة بالعقود المنتهية. يمنع تنفيذ خطوات
+# مزدوجاً عند استئناف عاملَين لنفس workflow_id (يحاكي FOR UPDATE SKIP LOCKED للـoutbox).
+# إضافيّ idempotent؛ يرث RLS+FORCE من v16؛ بعد v132.
+v135_workflow_state_lease.sql
