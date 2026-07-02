@@ -73,6 +73,20 @@
 
 ---
 
+## 2026-07-02 (ن-5) — نقل ميزات إلى v9: video/agriai/tts + مسارات + بوّابة نقل
+
+**رأس الفرع المخصّص:** `9b72229` (الكود) + تجديد الحزمة. طُبِّق عبر وكيل في worktree معزول (ff إلى `c0f65a2` أوّلاً) ثمّ دُمج ff.
+
+أرشيف `..._v9_feature_transfer.zip` (superset لـzipR) — **تحقّق-قبل-تنفيذ:** الخدمات الثلاث لها كود فعليّ تحت `services/` لكنّها **غائبة عن v9.yml**، و`/tts/` يردّ **503** حرفيّاً (تأكّدتُ بالكود). نقل شرعيّ لا اختلاق. طُبِّق **الدلتا فقط** فوق `c0f65a2`:
+
+- **video-processor / agriai-engine / tts-service** → أُضيفت ٣ كتل خدمة إلى `docker-compose.v9.yml` (`*id001` logging anchor، non-root، healthcheck، depends_on) + `depends_on: service_healthy` على nginx. (services=48→51).
+- **nginx.v9.conf:** ٣ upstreams · `/tts/` من 503 إلى `proxy_pass tts_backend` · مسارا `/api/video/` و`/api/agriai/` **مقيّدان بالشبكة الخاصّة** (allow 127/10/172/192; deny all) · توسيع CSP `img-src` لخوادم بلاطات MapHub (arcgisonline · basemaps.cartocdn · tile.openstreetmap). حقن SEC-3.1 X-User-Id على ai-agronomist سليم.
+- **بوّابة جديدة** `v9_feature_transfer_gate` + اختبار، موصولة في structural-lint.
+
+**لم يُنقَل عمداً** (drift لا ميزة): توجيه `/api/v1` وميناء frontend 80/8080 في unified/light (حاويات ستُجمَّد؛ v9 يملك المسار الأصحّ). **تحقّق:** ٥ بوّابات exit 0 · 39/53 اختبار (نقل + SEC-3/3.1 + closure + erp) · ruff نظيف · production gate PASS (compile 4854/0، services=51). **ملاحظة صدق (pre-existing، خارج النطاق):** بوّابة DNS إن شُغِّلت صراحةً على v9 ترصد `sahool-soil:8000` داخل سطر upstream **مُعلَّق** (regex يطابق التعليق)؛ CI يشغّلها على unified (يمرّ) فلا حجب — لم أُضعِف البوّابة ولا لمستُ السطر المُعلَّق.
+
+---
+
 ## 2026-07-02 (م) — دفعة تصلّب ثالثة: v139 audit append-only + v140 outbox attempts
 
 **رأس `main` بعد الجلسة:** `0304076`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
