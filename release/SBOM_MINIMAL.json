@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e66ddfc11c111799421c6dacf0f1facb1af42e09ba75b29505b5400247edb3be"
+          "content": "477a405b30a2c9cbf77cc99d4d1b74a6a56a8325cd588d62934cb547ec37876b"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c02cee6ba0556db686a7bf92029c71af8a816d8209af18f9e893dde35001003"
+          "content": "841dc8bef9829680c125468f2f443dc91bb956463387d6309472f5eda0a43f8a"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -5525,7 +5525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7bcdf05ee24bb0b0c38a6ac3624e8fe0be1736e7f52933bc5487ac28281e0f8d"
+          "content": "b2214d5b7736a1f28c7d16ceea559234f2973487385c1afeaecbf2a0aa1e0a0b"
         }
       ],
       "name": "services/ai_agronomist/Dockerfile",
@@ -5725,7 +5725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f2688e704785c27d1aeeb3247177b5f8a6f5f0cfc1269a7a72e31dc27d7057d0"
+          "content": "16e29205eadf62388cc9e6c943fef77e5dc470c9388cfc0a9f0419119fdf5b64"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -6545,7 +6545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c8ea8d88aeeb4fc32dc629d2cd906850aef5a9d4c17d197d099407d8568ef71b"
+          "content": "b69c9b556ceea43a60db2344b5f2f8b06a322890ce7b6728579d4cda8df2a9c1"
         }
       ],
       "name": "services/knowledge-graph/Dockerfile",
@@ -6555,7 +6555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "512a6d3de21178a1dc55867a387d59ebae7e25fdd866e349f9ffda8c3d5a8f72"
+          "content": "f4446ab566b81e2d6beac7a97224afa76d0bee0eefdf54fc73ca58b76ca98199"
         }
       ],
       "name": "services/knowledge-graph/main.py",
@@ -6925,7 +6925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38dd2a448aefbfdc923ff807d21e94efa389b2fe252a1df37537e201c97f8f46"
+          "content": "406b3d2030a2093b39336771e0f68af1bc55a3d74ee4ebca8e1719c3fcca5bbf"
         }
       ],
       "name": "services/rag-retrieval/Dockerfile",
@@ -6935,7 +6935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7eaeac15b996b2c1265e3dcdc06ee256fdb598b44e80de49d25f56d67c5771e"
+          "content": "e82f11c0ba745c6ab4404f9a1aa089fec4e3dfa357c2789f6bb91639569933b4"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -7565,7 +7565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d411514708c1147c90b3eb8f5c1edb8171cc11b8e01f3599b66b83491794c68"
+          "content": "799bee511c0d2edf6c7007d8353cb9748e86c39f9b21d8e7e6cf602ea148f771"
         }
       ],
       "name": "services/raster-tiler-service/Dockerfile",
@@ -17545,7 +17545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d359c68a91cce7ae1eed2bb1aba5266bc12d58f69757733bb03f0ee9e417ade4"
+          "content": "89cc494a1c0cbfb2148b0feb7896bf29336477f30817013b43a3d33fc0127c74"
         }
       ],
       "name": "services/weather-polygon-worker/Dockerfile",
@@ -17635,7 +17635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f8a793e40064c0502032a92767cbc8e7d75dbc3fa7ade70f6ba52d949ea8823"
+          "content": "8dafc11312a8319d76e836ab2b1d46209afe530fd4ef2faf6e9177ccbec044c8"
         }
       ],
       "name": "services/weather-signal-engine/Dockerfile",
@@ -18225,10 +18225,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7abb1bc34a586c3ce6834596793e080db594d0cf485b1de603956dce298506cb"
+        }
+      ],
+      "name": "shared/security/gateway_deps.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb7e8354439b9f06b427e78a7873133e8e30843a512ca61ec2b09ec29ce57d33"
         }
       ],
       "name": "shared/security/tenant_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fa1d685a50ccab4b17866179ee4b5d4288bfcd79f978104e63d3650498c66258"
+        }
+      ],
+      "name": "shared/security/trusted_tenant.py",
       "type": "file"
     },
     {

@@ -210,7 +210,12 @@ def test_ai_header_only_no_body_tenant_passes_guard(monkeypatch):
     assert r.json()["tenant_id"] == "tenant-9"
 
 
-# ── ai_agronomist: approvals require the trusted service token ──────────────────
+# ── ai_agronomist: approvals require a gateway-authenticated tenant (X-Tenant-Id) ──
+# SEC-3 correction: approvals are web-UI human decisions (docstrings say so). The gateway
+# strips X-Agent-Token, so a service-token gate would make them internal-only (break the
+# human path). Instead they require the gateway-injected AUTHENTICATED X-Tenant-Id — a body
+# alone can no longer reach them. (Full user/role authz on approvals = follow-up SEC-3.1,
+# needs nginx to inject authenticated X-User-Id/X-Roles for the AI path.)
 _APPROVAL_BODY = {
     "approval": {
         "id": "req-sec3",
@@ -224,26 +229,25 @@ _APPROVAL_BODY = {
 
 
 @pytest.mark.parametrize("path", ["/approvals/approve", "/approvals/deny"])
-def test_approvals_without_service_token_rejected(monkeypatch, path):
+def test_approvals_without_tenant_rejected(path):
     _M, client = _ai_client()
-    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post(path, json=_APPROVAL_BODY)
+    r = client.post(path, json=_APPROVAL_BODY)  # no X-Tenant-Id
     assert r.status_code == 403
-    assert r.json()["detail"] == "service_token_required"
+    assert r.json()["detail"] == "missing_tenant"
 
 
-def test_approvals_with_wrong_service_token_rejected(monkeypatch):
+def test_approvals_resume_without_tenant_rejected():
     _M, client = _ai_client()
-    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/approvals/approve", json=_APPROVAL_BODY, headers={"X-Agent-Token": "nope"})
+    r = client.post("/approvals/resume", json={"approval_id": "whatever"})  # no X-Tenant-Id
     assert r.status_code == 403
+    assert r.json()["detail"] == "missing_tenant"
 
 
-def test_approvals_resume_without_token_rejected(monkeypatch):
+def test_approvals_with_tenant_passes_auth_gate():
+    """With X-Tenant-Id the auth gate passes (decision logic may still 4xx, but not 403)."""
     _M, client = _ai_client()
-    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
-    r = client.post("/approvals/resume", json={"approval_id": "whatever"})
-    assert r.status_code == 403
+    r = client.post("/approvals/approve", json=_APPROVAL_BODY, headers={"X-Tenant-Id": "tenant-1"})
+    assert r.status_code != 403
 
 
 # ── rag-retrieval: /search trusted-tenant guard ────────────────────────────────

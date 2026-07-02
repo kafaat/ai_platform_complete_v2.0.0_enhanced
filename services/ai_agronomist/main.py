@@ -8,7 +8,7 @@ import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from shared.security.gateway_deps import require_service_token
+from shared.security.gateway_deps import require_trusted_tenant
 from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant
 
 from . import (
@@ -134,7 +134,7 @@ async def ai_provider_snapshot() -> dict[str, Any]:
 
 @app.post("/approvals/approve")
 async def approve_tool_request(
-    req: ApprovalDecisionRequest, _token: None = Depends(require_service_token)
+    req: ApprovalDecisionRequest, _tenant: str = Depends(require_trusted_tenant)
 ) -> dict[str, Any]:
     """Normalize a human approval decision for a pending agent tool request.
 
@@ -181,7 +181,7 @@ async def approve_tool_request(
 
 @app.post("/approvals/deny")
 async def deny_tool_request(
-    req: ApprovalDecisionRequest, _token: None = Depends(require_service_token)
+    req: ApprovalDecisionRequest, _tenant: str = Depends(require_trusted_tenant)
 ) -> dict[str, Any]:
     """Normalize a human denial decision for a pending agent tool request."""
     base = _approval_for_decision(req.approval)
@@ -222,7 +222,7 @@ class ApprovalResumeRequest(BaseModel):
 
 @app.post("/approvals/resume")
 async def resume_approved_tool(
-    req: ApprovalResumeRequest, _token: None = Depends(require_service_token)
+    req: ApprovalResumeRequest, _tenant: str = Depends(require_trusted_tenant)
 ) -> dict[str, Any]:
     """V58.2 — resume a human-APPROVED agent tool as a governed execution handoff.
 
