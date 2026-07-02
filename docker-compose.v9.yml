@@ -1636,6 +1636,28 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
+  # مُهيّئ إعداد ZLMediaKit: صورة zlmediakit تولّد api.secret عشوائيّاً عند الإقلاع ولا
+  # تقرأ ZLM_API_SECRET ⇒ video-processor لا يستطيع التحكّم بالبثّ (يردّ -100). هذا المُهيّئ
+  # ينسخ config الصورة الافتراضيّ (كلّ الإعدادات + الشهادات) إلى حجم مشترك مرّة واحدة، ثمّ
+  # يثبّت [api] secret. المُشغّل الرئيسيّ يركّب الحجم بلا تغيير entrypoint ⇒ لا خطر كسر إقلاع.
+  sahool-zlmediakit-config:
+    image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
+    container_name: sahool-v9-zlmediakit-config
+    restart: "no"
+    environment:
+      ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
+    entrypoint:
+    - /bin/sh
+    - -c
+    - |
+      set -e
+      if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch /conf/.sahool_init; fi
+      sed -i "s|^secret=.*|secret=${ZLM_API_SECRET}|" /conf/config.ini || true
+      echo "zlmediakit config: [api] secret pinned"
+    volumes:
+    - zlm-conf:/conf
+    networks:
+    - sahool-internal
   sahool-zlmediakit:
     image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
     container_name: sahool-v9-zlmediakit
@@ -1647,6 +1669,12 @@ services:
     environment:
       TZ: ${TZ:-UTC}
       ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
+    depends_on:
+      sahool-zlmediakit-config:
+        condition: service_completed_successfully
+    volumes:
+    # الإعداد المُثبَّت السرّ (من المُهيّئ) بدل العشوائيّ ⇒ تحكّم فعليّ بالبثّ.
+    - zlm-conf:/opt/media/conf
     ports:
     # HTTP/API host port moved 8088 -> 8188: 8088 is already taken by
     # raster-tiler-service (127.0.0.1:8088:8088). Internal callers use the
@@ -1692,3 +1720,4 @@ volumes:
   grafana-data: null
   jaeger-data: null
   nginx-cache: null
+  zlm-conf: null
