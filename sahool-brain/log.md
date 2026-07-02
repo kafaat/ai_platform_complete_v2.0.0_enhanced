@@ -21,6 +21,22 @@
 
 ---
 
+## 2026-07-02 (ن-2) — استكمال بقيّة مراجعة الأرشيف: SEC-3.1 + SEC-4/5/6/7
+
+**رأس الفرع المخصّص `claude/code-review-34hO3`:** `1755c9c` (SEC-6 آخر cherry-pick). ci.yml قيد التشغيل ثمّ ff-merge إلى main بعد الخضرة.
+
+استكمال البنود المتبقّية من مراجعة `sahool_main_0b85c84.zip` (الثمانية) بعد إغلاق الثلاث الأخطر في (ن):
+
+- **SEC-3.1** (`5fee147`) — **user/role authz للموافقات (مُنفَّذ، لم يَعُد blocked).** السلسلة الذرّيّة الثلاثيّة: (1) `auth/main.py tenant_header_middleware` يُصدِر `X-User-Id` (JWT `sub`) + `X-User-Role` (`role`) كرؤوس استجابة من الحمولة المُتحقَّقة داخل فرع `iss` المسموح؛ (2) `nginx.v9.conf` مسار `/api/ai-agronomist/` يحقن `X-User-Id`/`X-User-Role` المُلتقَطين من `auth_request` (+ `proxy_params.conf` يمسح `X-User-Role` الوارد — الافتراض الآمن)؛ (3) `gateway_deps.require_authenticated_user` (403 `missing_user` عند الغياب) مُركَّب على approve/deny/resume **فوق** `require_trusted_tenant` (لا إضعاف SEC-3). **الموافِق المُسجَّل = `X-User-Id` الموثَّق لا حقل `approver` في الـbody** (`approve/deny` تمرّر `approver=user_id`) — يُغلق انتحال «مَن وافق» عبر الحمولة. اختبارات: happy-path يرسل الرأسين + حالات missing_user الثلاث + تأكيد الموافِق. **الشحن ذرّيّ** (emit→inject→require) كي لا تُرجِع أيّ بيئة 403 على كلّ موافقة. صحّحتُ انحرافاً عن مقترح الوثيقة (الفحص مضمَّن في `require_authenticated_user` لا helper منفصل — أبسط، نفس الـ403).
+- **SEC-4** (`98a4327`) — rag `/ingest` كتابة داخليّة ⇒ `require_service_token` (403 `service_token_required` بلا `X-Agent-Token`) + منافذ إدارة `fastbee`/`zlmediakit` المساعِدة رُبطت بـloopback. اختبارات في `test_gateway_trusted_identity_sec3.py` (ingest بلا/مع token).
+- **SEC-5** (`1332c3e`) — رفع أرضيّة تغطية الوحدة `--cov-fail-under` من 20 إلى **40** في `ci.yml` (المُقاس 44.55٪؛ أعِدتُ القياس بعد SEC-3.1/4 = **48.12٪**) + `docs/testing/coverage_ratchet.md`. رفع محسوب لا اعتباطيّ.
+- **SEC-6** (`1755c9c`) — حارس `test_requirements_pinning_guard.py` (يمنع انحدار التثبيت على المسار الحرج) + `docs/security/dependency_locking_plan.md` (خطّة قفل مرحليّة، نطاق آمن). القفل الكامل للمستودع مؤجَّل بوعي (مرحليّ).
+- **SEC-7** (`0353265`) — توثيق: هجرات/RLS/schema **إلزاميّة أصلاً** على main (Integration job)؛ smoke حيّ لـ`/healthz` جاهز-للتفعيل خلف قرار مشغّل (compose ثقيل ⇒ خطر flakiness) — `docs/security/SEC-7_runtime_smoke_gating.md`.
+
+**تحقّق:** `ruff check`+`format` نظيفان · `pytest -m unit` = **2375 نجَح** + تغطية 48.12٪ ≥ 40 · `sahool_inspector` PASS (خروج 0) · py_compile + ci.yml YAML صحيحان. **بذلك تُغلَق البنود الثمانية جميعاً.** مؤجَّل بوعي: تثبيت tenant لكلّ chunk في rag `/ingest` · القفل الكامل للتبعيّات · تفعيل smoke الحيّ (مشغّل).
+
+---
+
 ## 2026-07-02 (م) — دفعة تصلّب ثالثة: v139 audit append-only + v140 outbox attempts
 
 **رأس `main` بعد الجلسة:** `0304076`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
