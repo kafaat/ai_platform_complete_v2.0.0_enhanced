@@ -5495,7 +5495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d127f355d7585c3abb6226bc6eaad63148ef53ff1744322ca2a7c3bbc74f8c0"
+          "content": "369983a2848867449e65c8bb5d51048ac047c22eae3a24f69d5da322279a8724"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -5559,6 +5559,16 @@
         }
       ],
       "name": "services/ai_agronomist/decision_metrics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "26262ca8267ae18755cc5f4d9d64c4860676db6e31dc9ba71da9fec196611e0d"
+        }
+      ],
+      "name": "services/ai_agronomist/evidence_contract.py",
       "type": "file"
     },
     {
@@ -5645,7 +5655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c393d044b4c013b7970462e77dcdb44837e91ad80c0e1e7446069d884caeaa78"
+          "content": "f2688e704785c27d1aeeb3247177b5f8a6f5f0cfc1269a7a72e31dc27d7057d0"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -5679,6 +5689,16 @@
         }
       ],
       "name": "services/ai_agronomist/policy_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "065f181eace900b4541dd18fe46c2249b1bf0a5d8b7d7b6cacf7b135abd9f65d"
+        }
+      ],
+      "name": "services/ai_agronomist/policy_envelope.py",
       "type": "file"
     },
     {
@@ -5765,7 +5785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a8f076ee393087c8595d7221954e6ca53315ef5570c1b76d40c0f24abf39036"
+          "content": "d43e1f8bceaf5cbc5d895228468f572392fe724ecf0a1e40d3d2208bf6c8caae"
         }
       ],
       "name": "services/ai_agronomist/runtime_evidence.py",
@@ -5865,7 +5885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "117029657a87cf51a308e2b1b712d0a81726a6b10aeb517d5702db26f829c26f"
+          "content": "05350f8a8aecb919644203b5e106ca34b60e447683ec749a02fa7e3c5c767d2f"
         }
       ],
       "name": "services/ai_agronomist/tool_loop.py",
@@ -6925,7 +6945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "242646e161bc6084f9473613c1fc946574e8109d56546def6f240a9eed638375"
+          "content": "c06d2024a1d064d7d0b415df62ea284bd79050f72bfb85347100b8f418bf04c4"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -6965,7 +6985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fef32f45bc13870cd88a38e38ee66d70d9cd5085364cda221af70c3099b6c29b"
+          "content": "6953d554738a1468f259a4cd92bc9dc2266236eb66dc43c49c3ff7bc59e3f0ad"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -6989,6 +7009,16 @@
         }
       ],
       "name": "services/raster-service/object_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d056001ca9a02f5e8a84abac09cc327064be440b677ed6a7c55b6011039ee375"
+        }
+      ],
+      "name": "services/raster-service/quality_metrics.py",
       "type": "file"
     },
     {
@@ -9595,7 +9625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fef52b42603c418dea4c339538e4dd0a46d37a4e442ea0efe839aad17fe02790"
+          "content": "84db6394a92fff91777ffcde2635144c35295b98a7b70665e1ae9e1c2c3e4d67"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_ai_context.py",
@@ -11119,6 +11149,16 @@
         }
       ],
       "name": "services/sahool-platform/core/ai_artifacts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4b0e2676bd0d76df9a498f5a229a94b2699dec6203a70d7035c33fcde71bd5de"
+        }
+      ],
+      "name": "services/sahool-platform/core/ai_policy_envelope.py",
       "type": "file"
     },
     {
