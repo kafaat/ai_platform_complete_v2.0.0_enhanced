@@ -21,6 +21,9 @@ jobs:
       - name: runtime-contract-gate
         run: python scripts/ci/runtime_contract_gate.py
 
+      - name: v9-feature-transfer-gate
+        run: python scripts/ci/v9_feature_transfer_gate.py
+
       - name: Detect bash glob artifacts in paths
         run: |
           # المراجعة الخارجيّة كشفت ١٤ مجلد بأسماء {bots, {services, {migrations,services...}
