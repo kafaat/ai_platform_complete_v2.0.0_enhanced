@@ -221,3 +221,14 @@ SHAs من `git log --oneline origin/main`.
 | **SEC-7 — بوّابة smoke التشغيليّ** | (`0353265`) توثيق: هجرات/RLS/schema **إلزاميّة أصلاً** على main (Integration job)؛ smoke حيّ `/healthz` جاهز-للتفعيل خلف قرار مشغّل (compose ثقيل ⇒ خطر flakiness). السبب: قرار واعٍ موثَّق لا إغفال — لا أُحمِّر main ببوّابة compose غير مُتحقَّقة. |
 
 **الحصيلة:** البنود الثمانية مُغلَقة. مؤجَّل بوعي (موثَّق): تثبيت tenant لكلّ chunk في rag `/ingest` · القفل الكامل للتبعيّات · تفعيل smoke الحيّ (مشغّل).
+
+## 14) مقارنة أرشيفَي المستخدم: ERP bridge + بوّابة عقد UI (جلسة 2026-07-02، رأس الفرع: `5ea89a5`)
+
+طلب المستخدم مقارنة أرشيفَين (كلاهما cef830b) وتنفيذ الصحيح. القرار: **zipB**.
+
+| المكوّن | القرار + السبب |
+|---|---|
+| **اختيار zipB على zipA** | (`5ea89a5`) الأرشيفان متطابقان وظيفيّاً؛ zipA رشّ aliases الجسر على **كلّ** خدمة في v9/fixed compose ⇒ اسم `erp-bridge` يتحلّل إلى ~24 حاوية (DNS مبهم) وأغفل الـalias على خدمة الجسر في odoo-snippet/unified. zipB يضع الـalias على خدمة الجسر **وحدها**. السبب: صحّة DNS للشبكة — alias الخدمة يجب أن يكون فريداً للحاوية المقصودة. |
+| **ERP bridge rename** | إعادة تسمية هويّة التشغيل `sahool-odoo-bridge`→`sahool-erp-bridge` (مفتاح الخدمة + logging + RLS-guard + عنوان FastAPI) مع إبقاء `sahool-odoo-bridge`/`odoo-bridge`/`ODOO_BRIDGE_URL` كـaliases DNS/env و`/api/odoo/` كمسار توافق. `ERP_BRIDGE_URL` القياسيّ الجديد. **المجلّد `services/odoo-bridge/` مُبقى** (سياق بناء/اختبار/إصدار). السبب: تعميم الجسر (ERPNext/Odoo/none) دون كسر النشرات القائمة. |
+| **service-feature-ui-contract-gate** | بوّابة CI (`scripts/ci/service_feature_ui_contract_gate.py` + `config/service_feature_ui_contracts.json`) تثبت أنّ كلّ خدمة تشغيليّة/حسّاسة لها مستهلِك (UI/موبايل · بروكسي بوّابة · عقد داخليّ · عقد مهمّة). PASS 26/26. السبب: منع خدمات «يتيمة» بلا مستهلِك موثَّق. |
+| **تصحيح توليف (لا نسخ أعمى)** | سطر `market_server.py` (109 حرف) كان يُلفّ بـruff format فيكسر اختبار المسح المتّصل (`os.getenv("ODOO_BRIDGE_URL`) ⇒ `# fmt: skip` (E501 متجاهَل بالمستودع). الفشل السباعيّ (sklearn + تصادم `main`) مُتطابق على الشجرة النظيفة ⇒ ليس انحداراً. |

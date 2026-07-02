@@ -37,6 +37,20 @@
 
 ---
 
+## 2026-07-02 (ن-3) — مقارنة أرشيفَي المستخدم: ERP bridge + بوّابة عقد UI للخدمات
+
+**رأس الفرع المخصّص:** `5ea89a5`. طلب المستخدم مقارنة أرشيفَين (كلاهما cef830b) وتنفيذ **الصحيح**.
+
+- **الأرشيفان متطابقان وظيفيّاً** (إعادة تسمية odoo-bridge→erp-bridge مع أسماء legacy كـaliases + بوّابة `service-feature-ui-contract-gate`). الفرق الحاسم في التوليف:
+  - **zipA (مرفوض):** رشّ aliases الجسر (`odoo-bridge`/`erp-bridge`) على **كلّ خدمة** في `docker-compose.v9.yml`/`fixed.yml` ⇒ اسم `erp-bridge` يتحلّل إلى ~24 حاوية (DNS مبهم)، **وأغفل** الـalias على خدمة الجسر الفعليّة في odoo-snippet/unified.
+  - **zipB (المُنفَّذ):** الـalias على خدمة الجسر **فقط**؛ بقيّة الخدمات تبقى `- sahool-internal`.
+- **نُفِّذ zipB** (`5ea89a5`): مفتاح خدمة v9 `sahool-odoo-bridge`→`sahool-erp-bridge` + aliases legacy على الجسر + `ERP_BRIDGE_URL`(+`ODOO_BRIDGE_URL` legacy)→`sahool-erp-bridge:8126` · `odoo-bridge/main.py` هويّة تشغيل erp-bridge (logging/RLS-guard/عنوان FastAPI) · `market_server.py` يفضّل `ERP_BRIDGE_URL` ويسقط لـ`ODOO_BRIDGE_URL` · `nginx.unified.conf` مسار `/api/erp/` + upstream + `/api/odoo/` legacy · بوّابة CI `service-feature-ui-contract-gate` (PASS 26/26) + عقد JSON + اختباران. **المجلّد الفيزيائيّ `services/odoo-bridge/` مُبقى** (سياق بناء/اختبارات/إصدار).
+- **تحقّقي (تنفيذ الصحيح لا النسخ الأعمى):** أصلحتُ سطر `market_server.py` الطويل بـ`# fmt: skip` (يُبقي اختبار المسح المتّصل أخضر + ruff format راضٍ؛ E501 متجاهَل بالمستودع) + ruff format للملفّات في نطاق CI. **الفشل السباعيّ (sklearn + تصادم اسم وحدة `main`) مُتطابق على الشجرة النظيفة** ⇒ ليس انحداراً من تغييري.
+
+**درس:** إعادة التسمية عبر compose يجب أن تضع الـalias على خدمة الجسر **وحدها** (aliases على كلّ خدمة تكسر DNS). `# fmt: skip` يوفّق سطراً يحتاج مسحاً متّصلاً مع صرامة ruff format.
+
+---
+
 ## 2026-07-02 (م) — دفعة تصلّب ثالثة: v139 audit append-only + v140 outbox attempts
 
 **رأس `main` بعد الجلسة:** `0304076`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
