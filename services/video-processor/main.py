@@ -457,7 +457,10 @@ from routers.streams import (  # noqa: E402, F401
     create_stream,
     get_stream,
     list_streams,
+    record_start,
+    record_stop,
     snapshot,
+    snapshot_zlm,
     stop_stream,
 )
 

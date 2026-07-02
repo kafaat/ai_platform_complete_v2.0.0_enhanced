@@ -10,11 +10,36 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime
 
 import main
 from fastapi import APIRouter, Depends, HTTPException
+from stream_events import build_stream_event, emit_stream_event
+from stream_registry import StreamRegistry
+from zlmedia_client import ZLMediaKitClient
 
 router = APIRouter()
+
+# ── سجلّ البثوث النشِط + عميل ZLMediaKit (حالة على مستوى الوحدة) ──────────
+# سجلّ في الذاكرة معزول بالمستأجِر يواكب STREAMS (الأخير يحمل StreamState الثقيل
+# لحلقة الالتقاط؛ هذا السجلّ الخفيف يخدم عقود اللقطة/التسجيل/الأحداث). خيطيّ الأمان.
+registry = StreamRegistry()
+
+
+def _client() -> ZLMediaKitClient:
+    """يبني عميل ZLMediaKit من إعداد main الحاليّ (يعيد استخدام الرابط/السرّ).
+
+    دالّة كي يقرأ الإعداد الطازج ويسهل استبداله في الاختبار (monkeypatch)."""
+    return ZLMediaKitClient(base_url=main.ZLMEDIA_API_URL, secret=main.ZLMEDIAKIT_API_SECRET)
+
+
+def _assert_registry_tenant(entry, user: dict) -> None:
+    """عزل المستأجرين لقيود السجلّ: 404 إن غاب القيد أو اختلف المستأجِر
+    (لا 403 — كي لا يُكشَف وجود البثّ عبر المستأجرين). fail-closed مطابق
+    لـ``main._assert_stream_tenant``."""
+    token_tenant = main._token_tenant(user)
+    if entry is None or not token_tenant or str(entry.tenant_id) != token_tenant:
+        raise HTTPException(404, "Stream not found")
 
 
 @router.post("/streams")
@@ -44,10 +69,22 @@ async def create_stream(
     main.STREAMS[req.stream_id] = state
     state.task = asyncio.create_task(main.process_stream_loop(req.stream_id))
 
+    source = cfg.rtsp_url or cfg.http_url or f"usb:{cfg.usb_index}"
+    # قيّد البثّ في السجلّ الخفيف وابثّ حدث البدء (best-effort — لا يُسقِط الإنشاء).
+    entry = registry.register(
+        stream_id=req.stream_id,
+        tenant_id=token_tenant,
+        source_url=source,
+        created_at=datetime.now(UTC).isoformat(),
+        state="pending",
+        last_event="stream.started",
+    )
+    await emit_stream_event(build_stream_event("stream.started", entry, ts=entry.created_at))
+
     return {
         "stream_id": req.stream_id,
         "status": "starting",
-        "source": cfg.rtsp_url or cfg.http_url or f"usb:{cfg.usb_index}",
+        "source": source,
     }
 
 
@@ -64,6 +101,11 @@ async def stop_stream(stream_id: str, user: dict = Depends(main._get_current_use
     state.status = "inactive"
     if state.task:
         state.task.cancel()
+    # زامِن السجلّ الخفيف وابثّ حدث الإيقاف (best-effort).
+    entry = registry.update_state(stream_id, "stopped", last_event="stream.stopped")
+    registry.remove(stream_id)
+    if entry is not None:
+        await emit_stream_event(build_stream_event("stream.stopped", entry, ts=entry.created_at))
     return {"stream_id": stream_id, "status": "stopped"}
 
 
@@ -129,3 +171,68 @@ async def snapshot(stream_id: str, user: dict = Depends(main._get_current_user))
     from fastapi.responses import Response
 
     return Response(content=buf.tobytes(), media_type="image/jpeg")
+
+
+# ══════════════════════════════════════════════════════════════
+# لقطة ZLMediaKit + تسجيل (عقود العميل + السجلّ الخفيف + الأحداث)
+# ══════════════════════════════════════════════════════════════
+@router.get("/streams/{stream_id}/snapshot")
+async def snapshot_zlm(stream_id: str, user: dict = Depends(main._get_current_user)):
+    """لقطة عبر ZLMediaKit (getSnap). 404 إن كان البثّ مجهولاً في السجلّ.
+
+    (نظير POST /snapshot الذي يُرجِع آخر إطار مُلتقَط محليّاً؛ هذا يستدعي خادم الوسائط.)
+    """
+    entry = registry.get(stream_id)
+    _assert_registry_tenant(entry, user)
+    # النداء متزامن (httpx.Client) — نُشغّله في خيط كي لا نحجب حلقة الأحداث.
+    result = await asyncio.to_thread(_client().snapshot, stream_id)
+    content = result.get("content")
+    if result.get("ok") and content:
+        from fastapi.responses import Response
+
+        return Response(
+            content=content,
+            media_type=result.get("content_type") or "image/jpeg",
+        )
+    # فشل ليّن: نُعيد الميتاداتا (لا نرفع) كي يقرّر العميل.
+    return {"stream_id": stream_id, "snapshot": result}
+
+
+@router.post("/streams/{stream_id}/record/start")
+async def record_start(stream_id: str, user: dict = Depends(main._get_current_user)):
+    """يبدأ تسجيل البثّ عبر ZLMediaKit ويحدّث السجلّ + يبثّ الحدث.
+
+    نجاح ⇒ الحالة ``recording`` + ``recording.started``؛ فشل العميل ⇒ ``error`` +
+    ``stream.error`` (fail-soft: لا نرفع على 4xx/5xx من خادم الوسائط)."""
+    entry = registry.get(stream_id)
+    _assert_registry_tenant(entry, user)
+    result = await asyncio.to_thread(_client().start_record, stream_id)
+    if result.get("ok"):
+        updated = registry.update_state(stream_id, "recording", last_event="recording.started")
+        await emit_stream_event(
+            build_stream_event("recording.started", updated, ts=updated.created_at)
+        )
+        return {"stream_id": stream_id, "state": "recording", "ok": True, "result": result}
+    updated = registry.update_state(stream_id, "error", last_event="stream.error")
+    await emit_stream_event(build_stream_event("stream.error", updated, ts=updated.created_at))
+    return {"stream_id": stream_id, "state": "error", "ok": False, "result": result}
+
+
+@router.post("/streams/{stream_id}/record/stop")
+async def record_stop(stream_id: str, user: dict = Depends(main._get_current_user)):
+    """يوقف تسجيل البثّ عبر ZLMediaKit ويحدّث السجلّ + يبثّ الحدث.
+
+    نجاح ⇒ الحالة ``live`` + ``recording.stopped``؛ فشل العميل ⇒ ``error`` +
+    ``stream.error`` (fail-soft)."""
+    entry = registry.get(stream_id)
+    _assert_registry_tenant(entry, user)
+    result = await asyncio.to_thread(_client().stop_record, stream_id)
+    if result.get("ok"):
+        updated = registry.update_state(stream_id, "live", last_event="recording.stopped")
+        await emit_stream_event(
+            build_stream_event("recording.stopped", updated, ts=updated.created_at)
+        )
+        return {"stream_id": stream_id, "state": "live", "ok": True, "result": result}
+    updated = registry.update_state(stream_id, "error", last_event="stream.error")
+    await emit_stream_event(build_stream_event("stream.error", updated, ts=updated.created_at))
+    return {"stream_id": stream_id, "state": "error", "ok": False, "result": result}
