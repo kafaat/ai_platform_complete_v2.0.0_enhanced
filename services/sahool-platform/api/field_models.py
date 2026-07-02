@@ -133,6 +133,9 @@ class FieldDetail(FieldSummary):
     water_ec: float | None = None  # ملوحة الماء dS/m
     manager_user_id: int | None = None  # FK إلى users(id) (v47)
     row_version: int | None = None  # عمّاد التزامن التفاؤليّ (v61) — يتزايد كلّ تحديث
+    # إصدار الحدّ الجزئيّ (v134) — يتزايد فقط حين تتغيّر الهندسة (لا مع أيّ تعديل مثل
+    # row_version). يمكّن العميل من كشف تراكب الخريطة/الراستر القديم دون ضمّ سجلّ التاريخ.
+    geometry_version: int | None = None
 
 
 class FieldUpdateRequest(BaseModel):
@@ -358,6 +361,7 @@ def _row_to_field_detail(r) -> FieldDetail:
         water_ec=_f("water_ec"),
         manager_user_id=_i("manager_user_id"),
         row_version=_i("row_version"),
+        geometry_version=_i("geometry_version"),
     )
 
 
@@ -365,5 +369,5 @@ def _row_to_field_detail(r) -> FieldDetail:
 _FIELD_DETAIL_SELECT = (
     "field_id, farm_id, name, area_ha, crop, soil_type, manager, "
     "field_code, description, water_source, ownership_type, country, region, "
-    "lat, lon, geometry, row_version, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
+    "lat, lon, geometry, row_version, geometry_version, " + ", ".join(_FIELD_ADVANCED_COLUMNS)
 )

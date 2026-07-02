@@ -423,3 +423,5 @@
 
 \echo '═══ 140. v133_actuation_killswitch.sql ═══'
 \i migrations/v133_actuation_killswitch.sql
+\echo '═══ 141. v134_fields_geometry_integrity.sql ═══'
+\i migrations/v134_fields_geometry_integrity.sql

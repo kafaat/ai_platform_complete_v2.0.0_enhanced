@@ -511,3 +511,8 @@ v132_field_state_recompute_provenance.sql
 # actuation_killswitch. يُستشار قبل send_mqtt_command/إدراج طابور التوزيع؛ تعذّر القاعدة ⇒
 # مُوقَف. RLS+FORCE tenant_isolation (نمط v98). إضافيّ idempotent؛ بعد v132.
 v133_actuation_killswitch.sql
+# v134 (سطر v39.5-1): فرض صحّة fields.geometry على القاعدة (ST_IsValid على ST_GeomFromGeoJSON،
+# فشل التحويل=باطل ⇒ ERRCODE 23514) — يسدّ فجوة v27 الذي يحرس field_boundaries.geom فقط بينما
+# مسار الرسم/PATCH يكتب fields.geometry (v30). + geometry_version عمود inline يتزايد عند تغيّر
+# الحدّ فقط (يميّزه عن row_version وfield_state.version). إضافيّ idempotent؛ بعد v132.
+v134_fields_geometry_integrity.sql
