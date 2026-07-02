@@ -418,6 +418,8 @@ class AsyncPostgresWorkflowStore:
         *,
         pool: Any = None,
         tenant_id: str | None = None,
+        worker_id: str | None = None,
+        lease_seconds: int | None = None,
     ) -> None:
         if not dsn and pool is None:
             raise ValueError("AsyncPostgresWorkflowStore يتطلّب dsn أو pool.")
@@ -427,6 +429,23 @@ class AsyncPostgresWorkflowStore:
         # app.current_tenant تحجب السياسة الصفوف ⇒ load=None (لا استئناف). الحفظ
         # يأخذ المستأجر من الحالة نفسها.
         self._tenant_id = tenant_id
+        # عقد الكاتب-الواحد (v19.5): نفس دلالة PostgresWorkflowStore المتزامن —
+        # معرّف عامل فريد لكلّ نسخة (uuid) ما لم يُحقَن (WORKFLOW_WORKER_ID)، ومدّة عقد
+        # WORKFLOW_LEASE_SECONDS (افتراض 300ث). يفعّل claim على المسار async-native
+        # فيمنع عاملَين async من استئناف نفس workflow_id معاً (كان يسقط لـload بلا عقد).
+        import os
+        import uuid
+
+        self._worker_id = worker_id or os.getenv("WORKFLOW_WORKER_ID") or str(uuid.uuid4())
+        self._lease_seconds = (
+            lease_seconds
+            if lease_seconds is not None
+            else int(os.getenv("WORKFLOW_LEASE_SECONDS", "300"))
+        )
+
+    @property
+    def worker_id(self) -> str:
+        return self._worker_id
 
     class _ConnCtx:
         """سياق اتّصال موحّد: يكتسب من pool (acquire/release) أو يفتح dsn (connect/close)."""
@@ -464,6 +483,25 @@ class AsyncPostgresWorkflowStore:
                 str(state.tenant_id or ""),
             )
             await conn.execute(_WORKFLOW_UPSERT_SQL, *_state_insert_args(state))
+            # عقد الكاتب-الواحد (v19.5): جدّد العقد أثناء الجريان (RUNNING) كي لا ينتهي
+            # في منتصف تنفيذ طويل، وحرّره (NULL) عند أيّ حالة غير جارية (workflow خامل
+            # ومتاح مشروعاً لعامل آخر) — نظير PostgresWorkflowStore._save تماماً. الـupsert
+            # لا يمسّ أعمدة العقد (ليست في SET) فلا يدهسها؛ هذا التحديث الصريح مصدر إدارتها.
+            if state.status == WorkflowStatus.RUNNING:
+                await conn.execute(
+                    "UPDATE workflow_state SET lease_owner=$2, "
+                    "lease_expires_at=NOW()+make_interval(secs=>$3::float8) "
+                    "WHERE workflow_id=$1",
+                    state.workflow_id,
+                    self._worker_id,
+                    float(self._lease_seconds),
+                )
+            else:
+                await conn.execute(
+                    "UPDATE workflow_state SET lease_owner=NULL, lease_expires_at=NULL "
+                    "WHERE workflow_id=$1",
+                    state.workflow_id,
+                )
 
     async def load(self, workflow_id: str) -> WorkflowState | None:
         async with self._ConnCtx(self) as conn:
@@ -475,6 +513,57 @@ class AsyncPostgresWorkflowStore:
                 "SELECT * FROM workflow_state WHERE workflow_id=$1", workflow_id
             )
         return _row_to_state(row) if row else None
+
+    async def claim(self, workflow_id: str) -> WorkflowState | None:
+        """نظير PostgresWorkflowStore.claim على المسار غير المتزامن (v19.5): يطالب
+        بعقد الكاتب-الواحد ذرّيّاً (FOR UPDATE SKIP LOCKED داخل معاملة) ويُرجِع الحالة
+        المحفوظة. (المخزن غير المتزامن أصلاً، فهذه دالّة async واحدة — لا انقسام
+        claim/_claim كما في المتزامن الذي يلفّ asyncio.run.) نفس المنطق تماماً:
+
+        - لا صفّ مرئيّ (workflow جديد أو محجوب بـRLS) ⇒ None (المحرّك يُنشئه).
+        - صفّ محجوز بعقد حيّ لعامل مختلف ⇒ WorkflowLeasedError (لا تنفيذ مزدوج).
+        - عقد فارغ/منتهٍ/لنفس العامل ⇒ يُطالِب/يُجدِّد ويُرجِع الحالة.
+        """
+        async with self._ConnCtx(self) as conn:
+            if self._tenant_id:
+                await conn.execute(
+                    "SELECT set_config('app.current_tenant', $1, false)", str(self._tenant_id)
+                )
+            async with conn.transaction():
+                # liveness يُحسَب في القاعدة (NOW() الخادم) لتفادي انحراف الساعة.
+                row = await conn.fetchrow(
+                    "SELECT *, (lease_owner IS NOT NULL AND lease_expires_at IS NOT NULL "
+                    "AND lease_expires_at > NOW()) AS lease_live "
+                    "FROM workflow_state WHERE workflow_id=$1 FOR UPDATE SKIP LOCKED",
+                    workflow_id,
+                )
+                if row is None:
+                    # SKIP LOCKED يتخطّى صفّاً مقفولاً من مطالِب متزامن؛ نُميّز بفحص
+                    # وجود بلا قفل: موجود ⇒ متنازَع عليه الآن (محجوز فعلاً) ⇒ نرفض؛
+                    # غير موجود ⇒ workflow جديد (لا عقد بعد) ⇒ None ليُنشئه المحرّك.
+                    exists = await conn.fetchrow(
+                        "SELECT 1 FROM workflow_state WHERE workflow_id=$1", workflow_id
+                    )
+                    if exists is not None:
+                        raise WorkflowLeasedError(workflow_id)
+                    return None
+                if _lease_refuses(row["lease_owner"], row["lease_live"], self._worker_id):
+                    raise WorkflowLeasedError(workflow_id, row["lease_owner"])
+                # حالة نهائيّة (لن تُنفَّذ) لا تحتاج عقداً — لا نترك عقداً شارداً عليها.
+                if row["status"] not in (
+                    WorkflowStatus.COMPLETED.value,
+                    WorkflowStatus.COMPENSATED.value,
+                    WorkflowStatus.COMPENSATION_FAILED.value,
+                ):
+                    await conn.execute(
+                        "UPDATE workflow_state SET lease_owner=$2, "
+                        "lease_expires_at=NOW()+make_interval(secs=>$3::float8) "
+                        "WHERE workflow_id=$1",
+                        workflow_id,
+                        self._worker_id,
+                        float(self._lease_seconds),
+                    )
+                return _row_to_state(row)
 
 
 def _compensate(steps: list[WorkflowStep], state: WorkflowState, store: Any) -> bool:

@@ -179,25 +179,55 @@ def test_store_selection_postgres_when_database_url(monkeypatch):
 
 
 # ── ④ المخزن غير المتزامن عبر اتّصال مزيّف (await، لا asyncio.run) ─────
+class _FakeTxn:
+    """معاملة asyncpg مزيّفة: سياق async لا-عمليّ (claim يلفّ SELECT/UPDATE بمعاملة)."""
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return None
+
+
 class _FakeConn:
-    """اتّصال asyncpg مزيّف: يخزّن آخر upsert ويُرجِعه عند fetchrow (روند-تريب)."""
+    """اتّصال asyncpg مزيّف: يخزّن آخر upsert ويُرجِعه عند fetchrow (روند-تريب).
+
+    v19.5: يُجيب أيضاً عمودَي العقد (lease_owner + العمود المحسوب lease_live)
+    واستعلام المطالبة (claim: SELECT ... FOR UPDATE SKIP LOCKED + فحص الوجود
+    SELECT 1) ويدعم conn.transaction() — كي يبقى مسار run_workflow_async أخضر بعد
+    تفعيل claim على المخزن غير المتزامن (لا يُضعَّف الحارس الحقيقيّ؛ الوهميّ يحاكيه).
+    """
 
     def __init__(self, store_dict: dict) -> None:
         self._d = store_dict
+        self._lease: dict = {}  # workflow_id -> (lease_owner, lease_live)
+
+    def transaction(self):
+        return _FakeTxn()
 
     async def execute(self, sql: str, *args):
         if "INSERT INTO workflow_state" in sql:
             # ترتيب الوسائط من _state_insert_args: workflow_id=args[0], compensation_failures=args[11]
             self._d[args[0]] = args
+        elif "lease_owner=NULL" in sql:
+            # تحرير العقد (حالة نهائيّة/غير جارية)
+            self._lease[args[0]] = (None, False)
+        elif "lease_owner=$2" in sql:
+            # مطالبة/تجديد: (workflow_id, worker_id, lease_seconds) ⇒ عقد حيّ لهذا العامل
+            self._lease[args[0]] = (args[1], True)
         return "OK"
 
     async def fetchrow(self, sql: str, workflow_id: str):
         import json
 
+        # فحص الوجود بلا قفل داخل claim (SKIP LOCKED أرجع None): موجود ⇒ متنازَع عليه.
+        if "SELECT 1 FROM workflow_state" in sql:
+            return {"exists": 1} if workflow_id in self._d else None
         args = self._d.get(workflow_id)
         if args is None:
             return None
-        # يحاكي صفّ asyncpg: يدعم row["col"] و row.keys()
+        lease_owner, lease_live = self._lease.get(workflow_id, (None, False))
+        # يحاكي صفّ asyncpg: يدعم row["col"] و row.keys() (بما فيه عمودا العقد + lease_live)
         return {
             "workflow_id": args[0],
             "tenant_id": args[1],
@@ -211,6 +241,9 @@ class _FakeConn:
             "workflow_version": args[9],
             "correlation_id": args[10],
             "compensation_failures": json.loads(args[11]),
+            "lease_owner": lease_owner,
+            "lease_expires_at": None,
+            "lease_live": lease_live,
         }
 
 
