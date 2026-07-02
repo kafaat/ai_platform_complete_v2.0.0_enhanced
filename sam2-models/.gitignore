@@ -1,0 +1,8 @@
+# SAM2 weights are large binaries — never commit them.
+*.pt
+*.pth
+*.onnx
+*.safetensors
+!README.md
+!.gitignore
+!.gitkeep

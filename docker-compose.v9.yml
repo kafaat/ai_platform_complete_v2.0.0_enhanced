@@ -1491,7 +1491,10 @@ services:
       SAM2_CHECKPOINT: ${SAM2_CHECKPOINT:-/models/sam2_hiera_large.pt}
       SAM2_MODEL_CFG: ${SAM2_MODEL_CFG:-sam2_hiera_l.yaml}
     volumes:
-    - sam2-models:/models:ro
+    # host bind (بدل volume مُسمّى): يضع المشغّل الأوزان في مجلّد ./sam2-models/ المرئيّ
+    # فيراها /models داخل الحاوية. الـvolume المُسمّى كان يبقى فارغاً (لا مُعبِّئ) ⇒ SAM2
+    # يُقلِع لكن inference لا يكتمل. راجع sam2-models/README.md للتنزيل.
+    - ./sam2-models:/models:ro
     networks:
     - sahool-internal
     healthcheck:
@@ -1689,4 +1692,3 @@ volumes:
   grafana-data: null
   jaeger-data: null
   nginx-cache: null
-  sam2-models: null
