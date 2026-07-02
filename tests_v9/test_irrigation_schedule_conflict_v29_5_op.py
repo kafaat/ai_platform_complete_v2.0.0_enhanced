@@ -36,7 +36,7 @@ if CORE not in sys.path:
 
 @pytest.mark.unit
 def test_overlap_same_day_windows():
-    from api.irrigation_models import schedules_overlap
+    from api.irrigation_logic import schedules_overlap
 
     # 06:00 لمدّة 120د (06:00–08:00) مقابل 07:00 لمدّة 60د (07:00–08:00) ⇒ تداخُل.
     assert schedules_overlap(time(6, 0), 120, None, time(7, 0), 60, None) is True
@@ -46,7 +46,7 @@ def test_overlap_same_day_windows():
 
 @pytest.mark.unit
 def test_adjacent_windows_are_not_conflict():
-    from api.irrigation_models import schedules_overlap
+    from api.irrigation_logic import schedules_overlap
 
     # نوافذ نصف مفتوحة: 06:00–07:00 و07:00–08:00 متلاصقان لا متداخلان.
     assert schedules_overlap(time(6, 0), 60, None, time(7, 0), 60, None) is False
@@ -54,7 +54,7 @@ def test_adjacent_windows_are_not_conflict():
 
 @pytest.mark.unit
 def test_disjoint_days_never_conflict():
-    from api.irrigation_models import schedules_overlap
+    from api.irrigation_logic import schedules_overlap
 
     # نفس الوقت لكن أيّام مختلفة (الإثنين=0 مقابل الثلاثاء=1) ⇒ لا تداخُل.
     assert schedules_overlap(time(6, 0), 120, [0], time(6, 0), 120, [1]) is False
@@ -64,7 +64,7 @@ def test_disjoint_days_never_conflict():
 
 @pytest.mark.unit
 def test_none_days_means_daily_and_overlaps_any_day():
-    from api.irrigation_models import schedules_overlap
+    from api.irrigation_logic import schedules_overlap
 
     # None = يوميّاً ⇒ يتقاطع مع أيّ يوم محدّد في نفس النافذة الزمنيّة.
     assert schedules_overlap(time(6, 0), 120, None, time(6, 30), 60, [3]) is True
@@ -72,7 +72,7 @@ def test_none_days_means_daily_and_overlaps_any_day():
 
 @pytest.mark.unit
 def test_midnight_wrap_bleeds_into_next_day():
-    from api.irrigation_models import schedules_overlap
+    from api.irrigation_logic import schedules_overlap
 
     # الإثنين 23:00 لمدّة 120د يمتدّ إلى الثلاثاء 00:00–01:00 ⇒ يتعارض مع الثلاثاء 00:30.
     assert schedules_overlap(time(23, 0), 120, [0], time(0, 30), 30, [1]) is True
@@ -105,7 +105,7 @@ TEST_DB_URL = os.getenv(
 
 def _conflicts_against_existing(conn_rows, new_start, new_dur, new_days) -> bool:
     """يعكس منطق حارس ``create_schedule``: أيّ صفّ قائم يتداخل مع الجديد ⇒ تعارُض."""
-    from api.irrigation_models import schedules_overlap
+    from api.irrigation_logic import schedules_overlap
 
     for row in conn_rows:
         other_days = list(row["days_of_week"]) if row["days_of_week"] is not None else None

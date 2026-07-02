@@ -8665,7 +8665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0566aa5424c155fb0a5664bfd1800b2d6e7a4643fd50d4228523185fc0bc58f4"
+          "content": "e435340e58661cc2fab8562921b87e7e4d6b0255207afb497a749f7bbefabe50"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_models.py",

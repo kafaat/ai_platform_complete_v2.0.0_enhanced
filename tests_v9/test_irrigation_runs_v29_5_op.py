@@ -30,14 +30,14 @@ if str(_API_ROOT) not in sys.path:
 # ─────────────────────────── وحدة: الدالّة الصرفة ───────────────────────────
 @pytest.mark.unit
 def test_plan_run_ledger_action_open():
-    from api.irrigation_models import plan_run_ledger_action
+    from api.irrigation_logic import plan_run_ledger_action
 
     assert plan_run_ledger_action("open") == "open_run"
 
 
 @pytest.mark.unit
 def test_plan_run_ledger_action_closed():
-    from api.irrigation_models import plan_run_ledger_action
+    from api.irrigation_logic import plan_run_ledger_action
 
     assert plan_run_ledger_action("closed") == "close_run"
 
@@ -46,7 +46,7 @@ def test_plan_run_ledger_action_closed():
 @pytest.mark.parametrize("bad", ["", "unknown", "OPEN", "opened", "off", "on"])
 def test_plan_run_ledger_action_other_is_none(bad):
     """أيّ حالة غير open/closed ⇒ None (لا نخترع تشغيلاً في الدفتر)."""
-    from api.irrigation_models import plan_run_ledger_action
+    from api.irrigation_logic import plan_run_ledger_action
 
     assert plan_run_ledger_action(bad) is None
 
