@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-07-02 (م) — دفعة تصلّب ثالثة: v139 audit append-only + v140 outbox attempts
+
+**رأس `main` بعد الجلسة:** `0304076`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
+
+**قرار صدق أوّليّ:** device→platform auth **ليس شقّاً ضيّقاً** (موضوع telemetry بلا device_id · firmware يرسل `{value}` بلا توقيع · يحتاج إعادة تصميم عقد + تنسيق firmware) — قرار معماريّ مؤجَّل، لم أسرّعه. بدلاً منه الفجوتان النظيفتان (منصّة فقط):
+- **v139** (`7d9334c`): `trg_append_only_field_geometry_history` (BEFORE UPDATE/DELETE → `sahool_block_mutation`) — سجلّ تعديلات الحدود غير قابل للتلاعب. الوكيل تحقّق أوّلاً ألّا يوجد تحوير شرعيّ للجدول (grep: INSERT+SELECT فقط). unit static + integration probe (مرّ بالاسم).
+- **v140** (`9f83fe3`+`0304076`): `outbox_delivery_attempts` — سجلّ جنائيّ append-only لكلّ محاولة تسليم (attempt_no/subject/outcome/error) يكتبه `OutboxWorker._record_delivery_attempt` (SAVEPOINT، fail-safe). مرّ بالاسم على Postgres.
+
+**درسان من CI (مهمّان — التحقّق المحليّ لا يكفي):**
+1. **حارس elevated-context (HIGH-001):** `event_bus.py` تحت دور `sahool_jobs` المتجاوِز لـRLS — الحارس يفرض حصره بجداوله. الجدول الجديد لمسه ⇒ وثّقتُه في `_JOBS_SCOPE` (العامل يكتب فقط بـtenant_id الصحيح).
+2. **RLS coverage (sahool_inspector سلطويّ):** الجدول يحمل tenant_id بلا FORCE RLS. **درس دقيق:** الفاحص الساكن يطلب `FORCE`+`current_setting` **حرفيّاً في نصّ الترحيل** — لا يعترف بـ`_sahool_apply_tenant_rls()` helper. فاستبدلتُ الـhelper بكتلة v133/v98 الصريحة. + خطأ توقيع `emit_event` في اختبار الوكيل (v18 جعل `p_entity_id` TEXT؛ الاختبار صبّه `::uuid`) — أُصلِح بحذف الصبّ (نمط `test_entity_id_text`).
+
+**انضباط:** تعارضات MANIFEST/run_migrations (v139/v140 كلاهما بعد v138) حُلّت (manifest 146). worktrees نُظِّفت. كلّ الحُرّاس أُصلِحت دون إضعاف أيّ منها (توثيق نطاق + RLS صريح، لا استثناءات).
+
+**المتبقّي (مؤجَّل، اختياريّ):** device→platform auth (معماريّ، يحتاج firmware) · device ACK فعليّ · SPATIAL-401 (Network) · VALIDATE بعد cleanup.
+
+---
+
 ## 2026-07-02 (ل) — دفعة السلامة الثانويّة (v136/v138 + حارسان، ٤ وكلاء بناء)
 
 **رأس `main` بعد الجلسة:** `b87ce7c`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.

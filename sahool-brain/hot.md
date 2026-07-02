@@ -1,6 +1,7 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-07-02 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `b87ce7c` · [`log.md`](log.md) مدخل (ل).
+> **آخر تحديث:** 2026-07-02 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `0304076` · [`log.md`](log.md) مدخل (م).
+> 🛡 **تصلّب v133–v140 (٣ دفعات، تحقّق-قبل-بناء):** kill switch · fields.geometry validity+version · workflow lease (sync+async) · irrigation_runs · schedule-conflict · offline terminal state · field_geometry_history append-only (v139) · outbox per-attempt log (v140). كلّها اختبارات تكامل مرّت بالاسم على Postgres. **درس CI:** الدوالّ النقيّة لا تُوضَع في وحدة تستورد fastapi؛ والفاحص الساكن يطلب `FORCE`+`current_setting` حرفيّاً (لا helper).
 > 🛡 **دفعة السلامة الأساسيّة (v133/v134/v135):** مفتاح إيقاف تشغيل fail-closed · `ST_IsValid` على `fields.geometry` + `geometry_version` · قفل الكاتب-الأوحد للـworkflow. ٩ اختبارات تكامل بالاسم على Postgres.
 > 🛡 **دفعة السلامة الثانويّة (v136/v138 + حارسان):** **v136** سجلّ تشغيل الصمّامات irrigation_runs · **schedule-conflict** رفض 409 لتداخل الجداول (app-level) · **AsyncStore lease** (يكمل v135) · **v138** حالات `processing`/`failed` لـoffline_pending_ops (لا ops سامّة أبديّة). ٩ اختبارات تكامل بالاسم على Postgres. **درس:** الدوالّ النقيّة يجب ألّا تُوضَع في وحدة تستورد fastapi (فشل unit tier بلا fastapi) — استُخرِجت إلى `irrigation_logic.py`.
 > 🛰 **v62.3 Evidence Runtime (٤ شقوق):** A عقد أدلّة NDVI + بوّابة اكتمال fail-closed · B كاتب/قارئ أعمدة جودة raster (v131) · C توصيل الشبكة pack→evidence→VRA · v52 مظروف سياسة AI. + VALIDATE-prep (تقرير مخالفات + حارس + runbook؛ **بلا SQL**). **Superset merge: no-op مُثبَت** (main يحتوي cert، `a9f7314` سلف خطّيّ).
