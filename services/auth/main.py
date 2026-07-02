@@ -27,7 +27,6 @@ from uuid import uuid4
 
 import asyncpg
 import bcrypt
-import pyotp  # TOTP (RFC 6238) — المصادقة الثنائيّة MFA
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -1097,6 +1096,30 @@ async def _mfa_reset_and_maybe_migrate(user_id: int, secret: str | None, *, migr
             )
 
 
+async def _consume_totp_step(
+    user_id, secret: str | None, code: str | None, *, valid_window: int = 1
+) -> bool:
+    """V29.7 — تحقّق TOTP مانع لإعادة التشغيل (anti-replay). يعيد True فقط إن طابق الرمز
+    خطوةً زمنيّة **غير مُستهلَكة** (أحدث تماماً من آخر خطوة مقبولة). آمن ضدّ التسابق:
+    التحديث ذرّيّ بشرط التقدّم؛ 0 صفوف ⇒ إعادة تشغيل/سباق ⇒ يُرفَض (fail-closed).
+
+    يبقى منطق الاسترداد/القفل/التدقيق في المتّصِل — هذا يحلّ محلّ فحص pyotp المباشر فقط.
+    """
+    step = mfa_crypto.matched_totp_step(secret, code, valid_window=valid_window)
+    if step is None or not _pool:
+        return False
+    async with _acquire() as conn:
+        tag = await conn.execute(
+            "UPDATE users SET mfa_last_totp_step=$1 "
+            "WHERE id=$2 AND (mfa_last_totp_step IS NULL OR mfa_last_totp_step < $1)",
+            int(step),
+            user_id,
+        )
+    # asyncpg يُرجِع وسم أمر مثل 'UPDATE 1' — صفّ واحد ⇒ استُهلِكت الخطوة الآن (لا إعادة).
+    # fail-closed: أيّ وسم غير نصّيّ/غير متوقّع ⇒ False (لا نقبل بلا تأكيد استهلاك).
+    return bool(tag) and str(tag).rsplit(" ", 1)[-1] == "1"
+
+
 async def mfa_login_verify(row, code: str, *, ip: str = "unknown", request_id: str | None = None):
     """Governed MFA check at login. Returns (ok: bool, reason: str). fail-closed.
 
@@ -1139,7 +1162,8 @@ async def mfa_login_verify(row, code: str, *, ip: str = "unknown", request_id: s
         (row["mfa_secret"] if "mfa_secret" in row else None)
         and not (row["encrypted_mfa_secret"] if "encrypted_mfa_secret" in row else None)
     )
-    ok = bool(secret) and bool(pyotp.TOTP(secret).verify(str(code).strip(), valid_window=1))
+    # V29.7 anti-replay: يستهلك الخطوة الزمنيّة ذرّيّاً — رمز صالح لا يُعاد استخدامه.
+    ok = await _consume_totp_step(user_id, secret, code)
     via = "totp"
     if not ok and await _consume_recovery_code(user_id, code):
         ok, via = True, "recovery"
@@ -1206,7 +1230,7 @@ async def _verify_caller_mfa(
             ip=ip,
         )
         return False
-    if not secret or not pyotp.TOTP(secret).verify(mfa_code.strip(), valid_window=1):
+    if not secret or not await _consume_totp_step(admin_user_id, secret, mfa_code):
         await _register_mfa_failure(
             admin_user_id,
             event="mfa_stepup_failed",

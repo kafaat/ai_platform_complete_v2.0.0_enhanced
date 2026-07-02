@@ -93,11 +93,11 @@ class _FakeConn:
     async def fetchrow(self, *a, **k):
         return self._row
 
-    # V29.6 — step-up is now governed (lockout counter + audit + reset). The fake conn
-    # tolerates the extra DB ops: execute is a no-op; fetchval (atomic failure register)
-    # returns None ⇒ "not locked" (unit outcomes unchanged, path exercised).
+    # V29.6 — step-up is now governed (lockout counter + audit + reset). V29.7 adds the
+    # atomic TOTP anti-replay UPDATE which parses the asyncpg command tag, so the fake
+    # returns a realistic "UPDATE 1" (one row consumed ⇒ step accepted, no replay).
     async def execute(self, *a, **k):
-        return None
+        return "UPDATE 1"
 
     async def fetchval(self, *a, **k):
         return None

@@ -23,7 +23,44 @@ import hashlib
 import hmac
 import os
 import secrets
+import time
 from datetime import UTC, datetime, timedelta
+
+import pyotp  # TOTP (RFC 6238) — متاح في طبقة الاختبار الدنيا (requirements-test.txt)
+
+TOTP_INTERVAL = 30  # ثانية لكلّ خطوة زمنيّة (RFC 6238 الافتراضيّ، يطابق pyotp)
+
+
+def matched_totp_step(
+    secret: str | None,
+    code: str | None,
+    *,
+    valid_window: int = 1,
+    for_time: int | None = None,
+    interval: int = TOTP_INTERVAL,
+) -> int | None:
+    """أرجِع رقم الخطوة الزمنيّة المطلقة (epoch // interval) التي يطابقها الرمز ضمن
+    ‏±valid_window، وإلّا None. أساسٌ لمنع إعادة التشغيل (anti-replay): يرفض المتّصِل
+    ‏أيّ خطوة ≤ آخر خطوة مقبولة مخزَّنة. نقيّ (بلا قاعدة/شبكة) فيُختبَر في طبقة الوحدات.
+
+    نطابق سلوك ``pyotp.TOTP(secret).verify(code, valid_window=1)`` تماماً لكن نُعيد
+    الخطوة المطابِقة بدل bool: نفحص كلّ خطوة مرشّحة على حدة (valid_window=0) فنعرف أيّها.
+    """
+    if not secret or code is None:
+        return None
+    code = str(code).strip()
+    if not code:
+        return None
+    totp = pyotp.TOTP(secret, interval=interval)
+    now = int(for_time if for_time is not None else time.time())
+    current_step = now // interval
+    # نُفضّل الخطوة الأحدث عند التطابق (offset تنازليّاً) — أمتن لمنع إعادة التشغيل.
+    for offset in range(valid_window, -valid_window - 1, -1):
+        step = current_step + offset
+        if totp.verify(code, for_time=step * interval, valid_window=0):
+            return step
+    return None
+
 
 _ENC_KEY_ENV = "MFA_SECRET_ENCRYPTION_KEY"
 _ENC_DECRYPT_KEYS_ENV = "MFA_SECRET_DECRYPTION_KEYS"  # CSV of retired keys (decrypt-only, rotation)

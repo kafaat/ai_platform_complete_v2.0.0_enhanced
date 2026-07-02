@@ -435,3 +435,5 @@
 \i migrations/v139_field_geometry_history_append_only.sql
 \echo '═══ 146. v140_outbox_delivery_attempts.sql ═══'
 \i migrations/v140_outbox_delivery_attempts.sql
+\echo '═══ 147. v141_mfa_totp_antireplay.sql ═══'
+\i migrations/v141_mfa_totp_antireplay.sql

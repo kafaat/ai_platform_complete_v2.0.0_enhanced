@@ -82,7 +82,7 @@ async def mfa_activate(req: main.MfaCodeRequest, user: dict = Depends(main.get_c
         ) from None
     if not secret:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "ابدأ الاقتران أولاً عبر /auth/mfa/setup")
-    if not main.pyotp.TOTP(secret).verify(req.code.strip(), valid_window=1):
+    if not await main._consume_totp_step(user_id, secret, req.code):  # V29.7 anti-replay
         await main._emit_mfa_audit(
             user_id=user_id,
             event="mfa_activate_failed",
@@ -153,7 +153,7 @@ async def mfa_disable(req: main.MfaCodeRequest, user: dict = Depends(main.get_cu
     # حالة غير متّسقة (مفعّل بلا سرّ): لا تُمرّر None لـpyotp (تجنّب 500) — أبلغ صراحةً.
     if not secret:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "حالة MFA غير متّسقة — تواصل مع المسؤول")
-    if not main.pyotp.TOTP(secret).verify(req.code.strip(), valid_window=1):
+    if not await main._consume_totp_step(user_id, secret, req.code):  # V29.7 anti-replay
         # V29.6 — تعطيل MFA فعل حسّاس: رمز خاطئ يُدخِل نفس القفل (يمنع brute-force بجلسة مسروقة).
         await main._register_mfa_failure(
             user_id,

@@ -546,3 +546,4 @@ v139_field_geometry_history_append_only.sql
 # (event_outbox غير مُنطّق بالمستأجِر ⇒ لا RLS، اتّساقاً). append-only عبر sahool_block_mutation
 # (نمط v9/mfa_audit_events). إضافيّ idempotent؛ بعد v138.
 v140_outbox_delivery_attempts.sql
+v141_mfa_totp_antireplay.sql
