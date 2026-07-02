@@ -20,6 +20,22 @@ logger = logging.getLogger("raster-service.db")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 
+def _parse_quality_flags(raw: object) -> list:
+    """Normalize index_quality_flags (jsonb text from asyncpg) to a list.
+
+    asyncpg يعيد jsonb نصّاً (بلا codec مُسجَّل). None/فارغ ⇒ []؛ نصّ غير صالح ⇒ [].
+    """
+    if raw is None:
+        return []
+    if isinstance(raw, list):
+        return raw
+    try:
+        parsed = json.loads(raw) if isinstance(raw, str) else raw
+    except (ValueError, TypeError):
+        return []
+    return parsed if isinstance(parsed, list) else []
+
+
 def _valid_uuid_text(value: str | None) -> bool:
     """Validate UUID text before asyncpg binds it to UUID columns."""
     if not value or not str(value).strip():
@@ -68,6 +84,9 @@ async def insert_raster_asset(
     nodata: float | None,
     footprint: dict | None,
     provenance: dict | None,
+    valid_pixel_ratio: float | None = None,
+    coverage_ratio: float | None = None,
+    index_quality_flags: list | None = None,
 ) -> bool:
     """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند النجاح.
 
@@ -88,6 +107,9 @@ async def insert_raster_asset(
     footprint_geojson = json.dumps(footprint) if footprint else None
     bands_json = json.dumps(bands) if bands is not None else None
     provenance_json = json.dumps(provenance) if provenance else None
+    # v131 (v62.3-B): أعمدة جودة الصور. القيم غياب ⇒ NULL (لا نخترع 0). القيد
+    # chk_raster_quality_ratios يحرس 0..1 فيزيائيّاً؛ القائمة تُخزَّن jsonb.
+    flags_json = json.dumps(index_quality_flags) if index_quality_flags is not None else None
     # FIX: asyncpg يطلب datetime.date لعمود DATE (تمرير نصّ ⇒ 'str' has no
     # attribute 'toordinal'). نحوّل النصّ ISO إلى date؛ القيم غير الصالحة → None.
     acq_date = acquisition_date
@@ -103,13 +125,15 @@ async def insert_raster_asset(
         INSERT INTO raster_assets (
             field_id, tenant_id, scene_id, acquisition_date, satellite,
             index_name, cloud_pct, srid, cog_uri, bands, nodata,
-            footprint, provenance
+            footprint, provenance,
+            valid_pixel_ratio, coverage_ratio, index_quality_flags
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8, $9, $10::jsonb, $11,
             CASE WHEN $12::text IS NULL THEN NULL
                  ELSE ST_SetSRID(ST_GeomFromGeoJSON($12), 4326) END,
-            $13::jsonb
+            $13::jsonb,
+            $14, $15, COALESCE($16::jsonb, '[]'::jsonb)
         )
     """
     try:
@@ -132,6 +156,9 @@ async def insert_raster_asset(
             nodata,
             footprint_geojson,
             provenance_json,
+            valid_pixel_ratio,
+            coverage_ratio,
+            flags_json,
         )
         return True
     except Exception as e:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
@@ -160,13 +187,16 @@ async def fetch_latest_asset(
         return None
     sql = """
         SELECT cog_uri, acquisition_date::text AS acq, srid, cloud_pct,
+               valid_pixel_ratio, coverage_ratio, index_quality_flags::text AS quality_flags,
                provenance #>> '{stats,confidence}' AS confidence,
                provenance #>> '{stats,quality}' AS quality,
                provenance #>> '{stats,cloud_mask_applied}' AS cloud_mask_applied,
                ST_XMin(env) AS minx, ST_YMin(env) AS miny,
                ST_XMax(env) AS maxx, ST_YMax(env) AS maxy
         FROM (
-            SELECT cog_uri, acquisition_date, srid, cloud_pct, provenance, ST_Envelope(footprint) AS env
+            SELECT cog_uri, acquisition_date, srid, cloud_pct,
+                   valid_pixel_ratio, coverage_ratio, index_quality_flags,
+                   provenance, ST_Envelope(footprint) AS env
             FROM raster_assets
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
@@ -193,13 +223,23 @@ async def fetch_latest_asset(
             conf = float(row["confidence"]) if row["confidence"] is not None else None
         except (TypeError, ValueError):
             conf = None
+        cloud_pct = float(row["cloud_pct"]) if row["cloud_pct"] is not None else None
+        # v131 (v62.3-B): إشارات جودة الصور لمستهلكي المصب (v62.3-C).
+        vpr = float(row["valid_pixel_ratio"]) if row["valid_pixel_ratio"] is not None else None
+        cov = float(row["coverage_ratio"]) if row["coverage_ratio"] is not None else None
+        flags = _parse_quality_flags(row["quality_flags"])
         return {
             "cog_url": row["cog_uri"],
             "index": index_name,
             "acquisition_date": row["acq"],
             "srid": row["srid"],
             "bounds_4326": bounds,
-            "cloud_pct": float(row["cloud_pct"]) if row["cloud_pct"] is not None else None,
+            "cloud_pct": cloud_pct,
+            # cloud_cover نسبة [0..1] (cloud_pct/100) كي يستهلكها المصب مباشرةً.
+            "cloud_cover": (cloud_pct / 100.0) if cloud_pct is not None else None,
+            "valid_pixel_ratio": vpr,
+            "coverage_ratio": cov,
+            "index_quality_flags": flags,
             "confidence": conf,
             "quality": row["quality"],
             "cloud_mask_applied": str(row["cloud_mask_applied"]).lower() == "true"

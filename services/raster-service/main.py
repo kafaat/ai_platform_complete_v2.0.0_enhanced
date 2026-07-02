@@ -1262,6 +1262,19 @@ def _persist_raster_asset(
         import asyncio
 
         import db_persist
+        import quality_metrics
+
+        # v131 (v62.3-B): مقاييس جودة الصور من عدّادات البكسلات في stats.
+        # valid_pixels/nodata_pixels يوفّرها _process_pixels/_process_precomputed_pixels؛
+        # غيابهما (بنية بلا rasterio) ⇒ إجماليّ = 0 ⇒ نسب None (لا اختراع).
+        _vp = stats.get("valid_pixels")
+        _np = stats.get("nodata_pixels")
+        _total = (int(_vp) + int(_np)) if (_vp is not None and _np is not None) else None
+        _quality = quality_metrics.compute_quality_metrics(
+            valid_pixels=int(_vp) if _vp is not None else None,
+            total_pixels=_total,
+            cloud_pct=stats.get("cloud_pct"),
+        )
 
         # footprint كـbbox polygon بـ4326 (الحدود معاد إسقاطها)
         minlon, minlat, maxlon, maxlat = bounds[0], bounds[1], bounds[2], bounds[3]
@@ -1292,6 +1305,9 @@ def _persist_raster_asset(
                 bands=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
                 nodata=meta.get("nodata"),
                 footprint=footprint,
+                valid_pixel_ratio=_quality["valid_pixel_ratio"],
+                coverage_ratio=_quality["coverage_ratio"],
+                index_quality_flags=_quality["index_quality_flags"],
                 provenance={
                     "stats": {
                         k: stats.get(k)
@@ -1391,6 +1407,19 @@ def _run_processing(job_id: str, req: ProcessRequest):
             clip_polygon=req.clip_polygon_geojson,
         )
         cog_url = meta.get("cog_url")
+        # v131 (v62.3-B): مقاييس جودة الصور للطبقة في الذاكرة كي تسطّحها شبكة
+        # المؤشّر مباشرةً دون دورة قاعدة (نفس منطق الكاتب: عدّادات البكسلات من stats).
+        import quality_metrics as _qm
+
+        _vp = stats.get("valid_pixels")
+        _npx = stats.get("nodata_pixels")
+        _tot = (int(_vp) + int(_npx)) if (_vp is not None and _npx is not None) else None
+        _layer_q = _qm.compute_quality_metrics(
+            valid_pixels=int(_vp) if _vp is not None else None,
+            total_pixels=_tot,
+            cloud_pct=stats.get("cloud_pct"),
+        )
+        _cloud_pct = stats.get("cloud_pct")
         _layers[layer_id] = {
             "layer_id": layer_id,
             "field_id": req.field_id,
@@ -1408,7 +1437,11 @@ def _run_processing(job_id: str, req: ProcessRequest):
             "cog_url": cog_url,  # (٤) كي يجده tilejson + شبكة المؤشّر
             "acquisition_date": req.capture_datetime,
             "provider": req.provider,  # مصدر الصورة (cdse/element84) — شفافيّة الأصل
-            "cloud_pct": stats.get("cloud_pct"),
+            "cloud_pct": _cloud_pct,
+            "cloud_cover": (_cloud_pct / 100.0) if _cloud_pct is not None else None,
+            "valid_pixel_ratio": _layer_q["valid_pixel_ratio"],
+            "coverage_ratio": _layer_q["coverage_ratio"],
+            "index_quality_flags": _layer_q["index_quality_flags"],
             "cloud_mask_applied": stats.get("cloud_mask_applied"),
             "confidence": stats.get("confidence"),
             "quality": stats.get("quality"),
@@ -2147,6 +2180,11 @@ def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None
         "source": layer.get("source_format") or "raster",
         "real_data": True,
         "cloud_pct": layer.get("cloud_pct"),
+        # v131 (v62.3-B): إشارات جودة الصور لمستهلكي المصب (VRA/المناطق، v62.3-C).
+        "cloud_cover": layer.get("cloud_cover"),
+        "valid_pixel_ratio": layer.get("valid_pixel_ratio"),
+        "coverage_ratio": layer.get("coverage_ratio"),
+        "index_quality_flags": layer.get("index_quality_flags"),
         "confidence": layer.get("confidence"),
         "quality": layer.get("quality"),
     }
@@ -2185,6 +2223,11 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
             "acquisition_date": asset.get("acquisition_date"),
             "bounds_4326": asset.get("bounds_4326"),
             "cloud_pct": asset.get("cloud_pct"),
+            # v131 (v62.3-B): إعادة ترطيب إشارات الجودة من raster_assets.
+            "cloud_cover": asset.get("cloud_cover"),
+            "valid_pixel_ratio": asset.get("valid_pixel_ratio"),
+            "coverage_ratio": asset.get("coverage_ratio"),
+            "index_quality_flags": asset.get("index_quality_flags"),
             "confidence": asset.get("confidence"),
             "quality": asset.get("quality"),
             "cloud_mask_applied": asset.get("cloud_mask_applied"),
