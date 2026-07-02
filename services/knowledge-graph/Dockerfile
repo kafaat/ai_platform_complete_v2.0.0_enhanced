@@ -3,6 +3,9 @@ WORKDIR /app
 COPY services/knowledge-graph/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY services/sahool-platform/core /app/core
+# SEC-3: shared gateway-trusted identity helpers (shared.security.gateway_deps).
+# Must be copied or the container crashes at import (ModuleNotFoundError: shared).
+COPY shared /app/shared
 COPY services/knowledge-graph/main.py /app/main.py
 ENV PYTHONPATH=/app KG_SQLITE_PATH=/data/kg.sqlite
 # مستخدم غير جذري (SEC-2). /data قابل للكتابة (KG_SQLITE_PATH) — يُنشأ ويُملَّك قبل

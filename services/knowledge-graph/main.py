@@ -10,8 +10,10 @@ from core.knowledge_graph.sqlite_graph import (
     graphql_readonly,
     seed_reference_ontology,
 )
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Response
 from pydantic import BaseModel
+
+from shared.security.gateway_deps import require_service_token
 
 app = FastAPI(title="SAHOOL Agricultural Knowledge Graph", version="2026.2")
 store = SQLiteAgGraphStore(os.getenv("KG_SQLITE_PATH", "/data/kg.sqlite"))
@@ -71,13 +73,15 @@ async def readyz():
 
 
 @app.post("/nodes")
-async def upsert_node(node: NodeIn):
+async def upsert_node(node: NodeIn, _token: None = Depends(require_service_token)):
+    # SEC-3: graph writes are internal-only; require the trusted service token
+    # (X-Agent-Token == SAHOOL_AGENT_TOKEN). Reads (GET /edges, /graphql) stay open.
     store.upsert_node(GraphNode(**node.model_dump()))
     return {"ok": True}
 
 
 @app.post("/edges")
-async def upsert_edge(edge: EdgeIn):
+async def upsert_edge(edge: EdgeIn, _token: None = Depends(require_service_token)):
     try:
         store.upsert_edge(GraphEdge(**edge.model_dump()))
     except ValueError as exc:

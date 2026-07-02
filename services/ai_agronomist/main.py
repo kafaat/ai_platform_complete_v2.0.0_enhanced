@@ -5,8 +5,11 @@ from datetime import UTC, datetime
 from typing import Any
 
 import httpx
-from fastapi import FastAPI, Header, HTTPException, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
+
+from shared.security.gateway_deps import require_service_token
+from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant
 
 from . import (
     ai_generation,
@@ -130,7 +133,9 @@ async def ai_provider_snapshot() -> dict[str, Any]:
 
 
 @app.post("/approvals/approve")
-async def approve_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
+async def approve_tool_request(
+    req: ApprovalDecisionRequest, _token: None = Depends(require_service_token)
+) -> dict[str, Any]:
     """Normalize a human approval decision for a pending agent tool request.
 
     This endpoint does not execute the underlying mutating tool; execution must be handled
@@ -175,7 +180,9 @@ async def approve_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
 
 
 @app.post("/approvals/deny")
-async def deny_tool_request(req: ApprovalDecisionRequest) -> dict[str, Any]:
+async def deny_tool_request(
+    req: ApprovalDecisionRequest, _token: None = Depends(require_service_token)
+) -> dict[str, Any]:
     """Normalize a human denial decision for a pending agent tool request."""
     base = _approval_for_decision(req.approval)
     try:
@@ -214,7 +221,9 @@ class ApprovalResumeRequest(BaseModel):
 
 
 @app.post("/approvals/resume")
-async def resume_approved_tool(req: ApprovalResumeRequest) -> dict[str, Any]:
+async def resume_approved_tool(
+    req: ApprovalResumeRequest, _token: None = Depends(require_service_token)
+) -> dict[str, Any]:
     """V58.2 — resume a human-APPROVED agent tool as a governed execution handoff.
 
     Reads the STORED approval by id (a client cannot fabricate one), verifies it was
@@ -776,9 +785,13 @@ async def _build_evidence_response(
     endpoint_mode: str,
     x_tenant_id: str | None,
 ) -> dict[str, Any]:
-    tenant_id = req.tenant_id or x_tenant_id
-    if not tenant_id:
-        raise HTTPException(400, "tenant_id is required from body or X-Tenant-Id")
+    # SEC-3: the gateway-injected X-Tenant-Id is the ONLY tenant source of truth.
+    # A body tenant_id may only echo it (never override); missing header or a body
+    # mismatch fails closed with 403.
+    try:
+        tenant_id = resolve_trusted_tenant(x_tenant_id, req.tenant_id)
+    except TrustedTenantError as exc:
+        raise HTTPException(403, exc.code) from exc
 
     async with httpx.AsyncClient() as client:
         field_state = req.current_field_state
@@ -812,6 +825,9 @@ async def _build_evidence_response(
                 "source_type": None,
                 "final_k": req.final_k,
             },
+            # SEC-3: forward the trusted tenant so rag-retrieval enforces the same
+            # X-Tenant-Id-source-of-truth guard on this internal service-to-service call.
+            headers={"X-Tenant-Id": tenant_id},
             timeout=10.0,
         )
         if rag_resp.status_code >= 400:

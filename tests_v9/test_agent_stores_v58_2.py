@@ -24,6 +24,12 @@ if str(ROOT) not in sys.path:
 
 from services.ai_agronomist import agent_stores as S  # noqa: E402
 
+# SEC-3: /approvals/* now require the trusted internal service token
+# (X-Agent-Token == SAHOOL_AGENT_TOKEN). The resume-endpoint tests provision the
+# secret and send the header — the correct new contract, assertions unchanged.
+_AGENT_TOKEN = "test-agent-token-sec3"
+_AUTH_HEADERS = {"X-Agent-Token": _AGENT_TOKEN}
+
 
 def test_in_memory_approval_store_roundtrip():
     st = S.InMemoryApprovalStore()
@@ -88,12 +94,13 @@ def test_redis_approval_store_with_fake_client():
 
 
 # ── /approvals/resume endpoint (fastapi-guarded) ────────────────────────────
-def test_resume_endpoint_reads_stored_approved_and_hands_off():
+def test_resume_endpoint_reads_stored_approved_and_hands_off(monkeypatch):
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
     from services.ai_agronomist import main as M
 
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
     client = TestClient(M.app)
     approval_obj = {
         "id": "req-xyz",
@@ -104,10 +111,14 @@ def test_resume_endpoint_reads_stored_approved_and_hands_off():
         "input_hash": "h1",
     }
     # approve first (stores the approved record) ...
-    ok = client.post("/approvals/approve", json={"approval": approval_obj, "approver": "u1"})
+    ok = client.post(
+        "/approvals/approve",
+        json={"approval": approval_obj, "approver": "u1"},
+        headers=_AUTH_HEADERS,
+    )
     assert ok.status_code == 200
     # ... then resume by id.
-    r = client.post("/approvals/resume", json={"approval_id": "req-xyz"})
+    r = client.post("/approvals/resume", json={"approval_id": "req-xyz"}, headers=_AUTH_HEADERS)
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "resumed"
@@ -115,11 +126,14 @@ def test_resume_endpoint_reads_stored_approved_and_hands_off():
     assert body["resume"]["requires_domain_service"] is True
 
 
-def test_resume_endpoint_fails_closed_on_unknown_id():
+def test_resume_endpoint_fails_closed_on_unknown_id(monkeypatch):
     pytest.importorskip("fastapi")
     from fastapi.testclient import TestClient
 
     from services.ai_agronomist import main as M
 
-    r = TestClient(M.app).post("/approvals/resume", json={"approval_id": "nope-404"})
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
+    r = TestClient(M.app).post(
+        "/approvals/resume", json={"approval_id": "nope-404"}, headers=_AUTH_HEADERS
+    )
     assert r.status_code == 404

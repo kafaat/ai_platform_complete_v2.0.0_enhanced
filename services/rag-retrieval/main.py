@@ -10,8 +10,10 @@ from core.rag.production_qdrant import (
     KnowledgeChunk,
     QdrantHttpClient,
 )
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
+
+from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant
 
 app = FastAPI(title="SAHOOL Production RAG Retrieval", version="2026.2")
 QDRANT_URL = os.getenv("QDRANT_URL", "http://sahool-qdrant:6333")
@@ -93,14 +95,21 @@ async def ingest(req: IngestRequest):
 
 
 @app.post("/search")
-async def search(req: SearchRequest):
+async def search(
+    req: SearchRequest, x_tenant_id: str | None = Header(default=None, alias="X-Tenant-Id")
+):
+    # SEC-3: the gateway-injected X-Tenant-Id is the ONLY tenant source of truth.
+    # The body tenant_id may only echo it; a missing header or a body mismatch
+    # fails closed with 403 (prevents cross-tenant retrieval via a spoofed body).
+    try:
+        tenant_id = resolve_trusted_tenant(x_tenant_id, req.tenant_id)
+    except TrustedTenantError as exc:
+        raise HTTPException(status_code=403, detail=exc.code) from exc
     filters = {
         "crop": req.crop,
         "field_id": req.field_id,
         "region": req.region,
         "source_type": req.source_type,
     }
-    rows = _retriever.retrieve(
-        req.query, tenant_id=req.tenant_id, filters=filters, final_k=req.final_k
-    )
+    rows = _retriever.retrieve(req.query, tenant_id=tenant_id, filters=filters, final_k=req.final_k)
     return {"annotations": [r.as_annotation() for r in rows]}

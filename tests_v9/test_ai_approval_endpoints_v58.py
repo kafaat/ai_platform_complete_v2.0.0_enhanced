@@ -20,6 +20,17 @@ if str(ROOT) not in sys.path:
 
 from services.ai_agronomist.main import app  # noqa: E402
 
+# SEC-3: /approvals/* are now internal write endpoints guarded by the trusted
+# service token (X-Agent-Token == SAHOOL_AGENT_TOKEN). Tests provision the secret
+# and send the header — the correct new contract, assertions unchanged.
+_AGENT_TOKEN = "test-agent-token-sec3"
+_AUTH_HEADERS = {"X-Agent-Token": _AGENT_TOKEN}
+
+
+@pytest.fixture(autouse=True)
+def _provision_agent_token(monkeypatch):
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", _AGENT_TOKEN)
+
 
 def _pending_request():
     return {
@@ -41,7 +52,9 @@ def _pending_request():
 def test_approval_endpoint_normalizes_decision_without_executing_tool():
     client = TestClient(app)
     resp = client.post(
-        "/approvals/approve", json={"approval": _pending_request(), "approver": "user-1"}
+        "/approvals/approve",
+        json={"approval": _pending_request(), "approver": "user-1"},
+        headers=_AUTH_HEADERS,
     )
     assert resp.status_code == 200
     payload = resp.json()
@@ -56,6 +69,7 @@ def test_deny_endpoint_normalizes_decision_without_executing_tool():
     resp = client.post(
         "/approvals/deny",
         json={"approval": _pending_request(), "approver": "user-1", "reason": "not_now"},
+        headers=_AUTH_HEADERS,
     )
     assert resp.status_code == 200
     payload = resp.json()

@@ -3,6 +3,9 @@ WORKDIR /app
 COPY services/rag-retrieval/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY services/sahool-platform/core /app/core
+# SEC-3: shared gateway-trusted identity helpers (shared.security.trusted_tenant).
+# Must be copied or the container crashes at import (ModuleNotFoundError: shared).
+COPY shared /app/shared
 COPY services/rag-retrieval/main.py /app/main.py
 ENV PYTHONPATH=/app
 EXPOSE 8000
