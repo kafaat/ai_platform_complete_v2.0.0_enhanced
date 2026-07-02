@@ -25,6 +25,7 @@ from api.irrigation_models import (
     ValveStateRequest,
     _parse_time,
     plan_run_ledger_action,
+    schedules_overlap,
 )
 from api.main import (
     CommandStore,
@@ -242,6 +243,35 @@ async def create_schedule(
     if dows is not None and any(d < 0 or d > 6 for d in dows):
         raise HTTPException(status_code=400, detail="days_of_week يجب أن تكون 0..6")
     async with tenant_connection(user) as conn:
+        # حارس تعارُض (v29.5-op-3): جدولان فعّالان على نفس الصمّام يتداخلان زمنيّاً ⇒
+        # خطر فتح مزدوج للصمّام. جداول الريّ متكرّرة (TIME + مدّة + أيّام)، فالكشف على
+        # مستوى التطبيق (لا EXCLUDE مفردة). يُتخطّى إن كان الجديد مُعطّلاً أو بلا صمّام
+        # (لا فتح ⇒ لا تعارُض)؛ RLS يحصر الاستعلام في المستأجِر. إضافيّ بحت: جداول غير
+        # متداخلة تسلك تماماً كما قبل.
+        if req.valve_id is not None and req.enabled:
+            existing = await conn.fetch(
+                """SELECT schedule_id, start_time, duration_min, days_of_week
+                     FROM irrigation_schedules
+                    WHERE valve_id = $1 AND enabled = TRUE""",
+                req.valve_id,
+            )
+            for row in existing:
+                other_days = list(row["days_of_week"]) if row["days_of_week"] is not None else None
+                if schedules_overlap(
+                    start,
+                    req.duration_min,
+                    dows,
+                    row["start_time"],
+                    row["duration_min"],
+                    other_days,
+                ):
+                    raise HTTPException(
+                        status_code=409,
+                        detail=(
+                            "يتعارض جدول الريّ مع جدول قائم على نفس الصمّام "
+                            f"({row['schedule_id']}) — عدّل الوقت/المدّة/الأيّام أو الصمّام"
+                        ),
+                    )
         await conn.execute(
             """INSERT INTO irrigation_schedules
                 (schedule_id, tenant_id, field_id, valve_id, name, start_time,
