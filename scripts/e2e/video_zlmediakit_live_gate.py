@@ -14,7 +14,18 @@ import sys
 import urllib.parse
 import urllib.request
 
-ZLM_BASE = os.getenv("ZLMEDIAKIT_PUBLIC_URL", "http://localhost:8188")
+
+def _origin(u: str) -> str:
+    """Reduce any URL/host to scheme://host:port, ignoring a path the caller may append.
+
+    Tolerant: if someone sets ZLMEDIAKIT_PUBLIC_URL to the full API endpoint
+    (…/index/api/getMediaList) or omits the scheme, we still build the request once
+    (avoids the doubled-path 404: …/getMediaList/index/api/getMediaList)."""
+    p = urllib.parse.urlsplit(u if "//" in u else f"http://{u}")
+    return f"{p.scheme or 'http'}://{p.netloc or p.path}"
+
+
+ZLM_ORIGIN = _origin(os.getenv("ZLMEDIAKIT_PUBLIC_URL", "http://localhost:8188"))
 VIDEO_BASE = os.getenv("VIDEO_PROCESSOR_BASE_URL", "https://localhost/api/video")
 # ZLMediaKit protects /index/api/* with a shared secret; must match the container's
 # ZLM_API_SECRET (compose default sahool-zlm-dev-secret) or the API returns code -100.
@@ -37,7 +48,7 @@ def get(url: str) -> tuple[int, str]:
 
 def main() -> int:
     zq = urllib.parse.urlencode({"secret": ZLM_SECRET}) if ZLM_SECRET else ""
-    zurl = ZLM_BASE.rstrip("/") + "/index/api/getMediaList" + (f"?{zq}" if zq else "")
+    zurl = ZLM_ORIGIN + "/index/api/getMediaList" + (f"?{zq}" if zq else "")
     zstatus, zbody = get(zurl)
     print("zlmediakit", zstatus, zbody[:300])
     if zstatus != 200:
