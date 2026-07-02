@@ -19,8 +19,25 @@ router = APIRouter()
 
 @router.get("/tts/voices", response_model=main.VoicesResponse)
 async def list_voices(_user: dict = Depends(main.get_current_user)) -> dict:
-    """List all available voices."""
-    return {"voices": main.VOICES, "default": main.DEFAULT_VOICE}
+    """List all available voices + provider availability snapshot."""
+    return {
+        "voices": main.VOICES,
+        "default": main.DEFAULT_VOICE,
+        "providers": main._provider_status(),
+    }
+
+
+@router.get("/tts/status")
+async def tts_status(_user: dict = Depends(main.get_current_user)) -> dict:
+    """حالة مزوّدي TTS: لكلٍّ الاسم والتوفّر وهل هو الافتراضيّ.
+
+    edge دائماً هو الافتراضيّ والمتوفّر؛ piper/xtts يظهران متاحين فقط حين تتوفّر
+    مكتبتهما + النموذج/العلم (وإلّا available=false دون إسقاط الخدمة).
+    """
+    return {
+        "default": main.DEFAULT_PROVIDER_NAME,
+        "providers": main._provider_status(),
+    }
 
 
 @router.post("/tts/synthesize")
@@ -34,7 +51,16 @@ async def synthesize(
     Cached by content hash for 24h to reduce API calls.
     """
     tenant_id = user.get("tenant_id", "")
-    cache_key = main._cache_key(tenant_id, req.text, req.voice, req.rate, req.pitch, req.volume)
+    cache_key = main._cache_key(
+        tenant_id,
+        req.text,
+        req.voice,
+        req.rate,
+        req.pitch,
+        req.volume,
+        provider=req.provider,
+        normalize=req.normalize,
+    )
 
     # Try cache first
     if main._redis:
@@ -58,7 +84,15 @@ async def synthesize(
 
     # Generate
     try:
-        audio = await main._generate_speech(req.text, req.voice, req.rate, req.pitch, req.volume)
+        audio = await main._generate_speech(
+            req.text,
+            req.voice,
+            req.rate,
+            req.pitch,
+            req.volume,
+            provider=req.provider,
+            normalize=req.normalize,
+        )
     except Exception as e:
         main.TTS_REQUESTS.labels(voice=req.voice, status="error", cache="miss").inc()
         main.logger.error(f"TTS generation failed: {e}")

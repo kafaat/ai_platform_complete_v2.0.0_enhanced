@@ -6,3 +6,9 @@ redis>=5.0.0
 python-jose[cryptography]>=3.4.0
 pydantic==2.13.4
 prometheus-client>=0.19.0
+
+# ── مزوّدات TTS اختياريّة (استيراد محروس، ليست تبعيّات إلزاميّة) ────────────────
+# edge-tts أعلاه هو المحرّك الإلزاميّ الوحيد والافتراضيّ. المحرّكات التالية اختياريّة
+# ولا تُثبَّت في طبقة الوحدات/CI (كي لا تكسر pip-audit ولا تُثقل الصورة). فعّلها يدويّاً:
+#   piper-tts            # Piper (شبكة عصبيّة على المعالِج) + ضبط PIPER_VOICE_PATH
+#   TTS                  # Coqui XTTS (GPU) + TTS_GPU_PROVIDER=xtts أو XTTS_ENABLE=1
