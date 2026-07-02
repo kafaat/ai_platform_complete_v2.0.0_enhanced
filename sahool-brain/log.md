@@ -51,6 +51,28 @@
 
 ---
 
+## 2026-07-02 (ن-4) — دفعة «البقايا القابلة للتنفيذ» من أرشيف المستخدم (C2–C5 · H1–H3 · ٣ بوّابات)
+
+**رأس الفرع المخصّص:** `30dd472` (`4bda6cc` الكود + `30dd472` تجديد الحزمة). طُبِّق عبر وكيل في worktree معزول ثمّ دُمج ff.
+
+أرشيف `..._remaining_executable_fixed.zip` (cef830b) = **superset** لعمل ERP+بوّابة (مُنفَّذ سلفاً) **زائد** إصلاحات أمن/تشغيل جديدة. طُبِّق **الدلتا فقط** جراحيّاً فوق `6682e21` (بلا نقض SEC-3.1/SEC-4/v133–140):
+
+- **C4** — rag `/ingest`: تحقّق tenant **لكلّ chunk** عبر `resolve_trusted_tenant(X-Tenant-Id, c.tenant_id)` **فوق** `require_service_token` القائم (يُغلق تأجيلي الموثَّق «تثبيت tenant لكلّ chunk»). قيمة chunk قد تُصدِّق الترويسة فقط.
+- **C5** — knowledge-graph: قراءات `GET /edges` و`/graphql` تتطلّب `X-Tenant-Id` موثّق (403 missing_tenant)؛ الكتابات تبقى بservice-token.
+- **C3** — ai_agronomist: `current_field_state` من العميل يُقبَل فقط مع `X-Agent-Token` صحيح، وإلّا **403 `current_field_state_requires_service_token`**؛ غيره يجلب الحالة القانونيّة من sahool-platform.
+- **C2** — ai_agronomist يُمرّر `X-Tenant-Id` الموثّق لقراءة KG (يُرضي C5).
+- **H1** — SAM2: `SEGMENTATION_INFERENCE_URL` افتراضيّ `http://sahool-sam2-inference:8080/predict` مع بقاء `SEGMENTATION_BACKEND` فارغاً (لا ادّعاء تجزئة زائف).
+- **H2** — منفذ edge-inference 8100 متّسق في unified/light (+`EDGE_INFERENCE_URL`).
+- **H3** — `agent_stores.py` يفشل مغلقاً (RuntimeError) في الإنتاج إن طُلِب Redis وغاب URL/عميل؛ v9 ai-agronomist يفترض Redis + تبعيّة صحّة redis. المخزن يبقى قابلاً للاستبدال (allowlist mvp_in_memory محفوظ).
+- **port-8126** — erp-bridge unified/nginx على 8126 (Dockerfile يستمع 8126) + **C1** تصحيح أسماء upstream في nginx.unified لأسماء خدمات compose الفعليّة + إزالة aliases ERP المسرَّبة من auth-service (DNS مبهم).
+- **٣ بوّابات ساكنة جديدة** (موصولة في structural-lint): `nginx_compose_dns_gate` · `service_port_gate` · `runtime_contract_gate` + `scripts/e2e/tenant_auth_live_gate.py` (لمكدّس حيّ) + اختبارا إغلاق.
+
+**تصحيح توليف (تقوية لا إضعاف):** حُدِّث اختباران في SEC-3 للعقد الأصرم: `/ingest` يتطلّب tenant موثّق حتّى مع token · قراءة KG صارت تتطلّب `X-Tenant-Id` (كانت مفتوحة). **تحقّق:** ruff نظيف · ٤ بوّابات exit 0 · 62 اختبار (closure + SEC-3/3.1 + approvals + stores) نجحت · production gate PASS (compile 4850/0). **مؤجَّل بيئيّاً:** E2E مكدّس Docker + `tenant_auth_live_gate` الحيّ + استدلال GPU/SAM2 (السكربتات حاضرة).
+
+**درس:** الأرشيف superset ⇒ استخرج الدلتا فوق الأحدث لا تنسخ (النسخ يُرجِع cef830b). الوكيل في worktree معزول يمنع اصطدام شجرة العمل؛ صحّحتُ قاعدته (بدأ من cef830b) بـff إلى `6682e21` قبل التطبيق.
+
+---
+
 ## 2026-07-02 (م) — دفعة تصلّب ثالثة: v139 audit append-only + v140 outbox attempts
 
 **رأس `main` بعد الجلسة:** `0304076`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
