@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-07-02 (ل) — دفعة السلامة الثانويّة (v136/v138 + حارسان، ٤ وكلاء بناء)
+
+**رأس `main` بعد الجلسة:** `b87ce7c`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
+
+الفجوات الثانويّة من استكشاف الدفعة (ك) — ٤ وكلاء بناء متوازين (بلا إعادة استكشاف، المراسي معروفة)، دُمِجت تتابعيّاً:
+- **v136** (`fcb7e78`): `irrigation_runs` — سجلّ تشغيل صمّام فعليّ (فتح→صفّ running، إغلاق→completed+volume) موصول في `set_valve_state` عبر savepoint fail-safe. 8 unit + 3 integration (مرّت بالاسم على Postgres: `test_open_then_close_roundtrip`/`test_status_check_rejects_bad_value`/`test_rls_isolation`).
+- **schedule-conflict** (`c03333b`): رفض 409 لتداخل جداول الريّ على نفس الصمّام. **app-level لا DB EXCLUDE** لأنّ الجدول *متكرّر* (start_time TIME + days_of_week[]، لا tstzrange). دالّة نقيّة `schedules_overlap` (دورة أسبوعيّة 7×1440، لفّ منتصف الليل). 6 unit. **قيود صدق:** نطاق نفس الصمّام · سباق TOCTOU نظريّ · اختبار DB يتخطّى في CI (importorskip fastapi).
+- **AsyncStore lease** (`ea2ece8`): إكمال فجوة v135 — `AsyncPostgresWorkflowStore.claim` بـ`FOR UPDATE SKIP LOCKED` (بلا ترحيل، يعيد أعمدة v135). رُقّي fake conn لإبقاء اختبارات async خضراء. مرّ بالاسم: `test_async_two_workers_single_writer_refusal`/`test_async_expired_lease_reclaimable`.
+- **v138** (`84abdc1`): `offline_pending_ops` — حالتا `processing`/`failed` (MAX=5) + claim (`UPDATE WHERE status='pending' RETURNING`) في `sync.py`، فلا op سامّة تدور أبداً. مرّ بالاسم: 4 اختبارات (poison→failed · claim→processing يمنع الثاني · CHECK · RLS).
+
+**درس CI (مهمّ):** الوكيلان وضعا الدوالّ النقيّة في `api/irrigation_models.py` الذي **يستورد fastapi** (‏`_parse_time` قديم) ⇒ فشلت 13 اختبار unit في وظيفة *Unit Tests* (بلا fastapi)؛ مرّت محليّاً فقط لأنّ حاويتي تحمل fastapi. الإصلاح (`b87ce7c`): استخراج الدوالّ النقيّة إلى `api/irrigation_logic.py` (stdlib فقط) + إعادة تصدير من irrigation_models (الراوترات بلا تغيير) + توجيه اختبارات الوحدة إليها. **القاعدة: دالّة نقيّة تُختبَر في unit tier يجب ألّا تعيش في وحدة تستورد fastapi/pydantic-الثقيل.** (نفس صنف درس format-gate: التحقّق المحليّ يمرّ لأنّ الحاوية أغنى من طبقة CI الدنيا.)
+
+**ترقيم الترحيلات:** v137 غير مُستخدَم (schedule-conflict صار app-level)؛ v136 ثمّ v138 (فجوة مقبولة، لا يشترط المدقّق التتابع). manifest 144. تعارضات `irrigation.py` (سطر import) + MANIFEST/run_migrations حُلّت. worktrees نُظِّفت.
+
+**المتبقّي (فجوات أصغر، اختياريّة):** device→platform auth (أمنيّ، شقّ مُخصَّص) · non-swallowing geometry audit · outbox per-attempt log · irrigation device ACK فعليّ. + SPATIAL-401 محجوب على Network.
+
+---
+
 ## 2026-07-02 (ك) — دفعة السلامة v29.5-op/v39.5/v19.5 (تحقّق-قبل-بناء متعدّد الوكلاء)
 
 **رأس `main` بعد الجلسة:** `b2a332c`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
