@@ -55,7 +55,7 @@ services:
         condition: service_healthy
       sahool-market-mcp:
         condition: service_healthy
-      sahool-odoo-bridge:
+      sahool-erp-bridge:
         condition: service_healthy
       sahool-local-ai-rag:
         condition: service_healthy
@@ -568,7 +568,8 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
-      ODOO_BRIDGE_URL: http://sahool-odoo-bridge:8126
+      ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
+      ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126  # legacy env alias
       SAHOOL_API_URL: http://sahool-auth:8000
     depends_on:
       sahool-postgres:
@@ -986,7 +987,7 @@ services:
         condition: service_healthy
     networks:
     - sahool-internal
-  sahool-odoo-bridge:
+  sahool-erp-bridge:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
@@ -1013,7 +1014,11 @@ services:
         condition: service_healthy
         required: false
     networks:
-    - sahool-internal
+      sahool-internal:
+        aliases:
+        - sahool-odoo-bridge
+        - odoo-bridge
+        - erp-bridge
     healthcheck:
       test:
       - CMD

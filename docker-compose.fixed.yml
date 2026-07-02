@@ -70,7 +70,7 @@ services:
       # upstream دون «host not found»، بلا انتظار صحّتها (نفس نمط frontend/notification).
       sahool-market-mcp:
         condition: service_started
-      sahool-odoo-bridge:
+      sahool-erp-bridge:
         condition: service_started
       sahool-local-ai-rag:
         condition: service_started
@@ -535,7 +535,8 @@ services:
       # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
       SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
       JWT_SECRET: ${JWT_SECRET}
-      ODOO_BRIDGE_URL: http://sahool-odoo-bridge:8126
+      ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
+      ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126  # legacy env alias
       SAHOOL_API_URL: http://sahool-auth:8000
     depends_on:
       sahool-postgres:
@@ -804,7 +805,7 @@ services:
   # 20. Odoo Bridge (FIX: ODOO_PASSWORD فارغ → required)
   # FIX-14: ODOO_PASSWORD مطلوب
   # ═══════════════════════════════════════════════════════════════
-  sahool-odoo-bridge:
+  sahool-erp-bridge:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
@@ -829,7 +830,11 @@ services:
       sahool-postgres:
         condition: service_healthy
     networks:
-      - sahool-internal
+      sahool-internal:
+        aliases:
+          - sahool-odoo-bridge
+          - odoo-bridge
+          - erp-bridge
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8126/healthz"]
       interval: 30s

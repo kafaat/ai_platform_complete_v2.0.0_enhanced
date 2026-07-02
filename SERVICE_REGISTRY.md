@@ -1,6 +1,7 @@
 # SAHOOL Backend Service Registry v50
 
-> Generated from source code. This registry is the service-boundary baseline for backend ownership, refactoring, CI gates, and future product design.
+> Generated from source code.
+> Compatibility aliases: `odoo-bridge`, `sahool-odoo-bridge`, and `ODOO_BRIDGE_URL` remain supported during migration to `erp-bridge`. This registry is the service-boundary baseline for backend ownership, refactoring, CI gates, and future product design.
 
 ## Inventory summary
 
@@ -25,7 +26,7 @@
 | `knowledge-graph` | Edge Inference | 102 | 7 | `services/knowledge-graph/main.py` | yes | 8000 | `normal` |
 | `local-ai-rag` | Knowledge Retrieval | 594 | 5 | `services/local-ai-rag/main.py` | yes | 8000 | `normal` |
 | `mcp_servers` | Agent Tools | 2249 | 32 | `-` | yes | 8000 | `medium-runtime-contract-gap` |
-| `odoo-bridge` | ERP Integration | 1876 | 10 | `services/odoo-bridge/main.py` | yes | 8126 | `normal` |
+| `erp-bridge` | ERP Integration | 1876 | 10 | `services/odoo-bridge/main.py` | yes | 8126 | `normal` |
 | `qdrant-seed` | Unclassified / Support | 997 | 0 | `-` | yes | - | `medium-runtime-contract-gap` |
 | `rag-retrieval` | Knowledge Retrieval | 106 | 5 | `services/rag-retrieval/main.py` | yes | 8000 | `normal` |
 | `raster-service` | Imagery & Raster | 11158 | 62 | `services/raster-service/main.py` | yes | 8001 | `high-boundary-pressure` |

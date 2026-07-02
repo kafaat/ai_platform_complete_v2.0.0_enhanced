@@ -71,7 +71,7 @@ services:
       - supervisor-agent
       - frontend
       - local-ai-rag
-      - odoo-bridge
+      - erp-bridge
       - agriai-engine
     networks: [sahool-net]
     <<: *logging
@@ -101,7 +101,13 @@ services:
     depends_on:
       postgis: { condition: service_healthy }
       redis:   { condition: service_healthy }
-    networks: [sahool-net]
+    networks:
+      sahool-net:
+        aliases:
+          - sahool-unified-odoo-bridge
+          - sahool-odoo-bridge
+          - odoo-bridge
+          - erp-bridge
     <<: *logging
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
@@ -232,7 +238,8 @@ services:
     environment:
       <<: *db-env
       JWT_SECRET: "${JWT_SECRET}"
-      ODOO_BRIDGE_URL: "http://sahool-unified-odoo-bridge:8126"
+      ERP_BRIDGE_URL: "http://sahool-unified-erp-bridge:8126"
+      ODOO_BRIDGE_URL: "http://sahool-unified-erp-bridge:8126"  # legacy env alias
     depends_on:
       postgis: { condition: service_healthy }
     networks: [sahool-net]
@@ -482,11 +489,11 @@ services:
       retries: 5
       start_period: 60s
 
-  odoo-bridge:
+  erp-bridge:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
-    container_name: sahool-unified-odoo-bridge
+    container_name: sahool-unified-erp-bridge
     restart: unless-stopped
     ports: ["127.0.0.1:8126:8000"]  # loopback فقط — جسر odoo داخليّ
     environment:
@@ -507,7 +514,13 @@ services:
     depends_on:
       postgis: { condition: service_healthy }
       auth-service: { condition: service_healthy }
-    networks: [sahool-net]
+    networks:
+      sahool-net:
+        aliases:
+          - sahool-unified-odoo-bridge
+          - sahool-odoo-bridge
+          - odoo-bridge
+          - erp-bridge
     <<: *logging
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]

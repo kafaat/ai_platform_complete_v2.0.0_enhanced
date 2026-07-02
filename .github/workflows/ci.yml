@@ -8,6 +8,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
+      - name: service-feature-ui-contract-gate
+        run: python scripts/ci/service_feature_ui_contract_gate.py
+
       - name: Detect bash glob artifacts in paths
         run: |
           # المراجعة الخارجيّة كشفت ١٤ مجلد بأسماء {bots, {services, {migrations,services...}

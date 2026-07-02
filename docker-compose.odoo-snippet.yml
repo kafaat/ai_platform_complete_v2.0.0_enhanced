@@ -1,9 +1,9 @@
   # ── Odoo Bridge (NEW v9.1) ─────────────────────────────────
-  odoo-bridge:
+  erp-bridge:
     build:
       context: .
       dockerfile: services/odoo-bridge/Dockerfile
-    container_name: sahool-odoo-bridge
+    container_name: sahool-erp-bridge
     restart: unless-stopped
     ports: ["8126:8000"]
     environment:
@@ -26,7 +26,12 @@
     depends_on:
       postgis: { condition: service_healthy }
       auth-service: { condition: service_healthy }
-    networks: [sahool-net]
+    networks:
+      sahool-net:
+        aliases:
+          - sahool-odoo-bridge
+          - odoo-bridge
+          - erp-bridge
     logging:
       driver: json-file
       options: { max-size: "10m", max-file: "3" }

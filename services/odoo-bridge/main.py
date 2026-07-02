@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-SAHOOL v9.1 — Odoo ERP Bridge (JSON-RPC/XML-RPC)
-Bidirectional sync: Odoo ↔ SAHOOL
+SAHOOL v9.1 — ERP Bridge (Odoo / ERPNext / none)
+Bidirectional sync: ERP ↔ SAHOOL
 
 Syncs:
-  Odoo → SAHOOL: products, suppliers, warehouses, accounts, UoM
-  SAHOOL → Odoo: procurement orders, inventory moves, field costs, crop batches
+  ERP → SAHOOL: products, suppliers, warehouses, accounts, UoM
+  SAHOOL → ERP: procurement orders, inventory moves, field costs, crop batches
 
 Odoo API docs: https://www.odoo.com/documentation/18.0/developer/reference/external_api.html
 """
@@ -32,12 +32,12 @@ from pydantic import BaseModel, Field
 try:
     from shared.logging_config import setup_logging
 
-    logger = setup_logging("odoo-bridge")
+    logger = setup_logging("erp-bridge")
 except ImportError:
     logging.basicConfig(
-        level=logging.INFO, format='{"time":"%(asctime)s","svc":"odoo-bridge","msg":"%(message)s"}'
+        level=logging.INFO, format='{"time":"%(asctime)s","svc":"erp-bridge","msg":"%(message)s"}'
     )
-    logger = logging.getLogger("odoo-bridge")
+    logger = logging.getLogger("erp-bridge")
 
 # ── Config ────────────────────────────────────────────────────
 ODOO_URL = os.getenv("ODOO_URL", "http://odoo:8069")
@@ -80,7 +80,7 @@ def _selected_erp_provider() -> str:
 def get_active_erp_provider():
     """Build the selected ERP provider without constructing Odoo unless explicitly selected.
 
-    ADR-0001: odoo-bridge must work with ERPNext or no ERP at all; Odoo is optional.
+    ADR-0001: erp-bridge must work with ERPNext, Odoo, or no ERP at all; Odoo is optional.
     """
     try:
         from erp_provider import get_erp_provider
@@ -906,7 +906,7 @@ async def lifespan(app: FastAPI):
         # FINDING-001: ارفض الإقلاع إن تجاوز دور الاتّصال RLS (fail-closed افتراضيّاً).
         from shared.db_role_guard import assert_db_role_rls_safe
 
-        await assert_db_role_rls_safe(_pool, service="odoo-bridge")
+        await assert_db_role_rls_safe(_pool, service="erp-bridge")
         await _run_migrations()
     # Odoo: نتّصل فقط حين يكون المزوّد المختار odoo (الأساسي erpnext لا يحتاج Odoo
     # — فلا محاولات اتصال/تحذيرات في بيئة بلا حاوية Odoo).
@@ -980,7 +980,7 @@ def require_auth(authorization: str = Header(None)) -> dict:
         raise HTTPException(401, "توكن غير صالح") from e
 
 
-app = FastAPI(title="SAHOOL Odoo Bridge", version="9.1.0", lifespan=lifespan)
+app = FastAPI(title="SAHOOL ERP Bridge", version="9.1.0", lifespan=lifespan)
 
 
 # ══════════════════════════════════════════════════════════════

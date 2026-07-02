@@ -189,7 +189,7 @@ sleep 10
 
 # ─── Start Odoo Bridge ───────────────────────────────────────
 hdr "Layer 7: Starting Odoo ERP Bridge"
-$COMPOSE up -d odoo-bridge
+$COMPOSE up -d erp-bridge
 sleep 5
 
 # ─── Start Frontend & Bots ──────────────────────────────────
@@ -212,7 +212,7 @@ ENDPOINTS=(
     "8081:fastbee"
     "8082:zlmediakit"
     "8125:local-ai-rag"
-    "8126:odoo-bridge"
+    "8126:erp-bridge"
     "8127:agriai-engine"
 )
 
@@ -239,7 +239,7 @@ echo -e "  ${CYAN}Agent:${NC}        https://localhost/api/agent/ (Supervisor)"
 echo -e "  ${CYAN}AgriAI:${NC}       https://localhost/api/agriai/ (5 Models)"
 echo -e "  ${CYAN}RAG AI:${NC}        https://localhost/api/rag/ (Qwen3 + Qdrant)"
 echo -e "  ${CYAN}Market:${NC}        https://localhost/api/market/ (B2B Marketplace)"
-echo -e "  ${CYAN}Odoo Bridge:${NC}  https://localhost/api/odoo/ (ERP Sync)"
+echo -e "  ${CYAN}ERP Bridge:${NC}  https://localhost/api/odoo/ (ERP Sync)"
 echo -e "  ${CYAN}Video:${NC}        https://localhost/api/video/ (RTSP/FLV)"
 echo -e "  ${CYAN}Actuator:${NC}     https://localhost/api/actuator/ (Scene Linkage)"
 echo -e "  ${CYAN}FastBee MQTT:${NC}  mqtt://localhost:1883 (IoT Broker)"
@@ -251,7 +251,7 @@ echo -e "  ${CYAN}Commands:${NC}"
 echo "    $COMPOSE ps                    # List all services"
 echo "    $COMPOSE logs -f agriai-engine # Watch AgriAI logs"
 echo "    $COMPOSE logs -f supervisor    # Watch Agent logs"
-echo "    $COMPOSE logs -f odoo-bridge # Watch ERP sync"
+echo "    $COMPOSE logs -f erp-bridge # Watch ERP sync"
 echo ""
 echo -e "  ${YELLOW}⚠️  Next steps:${NC}"
 echo "    1. Edit .env and add Sentinel Hub + Telegram + Odoo tokens"

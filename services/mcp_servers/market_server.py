@@ -28,7 +28,9 @@ logging.basicConfig(
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 JWT_SECRET = os.getenv("JWT_SECRET", "")
-ODOO_BRIDGE_URL = os.getenv("ODOO_BRIDGE_URL", "http://sahool-odoo-bridge:8126")
+ERP_BRIDGE_URL = os.getenv("ERP_BRIDGE_URL") or os.getenv("ODOO_BRIDGE_URL", "http://sahool-erp-bridge:8126")  # fmt: skip
+# Legacy constant kept for existing call sites; it now points at the generic ERP bridge.
+ODOO_BRIDGE_URL = ERP_BRIDGE_URL
 SAHOOL_API_URL = os.getenv("SAHOOL_API_URL", "http://sahool-auth:8000")
 
 _pool: asyncpg.Pool | None = None
