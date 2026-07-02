@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "477a405b30a2c9cbf77cc99d4d1b74a6a56a8325cd588d62934cb547ec37876b"
+          "content": "fe8050997b7f451273525cfd52fbf337cd482c702c1140fcce7a9c38cba4a52c"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "841dc8bef9829680c125468f2f443dc91bb956463387d6309472f5eda0a43f8a"
+          "content": "b9098079f1b82c184304839d2c790f25837add1605d386bf239a30230c711d31"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -35,7 +35,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5bde2ac35eb544e89a229697f5373dbaf3339afac89c97a5702fe746b5add387"
+          "content": "f542e0b54696d942b45be6132983214d52daaf14a2e4dd936e38e0c0563e67eb"
         }
       ],
       "name": "docker-compose.odoo-snippet.yml",
@@ -65,7 +65,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00392cbdc80eab5a72ee3f794f5b2f6af2c9a43559575bf002ac39cd6b73290a"
+          "content": "b5dada2fef347b1d1dcd8aa9d1458c1b21f21906c0c57532617389379b929232"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -75,7 +75,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b1fabb8ff81189262ea861e57c59947cb89e51085e1479227325f625d76a38a7"
+          "content": "10062769c6173648c4fb8a7e640151bd98aef4ac571074e370718f5075253cf3"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5725,7 +5725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16e29205eadf62388cc9e6c943fef77e5dc470c9388cfc0a9f0419119fdf5b64"
+          "content": "f998d565dfbcfb8515cab519821bfa72d31beb5de7aedf9cd0e3916bc638db3f"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -6005,7 +6005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ef7daa66a062f876a2ccf15c05d0e11f5706e8c9e4d6c2233589e05124279f7"
+          "content": "0b6b15103950df91f4f3b23b9be6304c50f7c8aa83efa23389229ae7cb000404"
         }
       ],
       "name": "services/auth/main.py",
@@ -6665,7 +6665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a1420d5dd57e5beae5c08e5c1bb930c2ce2e6048c87ca9cca91fdde8c36d3ca"
+          "content": "4c6337e37b42234d8e6f037f7c32b1d7b333bcba707c88ae56961dd52afc70df"
         }
       ],
       "name": "services/mcp_servers/market_server.py",
@@ -6765,7 +6765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f652a9e5763ef1bab7cf53deeec1041ff70daec8cd14e79d56580c3cb2f0d7d"
+          "content": "36735cb0004cefb11d89632d356ab129b16a770003a856c96a404f3e571435d1"
         }
       ],
       "name": "services/odoo-bridge/main.py",
@@ -6935,7 +6935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e82f11c0ba745c6ab4404f9a1aa089fec4e3dfa357c2789f6bb91639569933b4"
+          "content": "9e4ce05552f4c48d0167cd1151ceb79a03216387a634c3c3e74df7e9ab5b80ec"
         }
       ],
       "name": "services/rag-retrieval/main.py",
@@ -18225,7 +18225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7abb1bc34a586c3ce6834596793e080db594d0cf485b1de603956dce298506cb"
+          "content": "af8685763f8f5a713881cec886f4447aaeab9fcb8cf25a9889147268581f2a6b"
         }
       ],
       "name": "shared/security/gateway_deps.py",
