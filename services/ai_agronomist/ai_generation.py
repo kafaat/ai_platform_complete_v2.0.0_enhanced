@@ -561,6 +561,7 @@ async def generate(
     max_tokens: int = 600,
     audit_saver: tool_loop.AuditSaver | None = None,
     approval_saver: tool_loop.ApprovalSaver | None = None,
+    allowed_tools: set[str] | None = None,
     timeout: float = 20.0,
 ) -> GenResult | None:
     """يولّد جواباً مؤرَّضاً أو يعيد ``None`` (للسقوط الآمن إلى الأدلّة). لا يرفع
@@ -629,6 +630,7 @@ async def generate(
                     run_spent=run_spent,
                     dedupe_seen=dedupe_seen,
                     stop_on_pending=True,
+                    allowed_tools=allowed_tools,
                 )
                 batch_results = list(loop_out.get("tool_calls") or [])
                 tool_results.extend(batch_results)

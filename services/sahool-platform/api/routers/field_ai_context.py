@@ -15,6 +15,7 @@ from statistics import mean
 from typing import Any
 
 import httpx
+from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -38,6 +39,9 @@ class FieldAiContextPack(BaseModel):
     recommendations_context: dict[str, Any] = Field(default_factory=dict)
     ai_context_summary_ar: str
     readiness: dict[str, Any] = Field(default_factory=dict)
+    # V52 — trusted, tenant-scoped AI policy envelope (platform is the policy authority).
+    # The ai_agronomist consumer enforces this and refuses any request that lacks it.
+    ai_policy_envelope: dict[str, Any] = Field(default_factory=dict)
 
 
 def _as_json(value: Any, fallback: Any = None) -> Any:
@@ -748,6 +752,10 @@ async def field_ai_context_pack(
         if warn:
             warnings.append(warn)
 
+        # V52 — read the durable tenant AI policy on the same RLS-scoped connection so the
+        # envelope is tenant-scoped. A missing row (or read failure) ⇒ most-restrictive envelope.
+        ai_policy_row = await load_tenant_ai_policy_row(conn, str(user.tenant_id))
+
     imagery = {"available": False, "per_indicator": {}, "total_dates": 0}
     if include_imagery:
         imagery, warn = await _optional_imagery_timeline(field_id, str(user.tenant_id), days)
@@ -823,4 +831,7 @@ async def field_ai_context_pack(
     payload["readiness"]["warnings"].extend(budget_warnings)
     payload["readiness"]["complete"] = not payload["readiness"]["warnings"]
     payload["ai_context_summary_ar"] = _summary_ar(payload)
+    # V52 — stamp the trusted policy envelope AFTER budgeting so this small control block is
+    # never trimmed. It is the authority the ai_agronomist consumer enforces (fail-closed).
+    payload["ai_policy_envelope"] = build_ai_policy_envelope(str(user.tenant_id), ai_policy_row)
     return FieldAiContextPack(**payload)

@@ -35,6 +35,8 @@ MAX_TOOL_CALLS = 8  # سقف صارم لكلّ دفعة: يمنع حلقة أد�
 DEFAULT_RUN_TOOL_BUDGET = 12
 OUTCOME_DUPLICATE_TOOL_CALL = "duplicate_tool_call"
 OUTCOME_SKIPPED_PENDING_GATE = "skipped_pending_gate"
+# V52 — tool blocked by the tenant AI policy envelope's ``allowed_tools`` allow-list.
+OUTCOME_TOOL_BLOCKED_BY_POLICY = "tool_blocked_by_policy"
 
 
 def run_tool_calls(
@@ -54,6 +56,7 @@ def run_tool_calls(
     run_spent: int = 0,
     dedupe_seen: set[str] | None = None,
     stop_on_pending: bool = False,
+    allowed_tools: set[str] | None = None,
 ) -> dict[str, Any]:
     """يُنفّذ طلبات أدوات النموذج عبر الحوكمة. كلّ عنصر: ``{tool, params?, id?}``.
 
@@ -64,6 +67,12 @@ def run_tool_calls(
     - ``run_budget``/``run_spent``: سقف إجماليّ عبر جولات run (المتّصِل يجمع ``handled_count``).
     - ``dedupe_seen``: مجموعة يصونها المتّصِل؛ استدعاء بنفس ``tool+input_hash`` يُرفَض (لا يُنفَّذ).
     - ``stop_on_pending``: بعد أوّل طلب موافقة في الدفعة، تُتخطّى بقيّة الأدوات (لا تفرّع بعد البوّابة)."""
+
+    # V52 — tenant AI policy envelope tool gate. ``allowed_tools=None`` ⇒ no envelope gate
+    # (backward-compatible V56 behaviour). When a set is supplied by the caller (from the
+    # platform-authored envelope), a tool outside it is rejected fail-closed with an explicit
+    # ``tool_blocked_by_policy`` outcome — BEFORE arg validation, capability check, or approval.
+    # This *composes* with capability/risk/approval governance; it never widens it.
     requests = [c for c in (tool_calls or []) if isinstance(c, dict)]
     truncated = len(requests) > max_calls
     requests = requests[:max_calls]
@@ -101,6 +110,24 @@ def run_tool_calls(
                     "result_summary": "skipped:pending_approval_gate",
                 }
             )
+            handled += 1
+            continue
+
+        # V52 — envelope allow-list gate: a tool not permitted by the tenant policy envelope
+        # is rejected without execution/approval (fail-closed, explicit outcome, audited).
+        if allowed_tools is not None and name not in allowed_tools:
+            result = {
+                "tool_call_id": call_id,
+                "tool": name,
+                "outcome": OUTCOME_TOOL_BLOCKED_BY_POLICY,
+                "reason": "tool_not_in_allowed_tools",
+                "data": None,
+                "requires_approval": False,
+                "field_id": params.get("field_id"),
+                "result_summary": "blocked:tool_not_in_allowed_tools",
+            }
+            emit_audit(_audit_from_result(result, tenant_id, actor, timestamp), audit_saver)
+            results.append(result)
             handled += 1
             continue
 

@@ -13,6 +13,7 @@ from . import (
     approval,
     harness_transparency,
     observation_context,
+    policy_envelope,
     runtime_evidence,
     tool_loop,
 )
@@ -837,6 +838,17 @@ async def _build_evidence_response(
     )
 
     ai_pack = _extract_ai_context_pack(field_state)
+    # V52 — Tenant AI Policy Envelope: the platform is the policy authority; this consumer
+    # enforces the envelope carried in the pack (it never opens the DB for policy). Absent/
+    # invalid envelope ⇒ fail-closed refusal (no external LLM, envelope tool-gate closed).
+    _envelope, _envelope_refusal = policy_envelope.enforce_request(ai_pack)
+    _envelope_tool_gate = policy_envelope.allowed_tools_set(_envelope)
+    policy_envelope_decision: dict[str, Any] = _envelope_refusal or {
+        "decision": policy_envelope.DECISION_ALLOWED,
+        "reason": "policy_envelope_valid",
+        "policy_mode": (_envelope or {}).get("policy_mode"),
+        "version": (_envelope or {}).get("version"),
+    }
     evidence_ids = _extract_evidence_ids(rag_payload, kg_payload) + _field_memory_evidence_ids(
         ai_pack
     )
@@ -863,22 +875,39 @@ async def _build_evidence_response(
     if endpoint_mode == "chat" and _generation_allowed(tenant_id):
         context_text = _grounding_context_text(annotations)
         _policy_for_generation = normalize_policy(TENANT_POLICY.get_policy(tenant_id))
-        gen = await ai_generation.generate(
-            req.question,
-            context_text,
-            req.model,
-            policy=_policy_for_generation,
-            allowed_capabilities=_policy_for_generation.get("allowed_capabilities"),
-            tool_fetcher=_build_agent_tool_fetcher(
-                field_state=field_state, ai_pack=ai_pack, annotations=annotations
-            ),
-            tenant_id=tenant_id,
-            actor="ai_agronomist",
-            timestamp=_utc_timestamp(),
-            max_tool_rounds=3,
-            audit_saver=_save_agent_tool_audit,
-            approval_saver=_save_pending_approval,
-        )
+        # Resolve the provider up-front so the envelope can gate external calls fail-closed:
+        # a missing/invalid envelope or a local_only policy blocks any external provider,
+        # while local generation stays permitted (its data never leaves the tenant boundary).
+        _cfg = ai_generation.resolve_generation(req.model)
+        _external = _cfg is not None and ai_generation.provider_is_external(_cfg.provider)
+        _gen_gate = policy_envelope.gate_generation(_envelope, external=_external)
+        policy_envelope_decision = _gen_gate
+        if _gen_gate["decision"] == policy_envelope.DECISION_BLOCKED:
+            # Fail-closed: do not call an external provider; stay on the evidence-only answer.
+            gen = None
+        else:
+            # Envelope is authoritative for data sharing: drive the existing redaction path
+            # from the envelope's policy_mode (compose, don't duplicate).
+            if _external and _gen_gate.get("policy_mode"):
+                _policy_for_generation = dict(_policy_for_generation)
+                _policy_for_generation["data_sharing_level"] = _gen_gate["policy_mode"]
+            gen = await ai_generation.generate(
+                req.question,
+                context_text,
+                req.model,
+                policy=_policy_for_generation,
+                allowed_capabilities=_policy_for_generation.get("allowed_capabilities"),
+                tool_fetcher=_build_agent_tool_fetcher(
+                    field_state=field_state, ai_pack=ai_pack, annotations=annotations
+                ),
+                tenant_id=tenant_id,
+                actor="ai_agronomist",
+                timestamp=_utc_timestamp(),
+                max_tool_rounds=3,
+                audit_saver=_save_agent_tool_audit,
+                approval_saver=_save_pending_approval,
+                allowed_tools=_envelope_tool_gate,
+            )
         if gen is not None:
             answer_ar = gen.text
             mode = "generated_grounded"
@@ -936,6 +965,7 @@ async def _build_evidence_response(
         timestamp=_utc_timestamp(),
         audit_saver=_save_agent_tool_audit,
         approval_saver=_save_pending_approval,
+        allowed_tools=_envelope_tool_gate,
     )
     all_tool_calls = list(provider_tool_calls) + list(tool_result.get("tool_calls") or [])
     all_pending_approvals = list(provider_pending_approvals) + list(
@@ -966,6 +996,9 @@ async def _build_evidence_response(
         "ai_context_pack_readiness": ai_pack.get("readiness")
         if isinstance(ai_pack, dict)
         else None,
+        # V52 — surface the tenant AI policy envelope decision for transparency/audit.
+        "policy_envelope_decision": policy_envelope_decision,
+        "policy_envelope_present": _envelope is not None,
         "harness": harness,
         "tool_calls": all_tool_calls,
         "pending_approvals": all_pending_approvals,
