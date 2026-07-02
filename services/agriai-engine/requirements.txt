@@ -6,3 +6,7 @@ scikit-learn>=1.4.0
 numpy>=1.26.0
 opentelemetry-instrumentation-fastapi>=0.44b0
 pydantic==2.13.4
+# تبعيّة ثقيلة اختياريّة (PCSE/WOFOST) — ليست تبعيّة صلبة ولا تدخل طبقة الوحدات/pip-audit.
+# wofost_adapter.py يحيطها بحارس استيراد ويلجأ لبديل حتميّ عند غيابها. للتفعيل:
+#   pip install pcse
+# pcse>=5.5  # optional — real PCSE/WOFOST simulation path
