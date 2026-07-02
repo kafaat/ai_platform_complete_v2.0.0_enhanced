@@ -533,3 +533,9 @@ v136_irrigation_runs.sql
 # يُنهي حلقة العمليّة السامّة (poison) التي كانت تبقى pending أبداً، ويمنع الالتقاط
 # المزدوج عبر مطالبة ذرّيّة (claim_pending). يرث RLS+FORCE من v92؛ إضافيّ idempotent؛ بعد v135.
 v138_offline_pending_ops_terminal.sql
+# v139 (سطر v39.5-2): جعل تدقيق رسم حدود الحقل (field_geometry_history، v96) غير قابل
+# للتزوير — append-only. لم يكن هناك فرض immutability فيمكن إعادة كتابة أثر التدقيق بصمت.
+# trigger trg_append_only_field_geometry_history يمنع UPDATE/DELETE عبر sahool_block_mutation
+# (v9)، تماماً كحماية mfa_audit_events في v129. التصحيح بإدراج revision جديدة لا بتحوير
+# القديم. يرث RLS+FORCE من v96؛ إضافيّ idempotent؛ بعد v138.
+v139_field_geometry_history_append_only.sql

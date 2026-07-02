@@ -431,3 +431,5 @@
 \i migrations/v136_irrigation_runs.sql
 \echo '═══ 144. v138_offline_pending_ops_terminal.sql ═══'
 \i migrations/v138_offline_pending_ops_terminal.sql
+\echo '═══ 145. v139_field_geometry_history_append_only.sql ═══'
+\i migrations/v139_field_geometry_history_append_only.sql
