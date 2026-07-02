@@ -75,7 +75,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2746b44142c2169f86729310ce9fa62dfc9b1938d0021e3d81d9799f4eaa99f"
+          "content": "a2f0bfd42806d6b782c7896747f4eb0e649e94d30c14d8a44a6b04b692c5c987"
+        }
+      ],
+      "name": "docker-compose.v9.gpu.yml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f0ce6b3c2b5e9c65835734637853cdb0364705700e4ba44f71ddeb6b211f1221"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -6245,7 +6255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37e534601e9efb60ad41d10da79451654c5b8864506dfb03d4040d576b111fda"
+          "content": "dc3c0f71b16b3d16ee02ae9170415b0b5be0b598cde644b7c16730880671b0ec"
         }
       ],
       "name": "services/edge-inference/models/pest_detector.py",
@@ -16825,7 +16835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "019d2488f387a03144fdb740bb12eca93320d918bd29b560446641da9611f586"
+          "content": "f77450f6f8d7cd78c34cd9d5dd8584457cfb518ca581c7997d100ef7273bd0ef"
         }
       ],
       "name": "services/sam2-inference/Dockerfile",
@@ -17475,7 +17485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68c92d9b6487c41f4733200996c0d87f60252d97cf03b370bc81d741e8a17113"
+          "content": "3478e4840752957aa7f33cab2a35a77393b80b9dd84c40e6f0a7c4865858df47"
         }
       ],
       "name": "services/video-processor/main.py",
@@ -17515,7 +17525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7b4a0bdce5e35770cb814da989dbf1224c7ad2e206d8343aeaec61a6ea5b9ec"
+          "content": "6b73a5db8cb646803360b5b6f050db3db6f082e36283441391681477976db919"
         }
       ],
       "name": "services/video-processor/routers/health.py",

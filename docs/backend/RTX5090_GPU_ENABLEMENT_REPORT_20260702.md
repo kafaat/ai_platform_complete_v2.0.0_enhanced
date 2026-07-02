@@ -162,3 +162,59 @@ The following must be run on the local RTX 5090 server:
 5. ZLMediaKit live API check.
 6. SAM2 live readiness/predict check with real model weights mounted.
 7. Video stream registration against a real RTSP camera or sample stream.
+
+## Windows + WSL2 runbook (RTX 5090 Laptop / Blackwell `sm_120`)
+
+Verified against a real host: `NVIDIA GeForce RTX 5090 Laptop`, 24 GB VRAM, Driver
+`592.00`, CUDA `13.1`, driver model **WDDM** (Windows). The base CPU stack
+(`docker-compose.v9.yml`) is unaffected; GPU behavior lives only in the overlay.
+
+### 0. Why WSL2 (the key constraint)
+The Compose GPU reservation (`deploy.resources.reservations.devices: [driver: nvidia]`)
+passes the GPU into Linux containers **only** through the WSL2 backend + the NVIDIA
+Container Toolkit. Native Windows containers cannot take this device. The NVIDIA
+**driver stays on Windows** (`592.00`) — do **not** install a driver inside WSL.
+
+### 1. One-time host setup
+1. Docker Desktop → Settings → General → **Use the WSL 2 based engine** (not Hyper-V).
+2. In a WSL2 distro (e.g. Ubuntu), install the NVIDIA Container Toolkit:
+   ```bash
+   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+   curl -fsSL https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+   sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+   sudo nvidia-ctk runtime configure --runtime=docker && sudo systemctl restart docker
+   ```
+
+### 2. Verify GPU passthrough (before the app stack)
+```bash
+docker run --rm --gpus all nvidia/cuda:12.8.0-base-ubuntu22.04 nvidia-smi
+```
+Expect the RTX 5090 in the table. If it errors, the toolkit/WSL2 step above is incomplete.
+
+### 3. Bring up the GPU stack
+```powershell
+docker compose -f docker-compose.v9.yml -f docker-compose.v9.gpu.yml --profile gpu up -d
+```
+This activates SAM2 (`SEGMENTATION_BACKEND=sam2`), GPU reservations for
+`sahool-edge` / `sahool-sam2-inference` / `sahool-video-processor`, and strict
+video readiness (`VIDEO_STRICT_READY=true`).
+
+### 4. Prove it works (live gates — run on the GPU host, not in CI)
+```bash
+python scripts/e2e/gpu_runtime_smoke_gate.py      # health of the GPU services
+python scripts/e2e/sam2_live_gpu_gate.py          # SAM2 field-segmentation end-to-end
+python scripts/e2e/video_zlmediakit_live_gate.py  # ZLMediaKit + video-processor /readyz
+```
+
+### Compatibility notes for this exact card
+- **Driver 13.1 ⊃ runtime 12.8:** a newer driver runs the SAM2 image's CUDA 12.8
+  runtime fine — no action needed. To move to a CUDA 13.x runtime later, override
+  `PYTORCH_CUDA_IMAGE=pytorch/pytorch:<cu13-tag>` (the Dockerfile arg is already there).
+- **Blackwell `sm_120`:** `TORCH_CUDA_ARCH_LIST=12.0` matches; `pytorch:2.7.0-cuda12.8`
+  ships `sm_120` kernels, so no build-from-source is required.
+- **24 GB VRAM (laptop):** ample for SAM2 (~4–8 GB) + edge inference. `count: all` +
+  `NVIDIA_VISIBLE_DEVICES=all` are correct for a single-GPU box.
+- **150 W cap / WDDM:** inference-only workloads run comfortably; WDDM is the only mode
+  on a consumer laptop GPU and WSL2 supports it.

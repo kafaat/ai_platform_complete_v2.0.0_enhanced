@@ -87,6 +87,22 @@
 
 ---
 
+## 2026-07-02 (ن-6) — تمكين GPU (RTX 5090/Blackwell) لـv9 + zlmediakit + video readyz
+
+**رأس الفرع المخصّص:** `2ecb8a9` (الكود) + تجديد الحزمة/الدماغ. طُبِّق عبر وكيل في worktree معزول (ff إلى `6c80d1c`) ثمّ دُمج ff.
+
+أرشيف `..._v9_rtx5090_gpu_enabled.zip` (superset لـzipV). طُبِّق **الدلتا فقط** فوق `6c80d1c` (تجاهُل ضجيج إعادة تسلسل YAML: `sahool-internal: null` وحذف التعليقات — أُبقيت أسلوب الملفّ):
+
+- **تراكب GPU منفصل** `docker-compose.v9.gpu.yml` (لا يمسّ الأساس CPU): حجوزات GPU لـedge/sam2/video-processor · تفعيل SAM2 لـfield-segmentation (`SEGMENTATION_BACKEND=sam2`) · `VIDEO_STRICT_READY`. يُشغَّل: `docker compose -f v9.yml -f v9.gpu.yml --profile gpu up -d`.
+- **zlmediakit** أُضيف إلى v9 (منافذ محلّيّة 8088/8554/1935/10000) + video-processor يستخدم `:80` + `ZLMEDIAKIT_API_SECRET` + depends. **notification-agent** وُصِل TTS (`TTS_URL=http://sahool-tts-service:8000` — كان الكود يفترض `sahool-tts` غير الموجود).
+- **كود:** `video-processor` `/readyz` يفحص التبعيّات (zlmediakit/edge) + fail-closed مع `VIDEO_STRICT_READY` · `edge-inference` يعرف أوضاع CUDA (cuda/gpu/rtx5090/blackwell) · `sam2-inference/Dockerfile` قاعدة CUDA قابلة للتجاوز (افتراضي 12.8 لـBlackwell sm_120).
+- **بوّابة `v9_gpu_contract_gate`** ساكنة (بلا GPU/docker) + ٣ سكربتات e2e حيّة (gpu_runtime_smoke · sam2_live_gpu · video_zlmediakit_live) للمشغّل على الخادم.
+- **runbook Windows/WSL2** أُلحِق بالتقرير — مُعايَر على عتاد المستخدم الفعليّ (`nvidia-smi`: RTX 5090 Laptop · 24GB · Driver 592.00/CUDA 13.1 · WDDM): خطوات NVIDIA Container Toolkit في WSL2 · تحقّق التمرير · أمر الإقلاع · البوّابات الحيّة · توافق (driver 13.1 ⊃ runtime 12.8، sm_120 مطابق).
+
+**تحقّق:** ٦ بوّابات exit 0 · 45 اختبار (gpu + feature-transfer + SEC-3) · ruff نظيف · production gate PASS (compile 4864/0). **يُغلق AUTO-SEG تشغيليّاً** (كان by-design ينتظر SEGMENTATION_BACKEND=sam2). **مؤجَّل بيئيّاً:** اختبارات GPU/Docker الحيّة (لا GPU هنا) — السكربتات حاضرة للمشغّل. **درس:** compose مُعاد-تسلسله (null/حذف تعليقات) ⇒ طبّق الإضافات الحقيقيّة الثلاث فقط لا نسخ الملفّ.
+
+---
+
 ## 2026-07-02 (م) — دفعة تصلّب ثالثة: v139 audit append-only + v140 outbox attempts
 
 **رأس `main` بعد الجلسة:** `0304076`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
