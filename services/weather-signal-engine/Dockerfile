@@ -10,4 +10,7 @@ COPY services/sahool-platform/core/weather_overlay_pipeline.py /app/core/weather
 RUN touch /app/core/__init__.py
 COPY services/weather-signal-engine/src/ /app/
 COPY services/weather-signal-engine/worker_health_probe.py /app/worker_health_probe.py
+# مستخدم غير جذري (SEC-2 — محاذاةً لباقي الخدمات)
+RUN useradd -m sahool && chown -R sahool:sahool /app
+USER sahool
 CMD ["python", "main.py"]
