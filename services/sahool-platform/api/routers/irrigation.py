@@ -15,6 +15,8 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from api.irrigation_models import (
@@ -22,6 +24,7 @@ from api.irrigation_models import (
     ValveRequest,
     ValveStateRequest,
     _parse_time,
+    plan_run_ledger_action,
 )
 from api.main import (
     CommandStore,
@@ -42,6 +45,52 @@ from api.soil_moisture_advisor import (
 )
 
 router = APIRouter()
+
+_log = logging.getLogger("sahool.irrigation")
+
+
+async def _record_run_ledger(conn, user, valve_id: str, field_id, req: ValveStateRequest) -> None:
+    """أثر جانبيّ best-effort (v29.5-op-2): يُدوّن حدث تشغيل الريّ في ``irrigation_runs``.
+
+    فتح ⇒ صفّ تشغيل جديد ('running'). إغلاق ⇒ إغلاق أحدث تشغيل جارٍ للصمّام (stopped_at
+    + status='completed' + الحجم إن حملته الحمولة). داخل savepoint (``conn.transaction()``)
+    كي لا يكسر فشل الدفتر عمليّة الصمّام نفسها (fail-safe) مع البقاء ضمن معاملة الطلب.
+    """
+    action = plan_run_ledger_action(req.status)
+    if action is None:
+        return
+    volume_l = getattr(req, "volume_l", None)
+    volume_mm = getattr(req, "volume_mm", None)
+    try:
+        async with conn.transaction():  # savepoint: يرتدّ وحده دون كسر عمليّة الصمّام
+            if action == "open_run":
+                await conn.execute(
+                    """INSERT INTO irrigation_runs
+                        (tenant_id, field_id, valve_id, started_at, trigger_source, status)
+                       VALUES ($1::uuid, $2, $3, NOW(), 'valve_api', 'running')""",
+                    str(user.tenant_id),
+                    field_id,
+                    valve_id,
+                )
+            else:  # close_run — أحدث تشغيل جارٍ للصمّام (RLS يقصره على المستأجِر الحاليّ)
+                await conn.execute(
+                    """UPDATE irrigation_runs
+                          SET stopped_at = NOW(),
+                              status     = 'completed',
+                              volume_l   = COALESCE($2, volume_l),
+                              volume_mm  = COALESCE($3, volume_mm)
+                        WHERE id = (
+                            SELECT id FROM irrigation_runs
+                             WHERE valve_id = $1 AND status = 'running'
+                             ORDER BY started_at DESC
+                             LIMIT 1
+                        )""",
+                    valve_id,
+                    volume_l,
+                    volume_mm,
+                )
+    except Exception:  # noqa: BLE001 — best-effort: فشل الدفتر لا يكسر عمليّة الصمّام
+        _log.warning("irrigation_runs ledger write failed (valve=%s, action=%s)", valve_id, action)
 
 
 @router.post("/api/v1/irrigation/valves", status_code=201)
@@ -137,9 +186,9 @@ async def set_valve_state(
     async with tenant_connection(user) as conn:
 
         async def _work():
-            updated = await conn.fetchval(
+            updated = await conn.fetchrow(
                 "UPDATE irrigation_valves SET status = $1, last_changed_at = NOW() "
-                "WHERE valve_id = $2 RETURNING valve_id",
+                "WHERE valve_id = $2 RETURNING valve_id, field_id",
                 req.status,
                 valve_id,
             )
@@ -159,6 +208,9 @@ async def set_valve_state(
                 {"status": req.status},
                 critical=True,  # تحوّل حالة actuator فيزيائيّ — fail-closed
             )
+            # دفتر التشغيل الفيزيائيّ (v29.5-op-2): فتح ⇒ صفّ تشغيل جديد، إغلاق ⇒ إغلاق
+            # أحدث تشغيل جارٍ. best-effort داخل savepoint — لا يكسر عمليّة الصمّام.
+            await _record_run_ledger(conn, user, valve_id, updated["field_id"], req)
             return {"valve_id": valve_id, "status": req.status, "message_ar": "سُجّلت حالة الصمّام"}
 
         # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.

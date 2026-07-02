@@ -22,6 +22,10 @@ class ValveRequest(BaseModel):
 
 class ValveStateRequest(BaseModel):
     status: str = Field(pattern="^(open|closed)$")
+    # اختياريّان (v29.5-op-2): إن حملتهما الحمولة عند الإغلاق يُدوَّن حجم ماء التشغيل
+    # في irrigation_runs، وإلّا NULL (لا تلفيق). إضافيّان متوافقان مع القديم.
+    volume_l: float | None = Field(default=None, ge=0)
+    volume_mm: float | None = Field(default=None, ge=0)
 
 
 class ScheduleRequest(BaseModel):
@@ -33,6 +37,22 @@ class ScheduleRequest(BaseModel):
     days_of_week: list[int] | None = None
     water_target_mm: float | None = Field(default=None, ge=0)
     enabled: bool = True
+
+
+def plan_run_ledger_action(status: str) -> str | None:
+    """دالّة صرفة (قابلة لاختبار وحدة): تقرّر أثر تبدّل حالة الصمّام على دفتر التشغيل.
+
+    - ``"open"``   ⇒ ``"open_run"``  (افتح صفّ تشغيل جديداً، status='running').
+    - ``"closed"`` ⇒ ``"close_run"`` (أغلق أحدث تشغيل جارٍ لهذا الصمّام).
+    - أيّ قيمة أخرى ⇒ ``None`` (لا أثر على الدفتر — لا نخترع تشغيلاً).
+
+    self-contained هنا (بلا api.main) كي يُختبَر القرار بلا قاعدة بيانات (v29.5-op-2).
+    """
+    if status == "open":
+        return "open_run"
+    if status == "closed":
+        return "close_run"
+    return None
 
 
 def _parse_time(value: str):

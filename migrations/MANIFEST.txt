@@ -521,3 +521,9 @@ v134_fields_geometry_integrity.sql
 # مزدوجاً عند استئناف عاملَين لنفس workflow_id (يحاكي FOR UPDATE SKIP LOCKED للـoutbox).
 # إضافيّ idempotent؛ يرث RLS+FORCE من v16؛ بعد v132.
 v135_workflow_state_lease.sql
+# v136 (سطر v29.5-op-2): دفتر أحداث الريّ الفيزيائيّ المنفصلة — irrigation_runs. صفّ لكلّ
+# دورة فتح→إغلاق صمّام (started_at/stopped_at/volume/status running→completed) — يكمّل جداول
+# النيّة (irrigation_valves/schedules v25) ودفتر المياه اليوميّ (water_ledger v98) بحدث تشغيل
+# منفصل قابل للتدقيق، ركيزة رصديّة لِإقرار جهاز فيزيائيّ (ACK). RLS+FORCE tenant_isolation
+# (نمط v98). إضافيّ idempotent؛ بعد v135.
+v136_irrigation_runs.sql

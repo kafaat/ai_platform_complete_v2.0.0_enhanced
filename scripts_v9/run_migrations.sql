@@ -427,3 +427,5 @@
 \i migrations/v134_fields_geometry_integrity.sql
 \echo '═══ 142. v135_workflow_state_lease.sql ═══'
 \i migrations/v135_workflow_state_lease.sql
+\echo '═══ 143. v136_irrigation_runs.sql ═══'
+\i migrations/v136_irrigation_runs.sql
