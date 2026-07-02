@@ -66,15 +66,20 @@ class SegmentRequest(BaseModel):
       • manual : يتطلّب user_polygon (تحقّق/تطبيع حقيقيّ محليّاً).
       • auto   : تقطيع آليّ كامل من صورة (يتطلّب نموذجاً — 503 إن لم يُهيّأ).
       • hybrid : تقطيع آليّ مُوجَّه ببادرة المستخدم (يتطلّب نموذجاً — 503 إن لم يُهيّأ).
+
+    ملاحظة التوافق: الواجهة الأماميّة ترسل ``bbox`` و``hints``؛ العقد الداخليّ
+    مع خادم الاستدلال يستخدم ``field_bbox`` و``user_polygon``. كلا الاسمَين مقبولان.
     """
 
     mode: str = Field(pattern="^(manual|auto|hybrid)$")
-    # bbox: [min_lon, min_lat, max_lon, max_lat] — يُمرَّر للنموذج (auto/hybrid).
+    # [min_lon, min_lat, max_lon, max_lat] — اسمان مقبولان: field_bbox (داخليّ) / bbox (واجهة).
     field_bbox: list[float] | None = None
+    bbox: list[float] | None = None
     # مرجع الصورة (مسار/معرّف مشهد) — يقرؤه خطّاف النموذج (auto/hybrid).
     image_ref: str | None = None
-    # مضلّع المستخدم (manual / بادرة hybrid): [[lon,lat], ...] أو GeoJSON Polygon.
+    # مضلّع المستخدم (manual / بادرة hybrid) — اسمان: user_polygon (داخليّ) / hints (واجهة).
     user_polygon: list[list[float]] | dict | None = None
+    hints: list[list[float]] | None = None
 
 
 # ─── مدقّق هندسيّ خفيف محليّ (لا تبعيّة على shared/geometry-guard) ─────────
@@ -265,8 +270,12 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
     """
     _require_service_token(x_agent_token)
 
+    # حلّ التوافق: قبول bbox (واجهة أماميّة) وfield_bbox (داخليّ) بالتوازي.
+    resolved_bbox = req.field_bbox or req.bbox
+    resolved_polygon = req.user_polygon or req.hints
+
     if req.mode == "manual":
-        geometry = normalize_polygon(req.user_polygon)
+        geometry = normalize_polygon(resolved_polygon)
         return {"mode": "manual", "geometry": geometry, "source": "manual"}
 
     # auto / hybrid — يتطلّبان نموذجاً حقيقيّاً.
@@ -286,9 +295,9 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
     # النموذج مُهيّأ (بيئة إنتاج بأوزان+GPU): فوّض لخطّاف التكامل.
     result = run_segmentation_model(
         mode=req.mode,
-        field_bbox=req.field_bbox,
+        field_bbox=resolved_bbox,
         image_ref=req.image_ref,
-        user_polygon=req.user_polygon,
+        user_polygon=resolved_polygon,
     )
     return {"mode": req.mode, "geometry": result, "source": SEGMENTATION_BACKEND}
 
