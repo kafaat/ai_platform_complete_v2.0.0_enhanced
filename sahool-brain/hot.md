@@ -1,6 +1,7 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-07-01 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `b5ee3ce` · [`log.md`](log.md) مدخل (ط).
+> **آخر تحديث:** 2026-07-02 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `53a3ed4` · [`log.md`](log.md) مدخل (ي).
+> 🛰 **v62.3 Evidence Runtime (٤ شقوق، دفعة متعدّدة الوكلاء):** A عقد أدلّة NDVI + بوّابة اكتمال fail-closed · B كاتب/قارئ أعمدة جودة raster (v131) · C توصيل الشبكة+الجودة pack→evidence→VRA · v52 مظروف سياسة AI (platform سلطة، ai_agronomist مستهلِك). + v133 VALIDATE-prep (تقرير مخالفات + حارس + runbook). **Superset merge: no-op مُثبَت** (main يحتوي cert بالكامل، `a9f7314` سلف خطّيّ).
 > 🔎 **v29.6.1 (مراقبة/حُرّاس انحدار MFA — غير حاجب):** IP في تدقيق step-up · منع مفتاح تجزئة ثابت في الإنتاج · ٣ حُرّاس ساكنة (`_acquire` admin · recovery بلا self-read · audit append-only).
 > 🔐 **تصلّب MFA إنتاجيّ مكتمل ومُثبَت على Postgres حقيقيّ** (v29.5+v29.6): تشفير السرّ + recovery + قفل DB + تدقيق append-only + RLS مُضيَّق. **P0 مُغلَق:** `test_mfa_migrations_applied_on_real_postgres` مرّ فعليّاً في CI (لا تخطٍّ صامت) — أثبت v128/v129 + RLS المُضيَّق + trigger append-only على DB حيّ.
 > 🐳 **إصلاح إقلاع auth** (`abf1731`): `Dockerfile` لم ينسخ `mfa_crypto.py` ⇒ `ModuleNotFoundError` ⇒ unhealthy. أُصلِح + **حارس معمَّم** يمسح استيرادات main.py الشقيقة (otp/mfa_crypto…).
@@ -31,6 +32,11 @@
 | v57.5 CI | `cb4ea31` | اختبارات تكامل MFA/v57.5 كانت تتخطّى بصمت ⇒ استخدام `TEST_DATABASE_URL` (إثبات P0) |
 | auth-boot | `abf1731` | نسخ `mfa_crypto.py` في صورة auth + حارس وحدات شقيقة معمَّم |
 | v29.6.1 | `f75e363`/`b5ee3ce` | IP في تدقيق step-up + نظافة مفتاح تجزئة الإنتاج + ٣ حُرّاس انحدار MFA ساكنة |
+| v62.3-A | `ea6829e` | عقد أدلّة NDVI + بوّابة اكتمال fail-closed (valid_pixel/coverage/cloud/stale/geom) |
+| v62.3-B | `aa0f830` | تعبئة/قراءة أعمدة جودة raster (v131) + `cloud_cover` للـpack |
+| v62.3-C | `a99f4f4` | توصيل الشبكة+الجودة raster→pack→`ndvi_grid_evidence`→بوّابة VRA |
+| v52 | `90b0803` | مظروف سياسة AI: platform يقرأ `tenant_ai_policies` (v124) ويبني المظروف؛ ai_agronomist يرفض بلا مظروف (fail-closed) |
+| v133 | `6ad1872` | VALIDATE-prep: تقرير مخالفات + حارس (unit+integration) + runbook (بلا VALIDATE أعمى) |
 
 ## أعلى الفجوات الآن
 
@@ -46,8 +52,11 @@
 | BACKFILL-422 | «تجهيز سنتين» يرسل `truecolor` كمؤشّر ⇒ 422 | **fixed** (`2e353af`) |
 | SPATIAL-401 | «المؤشرات المكانية» تُخرج للدخول (raster `/indicator-grid` 401) | **open** (يحتاج status+body من Network) |
 | AUTO-SEG | «تحديد الحدود تلقائي» 503 (SAM2 غير منشور) | **by-design** (تشغيليّ: `SEGMENTATION_BACKEND=sam2`) |
-| v57.5-DB | soil_lab analyte (v50) · imagery quality (v54) · field_state recompute (v53) · tenant AI policy DB (v52) | **open** (يحتاج Postgres، عبر CI) |
-| v62.3 | Evidence productionization (raster→ndvi_grid · imagery quality contract) | **open** (اقتُرِح بعد v62.2) |
+| v57.5-DB | soil_lab analyte (v50) · imagery quality (v54) · field_state recompute (v53) · tenant AI policy DB (v52) | **fixed** (v130/v131/v132 + v52 مظروف السياسة على v124) |
+| v62.3 | Evidence productionization (raster→ndvi_grid · imagery quality contract) | **fixed** (A عقد+بوّابة · B كاتب/قارئ v131 · C توصيل الشبكة؛ integration أخضر) |
+| v52 | سياسة AI للمستأجِر | **fixed** (`90b0803`؛ platform سلطة، ai_agronomist مستهلِك؛ derived: tools/data_classes/max_bytes بلا أعمدة — موثَّق) |
+| SUPERSET | توحيد main↔certification | **no-op** (main يحتوي cert؛ `a9f7314` سلف خطّيّ، 0 commit متقدّم) |
+| VALIDATE-NV | قيود NOT VALID (v127/v130/v132) | **prep** (`6ad1872`: تقرير+حارس+runbook؛ VALIDATE الفعليّ للمشغّل بعد تنظيف) |
 
 ## ماذا بعد؟
 

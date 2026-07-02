@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-07-02 (ي) — دفعة متعدّدة الوكلاء: v62.3 (A/B/C) + v52 + v133 + إغلاق Superset
+
+**رأس `main` بعد الجلسة:** `53a3ed4`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء (Integration يُشغّل اختبارات الشقوق الجديدة على Postgres حقيقيّ) ثمّ ff-merge.
+
+بطلب المستخدم «نفّذ الكل بأكثر من وكيل» أُطلِقت **٥ وكلاء متوازين** (worktree معزول لكلٍّ)، ثمّ دُمِج كلّ شقّ تتابعيّاً بإعادة تحقّق كاملة مِنّي (cherry-pick على dev + ruff + pytest + بوّابة) — **لا ثقة بنتيجة وكيل دون إعادة تحقّق**:
+
+- **v62.3-A** (`ea6829e`): `services/ai_agronomist/evidence_contract.py` — `build_ndvi_grid_evidence` (عقد موحّد grid/quality/provenance، لا اختلاق) + `evaluate_machine_readiness` (بوّابة fail-closed: valid_pixel<0.7 أو coverage<0.75 أو مناطق هندسية ⇒ ليست جاهزة؛ cloud>0.35/قِدَم>14ي إنذار). موصولة ببوّابة VRA. ٦ اختبارات.
+- **v62.3-B** (`aa0f830`): `raster-service/quality_metrics.py` + كاتب `db_persist`/`_persist_raster_asset` (يعبّئ أعمدة v131) + قارئ `fetch_latest_asset` (+`cloud_cover`). 17 unit + 1 integration (**مرّ على Postgres:** `test_raster_quality_columns_populated_v62_3b::test_quality_columns_round_trip_and_check`).
+- **v62.3-C** (`a99f4f4`): `field_ai_context._optional_ndvi_grid` يجلب الشبكة+الجودة من raster (fail-safe) → `imagery_timeline.ndvi_grid/ndvi_grid_quality`؛ `runtime_evidence.pack_ndvi_grid_evidence` يبني العقد؛ `ai_agronomist/main.py` يحقن `ndvi_grid_evidence` لبوّابة VRA. 7 اختبارات. **الوكيل صحّح قاعدته بنفسه** (تفرّع من b87df54 القديم ⇒ أعاد على ea6829e).
+- **v52** (`90b0803`): جدول `tenant_ai_policies` **موجود أصلاً** (v124). `sahool-platform/core/ai_policy_envelope.py` يبني المظروف (افتراضيّ الأكثر تقييداً)؛ `ai_agronomist/policy_envelope.py` يرفض بلا مظروف + يمنع external في local_only + يفرض allowed_tools. 13 اختبار. **derived بصدق:** allowed_tools/data_classes/max_bytes بلا أعمدة داعمة (يلزم ترحيل لقوائم قابلة للضبط).
+- **v133** (`6ad1872`): `scripts/migrations/report_not_valid_constraint_violations.py` + حارس `test_not_valid_constraint_no_new_violations_guard` (unit + integration؛ **مرّ:** `test_zero_violations_on_migrated_db`) + `docs/runbooks/validate_not_valid_constraints.md`. **لا VALIDATE أعمى** — الفعليّ للمشغّل بعد تقرير+تنظيف.
+- **Superset merge = no-op** (وكيل قراءة-فقط + تحقّقتُ بنفسي): `origin/certification/final-readiness-evidence` (`a9f7314`) **سلف خطّيّ** لـmain (0 commit متقدّم، merge-base=cert tip). التوحيد نُفِّذ سابقاً. لا عمل.
+
+**تعارض C↔v52** على `ai_agronomist/main.py`+`field_ai_context.py` دمجه git تلقائيّاً (مناطق مختلفة) وتحقّقتُ دلاليّاً (754 اختبار انحدار أخضر).
+
+**تنظيف:** أُزيلت worktrees الوكلاء (كانت تضخّم مسح compile إلى 18468؛ البصمات نظيفة git-tracked فقط).
+
+**مصفوفة تحقّق (٩ مجالات):** 1–6 (RLS/tenant/MapHub/offline/AI-approval/VRA) مُتحقَّقة عبر ci.yml 11/11 + unit؛ 7–9 (k6/chaos كامل/observability حيّ) أجزاؤها الثابتة خضراء لكنّ الحيّ **يحتاج الستاك المُشغَّل** — لم أدّعِ تشغيله.
+
+---
+
 ## 2026-07-01 (ط) — v29.6.1: مراقبة وحُرّاس انحدار MFA (غير حاجب)
 
 **رأس `main` بعد الجلسة:** `b5ee3ce`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
