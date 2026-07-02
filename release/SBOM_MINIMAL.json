@@ -3375,7 +3375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "298392437d6864b9406710d8d2d3ab0b03aaab5fef553150a35546dc09b9dec6"
+          "content": "ea576af73997f5938b435e2fdc12dcdf72f6b95ec12c0266a0d93ff051e2f6d7"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -3809,6 +3809,26 @@
         }
       ],
       "name": "migrations/v135_workflow_state_lease.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "feb95ce21d88b45371df2a89f433d548b5fa6ef4fbfef6584339d321f52b8392"
+        }
+      ],
+      "name": "migrations/v136_irrigation_runs.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0aa883f6ed875bd912d3cc0f8c4f2c33ae776b58c2aa0809118ea713d3cc1ea3"
+        }
+      ],
+      "name": "migrations/v138_offline_pending_ops_terminal.sql",
       "type": "file"
     },
     {
@@ -8645,7 +8665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cfbe60518a7cea2f59293cb087cb9b515a46b472a651ebd9c80b07b318e98c26"
+          "content": "0566aa5424c155fb0a5664bfd1800b2d6e7a4643fd50d4228523185fc0bc58f4"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_models.py",
@@ -8785,7 +8805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59be3a43bb8a1687df949b95bf9eefc6c6d32256208c8114707b4c703a8b2a32"
+          "content": "fe0bad19e6ecea98f1c6ff7ff28ef6a7df30c270cf3e9f529d850ee88d18de17"
         }
       ],
       "name": "services/sahool-platform/api/offline_pending_db.py",
@@ -9855,7 +9875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "56ee59ba7af124578616206411f3b4c29de61d3caab19e0bc636bb83cc99dab2"
+          "content": "1e85f12e274767fa8ed88bacc3e5585de3f1b4d70b74b3bd5aa95a4faa8e3cc7"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation.py",
@@ -10425,7 +10445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f223f2ad668cc84328195c324f06b710d38a8d7cc6c7d644396fe3c24ee1878c"
+          "content": "3f5d985eba6887c0591e6874e060e04ea4c260f11cc0b9f8df8bc20c563c274f"
         }
       ],
       "name": "services/sahool-platform/api/routers/sync.py",
@@ -13355,7 +13375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ff12b0bfa306b6b44216b7225c9467820f54a5e8454c3b6f37da3e38b1ee5af"
+          "content": "7929822dfdeee3d4e6cf8944143610f92d6b3ac8847e5abf0950bd8d8150869d"
         }
       ],
       "name": "services/sahool-platform/core/workflow_engine.py",
