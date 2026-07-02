@@ -39,8 +39,17 @@ _AUTH_DOMAIN_TABLES = {
 # processed_events: مخزن تعاضُد الاستهلاك (v91) — جدول بنية تحتيّة عالميّ بلا tenant_id
 # (لا بيانات مستأجِر تتسرّب، مفتاحه event_id فقط). المرسِل يُطالِب الحدث فيه تحت BYPASSRLS
 # قبل النشر (idempotent consumption، at-most-once) — ضمن نطاقه عمداً.
+# outbox_delivery_attempts: سجلّ محاولات التسليم الجنائيّ append-only (v140) — يملكه المرسِل
+# نفسه، يُكتَب صفّ لكلّ محاولة تحت سياق sahool_jobs ذاته. عليه RLS+FORCE (v140) وtenant_id
+# من الحدث، لكنّ العامل **يكتب فقط** (INSERT) بـtenant_id الصحيح للحدث تحت BYPASSRLS — لا
+# مسار قراءة عابر للمستأجرين هنا. ضمن النطاق عمداً (قراءة المستأجِر تُعزَل بـRLS).
 _JOBS_SCOPE = {
-    "services/sahool-platform/api/event_bus.py": {"event_outbox", "events", "processed_events"},
+    "services/sahool-platform/api/event_bus.py": {
+        "event_outbox",
+        "events",
+        "processed_events",
+        "outbox_delivery_attempts",
+    },
     "services/sahool-platform/api/weather_automation.py": {
         "weather_automation_cache",
         "weather_automation_locations",

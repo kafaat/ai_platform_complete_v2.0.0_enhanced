@@ -14,9 +14,12 @@
 -- «FROM event_outbox o JOIN events e»). ليس runtime_event_outbox (v106) الذي لا
 -- يستنزفه هذا العامل.
 --
--- العزل: event_outbox نفسه **غير مُنطّق بالمستأجِر** (لا RLS عليه — العامل عابر
--- للمستأجِرين بالتصميم). لذا نُبقي سجلّ المحاولات متّسقاً (لا RLS/FORCE)، مع تخزين
--- tenant_id كعمود إعلاميّ (forensic) NULL-able مأخوذ من الحدث المرتبط — لا إنفاذ.
+-- العزل: خلافاً لـevent_outbox (v11) الذي **لا يحمل عمود tenant_id أصلاً** (فليس جدولاً
+-- مُستأجَراً)، هذا الجدول يخزّن tenant_id (forensic) من الحدث المرتبط. وبما أنّه يحمل
+-- tenant_id فهو جدول مُستأجَر، ويتطلّبه حارس HIGH-001 (`test_late_tenant_tables_have_explicit_force`)
+-- أن يُطبَّق عليه FORCE RLS صراحةً (لا تجاوز المالك). لذا نطبّق `_sahool_apply_tenant_rls`
+-- (ENABLE+FORCE+policy). العامل يكتب تحت دور sahool_jobs (BYPASSRLS) فلا يتأثّر؛ وأيّ
+-- قارئ مستأجِر (أداة تشغيل/ops) يُعزَل بـtenant_id تلقائيّاً.
 --
 -- append-only: نُطبّق sahool_block_mutation (نمط mfa_audit_events / v9) — العامل
 -- يُدرِج فقط (INSERT) ولا يُعدّل/يحذف أبداً، فالحظر لا يُعقّده. الـFK بلا CASCADE
@@ -61,5 +64,10 @@ DO $$ BEGIN
             FOR EACH ROW EXECUTE FUNCTION sahool_block_mutation();
     END IF;
 END $$;
+
+-- ── عزل المستأجِر (HIGH-001): FORCE RLS صريح لأنّ الجدول يحمل tenant_id ──
+-- ENABLE+FORCE+policy القياسيّة (app.current_tenant). العامل تحت BYPASSRLS يكتب بلا تأثّر؛
+-- قارئ المستأجِر يُعزَل. idempotent (الدالّة تسقط السياسة وتُعيد إنشاءها).
+SELECT _sahool_apply_tenant_rls('outbox_delivery_attempts');
 
 COMMIT;

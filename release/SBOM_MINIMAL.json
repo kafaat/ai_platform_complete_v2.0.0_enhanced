@@ -3375,7 +3375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea576af73997f5938b435e2fdc12dcdf72f6b95ec12c0266a0d93ff051e2f6d7"
+          "content": "9d7e4f928d1fcbf4c5f896583c31b482139bc1100e52ae5e955dcef1a323b31e"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -3835,10 +3835,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "412cd01ccb72b5923ae83edbcad72cc04e7b1e6648833c8990e5cbc17c942879"
+        }
+      ],
+      "name": "migrations/v139_field_geometry_history_append_only.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "47eac12a3646ff4217ae9b9c4da2dc154f651bede01a50c366e4b189e81ce456"
         }
       ],
       "name": "migrations/v13_geospatial_core.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e0ed0a5b82dc7ba7337be3ddd5d060ba79ffe9d8ea9f923f0293be93bcda0bbb"
+        }
+      ],
+      "name": "migrations/v140_outbox_delivery_attempts.sql",
       "type": "file"
     },
     {
@@ -8175,7 +8195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f91af80e9e92fa39f1beabedb6b8f52089851a325d0f9989a114815ebf1f14f1"
+          "content": "83a784e969083b457e192af583ab3c378f38e2e4d21dc4f89210604d4b7306de"
         }
       ],
       "name": "services/sahool-platform/api/event_bus.py",
@@ -8649,6 +8669,16 @@
         }
       ],
       "name": "services/sahool-platform/api/ipm_advisor.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ce8f191e27aaa8f93cbe723ce4ebd2e81a5421235f883d9889a62ca7dda207a"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_logic.py",
       "type": "file"
     },
     {
