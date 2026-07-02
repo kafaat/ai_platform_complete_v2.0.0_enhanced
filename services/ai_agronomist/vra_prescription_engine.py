@@ -12,9 +12,13 @@ import math
 from typing import Any
 
 try:
+    from .evidence_contract import evaluate_machine_readiness
     from .field_boundary_ai import area_ha_for_bbox, normalize_bbox
     from .productivity_zones import bbox_from_polygon
 except ImportError:  # direct spec import used by legacy unit guards
+    from services.ai_agronomist.evidence_contract import (  # type: ignore
+        evaluate_machine_readiness,
+    )
     from services.ai_agronomist.field_boundary_ai import (  # type: ignore
         area_ha_for_bbox,
         normalize_bbox,
@@ -243,6 +247,31 @@ def generate_vra_prescription(
             "المحصول غير محدد؛ استخدم هدفاً عاماً ولا تعتمد الوصفة للتنفيذ قبل تحديد المحصول والمرحلة."
         )
 
+    # V62.3 — raster-quality machine-readiness gate. When an NDVI-grid evidence object is
+    # supplied (v62.3 contract), evaluate valid-pixel/coverage/cloud/staleness and surface a
+    # structured verdict. Fail-closed: missing/low quality ⇒ machine_ready=False. This never
+    # relaxes the existing (always-False) export gate — it only makes the raster-quality
+    # dimension explicit and adds an Arabic warning when the imagery is too weak/stale.
+    ctx = evidence_context if isinstance(evidence_context, dict) else {}
+    ndvi_evidence = ctx.get("ndvi_grid_evidence")
+    raster_quality: dict[str, Any] | None = None
+    if isinstance(ndvi_evidence, dict):
+        zm = (
+            "ndvi_kmeans_clustering"
+            if zoning_evidence_backed
+            else "geometry_seeded_zoning_fallback"
+        )
+        raster_quality = evaluate_machine_readiness(ndvi_evidence, zoning_method=zm)
+        if not raster_quality["machine_ready"]:
+            warnings.append(
+                "جودة الصور دون عتبة التنفيذ الآليّ (بكسلات صالحة/تغطية غير كافية أو مناطق "
+                "هندسية فقط)؛ لا تُصدَّر الوصفة للآلة قبل مشهد أعلى جودة."
+            )
+        elif "stale_scene" in raster_quality["warnings"]:
+            warnings.append(
+                "المشهد المستخدم قديم (تجاوز عتبة الحداثة)؛ راجع صورة أحدث قبل اعتماد الوصفة."
+            )
+
     return {
         "field_id": field_id,
         "method": "map_based_vra_zone_prescription_v62",
@@ -267,6 +296,7 @@ def generate_vra_prescription(
             "reason": "lab_supported" if has_lab else "estimated_with_user_consent",
             "zoning_evidence_backed": zoning_evidence_backed,
             "ready_for_machine_export": False,
+            "raster_quality": raster_quality,  # v62.3 verdict (None if no NDVI evidence)
             "required_before_export": [
                 "human_approval",
                 "agronomist_review",
