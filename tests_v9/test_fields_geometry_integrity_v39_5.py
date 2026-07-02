@@ -154,9 +154,7 @@ async def test_fields_geometry_db_validity_and_inline_version():
             sp = conn.transaction()
             await sp.start()
             try:
-                await _insert_field(
-                    conn, tid, "fld_bt_" + uuid.uuid4().hex[:8], _BOWTIE_GEOJSON
-                )
+                await _insert_field(conn, tid, "fld_bt_" + uuid.uuid4().hex[:8], _BOWTIE_GEOJSON)
             except Exception as e:  # noqa: BLE001
                 err_insert = getattr(e, "sqlstate", None)
             finally:

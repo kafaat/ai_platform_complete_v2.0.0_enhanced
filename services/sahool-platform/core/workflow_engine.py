@@ -285,9 +285,7 @@ class PostgresWorkflowStore:
     async def _set_tenant(self, conn: Any, tenant_id: str | None) -> None:
         """يضبط سياق RLS إن توفّر مستأجر (مصدر واحد لضبط app.current_tenant)."""
         if tenant_id:
-            await conn.execute(
-                "SELECT set_config('app.current_tenant', $1, false)", str(tenant_id)
-            )
+            await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
 
     def save(self, state: WorkflowState) -> None:
         # فشل مبكر واضح: workflow_state.tenant_id NOT NULL + RLS يعتمد المستأجر.
