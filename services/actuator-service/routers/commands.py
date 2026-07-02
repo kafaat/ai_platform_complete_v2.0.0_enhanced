@@ -14,7 +14,9 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import main
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+
+from shared.actuation_killswitch import is_actuation_halted
 
 router = APIRouter()
 
@@ -26,6 +28,13 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
     user_id = claims.get("sub")
     # حارس السلامة الفيزيائيّة + العزل: فحص الدور + ملكيّة الجهاز للمستأجِر (fail-closed).
     await main._authorize_device_control(claims, req.device_id)
+    # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): استشِر قبل النشر. مفتاح مُشتبَك
+    # (نطاق مستأجِر أو صمّام هذا الجهاز) ⇒ 423 Locked بالسبب العربيّ، لا تنفيذ فيزيائيّ.
+    # (يصل هنا فقط بعد _authorize_device_control الذي يضمن وجود main._pool أو 503.)
+    async with main._pool.acquire() as ks_conn:
+        halted, halt_reason = await is_actuation_halted(ks_conn, tenant_id, valve_id=req.device_id)
+    if halted:
+        raise HTTPException(423, halt_reason or "التشغيل مُوقَف بمفتاح إيقاف الطوارئ")
     success = await main.send_mqtt_command(req.device_id, req.command, req.payload)
     await main.log_command(
         rule_id=None,

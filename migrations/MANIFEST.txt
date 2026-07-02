@@ -507,3 +507,7 @@ v131_imagery_quality_metadata.sql
 # إسقاط أحدث) + source_event_id (الحدث المُنتِج، لكشف الانحراف) + recomputed_at + فهرس جزئيّ.
 # يكمل فجوة v53. إضافيّ idempotent؛ بعد v131.
 v132_field_state_recompute_provenance.sql
+# v133 (سطر v29.5-op-1): مفتاح إيقاف طوارئ التشغيل (fail-closed) بنطاق مستأجِر/حقل/صمّام —
+# actuation_killswitch. يُستشار قبل send_mqtt_command/إدراج طابور التوزيع؛ تعذّر القاعدة ⇒
+# مُوقَف. RLS+FORCE tenant_isolation (نمط v98). إضافيّ idempotent؛ بعد v132.
+v133_actuation_killswitch.sql

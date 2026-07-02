@@ -32,7 +32,7 @@ from core.actuator_command import build_actuator_command
 from core.agronomic_decision import DomainSignal, reconcile_decision, to_urgency
 from core.cross_domain_optimization import optimize_irrigation
 from core.decision_dispatch import evaluate_dispatch
-from core.dispatch_executor import execute_dispatch
+from core.dispatch_executor import ExecutionResult, ExecutionStatus, execute_dispatch
 from core.dispatch_lifecycle import assert_transition, derive_idempotency_key
 from core.dispatch_notification import build_dispatch_notification, normalize_channel
 from core.execution_ledger_entry import build_ledger_entry, normalize_outcome
@@ -48,6 +48,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from shared.actuation_killswitch import is_actuation_halted
 
 router = APIRouter()
 
@@ -335,7 +336,29 @@ async def execute_dispatch_endpoint(
                     (idem_key if exec_status == "queued" else None),
                 )
 
-            result = await execute_dispatch(decision, persist=_persist, command=command)
+            # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): قبل إدراج READY في الطابور.
+            # مفتاح مُشتبَك (نطاق مستأجِر/حقل/صمّام) ⇒ لا يُدرَج للتنفيذ — يُدام not_executed
+            # (تدقيق) بسبب واضح، والمُشغِّل لا يستهلك شيئاً. لا نُطلِق MQTT أعمى. قرار غير
+            # قابل للتنفيذ (BLOCKED/PENDING) يمرّ كما هو (execute_dispatch يُسجّله not_executed).
+            ks_halted = False
+            ks_reason: str | None = None
+            if decision.executable and command is not None:
+                ks_halted, ks_reason = await is_actuation_halted(
+                    conn,
+                    str(user.tenant_id),
+                    field_id=decision.field_id,
+                    valve_id=(req.device_id or None),
+                )
+            if ks_halted:
+                await _persist(decision, None, ExecutionStatus.NOT_EXECUTED.value)
+                result = ExecutionResult(
+                    status=ExecutionStatus.NOT_EXECUTED,
+                    dispatch_state=decision.state.value,
+                    command=None,
+                    reason_ar=f"محجوب — مفتاح إيقاف الطوارئ مُشتبَك: {ks_reason}",
+                )
+            else:
+                result = await execute_dispatch(decision, persist=_persist, command=command)
             # تدقيق (H3): حدث domain عبر outbox ضمن المعاملة — مسار غير مُعاد فقط
             # (replayed يعود مبكّراً أعلاه ولا يصل هنا). best-effort داخل _emit.
             await _emit_domain_event(

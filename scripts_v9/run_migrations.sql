@@ -420,3 +420,6 @@
 
 \echo '═══ 139. v132_field_state_recompute_provenance.sql ═══'
 \i migrations/v132_field_state_recompute_provenance.sql
+
+\echo '═══ 140. v133_actuation_killswitch.sql ═══'
+\i migrations/v133_actuation_killswitch.sql

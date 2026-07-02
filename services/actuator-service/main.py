@@ -21,6 +21,7 @@ from aiomqtt import Client as MQTTClient
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
+from shared.actuation_killswitch import is_actuation_halted
 from shared.actuator_idempotency import (
     decide_fire,
     idempotency_counters,
@@ -477,6 +478,42 @@ async def evaluate_rules(sensor_type: str, value: float, tenant_id: str, field_i
                             "command": cmd,
                             "sent": False,
                             "deduped": True,
+                        }
+                    )
+                    continue
+
+                # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): استشِر قبل أيّ نشر MQTT.
+                # مفتاح مُشتبَك مُطابِق (مستأجِر/حقل/صمّام) ⇒ لا تُرسِل الأمر — سجّله محجوباً
+                # وتابِع القواعد التالية (لا نُوقف التقييم كلّه، فقد يخصّ مفتاح الحقل/الصمّام
+                # هذا الأمر دون غيره). تعذّر القاعدة ⇒ مُوقَف (is_actuation_halted fail-closed).
+                async with _pool.acquire() as ks_conn:
+                    halted, halt_reason = await is_actuation_halted(
+                        ks_conn, tenant_id, field_id=field_id, valve_id=device
+                    )
+                if halted:
+                    logger.warning(
+                        f"مفتاح إيقاف الطوارئ مُشتبَك — حجب الأمر '{cmd}' على {device} "
+                        f"(حقل {field_id}): {halt_reason}"
+                    )
+                    _dedup_last_fired.pop(dedup_key, None)
+                    if ACTUATOR_IDEMPOTENCY_MODE != "local":
+                        await _cluster_clear(tenant_id, field_id, device, cmd)
+                    await log_command(
+                        rule_id=str(row["rule_id"]),
+                        device_id=device,
+                        command=cmd,
+                        payload=payload,
+                        status="blocked",
+                        tenant_id=tenant_id,
+                    )
+                    triggered.append(
+                        {
+                            "rule_id": str(row["rule_id"]),
+                            "device": device,
+                            "command": cmd,
+                            "sent": False,
+                            "halted": True,
+                            "reason": halt_reason,
                         }
                     )
                     continue
