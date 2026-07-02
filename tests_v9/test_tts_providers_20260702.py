@@ -165,7 +165,11 @@ class TestProviderAvailability:
         # edge_tts مثبّت في **بيئة الخدمة** لكنّه غائب في طبقة الوحدات الدنيا لـCI
         # (requirements-test.txt لا يتضمّنه) ⇒ نتخطّى إن غاب: `available()` تُرجِع False
         # بصدق حينها (السلوك الصحيح)، فالتأكيد على True مشروط بوجود المكتبة.
-        pytest.importorskip("edge_tts")
+        et = pytest.importorskip("edge_tts")
+        # stub مُحقَن بواسطة test_tts_notification_service_auth يملك __file__=None —
+        # حزمة مثبَّتة حقيقيّة تملك __file__. نتخطّى إن كانت stub لا حزمة.
+        if getattr(et, "__file__", None) is None:
+            pytest.skip("edge_tts في sys.modules هو stub اختباريّ لا حزمة مثبَّتة")
         assert EdgeTTSProvider().available() is True
 
     def test_piper_unavailable_without_lib_or_model(self, monkeypatch):
@@ -251,6 +255,7 @@ def _load_main():
 
 def test_status_endpoint_shape():
     pytest.importorskip("fastapi")
+    pytest.importorskip("edge_tts")  # تتطلّب التثبيت الفعليّ لـedge_tts
     main = _load_main()
     if not main.JWT_SECRET:  # بيئة بلا سرّ مضبوط ⇒ لا يمكن سكّ توكن اختباريّ.
         pytest.skip("JWT_SECRET غير مضبوط في هذه البيئة")
@@ -275,6 +280,7 @@ def test_status_endpoint_shape():
 
 def test_voices_endpoint_includes_providers():
     pytest.importorskip("fastapi")
+    pytest.importorskip("edge_tts")  # تتطلّب التثبيت الفعليّ لـedge_tts
     main = _load_main()
     if not main.JWT_SECRET:
         pytest.skip("JWT_SECRET غير مضبوط في هذه البيئة")

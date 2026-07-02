@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def load(rel: str):
-    return yaml.safe_load((ROOT / rel).read_text())
+    return yaml.safe_load((ROOT / rel).read_text(encoding="utf-8"))
 
 
 def env(service):
@@ -47,13 +47,13 @@ def test_gpu_overlay_enables_rtx5090_paths():
 
 
 def test_sam2_dockerfile_defaults_to_cuda_128_image():
-    text = (ROOT / "services/sam2-inference/Dockerfile").read_text()
+    text = (ROOT / "services/sam2-inference/Dockerfile").read_text(encoding="utf-8")
     assert "PYTORCH_CUDA_IMAGE" in text
     assert "cuda12.8" in text
 
 
 def test_edge_detector_accepts_rtx5090_cuda_device():
-    text = (ROOT / "services/edge-inference/models/pest_detector.py").read_text()
+    text = (ROOT / "services/edge-inference/models/pest_detector.py").read_text(encoding="utf-8")
     assert "rtx5090" in text
     assert "CUDAExecutionProvider" in text
 

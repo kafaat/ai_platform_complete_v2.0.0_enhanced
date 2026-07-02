@@ -1,9 +1,9 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PLATFORM = (ROOT / "services/sahool-platform/api/main.py").read_text()
-COMPOSE = (ROOT / "docker-compose.v9.yml").read_text()
-REQ = (ROOT / "services/raster-service/requirements.txt").read_text()
+PLATFORM = (ROOT / "services/sahool-platform/api/main.py").read_text(encoding="utf-8")
+COMPOSE = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
+REQ = (ROOT / "services/raster-service/requirements.txt").read_text(encoding="utf-8")
 
 
 def test_platform_raster_proxy_preserves_query_and_tid():

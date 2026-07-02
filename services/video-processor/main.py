@@ -21,7 +21,6 @@ from urllib.parse import urlparse
 
 import httpx
 import numpy as np
-from aiomqtt import Client as MQTTClient
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials as _Creds
 from fastapi.security import HTTPBearer as _Bearer
@@ -331,6 +330,7 @@ async def publish_alert(cfg: StreamConfig, detections: list):
             },
             ensure_ascii=False,
         )
+        from aiomqtt import Client as MQTTClient  # ثقيل — داخل الدالّة كي لا يكسر الوحدة بلا وسيط
         host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
         async with MQTTClient(host, port=port) as client:
             await client.publish(topic, payload, qos=1)
