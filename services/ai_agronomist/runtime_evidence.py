@@ -75,6 +75,53 @@ def zoning_evidence_context(pack: dict[str, Any] | None) -> dict[str, Any]:
     return p
 
 
+def pack_ndvi_grid_evidence(pack: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Assemble the v62.3 ``ndvi_grid_evidence`` contract object from the pack's NDVI
+    grid + quality metadata (as plumbed by field_ai_context v62.3-C). Returns None when
+    the pack carries no grid, so zoning/VRA fall back exactly as before.
+
+    Fail-safe and non-fabricating: quality metadata is optional; missing metrics stay
+    None inside the contract. The ``evidence_contract`` import is done locally to keep
+    that dependency scoped to ai_agronomist and avoid an import cycle (evidence_contract
+    imports zoning_is_evidence_backed from this module).
+    """
+    grid = extract_pack_ndvi_grid(pack)
+    if grid is None:
+        return None
+    p = pack if isinstance(pack, dict) else {}
+    im = _imagery(p)
+    quality = im.get("ndvi_grid_quality")
+    quality = quality if isinstance(quality, dict) else {}
+    # cloud_cover expected as a ratio in [0,1]; convert cloud_pct/100 when only that is given.
+    cloud_cover = quality.get("cloud_cover")
+    if cloud_cover is None:
+        pct = _num(quality.get("cloud_pct"))
+        if pct is not None:
+            cloud_cover = pct / 100.0
+
+    try:  # relative import in-service; absolute fallback for direct-spec unit guards
+        from .evidence_contract import build_ndvi_grid_evidence
+    except ImportError:  # pragma: no cover - mirrors evidence_contract's own shim
+        from services.ai_agronomist.evidence_contract import (  # type: ignore
+            build_ndvi_grid_evidence,
+        )
+
+    return build_ndvi_grid_evidence(
+        field_id=p.get("field_id"),
+        tenant_id=p.get("tenant_id"),
+        source="raster-service",
+        index="ndvi",
+        scene_id=quality.get("scene_id"),
+        acquisition_date=quality.get("acquisition_date"),
+        grid=grid,
+        cloud_cover=cloud_cover,
+        valid_pixel_ratio=quality.get("valid_pixel_ratio"),
+        coverage_ratio=quality.get("coverage_ratio"),
+        source_resolution_m=quality.get("source_resolution_m"),
+        asset_id=quality.get("asset_id"),
+    )
+
+
 # ── provenance: distinguish real-evidence zoning from geometry-only fallback ──
 _REAL_ZONING_METHODS = {"ndvi_kmeans_clustering", "multi_index_quantile_zoning_fallback"}
 

@@ -464,6 +464,67 @@ async def _optional_recommendations(
         return {"available": False, "items": [], "total": 0}, f"تعذّر جلب التوصيات: {exc}"
 
 
+def _ndvi_grid_from_raster_payload(
+    payload: Any,
+) -> tuple[list[list[float]] | None, dict[str, Any] | None]:
+    """Pure extraction of a *real* NDVI grid + quality from a raster indicator-grid
+    response (v62.3-C). Returns ``(None, None)`` unless the payload carries a real
+    (non-synthetic) 2D grid, so simulation fallbacks never masquerade as evidence.
+
+    Never fabricates: only quality keys actually present in the payload are copied;
+    absent metrics are omitted. The v62.3-B quality fields
+    (``valid_pixel_ratio``/``coverage_ratio``/``cloud_cover``) are read defensively
+    since that slice lands in parallel and may not yet be populated.
+    """
+    if not isinstance(payload, dict):
+        return None, None
+    if payload.get("real_data") is not True:
+        return None, None  # simulation / unknown ⇒ degrade to no grid (today's behavior)
+    grid = payload.get("grid")
+    if not (isinstance(grid, list) and grid and all(isinstance(r, list) for r in grid)):
+        return None, None
+    quality: dict[str, Any] = {}
+    for key in (
+        "cloud_cover",
+        "cloud_pct",
+        "valid_pixel_ratio",
+        "coverage_ratio",
+        "scene_id",
+        "source_resolution_m",
+        "asset_id",
+    ):
+        val = payload.get(key)
+        if val is not None:
+            quality[key] = val
+    # acquisition_date: prefer an explicit field, else the grid's resolved date.
+    acq = payload.get("acquisition_date") or payload.get("date")
+    if acq is not None:
+        quality["acquisition_date"] = acq
+    return grid, (quality or None)
+
+
+async def _optional_ndvi_grid(
+    client: httpx.AsyncClient, raster_url: str, field_id: str, headers: dict[str, str]
+) -> tuple[list[list[float]] | None, dict[str, Any] | None, str | None]:
+    """Fetch the latest real NDVI grid + quality for the field (v62.3-C).
+
+    Reuses the caller's tenant-scoped httpx client/base-URL/headers. Fail-safe: any
+    raster error/timeout, or a synthetic/missing grid, degrades to ``(None, None)``
+    so the pack is still built exactly as before (no grid attached).
+    """
+    try:
+        resp = await client.get(
+            f"{raster_url}/v1/fields/{field_id}/indicator-grid",
+            params={"index": "ndvi", "date": "latest"},
+            headers=headers,
+        )
+        resp.raise_for_status()
+        grid, quality = _ndvi_grid_from_raster_payload(resp.json())
+        return grid, quality, None
+    except Exception as exc:  # noqa: BLE001 — raster outage never breaks the pack
+        return None, None, f"ndvi_grid: {exc}"
+
+
 async def _optional_imagery_timeline(
     field_id: str, tenant_id: str, days: int
 ) -> tuple[dict[str, Any], str | None]:
@@ -473,6 +534,8 @@ async def _optional_imagery_timeline(
     indicators = ["truecolor", "ndvi", "ndmi", "ndre", "msavi"]
     per_indicator: dict[str, Any] = {}
     warnings: list[str] = []
+    ndvi_grid: list[list[float]] | None = None
+    ndvi_grid_quality: dict[str, Any] | None = None
     async with httpx.AsyncClient(timeout=12.0) as client:
         for indicator in indicators:
             try:
@@ -499,8 +562,16 @@ async def _optional_imagery_timeline(
             except Exception as exc:  # noqa: BLE001
                 per_indicator[indicator] = {"available": False, "dates": [], "total": 0}
                 warnings.append(f"{indicator}: {exc}")
+        # v62.3-C — also carry the latest *real* NDVI grid + quality so the AI pack can
+        # fire the k-means productivity-zoning path and feed the VRA raster-quality gate.
+        # Reuses the same tenant-scoped client; a raster outage degrades to no grid.
+        ndvi_grid, ndvi_grid_quality, grid_warn = await _optional_ndvi_grid(
+            client, raster_url, field_id, headers
+        )
+        if grid_warn:
+            warnings.append(grid_warn)
     total_dates = sum(int(v.get("total", 0)) for v in per_indicator.values())
-    return {
+    result: dict[str, Any] = {
         "available": total_dates > 0,
         "range_days": days,
         "since": since.isoformat(),
@@ -525,7 +596,13 @@ async def _optional_imagery_timeline(
                 total=total_dates,
             )
         ],
-    }, ("؛ ".join(warnings) if warnings else None)
+    }
+    # Additive: only attach when a real grid/quality is present (never fabricate).
+    if ndvi_grid is not None:
+        result["ndvi_grid"] = ndvi_grid
+    if ndvi_grid_quality:
+        result["ndvi_grid_quality"] = ndvi_grid_quality
+    return result, ("؛ ".join(warnings) if warnings else None)
 
 
 async def _optional_weather_history(

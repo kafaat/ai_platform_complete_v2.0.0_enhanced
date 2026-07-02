@@ -510,10 +510,16 @@ def _build_agent_tool_fetcher(
             )
         if tool_name == "generate_productivity_zones":
             # V62.2 — forward a real NDVI grid (if the raster pipeline supplied one).
+            # V62.3-C — also attach the ndvi_grid_evidence contract (used by machine-
+            # readiness downstream); None when no grid ⇒ unchanged behavior.
+            zoning_ctx = runtime_evidence.zoning_evidence_context(pack)
+            ndvi_ev = runtime_evidence.pack_ndvi_grid_evidence(pack)
+            if ndvi_ev is not None:
+                zoning_ctx["ndvi_grid_evidence"] = ndvi_ev
             return propose_productivity_zones(
                 params,
                 field_id=str(field_id) if field_id is not None else None,
-                evidence_context=runtime_evidence.zoning_evidence_context(pack),
+                evidence_context=zoning_ctx,
             )
         if tool_name == "plan_soil_sampling":
             return plan_soil_sampling(
@@ -522,10 +528,16 @@ def _build_agent_tool_fetcher(
                 evidence_context=pack,
             )
         if tool_name == "generate_vra_prescription":
+            # V62.3-C — feed the VRA raster-quality gate a real ndvi_grid_evidence object
+            # (from the pack's grid+quality). Additive: absent grid ⇒ gate stays None.
+            vra_ctx = dict(pack)
+            ndvi_ev = runtime_evidence.pack_ndvi_grid_evidence(pack)
+            if ndvi_ev is not None:
+                vra_ctx["ndvi_grid_evidence"] = ndvi_ev
             return generate_vra_prescription(
                 params,
                 field_id=str(field_id) if field_id is not None else None,
-                evidence_context=pack,
+                evidence_context=vra_ctx,
             )
         # يفترض ألا يصل المجهول إلى الجالب بسبب البوابة، لكن نبقيه fail-closed.
         raise ValueError(f"unsupported_read_tool:{tool_name}")
