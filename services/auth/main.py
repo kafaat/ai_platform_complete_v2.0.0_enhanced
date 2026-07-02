@@ -351,6 +351,11 @@ async def tenant_header_middleware(request: Request, call_next):
             if payload.get("iss") not in _ALLOWED_ISS:
                 raise ValueError("Invalid token issuer")
             response.headers["X-Tenant-ID"] = payload.get("tenant_id", "")
+            # SEC-3.1: surface the AUTHENTICATED user id + role as response headers so the
+            # gateway (auth_request) can inject them downstream — enabling user/role authz on
+            # human-governance endpoints (approvals) without services verifying JWTs themselves.
+            response.headers["X-User-Id"] = payload.get("sub", "")
+            response.headers["X-User-Role"] = payload.get("role", "")
         except Exception as e:  # noqa: BLE001
             # توكن غير صالح/منتهٍ — لا نضيف رأس tenant (سلوك مقصود، نسجّل للتتبّع)
             logger.debug("تعذّر استخراج tenant من التوكن: %s", type(e).__name__)

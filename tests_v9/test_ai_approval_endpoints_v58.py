@@ -24,7 +24,7 @@ from services.ai_agronomist.main import app  # noqa: E402
 # service token (X-Agent-Token == SAHOOL_AGENT_TOKEN). Tests provision the secret
 # and send the header — the correct new contract, assertions unchanged.
 _AGENT_TOKEN = "test-agent-token-sec3"
-_AUTH_HEADERS = {"X-Tenant-Id": "tenant-1"}  # SEC-3: approvals require gateway tenant
+_AUTH_HEADERS = {"X-Tenant-Id": "tenant-1", "X-User-Id": "user-1"}  # SEC-3/3.1: approvals require gateway tenant + user
 
 
 @pytest.fixture(autouse=True)

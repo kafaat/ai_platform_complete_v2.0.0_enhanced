@@ -1,11 +1,20 @@
-# SEC-3.1 — User/role authorization for AI approvals (BLOCKED on auth-service change)
+# SEC-3.1 — User/role authorization for AI approvals (IMPLEMENTED)
 
-**Status:** blocked-on-auth-change (documented, not implemented).
-**Depends on:** a small, additive change to `services/auth` (`/auth/verify`).
-**Scope guard:** approvals stay on the SEC-3 trusted-tenant guard until the 3 steps
-below land together. Requiring an authenticated user id at the service *before*
-auth emits it would fail-closed `403` on **every** human approval (a broken flow),
-so it is deliberately deferred rather than half-wired.
+**Status:** implemented — the auth emission, nginx injection, and service
+requirement (the 3 atomic steps in §3) all landed together, so the human
+approval flow is never left fail-closed on a header the gateway isn't yet
+injecting. The original blocker (auth surfaced the user only in the JSON body,
+which `auth_request` discards) is resolved by emitting `X-User-Id`/`X-User-Role`
+as response headers from the already-JWT-verified payload.
+
+**As-shipped deviations from the proposal below (both simplifications, no weaker):**
+- The fail-closed user check is inlined in `require_authenticated_user`
+  (`shared/security/gateway_deps.py`) rather than adding a separate
+  `resolve_authenticated_user` to `trusted_tenant.py` — one place, same 403.
+- The **approver of record** is now bound to the authenticated `X-User-Id`, not
+  the JSON body's `approver` field: `approve`/`deny` pass `approver=user_id`, so a
+  caller cannot spoof *who* approved by editing the payload (the core intent of
+  "require user/role, not just a JSON body").
 
 ---
 

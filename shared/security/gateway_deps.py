@@ -33,6 +33,22 @@ def require_trusted_tenant(
         raise HTTPException(status_code=403, detail=exc.code) from exc
 
 
+def require_authenticated_user(
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
+) -> str:
+    """Trusted authenticated-user dependency for human-governance endpoints.
+
+    SEC-3.1: the gateway (``nginx`` ``auth_request``) injects ``X-User-Id`` from
+    the verified JWT ``sub`` claim; ``proxy_params.conf`` clears any client-sent
+    value first, so this header is the only trusted source of caller identity
+    inside the service. Approve/deny/resume must be tied to an authenticated user
+    (not just a JSON body), so a missing/blank id is rejected fail-closed (403).
+    """
+    if not x_user_id or not x_user_id.strip():
+        raise HTTPException(status_code=403, detail="missing_user")
+    return x_user_id.strip()
+
+
 def require_service_token(
     x_agent_token: str | None = Header(default=None, alias="X-Agent-Token"),
 ) -> None:

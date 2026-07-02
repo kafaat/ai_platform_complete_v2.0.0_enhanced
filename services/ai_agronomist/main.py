@@ -8,7 +8,7 @@ import httpx
 from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from shared.security.gateway_deps import require_trusted_tenant
+from shared.security.gateway_deps import require_authenticated_user, require_trusted_tenant
 from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant
 
 from . import (
@@ -134,7 +134,9 @@ async def ai_provider_snapshot() -> dict[str, Any]:
 
 @app.post("/approvals/approve")
 async def approve_tool_request(
-    req: ApprovalDecisionRequest, _tenant: str = Depends(require_trusted_tenant)
+    req: ApprovalDecisionRequest,
+    _tenant: str = Depends(require_trusted_tenant),
+    user_id: str = Depends(require_authenticated_user),
 ) -> dict[str, Any]:
     """Normalize a human approval decision for a pending agent tool request.
 
@@ -142,12 +144,15 @@ async def approve_tool_request(
     by the owning domain service after authorization. It only records/returns the audited
     decision shape so the web UI can show a real approve/deny workflow without granting
     the model direct write access.
+
+    SEC-3.1: the approver of record is the gateway-authenticated user id (``X-User-Id``),
+    NOT the JSON body — a caller cannot spoof who approved by editing the payload.
     """
     base = _approval_for_decision(req.approval)
     try:
         decided = approval.approve(
             base,
-            approver=req.approver,
+            approver=user_id,
             decided_at=_utc_timestamp(),
         )
     except ValueError as exc:
@@ -181,14 +186,19 @@ async def approve_tool_request(
 
 @app.post("/approvals/deny")
 async def deny_tool_request(
-    req: ApprovalDecisionRequest, _tenant: str = Depends(require_trusted_tenant)
+    req: ApprovalDecisionRequest,
+    _tenant: str = Depends(require_trusted_tenant),
+    user_id: str = Depends(require_authenticated_user),
 ) -> dict[str, Any]:
-    """Normalize a human denial decision for a pending agent tool request."""
+    """Normalize a human denial decision for a pending agent tool request.
+
+    SEC-3.1: the denier of record is the gateway-authenticated user id, not the body.
+    """
     base = _approval_for_decision(req.approval)
     try:
         decided = approval.deny(
             base,
-            approver=req.approver,
+            approver=user_id,
             decided_at=_utc_timestamp(),
             reason=req.reason or "denied_by_user",
         )
@@ -222,7 +232,9 @@ class ApprovalResumeRequest(BaseModel):
 
 @app.post("/approvals/resume")
 async def resume_approved_tool(
-    req: ApprovalResumeRequest, _tenant: str = Depends(require_trusted_tenant)
+    req: ApprovalResumeRequest,
+    _tenant: str = Depends(require_trusted_tenant),
+    _user: str = Depends(require_authenticated_user),
 ) -> dict[str, Any]:
     """V58.2 — resume a human-APPROVED agent tool as a governed execution handoff.
 

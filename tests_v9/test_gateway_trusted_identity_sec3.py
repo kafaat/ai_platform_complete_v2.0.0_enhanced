@@ -210,12 +210,15 @@ def test_ai_header_only_no_body_tenant_passes_guard(monkeypatch):
     assert r.json()["tenant_id"] == "tenant-9"
 
 
-# ── ai_agronomist: approvals require a gateway-authenticated tenant (X-Tenant-Id) ──
+# ── ai_agronomist: approvals require a gateway-authenticated tenant AND user (SEC-3.1) ──
 # SEC-3 correction: approvals are web-UI human decisions (docstrings say so). The gateway
 # strips X-Agent-Token, so a service-token gate would make them internal-only (break the
 # human path). Instead they require the gateway-injected AUTHENTICATED X-Tenant-Id — a body
-# alone can no longer reach them. (Full user/role authz on approvals = follow-up SEC-3.1,
-# needs nginx to inject authenticated X-User-Id/X-Roles for the AI path.)
+# alone can no longer reach them.
+# SEC-3.1 (now implemented): a human decision must also be tied to an authenticated USER, not
+# just a JSON body. nginx injects X-User-Id (from the verified JWT ``sub``) on the AI path;
+# the approver of record is that trusted id, never the body's ``approver`` field. Missing
+# X-User-Id ⇒ 403 missing_user.
 _APPROVAL_BODY = {
     "approval": {
         "id": "req-sec3",
@@ -226,6 +229,7 @@ _APPROVAL_BODY = {
     },
     "approver": "user-1",
 }
+_APPROVAL_HEADERS = {"X-Tenant-Id": "tenant-1", "X-User-Id": "user-1"}
 
 
 @pytest.mark.parametrize("path", ["/approvals/approve", "/approvals/deny"])
@@ -236,6 +240,15 @@ def test_approvals_without_tenant_rejected(path):
     assert r.json()["detail"] == "missing_tenant"
 
 
+@pytest.mark.parametrize("path", ["/approvals/approve", "/approvals/deny"])
+def test_approvals_without_user_rejected(path):
+    """Tenant present but no authenticated user ⇒ fail-closed 403 missing_user (SEC-3.1)."""
+    _M, client = _ai_client()
+    r = client.post(path, json=_APPROVAL_BODY, headers={"X-Tenant-Id": "tenant-1"})
+    assert r.status_code == 403
+    assert r.json()["detail"] == "missing_user"
+
+
 def test_approvals_resume_without_tenant_rejected():
     _M, client = _ai_client()
     r = client.post("/approvals/resume", json={"approval_id": "whatever"})  # no X-Tenant-Id
@@ -243,11 +256,33 @@ def test_approvals_resume_without_tenant_rejected():
     assert r.json()["detail"] == "missing_tenant"
 
 
-def test_approvals_with_tenant_passes_auth_gate():
-    """With X-Tenant-Id the auth gate passes (decision logic may still 4xx, but not 403)."""
+def test_approvals_resume_without_user_rejected():
     _M, client = _ai_client()
-    r = client.post("/approvals/approve", json=_APPROVAL_BODY, headers={"X-Tenant-Id": "tenant-1"})
+    r = client.post(
+        "/approvals/resume", json={"approval_id": "whatever"}, headers={"X-Tenant-Id": "tenant-1"}
+    )
+    assert r.status_code == 403
+    assert r.json()["detail"] == "missing_user"
+
+
+def test_approvals_with_tenant_and_user_passes_auth_gate():
+    """With X-Tenant-Id + X-User-Id the auth gate passes (decision logic may 4xx, not 403)."""
+    _M, client = _ai_client()
+    r = client.post("/approvals/approve", json=_APPROVAL_BODY, headers=_APPROVAL_HEADERS)
     assert r.status_code != 403
+
+
+def test_approvals_approver_of_record_is_authenticated_user():
+    """SEC-3.1: the audited approver is the trusted X-User-Id, not the body's ``approver``."""
+    _M, client = _ai_client()
+    body = {**_APPROVAL_BODY, "approver": "spoofed-body-user"}
+    r = client.post(
+        "/approvals/approve",
+        json=body,
+        headers={"X-Tenant-Id": "tenant-1", "X-User-Id": "real-user-42"},
+    )
+    assert r.status_code == 200
+    assert r.json()["approval"]["decided_by"] == "real-user-42"
 
 
 # ── rag-retrieval: /search trusted-tenant guard ────────────────────────────────
