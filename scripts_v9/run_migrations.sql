@@ -433,3 +433,5 @@
 \i migrations/v138_offline_pending_ops_terminal.sql
 \echo '═══ 145. v139_field_geometry_history_append_only.sql ═══'
 \i migrations/v139_field_geometry_history_append_only.sql
+\echo '═══ 146. v140_outbox_delivery_attempts.sql ═══'
+\i migrations/v140_outbox_delivery_attempts.sql

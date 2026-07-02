@@ -539,3 +539,10 @@ v138_offline_pending_ops_terminal.sql
 # (v9)، تماماً كحماية mfa_audit_events في v129. التصحيح بإدراج revision جديدة لا بتحوير
 # القديم. يرث RLS+FORCE من v96؛ إضافيّ idempotent؛ بعد v138.
 v139_field_geometry_history_append_only.sql
+# v140 (سطر v19.5-4): سجلّ جنائيّ append-only لكلّ محاولة تسليم outbox —
+# outbox_delivery_attempts: صفّ لكلّ محاولة (attempt_no/attempted_at/subject/outcome/error)
+# مُلحَق بـevent_outbox (v11، الجدول الحيّ للعامل OutboxWorker). يكمّل حالة التسليم
+# المُجمَّعة (retry_count/last_error الواحد) بأثر لا يُدهَس لتشخيص DLQ. tenant_id إعلاميّ
+# (event_outbox غير مُنطّق بالمستأجِر ⇒ لا RLS، اتّساقاً). append-only عبر sahool_block_mutation
+# (نمط v9/mfa_audit_events). إضافيّ idempotent؛ بعد v138.
+v140_outbox_delivery_attempts.sql

@@ -582,7 +582,13 @@ class OutboxWorker:
         ويُعاد الحدث في دورة لاحقة. تتبّع المحاولة (retry/dead-letter) يُحدَّث **بعد**
         التراجع (خارج SAVEPOINT) فيبقى مُثبَّتاً. مطالبة مُتعارِضة (عولِج سابقاً) ⇒
         نتخطّى النشر ونُجرّد الصفّ بوسمه 'sent' (لا أثر مزدوج، ولا إعادة محاولة عبثيّة).
+
+        السجلّ الجنائيّ (v19.5-4): كلّ محاولة (نجاح/تخطٍّ/فشل) تُلحِق صفّاً في
+        outbox_delivery_attempts (attempt_no = retry_count+1) داخل نفس معاملة تحديث
+        الحالة (ذرّيّ)، لكن fail-safe: فشل التسجيل لا يكسر التسليم (راجع
+        _record_delivery_attempt).
         """
+        attempt_no = row["retry_count"] + 1
         envelope = {
             "event_id": str(row["event_id"]),
             "event_type": row["event_type"],
@@ -613,6 +619,9 @@ class OutboxWorker:
                         """,
                         row["outbox_id"],
                     )
+                    await self._record_delivery_attempt(
+                        conn, row, attempt_no=attempt_no, outcome="skipped", error=None
+                    )
                     return
 
                 await self.publish(row["nats_subject"], json.dumps(envelope).encode())
@@ -623,6 +632,9 @@ class OutboxWorker:
                     WHERE outbox_id = $1
                     """,
                     row["outbox_id"],
+                )
+                await self._record_delivery_attempt(
+                    conn, row, attempt_no=attempt_no, outcome="published", error=None
                 )
         except Exception as e:
             err_msg = f"{type(e).__name__}: {str(e)[:200]}"
@@ -640,6 +652,11 @@ class OutboxWorker:
                 new_status,
                 row["outbox_id"],
             )
+            # السجلّ الجنائيّ: صفّ محاولة فاشلة (attempt_no = new_retry المُتزايد) مع نصّ
+            # الخطأ — يُثبَّت مع تحديث retry أعلاه (خارج SAVEPOINT، لا يُتراجَع عنه).
+            await self._record_delivery_attempt(
+                conn, row, attempt_no=new_retry, outcome="failed", error=err_msg
+            )
             if new_status == "failed":
                 # حدث ميّت (DLQ): استُنفدت المحاولات. تصعيد ERROR ليلتقطه الرصد/التنبيه
                 # — يبقى في event_outbox (status='failed') لإعادة جدولته عبر
@@ -656,6 +673,43 @@ class OutboxWorker:
                 )
             else:
                 logger.warning(f"outbox send failed ({new_retry}/{self.max_retries}): {err_msg}")
+
+    async def _record_delivery_attempt(
+        self, conn, row, *, attempt_no: int, outcome: str, error: str | None
+    ) -> None:
+        """يُلحِق صفّاً في outbox_delivery_attempts (سجلّ جنائيّ append-only، v19.5-4).
+
+        صفّ لكلّ محاولة تسليم فردية (طابع زمنيّ/موضوع/نتيجة/خطأ) — يكمّل حالة
+        event_outbox المُجمَّعة (retry_count + last_error الواحد) بأثر لا يُدهَس؛ فبعد
+        المحاولة #3 يبقى خطأ #2 مرئيّاً للتشخيص (DLQ).
+
+        ذرّيّ لكن fail-safe: الإدراج داخل SAVEPOINT متداخل (conn.transaction())، فإن
+        فشل (مثلاً قبل تطبيق هجرة v140) يُرجَع SAVEPOINT وحده — لا يُفسِد معاملة
+        التسليم (وسم 'sent'/retry يبقى مُثبَّتاً) ولا يُرفَع الاستثناء. التسجيل مساعِد
+        رصديّ، فشله لا يُبطل تسليماً تمّ فعلاً.
+        """
+        tenant_id = row["tenant_id"]
+        try:
+            async with conn.transaction():  # SAVEPOINT معزول: فشل التسجيل لا يكسر التسليم
+                await conn.execute(
+                    """
+                    INSERT INTO outbox_delivery_attempts
+                        (outbox_id, tenant_id, attempt_no, subject, outcome, error)
+                    VALUES ($1, $2::uuid, $3, $4, $5, $6)
+                    """,
+                    row["outbox_id"],
+                    str(tenant_id) if tenant_id is not None else None,
+                    attempt_no,
+                    row["nats_subject"],
+                    outcome,
+                    error,
+                )
+        except Exception as log_exc:  # noqa: BLE001 — رصديّ فقط، لا يُبطل التسليم
+            logger.warning(
+                "outbox delivery-attempt log insert failed (non-fatal) outbox_id=%s: %s",
+                row["outbox_id"],
+                log_exc,
+            )
 
     # ─── Dead-letter (DLQ) inspect / requeue ────────────────────
 
