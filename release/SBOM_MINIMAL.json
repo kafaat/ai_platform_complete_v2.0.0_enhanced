@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9098079f1b82c184304839d2c790f25837add1605d386bf239a30230c711d31"
+          "content": "5fba8b25e9152c8a77e4fe2380d81d8e38e458768231067e283dfd6b50c4bc06"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -65,7 +65,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5dada2fef347b1d1dcd8aa9d1458c1b21f21906c0c57532617389379b929232"
+          "content": "6a9810413e5bce5a077c7b1db605c4f25c0cec4afec1e2d9f3db62c9802ad003"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -75,7 +75,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10062769c6173648c4fb8a7e640151bd98aef4ac571074e370718f5075253cf3"
+          "content": "0272e6a91ed4a19521ea61f78c3741354b7a31baf7b74c45dd661d3b710e213b"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5555,7 +5555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee9db0608ad08439f2d5a9d6b1c283db8d973156bbd7acceac0683d50c71a90d"
+          "content": "9c754e454b444da8a84f471bb3c5a9b9f4ea9c44d42b619e2b05f7cda5dab78f"
         }
       ],
       "name": "services/ai_agronomist/agent_stores.py",
@@ -5725,7 +5725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f998d565dfbcfb8515cab519821bfa72d31beb5de7aedf9cd0e3916bc638db3f"
+          "content": "2633c6ab41956173fd07694d5f4fe1611305e0a9958559699d1f4f819e0e13b5"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -6555,7 +6555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4446ab566b81e2d6beac7a97224afa76d0bee0eefdf54fc73ca58b76ca98199"
+          "content": "29c7ecb94882d43d3f4495d3072c503d92674e013ae274984d4e7c66150271c8"
         }
       ],
       "name": "services/knowledge-graph/main.py",
@@ -6935,7 +6935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e4ce05552f4c48d0167cd1151ceb79a03216387a634c3c3e74df7e9ab5b80ec"
+          "content": "2459deefe7bbc847c781d978a81304fc7d1cee9d9a07c8eddecd3219c83d9526"
         }
       ],
       "name": "services/rag-retrieval/main.py",
