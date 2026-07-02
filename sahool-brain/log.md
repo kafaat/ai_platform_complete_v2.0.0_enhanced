@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-07-02 (ك) — دفعة السلامة v29.5-op/v39.5/v19.5 (تحقّق-قبل-بناء متعدّد الوكلاء)
+
+**رأس `main` بعد الجلسة:** `b2a332c`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء ثمّ ff-merge.
+
+بطلب «ابدأ بالدفعة التالية» — بدل بناء أنظمة net-new عمياء، أُطلِقت **٣ وكلاء استكشاف (قراءة فقط)** فتبيّن أنّ معظم كلّ نظام مُغلَق downstream:
+- **v29.5-op:** idempotency (v67) + execution_ledger (v68) موجودان؛ device→platform auth ناقص. **الفجوة الحقيقيّة: مفتاح إيقاف التشغيل.**
+- **v39.5:** optimistic lock (row_version+409) + offline conflict (409) + v27 trigger على `field_boundaries` موجودة. **الفجوة: `fields.geometry` (متجر الرسم الفعليّ) بلا فحص صلاحية DB.**
+- **v19.5:** outbox + processed_events + offline_pending_ops + عقد NATS موجودة. **الفجوة الوحيدة: قفل الكاتب-الأوحد للـworkflow.**
+
+ثمّ **٣ وكلاء بناء متوازين** (worktree، أرقام v133/v134/v135)، ودُمِجت تتابعيّاً بإعادة تحقّق مِنّي (cherry-pick + حلّ تعارضات MANIFEST/run_migrations التافهة):
+- **v133** (`e8e4bbe`): `migrations/v133_actuation_killswitch.sql` (RLS+FORCE نمط v98) + `shared/actuation_killswitch.py` (match نقيّ + `is_actuation_halted` fail-closed) موصول عند ٣ نقاط إطلاق: actuator `evaluate_rules` + `/command` (423) + `decision_dispatch` (not_executed). 7 unit + 5 integration.
+- **v134** (`94cdda7`): `migrations/v134_fields_geometry_integrity.sql` — trigger `BEFORE INSERT/UPDATE` يفرض `ST_IsValid(ST_GeomFromGeoJSON)` (ERRCODE 23514) على `fields.geometry` + يزيد `geometry_version` inline (مميّز عن row_version وv132). FieldDetail يُخرِج النسخة. v27 لم يُمَسّ. (القرار: تدقيق الهندسة بقي best-effort — الضمان الآن في trigger القاعدة غير القابل للابتلاع؛ الفحص `ST_IsValid` فقط، وحارس الـAPI يبقى يفرض polygon/area.)
+- **v135** (`338217c`): `migrations/v135_workflow_state_lease.sql` (`lease_owner`/`lease_expires_at` + partial index) + `PostgresWorkflowStore.claim` بـ`FOR UPDATE SKIP LOCKED` (نمط OutboxWorker) — كاتب أوحد، رفض قابل للالتقاط، استرداد lease منتهٍ. (القرار: `AsyncPostgresWorkflowStore` لم يُغطَّ بعد — متابعة؛ سباق الإنشاء-فقط لا الاستئناف.)
+
+**إثبات (بالاسم، سجلّ CI run 28576997610 job Integration على Postgres حقيقيّ):** ٥ اختبارات killswitch + `test_fields_geometry_db_validity_and_inline_version` + ٣ اختبارات lease + `test_postgres_store_durable_resume` — كلّها PASSED (`54 passed, 99 skipped`، صفر فشل). تطبيق v133/v134/v135 ظهر في سجلّ الترحيلات.
+
+**انضباط:** تعارضات MANIFEST/run_migrations (كلّها append بعد v132) حُلَّت لتسلسل v133→v134→v135 (manifest 142) · فشل CI أوّليّ في format فقط (وكيلان تركا ملفّين غير مُنسَّقين) أُصلِح (`b2a332c`) · **worktrees نُظِّفت** (بقايا جلسات سابقة أعادت عدّ compile الحقيقيّ 1598).
+
+---
+
 ## 2026-07-02 (ي) — دفعة متعدّدة الوكلاء: v62.3 (A/B/C) + v52 + v133 + إغلاق Superset
 
 **رأس `main` بعد الجلسة:** `53a3ed4`. الفرع المخصّص مطابق. ci.yml 11/11 خضراء (Integration يُشغّل اختبارات الشقوق الجديدة على Postgres حقيقيّ) ثمّ ff-merge.

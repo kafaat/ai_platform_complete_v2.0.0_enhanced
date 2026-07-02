@@ -1,7 +1,8 @@
 # 🔥 التركيز الحاليّ (Hot)
 
-> **آخر تحديث:** 2026-07-02 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `53a3ed4` · [`log.md`](log.md) مدخل (ي).
-> 🛰 **v62.3 Evidence Runtime (٤ شقوق، دفعة متعدّدة الوكلاء):** A عقد أدلّة NDVI + بوّابة اكتمال fail-closed · B كاتب/قارئ أعمدة جودة raster (v131) · C توصيل الشبكة+الجودة pack→evidence→VRA · v52 مظروف سياسة AI (platform سلطة، ai_agronomist مستهلِك). + v133 VALIDATE-prep (تقرير مخالفات + حارس + runbook). **Superset merge: no-op مُثبَت** (main يحتوي cert بالكامل، `a9f7314` سلف خطّيّ).
+> **آخر تحديث:** 2026-07-02 · رأس `main` = الفرع المخصّص `claude/code-review-34hO3` = `b2a332c` · [`log.md`](log.md) مدخل (ك).
+> 🛡 **دفعة السلامة (v29.5-op/v39.5/v19.5 — تحقّق-قبل-بناء، ٣ استكشاف + ٣ بناء متوازية):** بعد ثبوت أنّ معظم الأنظمة مُغلَق downstream، بُنيت الفجوات الحقيقيّة الوحيدة الثلاث: **v133** مفتاح إيقاف تشغيل fail-closed (tenant/field/valve، على مساري الإرسال) · **v134** فرض `ST_IsValid` على متجر الرسم `fields.geometry` + `geometry_version` inline · **v135** قفل الكاتب-الأوحد للـworkflow (`FOR UPDATE SKIP LOCKED`). ٩ اختبارات تكامل جديدة مرّت **بالاسم** على Postgres حقيقيّ.
+> 🛰 **v62.3 Evidence Runtime (٤ شقوق):** A عقد أدلّة NDVI + بوّابة اكتمال fail-closed · B كاتب/قارئ أعمدة جودة raster (v131) · C توصيل الشبكة pack→evidence→VRA · v52 مظروف سياسة AI. + VALIDATE-prep (تقرير مخالفات + حارس + runbook؛ **بلا SQL**). **Superset merge: no-op مُثبَت** (main يحتوي cert، `a9f7314` سلف خطّيّ).
 > 🔎 **v29.6.1 (مراقبة/حُرّاس انحدار MFA — غير حاجب):** IP في تدقيق step-up · منع مفتاح تجزئة ثابت في الإنتاج · ٣ حُرّاس ساكنة (`_acquire` admin · recovery بلا self-read · audit append-only).
 > 🔐 **تصلّب MFA إنتاجيّ مكتمل ومُثبَت على Postgres حقيقيّ** (v29.5+v29.6): تشفير السرّ + recovery + قفل DB + تدقيق append-only + RLS مُضيَّق. **P0 مُغلَق:** `test_mfa_migrations_applied_on_real_postgres` مرّ فعليّاً في CI (لا تخطٍّ صامت) — أثبت v128/v129 + RLS المُضيَّق + trigger append-only على DB حيّ.
 > 🐳 **إصلاح إقلاع auth** (`abf1731`): `Dockerfile` لم ينسخ `mfa_crypto.py` ⇒ `ModuleNotFoundError` ⇒ unhealthy. أُصلِح + **حارس معمَّم** يمسح استيرادات main.py الشقيقة (otp/mfa_crypto…).
