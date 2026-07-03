@@ -37,7 +37,8 @@
       "Bash(docker port v21-sahool-nginx-1:*)",
       "Bash(grep -rn \"VITE_API\\\\|VITE_BACKEND\\\\|VITE_BASE\" /c/Users/ROG/downloads/adel-3/v21/frontend/.env*)",
       "Bash(grep -rn \"segmentation\\\\|location.*api\" /c/Users/ROG/downloads/adel-3/v21/frontend/nginx*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(docker stop:*)"
     ]
   }
 }
