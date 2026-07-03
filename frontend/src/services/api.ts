@@ -3661,27 +3661,40 @@ export interface OpsSeverityCounts {
   info?:     number;
 }
 
+export interface OpsSectionStatus {
+  status:         'ok' | 'degraded' | 'unavailable';
+  freshness_sec?: number;
+  error?:         string;
+}
+
+// عقد استجابة GET /api/v1/operations/summary — مطابق لـ``shape_operations_summary``
+// الخادميّة (api/operations_summary.py): totals/alerts/irrigation + sections صدق التشغيل.
 export interface OperationsSummary {
-  fields_total?:    number | null;
-  alerts?:          OpsSeverityCounts | null;
-  alerts_total?:    number | null;
-  fleet?:           Partial<FleetHealth> | null;
-  decisions_total?: number | null;
-  irrigation?: {
-    valves_total?:    number | null;
-    valves_open?:     number | null;
-    schedules_total?: number | null;
+  generated_at?: string | null;
+  // partial=أيّ قسم ليس ok؛ sections لكلّ قسم status حيّ/متدهور/غير متاح — يُمكّن
+  // الجدار من إظهار ما هو حيّ/متدهور/غير متاح بصدق (لا تلفيق).
+  partial?:      boolean | null;
+  sections?:     Record<string, OpsSectionStatus> | null;
+  totals?: {
+    fields?:           number;
+    equipment?:        number;
+    iot_devices?:      number;
+    decision_records?: number;
+    active_alerts?:    number;
   } | null;
-  generated_at?:    string | null;
-  // صدق التشغيل (source/freshness-aware): partial=أيّ قسم ليس ok؛ sections لكلّ قسم
-  // status حيّ/متدهور/غير متاح + عمر البيانات + سبب — يُمكّن الجدار من إظهار ما هو
-  // حيّ وما هو متدهور وما هو غير متاح بصدق (لا تلفيق).
-  partial?:         boolean | null;
-  sections?:        Record<
-    string,
-    { status: 'ok' | 'degraded' | 'unavailable'; freshness_sec?: number; error?: string }
-  > | null;
-  [k: string]:      unknown;
+  alerts?: {
+    active_total?: number;
+    by_severity?:  OpsSeverityCounts;
+    available?:    boolean;
+  } | null;
+  irrigation?: {
+    valves?:    number;
+    schedules?: number;
+    available?: boolean;
+  } | null;
+  last_activity_at?: string | null;
+  provenance?:       { calibrated?: string; note_ar?: string } | null;
+  [k: string]:       unknown;
 }
 
 /** يجلب التلخيص التشغيليّ الموحّد. أفضل-جهد: 404 (العلم مُطفأ / النقطة غير منشورة)

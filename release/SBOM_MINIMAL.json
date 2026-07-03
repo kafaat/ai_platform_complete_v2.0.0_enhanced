@@ -2965,7 +2965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "588c747c423aaedc6d41f0966db881b93bd405a455b8bb7188ff7e50158a3fed"
+          "content": "c6ed961514ffaea833a3bd37b8c54896835278fe9080d1b3aa11003b84c4c623"
         }
       ],
       "name": "frontend/src/sections/OperationCenterWallPage.tsx",
@@ -3265,7 +3265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8312edce01c9b80b54c9d17dc7efab5d5bd9917577d9b8385f1520d2a8429ec2"
+          "content": "c16cc8a34922ad4ee251438532681bb9f9d644e3e50242b4c8a196e1bab72757"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -17009,6 +17009,36 @@
         }
       ],
       "name": "services/soil-service/routers/readings.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9ca2d6ade2e0aede12e6a635e9adf92358547003c5131305708e0f3b87ee01f9"
+        }
+      ],
+      "name": "services/soil-service/routers/soil_profile.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "def0692fb427588b7c7733bd3611084ee79a84dc9456d905ded40fa3cbec69ae"
+        }
+      ],
+      "name": "services/soil-service/soil_science.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "50be1709eb172375a34f211a014c3262e040827826e36aaf457812debd7fe4e5"
+        }
+      ],
+      "name": "services/soil-service/soilgrids_client.py",
       "type": "file"
     },
     {

@@ -28,7 +28,7 @@ import {
   useValves, useSchedules, useDecisionRecords, useOperationsSummary,
 } from '../hooks/useApi';
 import { useFieldOptions } from '../hooks/useFieldOptions';
-import type { AlertRecord } from '../services/api';
+import type { AlertRecord, OperationsSummary } from '../services/api';
 
 // تحديث دوريّ معقول لعرض جداريّ مستمرّ — متباعد كي لا يُثقِل البوّابة.
 const REFRESH = {
@@ -368,6 +368,103 @@ function DecisionsTile() {
   );
 }
 
+// ── شريط مؤشّرات الأداء (KPI) — رأس قيادة كبير الأرقام (نمط شاشة 大屏) ──
+// يقرأ التلخيص الخادميّ الموحّد (totals/alerts/irrigation) ويعرضه أرقاماً بارزة
+// «بلمحة». الصدق: القسم «غير المتاح» (sections[x].status='unavailable') يعرض «—» لا
+// صفراً مُلفَّقاً؛ شارة «جزئيّ» حين partial؛ ووقت التوليد. غياب التلخيص كلّه (العلم
+// مُطفأ) ⇒ لا شريط (الترويسة تُعلن «مصادر منفصلة») — لا أرقام مُختلَقة.
+function _fmtTime(iso?: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('ar', {
+    hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit',
+  });
+}
+
+function KpiCard({
+  icon: Icon, label, value, unavailable, tone = 'default', sub,
+}: {
+  icon: LucideIcon; label: string; value: number | null; unavailable?: boolean;
+  tone?: 'default' | 'alert'; sub?: string;
+}) {
+  const critical = tone === 'alert' && (value ?? 0) > 0;
+  return (
+    <div
+      className="rounded-2xl border px-4 py-3 flex items-center gap-3"
+      style={{
+        background: critical ? '#2a0d0d' : '#10151f',
+        borderColor: critical ? '#dc262655' : '#25303f',
+      }}
+    >
+      <Icon
+        className={`w-6 h-6 flex-shrink-0 ${critical ? 'text-red-400' : 'text-emerald-400'}`}
+        aria-hidden="true"
+      />
+      <div className="min-w-0">
+        <div className="text-[11px] text-slate-400 truncate">{label}</div>
+        <div
+          className={`text-2xl font-extrabold tabular-nums ${critical ? 'text-red-300' : 'text-slate-100'}`}
+        >
+          {unavailable || value == null ? '—' : value.toLocaleString('en-US')}
+        </div>
+        {sub && <div className="text-[10px] text-slate-500 truncate">{sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+function KpiStrip({ summary }: { summary: OperationsSummary | null | undefined }) {
+  if (!summary) return null; // العلم مُطفأ / التلخيص غير منشور ⇒ لا شريط (لا تلفيق)
+  const t = summary.totals ?? {};
+  const sec = summary.sections ?? {};
+  const un = (k: string) => sec[k]?.status === 'unavailable';
+  const crit = summary.alerts?.by_severity?.critical ?? 0;
+  return (
+    <div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <KpiCard icon={MapIcon} label="الحقول" value={t.fields ?? 0} unavailable={un('fields')} />
+        <KpiCard
+          icon={Bell} label="تنبيهات نشطة" tone="alert"
+          value={summary.alerts?.active_total ?? t.active_alerts ?? 0}
+          unavailable={un('alerts')}
+          sub={crit > 0 ? `${crit} حرِجة` : undefined}
+        />
+        <KpiCard
+          icon={Cpu} label="أجهزة IoT" value={t.iot_devices ?? 0} unavailable={un('iot_devices')}
+        />
+        <KpiCard
+          icon={Activity} label="المعدّات" value={t.equipment ?? 0} unavailable={un('equipment')}
+        />
+        <KpiCard
+          icon={GitBranch} label="قرارات مُدامة"
+          value={t.decision_records ?? 0} unavailable={un('decision_records')}
+        />
+        <KpiCard
+          icon={Droplets} label="صمّامات الريّ"
+          value={summary.irrigation?.valves ?? 0} unavailable={un('irrigation')}
+          sub={
+            summary.irrigation?.schedules != null
+              ? `${summary.irrigation.schedules} جدول ريّ`
+              : undefined
+          }
+        />
+      </div>
+      <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-500 flex-wrap">
+        {summary.generated_at && <span>آخر تحديث: {_fmtTime(summary.generated_at)}</span>}
+        {summary.partial && (
+          <span
+            className="px-2 py-0.5 rounded-full"
+            style={{ background: '#2a1a00', color: '#fcd34d', border: '1px solid #f59e0b55' }}
+          >
+            بيانات جزئيّة — بعض المصادر غير متاحة
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ════════════════════ الصفحة: جدار البلاطات ════════════════════
 export default function OperationCenterWallPage() {
   // المصدر الأساسيّ الموحّد — أفضل-جهد. null ⇒ كلّ بلاطة على نقطتها المنفصلة (تدهور
@@ -393,6 +490,9 @@ export default function OperationCenterWallPage() {
           كلّ بلاطة حالتها مستقلّة — فشل بلاطة لا يكسر الجدار، ولا أرقام مُختلَقة.
         </span>
       </header>
+
+      {/* رأس القيادة: مؤشّرات الأداء البارزة (من التلخيص الموحّد؛ يختفي إن غاب). */}
+      <KpiStrip summary={summary.data} />
 
       {/* شبكة البلاطات: الخريطة كبيرة (عمودان × صفّان)؛ البقيّة بلاطات أصغر. */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[minmax(180px,auto)]">
