@@ -73,7 +73,9 @@ MAX_IMAGE_DIM = int(os.getenv("MAX_IMAGE_DIM", "1024").strip() or "1024")
 # لـ4326 تنهار رؤوس غير متجاورة إلى نفس الموضع (~سم) فتُطلِق تحذير «تقاطع ذاتيّ/رأس
 # مكرّر» في الواجهة. تبسيط معتدل بمقياس أمتار (افتراضي 3م) يُنظّف الحدّ دون فقد شكل
 # الحقل. الأرضيّة = حجم البكسل كي لا نُبسّط دون دقّة الصورة.
-SIMPLIFY_TOLERANCE_M = float(os.getenv("SEGMENTATION_SIMPLIFY_TOLERANCE_M", "3").strip() or "3")
+SIMPLIFY_TOLERANCE_M = float(os.getenv("SAM2_POLYGON_SIMPLIFY_TOLERANCE_M", "3").strip() or "3")
+# مسافة دمج الرؤوس المتتالية شبه المكرّرة (بالأمتار، افتراضي 0.5م) بعد التحويل لـ4326.
+DEDUP_TOLERANCE_M = float(os.getenv("SAM2_POLYGON_DEDUP_TOLERANCE_M", "0.5").strip() or "0.5")
 
 app = FastAPI(title="SAHOOL SAM2 Inference", version=VERSION)
 
@@ -468,8 +470,9 @@ def _mask_to_polygon(mask, transform, crs) -> dict:
 
     cleaned = [[float(p[0]), float(p[1])] for p in ring]
     # إزالة الرؤوس المتتالية شبه المكرّرة (بعد التحويل لـ4326) — يُنظّف انهيار درج
-    # البكسل عند دقّة toFixed(7) في حارس الواجهة، ويُبقي الحلقة مغلقة.
-    cleaned = _dedupe_ring(cleaned)
+    # البكسل عند دقّة toFixed(7) في حارس الواجهة، ويُبقي الحلقة مغلقة. المسافة بالأمتار
+    # (SAM2_POLYGON_DEDUP_TOLERANCE_M) مُحوَّلة لدرجات (~111320م/درجة، تقريب استوائيّ كافٍ).
+    cleaned = _dedupe_ring(cleaned, eps=DEDUP_TOLERANCE_M / 111_320.0)
     # تأكيد الإغلاق.
     if len(cleaned) >= 3 and cleaned[0] != cleaned[-1]:
         cleaned.append(list(cleaned[0]))

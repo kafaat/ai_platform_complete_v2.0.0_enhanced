@@ -88,6 +88,15 @@ def test_mask_to_polygon_output_does_not_trip_frontend_heuristic():
     ring = poly["coordinates"][0]
     assert poly["type"] == "Polygon" and ring[0] == ring[-1], "مضلّع مغلق"
 
+    # صلاحية GeoJSON: هندسة shapely صالحة (لا تقاطع ذاتيّ).
+    from shapely.geometry import shape
+
+    assert shape(poly).is_valid, "المضلّع الناتج يجب أن يكون صالحاً هندسيّاً (shapely.is_valid)"
+
+    # عدد رؤوس معقول: بعد التبسيط المتريّ لا يبقى درج البكسل الكثيف (قناع 20×20 بكسل
+    # درجيّ ⇒ عشرات الرؤوس خاماً؛ نتوقّع أقلّ بكثير بعد التبسيط).
+    assert 4 <= len(ring) <= 40, f"عدد رؤوس غير معقول بعد التبسيط: {len(ring)}"
+
     # حدس الواجهة: أيّ رأسين غير متجاورين يتطابقان عند toFixed(7) ⇒ تحذير.
     seen: dict[tuple[float, float], int] = {}
     for i, p in enumerate(ring[:-1]):

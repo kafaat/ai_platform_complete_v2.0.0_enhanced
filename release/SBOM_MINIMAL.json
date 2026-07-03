@@ -16905,7 +16905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "461be5e9697acd6d599dfcfd781519331681ad47567d7860ed9c1a370813a4c1"
+          "content": "4eecc1397473fe066949ac1e5a139d9557cf61dcab9a70f43a48bffacc622cb6"
         }
       ],
       "name": "services/sam2-inference/main.py",
