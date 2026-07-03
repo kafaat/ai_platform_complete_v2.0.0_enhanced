@@ -12,16 +12,22 @@ describe('MapHub two-year historical imagery backfill UI', () => {
     expect(source).toContain('handlePrepareTwoYearImagery');
   });
 
-  it('uses the raster-service backfill API with 24 months and field clipping geometry', () => {
+  it('uses the platform-proxied backfill API with 24 months and field clipping geometry', () => {
     expect(source).toContain('runHistoricalImageryBackfill');
     expect(source).toContain('months: 24');
     expect(source).toContain('clip_polygon_geojson: selected.geometry');
     expect(source).toContain("preset: 'custom'");
   });
 
-  it('keeps the API client pointed at the raster-service historical backfill endpoint', () => {
-    expect(api).toContain('/v1/fields/${fieldId}/imagery/backfill');
+  it('keeps the API client pointed at the platform proxy historical backfill endpoint', () => {
+    expect(api).toContain('/api/v1/fields/${fieldId}/imagery/backfill');
     expect(api).toContain('HistoricalImageryBackfillPayload');
+  });
+
+  it('renders actual cdse thumbnails inside the two-year timeline cards', () => {
+    expect(source).toContain('fieldCdseThumbnailUrl');
+    expect(source).toContain('alt={`مصغّرة صورة الحقل ${d.date}`}');
+    expect(source).toContain('data-testid="imagery-timeline-items"');
   });
 
   // Regression: the raster-service backfill contract types `indices` as list[IndicatorKind],

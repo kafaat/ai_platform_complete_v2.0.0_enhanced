@@ -2835,7 +2835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "de6090bdc28e73199cf7a9b2815aff8f374726f43bfe5577df08e6b741414a2d"
+          "content": "030cb6cb8725fcb176c5acfd22ab61fbede0e25a8250aa581b7e91415a01adef"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -2865,7 +2865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4a0e5820332a67b3edec7247486a6d15478f099f8516eb3a07dd60f0f72833c"
+          "content": "a57995b2f723d075dc3de54f17c6834fbe40a0c7163255eac374bf03296de6d6"
         }
       ],
       "name": "frontend/src/sections/MapHubTwoYearBackfill.static.test.ts",
@@ -3255,7 +3255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fc6b2abc163eef31195e537de186a36c5fd8c3256920ec214550aef1f02bc335"
+          "content": "81ce82f84b61de6321234481ff237dcecc5f0b97e939813e8ba2ad632fbcc968"
         }
       ],
       "name": "frontend/src/services/api.test.ts",
@@ -3265,7 +3265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "49bbb92ad6a38a57ae1ad5d9e5c05622d78424fdf3850002f68409e28b672bb2"
+          "content": "d6fd852fbd009d6ce7acd95f7f000ee730c19cefaf159f914842c85a2d5d1c38"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9855,7 +9855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7297b29e58b440b5a5c986e99f6b8da09219c30299ec029929b04adb38d3b245"
+          "content": "520dc58519e46f089bb8616c9dfcb6cc405b1efc8acbfd9560e6dabce04ae55f"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
