@@ -1046,11 +1046,17 @@ export default function MapHub() {
           crop={selected.crop}
           areaHa={typeof selected.area === 'number' ? selected.area : null}
           imageryDates={availableImageryDates}
+          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
+          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
+          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
+          weatherReady={!!weatherQ.data?.current}
+          agentContextReady={!!fieldId}
           routeFieldIsInvalid={routeFieldIsInvalid}
           storedFieldIsInvalid={storedFieldIsInvalid}
           selectionReason={selectionReason}
-          onBackfill={handlePrepareTwoYearImagery}
+          onBackfill={mutateAllowed ? handlePrepareTwoYearImagery : undefined}
           onOpenTimeline={() => setShowImageryTimeline(true)}
+          onShowAlerts={() => setShowAlerts(true)}
         />
       )}
 

@@ -19,6 +19,11 @@ describe('fieldViewActionDeck', () => {
     expect(summary.newestAgeDays).toBe(3);
   });
 
+  it('adds governance card when decision sources are incomplete', () => {
+    const cards = buildFieldViewActionDeck({ fieldId: 'f1', imageryDates: [], weatherReady: false });
+    expect(cards.some((card) => card.id === 'fieldview-source-governance')).toBe(true);
+  });
+
   it('adds context reconciliation card for stale route or stored field', () => {
     const cards = buildFieldViewActionDeck({
       fieldId: 'f2', fieldName: 'بديل', routeFieldIsInvalid: true, storedFieldIsInvalid: true, imageryDates: [],

@@ -1,7 +1,8 @@
 import type { FieldImageryDateOption } from '../services/api';
+import { evaluateFieldViewGovernance } from './fieldViewGovernance';
 
 export type FieldViewActionTone = 'ok' | 'info' | 'warn' | 'critical';
-export type FieldViewActionKind = 'imagery' | 'scouting' | 'weather' | 'operations' | 'records' | 'context';
+export type FieldViewActionKind = 'imagery' | 'scouting' | 'weather' | 'operations' | 'records' | 'context' | 'governance';
 
 export interface FieldViewActionCard {
   id: string;
@@ -25,7 +26,10 @@ export interface FieldViewActionDeckInput {
   routeFieldIsInvalid?: boolean;
   storedFieldIsInvalid?: boolean;
   selectionReason?: string | null;
+  weatherReady?: boolean;
+  agentContextReady?: boolean;
 }
+
 
 function parseDateMs(value: string | null | undefined): number | null {
   const date = String(value ?? '').slice(0, 10);
@@ -75,6 +79,8 @@ export function buildFieldViewActionDeck(input: FieldViewActionDeckInput, nowMs 
     });
   }
 
+  const governance = evaluateFieldViewGovernance(input, nowMs);
+
   if (imagery.total === 0) {
     cards.push({
       id: 'imagery-backfill', kind: 'imagery', tone: 'warn', title: 'جهّز تاريخ الصور',
@@ -92,6 +98,16 @@ export function buildFieldViewActionDeck(input: FieldViewActionDeckInput, nowMs 
       id: 'imagery-ready', kind: 'imagery', tone: 'ok', title: 'صور الحقل جاهزة',
       summary: `${imagery.readyCount} مشهد جاهز و${imagery.lowCloudCount} منخفض الغيوم.`,
       cta: 'افتح Timeline', evidence: `latest=${imagery.newestDate ?? 'latest'}`,
+    });
+  }
+
+  const weakGovernanceSources = governance.sources.filter((s) => s.severity === 'critical' || s.severity === 'warn');
+  if (governance.score < 88 || weakGovernanceSources.length > 0) {
+    const weak = weakGovernanceSources.map((s) => s.label).slice(0, 2).join('، ');
+    cards.push({
+      id: 'fieldview-source-governance', kind: 'governance', tone: governance.severity === 'critical' ? 'critical' : 'warn', title: 'حوكمة مصادر القرار',
+      summary: `${governance.summary}${weak ? ` · الأولوية: ${weak}` : ''}`,
+      cta: 'راجع الثقة', evidence: `score=${governance.score}% sources=${governance.sources.length}`,
     });
   }
 

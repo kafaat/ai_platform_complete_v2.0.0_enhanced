@@ -845,7 +845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f19c9e4943ea9f61e629b68ee44dfe717dc7b0f4394db399d4c18d0883fae0a3"
+          "content": "94311a9aeb25cc804a4eeae68b2246099c58e640648a053ef9ed8374d91ed4ba"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldViewInsightStrip.tsx",
@@ -1945,7 +1945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd3b59a8ba49dca891caa3d7487c6b7c119c236a03d449d2cc60e27182b443bc"
+          "content": "b039ffc10157047c307edb9a9e9b770e650d0509fb621796fb961225a50620f6"
         }
       ],
       "name": "frontend/src/lib/fieldViewActionDeck.test.ts",
@@ -1955,10 +1955,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84a4712f1e042455a2abf19935f1a6a2871023d8321efaf04b7a9b9e507908d7"
+          "content": "6e5ae8e74a584d5c4521da5ef1928a2f0c67baa61d45434ea2c5145fbe0cd2ed"
         }
       ],
       "name": "frontend/src/lib/fieldViewActionDeck.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "438b9baff10b26502cca9d00a30cb8409e36737370ba3e92c8327583067e1188"
+        }
+      ],
+      "name": "frontend/src/lib/fieldViewGovernance.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8958fd679ef1027a63056967c78e6d88caef1d4b9e6cd1813e5228e97e7285d1"
+        }
+      ],
+      "name": "frontend/src/lib/fieldViewGovernance.ts",
       "type": "file"
     },
     {
@@ -2895,7 +2915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "871ce177afe3fdd213aaebe106149630496a48a6c8a9c9a4335337ab6d917790"
+          "content": "20c20aefc2e9634d7e55c59144c2aeabcdf69ccca55db183b5294a290bf35cab"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

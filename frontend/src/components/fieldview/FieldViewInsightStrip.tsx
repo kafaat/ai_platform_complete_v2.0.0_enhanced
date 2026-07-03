@@ -1,5 +1,6 @@
-import { Sparkles, Satellite, ClipboardCheck, MapPinned, AlertTriangle, FileText } from 'lucide-react';
+import { Sparkles, Satellite, ClipboardCheck, MapPinned, AlertTriangle, FileText, ShieldCheck, Network } from 'lucide-react';
 import { buildFieldViewActionDeck, type FieldViewActionCard, type FieldViewActionDeckInput } from '../../lib/fieldViewActionDeck';
+import { evaluateFieldViewGovernance } from '../../lib/fieldViewGovernance';
 import { T } from '../ds';
 
 const ICONS: Record<FieldViewActionCard['kind'], typeof Satellite> = {
@@ -9,6 +10,7 @@ const ICONS: Record<FieldViewActionCard['kind'], typeof Satellite> = {
   operations: ClipboardCheck,
   records: FileText,
   context: AlertTriangle,
+  governance: ShieldCheck,
 };
 
 const TONE_STYLE: Record<FieldViewActionCard['tone'], { border: string; bg: string; fg: string }> = {
@@ -35,6 +37,7 @@ function actionHandler(card: FieldViewActionCard, props: Props) {
 
 export default function FieldViewInsightStrip(props: Props) {
   const cards = buildFieldViewActionDeck(props);
+  const governance = evaluateFieldViewGovernance(props);
   if (!cards.length) return null;
   return (
     <section className="mb-3" aria-label="FieldView smart action deck" data-testid="fieldview-insight-strip">
@@ -43,7 +46,10 @@ export default function FieldViewInsightStrip(props: Props) {
           <Sparkles className="w-4 h-4 text-emerald-300" aria-hidden="true" />
           FieldView Smart Deck
         </div>
-        <span className="text-[11px]" style={{ color: T.faint }}>أفضل إجراء تالٍ حسب الحقل النشط</span>
+        <div className="inline-flex items-center gap-2 text-[11px]" style={{ color: T.faint }}>
+          <Network className="w-3.5 h-3.5" aria-hidden="true" />
+          <span>ثقة المصادر {governance.score}% · {governance.sources.filter((s) => s.status === 'ready').length}/{governance.sources.length} جاهزة</span>
+        </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
         {cards.map((card) => {
