@@ -845,6 +845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "47384f2bd2d5b6a60b6bec509212d06e458b6682c92be01be172ac5eabfcca4d"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FieldHealthReportCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "45f4a74bbcca561235f848e70fd49d2cbbb59f0144dbc12f26753048f979e027"
         }
       ],
@@ -1945,6 +1955,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2ef1d7771d22c150494d91a89f1231b67dd0c1a809db9f00d66cdff3123f61a0"
+        }
+      ],
+      "name": "frontend/src/lib/fieldHealthReport.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80819ff55d3176f5f9925d2e816cc9278f364f735d87d10eda9649b3cd45b09e"
+        }
+      ],
+      "name": "frontend/src/lib/fieldHealthReport.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "00884e85b3fdaa242a053ba48e03427c7bb120f189837abc4606c945664f4957"
         }
       ],
@@ -2975,7 +3005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20c20aefc2e9634d7e55c59144c2aeabcdf69ccca55db183b5294a290bf35cab"
+          "content": "38a7e9536dddc83d1f65fea6dcfc4867c76cfac036bf7d04388f886fcab07f69"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

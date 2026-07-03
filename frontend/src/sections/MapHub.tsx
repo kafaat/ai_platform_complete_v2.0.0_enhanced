@@ -39,6 +39,7 @@ import { availableBasemapLayers, layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import FieldViewInsightStrip from '../components/fieldview/FieldViewInsightStrip';
+import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
@@ -1039,6 +1040,24 @@ export default function MapHub() {
       {/* FieldView Smart Deck — أفضل إجراء تالٍ للحقل النشط (صور/استكشاف/عمليّات/سجلّ/سياق).
           يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
           إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
+      {selected && (
+        <FieldHealthReportCard
+          fieldId={fieldId}
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          imageryDates={availableImageryDates}
+          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
+          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
+          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
+          weatherReady={!!weatherQ.data?.current}
+          agentContextReady={!!fieldId}
+          routeFieldIsInvalid={routeFieldIsInvalid}
+          storedFieldIsInvalid={storedFieldIsInvalid}
+          selectionReason={selectionReason}
+        />
+      )}
+
       {selected && (
         <FieldViewInsightStrip
           fieldId={fieldId}
