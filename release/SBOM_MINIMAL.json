@@ -845,6 +845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cb7e36a2a785a6da770a856005350e6dc96f13459e0e411b10f4c84fda96c903"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FarmerMetricsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "47384f2bd2d5b6a60b6bec509212d06e458b6682c92be01be172ac5eabfcca4d"
         }
       ],
@@ -1909,6 +1919,26 @@
         }
       ],
       "name": "frontend/src/lib/featureFlags.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "575d2f0c97c048c928ac5909b6680b271cba8522e2c7aea934eb75c3d2e004c6"
+        }
+      ],
+      "name": "frontend/src/lib/fieldFarmerMetrics.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6f1d22aeef9f355d128bc3db47a78ff6d13e25e68232265d5510522129800a1a"
+        }
+      ],
+      "name": "frontend/src/lib/fieldFarmerMetrics.ts",
       "type": "file"
     },
     {
@@ -3005,7 +3035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38a7e9536dddc83d1f65fea6dcfc4867c76cfac036bf7d04388f886fcab07f69"
+          "content": "feb2a8ea34296537d79db096afa75d97a8ad6f52f9ab46f3ea3d443a714971bd"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

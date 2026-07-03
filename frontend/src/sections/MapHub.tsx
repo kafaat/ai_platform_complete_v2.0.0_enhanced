@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -40,6 +40,7 @@ import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import FieldViewInsightStrip from '../components/fieldview/FieldViewInsightStrip';
 import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard';
+import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
@@ -738,6 +739,28 @@ export default function MapHub() {
     [selected],
   );
   const weatherQ = useWeatherForecast(selectedPoint?.[0] ?? 15.05, selectedPoint?.[1] ?? 45.55);
+
+  // ── عرض الفلاح (P1): 4 مؤشّرات من إشارات حيّة حقيقيّة (NDVI · رطوبة تربة · نيتروجين · طقس).
+  // استخراج دفاعيّ — عند غياب أيّ إشارة تُمرَّر null فتُعرَض 'غير متاح' بلا اختلاق. ──
+  const ndviQ = useCurrentNDVI(fieldId ?? '');
+  const soilMoistureQ = useFieldSoilMoisture(fieldId ?? null);
+  const nRecQ = useSoilNRecommendation(fieldId ?? '');
+  const farmerMetricsInput = useMemo(() => {
+    const nd = ndviQ.data as { ndvi?: number; mean_ndvi?: number } | undefined;
+    const ndvi = typeof nd?.ndvi === 'number' ? nd.ndvi : typeof nd?.mean_ndvi === 'number' ? nd.mean_ndvi : null;
+    const soilMoisturePct = soilMoistureQ.data?.reading?.soil_moisture_pct ?? null;
+    const nd2 = nRecQ.data as { status?: string; nitrogen_status?: string; recommended_n_kg_ha?: number } | undefined;
+    const nStatusRaw = nd2?.status ?? nd2?.nitrogen_status;
+    let nitrogenStatus: 'adequate' | 'deficit' | 'excess' | null = null;
+    if (nStatusRaw === 'adequate' || nStatusRaw === 'deficit' || nStatusRaw === 'excess') nitrogenStatus = nStatusRaw;
+    else if (typeof nd2?.recommended_n_kg_ha === 'number') nitrogenStatus = nd2.recommended_n_kg_ha > 0 ? 'deficit' : 'adequate';
+    const wd = weatherQ.data as { daily?: Array<{ temp_max_c?: number; wind_speed_m_s?: number; rain_mm?: number; precipitation_mm?: number }> } | undefined;
+    const today = wd?.daily?.[0];
+    const weather = today
+      ? { tempMaxC: today.temp_max_c ?? null, windMs: today.wind_speed_m_s ?? null, rainMm: today.rain_mm ?? today.precipitation_mm ?? null }
+      : null;
+    return { ndvi, soilMoisturePct, nitrogenStatus, weather };
+  }, [ndviQ.data, soilMoistureQ.data, nRecQ.data, weatherQ.data]);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1040,6 +1063,8 @@ export default function MapHub() {
       {/* FieldView Smart Deck — أفضل إجراء تالٍ للحقل النشط (صور/استكشاف/عمليّات/سجلّ/سياق).
           يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
           إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
+      {selected && <FarmerMetricsCard {...farmerMetricsInput} />}
+
       {selected && (
         <FieldHealthReportCard
           fieldId={fieldId}
