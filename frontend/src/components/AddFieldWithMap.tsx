@@ -40,6 +40,41 @@ interface DrawnLayer extends L.Layer {
   getLatLngs?: () => L.LatLng[] | L.LatLng[][];
 }
 
+
+// يحاول التقاط viewport الحالي من بلاطات Leaflet إلى PNG base64 لإرسالها إلى
+// field-segmentation. هذا يعمل مع طبقات تسمح بـCORS؛ إن منعه مزوّد البلاطات نُعيد null
+// ونُبقي المسار صادقاً: bbox + preprocessing=exg فقط دون صورة.
+function captureLeafletViewportBase64(map: L.Map): string | null {
+  const container = map.getContainer();
+  const rect = container.getBoundingClientRect();
+  const width = Math.max(1, Math.round(rect.width));
+  const height = Math.max(1, Math.round(rect.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+
+  const containerPoint = map.latLngToContainerPoint(map.getCenter());
+  const layerPoint = map.latLngToLayerPoint(map.getCenter());
+  const layerToContainer = L.point(containerPoint.x - layerPoint.x, containerPoint.y - layerPoint.y);
+  const tiles = Array.from(container.querySelectorAll<HTMLImageElement>('img.leaflet-tile'));
+
+  try {
+    for (const tile of tiles) {
+      if (!tile.complete || tile.naturalWidth === 0 || tile.naturalHeight === 0) continue;
+      const pos = L.DomUtil.getPosition(tile).add(layerToContainer);
+      const opacity = Number(tile.style.opacity || '1');
+      ctx.globalAlpha = Number.isFinite(opacity) ? opacity : 1;
+      ctx.drawImage(tile, Math.round(pos.x), Math.round(pos.y), tile.width || 256, tile.height || 256);
+    }
+    ctx.globalAlpha = 1;
+    return canvas.toDataURL('image/png').split(',', 2)[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 // تُعيد حساب أبعاد الخريطة بعد فتح المودال: عند التركيب قد لا يكون حجم الحاوية
 // نهائيّاً (انتقال/تخطيط المودال) فيحتفظ Leaflet بحجم قديم ⇒ انحراف بين موضع
 // النقر وموضع الرسم. نطلب invalidateSize مرّتين (بعد التركيب وبعد استقرار التخطيط).
@@ -797,7 +832,15 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     const hints: Array<[number, number]> | undefined =
       segReqMode === 'hybrid' ? [[c.lng, c.lat]] : undefined;
     try {
-      const res = await segmentField({ mode: segReqMode, bbox, ...(hints ? { hints } : {}) });
+      const image_base64 = captureLeafletViewportBase64(map);
+      const res = await segmentField({
+        mode: segReqMode,
+        bbox,
+        preprocessing: 'exg',
+        fallback_to_original_on_low_exg: true,
+        ...(image_base64 ? { image_base64 } : {}),
+        ...(hints ? { hints } : {}),
+      });
       const ring = geomToPolygon(res?.geometry);
       if (!ring || ring.length < 3) {
         // ردّ بلا هندسة صالحة — لا نُلفّق مضلّعاً، نُبقي الرسم اليدويّ.
@@ -820,9 +863,16 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         ...metadata,
       });
       const conf = typeof res?.confidence === 'number' ? ` (ثقة ${(res.confidence * 100).toFixed(0)}٪)` : '';
+      // شفافيّة ExG: نُعلِم المشغّل إن طُبِّق تحسين الغطاء النباتيّ، ونحذّره صراحةً حين
+      // كان الغطاء منخفضاً (إشارة ضعيفة ⇒ الاقتراح أقلّ موثوقيّة، يستحقّ تدقيقاً أشدّ).
+      const meta = metadata as Record<string, unknown>;
+      const preproc = typeof meta.preprocessing === 'string' ? meta.preprocessing : '';
+      const lowVeg = meta.low_confidence === true;
+      const exgTag = preproc.startsWith('exg') ? ' · تحسين ExG للغطاء النباتيّ' : '';
+      const lowTag = lowVeg ? ' · غطاء نباتيّ منخفض — دقّق الحدّ' : '';
       setSegNotice({
-        tone: 'info',
-        text: `حُمِّل اقتراح ${segReqMode === 'auto' ? 'تلقائيّ' : 'هجين'} للحدّ${conf} — راجِعه وعدّله قبل الحفظ.`,
+        tone: lowVeg ? 'warning' : 'info',
+        text: `حُمِّل اقتراح ${segReqMode === 'auto' ? 'تلقائيّ' : 'هجين'} للحدّ${conf}${exgTag}${lowTag} — راجِعه وعدّله قبل الحفظ.`,
       });
     } catch (e: unknown) {
       const kind = classifySegmentationError(e);
@@ -1456,6 +1506,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                   url={selectedBasemapUrl}
                   attribution={selectedBasemapAttribution}
                   maxZoom={selectedBasemapMaxZoom}
+                  crossOrigin="anonymous"
                 />
                 {/* الدائرة/المستطيل التفاعليّان (نقر + معاينة حيّة) — يلتقطان نقرات
                     الخريطة فقط حين تُختار أداتهما؛ المضلّع يبقى على شريط leaflet-draw. */}

@@ -1455,6 +1455,9 @@ services:
       # field-segmentation to the SAM2 inference service with no code changes.
       # Leaving SEGMENTATION_BACKEND blank keeps CPU/dev mode honest (503 for auto).
       SEGMENTATION_INFERENCE_URL: ${SEGMENTATION_INFERENCE_URL:-http://sahool-sam2-inference:8080/predict}
+      # ExG preprocessor safety/performance limits for map viewport screenshots.
+      EXG_MAX_SIDE: ${EXG_MAX_SIDE:-1280}
+      EXG_MAX_IMAGE_PIXELS: ${EXG_MAX_IMAGE_PIXELS:-12000000}
     networks:
     - sahool-internal
     healthcheck:

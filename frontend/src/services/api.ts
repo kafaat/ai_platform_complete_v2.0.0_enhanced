@@ -799,6 +799,11 @@ export interface SegmentFieldInput {
   mode:      SegmentationMode;
   field_id?: string;
   crop?:     string | null;
+  // صورة viewport اختيارية: عند زر تلقائي نحاول إرسال لقطة الخريطة كي يطبّق
+  // field-segmentation مؤشر ExG قبل SAM2. قد تفشل اللقطة مع مزوّدات بلا CORS.
+  image_base64?: string;
+  preprocessing?: 'none' | 'exg' | 'auto_exg';
+  fallback_to_original_on_low_exg?: boolean;
   // تلميحات نقطيّة [lon, lat] للوضع الهجين (اختياريّة — النموذج يستخدمها كبذور).
   hints?:    Array<[number, number]>;
 }
@@ -831,11 +836,19 @@ export function classifySegmentationError(e: unknown): SegmentationErrorKind {
   const data = err.response?.data as
     | { detail?: unknown; error?: unknown; code?: unknown }
     | undefined;
-  // يقرأ رمز السبب من أيّ من الحقول الشائعة (detail نصّ، أو error، أو code).
+  // يقرأ رمز السبب من أيّ من الحقول الشائعة. FastAPI قد يضع detail ككائن
+  // {error: "model_not_configured"} وليس كنص فقط.
   const codeFields = [data?.detail, data?.error, data?.code];
-  const hasModelCode = codeFields.some(
-    (v) => typeof v === 'string' && v.includes('model_not_configured'),
-  );
+  const hasModelCode = codeFields.some((v) => {
+    if (typeof v === 'string') return v.includes('model_not_configured');
+    if (v && typeof v === 'object') {
+      const obj = v as Record<string, unknown>;
+      return [obj.error, obj.code, obj.detail].some(
+        (x) => typeof x === 'string' && x.includes('model_not_configured'),
+      );
+    }
+    return false;
+  });
   if (status === 503 && hasModelCode) return 'model_not_configured';
   if (status === 404) return 'unavailable';
   if (status === 503) return 'unavailable'; // 503 بلا رمز معروف ⇒ الخدمة غير متاحة مؤقّتاً

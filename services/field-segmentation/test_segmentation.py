@@ -385,3 +385,75 @@ def test_inference_invalid_geometry_returns_502(monkeypatch):
     r = client.post("/segment", json={"mode": "auto"}, headers=_hdr())
     assert r.status_code == 502, r.text
     assert r.json()["detail"]["error"] == "inference_bad_geometry"
+
+
+# ── ٩. ExG قبل SAM2: صورة محسّنة + prompts لا هندسة مُفبركة ──
+def _png_b64_rgb_square() -> str:
+    import base64
+    import io
+
+    import numpy as np
+    from PIL import Image
+
+    img = np.zeros((96, 96, 3), dtype=np.uint8)
+    img[:, :] = [135, 112, 80]  # تربة/رمل
+    img[24:72, 28:76] = [25, 178, 45]  # غطاء نباتي واضح
+    out = io.BytesIO()
+    Image.fromarray(img, "RGB").save(out, format="PNG")
+    return base64.b64encode(out.getvalue()).decode("ascii")
+
+
+def test_auto_exg_preprocesses_image_before_sam2(monkeypatch):
+    mod, client = _configured(monkeypatch, backend="sam2")
+    seen: dict = {}
+    open_ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1]]
+
+    def fake_post(payload):
+        seen.update(payload)
+        return _fake_response(
+            mod,
+            status_code=200,
+            json_body={
+                "geometry": {"type": "Polygon", "coordinates": [open_ring]},
+                "confidence": 0.91,
+            },
+        )
+
+    monkeypatch.setattr(mod, "_post_inference", fake_post)
+    raw = _png_b64_rgb_square()
+    r = client.post(
+        "/segment",
+        json={"mode": "auto", "image_base64": raw, "preprocessing": "exg"},
+        headers=_hdr(),
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["metadata"]["preprocessing"] == "exg"
+    assert body["metadata"]["vegetation_ratio"] > 0.02
+    assert body["metadata"]["candidate_count"] >= 1
+    assert seen["preprocessing"] == "exg"
+    assert seen["image_base64"] != raw
+    assert seen["boxes"]
+    assert seen["positive_points"]
+
+
+def test_auto_exg_without_image_is_explicitly_skipped(monkeypatch):
+    mod, client = _configured(monkeypatch, backend="sam2")
+    seen: dict = {}
+    open_ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1]]
+    monkeypatch.setattr(
+        mod,
+        "_post_inference",
+        lambda payload: (
+            seen.update(payload)
+            or _fake_response(
+                mod,
+                status_code=200,
+                json_body={"geometry": {"type": "Polygon", "coordinates": [open_ring]}},
+            )
+        ),
+    )
+    r = client.post("/segment", json={"mode": "auto", "preprocessing": "exg"}, headers=_hdr())
+    assert r.status_code == 200, r.text
+    assert r.json()["metadata"]["preprocessing"] == "exg_skipped_no_image"
+    assert seen["preprocessing"] == "exg_skipped_no_image"
