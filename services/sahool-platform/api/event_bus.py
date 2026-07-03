@@ -140,6 +140,9 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # عند نقطة POST /imagery/refresh بعد استدعاء raster (imagery/best + process-from-stac)،
     # مرساةً لفعل حقيقيّ (طلب معالجة مُستهدَفة) يجعله متتبَّعاً/مدقَّقاً في مجرى الأحداث.
     FIELD_IMAGERY_REFRESH_REQUESTED = "field.imagery.refresh_requested"
+    # عند نقطة POST /imagery/backfill (بوّابة المنصّة تحقن X-Agent-Token وتمرّر إلى
+    # raster) — طلب سلسلة تاريخيّة (24m/3y/5y) يُتتبَّع/يُدقَّق في مجرى الأحداث.
+    FIELD_IMAGERY_BACKFILL_REQUESTED = "field.imagery.backfill_requested"
     # دمج آليّ لتعديل offline متعارض غير متقاطع (Auto-merge L3) — تدقيق صريح.
     OFFLINE_MERGE_AUTO = "offline.merge.auto"
     FIELD_DELETED = "field.deleted"

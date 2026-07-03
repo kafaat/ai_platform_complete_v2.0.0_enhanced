@@ -8275,7 +8275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83a784e969083b457e192af583ab3c378f38e2e4d21dc4f89210604d4b7306de"
+          "content": "5da50f6775c27f27ad1ccbc34f08c131401ef6144909312448dff5a52505edf1"
         }
       ],
       "name": "services/sahool-platform/api/event_bus.py",
