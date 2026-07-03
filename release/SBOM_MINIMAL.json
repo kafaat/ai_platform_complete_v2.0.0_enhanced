@@ -845,6 +845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f19c9e4943ea9f61e629b68ee44dfe717dc7b0f4394db399d4c18d0883fae0a3"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FieldViewInsightStrip.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "065b05ff97836b95c16d3387c25cbda4a259a547ec9c15c455b56336f138b41e"
         }
       ],
@@ -1925,6 +1935,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dd3b59a8ba49dca891caa3d7487c6b7c119c236a03d449d2cc60e27182b443bc"
+        }
+      ],
+      "name": "frontend/src/lib/fieldViewActionDeck.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "84a4712f1e042455a2abf19935f1a6a2871023d8321efaf04b7a9b9e507908d7"
+        }
+      ],
+      "name": "frontend/src/lib/fieldViewActionDeck.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "75972c82f168c24e9618f62f41a8aa880dcc56795d636d26cb8327f9cc846b14"
         }
       ],
@@ -2855,7 +2885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "84a8a26fe3cefa357f52f33d9a55e1a7d4276a636434292abbdad6e73b20ed78"
+          "content": "871ce177afe3fdd213aaebe106149630496a48a6c8a9c9a4335337ab6d917790"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

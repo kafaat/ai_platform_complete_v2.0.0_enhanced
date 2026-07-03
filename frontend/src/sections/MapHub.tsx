@@ -38,6 +38,7 @@ import { canMutate } from '../lib/permissions';
 import { availableBasemapLayers, layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import AddFieldWithMap from '../components/AddFieldWithMap';
+import FieldViewInsightStrip from '../components/fieldview/FieldViewInsightStrip';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
@@ -1033,6 +1034,24 @@ export default function MapHub() {
         >
           {fieldViewStatus}
         </div>
+      )}
+
+      {/* FieldView Smart Deck — أفضل إجراء تالٍ للحقل النشط (صور/استكشاف/عمليّات/سجلّ/سياق).
+          يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
+          إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
+      {selected && (
+        <FieldViewInsightStrip
+          fieldId={fieldId}
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          imageryDates={availableImageryDates}
+          routeFieldIsInvalid={routeFieldIsInvalid}
+          storedFieldIsInvalid={storedFieldIsInvalid}
+          selectionReason={selectionReason}
+          onBackfill={handlePrepareTwoYearImagery}
+          onOpenTimeline={() => setShowImageryTimeline(true)}
+        />
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" data-testid="maphub-summary">
