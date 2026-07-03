@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dad04f9c956a3fd712e52f192a32a32370a008a0f0e6388534b36fabc07d2b3e"
+          "content": "8eb6abffcd5cd9184f58d041ad3d219b9afb2c5aa90168bf3b93ea8a1ef4f0cf"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -2635,7 +2635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b563e78f9ea0c7a0f6bbffd1198cb2f3c6717c0416a071f71b337806b3183ce9"
+          "content": "dd61a0a8f2425b0678bcc98af4443f2d13fe0e2481d65395aac50ff4af26558a"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -2835,7 +2835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dcf1f4a35aa60ac6366fe52ea0431adc8349b0b4fb8ab2c6f460b8fcb974101a"
+          "content": "de6090bdc28e73199cf7a9b2815aff8f374726f43bfe5577df08e6b741414a2d"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -3265,7 +3265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c16cc8a34922ad4ee251438532681bb9f9d644e3e50242b4c8a196e1bab72757"
+          "content": "31910fe2837b64f5244aa6ed467a4284324cf5796c8c92078f9ca2350f80fb24"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12cf3fc15a0b37cc71d0c2a3610efbafe315d5e158ec7f57eefede031a67e354"
+          "content": "683f1e5b277d7f96cf83edcb41237b4b499006acb8365aa0208d49b978e9c150"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -6385,7 +6385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2e0bb9ca37ad29e65cdd0b125db39c2b967eca2196417ba96993cf0f87982ed"
+          "content": "e279f13c177cd31569cfbda33ef3668d32be379138d6ef50c0127ba4d850c69f"
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",
@@ -8465,6 +8465,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c503c1b53049f56ea4bffe1642b930378e3e2a8e3e536a584beabf525223d95c"
+        }
+      ],
+      "name": "services/sahool-platform/api/field_geometry_save_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "06fb4e72d2825548499bbc86e5a46d2b22f8dae41cf6499bd85ef31b1c3ca320"
         }
       ],
@@ -8475,7 +8485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "970983926fb1b45c07f1cdd4ecab8b5a2199365025748ddd8bb3a8d476332f84"
+          "content": "134de7374a6aac9d7fd54097054a08a790fb1204a790f8a362271f1a2ee85aa6"
         }
       ],
       "name": "services/sahool-platform/api/field_models.py",
@@ -9825,7 +9835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9b972685c1ac6e05e4ba3f060570339e23e8f618d12cbd72e277f063a30fdab"
+          "content": "7297b29e58b440b5a5c986e99f6b8da09219c30299ec029929b04adb38d3b245"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -16905,7 +16915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1780ef1a8fa388e077c6648e9ab0e5de7b0727bf0225b8eb655208c52581359c"
+          "content": "709eb703377bf3488f2b8fd4f12e215d22ee3f24a10d879ee4bb53fbee5b1b6f"
         }
       ],
       "name": "services/sam2-inference/main.py",

@@ -144,6 +144,7 @@ export default function FieldManagementPage() {
         country: data.country ?? null,
         region: data.region ?? null,
         geometry: data.geometry,
+        boundary_metadata: data.boundary_metadata ?? undefined,
       });
       const rec = r.data as Record<string, unknown>;
       setFields(p => [...p, mapField(rec)]);
@@ -175,6 +176,7 @@ export default function FieldManagementPage() {
       country: data.country ?? null,
       region: data.region ?? null,
       geometry: data.geometry,
+      boundary_metadata: data.boundary_metadata ?? undefined,
     });
     const rec = r.data as Record<string, unknown>;
     setFields(p => [...p, mapField(rec)]);

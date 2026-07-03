@@ -19,6 +19,8 @@ SAHOOL — services/field-segmentation/main.py
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import os
 
@@ -170,7 +172,7 @@ def run_segmentation_model(
     field_bbox: list[float] | None,
     image_ref: str | None,
     user_polygon: list[list[float]] | dict | None,
-) -> tuple[dict, float | None]:
+) -> tuple[dict, float | None, dict]:
     """محوّل استدلال بعيد لـSAM2 / GeoSAM (عميل HTTP حقيقيّ، بلا تلفيق).
 
     يُرجِع (الهندسة المُتحقَّقة، درجة الثقة|None). الثقة درجة النموذج (IoU متوقَّع) إن
@@ -196,6 +198,13 @@ def run_segmentation_model(
         "image_ref": image_ref,
         "user_polygon": user_polygon,
     }
+    # Trace key only: no security semantics, useful for cache/log correlation.
+    try:
+        payload["request_hash"] = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
+        ).hexdigest()[:16]
+    except Exception:  # noqa: BLE001
+        pass
 
     try:
         resp = _post_inference(payload)
@@ -244,9 +253,34 @@ def run_segmentation_model(
     if isinstance(body, dict) and isinstance(body.get("confidence"), (int, float)):
         confidence = float(body["confidence"])
 
+    metadata: dict = {
+        "source": SEGMENTATION_BACKEND,
+        "mode": mode,
+        "confidence": confidence,
+    }
+    if isinstance(body, dict):
+        upstream_meta = body.get("metadata")
+        if isinstance(upstream_meta, dict):
+            for key in (
+                "imagery_source",
+                "imagery_date",
+                "cloud_cover",
+                "model",
+                "model_version",
+                "checkpoint",
+                "model_cfg",
+                "post_processing",
+                "vertices_before",
+                "vertices_after",
+                "inference_ms",
+                "mask_area_px",
+            ):
+                if key in upstream_meta:
+                    metadata[key] = upstream_meta[key]
+
     # التحقّق الهندسيّ الحقيقيّ يُعاد استخدامه: هندسة الخادم الفاسدة تُرفَع هنا.
     try:
-        return normalize_polygon(candidate), confidence
+        return normalize_polygon(candidate), confidence, metadata
     except HTTPException as e:
         # normalize_polygon يرفع 422 على القمامة — نحوّله 502 (خطأ الخادم، لا المستخدم).
         raise HTTPException(
@@ -285,7 +319,13 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
     if req.mode == "manual":
         geometry = normalize_polygon(resolved_polygon)
         # يدويّ = رسم المستخدم، لا درجة نموذج ⇒ confidence=None (صدق، لا اختراع درجة).
-        return {"mode": "manual", "geometry": geometry, "source": "manual", "confidence": None}
+        return {
+            "mode": "manual",
+            "geometry": geometry,
+            "source": "manual",
+            "confidence": None,
+            "metadata": {"source": "manual", "mode": "manual", "confidence": None},
+        }
 
     # auto / hybrid — يتطلّبان نموذجاً حقيقيّاً.
     if not _model_configured():
@@ -302,7 +342,7 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
         )
 
     # النموذج مُهيّأ (بيئة إنتاج بأوزان+GPU): فوّض لخطّاف التكامل.
-    geometry, confidence = run_segmentation_model(
+    geometry, confidence, metadata = run_segmentation_model(
         mode=req.mode,
         field_bbox=resolved_bbox,
         image_ref=req.image_ref,
@@ -313,6 +353,7 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
         "geometry": geometry,
         "source": SEGMENTATION_BACKEND,
         "confidence": confidence,
+        "metadata": metadata,
     }
 
 

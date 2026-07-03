@@ -280,6 +280,8 @@ class FieldCreateRequest(BaseModel):
     ownership_type: str | None = Field(default=None, max_length=20)
     country: str | None = Field(default=None, max_length=60)
     region: str | None = Field(default=None, max_length=80)
+    # Provenance for assisted boundaries (SAM2/manual/hybrid). Audit-only metadata; server filters it.
+    boundary_metadata: dict | None = Field(default=None)
 
 
 class FieldImportRequest(BaseModel):
@@ -309,6 +311,7 @@ class FieldImportRequest(BaseModel):
     ownership_type: str | None = Field(default=None, max_length=20)
     country: str | None = Field(default=None, max_length=60)
     region: str | None = Field(default=None, max_length=80)
+    boundary_metadata: dict | None = Field(default=None)
 
 
 def _row_to_field_detail(r) -> FieldDetail:

@@ -28,6 +28,7 @@ from pydantic import BaseModel, Field, field_validator
 # validate_field_geometry يُستورَد من مصدره مباشرةً (كان main يعيد تصديره، لكنه صار
 # يتيماً فيه بعد نقل _persist_field إلى هنا — تفكيك B1).
 from api.alert_models import AlertEvaluateResponse
+from api.field_geometry_save_guard import sanitize_boundary_metadata, validate_boundary_for_save
 
 # نماذج/مساعدات الحقل نُقِلت إلى api.field_models (تفكيك B1 — نقل عنقوديّ) وتُستورَد
 # من هناك مباشرةً؛ معالِج الحفظ _persist_field يُعرَّف محليّاً أدناه (مستهلِكه الوحيد).
@@ -212,6 +213,7 @@ async def _insert_field_within_tx(
     region: str | None = None,
     reason: str = "field.created",
     extra_event_meta: dict | None = None,
+    boundary_metadata: dict | None = None,
 ) -> dict:
     """يُدرج حقلاً واحداً ويُصدِر أحداثه ضمن معاملة قائمة، ويُرجِع FieldSummary (JSON).
 
@@ -258,6 +260,8 @@ async def _insert_field_within_tx(
         "farm_id": farm_id,
         "soil_type": soil_type,
     }
+    if boundary_metadata:
+        _created_payload["boundary_metadata"] = boundary_metadata
     if extra_event_meta:
         _created_payload.update(extra_event_meta)
     await _emit_domain_event(
@@ -278,7 +282,10 @@ async def _insert_field_within_tx(
         changed_by=str(user.user_id),
         reason=reason,
         source="draw_or_import",
-        metadata=geometry_metadata(field_revision=1),
+        metadata={
+            **geometry_metadata(field_revision=1),
+            **({"boundary_metadata": boundary_metadata} if boundary_metadata else {}),
+        },
     )
     await mark_raster_cache_stale(
         conn,
@@ -388,6 +395,21 @@ async def _persist_field(
         ) from exc
     geometry = guarded.geometry
     area_ha = round(guarded.area_ha, 2)
+    try:
+        boundary_quality = validate_boundary_for_save(geometry, area_ha=guarded.area_ha)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message_ar": "حدود الحقل غير قابلة للحفظ — بسّط الحدود أو صحّح الرسم.",
+                "code": "field_boundary_save_guard",
+                "issues": str(exc).split(","),
+            },
+        ) from exc
+    boundary_metadata = sanitize_boundary_metadata(getattr(req, "boundary_metadata", None))
+    if boundary_metadata:
+        boundary_metadata.setdefault("vertices_after", boundary_quality["vertices"])
+        boundary_metadata.setdefault("area_ha", boundary_quality["area_ha"])
     lat, lon = guarded.centroid
     # الكشف الآلي للدولة + الإقليم من مركز المضلّع (إن لم يُرسلهما العميل)
     country, region = req.country, req.region
@@ -508,6 +530,7 @@ async def _persist_field(
                     country=country,
                     region=region,
                     reason="field.created",
+                    boundary_metadata=boundary_metadata or None,
                 )
 
             # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.
@@ -631,6 +654,7 @@ async def import_field(
         ownership_type=req.ownership_type,
         country=req.country,
         region=req.region,
+        boundary_metadata=getattr(req, "boundary_metadata", None),
     )
     result = await _persist_field(create_req, user, idem=idem)
     background_tasks.add_task(
@@ -977,6 +1001,17 @@ async def update_field(
                             detail={
                                 "message_ar": "هندسة الحقل غير صالحة — صحّح الحدود وأعد المحاولة.",
                                 "code": "invalid_field_geometry",
+                                "issues": str(exc).split(","),
+                            },
+                        ) from exc
+                    try:
+                        validate_boundary_for_save(guarded.geometry, area_ha=guarded.area_ha)
+                    except ValueError as exc:
+                        raise HTTPException(
+                            status_code=422,
+                            detail={
+                                "message_ar": "حدود الحقل غير قابلة للحفظ — بسّط الحدود أو صحّح الرسم.",
+                                "code": "field_boundary_save_guard",
                                 "issues": str(exc).split(","),
                             },
                         ) from exc
