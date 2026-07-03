@@ -16965,7 +16965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3ba2d21f3014bfd5827367ac3e4502e4f974559c4dbeb1f2ac6e94c465ae2e0"
+          "content": "4b3874f0a246afa401105ccd881c21300702c986d46c45e739869f21933f511a"
         }
       ],
       "name": "services/soil-service/requirements.txt",
@@ -17025,7 +17025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce1ef4cb20b829507f8f64edbfc9160cbf6ea83785284bc231b1d14a2ec3279a"
+          "content": "129266784e51b9049b9f27cc8212274178510edf357d957817b5f39fe9dcdd1f"
         }
       ],
       "name": "services/soil-service/test_soil_validation.py",

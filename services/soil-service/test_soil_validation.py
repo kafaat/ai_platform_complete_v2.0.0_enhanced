@@ -82,11 +82,9 @@ def test_ec_high_salinity_valid():
 
 
 # ── ٤. قيود الرطوبة والحرارة ──
-def test_humidity_above_100_rejected():
-    with pytest.raises(ValidationError):
-        SoilReading(field_id="F1", sensor_id="S1", humidity=101.0)
-
-
+# (أُزيل ``test_humidity_above_100_rejected`` القديم: الحقل ``humidity`` أُعيدت تسميته
+#  إلى ``moisture_pct``، وPydantic يتجاهل الوسيط المجهول بصمت فلا يرفع خطأ — الاختبار
+#  الصحيح المكافئ هو ``test_moisture_above_100_rejected`` أدناه.)
 def test_moisture_above_100_rejected():
     with pytest.raises(ValidationError):
         SoilReading(field_id="F1", sensor_id="S1", moisture_pct=120.0)

@@ -16,7 +16,9 @@
 
 **تحقّق:** 22 اختبار خدمة field-segmentation (3 جديدة للثقة) · حارس عقد end-to-end في `tests_v9/test_segmentation_frontend_contract_20260702.py` · ruff نظيف. يلزم إعادة بناء `sam2-inference` ليظهر أثره حيّاً.
 
-**فجوات مفتوحة موثّقة (لم تُنفَّذ):** SoilGrids/ملاءمة محصول في soil-service (غائب) · مركّبات SAM2 موسميّة (UKFields) · شاشة عمليّات 大屏 (`FEATURE_OPERATIONS_WALL` مُعطَّل) · MapLibre Phase 3 (في نسخة المستخدم المحلّيّة، لم تُرفَع).
+**فجوة مُنفَّذة لاحقاً (نفس الجلسة):** **SoilGrids + تفسير التربة** في `soil-service` (كان يخزّن قراءات الحسّاسات فقط). أُضيف: `soil_science.py` (تصنيف قوام USDA — خوارزميّة NRCS القياسيّة مُتحقَّقة على نقاط مرجعيّة + ملاءمة محصول شفّافة بـLiebig-minimum، محاصيل يمنيّة: قمح/ذرة/طماطم/نخيل/بُنّ) · `soilgrids_client.py` (استيعاب ISRIC REST، CC-BY 4.0، **فشل ناعم** ⇒ None بلا اختراع) · `routers/soil_profile.py` (`POST /soil/suitability` نقيّ · `GET /soil/soilgrids` بإحداثيّة، 503 صادق عند التعذّر). httpx مُضاف لـrequirements (pip-audit نظيف، مُثبَّت 0.28.1). 27 اختبار في `tests_v9/test_soil_science_20260703.py` (نقيّ+عميل+نقاط HTTP). أُزيل اختبار قديم بائد `test_humidity_above_100_rejected` (حقل `humidity` أُعيدت تسميته `moisture_pct`؛ Pydantic يتجاهل المجهول بصمت). **تحقّق-قبل-التنفيذ:** EVI/SAVI/NDWI + جدار العمليّات + التوأم الرقميّ + التتبّع + GB28181 كلّها موجودة أصلاً (لم تُكرَّر).
+
+**فجوات مفتوحة موثّقة (لم تُنفَّذ):** مركّبات SAM2 موسميّة (UKFields) · شاشة عمليّات 大屏 (`FEATURE_OPERATIONS_WALL` مُعطَّل — تفعيل لا كود) · محوّل Modbus/RS485 (kundian-iot — فجوة حقيقيّة لكن خاصّة بالعتاد، غير قابلة للتحقّق هنا) · MapLibre Phase 3 (نسخة المستخدم المحلّيّة، لم تُرفَع).
 
 ## 2026-07-02 (ن-8) — تصلّب أمنيّ: منع إعادة تشغيل TOTP (v141 / V29.7)
 
