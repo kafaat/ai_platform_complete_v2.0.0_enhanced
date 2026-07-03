@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-07-03 (ن-10) — بحث GitHub/Gitee لاستلهام تحسينات + إخراج ثقة SAM2
+
+**رأس main:** يُحدَّث بعد الدفع (بناءً على `5055f17`).
+
+**البحث (مصادر):** [OpenFarm](https://github.com/superzero11/OpenFarm) (توأم معماريّ: FastAPI+PostGIS+TiTiler+MinIO، نموذج FTW للحدود، سير «اقتراح ثمّ قبول» بثقة، SoilGrids/POLARIS + ملاءمة محصول، تنبيهات متعدّدة الإشارة، PMTiles) · [Sen2Agri](https://github.com/Sen2Agri/Sen2Agri-System) · [sentinel-hub/field-delineation](https://github.com/sentinel-hub/field-delineation) (ResUNet-a, MIT) · [chchang1990/SAM_field_delineation](https://github.com/chchang1990/SAM_field_delineation) + [UKFields](https://github.com/Spiruel/UKFields) (SAM على مركّبات موسميّة) · [farmOS](https://github.com/farmOS/farmOS) (GPL — إلهام لا نسخ) · Gitee: [农业岛 wisdom-v2.0](https://gitee.com/dnxt111/wisdom-v2.0) (大屏/物模型/多端) + FastBee (نستعمله أصلاً).
+
+**تحقّق-قبل-التنفيذ (درس):** «المكسب السريع» المقترَح (EVI/SAVI/NDWI) **مُنفَّذ أصلاً end-to-end** — `raster-service/cdse_client.py:INDEX_EXPR` (evalscripts حقيقيّة لـndvi/evi/savi/msavi/ndwi/ndmi/gndvi/ndre/msi/ndsi) + `main.py` (مسار Element84) + `tile_render.py` (colormaps) + منتقي الواجهة `layerRegistry.ts` يعرض العشرة كلّها. لا إعادة تنفيذ.
+
+**الفجوة الحقيقيّة المُنفَّذة (مُستلهَمة من FTW/OpenFarm):** SAM2 يحسب درجة الثقة (`scores`/`argmax`, `sam2-inference/main.py:614`) لكن كان يُسقِطها (`return {"geometry":…}`). والواجهة **جاهزة لعرضها** (`AddFieldWithMap.tsx:689` → «ثقة ٪») لكن مُجوَّعة من البيانات. الإصلاح: `sam2-inference` يُخرِج `confidence` · `field-segmentation.run_segmentation_model` يُرجِع `(geometry, confidence)` ويُمرِّرها في `/segment` (يدويّ ⇒ None، صدق) — **صفر تغيير في الواجهة**، أُضيء سير «اقتراح ثمّ قبول بثقة».
+
+**تحقّق:** 22 اختبار خدمة field-segmentation (3 جديدة للثقة) · حارس عقد end-to-end في `tests_v9/test_segmentation_frontend_contract_20260702.py` · ruff نظيف. يلزم إعادة بناء `sam2-inference` ليظهر أثره حيّاً.
+
+**فجوات مفتوحة موثّقة (لم تُنفَّذ):** SoilGrids/ملاءمة محصول في soil-service (غائب) · مركّبات SAM2 موسميّة (UKFields) · شاشة عمليّات 大屏 (`FEATURE_OPERATIONS_WALL` مُعطَّل) · MapLibre Phase 3 (في نسخة المستخدم المحلّيّة، لم تُرفَع).
+
 ## 2026-07-02 (ن-8) — تصلّب أمنيّ: منع إعادة تشغيل TOTP (v141 / V29.7)
 
 **رأس main:** `9c69839` (دفع مباشر إلى main — تفويض المستخدم «من الآن ارفع مباشرة إلى main»).

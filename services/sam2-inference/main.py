@@ -613,12 +613,15 @@ async def predict(req: PredictRequest, x_agent_token: str = Header(None)):
 
     best_idx = int(np.argmax(scores)) if scores is not None and len(scores) else 0
     best_mask = np.asarray(masks[best_idx]).astype(np.uint8)
+    # درجة ثقة SAM2 للقناع المختار (IoU متوقَّع، ~[0,1]) — تُمرَّر للواجهة لسير
+    # «اقتراح ثمّ قبول» (نظير FTW/OpenFarm). None إن لم يُخرِج النموذج درجات.
+    confidence = float(scores[best_idx]) if scores is not None and len(scores) else None
 
     # ٤. حوّل القناع → مضلّع GeoJSON 4326 (يرفع 5xx إن فشل التحويل/فرغ).
     geometry = _mask_to_polygon(best_mask, transform, crs)
 
     # ٥. أعِد بالشكل الذي يتحقّق منه field-segmentation.normalize_polygon.
-    return {"geometry": geometry}
+    return {"geometry": geometry, "confidence": confidence}
 
 
 # ─── الصحّة/الجاهزيّة ──────────────────────────────────────────────────────

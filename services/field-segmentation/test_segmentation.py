@@ -220,6 +220,49 @@ def test_auto_configured_backend_polygon_returns_200(monkeypatch):
     assert len(ring) == 5
 
 
+def test_auto_surfaces_backend_confidence(monkeypatch):
+    """درجة ثقة الخادم (SAM2 IoU) تُمرَّر في استجابة /segment (سير اقتراح ثمّ قبول)."""
+    mod, client = _configured(monkeypatch, backend="sam2")
+    ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.0]]
+    monkeypatch.setattr(
+        mod,
+        "_post_inference",
+        lambda payload: _fake_response(
+            mod,
+            status_code=200,
+            json_body={"geometry": {"type": "Polygon", "coordinates": [ring]}, "confidence": 0.87},
+        ),
+    )
+    body = client.post("/segment", json={"mode": "auto"}, headers=_hdr()).json()
+    assert body["confidence"] == 0.87, "لم تُمرَّر درجة ثقة الخادم في الاستجابة"
+
+
+def test_auto_confidence_none_when_backend_omits_it(monkeypatch):
+    """لا درجة من الخادم ⇒ confidence=None (صدق، لا اختراع درجة)."""
+    mod, client = _configured(monkeypatch, backend="sam2")
+    ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.0]]
+    monkeypatch.setattr(
+        mod,
+        "_post_inference",
+        lambda payload: _fake_response(
+            mod, status_code=200, json_body={"geometry": {"type": "Polygon", "coordinates": [ring]}}
+        ),
+    )
+    body = client.post("/segment", json={"mode": "auto"}, headers=_hdr()).json()
+    assert body["confidence"] is None
+
+
+def test_manual_confidence_is_none(monkeypatch):
+    """المسار اليدويّ (رسم المستخدم) بلا درجة نموذج ⇒ confidence=None."""
+    mod, client = _configured(monkeypatch, backend="sam2")
+    ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.1], [46.0, 24.0]]
+    body = client.post(
+        "/segment", json={"mode": "manual", "user_polygon": ring}, headers=_hdr()
+    ).json()
+    assert body["source"] == "manual"
+    assert body["confidence"] is None
+
+
 def test_hybrid_configured_bare_polygon_returns_200(monkeypatch):
     """الاستجابة قد تكون Polygon خاماً (بلا غلاف geometry) — استخراج دفاعيّ."""
     mod, client = _configured(monkeypatch, backend="sam2")

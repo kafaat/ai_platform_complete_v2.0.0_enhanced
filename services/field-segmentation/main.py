@@ -170,8 +170,11 @@ def run_segmentation_model(
     field_bbox: list[float] | None,
     image_ref: str | None,
     user_polygon: list[list[float]] | dict | None,
-) -> dict:
+) -> tuple[dict, float | None]:
     """محوّل استدلال بعيد لـSAM2 / GeoSAM (عميل HTTP حقيقيّ، بلا تلفيق).
+
+    يُرجِع (الهندسة المُتحقَّقة، درجة الثقة|None). الثقة درجة النموذج (IoU متوقَّع) إن
+    أخرجها الخادم؛ None إن غابت — لا نخترع درجة.
 
     TODO(segmentation-model): المحوّل البعيد مُنفَّذ. لتفعيل auto/hybrid إنتاجيّاً:
     انشر خادم استدلال SAM2/GeoSAM (أوزان+GPU خارج هذه الخدمة) واضبط
@@ -236,9 +239,14 @@ def run_segmentation_model(
             detail={"error": "inference_bad_geometry"},
         )
 
+    # درجة الثقة إن أخرجها الخادم (float ~[0,1]) — بلا اختراع درجة عند غيابها.
+    confidence: float | None = None
+    if isinstance(body, dict) and isinstance(body.get("confidence"), (int, float)):
+        confidence = float(body["confidence"])
+
     # التحقّق الهندسيّ الحقيقيّ يُعاد استخدامه: هندسة الخادم الفاسدة تُرفَع هنا.
     try:
-        return normalize_polygon(candidate)
+        return normalize_polygon(candidate), confidence
     except HTTPException as e:
         # normalize_polygon يرفع 422 على القمامة — نحوّله 502 (خطأ الخادم، لا المستخدم).
         raise HTTPException(
@@ -276,7 +284,8 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
 
     if req.mode == "manual":
         geometry = normalize_polygon(resolved_polygon)
-        return {"mode": "manual", "geometry": geometry, "source": "manual"}
+        # يدويّ = رسم المستخدم، لا درجة نموذج ⇒ confidence=None (صدق، لا اختراع درجة).
+        return {"mode": "manual", "geometry": geometry, "source": "manual", "confidence": None}
 
     # auto / hybrid — يتطلّبان نموذجاً حقيقيّاً.
     if not _model_configured():
@@ -293,13 +302,18 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
         )
 
     # النموذج مُهيّأ (بيئة إنتاج بأوزان+GPU): فوّض لخطّاف التكامل.
-    result = run_segmentation_model(
+    geometry, confidence = run_segmentation_model(
         mode=req.mode,
         field_bbox=resolved_bbox,
         image_ref=req.image_ref,
         user_polygon=resolved_polygon,
     )
-    return {"mode": req.mode, "geometry": result, "source": SEGMENTATION_BACKEND}
+    return {
+        "mode": req.mode,
+        "geometry": geometry,
+        "source": SEGMENTATION_BACKEND,
+        "confidence": confidence,
+    }
 
 
 if __name__ == "__main__":

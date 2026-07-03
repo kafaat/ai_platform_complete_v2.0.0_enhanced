@@ -72,5 +72,24 @@ def test_platform_has_agent_token_for_service_proxy():
     assert "SAHOOL_AGENT_TOKEN" in str(token), "قيمة التوكن يجب أن تُشتقّ من متغيّر البيئة"
 
 
+# ── تحسين مُستلهَم (بحث FTW/OpenFarm): تمرير درجة ثقة SAM2 «اقتراح ثمّ قبول» ──────
+def test_sam2_confidence_flows_end_to_end():
+    """درجة ثقة SAM2 تُخرَج من الاستدلال → تُمرَّر عبر field-segmentation → تُعرَض في الواجهة.
+
+    الواجهة كانت جاهزة لعرضها (ثقة ٪) لكنّ الخلفيّة كانت تُسقِطها؛ الحارس يمنع الانحدار.
+    """
+    sam2 = (_ROOT / "services" / "sam2-inference" / "main.py").read_text(encoding="utf-8")
+    assert '"confidence": confidence' in sam2, "sam2-inference لا يُخرِج درجة الثقة"
+
+    seg = _SEG_MAIN.read_text(encoding="utf-8")
+    assert 'body["confidence"]' in seg, "field-segmentation لا يستخرج درجة الثقة من الخادم"
+    assert '"confidence": confidence' in seg, "field-segmentation لا يُمرِّر الثقة في الاستجابة"
+
+    ui = (_ROOT / "frontend" / "src" / "components" / "AddFieldWithMap.tsx").read_text(
+        encoding="utf-8"
+    )
+    assert "res?.confidence" in ui, "الواجهة لا تقرأ درجة الثقة من نتيجة التقطيع"
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))

@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c99fe1071db10708bcb92b4391d997dff553565b358de7a605fbefa9882311b6"
+          "content": "12cf3fc15a0b37cc71d0c2a3610efbafe315d5e158ec7f57eefede031a67e354"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -6385,7 +6385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73240b107cc06d10975db0d129aefa3ec67561c8e5bf6a11ecc6e028f11baa42"
+          "content": "e2e0bb9ca37ad29e65cdd0b125db39c2b967eca2196417ba96993cf0f87982ed"
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",
@@ -16905,7 +16905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4eecc1397473fe066949ac1e5a139d9557cf61dcab9a70f43a48bffacc622cb6"
+          "content": "1780ef1a8fa388e077c6648e9ab0e5de7b0727bf0225b8eb655208c52581359c"
         }
       ],
       "name": "services/sam2-inference/main.py",
