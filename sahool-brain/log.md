@@ -4,6 +4,37 @@
 
 ---
 
+## 2026-07-03 (ن-11) — جدار العمليّات 大屏 + فكّاك Modbus + درس pip-audit المُجمَّع
+
+**رأس main:** `c28e6f8` (رفع مباشر إلى main — CI أخضر #2824، Production Gates أخضر).
+
+**جدار العمليّات (`bb63cd7`) — إصلاح انجراف عقد + شريط KPI:** نوع `OperationsSummary` في
+`frontend/src/services/api.ts` أعلن حقولاً (`fields_total`/`decisions_total`/`valves_open`/`fleet`)
+**لا تطابق** ناتج `api/operations_summary.py:shape_operations_summary` الفعليّ (`totals.{fields,
+equipment,iot_devices,decision_records,active_alerts}` · `alerts.by_severity` · `irrigation.{valves,
+schedules}`)؛ فبقيت الأرقام المُجمَّعة الغنيّة مُهدَرة (علَم منطقيّ فقط). أُصلِح النوع + أُضيف
+`KpiStrip` (أرقام كبيرة نمط 大屏، صدق: القسم `unavailable` عبر `sections[x].status` يعرض «—» لا صفراً؛
+غياب التلخيص ⇒ لا شريط). تحقّق: tsc + vitest 11/11 + حارس عقد ساكن `tests_v9/test_operations_summary_contract_20260703.py`.
+
+**فكّاك Modbus-RTU (`0560293`) — فجوة kundian-iot الوحيدة الحقيقيّة:** لا دعم RS485/Modbus رغم
+شيوع الحسّاسات الرخيصة. `services/soil-service/modbus_decoder.py` (نقيّ: CRC-16/MODBUS مُتحقَّق على
+المتجه المعياريّ 0x4B37 · فكّ سجلّات 0x03/0x04 · رفض صادق) + `routers/modbus.py` (`POST /soil/decode/
+modbus`). **درس عزل الاختبار:** أسماء الوحدات العامّة (`main`/`db_persist`/`routers`) تتصادم عبر الخدمات
+في السويت الكامل ⇒ حمّلتُ الوحدات النقيّة عبر `importlib` من مسار الملفّ بأسماء فريدة (صفر تلويث
+sys.path)، والحمّالات HTTP تُنظّف مسارها/وحداتها. (device-twin وGB28181 والتتبّع تحقّقتُ أنّها موجودة أصلاً.)
+
+**درس pip-audit (`c28e6f8`) — خطأ مملوك:** أضفتُ `httpx==0.28.1` (تثبيت صلب) في soil-service مع ميزة
+SoilGrids؛ بوّابة *Security Scan* تُثبّت **كلّ** متطلّبات الخدمات معاً فتعارض التثبيت الصلب مع `httpx==0.27.0`
+غير المباشر ⇒ `ResolutionImpossible` ⇒ احمرّ CI على 3 دفعات (4206768/bb63cd7/0560293). الإصلاح: `httpx>=0.27.0`
+(صيغة الأقران). **قاعدة دائمة:** أيّ تبعيّة جديدة على مسار pip-audit الحرِج تُكتَب بصيغة مرنة `>=` لا `==`
+(قد تتعارض في الحلّ المُجمَّع)؛ وشغّل أمر pip-audit نفسه على الـ18 ملفّاً محليّاً قبل الدفع.
+
+**سير العمل:** أُنشئ فرع رسميّ `develop` من main الأخضر (مرآة، بلا فرق حاليّاً). الرفع بقي مباشراً إلى main
+بتفويض المستخدم. **قابليّة الوصول:** نقاط soil الجديدة (`/soil/suitability`،`/soil/soilgrids`،`/soil/decode/
+modbus`) مُتاحة عبر `service_proxy` المنصّة (`/api/soil/*`) + nginx.v9.conf — لا فجوة توصيل.
+
+---
+
 ## 2026-07-03 (ن-10) — بحث GitHub/Gitee لاستلهام تحسينات + إخراج ثقة SAM2
 
 **رأس main:** يُحدَّث بعد الدفع (بناءً على `5055f17`).
