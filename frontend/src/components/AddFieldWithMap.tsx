@@ -20,7 +20,7 @@ import {
   X, Check, Trash2, Loader2,
   MapPin, Ruler, AlertCircle, Upload, FileUp,
   Pentagon, Square, Circle, Magnet,
-  Undo2, Redo2,
+  Undo2, Redo2, Wand2, GitCompareArrows,
 } from 'lucide-react';
 import shp from 'shpjs';
 import { kongApi, asApiError, segmentField, classifySegmentationError, apiErrorMessage } from '../services/api';
@@ -218,6 +218,90 @@ function latlngsToDrawFeature(latlngs: L.LatLng[]): DrawFeature {
 
 // تنسيق طول بالمتر: < 10000 م يُعرَض بالمتر (رقمان)، وإلّا بالكيلومتر للقراءة.
 // الوحدة تبقى المتر كأساس؛ هذا تنسيق عرض فقط (لا تحويل لأقدام/فدّان أبداً).
+
+
+type BoundaryImproveLevel = 'light' | 'medium' | 'strong';
+const BOUNDARY_IMPROVE_TOLERANCE_M: Record<BoundaryImproveLevel, number> = {
+  light: 1,
+  medium: 3,
+  strong: 5,
+};
+
+function projectLatLngToLocalMeters(p: L.LatLng, originLatDeg: number): { x: number; y: number } {
+  const R = 6378137;
+  const rad = Math.PI / 180;
+  return {
+    x: p.lng * rad * R * Math.cos(originLatDeg * rad),
+    y: p.lat * rad * R,
+  };
+}
+
+function pointSegmentDistanceM(
+  p: { x: number; y: number },
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+): number {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  if (dx === 0 && dy === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (dx * dx + dy * dy)));
+  const x = a.x + t * dx;
+  const y = a.y + t * dy;
+  return Math.hypot(p.x - x, p.y - y);
+}
+
+function douglasPeuckerLatLng(points: L.LatLng[], toleranceM: number): L.LatLng[] {
+  if (points.length <= 3 || toleranceM <= 0) return points;
+  const originLat = points.reduce((sum, p) => sum + p.lat, 0) / points.length;
+  const projected = points.map((p) => projectLatLngToLocalMeters(p, originLat));
+
+  const keep = new Array(points.length).fill(false);
+  keep[0] = true;
+  keep[points.length - 1] = true;
+
+  const simplify = (start: number, end: number) => {
+    if (end <= start + 1) return;
+    let maxDist = -1;
+    let index = -1;
+    for (let i = start + 1; i < end; i++) {
+      const dist = pointSegmentDistanceM(projected[i], projected[start], projected[end]);
+      if (dist > maxDist) {
+        maxDist = dist;
+        index = i;
+      }
+    }
+    if (index >= 0 && maxDist > toleranceM) {
+      keep[index] = true;
+      simplify(start, index);
+      simplify(index, end);
+    }
+  };
+
+  simplify(0, points.length - 1);
+  const simplified = points.filter((_, i) => keep[i]);
+  return simplified.length >= 3 ? simplified : points;
+}
+
+function dedupeRingByMeters(points: L.LatLng[], toleranceM: number): L.LatLng[] {
+  if (points.length <= 3 || toleranceM <= 0) return points;
+  const out: L.LatLng[] = [];
+  for (const p of points) {
+    const prev = out[out.length - 1];
+    if (!prev || prev.distanceTo(p) > toleranceM) out.push(p);
+  }
+  if (out.length >= 2 && out[0].distanceTo(out[out.length - 1]) <= toleranceM) out.pop();
+  return out.length >= 3 ? out : points;
+}
+
+function improveBoundaryRing(points: L.LatLng[], toleranceM: number): L.LatLng[] {
+  if (!Array.isArray(points) || points.length < 3) return points;
+  const deduped = dedupeRingByMeters(points, Math.max(0.25, toleranceM / 6));
+  const closedForSimplify = [...deduped, deduped[0]];
+  const simplifiedClosed = douglasPeuckerLatLng(closedForSimplify, toleranceM);
+  const simplified = simplifiedClosed.slice(0, -1);
+  return simplified.length >= 3 ? simplified : points;
+}
+
 function formatLengthM(m: number): string {
   if (!isFinite(m) || m <= 0) return '0 م';
   if (m >= 10000) return `${(m / 1000).toFixed(2)} كم`;
@@ -565,6 +649,45 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     if (pointer >= history.length - 1) return;
     applySnapshot(pointer + 1);
   }, [pointer, history.length, applySnapshot]);
+
+  const currentBoundaryVertices = polygon
+    ? (((polygon.getLatLngs()[0] as L.LatLng[]) ?? []).length || latlngs.length)
+    : latlngs.length;
+  const boundarySourceLabel = String(boundaryMetadata?.source ?? (polygon ? 'manual' : '—'));
+  const boundaryConfidence = typeof boundaryMetadata?.confidence === 'number'
+    ? Math.round((boundaryMetadata.confidence as number) * 100)
+    : null;
+
+  const handleImproveBoundary = useCallback((level: BoundaryImproveLevel) => {
+    const toleranceM = BOUNDARY_IMPROVE_TOLERANCE_M[level];
+    const ring = polygon ? ((polygon.getLatLngs()[0] as L.LatLng[]) ?? []) : latlngs;
+    if (!Array.isArray(ring) || ring.length < 3) {
+      setError('لا يوجد حد صالح لتحسينه.');
+      return;
+    }
+    const improved = improveBoundaryRing(ring, toleranceM);
+    if (improved.length < 3) {
+      setError('فشل تحسين الحد لأن النتيجة أصبحت غير صالحة.');
+      return;
+    }
+    if (improved.length === ring.length) {
+      setSegNotice({ tone: 'info', text: `الحد نظيف بالفعل تقريباً — لم تُحذف رؤوس عند تبسيط ${toleranceM}م.` });
+    } else {
+      setSegNotice({ tone: 'info', text: `تم تحسين الحد: ${ring.length} → ${improved.length} رأس، بتسامح ${toleranceM}م. راجع النتيجة قبل الحفظ.` });
+    }
+    setPivotPayload(null);
+    pivotEditRef.current = null;
+    buildEditablePolygon(improved, true);
+    setBoundaryMetadata({
+      ...(boundaryMetadata ?? { source: 'manual', mode: 'manual' }),
+      client_refined: true,
+      client_refine_level: level,
+      client_simplify_tolerance_m: toleranceM,
+      vertices_before_client_refine: ring.length,
+      vertices_after_client_refine: improved.length,
+    });
+    setError('');
+  }, [polygon, latlngs, boundaryMetadata, buildEditablePolygon]);
 
 
   // أداة المضلّع (leaflet-draw): الحلقة الخارجيّة للمضلّع المرسوم. الدائرة والمستطيل
@@ -1239,6 +1362,41 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                       <span className="text-[10px]" style={{ color:'#a16207' }}>
                         تحقّق مبدئيّ على الجهاز — يبقى التحقّق النهائيّ على الخادم.
                       </span>
+                    </div>
+                  )}
+
+                  {polygon && (
+                    <div className="space-y-2 px-3 py-2 rounded-lg text-xs"
+                      style={{ background:'#07120f', border:'1px solid #16a34a44', color:'#a7f3d0' }}>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <GitCompareArrows className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>مصدر الحد: <strong className="text-emerald-200">{boundarySourceLabel}</strong></span>
+                        <span>الرؤوس: <strong className="text-emerald-200">{currentBoundaryVertices}</strong></span>
+                        {boundaryConfidence !== null && (
+                          <span>الثقة: <strong className="text-emerald-200">{boundaryConfidence}%</strong></span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-slate-400">تحسين الحد قبل الحفظ:</span>
+                        <button type="button" onClick={() => handleImproveBoundary('light')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border hover:bg-emerald-950/50"
+                          style={{ borderColor:'#16a34a55', color:'#bbf7d0' }}>
+                          <Wand2 className="w-3.5 h-3.5" /> خفيف 1م
+                        </button>
+                        <button type="button" onClick={() => handleImproveBoundary('medium')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border hover:bg-emerald-950/50"
+                          style={{ borderColor:'#16a34a55', color:'#bbf7d0' }}>
+                          <Wand2 className="w-3.5 h-3.5" /> موصى 3م
+                        </button>
+                        <button type="button" onClick={() => handleImproveBoundary('strong')}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border hover:bg-emerald-950/50"
+                          style={{ borderColor:'#16a34a55', color:'#bbf7d0' }}>
+                          <Wand2 className="w-3.5 h-3.5" /> قوي 5م
+                        </button>
+                      </div>
+                      <div className="text-[10px] text-slate-500">
+                        هذا تحسين جهة العميل فقط؛ الخادم يبقى حارس الصلاحية النهائي قبل إنشاء الحقل.
+                      </div>
                     </div>
                   )}
 

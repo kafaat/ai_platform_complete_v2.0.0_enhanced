@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee478f8691fbe442eafe5b286e11c82f8eefd8deb2fcd8a911e44feb7ea02593"
+          "content": "8eb6abffcd5cd9184f58d041ad3d219b9afb2c5aa90168bf3b93ea8a1ef4f0cf"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -8459,6 +8459,16 @@
         }
       ],
       "name": "services/sahool-platform/api/field_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c503c1b53049f56ea4bffe1642b930378e3e2a8e3e536a584beabf525223d95c"
+        }
+      ],
+      "name": "services/sahool-platform/api/field_geometry_save_guard.py",
       "type": "file"
     },
     {
