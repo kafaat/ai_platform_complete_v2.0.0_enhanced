@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4caabe0dc7f5a5031108d4cfcf9a6901185af32c1079f86737734b02f7873d6e"
+          "content": "667fc686a6b75212fa23b5adfb5334a16c38b7b1bb7bba6ea07490f4227142d0"
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",

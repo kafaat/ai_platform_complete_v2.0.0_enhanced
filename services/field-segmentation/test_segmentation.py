@@ -386,6 +386,7 @@ def test_inference_invalid_geometry_returns_502(monkeypatch):
     assert r.status_code == 502, r.text
     assert r.json()["detail"]["error"] == "inference_bad_geometry"
 
+
 # ── ٩. ExG قبل SAM2: صورة محسّنة + prompts لا هندسة مُفبركة ──
 def _png_b64_rgb_square() -> str:
     import base64
@@ -395,7 +396,7 @@ def _png_b64_rgb_square() -> str:
     from PIL import Image
 
     img = np.zeros((96, 96, 3), dtype=np.uint8)
-    img[:, :] = [135, 112, 80]       # تربة/رمل
+    img[:, :] = [135, 112, 80]  # تربة/رمل
     img[24:72, 28:76] = [25, 178, 45]  # غطاء نباتي واضح
     out = io.BytesIO()
     Image.fromarray(img, "RGB").save(out, format="PNG")
@@ -412,7 +413,10 @@ def test_auto_exg_preprocesses_image_before_sam2(monkeypatch):
         return _fake_response(
             mod,
             status_code=200,
-            json_body={"geometry": {"type": "Polygon", "coordinates": [open_ring]}, "confidence": 0.91},
+            json_body={
+                "geometry": {"type": "Polygon", "coordinates": [open_ring]},
+                "confidence": 0.91,
+            },
         )
 
     monkeypatch.setattr(mod, "_post_inference", fake_post)
@@ -440,11 +444,13 @@ def test_auto_exg_without_image_is_explicitly_skipped(monkeypatch):
     monkeypatch.setattr(
         mod,
         "_post_inference",
-        lambda payload: seen.update(payload)
-        or _fake_response(
-            mod,
-            status_code=200,
-            json_body={"geometry": {"type": "Polygon", "coordinates": [open_ring]}},
+        lambda payload: (
+            seen.update(payload)
+            or _fake_response(
+                mod,
+                status_code=200,
+                json_body={"geometry": {"type": "Polygon", "coordinates": [open_ring]}},
+            )
         ),
     )
     r = client.post("/segment", json={"mode": "auto", "preprocessing": "exg"}, headers=_hdr())
