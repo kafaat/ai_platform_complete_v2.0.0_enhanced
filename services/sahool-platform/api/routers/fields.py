@@ -770,6 +770,110 @@ async def field_imagery_available_dates(
         raise _db_unavailable("تواريخ صور الأقمار للحقل", e) from e
 
 
+class FieldImageryBackfillProxyRequest(BaseModel):
+    """Tenant-scoped platform proxy contract for raster historical imagery backfill.
+
+    The browser must not receive ``X-Agent-Token``. The platform verifies field
+    ownership, injects service credentials, and forwards this bounded payload to
+    raster-service.
+    """
+
+    preset: str | None = None
+    from_date: str | None = None
+    to_date: str | None = None
+    months: int | None = Field(default=None, ge=1, le=60)
+    indices: list[str] | None = None
+    max_cloud_pct: float | None = Field(default=None, ge=0, le=100)
+    limit_per_month: int | None = Field(default=None, ge=1, le=10)
+    apply_cloud_mask: bool | None = None
+    clip_polygon_geojson: dict | None = None
+    dry_run: bool | None = False
+
+
+@router.post("/api/v1/fields/{field_id}/imagery/backfill")
+async def field_imagery_backfill_proxy(
+    field_id: str,
+    req: FieldImageryBackfillProxyRequest,
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
+):
+    """Start tenant-verified 24m/3y/5y imagery backfill through platform.
+
+    This closes the security gap where MapHub called raster-service directly.
+    The frontend remains bearer-authenticated against sahool-platform; only this
+    server-side route injects ``X-Agent-Token`` and tenant headers for raster.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT field_id, geometry FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+
+            # If the UI did not provide a clip polygon, use the canonical field boundary.
+            payload = req.model_dump(exclude_none=True)
+            if not payload.get("clip_polygon_geojson"):
+                geometry = row["geometry"]
+                if isinstance(geometry, str):
+                    import json as _json
+
+                    geometry = _json.loads(geometry)
+                guarded = guard_field_geometry(geometry)
+                payload["clip_polygon_geojson"] = guarded.geometry
+
+            import os as _os
+
+            import httpx as _httpx
+
+            raster_url = _os.getenv(
+                "RASTER_SERVICE_URL", "http://sahool-raster-service:8001"
+            ).rstrip("/")
+            headers = {
+                "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
+                "X-Tenant-Id": str(user.tenant_id),
+            }
+            try:
+                async with _httpx.AsyncClient(timeout=60.0) as client:
+                    resp = await client.post(
+                        f"{raster_url}/v1/fields/{field_id}/imagery/backfill",
+                        json=payload,
+                        headers=headers,
+                    )
+            except _httpx.HTTPError as exc:
+                raise HTTPException(
+                    status_code=502, detail=f"raster-service غير متاح: {exc}"
+                ) from exc
+            if resp.status_code >= 400:
+                try:
+                    detail = resp.json()
+                except Exception:  # noqa: BLE001
+                    detail = resp.text
+                raise HTTPException(status_code=resp.status_code, detail=detail)
+
+            result = resp.json()
+            await _emit_domain_event(
+                conn,
+                user,
+                "FIELD_IMAGERY_BACKFILL_REQUESTED",
+                "field",
+                field_id,
+                {
+                    "preset": payload.get("preset"),
+                    "months": payload.get("months"),
+                    "indices": payload.get("indices"),
+                    "dry_run": bool(payload.get("dry_run")),
+                    "jobs_scheduled": result.get("jobs_scheduled") or result.get("jobs_created"),
+                },
+            )
+            return result
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("تشغيل backfill التاريخي لصور الحقل", e) from e
+
+
 @router.get("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def get_field(
     field_id: str,

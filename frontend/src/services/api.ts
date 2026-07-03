@@ -3474,9 +3474,10 @@ export interface HistoricalImageryBackfillPayload {
 export const fetchImageryBackfillPolicy = () =>
   rasterApi.get('/v1/imagery/backfill/policy').then(r => r.data);
 
-/** إنشاء خطة/مهمة backfill تاريخية للحقل. dry_run=true يعطي تقدير تكلفة/عدد مشاهد قبل التشغيل. */
+/** إنشاء خطة/مهمة backfill تاريخية للحقل. dry_run=true يعطي تقدير تكلفة/عدد مشاهد قبل التشغيل.
+ * يمرّ عبر بوّابة sahool-platform (لا مباشرةً إلى raster-service) كي لا يُكشف X-Agent-Token للمتصفّح. */
 export const runHistoricalImageryBackfill = (fieldId: string, payload: HistoricalImageryBackfillPayload) =>
-  rasterApi.post(`/v1/fields/${fieldId}/imagery/backfill`, payload).then(r => r.data);
+  kongApi.post(`/api/v1/fields/${fieldId}/imagery/backfill`, payload).then(r => r.data);
 
 /** سلسلة زمنية NDVI — GET /v1/timeseries/{fieldId} */
 export const fetchVegetationTimeseries = (fieldId: string, days = 30) =>

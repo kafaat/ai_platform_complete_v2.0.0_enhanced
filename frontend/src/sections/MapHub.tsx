@@ -31,7 +31,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
-import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, type FieldImageryDateOption } from '../services/api';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -1324,6 +1324,25 @@ export default function MapHub() {
                               style={{ background: active ? '#123524' : '#111827', borderColor: active ? '#22c55e99' : T.line, color: T.ink }}
                               title={d.scene_id ?? d.date}
                             >
+                              {selected && (
+                                <div className="mb-2 h-16 w-full overflow-hidden rounded-lg border" style={{ borderColor: active ? '#22c55e66' : '#334155', background: '#020617' }}>
+                                  <img
+                                    src={fieldCdseThumbnailUrl(
+                                      selected.id,
+                                      activeIndicator ?? 'ndvi',
+                                      d.date,
+                                      tenantId ?? null,
+                                      selected.geometry ?? null,
+                                      null,
+                                      160,
+                                    )}
+                                    alt={`مصغّرة صورة الحقل ${d.date}`}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                                  />
+                                </div>
+                              )}
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-bold">{d.date}</span>
                                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: cloudBandColor(cloud) }} />
