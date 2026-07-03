@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42a0b43f9a40467c1783505b43e8a2f954e2453f099bb929be087aac03904310"
+          "content": "eddc036dd4f3b21c87075282053e3c746c20edab8a4ab8fd0bf780f5aa0cd13a"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -145,7 +145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a75ac3cee544b8e7d8598dc7bf2b7dee180e09f6ee121fa37604fd72a7fa8ef"
+          "content": "2ad2aa52807d2a3eceefe9f258f0bc466fc0f80ae537bcf689a1b06df1da3a18"
         }
       ],
       "name": "frontend/Dockerfile",
@@ -295,7 +295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7612cced3ff47224cb2a6d7ce34bef7a69adb4c3815def742147264d6ab5d578"
+          "content": "e466e39d28a012768a3900e3e28c1a1061e9014aad511f994896f161db07cae7"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a39a8bc7801937dba541af9af014deef751270942130052a5814665d660c0f58"
+          "content": "fac38492fa0a938220148c485e1c881433a4e0c4d15c1e4b262f7b1a022ec434"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -425,7 +425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79ee0f0e668d82056b186590d66fd00d287b49059ae48365461e5a0b5f211ba2"
+          "content": "b7bedf869971d63277015da4eb4234d68caa6a97a9f33115ee316c55b9056195"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.undoredo.test.tsx",
@@ -435,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "19b6476c3b063c459682c42b4e2e959a112f585354dea551c5366f5cc47b4ec8"
+          "content": "28cb254b032d30cd96d963b72a0a9fccdc5d4dcf1d0688938f6d7a45416dbf85"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.workspace.test.tsx",
@@ -475,7 +475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "98f9b24f7f2ffcc94615b9385a47e09ef0531a881c2a1a9bec30f524c636a639"
+          "content": "631fe3499a30126ee47759ebc7e77c643c785ece3be278e9682baaaa2d0d7814"
         }
       ],
       "name": "frontend/src/components/FieldIndicatorMap.static.test.ts",
@@ -1385,7 +1385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ced9137b9ddc2b3f50e39b6c0b6fee1fe3b0805e2994cfcf341b447c6acde921"
+          "content": "d3b5f28779c8761ce10d27379f888f3c2bc63138716168d82071cfe2943455b3"
         }
       ],
       "name": "frontend/src/components/maphub/drawing/index.ts",
@@ -2685,7 +2685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9593385aa9b992c2a53ad91a5584d03ba3a9c36d966d7a320bafc0d696dfb592"
+          "content": "0bbc81eb8388ed38d191e0c72d48ccf1aa98eec8c12ff942afcaaebd9b9047a1"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.test.tsx",

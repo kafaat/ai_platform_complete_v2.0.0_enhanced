@@ -29,9 +29,17 @@ COPY . .
 # وقت البناء بـ--build-arg VITE_API_MODE=dev عند الحاجة.
 ARG VITE_API_MODE=gateway
 ARG VITE_MOCK_MODE=false
+# Compose/build callers still pass these names; Vite only reads values available at
+# build time, so expose them explicitly instead of relying on runtime container env.
+ARG VITE_API_URL=/api
+ARG VITE_WS_URL=/ws
+ARG VITE_DEV_PROXY_TARGET=http://localhost
 
 ENV VITE_API_MODE=$VITE_API_MODE \
-    VITE_MOCK_MODE=$VITE_MOCK_MODE
+    VITE_MOCK_MODE=$VITE_MOCK_MODE \
+    VITE_API_URL=$VITE_API_URL \
+    VITE_WS_URL=$VITE_WS_URL \
+    VITE_DEV_PROXY_TARGET=$VITE_DEV_PROXY_TARGET
 
 RUN npm run build:docker
 

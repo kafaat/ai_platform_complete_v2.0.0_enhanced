@@ -1460,12 +1460,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                   {/* Actions */}
                   <div className="flex flex-wrap gap-2 justify-end">
                     <button onClick={handleUndo} disabled={pointer <= 0}
+                      aria-label="تراجع من لوحة النموذج"
                       title="تراجع عن آخر تعديل للحدّ"
                       className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
                       style={{ borderColor:'#334155' }}>
                       <Undo2 className="w-4 h-4" /> تراجع
                     </button>
                     <button onClick={handleRedo} disabled={pointer >= history.length - 1}
+                      aria-label="إعادة من لوحة النموذج"
                       title="إعادة تطبيق التعديل المُتراجَع عنه"
                       className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-slate-400 hover:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-slate-400"
                       style={{ borderColor:'#334155' }}>
@@ -1607,6 +1609,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                         type="button"
                         onClick={handleUndo}
                         disabled={pointer <= 0}
+                        aria-label="تراجع من الخريطة"
                         title="تراجع عن آخر تعديل للحدّ"
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{ background: '#ffffff', color: '#166534', border: '1px solid #16a34a55' }}>
@@ -1616,6 +1619,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                         type="button"
                         onClick={handleRedo}
                         disabled={pointer >= history.length - 1}
+                        aria-label="إعادة من الخريطة"
                         title="إعادة التعديل المُتراجَع عنه"
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{ background: '#ffffff', color: '#166534', border: '1px solid #16a34a55' }}>
