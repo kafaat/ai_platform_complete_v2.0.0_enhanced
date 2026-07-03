@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cce1837c0955d8f2cf2350edac3b82c06051d66427bdca78c713ec40ff6a5f1"
+          "content": "dad04f9c956a3fd712e52f192a32a32370a008a0f0e6388534b36fabc07d2b3e"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -995,7 +995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3739c4f975937743124a137ba5959e85acf699c8cc7dd82fcdbeccd70c3efa0"
+          "content": "be6e47ee71928b09c3ab1fdc4c53a0b43de43ca9c1da80033161ecc71cd2c9f4"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -1015,7 +1015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38ec7751bbaf8e0d98c0691252a40252ca6432b92cfcbeb876494daeb4bcdcb9"
+          "content": "c22a37cfe5bf1b22b4a6f714bced5673189f72943d4ca7d71c45706178aa7466"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -2015,7 +2015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74e72b634d3fcabcbc6d201429843225eb0bf5d995df24b5a96e2ea22a04aaba"
+          "content": "0b31629bfbb05edd0b0de58b8457e558700c91013d4be1647b0a226d59b23255"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.test.ts",
@@ -2025,7 +2025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "173082322fe3983e43f2c92356ba301365a57272c4a7a734b023bcafdc37d3a1"
+          "content": "8d1c508043dcd91861f4ce76168160e95b55990d93b0b699e3da7525a842ce20"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",
@@ -2835,7 +2835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9202b94cf3353fa3a3d977a9747a8a00afd5c04c3feca13e7cffb7ada61fa16b"
+          "content": "dcf1f4a35aa60ac6366fe52ea0431adc8349b0b4fb8ab2c6f460b8fcb974101a"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

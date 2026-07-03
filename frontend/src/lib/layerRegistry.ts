@@ -60,6 +60,18 @@ export type MapLayer = {
   opacity?: number;
   defaultVisible?: boolean;
   description?: string;
+  /** حقوق/نَسَب المزود عند عرض الطبقة. */
+  attribution?: string;
+  /** أقصى تكبير موصى به للطبقة. */
+  maxZoom?: number;
+  /** هل تحتاج الطبقة مفتاحاً عاماً من Vite قبل عرضها؟ */
+  requiresToken?: boolean;
+  /** اسم متغيّر البيئة العام في Vite مثل VITE_MAPBOX_TOKEN. */
+  tokenEnv?: string;
+  /** طبقة موثّقة لكن غير مفعّلة في الواجهة لأنها تحتاج تكاملاً رسميّاً خاصاً. */
+  disabled?: boolean;
+  /** سبب تعطيل الطبقة أو إخفائها من المنتقي. */
+  disabledReason?: string;
 };
 
 /**
@@ -76,7 +88,39 @@ export const LAYER_REGISTRY = [
     source: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     opacity: 1,
     defaultVisible: true,
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.esri.com/">Esri</a> — World Imagery',
     description: 'خريطة أساس بصور جوّيّة (ArcGIS World Imagery).',
+  },
+  {
+    id: 'mapbox-satellite',
+    labelAr: 'Mapbox Satellite Streets',
+    kind: 'basemap',
+    // يُفعَّل فقط عند وجود VITE_MAPBOX_TOKEN. لا يُستخدم للتحليل الآليّ/SAM2؛ هو خلفيّة عرض.
+    source: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token={token}',
+    opacity: 1,
+    defaultVisible: false,
+    maxZoom: 22,
+    attribution: '&copy; <a href="https://www.mapbox.com/">Mapbox</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    requiresToken: true,
+    tokenEnv: 'VITE_MAPBOX_TOKEN',
+    description: 'خريطة أساس احترافيّة عالية الوضوح. تظهر في الواجهة فقط عند ضبط VITE_MAPBOX_TOKEN.',
+  },
+  {
+    id: 'google-satellite-official',
+    labelAr: 'Google Satellite (رسمي — غير مفعّل)',
+    kind: 'basemap',
+    // Google Map Tiles API يحتاج session/token flow رسميّاً؛ لا نستخدم روابط tiles غير موثّقة.
+    source: 'google-map-tiles-api://satellite',
+    opacity: 1,
+    defaultVisible: false,
+    maxZoom: 22,
+    attribution: 'Google Maps Platform',
+    requiresToken: true,
+    tokenEnv: 'VITE_GOOGLE_MAP_TILES_API_KEY',
+    disabled: true,
+    disabledReason: 'يتطلب تكامل Google Map Tiles API الرسمي وإنشاء جلسة بلاطات؛ لا تُستعمل روابط Google غير الرسمية.',
+    description: 'موثّق كخيار لاحق فقط. Mapbox/Esri هما الطبقتان العمليّتان الآن.',
   },
   {
     id: 'light',
@@ -86,6 +130,8 @@ export const LAYER_REGISTRY = [
     source: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
     opacity: 1,
     defaultVisible: false,
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
     description: 'خريطة أساس فاتحة (CARTO light) — بديل للصور الجوّيّة.',
   },
 
@@ -254,4 +300,23 @@ export function layersOfKind(kind: MapLayer['kind']): MapLayer[] {
 /** الطبقات الظاهرة افتراضيّاً عند فتح الخريطة. */
 export function defaultVisibleLayers(): MapLayer[] {
   return LAYER_REGISTRY.filter((l) => l.defaultVisible);
+}
+
+
+/**
+ * يحلّ رابط البلاطات إذا كان يحتاج token. الدالة لا تقرأ import.meta.env مباشرةً
+ * حتى تبقى قابلة للاختبار؛ مرّر import.meta.env من مكوّنات Vite.
+ */
+export function resolveLayerSource(layer: MapLayer | undefined, env: Record<string, string | undefined> = {}): string | undefined {
+  if (!layer || layer.disabled) return undefined;
+  if (!layer.requiresToken) return layer.source;
+  const tokenName = layer.tokenEnv;
+  const token = tokenName ? env[tokenName] : undefined;
+  if (!token) return undefined;
+  return layer.source.replace('{token}', encodeURIComponent(token));
+}
+
+/** خرائط الأساس القابلة للعرض فعلياً في الواجهة بعد احترام tokens والتعطيل. */
+export function availableBasemapLayers(env: Record<string, string | undefined> = {}): MapLayer[] {
+  return layersOfKind('basemap').filter((layer) => Boolean(resolveLayerSource(layer, env)));
 }

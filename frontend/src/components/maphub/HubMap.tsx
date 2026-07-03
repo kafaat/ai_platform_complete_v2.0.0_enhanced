@@ -23,7 +23,7 @@ import '../../lib/leafletSetup';
 import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters } from '../../lib/geo';
 import { readFieldMapView, consumeDefaultViewOnce } from '../../lib/fieldMapView';
 import type { DrawFeature } from './drawing';
-import { getLayer } from '../../lib/layerRegistry';
+import { getLayer, resolveLayerSource } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
@@ -48,7 +48,7 @@ export interface HubMapProps {
   fields: FieldOption[];
   selectedId: string;
   onSelect: (id: string) => void;
-  // معرّف خريطة الأساس من layerRegistry (kind:'basemap'): 'satellite' | 'light'.
+  // معرّف خريطة الأساس من layerRegistry (kind:'basemap'): satellite/light/mapbox-satellite عند توفر token.
   basemapId: string;
   // معرّف طبقة المؤشّر النشطة (kind:'index') أو null لإخفاء طبقة المؤشّر.
   indicatorId: string | null;
@@ -349,8 +349,11 @@ export default function HubMap({
   initialView = null, onViewChange,
 }: HubMapProps) {
   const basemap = getLayer(basemapId);
-  const basemapUrl = basemap?.source
+  const basemapUrl = resolveLayerSource(basemap, import.meta.env as Record<string, string | undefined>)
     ?? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+  const basemapAttribution = basemap?.attribution
+    ?? '&copy; <a href="https://www.esri.com/">Esri</a> — World Imagery';
+  const basemapMaxZoom = basemap?.maxZoom ?? 19;
 
   // v2: لقطة العرض المُستعادة تُؤخذ مرّة واحدة عند أوّل تركيب (المركز/التكبير
   // الابتدائيّان لـMapContainer غير تفاعليّين بعد التركيب). نُثبّتها بـref كي لا
@@ -383,9 +386,8 @@ export default function HubMap({
         <TileLayer
           key={basemapId}
           url={basemapUrl}
-          attribution={basemapId === 'light'
-            ? '&copy; <a href="https://carto.com/">CARTO</a>'
-            : '&copy; <a href="https://www.esri.com/">Esri</a> — World Imagery'}
+          attribution={basemapAttribution}
+          maxZoom={basemapMaxZoom}
         />
 
         {/* طبقة بلاطات المؤشّر للحقل المختار (شفّافة خارج الحقل). تُخفى عند تفعيل الطقس

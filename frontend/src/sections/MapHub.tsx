@@ -35,7 +35,7 @@ import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, f
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
-import { layersOfKind } from '../lib/layerRegistry';
+import { availableBasemapLayers, layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
@@ -85,7 +85,8 @@ const INDICATOR_LAYERS = layersOfKind('index')
   .map((l) => ({ id: l.id, label: l.labelAr, cmap: (l.colormap ?? 'ndvi') as CmapId }));
 
 // خرائط الأساس من السجلّ (kind:'basemap').
-const BASEMAPS = layersOfKind('basemap').map((b) => ({ id: b.id, label: b.labelAr }));
+const BASEMAPS = availableBasemapLayers(import.meta.env as Record<string, string | undefined>)
+  .map((b) => ({ id: b.id, label: b.labelAr }));
 
 // تسمية مختصرة + حدّا المفتاح للطبقة (عرض ColormapLegend).
 const LAYER_LEGEND: Record<string, { short: string; low: string; high: string }> = {

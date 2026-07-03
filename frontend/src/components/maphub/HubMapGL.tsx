@@ -35,7 +35,7 @@ import {
   areaSqMeters, lengthMeters, snapPoint,
 } from '../../lib/geo';
 import type { SnapTarget } from '../../lib/geo';
-import { getLayer } from '../../lib/layerRegistry';
+import { getLayer, resolveLayerSource } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
@@ -136,14 +136,14 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
 //     فنستبدل {s} بنطاق ملموس (a) ونُسقِط {r}.
 function basemapTileSpec(basemapId: string): { url: string; attribution: string } {
   const layer = getLayer(basemapId);
-  const raw = layer?.source
+  const raw = resolveLayerSource(layer, import.meta.env as Record<string, string | undefined>)
     ?? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
   const url = raw
     .replace('{s}', 'a')   // نطاق فرعيّ ملموس (MapLibre لا يدعم {s})
     .replace('{r}', '');   // إسقاط لاحقة retina (MapLibre لا يدعم {r})
-  const attribution = basemapId === 'light'
+  const attribution = layer?.attribution ?? (basemapId === 'light'
     ? '© <a href="https://carto.com/">CARTO</a>'
-    : '© <a href="https://www.esri.com/">Esri</a> — World Imagery';
+    : '© <a href="https://www.esri.com/">Esri</a> — World Imagery');
   return { url, attribution };
 }
 

@@ -30,6 +30,7 @@ import AutoSegmentControl, { type SegmentNotice } from './maphub/AutoSegmentCont
 // محرّك الرسم المُوحَّد (DrawingCore، ADR-0031): تحقّق عميل فوريّ للحدّ المرسوم —
 // تغذية راجعة قبل الحفظ بينما يبقى PostGIS الخلفيّ هو المرجع. (تفعيل أوّل للوحدة المشتركة.)
 import { validateDrawFeature, type DrawFeature, type DrawValidationIssue } from './maphub/drawing';
+import { availableBasemapLayers, getLayer, resolveLayerSource } from '../lib/layerRegistry';
 
 // الطبقة المرسومة من leaflet-draw: circle يحمل getLatLng/getRadius؛
 // polygon/rectangle يحملان getLatLngs. نستخدمه لتضييق layer داخل المعالِج.
@@ -119,8 +120,10 @@ const WATER_SOURCES = [
   { value:'tank',    label:'خزّان' },
   { value:'mixed',   label:'مختلط' },
 ];
-const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-const SAT_URL  = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+const PUBLIC_ENV = import.meta.env as Record<string, string | undefined>;
+const ADD_FIELD_BASEMAP_IDS = new Set(['satellite', 'mapbox-satellite', 'light']);
+const ADD_FIELD_BASEMAPS = availableBasemapLayers(PUBLIC_ENV).filter((l) => ADD_FIELD_BASEMAP_IDS.has(l.id));
+const DEFAULT_BASEMAP_ID = ADD_FIELD_BASEMAPS.some((l) => l.id === 'satellite') ? 'satellite' : (ADD_FIELD_BASEMAPS[0]?.id ?? 'satellite');
 
 // ── Geodesic area (الصيغة الكرويّة الصحيحة — تطابق Leaflet/Mapbox) ──
 // إصلاح: الصيغة السابقة كانت تُرجع نصف المساحة الصحيحة (خطأ في خلط الحدود)،
@@ -290,7 +293,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const [autoRegion, setAutoRegion]   = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState('');
-  const [tileType, setTileType] = useState<'street'|'satellite'>('satellite');
+  const [tileType, setTileType] = useState<string>(DEFAULT_BASEMAP_ID);
   const mapRef = useRef<L.Map | null>(null);
   // مقبض المركز القابل للسحب (ينقل الشكل المرسوم كاملاً) — طبقة على الخريطة لا ضمن fgRef.
   const centerHandleRef = useRef<L.Marker | null>(null);
@@ -906,6 +909,13 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     }
   };
 
+  const selectedBasemap = getLayer(tileType) ?? getLayer(DEFAULT_BASEMAP_ID);
+  const selectedBasemapUrl = resolveLayerSource(selectedBasemap, PUBLIC_ENV)
+    ?? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+  const selectedBasemapAttribution = selectedBasemap?.attribution
+    ?? '&copy; <a href="https://www.esri.com/">Esri</a> — World Imagery';
+  const selectedBasemapMaxZoom = selectedBasemap?.maxZoom ?? 19;
+
   return (
     <div className="fixed inset-0 z-[1200] flex flex-col" dir="rtl" style={{ background:'#0b1220' }}>
       {/* Top bar (ملء العرض): العنوان + التبويبات على جهة البداية، تبديل الطبقة + الإغلاق على جهة النهاية */}
@@ -942,12 +952,19 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
           )}
         </div>
         <div className="flex items-center gap-2">
-          {/* Layer toggle (الرسم فقط) */}
+          {/* اختيار خريطة الأساس (الرسم فقط). Mapbox يظهر فقط عند ضبط VITE_MAPBOX_TOKEN. */}
           {mode === 'draw' && (
-            <button onClick={() => setTileType(t => t === 'street' ? 'satellite' : 'street')}
-              className="px-2 py-1 rounded text-xs border" style={{ borderColor:'#334155', color:'#94a3b8' }}>
-              {tileType === 'satellite' ? '🗺 خريطة' : '🛰 قمر صناعي'}
-            </button>
+            <select
+              value={tileType}
+              onChange={(e) => setTileType(e.target.value)}
+              title="اختر خلفية الخريطة للرسم والمراجعة — التحليل يبقى عبر Sentinel/COG"
+              className="px-2 py-1 rounded text-xs border bg-slate-900"
+              style={{ borderColor:'#334155', color:'#cbd5e1' }}
+            >
+              {ADD_FIELD_BASEMAPS.map((layer) => (
+                <option key={layer.id} value={layer.id}>{layer.labelAr}</option>
+              ))}
+            </select>
           )}
           <button onClick={onCancel} className="p-1 rounded hover:bg-slate-700 text-slate-400">
             <X className="w-5 h-5" />
@@ -1264,8 +1281,12 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
                 ref={(m: L.Map | null) => { mapRef.current = m; }}
               >
                 <InvalidateMapSize />
-                <TileLayer url={tileType === 'satellite' ? SAT_URL : TILE_URL}
-                  attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
+                <TileLayer
+                  key={tileType}
+                  url={selectedBasemapUrl}
+                  attribution={selectedBasemapAttribution}
+                  maxZoom={selectedBasemapMaxZoom}
+                />
                 {/* الدائرة/المستطيل التفاعليّان (نقر + معاينة حيّة) — يلتقطان نقرات
                     الخريطة فقط حين تُختار أداتهما؛ المضلّع يبقى على شريط leaflet-draw. */}
                 {stage === 'draw' && (
