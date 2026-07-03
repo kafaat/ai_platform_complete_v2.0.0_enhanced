@@ -16965,7 +16965,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b3874f0a246afa401105ccd881c21300702c986d46c45e739869f21933f511a"
+          "content": "fde32071ca7c81081a80836b5e1b246174d8720dfef17e8a0926570f0687e2d0"
+        }
+      ],
+      "name": "services/soil-service/modbus_decoder.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4bce59f8e336deb7e4a77de89f00b9414ef951b770bc498e848ee6a2fa62d195"
         }
       ],
       "name": "services/soil-service/requirements.txt",
@@ -16999,6 +17009,16 @@
         }
       ],
       "name": "services/soil-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "710484b6a7ec29e60e7870f69a6969432f3aee2037a066008232e77c652b33d1"
+        }
+      ],
+      "name": "services/soil-service/routers/modbus.py",
       "type": "file"
     },
     {
