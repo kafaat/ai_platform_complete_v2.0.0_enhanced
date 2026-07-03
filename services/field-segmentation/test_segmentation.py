@@ -235,6 +235,36 @@ def test_auto_surfaces_backend_confidence(monkeypatch):
     )
     body = client.post("/segment", json={"mode": "auto"}, headers=_hdr()).json()
     assert body["confidence"] == 0.87, "لم تُمرَّر درجة ثقة الخادم في الاستجابة"
+    assert body["metadata"]["source"] == "sam2"
+    assert body["metadata"]["confidence"] == 0.87
+
+
+def test_auto_surfaces_upstream_metadata(monkeypatch):
+    """شفافية: image/model/post-processing metadata من SAM2 تمر عبر field-segmentation."""
+    mod, client = _configured(monkeypatch, backend="sam2")
+    ring = [[46.0, 24.0], [46.1, 24.0], [46.1, 24.1], [46.0, 24.0]]
+    monkeypatch.setattr(
+        mod,
+        "_post_inference",
+        lambda payload: _fake_response(
+            mod,
+            status_code=200,
+            json_body={
+                "geometry": {"type": "Polygon", "coordinates": [ring]},
+                "confidence": 0.81,
+                "metadata": {
+                    "imagery_source": "sentinel_truecolor",
+                    "imagery_date": "2026-07-03",
+                    "model_version": "sam2-hiera-large",
+                    "post_processing": {"simplify_tolerance_m": 3},
+                },
+            },
+        ),
+    )
+    body = client.post("/segment", json={"mode": "auto"}, headers=_hdr()).json()
+    assert body["metadata"]["imagery_source"] == "sentinel_truecolor"
+    assert body["metadata"]["model_version"] == "sam2-hiera-large"
+    assert body["metadata"]["post_processing"]["simplify_tolerance_m"] == 3
 
 
 def test_auto_confidence_none_when_backend_omits_it(monkeypatch):

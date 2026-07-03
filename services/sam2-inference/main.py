@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -558,6 +559,7 @@ async def predict(req: PredictRequest, x_agent_token: str = Header(None)):
 
     لا تلفيق: نموذج غير محمّل ⇒ 503؛ لا صورة ⇒ 503/422؛ لا قناع/هندسة ⇒ 5xx.
     """
+    started = time.perf_counter()
     _require_service_token(x_agent_token)
 
     if _PREDICTOR is None:
@@ -620,8 +622,29 @@ async def predict(req: PredictRequest, x_agent_token: str = Header(None)):
     # ٤. حوّل القناع → مضلّع GeoJSON 4326 (يرفع 5xx إن فشل التحويل/فرغ).
     geometry = _mask_to_polygon(best_mask, transform, crs)
 
-    # ٥. أعِد بالشكل الذي يتحقّق منه field-segmentation.normalize_polygon.
-    return {"geometry": geometry, "confidence": confidence}
+    vertices_after = (
+        len(geometry.get("coordinates", [[]])[0]) if isinstance(geometry, dict) else None
+    )
+    mask_area_px = int(best_mask.sum())
+    metadata = {
+        "source": "sam2",
+        "mode": req.mode,
+        "model": "sam2",
+        "model_version": VERSION,
+        "checkpoint": os.path.basename(SAM2_CHECKPOINT),
+        "model_cfg": SAM2_MODEL_CFG,
+        "post_processing": {
+            "simplify_tolerance_m": SIMPLIFY_TOLERANCE_M,
+            "dedup_tolerance_m": DEDUP_TOLERANCE_M,
+            "preserve_topology": True,
+        },
+        "vertices_after": vertices_after,
+        "mask_area_px": mask_area_px,
+        "inference_ms": round((time.perf_counter() - started) * 1000.0, 2),
+    }
+
+    # ٥. أعِد بالشكل الذي يتحقّق منه field-segmentation.normalize_polygon مع شفافية مصدر القرار.
+    return {"geometry": geometry, "confidence": confidence, "metadata": metadata}
 
 
 # ─── الصحّة/الجاهزيّة ──────────────────────────────────────────────────────

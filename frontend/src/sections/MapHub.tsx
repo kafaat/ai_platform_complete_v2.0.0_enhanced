@@ -890,6 +890,7 @@ export default function MapHub() {
     field_code?: string; water_source?: string; irrigation_type?: string; pivot?: unknown; country?: string; region?: string;
     area_ha: number; geometry: { type: string; coordinates: number[][][] };
     map_view?: { zoom: number; lat: number; lng: number };
+    boundary_metadata?: Record<string, unknown>;
   }) => {
     try {
       const r = await kongApi.post('/api/v1/fields', {
@@ -897,6 +898,7 @@ export default function MapHub() {
         field_code: data.field_code ?? null, water_source: data.water_source ?? null,
         irrigation_type: data.irrigation_type ?? null, pivot: data.pivot ?? null,
         country: data.country ?? null, region: data.region ?? null, geometry: data.geometry,
+        boundary_metadata: data.boundary_metadata ?? undefined,
       });
       const rec = r.data as Record<string, unknown>;
       const newId = String(rec.field_id ?? '');

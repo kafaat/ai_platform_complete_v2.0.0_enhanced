@@ -88,6 +88,7 @@ interface FieldData {
   geometry:      { type: string; coordinates: number[][][] };
   // مشهد الخريطة عند الإنشاء (zoom + مركز) — يُحفَظ لِيُطار إليه عند فتح الحقل لاحقاً.
   map_view?:     { zoom: number; lat: number; lng: number };
+  boundary_metadata?: Record<string, unknown>;
 }
 
 interface Props {
@@ -262,6 +263,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const [segLoading, setSegLoading] = useState(false);
   const [segMode, setSegMode] = useState<SegmentationMode | null>(null);
   const [segNotice, setSegNotice] = useState<SegmentNotice | null>(null);
+  const [boundaryMetadata, setBoundaryMetadata] = useState<Record<string, unknown> | null>(null);
   const [stage, setStage] = useState<'draw' | 'form'>('draw');
   const [latlngs, setLatlngs] = useState<L.LatLng[]>([]);
   const [areaHa, setAreaHa] = useState(0);
@@ -676,6 +678,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       const ring = geomToPolygon(res?.geometry);
       if (!ring || ring.length < 3) {
         // ردّ بلا هندسة صالحة — لا نُلفّق مضلّعاً، نُبقي الرسم اليدويّ.
+        setBoundaryMetadata(null);
         setSegNotice({
           tone: 'warning',
           text: 'لم تُرجِع الخدمة مضلّعاً صالحاً — استخدم الرسم اليدويّ.',
@@ -686,6 +689,13 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
       setPivotPayload(null);
       const pts = ring.map(([lat, lng]) => L.latLng(lat, lng));
       handlePolygonDone(pts);
+      const metadata = (res?.metadata && typeof res.metadata === 'object') ? res.metadata : {};
+      setBoundaryMetadata({
+        source: res?.source ?? res?.model ?? 'segmentation',
+        mode: res?.mode ?? segReqMode,
+        confidence: res?.confidence ?? null,
+        ...metadata,
+      });
       const conf = typeof res?.confidence === 'number' ? ` (ثقة ${(res.confidence * 100).toFixed(0)}٪)` : '';
       setSegNotice({
         tone: 'info',
@@ -742,6 +752,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setDrawTool(null);
     setDrawStatus(null);
     setPivotPayload(null);
+    setBoundaryMetadata(null);
   };
 
   // «إلغاء» سياقيّ: إن وُجِد رسم/تحرير جارٍ نمسحه ونبقى في شاشة إضافة الحقل (لا نخرج
@@ -783,6 +794,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         area_ha: +(geodesicAreaHa(finalPts).toFixed(2)),
         geometry: { type: 'Polygon', coordinates: [coords] },
         map_view: mapView,
+        boundary_metadata: boundaryMetadata ?? { source: 'manual', mode: 'manual' },
       });
     } catch (e: unknown) {
       // أظهِر رسالة الخادم العربيّة (message_ar) — مهمّة لتعارض 409 (اسم مكرّر/تداخل

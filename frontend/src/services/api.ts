@@ -809,7 +809,9 @@ export interface SegmentFieldResult {
   geometry:    { type: 'Polygon'; coordinates: number[][][] };
   mode:        SegmentationMode | string;
   confidence?: number | null;     // [0,1] إن توفّرت — تُعرَض كمؤشّر، لا تُعتمَد آليّاً
+  source?:     string | null;     // sam2 | geosam | manual | …
   model?:      string | null;     // sam2 | geosam | … (شفافيّة المصدر)
+  metadata?:   Record<string, unknown> | null; // model/image/post-processing provenance
   approximate?: boolean;          // علَم صريح أنّ النتيجة تقريبيّة تتطلّب تحريراً
   note_ar?:    string | null;
 }
@@ -3108,6 +3110,7 @@ export interface FieldImportInput {
   water_source?: string;
   country?:      string;
   region?:       string;
+  boundary_metadata?: Record<string, unknown>;
 }
 
 /** يستورد حقلاً من ملفّ/نقاط GPS. يُرجع FieldSummary المُنشأ من ردّ الخادم. */
