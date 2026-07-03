@@ -1,6 +1,9 @@
 import { Sparkles, Satellite, ClipboardCheck, MapPinned, AlertTriangle, FileText, ShieldCheck, Network } from 'lucide-react';
 import { buildFieldViewActionDeck, type FieldViewActionCard, type FieldViewActionDeckInput } from '../../lib/fieldViewActionDeck';
 import { evaluateFieldViewGovernance } from '../../lib/fieldViewGovernance';
+import { evaluateDesignSystemGovernance } from '../../lib/designSystemGovernance';
+import { buildFieldViewDecisionScript } from '../../lib/fieldViewDecisionScript';
+import { evaluateRuntimeEndpointGovernance, readRuntimeEndpointEnv } from '../../lib/runtimeEndpointGovernance';
 import { T } from '../ds';
 
 const ICONS: Record<FieldViewActionCard['kind'], typeof Satellite> = {
@@ -38,6 +41,9 @@ function actionHandler(card: FieldViewActionCard, props: Props) {
 export default function FieldViewInsightStrip(props: Props) {
   const cards = buildFieldViewActionDeck(props);
   const governance = evaluateFieldViewGovernance(props);
+  const design = evaluateDesignSystemGovernance();
+  const runtime = evaluateRuntimeEndpointGovernance(readRuntimeEndpointEnv(import.meta.env));
+  const script = buildFieldViewDecisionScript(governance);
   if (!cards.length) return null;
   return (
     <section className="mb-3" aria-label="FieldView smart action deck" data-testid="fieldview-insight-strip">
@@ -48,7 +54,18 @@ export default function FieldViewInsightStrip(props: Props) {
         </div>
         <div className="inline-flex items-center gap-2 text-[11px]" style={{ color: T.faint }}>
           <Network className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>ثقة المصادر {governance.score}% · {governance.sources.filter((s) => s.status === 'ready').length}/{governance.sources.length} جاهزة</span>
+          <span>ثقة المصادر {governance.score}% · DS {design.score}% · Runtime {runtime.score}%</span>
+        </div>
+      </div>
+      <div className="mb-2 grid gap-2 md:grid-cols-3" data-testid="fieldview-governance-rail">
+        <div className="rounded-xl border p-2 text-[11px] leading-5" style={{ borderColor: 'rgba(34,197,94,.35)', background: 'rgba(22,163,74,.07)', color: T.muted }}>
+          <b style={{ color: T.ink }}>Design System</b> · {design.summary} · tokens={design.tokenCount} components={design.componentCount}
+        </div>
+        <div className="rounded-xl border p-2 text-[11px] leading-5" style={{ borderColor: 'rgba(59,130,246,.35)', background: 'rgba(59,130,246,.07)', color: T.muted }}>
+          <b style={{ color: T.ink }}>Runtime Doctor</b> · {runtime.summary} · {runtime.portHints[0]}
+        </div>
+        <div className="rounded-xl border p-2 text-[11px] leading-5" style={{ borderColor: 'rgba(245,158,11,.35)', background: 'rgba(245,158,11,.07)', color: T.muted }}>
+          <b style={{ color: T.ink }}>Decision Script</b> · {script.steps.length} خطوات · {script.selfReview[0]}
         </div>
       </div>
       <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-5">

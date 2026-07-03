@@ -845,7 +845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94311a9aeb25cc804a4eeae68b2246099c58e640648a053ef9ed8374d91ed4ba"
+          "content": "45f4a74bbcca561235f848e70fd49d2cbbb59f0144dbc12f26753048f979e027"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldViewInsightStrip.tsx",
@@ -1845,6 +1845,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ff098e539ef015c4601443f1754da8ab114d86df28954ea28c4f24162d9d48ce"
+        }
+      ],
+      "name": "frontend/src/lib/designSystemGovernance.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "520e0fef030511fcb0cdcd8ac3f8d29e149f26860195a2a8754af6d77c1936ff"
+        }
+      ],
+      "name": "frontend/src/lib/designSystemGovernance.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "60ccd799f4f728993a1e21fc69b16e13c2ffa1d53b93fa4a79dbca03ce170816"
         }
       ],
@@ -1959,6 +1979,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldViewActionDeck.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fb74c0d23ffd4e626e75bddfa19bf8a2bce2cb9872d1817fc60c407ec41440ca"
+        }
+      ],
+      "name": "frontend/src/lib/fieldViewDecisionScript.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a957a321d7f2c897612e76183b7d7e8825523ec2fb79e827939c2ec86d328b23"
+        }
+      ],
+      "name": "frontend/src/lib/fieldViewDecisionScript.ts",
       "type": "file"
     },
     {
@@ -2219,6 +2259,26 @@
         }
       ],
       "name": "frontend/src/lib/routes.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "30dc57fcbadf87d0a1ed5fc3bc299b558d3999eabfdc54fc7938099fc3b37fff"
+        }
+      ],
+      "name": "frontend/src/lib/runtimeEndpointGovernance.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6452d7ee3e0dc5ccddaffd2f62832712e3011c30bdbe36f0b9d1c8b33462e78"
+        }
+      ],
+      "name": "frontend/src/lib/runtimeEndpointGovernance.ts",
       "type": "file"
     },
     {
