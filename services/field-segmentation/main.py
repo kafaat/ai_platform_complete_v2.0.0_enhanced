@@ -25,6 +25,7 @@ import logging
 import os
 
 import httpx
+from exg_preprocess import apply_exg_for_sam2
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
@@ -50,6 +51,25 @@ SEGMENTATION_INFERENCE_URL = os.getenv("SEGMENTATION_INFERENCE_URL", "").strip()
 SEGMENTATION_TIMEOUT = float(os.getenv("SEGMENTATION_TIMEOUT", "30").strip() or "30")
 
 app = FastAPI(title="SAHOOL Field Segmentation", version=VERSION)
+
+
+def _payload_trace_hash(payload: dict) -> str:
+    """Stable trace hash without serializing full base64 imagery into logs/CPU.
+
+    The inference payload can contain a large PNG/JPEG base64 string. Hash only a
+    digest + length for that field so request correlation stays deterministic
+    without making the pre-SAM2 path expensive.
+    """
+    compact = dict(payload)
+    image = compact.get("image_base64")
+    if isinstance(image, str):
+        compact["image_base64"] = {
+            "sha256": hashlib.sha256(image.encode("utf-8")).hexdigest()[:16],
+            "length": len(image),
+        }
+    return hashlib.sha256(
+        json.dumps(compact, sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()[:16]
 
 
 def _require_service_token(x_agent_token: str | None) -> None:
@@ -79,6 +99,11 @@ class SegmentRequest(BaseModel):
     bbox: list[float] | None = None
     # مرجع الصورة (مسار/معرّف مشهد) — يقرؤه خطّاف النموذج (auto/hybrid).
     image_ref: str | None = None
+    # صورة RGB/PNG/JPEG اختيارية من واجهة الخريطة أو خدمة الصور. عند mode=auto
+    # وpreprocessing=exg تُحسَّن محليّاً قبل إرسالها إلى SAM2.
+    image_base64: str | None = None
+    preprocessing: str | None = Field(default=None, pattern="^(none|exg|auto_exg)$")
+    fallback_to_original_on_low_exg: bool = True
     # مضلّع المستخدم (manual / بادرة hybrid) — اسمان: user_polygon (داخليّ) / hints (واجهة).
     user_polygon: list[list[float]] | dict | None = None
     hints: list[list[float]] | None = None
@@ -172,6 +197,9 @@ def run_segmentation_model(
     field_bbox: list[float] | None,
     image_ref: str | None,
     user_polygon: list[list[float]] | dict | None,
+    image_base64: str | None = None,
+    preprocessing: str | None = None,
+    fallback_to_original_on_low_exg: bool = True,
 ) -> tuple[dict, float | None, dict]:
     """محوّل استدلال بعيد لـSAM2 / GeoSAM (عميل HTTP حقيقيّ، بلا تلفيق).
 
@@ -198,11 +226,58 @@ def run_segmentation_model(
         "image_ref": image_ref,
         "user_polygon": user_polygon,
     }
+
+    preprocessing_meta: dict = {
+        "preprocessing": "none",
+        "vegetation_ratio": None,
+        "low_confidence": False,
+        "candidate_count": 0,
+    }
+    if image_base64:
+        payload["image_base64"] = image_base64
+
+    # Auto/Hybrid: improve true-color satellite/map imagery with ExG before SAM2.
+    # This does not fabricate geometry; it only changes the image/prompts sent to the
+    # real inference service, and the returned geometry is still validated below.
+    if mode in {"auto", "hybrid"} and preprocessing in {"exg", "auto_exg"} and image_base64:
+        try:
+            exg = apply_exg_for_sam2(image_base64)
+        except Exception as e:  # noqa: BLE001
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "error": "exg_preprocessing_failed",
+                    "note_ar": "تعذّرت معالجة الصورة بمؤشر ExG",
+                },
+            ) from e
+
+        preprocessing_meta = exg.metadata()
+        use_original = bool(exg.low_confidence and fallback_to_original_on_low_exg)
+        if use_original:
+            preprocessing_meta["preprocessing"] = "exg_low_confidence_fallback_original"
+        else:
+            payload["image_base64"] = exg.image_base64
+
+        # SAM2 responds better when it receives positive point/box prompts.
+        # Use the top vegetation components only; no final polygon is inferred here.
+        prompt_candidates = exg.candidates[:3]
+        if prompt_candidates and not use_original:
+            payload["boxes"] = [list(c.bbox) for c in prompt_candidates]
+            payload["positive_points"] = [list(c.centroid) for c in prompt_candidates]
+            payload["multimask_output"] = True
+
+    elif mode in {"auto", "hybrid"} and preprocessing in {"exg", "auto_exg"} and not image_base64:
+        preprocessing_meta = {
+            "preprocessing": "exg_skipped_no_image",
+            "vegetation_ratio": None,
+            "low_confidence": True,
+            "candidate_count": 0,
+        }
+
+    payload["preprocessing"] = preprocessing_meta.get("preprocessing", "none")
     # Trace key only: no security semantics, useful for cache/log correlation.
     try:
-        payload["request_hash"] = hashlib.sha256(
-            json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
-        ).hexdigest()[:16]
+        payload["request_hash"] = _payload_trace_hash(payload)
     except Exception:  # noqa: BLE001
         pass
 
@@ -257,6 +332,7 @@ def run_segmentation_model(
         "source": SEGMENTATION_BACKEND,
         "mode": mode,
         "confidence": confidence,
+        **preprocessing_meta,
     }
     if isinstance(body, dict):
         upstream_meta = body.get("metadata")
@@ -347,6 +423,9 @@ async def segment(req: SegmentRequest, x_agent_token: str = Header(None)):
         field_bbox=resolved_bbox,
         image_ref=req.image_ref,
         user_polygon=resolved_polygon,
+        image_base64=req.image_base64,
+        preprocessing=req.preprocessing,
+        fallback_to_original_on_low_exg=req.fallback_to_original_on_low_exg,
     )
     return {
         "mode": req.mode,

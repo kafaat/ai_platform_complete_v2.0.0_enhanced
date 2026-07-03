@@ -75,7 +75,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "870817bb2d21a474f9c27a3d2872decaea5e6154ff2d0d5e849c16bd053a5200"
+          "content": "4259bc7311c836ea8517aa0fd0e46eae5fd251e54731ddb466f7fb173239d72f"
         }
       ],
       "name": "docker-compose.v9.gpu.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6784d114811982a9e96c61f2e2e2b1afc080be336c31cec478542c099ecad1cf"
+          "content": "42a0b43f9a40467c1783505b43e8a2f954e2453f099bb929be087aac03904310"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8eb6abffcd5cd9184f58d041ad3d219b9afb2c5aa90168bf3b93ea8a1ef4f0cf"
+          "content": "a39a8bc7801937dba541af9af014deef751270942130052a5814665d660c0f58"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -3265,7 +3265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31910fe2837b64f5244aa6ed467a4284324cf5796c8c92078f9ca2350f80fb24"
+          "content": "49bbb92ad6a38a57ae1ad5d9e5c05622d78424fdf3850002f68409e28b672bb2"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -6365,7 +6365,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "683f1e5b277d7f96cf83edcb41237b4b499006acb8365aa0208d49b978e9c150"
+          "content": "a79195e8458c861240793e99a77fcce6d62c7e0dc79a06767c9bb0f6a15b8089"
+        }
+      ],
+      "name": "services/field-segmentation/exg_preprocess.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "df12ef2ef30adba678e79d0b17aee6a6dd5c56659ce1c510964b31b405df6a79"
         }
       ],
       "name": "services/field-segmentation/main.py",
@@ -6375,7 +6385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5776548281511cc5c213a89f32a07e6a4ef61cd25270108f703150aaf224f906"
+          "content": "1d6bd86ed008011f9798be703a5954469e09a5f9042b30b99869ad8187d18749"
         }
       ],
       "name": "services/field-segmentation/requirements.txt",
@@ -6385,7 +6395,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e279f13c177cd31569cfbda33ef3668d32be379138d6ef50c0127ba4d850c69f"
+          "content": "98e9cfaea5ca60f553105a6c36ce48c81ba0c872e31510e42da38c46f292e911"
+        }
+      ],
+      "name": "services/field-segmentation/test_exg_preprocess.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4caabe0dc7f5a5031108d4cfcf9a6901185af32c1079f86737734b02f7873d6e"
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",
