@@ -6,13 +6,12 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { Droplets, GitCompare, Info, AlertTriangle } from 'lucide-react';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { simulateFieldWaterTwin, asApiError } from '../services/api';
 import type { FieldWaterTwinInput, WaterTwinResult } from '../services/api';
 
 export default function WaterTwinPage() {
-  const { options, isLoading: fieldsLoading } = useFieldOptions();
-  const [fieldId, setFieldId] = useState('');
+  const { options, isLoading: fieldsLoading, fieldId, setFieldId } = useSelectedField();
   const [taw, setTaw] = useState('100');
   const [raw, setRaw] = useState('40');
   const [horizon, setHorizon] = useState('7');

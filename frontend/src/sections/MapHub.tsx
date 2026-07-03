@@ -163,8 +163,20 @@ type MapHubLocationState = {
 
 export default function MapHub() {
   const location = useLocation();
+  const initialSearch = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const routeState = (location.state ?? {}) as MapHubLocationState;
-  const { options: fields, isLoading, isError, refetch, fieldId, setFieldId } = useSelectedField();
+  const routeFieldId = routeState.fieldId ?? initialSearch.get('field_id') ?? initialSearch.get('fieldId') ?? undefined;
+  const {
+    options: fields,
+    isLoading,
+    isError,
+    refetch,
+    fieldId,
+    setFieldId,
+    routeFieldIsInvalid,
+    storedFieldIsInvalid,
+    selectionReason,
+  } = useSelectedField({ routeFieldId });
   const { user, tenantId } = useAuthStore();
   const mutateAllowed = canMutate(user?.role);
 
@@ -174,8 +186,6 @@ export default function MapHub() {
   const savedWorkspace = useMemo(() => loadWorkspace(), []);
   const [mode, setMode] = useState<'2d' | '3d'>(savedWorkspace?.mode === '3d' ? '3d' : '2d');
   const [basemapId, setBasemapId] = useState<string>(savedWorkspace?.basemapId ?? (BASEMAPS[0]?.id ?? 'satellite'));
-  const initialSearch = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const routeFieldId = routeState.fieldId ?? initialSearch.get('field_id') ?? initialSearch.get('fieldId') ?? undefined;
   const routeIndicator = routeState.indicator ?? initialSearch.get('index') ?? initialSearch.get('indicator') ?? undefined;
   const requestedCdseOpen = routeState.openCdse === true || initialSearch.get('source') === 'my-fields' || !!routeIndicator;
   // الطقس لا يُفتَح افتراضيّاً عند فتح حقل من «حقولي» — الافتراضيّ صورة القمر
@@ -196,6 +206,13 @@ export default function MapHub() {
   const [trueColorRuntime, setTrueColorRuntime] = useState<TrueColorRuntimeStatus>({ state: 'idle', message: 'لم يتم اختيار حقل بعد.' });
   const [historicalBackfillBusy, setHistoricalBackfillBusy] = useState(false);
   const [historicalBackfillStatus, setHistoricalBackfillStatus] = useState<string | null>(null);
+  const fieldViewStatus = routeFieldIsInvalid
+    ? 'الرابط يشير إلى حقل غير متاح لهذا المستخدم؛ تم استخدام الحقل النشط المتاح.'
+    : storedFieldIsInvalid
+      ? 'الحقل المحفوظ لم يعد متاحاً؛ تم اختيار حقل متاح تلقائياً.'
+      : selectionReason === 'route'
+        ? 'تم فتح الحقل من رابط FieldView مباشر.'
+        : null;
   const [showImageryTimeline, setShowImageryTimeline] = useState(false);
   const [opacity, setOpacity] = useState(savedWorkspace?.opacity ?? 0.75);
   const [compare, setCompare] = useState(savedWorkspace?.compare ?? false);
@@ -252,15 +269,6 @@ export default function MapHub() {
   const projectInputRef = useRef<HTMLInputElement>(null);
   const imageryRefreshKeyRef = useRef<string>('');
   const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(availableImageryDates), [availableImageryDates]);
-
-  // فتح مباشر من صفحة «حقولي»: الرابط يحدد الحقل والمؤشّر، والمتجر المشترك يُثبَّت
-  // قبل أن يعرض MapHub الخريطة. هذا يجعل /fields → اختيار صف → /fields/map-center
-  // مساراً قابلاً للمشاركة ويعرض CDSE/NDVI للحقل المختار دون الاعتماد على حالة ذاكرة فقط.
-  useEffect(() => {
-    if (!routeFieldId) return;
-    if (fields.length && !fields.some((f) => f.id === routeFieldId)) return;
-    if (fieldId !== routeFieldId) setFieldId(routeFieldId);
-  }, [routeFieldId, fields, fieldId, setFieldId]);
 
   useEffect(() => {
     if (!requestedCdseOpen) return;
@@ -1016,6 +1024,16 @@ export default function MapHub() {
           />
         </div>
       </header>
+
+      {fieldViewStatus && (
+        <div
+          className="mb-3 rounded-xl px-3 py-2 text-xs"
+          data-testid="fieldview-status"
+          style={{ background: '#064e3b33', border: '1px solid #10b98155', color: '#d1fae5' }}
+        >
+          {fieldViewStatus}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" data-testid="maphub-summary">
         <SummaryStat label="إجمالي الحقول" value={String(fields.length)} />

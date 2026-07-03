@@ -2,7 +2,7 @@
 // SAHOOL — GisToolsPage (أدوات الهندسة المكانيّة · GIS Studio v1)
 // ───────────────────────────────────────────────────────────────
 // قسم مستوحى من GeoLibre لتطبيق عمليّات هندسيّة مكانيّة على حدود حقل في
-// المتصفّح (Turf) ⇒ معاينة فقط. يختار المستخدم حقلاً (useFieldOptions)، ثمّ
+// المتصفّح (Turf) ⇒ معاينة فقط. يتبع الحقل النشط (useSelectedField)، ثمّ
 // عمليّة: «حِزام (Buffer)» بمسافة بالأمتار أو «تبسيط (Simplify)» بعتبة، ويُعرَض
 // قبل/بعد: المساحة (areaSqMeters عبر @turf/area) وعدد الرؤوس — لا أكثر.
 //
@@ -15,9 +15,8 @@
 // ═══════════════════════════════════════════════════════════════
 import { useMemo, useState } from 'react';
 import { Wrench, Circle, Spline, AlertTriangle, Info, ArrowLeft } from 'lucide-react';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldGeometryHistory } from '../hooks/useApi';
-import { resolveActiveFieldId } from '../lib/fields';
 import { areaSqMeters } from '../lib/geo';
 import {
   bufferFieldGeometry,
@@ -59,9 +58,7 @@ function fmtSqm(m2: number): string {
 }
 
 export default function GisToolsPage() {
-  const { options, isLoading, isError, refetch } = useFieldOptions();
-
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { options, isLoading, isError, refetch, fieldId: activeId, setFieldId } = useSelectedField();
   const [op, setOp] = useState<OpId>('buffer');
   const [meters, setMeters] = useState<number>(25);
   const [tolerance, setTolerance] = useState<number>(0.001);
@@ -69,7 +66,6 @@ export default function GisToolsPage() {
   const [baseRevision, setBaseRevision] = useState<number>(0);
   const [compareRevision, setCompareRevision] = useState<number>(0);
 
-  const activeId = resolveActiveFieldId(options, selectedId);
   const field = options.find((o) => o.id === activeId);
   const history = useFieldGeometryHistory(activeId || undefined, 50);
 
@@ -147,7 +143,7 @@ export default function GisToolsPage() {
           <span className="text-xs text-slate-400">الحقل</span>
           <select
             value={activeId}
-            onChange={(e) => setSelectedId(e.target.value)}
+            onChange={(e) => setFieldId(e.target.value)}
             aria-label="اختيار الحقل"
             className="px-3 py-2 rounded-lg text-sm"
             style={inputStyle}

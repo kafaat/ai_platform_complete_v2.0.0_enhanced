@@ -13,10 +13,10 @@
 // واعٍ RTL. مُقيَّد بالدور: الإنشاء يتطلّب صلاحيّة دعوة (canManage) — والإنفاذ
 // الحقيقيّ خادم-جانبيّ (403 لغير المخوّل).
 // ═══════════════════════════════════════════════════════════════
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { KeyRound, Plus, Copy, Check, AlertTriangle, Share2 } from 'lucide-react';
 import { useSharingKeys, useCreateSharingKey } from '../../hooks/useApi';
-import { useFieldOptions } from '../../hooks/useFieldOptions';
+import { useSelectedField } from '../../hooks/useSelectedField';
 import { useAuthStore } from '../../hooks/useAuth';
 import { canManage } from '../../lib/permissions';
 import { apiErrorMessage, type SharingKey, type SharingScope } from '../../services/api';
@@ -53,7 +53,7 @@ function CreateKeyDialog({
   onCreated: (plaintext: string) => void;
 }) {
   const create = useCreateSharingKey();
-  const { options: fields, isLoading: fieldsLoading } = useFieldOptions();
+  const { options: fields, isLoading: fieldsLoading, fieldId: activeFieldId } = useSelectedField();
 
   const [scope, setScope] = useState<SharingScope>('read');
   const [validDays, setValidDays] = useState('30');
@@ -62,6 +62,13 @@ function CreateKeyDialog({
   // فارغة ⇒ تقييد بمستوى الحقل (allowed_field_ids) — وهو جوهر هذه الواجهة.
   const [allFields, setAllFields] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  // FieldView: عند تقييد المشاركة بحقول محددة، نبدأ بالحقل النشط بدل قائمة فارغة.
+  useEffect(() => {
+    if (!allFields && selected.size === 0 && activeFieldId) {
+      setSelected(new Set([activeFieldId]));
+    }
+  }, [activeFieldId, allFields, selected.size]);
 
   const days = Math.max(1, Number(validDays) || 1);
   const fieldError = !allFields && selected.size === 0

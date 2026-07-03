@@ -106,11 +106,11 @@ export default function MyFieldsPage() {
       ) : (
         <FieldsTable
           rows={filtered}
-          onOpen={(fieldId) => {
+          onOpen={(fieldId, fieldName) => {
             // يثبت الحقل النشط في السياق المشترك ثم يفتح النمط الحالي للخريطة/CDSE.
             // MapHub يقرأ selectedFieldId عبر useSelectedField ويعرض بلاطات cdse-tiles
             // ومؤشرات الحقل المختار دون إدخال مسار جديد أو كسر النمط الحالي.
-            setSelectedField(fieldId);
+            setSelectedField(fieldId, { source: 'user', name: fieldName });
             // الافتراضيّ المحمي: صورة الحقل الخام TrueColor؛ الطقس والمؤشّرات overlays اختيارية.
             navigate(`/fields/map-center?field_id=${encodeURIComponent(fieldId)}&source=my-fields&indicator=truecolor`, {
               state: { fieldId, openCdse: true, indicator: 'truecolor', showWeather: false, from: 'my-fields' },
@@ -137,7 +137,7 @@ function FieldsTable({
   onOpen,
 }: {
   rows: Array<{ raw: Record<string, unknown>; opt: { id: string; name: string; crop?: string } }>;
-  onOpen: (fieldId: string) => void;
+  onOpen: (fieldId: string, fieldName: string) => void;
 }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/70">
@@ -186,7 +186,7 @@ function FieldRow({
 }: {
   raw: Record<string, unknown>;
   opt: { id: string; name: string; crop?: string };
-  onOpen: (fieldId: string) => void;
+  onOpen: (fieldId: string, fieldName: string) => void;
 }) {
   const area = num(raw.area_ha ?? raw.area);
   const ndvi = num(raw.ndvi);
@@ -197,8 +197,8 @@ function FieldRow({
     <tr
       role="button"
       tabIndex={0}
-      onClick={() => onOpen(opt.id)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpen(opt.id); }}
+      onClick={() => onOpen(opt.id, opt.name)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpen(opt.id, opt.name); }}
       className="cursor-pointer bg-slate-950/30 hover:bg-emerald-950/20 focus:outline-none focus:bg-emerald-950/30"
       title="فتح خريطة الحقل ومؤشرات CDSE وطبقة الطقس/الرياح"
     >
@@ -240,7 +240,7 @@ function FieldMobileRow({
 }: {
   raw: Record<string, unknown>;
   opt: { id: string; name: string; crop?: string };
-  onOpen: (fieldId: string) => void;
+  onOpen: (fieldId: string, fieldName: string) => void;
 }) {
   const area = num(raw.area_ha ?? raw.area);
   const ndvi = num(raw.ndvi);
@@ -249,7 +249,7 @@ function FieldMobileRow({
   return (
     <button
       type="button"
-      onClick={() => onOpen(opt.id)}
+      onClick={() => onOpen(opt.id, opt.name)}
       className="w-full text-right p-4 hover:bg-emerald-950/20 focus:outline-none focus:bg-emerald-950/30"
     >
       <div className="flex items-start justify-between gap-3">

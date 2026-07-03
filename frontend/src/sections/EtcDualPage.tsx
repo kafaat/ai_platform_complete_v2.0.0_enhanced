@@ -7,13 +7,12 @@
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { Droplets, Calculator, Info, AlertTriangle, Satellite } from 'lucide-react';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { computeFieldEtcDual, asApiError } from '../services/api';
 import type { EtcDualInput, EtcDualResult } from '../services/api';
 
 export default function EtcDualPage() {
-  const { options, isLoading: fieldsLoading } = useFieldOptions();
-  const [fieldId, setFieldId] = useState('');
+  const { options, isLoading: fieldsLoading, fieldId, setFieldId } = useSelectedField();
   // الطقس (لـET0 — يمرّره المتّصِل)
   const [tMax, setTMax] = useState('35');
   const [tMin, setTMin] = useState('20');

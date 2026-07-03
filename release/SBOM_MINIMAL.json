@@ -1545,7 +1545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa5231f60261fc0d9f555f4e63552f761849fbd5ff354496a1ca0d2efc7f518c"
+          "content": "d127de6676dfb08202d29027620d81247f43d2d6f80f4e4ada93fd613719746c"
         }
       ],
       "name": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -1675,7 +1675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c67f2f0b1647117b08ba39e9828984b2ea6b35b7a04d82e396f04f62803df830"
+          "content": "6bc9f286b29c55c71149ede90fa8f166745aaf9a9ab1bee359b73e5172d76671"
         }
       ],
       "name": "frontend/src/hooks/useFieldContext.ts",
@@ -1715,7 +1715,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8354d4a819f8c8609ea1d18e46edd03e607eac2e530f33fb671e745ce7e27ff1"
+          "content": "1a5d3709677cc3d91ebf785713239592144be087de34ab6aa103d08720ec43ff"
+        }
+      ],
+      "name": "frontend/src/hooks/useSelectedField.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01761607461c260a0c5211d0fea1233aa44a2ef8113b3a3025fb9409dcbabdc1"
         }
       ],
       "name": "frontend/src/hooks/useSelectedField.ts",
@@ -1915,6 +1925,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "75972c82f168c24e9618f62f41a8aa880dcc56795d636d26cb8327f9cc846b14"
+        }
+      ],
+      "name": "frontend/src/lib/fields.fieldview.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8e884279f5772847ef2fa613695869108a5ad9fb711da3c3f55c9ed27a8b4f39"
         }
       ],
@@ -1925,7 +1945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "484f39977edfdf0e3d1744cef0757873794dd788ecb83f4a2333733a974e0d01"
+          "content": "b66b238c00d4ca03365dcb9d7ad596f4cd5eb8e562f291fb12e948743b1756b5"
         }
       ],
       "name": "frontend/src/lib/fields.ts",
@@ -2265,7 +2285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e6845dd5083166db075382b3eb01c44567b22946d674f56c51e71c6149d14d0c"
+          "content": "fe2114e36afa784f4320e63809a9e594c79a237639fe0b101cf5f2fafc52bf02"
         }
       ],
       "name": "frontend/src/sections/AlertSystemPage.tsx",
@@ -2275,7 +2295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2444113df7b9530be545e3aad925082832705f5b76e07893937db51239c4c3a8"
+          "content": "8ecd4537602e9672ca75c72ebc3273137634c162815073ab825a27c70c2ad9ab"
         }
       ],
       "name": "frontend/src/sections/AnalyticsPage.tsx",
@@ -2385,7 +2405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13665b16031c1d63799485314013a916be6a3459ba78569fded97daef8c72ef4"
+          "content": "3ee224cc3b81d6610fa4f08f55da58bdba9f22c07c26a3ba4392f4795e548de4"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -2525,7 +2545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e412166c0995582af42c47276949c9f8c23b436aa2a9db811dfbf92a39f3eff"
+          "content": "096626694811745d61cc39c4080c62a5ec46fcdf9621bef9bf176e8f84126ebe"
         }
       ],
       "name": "frontend/src/sections/EtcDualPage.tsx",
@@ -2705,7 +2725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "60df62285c700866b2f939444dca3f03d146e89d312e4e791987428937a1e42e"
+          "content": "8102be82c3c4ec200743b58944e2fef5e9e0951a3d1f4c07c93750b85e156198"
         }
       ],
       "name": "frontend/src/sections/GisToolsPage.tsx",
@@ -2835,7 +2855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "030cb6cb8725fcb176c5acfd22ab61fbede0e25a8250aa581b7e91415a01adef"
+          "content": "84a8a26fe3cefa357f52f33d9a55e1a7d4276a636434292abbdad6e73b20ed78"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -2905,7 +2925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4bf2d3eb934caeb31d4628e0668f8e68739d2d20c5c0d1dded06ce02d027bfb"
+          "content": "c67edc7df64677d0bb40c11f26d8fe7c7b29ba5fe1c52555ebe798b1c116db0f"
         }
       ],
       "name": "frontend/src/sections/MyFieldsPage.tsx",
@@ -2955,7 +2975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "430569d210f6fda51848a78a67c0836c382db85e8fcfd6656e79970deaa45964"
+          "content": "cc9454c9c9116f643544e6d04cae2e942567e959303b579b1bdb2e9a9f585e28"
         }
       ],
       "name": "frontend/src/sections/OperationCenterWallPage.test.tsx",
@@ -2965,7 +2985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6ed961514ffaea833a3bd37b8c54896835278fe9080d1b3aa11003b84c4c623"
+          "content": "423be84afb52d001448a7603ae05dcdf4498becfe0f42bf3e6cc7990e9ade11b"
         }
       ],
       "name": "frontend/src/sections/OperationCenterWallPage.tsx",
@@ -3065,7 +3085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2c010b2343768a27c87738e37a453c7c52bbd9154ee685d8d449ec9eec98029"
+          "content": "39599e9cb162600643018617e7e0cd319a766e1f65a189371b5782d0f8c108c2"
         }
       ],
       "name": "frontend/src/sections/RecommendationFlow.tsx",
@@ -3075,7 +3095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09d27558cd7bf8d6d0f1b49e6d83122da6ca5e94f9771789c73f46610b8d119c"
+          "content": "6911d6eb8dcbf726d8fc3fa16b58cb3b875701a1cbe2a3e96ecca6028ab9d9d3"
         }
       ],
       "name": "frontend/src/sections/RecommendationPage.tsx",
@@ -3105,7 +3125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4eee4428c5baa64f6f5c2b5940256ff5d9c0ae4fefd2ee6f072d052df5ed84f5"
+          "content": "4df1588003bc74f5f39937a3d45b5c9772a0b543591860dc2b46f13df19a51c3"
         }
       ],
       "name": "frontend/src/sections/ReportsPage.test.tsx",
@@ -3115,7 +3135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c862bf1f85d086953a566139ea39e5bcc9abc0f40b962fafddcc0a1dcdc24151"
+          "content": "e681cde182c6bbbd55f3920d669ba10b1a0cf2e8134d3d52c58fd1e9d87bda25"
         }
       ],
       "name": "frontend/src/sections/ReportsPage.tsx",
@@ -3155,7 +3175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fab5bbc57a5cb4fea326f3349138a72dd0cfd024836be82901b37bb5bfef9ed3"
+          "content": "fb357364c50376a2621a14cb3d0d84791a375cca473e45da07c5f259db1f81c7"
         }
       ],
       "name": "frontend/src/sections/ScoutingView.tsx",
@@ -3175,7 +3195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9873492e5ccc8c70655c67f92bd0c66723ed402292db910eb43b4b3ef146d060"
+          "content": "cdf2c567af034fa1b22a64802367d06f2baf66cbebd1340cbc3be28c7cfdbdf1"
         }
       ],
       "name": "frontend/src/sections/SetupCabin.tsx",
@@ -3215,7 +3235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02ed6bacfb30c8785c88c645831502406f373d0e375918d211ebc4cd6dcbbd6e"
+          "content": "89de596df6b9bc09ef563172ae68ccd7cbbe2ccaea0746f981b4e25b1add72f5"
         }
       ],
       "name": "frontend/src/sections/WaterTwinPage.tsx",

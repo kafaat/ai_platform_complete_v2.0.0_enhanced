@@ -6,7 +6,7 @@
 // الموحّدة (UnifiedCabin). تجسيد UI_DESIGN_SPEC_UNIFIED.md (وجهة الإعداد).
 //
 // صدق البيانات: كلّ الأرقام من المصادر الحقيقيّة — المزارع من useFarms، الحقول
-// من useFieldOptions، المعدّات من useEquipment، الأجهزة من useDevices، والدور من
+// من useSelectedField، المعدّات من useEquipment، الأجهزة من useDevices، والدور من
 // useAuthStore. لا تلفيق: غياب القيمة يُعرَض «—»/«غير متاح»/«لا بيانات» صراحةً.
 // الحالات (تحميل/خطأ/فراغ) صريحة لكلّ قسم. هذه نظرة عامّة للقراءة فقط — التعديل
 // يبقى في الأقسام الكلاسيكيّة (إدارة الحقول/المعدّات/الأجهزة/الإعدادات).
@@ -17,7 +17,7 @@ import {
   Sprout, MapPinned, Tractor, Cpu, ShieldCheck, SlidersHorizontal, Globe, Map as MapIcon, Wrench, Plus,
 } from 'lucide-react';
 import { useFarms, useEquipment, useDevices, QK } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { useAuthStore } from '../hooks/useAuth';
 import { ROLE_LABEL_AR, normalizeRole, canAccess, canMutate, type Role } from '../lib/permissions';
 import { kongApi, type FieldImportInput } from '../services/api';
@@ -64,7 +64,7 @@ const MAP_AR: Record<string, string> = { satellite: 'قمر صناعيّ', stree
 
 export default function SetupCabin() {
   const farmsQ = useFarms();
-  const fieldsQ = useFieldOptions();
+  const fieldsQ = useSelectedField();
   const equipQ = useEquipment();
   const devicesQ = useDevices();
 
@@ -100,7 +100,7 @@ export default function SetupCabin() {
   const [showWizard, setShowWizard] = useState(false);
 
   // بعد الإنشاء/الاستيراد نُبطِل كاش قائمة الحقول كي تُعيد SetupCabin الجلب
-  // (useFieldOptions يلفّ useFields بنفس مفتاح QK.fields(tid)).
+  // (useSelectedField يلفّ useFields ويربطه بسياق FieldView المشترك).
   const invalidateFields = () => qc.invalidateQueries({ queryKey: QK.fields(tid) });
 
   const handleWizardSaveField = async (data: any): Promise<Record<string, unknown>> => {

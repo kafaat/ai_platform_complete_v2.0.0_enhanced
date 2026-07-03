@@ -1,31 +1,89 @@
-// useSelectedField — «الحقل النشط» المشترك: يلفّ useFieldOptions ويربط الاختيار
-// بمتجر useFieldContext (zustand). بديل drop-in لنمط
-//   const [fieldId, setFieldId] = useState('');
-//   useEffect(() => { if (!fieldId && fields.length) setFieldId(fields[0].id); }, …);
-// المكرّر في الشاشات — لكنّ الاختيار الآن مشترك فيتبع المستخدم عبر الشاشات بدل
-// ضياعه عند التنقّل. يُعيد نفس أعلام الاستعلام (isLoading/isError/refetch/options)
-// مضافاً إليها fieldId/field/setFieldId.
-import { useEffect } from 'react';
+// useSelectedField — FieldView source-of-truth hook.
+//
+// It wraps useFieldOptions and binds the active field to the session-scoped
+// FieldView store. It also supports a route/deep-link field id so screens can
+// open /...?field_id=... without duplicating local selection logic.
+import { useCallback, useEffect, useMemo } from 'react';
 import { useFieldOptions } from './useFieldOptions';
-import { useFieldContextStore } from './useFieldContext';
-import { resolveActiveFieldId } from '../lib/fields';
+import { FieldSelectionMeta, useFieldContextStore } from './useFieldContext';
+import { resolveFieldViewSelection } from '../lib/fields';
 
-export function useSelectedField() {
+export interface UseSelectedFieldOptions {
+  routeFieldId?: string | null;
+  autoSelect?: boolean;
+}
+
+export function useSelectedField(config: UseSelectedFieldOptions = {}) {
+  const { routeFieldId = null, autoSelect = true } = config;
   const query = useFieldOptions();
   const options = query.options;
   const selectedFieldId = useFieldContextStore((s) => s.selectedFieldId);
+  const selectedFieldName = useFieldContextStore((s) => s.selectedFieldName);
+  const selectionSource = useFieldContextStore((s) => s.selectionSource);
+  const selectedAt = useFieldContextStore((s) => s.selectedAt);
   const setSelectedField = useFieldContextStore((s) => s.setSelectedField);
+  const clearSelectedField = useFieldContextStore((s) => s.clearSelectedField);
 
-  // الحقل النشط الفعليّ: المُختار إن بقي موجوداً، وإلّا أوّل حقل (منطق نقيّ مُختبَر).
-  const fieldId = resolveActiveFieldId(options, selectedFieldId);
+  const selection = useMemo(
+    () => resolveFieldViewSelection({ options, storedFieldId: selectedFieldId, routeFieldId }),
+    [options, selectedFieldId, routeFieldId],
+  );
 
-  // ثبّت المتجر على الحقل المحلول حين يختلف (أوّل تحميل، أو سقوط المُختار بحذف/
-  // تغيّر مستأجِر). تأثير واحد، no-op بعد الاستقرار (fieldId === selectedFieldId).
-  // لا نلمس المتجر حين لا حقول (نُبقي null لا '').
+  const fieldId = selection.fieldId;
+  const field = useMemo(() => options.find((o) => o.id === fieldId), [options, fieldId]);
+
+  const setFieldId = useCallback((id: string | null, meta?: FieldSelectionMeta) => {
+    const next = id ? String(id) : null;
+    const nextField = next ? options.find((o) => o.id === next) : undefined;
+    setSelectedField(next, {
+      source: meta?.source ?? 'user',
+      name: meta?.name ?? nextField?.name ?? null,
+    });
+  }, [options, setSelectedField]);
+
+  // Converge the persisted FieldView store to the resolved live field. This
+  // heals deleted/stale fields, respects valid route ids, and keeps empty states
+  // honest when the user has no fields.
   useEffect(() => {
-    if (options.length && fieldId !== selectedFieldId) setSelectedField(fieldId);
-  }, [options.length, fieldId, selectedFieldId, setSelectedField]);
+    if (!autoSelect) return;
+    if (!options.length) {
+      if (selectedFieldId) clearSelectedField();
+      return;
+    }
+    if (!fieldId) return;
+    if (fieldId !== selectedFieldId || selectedFieldName !== (field?.name ?? null)) {
+      setSelectedField(fieldId, {
+        source: selection.reason === 'route' ? 'route' : selection.reason === 'fallback' ? 'auto' : selectionSource,
+        name: field?.name ?? null,
+      });
+    }
+  }, [
+    autoSelect,
+    options.length,
+    fieldId,
+    field?.name,
+    selectedFieldId,
+    selectedFieldName,
+    selection.reason,
+    selectionSource,
+    setSelectedField,
+    clearSelectedField,
+  ]);
 
-  const field = options.find((o) => o.id === fieldId);
-  return { ...query, fieldId, field, setFieldId: setSelectedField };
+  return {
+    ...query,
+    fieldId,
+    field,
+    setFieldId,
+    clearFieldId: clearSelectedField,
+    storedFieldId: selectedFieldId,
+    selectedFieldName,
+    selectionSource,
+    selectedAt,
+    selectionReason: selection.reason,
+    routeFieldIsInvalid: selection.routeFieldIsInvalid,
+    storedFieldIsInvalid: selection.storedFieldIsInvalid,
+    hasFields: options.length > 0,
+    isEmpty: !query.isLoading && !query.isError && options.length === 0,
+  };
 }

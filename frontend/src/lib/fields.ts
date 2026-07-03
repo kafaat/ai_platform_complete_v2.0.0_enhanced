@@ -58,3 +58,72 @@ export function resolveActiveFieldId(
   if (selectedId && options.some((o) => o.id === selectedId)) return selectedId;
   return options[0]?.id ?? '';
 }
+
+
+export type FieldViewSelectionReason = 'route' | 'stored' | 'fallback' | 'empty';
+
+export interface FieldViewSelectionResult {
+  fieldId: string;
+  reason: FieldViewSelectionReason;
+  routeFieldIsInvalid: boolean;
+  storedFieldIsInvalid: boolean;
+}
+
+export function isKnownFieldId(options: ReadonlyArray<{ id: string }>, fieldId: string | null | undefined): boolean {
+  return Boolean(fieldId && options.some((o) => o.id === fieldId));
+}
+
+// Professional FieldView resolver: deep-link wins when valid, then persisted
+// session choice, then deterministic fallback to the first available field.
+// Invalid route/store ids are surfaced explicitly for UX and audit/debugging.
+export function resolveFieldViewSelection(params: {
+  options: ReadonlyArray<{ id: string }>;
+  storedFieldId?: string | null;
+  routeFieldId?: string | null;
+}): FieldViewSelectionResult {
+  const { options, storedFieldId, routeFieldId } = params;
+  const route = routeFieldId ? String(routeFieldId) : null;
+  const stored = storedFieldId ? String(storedFieldId) : null;
+
+  const routeKnown = isKnownFieldId(options, route);
+  if (routeKnown && route) {
+    return {
+      fieldId: route,
+      reason: 'route',
+      routeFieldIsInvalid: false,
+      storedFieldIsInvalid: Boolean(stored && !isKnownFieldId(options, stored)),
+    };
+  }
+
+  const storedKnown = isKnownFieldId(options, stored);
+  if (storedKnown && stored) {
+    return {
+      fieldId: stored,
+      reason: 'stored',
+      routeFieldIsInvalid: Boolean(route && !routeKnown),
+      storedFieldIsInvalid: false,
+    };
+  }
+
+  const fallback = options[0]?.id ?? '';
+  return {
+    fieldId: fallback,
+    reason: fallback ? 'fallback' : 'empty',
+    routeFieldIsInvalid: Boolean(route && !routeKnown),
+    storedFieldIsInvalid: Boolean(stored && !storedKnown),
+  };
+}
+
+export function readFieldIdFromSearch(search: string): string | null {
+  const params = new URLSearchParams(search);
+  return params.get('field_id') ?? params.get('fieldId');
+}
+
+export function writeFieldIdToSearch(search: string, fieldId: string | null | undefined): string {
+  const params = new URLSearchParams(search);
+  params.delete('fieldId');
+  if (fieldId) params.set('field_id', fieldId);
+  else params.delete('field_id');
+  const next = params.toString();
+  return next ? `?${next}` : '';
+}

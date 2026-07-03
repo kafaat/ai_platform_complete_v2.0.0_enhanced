@@ -13,12 +13,13 @@
 // (LineChartCard/BarChartCard/ChartShell) بثيم Tooltip داكن موحّد بدل تكرار
 // ResponsiveContainer + المحاور inline. البيانات والسلوك دون تغيير.
 // ═══════════════════════════════════════════════════════════════
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { TrendingUp, Activity, Droplets, BarChart3, Lightbulb } from 'lucide-react';
 import {
-  useFields, useFieldTimeseries, useSeasons,
+  useFieldTimeseries, useSeasons,
   useIndicatorGrid, useFieldRecommendations,
 } from '../hooks/useApi';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { LineChartCard, BarChartCard, ChartShell } from '../components/ds';
 
@@ -32,25 +33,9 @@ const CAT_AR: Record<string, string> = {
   irrigation: 'الريّ', fertilizer: 'التسميد', disease: 'الأمراض', yield: 'الإنتاج',
 };
 
-// الحقول كما تقرؤها هذه الشاشة من /api/v1/fields (مفاتيح متباينة، كلّها اختياريّة).
-interface AnalyticsField {
-  field_id?: string;
-  field_name?: string;
-  name_ar?: string;
-}
-
 export default function AnalyticsPage() {
-  const fieldsQ = useFields();
-  const fields: AnalyticsField[] = useMemo(
-    () => (fieldsQ.data as { fields?: AnalyticsField[] } | undefined)?.fields ?? [],
-    [fieldsQ.data],
-  );
-
-  const [picked, setPicked] = useState<string>('');
-  const activeFieldId = picked || (fields[0]?.field_id ?? '');
-  const activeFieldName =
-    fields.find((f) => f.field_id === activeFieldId)?.field_name ??
-    fields.find((f) => f.field_id === activeFieldId)?.name_ar ?? activeFieldId;
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch: refetchFields, fieldId: activeFieldId, setFieldId } = useSelectedField();
+  const activeFieldName = fields.find((f) => f.id === activeFieldId)?.name ?? activeFieldId;
 
   // مصادر حيّة لكلّ بطاقة (مُفعَّلة فقط عند وجود حقل مختار)
   const tsQ   = useFieldTimeseries(activeFieldId, 'ndvi', '', { enabled: !!activeFieldId });
@@ -89,8 +74,8 @@ export default function AnalyticsPage() {
 
   const recs = recQ.data?.recommendations ?? [];
 
-  if (fieldsQ.isLoading) return <LoadingState message="جارٍ تحميل الحقول…" />;
-  if (fieldsQ.isError)   return <ErrorState title="تعذّر تحميل الحقول" onRetry={() => fieldsQ.refetch()} />;
+  if (fieldsLoading) return <LoadingState message="جارٍ تحميل الحقول…" />;
+  if (fieldsError)   return <ErrorState title="تعذّر تحميل الحقول" onRetry={() => refetchFields()} />;
   if (fields.length === 0)
     return <EmptyState title="لا توجد حقول بعد" hint="أضِف حقلاً أوّلاً لعرض التحليلات الحيّة." />;
 
@@ -103,13 +88,13 @@ export default function AnalyticsPage() {
         </div>
         <select
           value={activeFieldId}
-          onChange={(e) => setPicked(e.target.value)}
+          onChange={(e) => setFieldId(e.target.value)}
           className="px-3 py-2 rounded-lg text-sm"
           style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}
         >
           {fields.map((f) => (
-            <option key={f.field_id} value={f.field_id}>
-              {f.field_name ?? f.name_ar ?? f.field_id}
+            <option key={f.id} value={f.id}>
+              {f.name}{f.crop && f.crop !== '—' ? ` — ${f.crop}` : ''}
             </option>
           ))}
         </select>

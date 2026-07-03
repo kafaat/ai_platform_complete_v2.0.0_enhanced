@@ -1,5 +1,5 @@
 // اختبارات ملخّصات التقارير طراز FieldView (زراعة/حصاد/عمليّات) — نُسرِح
-// useQueries (المواسم/العمليّات لكلّ حقل) + useFieldOptions، ونتحقّق من:
+// useQueries (المواسم/العمليّات لكلّ حقل) + useSelectedField، ونتحقّق من:
 //   (أ) الفراغ الصادق لكلّ ملخّص (لا تلفيق)؛ (ب) الحالة المعمورة (صفوف/أرقام)؛
 //   (ج) الغلّة غير المُسجَّلة تُعرَض «—» لا 0؛ (د) خطأ الحقول ⇒ حالة خطأ صادقة.
 // محاكاة في الاختبار فقط — حتميّة بلا شبكة/QueryClient.
@@ -32,7 +32,7 @@ vi.mock('../hooks/useApi', () => ({
   useCostAnalytics: () => ({ data: undefined, isLoading: false, isError: false, refetch: vi.fn() }),
 }));
 
-// ── تثبيت useFieldOptions + useQueries (قابل للضبط لكلّ اختبار) ──
+// ── تثبيت useSelectedField + useQueries (قابل للضبط لكلّ اختبار) ──
 const fieldState = {
   options: [{ id: 'fld_1', name: 'حقل القمح', area: 12.5, crop: 'wheat', lat: null, lon: null, geometry: null }],
   isLoading: false,
@@ -40,8 +40,8 @@ const fieldState = {
   error: undefined as unknown,
   refetch: vi.fn(),
 };
-vi.mock('../hooks/useFieldOptions', () => ({
-  useFieldOptions: () => fieldState,
+vi.mock('../hooks/useSelectedField', () => ({
+  useSelectedField: () => ({ ...fieldState, fieldId: fieldState.options[0]?.id ?? '', field: fieldState.options[0], setFieldId: vi.fn() }),
 }));
 
 // useQueries يُستدعى مرّتين لكلّ تصيير (المواسم أوّلاً ثمّ العمليّات). نُميّز
