@@ -5,7 +5,7 @@
 // وstorage_ref مسار/رابط له. النموذج يُسجِّل مرجعاً (metadata) ولا يرفع ملفّاً.
 // حالات موحّدة (StateViews)، أزرار محكومة بالدور (RBAC: document:manage)، بلا تلفيق.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   FileText, FileBarChart2, Image as ImageIcon, Map as MapIcon,
   FlaskConical, File, ExternalLink, Plus, RefreshCw, Info, Loader2,
@@ -22,6 +22,7 @@ import { Input, Select } from '../components/ds/forms';
 import { DataTable, type Column } from '../components/ds/table';
 import { Modal } from '../components/ds/modal';
 import { T, RADIUS } from '../components/ds/tokens';
+import { useSelectedField } from '../hooks/useSelectedField';
 
 // تصنيفات الوثائق المعتمدة خادميّاً + تسمية عربيّة + أيقونة/لون لكلّ تصنيف.
 const CATEGORIES: { id: DocumentCategory; label: string; icon: typeof FileText; color: string }[] = [
@@ -83,6 +84,10 @@ function RegisterForm({ onClose }: { onClose: () => void }) {
   const [contentType, setContentType] = useState('');
   const [sizeBytes, setSizeBytes] = useState('');
   const [fieldId, setFieldId] = useState('');
+  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  useEffect(() => {
+    if (!fieldId && activeFieldId) setFieldId(activeFieldId);
+  }, [activeFieldId, fieldId]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
