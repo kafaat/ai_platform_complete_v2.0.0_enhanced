@@ -14,6 +14,9 @@ def read(rel: str) -> str:
 def test_layer_registry_has_token_gated_mapbox_and_disabled_google() -> None:
     src = read("frontend/src/lib/layerRegistry.ts")
     assert "id: 'mapbox-satellite'" in src
+    assert "id: 'maptiler-satellite'" in src
+    assert "VITE_MAPTILER_KEY" in src
+    assert "toMapLibreRasterUrl" in src
     assert "satellite-streets-v12" in src
     assert "requiresToken: true" in src
     assert "tokenEnv: 'VITE_MAPBOX_TOKEN'" in src
@@ -30,7 +33,9 @@ def test_add_field_map_uses_registry_basemap_selector_not_binary_toggle() -> Non
     assert "resolveLayerSource" in src
     assert "ADD_FIELD_BASEMAPS.map" in src
     assert "<select" in src
-    assert "VITE_MAPBOX_TOKEN" in read("frontend/src/lib/layerRegistry.ts")
+    reg = read("frontend/src/lib/layerRegistry.ts")
+    assert "VITE_MAPBOX_TOKEN" in reg
+    assert "VITE_MAPTILER_KEY" in reg
     assert "tileType === 'street' ? 'satellite' : 'street'" not in src
     assert "selectedBasemapUrl" in src
     assert "maxZoom={selectedBasemapMaxZoom}" in src
@@ -49,3 +54,4 @@ def test_maphub_filters_available_basemaps_and_hub_renderers_resolve_tokens() ->
     gl = read("frontend/src/components/maphub/HubMapGL.tsx")
     assert "resolveLayerSource(layer, import.meta.env" in gl
     assert "layer?.attribution" in gl
+    assert "toMapLibreRasterUrl" in gl

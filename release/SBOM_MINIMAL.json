@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92268d4a36b7318664d80bc3f9f55aeebd37dd05914d92e995d5b7f6fd7dcb7a"
+          "content": "6784d114811982a9e96c61f2e2e2b1afc080be336c31cec478542c099ecad1cf"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d738c35fcfb099f0fed39ad47593e8b21e39ae94a9eb31b566cc05adce85b5c8"
+          "content": "dbf2f1e7f37ba089a743d0329b62a39b9f4fa072fd9bff595b63a0f15858783e"
         }
       ],
       "name": "frontend/.env.example",
@@ -1015,7 +1015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c22a37cfe5bf1b22b4a6f714bced5673189f72943d4ca7d71c45706178aa7466"
+          "content": "c0ad52c6816d94d181eac9adefb7f661f31cc47498ba50499bacd310e3e4e13c"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -2025,7 +2025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d1c508043dcd91861f4ce76168160e95b55990d93b0b699e3da7525a842ce20"
+          "content": "7e9518da1745d6f4b46dc4726cb275bd6a7f1feb7c08f7380a9abea3465bb425"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",

@@ -106,6 +106,21 @@ export const LAYER_REGISTRY = [
     tokenEnv: 'VITE_MAPBOX_TOKEN',
     description: 'خريطة أساس احترافيّة عالية الوضوح. تظهر في الواجهة فقط عند ضبط VITE_MAPBOX_TOKEN.',
   },
+
+  {
+    id: 'maptiler-satellite',
+    labelAr: 'MapTiler Satellite',
+    kind: 'basemap',
+    // يُفعَّل فقط عند وجود VITE_MAPTILER_KEY. بديل احترافي لـMapbox كخلفية عرض، لا كمدخل تحليل.
+    source: 'https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key={token}',
+    opacity: 1,
+    defaultVisible: false,
+    maxZoom: 20,
+    attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; OpenStreetMap contributors',
+    requiresToken: true,
+    tokenEnv: 'VITE_MAPTILER_KEY',
+    description: 'خريطة أساس احترافيّة بديلة. تظهر في الواجهة فقط عند ضبط VITE_MAPTILER_KEY.',
+  },
   {
     id: 'google-satellite-official',
     labelAr: 'Google Satellite (رسمي — غير مفعّل)',
@@ -319,4 +334,13 @@ export function resolveLayerSource(layer: MapLayer | undefined, env: Record<stri
 /** خرائط الأساس القابلة للعرض فعلياً في الواجهة بعد احترام tokens والتعطيل. */
 export function availableBasemapLayers(env: Record<string, string | undefined> = {}): MapLayer[] {
   return layersOfKind('basemap').filter((layer) => Boolean(resolveLayerSource(layer, env)));
+}
+
+
+/**
+ * يكيّف قالب بلاطات Leaflet إلى قالب raster صالح لـMapLibre.
+ * MapLibre لا يفهم {s} ولا {r}، بينما بعض مزودي Leaflet يستعملونهما.
+ */
+export function toMapLibreRasterUrl(url: string): string {
+  return url.replace('{s}', 'a').replace('{r}', '');
 }

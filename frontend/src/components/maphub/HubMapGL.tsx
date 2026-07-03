@@ -35,7 +35,7 @@ import {
   areaSqMeters, lengthMeters, snapPoint,
 } from '../../lib/geo';
 import type { SnapTarget } from '../../lib/geo';
-import { getLayer, resolveLayerSource } from '../../lib/layerRegistry';
+import { getLayer, resolveLayerSource, toMapLibreRasterUrl } from '../../lib/layerRegistry';
 import { rasterBaseUrl } from '../../services/api';
 import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
@@ -138,9 +138,7 @@ function basemapTileSpec(basemapId: string): { url: string; attribution: string 
   const layer = getLayer(basemapId);
   const raw = resolveLayerSource(layer, import.meta.env as Record<string, string | undefined>)
     ?? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-  const url = raw
-    .replace('{s}', 'a')   // نطاق فرعيّ ملموس (MapLibre لا يدعم {s})
-    .replace('{r}', '');   // إسقاط لاحقة retina (MapLibre لا يدعم {r})
+  const url = toMapLibreRasterUrl(raw);
   const attribution = layer?.attribution ?? (basemapId === 'light'
     ? '© <a href="https://carto.com/">CARTO</a>'
     : '© <a href="https://www.esri.com/">Esri</a> — World Imagery');

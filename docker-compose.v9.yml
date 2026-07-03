@@ -1491,6 +1491,8 @@ services:
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       SAM2_CHECKPOINT: ${SAM2_CHECKPOINT:-/models/sam2_hiera_large.pt}
       SAM2_MODEL_CFG: ${SAM2_MODEL_CFG:-sam2_hiera_l.yaml}
+      SAM2_POLYGON_SIMPLIFY_TOLERANCE_M: ${SAM2_POLYGON_SIMPLIFY_TOLERANCE_M:-3}
+      SAM2_POLYGON_DEDUP_TOLERANCE_M: ${SAM2_POLYGON_DEDUP_TOLERANCE_M:-0.5}
     volumes:
     # host bind (بدل volume مُسمّى): يضع المشغّل الأوزان في مجلّد ./sam2-models/ المرئيّ
     # فيراها /models داخل الحاوية. الـvolume المُسمّى كان يبقى فارغاً (لا مُعبِّئ) ⇒ SAM2
