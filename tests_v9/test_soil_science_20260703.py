@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import sys
 from pathlib import Path
 
@@ -19,11 +20,39 @@ import pytest
 pytestmark = pytest.mark.unit
 
 _SVC = Path(__file__).resolve().parents[1] / "services" / "soil-service"
-if str(_SVC) not in sys.path:
-    sys.path.insert(0, str(_SVC))
 
-import soil_science  # noqa: E402
-import soilgrids_client  # noqa: E402
+
+def _load_isolated(unique_name: str, filename: str):
+    """يحمّل وحدة قائمة بذاتها من مجلّد الخدمة باسم فريد **دون لمس sys.path** —
+    يتفادى تصادم أسماء الوحدات العامّة (main/db_persist/routers) عبر الخدمات."""
+    spec = importlib.util.spec_from_file_location(unique_name, _SVC / filename)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+soil_science = _load_isolated("soil_science_under_test", "soil_science.py")
+soilgrids_client = _load_isolated("soilgrids_client_under_test", "soilgrids_client.py")
+
+
+@pytest.fixture(autouse=True)
+def _preserve_sibling_main():
+    """يستعيد أيّ وحدة عامّة الاسم (main/routers لخدمة أخرى) بعد كلّ اختبار — عزل صادق."""
+
+    def _keys():
+        return [
+            k
+            for k in sys.modules
+            if k in ("main", "router_registry", "routers", "db_persist") or k.startswith("routers.")
+        ]
+
+    saved = {k: sys.modules[k] for k in _keys()}
+    yield
+    for k in _keys():
+        sys.modules.pop(k, None)
+    sys.modules.update(saved)
+    while str(_SVC) in sys.path:
+        sys.path.remove(str(_SVC))
 
 
 # ── قوام USDA (نقاط مرجعيّة قياسيّة) ─────────────────────────────────────────────
@@ -173,7 +202,10 @@ def _load_soil_main(monkeypatch):
     pytest.importorskip("fastapi")
     pytest.importorskip("asyncpg")
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "test-token")
-    for name in ("main", "router_registry", "routers", "routers.soil_profile"):
+    while str(_SVC) in sys.path:
+        sys.path.remove(str(_SVC))
+    sys.path.insert(0, str(_SVC))
+    for name in ("main", "router_registry", "routers", "routers.soil_profile", "routers.modbus"):
         sys.modules.pop(name, None)
     import main
 
