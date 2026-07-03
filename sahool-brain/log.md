@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-07-03 (ن-12) — دمج أرشيفات المستخدم: خرائط احترافيّة + سلسلة أدلّة التقطيع
+
+**رأس main = develop = `c9162fd`** (CI أخضر #2836 · Production Gates أخضر · دُمِج develop بتقديم سريع).
+
+سلسلة أرشيفات متتالية من المستخدم (كلّها على أساس `53ae8a8`)، دُمِجت بـ**تحقّق-قبل-دمج** (مقارنة كلّ أرشيف بالأساس أو بالأرشيف السابق لعزل الدلتا الحقيقيّة، لا بالرأس المتحرّك):
+
+- **`084e869` خرائط احترافيّة:** طبقة MapTiler Satellite مُقيَّدة بالمفتاح (`VITE_MAPTILER_KEY`، `{token}`-قالبيّة، بلا سرّ مثبَّت، نفس نمط Mapbox الآمن) + دالّة `toMapLibreRasterUrl` مشتركة (استُخدمت في HubMapGL بدل التكرار المضمَّن) + إبراز `SAM2_POLYGON_*` على كتلة sam2-inference في compose. حرّاس عقد موسَّعة.
+- **`caefad0` حرّاس التقطيع الإنتاجيّة:** سلسلة provenance صادقة end-to-end — `sam2-inference` يُخرِج `metadata` (model/checkpoint/post_processing/vertices/inference_ms) · `field-segmentation.run_segmentation_model` صار 3-tuple يمرّر مجموعة مفاتيح allowlisted · الواجهة تلتقط `boundaryMetadata` وترسلها عند الحفظ · **`field_geometry_save_guard.py`** (نقيّ، بلا قاعدة): `validate_boundary_for_save` يرفض الحلقات القصيرة/كثيفة الرؤوس (>2000)/مساحة غير منتهية (422 برموز آليّة) قبل مصدر الحقيقة، و`sanitize_boundary_metadata` allowlist «لا يمنح ثقة ولا يتجاوز قرارات المستأجِر/الأمن» · `routers/fields.py` يوصل metadata مُعقَّماً + يشغّل الحارس على الإنشاء/التحديث (منطق RLS/المستأجِر بلا مساس).
+- **`c9162fd` إكمال المتبقّي:** أدوات صقل الحدّ من العميل في `AddFieldWithMap` (Douglas-Peucker بالأمتار خفيف/موصى/قويّ = 1/3/5م + إزالة رؤوس شبه مكرّرة + تراجع/إعادة) — **مساعِدة للمراجعة فقط، الحارس الخلفيّ مصدر الحقيقة** · بوّابة e2e حيّة `scripts/e2e/segmentation_platform_live_gate.py` (nginx→المنصّة→field-seg→SAM2).
+
+**درس عزل تكرار (حرِج):** أرشيفات المستخدم تُبنى على أساس ثابت (`53ae8a8`) بينما main يتقدّم؛ فمقارنة الأرشيف بالرأس تُظهر عملي الأحدث كـ«فرق» زائف. الصواب: مقارنة بالأساس أو بالأرشيف السابق لعزل زيادة المستخدم فقط، والحفاظ على إضافاتي (علامات `pytest.mark.unit`) بعدم استبدالها بنسخ الأرشيف الأقدم.
+
+**تحقّق:** `pytest -m unit` = **2515 ناجح / 0 فاشل** · tsc نظيف · vitest 29/29 · ruff نظيف · bandit HIGH:0 · pip-audit نظيف · لا رموز مثبَّتة. **MapLibre Phase‑3** (الالتقاط الحيّ) موجود على main. **فجوات مفتوحة:** مركّبات SAM2 موسميّة (UKFields) · Google Map Tiles الرسميّ (مُعطَّل قصداً، يحتاج session-token backend).
+
+---
+
 ## 2026-07-03 (ن-11) — جدار العمليّات 大屏 + فكّاك Modbus + درس pip-audit المُجمَّع
 
 **رأس main:** `c28e6f8` (رفع مباشر إلى main — CI أخضر #2824، Production Gates أخضر).
