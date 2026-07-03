@@ -37,3 +37,6 @@ monitoring/alertmanager.rendered.yml
 # SQLite lite-store artifact (self-created at runtime/tests)
 services/sahool-platform/storage/sahool.db
 services/sahool-platform/storage/*.db
+
+# لقطات إصدار مؤرشفة (git archive) — قابلة للتوليد، لا تُلتزَم في التاريخ
+/sahool_main_*.zip
