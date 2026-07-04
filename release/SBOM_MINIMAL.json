@@ -845,10 +845,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d9195dd929508d9d5d668f0a0051c54afc3ab6b845ab202e5af79ebe51c6b8fd"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgroKnowledgeCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "732baf73bc49a6aac4ee062de086ff3e7adf2ec56082ab7c7929edec3d8b672b"
         }
       ],
       "name": "frontend/src/components/fieldview/BoundaryReviewCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcb0daf0cd09a74295ac66a1aae6b579e3d7477410cbeda9b93f5adb9a41f05a"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/ClimateRiskCard.tsx",
       "type": "file"
     },
     {
@@ -999,6 +1019,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/TraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "043701d01c8c8fd1e8e0661684daf74e464ce1675dc81ed26fd2ae92aa4d8f26"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/WaterHarvestingCard.tsx",
       "type": "file"
     },
     {
@@ -2135,6 +2165,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7815d3f428bf8587307267942468f325cf1c82d4c94ba731fa54186fdac78047"
+        }
+      ],
+      "name": "frontend/src/lib/fieldAgroKnowledge.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ae061d48bda3d5cb67851aa463c77bfd78cbb983201446fc3908bbdc12c9a34"
+        }
+      ],
+      "name": "frontend/src/lib/fieldAgroKnowledge.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9ba93b369c377f1ada1728c7e10593fd143226487245584d59030fd376e55d2f"
         }
       ],
@@ -2149,6 +2199,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldBoundaryReview.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "133752b9276cff2d7163b9cffff77901b3e659cd034054eb9c8a0ba176420a30"
+        }
+      ],
+      "name": "frontend/src/lib/fieldClimateRisk.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cf265065ed1c00eeca050b7598a3359849cf6f8735eaf2655a3b75a358cd802b"
+        }
+      ],
+      "name": "frontend/src/lib/fieldClimateRisk.ts",
       "type": "file"
     },
     {
@@ -2909,6 +2979,26 @@
         }
       ],
       "name": "frontend/src/lib/sqlHistory.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "af841c577daf0f928eec1ad88036c2934c6866e4668f267809d5f39fb68ff357"
+        }
+      ],
+      "name": "frontend/src/lib/waterHarvesting.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe420367b47cbf8f5b951fd80d50f0529c4f0b729d1c64b5cf7476bc54fc293d"
+        }
+      ],
+      "name": "frontend/src/lib/waterHarvesting.ts",
       "type": "file"
     },
     {
