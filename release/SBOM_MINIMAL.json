@@ -575,6 +575,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f860a2ace1b01aa21f0c4ee22b69a6cb95bb50868575ea9d4ac77f1cc680e7bc"
+        }
+      ],
+      "name": "frontend/src/components/decision/DecisionInsightPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "80c361b377d2a7301d9b9b70899c880be5d2b8aba95552da9ba7ca99eae55998"
         }
       ],
@@ -839,6 +849,16 @@
         }
       ],
       "name": "frontend/src/components/fieldsetup/types.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b8bd8700c193527ff3eb93249bf837f802403125a67c279f1a3e454a40c2ef86"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgroCalculatorsCard.tsx",
       "type": "file"
     },
     {
@@ -2025,6 +2045,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "658fa47857a50c147eb0e45813449bf58ebadbf65cb6e5938d2fbbcf3c9fd6d9"
+        }
+      ],
+      "name": "frontend/src/lib/agroCalculators.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "88349146082493757bcab920673896c0264f61940470b163dd3f08001c85f7d8"
+        }
+      ],
+      "name": "frontend/src/lib/agroCalculators.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aac11fc7366bc0e56e423201ae0b52b0b72c206c2e027b211f5abf72fc3227f5"
         }
       ],
@@ -2079,6 +2119,26 @@
         }
       ],
       "name": "frontend/src/lib/dates.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f77c53434edd1ce13268268204ba5f9402fc05ebbad5c10b50bcff85177a3dbe"
+        }
+      ],
+      "name": "frontend/src/lib/decisionInsight.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9a6f438689187dd72d539065a27329ce8850fc950c189298164da08f428f4a2"
+        }
+      ],
+      "name": "frontend/src/lib/decisionInsight.ts",
       "type": "file"
     },
     {
@@ -2689,6 +2749,26 @@
         }
       ],
       "name": "frontend/src/lib/geo.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2352f07fe618497b521b219fa637a1652dd9e7b03247c861c51aa9ce0cfc6931"
+        }
+      ],
+      "name": "frontend/src/lib/gisCatalog.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8e85493fcd3f939c33dc456bd6f49738c8c70f05e1e4e124bd511a114435c6b5"
+        }
+      ],
+      "name": "frontend/src/lib/gisCatalog.ts",
       "type": "file"
     },
     {
@@ -3579,6 +3659,16 @@
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "44fe917b34a49df683c18ac3aabbeb9be7e1a9129e3874f97220c5adb3873121"
+        }
+      ],
+      "name": "frontend/src/sections/GisExpertPage.tsx",
       "type": "file"
     },
     {
