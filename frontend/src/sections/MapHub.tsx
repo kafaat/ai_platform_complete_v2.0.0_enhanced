@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -47,6 +47,7 @@ import OperationsCenterCard from '../components/fieldview/OperationsCenterCard';
 import FieldWaterBrainCard from '../components/fieldview/FieldWaterBrainCard';
 import FieldScoutingCard from '../components/fieldview/FieldScoutingCard';
 import SeasonCommandCard from '../components/fieldview/SeasonCommandCard';
+import TraceabilityCard from '../components/fieldview/TraceabilityCard';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
@@ -806,6 +807,18 @@ export default function MapHub() {
   const stageActionsQ = useFieldStageActions(expertMode ? (fieldId ?? null) : null);
   // كفاءة مياه الحقل: إجماليّ الريّ المُطبَّق (mm) من الدفتر — لتقدير تكلفة الريّ في طبقة الأعمال.
   const waterEfficiencyQ = useFieldWaterEfficiency(expertMode ? (fieldId ?? null) : null);
+  // سجلّ التتبّع: مواسم الحقل + العمليّات المكتملة (Farmonaut) — تقرير قابل للمشاركة.
+  const seasonsQ = useSeasons(expertMode ? (fieldId ?? undefined) : undefined);
+  const activeSeason = useMemo(
+    () => (seasonsQ.data ?? []).find((s) => s.status === 'active') ?? seasonsQ.data?.[0] ?? null,
+    [seasonsQ.data],
+  );
+  const completedOps = useMemo(
+    () => (tasksQ.data?.tasks ?? [])
+      .filter((t) => t.field_id === fieldId && t.status === 'completed')
+      .map((t) => ({ label: t.task_type, date: t.recommended_date })),
+    [tasksQ.data, fieldId],
+  );
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1208,6 +1221,18 @@ export default function MapHub() {
           phenology={phenologyQ.data ?? null}
           stageAction={stageActionsQ.data?.available ? (stageActionsQ.data.suggestions?.[0]?.action_ar ?? null) : null}
           loading={phenologyQ.isLoading}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <TraceabilityCard
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          season={activeSeason}
+          completedOps={completedOps}
+          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+          prescriptionCount={prescriptionsQ.data?.total ?? null}
         />
       )}
 

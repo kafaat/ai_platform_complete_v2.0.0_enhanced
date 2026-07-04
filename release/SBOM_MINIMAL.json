@@ -925,6 +925,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "81eac276235d81c8e4be497f6e007d0efbb46c41318b762d7ad0ea161e0b4e44"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/TraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0affbce3d1768a81f03cfa8bb89f1c2e2c27762f151d6fff3bf2a30c8a818cbd"
         }
       ],
@@ -2165,6 +2175,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7beaf154fa763231225e2ce4bff2645a245d742663b7c6d9959072a159b4ae35"
+        }
+      ],
+      "name": "frontend/src/lib/fieldTraceability.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7bf364b6e2cd322825cc3308d06e68c730f37adccc2a330fa1817e5b2e7d2e86"
+        }
+      ],
+      "name": "frontend/src/lib/fieldTraceability.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b039ffc10157047c307edb9a9e9b770e650d0509fb621796fb961225a50620f6"
         }
       ],
@@ -3235,7 +3265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08264b00653bcfaa6f8045fc4efd890df08a27916d326dc8ce9d10a5f358897f"
+          "content": "4c5d00a0dee6fa31d1d16265ea029f6d5e8abfd84cccc061bd5d0e2d04a9d601"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
