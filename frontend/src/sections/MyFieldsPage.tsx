@@ -65,7 +65,7 @@ export default function MyFieldsPage() {
           <div className="flex items-center gap-2">
             {mutateAllowed && (
               <button
-                onClick={() => navigate('/fields/map-center?add=1')}
+                onClick={() => navigate('/?add=1')}
                 className="inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-white hover:brightness-110"
                 style={{ background: '#16a34a' }}
               >
@@ -112,7 +112,7 @@ export default function MyFieldsPage() {
             // ومؤشرات الحقل المختار دون إدخال مسار جديد أو كسر النمط الحالي.
             setSelectedField(fieldId, { source: 'user', name: fieldName });
             // الافتراضيّ المحمي: صورة الحقل الخام TrueColor؛ الطقس والمؤشّرات overlays اختيارية.
-            navigate(`/fields/map-center?field_id=${encodeURIComponent(fieldId)}&source=my-fields&indicator=truecolor`, {
+            navigate(`/?field_id=${encodeURIComponent(fieldId)}&source=my-fields&indicator=truecolor`, {
               state: { fieldId, openCdse: true, indicator: 'truecolor', showWeather: false, from: 'my-fields' },
             });
           }}

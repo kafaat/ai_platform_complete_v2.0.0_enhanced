@@ -9,9 +9,9 @@
 //
 // ── مخطّط الـURL (URL SCHEME) ──────────────────────────────────
 // المسارات هرميّة وفق القسم الوظيفيّ، عربيّة-المعنى لكن لاتينيّة-المسار
-// (تتوافق مع الروابط العميقة والمشاركة). لوحة المعلومات هي الجذر «/».
-//   نظرة عامّة            → /                         (dashboard)
-//                          /ops-wall, /alerts, /assistant, /reports …
+// (تتوافق مع الروابط العميقة والمشاركة). FieldView (مركز الخرائط) هو الجذر «/».
+//   نظرة عامّة            → /                         (map-center/FieldView)
+//                          /dashboard, /ops-wall, /alerts, /assistant …
 //   الحقول والخريطة       → /fields, /fields/farm-map, /fields/workspace …
 //   صحّة الحقل            → /health/indices, /health/satellite …
 //   الريّ والمحصول        → /irrigation, /irrigation/plan, /crop/state …
@@ -67,7 +67,10 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     id: 'overview', label: 'نظرة عامّة', icon: Home, defaultOpen: true,
     items: [
-      { id: 'dashboard',       path: '/',          label: 'لوحة المعلومات', icon: LayoutDashboard, maturity: 'stable' },
+      // FieldView (مركز الخرائط) هو الشاشة الرئيسيّة — الجذر «/» (قرار المستخدم
+      // 2026-07-04)؛ لوحة المعلومات انتقلت إلى /dashboard وبقيت أوّل البدائل.
+      { id: 'map-center',      path: '/',          label: 'مركز الخرائط', icon: Layers, maturity: 'stable' },
+      { id: 'dashboard',       path: '/dashboard', label: 'لوحة المعلومات', icon: LayoutDashboard, maturity: 'stable' },
       { id: 'operations-wall', path: '/ops-wall',  label: 'جدار مركز العمليّات', icon: MonitorPlay, maturity: 'beta' },
       { id: 'alerts',          path: '/alerts',    label: 'التنبيهات', icon: Bell, maturity: 'stable' },
       { id: 'chatbot',         path: '/assistant', label: 'المستشار الذكي', icon: Bot, maturity: 'beta', badge: 'AI' },
@@ -79,9 +82,8 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'fields',          path: '/fields',           label: 'حقولي', icon: MapIcon, maturity: 'stable' },
       { id: 'farm-map',        path: '/fields/farm-map',  label: 'خريطة المزرعة', icon: MapIcon, maturity: 'stable' },
       { id: 'field-workspace', path: '/fields/workspace', label: 'مساحة عمل الحقل', icon: Layers, maturity: 'beta' },
-      // مخفيّ من القائمة (مكرِّر لشاشة عرض الحقول): يُفتَح كعارض خريطة الحقل عبر
-      // الروابط العميقة من «حقولي» (MyFieldsPage) لا كعنصر قائمة مستقلّ.
-      { id: 'map-center',      path: '/fields/map-center', label: 'مركز الخرائط (معاينة)', icon: Layers, maturity: 'beta', badge: 'دمج', hidden: true },
+      // map-center (FieldView) انتقل إلى قسم «نظرة عامّة» كصفحة الجذر «/» —
+      // روابط «حقولي» العميقة تستهدف الجذر الآن (/?field_id=…).
     ],
   },
   {
