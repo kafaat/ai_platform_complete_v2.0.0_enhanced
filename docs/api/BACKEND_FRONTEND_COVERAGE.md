@@ -9,13 +9,13 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 36 | 20 |
-| farmer | 158 | 114 |
+| agronomist | 36 | 25 |
+| farmer | 158 | 116 |
 | internal | 10 | 1 |
 | manager | 35 | 27 |
-| unclassified | 394 | 102 |
+| unclassified | 394 | 111 |
 
-العقد الملزِم (core): 72 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 88 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -81,8 +81,8 @@
 | `/api/v1/automation/weather/register` | admin | — |
 | `/api/v1/automation/weather/status` | admin | — |
 | `/api/v1/calendars/context` | farmer | — |
-| `/api/v1/calendars/himyarite-months` | farmer | — |
-| `/api/v1/calendars/lunar-mansions` | farmer | — |
+| `/api/v1/calendars/himyarite-months` | farmer | ✅ |
+| `/api/v1/calendars/lunar-mansions` | farmer | ✅ |
 | `/api/v1/calendars/regional-profiles` | farmer | — |
 | `/api/v1/calendars/today` | farmer | ✅ |
 | `/api/v1/calibration` | unclassified | ✅ |
@@ -110,7 +110,7 @@
 | `/api/v1/climate-analogs/strategy` | unclassified | — |
 | `/api/v1/coffee/guide` | unclassified | ✅ |
 | `/api/v1/coffee/pests` | unclassified | ✅ |
-| `/api/v1/coffee/site-suitability` | unclassified | — |
+| `/api/v1/coffee/site-suitability` | unclassified | ✅ |
 | `/api/v1/coffee/varieties` | unclassified | ✅ |
 | `/api/v1/commands/{command_id}` | unclassified | ✅ |
 | `/api/v1/confidence-gate` | unclassified | — |
@@ -130,7 +130,7 @@
 | `/api/v1/crop-twin/decision/profit-aware` | unclassified | ✅ |
 | `/api/v1/crops/compare-drought-resilience` | unclassified | — |
 | `/api/v1/crops/drought-resilience` | unclassified | — |
-| `/api/v1/crops/{crop_id}/operations-calendar` | unclassified | — |
+| `/api/v1/crops/{crop_id}/operations-calendar` | unclassified | ✅ |
 | `/api/v1/cultural-calendar` | unclassified | — |
 | `/api/v1/data-readiness` | unclassified | — |
 | `/api/v1/decision/dispatch/consume` | agronomist | — |
@@ -141,8 +141,8 @@
 | `/api/v1/decision/economics` | agronomist | — |
 | `/api/v1/decision/explain` | agronomist | — |
 | `/api/v1/decision/for-location` | agronomist | — |
-| `/api/v1/decision/impact` | agronomist | — |
-| `/api/v1/decision/learning` | agronomist | — |
+| `/api/v1/decision/impact` | agronomist | ✅ |
+| `/api/v1/decision/learning` | agronomist | ✅ |
 | `/api/v1/decision/ledger` | agronomist | ✅ |
 | `/api/v1/decision/policies` | agronomist | ✅ |
 | `/api/v1/decision/policies/resolve` | agronomist | — |
@@ -261,7 +261,7 @@
 | `/api/v1/fields/{field_id}/zone-sampling-plan` | farmer | ✅ |
 | `/api/v1/fields/{field_id}/zones` | farmer | ✅ |
 | `/api/v1/fodder-alternatives/list` | unclassified | — |
-| `/api/v1/gdd/track` | agronomist | — |
+| `/api/v1/gdd/track` | agronomist | ✅ |
 | `/api/v1/geo-locate/field` | unclassified | — |
 | `/api/v1/geo-locate/recommend` | unclassified | — |
 | `/api/v1/geo/reverse` | unclassified | ✅ |
@@ -335,11 +335,11 @@
 | `/api/v1/pest-escalation/run` | unclassified | ✅ |
 | `/api/v1/planting/check` | agronomist | ✅ |
 | `/api/v1/planting/crops` | agronomist | — |
-| `/api/v1/planting/window` | agronomist | — |
+| `/api/v1/planting/window` | agronomist | ✅ |
 | `/api/v1/policy-learning/threshold-suggestions` | unclassified | — |
 | `/api/v1/portfolio/command` | unclassified | ✅ |
 | `/api/v1/postharvest/best-practices` | unclassified | ✅ |
-| `/api/v1/postharvest/moisture-check` | unclassified | — |
+| `/api/v1/postharvest/moisture-check` | unclassified | ✅ |
 | `/api/v1/postharvest/pests` | unclassified | — |
 | `/api/v1/practices/guide` | unclassified | — |
 | `/api/v1/practices/list` | unclassified | — |
@@ -373,7 +373,7 @@
 | `/api/v1/reports/field/{field_id}/summary` | manager | ✅ |
 | `/api/v1/reports/operation` | manager | — |
 | `/api/v1/reports/season/{season_id}/summary` | manager | ✅ |
-| `/api/v1/rotation/evaluate` | agronomist | — |
+| `/api/v1/rotation/evaluate` | agronomist | ✅ |
 | `/api/v1/rotation/principles` | agronomist | — |
 | `/api/v1/rotation/suggest` | agronomist | ✅ |
 | `/api/v1/salinity/assess` | unclassified | — |
@@ -388,11 +388,11 @@
 | `/api/v1/seasonal-risk/chill-hours` | unclassified | ✅ |
 | `/api/v1/seasonal-risk/stage-check` | unclassified | — |
 | `/api/v1/seasons/{season_id}/simulate` | farmer | ✅ |
-| `/api/v1/seed/criteria` | unclassified | — |
+| `/api/v1/seed/criteria` | unclassified | ✅ |
 | `/api/v1/seed/evaluate-source` | unclassified | — |
-| `/api/v1/seed/germination-rate` | unclassified | — |
-| `/api/v1/seed/sowing-depth` | unclassified | — |
-| `/api/v1/seed/storage-check` | unclassified | — |
+| `/api/v1/seed/germination-rate` | unclassified | ✅ |
+| `/api/v1/seed/sowing-depth` | unclassified | ✅ |
+| `/api/v1/seed/storage-check` | unclassified | ✅ |
 | `/api/v1/settings` | unclassified | — |
 | `/api/v1/sharing/generate-key` | unclassified | — |
 | `/api/v1/sharing/keys` | unclassified | ✅ |
@@ -608,8 +608,8 @@
 | `/soil/soilgrids` | unclassified | — |
 | `/soil/suitability` | unclassified | — |
 | `/stac` | unclassified | — |
-| `/stac/collections` | unclassified | — |
-| `/stac/collections/{collection_id}` | unclassified | — |
+| `/stac/collections` | unclassified | ✅ |
+| `/stac/collections/{collection_id}` | unclassified | ✅ |
 | `/stac/conformance` | unclassified | — |
 | `/stac/mosaicjson` | unclassified | — |
 | `/stac/queryables` | unclassified | — |

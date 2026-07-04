@@ -57,6 +57,7 @@ import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
 import AgroKnowledgeCard from '../components/fieldview/AgroKnowledgeCard';
+import AgroCalculatorsCard from '../components/fieldview/AgroCalculatorsCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
@@ -1336,6 +1337,12 @@ export default function MapHub() {
           (للبنّ فقط) دليل/أصناف/آفات البنّ اليمنيّ — كانت طبقة خلفيّة يتيمة. */}
       {selected && fieldMode === 'expert' && (
         <AgroKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* حاسبات قياس حقليّة (إنبات · تخزين بذور · عمق بذر · رطوبة حبوب · ارتفاع البنّ)
+          — من قياسات المستخدم الفعليّة فقط، لا افتراضات. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroCalculatorsCard cropLabel={selected.crop} />
       )}
 
       {/* «ماذا أزرع؟»: اقتراح الدورة الزراعيّة + ملاءمة الشهر — planting/rotation

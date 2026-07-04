@@ -127,6 +127,7 @@ const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
 const OperationCenterWallPage = lazy(() => import('./sections/OperationCenterWallPage'));
 const AdminRuntimePage = lazy(() => import('./sections/AdminRuntimePage'));
 const DecisionRuntimePage = lazy(() => import('./sections/DecisionRuntimePage'));
+const GisExpertPage = lazy(() => import('./sections/GisExpertPage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
@@ -136,7 +137,7 @@ export type PageId =
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
-  | 'operations-wall' | 'sql-workspace' | 'gis-tools';
+  | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert';
 
 // ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
 // وبنية القائمة (المجموعات) انتقلت إلى سجلّ المسارات `lib/routes.ts` (بنية معلومات
@@ -360,6 +361,7 @@ export default function App() {
       case 'governance':   return <GovernancePage />;
       case 'admin-runtime': return <AdminRuntimePage />;
       case 'decision-runtime': return <DecisionRuntimePage />;
+      case 'gis-expert': return <GisExpertPage />;
       case 'tasks':        return <TasksPage />;
       case 'activities':   return <ActivitiesPage />;
       case 'analytics':    return <AnalyticsPage />;

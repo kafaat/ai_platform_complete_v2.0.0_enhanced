@@ -522,6 +522,86 @@
       "endpoint": "/api/v1/fields/boundary-graph/rebuild (POST)",
       "audience": "admin",
       "evidence": "/boundary-graph/rebuild"
+    },
+    {
+      "endpoint": "/api/v1/seed/germination-rate",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/germination-rate"
+    },
+    {
+      "endpoint": "/api/v1/seed/storage-check",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/storage-check"
+    },
+    {
+      "endpoint": "/api/v1/seed/sowing-depth",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/sowing-depth"
+    },
+    {
+      "endpoint": "/api/v1/seed/criteria",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/criteria"
+    },
+    {
+      "endpoint": "/api/v1/postharvest/moisture-check",
+      "audience": "agronomist",
+      "evidence": "/api/v1/postharvest/moisture-check"
+    },
+    {
+      "endpoint": "/api/v1/coffee/site-suitability",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/site-suitability"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/stac",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/stac"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/stac/collections",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/stac/collections"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/stac/search",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/stac/search"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/ogc/conformance",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/ogc/conformance"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/ogc/collections",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/ogc/collections"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/tile-cache-plan",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/tile-cache-plan"
+    },
+    {
+      "endpoint": "/api/v1/decision/records",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/records"
+    },
+    {
+      "endpoint": "/api/v1/decision/{id}/explain",
+      "audience": "agronomist",
+      "evidence": "/explain"
+    },
+    {
+      "endpoint": "/api/v1/decision/learning",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/learning"
+    },
+    {
+      "endpoint": "/api/v1/decision/impact",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/impact"
     }
   ]
 }

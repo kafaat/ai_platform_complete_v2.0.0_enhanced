@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a10246907c40b0015f348c48686a0903ea3ab305a629b2b70737e0b195ab229d"
+          "content": "d22866b9896c9a0693ce9984a5f341219efe887136f041cde4da17f6e667cee5"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -1825,6 +1825,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "79b8faeea5d323e48f86869beb13d11410b16f7724a1926fd0534b80383a8462"
+        }
+      ],
+      "name": "frontend/src/config/backendCoverageRegistry.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b48b06ea439874533fc7178844e7362d66137fb913052daaa2d20d0da52db10"
+        }
+      ],
+      "name": "frontend/src/config/backendCoverageRegistry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5e77069a8d5b831d5e9246c66e121f21af0c4221c5360700ef3c83056ec788e6"
         }
       ],
@@ -1855,7 +1875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c1f3464d906d6d896ca4205183ef225cce2b7dfc6733002233d206fd1e771b5"
+          "content": "178da354452487ff4b23362eaedb2241299bcaffcc9f7c66c256dc2cd762acfb"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2835,7 +2855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d046f859856100dabbf082bad79014db403b301891faef5fb39cd059290cc63e"
+          "content": "4ced0884b6dc57ffc768abb5e4439342c0775e156a6c94d08c5e6ffc5a7f7880"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -2915,7 +2935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0de9b6534b9f998cf8d7a66aab5fbfa2ac2adcec4b5161d53782c62d5d278a09"
+          "content": "f980e967c105b6790f2ec01cf5512d766fb8d53b90e9fd03b1eacffea5130673"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -3295,7 +3315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fcb75c3cd1f26f0c01ac524cb6e0feb04d44c3671f141d7ca88badd33fa21ec"
+          "content": "1d4b31121ed94c0f134d40dcf100e2afa7fe36a38ddfce133b2abca05f46ebbc"
         }
       ],
       "name": "frontend/src/sections/DecisionRuntimePage.tsx",
@@ -3695,7 +3715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c5abd05704bcf956e28d1f84e45fc869794c000ea12452d997fd02e5a7fda338"
+          "content": "0f240953761896cb501472f6a02b325ed67ff3b6e8a2e72cd2e6c64d8ef7cde1"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

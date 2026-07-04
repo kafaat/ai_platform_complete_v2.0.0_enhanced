@@ -1458,6 +1458,219 @@ export function useRebuildBoundaryGraph(): ReturnType<typeof useMutation<{ rebui
   });
 }
 
+// ── حاسبات القياس الحقليّة (وكيل E) — بذور/رطوبة حبوب/ارتفاع البنّ ──
+import type {
+  GerminationParams, GerminationRateResponse, StorageCheckParams, SeedStorageCheckResponse,
+  SowingDepthParams, SowingDepthResponse, SeedCriteriaResponse,
+  MoistureCheckParams, MoistureCheckResponse, CoffeeSiteParams, CoffeeSiteResponse,
+} from '../lib/agroCalculators';
+
+/** معدّل الإنبات من عدّ عيّنة حقيقيّ — لا يُستدعى إلّا بمُدخلات صحيحة (builder). */
+export function useSeedGerminationRate(params: GerminationParams | null): UseQueryResult<GerminationRateResponse> {
+  return useQuery<GerminationRateResponse>({
+    queryKey: ['seed-germination-rate', params?.sprouted ?? 'none', params?.total ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seed/germination-rate', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** قاعدة المئة لتخزين البذور (الخادم بالفهرنهايت — الـbuilder يحوّل من °م). */
+export function useSeedStorageCheck(params: StorageCheckParams | null): UseQueryResult<SeedStorageCheckResponse> {
+  return useQuery<SeedStorageCheckResponse>({
+    queryKey: ['seed-storage-check', params?.temp_f ?? 'none', params?.humidity_pct ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seed/storage-check', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** عمق البذر ~5× حجم البذرة (2× للزراعة الدقيقة). */
+export function useSeedSowingDepth(params: SowingDepthParams | null): UseQueryResult<SowingDepthResponse> {
+  return useQuery<SowingDepthResponse>({
+    queryKey: ['seed-sowing-depth', params?.seed_size_mm ?? 'none', params?.precision ?? false],
+    queryFn:  () => kongApi.get('/api/v1/seed/sowing-depth', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** معايير اختيار البذور المحسّنة — مرجع ثابت يُجلَب عند فتح القسم فقط. */
+export function useSeedCriteria(enabled: boolean): UseQueryResult<SeedCriteriaResponse> {
+  return useQuery<SeedCriteriaResponse>({
+    queryKey: ['seed-criteria'],
+    queryFn:  () => kongApi.get('/api/v1/seed/criteria').then(r => r.data),
+    staleTime:24 * 60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** أمان رطوبة الحبوب للتخزين — supported=false يعني محصولاً بلا عتبة معروفة. */
+export function usePostharvestMoistureCheck(params: MoistureCheckParams | null): UseQueryResult<MoistureCheckResponse> {
+  return useQuery<MoistureCheckResponse>({
+    queryKey: ['postharvest-moisture-check', params?.crop ?? 'none', params?.moisture_pct ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/postharvest/moisture-check', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** ملاءمة موقع للبنّ من ارتفاع حقيقيّ (GPS/خريطة). */
+export function useCoffeeSiteSuitability(params: CoffeeSiteParams | null): UseQueryResult<CoffeeSiteResponse> {
+  return useQuery<CoffeeSiteResponse>({
+    queryKey: ['coffee-site-suitability', params?.altitude_m ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/site-suitability', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+// ── كتالوج GIS السحابيّ (وكيل D) — STAC · OGC · خطّة الكاش (قراءة فقط) ──
+import type {
+  StacLandingPage, StacCollectionsResponse, StacSearchResponse,
+  OgcConformanceResponse, OgcCollectionsResponse, TileCachePlan,
+} from '../lib/gisCatalog';
+
+/** بوّابة STAC (عقد ثابت + conformsTo). */
+export function useGisStacLanding(enabled = true): UseQueryResult<StacLandingPage> {
+  return useQuery<StacLandingPage>({
+    queryKey: ['gis-stac-landing'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/stac').then(r => r.data),
+    staleTime: 30 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** مجموعات STAC من سجلّ الرستر (DB-backed — 503 صادقة عند غياب القاعدة). */
+export function useGisStacCollections(enabled = true): UseQueryResult<StacCollectionsResponse> {
+  return useQuery<StacCollectionsResponse>({
+    queryKey: ['gis-stac-collections'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/stac/collections').then(r => r.data),
+    staleTime: 5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** بحث عناصر STAC (أحدث المشاهد أوّلاً بترتيب الخادم). */
+export function useGisStacItems(enabled = true, limit = 50): UseQueryResult<StacSearchResponse> {
+  return useQuery<StacSearchResponse>({
+    queryKey: ['gis-stac-items', limit],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/stac/search', { params: { limit } }).then(r => r.data),
+    staleTime: 5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** مطابقة OGC API (عقد ثابت). */
+export function useGisOgcConformance(enabled = true): UseQueryResult<OgcConformanceResponse> {
+  return useQuery<OgcConformanceResponse>({
+    queryKey: ['gis-ogc-conformance'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/ogc/conformance').then(r => r.data),
+    staleTime: 30 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** مجموعات OGC (fields/rasters). */
+export function useGisOgcCollections(enabled = true): UseQueryResult<OgcCollectionsResponse> {
+  return useQuery<OgcCollectionsResponse>({
+    queryKey: ['gis-ogc-collections'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/ogc/collections').then(r => r.data),
+    staleTime: 30 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** خطّة كاش البلاطات (DB-backed من سجلّ الرستر). */
+export function useGisTileCachePlan(enabled = true): UseQueryResult<TileCachePlan> {
+  return useQuery<TileCachePlan>({
+    queryKey: ['gis-tile-cache-plan'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/tile-cache-plan').then(r => r.data),
+    staleTime: 5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── Decision Insight (وكيل F) — سجلّ القرارات المُدامة + الشرح + التعلُّم + الأثر ──
+import type {
+  DecisionExplainResponse, DecisionImpactResponse, DecisionLearningResponse, DecisionRecordsResponse,
+} from '../lib/decisionInsight';
+
+/** سجلّ قرارات المستأجِر المُدامة (الأحدث أوّلاً، decision_record v78). */
+export function useDecisionRecordsInsight(limit = 20, enabled = true): UseQueryResult<DecisionRecordsResponse> {
+  return useQuery<DecisionRecordsResponse>({
+    queryKey: ['decision-records', limit],
+    queryFn:  () => kongApi.get('/api/v1/decision/records', { params: { limit } })
+      .then(r => r.data as DecisionRecordsResponse)
+      .catch((e) => { if (isDisabled404(e)) return { decisions: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سلسلة شرح قرار مُدام (ثقة→إشارات→سياسة→قيود→إجراء) + نتائجه (replay).
+ *  404 ⇒ الميزة مُطفأة (FEATURE_DECISION_STUDIO) أو القرار غير مُدام — حالة صادقة. */
+export function useDecisionExplainInsight(decisionId: string | null | undefined, enabled = true): UseQueryResult<DecisionExplainResponse> {
+  return useQuery<DecisionExplainResponse>({
+    queryKey: ['decision-explain', decisionId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/decision/${decisionId}/explain`)
+      .then(r => r.data as DecisionExplainResponse)
+      .catch((e) => {
+        if (isDisabled404(e)) return { decision_id: String(decisionId), explanation: null, outcomes: [], outcome_count: 0, calibrated: false, disabled: true };
+        throw e;
+      }),
+    staleTime:60_000,
+    enabled:  enabled && !!decisionId,
+    retry:    false,
+  });
+}
+
+/** اقتراحات معايرة مُسنَدة بالأثر — استشاريّة (advisory_only، لا تُطبَّق آليّاً). */
+export function useDecisionLearning(minSample = 5, enabled = true): UseQueryResult<DecisionLearningResponse> {
+  return useQuery<DecisionLearningResponse>({
+    queryKey: ['decision-learning', minSample],
+    queryFn:  () => kongApi.get('/api/v1/decision/learning', { params: { min_sample: minSample } })
+      .then(r => r.data as DecisionLearningResponse)
+      .catch((e) => { if (isDisabled404(e)) return { suggestions: [], count: 0, advisory_only: true, based_on: null, disabled: true }; throw e; }),
+    staleTime:5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، ماء موفَّر) — قياس لا تنبّؤ. */
+export function useDecisionImpact(fieldId?: string | null, enabled = true): UseQueryResult<DecisionImpactResponse> {
+  return useQuery<DecisionImpactResponse>({
+    queryKey: ['decision-impact', fieldId ?? 'all'],
+    queryFn:  () => kongApi.get('/api/v1/decision/impact', { params: { field_id: fieldId || undefined } })
+      .then(r => r.data as DecisionImpactResponse)
+      .catch((e) => {
+        if (isDisabled404(e)) return {
+          total_decisions: 0, executed: 0, failed: 0, success_rate: 0,
+          water_requested_mm: 0, water_applied_mm: 0, water_saved_mm: 0, water_records: 0,
+          by_action: {}, disabled: true,
+        };
+        throw e;
+      }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();
