@@ -649,6 +649,25 @@ def _band_urls_from_assets(assets: dict) -> dict:
     }
 
 
+async def _stac_query(payload: dict) -> dict:
+    """يستدعي العميل المرن ويحوّل الفشل التامّ إلى 503 صادق (لا 500 خام).
+
+    RuntimeError من ResilientStacClient = الأساس + كلّ الاحتياطيّات فشلوا ولا
+    cache (بلاغ 2026-07-04: DNS الحاوية معطّل — Errno -5 حتى للاحتياطيّ) — خطأ
+    بنية تحتيّة لا خطأ في خادمنا، فيُبلَّغ 503 برسالة ثابتة قابلة للتصرّف بدل
+    traceback يخرج للعميل 500. التفصيل الخام يبقى في السجلّ الداخليّ فقط.
+    """
+    try:
+        return await _stac.search(payload)
+    except RuntimeError as e:
+        logger.error("STAC غير متاح (collections=%s): %s", payload.get("collections"), e)
+        raise HTTPException(
+            503,
+            "فهرس صور الأقمار (STAC) غير متاح حاليّاً من داخل الخدمة — "
+            "تحقّق من اتّصال/DNS حاوية raster-service ثمّ أعد المحاولة",
+        ) from e
+
+
 async def _stac_search(
     bbox: list[float], dt_start: str, dt_end: str, max_cloud: float, limit: int
 ) -> dict:
@@ -665,7 +684,7 @@ async def _stac_search(
         "limit": limit,
         "sortby": [{"field": "properties.datetime", "direction": "desc"}],
     }
-    data = await _stac.search(payload)
+    data = await _stac_query(payload)
 
     items = []
     for feat in data.get("features", []):
@@ -759,7 +778,7 @@ async def _stac_search_landsat(
         "limit": limit,
         "sortby": [{"field": "properties.datetime", "direction": "desc"}],
     }
-    data = await _stac.search(payload)
+    data = await _stac_query(payload)
     items = []
     for feat in data.get("features", []):
         props = feat.get("properties", {})
@@ -796,7 +815,7 @@ async def _stac_search_dem(bbox: list[float]) -> dict:
         "bbox": bbox,
         "limit": 20,
     }
-    data = await _stac.search(payload)
+    data = await _stac_query(payload)
     items = []
     for feat in data.get("features", []):
         assets = feat.get("assets", {})

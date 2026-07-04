@@ -8195,7 +8195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b494440fd00a2743f36697e9733d23b7a7ba05c24c9a268b9f9cc316b092ff2"
+          "content": "531fbf66a10b6f19adc3c040400edafa0534b69234ae0639c4b6028d02634717"
         }
       ],
       "name": "services/raster-service/main.py",

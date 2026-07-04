@@ -97,6 +97,35 @@ def test_vrt_builders_write_under_upload_dir():
     assert not offenders, f"build_band_vrt بلا out_dir=main.UPLOAD_DIR: {offenders}"
 
 
+def test_stac_total_failure_maps_to_503_not_raw_500(rm):
+    """متابعة نفس البلاغ الحيّ: حين يفشل الأساس + الاحتياطيّات ولا cache (مثل تعطّل
+    DNS الحاوية — Errno -5)، كان RuntimeError يخرج للعميل 500 خاماً بtraceback.
+    العقد: 503 برسالة ثابتة قابلة للتصرّف (لا str(e) للعميل — يبقى في السجلّ)."""
+    import asyncio
+
+    from fastapi import HTTPException
+
+    async def total_failure(payload):
+        raise RuntimeError(
+            "STAC غير متاح بعد 3 محاولات ولا cache: [Errno -5] No address associated with hostname"
+        )
+
+    rm._stac.search = total_failure
+    with pytest.raises(HTTPException) as ei:
+        asyncio.run(
+            rm._stac_search(
+                [44.0, 15.0, 44.01, 15.01],
+                "2026-01-01T00:00:00Z",
+                "2026-01-31T23:59:59Z",
+                30,
+                5,
+            )
+        )
+    assert ei.value.status_code == 503
+    assert "Errno" not in str(ei.value.detail), "تفصيل الاستثناء الخام تسرّب للعميل"
+    assert "STAC" in str(ei.value.detail)
+
+
 def test_cdse_index_tif_written_under_upload_dir():
     """ساكن: GeoTIFF مؤشّر CDSE يُكتب تحت UPLOAD_DIR (يجتاز حارس المصدر)."""
     src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()

@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-07-04 (ن-23) — متابعة البلاغ الحيّ: فشل STAC التامّ صار 503 صادقاً (كان 500 خاماً)
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). بعد نشر إصلاح ن-22 أرسل المستخدم traceback جديداً: backfill يفشل الآن **عند الطلب** بـ`RuntimeError: STAC غير متاح بعد 3 محاولات ولا cache: [Errno -5] No address associated with hostname` — **DNS داخل حاوية raster-service معطّل** (الأساس Element84 والاحتياطيّ Planetary Computer كلاهما بلا حلّ اسم؛ compose سليم — `sahool-internal` بـ`internal: false`). المشكلة بيئيّة على جهاز المستخدم، لكنّ الكود كان يسرّبها 500 خاماً بtraceback.
+
+- **`_stac_query`** مُغلِّف واحد للاستدعاءات الثلاثة (Sentinel-2/Landsat/DEM): RuntimeError من العميل المرن ⇒ **HTTPException 503** برسالة عربيّة ثابتة قابلة للتصرّف («تحقّق من اتّصال/DNS الحاوية»)؛ التفصيل الخام في السجلّ الداخليّ فقط (لا str(e) للعميل).
+- **حارس unit:** `test_stac_total_failure_maps_to_503_not_raw_500` — يثبت 503 وعدم تسرّب `Errno` في detail.
+- **تشخيص المشغّل (موثَّق في رسالة الجلسة):** فحص DNS داخل الحاوية مقابل المضيف؛ الحلّ عادة إعادة تشغيل docker daemon أو ضبط `dns:` في compose.
+
+**تحقّق:** pytest -m unit **2525** أخضر · ruff نظيف · الحزمة مُتحقَّقة (3044).
+
+---
+
 ## 2026-07-04 (ن-22) — إصلاح جذريّ: كلّ مهامّ backfill كانت تفشل بـHTTPException مبتلَعة
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تشخيص من سجلّات المستخدم الحيّة: ~12 مهمّة `backfill_*` تفشل «failed: HTTPException» مباشرةً بعد «بُني VRT من 13 نطاق»، بينما بلاطات CDSE تعمل (بايتات حقيقيّة 933–1224؛ الـ70-byte قصّ مضلّع صحيح).
