@@ -190,6 +190,36 @@ def encode_png_rgba(rgba) -> bytes:
     return sig + _png_chunk(b"IHDR", ihdr) + _png_chunk(b"IDAT", idat) + _png_chunk(b"IEND", b"")
 
 
+def _reproject_dataset_mask(src, *, dst_transform, dst_crs: str, out_shape: tuple[int, int]):
+    """Reproject GDAL internal/per-dataset mask to the render grid.
+
+    Some GeoTIFFs contain finite values outside the AOI (for example 0.0) plus a
+    valid mask band. Passing only ``src_nodata`` to ``reproject`` can make GDAL
+    ignore the mask band, producing opaque dark stripes in tiles/thumbnails.
+    Reproject the mask explicitly and apply it after the value warp.
+    """
+    try:
+        import numpy as np
+        from rasterio.warp import Resampling, reproject
+
+        src_mask = src.read_masks(1)
+        dst_mask = np.zeros(out_shape, dtype="uint8")
+        reproject(
+            source=src_mask,
+            destination=dst_mask,
+            src_transform=src.transform,
+            src_crs=src.crs,
+            dst_transform=dst_transform,
+            dst_crs=dst_crs,
+            resampling=Resampling.nearest,
+            src_nodata=0,
+            dst_nodata=0,
+        )
+        return dst_mask
+    except Exception:  # noqa: BLE001 — mask absence/warp issue must not break rendering
+        return None
+
+
 # ─── التصيير الرئيسي: COG → بلاطة 256×256 PNG ──────────────────────
 def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes | None:
     """يصيّر بلاطة XYZ من COG مقصوص. يُرجِع بايتات PNG أو None عند التعذّر.
@@ -251,6 +281,14 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
                 src_nodata=src_nodata,
                 dst_nodata=np.nan,
             )
+            dst_mask = _reproject_dataset_mask(
+                src,
+                dst_transform=dst_transform,
+                dst_crs=dst_crs,
+                out_shape=(TILE_SIZE, TILE_SIZE),
+            )
+            if dst_mask is not None:
+                dst[dst_mask == 0] = np.nan
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
         return None
 
@@ -316,6 +354,14 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
                 src_nodata=src_nodata,
                 dst_nodata=np.nan,
             )
+            dst_mask = _reproject_dataset_mask(
+                src,
+                dst_transform=dst_transform,
+                dst_crs="EPSG:3857",
+                out_shape=(out_h, out_w),
+            )
+            if dst_mask is not None:
+                dst[dst_mask == 0] = np.nan
     except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → لا مُصغَّرة
         return None
 

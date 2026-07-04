@@ -28,7 +28,7 @@ const ALL_PAGES = [
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'sql-workspace', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'decision-runtime', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'lab-sampling', 'devices', 'device-twin', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'yield-analysis', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'admin-runtime', 'approvals-console', 'chatbot', 'settings',
-  'operations-wall',
+  'operations-wall', 'agro-zones', 'yemeni-calendars', 'climate-analogs',
 ] as const satisfies readonly PageId[];
 
 // حارس وقت-التصريف: كلّ معرّف في اتّحاد PageId يجب أن يظهر في ALL_PAGES،
@@ -44,6 +44,7 @@ const WORKER_PAGES: PageId[] = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'field-workspace', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators', 'lab-sampling',
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'pest-escalation', 'field-intelligence',
   'inventory', 'equipment', 'devices', 'device-twin', 'irrigation-ops', 'irrigation-network',
+  'agro-zones', 'yemeni-calendars', 'climate-analogs',
 ];
 
 // صفحات إداريّة (owner/manager فقط): البيانات المرجعيّة + الوثائق.

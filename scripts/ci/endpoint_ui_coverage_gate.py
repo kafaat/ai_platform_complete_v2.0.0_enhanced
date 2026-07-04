@@ -38,6 +38,39 @@ FRONTEND_ROOTS = ("frontend/src", "mobile/sahool_app/lib")
 # الجماهير المواجِهة للمستخدم — يجب أن يكون كلّ مسار منها في العقد (بدليل) أو مُعفى صراحةً.
 USER_FACING_AUDIENCES = frozenset({"farmer", "agronomist", "manager", "admin"})
 
+# ملفّات «سرد-فقط» تُقصى من corpus الدليل: تسرد مسارات دون استدعائها فعلاً، فاعتبارها
+# دليل تغطية يُنتِج «تغطية وهميّة» (مسار مغطّى بلا شاشة). backendCoverageRegistry
+# سجلّ توثيق config صريح (٨٥ مساراً، صفر استدعاء). أضِف أيّ سجلّ مماثل هنا.
+PHANTOM_EVIDENCE_FILES = ("config/backendCoverageRegistry.ts",)
+
+# نمط تعليق سطريّ TS/JS: مسار داخل تعليق ليس استدعاءً — يُزال قبل بناء corpus الدليل.
+_LINE_COMMENT = re.compile(r"^\s*//.*$", re.MULTILINE)
+
+
+def service_token_routes() -> set[str]:
+    """المسارات المحميّة بـService Token (مستهلكها آلة/خدمة داخليّة لا مستخدم).
+
+    تُشتقّ من الكود: كلّ @router.<method>("path") يتبعه فرض _require_service_token /
+    x_agent_token خلال نافذة قصيرة. تُستخدم في الحارس لمنع تصنيف مسار آليّ كدَين واجهة.
+    """
+    import re as _re
+
+    out: set[str] = set()
+    services = REPO / "services"
+    if not services.exists():
+        return out
+    files = list(services.rglob("routers/*.py")) + list(services.rglob("main.py"))
+    for f in files:
+        if "__pycache__" in str(f):
+            continue
+        txt = _read(f)
+        for m in _re.finditer(r'@router\.\w+\("([^"]+)"\)', txt):
+            ep = m.group(1)
+            block = txt[m.end() : m.end() + 700]
+            if "_require_service_token" in block or "x_agent_token" in block:
+                out.add(ep)
+    return out
+
 
 def _read(path: Path) -> str:
     try:
@@ -63,15 +96,26 @@ def collect_backend_routes() -> dict[str, set[str]]:
 
 
 def collect_frontend_corpus() -> str:
-    """نصّ الواجهة كاملاً (للبحث عن أدلّة المسارات)."""
+    """نصّ الواجهة كاملاً (للبحث عن أدلّة المسارات).
+
+    يُقصي ملفّات السرد-فقط (PHANTOM_EVIDENCE_FILES) ويُزيل التعليقات السطريّة —
+    فالمسار المذكور في تعليق أو سجلّ توثيق ليس دليل استدعاء حقيقيّ. هذا يمنع
+    «التغطية الوهميّة»: مسار يُعدّ مغطّى لمجرّد وروده نصّاً بلا شاشة تستدعيه.
+    """
     chunks: list[str] = []
     for root in FRONTEND_ROOTS:
         base = REPO / root
         if not base.exists():
             continue
         for f in base.rglob("*"):
-            if f.suffix.lower() in {".ts", ".tsx", ".js", ".jsx", ".dart"}:
-                chunks.append(_read(f))
+            if f.suffix.lower() not in {".ts", ".tsx", ".js", ".jsx", ".dart"}:
+                continue
+            rel = str(f.relative_to(REPO))
+            if any(rel.endswith(p) for p in PHANTOM_EVIDENCE_FILES):
+                continue  # سجلّ سرد صريح — لا يُحتسب دليلاً.
+            text = _read(f)
+            text = _LINE_COMMENT.sub("", text)  # مسار في تعليق ليس استدعاءً.
+            chunks.append(text)
     return "\n".join(chunks)
 
 

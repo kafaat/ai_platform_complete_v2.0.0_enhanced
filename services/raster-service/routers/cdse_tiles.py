@@ -166,9 +166,20 @@ async def _ensure_field_cog(
 
                     _tr.apply_polygon_mask(cog_path, field_geom)
                 except Exception as e:  # noqa: BLE001
+                    # fail-closed: فشل القناع المحلّيّ ⇒ لا نُخدِّم/نُخزِّن بلاطة قد تتجاوز
+                    # حدّ الحقل. (المزوّد يقصّ على المضلّع أيضاً، لكن لا نعتمد على ذلك
+                    # وحده — نطابق فلسفة fail-closed للنظام.) نتخلّص من الملفّ المؤقّت.
                     main.logger.warning(
-                        "polygon mask failed (%s/%s): %s", field_id, internal, type(e).__name__
+                        "polygon mask failed (%s/%s): %s — fail-closed (بلاطة مُهمَلة)",
+                        field_id,
+                        internal,
+                        type(e).__name__,
                     )
+                    try:
+                        os.unlink(cog_path)
+                    except OSError:
+                        pass
+                    return None
             main._cdse_tile_cache[cache_key] = (now + 3600.0, cog_path)
             return cog_path
         except Exception as e:  # noqa: BLE001

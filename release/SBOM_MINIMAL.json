@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2dcb59d5854af53df7f8b51ab6f57bc84a911e358639eb78f5325f176af6f65c"
+          "content": "e80403baba7d44ded783abbd03982bb4fa64f46ac611ef2333c4ce89f21e7854"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -745,7 +745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "777b74d95d5ccb93c632c9039a03a2b15488f1c4b74807e843631757e1ca047a"
+          "content": "872f8fa4a0aae48003245c865fd5c9ad872c34c41260eca211e4ed4c7d2ca558"
         }
       ],
       "name": "frontend/src/components/fieldhealth/DateScrubber.tsx",
@@ -2995,7 +2995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71d85fa6350ae5c2aed40b97fc85b898c872f5184a7a3e71028b0d9112189e68"
+          "content": "263fa4c0e77dacd214496f7be0e27a7103b001fa702c30aab1f9af80d580b2d0"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -3075,7 +3075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d65c6a61d92d3cd77ef01ebffd033190b2522292832dbc7ec0559c53cefd9973"
+          "content": "fd23ac06e2d57b1434dfaaf79aa127c8f4538d06563479170a46c5321c1fbbf9"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -8155,7 +8155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5d33a376db515547422d2a16d89a4dcb9ed3784fa59211a8b00a8452d5033cc"
+          "content": "2551a0002ebb32bb8b4caa93151323828bbc4b7a438171bf33e06eaa69c2d90a"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8295,7 +8295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac75e185876237a3cf28b97fea80cbf4395ae41d67b103db5b0ae07a2a7ca7dd"
+          "content": "43cfed5dea1e8ffd3c860f03c1b0936674222039a0e55eda11ff217bef70bd8d"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -8305,7 +8305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15a6dcd7fe0417afecc8bbbbf55c4c2565918bf48fbb3ac75b5f4d7aed8c8e8b"
+          "content": "c761a1922f97eadf08ebed371ab01571a92df60737a52805655854c9659cb16e"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -8615,6 +8615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8fcd1a295d86426dff659ceeb63f774b9f7385b9b88006634f51a8ad5678b3ab"
+        }
+      ],
+      "name": "services/raster-service/test_raster_assets_text_field_id.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "29fd9b8be29bfc99441e4210024370ad1252b2c8ba6718723e1c8e61de5fd960"
         }
       ],
@@ -8685,7 +8695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b44e338ce7bb7ddba6d59762b8ea7ba7ffdbdfd752702bff0520814833778a30"
+          "content": "1369723ec55388b1843e86d4816292732476d737ff1e0a78ca03ef44add8f9bb"
         }
       ],
       "name": "services/raster-service/tile_render.py",

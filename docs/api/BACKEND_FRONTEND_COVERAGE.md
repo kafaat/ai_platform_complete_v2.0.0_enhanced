@@ -9,12 +9,12 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 163 | 81 |
-| farmer | 190 | 125 |
+| agronomist | 163 | 89 |
+| farmer | 190 | 127 |
 | internal | 229 | 59 |
 | manager | 52 | 32 |
 
-العقد الملزِم (core): 102 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 299 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -43,12 +43,12 @@
 | `/api/v1/admin/security/denials` | admin | ✅ |
 | `/api/v1/agricultural-proverbs` | farmer | ✅ |
 | `/api/v1/agricultural-proverbs/for-date` | farmer | ✅ |
-| `/api/v1/agro-zones/by-elevation` | agronomist | — |
-| `/api/v1/agro-zones/identify` | agronomist | — |
-| `/api/v1/agro-zones/identify-smart` | agronomist | — |
-| `/api/v1/agro-zones/list` | agronomist | — |
-| `/api/v1/agro-zones/profile` | agronomist | — |
-| `/api/v1/agro-zones/suited-crops` | agronomist | — |
+| `/api/v1/agro-zones/by-elevation` | agronomist | ✅ |
+| `/api/v1/agro-zones/identify` | agronomist | ✅ |
+| `/api/v1/agro-zones/identify-smart` | agronomist | ✅ |
+| `/api/v1/agro-zones/list` | agronomist | ✅ |
+| `/api/v1/agro-zones/profile` | agronomist | ✅ |
+| `/api/v1/agro-zones/suited-crops` | agronomist | ✅ |
 | `/api/v1/agro/crop-risk` | agronomist | — |
 | `/api/v1/agro/crop-rotation` | agronomist | — |
 | `/api/v1/agro/decision-playbook` | agronomist | — |
@@ -79,10 +79,10 @@
 | `/api/v1/automation/weather/cached` | admin | — |
 | `/api/v1/automation/weather/register` | admin | — |
 | `/api/v1/automation/weather/status` | admin | — |
-| `/api/v1/calendars/context` | farmer | — |
+| `/api/v1/calendars/context` | farmer | ✅ |
 | `/api/v1/calendars/himyarite-months` | farmer | ✅ |
 | `/api/v1/calendars/lunar-mansions` | farmer | ✅ |
-| `/api/v1/calendars/regional-profiles` | farmer | — |
+| `/api/v1/calendars/regional-profiles` | farmer | ✅ |
 | `/api/v1/calendars/today` | farmer | ✅ |
 | `/api/v1/calibration` | agronomist | ✅ |
 | `/api/v1/calibration/feedback` | agronomist | — |
@@ -102,11 +102,11 @@
 | `/api/v1/capabilities` | internal | — |
 | `/api/v1/chemical-safety/banned` | agronomist | — |
 | `/api/v1/chemical-safety/check` | agronomist | — |
-| `/api/v1/climate-analogs/desert-crops` | agronomist | — |
-| `/api/v1/climate-analogs/detail` | agronomist | — |
+| `/api/v1/climate-analogs/desert-crops` | agronomist | ✅ |
+| `/api/v1/climate-analogs/detail` | agronomist | ✅ |
 | `/api/v1/climate-analogs/list` | agronomist | ✅ |
-| `/api/v1/climate-analogs/strategic-tiers` | agronomist | — |
-| `/api/v1/climate-analogs/strategy` | agronomist | — |
+| `/api/v1/climate-analogs/strategic-tiers` | agronomist | ✅ |
+| `/api/v1/climate-analogs/strategy` | agronomist | ✅ |
 | `/api/v1/coffee/guide` | agronomist | ✅ |
 | `/api/v1/coffee/pests` | agronomist | ✅ |
 | `/api/v1/coffee/site-suitability` | agronomist | ✅ |
@@ -334,7 +334,7 @@
 | `/api/v1/pest-escalation/run` | agronomist | ✅ |
 | `/api/v1/planting/check` | agronomist | ✅ |
 | `/api/v1/planting/crops` | agronomist | — |
-| `/api/v1/planting/window` | agronomist | ✅ |
+| `/api/v1/planting/window` | agronomist | — |
 | `/api/v1/policy-learning/threshold-suggestions` | agronomist | — |
 | `/api/v1/portfolio/command` | farmer | ✅ |
 | `/api/v1/postharvest/best-practices` | agronomist | ✅ |
@@ -372,7 +372,7 @@
 | `/api/v1/reports/field/{field_id}/summary` | manager | ✅ |
 | `/api/v1/reports/operation` | manager | — |
 | `/api/v1/reports/season/{season_id}/summary` | manager | ✅ |
-| `/api/v1/rotation/evaluate` | agronomist | ✅ |
+| `/api/v1/rotation/evaluate` | agronomist | — |
 | `/api/v1/rotation/principles` | agronomist | — |
 | `/api/v1/rotation/suggest` | agronomist | ✅ |
 | `/api/v1/salinity/assess` | agronomist | ✅ |

@@ -27,6 +27,65 @@ def _load_gate():
 
 
 @pytest.mark.unit
+def test_no_waiver_has_real_ui_evidence() -> None:
+    """حارس ضدّ الدَّين الوهميّ: أيّ إعفاء backlog-ui له دليل واجهة حقيقيّ (تطابق
+    حدوديّ في طبقة-API/هوك/مكوّن) يجب ترقيته إلى core لا إبقاؤه ديناً كاذباً.
+
+    يمنع تضخّم سجلّ الإعفاءات بمسارات مرتبطة فعلاً — كما اكتُشف في مراجعة الوكلاء
+    (183 إعفاءً وهميّاً رُقّيت). admin-ops/operational مستثناة (لا تتطلّب شاشة).
+    """
+    import re as _re
+
+    mod = _load_gate()
+    waived = mod.load_waivers()
+    # ملفّات طبقة-API/مكوّن فقط (لا اختبارات) — دليل تشغيليّ حقيقيّ.
+    fe: list[tuple[str, str]] = []
+    for root in mod.FRONTEND_ROOTS:
+        base = REPO / root
+        if not base.exists():
+            continue
+        for f in base.rglob("*"):
+            rel = str(f.relative_to(REPO))
+            if f.suffix.lower() not in {".ts", ".tsx", ".js", ".jsx", ".dart"}:
+                continue
+            if ".test." in rel or "/e2e/" in rel:
+                continue
+            fe.append((rel, f.read_text(encoding="utf-8", errors="ignore")))
+
+    def boundary_hit(path: str) -> str | None:
+        stem = _re.split(r"\{", path)[0].rstrip("/")
+        alt = stem.replace("/api/v1/auth", "/auth")
+        cands = {c for c in (stem, alt) if len(c) > len("/api/v1/") or c.startswith("/auth")}
+        for rel, txt in fe:
+            for c in cands:
+                pat = _re.escape(c) + r"""(?:['"`?]|/\$\{|/[a-z]|$)"""
+                if _re.search(pat, txt) and any(
+                    k in rel
+                    for k in (
+                        "/services/",
+                        "/hooks/",
+                        "api.ts",
+                        "/components/",
+                        "/sections/",
+                        "/screens/",
+                    )
+                ):
+                    return rel
+        return None
+
+    false_debt = []
+    for ep, w in waived.items():
+        if w.get("reason_category") != "backlog-ui":
+            continue  # admin-ops/operational: إعفاء دائم مشروع.
+        ev = boundary_hit(ep)
+        if ev:
+            false_debt.append(f"{ep} → {ev}")
+    assert not false_debt, "إعفاءات backlog-ui لها دليل واجهة حقيقيّ (رقّها إلى core): " + "; ".join(
+        false_debt[:12]
+    )
+
+
+@pytest.mark.unit
 def test_config_is_valid_and_nonempty() -> None:
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     assert cfg["core_endpoints"], "العقد فارغ — يجب أن يلزم مسارات جوهريّة"
@@ -58,6 +117,80 @@ def test_backend_route_collector_finds_platform_routes() -> None:
 
 
 @pytest.mark.unit
+def test_service_token_routes_not_ui_debt() -> None:
+    """مسار محميّ بـService Token (مستهلكه آلة) لا يُصنّف دَين واجهة (backlog-ui).
+
+    جوهر «من المستهلك»: القدرات الآليّة (scheduler/worker/خدمة داخليّة) لا تحتاج شاشة
+    مستخدم — تصنيفها دَيناً يضخّم قائمة العمل بمطالب واجهة بلا مستهلك بشريّ. مكانها
+    operational. هذا يمنع الخلط مصدريّاً.
+    """
+    mod = _load_gate()
+    waived = mod.load_waivers()
+    svc = mod.service_token_routes()
+    misfiled = [
+        ep for ep, w in waived.items() if w.get("reason_category") == "backlog-ui" and ep in svc
+    ]
+    assert not misfiled, (
+        "مسارات service-token (مستهلكها آلة) مُصنّفة دَين واجهة — انقلها إلى operational: "
+        + "; ".join(misfiled[:12])
+    )
+
+
+@pytest.mark.unit
+def test_every_waiver_declares_intended_consumer() -> None:
+    """كلّ إعفاء يعلن مستهلكه المقصود (human/machine/mixed) — لا لبس في الغرض.
+
+    operational/admin-ops ⇒ machine (لا شاشة). backlog-ui ⇒ human أو mixed (يحتاج
+    شاشة أو مراجعة). يمنع عودة السؤال «هل هذا للواجهة؟» بلا جواب مُوثَّق.
+    """
+    mod = _load_gate()
+    waived = mod.load_waivers()
+    valid = {"human", "machine", "mixed"}
+    for ep, w in waived.items():
+        assert w.get("intended_consumer") in valid, f"إعفاء بلا مستهلك مُعلَن: {ep}"
+        if w.get("reason_category") in {"operational", "admin-ops"}:
+            assert w["intended_consumer"] == "machine", (
+                f"مسار تشغيليّ يجب أن يكون مستهلكه machine: {ep}"
+            )
+        if w.get("reason_category") == "backlog-ui":
+            # بعد الفرز الكامل: كلّ دَين واجهة مستهلكه human محسوم (لا mixed غير محسوم).
+            # mixed مسموح مؤقّتاً لمسارات جديدة قبل فرزها، لكن لا يجب أن يتراكم.
+            assert w["intended_consumer"] in {"human", "mixed"}, (
+                f"دَين واجهة يجب أن يكون مستهلكه human/mixed: {ep}"
+            )
+
+
+@pytest.mark.unit
+def test_phantom_registry_excluded_from_evidence() -> None:
+    """سجلّ السرد (backendCoverageRegistry) والتعليقات لا تُحتسب دليل تغطية.
+
+    يمنع «التغطية الوهميّة»: مسار يُعدّ مغطّى لمجرّد وروده في سجلّ توثيق أو تعليق
+    بلا شاشة/هوك يستدعيه فعلاً. نتحقّق أنّ نصّ السجلّ الفريد غائب عن corpus الدليل.
+    """
+    mod = _load_gate()
+    corpus = mod.collect_frontend_corpus()
+    registry = REPO / "frontend" / "src" / "config" / "backendCoverageRegistry.ts"
+    if registry.exists():
+        # علامة فريدة للسجلّ (تعريف النوع) — وجودها في corpus يعني تسرّب السجلّ.
+        assert "interface BackendCoverageLayer" not in corpus, (
+            "سجلّ السرد الزائف تسرّب إلى corpus الدليل — التغطية قد تصبح وهميّة"
+        )
+        assert "BackendCoverageLayer[]" not in corpus, "تعريف مصفوفة السجلّ تسرّب"
+
+
+@pytest.mark.unit
+def test_comment_only_path_is_not_evidence() -> None:
+    """مسار مذكور في تعليق // فقط لا يُعدّ دليلاً (يُزال قبل بناء corpus)."""
+    mod = _load_gate()
+    corpus = mod.collect_frontend_corpus()
+    # نمط تعليق شائع في lib/agroCalculators: '// GET /api/v1/seed/...'
+    # المسار قد يظهر في corpus عبر هوك حقيقيّ، لكن سطر التعليق نفسه يجب أن يختفي.
+    assert "// GET /api/v1/seed/germination-rate" not in corpus, (
+        "سطر تعليق تسرّب إلى corpus الدليل — التعليقات لا تُزال"
+    )
+
+
+@pytest.mark.unit
 def test_reverse_gate_no_userfacing_route_escapes_contract() -> None:
     """البوّابة العكسيّة: لا مسار مواجِه للمستخدم بلا (core+دليل) أو إعفاء صريح.
 
@@ -73,13 +206,40 @@ def test_reverse_gate_no_userfacing_route_escapes_contract() -> None:
 
 @pytest.mark.unit
 def test_every_waiver_has_explicit_reason() -> None:
-    """كلّ إعفاء يحمل سبباً غير فارغ وفئة معروفة — لا إعفاء صامت."""
+    """كلّ إعفاء يحمل سبباً غير فارغ وفئة معروفة — لا إعفاء صامت.
+
+    وطبقة التصنيف الثانية: دَين الواجهة (backlog-ui) يجب أن يحمل priority/ui_effort/
+    ui_surface_hint — فالتصنيف قائمة عمل مُرتّبة لا مجرّد وسم «دَين». المسارات
+    التشغيليّة (admin-ops/operational) تحمل none (لا شاشة مطلوبة).
+    """
     mod = _load_gate()
     waived = mod.load_waivers()
     valid_cats = {"admin-ops", "operational", "backlog-ui"}
+    valid_prio = {"high", "medium", "low", "none"}
+    valid_effort = {"button", "panel", "page", "none"}
     for ep, w in waived.items():
         assert w.get("reason", "").strip(), f"إعفاء بلا سبب: {ep}"
         assert w.get("reason_category") in valid_cats, f"فئة إعفاء غير معروفة: {ep}"
+        # طبقة ثانية إلزاميّة
+        assert w.get("priority") in valid_prio, f"أولويّة مفقودة/غير صالحة: {ep}"
+        assert w.get("ui_effort") in valid_effort, f"تقدير جهد مفقود/غير صالح: {ep}"
+        assert w.get("ui_surface_hint", "").strip(), f"سطح واجهة مقترح مفقود: {ep}"
+        if w["reason_category"] == "backlog-ui":
+            # طبقة ثانية: أولويّة/جهد فعليّان (لا none).
+            assert w["priority"] != "none", f"دَين backlog-ui بلا أولويّة فعليّة: {ep}"
+            assert w["ui_effort"] != "none", f"دَين backlog-ui بلا تقدير جهد: {ep}"
+            # طبقة ثالثة: تصنيف أهمّية إلزاميّ (حرجيّة وظيفيّة + درجة + شريحة).
+            assert w.get("criticality") in {"critical", "decision-support", "informational"}, (
+                f"دَين backlog-ui بلا تصنيف حرجيّة: {ep}"
+            )
+            assert isinstance(w.get("importance"), int) and w["importance"] > 0, (
+                f"دَين backlog-ui بلا درجة أهمّية: {ep}"
+            )
+            assert w.get("importance_tier") in {"P0-حرِج", "P1-عالٍ", "P2-متوسّط", "P3-منخفض"}, (
+                f"دَين backlog-ui بشريحة أهمّية غير صالحة: {ep}"
+            )
+        else:
+            assert w["priority"] == "none", f"مسار تشغيليّ بأولويّة واجهة: {ep}"
 
 
 @pytest.mark.unit
