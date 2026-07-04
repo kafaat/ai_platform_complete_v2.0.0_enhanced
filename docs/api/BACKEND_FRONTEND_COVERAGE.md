@@ -9,13 +9,13 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 36 | 12 |
+| agronomist | 36 | 14 |
 | farmer | 158 | 111 |
 | internal | 10 | 1 |
 | manager | 35 | 23 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 45 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 47 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -333,7 +333,7 @@
 | `/api/v1/outcome/measure` | agronomist | — |
 | `/api/v1/outcome/record` | agronomist | — |
 | `/api/v1/pest-escalation/run` | unclassified | ✅ |
-| `/api/v1/planting/check` | agronomist | — |
+| `/api/v1/planting/check` | agronomist | ✅ |
 | `/api/v1/planting/crops` | agronomist | — |
 | `/api/v1/planting/window` | agronomist | — |
 | `/api/v1/policy-learning/threshold-suggestions` | unclassified | — |
@@ -375,7 +375,7 @@
 | `/api/v1/reports/season/{season_id}/summary` | manager | ✅ |
 | `/api/v1/rotation/evaluate` | agronomist | — |
 | `/api/v1/rotation/principles` | agronomist | — |
-| `/api/v1/rotation/suggest` | agronomist | — |
+| `/api/v1/rotation/suggest` | agronomist | ✅ |
 | `/api/v1/salinity/assess` | unclassified | — |
 | `/api/v1/sampling/strategy` | unclassified | — |
 | `/api/v1/scenario/planting-date` | unclassified | — |

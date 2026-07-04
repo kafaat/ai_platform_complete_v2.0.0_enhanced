@@ -985,6 +985,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b3e36ea0add92f2ff507be09c3934d1d1288a3f9eaaaac3d3abecddfec84b94c"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/YemeniCalendarCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0affbce3d1768a81f03cfa8bb89f1c2e2c27762f151d6fff3bf2a30c8a818cbd"
         }
       ],
@@ -1795,7 +1805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bc4039b9ffb7ffe1835990253ea9a02c993c54a39d60d68526cc5dd359733367"
+          "content": "36996d7701d1a6e3dcf34ed398e784b873f95fe04960f44d27f6e88bb21f02b2"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2835,6 +2845,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "267d344062216372729a07343ad5d4c3a79b2d93d96c30960cb84af042d24729"
+        }
+      ],
+      "name": "frontend/src/lib/yemeniCalendar.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f0863613db41c0c37b36789cc1d2d5765fc8711ad47d30afc007785b12e37120"
+        }
+      ],
+      "name": "frontend/src/lib/yemeniCalendar.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cd1f9f23405637ce9a77dc59fe024dbe28534020ba66212207e87c908325520f"
         }
       ],
@@ -3485,7 +3515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5059439ead932ef2ab597fb62f679f9e967ce8398231de07e76d32ad39af04d0"
+          "content": "d3efe6e8821ba1378bb695f5714e10cd641e87547ed7d6cfdb7a3046f504ce3b"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

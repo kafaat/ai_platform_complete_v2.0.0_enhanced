@@ -54,6 +54,7 @@ import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
 import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceabilityCard';
 import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
+import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -1313,6 +1314,16 @@ export default function MapHub() {
           completedOps={completedOps}
           irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
           prescriptionCount={prescriptionsQ.data?.total ?? null}
+        />
+      )}
+
+      {/* «ماذا أزرع؟»: اقتراح الدورة الزراعيّة + ملاءمة الشهر — planting/rotation
+          كانت بلا مسار عمليّ في الواجهة. أحكام الخادم تُعرَض لا يُعاد الحكم. */}
+      {selected && fieldMode === 'expert' && (
+        <PlantingAdvisorCard
+          cropLabel={selected.crop}
+          todayIso={new Date().toISOString().slice(0, 10)}
+          enabled={expertMode}
         />
       )}
 

@@ -1133,6 +1133,32 @@ export function useProverbsForDate(
   });
 }
 
+// ── Planting Advisor — «ماذا أزرع بعد محصولي؟» (دورة زراعيّة + نافذة الشهر) ──
+import type { RotationSuggestResponse } from '../lib/plantingAdvisor';
+import type { PlantingFit as PlantingFitT } from '../lib/yemeniCalendar';
+
+/** أفضل المحاصيل التالية بعد محصول (مرتّبة بأسباب يمنيّة من جدول الدورة). */
+export function useRotationSuggest(previousCrop: string | null | undefined, enabled = true): UseQueryResult<RotationSuggestResponse> {
+  return useQuery<RotationSuggestResponse>({
+    queryKey: ['rotation-suggest', previousCrop ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/rotation/suggest', { params: { previous: previousCrop } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!previousCrop,
+    retry:    false,
+  });
+}
+
+/** ملاءمة شهر لزراعة محصول (حكم الخادم optimal/acceptable/off_window). */
+export function usePlantingCheck(crop: string | null | undefined, month: number | null): UseQueryResult<PlantingFitT> {
+  return useQuery<PlantingFitT>({
+    queryKey: ['planting-check', crop ?? 'none', month ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/planting/check', { params: { crop, month } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!crop && month != null,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

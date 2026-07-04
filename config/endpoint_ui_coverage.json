@@ -387,6 +387,16 @@
       "endpoint": "/api/v1/agricultural-proverbs/for-date",
       "audience": "farmer",
       "evidence": "/api/v1/agricultural-proverbs/for-date"
+    },
+    {
+      "endpoint": "/api/v1/rotation/suggest",
+      "audience": "agronomist",
+      "evidence": "/api/v1/rotation/suggest"
+    },
+    {
+      "endpoint": "/api/v1/planting/check",
+      "audience": "agronomist",
+      "evidence": "/api/v1/planting/check"
     }
   ]
 }
