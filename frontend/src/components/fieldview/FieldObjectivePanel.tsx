@@ -210,6 +210,17 @@ export default function FieldObjectivePanel({ availability, onCreateTask }: Fiel
           </button>
         )}
 
+        {lifecycle.stage === 'approved' && !plan.objective.producesTask && (
+          <button
+            type="button"
+            onClick={() => recordOutcome('completed')}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold"
+            style={{ border: `1px solid ${T.line}`, color: T.ink, background: 'rgba(15,23,42,.45)' }}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> سجّل المخرج كمكتمل
+          </button>
+        )}
+
         {lifecycle.stage === 'task_created' && (
           <button
             type="button"

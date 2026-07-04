@@ -75,6 +75,18 @@ describe('advanceLifecycle — explicit transitions only', () => {
     expect(advanceLifecycle(s, 'approve').changed).toBe(false);
   });
 
+
+
+  it('lets non-task objectives complete directly after approval without getting stuck', () => {
+    let s = initLifecycle();
+    s = advanceLifecycle(s, 'attach_evidence', { canAct: true }).state;
+    s = advanceLifecycle(s, 'approve').state;
+    const r = advanceLifecycle(s, 'record_outcome', { outcome: 'completed' });
+    expect(r.changed).toBe(true);
+    expect(r.state.stage).toBe('reviewed');
+    expect(r.state.outcome).toBe('completed');
+  });
+
   it('records outcome directly from executing without a scheduled follow-up', () => {
     let s = initLifecycle();
     for (const e of ['attach_evidence', 'approve', 'create_task', 'start_execution'] as const) {
@@ -96,9 +108,10 @@ describe('recommendationQuality — unknown until truly reviewed', () => {
   it('is unknown before review', () => {
     expect(recommendationQuality(initLifecycle())).toBe('unknown');
   });
-  it('is good for improved/stable and poor for declined', () => {
+  it('is good for improved/stable/completed and poor for declined', () => {
     expect(recommendationQuality({ stage: 'reviewed', outcome: 'improved', followUp: null })).toBe('good');
     expect(recommendationQuality({ stage: 'reviewed', outcome: 'stable', followUp: null })).toBe('good');
+    expect(recommendationQuality({ stage: 'reviewed', outcome: 'completed', followUp: null })).toBe('good');
     expect(recommendationQuality({ stage: 'reviewed', outcome: 'declined', followUp: null })).toBe('poor');
     expect(recommendationQuality({ stage: 'reviewed', outcome: 'unknown', followUp: null })).toBe('unknown');
   });
@@ -108,5 +121,6 @@ describe('labels', () => {
   it('render Arabic stage and outcome labels', () => {
     expect(stageLabel('follow_up')).toBe('بانتظار المتابعة');
     expect(outcomeLabel('declined')).toBe('تراجع');
+    expect(outcomeLabel('completed')).toBe('مكتمل');
   });
 });

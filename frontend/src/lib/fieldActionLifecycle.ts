@@ -24,7 +24,7 @@ export type LifecycleEvent =
   | 'record_outcome'
   | 'archive';
 
-export type Outcome = 'improved' | 'stable' | 'declined' | 'unknown';
+export type Outcome = 'improved' | 'stable' | 'declined' | 'completed' | 'unknown';
 
 export interface FollowUp {
   kind: 'next_image' | 'days' | 'none';
@@ -43,7 +43,8 @@ export interface LifecycleState {
 const TRANSITIONS: Record<LifecycleStage, Partial<Record<LifecycleEvent, LifecycleStage>>> = {
   draft: { attach_evidence: 'evidence', archive: 'archived' },
   evidence: { approve: 'approved', archive: 'archived' },
-  approved: { create_task: 'task_created', archive: 'archived' },
+  // للأهداف التي لا تنتج مهمة ميدانية (VRA/ربحية/تقرير)، يمكن تسجيل المخرج مباشرة بعد الاعتماد.
+  approved: { create_task: 'task_created', record_outcome: 'reviewed', archive: 'archived' },
   task_created: { start_execution: 'executing', archive: 'archived' },
   executing: { schedule_follow_up: 'follow_up', record_outcome: 'reviewed', archive: 'archived' },
   follow_up: { record_outcome: 'reviewed', archive: 'archived' },
@@ -128,6 +129,7 @@ export function outcomeLabel(outcome: Outcome): string {
     improved: 'تحسّن',
     stable: 'ثابت',
     declined: 'تراجع',
+    completed: 'مكتمل',
     unknown: 'غير معروف بعد',
   };
   return map[outcome];
@@ -136,7 +138,7 @@ export function outcomeLabel(outcome: Outcome): string {
 /** جودة التوصية = هل أدّت لأثر إيجابيّ؟ 'unknown' حتّى تُراجَع (صدق). */
 export function recommendationQuality(state: LifecycleState): 'good' | 'poor' | 'unknown' {
   if (state.stage !== 'reviewed') return 'unknown';
-  if (state.outcome === 'improved' || state.outcome === 'stable') return 'good';
+  if (state.outcome === 'improved' || state.outcome === 'stable' || state.outcome === 'completed') return 'good';
   if (state.outcome === 'declined') return 'poor';
   return 'unknown';
 }
