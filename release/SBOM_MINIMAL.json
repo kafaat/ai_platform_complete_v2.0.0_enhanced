@@ -1865,7 +1865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7579759e48e4045c0d0c36fc24eb6242cee971e062c4b7ba5868ff21bc5df8a1"
+          "content": "7f29e317d7af88fb8e33f84b9716a2de1553cca3af2f723ec612bcf5a2274f3c"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.test.ts",
@@ -1875,7 +1875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a89c25ffb1b1f8ee4511e654906f60fad1ff2a3479ca46a7ab42632d18ee20d5"
+          "content": "d77ee030ecea3d8bdcd4c4cf67574a6f2fbf786e1889af1c0d19c09314bda0f3"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.ts",

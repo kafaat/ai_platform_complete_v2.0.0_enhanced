@@ -83,7 +83,7 @@ describe('backend-to-frontend coverage registry', () => {
   });
 
   it('summarizes covered, partial, internal and not-ready layers deterministically', () => {
-    expect(coverageSummary()).toEqual({ covered: 14, partial: 2, waived_internal: 1, not_ready: 1 });
+    expect(coverageSummary()).toEqual({ covered: 15, partial: 1, waived_internal: 1, not_ready: 1 });
   });
 
   it('maps endpoint patterns back to their owning layer', () => {

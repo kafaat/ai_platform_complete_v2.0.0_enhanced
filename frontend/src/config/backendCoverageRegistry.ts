@@ -231,7 +231,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     label: 'Advanced GIS / OGC / STAC / COG expert tooling',
     priority: 'P2',
     role: 'expert_console',
-    state: 'partial',
+    state: 'covered',
     owner: 'gis',
     endpoints: [
       '/api/v1/gis/*',
@@ -239,13 +239,12 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
       '/api/v1/stac/*',
       '/api/v1/cog/*',
     ],
-    hooks: ['useGisTools', 'useNlGis'],
+    hooks: ['useGisTools', 'useNlGis', 'useGisStacLanding', 'useGisStacCollections', 'useGisStacItems', 'useGisOgcConformance', 'useGisOgcCollections', 'useGisTileCachePlan'],
     surfaces: [
+      { kind: 'expert_page', name: 'GisExpertPage', routeId: 'gis-expert', component: 'GisExpertPage' },
       { kind: 'expert_page', name: 'GisToolsPage', routeId: 'gis-tools', component: 'GisToolsPage' },
       { kind: 'expert_page', name: 'NlGisPage', routeId: 'nl-gis', component: 'NlGisPage' },
     ],
-    gap: 'Generic GIS tools exist, but OGC/STAC/COG source browsing is not a first-class expert console yet.',
-    nextAction: 'Add GIS Source Browser with source health, STAC search, COG metadata, and OGC capabilities tabs.',
   },
   {
     id: 'soil-lab-salinity-ipm',
