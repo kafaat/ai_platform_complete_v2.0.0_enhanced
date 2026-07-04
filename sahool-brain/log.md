@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-04 (ن-15) — إغلاق بندين من متبقّي ن-14: التقويم اليمنيّ + «ماذا أزرع؟»
+
+**رأس main = develop = `claude/code-review-34hO3` = `f5759d6`.**
+
+- **التقويم الزراعيّ اليمنيّ (`3badd56`):** `YemeniCalendarCard` (وضعا الفلاح والخبير) من نداء `/calendars/today` الواحد (منزلة قمريّة + شهر حميريّ + نظام المنطقة + نافذة زراعة محصول الحقل وملاءمة الشهر) + أمثال المنزلة النشطة (`/agricultural-proverbs/for-date`). صدق: شارة «سياق تراثيّ — لا يدخل القرار» تعكس تصريح الخادم `display_only` حرفيّاً.
+- **«ماذا أزرع؟» (`f5759d6`):** `PlantingAdvisorCard` (خبير) من `rotation/suggest` (good/acceptable/avoid بأسباب يمنيّة) + `planting/check` لملاءمة الشهر للمرشَّح المُختار — أحكام الخادم تُعرَض لا يُعاد الحكم.
+- **العقد:** 43 ⇒ **47 endpoint ملزَماً** (calendars/today · proverbs/for-date · rotation/suggest · planting/check).
+
+**تحقّق:** vitest **647** أخضر (+١٠) · tsc نظيف · بوّابة التغطية PASS 47/47 · الحزمة مُتحقَّقة (3002).
+**بقي من متبقّي ن-14:** مركز القرار (decision dispatch/policies) · إدخال الموازنة/الإيراد POST.
+
+---
+
 ## 2026-07-04 (ن-14) — فحص التغطية: مصفوفة backend⇄frontend + بوّابة CI + ٥ واجهات من مسارات يتيمة
 
 **رأس main = develop = `claude/code-review-34hO3` = `980b46c`** (سلسلة ٦ التزامات فوق `dae1c0f`).

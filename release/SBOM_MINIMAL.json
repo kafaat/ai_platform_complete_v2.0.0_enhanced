@@ -955,6 +955,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1e9e301f00c785b54e8b3f351249cf068fa8b41476b3d77a9da4040539875cf7"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/PlantingAdvisorCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cda720bde8ca80ea274d3de5024d70f6f5e600a54a11d076573be3fcfbfc985e"
         }
       ],
@@ -2709,6 +2719,26 @@
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e98a25ee2ae22315b65c4d0592f925842a05637b40f1bd6bb69bf837f9ffb0ee"
+        }
+      ],
+      "name": "frontend/src/lib/plantingAdvisor.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "26c86fea2bd85663687df313a300b20517314ce68158611d612a48a163807e41"
+        }
+      ],
+      "name": "frontend/src/lib/plantingAdvisor.ts",
       "type": "file"
     },
     {
