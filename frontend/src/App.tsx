@@ -129,6 +129,9 @@ const AdminRuntimePage = lazy(() => import('./sections/AdminRuntimePage'));
 const DecisionRuntimePage = lazy(() => import('./sections/DecisionRuntimePage'));
 const GisExpertPage = lazy(() => import('./sections/GisExpertPage'));
 const ApprovalsConsolePage = lazy(() => import('./sections/ApprovalsConsolePage'));
+const AgroZonesPanel = lazy(() => import('./components/agrozones/AgroZonesPanel'));
+const YemeniCalendarPanel = lazy(() => import('./components/calendars/YemeniCalendarPanel'));
+const ClimateAnalogsPanel = lazy(() => import('./components/climate/ClimateAnalogsPanel'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
@@ -138,7 +141,8 @@ export type PageId =
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
   | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime' | 'approvals-console'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
-  | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert';
+  | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert'
+  | 'agro-zones' | 'yemeni-calendars' | 'climate-analogs';
 
 // ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
 // وبنية القائمة (المجموعات) انتقلت إلى سجلّ المسارات `lib/routes.ts` (بنية معلومات
@@ -357,6 +361,9 @@ export default function App() {
       case 'irrigation-ops': return <IrrigationOpsPage />;
       case 'irrigation-network': return <IrrigationNetworkPage />;
       case 'weather-advice': return <WeatherAdvicePage />;
+      case 'agro-zones':   return <AgroZonesPanel />;
+      case 'yemeni-calendars': return <YemeniCalendarPanel />;
+      case 'climate-analogs': return <ClimateAnalogsPanel />;
       case 'master-data':  return <MasterDataPage />;
       case 'documents':    return <DocumentsPage />;
       case 'governance':   return <GovernancePage />;

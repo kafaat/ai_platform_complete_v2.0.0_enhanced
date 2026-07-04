@@ -523,6 +523,36 @@
       "evidence": "/api/v1/agricultural-proverbs/for-date"
     },
     {
+      "endpoint": "/api/v1/agro-zones/by-elevation",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro-zones/by-elevation"
+    },
+    {
+      "endpoint": "/api/v1/agro-zones/identify",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro-zones/identify"
+    },
+    {
+      "endpoint": "/api/v1/agro-zones/identify-smart",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro-zones/identify-smart"
+    },
+    {
+      "endpoint": "/api/v1/agro-zones/list",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro-zones/list"
+    },
+    {
+      "endpoint": "/api/v1/agro-zones/profile",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro-zones/profile"
+    },
+    {
+      "endpoint": "/api/v1/agro-zones/suited-crops",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro-zones/suited-crops"
+    },
+    {
       "endpoint": "/api/v1/alerts",
       "audience": "farmer",
       "evidence": "/api/v1/alerts"
@@ -566,6 +596,26 @@
       "endpoint": "/api/v1/automation/scheduler-status",
       "audience": "admin",
       "evidence": "/api/v1/automation/scheduler-status"
+    },
+    {
+      "endpoint": "/api/v1/calendars/context",
+      "audience": "farmer",
+      "evidence": "/api/v1/calendars/context"
+    },
+    {
+      "endpoint": "/api/v1/calendars/himyarite-months",
+      "audience": "farmer",
+      "evidence": "/api/v1/calendars/himyarite-months"
+    },
+    {
+      "endpoint": "/api/v1/calendars/lunar-mansions",
+      "audience": "farmer",
+      "evidence": "/api/v1/calendars/lunar-mansions"
+    },
+    {
+      "endpoint": "/api/v1/calendars/regional-profiles",
+      "audience": "farmer",
+      "evidence": "/api/v1/calendars/regional-profiles"
     },
     {
       "endpoint": "/api/v1/calendars/today",
@@ -633,9 +683,29 @@
       "evidence": "/api/v1/calibration"
     },
     {
+      "endpoint": "/api/v1/climate-analogs/desert-crops",
+      "audience": "agronomist",
+      "evidence": "/api/v1/climate-analogs/desert-crops"
+    },
+    {
+      "endpoint": "/api/v1/climate-analogs/detail",
+      "audience": "agronomist",
+      "evidence": "/api/v1/climate-analogs/detail"
+    },
+    {
       "endpoint": "/api/v1/climate-analogs/list",
       "audience": "agronomist",
       "evidence": "/api/v1/climate-analogs/list"
+    },
+    {
+      "endpoint": "/api/v1/climate-analogs/strategic-tiers",
+      "audience": "agronomist",
+      "evidence": "/api/v1/climate-analogs/strategic-tiers"
+    },
+    {
+      "endpoint": "/api/v1/climate-analogs/strategy",
+      "audience": "agronomist",
+      "evidence": "/api/v1/climate-analogs/strategy"
     },
     {
       "endpoint": "/api/v1/coffee/guide",

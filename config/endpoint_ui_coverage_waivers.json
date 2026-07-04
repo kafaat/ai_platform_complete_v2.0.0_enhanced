@@ -8,7 +8,14 @@
         "post@services/sahool-platform/api/routers/break_glass.py"
       ],
       "reason_category": "admin-ops",
-      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ."
+      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/admin/break-glass/{grant_id}",
@@ -17,7 +24,14 @@
         "delete@services/sahool-platform/api/routers/break_glass.py"
       ],
       "reason_category": "admin-ops",
-      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ."
+      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/admin/break-glass/{token}/fields",
@@ -26,7 +40,14 @@
         "get@services/sahool-platform/api/routers/break_glass.py"
       ],
       "reason_category": "admin-ops",
-      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ."
+      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/admin/events/dead-letter/requeue-all",
@@ -35,7 +56,14 @@
         "post@services/sahool-platform/api/routers/admin.py"
       ],
       "reason_category": "admin-ops",
-      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ."
+      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/admin/outbox/dead-letter/requeue",
@@ -44,61 +72,14 @@
         "post@services/sahool-platform/api/routers/admin.py"
       ],
       "reason_category": "admin-ops",
-      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ."
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/by-elevation",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/agro_zones.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/identify",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/agro_zones.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/identify-smart",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/agro_zones.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/list",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/agro_zones.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/profile",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/agro_zones.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/suited-crops",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/agro_zones.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "مسار إداريّ/تشغيليّ — أدوات التشغيل منفصلة؛ لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/agro/crop-risk",
@@ -107,7 +88,14 @@
         "post@services/sahool-platform/api/routers/agro_intelligence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/crop-rotation",
@@ -116,7 +104,14 @@
         "post@services/sahool-platform/api/routers/agro_intelligence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/decision-playbook",
@@ -125,7 +120,14 @@
         "post@services/sahool-platform/api/routers/agro_intelligence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/kc-timeseries",
@@ -134,7 +136,14 @@
         "post@services/sahool-platform/api/routers/kc_timeseries.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/kc-timeseries/{field_id}",
@@ -143,7 +152,14 @@
         "get@services/sahool-platform/api/routers/kc_timeseries.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/kc-timeseries/{field_id}/compare",
@@ -152,7 +168,14 @@
         "get@services/sahool-platform/api/routers/kc_timeseries.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/plant-soil-feedback",
@@ -161,7 +184,14 @@
         "post@services/sahool-platform/api/routers/agro_intelligence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/plant-soil-feedback/trend",
@@ -170,7 +200,14 @@
         "post@services/sahool-platform/api/routers/agro_intelligence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/agro/season-comparison",
@@ -179,7 +216,14 @@
         "post@services/sahool-platform/api/routers/agro_intelligence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
+      "criticality": "decision-support",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/analytics/costs/by-field",
@@ -188,7 +232,14 @@
         "get@services/sahool-platform/api/routers/analytics.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/AnalyticsPage.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/aromatic-crops/list",
@@ -197,7 +248,14 @@
         "get@services/sahool-platform/api/routers/aromatic_crops.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 42,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/astronomical-timing/cross-check",
@@ -206,7 +264,14 @@
         "post@services/sahool-platform/api/routers/astronomical_timing.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/astronomical-timing/stars",
@@ -215,7 +280,14 @@
         "get@services/sahool-platform/api/routers/astronomical_timing.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 42,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/auth/me",
@@ -224,7 +296,14 @@
         "get@services/sahool-platform/api/routers/auth.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/auth/signup",
@@ -233,7 +312,14 @@
         "post@services/sahool-platform/api/routers/auth.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/automation/imagery/register-field",
@@ -242,7 +328,14 @@
         "post@services/sahool-platform/api/routers/automation.py"
       ],
       "reason_category": "operational",
-      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة."
+      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/automation/imagery/status",
@@ -251,7 +344,14 @@
         "get@services/sahool-platform/api/routers/automation.py"
       ],
       "reason_category": "operational",
-      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة."
+      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/automation/weather/cached",
@@ -260,7 +360,14 @@
         "get@services/sahool-platform/api/routers/automation.py"
       ],
       "reason_category": "operational",
-      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة."
+      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/automation/weather/register",
@@ -269,7 +376,14 @@
         "post@services/sahool-platform/api/routers/automation.py"
       ],
       "reason_category": "operational",
-      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة."
+      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/automation/weather/status",
@@ -278,43 +392,14 @@
         "get@services/sahool-platform/api/routers/automation.py"
       ],
       "reason_category": "operational",
-      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة."
-    },
-    {
-      "endpoint": "/api/v1/calendars/context",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/calendars.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/calendars/himyarite-months",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/calendars.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/calendars/lunar-mansions",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/calendars.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/calendars/regional-profiles",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/calendars.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/calibration/feedback",
@@ -323,7 +408,14 @@
         "post@services/sahool-platform/api/routers/calibration.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/CalibrationPage.tsx",
+      "criticality": "informational",
+      "importance": 20,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/cameras/register",
@@ -332,7 +424,14 @@
         "post@services/sahool-platform/api/routers/cameras.py"
       ],
       "reason_category": "operational",
-      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة."
+      "reason": "مسار أتمتة/تسجيل خلفيّ يُستدعى آليّاً (scheduler/worker) لا من واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/cameras/snapshot-evidence",
@@ -341,7 +440,14 @@
         "post@services/sahool-platform/api/routers/cameras.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/chemical-safety/banned",
@@ -350,7 +456,14 @@
         "get@services/sahool-platform/api/routers/chemical_safety.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "critical",
+      "importance": 68,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/chemical-safety/check",
@@ -359,43 +472,14 @@
         "post@services/sahool-platform/api/routers/chemical_safety.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/desert-crops",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/climate_analogs.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/detail",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/climate_analogs.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/strategic-tiers",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/climate_analogs.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/strategy",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/climate_analogs.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "critical",
+      "importance": 70,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/confidence-gate",
@@ -404,7 +488,14 @@
         "post@services/sahool-platform/api/routers/confidence_gate.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/confidence/irrigation",
@@ -413,7 +504,14 @@
         "post@services/sahool-platform/api/routers/confidence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionConfidencePage.tsx",
+      "criticality": "critical",
+      "importance": 88,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/confidence/ndvi",
@@ -422,7 +520,14 @@
         "post@services/sahool-platform/api/routers/confidence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionConfidencePage.tsx",
+      "criticality": "critical",
+      "importance": 88,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/consistency/freshness",
@@ -431,7 +536,14 @@
         "get@services/sahool-platform/api/routers/consistency.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/consistency/irrigation",
@@ -440,7 +552,14 @@
         "get@services/sahool-platform/api/routers/consistency.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 48,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/crop-suitability",
@@ -449,7 +568,14 @@
         "post@services/sahool-platform/api/routers/crop_suitability.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "decision-support",
+      "importance": 38,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/crop-twin/compose",
@@ -458,7 +584,14 @@
         "post@services/sahool-platform/api/routers/crop_twin.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/ScenarioComparePage.tsx",
+      "criticality": "decision-support",
+      "importance": 38,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/crops/compare-drought-resilience",
@@ -467,7 +600,14 @@
         "get@services/sahool-platform/api/routers/crops.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/CropStatePage.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/crops/drought-resilience",
@@ -476,7 +616,14 @@
         "get@services/sahool-platform/api/routers/crops.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/CropStatePage.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/cultural-calendar",
@@ -485,7 +632,14 @@
         "get@services/sahool-platform/api/routers/cultural_calendar.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/data-readiness",
@@ -494,7 +648,14 @@
         "post@services/sahool-platform/api/routers/data_readiness.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/dispatch/consume",
@@ -503,7 +664,14 @@
         "post@services/sahool-platform/api/routers/decision_dispatch.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/dispatch/execute",
@@ -512,7 +680,14 @@
         "post@services/sahool-platform/api/routers/decision_dispatch.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 88,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/economics",
@@ -521,7 +696,14 @@
         "get@services/sahool-platform/api/routers/decision_impact.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 90,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/explain",
@@ -530,7 +712,14 @@
         "get@services/sahool-platform/api/routers/decision.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 82,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/for-location",
@@ -539,7 +728,14 @@
         "get@services/sahool-platform/api/routers/decision.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/policies/resolve",
@@ -548,7 +744,14 @@
         "post@services/sahool-platform/api/routers/decision_policies.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/record",
@@ -557,7 +760,14 @@
         "post@services/sahool-platform/api/routers/decision_record.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/decision/unified",
@@ -566,7 +776,14 @@
         "post@services/sahool-platform/api/routers/decision_dispatch.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/districts",
@@ -575,7 +792,14 @@
         "get@services/sahool-platform/api/routers/districts.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 44,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/districts/{district_id}",
@@ -584,7 +808,14 @@
         "get@services/sahool-platform/api/routers/districts.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "panel",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/districts/{district_id}/active-pests",
@@ -593,7 +824,14 @@
         "get@services/sahool-platform/api/routers/districts.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "panel",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/economics/cost-categories",
@@ -602,7 +840,14 @@
         "get@services/sahool-platform/api/routers/economics.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/EconomicsDashboard.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/economics/feasibility",
@@ -611,7 +856,14 @@
         "post@services/sahool-platform/api/routers/economics.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/EconomicsDashboard.tsx",
+      "criticality": "informational",
+      "importance": 30,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/escalation/assess",
@@ -620,7 +872,14 @@
         "post@services/sahool-platform/api/routers/escalation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/PestEscalationPage.tsx",
+      "criticality": "critical",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/evidence/corroborate",
@@ -629,7 +888,14 @@
         "post@services/sahool-platform/api/routers/evidence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/EvidenceMapPage.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/failures/check",
@@ -638,7 +904,14 @@
         "post@services/sahool-platform/api/routers/failures.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 20,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/farm-ledger/autowrite-preview",
@@ -647,7 +920,14 @@
         "post@services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/MapHub.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/farm-ledger/erp-projection/{season_id}",
@@ -656,7 +936,14 @@
         "get@services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/sections/MapHub.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/farm-ledger/inventory-projection/{season_id}",
@@ -665,7 +952,14 @@
         "get@services/sahool-platform/api/routers/farm_operations_ledger.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/sections/MapHub.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/field-portfolio/optimize",
@@ -674,7 +968,14 @@
         "post@services/sahool-platform/api/routers/field_portfolio.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/PortfolioPage.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/field/operational-state",
@@ -683,7 +984,14 @@
         "get@services/sahool-platform/api/routers/field_single.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/field/{field_id}/lineage",
@@ -692,7 +1000,14 @@
         "get@services/sahool-platform/api/routers/decision_record.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "panel",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/fields/validate-geometry",
@@ -701,7 +1016,14 @@
         "post@services/sahool-platform/api/routers/fields.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/MyFieldsPage.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/fodder-alternatives/list",
@@ -710,7 +1032,14 @@
         "get@services/sahool-platform/api/routers/fodder_alternatives.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 42,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/geo-locate/field",
@@ -719,7 +1048,14 @@
         "get@services/sahool-platform/api/routers/geo_locate.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/geo-locate/recommend",
@@ -728,7 +1064,14 @@
         "get@services/sahool-platform/api/routers/geo_locate.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 42,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/gis/buffer",
@@ -737,7 +1080,14 @@
         "post@services/sahool-platform/api/routers/gis_kernel.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/NlGisPage.tsx",
+      "criticality": "informational",
+      "importance": 30,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/gis/split",
@@ -746,7 +1096,14 @@
         "post@services/sahool-platform/api/routers/gis_kernel.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/NlGisPage.tsx",
+      "criticality": "informational",
+      "importance": 30,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/gis/union",
@@ -755,7 +1112,14 @@
         "post@services/sahool-platform/api/routers/gis_kernel.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/NlGisPage.tsx",
+      "criticality": "informational",
+      "importance": 30,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/gis/validate",
@@ -764,7 +1128,14 @@
         "post@services/sahool-platform/api/routers/gis_kernel.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/NlGisPage.tsx",
+      "criticality": "informational",
+      "importance": 34,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/high-value-crops/detail",
@@ -773,7 +1144,14 @@
         "get@services/sahool-platform/api/routers/high_value_crops.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/high-value-crops/list",
@@ -782,7 +1160,14 @@
         "get@services/sahool-platform/api/routers/high_value_crops.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 42,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/indicators/map-layers",
@@ -791,7 +1176,14 @@
         "get@services/sahool-platform/api/routers/indicators.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/SpatialIndicatorsPage.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/indices/coverage-report",
@@ -800,7 +1192,14 @@
         "get@services/sahool-platform/api/routers/indices.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/MapHub.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/introduction/candidates",
@@ -809,7 +1208,14 @@
         "get@services/sahool-platform/api/routers/introduction.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/introduction/card",
@@ -818,7 +1224,14 @@
         "get@services/sahool-platform/api/routers/introduction.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 42,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/introduction/field-fit",
@@ -827,7 +1240,14 @@
         "post@services/sahool-platform/api/routers/introduction.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/irrigation-method/gross",
@@ -836,7 +1256,14 @@
         "post@services/sahool-platform/api/routers/irrigation_method.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/WaterHarvestingCard.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/irrigation-recommendation",
@@ -845,7 +1272,14 @@
         "post@services/sahool-platform/api/routers/irrigation_recommendation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/irrigation/moisture-decision",
@@ -854,7 +1288,14 @@
         "get@services/sahool-platform/api/routers/irrigation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/IrrigationWaterPage.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/irrigation/soil-types",
@@ -863,7 +1304,14 @@
         "get@services/sahool-platform/api/routers/irrigation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/IrrigationWaterPage.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/lab/water-results",
@@ -872,7 +1320,14 @@
         "post@services/sahool-platform/api/routers/soil_sampling.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/LabSamplingPage.tsx",
+      "criticality": "critical",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/learning/activation-status",
@@ -881,7 +1336,14 @@
         "get@services/sahool-platform/api/routers/learning.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/LearningDashboardPage.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/learning/external-prior-blend",
@@ -890,7 +1352,14 @@
         "post@services/sahool-platform/api/routers/learning.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/LearningDashboardPage.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/learning/prediction-calibration",
@@ -899,7 +1368,14 @@
         "get@services/sahool-platform/api/routers/learning.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/LearningDashboardPage.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/lineage/link",
@@ -908,7 +1384,14 @@
         "post@services/sahool-platform/api/routers/execution_lineage.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/LineagePage.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/market/crop-classification-readiness",
@@ -917,7 +1400,14 @@
         "get@services/sahool-platform/api/routers/market.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:mobile/sahool_app/lib/screens/dashboard_screen.dart",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/market/crop-gap",
@@ -926,7 +1416,14 @@
         "get@services/sahool-platform/api/routers/market.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:mobile/sahool_app/lib/screens/dashboard_screen.dart",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/me",
@@ -935,7 +1432,14 @@
         "get@services/sahool-platform/api/routers/me.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/ThemeToggle.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/niche-crops/detail",
@@ -944,7 +1448,14 @@
         "get@services/sahool-platform/api/routers/niche_crops.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/niche-crops/list",
@@ -953,7 +1464,14 @@
         "get@services/sahool-platform/api/routers/niche_crops.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 42,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/notifications/delivery",
@@ -961,8 +1479,15 @@
       "methods": [
         "post@services/sahool-platform/api/routers/notifications.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "upsert إيصال تسليم إشعار — تكامل خلفيّ (بوّابة تسليم) لا مستخدم.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/notifications/ws",
@@ -970,8 +1495,15 @@
       "methods": [
         "websocket@services/sahool-platform/api/routers/notifications.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "نقطة WebSocket (بروتوكول آلة، @router.websocket) — لا واجهة REST مرئيّة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/nutrients/4r-plan",
@@ -980,7 +1512,14 @@
         "post@services/sahool-platform/api/routers/nutrients.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "critical",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/observations",
@@ -989,7 +1528,14 @@
         "post@services/sahool-platform/api/routers/observations.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 22,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/onboarding/questionnaire",
@@ -998,7 +1544,14 @@
         "get@services/sahool-platform/api/routers/onboarding.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:mobile/sahool_app/lib/screens/onboarding_screen.dart",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/onboarding/responses",
@@ -1008,7 +1561,14 @@
         "post@services/sahool-platform/api/routers/onboarding.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:mobile/sahool_app/lib/screens/onboarding_screen.dart",
+      "criticality": "informational",
+      "importance": 50,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/orchard/economics",
@@ -1017,7 +1577,14 @@
         "get@services/sahool-platform/api/routers/orchard.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 50,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/orchard/plan",
@@ -1026,7 +1593,14 @@
         "get@services/sahool-platform/api/routers/orchard.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 50,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/outcome/record",
@@ -1035,7 +1609,14 @@
         "post@services/sahool-platform/api/routers/decision_record.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/PestEscalationPage.tsx",
+      "criticality": "critical",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/planting/crops",
@@ -1044,7 +1625,14 @@
         "get@services/sahool-platform/api/routers/planting.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/PlantingAdvisorCard.tsx",
+      "criticality": "decision-support",
+      "importance": 68,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/planting/window",
@@ -1053,7 +1641,14 @@
         "get@services/sahool-platform/api/routers/planting.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/PlantingAdvisorCard.tsx",
+      "criticality": "decision-support",
+      "importance": 68,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/policy-learning/threshold-suggestions",
@@ -1062,7 +1657,14 @@
         "get@services/sahool-platform/api/routers/policy_learning.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/postharvest/pests",
@@ -1071,7 +1673,14 @@
         "get@services/sahool-platform/api/routers/postharvest.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/AgroKnowledgeCard.tsx",
+      "criticality": "critical",
+      "importance": 66,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/practices/guide",
@@ -1080,7 +1689,14 @@
         "get@services/sahool-platform/api/routers/practices.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/AgroKnowledgeCard.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/practices/list",
@@ -1089,7 +1705,14 @@
         "get@services/sahool-platform/api/routers/practices.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/AgroKnowledgeCard.tsx",
+      "criticality": "informational",
+      "importance": 30,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/propagation/method-guide",
@@ -1098,7 +1721,14 @@
         "get@services/sahool-platform/api/routers/propagation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/NotificationCenter.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/propagation/methods",
@@ -1107,7 +1737,14 @@
         "get@services/sahool-platform/api/routers/propagation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/NotificationCenter.tsx",
+      "criticality": "informational",
+      "importance": 38,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/propagation/rootstock",
@@ -1116,7 +1753,14 @@
         "get@services/sahool-platform/api/routers/propagation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/NotificationCenter.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/rbac/permission-matrix",
@@ -1125,7 +1769,14 @@
         "get@services/sahool-platform/api/routers/rbac.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/rbac/preview-role-change",
@@ -1134,7 +1785,14 @@
         "get@services/sahool-platform/api/routers/rbac.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/rbac/who-can",
@@ -1143,7 +1801,14 @@
         "get@services/sahool-platform/api/routers/rbac.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/recommendations/candidates",
@@ -1152,7 +1817,14 @@
         "post@services/sahool-platform/api/routers/recommendations.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
+      "criticality": "critical",
+      "importance": 98,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/recommendations/capacity-profiles",
@@ -1161,7 +1833,14 @@
         "get@services/sahool-platform/api/routers/recommendations.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/recommendations/economic-adaptation",
@@ -1170,7 +1849,14 @@
         "post@services/sahool-platform/api/routers/recommendations.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
+      "criticality": "critical",
+      "importance": 80,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/recommendations/engines",
@@ -1179,7 +1865,14 @@
         "get@services/sahool-platform/api/routers/recommendations.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
+      "criticality": "critical",
+      "importance": 82,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/recommendations/outcomes",
@@ -1188,7 +1881,14 @@
         "post@services/sahool-platform/api/routers/recommendations.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
+      "criticality": "critical",
+      "importance": 90,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/regional-calendar",
@@ -1197,7 +1897,14 @@
         "get@services/sahool-platform/api/routers/regional_calendar.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/replay/reconstruct",
@@ -1206,7 +1913,14 @@
         "post@services/sahool-platform/api/routers/replay.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/ReplayMapPage.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/reports/build",
@@ -1215,7 +1929,14 @@
         "post@services/sahool-platform/api/routers/reports.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/ReportsPage.tsx",
+      "criticality": "informational",
+      "importance": 28,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/reports/operation",
@@ -1224,7 +1945,14 @@
         "post@services/sahool-platform/api/routers/reports.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/ReportsPage.tsx",
+      "criticality": "informational",
+      "importance": 48,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/rotation/evaluate",
@@ -1233,7 +1961,14 @@
         "get@services/sahool-platform/api/routers/rotation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/MapHub.tsx",
+      "criticality": "decision-support",
+      "importance": 48,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/rotation/principles",
@@ -1242,7 +1977,14 @@
         "get@services/sahool-platform/api/routers/rotation.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/MapHub.tsx",
+      "criticality": "decision-support",
+      "importance": 48,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/sampling/strategy",
@@ -1251,7 +1993,14 @@
         "get@services/sahool-platform/api/routers/sampling.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/LabSamplingPage.tsx",
+      "criticality": "informational",
+      "importance": 24,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/seasonal-risk/stage-check",
@@ -1260,7 +2009,14 @@
         "get@services/sahool-platform/api/routers/seasonal_risk.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/ClimateRiskCard.tsx",
+      "criticality": "decision-support",
+      "importance": 38,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/seed/evaluate-source",
@@ -1269,7 +2025,14 @@
         "post@services/sahool-platform/api/routers/seed.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/FieldDetailPanel.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/settings",
@@ -1279,7 +2042,14 @@
         "put@services/sahool-platform/api/routers/settings.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/SettingsPage.tsx",
+      "criticality": "informational",
+      "importance": 20,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/sharing/generate-key",
@@ -1288,7 +2058,14 @@
         "post@services/sahool-platform/api/routers/sharing.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/sharing/SharingPanel.tsx",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/simulate/what-if",
@@ -1297,7 +2074,14 @@
         "post@services/sahool-platform/api/routers/simulate.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/WaterTwinPage.tsx",
+      "criticality": "decision-support",
+      "importance": 38,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/soil-sampling/depth",
@@ -1306,7 +2090,14 @@
         "get@services/sahool-platform/api/routers/soil_sampling.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
+      "criticality": "critical",
+      "importance": 74,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/soil-sampling/protocol",
@@ -1315,7 +2106,14 @@
         "get@services/sahool-platform/api/routers/soil_sampling.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
+      "criticality": "critical",
+      "importance": 78,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/soil-sampling/subsamples",
@@ -1324,7 +2122,14 @@
         "get@services/sahool-platform/api/routers/soil_sampling.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
+      "criticality": "critical",
+      "importance": 72,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/temporal/check",
@@ -1333,7 +2138,14 @@
         "post@services/sahool-platform/api/routers/temporal.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/GisExpertPage.tsx",
+      "criticality": "informational",
+      "importance": 30,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/temporal/coherence",
@@ -1342,7 +2154,14 @@
         "post@services/sahool-platform/api/routers/temporal.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/GisExpertPage.tsx",
+      "criticality": "informational",
+      "importance": 30,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/trials/analyze",
@@ -1351,7 +2170,14 @@
         "post@services/sahool-platform/api/routers/trials.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/water-balance",
@@ -1360,7 +2186,14 @@
         "post@services/sahool-platform/api/routers/water_balance.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "critical",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/water-harvesting/upstream-flood",
@@ -1369,7 +2202,14 @@
         "get@services/sahool-platform/api/routers/water_harvesting.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/WaterHarvestingCard.tsx",
+      "criticality": "critical",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/water-sensitivity/crops",
@@ -1378,7 +2218,14 @@
         "get@services/sahool-platform/api/routers/water_sensitivity.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/ClimateRiskCard.tsx",
+      "criticality": "critical",
+      "importance": 88,
+      "importance_tier": "P0-حرِج",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/water-sensitivity/integrated-advice",
@@ -1387,7 +2234,14 @@
         "post@services/sahool-platform/api/routers/water_sensitivity.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/ClimateRiskCard.tsx",
+      "criticality": "critical",
+      "importance": 68,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/water-sensitivity/stress-risk",
@@ -1396,7 +2250,14 @@
         "post@services/sahool-platform/api/routers/water_sensitivity.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/ClimateRiskCard.tsx",
+      "criticality": "critical",
+      "importance": 68,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/water-sensitivity/wheat-calendar",
@@ -1405,7 +2266,14 @@
         "get@services/sahool-platform/api/routers/water_sensitivity.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/fieldview/ClimateRiskCard.tsx",
+      "criticality": "critical",
+      "importance": 68,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/weather-analytics/analyze",
@@ -1414,7 +2282,14 @@
         "post@services/sahool-platform/api/routers/weather_analytics.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/weather-analytics/planting-guide",
@@ -1423,7 +2298,14 @@
         "post@services/sahool-platform/api/routers/weather_analytics.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/weather/alerts",
@@ -1432,7 +2314,14 @@
         "get@services/sahool-platform/api/routers/weather.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/WeatherAdvicePage.tsx",
+      "criticality": "informational",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/weather/alerts/notify",
@@ -1440,8 +2329,15 @@
       "methods": [
         "post@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "POST إرسال إشعار تنبيه — تكامل تسليم (بوّابة) لا عرض مستخدم.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/env-doctor",
@@ -1449,8 +2345,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "تقرير حارس تشغيليّ لإعدادات محرّك الطقس (Depends _require_service_token، internal/admin) — مستهلكه آلة/مشغّل لا مستخدم.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/field-weather-summary",
@@ -1459,7 +2362,14 @@
         "get@services/sahool-platform/api/routers/weather.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/WeatherAdvicePage.tsx",
+      "criticality": "informational",
+      "importance": 46,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/weather/layers",
@@ -1468,7 +2378,14 @@
         "get@services/sahool-platform/api/routers/weather.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/WeatherAdvicePage.tsx",
+      "criticality": "informational",
+      "importance": 58,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/weather/observability",
@@ -1476,8 +2393,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "مشاهدة تشغيليّة خفيفة لمحرّك الطقس (مقاييس) — مستهلكها لوحة مراقبة/مشغّل لا مستخدم.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/rate-limit/backend",
@@ -1485,8 +2409,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "يكشف backend تحديد المعدّل الفعّال — تشخيص تشغيليّ لا واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/runtime-contract",
@@ -1494,8 +2425,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "مسار عقد تشغيل ثابت (Depends _require_service_token) لفحوص تكامل CI/UI — لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/runtime-smoke-plan",
@@ -1503,8 +2441,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "خطّة smoke موجّهة للمشغّلين (Docker/Compose/K8s) وCI — لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/self-test",
@@ -1512,8 +2457,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "اختبار ذاتيّ جافّ لمحرّك الطقس (dry-run بلا I/O) — CI/تشخيص لا واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/backend",
@@ -1521,8 +2473,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "كشف تهيئة backend كاش الطقس (بلا Redis URL) — تشخيص تشغيليّ لا واجهة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/prune",
@@ -1530,8 +2489,15 @@
       "methods": [
         "post@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "صيانة تشذيب ذاكرة البلاطات (Depends _require_service_token) — عمليّة آلة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/tile-cache/stats",
@@ -1539,8 +2505,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "إحصاء كاش بلاطات الطقس — مراقبة تشغيليّة لا واجهة مستخدم.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/weather/tile-series/{z}/{x}/{y}",
@@ -1549,7 +2522,14 @@
         "get@services/sahool-platform/api/routers/weather.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/sections/WeatherAdvicePage.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/weather/wind-source-selftest",
@@ -1557,8 +2537,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/weather.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason_category": "operational",
+      "reason": "اختبار ذاتيّ لمصدر الرياح — تشخيص محرّك لا واجهة مستخدم.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/wofost/adaptation-guidance",
@@ -1567,7 +2554,14 @@
         "get@services/sahool-platform/api/routers/wofost.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/ChatbotPage.tsx",
+      "criticality": "decision-support",
+      "importance": 48,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/wofost/crop-types",
@@ -1576,7 +2570,14 @@
         "get@services/sahool-platform/api/routers/wofost.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "medium",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/sections/ChatbotPage.tsx",
+      "criticality": "decision-support",
+      "importance": 48,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/api/v1/work-orders/from-recommendation",
@@ -1585,7 +2586,14 @@
         "post@services/sahool-platform/api/routers/agro_intelligence.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم."
+      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
+      "priority": "low",
+      "ui_effort": "page",
+      "ui_surface_hint": "new-screen",
+      "criticality": "informational",
+      "importance": 18,
+      "importance_tier": "P3-منخفض",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/auth/me",
@@ -1594,7 +2602,14 @@
         "get@services/auth/routers/session.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً)."
+      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/auth/tenants",
@@ -1603,7 +2618,14 @@
         "post@services/auth/routers/tenants.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً)."
+      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 48,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/auth/users",
@@ -1612,7 +2634,14 @@
         "get@services/auth/routers/users.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً)."
+      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
+      "priority": "high",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/auth/users/{user_id}/deactivate",
@@ -1621,7 +2650,14 @@
         "patch@services/auth/routers/users.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً)."
+      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
+      "intended_consumer": "human"
     },
     {
       "endpoint": "/auth/users/{user_id}/role",
@@ -1630,7 +2666,14 @@
         "patch@services/auth/routers/users.py"
       ],
       "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً)."
+      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
+      "priority": "high",
+      "ui_effort": "page",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 60,
+      "importance_tier": "P1-عالٍ",
+      "intended_consumer": "human"
     }
   ]
 }

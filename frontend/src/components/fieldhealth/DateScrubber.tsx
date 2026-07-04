@@ -11,7 +11,7 @@
 // التمرير يبثّ التاريخ المختار للأعلى (onSelect) فيقود طبقة الخريطة.
 // RTL · framer-motion لانتقال السهم.
 // ═══════════════════════════════════════════════════════════════
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, CloudSun } from 'lucide-react';
 import { T, RADIUS } from '../ds';
@@ -56,6 +56,28 @@ function valueColor(v: number): string {
   return '#dc2626';
 }
 
+/**
+ * يجمّع نقاطاً يوميّة إلى ممثّل واحد لكلّ شهر (الأقلّ غيوماً = أوضح صورة)، مفروزة
+ * تصاعديّاً. دالّة نقيّة (قابلة للاختبار بلا DOM). تُستخدم للسلاسل الطويلة (سنة+)
+ * حتّى لا يصبح الشريط ~14000px بـ146 طلب صورة. cloud=null يُعامَل كأسوأ.
+ */
+export function groupPointsByMonth(points: ScrubberPoint[]): ScrubberPoint[] {
+  const byMonth = new Map<string, ScrubberPoint[]>();
+  for (const p of points) {
+    const key = (p.date ?? '').slice(0, 7); // YYYY-MM
+    if (!key) continue;
+    const arr = byMonth.get(key) ?? [];
+    arr.push(p);
+    byMonth.set(key, arr);
+  }
+  const reps: ScrubberPoint[] = [];
+  for (const [, days] of [...byMonth.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))) {
+    const rep = days.reduce((best, d) => ((d.cloud ?? 101) < (best.cloud ?? 101) ? d : best));
+    reps.push(rep);
+  }
+  return reps;
+}
+
 export default function DateScrubber({
   points,
   selected,
@@ -63,15 +85,50 @@ export default function DateScrubber({
   cloudThreshold = 50,
   badge,
 }: DateScrubberProps) {
-  // فهرس التاريخ المختار ضمن النقاط (للمنزلق) — -1 إن لم يوجد.
-  const selectedIdx = useMemo(
-    () => points.findIndex((p) => p.date === selected),
-    [points, selected],
+  // مع سلاسل السنتين+ (~146 اكتساباً) يصبح عرض كلّ يوم شريطاً بطول ~14000px و146
+  // عنصر DOM مع طلب صورة لكلّ منها — تجربة ثقيلة. الحلّ: تجميع شهريّ تلقائيّ فوق
+  // عتبة، مع توسيع الشهر المختار لعرضه يوميّاً. السلاسل القصيرة تبقى يوميّة كما هي.
+  // كلّ الـhooks هنا في المكوّن (ترتيب ثابت) — لا دالّة وسيطة تخرق قواعد الـhooks.
+  const GROUP_THRESHOLD = 40; // فوقها نجمّع شهريّاً (سنة+ من إعادة زيارة 5 أيّام).
+  const shouldGroup = points.length > GROUP_THRESHOLD;
+  const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
+
+  // نقطة تمثيليّة لكلّ شهر: أقلّ يوم غيوماً (أوضح صورة). دالّة نقيّة مُشترَكة.
+  const monthlyPoints = useMemo<ScrubberPoint[]>(
+    () => (shouldGroup ? groupPointsByMonth(points) : points),
+    [points, shouldGroup],
   );
 
-  const hasPoints = points.length > 0;
+  // النقاط المعروضة: يوميّة (سلسلة قصيرة) · ممثّلات شهريّة · يوميّات الشهر المُوسَّع.
+  const displayPoints = useMemo<ScrubberPoint[]>(() => {
+    if (!shouldGroup) return points;
+    if (expandedMonth) {
+      return points.filter((p) => (p.date ?? '').slice(0, 7) === expandedMonth);
+    }
+    return monthlyPoints;
+  }, [points, monthlyPoints, shouldGroup, expandedMonth]);
+
+  const scrubberPoints = displayPoints;
+  // فهرس التاريخ المختار ضمن النقاط المعروضة (للمنزلق) — -1 إن لم يوجد.
+  const selectedIdx = useMemo(
+    () => scrubberPoints.findIndex((p) => p.date === selected),
+    [scrubberPoints, selected],
+  );
+
+  const hasPoints = scrubberPoints.length > 0;
   // المنزلق صالح فقط بنقطتين فأكثر (range بمدى حقيقيّ) — وإلّا نكتفي بالبلاطات.
-  const sliderUsable = points.length >= 2;
+  const sliderUsable = scrubberPoints.length >= 2;
+  // اسم الشهر العربيّ من مفتاح YYYY-MM.
+  const monthLabel = (key: string): string => {
+    try {
+      return new Date(`${key}-15T12:00:00`).toLocaleDateString('ar', {
+        month: 'long',
+        year: 'numeric',
+      });
+    } catch {
+      return key;
+    }
+  };
 
   return (
     <div
@@ -88,9 +145,37 @@ export default function DateScrubber({
         <span style={{ fontSize: 12, fontWeight: 700, color: T.ink }}>الشريط الزمنيّ</span>
         {badge}
         <span style={{ marginInlineStart: 'auto', fontSize: 11, color: T.muted }}>
-          {hasPoints ? `${points.length} اكتساب` : 'لا تواريخ'}
+          {hasPoints ? `${scrubberPoints.length} اكتساب` : 'لا تواريخ'}
         </span>
       </div>
+
+      {/* شريط وضع العرض: شهريّ ⇄ يوميّ (يظهر فقط للسلاسل الطويلة) */}
+      {shouldGroup && (
+        <div className="flex items-center gap-2" style={{ marginBottom: 8, fontSize: 11 }}>
+          {expandedMonth ? (
+            <button
+              onClick={() => setExpandedMonth(null)}
+              style={{
+                border: `1px solid ${T.line}`,
+                borderRadius: RADIUS.sm,
+                padding: '2px 8px',
+                color: T.green,
+                background: 'transparent',
+                cursor: 'pointer',
+              }}
+            >
+              ← كلّ الأشهر
+            </button>
+          ) : (
+            <span style={{ color: T.muted }}>
+              عرض شهريّ ({monthlyPoints.length} شهراً) — انقر شهراً لعرض أيّامه
+            </span>
+          )}
+          {expandedMonth && (
+            <span style={{ color: T.ink, fontWeight: 700 }}>{monthLabel(expandedMonth)}</span>
+          )}
+        </div>
+      )}
 
       {!hasPoints ? (
         <p style={{ color: T.muted, fontSize: 12, padding: '10px 0', textAlign: 'center', margin: 0 }}>
@@ -98,42 +183,49 @@ export default function DateScrubber({
         </p>
       ) : (
         <>
-          {/* منزلق التمرير (range) — يقفز بين تواريخ COG الحقيقيّة فقط */}
+          {/* منزلق التمرير (range) — يقفز بين التواريخ المعروضة فقط */}
           {sliderUsable && (
             <div style={{ marginBottom: 10 }}>
               <input
                 type="range"
                 min={0}
-                max={points.length - 1}
+                max={scrubberPoints.length - 1}
                 step={1}
-                value={selectedIdx >= 0 ? selectedIdx : points.length - 1}
+                value={selectedIdx >= 0 ? selectedIdx : scrubberPoints.length - 1}
                 onChange={(e) => {
-                  const p = points[parseInt(e.target.value, 10)];
+                  const p = scrubberPoints[parseInt(e.target.value, 10)];
                   if (p?.date) onSelect(p.date);
                 }}
                 style={{ width: '100%', accentColor: T.green }}
                 aria-label="تمرير تاريخ الصورة"
               />
               <div className="flex justify-between" style={{ fontSize: 9, color: T.faint, marginTop: 2 }}>
-                <span>{points[points.length - 1]?.date?.slice(5) ?? ''}</span>
-                <span>{points[0]?.date?.slice(5) ?? ''}</span>
+                <span>{scrubberPoints[scrubberPoints.length - 1]?.date?.slice(5) ?? ''}</span>
+                <span>{scrubberPoints[0]?.date?.slice(5) ?? ''}</span>
               </div>
             </div>
           )}
 
           {/* بطاقات السجلّ الزمنيّ (تمرير أفقيّ): التاريخ أعلى · صورة الحقل · المتوسّط + التغيّر */}
           <div className="flex gap-2.5" style={{ overflowX: 'auto', paddingBottom: 6 }}>
-            {points.map((p, i) => {
+            {scrubberPoints.map((p, i) => {
               const c = valueColor(p.value);
               const isSel = !!p.date && p.date === selected;
               const cloudy = typeof p.cloud === 'number' && p.cloud > cloudThreshold;
               const hasDelta = typeof p.delta === 'number' && Math.abs(p.delta as number) >= 0.005;
+              // في الوضع الشهريّ (غير مُوسَّع)، النقر يُوسّع الشهر بدل اختيار اليوم.
+              const monthKey = (p.date ?? '').slice(0, 7);
+              const groupedMode = shouldGroup && !expandedMonth;
+              const onCardClick = () => {
+                if (groupedMode) setExpandedMonth(monthKey);
+                else if (p.date) onSelect(p.date);
+              };
               const up = (p.delta ?? 0) >= 0;
               return (
                 <button
                   key={p.date || i}
                   type="button"
-                  onClick={() => p.date && onSelect(p.date)}
+                  onClick={onCardClick}
                   title={p.date ? (cloudy ? `${p.date} · غائم (${p.cloud}%)` : p.date) : ''}
                   style={{
                     flexShrink: 0,
