@@ -295,7 +295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e466e39d28a012768a3900e3e28c1a1061e9014aad511f994896f161db07cae7"
+          "content": "c374d35c271e06adf6e8d323240c9747529247416829bc30889fc6f5a54cd85d"
         }
       ],
       "name": "frontend/nginx.conf",
