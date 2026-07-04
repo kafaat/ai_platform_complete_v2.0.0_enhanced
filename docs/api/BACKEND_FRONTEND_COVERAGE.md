@@ -13,9 +13,9 @@
 | farmer | 158 | 116 |
 | internal | 10 | 1 |
 | manager | 35 | 27 |
-| unclassified | 394 | 111 |
+| unclassified | 394 | 121 |
 
-العقد الملزِم (core): 88 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 100 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -154,8 +154,8 @@
 | `/api/v1/devices` | manager | ✅ |
 | `/api/v1/devices/twin` | manager | ✅ |
 | `/api/v1/devices/{device_id}/telemetry` | manager | ✅ |
-| `/api/v1/diagnose` | unclassified | — |
-| `/api/v1/diagnose/symptoms` | unclassified | — |
+| `/api/v1/diagnose` | unclassified | ✅ |
+| `/api/v1/diagnose/symptoms` | unclassified | ✅ |
 | `/api/v1/districts` | unclassified | — |
 | `/api/v1/districts/{district_id}` | unclassified | — |
 | `/api/v1/districts/{district_id}/active-pests` | unclassified | — |
@@ -285,9 +285,9 @@
 | `/api/v1/inventory/expiring` | manager | ✅ |
 | `/api/v1/inventory/items` | manager | ✅ |
 | `/api/v1/inventory/items/{item_id}/batches` | manager | ✅ |
-| `/api/v1/ipm/crop-pests` | unclassified | — |
-| `/api/v1/ipm/pests` | unclassified | — |
-| `/api/v1/ipm/plan` | unclassified | — |
+| `/api/v1/ipm/crop-pests` | unclassified | ✅ |
+| `/api/v1/ipm/pests` | unclassified | ✅ |
+| `/api/v1/ipm/plan` | unclassified | ✅ |
 | `/api/v1/irrigation-method` | farmer | ✅ |
 | `/api/v1/irrigation-method/gross` | farmer | — |
 | `/api/v1/irrigation-method/{method}` | farmer | ✅ |
@@ -376,12 +376,12 @@
 | `/api/v1/rotation/evaluate` | agronomist | ✅ |
 | `/api/v1/rotation/principles` | agronomist | — |
 | `/api/v1/rotation/suggest` | agronomist | ✅ |
-| `/api/v1/salinity/assess` | unclassified | — |
+| `/api/v1/salinity/assess` | unclassified | ✅ |
 | `/api/v1/sampling/strategy` | unclassified | — |
-| `/api/v1/scenario/planting-date` | unclassified | — |
-| `/api/v1/scenario/rainfall` | unclassified | — |
-| `/api/v1/scenario/temperature` | unclassified | — |
-| `/api/v1/scenario/water-twin` | unclassified | — |
+| `/api/v1/scenario/planting-date` | unclassified | ✅ |
+| `/api/v1/scenario/rainfall` | unclassified | ✅ |
+| `/api/v1/scenario/temperature` | unclassified | ✅ |
+| `/api/v1/scenario/water-twin` | unclassified | ✅ |
 | `/api/v1/scouting/pins` | agronomist | ✅ |
 | `/api/v1/scouting/taxonomy` | agronomist | ✅ |
 | `/api/v1/seasonal-risk/calendar` | unclassified | ✅ |

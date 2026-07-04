@@ -612,6 +612,56 @@
       "endpoint": "/api/v1/gdd/track (POST)",
       "audience": "agronomist",
       "evidence": "/api/v1/gdd/track"
+    },
+    {
+      "endpoint": "/api/v1/diagnose (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/diagnose"
+    },
+    {
+      "endpoint": "/api/v1/diagnose/symptoms",
+      "audience": "agronomist",
+      "evidence": "/api/v1/diagnose/symptoms"
+    },
+    {
+      "endpoint": "/api/v1/ipm/pests",
+      "audience": "agronomist",
+      "evidence": "/api/v1/ipm/pests"
+    },
+    {
+      "endpoint": "/api/v1/ipm/plan",
+      "audience": "agronomist",
+      "evidence": "/api/v1/ipm/plan"
+    },
+    {
+      "endpoint": "/api/v1/ipm/crop-pests",
+      "audience": "agronomist",
+      "evidence": "/api/v1/ipm/crop-pests"
+    },
+    {
+      "endpoint": "/api/v1/salinity/assess (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/salinity/assess"
+    },
+    {
+      "endpoint": "/api/v1/scenario/temperature (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/temperature"
+    },
+    {
+      "endpoint": "/api/v1/scenario/rainfall (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/rainfall"
+    },
+    {
+      "endpoint": "/api/v1/scenario/planting-date (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/planting-date"
+    },
+    {
+      "endpoint": "/api/v1/scenario/water-twin (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/water-twin"
     }
   ]
 }

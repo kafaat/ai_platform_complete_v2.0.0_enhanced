@@ -58,6 +58,8 @@ import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
 import AgroKnowledgeCard from '../components/fieldview/AgroKnowledgeCard';
 import AgroCalculatorsCard from '../components/fieldview/AgroCalculatorsCard';
+import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
+import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
@@ -1346,6 +1348,23 @@ export default function MapHub() {
           — من قياسات المستخدم الفعليّة فقط، لا افتراضات. */}
       {selected && fieldMode === 'expert' && (
         <AgroCalculatorsCard cropLabel={selected.crop} />
+      )}
+
+      {/* منضدة التشخيص الحقليّ: أعراض ⇒ مرشّحون مرتّبون (تشخيص أوّليّ لا قاطع) +
+          خطط IPM المتدرّجة (الكيميائيّ ملاذ أخير) + تقييم ملوحة FAO من قياسات المستخدم. */}
+      {selected && fieldMode === 'expert' && (
+        <DiagnosticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* سيناريوهات «ماذا لو؟»: حرارة/مطر/تاريخ زراعة/توأم ماء — محاكاة افتراضات
+          المستخدم، الخادم يعلن أنّها ليست تنبّؤاً معايَراً والإخلاء يُعرَض بارزاً. */}
+      {selected && fieldMode === 'expert' && (
+        <WhatIfScenariosCard
+          fieldId={fieldId ?? null}
+          cropLabel={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          enabled={expertMode}
+        />
       )}
 
       {/* «ماذا أزرع؟»: اقتراح الدورة الزراعيّة + ملاءمة الشهر — planting/rotation

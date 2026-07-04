@@ -1845,7 +1845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3596b0a57f49bf70600f0033fbec2c211f76c4c078452a83abe323fce70b9898"
+          "content": "7579759e48e4045c0d0c36fc24eb6242cee971e062c4b7ba5868ff21bc5df8a1"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.test.ts",
@@ -1855,7 +1855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4a88c333fd80078a13e60b44fb30951c0661a222a03bda9eb4559c015b3afe8"
+          "content": "a89c25ffb1b1f8ee4511e654906f60fad1ff2a3479ca46a7ab42632d18ee20d5"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.ts",
@@ -1895,7 +1895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a414f8973c27d7c9c7a3fc25a130b643931d2fde9edd5ef8c8693ba0ad765691"
+          "content": "6edf0588783576229ea052819c5a9c1f282867c3cc2862b95c8ff83932646feb"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -3805,7 +3805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1445cdeef4fcc2432bd05636f514777eab785f43706389d9271fb719541efa58"
+          "content": "1e0b5d82a753cee424833d5969ab0d30530d6a017d69c5d07aed4a9c453703c6"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

@@ -1723,6 +1723,104 @@ export function useGddTrack(): UseMutationResult<GddTrackResult, unknown, GddTra
   });
 }
 
+// ── Field Diagnostics Workbench (وكيل G) — التشخيص الأوّليّ + IPM + الملوحة ──
+import type {
+  CropPestsResponse, DiagnosePayload, DiagnoseResponse, IpmPestsResponse,
+  IpmPlanResponse, SalinityAssessResponse, SalinityPayload, SymptomCatalogResponse,
+} from '../lib/fieldDiagnostics';
+
+/** كتالوج الأعراض القابلة للاختيار (ثابت خادميّاً ⇒ staleTime طويل). */
+export function useDiagnosisSymptoms(enabled = true): UseQueryResult<SymptomCatalogResponse> {
+  return useQuery<SymptomCatalogResponse>({
+    queryKey: ['diagnosis-symptoms'],
+    queryFn:  () => kongApi.get('/api/v1/diagnose/symptoms').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** تشخيص أوّليّ بقواعد الأعراض — مرشّحون مرتّبون لا حكم قاطع (next_step_ar يُعرَض حرفيّاً). */
+export function useDiagnose(): ReturnType<typeof useMutation<DiagnoseResponse, Error, DiagnosePayload>> {
+  return useMutation<DiagnoseResponse, Error, DiagnosePayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/diagnose', payload).then(r => r.data),
+  });
+}
+
+/** الآفات المدعومة بخطط إدارة متكاملة. */
+export function useIpmPests(enabled = true): UseQueryResult<IpmPestsResponse> {
+  return useQuery<IpmPestsResponse>({
+    queryKey: ['ipm-pests'],
+    queryFn:  () => kongApi.get('/api/v1/ipm/pests').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** خطّة IPM المتدرّجة لآفة (وقاية → مراقبة → حيويّ → كيميائيّ ملاذاً أخيراً). */
+export function useIpmPlan(pest: string | null | undefined): UseQueryResult<IpmPlanResponse> {
+  return useQuery<IpmPlanResponse>({
+    queryKey: ['ipm-plan', pest ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/ipm/plan', { params: { pest } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!pest,
+    retry:    false,
+  });
+}
+
+/** الآفات المحتملة لمحصول الحقل (وقاية استباقيّة — الخادم يحلّ المرادف العربيّ). */
+export function useIpmCropPests(crop: string | null | undefined): UseQueryResult<CropPestsResponse> {
+  return useQuery<CropPestsResponse>({
+    queryKey: ['ipm-crop-pests', crop ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/ipm/crop-pests', { params: { crop } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!crop,
+    retry:    false,
+  });
+}
+
+/** تقييم شامل للملوحة من قياسات المستخدم (ECe/ECw/SAR) — أحكام FAO من الخادم. */
+export function useSalinityAssess(): ReturnType<typeof useMutation<SalinityAssessResponse, Error, SalinityPayload>> {
+  return useMutation<SalinityAssessResponse, Error, SalinityPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/salinity/assess', payload).then(r => r.data),
+  });
+}
+
+// ── سيناريوهات «ماذا لو؟» (وكيل H) — محاكاة افتراضات، ليست تنبّؤاً معايَراً ──
+import type {
+  PlantingScenarioPayload, PlantingScenarioResult, RainfallScenarioPayload, RainfallScenarioResult,
+  TemperatureScenarioPayload, TemperatureScenarioResult, WaterTwinScenarioPayload, WaterTwinScenarioResult,
+} from '../lib/whatIfScenarios';
+
+/** سيناريو الحرارة (+Δ°م): أثر على GDD/المراحل — افتراض المستخدم لا تنبّؤ. */
+export function useScenarioTemperature(): ReturnType<typeof useMutation<TemperatureScenarioResult, Error, TemperatureScenarioPayload>> {
+  return useMutation<TemperatureScenarioResult, Error, TemperatureScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/temperature', payload).then(r => r.data),
+  });
+}
+
+/** سيناريو المطر (±٪): أثر على ميزان الماء. */
+export function useScenarioRainfall(): ReturnType<typeof useMutation<RainfallScenarioResult, Error, RainfallScenarioPayload>> {
+  return useMutation<RainfallScenarioResult, Error, RainfallScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/rainfall', payload).then(r => r.data),
+  });
+}
+
+/** سيناريو تاريخ الزراعة (تبكير/تأخير أيّاماً). */
+export function useScenarioPlantingDate(): ReturnType<typeof useMutation<PlantingScenarioResult, Error, PlantingScenarioPayload>> {
+  return useMutation<PlantingScenarioResult, Error, PlantingScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/planting-date', payload).then(r => r.data),
+  });
+}
+
+/** توأم الماء: مساران (مرجعيّ/معدَّل) ليوميّات رطوبة افتراضيّة. */
+export function useScenarioWaterTwin(): ReturnType<typeof useMutation<WaterTwinScenarioResult, Error, WaterTwinScenarioPayload>> {
+  return useMutation<WaterTwinScenarioResult, Error, WaterTwinScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/water-twin', payload).then(r => r.data),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();
