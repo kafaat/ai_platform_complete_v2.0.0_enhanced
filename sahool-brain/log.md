@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-04 (ن-24) — FieldView صار الشاشة الرئيسيّة (الجذر «/») وكلّ الشاشات ظاهرة
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). سأل المستخدم «هل أسلوب FieldView هو افتراضيّ؟» (كان: لا — الجذر dashboard، وmap-center مخفيّ beta) ثم قرّر: نعم + إظهار جميع الشاشات.
+
+- **routes.ts:** `map-center` (FieldView/MapHub) انتقل إلى قسم «نظرة عامّة» كأوّل عنصر على الجذر `/` (label «مركز الخرائط»، stable، أُزيل hidden/badge «دمج») · `dashboard` ⇒ `/dashboard` (يبقى ثاني عناصر التنقّل) · تحديث تعليق مخطّط الـURL. المسار المجهول ما زال يعيد إلى `/` (الآن FieldView).
+- **روابط «حقولي» العميقة:** `/fields/map-center?add=1|?field_id=…` ⇒ `/?add=1|/?field_id=…` (كلّ query/state كما هو).
+- **«جميع الشاشات ظاهرة»:** map-center كان الشاشة المخفيّة **الوحيدة** في السجلّ — حارس جديد يمنع أيّ `hidden` مستقبلاً بصمت + يثبّت `/`⇒map-center و`/dashboard`⇒dashboard.
+- **لم يُمسّ:** الأدوار (canAccess) وأعلام الميزات (isPageEnabled) تحكم الظهور كما هي؛ وضع الفلاح يبقى الافتراضيّ داخل FieldView (`sahool:fieldview:mode`).
+
+**تحقّق:** tsc نظيف · vitest **762** أخضر (+حارس الجذر) · حُرّاس unit ذات الصلة 75 · الحزمة مُتحقَّقة (3044).
+
+---
+
 ## 2026-07-04 (ن-23) — متابعة البلاغ الحيّ: فشل STAC التامّ صار 503 صادقاً (كان 500 خاماً)
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). بعد نشر إصلاح ن-22 أرسل المستخدم traceback جديداً: backfill يفشل الآن **عند الطلب** بـ`RuntimeError: STAC غير متاح بعد 3 محاولات ولا cache: [Errno -5] No address associated with hostname` — **DNS داخل حاوية raster-service معطّل** (الأساس Element84 والاحتياطيّ Planetary Computer كلاهما بلا حلّ اسم؛ compose سليم — `sahool-internal` بـ`internal: false`). المشكلة بيئيّة على جهاز المستخدم، لكنّ الكود كان يسرّبها 500 خاماً بtraceback.

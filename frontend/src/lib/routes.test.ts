@@ -6,6 +6,8 @@ import {
   ALL_ROUTES,
   MATURITY_META,
   maturityBadge,
+  pageForPath,
+  pathForPage,
   type Maturity,
 } from './routes';
 
@@ -54,5 +56,24 @@ describe('NAV_SECTIONS — تصنيف النضج', () => {
     const byId = (id: string) => ALL_ROUTES.find((r) => r.id === id);
     expect(byId('dashboard')?.maturity).toBe('stable');
     expect(byId('settings')?.maturity).toBe('stable');
+  });
+});
+
+describe('FieldView هو الجذر (قرار المستخدم 2026-07-04)', () => {
+  it('«/» يحلّ إلى map-center، ولوحة المعلومات على /dashboard', () => {
+    expect(pageForPath('/')).toBe('map-center');
+    expect(pathForPage('map-center')).toBe('/');
+    expect(pageForPath('/dashboard')).toBe('dashboard');
+  });
+
+  it('map-center ظاهر في التنقّل (لا hidden) وناضج stable', () => {
+    const mc = ALL_ROUTES.find((r) => r.id === 'map-center');
+    expect(mc?.hidden).toBeUndefined();
+    expect(mc?.maturity).toBe('stable');
+  });
+
+  it('لا صفحة تبقى مخفيّة عن قوائم التنقّل (جميع الشاشات ظاهرة)', () => {
+    const hidden = ALL_ROUTES.filter((r) => r.hidden).map((r) => r.id);
+    expect(hidden).toEqual([]);
   });
 });
