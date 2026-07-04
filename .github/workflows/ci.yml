@@ -12,6 +12,10 @@ jobs:
       - name: service-feature-ui-contract-gate
         run: python scripts/ci/service_feature_ui_contract_gate.py
 
+      # عقد backend⇒frontend بالاتّجاهين (core⇒دليل + لا مسار مواجِه فالت/إعفاء بائت)
+      - name: endpoint-ui-coverage-gate
+        run: python scripts/ci/endpoint_ui_coverage_gate.py
+
       - name: nginx-compose-dns-gate
         run: python scripts/ci/nginx_compose_dns_gate.py
 

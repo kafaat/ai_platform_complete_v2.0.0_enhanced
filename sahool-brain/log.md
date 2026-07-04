@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-07-04 (ن-27) — أرشيف المستخدم ٢: إصلاح قناع البلاطات + توصيل بوّابة التغطية في CI
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). أرشيف المستخدم على أساس أقدم من رأسنا (قبل بوّابة العكس وإصلاح ن-26) — عُزلت دلتاه الحقيقيّة ودُمجت انتقائيّاً:
+
+- **دُمج — إصلاح «mask persistence» في `tile_render.py` (جديد كلّيّاً):** بعض GeoTIFF تحمل قيماً منتهية (0.0) خارج AOI مع نطاق قناع — تمرير `src_nodata` وحده لـ`reproject` يجعل GDAL يتجاهل القناع ⇒ أشرطة داكنة معتمة في البلاطات/المصغّرات. `_reproject_dataset_mask` يعيد إسقاط القناع صراحةً (nearest) ويطبّقه NaN بعد الالتفاف، في مسارَي البلاطة والمعاينة (best-effort، فشله لا يكسر العرض).
+- **دُمج — توصيل CI صريح:** خطوة `endpoint-ui-coverage-gate` في وظيفة *Repository Structural Lint* (بالاتّجاهين) + حارس `test_coverage_gates_ci_wiring.py` يثبت بقاء التوصيل، + اختبار `test_raster_assets_text_field_id.py` (تأكيداته تمرّ على محقّقات ن-26 كما هي) + ٣ تقارير تحقّق.
+- **تُخوطي (أساس أقدم — عندنا الأحدث):** نسختهم من إصلاح field_id (مكافئة لن-26، أُبقيت الأصرم) · `endpoint_ui_coverage_gate/config` قبل الإعفاءات (121 مقابل 40 تصنيفاً) · ملفّات frontend/routes قبل ن-24 · مخلّفات `__pycache__/.pytest_cache`.
+
+**تحقّق:** البوّابتان PASS · pytest -m unit **2532** أخضر · ruff نظيف · الحزمة مُتحقَّقة (3045).
+
+---
+
 ## 2026-07-04 (ن-26) — بلاغ حيّ ٣: حفظ raster_assets كان يُتخطّى لكلّ حقل حقيقيّ (تصليب UUID زائد)
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). سجلّات المستخدم بعد حلّ DNS أظهرت النجاح الكامل للمعالجة (CDSE 5/5 · STAC 200) مع «raster_assets persist skipped: missing/invalid field_id='fld_b1c8ff30d02c'» — تشخيص المستخدم صحيح.
