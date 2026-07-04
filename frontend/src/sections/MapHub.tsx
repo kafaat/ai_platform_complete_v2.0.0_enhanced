@@ -44,6 +44,7 @@ import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
 import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
 import FieldEconomicsCard from '../components/fieldview/FieldEconomicsCard';
 import OperationsCenterCard from '../components/fieldview/OperationsCenterCard';
+import FieldWaterBrainCard from '../components/fieldview/FieldWaterBrainCard';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
@@ -766,6 +767,20 @@ export default function MapHub() {
     return { ndvi, soilMoisturePct, nitrogenStatus, weather };
   }, [ndviQ.data, soilMoistureQ.data, nRecQ.data, weatherQ.data]);
 
+  // ── Field Water Brain: قرار ريّ من الرطوبة + مجموع مطر الأيّام القادمة + الحرارة. ──
+  const waterBrainInput = useMemo(() => {
+    const wd = weatherQ.data as { daily?: Array<{ temp_max_c?: number; rain_mm?: number; precipitation_mm?: number }> } | undefined;
+    const upcoming = (wd?.daily ?? []).slice(0, 3);
+    const forecastRainMm = upcoming.length
+      ? upcoming.reduce((s, d) => s + (d.rain_mm ?? d.precipitation_mm ?? 0), 0)
+      : null;
+    return {
+      soilMoisturePct: farmerMetricsInput.soilMoisturePct,
+      forecastRainMm,
+      tempMaxC: farmerMetricsInput.weather?.tempMaxC ?? null,
+    };
+  }, [weatherQ.data, farmerMetricsInput]);
+
   // ── Zone & VRA readiness (P2): مسار Field → Zone → Action من إشارات حقيقيّة
   // (مشاهد جاهزة للعنقدة + عدد الوصفات المحفوظة). يوجّه لمصمّم المناطق القائم. ──
   const prescriptionsQ = useFieldPrescriptions(fieldId ?? '', !!fieldId);
@@ -1073,6 +1088,8 @@ export default function MapHub() {
           يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
           إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
       {selected && <FarmerMetricsCard {...farmerMetricsInput} />}
+
+      {selected && <FieldWaterBrainCard {...waterBrainInput} />}
 
       {selected && (
         <FieldHealthReportCard
