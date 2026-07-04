@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-04 (ن-16) — تدقيق «الطبقات المتقدّمة» + إغلاق الـP0 الأخير: كونسول تشغيل القرار
+
+**رأس main = develop = `claude/code-review-34hO3` = `bce6c54`.**
+
+رفع المستخدم تدقيقاً (BACKEND_ADVANCED_LAYERS_EXPOSURE_AUDIT، مبنيّ على أرشيف round3 **قبل** سلسلة التغطية) — مطابقته بالحالة: **8 من طبقاته الـ10 الأعلى قيمة كانت قد أُغلقت اليوم** (Admin Console · التقويم اليمنيّ · Crop Cards · Boundary score/graph · Planting/Rotation · Farm Ledger · Traceability · حارس التغطية الساكن). الباقي الحقيقيّ نُفِّذ الآن:
+
+- **كونسول تشغيل القرار (`bce6c54`، P0):** مسارات decision/outcome العشرون كانت بلا قارئ. صفحة `/advanced/decision-runtime` (محجوبة عن viewer): قرارات محروسة بعدّادات (blocked/pending_approval/ready) · طابور المُشغِّل بشارة «لا تنفيذ من هذه الشاشة» · سجلّ التنفيذ · السياسات بالأولويّة · معاينة dry-run (الخادم يعيد dry_run=true). **قرار حوكمة:** لا زرّ execute — التنفيذ يمرّ بمسار الموافقات/المشغِّل (v58). العقد: 47 ⇒ **52 endpoint ملزَماً**. درس: استبدال نصّيّ عامّ أصاب موضعين في permissions.ts (ازدواج في ALL_PAGES) — ضُبط بمراجعة الإدراج قبل الإثبات.
+
+**تحقّق:** vitest **651** أخضر · tsc نظيف · بوّابة التغطية PASS 52/52 · الحزمة مُتحقَّقة (3005).
+**المتبقّي من التدقيق (موثَّق، غير مُنفَّذ):** Climate Analogs/Seasonal Risk (13) · boundary review/clean/rebuild (كتابات) · budgets/revenues POST · Water Harvesting (7) · Seed/Postharvest/Coffee (16) · Advanced GIS console (35) — أغلبها P2/P3 بتصنيف التدقيق نفسه.
+
+---
+
 ## 2026-07-04 (ن-15) — إغلاق بندين من متبقّي ن-14: التقويم اليمنيّ + «ماذا أزرع؟»
 
 **رأس main = develop = `claude/code-review-34hO3` = `f5759d6`.**

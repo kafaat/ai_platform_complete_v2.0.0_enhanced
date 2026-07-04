@@ -2025,6 +2025,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d4b87e66caab1c15af4e49c721587876bc7d79b23394a546c0fb0ca62ca95f9e"
+        }
+      ],
+      "name": "frontend/src/lib/decisionRuntime.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "488c0ca2997844a6456842352a442e48e0cad6dd04a5b9b8650c049928b92563"
+        }
+      ],
+      "name": "frontend/src/lib/decisionRuntime.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ff098e539ef015c4601443f1754da8ab114d86df28954ea28c4f24162d9d48ce"
         }
       ],
@@ -3149,6 +3169,16 @@
         }
       ],
       "name": "frontend/src/sections/DecisionConfidencePage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ddd04b5dd363298528551e5f399b3355e9fdea8a91c0b33d33799d9693d45e6"
+        }
+      ],
+      "name": "frontend/src/sections/DecisionRuntimePage.tsx",
       "type": "file"
     },
     {
