@@ -915,6 +915,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cda720bde8ca80ea274d3de5024d70f6f5e600a54a11d076573be3fcfbfc985e"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SeasonCommandCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0affbce3d1768a81f03cfa8bb89f1c2e2c27762f151d6fff3bf2a30c8a818cbd"
         }
       ],
@@ -1725,7 +1735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b15e6a0c6097ece20ad54039d974755217469d5536b3cb85edb84f681393fd0f"
+          "content": "25651511092ab654285ca5b5bb6379f0c379a5606b378c7bd7592b35692ef89b"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2129,6 +2139,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldScouting.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11528dbf131dbda46d5d5db2511faf28a85cebc35086df82a340fab0dc8e3269"
+        }
+      ],
+      "name": "frontend/src/lib/fieldSeason.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3740707a53111c06fa5a791bd64fb2de056b5ba77e75893186285bcc920663e"
+        }
+      ],
+      "name": "frontend/src/lib/fieldSeason.ts",
       "type": "file"
     },
     {
@@ -3205,7 +3235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b044ed0ac4fb9561f0b05dea539d5da31fbf7f15555c33334798105b42249316"
+          "content": "da0068f7badd6886dca4a7ef3748012595923b26ab84c9ae25f7b182d6656ef4"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

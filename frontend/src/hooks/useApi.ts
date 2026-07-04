@@ -700,6 +700,49 @@ export function useSoilNRecommendation(fieldId: string, targetYield = 3.5) {
   });
 }
 
+// ── Phenology / Season (ربط حيّ بنقاط المنصّة؛ لا كتابة، اقتراحات فقط) ──
+export interface PhenologyStage {
+  stage: string; name_ar: string; day_start: number; day_end: number;
+  start_date?: string; end_date?: string; kc?: number | null; key_action_ar?: string | null;
+  status: 'past' | 'current' | 'upcoming';
+}
+export interface FieldPhenology {
+  available: boolean; reason_ar?: string;
+  crop?: string; crop_id?: string; sowing_date?: string; days_after_sowing?: number;
+  current_stage?: { stage?: string; name_ar?: string; key_action_ar?: string | null } | null;
+  current_stage_kc?: number | null;
+  timeline?: PhenologyStage[];
+}
+export interface StageActionSuggestion { stage?: string; stage_name_ar?: string; action_ar?: string }
+export interface FieldStageActions {
+  available: boolean; reason_ar?: string;
+  crop?: string; days_after_sowing?: number;
+  current_stage?: string; current_stage_name_ar?: string;
+  suggestions?: StageActionSuggestion[]; note_ar?: string;
+}
+
+/** مراحل نموّ الموسم النشط للحقل (field:view). available=false بسبب صريح عند غياب البذار/المحصول. */
+export function useFieldPhenology(fieldId: string | null | undefined): UseQueryResult<FieldPhenology> {
+  return useQuery<FieldPhenology>({
+    queryKey: ['phenology', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/phenology`).then(r => r.data),
+    staleTime:30 * 60_000,
+    enabled:  !!fieldId,
+    retry:    false,
+  });
+}
+
+/** اقتراحات إجراء الطور الحاليّ (إرشاديّة فقط — لا تُنشَأ مهامّ). */
+export function useFieldStageActions(fieldId: string | null | undefined): UseQueryResult<FieldStageActions> {
+  return useQuery<FieldStageActions>({
+    queryKey: ['stage-actions', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/stage-actions`).then(r => r.data),
+    staleTime:30 * 60_000,
+    enabled:  !!fieldId,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

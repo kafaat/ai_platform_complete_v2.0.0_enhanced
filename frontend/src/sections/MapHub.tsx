@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -46,6 +46,7 @@ import FieldEconomicsCard from '../components/fieldview/FieldEconomicsCard';
 import OperationsCenterCard from '../components/fieldview/OperationsCenterCard';
 import FieldWaterBrainCard from '../components/fieldview/FieldWaterBrainCard';
 import FieldScoutingCard from '../components/fieldview/FieldScoutingCard';
+import SeasonCommandCard from '../components/fieldview/SeasonCommandCard';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
@@ -798,6 +799,9 @@ export default function MapHub() {
   const imageryReadyCount = availableImageryDates.filter((d) => d.has_cog).length;
   // استكشاف الحقل: تصنيف المشاكل الشائعة لمحصول الحقل النشط (Taranis).
   const scoutingQ = useCropScoutingIssues(selected?.crop || undefined);
+  // مركز الموسم: مراحل نموّ الموسم النشط + إجراء الطور (Cropin) — نقاط منصّة حيّة.
+  const phenologyQ = useFieldPhenology(fieldId ?? null);
+  const stageActionsQ = useFieldStageActions(fieldId ?? null);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1187,6 +1191,14 @@ export default function MapHub() {
           issues={scoutingQ.data?.issues ?? []}
           loading={scoutingQ.isLoading}
           onLogEvidence={() => { setPinMode(true); setCompare(false); setDrawTools(false); }}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <SeasonCommandCard
+          phenology={phenologyQ.data ?? null}
+          stageAction={stageActionsQ.data?.available ? (stageActionsQ.data.suggestions?.[0]?.action_ar ?? null) : null}
+          loading={phenologyQ.isLoading}
         />
       )}
 
