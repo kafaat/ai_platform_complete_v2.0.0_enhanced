@@ -12,10 +12,10 @@
 | agronomist | 36 | 19 |
 | farmer | 158 | 111 |
 | internal | 10 | 1 |
-| manager | 35 | 23 |
+| manager | 35 | 27 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 52 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 55 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -177,14 +177,14 @@
 | `/api/v1/execution/feedback` | unclassified | ✅ |
 | `/api/v1/failures/check` | unclassified | — |
 | `/api/v1/farm-ledger/autowrite-preview` | manager | — |
-| `/api/v1/farm-ledger/budgets` | manager | — |
-| `/api/v1/farm-ledger/budgets/{season_id}` | manager | — |
+| `/api/v1/farm-ledger/budgets` | manager | ✅ |
+| `/api/v1/farm-ledger/budgets/{season_id}` | manager | ✅ |
 | `/api/v1/farm-ledger/economic-state/{season_id}` | manager | ✅ |
 | `/api/v1/farm-ledger/erp-projection/{season_id}` | manager | — |
 | `/api/v1/farm-ledger/inventory-projection/{season_id}` | manager | — |
-| `/api/v1/farm-ledger/operations` | manager | — |
+| `/api/v1/farm-ledger/operations` | manager | ✅ |
 | `/api/v1/farm-ledger/profitability/{season_id}` | manager | ✅ |
-| `/api/v1/farm-ledger/revenues` | manager | — |
+| `/api/v1/farm-ledger/revenues` | manager | ✅ |
 | `/api/v1/farm-ledger/summary` | manager | ✅ |
 | `/api/v1/farm-ledger/variance/{season_id}` | manager | ✅ |
 | `/api/v1/farms` | farmer | ✅ |

@@ -422,6 +422,21 @@
       "endpoint": "/api/v1/decision/policies",
       "audience": "agronomist",
       "evidence": "/api/v1/decision/policies"
+    },
+    {
+      "endpoint": "/api/v1/farm-ledger/operations (POST)",
+      "audience": "manager",
+      "evidence": "/api/v1/farm-ledger/operations"
+    },
+    {
+      "endpoint": "/api/v1/farm-ledger/budgets (POST)",
+      "audience": "manager",
+      "evidence": "/api/v1/farm-ledger/budgets"
+    },
+    {
+      "endpoint": "/api/v1/farm-ledger/revenues (POST)",
+      "audience": "manager",
+      "evidence": "/api/v1/farm-ledger/revenues"
     }
   ]
 }

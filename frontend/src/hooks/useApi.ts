@@ -1220,6 +1220,35 @@ export function useEvaluateDispatch(): ReturnType<typeof useMutation<DispatchAud
   });
 }
 
+// ── Ledger Entry — إدخال السجلّ الماليّ من الواجهة (ACTIVITY_EXECUTE خادميّاً) ──
+import type { BudgetLinesPayload, OperationPayload, RevenuePayload } from '../lib/ledgerEntry';
+
+/** مفاتيح الكاش الماليّة التي يجب إبطالها بعد أيّ إدخال — تُحدَّث بطاقة الربحيّة حيّاً. */
+export const LEDGER_QUERY_PREFIXES = [
+  'farm-ledger-summary', 'season-profitability', 'season-variance', 'season-economic-state',
+] as const;
+
+/** تسجيل عمليّة بتكلفة في سجلّ العمليّات الفعليّ. */
+export function useRecordLedgerOperation(): ReturnType<typeof useMutation<unknown, Error, OperationPayload>> {
+  return useMutation<unknown, Error, OperationPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/farm-ledger/operations', payload).then(r => r.data),
+  });
+}
+
+/** إدراج/تحديث بنود موازنة الموسم المخطَّطة. */
+export function useUpsertBudgetLines(): ReturnType<typeof useMutation<unknown, Error, BudgetLinesPayload>> {
+  return useMutation<unknown, Error, BudgetLinesPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/farm-ledger/budgets', payload).then(r => r.data),
+  });
+}
+
+/** تسجيل إيراد للموسم. */
+export function useRecordRevenue(): ReturnType<typeof useMutation<unknown, Error, RevenuePayload>> {
+  return useMutation<unknown, Error, RevenuePayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/farm-ledger/revenues', payload).then(r => r.data),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

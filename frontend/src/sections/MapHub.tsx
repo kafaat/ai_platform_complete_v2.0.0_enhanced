@@ -55,6 +55,7 @@ import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceability
 import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
+import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -1275,6 +1276,17 @@ export default function MapHub() {
           economicState={economicStateQ.data ?? null}
           areaHa={typeof selected.area === 'number' ? selected.area : null}
           loading={profitabilityQ.isLoading || ledgerSummaryQ.isLoading}
+        />
+      )}
+
+      {/* إدخال السجلّ الماليّ (عمليّة/موازنة/إيراد): يكتمل به قوس الربحيّة إدخالاً —
+          كانت نقاط POST بلا واجهة (الإدخال API فقط). للخبير المخوَّل بالتعديل فقط. */}
+      {selected && fieldMode === 'expert' && mutateAllowed && (
+        <LedgerEntryCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          todayIso={new Date().toISOString().slice(0, 10)}
+          enabled={expertMode}
         />
       )}
 
