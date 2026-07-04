@@ -1865,7 +1865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a02886b22c3dc98073d6f9b319ffa577f3f659783fb23b74ea6c1521782446c0"
+          "content": "36d2ebc60db0ae42224839bc086032e9460d514bee58f2c5e25fefcb795f8a47"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.test.ts",
@@ -1875,7 +1875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3d53cb19dbc7a667f251b06473156ca86247342bf2c0bea61ae6cecaf74628f"
+          "content": "8cbffa63e3e997b59a63e4ed10ab25813d44debc9408b24342a4cb5fc51abad3"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.ts",
@@ -2079,6 +2079,26 @@
         }
       ],
       "name": "frontend/src/lib/agroCalculators.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "203d996bfb7264b802fd00676c0250a0880999ff78f762d1c5183298bca8662c"
+        }
+      ],
+      "name": "frontend/src/lib/approvalsConsole.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f2ea17db0e455aa81d5931a831712d134b3bdd17169370b1cb4d81c53fddbcba"
+        }
+      ],
+      "name": "frontend/src/lib/approvalsConsole.ts",
       "type": "file"
     },
     {
@@ -3299,6 +3319,16 @@
         }
       ],
       "name": "frontend/src/sections/AnalyzeCabin.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1cad71683524681b92985832d137138b17d8ca1c55d0679252907e4bedfecd94"
+        }
+      ],
+      "name": "frontend/src/sections/ApprovalsConsolePage.tsx",
       "type": "file"
     },
     {

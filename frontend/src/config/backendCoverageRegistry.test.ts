@@ -92,3 +92,14 @@ describe('backend-to-frontend coverage registry', () => {
     expect(layerForEndpoint('/api/v1/marketplace/extensions')?.id).toBe('marketplace-plugins-ecosystem');
   });
 });
+
+
+describe('waiver expiry (production hardening)', () => {
+  it('every waived/not_ready layer carries a reviewBy date — no permanent exceptions', () => {
+    for (const layer of BACKEND_COVERAGE_REGISTRY) {
+      if (layer.state === 'waived_internal' || layer.state === 'not_ready') {
+        expect(layer.reviewBy, layer.id).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      }
+    }
+  });
+});

@@ -55,3 +55,17 @@ def test_backend_route_collector_finds_platform_routes() -> None:
     assert len(routes) > 300, f"جامع المسارات وجد {len(routes)} فقط — انكسر النمط؟"
     assert any(p.startswith("/api/v1/farm-ledger/") for p in routes)
     assert any(p.startswith("/api/v1/crop-cards") for p in routes)
+
+
+@pytest.mark.unit
+def test_every_discovered_route_is_classified() -> None:
+    """توصية تقرير التحقّق: كلّ مسار مُكتشَف (652+) يجب أن يقع في تصنيف صريح —
+    core/admin/expert/farmer/manager/internal — لا unclassified يمرّ بصمت.
+    غير /api/v1 يقع internal افتراضاً (تحرسه بوّابة عقود الخدمات الـ26)."""
+    mod = _load_gate()
+    cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
+    routes = mod.collect_backend_routes()
+    unclassified = sorted(
+        p for p in routes if mod.classify(p, cfg["classifications"]) == "unclassified"
+    )
+    assert unclassified == [], f"مسارات بلا تصنيف ({len(unclassified)}): {unclassified[:8]}"

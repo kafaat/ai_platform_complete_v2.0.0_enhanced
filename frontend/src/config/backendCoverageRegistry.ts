@@ -22,6 +22,8 @@ export interface BackendCoverageLayer {
   surfaces: CoverageSurface[];
   owner: 'fieldview' | 'admin' | 'decision' | 'agronomy' | 'gis' | 'economics' | 'runtime' | 'marketplace';
   gap?: string;
+  /** مهلة إعادة النظر في الاستثناء (waived/not_ready) — تمنع الاستثناء الدائم بلا مراجعة. */
+  reviewBy?: string;
   nextAction?: string;
   waiverReason?: string;
 }
@@ -332,6 +334,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     priority: 'P2',
     role: 'internal_only',
     state: 'waived_internal',
+    reviewBy: '2026-10-01',
     owner: 'runtime',
     endpoints: [
       '/api/v1/phase9/*',
@@ -350,6 +353,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     priority: 'P3',
     role: 'manager_console',
     state: 'not_ready',
+    reviewBy: '2026-10-01',
     owner: 'marketplace',
     endpoints: ['/api/v1/marketplace/*', '/api/v1/plugins/*', '/api/v1/ecosystem/*'],
     hooks: [],
