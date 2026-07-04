@@ -22,6 +22,8 @@ export interface BackendCoverageLayer {
   surfaces: CoverageSurface[];
   owner: 'fieldview' | 'admin' | 'decision' | 'agronomy' | 'gis' | 'economics' | 'runtime' | 'marketplace';
   gap?: string;
+  /** مهلة إعادة النظر في الاستثناء (waived/not_ready) — تمنع الاستثناء الدائم بلا مراجعة. */
+  reviewBy?: string;
   nextAction?: string;
   waiverReason?: string;
 }
@@ -231,7 +233,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     label: 'Advanced GIS / OGC / STAC / COG expert tooling',
     priority: 'P2',
     role: 'expert_console',
-    state: 'partial',
+    state: 'covered',
     owner: 'gis',
     endpoints: [
       '/api/v1/gis/*',
@@ -239,13 +241,12 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
       '/api/v1/stac/*',
       '/api/v1/cog/*',
     ],
-    hooks: ['useGisTools', 'useNlGis'],
+    hooks: ['useGisTools', 'useNlGis', 'useGisStacLanding', 'useGisStacCollections', 'useGisStacItems', 'useGisOgcConformance', 'useGisOgcCollections', 'useGisTileCachePlan'],
     surfaces: [
+      { kind: 'expert_page', name: 'GisExpertPage', routeId: 'gis-expert', component: 'GisExpertPage' },
       { kind: 'expert_page', name: 'GisToolsPage', routeId: 'gis-tools', component: 'GisToolsPage' },
       { kind: 'expert_page', name: 'NlGisPage', routeId: 'nl-gis', component: 'NlGisPage' },
     ],
-    gap: 'Generic GIS tools exist, but OGC/STAC/COG source browsing is not a first-class expert console yet.',
-    nextAction: 'Add GIS Source Browser with source health, STAC search, COG metadata, and OGC capabilities tabs.',
   },
   {
     id: 'soil-lab-salinity-ipm',
@@ -315,7 +316,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     label: 'Collaboration / approvals / sharing / RBAC visibility',
     priority: 'P2',
     role: 'manager_console',
-    state: 'partial',
+    state: 'covered',
     owner: 'runtime',
     endpoints: [
       '/api/v1/sharing/*',
@@ -323,10 +324,9 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
       '/api/v1/invitations/*',
       '/api/v1/rbac/*',
     ],
-    hooks: ['useInvitations', 'useCreateShareLink'],
-    surfaces: [{ kind: 'panel', name: 'SharingPanel', component: 'SharingPanel' }],
-    gap: 'Sharing exists, but approvals and RBAC decision gates are not unified in the manager console.',
-    nextAction: 'Add Approvals Console and connect high-risk Objective Engine actions to approval state.',
+    hooks: ['useInvitations', 'useCreateShareLink', 'usePendingAgentApprovals', 'useDecideAgentApproval'],
+    surfaces: [
+      { kind: 'admin_page', name: 'ApprovalsConsolePage', routeId: 'approvals-console', component: 'ApprovalsConsolePage' },{ kind: 'panel', name: 'SharingPanel', component: 'SharingPanel' }],
   },
   {
     id: 'phase-runtime-registry-sync',
@@ -334,6 +334,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     priority: 'P2',
     role: 'internal_only',
     state: 'waived_internal',
+    reviewBy: '2026-10-01',
     owner: 'runtime',
     endpoints: [
       '/api/v1/phase9/*',
@@ -352,6 +353,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     priority: 'P3',
     role: 'manager_console',
     state: 'not_ready',
+    reviewBy: '2026-10-01',
     owner: 'marketplace',
     endpoints: ['/api/v1/marketplace/*', '/api/v1/plugins/*', '/api/v1/ecosystem/*'],
     hooks: [],

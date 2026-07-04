@@ -136,6 +136,26 @@ async def ai_provider_snapshot() -> dict[str, Any]:
     return ai_generation.public_provider_snapshot()
 
 
+@app.get("/approvals/pending")
+async def list_pending_approvals(
+    tenant: str = Depends(require_trusted_tenant),
+    _user_id: str = Depends(require_authenticated_user),
+) -> dict[str, Any]:
+    """يسرد طلبات الموافقة المعلّقة للمستأجِر الحاليّ — قراءة فقط لكونسول الموافقات.
+
+    كان المخزن يملك ``list_pending()`` بلا نقطة تكشفه، فبقيت الموافقات مرئيّة فقط
+    داخل رسالة المحادثة التي أنشأتها. الترشيح بـ``tenant_id`` المسجَّل في الطلب نفسه
+    (build_approval_request) مقابل هويّة البوّابة الموثوقة — لا تسريب عبر المستأجِرين.
+    السجلّات القديمة بلا tenant_id تُستبعَد (fail-closed) بدل عرضها للجميع.
+    """
+    pending = [
+        rec
+        for rec in _APPROVAL_STORE.list_pending()
+        if str(rec.get("tenant_id") or "") == str(tenant)
+    ]
+    return {"pending": pending, "count": len(pending)}
+
+
 @app.post("/approvals/approve")
 async def approve_tool_request(
     req: ApprovalDecisionRequest,

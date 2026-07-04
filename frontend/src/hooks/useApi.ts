@@ -1821,6 +1821,30 @@ export function useScenarioWaterTwin(): ReturnType<typeof useMutation<WaterTwinS
   });
 }
 
+// ── Approvals Console — الموافقات البشريّة المعلّقة (v58 + SEC-3.1) ──
+import type { PendingAgentApproval, PendingApprovalsResponse } from '../lib/approvalsConsole';
+
+/** طلبات موافقة وكيل AI المعلّقة للمستأجِر (كان المخزن بلا نقطة قراءة). */
+export function usePendingAgentApprovals(enabled = true): UseQueryResult<PendingApprovalsResponse> {
+  return useQuery<PendingApprovalsResponse>({
+    queryKey: ['pending-agent-approvals'],
+    queryFn:  () => kongApi.get('/api/ai-agronomist/approvals/pending').then(r => r.data as PendingApprovalsResponse)
+      .catch((e) => { if (isDisabled404(e)) return { pending: [], count: 0, disabled: true }; throw e; }),
+    staleTime:30_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** اعتماد/رفض طلب أداة وكيل — الموافِق المسجَّل هو هويّة البوّابة (SEC-3.1) لا الـbody. */
+export function useDecideAgentApproval(): ReturnType<typeof useMutation<unknown, Error, { approval: PendingAgentApproval; decision: 'approve' | 'deny'; reason?: string }>> {
+  return useMutation<unknown, Error, { approval: PendingAgentApproval; decision: 'approve' | 'deny'; reason?: string }>({
+    mutationFn: ({ approval, decision, reason }) => kongApi
+      .post(`/api/ai-agronomist/approvals/${decision}`, { approval, reason })
+      .then(r => r.data),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

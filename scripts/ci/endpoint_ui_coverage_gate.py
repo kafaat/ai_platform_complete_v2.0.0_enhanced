@@ -77,6 +77,12 @@ def classify(path: str, classifications: list[dict]) -> str:
     for rule in classifications:
         if path.startswith(rule["prefix"]):
             return rule["audience"]
+    # المسارات غير المُبوَّبة عبر /api/v1 عقودُ خدمةٍ داخليّةٌ (workers/بروكسي بوّابة/
+    # ML runtime) تحرسها بوّابة service_feature_ui_contract المنفصلة (26/26) —
+    # فتصنيفها الافتراضيّ internal لا unclassified. أمّا /api/v1/* فيجب تصنيفه
+    # صراحةً في config (الحارس يفرض صفر unclassified).
+    if not path.startswith("/api/v1/"):
+        return "internal"
     return "unclassified"
 
 

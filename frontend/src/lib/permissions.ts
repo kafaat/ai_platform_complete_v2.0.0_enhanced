@@ -27,7 +27,7 @@ const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'sql-workspace', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'decision-runtime', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'lab-sampling', 'devices', 'device-twin', 'inventory', 'equipment',
-  'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'yield-analysis', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'admin-runtime', 'chatbot', 'settings',
+  'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'yield-analysis', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'admin-runtime', 'approvals-console', 'chatbot', 'settings',
   'operations-wall',
 ] as const satisfies readonly PageId[];
 
@@ -48,7 +48,7 @@ const WORKER_PAGES: PageId[] = [
 
 // صفحات إداريّة (owner/manager فقط): البيانات المرجعيّة + الوثائق.
 // لا تظهر لـagronomist/viewer حتى لو كان الخادم سيردّ 403 — منعٌ من المصدر في الواجهة.
-const MANAGEMENT_ONLY_PAGES: PageId[] = ['master-data', 'documents', 'governance', 'admin-runtime'];
+const MANAGEMENT_ONLY_PAGES: PageId[] = ['master-data', 'documents', 'governance', 'admin-runtime', 'approvals-console'];
 
 // كلّ ما عدا الصفحات الإداريّة (لـagronomist). يحافظ على وصوله الكامل للصفحات
 // التشغيليّة/التحليليّة، مع استبعاد الإداريّة فقط.

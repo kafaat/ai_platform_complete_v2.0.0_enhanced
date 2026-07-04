@@ -4,6 +4,45 @@
 
 ---
 
+## 2026-07-04 (ن-23) — متابعة البلاغ الحيّ: فشل STAC التامّ صار 503 صادقاً (كان 500 خاماً)
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). بعد نشر إصلاح ن-22 أرسل المستخدم traceback جديداً: backfill يفشل الآن **عند الطلب** بـ`RuntimeError: STAC غير متاح بعد 3 محاولات ولا cache: [Errno -5] No address associated with hostname` — **DNS داخل حاوية raster-service معطّل** (الأساس Element84 والاحتياطيّ Planetary Computer كلاهما بلا حلّ اسم؛ compose سليم — `sahool-internal` بـ`internal: false`). المشكلة بيئيّة على جهاز المستخدم، لكنّ الكود كان يسرّبها 500 خاماً بtraceback.
+
+- **`_stac_query`** مُغلِّف واحد للاستدعاءات الثلاثة (Sentinel-2/Landsat/DEM): RuntimeError من العميل المرن ⇒ **HTTPException 503** برسالة عربيّة ثابتة قابلة للتصرّف («تحقّق من اتّصال/DNS الحاوية»)؛ التفصيل الخام في السجلّ الداخليّ فقط (لا str(e) للعميل).
+- **حارس unit:** `test_stac_total_failure_maps_to_503_not_raw_500` — يثبت 503 وعدم تسرّب `Errno` في detail.
+- **تشخيص المشغّل (موثَّق في رسالة الجلسة):** فحص DNS داخل الحاوية مقابل المضيف؛ الحلّ عادة إعادة تشغيل docker daemon أو ضبط `dns:` في compose.
+
+**تحقّق:** pytest -m unit **2525** أخضر · ruff نظيف · الحزمة مُتحقَّقة (3044).
+
+---
+
+## 2026-07-04 (ن-22) — إصلاح جذريّ: كلّ مهامّ backfill كانت تفشل بـHTTPException مبتلَعة
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تشخيص من سجلّات المستخدم الحيّة: ~12 مهمّة `backfill_*` تفشل «failed: HTTPException» مباشرةً بعد «بُني VRT من 13 نطاق»، بينما بلاطات CDSE تعمل (بايتات حقيقيّة 933–1224؛ الـ70-byte قصّ مضلّع صحيح).
+
+- **الجذر:** `_safe_raster_source` (raster-service) كان يقبل `file://` وhttp(s) فقط، بينما **ثلاثة أنابيب داخليّة** تمرّر مخرجاتها كمسار محلّيّ خام: backfill وprocess-from-stac (VRT في `/tmp` — خارج `UPLOAD_DIR` أصلاً) وCDSE (GeoTIFF تحت `UPLOAD_DIR` بلا `file://`) ⇒ 400 «مخطّط URL غير مدعوم» تُبتلَع في معالج فشل المهمّة.
+- **الإصلاح (لا اتّساع أمنيّاً):** قبول المسار المطلق **فقط** تحت `UPLOAD_DIR` (نفس احتواء realpath لـ`file://`؛ traversal/ملفّات النظام تُرفَض كما كانت) + بوّابتا `build_band_vrt` تكتبان بـ`out_dir=main.UPLOAD_DIR`.
+- **قابليّة التشخيص:** سجلّات فشل المهامّ الثلاثة تُلحِق الآن `[status] detail` لـHTTPException (نصّنا المتحكَّم به — job status يبقى رمزاً عامّاً، حارس التعقيم `test_raster_error_sanitization_static` أخضر). النوع وحده جعل بلاغ اليوم غير قابل للتشخيص.
+- **حُرّاس جديدة:** `tests_v9/test_raster_source_guard_internal_pipelines.py` (unit+security: عقد الحارس + ساكنا out_dir/CDSE) + اختبار وظيفيّ non-dry-run في `test_historical_backfill.py` يلتقط `ProcessRequest` المجدول ويُثبت اجتيازه الحارس. أُصلح أيضاً سكربت e2e `test_stac_vrt.py` (كان يكتب النطاقات خارج المجلّد المسموح).
+
+**تحقّق:** pytest -m unit **2524** أخضر (كان 2520) · حارس التفكيك 7/7 · ruff نظيف · الحزمة مُتحقَّقة (3043).
+
+---
+
+## 2026-07-04 (ن-21) — كونسول الموافقات: سجلّ التغطية يبلغ صفر partial
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام + `9f6d6eb` ترقية GIS).
+
+آخر طبقة partial (`collaboration-approvals`) أُغلقت بخطوتها المسمّاة نفسها:
+- **فجوة خلفيّة حقيقيّة سُدَّت:** مخزن موافقات v58 يملك `list_pending()` بلا أيّ نقطة تكشفه — أُضيف `GET /approvals/pending` (ai_agronomist) مقيَّداً بهويّة البوّابة الموثوقة ومرشَّحاً بـ`tenant_id` المسجَّل في الطلب؛ **السجلّات القديمة بلا tenant تُستبعَد fail-closed**. اختبارات الموافقات ٣٤/٣٤ لم تنكسر.
+- **`ApprovalsConsolePage`** (`/admin/approvals`، owner/manager فقط): طلبات أدوات الوكيل المعلّقة (خطر ملوَّن · مفاتيح الوسائط فقط — القيم قد تكون حسّاسة · اعتمِد/ارفض بهويّة SEC-3.1 مع ملاحظة «التنفيذ على خدمة النطاق بعد التخويل») + قرارات التوزيع المنتظِرة موافقة (رقابيّة).
+- **السجلّ النهائيّ: covered:16 · partial:0 · waived:1 · not_ready:1** — كلّ طبقة backend إمّا مكشوفة أو مؤجَّلة بقرار موثَّق. (قبلها بدقائق: ترقية advanced-gis المؤرَّضة بكونسول وكيل D.)
+
+**العقد: 100 ⇒ 102 endpoint.** **تحقّق:** vitest **758** أخضر · tsc نظيف · البوّابة PASS 102/102 · pytest موافقات 34/34 + حارس التغطية 3/3 · ruff نظيف · الحزمة مُتحقَّقة.
+**لم يبقَ قابلاً للتنفيذ هنا:** فقط المحجوب على المستخدم (SPATIAL-401 · auth v21 · MAP-QA حيّ) والمؤجَّل الموثَّق (marketplace · phase-runtime).
+
+---
+
 ## 2026-07-04 (ن-20) — الدفعة الثالثة (G/H) + متابعة المستخدم: العقد يبلغ 100 endpoint
 
 **رأس main = develop = `claude/code-review-34hO3` = `169dce4`** (٣ التزامات: `00a1cfa` هدف الدورة · `f2555e2` دمج متابعة المستخدم يدويّاً · `169dce4` دفعة G/H).

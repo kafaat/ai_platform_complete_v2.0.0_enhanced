@@ -123,3 +123,19 @@ def test_segmentation_routes_via_platform_with_long_timeout():
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+def test_client_max_body_size_covers_segmentation_snapshot() -> None:
+    """413 على «تحديد حد الحقل تلقائيّ» (بلاغ 2026-07-04): لقطة SAM2 (~1.3MB) تجاوزت
+    افتراضيّ nginx (1m) لغياب client_max_body_size من بوّابة 3003 بينما بوّابة
+    الإنتاج (v9) حدّها 50M. الحارس يفرض وجود الحدّ في بوّابة التطوير بما لا يقلّ
+    عن 12m (رفع صور الآفات في v9) — والمرآة الحاليّة 50M."""
+    with open(_FRONTEND_NGINX, encoding="utf-8") as f:
+        conf = f.read()
+    import re
+
+    m = re.search(r"client_max_body_size\s+(\d+)([mMkK])", conf)
+    assert m, "client_max_body_size مفقود من frontend/nginx.conf — سيعود 413 التقطيع"
+    size, unit = int(m.group(1)), m.group(2).lower()
+    size_mb = size if unit == "m" else size / 1024
+    assert size_mb >= 12, f"الحدّ {m.group(0)} أدنى من رفع صور الآفات (12m)"

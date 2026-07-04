@@ -183,6 +183,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'documents',   path: '/admin/documents',   label: 'الوثائق', icon: FolderArchive, maturity: 'stable' },
       { id: 'governance',  path: '/admin/governance',  label: 'الحوكمة والتدقيق', icon: ShieldCheck, maturity: 'stable' },
       { id: 'admin-runtime', path: '/admin/runtime',   label: 'تشغيل المنصّة (Runtime)', icon: Wrench, maturity: 'beta' },
+      { id: 'approvals-console', path: '/admin/approvals', label: 'كونسول الموافقات', icon: ShieldCheck, maturity: 'beta' },
       { id: 'settings',    path: '/settings',          label: 'الإعدادات', icon: Settings, maturity: 'stable' },
     ],
   },

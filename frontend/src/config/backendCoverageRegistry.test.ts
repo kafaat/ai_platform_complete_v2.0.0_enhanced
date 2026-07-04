@@ -83,12 +83,23 @@ describe('backend-to-frontend coverage registry', () => {
   });
 
   it('summarizes covered, partial, internal and not-ready layers deterministically', () => {
-    expect(coverageSummary()).toEqual({ covered: 14, partial: 2, waived_internal: 1, not_ready: 1 });
+    expect(coverageSummary()).toEqual({ covered: 16, partial: 0, waived_internal: 1, not_ready: 1 });
   });
 
   it('maps endpoint patterns back to their owning layer', () => {
     expect(endpointCoverageMap().get('/api/v1/admin/readiness')?.id).toBe('admin-runtime-ops');
     expect(layerForEndpoint('/api/v1/fields/abc/boundary/score')?.id).toBe('boundary-governance');
     expect(layerForEndpoint('/api/v1/marketplace/extensions')?.id).toBe('marketplace-plugins-ecosystem');
+  });
+});
+
+
+describe('waiver expiry (production hardening)', () => {
+  it('every waived/not_ready layer carries a reviewBy date — no permanent exceptions', () => {
+    for (const layer of BACKEND_COVERAGE_REGISTRY) {
+      if (layer.state === 'waived_internal' || layer.state === 'not_ready') {
+        expect(layer.reviewBy, layer.id).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      }
+    }
   });
 });
