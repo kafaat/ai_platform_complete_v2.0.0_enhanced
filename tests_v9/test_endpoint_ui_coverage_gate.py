@@ -58,6 +58,61 @@ def test_backend_route_collector_finds_platform_routes() -> None:
 
 
 @pytest.mark.unit
+def test_reverse_gate_no_userfacing_route_escapes_contract() -> None:
+    """البوّابة العكسيّة: لا مسار مواجِه للمستخدم بلا (core+دليل) أو إعفاء صريح.
+
+    هذا هو وعد العقد الحقيقيّ — إضافة backend مواجِه جديد بلا hook/شاشة/إعفاء تُفشِل
+    CI هنا قبل أن تصبح القدرة يتيمة عن المستخدم.
+    """
+    mod = _load_gate()
+    assert mod.run_reverse_gate() == 0, (
+        "مسار مواجِه للمستخدم فلت من العقد — أضِفه إلى core (بدليل) أو إلى "
+        "config/endpoint_ui_coverage_waivers.json بسبب صريح."
+    )
+
+
+@pytest.mark.unit
+def test_every_waiver_has_explicit_reason() -> None:
+    """كلّ إعفاء يحمل سبباً غير فارغ وفئة معروفة — لا إعفاء صامت."""
+    mod = _load_gate()
+    waived = mod.load_waivers()
+    valid_cats = {"admin-ops", "operational", "backlog-ui"}
+    for ep, w in waived.items():
+        assert w.get("reason", "").strip(), f"إعفاء بلا سبب: {ep}"
+        assert w.get("reason_category") in valid_cats, f"فئة إعفاء غير معروفة: {ep}"
+
+
+@pytest.mark.unit
+def test_no_stale_waivers() -> None:
+    """لا إعفاء لمسار غير موجود أو صار مغطّى — السجلّ يبقى نظيفاً حيّاً."""
+    mod = _load_gate()
+    cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
+    corpus = mod.collect_frontend_corpus()
+    routes = mod.collect_backend_routes()
+    core = {e["endpoint"] for e in cfg["core_endpoints"]}
+    live = set(routes)
+    stale = []
+    for ep in mod.load_waivers():
+        if ep not in live:
+            stale.append(f"{ep} (غير موجود)")
+        elif ep in core and mod.has_frontend_evidence(ep, corpus):
+            stale.append(f"{ep} (صار مغطّى)")
+    assert not stale, f"إعفاءات بائتة يجب إزالتها: {stale[:10]}"
+
+
+@pytest.mark.unit
+def test_mobile_frontend_root_is_scanned() -> None:
+    """جذر Flutter الصحيح (mobile/sahool_app/lib) يُفحَص فعلاً — لا يُخفى بصمت."""
+    mod = _load_gate()
+    assert any("sahool_app/lib" in r for r in mod.FRONTEND_ROOTS), (
+        "جذر الجوّال يجب أن يشير إلى mobile/sahool_app/lib"
+    )
+    corpus = mod.collect_frontend_corpus()
+    # دليل حقيقيّ من تطبيق الجوّال (يُثبِت أنّ الجذر ليس فارغاً).
+    assert "/api/v1/fields" in corpus
+
+
+@pytest.mark.unit
 def test_every_discovered_route_is_classified() -> None:
     """توصية تقرير التحقّق: كلّ مسار مُكتشَف (652+) يجب أن يقع في تصنيف صريح —
     core/admin/expert/farmer/manager/internal — لا unclassified يمرّ بصمت.
