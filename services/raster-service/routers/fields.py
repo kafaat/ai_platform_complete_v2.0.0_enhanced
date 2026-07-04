@@ -662,7 +662,7 @@ async def field_timeseries(
 
                 seen.update(
                     await db_persist.list_asset_dates(
-                        field_id, internal, tenant_id=main._REQ_TENANT.get(), limit=100
+                        field_id, internal, tenant_id=main._REQ_TENANT.get()
                     )
                 )
             except Exception as e:  # noqa: BLE001 — لا نكسر السلسلة الزمنية عند غياب DB

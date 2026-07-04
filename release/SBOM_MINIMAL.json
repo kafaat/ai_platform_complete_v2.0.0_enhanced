@@ -8155,7 +8155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5d33a376db515547422d2a16d89a4dcb9ed3784fa59211a8b00a8452d5033cc"
+          "content": "2551a0002ebb32bb8b4caa93151323828bbc4b7a438171bf33e06eaa69c2d90a"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8305,7 +8305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15a6dcd7fe0417afecc8bbbbf55c4c2565918bf48fbb3ac75b5f4d7aed8c8e8b"
+          "content": "c761a1922f97eadf08ebed371ab01571a92df60737a52805655854c9659cb16e"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -8609,6 +8609,16 @@
         }
       ],
       "name": "services/raster-service/test_p2_tile_observability_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8fcd1a295d86426dff659ceeb63f774b9f7385b9b88006634f51a8ad5678b3ab"
+        }
+      ],
+      "name": "services/raster-service/test_raster_assets_text_field_id.py",
       "type": "file"
     },
     {

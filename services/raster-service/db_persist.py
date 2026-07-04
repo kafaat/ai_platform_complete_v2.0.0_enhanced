@@ -270,24 +270,34 @@ async def list_asset_dates(
     field_id: str,
     index_name: str,
     tenant_id: str | None = None,
-    limit: int = 100,
+    limit: int = 800,
 ) -> list[str]:
     """List available acquisition dates for a field/index from raster_assets.
 
     Used by /v1/fields/{id}/timeseries when in-memory _field_layers is empty after
-    restart. Returns ISO YYYY-MM-DD strings, tenant-filtered explicitly.
+    restart. Returns ISO YYYY-MM-DD strings (ascending), tenant-filtered explicitly.
+
+    السقف الافتراضيّ 800: سلسلة Sentinel-2 لسنتين ≈ 146 مروراً، ولـ3 سنوات ≈ 219،
+    و5 سنوات ≈ 365 (قبل رفض الغيوم) — والحقل قد يحمل عدّة مؤشّرات. سقف 100 السابق كان
+    يبتر أيّ backfill لسنتين+. والأهمّ: نأخذ الأحدث (DESC + LIMIT) لا الأقدم، لأنّ
+    ASC+LIMIT كان يُبقي أقدم 100 تاريخ ويُسقط الأحدث — عكس المطلوب في شريط زمنيّ.
+    نُرجِع النتيجة مفروزةً تصاعديّاً (يعتمد المُستدعي ترتيباً زمنيّاً).
     """
     conn = await _connect()
     if conn is None:
         return []
+    # DESC + LIMIT ⇒ نحتفظ بأحدث `limit` تاريخاً؛ ثمّ نعكس للترتيب التصاعديّ.
     sql = """
-        SELECT DISTINCT acquisition_date::text AS acq
-        FROM raster_assets
-        WHERE field_id = $1 AND index_name = $2
-          AND acquisition_date IS NOT NULL
-          AND tenant_id = $3::uuid
-        ORDER BY acquisition_date ASC
-        LIMIT $4
+        SELECT acq FROM (
+            SELECT DISTINCT acquisition_date::text AS acq, acquisition_date AS ad
+            FROM raster_assets
+            WHERE field_id = $1 AND index_name = $2
+              AND acquisition_date IS NOT NULL
+              AND tenant_id = $3::uuid
+            ORDER BY ad DESC
+            LIMIT $4
+        ) recent
+        ORDER BY ad ASC
     """
     try:
         await conn.execute(

@@ -27,6 +27,65 @@ def _load_gate():
 
 
 @pytest.mark.unit
+def test_no_waiver_has_real_ui_evidence() -> None:
+    """حارس ضدّ الدَّين الوهميّ: أيّ إعفاء backlog-ui له دليل واجهة حقيقيّ (تطابق
+    حدوديّ في طبقة-API/هوك/مكوّن) يجب ترقيته إلى core لا إبقاؤه ديناً كاذباً.
+
+    يمنع تضخّم سجلّ الإعفاءات بمسارات مرتبطة فعلاً — كما اكتُشف في مراجعة الوكلاء
+    (183 إعفاءً وهميّاً رُقّيت). admin-ops/operational مستثناة (لا تتطلّب شاشة).
+    """
+    import re as _re
+
+    mod = _load_gate()
+    waived = mod.load_waivers()
+    # ملفّات طبقة-API/مكوّن فقط (لا اختبارات) — دليل تشغيليّ حقيقيّ.
+    fe: list[tuple[str, str]] = []
+    for root in mod.FRONTEND_ROOTS:
+        base = REPO / root
+        if not base.exists():
+            continue
+        for f in base.rglob("*"):
+            rel = str(f.relative_to(REPO))
+            if f.suffix.lower() not in {".ts", ".tsx", ".js", ".jsx", ".dart"}:
+                continue
+            if ".test." in rel or "/e2e/" in rel:
+                continue
+            fe.append((rel, f.read_text(encoding="utf-8", errors="ignore")))
+
+    def boundary_hit(path: str) -> str | None:
+        stem = _re.split(r"\{", path)[0].rstrip("/")
+        alt = stem.replace("/api/v1/auth", "/auth")
+        cands = {c for c in (stem, alt) if len(c) > len("/api/v1/") or c.startswith("/auth")}
+        for rel, txt in fe:
+            for c in cands:
+                pat = _re.escape(c) + r"""(?:['"`?]|/\$\{|/[a-z]|$)"""
+                if _re.search(pat, txt) and any(
+                    k in rel
+                    for k in (
+                        "/services/",
+                        "/hooks/",
+                        "api.ts",
+                        "/components/",
+                        "/sections/",
+                        "/screens/",
+                    )
+                ):
+                    return rel
+        return None
+
+    false_debt = []
+    for ep, w in waived.items():
+        if w.get("reason_category") != "backlog-ui":
+            continue  # admin-ops/operational: إعفاء دائم مشروع.
+        ev = boundary_hit(ep)
+        if ev:
+            false_debt.append(f"{ep} → {ev}")
+    assert not false_debt, "إعفاءات backlog-ui لها دليل واجهة حقيقيّ (رقّها إلى core): " + "; ".join(
+        false_debt[:12]
+    )
+
+
+@pytest.mark.unit
 def test_config_is_valid_and_nonempty() -> None:
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     assert cfg["core_endpoints"], "العقد فارغ — يجب أن يلزم مسارات جوهريّة"

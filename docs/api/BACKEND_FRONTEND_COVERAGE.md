@@ -14,7 +14,7 @@
 | internal | 229 | 59 |
 | manager | 52 | 32 |
 
-العقد الملزِم (core): 102 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 285 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
