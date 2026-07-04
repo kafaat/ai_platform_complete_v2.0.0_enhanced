@@ -377,6 +377,16 @@
       "endpoint": "/api/v1/automation/scheduler-status",
       "audience": "admin",
       "evidence": "/api/v1/automation/scheduler-status"
+    },
+    {
+      "endpoint": "/api/v1/calendars/today",
+      "audience": "farmer",
+      "evidence": "/api/v1/calendars/today"
+    },
+    {
+      "endpoint": "/api/v1/agricultural-proverbs/for-date",
+      "audience": "farmer",
+      "evidence": "/api/v1/agricultural-proverbs/for-date"
     }
   ]
 }

@@ -53,6 +53,7 @@ import SeasonProfitabilityCard from '../components/fieldview/SeasonProfitability
 import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
 import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceabilityCard';
 import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
+import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -1210,6 +1211,11 @@ export default function MapHub() {
           }}
         />
       )}
+
+      {/* التقويم الزراعيّ اليمنيّ (display_only — سياق تراثيّ لا يدخل القرار): المنزلة
+          القمريّة + الشهر الحميريّ + أمثال المنزلة + نافذة زراعة محصول الحقل. كان
+          backend كاملاً (calendars/proverbs) بلا أيّ قارئ — التميّز المحلّيّ لساهول. */}
+      {selected && <YemeniCalendarCard cropLabel={selected.crop} />}
 
       {selected && fieldMode === 'expert' && (
         <FieldViewInsightStrip

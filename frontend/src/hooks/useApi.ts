@@ -1096,6 +1096,43 @@ export function useSchedulerStatus(enabled = true): UseQueryResult<Record<string
   });
 }
 
+// ── Yemeni Agricultural Calendar — طبقة عرض تراثيّة-رصديّة (display_only) ──
+import type { CalendarTodayContext, ProverbsForDateResponse } from '../lib/yemeniCalendar';
+
+/** سياق التقويم الزراعيّ اليمنيّ لليوم (منزلة + شهر حميريّ + منطقة + نافذة محصول). */
+export function useCalendarToday(
+  crop: string | null | undefined,
+  governorate: string | null | undefined,
+  enabled = true,
+): UseQueryResult<CalendarTodayContext> {
+  return useQuery<CalendarTodayContext>({
+    queryKey: ['calendar-today', crop ?? 'none', governorate ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/calendars/today', { params: { crop: crop || undefined, governorate: governorate || undefined } })
+      .then(r => r.data),
+    staleTime:6 * 60 * 60_000, // معرفة يوميّة شبه ثابتة
+    enabled,
+    retry:    false,
+  });
+}
+
+/** أمثال التاريخ (المنزلة النشطة ⇒ أمثالها) — سياق ثقافيّ، عرض فقط. */
+export function useProverbsForDate(
+  dateIso: string | null | undefined,
+  governorate: string | null | undefined,
+  enabled = true,
+): UseQueryResult<ProverbsForDateResponse> {
+  return useQuery<ProverbsForDateResponse>({
+    queryKey: ['proverbs-for-date', dateIso ?? 'none', governorate ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/agricultural-proverbs/for-date', { params: { date_iso: dateIso, governorate: governorate || undefined } })
+      .then(r => r.data),
+    staleTime:6 * 60 * 60_000,
+    enabled:  enabled && !!dateIso,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

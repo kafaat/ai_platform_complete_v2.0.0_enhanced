@@ -10,12 +10,12 @@
 |---|---|---|
 | admin | 19 | 9 |
 | agronomist | 36 | 12 |
-| farmer | 158 | 108 |
+| farmer | 158 | 111 |
 | internal | 10 | 1 |
 | manager | 35 | 23 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 43 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 45 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -42,8 +42,8 @@
 | `/api/v1/admin/outbox/dead-letter/requeue` | admin | — |
 | `/api/v1/admin/readiness` | admin | ✅ |
 | `/api/v1/admin/security/denials` | admin | ✅ |
-| `/api/v1/agricultural-proverbs` | farmer | — |
-| `/api/v1/agricultural-proverbs/for-date` | farmer | — |
+| `/api/v1/agricultural-proverbs` | farmer | ✅ |
+| `/api/v1/agricultural-proverbs/for-date` | farmer | ✅ |
 | `/api/v1/agro-zones/by-elevation` | unclassified | — |
 | `/api/v1/agro-zones/identify` | unclassified | — |
 | `/api/v1/agro-zones/identify-smart` | unclassified | — |
@@ -84,7 +84,7 @@
 | `/api/v1/calendars/himyarite-months` | farmer | — |
 | `/api/v1/calendars/lunar-mansions` | farmer | — |
 | `/api/v1/calendars/regional-profiles` | farmer | — |
-| `/api/v1/calendars/today` | farmer | — |
+| `/api/v1/calendars/today` | farmer | ✅ |
 | `/api/v1/calibration` | unclassified | ✅ |
 | `/api/v1/calibration/feedback` | unclassified | — |
 | `/api/v1/calibration/overrides/all` | unclassified | ✅ |
