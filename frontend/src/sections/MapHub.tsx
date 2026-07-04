@@ -62,6 +62,9 @@ import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
 import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
 import IrrigationDecisionAidsCard from '../components/fieldview/IrrigationDecisionAidsCard';
+import CropSafetyKnowledgeCard from '../components/fieldview/CropSafetyKnowledgeCard';
+import AgroAnalyticsCard from '../components/fieldview/AgroAnalyticsCard';
+import WaterFieldOpsCard from '../components/fieldview/WaterFieldOpsCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
@@ -1394,6 +1397,24 @@ export default function MapHub() {
           الإجمالي المسحوب + مراجع العيّنة — نقاط P0/P1 كانت بلا قارئ واجهة. */}
       {selected && fieldMode === 'expert' && (
         <IrrigationDecisionAidsCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* سلامة المدخلات ومعرفة المحاصيل: فحص كيميائيّ (حكم الخادم حرفيّاً) + تقويم
+          الزراعة + آفات التخزين + عالية القيمة/المتخصّصة ومرشّحو الإدخال — P1 بلا قارئ. */}
+      {selected && fieldMode === 'expert' && (
+        <CropSafetyKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* التحليلات الزراعيّة-البيئيّة: مخاطر/دورة/دليل قرارات + سلسلة Kc (قراءة وحفظاً)
+          + تغذية راجعة نبات-تربة + مقارنة مواسم + تصعيد + نسب أصل الحقل. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroAnalyticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* عمليّات الماء والحقل: إجهاد/نصيحة متكاملة + ميزان FAO-56 + سيول واردة +
+          تحليل ماء الريّ + تنبيهات/طبقات الطقس + خطّة 4R + إدامة النتيجة + geo-locate. */}
+      {selected && fieldMode === 'expert' && (
+        <WaterFieldOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
       )}
 
       {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود

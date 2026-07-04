@@ -9,12 +9,12 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 163 | 101 |
-| farmer | 190 | 135 |
+| agronomist | 163 | 123 |
+| farmer | 190 | 144 |
 | internal | 229 | 59 |
 | manager | 52 | 32 |
 
-العقد الملزِم (core): 320 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 352 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -49,15 +49,15 @@
 | `/api/v1/agro-zones/list` | agronomist | ✅ |
 | `/api/v1/agro-zones/profile` | agronomist | ✅ |
 | `/api/v1/agro-zones/suited-crops` | agronomist | ✅ |
-| `/api/v1/agro/crop-risk` | agronomist | — |
-| `/api/v1/agro/crop-rotation` | agronomist | — |
-| `/api/v1/agro/decision-playbook` | agronomist | — |
-| `/api/v1/agro/kc-timeseries` | agronomist | — |
-| `/api/v1/agro/kc-timeseries/{field_id}` | agronomist | — |
-| `/api/v1/agro/kc-timeseries/{field_id}/compare` | agronomist | — |
-| `/api/v1/agro/plant-soil-feedback` | agronomist | — |
+| `/api/v1/agro/crop-risk` | agronomist | ✅ |
+| `/api/v1/agro/crop-rotation` | agronomist | ✅ |
+| `/api/v1/agro/decision-playbook` | agronomist | ✅ |
+| `/api/v1/agro/kc-timeseries` | agronomist | ✅ |
+| `/api/v1/agro/kc-timeseries/{field_id}` | agronomist | ✅ |
+| `/api/v1/agro/kc-timeseries/{field_id}/compare` | agronomist | ✅ |
+| `/api/v1/agro/plant-soil-feedback` | agronomist | ✅ |
 | `/api/v1/agro/plant-soil-feedback/trend` | agronomist | — |
-| `/api/v1/agro/season-comparison` | agronomist | — |
+| `/api/v1/agro/season-comparison` | agronomist | ✅ |
 | `/api/v1/ai/models` | internal | ✅ |
 | `/api/v1/alerts` | farmer | ✅ |
 | `/api/v1/alerts/{alert_id}/acknowledge` | farmer | ✅ |
@@ -100,8 +100,8 @@
 | `/api/v1/cameras/register` | manager | — |
 | `/api/v1/cameras/snapshot-evidence` | manager | — |
 | `/api/v1/capabilities` | internal | — |
-| `/api/v1/chemical-safety/banned` | agronomist | — |
-| `/api/v1/chemical-safety/check` | agronomist | — |
+| `/api/v1/chemical-safety/banned` | agronomist | ✅ |
+| `/api/v1/chemical-safety/check` | agronomist | ✅ |
 | `/api/v1/climate-analogs/desert-crops` | agronomist | ✅ |
 | `/api/v1/climate-analogs/detail` | agronomist | ✅ |
 | `/api/v1/climate-analogs/list` | agronomist | ✅ |
@@ -169,7 +169,7 @@
 | `/api/v1/edge/sync` | internal | — |
 | `/api/v1/equipment` | manager | ✅ |
 | `/api/v1/equipment/{equipment_id}/maintenance` | manager | ✅ |
-| `/api/v1/escalation/assess` | agronomist | — |
+| `/api/v1/escalation/assess` | agronomist | ✅ |
 | `/api/v1/events/{entity_type}/{entity_id}` | internal | ✅ |
 | `/api/v1/evidence/corroborate` | agronomist | — |
 | `/api/v1/evidence/map` | agronomist | ✅ |
@@ -261,7 +261,7 @@
 | `/api/v1/fields/{field_id}/zones` | farmer | ✅ |
 | `/api/v1/fodder-alternatives/list` | farmer | — |
 | `/api/v1/gdd/track` | agronomist | ✅ |
-| `/api/v1/geo-locate/field` | farmer | — |
+| `/api/v1/geo-locate/field` | farmer | ✅ |
 | `/api/v1/geo-locate/recommend` | farmer | — |
 | `/api/v1/geo/reverse` | farmer | ✅ |
 | `/api/v1/gis/buffer` | agronomist | — |
@@ -272,13 +272,13 @@
 | `/api/v1/harvest-lots/{harvest_lot_id}` | manager | ✅ |
 | `/api/v1/harvest-lots/{harvest_lot_id}/custody-events` | manager | ✅ |
 | `/api/v1/harvest-lots/{harvest_lot_id}/traceability` | manager | ✅ |
-| `/api/v1/high-value-crops/detail` | farmer | — |
+| `/api/v1/high-value-crops/detail` | farmer | ✅ |
 | `/api/v1/high-value-crops/list` | farmer | — |
 | `/api/v1/indicators/catalog` | agronomist | ✅ |
 | `/api/v1/indicators/dashboard` | agronomist | ✅ |
 | `/api/v1/indicators/map-layers` | agronomist | — |
 | `/api/v1/indices/coverage-report` | agronomist | — |
-| `/api/v1/introduction/candidates` | farmer | — |
+| `/api/v1/introduction/candidates` | farmer | ✅ |
 | `/api/v1/introduction/card` | farmer | — |
 | `/api/v1/introduction/field-fit` | farmer | — |
 | `/api/v1/inventory/expiring` | manager | ✅ |
@@ -302,7 +302,7 @@
 | `/api/v1/irrigation/water-analysis` | farmer | ✅ |
 | `/api/v1/lab/samples` | agronomist | ✅ |
 | `/api/v1/lab/soil-results` | agronomist | ✅ |
-| `/api/v1/lab/water-results` | agronomist | — |
+| `/api/v1/lab/water-results` | agronomist | ✅ |
 | `/api/v1/learning/activation-status` | agronomist | — |
 | `/api/v1/learning/external-prior-blend` | agronomist | — |
 | `/api/v1/learning/prediction-calibration` | agronomist | — |
@@ -315,14 +315,14 @@
 | `/api/v1/market/crop-gap` | manager | — |
 | `/api/v1/master-data` | manager | ✅ |
 | `/api/v1/me` | farmer | — |
-| `/api/v1/niche-crops/detail` | farmer | — |
+| `/api/v1/niche-crops/detail` | farmer | ✅ |
 | `/api/v1/niche-crops/list` | farmer | — |
 | `/api/v1/nl-gis/query` | agronomist | ✅ |
 | `/api/v1/nl-sql` | agronomist | ✅ |
 | `/api/v1/notifications/delivery` | farmer | — |
 | `/api/v1/notifications/preferences` | farmer | ✅ |
 | `/api/v1/notifications/ws` | farmer | — |
-| `/api/v1/nutrients/4r-plan` | agronomist | — |
+| `/api/v1/nutrients/4r-plan` | agronomist | ✅ |
 | `/api/v1/observations` | agronomist | — |
 | `/api/v1/onboarding/questionnaire` | farmer | — |
 | `/api/v1/onboarding/responses` | farmer | — |
@@ -330,16 +330,16 @@
 | `/api/v1/orchard/economics` | farmer | — |
 | `/api/v1/orchard/plan` | farmer | — |
 | `/api/v1/outcome/measure` | agronomist | ✅ |
-| `/api/v1/outcome/record` | agronomist | — |
+| `/api/v1/outcome/record` | agronomist | ✅ |
 | `/api/v1/pest-escalation/run` | agronomist | ✅ |
 | `/api/v1/planting/check` | agronomist | ✅ |
-| `/api/v1/planting/crops` | agronomist | — |
-| `/api/v1/planting/window` | agronomist | — |
+| `/api/v1/planting/crops` | agronomist | ✅ |
+| `/api/v1/planting/window` | agronomist | ✅ |
 | `/api/v1/policy-learning/threshold-suggestions` | agronomist | — |
 | `/api/v1/portfolio/command` | farmer | ✅ |
 | `/api/v1/postharvest/best-practices` | agronomist | ✅ |
 | `/api/v1/postharvest/moisture-check` | agronomist | ✅ |
-| `/api/v1/postharvest/pests` | agronomist | — |
+| `/api/v1/postharvest/pests` | agronomist | ✅ |
 | `/api/v1/practices/guide` | agronomist | — |
 | `/api/v1/practices/list` | agronomist | — |
 | `/api/v1/propagation/crop` | agronomist | ✅ |
@@ -408,27 +408,27 @@
 | `/api/v1/temporal/coherence` | agronomist | — |
 | `/api/v1/tenant/config` | manager | ✅ |
 | `/api/v1/trials/analyze` | agronomist | — |
-| `/api/v1/water-balance` | agronomist | — |
+| `/api/v1/water-balance` | agronomist | ✅ |
 | `/api/v1/water-harvesting/method-guide` | agronomist | ✅ |
 | `/api/v1/water-harvesting/methods` | agronomist | ✅ |
 | `/api/v1/water-harvesting/potential` | agronomist | ✅ |
-| `/api/v1/water-harvesting/upstream-flood` | agronomist | — |
+| `/api/v1/water-harvesting/upstream-flood` | agronomist | ✅ |
 | `/api/v1/water-sensitivity/calendar` | agronomist | ✅ |
 | `/api/v1/water-sensitivity/crops` | agronomist | ✅ |
-| `/api/v1/water-sensitivity/integrated-advice` | agronomist | — |
-| `/api/v1/water-sensitivity/stress-risk` | agronomist | — |
-| `/api/v1/water-sensitivity/wheat-calendar` | agronomist | — |
+| `/api/v1/water-sensitivity/integrated-advice` | agronomist | ✅ |
+| `/api/v1/water-sensitivity/stress-risk` | agronomist | ✅ |
+| `/api/v1/water-sensitivity/wheat-calendar` | agronomist | ✅ |
 | `/api/v1/weather-analytics/analyze` | farmer | — |
 | `/api/v1/weather-analytics/planting-guide` | farmer | — |
 | `/api/v1/weather/action-recommendation` | farmer | ✅ |
-| `/api/v1/weather/alerts` | farmer | — |
+| `/api/v1/weather/alerts` | farmer | ✅ |
 | `/api/v1/weather/alerts/notify` | farmer | — |
 | `/api/v1/weather/current` | farmer | ✅ |
 | `/api/v1/weather/env-doctor` | farmer | — |
 | `/api/v1/weather/field-weather-summary` | farmer | — |
 | `/api/v1/weather/forecast` | farmer | ✅ |
 | `/api/v1/weather/historical` | farmer | ✅ |
-| `/api/v1/weather/layers` | farmer | — |
+| `/api/v1/weather/layers` | farmer | ✅ |
 | `/api/v1/weather/observability` | farmer | — |
 | `/api/v1/weather/operation-plan` | farmer | ✅ |
 | `/api/v1/weather/operation-tile-data/{z}/{x}/{y}` | farmer | ✅ |
@@ -471,9 +471,9 @@
 | `/auth/refresh` | farmer | ✅ |
 | `/auth/register` | farmer | ✅ |
 | `/auth/tenants` | farmer | — |
-| `/auth/users` | farmer | — |
-| `/auth/users/{user_id}/deactivate` | farmer | — |
-| `/auth/users/{user_id}/role` | farmer | — |
+| `/auth/users` | farmer | ✅ |
+| `/auth/users/{user_id}/deactivate` | farmer | ✅ |
+| `/auth/users/{user_id}/role` | farmer | ✅ |
 | `/auth/verify` | farmer | ✅ |
 | `/auth/verify/confirm` | farmer | ✅ |
 | `/auth/verify/request` | farmer | ✅ |

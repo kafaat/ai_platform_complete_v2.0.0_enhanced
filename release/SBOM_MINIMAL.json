@@ -915,6 +915,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8cbe74d565ca9e46727da7fdfbe37adb48b4c4cb9f38af0bb1222b405808905f"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b8bd8700c193527ff3eb93249bf837f802403125a67c279f1a3e454a40c2ef86"
         }
       ],
@@ -959,6 +969,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/CropKnowledgeCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc1eef8837b6958d694af9ed947fcd2438e61dc8dcc98aeb6c66162f431018f8"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/CropSafetyKnowledgeCard.tsx",
       "type": "file"
     },
     {
@@ -1119,6 +1139,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/TraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d89e84f5b82e0d5af402e44afb14beadfcbf386588dc2b1c94daf1016301436"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
       "type": "file"
     },
     {
@@ -1985,6 +2015,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "807da3a1a59af9a0045c0b0bcb0b90fc27d61885f2462e1030527c2a7d10c9cd"
+        }
+      ],
+      "name": "frontend/src/hooks/useAgroAnalytics.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2e2ffde2adb1f1e8d7cde873e0111957a32af2faa055a3edbb6fa04f7d12502c"
         }
       ],
@@ -2029,6 +2069,16 @@
         }
       ],
       "name": "frontend/src/hooks/useClimateAnalogs.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f6e830e6185f84dd7d1fdf7cd66c48653db9a2741c9fcecca9458c15effea396"
+        }
+      ],
+      "name": "frontend/src/hooks/useCropSafetyKnowledge.ts",
       "type": "file"
     },
     {
@@ -2155,6 +2205,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "10da9573dde6a19cdbd4b27902a3164cd9a8696b41324df9136582d47438f38e"
+        }
+      ],
+      "name": "frontend/src/hooks/useWaterFieldOps.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "666b4b6dff683c3eacd5a305a1e8000ff1c2c2ab5f7703bb0d34a6998bf799d9"
         }
       ],
@@ -2189,6 +2249,26 @@
         }
       ],
       "name": "frontend/src/lib/adminRuntime.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2e338cf253c27fc760dee29221c1587217e09aa509bd3552200df05160fe0094"
+        }
+      ],
+      "name": "frontend/src/lib/agroAnalytics.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "837feb2937ea716d69fb1ce86f9a1c7c27684387761fa2a9cc7dfb8411ed5943"
+        }
+      ],
+      "name": "frontend/src/lib/agroAnalytics.ts",
       "type": "file"
     },
     {
@@ -2269,6 +2349,26 @@
         }
       ],
       "name": "frontend/src/lib/canonicalGeometry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10112e75a10cfea9a1ccc52addd0a14e6245f0732e7f3094fe6a0c60a8439bfe"
+        }
+      ],
+      "name": "frontend/src/lib/cropSafetyKnowledge.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a4b40b6cefe87e5a24345999564256262306c7dcd3a68489ec8c5a02b946680a"
+        }
+      ],
+      "name": "frontend/src/lib/cropSafetyKnowledge.ts",
       "type": "file"
     },
     {
@@ -3335,6 +3435,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e1199ce52205dcfd3115aad9237d74891ced1dee662fb29bb002dec317763411"
+        }
+      ],
+      "name": "frontend/src/lib/waterFieldOps.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46df8fc862e474485a12dd3242001205e117bba491f18ff445de173e4813cfe1"
+        }
+      ],
+      "name": "frontend/src/lib/waterFieldOps.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "af841c577daf0f928eec1ad88036c2934c6866e4668f267809d5f39fb68ff357"
         }
       ],
@@ -4085,7 +4205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03a55bfcb7121548d00df11cfd74b4b9d62782165bdfd25e7ecaa6c097bc5e00"
+          "content": "3d09d0d6e27386c03842151086e6f3845b9c810af0d937b91b3228a472884bd0"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

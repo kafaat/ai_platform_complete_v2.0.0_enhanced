@@ -553,6 +553,46 @@
       "evidence": "/api/v1/agro-zones/suited-crops"
     },
     {
+      "endpoint": "/api/v1/agro/crop-risk",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/crop-risk"
+    },
+    {
+      "endpoint": "/api/v1/agro/crop-rotation",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/crop-rotation"
+    },
+    {
+      "endpoint": "/api/v1/agro/decision-playbook",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/decision-playbook"
+    },
+    {
+      "endpoint": "/api/v1/agro/kc-timeseries",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/kc-timeseries"
+    },
+    {
+      "endpoint": "/api/v1/agro/kc-timeseries/{field_id}",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/kc-timeseries/{field_id}"
+    },
+    {
+      "endpoint": "/api/v1/agro/kc-timeseries/{field_id}/compare",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/kc-timeseries/{field_id}/compare"
+    },
+    {
+      "endpoint": "/api/v1/agro/plant-soil-feedback",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/plant-soil-feedback"
+    },
+    {
+      "endpoint": "/api/v1/agro/season-comparison",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/season-comparison"
+    },
+    {
       "endpoint": "/api/v1/alerts",
       "audience": "farmer",
       "evidence": "/api/v1/alerts"
@@ -681,6 +721,16 @@
       "endpoint": "/api/v1/calibration/{region}/resolved",
       "audience": "agronomist",
       "evidence": "/api/v1/calibration"
+    },
+    {
+      "endpoint": "/api/v1/chemical-safety/banned",
+      "audience": "agronomist",
+      "evidence": "/api/v1/chemical-safety/banned"
+    },
+    {
+      "endpoint": "/api/v1/chemical-safety/check",
+      "audience": "agronomist",
+      "evidence": "/api/v1/chemical-safety/check"
     },
     {
       "endpoint": "/api/v1/climate-analogs/desert-crops",
@@ -958,6 +1008,11 @@
       "evidence": "/api/v1/equipment"
     },
     {
+      "endpoint": "/api/v1/escalation/assess",
+      "audience": "agronomist",
+      "evidence": "/api/v1/escalation/assess"
+    },
+    {
       "endpoint": "/api/v1/evidence/map",
       "audience": "agronomist",
       "evidence": "/api/v1/evidence/map"
@@ -1041,6 +1096,11 @@
       "endpoint": "/api/v1/field-portfolio/allocate",
       "audience": "farmer",
       "evidence": "/api/v1/field-portfolio/allocate"
+    },
+    {
+      "endpoint": "/api/v1/field/{field_id}/lineage",
+      "audience": "farmer",
+      "evidence": "/api/v1/field/{field_id}/lineage"
     },
     {
       "endpoint": "/api/v1/fields",
@@ -1453,6 +1513,11 @@
       "evidence": "/api/v1/gdd/track"
     },
     {
+      "endpoint": "/api/v1/geo-locate/field",
+      "audience": "farmer",
+      "evidence": "/api/v1/geo-locate/field"
+    },
+    {
       "endpoint": "/api/v1/geo/reverse",
       "audience": "farmer",
       "evidence": "/api/v1/geo/reverse"
@@ -1513,6 +1578,11 @@
       "evidence": "/traceability"
     },
     {
+      "endpoint": "/api/v1/high-value-crops/detail",
+      "audience": "farmer",
+      "evidence": "/api/v1/high-value-crops/detail"
+    },
+    {
       "endpoint": "/api/v1/indicators/catalog",
       "audience": "agronomist",
       "evidence": "/api/v1/indicators/catalog"
@@ -1521,6 +1591,11 @@
       "endpoint": "/api/v1/indicators/dashboard",
       "audience": "agronomist",
       "evidence": "/api/v1/indicators/dashboard"
+    },
+    {
+      "endpoint": "/api/v1/introduction/candidates",
+      "audience": "farmer",
+      "evidence": "/api/v1/introduction/candidates"
     },
     {
       "endpoint": "/api/v1/inventory",
@@ -1628,6 +1703,11 @@
       "evidence": "/api/v1/lab/soil-results"
     },
     {
+      "endpoint": "/api/v1/lab/water-results",
+      "audience": "agronomist",
+      "evidence": "/api/v1/lab/water-results"
+    },
+    {
       "endpoint": "/api/v1/learning/summary",
       "audience": "agronomist",
       "evidence": "/api/v1/learning/summary"
@@ -1648,6 +1728,11 @@
       "evidence": "/api/v1/master-data"
     },
     {
+      "endpoint": "/api/v1/niche-crops/detail",
+      "audience": "farmer",
+      "evidence": "/api/v1/niche-crops/detail"
+    },
+    {
       "endpoint": "/api/v1/nl-gis/query",
       "audience": "agronomist",
       "evidence": "/api/v1/nl-gis/query"
@@ -1661,6 +1746,11 @@
       "endpoint": "/api/v1/notifications/preferences",
       "audience": "farmer",
       "evidence": "/api/v1/notifications/preferences"
+    },
+    {
+      "endpoint": "/api/v1/nutrients/4r-plan",
+      "audience": "agronomist",
+      "evidence": "/api/v1/nutrients/4r-plan"
     },
     {
       "endpoint": "/api/v1/operations/summary",
@@ -1678,6 +1768,11 @@
       "evidence": "/api/v1/outcome/measure"
     },
     {
+      "endpoint": "/api/v1/outcome/record",
+      "audience": "agronomist",
+      "evidence": "/api/v1/outcome/record"
+    },
+    {
       "endpoint": "/api/v1/pest-escalation/run",
       "audience": "agronomist",
       "evidence": "/api/v1/pest-escalation/run"
@@ -1686,6 +1781,16 @@
       "endpoint": "/api/v1/planting/check",
       "audience": "agronomist",
       "evidence": "/api/v1/planting/check"
+    },
+    {
+      "endpoint": "/api/v1/planting/crops",
+      "audience": "agronomist",
+      "evidence": "/api/v1/planting/crops"
+    },
+    {
+      "endpoint": "/api/v1/planting/window",
+      "audience": "agronomist",
+      "evidence": "/api/v1/planting/window"
     },
     {
       "endpoint": "/api/v1/portfolio/command",
@@ -1701,6 +1806,11 @@
       "endpoint": "/api/v1/postharvest/moisture-check",
       "audience": "agronomist",
       "evidence": "/api/v1/postharvest/moisture-check"
+    },
+    {
+      "endpoint": "/api/v1/postharvest/pests",
+      "audience": "agronomist",
+      "evidence": "/api/v1/postharvest/pests"
     },
     {
       "endpoint": "/api/v1/propagation/crop",
@@ -1913,6 +2023,11 @@
       "evidence": "/api/v1/tenant/config"
     },
     {
+      "endpoint": "/api/v1/water-balance",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-balance"
+    },
+    {
       "endpoint": "/api/v1/water-harvesting/method-guide",
       "audience": "agronomist",
       "evidence": "/api/v1/water-harvesting/method-guide"
@@ -1928,6 +2043,11 @@
       "evidence": "/api/v1/water-harvesting/potential"
     },
     {
+      "endpoint": "/api/v1/water-harvesting/upstream-flood",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-harvesting/upstream-flood"
+    },
+    {
       "endpoint": "/api/v1/water-sensitivity/calendar",
       "audience": "agronomist",
       "evidence": "/api/v1/water-sensitivity/calendar"
@@ -1938,9 +2058,29 @@
       "evidence": "/api/v1/water-sensitivity/crops"
     },
     {
+      "endpoint": "/api/v1/water-sensitivity/integrated-advice",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-sensitivity/integrated-advice"
+    },
+    {
+      "endpoint": "/api/v1/water-sensitivity/stress-risk",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-sensitivity/stress-risk"
+    },
+    {
+      "endpoint": "/api/v1/water-sensitivity/wheat-calendar",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-sensitivity/wheat-calendar"
+    },
+    {
       "endpoint": "/api/v1/weather/action-recommendation",
       "audience": "farmer",
       "evidence": "/api/v1/weather/action-recommendation"
+    },
+    {
+      "endpoint": "/api/v1/weather/alerts",
+      "audience": "farmer",
+      "evidence": "/api/v1/weather/alerts"
     },
     {
       "endpoint": "/api/v1/weather/current",
@@ -1956,6 +2096,11 @@
       "endpoint": "/api/v1/weather/historical",
       "audience": "farmer",
       "evidence": "/api/v1/weather/historical"
+    },
+    {
+      "endpoint": "/api/v1/weather/layers",
+      "audience": "farmer",
+      "evidence": "/api/v1/weather/layers"
     },
     {
       "endpoint": "/api/v1/weather/operation-plan",
