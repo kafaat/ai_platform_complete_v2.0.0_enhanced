@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import uuid
 
 logger = logging.getLogger("raster-service.db")
@@ -45,6 +46,18 @@ def _valid_uuid_text(value: str | None) -> bool:
         return True
     except Exception:
         return False
+
+
+# معرّف الحقل القانونيّ في المنصّة نصّيّ (fld_<hex>) والعمود VARCHAR(50) لا UUID —
+# فرضُ UUID عليه (تصليب 2026-06-26 الزائد) كان يُسقط حفظ raster_assets لكلّ حقل
+# حقيقيّ بصمت (بلاغ 2026-07-04: «persist skipped: missing/invalid field_id='fld_…'»
+# رغم نجاح المعالجة). نقبل محارف آمنة فقط وبطول العمود — UUID يطابق أيضاً.
+_FIELD_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,50}$")
+
+
+def _valid_field_id_text(value: str | None) -> bool:
+    """معرّف حقل نصّيّ آمن لعمود VARCHAR(50) (fld_* أو UUID) — لا فارغ/محارف غريبة."""
+    return bool(value) and bool(_FIELD_ID_RE.fullmatch(str(value).strip()))
 
 
 async def _connect():
@@ -93,7 +106,7 @@ async def insert_raster_asset(
     يضبط app.current_tenant عبر set_config قبل الإدراج (RLS). أيّ خطأ
     (لا قاعدة / لا جدول / لا شبكة) يُبتلع بصدق ويُرجِع False دون رمي.
     """
-    if not _valid_uuid_text(field_id):
+    if not _valid_field_id_text(field_id):
         logger.warning("raster_assets insert skipped: missing/invalid field_id=%r", field_id)
         return False
     if tenant_id is not None and str(tenant_id).strip() and not _valid_uuid_text(tenant_id):

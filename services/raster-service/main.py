@@ -36,6 +36,7 @@ from __future__ import annotations
 import hmac
 import logging
 import os
+import re
 import uuid
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
@@ -1264,6 +1265,17 @@ def _is_valid_uuid_text(value: str | None) -> bool:
         return False
 
 
+# معرّف الحقل القانونيّ نصّيّ (fld_<hex>) والعمود raster_assets.field_id هو
+# VARCHAR(50) لا UUID — فرضُ UUID عليه أسقط الحفظ لكلّ حقل حقيقيّ بصمت
+# (بلاغ 2026-07-04). tenant_id يبقى UUID (عموده UUID فعلاً — قصد تصليب 06-26).
+_FIELD_ID_TEXT_RE = re.compile(r"^[A-Za-z0-9_-]{1,50}$")
+
+
+def _is_valid_field_id_text(value: str | None) -> bool:
+    """معرّف حقل آمن لعمود VARCHAR(50): fld_* أو UUID — لا فارغ/محارف غريبة."""
+    return bool(value) and bool(_FIELD_ID_TEXT_RE.fullmatch(str(value).strip()))
+
+
 def _persist_raster_asset(
     req: ProcessRequest, cog_url: str, meta: dict, bounds: list, stats: dict
 ) -> None:
@@ -1273,7 +1285,7 @@ def _persist_raster_asset(
     أحداث في خيطه؛ لذا asyncio.run آمن هنا. غياب القاعدة (لا DATABASE_URL/
     لا جدول/لا شبكة) يُبتلع بصدق ولا يُفشل المعالجة.
     """
-    if not _is_valid_uuid_text(req.field_id):
+    if not _is_valid_field_id_text(req.field_id):
         logger.warning("raster_assets persist skipped: missing/invalid field_id=%r", req.field_id)
         return
     if (
