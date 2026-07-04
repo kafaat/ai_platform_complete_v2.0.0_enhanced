@@ -452,6 +452,71 @@
       "endpoint": "/api/v1/outcome/measure (POST)",
       "audience": "agronomist",
       "evidence": "/api/v1/outcome/measure"
+    },
+    {
+      "endpoint": "/api/v1/propagation/crop",
+      "audience": "agronomist",
+      "evidence": "/api/v1/propagation/crop"
+    },
+    {
+      "endpoint": "/api/v1/postharvest/best-practices",
+      "audience": "agronomist",
+      "evidence": "/api/v1/postharvest/best-practices"
+    },
+    {
+      "endpoint": "/api/v1/coffee/guide",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/guide"
+    },
+    {
+      "endpoint": "/api/v1/coffee/varieties",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/varieties"
+    },
+    {
+      "endpoint": "/api/v1/coffee/pests",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/pests"
+    },
+    {
+      "endpoint": "/api/v1/water-harvesting/potential",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-harvesting/potential"
+    },
+    {
+      "endpoint": "/api/v1/water-harvesting/methods",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-harvesting/methods"
+    },
+    {
+      "endpoint": "/api/v1/water-harvesting/method-guide",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-harvesting/method-guide"
+    },
+    {
+      "endpoint": "/api/v1/irrigation-method",
+      "audience": "agronomist",
+      "evidence": "/api/v1/irrigation-method"
+    },
+    {
+      "endpoint": "/api/v1/water-sensitivity/calendar",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-sensitivity/calendar"
+    },
+    {
+      "endpoint": "/api/v1/seasonal-risk/calendar",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seasonal-risk/calendar"
+    },
+    {
+      "endpoint": "/api/v1/seasonal-risk/chill-hours",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seasonal-risk/chill-hours"
+    },
+    {
+      "endpoint": "/api/v1/climate-analogs/list",
+      "audience": "agronomist",
+      "evidence": "/api/v1/climate-analogs/list"
     }
   ]
 }

@@ -1278,6 +1278,179 @@ export function useRecordRevenue(): ReturnType<typeof useMutation<unknown, Error
   });
 }
 
+// ── Agro-Knowledge — طبقة معرفة زراعيّة يتيمة (إكثار/ما بعد الحصاد/البنّ اليمنيّ) ──
+// معرفة مرجعيّة نقيّة من مصادر موثّقة ⇒ staleTime طويل (وكيل C).
+import type {
+  CropPropagation, PostharvestBestPractices,
+  CoffeeGuide, CoffeeVarieties, CoffeePests,
+} from '../lib/fieldAgroKnowledge';
+
+/** طريقة الإكثار المناسبة لمحصول الحقل (لا يُستدعى بلا محصول). */
+export function useCropPropagation(cropLabel: string | null | undefined): UseQueryResult<CropPropagation> {
+  return useQuery<CropPropagation>({
+    queryKey: ['propagation-crop', cropLabel ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/propagation/crop', { params: { crop: cropLabel } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!cropLabel,
+    retry:    false,
+  });
+}
+
+/** أفضل ممارسات ما بعد الحصاد (crop اختياريّ يضيف عتبة الرطوبة). */
+export function usePostharvestBestPractices(
+  cropLabel: string | null | undefined,
+  enabled = true,
+): UseQueryResult<PostharvestBestPractices> {
+  return useQuery<PostharvestBestPractices>({
+    queryKey: ['postharvest-best-practices', cropLabel ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/postharvest/best-practices', { params: { crop: cropLabel || undefined } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** دليل زراعة البنّ اليمنيّ (يُفعَّل فقط حين يكون المحصول بُنّاً). */
+export function useCoffeeGuide(enabled = true): UseQueryResult<CoffeeGuide> {
+  return useQuery<CoffeeGuide>({
+    queryKey: ['coffee-guide'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/guide').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** أصناف البنّ اليمنيّة (يُفعَّل للبنّ فقط). */
+export function useCoffeeVarieties(enabled = true): UseQueryResult<CoffeeVarieties> {
+  return useQuery<CoffeeVarieties>({
+    queryKey: ['coffee-varieties'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/varieties').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** آفات البنّ الرئيسيّة المرتبطة بـIPM (يُفعَّل للبنّ فقط). */
+export function useCoffeePests(enabled = true): UseQueryResult<CoffeePests> {
+  return useQuery<CoffeePests>({
+    queryKey: ['coffee-pests'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/pests').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── حصاد المياه + طريقة الريّ — /api/v1/water-harvesting/* و/api/v1/irrigation-method (وكيل B) ──
+import type {
+  HarvestPotentialResponse, HarvestingMethodsResponse, IrrigationMethodsResponse, MethodGuideResponse,
+} from '../lib/waterHarvesting';
+
+/** إمكانات حصاد مياه الأمطار — من قياسَي مساحة/مطر يُدخِلهما المستخدم (لا تخمين). */
+export function useWaterHarvestPotential(areaM2: number | null, rainMm: number | null, surface: string, enabled = true): UseQueryResult<HarvestPotentialResponse> {
+  return useQuery<HarvestPotentialResponse>({
+    queryKey: ['water-harvest-potential', areaM2 ?? 'none', rainMm ?? 'none', surface],
+    queryFn:  () => kongApi.get('/api/v1/water-harvesting/potential', { params: { catchment_area_m2: areaM2, annual_rain_mm: rainMm, surface } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && areaM2 != null && rainMm != null,
+    retry:    false,
+  });
+}
+
+/** طرق حصاد المياه التراثيّة اليمنيّة (مدرّجات/عقوم/كرفان/مصاطب كنتوريّة). */
+export function useWaterHarvestingMethods(enabled = true): UseQueryResult<HarvestingMethodsResponse> {
+  return useQuery<HarvestingMethodsResponse>({
+    queryKey: ['water-harvesting-methods'],
+    queryFn:  () => kongApi.get('/api/v1/water-harvesting/methods').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** دليل طريقة حصاد محدّدة (فوائد + الأنسب + تحذير) — حكم الخادم يمرّ كما هو. */
+export function useWaterHarvestMethodGuide(method: string | null): UseQueryResult<MethodGuideResponse> {
+  return useQuery<MethodGuideResponse>({
+    queryKey: ['water-harvest-method-guide', method ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/water-harvesting/method-guide', { params: { method } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!method,
+    retry:    false,
+  });
+}
+
+/** ملامح طرق الريّ الخمس (كفاءات FAO موسومة calibrated=false — تحذيراتها تُعرَض). */
+export function useIrrigationMethodProfiles(enabled = true): UseQueryResult<IrrigationMethodsResponse> {
+  return useQuery<IrrigationMethodsResponse>({
+    queryKey: ['irrigation-method-profiles'],
+    queryFn:  () => kongApi.get('/api/v1/irrigation-method').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── مخاطر المناخ والماء — حساسيّة المراحل المائيّة + المخاطر الموسميّة + المناطق المشابهة (وكيل A) ──
+import type {
+  ChillHoursResponse, ClimateAnalogsListResponse, SeasonalRiskCalendarResponse, WaterCalendarResponse,
+} from '../lib/fieldClimateRisk';
+
+/** التقويم المائيّ لمحصول (FAO-56 + سياق يمنيّ — معرفة مرجعيّة ثابتة ⇒ staleTime طويل).
+ *  يقبل المفتاح الإنجليزيّ أو الاسم العربيّ (الخادم يحلّ المرادفات). */
+export function useWaterSensitivityCalendar(
+  crop: string | null | undefined,
+  enabled = true,
+): UseQueryResult<WaterCalendarResponse> {
+  return useQuery<WaterCalendarResponse>({
+    queryKey: ['water-sensitivity-calendar', crop ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/water-sensitivity/calendar', { params: { crop } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!crop,
+    retry:    false,
+  });
+}
+
+/** نوافذ المخاطر المناخيّة الموسميّة لإقليم (اختيار المستخدم — لا يُستدعى بلا إقليم). */
+export function useSeasonalRiskCalendar(
+  zone: string | null | undefined,
+  enabled = true,
+): UseQueryResult<SeasonalRiskCalendarResponse> {
+  return useQuery<SeasonalRiskCalendarResponse>({
+    queryKey: ['seasonal-risk-calendar', zone ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seasonal-risk/calendar', { params: { zone } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!zone,
+    retry:    false,
+  });
+}
+
+/** تقدير ساعات البرودة لإقليم + حكم الخادم على الأشجار المتساقطة (can_satisfy). */
+export function useChillHoursEstimate(
+  zone: string | null | undefined,
+  enabled = true,
+): UseQueryResult<ChillHoursResponse> {
+  return useQuery<ChillHoursResponse>({
+    queryKey: ['seasonal-risk-chill-hours', zone ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seasonal-risk/chill-hours', { params: { zone } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!zone,
+    retry:    false,
+  });
+}
+
+/** المناطق العالميّة المشابهة مناخيّاً (مرجعيّة ثابتة — تُجلَب عند فتح القسم فقط). */
+export function useClimateAnalogRegions(enabled = true): UseQueryResult<ClimateAnalogsListResponse> {
+  return useQuery<ClimateAnalogsListResponse>({
+    queryKey: ['climate-analogs-list'],
+    queryFn:  () => kongApi.get('/api/v1/climate-analogs/list').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

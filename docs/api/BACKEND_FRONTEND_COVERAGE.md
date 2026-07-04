@@ -9,13 +9,13 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 36 | 19 |
-| farmer | 158 | 111 |
+| agronomist | 36 | 20 |
+| farmer | 158 | 113 |
 | internal | 10 | 1 |
 | manager | 35 | 27 |
-| unclassified | 394 | 90 |
+| unclassified | 394 | 102 |
 
-العقد الملزِم (core): 57 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 71 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -105,13 +105,13 @@
 | `/api/v1/chemical-safety/check` | unclassified | — |
 | `/api/v1/climate-analogs/desert-crops` | unclassified | — |
 | `/api/v1/climate-analogs/detail` | unclassified | — |
-| `/api/v1/climate-analogs/list` | unclassified | — |
+| `/api/v1/climate-analogs/list` | unclassified | ✅ |
 | `/api/v1/climate-analogs/strategic-tiers` | unclassified | — |
 | `/api/v1/climate-analogs/strategy` | unclassified | — |
-| `/api/v1/coffee/guide` | unclassified | — |
-| `/api/v1/coffee/pests` | unclassified | — |
+| `/api/v1/coffee/guide` | unclassified | ✅ |
+| `/api/v1/coffee/pests` | unclassified | ✅ |
 | `/api/v1/coffee/site-suitability` | unclassified | — |
-| `/api/v1/coffee/varieties` | unclassified | — |
+| `/api/v1/coffee/varieties` | unclassified | ✅ |
 | `/api/v1/commands/{command_id}` | unclassified | ✅ |
 | `/api/v1/confidence-gate` | unclassified | — |
 | `/api/v1/confidence/irrigation` | unclassified | — |
@@ -288,9 +288,9 @@
 | `/api/v1/ipm/crop-pests` | unclassified | — |
 | `/api/v1/ipm/pests` | unclassified | — |
 | `/api/v1/ipm/plan` | unclassified | — |
-| `/api/v1/irrigation-method` | farmer | — |
+| `/api/v1/irrigation-method` | farmer | ✅ |
 | `/api/v1/irrigation-method/gross` | farmer | — |
-| `/api/v1/irrigation-method/{method}` | farmer | — |
+| `/api/v1/irrigation-method/{method}` | farmer | ✅ |
 | `/api/v1/irrigation-plan` | farmer | ✅ |
 | `/api/v1/irrigation-recommendation` | farmer | — |
 | `/api/v1/irrigation/moisture-decision` | farmer | — |
@@ -330,7 +330,7 @@
 | `/api/v1/operations/summary` | unclassified | ✅ |
 | `/api/v1/orchard/economics` | unclassified | — |
 | `/api/v1/orchard/plan` | unclassified | — |
-| `/api/v1/outcome/measure` | agronomist | — |
+| `/api/v1/outcome/measure` | agronomist | ✅ |
 | `/api/v1/outcome/record` | agronomist | — |
 | `/api/v1/pest-escalation/run` | unclassified | ✅ |
 | `/api/v1/planting/check` | agronomist | ✅ |
@@ -338,12 +338,12 @@
 | `/api/v1/planting/window` | agronomist | — |
 | `/api/v1/policy-learning/threshold-suggestions` | unclassified | — |
 | `/api/v1/portfolio/command` | unclassified | ✅ |
-| `/api/v1/postharvest/best-practices` | unclassified | — |
+| `/api/v1/postharvest/best-practices` | unclassified | ✅ |
 | `/api/v1/postharvest/moisture-check` | unclassified | — |
 | `/api/v1/postharvest/pests` | unclassified | — |
 | `/api/v1/practices/guide` | unclassified | — |
 | `/api/v1/practices/list` | unclassified | — |
-| `/api/v1/propagation/crop` | unclassified | — |
+| `/api/v1/propagation/crop` | unclassified | ✅ |
 | `/api/v1/propagation/method-guide` | unclassified | — |
 | `/api/v1/propagation/methods` | unclassified | — |
 | `/api/v1/propagation/rootstock` | unclassified | — |
@@ -384,8 +384,8 @@
 | `/api/v1/scenario/water-twin` | unclassified | — |
 | `/api/v1/scouting/pins` | agronomist | ✅ |
 | `/api/v1/scouting/taxonomy` | agronomist | ✅ |
-| `/api/v1/seasonal-risk/calendar` | unclassified | — |
-| `/api/v1/seasonal-risk/chill-hours` | unclassified | — |
+| `/api/v1/seasonal-risk/calendar` | unclassified | ✅ |
+| `/api/v1/seasonal-risk/chill-hours` | unclassified | ✅ |
 | `/api/v1/seasonal-risk/stage-check` | unclassified | — |
 | `/api/v1/seasons/{season_id}/simulate` | farmer | ✅ |
 | `/api/v1/seed/criteria` | unclassified | — |
@@ -410,11 +410,11 @@
 | `/api/v1/tenant/config` | unclassified | ✅ |
 | `/api/v1/trials/analyze` | unclassified | — |
 | `/api/v1/water-balance` | unclassified | — |
-| `/api/v1/water-harvesting/method-guide` | unclassified | — |
-| `/api/v1/water-harvesting/methods` | unclassified | — |
-| `/api/v1/water-harvesting/potential` | unclassified | — |
+| `/api/v1/water-harvesting/method-guide` | unclassified | ✅ |
+| `/api/v1/water-harvesting/methods` | unclassified | ✅ |
+| `/api/v1/water-harvesting/potential` | unclassified | ✅ |
 | `/api/v1/water-harvesting/upstream-flood` | unclassified | — |
-| `/api/v1/water-sensitivity/calendar` | unclassified | — |
+| `/api/v1/water-sensitivity/calendar` | unclassified | ✅ |
 | `/api/v1/water-sensitivity/crops` | unclassified | — |
 | `/api/v1/water-sensitivity/integrated-advice` | unclassified | — |
 | `/api/v1/water-sensitivity/stress-risk` | unclassified | — |
