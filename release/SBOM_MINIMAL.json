@@ -875,6 +875,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "518f861f60f99db21479f70862d2c65f5d36b7ef191a9004d9cc4ecc0b6a19ba"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FieldObjectivePanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2cbb6cce9c6513c897bacf16eee791fcba7ba9dfc8d4a1a20c554b978bbc7a33"
         }
       ],
@@ -1995,6 +2005,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "93ca9abafee2fb83251a20c16d63d009f183803f9e73597064676fd8b5a1b1d2"
+        }
+      ],
+      "name": "frontend/src/lib/fieldActionLifecycle.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c28299c23fd28a75cd148194ae8563f35c704b4c2d6238def9924d9088707e2d"
+        }
+      ],
+      "name": "frontend/src/lib/fieldActionLifecycle.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b90d68827ee6cc379db064364193006dd8433a486981f39fb8e4087dae04ad2c"
         }
       ],
@@ -2109,6 +2139,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldMapView.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "444adb42a0da3ff098df8477fbac4824b8cae03267c28fa821a9540e3e77ead5"
+        }
+      ],
+      "name": "frontend/src/lib/fieldObjectiveEngine.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "95e59ce5a20103f16b394ecc548ca3cbc3a542de36c3f4303e300ebe65538a03"
+        }
+      ],
+      "name": "frontend/src/lib/fieldObjectiveEngine.ts",
       "type": "file"
     },
     {
